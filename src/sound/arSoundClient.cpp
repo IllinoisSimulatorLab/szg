@@ -96,6 +96,13 @@ arSoundClient::arSoundClient():
   __globalSoundClient = this;
 }
 
+// BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
+// It is NOT a good idea to initialize system-y things in 
+// constructors. This has reared its ugly head AGAIN and AGAIN.
+// (for instance, because of the global init for sockets on Win32
+// NO arSZGClient can be declared a static global. Below, the
+// problem is using ostream in a dylib (libarSound.dylib) on
+// Mac OS X.
 bool arSoundClient::_initSound(){
 #ifndef EnableSound
   cerr << "syzygy warning: FMOD disabled, compiled with stub.\n";
