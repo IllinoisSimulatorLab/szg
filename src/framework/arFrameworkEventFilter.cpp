@@ -9,17 +9,53 @@
 
 arFrameworkEventFilter::arFrameworkEventFilter( arSZGAppFramework* fw ) :
   _framework( fw ) {
+  ar_mutex_init( &_queueMutex );
 }
 
-arCallbackEventFilter::arCallbackEventFilter( arSZGAppFramework* fw, arFrameworkEventCallback cb ) :
+void arFrameworkEventFilter::queueEvent( const arInputEvent& event ) {
+  ar_mutex_lock( &_queueMutex );
+  _queue.appendEvent( event );
+  ar_mutex_unlock( &_queueMutex );
+}
+
+bool arFrameworkEventFilter::processEventQueue() {
+  ar_mutex_lock( &_queueMutex );
+  arInputEventQueue queue( _queue );
+  _queue.clear();
+  ar_mutex_unlock( &_queueMutex );
+  return _processEventQueue( queue );
+}
+
+void arFrameworkEventFilter::flushEventQueue() {
+  ar_mutex_lock( &_queueMutex );
+  _queue.clear();
+  ar_mutex_unlock( &_queueMutex );
+}
+
+arCallbackEventFilter::arCallbackEventFilter( arSZGAppFramework* fw,
+                                              arFrameworkEventCallback cb,
+                                              arFrameworkEventQueueCallback qcb ) :
   arFrameworkEventFilter(fw),
-  _callback(cb) {
+  _callback(cb),
+  _queueCallback(qcb) {
 }
 
 bool arCallbackEventFilter::_processEvent( arInputEvent& inputEvent ) {
-  if (!_callback) { // not an error, just no event-handling
+  bool stat(true);
+  if (_callback) {
+    stat = _callback( inputEvent, this );
+  }
+  if (_queueCallback) {
+    queueEvent( inputEvent );
+  }
+  return stat;
+}
+
+bool arCallbackEventFilter::_processEventQueue( arInputEventQueue& queue ) {
+  if (!_queueCallback) { // not an error, just no event-handling
     return true;
   }
-  return _callback( inputEvent, (arIOFilter*)this, getFramework() );
+  bool stat = _queueCallback( queue, this );
+  return stat;
 }
 

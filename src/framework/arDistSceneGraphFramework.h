@@ -61,6 +61,17 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   bool lockNode(int ID);
   bool unlockNode(int ID);
   
+  bool processEventQueue() {
+    if (_eventFilter) {
+      return _eventFilter->processEventQueue();
+    }
+  }
+  void flushEventQueue() { 
+    if (_eventFilter) {
+      _eventFilter->flushEventQueue();
+    }
+  }
+
  private:
   arGraphicsServer _graphicsServer;
   arGraphicsPeer _graphicsPeer;

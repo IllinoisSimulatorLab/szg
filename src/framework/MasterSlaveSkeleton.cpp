@@ -101,7 +101,7 @@ arMatrix4 squareMatrixTransfer;
 
 // start callback (called in arMasterSlaveFramework::start()
 //
-bool start( arMasterSlaveFramework& framework, arSZGClient& cli ) {
+bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
   // Register shared memory.
   //  framework.addTransferField( char* name, void* address, arDataType type, int numElements ); e.g.
   framework.addTransferField("squareHighlighted", &squareHighlightedTransfer, AR_INT, 1);

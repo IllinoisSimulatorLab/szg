@@ -50,15 +50,34 @@ void drawWand( const arEffector* effector ) {
 //  ar_mutex_unlock(&databaseLock);
 }
 
-bool inputEventCallback( arInputEvent& event, arIOFilter* filter, arSZGAppFramework* framework ) {
+bool inputEventCallback( arInputEvent& event, arCallbackEventFilter* filter ) {
   ar_mutex_lock(&databaseLock);
   dragWand.updateState( event );
   headEffector.updateState( event );
-  framework->navUpdate( event );
+  filter->getFramework()->navUpdate( event );
   // Currently, the joystick driver on windows DOES NOT guarantee a stream
   // of input events when the stick is held in a given position. Consequently,
   // the navigation matrix should be updated every frame.
-  framework->loadNavMatrix();
+  // NOTE: this callback will generally be called many times/frame.
+  filter->getFramework()->loadNavMatrix();
+  dragWand.draw();
+  
+  ar_mutex_unlock(&databaseLock);
+  return true;
+}
+
+bool inputEventQueueCallback( arInputEventQueue& queue, arCallbackEventFilter* filter ) {
+  ar_mutex_lock(&databaseLock);
+  while (!queue.empty()) {
+    arInputEvent event = queue.popNextEvent();
+    dragWand.updateState( event );
+    headEffector.updateState( event );
+    filter->getFramework()->navUpdate( event );
+  }
+  // Currently, the joystick driver on windows DOES NOT guarantee a stream
+  // of input events when the stick is held in a given position. Consequently,
+  // the navigation matrix should be updated every frame.
+  filter->getFramework()->loadNavMatrix();
   dragWand.draw();
   
   ar_mutex_unlock(&databaseLock);
@@ -114,6 +133,11 @@ void worldAlter(void* f){
         ar_mutex_unlock(&databaseLock);
       }
     }
+
+    // necessary if we're using the inputEventQueueCallback to process buffered
+    // events in batches (as opposed to inputEventCallback, which handles each
+    // event as it comes in).
+    framework->processEventQueue();
 
     // Handle cube-dragging
     ar_pollingInteraction( dragWand, interactionList );
@@ -221,7 +245,8 @@ int main(int argc, char** argv){
   // Configure stereo view.
   framework.setEyeSpacing( 6/(2.54*12) );
   framework.setClipPlanes( .2, 1000. );
-  framework.setEventCallback( inputEventCallback );
+//  framework.setEventCallback( inputEventCallback );
+  framework.setEventQueueCallback( inputEventQueueCallback );
   // the worldAlter thread is an application thread that we want the
   // framework to halt
   framework.useExternalThread();

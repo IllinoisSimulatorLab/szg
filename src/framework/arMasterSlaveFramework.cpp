@@ -151,7 +151,7 @@ class arMasterSlaveRenderCallback : public arRenderCallback {
     arMasterSlaveFramework* _framework;
 };
 void arMasterSlaveRenderCallback::operator()( arGraphicsWindow&, 
-                                              arViewport& v ) {
+                                              arViewport& ) {
   if (!_framework)
     return;
   _framework->_draw();
@@ -588,6 +588,9 @@ void arMasterSlaveFramework::preDraw(){
   // arMasterSlaveFramework::getButton() or some other method in that callback
   if (getMaster()){
     _pollInputData();
+    if (_eventFilter) {
+      _eventFilter->processEventQueue();
+    }
     if (_preExchange){
       _preExchange(*this);
     }
@@ -1766,10 +1769,16 @@ void arMasterSlaveFramework::_messageTask(){
         // tmp = 6 glFrustum params followed by 9 gluLookat params
         float tmp[15];
         int numberArgs = ar_parseFloatString(messageBody, tmp, 15);
-		// The Irix compiler does not like things like foo(&constructor(...)),
-		// consequently, use temp
-		arPerspectiveCamera temp( tmp, tmp+6 );
-        _graphicsWindow.setCamera( &temp );
+        if (numberArgs != 15) {
+          cerr << "arMasterSlaveFramework warning: body of 'look' message "
+               << "contained wrong number of args\n  ("
+               << numberArgs << ", should be 15).\n";
+        } else {
+          // The Irix compiler does not like things like foo(&constructor(...)),
+          // consequently, use temp
+          arPerspectiveCamera temp( tmp, tmp+6 );
+          _graphicsWindow.setCamera( &temp );
+        }
       }
     }
     

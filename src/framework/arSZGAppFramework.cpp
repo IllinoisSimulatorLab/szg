@@ -192,6 +192,12 @@ void arSZGAppFramework::setEventCallback( arFrameworkEventCallback callback ) {
   cout << "arSZGAppFramework remark: event callback set.\n";
 }
 
+void arSZGAppFramework::setEventQueueCallback( arFrameworkEventQueueCallback callback ) {
+  _callbackFilter.setQueueCallback( callback );
+  setEventFilter(0);
+  cout << "arSZGAppFramework remark: event queue callback set.\n";
+}
+
 static bool ___firstNavLoad = true;
 
 void arSZGAppFramework::_loadNavParameters() {

@@ -82,7 +82,7 @@ void mousePosition(int x, int y){
   simulator.mousePosition(x,y);
 }
 
-void messageTask(void* pClient){
+void messageTask(void* /*pClient*/){
   string messageType, messageBody;
   while (true) {
     if (!client->receiveMessage(&messageType,&messageBody)){
