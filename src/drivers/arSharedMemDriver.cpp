@@ -50,10 +50,11 @@ inline float generateAxis(int ID, const void* m){
 
 inline arMatrix4 generateMatrix(const int ID, const void* mRaw){
   float mLocal[6];
-  float* m = (float*)mRaw;
+  float* m = ((float*)mRaw) + 7 + ID*10;
   if (ID == 1) {
+    // Compute wand matrix's offset.
     // The offset for the head matrix seems to occur in the vrco trackd.
-    memcpy(mLocal, m + 7 + ID*10, sizeof(mLocal));
+    memcpy(mLocal, m, sizeof(mLocal));
     m = mLocal;
     m[3] += 15;
     if (m[3] < -180.)
@@ -138,12 +139,11 @@ void arSharedMemDriver::_detachMemory() {
 bool arSharedMemDriver::stop() {
   if (_stopped)
     return true;
-
   _stopped = true;
+
   _detachMemory();
   while (_eventThreadRunning)
     ar_usleep(10000);
-
   return true;
 }
 
@@ -163,21 +163,12 @@ void arSharedMemDriver::_dataThread() {
     queueAxis(0, generateAxis(0, _shmWand));
     queueAxis(1, generateAxis(1, _shmWand));
 
-  //    printf("Matrix head: \n");
-  //    cout << generateMatrix(0, _shmHead) << endl;
-  //    printf("\nMatrix wand: \n");
-  //    cout << generateMatrix(1, _shmHead) << endl;
-  //    printf("\nAxes %.2f %.2f\n",
-  //      generateAxis(0, _shmWand), generateAxis(1, _shmWand));
-
     for (int i=0; i<8; i++){
 	const int button = generateButton(i, _shmWand);
 	// send only state changes
 	if (button != _buttonPrev[i]){
 	  queueButton(i, button);
 	  _buttonPrev[i] = button;
-
-  //    printf("\tButton %d %s\n", i, button ? "ON!" : "off");
 	}
     }
 
