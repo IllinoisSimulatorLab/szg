@@ -264,6 +264,7 @@ arGraphicsPeer::arGraphicsPeer(){
   _client = NULL;
   _incomingQueue = new arQueuedData();
   _dataServer = new arDataServer(1000);
+  _dataServer->smallPacketOptimize(true);
 
   _requestedNodeID = -1;
 
