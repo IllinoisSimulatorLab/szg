@@ -10,7 +10,7 @@
 int main(int argc, char** argv){
   // NOTE: arSZGClient::init(...) must come before the argument parsing...
   // otherwise -szg user=... and -szg server=... will not work.
-  arSZGClient szgClient;
+  arSZGClient szgClient; 
   szgClient.init(argc, argv);
   if (!szgClient) {
     cerr << "dget error: failed to initialize SZGClient.\n";

@@ -16,5 +16,4 @@ arPhleetTemplate::arPhleetTemplate(const string& name){
 }
 
 arPhleetTemplate::~arPhleetTemplate(){
-
 }

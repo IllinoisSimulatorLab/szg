@@ -88,23 +88,23 @@ arStructuredData$(OBJ_SUFFIX): arStructuredData.cpp
 arPrecompiled$(OBJ_SUFFIX): arPrecompiled.cpp
 	$(PRECOMPILED_HEADER_LINE)
 
-RS232EchoTest$(EXE): $(MYLIB) RS232EchoTest$(OBJ_SUFFIX)
+RS232EchoTest$(EXE): $(SZG_CURRENT_DLL) RS232EchoTest$(OBJ_SUFFIX)
 	$(SZG_EXE_FIRST) RS232EchoTest$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
-RS232SendTest$(EXE): $(MYLIB) RS232SendTest$(OBJ_SUFFIX)
+RS232SendTest$(EXE): $(SZG_CURRENT_DLL) RS232SendTest$(OBJ_SUFFIX)
 	$(SZG_EXE_FIRST) RS232SendTest$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
-TestLanguageClient$(EXE): $(MYLIB) TestClient$(OBJ_SUFFIX)
+TestLanguageClient$(EXE): $(SZG_CURRENT_DLL) TestClient$(OBJ_SUFFIX)
 	$(SZG_EXE_FIRST) TestClient$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
-TestLanguage$(EXE): $(MYLIB) Test$(OBJ_SUFFIX)
+TestLanguage$(EXE): $(SZG_CURRENT_DLL) Test$(OBJ_SUFFIX)
 	$(SZG_EXE_FIRST) Test$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
-TestLanguageServer$(EXE): $(MYLIB) TestServer$(OBJ_SUFFIX)
+TestLanguageServer$(EXE): $(SZG_CURRENT_DLL) TestServer$(OBJ_SUFFIX)
 	$(SZG_EXE_FIRST) TestServer$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 

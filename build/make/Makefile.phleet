@@ -1,3 +1,6 @@
+SZG_INCLUDE_STYLE = INTERNAL
+include $(SZGHOME)/build/make/Makefile.vars
+
 VPATH = ../../../src/phleet
 
 # DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
@@ -10,21 +13,28 @@ OBJS = \
   arPhleetOSLanguage$(OBJ_SUFFIX) \
   arPhleetTemplate$(OBJ_SUFFIX)
 
-MYLIB = libarPhleet.a
-$(MYLIB): $(OBJS)
-	$(AR) ru $@ $^
-	$(RANLIB) $@
-MYLIBS = ../language/libarLanguage.a
+# Local variable definitions for the build.
+# These internal library makefiles ONLY include the external files necessary
+# to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
+# Makefile.defines neglects to define these)
+SZG_INCLUDE = -I$(SZGHOME)/src/language
+SZG_LINK_LIBS = $(GENERAL_LIBS)
+SZG_OPTIONAL_LIBS = 
+SZG_LIBRARY_LIBS = \
+  $(SZGHOME)/build/$(MACHINE_DIR)/language/libarLanguage$(LIB_SUFFIX)
+SZG_CURRENT_LIB_SHORT_NAME = arPhleet
 
 ifeq ($(strip $(MACHINE)),LINUX)
-  DTOP_LIBS = -lncurses
+  SZG_OPTIONAL_LIBS += -lncurses
 endif
 
 ifeq ($(strip $(MACHINE)),WIN32)
-LINK_FLAGS += /stack:4000000
+  LINK_FLAGS += /stack:4000000
 endif
 
-ALL = \
+ALL = $(SZG_CURRENT_DLL) \
+  szgd$(EXE) \
+  szgserver$(EXE) \
   dbatch$(EXE) \
   dex$(EXE) \
   dget$(EXE) \
@@ -41,9 +51,6 @@ ALL = \
   daddinterface$(EXE) \
   ddelinterface$(EXE) \
   dports$(EXE) \
-  JavaInterface$(EXE) \
-  szgd$(EXE) \
-  szgserver$(EXE) \
   testservice$(EXE) \
   testserviceclient$(EXE) \
   dservices$(EXE) \
@@ -52,57 +59,115 @@ ALL = \
   testlock$(EXE) \
   phleettest$(EXE)
 
+# NOTE: "Everything" is the magic target name used by subsidiary targets
+# like "clean" and "create-install" (which puts all the exe's in a particular
+# place)
 Everything: $(ALL)
 
-dbatch$(EXE): dbatch$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-dex$(EXE): dex$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-dget$(EXE): dget$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-dhunt$(EXE): dhunt$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-dkill$(EXE): dkill$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-dlogin$(EXE): dlogin$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-dlogout$(EXE): dlogout$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-dps$(EXE): dps$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-dset$(EXE): dset$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-dtop$(EXE): dtop$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK) $(DTOP_LIBS)
-dwho$(EXE): dwho$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-dname$(EXE): dname$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-dconfig$(EXE): dconfig$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-daddinterface$(EXE): daddinterface$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-ddelinterface$(EXE): ddelinterface$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-dports$(EXE): dports$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-JavaInterface$(EXE): JavaInterface$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-szgd$(EXE): szgd$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-szgserver$(EXE): szgserver$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-testservice$(EXE): testservice$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-testserviceclient$(EXE): testserviceclient$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-dservices$(EXE): dservices$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-dpending$(EXE): dpending$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-dlocks$(EXE): dlocks$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-testlock$(EXE): testlock$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-phleettest$(EXE): phleettest$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
+# NOTE: We MUST compile the precompiled header FIRST on Windows.
+$(SZG_CURRENT_DLL): $(OBJS)
+	$(LINK_SZG_LIB)
+	$(COPY)
+
+# This should go AFTER our FIRST target (because Makefile.rules includes
+include $(SZGHOME)/build/make/Makefile.rules
+
+szgd$(EXE): szgd$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) szgd$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+szgserver$(EXE): szgserver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) szgserver$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+dbatch$(EXE): dbatch$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) dbatch$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+dex$(EXE): dex$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) dex$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+dget$(EXE): dget$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) dget$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+dhunt$(EXE): dhunt$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) dhunt$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+dkill$(EXE): dkill$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) dkill$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+dlogin$(EXE): dlogin$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) dlogin$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+dlogout$(EXE): dlogout$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) dlogout$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+dps$(EXE): dps$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) dps$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+dset$(EXE): dset$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) dset$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+dtop$(EXE): dtop$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) dtop$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+dwho$(EXE): dwho$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) dwho$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+dname$(EXE): dname$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) dname$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+dconfig$(EXE): dconfig$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) dconfig$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+daddinterface$(EXE): daddinterface$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) daddinterface$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+ddelinterface$(EXE): ddelinterface$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) ddelinterface$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+dports$(EXE): dports$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) dports$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+testservice$(EXE): testservice$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) testservice$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+testserviceclient$(EXE): testserviceclient$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) testserviceclient$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+dservices$(EXE): dservices$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) dservices$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+dpending$(EXE): dpending$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) dpending$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+dlocks$(EXE): dlocks$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) dlocks$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+testlock$(EXE): testlock$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) testlock$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+phleettest$(EXE): phleettest$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_LIBS)
+	$(SZG_EXE_FIRST) phleettest$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)

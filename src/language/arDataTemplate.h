@@ -8,6 +8,7 @@
 
 #include "arDataType.h"
 #include "arDataUtilities.h"
+#include <iostream>
 #include <string>
 #include <map>
 using namespace std;
@@ -37,12 +38,12 @@ class SZG_CALL arDataTemplate{
    arDataTemplate(const string&, int templateID = -1);
    arDataTemplate(const arDataTemplate&);
    arDataTemplate& operator=( const arDataTemplate& dataTemplate );
-   ~arDataTemplate(){}
+   ~arDataTemplate(){ cout << "AARGH! in destructor " << _templateName << "\n";}
 
    int add(const string&, arDataType);
    void addAttribute(const string& s, arDataType d); // backwards-compatible
    void setName(const string&);
-   const string& getName() const
+   string getName() const
      { return _templateName; }
    int getID() const
      { return _templateID; }

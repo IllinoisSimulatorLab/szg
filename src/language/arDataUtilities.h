@@ -16,7 +16,7 @@
 using namespace std;
 
 #ifdef AR_USE_WIN_32
-bool ar_winSockInit();
+bool SZG_CALL ar_winSockInit();
 #endif
 
 // small utility classes... for instance the STL does not have triples

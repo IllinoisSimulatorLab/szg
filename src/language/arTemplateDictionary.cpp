@@ -22,9 +22,10 @@ arTemplateDictionary::~arTemplateDictionary(){
   for (arOwnerType::iterator i = _ownershipContainer.begin();
        i != _ownershipContainer.end();
        ++i){
-    if (i->second)
+    if (i->second){
       // Template was created by the dictionary (via unpack)
       delete _templateContainer.find(i->first)->second;
+    }
   }
 }
 

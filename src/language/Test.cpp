@@ -43,12 +43,20 @@ int main(){
   int FLOAT_ID = t1.add("FLOAT ID",AR_FLOAT);
   int CHAR_ID = t2.add("CHAR ID",AR_CHAR);
   int DOUBLE_ID = t2.add("DOUBLE ID",AR_DOUBLE);
+
+  // Check that it is possible to delete a template with an attribute added.
+  // (This was a source of a perplexing error once upon a time when moving
+  // to dll's on Win32)
+  arDataTemplate* t3 = new arDataTemplate("foo");
+  t3->add("bar", AR_INT);
+  delete t3;
+
   dict1.add(&t1);
   dict1.add(&t2);
 
   arStructuredData data1(&t1);
   arStructuredData data2(&t2);
-
+  
   // We test packing/unpacking of various types of fields.
   ARint junkIntData[5];
   ARint moreIntData[5];
@@ -294,7 +302,7 @@ int main(){
     }
   }
   cout << "*** PASSED.\n";
-
+  
   cout << "Beginning unit test 3: conversion functions.\n";
 
   // conversion tests
@@ -349,7 +357,7 @@ int main(){
   cout << "*** PASSED.\n";
 
   exit(0);
-
+  
   cout << "Beginning unit test 3: XML file I/O.\n";
   // now, we will test speed of reading and writing..
   testFile = fopen("Junk.txt","w");

@@ -44,7 +44,7 @@ public:
 /// Helper class:
 /// Ensures that win32 initializes before the first arSocket is constructed.
 
-class arCommunicator {
+class SZG_CALL arCommunicator {
 #ifdef AR_USE_WIN_32
   static arMutex _lock;
   static bool _init;
