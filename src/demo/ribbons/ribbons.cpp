@@ -418,7 +418,21 @@ void erase(const arVector3& v)
 {
   ar_mutex_lock(&lockDraw);
   for_each(strokes.begin(), strokes.end(), eraseStroke(v));
-  strokes.remove_if(emptyStroke());
+  // Unpatched Visual C++ 6 does not like the following line... even though
+  // it is correct STL. Everything in szg should compile to unpatched
+  // Visual C++ 6, this is a gold standard of compatibility.
+  //strokes.remove_if(emptyStroke());
+  // Here is the equivalent code in long-hand...
+  list<stroke>::iterator strokeIter = strokes.begin();
+  while (strokeIter != strokes.end()){
+    if ( (*strokeIter).l.size() <= 4 ){
+      strokeIter = strokes.erase(strokeIter);
+    }
+    else{
+      strokeIter++;
+    }
+  }
+  // End equivalent code
 #if 0
     {
       printf("\t\tstrokes %d, FRAGMENTS %d\n", strokes.size(), fragments.size());
