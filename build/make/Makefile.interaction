@@ -1,3 +1,7 @@
+SZG_INCLUDE_STYLE = INTERNAL
+
+include $(SZGHOME)/build/make/Makefile.vars
+
 VPATH = ../../../src/interaction
 
 # DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
@@ -13,25 +17,55 @@ OBJS = \
   arNavManager$(OBJ_SUFFIX) \
   arUniqueInteractor$(OBJ_SUFFIX) \
   arInterfaceObject$(OBJ_SUFFIX) \
-  arInteractionUtilities$(OBJ_SUFFIX)
+  arInteractionUtilities$(OBJ_SUFFIX) \
+  arController$(OBJ_SUFFIX) \
+  arFlyingGravisController$(OBJ_SUFFIX)
 
-MYLIB = libarInteract.a
+# Local variable definitions for the build.
+# These internal library makefiles ONLY include the external files necessary
+# to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
+# Makefile.defines neglects to define these)
+SZG_INCLUDE = \
+  -I$(SZGHOME)/src/language \
+  -I$(SZGHOME)/src/phleet \
+  -I$(SZGHOME)/src/math \
+  -I$(SZGHOME)/src/barrier \
+  -I$(SZGHOME)/src/drivers \
+  -I$(SZGHOME)/src/graphics 
+SZG_LINK_LIBS = $(GRAPHICS_LIBS) $(GENERAL_LIBS)
+SZG_OPTIONAL_LIBS = 
+SZG_LIBRARY_LIBS = \
+  $(GRAPHICS_LIB_STRING) \
+  $(DRIVERS_LIB_STRING) \
+  $(BARRIER_LIB_STRING) \
+  $(MATH_LIB_STRING) \
+  $(PHLEET_LIB_STRING) \
+  $(LANGUAGE_LIB_STRING)
+SZG_LIBRARY_DEPS = \
+  $(GRAPHICS_DEP_STRING) \
+  $(DRIVERS_DEP_STRING) \
+  $(BARRIER_DEP_STRING) \
+  $(MATH_DEP_STRING) \
+  $(PHLEET_DEP_STRING) \
+  $(LANGUAGE_DEP_STRING)
+SZG_CURRENT_LIB_SHORT_NAME = arInteraction
 
-MYLIBS = \
-  ../drivers/libarDrivers.a \
-  ../graphics/libarGraphics.a \
-  ../phleet/libarPhleet.a \
-  ../barrier/libarBarrier.a \
-  ../language/libarLanguage.a \
-  ../math/libarMath.a
+ALL =   $(SZG_CURRENT_DLL)
 
-$(MYLIB): $(OBJS)
-	$(AR) ru $@ $^
-	$(RANLIB) $@
-
-ALL = $(MYLIB)
-
+# NOTE: "Everything" is the magic target name used by subsidiary targets
+# like "clean" and "create-install" (which puts all the exe's in a particular
+# place)
 Everything: $(ALL)
+
+# NOTE: We MUST compile the precompiled header FIRST on Windows.
+$(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
+	$(LINK_SZG_LIB)
+	$(COPY)
+
+# This should go AFTER our FIRST target (because Makefile.rules has rules
+# in it)
+include $(SZGHOME)/build/make/Makefile.rules
+
 
 
 

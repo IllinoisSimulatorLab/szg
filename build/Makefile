@@ -9,12 +9,12 @@ else
 
 #note that demo is still a target here... there are programs that live
 #in the top of that directory and not in subdirs
-SUBDIRS=language phleet barrier math drivers graphics sound obj interaction demo
+SUBDIRS=language phleet barrier math drivers graphics sound obj interaction framework utilities 
 # put in here whatever you're working on at the moment
 DEMOFAST = ribbons
 # isosurface has been temporarily removed from the DEMODIRS until the code
 # is brought up to data
-DEMODIRS=ribbons utilities buttonfly atlantis cosmos volume cubes hspace parade timetunnel \
+DEMODIRS=ribbons atlantis cosmos volume cubes hspace parade timetunnel \
   schprel avn q33 coaster 
 # Some of the demo-dirs also contain important executables... like the command-line controls
 # for the cube

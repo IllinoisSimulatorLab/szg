@@ -70,10 +70,6 @@ $(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
 # in it)
 include $(SZGHOME)/build/make/Makefile.rules
 
-szgrender$(EXE): szgrender$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_EXE_FIRST) szgrender$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
-	$(COPY)
-
 SoundRender$(EXE): SoundRender$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_EXE_FIRST) SoundRender$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)

@@ -1,7 +1,14 @@
 # This Makefile fragment encapsulates library scanning (where we decide
-# which of the optional libraries is present). Note that neither darwin nor
-# sgi platforms support any of the optional features
+# which of the optional libraries is present). Note that neither of the 
+# sgi platforms supports any of the optional features
 # The wildcard operator resolves to the empty string, if the file is missing.
+
+# BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
+# The library scanning needs to be modified so that absolute paths to shared
+# objects are NOT used, which makes the executables MUCH less portable than
+# they need to be across Linux (for instance) systems, because the executable
+# then depends on the shared library being in a certain spot in the 
+# filesystem (which spot might not exist from box to box).
 
 ifeq ($(strip $(MACHINE)), LINUX)
   INC_FMOD := $(wildcard $(SZGEXTERNAL)/include/fmod-3.7)
@@ -35,8 +42,8 @@ ifeq ($(strip $(MACHINE)), LINUX)
     COMPILE_FLAGS += -DEnableSound
     COMPILE_FLAGS_DEBUG += -DEnableSound
     SZG_INCLUDE_FMOD = -I$(INC_FMOD)
-    SZG_INCLUDE += -I$(INC_FMOD)
-    LIBS := $(LIB_FMOD) $(LIBS) 
+    SZG_OPT_INCLUDE_FULL += -I$(INC_FMOD)
+    SZG_OPT_LIBS_FULL += $(LIB_FMOD)
   endif
   endif
 
@@ -45,9 +52,9 @@ ifeq ($(strip $(MACHINE)), LINUX)
     # libjpeg and headers exist
     COMPILE_FLAGS += -DEnableJPEG
     COMPILE_FLAGS_DEBUG += -DEnableJPEG
-    SZG_INCLUDE += -I$(INC_JPEG)
     SZG_INCLUDE_JPEG = -I$(INC_JPEG)
-    LIBS := $(LIB_JPEG) $(LIBS) 
+    SZG_OPT_INCLUDE_FULL += -I$(INC_JPEG)
+    SZG_OPT_LIBS_FULL += $(LIB_JPEG)
   endif
   endif
 
@@ -57,8 +64,8 @@ ifeq ($(strip $(MACHINE)), LINUX)
     COMPILE_FLAGS += -DEnableZlib
     COMPILE_FLAGS_DEBUG += -DEnableZlib
     SZG_INCLUDE_ZLIB = -I$(INC_ZLIB)
-    SZG_INCLUDE += -I$(INC_ZLIB)
-    LIBS := $(LIB_ZLIB) $(LIBS)
+    SZG_OPT_INCLUDE_FULL += -I$(INC_ZLIB)
+    SZG_OPT_LIBS_FULL += $(LIB_ZLIB)
   endif
   endif
 
@@ -68,8 +75,8 @@ ifeq ($(strip $(MACHINE)), LINUX)
     COMPILE_FLAGS += -DEnable3DS
     COMPILE_FLAGS_DEBUG += -DEnable3DS
     SZG_INCLUDE_3DS = -I$(INC_3DS)
-    SZG_INCLUDE += -I$(INC_3DS)
-    LIBS := $(LIB_3DS) $(LIBS)
+    SZG_OPT_INCLUDE_FULL += -I$(INC_3DS)
+    SZG_OPT_LIBS_FULL += $(LIB_3DS)
   endif
   endif
   
@@ -80,8 +87,8 @@ ifeq ($(strip $(MACHINE)), LINUX)
     COMPILE_FLAGS += -DUSE_CG
     COMPILE_FLAGS_DEBUG += -DUSE_CG
     SZG_INCLUDE_CG = -I$(INCCG)
-    SZG_INCLUDE += -I$(INCCG)
-    LIBS := $(LIBCG) $(LIBCGGL) $(LIBS)
+    SZG_OPT_INCLUDE_FULL += -I$(INCCG)
+    SZG_OPT_LIBS_FULL += $(LIBCG) $(LIBCGGL)
   endif
   endif
   endif
@@ -92,8 +99,8 @@ ifeq ($(strip $(MACHINE)), LINUX)
     COMPILE_FLAGS += -DEnable_VRPN
     COMPILE_FLAGS_DEBUG += -DEnable_VRPN
     SZG_INCLUDE_VRPN = -I$(INC_VRPN)
-    SZG_INCLUDE += -I$(INC_VRPN)
-    LIBS := $(LIB_VRPN) $(LIBS)
+    SZG_OPT_INCLUDE_FULL += -I$(INC_VRPN)
+    SZG_OPT_LIBS_FULL += $(LIB_VRPN)
   endif
   endif
 
@@ -132,8 +139,8 @@ ifeq ($(strip $(MACHINE)), WIN32)
     COMPILE_FLAGS += -D "EnableSound"
     COMPILE_FLAGS_DEBUG += -D "EnableSound"
     SZG_INCLUDE_FMOD = -I$(INC_FMOD)
-    SZG_INCLUDE += -I$(INC_FMOD)
-    LINK_LIBS := $(LIB_FMOD) $(LINK_LIBS) 
+    SZG_OPT_INCLUDE_FULL += -I$(INC_FMOD)
+    SZG_OPT_LIBS_FULL += $(LIB_FMOD) 
   endif
   endif
 
@@ -143,8 +150,8 @@ ifeq ($(strip $(MACHINE)), WIN32)
     COMPILE_FLAGS += -D "EnableJPEG"
     COMPILE_FLAGS_DEBUG += -D "EnableJPEG"
     SZG_INCLUDE_JPEG = -I$(INC_JPEG)
-    SZG_INCLUDE += -I$(INC_JPEG)
-    LINK_LIBS := $(LIB_JPEG) $(LINK_LIBS) 
+    SZG_OPT_INCLUDE_FULL += -I$(INC_JPEG)
+    SZG_OPT_LIBS_FULL += $(LIB_JPEG)
   endif
   endif
 
@@ -154,8 +161,8 @@ ifeq ($(strip $(MACHINE)), WIN32)
     COMPILE_FLAGS += -D "EnableZlib"
     COMPILE_FLAGS_DEBUG += -D "EnableZlib"
     SZG_INCLUDE_ZLIB = -I$(INC_ZLIB)
-    SZG_INCLUDE += -I$(INC_ZLIB)
-    LINK_LIBS := $(LIB_ZLIB) $(LINK_LIBS)
+    SZG_OPT_INCLUDE_FULL += -I$(INC_ZLIB)
+    SZG_OPT_LIBS_FULL += $(LIB_ZLIB)
   endif
   endif
 
@@ -166,8 +173,8 @@ ifeq ($(strip $(MACHINE)), WIN32)
     COMPILE_FLAGS += -D "USE_CG"
     COMPILE_FLAGS_DEBUG += -D "USE_CG"
     SZG_INCLUDE_CG = -I$(INCCG)
-    SZG_INCLUDE += -I$(INCCG)
-    LINK_LIBS := $(LIBCG) $(LIBCGGL) $(LINK_LIBS)
+    SZG_OPT_INCLUDE_FULL += -I$(INCCG)
+    SZG_OPT_LIBS_FULL += $(LIBCG) $(LIBCGGL)
   endif
   endif
   endif
@@ -178,29 +185,30 @@ ifeq ($(strip $(MACHINE)), WIN32)
     COMPILE_FLAGS += -D "Enable3DS"
     COMPILE_FLAGS_DEBUG += -D "Enable3DS"
     SZG_INCLUDE_3DS = -I$(INC_3DS)
-    SZG_INCLUDE += -I$(INC_3DS)
-    LINK_LIBS := $(LIB_3DS) $(LINK_LIBS)
+    SZG_OPT_INCLUDE_FULL += -I$(INC_3DS)
+    SZG_OPT_LIBS_FULL += $(LIB_3DS)
   endif
   endif
 
+# NOTE: This only applies to one of the dynamically loadable input drivers.
+# Hence it does not add anything to the global link lines/includes.
   ifneq ($(strip $(INC_WIN_BIRD)),)
   ifneq ($(strip $(LIB_WIN_BIRD)),)
     # FoB include file AND library exist.
     COMPILE_FLAGS += -D "EnableBirdWinDriver"
     COMPILE_FLAGS_DEBUG += -D "EnableBirdWinDriver"
     SZG_INCLUDE_WIN_BIRD = -I$(INC_WIN_BIRD)
-    SZG_INCLUDE += -I$(INC_WIN_BIRD)
   endif
   endif
 
+# NOTE: This only applies to one of the dynamically loadable input drivers.
+# Hence it does not add anything to the global link lines/includes.
   ifneq ($(strip $(INC_EVART)),)
   ifneq ($(strip $(LIB_EVART)),)
     # EVaRT include and library exist
     COMPILE_FLAGS += -D "EnableEVaRT"
     COMPILE_FLAGS_DEBUG += -D "EnableEVaRT"
     SZG_INCLUDE_EVART = -I$(INC_EVART)
-    SZG_INCLUDE += -I$(INC_EVART)
-    LINK_LIBS := $(LIB_EVART) $(LINK_LIBS)
   endif
   endif
 	
@@ -210,13 +218,10 @@ ifeq ($(strip $(MACHINE)), WIN32)
     COMPILE_FLAGS += -D "EnableSpeech"
     COMPILE_FLAGS_DEBUG += -D "EnableSpeech"
     SZG_INCLUDE_SAPI = -I$(INC_SAPI)
-    SZG_INCLUDE += -I$(INC_SAPI)
+    SZG_OPT_INCLUDE_FULL += -I$(INC_SAPI)
     # DOH! It is a little obnoxious to add add ole32 this way...
     LIB_SAPI += ole32.lib
-    LINK_LIBS := $(LIB_SAPI) $(LINK_LIBS)
-    LINK_FLAGS := $(LINK_LIBS_SAPI) $(LINK_FLAGS)
-    LINK_FLAGS_DEBUG := $(LINK_LIBS_SAPI) $(LINK_FLAGS_DEBUG)
-    LINK_FLAGS_SHARED := $(LINK_LIBS_SAPI) $(LINK_FLAGS_SHARED)
+    SZG_OPT_LIBS_FULL += $(LIB_SAPI)
   endif
   endif
 
@@ -247,9 +252,9 @@ ifeq ($(strip $(MACHINE)), DARWIN)
     COMPILE_FLAGS += -DEnableSound
     COMPILE_FLAGS_DEBUG += -DEnableSound
     SZG_INCLUDE_FMOD = -I$(INC_FMOD)
-    SZG_INCLUDE += -I$(INC_FMOD)
+    SZG_OPT_INCLUDE_FULL += -I$(INC_FMOD)
     LIB_FMOD += -framework Carbon
-    LIBS := $(LIB_FMOD) $(LIBS) 
+    SZG_OPT_LIBS_FULL += $(LIB_FMOD)
   endif
   endif
 
@@ -259,8 +264,8 @@ ifeq ($(strip $(MACHINE)), DARWIN)
     COMPILE_FLAGS += -DEnableJPEG
     COMPILE_FLAGS_DEBUG += -DEnableJPEG
     SZG_INCLUDE_JPEG = -I$(INC_JPEG)
-    SZG_INCLUDE += -I$(INC_JPEG)
-    LIBS := $(LIB_JPEG) $(LIBS) 
+    SZG_OPT_INCLUDE_FULL += -I$(INC_JPEG)
+    SZG_OPT_LIBS_FULL += $(LIB_JPEG)
   endif
   endif
 
@@ -270,14 +275,14 @@ ifeq ($(strip $(MACHINE)), DARWIN)
     COMPILE_FLAGS += -DEnableZlib
     COMPILE_FLAGS_DEBUG += -DEnableZlib
     SZG_INCLUDE_ZLIB = -I$(INC_ZLIB)
-    SZG_INCLUDE += -I$(INC_ZLIB)
-    LIBS := $(LIB_ZLIB) $(LIBS)
+    SZG_OPT_INCLUDE_FULL += -I$(INC_ZLIB)
+    SZG_OPT_LIBS_FULL += $(LIB_ZLIB)
   endif
   endif
 
 endif
 
-# IRIX IS DEPRECATED... NOT LIKELY TO DO ANY MORE DEVELOPMENT HERE.
+# While Irix is not a primary platform, it is still useful from time to time.
 ifeq ($(strip $(MACHINE)), MIPS3)
   INC_FMOD := 
   LIB_FMOD := 
