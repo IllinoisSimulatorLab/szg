@@ -27,15 +27,18 @@ class arSoundFileNode : public arSoundNode{
   FSOUND_SAMPLE* _psamp;
   // The fmod channel upon which the sound is playing.
   int _channel;
-  float _amplitudePrev;
-  arVector3 _pointPrev;
-  int _fLoop; // 0 or 1, normally;  -1 means trigger NOW.
+  // This _fLoop is a HACK. It variously means
+  //  "start the loop", "pause the loop", "trigger the sound", and
+  //  "prepare to trigger the sound again"
+  int _fLoop;
   bool _fComplained[2];
   string _fileName;
   string _oldFileName;
   string _action;
+  float _triggerAmplitude;
+  arVector3 _triggerPoint;
 
-  void _adjust(bool fForce = false);
+  void _adjust(bool useTriggered = false);
 };
 
 #endif

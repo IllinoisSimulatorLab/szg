@@ -12,12 +12,12 @@ arSoundFileNode::arSoundFileNode() :
   _fInit(false),
   _psamp(NULL),
   _channel(-1),
-  _amplitudePrev(-1),
-  _pointPrev(arVector3(-1e9,-1e9,-1e9)),
   _fLoop(0),
   _fileName("NULL"),
   _oldFileName("NULL"),
-  _action("none"){
+  _action("none"),
+  _triggerAmplitude(0),
+  _triggerPoint(arVector3(0,0,0)){
 
   _fComplained[0] = _fComplained[1] = false;
 
@@ -33,31 +33,30 @@ arSoundFileNode::~arSoundFileNode(){
   }
 }
 
-void arSoundFileNode::_adjust(bool fForce){
-  if (_channel < 0){
-    // _getChan() failed, earlier.  Don't bother retrying now, just give up.
-    return;
-  }
-
-  // NOTE: doppler has yet to be added!
-  float velocity[3] = {0,0,0};
-  if (_amplitude != _amplitudePrev || fForce){
-    if (isClient()){
-      FSOUND_SetVolume(_channel, int(_amplitude * 255));
+void arSoundFileNode::_adjust(bool useTrigger){
+  if (isClient()){
+    // If fmod failed to get a channel, do nothing.
+    if (_channel < 0){
+      return;
     }
-    _amplitudePrev = _amplitude;
-  }
 
-  arVector3 point = ar_transformStack.empty() ? _point :
-    ar_transformStack.top() * _point; // apply "opengl matrix" to _point
-
-  // negate z, to swap handedness of coord systems between Syzygy and FMOD
-  point[2] = -point[2];
-  if (point != _pointPrev || fForce) {
-    if (isClient()) {
-      FSOUND_3D_SetAttributes(_channel, &point[0], velocity);
+    // NOTE: doppler has yet to be added!
+    float velocity[3] = {0,0,0};
+    arVector3 point;
+    if (!useTrigger){
+      FSOUND_SetVolume(_channel, int(_amplitude * 255)); 
+      point = ar_transformStack.empty() 
+              ? _point :ar_transformStack.top() * _point;
     }
-    _pointPrev = point;
+    else{
+      FSOUND_SetVolume(_channel, int(_triggerAmplitude * 255));
+      point = ar_transformStack.empty() 
+              ? _triggerPoint :ar_transformStack.top() * _triggerPoint;
+    }
+    // negate z, to swap handedness of coord systems between Syzygy and FMOD
+    // THIS IS NOT THE CORRECT WAY TO CHANGE COORDINATE SYSTEMS
+    point[2] = -point[2];
+    FSOUND_3D_SetAttributes(_channel, &point[0], velocity);
   }
 }
 
@@ -108,7 +107,6 @@ void arSoundFileNode::render(){
     _channel = FSOUND_PlaySoundEx(FSOUND_FREE, _psamp, NULL, 1);
   }
 
-  cout << _action << "\n";
   if (_fInit){
     // The sound is ready to go. Use it.
 
@@ -118,9 +116,8 @@ void arSoundFileNode::render(){
     // triggering fLoop of -1. NO ADJUSTMENT SHOULD OCCUR on that data!
     // (i.e. the volume might have been 0). This is a backwards compatibility
     // HACK!
-    cout << "AARGH!\n";
-    if (_fLoop == 1 || true){
-      _adjust(true);
+    if (_fLoop == 1){
+      _adjust(false);
     }
 
     if (_action == "play"){
@@ -216,7 +213,12 @@ bool arSoundFileNode::receiveData(arStructuredData* pdata){
     _action = "pause";
   }
   else if (_fLoop == -1 && fLoopPrev != -1){
+    // NOTE: we need to be able to get around the fact that only the initial
+    // volume and point location can matter in the old (messed-up)
+    // implementation.
     _action = "trigger";
+    _triggerAmplitude = _amplitude;
+    _triggerPoint = _point;
   }
   // There needs to be some stickiness. Specifically, let the render reset
   // things. i.e. DO NOT set _action == "none" here
