@@ -52,11 +52,15 @@ OBJS = \
   arMaterial$(OBJ_SUFFIX) \
   arBumpMapNode$(OBJ_SUFFIX) \
   arBumpMap$(OBJ_SUFFIX) \
-  arWildcatUtilities$(OBJ_SUFFIX)
-	
+  arWildcatUtilities$(OBJ_SUFFIX) \
+  arGUIWindowManager$(OBJ_SUFFIX) \
+  arGUIWindow$(OBJ_SUFFIX) \
+  arGUIEventManager$(OBJ_SUFFIX) \
+  arGUIInfo$(OBJ_SUFFIX)
+
 # Local variable definitions for the build.
 # These internal library makefiles ONLY include the external files necessary
-# to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
+# to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so
 # Makefile.defines neglects to define these)
 SZG_INCLUDE = \
   -I$(SZGHOME)/src/language \
