@@ -1078,7 +1078,10 @@ string ar_directoryFind(const string& name,
 		        const string& subdirectory,
 		        const string& path){
   // First, search the explicitly given path
-  FILE* result = NULL;
+  bool state;
+  bool fileExists;
+  bool isDirectory;
+  bool result = false;
   int location = 0;
   string possiblePath("junk");
   while (!result && possiblePath != ""){
@@ -1094,11 +1097,9 @@ string ar_directoryFind(const string& name,
     }
     // Do not forget to "scrub" the path!
     ar_scrubPath(possiblePath);
-    result = fopen(possiblePath.c_str(), "r");
-    if (result && !ar_isDirectory(possiblePath.c_str())){
-      // Reject this file.
-      fclose(result);
-      result = NULL;
+    state = ar_directoryExists(possiblePath, fileExists, isDirectory);
+    if (state && isDirectory){
+      result = true;
     }
   }
   
@@ -1107,16 +1108,13 @@ string ar_directoryFind(const string& name,
     possiblePath = name;
     // Do not forget to "scrub" the path!
     ar_scrubPath(possiblePath);
-    result = fopen(possiblePath.c_str(),"r");
-    if (result && !ar_isDirectory(possiblePath.c_str())){
-      // Reject this file.
-      fclose(result);
-      result = NULL;
+    state = ar_directoryExists(possiblePath, fileExists, isDirectory);
+    if (state && isDirectory){
+      result = true;
     }
   }
 
   if (result){
-    fclose(result);
     return possiblePath;
   }
   else{
