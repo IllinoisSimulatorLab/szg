@@ -1,0 +1,57 @@
+struct vertexInputs
+{
+    float4 Position     : POSITION;
+    float4 TexCoords	: TEXCOORD0;
+    float3 Tangent      : TEXCOORD1;	// also: TEXCOORD6
+    float3 Binormal     : TEXCOORD2;	// also: TEXCOORD7
+    float3 Normal       : NORMAL;
+        
+};
+
+struct interpolatedValues
+{
+    float4 DecalCoords	: TEXCOORD0;
+    float4 BumpCoords	: TEXCOORD1;
+    float4 Normal	: COLOR0;
+    //float4 LightVecUnsigned	: COL0;
+    float4 LightVec	: TEXCOORD2;
+    float4 HalfVec	: TEXCOORD3;
+};
+
+// vertex program
+float4 main(in vertexInputs IN,
+            out interpolatedValues OUT,
+            uniform float4x4 modelViewProj) : POSITION
+{
+    float4x4 modelViewProjInv = glstate.matrix.invtrans.modelview[0];
+    OUT.DecalCoords = OUT.BumpCoords = IN.TexCoords;
+
+    // compute the 3x3 transform from
+    // tangent space to object space
+    float3x3 objToTangentSpace;
+    objToTangentSpace[0] = IN.Tangent;
+    objToTangentSpace[1] = IN.Binormal;
+    objToTangentSpace[2] = IN.Normal; 
+   
+    // Normal from object to tangent space
+    OUT.Normal.xyz = 0.5*mul(objToTangentSpace, IN.Normal) + 0.5;
+    //OUT.matColor = glstate.light[0].diffuse;
+    float4 zVec = float4(0,0,1,1);
+
+    //Light-vector from world to object space
+    float3 lightVector =  //normalize(glstate.light[0].spot.direction);
+    			  normalize(mul(modelViewProjInv,
+			  //		glstate.matrix.inverse.modelview[0],
+			                glstate.light[0].spot.direction).xyz);
+    //View-vector from world to object space
+    float3 viewVector = normalize(mul(modelViewProjInv, zVec).xyz);
+    //Compute half angle vector (in object space)
+    float3 halfAngleVector = normalize(lightVector + viewVector);
+
+    //Transform light vector from object space to tangent space
+    OUT.LightVec.xyz = normalize(mul(objToTangentSpace, lightVector));
+    //Transform half-angle vector from object to tangent space
+    OUT.HalfVec.xyz  = normalize(mul(objToTangentSpace, halfAngleVector));
+
+    return mul(modelViewProj, IN.Position);
+}

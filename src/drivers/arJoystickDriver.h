@@ -1,0 +1,40 @@
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
+#ifndef AR_JOYSTICK_DRIVER_H
+#define AR_JOYSTICK_DRIVER_H
+
+#include "arInputSource.h"
+#include "arThread.h"
+#include "arInputHeaders.h"
+
+/// Driver for (USB) joysticks or gamepads.
+
+class arJoystickDriver: public arInputSource{
+  friend void ar_joystickDriverEventTask(void*);
+ public:
+  arJoystickDriver();
+  ~arJoystickDriver();
+
+  bool init(arSZGClient& client);
+  bool start();
+  bool stop();
+  bool restart();
+ private:
+  arThread _eventThread;
+  bool _pollingDone;
+  bool _shutdown;
+  arMutex _shutdownLock;
+  arConditionVar _shutdownVar;
+#ifdef AR_USE_LINUX
+  int _fd;
+#endif
+  
+#ifdef AR_USE_WIN_32
+  IDirectInputDevice2* _pStick;
+#endif
+};
+
+#endif

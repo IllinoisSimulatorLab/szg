@@ -1,0 +1,11 @@
+VPATH = ../../../../src/demo/timetunnel
+
+OBJS = TimeTunnelLayout$(OBJ_SUFFIX)
+
+ALL = timetunnel$(EXE)
+Everything: $(ALL)
+
+PRECOMPILED_HEADER_LOCATION := $(PRECOMPILED_HEADER_LOCATION_DEMO)
+
+timetunnel$(EXE): timetunnel$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBS)
+	$(DO_LINK_GRAPHICS)

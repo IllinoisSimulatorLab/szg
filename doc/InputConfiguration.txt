@@ -1,0 +1,617 @@
+How-to Get A Shared System Up And Running
+--------------------------------------------
+
+1. As of yet, Phleet is not very secure. However, you can limit the IP
+addresses authorized to connect to the Phleet. Suppose you run the szgserver
+like so:
+
+szgserver the_server_name the_server_port XXX.XXX.XXX
+
+In this case, only IP addresses on the XXX.XXX.XXX subnet will be allowed to
+connect to the szgserver. Note: if all computers on the XXX.XXX.XXX subnet
+can be trusted then this is OK, assuming that the router controlling access
+to the subnet filters incoming packets with forged internal addresses.
+
+You can test the security by going to a machine off the subnet and, assuming
+that YYY.YYY.YYY.YYY is the IP address of the machine on which the
+szgserver runs,
+
+dlogin YYY.YYY.YYY.YYY the_server_port szg_user_name
+
+will fails. Furthermore, the szgserver will print a message noting the
+unauthorized attempt to connect.
+
+2. Remote launching of components.
+
+dex sends a message to an szgd, telling it to launch a particular executable.
+For this to work, two conditions must be met.
+
+  a. The executable must exist in the file system of the computer on which
+     szgd runs.
+  b. Suppose XXX is the computer on which szgd runs and /YYY/YYY/YYY is the
+     directory in which the executables reside. Then the szg user issuing the
+     dex command must have the following in the parameter database:
+
+     XXX SZG_EXEC path /YYY/YYY/YYY
+
+3. How Components Are Shared (Or Not)
+
+yzygy uses "connection brokering" to automatically connect components to one
+again. Information about the network(s) involved in the Phleet and the
+IP addresses associated to individual interfaces is encoded in the
+syzygy config file on each computer. However, this is the only place you
+need to enter such information.
+
+To allow multiple simultaneous users of a given Phleet, some partitioning of
+the connection brokering space needs to occur. For instance, my graphics
+renderers should be able to connect to my applications and not to yours.
+
+However, sometimes multiple users want to share a resource (like data coming
+from a tracker). In this case, the connection brokering should be partitioned
+by location (we want to use the tracker in room A not the tracker in room B).
+
+Syzygy components that connect to other components do so by means of
+"service names". Each component type has a "simple" service name. For
+instance, the input device in device slot 0 offers its data under the simple
+service name SZG_INPUT0.
+
+However, the connection brokering occurs by matching requests for complex
+service names. These complex service names are formed from simple service
+names in a standard fashion:
+
+  a. If a "virtual computer" has been defined, then we are partitioning via
+     location. Suppose the simple service name is SERVICE and the virtual
+     computer name is VIRTUAL, then the complex service name is:
+
+     VIRTUAL/SERVICE
+
+  b. If no virtual computer has been defined, then we are partitioning via
+     user identity. Suppose the simple service name is SERVICE and the
+     user name is USER, then the complex service name is
+
+     SERVICE/USER
+
+PLEASE NOTE: The partitioning of the connection brokering space keeps
+components from connecting to one another. This is what it is designed to do.
+Unfortunately, sometimes this will mean that two components you want to
+connect will not. This is because of the way the complex service name
+has been formed from the simple service name. You can diagnose such problems
+using the "dpending" and "dservices" commands. dpending shows the complex
+service names associated with unfulfilled brokering requests (i.e. no service
+with a matching name is being offered currently). dservices shows the
+complex service names of services currently being offered.
+
+An example of this phenomena:
+
+  a. User A launches
+
+     DeviceServer arJoystickDriver 0
+
+  b. User B launched
+
+     DeviceClient 0
+
+     but sees nothing.
+  c. Why? They didn't use a virtual computer. DeviceServer is offering
+     a service with complex service name SZG_INPUT0/A but DeviceClient
+     wants a service with complex name SZG_INPUT)/B.
+
+Another example:
+
+  a. szgrender was launched in the context of virtual computer cube.
+  b. User A runs a distributed scene graph application, dist_scene_app.
+     Nothing happens.
+  c. User A did not use a virtual computer. The complex service names
+     do not match. szgrender is trying to connect to cube/SZG_GEOMETRY_BARRIER
+     will dist_scene_app is trying to offer SZG_GEOMETRY_BARRIER/A.
+  d. NOTE: the problem would have been solved if User A launched his
+     application like so:
+
+     dist_scene_app -szg virtual=cube
+
+     This -szg arguments are automatically parsed and removed by the
+     init(argc,argv) function in the frameworks. These can be used to specify
+     various internal system configurations.
+
+4. Launching Without Scripts (Virtual Computers)
+
+The definition of the cube virtual computer follows. These are just entries
+in the syzygy parameter database. Comments are interspersed.
+
+The database must state that this is indeed the name of a virtual computer.
+
+cube SZG_CONF    virtual        true
+
+The "trigger instance" of an application runs on the virtual computer's
+trigger (in this case the computer "air"). The trigger instance launches
+other application components as need be. In the distributed scene graph case,
+the trigger instance also runs the application. In the master/slave case,
+it is only responsible for launching the master and the slaves.
+
+cube SZG_TRIGGER map            air
+
+The master instance of a master/slave application is always associated with
+a particular screen in the virtual computer.
+
+cube SZG_MASTER  map            SZG_SCREEN2
+
+We say how many screens our virtual computer has. The cube has 6 screens.
+
+cube SZG_SCREEN  number_screens 6
+
+For each screen, we need to specify its location (i.e. upon which host the
+display process for that screen will run) and the networks it can use to
+communicate. In this case, SZG_SCREEN0 will run on top and will have its
+characteristics (like which wall it is) defined by database parameters like
+top/SZG_SCREEN0/screen_dim.
+
+cube SZG_SCREEN0 map            top/SZG_SCREEN0
+
+The graphics information associated with cube's screen 0 can travel either
+over the network "internet" or the network "cube", but preferably over the
+network "internet". NOTE: these network names must match those you assigned
+during the Phleet host configuration process (as witnessed by "dconfig").
+
+cube SZG_SCREEN0 networks       internet/cube
+cube SZG_SCREEN1 map            bottom/SZG_SCREEN0
+
+The graphics information associated with cube's screen 1 can only travel on
+network "cube". NOTE: if no networks were specified, then the information
+would use whatever networks were available. Note: if there is only one
+network anyway (single homes hosts) then there is no reason to specify this.
+In the example here, however, the idea is that each of the cube computers
+is connected by two networks, the internet and a private gigabit network
+called cube.
+
+cube SZG_SCREEN1 networks       cube
+cube SZG_SCREEN2 map            north/SZG_SCREEN0
+cube SZG_SCREEN2 networks       cube
+cube SZG_SCREEN3 map            south/SZG_SCREEN0
+cube SZG_SCREEN3 networks       cube
+cube SZG_SCREEN4 map            east/SZG_SCREEN0
+cube SZG_SCREEN4 networks       cube
+
+Every screen must have an entry.
+
+cube SZG_SCREEN5 map            west/SZG_SCREEN0
+cube SZG_SCREEN5 networks       cube
+
+We need to tell the virtual computer how to create an input device. Here,
+we launch
+
+  DeviceServer arCubeTracker 0
+
+on air and
+
+  DeviceServer arJoystickDriver 1
+
+on joystick. Note how the host names alternate with the driver name in
+the parameter. Also note how the first pair gets slot 0, the next slot 1, etc.
+
+cube SZG_INPUT0  map            air/arCubeTracker/joystick/arJoystickDriver
+
+The input information must be communicated over the internet.
+
+cube SZG_INPUT0  networks       internet
+
+Upon which computer will we run sound?
+
+cube SZG_SOUND   map            isl67
+cube SZG_SOUND   networks       internet
+
+PLEASE NOTE: for the virtual computer to work, szgd must run on every host
+named in the definition.
+
+If you have this defined, then
+
+dex cube my_application
+
+will, first of all, kill any already running application (on cube). Also, kill
+any incompatible graphics components associated with virtual computer
+screens. For instance, master/slave apps will kill instances of szgrender.
+On the other hand, if it is a distributed scene graph application, it'll kill
+any master/slave render instances and start szgrender on each of the screens.
+If szgrender was already running on a screen, it'll be left going.
+Both scene graph and master/slave applications will start the tracker and
+sound (only if necessary).
+
+You can kill everything running on cube by typing:
+
+killalldemo cube
+
+You can use szgrender as a black screensaver by typing:
+
+screensaverdemo cube
+
+NOTE: all of these components have service names relative to the virtual
+computer!
+
+5. Other Helpful Uses Of Virtual Computers
+
+TO BE COMPLETED
+
+How-To Get Tracking Going In Syzygy
+-----------------------------------
+
+1. First, make sure that you can get input from the device. For example sake,
+suppose you want to use a Motionstar system combined with a joystick to 
+provide your input data.
+
+2. We start with the joystick. Attach the joystick to a computer in your
+phleet. This can be either a linux or windows computer. However, be advised
+that a windows computer will have broader hardware compatibility. Furthermore,
+if you insist on using linux, you'll have to follow this procedure:
+  a. Linux procedure for attaching USB joysticks/gamepads
+  b. Attach the joystick.
+  c. Become root.
+  d. Issue the command "modprobe joydev".
+After the joystick is attached, go ahead and run:
+
+  DeviceServer arJoystickDriver 0
+
+This starts a syzygy "service" that is registered with the szgserver. If you
+start it as above, assuming your syzygy user name (as in dlogin) is
+SZG_USER, then the service name will be SZG_INPUT0/SZG_USER. You can verify 
+that the service is registered by running:
+
+  dservices
+
+The service will appear in the list with the given name. The next thing to do
+is to actually display the output. This can be done anywhere on the phleet.
+
+  DeviceClient 0
+
+BE CAREFUL. Note how services are segregated by syzygy user name. If you
+are dlogin'ed as different users on the computers upon which DeviceServer
+and DeviceClient run, the programs will NOT connect. This problem can be
+quickly diagnosed via "dservices" (above) and "dpending" (below). 
+
+Note the 0. This appears in both the DeviceServer and DeviceClient commands
+(as well as the service name) and corresponds to the input device "slot",
+allowing multiple input devices to offer services on the phleet.
+
+As an experiment, you could try killing the DeviceServer. The DeviceClient
+will continue operation. It is now requesting a service (not currently 
+running) from the phleet. Issue the following command:
+
+dpending
+
+This will output the list of unfulfilled service requests. You will currently
+see DeviceClient's request with name SZG_INPUT0/SZG_USER.
+
+Go ahead and run DeviceServer again, as above. The DeviceClient should now
+connect and display joystick data (try pressing the buttons and moving the
+control sticks).
+
+3. ANOTHER WORD ABOUT SYZYGY SERVICE NAMES. You've already seen how 
+service names are partitioned by syzygy user. This is the default and
+is done so that a large group of people can use a single phleet at the
+same time without stepping on one another's toes. However, there is another
+mode. For instance, when you are launching your application on a "virtual
+computer", the service name is qualified by the name of the virtual computer
+instead. Don't worry about this unless you've read the documentation section
+about virtual computers and are using that.
+
+4. Now, kill the DeviceServer and DeviceClient. Repeat the procedure above,
+but with the motionstar. Suppose TRACKER_COMPUTER is the computer on which
+you will run DeviceServer and suppose the IP of the Motionstar is
+XXX.XXX.XXX.XXX. You will need to have
+
+TRACKER_COMPUTER SZG_TRACKER IPhost XXX.XXX.XXX.XXX
+
+in your phleet config database.
+
+So, run 
+
+DeviceServer arMotionstarDriver 0
+
+and
+
+DeviceClient 0
+
+on the same computers as before. NOTE: if you haven't already killed
+the DeviceServer for the joystick, you will not be able to start the
+DeviceServer for the motionstar. The system will detect the duplicate
+service name (they are both trying to use slot 0) and won't let the
+DeviceServer for the motionstar start.
+
+You should see the matrices in DeviceClient change. It's a little unclear
+what will happen if you do not have the Motionstar birds plugged into the
+first two slots. Suppose you have them plugged into slots 3 and 5 of the
+backpack. In this case, I'd expect matrices 2 and 4 to show up in 
+DeviceClient. If not, try explicitly setting the input device signature 
+(i.e. how many buttons, how many axes, how many matrices) like:
+
+TRACKER_COMPUTER SZG_MOTIONSTAR signature 0/0/5
+
+(where the final 5 guarantees that matrices 0-4 will be present).
+
+5. Input remapping. Syzygy expects the following from its input device:
+
+   a. The head is matrix 0 and its orientation is the identity when facing
+      forward and held straight. The translation reported by the sensor is
+      not so important as long as it is consistent with the coordinate
+      system you've set up for your virtual environment (as determined by
+      the SZG_SCREEN descriptions in the syzygy configuration database).
+   b. The wand is matrix 1 and gives the identity matrix when facing 
+      precisely forward.
+   c. Axes 0 and 1 of the joystick report as follows:
+      i: Axis 0 changes when pushed from side to side. -1 is far left and
+         1 is far right.
+      ii. Axis 1 changes when pushed up and down. 1 is far up and -1 is
+          far down.
+
+Now of course comes the problem of how to change the values your devices
+actually report (and the IDs with which they report them) to the values
+syzygy expects. This is accomplished via PForth (pseudo-forth) filters. These
+are described in the documentation. Essentially, they are little text
+programs that use a stack-based (i.e. forth) style to alter input values.
+
+These filters are executed in the DeviceServer.
+
+Here is an example of a filter that swaps matrices 0 and 1. You should
+be able to imagine more general remappings pretty easily. Note that
+filter_matrix_0 gives the program to be executed on encountering a matrix 0
+event, filter_matrix_1 gives the program to be executed upon encountering
+a matrix 1 event, etc.
+
+<PForth>
+  <name>swap_matrices_0_1</name>
+  <program>
+    define filter_matrix_0
+      1 setCurrentEventIndex
+    enddef
+    define filter_matrix_1
+      0 setCurrentEventIndex
+    enddef
+  </program>
+</PForth>
+
+You can also do matrix computations in a PForth filter. For instance, this
+is sufficient to be able to ensure 5.a. and 5.b. above.
+
+Here is a program used in the CUBE that corrects for the rotations of the 
+sensors on our glasses and wand. Note that this filter essentially modifies
+matrix 0 in place, modifies matrix 1 in place, and modifies matrix 2, placing
+the output in matrix 1. Note that we sometimes use birds in slots 0 and 2
+(with 2 being the wand bird) for experiments, which is the purpose of the
+remapping here.
+
+<PForth>
+  <name>expt_tracker_filter</name>
+  <program>
+    matrix inputMatrix
+    matrix outputMatrix
+    matrix correctXRotMatrix1
+    matrix correctXRotMatrix2
+    matrix correctYRotMatrix
+    matrix correctZRotMatrix
+    matrix correctHeadRotMatrix
+    -30 0 correctXRotMatrix1 rotationMatrix
+    30 0 correctXRotMatrix2 rotationMatrix
+    6 1 correctYRotMatrix rotationMatrix
+    -1 2 correctZRotMatrix rotationMatrix
+    correctYRotMatrix correctZRotMatrix correctHeadRotMatrix matrixMultiply
+    define filter_matrix_0
+      inputMatrix getCurrentEventMatrix
+      inputMatrix correctHeadRotMatrix outputMatrix matrixMultiply
+      outputMatrix setCurrentEventMatrix
+    enddef
+    define filter_matrix_1
+      inputMatrix getCurrentEventMatrix
+      inputMatrix correctXRotMatrix1 outputMatrix matrixMultiply
+      outputMatrix setCurrentEventMatrix
+    enddef
+    define filter_matrix_2
+      inputMatrix getCurrentEventMatrix
+      inputMatrix correctXRotMatrix2 outputMatrix matrixMultiply
+      outputMatrix setCurrentEventMatrix
+      1 setCurrentEventIndex
+    enddef
+  </program>
+</PForth>
+
+Suppose you want to use a filter like one of these. Stop DeviceServer.
+Make sure SZG_DATA/path is set for the computer on which DeviceServer is
+running. The following must be in the syzygy parameter database:
+
+TRACKER_COMPUTER SZG_DATA path the_path_to_my_data_directory
+
+A file PForth_programs.xml goes in the top level of your data directory on
+the computer running DeviceServer. A sequence of PForth XML records (as above)
+go in this file. To have one of them filter the input data,
+
+TRACKER_COMPUTER SZG_PFORTH program_names THE_NAME
+
+must be set in the parameter database (before DeviceServer starts).
+DeviceServer, upon start-up, will look in PForth_programs.xml for a program
+with name matching THE_NAME and will use that as a filter (it says it is
+using it upon launch). NOTE: the name field in the XML record must have NO
+whitespace!
+
+Finally, here's a program to remap joystick data (just an example):
+
+<PForth>
+  <name>filter_gravis_eliminator</name>
+  <program>
+    define filter_axis_0
+      getCurrentEventAxis 0.000031 * setCurrentEventAxis
+    enddef
+    define filter_axis_1
+      getCurrentEventAxis -0.000031 * setCurrentEventAxis
+    enddef
+    define filter_axis_2
+      getCurrentEventAxis -32768 + -0.000031 *
+      deleteCurrentEvent
+      3
+      insertAxisEvent
+    enddef
+    define filter_axis_3
+      4 setCurrentEventIndex
+    enddef
+    define filter_axis_5
+      getCurrentEventAxis -32768 + 0.000031 *
+      deleteCurrentEvent
+      2
+      insertAxisEvent
+    enddef
+  </program>
+</PForth>
+
+
+6. WARNING: There is hard-coded information in szg/src/arMotionstarDriver.cpp
+that only pertains to the Beckman CUBE! Look in the functions _generateEvent
+and _tweak to see what occurs. Essentially, our tracker reference frame is
+rotated around the up direction by 45 degrees from what we'd want. This,
+along with a translation offset appropriate for us (to, more or less, put
+(0,0,0) on the center of the floor in the cube). Furthermore, the 0th sensor
+(corresponding to the head) has been rotated 90 degrees and the 1th sensor
+is rotated by 180 degrees. All these effects occur BEFORE the PForth filter 
+is applied.
+
+OK, this is a mess, but users can strip this junk out, put in stuff 
+appropriate for their installation, etc. After that, PForth filters can
+be used for the required calibration adjustments (as in 5a and 5b).
+
+NOTE: This does not deal with what I'd call "fine" calibration, only
+"bulk" calibration. The bulk calibration gets orientations and positions
+roughly correct, while the "fine" calibration uses a lookup table to
+get better consistency across the space. 
+
+7. Finally, getting the input device working. You will want to run:
+
+DeviceServer arCubeTracker 0
+
+on the computer used above to run the motionstar driver. The arCubeTracker
+is a compound input device. It itself runs a motionstar driver (so the 
+computer on which it runs will need to have syzygy parameters set as above,
+including the relevant PForth filters, etc.). It connects over the network
+to a joystick, combining the two into a single "virtual" device.
+
+You will want to run:
+
+DeviceServer arJoystickDriver 1
+
+on the computer connected to the joystick. The cube tracker is expecting to
+get a joystick from slot 1. NOTE: there is a probelm here.
+The arCubeTracker has an internal filter for the joystick values that
+assumes it is getting values like windows normally reports, i.e. axis 0 is 
+-32000 to 32000 and axis 1 is from 32000 to -32000. It scales these values
+so that they fit in with the template in 5c above. If you are using linux
+to host the joystick, this will be a problem. In this case, you can figure
+out the values linux reports (0 to 64000 probably) and pretransform them using
+a PForth filter on the joystick computer. OR you could go into 
+szg/src/DeviceServer.cpp and change arCubeJoystickScaleFilter as appropriate.
+
+Sorry this is so messy! It'll soon be cleaned up and generalized.
+
+You should now be ready to interact with your application.
+
+How-To Add an External Filter
+-----------------------------
+
+
+How-To Get The Joystick-based Simulator Going
+---------------------------------------------
+
+
+The relevant configuration parameters are contained in:
+
+computer_name PFORTH program_names PROGRAM_NAME
+computer_name SZG_JOYSTICK signature 10/10/2
+computer_name SZG_DATA path the_data_path
+
+When you run:
+
+DeviceServer arJoystickDriver 0
+
+It is now offering the SZG_INPUT0 service. Your application will connect
+to this. However, it could very well be the case that the joystick is not
+reporting values that szg will understand. Specifically, szg expects that
+axes 0 and 1 of the joystick will be reporting float values scaled from -1
+to 1, with axis 0 being the right/left direction of the joystick and axis
+1 being the up/down axis of the joystick. When the stick is pushed to the
+right, axis 0 should read 1. When the stick is pushed to the left, axis 0
+should read -1. When the stick is pushed up, axis 1 should read 1 and when
+it is pushed back, axis 1 should read -1. Furthermore, the extra
+navigation options I added to the cvs landspeeder (which might or might
+not have found their way into your copy) use axes 3 and 4 (i.e. the second
+control stick on the gamepad). This is for up and down and left and right
+navigation in the virtual world.
+
+We cannot control how the gamepad will number or scale its axes. This is
+especially true across operating systems. Furthermore, you want to be able
+to add a head matrix placed in a reasonable spot. Why? The default head
+matrix postion is on the floor, which would make things look weird. The
+default matrix position for the wand (facing flat forward) is OK, however.
+
+We use PForth filters (pseudo-forth) to change the data emitted by the
+gamepad into something we can use.
+
+1. First, make sure that the computer on which you are running
+DeviceServer will load no filter. This can be easily accomplished by:
+
+computer_name PFORTH program_names NULL
+
+2. Next, run:
+
+DeviceServer arJoystickFilter 0
+
+and
+
+DeviceClient 0
+
+Observe the output of DeviceClient as you wiggle the control sticks and
+buttons. This will tell you how you need to modify the incoming data.For
+instance, consider the following PForth program, which works with a saitek
+wireless joystick attached to a windows 2000 or XP box:
+
+PForth>
+  <name>filter_my_joystick</name>
+  <program>
+    matrix temp
+    0 5 0 temp translationMatrix
+    define filter_axis_0
+      getCurrentEventAxis 0.000031 * setCurrentEventAxis
+    enddef
+    define filter_axis_1
+      temp 0 insertMatrixEvent
+      getCurrentEventAxis -0.000031 * setCurrentEventAxis
+    enddef
+    define filter_axis_5
+      getCurrentEventAxis -32768 + 0.000031 *
+      deleteCurrentEvent
+      2
+      insertAxisEvent
+    enddef
+    define filter_axis_6
+      getCurrentEventAxis -32768 + -0.000031 *
+      deleteCurrentEvent
+      3
+      insertAxisEvent
+    enddef
+  </program>
+</PForth>
+
+What does this do? Well, whenever it gets an event on joystick axis 0 (see
+filter_axis_0 above), it scales that axis by 0.000031. Whenever it gets an
+event on axis 1, it scales that by -0.000031 (reversing the order) and
+generates a spurious head matrix event, putting the head at the center of
+a CUBE. Note that it also moves axis 5 to axis 2, while scaling and
+shifting the center. This is necessary since Windows reports values 32768
+to -32768 on axis 0, -32768 to 32768 on axis 1, and 0 to 65536 on axis 5,
+etc.
+
+To activate this PForth program, kill DeviceServer. Put it in a file
+PForth_programs.xml and put that file in your SZG_DATA
+directory. Next, set:
+
+computer_name SZG_PFORTH program_names filter_my_joystick
+
+Then run DeviceServer again. You should see the results!
+
+3. It could be that your joystick requires different scaling, etc. Play
+around with the file PForth_programs.xml.
+
+4. That's it!
+

@@ -1,0 +1,305 @@
+This document describes the web page architecture for the Syzygy web pages
+(as distinct from the html documentation).
+
+There is a top level Syzygy page which includes an application picture,
+syzygy logo, splash title, general explanatory text, links, and contact
+information.
+
+This page links to four other pages. The text to those is described
+subsequently. Finally, the text and links for the various Syzygy project
+pages are included.
+
+All paper links in "Syzygy: Basic Papers" and "Syzygy: Projects" refer to the
+ISL central paper repository. All media links in "Syzygy: Projects" refer to
+an ISL central media repository.
+
+What does the Syzygy DVD (mentioned below) contain? First of all, there are
+2 versions, one containing everything and one containing only those things
+that we can freely redistribute. The procedure is to make an "internal"
+collection of data, code, and tools... and then copy that directory to another
+"external" location, from which proprietary items (like java installers, etc.)
+are deleted.
+
+The internal DVD should contain the following directories:
+
+Data: copied from /home/public/Data
+Texture: copied from /home/public/Data
+Sounds: copied from /home/public/Sounds
+external: contains subdirectories include and lib, both copied from 
+  /home/public
+tools: copy of /home/archive/tools, which contains header files, libraries,
+  things like VNC and mingw, linux drivers from NVIDIA, etc.
+szg-windows: precompiled Win32 binaries for Syzygy, plus the dll's to which
+  they need to link. The idea is that this stuff can just be dropped into
+  a directory on someone's windows box in order to install Syzygy there.
+szg-papers: pdf's of all papers pertaining to Syzygy.
+szg-powerpoint: all ppt's pertaining to Syzygy.
+szg-movies: all "web movies" pertaining to Syzygy. We obviously can't include
+  all full size movies. These projects will be archived seperately to DVD,
+  one per DVD, so that the full iMovie project can be kept.
+
+It should also contain the following files:
+
+szg-XXX.tar.gz
+szgdemo-XXX.tar.gz
+vmat-XXX.tar.gz
+szgexpt-XXX.tar.gz
+README.txt
+
+The file README.txt gets the user started using the contents of the DVD.
+
+******************************************************************************
+Title (large font): Syzygy: A Toolkit for Virtual Reality on PC Clusters
+
+Links: Download Code
+       DVD offer. Everything you need to duplicate our lab.
+       Syzygy: Basic Papers
+       Syzygy: Projects
+
+Explanatory Text:
+
+The primary goal of the Syzygy software project is to run a wide range of VR 
+applications on a PC cluster with equal or greater performance than on the
+expensive SMP shared memory computers used in the 90's for high end
+virtual reality. This change in hardware 
+platform drives software changes. Communications between processors now 
+becomes a bottleneck, and tools are needed to efficiently manage and develop 
+cluster applications. By developing a system that targets cluster-based VR 
+from the beginning, one hopes to have a final product that will be pleasant 
+to develop for and use. The Syzygy system enables users to run cluster 
+applications between machines with different underlying architectures, like 
+x86 and PowerPC, allowing a mixed bag of current PCs to work together
+seemlessly.
+
+The goal of creating VR applications on a PC cluster is best served by 
+increasing the level of abstraction and writing a toolkit with broader 
+applicability. Syzygy aims to provide simple software tools for building 
+heterogeneous distributed systems. The toolkit's main focus is PC clusters 
+on high performance LANs, though it is also applicable to internet-based 
+systems. It is designed to be a lightweight toolkit that can operate on PC 
+clusters, SMP boxes, and laptops, while connecting meaningfully with smaller 
+devices. This presents several challenges. For instance, much system 
+infrastructure is 
+unnecessary for a standalone laptop being used to provide a portable road 
+demo. To maintain ease of use, the toolkit's operation should scale down 
+gracefully. Furthermore, we need to deploy communication methods suitable 
+for SMP, namely shared memory instead of sockets, and do this while reusing 
+our communications infrastructure. Finally, performance is very important. 
+Many of the toolkit's functions are OS-level and must be efficient.
+
+Syzygy solves several problems: distributed graphics, distributed 
+sound, distributed systems management, distributed data access, and general 
+I/O device management. There are systems out there that do each of these 
+things, but no one system addresses them all, especially not in the context of
+a realtime, interactive media environment. However, each problem relies 
+on a similar infrastructure for its solution. Syzygy aims to identify that 
+common infrastructure and provide an implementation. Thus, 
+each problem can be solved  more easily, and the resulting code base is 
+well-integrated and maintainable. In effect, Syzygy attempts to create 
+middleware suitable for multimedia on clusters.
+
+Contact Info:
+
+Benjamin Schaeffer
+schaeffr@uiuc.edu
+
+****************************************************************************** 
+
+Title (large font): Syzygy: Software Download
+
+There are 4 software packages available for download. Make sure you download
+a consistent set.
+
+  1. szg: The source code for the Syzygy library plus basic demos and
+     documentation.
+  2. szgdemo: Additional demos and applications. Note that, due to space
+     constraints with versions 0.6 and up, we've stripped the data from
+     this tarball. You'll want to mail us for the DVD offer to get the data.
+  3. vmat: A realtime physics library used in some of the applications in
+     szgdemo.
+  4. szgexpt: Code for the psychology experiments conducted in the lab plus
+     a framework for creating psychology experiments.
+
+syzygy-0.6
+  szg-0.6.tar.gz
+  szgdemo-0.6.tar.gz
+  vmat-0.6.tar.gz
+  szgexpt-0.6.tar.gz
+
+syzygy-0.5
+  szg-0.5.tar.gz
+  szgdemo-0.5.tar.gz
+  vmat-0.5.tar.gz
+  szgexpt-0.5.tar.gz
+  szgdata-0.5.tar.gz
+
+*******************************************************************************
+
+Title (large font): Syzygy: DVD Offer
+
+Write us and we'll send you a DVD containing all the data and code necessary to
+recreate our lab. Please direct requests to:
+
+  Debbie Carrier
+  Integrated Systems Lab
+  Beckman Institute
+  405 N. Matthews
+  Urbana, IL 61801
+
+*******************************************************************************
+
+Title: Syzygy: Basic Papers
+
+An early Syzygy version, as used in our lab's VR Navigation experiment, was
+available for download from the web in September 2000. Since then, the code
+base has matured and is still under active development, changing as our 
+experience working with PC clusters deepens. However, these papers provide
+a good overview of the design decisions made at early stages in Syzygy's life
+and explore the motivations for those decisions.
+
+"A Software System for Inexpensive VR via Graphics Clusters"
+"Networking and Management Frameworks for Cluster-Based Graphics"
+"Syzygy: Native PC Cluster VR"
+
+*******************************************************************************
+
+Title: Syzygy: Projects
+
+Individual project pages include descriptive text, photographs, movies, and
+links to papers.
+
+  1. Motion capture in virtual environments
+  2. NEW PSYCHOLOGY EXPERIMENTS
+  3. Visualization of 3D manifolds.
+  4. Landspeeder: visualization of urban planning data
+  5. MAEViz: earthquake visualization using VTK
+  6. VRMLView: OpenInventor and VRML file viewing
+  7. VR Navigation experiment
+
+*******************************************************************************
+
+Title: Motion Capture in Virtual Environments
+
+"Tele-sports and Tele-dance: Full Body Network Interaction"
+
+The lab has done two projects exploring the use of motion capture in 
+networked virtual environments. Each of these was done in collaboration with
+the University of Illinois dance department. The first project, Hummingbird,
+performed in October 2002 at the Internet2 conference in Los Angeles, involved
+a motion-captured dancer in Champaign-Urbana performing with a live dancer
+on stage in Los Angeles. The second project, Fairy Sports, performed in
+December 2002 and Spetember 2003, involved two dancers in the Beckman
+Institute, one on our optical motion capture stage and the other in the Cube.
+These dancers then interacted in a physics-based virtual environment.
+
+*******************************************************************************
+
+Title: Visualization of 3D Manifolds
+
+"Alice on the Eightfold Way: Exploring Curved Spaces in an Enclosed Virtual Reality Theatre"
+
+Thurston has created a list of eight "nice" geometries that seem likely to be 
+the building blocks of all three dimensional manifolds. One of these is 
+familiar to us as the Euclidean geometry of our everyday lives, but the others
+have nothing to do with our normal perception. This project attempts to
+simulate, in our fully-enclosed virtual environment, the other seven
+geometries.
+
+*******************************************************************************
+
+Title: Landspeeder: Visualization of Urban Planning Data
+
+Researchers in the Urban Planning department at the University of Illinois have
+taken GIS data of Kane County in Illinois and have turned it into an
+interactive fly-through. The visualization shows roads, rivers, lakes,
+areas of vegetation, residential housing, and commercial districts. 
+
+*******************************************************************************
+
+Title: MAEViz: Earthquake Visualization Using VTK
+
+The Mid-America Earthquake Center at the Univesity of Illinois is a 
+multidisciplinary center dedicated to studying the impact of earthquakes in
+the midwest region. The MAEViz project visualizes this data using VTK, and
+researchers at the ISL have created software to display the VTK-based models
+in the Cube.
+
+*******************************************************************************
+
+Title: VRMLView: OpenInventor and VRML File Viewing
+
+Many scientific data sets can be visualized using the VRML or OpenInventor
+standards. The lab has developed a viewer for these types of 3D data based on
+the the Coin3D library.
+
+*******************************************************************************
+
+Title: VR Navigation
+
+"Navigational Control Effect on Representing Virtual Environments", HFES 2003
+
+Motivational Question
+
+Today's computer systems make it possible to have a representation of a very 
+large, 3D space, and to allow the user to explore it to become familiar with 
+it, to find regions of interest, or to make decisions that will be carried out 
+in the real world.  However, the limitations of display technology often put 
+constraints on the observer's visual exploration of this space.  In 
+particular, it is common to have a fixed viewport (for example, computer 
+monitor) in which only a small part of the total area can be seen at any one 
+time.  Navigation is then carried out as if one were driving a vehicle with a 
+joystick, viewing the world through a small windshield.  However, without the 
+physical movement of the vehicle, and without additional side windows, it is 
+very easy for the user to become disoriented, losing track of direction.  This 
+may be particularly likely if the joystick is of the 'relative effect' type, 
+in which moving the joystick produces motion relative to the current position.
+
+One way of providing an absolute reference concerning direction in this 
+situation is to employ the joystick in an 'absolute mode,' in which the 
+position of the joystick directly indicates the direction of the viewport 
+relative to the world.  Another option, if the viewpoint were always going to 
+be on the surface, would be to use a controlling object that can be moved in 2 
+dimensions or rotated on a position sensitive board, thus allowing it to 
+directly indication location and direction of the virtual vehicle and its 
+viewport.  Both of these methods provide kinesthetic, and perhaps visual, 
+information regarding the part of the world being seen at any given moment. 
+An alternative approach to navigation through the represented space is to use 
+a helmet-mounted display with head tracking.  Within this environment, the 
+display can be changed in response to head motion, displaying the part of the 
+scene that would actually be in the direction to which the person is looking. 
+In this way, the person has normal kinesthetic feedback to anchor in space the 
+information being seen at any moment.
+
+The purpose of the study to be conducted is to determine the relative 
+effectiveness of these three methods, plus viewing the world without control, 
+in establishing the spatial position of objects in the observer's mental 
+representation of the space being examined.
+ 
+Experimental Design
+
+In order to control for visual characteristics of the display, a 
+head-mounted display will be used for all conditions.  Also, the observer will 
+remain at the same point in the space but be able to look in any direction 
+from that point.  In the relative joystick condition, movement will occur in 
+response to the relative motion of the joystick (pressing the joystick to the 
+left will induce further leftward movement).  In the absolute joystick 
+condition, the absolute position of the joystick will indicate the direction 
+of the viewport, essentially pivoting the viewport around to the direction 
+indicated.  In the head-controlled condition the direction of the head will 
+determine the direction of the viewport.  And in the control condition, the 
+observer will have no control over the direction of the viewport, but will see 
+the scene in the same sequence as a subject in one of the other conditions.
+
+Observers will be permitted to visually explore a space for 45 seconds, trying 
+to remember the locations of objects.  They will then have the display 
+removed, will be shown the location of a prominent object lying directly in 
+front of them, and will be asked to point to other objects.  Degree and nature 
+of their error will be used as data to investigate the quality and 
+characteristics of the mental representation of the viewed space that they 
+have developed.
+
+Results of this study should provide information about the relative 
+effectiveness of these different control and display methods in examining a 
+space larger than can be presented on the display at once.
+
+*******************************************************************************

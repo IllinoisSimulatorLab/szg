@@ -1,0 +1,16 @@
+<nice test>
+  <INT ID>
+    0 5 10 15 20 
+  </INT ID>
+  <FLOAT ID>
+    0.000000 0.200000 0.400000 0.600000 0.800000 
+  </FLOAT ID>
+</nice test>
+
+<test 2>
+  <CHAR ID>ABCDE</CHAR ID>
+  <DOUBLE ID>
+    0 0.5 1 1.5 2 
+  </DOUBLE ID>
+</test 2>
+

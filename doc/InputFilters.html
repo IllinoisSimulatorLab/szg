@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+  <title>Input Filters</title>
+</head>
+<body bgcolor="#ffffff">
+<a href="index.html">Documentation Index</a>
+<p><font size="+2">Syzygy Input Event Filters<br>
+</font></p>
+<p>Input event filters are all subclasses of the arIOFilter class.
+Filters are attached to an <a href="InputClasses.html"><span
+ style="font-style: italic;">arInputNode</span></a> (generally by <a
+ href="InputDevices.html">DeviceServer</a>, but see also <a
+ href="InputDevices-Drivers.html">wandsimserver</a>), which maintains a
+list of them and passes any events it receives through them.<br>
+</p>
+<p>&nbsp;Creating filter subclasses is quite simple. You need only
+override the protected virtual method<br>
+</p>
+<pre>virtual bool arIOFilter::processEvent( arInputEvent&amp; inputEvent );<br></pre>
+<p>This method will be called by the arInputNode for each event in the
+input stream. Is is passed the current event, and can do the following
+things:<br>
+</p>
+<ol>
+  <li>Get the current event's type, index, or value using the
+appropriate methods of the arInputEvent class.</li>
+  <li>Get the most recent value of any other event using the
+arIOFilter's get...() methods.<br>
+  </li>
+  <li>Modify the current event's index or value (<span
+ style="font-style: italic;">not</span> its type) using the
+arInput.set...() methods.</li>
+  <li>Set the current event's value to the default (0 or the identity
+matrix) using its zero() method.<br>
+  </li>
+  <li>Flag the current event for deletion using its trash() method.</li>
+  <li>Insert a new event of any type, index, and value into the input
+stream using the arIOFilter's insertNewEvent() method.</li>
+</ol>
+<p>That is all. For examples of working filters, see
+src/drivers/arTrackCalFilter.cpp (which applies the calibration
+correction for our Ascension MotionStar tracker--note that this is
+specific to our setup) and the<a href="PForth.html"> PForth filter</a>,
+src/drivers/arPForthFilter.cpp.<br>
+</p>
+</body>
+</html>

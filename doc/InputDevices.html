@@ -1,0 +1,74 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>Syzygy Input Framework</title>
+</head>
+<body bgcolor="#ffffff">
+<a href="index.html">Documentation Index</a>
+<p><font size="+2">Syzygy Input Framework Overview</font> </p>
+<p>Input data in Syzygy comes in the form of <span
+ style="font-style: italic;">arInputEvents</span>. There are currently
+three types of events. <span style="font-style: italic;">Matrix</span>
+events, which usually represent the position and orientation (referred
+to in combination as the <span style="font-style: italic;">placement</span>)
+of a tracking sensor.<span style="font-style: italic;"></span> <span
+ style="font-style: italic;">Axis</span> events contain a floating-point
+number representing the state of a continuously-varying input. <span
+ style="font-style: italic;">Button</span> events contain an integer,
+usually representing a binary on-off input device. Within each class,
+events are identified by a 0-based index; in applications, a particular
+event type and index is generally associated with a particular
+function, for example matrix event #0 is generally assumed to represent
+the position and orientation of the sensor attached to the user's head.
+All three event types have a default value that will be returned
+whenever an application requests an event outside the range of existing
+indices; for matrices this is the identity matrix, for the other two
+types it is 0.</p>
+<p>For purposes of transmission and storage, arInputEvents are packed
+into <span style="font-style: italic;">arStructuredData</span> records.
+Syzygy provides functions for converting data between these two
+formats. arStructuredData records themselves come in two formats, the
+native binary format for network transmission and an ascii XML format
+for storage on and retrieval from disk. Syzygy also provides routines
+for I/O to and from XML-format files.</p>
+<p>The transmission of input events is organized into trees; these
+trees are created and managed by a number of <a
+ href="InputClasses.html">input object classes</a>.
+Input events coming in from separate devices on separate branches can
+integrated into a single event stream, corresponding to a compound
+virtual input device. In addition, events can be transformed, added, or
+deleted by <a href="InputFilters.html">filters</a> at each node of the
+tree. These filters can be either written in C++ or, for simple but
+flexible filters, in the provided <a
+ href="PForth.html">PForth language</a>.<br>
+</p>
+<p>Input events currently originate either in a device driver or the
+6DOF head &amp; wand tracking + joystick simulator program, <span
+ style="font-style: italic;">wandsimserver</span>. All device drivers
+are managed by the <span style="font-style: italic;">DeviceServer</span>
+executable, with a separate instance of this program running on each
+machine connected to a hardware input device. Each instance of
+DeviceServer has a <span style="font-style: italic;">service</span>
+name, corresponding to a group of Syzygy database parameters, that is
+determined by the device driver it is running. An application checks
+this group of database parameters for the IP address and port number to
+connect to in order to receive input from that device. Here is a list
+of <a href="InputDevices-Drivers.html">supported input devices</a>.<br>
+</p>
+<p>Recognizing that many virtual worlds require similar navigational
+functionality, the input framework includes support for standard <a
+ href="Navigation.html">navigational methods</a> that can be easily
+deployed in user programs. These methods are integrated with the two
+Syzygy <a href="Programming.html">application frameworks</a>.<br>
+</p>
+<p>Finally, Syzygy also provides classes and functions to simplify the
+handling of <a href="Interaction.html">interactions</a> between the
+user and virtual world objects. Grabbing and dragging can be handled
+with minimal effort different kinds of drag behaviors can easily be
+added, and hooks are provided for implementing other kinds of
+user-initiated object state changes.<br>
+</p>
+<ul>
+</ul>
+</body>
+</html>

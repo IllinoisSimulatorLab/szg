@@ -1,0 +1,80 @@
+<html>
+<head>
+<title>Syzygy Introduction</title>
+</head>
+<body bgcolor="#ffffff">
+<a href="index.html">Documentation Index</a>
+<p><font size=+2>Syzygy Introduction</font>
+
+<p>The primary goal of the Syzygy software project is to run a wide
+range of VR applications on a PC cluster with equal or greater performance
+than on an SGI Onyx, the traditional platform for high-end VR.
+This change in hardware platform drives software changes. Communications 
+between processors now becomes a bottleneck and tools are needed to efficiently
+manage and develop cluster applications. By developing a system that targets 
+cluster-based VR from the beginning, one hopes to have a final product that 
+will be pleasant to develop for and use. The Syzygy system will enable users
+to run cluster applications between machines with different underlying
+architectures, like x86 and MIPS, allowing old and new machines to work
+together.  
+ 
+<p>The goal of creating VR applications on a PC cluster is best served by
+increasing the level of abstraction and writing a toolkit with broader
+applicability. Syzygy aims to provide simple software tools for building 
+heterogeneous distributed systems. The toolkit's main focus is PC clusters 
+on high performance LANs, though it is also applicable to internet-based 
+systems. It is designed to be a lightweight toolkit that can operate on PC 
+clusters, SMP boxes, and laptops, while connecting meaningfully with smaller 
+devices. This presents several challenges. Much system infrastructure is
+unnecessary for a standalone laptop being used to provide a 
+portable road demo. To maintain ease of use, the toolkit's operation should
+scale down gracefully. Furthermore, we need to deploy 
+communication methods suitable for SMP, namely shared memory instead of 
+sockets, and do this while reusing our communications infrastructure. Finally,
+performance is very important. Many of the toolkit's functions are OS-level
+and must be efficient. 
+
+<p>Syzygy needs to solve several problems: distributed graphics, 
+distributed sound, distributed
+systems management, distributed data access, and general I/O device management.
+There are systems out there that do each of these things, but no one system
+addresses them all. However, each problem relies on a similar infrastructure
+for its solution. Syzygy aims to identify that common infrastructure
+and an implementation. Thus, each problem can be solved more
+easily, and the resulting code base is well-integrated and maintainable.
+In effect, Syzygy attempts to create middleware suitable for multimedia on
+clusters. 
+
+<p><font size=+2>How To Use this Documentation</font> 
+
+<p>The documentation is arranged into chapters.
+Users of
+earlier Syzygy releases should first read the <a href="ChangeLog.html">
+Change Log</a> chapter
+since there are incompatibilities with previous versions.
+The change log suggests what to change 
+in order to deploy the new version.
+Next, the <a href="QuickStart.html">
+Quick Start</a> chapter leads you step-by-step through the installation
+of a Syzygy-based cluster environment. Advanced troubleshooting, especially
+concerning Syzygy's distributed operating system Phleet, can be found in the 
+<a href="Phleet.html">Phleet</a> chapter. The documentation also includes information
+for application programmers, with two APIs for writing cluster-based VR
+applications documented in the <a href="Programming.html">programming</a>
+chapter.
+
+<p>What Does "ar" Mean?
+
+<p>A short look at the source code reveals that Syzygy objects all start
+with the prefix "ar", which stands for "artificial reality".
+
+<p><font size=+2>Where to Get Help</font>
+
+<p>Please email
+bug reports, feature requests, and questions to
+<a href="mailto://schaeffr@isl.uiuc.edu">Ben Schaeffer</a>.
+Also, check out the Syzygy
+<a href="http://www.isl.uiuc.edu/syzygy/index.htm">website</a>.
+ 
+</body>
+</html>

@@ -1,0 +1,101 @@
+<html>
+<head>
+<title>Syzygy Tested Configurations</title>
+</head>
+<body bgcolor="#ffffff">
+<a href="index.html">Documentation Index</a>
+<p><font size=+2>Syzygy Tested Configurations</font>
+
+<p>Syzygy is portable across a range of modern operating systems,
+Linux, Win32, Mac OS X, and Irix. Testing is complicated because
+Syzygy supports heterogeneous clustering, which
+increases the number of scenarios that must be investigated.
+
+<p>The Syzygy developers have access to the following systems. 
+For obvious reasons, these are the supported platforms. However,
+similar systems will likely also work. Any modern Linux is likely
+to be fine.
+<p><ul>
+<li>Linux, RedHat 6.2, 6.3, 8.0, and 9.0 are tested and OK.
+    Redhat 7.1 and 7.2 have stability problems due to gcc on
+    SMP computers.
+<li>Windows NT, Windows 2000, Windows XP. Windows 98 will also work
+    in conjunction with cygwin. SMP fine on all platforms.
+<li>Mac OS X 10.2.4 and above. Earlier versions of Mac OS X will
+    work, but will be less convenient to use. For instance, early
+    versions of Mac OS X would not let glut programs launched
+    from the command line get keyboard focus. 
+<li>Irix 6.5 (stability problems on some machines... see below)
+</ul>
+
+<p>IMPORTANT NOTE (Syzygy on Linux): Syzygy depends on a thread-safe libc++ for
+stability. The libc++ shipped with RedHat 7.1 is NOT thread-safe
+due to gcc-2.96. This platform thus experiences slight instability
+when running Syzygy (most noticeable on SMP machines). Upgrade
+to a modern Linux (and a gcc-3.x) to fix this. As a work-around, 
+if you cannot upgrade to a newer Linux, try running a uniprocessor kernel. 
+This vastly improves stability.
+
+<p>IMPORTANT NOTE (Syzygy on Irix): As with Linux. Syzygy depends on a 
+thread-safe libc++ for stability. On a 4-processor deskside Onyx running
+Irix 6.5 and using CC 7.2, some of the server components are unstable
+(szgserver for instance). The symptoms are the same as on the Linux side
+(for gcc versions which produce non-threadsafe c++ code). Experimentation has
+yet to determine whether a newer version of CC will improve matters or if
+the current version can be induced to create threadsafe code.
+
+<p>Syzygy programs will run on Windows 98 also. However, it is impossible
+for an executable to get its own name (other than in all capital letters)
+from argv[0] when run from cmd.exe (the default Windows shell). 
+Since Syzygy uses the command line argv[0] (in most cases) to set the
+component name, this causes problems with automated operation of the
+distributed system, for instance when running an application on a virtual
+computer, one of whose nodes is Win98. As a work-around, three components 
+(szgd, DeviceServer, and SoundRender) manually set their component names.
+Thus, Win98 nodes in a virtual computer can host input devices (via 
+DeviceServer) and can also emit sounds (via SoundRender). Finally,
+components can retrieve the name from the argv[0] when launched via the
+cygwin shell. Consequently, normal operation of the distributed system is
+assured if you only launch components from the cygwin shell when on Win98. 
+
+<p><font size=+2>Wildcat Graphics Cards: Specifics</font>
+
+<p>While the Syzygy network-based framelocking scheme works well 
+with most graphics
+cards, the Wildcat series of graphics cards needs to also have its internal
+framelocking feature enabled for quality results. To enable framelocking for
+a given rendering machine (in this case vr1):
+
+<pre>
+  vr1 SZG_RENDER wildcat_framelock true
+</pre>
+
+<p>Note that the default is to have wildcat framelocking (i.e. the internal
+framelocking on the card) disabled.
+
+<p><font size=+2>Syzygy Validation Procedures</font>
+
+<p><ul>
+<li>Each supported platform runs szgserver and szgd. The szgserver 
+communicates with clients on each of the supported platforms.
+<li>Successfully run a distributed scene graph application on
+each of the supported platforms. Connected display clients work
+on each supported platform.
+<li>Successfully run a master/slave application on each of the
+supported platforms. Slaves run on each of the supported platforms.
+<li>The following is the "stress test" currently used to validate the
+system. Given a 3x2 video wall with some Windows and some Linux
+components. All of the computers have dual processors and two
+network cards, one connected to the internet and one connected to
+a private gigabit network. A seventh trigger computer also exists,
+a dual processor Linux computer, with similar networking capabilities.
+This seventh computer also runs the szgserver. A script launches
+applications at 3 second intervals. 4000 applications launches are
+required without a problem before the software is said to be 
+sufficiently stable.
+</ul>
+
+<p>This procedure is not complete but is a good start.
+
+</body>
+</html>

@@ -1,0 +1,25 @@
+VPATH = ../../../../src/demo/q33
+
+OBJSRAW = bsp entity globalshared lightmap mapent md3 mesh pak renderback \
+  render renderhud shader skybox tex uicommon unzip util vec
+OBJS = $(OBJSRAW:%=%$(OBJ_SUFFIX))
+
+# Bug: q33 will sometimes crash in the graphics routines if it isn't built
+# debug (on win32)... also note that we add the libraries for zlib
+# and libjpeg here, as opposed to some more obscure place in the build
+# as previously
+ifeq ($(strip $(MACHINE)),WIN32)
+  COMPILE_FLAGS = $(COMPILE_FLAGS_DEBUG)
+  LINK_FLAGS = $(LINK_FLAGS_DEBUG)
+endif
+
+ALL = q33$(EXE)
+Everything: $(ALL)
+
+# since quake needs to be built debug on win32, this is necessary
+# if we do, in fact, use the precompiled header... this leads to the same
+# crash
+PRECOMPILED_HEADER_FLAGS = $(PRECOMPILED_HEADER_DISABLE)
+
+q33$(EXE): uiszg$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBS)
+	$(DO_LINK_GRAPHICS)

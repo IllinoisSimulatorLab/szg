@@ -1,0 +1,269 @@
+
+*****************************************************************************
+
+The Syzygy software is a project of the Integrated Systems Lab and is 
+released under the LGPL. Please note that, while the core software is
+LGPL, many of the demos have different licenses. See the relevant source
+files/ directories for this information. Furthermore, we include source code
+for libjpeg, zlib, and lib3DS, which have their own licenses.
+
+copyright 2000-2004 Benjamin Schaeffer
+
+*****************************************************************************
+
+A big thanks to everyone who let us port their applications and redistribute
+the code! Thanks to George Francis and crew, who generously shared their
+mathematical visualizations. And thanks to Paul Rajlich for making the Quake
+code available in a VR-friendly form. Please see the end of this document
+for full demo credits. Furthermore, thanks very much to Bill Sherman whose
+nice FreeVR library provided examples and inspiration on topics such as
+flock-of-birds interface, shared-memory input device interface for legacy
+applications, etc.
+
+*****************************************************************************
+Contributors (core project), Syzygy-0.61
+
+Release Jan 2004
+
+A little change in the credits format. Keep to the log style, though.
+
+Contributions, Syzygy-0.61
+--------------------------
+
+Ben added true connection brokering to the Phleet, making zero config
+clustering possible. Syzygy set-up was changed drastically, including
+dropping dependency on DNS. The components were brought closer to being
+able to deterministically shutdown. Data organization for the various
+demos was changed to promote a saner data repository. Also, the Makefiles
+were changed to have a saner and more maintainable external/lib and
+external/include. Support for jpegs added.
+
+Jim continued to work on the interaction code and developed the
+arGraphicsWindow class, with corresponding enhancements to the different
+kinds of window tilings available.
+
+Camille did a pass through the code for correct form.
+
+*****************************************************************************
+Contributors (core project), Syzygy-0.55
+
+Release May 2003
+
+Contributors, Syzygy-0.55
+-------------------------
+
+Ben Schaeffer
+Camille Goudeseune
+Jim Crowell
+Mark Flider
+Drew Dlogert
+
+Credits
+-------
+
+Architect: Ben
+Initial prototype: Ben
+Code stabilization: Camille
+Communications infrastructure: Ben
+Distributed operating system: Ben
+Graphics: Ben, Mark
+Sound: Camille
+Input Devices: Camille, Jim, Ben, Jim, Drew
+Content Filters: Mark
+
+NOTE: we now distribute some Intersense source files (isense.c, isense.h,
+and isenseTypes.h).
+
+*Drew: Generously provided a Syzygy driver for the intersense trackers.
+*Jim: Continuing improvements on the navigation framework.
+*Ben: Fixed the "name translation" so that it would work with multi-token
+host OS user names (as in windows). Added support for the frame-locking
+feature on the wildcat boards. Fixed some compilation issues with q33
+(basically punted... making sure it compiles as debug). Fixed the spacepad
+driver. 
+
+*****************************************************************************
+
+Release March 2003
+
+Contributors (core project), Syzygy-0.5
+---------------------------------------
+
+Ben Schaeffer
+Camille Goudeseune
+Jim Crowell
+Mark Flider
+
+Credits
+-------
+
+Architect: Ben
+Initial prototype: Ben
+Code stabilization: Camille
+Communications infrastructure: Ben
+Distributed operating system: Ben
+Graphics: Ben, Mark
+Sound: Camille
+Input Devices: Camille, Jim, Ben, Jim
+Content Filters: Mark
+
+*As usual, Camille worked doggedly on cleaning-up the code, factoring
+out copy-paste, and, in general, making things look more like
+professional C++.
+*Mark turned us on to Doxygen, and while our auto-generated manual is
+mediocre now, it'll probably be good soon!
+*Jim worked hard on improving the event processing in the input framework.
+And also made significant progress in adding a high-level user-interaction
+and navigation framework to the input framework.
+*Mark cleaned-up the OBJ support and added lib3DS support via lib3DS. He 
+also started adding shader effects via CG. He also made our import
+filters more coherent (descending from a common base class) and added the
+nice szgview viewer application.
+*Ben worked on adding more features to the scene graph API, making it more
+OpenGL-like. He also added rudimentary XML input/output support, made some
+improvements to the application frameworks (screenshot mechanism and pause
+mechanism), and added a means to replay input events from files. Finally,
+he worked on making the phleet more reliable.
+
+Additional Contributions
+------------------------
+
+* The algorithm for ray/triangle intersection is from geometrysurfer.com 
+  by Dan Sunday
+
+*****************************************************************************
+
+Release July 2002
+
+Contributors (core project), Syzygy-0.4
+---------------------------------------
+
+Ben Schaeffer
+Camille Goudeseune
+Jim Crowell
+Mark Flider
+
+Credits
+-------
+
+Architect: Ben
+Initial prototype: Ben
+Code stabilization: Camille
+Communications infrastructure: Ben
+Distributed operating system: Ben
+Graphics: Ben
+Sound: Camille
+Input Devices: Camille, Jim, Ben
+Content Filters: Mark
+
+*****************************************************************************
+
+Release December 2001
+
+Contributors (core project), Syzygy-0.3
+---------------------------------------
+
+Ben Schaeffer
+Camille Goudeseune
+
+Credits
+-------
+
+Architect: Ben
+Initial prototype: Ben
+Code stabilization: Camille
+Communications infrastructure: Ben
+Distributed operating system: Ben
+Graphics: Ben
+Sound: Camille
+Input Devices: Camille
+
+*****************************************************************************
+
+Contributed software
+--------------------
+
+The Quake3 level viewer demo relies on libjpeg and zlib and needs
+multithreaded versions of these libraries. We include "simplified"
+versions of these code distributions with altered Makefiles so Windows
+users can easily build versions of these libraries which are linked with
+the multithreaded libc. Any problems are the fault of this process and
+not the original authors!
+
+libjpeg: Created by the Independent JPEG Group
+zlib: Copyright 1995-1998 Jean-loup Gailly and Mark Adler
+
+Demos
+-----
+
+cosmos: Ben Schaeffer
+cubes: Ben Schaeffer
+volume: Data originally from the Functional MRI group at the Beckman Institute,
+ obscured for confidentiality. Coding by Ben Schaeffer and Camille Goudeseune.
+parade: Matthew Woodruff, Ben Bernard, and Doug Nachand
+timetunnel: A port of a piece of Virtue, a virtual reality front end for
+ the Pablo performance analysis environment. The Virtue project lead 
+ programmer was Eric Shaffer and the principal investigator was Dan Reed.
+ This particular piece of Virtue was largely coded by Ben Schaeffer.
+ The Center for Simulation of Advanced Rockets (CSAR) at the University
+ of Illinois provided the data.
+avn (optiverse): Coding by George Francis, Stuart Levy, John Sullivan,
+ Alex Bourd, Glenn Chappell and Chris Hartman. Porting to Syzygy by Ben
+ Schaeffer.
+hspace: The database for the space tiling by dodecahedra is from the
+ Geometry Center at the University of Minnesota. This is an old CAVE demo
+ of George Francis's group. The porting to Syzygy was done by
+ Matt Woodruff and Ben Bernard.
+q33: This Quake3 level viewer is based on a rendering engine written by
+ Steven Taylor. Paul Rajlich modified this code to be more suitable for
+ use on VR devices. Porting to Syzygy by Ben Schaeffer.
+atlantis: One of the GLUT demos by Mark Kilgaard. Porting to Syzygy by
+ Jim Crowell.
+coaster: One of the GLUT demos by Mark Kilgaard. Porting to Syzygy by
+ Jim Crowell.
+schprel: A visualization of the distortions caused by moving near the
+ speed of light. By Mark Flider.
+
+******************************************************************************
+
+And the license from the GLUT demos requires we display the following license
+information (atlantis and coaster):
+
+/* Copyright (c) Mark J. Kilgard, 1994. */
+
+/**
+ * (c) Copyright 1993, 1994, Silicon Graphics, Inc.
+ * ALL RIGHTS RESERVED
+ * Permission to use, copy, modify, and distribute this software for
+ * any purpose and without fee is hereby granted, provided that the above
+ * copyright notice appear in all copies and that both the copyright notice
+ * and this permission notice appear in supporting documentation, and that
+ * the name of Silicon Graphics, Inc. not be used in advertising
+ * or publicity pertaining to distribution of the software without specific,
+ * written prior permission.
+ *
+ * THE MATERIAL EMBODIED ON THIS SOFTWARE IS PROVIDED TO YOU "AS-IS"
+ * AND WITHOUT WARRANTY OF ANY KIND, EXPRESS, IMPLIED OR OTHERWISE,
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTY OF MERCHANTABILITY OR
+ * FITNESS FOR A PARTICULAR PURPOSE.  IN NO EVENT SHALL SILICON
+ * GRAPHICS, INC.  BE LIABLE TO YOU OR ANYONE ELSE FOR ANY DIRECT,
+ * SPECIAL, INCIDENTAL, INDIRECT OR CONSEQUENTIAL DAMAGES OF ANY
+ * KIND, OR ANY DAMAGES WHATSOEVER, INCLUDING WITHOUT LIMITATION,
+ * LOSS OF PROFIT, LOSS OF USE, SAVINGS OR REVENUE, OR THE CLAIMS OF
+ * THIRD PARTIES, WHETHER OR NOT SILICON GRAPHICS, INC.  HAS BEEN
+ * ADVISED OF THE POSSIBILITY OF SUCH LOSS, HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, ARISING OUT OF OR IN CONNECTION WITH THE
+ * POSSESSION, USE OR PERFORMANCE OF THIS SOFTWARE.
+ *
+ * US Government Users Restricted Rights
+ * Use, duplication, or disclosure by the Government is subject to
+ * restrictions set forth in FAR 52.227.19(c)(2) or subparagraph
+ * (c)(1)(ii) of the Rights in Technical Data and Computer Software
+ * clause at DFARS 252.227-7013 and/or in similar or successor
+ * clauses in the FAR or the DOD or NASA FAR Supplement.
+ * Unpublished-- rights reserved under the copyright laws of the
+ * United States.  Contractor/manufacturer is Silicon Graphics,
+ * Inc., 2011 N.  Shoreline Blvd., Mountain View, CA 94039-7311.
+ *
+ * OpenGL(TM) is a trademark of Silicon Graphics, Inc.
+ */

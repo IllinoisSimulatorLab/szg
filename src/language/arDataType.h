@@ -1,0 +1,43 @@
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
+#ifndef AR_DATA_TYPE
+#define AR_DATA_TYPE
+
+////////// Platform-DEPENDENT ///////////////////////
+
+// Implementation of the standard data types on local machine
+
+typedef char ARchar;
+typedef int ARint;
+typedef long ARlong;
+typedef float ARfloat;
+typedef double ARdouble;
+
+////////// Platform-INDEPENDENT ///////////////////////
+
+// Sizes of the standard data types.
+/// \bug The Syzygy core silently assumes sizeof(float) == sizeof(ARfloat).
+/// \bug The Syzygy core silently assumes sizeof(int) == sizeof(ARint).
+const int AR_GARBAGE_SIZE = 0;
+const int AR_CHAR_SIZE = 1;
+const int AR_INT_SIZE = 4;
+const int AR_LONG_SIZE = 8;
+const int AR_FLOAT_SIZE = 4;
+const int AR_DOUBLE_SIZE = 8;
+
+// IDs of data types.
+
+enum arDataType {
+  AR_GARBAGE=0, AR_CHAR=1, AR_INT=2, AR_LONG=3, AR_FLOAT=4, AR_DOUBLE=5
+};
+
+// Get the size and name of a data type from its ID.
+
+int arDataTypeSize(arDataType theType);
+const char* arDataTypeName(arDataType theType);
+arDataType arDataNameType(const char* const theName) ;
+
+#endif

@@ -1,0 +1,9 @@
+VPATH = ../../../../src/demo/cosmos
+
+ALL = cosmos$(EXE)
+Everything: $(ALL)
+
+PRECOMPILED_HEADER_LOCATION := $(PRECOMPILED_HEADER_LOCATION_DEMO)
+
+cosmos$(EXE): cosmos$(OBJ_SUFFIX) $(SZG_LIBS)
+	$(DO_LINK_GRAPHICS)

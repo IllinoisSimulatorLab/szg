@@ -1,0 +1,59 @@
+Modifications to CQ3A to support reflection mapping
+---------------------------------------------------
+
+I implemented reflection mapping for Cave Quake III
+Arena by Paul Rajlich.
+
+Sphere environment mapping was very simple to implement,
+but looked awful in stereo, particularly for all the
+reflective health spheres sprinkled over the levels.
+Sphere mapping looks sort of OK for more irregular
+objects and monoscopic views, but not in CQ3A.
+
+Instead, I implemented (with some effort) a variant of
+dual paraboloid environment mapping. On platforms which
+support cube environment maps or the Nvidia extension
+GL_NV_texgen_reflection, this is fully hardware accelerated.
+Hardware accelerated environment maps are activated by
+default.
+
+To support hardware platforms where an appropriate texgen
+extension is not available (for example the SGI Onyx2),
+I also implemented a software workaround. It uses some
+CPU power to calculate the reflection vectors in software.
+This it is not significantly slower unless too many
+objects in the scene are reflection mapped, and if you
+have an Onyx2, you can probably spare the CPU cycles.
+This mode will work on all OpenGL 1.1 implementations,
+without any special extensions.
+
+The software workaround is visually very close to what
+was used in the original game, so if you want the original
+Q3A look to the maps, use this mode.
+Compiling with -DSW_REFLECTION activates the software-assisted
+reflection mapping. It looks a little better, but requires
+some additional CPU power.
+
+Strictly speaking, neither the hardware nor the software
+reflection maps are dual paraboloid maps. Because of a
+limitation in the current CQ3A multi-texturing code, the
+hardware version performs only one pass where two are needed,
+so it is actually "single paraboloid mapping". Also, since the
+original game uses a software method for reflection mapping,
+there is no alpha map on the Q3A environment textures, so
+that would have to be patched in afterwards to make true
+dual paraboloid maps possible.
+To get a better look to the single pass paraboloid mapping,
+I chose to orient the environment map differently from in
+the original game: the pinch for the "back-facing" reflection
+directions points downwards in order to hide it better from
+common view angles. The software reflections are oriented
+like in the original game, though.
+
+BUGS:
+Texture coordinate animation on environment mapped shaders,
+like the ones on golden and mega health spheres, look wrong.
+I tried to fix that, but I have no solution yet.
+
+
+Stefan Gustavson, ITN-LiTH (stegu@itn.liu.se) 2001-08-28

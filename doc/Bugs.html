@@ -1,0 +1,266 @@
+<html>
+<head>
+<title>Syzygy Known Bugs</title>
+</head>
+<body bgcolor="#ffffff">
+<a href="index.html">Documentation Index</a>
+<p><font size=+2>Syzygy Known Bugs</font>
+
+<ul>
+<li>Cannot reorder nodes. Sometimes drawing order needs to be changed 
+like when transparency is used. And drawing order depends on node order.
+Also, the nav node is attached first, so that its children are always
+drawn before the non-navigated objects.
+e<li>arFileTextStream error appears when using dname on a new computer.
+<li>want a new way to automatically generate a build tree... a wizard!
+<li>If the user is dlogout'ed, the szgd will JAM!
+<li>On windows, if c:\szg_USERNAME.conf is present, then dlogin does not look
+at c:\szg\szg_USERNAME.conf. SERIOUS BUG since it impacts migrating to new
+versions of szg.
+<li>Cameras are not handled very well in the arGraphicsDatabase. There is
+genuinely draw state which currently exists (which camera is active) but
+which does not appear in a dump. Furthermore, it is unclear how (if cameras
+weren't global) how different camera-containing trees would be combined.
+<li>THE CURRENT CODE DOES NOT WORK WHEN THE NETMASK IS NOT 255.255.255.0.
+(i.e. dlogin relies on broadcast and this will be incorrectly done). 
+<li>dlogin IS INSECURE. It should no longer rely on broadcasting for discovery.
+This will also eliminate the undesirable confusion of having a "cube" virtual
+computer and a "cube" szgserver.
+<li>Should be posible to draw .obj's without a graphics database.
+<li>Need a way, in the scene graph, to turn on/off OpenGL properties.
+<li>Should add mesh nodes (for simple shapes) to the database!
+<li>Need to support more nodes in the python wrappers... i.e. all of them!
+<li>Need to consider mutex locking/unlocking of get/set methods and how this
+will work. For instance, it is not currently safe to get a matrix from a
+transform node because someone else might be changing it in place!
+<li>Need to support attach/detach for nodes in the database. This will
+enable more natural semantics
+<li>Need to use smart pointers for nodes! (our nodes may be deleted out from
+under us)
+<li>Thread-safety issues in terms of attaching/detaching a node and 
+invoking methods of that node... when the way the methods are invoked will
+changed based on whether or not it is part of a database!
+<li>Need to be able to "insert" a node (not just make a child of a parent).
+<li>Need to be able to delete a node, not a subtree (though deleting the
+subtree is important as well).
+<li>erase command will be fed-back to use (haven't implemented 
+<li>The node method calls are woefully inefficient for large arrays because 
+they do not use prtIn.
+<li>The node method calls should use an arStructuredDataParser to provide
+storage instead or new/delete. This should be benchmarked against using
+global (and NON THREAD-SAFE) storage!
+<li>MUST CHANGE THE NAME OF THE PRETTYDUMP COMMAND (and maybe the way it
+is implemented).
+<li>IMPLICIT ARGUMENTS DO NOT SEEM HANDLED WELL BY SWIG (see the way
+createNode crashes on an implicit name)
+<li>dgSetGraphicsDatabase must be eliminated!
+<li>BUG: My switch for determining if a texture is a bit buggy! What if
+someone uses an empty string for the texture name? (temporarily...) This
+can result in a situation where you cannot download a database!
+<li>Currently, the node dichotomy between the root node and everything
+else is very annoying. At the very least, getTypeString should move up the
+chain to arDatabaseNode.
+
+<li>On the python side, CANNOT GET THE POINTS ARRAY FROM THE POINTS NODE!
+    (i.e. getPoints() does not work!)
+<li>The light direction seems to be wrong! (i.e. direction = (0,0,10,0)
+    instead of direction = (0,0,-10,0)
+<li>Need to be able to load and save from a path!
+<li>On the python side, obj.readOBJ does not work because of the path
+argument!
+<li>Things like arMesh and arOBJ etc. should have an implicit transform node
+contained within them.
+<li>BUG BIG BUG BUG BUG BUG BUG BUG BUG BUG BUG: I've disabled the pixel 
+reading part of the texture node!
+
+<li>AARGH! arSlashString is broken when feed a string with no slashes!
+
+<li>If an application crashes on start-up or exit, the system can jam.
+There need to be ubiquitous time-outs in phleet!
+<li>arSZGClient should be ubiquitously threadsafe!
+
+<li>Need to differentiate "virtual computer" from "locale".
+
+<li>obj parser barfs when reading win32 produced files on Unix
+<li>obj parser does not show textures!
+<li>Erase seems to have infinite erase problems!
+<li>Performance can segfault after running through the whole thing. IT IS
+ALSO DAMN SLOW TO LOAD! NEED A BINARY FORMAT!
+<li>Cannot erase dgLight nodes.
+<li>There are spurious messages now (arFIleTextStream) when using
+    /tmp/szg.conf instead of /etc/szg.conf.
+<li>Need access control lists for szgserver, instead of just single subnets.
+    (for instance, need to screen connections for szgserver BUT there are
+     cases where multiple subnets need to be able to connect).
+<li>Also, want to get rid of 
+<li>Our global init means that sockets cannot be declared globally!
+<li>The arDataServer should allow specific-socket-sending via HANDLES only.
+This is because it actively manages the sockets (and there's the possibility
+of a stale pointer).
+<li>A weird bug. In standalone mode, with joystick (as in the standalone
+landspeeder), if the pforth filter is in the old style 
+(PForth_programs.xml) instead of the new style (*.pf in PForth) then the
+program segfaults with an error message "arSyncDataServer error: start 
+called before init".
+<li>"dex host foo" hangs when no szgd is running on host! Also, it hangs
+when there is no szgd on the trigger for the virtual computer. In connection
+with this, I noticed a weird coincidence. Namely that the szgserver segfaulted
+when I killed the trigger szgd. Hmmm.
+<li> On windows, c:\szg is used to store config info. HOWEVER, this would
+be a natural place to put the szg code. This must change.
+<li> Thread-safety issues... The Irix port does, indeed, seem to be working.
+However, it seems sensitive to having an appropriately configured compiler.
+(or maybe a recent enough version). Specifically, if the following test
+program compiles and runs for a minute or two, then syzygy will run and be
+stable.
+
+<pre>
+#include <pthread.h>
+#include <string>
+#include <iostream>
+using namespace std;
+
+void* task1(void*){
+  cout << "YYYY\n";
+  while (true){
+    string temp("yyy_test_name");
+  }
+  return NULL;
+}
+
+void* task2(void*){
+  cout << "XXXX\n";
+  while (true){
+    string temp("death_by_xxx");
+  }
+  return NULL;
+}
+
+int main(int, char**){
+  cout << "#####################################################\n";
+  pthread_t ID1, ID2;
+  pthread_create(&ID1,NULL,task1,NULL);
+  pthread_create(&ID2,NULL,task2,NULL);
+
+  // wait forever
+  pthread_join(ID1, NULL);
+}
+</pre>
+
+The compile script for Irix is simple. Here, we are assuming that the
+program name is test.cpp.
+
+<pre>
+CC -n32 -LANG:std -c test.cpp
+CC -n32 -LANG:std -o test test.o -lpthread
+</pre>
+
+NOTE: This would probably catch the thread safety problem on RedHat 7.x 
+as well (?). Haven't really felt like re-installing something that ancient
+however to find out.
+
+<li> On Mac OS X, dhunt does not seem to work. If you run an szgserver
+on OS X and type dhunt on that box, the szgserver does not appear. Is the
+problem filtering of the broadcast packets?
+
+<li>Double key presses on master (when standalone).
+
+<li>BUG: if someone is looking for a service on network X but the
+service is offered on network Y, the connection won't work, but the
+service will disappear from dpending.
+
+<li>Some weirdness with libjpeg. Need better instructions for building this.
+Specifically, turned out that the library suddenly started crashing on 
+*one* Windows XP box. A fresh install seemed to do the trick. Here are the
+steps (on windows): 
+<ul>
+<li> Before compiling, copy jconfig.vc to jconfig.h
+<li> Before compiling, copy makefile.vc to Makefile
+<li> Before compiling, edit jmorecfg.h so that:
+
+<pre>
+#ifndef XMD_H                   /* X11/xmd.h correctly defines INT32 */
+typedef long INT32;
+#endif
+</pre>
+
+becomes
+
+<pre>
+#ifndef _BASETSD_H_
+#ifndef XMD_H                   /* X11/xmd.h correctly defines INT32 */
+typedef long INT32;
+#endif
+#endif
+</pre>
+<li> Before compiling, edit Makefile so that
+
+<pre>
+$(cc) $(CFLAGS) $*.c
+</pre>
+
+becomes
+
+<pre>
+$(cc) $(CFLAGS) /MT $*.c
+</pre>
+<li>Type nmake (DOS prompt, not cygwin shell) to build the library.
+<li>To install,
+  <ul>
+  <li> Copy libjpeg.lib into $SZGEXTERNAL/lib/jpeg/win32
+  <li> Copy jconfig.h, jmorecfg.h, jpeglib.h into $SZGEXTERNAL/include/jpeg/win32.
+  </ul>
+</ul>
+
+<li>The very latest fmod is NOT compatible with the headers we had
+previously.
+
+<li>DeskCalibrator.cpp might not compile on some platforms.
+
+<pre>
+../../../../src/demo/utilities/DeskCalibrator.cpp: In function `void
+   keyboard(unsigned char, int, int)':
+../../../../src/demo/utilities/DeskCalibrator.cpp:88: error: name lookup of `i'
+   changed for new ISO `for' scoping
+../../../../src/demo/utilities/DeskCalibrator.cpp:78: error:   using obsolete
+   binding at `i'
+</pre>
+
+<li> q33 does not compile on RedHat 9. renderback.cpp must be compiled with
+NO_MULTITEX. Or the detection must be improved. Or maybe NVidia's linux
+drivers are at fault.
+
+<li>szgd expects a hand-shake from the launched executable and blocks
+until that occurs. So, trying to launch a non-syzygy executable (or
+an executable which fails before reaching main, as might occur is dynamic
+library loads fail) will cause szgd to hang and need to be restarted!
+
+<li>Alpha channel in textures doesn't quite work anymore. Specifically,
+the drawing code only turns blending on if it thinks that the alpha is less
+than 1 and the texture doesn't contribute to that as currently formulated.
+
+<li>This isn't a bug, but deserves to be mentioned here. Syzygy requires
+a thread-safe libc++ to operate successfully. gcc-2.96 is known not to
+work. Yikes! So, for instance, RedHat 7.1 SMP kernels will cause some of the
+programs to crash randomly. (a "fix" if you can't upgrade is to boot into
+a single processor kernel, which improves matters dramatically).
+
+<li> Code will not compile on VC++ 5.0. szgd compilation complains
+  that not all control paths in main return a value.
+
+<li> Same computer name in szg.conf file on multiple computers
+  destroys the system. We should be more robust!
+
+<li> Double-clicking a program (like dps) works, when typing dps from a
+  win98 dos shell fails:  try unchecking "Prevent MS-DOS-based programs
+  from detecting Windows".
+
+<li> Bad things happen on a Windows PC whose boot disk is not C: or D:.
+  This can happen if it has a built-in card reader which grabs several
+  drive letters, causing hard disks to start with F: or so.
+  Since such a configuration causes many other problems, this isn't a
+  priority to fix.
+
+</ul>
+</body>
+</html>

@@ -1,0 +1,40 @@
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
+#ifndef AR_SOUND_SERVER_H
+#define AR_SOUND_SERVER_H
+
+#include "arSoundDatabase.h"
+#include "arSyncDataServer.h"
+
+/// Provides data on SZG_SOUND/{IP,port} for arSoundClients to render.
+
+class arSoundServer: public arSoundDatabase {
+  // Needs assignment operator and copy constructor, for pointer members.
+  friend bool
+    ar_soundServerConnectionCallback(void*,arQueuedData*,list<arSocket*>*);
+  friend arDatabaseNode*
+    ar_soundServerMessageCallback(void*,arStructuredData*);
+ public:
+  arSoundServer();
+  ~arSoundServer();
+ 
+  bool init(arSZGClient& client);
+  bool start();
+  void stop();
+ 
+  arDatabaseNode* alter(arStructuredData*);
+ 
+  arSyncDataServer _syncServer;
+ 
+ protected:
+  arQueuedData* _connectionQueue;
+ 
+ private:
+  bool _connectionCallback(list<arSocket*>*);
+  void _recSerialize(arDatabaseNode* data, arStructuredData& nodeData);
+};
+
+#endif

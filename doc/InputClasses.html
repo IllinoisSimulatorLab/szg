@@ -1,0 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="content-type"
+ content="text/html; charset=ISO-8859-1">
+  <title>InputClasses.html</title>
+</head>
+<body bgcolor="#ffffff">
+<p><a href="index.html">Documentation Index</a> </p>
+<p><font size="+2">Syzygy Input Classes</font></p>
+<p>There are three basic types of input classes: sources, nodes, and
+sinks. An <span style="font-style: italic;">arInputSource</span>
+receives events and feeds them to an <span style="font-style: italic;">arInputNode</span>,
+which in turn relays them to one or more <span
+ style="font-style: italic;">arInputSinks</span> after optionally <a
+ href="InputFilters.html">filtering</a> them. An arInputSink may
+transmit the events to some other location or may perform arbitrary
+operations based on the input stream. The arInputNode maintains a list
+of arInputSources and arInputSinks.</p>
+<p>Two important arInputSource subclasses are the <span
+ style="font-style: italic;">arNetInputSource</span>, which receives a
+stream of input events from a remote computer and makes it available to
+the local process, and the <span style="font-style: italic;">arFileSource</span>,
+which reads an event stream from a file and feeds it to the local
+process, using the internal event time stamps to control the pace.
+Corresponding arInputSink classes are the <span
+ style="font-style: italic;">arNetInputSink</span> and <span
+ style="font-style: italic;">arFileSink</span>, which make an input
+stream available over the network or write it to a file, respectively.</p>
+<p>An arInputNode processes events using two subsidiary classes, the <span
+ style="font-style: italic;">arInputEventQueue</span> and the <span
+ style="font-style: italic;">arInputState</span>. The arInputNode
+receives an <span style="font-style: italic;">arStructuredData </span>record
+from an input source and unpacks it into an arInputEventQueue. It then
+passes each event in the queue through its list of <a
+ href="InputFilters.html">arIOFilters</a>. For each stage in this
+filtering chain it maintains an arInputState representing the most
+recent values of all received events; this allows the filter to perform
+computations based on the current event and the most recent state of
+all other events. Finally, it packs the filtered event queue into a new
+arStructuredData record and passes it to each of its arInputSinks.</p>
+</body>
+</html>

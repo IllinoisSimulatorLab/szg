@@ -1,0 +1,12 @@
+*.obj
+*.ilk
+*.pdb
+*.pch
+JoystickTest
+JoystickServer
+TrackerTest
+TrackerServer
+GPSServer
+TiltServer
+CompassServer
+MatrixTest

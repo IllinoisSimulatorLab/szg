@@ -1,0 +1,5 @@
+*.obj
+*.ilk
+*.pdb
+*.pch
+SoundRender

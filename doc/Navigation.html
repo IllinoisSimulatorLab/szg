@@ -1,0 +1,270 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0//EN">
+<html>
+<head>
+  <title>Navigation</title>
+</head>
+<body>
+<font size="+2">Navigation</font><br>
+<br>
+<p>Syzygy contains
+tools to make driving around inside virtual worlds easy to implement. In
+fact, if you're using one of the <a href="Programming.html">application
+frameworks</a>, you may only need to make two function calls.</p>
+
+<p>There are two
+levels of support for navigation. <i>math/arNavigationUtilities.{h,cpp}</i>
+contains tools for setting
+and reading a global navigation matrix and for converting points, vector
+offsets, and matrices between input coordinates and navigation
+coordinates. You can use these routines even if you're not using one of
+the application frameworks. The application frameworks also provide a
+navigation interface that handles automatic event-processing for
+navigation. This interface is currently based on the routines in
+arNavigationUtilities; however, although easy to use the
+arNavigationUtilities place an undesirable restriction on the structure
+of virtual worlds, so we expect to be changing the underlying framework
+navigation code in the not-too-distant future.</p>
+
+<p>The drawback is
+that you can't have any transformations between the navigation matrix
+and each object's placement matrix (placement = position + orientation),
+or transformations between input and navigation coordinates will fail.
+In other words, you can't have a transformation tree in which an
+object's placement is specified relative to a parent object; instead,
+all object placement matrices have to be computed with respect to a
+global coordinate system. We plan to eventually use the Syzygy graphics
+database (which each framework maintains a copy of) to control a
+transformation tree, with tools to calculate transformations between
+arbitrary nodes. Until then, so sorry, no transformation hierarchies if
+you want to use the Syzygy navigation and <a href="Interaction.html">interaction</a>
+tools.</p>
+
+<p><b>arNavigationUtilities</b></p>
+
+<p>These routines
+manipulate a global navigation matrix. The matrix itself is hidden
+inside a namespace (arNavigationSpace) and the accessor routines make
+use of a mutex to prevent multiple simultaneous accesses. Conceptually,
+you can treat the navigation matrix just like an object's placement
+matrix; for example, to translate the viewpoint to (0,0,-5) you would
+set the nav. matrix to ar_translationMatrix(0,0,-5). The inverse of the
+navigation matrix should be loaded into the OpenGL modelview matrix
+stack prior to rendering (the frameworks have routines for doing this).</p>
+
+<pre>
+void ar_setNavMatrix( const arMatrix4&amp; matrix );
+    sets the navigation matrix.
+
+arMatrix4 ar_getNavMatrix();
+    returns the navigation matrix.
+
+arMatrix4 ar_getNavInvMatrix();
+    returns the inverse of the navigation matrix. This is computed once,
+    then not recomputed again until the first request after one of the other
+    routines changes the navigation matrix.
+</pre>
+
+<p>The following
+two routines modify the nav. matrix by appending a translation or a
+rotation.</p>
+
+<pre>
+void ar_navTranslate( const arVector3&amp; vec );
+void ar_navRotate( const arVector3&amp; axis, float degrees );
+</pre>
+
+<p>These routines
+convert a placement matrix, a point, or a vector offset between input
+and navigation coordinates (a vector offset gets rotated but not
+translated).</p>
+
+<pre>
+arMatrix4 ar_matrixToNavCoords( const arMatrix4&amp; matrix );
+arVector3 ar_pointToNavCoords( const arVector3&amp; vec );
+arVector3 ar_vectorToNavCoords( const arVector3&amp; vec );
+arMatrix4 ar_matrixFromNavCoords( const arMatrix4&amp; matrix );
+arVector3 ar_pointFromNavCoords( const arVector3&amp; vec );
+arVector3 ar_vectorFromNavCoords( const arVector3&amp; vec );
+</pre>
+
+<p><b>Framework-mediated Navigation</b></p>
+
+<p>The application
+frameworks provide a simple interface for automatically converting input
+events into navigation commands. Navigation commands are handled by the
+arNavigationUtilities, input-event conversion is handled by the classes
+in the <a href="Interaction.html"></a>interaction</a> directory.</p>
+
+<p><u>Levels of behaviors</u>. Three levels of behaviors are available:</p>
+<ol><li>The
+frameworks have built-in default behaviors.</li>
+<li>These
+behaviors can be overridden by setting a few parameters in the Syzygy
+database.</li>
+<li>The first
+two sets of behaviors can be overridden by calling framework methods
+from within an application.</li></ol>
+
+<p><u>Behavior
+specification</u>. To determine behavior, you specify two things: the
+nature of the behavior and the condition required to trigger it. Two
+types of navigation behaviors are currently available. They are based on
+the current state of an input event, e.g. in the case of viewpoint
+translation you might hold a joystick at a fixed angle to travel in a
+fixed direction at a fixed speed.</p>
+
+<ol>
+<li>Translation
+at constant speed along the x, y, and z axes. If the input device is
+tracked, the axes rotate along with the device, i.e. you point the
+device axis in the direction you want to go. If you're using an axis
+event to control the behavior (which can return negative values), then
+negative values will translate in the opposite direction.</li>
+
+<li>Rotation at
+a constant rate about the y axis. In this case y always refers to the
+vertical axis, no matter how the input device is oriented.</li>
+</ol>
+
+<p>A triggering
+condition consists of an event type, and event index, and a threshold
+value. For example, a condition of axis/0/0.2 would mean that the
+specified behavior would happen whenever the absolute value of axis
+event 0 exceeded 0.2. <i>Each condition is attached to a single
+behavior; attaching a new behavior to a condition removes the old one</i>.
+Currently it goes the other way as well, each behavior can only be
+attached to one condition at a time; that latter part will probably
+change in the near future. Multiple behaviors can be active
+simultaneously if their triggering conditions are all met.</p>
+
+<p>Translation and
+rotation speeds are specified in feet/sec. and degrees/sec,
+respectively. Note that the translation and rotation behaviors use
+actual time measurements, so the speeds should be independent of frame
+rate. Note also that both speeds are scaled by the actual value of the
+triggering event, provided that value is between the threshold value and
+1.0; in other words, if you're using a joystick that returns values that
+vary depending on how far you move it, the speed will vary accordingly,
+provided the driver scales the values to fall between 0 and 1.</p>
+
+<p><u>Using
+framework-mediated navigation</u>. To use these behaviors, you need only
+do the following:</p>
+
+<ol>
+<li>If you're
+creating an application using the <a href="Programming.html">Distributed
+Scene Graph framework</a>, use the <font face="courier" size="-1">
+framework.getNavNodeName()</font> method to get the name of
+the navigation matrix node and attach all of your object nodes to it.</li>
+
+<li>Call <font face="courier" size="-1">framework.navUpdate()</font> to process input events
+and update the nav. matrix. In a scene graph application, call it just
+before (3); in an app. based on the <a href="Programming.html">Master/Slave
+Framework</a>, call it in the <font face="courier" size="-1">preExchange()</font> callback.</li>
+
+<li>Call <font face="courier" size="-1">framework.loadNavMatrix()</font> before rendering. In a
+scene graph app. call it just after (2) and before <font face="courier" size="-1">
+framework.setViewer()</font>
+and <font face="courier" size="-1">setPlayer()</font>; in a master/slave app call it
+near the beginning of the
+<font face="courier" size="-1">draw()</font> callback.</li>
+</ol>
+
+<p>For a scene
+graph app. example, see demo/cubes; master/slave apps. that use
+framework-mediated navigation are demo/atlantis and demo/coaster.</p>
+
+<p><u>Framework
+default behaviors</u>. By default, the condition axis/1/0.2 triggers
+translation along the negative z axis (forwards) and axis/0/0.2
+translates along the x axis.</p>
+
+<p><u>Database
+parameters</u>. Setting the following database parameters (on the
+control machine for a scene graph app., on the master machine for a
+master/slave app) will modify the default behaviors.</p>
+
+<p><font face="courier" size="+1">SZG_NAV/x_translation</font> sets the trigger condition
+for translation in x. The first field must be either "axis" or "button",
+the second a positive integer or 0, and the third a positive
+floating-point value between 0 and 1, e.g. "axis/0/0.2".
+<font face="courier" size="+1">y_translation</font>, <font face="courier" size="+1">
+z_translation</font>, and <font face="courier" size="+1">y_rotation</font>
+set the trigger conditions
+for the other behaviors analogously. You cannot initiate the
+world-rotation behavior from the database, that has to be activated by
+the application.</p>
+
+<p><font face="courier" size="+1">SZG_NAV/translation_speed</font> and 
+<font face="courier" size="+1">rotation_speed</font> set the speed of the
+translation behavior (in feet/sec.) and the rotation behavior (in
+deg/sec) respectively. The translation speed is scaled by the
+framework's unit conversion factor (provided that was set before calling
+framework.init()), meaning that the translation speed in a particular
+application will correspond to the number of application units/second
+that map onto 5 feet/sec in input units (trust me, it makes sense).</p>
+
+<p><font face="courier" size="+1">SZG_NAV/effector</font> allows you to specify the
+input event ranges to use for navigation. This is a 5-element
+'/'-delimited string of 0-or-positive integers. The first element is the
+matrix index of the tracking device attached to the navigation device.
+Elements 2 and 3 are the number of buttons and the starting button
+index, elements 4 and 5 are the number of axes and the starting axis
+index. This parameter defaults to 1/0/0/2/0, in other words, use matrix
+#1 (#0 is generally assumed to be attached to the head), no buttons, and
+axes 0 and 1 for navigation.</p>
+
+<p><u>Framework
+methods</u>. Calling the following framework methods from within an
+application will override the two levels above.</p>
+
+<pre>
+bool setNavTransCondition( char axis, arInputEventType type,
+                           unsigned int index, float threshold );
+</pre>
+
+<p>and</p>
+
+<pre>
+bool setNavRotCondition( char axis, arInputEventType type,
+                         unsigned int index, float threshold );
+</pre>
+
+<p>set a translation or rotation condition, e.g.</p>
+<pre>    framework.setNavTransCondition( 'z', AR_EVENT_AXIS, 1, 0.2 );
+
+</pre>
+
+<pre>
+void setNavTransSpeed( float speed );
+void setNavRotSpeed( float speed );
+</pre>
+
+<p>set the
+translation and rotation speed in <i>application units</i>/sec and
+degrees/sec, respectively. When modified from this end, the value isn't
+scaled by the framework conversion factor, but of course you can always
+do that yourself.</p>
+
+<pre>
+void setNavEffector( const arEffector&amp; effector );
+</pre>
+
+<p>allows you to replace the
+navigation effector (a representation of the input device used for
+navigation).</p>
+
+<pre>
+void ownNavParam( const string&amp; paramName );
+</pre>
+
+<p>tells the
+framework that the specified parameter should not be reloaded from the
+database (clobbering the value we've just set in code) in response to a
+"reload" message. The name is the database name without the SZG_NAV, e.g.</p>
+
+<pre>    framework.ownNavParam( "translation_speed" );
+</pre>
+</body>
+</html>

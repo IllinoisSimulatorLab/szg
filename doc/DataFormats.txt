@@ -1,0 +1,65 @@
+
+Introduction
+------------
+
+This document is an experimental attempt to come to terms with data formats for
+the Syzygy environment. Things are likely to change as time goes on.
+
+What are some issues?
+
+1. Different data formats should be supported.
+   a. Binary-only. Including or not-including relevant dictionaries.
+   b. Text-only. XML-style.
+2. Language definitions
+   a. namespaces
+   b. merging languages
+3. Should each (text) data file be an XML document? Or a sequence of XML
+   documents?
+4. Valid names. The record names and field names should be valid XML element
+   names. This is a small departure from what we've done so far.
+5. How to represent binary data? Maybe a simple uu-encode?
+6. How to handle string data? Especially string data encoded in a text file?
+   Should there be some sort of normalization? And one also needs to deal
+   with XML's reserved characters like '<' and '&'.
+7. How about overall file formats? And versioning?
+
+Simple XML Text Data Format
+---------------------------
+
+A Syzygy data record is, so far, simply a collection of named fields, each of
+which corresponds to a primitive type. All primitive types are currently
+arrays of either: char, int, float, long, or double. This should be expanded
+in the future.
+
+Each data record has a name, which uniquely identifies it in the context of
+a dictionary. The dictionary encodes semantic information necessary for
+decoding the data record.
+
+Each data record has several fields, also named. A data record can have at
+most one field with a given name.
+
+Names, both for data records and fields, must be valid XML element names.
+Simply put, this means that they must start with a letter and can contain
+letters, numbers, and punctuation from {'.', '_', '-'}.
+
+Suppose we have a data record that is described as follows
+(yes, someday it would be nice to have an XML description...):
+
+name = "experiment_info"
+field 1 name = "calibration"
+field 1 type = "float"
+field 2 name = "session"
+field 2 type = "char"
+
+A particular instance might appear like this:
+
+<experiment_info>
+  <calibration>
+    0.980 -0.342 -2.331 4.332
+  </calibration>
+  <session>Beckman Cube 5/4/03</session>
+</experiment_info>
+
+Please note that "char" fields cannot contain '&' or '<' in order to qualify
+as valid XML. Consequently, these should always be replaced by their
+espace sequences "&amp" and "&lt" respectively.

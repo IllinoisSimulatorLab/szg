@@ -1,0 +1,83 @@
+VPATH = ../../../src/drivers
+
+# DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
+# with this sometimes.
+OBJS = \
+  arPPTDriver$(OBJ_SUFFIX) \
+  arLogitechDriver$(OBJ_SUFFIX) \
+  arFaroDriver$(OBJ_SUFFIX) \
+  arFOBDriver$(OBJ_SUFFIX) \
+  arReactionTimerDriver$(OBJ_SUFFIX) \
+  arInputState$(OBJ_SUFFIX) \
+  arInputNode$(OBJ_SUFFIX) \
+  arWildcatUtilities$(OBJ_SUFFIX) \
+  arPForth$(OBJ_SUFFIX) \
+  arPForthStandardVocabulary$(OBJ_SUFFIX) \
+  arPForthDatabaseVocabulary$(OBJ_SUFFIX) \
+  arPForthEventVocabulary$(OBJ_SUFFIX) \
+  arPForthFilter$(OBJ_SUFFIX) \
+  arInputEvent$(OBJ_SUFFIX) \
+  arInputEventQueue$(OBJ_SUFFIX) \
+  arEventUtilities$(OBJ_SUFFIX) \
+  arConstantHeadFilter$(OBJ_SUFFIX) \
+  arController$(OBJ_SUFFIX) \
+  arFlyingGravisController$(OBJ_SUFFIX) \
+  arBirdWinDriver$(OBJ_SUFFIX) \
+  arGenericDriver$(OBJ_SUFFIX) \
+  arInputLanguage$(OBJ_SUFFIX) \
+  arInputSource$(OBJ_SUFFIX) \
+  arIntelGamepadDriver$(OBJ_SUFFIX) \
+  arIOFilter$(OBJ_SUFFIX) \
+  arJoystickDriver$(OBJ_SUFFIX) \
+  arMotionstarDriver$(OBJ_SUFFIX) \
+  arEVaRTDriver$(OBJ_SUFFIX) \
+  arSpacepadDriver$(OBJ_SUFFIX) \
+  arVRPNDriver$(OBJ_SUFFIX) \
+  arNetInputSink$(OBJ_SUFFIX) \
+  arNetInputSource$(OBJ_SUFFIX) \
+  arTrackCalFilter$(OBJ_SUFFIX) \
+  arFaroCalFilter$(OBJ_SUFFIX) \
+  arFileSink$(OBJ_SUFFIX) \
+  arFileSource$(OBJ_SUFFIX) \
+  arIntersenseDriver$(OBJ_SUFFIX) \
+  isense$(OBJ_SUFFIX)
+#  arFilterUtilities$(OBJ_SUFFIX) \
+
+MYLIB = libarDrivers.a
+$(MYLIB): $(OBJS)
+	$(AR) ru $@ $^
+	$(RANLIB) $@
+MYLIBS = \
+  ../phleet/libarPhleet.a \
+  ../language/libarLanguage.a \
+  ../math/libarMath.a
+
+ifeq ($(strip $(MACHINE)),WIN32)
+LINK_FLAGS += /stack:4000000
+endif
+
+ALL := DeviceServer$(EXE) \
+	DeviceClient$(EXE) \
+	FaroTest$(EXE) \
+	FOBServer$(EXE) \
+	PForthTest$(EXE) \
+	pfconsole$(EXE) \
+	EventTest$(EXE)
+
+Everything: $(ALL)
+
+DeviceClient$(EXE): DeviceClient$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+DeviceServer$(EXE): DeviceServer$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK) $(LIB_EVART) $(LIB_WIN_BIRD)
+FaroTest$(EXE): FaroTest$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+FOBServer$(EXE): FOBServer$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK) $(LIB_WIN_BIRD)
+EventTest$(EXE): EventTest$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+PForthTest$(EXE): PForthTest$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+pfconsole$(EXE): pfconsole$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+

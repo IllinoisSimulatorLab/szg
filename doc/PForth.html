@@ -1,0 +1,322 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>PForth Documentation</title>
+</head>
+<body>
+<p><font size="+1"><b>PForth Documentation</b></font></p>
+<p>The modules arPForth and
+arPForthStandardVocabulary implement the PForth (P for Pseudo)
+language, which is used by the input filter arPForthFilter. Each
+instance of DeviceServer contains an arPForthFilter, and so does
+wandsimserver. The intent is to provide a means of performing simple
+manipulations on input events based on information in a text file.
+PForth is virtually identical in usage to Forth, except it has a very
+limited vocabulary geared towards manipulating input events, and some
+of the less informative word names have been changed (for example, "!"
+and "@" have been renamed "store" and "fetch"). New words can be
+defined from sequences of existing words, as in a Forth
+colon-definition, or entirely new actions can be written in C++; see
+arPForthStandardVocabulary.cpp for examples.</p>
+<p><font size="+1"><b>arPForth Object Usage</b></font></p>
+<p>If you don't need to install new C++
+actions, there are only a few arPForth methods that you need to know:</p>
+<p><font face="courier" size="+1">bool
+arPForth::operator!()</font> (as in
+!pforth) returns false if initialization of the arPForth object was
+successful.</p>
+<p><font face="courier" size="+1">bool
+arPForth::compileProgram( const string sourceCode )</font> compiles a
+program and stores it internally.</p>
+<p><font face="courier" size="+1">arPForthProgram*
+arPForth::getProgram() </font>returns
+a pointer to the current program so that you can re-run it later
+without recompiling. Note that from this point on you own the pointer
+and are responsible for deleting it. The program is cleared from
+internal memory.</p>
+<p><font face="courier" size="+1">bool
+arPForth::runProgram()</font> runs the
+internally-stored program.</p>
+<p><font face="courier" size="+1">bool
+arPForth::runProgram( arPForthProgram* program ) </font>
+runs the compiled program pointed to by
+'program'.</p>
+<p><font face="courier" size="+1">vector&lt;string&gt;
+arPForth::getVocabulary()</font>
+returns the entire vocabulary. This is used in the arPForthFilter. The
+idea is, you define filter words whose names match a particular
+pattern. The filter extracts them from the vocabulary and creates
+compiled programs for each of them, so that it can run the appropriate
+program whenever it comes across a particular input event type.</p>
+<p><font size="+1"><b>Language Concepts</b></font></p>
+<p>A PForth program is just a series of
+words separated by whitespace. The set of words that PForth understands
+is called the dictionary.&nbsp; These words typically operate on
+numbers in a stack. Unlike Forth, the basic data type is a
+floating-point number.&nbsp; There is also a dynamically-allocated
+data space that can be used for storing variables and matrices (matrix
+operations generally take place in the data space). Note that the data
+space starts out with a size of zero, and must be grown using the
+"variable" and "matrix" commands. Attempting to read or write from
+unallocated data space will result in an error.</p>
+<p>For most purposes, PForth programs
+are all kept in a single directory determined by the Syzgygy data path,
+i.e. the directory is named "PForth" and resides in the
+directory specified in the Syzygy database variable SZG_DATA/path (they
+have to be kept there if they're being used by the arPForthFilter, but
+not for other purposes; in fact they don't have to reside in an
+external file at all, it just simplifies things). By convention, Pforth
+program files end with ".pf". They may contain nothing but PForth
+source text (which may now include C-style comments, beginning with /*
+and ending with */ <em>surrounded by whitespace</em>). Here's an
+example of an event-filtering
+program that swaps matrices 0 and 1 (named swap_matrices_0_1.pf):</p>
+<pre>define filter_matrix_0     /* Each time we come across a matrix event with index 0... */<br>&nbsp; 1 setCurrentEventIndex   /* ...change its index to 1 */<br>enddef<br>define filter_matrix_1<br>&nbsp; 0 setCurrentEventIndex<br>enddef<br><br></pre>
+<p>For a more complicated example, here is a program that scales axes
+0 and 1 from the range (-32,000, 32,000) to the range (-1, 1), swapping
+the polarity of axis 1. It also maps axis 2 to axis 3, changing its
+range from (0, 64,000) to (-1, 1), with a change in orientation. It
+maps
+axis 5 to 2, while changing its range from (0, 64,000) to (-1, 1).
+Finally, whenever it gets an event on axis 1, it generates a constant
+4x4
+matrix. This filter is used to have a particular 2 analog stick gamepad
+emulate a VR controller (to some degree). </p>
+<pre>matrix temp                         /* Declare a matrix variable */<br>0 5 0 temp translationMatrix        /* ... and store a +5 y-translation matrix in it */<br><br>define filter_axis_0<br>  getCurrentEventAxis 0.000031 * setCurrentEventAxis  /* rescale axis value */<br>enddef<br>define filter_axis_1<br>  temp 0 insertMatrixEvent          /* Create new matrix event with index 0 and value from temp */<br>  getCurrentEventAxis -0.000031 * setCurrentEventAxis  /* ...and rescale this axis event */<br>enddef<br>define filter_axis_2<br>  getCurrentEventAxis -32768 + -0.000031 *   /* Get axis value, rescale, leave on stack */<br>  deleteCurrentEvent                         /* Delete current event */<br>  3 insertAxisEvent                          /* Insert stack value as new axis event #3 */<br>enddef<br>define filter_axis_3<br>  4 setCurrentEventIndex                     /* Change event index to 4 */<br>enddef<br>define filter_axis_5<br>  getCurrentEventAxis -32768 + 0.000031 *    /* Treat as axis event #2, except insert as new #2 */<br>  deleteCurrentEvent<br>  2 insertAxisEvent<br>enddef<br><br></pre>
+<p>The idea is that a module that needs
+a PForth program reads its name from the database, e.g. from
+SZG_PFORTH/program_names. It then searches the PForthPrograms directory
+for the .pf file of that name and reads it in and compiles it.</p>
+<p><font size="+1"><b>Vocabularies</b></font></p>
+<p>PForth is dynamically extendable,
+i.e. you can add new words on the fly. There are currently two defined
+vocabularies, the standard vocabulary defined in
+arPForthStandardVocabulary.cpp and the event-filtering vocabulary in
+arPForthEventVocabulary.cpp.</p>
+<p>I'll use the standard Forth notation
+to indicate the effect each vocabulary word has on the stack. The
+format is <font face="courier">(
+&lt;stack contents before execution&gt; --
+&lt;stack contents after
+execution&gt; )</font>. I'll use
+x# to represent a floating-point number, n# to represent an integer,
+and addr to represent an address (an index into the
+dataspace).&nbsp; A couple of examples: (1) <font face="courier"
+ size="+1">( x1 x2 -- x3 ) </font>
+means that the word needs to pop two numbers
+off the stack and will push a single number onto the stack on
+completion.&nbsp; Note that x1 must have been placed on the stack
+before x2, i.e x2 is on top of the stack. (2) <font face="courier"
+ size="+1">
+( addr n1 -- )</font> means that the word will pop an address (a
+positive integer) and an integer off the stack and not push anything
+onto it.</p>
+<p><font size="+1"><b>PForth Standard Vocabulary</b></font></p>
+<p>These are basic math,
+memory-management, and flow-control words. The first few words actually
+take effect at compile time. They do not modify the stack or the data
+space, but they may remove succeeding words from the input stream (the
+program). This will be indicated by &lt;word&gt; or &lt;words&gt;. They
+also typically add words to the dictionary. Note that additions to the
+dictionary are permanent (i.e. last until the arPForth object is
+destroyed) and attempting to redefine a word in the dictionary will
+result in an error.</p>
+<p><font face="courier" size="+1">&lt;number&gt;</font> (a string
+representing a number, e.g. "123" or
+"-12.5")</p>
+<p>Effect: at compile time, creates a
+nameless action that will push the number onto the stack, and appends
+that action to the current program or word definition. In other words,
+typing a number into your program causes that number to be placed on
+the stack at the appropriate point in program execution.</p>
+<p><font face="courier" size="+1">variable </font>&lt;name&gt;</p>
+<p>Effect: at compile time, allocates
+two cells in the dataspace and places the value 1 in the first one
+(indicating a scalar). Then it adds a word &lt;name&gt; to the
+dictionary that causes the address of the second cell to be pushed onto
+the stack. This new word then acts as a pointer to the data cell.
+Example: "variable x 12 x store" causes the number 12 to be placed in
+the data cell pointed to by "x".</p>
+<p><font face="courier" size="+1">matrix </font>&lt;name&gt;</p>
+<p>Effect: at compile time, allocates
+17 cells, places the number 16 in the first one, and installs a new
+word &lt;name&gt; in the dictionary that pushes the address of the
+second cell onto the stack.</p>
+<p><font face="courier" size="+1">define </font>&lt;name&gt;
+&lt;words&gt; <font face="courier" size="+1">enddef</font></p>
+<p>Effect: at compile time, adds a new
+word &lt;name&gt; to the dictionary. All succeeding words in the
+program until "enddef" are compiled into the definition of
+&lt;name&gt;; those words are executed each time after that
+&lt;name&gt; is encountered.</p>
+<p><font face="courier" size="+1">if </font>&lt;words&gt;&nbsp; <font
+ face="courier" size="+1">else </font>&lt;words&gt; <font
+ face="courier" size="+1">endif&nbsp; </font> ( x -- )</p>
+<p>Effect: at compile time, creates a
+nameless action containing two subprograms. Words between "if" and
+"else" are compiled into the first subprogram, words between "else" and
+"endif" are compiled into the second.&nbsp; "else" is optional, if
+omitted there is no second program.&nbsp; At runtime, the top value is
+popped off the stack; if it is &gt;= 1, the first subprogram is
+executed; if &lt; 1, the second. (NOTE: let me know if you can think of
+a reason why the test should work differently, I just took the path of
+least effort there).<br>
+</p>
+<p><font face="courier" size="+1">string </font>&lt;name&gt;
+&lt;words&gt; <font face="courier" size="+1">endstring</font></p>
+<p>Effect: at compile time, allocates <em>a single cell</em> in the
+separate string dataspace (yes, an entire string is an atomic variable
+and they live in their own data space) and
+installs a new
+word &lt;name&gt; in the dictionary that pushes the address of the
+cell onto the stack. This is intended to be used with the database
+vocabulary (which hasn't really gone anywhere yet), e.g. you could get
+the value of a database parameter and compare it to a string constant.<br>
+</p>
+<p><font face="courier" size="+1">/* </font>&lt;words&gt; <font
+ face="courier" size="+1">*/</font> (a comment)</p>
+<p>Effect: at compile time, discards all words between the /* and */.
+Remember that the delimiters must be surrounded
+by whitespace. No runtime effect.<br>
+</p>
+<p><br>
+</p>
+<p>The remaining words have no
+compile-time effects.</p>
+<p><font face="courier" size="+1">not </font>(x1 -- n1) Places a 1 on
+the stack if x1 &lt; 1.0, a 0
+otherwise.</p>
+<p><font face="courier" size="+1">= </font> (x1 x2 -- n1) Places 1 on
+stack if x1 = x2, 0 otherwise.</p>
+<p><font face="courier" size="+1">&gt; </font> (x1 x2 -- n1) Places 1
+on stack if x1 &gt; x2, 0 otherwise.</p>
+<p><font face="courier" size="+1">&lt; </font> (x1 x2 -- n1) Places 1
+on stack if x1 &lt; x2, 0 otherwise.</p>
+<p><font face="courier" size="+1">&gt;= </font> (x1 x2 -- n1) Places
+1on stack if x1 &gt;= x2, 0 otherwise.</p>
+<p><font face="courier" size="+1">&lt;= </font> (x1 x2 -- n1) Places
+1on stack if x1 &gt;= x2, 0 otherwise.</p>
+<p><font face="courier" size="+1">+</font> &nbsp; ( x1 x2 -- x1+x2 )</p>
+<p><font face="courier" size="+1">-</font> &nbsp; ( x1 x2 -- x1-x2 )</p>
+<p><font face="courier" size="+1">*</font> &nbsp; ( x1 x2 -- x1*x2 )</p>
+<p><font face="courier" size="+1">/</font> &nbsp; ( x1 x2 -- x1/x2 )</p>
+<p><font face="courier" size="+1">dup</font> &nbsp; ( x1 -- x1 x1 )
+Duplicates top number on the stack.</p>
+<p><font face="courier" size="+1">fetch</font> &nbsp; ( addr -- x1 )
+Pops an address off the stack, pushes the
+value of the data cell at that address onto it.</p>
+<p><font face="courier" size="+1">store</font> &nbsp; ( x1 addr -- )
+Stores x1 at the address pointed to by addr.</p>
+<p><font face="courier" size="+1">matrixStore</font> &nbsp; ( x1 x2 x3
+x4 x5 x6 x7
+x8 x9 x10 x11 x12 x13 x14 x15 x16 addr -- ) Pops 16 numbers and an
+address off the stack,
+stores the numbers in the data cell pointed to by addr.</p>
+<p><font face="courier" size="+1">matrixMultiply</font> &nbsp; ( addr1
+addr2 addr3 -- ) Multiplies matrix at addr1 by matrix at addr2
+and stores the result at addr3.</p>
+<p><font face="courier" size="+1">concatMatrices</font> &nbsp; ( addr1
+addr2 ... addrN numInputMatrices addrOut -- ) Multiplies several
+matrices
+together from left to right, i.e. mOut = m1*m2*...*mN,
+and stores the result at addrOut.</p>
+<p><font face="courier" size="+1">translationMatrix</font> ( x y z addr
+-- ) Constructs translation matrix for offsets x,
+y, and z, and stores at addr.</p>
+<p><font face="courier" size="+1">rotationMatrix</font> ( angle axis
+addr -- ) Constructs rotation matrix for rotation by
+angle degrees about axis (0(x)-2(z), use constants below) and stores it
+at addr.</p>
+<p><font face="courier" size="+1">xaxis</font> , <font face="courier"
+ size="+1">yaxis</font> , <font face="courier" size="+1">zaxis </font>
+( -- n1 ) Constants for use with rotationMatrix.</p>
+<p><font face="courier" size="+1">stack</font> &nbsp; ( -- ) Prints the
+contents of the stack to the
+standard error.</p>
+<p><font face="courier" size="+1">clearStack</font> &nbsp; ( whatever
+-- ) Empties the stack.</p>
+<p><font face="courier" size="+1">dataspace </font> ( -- ) Prints
+contents of dataspace.</p>
+<p><font size="+1"><b>The arPForthFilter PForth and
+the Event-filtering Vocabulary</b></font></p>
+<p>These are words for processing
+arInputEvents. They are intended for use in the context of the
+arPForthFilter. Each instance of an arPForthFilter is constructed with
+an&nbsp; index value; it reads the database parameter
+SZG_PFORTH/program_names, which is a slash-delimited string of program
+names, and uses the item from this string specified by its index as its
+program, reading it in from PForth_programs.xml. In order to define a
+filter for a particular event type, you define a word whose name has
+the format "<font face="courier">filter_&lt;event_type&gt;_&lt;event_index&gt;</font>
+", e.g. "<font face="courier"> filter_matrix_0</font> " (see the
+example above). This word will be
+run each time a matrix with index 0 is encountered in the input stream.
+The word has access to the current event and to the most recent state
+of all other events via the following words:<br>
+</p>
+<p>NEW (08/13/04). Added four new filter words: <font face="courier">filter_all_buttons,
+filter_all_axes, filter_all_matrices, and filter_all_events</font>. I
+think these are
+self-explanatory, but just to be sure, <font face="courier">filter_all_buttons</font>
+gets
+invoked for any button event. Note that a single event can now trigger
+up to three
+words; the more specific one comes first, e.g. <font face="courier">filter_button_0</font>
+gets called before <font face="courier">filter_all_buttons</font>.
+</p>
+<p><font face="courier" size="+1">getCurrentEventIndex</font> ( -- n1)
+Places the index of the current event on the
+stack. Not particularly useful, as you implicitly know that already,
+but what the heck.</p>
+<p><font face="courier" size="+1">getCurrentEventButton</font> ( -- n1)
+If the current event is a button event, places
+the button value on the stack. If it's not a button event, it throws an
+exception (which aborts the current PForth program) and prints an error
+message.</p>
+<p><font face="courier" size="+1">getCurrentEventAxis</font> &nbsp; (
+-- x1) If the current event is an axis event, places
+the axis value on the stack. If it's not an axis event, it throws an
+exception and prints an error message.</p>
+<p><font face="courier" size="+1">getCurrentEventMatrix</font> ( addr
+-- ) If the current event is a matrix event, it
+pops an address off the stack and attempts to copy the matrix to that
+location in the dataspace. If it's not a matrix event, it throws an
+exception and prints an error message.</p>
+<p><font face="courier" size="+1">setCurrentEventIndex</font> ( n1 -- )
+Sets the index of the current address to n1 .</p>
+<p><font face="courier" size="+1">setCurrentEventButton</font> ( n1 --
+) Sets the current event's value to n1 if it's a button event,
+otherwise throws an
+exception and prints an error message.</p>
+<p><font face="courier" size="+1">setCurrentEventAxis</font> ( x1 -- )
+Sets the current event's value to x1 if it's an axis event, otherwise
+throws an
+exception and prints an error message.</p>
+<p><font face="courier" size="+1">setCurrentEventMatrix</font> ( addr
+-- ) Sets the current event's value to the matrix
+at location addr in the dataspace if it's a matrix event,
+otherwise throws an exception and prints an error message.</p>
+<p><font face="courier" size="+1">deleteCurrentEvent</font> ( -- )
+Flags the current event for deletion by the
+filter.</p>
+<p><font face="courier" size="+1">getbutton</font> &nbsp; ( n1 -- n2 )
+Gets the value of button event # n1 and pushes
+it on the stack.&nbsp; Returns 0 if that button event doesn't exist.</p>
+<p><font face="courier" size="+1">getaxis</font> &nbsp; ( n1 -- x1 )
+Gets the value of axis event #n1 and pushes
+it onto the stack. Returns 0.0 if it doesn't exist.</p>
+<p><font face="courier" size="+1">getmatrix</font> &nbsp; ( addr n1 --
+) Stores matrix event n1 in the data cells
+pointed to by addr.&nbsp; Returns identity matrix if event doesn't
+exist.</p>
+<p><font face="courier" size="+1">insertButtonEvent</font> ( n1 n2 -- )
+Creates a new button event with index n1 and value n2 and inserts it
+into the event stream.</p>
+<p><font face="courier" size="+1">insertAxisEvent</font> ( n1 x1 -- )
+Creates a new axis event with index n1 and value x1 and inserts it into
+the event stream.</p>
+<p><font face="courier" size="+1">insertMatrixEvent</font> ( n1 addr --
+) Creates a new matrix event with index n1 and value taken from the
+dataspace at addr and inserts it into the event stream.</p>
+</body>
+</html>

@@ -1,0 +1,25 @@
+VPATH = ../../../src/barrier
+
+# DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
+# with this sometimes.
+OBJS = \
+  arBarrierServer$(OBJ_SUFFIX) \
+  arBarrierClient$(OBJ_SUFFIX) \
+  arSyncDataClient$(OBJ_SUFFIX) \
+  arSyncDataServer$(OBJ_SUFFIX)
+MYLIB = libarBarrier.a
+$(MYLIB): $(OBJS)
+	$(AR) ru $@ $^
+	$(RANLIB) $@
+MYLIBS = \
+  ../phleet/libarPhleet.a \
+  ../language/libarLanguage.a
+
+ALL = BarrierServer$(EXE) BarrierClient$(EXE)
+
+Everything: $(ALL)
+
+BarrierServer$(EXE): BarrierServer$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+BarrierClient$(EXE): BarrierClient$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)

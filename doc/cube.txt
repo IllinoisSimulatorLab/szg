@@ -1,0 +1,189 @@
+# The configuration of the cube has two parts, one which varies from user to
+# user and only consists of the path upon which the system should search for
+# executables... and another part which configures the system. This
+# second part is further subdivided into "everything else" and "graphics"
+
+# configuartion that varies per user (really just varies based on linux 
+# versus windows)
+
+picasso  SZG_EXEC path G:\THE_USER_NAME\bin\win32 
+joystick SZG_EXEC path G:\THE_USER_NAME\bin\win32
+steel    SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
+air      SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
+north    SZG_EXEC path G:\THE_USER_NAME\bin\win32
+south    SZG_EXEC path G:\THE_USER_NAME\bin\win32
+east     SZG_EXEC path G:\THE_USER_NAME\bin\win32
+west     SZG_EXEC path G:\THE_USER_NAME\bin\win32
+top      SZG_EXEC path G:\THE_USER_NAME\bin\win32
+bottom   SZG_EXEC path G:\THE_USER_NAME\bin\win32
+
+# configuration that is basically the same for all users
+# everything besides graphics goes first
+
+# definition of the cube virtual computer
+
+cube SZG_CONF    virtual        true
+cube SZG_TRIGGER map            air
+cube SZG_MASTER  map            SZG_SCREEN2
+cube SZG_SCREEN  number_screens 6
+cube SZG_SCREEN0 map            top/SZG_SCREEN0
+cube SZG_SCREEN0 networks       cube/internet
+cube SZG_SCREEN1 map            bottom/SZG_SCREEN0
+cube SZG_SCREEN1 networks       cube/internet
+cube SZG_SCREEN2 map            north/SZG_SCREEN0
+cube SZG_SCREEN2 networks       cube/internet
+cube SZG_SCREEN3 map            south/SZG_SCREEN0
+cube SZG_SCREEN3 networks       cube/internet
+cube SZG_SCREEN4 map            east/SZG_SCREEN0
+cube SZG_SCREEN4 networks       cube/internet
+cube SZG_SCREEN5 map            west/SZG_SCREEN0
+cube SZG_SCREEN5 networks       cube/internet
+cube SZG_INPUT0  map            air/arCubeTracker/joystick/arJoystickDriver
+cube SZG_INPUT0  networks       internet
+cube SZG_SOUND   map            picasso
+cube SZG_SOUND   networks       internet
+
+# definitions of the various search paths that are the same from user to user
+# (really just varies based upon linux versus windows)
+
+picasso  SZG_DATA   path         g:\Data
+picasso  SZG_SOUND  path         g:\Sounds
+picasso  SZG_RENDER texture_path g:\Texture
+picasso  SZG_RENDER text_path    g:\Texture\Text
+joystick SZG_DATA   path         g:\Data
+joystick SZG_SOUND  path         g:\Sounds
+joystick SZG_RENDER texture_path g:\Texture
+joystick SZG_RENDER text_path    g:\Texture\Text
+steel    SZG_DATA   path         /home/public/Data
+steel    SZG_SOUND  path         /home/public/Sounds
+steel    SZG_RENDER texture_path /home/public/Texture
+steel    SZG_RENDER text_path    /home/public/Texture/Text
+air      SZG_DATA   path         /home/public/Data
+air      SZG_SOUND  path         /home/public/Sounds
+air      SZG_RENDER texture_path /home/public/Texture
+air      SZG_RENDER text_path    /home/public/Texture/Text
+north    SZG_DATA   path         c:\Data;g:\Data
+north    SZG_SOUND  path         g:\Sounds
+north    SZG_RENDER texture_path g:\Texture
+north    SZG_RENDER text_path    g:\Texture\Text
+south    SZG_DATA   path         c:\Data;g:\Data
+south    SZG_SOUND  path         g:\Sounds
+south    SZG_RENDER texture_path g:\Texture
+south    SZG_RENDER text_path    g:\Texture\Text
+east     SZG_DATA   path         c:\Data;g:\Data
+east     SZG_SOUND  path         g:\Sounds
+east     SZG_RENDER texture_path g:\Texture
+east     SZG_RENDER text_path    g:\Texture\Text
+west     SZG_DATA   path         c:\Data;g:\Data
+west     SZG_SOUND  path         g:\Sounds
+west     SZG_RENDER texture_path g:\Texture
+west     SZG_RENDER text_path    g:\Texture\Text
+top      SZG_DATA   path         c:\Data;g:\Data
+top      SZG_SOUND  path         g:\Sounds
+top      SZG_RENDER texture_path g:\Texture
+top      SZG_RENDER text_path    g:\Texture\Text
+bottom   SZG_DATA   path         c:\Data;g:\Data
+bottom   SZG_SOUND  path         g:\Sounds
+bottom   SZG_RENDER texture_path g:\Texture
+bottom   SZG_RENDER text_path    g:\Texture\Text
+
+# definitions of miscellaneous stuff
+
+air SZG_FARO       probe_radius             0.23
+air SZG_FAROCAL    coord_transform          NULL
+air SZG_FAROCAL    cube_width               9.86
+air SZG_FAROCAL    data_file                temp.xml
+air SZG_FAROCAL    data_render_scale_factor 10
+air SZG_FAROCAL    filter                   arFaroCalFilter
+air SZG_FAROCAL    grid_cube_size           .2
+air SZG_FAROCAL    num_divisions            7
+air SZG_FAROCAL    num_samples              60
+air SZG_INPUT      filter                   arTrackCalFilter
+air SZG_MOTIONSTAR IIR_filter_weights       0/0.9/0
+air SZG_MOTIONSTAR calib_file               FaroCalLookupTables.txt
+air SZG_PFORTH     program_names            correct_tracker_rot
+air SZG_TRACKER    IPhost                   130.126.127.69
+
+isl20 SZG_FARO com_port         1
+isl20 SZG_FARO probe_dimensions .25/-2/57
+
+north SZG_EXPT save_data false
+north SZG_EXPT file_name demo
+north SZG_EXPT method    enumerated
+north SZG_EXPT path      G:\Experiments
+north SZG_EXPT subject   DEMO
+
+# graphics configuration
+
+north SZG_SCREEN0 size              0/0
+north SZG_SCREEN0 screen_center     0/4.93/-4.93
+north SZG_SCREEN0 screen_dim        9.86/9.86
+north SZG_SCREEN0 screen_normal     0/0/-1
+north SZG_SCREEN0 screen_up         0/1/0
+north SZG_SCREEN0 stereo            true
+north SZG_SCREEN0 mid_eye_offset    0.29/0/-0.21
+north SZG_SCREEN0 tile              0/1/0/1
+north SZG_SCREEN0 fixed_head        false
+north SZG_SCREEN0 fixed_head_pos    0/5.5/0
+north SZG_SCREEN0 wildcat_framelock true
+
+south SZG_SCREEN0 size              0/0
+south SZG_SCREEN0 screen_center     0/4.93/4.93
+south SZG_SCREEN0 screen_dim        9.86/9.86
+south SZG_SCREEN0 screen_normal     0/0/1
+south SZG_SCREEN0 screen_up         0/1/0
+south SZG_SCREEN0 stereo            true
+south SZG_SCREEN0 mid_eye_offset    0.29/0/-0.21
+south SZG_SCREEN0 tile              0/1/0/1
+south SZG_SCREEN0 fixed_head        false
+south SZG_SCREEN0 fixed_head_pos    0/5.5/0
+south SZG_SCREEN0 wildcat_framelock true
+
+top SZG_SCREEN0 size                0/0
+top SZG_SCREEN0 screen_center       0/9.86/0
+top SZG_SCREEN0 screen_dim          9.86/9.86
+top SZG_SCREEN0 screen_normal       0/1/0
+top SZG_SCREEN0 screen_up           -1/0/0
+top SZG_SCREEN0 stereo              true
+top SZG_SCREEN0 mid_eye_offset      0.29/0/-0.21
+top SZG_SCREEN0 tile                0/1/0/1
+top SZG_SCREEN0 fixed_head          false
+top SZG_SCREEN0 fixed_head_up_angle  -90
+top SZG_SCREEN0 fixed_head_pos      0/5.5/0
+top SZG_SCREEN0 wildcat_framelock   true
+
+bottom SZG_SCREEN0 size              0/0
+bottom SZG_SCREEN0 screen_center     0/0/0
+bottom SZG_SCREEN0 screen_dim        9.86/9.86
+bottom SZG_SCREEN0 screen_normal     0/-1/0
+bottom SZG_SCREEN0 screen_up         0/0/-1
+bottom SZG_SCREEN0 stereo            true
+bottom SZG_SCREEN0 mid_eye_offset    0.29/0/-0.21
+bottom SZG_SCREEN0 tile              0/1/0/1
+bottom SZG_SCREEN0 fixed_head        false
+bottom SZG_SCREEN0 fixed_head_pos    0/5.5/0
+bottom SZG_SCREEN0 wildcat_framelock true
+
+east SZG_SCREEN0 size              0/0
+east SZG_SCREEN0 screen_center     4.93/4.93/0
+east SZG_SCREEN0 screen_dim        9.86/9.86
+east SZG_SCREEN0 screen_normal     1/0/0
+east SZG_SCREEN0 screen_up         0/1/0
+east SZG_SCREEN0 stereo            true
+east SZG_SCREEN0 mid_eye_offset    0.29/0/-0.21
+east SZG_SCREEN0 tile              0/1/0/1
+east SZG_SCREEN0 fixed_head        false
+east SZG_SCREEN0 fixed_head_pos    0/5.5/0
+east SZG_SCREEN0 wildcat_framelock true
+
+west SZG_SCREEN0 size              0/0
+west SZG_SCREEN0 screen_center     -4.93/4.93/0
+west SZG_SCREEN0 screen_dim        9.86/9.86
+west SZG_SCREEN0 screen_normal     -1/0/0
+west SZG_SCREEN0 screen_up         0/1/0
+west SZG_SCREEN0 stereo            true
+west SZG_SCREEN0 mid_eye_offset    0.29/0/-0.21
+west SZG_SCREEN0 tile              0/1/0/1
+west SZG_SCREEN0 fixed_head        false
+west SZG_SCREEN0 fixed_head_pos    0/5.5/0
+west SZG_SCREEN0 wildcat_framelock true

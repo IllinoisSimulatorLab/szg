@@ -1,0 +1,52 @@
+struct interpolatedValues
+{
+    float4 DecalCoords  : TEXCOORD0;
+    float4 BumpCoords   : TEXCOORD1;
+    float4 Normal	: COLOR0;
+    //float4 LightVecUnsigned	: COL0;
+    float3 LightVec	: TEXCOORD2;
+    float3 HalfVec	: TEXCOORD3;
+};
+
+// fragment program
+float4 main(in interpolatedValues IN,
+            uniform sampler2D decalMap,
+            uniform sampler2D normalMap,
+            uniform sampler2D lookupTable) : COLOR
+{
+    float4 decalColor = //1.;
+			tex2D(decalMap, IN.DecalCoords);
+    //return decalColor;
+    float4 bumpNormal = expand(tex2D(normalMap,IN.BumpCoords));
+    //return tex2D(normalMap,IN.BothCoords);
+    //return bumpNormal;
+    //return float4(IN.Normal);
+    //return tex2D(lookupTable, IN.BothCoords);
+
+    float3 lightVecUnsigned = 0.5*IN.LightVec + 0.5.xxx;
+    float3 normal = 2.*(IN.Normal - 0.5);
+    float shadow = (4. * dot(normal, lightVecUnsigned));
+    shadow = saturate(4. * shadow);
+
+    //return float4(IN.HalfVec, 1.);
+    float4 diffuse = dot(bumpNormal.xyz, IN.LightVec);
+    diffuse.a = 1;
+    //diffuse = 2.*saturate(diffuse) - diffuse; // should be abs()
+    //float specular = 0.;
+    float specular = saturate(dot(bumpNormal.xyz, IN.HalfVec));
+    specular *= specular*0.99;
+    specular *= specular;
+    specular *= specular;
+    specular *= specular;
+    //return float4(IN.normalCoords, 0, 1);
+    //return IN.normal;
+    //return tex2D(normalMap, IN.decalCoords); 
+    //return lighting;
+    //float3 temp = normal;
+    //return float4(diffuse, 1.0);
+    float4 result = diffuse * decalColor + specular;
+    //return 2.*saturate(result) - result;
+    return result;
+    //return /*(decalColor + shadow */ (diffuse * decalColor + specular);
+/* */
+}

@@ -1,0 +1,30 @@
+How to Subclass arDatabase
+--------------------------
+
+* arDatabase presents a tree of named/ID'd nodes. A stream of messages
+  passes into the database. Some of these, the messages requesting
+  the creation/ deletion of a node or the meta-message that contains
+  a whole buffer of messages, are handled directly by the database object.
+  Other messages are routed to the individual database nodes.
+
+1 Derive arXXXLanguage from arDatabaseLanguage. arXXXLanguage's constructor
+  should set up the language records unique to the language used to
+  communicate with your database.  Since a language record is routed to
+  a node via an "ID" field, every record must contain an "ID" field.
+
+2 Derive arXXXNode from arDatabaseNode. From this in turn derive individual
+  node types. Define the virtual methods initialize(), receiveData(),
+  and dumpData().  Also add any virtual methods shared by your nodes,
+  analogous to the draw() method of objects derived from arGraphicsNode.
+  Note that receiveData() and dumpData() are inverses of each other.
+
+3 Derive arXXXDatabase from arDatabase.
+  3a. The arXXXDatabase constructor should properly initialize the language.
+      For example, consider this code sequence from the arGraphicsDatabase
+      constructor:
+
+      _lang = (arDatabaseLanguage*)&_gfx;
+      _initDatabaseLanguage();
+
+      The variable _lang must be set.
+  3b. Redefine virtual methods makeNode() and reset().

@@ -1,0 +1,20 @@
+VPATH = ../../../src/math
+
+# DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
+# with this sometimes.
+OBJS = \
+  arNavigationUtilities$(OBJ_SUFFIX) \
+  arMath$(OBJ_SUFFIX)
+
+MYLIB = libarMath.a
+$(MYLIB): $(OBJS)
+	$(AR) ru $@ $^
+	$(RANLIB) $@
+
+ALL = TestMath$(EXE)
+
+Everything: $(ALL)
+
+TestMath$(EXE): Test$(OBJ_SUFFIX) $(MYLIB)
+	$(LINKER) $(LINK_FLAGS) $(LINK_PREFIX)$@ $^ $(MATH_LIB)
+

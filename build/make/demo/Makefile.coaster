@@ -1,0 +1,12 @@
+VPATH = ../../../../src/demo/coaster
+
+OBJSRAW = matrix defrc coaster
+OBJS = $(OBJSRAW:%=%$(OBJ_SUFFIX))
+
+ALL = coaster$(EXE)
+Everything: $(ALL)
+
+PRECOMPILED_HEADER_LOCATION := $(PRECOMPILED_HEADER_LOCATION_DEMO)
+
+coaster$(EXE): coaster$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBS)
+	$(DO_LINK_GRAPHICS)

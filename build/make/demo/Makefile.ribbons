@@ -1,0 +1,9 @@
+VPATH = ../../../../src/demo/ribbons
+
+ALL = ribbons$(EXE)
+Everything: $(ALL)
+
+PRECOMPILED_HEADER_LOCATION := $(PRECOMPILED_HEADER_LOCATION_DEMO)
+
+ribbons$(EXE): ribbons$(OBJ_SUFFIX) $(SZG_LIBS)
+	$(DO_LINK_GRAPHICS)

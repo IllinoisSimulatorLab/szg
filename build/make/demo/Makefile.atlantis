@@ -1,0 +1,13 @@
+VPATH = ../../../../src/demo/atlantis
+
+OBJSRAW = dolphinszg whaleszg sharkszg swimszg atlantis
+OBJS = $(OBJSRAW:%=%$(OBJ_SUFFIX))
+
+ALL = atlantis$(EXE)
+
+Everything: $(ALL)
+
+PRECOMPILED_HEADER_LOCATION := $(PRECOMPILED_HEADER_LOCATION_DEMO)
+
+atlantis$(EXE): atlantis$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBS)
+	$(DO_LINK_GRAPHICS)

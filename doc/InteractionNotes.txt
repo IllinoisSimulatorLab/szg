@@ -1,0 +1,174 @@
+
+How does cubes.cpp work?
+
+1. There are 2 effectors: headEffector and dragWand.
+   a. Each effector is able to interact with a list of arInteractables.
+      (which is essentially everything in the world). Things are pushed
+      onto the list in the initialization of the world.
+   b. These effectors are tied to a particular matrix (i.e. 0 or 1 or whatever)
+      and also have a means in their constructor of defining the buttons
+      and axes that will make this do something (like grab). The effectors
+      maintain internal copies of the button and axis states. These states
+      can also be remapped to a limited degree, which is why effectors have
+      such a long string of numbers in the constructor.
+1.5. The interatables in cubes.cpp are arCallbackInteractables. What is this?
+     Well, there are several callbacks that are used when interaction occurs
+     (please see below). The callbacks are matrixCallback, processCallback,
+     touchCallback, and untouchCallback. These do:
+     a. matrixCallback: this is used whenever the interaction modifies the
+        matrix of the object. Callback interactables have an ID (which is
+        the ID of their transform node in the database). This is used in
+        the matrix callback to stuff the database with the new matrix 
+        value that results from interaction.
+     b. processCallback
+     c. touchCallback: Allows us to do something (like change color) when
+        touched.
+     d. untouchCallback: Allows us to do something (like change color)
+        when untouched.
+     e. WHY IS THERE NO GRAB CALLBACK? WHY IS THERE NO UNGRAB CALLBACK?
+2. The arSZGAppFramework allows navigation via something very similar to
+   an effector (i.e. allows us to change the nav matrix).
+   a. You can set various "conditions", like navRotCondition or 
+      or navTransCondition. This lets a certain type of input event (button
+      or axis) that exceeds a threshold value, cause a translation or
+      rotation around a particular axis.
+3. The arSZGAppFramework supports an input event callback. The input event
+   callback is called for each input event. This is the logical place to then
+   call the updateState(...) methods of the effectors and the navUpdate method
+   of the framework. NOTE: we manually cause the framework to load the
+   nav matrix from here and furthermore call the draw method of the dragWand,
+   which, confusingly, just updates its position in the database.
+
+OBSERVATION: IT IS VERY OBNOXIOUS TO HAVE TO STORE THINGS MULITPLE PLACES AND 
+KEEP THEM ALL IN SYNC MANUALLY. For instance, the database has a copy of
+a matrix which controls the drawing of the effector. Also, the effector has
+its own copy of the matrix. NOTE: there is a problem with atomicity vis-a-vis
+the wand. It tries to place itself in the database so that it has a fixed
+position in the world with respect to navigation. However, this involves 
+taking the inverse of the navigation matrix (which might later change) in
+a way that causes popping back and forth!
+
+QUESTION: DO WE JUST GET THE INPUT EVENTS THAT ARE EMITTED FROM THE 
+arInputNode after the entire sequence of filters has been executed?
+
+QUESTION: WHY DOES THE FRAMEWORK EVENT CALLBACK TAKE THE ARGUMENTS THAT IT 
+DOES? For instance, why is there an input event filter passed in? What
+filter is this?
+
+4. Now, to analyze the updateState(...) method of the arEffector. First of all,
+why in the heck is this here? Well, the effectors maintain a REMAPPED copy
+of the input state. ANd, actually, I think this is pretty much all it does
+(the remapping).
+
+5. Let's look at ar_pollingInteraction. This is the meat of the interaction
+   code. If the effector has already grabbed an object, check to see if it
+   is on the interaction list given. If so, go ahead and manipulate it using
+   the object's processInteraction method. (NOTE: This only seems to occur
+   if the object has its enabled() method returning true). HOW DOES
+   UNGRABBING work?
+
+   QUESTION: WHY DOES THE arInteractable REPRODUCE THIS CODE? 
+   (as in ar_pollingInteraction). THIS IS NOT GOOD!
+
+   Next, we go through each of the object's in the interaction list. Only
+   interact with the interactables that are *enabled* (see method enabled()).
+   We first find the interactable that is the closest to us, based on
+   the effector's calcDistance function. Next, we check to see if this
+   touched object is the same a potentially previously touch object. If not,
+   then untouch the previously touched object. If we have something that is
+   touched, we go ahead and call the processInteraction(arEffector&) method
+   of the interactable.
+
+6. arInteractable::processInteraction(arEffector). See if the effector is
+   already touching the arInteractable. If not, try to touch(arEffector).
+   If someone else has grabbed us (the arInteractable keeps a record of
+   who has grabbed it), we then call the _procesInteraction method (which
+   is essentially just the processCallback of the arCallbackInteractable)
+   and return. 
+
+   If nobody has grabbed us, go ahead and get the active drags from the
+   drag manager (CAN THERE EVER BE MORE THAN ONE). If the list of active 
+   drags is empty, if we are grabbed() go ahead and _ungrab() then
+   _processInteraction and then go. If we aren't grabbed, see if the
+   effector is requesting a grab. If not, _ungrab. Otherwise, go ahead
+   and make this effector the grabEffector of this arInteractable. In either
+   case, go through the active drags and update each one.
+
+   Finally, we will go to _processInteraction.
+
+7. arEffector::calcDistance.
+
+8. What about grabbing? This is the province of the arDragManager. Note that
+   an arInteractable can have its own arDragManager that overrides that
+   of the arEffector. The question is then: what are drags, when are they
+   enabled, and how does dragging work?
+
+   First, note that a drag isn't what occurs when the an object is being
+   manipulated. Instead, it is the combination of a grabbing condition 
+   (as interpreted by the effector... note that effectors can remap
+   event indices) and a drag behavior. When the drag behavior is active,
+   it manipulates the matrix of an interactable.
+   
+   a. An arDragManager contains a list of arGrabConditions and
+      arDragBehaviors. 
+   b. The arDragBehaviors have two important methods: init(...) and
+      update(...). 
+      i. init(arEffector*, arInteractable*) takes arguments because
+         these may be needed (for instance when manipulating an object
+         by attaching it to a wand). The init may also be used in navigation
+         where we want to be able to move with a speed independent of
+         frame rate... i.e. here it gets the initial time. 
+      ii. update(arEffector*, arInteractable*, arGrabCondition*) is
+          used to update the matrix of the interactable. The 
+          matrix of the effector may be used (as when navigating with
+          the wand) and a "value" of the arGrabCondition may be used
+          (for instance, in navigation where it can control the speed of
+          navigation).
+   c. The important method of the arDragManager is 
+      getActiveDrags(arEffector*, arInteractable*, arDragMap_t&).
+
+      This is the most important method of arDragManager. It modifies, in
+      place, a list of activated drags. Remember: the drag manager essentially
+      stores an association between grab conditions and drag behaviors.
+      As grab conditions are met (according to the effector since the effector
+      can remap input events), they are added to the list. Similarly, as
+      grab conditions fail to be met, they are removed from the list.
+      NOTE: examples of grab conditions include button presses and pushing
+      a joystick axis above or below a threshold value. 
+
+   NOTE: The arNavManager keeps a copy of the nav matrix in its
+   arNavInteractable which SHADOWS the global navigation matrix!
+   THIS SEEMS A LITTLE INEFFICIENT!
+
+9. How does arNavManager work? This will also shed some light on the use
+   of arGrabConditions (since this is also how navigation works). First
+   of all, each arNavManager contains an arNavInteractable, which is 
+   essentially just an arInteractable that uses its internal drag manager
+   instead of the drag manager associated with the effector. Also, you
+   *always* interact with the navigation interactable via the choice of
+   interaction selector.
+
+10. Which are the most important calls?
+
+    arInteractionUtilities.cpp::ar_pollingInteration(...)
+    arInteractable::processInteraction(...)
+    arDragManager::getActiveDrags(...)
+
+11. Where does the action occur?
+    a. Where are the positions of the effectors changed? And how?
+
+    In arEffector::setMatrix(...). NOTE: It is assumed that the effector
+    is attached to the PHYSICAL POSITION WAND. Consequently, there is
+    some nav matrix chicanery here!
+
+    b. Where are the positions of the interactables changed? And how?
+
+    The interactable has its matrix changed by a drag behavior using an
+    associated grab condition. This occurs in arInteractable::procesInteraction
+    and flows from ar_pollingInteraction. The setMatrix method of the
+    arInteractable is called.
+
+    c. How does the global nature of the navigation matrix figure into
+       all this? Well, see (a). Also, note how the arNavInteractable
+       calls ar_setNavMatrix(...).
+    

@@ -1,0 +1,643 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <title>Syzygy Parameter Set-Up</title>
+</head>
+<body bgcolor="#ffffff">
+<a href="index.html">Documentation Index</a>
+<p><font size="+2">Contents</font> </p>
+<p></p>
+<ul>
+  <li><a href="#Intelligent">Intelligent Application Launching ("virtual computers")</a>
+  <li><a href="#Misc">Miscellaneous Application Features</a>
+  <li><a href="#ServiceLocks">Service Names and Lock Names in Phleet</a>
+  <li><a href="#Context">Component Contexts in Phleet</a>
+  <li><a href="#OffNetwork">How to Run Syzygy Applications Off the Network</a>
+  <li><a href="#Examples">Configuration Examples</a>
+  <li><a href="#Parameters">Parameters Explanation</a>
+  <li><a href="#Button">Using the ButtonInterface Demo Launcher</a>
+</ul>
+
+<a name="Intelligent">
+<p><font size="+2">Intelligent Application Launching ("virtual computers")</font> </p>
+</a>
+<p>It is inconvenient to need to write a script to launch each separate
+application. This difficulty is compounded when one realizes that a new
+set of scripts needs to be written for each platform, be it a CAVE or
+video wall. Consequently, Syzygy supports intelligent application
+launching via the definition of a "virtual computer". To define a
+virtual computer, you simply pick a name different from the name of any 
+computer in the distributed system. This name can then be
+used to set up a structure in the parameter database defining a virtual
+computer. For instance, let's use the name "wall" for our virtual
+computer.
+
+<pre>
+  wall SZG_CONF virtual true
+  wall SZG_TRIGGER map smoke
+  wall SZG_MASTER map SZG_SCREEN0
+  wall SZG_SCREEN number_screens 6
+  wall SZG_SCREEN0 map wall1/SZG_SCREEN0
+  wall SZG_SCREEN0 networks wall
+  wall SZG_SCREEN1 map wall2/SZG_SCREEN0
+  wall SZG_SCREEN1 networks wall
+  wall SZG_SCREEN2 map wall3/SZG_SCREEN0
+  wall SZG_SCREEN2 networks wall
+  wall SZG_SCREEN3 map wall4/SZG_SCREEN0
+  wall SZG_SCREEN3 networks wall
+  wall SZG_SCREEN4 map wall5/SZG_SCREEN0
+  wall SZG_SCREEN4 networks wall
+  wall SZG_SCREEN5 map wall6/SZG_SCREEN0
+  wall SZG_SCREEN5 networks wall
+  wall SZG_INPUT0 map smoke/wandsimserver
+  wall SZG_INPUT0 networks internet
+  wall SZG_SOUND map sound
+  wall SZG_SOUND networks internet
+</pre>
+
+<p>In what follows, for the sake of clarity we refer directly to
+virtual computer "wall". In general, substitute the name of the virtual
+computer you have defined. </p>
+<p>Now, assuming that there are szgd daemons running on all the
+computers in the virtual computer "wall" (i.e. smoke, sound, wall1, wall2, wall3,
+wall4, wall5, wall6), the following command will suffice to launch the hspace demo
+on "wall": </p>
+<pre>dex wall hspace<br></pre>
+<p>To kill the demo: </p>
+<pre>dkill wall hspace<br></pre>
+<p>Note that one can launch a new demo without killing the old one. The
+launching process takes care of cleaning-up the old demo. So, the
+following sequence of command would bring up hspace, then cosmos, and
+then hspace. </p>
+<pre>dex wall hspace<br>dex wall cosmos<br>dex wall hspace<br></pre>
+<p>Let's now examine how this works. When you type </p>
+<pre>dex wall hspace<br></pre>
+<p>the "dex" command first checks to see if "wall" is the definition of
+a virtual computer by seeing if wall/SZG_CONF/virtual is set to true.
+If so, "dex" determines the trigger of the virtual computer via
+wall/SZG_TRIGGER/map and executes hspace there, passing the executable a
+special parameter indicating that it is being used to launch the full
+cluster application. </p>
+<p>When the application is being used as a launcher, it first makes
+sure that a previous demo isn't already running, by checking, in this
+case, if the named lock "wall/SZG_DEMO/app" is held. If so, the
+application sends a kill message to the owner of the lock and waits for
+it to exit. Once the old application has died, the new application
+enters a clean-up phase which makes sure appropriate services are
+running on the cluster. </p>
+<p>First, it checks to see if an incompatible render program is running
+on any of the screens. For virtual computer "wall" and screen 0, this
+is done by checking whether anyone is currently holding the lock
+wall1/SZG_SCREEN0. Note that a render program can
+still be active on a screen when an application has been killed. For
+instance, szgrender stays up after a distributed scene graph
+application as died, since it can just accept a new connection from a
+new distributed scene graph application. If there is a render program
+currently registered and it is incompatible with the operation of the
+new render program, the old one is killed. </p>
+<p>Next, the application launcher makes sure that the required services
+are running on the cluster. So far, we are only launching input device and
+sound drivers. In the case of virtual computer "wall", this means making sure
+wandsimserver is running on computer "smoke" and that SoundRender is
+running on computer "sound". In each case, if the component is running
+already, leave it alone. If it isn't running, go ahead and launch it. </p>
+<p>A word about the syntax of wall/SZG_INPUT0/map is in order.
+Sometimes, as will be covered in the <a href="InputDevices.html">input
+devices</a> chapter, it is desirable to construct a virtual input device
+from different physical devices. In these cases, the value of
+wall/SZG_INPUT0/map would look something like: </p>
+<pre>computer1/service1/computer2/service2<br></pre>
+<p>indicating that "service1" should be launched on "computer1" and
+"service2" should be launched on "computer2". </p>
+<p>Now that its environment has been conditioned, the application
+launcher goes ahead and starts the application itself. In the
+master/slave application case, it launches an application instance on
+each of the render nodes. In the case of a distributed scene graph
+application, it goes ahead and makes sure szgrender is running on each
+render node and begins executing the application code locally. </p>
+<p>Finally, the application launcher waits for a kill signal. And
+performs a shutdown upon receiving it. </p>
+
+<p>Here are several useful commands for managing a virtual computer: </p>
+<pre>
+  killalldemo virtual_computer
+   
+   Kill any demos currently running on virtual_computer.
+
+  restarttracker virtual_computer
+
+   Restart services associated with virtual_computer (for instance
+   input devices and sound).
+
+  setdemomode virtual_computer [true, false]
+
+   If second argument is "true", sets each rendering node to use a fixed
+   head position rather than that reported by the tracking device. The head position
+   is read from SZG_SCREEN(n)/fixed_head_pos on each computer, and is a 
+   3-number x/y/z string, e.g. 0/5/0. Each rendering node will assume that the 
+   direction of gaze is perpendicular to its screen, and the up direction of the head 
+   will be taken from SZG_SCREEN(n)/fixed_head_up_angle (defaults to 0/1/0).
+   This is often preferable for multi-person demos, particularly for stereoscopic 
+   displays. To set things back to normal mode, use "false" as the second argument.
+
+  setstereo virtual_computer [true, false]
+
+   Turns active stereo rendering on and off for each rendering node of the cluster.
+
+  setinputfilter driver_name service filter
+
+   Locates the machine running the instance of DeviceServer specified by [driver_name] 
+   and [service] restarts it with a new input filter. For example, to restart the 
+   tracker driver for our cube setup with the tracker-calibration filter loaded, we 
+   would issue the command:
+
+    setinputfilter cube arCubeTracker SZG_INPUT arTrackCalFilter
+
+  screensaverdemo virtual_computer
+
+   Start szgrender programs on each render node in the cluster. Since szgrender is 
+   black when no application is connected, this effectively is a screensaver.
+
+  calibrationdemo virtual_computer
+
+   Display a calibration screen useful for alignment and color matching,
+   looking for the calibration picture cubecal.ppm in the SZG_DATA/path of
+   each render node.
+</pre>
+
+<a name="Misc">
+<p><font size="+2">Miscellaneous Application Features</font> </p>
+</a>
+<p>It is possible to pause a running distributed scene graph
+application by (where X is one of the szgrender's component IDs): </p>
+<pre>  dmsg X pause on<br></pre>
+<p>The application will be un-paused by the following command: </p>
+<pre>  dmsg X pause off<br></pre>
+<p>The application's framerate can be throttled at 5 fps by: </p>
+<pre>  dmsg X delay on<br></pre>
+<p>This effect will be turned off via: </p>
+<pre>  dmsg X delay off<br></pre>
+<p>A screenshot starting at raster position (A,B) and with width C and
+height D will be taken and stored at the top of the SZG_DATA/path as
+screenshot.Y.ppm, where Y is an integer representing the number of
+screenshots taken since the component was launched, when the following
+command is issued: </p>
+<pre>  dmsg X screenshot A/B/C/D<br></pre>
+<p>The view mode (see view_mode database parameter below) can be changed by sending the viewmode
+message, with one from the same set of values as for the view_mode
+parameter, e.g. it can be set to anaglyph by:</p>
+<pre>  dmsg X viewmode anaglyph<br></pre>
+<p>These commands also work with the master/slave applications. In this
+case, X should be the component ID of one of the application instances.
+ </p>
+
+<a name="ServiceLocks">
+<p><font size="+2">Service Names and Lock Names in Phleet</font>
+</a>
+
+<p>Services in the cluster application (like sound information, scene graph
+information, input events) are brokered via a service name. Components
+will fail to launch if they want to provide a service with a given name but
+cannot since another component is already providing that service.
+Consequently, it is important to understand how services get their names and
+how to find out what services are being offered.
+
+<p>Service names are parially determined by the nature of the service and
+partially by the circumstances under which a component is launched. Base
+service names for the various syzygy service are mentioned below.
+
+<pre>
+  SZG_INPUT(n)
+
+   One of SZG_INPUT0, SZG_INPUT1, etc. The number refers to the driver slot.
+   wandsimserver and DeviceServer offer this service. DeviceClient
+   and syzygy applications in general wish to receive it.
+
+  SZG_SOUND
+
+   Source of sound information. SoundRender wishes to receive this service.
+   Syzygy applications offer it.
+
+  SZG_SOUND_BARRIER
+
+   Synchronization for the SZG_SOUND service. SoundRender wishes to
+   receive this service. Syzygy applications offer it.
+
+  SZG_GEOMETRY
+
+   Source of scene graph information. szgrender wishes to receive this
+   service. Distributed scene graph applications offer it.
+
+  SZG_GEOMETRY_BARRIER
+
+   Synchronization for the SZG_GEOMETRY service. szgrender wishes to
+   receive this service. Distributed scene graph applications offer it.
+
+  SZG_MASTER_(application_name)
+
+   The master instance of a master/slave application offers data to the
+   slaves via this service. Slave instances try to connect to this service.
+
+  SZG_MASTER_(application_name)_BARRIER
+
+   Synchronization for the above service.
+</pre>
+
+<p>If a user launches a component, but does not do so in the context of a virtual
+computer, the component's service name will be:
+
+<pre>
+  basic_service_name/syzygy_user_name
+</pre>
+
+This prevents the actions of one syzygy user from interfering with those
+of another.
+
+<p>On the other hand, if a user launches a component in the context of
+a virtual computer, the component's service name will be:
+
+<pre>
+  virtual_computer_name/basic_service_name
+</pre>
+
+This allows various users to collaborate on using application components on a
+particular virtual computer. In a sense, the virtual computer is a shared
+resource.
+
+<p>Use the "dservices" command to see a listing of all currently offered services.
+Conversely, use the "dpending" command to see a listing of all service requests
+that have yet to be matched with a service. The user can debug problems
+with the distributed system, particularly issues with one component not 
+connecting to another, via these commands.
+
+<p>To get an idea of how this all fits together, consider a brief example.
+When running a distributed scene graph application, it will offer the
+SZG_GEOMETRY service. A instance of szgrender wants to connect to the
+SZG_GEOMETRY service, and the connection broker, seeing that such a
+service is running, will send the IP/port of the service to szgrender, which
+will then connect directly to the distributed scene graph application. 
+In addition, the distributed scene graph application wants to connect to
+the SZG_INPUT0 service, which can be provided by a DeviceServer or 
+wandsimserver.
+
+<p>Locks can be used to assure atomic operation of the distributed system,
+like virtual_computer_name/SZG_DEMO/lock, which ensures that a demo
+launching on a particular virtual computer will be able to reorganize the
+components running there without being interrupted. They can also be used
+to reserve resources. A copy of szgd ensures that no other copy is running
+on its computer by, upon start, trying to grab a computer_name/szgd lock.
+If it fails, another copy must be running and it exits. If it succeeds,
+it holds the lock while running. Other resource reservation locks are
+SoundRender's computer_name/SoundRender lock and szgrender's
+computer_name/SZG_SCREEN(n) lock, which refers to the virtual screen
+designation of its graphics window. A final resource lock is the vritual
+computer's application lock (virtual_computer_name/SZG_DEMO/app), which
+ensures that only one syzygy application is running on a given virtual
+computer at a time. 
+
+<p>Finally, locks facilitate automatic shutdown of previously running
+applications. Specifically, if a new application wants to get a resource,
+it can try to get the associated lock. If it fails, the system passes
+it the phleet ID of the component holding the lock. The new application
+can they send the currently running component a kill message and 
+wait until the lock has been released.
+
+<p>The "dlocks" command will show a list of currently existing locks.
+
+<a name="Context">
+<p><font size=+2>Component Contexts in Phleet</font>
+</a>
+
+<p>Every component in Syzygy is executed in a "context". The context is
+determined via the value of the environment variable SZGCONTEXT and by
+special phleet args that can be passed to the executable/ The context
+determines the overall behavior of the component, whether the component
+is executing as part of a virtual computer, and what networks it will use
+for various sorts of communication. It consists of a list of 
+variable/value pairs of the following:
+
+<pre>
+  virtual=[virtual_computer_name]
+
+   The name of the virtual computer on which this component is
+   executing. Set to the value "NULL" if it is not executing
+   on a virtual computer (the default).
+
+  mode/default=[trigger, master, component]
+
+   The overall behavior of the component. The "trigger" value
+   causes a syzygy application to run as a trigger instance,
+   launching other necessary components on a virtual computer.
+   The "master" value causes a master/slave component to
+   take the master role. The "component" value is a default
+   and has no effect.
+
+  mode/graphics=SZG_SCREEN(n)
+
+   One of SZG_SCREEN0, SZG_SCREEN1, etc. If the component displays
+   a graphics window, this determines the screen configuration
+   it will use.
+
+  networks/default=[network_list]
+   
+   The value network_list is a slash-delimited list of network names,
+   like internet/wall. It indicates, in descending order of preference,
+   the network path via which service connections should occur, 
+   assuming that the service type (input, graphics, sound) has
+   not already defined similar information.
+
+  networks/input=[network_list]
+
+   Defines the network path upon which input-type service connections
+   should occur.
+
+  networks/graphics=[network_list]
+
+   Defines the network path upon which graphics-type service
+   connections should occur.
+
+  networks/sound=[network_list]
+
+   Defines the network path upon which sound-type service connections
+   should occur.
+
+  parameter_file=[parameter_file_name]
+
+   If the application is running in standalone mode (i.e. no distribution),
+   it reads its parameter database from a file in its current working
+   directory. The default file name is szg_parameters.txt, but this can
+   be changed by passing this special parameter. 
+
+  user=[syzygy user name]
+
+    The user under whose auspices the syzygy application will run.
+
+  server=[IPaddress/port]
+
+    Identifies the location of the szgserver to which the component should
+    attempt to connect.
+</pre> 
+
+<p>When launching an application on a virtual computer,
+
+<pre>
+  dex virtual_computer_name application_name
+</pre>
+
+the application launching process will set the context appropriately for
+each launched component. However, sometimes the context must be set manually.
+For instance, if the user wishes to restart an individual component of
+the distributed application. The context can be set by passing special phleet
+args to the executable. These arguments are stripped from argc/argv
+immediately after the executable launches, so they can be mixed freely with
+other command line args. They consist of "-szg" followed by one of the
+variable/value context pairs listed above. There can be any number of them.
+For instance:
+
+<pre>
+  syzygy_executable -szg virtual=wall -szg networks/graphics=internet
+</pre>
+
+<a name="OffNetwork">
+<p><font size=+2>How To Run Syzygy Applications off the Network</font>
+</a>
+
+<p>Sometimes it is desirable to be able to run Syzygy applications off the
+network. Unfortunately, at the current time, everything requires a network
+connection to function, and, if the computer is not connected to a network,
+the operating system may disable those connections. The solution is to use
+the loopback address (127.0.0.1).
+
+<p>First, you will need to make sure that the phleet configuration file is
+set up with the loopback address. Use
+the "daddinterface" and "ddelinterface" commands, as outlined in the
+<a href="QuickStart.html">introduction</a> to produce a configuration file
+that has "dconfig" produce output like:
+
+<pre>
+  Phleet Configuration
+  --------------------
+  Computer name = your_computer_name
+  Network Name = local, Address = 127.0.0.1
+  Ports = 4700 - 4899
+</pre>
+
+<p>Next, run szgserver, as outlined in the 
+<a href="QuickStart.html">introduction</a>. An example (the given port number is
+arbitrary):
+
+<pre>
+  szgserver my_server_name 4999
+</pre>
+
+<p>Finally, you need to dlogin. Since the loopback interface filters broadcast
+packets, you need to connect by IP/port instead of via server name.
+
+<pre>
+  dlogin 127.0.0.1 4999 syzygy_user_name
+</pre>
+
+<a name="Examples">
+<p><font size=+2>Configuration Examples</font>
+</a>
+
+<p>The components of the parameter database can be divided into several
+categories. Only one category, the executable paths, is necessarily specific
+to a given user. Another category of parameters is those defining the various
+virtual computers, and a third category is paths to various kinds of data
+(sound files, texture files, and straight data files). The various input devices
+can have configuration information stored in the parameter database (see
+<a href="InputDevices-Drivers.html">here</a> for details). Finally, the
+various graphics screens are configured via parameter blocks that take up the
+majority of the database. The example parameter files below (which are in "dbatch"
+ready format) are organized according to these categories.
+
+<p>The file <a href="cube.txt">cube.txt</a> gives an example template parameter
+file for a 6-sided VR environment (virtual computer=cube).
+
+<p>The file <a href="lab.txt">lab.txt</a> gives an example template parameter file
+for a lab containing a group of workstations, a dual-headed passive stereo
+display (virtual computer=passive), an Immersadesk-style active stereo display
+(virtual computer=idesk), and a 3x2 video wall (virtual computer=wall).
+
+<a name="Parameters">
+<p><font size=+2>Parameters Explanation</font>
+</a>
+
+<p>An explanation of the various graphics parameters follows. For the
+sake of clarity, we use parameter group SZG_SCREEN0 but it could
+just as easily be SZG_SCREEN1, SZG_SCREEN2, etc.
+
+<pre>
+  SZG_SCREEN0 size x/y
+
+   If x=0 and y=0, this creates a full screen window. Otherwise, x and
+   y give the appropriate window dimensions. If not set, the default
+   is 640/480.
+
+  SZG_SCREEN0 position x/y
+
+   The x/y screen coordinates of the window origin. Default is 0/0.
+
+  SZG_SCREEN0 tile A/B/C/D
+
+   Used for working with tiled display walls. There are B horizontal tile
+   and D vertical tiles. This particular tile is the (A)th horizontal one,
+   with numbering starting at 0 and the display's left. The tile is the
+   (B)th vertical one, with numbering starting at 0 and the display's
+   bottom. Default is 0/1/0/1 (i.e. no tiling).
+
+  SZG_SCREEN0 screen_center x/y/z
+
+   Screen center in physical coordinates (feet). Default is 0/5/-5.
+
+  SZG_SCREEN0 screen_dim x/y
+  
+   Screen dimensions in feet. Default is 10/10.
+
+  SZG_SCREEN0 screen_normal x/y/z
+
+   Outward pointing screen normal (away from the viewer), expressed in
+   physical coordinates. Default is 0/0/-1.
+
+  SZG_SCREEN0 screen_up x/y/z
+
+   Up direction in physical coordinates. This can be used to correct for
+   projector rotation. Default is 0/1/0.
+
+  SZG_SCREEN0 stereo [true, false]
+
+   Whether or not the screen should be drawn using active stereo. This requires LCD stereo shutter goggles and a graphics card that supports OpenGL stereo buffers. This parameter must be either "true" or "false", with the default being "false". The Syzygy application frameworks query the graphics card regarding stereo buffer support; if they aren't supported, this parameter is ignored.
+
+  SZG_SCREEN0 fixed_head [true, false]
+
+   Whether or not the screen is using fixed-head mode. In fixed-head mode, the
+   projection is determined based on a fixed head position and
+   orientation. The orientation depends on the screen_normal. Fixed-head mode
+   is better than the correct VR projection for a large group of people
+   inside a projection-based virtual environment. The default is
+   "false". The actual fixed position is taken from SZG_SCREEN0/fixed_head_pos.
+
+  SZG_SCREEN0 fixed_head_pos x/y/z
+
+   The fixed head position, in physical coordinates, that will be used
+   if fixed-head mode is enabled. The default is 0/5/0.
+
+  SZG_SCREEN0 fixed_head_up_angle x
+
+   In fixed-head mode, the viewing head is oriented so that it is pointing
+   directly towards the screen (as determined by screen_normal).
+   Note that this leaves one degree of rotational ambiguity. This
+   parameter (expressed in degrees) can be used to manipulate this.
+   Default is 0.
+
+  SZG_SCREEN0 default_eye [none,right, left]
+
+   Normally, a nonstereo screen is displayed using a viewpoint
+   midway between the two eyes. However, if this parameter is set,
+   a viewpoint from either the right or the left eye can be selected.
+   This is useful for building a passive stereo display system using
+   2 computers, each displaying a seperate channel. Defaults to "none".
+
+  SZG_SCREEN0 view_mode [normal,anaglyph,walleyed,crosseyed,overunder]
+  
+   It is possible to use syzygy to display passive stereo (i.e. not
+   requiring LCD goggles) in a variety of ways. The possible view modes
+   are:
+   
+     (1) normal: What it says. If active stereo is disabled, the scene
+     is rendered once for the default view position (see default_eye,
+     just above), by default taking up the entire window. If active
+     stereo is enabled, it's rendered into the left buffer from the
+     left-eye viewpoint, etc.
+     
+     Note that the following passive stereo view modes should work
+     properly even if active stereo is enabled, i.e. if active stereo is
+     enabled and the view mode is set to walleyed, the scene will be
+     rendered four times, once each into the left & right halves of the
+     window in both the left and right stereo buffers. It will look flat
+     through LCD goggles, the left & right viewports will have to be
+     fused for seeing 3-D.
+     
+     (2) anaglyph: The left-eye view is rendered into the red channel
+     and the right-eye view is rendered into the green and blue
+     channels, for viewing with red/green or red/blue glasses. Note that
+     this only works well if the scene itself does not contain color
+     information, or if large patches of color are restricted to the
+     plane of the screen.
+     
+     (3) walleyed: The window is split in half, with the left-eye view
+     in the left half and the right-eye view in the right half. This
+     arrangement can be viewed with mirrors, or if the window is small,
+     by diverging the eyes as for single-image stereograms. With a
+     dual-head graphics card, the user can configure the desktop so that
+     one output displays the left half and the displays the right half.
+     
+     (4) crosseyed: As above, but the left-eye image is on the right,
+     and vice-versa. To be viewed by crossing the eyes.
+     
+     (5) overunder: The left-eye view is in the bottom half and the
+     right-eye view is on top. For use with over/under stereo viewers
+     like the View Magic (google it).
+
+  SZG_SCREEN0 wildcat_framelock [true, false]
+
+   If a wildcat board is present, should framelocking be enabled?
+   Default is "false".
+</pre>
+
+<p>The various data paths are now listed. Note how semi-colon delimited
+lists are used to give the paths.
+
+<pre>
+  SZG_EXEC path directory_1;directory_2
+
+   Location of the executables for a given user.
+
+  SZG_DATA path diretcory_1
+
+   Location of data.
+
+  SZG_SOUND path directory_1;directory_2;directory_3
+
+   Location of sound files loaded by SoundRender.
+
+  SZG_RENDER texture_path directory_1
+
+   Location of texture files loaded by szgrender.
+
+  SZG_RENDER text_path directory_1
+
+   Location of textured text font used by szgrender billboard.
+</pre>
+
+<a name="Button">
+<p><font size="+2">Using the ButtonInterface Demo Launcher</font> </p>
+</a>
+<p>For the user's convenience, the Syzygy program includes a
+lightweight interface for launching the included demos. Like the
+JavaInterface used to control the distributed operating system at a
+more basic level, the ButtonInterface consists on a Java GUI and a
+Syzygy program that relays its commands to the distributed system. The
+names of the buttons in the GUI are mapped to executables by a file
+"ipaq.txt" that must be present in the SZG_DATA/path on the computer
+where ButtonInterface runs. The syntax of this file looks like (each
+line of the map is 2 double-quote delimited strings): </p>
+<pre>("the button name"   "the executable name, plus parameters")<br>("another button name"  "another executable name, plus parameters")<br></pre>
+<p>To run this interface, you'll need to define a virtual computer as
+outlined in a previous section. Next, type in the command: </p>
+<pre>ButtonInterface [virtual_computer] [service_tag]<br></pre>
+<p>The "service_tag" parameter serves to identify this instance of the
+ButtonInterface relay on the LAN. Once this is running, launch the Java
+GUI by executing the class WindowInterface in
+szg/src/demo/buttonfly/java. </p>
+<pre>java WindowInterface [subnet]<br></pre>
+<p>If you are running the Java GUI on a multihomed computer without
+access to DNS, you'll have to specify the subnet parameter (i.e.
+192.168.0). In the resulting text box, type the "service_tag" entered
+above and you'll be able to connect to the ButtonInterface relay. A
+window with many buttons appears, some, like "hspace" useful for
+launching demos, and others, like "screensaver" performing maintenance
+functions. </p>
+</body>
+</html>

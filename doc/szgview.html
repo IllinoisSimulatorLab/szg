@@ -1,0 +1,45 @@
+<html>
+<head>
+<title>Syzygy Object Viewer</title>
+</head>
+<body bgcolor="#ffffff">
+<a href="index.html">Documentation Index</a>
+<p><font size=+2>Syzygy Object Viewer (szgview)</font>
+
+<p>
+<B>szgview</B> is an application to view <A HREF="Objects.html">objects
+that Syzygy supports</a>.
+To view a file, simply run
+<pre>
+  szgview myfile.ext
+</pre>
+or, if you have <A HREF="Objects.html">matching</a> HTR and OBJ files, run
+<pre>
+  szgview myanim.htr mymesh.obj
+</pre>
+
+<p>
+The bar at the top of the screen displays the current mode; pressing <b>1</b>
+will allow you to translate the object by clicking and dragging with the mouse.
+<b>2</b> lets you rotate, and <b>3</b> scales the object.
+
+<p>
+If the file supports animation, a slider bar will appear at the
+bottom of the screen. The current frame number is shown on the bottom
+right, and the animation can be scrubbed through by dragging the 
+small, grey slider box along the timeline. Additionally, pressing <B>k</B>
+will play/pause the animation, and the <b>j</B> and <b>l</b> keys will
+move back or forward one frame, respectively.
+
+<p>
+The <B>`</B> key (the one with tilde on it... just to the left of the "1" on
+standard keyboards) cycles through different background colors, in case the
+object is difficult to see against a certain background.
+<p><p>
+For debugging purposes, the <b>d</B> key dumps database connectivity information
+to the console. Hitting <b>p</b> performs a "pretty dump", formatting the database
+hierarchy.
+
+
+</body>
+</html>

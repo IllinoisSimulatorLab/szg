@@ -1,0 +1,16 @@
+VPATH = ../../../../src/demo/hspace
+
+ifeq ($(strip $(MACHINE)),WIN32)
+LINK_FLAGS += /stack:4000000
+endif
+
+OBJSRAW = Matrix5 HypDodecahedron H3World
+OBJS = $(OBJSRAW:%=%$(OBJ_SUFFIX))
+
+ALL = hspace$(EXE)
+Everything: $(ALL)
+
+PRECOMPILED_HEADER_LOCATION := $(PRECOMPILED_HEADER_LOCATION_DEMO)
+
+hspace$(EXE): hspace$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBS)
+	$(DO_LINK_GRAPHICS)

@@ -1,0 +1,15 @@
+MACHINE := WIN32
+
+INCFMOD := $(wildcard $(SZGEXTERNAL)/include)
+LIBFMOD := $(wildcard $(SZGEXTERNAL)/lib/fmodvc.lib)
+
+INC_WIN_BIRD := $(wildcard $(SZGEXTERNAL)/include)
+LIB_WIN_BIRD := $(wildcard $(SZGEXTERNAL)/lib/Bird.lib)
+
+INC_EVART := $(wildcard $(SZGEXTERNAL)/include)
+LIB_EVART := $(wildcard $(SZGEXTERNAL)/lib/macrtcom.lib)
+
+INC3DS := 
+LIB3DS := 
+
+# The wildcard operator resolves to the empty string, if the file is missing.

@@ -1,0 +1,17 @@
+VPATH = ../../../../src/demo/utilities
+
+ALL = cubevars$(EXE) PictureViewer$(EXE) StereoViewer$(EXE) \
+  DeskCalibrator$(EXE)
+Everything: $(ALL)
+
+PRECOMPILED_HEADER_LOCATION := $(PRECOMPILED_HEADER_LOCATION_DEMO)
+
+cubevars$(EXE): cubevars$(OBJ_SUFFIX) $(SZG_LIBS)
+	$(DO_LINK_GRAPHICS)
+PictureViewer$(EXE): PictureViewer$(OBJ_SUFFIX) $(SZG_LIBS)
+	$(DO_LINK_GRAPHICS)
+StereoViewer$(EXE): StereoViewer$(OBJ_SUFFIX) $(SZG_LIBS)
+	$(DO_LINK_GRAPHICS)
+DeskCalibrator$(EXE): DeskCalibrator$(OBJ_SUFFIX) $(SZG_LIBS)
+	$(DO_LINK_GRAPHICS)
+

@@ -1,0 +1,9 @@
+VPATH = ../../../../src/demo/volume
+
+ALL = volume$(EXE)
+Everything: $(ALL)
+
+PRECOMPILED_HEADER_LOCATION := $(PRECOMPILED_HEADER_LOCATION_DEMO)
+
+volume$(EXE): volume$(OBJ_SUFFIX) slice$(OBJ_SUFFIX) $(SZG_LIBS)
+	$(DO_LINK_GRAPHICS)

@@ -1,0 +1,116 @@
+# The configuration of the cube has two parts, one which varies from user to
+# user and only consists of the path upon which the system should search for
+# executables... and another part which configures the system. This
+# second part is further subdivided into "everything else" and "graphics"
+
+# configuartion that varies per user (really just varies based on linux 
+# versus windows)
+
+cube6     SZG_EXEC path G:\THE_USER_NAME\bin\win32 
+cavefront SZG_EXEC path G:\THE_USER_NAME\bin\win32
+caveleft  SZG_EXEC path G:\THE_USER_NAME\bin\win32
+caveright SZG_EXEC path G:\THE_USER_NAME\bin\win32
+cavefloor SZG_EXEC path G:\THE_USER_NAME\bin\win32
+aria      SZG_EXEC path G:\THE_USER_NAME\bin\win32
+
+# configuration that is basically the same for all users
+# everything besides graphics goes first
+
+# definition of the cube virtual computer
+
+cave SZG_CONF    virtual        true
+cave SZG_TRIGGER map            cavefront
+cave SZG_MASTER  map            SZG_SCREEN0
+cave SZG_SCREEN  number_screens 4 
+cave SZG_SCREEN0 map            cavefront/SZG_SCREEN0
+cave SZG_SCREEN0 networks       cave/internet
+cave SZG_SCREEN1 map            caveleft/SZG_SCREEN0
+cave SZG_SCREEN1 networks       cave/internet
+cave SZG_SCREEN2 map            caveright/SZG_SCREEN0
+cave SZG_SCREEN2 networks       cave/internet
+cave SZG_SCREEN3 map            cavefloor/SZG_SCREEN0
+cave SZG_SCREEN3 networks       cave/internet
+cave SZG_INPUT0  map            cassatt/szg-mem
+cave SZG_INPUT0  networks       internet
+cave SZG_SOUND   map            aria
+cave SZG_SOUND   networks       internet
+
+# definitions of the various search paths that are the same from user to user
+# (really just varies based upon linux versus windows)
+
+aria      SZG_DATA   path         g:\Data
+aria      SZG_SOUND  path         g:\Sounds
+aria      SZG_RENDER texture_path g:\Texture
+aria      SZG_RENDER text_path    g:\Texture\Text
+cube6     SZG_DATA   path         g:\Data
+cube6     SZG_SOUND  path         g:\Sounds
+cube6     SZG_RENDER texture_path g:\Texture
+cube6     SZG_RENDER text_path    g:\Texture\Text
+cavefront SZG_DATA   path         c:\Data;g:\Data
+cavefront SZG_SOUND  path         g:\Sounds
+cavefront SZG_RENDER texture_path g:\Texture
+cavefront SZG_RENDER text_path    g:\Texture\Text
+caveleft  SZG_DATA   path         c:\Data;g:\Data
+caveleft  SZG_SOUND  path         g:\Sounds
+caveleft  SZG_RENDER texture_path g:\Texture
+caveleft  SZG_RENDER text_path    g:\Texture\Text
+caveright SZG_DATA   path         c:\Data;g:\Data
+caveright SZG_SOUND  path         g:\Sounds
+caveright SZG_RENDER texture_path g:\Texture
+caveright SZG_RENDER text_path    g:\Texture\Text
+cavefloor SZG_DATA   path         c:\Data;g:\Data
+cavefloor SZG_SOUND  path         g:\Sounds
+cavefloor SZG_RENDER texture_path g:\Texture
+cavefloor SZG_RENDER text_path    g:\Texture\Text
+
+# definitions of miscellaneous stuff
+
+# graphics configuration
+
+cavefront SZG_SCREEN0 size              0/0
+cavefront SZG_SCREEN0 screen_center     0/5/-5
+cavefront SZG_SCREEN0 screen_dim        10/10
+cavefront SZG_SCREEN0 screen_normal     0/0/-1
+cavefront SZG_SCREEN0 screen_up         0/1/0
+cavefront SZG_SCREEN0 stereo            true
+cavefront SZG_SCREEN0 mid_eye_offset    0.29/0/-0.21
+cavefront SZG_SCREEN0 tile              0/1/0/1
+cavefront SZG_SCREEN0 fixed_head        false
+cavefront SZG_SCREEN0 fixed_head_pos    0/5.5/0
+cavefront SZG_SCREEN0 wildcat_framelock true
+
+caveleft SZG_SCREEN0 size              0/0
+caveleft SZG_SCREEN0 screen_center     -5/5/0
+caveleft SZG_SCREEN0 screen_dim        10/10
+caveleft SZG_SCREEN0 screen_normal     -1/0/0
+caveleft SZG_SCREEN0 screen_up         0/1/0
+caveleft SZG_SCREEN0 stereo            true
+caveleft SZG_SCREEN0 mid_eye_offset    0.29/0/-0.21
+caveleft SZG_SCREEN0 tile              0/1/0/1
+caveleft SZG_SCREEN0 fixed_head        false
+caveleft SZG_SCREEN0 fixed_head_pos    0/5.5/0
+caveleft SZG_SCREEN0 wildcat_framelock true
+
+caveright SZG_SCREEN0 size                0/0
+caveright SZG_SCREEN0 screen_center       5/5/0
+caveright SZG_SCREEN0 screen_dim          10/10
+caveright SZG_SCREEN0 screen_normal       1/0/0
+caveright SZG_SCREEN0 screen_up           0/1/0
+caveright SZG_SCREEN0 stereo              true
+caveright SZG_SCREEN0 mid_eye_offset      0.29/0/-0.21
+caveright SZG_SCREEN0 tile                0/1/0/1
+caveright SZG_SCREEN0 fixed_head          false
+caveright SZG_SCREEN0 fixed_head_up_angle  -90
+caveright SZG_SCREEN0 fixed_head_pos      0/5.5/0
+caveright SZG_SCREEN0 wildcat_framelock   true
+
+cavefloor SZG_SCREEN0 size              0/0
+cavefloor SZG_SCREEN0 screen_center     0/0/0
+cavefloor SZG_SCREEN0 screen_dim        10/10
+cavefloor SZG_SCREEN0 screen_normal     0/-1/0
+cavefloor SZG_SCREEN0 screen_up         0/0/-1
+cavefloor SZG_SCREEN0 stereo            true
+cavefloor SZG_SCREEN0 mid_eye_offset    0.29/0/-0.21
+cavefloor SZG_SCREEN0 tile              0/1/0/1
+cavefloor SZG_SCREEN0 fixed_head        false
+cavefloor SZG_SCREEN0 fixed_head_pos    0/5.5/0

@@ -1,0 +1,43 @@
+VPATH = ../../../src/sound
+
+# DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
+# with this sometimes.
+OBJS = \
+  arSpeechNode$(OBJ_SUFFIX) \
+  arStreamNode$(OBJ_SUFFIX) \
+  arSoundAPI$(OBJ_SUFFIX) \
+  arSoundClient$(OBJ_SUFFIX) \
+  arSoundDatabase$(OBJ_SUFFIX) \
+  arSoundLanguage$(OBJ_SUFFIX) \
+  arSoundNode$(OBJ_SUFFIX) \
+  arSoundServer$(OBJ_SUFFIX) \
+  arSoundFileNode$(OBJ_SUFFIX) \
+  arSoundFile$(OBJ_SUFFIX) \
+  arSoundTransformNode$(OBJ_SUFFIX) \
+  arPlayerNode$(OBJ_SUFFIX) \
+  arSpeakerObject$(OBJ_SUFFIX) \
+
+MYLIB = libarSound.a
+$(MYLIB): $(OBJS)
+	$(AR) ru $@ $^
+	$(RANLIB) $@
+MYLIBS = \
+  ../math/libarMath.a \
+  ../barrier/libarBarrier.a \
+  ../phleet/libarPhleet.a \
+  ../language/libarLanguage.a
+
+ifeq ($(strip $(MACHINE)),WIN32)
+LINK_FLAGS += /stack:4000000
+endif
+
+ALL = SoundRender$(EXE) SoundTest$(EXE) StreamTest$(EXE)
+
+Everything: $(ALL)
+
+SoundRender$(EXE): SoundRender$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK) $(LIB_FMOD) $(LIB_SAPI)
+StreamTest$(EXE): StreamTest$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK) $(LIB_FMOD) $(LIB_SAPI)
+SoundTest$(EXE): SoundTest$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK) $(LIB_FMOD) $(LIB_SAPI)

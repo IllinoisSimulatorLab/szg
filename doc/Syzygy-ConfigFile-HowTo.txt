@@ -1,0 +1,255 @@
+
+This document describes how to use Syzygy machinery to create XML style 
+config files for your applications.
+
+The config file will consist of a sequence of records. The structure
+of these records is describe by an arDataTemplate and an 
+arTemplateDictionary organizes these records into a coherent language.
+A config file can be parsed, one record at a time, by an
+arStructuredDataParser, which uses an arTemplateDictionary to parse the file
+data into arStructuredData objects, which can then be queried by the
+programmer for information contained in the file.
+
+The objects arDataTemplate, arTemplateDictionary, arStructuredData, and
+arStructuredDataParser are all found in szg/src/language.
+
+Using Syzygy, the programmer can manipulate records whose fields are arrays
+of char, int, float, long, and double. The records have names (to 
+distinguish them within their containing language), and their fields are
+named as well. An arDataTemplate contains the description of a record type,
+which we can write as follows:
+
+my_record_name{
+  char[] field_name_1;
+  int[] field_name_2;
+  float[] field_name_3;
+}
+
+Only use alphanumeric characters (and '_') in record names and field names.
+
+An XML record of this type might look like:
+
+<my_record_name>
+  <field_name_1>foo</field_name_1>
+  <field_name_2> 12 34 7 -1 </field_name_2>
+  <field_name_3> 3.45 </field_name_3>
+</my_record_name>
+
+A few quirks of the parser should be noted, basically dealing with
+inadequate whitespace handling. First, the tags cannot contain any
+whitespace. For instance, <foo> is OK, but < foo > is not. Furthermore,
+char array fields must have their beginning and ending tags placed exactly 
+at the beginning and end of the char string. For instance:
+
+<char_field> foo </char_field>
+
+reads as:
+
+" foo ".
+
+Other than the examples mentioned above, whitespace is handled as you
+would expect. For instance:
+
+<int_field>12</int_field>
+
+and
+
+<int_field>
+  12
+</int_field>
+
+are equivalent.
+
+arDataTemplate objects are defined in code. The constructor takes a 
+record name. We show here how to construct the data template for the
+record mentioned above.
+
+  arDataTemplate myTemplate("my_record_name");
+  int fieldID1 = myTemplate.add("field_name_1", AR_CHAR);
+  int fieldID2 = myTemplate.add("field_name_2", AR_INT);
+  int fieldID3 = myTemplate.add("field_name_3", AR_FLOAT);
+  arTemplateDictionary myDictionary;
+  int templateID = myDictionary.add(&myTemplate);
+
+A few things are worth mentioning about this code example. First of all,
+the Syzygy constants for the supported data types are AR_CHAR, AR_INT,
+AR_FLOAT, AR_LONG (which is the equivalent of a C "long long"), and
+AR_DOUBLE. Next, once a field has been added to an arDataTemplate, it
+receives a numeric ID, which is returned by the add(...) method. You will
+later be able to use this ID when referencing fields of the record.
+Furthermore, the record type itself (as encapsulated in arDataTemplate)
+gets an ID by being added to a "language" (as encapsulated in 
+arTemplateDictionary).
+
+Of course, any language of interest will have multiple record types. The
+following code snippet builds on the previous one and adds another
+record to the language.
+
+  arDataTemplate myTemplate_2("my_record_name_2");
+  int fieldID1_2 = myTemplate.add("field_name_1", AR_CHAR);
+  int fieldID2_2 = myTemplate.add("field_name_2", AR_INT);
+  int fieldID3_2 = myTemplate.add("field_name_3", AR_FLOAT);
+  int templateID_2 = myDictionary.add(&myTemplate_2);
+
+To read in a file consisting of these 2 record types, you'll use an
+arStructuredDataParser. Its constructor must be passed an
+arTemplateDictionary.
+
+  arStructuredDataParser myParser(&myDictionary);
+
+This object can operate on a file pointer, returning an arStructuredData
+object which contains the information stored in the next record in the
+file. A typical file parsing routine might look like:
+
+  FILE* theFile = fopen("my_file_name", "r");
+  // Escape from the while loop via an internal break
+  while (true){
+    arStructuredData* data = myParser.parse(theFile);
+    if (!data){
+      // Either encountered an end-of-file or an error in record parsing.
+      // No way to distinguish between these so far.
+      break;
+    }
+    // each piece of arStructuredData contains a numerical ID, which
+    // identifies it with respect to the other pieces in its language.
+    int dataType = data->getID()){
+      if (dataType == templateID){
+        // perform processing on this record type
+      }
+      else if (dataType == templateID_2){
+        // perform processing on this record type
+      }
+    }
+    // we want to reuse the storage for parsing now that we are done
+    // with it.
+    myParser.recycle(data);
+  } 
+
+Note how we use the template ID that was returned when adding the template
+to our dictionary to choose how to process the returned piece of 
+arStructuredData. Also, the arStructuredData returned by parse(...) is
+owned by the caller. The calling program is free to delete it, but it is 
+preferable to return the storage to the arStructuredDataParser for reuse
+via the recycle(...) method when the caller is finished. Finally, there is
+currently no way to distinguish between end-of-file and a parsing error,
+as is mentioned in the code comments above.
+
+Now, we examine how to get values from arStructuredData objects.
+
+  void* arStructuredData::getDataPtr(const string& fieldName, 
+                                     arDataType dataType)
+
+  Using the record's field name and data type (for rudimentary error
+  checking), return a pointer to the array of data comprising that
+  field inside the arStructuredData object.
+
+  int arStructuredData::getDataDimension(const string& fieldName, 
+                                         arDataType dataType)
+
+  Using the record's field name and data type (for rudimentary error
+  checking), return the number of elements stored in the array 
+  comprising that field inside the arStructuredData object.
+
+  bool arStructuredData::dataOut(const string& fieldName, void* storage,
+                                 arDataType dataType, int numberElements)
+
+  Using the record's field name and data type, copy "numberElements" of the
+  internally stored array into the memory to which "storage" points.
+
+  string arStructuredData::getDataString(const string& fieldName)
+
+  Copies an AR_CHAR field referenced by "fieldName" into a string and
+  returns that. This is the easiest way to retrieve string data.
+
+Note that each of these methods has a counterpart which uses the field ID
+instead of the field name. Note that this is more efficient, though a bit
+harder to use. This is why you might want to save the record field IDs. 
+
+  void* arStructuredData::getDataPtr(int fieldID, arDataType dataType)
+
+  int arStructuredData::getDataDimension(int fieldID, arDataType dataType)
+
+  bool arStructuredData::dataOut(int fieldID, void* storage,
+                                 arDataType dataType, int numberElements)
+
+  string arStructuredData::getDataString(int fieldID)
+
+Also note that you can retrieve a single value from a field by:
+
+  int x;
+  myData->dataOut("int_field_name", &x, AR_INT, 1);
+
+This should suffice to enable you to read in and manipulate the data in
+a Syzygy XML file.
+
+Next, as a case study, we describe a language for configuring data
+visualizations constructed in VTK.
+
+  vtk_poly_data{
+    char[] name;
+    char[] info_type;
+    char[] file_name;
+    int[]  ID;
+  }
+ 
+  Description: The "name" of the vtkPolyData object is used to identify this
+  vtkPolyData object with respect to the VTK visualization manager. Later,
+  we'll need to be able to reference to do things like alter an existing
+  vtkPolyData (new data maybe) or attach the vtkPolyData to a VTK mapper.
+  The "info_type" is either "network" or "file". In the "network" case,
+  this vtkPolyData will be read from the network with ID given by the first
+  entry of "ID". In the "file" case, the vtkPolyData will be read from a
+  file, with the file's name given by "file_name".
+
+  vtk_lookup_table_explicit{
+    char[]  name;
+    int[]   number_bins;
+    float[] bins;
+  }
+
+  Description: The "name" of the vtkLookupTable is used to identify this
+  vtkLookupTable object with respect to the VTK visualization manager, which
+  maintains a list of vtkLookupTable objects keyed by name. In this case,
+  we are defining the lookup table explicitly. The first entry of the
+  "number_bins" array gives the number of bins in our lookup table.
+  The "bins" field then contains a sequence of r,g,b,a values (4 times the
+  number of bins) containing the color values associated with each bin.
+
+  vtk_poly_data_mapper{
+    char[] name;
+    char[] poly_data_name;
+    char[] lookup_name;
+  }
+
+  Description: The "name" of the vtkPolyDataMapper is used to identify this
+  vtkPolyDataMapper object with respect to the VTK visualization manager,
+  which maintains a list of vtkPolyDataMapper objects, keyed by name.
+  The "poly_data_name" field refers to the name of the vtkPolyData object
+  (as understood by the VTK visualization manager) which this mapper will
+  use. The "lookup_name" field refers to the name of the vtkLookupTable 
+  object (as understood by the VTK visualization manager) which this mapper
+  will use. If no lookup table is to be used, this field will have the
+  value "NULL".
+
+  vtk_actor{
+    char[]  name;
+    char[]  mapper_name;
+    float[] position;
+    float[] scale;
+    float[] color;
+    int[]   visibility;
+  }
+
+  Description: The "name" of the vtkActor is used to identify this 
+  vtkActor object with respect to the VTK visualization manager, which
+  maintains a list of vtkActor objects, keyed by name. The "mapper_name"
+  field refers to the name of the vtkPolyDataMapper object (as understood
+  by the VTK visualization manager) which this vtkActor will use. The
+  "position" field contains 3 floats, the (x,y,z) position of the object.
+  The "scale" field contains 3 floats, which scale the object along the
+  x, y, and z axes. The "color" field contains 4 floats corresponding to the
+  rgba colors of the object. The "visibility" field contains a single int,
+  indicating if the object is to be visible (1) or not (0).
+
+
+

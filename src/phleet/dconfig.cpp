@@ -1,0 +1,24 @@
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
+// precompiled header include MUST appear as the first non-comment line
+#include "arPrecompiled.h"
+#include "arPhleetConfigParser.h"
+#include <iostream>
+using namespace std;
+
+int main(int argc, char** argv){
+  if (argc != 1){
+    cout << "usage: dconfig\n";
+    return 1;
+  }
+  arPhleetConfigParser parser;
+  if (!parser.parseConfigFile()){
+    cerr << "dconfig error: failed to parse phleet configuration file.\n";
+    return 1;
+  }
+  parser.printConfig();
+  return 0;
+}

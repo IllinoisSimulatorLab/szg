@@ -1,0 +1,108 @@
+VPATH = ../../../src/phleet
+
+# DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
+# with this sometimes.
+OBJS = \
+  arSZGClient$(OBJ_SUFFIX) \
+  arPhleetConfigLanguage$(OBJ_SUFFIX) \
+  arPhleetConfigParser$(OBJ_SUFFIX) \
+  arPhleetConnectionBroker$(OBJ_SUFFIX) \
+  arPhleetOSLanguage$(OBJ_SUFFIX) \
+  arPhleetTemplate$(OBJ_SUFFIX)
+
+MYLIB = libarPhleet.a
+$(MYLIB): $(OBJS)
+	$(AR) ru $@ $^
+	$(RANLIB) $@
+MYLIBS = ../language/libarLanguage.a
+
+ifeq ($(strip $(MACHINE)),LINUX)
+  DTOP_LIBS = -lncurses
+endif
+
+ifeq ($(strip $(MACHINE)),WIN32)
+LINK_FLAGS += /stack:4000000
+endif
+
+ALL = \
+  dbatch$(EXE) \
+  dex$(EXE) \
+  dget$(EXE) \
+  dhunt$(EXE) \
+  dkill$(EXE) \
+  dlogin$(EXE) \
+  dlogout$(EXE) \
+  dps$(EXE) \
+  dset$(EXE) \
+  dtop$(EXE) \
+  dwho$(EXE) \
+  dname$(EXE) \
+  dconfig$(EXE) \
+  daddinterface$(EXE) \
+  ddelinterface$(EXE) \
+  dports$(EXE) \
+  JavaInterface$(EXE) \
+  szgd$(EXE) \
+  szgserver$(EXE) \
+  testservice$(EXE) \
+  testserviceclient$(EXE) \
+  dservices$(EXE) \
+  dpending$(EXE) \
+  dlocks$(EXE) \
+  testlock$(EXE) \
+  phleettest$(EXE)
+
+Everything: $(ALL)
+
+dbatch$(EXE): dbatch$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+dex$(EXE): dex$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+dget$(EXE): dget$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+dhunt$(EXE): dhunt$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+dkill$(EXE): dkill$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+dlogin$(EXE): dlogin$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+dlogout$(EXE): dlogout$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+dps$(EXE): dps$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+dset$(EXE): dset$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+dtop$(EXE): dtop$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK) $(DTOP_LIBS)
+dwho$(EXE): dwho$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+dname$(EXE): dname$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+dconfig$(EXE): dconfig$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+daddinterface$(EXE): daddinterface$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+ddelinterface$(EXE): ddelinterface$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+dports$(EXE): dports$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+JavaInterface$(EXE): JavaInterface$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+szgd$(EXE): szgd$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+szgserver$(EXE): szgserver$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+testservice$(EXE): testservice$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+testserviceclient$(EXE): testserviceclient$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+dservices$(EXE): dservices$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+dpending$(EXE): dpending$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+dlocks$(EXE): dlocks$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+testlock$(EXE): testlock$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+phleettest$(EXE): phleettest$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)

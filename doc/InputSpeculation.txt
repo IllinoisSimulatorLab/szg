@@ -1,0 +1,506 @@
+Input Layer Design
+------------------
+
+THE INPUT LAYER DESIGN HAS CHANGED SIGNIFICANTLY SINCE THIS DESIGN
+DOCUMENT WAS WRITTEN. CONSEQUENTLY, A DESCRIPTION OF WHAT'S OCCURING NOW
+FOLLOWS. THE OLD STUFF WILL BE MERGED BACK IN SOON.
+
+******************************************************************************
+WHAT'S HAPPENING NOW
+******************************************************************************
+
+Input events are processed via a tree of arInputNode objects. Input devices
+have buttons, axes (as for joysticks), and 4x4 matrices. This last maybe
+should be changed to be a little more suitable for human-readable 6DOF??
+Buttons are assumed to create discrete events. Axes and matrices are 
+assumed to create a continuous stream of events. The input node stores a
+state (arInputState), which is the aggregate effect of all the events it has
+processed. For instance, if a button down event is received, the input state
+records that the button is down until a button up event is received.
+
+arInputNode objects communicate with one another via arNetInputSource and
+arNetInputSink objects.
+
+Every arInputNode has, registered to it, a collection of arInputSource objects
+that feed it data. These can either be input device drivers (i.e. the
+arInputNode is getting data locally) or they can be pulling data from the
+network. If they are pulling data from the network, they are using a "network
+slot" to do so. Thus, an input node that gathers data over the network from
+two seperate input sources could use slots 0 and 1. This is what the syzygy
+compound wand device does (combining a tracker and a joystick).
+
+Each of the arInputSource objects associated with an arInputNode has a
+"channel" number, as assigned by its arInputNode.
+
+
+******************************************************************************
+THE OLD DESIGN DOCUMENT FOLLOWS
+******************************************************************************
+
+The input layer design needs to meet 5 basic goals.
+
+1. It needs to be extensible. We should have only one input language
+     and server program that interfaces with the outside world. Individual
+     hardware devices can then be easily added by writing a class that
+     connects to the metal and translates the raw physical events into
+     the input language.
+2. Simple manipulations of raw input data should be handled internally.
+     For instance, scaling, permutations, offsets, etc. may be necessary
+     to connect different joysticks to the same code. There is a standard
+     class to deal with this, arSimpleOutputTransform, that operates based
+     on a config file.
+3. Arbitrary transformations of the stream of input events. This is
+     handled via subclasses of arOutputTransform.
+4. We need to be able to aggregate different input devices together into
+     one. Oftentimes we want to use several input devices to control
+     an application, and it is inconvenient to force the application to
+     have arInputServers for each device. A good example of this is an
+     augmented reality application where a tilt sensor, a compass, a
+     gyroscope, and a GPS are simultaneously necessary to provide the
+     user's location in the environment.
+5. Ability to direct output to devices outside the syzygy universe. For
+     instance, we want to be able to attach our infrastructure to a standard
+     CAVElib program. This is handled by subclasses of arOutputDevice, in this
+     case arCAVEOutputDevice.
+
+We start the discussion with a description of the class hierarchy.
+
+The important abstract classes are arInputDevice, arOutputDevice,
+and arOutputTransform. The class arInputDevice is subclassed by arInputNode.
+These objects manage the connections between the various devices. The class
+arInputDevice is also subclassed by arNetInputDevice, which gets event data
+from over the network, and arJoystickDevice, which acts as a raw interface to
+the OS's joystick layer, among others. The class arOutputDevice is subclassed
+by arNetOutputDevice, which is intended to put data on the network, and
+by arCAVEOutputDevice, which interfaces with legacy CAVE applications, among
+others. Finally, there is the base class arOutputTransform. The main
+subclass here is arSimpleOutputTransform. All arInputNode
+objects contain an instance of this class and use it to transform their stream
+of input events based on input from a configuration file. A sequence of
+arOutputTransform-derived objects can be registered with the arInputNode. They
+allow a chain of transformations to be applied after the initial
+transformation based on arSimpleOutputTransform.
+
+arInputDevice/ arInputNode
+--------------------------
+
+An arInputDevice object is the basic building block of the input layer
+architecture. It is a source of event blocks in arStructuredData format
+(see the description of the language below). It has the following important
+methods:
+
+  bool activate()
+    Prepare the device to send data. Return the success or failure of this
+    operation.
+  bool deactivate()
+    Stop the device, returning success or failure.
+  void getNextEvent(arStructuredData*)
+    Waits until the next event block is available for sending and then
+    dumps that. The first event block will be the initial state of the device.
+    This should be treated the same as any other event block or, more
+    precisely, collection of events. The user provides the arStructuredData
+    storage in which to place the event block.
+  bool isQueueEmpty()
+    Checks to see if there is an event block waiting to be output.
+  int getNumberButtons()
+    Returns the number of buttons supported by this device. Required for
+    assigning output IDs to input component in the default transformation
+    layer configuration. In that case, given two connected input devices,
+    with 5 and 6 buttons respectively, we want the 5 buttons of device
+    0 to correspond to output components buttons 0-4 and the 6 buttons of
+    device 1 to correpsond to output components buttons 5-10. This needs
+    to be automatic, hence this method is required.
+  int getNumberAxes()
+    Returns the number of axes supported by this device.
+  int getNumberMatrices()
+    Returns the number of matrices supported by this device.
+
+There are two basic types of objects that will subclass arInputDevice. First
+of all, one has the raw interfaces to various physical devices. Second, one
+has arInputNode. This class is the basic building block of the input layer.
+Several arInputDevice objects can connect to it. It maintains the state of
+the connected devices internally. It can also echo these events both locally
+and over a network connection. Finally, it can remap and otherwise
+manipulate these events before moving them into its internal storage or onto
+the network.
+
+Conceptually, one should imagine a directed graph of arInputDevice objects,
+with the leaves being interfaces to raw physical objects, the interior nodes
+being arInputNode objects, and the nodes without succesors connecting
+directly via procedure calls to applications.
+
+An arInputNode has two distinct kinds of outgoing connections, local and
+remote. If the user has indicated that the local events will be used,
+we maintain a queue for that purpose, which is drained by getNextEvent(...).
+As event blocks are processed internally, they are sent out to the
+registered arOutputDevice objects via the consumeEventBlock(...) methods
+of those objects. We refer to the arOutputDevice connections as the
+remote connections. There is only one local connection and it is used to
+provide an interface to user programs. This is the sole way out of the
+input layer. Internally to the input layer, we pass event blocks,
+possibly containing multiple events. To make things easier for the application
+
+programmer, we make sure that the event blocks returned from the local
+connection contain only a single event.
+
+  void addInputDevice(arInputDevice*)
+    Adds the arInputDevice parameter object to the arInputNode's event
+    input loop with the next available ID. We start with ID 0, with the
+    next added device having ID 1, and so on. We use the ID in the
+    to determine how the arInputDevice parameter object's events map to
+    events internal to the arInputNode. Upon arInputNode::activate(),
+    we call all the activate() methods of the attached output and input
+    devices.
+  bool removeDevice(int)
+    Find the device with the given ID, call it's deactivate() method, and
+    remove it from the input loop. Return the value of the deactivate()
+    method or false if there is no such device. Note that we can remove a
+    device while the input loop is running. In this case, we just keep the
+    input component values corresponding to the device constant
+    forever after. Subsequent device adds *do not* reuse this ID.
+  void addOutputDevice(arOutputDevice*)
+    Add an output device. We can add network output by adding an
+    arNetOutputDevice.
+  void addOutputTransform(arOutputTransform*)
+    Add an output transform to the chain. The first output transform added is
+    the first to transform the data after the arSimpleOutputTransform object,
+    then the second added, etc.
+void activateLocalQueue()
+    We will not always be using the local event queue. This method tells
+    the arInputNode object that we will be using it and that it needs to log
+    input event blocks here. The first event block will be the result of
+    activate() event of this object. Note we do not queue event blocks on the
+    local queue unless this method has been called.
+  void getNextEvent(arStructuredData*)
+    Get the next event off the local event queue, blocking if none is present.
+    Note that, in order to make the application programmer's life easier,
+    will make sure that only single events are passed here, not multi-event
+    blocks. The internal queue may contain multi-event blocks. In this case,
+    we strip the first event off the block and pass that.The user provides
+    arStructuredData storage in which to place the event.
+  bool isQueueEmpty()
+    Check to see if there are any events on the local queue.
+  int getButton(int)
+    Returns the stored value for the button with this ID.
+  float getAxis(int)
+    Returns the stored value for the axis with this ID.
+  arMatrix4 getMatrix(int)
+    Returns the stored value for the matrix with this ID. Note that it is
+    *very* important that locks be used to prevent a corrupted value from
+    being returned. Reading the matrix value should be atomic with respect
+    to any internal altering of the storage.
+
+The arInputNode framework is very flexible. Let's consider a few ways to use
+it. We can connect 3 different devices XXX, YYY, and ZZZ (all
+physically connected to the same box) to a given arInputNode, which then
+relays the aggregate data directly to a user program via an API call. If we
+wanted instead to send this data out on the network, we could add an
+arNetOutputDevice to the arInputNode. Or supposing that the event data looked
+like CAVE device data, we could add an arCAVEOutputDevice to the arInputNode
+to write the data in the appropriate format into shared memery for reading by
+a legacy CAVE application. Similarly, suppose instead of local device XXX
+we wanted to connect to a device somewhere out there on the network. In this
+case, one would connect an arNetInputDevice instead of the input device object
+corresponding to device XXX.
+
+For the sake of simplicity, adding input devices can only occur before the
+activate() method of the arInputNode has been called. However, input devices
+can be removed at any time. Furthermore, output devices and output transforms
+can be added at any time. Furthermore, one should be able to add a new remote
+connection simultaneously with any of these operations. arBarrierServer and
+arGraphicsServer provide examples of how to deal with these problems.
+
+Internally the arInputNode input loop is fairly simple. A seperate thread is
+spawned for each connected input device. Each thread calls the getNextEvent()
+method of its arInputDevice repeatedly. As it gets an event block, it runs it
+through the translation filter and puts the resulting event(s) on
+the appropriate event queues (local, remote, or both).
+
+Note how using arInputNode differs from using the previous incarnation of the
+syzygy input device infrastructure. Previously, callbacks on button events
+were used, while the user polled the internal axis values. While polling will
+still work, button callbacks are replaced by the getNextEvent(...) generic
+call. The user can then employ a few simple functions to manipulate the event
+and determine what the input values were.
+
+int ar_numberEvents(arStructuredData*)
+  Get the number of events coded in this event block.
+void ar_deleteFirstEvent(arStructuredData*)
+  Removes the first event from the event block.
+int ar_getType(arStructuredData*)
+  Returns the type of the first event in the event block.
+int ar_getButon(arStructuredData*)
+  Returns the button value if the first event is a button and 0 otherwise.
+float ar_getAxis(arStructuredData*)
+  Returns the axis value if the first event is an axis and 0 otherwise.
+arMatrix4 ar_getMatrix(arStructuredData*)
+  Returns the matrix value if the first event is a matrix and the identity
+  matrix otherwise.
+
+arOutputDevice
+--------------
+
+We briefly describe the abstract base class arOutputDevice. Note that this is
+a simpler class than arInputDevice. It does not emit events, nor does it
+maintain internal state. Note that an arOutputDevice may maintain an internal
+queue of events before dispatching them for reasons of efficiency.
+
+  bool activate()
+    Prepare the device for operation. Return the success or failure.
+  bool deactivate()
+    Stop the device, returning success or failure.
+  void consumeEventBlock(arStructuredData*)
+    We perform whatever operations are appropriate, given the event block that
+    has been passed in. Do not alter the contents of the arStructuredData
+    record.
+
+he Network Connection Devices
+------------------------------
+
+arNetOutputDevice subclasses arOutputDevice and simply relays event blocks
+onto the network. It has the following additional methods:
+
+  void setInterface(string)
+    The IP address of the interface to which we will attempt to bind.
+  void setPort(int)
+    The port to which we will attempt to bind.
+
+The call to the activate() method causes us to begin listening at the
+set interface/port. We accept connections as they occur, mirroring each
+consumed event block onto each connection.
+
+arNetInputDevice subclasses arInputDevice. It also uses includes the
+setInterface(...) and setPort(...) methods as above. When it's activate()
+method is called, it continually tries to make a connection to the server
+running at the specified interface/port. When the connection is broken, it goe
+s
+back to trying to establish a connection.
+
+Note that a direction for further investigation is to determine how we could
+go through phleet as a connection broker instead of hard-coding IP/port
+addresses. This is actually important!
+
+Description of the Input Layer Language
+---------------------------------------
+
+There are three basic types of input: buttons, axes, and matrices. Buttons
+are constrained to have the value 0 or 1 and can easily represent keystrokes,
+mouse button clicks, or joystick buttons. Axes take a single float value.
+And matrices take a 4x4 float array.
+
+The input layer language consists of only one record, which records a sequence
+of events. One field of this record contains integers encoding the event
+types of the sequence (button, axis, matrix). Other fields contain the
+values associated with each event. The button field contains the button values
+,
+as integers, the axis field containing a float sequence corresponding to the
+axis values, and the matrix field containing a packed sequence of blocks
+of 16 floats corresponding to the matrix values.
+
+A sample record might look something like this:
+
+TYPE: JOYSTICK BUTTON JOYSTICK BUTTON MATRIX
+BUTTON: 0 1
+  Corresponding to events 2 & 4
+JOYSTICK: 20000 -10000
+  Corresponding to events 1 & 3
+MATRIX: [16 floats]
+  Corresonding to event 5
+
+Event Transformation Plug-Ins
+-----------------------------
+
+The simple abstract base class arOutputTransform is the basis for all
+event transformation. It has only one method.
+
+void transformEventBlock(arStructuredData* eventBlock)
+  This event takes a filled event block in arStructuredData format and
+  transforms it in place (i.e. storing the new stuff in the same storage
+  as defined by the passed arStructuredData object).
+
+Note that every arInputNode has an internal arSimpleOutputTransform object.
+This object tries to read a config file during the object's activation method.
+Thereafter, it modifies the stream of input events in accordance with the
+commands in that config file.
+
+bool readConfigFile(string location, string filename)
+  The parameter "location" gives a phleet address (/computer/group/parameter)
+  or (group/parameter) of a file search path. The object attempts to find
+  and open "filename" using this path. Some of this functionality could be
+  split out into a utility function! This is, after all, exactly what
+  texture path and exec path searching do.
+
+Description of Transformation Layer
+-----------------------------------
+
+There are two components to the transformation layer. First of all, every
+arInputNode supports an arSimpleTransformObject which modifies the input
+event stream based on the contents of a configuration file. Furthermore,
+one can add an additional arTransformObject to further transform the
+input stream. One would, for instance, need a general arTransformObject to
+deal with very precise calibration of a magnetically tracked space. In
+such a case, the calibration is far too complex and arbitrary to define in
+a standard way.
+
+  1. Specify cut-off values. For instance, one might specify that the value
+range for axis 1 is [-32000,32000].
+  2. Compute the transformed value of an axis or a button from other axes or
+     buttons, using simple arithmethic.
+  3. Perform simple matrix arithmetic (such as might be necessary for simple
+     calibration of a magnetic sensor, such as a Spacepad used in a situation
+     of limited movement).
+
+Here is a description of the way data moves through the transformation layer.
+We simplify a little bit. Since the basic unit of communication through the
+input layer is the event block instead of a single event, one needs to realize
+that, for each event block received, we go through a loop processing
+individual events in the block, until all have been processed.
+
+  1. An event is received. Each event has a default destination. For instance,
+     if there are two devices connected, one with 5 buttons and the other
+     with 6 buttons, the 2nd button of the 2 device defaults to output
+     component button 5+1 = 6. The code checks to see if any Map rule
+     (see below) exists with this target destination. If not, pass the event
+     unaltered to step 2. Otherwise, find the Map rules that depend on
+     this value and use them to generate an altered stream of events
+     and pass them to step 2. Note that if N Map rules depend on the event,
+     N events will be generated.
+  2. If an additional arTransformObject has been specified, run the events
+     through this to get the the transformed events. Use these to alter the
+     internal storage of the arInputNode and send them on to their
+     destinations.
+
+Note that the transformation layer can create a sequence of events from one
+input event. This is important!
+
+The configuration of arSimpleOutputTransform is actually fairly complicated
+and we use a small language to make it work.
+
+First, the input component identifier. The syntax is as below:
+
+  (1 B2)
+  The first number is the device ID. The next string is a letter (B,A,M)
+  indicating whether the component is a button, an axis, or a matrix, followed
+  by the component's ID.
+  (B2)
+  If the input device ID is omitted, we assume it is 0. This simplifies the
+  commmon case when there is only one connected input device.
+
+Note that the output component identifier is much simpler. We just use the
+2 character component code, like A3.
+
+Furthermore, it needs to be possible to get configuration info from the phleet
+parameter space. The notation [XXX] accesses the parameter stored with key
+XXX and uses its value in the rule calculation. The parameter string has the
+following format: /computer/group/name or group/name (where "computer" is
+understood to be the machine on which the code is executing). Where a float
+value is required, we parse the returned parameter up to the first '/' and
+determine the float conversion of that string. Where a matrix value is
+required, we attempt to parse the returned parameter as a sequence of 16 float
+s
+delimited by '/' characters.
+
+We can use the phleet parameter space to store offset matrices for spacepad
+calibration, for instance.
+
+Next, we list the commands.
+
+Range A3 (-32000 32000)
+  Indicates that ouput component axis 3should have its output truncated at
+  -32000 and 32000.
+
+Map A0 (* 10 (+ (0 B1) (1 A3)))
+  This indicates that the value of output component axis 0 should be determine
+d
+  by adding input component button 1 of device 0 and input component axis 3
+  of device 1, multiplying the result by 10.
+
+The allowed operators are *, +, and !. The first two take two arguments and
+the third takes a single argument. ! is the inverse operator, returning the
+negative of a float and the inverse of a matrix.
+
+Here are some other examples of map. Here we cover how to handle some awkward
+cases, like mapping to a button or using values from the phleet parameter
+space. We also mention the possible typing errors. Float values cannot be adde
+d
+to matrices, matrices cannot be assigned to floats, and floats cannot be
+assigned to matrices.
+
+Map B1 (1 A2)
+  Maps input component axis 2 of device 0 to output component button 1. The
+  resulting value is 0 if < 1 and 1 otherwise. Note that we do *not* round.
+Map M0 (* [SZG_TRACKER/offset] (0 M0))
+  Premultiplies input component (0 M0) by the matrix from the parsed parameter
+  and routes it to output component matrix 0. This is similar to the way
+  spacepad calibration gets handled.
+Map A3 (* [SZG_JOYSTICK/scale] (+ 200 (1 A2))
+  Should be fairly straightforward to extrapolate the meaning.
+Map M1 (1 A3)
+  Error. We are mixing types.
+Map A3 (+ (0 A1) (M3))
+  Error. We are Mixing types.
+Map M2 (* 2 (+ (M2) (M0)))
+  OK, but bizarre.
+
+Critical To-Do
+--------------
+
+1. Implement the above extensible framework.
+2. Implement local device drivers as subclasses of arInputDevice.
+3. Construct the various test cases, some of which are vital to future demos.
+4. Write documentation about (1) and (2).
+
+Local Devices
+-------------
+
+Here is a list of devices used in the lab we need to have working:
+
+  a. Keyboard/Mouse driver, both on Windows and X. This will be useful
+     for a virtual KVM.
+  b. arInputDevice corresponding to Spacepad on both Windows and Linux
+     (something that connects to the raw hardware). A big step in purging
+     vrco software
+  c. arOutputAdapter that takes MotionStar data and puts it into shared
+     memory, compatibly with the CAVElib
+  d. arInputDevice corresponding to MotionStar (gets data over net connection)
+  e. Joystick on Windows and Linux
+  f. GPS, tilt sensor, compass devices.
+
+Test Cases
+----------
+
+Note that, in general, one of the trickier features of this design is that
+a single input event can generate multiple events further down the chain. Make
+sure that this works. Also make sure that buffering blocks of input events
+works.
+
+a. Alter joystick data. Permute, scale, and generally transform axes. Change
+   an axis to a button and vice-versa.
+b. Build a joystick from a keyboard and mouse
+c. Manipulate an object in 6DOF fashion using spacepad data gathered using
+   syzygy and sent over a network.
+d. Plug other input devices into (c) to simulate the 6DOF sensors. This is
+   done using the extensible framework outlined above.
+e. Combine devices connected to several different machines into a single
+   very large input device. A joystick with 20 axes maybe? This will be
+   useful in scenarios like (d).
+f. Simplify the augmented reality input device set-up by tieing them together
+   as in the above.
+g. Use a pure syzygy interface to animate an avatar in the Cube using
+   MotionStar inputs from a full sensor backpack.
+h. Duplicate a conventional CAVE tracking interface using the new Syzygy
+   infrastructure.
+
+Broader Issues Raised by This Design
+------------------------------------
+
+1. How are config files/ textures/ sound files/ etc. located in a uniform way?
+2. How are phleet parameters determined? i.e. what is the "address" of a phlee
+t
+   parameter?
+3. How do we specifiy a uniform connection method for services that abstracts
+   away protocol specifics? This is coming in the network layer redesign.
+4. What is a standard way to load various pluggable objects? Like different
+   subclasses of arOutputDevice or arOutputTransform?
+
+

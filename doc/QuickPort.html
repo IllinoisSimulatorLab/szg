@@ -1,0 +1,88 @@
+<html>
+<head>
+<title>Syzygy Quick Start for porting an app</title>
+</head>
+<body bgcolor="#ffffff">
+<a href="index.html">Documentation Index</a>
+<p><font size=+2>Syzygy Quick Start for porting an app</font>
+
+<p>Many GLUT programs can be easily turned into Master/Slave
+applications. A first step is creating a build environment that
+is compatible with Syzygy. The final section of the
+<a href="Programming.html">programming guide</a> addresses this
+issue.
+
+<p>In the source file containing main(),
+<ul>
+<li>
+  <pre>
+  #include &lt;szg/arMasterSlaveFramework.h>
+  arMasterSlaveFramework* framework = NULL; // global so callbacks can use this
+  </pre>
+</ul>
+
+<p>In main(),
+<ul>
+<li>
+  <pre>
+  framework = new arMasterSlaveFramework;
+  if (!framework->init(argc, argv))
+    return 1;
+  framework->setXXXCallback(); ...
+  </pre>
+
+<li>
+  Move any opengl state initializations into the init() callback
+  demanded by the framework. Other application specific initialization
+  should go here as well. The init() is called in the body
+  of the framework's start() method (which does not return).
+<li>
+  Sometimes computations and data exchanges need to occur before
+  the scene is drawn. Computations whose results need to propagated from
+  master to slave should occur in the framework's preExchangeCallback(...),
+  which occurs before the data sharing exchange between master and slaves.
+  These computations might, for instance, transform input events into
+  navigational information. On the other hand, if each slave bases its
+  actions on the next input event, then work might occur in the
+  postExchangeCallback(...), which occurs after the data sharing exchange
+  between masters and slaves.
+<li>
+  You need to start the event loop in motion.
+  
+  <pre>
+  if (!framework->start()){
+    return 1;
+  }
+  // do not reach here
+  </pre>
+  
+<li>
+  If you called framework->start() from another thread,
+  at the end of main do
+  <pre>
+  while (true)
+    ar_usleep(1000000);
+  </pre>
+  so the app doesn't immediately terminate.
+</ul>
+
+<p>If your application needs to control the event loop and window creation,
+you can start as follows (which returns and does not open a window):
+
+<pre>
+  if (!framework->startWithoutGLUT()){
+    return 1;
+  }
+</pre>
+
+<p> Thereafter, you need to invoke the preDraw() method before drawing and
+the postDraw() method after drawing but before buffer swapping.
+
+<p>Anywhere in the source code,
+<ul>
+<li>
+  Don't call glutSetWindow().  Only one window.  Rewrite the user interface (ha!).
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,4 @@
+This file contains some rough interface rules for writing Syzygy classes:
+
+1. File Open: It should always be possible to specify a path in addition to
+a file name, though the path should be an optional argument.

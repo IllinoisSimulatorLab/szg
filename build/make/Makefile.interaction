@@ -1,0 +1,37 @@
+VPATH = ../../../src/interaction
+
+# DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
+# with this sometimes.
+OBJS = \
+  arInteractionSelector$(OBJ_SUFFIX) \
+  arEffector$(OBJ_SUFFIX) \
+  arInteractable$(OBJ_SUFFIX) \
+  arCallbackInteractable$(OBJ_SUFFIX) \
+  arGrabCondition$(OBJ_SUFFIX) \
+  arDragBehavior$(OBJ_SUFFIX) \
+  arDragManager$(OBJ_SUFFIX) \
+  arNavManager$(OBJ_SUFFIX) \
+  arUniqueInteractor$(OBJ_SUFFIX) \
+  arInterfaceObject$(OBJ_SUFFIX) \
+  arInteractionUtilities$(OBJ_SUFFIX)
+
+MYLIB = libarInteract.a
+
+MYLIBS = \
+  ../drivers/libarDrivers.a \
+  ../graphics/libarGraphics.a \
+  ../phleet/libarPhleet.a \
+  ../barrier/libarBarrier.a \
+  ../language/libarLanguage.a \
+  ../math/libarMath.a
+
+$(MYLIB): $(OBJS)
+	$(AR) ru $@ $^
+	$(RANLIB) $@
+
+ALL = $(MYLIB)
+
+Everything: $(ALL)
+
+
+

@@ -1,0 +1,83 @@
+VPATH = ../../../src/language
+
+# DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
+# with this sometimes.
+OBJS = \
+  arRS232Port$(OBJ_SUFFIX) \
+  arDatabaseLanguage$(OBJ_SUFFIX) \
+  arDatabaseNode$(OBJ_SUFFIX) \
+  arDatabase$(OBJ_SUFFIX) \
+  arDataPoint$(OBJ_SUFFIX) \
+  arDataClient$(OBJ_SUFFIX) \
+  arDataServer$(OBJ_SUFFIX) \
+  arDataTemplate$(OBJ_SUFFIX) \
+  arDataUtilities$(OBJ_SUFFIX) \
+  arLanguage$(OBJ_SUFFIX) \
+  arLightFloatBuffer$(OBJ_SUFFIX) \
+  arQueuedData$(OBJ_SUFFIX) \
+  arSharedLib$(OBJ_SUFFIX) \
+  arSocket$(OBJ_SUFFIX) \
+  arStructuredDataParser$(OBJ_SUFFIX) \
+  arStructuredData$(OBJ_SUFFIX) \
+  arTemplateDictionary$(OBJ_SUFFIX) \
+  arSocketTextStream$(OBJ_SUFFIX) \
+  arFileTextStream$(OBJ_SUFFIX) \
+  arXMLUtilities$(OBJ_SUFFIX) \
+  arThread$(OBJ_SUFFIX) \
+  arUDPSocket$(OBJ_SUFFIX) \
+  arSocketAddress$(OBJ_SUFFIX)
+	
+MYLIB = libarLanguage.a
+$(MYLIB): $(OBJS)
+	$(AR) ru $@ $^
+	$(RANLIB) $@
+
+# must do the precompiled header here... AND it must be the first thing
+
+ALL =   arPrecompiled$(OBJ_SUFFIX) \
+	RS232EchoTest$(EXE) \
+	RS232SendTest$(EXE) \
+	TestLanguageClient$(EXE) \
+	TestLanguage$(EXE)  \
+	TestLanguageServer$(EXE)
+
+Everything: $(ALL)
+
+# note that originally, every object in this directory was optimized to
+# the maximum level. However, now, in the interests of stability, lets
+# try only heavily optimizing the raw-information-handling objects.
+# note that the optimization scheme was as follows:
+#COMPILE_FLAGS += $(OPTIMIZE_FLAG)
+# ... and we would not have any explict object compilation rules as below
+
+arDataTemplate$(OBJ_SUFFIX): arDataTemplate.cpp
+	$(COMPILER) $(COMPILE_FLAGS) $(OPTIMIZE_FLAG) $< $(SZG_INCLUDE)
+
+arDataUtilities$(OBJ_SUFFIX): arDataUtilities.cpp
+	$(COMPILER) $(COMPILE_FLAGS) $(OPTIMIZE_FLAG) $< $(SZG_INCLUDE)
+
+arLightFloatBuffer$(OBJ_SUFFIX): arLightFloatBuffer.cpp 
+	$(COMPILER) $(COMPILE_FLAGS) $(OPTIMIZE_FLAG) $< $(SZG_INCLUDE)
+
+arQueuedData$(OBJ_SUFFIX): arQueuedData.cpp
+	$(COMPILER) $(COMPILE_FLAGS) $(OPTIMIZE_FLAG) $< $(SZG_INCLUDE)
+
+arStructuredData$(OBJ_SUFFIX): arStructuredData.cpp
+	$(COMPILER) $(COMPILE_FLAGS) $(OPTIMIZE_FLAG) $< $(SZG_INCLUDE)
+
+# must override the standard obj compilation with a precompiled header
+# specific one. note this does nothing meaningful on platforms besides windows
+arPrecompiled$(OBJ_SUFFIX): arPrecompiled.cpp
+	$(PRECOMPILED_HEADER_LINE)
+
+RS232EchoTest$(EXE): RS232EchoTest$(OBJ_SUFFIX) $(MYLIB)
+	$(DO_LINK)
+RS232SendTest$(EXE): RS232SendTest$(OBJ_SUFFIX) $(MYLIB)
+	$(DO_LINK)
+TestLanguageClient$(EXE): TestClient$(OBJ_SUFFIX) $(MYLIB)
+	$(DO_LINK)
+TestLanguage$(EXE): Test$(OBJ_SUFFIX) $(MYLIB)
+	$(DO_LINK)
+TestLanguageServer$(EXE): TestServer$(OBJ_SUFFIX) $(MYLIB)
+	$(DO_LINK)
+

@@ -1,0 +1,78 @@
+Successes of the Syzygy Scene Graph
+-----------------------------------
+
+1. Scene graphs like OpenInventor and VRML allow state inheritance to
+occur "horizontally". A state change in a child node can effect the
+drawing of its siblings and their children. In contrast, node changes in
+Syzygy only effect the node's children.
+2. The API can be relatively terse. Creating a texture node involves, I
+think, fewer lines of code than in the OpenInventor case.
+3. A small number of ways to express geometry, modeled on OpenGL vertex
+arrays. VRML, for instance, has a many different ways to specify geometry,
+which complicates implemetation.
+4. Making points arrays, triangle arrays, etc. pieces of state that can be
+inherited down the tree is a good idea. This simplifies some
+constructions.
+
+Problems with the Syzygy Scene Graph
+------------------------------------
+
+1. The model of inheriting state down the paths of the tree can lead to
+very long paths. For instance, because points array, triangles array, and
+texture array are inherited, a triangles drawable node must have 3
+ancestors.
+2. Name management. Since every node must have a unique name, it can
+become difficult to construct said names and manage them. Furthermore, the
+names tend to get very verbose very quickly.
+3. Inheriting state down tree paths has another downside: lots of long,
+non-branching chains of nodes (see complaint 1 above).
+4. Every node in Syzygy has a unique parent. This is a change from most
+scene graphs where nodes can have several parents. The purpose of doing
+this is to reuse objects, something that is somewhat possible in syzygy,
+but not as much.
+5. Multiple copies of data. If we could manipulate the underlying node
+objects directly, then there would have to be two copies of data, one
+stored in the program and managed there and one stored in the node
+objects. It would be nice to be able to manipulate the node objects
+directly instead of using the dgXXX API.
+
+Peer-to-peer Reality
+--------------------
+
+I've been thinking about a new technology, "peer-to-peer reality", which
+is built around the easy sharing and collaborative manipulation of virtual
+worlds.
+
+Each participant in a session runs a program szg-rp (rp = reality
+peer), which does:
+
+1. Displays a collection of virtual worlds.
+2. Allows you to grab a copy of a world from one of the other szg-rp's and
+display it in your szg-rp. This can either be a "dead" copy or a
+"live" copy. "Live" copies will receive future updates.
+3. Allows you to publish a copy of one of the worlds in your szg-rp to
+someone else's, either "dead" or "live".
+4. Allows you to alter any of the worlds on any of the szg-rp's.
+5. Save and reload snapshots of the virtual worlds.
+
+I want to develop this for a paper for IEEE VR2005 regardless (deadline in
+September), but it occurs to me that the REU class offers a unique
+opporotunity to do something cool. If you folks are interested, I'd like
+for you to be my co-authors on a paper:
+
+"Collaborative Prototyping of Virtual Environments Using Peer-to-Peer
+Reality"
+
+I can create szg-rp using the syzygy scene graph infrastructure without
+too much trouble. If you were interested, I could get you code that would:
+
+1. Let worlds persist in the szg-rp (which replaces szgrender) even when
+no program is connected.
+2. Allow mulitple program to connect to a single world.
+3. Allow student to share their worlds easily among one another.
+
+What I'd need from you folks to make this work would be a willingness to
+get the students to use the stuff for some period of time. And also to try
+to get them to collaborate in some way so there's a good story for the
+paper.
+

@@ -1,0 +1,279 @@
+Communications Layer Design
+---------------------------
+
+The syzygy communications layer is not completely general. It is based on
+a message-passing abstraction. The software includes an implementation of
+a message-passing protocol and is extensible, allowing new protocols fitting
+within its framework to be defined and used. One can then easily build on
+the communications medium and connection management code.
+
+The communications layer is designed to seperate three functions: connection
+management, underlying communications medium, and protocol by which two ends
+of a communications pipe communicate. For instance, we want to be able to
+use the same connection management/ protocol combinations to send
+arStructuredData records down a TCP or a UDP pipe. We also want to be
+able to use the same connection management/ communications medium 
+infrastructure to send individual arStructuredData records or buffers of
+arStructuredData records.
+
+Communications through a Single Message Pipe
+--------------------------------------------
+
+The relevant classes are arBuffer, arData, arPipe, arDataExtractor, and
+arProtocol. All of these except for arBuffer are abstract base classes.
+
+First, let's examine a very simple abstraction, arBuffer. This is a
+resizable ARchar array which keeps track of a current location.
+
+class arBuffer{
+  public:
+    arBuffer();
+    ~arBuffer();
+    int loc;
+    int size();
+    void resize(int);
+    ARchar* ptr();
+  private:
+    ARchar* ptr;
+    int     size;
+}
+  
+
+The basic unit of communication is a piece of arData. This is an abstract
+class with the following methods:
+
+  arBuffer* pack(arBuffer*): Either pack the internal information into the
+                             arBuffer and return pointer to said object or
+                             return a pointer to an internal arBuffer.
+                             This is called by arDataPoint::sendData(...).
+                             The arData subclass arStructuredDataBuffer
+                             maintains an internal arBuffer anyway, so
+                             forcing an extra memcopy by just having
+                             pack(...) would be foolish.
+  void pack(ARchar*): Pack the internal information into byte stream in native
+                      encoding
+  bool unpack(ARchar*): Unpack the byte stream (assume to be in native 
+                        encoding) into the internal information. Return the
+                        success status of the operation.
+  bool parse(ARchar*): Set internal pointers from the byte stream. Do not
+                       do memory copies. Return the success status of the
+                       operation.
+  int size(): Return the size in bytes of the packed representation
+  bool convert(ARchar*): In place, swap the endian-ness of the packed
+                         representation.
+  int getID(): We start with the assumption that pieces of arData are grouped
+               together to form a language. To differtiate between them we
+               need some mechanism of assigning IDs to different pieces.
+
+Subclasses of arData are arStructuredData, arStructuredDataBuffer,
+arTemplateDictionary, and arFormatPacket. The first is the basic form of
+data representation provided by syzygy. The class arStructuredDataBuffer
+provides a way to efficiently ship sequences of arStructuredData records
+under our framework. The class arTemplateDictionary provides the semantic
+information needed to decode arStructuredData records from a given byte stream.
+Finally, the arFormatPacket allows the arPipe to determine what sort of
+data conversion is necessary on this communications link (like little-endian
+to big-endian, for instance... though more complex transformations might be
+needed, like byte-alignment adjustments).
+
+The next basic abstract class is an arPipe. This allows full duplex 
+communication of arData records point-to-point. It is connection-based but
+also allows unreliable communications. Sometimes we just want to add
+connection-sensing ability to a UDP channel (plus being able to reliably
+transmit control information). arPipe has the following important methods:
+
+  bool connected(): Returns whether or not we are connected to someone,
+                    passively.
+  bool probe(): Actively probes the link and returns whether or not we are
+                connected.
+  void closeConnection(): Closes the connection
+  bool sendData(arData*): Encodes and transmits the arData object down the
+                          pipe. Return the success/ failure of this operation.
+  arData* getData(): Retrieve object from the pipe. Return NULL on failure.
+
+  void recycleData(arData*): Returns the arData object to the internal
+                        arDataExtractor so that it can be used in the future
+                        to get new data
+
+The next block of methods is protected. These are used internally by the
+arPipe as it sets up its connection. Note that all arPipe objects provide a 
+reliable communications channel. This is necessary to allow the two 
+endpoints to exchange control information. 
+
+  bool sendDataReliable(arData*): Encode and transmit the arData object down
+                                  the reliable channel, which may or may not
+                                  be different from the normal send channel.
+  arData* getDataReliable(): Similar to above.
+  bool sendDataRawReliable(ARchar*,int): 
+  bool getDataRawReliable(ARchar*,int):
+
+An arPipe also holds a pointer to an arDataExtractor object. This object is 
+initialized by the arProtocol method initDataExtractor. In the case
+of the arSDProtocol (see below), an arTemplateDictionary is used in the
+intialization (arTemplateDictionary defines the language of arStructuredData
+records used).
+
+Another important abstract base class is arProtocol.
+
+  acceptConnection()
+  makeConnection(string):
+  void onDisconnect()
+  int initialByteSend()
+  arDataExtractor* initDataExtractor(arDataExtractionMethod): 
+    This method creates a new arDataExtractor object. It is called by arPipe
+    immediately after both acceptConnection() and makeConnection(...). This
+    object provides the means by which the decoded byte stream is converted
+    to an arData object. It also manages the arData objects. The input
+    parameter is one of AR_PARSE_DATA or AR_UNPACK_DATA. This controls whether 
+    the arDataExtractor object will parse the decoded byte stream (set pointers
+    in the arData object) or copy memory chunks in the decoded byte stream
+    into internal storage in the arData object.
+
+Let's briefly consider the arDataExtractor base class.
+
+  setExtractionMethod(arDataExtractionMethod)
+  arData* extractData(ARchar*)
+  arData* produceData(int): Produces a new arData record of a certain type
+                            based on an ID. For instance, in a language 
+                            with two records X (ID 0) and Y (ID 1),
+                            produceData(0) would return a record of ID 0.
+  recycleData(arData*): returns the arData object to the internal queues
+                        for use in subsequent extractData calls.
+  
+
+Note that arDataExtractor objects can also be used in the send process.
+Here, one needs an arData object to provide a bucket for various parameters.
+An arDataExtractor object can provide an convenient source. 
+(thinking about the produceData method here). arDataExtractor objects can
+also be used in consuming packed buffers of arData objects (for instance,
+suppose we want to turn an arStructuredDataBuffer into individual
+arStructuredData records).
+
+The argument to makeConnection is interesting. Since we want various
+communications methods to plug-in to our abstract framework and these use
+different addressing schemes, the parameter is a coded form of an address.
+Some examples follow:
+
+  TCP:192.168.0.2/4505 (attempt to connect to TCP socket at 192.168.0.2:4505)
+  UDP:192.168.0.2/4505/3200/3201 (attempt to connect to TCP socket
+                                  at 192.168.0.2:4505 that provides the
+                                  reliable communications link. Bind a UDP
+                                  socket on the remote end at port 3200
+                                  and a UDP socket on this end at 3201...
+                                  these are the sockets that will send
+                                  and receive datagrams)
+  PHLEET:<name>/<connection type>/<connnection protocol> (contact the
+                                  phleet connection server and attempt to
+                                  grab a posted connection of the given type)
+
+Now, let's examine in detail the way in which arStructuredData objects
+(and similarly arStructuredDataBuffer objects) would be sent across an arPipe.
+The protocol object for sending arStructuredData objects is arSDProtocol. The
+protocol object for sending arStructuredDataBuffer objects would be 
+arSDBProtocol. Note that these protocol objects require arTemplateDictionary
+objects to determine their language of communication.
+
+  1. There are two arPipe objects, one on the acceptor side and one
+     on the connector side. Each is initialized with an object subclassing
+     arProtocol, in this case arSDProtocol.
+  2. On acceptor side, arPipe invokes acceptConnection method. On connector
+     side, arPipe invokes makeConnection method. The initialByteSend method
+     of the arProtocol object determines the size of the initial 
+     "conditioning packet" sent back and forth between the sides.
+  4. ** This remark is out of place. ** One problem with communicating
+     message data between two ends of a channel is determining the size 
+     of messages. To this end, pipes can be in two modes. The first mode is
+     fixed message size. In this case, message packets are expected to be
+     some particular length. Note that this is the state in which the pipes
+     begin under the arSDProtocol. We know the size of the arFormatPacket
+     at compile-time. Another possibility is including the size of the
+     message as the first 4 bytes of the message itself. Note that we can't
+     do this for the "conditioning" message down the pipe since we need
+     to be able to decode... and we haven't determined the relative
+     endian-ness of the two ends yet!
+  5. From inside the acceptConnection method, the arPipe sends an 
+     arFormatPacket down its reliable communications channel. This format
+     packet is used to detect any differences in the endian-ness between
+     the communications endpoints. From inside the makeConnection method,
+     the connector-side arPipe receives the arFormatPacket and determines
+     the appropriate translation setting. This is stored in the connector-side
+     arPipe. Note that each arPipe object starts out with a default 
+     translation setting of "no translation". This procedure is then repeated
+     with the roles of the connector and acceptor arPipe objects reversed.
+     Remember that the connection in an arPipe is full duplex.
+  6. Still inside the acceptConnection method of arSDProtocol. We send
+     the arTemplateDictionary from the acceptor side down the reliable
+     channel of the arPipe. This is received and decoded (using the decoding
+     information determined in step 3) on the connector side in the
+     arSDProtocol. Now, the semantics of the message stream to be passed
+     back and forth between the two sides of the arPipe has been 
+     established.
+  7. Finally, in both the acceptConnection method of the acceptor side arPipe
+     and the makeConnection method of the connector side arPipe, the
+     arProtocol::initDataExtractor(...) method is called to create the
+     arDataExtractor object needed to convert received decoded byte buffers
+     into arData objects.
+  8. Now, suppose on side wants to send a piece of arData. That side invokes
+     the sendData(arData*) method. Internally, the sendData method passes the
+     arPipe's send buffer (an arBuffer object) to the pack(arBuffer*) method
+     of the arData object. The byte stream representation of the 
+     arStructuredData object (in native format) gets packed into the
+     passed arBuffer, growing the buffer is grown if necessary. We
+     determine the size of the packed data using arData::size() and send a
+     stream of bytes consisting of the size followed by the byte stream
+     representation of the arData object (remembering to use writev instead
+     of two write calls). 
+  9. The receiving side invokes the arData* getData() method of arPipe. 
+     Depending upon the state of the pipe, we either read a fixed amount of
+     data or read 4 bytes containing the length and then the rest into
+     our local read arBuffer object. Next, the arData::convert() method is
+     invoked, if necessary, on the buffer to change the byte stream into 
+     native format.
+  10. Still inside the getData method, we determine if any data format
+      conversion is necessary. This was set by the pipe at connection time.
+      Next, we go ahead and use arDataExtractor::extractData(ARchar*) to
+      get an arData object with the right internal format. 
+      ***************** conceptual problems here!!!!! **********************
+
+
+One should clarify about the translation setting. So far, we are only
+supporting "NONE" or "ENDIAN". Note that some data types, like double on MIPS,
+require particular byte alignments. As double types are supported, it will
+become necessary to include more complicated translations. Hmmm... is the
+design bogus here? Can the format packet really detect alignment restrictions?
+
+arDataPoint
+-----------
+
+The arDataPoint object is used to manage arPipe objects. It can be used in
+a variety of ways. For instance, as a router between N sources and N sinks,
+as a multiplexer, a demultiplexer, or as an amplifier (taking the input of 
+one and relay it to N others). 
+
+One of the difficulties we face with arDataPoint is trying to design an
+object that can deal transparently with broadcasts. This is actually an
+important operation. Consider 2 objects in syzygy that function as amplifiers,
+arBarrierServer and arGraphicsServer. In each case, we'd like to be able
+to substitute UDP-based broadcast transmission (in the case of 
+arGraphicsServer over a reliable broadcast channel and in the case of
+arBarrierServer an unreliable one) for TCP-based sequential sends and
+vice-versa. An arBarrierServer should be able to synchronize hosts on different
+LANs using TCP and large numbers of hosts on a single LAN using broadcast.
+
+arStructuredData/ arDataTemplate/ arTemplateDictionary redesign
+---------------------------------------------------------------
+
+1. Eliminate type checking as that makes statements unnecessarily verbose.
+2. Include support for singleton data fields and appropriately streamlined
+   methods for accessing them.
+3. Streamline the byte encoding of arStructuredData so that it no longer
+   includes semantic information (like number of fields or types of each field)
+   or info that is easily derived from the byte stream plus the semantics
+   (like record size). This is important. Right now, a record containing a 
+   single float would be encoded in 24 bytes. Such a record only needs to
+   take up 8 bytes, 4 bytes for the ID and 4 bytes for the data.
+4. Change the arTemplateDictionary::add function so that it returns the
+   ID of the newly added template (now it returns bool indicating success
+   or failure). This will help eliminate one of the remaining sources of
+   verbosity in the dictionary set-up code.
+   

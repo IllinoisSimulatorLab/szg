@@ -1,0 +1,48 @@
+VPATH = ../../../src/demo
+
+# DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
+# with this sometimes.
+OBJS = \
+  arInteractableThing$(OBJ_SUFFIX) \
+  arFrameworkEventFilter$(OBJ_SUFFIX) \
+  arSZGAppFramework$(OBJ_SUFFIX) \
+  arMasterSlaveFramework$(OBJ_SUFFIX) \
+  arDistSceneGraphFramework$(OBJ_SUFFIX) \
+  arRoutableTemplate$(OBJ_SUFFIX) \
+  arMasterSlaveDataRouter$(OBJ_SUFFIX) \
+  arHeadWandSimulator$(OBJ_SUFFIX) \
+  arFramerateGraph$(OBJ_SUFFIX) \
+  arAppLauncher$(OBJ_SUFFIX)
+
+MYLIB = libarFramework.a
+$(MYLIB): $(OBJS)
+	$(AR) ru $@ $^
+	$(RANLIB) $@
+MYLIBS = \
+  ../interaction/libarInteract.a \
+  ../sound/libarSound.a \
+  ../graphics/libarGraphics.a \
+  ../math/libarMath.a \
+  ../drivers/libarDrivers.a \
+  ../barrier/libarBarrier.a \
+  ../phleet/libarPhleet.a \
+  ../language/libarLanguage.a
+
+ifeq ($(strip $(MACHINE)),WIN32)
+LINK_FLAGS += /stack:4000000
+endif
+
+ALL = wandsimserver$(EXE) dmsg$(EXE) MasterSlaveSkeleton$(EXE)
+
+Everything: $(ALL)
+
+wandsimserver$(EXE): wandsimserver$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK_GRAPHICS)
+
+dmsg$(EXE): dmsg$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK)
+
+MasterSlaveSkeleton$(EXE): MasterSlaveSkeleton$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+	$(DO_LINK_GRAPHICS)
+
+

@@ -1,0 +1,9 @@
+VPATH = ../../../../src/demo/avn
+
+ALL = avn$(EXE)
+Everything: $(ALL)
+
+PRECOMPILED_HEADER_LOCATION := $(PRECOMPILED_HEADER_LOCATION_DEMO)
+
+avn$(EXE): optiverse$(OBJ_SUFFIX) $(SZG_LIBS)
+	$(DO_LINK_GRAPHICS)

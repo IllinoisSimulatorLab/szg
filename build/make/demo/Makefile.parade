@@ -1,0 +1,12 @@
+VPATH = ../../../../src/demo/parade
+
+OBJSRAW = BlobbyMan BlobbyNode ColIcosahedronMesh Commando
+OBJS = $(OBJSRAW:%=%$(OBJ_SUFFIX))
+
+ALL = parade$(EXE)
+Everything: $(ALL)
+
+PRECOMPILED_HEADER_LOCATION := $(PRECOMPILED_HEADER_LOCATION_DEMO)
+
+parade$(EXE): parade$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBS)
+	$(DO_LINK_GRAPHICS)

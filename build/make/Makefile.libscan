@@ -1,0 +1,289 @@
+# This Makefile fragment encapsulates library scanning (where we decide
+# which of the optional libraries is present). Note that neither darwin nor
+# sgi platforms support any of the optional features
+# The wildcard operator resolves to the empty string, if the file is missing.
+
+ifeq ($(strip $(MACHINE)), LINUX)
+  INC_FMOD := $(wildcard $(SZGEXTERNAL)/include/fmod-3.7)
+  LIB_FMOD := $(wildcard $(SZGEXTERNAL)/lib/fmod-3.7/linux/libfmod-3.70.so)
+
+  INC_JPEG := $(wildcard $(SZGEXTERNAL)/include/jpeg/linux)
+  LIB_JPEG := $(wildcard $(SZGEXTERNAL)/lib/jpeg/linux/libjpeg.a)
+
+  INC_ZLIB := $(wildcard $(SZGEXTERNAL)/include/zlib/linux)
+  LIB_ZLIB := $(wildcard $(SZGEXTERNAL)/lib/zlib/linux/libz.a)
+
+  INC_WIN_BIRD := 
+  LIB_WIN_BIRD := 
+
+  INC_EVART :=
+  LIB_EVART :=
+
+  INC_3DS := $(wildcard $(SZGEXTERNAL)/include/lib3ds)
+  LIB_3DS := $(wildcard $(SZGEXTERNAL)/lib/lib3ds/linux/lib3ds.a)
+
+  INCCG := $(wildcard $(SZGEXTERNAL)/include/Cg)
+  LIBCG := $(wildcard $(SZGEXTERNAL)/lib/Cg/linux/libCg.so)
+  LIBCGGL := $(wildcard $(SZGEXTERNAL)/lib/Cg/linux/libCgGL.so)
+  
+  INC_VRPN := $(wildcard $(SZGEXTERNAL)/include/vrpn)
+  LIB_VRPN := $(wildcard $(SZGEXTERNAL)/lib/vrpn/linux/libvrpn.a)
+
+  ifneq ($(strip $(INC_FMOD)),)
+  ifneq ($(strip $(LIB_FMOD)),)
+    # FMOD include file AND library exist.
+    COMPILE_FLAGS += -DEnableSound
+    COMPILE_FLAGS_DEBUG += -DEnableSound
+    SZG_INCLUDE += -I$(INC_FMOD)
+    LIBS := $(LIB_FMOD) $(LIBS) 
+  endif
+  endif
+
+  ifneq ($(strip $(INC_JPEG)),)
+  ifneq ($(strip $(LIB_JPEG)),)
+    # libjpeg and headers exist
+    COMPILE_FLAGS += -DEnableJPEG
+    COMPILE_FLAGS_DEBUG += -DEnableJPEG
+    SZG_INCLUDE += -I$(INC_JPEG)
+    LIBS := $(LIB_JPEG) $(LIBS) 
+  endif
+  endif
+
+  ifneq  ($(strip $(INC_ZLIB)),)
+  ifneq  ($(strip $(LIB_ZLIB)),) 
+    # library and headers exist
+    COMPILE_FLAGS += -DEnableZlib
+    COMPILE_FLAGS_DEBUG += -DEnableZlib
+    SZG_INCLUDE += -I$(INC_ZLIB)
+    LIBS := $(LIB_ZLIB) $(LIBS)
+  endif
+  endif
+
+  ifneq ($(strip $(INC_3DS)),)
+  ifneq ($(strip $(LIB_3DS)),)
+    # lib3DS include file AND library exist.
+    COMPILE_FLAGS += -DEnable3DS
+    COMPILE_FLAGS_DEBUG += -DEnable3DS
+    SZG_INCLUDE += -I$(INC_3DS)
+    LIBS := $(LIB_3DS) $(LIBS)
+  endif
+  endif
+  
+  ifneq ($(strip $(INCCG)),)
+  ifneq ($(strip $(LIBCG)),)
+  ifneq ($(strip $(LIBCGGL)),)
+    # libCg include file AND library exist.
+    COMPILE_FLAGS += -DUSE_CG
+    COMPILE_FLAGS_DEBUG += -DUSE_CG
+    SZG_INCLUDE += -I$(INCCG)
+    LIBS := $(LIBCG) $(LIBCGGL) $(LIBS)
+  endif
+  endif
+  endif
+
+  ifneq ($(strip $(INC_VRPN)),)
+  ifneq ($(strip $(LIB_VRPN)),)
+    # libvrpn include file AND library exist.
+    COMPILE_FLAGS += -DEnable_VRPN
+    COMPILE_FLAGS_DEBUG += -DEnable_VRPN
+    SZG_INCLUDE += -I$(INC_VRPN)
+    LIBS := $(LIB_VRPN) $(LIBS)
+    GENERAL_LIBS := $(LIB_VRPN) $(GENERAL_LIBS)
+  endif
+  endif
+
+endif
+
+ifeq ($(strip $(MACHINE)), WIN32)
+  INC_FMOD := $(wildcard $(SZGEXTERNAL)/include/fmod-3.7)
+  LIB_FMOD := $(wildcard $(SZGEXTERNAL)/lib/fmod-3.7/win32/fmodvc.lib)
+
+  INC_JPEG := $(wildcard $(SZGEXTERNAL)/include/jpeg/win32)
+  LIB_JPEG := $(wildcard $(SZGEXTERNAL)/lib/jpeg/win32/libjpeg.lib)
+
+  INC_ZLIB := $(wildcard $(SZGEXTERNAL)/include/zlib/win32)
+  LIB_ZLIB := $(wildcard $(SZGEXTERNAL)/lib/zlib/win32/zlib.lib)
+
+  INC_WIN_BIRD := $(wildcard $(SZGEXTERNAL)/include/ascension)
+  LIB_WIN_BIRD := $(wildcard $(SZGEXTERNAL)/lib/ascension/win32/Bird.lib)
+
+  INC_EVART := $(wildcard $(SZGEXTERNAL)/include/evart)
+  LIB_EVART := $(wildcard $(SZGEXTERNAL)/lib/evart/win32/macrtcom.lib)
+
+  INC_3DS := $(wildcard $(SZGEXTERNAL)/include/lib3ds)
+  LIB_3DS := $(wildcard $(SZGEXTERNAL)/lib/lib3ds/win32/lib3ds.lib)
+
+  INCCG := $(wildcard $(SZGEXTERNAL)/include/Cg)
+  LIBCG := $(wildcard $(SZGEXTERNAL)/lib/Cg/win32/libCg.lib)
+  LIBCGGL := $(wildcard $(SZGEXTERNAL)/lib/Cg/win32/libCgGL.lib)
+
+  INC_SAPI := $(wildcard $(SZGEXTERNAL)/include/sapi-5.1)
+  LIB_SAPI := $(wildcard $(SZGEXTERNAL)/lib/sapi-5.1/sapi.lib)
+  LINK_LIBS_SAPI := ole32.lib
+	
+  ifneq ($(strip $(INC_FMOD)),)
+  ifneq ($(strip $(LIB_FMOD)),)
+    # FMOD include file AND library exist.
+    COMPILE_FLAGS += -D "EnableSound"
+    COMPILE_FLAGS_DEBUG += -D "EnableSound"
+    SZG_INCLUDE += -I$(INC_FMOD)
+    LINK_LIBS := $(LIB_FMOD) $(LINK_LIBS) 
+  endif
+  endif
+
+  ifneq ($(strip $(INC_JPEG)),)
+  ifneq ($(strip $(LIB_JPEG)),)
+    # libjpeg and headers exist
+    COMPILE_FLAGS += -D "EnableJPEG"
+    COMPILE_FLAGS_DEBUG += -D "EnableJPEG"
+    SZG_INCLUDE += -I$(INC_JPEG)
+    LINK_LIBS := $(LIB_JPEG) $(LINK_LIBS) 
+  endif
+  endif
+
+  ifneq  ($(strip $(INC_ZLIB)),)
+  ifneq  ($(strip $(LIB_ZLIB)),) 
+    # library and headers exist
+    COMPILE_FLAGS += -D "EnableZlib"
+    COMPILE_FLAGS_DEBUG += -D "EnableZlib"
+    SZG_INCLUDE += -I$(INC_ZLIB)
+    LINK_LIBS := $(LIB_ZLIB) $(LINK_LIBS)
+  endif
+  endif
+
+  ifneq ($(strip $(INCCG)),)
+  ifneq ($(strip $(LIBCG)),)
+  ifneq ($(strip $(LIBCGGL)),)
+    # libCg include file AND library exist.
+    COMPILE_FLAGS += -D "USE_CG"
+    COMPILE_FLAGS_DEBUG += -D "USE_CG"
+    SZG_INCLUDE += -I$(INCCG)
+    LINK_LIBS := $(LIBCG) $(LIBCGGL) $(LINK_LIBS)
+  endif
+  endif
+  endif
+
+  ifneq ($(strip $(INC_3DS)),)
+  ifneq ($(strip $(LIB_3DS)),)
+    # lib3DS include file AND library exist.
+    COMPILE_FLAGS += -D "Enable3DS"
+    COMPILE_FLAGS_DEBUG += -D "Enable3DS"
+    SZG_INCLUDE += -I$(INC_3DS)
+    LINK_LIBS := $(LIB_3DS) $(LINK_LIBS)
+  endif
+  endif
+
+  ifneq ($(strip $(INC_WIN_BIRD)),)
+  ifneq ($(strip $(LIB_WIN_BIRD)),)
+    # FoB include file AND library exist.
+    COMPILE_FLAGS += -D "EnableBirdWinDriver"
+    COMPILE_FLAGS_DEBUG += -D "EnableBirdWinDriver"
+    SZG_INCLUDE += -I$(INC_WIN_BIRD)
+  endif
+  endif
+
+  ifneq ($(strip $(INC_EVART)),)
+  ifneq ($(strip $(LIB_EVART)),)
+    # EVaRT include and library exist
+    COMPILE_FLAGS += -D "EnableEVaRT"
+    COMPILE_FLAGS_DEBUG += -D "EnableEVaRT"
+    SZG_INCLUDE += -I$(INC_EVART)
+    LINK_LIBS := $(LIB_EVART) $(LINK_LIBS)
+  endif
+  endif
+	
+  ifneq ($(strip $(INC_SAPI)),)
+  ifneq ($(strip $(LIB_SAPI)),)
+    # SAPI include file AND library exist.
+    COMPILE_FLAGS += -D "EnableSpeech"
+    COMPILE_FLAGS_DEBUG += -D "EnableSpeech"
+    SZG_INCLUDE += -I$(INC_SAPI)
+    LINK_LIBS := $(LIB_SAPI) $(LINK_LIBS)
+    LINK_FLAGS := $(LINK_LIBS_SAPI) $(LINK_FLAGS)
+    LINK_FLAGS_DEBUG := $(LINK_LIBS_SAPI) $(LINK_FLAGS_DEBUG)
+    LINK_FLAGS_SHARED := $(LINK_LIBS_SAPI) $(LINK_FLAGS_SHARED)
+  endif
+  endif
+
+endif
+
+ifeq ($(strip $(MACHINE)), DARWIN)
+  INC_FMOD := $(wildcard $(SZGEXTERNAL)/include/fmod-3.7)
+  LIB_FMOD := $(wildcard $(SZGEXTERNAL)/lib/fmod-3.7/darwin/libfmod.a)
+
+  INC_JPEG := $(wildcard $(SZGEXTERNAL)/include/jpeg/darwin)
+  LIB_JPEG := $(wildcard $(SZGEXTERNAL)/lib/jpeg/darwin/libjpeg.a)
+
+  INC_ZLIB := $(wildcard $(SZGEXTERNAL)/include/zlib/darwin)
+  LIB_ZLIB := $(wildcard $(SZGEXTERNAL)/lib/zlib/darwin/libz.a)
+
+  INC_WIN_BIRD := 
+  LIB_WIN_BIRD := 
+
+  INC_EVART :=
+  LIB_EVART :=
+
+  INC_3DS :=
+  LIB_3DS :=
+  
+  ifneq ($(strip $(INC_FMOD)),)
+  ifneq ($(strip $(LIB_FMOD)),)
+    # FMOD include file AND library exist.
+    COMPILE_FLAGS += -DEnableSound
+    COMPILE_FLAGS_DEBUG += -DEnableSound
+    SZG_INCLUDE += -I$(INC_FMOD)
+    LIB_FMOD += -framework Carbon
+    LIBS := $(LIB_FMOD) $(LIBS) 
+  endif
+  endif
+
+  ifneq ($(strip $(INC_JPEG)),)
+  ifneq ($(strip $(LIB_JPEG)),)
+    # libjpeg and headers exist
+    COMPILE_FLAGS += -DEnableJPEG
+    COMPILE_FLAGS_DEBUG += -DEnableJPEG
+    SZG_INCLUDE += -I$(INC_JPEG)
+    LIBS := $(LIB_JPEG) $(LIBS) 
+  endif
+  endif
+
+  ifneq  ($(strip $(INC_ZLIB)),)
+  ifneq  ($(strip $(LIB_ZLIB)),) 
+    # library and headers exist
+    COMPILE_FLAGS += -DEnableZlib
+    COMPILE_FLAGS_DEBUG += -DEnableZlib
+    SZG_INCLUDE += -I$(INC_ZLIB)
+    LIBS := $(LIB_ZLIB) $(LIBS)
+  endif
+  endif
+
+endif
+
+# IRIX IS DEPRECATED... NOT LIKELY TO DO ANY MORE DEVELOPMENT HERE.
+ifeq ($(strip $(MACHINE)), MIPS3)
+  INC_FMOD := 
+  LIB_FMOD := 
+
+  INC_WIN_BIRD := 
+  LIB_WIN_BIRD := 
+
+  INC_EVART :=
+  LIB_EVART :=
+
+  INC_3DS :=
+  LIB_3DS :=
+endif
+
+ifeq ($(strip $(MACHINE)), MIPS4)
+  INC_FMOD := 
+  LIB_FMOD := 
+
+  INC_WIN_BIRD := 
+  LIB_WIN_BIRD := 
+
+  INC_EVART :=
+  LIB_EVART :=
+
+  INC_3DS :=
+  LIB_3DS :=
+endif
