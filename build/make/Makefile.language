@@ -26,14 +26,12 @@ OBJS = \
   arThread$(OBJ_SUFFIX) \
   arUDPSocket$(OBJ_SUFFIX) \
   arSocketAddress$(OBJ_SUFFIX)
-	
-MYLIB = libarLanguage.a
-$(MYLIB): $(OBJS)
-	$(AR) ru $@ $^
-	$(RANLIB) $@
+
+MYLIBNAME = libarLanguage
+MYLIB = $(MYLIBNAME)$(LIB_SUFFIX)
+LINK_LIBS := $(LINK_LIBS) $(MYLIB)
 
 # must do the precompiled header here... AND it must be the first thing
-
 ALL =   arPrecompiled$(OBJ_SUFFIX) \
 	RS232EchoTest$(EXE) \
 	RS232SendTest$(EXE) \
@@ -42,6 +40,13 @@ ALL =   arPrecompiled$(OBJ_SUFFIX) \
 	TestLanguageServer$(EXE)
 
 Everything: $(ALL)
+
+$(MYLIB): $(OBJS)
+	$(LIB_LINE1)
+	$(LIB_LINE2)
+
+# This should go AFTER our FIRST target
+include $(SZGHOME)/build/make/Makefile.rules
 
 # note that originally, every object in this directory was optimized to
 # the maximum level. However, now, in the interests of stability, lets
@@ -70,14 +75,32 @@ arStructuredData$(OBJ_SUFFIX): arStructuredData.cpp
 arPrecompiled$(OBJ_SUFFIX): arPrecompiled.cpp
 	$(PRECOMPILED_HEADER_LINE)
 
-RS232EchoTest$(EXE): RS232EchoTest$(OBJ_SUFFIX) $(MYLIB)
-	$(DO_LINK)
-RS232SendTest$(EXE): RS232SendTest$(OBJ_SUFFIX) $(MYLIB)
-	$(DO_LINK)
-TestLanguageClient$(EXE): TestClient$(OBJ_SUFFIX) $(MYLIB)
-	$(DO_LINK)
-TestLanguage$(EXE): Test$(OBJ_SUFFIX) $(MYLIB)
-	$(DO_LINK)
-TestLanguageServer$(EXE): TestServer$(OBJ_SUFFIX) $(MYLIB)
-	$(DO_LINK)
+# Note how we go ahead and over-ride the standard .cpp rule (as we must,
+# since that is (at least in some cases) going to produce shared objects).
+# We do not want shared objects in these cases, since these are executables!
+
+RS232EchoTest$(OBJ_SUFFIX): RS232EchoTest.cpp
+	$(COMPILER) $(COMPILE_FLAGS_NONSHARED) $< $(SZG_INCLUDE)
+RS232EchoTest$(EXE): RS232EchoTest$(OBJ_SUFFIX)
+	$(LINKER) $(LINK_FLAGS) $(LINK_PREFIX)$@ $^ $(GENERAL_LIBS)
+
+RS232SendTest$(OBJ_SUFFIX): RS232SendTest.cpp
+	$(COMPILER) $(COMPILE_FLAGS_NONSHARED) $< $(SZG_INCLUDE)
+RS232SendTest$(EXE): RS232SendTest$(OBJ_SUFFIX)
+	$(LINKER) $(LINK_FLAGS) $(LINK_PREFIX)$@ $^ $(GENERAL_LIBS)
+
+TestClient$(OBJ_SUFFIX): TestClient.cpp
+	$(COMPILER) $(COMPILE_FLAGS_NONSHARED) $< $(SZG_INCLUDE)
+TestLanguageClient$(EXE): TestClient$(OBJ_SUFFIX)
+	$(LINKER) $(LINK_FLAGS) $(LINK_PREFIX)$@ $^ $(GENERAL_LIBS)
+
+Test$(OBJ_SUFFIX): Test.cpp
+	$(COMPILER) $(COMPILE_FLAGS_NONSHARED) $< $(SZG_INCLUDE)
+TestLanguage$(EXE): Test$(OBJ_SUFFIX)
+	$(LINKER) $(LINK_FLAGS) $(LINK_PREFIX)$@ $^ $(GENERAL_LIBS)
+
+TestServer$(OBJ_SUFFIX): TestServer.cpp
+	$(COMPILER) $(COMPILE_FLAGS_NONSHARED) $< $(SZG_INCLUDE)
+TestLanguageServer$(EXE): TestServer$(OBJ_SUFFIX)
+	$(LINKER) $(LINK_FLAGS) $(LINK_PREFIX)$@ $^ $(GENERAL_LIBS)
 

@@ -1,0 +1,20 @@
+
+create-install: Everything
+	$(CP) $(OBJS) $(INSTALLDIR)/temp
+	$(CP) $(ALL) $(INSTALLDIR)/bin	
+
+create-install-exe: Everything
+	$(CP) $(ALL) $(INSTALLDIR)/bin	
+
+.cpp$(OBJ_SUFFIX):
+	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE)
+
+.c$(OBJ_SUFFIX):
+	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE)
+
+clean:
+	rm -rf *$(OBJ_SUFFIX) *.exp *.lib *.dll *.so *.a *.ilk *.pdb *.pch \
+        .nfs* $(SRCDIR)/*~ \
+	$(ALL) $(patsubst %, $(BINDIR)/%, $(ALL)) \
+	$(patsubst %, $(BINDIR)/%.app, $(ALL)) \
+	$(BINDIR)/core $(BINDIR)/.nfs* ii_files core
