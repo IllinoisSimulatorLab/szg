@@ -842,6 +842,9 @@ void display(){
     ar_usleep(10000);
   }
   glutSwapBuffers();
+  // It seems more advantageous to send the frame time back every
+  // frame instead of more occasionally. This leads to a tighter
+  // feedback loop. Still experimenting, though.
   if (true || frameSkip == 20){
     int frametime = int(ar_difftime(ar_time(), time1));
     ar_mutex_lock(&peerLock);
