@@ -34,7 +34,7 @@ class SZG_CALL arInputSource{
   virtual bool stop()
     { return true; }
   virtual bool restart()
-    { return true; }
+    { return stop() && start(); }
 
 #ifdef UNUSED
   void setFilter(arIOFilter*);
