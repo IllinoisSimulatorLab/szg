@@ -446,7 +446,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
        i != tmpSockets.end(); 
        i++){
     // NOTE: we do not want a feedback loop. So, we should not send back
-    // to 
+    // to the origin.
     if ((*i)->getID() != originID){
       _dataServer->sendData(data, *i);
     }
@@ -543,7 +543,9 @@ bool arGraphicsPeer::consume(){
   ar_mutex_lock(&_queueLock);
   _incomingQueue->swapBuffers();
   ar_mutex_unlock(&_queueLock);
-
+  //int bufferSize;
+  //ar_unpackData(_incomingQueue->getFrontBufferRaw(),&bufferSize,AR_INT,1);
+  //cout << "buffer size = " << bufferSize << "\n";
   handleDataQueue(_incomingQueue->getFrontBufferRaw());
   return true;
 }

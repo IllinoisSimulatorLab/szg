@@ -752,12 +752,17 @@ void display(){
   ar_mutex_lock(&peerLock);
   // first pass to draw the peers
   for (i = peers.begin(); i != peers.end(); i++){
+    //ar_timeval time1 = ar_time();
     i->second.peer->consume();
+    //ar_timeval time2 = ar_time();
     glPushMatrix();
     glMultMatrixf(i->second.transform.v);
     i->second.peer->activateLights();
     i->second.peer->draw();
     glPopMatrix();
+    //ar_timeval time3 = ar_time();
+    //cout << "process time = " << ar_difftime(time2, time1)
+    //	 << "draw time = " << ar_difftime(time3, time2) << "\n";
   }
   // second pass to draw the labels
   if (drawLabels){

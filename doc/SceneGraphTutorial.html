@@ -286,6 +286,21 @@ to the scene, using a utility function from the "rp" module.
   attachLights(peer)
 </pre>
 
+<p>THE FOLLOWING IS VERY IMPORTANT. For the Syzygy built-in objects to work,
+you need to tell them the current graphics database (i.e. your arGraphicsPeer
+object).
+
+<pre>
+  dgSetGraphicsDatabase(peer)
+</pre>
+
+If you do not issue this command before using one of the built-in objects,
+you will see an error message like:
+
+<pre>
+  syzygy error: dgSetGraphicsDatabase not yet called.
+</pre>
+
 Now, add a sphere to the scene. This will start out simple, but gradually get
 more complex, eventually encompassing ways to position the sphere and add
 texture and color to it. Here, we make a sphere with 20 longitudinal and
@@ -656,6 +671,51 @@ while 1:
         f.setPlayer()
         time.sleep(0.017)
 </pre>
+
+<a name="Framework">
+<p><font size=+2>Displaying Multiple Syzygy Scene Graph Framework Applications
+</font>
+</a>
+
+<p>This section will show you how to display multiple Syzygy scene graph
+framework applications (like cosmos, cubes, timetunnel, danceparty, parade,
+etc.) in a single "workspace". Go ahead and kill any workspaces you have
+been working with so far (either via dkill or typing ESC in their windows).
+Next, make sure szgd is running on the computer upon which you will run
+your workspace. We will suppose the computer's name is "computer1" so
+you will need to adjust the Python code listed below accordingly. From the
+Python prompt:
+
+<pre>
+  from rp import *
+  m = rpManager()
+  work1 = m.newWorkspace("computer1","work1")
+  handle1 = work1.newPeer("target1")
+  handle2 = work2.newPeer("target2")
+</pre>
+
+<p>Two peers (target1 and target2) now exist in the workspace. You can now
+display two copies of any Syzygy distributed scene graph framework application
+in the workspace. For simplicity, we choose to display two copies of
+cosmos. Note the special command line args passed to cosmos.
+
+<pre>
+  cosmos -dsg peer=cosmos1 -dsg target=target1 -dsg mode=feedback
+  cosmos -dsg peer=cosmos2 -dsg target=target2 -dsg mode=feedback
+</pre>
+
+You can move the cosmos displays around in the workspace by:
+
+<pre>
+  handle1.translate(-5,5,-5)
+  handle2.translate(5,5,-5)
+</pre>
+
+Now, we explain the command line args. Each one is prefaced by "-dsg". The
+"peer" arg gives the name of the arGraphicsPeer to be embedded in the
+application. The "target" arg gives the name of the arGraphicsPeer to which
+it will connect. The "mode" arg gives the nature of that connection, with
+"feedback" implying that changes will flow both ways. 
 
 <a name="Lighting">
 <p><font size=+2>Scene Graph: Using Lights</font>
