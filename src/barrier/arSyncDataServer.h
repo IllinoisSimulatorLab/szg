@@ -63,8 +63,8 @@ class SZG_CALL arSyncDataServer{
 
   arDatabaseNode* receiveMessage(arStructuredData*);
 
-  arDataServer* const dataServer() const
-    { return (arDataServer* const)&_dataServer; }
+  arDataServer* dataServer() const
+    { return (arDataServer*)&_dataServer; }
 
  private:
   arSZGClient* _client;
