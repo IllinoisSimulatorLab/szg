@@ -7,18 +7,18 @@ else
 
 .PHONY: all clean demo democlean install
 
-#note that demo is still a target here... there are programs that live
+# Note that demo is still a target here... there are programs that live
 #in the top of that directory and not in subdirs
-SUBDIRS=language phleet barrier math drivers graphics sound obj interaction framework utilities 
-# put in here whatever you're working on at the moment
-DEMOFAST = ribbons
+SUBDIRS=language phleet barrier math drivers graphics sound obj interaction \
+  framework utilities 
+
+# If one just wants to make a particular demo, go to that directory. There is
+# no need for a "make fast"
+
 # isosurface has been temporarily removed from the DEMODIRS until the code
 # is brought up to data
-DEMODIRS=ribbons atlantis cosmos volume cubes hspace parade timetunnel \
-  schprel avn q33 coaster 
-# Some of the demo-dirs also contain important executables... like the command-line controls
-# for the cube
-DEMOUTIL=utilities buttonfly
+DEMODIRS=ribbons atlantis coaster hspace avn volume \
+  cosmos cubes parade timetunnel schprel q33 
 
 INSTALLDIR = $(SZGHOME)/szg-install
 
@@ -31,8 +31,7 @@ endif
 
 all:
 	@for i in $(SUBDIRS) ; do $(MAKE) -C $z/$$i -j $(JOBS) "SZGHOME=$(SZGHOME)" || exit 1 ; done
-fast:
-	@for i in $(DEMOFAST) ; do $(MAKE) -C $z/demo/$$i -j $(JOBS) "SZGHOME=$(SZGHOME)" ; done
+
 demo: all
 	@for i in $(DEMODIRS) ; do $(MAKE) -C $z/demo/$$i -j $(JOBS) "SZGHOME=$(SZGHOME)" ; done
 create-install: all

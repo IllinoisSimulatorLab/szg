@@ -1,3 +1,5 @@
+include $(SZGHOME)/build/make/Makefile.vars
+
 VPATH = ../../../../src/demo/atlantis
 
 OBJSRAW = dolphinszg whaleszg sharkszg swimszg atlantis
@@ -7,7 +9,8 @@ ALL = atlantis$(EXE)
 
 Everything: $(ALL)
 
-PRECOMPILED_HEADER_LOCATION := $(PRECOMPILED_HEADER_LOCATION_DEMO)
+include $(SZGHOME)/build/make/Makefile.rules
 
-atlantis$(EXE): atlantis$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBS)
-	$(DO_LINK_GRAPHICS)
+atlantis$(EXE): atlantis$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) $(OBJS) $(SZG_USR_SECOND)
+	$(COPY)
