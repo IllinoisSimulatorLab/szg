@@ -238,7 +238,8 @@ be stored. SZG_LOGIN must NOT have a trailing slash.
 
   In the first case, the dlogin program attempts to discover the szgserver 
   given by szgserver_name by broadcasting a discovery packet on the LAN. If 
-  such is found, the Phleet login file is written, using the given user_name.
+  such is found, the Phleet login file is written with user_name giving the
+  Phleet user identity.
 
   In the second case, the dlogin program attempts to connect to the szgserver
   using the IP/port parameters (much as a standard Phleet component would using
@@ -283,39 +284,50 @@ be stored. SZG_LOGIN must NOT have a trailing slash.
 
 <p>The commands for editting the Phleet configuration file (szg.conf) and
 for session management (like dlogin) have been outlined in a previous
-<a href="#PhleetConfiguration">section</a>. Commands are included for 
+<a href="#PhleetConfiguration">section</a>. Phleet also has commands for 
 managing the paramter database (which is used for configuration), for
 sending messages to running Phleet components (and even for receiving
 replies for an RPC capability), and for monitoring the status of the
-system (being able to find out what is running, among other tricks).
+system (being able to find out what is running, among other tricks). Please
+see the section on <a href="ConfigurationExamples.html">configuration</a>
+for information on the dbatch file format.
 
 <p><ul>
 <li>Parameter Database Management
 <pre>
    dbatch batch_file
 
-     Set a group of database parameters at once.
-     batch_file is a text file composed of two types of lines:
-       i. # comment
-       ii. computer_name group_name parameter_name parameter_value
-           Each of which is a string. This is the way parameters are
-           represented in the database.
-     This command looks on a search path given by computer/SZG_SCRIPT/path
-     for the batch file (always starting with the current directory).
+     Take the configuration information contained in the given file and
+     transfer it to the szgserver. By default, the command looks in the
+     current directory for the file and then on a search path given by 
+     computer/SZG_SCRIPT/path
+    
 
    dget computer parameter_group parameter_name
 
-     Display the value of the key computer/group_name/parameter_name.
+     Display the value of the parameter computer/group_name/parameter_name.
+
+   dget global_parameter_name
+
+     While many Phleet parameters are keyed to particular computers, some 
+     are global in nature (i.e. concerned with the global system instead
+     of one computer). A good example of a global parameter an input
+     device definition.
 
    dget -a search_string
 
      Display all key/value pairs in the parameter database containing
-     string search_string.  (For multiple-key searching, just pipe this
-     through grep!)
+     string search_string. To do more complex searches, pipe the output
+     through grep or sed. If search_string is omitted, all database entries
+     for the given user will be returned.
 
    dset computer parameter_group parameter_name value
 
      Assign "value" to the item with key computer/parameter_group/parameter_name.
+
+   dset global_parameter_name value
+
+     Assign "value" to the global parameter having key global_parameter_name.
 </pre>
 <li>Interprocess Communications
 <pre>
@@ -324,19 +336,28 @@ system (being able to find out what is running, among other tricks).
 
      If no location for executing the program is specified, the local host
      is assumed. Otherwise, dex determines if the execution_location names
-     a specific host or a virtual computer. 
-  
-     Runs "executable_name [args]" on computer_name, by requesting the 
-     sgzd on that computer do so. If not specified, computer_name defaults 
-     to the local host. If szgd is not found, dex fails. The -v option
-     causes more messages On a Windows host, 
-     ".exe" is appended to executable_name, allowing the user to use a 
-     portable, canonical name for executables across Unix-like systems and
-     Windows.
+     a specific host or a virtual computer. If a virtual computer has been
+     named, the executable is run through the szgd on the virtual computer's 
+     "trigger" computer and, from there, launches other processes it might 
+     need for operation. On the other hand, if a specific host is named, the 
+     executable will run (along with specified args) on that host, as spawned 
+     by szgd.
+
+     In each case, if szgd is not found, dex fails. If szgd is found, messages
+     will return to dex to be printed. For instance, dex will remark if an
+     executable fails to be found. Once the szgd launches the new component,
+     it will send messages to dex, allowing the component to provide feedback
+     on its start up. By default, only the contents of the final message are 
+     printed, but -v option makes all messages print.
+
+     Phleet supports launching both native and Python programs. For native
+     programs on Windows hosts, ".EXE" is appended to executable_name, allowing
+     the user to use a portable, canonical name for executables across 
+     Unix-like systems and Windows.
 
    dkill [-9] [computer_name] executable_label
 
-     Send a "quit" message to the first entry in the Syzygy process table 
+     Send a "quit" message to the first entry in the Phleet process table 
      matching the inputs. Like unix "kill -9", the -9 option forcibly closes 
      sgzserver's connection (if a client died without szgserver realizing that 
      its connection to the client is gone).
@@ -352,32 +373,46 @@ system (being able to find out what is running, among other tricks).
      Find the component, if such exists, with name component_name that is
      running on computer computer_name. Send it a message with tag 
      message_type and body message_body. If message_body is not present, 
-     an empty body is sent.
+     an empty body is sent. If the -r flag is specified, dmsg requests
+     a reply to its message and waits for that reply, printing it upon
+     receipt.
 
    dmsg [-r] -m virtual_computer message_type [message_body]
 
      Find the component, if such exists, running on the master screen of
      the given virtual computer. Send it a message with tag message_type 
      and body message_body. If message_body is not present, an empty body 
-     is sent.
+     is sent. The -r flag carries the same meaning as above.
 
    dmsg [-r] -g virtual_computer screen_number message_type [message_body]
 
      Find the component, if such exists, running on the screen indexed
      by screen_number pertaining to the listed virtual computer. Send it
      a message with tag message_type and body message_body. If message_body 
-     is not presnt, an empty body is sent.
+     is not presnt, an empty body is sent. The -r flag carries the same
+     meaning as above.
 
    dmsg [-r] -c virtual_computer_location message_type [message_body]
 
-     Find the component, if such exists, which is currently running
-     as the trigger instance of the given virtual computer. Send it
+     Find the component, if such exists, which is the trigger for the currently
+     running application in the given virtual computer location. Send it
      a message with tag message_type and body message_body. If message_body 
-     is not present, an empty body is sent.
+     is not present, an empty body is sent. The -r flag carries the same
+     meaning as above.
 
    dmsg [-r] -s service_name message_type [message_body]
 
+     Find the component, if such exists, that is providing the service
+     indicated by service_name. Send it a message with tag message_type and 
+     body message_body. If message_body is not presnt, an empty body is sent. 
+     The -r flag carries the same meaning as above.
+
    dmsg [-r] -l lock_name message_type [message_body]
+
+     Find the component, if such exists, holding the lock indicated by
+     lock_name. Send it a message with tag message_type and body message_body. 
+     If message_body is not presnt, an empty body is sent. The -r flag carries 
+     the same meaning as above.
 
 </pre>
 <li>System Monitoring
@@ -391,8 +426,8 @@ system (being able to find out what is running, among other tricks).
    dtop [d milliseconds] | q | t
 
      Repeated dps, like Unix "top" with pretty color coding.
-     d specifies a delay (default 500).  q sets delay to 0 (cpu hog).
-     t is for stress-"t"esting szgserver:  zero delay and no display.
+     d specifies a delay (default 500). q sets delay to 0 (cpu hog).
+     t is for stress-"t"esting szgserver: zero delay and no display.
      Hit "q" to quit (or use dkill).
 
    dlocks
@@ -424,46 +459,70 @@ To run szgserver, type:
   szgserver server_name server_port
 </pre>
 
+<p>Optionally, you can restrict the IP addresses from which connections will
+be accepted by appending a sequence of whitelist entries, which can either
+add single IP addresses or blocks of IPs to the whitelist. If you typed:
+
+<pre>
+  szgserver server_name server_port 130.126.127.0/255.255.255.0 192.168.0.11
+</pre>
+
+then only connections from IP addresses beginning with 130.126.127 or from
+IP address 192.168.0.11 would be accepted.
+
 <p>"server_name" should be a unique alphanumeric tag. "server_port" is the 
 port on which the szgserver will listen for TCP connection requests. All 
-components in the Phleet distributed system maintain a TCP connection to the 
-szgserver via this port. This information is embedded in a user's login file 
-(see below). While login can involve explicitly stating the IP address/ port 
-pair of the desired szgserver, there is also an automated discovery mechanism 
+components in the Phleet distributed system connect to 
+szgserver via this port and maintain that connection throughout their
+operation. The IP address and port number are embedded in a user's login file,
+as explained <a href="PhleetConfiguration">here</a>. 
+
+<p>While login can involve 
+explicitly stating the IP address/ port pair of the desired szgserver, 
+there is also an automated discovery mechanism 
 keyed on the szgserver's name. Clients can discover the szgserver
-by broadcasting UDP packets to port 4620. When the szgserver receives a packet 
-on this port containing it's name, it replies with a UDP packet, on port 4621, 
-directed to the origin address of the discovery packet. The reply contains the 
-IP address and port of the szgserver.
+by broadcasting UDP packets on port 4620. When the szgserver receives a packet 
+on this port containing it's name, it broadcasts a reply, also on port 4621, 
+containing the IP address and port of the szgserver.
  
-<p>Note that the szgserver uses the Phleet configuration file on the computer 
-on which it is running to determine its primary IP address, which is simply 
-the first IP address listed in the configuration file. This primary IP address 
-is the one sent in response to client discovery requests. Consequently, the 
+<p>When an szgserver runs, it uses the Phleet configuration file on the
+local computer to determine the IP address it should use in its response to
+client discovery requests. It picks the first IP address listed in the 
+configuration file. Consequently, the 
 user should make sure that this IP address is globally accessible via all 
-computers that will be part of the distributed system (Phleet).
+computers that will be part of the Phleet.
 
 <a name="Connect">
 <p><font size=+2>How Clients Connect to the szgserver</font>
 </a>
 
-<p>When a Phleet component starts, it needs to connect to an szgserver. It will
-check to see if the current host system user has a Phleet login file. If not, 
-the component will quit, printing a message suggesting that the user must 
-dlogin. On the other hand, if the Phleet login file exists, the Phleet 
-component will read the IP address and port contained therein and attempt to 
-open a TCP connection to an szgserver using that information.
+<p>Syzygy programs can either operate in Phleet mode or 
+<a href="Standalone.html">standalone mode</a>. For some programs, such as
+those that manipulate the Phleet, standalone mode, where the program operates
+without connection to an szgserver, does not make sense. However, user
+applications can often operate in a self-contained manner, and, consequently,
+standalone mode makes sense for them. For instance, both Syzygy application
+frameworks can operate in standalone mode.
 
-<p>As has been mentioned previously, the dlogin command creates the Phleet 
-login file. This is either done via explicitly feeding the command an IP 
-address/port pair or by automatic discovery. In the automatic discovery, we 
-just give dlogin the szgserver's name and it will broadcast it on the LAN, 
-searching for an szgserver with that name. The discovery process is described 
-now.
+<p> When a Phleet component starts, it
+first reads the appropriate login file. This file specifies the szgserver to 
+use and has name szg_XXX.conf, where XXX is the user name according to the
+host system. If this file does not exist or is in a dlogged-out state, the
+program will operate in standalone mode, if it supports such. If the program
+does not support standalone operation, it will exit, prompting the user to
+dlogin in. On the other hand, if the login file indicates the user is logged
+in to an szgserver, the embedded arSZGClient attempts to contact that
+server (the IP address and port are contained in the file) and form a 
+connection. If the connection attempt fails, the program will attempt to
+operate in standalone mode, failing if it does not support such.
 
-<p>First, the component broadcasts a call to szgservers out on the
-LAN. All szgserver programs listen for UDP packets on port 4620 and respond
-to discovery requests by broadcasting on the same port. Requests and responses
+<p>As mentioned in this <a href="PhleetConfiguration">section</a>, the dlogin 
+command creates the Phleet login file, either via explicitly feeding the 
+command an IP address/port pair or by automatic discovery. The discovery 
+process is described now. First, the component broadcasts a call to szgservers 
+out on the LAN. All szgserver programs listen for UDP packets on port 4620 and 
+respond to discovery requests by broadcasting on the same port. 
+Requests and responses
 are distinguished by a one byte flag in the packet, and both types are 200
 bytes long. They have the following format:
 
@@ -497,22 +556,25 @@ it returns a response packet.
 <p><font size=+2>szgd</font>
 </a>
 
-<p>The remote execution daemon szgd should run on every computer in the system 
-for maximum ease of use. However, as is shown in the 
-<a href="PhleetIntro.html">introduction</a>, this is not necessary. Only one 
-instance may run on each host. Each instance of szgd grabs a lock named 
-XXX/szgd, where XXX is the name of the computer on which it runs. As an szgd 
-instance starts, it attempts to get this lock. If it fails, it quits
-immediately.
+<p>The remote execution daemon szgd is a special Phleet component that executes
+Syzygy programs in response to Phleet messages (via dex). It handles both
+native (i.e. C++) and Python programs, supports multiple users each with 
+their own executables, and manipulates environment variables controlling
+dynamic linker paths and python module paths to ensure that loadable objects
+behave as expected to particular users. The szgd cannot run in standalone mode
+and consequently must connect to an szgserver once it starts, requiring a
+successful dlogin to occur beforehand. Only one szgd can run on a given host. 
+On start, szgd tries to grab a Phleet lock named XXX/szgd, where XXX is the 
+name of the computer on which it runs. If it fails, it quits immediately.
 
 <p>If user XXX attempts to execute a program on
 a computer YYY running szgd, the szgd instance finds the value of 
 YYY/SZG_EXEC/path in the parameter database of user XXX and uses that as a 
-search path for the requested executable.
-
-<p>For szgd to run, it is necessary for a user to successfully dlogin first. 
-While the Phleet identity of the user running szgd is unimportant, the dlogin 
-process establishes a connection to a given szgserver, which is important.
+search path for the requested executable. By convention, dynamic libraries
+are assumed to live in the same directory as the executables that load them.
+Consequently, when executing a program, szgd prepends the directory in which
+the program lives to the front of environment variable giving the dynamic 
+linker search path (LD_LIBRARY_PATH on Linux).
 
 <a name="Names">
 <p><font size=+2>Names, According to the szgserver</font>
@@ -531,20 +593,17 @@ transmits that to the szgserver, which trusts the transmission.
 <p>As the arSZGClient object initializes, it needs to determine the user. Many
 communications with the szgserver are stamped with user name. Manipulations
 of a parameter database (one of which exists for each user) clearly need this
-information. Messages from on arSZGClient to another are also stamped with
-user name. This allows, for instance, szgd daemons to execute programs in the 
-manner appropriate to the user making the remote execution request, instead of
-the manner appropriate to the user who started the szgd program.
+information. Messages from one arSZGClient to another are also stamped with
+user name, which allows, for instance, szgd daemons to execute programs in the 
+as the Phleet user making the remote execution request, instead of
+the Phleet user who started the szgd program. 
 
-<p>Note that the client needs to determine the current user via an environment
-variable because of szgd. This program needs to be able to control which
-user a program thinks it is executing as. For instance, user A might use
-szgd to execute programs at the same time user B is using it.
-
-<p>This is how the client determines the user:
+<p>This is how the Syzygy program determines the Phleet user:
 <p><ol>
 <li>First, check to see if the environment variable SZGUSER is set. If so, then
-   the value is the user name.
+   the value is the Phleet user name. When szgd executes a Syzygy program, it
+   sets this variable to the Phleet user name associated with the execution 
+   request.
 <li>If not, determine the current user name as reported by the host system
    (which can be completely different from an Phleet user name). Use this
    user name to load a Phleet login file. If the host system user name is

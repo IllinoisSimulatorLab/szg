@@ -9,12 +9,23 @@
 
 <p>This chapter explains Phleet's basic operations and is the first you
 should read when beginning to set up a Syzygy cluster. Make sure you read
-the section on <a href="#Firewalls">firewalls</a> with particular care. Also,
+the section on <a href="#Firewalls">firewalls</a> with particular care. If
+this is your first time using Syzygy, the sections on "Creating a Phleet" will
+walk you through, step by step, the basic process of setting up your
+distributed system. Also,
 while you can run Syzygy applications without using "virtual computers",
-it is recommended that you read and understand this 
-<a href="#VirtualComputer">section</a>. Finally, special command line
+it is recommended that you read and understand the
+<a href="#VirtualComputer">section</a> describing virtual computers.
+In addition, special command line
 arguments and environment variables can be used to affect the operation
-of your Syzygy programs, as is explained <a href="#Context">here</a>.
+of your Syzygy programs, as is explained <a href="#Context">here</a>. These
+"contexts" are especially important when making your own tools (like via
+a web interface) to control the Phleet. To understand how Phleet 
+components cooperate (both connect to one another and avoid stepping on one
+another's toes), you should read the <a href="#ServiceLocks">section</a> 
+dealing with connection brokering, service names, and locks. Finally, the 
+<a href="#Troubleshooting">troubleshooting</a> section includes
+explanations of commonly encountered problems.
 
 <p>
 <ul>
@@ -26,6 +37,8 @@ of your Syzygy programs, as is explained <a href="#Context">here</a>.
 <li><A HREF="#ManagingPhleet">Managing the Phleet</a>
 <li><A HREF="#VirtualComputer">Using Virtual Computers</a>
 <li><a href="#Context">Component Contexts in Phleet</a>
+<li><a href="#ServiceLocks">Connection Brokering, Service Names, and Locks</a>
+<li><a href="#Troubleshooting">Troubleshooting</a>
 </ul>
 
 <A NAME="Firewalls">
@@ -363,24 +376,26 @@ or connection brokering, though they are required to operate a
 <p><font size=+2>Basic Testing of Your Phleet</font>
 </a>
 
-<p>We can now verify that basic connection brokering works between computers in your
-Phleet. The BarrierServer test program synchronizes the operation of a collection
-of BarrierClient test programs operating anywhere in the Phleet. The BarrierClient
-programs can appear and disappear, as can the BarrierServer. When computers are added
-or removed, the other components dynamically adjust. For instance, if BarrierServer
-is halted, any BarrierClients will wait for a BarrierServer to start up and register
-with the szgserver, at which point they will connect to it. If a new BarrierClient
-starts up, it will be dynamically added to the BarrierServer's synchronization group,
-with its internal loop falling into lockstep with that of the other BarrierClients.
+<p>We can now verify that basic connection brokering works between computers in
+your Phleet. The BarrierServer test program synchronizes the operation of a 
+collection of BarrierClient test programs operating anywhere in the Phleet. The
+BarrierClient programs can appear and disappear, as can the BarrierServer. 
+When computers are added or removed, the other components dynamically adjust. 
+For instance, if BarrierServer is halted, any BarrierClients will wait for a 
+BarrierServer to start up and register with the szgserver, at which point they 
+will connect to it. If a new BarrierClient starts up, it will be dynamically 
+added to the BarrierServer's synchronization group, with its internal loop 
+falling into lockstep with that of the other BarrierClients.
 
 <p><ol>
 <li>Start BarrierServer on one of your Phleet nodes.
 <li>Start BarrierClient on another node. If all is well, the BarrierClient will
-begin printing the average time necessary to perform each synchronization through
-the BarrierServer.
+begin printing the average time necessary to perform each synchronization 
+through the BarrierServer.
 <li>Troubleshooting:
   <ul>
-  <li>If BarrierClient fails to start, you do not dlogin.
+  <li>If BarrierClient fails to start, make sure dlogin succeeded on the
+      machine on which it is running..
   <li>If BarrierClient starts but does not start printing, you have entered the
       IP address incorrectly in the szg.conf file on the BarrierServer machine.
       Use dconfig to examine it and ddelinterface/daddinterface to fix it.
@@ -561,6 +576,141 @@ can directly kill the trigger instance. In our case, that would entail the follo
   dkillall wall
 </pre>
 
+<p>It is inconvenient to need to write a script to launch each separate
+application. This difficulty is compounded when one realizes that a new
+set of scripts needs to be written for each platform, be it a CAVE or
+video wall. Consequently, Syzygy supports intelligent application
+launching via the definition of a "virtual computer". To define a
+virtual computer, you simply pick a name different from the name of any 
+computer in the distributed system. This name can then be
+used to set up a structure in the parameter database defining a virtual
+computer. For instance, let's use the name "wall" for our virtual
+computer.
+
+<pre>
+  wall SZG_CONF virtual true
+  wall SZG_TRIGGER map smoke
+  wall SZG_MASTER map SZG_SCREEN0
+  wall SZG_SCREEN number_screens 6
+  wall SZG_SCREEN0 map wall1/SZG_SCREEN0
+  wall SZG_SCREEN0 networks wall
+  wall SZG_SCREEN1 map wall2/SZG_SCREEN0
+  wall SZG_SCREEN1 networks wall
+  wall SZG_SCREEN2 map wall3/SZG_SCREEN0
+  wall SZG_SCREEN2 networks wall
+  wall SZG_SCREEN3 map wall4/SZG_SCREEN0
+  wall SZG_SCREEN3 networks wall
+  wall SZG_SCREEN4 map wall5/SZG_SCREEN0
+  wall SZG_SCREEN4 networks wall
+  wall SZG_SCREEN5 map wall6/SZG_SCREEN0
+  wall SZG_SCREEN5 networks wall
+  wall SZG_INPUT0 map smoke/wandsimserver
+  wall SZG_INPUT0 networks internet
+  wall SZG_SOUND map sound
+  wall SZG_SOUND networks internet
+</pre>
+
+<p>In what follows, for the sake of clarity we refer directly to
+virtual computer "wall". In general, substitute the name of the virtual
+computer you have defined. </p>
+<p>Now, assuming that there are szgd daemons running on all the
+computers in the virtual computer "wall" (i.e. smoke, sound, wall1, wall2, wall3,
+wall4, wall5, wall6), the following command will suffice to launch the hspace demo
+on "wall": </p>
+<pre>dex wall hspace<br></pre>
+<p>To kill the demo: </p>
+<pre>dkill wall hspace<br></pre>
+<p>Note that one can launch a new demo without killing the old one. The
+launching process takes care of cleaning-up the old demo. So, the
+following sequence of command would bring up hspace, then cosmos, and
+then hspace. </p>
+<pre>dex wall hspace<br>dex wall cosmos<br>dex wall hspace<br></pre>
+<p>Let's now examine how this works. When you type </p>
+<pre>dex wall hspace<br></pre>
+<p>the "dex" command first checks to see if "wall" is the definition of
+a virtual computer by seeing if wall/SZG_CONF/virtual is set to true.
+If so, "dex" determines the trigger of the virtual computer via
+wall/SZG_TRIGGER/map and executes hspace there, passing the executable a
+special parameter indicating that it is being used to launch the full
+cluster application. </p>
+<p>When the application is being used as a launcher, it first makes
+sure that a previous demo isn't already running, by checking, in this
+case, if the named lock "wall/SZG_DEMO/app" is held. If so, the
+application sends a kill message to the owner of the lock and waits for
+it to exit. Once the old application has died, the new application
+enters a clean-up phase which makes sure appropriate services are
+running on the cluster. </p>
+<p>First, it checks to see if an incompatible render program is running
+on any of the screens. For virtual computer "wall" and screen 0, this
+is done by checking whether anyone is currently holding the lock
+wall1/SZG_SCREEN0. Note that a render program can
+still be active on a screen when an application has been killed. For
+instance, szgrender stays up after a distributed scene graph
+application as died, since it can just accept a new connection from a
+new distributed scene graph application. If there is a render program
+currently registered and it is incompatible with the operation of the
+new render program, the old one is killed. </p>
+<p>Next, the application launcher makes sure that the required services
+are running on the cluster. So far, we are only launching input device and
+sound drivers. In the case of virtual computer "wall", this means making sure
+wandsimserver is running on computer "smoke" and that SoundRender is
+running on computer "sound". In each case, if the component is running
+already, leave it alone. If it isn't running, go ahead and launch it. </p>
+<p>A word about the syntax of wall/SZG_INPUT0/map is in order.
+Sometimes, as will be covered in the <a href="InputDevices.html">input
+devices</a> chapter, it is desirable to construct a virtual input device
+from different physical devices. In these cases, the value of
+wall/SZG_INPUT0/map would look something like: </p>
+<pre>computer1/service1/computer2/service2<br></pre>
+<p>indicating that "service1" should be launched on "computer1" and
+"service2" should be launched on "computer2". </p>
+<p>Now that its environment has been conditioned, the application
+launcher goes ahead and starts the application itself. In the
+master/slave application case, it launches an application instance on
+each of the render nodes. In the case of a distributed scene graph
+application, it goes ahead and makes sure szgrender is running on each
+render node and begins executing the application code locally. </p>
+<p>Finally, the application launcher waits for a kill signal. And
+performs a shutdown upon receiving it. </p>
+
+<p>Here are several useful commands for managing a virtual computer: </p>
+<pre>
+  dkillall virtual_computer
+   
+   Kill any demos currently running on virtual_computer.
+
+  restarttracker virtual_computer
+
+   Restart services associated with virtual_computer (for instance
+   input devices and sound).
+
+  setdemomode virtual_computer [true, false]
+
+   If second argument is "true", sets each rendering node to use a fixed
+   head position rather than that reported by the tracking device. The head position
+   is read from SZG_SCREEN(n)/fixed_head_pos on each computer, and is a 
+   3-number x/y/z string, e.g. 0/5/0. Each rendering node will assume that the 
+   direction of gaze is perpendicular to its screen, and the up direction of the head 
+   will be taken from SZG_SCREEN(n)/fixed_head_up_angle (defaults to 0/1/0).
+   This is often preferable for multi-person demos, particularly for stereoscopic 
+   displays. To set things back to normal mode, use "false" as the second argument.
+
+  setstereo virtual_computer [true, false]
+
+   Turns active stereo rendering on and off for each rendering node of the cluster.
+
+  screensaver virtual_computer
+
+   Start szgrender programs on each render node in the cluster. Since szgrender is 
+   black when no application is connected, this effectively is a screensaver.
+
+  calibrationdemo virtual_computer
+
+   Display a calibration screen useful for alignment and color matching,
+   looking for the calibration picture cubecal.ppm in the SZG_DATA/path of
+   each render node.
+</pre>
+
 <a name="Context">
 <p><font size=+2>Component Contexts in Phleet</font>
 </a>
@@ -698,6 +848,123 @@ for instance. Note the example:
 <pre>
   dex my_virtual_computer my_app -szg server=the_IP_address/the_port -szg user=the_user_name
 </pre> 
+
+<a name="ServiceLocks">
+<p><font size="+2">Connection Brokering, Service Names, and Locks</font>
+</a>
+
+<p>Services in the cluster application (like sound information, scene graph
+information, input events) are brokered via a service name. Components
+will fail to launch if they want to provide a service with a given name but
+cannot since another component is already providing that service.
+Consequently, it is important to understand how services get their names and
+how to find out what services are being offered.
+
+<p>Service names are parially determined by the nature of the service and
+partially by the circumstances under which a component is launched. Base
+service names for the various syzygy service are mentioned below.
+
+<pre>
+  SZG_INPUT(n)
+
+   One of SZG_INPUT0, SZG_INPUT1, etc. The number refers to the driver slot.
+   wandsimserver and DeviceServer offer this service. DeviceClient
+   and Syzygy applications in general wish to connect to it.
+
+  SZG_SOUND
+
+   Source of sound information. SoundRender wishes to receive this service.
+   Syzygy VR framework applications offer it.
+
+  SZG_SOUND_BARRIER
+
+   Synchronization for the SZG_SOUND service. SoundRender connects to this
+   service. Syzygy VR framework applications offer it.
+
+  SZG_GEOMETRY
+
+   Source of scene graph information. szgrender wishes to receive this
+   service. Distributed scene graph applications offer it.
+
+  SZG_GEOMETRY_BARRIER
+
+   Synchronization for the SZG_GEOMETRY service. szgrender wishes to
+   receive this service. Distributed scene graph applications offer it.
+
+  SZG_MASTER_(application_name)
+
+   The master instance of a master/slave application offers data to the
+   slaves via this service. Slave instances try to connect to this service.
+
+  SZG_MASTER_(application_name)_BARRIER
+
+   Synchronization for the above service.
+</pre>
+
+<p>If a user launches a component, but does not do so in the context of a virtual
+computer, the component's service name will be:
+
+<pre>
+  basic_service_name/syzygy_user_name
+</pre>
+
+This prevents the actions of one syzygy user from interfering with those
+of another.
+
+<p>On the other hand, if a user launches a component in the context of
+a virtual computer, the component's service name will be:
+
+<pre>
+  virtual_computer_name/basic_service_name
+</pre>
+
+This allows various users to collaborate on using application components on a
+particular virtual computer. In a sense, the virtual computer is a shared
+resource.
+
+<p>Use the "dservices" command to see a listing of all currently offered services.
+Conversely, use the "dpending" command to see a listing of all service requests
+that have yet to be matched with a service. The user can debug problems
+with the distributed system, particularly issues with one component not 
+connecting to another, via these commands.
+
+<p>To get an idea of how this all fits together, consider a brief example.
+When running a distributed scene graph application, it will offer the
+SZG_GEOMETRY service. A instance of szgrender wants to connect to the
+SZG_GEOMETRY service, and the connection broker, seeing that such a
+service is running, will send the IP/port of the service to szgrender, which
+will then connect directly to the distributed scene graph application. 
+In addition, the distributed scene graph application wants to connect to
+the SZG_INPUT0 service, which can be provided by a DeviceServer or 
+wandsimserver.
+
+<p>Locks can be used to assure atomic operation of the Phleet,
+like virtual_computer_name/SZG_DEMO/lock, which ensures that a demo
+launching on a particular virtual computer will be able to reorganize the
+components running there without being interrupted. They can also be used
+to reserve resources. A copy of szgd ensures that no other copy is running
+on its computer by, upon start, trying to grab a computer_name/szgd lock.
+If it fails, another copy must be running and it exits. If it succeeds,
+it holds the lock while running. Other resource reservation locks are
+SoundRender's computer_name/SoundRender lock and szgrender's
+computer_name/SZG_SCREEN(n) lock, which refers to the virtual screen
+designation of its graphics window. A final resource lock is the virtual
+computer's application lock (virtual_computer_name/SZG_DEMO/app), which
+ensures that only one syzygy application is running on a given virtual
+computer at a time. 
+
+<p>Finally, locks facilitate automatic shutdown of previously running
+applications. Specifically, if a new application wants to get a resource,
+it can try to get the associated lock. If it fails, the system passes
+it the phleet ID of the component holding the lock. The new application
+can then send the currently running component a kill message and 
+wait until the lock has been released.
+
+<p>The "dlocks" command will show a list of currently existing locks.
+
+<a name="Troubleshooting">
+<p><font size="+2">Troubleshooting</font>
+</a>
 
 <hr>
 

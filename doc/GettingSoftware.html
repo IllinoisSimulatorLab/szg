@@ -498,16 +498,39 @@ the make goes on to the next one. "make clean" does the expected thing.
 <p><font size=+2>Advanced Makefile Targets</font>
 </a>
 
-There are a few additional Makefile targets that can be useful in specific
-circumstances.
+<p>There are a few additional Makefile targets that can be useful in specific
+circumstances. These targets allow the user to create an installable SDK
+and manage the external shared libraries.
 
 <p><ul>
-<li>create-sdk: In Makefile.rules and top-level Makefile.
-<li>clean-sdk: Top-level Makefile only.
-<li>install-shared (good for DEVELOPER): top-level only (but what about COIN and VTK?)
-<li>bin-install: In Makefile.rules and top-level Makefile.
-<li>install-pch: Only for "easy"
-<li>clean-pch: Only for "easy"
+<li>create-sdk: This both occurs in every top level Makefile and in 
+Makefile.rules (and consequently every low-level Makefile as well). When 
+invoked from a developer's install of the szg source, it creates an SDK
+installation in $SZGHOME/szg-install. All executables and shared libraries,
+including the external libraries, are copied into the bin subdirectory and
+symbolic links are created there to deal with library sonames, as required.
+In addition, documentation, header files, and some of the make infratsructure
+are copied over. Elsewhere (like in py-szg or szgdemo), create-sdk just 
+causes locally produced binaries and libraries to be added to an existing
+$SZGHOME/szg-install.
+<li>clean-sdk: This exists in the top-level Makefile of the developer's version
+of szg only. Removes the working SDK
+installation, if such exists (i.e. deletes $SZGHOME/szg-install).
+<li>install-shared: This target exists in every top level Makefile and in
+Makefile.rules. It copies shared libraries into the binary directory (i.e.
+$SZGBIN).
+<li>bin-install: This target exists in every top level Makefile and in 
+Makefile.rules. It copies a project's compiled binaries and libraries into
+the binary directory ($SZGBIN).
+<li>install-pch: This target only has meaning when using a Windows version of
+the SDK. By default, compiling with the SDK has precompiled headers turned
+off, resulting in slower compilation on Windows. If you wish to use 
+precompiled headers to speed up compilation, you will need to execute this
+target from the build directory of the SDK. Afterwards, you can turn on
+precompiled headers by setting environment variable SZG_USE_PCH to TRUE.
+<li>clean-pch: This target only has meaning when using a Windows version of
+the SDK. It deletes the precompiled header file created by the install-pch
+target.
 </ul>
 <hr>
 
