@@ -15,7 +15,6 @@
   <li><a href="#OffNetwork">How to Run Syzygy Applications Off the Network</a>
   <li><a href="#Examples">Configuration Examples</a>
   <li><a href="#Parameters">Parameters Explanation</a>
-  <li><a href="#Button">Using the ButtonInterface Demo Launcher</a>
 </ul>
 
 <a name="Intelligent">
@@ -507,16 +506,21 @@ just as easily be SZG_SCREEN1, SZG_SCREEN2, etc.
 
   SZG_SCREEN0 stereo [true, false]
 
-   Whether or not the screen should be drawn using active stereo. This requires LCD stereo shutter goggles and a graphics card that supports OpenGL stereo buffers. This parameter must be either "true" or "false", with the default being "false". The Syzygy application frameworks query the graphics card regarding stereo buffer support; if they aren't supported, this parameter is ignored.
+   Whether or not the screen should be drawn using active stereo. This requires 
+   LCD stereo shutter goggles and a graphics card that supports OpenGL stereo 
+   buffers. This parameter must be either "true" or "false", with the default 
+   being "false". The Syzygy application frameworks query the graphics card 
+   regarding stereo buffer support; if they aren't supported, this parameter is 
+   ignored.
 
   SZG_SCREEN0 fixed_head [true, false]
 
    Whether or not the screen is using fixed-head mode. In fixed-head mode, the
-   projection is determined based on a fixed head position and
-   orientation. The orientation depends on the screen_normal. Fixed-head mode
-   is better than the correct VR projection for a large group of people
-   inside a projection-based virtual environment. The default is
-   "false". The actual fixed position is taken from SZG_SCREEN0/fixed_head_pos.
+   projection is determined based on a fixed head position and orientation. The 
+   orientation depends on the screen_normal. Fixed-head mode is better than the 
+   correct VR projection for a large group of people inside a projection-based 
+   virtual environment. The default is "false". The actual fixed position is taken 
+   from SZG_SCREEN0/fixed_head_pos.
 
   SZG_SCREEN0 fixed_head_pos x/y/z
 
@@ -611,33 +615,5 @@ lists are used to give the paths.
    Location of textured text font used by szgrender billboard.
 </pre>
 
-<a name="Button">
-<p><font size="+2">Using the ButtonInterface Demo Launcher</font> </p>
-</a>
-<p>For the user's convenience, the Syzygy program includes a
-lightweight interface for launching the included demos. Like the
-JavaInterface used to control the distributed operating system at a
-more basic level, the ButtonInterface consists on a Java GUI and a
-Syzygy program that relays its commands to the distributed system. The
-names of the buttons in the GUI are mapped to executables by a file
-"ipaq.txt" that must be present in the SZG_DATA/path on the computer
-where ButtonInterface runs. The syntax of this file looks like (each
-line of the map is 2 double-quote delimited strings): </p>
-<pre>("the button name"   "the executable name, plus parameters")<br>("another button name"  "another executable name, plus parameters")<br></pre>
-<p>To run this interface, you'll need to define a virtual computer as
-outlined in a previous section. Next, type in the command: </p>
-<pre>ButtonInterface [virtual_computer] [service_tag]<br></pre>
-<p>The "service_tag" parameter serves to identify this instance of the
-ButtonInterface relay on the LAN. Once this is running, launch the Java
-GUI by executing the class WindowInterface in
-szg/src/demo/buttonfly/java. </p>
-<pre>java WindowInterface [subnet]<br></pre>
-<p>If you are running the Java GUI on a multihomed computer without
-access to DNS, you'll have to specify the subnet parameter (i.e.
-192.168.0). In the resulting text box, type the "service_tag" entered
-above and you'll be able to connect to the ButtonInterface relay. A
-window with many buttons appears, some, like "hspace" useful for
-launching demos, and others, like "screensaver" performing maintenance
-functions. </p>
 </body>
 </html>

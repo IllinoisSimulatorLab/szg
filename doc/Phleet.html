@@ -81,24 +81,25 @@ manually thereon.
 <p><font size=+2>Reserved Words and Characters</font>
 </a>
 
-<p>NULL, *, and ** cannot be user-defined user, computer, group, or 
-parameter names. NULL internally functions as the indication of an undefined
-value. The characters
+<p>"NULL" or "*" cannot be user-defined user, computer, group, or 
+parameter names. "NULL" internally functions as the indication of an undefined
+value, whereas "*" is used in the szgserver discovery process. The characters
 
 <pre>
   :  ;  |  / 
 </pre>
 
 should not be used in names. These characters are used for data parsing and 
-representation.
+representation. 
 
 <a name="ReservedPorts">
 <p><font size=+2>Reserved Ports</font>
 </a>
 
-<p>The szgserver uses ports 4620 and 4621 to provide automatic discovery services.
-The <a href="#Lightweight">lightweight interfaces</a>, such as the JavaInterface and
-the ButtonInterface, use ports 4622 and 4623.
+<p>The Phleet components use UDP on port 4620 to provide automatic discovery of
+running szgserver's. Syzygy also needs a block of ports reserved on each machine
+in the Phleet, as a Syzygy cluster is called, for connection brokering. By default,
+the port block used is 4700-4899, but can be redefined by the user.
 
 <a name="PhleetConfiguration">
 <p><font size=+2>Phleet Configuration</font>
@@ -117,6 +118,8 @@ record types.
     char[] type;    // only "ip" valid so far
     char[] name;    // a name for the network, like "internet", "wall", or "cube"
     char[] address; // the interface's address, for instance 192.168.0.1
+    char[] netmask; // the netmask associated with this interface, assumed to be
+                    // 255.255.255.0 if not set.
   </pre>
 
   <pre>

@@ -7,70 +7,124 @@
 
 <p><font size=+2>Syzygy: Getting the Software</font>
 
+<p>Syzygy works and is tested on reasonably modern versions of 
+Linux, Windows, Mac OS X, and Irix, as outlined <a href="Testing.html">here</a>, a 
+document every user should read. In general, you'll want to look at the 
+<a href="SupportingLibraries.html">chapter</a> on installing supporting libraries for 
+Syzygy compilation.
+
+<p>If you are downloading and using the precompiled binaries/API, you can simply
+look at the list of Syzygy software <a href="#Packages">packages</a>
+to familiarize yourself with what is available and then proceed to 
+this <a href="#OSEasyInstructions">section</a>
+to install the binaries. If you are building the software yourself, start reading 
+this section from the beginning.
+
 <p>
 <ul>
-<li><A HREF="#Requirements">Requirements</a>
+<li><A HREF="#Packages">Software Packages</a>
+<li><A HREF="#OSEasyInstallation">OS-Specific Precompiled Install Instructions</a>
+<li><A HREF="#OSBuildInstructions">OS-Specific Build Instructions</a>
 <li><A HREF="#BuildEnvVar">Syzygy Build Environment Variables</a>
 <li><A HREF="#VCCEnvVar">Visual C++ Command-Line Environment Variables</a>
 <li><A HREF="#SupportLibs">Installing Supporting Libraries</a>
-<li><A HREF="#CompileSyzygy">Compiling the Syzygy Toolkit</a>
-<li><A HREF="#CompileDemos">Compiling the Demos</a>
-<li><A HREF="#InstallData">Installing the Optional Data Distribution</a>
-<li><A HREF="#InstallDemos">Installing the 2nd Tier Demos</a>
+<li><A HREF="#CompileSyzygy">Compiling the Syzygy Library</a>
+<li><A HREF="#CompileDemos">Compiling the Sample Applications in szg</a>
+<li><A HREF="#InstallData">Compiling the Sample Applications in szgdemo</a>
+</ul>
+
+<A NAME="Packages">
+<p><font size=+2>Software Packages</font>
+</a>
+
+<p>The following software (and data) packages are part of the Syzygy distribution:
+<p><ul>
+<li>szg-0.7.tar.gz: Everything necessary to build and test the library. Includes
+sample applications. See <a href="ExampleCode.html">here</a> for information about
+running them.
+<li>szgdemo-0.7.tar.gz: Additional sample applications. These are described
+<a href="ExampleCode.html">here</a>. 
+<li>szgdata-0.7.tar.gz: Data necessary for the sample applications, as outlined
+<a href="ExampleCode.html">here</a>, but excluding some particularly large files,
+which are available by request.
+<li>py-szg-0.7.tar.gz: Python bindings for Syzygy.
+<li>pycube-0.7.tar.gz: Sample Python Syzygy programs.
+<li>szg-0.7-linux.tar.gz: Precompiled Linux version of the Syzygy API.
+<li>external-0.7-linux.tar.gz: External libraries and headers used to produce
+the executables.
+<li>szg-0.7-win32.tar.gz: Precompiled Win32 version of the Syzygy API.
+<li>external-0.7-win32.tar.gz: External libraries and headers used to produce
+the executables.
+<li>szg-0.7-darwin.tar.gz: Precompiled Mac OS X version of the Syzygy API.
+<li>external-0.7-darwin.tar.gz: External libraries and headers used to produce
+the executables.
+<li>szg-0.7-sgi.tar.gz: Precompiled SGI version of the Syzygy API.
+<li>external-0.7-sgi.tar.gz: External libraries and headers used to produce 
+the executables.
+</ul>
+
+<A NAME="OSEasyInstructions">
+<p><font size=+2>OS-Specific Precompiled Install Instructions</font>
+</a>
+
+<p>For all platforms, unpack the precompiled distribution to a directory szg-0.7.
+To run Syzygy programs you will need to, assuming that $SZGHOME is the location
+of the new directory:
+
+<p><ul>
+<li>Linux: Add $SZGHOME/bin to the front of your $LD_LIBRARY_PATH and $PATH. 
+By setting your dynamic library search path, you enable the runtime linker to
+find the Syzygy shared libaries.
+<li>Win32: Add $SZGHOME/bin to your $PATH variable.
+<li>Mac OS X: Add $SZGHOME/bin to the front of your $DYLD_LIBRARY_PATH and $PATH.
+<li>Irix: Add $SZGHOME/bin to the front of your $LD_LIBRARYN32_PATH and $PATH.
 </ul>
 
 
-<A NAME="Requirements">
-<p><font size=+2>Requirements</font>
+<A NAME="OSBuildInstructions">
+<p><font size=+2>OS-Specific Build Instructions</font>
 </a>
-
-<p>Syzygy works on Linux, Windows, Mac OS X, and Irix platforms. 
-   Please read the notes below for your platform(s).
-
-<p>Some of the included demos require additional libraries and data, discussed below.
 
 <p>Linux: 
 <p><ol>
-<li>Most current versions include OpenGL libraries via Mesa. 
-  Hardware-accelerated graphics can be set up with minimal effort. 
-  NVidia graphics cards have high-quality <a href="http://www.nvidia.com">drivers</a>.
-<li>GLUT is not installed by default in many Linux distros. However,
-  it is very easy to find it on the <a href="http://www.opengl.org">web</a> 
-  and compile it. Note that Mesa includes GLUT.
-  Headers for GLUT and the .so must be installed in /usr/include/GL and /usr/lib,
-  as is standard.
-<li>IMPORTANT NOTE: for reliable operation, syzygy requires a thread-safe libc++.
-  gcc-2.96 fails in this regard, so occasional problems will be observed on,
-  for instance, RedHat 7.0 and RedHat 7.1, which use this compiler, when 
-  deployed in an SMP configuration. The solution is to use an earlier or later
-  version (RedHat 6.2 is OK as is RedHat 8.0). For other Linux distros, consider
-  that gcc-3.2.x is known to work.
+<li>X11 and ncurses development packages are required for compilation. Your distribution
+  might not install these by default.
+<li>GLUT is required for compilation as well. Either install a GLUT development
+  package via your distribution or install GLUT in Syzygy's external build 
+  libraries, as described <a href="SupportingLibraries.html">here</a>.
 <li>IMPORTANT NOTE: the Syzygy build environment produces code for the i686 architecture
-  by default.
-  If you have an older processor, you need to change the "-march=i686" flag in
-  szg/build/make/Makefile.defines. Experiment with either removing it or 
+  by default.If you have an older processor, you need to change the "-march=i686" flag in
+  szg/build/make/Makefile.vars. Experiment with either removing it or 
   downgrading, for instance to "-march=i586".
 </ol>
 
-<p>Windows: Syzygy's build system uses GNU make and the command line Visual Studio
-  compiler and linker. This has been tested with Visual Studio 6.0 and Visual
-  Studio .Net. Reports of compilation trouble with earlier versions of Visual Studio 
-  are welcome.
-  
-<p>You will need a unix-like shell for Windows that provides a GNU make utility. We
-  have tested two, MinGW/MSYS and Cygwin. If you're not currently using either, we
-  recommend MinGW (except perhaps for Win98, see below); Cygwin is a much larger package
-  and at the time of writing is
-  only available as a network installer. MinGW is relatively small and comes as
-  two self-contained installers, which we have included in our distribution. You can
-  also check for more recent versions at
-  <a href="http://www.mingw.org/">www.mingw.org</a>. Run the MinGW installer first,
-  then the MSYS installer. If you do install
-  Cygwin (<a href="http://www.cygwin.com/">www.cygwin.com</a>) instead, make sure that
-  the checkboxes for make and for bin/utils are checked. If you don't plan to use
-  Cygwin for anything else, you can create
-    a minimum-disk-space Cygwin which will still build Syzygy by 
-    selecting only these packages (uncheck <i>all</i> other checkboxes):
+<p>Windows: 
+
+<p><ol>
+<li>Syzygy's build system uses GNU make and the command line Visual Studio
+  compiler and linker. This has been tested with Visual Studio 6.0 (in combination
+  with STLPort) and Visual Studio .Net.
+<li>You will need a unix-like shell for Windows that provides a GNU make utility. We
+  have tested two, MinGW/MSYS and Cygwin. If you're not currently using either (and
+  are not using Windows 98, see below), we recommend MinGW. Cygwin is a much larger package, 
+  comprising an entire Unix system, and is only available via a network installer. 
+  On the other hand, MinGW is relatively small and comes as two self-contained installers.
+<li>Syzygy programs expect to be able to scrape their name from the command-line args.
+  The Windows NT, Windows 2000, and Windows XP (cmd.exe) shells all work.
+  Unfortunately, the Win98 cmd.exe shell mangles argv[0], interfering with Syzygy's 
+  proper operation. The cygwin shell does, however, work with Syzygy on all Windows
+  versions, including Windows 98. Consequently, we recommend using installing and
+  using the cygwin shell on Windows 98.
+<li>To install MinGW, run the MinGW installer first (which gives you the underlying 
+  system) and then the MSYS installer (which gives you the Unix-like shell needed to run
+  the commands).  Please note, the MSYS shell, as of this writing, has a hard time
+  outputing text from Syzygy programs. Consequently, we recommend running Syzygy commands
+  from a regular Windows shell (cmd.exe) and only compiling in MSYS. This workaround means
+  that MinGW is unsuitable for Win98, where cygwin should be used instead.
+<li>You might prefer to install cygwin (<a href="http://www.cygwin.com/">www.cygwin.com</a>)
+  if you want more Unix functionality from the command line than MinGW provides. You can
+  create a minimum-disk-space Cygwin which will still build Syzygy by 
+  selecting only these packages (uncheck <i>all</i> other checkboxes):
     <dl>
     <dt>Category: Base
         <dd>ash bash cygwin fileutils login sh-utils
@@ -79,52 +133,22 @@
     <dt>Category: Shells
         <dd>ash bash sh-utils
     </dl>
-<li>Install MS Visual Studio.  When it asks if you want to use
-    the tools from the command line, answer "yes." Note that this
-    document also shows you the right environment variable settings
-    in the <A HREF="#VCCEnvVar">VC++ Command Line Environment Variables section</a>.
-<li>Install <a href="http://www.xmission.com/~nate/glut.html">GLUT</a>.
-    For a standard install of Visual Studio 6, the directory:
-
-<pre>
-    Microsoft Visual Studio/Vc98/Include/GL
-</pre>
- 
-    should hold the includes and
-
-<pre>
-    Microsoft Visual Studio/Vc98/Lib
-</pre> 
-
-    should hold the libraries.
-    For Visual Studio .Net 2003, use these directories instead:
- 
-<pre>
-    Microsoft Visual Studio .NET 2003/Vc7/PlatformSDK/Include/gl
-    Microsoft Visual Studio .NET 2003/Vc7/PlatformSDK/Lib
-</pre>
-
-<li>IMPORTANT: Make sure that your SZGHOME environment variable is set to the
-    top-level of your szg tree. See below.
+<li>Install MS Visual Studio. If you are using Visual Studo 6, you'll also need STLport
+  to replace VC-6's non-threadsafe STL. With Visual Studio .NET (i.e. 7), STLport is not
+  necessary. Consequently, we recommend Visual Studio .NET for Syzygy compilation.
+  Please see <a href="SupportingLibraries.html">here</a> for instructions. 
+<li>To compile from the command-line, Visual Studio needs several enviroment variables 
+  to be set appropriately. Please see <a href="VisualStudioBuildVars.html">here</a>
+  for details.
+<li>You will need to install GLUT, as described in the Windows section of this 
+  <a href="SupportingLibraries.html">chapter</a>. Please note that, in the past,
+  we encouraged users to install the glut headers and library in the Visual Studio 
+  directory. While this is still possible, the prefered Syzygy way is to install it in
+  a known, external location.
 <li>Launch a (MSYS or Cygwin) shell. Check that the PATH environment variable includes
-    the directory containing cl.exe and link.exe (the Visual Studio compiler
-    and linker). Directories containing dll's used
-    by the compiler and linker will also need to be in the BIN path.
-<li>The software will run on Win98, NT, Win2K, and Win XP. Note that there appear to
-    be problems with timing if some of the Syzygy executables are run directly from
-    the MSYS shell; specifically, the MSYS shell is not yet very good and outputing
-    text. In general, we recommend running commands from a regular Windows shell (cmd.exe).
-<li>IMPORTANT: the support for Win98 is limited, with normal usage necessitating
-    a work-around noted below. Specifically, the various syzygy
-    components check argv[0] to determine their name. Unfortunately, on Win98 when 
-    an executable is run from cmd.exe (the default shell), it
-    is impossible to retrieve the executable name with case preserved from argv[0]. 
-    Hence, a few critical components (szgd, SoundRender, and DeviceServer) 
-    have their correct names hard-coded. There will be problems running other 
-    components on Win98 from cmd.exe. However, the components can be run from
-    the Cygwin shell. We don't know how they will behave if run from the MSYS shell,
-	which is why people using Win98 might need to install Cygwin. This workaround
-	allows normal operation on Win98.
+  the directory containing cl.exe and link.exe (the Visual Studio compiler
+  and linker). Directories containing dll's used
+  by the compiler and linker will also need to be in the BIN path.
 </ol>
 
 <p>Mac OS X: GLUT is already installed so things will compile out of the box.
@@ -136,7 +160,7 @@
    you need to compile szg/contrib/dlcompat. This is a simple:
 
 <p><ul>
-<li> cd szg/contrib/dlcompat-20020709
+<li> cd szg/contrib/dlcompat
 <li> make
 </ul>
 
