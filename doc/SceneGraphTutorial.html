@@ -21,12 +21,12 @@ still be used since it is built on the same framework described here.
 <li><a href="#Background">Basic Background on Scene Graphs</a>
 <li><a href="#Database">Graphics Peers: Important Phleet Database Parameters</a>
 <li><a href="#Peer">Graphics Peers: Tutorial Set Up</a>
-<li><a href="#Points">Simple Points And Lines Example</a>
-<li><a href="#Lighting">Scene Graph: Using Lights</a>
 <li><a href="#Nodes">Scene Graph: Node Types</a>
-<li><a href="#Meshes">Scene Graph: Built-in Meshes</a>
-<li><a href="#Objects">Scene Graph: Loading Objects</a>
-<li><a href="#File">Scene Graph: File Operations</a>
+<li><a href="#Objects">Loading Objects</a>
+<li><a href="#File">Saving and Reloading Your Work</a>
+<li><a href="#Application">Creating an Application</a>
+<li><a href="#Lighting">Scene Graph: Using Lights</a>
+<li><a href="#Points">Fundamental Geometry Manipulations</a>
 </ul>
 
 <a name="Background">
@@ -244,126 +244,26 @@ it building an object.
 way.
 </ul>
 
-<a name="Points">
-<p><font size=+2>Simple Points And Lines Example</font>
-</a>
-
-<p>We can now actually display some graphics. Recall that we used the
-translate method of "handle" to position our remote peer within the
-workspace so that (0,0,0) will be in the center of the display, with the
-XY plane parallel to the screen.
-
-<p>First, we will experiment with displaying some points. To display points,
-we need three nodes: a points node (containing the positions), a colors
-node containing different colors, and a drawable node telling us to draw
-points. The graphics database (or graphics peer in our case) creates the
-nodes. The factory function is passed the node's parent, its type, and finally
-its name. The first node attaches to the graph's root. Since geometry and
-color arrays are inherited state, they must be ancestors of the drawable node,
-which needs them to make its points. Notice especially how each node is
-a child of the one before it.
-
-<pre>
-  rt = peer.getRoot()
-  p = peer.new(rt, "points", "points_node")
-  c = peer.new(p, "color4", "colors_node")
-  d = peer.new(c, "drawable", "drawable_node")
-</pre>
-
-Look at the scene graph structure by typing:
-
-<pre>
-  peer.printStructure()
-</pre>
-
-You'll see something like so:
-
-<pre>
-  Database structure:
-    (0, "root", "root")
-     (1, "points_node", "points")
-      (2, "colors_node", "color4")
-       (3, "drawable_node", "drawable")
-
-</pre>
-
-Now, you can actually get some points to display.
-
-<pre>
-  p.setPoints(4, [0,0,0, 1,0,0, 1,1,0, 0,1,0])
-  c.setColor4(4, [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1])
-  d.setDrawable(DG_POINTS, 4)
-</pre>
-
-The points node now contains the geometry for 4 points, listed one after
-another. The color4 node now contains 4 color values (RGBA), listed one
-after another. The drawable node asks that 4 points be drawn. These coordinates
-for these points are taken, one after another, from the array stored in the
-points node, and their colors are taken, in concert, one after another from
-the the colors array stored in the color4 node. This is exactly the way
-OpenGL vertex arrays work.
-
-<p>We can even get fancy and change a only a particular point's coordinate.
-
-<pre>
-  p.setPoints(1, [0,0.5,0], [0])
-</pre>
-
-Here, the first parameter gives the number of points to change, the second
-the coordinates, and the third the point IDs. We changed the first point in
-the array. The same trick can be applied to color.
-
-<pre>
-  c.setColor4(1, [0,1,0,1], [1])
-</pre>
-
-Perhaps you would like to also display some lines between those points. We want
-to share the points node, but not the color4 node.
-
-<pre>
-  cl = peer.new(p, "color4", "line_color")
-  il = peer.new(cl, "index", "line_index")
-  dl = peer.new(il, "drawable", "lines")
-</pre>
-
-You can print out the structure now and see your new nodes. There are two
-branches to the tree, forking at the points node. Note how the children
-of a node all are idented one from their parent.
-
-<pre>
-  (0, "root", "root")
-   (1, "points_node", "points")
-    (2, "colors_node", "color4")
-     (3, "drawable_node", "drawable")
-    (4, "line_color", "color4")
-     (5, "line_index", "index")
-      (6, "lines", "drawable")
-</pre>
-
-You can now define some lines. 2D and 3D drawables use an index node to
-store the geometry they will use. Each such drawable has a stride, namely a
-number of indices needed to define the next primitive. For a line set
-(DG_LINES), this stride is 2. Each pair of indices gives the IDs of the points
-in the line, one after another. The colors in the color4 node apply to
-the lines, one after another.
-
-<pre>
-  cl.setColor4(6, [1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1])
-  il.setIndices(12, [0,1, 1,2, 2,3, 3,0, 0,2, 1,3])
-  dl.setDrawable(DG_LINES, 6)
-</pre>
-
-The four points now define a box, with an "x" going through the middle.
-
-<a name="Lighting">
-<p><font size=+2>Scene Graph: Using Lights</font>
-</a>
-
-<p>Since many
-
 <a name="Nodes">
 <p><font size=+2>Scene Graph: Node Types</font>
 </a>
+
+<p>This tutorial will teach you how to use the following node types.
+These are all you need to construct a wide variety of visualizations.
+<ol>
+<li>light: A light.
+<li>material: A material, with defaults as defined in the OpenGL
+standard.
+<li>texture: A texture image, as loaded from either .ppm or .jpg formats.
+<li>transform: A 4x4 matrix.
+<li>points: An array of coordinates in 3-space.
+<li>index: An array holding element indices. Useful for making geometry, like
+lines and triangles out of points.
+<li>color4: An array holding colors.
+<li>tex2: Texture coordinates.
+<li>drawable: The actual drawable content, point sets, lines, triangles, etc.
+<li>billboard: A simple means of displaying text.
+</ol>
 
 <a name="Objects">
 <p><font size=+2>Scene Graph: Loading Objects</font>
@@ -536,8 +436,344 @@ names: "al.default.colors1", "al.default.colors2", "al.default.colors3",
 and "al.default.colors4".
 
 <a name="File">
-<p><font size=+2>Scene Graph: File Operations</font>
+<p><font size=+2>Scene Graph: Saving and Reloading Your Work</font>
 </a>
+
+<p>You should be certain that your Phleet parameters are set as in 
+<a href="#Database">this</a> section, especially the SZG_PEER/path. We
+assume you have worked through the section on <a href="#Objects">loading</a>
+objects.
+
+<p>First, save your database. You are writing it in binary format (which is
+faster to load). Note the file type: .szg.
+
+<pre>
+  peer.writeDatabase("test-al.szg")
+</pre>
+
+A file "test-al.szg" should now be in the directory given by SZG_PEER/path on
+the computer you are running the Python prompt. Next, quit the Python prompt
+and exit from the reality peer workspace that was displaying your work.
+
+<p>You will now get back to the point where you were before. Restart the
+workspace, as before ("szg-rp work1"). Enter a new Python prompt.
+
+<pre>
+  from rp import *
+  m = rpManager()
+  work1 = m.getWorkspace("work1")
+  handle = work1.newPeer("target")
+  peer = feedbackPeer("peer","target")
+</pre>
+
+<p>The "feedbackPeer" command makes a new peer named "peer" which connects
+to a peer named "target" (which exists in the workspace), downloads the
+currently held scene graph information, and turns on both sending and receiving
+of future scene graph updates. If the command succeeds, it will output "1".
+To load your previously saved scene:
+
+<pre>
+  peer.readDatabase("test-al.szg")
+</pre>
+
+Again, if this suceeds, it will output "1". Note that this does not look
+exactly the same as it did before. The difference is the translation of the
+peer "target" within the workspace "work1". To restore:
+
+<pre>
+  handle.translate(0,5,-5)
+</pre>
+
+<a name="Application">
+<p><font size=+2>Creating an Application</font>
+</a>
+
+<p>You can now retrieve nodes from the created scene graph and manipulate them
+individually. To recall the structure of the scene graph, use the
+printStructure() method of arGraphicsPeer. Note that you can control the
+depth of the tree that gets printed by requesting that the graph be cut off
+after a certain depth.
+
+<pre>
+  peer.printStructure()
+  peer.printStructure(1)
+  peer.printStructure(2)
+</pre>
+
+You can get various nodes by asking for them by name.
+
+<pre>
+  t1 = peer.find("transform1")
+  t2 = peer.find("transform2")
+  t3 = peer.find("transform3")
+</pre>
+
+You can now, for instance, rotate the little man by changing his matrix.
+Rotation matrices can be constructued using ar_rotationMatrix, with the
+rotation axis being either 'x', 'y', or 'z' and the angle being given in
+radians. If you want to specify the angle in degrees, you can use the
+ar_convertToRad utility function, as below.
+
+<pre>
+  t3.setTransform(ar_rotationMatrix('y',ar_convertToRad(60)))
+</pre>
+
+You can also change colors and textures.
+
+<pre>
+  m1 = peer.find("material1")
+  mater = m1.getMaterial()
+  mater.diffuse = arVector3(0,0,1)
+  m1.setMaterial(mater)
+  tex = peer.find("texture2")
+  tex.setFileName("Books.jpg")
+</pre>
+
+Assuming you have a Books.jpg file in your SZG_RENDER/texture_path, the 
+background (which is really just a huge cube face) will show that image.
+
+<p>This all shows a way to develop a Syzygy scene graph application, but
+doing so interactively and with maximum flexibility.
+
+<p><ul>
+<li>Make a base scene, which will be animated by moving objects, changing
+colors, and changing textures. This scene can be constructed by stages, saving
+it after each session, and reloading it to begin work again.
+<li>The actual scene graph application starts by loading the scene file.
+<li>It then gets the nodes it will manipulate via the "find" method, as above.
+<li>The application manipulates the nodes. It could move objects around by
+changing the transforms contained in transform nodes.
+</ul>
+
+Let's explore the possibilities a little bit. First of all, the workspace
+saves the scene graph independently of the peer at the Python prompt.
+Consequently, we can quit the Python prompt, leave the workspace running
+(containing the peer "target"), and run the following script:
+
+<pre>
+from rp import *
+import time
+
+peer = feedbackPeer("peer","target")
+t1 = peer.find("transform1")
+t2 = peer.find("transform2")
+t3 = peer.find("transform3")
+times = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+for t in times:
+        t1.setTransform(ar_translationMatrix(-7,t/4.0,0))
+        t2.setTransform(ar_translationMatrix(-1,t/4.0,0)*ar_scaleMatrix(100,100,100))
+        t3.setTransform(ar_translationMatrix(2,t/4.0,0))
+        time.sleep(1)
+</pre>
+
+In this case, when the object "peer" is created, it automatically downloads
+the peer "target" and shares its changes with "target". Different scripts
+can modify the displaying peer simultaneously. Try running the
+next one listed while running the first. Remember that the workspace 
+containing target still needs to be up. 
+
+<pre>
+from rp import *
+import time
+
+peer = feedbackPeer("peer1","target")
+m1 = peer.find("material1")
+times = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+mater = m1.getMaterial()
+for t in times:
+        mater.diffuse = arVector3(t/20.0,1,1)
+        m1.setMaterial(mater)
+        time.sleep(0.1)
+</pre>
+
+IMPORTANT NOTE: Only one peer with a given name
+can exist in the system at a given time. Each of these scripts embed a peer
+with a particular name. Consequently, you cannot run more than one instance
+of each at once in the Phleet. As an exercise, you could modify each to take
+a peer name as a command line argument, then the user, by giving different
+peer names, could run multiple instances of the same script at once.
+
+<p>We now try to get a little more sophisticated. The following program
+checks to see if there is a workspace "work1". If not, it goes ahead and
+starts one on the computer given by the first command line arg to the script.
+Once the workspace exists, the program checks to see if a peer named
+"target" exists. If so, it clears the peer. If not, it creates it.
+Next, it loads our scene into the peer "target". For this script to operate,
+szgd must be running on the computer that will run the workspace.
+
+<pre>
+from rp import *
+import sys
+
+if len(sys.argv) < 2:
+        print('Must give computer name for workspace')
+        sys.exit()
+m = rpManager()
+m.refresh()
+work1 = m.getWorkspace('work1')
+if work1 == None:
+        work1 = m.newWorkspace(sys.argv[1],'work1')
+        if work1 == None:
+                print('Failed to make workspace.')
+                sys.exit()
+handle = work1.getPeer('target')
+if handle == None:
+        handle = work1.newPeer('target')
+        if handle == None:
+                print('Failed to create peer.')
+                sys.exit()
+handle.reset()
+peer = feedbackPeer('peer','target')
+peer.readDatabase('test-al.szg')
+handle.translate(0,5,-5)
+</pre>
+
+<p>Again, only one of these scripts will run at once, since each embeds
+an arGraphicsPeer with name 'peer', and there can be only one such active
+at a give time in the Phleet.
+
+<p>Finally, we show how to load the scene into a Syzygy distributed scene
+graph application. Note that in the below code, we assume that your
+test scene was saved in /usr/local/Peer. Change this as appropriate for
+your installation (this corresponds to SZG_PEER/path).
+
+<pre>
+from PySZG import *
+import time
+
+f = arDistSceneGraphFramework()
+if f.init(["test-app"]) == 0:
+        sys.exit()
+g = f.getDatabase()
+n = g.find(f.getNavNodeName())
+g.attach(n,"test-al.szg","/usr/local/Peer")
+if f.start() == 0:
+        sys.exit()
+while 1:
+        f.navUpdate()
+        f.loadNavMatrix()
+        f.setViewer()
+        f.setPlayer()
+        time.sleep(0.017)
+</pre>
+
+<a name="Lighting">
+<p><font size=+2>Scene Graph: Using Lights</font>
+</a>
+
+<p>You might want to have complete control over the lights in your scene. 
+The scene graph light nodes implement the full OpenGL lighting model. 
+
+<a name="Points">
+<p><font size=+2>Fundamental Geometry Manipulations</font>
+</a>
+
+<p>We can now actually display some graphics. Recall that we used the
+translate method of "handle" to position our remote peer within the
+workspace so that (0,0,0) will be in the center of the display, with the
+XY plane parallel to the screen.
+
+<p>First, we will experiment with displaying some points. To display points,
+we need three nodes: a points node (containing the positions), a colors
+node containing different colors, and a drawable node telling us to draw
+points. The graphics database (or graphics peer in our case) creates the
+nodes. The factory function is passed the node's parent, its type, and finally
+its name. The first node attaches to the graph's root. Since geometry and
+color arrays are inherited state, they must be ancestors of the drawable node,
+which needs them to make its points. Notice especially how each node is
+a child of the one before it.
+
+<pre>
+  rt = peer.getRoot()
+  p = peer.new(rt, "points", "points_node")
+  c = peer.new(p, "color4", "colors_node")
+  d = peer.new(c, "drawable", "drawable_node")
+</pre>
+
+Look at the scene graph structure by typing:
+
+<pre>
+  peer.printStructure()
+</pre>
+
+You'll see something like so:
+
+<pre>
+  Database structure:
+    (0, "root", "root")
+     (1, "points_node", "points")
+      (2, "colors_node", "color4")
+       (3, "drawable_node", "drawable")
+
+</pre>
+
+Now, you can actually get some points to display.
+
+<pre>
+  p.setPoints(4, [0,0,0, 1,0,0, 1,1,0, 0,1,0])
+  c.setColor4(4, [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1])
+  d.setDrawable(DG_POINTS, 4)
+</pre>
+
+The points node now contains the geometry for 4 points, listed one after
+another. The color4 node now contains 4 color values (RGBA), listed one
+after another. The drawable node asks that 4 points be drawn. These coordinates
+for these points are taken, one after another, from the array stored in the
+points node, and their colors are taken, in concert, one after another from
+the the colors array stored in the color4 node. This is exactly the way
+OpenGL vertex arrays work.
+
+<p>We can even get fancy and change a only a particular point's coordinate.
+
+<pre>
+  p.setPoints(1, [0,0.5,0], [0])
+</pre>
+
+Here, the first parameter gives the number of points to change, the second
+the coordinates, and the third the point IDs. We changed the first point in
+the array. The same trick can be applied to color.
+
+<pre>
+  c.setColor4(1, [0,1,0,1], [1])
+</pre>
+
+Perhaps you would like to also display some lines between those points. We want
+to share the points node, but not the color4 node.
+
+<pre>
+  cl = peer.new(p, "color4", "line_color")
+  il = peer.new(cl, "index", "line_index")
+  dl = peer.new(il, "drawable", "lines")
+</pre>
+
+You can print out the structure now and see your new nodes. There are two
+branches to the tree, forking at the points node. Note how the children
+of a node all are idented one from their parent.
+
+<pre>
+  (0, "root", "root")
+   (1, "points_node", "points")
+    (2, "colors_node", "color4")
+     (3, "drawable_node", "drawable")
+    (4, "line_color", "color4")
+     (5, "line_index", "index")
+      (6, "lines", "drawable")
+</pre>
+
+You can now define some lines. 2D and 3D drawables use an index node to
+store the geometry they will use. Each such drawable has a stride, namely a
+number of indices needed to define the next primitive. For a line set
+(DG_LINES), this stride is 2. Each pair of indices gives the IDs of the points
+in the line, one after another. The colors in the color4 node apply to
+the lines, one after another.
+
+<pre>
+  cl.setColor4(6, [1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1])
+  il.setIndices(12, [0,1, 1,2, 2,3, 3,0, 0,2, 1,3])
+  dl.setDrawable(DG_LINES, 6)
+</pre>
+
+The four points now define a box, with an "x" going through the middle.
 
 <hr>
 </body>

@@ -61,6 +61,11 @@ class SZG_CALL arDatabase{
   virtual bool attachXML(arDatabaseNode* parent, 
                          const string& fileName, 
                          const string& path="");
+  // Don't make this virtual yet... preserve backwards compatibility of object
+  // code.
+  bool attach(arDatabaseNode* parent, 
+              const string& fileName, 
+              const string& path="");
   virtual bool mapXML(arDatabaseNode* parent, 
                       const string& fileName, 
                       const string& path="");

@@ -352,6 +352,45 @@ bool arDatabase::attachXML(arDatabaseNode* parent,
   return true;
 }
 
+/// Attaching means to create a copy of the file in the database,
+/// with the file's root node mapped to parent. All other nodes in the
+/// file will be associated with new nodes in the database.
+// DOH! CUT_AND_PASTE IS REARING ITS UGLY HEAD!
+bool arDatabase::attach(arDatabaseNode* parent,
+			const string& fileName,
+			const string& path){
+  FILE* source = ar_fileOpen(fileName, path, "rb");
+  if (!source){
+    cerr << "arDatabase warning: failed to read file \""
+         << fileName << "\".\n";
+    return false;
+  }
+  arStructuredDataParser* parser 
+    = new arStructuredDataParser(_lang->getDictionary());
+  arStructuredData* record;
+  bool done = false;
+  map<int, int, less<int> > nodeMap;
+  while (!done){
+    record = parser->parseBinary(source);
+    if (record){
+      bool success = _filterIncoming(parent, record, nodeMap, true);
+      parser->recycle(record);
+      if (!success){
+        // There was an unrecoverable error. _filterIncoming already
+	// complained so do not do so here.
+        break;
+      }
+    }
+    else{
+      done = true;
+    }
+  }
+  delete parser;
+  // best to close this way...
+  fclose(source);
+  return true;
+}
+
 /// Mapping means attempting to merge the file into the existing database
 /// in a reasonable way, starting with the root node of the file being
 /// mapped to parent. When a new node is defined in the file, the
