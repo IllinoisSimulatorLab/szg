@@ -283,7 +283,7 @@ arStructuredData* arStructuredDataParser::parse(arTextStream* textStream,
     }
     switch (fieldType) {
     case AR_CHAR:
-      // THIS MUST SKIP WHITESPACE! NONE OF THE OTHERS SHOULD DO SO!
+      // THIS NOT MUST SKIP WHITESPACE! ALL OF THE OTHERS SHOULD DO SO!
       size = ar_parseXMLData<ARchar>(workingBuffer, charData, false);
       if (!charData){
         cerr << "arStructuredDataParser error: XML char data expected but "

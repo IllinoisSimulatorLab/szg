@@ -10,7 +10,7 @@
 // The methods used by the dynamic library mappers. 
 // NOTE: These MUST have "C" linkage!
 extern "C"{
-  SZG_CALL arInputSource* factory(){
+  SZG_CALL void* factory(){
     return new arJoystickDriver();
   }
 
@@ -152,7 +152,6 @@ bool arJoystickDriver::init(arSZGClient& client){
     return false;
   }
 #endif
-  cout << "AARGH! done with the device independent stuff!\n";
 
 #ifdef AR_USE_WIN_32
 // Initialize pStick.

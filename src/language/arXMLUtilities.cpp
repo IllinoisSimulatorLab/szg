@@ -65,6 +65,8 @@ bool ar_getTextBeforeTag(arTextStream* textStream, arBuffer<char>* textBuffer){
   }
   textStream->ar_ungetc(ch);
   textBuffer->grow(location+1);
+  // VERY IMPORTANT THAT THE CHARACTER BUFFER BE NULL-TERMINATED.
+  // THIS MAKES FOR EASY CONVERSION TO A C++ STRING!
   textBuffer->data[location] = '\0';
   return true;
 } 

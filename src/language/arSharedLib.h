@@ -43,6 +43,9 @@ using namespace std;
 /// or in a standard directory, whereas Win32 will look first for dll's
 /// in the executable's directory.
 
+typedef void* (*arSharedLibFactory)();
+typedef void (*arSharedLibObjectType)(char*, int);
+
 class SZG_CALL arSharedLib {
  public:
   arSharedLib();
@@ -53,8 +56,18 @@ class SZG_CALL arSharedLib {
   void* sym(const string& functionName);
   string error();
 
+  bool createFactory(const string& sharedLibName,
+                     const string& path,
+                     const string& type,
+                     string& error);
+  void* createObject();
+
  private:
   LibHandle _h;
+  arSharedLibFactory    _factory;
+  arSharedLibObjectType _objectType;
+  bool _libraryLoaded;
+  bool _factoryMapped;
 };
 
 #endif

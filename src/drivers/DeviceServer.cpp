@@ -6,6 +6,8 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 
+#include "arStringTextStream.h"
+#include "arXMLUtilities.h"
 #include "arInputNode.h"
 #include "arNetInputSink.h"
 #include "arNetInputSource.h"
@@ -22,9 +24,147 @@
 #include "arPForthFilter.h"
 #include "arFaroCalFilter.h"
 
-// These functions are embedded in the shared objects.
-typedef arInputSource* (*arInputSourceFactory)();
-typedef void (*arSharedObjectType)(char*, int);
+class InputNodeConfig{
+ public:
+  InputNodeConfig(){ pforthProgram = ""; valid = false; }
+  ~InputNodeConfig(){}
+
+  list<string> inputSources;
+  list<string> inputSinks;
+  list<string> inputFilters; 
+  string       pforthProgram;
+  bool         valid;
+};
+
+// The input node configuration (at this early stage) looks like this:
+// <szg_device>
+//   <input_sources>
+//     ... list (possibly empty) of input source object names ...
+//   </input_sources>
+//   <input_sinks>
+//     ... list (possibly empty) of input sink object names ...
+//   </input_sinks>
+//   <input_filters>
+//     ... list (possibly empty) of input filters
+//   </input_filters>
+//   <pforth>
+//     ... either empty (all whitespace) or a pforth program ...
+//   </pforth>
+// </szg_device>
+
+string testConfig1 = "
+  <szg_device>
+    <input_sources>
+     foo bar
+    </input_sources>
+    <input_sinks>
+
+    </input_sinks>
+    <input_filters>
+    aargh blaargh fooargh
+
+    </input_filters>
+    <pforth>
+jkjkjjljkjkljkjkjljkj
+lklklklklkk
+    lklklklkl
+    </pforth>
+  </szg_device>
+ 
+";
+
+bool parseTokenList(arStringTextStream& tokenStream,
+                    const string& tagType,
+                    list<string>& tokenList){
+  // Should get input_sources.
+  string tagText = ar_getTagText(&tokenStream);
+  arBuffer<char> buffer(128);
+  if (tagText != tagType){
+    cout << "DeviceServer parsing error: expected " << tagType << " tag.\n";
+    return false;
+  }
+  if (! ar_getTextBeforeTag(&tokenStream, &buffer)){
+    cout << "DeviceServer parsing error: failed on " << tagType << " field.\n";
+    return false;
+  }
+  stringstream tokens(buffer.data);
+  string token;
+  while (true){
+    tokens >> token;
+    if (!tokens.fail()){
+      tokenList.push_back(token);
+      cout << "input sources token (" << tagType << ") = " << token << "\n";
+    }
+    if (tokens.eof()){
+      break;
+    }
+  }
+  // Look for closing input_sources tag.
+  tagText = ar_getTagText(&tokenStream);
+  if (tagText != "/"+tagType){
+    cout << "DeviceServer parsing error: failed on " << tagType 
+         << ") end tag.\n";
+    return false;
+  }
+  return true;
+}
+
+InputNodeConfig parseInputNodeConfig(const string& nodeConfig){
+  InputNodeConfig result;
+  arStringTextStream configStream(nodeConfig);
+  arBuffer<char> buffer(128); 
+  // Look for starting szg_device tag.
+  string tagText = ar_getTagText(&configStream);
+  if (tagText != "szg_device"){
+    cout << "DeviceServer parsing error: got incorrect opening tag.\n";
+    result.valid = false;
+    return result;
+  }
+  
+  if (!parseTokenList(configStream, "input_sources", result.inputSources)){
+    result.valid = false;
+    return result;
+  }
+  if (!parseTokenList(configStream, "input_sinks", result.inputSinks)){
+    result.valid = false;
+    return result;
+  }
+  if (!parseTokenList(configStream, "input_filters", result.inputFilters)){
+    result.valid = false;
+    return result;
+  }
+  
+  // Should get pforth.
+  tagText = ar_getTagText(&configStream);
+  if (tagText != "pforth"){
+    cout << "DeviceServer parsing error: expected pforth tag.\n";
+    result.valid = false;
+    return result;
+  }
+  if (! ar_getTextBeforeTag(&configStream, &buffer)){
+    cout << "DeviceServer parsing error: failed on pforth field.\n";
+    result.valid = false;
+    return result;
+  }
+  result.pforthProgram = string(buffer.data);
+  cout << "PForth program = " << result.pforthProgram << "\n";
+  // Look for closing pforth tag.
+  tagText = ar_getTagText(&configStream);
+  if (tagText != "/pforth"){
+    cout << "DeviceServer parsing error: failed on pforth end tag.\n";
+    result.valid = false;
+    return result;
+  }
+  // Look for closing /szg_device tag.
+  tagText = ar_getTagText(&configStream);
+  if (tagText != "/szg_device"){
+    cout << "DeviceServer parsing error: failed on szg_device end tag.\n";
+    result.valid = false;
+    return result;
+  }
+  result.valid = true;
+  return result;
+}
 
 int main(int argc, char** argv){
   struct widget /* what's a good name for this? */ {
@@ -59,6 +199,9 @@ int main(int argc, char** argv){
     { "arLogitechDriver",     "SZG_LOGITECH", "Logitech Tracker", NULL},
     { "arPPTDriver",          "SZG_PPT", "WorldViz PPT Tracker", "USED"}
     };
+
+  parseInputNodeConfig(testConfig1);
+  return 1;
 
   arSZGClient SZGClient;
   SZGClient.simpleHandshaking(false);
@@ -103,38 +246,10 @@ int main(int argc, char** argv){
   arSharedLib inputSourceObject;
   // We want to load the object from the SZG_EXEC path.
   string execPath = SZGClient.getAttribute("SZG_EXEC","path");
-  if (execPath == "NULL"){
-    execPath = "";
-  }
-  if (!inputSourceObject.open(argv[1],execPath)){
-    initResponse << "DeviceServer error: could not dynamically load object "
-		 << "(name=" << argv[1] << ") on path=" << execPath << ".\n";
-    SZGClient.sendInitResponse(false);
-    return 1;
-  }
-  // First, make sure that we do indeed have the right type.
-  arSharedObjectType sharedObjectType
-    = (arSharedObjectType) inputSourceObject.sym("baseType");
-  if (!sharedObjectType){
-    initResponse << "DeviceServer error: could not map type function.\n";
-    SZGClient.sendInitResponse(false);
-    return 1;
-  }
-  char typeBuffer[256];
-  sharedObjectType(typeBuffer, 256);
-  if (strcmp(typeBuffer, "arInputSource")){
-    initResponse << "DeviceServer error: dynamically loaded object "
-		 << "(name=" << argv[1] << ") declares wrong type="
-		 << typeBuffer << "\n";
-    SZGClient.sendInitResponse(false);
-    return 1;
-  }
-  // Get the factory function
-  arInputSourceFactory factory 
-    = (arInputSourceFactory) inputSourceObject.sym("factory");
-  if (!factory){
-    initResponse << "DeviceServer error: could not map factory function in "
-		 << "object (name=" << argv[1] << ").\n";
+  string error;
+  if (!inputSourceObject.createFactory(argv[1], execPath, "arInputSource",
+				       error)){
+    initResponse << error;
     SZGClient.sendInitResponse(false);
     return 1;
   }
@@ -142,8 +257,7 @@ int main(int argc, char** argv){
   // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
   // The motionstar driver has a "true" argument to its constructor in the
   // original DeviceServer
-  theSource = factory();
-  
+  theSource = (arInputSource*) inputSourceObject.createObject();
   if (!theSource) {
     initResponse << "DeviceServer error: failed to create input source.\n";
     SZGClient.sendInitResponse(false);
@@ -193,6 +307,7 @@ int main(int argc, char** argv){
   inputNode.addFilter(&firstFilter, true);
   
   arIOFilter* filter = NULL;
+  // NOTE: We will want to GET RID of serviceName...
   string filterName(SZGClient.getAttribute(widgets[iService].serviceName, 
                     "filter"));
 
