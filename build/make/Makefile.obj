@@ -25,6 +25,7 @@ SZG_INCLUDE = \
   -I$(SZGHOME)/src/math \
   -I$(SZGHOME)/src/barrier \
   -I$(SZGHOME)/src/graphics \
+  $(SZG_DLL_INCLUDE) \
   $(SZG_INCLUDE_3DS)
 SZG_LINK_LIBS = $(GRAPHICS_LIBS) $(GENERAL_LIBS)
 SZG_OPTIONAL_LIBS = $(LIB_3DS)

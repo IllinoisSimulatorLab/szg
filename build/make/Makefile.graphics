@@ -59,6 +59,7 @@ SZG_INCLUDE = \
   -I$(SZGHOME)/src/phleet \
   -I$(SZGHOME)/src/math \
   -I$(SZGHOME)/src/barrier \
+  $(SZG_DLL_INCLUDE) \
   $(SZG_INCLUDE_JPEG)
 SZG_LINK_LIBS = $(GRAPHICS_LIBS) $(GENERAL_LIBS)
 SZG_OPTIONAL_LIBS = $(LIB_JPEG)

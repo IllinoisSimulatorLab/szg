@@ -358,6 +358,11 @@ phleettest, the service tests, etc.)
 <li>Must deal with the python examples (i.e. make them fit into the
 pattern...)
 
+<li>Our dylibs WILL NOT load on Mac OS X 10.2 (on 10.3 this seems OK) unless
+the environment variable DYLD_BIND_AT_LAUNCH has been set.
+
+<li>DYLD_LIBRARY_PATH instead of LD_LIBRARY_PATH on OS X!!!
+
 </ul>
 </body>
 </html>

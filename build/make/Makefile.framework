@@ -32,6 +32,7 @@ SZG_INCLUDE = \
   -I$(SZGHOME)/src/sound \
   -I$(SZGHOME)/src/obj \
   -I$(SZGHOME)/src/interaction \
+  $(SZG_DLL_INCLUDE) \
   $(SZG_OPT_INCLUDE_FULL)
 SZG_LINK_LIBS = $(GRAPHICS_LIBS) $(GENERAL_LIBS)
 SZG_OPTIONAL_LIBS = $(SZG_OPT_LIBS_FULL)
@@ -80,15 +81,15 @@ $(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
 # in it)
 include $(SZGHOME)/build/make/Makefile.rules
 
-wandsimserver$(EXE): wandsimserver$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+wandsimserver$(EXE): wandsimserver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_EXE_FIRST) wandsimserver$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
-dmsg$(EXE): dmsg$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+dmsg$(EXE): dmsg$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_EXE_FIRST) dmsg$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
-MasterSlaveSkeleton$(EXE): MasterSlaveSkeleton$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
+MasterSlaveSkeleton$(EXE): MasterSlaveSkeleton$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_EXE_FIRST) MasterSlaveSkeleton$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 

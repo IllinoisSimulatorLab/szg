@@ -33,7 +33,8 @@ OBJS = \
 SZG_INCLUDE = \
   -I$(SZGHOME)/src/language \
   -I$(SZGHOME)/src/phleet \
-  -I$(SZGHOME)/src/math
+  -I$(SZGHOME)/src/math \
+  $(SZG_DLL_INCLUDE)
 SZG_LINK_LIBS = $(GENERAL_LIBS)
 SZG_OPTIONAL_LIBS = 
 SZG_LIBRARY_LIBS = \
@@ -86,22 +87,22 @@ ALL =   $(SZG_CURRENT_DLL) \
   PForthTest$(EXE) \
   pfconsole$(EXE) \
   EventTest$(EXE) \
-  arPPTDriver$(DLL_SUFFIX) \
-  arLogitechDriver$(DLL_SUFFIX) \
-  arFaroDriver$(DLL_SUFFIX) \
-  arFOBDriver$(DLL_SUFFIX) \
-  arReactionTimerDriver$(DLL_SUFFIX) \
-  arMotionstarDriver$(DLL_SUFFIX) \
-  arBirdWinDriver$(DLL_SUFFIX) \
-  arIntelGamepadDriver$(DLL_SUFFIX) \
-  arJoystickDriver$(DLL_SUFFIX) \
-  arSpacepadDriver$(DLL_SUFFIX) \
-  arEVaRTDriver$(DLL_SUFFIX) \
-  arVRPNDriver$(DLL_SUFFIX) \
-  arIntersenseDriver$(DLL_SUFFIX) \
-  arConstantHeadFilter$(DLL_SUFFIX) \
-  arTrackCalFilter$(DLL_SUFFIX) \
-  arFaroCalFilter$(DLL_SUFFIX)
+  arPPTDriver$(PLUGIN_SUFFIX) \
+  arLogitechDriver$(PLUGIN_SUFFIX) \
+  arFaroDriver$(PLUGIN_SUFFIX) \
+  arFOBDriver$(PLUGIN_SUFFIX) \
+  arReactionTimerDriver$(PLUGIN_SUFFIX) \
+  arMotionstarDriver$(PLUGIN_SUFFIX) \
+  arBirdWinDriver$(PLUGIN_SUFFIX) \
+  arIntelGamepadDriver$(PLUGIN_SUFFIX) \
+  arJoystickDriver$(PLUGIN_SUFFIX) \
+  arSpacepadDriver$(PLUGIN_SUFFIX) \
+  arEVaRTDriver$(PLUGIN_SUFFIX) \
+  arVRPNDriver$(PLUGIN_SUFFIX) \
+  arIntersenseDriver$(PLUGIN_SUFFIX) \
+  arConstantHeadFilter$(PLUGIN_SUFFIX) \
+  arTrackCalFilter$(PLUGIN_SUFFIX) \
+  arFaroCalFilter$(PLUGIN_SUFFIX)
 
 
 # NOTE: "Everything" is the magic target name used by subsidiary targets
@@ -147,34 +148,34 @@ pfconsole$(EXE): pfconsole$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 
 # The first collection of shared objects is built on functionality found in
 # szg (like serial port communications)
-arPPTDriver$(DLL_SUFFIX): arPPTDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_SHARED_FIRST) arPPTDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+arPPTDriver$(PLUGIN_SUFFIX): arPPTDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arPPTDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
-arLogitechDriver$(DLL_SUFFIX): arLogitechDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_SHARED_FIRST) arLogitechDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+arLogitechDriver$(PLUGIN_SUFFIX): arLogitechDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arLogitechDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
-arFaroDriver$(DLL_SUFFIX): arFaroDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_SHARED_FIRST) arFaroDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+arFaroDriver$(PLUGIN_SUFFIX): arFaroDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arFaroDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
-arFOBDriver$(DLL_SUFFIX): arFOBDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_SHARED_FIRST) arFOBDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+arFOBDriver$(PLUGIN_SUFFIX): arFOBDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arFOBDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
   
-arReactionTimerDriver$(DLL_SUFFIX): arReactionTimerDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_SHARED_FIRST) arReactionTimerDriver$(OBJ_SUFFIX) \
+arReactionTimerDriver$(PLUGIN_SUFFIX): arReactionTimerDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arReactionTimerDriver$(OBJ_SUFFIX) \
 $(POST_LINK_LINE_EXE)
 	$(COPY)
 
-arMotionstarDriver$(DLL_SUFFIX): arMotionstarDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_SHARED_FIRST) arMotionstarDriver$(OBJ_SUFFIX) \
+arMotionstarDriver$(PLUGIN_SUFFIX): arMotionstarDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arMotionstarDriver$(OBJ_SUFFIX) \
 $(POST_LINK_LINE_EXE)
 	$(COPY)
 
-arSpacepadDriver$(DLL_SUFFIX): arSpacepadDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_SHARED_FIRST) arSpacepadDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+arSpacepadDriver$(PLUGIN_SUFFIX): arSpacepadDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arSpacepadDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
 # Each of the next collection of shared objects uses some additional
@@ -183,59 +184,59 @@ arSpacepadDriver$(DLL_SUFFIX): arSpacepadDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) 
 arBirdWinDriver$(OBJ_SUFFIX): arBirdWinDriver.cpp
 	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE) $(SZG_INCLUDE_WIN_BIRD)
 
-arBirdWinDriver$(DLL_SUFFIX): arBirdWinDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+arBirdWinDriver$(PLUGIN_SUFFIX): arBirdWinDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(LINKER) $(PRE_LINK_BIRDWIN) $(PRE_LINK_LINE_EXE) \
-$(LINK_FLAGS_SHARED) $(LINK_PREFIX)arBirdWinDriver$(DLL_SUFFIX) \
+$(LINK_FLAGS_SHARED) $(LINK_PREFIX)arBirdWinDriver$(PLUGIN_SUFFIX) \
 arBirdWinDriver$(OBJ_SUFFIX) $(POST_LINK_BIRDWIN) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
-arIntelGamepadDriver$(DLL_SUFFIX): arIntelGamepadDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+arIntelGamepadDriver$(PLUGIN_SUFFIX): arIntelGamepadDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(LINKER) $(PRE_LINK_GAMEPAD) $(PRE_LINK_LINE_EXE) \
-$(LINK_FLAGS_SHARED) $(LINK_PREFIX)arIntelGamepadDriver$(DLL_SUFFIX) \
+$(LINK_FLAGS_SHARED) $(LINK_PREFIX)arIntelGamepadDriver$(PLUGIN_SUFFIX) \
 arIntelGamepadDriver$(OBJ_SUFFIX) $(POST_LINK_GAMEPAD) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
-arJoystickDriver$(DLL_SUFFIX): arJoystickDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+arJoystickDriver$(PLUGIN_SUFFIX): arJoystickDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(LINKER) $(PRE_LINK_GAMEPAD) $(PRE_LINK_LINE_EXE) \
-$(LINK_FLAGS_SHARED) $(LINK_PREFIX)arJoystickDriver$(DLL_SUFFIX) \
+$(LINK_FLAGS_SHARED) $(LINK_PREFIX)arJoystickDriver$(PLUGIN_SUFFIX) \
 arJoystickDriver$(OBJ_SUFFIX) $(POST_LINK_GAMEPAD) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
 arEVaRTDriver$(OBJ_SUFFIX): arEVaRTDriver.cpp
 	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE) $(SZG_INCLUDE_EVART)
 
-arEVaRTDriver$(DLL_SUFFIX): arEVaRTDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+arEVaRTDriver$(PLUGIN_SUFFIX): arEVaRTDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(LINKER) $(PRE_LINK_EVART) $(PRE_LINK_LINE_EXE) $(LINK_FLAGS_SHARED) \
-$(LINK_PREFIX)arEVaRTDriver$(DLL_SUFFIX) arEVaRTDriver$(OBJ_SUFFIX) \
+$(LINK_PREFIX)arEVaRTDriver$(PLUGIN_SUFFIX) arEVaRTDriver$(OBJ_SUFFIX) \
 $(POST_LINK_EVART) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
 arVRPNDriver$(OBJ_SUFFIX): arVRPNDriver.cpp
 	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE) $(SZG_INCLUDE_VRPN)
 
-arVRPNDriver$(DLL_SUFFIX): arVRPNDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+arVRPNDriver$(PLUGIN_SUFFIX): arVRPNDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(LINKER) $(PRELINK_VRPN) $(PRE_LINK_LINE_EXE) $(LINK_FLAGS_SHARED) \
-$(LINK_PREFIX)arVRPNDriver$(DLL_SUFFIX) arVRPNDriver$(OBJ_SUFFIX) \
+$(LINK_PREFIX)arVRPNDriver$(PLUGIN_SUFFIX) arVRPNDriver$(OBJ_SUFFIX) \
 $(POST_LINK_VRPN) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
-arIntersenseDriver$(DLL_SUFFIX): arIntersenseDriver$(OBJ_SUFFIX) isense$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_SHARED_FIRST) arIntersenseDriver$(OBJ_SUFFIX) \
+arIntersenseDriver$(PLUGIN_SUFFIX): arIntersenseDriver$(OBJ_SUFFIX) isense$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arIntersenseDriver$(OBJ_SUFFIX) \
 isense$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
 # The filter shared objects.
 
-arConstantHeadFilter$(DLL_SUFFIX): arConstantHeadFilter$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_SHARED_FIRST) arConstantHeadFilter$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+arConstantHeadFilter$(PLUGIN_SUFFIX): arConstantHeadFilter$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arConstantHeadFilter$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
-arTrackCalFilter$(DLL_SUFFIX): arTrackCalFilter$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_SHARED_FIRST) arTrackCalFilter$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+arTrackCalFilter$(PLUGIN_SUFFIX): arTrackCalFilter$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arTrackCalFilter$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
-arFaroCalFilter$(DLL_SUFFIX): arFaroCalFilter$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_SHARED_FIRST) arFaroCalFilter$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+arFaroCalFilter$(PLUGIN_SUFFIX): arFaroCalFilter$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arFaroCalFilter$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
 

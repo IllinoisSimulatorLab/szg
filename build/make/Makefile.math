@@ -15,7 +15,8 @@ OBJS = \
 # to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
 # Makefile.defines neglects to define these)
 SZG_INCLUDE = \
-  -I$(SZGHOME)/src/language
+  -I$(SZGHOME)/src/language \
+  $(SZG_DLL_INCLUDE)
 SZG_LINK_LIBS = $(GENERAL_LIBS)
 SZG_OPTIONAL_LIBS = 
 SZG_LIBRARY_LIBS = $(LANGUAGE_LIB_STRING)

@@ -5,7 +5,7 @@
 
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include "arSZGClient.cpp"
+#include "arSZGClient.h"
 #include "arTexture.h"
 #include "arDataUtilities.h"
 #include <math.h>

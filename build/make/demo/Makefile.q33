@@ -15,6 +15,10 @@ ifeq ($(strip $(MACHINE)),WIN32)
   LINK_FLAGS = $(LINK_FLAGS_DEBUG)
 endif
 
+ifeq ($(strip $(SZG_MULTITEX)),FALSE)
+  COMPILE_FLAGS += -DNO_MULTITEX
+endif
+
 ALL = q33$(EXE)
 Everything: $(ALL)
 

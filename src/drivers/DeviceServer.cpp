@@ -224,7 +224,7 @@ int main(int argc, char** argv){
       arNetInputSource* netInputSource = new arNetInputSource();
       netInputSource->setSlot(nextInputSlot);
       nextInputSlot++;
-      theSource = netInputSource;
+	  inputNode.addInputSource(netInputSource,true);
     }
     else{
       // A dynamically loaded library
