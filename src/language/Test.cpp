@@ -39,6 +39,7 @@ int main(){
   // to dll's on Win32). NOTE: A little web searching indicates that this
   // is essentially a *thread-safety* issue. So better leave the test here.
   arDataTemplate* t3 = new arDataTemplate("foo");
+  cout << "AARGH!\n";
   t3->add("bar", AR_INT);
   delete t3;
 
