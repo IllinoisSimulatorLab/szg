@@ -18,15 +18,23 @@ void striparg(int which, int& argc, char** argv){
 // the stuff you need to type in to make this work
 void printusage(){
   cerr << "dmsg usage:\n";
-  cerr << "  dmsg [-r] component_ID message_type [message_body] (process by ID)\n";
+  cerr << " To send a message to a Phleet component by ID:\n";
+  cerr << "  dmsg [-r] component_ID message_type [message_body]\n";
+  cerr << " To send a message to a Phleet component by name:\n";
   cerr << "  dmsg [-r] -p computer_name component_name message_type "
-       << "[message_body] (process by name)\n";
-  cerr << "  dmsg [-r] -m virtual_computer message_type [message_body] (master)\n";
+       << "[message_body]\n";
+  cerr << " To send a message to the master component on a virtual "
+       << "computer:\n";
+  cerr << "  dmsg [-r] -m virtual_computer message_type [message_body]\n";
+  cerr << " To send a message to a process holding the screen resource:\n";
   cerr << "  dmsg [-r] -g virtual_computer screen_number message_type "
-       << "[message_body] (screen)\n";
-  cerr << "  dmsg [-r] -c location message_type [message_body] (trigger/controller/master)\n";
-  cerr << "  dmsg [-r] -s service_name message_type [message_body] (service)\n";
-  cerr << "  dmsg [-r] -l lock_name message_type [message_body] (lock)\n";
+       << "[message_body]\n";
+  cerr << " To send a message to the trigger process of a virtual computer:\n";
+  cerr << "  dmsg [-r] -c location message_type [message_body]\n";
+  cerr << " To send a message to the component hosting a given service:\n";
+  cerr << "  dmsg [-r] -s service_name message_type [message_body]\n";
+  cerr << " To send a message to the component holding a given lock:\n";
+  cerr << "  dmsg [-r] -l lock_name message_type [message_body]\n";
 }
 
 int main(int argc, char** argv){

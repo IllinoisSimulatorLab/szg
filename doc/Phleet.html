@@ -63,12 +63,12 @@ programs will be executed manually thereon.
 <li> <a href="#ReservedWords">Reserved Words and Characters</a>
 <li> <a href="#ReservedPorts">Reserved Ports</a>
 <li> <a href="#PhleetConfiguration">Phleet Configuration</a>
+<li> <a href="#CommandLine">Additional Command Line Tools</a>
 <li> <a href="#RunningSzgserver">Running szgserver</a>
 <li> <a href="#Connect">How Clients Connect to the szgserver</a>
 <li> <a href="#Szgd">szgd</a>
 <li> <a href="#Names">Names, According to szgserver</a>
 <li> <a href="#User">How Clients Determine the Current User?</a>
-<li> <a href="#CommandLine">Command Line Tools, Organized by Functionality</a>
 <li> <a href="#Message">How Do Clients Message Each Other (via szgserver)</a>
 <li> <a href="#MessageMethod">arSZGClient Methods Associated with Messaging</a>
 <li> <a href="#Lock">The Operation of Locks in Phleet</a>
@@ -89,7 +89,7 @@ value, whereas "*" is used in the szgserver discovery process. The characters
   :  ;  |  / 
 </pre>
 
-should not be used in names. These characters are used for data parsing and 
+should not be used in names since they are used for data parsing and 
 representation. 
 
 <a name="ReservedPorts">
@@ -132,24 +132,24 @@ XML record types.
 <p>Here is an example of an szg.conf file
 
 <pre>
-  <computer>
-    <name>smoke</name>
-  </computer>
+  &lt;computer&gt;
+    &lt;name&gt;smoke&lt;/name&gt;
+  &lt;/computer&gt;
 
-  <interface>
-    <type>IP</type>
-    <name>wall</name>
-    <address>192.168.0.1</address>
-  </interface>
+  &lt;interface&gt;
+    &lt;type&gt;IP&lt;/type&gt;
+    &lt;name&gt;wall&lt;/name&gt;
+    &lt;address&gt;192.168.0.1&lt;/address&gt;
+  &lt;/interface&gt;
 
-  <ports>
-    <first>
+  &lt;ports&gt;
+    &lt;first&gt;
       4700
-    </first>
-    <size>
+    &lt;/first&gt;
+    &lt;size&gt;
       200
-    </size>
-  </ports>
+    &lt;/size&gt;
+  &lt;/ports&gt;
 </pre>
 
 <p>The szg.conf file contains one "computer" record, giving the computer's 
@@ -179,8 +179,8 @@ uses a default name of "NULL".
   <pre>
   dconfig
 
-  Reads the szg.conf file and prints the information contained therein in 
-  human readable form.
+  Parses the szg.conf file and prints the information contained therein in 
+  compact form.
   </pre>
 
   <pre>
@@ -218,7 +218,7 @@ uses a default name of "NULL".
   config file's location.
   </pre>
 
-<p>The Phleet configuration file really just determines the identity of an 
+<p>The Phleet configuration file just determines the identity of an 
 individual computer in the distributed system: its name, its network 
 interfaces, and the ports it will use to offer services. This information is 
 insufficient to join a Phleet. For that, one also needs to know which 
@@ -263,8 +263,147 @@ be stored. SZG_LOGIN must NOT have a trailing slash.
   dwho
 
   Prints the Phleet login file of the particular host system user in a
-  human-readable form.
+  compact form.
   </pre>
+
+  <pre>
+  dhunt
+
+  Display all szgServer's running on the LAN, in the format:
+    server_name/server_IP:server_port
+
+  This command reads the Phleet configuration file and sends an szgserver
+  discovery packet out on each of the interfaces defined therein. There
+  is a 2 second time-out on the discovery process for each interface.
+  </pre>
+
+<a name="CommandLine">
+<p><font size=+2>Additional Command Line Tools</font>
+</a>
+
+<p>The commands for editting the Phleet configuration file (szg.conf) and
+for session management (like dlogin) have been outlined in a previous
+<a href="#PhleetConfiguration">section</a>. Commands are included for 
+managing the paramter database (which is used for configuration), for
+sending messages to running Phleet components (and even for receiving
+replies for an RPC capability), and for monitoring the status of the
+system (being able to find out what is running, among other tricks).
+
+<p><ul>
+<li>Parameter Database Management
+<pre>
+   dbatch batch_file
+
+     Set a group of database parameters at once.
+     batch_file is a text file composed of two types of lines:
+       i. # comment
+       ii. computer_name group_name parameter_name parameter_value
+           Each of which is a string. This is the way parameters are
+           represented in the database.
+     This command looks on a search path given by computer/SZG_SCRIPT/path
+     for the batch file (always starting with the current directory).
+
+   dget computer parameter_group parameter_name
+
+     Display the value of the key computer/group_name/parameter_name.
+
+   dget -a search_string
+
+     Display all key/value pairs in the parameter database containing
+     string search_string.  (For multiple-key searching, just pipe this
+     through grep!)
+
+   dset computer parameter_group parameter_name value
+
+     Assign "value" to the item with key computer/parameter_group/parameter_name.
+</pre>
+<li>Interprocess Communications
+<pre>
+   dex executable_name [args]
+   dex computer_name executable_name [args]
+     Runs "executable_name [args]" on computer_name, by requesting the 
+     sgzd on that computer do so. If not specified, computer_name defaults 
+     to the local host. If szgd is not found, dex fails. On a Windows host, 
+     ".exe" is appended to executable_name, allowing the user to use a 
+     portable, canonical name for executables across Unix-like systems and
+     Windows.
+
+   dkill [-9] [computer_name] executable_label
+     Send a "quit" message to the first entry in the Syzygy process table 
+     matching the inputs. Like unix "kill -9", the -9 option forcibly closes 
+     sgzserver's connection (if a client died without szgserver realizing that 
+     its connection to the client is gone).
+
+   dmsg ID message_type [message_body]
+     Send a message to the process with the specified ID. Phleet messages
+     have two text strings, the type (e.g., "exec") and the body (e.g.,
+     "/home/randomuser/bin/linux"). The body defaults to the empty string.
+
+   dmsg [-r] -p computer_name component_name message_type [message_body]
+
+     Find the component, if such exists, with name component_name that is
+     running on computer computer_name. Send it a message with tag 
+     message_type and body message_body. If message_body is not present, 
+     an empty body is sent.
+
+   dmsg [-r] -m virtual_computer message_type [message_body]
+
+     Find the component, if such exists, running on the master screen of
+     the given virtual computer. Send it a message with tag message_type 
+     and body message_body. If message_body is not present, an empty body 
+     is sent.
+
+   dmsg [-r] -g virtual_computer screen_number message_type [message_body]
+
+     Find the component, if such exists, running on the screen indexed
+     by screen_number pertaining to the listed virtual computer. Send it
+     a message with tag message_type and body message_body. If message_body 
+     is not presnt, an empty body is sent.
+
+   dmsg [-r] -c virtual_computer_location message_type [message_body]
+
+     Find the component, if such exists, which is currently running
+     as the trigger instance of the given virtual computer. Send it
+     a message with tag message_type and body message_body. If message_body 
+     is not present, an empty body is sent.
+
+   dmsg [-r] -s service_name message_type [message_body]
+
+   dmsg [-r] -l lock_name message_type [message_body]
+
+</pre>
+<li>System Monitoring
+<pre>
+   dps [search_tag]
+
+     List all processes in the format:
+       computer_name/process_name/ID
+     Including the search_tag parameter lists only those lines containing it.
+
+   dtop [d milliseconds] | q | t
+
+     Repeated dps, like Unix "top" with pretty color coding.
+     d specifies a delay (default 500).  q sets delay to 0 (cpu hog).
+     t is for stress-"t"esting szgserver:  zero delay and no display.
+     Hit "q" to quit (or use dkill).
+
+   dlocks
+
+     Prints a list of the locks currently held by Phleet components, along
+     with their component IDs.
+
+   dservices
+
+     Prints a list of services currently offered by Phleet components.
+     Useful in seeing what is running.
+
+   dpending
+
+     Prints a list of unfilled service requests that have been posted by
+     Phleet components. Useful in understanding why something is failing
+     to connect to or otherwise get information from another component.
+</pre>
+</ul>
 
 <a name="RunningSzgserver">
 <p><font size=+2>Running szgserver</font>
@@ -314,28 +453,34 @@ just give dlogin the szgserver's name and it will broadcast it on the LAN,
 searching for an szgserver with that name. The discovery process is described 
 now.
 
-<p>First, broadcast a call to szgservers out on the
-LAN. All szgserver programs listen for UDP packets on port 4620. 
-Clients listen for responses on port 4621. The broadcast packet has the 
-following format:
+<p>First, the component broadcasts a call to szgservers out on the
+LAN. All szgserver programs listen for UDP packets on port 4620 and respond
+to discovery requests by broadcasting on the same port. Requests and responses
+are distinguished by a one byte flag in the packet, and both types are 200
+bytes long. They have the following format:
 
-   <pre>
-   char name[128]  // this is either a server name or a '**', indicating
-                   // that every server should respond
-   char IP[32]     // unused (backwards compatibility)
-   </pre>
+<pre>
+  discovery packet (size 200 bytes)
+   bytes 0-3: A version number. Allows us to reject incompatible packets.
+   byte 4: Is this discovery or response? 0 for discovery, 1 for response.
+   bytes 4-131: The requested server name, NULL-terminated string.
+   bytes 132-199: All 0's
+</pre>
 
-<p>When the szgserver receives such a packet and either the name field matches
-its name or contains '**', it responds to the sending IP address on port 4621
-with the following packet:
+<p>When an szgserver receives a discovery packet, it checks whether the
+requested name is the wildcard character "*" or equals its own name. If so,
+it returns a response packet.
 
-   <pre>
-   char  name[128]      // name of the szgserver
-   char  promiscuity    // unused (backwards compatibility)
-   char  IPaddress[32]  // IP address of server, in string format
-   char  port[10]       // port of server, in string format
-   char  name[128]      // unused (backwards compatibility)
-   </pre>
+<pre>
+  response packet (size 200 bytes)
+   bytes 0-3: A version number. Allows us to reject incompatible packets.
+   byte 4: Is this discovery or response? 0 for discovery 1 for response.
+   bytes 5-131: Our name, NULL-terminated string.
+   bytes 132-163: The interface upon which the remote whatnot should
+    connect, NULL-terminated string.
+   bytes 164-199: The port upon which the remote whatnot should connect,
+    NULL-terminated string. (in fact, all trailing zeros)
+</pre>
 
 <p>The timeout period during which the client will wait for a response is
 2 seconds.
@@ -399,170 +544,6 @@ szgd to execute programs at the same time user B is using it.
    /tmp/szg_XXX.conf. The Phleet user name is read from this file.
 </ol>
 
-<a name="CommandLine">
-<p><font size=+2>Command Line Tools, Organized by Functionality</font>
-</a>
-
-<p><ul>
-<li>Creating and editing the Phleet configuration file
-<pre>
-   dname computer_name
-     Sets the Phleet name of the computer to the value of the computer_name
-     parameter. On Win32 systems, the -t option does nothing. In that
-     case, the Phleet configuration file is always c:\szg.conf if a c:
-     drive exists, and d:\szg.conf otherwise. In the Unix case, however,
-     there are two possibilities. If -t is present, the file /tmp/szg.conf
-     is altered. Otherwise, the file /etc/szg.conf is altered. 
-
-   daddinterface network_name interface_address
-     Adds a network interface to the Phleet configuration file. The
-     network_name parameter is a dscriptive string that is used
-     to differentiate different networks. This is helpful when the
-     distributed system contains multiple private networks with
-     duplicate IP address ranges. The interface_address parameter is
-     the IP address. The meaning of the -t option is the same as in dname.
-
-   ddelinterface interface_name interface_address
-     Deletes the specified interface from the Phleet configuration file.
-
-   dports first_port size_of_block
-     Connection brokering uses a block of ports on a given machine that is,
-     by default, given by 4700-4899. If this default range is unappectable
-     for your installation, you can change it, for a particular machine,
-     by issuing the dports command on that machine. The first port in the
-     block is given by first_port and the size of the block is given by
-     size_of_block. 
-
-   dconfig
-     Prints the Phleet configuration file, whose location is determined
-     by the value of SZG_CONF.
-</pre>
-<li>Parameter database management
-<pre>
-   dbatch batch_file
-     Set a group of database parameters at once.
-     batch_file is a text file composed of two types of lines:
-       i. # comment
-       ii. computer_name group_name parameter_name parameter_value
-           Each of which is a string. This is the way parameters are
-           represented in the database.
-     This command looks on a search path given by computer/SZG_SCRIPT/path
-     for the batch file (always starting with the current directory).
-
-   dget computer parameter_group parameter_name
-     Display the value of the key computer/group_name/parameter_name.
-
-   dget -a search_string
-     Display all key/value pairs in the parameter database containing
-     string search_string.  (For multiple-key searching, just pipe this
-     through grep!)
-
-   dset computer parameter_group parameter_name value
-     Assign "value" to the item with key computer/parameter_group/parameter_name.
-</pre>
-<li>Process management
-<pre>
-   dex executable_name
-   dex computer_name executable_name [args]
-     Run "executable_name [args]" on computer_name,
-     by requesting an sgzd on that computer to do so.
-     computer_name defaults to the local host;  otherwise it is resolved
-     through Phleet's internal name resolution.
-     If szgd is not found, dex fails.
-     On a Windows host, ".exe" is appended to executable_name.
-
-   dkill [-9] [computer_name] executable_label
-     Send a "quit" message to the first entry in the Syzygy
-     process table matching the inputs.
-     Like unix "kill -9", the -9 option forcibly closes sgzserver's connection
-     (if a client died without szgserver realizing that its connection
-     to the client is gone).
-
-   dmsg ID message_type [message_body]
-     Send a message to the process with the specified ID. Phleet messages
-     have two text strings, the type (e.g., "exec") and the body (e.g.,
-     "/home/randomuser/bin/linux"). The body defaults to the empty string.
-
-   dmsg -p computer_name component_name message_type [message_body]
-
-     Find the component, if such exists, with name component_name that is
-     running on computer computer_name. Send it a message with tag 
-     message_type and body message_body. If message_body is not present, 
-     an empty body is sent.
-
-   dmsg -m virtual_computer message_type [message_body]
-
-     Find the component, if such exists, running on the master screen of
-     the given virtual computer. Send it a message with tag message_type 
-     and body message_body. If message_body is not present, an empty body 
-     is sent.
-
-   dmsg -s virtual_computer screen_number message_type [message_body]
-
-     Find the component, if such exists, running on the screen indexed
-     by screen_number pertaining to the listed virtual computer. Send it
-     a message with tag message_type and body message_body. If message_body 
-     is not presnt, an empty body is sent.
-
-   dmsg -c virtual_computer_location message_type [message_body]
-
-     Find the component, if such exists, which is currently running
-     as the trigger instance of the given virtual computer. Send it
-     a message with tag message_type and body message_body. If message_body 
-     is not present, an empty body is sent.
-
-   dps [search_tag]
-     List all processes in the format:
-       computer_name/process_name/ID
-     Including the search_tag parameter lists only those lines containing it.
-
-   dtop [d milliseconds] | q | t
-     Repeated dps, like Unix "top" with pretty color coding.
-     d specifies a delay (default 500).  q sets delay to 0 (cpu hog).
-     t is for stress-"t"esting szgserver:  zero delay and no display.
-     Hit "q" to quit (or use dkill).
-</pre>
-<li>User and szgserver connection management
-<pre>
-   dhunt
-     Display all szgServer's running on the LAN, in the format:
-       server_name/server_IP/server_port
-
-     This command reads the Phleet configuration file and sends an szgserver
-     discovery packet out on each of the interfaces defined therein. There
-     is a 2 second time-out on the discovery process for each interface.
-
-   dlogin szgserver_name user_name
-     This command takes a system user name (whatever identity the system 
-     currently assigns to the user) and associates it with a particular 
-     szgserver, as given by szgserver_name, and a particular Phleet user, as 
-     given by user_name. This association lasts until the dlogout command is 
-     issued (by the appropriate system user) and, if the system user's 
-     identity is XXX, is recorded in /tmp/szg_XXX.conf on Unix and 
-     c:\szg_XXX.conf on Win32. A dlogin must occur before any syzygy programs 
-     will operate.
-
-   dlogout
-     Log out the current user.
-
-   dwho
-     Displays the mapping of the current system user to a Phleet, as
-     represented by a szgserver, and a Phleet user identity.
-</pre>
-<li>Monitoring the operation of the system
-<pre>
-   dlocks
-     Prints a list of the locks currently held by Phleet components, along
-     with their component IDs.
-
-   dservices
-     Prints a list of services currently offered by Phleet components.
-
-   dpending
-     Prints a list of unfilled service requests that have been posted by
-     Phleet components.
-</pre>
-</ul>
 <a name="Message">
 <p><font size=+2>How Clients Message Each Other (via szgserver)</font>
 </a>
