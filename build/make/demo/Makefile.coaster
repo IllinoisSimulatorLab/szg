@@ -1,13 +1,17 @@
-include $(SZGHOME)/build/make/Makefile.vars
-
+# VPATH needs to be set BEFORE Makefile.vars (to get SRCDIR defined correctly)
 VPATH = ../../../../src/demo/coaster
+
+include $(SZGHOME)/build/make/Makefile.vars
 
 OBJSRAW = matrix defrc coaster
 OBJS = $(OBJSRAW:%=%$(OBJ_SUFFIX))
 
 ALL = coaster$(EXE)
-Everything: $(ALL)
 
+# NOTE: We now include the "magic" Everything target in Makefile.rules
+
+# This should go BEFORE our FIRST target (because Makefile.rules has rules
+# in it, along with the "magic" Everything rule!
 include $(SZGHOME)/build/make/Makefile.rules
 
 coaster$(EXE): $(OBJS) $(SZG_LIBRARY_DEPS)

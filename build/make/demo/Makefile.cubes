@@ -1,10 +1,14 @@
-include $(SZGHOME)/build/make/Makefile.vars
-
+# VPATH needs to be set BEFORE Makefile.vars (to get SRCDIR defined correctly)
 VPATH = ../../../../src/demo/cubes
 
-ALL = cubes$(EXE)
-Everything: $(ALL)
+include $(SZGHOME)/build/make/Makefile.vars
 
+ALL = cubes$(EXE)
+
+# NOTE: We now include the "magic" Everything target in Makefile.rules
+
+# This should go BEFORE our FIRST target (because Makefile.rules has rules
+# in it, along with the "magic" Everything rule!
 include $(SZGHOME)/build/make/Makefile.rules
 
 cubes$(EXE): cubes$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)

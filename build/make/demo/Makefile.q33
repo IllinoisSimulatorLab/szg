@@ -1,6 +1,7 @@
-include $(SZGHOME)/build/make/Makefile.vars
-
+# VPATH needs to be set BEFORE Makefile.vars (to get SRCDIR defined correctly)
 VPATH = ../../../../src/demo/q33
+
+include $(SZGHOME)/build/make/Makefile.vars
 
 OBJSRAW = bsp entity globalshared lightmap mapent md3 mesh pak renderback \
   render renderhud shader skybox tex uicommon unzip util vec uiszg
@@ -15,18 +16,26 @@ ifeq ($(strip $(MACHINE)),WIN32)
   LINK_FLAGS = $(LINK_FLAGS_DEBUG)
 endif
 
+# On some platforms, we need to define this.
 ifeq ($(strip $(SZG_MULTITEX)),FALSE)
   COMPILE_FLAGS += -DNO_MULTITEX
 endif
 
+# This demo depends on zlib.
+SZG_INCLUDE += $(SZG_INCLUDE_ZLIB)
+SZG_OPTIONAL_LIBS += $(SZG_LINK_ZLIB)
+
 ALL = q33$(EXE)
-Everything: $(ALL)
 
 # since quake needs to be built debug on win32, this is necessary
 # if we do, in fact, use the precompiled header... this leads to the same
 # crash
 PRECOMPILED_HEADER_FLAGS = $(PRECOMPILED_HEADER_DISABLE)
 
+# NOTE: We now include the "magic" Everything target in Makefile.rules
+
+# This should go BEFORE our FIRST target (because Makefile.rules has rules
+# in it, along with the "magic" Everything rule!
 include $(SZGHOME)/build/make/Makefile.rules
 
 q33$(EXE): $(OBJS) $(SZG_LIBRARY_DEPS)

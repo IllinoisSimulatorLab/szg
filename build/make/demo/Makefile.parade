@@ -1,13 +1,17 @@
-include $(SZGHOME)/build/make/Makefile.vars
-
+# VPATH needs to be set BEFORE Makefile.vars (to get SRCDIR defined correctly)
 VPATH = ../../../../src/demo/parade
+
+include $(SZGHOME)/build/make/Makefile.vars
 
 OBJSRAW = BlobbyMan BlobbyNode ColIcosahedronMesh Commando parade
 OBJS = $(OBJSRAW:%=%$(OBJ_SUFFIX))
 
 ALL = parade$(EXE)
-Everything: $(ALL)
 
+# NOTE: We now include the "magic" Everything target in Makefile.rules
+
+# This should go BEFORE our FIRST target (because Makefile.rules has rules
+# in it, along with the "magic" Everything rule!
 include $(SZGHOME)/build/make/Makefile.rules
 
 parade$(EXE): $(OBJS) $(SZG_LIBRARY_DEPS)
