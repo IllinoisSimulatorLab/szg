@@ -32,8 +32,9 @@ class SZG_CALL arGraphicsScreen {
 
   void setTile( int tileX, int numberTilesX, int tileY, int numberTilesY );
 
-  void setIgnoreFixedHeadMode( bool ignore ) { _ignoreFixedHeadMode = ignore; }
+  bool setUseFixedHeadMode( const std::string& usageMode );
   bool getIgnoreFixedHeadMode() const { return _ignoreFixedHeadMode; }
+  bool getAlwaysFixedHeadMode() const { return _alwaysFixedHeadMode; }
 
   arVector3 getFixedHeadHeadPosition() const { return _fixedHeadPosition; }
   float getFixedHeadHeadUpAngle() const { return _fixedHeadUpAngle; }
@@ -54,6 +55,7 @@ class SZG_CALL arGraphicsScreen {
   bool _headMounted;
 
   bool _ignoreFixedHeadMode;
+  bool _alwaysFixedHeadMode;
   arVector3 _fixedHeadPosition;
   float _fixedHeadUpAngle;
 };

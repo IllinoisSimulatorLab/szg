@@ -85,10 +85,28 @@ bool arGraphicsScreen::configure(const string& screenName, arSZGClient& client) 
     _fixedHeadUpAngle = 0.;
   }
 
-  _ignoreFixedHeadMode = client.getAttribute( screenName, "ignore_fixed_head_mode", "|false|true|" ) == "true";
-  cout << "arGraphicsScreen demo parameters: " << _fixedHeadPosition << ", " << _fixedHeadUpAngle 
-       << ", " << _ignoreFixedHeadMode << endl;
+  std::string fixModeString = client.getAttribute( screenName, "use_fixed_head_mode", "|yes|always|ignore|" );
+  setUseFixedHeadMode( fixModeString );
+  cout << "arGraphicsScreen demo parameters: " << _fixedHeadPosition << ", " 
+       << _fixedHeadUpAngle << ", (" << _alwaysFixedHeadMode << "," << _ignoreFixedHeadMode << ").\n";
 
+  return true;
+}
+
+bool arGraphicsScreen::setUseFixedHeadMode( const std::string& usageMode ) {
+  if (usageMode == "yes") {
+    _ignoreFixedHeadMode = false;
+    _alwaysFixedHeadMode = false;
+  } else if (usageMode == "always") {
+    _ignoreFixedHeadMode = false;
+    _alwaysFixedHeadMode = true;
+  } else if (usageMode == "ignore") {
+    _ignoreFixedHeadMode = true;
+    _alwaysFixedHeadMode = false;
+  } else {
+    cerr << "arGraphicsScreen error: fixed head usage mode " << usageMode << " not recognized.\n";
+    return false;
+  }
   return true;
 }
 
