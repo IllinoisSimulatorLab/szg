@@ -21,18 +21,6 @@
 
 #include <map>
 
-class InputNodeConfig{
- public:
-  InputNodeConfig(){ pforthProgram = ""; valid = false; }
-  ~InputNodeConfig(){}
-
-  list<string> inputSources;
-  list<string> inputSinks;
-  list<string> inputFilters; 
-  string       pforthProgram;
-  bool         valid;
-};
-
 // The input node configuration (at this early stage) looks like this:
 // <szg_device>
 //   <input_sources>
@@ -73,83 +61,82 @@ bool parseTokenList(arStringTextStream& tokenStream,
     cout << "DeviceServer parsing error: expected " << tagType << " tag.\n";
     return false;
   }
-  if (! ar_getTextBeforeTag(&tokenStream, &buffer)){
+  if (!ar_getTextBeforeTag(&tokenStream, &buffer)){
     cout << "DeviceServer parsing error: failed on " << tagType << " field.\n";
     return false;
   }
   stringstream tokens(buffer.data);
   string token;
-  while (true){
+  do {
     tokens >> token;
     if (!tokens.fail()){
       tokenList.push_back(token);
       cout << tagType << " token = " << token << "\n";
     }
-    if (tokens.eof()){
-      break;
-    }
-  }
+  } while (!tokens.eof());
   // Look for closing input_sources tag.
   tagText = ar_getTagText(&tokenStream);
   if (tagText != "/"+tagType){
-    cout << "DeviceServer parsing error: failed on " << tagType 
-         << ") end tag.\n";
+    cout << "DeviceServer parsing error: bad end tag " << tagType << ".\n";
     return false;
   }
   return true;
 }
 
+class InputNodeConfig{
+ public:
+  InputNodeConfig(): pforthProgram(""), valid(false) {}
+  ~InputNodeConfig() {}
+
+  list<string> inputSources;
+  list<string> inputSinks;
+  list<string> inputFilters; 
+  string       pforthProgram;
+  bool         valid;
+};
+
 InputNodeConfig parseNodeConfig(const string& nodeConfig){
   InputNodeConfig result;
   arStringTextStream configStream(nodeConfig);
   arBuffer<char> buffer(128); 
-  // Look for starting szg_device tag.
+
   string tagText = ar_getTagText(&configStream);
   if (tagText != "szg_device"){
-    cout << "DeviceServer parsing error: got incorrect opening tag.\n";
-    result.valid = false;
+    cerr << "DeviceServer parsing error: expected starting tag szg_device, not "
+         << tagText << ".\n";
     return result;
   }
-  
   if (!parseTokenList(configStream, "input_sources", result.inputSources)){
-    result.valid = false;
     return result;
   }
   if (!parseTokenList(configStream, "input_sinks", result.inputSinks)){
-    result.valid = false;
     return result;
   }
   if (!parseTokenList(configStream, "input_filters", result.inputFilters)){
-    result.valid = false;
     return result;
   }
   
   // Should get pforth.
   tagText = ar_getTagText(&configStream);
   if (tagText != "pforth"){
-    cout << "DeviceServer parsing error: expected pforth tag.\n";
-    result.valid = false;
+    cerr << "DeviceServer parsing error: expected pforth tag.\n";
     return result;
   }
   if (! ar_getTextBeforeTag(&configStream, &buffer)){
-    cout << "DeviceServer parsing error: failed on pforth field.\n";
-    result.valid = false;
+    cerr << "DeviceServer parsing error: failed on pforth field.\n";
     return result;
   }
   result.pforthProgram = string(buffer.data);
-  cout << "PForth program = " << result.pforthProgram << "\n";
   // Look for closing pforth tag.
   tagText = ar_getTagText(&configStream);
   if (tagText != "/pforth"){
-    cout << "DeviceServer parsing error: failed on pforth end tag.\n";
-    result.valid = false;
+    cerr << "DeviceServer parsing error: failed on pforth end tag.\n";
     return result;
   }
   // Look for closing /szg_device tag.
   tagText = ar_getTagText(&configStream);
   if (tagText != "/szg_device"){
-    cout << "DeviceServer parsing error: failed on szg_device end tag.\n";
-    result.valid = false;
+    cerr << "DeviceServer parsing error: failed on szg_device end tag.\n";
     return result;
   }
   result.valid = true;
@@ -170,8 +157,8 @@ int main(int argc, char** argv){
   // First, check to see if we've got the "simple" flag set (-s)
   // If so, we aren't planning on doing any filtering or other such,
   // just loading in the module and putting its output on the network.
-  bool simpleOperation = testForArgAndRemove("-s", argc, argv);
-  bool useNetInput = testForArgAndRemove("-netinput", argc, argv);
+  const bool simpleOperation = testForArgAndRemove("-s", argc, argv);
+  const bool useNetInput = testForArgAndRemove("-netinput", argc, argv);
 
   if (argc < 3){
     initResponse << "usage: DeviceServer [-s] [-netinput] device_description "
@@ -180,20 +167,19 @@ int main(int argc, char** argv){
     return 1;
   }
 
-  int slotNumber = atoi(argv[2]);
+  const int slotNumber = atoi(argv[2]);
   InputNodeConfig nodeConfig;
-  if (!simpleOperation){
+  if (simpleOperation){
+    // only specify the driver on the command line.
+    nodeConfig.inputSources.push_back(argv[1]);
+  }
+  else{
     nodeConfig = parseNodeConfig(SZGClient.getGlobalAttribute(argv[1]));
     if (!nodeConfig.valid){
       initResponse << "DeviceServer error: got invalid node config from "
 		   << "attribute " << argv[1] << "\n";
       SZGClient.sendInitResponse(false);
     }
-  }
-  else{
-    // NOTE: In simple operation, we only specify the driver on the command 
-    // line.
-    nodeConfig.inputSources.push_back(argv[1]);
   }
 
   std::map< std::string, arInputSource* > driverNameMap;
@@ -202,7 +188,7 @@ int main(int argc, char** argv){
   arInputNode inputNode;
   // Need to know from where the shared lilbraries will be loaded.
   // (The SZG_EXEC path)
-  string execPath = SZGClient.getAttribute("SZG_EXEC","path");
+  const string execPath = SZGClient.getAttribute("SZG_EXEC","path");
   // Start with the input sources.
   // Necessary to assign input "slots" to the input sources.
   int nextInputSlot = slotNumber + 1;
@@ -211,8 +197,7 @@ int main(int argc, char** argv){
   for (iter = nodeConfig.inputSources.begin();
        iter != nodeConfig.inputSources.end(); iter++){
     arInputSource* theSource = NULL;
-    // Must check to see whether the requested library is embedded in the
-    // library or not.
+    // Check if the requested library is embedded in the library.
     if (*iter == "arNetInputSource"){
       arNetInputSource* netInputSource = new arNetInputSource();
       netInputSource->setSlot(nextInputSlot);
@@ -288,10 +273,10 @@ int main(int argc, char** argv){
     inputNode.addInputSink(theSink,true);
   }
 
-  // Go ahead and load the filters.
+  // Load the filters.
 
   // Add a PForth filter(s) to beginning of chain, for remapping sensors etc.
-  // We first add a filter from the config file.
+  // First add a filter from the config file.
   arPForthFilter firstFilter;
   ar_PForthSetSZGClient( &SZGClient );
   if (!firstFilter.configure( nodeConfig.pforthProgram )){
@@ -306,8 +291,7 @@ int main(int argc, char** argv){
     string commandLineProgram = 
       SZGClient.getGlobalAttribute(argv[3]);
     if (commandLineProgram == "NULL"){
-      cout << "DeviceServer remark: no program of name " << argv[3]
-	   << " exists.\n";
+      cout << "DeviceServer remark: no program named " << argv[3] << ".\n";
     }
     else{
       arPForthFilter* commandLineFilter = new arPForthFilter();
@@ -366,6 +350,7 @@ int main(int argc, char** argv){
       inputNode.stop();
       exit(0);
     }
+
     if (messageType=="quit"){
       cout << "DeviceServer remark: got shutdown message.\n";
       inputNode.stop();
@@ -379,10 +364,11 @@ int main(int argc, char** argv){
       driverNameMap.clear();
       return 0;
     }
+
     else if (messageType=="restart"){
-      cout << "DeviceServer remark: got restart message.\n";
+      cout << "DeviceServer remark: restarting.\n";
       inputNode.restart();
-      cout << "DeviceServer remark: restart done.\n";
+      cout << "DeviceServer remark: restarted.\n";
     }
     else if (messageType=="dumpon"){
       fileSink.start();
@@ -390,16 +376,17 @@ int main(int argc, char** argv){
     else if (messageType=="dumpoff"){
       fileSink.stop();
     } else {
-      std::map< std::string, arInputSource* >::iterator iter;
-      iter = driverNameMap.find( messageType );
+      const std::map< std::string, arInputSource* >::iterator iter =
+        driverNameMap.find( messageType );
       if (iter == driverNameMap.end()) {
-        cerr << "DeviceServer warning: messageType " << messageType << " not recognized.\n";
+        cerr << "DeviceServer warning: unrecognized messageType "
+	     << messageType << ".\n";
       } else {
         cout << "DeviceServer remark: handling message " << messageType 
-             << "/" << messageBody << endl;
+             << "/" << messageBody << ".\n";
         arInputSource* driver = iter->second;
         if (!driver) {
-          cerr << "DeviceServer error: got a NULL pointer from driverNameMap.\n";
+          cerr << "DeviceServer warning: ignoring NULL pointer from driverNameMap.\n";
         } else {
           driver->handleMessage( messageType, messageBody );
         }
