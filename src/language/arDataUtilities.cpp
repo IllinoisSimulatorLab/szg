@@ -865,6 +865,16 @@ string ar_getExtension(const string& name){
   return name.substr(position+1, name.length()-position-1);
 }
 
+/// In place, adds the appropriate shared lib extension for the system,
+/// either .dll or .so.
+void ar_addSharedLibExtension(string& name){
+#ifdef AR_USE_WIN_32
+  name = name + ".dll";
+#else
+  name = name + ".so";
+#endif
+}
+
 void ar_setenv(const string& variable, const string& value){
 
   //***************************************************************

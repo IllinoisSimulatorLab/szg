@@ -210,6 +210,8 @@ string ar_packParameters(int,char**);
 string ar_stripExeName(const string&);
 /// find the extension of a particular file name (i.e. jpg or ppm or obj)
 string ar_getExtension(const string&);
+/// add the right shared library extension for the system (.dll or .so)
+void ar_addSharedLibExtension(string& name);
 
 /// manipulating system characteristics
 string ar_getenv(const string&);
