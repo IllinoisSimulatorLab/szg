@@ -124,10 +124,16 @@ int main(int argc, char** argv){
   // NOTE: we need to distinguish different kinds of SZG_INPUTn services...
   // and this is how we do it!
   netInputSink.setInfo("wandsimserver");
-  arPForthFilter pforth;
-  if (!pforth.configure(client)){
-    client->sendInitResponse(false);
-    return 1;
+  string pforthProgramName = client->getAttribute("SZG_PFORTH",
+                                                  "program_names");
+  if (pforthProgramName != "NULL"){
+    arPForthFilter* filter = new arPForthFilter();
+    if (!filter->configure( pforthProgramName )){
+      client->sendInitResponse(false);
+      return 1; 
+    }
+    // The input node is not responsible for clean-up
+    inputNode->addFilter(filter, false);
   }
   
   simulator.registerInputNode(inputNode);
@@ -141,7 +147,7 @@ int main(int argc, char** argv){
     // Memory leak.  inputNode won't free its input sources, I think.
   }
   inputNode->addInputSink(&netInputSink,false);
-  inputNode->addFilter(&pforth, true);
+  
   if (!inputNode->init(*client)) {
     client->sendInitResponse(false);
     return 1;

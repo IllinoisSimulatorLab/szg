@@ -13,7 +13,7 @@ class SZG_CALL arInteractionSelector {
     virtual arInteractionSelector* copy() const = 0;
 };
 
-class arDistanceInteractionSelector: public arInteractionSelector {
+class SZG_CALL arDistanceInteractionSelector: public arInteractionSelector {
   public:
     arDistanceInteractionSelector( float maxDistance = -1. );
     virtual ~arDistanceInteractionSelector() {}
@@ -25,7 +25,7 @@ class arDistanceInteractionSelector: public arInteractionSelector {
     float _maxDistance;
 };
 
-class arAlwaysInteractionSelector: public arInteractionSelector {
+class SZG_CALL arAlwaysInteractionSelector: public arInteractionSelector {
   public:
     arAlwaysInteractionSelector() {}
     virtual ~arAlwaysInteractionSelector() {}
@@ -38,7 +38,7 @@ class arAlwaysInteractionSelector: public arInteractionSelector {
     }
 };
 
-class arAngleInteractionSelector: public arInteractionSelector {
+class SZG_CALL arAngleInteractionSelector: public arInteractionSelector {
   public:
     arAngleInteractionSelector( float maxAngle = ar_convertToRad(10) );
     virtual ~arAngleInteractionSelector() {}

@@ -11,6 +11,6 @@ Everything: $(ALL)
 
 include $(SZGHOME)/build/make/Makefile.rules
 
-atlantis$(EXE): atlantis$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBRARY_DEPS)
+atlantis$(EXE): $(OBJS) $(SZG_LIBRARY_DEPS)
 	$(SZG_USR_FIRST) $(OBJS) $(SZG_USR_SECOND)
 	$(COPY)

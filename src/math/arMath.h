@@ -471,7 +471,7 @@ inline arVector3 operator*(const arQuaternion& q ,const arVector3& x){
   return temp.pure;
 }
 
-float ar_randUniformFloat(long* idum);
-int ar_randUniformInt(long* idum, int lo, int hi);
+float SZG_CALL ar_randUniformFloat(long* idum);
+int SZG_CALL ar_randUniformInt(long* idum, int lo, int hi);
 
 #endif

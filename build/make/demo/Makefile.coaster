@@ -1,3 +1,5 @@
+include $(SZGHOME)/build/make/Makefile.vars
+
 VPATH = ../../../../src/demo/coaster
 
 OBJSRAW = matrix defrc coaster
@@ -6,7 +8,8 @@ OBJS = $(OBJSRAW:%=%$(OBJ_SUFFIX))
 ALL = coaster$(EXE)
 Everything: $(ALL)
 
-PRECOMPILED_HEADER_LOCATION := $(PRECOMPILED_HEADER_LOCATION_DEMO)
+include $(SZGHOME)/build/make/Makefile.rules
 
-coaster$(EXE): coaster$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBS)
-	$(DO_LINK_GRAPHICS)
+coaster$(EXE): $(OBJS) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) $(OBJS) $(SZG_USR_SECOND)
+	$(COPY)

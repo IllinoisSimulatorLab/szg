@@ -1,7 +1,9 @@
+include $(SZGHOME)/build/make/Makefile.vars
+
 VPATH = ../../../../src/demo/q33
 
 OBJSRAW = bsp entity globalshared lightmap mapent md3 mesh pak renderback \
-  render renderhud shader skybox tex uicommon unzip util vec
+  render renderhud shader skybox tex uicommon unzip util vec uiszg
 OBJS = $(OBJSRAW:%=%$(OBJ_SUFFIX))
 
 # Bug: q33 will sometimes crash in the graphics routines if it isn't built
@@ -21,5 +23,8 @@ Everything: $(ALL)
 # crash
 PRECOMPILED_HEADER_FLAGS = $(PRECOMPILED_HEADER_DISABLE)
 
-q33$(EXE): uiszg$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBS)
-	$(DO_LINK_GRAPHICS)
+include $(SZGHOME)/build/make/Makefile.rules
+
+q33$(EXE): $(OBJS) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) $(OBJS) $(SZG_USR_SECOND)
+	$(COPY)

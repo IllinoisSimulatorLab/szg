@@ -1,2 +1,0 @@
-smoke SZG_DATA path /home/public/Data
-smoke SZG_SCREEN0 size 1024/768

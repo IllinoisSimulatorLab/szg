@@ -1,16 +1,19 @@
+include $(SZGHOME)/build/make/Makefile.vars
+
 VPATH = ../../../../src/demo/hspace
 
 ifeq ($(strip $(MACHINE)),WIN32)
 LINK_FLAGS += /stack:4000000
 endif
 
-OBJSRAW = Matrix5 HypDodecahedron H3World
+OBJSRAW = Matrix5 HypDodecahedron H3World hspace
 OBJS = $(OBJSRAW:%=%$(OBJ_SUFFIX))
 
 ALL = hspace$(EXE)
 Everything: $(ALL)
 
-PRECOMPILED_HEADER_LOCATION := $(PRECOMPILED_HEADER_LOCATION_DEMO)
+include $(SZGHOME)/build/make/Makefile.rules
 
-hspace$(EXE): hspace$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBS)
-	$(DO_LINK_GRAPHICS)
+hspace$(EXE): $(OBJS) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) $(OBJS) $(SZG_USR_SECOND)
+	$(COPY)
