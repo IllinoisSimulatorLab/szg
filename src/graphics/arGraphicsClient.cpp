@@ -18,6 +18,11 @@ bool ar_graphicsClientDisconnectCallback(void* client){
   // thread!
   arGraphicsClient* c = (arGraphicsClient*) client;
   // cout << "arGraphicsClient remark: disconnected from server.\n";
+  // We should go ahead and *delete* the bundle path information. This
+  // is really unique to each connection. This information is used to
+  // let an application have its textures in a flexible location (i.e.
+  // NOT on the texture path).
+  c->setBundlePtr("NULL","NULL");
   c->reset();
   // NOTE: DO NOT CALL skipConsumption from here! That is done in the
   // arSyncDataClient proper.
@@ -261,6 +266,16 @@ void arGraphicsClient::loadAlphabet(const char* thePath){
 
 void arGraphicsClient::setTexturePath(const string& thePath){
   _graphicsDatabase.setTexturePath(thePath);
+}
+
+void arGraphicsClient::setBundlePtr(const string& bundlePathName, 
+                                    const string& bundleName){
+  _graphicsDatabase.setBundlePtr(bundlePathName, bundleName);
+}
+
+void arGraphicsClient::addBundleMap(const string& bundlePathName, 
+                                    const string& bundlePath){
+  _graphicsDatabase.addBundleMap(bundlePathName, bundlePath);
 }
 
 void arGraphicsClient::setStereoMode(bool f){

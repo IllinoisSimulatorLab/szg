@@ -14,6 +14,11 @@ arSoundDatabase::arSoundDatabase() :
   _lang = (arDatabaseLanguage*)&_langSound;
   if (!_initDatabaseLanguage())
     return;
+  // Have to add the processing callback for the "sound admin"
+  // message.
+  arDataTemplate* t = _lang->find("sound_admin");
+  _databaseReceive[t->getID()] 
+    = (arDatabaseProcessingCallback)&arSoundDatabase::_processAdmin;
   
   // Initialize the path list.
   _path->push_back(string("")); // local directory
@@ -128,27 +133,49 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
   if (_server)
     return NULL;
 
-  char buffer[512];
-  ar_stringToBuffer(name, buffer, sizeof(buffer));
   const map<string,arSoundFile*,less<string> >::iterator
     iFind(_filewavNameContainer.find(name));
   if (iFind != _filewavNameContainer.end()){
     return iFind->second;
   }
 
-  // A new filewav.
+  // A new sound file.
   arSoundFile* theFile = new arSoundFile;
-
-  // Try everything in the path.
-  ar_mutex_lock(&_pathLock);
-  char fileNameBuffer[512];
+  
   bool fDone = false;
+  string potentialFileName;
+  // First, go ahead and look at the bundle path, if such as been set.
+  map<string, string, less<string> >::iterator iter 
+    = _bundlePathMap.find(_bundlePathName);
+  if (_bundlePathName != "NULL" && _bundleName != "NULL"
+      && iter != _bundlePathMap.end()){
+    arSlashString bundlePath(iter->second);
+    for (int n=0; n<bundlePath.size(); n++){
+      potentialFileName = bundlePath[n];
+      ar_pathAddSlash(potentialFileName);
+      potentialFileName += _bundleName;
+      ar_pathAddSlash(potentialFileName);
+      potentialFileName += name;
+      // Scrub path afterwards to allow cross-platform multi-level 
+      // bundle names (foo/bar), which can be changed per platform
+      // to the right thing (on Windows, foo\bar)
+      ar_scrubPath(potentialFileName);
+      fDone = theFile->read(potentialFileName.c_str(), fLoop);
+      if (fDone){
+	// Don't look anymore. Success!
+	break;
+      }
+    }
+  }
+
+  // Try everything in the sound path.
+  ar_mutex_lock(&_pathLock);
   for (list<string>::iterator i = _path->begin();
        !fDone && i != _path->end();
        ++i){
-    const string tmp(*i + buffer);
-    ar_stringToBuffer(tmp, fileNameBuffer, sizeof(fileNameBuffer));
-    fDone = theFile->read(fileNameBuffer, fLoop);
+    potentialFileName = *i + name;
+    ar_scrubPath(potentialFileName);
+    fDone = theFile->read(potentialFileName.c_str(), fLoop);
   }
   static bool fComplained = false;
   if (!fDone){
@@ -158,7 +185,7 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
     if (!fComplained){
       fComplained = true;
       cerr << "arSoundDatabase warning: soundfile \""
-	   << buffer << "\" not found in ";
+	   << name << "\" not found in ";
       if (_path->size() <= 1)
         cerr << "empty ";
       cerr << "path.\n";
@@ -245,6 +272,19 @@ arDatabaseNode* arSoundDatabase::_makeNode(const string& type){
     return NULL;
   }
   return outNode;
+}
+
+arDatabaseNode* arSoundDatabase::_processAdmin(arStructuredData* data){
+  string name = data->getDataString("name");
+  cout << "arSoundDatabase remark: using sound bundle " << name << "\n";
+  arSlashString bundleInfo(name);
+  if (bundleInfo.size() != 2){
+    cout << "arSoundDatabase error: got garbled sound bundle "
+	 << "identification.\n";
+    return &_rootNode;
+  }
+  setBundlePtr(bundleInfo[0], bundleInfo[1]);
+  return &_rootNode;
 }
 
 

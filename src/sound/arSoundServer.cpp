@@ -16,8 +16,17 @@ bool ar_soundServerConnectionCallback(void* server,
 }
  
 bool arSoundServer::_connectionCallback(list<arSocket*>* socketList) {
-  if (!_connectionQueue)
+  if (!_connectionQueue){
     return false;
+  }
+  // If we've set up a "remote" texture path, this needs to be
+  // copied over to the szgrender on the other side.
+  if (_bundlePathName != "NULL" && _bundleName != "NULL"){
+    arStructuredData pathData(_langSound.find("sound_admin"));
+    pathData.dataInString("action","remote_path");
+    pathData.dataInString("name",_bundlePathName+"/"+_bundleName);
+    _connectionQueue->forceQueueData(&pathData);
+  }
   arStructuredData nodeData(_langSound.find("make node"));
   _recSerialize(&_rootNode, nodeData);
   _connectionQueue->swapBuffers();

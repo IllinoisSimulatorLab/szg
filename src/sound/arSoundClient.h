@@ -63,6 +63,10 @@ class SZG_CALL arSoundClient{
   //int getFrameID() const { return _soundDatabase.getFrameID(); }
   string getPath(){ return _soundDatabase.getPath(); }
   void setPath(const string& s) { _soundDatabase.setPath(s); }
+  void setBundlePtr(const string& bundlePathName, const string& bundleName)
+    { _soundDatabase.setBundlePtr(bundlePathName, bundleName); }
+  void addBundleMap(const string& bundlePathName, const string& bundlePath)
+    { _soundDatabase.addBundleMap(bundlePathName, bundlePath); }
 
   void setSpeakerObject(arSpeakerObject* s) { _speakerObject = s; }
 

@@ -216,6 +216,21 @@ void arDistSceneGraphFramework::loadNavMatrix() {
     dsTransform( _soundNavMatrixID, navMatrix );
 }
 
+void arDistSceneGraphFramework::setBundlePtr(const string& bundlePathName,
+                                             const string& bundleName){
+  _graphicsServer.setBundlePtr(bundlePathName, bundleName);
+  // The graphics client is only used for drawing in "standalone" mode.
+  // It isn't used at all in "Phleet" mode. However, in the "standalone"
+  // mode case, the connection process in the arGraphicsServer code
+  // never occurs (client/server are just connected from the beginning).
+  // Hence, we need to do this here, as well.
+  _graphicsClient.setBundlePtr(bundlePathName, bundleName);
+  // Must be done analogously for the sound (both texture files and sound
+  // files live in the bundles).
+  _soundServer.setBundlePtr(bundlePathName, bundleName);
+  _soundClient.setBundlePtr(bundlePathName, bundleName);
+}
+
 bool arDistSceneGraphFramework::init(int& argc, char** argv){
   _label = string(argv[0]);
   _label = ar_stripExeName(_label); // remove pathname and .EXE
@@ -512,10 +527,25 @@ bool arDistSceneGraphFramework::_loadParameters(){
   // we need to send to the init response stream
   stringstream& initResponse = _SZGClient.initResponse();
   
-  // data config
+  // Configure data access for this box.
   _dataPath = _SZGClient.getAttribute("SZG_DATA", "path");
   if (_dataPath == "NULL"){
     initResponse << _label << " warning: SZG_DATA/path undefined.\n";
+  }
+  // Must make sure everybody gets the right bundle map,
+  // both for standalone and for normal operation.
+  _graphicsServer.addBundleMap("SZG_DATA", _dataPath);
+  _graphicsClient.addBundleMap("SZG_DATA", _dataPath);
+  _soundServer.addBundleMap("SZG_DATA", _dataPath);
+  _soundClient.addBundleMap("SZG_DATA", _dataPath);
+  // Some data access might occur along the Python bundle path as well.
+  string pythonPath = _SZGClient.getAttribute("SZG_PYTHON","path");
+  // Do not warn if this is undefined.
+  if (pythonPath != "NULL"){
+    _graphicsServer.addBundleMap("SZG_PYTHON", pythonPath);
+    _graphicsClient.addBundleMap("SZG_PYTHON", pythonPath);
+    _soundServer.addBundleMap("SZG_PYTHON", pythonPath);
+    _soundClient.addBundleMap("SZG_PYTHON", pythonPath);
   }
 
   _head.configure( _SZGClient );
@@ -547,8 +577,12 @@ void arDistSceneGraphFramework::_initDatabases(){
     dgSetGraphicsDatabase(&_graphicsServer);
   }
   dsSetSoundDatabase(&_soundServer);
-  // if we are in standalone mode, we must start up the local connections.
-  // NOTE: we cannot be in peer mode on standalone.
+  // If we are in standalone mode, we must start up the local connections.
+  // This must occur before any alterations occur to the local 
+  // graphics server since there is NO connection process in the standalone
+  // case.
+  // PLEASE NOTE: we cannot be in peer mode on standalone (peer mode
+  // only makes sense when we are part of a Phleet).
   if (_standalone){
     _graphicsClient._cliSync.registerLocalConnection
       (&_graphicsServer._syncServer);

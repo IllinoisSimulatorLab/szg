@@ -11,6 +11,8 @@
 
 arDatabase::arDatabase() :
   _server(false),
+  _bundlePathName("NULL"),
+  _bundleName("NULL"),
   //_frameID(-1),
   _lang(NULL),
   // We start at ID 1 for subsequent nodes since the root node has ID = 0
@@ -37,6 +39,46 @@ arDatabase::arDatabase() :
 arDatabase::~arDatabase(){
   delete eraseData;
   delete makeNodeData;
+}
+
+/// Sometimes, we want to store supporting objects like textures or
+/// sound clips in an application directory,
+/// much like standard application data files. In many ways, this is
+/// superior to storing them all in the same directory (which is
+/// really unmaintainable). Conceptually, each application has its
+/// own directory where it can store supporting objects, as installed on one
+/// of the Syzygy system directory paths (like SZG_DATA or SZG_PYTHON).
+/// When the arDatabase subclass (like arGraphicsDatabase or
+/// arSoundDatabase) is initialized, its owning
+/// program creates a "bundle path map" (by talking to the Phleet or by 
+/// reading a local config file, depending upon mode of operation).
+/// This associates a bundlePathName (SZG_DATA, SZG_PYTHON) with a
+/// file system path like my_directory_1;my_directory_2;my_directory3.
+/// If bundlePathName maps to a path like so, is not "NULL", and bundleName
+/// is not "NULL", then addTexture (for arGraphicsDatabase) or
+/// addFile (arSoundDatabase)  will look for the supporting object
+/// (texture or sound file) on the path
+/// my_directory_1/bundleName;my_directory_2/bundleName;
+/// my_directory_3/bundleName, in addition to the texture path.
+void arDatabase::setBundlePtr(const string& bundlePathName,
+			      const string& bundleName){
+  _bundlePathName = bundlePathName;
+  _bundleName = bundleName;
+}
+
+/// Used to associated a bundle path name (SZG_DATA, SZG_PYTHON) with
+/// a file system path my_directory_1;my_directory_2;my_directory_3.
+void arDatabase::addBundleMap(const string& bundlePathName,
+                              const string& bundlePath){
+  map<string,string,less<string> >::iterator i
+    = _bundlePathMap.find(bundlePathName);
+  if (i != _bundlePathMap.end()){
+    // If an entry is already present, must erase so that we can insert
+    // something new.
+    _bundlePathMap.erase(i);
+  }
+  _bundlePathMap.insert(map<string,string,less<string> >::value_type
+                        (bundlePathName, bundlePath));
 }
 
 // This function is simply an ABOMINATION and will go away.

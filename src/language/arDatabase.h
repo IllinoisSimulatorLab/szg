@@ -17,11 +17,17 @@ using namespace std;
 
 typedef map<int,arDatabaseNode*,less<int> >::iterator arNodeIDIterator;
 
+typedef arDatabaseNode*
+    (arDatabase::*arDatabaseProcessingCallback)(arStructuredData*);
+
 /// Generic database distributed across a cluster.
 class SZG_CALL arDatabase{
  public:
   arDatabase();
   virtual ~arDatabase();
+
+  void setBundlePtr(const string& bundlePathName, const string& bundleName);
+  void addBundleMap(const string& bundlePathName, const string& bundlePath);
 
   int getNodeID(const string& name, bool fWarn=true);
   arDatabaseNode* getNode(int, bool fWarn=true);
@@ -94,9 +100,13 @@ class SZG_CALL arDatabase{
   // GRUMBLE. I'm a little annoyed by the _server flag. BUT... it does
   // do something helpful... namely enable a object that doesn't need to
   // display (i.e. arGraphicsServer in the arDistSceneGraphFramework) do
-  // LESS uneeded work (like load textures into memory, which might fail
+  // LESS (unnecessary) work (like load textures into memory, which might fail
   // anyway since there is no graphics window).
   bool _server;
+  // Stuff pertaining to finding the data bundles.
+  string                               _bundlePathName;
+  string                               _bundleName;
+  map<string,string,less<string> >     _bundlePathMap;
   arMutex _bufferLock;
   arMutex _eraseLock;
   arMutex _deletionLock;
@@ -105,8 +115,6 @@ class SZG_CALL arDatabase{
   arDatabaseNode _rootNode;
   
   // here is the machinery that assists in the data processing
-  typedef arDatabaseNode*
-    (arDatabase::*arDatabaseProcessingCallback)(arStructuredData*);
   arDatabaseProcessingCallback _databaseReceive[256];
   arStructuredData*            _parsingData[256];
   int                          _routingField[256];

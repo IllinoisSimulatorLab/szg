@@ -42,6 +42,8 @@ class SZG_CALL arGraphicsClient{
   //AARGH! bad design...
   void loadAlphabet(const char*);
   void setTexturePath(const string&);
+  void setBundlePtr(const string& bundlePathName, const string& bundleName);
+  void addBundleMap(const string& bundlePathName, const string& bundlePath);
   void setStereoMode(bool);
   void setViewMode( const std::string& );
   void setFixedHeadMode(bool);

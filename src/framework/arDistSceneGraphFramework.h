@@ -37,6 +37,7 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   bool start();
   void stop(bool);
   void loadNavMatrix();
+  void setBundlePtr(const string& bundlePathName, const string& bundlePath);
 
   void setAutoBufferSwap(bool);
   void swapBuffers();

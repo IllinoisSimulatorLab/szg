@@ -72,9 +72,12 @@ class SZG_CALL arStructuredData {
    /// common abbreviations
    bool dataInString(int id, const string& s)
      { return dataIn(id, s.data(), AR_CHAR, s.length()); }
+   bool dataInString(const string& fieldName, const string& s)
+     { return dataIn(fieldName, s.data(), AR_CHAR, s.length()); }
    bool dataInString(int id, const char* s)
      { return dataIn(id, s, AR_CHAR, strlen(s)); }
-   //bool dataInMakenode(arDatabaseLanguage& lang, arDatabaseNode* pNode);
+   bool dataInString(const string& fieldName, const char* s)
+     { return dataIn(fieldName, s, AR_CHAR, strlen(s)); }
    string getDataString(int field);
    string getDataString(const string& fieldName);
    int getDataInt(int id)

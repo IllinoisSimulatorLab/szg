@@ -20,8 +20,17 @@ bool ar_graphicsServerConnectionCallback(void* server,
 // when a database is created.  dumpData() is not called every time a node's
 // contents change.  That's done entirely through alter() and receiveMessage().
 bool arGraphicsServer::_connectionCallback(list<arSocket*>* socketList) {
-  if (!_connectionQueue)
+  if (!_connectionQueue){
     return false;
+  }
+  // If we've set up a "remote" texture path, this needs to be
+  // copied over to the szgrender on the other side.
+  if (_bundlePathName != "NULL" && _bundleName != "NULL"){
+    arStructuredData pathData(_gfx.find("graphics admin"));
+    pathData.dataInString("action","remote_path");
+    pathData.dataInString("name",_bundlePathName+"/"+_bundleName);
+    _connectionQueue->forceQueueData(&pathData);
+  }
   arStructuredData nodeData(_gfx.find("make node"));
   _recSerialize(&_rootNode, nodeData);
   _connectionQueue->swapBuffers();

@@ -63,6 +63,11 @@ bool ar_soundClientConnectionCallback(void*, arTemplateDictionary*){
 bool ar_soundClientDisconnectCallback(void* client){
   arSoundClient* c = (arSoundClient*) client;
   // cout << getLabel() << " remark: disconnected from server.\n";
+  // We should go ahead and *delete* the bundle path information. This
+  // is really unique to each connection. This information is used to
+  // let an application have its sound files in a flexible location (i.e.
+  // NOT on the sound path).
+  c->setBundlePtr("NULL","NULL");
   c->reset();
   // NOTE: DO NOT CALL skipConsumption from here! That is done in the
   // arSyncDataClient proper.

@@ -209,6 +209,9 @@ int main(int argc, char** argv){
   if (!framework->init(argc,argv))
     return 1;
 
+  // Where we can put the textures and sounds.
+  framework->setBundlePtr("SZG_DATA", "cosmos");
+
   arInterfaceObject interfaceObject;
   interfaceObject.setInputDevice(framework->getInputDevice());
   // The following is VERY important... otherwise the navigation is

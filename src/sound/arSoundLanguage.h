@@ -48,12 +48,18 @@ class SZG_CALL arSoundLanguage:public arDatabaseLanguage{
   int AR_STREAM_AMPLITUDE;
   int AR_STREAM_TIME;
 
+  int AR_SOUND_ADMIN;       
+  int AR_SOUND_ADMIN_ACTION;
+  int AR_SOUND_ADMIN_NODE_ID;
+  int AR_SOUND_ADMIN_NAME;
+
  protected:
   arDataTemplate _transform;
   arDataTemplate _fileWav;
   arDataTemplate _player;
   arDataTemplate _speech;
   arDataTemplate _stream;
+  arDataTemplate _soundAdmin;
 
 public:
   const char* _stringFromID(int id);

@@ -130,6 +130,7 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   void _intersect(arGraphicsNode*, float&, int&, stack<arRay>&);
   void _intersectList(arGraphicsNode*, list<int>*, stack<arRay>&);
   virtual arDatabaseNode* _makeNode(const string& type);
+  arDatabaseNode* _processAdmin(arStructuredData*);
 };
 
 #endif

@@ -52,6 +52,7 @@ class SZG_CALL arSoundDatabase: public arDatabase{
 
   void _render(arSoundNode*);
   virtual arDatabaseNode* _makeNode(const string& type);
+  arDatabaseNode* _processAdmin(arStructuredData* data);
 };
 
 extern stack<arMatrix4, deque<arMatrix4> > ar_transformStack;

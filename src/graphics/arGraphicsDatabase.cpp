@@ -14,6 +14,15 @@ arGraphicsDatabase::arGraphicsDatabase() :
   _lang = (arDatabaseLanguage*)&_gfx;
   if (!_initDatabaseLanguage())
     return;
+
+  // Have to add the processing callback for the "graphics admin"
+  // message. Please note that the arGraphicsPeer processes this
+  // differently than here (i.e. the "graphics admin" messages 
+  // are culled from the message stream before being sent to the
+  // database for processing.
+  arDataTemplate* t = _lang->find("graphics admin");
+  _databaseReceive[t->getID()] 
+    = (arDatabaseProcessingCallback)&arGraphicsDatabase::_processAdmin;
   
   // Initialize the texture data.
   int i;
@@ -184,7 +193,6 @@ void arGraphicsDatabase::setTexturePath(const string& thePath){
   ar_mutex_unlock(&_texturePathLock);
 }
 
-/// \todo Hard-coded buffer sizes
 arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
   const map<string,arTexture*,less<string> >::iterator
     iFind(_textureNameContainer.find(name));
@@ -193,38 +201,63 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
 
   // A new texture.
   arTexture* theTexture = new arTexture;
-  char buffer[512];
-  ar_stringToBuffer(name, buffer, sizeof(buffer));
-  if (strlen(buffer) <= 0) {
+  if (name.length() <= 0) {
     cerr << "arGraphicsDatabase warning: "
-	 << "ignoring empty filename for PPM texture.\n";
+	 << "ignoring empty filename for texture.\n";
   }
   // Only client, not server, needs the actual bitmap
   else if (!isServer()) {
     // Try everything in the path.
     ar_mutex_lock(&_texturePathLock);
-    char fileNameBuffer[512];
-
     bool fDone = false;
+    string potentialFileName;
+    // First, go ahead and look at the bundle path, if such as been set.
+    map<string, string, less<string> >::iterator iter 
+        = _bundlePathMap.find(_bundlePathName);
+    if (_bundlePathName != "NULL" && _bundleName != "NULL"
+	&& iter != _bundlePathMap.end()){
+      arSlashString bundlePath(iter->second);
+      for (int n=0; n<bundlePath.size(); n++){
+        potentialFileName = bundlePath[n];
+        ar_pathAddSlash(potentialFileName);
+        potentialFileName += _bundleName;
+        ar_pathAddSlash(potentialFileName);
+        potentialFileName += name;
+        // Scrub path afterwards to allow cross-platform multi-level 
+	// bundle names (foo/bar), which can be changed per platform
+	// to the right thing (on Windows, foo\bar)
+        ar_scrubPath(potentialFileName);
+        fDone = theTexture->readImage(potentialFileName.c_str(), *theAlpha,
+				      false);
+        if (fDone){
+	  // Don't look anymore. Success!
+	  break;
+	}
+      }
+    }
+
+    // If nothing can be found there, go ahead and look at the texture
+    // path.
     for (list<string>::iterator i = _texturePath->begin();
 	 !fDone && i != _texturePath->end();
 	 ++i){
-      const string tmp(*i + buffer);
-      ar_stringToBuffer(tmp, fileNameBuffer, sizeof(fileNameBuffer));
+      potentialFileName = *i + name;
+      ar_scrubPath(potentialFileName);
       // Make sure the texture function does not complain (the final
       // false parameter does this). Otherwise, ugly error messages will
       // pop up. Note: it is natural that there be some complaints! Since
       // we are testing for the existence of the file on the texture path,
       // starting with the current working directory, by doing this.
-      fDone = theTexture->readImage(fileNameBuffer, *theAlpha, false);
+      fDone = theTexture->readImage(potentialFileName.c_str(), *theAlpha, 
+                                    false);
     }
     static bool fComplained = false;
     if (!fDone){
       theTexture->dummy();
       if (!fComplained){
 	fComplained = true;
-	cerr << "arGraphicsDatabase warning: no PPM file \""
-	     << buffer << "\" in ";
+	cerr << "arGraphicsDatabase warning: no graphics file \""
+	     << name << "\" in ";
 	if (_texturePath->size() <= 1)
 	  cerr << "empty ";
 	cerr << "texture path." << endl;
@@ -673,5 +706,18 @@ arDatabaseNode* arGraphicsDatabase::_makeNode(const string& type){
   }
 
   return outNode;
+}
+
+arDatabaseNode* arGraphicsDatabase::_processAdmin(arStructuredData* data){
+  string name = data->getDataString("name");
+  cout << "arGraphicsDatabase remark: using texture bundle " << name << "\n";
+  arSlashString bundleInfo(name);
+  if (bundleInfo.size() != 2){
+    cout << "arGraphicsDatabase error: got garbled texture bundle "
+	 << "identification.\n";
+    return &_rootNode;
+  }
+  setBundlePtr(bundleInfo[0], bundleInfo[1]);
+  return &_rootNode;
 }
 
