@@ -16,7 +16,8 @@ class SZG_CALL arGraphicsPeerConnection{
   arGraphicsPeerConnection(){ remoteName = "NULL"; 
                               connectionID = -1;
                               receiving = false;
-                              sending = false; }
+                              sending = false; 
+                              inMap = NULL; }
   ~arGraphicsPeerConnection(){};
 
   string    remoteName;
@@ -25,10 +26,27 @@ class SZG_CALL arGraphicsPeerConnection{
   // (though it is at any particular time) since we could have open, then
   // closed, then opened again, a connection between two peers. 
   int       connectionID;
+  arSocket* socket;
   bool      receiving;
   bool      sending;
   list<int> nodesLockedLocal;
   list<int> nodesLockedRemote;
+
+  // If the remote peer *mapped* into us, then there needs to be a
+  // basic ID-mapping process that happens before the more general
+  // filter. This allows IDs of the incoming records to be *mapped*
+  // to the appropriate IDs locally. This must happen *before*
+  // the records hit the inFilter, since that operates on *local* ID.
+  map<int, int, less<int> >* inMap;
+
+  // Each connection includes information about how stuff on it should
+  // be filtered going out.
+  map<int, int, less<int> > outFilter;
+
+  // Each connection includes information on how stuff on it should be
+  // filtered coming in. NOTE: Locks will eventually be implemented
+  // this way, I think.
+  map<int, int, less<int> > inFilter;
 
   string print();
 };
@@ -84,10 +102,14 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   bool unlockRemoteNode(const string& name, int nodeID);
   bool lockLocalNode(const string& name, int nodeID);
   bool unlockLocalNode(int nodeID);
+  bool filterDataBelowRemote(const string& peer,
+                             int remoteNodeID, int on);
+  bool filterDataBelowLocal(const string& peer,
+                            int localNodeID, int on);
   int  getNodeIDRemote(const string& peer, const string& nodeName);
 
   // Not quite so important.
-  list<arGraphicsPeerConnection> getConnections();
+  //list<arGraphicsPeerConnection> getConnections();
   string printConnections();
   string print();
 
@@ -96,7 +118,8 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   arQueuedData*   _incomingQueue;
   arDataServer*   _dataServer;
   // The IDs of the sockets that are sending information.
-  list<arSocket*> _outgoingSockets;
+  // We will just rely on the list of connections in general for now.
+  //list<arSocket*> _outgoingSockets;
   arSZGClient*    _client;
   arThread        _connectionThread;
 
@@ -112,7 +135,7 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   map<int, int, less<int> > _lockContainer;
   // Need to keep a list of connections with their properties.
   // (map of connectionIDs to nodes is contained herein)
-  map<int, arGraphicsPeerConnection, less<int> > _connectionContainer;
+  map<int, arGraphicsPeerConnection*, less<int> > _connectionContainer;
 
   // Some calls involve a round trip to a remote peer, like finding the
   // ID of a node if we haven't transfered the stuff locally.
@@ -138,8 +161,14 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   void _lockNode(int nodeID, arSocket* socket);
   void _unlockNode(int nodeID);
   int  _unlockNodeNoNotification(int nodeID);
+  void _filterDataBelow(int nodeID,
+                        arSocket* socket,
+                        int on);
   void _recSerialize(arDatabaseNode* pNode, arStructuredData& nodeData,
                      arSocket* socket, bool& success);
+  void _recDataOnOff(arDatabaseNode* pNode,
+                     int value,
+                     map<int, int, less<int> >& filterMap);
 };
 
 #endif

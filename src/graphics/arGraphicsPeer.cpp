@@ -69,14 +69,14 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       // Important that remember which sockets are receiving info.
       // When we get this message, the remote peer informs us that
       // it will be sending scene graph updates.
-      map<int, arGraphicsPeerConnection, less<int> >::iterator i
+      map<int, arGraphicsPeerConnection*, less<int> >::iterator i
         = gp->_connectionContainer.find(socket->getID());
       if (i == gp->_connectionContainer.end()){
         cout << "arGraphicsPeer internal error: could not find connection "
 	     << "object.\n";
       }
       else{
-        i->second.receiving = true;
+        i->second->receiving = true;
       }
       ar_mutex_unlock(&gp->_socketsLock);
     }
@@ -85,14 +85,14 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       // Important that remember which sockets are receiving info.
       // When we get this message, the remote peer informs us that
       // it will be sending scene graph updates.
-      map<int, arGraphicsPeerConnection, less<int> >::iterator i
+      map<int, arGraphicsPeerConnection*, less<int> >::iterator i
         = gp->_connectionContainer.find(socket->getID());
       if (i == gp->_connectionContainer.end()){
         cout << "arGraphicsPeer internal error: could not find connection "
 	     << "object.\n";
       }
       else{
-        i->second.receiving = false;
+        i->second->receiving = false;
       }
       ar_mutex_unlock(&gp->_socketsLock);
     }
@@ -103,6 +103,14 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       gp->_deactivateSocket(socket);
     }
     else if (action == "close"){
+      // Probably a good idea to handshake back with the following.
+      // We want an *active* close on the other end. This avoids
+      // situations where we are waiting for the other end to
+      // passively go down... and closeAllAndReset can deadlock as
+      // a result.
+      arStructuredData adminData(l->find("graphics admin"));
+      adminData.dataInString(l->AR_GRAPHICS_ADMIN_ACTION, "close");
+      gp->_dataServer->sendData(&adminData, socket);
       gp->_closeConnection(socket);
     }
     else if (action == "lock"){
@@ -113,20 +121,25 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       nodeID = data->getDataInt(l->AR_GRAPHICS_ADMIN_NODE_ID);
       gp->_unlockNode(nodeID);
     }
+    else if (action == "filter_data"){
+      int dataFilterInfo[2];
+      data->dataOut(l->AR_GRAPHICS_ADMIN_NODE_ID, dataFilterInfo, AR_INT, 2);
+      gp->_filterDataBelow(dataFilterInfo[0], socket, dataFilterInfo[1]);
+    }
     else if (action =="set-name"){
       string socketLabel = data->getDataString(l->AR_GRAPHICS_ADMIN_NAME);
       gp->_dataServer->setSocketLabel(socket, socketLabel);
       // also need to set the name for this connection in the
       // container.
       ar_mutex_lock(&gp->_socketsLock);
-      map<int, arGraphicsPeerConnection, less<int> >::iterator i
+      map<int, arGraphicsPeerConnection*, less<int> >::iterator i
 	= gp->_connectionContainer.find(socket->getID());
       if (i == gp->_connectionContainer.end()){
 	cout << "arGraphicsPeer internal error: could not get requested "
 	     << "object.\n";
       }
       else{
-        i->second.remoteName = socketLabel;
+        i->second->remoteName = socketLabel;
       }
       ar_mutex_unlock(&gp->_socketsLock);
     }
@@ -197,7 +210,8 @@ void ar_graphicsPeerDisconnectFunction(void* graphicsPeer,
   // THESE SOCKETS SEND INFORMATION
   arGraphicsPeer* gp = (arGraphicsPeer*) graphicsPeer;
   ar_mutex_lock(&gp->_socketsLock);
-  for (list<arSocket*>::iterator i = gp->_outgoingSockets.begin();
+  // NOTE: This has now been folded into the connection list.
+  /*for (list<arSocket*>::iterator i = gp->_outgoingSockets.begin();
        i != gp->_outgoingSockets.end();
        i++){
     if (socket->getID() == (*i)->getID()){
@@ -205,19 +219,20 @@ void ar_graphicsPeerDisconnectFunction(void* graphicsPeer,
       // We are done.
       break;
     }
-  }
+    }*/
   // The arGraphicsPeer maintains a list of connections. The affected
   // connection must be removed from the list and any nodes it is currently
   // locking must be unlocked.
-  map<int, arGraphicsPeerConnection, less<int> >::iterator j
+  map<int, arGraphicsPeerConnection*, less<int> >::iterator j
     = gp->_connectionContainer.find(socket->getID());
   if (j != gp->_connectionContainer.end()){
-    for (list<int>::iterator k = j->second.nodesLockedLocal.begin();
-	 k != j->second.nodesLockedLocal.end(); k++){
+    for (list<int>::iterator k = j->second->nodesLockedLocal.begin();
+	 k != j->second->nodesLockedLocal.end(); k++){
       ar_mutex_lock(&gp->_alterLock);
       gp->_unlockNodeNoNotification(*k);
       ar_mutex_unlock(&gp->_alterLock);
     }
+    delete j->second;
     gp->_connectionContainer.erase(j);
   }
   else{
@@ -238,12 +253,13 @@ void ar_graphicsPeerConnectionTask(void* graphicsPeer){
     // NOTE: we are guaranteed that this key is unique since
     // IDs are not reused.
     ar_mutex_lock(&gp->_socketsLock);
-    arGraphicsPeerConnection newConnection;
+    arGraphicsPeerConnection* newConnection = new arGraphicsPeerConnection();
     // we do not know the remote name yet. That will be forwarded to
     // us.
-    newConnection.connectionID = socket->getID();
+    newConnection->connectionID = socket->getID();
+    newConnection->socket = socket;
     gp->_connectionContainer.insert(
-      map<int, arGraphicsPeerConnection, less<int> >::value_type(
+      map<int, arGraphicsPeerConnection*, less<int> >::value_type(
 	socket->getID(),
 	newConnection));
     ar_mutex_unlock(&gp->_socketsLock);
@@ -440,17 +456,24 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
   // internal databases immediately (if they are NOT drawers)
   // or will queue the alterations (if they are drawers)
   ar_mutex_lock(&_socketsLock);
-  list<arSocket*> tmpSockets = _outgoingSockets;
-  ar_mutex_unlock(&_socketsLock);
-  for (list<arSocket*>::iterator i = tmpSockets.begin();
-       i != tmpSockets.end(); 
-       i++){
+  map<int, arGraphicsPeerConnection*, less<int> >::iterator iter;
+  map<int, int, less<int> >::iterator outIter;
+  for (iter = _connectionContainer.begin();
+       iter != _connectionContainer.end(); 
+       iter++){
     // NOTE: we do not want a feedback loop. So, we should not send back
     // to the origin.
-    if ((*i)->getID() != originID){
-      _dataServer->sendData(data, *i);
+    if (iter->second->connectionID != originID){
+      // Still need to check the connection's filter.
+      IDPtr = (int*) data->getDataPtr(_routingField[dataID], AR_INT);
+      outIter = iter->second->outFilter.find(IDPtr[0]);
+      if (iter->second->sending && (outIter == iter->second->outFilter.end()
+                                    || outIter->second == 1)){
+        _dataServer->sendData(data, iter->second->socket);
+      }
     }
   }
+  ar_mutex_unlock(&_socketsLock);
   ar_mutex_unlock(&_alterLock);
   // No matter what happened just above, we return the state from just before.
   return result;
@@ -592,11 +615,12 @@ int arGraphicsPeer::connectToPeer(const string& name){
   // There is a race condition whereby a new connection that
   // disappeared *immediately* might not be correctly handled.
   // ANOTHER REASON TO HANDLE DISCONNECT EVENTS DIFFERENTLY
-  arGraphicsPeerConnection newConnection;
-  newConnection.remoteName = name;
-  newConnection.connectionID = socket->getID();
+  arGraphicsPeerConnection* newConnection = new arGraphicsPeerConnection();
+  newConnection->remoteName = name;
+  newConnection->connectionID = socket->getID();
+  newConnection->socket = socket;
   _connectionContainer.insert(
-    map<int, arGraphicsPeerConnection, less<int> >::value_type(
+    map<int, arGraphicsPeerConnection*, less<int> >::value_type(
       socket->getID(),
       newConnection));
   ar_mutex_unlock(&_socketsLock);
@@ -646,7 +670,7 @@ bool arGraphicsPeer::receiving(const string& name, bool state){
   _dataServer->sendData(&adminData, socket);
   ar_mutex_lock(&_socketsLock);
   // Important that remember which sockets have requested updates.
-  map<int, arGraphicsPeerConnection, less<int> >::iterator i
+  map<int, arGraphicsPeerConnection*, less<int> >::iterator i
     = _connectionContainer.find(socket->getID());
   if (i == _connectionContainer.end()){
     cout << "arGraphicsPeer internal error: could not find connection "
@@ -654,11 +678,11 @@ bool arGraphicsPeer::receiving(const string& name, bool state){
   }
   else{
     if (state){
-      i->second.receiving = true;
+      i->second->receiving = true;
     }
     else{
       // relaying is off
-      i->second.receiving = false;
+      i->second->receiving = false;
     }
   }
   ar_mutex_unlock(&_socketsLock);
@@ -713,14 +737,14 @@ bool arGraphicsPeer::pullSerial(const string& name, bool receiveOn){
   if (receiveOn){
     // Important to remember who has requested updates.
     ar_mutex_lock(&_socketsLock);
-    map<int, arGraphicsPeerConnection, less<int> >::iterator i
+    map<int, arGraphicsPeerConnection*, less<int> >::iterator i
       = _connectionContainer.find(socket->getID());
     if (i == _connectionContainer.end()){
       cout << "arGraphicsPeer internal error: could not find connection "
 	   << "object.\n";
     }
     else{
-      i->second.receiving = true;
+      i->second->receiving = true;
     }
     ar_mutex_unlock(&_socketsLock);
   }
@@ -823,6 +847,42 @@ bool arGraphicsPeer::unlockLocalNode(int nodeID){
   return true;
 }
 
+/// We want to be able to prevent a remote peer from sending us data (or
+/// turn sending back on once we have turned it off).
+bool arGraphicsPeer::filterDataBelowRemote(const string& peer,
+                                           int remoteNodeID,
+                                           int on){
+  arStructuredData adminData(_gfx.find("graphics admin"));
+  adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "filter_data");
+  int data[2];
+  data[0] = remoteNodeID;
+  data[1] = on;
+  adminData.dataIn(_gfx.AR_GRAPHICS_ADMIN_NODE_ID, data, AR_INT, 2);
+  int ID = _dataServer->getFirstIDWithLabel(peer);
+  arSocket* socket = _dataServer->getConnectedSocket(ID);
+  if (!socket){
+    return false;
+  }
+  _dataServer->sendData(&adminData, socket);
+  return true;
+}
+
+/// Keep data from being relayed to a remote peer (or start relaying the
+/// data again).
+bool arGraphicsPeer::filterDataBelowLocal(const string& peer,
+                                          int localNodeID,
+                                          int on){
+  int ID = _dataServer->getFirstIDWithLabel(peer);
+  arSocket* socket = _dataServer->getConnectedSocket(ID);
+  if (!socket){
+    cout << "arGraphicsPeer error: no such connection.\n";
+    return false;
+  }
+  // Lame that this doesn't complain if no such node.
+  _filterDataBelow(localNodeID, socket, on);
+  return true;
+}
+
 /// Sometimes, we want to be able to find the ID of the node on a remotely
 /// connected peer.
 int arGraphicsPeer::getNodeIDRemote(const string& peer,
@@ -847,25 +907,25 @@ int arGraphicsPeer::getNodeIDRemote(const string& peer,
   return result;
 }
 
-list<arGraphicsPeerConnection> arGraphicsPeer::getConnections(){
+/*list<arGraphicsPeerConnection> arGraphicsPeer::getConnections(){
   list<arGraphicsPeerConnection> result;
   ar_mutex_lock(&_socketsLock);
-  map<int, arGraphicsPeerConnection, less<int> >::iterator i;
+  map<int, arGraphicsPeerConnection*, less<int> >::iterator i;
   for (i = _connectionContainer.begin();
        i != _connectionContainer.end(); i++){
     result.push_back(i->second);
   }
   ar_mutex_unlock(&_socketsLock);
   return result;
-}
+  }*/
 
 string arGraphicsPeer::printConnections(){
   stringstream result;
   ar_mutex_lock(&_socketsLock);
-  map<int, arGraphicsPeerConnection, less<int> >::iterator i;
+  map<int, arGraphicsPeerConnection*, less<int> >::iterator i;
   for (i = _connectionContainer.begin();
        i != _connectionContainer.end(); i++){
-    result << i->second.print();
+    result << i->second->print();
   }
   ar_mutex_unlock(&_socketsLock);
   return result.str();
@@ -925,7 +985,10 @@ void arGraphicsPeer::_activateSocket(arSocket* socket){
   ar_mutex_lock(&_socketsLock);
   // We see if the socket can be found. This is a bit of a hack... since
   // we've got pointers but instead want to match the stuff via handles.
-  bool found = false;
+
+  // It is redundant to use the sockets list too. Instead, we use the
+  // connection list exclusively.
+  /*bool found = false;
   for (list<arSocket*>::iterator i = _outgoingSockets.begin();
        i != _outgoingSockets.end();
        i++){
@@ -936,37 +999,48 @@ void arGraphicsPeer::_activateSocket(arSocket* socket){
   }
   if (!found){
     _outgoingSockets.push_back(socket);
-  }
-  map<int, arGraphicsPeerConnection, less<int> >::iterator j
+  }*/
+  map<int, arGraphicsPeerConnection*, less<int> >::iterator j
     = _connectionContainer.find(socket->getID());
   if ( j == _connectionContainer.end()){
     cout << "arGraphicsPeer internal error: could not find requested "
 	 << "object.\n";
   }
   else{
-    j->second.sending = true;
+    j->second->sending = true;
   }
   ar_mutex_unlock(&_socketsLock);
 }
 
 void arGraphicsPeer::_deactivateSocket(arSocket* socket){
   ar_mutex_lock(&_socketsLock);
-  for (list<arSocket*>::iterator i = _outgoingSockets.begin();
+  /*for (list<arSocket*>::iterator i = _outgoingSockets.begin();
        i != _outgoingSockets.end();
        i++){
     if (socket->getID() == (*i)->getID()){
       _outgoingSockets.erase(i);
-      map<int, arGraphicsPeerConnection, less<int> >::iterator j
+      map<int, arGraphicsPeerConnection*, less<int> >::iterator j
         = _connectionContainer.find(socket->getID());
       if ( j == _connectionContainer.end()){
         cout << "arGraphicsPeer internal error: could not find requested "
 	     << "object.\n";
       }
       else{
-        j->second.sending = false;
+        j->second->sending = false;
       }
       break;
     }
+    }*/
+  // Again, it is redundant to have a connection list and an outgoing 
+  // sockets list.
+  map<int, arGraphicsPeerConnection*, less<int> >::iterator j
+    = _connectionContainer.find(socket->getID());
+  if ( j == _connectionContainer.end()){
+    cout << "arGraphicsPeer internal error: could not find requested "
+	 << "object.\n";
+  }
+  else{
+    j->second->sending = false;
   }
   ar_mutex_unlock(&_socketsLock);
 }
@@ -989,7 +1063,7 @@ void arGraphicsPeer::_lockNode(int nodeID, arSocket* socket){
   _lockContainer.insert(map<int,int,less<int> >::value_type(nodeID,
 							    socket->getID()));
   ar_mutex_lock(&_socketsLock);
-  map<int, arGraphicsPeerConnection, less<int> >::iterator j
+  map<int, arGraphicsPeerConnection*, less<int> >::iterator j
     = _connectionContainer.find(socket->getID());
   if (j == _connectionContainer.end()){
     cout << "arGraphicsPeer internal error: could not find requested "
@@ -997,8 +1071,8 @@ void arGraphicsPeer::_lockNode(int nodeID, arSocket* socket){
   }
   else{
     bool found = false;
-    for (list<int>::iterator k = j->second.nodesLockedLocal.begin();
-	 k != j->second.nodesLockedLocal.end(); k++){
+    for (list<int>::iterator k = j->second->nodesLockedLocal.begin();
+	 k != j->second->nodesLockedLocal.end(); k++){
       if (*k == nodeID){
         found = true;
         break;
@@ -1007,7 +1081,7 @@ void arGraphicsPeer::_lockNode(int nodeID, arSocket* socket){
     if (!found){
       // go ahead and add it (this deals with the potentially weird case
       // of locking the same node multiple times)
-      j->second.nodesLockedLocal.push_back(nodeID);
+      j->second->nodesLockedLocal.push_back(nodeID);
     }
   }
   ar_mutex_unlock(&_socketsLock);
@@ -1019,14 +1093,14 @@ void arGraphicsPeer::_unlockNode(int nodeID){
   ar_mutex_lock(&_alterLock);
   ar_mutex_lock(&_socketsLock);
   int socketID = _unlockNodeNoNotification(nodeID);
-  map<int, arGraphicsPeerConnection, less<int> >::iterator i
+  map<int, arGraphicsPeerConnection*, less<int> >::iterator i
     = _connectionContainer.find(socketID);
   if (i == _connectionContainer.end()){
     cout << "arGraphicsPeer internal error: could not find requested "
 	 << "object.\n";
   }
   else{
-    i->second.nodesLockedLocal.remove(nodeID);
+    i->second->nodesLockedLocal.remove(nodeID);
   }
   ar_mutex_unlock(&_socketsLock);
   ar_mutex_unlock(&_alterLock);
@@ -1043,6 +1117,26 @@ int arGraphicsPeer::_unlockNodeNoNotification(int nodeID){
     _lockContainer.erase(i);
   }
   return result;
+}
+
+void arGraphicsPeer::_filterDataBelow(int nodeID,
+                                      arSocket* socket,
+                                      int on){
+  arDatabaseNode* pNode = getNode(nodeID);
+  if (!pNode){
+    return;
+  }
+  ar_mutex_lock(&_socketsLock);
+  map<int, arGraphicsPeerConnection*, less<int> >::iterator i
+    = _connectionContainer.find(socket->getID());
+  if (i == _connectionContainer.end()){
+    cout << "arGraphicsPeer: internal error. Could not find requested "
+	 << "connection.\n";
+  }
+  else{
+    _recDataOnOff(pNode, on, i->second->outFilter);
+  }
+  ar_mutex_unlock(&_socketsLock);
 }
 
 void arGraphicsPeer::_recSerialize(arDatabaseNode* pNode,
@@ -1066,5 +1160,23 @@ void arGraphicsPeer::_recSerialize(arDatabaseNode* pNode,
     if (success){
       _recSerialize(*i, nodeData, socket, success);
     }
+  }
+}
+
+void arGraphicsPeer::_recDataOnOff(arDatabaseNode* pNode,
+                                   int value,
+                                   map<int, int, less<int> >& filterMap){
+  map<int, int, less<int> >::iterator iter = filterMap.find(pNode->getID());
+  if (iter == filterMap.end()){
+    filterMap.insert(map<int, int, less<int> >::value_type
+		     (pNode->getID(), value));
+  }
+  else{
+    iter->second = value;
+  }
+  list<arDatabaseNode*> children = pNode->getChildren();
+  list<arDatabaseNode*>::iterator i;
+  for (i=children.begin(); i!=children.end(); i++){
+    _recDataOnOff(*i, value, filterMap);
   }
 }

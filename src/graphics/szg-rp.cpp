@@ -154,8 +154,9 @@ string handleReset(const string& messageBody){
     ar_mutex_unlock(&peerLock);
     return result.str();
   }
-  i->second.peer->closeAllAndReset();
+  arGraphicsPeer* temp = i->second.peer;
   ar_mutex_unlock(&peerLock);
+  temp->closeAllAndReset();
   result << "szg-rp success: reset peer " << bodyList[0] << ".\n";
   return result.str();
 }
@@ -570,6 +571,33 @@ string handleLockLocal(const string& messageBody, bool lock){
   return result.str();
 }
 
+string handleDataFilter(const string& messageBody){
+  stringstream result;
+  arSlashString bodyList(messageBody);
+  if (bodyList.length() < 3){
+    result << "szg-rp error: body format must be local peer, remote peer,"
+	   << "local node ID, filter code.\n";
+    return result.str();
+  }
+  PeerContainer::iterator i = peers.find(bodyList[0]);
+  if (i == peers.end()){
+    result << "szg-rp error: no such named local peer.\n"
+	   << "  (" << bodyList[0] << ")\n";
+    return result.str();
+  }
+  stringstream IDStream;
+  int ID;
+  IDStream << bodyList[2];
+  IDStream >> ID;
+  stringstream valueStream;
+  int value;
+  valueStream << bodyList[3];
+  valueStream >> value;
+  i->second.peer->filterDataBelowRemote(bodyList[1], ID, value);
+  result << "szg-rp success: filter applied.\n";
+  return result.str();
+}
+
 string handleCamera(const string& messageBody){
   float temp[15];
   ar_parseFloatString(messageBody, temp, 15);
@@ -701,6 +729,9 @@ void messageTask(void* pClient){
     }
     else if (messageType == "unlock-local"){
       responseBody = handleLockLocal(messageBody, false);
+    }
+    else if (messageType == "filter_data"){
+      responseBody = handleDataFilter(messageBody);
     }
     else if (messageType == "camera"){
       responseBody = handleCamera(messageBody);

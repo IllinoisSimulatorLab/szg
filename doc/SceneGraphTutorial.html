@@ -826,10 +826,12 @@ store the geometry they will use. Each such drawable has a stride, namely a
 number of indices needed to define the next primitive. For a line set
 (DG_LINES), this stride is 2. Each pair of indices gives the IDs of the points
 in the line, one after another. The colors in the color4 node apply to
-the lines, one after another.
+the points in the lines, one after another. Consequently, there are 12
+colors (12 points in 6 independent lines) and 48 floats in the array (4 floats
+per color).
 
 <pre>
-  cl.setColor4(6, [1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1])
+  cl.setColor4(12, [1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1])
   il.setIndices(12, [0,1, 1,2, 2,3, 3,0, 0,2, 1,3])
   dl.setDrawable(DG_LINES, 6)
 </pre>

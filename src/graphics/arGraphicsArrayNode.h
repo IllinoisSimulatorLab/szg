@@ -13,6 +13,13 @@ class SZG_CALL arGraphicsArrayNode:public arGraphicsNode{
   ~arGraphicsArrayNode(){}
 
   void draw(){}
+  virtual void initialize(arDatabase* database){
+    arGraphicsNode::initialize(database);
+    // The following is necessary for the current inheritance scheme.
+    // (otherwise, if we attach a node to a node that hasn't had its
+    // data set yet, we won't get any inheritance!)
+    *_whichBufferToReplace = &_commandBuffer;
+  }
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 

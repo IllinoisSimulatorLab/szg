@@ -191,10 +191,10 @@ bool arDatabase::fillNodeData(arStructuredData* data, arDatabaseNode* node){
 arDatabaseNode* arDatabase::alter(arStructuredData* inData){
   const ARint dataID = inData->getID();
   if (_databaseReceive[dataID]){
-    return (this->*(_databaseReceive[dataID]))(inData);
     // Call one of _handleQueuedData _eraseNode _makeDatabaseNode.
     // If it fails, it prints its own error message,
     // so we don't need to print another one here.
+    return (this->*(_databaseReceive[dataID]))(inData); 
   }
   arDatabaseNode* pNode = getNode(inData->getDataInt(_routingField[dataID]));
   if (!pNode)
@@ -620,13 +620,16 @@ arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
   const string type(inData->getDataString(_lang->AR_MAKE_NODE_TYPE));
   // Must use the virtual factory function.
   arDatabaseNode* node = _makeNode(type);
-  if (_insertDatabaseNode(node, parentID, theID, name) < 0){
-    cerr << "arDatabase error: "
-	 << " _makeDatabaseNode failed when makeNode failed\n\tfor ID "
-         << theID << ", name/parent/type \""
-	 << name << "/" << parentID << "/" << type << "\"\n";
-    delete node;
-    return NULL;
+  // Only try to insert if we did, indeed, make a valid node.
+  if (node){
+    if (_insertDatabaseNode(node, parentID, theID, name) < 0){
+      cerr << "arDatabase error: "
+	   << " _makeDatabaseNode failed when makeNode failed\n\tfor ID "
+           << theID << ", name/parent/type \""
+	   << name << "/" << parentID << "/" << type << "\"\n";
+      delete node;
+      return NULL;
+    }
   }
   return node;
 }
@@ -752,9 +755,16 @@ void arDatabase::_eraseNode(arDatabaseNode* node){
   }
   // Delete this node
   const int nodeID = node->getID();
-  _nodeIDContainer.erase(nodeID);
-  /// \bug memory leak in texture held by the deleted node
-  delete node;
+  if (nodeID != 0){
+    // DO NOT DELETE the root node!
+    _nodeIDContainer.erase(nodeID);
+    /// \bug memory leak in texture held by the deleted node
+    delete node;
+  }
+  else{
+    // This is the root node. Make sure that we eliminate its children.
+    node->_children.clear();
+  }
 }
 
 void arDatabase::_createNodeMap(arDatabaseNode* localNode, 
