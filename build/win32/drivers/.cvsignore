@@ -2,6 +2,9 @@
 *.ilk
 *.pdb
 *.pch
+*.dll
+*.exp
+*.lib
 JoystickTest
 JoystickServer
 TrackerTest

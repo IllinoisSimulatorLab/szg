@@ -1,2 +1,4 @@
 *.pdb
 *.pch
+*.exp
+*.lib

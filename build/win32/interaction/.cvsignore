@@ -1,4 +1,3 @@
-*.pdb
-*.pch
+*.dll
 *.exp
 *.lib

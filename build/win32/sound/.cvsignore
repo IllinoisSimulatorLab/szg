@@ -2,4 +2,7 @@
 *.ilk
 *.pdb
 *.pch
+*.dll
+*.exp
+*.lib
 SoundRender
