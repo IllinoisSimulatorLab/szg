@@ -200,8 +200,6 @@ void arSyncDataClient::_readTask(){
   _readThreadRunning = false;
 }
 
-static const int interfaceBufferSize = 1024;
-
 arSyncDataClient::arSyncDataClient():
   _client(NULL),
   _serviceName("NULL"),
