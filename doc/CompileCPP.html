@@ -7,14 +7,58 @@
 
 <p><font size=+2>Syzygy: Compiling C++ Programs</font>
 
+<p><ul>
+<li><a href="#Windows">Notes for Windows Users</a>
+<li><a href="#Environment">Environment Variables</a>
+<li><a href="#Template">Using the Build Template</a>
+<li><a href="#Problems">Common Problems</a>
+</ul>
+
+<a name="Windows">
+<p><font size=+2>Notes for Windows Users</font>
+</a>
+
+<p>Windows users need to take some extra care in compiling their programs.
+
+<p><ul>
+<li>If you are using Visual Studio 6 on Windows, you must compile
+with STLport (SZG_STLPORT=TRUE). Using STLport is described 
+<a href="SupportingLibraries.html">here</a>. On the other hand, do not use
+STLport with Visual Studio .NET (its native standard template library is OK).
+<li>Another note for Windows users, you must set up your environment variables
+so that the Visual Studio compiler (cl.exe) and the Visual Studio linker
+(link.exe) are on your path and can find their header files. The proper way
+to set this is via the Windows control panel. Please note that, after setting
+the variables in the control panel, you will have to restart your cygwin or
+MinGW shell in order to access the new values there. The proper values for the
+environment variables are outlined 
+<a href="VisualStudioBuildVars.html">here</a>.
+<li>If you are using the precompiled SDK for Windows, you must
+use the same SDK as your compiler (-vc6 for Visual Studio 6 and -vc7 for
+Visual Studio .NET). If you mix versions, your executables either will
+not link or will crash on startup.
+<li>If you are compiling using cygwin on Windows then there can 
+be a problem. The Visual Studio linker is called "link" and some installs of
+cygwin may also install a "link" program. If, during your build, you see
+an error message like:
+
+<pre>
+  link error: too many arguments
+</pre>
+
+You will know you are getting the cygwin "link" program by mistake. You can
+solve this problem by typing "which link", seeing where the cygwin "link"
+resides, and removing it, or you can make sure your PATH environment
+variable has the Visual Studio program in it first.
+</ul>
+
+<a name="Environment">
+<p><font size=+2>Environment Variables</font>
+</a>
+
 <p>There are five environment variables that control the build process.
 If you are using a precompiled SDK, one of them, SZG_DEVELOPER_STYLE, must
 be set. THIS IS VERY IMPORTANT.
-
-<p>PLEASE NOTE: if you are using Visual Studio 6 on Windows, you MUST compile
-with STLport (SZG_STLPORT=TRUE). Using STLport is described 
-<a href="SupportingLibraries.html">here</a>. On the other hand, DO NOT use
-STLport with Visual Studio .NET (its native standard template library is OK).
 
 <p><ol>
 <li>SZGHOME: The top level directory of your distribution. This MUST
@@ -44,12 +88,14 @@ STLport with Visual Studio .NET (its native standard template library is OK).
   platform as part of the SDK.
 <li>SZGDEBUG: By default, executables and shared libraries are built without
   debugging information. If you want to debug, set this to TRUE.
+<li>SZG_STLPORT: This is only used on Windows. If you are using Visual Studio
+  6, you must set this to TRUE. If you are using Visual Studio .NET, then
+  you must set this to FALSE.
 </ol>
 
-<p>PLEASE NOTE: If you are using the precompiled SDK for Windows, you must
-use the same SDK as your compiler (-vc6 for Visual Studio 6 and -vc7 for
-Visual Studio .NET). If you mix versions, your executables either will
-not link or will crash on startup.
+<a name="Template">
+<p><font size=+2>Using the Build Template</font>
+</a>
 
 <p>Syzygy has a build system designed for writing cross-platform applications,
 hiding the differences from the programmer. A motivating example of
@@ -73,22 +119,12 @@ built executables and objects, by typing "make clean" in the same location.
 All built executables (defined by ALL below) will be copied into your
 Syzygy executables directory. This is determined like so:
 
-<p>PLEASE NOTE: if you are compiling using cygwin on Windows then there can 
-be a problem. The Visual Studio linker is called "link" and some installs of
-cygwin mayn also install a "link" program. If, during your build, you see
-an error message like:
+<p><ul>
+<li>If SZGBIN is not set, then $(SZGHOME)/bin is used.
+<li>If SZGBIN is set, then $(SZGBIN) is used.
+</ul>
 
-<pre>
-  link error: too many arguments
-</pre>
-
-You will know you are getting the cygwin "link" program by mistake. You can
-solve this problem by typing "which link", seeing where the cygwin "link"
-resides, and removing it, or you can make sure your $PATH environment
-variable has the Visual Studio program in it first (as explained
-<a href="VisualStudioBuildVars.html">here</a>).
-
-<p>With that warning given, we now examine the contents of szg_app_template, 
+<p>We now examine the contents of szg_app_template, 
 explaining each one.
 
 <p><ul>
@@ -206,5 +242,31 @@ $(SZG_USR_SECOND), which is blank in the Windows case.
 The $(COPY) line copies the built executable into your $SZGBIN directory
 where all of your Syzygy-related executables are stored.
 
+<a name="Problems">
+<p><font size=+2>Common Problems</font>
+</a>
+
+<p>There are a few tricks to writing portable code using Syzygy.
+
+<p><ul>
+<li>In general, do not use the system OpenGL includes. These vary from
+system to system, with the Mac OS X version being especially different.
+Instead, you should:
+  <pre>
+  #include "arGraphicsHeader.h"
+  </pre>
+<li>The Windows build process uses precompiled headers to get reasonably 
+speedy results. This is an important feature of the Windows build system.
+For this to work, the following include must be the first non-comment line in
+each of your .cpp files:
+  <pre>
+  #include "arPrecompiled.h"
+  </pre>
+On Unix platforms, this is a stub, doing nothing. On Windows, it includes
+windows.h. If you fail to give this as your first include on Windows
+(even if not using precompiled headers), your compile will fail because
+certain constants are not defined, etc.
+</ul>
+<hr>
 </body>
 </html>
