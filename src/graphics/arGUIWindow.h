@@ -146,7 +146,7 @@ class SZG_CALL arGUIWindowConfig
                        int bpp = 16, int Hz = 0, bool decorate = true, bool topmost = false,
                        bool fullscreen = false, bool stereo = false,
                        const std::string& title = "",
-                       const std::string& XDisplay = "localhost:0.0" );
+                       const std::string& XDisplay = "" );
 
     /**
      * The arGUIWindowConfig destructor.

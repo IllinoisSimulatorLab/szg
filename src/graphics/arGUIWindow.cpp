@@ -704,19 +704,12 @@ int arGUIWindow::_windowCreation( void )
     attrList[ 11 ] = None;
   }
 
-  _windowHandle._dpy = XOpenDisplay( _windowConfig._XDisplay.c_str() );
+  // if the XDisplay window config parameter has not been set, use the $DISPLAY env variable.
+  _windowHandle._dpy = XOpenDisplay( _windowConfig._XDisplay.length() ? _windowConfig._XDisplay.c_str() : NULL );
 
   if( !_windowHandle._dpy ) {
-    // try the $DISPLAY env variable
-    std::cout << "_windowCreation: XOpenDisplay failure on: " << _windowConfig._XDisplay
-              << ", trying $DISPLAY" << std::endl;
-
-    _windowHandle._dpy = XOpenDisplay( NULL );
-
-    if( !_windowHandle._dpy ) {
-      std::cerr << "_windowCreation: XOpenDisplay failure" << std::endl;
-      return -1;
-    }
+    std::cout << "_windowCreation: XOpenDisplay failure on: " << _windowConfig._XDisplay << std::endl;
+    return -1;
   }
 
   _windowHandle._screen = DefaultScreen( _windowHandle._dpy );
@@ -1215,8 +1208,8 @@ void arGUIWindow::decorate( const bool decorate )
 
   if( !decorate ) {
     // try Motif hints
-    if( XInternAtom( _windowHandle._dpy, "_MOTIF_WM_HINTS", True ) != None ) {
-      _windowHandle._wHints = XInternAtom( _windowHandle._dpy, "_MOTIF_WM_HINTS", True );
+    if( XInternAtom( _windowHandle._dpy, "_MOTIF_WM_HINTS", False ) != None ) {
+      _windowHandle._wHints = XInternAtom( _windowHandle._dpy, "_MOTIF_WM_HINTS", False );
 
       MotifWmHints hints = { (1L << 1), 0, 0, 0, 0 };
       XChangeProperty( _windowHandle._dpy, _windowHandle._win,
@@ -1225,8 +1218,8 @@ void arGUIWindow::decorate( const bool decorate )
     }
     else
     // try KDE hints
-    if( XInternAtom( _windowHandle._dpy, "KWM_WIN_DECORATION", True ) != None ) {
-      _windowHandle._wHints = XInternAtom( _windowHandle._dpy, "KWM_WIN_DECORATION", True );
+    if( XInternAtom( _windowHandle._dpy, "KWM_WIN_DECORATION", False ) != None ) {
+      _windowHandle._wHints = XInternAtom( _windowHandle._dpy, "KWM_WIN_DECORATION", False );
 
       long hints = 0;
       XChangeProperty( _windowHandle._dpy, _windowHandle._win,
@@ -1235,13 +1228,17 @@ void arGUIWindow::decorate( const bool decorate )
     }
     else
     // try GNOME hints
-    if( XInternAtom( _windowHandle._dpy, "_WIN_HINTS", True ) != None ) {
-      _windowHandle._wHints = XInternAtom( _windowHandle._dpy, "_WIN_HINTS", True );
+    if( XInternAtom( _windowHandle._dpy, "_WIN_HINTS", False ) != None ) {
+      _windowHandle._wHints = XInternAtom( _windowHandle._dpy, "_WIN_HINTS", False );
 
       long hints = 0;
       XChangeProperty( _windowHandle._dpy, _windowHandle._win,
                        _windowHandle._wHints, _windowHandle._wHints, 32, PropModeReplace,
                        (unsigned char *) &hints, sizeof( hints ) / sizeof( long ) );
+    }
+    else {
+      // couldn't find a decoration hint that matches this window manager.
+      // print error/warning?
     }
   }
   else if( _windowHandle._wHints != None ) {
