@@ -17,8 +17,7 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
   arDistSceneGraphFramework* f = (arDistSceneGraphFramework*) framework;
   string messageType, messageBody;
   while (true) {
-    int sendID = f->_SZGClient.receiveMessage(&messageType, &messageBody);
-    if (!sendID){
+    if (!f->_SZGClient.receiveMessage(&messageType, &messageBody)){
       // We have somehow been disconnected from the szgserver. We should
       // now quit. NOTE: we cannot kill the stuff elsewhere since we are
       // disconnected (i.e. we cannot manipulate the system anymore)
@@ -34,19 +33,17 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
 	// controlling a virtual computer's execution
 	f->_launcher.killApp();
       }
-      // important that we stop the framework (the parameter is meaningless
-      // so far)
+      // stop the framework
       f->stop(true);
       exit(0);
-
-    } else if (messageType=="demo") {
-      bool onoff = (messageBody=="on")?(true):(false);
-      f->setFixedHeadMode(onoff);
-
-    } else if (messageType=="reload"){
+    }
+    else if (messageType=="demo") {
+      f->setFixedHeadMode(messageBody=="on");
+    }
+    else if (messageType=="reload"){
       f->_loadParameters();
-
-    } else if (messageType== "user"){
+    }
+    else if (messageType== "user"){
       if (f->_userMessageCallback){
         f->_userMessageCallback(*f, messageBody);
       }
@@ -55,7 +52,7 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
 }
 
 // GLUT functions for standalone mode
-arDistSceneGraphFramework* __globalSceneGraphFramework;
+arDistSceneGraphFramework* __globalSceneGraphFramework = NULL;
 
 void ar_distSceneGraphFrameworkDisplay(){
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

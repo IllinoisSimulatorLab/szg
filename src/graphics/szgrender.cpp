@@ -34,7 +34,7 @@ string textPath;
 
 bool loadParameters(arSZGClient& cli){
   // important that we use the parameters for our particular screen
-  string screenName = cli.getMode("graphics");
+  const string screenName(cli.getMode("graphics"));
 
   int sizeBuffer[2];
   string sizeString = cli.getAttribute(screenName, "size");
@@ -48,7 +48,7 @@ bool loadParameters(arSZGClient& cli){
     ySize = 480;
   }
 
-  string posString = cli.getAttribute(screenName, "position");
+  const string posString(cli.getAttribute(screenName, "position"));
   if (sizeString != "NULL"
       && ar_parseIntString(posString,sizeBuffer,2)){
     xPos = sizeBuffer[0];
@@ -78,12 +78,9 @@ void messageTask(void* pClient){
   arSZGClient* cli = (arSZGClient*)pClient;
   string messageType, messageBody;
   while (true) {
-    int sendID = cli->receiveMessage(&messageType,&messageBody);
     // Note how we only hit this ONCE!
-    if (!sendID){
-      // sendID == 0 exactly when we've been FORCED to shutdown by the 
-      // szgserver.
-      cout << "szgrender shutting down.\n";
+    if (!cli->receiveMessage(&messageType,&messageBody)){
+      cout << "szgrender remark: shutdown.\n";
       // NOTE: these shutdown tasks are cut-and-pasted from the below.
       exitFlag = true;
       // make sure we actually get to the end of the draw loop

@@ -37,7 +37,7 @@ arAppLauncher::~arAppLauncher(){
 
 bool arAppLauncher::setRenderProgram(const string& name){
   _renderProgram = name;
-  cerr << "arAppLauncher remark: renderProgram == " << _renderProgram << endl;
+  cout << "arAppLauncher remark: render program is " << _renderProgram << endl;
   return true;
 }
 
@@ -65,30 +65,24 @@ bool arAppLauncher::setVircomp(){
 /// Allows us to set the virtaul computer explicitly (as desired for 
 /// killalldemo, for instance), without starting up a whole application.
 bool arAppLauncher::setVircomp(string vircomp){
-  // check that this is, in fact, a valid virtual computer.
   if (!_client){
+    // invalid virtual computer
     return false;
   }
-  // Check to make sure that the user has declared this is a valid virtual
-  // computer name.
   if (_client->getAttribute(vircomp,"SZG_CONF","virtual","") != "true"){
+    // user hasn't declared this is a valid virtual computer name.
     return false;
   }
   _vircomp = vircomp;
-  // NOTE: There are two locks that have their names determined by the
-  // virtual computer:
-  // 1. The set-up lock: This ensures that only one system-wide reorganziation
+  // Two locks have their names determined by the virtual computer.
+  // 1. The set-up lock ensures that only one system-wide reorganziation
   //    occurs at a particular time.
-  // 2. The demo lock: Lets us know what program is currently running so that
+  // 2. The demo lock lets us know what program is currently running so that
   //    it can be killed.
-  string locationCandidate = _client->getAttribute(vircomp,"SZG_CONF",
-						   "location","");
-  if (locationCandidate == "NULL"){
-    _location = _vircomp;
-  }
-  else{
-    _location = locationCandidate;
-  }
+  const string locationCandidate =
+    _client->getAttribute(vircomp, "SZG_CONF", "location", "");
+  _location =
+    (locationCandidate == "NULL") ? _vircomp : locationCandidate;
   return true;
 }
 
@@ -98,9 +92,8 @@ bool arAppLauncher::setVircomp(string vircomp){
 bool arAppLauncher::connectSZG(int& argc, char** argv){
   _client = new arSZGClient;
   _client->init(argc, argv);
-  if (!(*_client))
+  if (!*_client)
     return false;
-
   _clientIsMine = true;
   return true;
 }
@@ -153,8 +146,8 @@ bool arAppLauncher::setParameters(){
  
   const int numberPipes = getNumberScreens();
   if (numberPipes <= 0){
-    initResponse << "arAppLauncher error: the number of pipes for "
-		 << "virtual computer " << _vircomp << " is invalid.\n";
+    initResponse << "arAppLauncher error: invalid number of pipes for "
+		 << "virtual computer " << _vircomp << ".\n";
     return false;
   }
   _setNumberPipes(numberPipes);
@@ -175,7 +168,7 @@ bool arAppLauncher::setParameters(){
   const int numTokens = inputDevs.size();
   if (numTokens%2){
     initResponse << _exeName
-         << " error: incorrect input devices format for " << _vircomp
+         << " error: invalid input devices format for " << _vircomp
 	 << ".  Expected computer/inputDevice/.../computer/inputDevice.\n";
     return false;
   }
@@ -212,7 +205,7 @@ bool arAppLauncher::setParameters(){
     _addService(soundLocation,"SoundRender",_getSoundContext(),
                 "SZG_WAVEFORM", "");
   }
-  initResponse << _exeName << " remark: virtual computer definition valid.\n";
+  initResponse << _exeName << " remark: virtual computer definition ok.\n";
   _vircompDefined = true;
   return true;
 }  
@@ -253,7 +246,8 @@ bool arAppLauncher::launchApp(){
   for (i=0; i<_numberPipes; i++){
     renderSzgdID[i] = _client->getProcessID(_pipeComp[i], "szgd");
     if (renderSzgdID[i] == -1){
-      cerr << _exeName << " error: no szgd on a render node.\n";
+      cerr << _exeName << " error: no szgd on render node "
+           << i+1 << " of " << _numberPipes << ".\n";
       _unlock();
       return false;
     }
@@ -382,7 +376,7 @@ bool arAppLauncher::killAll(){
   for (list<arLaunchInfo>::iterator iter = _serviceList.begin();
        iter != _serviceList.end();
        ++iter){
-    cout << "arAppLauncher remark: attempting to kill service with tag = "
+    cout << "arAppLauncher remark: killing service with tag = "
 	 << iter->tradingTag << "\n";
     const int serviceID =
       _client->getServiceComponentID(iter->tradingTag);
@@ -448,7 +442,7 @@ int arAppLauncher::getNumberScreens() {
   const int num =
     _client->getAttributeInt(_vircomp, "SZG_SCREEN", "number_screens", "");
   if (num <= 0){
-    cerr << _exeName << " warning: no screens defined for "
+    cerr << _exeName << " warning: no screens defined for virtual computer "
          << _vircomp << ".\n";
   }
   return num;
@@ -458,7 +452,7 @@ int arAppLauncher::getNumberScreens() {
 /// Returns -1 if such does not exist.
 int arAppLauncher::getPipeNumber(){
   if (!_client){
-    cerr << _exeName << " _warning: no arSZGClient.\n";
+    cerr << _exeName << " warning: no arSZGClient.\n";
     return -1;
   }
   int numberPipes = getNumberScreens();
@@ -498,7 +492,7 @@ int arAppLauncher::getMasterPipeNumber(){
 /// FUNCTIONS (either setVircomp or setParameters).
 string arAppLauncher::getMasterName(){
   if (!_client){
-    cout << _exeName << " warning: no arSZGClient.\n";
+    cerr << _exeName << " warning: no arSZGClient.\n";
     return "NULL";
   }
   // note that SZG_MASTER/map gives the screen designation
@@ -514,7 +508,7 @@ string arAppLauncher::getMasterName(){
 /// FUNCTIONS (either setVircomp or setParameters).
 string arAppLauncher::getTriggerName(){
   if (!_client){
-    cout << _exeName << " warning: no arSZGClient.\n";
+    cerr << _exeName << " warning: no arSZGClient.\n";
     return "NULL";
   }
   return _client->getAttribute(_vircomp, "SZG_TRIGGER", "map", "");
@@ -560,7 +554,7 @@ void arAppLauncher::updateRenderers(const string& attribute,
                                     const string& value) {
   // set up the virtual computer info, if necessary
   if (!setParameters()){
-    cerr << "arAppLauncher error: invlid virtual computer definition for "
+    cerr << _exeName << " error: invalid virtual computer definition for "
 	 << "updateRenderers.\n";
     return;
   }
@@ -671,10 +665,10 @@ bool arAppLauncher::_trylock(){
   }
   int ownerID;
   if (!_client->getLock(_location+string("/SZG_DEMO/lock"), ownerID)){
-    string label = _client->getProcessLabel(ownerID);
-    cerr << _exeName << " warning: demo lock for virtual computer "
-	 << _vircomp << " is currently held. The "
-	 << "application " << label << " is reorganizing the system.\n";
+    const string label = _client->getProcessLabel(ownerID);
+    cerr << _exeName << " warning: demo lock held for virtual computer "
+	 << _vircomp
+	 << ".  Application " << label << " is reorganizing the system.\n";
     return false;
   }
   return true;
@@ -687,7 +681,7 @@ void arAppLauncher::_unlock(){
     return;
   }
   if (!_client->releaseLock(_location+string("/SZG_DEMO/lock"))){
-    cerr << "arAppLauncher warning: failed to release lock.\n";
+    cerr << _exeName << " warning: failed to release lock.\n";
   }
 }
 
@@ -702,14 +696,14 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch){
   for (iter = appsToLaunch->begin(); iter != appsToLaunch->end(); ++iter){
     const int szgdID = _client->getProcessID(iter->computer, "szgd");
     if (szgdID == -1){
-      cerr << "arAppLauncher warning: failed to find szgd on node "
+      cerr << _exeName << " warning: no szgd on node "
 	   << iter->computer << ".\n";
       continue;
     }
     match = _client->sendMessage("exec", iter->process, iter->context, 
                                  szgdID, true);
     if (match < 0){
-      cout << "arAppLauncher error: exec message send failed.\n";
+      cout << _exeName << " error: failed to send exec message.\n";
     }
     else{
       sentMessageMatches.push_back(match);
@@ -729,16 +723,15 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch){
       }
       else{
 	if (_client->getLaunchingMessageID()){
-	  // Let the caller know that we did indeed ignore some messages
           stringstream result;
-	  result << "arAppLauncher remark: ignored some launch messages "
-	         << "because 20 second limit exceeded.\n";
+	  result << _exeName << " remark: ignored launch messages "
+	         << "after 20-second timeout.\n";
 	  _client->messageResponse(_client->getLaunchingMessageID(),
 				   result.str(), true);
 	}
 	else{
-	  cout << "arAppLauncher remark: ignored some launch messages "
-	       << "because 20 second limit exceeded.\n";
+	  cout << _exeName << " remark: ignored launch messages "
+	       << "after 20-second timeout.\n";
 	}
         return true;
       }
@@ -786,7 +779,7 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch){
 	initialMessageMatches.remove(match);
       }
       else{
-	cout << "arAppLauncher error: got an invalid success code.\n";
+	cout << _exeName << " error: got an invalid success code.\n";
       }
     }
   }
@@ -822,18 +815,14 @@ if (!_client){
     _client->sendMessage("quit", "scratch", *iter);
   }
 
-  // Wait for everything to die (up to a suitable time-out). The time-out
-  // is 8 seconds.
+  // Wait for everything to die (up to a suitable 8-second time-out).
   map<int,int,less<int> >::iterator trans;
   while (!tags.empty()){
     int killedID = _client->getKillNotification(tags, 8000);
     if (killedID < 0){
-      cout << "arAppLaunched remark: a time-out has occured in trying to "
-	   << "kill some remote processes.\n";
-      cout << "The components in question are: ";
-      for (list<int>::iterator n = tags.begin(); n != tags.end(); n++){
-	// Go ahead and remove stuff from the process table. This is the
-	// only way to actually be able to move on.
+      cout << "arAppLaunched remark: timeout killing remote processes:\n";
+      for (list<int>::iterator n = tags.begin(); n != tags.end(); ++n){
+	// Just remove stuff from the process table, so we can move on.
         trans = tagToID.find(*n);
         if (trans == tagToID.end()){
 	  // THIS SHOULD NOT HAPPEN
@@ -845,15 +834,14 @@ if (!_client){
           _client->killProcessID(trans->second);
 	}
       }
-      cout << "\n";
-      cout << "They have been removed from the syzygy process table.\n";
+      cout << "\nThey have been removed from the syzygy process table.\n";
       return;
     }
     else{
       trans = tagToID.find(killedID);
       if (trans == tagToID.end()){
 	// THIS SHOULD NOT HAPPEN
-	cout << "arAppLauncher error: failed to find kill ID.\n";
+	cerr << "arAppLauncher internal error: missing kill ID.\n";
       }
       else{
 	// NOTE: This IS NOT killed ID!
@@ -917,13 +905,13 @@ bool arAppLauncher::_demoKill(){
       // A time-out has occured. Kill the demo via removing it from the
       // szgserver component table.
       _client->killProcessID(demoID);
-      cerr << _exeName << " warning: killing slow-exiting demo.\n";
+      cerr << _exeName << " warning: killing slowly exiting demo.\n";
       // Go ahead and fail. The next demo launch will succeed.
       return false;
     }
     if (!_client->getLock(demoLockName, demoID)){
       cerr << _exeName << " error: failed twice to get demo lock.\n"
-	   << "(Look for rogue processes on the cluster.)\n";
+	   << "\t(Look for rogue processes on the cluster.)\n";
       return false;
     }
     // got the lock
@@ -959,9 +947,8 @@ void arAppLauncher::_relaunchIncompatibleServices(
     //      b. If not, go ahead and start.
     int serviceID = _client->getServiceComponentID(iter->tradingTag);
     if (serviceID == -1){
-      cout << "arAppLauncher remark: did not find service offering "
-	   << "trading tag = " << iter->tradingTag << ".\n";
-      cout << "  Will restart.\n";
+      cout << _exeName << " remark: restarting service "
+	   << iter->tradingTag << ".\n";
       appsToLaunch.push_back(*iter);
     }
     else{
@@ -983,35 +970,31 @@ void arAppLauncher::_relaunchIncompatibleServices(
 	  // seems to be in the right place and of the right type.
           if (info != iter->info){
             // Must go ahead and kill.
-	    cout << "arAppLauncher remark: the component currently offering "
-		 << "service = " << iter->tradingTag << " does not have the "
-		 << "right service info = " << iter->info << " (relaunching)"
-		 << ".\n";
+	    cout << "arAppLauncher remark: relaunching service "
+		 << iter->tradingTag
+		 << ", because of invalid info " << iter->info << ".\n";
             serviceKillList.push_back(serviceID);
             appsToLaunch.push_back(*iter);
 	  }
+#if 0
 	  else{
-            cout << "arAppLauncher remark: the component offering "
-	         << "service = " << iter->tradingTag << " is compatible.\n"
-	         << "No action taken.\n";
+            cout << "arAppLauncher remark: compatible service "
+	         << iter->tradingTag << ".\n";
 	  }
+#endif
 	}
 	else{
           // There is something running, offering the service, but not on
 	  // the right computer.
-          cout << "arAppLauncher remark: the component offering "
-	       << "service = " << iter->tradingTag << " is not in the right "
-	       << "location. Relaunching.\n";
+          cout << "arAppLauncher remark: relaunching service "
+	       << iter->tradingTag << " on correct host.\n";
           serviceKillList.push_back(serviceID);
           appsToLaunch.push_back(*iter);
 	}
       }
       else{
-	// The service existed just a few lines up... but does not exist
-	// now.
-        cout << "arAppLauncher remark: the component offering "
-	       << "service = " << iter->tradingTag << " has disappeared. "
-	       << "Relaunching.\n";
+        cout << "arAppLauncher remark: relaunching disappeared service "
+	     << iter->tradingTag << ".\n";
         appsToLaunch.push_back(*iter);
       }
     }

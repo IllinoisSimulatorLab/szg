@@ -85,10 +85,8 @@ void mousePosition(int x, int y){
 void messageTask(void* pClient){
   string messageType, messageBody;
   while (true) {
-    int sendID = client->receiveMessage(&messageType,&messageBody);
-    if (!sendID){
-      // sendID == 0 exactly when we are "forced" to shutdown.
-      cout << "Wandsimserver is shutting down.\n";
+    if (!client->receiveMessage(&messageType,&messageBody)){
+      cout << "Wandsimserver remark: shutdown.\n";
       // Cut-and-pasted from below.
       inputNode->stop();
       exit(0);

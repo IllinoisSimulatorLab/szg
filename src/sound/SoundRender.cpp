@@ -12,7 +12,7 @@
 #include "arThread.h"
 #include "arSZGClient.h"
 
-arSoundClient* soundClient;
+arSoundClient* soundClient = NULL;
 
 // the parameter variables
 char serverIP[1024] = {0}; /// \todo fixed size buffer
@@ -38,10 +38,9 @@ void messageTask(void* pClient){
   arSZGClient* cli = (arSZGClient*)pClient;
   string messageType, messageBody;
   while (true) {
-    int sendID = cli->receiveMessage(&messageType,&messageBody);
+    const int sendID = cli->receiveMessage(&messageType,&messageBody);
     if (!sendID){
-      // sendID == 0 exactly when we are "forced" to shutdown.
-      cout << "SoundRender is shutting down.\n";
+      cout << "SoundRender remark: shutdown.\n";
       // Cut-and-pasted from below.
       soundClient->_cliSync.skipConsumption(); // fold into terminateSound()?
       soundClient->terminateSound();
@@ -110,7 +109,7 @@ int main(int argc, char** argv){
     // Since there is no natural limit to how many times this can be called
     // (unlike graphics where we at least have the buffer swap), we have
     // to throttle it. This will CRASH on Win32 without this throttling.
-    ar_usleep(1000000/50); // 50 FPS CPU-throttle
+    ar_usleep(1000000/50); // 50 FPS
   }
   return 0;
 }

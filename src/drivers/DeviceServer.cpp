@@ -344,42 +344,34 @@ int main(int argc, char** argv){
     inputNode.addFilter(theFilter,true);
   }
 
-  if (!inputNode.init(SZGClient)){
-    SZGClient.sendInitResponse(false);
-  }
-  else{
-    SZGClient.sendInitResponse(true);
-  }
-
+  SZGClient.sendInitResponse(inputNode.init(SZGClient));
   if (!inputNode.start()){
     SZGClient.sendStartResponse(false);
     return 1;
   }
-  else{
-    SZGClient.sendStartResponse(true);
-  }
+  SZGClient.sendStartResponse(true);
 
   // Message task.
   string messageType, messageBody;
   while (true) {
-    int sendID = SZGClient.receiveMessage(&messageType, &messageBody);
+    const int sendID = SZGClient.receiveMessage(&messageType, &messageBody);
     if (!sendID){
       // sendID == 0 exactly when we are "forced" to shutdown.
-      cout << "DeviceServer is shutting down.\n";
+      cout << "DeviceServer remark: shutdown.\n";
       // Cut-and-pasted from below.
       inputNode.stop();
       exit(0);
     }
     if (messageType=="quit"){
-      cout << "DeviceServer remark: received shutdown message.\n";
+      cout << "DeviceServer remark: got shutdown message.\n";
       inputNode.stop();
-      cout << "DeviceServer remark: input node has stopped.\n";
+      cout << "DeviceServer remark: input node stopped.\n";
       return 0;
     }
-    if (messageType=="dumpon"){
+    else if (messageType=="dumpon"){
       fileSink.start();
     }
-    if (messageType=="dumpoff"){
+    else if (messageType=="dumpoff"){
       fileSink.stop();
     }
   }

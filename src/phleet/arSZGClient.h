@@ -139,10 +139,10 @@ class SZG_CALL arSZGClient{
 		   const string& context, int destination, 
                    bool responseRequested = false);
   int receiveMessage(string* messageType, string* messageBody)
-    { return receiveMessage(NULL,messageType,messageBody,NULL); }
+    { return receiveMessage(NULL, messageType, messageBody, NULL); }
   int receiveMessage(string* userName, string* messageType, 
                       string* messageBody)
-    { return receiveMessage(userName,messageType,messageBody,NULL); }
+    { return receiveMessage(userName, messageType, messageBody, NULL); }
   int receiveMessage(string* userName, string* messageType, 
                       string* messageBody, string* context);
   int getMessageResponse(list<int> tags, 

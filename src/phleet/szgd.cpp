@@ -188,7 +188,7 @@ bool buildFunctionArgs(ExecutionInfo* execInfo,
     fileName = command;
     command = ar_fileFind(fileName, "", execPath);
     if (command == "NULL") {
-      cout << "szgd error: could not find file " << fileName
+      cout << "szgd error: no file " << fileName
            << "\n  on exec path " << execPath << ".\n";
       return false;
     }
@@ -210,23 +210,23 @@ bool buildFunctionArgs(ExecutionInfo* execInfo,
     fileName = command;
     command = ar_fileFind( fileName, "", execPath );
     if (command == "NULL"){
-      cout << "szgd error: could not find file " << fileName
+      cout << "szgd error: no file " << fileName
            << "\n  on exec path " << execPath << ".\n";
       return false;
     }
   }
   else{
-    cout << "szgd error: unhandled executable type.\n";
+    cerr << "szgd error: unhandled executable type \""
+         << execInfo->executableType << "\".\n";
     return false;
   }
-  // Go ahead and print out the information.
   cout << "szgd remark:\n"
        << "  user name=" << user << ".\n"
-       << "  executable name=" << command << ".\n"
-       << "  executable type=" << execInfo->executableType << ".\n"
+       << "  exe name=" << command << ".\n"
+       << "  exe type=" << execInfo->executableType << ".\n"
        << "  arg list=(";
   for (list<string>::iterator iter = args.begin();
-       iter != args.end(); iter++){
+       iter != args.end(); ++iter){
     if (iter != args.begin()){
       cout << ",";
     }
@@ -317,7 +317,7 @@ void execProcess(void* i){
   if (!buildFunctionArgs( execInfo, execPath, 
                          symbolicCommand,
                          newCommand, mangledArgList)){
-    info << "szgd error: failed to find file " << symbolicCommand << "\n"
+    info << "szgd error: no file " << symbolicCommand << "\n"
 	  << "on path " << execPath << ".\n";
     // note how we respond to the message ourselves
     SZGClient->messageResponse(receivedMessageID, info.str());
@@ -337,7 +337,7 @@ void execProcess(void* i){
   const string tradingKey(SZGClient->getComputerName() + "/" 
                           + tradingNumStream.str() + "/"
 	                  + symbolicCommand);
-  cout << "szgd remark: using trading key = " << tradingKey << "\n";
+  cout << "szgd remark: trading key = " << tradingKey << "\n";
   int match = SZGClient->startMessageOwnershipTrade(receivedMessageID,
 					            tradingKey);
 
@@ -466,7 +466,7 @@ void execProcess(void* i){
   //*******************************************************************
   int pipeDescriptors[2];
   if (pipe(pipeDescriptors) < 0){
-    cerr << "szgd warning: exec failed (pipe creation failed).\n";
+    cerr << "szgd warning: pipe creation failed.\n";
     return;
   }
   // NOTE: to make it impossible for szgd to JAM (which is very bad behavior)
@@ -492,8 +492,7 @@ void execProcess(void* i){
     // Ten second time-out for pipe.
     if (!ar_safePipeReadNonBlock(pipeDescriptors[0], numberBuffer,
 			         1, 10000)){
-      info << "szgd remark: did not get success/failure "
-           << "code via pipe.\n";
+      info << "szgd remark: got no success/failure code via pipe.\n";
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
       SZGClient->messageResponse(receivedMessageID, info.str());
       return;
@@ -514,9 +513,8 @@ void execProcess(void* i){
         return;
       }
       if (*(int*)numberBuffer < 0 || *(int*)numberBuffer > 10000){
-	cout << "szgd warning: numberBuffer value ("
-	     << *(int*)numberBuffer << ") makes no sense. Continuing "
-	     << "anyway.\n";
+	cout << "szgd warning: ignoring bogus numberBuffer value "
+	     << *(int*)numberBuffer << ".\n";
       }
       char* textBuffer = new char[*((int*)numberBuffer)+1];
       if (!ar_safePipeReadNonBlock(pipeDescriptors[0], textBuffer, 
@@ -559,11 +557,11 @@ void execProcess(void* i){
     ar_setenv("SZGPIPEID", pipeDescriptors[1]);
     ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
     
-    cout << "szgd remark: using dynamic library path =\n  "
+    cout << "szgd remark: dynamic library path =\n  "
          << dynamicLibraryPath << "\n";
     ar_setenv(dynamicLibraryPathVar, dynamicLibraryPath);
     if (execInfo->executableType == "python") {
-      cout << "szgd remark: using python path =\n  "
+      cout << "szgd remark: python path =\n  "
            << pythonPath << "\n";
       ar_setenv("PYTHONPATH", pythonPath);
     }
@@ -661,11 +659,11 @@ void execProcess(void* i){
   ar_setenv("SZGPIPEID", -1);
   ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
   
-  cout << "szgd remark: using dynamic library path =\n  "
+  cout << "szgd remark: dynamic library path =\n  "
        << dynamicLibraryPath << "\n";
   ar_setenv(dynamicLibraryPathVar, dynamicLibraryPath);
   if (execInfo->executableType == "python") {
-    cout << "szgd remark: using python path =\n  "
+    cout << "szgd remark: python path =\n  "
          << pythonPath << "\n";
     ar_setenv("PYTHONPATH", pythonPath);
   }
