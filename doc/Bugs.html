@@ -149,6 +149,11 @@ a single processor kernel, which improves matters dramatically).
 <p><font size=+1>Configuration/Phleet</font> <ul>
 
 <li>arFileTextStream error appears when using dname on a new computer.
+<li>Need a handshake on connection establishment that is extensible and
+includes space for a version number (to prevent mismatched stuff from
+communicating).
+<li>Phleet needs new methods! Specifically, we must be able to release
+services. Also, need to be able to get service info from the command line!
 <li>If the user is dlogout'ed, the szgd will JAM!
 <li>On windows, if c:\szg_USERNAME.conf is present, then dlogin does not look
 at c:\szg\szg_USERNAME.conf. SERIOUS BUG since it impacts migrating to new
@@ -164,7 +169,8 @@ There need to be ubiquitous time-outs in phleet!
 
 <li>arSZGClient should be ubiquitously threadsafe!
 
-<li>Need to differentiate "virtual computer" from "locale".
+<li>Need to differentiate "virtual computer" from "locale". THIS IS FIXED
+BUT NEEDS DOCUMENTATION.
 
 <li>There are spurious messages now (arFIleTextStream) when using
     /tmp/szg.conf instead of /etc/szg.conf.
@@ -331,6 +337,11 @@ program segfaults with an error message "arSyncDataServer error: start
 called before init".
 
 <li>Double key presses on master (when standalone). [What does this mean?]
+
+<li>Need better documentation about the -szg user and -szg server options.
+
+<li>FIX DOCS so that the various java whatnots no longer appear! They are
+hereby superceded by the web server stuff!
 
 
 </ul>

@@ -81,7 +81,7 @@ bool parseTokenList(arStringTextStream& tokenStream,
     tokens >> token;
     if (!tokens.fail()){
       tokenList.push_back(token);
-      cout << "input sources token (" << tagType << ") = " << token << "\n";
+      cout << tagType << " token = " << token << "\n";
     }
     if (tokens.eof()){
       break;
@@ -175,7 +175,7 @@ int main(int argc, char** argv){
 
   if (argc < 3){
     initResponse << "usage: DeviceServer [-s] [-netinput] device_description "
-		 << "driver_slot" << endl;
+		 << "driver_slot [pforth_filter_name]" << endl;
     SZGClient.sendInitResponse(false);
     return 1;
   }
@@ -204,6 +204,15 @@ int main(int argc, char** argv){
   // Start with the input sources.
   // Necessary to assign input "slots" to the input sources.
   int nextInputSlot = slotNumber + 1;
+  // First, see if, via command line arg -netinput, we want to automatically
+  // add a net input source (i.e. not via the config file)
+  if (useNetInput){
+    arNetInputSource* commandLineNetInputSource = new arNetInputSource();
+    commandLineNetInputSource->setSlot(nextInputSlot);
+    nextInputSlot++;
+    // The node will "own" this source.
+    inputNode.addInputSource(commandLineNetInputSource,true);
+  }
   // Configure the input sources.
   list<string>::iterator iter;
   for (iter = nodeConfig.inputSources.begin();
@@ -228,9 +237,6 @@ int main(int argc, char** argv){
         return 1;
       }
       // Can create our object.
-      // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
-      // The motionstar driver has a "true" argument to its constructor in the
-      // original DeviceServer
       theSource = (arInputSource*) inputSourceObject->createObject();
       if (!theSource) {
         initResponse << "DeviceServer error: failed to create input source.\n";
@@ -278,16 +284,36 @@ int main(int argc, char** argv){
     inputNode.addInputSink(theSink,true);
   }
 
-  // Go ahead and load the filters. We will
+  // Go ahead and load the filters.
 
-  // Add a PForth filter to beginning of chain, for remapping sensors etc.
+  // Add a PForth filter(s) to beginning of chain, for remapping sensors etc.
+  // We first add a filter from the config file.
   arPForthFilter firstFilter;
   ar_PForthSetSZGClient( &SZGClient );
   if (!firstFilter.configure( nodeConfig.pforthProgram )){
     return 1;
   }
-  // The PForth filter is owned by us!
+  // The PForth filter is owned by the program, since it is declared 
+  // statically.
   inputNode.addFilter(&firstFilter, false);
+
+  // Next, add a filter from the command line, if such was specified.
+  if (argc >= 4){
+    string commandLineProgram = 
+      SZGClient.getGlobalAttribute(argv[3]);
+    if (commandLineProgram == "NULL"){
+      cout << "DeviceServer remark: no program of name " << argv[3]
+	   << " exists.\n";
+    }
+    else{
+      arPForthFilter* commandLineFilter = new arPForthFilter();
+      if (!commandLineFilter->configure( commandLineProgram )){
+	return 1;
+      }
+      // Node owns the filter.
+      inputNode.addFilter(commandLineFilter, false);
+    }
+  }
   
   arIOFilter* filter = NULL;
   // Add the various optional filters...

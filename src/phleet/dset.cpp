@@ -17,12 +17,19 @@ int main(int argc, char** argv){
     return 1;
   }
 
-  if (argc<5){
+  if (argc != 5 && argc != 3){
     cerr << "usage: " << argv[0]
          << " hostname parameter_group parameter_name value\n";
+    cerr << "usage: " << argv[0]
+	 << " global_parameter value\n";
     return 1;
   }
 
-  szgClient.setAttribute(argv[1], argv[2], argv[3], argv[4]);
+  if (argc == 5){
+    szgClient.setAttribute(argv[1], argv[2], argv[3], argv[4]);
+  }
+  else{
+    szgClient.setGlobalAttribute(argv[1], argv[2]);
+  }
   return 0;
 }
