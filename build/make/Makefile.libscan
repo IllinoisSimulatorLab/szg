@@ -292,7 +292,7 @@ endif
 ifeq ($(strip $(MACHINE)), SGI)
   # This could be either mips3 or mips4, so use MACHINE_DIR
   GLUT_DIR := $(SZGEXTERNAL)/$(MACHINE_DIR)/glut-3.6
-  INC_GLUT := $(wildcard $(GLUT_DIR)/include/GL)
+  INC_GLUT := $(wildcard $(GLUT_DIR)/include)
   LIB_GLUT := $(wildcard $(GLUT_DIR)/lib/libglut.a)
 
   ifneq ($(strip $(INC_GLUT)),)
