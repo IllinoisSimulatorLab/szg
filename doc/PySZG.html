@@ -11,36 +11,226 @@
 
 <p>This section will show you how to start writing Syzygy programs using
 Python. You should start by understanding how to take the Syzygy software,
-as obtained in <a href="GettingSoftware.html">this</a> section, and set up
-your Python environment. After you do this, please test your installation,
-as outlined <a href="#FirstPythonTest">here</a>. If you will be running
+as obtained in <a href="GettingSoftware.html">this</a> section, and 
+<a href="#PythonSetup">set up</a>
+your Python environment. If you are using a precompiled SDK, you do not need
+to compile the Syzygy Python bindings. Otherwise, look
+<a href="#CompilePythonBindings">here</a> After completing these steps, 
+please test your installation, as outlined 
+<a href="#FirstPythonTest">here</a>. If you will be running
 Python programs in Phleet mode (via dex, szgd, and virtual computers), you
 should understand the way Python interacts with the Phleet. Finally, the
 pycube software distribution, as kindly provided by George Francis and his
 students, gives a number of examples in how to program Syzygy using Python.
 
 <p><ul>
+<li><a href="#CompilePythonBindings">Compiling the Syzygy Python Bindings</a>
 <li><a href="#PythonSetup">Installing Supporting Syzygy Software for Python</a>
 <li><a href="#FirstPythonTest">Testing Your Syzygy Python Installation</a>
 <li><a href="#PythonPhleet">Running Python Programs in Phleet Mode</a>
 <li><a href="#PythonExamples">Example Syzygy Python Programs</a>
 </ul>
 
+<A NAME="CompilePythonBindings">
+<p><font size=+2>Compiling the Syzygy Python Bindings</font>
+</a>
+
+<p>The precompiled Syzygy SDK includes the Python bindings. If you have
+the precompiled SDK, please skip this section.
+
+<p>So far, the Syzygy Python bindings are supported on Linux, Windows, and
+Mac OS X, but not on Irix. You will need to make sure you have Python installed
+before proceeding. Version 2.2 is the minimum one required. Later versions will
+also work. You should have SZGHOME, SZGBIN, SZGEXTERNAL, etc. set 
+appropriately, as described in
+
+<p>Regarding Windows, please note that, if you have a Python or SWIG through 
+cygwin, they should be removed in favor of native Windows versions of these 
+pieces of software. A cygwin Python has gcc's object format, whereas the 
+Syzygy library for Windows has Visual Studio's object format, and, 
+consequently, cannot be loaded by
+the Python interpreter. The native Windows Python can be downloaded from the
+Python <a href="www.python.org">website</a>.
+
+<p><ol>
+<li>We now start describing how to compile the bindings. First, you will need 
+to install a recent version of SWIG (an automatic wrapper generator). 
+A version number of at least 1.3.21 is required (and, unfortunately, some
+later versions do not work on some platforms).
+The procedure depends on your platform.
+  <ul>
+  <li>On Linux or OS X, download a tar.gz from the SWIG 
+  <a href="www.swig.org">website</a>. Install this in the
+  normal Unix way (configure, make, make install).
+  <li>For Windows, download the SWIG installer from the website.
+  Install the software and add the bin directory to your path.
+  </ul>
+<li>Next, you need to set the SZG_PYINCLUDE environment variable. 
+    This gives the directory where the Python.h header lives.
+  <ul>
+  <li>Linux: On Xandros 2.0, this lives at: /usr/include/python2.3
+  <li>Windows: Assuming the installer puts its cargo in the top level of the 
+    c: drive and that we have Python version 2.2: g:/Python22/include.
+  <li>OS X: On OS X.3, this lives at: 
+    /System/Library/Frameworks/Python.framework/Versions/2.3/include/python2.3
+  </ul>
+<li> Finally, you need to set the SZG_PYLIB environment variable, which tells 
+  the compiler the location of the Python shared library.
+  <ul>
+  <li>Linux: It isn't necessary to set this variable, assuming that Python 
+    was installed in a standard way. Under these circumstances, the library 
+    will be on the search path.
+  <li>Windows: Assuming the installer puts its cargo in the top level of the 
+    C: drive, c:/Python22/libs/python22.lib (or a variant based on your
+    library version).
+  <li>OS X: Not necessary to set this variable, assuming that Python was 
+    installed in a standard way. Under these circumstances, the library will 
+    be on the search path.
+  </ul>
+<li>Unpack py-szg-X.X.tar.gz to the directory py-szg. In the top level, 
+  "make" and "make clean" do the expected thing.
+</ol>
+
 <a name="PythonSetup">
 <p><font size=+2>Installing Supporting Syzygy Software for Python</font>
 </a>
+
+<p>The Syzygy Python bindings contain a shared library _PySZG.so (or .dll
+for Windows) produced by SWIG, which loads the native Syzygy dynamic libraries.
+They also contain some Python glue code, also produced by SWIG, PySZG.py.
+These files are located with the rest of the executables and shared libraries.
+In the precompiled SDK, these aren in the bin subdirectory. If you, on the
+other hand, compiled the libraries yourself, these would be in SZGBIN.
+
+<p>You must have the directory containing _PySZG.so (or .dll) and PySZG.py
+in the path given by your PYTHONPATH environment variable.
+
+<p>In addition, your PATH and dynamic linker environment variables must be
+set as explained in the section on <a href="GettingSoftware.html">getting</a>
+the software. Essentially, the directory containing the Syzygy executables
+must be on your PATH and must, furthermore, be on the dynamic linker search
+path.
+
+<p>If you simply want to be able to play around with Syzygy objects at the
+Python interpreter, you do not need to install anything else. Please
+proceed to the next section. However, the pycube Python examples require
+two additional Python packages: PyOpenGL (for master/slave programs that
+must use OpenGL) and numarray (for programs that do matrix manipulations).
+
+<p>The installation procedure for these varies by platform. 
 
 <a name="FirstPythonTest">
 <p><font size=+2>Testing Your Syzygy Python Installation</font>
 </a>
 
+<p>The first confidence test is simple. Try to load the Python bindings
+from within the interpreter. You should be able to execute the following
+commands:
+
+<pre>
+  python
+  from PySZG import *
+  g = arGraphicsDatabase()
+  g.printStructure()
+</pre>
+
+<p>After noting that this works, you can try running one of the example
+pycube programs. Some of them depend on a some library code (like PyTree)
+that is in the top level of the pycube distribution. For Python to find
+these modules, pycube's top directory will need to be on your PYTHONPATH.
+
+<p>Make sure you are in standalone mode by typing the Syzygy command dlogout.
+Next, go into, for instance, the pycube/dyn subdirectory and type
+
+<pre>
+  python dyn.py
+</pre>
+
+<p>A window should appear!
+
 <a name="PythonPhleet">
 <p><font size=+2>Running Syzygy Python Programs in Phleet Mode</font>
 </a>
 
+<p>To understand this section, you should read about the Phleet distributed
+OS <a href="PhleetIntro.html">here</a> and <a href="Phleet.html">here</a>.
+
+<p>The distributed execution command dex operates differently 
+on Python programs than on native Syzygy executables. We assume that Python 
+programs are organized, along with their data, like textures, sounds, and 
+input files, in subdirectories of an overall Python programs directory. The 
+top level of that Python programs directory might contain "library" modules 
+used by various programs. When you dex a Python program, the target szgd
+searches the SZG_PYTHON/path database variable for a directory containing
+a program of that name. It then executes that program. To succeed at this,
+the Python executable must be on the SZG_EXEC/path.
+
+<p>For instance, suppose that:
+<p><ul>
+<li>The computer's name is my_computer_name.
+<li>We are on a linux box. Python resides at /usr/bin/python.
+<li>The pycube installation on that box is at /usr/local/pycube. We will
+be interested in executing the file pycube/dyn/dyn.py.
+</ul>
+
+In this case, the following lines should appear in your dbatch file:
+
+<pre>
+  my_computer_name SZG_EXEC path the_rest_of_the_path;/usr/bin
+  my_computer_name SZG_PYTHON path /usr/local/pycube
+</pre>
+
+<p>If an szgd is running on the computer in question, then
+
+<pre>
+  dex my_computer_name dyn.py
+</pre>
+
+will work.
+
+<p>PLEASE NOTE. szgd processes dex commands differently depending upon
+whether the program is native or Python and determines which is which
+via the extension (.py). Consequently, it is very important to have this
+extension on your Python program.
+
+<p>Python programs can be executed on virtual computers, much like native
+Syzygy programs. If I've installed pycube on each computer, possibly via
+a shared network drive, and I've set the Phleet database parameters
+appropriately as above for each computer participating in the virtual
+computer (say its name is cube), then
+
+<pre>
+  dex cube dyn.py
+</pre>
+
+will work.
+
 <a name="PythonExamples">
 <p><font size=+2>Example Syzygy Python Programs</font>
 </a>
+
+<p>The pycube distribution contains the sample Python programs.
+
+<a name="PythonPitfalls">
+<p><font size=+2>Pitfalls in Syzygy Python Programming</font>
+</a>
+
+<p>You should be very careful to put the line
+
+<pre>
+  from PySZG import *
+</pre>
+
+BEFORE any imports of PyOpenGL modules in your Python code. This is
+because the PyOpenGL modules go actually try to load the GLUT dynamic library
+themselves from their local installation and this may conflict with the
+Syzygy GLUT.
+
+<p>On Windows, the Python dynamic library is versioned. Consequentlty,
+to work with the precompiled SDK, you will need to have Python 2.2 
+installed.
+
+<hr>
 
 </body>
 </html>

@@ -39,7 +39,6 @@ the binary installable szg packages.
 <li><A HREF="#CompileDemos1">Compiling the Sample Applications in szg</a>
 <li><A HREF="#CompileVMAT">Compiling the VMAT Physics Library</a>
 <li><A HREF="#CompileDemos2">Compiling the Sample Applications in szgdemo</a>
-<li><A HREF="#CompilePythonBindings">Compiling the Syzygy Python Bindings</a>
 <li><A HREF="#AdvancedTargets">Advanced Makefile Targets</a>
 </ul>
 
@@ -65,7 +64,10 @@ files, which are available by request.
 <li>szg-0.7-linux.tar.gz: Precompiled Linux version of the Syzygy API.
 <li>external-0.7-linux.tar.gz: External libraries and headers used to produce
 the executables.
-<li>szg-0.7-win32.tar.gz: Precompiled Win32 version of the Syzygy API.
+<li>szg-0.7-win32-vc6.tar.gz: Precompiled Win32 version of the Syzygy API for
+Visual Studio 6 plus STLport.
+<li>szg-0.7-win32-vc7.tar.gz: Precompiled Win32 version of the Syzygy API for
+Visual Studio 7.
 <li>external-0.7-win32.tar.gz: External libraries and headers used to produce
 the executables.
 <li>szg-0.7-darwin.tar.gz: Precompiled Mac OS X version of the Syzygy API.
@@ -95,6 +97,45 @@ $PATH.
 <li>Irix: Add $SZGHOME/bin to the front of your $LD_LIBRARYN32_PATH and $PATH.
 </ul>
 
+<p>In contrast to szg software you compile yourself, using the precompiled
+SDK requires that you set the dynamic linker path on Unix-like systems. This
+occurs because the search paths present at compile time will not be  
+appropriate for the system where the precompiled libraries are installed.
+
+<p>PLEASE NOTE: There are a variety of external (i.e. non-szg) shared
+libraries embedded in the precompiled SDK. It is possible that these might
+be incompatible with shared libraries installed on your system. Now, the
+szg external shared libraries never leave the SDK directory, so your system is
+unaffected EXCEPT by any changes you might make to (for instance) your
+.bashrc to set environment variables as above. By changing the dynamic linker
+search paths, you could cause other executables on your system to link
+with inappropriate shared libraries and fail to operate properly.
+
+<p>First of all, don't panic. See if it happens. It is, after all, easy to
+change your environment variables back. If it turns out that you need
+different dynamic linker settings to run szg and non-szg executables you can
+either:
+
+<p><ul>
+<li>Compile the Syzygy library and executables yourself, taking care to
+ensure that the process uses compatible library versions.
+<li>Have a special shell that you execute to create a Syzygy shell. For
+instance, how about the following (maybe called szg_shell.sh):
+
+<pre>
+   export PS1=\\r\\nSZG_SHELL:\\u@\\h:\\w\\r\\n::
+   export LD_LIBRARY_PATH=$(SZGHOME)/bin
+   export PATH=$(SZGHOME)/bin:the_rest_of_the_path
+</pre>
+
+This will make the shell prompt label "SZG_SHELL", along with setting the
+path and the dynamic linker path, once you:
+
+<pre>
+  source szg_shell.sh
+</pre>
+
+</ul>
 
 <A NAME="OSBuildInstructions">
 <p><font size=+2>OS-Specific Build Instructions</font>
@@ -442,67 +483,22 @@ the make goes on to the next one. "make clean" does the expected thing.
 "make". 
 </ol>
 
-<A NAME="CompilePythonBindings">
-<p><font size=+2>Compiling the Syzygy Python Bindings</font>
-</a>
-
-<p>So far, the Syzygy Python bindings are supported on Linux, Windows, and
-Mac OS X, but not on Irix. You will need to make sure you have Python installed
-before proceeding. Version 2.2 is the minimum one required. Later versions will
-also work. You should have SZGHOME, SZGBIN, SZGEXTERNAL, etc. set appropriately,
-as before.
-
-<p>Regarding Windows, please note that, if you have a Python or SWIG through cygwin, 
-they should be removed in favor of native Windows versions of these pieces of
-software. A cygwin Python has gcc's object format, whereas the Syzygy library for
-Windows has Visual Studio's object format, and, consequently, cannot be loaded by
-the Python interpreter. The native Windows Python can be downloaded from the
-Python <a href="www.python.org">website</a>.
-
-<p><ol>
-<li>We now start describing how to compile the bindings. First, you will need to 
-install a recent version of SWIG (an automatic wrapper generator). A version number of at 
-least 1.3.21 is required. The procedure depends on your platform.
-  <ul>
-  <li>On Linux or OS X, download a tar.gz from the SWIG 
-  <a href="www.swig.org">website</a>. Install this in the
-  normal Unix way (configure, make, make install).
-  <li>For Windows, download the SWIG installer from the website.
-  Install the software and add the bin directory to your path.
-  </ul>
-<li>Next, you need to set the SZG_PYINCLUDE environment variable. This gives the
-  directory where the Python.h header lives.
-  <ul>
-  <li>Linux: On Xandros 2.0, this lives at: /usr/include/python2.3
-  <li>Windows: Assuming the installer puts its cargo in the top level of the c: drive and that we
-  have Python version 2.2: g:/Python22/include.
-  <li>OS X: On OS X.3, this lives at: /System/Library/Frameworks/Python.framework/Versions/2.3/include/python2.3
-  </ul>
-<li> Finally, you need to set the SZG_PYLIB environment variable, which tells the
-  compiler the location of the Python shared library.
-  <ul>
-  <li>Linux: Not necessary to set this variable, assuming that Python was installed
-  in a standard way. Under these circumstances, the library will be on the search path.
-  <li>Assuming the installer puts its cargo in the top level of the C: drive, c:/Python22/libs/python22.lib.
-  <li>OS X: Not necessary to set this variable, assuming that Python was installed
-  in a standard way. Under these circumstances, the library will be on the search path.
-  </ul>
-<li>Unpack py-szg-X.X.tar.gz to the directory py-szg. In the top level, "make" and
-  "make clean" do the expected thing.
-</ol>
-
 <A NAME="AdvancedTargets">
 <p><font size=+2>Advanced Makefile Targets</font>
 </a>
 
+There are a few additional Makefile targets that can be useful in specific
+circumstances.
+
 <p><ul>
-<li>create-install: In Makefile.rules and top-level Makefile.
-<li>install-clean: Top-level Makefile only.
-<li>install-shared (good for both EASY and DEVELOPER): top-level only (but what about COIN and VTK?)
+<li>create-sdk: In Makefile.rules and top-level Makefile.
+<li>clean-sdk: Top-level Makefile only.
+<li>install-shared (good for DEVELOPER): top-level only (but what about COIN and VTK?)
 <li>bin-install: In Makefile.rules and top-level Makefile.
 <li>install-pch: Only for "easy"
 <li>clean-pch: Only for "easy"
 </ul>
+<hr>
 
 </body>
 </html>
