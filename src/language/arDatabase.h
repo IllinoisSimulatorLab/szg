@@ -22,6 +22,7 @@ typedef arDatabaseNode*
 
 /// Generic database distributed across a cluster.
 class SZG_CALL arDatabase{
+ friend class arGraphicsPeer;
  public:
   arDatabase();
   virtual ~arDatabase();

@@ -1382,11 +1382,12 @@ void arGraphicsPeer::_sendDataToBridge(arStructuredData* data){
   // The filterIDs parameter is NULL because there is no need to
   // construct a reverse map... nothing is coming back... the bridge is
   // one way.
-  int potentialNewNodeID = _filterIncoming(_bridgeRootMapNode,
-                                           data,
-				           _bridgeInMap,
-				           NULL,
-                                           false);
+  int potentialNewNodeID 
+    = _bridgeDatabase->_filterIncoming(_bridgeRootMapNode,
+                                       data,
+				       _bridgeInMap,
+				       NULL,
+                                       false);
   arDatabaseNode* result = _bridgeDatabase->alter(data);
   if (potentialNewNodeID > 0 && result){
     _bridgeInMap.insert(map<int, int, less<int> >::value_type
