@@ -45,6 +45,7 @@ arGraphicsWindow::arGraphicsWindow() :
   // created configurations (i.e. from configure(...)). It is still
   // possible to put an arGraphicsWindow together in an arbitrary fashion.
   _cameraFactory = ar_graphicsWindowDefaultCameraFactory;
+  ar_mutex_init(&_viewportListLock);
 }
 
 //arGraphicsWindow::arGraphicsWindow( const arGraphicsWindow& x ) :
@@ -84,7 +85,9 @@ bool arGraphicsWindow::configure(arSZGClient* client){
   if (!client){
     return false;
   }
-  
+  // NOTE: We must assume that configure(...) can be called in a different
+  // thread from draw(...). Hence the below lock is needed.
+  ar_mutex_lock(&_viewportListLock);
   // Figure out the viewport configuration
   string screenName = client->getMode("graphics");
   string viewMode = client->getAttribute(screenName, "view_mode",
@@ -108,6 +111,7 @@ bool arGraphicsWindow::configure(arSZGClient* client){
     _defaultCamera = _cameraFactory();
     // configure using the default screen name
     if (!_defaultCamera->configure(client)){
+      ar_mutex_unlock(&_viewportListLock);
       return false;
     }
     // we are using one of the pre-defined view modes
@@ -116,6 +120,7 @@ bool arGraphicsWindow::configure(arSZGClient* client){
                                              "|none|left|right|");
     setDefaultEye( defaultEye );
   }
+  ar_mutex_unlock(&_viewportListLock);
   return true;
 }
 
@@ -285,6 +290,9 @@ bool arGraphicsWindow::draw() {
 }
 
 void arGraphicsWindow::_renderPass( float eyeSign ) {
+  // NOTE: We must assume that configure(...) can be called in a different
+  // thread from draw(...). Hence the below lock is needed.
+  ar_mutex_lock(&_viewportListLock);
   // do whatever it takes to initialize the window. 
   // by default, the depth buffer and color buffer are clear and depth test
   // is enabled.
@@ -312,6 +320,7 @@ void arGraphicsWindow::_renderPass( float eyeSign ) {
   // It's a good idea to set this back to normal. What if the user-defined
   // window callback exists and knows nothing about the color buffer?
   glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
+  ar_mutex_unlock(&_viewportListLock);
 }
 
 arCamera* arGraphicsWindow::_parseViewport(arSZGClient* client,

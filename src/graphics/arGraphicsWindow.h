@@ -109,6 +109,7 @@ class arGraphicsWindow {
 
     void _renderPass( float eyeSign );
     arCamera* _parseViewport(arSZGClient*, const string&);
+    arMutex _viewportListLock;
 };
 
 

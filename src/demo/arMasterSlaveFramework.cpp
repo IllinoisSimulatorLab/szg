@@ -1620,6 +1620,7 @@ bool arMasterSlaveFramework::_loadParameters(){
   // SZG_SCREENx data structure (like window size and view mode)... but
   // this data sctructure is moving towards defining the camera for a 
   // viewport.
+  cout << "arMasterSlaveFramework remark: reloading parameters.\n";
 
   // some things just depend on the SZG_RENDER
   _texturePath = _SZGClient.getAttribute("SZG_RENDER","texture_path");
