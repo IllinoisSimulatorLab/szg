@@ -59,6 +59,7 @@ class SZG_CALL arGraphicsPeerConnection{
 };
 
 class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
+  friend void ar_graphicsPeerSerializeFunction(void*);
   friend void ar_graphicsPeerConsumptionFunction(arStructuredData*,
 					         void*,
 					         arSocket*);

@@ -361,6 +361,10 @@ void arGraphicsDatabase::setVRCameraID(int cameraID){
   arStructuredData cameraData(_lang->find("graphics admin"));
   cameraData.dataInString("action", "camera_node");
   cameraData.dataIn("node_ID", &cameraID, AR_INT, 1);
+  // Important (for subclasses of graphics database) that this alter is
+  // sent to the arGraphicsDatabase and not to the subclass. The "admin"
+  // messages should not be filtered or passed on (which is what the
+  // subclasses like arGraphicsServer and arGraphicsPeer do).
   arGraphicsDatabase::alter(&cameraData);
 }
 

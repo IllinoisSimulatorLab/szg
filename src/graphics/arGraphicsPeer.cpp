@@ -37,6 +37,25 @@ string arGraphicsPeerConnection::print(){
   return result.str();
 }
 
+class arGraphicsPeerSerializeInfo{ 
+ public:
+  arGraphicsPeerSerializeInfo(){}
+  ~arGraphicsPeerSerializeInfo(){}
+
+  arGraphicsPeer* peer;
+  arSocket* socket;
+  int rootID;
+  bool relay;
+};
+
+void ar_graphicsPeerSerializeFunction(void* info){
+  arGraphicsPeerSerializeInfo* i = (arGraphicsPeerSerializeInfo*) info;
+  i->peer->_serializeAndSend(i->socket, i->rootID, i->relay);
+  i->peer->_serializeDoneNotify(i->socket);
+  // It is our responsibility to delete this.
+  delete i;
+}
+
 void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
                                         void* graphicsPeer,
                                         arSocket* socket){
@@ -96,12 +115,32 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       ar_mutex_unlock(&gp->_alterLock);  
     }
     else if (action == "dump"){
-      gp->_serializeAndSend(socket, 0, false);
-      gp->_serializeDoneNotify(socket);
+      // Since every node creation message results in a message sent back
+      // to us, to avoid a deadlock (when there are too many messages
+      // in the return queue and none have been processed) we need to go
+      // ahead and launch a new thread for this!
+      arThread dumpThread;
+      arGraphicsPeerSerializeInfo* serializeInfo 
+        = new arGraphicsPeerSerializeInfo();
+      serializeInfo->peer = gp;
+      serializeInfo->socket = socket;
+      serializeInfo->rootID = 0;
+      serializeInfo->relay = false;
+      dumpThread.beginThread(ar_graphicsPeerSerializeFunction, serializeInfo);
     }
     else if (action == "dump-relay"){
-      gp->_serializeAndSend(socket, 0, true);
-      gp->_serializeDoneNotify(socket);
+      // Since every node creation message results in a message sent back
+      // to us, to avoid a deadlock (when there are too many messages
+      // in the return queue and none have been processed) we need to go
+      // ahead and launch a new thread for this!
+      arThread dumpThread;
+      arGraphicsPeerSerializeInfo* serializeInfo 
+        = new arGraphicsPeerSerializeInfo();
+      serializeInfo->peer = gp;
+      serializeInfo->socket = socket;
+      serializeInfo->rootID = 0;
+      serializeInfo->relay = true;
+      dumpThread.beginThread(ar_graphicsPeerSerializeFunction, serializeInfo);
     }
     else if (action == "dump-done"){
       ar_mutex_lock(&gp->_dumpLock);
@@ -254,6 +293,9 @@ void ar_graphicsPeerDisconnectFunction(void* graphicsPeer,
   // disconnects, we must remove from the list.
   // THESE SOCKETS SEND INFORMATION
   arGraphicsPeer* gp = (arGraphicsPeer*) graphicsPeer;
+  // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
+  // THere is a deadlock here! Since sendData is called within a socketsLock
+  // and can result in an immediate call to this callback!
   ar_mutex_lock(&gp->_socketsLock);
   // NOTE: This has now been folded into the connection list.
   /*for (list<arSocket*>::iterator i = gp->_outgoingSockets.begin();
@@ -391,6 +433,10 @@ bool arGraphicsPeer::start(){
   _dataServer->setConsumerObject(this);
   _dataServer->setDisconnectFunction(ar_graphicsPeerDisconnectFunction);
   _dataServer->setDisconnectObject(this);
+  // Definitely want have finer-grained locks then over the processing
+  // of each admin message. This makes message operations that take
+  // a long time to complete practical.
+  _dataServer->atomicReceive(false);
   _dataServer->setPort(port);
   _dataServer->setInterface("INADDR_ANY");
   bool success = false;
@@ -535,10 +581,14 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
   if (_localDatabase){
     // If we are actually going to the local database, go ahead and get the
     // result from that...
+    // BUG BUG BUG BUG BUG BUG BUG BUG BUG
+    // Sometimes it is not appropriate to send filtered messages to the
+    // local database.... but here we ALWAYS do so... (for instance,
+    // the return value from _filterIncoming might be 0.
     result = arGraphicsDatabase::alter(data);
     if (_bridgeDatabase){
       _sendDataToBridge(data);
-    }
+    } 
     // If a new node has been created, we need to augment the node
     // map for this connection.
     if (potentialNewNodeID > 0 && result){
@@ -1367,6 +1417,8 @@ void arGraphicsPeer::_recDataOnOff(arDatabaseNode* pNode,
 /// message in place.
 void arGraphicsPeer::_sendDataToBridge(arStructuredData* data){
   int parentID, nodeID;
+  //int* parentIDPtr = (int*)data->getPtr(_lang->AR_MAKE_NODE_PARENT_ID, AR_INT);
+  //int* nodeIDPtr = (int*)data->getPtr(_lang->AR_MAKE_NODE_ID, AR_INT);
   // Some fields may be altered by the maps!
   if (data->getID() == _lang->AR_MAKE_NODE){
     parentID = data->getDataInt(_lang->AR_MAKE_NODE_PARENT_ID);
@@ -1388,15 +1440,18 @@ void arGraphicsPeer::_sendDataToBridge(arStructuredData* data){
 				       _bridgeInMap,
 				       NULL,
                                        false);
-  arDatabaseNode* result = _bridgeDatabase->alter(data);
+  arDatabaseNode* result = NULL;
+  if (potentialNewNodeID){
+    result = _bridgeDatabase->alter(data);
+  }
   if (potentialNewNodeID > 0 && result){
     _bridgeInMap.insert(map<int, int, less<int> >::value_type
       (potentialNewNodeID, result->getID()));
   }
-  // Must put the piece of data back the way it was, if it was 
+  // Must put the piece of data back the way it was, if it was altered.
   if (data->getID() == _lang->AR_MAKE_NODE){
     data->dataIn(_lang->AR_MAKE_NODE_PARENT_ID, &parentID, AR_INT, 1);
-    nodeID = data->dataIn(_lang->AR_MAKE_NODE_ID, &nodeID, AR_INT, 1);
+    data->dataIn(_lang->AR_MAKE_NODE_ID, &nodeID, AR_INT, 1);
   }
   else if (data->getID() == _lang->AR_ERASE){
     // NOT HANDLED!

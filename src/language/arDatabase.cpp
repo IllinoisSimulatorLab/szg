@@ -645,52 +645,67 @@ arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
   int theID = inData->getDataInt(_lang->AR_MAKE_NODE_ID);
   const string name(inData->getDataString(_lang->AR_MAKE_NODE_NAME));
   const string type(inData->getDataString(_lang->AR_MAKE_NODE_TYPE));
-  // Must use the virtual factory function.
-  arDatabaseNode* node = _makeNode(type);
-  // Only try to insert if we did, indeed, make a valid node.
-  if (node){
-    if (_insertDatabaseNode(node, parentID, theID, name) < 0){
-      cerr << "arDatabase error: "
-	   << " _makeDatabaseNode failed when makeNode failed\n\tfor ID "
-           << theID << ", name/parent/type \""
-	   << name << "/" << parentID << "/" << type << "\"\n";
-      delete node;
-      return NULL;
-    }
+  arDatabaseNode* result = 
+    _insertDatabaseNode(type, parentID, theID, name);
+  if (result){
+    // We go ahead and modify the record in place with the new ID.
+    // The arGraphicsServer and arGraphicsClient combo depend on there
+    // being no mapping. Consequently, the client needs to always receive
+    // *commands* about how to structure the IDs.
+    theID = result->getID();
+    inData->dataIn(_lang->AR_MAKE_NODE_ID, &theID, AR_INT, 1);
   }
-  // We go ahead and modify the record in place with the new ID.
-  theID = node->getID();
-  inData->dataIn(_lang->AR_MAKE_NODE_ID, &theID, AR_INT, 1);
-  return node;
+  // _insertDatabaseNode already complained if a complaint was necessary.
+  return result;
 }
 
-// Return -1 on error.  Generate a new ID, if passed-in ID is -1.
-// Also, if it turns out we have a duplicate node (based on ID), just
-// return that ID.
-// NOTE: the type-string is unused here... but it is used in subclasses.
-int arDatabase::_insertDatabaseNode(arDatabaseNode* node,
-                                    int parentID,
-                                    int nodeID,
-                                    const string& nodeName){
+// Returns NULL on error, otherwise returns the new database node,
+// already initialized.
+arDatabaseNode* arDatabase::_insertDatabaseNode(const string& typeString,
+                                                int parentID,
+                                                int nodeID,
+                                                const string& nodeName){
   // Make sure no node exists with this ID.
   if (nodeID != -1){
-    // In this case, we're trying to insert a node with a specific ID
-    // (THIS IS WHAT LET'S THE arGraphicsServer SUCCESSFULLY MANIPULATE
-    // ITS REMOTE CLIENTS WITHOUT MAPPING)
+    // In this case, we're trying to insert a node with a specific ID.
+    // If there is already a node by this ID, we'll just use it.
     arDatabaseNode* pNode = getNode(nodeID, false);
     if (pNode){
-      // Such a node already exists. Return its ID.
-      cout << "arDatabase warning: using prexisting node " << pNode->getName()
-	   << ".\n";
-      return pNode->getID(); 
+      if (pNode->getTypeString() == typeString){
+        // Such a node already exists and has the right type. Return its ID.
+        // This is not an error. Do not print a warning since this is a
+        // normal occurence during "mapping".
+        return pNode; 
+      }
+      else{
+	// A node already exists with that ID but the wrong type. This is
+	// an error!
+        cout << "arDatabase error: tried to map node type " 
+	     << typeString << " to node with ID=" 
+	     << nodeID << " and name=" << pNode->getName() << ".\n";
+	return NULL;
+      }
     }
+    // If we've made it to here, there is no node with the given ID. Go
+    // ahead and fall through.
+  }
+  // We will actually be creating a new node.
+  arDatabaseNode* node = _makeNode(typeString);
+  if (!node){
+    // This is an error.
+    cout << "arDatabase error: could not create node with type="
+	 << typeString << ".\n";
+    return NULL;
   }
   // Make sure that the parent node (as given by ID) exists.
   arDatabaseNode* parentNode = getNode(parentID, false);
   if (!parentNode){
+    // This is an error.
     cout << "arDatabase warning: parent (ID=" << parentID << ") "
 	 << "does not exist.\n";
-    return -1;
+    // Make sure we delete the new node storage.
+    delete node;
+    return NULL;
   }
   // Set parameters.
   node->_parent = parentNode;
@@ -722,7 +737,7 @@ int arDatabase::_insertDatabaseNode(arDatabaseNode* node,
   if (node->_ID < 0)
     cerr << "arDatabase error: "
 	 << "insertion failed because of outNode->initialize().\n";
-  return node->_ID;
+  return node;
 }
 
 void arDatabase::_writeDatabase(arDatabaseNode* pNode,
@@ -908,6 +923,7 @@ int arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
 	                        map<int, int, less<int> >& nodeMap,
                                 int* mappedIDs,
                                 bool allNew){
+  int newNodeID, newParentID;
   if (mappedIDs){
     mappedIDs[0] = -1;
     mappedIDs[1] = -1;
@@ -950,7 +966,7 @@ int arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
     // a "name" node (in which case just map to any other name node)
     // or, otherwise, we must map to a node with the same name and type.
 
-    // AARGH! There is a pretty seriously BUG in my mapping algorithm!
+    // AARGH! There is a pretty serious BUG in my mapping algorithm!
     // Specifically, what if a node has several children with the same name
     // and the same type? Everything will get redundantly mapped to them!
     // This is really a serious problem.
@@ -974,19 +990,25 @@ int arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
       }
       // In this case, DO NOT create a new node! The record is simply
       // discarded. Remember: returning false means discard the record.
+
+      // However, it is a good idea to do the mapping *anyway* in case
+      // the application code fails to discard.
+      newNodeID = target->getID();
+      newParentID = i->second;
+      record->dataIn(_lang->AR_MAKE_NODE_ID, &newNodeID, AR_INT, 1);
+      record->dataIn(_lang->AR_MAKE_NODE_PARENT_ID, &newParentID, AR_INT, 1);
       return 0;
     }
     else{
       // We could not find a suitable node for mapping.
       // (OR WE ARE JUST INSERTING ALL NEW NODES)
-      int newNodeID = -1;
+      newNodeID = -1;
       // Setting the parameter like so indicates that we will be
       // requesting a new node.
       record->dataIn(_lang->AR_MAKE_NODE_ID, &newNodeID, AR_INT, 1);
       // Don't forget to remap the parent ID
-      int newParentID = i->second;
-      record->dataIn(_lang->AR_MAKE_NODE_PARENT_ID, &newParentID,
-	             AR_INT, 1);
+      newParentID = i->second;
+      record->dataIn(_lang->AR_MAKE_NODE_PARENT_ID, &newParentID, AR_INT, 1);
       if (mappedIDs){
         mappedIDs[position] = originalNodeID;
       }
