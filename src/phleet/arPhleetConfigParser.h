@@ -15,7 +15,7 @@ using namespace std;
 
 /// Used for parsing/storing/writing the szg.conf config file and
 /// the szg_<username>.conf login files
-class arPhleetConfigParser{
+class SZG_CALL arPhleetConfigParser{
  public:
   arPhleetConfigParser();
   ~arPhleetConfigParser() {}

@@ -9,7 +9,7 @@
 #include "arMath.h"
 #include "arSZGClient.h"
 
-class arCamera{
+class SZG_CALL arCamera{
  public:
   arCamera(){}
   virtual ~arCamera(){}

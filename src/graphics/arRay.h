@@ -12,7 +12,7 @@
 
 /// Ray, for intersection testing.
 
-class arRay{
+class SZG_CALL arRay{
  public:
   arRay(){}
   arRay(const arVector3&, const arVector3&);
@@ -32,7 +32,7 @@ class arRay{
 
 /// Bounding sphere.
 
-class arBoundingSphere{
+class SZG_CALL arBoundingSphere{
  public:
   arBoundingSphere(){ radius = 0; visibility = false; }
   arBoundingSphere(const arVector3&, float);

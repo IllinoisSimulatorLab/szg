@@ -16,7 +16,7 @@
 
 /// You can chain these together.
 
-class arInputNode: public arInputSink {
+class SZG_CALL arInputNode: public arInputSink {
   // Needs assignment operator and copy constructor, for pointer members.
   public:
     arInputNode( bool bufferEvents = false );

@@ -8,7 +8,7 @@
 </nice test>
 
 <test 2>
-  <CHAR ID>ABCDE</CHAR ID>
+  <CHAR ID>AB DE</CHAR ID>
   <DOUBLE ID>
     0 0.5 1 1.5 2 
   </DOUBLE ID>

@@ -38,7 +38,7 @@ typedef map<string,arTransferFieldDescriptor,less<string> >
   arTransferFieldData;
 
 /// Framework for cluster applications using one master and several slaves.
-class arMasterSlaveFramework : public arSZGAppFramework {
+class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // Needs assignment operator and copy constructor, for pointer members.
   friend void ar_masterSlaveFrameworkConnectionTask(void*);
   friend void ar_masterSlaveFrameworkMessageTask(void*);

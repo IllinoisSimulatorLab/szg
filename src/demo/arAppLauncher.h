@@ -12,7 +12,7 @@ using namespace std;
 
 /// Launch and kill applications running on multiple nodes of a cluster.
 
-class arLaunchInfo{
+class SZG_CALL arLaunchInfo{
  public:
   arLaunchInfo(){}
   ~arLaunchInfo(){}
@@ -24,7 +24,7 @@ class arLaunchInfo{
   string info;
 };
 
-class arAppLauncher{
+class SZG_CALL arAppLauncher{
   // Needs assignment operator and copy constructor, for pointer members.
  public:
   arAppLauncher(const char* exeName = NULL);

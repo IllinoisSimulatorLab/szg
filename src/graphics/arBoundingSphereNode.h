@@ -12,7 +12,7 @@
 
 /// Bounding sphere.
 
-class arBoundingSphereNode: public arGraphicsNode {
+class SZG_CALL arBoundingSphereNode: public arGraphicsNode {
  public:
   arBoundingSphereNode();
   ~arBoundingSphereNode(){}

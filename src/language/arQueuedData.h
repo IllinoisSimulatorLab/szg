@@ -12,7 +12,7 @@
 
 /// A way to group several arStructuredData objects into a single such object.
 
-class arQueuedData{
+class SZG_CALL arQueuedData{
  // Needs assignment operator and copy constructor, for pointer members.
  public:
   arQueuedData();

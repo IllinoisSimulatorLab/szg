@@ -11,7 +11,7 @@ using namespace std;
 
 /// Infrastructure for arDataClient and arDataServer.
 
-class arDataPoint {
+class SZG_CALL arDataPoint {
  private:
   int _bufferSize;
  protected:

@@ -6,6 +6,8 @@
 #ifndef AR_THREAD_H
 #define AR_THREAD_H
 
+#include "arCallingConventions.h"
+
 #ifdef AR_USE_WIN_32
 #include <process.h>
 #include <windows.h>
@@ -23,9 +25,9 @@ typedef CRITICAL_SECTION arMutex;
 typedef pthread_mutex_t arMutex;
 #endif
 
-void ar_mutex_init(arMutex*);
-void ar_mutex_lock(arMutex*);
-void ar_mutex_unlock(arMutex*);
+void SZG_CALL ar_mutex_init(arMutex*);
+void SZG_CALL ar_mutex_lock(arMutex*);
+void SZG_CALL ar_mutex_unlock(arMutex*);
 
 //*****************************************
 // signals
@@ -37,7 +39,7 @@ void ar_mutex_unlock(arMutex*);
 /// receiveSignal() call is issued.
 /// However, sometimes we want to de-signal the object.
 
-class arSignalObject{
+class SZG_CALL arSignalObject{
 public:
   arSignalObject();
   ~arSignalObject();
@@ -61,7 +63,7 @@ private:
 /// simple condition variables 
 ///**************************************
 
-class arConditionVar{
+class SZG_CALL arConditionVar{
  public:
   arConditionVar();
   ~arConditionVar();
@@ -81,7 +83,7 @@ class arConditionVar{
 /// event - condition variable with a memory
 ///**************************************
 
-class arThreadEvent {
+class SZG_CALL arThreadEvent {
   public:
     arThreadEvent( bool automatic = true );
     ~arThreadEvent();
@@ -114,7 +116,7 @@ class arThreadEvent {
 
 /// Thread.
 
-class arThread{
+class SZG_CALL arThread{
   // Needs assignment operator and copy constructor, for pointer members.
   friend arWrapperType ar_threadWrapperFunction(void*);
 

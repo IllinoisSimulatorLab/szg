@@ -19,7 +19,7 @@ using namespace std;
 ///   3. Dumping state and transfering that.
 ///   4. Routing messages from itself to the individual arFrameworkObjects
 ///      under its care.
-class arMasterSlaveDataRouter: public arFrameworkObject{
+class SZG_CALL arMasterSlaveDataRouter: public arFrameworkObject{
  public:
   arMasterSlaveDataRouter();
   ~arMasterSlaveDataRouter();

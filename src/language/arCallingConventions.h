@@ -3,15 +3,21 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-#ifndef AR_ROUTABLE_TEMPLATE
-#define AR_ROUTABLE_TEMPLATE
+#ifndef AR_CALLING_CONVENTIONS_H
+#define AR_CALLING_CONVENTIONS_H
 
-#include "arDataTemplate.h"
+#ifdef AR_USE_SHARED
 
-class SZG_CALL arRoutableTemplate: public arDataTemplate{
- public:
-  arRoutableTemplate(const string&);
-  ~arRoutableTemplate();
-};
+#ifdef AR_USE_WIN_32
+#define SZG_CALL __declspec(dllexport)
+#else
+#define SZG_CALL
+#endif
+
+#else
+
+#define SZG_CALL
+
+#endif
 
 #endif

@@ -11,7 +11,7 @@
 #include <list>
 using namespace std;
 
-class arFrameworkObject{
+class SZG_CALL arFrameworkObject{
  public:
   arFrameworkObject();
   virtual ~arFrameworkObject(){};

@@ -11,7 +11,7 @@
 #include "arGraphicsDatabase.h"
 #include "arQueuedData.h"
 
-class arGraphicsPeerConnection{
+class SZG_CALL arGraphicsPeerConnection{
  public:
   arGraphicsPeerConnection(){ remoteName = "NULL"; 
                               connectionID = -1;
@@ -33,7 +33,7 @@ class arGraphicsPeerConnection{
   string print();
 };
 
-class arGraphicsPeer: public arGraphicsDatabase{
+class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   friend void ar_graphicsPeerConsumptionFunction(arStructuredData*,
 					         void*,
 					         arSocket*);

@@ -11,7 +11,7 @@
 
 /// "Point of view" of who is listening to the sounds in the scene graph.
 
-class arSpeakerObject {
+class SZG_CALL arSpeakerObject {
  public:
   arSpeakerObject();
   ~arSpeakerObject() {}

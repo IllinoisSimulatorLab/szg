@@ -22,7 +22,7 @@ enum arHeadWandSimState{
   AR_SIM_WORLD_ROTATE
 };
 
-class arHeadWandSimulator: public arFrameworkObject{
+class SZG_CALL arHeadWandSimulator: public arFrameworkObject{
  public:
   arHeadWandSimulator();
   ~arHeadWandSimulator();

@@ -10,7 +10,7 @@
 #include "arMath.h"
 #include <map>
 
-class arPerformanceElement{
+class SZG_CALL arPerformanceElement{
  public:
   arPerformanceElement();
   ~arPerformanceElement();
@@ -26,7 +26,7 @@ class arPerformanceElement{
   int    _numberEntries;
 };
 
-class arFramerateGraph: public arFrameworkObject{
+class SZG_CALL arFramerateGraph: public arFrameworkObject{
  public:
   arFramerateGraph();
   ~arFramerateGraph();

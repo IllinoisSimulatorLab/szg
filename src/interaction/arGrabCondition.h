@@ -5,7 +5,7 @@
 
 class arEffector;
 
-class arGrabCondition {
+class SZG_CALL arGrabCondition {
   public:
     arGrabCondition();
     arGrabCondition( arInputEventType eventType,

@@ -33,7 +33,7 @@
 
 /// .3DS wrapper class
 /** Needs lib3DS */
-class ar3DS : public arObject{
+class SZG_CALL ar3DS : public arObject{
 
   public:
     ar3DS();

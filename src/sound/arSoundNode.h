@@ -16,7 +16,7 @@ class arSoundDatabase;
 
 /// Node in the scene graph for sound.
 
-class arSoundNode : public arDatabaseNode {
+class SZG_CALL arSoundNode : public arDatabaseNode {
  // Needs assignment operator and copy constructor, for pointer members.
  public:
   friend class arSoundDatabase;

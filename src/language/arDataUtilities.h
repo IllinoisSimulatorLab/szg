@@ -22,7 +22,7 @@ bool ar_winSockInit();
 // small utility classes... for instance the STL does not have triples
 
 /// Wrapper for 3 ints.
-class arIntTriple{
+class SZG_CALL arIntTriple{
  public:
   arIntTriple() { first=0; second=0; third=0; }
   arIntTriple(int x, int y, int z){ first=x; second=y; third=z; }
@@ -44,7 +44,7 @@ class arIntTriple{
 
 /// Internal representation of time.
 
-class ar_timeval {
+class SZG_CALL ar_timeval {
  public:
   int sec;
   int usec;
@@ -52,18 +52,21 @@ class ar_timeval {
   ar_timeval(int s, int u) : sec(s), usec(u) {}
 };
 
-ar_timeval ar_time();
-double ar_difftime(const ar_timeval& endTime, const ar_timeval& startTime);
-ar_timeval& ar_addtime(ar_timeval& result, const ar_timeval& addend); // returns "result"
-string ar_currentTimeString();
+SZG_CALL ar_timeval ar_time();
+SZG_CALL double ar_difftime(const ar_timeval& endTime, 
+                            const ar_timeval& startTime);
+SZG_CALL ar_timeval& ar_addtime(ar_timeval& result, 
+                                const ar_timeval& addend); // returns "result"
+SZG_CALL string ar_currentTimeString();
 
-class arTimer {
+class SZG_CALL arTimer {
   public:
     arTimer( double dur = 0. );
     virtual ~arTimer() {}
     void start( double dur = 0. );
     bool running();
-    // total time since construction or start() (deprecated, calls totalTime())
+    // total time since construction or start() 
+    // (deprecated, calls totalTime())
     double elapsed();
     // time since last restart() (or construction or start(), if none)
     double lapTime();
@@ -90,7 +93,7 @@ class arTimer {
 
 /// Configuration of a data stream (only endianness at the moment).
 
-struct arStreamConfig{
+struct SZG_CALL arStreamConfig{
   ARchar endian;
 };
 
@@ -113,49 +116,56 @@ struct arStreamConfig{
 /// this code is used to establish a connection between szgd and 
 /// the forked process in which the executable runs on the Unix side. 
 /// As such, uses are found in szgd and arSZGClient.cpp
-bool ar_safePipeRead(int pipeID, char* theData, int numBytes);
-int ar_safePipeReadNonBlock(int pipeID, char* theData, int numBytes,
-			    int timeout);
-bool ar_safePipeWrite(int pipeID, const char* theData, int numBytes);
+SZG_CALL bool ar_safePipeRead(int pipeID, char* theData, int numBytes);
+SZG_CALL int ar_safePipeReadNonBlock(int pipeID, char* theData, int numBytes,
+			             int timeout);
+SZG_CALL bool ar_safePipeWrite(int pipeID, const char* theData, int numBytes);
 
-void ar_packData(ARchar*,const void*,arDataType,int);
-void ar_unpackData(const ARchar*,void*,arDataType,int);
-ARint ar_rawDataGetSize(ARchar*);
-ARint ar_rawDataGetID(ARchar*);
-ARint ar_rawDataGetFields(ARchar*);
+SZG_CALL void ar_packData(ARchar*,const void*,arDataType,int);
+SZG_CALL void ar_unpackData(const ARchar*,void*,arDataType,int);
+SZG_CALL ARint ar_rawDataGetSize(ARchar*);
+SZG_CALL ARint ar_rawDataGetID(ARchar*);
+SZG_CALL ARint ar_rawDataGetFields(ARchar*);
 
-arStreamConfig ar_getLocalStreamConfig();
-ARint ar_translateInt(ARchar*,arStreamConfig);
-ARint ar_fieldSize(arDataType,ARint);
-ARint ar_fieldOffset(arDataType,ARint);
-ARint ar_translateInt(ARchar*,ARint&,ARchar*,ARint&,arStreamConfig);
-void ar_translateField(ARchar*,ARint&,ARchar*,ARint&,arDataType,ARint,
-                       arStreamConfig);
+SZG_CALL arStreamConfig ar_getLocalStreamConfig();
+SZG_CALL ARint ar_translateInt(ARchar*,arStreamConfig);
+SZG_CALL ARint ar_fieldSize(arDataType,ARint);
+SZG_CALL ARint ar_fieldOffset(arDataType,ARint);
+SZG_CALL ARint ar_translateInt(ARchar*,ARint&,ARchar*,ARint&,arStreamConfig);
+SZG_CALL void ar_translateField(ARchar*,ARint&,ARchar*,ARint&,arDataType,
+                                ARint,arStreamConfig);
 
 /// type conversions with error checking
-bool ar_stringToLongValid( const string& theString, long& theLong );
-bool ar_longToIntValid( const long theLong, int& theInt );
-bool ar_stringToIntValid( const string& theString, int& theIntg );
-bool ar_stringToDoubleValid( const string& theString, double& theDouble );
-bool ar_doubleToFloatValid( const double theDouble, float& theFloat );
-bool ar_stringToFloatValid( const string& theString, float& theFloat );
+SZG_CALL bool ar_stringToLongValid( const string& theString, long& theLong );
+SZG_CALL bool ar_longToIntValid( const long theLong, int& theInt );
+SZG_CALL bool ar_stringToIntValid( const string& theString, int& theIntg );
+SZG_CALL bool ar_stringToDoubleValid( const string& theString, 
+                                      double& theDouble );
+SZG_CALL bool ar_doubleToFloatValid( const double theDouble, 
+                                     float& theFloat );
+SZG_CALL bool ar_stringToFloatValid( const string& theString, 
+                                     float& theFloat );
 
 /// string manipulation
-int ar_parseFloatString(const string& theString, float* outArray, int len);
-int ar_parseIntString(const string& theString, int* outArray, int len);
-int ar_parseLongString(const string& theString, long* outArray, int len);
-void ar_stringToBuffer(const string& theString, char* theBuffer, int len);
-int ar_stringToInt(const string& theString);
+SZG_CALL int ar_parseFloatString(const string& theString, 
+                                 float* outArray, int len);
+SZG_CALL int ar_parseIntString(const string& theString, 
+                               int* outArray, int len);
+SZG_CALL int ar_parseLongString(const string& theString, 
+                                long* outArray, int len);
+SZG_CALL void ar_stringToBuffer(const string& theString, 
+                                char* theBuffer, int len);
+SZG_CALL int ar_stringToInt(const string& theString);
 /// parse semicolon-delimited paths
-string ar_pathToken(const string& theString, int& start);
+SZG_CALL string ar_pathToken(const string& theString, int& start);
 /// Deal with the idiosyncracies of paths across Unix and Win32
-char ar_pathDelimiter();
-char ar_oppositePathDelimiter();
-string& ar_scrubPath(string& s);
-string& ar_pathAddSlash(string& s); // append a / or a \ if necessary
+SZG_CALL char ar_pathDelimiter();
+SZG_CALL char ar_oppositePathDelimiter();
+SZG_CALL string& ar_scrubPath(string& s);
+SZG_CALL string& ar_pathAddSlash(string& s); // append a / or a \ if necessary
 
 /// for slash-delimited string lists, "string1/string2/.../stringn"
-class arDelimitedString : public string {
+class SZG_CALL arDelimitedString : public string {
 public:
   arDelimitedString(const char delim = '/') : string(), _delimiter(delim) {}
   arDelimitedString(const char* sz, const char delim) : string(sz), _delimiter(delim) {}
@@ -172,7 +182,7 @@ private:
   char _delimiter;  
 };
 
-class arSlashString : public arDelimitedString {
+class SZG_CALL arSlashString : public arDelimitedString {
 public:
   arSlashString() : arDelimitedString('/') {}
   arSlashString(const char* sz) : arDelimitedString(sz,'/') {}
@@ -182,7 +192,7 @@ public:
 };
 
 /// for semicolon-delimited string lists, "string1;string2;...;stringn"
-class arSemicolonString : public arDelimitedString {
+class SZG_CALL arSemicolonString : public arDelimitedString {
 public:
   arSemicolonString() : arDelimitedString(';') {}
   arSemicolonString(const char* sz) : arDelimitedString(sz,';') {}
@@ -191,7 +201,7 @@ public:
   arSemicolonString& operator/=(const string&);
 };
 
-class arPathString : public arDelimitedString {
+class SZG_CALL arPathString : public arDelimitedString {
 public:
   arPathString() : arDelimitedString(ar_pathDelimiter()) {}
   arPathString(const char* sz) : arDelimitedString(sz,ar_pathDelimiter()) {}
@@ -201,40 +211,41 @@ public:
 };
 
 
-bool ar_getTokenList( const std::string& inString,
+SZG_CALL bool ar_getTokenList( const std::string& inString,
                        std::vector<std::string>& outList,
                        const char delim = ' ' );
 /// pack a string with the parameters
-string ar_packParameters(int,char**);
+SZG_CALL string ar_packParameters(int,char**);
 
 /// strip pathname and .EXE from win32 exe's
-string ar_stripExeName(const string&);
+SZG_CALL string ar_stripExeName(const string&);
 /// find the extension of a particular file name (i.e. jpg or ppm or obj)
-string ar_getExtension(const string&);
+SZG_CALL string ar_getExtension(const string&);
 /// add the right shared library extension for the system (.dll or .so)
-void ar_addSharedLibExtension(string& name);
+SZG_CALL void ar_addSharedLibExtension(string& name);
 
 /// manipulating system characteristics
-string ar_getenv(const string&);
-void   ar_setenv(const string&, const string&);
-void   ar_setenv(const string& variableName, int variableValue);
-string ar_getUser();
+SZG_CALL string ar_getenv(const string&);
+SZG_CALL void   ar_setenv(const string&, const string&);
+SZG_CALL void   ar_setenv(const string& variableName, int variableValue);
+SZG_CALL string ar_getUser();
 
 /// file access
-bool ar_fileExists( const string name, bool& exists, bool& isFile );
-bool ar_directoryExists( const string name, bool& exists, bool& isDirectory );
-bool ar_fileItemExists( const string name, bool& exists );
-bool ar_getWorkingDirectory( string& name );
-bool ar_setWorkingDirectory( const string name );
-bool ar_isFile(const char* name);
-bool ar_isDirectory(const char* name);
-FILE* ar_fileOpen(const string& name, 
-                  const string& subdirectory,
-                  const string& path,
-                  const string& operation);
-FILE* ar_fileOpen(const string& name, 
-                  const string& path,
-                  const string& operation);
+SZG_CALL bool ar_fileExists( const string name, bool& exists, bool& isFile );
+SZG_CALL bool ar_directoryExists( const string name, bool& exists, 
+                                  bool& isDirectory );
+SZG_CALL bool ar_fileItemExists( const string name, bool& exists );
+SZG_CALL bool ar_getWorkingDirectory( string& name );
+SZG_CALL bool ar_setWorkingDirectory( const string name );
+SZG_CALL bool ar_isFile(const char* name);
+SZG_CALL bool ar_isDirectory(const char* name);
+SZG_CALL FILE* ar_fileOpen(const string& name, 
+                           const string& subdirectory,
+                           const string& path,
+                           const string& operation);
+SZG_CALL FILE* ar_fileOpen(const string& name, 
+                           const string& path,
+                           const string& operation);
 /*
 ifstream ar_istreamOpen(const string& name, 
                   const string& subdirectory,
@@ -245,22 +256,22 @@ ifstream ar_istreamOpen(const string& name,
                   const string& operation);
                   */
 /// Looks for the named file in the given subdirectory of the path
-string ar_fileFind(const string& name, 
-		   const string& subdirectory,
-		   const string& path);
-int ar_fileClose(FILE* pf);
+SZG_CALL string ar_fileFind(const string& name, 
+		            const string& subdirectory,
+		            const string& path);
+SZG_CALL int ar_fileClose(FILE* pf);
 
 /// ARchar buffer management
-bool ar_growBuffer(ARchar*& buf, int& size, int newSize);
+SZG_CALL bool ar_growBuffer(ARchar*& buf, int& size, int newSize);
 
 /// wrapper for usleep (compatibility with Win32)
-void ar_usleep(int);
+SZG_CALL void ar_usleep(int);
 
-void* ar_allocateBuffer( arDataType theType, unsigned int size );
-void ar_deallocateBuffer( void* ptr );
+SZG_CALL void* ar_allocateBuffer( arDataType theType, unsigned int size );
+SZG_CALL void ar_deallocateBuffer( void* ptr );
 // note order below is to match memcpy, which this is an extension of
-void ar_copyBuffer( void* const outBuf, const void* const inBuf,
-    arDataType theType, unsigned int size );
+SZG_CALL void ar_copyBuffer( void* const outBuf, const void* const inBuf,
+                             arDataType theType, unsigned int size );
 
 #define CALL_MEMBER_FUNCTION( object, ptrToMember ) ((object).*(ptrToMember))
 

@@ -8,7 +8,7 @@
 
 #include "arGraphicsArrayNode.h"
 
-class arIndexNode:public arGraphicsArrayNode{
+class SZG_CALL arIndexNode:public arGraphicsArrayNode{
  public:
   arIndexNode(arGraphicsDatabase*);
   ~arIndexNode(){}

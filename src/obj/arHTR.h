@@ -21,7 +21,7 @@
 enum { XYZ = 1, XZY, YXZ, YZX, ZXY, ZYX };
 
 /// Hierarchy pairs
-class htrSegmentHierarchy {
+class SZG_CALL htrSegmentHierarchy {
  public:
   char* child;
   char* parent;
@@ -34,7 +34,7 @@ class htrSegmentHierarchy {
 };
 
 /// Segment data
-class htrSegmentData{
+class SZG_CALL htrSegmentData{
  public:
   htrSegmentData(): parent(NULL)
     {}
@@ -68,7 +68,7 @@ class htrSegmentData{
 };
 
 /// Base position Structure
-class htrBasePosition {
+class SZG_CALL htrBasePosition {
  public:
   htrBasePosition() : name(NULL), segment(NULL)
     {}
@@ -93,7 +93,7 @@ struct htrFrame{
 };
 
 /// Wrapper for .htr format
-class arHTR : public arObject {
+class SZG_CALL arHTR : public arObject {
   public:
     arHTR();
     ~arHTR();

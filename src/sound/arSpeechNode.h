@@ -10,7 +10,7 @@
 
 /// Utterance in the scene graph.
 
-class arSpeechNode : public arSoundNode{
+class SZG_CALL arSpeechNode : public arSoundNode{
   public:
     // Needs assignment operator and copy constructor, for pointer member.
     arSpeechNode();

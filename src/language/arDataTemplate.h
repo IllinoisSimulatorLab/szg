@@ -29,7 +29,7 @@ typedef arAttribute::iterator arAttributeIterator;
 
 /// Contains a list of arAttribute objects (string and arDataType).
 
-class arDataTemplate{
+class SZG_CALL arDataTemplate{
  public:
    friend class arTemplateDictionary;
 

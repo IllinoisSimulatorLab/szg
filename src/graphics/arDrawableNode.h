@@ -14,7 +14,7 @@ enum arDrawableType {DG_POINTS = 0, DG_LINES = 1, DG_LINE_STRIP = 2,
                      DG_QUADS = 5, DG_QUAD_STRIP = 6,
                      DG_POLYGON = 7};
 
-class arDrawableNode:public arGraphicsNode{
+class SZG_CALL arDrawableNode:public arGraphicsNode{
  public:
   arDrawableNode();
   ~arDrawableNode(){}

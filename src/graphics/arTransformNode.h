@@ -11,7 +11,7 @@
 
 /// 4x4 matrix transformation (an articulation in the scene graph).
 
-class arTransformNode: public arGraphicsNode{
+class SZG_CALL arTransformNode: public arGraphicsNode{
  public:
   arTransformNode();
   ~arTransformNode(){}

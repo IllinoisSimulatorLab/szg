@@ -12,7 +12,7 @@
 
 /// Get data from an arDataServer.
 
-class arDataClient : public arDataPoint {
+class SZG_CALL arDataClient : public arDataPoint {
  // Needs assignment operator and copy constructor, for pointer members.
  public:
    arDataClient(const string& exeName="");

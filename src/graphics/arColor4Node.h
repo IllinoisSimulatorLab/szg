@@ -8,7 +8,7 @@
 
 #include "arGraphicsArrayNode.h"
 
-class arColor4Node:public arGraphicsArrayNode{
+class SZG_CALL arColor4Node:public arGraphicsArrayNode{
  public:
   arColor4Node(arGraphicsDatabase*);
   ~arColor4Node(){}

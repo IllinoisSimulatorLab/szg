@@ -8,7 +8,7 @@
 
 #include "arCamera.h"
 
-class arOrthoCamera: public arCamera{
+class SZG_CALL arOrthoCamera: public arCamera{
  public:
   arOrthoCamera();
   virtual ~arOrthoCamera(){}

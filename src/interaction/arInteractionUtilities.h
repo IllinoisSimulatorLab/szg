@@ -10,10 +10,10 @@
 #include "arInteractable.h"
 #include <list>
 
-bool ar_pollingInteraction( arEffector& effector,
-                            std::list<arInteractable*>& objects );
-bool ar_pollingInteraction( arEffector& effector,
-                            arInteractable* object );
+SZG_CALL bool ar_pollingInteraction( arEffector& effector,
+                                     std::list<arInteractable*>& objects );
+SZG_CALL bool ar_pollingInteraction( arEffector& effector,
+                                     arInteractable* object );
 
 #endif        //  #ifndefARINTERACTIONUTILITIES_H
 

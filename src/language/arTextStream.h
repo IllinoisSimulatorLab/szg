@@ -8,11 +8,12 @@
 
 #include <stdio.h>
 #include "arBuffer.h"
+#include "arCallingConventions.h"
 
 /// A base class that provides a very simple stream interface.
 /// This is mostly used for XML-style data parsing. Via subclasses, one
 /// can use FILE*, a socket, or a string as the stream source.
-class arTextStream{
+class SZG_CALL arTextStream{
  public:
   arTextStream(){}
   virtual ~arTextStream(){}

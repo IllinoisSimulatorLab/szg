@@ -12,7 +12,7 @@ using namespace std;
 
 /// Something that sends input-device messages over ethernet.
 
-class arNetInputSource: public arInputSource{
+class SZG_CALL arNetInputSource: public arInputSource{
   friend void ar_netInputSourceDataTask(void*);
   friend void ar_netInputSourceConnectionTask(void*);
  public:

@@ -17,7 +17,7 @@ class arGraphicsDatabase;
 
 /// Node in an arGraphicsDatabase.
 
-class arGraphicsNode: public arDatabaseNode{
+class SZG_CALL arGraphicsNode: public arDatabaseNode{
  // Needs assignment operator and copy constructor, for pointer members.
  public:
   friend class arGraphicsDatabase;

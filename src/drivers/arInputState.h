@@ -40,7 +40,7 @@ template <class eventDataType> class arInputDeviceMap {
 };
 
 
-class arInputState {
+class SZG_CALL arInputState {
   public:
     arInputState();
     arInputState( const arInputState& x );

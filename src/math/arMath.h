@@ -6,6 +6,7 @@
 #ifndef AR_MATH_H
 #define AR_MATH_H
 
+#include "arCallingConventions.h"
 #include <iostream>
 #include <math.h>
 #include <string>
@@ -19,7 +20,7 @@ class arQuaternion;
 
 /// vector of 3 points.  Position or direction in 3-space.
 
-class arVector3{
+class SZG_CALL arVector3{
  public:
   float v[3];
 
@@ -68,7 +69,7 @@ class arVector3{
 
 /// vector of 4 floats. A position in 4-space
 
-class arVector4{
+class SZG_CALL arVector4{
  public:
   float v[4];
 
@@ -99,7 +100,7 @@ class arVector4{
 
 /// 4x4 matrix.  Typically an OpenGL transformation.
 
-class arMatrix4{
+class SZG_CALL arMatrix4{
  public:
   arMatrix4();
   arMatrix4(const float* const);
@@ -125,7 +126,7 @@ class arMatrix4{
 
 /// For representing rotations.
 
-class arQuaternion{
+class SZG_CALL arQuaternion{
  public:
   arQuaternion();
   arQuaternion(float real, float pure1, float pure2, float pure3);
@@ -144,112 +145,122 @@ class arQuaternion{
 //***************************************************************
 
 // *********** vector ******************
-arVector3 operator*(const arVector3&, const arVector3&); // cross product
-arVector3 operator*(float, const arVector3&); // scalar multiply
-arVector3 operator*(const arVector3&, float); // scalar multiply
-arVector3 operator/(const arVector3&, float); // scalar division, handles x/0
-arVector3 operator+(const arVector3&, const arVector3&); // add
-arVector3 operator-(const arVector3&); // negate
-arVector3 operator-(const arVector3&, const arVector3&); // subtract
-float operator%(const arVector3&, const arVector3&); // dot product
-float operator++(const arVector3&); // magnitude
-ostream& operator<<(ostream&, const arVector3&);
-ostream& operator<<(ostream&, const arVector4&);
+// cross product
+SZG_CALL arVector3 operator*(const arVector3&, const arVector3&); 
+SZG_CALL arVector3 operator*(float, const arVector3&); // scalar multiply
+SZG_CALL arVector3 operator*(const arVector3&, float); // scalar multiply
+// scalar division, handles x/0
+SZG_CALL arVector3 operator/(const arVector3&, float); 
+SZG_CALL arVector3 operator+(const arVector3&, const arVector3&); // add
+SZG_CALL arVector3 operator-(const arVector3&); // negate
+SZG_CALL arVector3 operator-(const arVector3&, const arVector3&); // subtract
+SZG_CALL float operator%(const arVector3&, const arVector3&); // dot product
+SZG_CALL float operator++(const arVector3&); // magnitude
+SZG_CALL ostream& operator<<(ostream&, const arVector3&);
+SZG_CALL ostream& operator<<(ostream&, const arVector4&);
 
 //************ matrix *******************
-
-arMatrix4 operator*(const arMatrix4&,const arMatrix4&); // matrix multiply
-arMatrix4 operator+(const arMatrix4&, const arMatrix4&); //addition
-arMatrix4 operator-(const arMatrix4&); //negation
-arMatrix4 operator-(const arMatrix4&, const arMatrix4&); //subtraction
-arMatrix4 operator~(const arMatrix4&); //transpose
-arMatrix4 operator!(const arMatrix4&); //inverse, return all zeros if singular
-ostream& operator<<(ostream&, const arMatrix4&);
+// matrix multiply
+SZG_CALL arMatrix4 operator*(const arMatrix4&,const arMatrix4&); 
+SZG_CALL arMatrix4 operator+(const arMatrix4&, const arMatrix4&); //addition
+SZG_CALL arMatrix4 operator-(const arMatrix4&); //negation
+SZG_CALL arMatrix4 operator-(const arMatrix4&, const arMatrix4&); //subtraction
+SZG_CALL arMatrix4 operator~(const arMatrix4&); //transpose
+//inverse, return all zeros if singular
+SZG_CALL arMatrix4 operator!(const arMatrix4&); 
+SZG_CALL ostream& operator<<(ostream&, const arMatrix4&);
 
 //************* quaternion ***************
-arQuaternion operator*(const arQuaternion&, const arQuaternion&);
-arQuaternion operator*(float, const arQuaternion&);
-arQuaternion operator*(const arQuaternion&, float);
-arQuaternion operator/(const arQuaternion&, float); // division by scalar,
-                                            // if scalar==0, return all zeros
-arQuaternion operator+(const arQuaternion&, const arQuaternion&);
-arQuaternion operator-(const arQuaternion&);
-arQuaternion operator-(const arQuaternion&, const arQuaternion&);
-arQuaternion operator!(const arQuaternion&);       // inverts unit quaternion
-float operator++(const arQuaternion&);   // magnitude
-ostream& operator<<(ostream&, const arQuaternion&);
+SZG_CALL arQuaternion operator*(const arQuaternion&, const arQuaternion&);
+SZG_CALL arQuaternion operator*(float, const arQuaternion&);
+SZG_CALL arQuaternion operator*(const arQuaternion&, float);
+// division by scalar,
+// if scalar==0, return all zeros
+SZG_CALL arQuaternion operator/(const arQuaternion&, float);                   
+SZG_CALL arQuaternion operator+(const arQuaternion&, const arQuaternion&);
+SZG_CALL arQuaternion operator-(const arQuaternion&);
+SZG_CALL arQuaternion operator-(const arQuaternion&, const arQuaternion&);
+// inverts unit quaternion
+SZG_CALL arQuaternion operator!(const arQuaternion&);       
+SZG_CALL float operator++(const arQuaternion&);   // magnitude
+SZG_CALL ostream& operator<<(ostream&, const arQuaternion&);
 
 //************* misc **********************
 // vector transform operators
-arVector3 operator*(const arMatrix4&, const arVector3&);
-arVector3 operator*(const arQuaternion&, const arVector3&);
+SZG_CALL arVector3 operator*(const arMatrix4&, const arVector3&);
+SZG_CALL arVector3 operator*(const arQuaternion&, const arVector3&);
 
 //********* utility functions ******
-arMatrix4 ar_identityMatrix();
-arMatrix4 ar_translationMatrix(float,float,float);
-arMatrix4 ar_translationMatrix(const arVector3&);
-arMatrix4 ar_rotationMatrix(char,float);
-arMatrix4 ar_rotationMatrix(const arVector3&,float);
-arMatrix4 ar_rotateVectorToVector( const arVector3& vec1, const arVector3& vec2 );
-arMatrix4 ar_transrotMatrix(const arVector3& position, const arQuaternion& orientation);
-arMatrix4 ar_scaleMatrix(float);
-arMatrix4 ar_scaleMatrix(float,float,float);
-arMatrix4 ar_scaleMatrix(const arVector3& scaleFactors);
-arMatrix4 ar_mirrorMatrix( const arMatrix4& placementMatrix );
-arMatrix4 ar_extractTranslationMatrix(const arMatrix4&);
-arVector3 ar_extractTranslation(const arMatrix4&);
-arMatrix4 ar_extractRotationMatrix(const arMatrix4&);
-arMatrix4 ar_extractScaleMatrix(const arMatrix4&);
-float     ar_angleBetween(const arVector3&, const arVector3&);
-arVector3 ar_extractEulerAngles(const arMatrix4&);
-arQuaternion ar_angleVectorToQuaternion(const arVector3&,float);
-float ar_convertToRad(float);
-float ar_convertToDeg(float);
+SZG_CALL arMatrix4 ar_identityMatrix();
+SZG_CALL arMatrix4 ar_translationMatrix(float,float,float);
+SZG_CALL arMatrix4 ar_translationMatrix(const arVector3&);
+SZG_CALL arMatrix4 ar_rotationMatrix(char,float);
+SZG_CALL arMatrix4 ar_rotationMatrix(const arVector3&,float);
+SZG_CALL arMatrix4 ar_rotateVectorToVector( const arVector3& vec1, 
+                                            const arVector3& vec2 );
+SZG_CALL arMatrix4 ar_transrotMatrix(const arVector3& position, 
+                                     const arQuaternion& orientation);
+SZG_CALL arMatrix4 ar_scaleMatrix(float);
+SZG_CALL arMatrix4 ar_scaleMatrix(float,float,float);
+SZG_CALL arMatrix4 ar_scaleMatrix(const arVector3& scaleFactors);
+SZG_CALL arMatrix4 ar_mirrorMatrix( const arMatrix4& placementMatrix );
+SZG_CALL arMatrix4 ar_extractTranslationMatrix(const arMatrix4&);
+SZG_CALL arVector3 ar_extractTranslation(const arMatrix4&);
+SZG_CALL arMatrix4 ar_extractRotationMatrix(const arMatrix4&);
+SZG_CALL arMatrix4 ar_extractScaleMatrix(const arMatrix4&);
+SZG_CALL float     ar_angleBetween(const arVector3&, const arVector3&);
+SZG_CALL arVector3 ar_extractEulerAngles(const arMatrix4&);
+SZG_CALL arQuaternion ar_angleVectorToQuaternion(const arVector3&,float);
+SZG_CALL float ar_convertToRad(float);
+SZG_CALL float ar_convertToDeg(float);
 // returns the relected vector of direction across normal.
-arVector3 ar_reflect(const arVector3& direction, const arVector3& normal);
-float ar_intersectRayTriangle(const arVector3& rayOrigin,
-			      const arVector3& rayDirection,
-			      const arVector3& vertex1,
-			      const arVector3& vertex2,
-			      const arVector3& veretx3);
+SZG_CALL arVector3 ar_reflect(const arVector3& direction, 
+                              const arVector3& normal);
+SZG_CALL float ar_intersectRayTriangle(const arVector3& rayOrigin,
+			               const arVector3& rayDirection,
+			               const arVector3& vertex1,
+			               const arVector3& vertex2,
+			               const arVector3& veretx3);
 
 // note lineDirection & planeNormal don't have to be normalized
 // (affects interpretation of range, though).
 // returns false if no intersection.  Otherwise, intersection
 // = linePoint + range*lineDirection.
-bool ar_intersectLinePlane( const arVector3& linePoint,
-                            const arVector3& lineDirection,
-                            const arVector3& planePoint,
-                            const arVector3& planeNormal,
-                            float& range );
+SZG_CALL bool ar_intersectLinePlane( const arVector3& linePoint,
+                                     const arVector3& lineDirection,
+                                     const arVector3& planePoint,
+                                     const arVector3& planeNormal,
+                                     float& range );
 
 // finds the point on a line that is nearest to some point
-arVector3 ar_projectPointToLine( const arVector3& linePoint,
-                                 const arVector3& lineDirection,
-                                 const arVector3& otherPoint,
-                                 const float threshold = 1e-6 );
+SZG_CALL arVector3 ar_projectPointToLine( const arVector3& linePoint,
+                                          const arVector3& lineDirection,
+                                          const arVector3& otherPoint,
+                                          const float threshold = 1e-6 );
 
 //********** useful user interface transformations ***********
 //********** good for mouse->3D                    ***********
-arMatrix4 ar_planeToRotation(float,float);
+SZG_CALL arMatrix4 ar_planeToRotation(float,float);
 
 //********** screen-related transformations, useful for VR *******
-arVector3 ar_tileScreenOffset(const arVector3&, const arVector3&,
-                              const arVector3&,
-			      float, float, float, int, float, int );
-arMatrix4 ar_frustumMatrix( const arVector3& screenCenter,
-			    const arVector3& screenNormal,
-                            const arVector3& screenUp,
-                            const float halfWidth, const float halfHeight,
-                            const float nearClip, const float farClip,
-                            const arVector3& eyePosition );
-arMatrix4 ar_frustumMatrix( const float screenDist,
-                            const float halfWidth, const float halfHeight,
-                            const float nearClip, const float farClip,
-                            const arVector3& locEyePosition );
-arMatrix4 ar_lookatMatrix( const arVector3& viewPosition,
-                           const arVector3& lookatPosition,
-                           const arVector3& up );
+SZG_CALL arVector3 ar_tileScreenOffset(const arVector3&, const arVector3&,
+                                       const arVector3&,
+			               float, float, float, int, float, int );
+SZG_CALL arMatrix4 ar_frustumMatrix( const arVector3& screenCenter,
+			             const arVector3& screenNormal,
+                                     const arVector3& screenUp,
+                                     const float halfWidth, 
+                                     const float halfHeight,
+                                     const float nearClip, const float farClip,
+                                     const arVector3& eyePosition );
+SZG_CALL arMatrix4 ar_frustumMatrix( const float screenDist,
+                                     const float halfWidth, 
+                                     const float halfHeight,
+                                     const float nearClip, const float farClip,
+                                     const arVector3& locEyePosition );
+SZG_CALL arMatrix4 ar_lookatMatrix( const arVector3& viewPosition,
+                                    const arVector3& lookatPosition,
+                                    const arVector3& up );
 
 //*************************************
 // vector inlined functions

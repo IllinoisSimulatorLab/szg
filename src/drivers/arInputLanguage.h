@@ -11,7 +11,7 @@
 
 /// Formalism for input devices.
 
-class arInputLanguage: public arLanguage{
+class SZG_CALL arInputLanguage: public arLanguage{
  public:
   arInputLanguage();
   ~arInputLanguage();

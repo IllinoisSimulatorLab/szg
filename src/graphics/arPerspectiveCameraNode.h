@@ -9,7 +9,7 @@
 #include "arGraphicsNode.h"
 #include "arPerspectiveCamera.h"
 
-class arPerspectiveCameraNode:public arGraphicsNode{
+class SZG_CALL arPerspectiveCameraNode:public arGraphicsNode{
  public:
   arPerspectiveCameraNode();
   ~arPerspectiveCameraNode(){}

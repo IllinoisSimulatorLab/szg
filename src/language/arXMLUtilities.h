@@ -14,12 +14,12 @@
 using namespace std;
 
 /// XML parsing
-bool   ar_ignoreWhitespace(arTextStream* textStream);
-bool   ar_getTextBeforeTag(arTextStream* textStream, arBuffer<char>*);
-string ar_getTagText(arTextStream* textStream, arBuffer<char>*);
-string ar_getTagText(arTextStream*);
-bool   ar_isEndTag(const string& tagText);
-string ar_getTagType(const string& tagText);
+SZG_CALL bool ar_ignoreWhitespace(arTextStream* textStream);
+SZG_CALL bool ar_getTextBeforeTag(arTextStream* textStream, arBuffer<char>*);
+SZG_CALL string ar_getTagText(arTextStream* textStream, arBuffer<char>*);
+SZG_CALL string ar_getTagText(arTextStream*);
+SZG_CALL bool   ar_isEndTag(const string& tagText);
+SZG_CALL string ar_getTagType(const string& tagText);
 
 template <class T>
 void ar_growXMLBuffer(T*& data, int location, int& size){

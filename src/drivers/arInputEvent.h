@@ -3,10 +3,10 @@
 
 #include "arMath.h"
 
-enum arInputEventType {AR_EVENT_GARBAGE=-1, AR_EVENT_BUTTON=0, 
-      AR_EVENT_AXIS=1, AR_EVENT_MATRIX=2};
+SZG_CALL enum arInputEventType {AR_EVENT_GARBAGE=-1, AR_EVENT_BUTTON=0, 
+                                AR_EVENT_AXIS=1, AR_EVENT_MATRIX=2};
 
-class arInputEvent {
+class SZG_CALL arInputEvent {
   public:
     arInputEvent();
     arInputEvent( const arInputEventType type, const unsigned int index );
@@ -46,21 +46,21 @@ class arInputEvent {
     arMatrix4* _matrix;
 };
 
-class arButtonEvent : public arInputEvent {
+class SZG_CALL arButtonEvent : public arInputEvent {
   public:
     arButtonEvent( const unsigned int index, const int b ) :
       arInputEvent( AR_EVENT_BUTTON, index, b ) {
       }
 };
 
-class arAxisEvent : public arInputEvent {
+class SZG_CALL arAxisEvent : public arInputEvent {
   public:
     arAxisEvent( const unsigned int index, const float a ) :
       arInputEvent( AR_EVENT_AXIS, index, a ) {
       }
 };
 
-class arMatrixEvent : public arInputEvent {
+class SZG_CALL arMatrixEvent : public arInputEvent {
   public:
     arMatrixEvent( const unsigned int index, const float* v ) :
       arInputEvent( AR_EVENT_MATRIX, index, v ) {
@@ -70,7 +70,7 @@ class arMatrixEvent : public arInputEvent {
       }
 };
 
-class arGarbageEvent : public arInputEvent {
+class SZG_CALL arGarbageEvent : public arInputEvent {
   public:
     arGarbageEvent() : arInputEvent() {}
 };

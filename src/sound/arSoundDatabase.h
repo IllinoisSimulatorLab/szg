@@ -20,7 +20,7 @@
 
 /// Scene graph for sound.
 
-class arSoundDatabase: public arDatabase{
+class SZG_CALL arSoundDatabase: public arDatabase{
  // Needs assignment operator and copy constructor, for pointer members.
  public:
   arSoundDatabase();

@@ -12,7 +12,7 @@
 
 /// 2 balls joined by a cylinder.
 
-class arBarbell{
+class SZG_CALL arBarbell{
  public:
   arBarbell(const arMatrix4& transform,
     const string& textureWood,
@@ -29,7 +29,7 @@ class arBarbell{
 
 /// Shelf with books.
 
-class arBookShelf{
+class SZG_CALL arBookShelf{
  public:
   arBookShelf(const arMatrix4& transform,
     const string& textureWood,
@@ -46,7 +46,7 @@ class arBookShelf{
 
 /// Ceiling-hung lamp with base and lampshade.
 
-class arCeilingLamp{
+class SZG_CALL arCeilingLamp{
  public:
   arCeilingLamp(const arMatrix4& transform,
     const string& textureWood,
@@ -65,7 +65,7 @@ class arCeilingLamp{
 
 /// Tell me vatt you are theenking...
 
-class arCouch{
+class SZG_CALL arCouch{
  public:
   arCouch(const arMatrix4& transform,
     const string& textureArm,
@@ -82,7 +82,7 @@ class arCouch{
 
 /// Floor-standing lamp with base and lampshade.
 
-class arFloorLamp{
+class SZG_CALL arFloorLamp{
  public:
   arFloorLamp(const arMatrix4& transform,
     const string& textureWood,
@@ -101,7 +101,7 @@ class arFloorLamp{
 
 /// Disc on a stick.
 
-class arLollypop{
+class SZG_CALL arLollypop{
  public:
   arLollypop(const arMatrix4& transform,
     const string& textureWood,
@@ -118,7 +118,7 @@ class arLollypop{
 
 /// Planar equiangular quadrilateral polytope.
 
-class arTexturedSquare{
+class SZG_CALL arTexturedSquare{
  public:
   arTexturedSquare(const arMatrix4&);
   ~arTexturedSquare() {};
@@ -129,7 +129,7 @@ class arTexturedSquare{
 
 /// Quadri-wheeled vehicle.
 
-class arToyCar{
+class SZG_CALL arToyCar{
  public:
   arToyCar(const arMatrix4& transform,
     const string& textureWheel,
@@ -148,7 +148,7 @@ class arToyCar{
 
 /// Another quadri-wheeled vehicle.
 
-class arToyTruck{
+class SZG_CALL arToyTruck{
  public:
   arToyTruck(const arMatrix4& transform,
     const string& textureWheel,
@@ -171,7 +171,7 @@ class arToyTruck{
 
 /// No!  Not the comfy chair!
 
-class arSimpleChairMesh{
+class SZG_CALL arSimpleChairMesh{
  public:
   arSimpleChairMesh(){}
   ~arSimpleChairMesh(){}
@@ -189,7 +189,7 @@ class arSimpleChairMesh{
 
 /// Put this in front of the arSimpleChairMesh.
 
-class arSimpleTableMesh{
+class SZG_CALL arSimpleTableMesh{
  public:
   arSimpleTableMesh(){}
   ~arSimpleTableMesh(){}

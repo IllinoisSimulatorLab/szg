@@ -20,10 +20,10 @@ using namespace std;
 /// run unsynchronized over a high-latency network, for instance.
 /// These constants must be declared publicly so that user applications
 /// can access them.
-enum { AR_SYNC_CLIENT = 0, AR_NOSYNC_CLIENT };
+SZG_CALL enum { AR_SYNC_CLIENT = 0, AR_NOSYNC_CLIENT };
 
 /// Client for arSyncDataServer.
-class arSyncDataClient{
+class SZG_CALL arSyncDataClient{
   // Needs assignment operator and copy constructor, for pointer members.
   friend void ar_syncDataClientReadTask(void*);
   friend void ar_syncDataClientConnectionTask(void*);
@@ -52,7 +52,8 @@ class arSyncDataClient{
     ///< called when action needs doing (while connected).
   void setPostSyncCallback
     (bool (*postSyncCallback)(void*));
-    ///< called after sync at the barrier (after all clients have ActionCallback'ed).
+    ///< called after sync at the barrier 
+    ///(after all clients have ActionCallback'ed).
   void setNullCallback
     (bool (*nullCallback)(void*));
     ///< called while disconnected.

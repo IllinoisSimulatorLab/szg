@@ -11,7 +11,7 @@
 
 /// Provides data on SZG_SOUND/{IP,port} for arSoundClients to render.
 
-class arSoundServer: public arSoundDatabase {
+class SZG_CALL arSoundServer: public arSoundDatabase {
   // Needs assignment operator and copy constructor, for pointer members.
   friend bool
     ar_soundServerConnectionCallback(void*,arQueuedData*,list<arSocket*>*);

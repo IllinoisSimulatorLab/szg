@@ -11,7 +11,7 @@
 #include "arDatabaseLanguage.h"
 
 /// The language used in the szg.conf file.
-class arPhleetConfigLanguage: public arLanguage{
+class SZG_CALL arPhleetConfigLanguage: public arLanguage{
  public:
   arPhleetConfigLanguage();
   ~arPhleetConfigLanguage(){}

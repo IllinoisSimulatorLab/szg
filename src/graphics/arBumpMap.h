@@ -17,7 +17,7 @@ typedef int CGparameter;
 
 /// Bump map loaded from a file, or loaded from a block of memory.
 
-class arBumpMap : public arTexture {
+class SZG_CALL arBumpMap : public arTexture {
  public:
   arBumpMap();
   virtual ~arBumpMap();

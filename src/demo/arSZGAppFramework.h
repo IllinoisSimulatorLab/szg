@@ -18,7 +18,7 @@
 #include "arFrameworkEventFilter.h"
 #include <set>
 
-class arSZGAppFramework {
+class SZG_CALL arSZGAppFramework {
   public:
     arSZGAppFramework();
     virtual ~arSZGAppFramework();

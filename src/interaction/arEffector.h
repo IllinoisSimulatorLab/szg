@@ -9,7 +9,7 @@
 class arInteractable;
 class arSZGAppFramework;
 
-class arEffector {
+class SZG_CALL arEffector {
   public:
     arEffector();
     // NOTE: the "lo" parameters, e.g. "loButton", tell the effector which indices

@@ -24,16 +24,16 @@ using namespace std;
 // to be able to use them in the setMode() call.
 //******************************************************
 // Synchronization modes (for _mode).
-  enum {
-    AR_SYNC_AUTO_SERVER = 0,
-    AR_SYNC_MANUAL_SERVER,
-    AR_NOSYNC_MANUAL_SERVER
-  };
+SZG_CALL enum {
+  AR_SYNC_AUTO_SERVER = 0,
+  AR_SYNC_MANUAL_SERVER,
+  AR_NOSYNC_MANUAL_SERVER
+};
 
 class arSyncDataClient;
 
 /// Server for arSyncDataClient objects.
-class arSyncDataServer{
+class SZG_CALL arSyncDataServer{
   // Needs assignment operator and copy constructor, for pointer members.
   friend void ar_syncDataServerConnectionTask(void*);
   friend void ar_syncDataServerSendTask(void*);

@@ -8,7 +8,7 @@
 
 #include "arGraphicsArrayNode.h"
 
-class arTex2Node:public arGraphicsArrayNode{
+class SZG_CALL arTex2Node:public arGraphicsArrayNode{
  public:
   arTex2Node(arGraphicsDatabase*);
   ~arTex2Node(){}

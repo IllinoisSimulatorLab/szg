@@ -16,7 +16,7 @@
 #include "arSZGAppFramework.h"
 
 /// Framework for cluster applications using a distributed scene graph.
-class arDistSceneGraphFramework : public arSZGAppFramework {
+class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   friend void ar_distSceneGraphFrameworkMessageTask(void*);
   friend void ar_distSceneGraphFrameworkWindowTask(void*);
   friend void ar_distSceneGraphFrameworkDisplay();

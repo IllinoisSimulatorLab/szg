@@ -10,7 +10,7 @@ enum buttonevent_t { NO_EVENT=0, ON_EVENT=1, OFF_EVENT=2 };
 
 /// A press, release, or no-op of a button.
 
-class arButtonClickEvent {
+class SZG_CALL arButtonClickEvent {
   public:
     int _number;
     buttonevent_t _type;
@@ -40,7 +40,7 @@ class arButtonClickEvent {
 /// The application calls arUniqueInteractor::processAllTouches() (a static method)
 /// to handle all interactions with all instances of any sub-classes.
 
-class arUniqueInteractor {
+class SZG_CALL arUniqueInteractor {
   public:
     arUniqueInteractor();
     virtual ~arUniqueInteractor();

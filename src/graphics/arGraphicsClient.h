@@ -16,7 +16,7 @@
 /// using the SZG_GEOMETRY service
 /// and draws OpenGL scenes from an arGraphicsDatabase.
 
-class arGraphicsClient{
+class SZG_CALL arGraphicsClient{
   // Needs assignment operator and copy constructor, for pointer members.
   friend bool 
     ar_graphicsClientConnectionCallback(void*, arTemplateDictionary*);

@@ -15,7 +15,7 @@
 /// NOTE: right now, this does NOTHING in the actual code. So, a 
 /// placeholder for now.
 
-class arMaterial{
+class SZG_CALL arMaterial{
  public:
   arMaterial();
   ~arMaterial(){}

@@ -12,11 +12,12 @@
 #include "ar3DS.h"
 #include "arGraphicsAPI.h"
 
-bool attachOBJToHTRToNodeInDatabase(arOBJ* theOBJ,
-                                    arHTR *theHTR,
-				    const string &theNode);
+SZG_CALL bool attachOBJToHTRToNodeInDatabase(arOBJ* theOBJ,
+                                             arHTR *theHTR,
+				             const string &theNode);
 
-arObject* arReadObjectFromFile(const char *fileName, const string& path);
+SZG_CALL arObject* arReadObjectFromFile(const char *fileName, 
+                                        const string& path);
 /*
 /// \param numVerts Number of vertices
 /// \param vertices Array of vertices as 3 packed floats

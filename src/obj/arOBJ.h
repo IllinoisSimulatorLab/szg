@@ -19,7 +19,7 @@
 #include "arAxisAlignedBoundingBox.h"
 
 /// Wrapper for OpenGL material.
-class arOBJMaterial {
+class SZG_CALL arOBJMaterial {
  public:
   arOBJMaterial() :
     Ns(60),
@@ -40,7 +40,7 @@ class arOBJMaterial {
 };
 
 /// Wrapper for a single triangle.
-class arOBJTriangle {
+class SZG_CALL arOBJTriangle {
  public:
   int smoothingGroup;
   int material;
@@ -51,7 +51,7 @@ class arOBJTriangle {
 };
 
 /// Representation of a .OBJ file.
-class arOBJ : public arObject{
+class SZG_CALL arOBJ : public arObject{
  public:
 
   arOBJ();

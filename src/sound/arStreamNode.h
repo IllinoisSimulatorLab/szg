@@ -13,7 +13,7 @@
 #include "arSoundNode.h"
 #include "arSoundDatabase.h"
 
-class arStreamNode: public arSoundNode{
+class SZG_CALL arStreamNode: public arSoundNode{
  public:
   arStreamNode();
   ~arStreamNode();

@@ -5,7 +5,7 @@
 
 class arSZGAppFramework;
 
-class arFrameworkEventFilter : public arIOFilter {
+class SZG_CALL arFrameworkEventFilter : public arIOFilter {
   public:
     arFrameworkEventFilter( arSZGAppFramework* fw = 0 );
     virtual ~arFrameworkEventFilter() {}
@@ -17,11 +17,14 @@ class arFrameworkEventFilter : public arIOFilter {
     arSZGAppFramework* _framework;
 };
 
-typedef bool (*arFrameworkEventCallback)( arInputEvent& event, arIOFilter* filter, arSZGAppFramework* fw );
+typedef bool (*arFrameworkEventCallback)( arInputEvent& event, 
+                                          arIOFilter* filter, 
+                                          arSZGAppFramework* fw );
 
-class arCallbackEventFilter : public arFrameworkEventFilter {
+class SZG_CALL arCallbackEventFilter : public arFrameworkEventFilter {
   public:
-    arCallbackEventFilter( arSZGAppFramework* fw = 0, arFrameworkEventCallback cb = 0 );
+    arCallbackEventFilter( arSZGAppFramework* fw = 0, 
+                           arFrameworkEventCallback cb = 0 );
     virtual ~arCallbackEventFilter() {}
     void setCallback( arFrameworkEventCallback cb ) { _callback = cb; }
   protected:

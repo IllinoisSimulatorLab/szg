@@ -23,7 +23,7 @@ using namespace std;
 
 /// Data format which gets passed around the cluster.
 
-class arStructuredData {
+class SZG_CALL arStructuredData {
 
  private:
    void copy(arStructuredData const& rhs);

@@ -3,7 +3,7 @@
 
 #include "arInteractable.h"
 
-class arCallbackInteractable : public arInteractable {
+class SZG_CALL arCallbackInteractable : public arInteractable {
   public:
     arCallbackInteractable(int ID = -1);
     arCallbackInteractable( const arCallbackInteractable& bi );

@@ -3,14 +3,16 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-#ifndef AR_SHAREDLIB_H
-#define AR_SHAREDLIB_H
+#ifndef AR_SHARED_LIB_H
+#define AR_SHARED_LIB_H
 
 #ifdef AR_USE_WIN_32
 // DO NOT INCLUDE <windows.h> here! INSTEAD DO AS BELOW...
 #include "arPrecompiled.h"
 typedef HMODULE LibHandle;
 #endif
+
+#include "arCallingConventions.h"
 
 #ifdef AR_USE_LINUX
 typedef void* LibHandle;
@@ -41,7 +43,7 @@ using namespace std;
 /// or in a standard directory, whereas Win32 will look first for dll's
 /// in the executable's directory.
 
-class arSharedLib {
+class SZG_CALL arSharedLib {
  public:
   arSharedLib();
   ~arSharedLib();

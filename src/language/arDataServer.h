@@ -18,7 +18,7 @@
 
 /// Send data to arDataClient objects.
 
-class arDataServer : public arDataPoint {
+class SZG_CALL arDataServer : public arDataPoint {
  // Needs assignment operator and copy constructor, for pointer members.
  friend void ar_readDataThread(void*);
  public:

@@ -17,7 +17,7 @@
 #include <map>
 using namespace std;
 
-class arStructuredDataSynchronizer{
+class SZG_CALL arStructuredDataSynchronizer{
  public:
   arStructuredDataSynchronizer(){}
   ~arStructuredDataSynchronizer(){}
@@ -29,7 +29,7 @@ class arStructuredDataSynchronizer{
   int refCount;
 };
 
-class arMessageQueueByID{
+class SZG_CALL arMessageQueueByID{
  public:
   arMessageQueueByID(){}
   ~arMessageQueueByID(){}
@@ -57,7 +57,7 @@ typedef list<arStructuredDataSynchronizer*> SZGunusedMessageSync;
 /// management is also added, which created arStructuredData records being 
 /// re-used.
 
-class arStructuredDataParser{
+class SZG_CALL arStructuredDataParser{
  // Needs assignment operator and copy constructor,
  // for pointer member _dictionary (unless that's fine, in which case
  // make that explicit).

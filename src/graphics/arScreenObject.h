@@ -18,7 +18,7 @@
 // provision. It might be better to seperate these things out into their
 // logical components.
 
-class arScreenObject: public arCamera{
+class SZG_CALL arScreenObject: public arCamera{
  public:
   arScreenObject();
   virtual ~arScreenObject() {}

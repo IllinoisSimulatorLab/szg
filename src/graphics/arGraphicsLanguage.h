@@ -13,7 +13,7 @@
 /// ID's shared between an arGraphicsServer and its arGraphicsClient objects
 /// when rendering an arGraphicsDatabase.
 
-class arGraphicsLanguage:public arDatabaseLanguage{
+class SZG_CALL arGraphicsLanguage:public arDatabaseLanguage{
  public:
   arGraphicsLanguage();
   ~arGraphicsLanguage(){}

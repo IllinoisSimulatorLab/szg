@@ -23,7 +23,7 @@
 /// looks for soundfiles in SZG_SOUND/path, and
 /// renders the arSoundDatabase which arSoundServer and arSoundClients share.
 
-class arSoundClient{
+class SZG_CALL arSoundClient{
   // Needs assignment operator and copy constructor, for pointer members.
   // Probably should be a singleton class, though.
   friend void* SZG_SOUND_CALLBACK 

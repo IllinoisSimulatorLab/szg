@@ -10,7 +10,7 @@
 
 /// "Point of view" for a sound renderer (3D position, etc.)
 
-class arPlayerNode:public arSoundNode{
+class SZG_CALL arPlayerNode:public arSoundNode{
  public:
   arPlayerNode();
   ~arPlayerNode(){}

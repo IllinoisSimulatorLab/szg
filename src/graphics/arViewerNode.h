@@ -11,7 +11,7 @@
 
 /// Point of view (gaze direction, eye spacing, viewing transformation, etc.).
 
-class arViewerNode: public arGraphicsNode{
+class SZG_CALL arViewerNode: public arGraphicsNode{
  public:
   arViewerNode();
   ~arViewerNode(){}

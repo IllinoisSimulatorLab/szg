@@ -10,7 +10,7 @@
 
 /// Billboard display of text.
 
-class arBillboardNode: public arGraphicsNode{
+class SZG_CALL arBillboardNode: public arGraphicsNode{
  public:
   arBillboardNode();
   ~arBillboardNode(){}

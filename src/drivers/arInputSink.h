@@ -11,7 +11,7 @@
 
 /// Something which absorbs input-device messages and does something with them.
 
-class arInputSink{
+class SZG_CALL arInputSink{
   friend class arInputNode;
  public:
   arInputSink() {_autoActivate = true; }

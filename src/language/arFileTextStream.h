@@ -11,7 +11,7 @@
 #include <string>
 using namespace std;
 
-class arFileTextStream: public arTextStream{
+class SZG_CALL arFileTextStream: public arTextStream{
  public:
   arFileTextStream();
   virtual ~arFileTextStream(){}

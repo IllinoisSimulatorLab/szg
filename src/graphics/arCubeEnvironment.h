@@ -14,7 +14,7 @@
 
 /// Texture-mapped prism: n walls (often 4), a floor, and a ceiling.
 
-class arCubeEnvironment{
+class SZG_CALL arCubeEnvironment{
  public:
   // this class adds texture coordinates to arCubeMesh... one picture
   // per wall

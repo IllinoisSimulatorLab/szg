@@ -18,7 +18,7 @@ using namespace std;
 /// event has occured: the ID of the component along with the "match"
 /// tag that the arSZGClient will use to determine which notifivation
 /// requests this answers.
-class arPhleetNotification{
+class SZG_CALL arPhleetNotification{
  public:
   arPhleetNotification(){}
   ~arPhleetNotification(){}
@@ -30,7 +30,7 @@ class arPhleetNotification{
 /// A description of a service, including where it exists, what networks
 /// it can communicate upon, the ports it uses, the components that must
 /// be notified when it is deleted, etc.
-class arPhleetService{
+class SZG_CALL arPhleetService{
  public:
   arPhleetService(){}
   ~arPhleetService(){}
@@ -51,7 +51,7 @@ class arPhleetService{
 
 /// A specific way a client can connect to a service. The result of when
 /// a client asks the broker about a service
-class arPhleetAddress{
+class SZG_CALL arPhleetAddress{
  public:
   arPhleetAddress(){}
   ~arPhleetAddress(){}
@@ -65,7 +65,7 @@ class arPhleetAddress{
 };
 
 /// A request for connection to a phleet service that has yet to be fulfilled
-class arPhleetServiceRequest{
+class SZG_CALL arPhleetServiceRequest{
  public:
   arPhleetServiceRequest(){}
   ~arPhleetServiceRequest(){}
@@ -83,7 +83,7 @@ class arPhleetServiceRequest{
 
 /// the connection broker must keep track of which ports have what status on
 /// each computer being managed by the szgserver
-class arBrokerComputerData{
+class SZG_CALL arBrokerComputerData{
  public:
   arBrokerComputerData(){}
   ~arBrokerComputerData(){}
@@ -101,7 +101,7 @@ class arBrokerComputerData{
 /// broker, we need to store some info. This is especially important when
 /// a component exits somehow and we need to adjust the various global
 /// lists.
-class arBrokerComponentData{
+class SZG_CALL arBrokerComponentData{
  public:
   arBrokerComponentData(){}
   ~arBrokerComponentData(){}
@@ -130,7 +130,7 @@ typedef list<arPhleetServiceRequest>                   SZGRequestList;
 /// complicated. An important long term strategy would be to create more
 /// managers like this one (for instance for messages, locks, and the
 /// database)
-class arPhleetConnectionBroker{
+class SZG_CALL arPhleetConnectionBroker{
  public:
   arPhleetConnectionBroker();
   ~arPhleetConnectionBroker() {}
@@ -148,7 +148,8 @@ class arPhleetConnectionBroker{
                       const string& serviceName,
                       const string& info);
   bool checkService(const string& serviceName);
-  arPhleetAddress requestService(int componentID, const string& computer, int match,
+  arPhleetAddress requestService(int componentID, const string& computer, 
+                                 int match,
                                  const string& serviceName, 
                                  const arSlashString& networks, bool async);
   SZGRequestList  getPendingRequests(const string& serviceName);

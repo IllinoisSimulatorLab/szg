@@ -8,7 +8,7 @@
 
 #include "arDatabaseNode.h"
 
-class arNameNode: public arDatabaseNode{
+class SZG_CALL arNameNode: public arDatabaseNode{
  public:
   arNameNode(){
     _typeCode = AR_D_NAME_NODE;

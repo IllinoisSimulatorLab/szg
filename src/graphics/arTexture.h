@@ -7,6 +7,7 @@
 #define AR_TEXTURE_H
 
 #include "arGraphicsHeader.h"
+#include "arCallingConventions.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
@@ -15,7 +16,7 @@ using namespace std;
 
 /// Texture map loaded from a file, or loaded from a block of memory.
 
-class arTexture {
+class SZG_CALL arTexture {
  public:
   arTexture();
   virtual ~arTexture();

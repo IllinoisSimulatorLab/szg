@@ -28,7 +28,7 @@
 /// arSocket, since we need arCommunicator's implicit WinSock init on the
 /// Win32 side
 
-class arUDPSocket:public arCommunicator{
+class SZG_CALL arUDPSocket:public arCommunicator{
 public:
   arUDPSocket(): _ID(-1) {}
   ~arUDPSocket() {}

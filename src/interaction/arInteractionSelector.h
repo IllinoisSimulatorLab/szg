@@ -5,7 +5,7 @@
 
 class arEffector;
 
-class arInteractionSelector {
+class SZG_CALL arInteractionSelector {
   public:
     virtual ~arInteractionSelector() {}
     virtual float calcDistance( const arEffector& effector,

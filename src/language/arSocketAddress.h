@@ -22,11 +22,12 @@
 #include <unistd.h>
 #include <netinet/tcp.h>
 #endif
+#include "arCallingConventions.h"
 using namespace std;
 
 /// Abstracts the concept of a socket address.
 
-class arSocketAddress{
+class SZG_CALL arSocketAddress{
  public:
   arSocketAddress();
   ~arSocketAddress() {}

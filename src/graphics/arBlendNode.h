@@ -10,7 +10,7 @@
 
 /// Blending.
 
-class arBlendNode:public arGraphicsNode{
+class SZG_CALL arBlendNode:public arGraphicsNode{
  public:
   arBlendNode();
   ~arBlendNode(){}

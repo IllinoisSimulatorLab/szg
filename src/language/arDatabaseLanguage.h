@@ -17,7 +17,7 @@ enum{
 
 /// Generic language for an arDatabase.
 
-class arDatabaseLanguage: public arLanguage{
+class SZG_CALL arDatabaseLanguage: public arLanguage{
  public:
   arDatabaseLanguage();
   ~arDatabaseLanguage(){};

@@ -20,7 +20,7 @@
 
 /// Helper class for arOBJ objects
 /// \todo get rid of this, or put it in arOBJ's files
-class arOBJSmoothingGroup
+class SZG_CALL arOBJSmoothingGroup
 {
   private:
     vector<int> _triangles;

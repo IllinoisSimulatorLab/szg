@@ -8,7 +8,7 @@
 
 #include "arGraphicsArrayNode.h"
 
-class arPointsNode:public arGraphicsArrayNode{
+class SZG_CALL arPointsNode:public arGraphicsArrayNode{
 /// Set of (OpenGL) points.
  public:
   arPointsNode(arGraphicsDatabase*);

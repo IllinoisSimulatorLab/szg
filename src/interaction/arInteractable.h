@@ -8,7 +8,7 @@
 #include "arDragManager.h"
 #include <vector>
 
-class arInteractable {
+class SZG_CALL arInteractable {
   public:
     arInteractable();
     virtual ~arInteractable();

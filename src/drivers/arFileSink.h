@@ -13,7 +13,7 @@
 
 #include "arInputSink.h"
 
-class arFileSink:public arInputSink{
+class SZG_CALL arFileSink:public arInputSink{
  public:
   arFileSink();
   ~arFileSink();

@@ -5,7 +5,7 @@
 #include "arInteractable.h"
 #include "arGrabCondition.h"
 
-class arNavInteractable : public arInteractable {
+class SZG_CALL arNavInteractable : public arInteractable {
   friend class arNavManager;
   public:
     arNavInteractable();
@@ -19,7 +19,7 @@ class arNavInteractable : public arInteractable {
     virtual bool _untouch() { return true; }
 };
 
-class arNavManager {
+class SZG_CALL arNavManager {
   public:
     arNavManager();
     arNavManager( const arNavManager& nm );

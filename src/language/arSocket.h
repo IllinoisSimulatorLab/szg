@@ -56,11 +56,11 @@ public:
   virtual ~arCommunicator() {}
 };
 
-enum arSocketType{AR_LISTENING_SOCKET=1, AR_STANDARD_SOCKET=2};
+SZG_CALL enum arSocketType{AR_LISTENING_SOCKET=1, AR_STANDARD_SOCKET=2};
 
 /// TCP socket.
 
-class arSocket: public arCommunicator {
+class SZG_CALL arSocket: public arCommunicator {
 public:
   arSocket(int type);
   ~arSocket();

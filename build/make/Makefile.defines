@@ -30,7 +30,8 @@ DO_LINK_GRAPHICS = $(LINKER) $(LINK_FLAGS) $(LINK_PREFIX)$@ $^ $(LIBS)
 	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE)
 
 clean:
-	rm -rf *$(OBJ_SUFFIX) *.a *.ilk *.pdb *.pch .nfs* $(SRCDIR)/*~ \
+	rm -rf *$(OBJ_SUFFIX) *.exp *.lib *.dll *.so *.a *.ilk *.pdb *.pch \
+        .nfs* $(SRCDIR)/*~ \
 	$(ALL) $(patsubst %, $(BINDIR)/%, $(ALL)) \
 	$(patsubst %, $(BINDIR)/%.app, $(ALL)) \
 	$(BINDIR)/core $(BINDIR)/.nfs* ii_files core

@@ -1,3 +1,8 @@
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
 #ifndef ARPSEUDOFORTH_H
 #define ARPSEUDOFORTH_H
 
@@ -14,14 +19,14 @@ class arPForth;
 namespace arPForthSpace {
 
 // Base class for run-time behaviors  
-class arPForthAction {
+class SZG_CALL arPForthAction {
   public:
     virtual ~arPForthAction() {}
     virtual bool run( arPForth* )=0;
 };
 
 // Base class for compile-time behaviors
-class arPForthCompiler {
+class SZG_CALL arPForthCompiler {
   public:
     virtual ~arPForthCompiler() {}
     virtual bool compile( arPForth*,
@@ -29,7 +34,7 @@ class arPForthCompiler {
 };
 
 // Run-time behavior to place a (constant) number on the stack
-class FetchNumber : public arPForthAction {
+class SZG_CALL FetchNumber : public arPForthAction {
   private:
     float _value;
   public:
@@ -40,7 +45,7 @@ class FetchNumber : public arPForthAction {
 
 // Most basic compile-time behavior, for words with no compile-time
 // side effects.
-class SimpleCompiler : public arPForthCompiler {
+class SZG_CALL SimpleCompiler : public arPForthCompiler {
   private:
     arPForthAction* _action;
   public:
@@ -50,7 +55,7 @@ class SimpleCompiler : public arPForthCompiler {
                   vector<arPForthSpace::arPForthAction*>& actionList );
 };
 
-class PlaceHolderCompiler: public arPForthCompiler {
+class SZG_CALL PlaceHolderCompiler: public arPForthCompiler {
   private:
     string _theWord;
   public:
@@ -61,7 +66,7 @@ class PlaceHolderCompiler: public arPForthCompiler {
 };
 
 // Compiles a number from the next word in the input stream (the source code)
-class NumberCompiler: public arPForthCompiler {
+class SZG_CALL NumberCompiler: public arPForthCompiler {
   private:
     string _theWord;
   public:
@@ -73,7 +78,7 @@ class NumberCompiler: public arPForthCompiler {
 
 // Compiler for words that allocate a predetermined number of cells 
 // in the dataspace (determined by constructor arg)
-class VariableCompiler : public arPForthCompiler {
+class SZG_CALL VariableCompiler : public arPForthCompiler {
   private:
     unsigned long _size;
   public:
@@ -85,7 +90,7 @@ class VariableCompiler : public arPForthCompiler {
 
 // Compiler for words that allocate variable numbers of cells 
 // in the dataspace (determined by next word in input stream)
-class ArrayCompiler : public arPForthCompiler {
+class SZG_CALL ArrayCompiler : public arPForthCompiler {
   public:
     ArrayCompiler() {}
     virtual ~ArrayCompiler() {}
@@ -93,7 +98,7 @@ class ArrayCompiler : public arPForthCompiler {
                   vector<arPForthSpace::arPForthAction*>& actionList );
 };
 
-class arPForthDictionaryEntry {
+class SZG_CALL arPForthDictionaryEntry {
   public:
     std::string _word;
     arPForthCompiler* _compiler;
@@ -114,11 +119,11 @@ struct arPForthException {
   arPForthException( const std::string message ):_message(message) {}
 };
 
-bool ar_PForthAddStandardVocabulary( arPForth* pf );
+SZG_CALL bool ar_PForthAddStandardVocabulary( arPForth* pf );
 
 } // namespace arPForthSpace
 
-class arPForthProgram {
+class SZG_CALL arPForthProgram {
   friend class arPForth;
   public:
     arPForthProgram() {}
@@ -130,7 +135,7 @@ class arPForthProgram {
 
 /// FORTH interpreter for input-device filters.
 
-class arPForth {
+class SZG_CALL arPForth {
   public:
     // "user" interface
     arPForth();

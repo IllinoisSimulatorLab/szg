@@ -4,7 +4,7 @@
 #include "arInputEvent.h"
 #include <deque>
 
-class arInputEventQueue {
+class SZG_CALL arInputEventQueue {
   public:
     arInputEventQueue() :
       _numButtons(0),

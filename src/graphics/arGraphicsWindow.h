@@ -21,7 +21,7 @@ class arGraphicsWindow;
 // the arMasterSlaveFramework (which needs a arMasterSlaveFramework& passed
 // in to its draw callback), for instance.
 
-class arWindowInitCallback {
+class SZG_CALL arWindowInitCallback {
   public:
     arWindowInitCallback() {}
     virtual ~arWindowInitCallback() {}
@@ -30,7 +30,7 @@ class arWindowInitCallback {
   private:
 };
 
-class arRenderCallback {
+class SZG_CALL arRenderCallback {
   public:
     arRenderCallback() {}
     virtual ~arRenderCallback() {}
@@ -42,7 +42,7 @@ class arRenderCallback {
     bool _enabled;
 };
 
-class arDefaultWindowInitCallback : public arWindowInitCallback {
+class SZG_CALL arDefaultWindowInitCallback : public arWindowInitCallback {
   public:
     arDefaultWindowInitCallback() {}
     virtual ~arDefaultWindowInitCallback() {}
@@ -51,7 +51,7 @@ class arDefaultWindowInitCallback : public arWindowInitCallback {
   private:
 };
 
-class arDefaultRenderCallback : public arRenderCallback {
+class SZG_CALL arDefaultRenderCallback : public arRenderCallback {
   public:
     arDefaultRenderCallback() {}
     virtual ~arDefaultRenderCallback() {}
@@ -68,7 +68,7 @@ enum arViewModeEnum { VIEW_NORMAL=0,
                       VIEW_INTERLACED=5,
                       VIEW_CUSTOM=6 };
 
-class arGraphicsWindow {
+class SZG_CALL arGraphicsWindow {
   public:
     arGraphicsWindow();
     virtual ~arGraphicsWindow();

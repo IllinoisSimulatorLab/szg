@@ -20,7 +20,7 @@ class arSoundDatabase;
 
 /// Node in an arDatabase.
 
-class arDatabaseNode{
+class SZG_CALL arDatabaseNode{
   friend class arDatabase;
   friend class arGraphicsDatabase;
   friend class arSoundDatabase;

@@ -18,7 +18,7 @@ using namespace std;
 typedef map<int,arDatabaseNode*,less<int> >::iterator arNodeIDIterator;
 
 /// Generic database distributed across a cluster.
-class arDatabase{
+class SZG_CALL arDatabase{
  public:
   arDatabase();
   virtual ~arDatabase();

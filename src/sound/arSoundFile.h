@@ -10,11 +10,12 @@
 #include <string>
 #include <iostream>
 #include "fmodStub.h"
+#include "arCallingConventions.h"
 using namespace std; // needed for "string"
 
 /// Soundfile to play (in the scene graph).
 
-class arSoundFile {
+class SZG_CALL arSoundFile {
  // Needs assignment operator and copy constructor, for pointer members.
  public:
   arSoundFile() : _psamp(NULL), _psampTrigger(NULL) {}

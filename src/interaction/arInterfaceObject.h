@@ -12,7 +12,7 @@
 
 /// Input device (gamepad, motion tracker, keyboard, etc.).
 
-class arInterfaceObject{
+class SZG_CALL arInterfaceObject{
   // Needs assignment operator and copy constructor, for pointer members.
   friend void ar_interfaceObjectIOPollTask(void*);
  public:

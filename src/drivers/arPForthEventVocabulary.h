@@ -1,3 +1,8 @@
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
 #ifndef ARPFORTHEVENTVOCABULARY_H
 #define ARPFORTHEVENTVOCABULARY_H
 
@@ -7,11 +12,11 @@ class arPForthFilter;
 
 namespace arPForthSpace {
 
-bool ar_PForthAddEventVocabulary( arPForth* pf );
-void ar_PForthSetInputEvent( arInputEvent* inputEvent );
-void ar_PForthSetFilter( arPForthFilter* filter );
-arInputEvent* ar_PForthGetCurrentEvent();
-arPForthFilter* ar_PForthGetFilter();
+SZG_CALL bool ar_PForthAddEventVocabulary( arPForth* pf );
+SZG_CALL void ar_PForthSetInputEvent( arInputEvent* inputEvent );
+SZG_CALL void ar_PForthSetFilter( arPForthFilter* filter );
+SZG_CALL arInputEvent* ar_PForthGetCurrentEvent();
+SZG_CALL arPForthFilter* ar_PForthGetFilter();
 
 } // namespace arPForthSpace
 

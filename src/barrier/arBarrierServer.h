@@ -14,7 +14,7 @@
 using namespace std;
 
 /// Server for arBarrierClient objects.
-class arBarrierServer{
+class SZG_CALL arBarrierServer{
   // Needs assignment operator and copy constructor, for pointer members.
 
   friend void ar_releaseFunction(void*);

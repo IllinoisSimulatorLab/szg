@@ -8,7 +8,7 @@ class arGrabCondition;
 class arEffector;
 class arInteractable;
 
-class arDragBehavior {
+class SZG_CALL arDragBehavior {
   public:
     virtual ~arDragBehavior() {}
     virtual void init( const arEffector* const effector,
@@ -19,7 +19,7 @@ class arDragBehavior {
     virtual arDragBehavior* copy() const = 0;
 };
 
-class arWandRelativeDrag : public arDragBehavior {
+class SZG_CALL arWandRelativeDrag : public arDragBehavior {
   public:
     arWandRelativeDrag();
     arWandRelativeDrag( const arWandRelativeDrag& wrd );
@@ -34,7 +34,7 @@ class arWandRelativeDrag : public arDragBehavior {
     arMatrix4 _diffMatrix;
 };
 
-class arWandTranslationDrag : public arDragBehavior {
+class SZG_CALL arWandTranslationDrag : public arDragBehavior {
   public:
     arWandTranslationDrag( bool allowOffset = true );
     arWandTranslationDrag( const arWandTranslationDrag& wrd );
@@ -51,7 +51,7 @@ class arWandTranslationDrag : public arDragBehavior {
     arMatrix4 _objectOrientationMatrix;
 };
 
-class arNavTransDrag : public arDragBehavior {
+class SZG_CALL arNavTransDrag : public arDragBehavior {
   public:
     arNavTransDrag() : _direction(0,0,-1), _speed(0) {}
     arNavTransDrag( const arVector3& displacement );
@@ -73,7 +73,7 @@ class arNavTransDrag : public arDragBehavior {
     ar_timeval _lastTime;
 };
 
-class arNavRotDrag : public arDragBehavior {
+class SZG_CALL arNavRotDrag : public arDragBehavior {
   public:
     arNavRotDrag( const arVector3& axis, const float degreesPerSec );
     arNavRotDrag( const char axis, const float degreesPerSec );

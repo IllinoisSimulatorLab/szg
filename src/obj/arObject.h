@@ -23,7 +23,7 @@
  *  Derived classes should use members _name and _invalidFile.
  * \todo perhaps make (virtual) arGeometryObject, arAnimationObject, deriving from arObject
 */
-class arObject {
+class SZG_CALL arObject {
  public:
   arObject() : _name(""), _invalidFile(false), _vertexNodeID(-1) {}
   virtual ~arObject() {}

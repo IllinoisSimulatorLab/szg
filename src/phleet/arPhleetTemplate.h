@@ -8,7 +8,7 @@
 
 #include "arDataTemplate.h"
 
-class arPhleetTemplate: public arDataTemplate{
+class SZG_CALL arPhleetTemplate: public arDataTemplate{
  public:
   arPhleetTemplate(const string&);
   ~arPhleetTemplate();

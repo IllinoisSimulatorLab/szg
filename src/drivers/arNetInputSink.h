@@ -12,7 +12,7 @@
 
 /// Something that absorbs input-device messages over ethernet.
 
-class arNetInputSink: public arInputSink{
+class SZG_CALL arNetInputSink: public arInputSink{
   friend void ar_netInputSinkConnectionTask(void*);
  public:
   arNetInputSink();

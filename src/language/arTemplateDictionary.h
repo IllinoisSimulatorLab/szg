@@ -17,7 +17,7 @@ typedef map<string,arDataTemplate*,less<string> > arTemplateType;
 
 /// Collection of arDataTemplate objects.
 
-class arTemplateDictionary{
+class SZG_CALL arTemplateDictionary{
  public:
    arTemplateDictionary();
    /// for the common case of adding a single template

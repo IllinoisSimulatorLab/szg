@@ -10,7 +10,7 @@
 
 /// Bump map loaded from a file.
 
-class arBumpMapNode: public arGraphicsNode{
+class SZG_CALL arBumpMapNode: public arGraphicsNode{
  public:
   arBumpMapNode();
   ~arBumpMapNode(){}

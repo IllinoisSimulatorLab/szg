@@ -13,7 +13,7 @@
 
 /// Common behavior for meshes in arMesh.cpp/arMesh.h.
 
-class arMesh {
+class SZG_CALL arMesh {
  public:
   arMesh(const arMatrix4& transform = ar_identityMatrix()) :
     _matrix(transform) {}
@@ -31,7 +31,7 @@ class arMesh {
 
 /// Cube, made of 12 triangles.
 
-class arCubeMesh : public arMesh {
+class SZG_CALL arCubeMesh : public arMesh {
  public:
   arCubeMesh() {}
   arCubeMesh(const arMatrix4& transform) : arMesh(transform) {}
@@ -40,7 +40,7 @@ class arCubeMesh : public arMesh {
 
 /// Rectangle (to apply a texture to).
 
-class arRectangleMesh : public arMesh {
+class SZG_CALL arRectangleMesh : public arMesh {
  public:
   arRectangleMesh() {}
   arRectangleMesh(const arMatrix4& transform) : arMesh(transform) {}
@@ -49,7 +49,7 @@ class arRectangleMesh : public arMesh {
 
 /// Cylinder (technically a prism).
 
-class arCylinderMesh : public arMesh {
+class SZG_CALL arCylinderMesh : public arMesh {
  public:
   arCylinderMesh();
   arCylinderMesh(const arMatrix4&);
@@ -71,7 +71,7 @@ class arCylinderMesh : public arMesh {
 
 /// Pyramid.
 
-class arPyramidMesh : public arMesh {
+class SZG_CALL arPyramidMesh : public arMesh {
  public:
   arPyramidMesh() {}
   void attachMesh(const string& name, const string& parentName);
@@ -80,7 +80,7 @@ class arPyramidMesh : public arMesh {
 /// Sphere.
 /// \todo Add draw() to other meshes too, to use them without the database.
 
-class arSphereMesh : public arMesh {
+class SZG_CALL arSphereMesh : public arMesh {
  public:
   arSphereMesh(int numberDivisions=10);
   arSphereMesh(const arMatrix4&, int numberDivisions=10);
@@ -101,7 +101,7 @@ class arSphereMesh : public arMesh {
 
 /// Torus (donut).
 
-class arTorusMesh : public arMesh {
+class SZG_CALL arTorusMesh : public arMesh {
  public:
   arTorusMesh(int,int,float,float);
   ~arTorusMesh();

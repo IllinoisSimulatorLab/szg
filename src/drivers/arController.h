@@ -11,7 +11,7 @@
 
 /// Manipulate a 4x4 matrix transformation in an arGraphicsDatabase.
 
-class arController{
+class SZG_CALL arController{
  // Needs assignment operator and copy constructor, for pointer members.
  public:
   arController();

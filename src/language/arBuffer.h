@@ -10,6 +10,9 @@
 /// resizeable array of elements (i.e. when dealing with moving buffers of
 /// network data).
 
+// IMPORTANT NOTE: DO NOT USE THE arBuffer template class in USER CODE!
+// THIS BREAKS THE ABILITY TO REDEFINE THE SHARED LIBRARY!
+
 template<class T> class arBuffer{
  // Needs assignment operator and copy constructor, for pointer member.
  public:

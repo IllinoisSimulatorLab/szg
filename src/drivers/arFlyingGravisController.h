@@ -11,12 +11,12 @@
 #include "arNetInputSource.h"
 #include "arSZGClient.h"
 
-void ar_connectionFlyingGravisJoystick(void*);
-void ar_handleFlyingGravisJoystick(void*);
+SZG_CALL void ar_connectionFlyingGravisJoystick(void*);
+SZG_CALL void ar_handleFlyingGravisJoystick(void*);
 
 /// Gravis Xterminator Digital Game Pad.
 
-class arFlyingGravisController:public arController{
+class SZG_CALL arFlyingGravisController:public arController{
   friend void ar_handleFlyingGravisJoystick(void*);
  public:
   arFlyingGravisController();

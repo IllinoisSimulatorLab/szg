@@ -11,7 +11,7 @@
 #include "arStructuredDataParser.h"
 #include "arFileTextStream.h"
 
-class arFileSource:public arInputSource{
+class SZG_CALL arFileSource:public arInputSource{
   friend void ar_fileSourceEventTask(void*);
  public:
   arFileSource();

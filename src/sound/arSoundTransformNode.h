@@ -10,7 +10,7 @@
 
 /// OpenGL-style transformation matrix in the scene graph for sound.
 
-class arSoundTransformNode : public arSoundNode{
+class SZG_CALL arSoundTransformNode : public arSoundNode{
  public:
   arSoundTransformNode();
   ~arSoundTransformNode(){}

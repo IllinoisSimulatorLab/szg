@@ -9,7 +9,7 @@
 #include "arGraphicsHeader.h"
 #include "arCamera.h"
 
-class arViewport {
+class SZG_CALL arViewport {
  public:
   arViewport();
   arViewport( const arViewport& x );

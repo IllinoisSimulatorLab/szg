@@ -7,7 +7,7 @@
 
 #include "arGraphicsNode.h"
 
-class arGraphicsArrayNode:public arGraphicsNode{
+class SZG_CALL arGraphicsArrayNode:public arGraphicsNode{
  public:
   arGraphicsArrayNode(){}
   ~arGraphicsArrayNode(){}

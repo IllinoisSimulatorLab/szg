@@ -15,7 +15,7 @@
 /// information in an array of floats! Well, eventually that should be
 /// thrown out! And there is the (more useful) template class arBuffer...
 
-class arLightFloatBuffer{
+class SZG_CALL arLightFloatBuffer{
  // Needs assignment operator and copy constructor, for pointer member.
  public:
   arLightFloatBuffer(int numFloats = 1);

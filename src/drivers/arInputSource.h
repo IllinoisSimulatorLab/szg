@@ -7,6 +7,8 @@
 #define AR_INPUT_SOURCE_H
 
 #include "arSZGClient.h"
+// NOTE: These items can be shared objects
+#include "arCallingConventions.h"
 #include "arInputSink.h"
 #include "arIOFilter.h"
 #include "arInputLanguage.h"
@@ -16,7 +18,7 @@ class arInputNode;
 
 /// Something which emits input-device messages.
 
-class arInputSource{
+class SZG_CALL arInputSource{
   // Needs assignment operator and copy constructor, for pointer members.
   friend class arInputNode;
  public:

@@ -22,7 +22,7 @@ using namespace std;
 
 /// How an application connects to the rest of the syzygy cluster.
 
-class arSZGClient{
+class SZG_CALL arSZGClient{
   // Needs assignment operator and copy constructor, for pointer members.
   friend void arSZGClientServerResponseThread(void*);
   friend void arSZGClientTimerThread(void*);

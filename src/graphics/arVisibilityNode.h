@@ -10,7 +10,7 @@
 
 /// Toggle visibility of subtree under this node.
 
-class arVisibilityNode: public arGraphicsNode{
+class SZG_CALL arVisibilityNode: public arGraphicsNode{
  public:
   arVisibilityNode();
   ~arVisibilityNode(){}

@@ -12,7 +12,7 @@
 
 /// Abstract base class for filtering messages.
 
-class arIOFilter {
+class SZG_CALL arIOFilter {
   public:
     arIOFilter();
     virtual ~arIOFilter();

@@ -1,3 +1,8 @@
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
 #ifndef ARINTERACTABLETHING_H
 #define ARINTERACTABLETHING_H
 
@@ -7,7 +12,7 @@
 
 class arMasterSlaveFramework;
 
-class arInteractableThing : public arInteractable {
+class SZG_CALL arInteractableThing : public arInteractable {
   public:
     arInteractableThing();
     arInteractableThing( const arInteractableThing& x );

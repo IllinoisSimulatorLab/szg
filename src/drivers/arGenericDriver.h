@@ -10,7 +10,7 @@
 
 /// Example to copy-paste from, for writing drivers for input devices.
 
-class arGenericDriver: public arInputSource{
+class SZG_CALL arGenericDriver: public arInputSource{
  public:
   arGenericDriver();
   ~arGenericDriver();

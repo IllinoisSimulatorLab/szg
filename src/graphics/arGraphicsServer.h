@@ -11,7 +11,7 @@
 
 /// Creates a scene graph for rendering by arGraphicsClient objects.
 
-class arGraphicsServer: public arGraphicsDatabase {
+class SZG_CALL arGraphicsServer: public arGraphicsDatabase {
   // Needs assignment operator and copy constructor, for pointer member.
   friend bool
     ar_graphicsServerConnectionCallback(void*,arQueuedData*,list<arSocket*>*);

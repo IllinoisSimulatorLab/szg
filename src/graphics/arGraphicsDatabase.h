@@ -44,7 +44,7 @@
 /// Contains a scene graph created by an arGraphicsServer
 /// and rendered by one or more arGraphicsClient objects.
 
-class arGraphicsDatabase: public arDatabase{
+class SZG_CALL arGraphicsDatabase: public arDatabase{
  // Needs assignment operator and copy constructor, for pointer members.
  public:
   arGraphicsDatabase();

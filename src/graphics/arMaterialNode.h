@@ -9,7 +9,7 @@
 #include "arGraphicsNode.h"
 #include "arMaterial.h"
 
-class arMaterialNode:public arGraphicsNode{
+class SZG_CALL arMaterialNode:public arGraphicsNode{
  public:
   arMaterialNode();
   ~arMaterialNode(){}

@@ -12,7 +12,7 @@
 /// It also includes code for activating the light. The class is used
 /// by arGraphicsDatabase in implementing the OpenGL lighting model
 
-class arLight{
+class SZG_CALL arLight{
  public:
   arLight();
   ~arLight(){};

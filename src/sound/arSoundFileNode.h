@@ -12,7 +12,7 @@
 
 /// Single sound in the scene graph.
 
-class arSoundFileNode : public arSoundNode{
+class SZG_CALL arSoundFileNode : public arSoundNode{
  public:
   // Needs assignment operator and copy constructor, for pointer member.
   arSoundFileNode();

@@ -12,7 +12,7 @@
 
 /// Language for the sound scene graph.
 
-class arSoundLanguage:public arDatabaseLanguage{
+class SZG_CALL arSoundLanguage:public arDatabaseLanguage{
  public:
   arSoundLanguage();
   ~arSoundLanguage(){}

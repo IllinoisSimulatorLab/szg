@@ -9,7 +9,7 @@
 #include "arTextStream.h"
 #include "arSocket.h"
 
-class arSocketTextStream: public arTextStream{
+class SZG_CALL arSocketTextStream: public arTextStream{
  public:
   arSocketTextStream();
   virtual ~arSocketTextStream(){}

@@ -11,7 +11,7 @@
 #include "arLanguage.h"
 #include "arPhleetTemplate.h"
 
-class arPhleetOSLanguage: public arLanguage{
+class SZG_CALL arPhleetOSLanguage: public arLanguage{
  public:
   arPhleetOSLanguage();
   ~arPhleetOSLanguage();

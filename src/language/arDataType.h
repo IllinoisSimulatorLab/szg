@@ -6,6 +6,8 @@
 #ifndef AR_DATA_TYPE
 #define AR_DATA_TYPE
 
+#include "arCallingConventions.h"
+
 ////////// Platform-DEPENDENT ///////////////////////
 
 // Implementation of the standard data types on local machine
@@ -30,14 +32,14 @@ const int AR_DOUBLE_SIZE = 8;
 
 // IDs of data types.
 
-enum arDataType {
+SZG_CALL enum arDataType {
   AR_GARBAGE=0, AR_CHAR=1, AR_INT=2, AR_LONG=3, AR_FLOAT=4, AR_DOUBLE=5
 };
 
 // Get the size and name of a data type from its ID.
 
-int arDataTypeSize(arDataType theType);
-const char* arDataTypeName(arDataType theType);
-arDataType arDataNameType(const char* const theName) ;
+SZG_CALL int arDataTypeSize(arDataType theType);
+SZG_CALL const char* arDataTypeName(arDataType theType);
+SZG_CALL arDataType arDataNameType(const char* const theName) ;
 
 #endif

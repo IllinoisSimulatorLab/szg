@@ -524,6 +524,10 @@ int main(int argc, char** argv){
     int receivedMessageID = 
       SZGClient->receiveMessage(&userName, &messageType, 
                                 &messageBody, &messageContext);
+    if (!receivedMessageID){
+      // receivedMessageID == 0 exactly when the szgserver has disconnected.
+      exit(0);
+    }
     
     if (messageType=="quit"){
       // Just in case exit() misses SZGClient's destructor.

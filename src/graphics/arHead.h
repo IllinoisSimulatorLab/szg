@@ -8,7 +8,7 @@
 
 #include "arMath.h"
 
-class arHead{
+class SZG_CALL arHead{
  public:
   arHead(){ eyeSpacing = 0; nearClip = 1; farClip = 100; unitConversion = 1; }
   ~arHead(){}

@@ -10,7 +10,7 @@ class arInteractable;
 
 typedef std::map< arGrabCondition*, arDragBehavior* > arDragMap_t;
 
-class arDragManager {
+class SZG_CALL arDragManager {
   public:
     arDragManager() {}
     virtual ~arDragManager();

@@ -10,7 +10,7 @@
 
 /// Texture map loaded from a file.
 
-class arTextureNode: public arGraphicsNode{
+class SZG_CALL arTextureNode: public arGraphicsNode{
  public:
   arTextureNode();
   ~arTextureNode(){}

@@ -12,7 +12,7 @@ class arStructuredData;
 
 /// Generic language.
 
-class arLanguage{
+class SZG_CALL arLanguage{
  public:
   arLanguage();
   virtual ~arLanguage(){}

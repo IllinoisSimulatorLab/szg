@@ -1,3 +1,8 @@
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
 #ifndef ARPFORTHFILTER_H
 #define ARPFORTHFILTER_H
 
@@ -6,7 +11,7 @@
 #include "arPForthEventVocabulary.h"
 #include "arPForthDatabaseVocabulary.h"
 
-class arFilteringPForth : public arPForth {
+class SZG_CALL arFilteringPForth : public arPForth {
   public:
     arFilteringPForth() :
       arPForth()  {
@@ -17,7 +22,7 @@ class arFilteringPForth : public arPForth {
 
 /// Filter that uses the arPForth FORTH interpreter.
 
-class arPForthFilter: public arIOFilter {
+class SZG_CALL arPForthFilter: public arIOFilter {
   public:
     arPForthFilter( const unsigned int progNumber = 0 );
     ~arPForthFilter();

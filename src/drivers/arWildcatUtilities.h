@@ -6,10 +6,12 @@
 #ifndef ARWILDCATUTILTIES_H
 #define ARWILDCATUTILTIES_H
 
-void ar_useWildcatFramelock( bool isOn );
-void ar_findWildcatFramelock();
-void ar_activateWildcatFramelock();
-void ar_deactivateWildcatFramelock();
+#include "arCallingConventions.h"
+
+SZG_CALL void ar_useWildcatFramelock( bool isOn );
+SZG_CALL void ar_findWildcatFramelock();
+SZG_CALL void ar_activateWildcatFramelock();
+SZG_CALL void ar_deactivateWildcatFramelock();
 
 #endif        //  #ifndefARWILDCATUTILTIES_H
 
