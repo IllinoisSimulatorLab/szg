@@ -211,6 +211,8 @@ ifeq ($(strip $(MACHINE)), WIN32)
     COMPILE_FLAGS_DEBUG += -D "EnableSpeech"
     SZG_INCLUDE_SAPI = -I$(INC_SAPI)
     SZG_INCLUDE += -I$(INC_SAPI)
+    # DOH! It is a little obnoxious to add add ole32 this way...
+    LIB_SAPI += ole32.lib
     LINK_LIBS := $(LIB_SAPI) $(LINK_LIBS)
     LINK_FLAGS := $(LINK_LIBS_SAPI) $(LINK_FLAGS)
     LINK_FLAGS_DEBUG := $(LINK_LIBS_SAPI) $(LINK_FLAGS_DEBUG)

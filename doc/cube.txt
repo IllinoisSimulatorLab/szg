@@ -101,6 +101,7 @@ air SZG_FAROCAL    num_samples              60
 air SZG_INPUT      filter                   arTrackCalFilter
 air SZG_MOTIONSTAR IIR_filter_weights       0/0.9/0
 air SZG_MOTIONSTAR calib_file               FaroCalLookupTables.txt
+air SZG_MOTIONSTAR use_button		    false
 air SZG_PFORTH     program_names            correct_tracker_rot
 air SZG_TRACKER    IPhost                   130.126.127.69
 

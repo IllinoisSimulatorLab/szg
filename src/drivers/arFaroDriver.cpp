@@ -39,6 +39,18 @@
 
 using namespace std;
 
+// The methods used by the dynamic library mappers. 
+// NOTE: These MUST have "C" linkage!
+extern "C"{
+  SZG_CALL void* factory(){
+    return new arFaroDriver();
+  }
+
+  SZG_CALL void baseType(char* buffer, int size){
+    ar_stringToBuffer("arInputSource", buffer, size);
+  }
+}
+
 const float INCHES_TO_FEET(1./12.);
 const float DEGREES_TO_RADIANS(M_PI/180.);
 

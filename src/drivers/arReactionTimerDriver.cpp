@@ -14,6 +14,18 @@
 
 #define DEBUG
 
+// The methods used by the dynamic library mappers. 
+// NOTE: These MUST have "C" linkage!
+extern "C"{
+  SZG_CALL void* factory(){
+    return new arReactionTimerDriver();
+  }
+
+  SZG_CALL void baseType(char* buffer, int size){
+    ar_stringToBuffer("arInputSource", buffer, size);
+  }
+}
+
 const std::string RT_AWAKE = "!";
 double RT_TIMEOUT = 10.;
 const unsigned int BUF_SIZE = 4096;

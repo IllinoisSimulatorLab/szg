@@ -24,10 +24,7 @@ OBJS = \
   arPForthStandardVocabulary$(OBJ_SUFFIX) \
   arPForthDatabaseVocabulary$(OBJ_SUFFIX) \
   arPForthEventVocabulary$(OBJ_SUFFIX) \
-  arPForthFilter$(OBJ_SUFFIX) \
-  arConstantHeadFilter$(OBJ_SUFFIX) \
-  arTrackCalFilter$(OBJ_SUFFIX) \
-  arFaroCalFilter$(OBJ_SUFFIX) \
+  arPForthFilter$(OBJ_SUFFIX)
 
 # Local variable definitions for the build.
 # These internal library makefiles ONLY include the external files necessary
@@ -101,7 +98,10 @@ ALL =   $(SZG_CURRENT_DLL) \
   arSpacepadDriver$(DLL_SUFFIX) \
   arEVaRTDriver$(DLL_SUFFIX) \
   arVRPNDriver$(DLL_SUFFIX) \
-  arIntersenseDriver$(DLL_SUFFIX)
+  arIntersenseDriver$(DLL_SUFFIX) \
+  arConstantHeadFilter$(DLL_SUFFIX) \
+  arTrackCalFilter$(DLL_SUFFIX) \
+  arFaroCalFilter$(DLL_SUFFIX)
 
 
 # NOTE: "Everything" is the magic target name used by subsidiary targets
@@ -223,4 +223,19 @@ arIntersenseDriver$(DLL_SUFFIX): arIntersenseDriver$(OBJ_SUFFIX) isense$(OBJ_SUF
 	$(SZG_SHARED_FIRST) arIntersenseDriver$(OBJ_SUFFIX) \
 isense$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
+
+# The filter shared objects.
+
+arConstantHeadFilter$(DLL_SUFFIX): arConstantHeadFilter$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_SHARED_FIRST) arConstantHeadFilter$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+	$(COPY)
+
+arTrackCalFilter$(DLL_SUFFIX): arTrackCalFilter$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_SHARED_FIRST) arTrackCalFilter$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+	$(COPY)
+
+arFaroCalFilter$(DLL_SUFFIX): arFaroCalFilter$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_SHARED_FIRST) arFaroCalFilter$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+	$(COPY)
+
 

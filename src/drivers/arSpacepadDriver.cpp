@@ -79,6 +79,18 @@
 #define inpw(a) (0)
 #endif
 
+// The methods used by the dynamic library mappers. 
+// NOTE: These MUST have "C" linkage!
+extern "C"{
+  SZG_CALL void* factory(){
+    return new arSpacepadDriver();
+  }
+
+  SZG_CALL void baseType(char* buffer, int size){
+    ar_stringToBuffer("arInputSource", buffer, size);
+  }
+}
+
 void ar_spacepadDriverEventTask(void* driver){
   arSpacepadDriver* d = (arSpacepadDriver*) driver;
   while (true){

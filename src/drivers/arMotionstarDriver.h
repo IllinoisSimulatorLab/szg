@@ -23,7 +23,7 @@ struct BN_PACKET {
 class arMotionstarDriver: public arInputSource {
   friend void ar_motionstarDriverEventTask(void*);
  public:
-  arMotionstarDriver( bool useButton = false );
+  arMotionstarDriver();
   ~arMotionstarDriver() {}
 
   bool init(arSZGClient&);

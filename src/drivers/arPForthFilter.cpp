@@ -101,112 +101,34 @@ struct IsFilterWord {
   }
 };
     
-bool arPForthFilter::configure( arSZGClient* SZGClient ) {
+bool arPForthFilter::configure(const string& progText ) {
   if (!_pforth) {
     cerr << "failed to initialize PForth.\n";
     return false;
   }
-  
-  ar_PForthSetSZGClient( SZGClient );
 
-  // Load the programs.
-  const arSlashString programList(SZGClient->getAttribute("SZG_PFORTH","program_names"));
-  if (programList == "NULL") {
-    cout << _progName << " remark: no filter program set.\n";
+  // Make sure the program is not empty... If it is, print a message and
+  // return true.
+  stringstream parsingStream(progText);
+  string firstToken;
+  parsingStream >> firstToken;
+  if (firstToken == ""){
+    cout << "arPForthFilter remark: no filter program set.\n";
     return true;
   }
 
-  const std::string dataPath(SZGClient->getAttribute("SZG_DATA","path"));
-  if (dataPath == "NULL") {
-    cout << _progName << " remark: no data path set.\n";
-    return true;
-  }
-
-  const string programName(programList[_progNumber]);
-  if (programName == "") {
-    cerr << _progName
-         << " warning: SZG_PFORTH/program_names program index out of bounds.\n";
-    return false;
-  }
-
-  FILE* fp = ar_fileOpen( programName+".pf", "PForth", dataPath, "rt" );
-  if (!fp) {
-    cerr << "arPForthFilter error: failed to open file " << programName << ".pf in "
-         << dataPath << ar_pathDelimiter() << "PForthPrograms" << endl;
-    return false;
-  }
-  char buf[10000];
-  int numRead = fread( buf, sizeof( char ), 9999, fp );
-  buf[numRead] = '\0';
-  fclose(fp);
-  if (ferror(fp)) {
-    cerr << "arPForthFilter error: failed to read file " << programName << ".pf in "
-         << dataPath << ar_pathDelimiter() << "PForthPrograms" << endl;
-    return false;
-  } 
-  if (numRead == 9999 && !feof(fp)) {
-    cerr << "arPForthFilter error: current filter program limit is 9999 chars.\n"
-         << "   Change this in arPForthFilter::configure().\n";
-    return false;
-  }
-  std::string progText( buf );
-  
-//  arDataTemplate progfileTemplate( "PForth" );
-//  progfileTemplate.addAttribute( "name", AR_CHAR );
-//  progfileTemplate.addAttribute( "program", AR_CHAR );
-//  arTemplateDictionary progfileDict;
-//  progfileDict.add( &progfileTemplate );
-//  arStructuredDataParser progParser( &progfileDict );
-//  
-//  string dataPath(SZGClient->getAttribute("SZG_DATA","path"));
-//  ar_pathAddSlash( dataPath );
-//  const string fileName("PForth_programs.xml");
-//  arFileTextStream fileStream;
-//  if (!fileStream.ar_open(fileName,"",dataPath)) {
-//    cerr << _progName << " warning: failed to open file \""
-//         << fileName << "\" in path \"" << dataPath << "\".\n";
-//    return false;
-//  }
-
-//  arStructuredData* progData = NULL;
-//  bool found = false;
-//  string progName, progText;
-//  while (!found && (progData = progParser.parse(&fileStream)) != 0) {
-//    if (!ar_getStructuredDataStringField( progData, "name", progName )) {
-//      cerr << _progName << " warning: failed to read <name> field.\n";
-//      progParser.recycle( progData );
-//      fileStream.ar_close();
-//      return false;
-//    }
-
-//    if (progName == programName) {
-//      if (!ar_getStructuredDataStringField( progData, "program", progText )) {
-//        cerr << _progName << " warning: failed to read <program> field.\n";
-//        progParser.recycle( progData );
-//        fileStream.ar_close();
-//        return false;
-//      }
-//      found = true;
-//    }
-//    progParser.recycle( progData );
-//  }
-//  fileStream.ar_close();
-//  if (!found) {
-//    cerr << _progName << " warning: failed to find program " << programName
-//         << " in " << fileName << ".\n";
-//    return false;
-//  }  
   if (!_pforth.compileProgram( progText )) {
-    cerr << _progName << " warning: failed to compile " 
-         << programName << " with text:\n\n" << progText << endl << "--------------------" << endl;
+    cerr << "arPForthFilter warning: failed to compile " 
+         << "program with text:\n\n" << progText << endl 
+         << "--------------------" << endl;
     return false;
   }
   if (!_pforth.runProgram()) {
-    cerr << _progName << " warning: failed to run " << programName << ".\n";
+    cerr << "arPForthFilter warning: failed to run program.\n";
     return false;
   }
 
-  cout << _progName << " remark: ran " << programName << endl;
+  cout << "arPForthFilter remark: ran program." << endl;
   
   vector<string> words = _pforth.getVocabulary();
   vector<string>::const_iterator iter;
@@ -217,13 +139,13 @@ bool arPForthFilter::configure( arSZGClient* SZGClient ) {
     std::string word( *iter );
     if (word.substr(0,7) == "filter_") {
       if (!_pforth.compileProgram( word )) {
-        cerr << _progName << " warning: failed to compile word "
+        cerr << "arPForthFilter warning: failed to compile word "
 	     << word << endl;
         continue;
       }
       arPForthProgram* prog;
       if (!(prog = _pforth.getProgram())) {
-        cerr << _progName << " warning: failed to export program.\n";
+        cerr << "arPForthFilter warning: failed to export program.\n";
         continue;
       }
       if (word == "filter_all_events") {
@@ -235,7 +157,6 @@ bool arPForthFilter::configure( arSZGClient* SZGClient ) {
       } else if (word == "filter_all_matrices") {
         _allMatricesFilterProgram = prog;
       } else if (ar_parsePForthFilterWord( word, eventType, eventIndex )) {
-        //cerr << word << " " << eventType << " " << eventIndex << endl;
         switch (eventType) {
           case AR_EVENT_BUTTON:
             if (eventIndex >= _buttonFilterPrograms.size())
@@ -256,7 +177,7 @@ bool arPForthFilter::configure( arSZGClient* SZGClient ) {
             _matrixFilterPrograms[eventIndex] = prog;
             break;
           default:
-            cerr << _progName << " warning: ignoring invalid event type.\n";
+            cerr << "arPForthFilter warning: ignoring invalid event type.\n";
         }
       }
     }

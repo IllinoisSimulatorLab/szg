@@ -38,6 +38,18 @@
 #include <string>
 #include <sstream>
 
+// The methods used by the dynamic library mappers. 
+// NOTE: These MUST have "C" linkage!
+extern "C"{
+  SZG_CALL void* factory(){
+    return new arLogitechDriver();
+  }
+
+  SZG_CALL void baseType(char* buffer, int size){
+    ar_stringToBuffer("arInputSource", buffer, size);
+  }
+}
+
 void ar_LogitechDriverEventTask(void* driver) {
   arLogitechDriver* logDriver = (arLogitechDriver*) driver;
   logDriver->_eventThreadRunning = true;

@@ -1,3 +1,7 @@
+SZG_INCLUDE_STYLE = INTERNAL
+
+include $(SZGHOME)/build/make/Makefile.vars
+
 VPATH = ../../../src/sound
 
 # DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
@@ -17,27 +21,68 @@ OBJS = \
   arPlayerNode$(OBJ_SUFFIX) \
   arSpeakerObject$(OBJ_SUFFIX) \
 
-MYLIB = libarSound.a
-$(MYLIB): $(OBJS)
-	$(AR) ru $@ $^
-	$(RANLIB) $@
-MYLIBS = \
-  ../math/libarMath.a \
-  ../barrier/libarBarrier.a \
-  ../phleet/libarPhleet.a \
-  ../language/libarLanguage.a
+	
+# Local variable definitions for the build.
+# These internal library makefiles ONLY include the external files necessary
+# to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
+# Makefile.defines neglects to define these)
+SZG_INCLUDE = \
+  -I$(SZGHOME)/src/language \
+  -I$(SZGHOME)/src/phleet \
+  -I$(SZGHOME)/src/math \
+  -I$(SZGHOME)/src/barrier \
+  $(SZG_INCLUDE_FMOD) \
+  $(SZG_INCLUDE_SAPI)
+SZG_LINK_LIBS = $(GENERAL_LIBS)
+SZG_OPTIONAL_LIBS = $(LIB_SAPI) $(LIB_FMOD)
+SZG_LIBRARY_LIBS = \
+  $(BARRIER_LIB_STRING) \
+  $(MATH_LIB_STRING) \
+  $(PHLEET_LIB_STRING) \
+  $(LANGUAGE_LIB_STRING)
+SZG_LIBRARY_DEPS = \
+  $(BARRIER_DEP_STRING) \
+  $(MATH_DEP_STRING) \
+  $(PHLEET_DEP_STRING) \
+  $(LANGUAGE_DEP_STRING)
+SZG_CURRENT_LIB_SHORT_NAME = arSound
 
 ifeq ($(strip $(MACHINE)),WIN32)
 LINK_FLAGS += /stack:4000000
 endif
 
-ALL = SoundRender$(EXE) SoundTest$(EXE) StreamTest$(EXE)
+ALL =   $(SZG_CURRENT_DLL) \
+  SoundRender$(EXE) \
+  SoundTest$(EXE) \
+  StreamTest$(EXE)
 
+# NOTE: "Everything" is the magic target name used by subsidiary targets
+# like "clean" and "create-install" (which puts all the exe's in a particular
+# place)
 Everything: $(ALL)
 
-SoundRender$(EXE): SoundRender$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK) $(LIB_FMOD) $(LIB_SAPI)
-StreamTest$(EXE): StreamTest$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK) $(LIB_FMOD) $(LIB_SAPI)
-SoundTest$(EXE): SoundTest$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK) $(LIB_FMOD) $(LIB_SAPI)
+# NOTE: We MUST compile the precompiled header FIRST on Windows.
+$(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
+	$(LINK_SZG_LIB)
+	$(COPY)
+
+# This should go AFTER our FIRST target (because Makefile.rules has rules
+# in it)
+include $(SZGHOME)/build/make/Makefile.rules
+
+szgrender$(EXE): szgrender$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_EXE_FIRST) szgrender$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+SoundRender$(EXE): SoundRender$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_EXE_FIRST) SoundRender$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+StreamTest$(EXE): StreamTest$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_EXE_FIRST) StreamTest$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+SoundTest$(EXE): SoundTest$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_EXE_FIRST) SoundTest$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+

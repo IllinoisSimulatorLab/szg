@@ -38,8 +38,20 @@ int main(int argc, char** argv) {
     cerr << "PForthTest error: SZGCLient failed to connect.\n";
     return 1;
   }
+  if (argc < 2){
+    cerr << "usage: PForthTest program_name\n";
+    return 1;
+  }
   arPForthFilter filter;
-  if (!filter.configure( &client )) {
+  // We will load the PForth filter program from a "global" attribute.
+  ar_PForthSetSZGClient(&client);
+  string programText = client.getGlobalAttribute(argv[1]);
+  if (programText == "NULL"){
+    cerr << "PForthTest error: global attribute with name = "
+	 << argv[1] << " not set.\n";
+    return 1;
+  }
+  if (!filter.configure( programText )) {
     cerr << "PForthTest error: failed to configure filter.\n";
     return 1;
   }
@@ -106,3 +118,4 @@ int main(int argc, char** argv) {
   
   return 0;  
 }
+ 

@@ -12,6 +12,18 @@
 #include "arPrecompiled.h"
 #include "arMotionstarDriver.h"
 
+// The methods used by the dynamic library mappers. 
+// NOTE: These MUST have "C" linkage!
+extern "C"{
+  SZG_CALL void* factory(){
+    return new arMotionstarDriver();
+  }
+
+  SZG_CALL void baseType(char* buffer, int size){
+    ar_stringToBuffer("arInputSource", buffer, size);
+  }
+}
+
 void ar_motionstarDriverEventTask(void* motionstarDriver){
   arMotionstarDriver* d = (arMotionstarDriver*) motionstarDriver;
   d->_sendCommand(MSG_RUN_CONTINUOUS,0);
@@ -25,14 +37,14 @@ void ar_motionstarDriverEventTask(void* motionstarDriver){
   cerr << "arMotionstarDriver error: no response from driver.\n";
 }
 
-arMotionstarDriver::arMotionstarDriver( bool useButton ):
+arMotionstarDriver::arMotionstarDriver():
   _birdnetIP(string("NULL")),
   _angScale(180.0/32767.0), // conversion constant
   _commandSocket(AR_STANDARD_SOCKET),
   _sequence(0),
   _TCP_PORT(6000),
   _numberRemaps(0),
-  _useButton(useButton),
+  _useButton(false),
   _lastButtonValue(-1)
 {
   for (int i=0; i<32; i++)
@@ -143,13 +155,25 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
   strncpy(sys->rate,buf,6);
   int nDevices = sys->chassisDevices;  
 
+  // Are we using the "monowand" button?
+  // NOTE: strictly speaking, this is local to the ISL and should be
+  // ELIMINATED from this driver! The "right thing" would be to hack up
+  // a new loadable module that would have the ISL-only features
+  // contained in it... so arISLMotionstarDriver.so...
+  if (SZGClient.getAttribute("SZG_MOTIONSTAR","use_button") == "true"){
+    _useButton = true;
+  }
+
   // now, we can set the signature to be exported
   int sig[3];
   if (!SZGClient.getAttributeInts("SZG_MOTIONSTAR","signature",sig,3)) {
-    if (_useButton)
-    _setDeviceElements(1,0,nDevices-1); // button overrides old wand's (shifts them up)!
-  else
-    _setDeviceElements(0,0,nDevices-1);
+    if (_useButton){
+      // button overrides old wand's (shifts them up)!
+      _setDeviceElements(1,0,nDevices-1); 
+    }
+    else{
+      _setDeviceElements(0,0,nDevices-1);
+    }
   } else {
     initResponse << "arMotionstarDriver remark: "
 	 << "SZG_MOTIONSTAR/signature set to "

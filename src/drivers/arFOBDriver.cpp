@@ -12,6 +12,18 @@
 
 #include "arFOBDriver.h"
 
+// The methods used by the dynamic library mappers. 
+// NOTE: These MUST have "C" linkage!
+extern "C"{
+  SZG_CALL void* factory(){
+    return new arFOBDriver();
+  }
+
+  SZG_CALL void baseType(char* buffer, int size){
+    ar_stringToBuffer("arInputSource", buffer, size);
+  }
+}
+
 void ar_FOBDriverEventTask(void* FOBDriver){
   arFOBDriver* driver = (arFOBDriver*) FOBDriver;
   driver->_eventThreadRunning = true;

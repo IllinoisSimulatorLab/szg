@@ -24,7 +24,7 @@ class SZG_CALL arPForthFilter: public arIOFilter {
     arPForthFilter( const unsigned int progNumber = 0 );
     ~arPForthFilter();
   
-    bool configure( arSZGClient* client );
+    bool configure( const string& progText);
   protected:
     bool _processEvent( arInputEvent& inputEvent );
   private:

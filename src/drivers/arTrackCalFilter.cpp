@@ -8,6 +8,18 @@
 #include "arTrackCalFilter.h"
 #include "arVRConstants.h"
 
+// The methods used by the dynamic library mappers. 
+// NOTE: These MUST have "C" linkage!
+extern "C"{
+  SZG_CALL void* factory(){
+    return new arTrackCalFilter();
+  }
+
+  SZG_CALL void baseType(char* buffer, int size){
+    ar_stringToBuffer("arIOFilter", buffer, size);
+  }
+}
+
 arTrackCalFilter::arTrackCalFilter() :
   _useCalibration(false),
   _yRotAngle(0.),

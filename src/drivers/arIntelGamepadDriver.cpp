@@ -7,6 +7,18 @@
 #include "arPrecompiled.h"
 #include "arIntelGamepadDriver.h"
 
+// The methods used by the dynamic library mappers. 
+// NOTE: These MUST have "C" linkage!
+extern "C"{
+  SZG_CALL void* factory(){
+    return new arIntelGamepadDriver();
+  }
+
+  SZG_CALL void baseType(char* buffer, int size){
+    ar_stringToBuffer("arInputSource", buffer, size);
+  }
+}
+
 void ar_intelGamepadDriverEventTask(void* gamepadDriver){
 #ifdef AR_USE_WIN_32
   arIntelGamepadDriver* g = (arIntelGamepadDriver*) gamepadDriver;
