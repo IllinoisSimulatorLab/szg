@@ -75,7 +75,7 @@ class SZG_CALL arGarbageEvent : public arInputEvent {
     arGarbageEvent() : arInputEvent() {}
 };
 
-ostream& operator<<(ostream&, const arInputEvent&);
+SZG_CALL ostream& operator<<(ostream&, const arInputEvent&);
 
 #endif        //  #ifndefARINPUTEVENT_H
 

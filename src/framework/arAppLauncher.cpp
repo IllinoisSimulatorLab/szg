@@ -322,6 +322,17 @@ bool arAppLauncher::waitForKill(){
     if (messageType == "quit"){
       killApp();
       break;
+    } else {
+      string lockName = getMasterName();
+      int componentID;
+      if (_client->getLock(lockName, componentID)) {
+        // nobody was holding the lock
+        _client->releaseLock(lockName);
+        cerr << "arAppLauncher error: no component running on master screen.\n";
+      } else {
+        // something is indeed running on the master screen
+        _client->sendMessage(messageType, messageBody, componentID);
+      }
     }
   }
   return true;

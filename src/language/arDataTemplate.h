@@ -67,7 +67,7 @@ class SZG_CALL arDataTemplate{
    arAttribute _attributeContainer;
 };  
 
-bool ar_addAttributesFromString( arDataTemplate& t,
+SZG_CALL bool ar_addAttributesFromString( arDataTemplate& t,
                                  string nameString, string typeString );
 
 #endif

@@ -45,6 +45,11 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
 
     } else if (messageType=="reload"){
       f->_loadParameters();
+
+    } else if (messageType== "user"){
+      if (f->_userMessageCallback){
+        f->_userMessageCallback(*f, messageBody);
+      }
     }
   }
 }
@@ -129,6 +134,7 @@ void ar_distSceneGraphFrameworkWindowTask(void*){
 
 arDistSceneGraphFramework::arDistSceneGraphFramework() :
   arSZGAppFramework(),
+  _userMessageCallback(0),
   _headMatrixID(AR_VR_HEAD_MATRIX_ID),
   _graphicsNavMatrixID(-1),
   _soundNavMatrixID(-1),
@@ -138,6 +144,17 @@ arDistSceneGraphFramework::arDistSceneGraphFramework() :
   _peerMode("source"),
   _peerTarget("NULL"){
 }
+
+/// Syzygy messages currently consist of two strings, the first being
+/// a type and the second being a value. The user can send messages
+/// to the arMasterSlaveFramework and the application can trap them
+/// using this callback. A message w/ type "user" and value "foo" will
+/// be passed into this callback, if set, with "foo" going into the string.
+void arDistSceneGraphFramework::setUserMessageCallback
+  (void (*userMessageCallback)(arDistSceneGraphFramework&, const string&)){
+  _userMessageCallback = userMessageCallback;
+}
+
 
 arGraphicsDatabase* arDistSceneGraphFramework::getDatabase(){
   // Standalone mode does not support peers.

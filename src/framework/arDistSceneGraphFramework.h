@@ -29,6 +29,9 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
 
   arGraphicsDatabase* getDatabase();
 
+  void setUserMessageCallback(
+    void (*userMessageCallback)( arDistSceneGraphFramework&, const string& messageBody ));
+
   // inherited pure virtual functions
   bool init(int&,char**);
   bool start();
@@ -60,6 +63,8 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   arGraphicsServer _graphicsServer;
   arGraphicsPeer _graphicsPeer;
 
+  void (*_userMessageCallback)(arDistSceneGraphFramework&, const string&);
+  
   int _headMatrixID;
   int _graphicsNavMatrixID;
   int _soundNavMatrixID;
