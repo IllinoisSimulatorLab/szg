@@ -103,18 +103,26 @@ endif
 # A future permutation would have to pass the information down the recursive
 # make.
 
+# A good idea to also set MACHINE_DIR, which is used for some top-level
+# makefile operations depending on SZG_BINDIR.
+
 ifeq "$z" "win32"
   MACHINE=WIN32
+  MACHINE_DIR=win32
 endif
 ifeq "$z" "linux"
   MACHINE=LINUX
+  MACHINE_DIR=linux
 endif
 ifeq "$z" "darwin"
   MACHINE=DARWIN
+  MACHINE_DIR=darwin
 endif
 ifeq "$z" "mips3"
   MACHINE=SGI
+  MACHINE_DIR=mips3
 endif
 ifeq "$z" "mips4"
   MACHINE=SGI
+  MACHINE_DIR=mips4
 endif

@@ -15,10 +15,10 @@ create-install: Everything
 	$(SZG_LIB_COPY_LINE)
 
 bin-install: Everything
-	$(CP) $(ALL) $(BINDIR)
+	$(CP) $(ALL) $(SZG_BINDIR)
 
 clean:
 	rm -rf *$(OBJ_SUFFIX) *.exp *.lib *.dll *.so *.a *.ilk *.pdb *.pch \
         .nfs* $(SRCDIR)/*~ \
-	$(ALL) $(patsubst %, $(BINDIR)/%, $(ALL)) \
-	$(BINDIR)/core $(BINDIR)/.nfs* ii_files core
+	$(ALL) $(patsubst %, $(SZG_BINDIR)/%, $(ALL)) \
+	$(SZG_BINDIR)/core $(SZG_BINDIR)/.nfs* ii_files core

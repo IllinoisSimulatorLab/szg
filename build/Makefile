@@ -2,11 +2,25 @@ include make/Makefile.os
 # Want to include Makefile.libscan here, so we can install-shared
 include make/Makefile.libscan
 
+# This must be defined both here (for the create of the "install" directory
+# structure) AND in the local makefiles (via Makefile.vars)
+INSTALLDIR = $(SZGHOME)/szg-install
+
+# BEWARE: This code is REPEATED in build/Makefile.
+ifeq ($(strip $(SZGBIN)),)
+  ifneq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
+    SZG_BINDIR=$(SZGHOME)/bin/$(MACHINE_DIR)
+  else
+    SZG_BINDIR=$(SZGHOME)/bin
+  endif
+else
+  SZG_BINDIR=$(SZGBIN)
+endif
+
 ifeq "$z" "UNKNOWN_OS"
 all:
 	@echo "Makefile failed to guess OS type."
 else
-
 
 # Note that demo is still a target here... there are programs that live
 #in the top of that directory and not in subdirs
@@ -19,9 +33,6 @@ SUBDIRS=$(LIBDIRS) utilities
 DEMODIRS=ribbons atlantis coaster hspace avn volume \
   cosmos cubes parade timetunnel schprel q33 
 
-# This must be defined both here (for the create of the "install" directory
-# structure) AND in the local makefiles (via Makefile.vars)
-INSTALLDIR = $(SZGHOME)/szg-install
 
 all:
 	@for i in $(SUBDIRS) ; do $(MAKE) -C $z/$$i -j $(JOBS) || exit 1 ; done
@@ -57,8 +68,9 @@ create-install: all
 install-clean:
 	rm -rf $(INSTALLDIR)
 
+# This target needs SZG_BINDIR.
 install-shared:
-	cp $(SZG_SHARED_COPY) $(SZGBIN)
+	cp $(SZG_SHARED_COPY) $(SZG_BINDIR)
 	$(SZG_SHARED_COPY_ACTION)
 
 bin-install:
