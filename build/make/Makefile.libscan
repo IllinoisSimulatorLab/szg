@@ -1,199 +1,212 @@
 # This Makefile fragment encapsulates library scanning (where we decide
-# which of the optional libraries is present). Note that neither of the 
-# sgi platforms supports any of the optional features. The wildcard 
-# operator resolves to the empty string, if the file is missing, which lets
-# us figure out if 
-
-# BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
-# The library scanning needs to be modified so that absolute paths to shared
-# objects are NOT used, which makes the executables MUCH less portable than
-# they need to be across Linux (for instance) systems, because the executable
-# then depends on the shared library being in a certain spot in the 
-# filesystem (which spot might not exist from box to box).
+# which of the optional libraries is present). The file builds up several
+# variables for use in other Makefiles:
+#
+# SZG_OPT_FLAGS: A series of compile flags that enable particular features in
+#   the code.
+# SZG_OPT_INCLUDE_FULL: A complete sequence of include directories for the
+#   additional libraries.
+# SZG_OPT_LIBS_FULL: The addition to the link line needed to use the additional
+#   libraries.
+# SZG_SHARED_COPY: Shared libraries that can be copied into the user's SZGBIN
+#   directory via a Makefile target.
+#
+# Each additional library XXX also defines SZG_INCLUDE_XXX and SZG_LINK_XXX.
+# The szg libraries are created incrementally and the optional linking/
+# header search is limited to those portions that need them (like FMOD only
+# for sound and framework).
 
 ifeq ($(strip $(MACHINE)), LINUX)
-  INC_FMOD := $(wildcard $(SZGEXTERNAL)/include/fmod-3.7)
-  LIB_FMOD := $(wildcard $(SZGEXTERNAL)/lib/fmod-3.7/linux/libfmod-3.70.so)
-
-  INC_JPEG := $(wildcard $(SZGEXTERNAL)/include/jpeg/linux)
-  LIB_JPEG := $(wildcard $(SZGEXTERNAL)/lib/jpeg/linux/libjpeg.a)
-
-  INC_ZLIB := $(wildcard $(SZGEXTERNAL)/include/zlib/linux)
-  LIB_ZLIB := $(wildcard $(SZGEXTERNAL)/lib/zlib/linux/libz.a)
-
-  INC_3DS := $(wildcard $(SZGEXTERNAL)/include/lib3ds)
-  LIB_3DS := $(wildcard $(SZGEXTERNAL)/lib/lib3ds/linux/lib3ds.a)
+  FMOD_DIR := $(SZGEXTERNAL)/linux/fmod-3.7
+  INC_FMOD := $(wildcard $(FMOD_DIR)/include)
+  LINK_FMOD := -lfmod-3.70
+  OBJ_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmod-3.70.so)
   
-  INC_VRPN := $(wildcard $(SZGEXTERNAL)/include/vrpn)
-  LIB_VRPN := $(wildcard $(SZGEXTERNAL)/lib/vrpn/linux/libvrpn.a)
+  JPEG_DIR := $(SZGEXTERNAL)/linux/jpeg
+  INC_JPEG := $(wildcard $(JPEG_DIR)/include)
+  LIB_JPEG := $(wildcard $(JPEG_DIR)/lib/libjpeg.a)
+
+  ZLIB_DIR := $(SZGEXTERNAL)/linux/zlib
+  INC_ZLIB := $(wildcard $(ZLIB_DIR)/include)
+  LIB_ZLIB := $(wildcard $(ZLIB_DIR)/lib/libz.a)
+
+  3DS_DIR := $(SZGEXTERNAL)/linux/lib3ds
+  INC_3DS := $(wildcard $(3DS_DIR)/include)
+  LIB_3DS := $(wildcard $(3DS_DIR)/lib/lib3ds.a)
+  
+  VRPN_DIR := $(SZGEXTERNAL)/linux/vrpn
+  INC_VRPN := $(wildcard $(VRPN_DIR)/include)
+  LIB_VRPN := $(wildcard $(VRPN_DIR)/lib/libvrpn.a)
+  
+  ifneq ($(strip $(INC_FMOD)),)
+  ifneq ($(strip $(OBJ_FMOD)),)
+    SZG_OPT_FLAGS += -DEnableSound
+    SZG_SHARED_COPY += $(OBJ_FMOD)
+    SZG_INCLUDE_FMOD = -I$(INC_FMOD)
+    SZG_OPT_INCLUDE_FULL += -I$(INC_FMOD)
+    SZG_LINK_FMOD = -L$(FMOD_DIR)/lib $(LINK_FMOD)
+    SZG_OPT_LIBS_FULL += $(SZG_LINK_FMOD)
+  endif
+  endif
+
+  ifneq ($(strip $(INC_JPEG)),)
+  ifneq ($(strip $(LIB_JPEG)),)
+    SZG_OPT_FLAGS += -DEnableJPEG
+    SZG_INCLUDE_JPEG = -I$(INC_JPEG)
+    SZG_OPT_INCLUDE_FULL += -I$(INC_JPEG)
+    SZG_LINK_JPEG = $(LIB_JPEG)
+    SZG_OPT_LIBS_FULL += $(SZG_LINK_JPEG)
+  endif
+  endif
+
+  ifneq ($(strip $(INC_3DS)),)
+  ifneq ($(strip $(LIB_3DS)),)
+    SZG_OPT_FLAGS += -DEnable3DS
+    SZG_INCLUDE_3DS = -I$(INC_3DS)
+    SZG_OPT_INCLUDE_FULL += -I$(INC_3DS)
+    SZG_LINK_3DS = $(LIB_3DS)
+    SZG_OPT_LIBS_FULL += $(SZG_LINK_3DS)
+  endif
+  endif
+
+  ifneq  ($(strip $(INC_ZLIB)),)
+  ifneq  ($(strip $(LIB_ZLIB)),) 
+    # Only used in the Quake3 level viewer demos. Consequently, do not add
+    # to everything.
+    SZG_OPT_FLAGS += -DEnableZlib
+    SZG_INCLUDE_ZLIB = -I$(INC_ZLIB)
+    SZG_LINK_ZLIB = $(LIB_ZLIB)
+  endif
+  endif 
+
+  ifneq ($(strip $(INC_VRPN)),)
+  ifneq ($(strip $(LIB_VRPN)),)
+    # NOTE: vrpn is only referenced in a arInputSource plugin.
+    # Consequrntly, it should NOT be added to the full includes or full libs.
+    SZG_OPT_FLAGS += -DEnable_VRPN
+    SZG_INCLUDE_VRPN = -I$(INC_VRPN)
+    SZG_LINK_VRPN = $(LIB_VRPN)
+  endif
+  endif
 
 # Dropping the CG experiment, for the time being.
 # Leave this comment plus those following so that things can be easily
 # reconstructed, if desired.
-  INCCG := 
-  LIBCG := 
-  LIBCGGL :=
+#  INCCG := 
+#  LIBCG := 
+#  LIBCGGL :=
 
 #  INCCG := $(wildcard $(SZGEXTERNAL)/include/Cg)
 #  LIBCG := $(wildcard $(SZGEXTERNAL)/lib/Cg/linux/libCg.so)
 #  LIBCGGL := $(wildcard $(SZGEXTERNAL)/lib/Cg/linux/libCgGL.so)
-  
-  ifneq ($(strip $(INC_FMOD)),)
-  ifneq ($(strip $(LIB_FMOD)),)
-    # FMOD include file AND library exist.
-    COMPILE_FLAGS += -DEnableSound
-    COMPILE_FLAGS_DEBUG += -DEnableSound
-    SZG_INCLUDE_FMOD = -I$(INC_FMOD)
-    SZG_OPT_INCLUDE_FULL += -I$(INC_FMOD)
-    SZG_OPT_LIBS_FULL += $(LIB_FMOD)
-  endif
-  endif
-
-  ifneq ($(strip $(INC_JPEG)),)
-  ifneq ($(strip $(LIB_JPEG)),)
-    # libjpeg and headers exist
-    COMPILE_FLAGS += -DEnableJPEG
-    COMPILE_FLAGS_DEBUG += -DEnableJPEG
-    SZG_INCLUDE_JPEG = -I$(INC_JPEG)
-    SZG_OPT_INCLUDE_FULL += -I$(INC_JPEG)
-    SZG_OPT_LIBS_FULL += $(LIB_JPEG)
-  endif
-  endif
-
-  ifneq  ($(strip $(INC_ZLIB)),)
-  ifneq  ($(strip $(LIB_ZLIB)),) 
-    # library and headers exist
-    COMPILE_FLAGS += -DEnableZlib
-    COMPILE_FLAGS_DEBUG += -DEnableZlib
-    SZG_INCLUDE_ZLIB = -I$(INC_ZLIB)
-    SZG_OPT_INCLUDE_FULL += -I$(INC_ZLIB)
-    SZG_OPT_LIBS_FULL += $(LIB_ZLIB)
-  endif
-  endif
-
-  ifneq ($(strip $(INC_3DS)),)
-  ifneq ($(strip $(LIB_3DS)),)
-    # lib3DS include file AND library exist.
-    COMPILE_FLAGS += -DEnable3DS
-    COMPILE_FLAGS_DEBUG += -DEnable3DS
-    SZG_INCLUDE_3DS = -I$(INC_3DS)
-    SZG_OPT_INCLUDE_FULL += -I$(INC_3DS)
-    SZG_OPT_LIBS_FULL += $(LIB_3DS)
-  endif
-  endif
-  
-  ifneq ($(strip $(INCCG)),)
-  ifneq ($(strip $(LIBCG)),)
-  ifneq ($(strip $(LIBCGGL)),)
-    # libCg include file AND library exist.
-    COMPILE_FLAGS += -DUSE_CG
-    COMPILE_FLAGS_DEBUG += -DUSE_CG
-    SZG_INCLUDE_CG = -I$(INCCG)
-    SZG_OPT_INCLUDE_FULL += -I$(INCCG)
-    SZG_OPT_LIBS_FULL += $(LIBCG) $(LIBCGGL)
-  endif
-  endif
-  endif
-
-  ifneq ($(strip $(INC_VRPN)),)
-  ifneq ($(strip $(LIB_VRPN)),)
-    # libvrpn include file AND library exist.
-    COMPILE_FLAGS += -DEnable_VRPN
-    COMPILE_FLAGS_DEBUG += -DEnable_VRPN
-    SZG_INCLUDE_VRPN = -I$(INC_VRPN)
-    SZG_OPT_INCLUDE_FULL += -I$(INC_VRPN)
-    SZG_OPT_LIBS_FULL += $(LIB_VRPN)
-  endif
-  endif
+#  ifneq ($(strip $(INCCG)),)
+#  ifneq ($(strip $(LIBCG)),)
+#  ifneq ($(strip $(LIBCGGL)),)
+#    # libCg include file AND library exist.
+#    COMPILE_FLAGS += -DUSE_CG
+#    COMPILE_FLAGS_DEBUG += -DUSE_CG
+#    SZG_INCLUDE_CG = -I$(INCCG)
+#    SZG_OPT_INCLUDE_FULL += -I$(INCCG)
+#    SZG_OPT_LIBS_FULL += $(LIBCG) $(LIBCGGL)
+#  endif
+#  endif
+#  endif
 
 endif
 
 ifeq ($(strip $(MACHINE)), WIN32)
-  INC_FMOD := $(wildcard $(SZGEXTERNAL)/include/fmod-3.7)
-  LIB_FMOD := $(wildcard $(SZGEXTERNAL)/lib/fmod-3.7/win32/fmodvc.lib)
 
-  INC_JPEG := $(wildcard $(SZGEXTERNAL)/include/jpeg/win32)
-  LIB_JPEG := $(wildcard $(SZGEXTERNAL)/lib/jpeg/win32/libjpeg.lib)
+  STLPORT_DIR := $(SZGEXTERNAL)/win32/STLport
+  LIB_STLPORT := $(wildcard $(STLPORT_DIR)/lib)
+  OBJ1_STLPORT := $(wildcard $(STLPORT_DIR)/lib/stlport_vc646.dll)
+  OBJ2_STLPORT := $(wildcard $(STLPORT_DIR)/lib/stlport_vc6_stldebug46.dll)
 
-  INC_ZLIB := $(wildcard $(SZGEXTERNAL)/include/zlib/win32)
-  LIB_ZLIB := $(wildcard $(SZGEXTERNAL)/lib/zlib/win32/zlib.lib)
+  FMOD_DIR := $(SZGEXTERNAL)/win32/fmod-3.7
+  INC_FMOD := $(wildcard $(FMOD_DIR)/include)
+  LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/fmodvc.lib)
+  OBJ_FMOD := $(wildcard $(FMOD_DIR)/lib/fmod.dll)
 
-  INC_WIN_BIRD := $(wildcard $(SZGEXTERNAL)/include/ascension)
-  LIB_WIN_BIRD := $(wildcard $(SZGEXTERNAL)/lib/ascension/win32/Bird.lib)
+  JPEG_DIR := $(SZGEXTERNAL)/win32/jpeg
+  INC_JPEG := $(wildcard $(JPEG_DIR)/include)
+  LIB_JPEG := $(wildcard $(JPEG_DIR)/lib/libjpeg.lib)
 
-  INC_EVART := $(wildcard $(SZGEXTERNAL)/include/evart)
-  LIB_EVART := $(wildcard $(SZGEXTERNAL)/lib/evart/win32/macrtcom.lib)
+  3DS_DIR := $(SZGEXTERNAL)/win32/lib3ds
+  INC_3DS := $(wildcard $(3DS_DIR)/include)
+  LIB_3DS := $(wildcard $(3DS_DIR)/lib/lib3ds.lib)
 
-  INC_3DS := $(wildcard $(SZGEXTERNAL)/include/lib3ds)
-  LIB_3DS := $(wildcard $(SZGEXTERNAL)/lib/lib3ds/win32/lib3ds.lib)
+  SAPI_DIR := $(SZGEXTERNAL)/win32/sapi-5.1
+  INC_SAPI := $(wildcard $(SAPI_DIR)/include)
+  LIB_SAPI := $(wildcard $(SAPI_DIR)/lib/sapi.lib)
 
-# Dropping the CG experiment, for the time being.
-  INCCG := 
-  LIBCG := 
-  LIBCGGL :=
+  ZLIB_DIR := $(SZGEXTERNAL)/win32/zlib
+  INC_ZLIB := $(wildcard $(ZLIB_DIR)/include)
+  LIB_ZLIB := $(wildcard $(ZLIB_DIR)/lib/zlib.lib)
 
-#  INCCG := $(wildcard $(SZGEXTERNAL)/include/Cg)
-#  LIBCG := $(wildcard $(SZGEXTERNAL)/lib/Cg/win32/libCg.lib)
-#  LIBCGGL := $(wildcard $(SZGEXTERNAL)/lib/Cg/win32/libCgGL.lib)
+  WIN_BIRD_DIR := $(SZGEXTERNAL)/win32/ascension
+  INC_WIN_BIRD := $(wildcard $(WIN_BIRD_DIR)/include)
+  LIB_WIN_BIRD := $(wildcard $(WIN_BIRD_DIR)/lib/Bird.lib)
+  OBJ_WIN_BIRD := $(wildcard $(WIN_BIRD_DIR)/lib/Bird.dll)
 
-  INC_SAPI := $(wildcard $(SZGEXTERNAL)/include/sapi-5.1)
-  LIB_SAPI := $(wildcard $(SZGEXTERNAL)/lib/sapi-5.1/sapi.lib)
-  LINK_LIBS_SAPI := ole32.lib
+  EVART_DIR := $(SZGEXTERNAL)/win32/evart
+  INC_EVART := $(wildcard $(EVART_DIR)/include)
+  LIB_EVART := $(wildcard $(EVART_DIR)/lib/macrtcom.lib)
+  OBJ_EVART := $(wildcard $(EVART_DIR)/lib/macrtcom.dll)
+
+  # If STLport is available, we want to copy its objects to SZGBIN
+  # in the install-shared target.
+  ifneq ($(strip $(LIB_STLPORT)),)
+    SZG_SHARED_COPY += $(OBJ1_STLPORT) $(OBJ2_STLPORT)
+  endif
 	
   ifneq ($(strip $(INC_FMOD)),)
-  ifneq ($(strip $(LIB_FMOD)),)
-    # FMOD include file AND library exist.
-    COMPILE_FLAGS += -D "EnableSound"
-    COMPILE_FLAGS_DEBUG += -D "EnableSound"
+  ifneq ($(strip $(LINK_FMOD)),)
+    SZG_OPT_FLAGS += -D "EnableSound"
+    SZG_SHARED_COPY += $(OBJ_FMOD)
     SZG_INCLUDE_FMOD = -I$(INC_FMOD)
     SZG_OPT_INCLUDE_FULL += -I$(INC_FMOD)
-    SZG_OPT_LIBS_FULL += $(LIB_FMOD) 
+    SZG_LINK_FMOD = $(LINK_FMOD) 
+    SZG_OPT_LIBS_FULL += $(SZG_LINK_FMOD)
   endif
   endif
 
   ifneq ($(strip $(INC_JPEG)),)
   ifneq ($(strip $(LIB_JPEG)),)
-    # libjpeg and headers exist
-    COMPILE_FLAGS += -D "EnableJPEG"
-    COMPILE_FLAGS_DEBUG += -D "EnableJPEG"
+    SZG_OPT_FLAGS += -D "EnableJPEG"
     SZG_INCLUDE_JPEG = -I$(INC_JPEG)
     SZG_OPT_INCLUDE_FULL += -I$(INC_JPEG)
-    SZG_OPT_LIBS_FULL += $(LIB_JPEG)
-  endif
-  endif
-
-  ifneq  ($(strip $(INC_ZLIB)),)
-  ifneq  ($(strip $(LIB_ZLIB)),) 
-    # library and headers exist
-    COMPILE_FLAGS += -D "EnableZlib"
-    COMPILE_FLAGS_DEBUG += -D "EnableZlib"
-    SZG_INCLUDE_ZLIB = -I$(INC_ZLIB)
-    SZG_OPT_INCLUDE_FULL += -I$(INC_ZLIB)
-    SZG_OPT_LIBS_FULL += $(LIB_ZLIB)
-  endif
-  endif
-
-  ifneq ($(strip $(INCCG)),)
-  ifneq ($(strip $(LIBCG)),)
-  ifneq ($(strip $(LIBCGGL)),)
-    # libCg include file AND library exist.
-    COMPILE_FLAGS += -D "USE_CG"
-    COMPILE_FLAGS_DEBUG += -D "USE_CG"
-    SZG_INCLUDE_CG = -I$(INCCG)
-    SZG_OPT_INCLUDE_FULL += -I$(INCCG)
-    SZG_OPT_LIBS_FULL += $(LIBCG) $(LIBCGGL)
-  endif
+    SZG_LINK_JPEG = $(LIB_JPEG)
+    SZG_OPT_LIBS_FULL += $(SZG_LINK_JPEG)
   endif
   endif
 
   ifneq ($(strip $(INC_3DS)),)
   ifneq ($(strip $(LIB_3DS)),)
     # lib3DS include file AND library exist.
-    COMPILE_FLAGS += -D "Enable3DS"
-    COMPILE_FLAGS_DEBUG += -D "Enable3DS"
+    SZG_OPT_FLAGS += -D "Enable3DS"
     SZG_INCLUDE_3DS = -I$(INC_3DS)
     SZG_OPT_INCLUDE_FULL += -I$(INC_3DS)
-    SZG_OPT_LIBS_FULL += $(LIB_3DS)
+    SZG_LINK_3DS = $(LIB_3DS)
+    SZG_OPT_LIBS_FULL += $(SZG_LINK_3DS)
+  endif
+  endif
+
+  ifneq ($(strip $(INC_SAPI)),)
+  ifneq ($(strip $(LIB_SAPI)),)
+    SZG_OPT_FLAGS += -D "EnableSpeech"
+    SZG_INCLUDE_SAPI = -I$(INC_SAPI)
+    SZG_OPT_INCLUDE_FULL += -I$(INC_SAPI)
+    SZG_LINK_SAPI = ole32.lib $(LIB_SAPI)
+    SZG_OPT_LIBS_FULL += $(SZG_LINK_SAPI)
+  endif
+  endif
+
+  ifneq  ($(strip $(INC_ZLIB)),)
+  ifneq  ($(strip $(LIB_ZLIB)),) 
+    # Only used in the Quake3 level viewer demos. Consequently, do not add
+    # to everything.
+    SZG_OPT_FLAGS += -D "EnableZlib"
+    SZG_INCLUDE_ZLIB = -I$(INC_ZLIB)
+    SZG_LINK_ZLIB = $(LIB_ZLIB)
   endif
   endif
 
@@ -201,10 +214,10 @@ ifeq ($(strip $(MACHINE)), WIN32)
 # Hence it does not add anything to the global link lines/includes.
   ifneq ($(strip $(INC_WIN_BIRD)),)
   ifneq ($(strip $(LIB_WIN_BIRD)),)
-    # FoB include file AND library exist.
-    COMPILE_FLAGS += -D "EnableBirdWinDriver"
-    COMPILE_FLAGS_DEBUG += -D "EnableBirdWinDriver"
+    SZG_OPT_FLAGS += -D "EnableBirdWinDriver"
+    SZG_SHARED_COPY += $(OBJ_WIN_BIRD)
     SZG_INCLUDE_WIN_BIRD = -I$(INC_WIN_BIRD)
+    SZG_LINK_WIN_BIRD = $(LIB_WIN_BIRD)
   endif
   endif
 
@@ -212,25 +225,33 @@ ifeq ($(strip $(MACHINE)), WIN32)
 # Hence it does not add anything to the global link lines/includes.
   ifneq ($(strip $(INC_EVART)),)
   ifneq ($(strip $(LIB_EVART)),)
-    # EVaRT include and library exist
-    COMPILE_FLAGS += -D "EnableEVaRT"
-    COMPILE_FLAGS_DEBUG += -D "EnableEVaRT"
+    SZG_OPT_FLAGS += -D "EnableEVaRT"
+    SZG_SHARED_COPY += $(OBJ_EVART)
     SZG_INCLUDE_EVART = -I$(INC_EVART)
+    SZG_LINK_EVART = $(LIB_EVART)
   endif
   endif
-	
-  ifneq ($(strip $(INC_SAPI)),)
-  ifneq ($(strip $(LIB_SAPI)),)
-    # SAPI include file AND library exist.
-    COMPILE_FLAGS += -D "EnableSpeech"
-    COMPILE_FLAGS_DEBUG += -D "EnableSpeech"
-    SZG_INCLUDE_SAPI = -I$(INC_SAPI)
-    SZG_OPT_INCLUDE_FULL += -I$(INC_SAPI)
-    # DOH! It is a little obnoxious to add add ole32 this way...
-    LIB_SAPI += ole32.lib
-    SZG_OPT_LIBS_FULL += $(LIB_SAPI)
-  endif
-  endif
+
+# Dropping the CG experiment, for the time being.
+#  INCCG := 
+#  LIBCG := 
+#  LIBCGGL :=
+
+#  INCCG := $(wildcard $(SZGEXTERNAL)/include/Cg)
+#  LIBCG := $(wildcard $(SZGEXTERNAL)/lib/Cg/win32/libCg.lib)
+#  LIBCGGL := $(wildcard $(SZGEXTERNAL)/lib/Cg/win32/libCgGL.lib)
+
+#  ifneq ($(strip $(INCCG)),)
+#  ifneq ($(strip $(LIBCG)),)
+#  ifneq ($(strip $(LIBCGGL)),)
+#    COMPILE_FLAGS += -D "USE_CG"
+#    COMPILE_FLAGS_DEBUG += -D "USE_CG"
+#    SZG_INCLUDE_CG = -I$(INCCG)
+#    SZG_OPT_INCLUDE_FULL += -I$(INCCG)
+#    SZG_OPT_LIBS_FULL += $(LIBCG) $(LIBCGGL)
+#  endif
+#  endif
+#  endif
 
 endif
 

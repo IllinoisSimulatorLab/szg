@@ -1,4 +1,6 @@
 include make/Makefile.os
+# Want to include Makefile.libscan here, so we can install-shared
+include make/Makefile.libscan
 
 ifeq "$z" "UNKNOWN_OS"
 all:
@@ -52,5 +54,11 @@ create-install: all
 
 install-clean:
 	rm -rf $(INSTALLDIR)
+
+install-shared:
+	cp $(SZG_SHARED_COPY) $(SZGBIN)
+
+bin-install:
+	@for i in $(SUBDIRS) ; do $(MAKE) -C $z/$$i bin-install || exit 1 ; done
 
 endif

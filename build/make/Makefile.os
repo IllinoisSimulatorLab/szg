@@ -92,3 +92,29 @@ endif
 endif
 endif
 endif
+
+# Finally, the way the stuff is set up now, a stub Makefile sets the MACHINE
+# variable and then includes the regular Makefile (for the particular 
+# application). However, to be able to do the install-shared target, we need
+# that set here. So... do the following. Yes, this is redundant.
+# Beware when thinking about changing the Makefiles so that the 
+# Makefile.machine becomes unecessary. Now, the file structure 
+# (via the Makefile.machine files) encodes the type of build that must occur.
+# A future permutation would have to pass the information down the recursive
+# make.
+
+ifeq "$z" "win32"
+  MACHINE=WIN32
+endif
+ifeq "$z" "linux"
+  MACHINE=LINUX
+endif
+ifeq "$z" "darwin"
+  MACHINE=DARWIN
+endif
+ifeq "$z" "mips3"
+  MACHINE=SGI
+endif
+ifeq "$z" "mips4"
+  MACHINE=SGI
+endif

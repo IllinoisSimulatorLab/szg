@@ -14,7 +14,7 @@ create-install: Everything
 	$(CP) $(ALL) $(INSTALLDIR)/bin
 	$(SZG_LIB_COPY_LINE)
 
-bin: Everything
+bin-install: Everything
 	$(CP) $(ALL) $(BINDIR)
 
 clean:
