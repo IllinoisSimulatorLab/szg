@@ -200,6 +200,9 @@ int main(int argc, char** argv){
   // Initialize everything.
   if (!framework.init(argc,argv))
     return 1;
+
+  // This must come AFTER the init(...)
+  framework.setNavTransSpeed(1);
   
   // Configure stereo view.
   framework.setEyeSpacing( 6/(2.54*12) );

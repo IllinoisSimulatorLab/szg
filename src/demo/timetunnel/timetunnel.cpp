@@ -55,9 +55,14 @@ int main(int argc, char** argv){
 
   // Place scene in the center of the front wall.
   interfaceObject.setNavMatrix(ar_translationMatrix(0,5,0));
+  interfaceObject.setSpeedMultiplier(0.15);
 
   const arVector3 xyz(0,0,0);
-  (void)dsLoop("unchanging", "world", "timetunnel.mp3", 1, 0.4, xyz);
+  // This background music is loud and annoying...
+  // Actually, indirectly, this points out a shortcoming in our
+  // sound infrastructure... loops are always spatialized!
+  // (sometimes they should be non-spatialized... just ambient)
+  (void)dsLoop("unchanging", "world", "timetunnel.mp3", 1, 0.2, xyz);
 
   while (true) {
     const arMatrix4& navTransform = interfaceObject.getNavMatrix();

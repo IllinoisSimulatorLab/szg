@@ -211,6 +211,9 @@ int main(int argc, char** argv){
 
   arInterfaceObject interfaceObject;
   interfaceObject.setInputDevice(framework->getInputDevice());
+  // The following is VERY important... otherwise the navigation is
+  // WAY too fast.
+  interfaceObject.setSpeedMultiplier(0.15);
   framework->setAutoBufferSwap(false);
   worldInit(framework);
 
@@ -227,7 +230,7 @@ int main(int argc, char** argv){
   interfaceObject.setNavMatrix(ar_translationMatrix(0,5,-5));
 
   const arVector3 xyz(0,0,0);
-  const int idLoop = dsLoop("ambience", "world", "cosmos.mp3", 1, 0.8, xyz);
+  const int idLoop = dsLoop("ambience", "world", "cosmos.mp3", 1, 1, xyz);
   const int idBeep = dsLoop("beep", "world", "q33beep.wav",  0, 0.0, xyz);
 
   // Main loop.
@@ -245,13 +248,14 @@ int main(int argc, char** argv){
 
     worldAlter();
 
-    // Turn ambience on and off sporadically.
-    if (rand() % 70 == 0)
-      (void)dsLoop(idLoop, "cosmos.mp3", (rand()%3==0 ? 0 : 1), 0.8, xyz);
+    // DO NOT TURN THE AMBIENT SOUND ON/OFF, THIS IS A NICE TEST OF
+    // "IS SPATIALIZED SOUNDS WORKING" AND TURNING ON/OFF MESSES THAT
+    // UP.
+    (void)dsLoop(idLoop, "cosmos.mp3", 1, 1, xyz);
 
     // Play a beep sporadically.
     if (rand() % 200 == 0) {
-      (void)dsLoop(idBeep, "q33beep.wav", -1, .05, xyz);
+      (void)dsLoop(idBeep, "q33beep.wav", -1, 1, xyz);
       (void)dsLoop(idBeep, "q33beep.wav",  0, .0, xyz);
     }
 

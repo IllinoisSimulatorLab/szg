@@ -23,15 +23,15 @@
 string interfaceType;
 bool stereoMode;
 int windowSizeX, windowSizeY;
-arMatrix4 crazyTransform;
-arMutex crazyLock;
+arMatrix4 hyperTransform;
+arMutex hyperLock;
 
 arMatrix4 worldMatrix;
 int worldTransformID;
 
 H3World *worldH3 = NULL;
 
-arMatrix4 crazyRotate(char axis, float radians)
+arMatrix4 hyperRotate(char axis, float radians)
 {
   arMatrix4 result;
   switch (axis)
@@ -58,7 +58,7 @@ arMatrix4 crazyRotate(char axis, float radians)
   return result;
 }
 
-arMatrix4 crazyTranslate(float speed)
+arMatrix4 hyperTranslate(float speed)
 {
   arMatrix4 result;
   result[10] = result[15] = cosh(speed);
@@ -71,7 +71,7 @@ arMatrix4 crazyTranslate(float speed)
 //***********************************************************************
 
 bool init(arMasterSlaveFramework& fw, arSZGClient&){
-  fw.addTransferField("crazyTransform",crazyTransform.v,AR_FLOAT,16);
+  fw.addTransferField("hyperTransform",hyperTransform.v,AR_FLOAT,16);
   return true;
 }
 
@@ -81,8 +81,8 @@ void preExchange(arMasterSlaveFramework& fw){
 
   const float j0 = fw.getAxis(0);
   const float j1 = fw.getAxis(1);
-  crazyTransform =
-    crazyTranslate(j1/50.0) * crazyTransform * crazyRotate('y',j0/60.0);
+  hyperTransform =
+    hyperTranslate(j1/200.0) * hyperTransform * hyperRotate('y',j0/200.0);
 }
 
 bool postExchange(arMasterSlaveFramework&){
@@ -91,7 +91,7 @@ bool postExchange(arMasterSlaveFramework&){
   // Convert from floats to doubles.
   double m[16];
   for (int i=0; i<16; i++)
-    m[i] = double(crazyTransform[i]);
+    m[i] = double(hyperTransform[i]);
   worldH3->update(m);
   return true;
 }
