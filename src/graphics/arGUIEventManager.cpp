@@ -792,6 +792,15 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
       int prevPosX = _mouseState._posX;
       int prevPosY = _mouseState._posY;
 
+
+      // Match X11 behavior by restricting to [ -32768, 32767 ]
+      if( posX > 32767 ) {
+        posX -= 65536;
+      }
+      if( posY > 32767 ) {
+        posY -= 65536;
+      }
+
       // do a quick check before we do any more work (seems to only be a
       // problem on the windows side)
       if( uMsg == WM_MOUSEMOVE && posX == prevPosX && posY == prevPosY ) {
@@ -848,6 +857,18 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
           button = AR_BUTTON_GARBAGE;
           state = AR_GENERIC_STATE;
         break;
+      }
+
+      // check for button swaps (left to right, right to left)
+
+      // attempt to match X11 behavior by capturing the mouse if a button was
+      // pressed and held inside the window, and releasing once /all/ the
+      // buttons have been released.
+      if( state == AR_MOUSE_DOWN ) {
+        SetCapture( window->getWindowHandle()._hWnd );
+      }
+      else if( !_mouseState._button && ( state == AR_MOUSE_UP ) ) {
+        ReleaseCapture();
       }
 
       if( addEvent( arGUIMouseInfo( AR_MOUSE_EVENT, state, window->getID(), 0, button, posX, posY, prevPosX, prevPosY ) ) < 0 ) {

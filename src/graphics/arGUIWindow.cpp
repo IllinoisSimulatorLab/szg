@@ -706,6 +706,19 @@ int arGUIWindow::_windowCreation( void )
 
   _windowHandle._dpy = XOpenDisplay( _windowConfig._XDisplay.c_str() );
 
+  if( !_windowHandle._dpy ) {
+    // try the $DISPLAY env variable
+    std::cout << "_windowCreation: XOpenDisplay failure on: " << _windowConfig._XDisplay
+              << ", trying $DISPLAY" << std::endl;
+
+    _windowHandle._dpy = XOpenDisplay( NULL );
+
+    if( !_windowHandle._dpy ) {
+      std::cerr << "_windowCreation: XOpenDisplay failure" << std::endl;
+      return -1;
+    }
+  }
+
   _windowHandle._screen = DefaultScreen( _windowHandle._dpy );
 
   if( !glXQueryExtension( _windowHandle._dpy, NULL, NULL ) ) {
