@@ -7,6 +7,40 @@
 
 <p><font size=+2>Syzygy: Example Code</font>
 
+<A NAME="InstallData">
+<p><font size=+2>Installing the Optional Data Distribution</font>
+</a>
+
+<p>Many of the <a href="Demos.html">demos</a> require additonal data files to run.
+Previous versions of Syzygy have included an optional data distribution as a gzip-ed
+tar file. This file has grown too large to be useful. Instead, the data for the
+demos is now distributed on the Syzygy DVD, which can be obtained by writing the
+<A href="www.isl.uiuc.edu">Integrated Systems Lab</a> (just follow the links to Syzygy
+from the lab's main page). To install the data, you will simply copy the 'data'
+folder from the top level of the DVD to your desired location.
+
+<p>Once the data is installed, set the following parameter in
+the Syzygy database (discussed below) for each machine that will be accessing the data.
+Of course, you will point to the actual location of the 'data' directory, instead of
+'/szg/data'.
+
+<pre>
+ XXX SZG_DATA path /szg/data
+</pre>
+
+<p>This sets the "path" parameter of the SZG_DATA parameter group on the machine named 
+XXX to /szg/data. Now, the programs will be able to find their data.
+
+<p>To install
+the q33 demo, for example, you'll need to install pak0.pk3 (available from the Quake3 CD or
+ID software demo download) into the data path. Either copy it into
+the data directory you've already created, or copy it to an /arbitrary/location
+and append to the data path:
+
+<pre>
+  XXX SZG_DATA path /szg/data;/arbitrary/location
+</pre>
+
 <p>Several demos are included with the Syzygy toolkit. The hope is that this
 will make it easy to go from simply having a collection of networked 
 computers to running cluster-based virtual reality applications in very little
