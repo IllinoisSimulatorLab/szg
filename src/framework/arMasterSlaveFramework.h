@@ -70,6 +70,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void setOverlayCallback(void (*overlay)(arMasterSlaveFramework&));
   void setKeyboardCallback(void (*keyboard)(arMasterSlaveFramework&,
                                             unsigned char, int, int));
+  void setSlaveConnectedCallback( void (*connectCallback)(arMasterSlaveFramework&,int) );
 
   // initializes the various pieces but does not start the event loop
   bool init(int&, char**);
@@ -214,6 +215,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void (*_overlay)(arMasterSlaveFramework&);
   void (*_keyboardCallback)(arMasterSlaveFramework&, unsigned char key,
 			    int x, int y);
+  void (*_connectCallback)(arMasterSlaveFramework&, int numConnected);
 
   int   _windowSizeX;
   int   _windowSizeY;
@@ -235,6 +237,9 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool    _soundActive;	//< Set by master's _start().
   ARchar* _inBuffer;
   ARint   _inBufferSize;
+
+  bool _newSlaveConnected; // used to trigger slave-connection callback
+  arMutex _connectFlagMutex;
   
   // Input-event stuff
   arInputEventQueue _eventQueue;

@@ -181,6 +181,7 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   _userMessageCallback(NULL),
   _overlay(NULL),
   _keyboardCallback(NULL),
+  _connectCallback(NULL),
   _stereoMode(false),
   _internalBufferSwap(true),
   _framerateThrottle(false),
@@ -192,6 +193,7 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   _soundActive(false),
   _inBuffer(NULL),
   _inBufferSize(-1),
+  _newSlaveConnected(false),
   _time(0.),
   _lastFrameTime(0.1),
   _firstTimePoll(true),
@@ -206,6 +208,8 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   _useGLUT(false),
   _standaloneControlMode("simulator"),
   _soundClient(NULL){
+
+  ar_mutex_init( &_connectFlagMutex );
 
   // also need to add fields for our default-shared data
   _transferTemplate.addAttribute("time",AR_DOUBLE);
@@ -330,6 +334,11 @@ void arMasterSlaveFramework::setOverlayCallback
 void arMasterSlaveFramework::setKeyboardCallback
   (void (*keyboard)(arMasterSlaveFramework&, unsigned char, int, int)){
   _keyboardCallback = keyboard;
+}
+
+void arMasterSlaveFramework::setSlaveConnectedCallback
+  (void (*connectCallback)(arMasterSlaveFramework& fw, int numConnected)) {
+  _connectCallback = connectCallback;
 }
 
 /// Initializes the syzygy objects, but does not start any threads
@@ -590,6 +599,14 @@ void arMasterSlaveFramework::preDraw(){
     _pollInputData();
     if (_eventFilter) {
       _eventFilter->processEventQueue();
+    }
+    if (_connectCallback) {
+      ar_mutex_lock( &_connectFlagMutex );
+      if (_newSlaveConnected) {
+        _connectCallback( *this, _stateServer->getNumberConnected() );
+        _newSlaveConnected = false;
+      }
+      ar_mutex_unlock( &_connectFlagMutex );
     }
     if (_preExchange){
       _preExchange(*this);
@@ -1852,6 +1869,11 @@ void arMasterSlaveFramework::_connectionTask(){
       if (num > 1)
 	cout << " (" << num << " in all)";
       cout << ".\n";
+      if (_connectCallback) {
+        ar_mutex_lock( &_connectFlagMutex );
+        _newSlaveConnected = true;
+        ar_mutex_unlock( &_connectFlagMutex );
+      }
     }
   }
   else{

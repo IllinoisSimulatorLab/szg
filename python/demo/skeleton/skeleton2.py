@@ -139,17 +139,18 @@ class SkeletonEventFilter(arPyEventFilter):
 
 
 #####  The application framework ####
+#
+#  The arPyMasterSlaveFramework automatically installs certain of its methods as the
+#  master/slave callbacks, e.g. the draw callback is onDraw(), etc. The only ones
+#  left out are the window init and reshape callbacks (because that would force the
+#  PySZG module to depend on pyopengl and numarray) and the event queue processing
+#  callback (because there aren't any bindings for the arInputEventQueue yet). To
+#  override the default behaviors for the first two, you'll need to call e.g.
+#  self.setReshapeCallback in your framework's __init__().
 
-# The only thing that's a little weird about this is that the 'self'
-# and 'framework' arguments of several of the methods actually
-# refer to the same object; that's just the way the master/slave
-# callbacks are set up. I've started working on incorporating a
-# framework subclass into the SWIG bindings to get rid of this,
-# but it isn't working yet. So just ignore 'framework' for now.
-
-class SkeletonFramework(arMasterSlaveFramework):
+class SkeletonFramework(arPyMasterSlaveFramework):
   def __init__(self):
-    arMasterSlaveFramework.__init__(self)
+    arPyMasterSlaveFramework.__init__(self)
 
     # See PySZG.py, PyMasterSlave.i
     # Utility class that synchronizes a list of identical objects (in this
@@ -173,12 +174,6 @@ class SkeletonFramework(arMasterSlaveFramework):
     farClipDistance = 100.*FEET_TO_LOCAL_UNITS
     self.setClipPlanes( nearClipDistance, farClipDistance )
 
-    # install framework callbacks
-    self.setStartCallback( self.onStart )
-    self.setPreExchangeCallback( self.onPreExchange )
-    self.setPostExchangeCallback( self.onPostExchange )
-    self.setDrawCallback( self.onDraw )
-
     # Optional event filter. Can't be installed until after framework.init(),
     # see __main__
     #self.eventFilter = SkeletonEventFilter(self)
@@ -188,7 +183,7 @@ class SkeletonFramework(arMasterSlaveFramework):
 
   # start (formerly init) callback (called in arMasterSlaveFramework::start())
   #
-  def onStart( self, framework, client ):
+  def onStart( self, client ):
 
     # Register variables to be shared between master & slaves
     self.initObjectTransfer('transfer')
@@ -217,7 +212,7 @@ class SkeletonFramework(arMasterSlaveFramework):
   # Callback called before data is transferred from master to slaves. Now
   # called _only on the master_. This is where anything having to do with
   # processing user input or random variables should happen.
-  def onPreExchange( self, framework ):
+  def onPreExchange( self ):
 
     # handle joystick-based navigation (drive around). The resulting
     # navigation matrix is automagically transferred to the slaves.
@@ -245,7 +240,7 @@ class SkeletonFramework(arMasterSlaveFramework):
 
   # Callback called after transfer of data from master to slaves. Mostly used to
   # synchronize slaves with master based on transferred data.
-  def onPostExchange( self, framework ):
+  def onPostExchange( self ):
     # Do stuff after slaves got data and are again in sync with the master.
     if not self.getMaster():
       
@@ -261,7 +256,7 @@ class SkeletonFramework(arMasterSlaveFramework):
       self.syncList.setStateFromString( theString )
 
   # Draw callback
-  def onDraw( self, framework ):
+  def onDraw( self):
     # Load the navigation matrix.
     self.loadNavMatrix()
     
@@ -281,4 +276,4 @@ if __name__ == '__main__':
 
   # Never returns unless something goes wrong
   if not framework.start():
-    raise PySZGExcreption,'Unable to start framework.'
+    raise PySZGException,'Unable to start framework.'

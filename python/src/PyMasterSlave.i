@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.1 2005/03/18 20:13:01 crowell Exp $
+// $Id: PyMasterSlave.i,v 1.2 2005/03/31 18:04:18 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -11,6 +11,14 @@
 // http://gd.tuwien.ac.at/softeng/SWIG/Examples/python/callback2/,
 // with a number of changes. See also setDrawCallback(PyObject *PyFunc) etc.
 // in the %extend section.
+
+// NOTE: (JAC 3/31/05)!!!!!!!!!
+// The reference to the framework object is now discarded, since you can pass a method
+// of a Python framework subclass as the callback (and have access to all the framework
+// methods via the 'self' parameter). I suggest you subclass the arPyMasterSlaveFramework
+// below and override the provided callback methods (e.g. onDraw() for the draw callback,
+// onPreExchange() for the preExchange callback, etc.
+
 %{
 // The following macro defines a C++-functions that serve as callbacks
 // for the original C++ classes. Internally, these functions convert
@@ -18,10 +26,8 @@
 // method.
 #define MASTERSLAVECALLBACK(cbtype) \
 static PyObject *py##cbtype##Func = NULL; \
-static void py##cbtype##Callback(arMasterSlaveFramework& fw) { \
-    PyObject *fwobj = SWIG_NewPointerObj((void *) &fw, \
-                             SWIGTYPE_p_arMasterSlaveFramework, 0);\
-    PyObject *arglist=Py_BuildValue("(O)",fwobj);   \
+static void py##cbtype##Callback( arMasterSlaveFramework& fw ) { \
+    PyObject *arglist=Py_BuildValue("()");   \
     PyObject *result=PyEval_CallObject(py##cbtype##Func, arglist);  \
     if (result==NULL) { \
         PyErr_Print(); \
@@ -31,7 +37,6 @@ static void py##cbtype##Callback(arMasterSlaveFramework& fw) { \
     }\
     Py_XDECREF(result); \
     Py_DECREF(arglist); \
-    Py_DECREF(fwobj); \
 }
 
 
@@ -41,7 +46,7 @@ static void py##cbtype##Callback(arMasterSlaveFramework& fw) { \
 MASTERSLAVECALLBACK(Draw)
 //  void setPreExchangeCallback(void (*preExchange)(arMasterSlaveFramework&));
 MASTERSLAVECALLBACK(PreExchange)
-//  void setPostExchangeCallback(void (*preExchange)(arMasterSlaveFramework&));
+//  void setPostExchangeCallback(void (*postExchange)(arMasterSlaveFramework&));
 MASTERSLAVECALLBACK(PostExchange)
 //  void setWindowCallback(void (*windowCallback)(arMasterSlaveFramework&));
 MASTERSLAVECALLBACK(Window)
@@ -60,11 +65,9 @@ MASTERSLAVECALLBACK(Exit)
 //                                            arSZGClient&));
 static PyObject *pyStartFunc = NULL;
 static bool pyStartCallback(arMasterSlaveFramework& fw,arSZGClient& cl) {
-    PyObject *fwobj = SWIG_NewPointerObj((void *) &fw,
-                             SWIGTYPE_p_arMasterSlaveFramework, 0);
     PyObject *clobj = SWIG_NewPointerObj((void *) &cl,
                              SWIGTYPE_p_arSZGClient, 0);
-    PyObject *arglist=Py_BuildValue("(O,O)",fwobj,clobj);
+    PyObject *arglist=Py_BuildValue("(O)",clobj);
     PyObject *result=PyEval_CallObject(pyStartFunc, arglist);
     if (result==NULL) {
         PyErr_Print();
@@ -76,7 +79,6 @@ static bool pyStartCallback(arMasterSlaveFramework& fw,arSZGClient& cl) {
     Py_XDECREF(result);
     Py_DECREF(arglist);
     Py_DECREF(clobj);
-    Py_DECREF(fwobj);
     return res;
 }
 
@@ -86,9 +88,7 @@ static bool pyStartCallback(arMasterSlaveFramework& fw,arSZGClient& cl) {
 //
 static PyObject *pyUserMessageFunc = NULL;
 static void pyUserMessageCallback(arMasterSlaveFramework& fw,const string & s) {
-    PyObject *fwobj = SWIG_NewPointerObj((void *) &fw,
-                             SWIGTYPE_p_arMasterSlaveFramework, 0);
-    PyObject *arglist=Py_BuildValue("(O,s)",fwobj,s.c_str());
+    PyObject *arglist=Py_BuildValue("(s)",s.c_str());
     PyObject *result=PyEval_CallObject(pyUserMessageFunc, arglist);
     if (result==NULL) {
         PyErr_Print();
@@ -98,7 +98,6 @@ static void pyUserMessageCallback(arMasterSlaveFramework& fw,const string & s) {
     }
     Py_XDECREF(result);
     Py_DECREF(arglist);
-    Py_DECREF(fwobj);
 }
 
 // setReshapeCallback requires special treatment because the signature of
@@ -115,10 +114,7 @@ static PyObject *pyKeyboardFunc = NULL;
 static void pyKeyboardCallback(arMasterSlaveFramework &fw, 
               unsigned char c, int x, int y)
 {
-   PyObject* fwobj = SWIG_NewPointerObj((void*) &fw,
-                                        SWIGTYPE_p_arMasterSlaveFramework, 0);
-
-   PyObject* arglist = Py_BuildValue("(O,s#,i,i)", fwobj, &c, 1, x, y);
+   PyObject* arglist = Py_BuildValue("(s#,i,i)", &c, 1, x, y);
    PyObject* result = PyEval_CallObject(pyKeyboardFunc, arglist);
 
    if(result == NULL)
@@ -131,7 +127,29 @@ static void pyKeyboardCallback(arMasterSlaveFramework &fw,
 
    Py_XDECREF(result);
    Py_DECREF(arglist);
-   Py_DECREF(fwobj);
+}
+
+// setSlaveConnectedCallback requires special treatment because the signature of
+// its callback function differs from everybody else's.
+//
+// void setSlaveConnectedCallback(void (*connected)(arMasterSlaveFramework&,int));
+
+static PyObject *pySlaveConnectedFunc = NULL;
+static void pySlaveConnectedCallback(arMasterSlaveFramework& fw, int numConnected)
+{
+   PyObject* arglist = Py_BuildValue("(i)", numConnected);
+   PyObject* result = PyEval_CallObject(pySlaveConnectedFunc, arglist);
+
+   if(result == NULL)
+   {
+      PyErr_Print();
+      string errMsg = "A Python exception occured in slaveConnected callback.";
+      cerr << errMsg << "\n";
+      throw errMsg;
+   }
+
+   Py_XDECREF(result);
+   Py_DECREF(arglist);
 }
 
 // William Baker (wtbaker@uiuc.edu) 2004
@@ -142,9 +160,7 @@ static void pyKeyboardCallback(arMasterSlaveFramework &fw,
 // void setReshapeCallback(void (*reshape)(arMasterSlaveFramework&, int, int));
 static PyObject *pyReshapeFunc = NULL;
 static void pyReshapeCallback(arMasterSlaveFramework& fw, int x, int y) {
-    PyObject *fwobj = SWIG_NewPointerObj((void *) &fw,
-                             SWIGTYPE_p_arMasterSlaveFramework, 0);
-    PyObject *arglist=Py_BuildValue("(O,i,i)",fwobj,x,y);
+    PyObject *arglist=Py_BuildValue("(i,i)",x,y);
     PyObject *result=PyEval_CallObject(pyReshapeFunc, arglist);
     if (result==NULL) {
         PyErr_Print();
@@ -154,7 +170,6 @@ static void pyReshapeCallback(arMasterSlaveFramework& fw, int x, int y) {
     }
     Py_XDECREF(result);
     Py_DECREF(arglist);
-    Py_DECREF(fwobj);
 }
 
 %}
@@ -182,6 +197,7 @@ class arMasterSlaveFramework : public arSZGAppFramework {
 //  void setReshapeCallback(void (*reshape)(arMasterSlaveFramework&, int, int));
 //  void setKeyboardCallback(void (*keyboard)(arMasterSlaveFramework&,
 //                                            unsigned char, int, int));
+//  void setSlaveConnectedCallback(void (*connected)(arMasterSlaveFramework&, int));
 
   bool getStandalone(); // Are we running in stand-alone mode?
   int getNumberSlavesConnected() const; // If master, number of slaves connected.
@@ -532,6 +548,9 @@ void set##cbtype##Callback(PyObject *PyFunc) {\
 //  void setReshapeCallback(void (*reshape)(arMasterSlaveFramework&, int, int));
     SETMASTERSLAVECALLBACK(Reshape)
 
+//  void setSlaveConnectedCallback(void (*connected)(arMasterSlaveFramework&, int));
+    SETMASTERSLAVECALLBACK(SlaveConnected)
+
 }
 
 %pythoncode %{
@@ -542,6 +561,66 @@ void set##cbtype##Callback(PyObject *PyFunc) {\
 };
 
 %pythoncode %{
+
+# Python master-slave framework subclass that installs its own methods as the
+# callbacks. Sub-class and override.
+#
+# NOTE: the defaults for the window init and reshape callbacks make opengl
+# calls. In order to avoid making the pyszg module dependent on pyopengl
+# (and thus on numarray), I have not installed those two callbacks below.
+# Since these two callbacks are not used all that often, this seemed like
+# the easier thing to do. If you want to use them, youll need to install
+# them in your framework class __init__(), as below.
+
+class arPyMasterSlaveFramework( arMasterSlaveFramework ):
+  def __init__(self):
+    arMasterSlaveFramework.__init__(self)
+    self.setStartCallback( self.onStart )
+    self.setSlaveConnectedCallback( self.onSlaveConnected )
+    self.setPreExchangeCallback( self.onPreExchange )
+    self.setPostExchangeCallback( self.onPostExchange )
+    self.setOverlayCallback( self.onOverlay )
+    self.setDrawCallback( self.onDraw )
+    self.setPlayCallback( self.onPlay )
+    self.setKeyboardCallback( self.onKey )
+    self.setUserMessageCallback( self.onUserMessage )
+    self.setExitCallback( self.onExit )
+    print '-----------------------------------------------------------------------------------------------'
+    print 'arPyMasterSlaveFramework remark: so as not to force module dependence on pyopengl and numarray,'
+    print '    window init and reshape callbacks are not installed. If you need to override the default'
+    print '    behaviors, call setReshapeCallback() or setWindowCallback() in your frameworks __init__().'
+    print '-----------------------------------------------------------------------------------------------'
+
+# Not installed, see note above.
+#    self.setWindowCallback( self.onWindowInit )
+#    self.setReshapeCallback( self.onReshape )
+#  def onReshape( self, width, height ):
+#    glViewport( 0, 0, width, height )
+#  def onWindowInit( self ):
+#    glEnable(GL_DEPTH_TEST)
+#    glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE )
+#    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+  def onStart( self, client ):
+    return True
+  def onSlaveConnected( self, numConnected ):
+    pass
+  def onPreExchange( self ):
+    pass
+  def onPostExchange( self ):
+    pass
+  def onOverlay( self ):
+    pass
+  def onDraw( self ):
+    pass
+  def onPlay( self ):
+    pass
+  def onKey( self, key, mouseX, mouseY ):
+    pass
+  def onUserMessage( self, messageBody ):
+    pass
+  def onExit( self ):
+    pass
 
 # Utility classes
 
