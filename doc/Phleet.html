@@ -319,22 +319,30 @@ system (being able to find out what is running, among other tricks).
 </pre>
 <li>Interprocess Communications
 <pre>
-   dex executable_name [args]
-   dex computer_name executable_name [args]
+   dex [-v] executable_name [args]
+   dex [-v] execution_location executable_name [args]
+
+     If no location for executing the program is specified, the local host
+     is assumed. Otherwise, dex determines if the execution_location names
+     a specific host or a virtual computer. 
+  
      Runs "executable_name [args]" on computer_name, by requesting the 
      sgzd on that computer do so. If not specified, computer_name defaults 
-     to the local host. If szgd is not found, dex fails. On a Windows host, 
+     to the local host. If szgd is not found, dex fails. The -v option
+     causes more messages On a Windows host, 
      ".exe" is appended to executable_name, allowing the user to use a 
      portable, canonical name for executables across Unix-like systems and
      Windows.
 
    dkill [-9] [computer_name] executable_label
+
      Send a "quit" message to the first entry in the Syzygy process table 
      matching the inputs. Like unix "kill -9", the -9 option forcibly closes 
      sgzserver's connection (if a client died without szgserver realizing that 
      its connection to the client is gone).
 
    dmsg ID message_type [message_body]
+
      Send a message to the process with the specified ID. Phleet messages
      have two text strings, the type (e.g., "exec") and the body (e.g.,
      "/home/randomuser/bin/linux"). The body defaults to the empty string.
@@ -504,7 +512,7 @@ search path for the requested executable.
 
 <p>For szgd to run, it is necessary for a user to successfully dlogin first. 
 While the Phleet identity of the user running szgd is unimportant, the dlogin 
-process also establishes a connection to a given szgserver, which is important.
+process establishes a connection to a given szgserver, which is important.
 
 <a name="Names">
 <p><font size=+2>Names, According to the szgserver</font>
