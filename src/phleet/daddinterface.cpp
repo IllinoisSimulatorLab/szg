@@ -11,9 +11,8 @@ using namespace std;
 
 int main(int argc, char** argv){
   arPhleetConfigParser parser;
-  parser.useAlternativeConfigFile(arTFlag(argc, argv));
   if (argc != 3 && argc != 4){
-    cout << "usage: daddinterface [-t] name address [netmask]\n";
+    cout << "usage: daddinterface name address [netmask]\n";
     return 1;
   }
   if (!parser.parseConfigFile()) {

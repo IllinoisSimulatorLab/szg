@@ -98,6 +98,7 @@ determined as follows:
 <p><ol>
 <li>If the environment variable SZG_CONF is set and has a value different
     from "NULL", it gives the DIRECTORY in which the config file is located.
+    When giving this directory, DO NOT use a trailing slash.
 <li>If the environment variable SZG_CONF is unset or has the value "NULL",
     the location of the config file varies depending on operating system.
     <ul>
@@ -113,15 +114,17 @@ determined as follows:
 exist for programs to work in Phleet (i.e. clustered) mode but it is not 
 necessary for programs to work in <a href="Standalone.html">standalone</a> 
 mode. An important design goal of Syzygy is to enable ordinary users to
-try it in Phleet mode, Since not a non-root user cannot write to /etc, 
-this necessitates letting an environment variable be able to define the 
+try it in Phleet mode, Since a non-root user cannot write to /etc, 
+this necessitates letting an environment variable optionally define the 
 config file's location. Also, a Windows installation is not guaranteed to
 have a c: drive, even though this is uncommon, once again requiring
 flexibility in determining szg.conf's location.
 
 <p><ol>
 <li>Login to the computer to be configured.
-<li>You will use the command line to alter a config file. 
+<li>You will use the command line to alter szg.conf, whose location is
+    either a default or defined via $SZG_CONF, as described at the start of
+    this section.
 <li>On Windows this file is C:\szg\szg.conf
     (or D:\szg\szg.conf if the C: drive does not exist). Note
     that this changes the location from previous Syzygy versions. 

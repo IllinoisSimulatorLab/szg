@@ -29,8 +29,6 @@ class SZG_CALL arPhleetConfigParser{
   arPhleetConfigParser();
   ~arPhleetConfigParser() {}
 
-  void useAlternativeConfigFile(bool flag);
-
   // bulk manipulation of the config file
   bool parseConfigFile();
   bool writeConfigFile();
@@ -89,7 +87,9 @@ class SZG_CALL arPhleetConfigParser{
 
  private:
   arPhleetConfigLanguage           _l;
-  bool                             _alternativeConfig;
+  // config file locations
+  string                           _configFileLocation;
+  string                           _loginPreamble;
   // global computer info
   string                           _computerName;
   int                              _numberInterfaces;
@@ -108,25 +108,11 @@ class SZG_CALL arPhleetConfigParser{
   void _processInterfaceRecord(arStructuredData*);
   void _processPortsRecord(arStructuredData*);
 
-  bool _sanityCheck();
+  bool _createIfDoesNotExist(const string& directory);
+  bool _determineFileLocations();
   bool _writeName(FILE*);
   bool _writeInterfaces(FILE*);
   bool _writePorts(FILE*);
 };
-
-/// Scan and remove -t flag from argc/argv.
-inline bool arTFlag(int& argc, char** argv) {
-  bool flag = false;
-  for (int i=0; i<argc; i++){
-    if (!strcmp(argv[i], "-t")){
-      flag = true;
-      for (int j=i+1; j<argc; j++){
-        argv[j-i] = argv[j];
-      }
-      --argc;
-    }
-  }
-  return flag;
-}
 
 #endif

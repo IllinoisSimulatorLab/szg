@@ -11,7 +11,6 @@ using namespace std;
 
 int main(int argc, char** argv){
   arPhleetConfigParser parser;
-  parser.useAlternativeConfigFile(arTFlag(argc, argv));
 
   char* host = argv[1];
   char buf[200];
@@ -29,7 +28,7 @@ int main(int argc, char** argv){
     host = buf;
   }
   else if (argc != 2){
-    cout << "usage: dname [-t] [name]\n";
+    cout << "usage: dname [name]\n";
     return 1;
   }
 

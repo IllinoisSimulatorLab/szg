@@ -11,9 +11,8 @@ using namespace std;
 
 int main(int argc, char** argv){
   arPhleetConfigParser parser;
-  parser.useAlternativeConfigFile(arTFlag(argc, argv));
   if (argc != 3){
-    cout << "usage: dports [-t] first size\n";
+    cout << "usage: dports first size\n";
     return 1;
   }
   if (!parser.parseConfigFile()) {

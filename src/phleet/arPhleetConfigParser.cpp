@@ -15,26 +15,8 @@
 #include <direct.h>        // for mkdir
 #endif
 
-#ifdef AR_USE_WIN_32
-// NOTE: the following cannot be const for Win32 since we check to see
-// if there is a c: drive on the computer, and, if not, use the d: drive.
-// NOTE: on windows all files are now in a subdirectory of the C drive.
-// Previously, they were at the top level. However, with Windows XP, only 
-// the administrator user can put a file there, but anybody can create a
-// directory there... and anybody can write into that directory.
-char* windowsPhleetDirectory = "C:\\szg";
-char* phleetConfigFile  = "C:\\szg\\szg.conf";
-char* phleetAlternativeConfigFile = "C:\\szg\\szg.conf";
-char* phleetLoginPreamble = "C:\\szg\\szg_";
-#else
-const char* phleetConfigFile  = "/etc/szg.conf";
-const char* phleetAlternativeConfigFile = "/tmp/szg.conf";
-const char* phleetLoginPreamble = "/tmp/szg_";
-#endif
-
 /// \todo use initializers
 arPhleetConfigParser::arPhleetConfigParser(){
-  _alternativeConfig = false;
   _computerName = string("NULL");
   _numberInterfaces = 0;
   // note the defaults for the port block. These are pretty reasonable
@@ -48,40 +30,16 @@ arPhleetConfigParser::arPhleetConfigParser(){
   _fileParser = new arStructuredDataParser(_l.getDictionary());
 }
 
-/// To enable people to experiment w/ Phleet on Unix systems, the location of
-/// the config file can be altered from the default /etc/szg.conf to
-/// /tmp/szg.conf. This does nothing on Win32 systems.
-void arPhleetConfigParser::useAlternativeConfigFile(bool flag){
-  _alternativeConfig = flag;
-}
-
 /// \todo Unify the callers' error messages, they differ wildly at the moment.
 /// Parse the config file into internal storage, returning 
 /// true iff successful. Note the logic about which config file to parse.
 bool arPhleetConfigParser::parseConfigFile(){
-  // perform the sanity check that, for instance, on Win32 changes the
-  // file names to use the d: drive if the c: drive does not exist
-  if (!_sanityCheck()){
+  if (!_determineFileLocations()){
     return false;
   }
-  // if _alternativeConfig has been set, we are forced to use the 
-  // "alternative config file". Otherwise, first try the
-  // standard file... and only if that does not exist, try the
-  // alternative.
-  string fileName;
   arFileTextStream configStream;
-  if (!_alternativeConfig){
-    fileName = string(phleetConfigFile);
-    if (!configStream.ar_open(fileName))
-      goto LAlternative;
-  }
-  else{
-LAlternative:
-    fileName = string(phleetAlternativeConfigFile);
-    if (!configStream.ar_open(fileName)){
-      // no error message here... messages are output in arSZGClient
-      return false;
-    }
+  if (!configStream.ar_open(_configFileLocation.c_str())){
+    return false;
   }
 
   // clear the internal storage first
@@ -111,19 +69,15 @@ LAlternative:
 /// Write the config file information we are holding to the appropriate config
 /// file location (depending on the alternative config vs. actual config)
 bool arPhleetConfigParser::writeConfigFile(){
-  const char* filename = _alternativeConfig ?
-    phleetAlternativeConfigFile : phleetConfigFile;
-  if (!_sanityCheck()) {
+  if (!_determineFileLocations()) {
     cerr << "phleet error: failed to write config file.\n";
     return false;
   }
 
-  // NOTE the difference between writing the config file and reading it.
-  // Here we only try to write the specified file (while there, we go
-  // through a fault tree).
-  FILE* config = fopen(filename, "w");
+  FILE* config = fopen(_configFileLocation.c_str(), "w");
   if (!config){
-    cerr << "phleet error: failed to write config file " << filename << ".\n";
+    cerr << "phleet error: failed to write config file "
+	 << _configFileLocation << ".\n";
     return false;
   }
   
@@ -132,12 +86,9 @@ bool arPhleetConfigParser::writeConfigFile(){
   _writePorts(config);
 
 #ifdef AR_USE_WIN_32
-  // there is only one config file on Win32
-  _chmod(phleetConfigFile, 00666);
+  _chmod(_configFileLocation.c_str(), 00666);
 #else
-  if (_alternativeConfig){
-    chmod(phleetAlternativeConfigFile, 006666);
-  }
+  chmod(_configFileLocation.c_str(), 00666);
 #endif
   fclose(config);
   return true;
@@ -147,10 +98,10 @@ bool arPhleetConfigParser::writeConfigFile(){
 /// it is not, necessarily, an error if this file does not exist on a
 /// particular computer(the user might not have logged-in yet).
 bool arPhleetConfigParser::parseLoginFile(){
-  if (!_sanityCheck()){
+  if (!_determineFileLocations()){
     return false;
   }
-  string fileName = phleetLoginPreamble + ar_getUser() + string(".conf");
+  string fileName = _loginPreamble + ar_getUser() + string(".conf");
   arFileTextStream loginStream;
   if (!loginStream.ar_open(fileName)){
     // no error message here, the caller will have to do the work
@@ -172,10 +123,10 @@ bool arPhleetConfigParser::parseLoginFile(){
 
 /// Write the login file, szg_<user name>.conf.
 bool arPhleetConfigParser::writeLoginFile(){
-  if (!_sanityCheck()){
+  if (!_determineFileLocations()){
     return false;
   }
-  string fileName = phleetLoginPreamble + ar_getUser() + string(".conf");
+  string fileName = _loginPreamble + ar_getUser() + string(".conf");
   FILE* login = fopen(fileName.c_str(),"w");
   if (!login){
     return false;
@@ -349,31 +300,16 @@ void arPhleetConfigParser::setServerPort(int port){
   _serverPort = port;
 }
 
-/// On Win32, makes sure that the C: drive exists, and, if not, changes
-/// the file name to use the D: drive. On Unix, makes sure that either
-/// /tmp or /etc exist, depending on whether we are using the alternative
-/// config file.
-
-bool arPhleetConfigParser::_sanityCheck(){
+/// If the directory exists, return true. If it does not exist, try to
+/// create it, returning true on success and false on failure.
+bool arPhleetConfigParser::_createIfDoesNotExist(const string& directory){
 #ifdef AR_USE_WIN_32
   struct _stat statbuf;
-  // check for the existence of the C drive
-  if (_stat ("C:\\", &statbuf) < 0) {
-    // drive C: not found
-    if (_stat ("D:\\", &statbuf) < 0) {
-      printf("syzygy error: neither drive C: nor drive D: found.\n");
+  if (_stat(directory.c_str(), &statbuf) < 0){
+    // Not found.
+    if (_mkdir(directory.c_str()) < 0){
       return false;
     }
-    // Use drive D instead of C.
-    windowsPhleetDirectory[0] = 'D';
-    phleetConfigFile[0] = 'D';
-    phleetAlternativeConfigFile[0] = 'D';
-    phleetLoginPreamble[0] = 'D';
-  }
-  // check for the existence of C:\szg (or D:\szg if the C drive does not
-  // exist). If it does not exist, create it.
-  if (_stat(windowsPhleetDirectory, &statbuf) < 0){
-    _mkdir(windowsPhleetDirectory);
     // AARGH! This does't seem to work as expected! 
     // Specifically, the hope is that any user will be able to change the 
     // szg.conf file. Unfortunately, Windows file permissions are not really 
@@ -381,23 +317,67 @@ bool arPhleetConfigParser::_sanityCheck(){
     // is that only an administrator or the original creator of the
     // szg.conf file can change it after it has been created. Maybe that's a 
     // good thing...
-    _chmod(windowsPhleetDirectory, 00666);
+    _chmod(directory.c_str(), 00777);
   }
+  return true;
 #else
+  // The Unix way.
   struct stat statbuf;
-  if (_alternativeConfig){
-    if (stat ("/tmp", &statbuf) < 0) {
-      printf("syzygy error: /tmp not found.  Please create /tmp!\n");
+  if (stat(directory.c_str(), &statbuf) < 0){
+    // Not found.
+    if (mkdir(directory.c_str(), 00777) < 0){
       return false;
     }
+    // Ideally, anybody should be able to modify a file in this
+    // directory.
+    chmod(directory.c_str(), 00777);
   }
-  else{
-    if (stat ("/etc", &statbuf) < 0) {
-      printf("syzygy error: /etc not found.  Please create /etc!\n");
-      return false;
-    }
-  }
+  return true;
 #endif
+}
+
+/// Determine the location of the config file and the login preamble.
+bool arPhleetConfigParser::_determineFileLocations(){
+
+  string potentialConfigFileLocation = ar_getenv("SZG_CONF");
+  if (potentialConfigFileLocation == "NULL"){
+    // Use the default.
+#ifdef AR_USE_WIN_32
+    // NOTE: Win32 will NOT WORK if there is a trailing slash.
+    potentialConfigFileLocation = "c:\\szg";
+#else
+    potentialConfigFileLocation = "/etc";
+#endif
+  }
+  // If the directory does not exist, attempt to create.
+  if (!_createIfDoesNotExist(potentialConfigFileLocation)){
+    printf("syzygy error: could not create config file directory %s.",
+           potentialConfigFileLocation.c_str());
+    return false;
+  }
+  ar_pathAddSlash(potentialConfigFileLocation);
+  ar_scrubPath(potentialConfigFileLocation);
+  _configFileLocation = potentialConfigFileLocation+"szg.conf";
+
+  string potentialLoginDir = ar_getenv("SZG_LOGIN");
+  if (potentialLoginDir == "NULL"){
+    // Use the default.
+#ifdef AR_USE_WIN_32
+    // NOTE: Win32 will NOT WORK if there is a trailing slash.
+    potentialLoginDir = "c:\\szg";
+#else
+    potentialLoginDir = "/tmp";
+#endif
+  }
+  // If the directory does not exist, attempt to create.
+  if (!_createIfDoesNotExist(potentialLoginDir)){
+    printf("syzygy error: could not create login directory %s.",
+           potentialLoginDir.c_str());
+    return false;
+  }
+  ar_pathAddSlash(potentialLoginDir);
+  ar_scrubPath(potentialLoginDir);
+  _loginPreamble = potentialLoginDir+"szg_";
   return true;
 }
 
