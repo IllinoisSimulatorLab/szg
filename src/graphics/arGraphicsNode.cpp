@@ -41,7 +41,9 @@ void arGraphicsNode::initialize(arDatabase* owner){
   // we want to share the database's language among all the
   // various nodes... otherwise a scene graph with too many nodes
   // uses *much* too much memory
+  // AARGH! There are also two different pointers to the language...
   _g = &(_owningDatabase->_gfx);
+  _dLang = &(_owningDatabase->_gfx);
   // very important that we do not do the following if the parent node
   // is the root node... as this node is an arDatabaseNode but not
   // an arGraphicsNode

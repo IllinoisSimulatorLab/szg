@@ -25,6 +25,10 @@ arStructuredData* arTransformNode::dumpData(){
 }
 
 bool arTransformNode::receiveData(arStructuredData* inData){
+  // Get the name change record, for instance, if sent.
+  if (arDatabaseNode::receiveData(inData)){
+    return true;
+  }
   if (inData->getID() != _g->AR_TRANSFORM){
     cerr << "arTransformNode error: expected "
          << _g->AR_TRANSFORM

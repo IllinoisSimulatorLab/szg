@@ -27,6 +27,10 @@ arDatabaseNode::~arDatabaseNode(){
 }
 
 void arDatabaseNode::setName(const string& name){
+  if (_name == "root"){
+    cout << "arDatabaseNode warning: cannot set root name.\n";
+    return;
+  }
   if (_databaseOwner){
     arStructuredData* r = _dLang->makeDataRecord(_dLang->AR_NAME);
     r->dataIn(_dLang->AR_NAME_ID, &_ID, AR_INT, 1);
@@ -59,7 +63,9 @@ void arDatabaseNode::printStructure(int maxLevel, ostream& s){
 
 bool arDatabaseNode::receiveData(arStructuredData* data){
   if (data->getID() != _dLang->AR_NAME){
-    cout << "arDatabaseNode error: received unknown record type.\n";
+    // DO NOT PRINT ANYTHING OUT HERE. THE ASSUMPTION IS THAT THIS IS
+    // BEING CALLED FROM ELSEWHERE (i.e. FROM A SUBCLASS) WHERE THE
+    // MESSAGE WILL, IN FACT, BE PRINTED. 
     return false;
   } 
   _name = data->getDataString(_dLang->AR_NAME_NAME);
