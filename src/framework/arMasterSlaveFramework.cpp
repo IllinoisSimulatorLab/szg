@@ -10,10 +10,9 @@
 #include <sys/types.h>
 #include <signal.h>
 #endif
+#include "arSharedLib.h"
 #include "arEventUtilities.h"
 #include "arWildcatUtilities.h"
-// For the standalone joystick interface
-#include "arJoystickDriver.h"
 #include "arPForthFilter.h"
 
 /// to make the callbacks startable from GLUT, we need this
@@ -1253,15 +1252,27 @@ bool arMasterSlaveFramework::_initStandaloneObjects(){
   }
   else{
     // the joystick is the only other option so far
-    arJoystickDriver* driver = new arJoystickDriver();
-    // The input node is not responsible for clean-up
-    _inputDevice->addInputSource(driver, false);
-    arPForthFilter* filter = new arPForthFilter();
-    if (!filter->configure( &_SZGClient )){
+    arSharedLib* joystickObject = new arSharedLib();
+    string sharedLibLoadPath = _SZGClient.getAttribute("SZG_EXEC","path");
+    string pforthProgramName = _SZGClient.getAttribute("SZG_PFORTH",
+                                                       "program_names");
+    string error;
+    if (!joystickObject->createFactory("arJoystickDriver", sharedLibLoadPath,
+                                       "arInputSource", error)){
+      cout << error;
       return false;
     }
+    arInputSource* driver = (arInputSource*) joystickObject->createObject();
     // The input node is not responsible for clean-up
-    _inputDevice->addFilter(filter, false);
+    _inputDevice->addInputSource(driver, false);
+    if (pforthProgramName != "NULL"){
+      arPForthFilter* filter = new arPForthFilter();
+      if (!filter->configure( pforthProgramName )){
+        return false;
+      }
+      // The input node is not responsible for clean-up
+      _inputDevice->addFilter(filter, false);
+    }
   }
   // NOTE: this will probably fail under the current hacked regime...
   // BUT... if this doesn't occur, then the various filters and such
