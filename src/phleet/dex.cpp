@@ -62,17 +62,35 @@ bool isVirtualComputer(arSZGClient& szgClient, const char* host){
 }
 
 int main(int argc, char** argv){
-  int i;
+  int i,j;
+  // Default is to have no timeout.
+  int timeout = -1;
   bool verbosity = false;
   // parse and remove the command-line options
   for (i=0; i<argc; i++){
     if (!strcmp(argv[i],"-v")){
       verbosity = true;
       // remove the arg from the list
-      for (int j=i; j<argc-1; j++){
+      for (j=i; j<argc-1; j++){
         argv[j] = argv[j+1];
       }
       argc--;
+    }
+    if (!strcmp(argv[i],"-t")){
+      // The next arg must be a timeout, in ms.
+      if (argc <= i+1){
+	cout << "dex error: a timeout in ms must follow the -t option.\n";
+	return 1;
+      }
+      timeout = atoi(argv[i+1]);
+      if (timeout < -1){
+	cout << "dex error: the timeout must be an integer >= -1.\n";
+	return 1;
+      }
+      for (j=i; j<argc-2; j++){
+        argv[j] = argv[j+2];
+      }
+      argc = argc - 2;
     }
   }
 
@@ -220,11 +238,12 @@ int main(int argc, char** argv){
   }
   list<int> tags;
   tags.push_back(match);
-  string body;
+  // We need a reasonable default (what if a timeout occurs, for instance).
+  string body("dex error: no response was received.");
   // We only get a message response with "match" from the tags list.
   // The variable match is filled-in with the "match" we received, which
   // is redundant in this case since there's just one thing in the list.
-  while (szgClient.getMessageResponse(tags,body,match) < 0){
+  while (szgClient.getMessageResponse(tags,body,match,timeout) < 0){
     if (verbosity){
       cout << body << "\n";
     }

@@ -397,26 +397,32 @@ bool arDistSceneGraphFramework::start(){
     if (_peerMode == "shell" || _peerMode == "feedback"){
       if (_peerTarget == "NULL"){
         startResponse << _label << " error: target not specified.\n";
+        _SZGClient.sendStartResponse(false);
 	return false;
       }
       else{
-        if (!_graphicsPeer.connectToPeer(_peerTarget)){
+        if (_graphicsPeer.connectToPeer(_peerTarget) < 0){
 	  startResponse << _label << " error: graphics peer failed to connect "
 	  	        << "to requested target=" << _peerTarget << ".\n";
+          _SZGClient.sendStartResponse(false);
 	  return false;
         }
         // In either case, we'll be sending data to the target.
         _graphicsPeer.sending(_peerTarget, true);
+        _graphicsPeer.pushSerial(_peerTarget, true);
+	// BUG BUG BUG BUG BUG BUG BUG: Need better definition of "modes"!
+	// Really just one mode so far...
         // In the feedback case, we want a dump and relay.
-        if (_peerMode == "feedback"){
-          _graphicsPeer.pullSerial(_peerTarget, true);
-	}
+        //if (_peerMode == "feedback"){
+        //  _graphicsPeer.pullSerial(_peerTarget, true);
+	//}
       }
     }
     else{
       if (_peerTarget != "NULL"){
 	startResponse << _label << " error: target improperly specified for "
 		      << "source mode.\n";
+        _SZGClient.sendStartResponse(false);
 	return false;
       }
     }

@@ -226,8 +226,9 @@ int main(int argc, char** argv){
   framework->setUnitConversion( 1. );
 
   // More initializing.
-  if (!framework->start() || !interfaceObject.start())
+  if (!framework->start() || !interfaceObject.start()){
     return 1;
+  }
 
   // Place scene in the center of the front wall.
   interfaceObject.setNavMatrix(ar_translationMatrix(0,5,-5));
