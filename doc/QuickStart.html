@@ -6,7 +6,7 @@
 <a href="index.html">Documentation Index</a>
 <p><font size=+2>Syzygy Quick Start</font>
 
-<p>NOTICE: This is Syzygy version 0.6. 
+<p>NOTICE: This is Syzygy version 0.7. 
 If you have been using an earlier version,
 consult the <a href="ChangeLog.html">Change log</a> for how to 
 modify earlier practices.
@@ -43,7 +43,6 @@ the cluster).
 <li><A HREF="#VirtualComputer">Using Virtual Computers (Best Way to Launch an Application)</a>
 <li><A HREF="#Advanced">Advanced Configuration and Demo Information</a>
 <li><A HREF="#TrackingSim">Using the Tracking Simulator Interface</a>
-<li><A HREF="#JavaUI">Using the Java Interface</a>
 </ul>
 
 <A NAME="Requirements">
@@ -1551,76 +1550,6 @@ the head and of the wand and the state of the wand's buttons.
     By pressing the space bar, you can change the mapping of the mouse buttons
     from wand buttons 1-3 to wand button 4-6 and back again.
 </ol>
-
-<A NAME="JavaUI">
-<p><font size=+2>Using the Java Interface</font>
-</a>
-
-<p>When running demos, 
-it is often inconvenient to have to return to the
-console to switch applications. Consequently, there is
-a need for a controlling interface for the distributed operating system that
-can run on a wireless handheld. We have created a small Java
-application for Windows CE that connects to a gateway program that runs on a computer and speaks
-the native Syzygy protocol.
-
-<p>To run the Java interface, 
-first execute the command:
-
-<pre>
-JavaInterface XXX
-</pre>
-
-<p>This runs a gateway program that converts GUI events on the handheld to
-Phleet events. Here, XXX is an arbitrary string 
-identifying this instance of the gateway program on the LAN. Next, execute the Java program 
-(located in szg/src/phleet/java) 
-that provides the interface by typing:
-
-<pre>
-java Interface [subnet]
-</pre>
-
-in the directory with the compiled bytecode. If the host on which you are 
-running the Java GUI doesn't have access to a DNS server and is multihomed,
-you'll have to specify a subnet for it to search.  The Java GUI can also be
-executed by downloading tricorder.jar
-into a web browser (you can create tricorder.jar by typing "make" in
-the phleet/java directory on a Unix box with java correctly installed).
-
-<p>Once the Java program begins execution, it will present the user with a text
-dialog box. Typing "XXX" (the tag specified above) in this box and hitting "enter" will send a broadcast
-packet on the LAN that looks for JavaInterface programs run using the "XXX"
-parameter. The Java program will then connect to the first such program from
-which it gets a reply.
-
-<p>The java interface will display two buttons labelled "list" and "execute".
-Hitting the "list" button lists all registered Syzygy processes running in
-the system. The top list field displays all computers that are hosting 
-registered Syzygy processes. Single clicking on one of these names causes all
-registered Syzygy processes running on that computer to be displayed in the
-bottom list field. Double-clicking on a name displayed in the bottom list
-field will send a kill message to that Syzygy process. The "execute" button,
-on the other hand, allows you to launch processes in the Syzygy system.
-Once this button is pushed, you will see a list of systems in the upper
-list field on which szgd (the Syzygy remote execution daemon) is running.
-Clicking on one of these system names reveals a list of executable programs.
-Double-clicking on one of the programs causes it to execute. The list of
-executables is determined from the SZG_EXEC/shortcut parameter associated
-with the machine under consideration. The parameter has the following format:
-
-<pre>
-
-YYY/ZZZ/AAA/BBB/CCC
-</pre>
-
-<p>This will result in a list YYY,ZZZ,AAA,BBB,CCC being displayed in the
-lower list field. Note that YYY, ZZZ, etc. should all the the names of 
-executables.
-
-<p>Note that some executables can be scripts, at least on Unix.
-(In Unix, make the first line of a script something like "#!/bin/sh"
-or "#!/usr/bin/perl".)
 
 </body>
 </html>

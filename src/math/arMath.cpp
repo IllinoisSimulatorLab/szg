@@ -661,7 +661,7 @@ arMatrix4 ar_lookatMatrix( const arVector3& viewPosition,
                            const arVector3& lookatPosition,
                            const arVector3& up ) {
   // What follows does not appear to make sense (in terms of the
-  // directions of the nuit vectors). I think
+  // directions of the unit vectors). I think
   // it's necessary because of OpenGL's wrongheaded (right-handed)
   // coordinate system, with default view along Z axis.
   const arVector3 Lhat( (viewPosition - lookatPosition).normalize() );

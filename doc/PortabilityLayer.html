@@ -14,8 +14,10 @@ ensure that all #ifdef's occur in these classes.
 <p><font size=+2>Sockets</font>
 
 <p>The arSocket and arUDPSocket classes provide a portable sockets API.
-We make a few brief observations regarding the quirks of this implementation.
-First, note that arSocket wraps the native TCP socket implementation.
+We make a few brief observations regarding this implementation.
+The arSocket class wraps the native TCP socket implementation, hiding the
+minor differences that exist (mostly in function names or call
+signatures) between Win32, Linux, Darwin, and Irix.
 When you create an arSocket object, you must specify whether it will
 be used to accept connections (AR_LISTENING_SOCKET) or transmit data
 (AR_STANDARD_SOCKET). For instance:
@@ -25,9 +27,9 @@ arSocket* theSocket = new arSocket(AR_LISTENING_SOCKET);
 </pre>
 
 <p>Furthermore, each arSocket object has an associated numerical ID, which
-can be arbitrarily set by the programmer. The intent is that a manager will
-be able to use these IDs to manage a set of sockets. Also, accepting a new
-connection via a socket looks like this:
+can be arbitrarily set by the programmer. The intent is that a manager object
+will be able to use these IDs to manipulate a set of sockets. Also, accepting 
+a new connection via a socket looks like this:
 
 <pre>
 acceptSocket.ar_accept(&dataSocket);
@@ -43,8 +45,11 @@ bool arSocket::setReceiveBufferSize(int size)
 bool arSocket::setSendBufferSize(int size)
   Sets the size of the TCP send buffer.
 bool arSocket::smallPacketOptimize(bool flag)
-  If flag is "true", Nagle's Algorithm is enabled (the default). If flag
-  is set to "false", Nagle's Algorithm is disabled.
+  If flag is "true", Nagle's Algorithm is disabled. If flag
+  is set to "false", Nagle's Algorithm is enabled. By default,
+  most TCP implementations will have Nagle's Algorithm enabled,
+  which interferes with the real-time performance of applications
+  that send small packets at a relatively slow rate.   
 bool arSocket::reuseAddress(bool flag)
   Only makes sense for a listening socket. If set to "true", then the
   socket can bind to a previously bound address.

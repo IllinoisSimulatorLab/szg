@@ -6,44 +6,66 @@
 <a href="index.html">Documentation Index</a>
 <p><font size=+2>Syzygy Introduction</font>
 
-<p>The primary goal of the Syzygy software project is to run a wide
-range of VR applications on a PC cluster with equal or greater performance
-than on an SGI Onyx, the traditional platform for high-end VR.
-This change in hardware platform drives software changes. Communications 
-between processors now becomes a bottleneck and tools are needed to efficiently
-manage and develop cluster applications. By developing a system that targets 
-cluster-based VR from the beginning, one hopes to have a final product that 
-will be pleasant to develop for and use. The Syzygy system will enable users
-to run cluster applications between machines with different underlying
-architectures, like x86 and MIPS, allowing old and new machines to work
-together.  
+<p>The first release of Syzygy on the web was in September 2000. Its initial
+motivating goal was to run a wide
+range of VR applications on a PC cluster with equal performance
+to shared memory SMP machines like the SGI Onyx, which had, up to then,
+been the preferred platform for high-end VR. Subsequent work has focused on
+making the system portable, robust, and easy to use, as well
+as making the Syzygy application model better suited to new environments:
+single PCs or laptops, wide-area networked systems, and even the shared
+memory SMP systems that were once so important.
+
+<p>Changes in hardware platform drives software changes. In this case,
+fully supporting PC cluster application development requires explicit
+library support and, indeed, an updated application model. Monolithic shared
+memory systems allow library writers to ignore a whole range of
+data sharing issues, leaving these to the applications programmer and
+encouraging him to write non-portable code. 
+
+<p>Consider the requirements for PC cluster software in more detail.
+Communications 
+between processors now becomes a bottleneck, and tools 
+are needed to efficiently manage and develop cluster applications. The 
+developer needs an API to facilitate complex communications between cluster
+machines, remembering that these information exchanges must be fault-tolerant 
+and conducted in a way that keeps the
+cluster producing synchronized views of the virtual world frame-by-frame.
+During the early stages of application development, the application code may be
+unstable. Consequently, the overall distributed system must tolerate the 
+failure of individual components: some of them will be user-produced and of
+uncertain reliability. Finally, the system needs built-in monitoring tools,
+so that users can remotely determine its state, the means for steering running
+applications, and the ability to portably launch application across a wide
+range of target clusters, both homogeneous and heterogenous in nature.
  
 <p>The goal of creating VR applications on a PC cluster is best served by
 increasing the level of abstraction and writing a toolkit with broader
 applicability. Syzygy aims to provide simple software tools for building 
-heterogeneous distributed systems. The toolkit's main focus is PC clusters 
-on high performance LANs, though it is also applicable to internet-based 
-systems. It is designed to be a lightweight toolkit that can operate on PC 
+heterogeneous distributed systems. While the system's main focus is PC 
+clusters on high performance LANs, it is also applicable to WAN-based 
+systems. Syzygy is designed to be a lightweight toolkit that can operate on PC 
 clusters, SMP boxes, and laptops, while connecting meaningfully with smaller 
 devices. This presents several challenges. Much system infrastructure is
 unnecessary for a standalone laptop being used to provide a 
-portable road demo. To maintain ease of use, the toolkit's operation should
-scale down gracefully. Furthermore, we need to deploy 
-communication methods suitable for SMP, namely shared memory instead of 
-sockets, and do this while reusing our communications infrastructure. Finally,
-performance is very important. Many of the toolkit's functions are OS-level
+portable road demo, and, to maintain ease of use, 
+the sytem's operation should scale down gracefully. Furthermore, 
+we need to deploy communication methods suitable for SMP, 
+namely shared memory instead of sockets, and do this while reusing our 
+low-level communications infrastructure. Finally,
+performance is very important, as many of the toolkit's functions are OS-level
 and must be efficient. 
 
-<p>Syzygy needs to solve several problems: distributed graphics, 
+<p>Syzygy solves several problems: distributed graphics, 
 distributed sound, distributed
 systems management, distributed data access, and general I/O device management.
 There are systems out there that do each of these things, but no one system
 addresses them all. However, each problem relies on a similar infrastructure
 for its solution. Syzygy aims to identify that common infrastructure
-and an implementation. Thus, each problem can be solved more
-easily, and the resulting code base is well-integrated and maintainable.
-In effect, Syzygy attempts to create middleware suitable for multimedia on
-clusters. 
+and provide an implementation. Thus, each problem can be solved more
+easily, and the resulting code base is well-integrated, maintainable, and 
+smaller. In effect, Syzygy is a middleware solution for distributed
+multimedia.
 
 <p><font size=+2>How To Use this Documentation</font> 
 
@@ -63,10 +85,12 @@ for application programmers, with two APIs for writing cluster-based VR
 applications documented in the <a href="Programming.html">programming</a>
 chapter.
 
-<p>What Does "ar" Mean?
+<p><font size=+2>What Does "ar" Mean?</font>
 
 <p>A short look at the source code reveals that Syzygy objects all start
-with the prefix "ar", which stands for "artificial reality".
+with the prefix "ar", which stands for "artificial reality". The "vr" prefix,
+which would be another logical choice, is simply too common, and, in any case,
+Syzygy is useful in arenas outside VR.
 
 <p><font size=+2>Where to Get Help</font>
 

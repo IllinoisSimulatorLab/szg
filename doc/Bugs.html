@@ -4,7 +4,7 @@
 </head>
 <body bgcolor="#ffffff">
 <a href="index.html">Documentation Index</a>
-<p><font size=+2>Syzygy Known Bugs</font>
+<p><font size=+2>Syzygy Known Bugs or Issues</font>
 
 <p><font size=+1>Setup/Building</font> <ul>
 
@@ -122,22 +122,11 @@ previously.
 </ul>
 <p><font size=+1>Configuration/Phleet</font> <ul>
 
-<li>arFileTextStream error appears when using dname on a new computer.
-<li>Need a handshake on connection establishment that is extensible and
-includes space for a version number (to prevent mismatched stuff from
-communicating).
 <li>Phleet needs new methods! Specifically, we must be able to release
 services. Also, need to be able to get service info from the command line!
 <li>On windows, if c:\szg_USERNAME.conf is present, then dlogin does not look
 at c:\szg\szg_USERNAME.conf. SERIOUS BUG since it impacts migrating to new
 versions of szg.
-<li>THE CURRENT CODE DOES NOT WORK WHEN THE NETMASK IS NOT 255.255.255.0.
-(i.e. dlogin relies on broadcast and this will be incorrectly done). 
-<li>There are spurious messages now (arFIleTextStream) when using
-    /tmp/szg.conf instead of /etc/szg.conf.
-<li>Need access control lists for szgserver, instead of just single subnets.
-    (for instance, need to screen connections for szgserver BUT there are
-     cases where multiple subnets need to be able to connect).
 <li> On windows, c:\szg is used to store config info. HOWEVER, this would
 be a natural place to put the szg code. This must change.
 <li> On Mac OS X, dhunt does not seem to work. If you run an szgserver
@@ -147,15 +136,11 @@ problem filtering of the broadcast packets?
 service is offered on network Y, the connection won't work, but the
 service will disappear from dpending.
 <li> Same computer name in szg.conf file on multiple computers
-  destroys the system. We should be more robust!
-<li>szgd will need to deal with library paths for loading dll's!!!!
-<li> Double-clicking a program (like dps) works, when typing dps from a
-  win98 dos shell fails:  try unchecking "Prevent MS-DOS-based programs
-  from detecting Windows". (This is fast becoming an unimportant problem...
-  since Windows 98 is less and less useful)
+impairs the system. We should be more robust!
 
-  </ul>
-  <p><font size=+1>Graphics/Scene Graph/Database</font> <ul>
+</ul>
+  
+<p><font size=+1>Graphics/Scene Graph/Database</font> <ul>
 
 <li>Alpha value for textures is SERIOUSLY messed up! Alpha channel in 
 textures doesn't quite work anymore. Specifically,
@@ -208,9 +193,6 @@ they do not use prtIn.
 storage instead or new/delete. This should be benchmarked against using
 global (and NON THREAD-SAFE) storage!
 
-<li>MUST CHANGE THE NAME OF THE PRETTYDUMP COMMAND (and maybe the way it
-is implemented).
-
 <li>dgSetGraphicsDatabase must be eliminated!
 
 <li>The light direction seems to be wrong! (i.e. direction = (0,0,10,0)
@@ -226,8 +208,6 @@ element, which means only a single material). Very bad!
 
 <li>Erase seems to have infinite erase problems!
 
-<li>_Performance_ can segfault after running through the whole thng.
-
 <li>Cannot erase dgLight nodes.
 
   </ul>
@@ -235,10 +215,10 @@ element, which means only a single material). Very bad!
 
 <li>Need to support more nodes in the python wrappers... i.e. all of them!
 
-<li>IMPLICIT ARGUMENTS DO NOT SEEM HANDLED WELL BY SWIG (see the way
+<li>Implicit arguments do not seem not be handled well by SWIG (see the way
 createNode crashes on an implicit name)
 
-<li>On the python side, CANNOT GET THE POINTS ARRAY FROM THE POINTS NODE!
+<li>On the python side, Cannot get the points array from the points node!
     (i.e. getPoints() does not work!)
 
 <li>On the python side, obj.readOBJ does not work because of the path
@@ -248,7 +228,8 @@ argument!
 pattern...)
 
 </ul>
-    <p><font size=+1>Other/I don't know</font> <ul>
+
+<p><font size=+1>Miscellaneous</font> <ul>
 
 <li>It would be helpful to have a string event type for the I/O framework
 (i.e src/drivers).
@@ -272,13 +253,6 @@ called before init".
 
 <li>FIX DOCS so that the various java whatnots no longer appear! They are
 hereby superceded by the web server stuff!
-
-<li>Must improve (and document) the unit tests that already exist for the
-library. (For instance, the language unit test needs to test directory
-operations, must be able to remove files (like Junk.txt), should test binary 
-writing and reading, and needs the thread safety test integrated). Furthermore,
-the OTHER tests should be documented (TestLanguageServer, TestLanguageClient,
-phleettest, the service tests, etc.)
 
 </ul>
 </body>
