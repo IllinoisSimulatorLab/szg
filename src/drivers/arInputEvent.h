@@ -1,5 +1,10 @@
-#ifndef ARINPUTEVENT_H
-#define ARINPUTEVENT_H
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
+#ifndef AR_INPUT_EVENT_H
+#define AR_INPUT_EVENT_H
 
 #include "arMath.h"
 
@@ -77,5 +82,5 @@ class SZG_CALL arGarbageEvent : public arInputEvent {
 
 SZG_CALL ostream& operator<<(ostream&, const arInputEvent&);
 
-#endif        //  #ifndefARINPUTEVENT_H
+#endif        //  #ifndef AR_INPUT_EVENT_H
 

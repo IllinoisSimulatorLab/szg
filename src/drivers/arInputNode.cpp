@@ -260,6 +260,8 @@ void arInputNode::removeFilter(  arIOFilter* theFilter ) {
   unsigned int filterNumber = 0;
   arFilterIterator f;
   for (f = _inputFilterList.begin(); f != _inputFilterList.end(); ++f) {
+    // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
+    // Very bad to try to determine object identity based on ptr identity.
     arIOFilter* fptr = (arIOFilter*)&(*f);
     if (fptr == theFilter) {
       _inputFilterList.erase(f);

@@ -10,11 +10,10 @@
 #include <sstream>
 
 arDatabase::arDatabase() :
+  _lang(NULL),
   _server(false),
   _bundlePathName("NULL"),
   _bundleName("NULL"),
-  //_frameID(-1),
-  _lang(NULL),
   // We start at ID 1 for subsequent nodes since the root node has ID = 0
   // (the default)
   _nextAssignedID(1){

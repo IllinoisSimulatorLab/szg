@@ -630,7 +630,13 @@ int main(int argc, char** argv){
   // Tell the framework that we're using half-millimeter units.
   // Do this before framework.init() if we use framework-based navigation.
   framework.setUnitConversion(FEET_TO_AU);
-  
-  return (framework.init(argc, argv) && framework.start()) ?
-    0 : 1;
+  if (!framework.init(argc, argv)){
+    return 1;
+  }
+  framework.setBundlePtr("SZG_DATA", "atlantis");
+  if (!framework.start()){
+    return 1;
+  }
+  // Never get here.
+  return 0;
 }

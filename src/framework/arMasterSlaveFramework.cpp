@@ -204,7 +204,8 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   _pauseFlag(false),
   _connectionThreadRunning(false),
   _useGLUT(false),
-  _standaloneControlMode("simulator"){
+  _standaloneControlMode("simulator"),
+  _soundClient(NULL){
 
   // also need to add fields for our default-shared data
   _transferTemplate.addAttribute("time",AR_DOUBLE);
@@ -351,16 +352,19 @@ bool arMasterSlaveFramework::init(int& argc, char** argv){
     // HACK!!!!! There's cutting-and-pasting here...
     dgSetGraphicsDatabase(&_graphicsDatabase);
     dsSetSoundDatabase(&_soundServer);
-    if (!_loadParameters()){
-      cerr << _label << " remark: COULD NOT LOAD PARAMETERS IN STANDALONE "
-	   << "MODE.\n";
-    }
+    // This MUST come before _loadParameters, so that the internal sound
+    // client can be configured for the standalone configuration. 
+    // (The internal arSoundClient is created in _initStandaloneObjects).
     if (!_initStandaloneObjects()){
       // NOTE: It is definitely possible for initialization of the standalone
       // objects to fail. For instance, what if we are unable to load
       // the joystick driver (which is a loadable module) or what if
       // the configuration of the pforth filter fails?
       return false;
+    }
+    if (!_loadParameters()){
+      cerr << _label << " remark: COULD NOT LOAD PARAMETERS IN STANDALONE "
+	   << "MODE.\n";
     }
     _parametersLoaded = true;
     // We do not start the message-receiving thread yet (because there's no
@@ -539,6 +543,21 @@ void arMasterSlaveFramework::stop(bool blockUntilDisplayExit){
   }
   cout << _label << " remark: done.\n";
   _stopped = true;
+}
+
+/// The sound server should be able to find its files in the application
+/// directory. If this function is called between init(...) and start(...),
+/// the sound render will be able to find clips there. bundlePathName should
+/// be SZG_PYTHON or SZG_DATA and bundleName will likely (but not necessarily)
+/// be the name of the app.
+void arMasterSlaveFramework::setBundlePtr(const string& bundlePathName,
+					  const string& bundleName){
+  _soundServer.setBundlePtr(bundlePathName, bundleName);
+  // For standalone mode, we also need to set-up the internal sound client.
+  // Only in this case will the _soundClient ptr be non-NULL.
+  if (_soundClient){
+    _soundClient->setBundlePtr(bundlePathName, bundleName);
+  }
 }
 
 /// The sequence of events that should occur before the window is drawn.
@@ -1232,10 +1251,10 @@ bool arMasterSlaveFramework::_initStandaloneObjects(){
   _soundClient->configure(&_SZGClient);
   _soundClient->_cliSync.registerLocalConnection(&_soundServer._syncServer);
   
-  // sound is inactive for the time being
+  // Sound is inactive for the time being
   _soundActive = false;
 
-  // this always succeeds
+  // This always succeeds.
   return true;
 }
 
@@ -1637,9 +1656,25 @@ bool arMasterSlaveFramework::_loadParameters(){
   // Load the other parameters.
   _loadNavParameters();
 
-  _dataPath = _SZGClient.getAttribute("SZG_DATA","path");
+  // Make sure everybody gets the right bundle map, both for standalone
+  // and for normal operation.
+  _dataPath = _SZGClient.getAttribute("SZG_DATA", "path");
   if (_dataPath == "NULL"){
     _dataPath = string("");
+  }
+  else{
+    _soundServer.addBundleMap("SZG_DATA", _dataPath);
+    if (_soundClient){
+      _soundClient->addBundleMap("SZG_DATA", _dataPath);
+    }
+  }
+  
+  string pythonPath = _SZGClient.getAttribute("SZG_PYTHON", "path");
+  if (pythonPath != "NULL"){
+    _soundServer.addBundleMap("SZG_PYTHON", pythonPath);
+    if (_soundClient){
+      _soundClient->addBundleMap("SZG_PYTHON", pythonPath);
+    }
   }
   return true;
 }

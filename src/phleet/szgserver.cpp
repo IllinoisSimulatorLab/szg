@@ -1197,7 +1197,6 @@ void attributeGetRequestCallback(arStructuredData* theData,
                                             attrRaw);
     // BUG BUG BUG BUG BUG BUG BUG
     // This does not (yet) generate a new-style szg dbatch script!
-    map<string,string,less<string> >::iterator i;
     for (i = valueContainer->begin();
 	 i != valueContainer->end();
 	 ++i){
@@ -1344,7 +1343,7 @@ void processInfoCallback(arStructuredData* theData,
 			 arSocket* dataSocket){
  
   string requestType = theData->getDataString(lang.AR_PROCESS_INFO_TYPE);
-  int theID;
+  int theID = -1;
   string theLabel;
   if (requestType == "self"){
     theID = dataSocket->getID();

@@ -216,7 +216,7 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
         = _bundlePathMap.find(_bundlePathName);
     if (_bundlePathName != "NULL" && _bundleName != "NULL"
 	&& iter != _bundlePathMap.end()){
-      arSlashString bundlePath(iter->second);
+      arSemicolonString bundlePath(iter->second);
       for (int n=0; n<bundlePath.size(); n++){
         potentialFileName = bundlePath[n];
         ar_pathAddSlash(potentialFileName);

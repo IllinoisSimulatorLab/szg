@@ -83,6 +83,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // exits
   void stop(bool blockUntilDisplayExit);
 
+  void setBundlePtr(const string& bundlePathName, const string& bundleName);
+
   virtual void preDraw();
   void drawWindow();
   void postDraw();
