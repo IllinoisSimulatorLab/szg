@@ -1,0 +1,125 @@
+
+0. Code infrastructure.
+   a. Dll-ification (necessary to be able to do a reasonable input/output
+      system... among other things... for instance, how about being able to
+      have plug-in-able framelocking components). Actually, full dll-ification
+      is not necessary here (however, without dll-ification, the plug-ins
+      might contain code that is already in the library...). MUST TEST
+      THIS!
+   b. Better build system:
+      a. Disable precompiled headers for the "easy" build... (and, in general,
+         remove various possibilities for inconsistencies).
+      b. Be able to build the library as a dll!  
+      c. How to manage shared libs on the linux side like on the windows side?
+         i. DO NOT link the dll's to an absolute location. Can a -L help here?
+         ii. LD_LIBRARY_PATH contains ./
+      d. Smaller subsidiary libraries?
+         
+1. Better networking and data management.
+   a. New non-jammable network layer, based upon select.
+   b. Deterministic shut-down (there really is only a kluged approximation of 
+      this right now)
+   c. A better wire format for binary data. As it stands now, certain binary
+      records don't express compactly (what if the record has a large number
+      of singleton fields). A good rule of thumb is that a loss of 20%
+      efficiency to gain generality is OK (but more than that is
+      problematic). I'm thinking here of the time tunnel data.
+   d. Create a file format for storing data. Encoding/decoding of binary
+      data should be expressed there (i.e. is this big-endian or
+      little-endian data). Or whether or not this is XML data.
+   e. Redo networking so it is peer-based (this already happened a little
+      bit with the arDataServer object). Rely more on the 
+      arStructuredDataParser at a lower level (also improve the efficiency
+      of said object). Message creation/processing/and dispatch should
+      occur at the rate of one million per second on smoke (the reference
+      machine). NOTE: this does not include network sending.
+   f. Fix the XML format for the data so that it is closer to valid XML.
+      This requires enforcing "no-spaces-in-field-names". Also, string
+      data needs to be automatically escaped to elimnate control chanaracters
+      (actually tags might need this checking as well). Will also want
+      base64 encoded binary data.
+   g. Expand the range of data types. For instance, we want a boolean type,
+      along with unsigned int, unsigned long long, byte. That might actually
+      be enough. We also want singleton types in addition to the array types
+      that are currently the default.
+   h. More flexible way of encoding dictionaries. For instance, we should
+      be able to add and remove types from the dictionary at any time
+      (this is important for dynamic protocols, as is truly sometimes
+      demanded
+   i. Need non-flat types. (This will be especially important for advanced
+      configuration of the system).
+
+2. Performance testing.
+   a. Full instrumentation and performance monitoring. In the end, we
+      should be able to generate time tunnel like displays in real time.
+   b. Distributed unit testing (even remote). Actually, better unit testing
+      in the non-distributed case would be better.
+   c. Create tests that give upper bounds on synchronization of various
+      pieces of the software.
+
+3. Systems work.
+   a. Better handling of dlogout and szg_parameters.txt (annoying to have to 
+      copy this around). And this is related to the problem of why-do-I-need
+      to dbatch when the szgserver restarts. Couldn't one just have a defined 
+      place where the parameters get stored?
+   b. Better configuration. This is very important. It is essentially very 
+      awkward to configure input devices right now. For instance, the input 
+      filter is a per-device instead of a per-computer sort of thing (and 
+      maybe even a per-specific-device instead of per-rough-category thing). 
+      Indeed, the description of an input device (with its various component 
+      parts, the chain of filters, etc) doesn't map very well to the key-value
+      configuration that currently exists. Well, at least when the values are 
+      strings. If the values were, instead, arbitrary XML then things would 
+      be different...
+   c. Everything must output text messages into a network-redirectable
+      stream (this is necessary for daemonization below).
+   d. An advanced topic would be to merge szgd and szgserver together.
+      (into szgd)... and daemonize szgd. Turn the szgd's into a dynamically
+      reconfigurable peer network. This requires a rewrite of szgserver
+      along elegant object-oriented lines. (so as to be able to use it as an 
+      object in szgd). IN FACT, why not go one further and merge szgserver
+      and szgclient? This way, a full peer-to-peer system can be created. 
+      This is actually really important. For instance, it'd be nice to be
+      able to have a larger distributed system, parts of which don't reside
+      on internet networks. For instance, consider the following
+      example:
+   e. Fix the networking stuff so that it no longer relies on broadcast.
+      This has the advantage of removing a security hole (for dlogin). And
+      of simplifying code. As a disadvantage, dhunt will no longer exist,
+      but that wasn't really that vital in terms of functionality.
+   f. New software installation model. (which will be better suited to 
+      installing over the network... into a remote machine... i.e. 
+      more GRID-like)
+4. Flash
+   a. Create a VR shell to replace the iPaq. This would have the advantage
+      of not requiring two hands! Which is very awkward inside the virtual
+      environment. Actually, a bit of a complex untertaking.
+   b. Along these same lines, how about embedding more infrastructure inside
+      the applications? For instance, a help screen reachable via a standard
+      joystick button... a credits screen reachable via a standard joystick
+      button. Might be a good idea to be able to disable access to these
+      sometimes. HOWEVER, they would be immensely helpful for a demo situation.
+5. Improvements to master/slave framework
+   a. Must be able to base it on event processing.
+   b. Improve the framework object.
+   c. Must be able to do pre-established harmony. (i.e. everybody starts
+      at the same time).
+   d. How about dynamic object creation for communication between the
+      master and slaves? This will require a dynamic communications protocol.
+   e. There should be a way to dump state for newly connecting slaves
+      (now, problematically, we completely dump state every frame in the
+      master/slave set-up).
+6. Improvements to scene graph related stuff.
+   a. Need a "rendering context". This will obviate the need to have the 
+      individual node objects have a reference to the language or the database,
+      which is very awkward to code.
+   b. Make the language *dynamically* via registration (as I ended up doing
+      with the framework objects for the cube light show).
+   c. Have an extensible means of popping state on and off the stack (but
+      with high performance).
+   d. Maybe the scene graph is inherently extensible?
+   e. Much, much, much more!
+7. Need an interface based on the scene graph. (i.e. the abstract scene graph)
+
+
+
