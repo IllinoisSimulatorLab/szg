@@ -4,69 +4,40 @@
 </head>
 <body bgcolor="#ffffff">
 <a href="index.html">Documentation Index</a>
-<p><font size=+2>Syzygy Introduction</font>
 
 <p>NOTICE: This is Syzygy version 0.7. 
-If you have been using an earlier version,
-consult the <a href="ChangeLog.html">Change log</a> for how to 
+If you have been using an earlier version, consult the 
+<a href="ChangeLog.html">Change log</a> for information on how to 
 modify earlier practices.
 
-<p><font size=+2>Getting Started</font>
+<p>Please email
+bug reports, feature requests, and questions to
+<a href="mailto://schaeffr@isl.uiuc.edu">Ben Schaeffer</a>.
+Also, check out the Syzygy
+<a href="http://www.isl.uiuc.edu/syzygy/index.htm">website</a>.
 
-<p>After 
+<p><font size=+2>Where You Should Begin</font>
 
-<p><ul>
-<li>Getting the executables: Using the pre-compiled versions or building the
-software yourself. Includes information about obtaining and installing
-supporting libraries.
-<li>Running Syzygy programs in standalone mode (on a single computer).
-<li>Introduction to Syzygy clustering: running a Phleet.
-<li>Running Syzygy programs on a cluster.
-<li>Description of the software included in the szg, szgdemo, py-szg, and
-pycube software distributions. Information about the additional data files
-they require, how to obtain those files, and how they should be arranged.
-</ul>  
+<p>In you are new to the Syzygy system, you should walk through the 
+documentation's "Getting Started" system. There, you'll learn how to build,
+or otherwise obtain, the software, run the sample applications in
+"standalone" mode, how to set-up a Syzygy cluster, and, finally, how to
+run the samples on your cluster. You should gradually work your way up
+to full cluster operation, taking time to understand how Phleet, Syzygy's
+distributed OS, works. You will also want to pay attention to how the included
+applications are built and their data files are installed. This will make
+it easier for you to get started writing your own portable cluster applications.
 
-<p><font size=+2>What you should know</font>
+<p>After you feel comfortable with the introductory material, you can find out
+more about how to <a href="ConfigurationExamples.html">configure</a> 
+a VR system using Syzygy or how to use advanced <a href="Phleet.html">Phleet</a>
+features in the "Addional Information" section. Finally, you can learn about 
+<a href="Programming.html">compiling</a> your C++ Syzygy programs or 
+coding Syzygy in <a href="PySZG.html">Python</a>, along with
+reading descriptions of some of the available APIs in "Syzygy Programming".
 
-<p>This quickstart assumes that you know the fundamentals of how makefiles,
-environment variables, libraries, and shared libraries work.
-
-<p><font size=+2>Topics Covered</font>
-
-<p>After reading this chapter, you'll be able to set up a Syzygy cluster
-and run various of the included demos. You'll also learn how to use some
-of the interface programs, like wandsimserver (a desktop GUI that simulates
-VR-style input devices).
-
-
-<p><font size=+2>Advanced Configuration and Demo Information</font>
-
-<p>See the <a href="ConfigurationExamples.html">configuration
-examples</a> chapter for complete examples of how to configure a 6-walled
-CAVE and how to configure a 3x2 video wall. This section also includes
-more information about how to manage virtual computers, as described
-<A HREF="#VirtualComputer">above</a>. Also, for information about the
-included demos, including how to navigate them, see the
-<a href="Demos.html">demos</a> chapter.
-
-<p><font size=+2>How To Use this Documentation</font> 
-
-<p>The documentation is arranged into chapters.
-Users of
-earlier Syzygy releases should first read the <a href="ChangeLog.html">
-Change Log</a> chapter
-since there are incompatibilities with previous versions.
-The change log suggests what to change 
-in order to deploy the new version.
-Next, the <a href="QuickStart.html">
-Quick Start</a> chapter leads you step-by-step through the installation
-of a Syzygy-based cluster environment. Advanced troubleshooting, especially
-concerning Syzygy's distributed operating system Phleet, can be found in the 
-<a href="Phleet.html">Phleet</a> chapter. The documentation also includes information
-for application programmers, with two APIs for writing cluster-based VR
-applications documented in the <a href="Programming.html">programming</a>
-chapter.
+<p>Finally, please consider reading the overview at the bottom of this page to
+get an idea of the motivation behind the software.
 
 <p><font size=+2>What Does "ar" Mean?</font>
 
@@ -74,14 +45,6 @@ chapter.
 with the prefix "ar", which stands for "artificial reality". The "vr" prefix,
 which would be another logical choice, is simply too common, and, in any case,
 Syzygy is useful in arenas outside VR.
-
-<p><font size=+2>Where to Get Help</font>
-
-<p>Please email
-bug reports, feature requests, and questions to
-<a href="mailto://schaeffr@isl.uiuc.edu">Ben Schaeffer</a>.
-Also, check out the Syzygy
-<a href="http://www.isl.uiuc.edu/syzygy/index.htm">website</a>.
 
 <p><font size=+2>Syzygy Overview</font>
 
