@@ -27,9 +27,11 @@ SZG_OPTIONAL_LIBS += $(SZG_LINK_ZLIB)
 
 ALL = q33$(EXE)
 
-# since quake needs to be built debug on win32, this is necessary
+# Since quake needs to be built debug on win32, this is necessary
 # if we do, in fact, use the precompiled header... this leads to the same
-# crash
+# crash... This over-rides the machinations in Makefile.vars regarding
+# the precompiled headers (i.e. whether SZG_USE_PCH is set to TRUE or
+# FALSE)
 PRECOMPILED_HEADER_FLAGS = $(PRECOMPILED_HEADER_DISABLE)
 
 # NOTE: We now include the "magic" Everything target in Makefile.rules

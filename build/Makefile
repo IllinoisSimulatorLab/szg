@@ -7,7 +7,6 @@ all:
 	@echo "Makefile failed to guess OS type."
 else
 
-.PHONY: all clean demo democlean install
 
 # Note that demo is still a target here... there are programs that live
 #in the top of that directory and not in subdirs

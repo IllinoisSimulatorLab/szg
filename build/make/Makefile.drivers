@@ -177,26 +177,28 @@ arSpacepadDriver$(PLUGIN_SUFFIX): arSpacepadDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DL
 	$(COPY)
 
 # Each of the next collection of shared objects uses some additional
-# libraries beyond the base szg. 
+# libraries beyond the base szg. NOTE: We MUST use LINK_FLAGS_PLUGIN since
+# dynamically loaded modules are compiled differently on Darwin than 
+# shared libraries (no other platform makes that distinction, though)
 
 arBirdWinDriver$(OBJ_SUFFIX): arBirdWinDriver.cpp
 	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE) $(SZG_INCLUDE_WIN_BIRD)
 
 arBirdWinDriver$(PLUGIN_SUFFIX): arBirdWinDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(LINKER) $(PRE_LINK_BIRDWIN) $(PRE_LINK_LINE_EXE) \
-$(LINK_FLAGS_SHARED) $(LINK_PREFIX)arBirdWinDriver$(PLUGIN_SUFFIX) \
+$(LINK_FLAGS_PLUGIN) $(LINK_PREFIX)arBirdWinDriver$(PLUGIN_SUFFIX) \
 arBirdWinDriver$(OBJ_SUFFIX) $(POST_LINK_BIRDWIN) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
 arIntelGamepadDriver$(PLUGIN_SUFFIX): arIntelGamepadDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(LINKER) $(PRE_LINK_GAMEPAD) $(PRE_LINK_LINE_EXE) \
-$(LINK_FLAGS_SHARED) $(LINK_PREFIX)arIntelGamepadDriver$(PLUGIN_SUFFIX) \
+$(LINK_FLAGS_PLUGIN) $(LINK_PREFIX)arIntelGamepadDriver$(PLUGIN_SUFFIX) \
 arIntelGamepadDriver$(OBJ_SUFFIX) $(POST_LINK_GAMEPAD) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
 arJoystickDriver$(PLUGIN_SUFFIX): arJoystickDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(LINKER) $(PRE_LINK_GAMEPAD) $(PRE_LINK_LINE_EXE) \
-$(LINK_FLAGS_SHARED) $(LINK_PREFIX)arJoystickDriver$(PLUGIN_SUFFIX) \
+$(LINK_FLAGS_PLUGIN) $(LINK_PREFIX)arJoystickDriver$(PLUGIN_SUFFIX) \
 arJoystickDriver$(OBJ_SUFFIX) $(POST_LINK_GAMEPAD) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
@@ -204,7 +206,7 @@ arEVaRTDriver$(OBJ_SUFFIX): arEVaRTDriver.cpp
 	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE) $(SZG_INCLUDE_EVART)
 
 arEVaRTDriver$(PLUGIN_SUFFIX): arEVaRTDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(LINKER) $(PRE_LINK_EVART) $(PRE_LINK_LINE_EXE) $(LINK_FLAGS_SHARED) \
+	$(LINKER) $(PRE_LINK_EVART) $(PRE_LINK_LINE_EXE) $(LINK_FLAGS_PLUGIN) \
 $(LINK_PREFIX)arEVaRTDriver$(PLUGIN_SUFFIX) arEVaRTDriver$(OBJ_SUFFIX) \
 $(POST_LINK_EVART) $(POST_LINK_LINE_EXE)
 	$(COPY)
@@ -213,7 +215,7 @@ arVRPNDriver$(OBJ_SUFFIX): arVRPNDriver.cpp
 	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE) $(SZG_INCLUDE_VRPN)
 
 arVRPNDriver$(PLUGIN_SUFFIX): arVRPNDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(LINKER) $(PRELINK_VRPN) $(PRE_LINK_LINE_EXE) $(LINK_FLAGS_SHARED) \
+	$(LINKER) $(PRELINK_VRPN) $(PRE_LINK_LINE_EXE) $(LINK_FLAGS_PLUGIN) \
 $(LINK_PREFIX)arVRPNDriver$(PLUGIN_SUFFIX) arVRPNDriver$(OBJ_SUFFIX) \
 $(POST_LINK_VRPN) $(POST_LINK_LINE_EXE)
 	$(COPY)
