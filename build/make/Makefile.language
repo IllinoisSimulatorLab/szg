@@ -1,3 +1,7 @@
+SZG_INCLUDE_STYLE = INTERNAL
+
+include $(SZGHOME)/build/make/Makefile.vars
+
 VPATH = ../../../src/language
 
 # DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
@@ -28,14 +32,16 @@ OBJS = \
   arSocketAddress$(OBJ_SUFFIX)
 
 # Local variable definitions for the build.
-MYLIBNAME = arLanguage
-MYLIB = $(MYLIBNAME)$(LIB_SUFFIX)
 # These internal library makefiles ONLY include the external files necessary
 # to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
 # Makefile.defines neglects to define these)
 SZG_INCLUDE = 
+SZG_LINK_LIBS = $(GENERAL_LIBS)
+SZG_OPTIONAL_LIBS = 
+SZG_LIBRARY_LIBS =
+SZG_CURRENT_LIB_SHORT_NAME = arLanguage
 
-ALL =   $(MYLIB) \
+ALL =   $(SZG_CURRENT_DLL)\
         RS232EchoTest$(EXE) \
 	RS232SendTest$(EXE) \
 	TestLanguageClient$(EXE) \
@@ -46,15 +52,15 @@ ALL =   $(MYLIB) \
 # like "clean" and "create-install" (which puts all the 
 Everything: $(ALL)
 
-# NOTE: We MUST compile the 
-$(MYLIB): arPrecompiled$(OBJ_SUFFIX) $(OBJS)
-	$(
+# NOTE: We MUST compile the precompiled header FIRST on Windows.
+$(SZG_CURRENT_DLL): arPrecompiled$(OBJ_SUFFIX) $(OBJS)
+	$(LINK_SZG_LIB)
 	$(COPY)
 
 # This should go AFTER our FIRST target (because Makefile.rules includes
 include $(SZGHOME)/build/make/Makefile.rules
 
-# note that originally, every object in this directory was optimized to
+# Originally, every object in this directory was optimized to
 # the maximum level. However, now, in the interests of stability, lets
 # try only heavily optimizing the raw-information-handling objects.
 # note that the optimization scheme was as follows:
@@ -76,32 +82,28 @@ arQueuedData$(OBJ_SUFFIX): arQueuedData.cpp
 arStructuredData$(OBJ_SUFFIX): arStructuredData.cpp
 	$(COMPILER) $(COMPILE_FLAGS) $(OPTIMIZE_FLAG) $< $(SZG_INCLUDE)
 
-# must override the standard obj compilation with a precompiled header
+# Must override the standard obj compilation with a precompiled header
 # specific one. note this does nothing meaningful on platforms besides windows
 arPrecompiled$(OBJ_SUFFIX): arPrecompiled.cpp
 	$(PRECOMPILED_HEADER_LINE)
 
-# Note how we go ahead and over-ride the standard .cpp rule (as we must,
-# since that is (at least in some cases) going to produce shared objects).
-# We do not want shared objects in these cases, since these are executables!
-
 RS232EchoTest$(EXE): $(MYLIB) RS232EchoTest$(OBJ_SUFFIX)
-	$(LINKER) $(FIRST_LINK_INFO) $(LINK_PREFIX)$@ RS232EchoTest$(OBJ_SUFFIX) $(SECOND_LINK_INFO)
+	$(SZG_EXE_FIRST) RS232EchoTest$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
 RS232SendTest$(EXE): $(MYLIB) RS232SendTest$(OBJ_SUFFIX)
-	$(LINKER) $(FIRST_LINK_INFO) $(LINK_PREFIX)$@ RS232SendTest$(OBJ_SUFFIX) $(SECOND_LINK_INFO)
+	$(SZG_EXE_FIRST) RS232SendTest$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
 TestLanguageClient$(EXE): $(MYLIB) TestClient$(OBJ_SUFFIX)
-	$(LINKER) $(FIRST_LINK_INFO) $(LINK_PREFIX)$@ TestClient$(OBJ_SUFFIX) $(SECOND_LINK_INFO)
+	$(SZG_EXE_FIRST) TestClient$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
 TestLanguage$(EXE): $(MYLIB) Test$(OBJ_SUFFIX)
-	$(LINKER) $(FIRST_LINK_INFO) $(LINK_PREFIX)$@ Test$(OBJ_SUFFIX) $(SECOND_LINK_INFO)
+	$(SZG_EXE_FIRST) Test$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
 TestLanguageServer$(EXE): $(MYLIB) TestServer$(OBJ_SUFFIX)
-	$(LINKER) $(FIRST_LINK_INFO) $(LINK_PREFIX)$@ TestServer$(OBJ_SUFFIX) $(SECOND_LINK_INFO)
+	$(SZG_EXE_FIRST) TestServer$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 

@@ -18,6 +18,9 @@ create-install: Everything
 create-install-exe: Everything
 	$(CP) $(ALL) $(INSTALLDIR)/bin
 
+bin: Everything
+	$(CP) $(ALL) $(BINDIR)
+
 clean:
 	rm -rf *$(OBJ_SUFFIX) *.exp *.lib *.dll *.so *.a *.ilk *.pdb *.pch \
         .nfs* $(SRCDIR)/*~ \
