@@ -689,22 +689,21 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
   }
 
   // Now, set-up communications.
-  ARchar sizeBuffer[AR_INT_SIZE];
-  // Get stream configuration (only endianness, more could happen later).
-  if (!socket->ar_safeRead(sizeBuffer,AR_INT_SIZE)){
-    cerr << "arDataServer error: dialUp failed to get stream config.\n";
-    socket->ar_close();
-    return -1;
-  }
+  arStreamConfig localConfig;
+  localConfig.endian = AR_ENDIAN_MODE;
+  // BUG: This is NOT the socket ID... but the arDataServer doesn't do
+  // anything with it anyway (yet). This badly breaks symmetry. Oh well.
+  // No code depends on it yet.
+  localConfig.ID = 0;
   arStreamConfig remoteStreamConfig;
-  remoteStreamConfig.endian = sizeBuffer[0];
-
-  // Get ID of socket managed by the remote arDataServer object.
-  if (!socket->ar_safeRead(sizeBuffer,AR_INT_SIZE)){
-    cerr << "arDataServer error: dialUp failed to get socket ID.\n";
-    socket->ar_close();
-    return -1;
+  remoteStreamConfig = handshakeReceiveConnection(socket, localConfig);
+  if (!remoteStreamConfig.valid){
+    cout << "arDataServer error: remote data point has wrong szg protocol "
+	 << "version = " << remoteStreamConfig.version << ".\n";
+    return false;
   }
+  
+  ARchar sizeBuffer[AR_INT_SIZE];
   // NOTE: We DO NOT actually use that in the arDataServer (as opposed
   // to the arDataClient.
   // in arDataClient, a statement would go hear storing the remote socket
@@ -716,7 +715,7 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
   }
   const ARint totalSize = ar_translateInt(sizeBuffer,remoteStreamConfig);
   if (totalSize<AR_INT_SIZE){
-    cerr << "arDataServer error: dialUp got a garbled dictionary.\n";
+    cerr << "arDataServer error: dialUp failed to translate dictionary.\n";
     socket->ar_close();
     return -1;
   }
@@ -725,20 +724,7 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
   memcpy(dataBuffer, sizeBuffer, AR_INT_SIZE);
   if (!socket->ar_safeRead(dataBuffer+AR_INT_SIZE, totalSize-AR_INT_SIZE)){
     cerr << "arDataServer error: dialUp failed to get dictionary.\n";
-    goto LAbort;
-  }
-  // ONLY THE arDataClient INITIALIZES THE DICTIONARY!
-  // Handshake, since the other arDataServer will potentially receive 
-  // data from us.
-  sizeBuffer[0] = AR_ENDIAN_MODE;
-  sizeBuffer[1] = 0;
-  sizeBuffer[2] = 0;
-  sizeBuffer[3] = 0;
-  if (!socket->ar_safeWrite(sizeBuffer,AR_INT_SIZE)){
-    cerr << "arDataServer error: dialUp failed to send local stream config.\n";
-LAbort:
     delete [] dataBuffer;
-    socket->ar_close();
     return -1;
   }
 

@@ -11,6 +11,7 @@
 locations are determined for Phleet. There is no longer a -t option for
 dname, dports, daddinterface, or ddelinterface. Instead, the SZG_CONF
 environment variable, if set, gives the nonstandard config file location.
+Similarly, SZG_LOGIN, if set, controls the location of the login files.
 <li>Master/slave preExchange callack is now only called on the master. postExchange
 callback is not called on a disconnected slave. postExchange callback returns void,
 not bool. setInitCallback has been changed to setStartCallback because the callback
