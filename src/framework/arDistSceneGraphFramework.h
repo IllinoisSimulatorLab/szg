@@ -31,14 +31,16 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   arGraphicsDatabase* getDatabase();
 
   void setUserMessageCallback(
-    void (*userMessageCallback)( arDistSceneGraphFramework&, const string& messageBody ));
+    void (*userMessageCallback)( arDistSceneGraphFramework&, 
+                                 const string& messageBody ));
 
   // inherited pure virtual functions
   bool init(int&,char**);
   bool start();
   void stop(bool);
   void loadNavMatrix();
-  void setDataBundlePath(const string& bundlePathName, const string& bundleSubDirectory);
+  void setDataBundlePath(const string& bundlePathName, 
+                         const string& bundleSubDirectory);
 
   void setAutoBufferSwap(bool);
   void swapBuffers();

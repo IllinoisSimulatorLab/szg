@@ -7,6 +7,7 @@
 #include "arPrecompiled.h"
 #include "arGraphicsAPI.h"
 #include "arGraphicsHeader.h"
+#include "arGraphicsPeerRPC.h"
 #include "arSoundAPI.h"
 #include "arSharedLib.h"
 #include "arPForthFilter.h"
@@ -17,7 +18,8 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
   arDistSceneGraphFramework* f = (arDistSceneGraphFramework*) framework;
   string messageType, messageBody;
   while (true) {
-    if (!f->_SZGClient.receiveMessage(&messageType, &messageBody)){
+    int messageID = f->_SZGClient.receiveMessage(&messageType, &messageBody);
+    if (!messageID){
       // We have somehow been disconnected from the szgserver. We should
       // now quit. NOTE: we cannot kill the stuff elsewhere since we are
       // disconnected (i.e. we cannot manipulate the system anymore)
@@ -50,6 +52,18 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
     }
     else if (messageType=="print"){
       f->getDatabase()->printStructure();
+    }
+    
+    if (f->_peerName != "NULL"){
+      // Go ahead and handle the messages to the peer.
+      // We must strip the initial leading peer name.
+      (void) ar_graphicsPeerStripName(messageBody);
+      string responseBody = ar_graphicsPeerHandleMessage(&f->_graphicsPeer,
+							 messageType,
+							 messageBody);
+      if (!f->_SZGClient.messageResponse(messageID, responseBody)){
+        cerr << "szg-rp error: message response failed.\n";
+      }
     }
   }
 }

@@ -211,35 +211,48 @@ bool arInputState::update( const arInputEvent& event ) {
   return false;
 }
 
+// Mac OS X is upset by constructors for global vars that print things to
+// cout (causes a segfault). The arEffector constructor (if including
+// info about the signature) actually prints something via this statement.
+// This causes cubes and atlantis to segfault on start! Consequently,
+// printing the warning messages is optional and the default is not to do so.
 void arInputState::setSignature( const unsigned int numButtons,
 				 const unsigned int numAxes,
-				 const unsigned int numMatrices){
+				 const unsigned int numMatrices,
+                                 bool printWarnings){
   _lock();
-  _setSignatureNoLock(numButtons, numAxes, numMatrices);
+  _setSignatureNoLock(numButtons, numAxes, numMatrices, printWarnings);
   _unlock();
 }
 
 void arInputState::_setSignatureNoLock( const unsigned int numButtons,
                                         const unsigned int numAxes,
-                                        const unsigned int numMatrices ) {
+                                        const unsigned int numMatrices,
+                                        bool printWarnings ) {
   // It's possible to lose pending events if numXXX is decreased,
   // therefore we warn when this happens.
   bool changed = false;
   if (numButtons < _buttons.size()) {
-    cerr << "arInputState warning: buttons reduced to "
-         << numButtons << ".\n";
+    if (printWarnings){
+      cerr << "arInputState warning: buttons reduced to "
+           << numButtons << ".\n";
+    }
     _buttons.erase( _buttons.begin()+numButtons, _buttons.end() );
     _lastButtons.erase( _lastButtons.begin()+numButtons, _lastButtons.end() );
     changed = true;
   } else if (numButtons > _buttons.size()) {
     _buttons.insert( _buttons.end(), numButtons-_buttons.size(), 0 );
-    _lastButtons.insert( _lastButtons.end(), numButtons-_lastButtons.size(), 0 );
+    _lastButtons.insert( _lastButtons.end(), 
+                         numButtons-_lastButtons.size(), 
+                         0 );
     changed = true;
   }
     
   if (numAxes < _axes.size()) {
-    cerr << "arInputState warning: axes reduced to "
-         << numAxes << ".\n";
+    if (printWarnings){
+      cerr << "arInputState warning: axes reduced to "
+           << numAxes << ".\n";
+    }
     _axes.erase( _axes.begin()+numAxes, _axes.end() );
     changed = true;
   } else if (numAxes > _axes.size()) {
@@ -248,8 +261,10 @@ void arInputState::_setSignatureNoLock( const unsigned int numButtons,
   }
     
   if (numMatrices < _matrices.size()) {
-    cerr << "arInputState warning: matrices reduced to "
-         << numMatrices << ".\n";
+    if (printWarnings){
+      cerr << "arInputState warning: matrices reduced to "
+           << numMatrices << ".\n";
+    }
     _matrices.erase( _matrices.begin()+numMatrices, _matrices.end() );
     changed = true;
   } else if (numMatrices > _matrices.size()) {
@@ -258,16 +273,11 @@ void arInputState::_setSignatureNoLock( const unsigned int numButtons,
     changed = true;
   }
   
-  // Mac OS X is upset by constructors for global vars that print things to
-  // cout (causes a segfault). The arEffector constructor (if including
-  // info about the signature) actually prints something via this statement.
-  // This causes cubes and atlantis to segfault on start! Consequently,
-  // this is commented-out until better action can be taken.
-  /*if (changed)
+  if (changed && printWarnings){
     cout << "arInputState remark: signature ("
          << _buttons.size() << "," << _axes.size() << "," << _matrices.size()
          << ").\n";
-  */
+  }
 }
 
 void arInputState::addInputDevice( const unsigned int numButtons,

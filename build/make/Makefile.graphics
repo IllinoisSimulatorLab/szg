@@ -17,6 +17,7 @@ OBJS = \
   arViewport$(OBJ_SUFFIX) \
   arGraphicsWindow$(OBJ_SUFFIX) \
   arGraphicsPeer$(OBJ_SUFFIX) \
+  arGraphicsPeerRPC$(OBJ_SUFFIX) \
   arCamera$(OBJ_SUFFIX) \
   arOrthoCamera$(OBJ_SUFFIX) \
   arFrameworkObject$(OBJ_SUFFIX) \

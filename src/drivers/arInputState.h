@@ -71,7 +71,8 @@ class SZG_CALL arInputState {
     
     void setSignature( const unsigned int maxButtons,
                        const unsigned int maxAxes,
-                       const unsigned int maxMatrices );
+                       const unsigned int maxMatrices,
+                       bool printWarnings=false );
                        
     void addInputDevice( const unsigned int numButtons,
                          const unsigned int numAxes,
@@ -107,7 +108,8 @@ class SZG_CALL arInputState {
     void _unlock();
     void _setSignatureNoLock( const unsigned int maxButtons,
                               const unsigned int maxAxes,
-                              const unsigned int maxMatrices );
+                              const unsigned int maxMatrices,
+                              bool printWarnings=false );
     int _getButtonNoLock(       unsigned int buttonNumber ) const;
     float _getAxisNoLock(       unsigned int axisNumber ) const;
     arMatrix4 _getMatrixNoLock( unsigned int matrixNumber ) const;
