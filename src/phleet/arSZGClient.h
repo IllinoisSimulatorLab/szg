@@ -145,6 +145,11 @@ class arSZGClient{
   /// by getting the ID of the launching message like so.
   int getLaunchingMessageID(){ return _launchingMessageID; }
 
+  // It is very convenient to be able to get a notification when a component
+  // exits.
+  int requestKillNotification(int componentID);
+  int getKillNotification(list<int> tags, int timeout = -1);
+
   // Functions dealing with locks.
   bool getLock(const string& lockName, int& ownerID);
   bool releaseLock(const string& lockName);

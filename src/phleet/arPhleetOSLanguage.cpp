@@ -17,6 +17,7 @@ arPhleetOSLanguage::arPhleetOSLanguage():
   _message("message"),
   _messageAdmin("message_admin"),
   _messageAck("message_ack"),
+  _killNotification("kill_notification"),
   _lockRequest("lock_request"),
   _lockRelease("lock_release"),
   _lockResponse("lock_response"),
@@ -73,6 +74,9 @@ arPhleetOSLanguage::arPhleetOSLanguage():
   AR_SZG_MESSAGE_ACK_ID = _messageAck.add("ID",AR_INT);
   AR_SZG_MESSAGE_ACK_STATUS = _messageAck.add("Status",AR_CHAR);
   AR_SZG_MESSAGE_ACK = _dictionary.add(&_messageAck);
+
+  AR_SZG_KILL_NOTIFICATION_ID = _killNotification.add("ID",AR_INT);
+  AR_SZG_KILL_NOTIFICATION = _dictionary.add(&_killNotification);
 
   AR_SZG_LOCK_REQUEST_NAME = _lockRequest.add("Name",AR_CHAR);
   AR_SZG_LOCK_REQUEST = _dictionary.add(&_lockRequest);

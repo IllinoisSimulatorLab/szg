@@ -1082,6 +1082,44 @@ int arSZGClient::requestMessageOwnership(const string& key){
   return messageID;
 }
 
+/// Requests that the client be notified when the component with the given ID
+/// exits (notification will occur immedicately if that ID is not currently
+/// held).
+int arSZGClient::requestKillNotification(int componentID){
+  arStructuredData* data 
+    = _dataParser->getStorage(_l.AR_SZG_KILL_NOTIFICATION);
+  int match = _fillMatchField(data);
+  data->dataIn(_l.AR_SZG_KILL_NOTIFICATION_ID, &componentID, AR_INT, 1);
+  if (!_dataClient.sendData(data)){
+    cerr << _exeName << " warning: failed to send kill "
+	 << "notification request.\n";
+    match = -1;
+  }
+  _dataParser->recycle(data);
+  // We do not get a message back from the szgserver, as is usual.
+  // The response will come through getKillNotification.
+  return match;
+}
+
+/// Receives a notification, as requested by the previous method, that a
+/// component has exited. Return the match if we have succeeded. Return
+/// -1 on failure. 
+int arSZGClient::getKillNotification(list<int> tags, 
+                                     int timeout){
+  // block until the response occurs (or timeout)
+  arStructuredData* data = NULL;
+  int match = _getTaggedData(data, tags,
+                             _l.AR_SZG_KILL_NOTIFICATION, timeout);
+  if (match < 0){
+    cerr << _exeName << " remark: failed to get kill "
+	 << "notification within timeout period.\n";
+  }
+  else{
+    _dataParser->recycle(data);
+  }
+  return match;
+}
+
 /// Acquire a lock. Check with szgserver to see
 /// if the lock is available. If so, acquire the lock for this component
 /// (and set ownerID to -1). Otherwise, set ownerID to the lock-holding
@@ -1676,17 +1714,31 @@ string arSZGClient::getTrigger(const string& virtualComputer){
 }
 
 /// Phleet components should use service names that are compartmentalized
-/// via virtual computer or by user name. So, if a virtual computer is
-/// active (say cube), and the base service name is SZG_BARRIER, then
-/// the resulting complex service name will be cube/SZG_BARRIER. If
-/// a virtual computer is not active but the Phleet user is, for instance,
-/// ben, then the complex service name will be SZG_BARRIER/ben.
+/// so as to allow users to control sharing of services. There are 3 cases:
+/// 1. Application component was NOT launched as part of a virtual computer:
+///    In this case, the phleet user name provides the compartmenting:
+///    (for example, SZG_BARRIER/ben)
+/// 2. Application component launched as part of virtual computer FOO, which
+///    has no "location" defined. In this case, the virtual computer
+///    name compartments the service. (FOO/SZG_BARRIER)
+/// 3. Application component launched as part of a virtual computer FOO,
+///    has a "location" component BAR. In this case, the "location" name
+///    compartments the service (BAR/SZG_BARRIER).
+/// This described the complex service name.
 string arSZGClient::createComplexServiceName(const string& serviceName){
   // At the blurry boundary between string and arSlashString.
   if (_virtualComputer == "NULL"){
     return serviceName+string("/")+_userName;
   }
-  return _virtualComputer+string("/")+serviceName;
+  // NOTE: the trailing empty string is necessary to avoid using the WRONG
+  // getAttribute(...), i.e. the one that lists default values.
+  string location = getAttribute(_virtualComputer,"SZG_CONF","location","");
+  if (location == "NULL"){
+    return _virtualComputer+string("/")+serviceName;
+  }
+  else{
+    return location+string("/")+serviceName;
+  }
 }
 
 /// Create a context string form internal storage and returns it.

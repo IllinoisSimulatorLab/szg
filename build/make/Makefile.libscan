@@ -88,7 +88,6 @@ ifeq ($(strip $(MACHINE)), LINUX)
     COMPILE_FLAGS_DEBUG += -DEnable_VRPN
     SZG_INCLUDE += -I$(INC_VRPN)
     LIBS := $(LIB_VRPN) $(LIBS)
-    GENERAL_LIBS := $(LIB_VRPN) $(GENERAL_LIBS)
   endif
   endif
 

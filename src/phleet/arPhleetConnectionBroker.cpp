@@ -632,10 +632,9 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
     if (n != _usedServices.end()){
       list<arPhleetNotification>::iterator nn 
         = n->second.notifications.begin();
-      // BUG: Does this really work vis-a-vis iterators?
       while (nn != n->second.notifications.end()){
         if (nn->componentID == componentID){
-          n->second.notifications.erase(nn);
+          nn = n->second.notifications.erase(nn);
 	}
 	else{
 	  nn++;

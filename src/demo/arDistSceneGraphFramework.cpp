@@ -259,9 +259,7 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv){
     _launcher.setAppType("distgraphics");
     _launcher.setRenderProgram("szgrender");
 
-    // The launchApp parameter says what reservation to
-    // make under vircomp/SZG_DEMO/app. This lets a new application
-    // automatically kill the old application.
+    // Reorganizes the system...
     if (!_launcher.launchApp()){
       initResponse << _label 
                    << " error: failed to launch on virtual computer "

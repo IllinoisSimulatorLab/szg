@@ -18,7 +18,8 @@ arAppLauncher::arAppLauncher(const char* exeName) :
   _renderLaunchInfo(NULL),
   _appType("NULL"),
   _renderProgram("NULL"),
-  _vircomp("NULL")
+  _vircomp("NULL"),
+  _location("NULL")
 {
   if (exeName && *exeName)
     _exeName.assign(exeName);
@@ -50,20 +51,43 @@ bool arAppLauncher::setAppType(const string& theType){
   return true;
 }
 
-/// Sometimes we just want to be able to set the virtual computer!
+/// Sets the virtal computer and the location, based on the default information
+/// held by the arSZGClient (i.e. as provided by the CONTEXT).
+bool arAppLauncher::setVircomp(){
+  if (!_client){
+    return false;
+  }
+  string virtualComputer = _client->getVirtualComputer();
+  return setVircomp(virtualComputer);
+}
+
+/// Allows us to set the virtaul computer explicitly (as desired for 
+/// killalldemo, for instance), without starting up a whole application.
 bool arAppLauncher::setVircomp(string vircomp){
   // check that this is, in fact, a valid virtual computer.
   if (!_client){
     return false;
   }
-  // TODO TODO TODO TODO TODO TODO TODO TODO TODO
-  // It is really obnoxious that we the virtual computer test in
-  // several different places (it is also in arSZGClient). Shouldn't it
-  // more naturally be localized in arAppLauncher?
+  // Check to make sure that the user has declared this is a valid virtual
+  // computer name.
   if (_client->getAttribute(vircomp,"SZG_CONF","virtual","") != "true"){
     return false;
   }
   _vircomp = vircomp;
+  // NOTE: There are two locks that have their names determined by the
+  // virtual computer:
+  // 1. The set-up lock: This ensures that only one system-wide reorganziation
+  //    occurs at a particular time.
+  // 2. The demo lock: Lets us know what program is currently running so that
+  //    it can be killed.
+  string locationCandidate = _client->getAttribute(vircomp,"SZG_CONF",
+						   "location","");
+  if (locationCandidate == "NULL"){
+    _location = _vircomp;
+  }
+  else{
+    _location = locationCandidate;
+  }
   return true;
 }
 
@@ -96,7 +120,10 @@ bool arAppLauncher::setSZGClient(arSZGClient* SZGClient){
 
 /// Queries the szgserver's database to find out the characteristics of the
 /// virtual computer and parses them, performing some elementary error 
-/// checking.
+/// checking. PLEASE NOTE: pretty much everybody calls this who needs to
+/// the characteristics of the virtaul computer (like killaldemo).
+/// Consequently, we need to take into account the fact that the virtual
+/// computer might have already been set explicitly. 
 bool arAppLauncher::setParameters(){
   if (!_client){
     cerr << _exeName << " error: no arSZGClient.\n";
@@ -108,16 +135,12 @@ bool arAppLauncher::setParameters(){
     return true;
   }
   
-  // make sure we forward all error messages
+  // Make sure we forward all error messages.
   stringstream& initResponse = _client->initResponse();
 
-  // retrieve the virtual computer name from the arSZGClient if the
-  // virtual computer has not already been set by hand
-  if (_vircomp == "NULL"){
-    _vircomp = _client->getVirtualComputer();
-  }
-
-  if (_vircomp == "NULL"){
+  // Set the virtual computer name (and also the "location").
+  // Only do this if the virtaul computer was not explciitly set!
+  if (_vircomp == "NULL" && !setVircomp()){
     initResponse << _exeName << " error: undefined virtual computer.\n";
     return false;
   }
@@ -454,24 +477,15 @@ int arAppLauncher::getMasterPipeNumber(){
 }
 
 /// Returns the computer/screen pair where the master instance of the
-/// application is running.
+/// application is running. CAN ONLY BE CALLED AFTER ONE OF THE INITIALIZATION
+/// FUNCTIONS (either setVircomp or setParameters).
 string arAppLauncher::getMasterName(){
-  // NOT SURE IF THIS TAP DANCE VIS-A-VIS _vircomp IS NECESSARY
-  string virtualComputer;
-  if (_vircomp == "NULL"){
-    virtualComputer = _client->getVirtualComputer();
-  }
-  else{
-    // the virtual computer has been explicitly set
-    virtualComputer = _vircomp;
-  }
   // note that SZG_MASTER/map gives the screen designation
-  string screenName = _client->getAttribute(virtualComputer,"SZG_MASTER",
-                                            "map","");
+  string screenName = _client->getAttribute(_vircomp, "SZG_MASTER", "map", "");
   if (screenName == "NULL"){
     return string("NULL");
   }
-  return _client->getAttribute(virtualComputer,screenName,"map","");
+  return _client->getAttribute(_vircomp, screenName, "map", "");
 }
 
 /// returns the screen name of the nth screen in the current virtual computer
@@ -496,7 +510,8 @@ bool arAppLauncher::getRenderProgram(const int num, string& computer,
   string renderProgramLock = _pipeComp[num] + ("/") + _pipeScreen[num];
   if (!_client->getLock(renderProgramLock, renderProgramID)){
     // someone is, in fact, holding the lock
-    const arSlashString renderProgramLabel(_client->getProcessLabel(renderProgramID));
+    const arSlashString renderProgramLabel
+      (_client->getProcessLabel(renderProgramID));
     if (renderProgramLabel != "NULL"){
       // something with this ID is still running
       renderName = renderProgramLabel[1];
@@ -663,7 +678,7 @@ bool arAppLauncher::_trylock(){
     return false;
   }
   int ownerID;
-  if (!_client->getLock(_vircomp+string("/SZG_DEMO/lock"), ownerID)){
+  if (!_client->getLock(_location+string("/SZG_DEMO/lock"), ownerID)){
     string label = _client->getProcessLabel(ownerID);
     cerr << _exeName << " warning: demo lock for virtual computer "
 	 << _vircomp << " is currently held. The "
@@ -681,7 +696,7 @@ void arAppLauncher::_unlock(){
   }
   // Trying to see if it's possible to get away with removing this
   // ar_usleep(500000);
-  if (!_client->releaseLock(_vircomp+string("/SZG_DEMO/lock"))){
+  if (!_client->releaseLock(_location+string("/SZG_DEMO/lock"))){
     cerr << "arAppLauncher warning: failed to release lock.\n";
   }
 }
@@ -800,13 +815,40 @@ if (!_client){
   // copy into local storage
   list<int> kill = *IDList;
 
+  // NOTE: the remote components DO NOT need to respond to the kill message.
+  // Consequently, we ask the szgserver.
+  list<int> tags;
+  for (iter = kill.begin(); iter != kill.end(); ++iter){
+    int tag = _client->requestKillNotification(*iter);
+    tags.push_back(tag);
+  }
+
   // Send kill signals.
   for (iter = kill.begin(); iter != kill.end(); ++iter){
     _client->sendMessage("quit", "scratch", *iter);
   }
 
-  // Wait for everything to die.
-  while (kill.begin() != kill.end()) {
+  // Wait for everything to die (up to a suitable time-out). The time-out
+  // is 8 seconds.
+  while (!tags.empty()){
+    int killedID = _client->getKillNotification(tags, 8000);
+    if (killedID < 0){
+      cout << "arAppLaunched remark: a time-out has occured in trying to "
+	   << "kill some remote processes.\n";
+      cout << "The components in question are: ";
+      for (list<int>::iterator n = tags.begin(); n != tags.end(); n++){
+        cout << *n << " ";
+	// IS IT REALLY A GOOD IDEA TO REMOVE STUFF FROM THE PROCESS TABLE?
+        _client->killProcessID(*n);
+      }
+      cout << "\n";
+      cout << "They have been removed from the syzygy process table.\n";
+      return;
+    }
+    tags.remove(killedID);
+  }
+  // The old, NO-TIME-OUT, way!
+  /*while (kill.begin() != kill.end()) {
     for (iter = kill.begin(); iter != kill.end(); ) {
       if (_client->getProcessLabel(*iter) == "NULL"){
 	cout << _exeName << " remark: "
@@ -817,9 +859,8 @@ if (!_client){
 	++iter;
       }
     }
-    // it is really disheartening that we need to poll!
     ar_usleep(100000);
-  }
+    }*/
 }
 
 /// kills every render program that does NOT match the specified
@@ -858,7 +899,7 @@ void arAppLauncher::_graphicsKill(string match){
 // something went wrong in the process.
 bool arAppLauncher::_demoKill(){
   int demoID = -1;
-  string demoLockName = _vircomp+string("/SZG_DEMO/app");
+  string demoLockName = _location+string("/SZG_DEMO/app");
   if (!_client->getLock(demoLockName,demoID)){
     // a demo is currently running
     _client->sendMessage("quit", "scratch", demoID);

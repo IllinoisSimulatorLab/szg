@@ -108,6 +108,17 @@ SZGlockNotificationDatabase lockNotificationDatabase;
 typedef map<int,list<string>,less<int> > SZGlockNotificationOwnershipDatabase;
 SZGlockNotificationOwnershipDatabase lockNotificationOwnershipDatabase;
 
+// when component goes away, sometimes other components wish to be notified.
+typedef map<int,list<arPhleetNotification>,less<int> > 
+  SZGkillNotificationDatabase;
+SZGkillNotificationDatabase killNotificationDatabase;
+
+// the kill notifications owned by a particular component. the list<int> is
+// of the observed component IDs (i.e. the components that we are watching
+// to see if they go away)
+typedef map<int,list<int>,less<int> > SZGkillNotificationOwnershipDatabase;
+SZGkillNotificationOwnershipDatabase killNotificationOwnershipDatabase;
+
 //**************************************************
 // end of global data storage used by the szgserver
 //**************************************************
@@ -467,6 +478,9 @@ bool SZGcheckLock(const string& lockName){
 
 /// Enters a request for notification when a given lock, currently held,
 /// is released.
+/// BUG BUG BUG BUG BUG BUG BUG: If a given component asks for multiple
+///  notifications on the same lock name, then it will receive only the
+///  first!
 void SZGrequestLockNotification(int componentID, string lockName,
                                 int match){
   arPhleetNotification notification;
@@ -563,6 +577,8 @@ void SZGsendLockNotification(string lockName, bool serverLock){
 	     << "found no expected lock notification owner.\n";
       }
     }
+    // Must remember to recycle the storage!
+    dataParser->recycle(data);
     // finally, the lock has gone away, so remove its entry
     lockNotificationDatabase.erase(i);
   }
@@ -586,7 +602,7 @@ void SZGremoveComponentLockNotifications(int componentID){
         list<arPhleetNotification>::iterator l = k->second.begin();
 	while (l != k->second.end()){
           if (l->componentID == componentID){
-            k->second.erase(l);
+            l = k->second.erase(l);
 	  }
 	  else{
 	    l++;
@@ -685,12 +701,193 @@ void SZGreleaseLocksOwnedByComponent(int id){
 }
 
 //********************************************************************
+// Functions dealing with kill notifications.
+// NOTE: THESE FUNCTIONS ARE ESSENTIALLY THE SAME AS THE LOCK RELEASE
+// NOTIFICATIONS!
+//********************************************************************
+
+/// Enters a request for notification when a particular component goes
+/// away. This is useful for efficient notification of a kill's success.
+void SZGrequestKillNotification(int requestingComponentID, 
+                                int observedComponentID,
+                                int match){
+  arPhleetNotification notification;
+  notification.componentID = requestingComponentID;
+  notification.match = match;
+  // enter it into the list indexed by the observed component ID
+  // (i.e. the component for whose demise we are waiting)
+  SZGkillNotificationDatabase::iterator i
+    = killNotificationDatabase.find(observedComponentID);
+  if (i == killNotificationDatabase.end()){
+    // no notifications, yet, for this component's demise
+    list<arPhleetNotification> temp;
+    temp.push_back(notification);
+    killNotificationDatabase.insert(SZGkillNotificationDatabase::value_type
+				    (observedComponentID, temp));
+  }
+  else{
+    // there are already notifications requested for this component's demise
+    i->second.push_back(notification);
+  }
+  // we must also enter it into the list organized by the REQUESTING
+  // component's ID.
+  SZGkillNotificationOwnershipDatabase::iterator j
+    = killNotificationOwnershipDatabase.find(requestingComponentID);
+  if (j == killNotificationOwnershipDatabase.end()){
+    // no kill notifications directed at this component yet
+    list<int> tempI;
+    // We need to know how to remove the notification request from the
+    // OBSERVED component's database if the REQUESTING component goes away
+    // before the observed component does.
+    tempI.push_back(observedComponentID);
+    killNotificationOwnershipDatabase.insert
+      (SZGkillNotificationOwnershipDatabase::value_type
+        (requestingComponentID, tempI));
+  }
+  else{
+    // there are already notifications directed towards this REQUESTING 
+    // component. REMEMBER: we want to be able to refer back to the 
+    // OBSERVED component (which is index by which we store the notification
+    // requests.
+    j->second.push_back(observedComponentID);
+  }
+}
+
+/// Sends the kill release notifications, if any. This is ALWAYS called when
+/// the component exits. Because of some technicalities about the way we use
+/// call, we need to be able to use the data server's regular methods 
+/// (in the case of serverLock = false) or data server's "no lock" methods
+/// (in the case of serverLock = true).
+void SZGsendKillNotification(int observedComponentID, bool serverLock){
+  SZGkillNotificationDatabase::iterator i
+    = killNotificationDatabase.find(observedComponentID);
+  if (i != killNotificationDatabase.end()){
+    // there are actually some notifications
+    arStructuredData* data 
+      = dataParser->getStorage(lang.AR_SZG_KILL_NOTIFICATION);
+    data->dataIn(lang.AR_SZG_KILL_NOTIFICATION_ID, &observedComponentID,
+		 AR_INT, 1);
+    // This component has a list of other components that wish to be
+    // notified when it exits.
+    for (list<arPhleetNotification>::iterator j = i->second.begin();
+	 j != i->second.end(); j++){
+      // Must set the match.
+      data->dataIn(lang.AR_PHLEET_MATCH, &(j->match), AR_INT, 1);
+      arSocket* theSocket = NULL;
+      // we use too different calls, sendData and sendDataNoLock,
+      // depending upon the context in which we were called.
+      // NOTE: the componentID held by the arPhleetNotification is the
+      // ID of the REQUESTING component.
+      if (serverLock){
+        theSocket = dataServer->getConnectedSocketNoLock(j->componentID);
+      }
+      else{
+        theSocket = dataServer->getConnectedSocket(j->componentID);
+      }
+      if (!theSocket){
+	cerr << "szgserver warning: wanted to send kill notification to "
+	     << "nonexistant component.\n";
+      }
+      else{
+	// we use too different calls, sendData and sendDataNoLock,
+	// depending upon the context in which we were called.
+	if (serverLock){
+          if (!dataServer->sendDataNoLock(data, theSocket)){
+	    cerr << "szgserver warning: "
+		 << "failed to send no-lock kill notification.\n";
+	  }
+	}
+	else{
+          if (!dataServer->sendData(data, theSocket)){
+	    cerr << "szgserver warning: failed to send kill notification.\n";
+	  }
+	}
+      }
+      // now, we need to do a little clean-up...
+      // THIS IS VERY, VERY INEFFICIENT. TODO TODO TODO TODO TODO TODO TODO
+      // NOTE: this notification database is organized via REQUESTING
+      // component ID (and j->componentID is REQUESTING COMPONENT ID)
+      SZGkillNotificationOwnershipDatabase::iterator k
+	= killNotificationOwnershipDatabase.find(j->componentID);
+      if (k != killNotificationOwnershipDatabase.end()){
+	// The lists in the killNotificationOwnershipDatabase are
+	// of OBSERVED component IDs (i.e. we want to be notified when this
+	// goes away)
+        k->second.remove(observedComponentID);
+	// If this component has no more (other) components whose potential
+	// demise it is observing, go ahead and remove the list.
+        if (k->second.empty()){
+          killNotificationOwnershipDatabase.erase(k);
+	}
+      }
+      else{
+	cerr << "szgserver error: "
+	     << "found no expected kill notification owner.\n";
+      }
+    }
+    // Must recycle the storage!
+    dataParser->recycle(data);
+    // finally, we've sent all the kill notifications, so remove the entry.
+    killNotificationDatabase.erase(i);
+  }
+}
+
+/// A component is going away. Remove any outstanding kill notification
+/// requests that it owns from internal storage.
+void SZGremoveComponentKillNotifications(int requestingComponentID){
+  SZGkillNotificationOwnershipDatabase::iterator i
+    = killNotificationOwnershipDatabase.find(requestingComponentID);
+  if (i != killNotificationOwnershipDatabase.end()){
+    // this component has some kill notifications... what we do is go
+    // through the it's list (which contains the IDs of the components it is
+    // OBSERVING).
+    for (list<int>::iterator j = i->second.begin();
+	 j != i->second.end(); j++){
+      // WOEFULLY INEFFICIENT... TODO TODO TODO TODO TODO TODO
+      // NOTE: we find the observed component and look at its list of
+      // registered kill notification requests.
+      SZGkillNotificationDatabase::iterator k
+	= killNotificationDatabase.find(*j);
+      if (k != killNotificationDatabase.end()){
+	// Remove every notification from the list which is related to the
+	// requestingComponentID.
+        list<arPhleetNotification>::iterator l = k->second.begin();
+	while (l != k->second.end()){
+	  // NOTE: the arPhleetNotification's componentID is the 
+	  // ID of the component REQUESTING the notification!
+          if (l->componentID == requestingComponentID){
+            l = k->second.erase(l);
+	  }
+	  else{
+	    l++;
+	  }
+	}
+	// if the list is empty, better remove it!
+	if (k->second.empty()){
+	  killNotificationDatabase.erase(k);
+	}
+      }
+      else{
+	cerr << "szgserver error: found no kill notification, "
+	     << "needed by component list.\n";
+      }
+    }
+    // finally, the component has gone away... so remove its info
+    killNotificationOwnershipDatabase.erase(i);
+  }
+}
+
+
+//********************************************************************
 // functions dealing with component management
 //********************************************************************
 
 /// The connection broker uses this callback to send the notifications of
 /// service release to clients that have requested such. NOTE: this is OK
 /// ONLY because it is called (indirectly) from SZGremoveComponentFromDatabase
+/// (THIS IS RELATED TO THE CONNECTION BROKER... AND EXISTS IN CALLBACK
+///  FORM BECAUSE THE CONNECTION BROKER CANNOT ITSELF DO EVERYTHING THAT IS
+///  NECESSARY TO RELEASE A COMPONENT WHEN IT GOES AWAY)
 void SZGreleaseNotificationCallback(int componentID,
 				    int match,
                                     const string& serviceName){
@@ -821,11 +1018,18 @@ void SZGremoveComponentFromDatabase(int componentID){
   dataParser->recycle(messageAdminData);
   // nuke the connection brokering
   connectionBroker.removeComponent(componentID);
-  // finally, deal with the lock-related stuff, both removing the locks
+  // Deal with the lock-related stuff, both removing the locks
   // this component owns (and, from in there, sending messages to the
   // components that desire notification on lock release) and in 
   SZGreleaseLocksOwnedByComponent(componentID);
   SZGremoveComponentLockNotifications(componentID);
+  // Remove any kill notifications owned by this component.
+  SZGremoveComponentKillNotifications(componentID);
+  // Finally, send any kill notifcations (regarding this component) that
+  // other components have requested. NOTE: we use the NO_LOCK version
+  // since we are inside the arDataServer's lock (this is called from
+  // the disconnect callback of the arDataServer).
+  SZGsendKillNotification(componentID, true);
 }
 
 //********************************************************************
@@ -1292,6 +1496,26 @@ void messageAdminCallback(arStructuredData* theData,
   dataParser->recycle(messageAckData);
 }
 
+/// Let a component request notification when another component exits.
+void killNotificationCallback(arStructuredData* data,
+			      arSocket* dataSocket){
+  int componentID = data->getDataInt(lang.AR_SZG_KILL_NOTIFICATION_ID);
+  if (!dataServer->getConnectedSocket(componentID)){
+    // NO SUCH COMPONENT EXISTS. report back immediately
+    if (!dataServer->sendData(data, dataSocket)){
+      cerr << "szgserver warning: failed to send kill notification.\n";
+      return;
+    }
+    // AND DO NOT INSERT NOTIFICATION REQUEST INTO DATABASE
+    return;
+  }
+  // IMPORTANT NOTE: THIS ONLY WORKS BECAUSE THE data server IS SERIALIZING
+  // CALLS TO THE szgserver. NOTE THE LACK OF ATOMICITY!
+  // the lock is currently held.
+  SZGrequestKillNotification(dataSocket->getID(), componentID,
+                             data->getDataInt(lang.AR_PHLEET_MATCH));
+}
+
 /// Helper functions for lockRequestCallback, lockReleaseCallback.
 
 string lockRequestInit(arStructuredData* lockResponseData,
@@ -1724,6 +1948,10 @@ void dataConsumptionFunction(arStructuredData* theData, void*,
   else if (theID == lang.AR_SZG_MESSAGE_ADMIN){
     // The callback handles propogating the "match".
     messageAdminCallback(theData, dataSocket);
+  }
+  else if (theID == lang.AR_SZG_KILL_NOTIFICATION){
+    // the callback handles propogating the match.
+    killNotificationCallback(theData, dataSocket);
   }
   else if (theID == lang.AR_SZG_LOCK_REQUEST){
     // The callback handles propogating the "match".

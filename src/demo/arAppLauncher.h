@@ -30,6 +30,7 @@ class arAppLauncher{
 
   bool setRenderProgram(const string&);
   bool setAppType(const string&);
+  bool setVircomp();
   bool setVircomp(string vircomp);     
 
   bool connectSZG(int& argc, char** argv);
@@ -70,6 +71,7 @@ class arAppLauncher{
   string             _appType;
   string             _renderProgram;
   string             _vircomp;
+  string             _location;
   string             _exeName;
   list<arLaunchInfo> _serviceList;
 

@@ -91,5 +91,12 @@ LUsage:
   }
 
   szgClient.sendMessage("quit", "0", progID);
+  // 5 second timeout on kill notification receipt.
+  int tag = szgClient.requestKillNotification(progID);
+  list<int> tags;
+  tags.push_back(tag);
+  if (szgClient.getKillNotification(tags, 5000) >= 0){
+    cout << "dkill remark: remote process disconnected from szgserver.\n";
+  }
   return 0;
 }

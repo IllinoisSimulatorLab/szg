@@ -420,10 +420,7 @@ bool arMasterSlaveFramework::init(int& argc, char** argv){
       delete exeBuf;
     }
 
-    // The launchApp parameter says what reservation to
-    // make under vircomp/SZG_DEMO/app. This lets a new application
-    // automatically kill the old application.
-    // note that launchApp sets the label correctly
+    // Reorganizes the virtual computer.
     if (!_launcher.launchApp()){
       initResponse << _label 
          << " error: failed to launch on virtual computer "

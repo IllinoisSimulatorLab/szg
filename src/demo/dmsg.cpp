@@ -24,7 +24,7 @@ void printusage(){
   cerr << "  dmsg [-r] -m virtual_computer message_type [message_body]\n";
   cerr << "  dmsg [-r] -g virtual_computer screen_number message_type "
        << "[message_body]\n";
-  cerr << "  dmsg [-r] -c virtual_computer message_type [message_body]\n";
+  cerr << "  dmsg [-r] -c location message_type [message_body]\n";
   cerr << "  dmsg [-r] -s service_name message_type [message_body]\n";
   cerr << "  dmsg [-r] -l lock_name message_type [message_body]\n";
 }
@@ -198,14 +198,11 @@ int main(int argc, char** argv){
       printusage();
       return 1;
     }
-    // we actually need to do the virtual computer thing
-    arAppLauncher launcher;
-    launcher.setSZGClient(&szgClient);
-    launcher.setVircomp(argv[1]);
-    if (!launcher.setParameters()){
-      cerr << "dmsg error: invalid virtual computer definition.\n";
-      return 1;
-    }
+    // WE DO NOT NEED TO MESS WITH VIRTUAL COMPUTERS IN THIS CASE!
+    // (WE ARE DIRECTLY TARGETING THE "APPLICATION LOCK")
+
+    // NOTE: here we use the location instead of a virtual computer name.
+    // Multiple virtual computers can share a location.
     string lockName = string(argv[1])+"/SZG_DEMO/app";
     if (!szgClient.getLock(lockName, componentID)){
       // something is indeed running on the screen in question

@@ -126,6 +126,10 @@ class arPhleetOSLanguage: public arLanguage{
   int AR_SZG_MESSAGE_ACK_ID;
   int AR_SZG_MESSAGE_ACK_STATUS;
 
+  /// AR_SZG_KILL_NOTIFICATION
+  int AR_SZG_KILL_NOTIFICATION;
+  int AR_SZG_KILL_NOTIFICATION_ID;
+
   /// AR_SZG_LOCK_REQUEST: Allows a component to request a lock with a given
   /// name.
 
@@ -233,6 +237,10 @@ class arPhleetOSLanguage: public arLanguage{
   // clients receive notification from the szgserver regarding their
   // communications pertaining to messages with this record
   arPhleetTemplate _messageAck;
+
+  // clients receive notification from the szgserver regarding the exit
+  // of a particular component.
+  arPhleetTemplate _killNotification;
 
   // a client uses this to request a named lock
   arPhleetTemplate _lockRequest;
