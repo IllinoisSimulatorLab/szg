@@ -98,7 +98,8 @@ int main(int argc, char** argv){
   }
 
   arInputSource* theSource = NULL;
-  int iService;
+  // THIS IS A BUG AND A HACK!
+  int iService = 0;
   arSharedLib inputSourceObject;
   // We want to load the object from the SZG_EXEC path.
   string execPath = SZGClient.getAttribute("SZG_EXEC","path");
@@ -194,6 +195,7 @@ int main(int argc, char** argv){
   arIOFilter* filter = NULL;
   string filterName(SZGClient.getAttribute(widgets[iService].serviceName, 
                     "filter"));
+
   if (filterName == "arConstantHeadFilter") {
     initResponse << "DeviceServer remark: loading "
 		 << "constant-head-position filter.\n";
@@ -214,6 +216,7 @@ int main(int argc, char** argv){
 		 << "FaroCal filter.\n";
     filter = new arFaroCalFilter();
   }
+
   if (filter) {
     if (!filter->configure( &SZGClient )){
       initResponse << "DeviceServer remark: could no configure filter.\n";
@@ -222,6 +225,8 @@ int main(int argc, char** argv){
     }
     inputNode.addFilter(filter,true);
   }
+
+ 
 
   if (!inputNode.init(SZGClient)){
     SZGClient.sendInitResponse(false);
