@@ -1,8 +1,10 @@
 SZG_INCLUDE_STYLE = INTERNAL
+SZG_COPY_LIB = TRUE
+
+# VPATH needs to be set BEFORE Makefile.vars (to get SRCDIR defined correctly)
+VPATH = ../../../src/barrier
 
 include $(SZGHOME)/build/make/Makefile.vars
-
-VPATH = ../../../src/barrier
 
 # DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
 # with this sometimes.
@@ -34,19 +36,16 @@ ALL =   $(SZG_CURRENT_DLL)\
         BarrierServer$(EXE) \
 	BarrierClient$(EXE)
 
-# NOTE: "Everything" is the magic target name used by subsidiary targets
-# like "clean" and "create-install" (which puts all the exe's in a particular
-# place)
-Everything: $(ALL)
+# NOTE: We now include the "magic" Everything target in Makefile.rules
 
-# NOTE: We MUST compile the precompiled header FIRST on Windows.
+# This should go BEFORE our FIRST target (because Makefile.rules has rules
+# in it, along with the "magic" Everything rule!
+include $(SZGHOME)/build/make/Makefile.rules
+
+# The shared lib corresponding to this szg subdirectory.
 $(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
 	$(LINK_SZG_LIB)
 	$(COPY)
-
-# This should go AFTER our FIRST target (because Makefile.rules has rules
-# in it)
-include $(SZGHOME)/build/make/Makefile.rules
 
 BarrierServer$(EXE): BarrierServer$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_EXE_FIRST) BarrierServer$(OBJ_SUFFIX) $(SZG_EXE_SECOND)

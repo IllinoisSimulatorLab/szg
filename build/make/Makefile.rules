@@ -7,8 +7,12 @@
 .c$(OBJ_SUFFIX):
 	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE)
 
+# The "magic" Everything rule!
+Everything: $(ALL)
+
 create-install: Everything
-	$(CP) $(ALL) $(INSTALLDIR)/bin	
+	$(CP) $(ALL) $(INSTALLDIR)/bin
+	$(SZG_LIB_COPY_LINE)
 
 bin: Everything
 	$(CP) $(ALL) $(BINDIR)

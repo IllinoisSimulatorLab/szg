@@ -1,9 +1,10 @@
 # No need to set the "include style" as INTERNAL, since we are compiling
 # exe's only.
 
-include $(SZGHOME)/build/make/Makefile.vars
-
+# VPATH needs to be set BEFORE Makefile.vars (to get SRCDIR defined correctly)
 VPATH = ../../../src/utilities
+
+include $(SZGHOME)/build/make/Makefile.vars
 
 ALL = \
   calibrationdemo$(EXE) \
@@ -17,13 +18,10 @@ ALL = \
   setstereo$(EXE) \
   StereoViewer$(EXE)
 
-# NOTE: "Everything" is the magic target name used by subsidiary targets
-# like "clean" and "create-install" (which puts all the exe's in a particular
-# place)
-Everything: $(ALL)
+# NOTE: We now include the "magic" Everything target in Makefile.rules
 
-# This should go AFTER our FIRST target (because Makefile.rules has rules
-# in it)
+# This should go BEFORE our FIRST target (because Makefile.rules has rules
+# in it, along with the "magic" Everything rule!
 include $(SZGHOME)/build/make/Makefile.rules
 
 calibrationdemo$(EXE): calibrationdemo$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
