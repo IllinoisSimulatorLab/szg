@@ -258,10 +258,16 @@ void arInputState::_setSignatureNoLock( const unsigned int numButtons,
     changed = true;
   }
   
-  if (changed)
+  // Mac OS X is upset by constructors for global vars that print things to
+  // cout (causes a segfault). The arEffector constructor (if including
+  // info about the signature) actually prints something via this statement.
+  // This causes cubes and atlantis to segfault on start! Consequently,
+  // this is commented-out until better action can be taken.
+  /*if (changed)
     cout << "arInputState remark: signature ("
          << _buttons.size() << "," << _axes.size() << "," << _matrices.size()
          << ").\n";
+  */
 }
 
 void arInputState::addInputDevice( const unsigned int numButtons,
