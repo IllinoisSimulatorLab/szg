@@ -215,6 +215,7 @@ bool arAppLauncher::setParameters(){
 bool arAppLauncher::launchApp(){
   // _prepareCommand() includes the lock to match the _unlock()'s below.
   if (!_prepareCommand())
+    cerr << _exeName << " error: failed to prepare launch command.\n";
     return false;
 
   if (_appType == "NULL"){
@@ -226,6 +227,8 @@ bool arAppLauncher::launchApp(){
 
   // see if there is a demo currently running, if so, kill it!
   if (!_demoKill()){
+    cerr << _exeName 
+	 << " error: failed to kill previous application.\n";
     _unlock();
     return false;
   }
@@ -284,6 +287,9 @@ bool arAppLauncher::launchApp(){
   _blockingKillByID(&serviceKillList);
 
   const bool ok = _execList(&appsToLaunch);
+  if (!ok){
+    cerr << _exeName << " error: failed to execute full component list.\n";
+  }
   _unlock(); 
   return ok;
 }
@@ -733,6 +739,8 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch){
     // we can go ahead and allow the running application to be killed.
     if (elapsedMicroseconds/1000000 > 20){
       if (!initialMessageMatches.empty()){
+        cout << _exeName << " error: have not received initial component "
+	     << "messages after 20 second timeout. Application will fail.\n";
         return false;
       }
       else{
