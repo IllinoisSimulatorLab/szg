@@ -132,6 +132,16 @@ bool buildFunctionArgs(const string& user,
     // needs to be push onto the front of the args list.
     args.push_front(command);
     command = "python";
+#ifdef AR_USE_WIN_32
+    command = command + ".EXE";
+#endif
+    fileName = command;
+    command = ar_fileFind( fileName, "", execPath );
+    if (command == "NULL"){
+      cout << "szgd error: could not find file " << fileName
+           << "\n  on exec path " << execPath << ".\n";
+      return false;
+    }
   }
   else{
     cout << "szgd error: unhandled executable type.\n";
@@ -468,7 +478,8 @@ void execProcess(void* i){
                      NORMAL_PRIORITY_CLASS, NULL, NULL, 
                      &si, &theInfo)){
     ar_mutex_unlock(&processCreationLock);
-    info << "szgd warning: failed to exec \"" << newCommand
+    info << "szgd warning: failed to exec \"" << command
+         << " with args " << argsBuffer
          << "\";\n\twin32 GetLastError() returned " 
          << GetLastError() << ".\n";
     // in this case, we will be responding directly, not the spawned
