@@ -7,7 +7,7 @@ LGPL, many of the demos have different licenses. See the relevant source
 files/ directories for this information. Furthermore, we include source code
 for libjpeg, zlib, and lib3DS, which have their own licenses.
 
-copyright 2000-2004 Benjamin Schaeffer
+copyright 2000-2005 Benjamin Schaeffer
 
 *****************************************************************************
 
@@ -19,6 +19,47 @@ for full demo credits. Furthermore, thanks very much to Bill Sherman whose
 nice FreeVR library provided examples and inspiration on topics such as
 flock-of-birds interface, shared-memory input device interface for legacy
 applications, etc.
+
+Also, while this regards a different project (though related) project,
+thanks to Peter Brinkmann for developing Python bindings for Syzygy (py-szg)
+and to George Francis and students for using them in their classes.
+
+*****************************************************************************
+Contributors (core project), Syzygy-0.7
+
+Release Feb 2005
+
+Major contributions are listed in reverse chronological order, giving the
+name of the responsible developer(s). See the changelog for more details.
+
+Ben- Reworked DeviceServer to use loadable modules (plus an XML config file
+as stored in a "global" database parameter).
+
+Ben- Added support for shared libraries to Syzygy. Now, the Syzygy libraries
+are built as shared libraries and loadable modules are supported (for
+instance, for device drivers). 
+
+Ben- Added support for "graphics peers", a generalization of arGraphicsServer
+and arGraphicsClient.
+
+Ben- Improvements to Phleet. Different virtual computers in the same
+"location" can now cooperate. Also, fixed jamming issues in Phleet, 
+introducing ubiquitous time-outs.
+
+Peter and Jim: Created and did significant work on Syzygy Python bindings 
+(see py-szg project).
+
+Ben- Made an szg SDK. Created a new build mode ("EASY") to support it.
+
+Jim and Ben- Reworked and generalized the graphics window code, allowing for
+custom configuration of viewports and better camera handling (custom cameras 
+for instance). The problematic arScreenObject class was removed.
+
+Ben- Added "standalone" mode (in addition to "Phleet" mode, which already
+existed).
+
+Ben- Added IP whitelisting and filtering to the szgserver (similar to TCP 
+wrappers).
 
 *****************************************************************************
 Contributors (core project), Syzygy-0.61

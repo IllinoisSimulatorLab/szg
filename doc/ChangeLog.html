@@ -12,19 +12,22 @@ locations are determined for Phleet. There is no longer a -t option for
 dname, dports, daddinterface, or ddelinterface. Instead, the SZG_CONF
 environment variable, if set, gives the nonstandard config file location.
 Similarly, SZG_LOGIN, if set, controls the location of the login files.
-<li>Master/slave preExchange callack is now only called on the master. postExchange
-callback is not called on a disconnected slave. postExchange callback returns void,
-not bool. setInitCallback has been changed to setStartCallback because the callback
-is invoked during arMasterSlaveFramework::start().
-<li>Changed arGraphicsWindow so it supports much more general drawing modes into a single
-window. Before, a few were hard-coded in, now things are fairly general.
-<li>Added an arHead class to hold head-related data (eye spacing, mid-eye offset, eye
-direction), automatically shared
+<li>Master/slave preExchange callack is now only called on the master. 
+postExchange callback is not called on a disconnected slave. postExchange 
+callback returns void, not bool. setInitCallback has been changed to 
+setStartCallback because the callback is invoked during 
+arMasterSlaveFramework::start().
+<li>Changed arGraphicsWindow so it supports much more general drawing modes 
+into a single window. Before, a few were hard-coded in, now things are fairly 
+general.
+<li>Added an arHead class to hold head-related data (eye spacing, mid-eye 
+offset, eye direction), automatically shared
 master->slaves and scene-graph controller->clients. Associated parameters
-are read from the SZG_HEAD group by the master and scene-graph controller only (i.e. they
-only need to be set on the master and trigger computers). It also holds the graphics
-unit conversion factor, simply because that's an application-wide constant and that
-was a convenient place to put it.
+are read from the SZG_HEAD group by the master and scene-graph controller 
+only (i.e. they
+only need to be set on the master and trigger computers). It also holds the 
+graphics unit conversion factor, simply because that's an application-wide 
+constant and that was a convenient place to put it.
 <li>Deleted the arScreenObject. Its head-related info was moved into arHead,
 virtual screen location into the new arGraphicsScreen, and the frustum and
 lookat matrix computations are done by the new arVRCamera class.
@@ -72,7 +75,6 @@ and has gone away with better Irix compilers. This issue is explored in
 depth elsewhere in the documentation (including a simple test program to
 diagnose whether your compiler is OK or not).
 <li>Fixed the FOB driver so that it can be used with more general FOB set-ups.
-    MUST CHANGE DOCUMENTATION!
 <li>Added the "EASY" build style and improved the project template. There
 is also a "make create-install" option which is perfect for making an
 image of the library for development.
