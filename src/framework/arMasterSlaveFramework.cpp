@@ -570,9 +570,9 @@ void arMasterSlaveFramework::preDraw(){
   // arMasterSlaveFramework::getButton() or some other method in that callback
   if (getMaster()){
     _pollInputData();
-  }
-  if (_preExchange){
-    _preExchange(*this);
+    if (_preExchange){
+      _preExchange(*this);
+    }
   }
 
   // might not be running in a distributed fashion

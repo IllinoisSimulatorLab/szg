@@ -109,6 +109,7 @@ class SZG_CALL arMatrix4{
   ~arMatrix4() {}
   
   arMatrix4 inverse() const;
+  arMatrix4 transpose() const;
 
   operator arQuaternion() const;
   // DO NOT add an operator conversion to float*
@@ -135,6 +136,10 @@ class SZG_CALL arQuaternion{
   ~arQuaternion() {}
 
   operator arMatrix4() const;
+
+  // THIS METHOD HAS NOT BEEN IMPLEMENTED (Not sure how just yet).
+  // Meant to replace operator!, which has also not been implemented.
+//  arQuaternion inverse() const;
 
   float real;
   arVector3 pure;
@@ -165,7 +170,6 @@ SZG_CALL arMatrix4 operator*(const arMatrix4&,const arMatrix4&);
 SZG_CALL arMatrix4 operator+(const arMatrix4&, const arMatrix4&); //addition
 SZG_CALL arMatrix4 operator-(const arMatrix4&); //negation
 SZG_CALL arMatrix4 operator-(const arMatrix4&, const arMatrix4&); //subtraction
-SZG_CALL arMatrix4 operator~(const arMatrix4&); //transpose
 //inverse, return all zeros if singular
 SZG_CALL arMatrix4 operator!(const arMatrix4&); 
 SZG_CALL ostream& operator<<(ostream&, const arMatrix4&);
@@ -180,8 +184,8 @@ SZG_CALL arQuaternion operator/(const arQuaternion&, float);
 SZG_CALL arQuaternion operator+(const arQuaternion&, const arQuaternion&);
 SZG_CALL arQuaternion operator-(const arQuaternion&);
 SZG_CALL arQuaternion operator-(const arQuaternion&, const arQuaternion&);
-// inverts unit quaternion
-SZG_CALL arQuaternion operator!(const arQuaternion&);       
+// inverts unit quaternion (NOT IMPLEMENTED)
+//SZG_CALL arQuaternion operator!(const arQuaternion&);       
 SZG_CALL float operator++(const arQuaternion&);   // magnitude
 SZG_CALL ostream& operator<<(ostream&, const arQuaternion&);
 
