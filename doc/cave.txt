@@ -1,27 +1,33 @@
-# The configuration of the cube has two parts, one which varies from user to
-# user and only consists of the path upon which the system should search for
-# executables... and another part which configures the system. This
-# second part is further subdivided into "everything else" and "graphics"
+<szg_config>
 
-# configuartion that varies per user (really just varies based on linux 
-# versus windows)
+<assign>
+cave6		SZG_EXEC path G:\cube\bin\win32 
+cavefront	SZG_EXEC path G:\cube\bin\win32
+caveleft	SZG_EXEC path G:\cube\bin\win32
+caveright	SZG_EXEC path G:\cube\bin\win32
+cavefloor	SZG_EXEC path G:\cube\bin\win32
+kam1		SZG_EXEC path G:\cube\bin\win32
+kam3		SZG_EXEC path /home/public/cube/bin/linux
+cassatt		SZG_EXEC path /afs/ncsa.uiuc.edu/.u6/camilleg/bin
+</assign>
 
-cube6     SZG_EXEC path G:\THE_USER_NAME\bin\win32 
-cavefront SZG_EXEC path G:\THE_USER_NAME\bin\win32
-caveleft  SZG_EXEC path G:\THE_USER_NAME\bin\win32
-caveright SZG_EXEC path G:\THE_USER_NAME\bin\win32
-cavefloor SZG_EXEC path G:\THE_USER_NAME\bin\win32
-aria      SZG_EXEC path G:\THE_USER_NAME\bin\win32
+<param>
+<name> cave_tracker </name>
+<value>
+  <szg_device>
+    <input_sources> arSharedMemDriver </input_sources>
+  </szg_device>
+</value>
+</param>
 
-# configuration that is basically the same for all users
-# everything besides graphics goes first
+<comment> definition of the cave virtual computer </comment>
 
-# definition of the cube virtual computer
-
+<assign>
+cave SZG_CONF    location       cave
 cave SZG_CONF    virtual        true
 cave SZG_TRIGGER map            cavefront
 cave SZG_MASTER  map            SZG_SCREEN0
-cave SZG_SCREEN  number_screens 4 
+cave SZG_SCREEN  number_screens 4
 cave SZG_SCREEN0 map            cavefront/SZG_SCREEN0
 cave SZG_SCREEN0 networks       cave/internet
 cave SZG_SCREEN1 map            caveleft/SZG_SCREEN0
@@ -30,43 +36,62 @@ cave SZG_SCREEN2 map            caveright/SZG_SCREEN0
 cave SZG_SCREEN2 networks       cave/internet
 cave SZG_SCREEN3 map            cavefloor/SZG_SCREEN0
 cave SZG_SCREEN3 networks       cave/internet
-cave SZG_INPUT0  map            cassatt/szg-mem
+cave SZG_INPUT0  map            cassatt/cave_tracker
 cave SZG_INPUT0  networks       internet
-cave SZG_SOUND   map            aria
+cave SZG_SOUND   map            kam1
 cave SZG_SOUND   networks       internet
+</assign>
 
-# definitions of the various search paths that are the same from user to user
-# (really just varies based upon linux versus windows)
-
-aria      SZG_DATA   path         g:\Data
-aria      SZG_SOUND  path         g:\Sounds
-aria      SZG_RENDER texture_path g:\Texture
-aria      SZG_RENDER text_path    g:\Texture\Text
+<assign>
+kam1      SZG_DATA   path         g:\Data
+kam1      SZG_SOUND  path         g:\Sounds
+kam1      SZG_RENDER texture_path g:\Texture
+kam1      SZG_RENDER text_path    g:\Texture\Text
 cube6     SZG_DATA   path         g:\Data
-cube6     SZG_SOUND  path         g:\Sounds
 cube6     SZG_RENDER texture_path g:\Texture
 cube6     SZG_RENDER text_path    g:\Texture\Text
 cavefront SZG_DATA   path         c:\Data;g:\Data
-cavefront SZG_SOUND  path         g:\Sounds
 cavefront SZG_RENDER texture_path g:\Texture
 cavefront SZG_RENDER text_path    g:\Texture\Text
 caveleft  SZG_DATA   path         c:\Data;g:\Data
-caveleft  SZG_SOUND  path         g:\Sounds
 caveleft  SZG_RENDER texture_path g:\Texture
 caveleft  SZG_RENDER text_path    g:\Texture\Text
 caveright SZG_DATA   path         c:\Data;g:\Data
-caveright SZG_SOUND  path         g:\Sounds
 caveright SZG_RENDER texture_path g:\Texture
 caveright SZG_RENDER text_path    g:\Texture\Text
 cavefloor SZG_DATA   path         c:\Data;g:\Data
-cavefloor SZG_SOUND  path         g:\Sounds
 cavefloor SZG_RENDER texture_path g:\Texture
 cavefloor SZG_RENDER text_path    g:\Texture\Text
+</assign>
 
-# definitions of miscellaneous stuff
+<comment> definitions of miscellaneous stuff </comment>
 
-# graphics configuration
+<assign>
+cavefront SZG_EXPT save_data false
+cavefront SZG_EXPT file_name demo
+cavefront SZG_EXPT method    enumerated
+cavefront SZG_EXPT subject   DEMO
 
+cavefront SZG_EXPT path      G:\Experiments
+caveleft SZG_EXPT path      G:\Experiments
+caveright SZG_EXPT path      G:\Experiments
+cavefloor SZG_EXPT path      G:\Experiments
+</assign>
+
+<comment> Head parameters (on master & controller) </comment>
+<assign>
+cavefront SZG_HEAD eye_spacing 0.2
+cavefront SZG_HEAD eye_direction 1/0/0
+cavefront SZG_HEAD mid_eye_offset 0.29/0/-0.21
+cavefront SZG_HEAD fixed_head_mode false
+cavefront SZG_HEAD eye_spacing 0.2
+cavefront SZG_HEAD eye_direction 1/0/0
+cavefront SZG_HEAD mid_eye_offset 0.29/0/-0.21
+cavefront SZG_HEAD fixed_head_mode false
+</assign>
+
+<comment> graphics configuration </comment>
+<assign>
 cavefront SZG_SCREEN0 size              0/0
 cavefront SZG_SCREEN0 screen_center     0/5/-5
 cavefront SZG_SCREEN0 screen_dim        10/10
@@ -114,3 +139,7 @@ cavefloor SZG_SCREEN0 mid_eye_offset    0.29/0/-0.21
 cavefloor SZG_SCREEN0 tile              0/1/0/1
 cavefloor SZG_SCREEN0 fixed_head        false
 cavefloor SZG_SCREEN0 fixed_head_pos    0/5.5/0
+cavefloor SZG_SCREEN0 wildcat_framelock   true
+</assign>
+
+</szg_config>
