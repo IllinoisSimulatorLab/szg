@@ -8,7 +8,6 @@ ALL = \
 	killalldemo$(EXE) \
 	restarttracker$(EXE) \
 	screensaverdemo$(EXE) \
-	setinputfilter$(EXE) \
 	setdemomode$(EXE) \
 	setstereo$(EXE)
 
@@ -29,9 +28,6 @@ restarttracker$(EXE): restarttracker$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBS)
 	$(DO_LINK_GRAPHICS)
 
 screensaverdemo$(EXE): screensaverdemo$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBS)
-	$(DO_LINK_GRAPHICS)
-
-setinputfilter$(EXE): setinputfilter$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBS)
 	$(DO_LINK_GRAPHICS)
 	
 setdemomode$(EXE): setdemomode$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBS)
