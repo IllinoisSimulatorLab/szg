@@ -390,3 +390,29 @@ void arInputState::updateLastButton( const unsigned int index ) {
   _lastButtons[index] = _buttons[index];
   _unlock();
 }
+
+ostream& operator<<(ostream& os, const arInputState& cinp ) {
+  arInputState* inp = (arInputState*)&cinp;
+  os << "buttons: " << inp->getNumberButtons() << ", "
+       << "axes: " << inp->getNumberAxes() << ", "
+       << "matrices: " << inp->getNumberMatrices() << "\n";
+  os << "buttons: ";
+  unsigned int i;
+  for (i=0; i<inp->getNumberButtons(); i++){
+    os << inp->getButton(i) << " ";
+  }
+  os << "\n";
+  os << "axes: ";
+  for (i=0; i<inp->getNumberAxes(); i++){
+    os << inp->getAxis(i) << " ";
+  }
+  os << "\n";
+  os << "matrices:\n";
+  for (i=0; i<inp->getNumberMatrices(); i++){
+    os << inp->getMatrix(i) << endl;
+  }
+  os << "\n";
+  os << "*************************************************\n";
+  return os;
+}
+

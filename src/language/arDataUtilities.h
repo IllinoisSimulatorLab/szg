@@ -74,6 +74,7 @@ class arTimer {
     bool done();
     void stop();
     void reset();
+    void setRuntime( double dur ) { _runTime = dur; }
     double duration() { return _duration; }
   private:
     bool _firstStart;

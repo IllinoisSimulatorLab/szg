@@ -173,8 +173,8 @@ void arTimer::start( double dur ) {
   else if (_running) // calling start while running resets lap timer
     stop();
   _lastStart = ar_time();
-  _runTime = 0.;
-  _lapTime = 0;
+//  _runTime = 0.;
+//  _lapTime = 0;
   _duration = dur;
   _running = true;
 }

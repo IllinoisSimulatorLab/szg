@@ -151,8 +151,7 @@ bool arReactionTimerDriver::_processInput() {
       if ((rtDuration > 0.)&&(lastrt < 0.)) {
         _rtTimer.reset();
         _rtTimer.start();
-	// AARGH! HAD TO COMMENT THIS OUT SO THINGS WOULD COMPILE!
-        //_rtTimer.setRuntime( rtDuration*1.e3 );
+        _rtTimer.setRuntime( rtDuration*1.e3 );
 #ifdef DEBUG
         cerr << "Setting runtime to " << rtDuration*1.e3 << " microsecs.\n";
 #endif

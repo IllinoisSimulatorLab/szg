@@ -103,7 +103,7 @@ bool arPPTDriver::_processInput() {
     return true; 
   }
   if (!_imAlive) {
-    cerr << "arPPTDriver remark: establishded communication with PPT.\n";
+    cerr << "arPPTDriver remark: established communication with PPT.\n";
     _imAlive = true;
   }
   _resetStatusTimer();
@@ -124,6 +124,7 @@ bool arPPTDriver::_processInput() {
   if(lastGoodIndex != -1) {
     //If we found a fresh packet, unstuff data and return number of lights
     int numlights = (int)packet[1+lastGoodIndex];
+    _setDeviceElements( 0, 0, numlights );
     
     for(int i = 0; i < numlights; i++) {
       float x = _unstuffBytes(10.0, &(packet[(i*6+2)+lastGoodIndex]) );

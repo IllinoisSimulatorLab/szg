@@ -185,11 +185,13 @@ void arSZGAppFramework::setEventFilter( arFrameworkEventFilter* filter ) {
     _eventFilter = (arFrameworkEventFilter*)&_callbackFilter;
   }
   _inputDevice->addFilter( (arIOFilter*)_eventFilter, false );
+  cout << "arSZGAppFramework remark: event filter set.\n";
 }
 
 void arSZGAppFramework::setEventCallback( arFrameworkEventCallback callback ) {
   _callbackFilter.setCallback( callback );
   setEventFilter(0);
+  cout << "arSZGAppFramework remark: event callback set.\n";
 }
 
 static bool ___firstNavLoad = true;

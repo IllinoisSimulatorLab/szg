@@ -66,7 +66,7 @@ int main(int argc, char** argv){
     { "arReactionTimer",      "SZG_RT",       "Reaction Timer", NULL},
     { "arPassiveTracker",     "SZG_INPUT",    "Passive Display Tracker", NULL},
     { "arLogitechDriver",     "SZG_LOGITECH", "Logitech Tracker", NULL},
-    { "arPPTDriver",          "SZG_PPT", "WorldViz PPT Tracker", NULL}
+    { "arPPTDriver",          "SZG_PPT", "WorldViz PPT Tracker", "USED"}
     };
 
   arSZGClient SZGClient;
@@ -81,19 +81,30 @@ int main(int argc, char** argv){
 
   int i;
   if (argc < 3){
-    cerr << "usage: DeviceServer driver_name\n\t(driver_name = \n";
+    cerr << argc << ": ";
+    for (i=0; i<argc; ++i) {
+      cerr << argv[i] << " ";
+    }
+    cerr << endl;
+    cerr << "usage: DeviceServer driver_name driver_slot [-netinput]\n\tLegal driver names are:\n";
     for (i=0; i<numServices; ++i)
       cerr << "\t" << widgets[i].arName << endl;
-    cerr << ") driver_slot.\n";
-    initResponse << "usage: DeviceServer driver_name\n\t(driver_name = \n";
+    cerr << endl;
+    initResponse << "usage: DeviceServer driver_name driver_slot [-netinput]\n\tLegal driver names are:\n";
     for (i=0; i<numServices; ++i)
       initResponse << "\t" << widgets[i].arName << endl;
-    initResponse << ") driver_slot.\n";
+    initResponse << endl;
     SZGClient.sendInitResponse(false);
     return 1;
   }
 
-  int baseSlot = atoi(argv[2]);
+  int slotNumber = atoi(argv[2]);
+  bool useNetInput(false);
+  if (argc > 3) {
+    if (std::string(argv[3]) == "-netinput") {
+      useNetInput = true;
+    }
+  }
 
   arInputSource* theSource = NULL;
   int iService;
@@ -164,10 +175,13 @@ int main(int argc, char** argv){
                << widgets[iService].printableName << ".\n";
   arInputNode inputNode;
   inputNode.addInputSource(theSource,true);
-  if (widgets[iService].netName) {
+//  if (widgets[iService].netName) {
+  if (useNetInput) {
     arNetInputSource* netSource = new arNetInputSource;
-    netSource->setSlot(baseSlot+1);
+    netSource->setSlot(slotNumber+1);
     inputNode.addInputSource(netSource,true);
+    cerr << "DeviceServer remark: using net input, slot #" << slotNumber+1 << ".\n";
+    initResponse << "DeviceServer remark: using net input, slot #" << slotNumber+1 << ".\n";
     // Memory leak.  inputNode won't free its input sources, I think.
   }
 
@@ -182,7 +196,7 @@ int main(int argc, char** argv){
   }
   
   arNetInputSink netInputSink;
-  netInputSink.setSlot(baseSlot);
+  netInputSink.setSlot(slotNumber);
   inputNode.addInputSink(&netInputSink,false);
 
   arFileSink fileSink;

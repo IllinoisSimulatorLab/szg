@@ -5,12 +5,13 @@
 #include "arThread.h"
 #include "arInputEvent.h"
 #include <vector>
-
-#if (defined(__GNUC__)&&(__GNUC__<3))
-#include <algo.h>
-#else
-#include <algorithm>
-#endif
+#include <ostream>
+#include "arSTLalgo.h"
+//#if (defined(__GNUC__)&&(__GNUC__<3))
+//#include <algo.h>
+//#else
+//#include <algorithm>
+//#endif
 
 template <class eventDataType> class arInputDeviceMap {
   public:
@@ -133,6 +134,8 @@ class arInputState {
     // pretty much every operation on the input state had better be atomic
     arMutex _accessLock;
 };  
+
+ostream& operator<<(ostream& os, const arInputState& inp );
 
 template <class eventDataType>
 unsigned int arInputDeviceMap<eventDataType>::getNumberEvents() const {

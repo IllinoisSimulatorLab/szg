@@ -31,6 +31,10 @@ void printusage(){
 
 int main(int argc, char** argv){
 
+  if (argc < 2) {
+    printusage();
+    return 1;
+  }
   // dmsg can either expect a response or not from the receiver of the
   // message. The default is to expect no response (for historical reasons,
   // since messages originally were just kinda thrown out into the blue,

@@ -64,7 +64,7 @@ class arMasterSlaveFramework : public arSZGAppFramework {
   void setReshapeCallback(void (*reshape)(arMasterSlaveFramework&, int, int));
   void setExitCallback(void (*cleanup)(arMasterSlaveFramework&));
   void setUserMessageCallback(
-    void (*userMessageCallback)(arMasterSlaveFramework&, const string&));
+    void (*userMessageCallback)( arMasterSlaveFramework&, const string& messageBody ));
   void setOverlayCallback(void (*overlay)(arMasterSlaveFramework&));
   void setKeyboardCallback(void (*keyboard)(arMasterSlaveFramework&,
                                             unsigned char, int, int));

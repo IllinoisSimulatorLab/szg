@@ -143,26 +143,33 @@ bool arAppLauncher::setParameters(){
 
   // go ahead and deal with the input stuff
   const arSlashString inputDevs(_getAttribute("SZG_INPUT0", "map", ""));
-  const int numDevs = inputDevs.size();
-  if (numDevs%2){
+  const int numTokens = inputDevs.size();
+  if (numTokens%2){
     initResponse << _exeName
          << " error: incorrect input devices format for " << _vircomp
 	 << ".  Expected computer/inputDevice/.../computer/inputDevice.\n";
     return false;
   }
   _serviceList.clear();
-  for (i=0; i<numDevs; i+=2){
+  // step through list of computer/device token pairs 
+  for (i=0; i<numTokens; i+=2){
     const string computer(inputDevs[i]);
     string device(inputDevs[i+1]);
     /// \todo hack, copypasted into demo/buttonfly/setinputfilter.cpp
-    if (device != "wandsimserver"){
+    //
       // NOTE: the input device in slot 0 is the one that actually
       // connects to the application. Consequently, it must come FIRST
       // in the <virtual computer>/SZG_INPUT0/map listing.
       // The next entry in the listing is the first slave device.
       char buffer[32];
       sprintf(buffer," %i",i/2);
+    if (device == "wandsimserver"){
+      device = device + string(buffer);
+    } else {
       device = "DeviceServer " + device + string(buffer);
+    }
+    if (i < numTokens-2) {
+      device = device + " -netinput";
     }
     _addService(computer,device,_getInputContext());
   }

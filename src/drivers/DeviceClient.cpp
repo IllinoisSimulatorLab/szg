@@ -25,9 +25,9 @@ void dumpState( arInputState& inp ) {
     cout << inp.getAxis(i) << " ";
   }
   cout << "\n";
-  cout << "matrices: ";
+  cout << "matrices:\n";
   for (i=0; i<inp.getNumberMatrices(); i++){
-    cout << inp.getMatrix(i);
+    cout << inp.getMatrix(i) << endl;
   }
   cout << "\n";
   cout << "*************************************************\n";
@@ -47,7 +47,7 @@ bool arClientEventFilter::_processEvent( arInputEvent& event ) {
   bool dump(false);
   switch (event.getType()) {
     case AR_EVENT_BUTTON:
-      if (event.getButton() != _lastInput.getButton( event.getIndex() )) {
+      if (event.getButton() && !_lastInput.getButton( event.getIndex() )) {
         dump = true;
       }
       break;

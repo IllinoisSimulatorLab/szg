@@ -8,10 +8,12 @@
 #include "arGraphicsHeader.h"
 #include "arHeadWandSimulator.h"
 #include "arInputNode.h"
+#include "arNetInputSource.h"
 #include "arNetInputSink.h"
 #include "arGenericDriver.h"
 #include "arPForthFilter.h"
 
+arInputState* inp;
 
 arHeadWandSimulator simulator;
 int xPos = 0, yPos = 0;
@@ -39,6 +41,14 @@ void display(){
 
 void idle(){
   simulator.advance();
+//bool dump(false);
+//for (unsigned int i=0; i<inp->getNumberButtons();++i) {
+//  if (inp->getOnButton(i))
+//    dump = true;
+//}
+//if (dump) {
+//  cerr << *inp << endl;
+//}
   display();
   // we don't want to spin a CPU with the simulator, so framerate should
   // be throttled... but don't be too agressive about throttling...
@@ -77,17 +87,36 @@ int main(int argc, char** argv){
   if (!szgClient)
     return 1;
 
+  int slotNumber(0);
+  if (argc > 1) {
+    slotNumber = atoi(argv[1]);
+  }
+  cout << "wandsimserver remark: using slot #" << slotNumber << endl;
+  bool useNetInput(false);
+  if (argc > 2) {
+    if (std::string(argv[2]) == "-netinput") {
+      useNetInput = true;
+    }
+  }
   arNetInputSink netInputSink;
-  netInputSink.setSlot(0);
-  arPForthFilter testFilter;
-  if (!testFilter.configure(&szgClient)){
+  netInputSink.setSlot(slotNumber);
+  arPForthFilter pforth;
+  if (!pforth.configure(&szgClient)){
     szgClient.sendInitResponse(false);
     return 1;
   }
   arInputNode inputNode;
   simulator.registerInputNode(&inputNode);
+  inp = &inputNode._inputState;
+  if (useNetInput) {
+    arNetInputSource* netSource = new arNetInputSource;
+    netSource->setSlot(slotNumber+1);
+    inputNode.addInputSource(netSource,true);
+    cerr << "wandsimserver remark: using net input, slot #" << slotNumber+1 << ".\n";
+    // Memory leak.  inputNode won't free its input sources, I think.
+  }
   inputNode.addInputSink(&netInputSink,false);
-  inputNode.addFilter(&testFilter, true);
+  inputNode.addFilter(&pforth, true);
   if (!inputNode.init(szgClient)) {
     szgClient.sendInitResponse(false);
     return 1;
