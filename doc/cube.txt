@@ -95,17 +95,10 @@
 </value>
 </param>
 
-<param>
-<name> cube_wandsim </name>
-<value>
-  <szg_device>
-    <input_sources> wandsimserver </input_sources>
-    <input_sinks></input_sinks>
-    <input_filters></input_filters>
-    <pforth></pforth>
-  </szg_device>
-</value>
-</param>
+<comment>
+PLEASE NOTE: wandsimserver is a HACK so far. And is treated differently than
+everything else. In particular, it has no szg_device record as in the above!
+</comment>
 
 <comment>
  The configuration of the cube has two parts, one which varies from user to
@@ -115,18 +108,23 @@
  configuartion that varies per user (really just varies based on linu
 </comment>
 
-<comment> Exec paths: replace THE_USER_NAME with your login name. </comment>
+<comment> 
+Exec paths: replace THE_USER_NAME with your login name. 
+NOTE: The computers that may need to run a python executable must have
+python in the EXEC_PATH!
+</comment>
+
 <assign>
 picasso  SZG_EXEC path G:\THE_USER_NAME\bin\win32 
 joystick SZG_EXEC path G:\THE_USER_NAME\bin\win32
 steel    SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
-air      SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
-north    SZG_EXEC path G:\THE_USER_NAME\bin\win32
-south    SZG_EXEC path G:\THE_USER_NAME\bin\win32
-east     SZG_EXEC path G:\THE_USER_NAME\bin\win32
-west     SZG_EXEC path G:\THE_USER_NAME\bin\win32
-top      SZG_EXEC path G:\THE_USER_NAME\bin\win32
-bottom   SZG_EXEC path G:\THE_USER_NAME\bin\win32
+air      SZG_EXEC path /home/public/THE_USER_NAME/bin/linux;/usr/bin
+north    SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
+south    SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
+east     SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
+west     SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
+top      SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
+bottom   SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
 </assign>
 
 <comment> Path for python applications. Note that
@@ -311,7 +309,7 @@ vfire SZG_MASTER  map            SZG_SCREEN0
 vfire SZG_SCREEN  number_screens 1
 vfire SZG_SCREEN0 map            fire/SZG_SCREEN0
 vfire SZG_SCREEN0 networks       internet
-vfire SZG_INPUT0  map            fire/cube_wandsim
+vfire SZG_INPUT0  map            fire/wandsimserver
 vfire SZG_INPUT0  networks       internet
 vfire SZG_SOUND   map            picasso
 vfire SZG_SOUND   networks       internet
