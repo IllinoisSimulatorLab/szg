@@ -15,7 +15,8 @@ class SZG_CALL arVRCamera : public arCamera {
   public:
     arVRCamera( arHead* head=0 ) : _head(head),  _complained(false) {}
     virtual ~arVRCamera() {}
-    virtual arCamera* clone() const { return (arCamera*) new arVRCamera(_head); }
+    virtual arCamera* clone() const 
+      { return (arCamera*) new arVRCamera(_head); }
     virtual arMatrix4 getProjectionMatrix();
     virtual arMatrix4 getModelviewMatrix();
     virtual void loadViewMatrices();

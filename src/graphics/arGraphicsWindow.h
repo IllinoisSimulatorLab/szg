@@ -72,7 +72,7 @@ class SZG_CALL arGraphicsWindow {
     // This sets the camera for all viewports as well as future ones
     // Note that only a pointer is passed in, cameras are externally owned.
     arCamera* setCamera( arCamera* cam=0 );
-    arCamera* getCamera();
+    arCamera* getCamera(){ return _defaultCamera; }
     // This sets the camera for just a single viewport
     arCamera* setViewportCamera( unsigned int vpindex, arCamera* cam );
     // Sets the camera for two adjacent (in the list) viewports

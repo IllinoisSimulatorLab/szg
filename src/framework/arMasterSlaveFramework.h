@@ -93,8 +93,11 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // must be able to use a custom screen objects for those rare cases
   // (for instance noneuclidean visualization) where the standard euclidean
   // cameras are no good
-  void setWindowCamera( arCamera* cam ) {
+  void setWindowCamera( arVRCamera* cam ) {
     if (cam) {
+      // Very important to set the head here, since this is, in fact,
+      // used by the camera!
+      cam->setHead(&_head);
       _graphicsWindow.setCamera(cam);
     } else {
       _graphicsWindow.setCamera(&_defaultCamera);

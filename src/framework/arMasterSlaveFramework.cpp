@@ -1586,8 +1586,14 @@ bool arMasterSlaveFramework::_loadParameters(){
   // Which screen should we use to define the view?
   _defaultScreen.configure( screenName, _SZGClient );
   _defaultCamera.setScreen( &_defaultScreen );
-  _graphicsWindow.setCamera( &_defaultCamera );
-
+  // It could be that we've already set a custom camera
+  // (as in the non-euclidean math visualizations)
+  if (!_graphicsWindow.getCamera()){
+    _graphicsWindow.setCamera( &_defaultCamera );
+  }
+  else{
+    cout << "arMasterSlaveFramework remark: using a custom camera.\n";
+  }
   _graphicsWindow.configure(_SZGClient);
 
   _stereoMode = _graphicsWindow.getUseOGLStereo();
