@@ -224,7 +224,7 @@ int main(int argc, char** argv){
        << " Mbps\n";
   
   // Next, we receive a single structured data packet. This tests
-  // network translation capabilities between machines w/ differentt endianess.
+  // network translation capabilities between machines w/ different endianess.
   cout << "Test 4. Make sure that data is correctly translated and "
        << "unpacked.\n";
   client.getData(charSpace,charSpaceSize);

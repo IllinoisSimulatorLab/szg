@@ -145,6 +145,10 @@ bool arDataPoint::setReceiveBufferSize(arSocket* socket) {
 arStreamConfig arDataPoint::handshakeConnectTo(arSocket* fd, 
                                                arStreamConfig localConfig){
   arStreamConfig result;
+  // Give some sensible values.
+  result.endian = AR_LITTLE_ENDIAN;
+  result.version = -1;
+  result.ID = -1;
   string configString = _constructConfigString(localConfig);
   // As the connector-to, we send first!
   if (!fd->ar_safeWrite(configString.c_str(),configString.length())){
