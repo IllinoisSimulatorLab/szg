@@ -7,10 +7,20 @@
 
 <p><font size=+2>Syzygy: Introduction to the Phleet Distributed OS</font>
 
+<p>This chapter explains Phleet's basic operations and is the first you
+should read when beginning to set up a Syzygy cluster. Make sure you read
+the section on <a href="#Firewalls">firewalls</a> with particular care. Also,
+while you can run Syzygy applications without using "virtual computers",
+it is recommended that you read and understand this 
+<a href="#VirtualComputer">section</a>.
+
 <p>
 <ul>
 <li><A HREF="#Firewalls">A Note on Firewalls</a>
-<li><A HREF="#CreatingPhleet">Creating a Phleet</a>
+<li><A HREF="#CreatingPhleetOverview">Creating a Phleet: Overview</a>
+<li><A HREF="#ComputerConfig">Creating a Phleet: Configuring Computers</a>
+<li><A HREF="#RunningSzgserver">Creating a Phleet: Running szgserver and szgd</a>
+<li><A HREF="#TestingPhleet">Basic Testing of Your Phleet</a>
 <li><A HREF="#ManagingPhleet">Managing the Phleet</a>
 <li><A HREF="#VirtualComputer">Using Virtual Computers (Best Way to Launch an Application)</a>
 </ul>
@@ -19,148 +29,202 @@
 <p><font size=+2>A Note on Firewalls</font>
 </a>
 
-<p>IMPORTANT: Many operating systems today will install a firewall. The default 
-configuration of this software might very well keep Syzygy from functioning.
-After all, as a networked system, Syzygy expects to be able to communicate on
-particular ports. The easiest option is to simply not have a firewall at all. 
-However, this will be unacceptable in some environments.
+<p>IMPORTANT: Many operating systems today will install a firewall. 
+The default configuration of this software might very well keep Syzygy from 
+functioning. After all, as a networked system, Syzygy expects to be able to 
+communicate on particular ports. The easiest option is to simply not have a 
+firewall at all. However, this will be unacceptable in some environments.
 
-<p>We now outline the ports that must be allowed through the firewall. In the
-next section, you'll learn that, for Syzygy to operate in a distributed fashion,
-you will need to create a Phleet. This involves running an szgserver program.
-The computer on which szgserver runs must allow connections on the port you
-specify.
+<p>We now outline the ports that must be allowed through the firewall. 
+<p><ol>
+<li>For Syzygy to operate in a distributed fashion, you will need to create a 
+Phleet. This involves running an szgserver, which involves specifying a
+port for incoming TCP connections. The computer on which 
+szgserver runs must allow connections to this port.
+<li>The "dhunt" and "dlogin" commands rely on UDP packets reaching port
+4620 to operate properly. 
+<li>Finally, every computer that is part of the Phleet will have a block of
+ports used by Syzygy components to connect to one another. This
+block is set by the "dports" command, defaulting to 4700-4899. This block,
+however you choose to define it, must be let through your firewall (TCP).
+</ol>
 
-<p>The "dhunt" and "dlogin" commands rely on ports 4620 and 4621 to operate
-properly. 
-
-<p>Finally, every computer that is part of the Phleet will have a block of
-ports upon which components it is running will listen for connections. This
-block is set by the "dports" command. By default, it is 4700-4899. You will
-want to let this block (however you choose to define it) through the firewall.
-
-<A NAME="CreatingPhleet">
-<p><font size=+2>Creating a Phleet</font>
+<A NAME="CreatingPhleetOverview">
+<p><font size=+2>Creating a Phleet: Overview</font>
 </a>
 
-<p>Please make sure you read the previous section on firewalls.
+<p>Please make sure you read the previous section on 
+<a href="#Firewalls">firewalls</a>.
 
-<p>Syzygy depends on a lightweight distributed operating system,
-Phleet. This system helps programs share data with one another, stores
+<p>Syzygy depends on distributed operating system, Phleet, that helps 
+programs share data with one another, stores
 configuration information for users, and provides an interface for 
 managing the cluster software components. A single instance of the Phleet
 kernel, szgserver, runs for each distributed operating system instance. 
-An individual computer is a member of only one Phleet instance at a time.
-In what follows, you'll learn how to set up Syzygy in a simple, but common,
-case: a broadcast packet from one computer can reach all others and no one
-else on the LAN has a running Syzygy system.
+Different users on different computers can be connected to different
+distributed operating system instances, or Phleets, dynamically changing
+their associations over time. However, the most common configuration will
+be a group of related computers, with a szgserver running on one of them
+and providing the distributed operating system for all the users of the
+cluster. We focus on setting up such a system. In what follows, we assume
+that broadcast packets can travel between any computers that will be in your
+Phleet.
 
 <p>NOTE: szgserver is meant to run in the background for a long
-time (like a linux daemon or windows service).  Don't run a new copy for
-each application.  Two copies of szgserver can't run on the same host.
+time (like a linux daemon or windows service). In general, you'll only
+need to run one copy of szgserver to manage your cluster.
+Here are some common misunderstandings:
+<p><ul> 
+<li>Do not run a new copy of szgserver for each application.
+<li>Do not run a copy of szgserver on every computer in your cluster.
+</ul>
+
+<p>The sections that follow will show you how to set up and test your Phleet
+at a basic level. The most complex one deals with using the command line tools
+to create the szg.conf file for each computer in the cluster. Next, you will
+be walked through running szgserver and szgd's. Finally, you will see how to
+automatically connect running applications, test your Phleet, and have a
+fault tree with which to diagnose problems.
+
+<a name="ComputerConfig">
+<p><font size="+2">Creating a Phleet: Configuring Computers</font>
+</a>
+
+<p>This section shows you how to configure each computer in your 
+cluster using Syzygy's command-line tools, in this case dname, daddinterface,
+ddelinterface, and dports. This produces an szg.conf file whose location is
+determined as follows:
 
 <p><ol>
-<li>First, configure each computer to be used in your distributed system. 
-    <p><ul>
-    <li>Login to the computer to be configured.
-    <li>You will use the command line to alter a config file. 
-    <li>On Windows this file is C:\szg\szg.conf
-        (or D:\szg\szg.conf if the C: drive does not exist). Note
-        that this changes the location from previous Syzygy versions. The change was forced
-        because only an administrator user can write a file into the top level of the
-        C: drive on WinXP. 
-    <li>On Unix the default location is /etc/szg.conf
-        but only root can write this file. So an alternative, world-writeable
-        location, /tmp/szg.conf, can also be used. If /etc/szg.conf exists, the
-        system will ignore /tmp/szg.conf.
-    <li>On Unix, in each of dname, daddinterface, ddelinterface, and dports, the -t option
-        means to use /tmp/szg.conf.
-    <li>Name the computer. This must be unique across all the computers in your
-        system. A good choice is the short version of your computer's DNS name
-        (i.e. XXX.YYY.YYY.edu becomes XXX) but other names are possible. If you can
-        write to /etc, it is preferable to use:
+<li>If the environment variable SZG_CONF is set and has a value different
+    from "NULL", it gives the DIRECTORY in which the config file is located.
+<li>If the environment variable SZG_CONF is unset or has the value "NULL",
+    the location of the config file varies depending on operating system.
+    <ul>
+    <li>On Unix-like operating systems (Linux, Mac OS X, Irix), the 
+    default location is in /etc and the config file is
+    /etc/szg.conf.
+    <li>On Windows, the default location is in c:\szg and the config file
+    is c:\szg\szg.conf.
+    </ul>
+</ol>
+
+<p>Every Syzygy program will try to read the szg.conf config file. It must
+exist for programs to work in Phleet (i.e. clustered) mode but it is not 
+necessary for programs to work in <a href="Standalone.html">standalone</a> 
+mode. An important design goal of Syzygy is to enable ordinary users to
+try it in Phleet mode, Since not a non-root user cannot write to /etc, 
+this necessitates letting an environment variable be able to define the 
+config file's location. Also, a Windows installation is not guaranteed to
+have a c: drive, even though this is uncommon, once again requiring
+flexibility in determining szg.conf's location.
+
+<p><ol>
+<li>Login to the computer to be configured.
+<li>You will use the command line to alter a config file. 
+<li>On Windows this file is C:\szg\szg.conf
+    (or D:\szg\szg.conf if the C: drive does not exist). Note
+    that this changes the location from previous Syzygy versions. 
+    The change was forced because only an administrator user can write a file 
+    into the top level of the C: drive on WinXP. 
+<li>On Unix the default location is /etc/szg.conf
+    but only root can write this file. So an alternative, world-writeable
+    location, /tmp/szg.conf, can also be used. If /etc/szg.conf exists, the
+    system will ignore /tmp/szg.conf.
+<li>On Unix, in each of dname, daddinterface, ddelinterface, and dports, 
+    the -t option means to use /tmp/szg.conf.
+<li>Name the computer. This must be unique across all the computers in your
+    system. A good choice is the short version of your computer's DNS name
+    (i.e. XXX.YYY.YYY.edu becomes XXX) but other names are possible. If you can
+    write to /etc, it is preferable to use:
 
 <pre>
   dname the_name
 </pre>
 
-    <li>On Unix, if you cannot write to /etc, use:
+<li>On Unix, if you cannot write to /etc, use:
 
 <pre>
   dname -t the_name
 </pre>
 
-    <li>The -t option is not mentioned when daddinterface, ddelinterface, and dports
-        are described below. YOU MUST USE IT CONSISTENTLY. In other words, use it with
-        each of the listed commands or with none of them.
-    <li>The syzygy config file contains information about the network interfaces
-        in the computer. This information is used, for instance, in automatically
-        connecting various components to one another. To add an interface to the 
-        config file:
+<li>The -t option is not mentioned when daddinterface, ddelinterface, and 
+    dports are described below. YOU MUST USE IT CONSISTENTLY. In other words, 
+    use it with each of the listed commands or with none of them.
+<li>The syzygy config file contains information about the network interfaces
+    in the computer. This information is used, for instance, in automatically
+    connecting various components to one another. To add an interface to the 
+    config file:
 
 <pre>
   daddinterface network_name address
 </pre>
 
-    <li>The network_name gives a descriptive name for the network. Internet addresses
-        should use "internet". Private networks can use an arbitrary name, but this
-        should be consistent across the private network and different from that
-        assigned to other private networks in the distributed system. For instance,
-        the distributed system might contain 2 clusters, each connected internally
-        by a distinct 192.168.0.XXX private network. In this case, the network_name
-        associated with each should be different. This lets Phleet operate properly
-        with respect to connection brokering.
-    <li>The primary or default network for each computer should be added *first*.
-        This network should be one to which all computers in the distributed system
-        are connected. Components will expect to connect to the szgserver on this
-        network. Furthermore, if components have a choice about how to connect to
-        one another (i.e. they are connected by several networks), they will use
-        the first network to connect.
-    <li>One can remove networks from the config file.
+<li>The network_name gives a descriptive name for the network. Internet 
+    addresses should use "internet". Private networks can use an arbitrary 
+    name, but this should be consistent across the private network and 
+    different from that assigned to other private networks in the distributed 
+    system. For instance, the distributed system might contain 2 clusters, 
+    each connected internally by a distinct 192.168.0.XXX private network. In 
+    this case, the network_name associated with each should be different. This 
+    lets Phleet operate properly with respect to connection brokering.
+<li>The primary or default network for each computer should be added *first*.
+    This network should be one to which all computers in the distributed system
+    are connected. Components will expect to connect to the szgserver on this
+    network. Furthermore, if components have a choice about how to connect to
+    one another (i.e. they are connected by several networks), they will use
+    the first network to connect.
+<li>One can remove networks from the config file.
 
 <pre>
   ddelinterface network_name address
 </pre>
 
-    <li>Syzygy operates using connection brokering. You will not explicitly assign the
-        ports on which servers will listen for connections. Instead, Phleet will
-        assign the servers ports based on an available pool it maintains 
-        (on a per-computer basis). By default,
-        the block 4700-4799 is used, which is likely to be OK on both Unix and 
-        Windows machines. However, you can change this using the following command:
+<li>Syzygy operates using connection brokering. You will not explicitly assign 
+    the ports on which servers will listen for connections. Instead, Phleet 
+    will assign the servers ports based on an available pool it maintains 
+    (on a per-computer basis). By default, the block 4700-4799 is used, which 
+    is likely to be OK on both Unix and Windows machines. However, you can 
+    change this using the following command:
 
 <pre>
   dports first size
 </pre>
 
-    <li>This command allocates a block of ports beginning at "first" and containing
-        "size" many ports. IMPORTANT: you'll want every port in this block to be
-        free and for user services to be able to bind to them. Furthermore, the
-        block should be of reasonable size, in order to accomodate all the services
-        that might run on the computer. All in all, it is best to be generous when
-        assigning the size, consequently the default value. NOTE: some Windows versions
-        do not like user services to bind to ports 5000 and above.
-    <li>After having issued these commands, you should check the stored config file.
+<li>This command allocates a block of ports beginning at "first" and 
+    containing "size" many ports. IMPORTANT: you'll want every port in this 
+    block to be free and for user services to be able to bind to them. 
+    Furthermore, the block should be of reasonable size, in order to 
+    accomodate all the services that might run on the computer. All in all, it 
+    is best to be generous when assigning the size, consequently the default 
+    value. NOTE: some Windows versions do not like user services to bind to 
+    ports 5000 and above.
+<li>After having issued these commands, you should check the stored config 
+    file.
 
 <pre>
   dconfig
 </pre>
   
-    <li>The output might look something like this:
+<li>The output might look something like this:
 
 <pre>
-  Phleet Configuration
-  --------------------
-  Computer name = MY_COMPUTER
-  Network Name = internet, Address = XXX.XXX.XXX.XXX
-  Network Name = wall, Address = 192.168.0.1
-  Ports = 4700 - 4899
+  Phleet Configuration:
+    computer = MY_COMPUTER
+    network = internet, address = XXX.XXX.XXX.XXX, netmask=255.255.255.0
+    network = wall, Address = 192.168.0.1, netmask=255.255.255.0
+    ports = 4700 - 4899
 </pre>
 
-    <li>The dconfig command will display the information in the config file Phleet
-        components running on the computer will use. If this seems different from
-        what you typed above, perhaps you used the -t option inconsistently.
-    </ul>
+<li>The dconfig command will display the information in the config file Phleet
+    components running on the computer will use. If this seems different from
+    what you typed above, perhaps you used the -t option inconsistently.
+</ol>
+
+<a name="RunningSzgserver">
+<p><font size=+2>Creating a Phleet: Running szgserver and szgd</font>
+
+<ol>
 <li>Choose a computer that will act as the server for the Phleet
     distributed OS. This is where the szgserver program will run. Do not
     run szgserver on more than one computer. The syntax for the szgserver
@@ -172,7 +236,7 @@ each application.  Two copies of szgserver can't run on the same host.
 
     You need to give the szgserver program a name, server_name, which
     can be anything. You also give it a server_port at which it listens
-    for connections and the IP address of the server machine. Don't
+    for connections and the IP address of the server machine. DO NOT
     choose a port within the ports block that will be used for
     connection brokering on the computer running szgserver.
 
@@ -272,7 +336,8 @@ is the port specified on the command that invoked szgserver).
     There should be a line for each computer on which you have run szgd.
 <li>PLEASE NOTE: the szgd's are not strictly necessary for the simple distributed
     graphics tests described in the next section (in which there is no remote
-    execution of components), but they will be used in subsequent sections.
+    execution of components), but they are needed to run your program using
+    a Phleet <a href="#VirtualComputer">virtual computer</a>.
 <li>Syzygy is a multi-user system. While you have to login to an szgserver to
     run szgd, other users will be able to use your remote execution daemon
     to launch THEIR executables.
@@ -515,7 +580,7 @@ can directly kill the trigger instance. In our case, that would entail the follo
 <p>Or you can:
 
 <pre>
-  killalldemo wall
+  dkillall wall
 </pre>
 
 </body>

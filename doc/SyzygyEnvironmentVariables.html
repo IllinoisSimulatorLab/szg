@@ -1,0 +1,48 @@
+<html>
+<head>
+<title>Syzygy: Environment Variables</title>
+</head>
+<body bgcolor="#ffffff">
+<a href="index.html">Documentation Index</a>
+
+<p><font size=+2>Syzygy: Environment Variables</font>
+
+<p>The Syzygy build process uses a number of environment variables, the
+setting of some other environment variables can alter Syzygy's operation,
+and szgd will even alter, though not globally, some variables that are
+used by the system in general. It seems useful to list them all in one
+place, provide simple explanations, and links back to where they are
+explained more fully in the documentation.
+
+<p>Environment variables affecting the Syzygy build process:
+<p><ul>
+<li>SZGHOME
+<li>SZGBIN
+<li>SZGEXTERNAL
+<li>SZGDEBUG
+<li>SZG_DEVELOPER_STYLE
+<li>SZG_MULTITEX
+<li>SZG_STLPORT
+<li>SZG_USE_PCH
+</ul>
+
+<p>Environment variables affecting the operation of Syzygy components:
+<p><ul>
+<li>SZG_CONF
+<li>SZG_LOGIN
+<li>SZGUSER
+<li>SZGCONTEXT
+</ul>
+
+<p>Environment variables altered locally by szgd:
+<p><ul>
+<li>PYTHONPATH
+<li>PATH, LD_LIBRARY_PATH, LD_LIBRARYN32_PATH, DYLD_LIBRARY_PATH
+<li>SZGUSER
+<li>SZGCONTEXT
+<li>SZGPIPEID
+<li>SZGTRADINGNUM
+</ul>
+
+</body>
+</html>

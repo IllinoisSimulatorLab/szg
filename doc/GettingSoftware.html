@@ -8,23 +8,25 @@
 <p><font size=+2>Syzygy: Getting the Software</font>
 
 <p>Syzygy works and is tested on reasonably modern versions of 
-Linux, Windows, Mac OS X, and Irix, as outlined <a href="Testing.html">here</a>, a 
-document every user should read. In general, you'll want to look at the 
-<a href="SupportingLibraries.html">chapter</a> on installing supporting libraries for 
-Syzygy compilation.
+Linux, Windows, Mac OS X, and Irix, as outlined 
+<a href="Testing.html">here</a>, a document every user should read. 
+In general, you'll want to look at the 
+<a href="SupportingLibraries.html">chapter</a> on installing supporting 
+libraries for Syzygy compilation.
 
-<p>If you are downloading and using the precompiled binaries/API, you can simply
-look at the list of Syzygy software <a href="#Packages">packages</a>
+<p>If you are downloading and using the precompiled binaries/API, you can 
+simply look at the list of Syzygy software <a href="#Packages">packages</a>
 to familiarize yourself with what is available and then proceed to 
 this <a href="#OSEasyInstructions">section</a>
-to install the binaries. If you are building the software yourself, start reading 
-this chapter from the beginning. You will only need to read about compiling the
-Python bindings if you will be building them for running Python programs.
+to install the binaries. If you are building the software yourself, start 
+reading this chapter from the beginning. You will only need to read about 
+compiling the Python bindings if you will be building them for running Python 
+programs.
 
 <p>Finally, once you've gotten familiar with the basic build process, you might
-want to explore the advanced Makefile targets supported by the Syzygy build structure.
-One use of these <a href="#AdvancedTargets">targets</a> is creating the
-binary installable szg packages.
+want to explore the advanced Makefile targets supported by the Syzygy build 
+structure. One use of these <a href="#AdvancedTargets">targets</a> is creating 
+the binary installable szg packages.
 
 <p>
 <ul>
@@ -45,18 +47,19 @@ binary installable szg packages.
 <p><font size=+2>Software Packages</font>
 </a>
 
-<p>The following software (and data) packages are part of the Syzygy distribution:
+<p>The following software (and data) packages are part of the Syzygy 
+distribution:
 <p><ul>
-<li>szg-0.7.tar.gz: Everything necessary to build and test the library. Includes
-sample applications. See <a href="ExampleCode.html">here</a> for information about
-running them.
+<li>szg-0.7.tar.gz: Everything necessary to build and test the library. 
+Includes sample applications. See <a href="ExampleCode.html">here</a> for 
+information about running them.
 <li>vmat-0.7.tar.gz: A real-time physics library. Used in one of the szgdemo
 sample applications and includes an example of its own.
 <li>szgdemo-0.7.tar.gz: Additional sample applications. These are described
 <a href="ExampleCode.html">here</a>. 
 <li>szgdata-0.7.tar.gz: Data necessary for the sample applications, as outlined
-<a href="ExampleCode.html">here</a>, but excluding some particularly large files,
-which are available by request.
+<a href="ExampleCode.html">here</a>, but excluding some particularly large 
+files, which are available by request.
 <li>py-szg-0.7.tar.gz: Python bindings for Syzygy.
 <li>pycube-0.7.tar.gz: Sample Python Syzygy programs.
 <li>szg-0.7-linux.tar.gz: Precompiled Linux version of the Syzygy API.
@@ -78,16 +81,17 @@ the executables.
 <p><font size=+2>OS-Specific Precompiled Install Instructions</font>
 </a>
 
-<p>For all platforms, unpack the precompiled distribution to a directory szg-0.7.
-To run Syzygy programs you will need to, assuming that $SZGHOME is the location
-of the new directory:
+<p>For all platforms, unpack the precompiled distribution to a directory 
+szg-0.7. To run Syzygy programs you will need to, assuming that $SZGHOME is 
+the location of the new directory:
 
 <p><ul>
 <li>Linux: Add $SZGHOME/bin to the front of your $LD_LIBRARY_PATH and $PATH. 
 By setting your dynamic library search path, you enable the runtime linker to
 find the Syzygy shared libaries.
 <li>Win32: Add $SZGHOME/bin to your $PATH variable.
-<li>Mac OS X: Add $SZGHOME/bin to the front of your $DYLD_LIBRARY_PATH and $PATH.
+<li>Mac OS X: Add $SZGHOME/bin to the front of your $DYLD_LIBRARY_PATH and 
+$PATH.
 <li>Irix: Add $SZGHOME/bin to the front of your $LD_LIBRARYN32_PATH and $PATH.
 </ul>
 
@@ -98,44 +102,48 @@ find the Syzygy shared libaries.
 
 <p>Linux: 
 <p><ol>
-<li>X11 and ncurses development packages are required for compilation. Your distribution
-  might not install these by default.
+<li>X11 and ncurses development packages are required for compilation. 
+  Your distribution might not install these by default.
 <li>GLUT is required for compilation as well. Either install a GLUT development
   package via your distribution or install GLUT in Syzygy's external build 
   libraries, as described <a href="SupportingLibraries.html">here</a>.
-<li>IMPORTANT NOTE: the Syzygy build environment produces code for the i686 architecture
-  by default.If you have an older processor, you need to change the "-march=i686" flag in
-  szg/build/make/Makefile.vars. Experiment with either removing it or 
-  downgrading, for instance to "-march=i586".
+<li>IMPORTANT NOTE: the Syzygy build environment produces code for the i686 
+  architecture by default.If you have an older processor, you need to change 
+  the "-march=i686" flag in szg/build/make/Makefile.vars. Experiment with 
+  either removing it or downgrading, for instance to "-march=i586".
 </ol>
 
 <p>Windows: 
 
 <p><ol>
 <li>Syzygy's build system uses GNU make and the command line Visual Studio
-  compiler and linker. This has been tested with Visual Studio 6.0 (in combination
-  with STLPort) and Visual Studio .Net.
-<li>You will need a unix-like shell for Windows that provides a GNU make utility. We
-  have tested two, MinGW/MSYS and Cygwin. If you're not currently using either (and
-  are not using Windows 98, see below), we recommend MinGW. Cygwin is a much larger package, 
-  comprising an entire Unix system, and is only available via a network installer. 
-  On the other hand, MinGW is relatively small and comes as two self-contained installers.
-<li>Syzygy programs expect to be able to scrape their name from the command-line args.
-  The Windows NT, Windows 2000, and Windows XP (cmd.exe) shells all work.
-  Unfortunately, the Win98 cmd.exe shell mangles argv[0], interfering with Syzygy's 
-  proper operation. The cygwin shell does, however, work with Syzygy on all Windows
-  versions, including Windows 98. Consequently, we recommend using installing and
-  using the cygwin shell on Windows 98.
-<li>To install MinGW, run the MinGW installer first (which gives you the underlying 
-  system) and then the MSYS installer (which gives you the Unix-like shell needed to run
-  the commands).  Please note, the MSYS shell, as of this writing, has a hard time
-  outputing text from Syzygy programs. Consequently, we recommend running Syzygy commands
-  from a regular Windows shell (cmd.exe) and only compiling in MSYS. This workaround means
-  that MinGW is unsuitable for Win98, where cygwin should be used instead.
-<li>You might prefer to install cygwin (<a href="http://www.cygwin.com/">www.cygwin.com</a>)
-  if you want more Unix functionality from the command line than MinGW provides. You can
-  create a minimum-disk-space Cygwin which will still build Syzygy by 
-  selecting only these packages (uncheck <i>all</i> other checkboxes):
+  compiler and linker. This has been tested with Visual Studio 6.0 
+  (in combination with STLPort) and Visual Studio .Net.
+<li>You will need a unix-like shell for Windows that provides a GNU make 
+    utility. We have tested two, MinGW/MSYS and Cygwin. If you're not 
+    currently using either (and are not using Windows 98, see below), we 
+    recommend MinGW. Cygwin is a much larger package, comprising an entire 
+    Unix system, and is only available via a network installer. On the other 
+    hand, MinGW is relatively small and comes as two self-contained installers.
+<li>Syzygy programs expect to be able to scrape their name from the 
+    command-line args. The Windows NT, Windows 2000, and Windows XP (cmd.exe) 
+    shells all work. Unfortunately, the Win98 cmd.exe shell mangles argv[0], 
+    interfering with Syzygy's proper operation. The cygwin shell does, however,
+    work with Syzygy on all Windows versions, including Windows 98. 
+    Consequently, we recommend using installing and using the cygwin shell on 
+    Windows 98.
+<li>To install MinGW, run the MinGW installer first (which gives you the 
+    underlying system) and then the MSYS installer (which gives you the 
+    Unix-like shell needed to run the commands).  Please note, the MSYS shell, 
+    as of this writing, has a hard time outputing text from Syzygy programs. 
+    Consequently, we recommend running Syzygy commands from a regular Windows 
+    shell (cmd.exe) and only compiling in MSYS. This workaround means that 
+    MinGW is unsuitable for Win98, where cygwin should be used instead.
+<li>You might prefer to install cygwin 
+    (<a href="http://www.cygwin.com/">www.cygwin.com</a>) if you want more 
+    Unix functionality from the command line than MinGW provides. You can 
+    create a minimum-disk-space Cygwin which will still build Syzygy by 
+    selecting only these packages (uncheck <i>all</i> other checkboxes):
     <dl>
     <dt>Category: Base
         <dd>ash bash cygwin fileutils login sh-utils
@@ -144,20 +152,21 @@ find the Syzygy shared libaries.
     <dt>Category: Shells
         <dd>ash bash sh-utils
     </dl>
-<li>Install MS Visual Studio. If you are using Visual Studo 6, you'll also need STLport
-  to replace VC-6's non-threadsafe STL. With Visual Studio .NET (i.e. 7), STLport is not
-  necessary. Consequently, we recommend Visual Studio .NET for Syzygy compilation.
-  Please see <a href="SupportingLibraries.html">here</a> for instructions. 
-<li>To compile from the command-line, Visual Studio needs several enviroment variables 
-  to be set appropriately. Please see <a href="VisualStudioBuildVars.html">here</a>
-  for details.
+<li>Install MS Visual Studio. If you are using Visual Studo 6, you'll also 
+    need STLport to replace VC-6's non-threadsafe STL. With Visual Studio .NET 
+    (i.e. 7), STLport is not necessary. Consequently, we recommend Visual 
+    Studio .NET for Syzygy compilation. Please see 
+    <a href="SupportingLibraries.html">here</a> for instructions. 
+<li>To compile from the command-line, Visual Studio needs several enviroment 
+    variables to be set appropriately. Please see 
+    <a href="VisualStudioBuildVars.html">here</a> for details.
 <li>You will need to install GLUT, as described in the Windows section of this 
-  <a href="SupportingLibraries.html">chapter</a>. Please note that, in the past,
-  we encouraged users to install the glut headers and library in the Visual Studio 
-  directory. While this is still possible, the prefered Syzygy way is to install it in
-  a known, external location.
-<li>Launch a (MSYS or Cygwin) shell. Try running cl.exe (the compiler), link.exe 
-  (the linker), and make. If these all run, you can begin compiling.
+    <a href="SupportingLibraries.html">chapter</a>. Please note that, in the 
+    past, we encouraged users to install the glut headers and library in the 
+    Visual Studio directory. While this is still possible, the prefered Syzygy 
+    way is to install it in a known, external location.
+<li>Launch a (MSYS or Cygwin) shell. Try running cl.exe (the compiler), 
+    link.exe (the linker), and make. If these all run, you can begin compiling.
 </ol>
 
 <p>Mac OS X: 
