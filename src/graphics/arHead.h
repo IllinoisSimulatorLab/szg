@@ -13,7 +13,6 @@
 class arGraphicsScreen;
 
 class SZG_CALL arHead {
-  friend ostream& operator<<(ostream&, const arHead&);
   friend class arViewerNode;
   friend class arMasterSlaveFramework;
   friend SZG_CALL bool dgViewer( const arHead& head );

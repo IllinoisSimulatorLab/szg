@@ -10,6 +10,10 @@
 #   libraries.
 # SZG_SHARED_COPY: Shared libraries that can be copied into the user's SZGBIN
 #   directory via a Makefile target.
+# SZG_SHARED_COPY_ACTION: OK, so we want to go ahead and copy the shared
+#   libraries into the user's SZGBIN. However, we now run into the soname
+#   issue on Unix. Consequently, some symbolc links need to be made. Which
+#   leads us to this particular variable.
 #
 # Each additional library XXX also defines SZG_INCLUDE_XXX and SZG_LINK_XXX.
 # The szg libraries are created incrementally and the optional linking/
@@ -17,6 +21,11 @@
 # for sound and framework).
 
 ifeq ($(strip $(MACHINE)), LINUX)
+  GLUT_DIR := $(SZGEXTERNAL)/linux/glut-3.7
+  INC_GLUT := $(wildcard $(GLUT_DIR)/include)
+  LINK_GLUT := -lglut
+  OBJ_GLUT := $(wildcard $(GLUT_DIR)/lib/libglut.so.3.7)
+
   FMOD_DIR := $(SZGEXTERNAL)/linux/fmod-3.7
   INC_FMOD := $(wildcard $(FMOD_DIR)/include)
   LINK_FMOD := -lfmod-3.70
@@ -37,14 +46,46 @@ ifeq ($(strip $(MACHINE)), LINUX)
   VRPN_DIR := $(SZGEXTERNAL)/linux/vrpn
   INC_VRPN := $(wildcard $(VRPN_DIR)/include)
   LIB_VRPN := $(wildcard $(VRPN_DIR)/lib/libvrpn.a)
+
+  # NOTE: GLUT is currently REQUIRED for szg operation. Consequently, for
+  # this library only, we go ahead and provide a default link and include
+  # value. (though the include value is blank, since, if you already
+  # have it installed, then the header should be on the default include
+  # path ).
+  ifneq ($(strip $(OBJ_GLUT)),)
+    SZG_SHARED_COPY += $(OBJ_GLUT)
+    # NOTE: It is IMPORTANT that the symbolic links are RELATIVE and not
+    # ABSOLUTE!
+    SZG_SHARED_COPY_ACTION += \
+      pushd $(SZGBIN) ; \
+      rm -f libglut.so.3; rm -f libglut.so; \
+      ln -s libglut.so.3.7 libglut.so.3 ; \
+      ln -s libglut.so.3 libglut.so ; popd ;
+    SZG_INCLUDE_GLUT = -I$(INC_GLUT)
+    SZG_OPT_INCLUDE_FULL += $(SZG_INCLUDE_GLUT)
+    # NOTE: Sometimes we will want to be able to put shared libs in our *local*
+    # bin directory only and sometimes we want to be able to have the
+    # shared libs in their compiled-in directory only (which is the
+    # purpose of -rpath)
+    SZG_LINK_GLUT = -L$(GLUT_DIR)/lib -Wl,-rpath,$(GLUT_DIR)/lib $(LINK_GLUT)
+    SZG_OPT_LIBS_FULL += $(SZG_LINK_GLUT)
+  else
+    SZG_LINK_GLUT = -lglut
+    SZG_OPT_LIBS_FULL += $(SZG_LINK_GLUT)
+  endif
   
   ifneq ($(strip $(INC_FMOD)),)
   ifneq ($(strip $(OBJ_FMOD)),)
     SZG_OPT_FLAGS += -DEnableSound
     SZG_SHARED_COPY += $(OBJ_FMOD)
+    SZG_SHARED_COPY_ACTION += 
     SZG_INCLUDE_FMOD = -I$(INC_FMOD)
     SZG_OPT_INCLUDE_FULL += -I$(INC_FMOD)
-    SZG_LINK_FMOD = -L$(FMOD_DIR)/lib $(LINK_FMOD)
+    # NOTE: Sometimes we will want to be able to put shared libs in our *local*
+    # bin directory only and sometimes we want to be able to have the
+    # shared libs in their compiled-in directory only (which is the
+    # purpose of -rpath)
+    SZG_LINK_FMOD = -L$(FMOD_DIR)/lib -Wl,-rpath,$(FMOD_DIR)/lib $(LINK_FMOD)
     SZG_OPT_LIBS_FULL += $(SZG_LINK_FMOD)
   endif
   endif
@@ -121,6 +162,15 @@ ifeq ($(strip $(MACHINE)), WIN32)
   OBJ1_STLPORT := $(wildcard $(STLPORT_DIR)/lib/stlport_vc646.dll)
   OBJ2_STLPORT := $(wildcard $(STLPORT_DIR)/lib/stlport_vc6_stldebug46.dll)
 
+  GLUT_DIR := $(SZGEXTERNAL)/win32/glut-3.7
+  INC_GLUT := $(wildcard $(GLUT_DIR)/include)
+  LINK_GLUT := glut32.lib
+  OBJ_GLUT := $(wildcard $(GLUT_DIR)/lib/glut32.dll)
+
+  # Some windows installations lack glext.h, which is needed for the
+  # q33 demo. Allow it to be added in SZGEXTERNAL
+  GL_EXT_DIR := $(wildcard $(SZGEXTERNAL)/win32/GL/include)
+
   FMOD_DIR := $(SZGEXTERNAL)/win32/fmod-3.7
   INC_FMOD := $(wildcard $(FMOD_DIR)/include)
   LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/fmodvc.lib)
@@ -156,6 +206,32 @@ ifeq ($(strip $(MACHINE)), WIN32)
   # in the install-shared target.
   ifneq ($(strip $(LIB_STLPORT)),)
     SZG_SHARED_COPY += $(OBJ1_STLPORT) $(OBJ2_STLPORT)
+  endif
+
+  # NOTE: GLUT is currently REQUIRED for szg operation. Consequently, for
+  # this library only, we go ahead and provide a default link and include
+  # value. (though the include value is blank, since, if you already
+  # have it installed, then the header should be on the default include
+  # path ).
+  ifneq ($(strip $(OBJ_GLUT)),)
+    SZG_SHARED_COPY += $(OBJ_GLUT)
+    # Since Windows does not have soname's, we don't need to construct
+    # symbolic links. So no need to add to SZG_SHARED_COPY_ACTION
+    SZG_INCLUDE_GLUT = -I$(INC_GLUT)
+    SZG_OPT_INCLUDE_FULL += $(SZG_INCLUDE_GLUT)
+    # Because of the different design of windows, do not need to set
+    # runtime paths for executables, consequently SZG_LINK_GLUT is simpler
+    # than in the Linux/SGI cases.
+    SZG_LINK_GLUT = $(GLUT_DIR)/lib/$(LINK_GLUT)
+    SZG_OPT_LIBS_FULL += $(SZG_LINK_GLUT)
+  else
+    SZG_LINK_GLUT = $(LINK_GLUT)
+    SZG_OPT_LIBS_FULL += $(SZG_LINK_GLUT)
+  endif
+
+  # Inclusion of glext.h for q33
+  ifneq ($(strip $(GL_EXT_DIR)),)
+    SZG_OPT_INCLUDE_FULL += -I$(GL_EXT_DIR)
   endif
 	
   ifneq ($(strip $(INC_FMOD)),)

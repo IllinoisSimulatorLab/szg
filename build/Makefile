@@ -56,6 +56,7 @@ install-clean:
 
 install-shared:
 	cp $(SZG_SHARED_COPY) $(SZGBIN)
+	$(SZG_SHARED_COPY_ACTION)
 
 bin-install:
 	@for i in $(SUBDIRS) ; do $(MAKE) -C $z/$$i bin-install || exit 1 ; done

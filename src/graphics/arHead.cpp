@@ -8,6 +8,18 @@
 #include "arHead.h"
 #include "arGraphicsScreen.h"
 
+SZG_CALL ostream& operator<<(ostream& s, arHead& h) {
+  s << "Head:\n  Matrix:\n" << h.getMatrix();
+  s << "  MidEyeOffset  : " << h.getMidEyeOffset() << endl;
+  s << "  EyeDirection  : " << h.getEyeDirection() << endl;
+  s << "  EyeSpacing    : " << h.getEyeSpacing() << endl;
+  s << "  ClipPlanes    : " << h.getNearClip() << ", " 
+                            << h.getFarClip() << endl;
+  s << "  UnitConversion: " << h.getUnitConversion() << endl;
+  s << "  FixedHeadMode      : " << h.getFixedHeadMode() << endl;
+  return s;
+}
+
 arHead::arHead() :
   _midEyeOffset(0,0,0),
   _eyeDirection(1,0,0),
@@ -59,13 +71,3 @@ arMatrix4 arHead::getMidEyeMatrix() const {
   return _unitConversion * (_matrix * ar_translationMatrix(_midEyeOffset));
 }
 
-ostream& operator<<(ostream& s, const arHead& h) {
-  s << "Head:\n  Matrix:\n" << h._matrix;
-  s << "  MidEyeOffset  : " << h._midEyeOffset << endl;
-  s << "  EyeDirection  : " << h._eyeDirection << endl;
-  s << "  EyeSpacing    : " << h._eyeSpacing << endl;
-  s << "  ClipPlanes    : " << h._nearClip << ", " << h._farClip << endl;
-  s << "  UnitConversion: " << h._unitConversion << endl;
-  s << "  FixedHeadMode      : " << h._fixedHeadMode << endl;
-  return s;
-}
