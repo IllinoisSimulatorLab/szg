@@ -52,8 +52,9 @@ SZG_CALL bool dgViewer(const arMatrix4& headMatrix, const arVector3& midEyeOffse
                       float eyeSpacingFeet, float nearClip, float farClip,
                       float unitConversion, bool fixedHeadMode );
 
-SZG_CALL bool dgViewer(const arMatrix4&, const arVector3&, const arVector3&, 
-                       float, float, float, float);
+// I think that this guy is now gone...
+//SZG_CALL bool dgViewer(const arMatrix4&, const arVector3&, const arVector3&, 
+//                       float, float, float, float);
 
 SZG_CALL int dgTransform(const string&, const string&, const arMatrix4&);
 SZG_CALL bool dgTransform(int, const arMatrix4&);

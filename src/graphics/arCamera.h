@@ -21,7 +21,7 @@ class SZG_CALL arCamera{
   virtual arMatrix4 getProjectionMatrix();
   virtual arMatrix4 getModelviewMatrix();
   virtual void loadViewMatrices();
-  virtual arCamera* clone() const = 0;
+  virtual arCamera* clone() const { return new arCamera(); }
  private:
   // NOTE: these parameters should not be copied, they are transient and only exist
   // so they don't have to be passed to the verious get.. and load... matrix functions
