@@ -112,6 +112,9 @@ everything else. In particular, it has no szg_device record as in the above!
 Exec paths: replace THE_USER_NAME with your login name. 
 NOTE: The computers that may need to run a python executable must have
 python in the EXEC_PATH!
+NOTE: Some of the applications need to be compiled seperately. For instance,
+vtkfile needs Visual Studio 7, so it is compiled by a certain user (schaeffr)
+The "zillimath" demos are also compiled by a particular user (gfrancis)
 </comment>
 
 <assign>
@@ -119,12 +122,12 @@ picasso  SZG_EXEC path G:\THE_USER_NAME\bin\win32
 joystick SZG_EXEC path G:\THE_USER_NAME\bin\win32
 steel    SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
 air      SZG_EXEC path /home/public/THE_USER_NAME/bin/linux;/usr/bin
-north    SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
-south    SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
-east     SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
-west     SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
-top      SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
-bottom   SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
+north    SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22;g:\schaeffr\bin\win32;g:\gfrancis\bin\win32
+south    SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22;g:\schaeffr\bin\win32;g:\gfrancis\bin\win32
+east     SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22;g:\schaeffr\bin\win32;g:\gfrancis\bin\win32
+west     SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22;g:\schaeffr\bin\win32;g:\gfrancis\bin\win32
+top      SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22;g:\schaeffr\bin\win32;g:\gfrancis\bin\win32
+bottom   SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22;g:\schaeffr\bin\win32;g:\gfrancis\bin\win32
 </assign>
 
 <comment> Path for python applications. Note that
