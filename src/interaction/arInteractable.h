@@ -15,8 +15,8 @@ class SZG_CALL arInteractable {
     arInteractable( const arInteractable& ui );
     arInteractable& operator=( const arInteractable& ui );
     
-    bool touch( arEffector& effector );
-    bool processInteraction( arEffector& effector );
+    virtual bool touch( arEffector& effector );
+    virtual bool processInteraction( arEffector& effector );
     virtual bool untouch( arEffector& effector );
     virtual bool untouchAll();
     

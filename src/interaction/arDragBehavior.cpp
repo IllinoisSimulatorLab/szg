@@ -11,6 +11,29 @@
 #include "arEffector.h"
 #include "arNavigationUtilities.h"
 
+void arCallbackDragBehavior::init( const arEffector* const effector,
+                                   const arInteractable* const object ) {
+  if (!_initCallback) {
+    cerr << "arCallbackDragBehavior warning: no init callback.\n";
+    return;
+  }
+  _initCallback( effector, object );
+}
+
+void arCallbackDragBehavior::update( const arEffector* const effector,
+                         arInteractable* const object,
+                         const arGrabCondition* const grabCondition ) {
+  if (!_updateCallback) {
+    cerr << "arCallbackDragBehavior warning: no update callback.\n";
+    return;
+  }
+  _updateCallback( effector, object, grabCondition );
+}
+
+arDragBehavior* arCallbackDragBehavior::copy() const {
+  return (arDragBehavior*)new arCallbackDragBehavior( _initCallback, _updateCallback );
+}
+
 arWandRelativeDrag::arWandRelativeDrag() :
   arDragBehavior(),
   _diffMatrix() {

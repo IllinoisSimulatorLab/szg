@@ -91,9 +91,6 @@ bool ar_pollingInteraction( arEffector& effector,
   return (*touchedIter)->processInteraction( effector );
 }
 
-/// THIS IS BAD. This version of the ar_pollingInteraction method is
-/// pretty much just cut-and-paste from the above. I think this is
-/// only used in the arNavManager...
 bool ar_pollingInteraction( arEffector& effector,
                             arInteractable* object ) {
   if (object == 0) {

@@ -10,14 +10,17 @@ class SZG_CALL arCallbackInteractable : public arInteractable {
     arCallbackInteractable& operator=( const arCallbackInteractable& bi );
     // Yes, it is necessary to call _cleanup here rather than in the base
     // class.
-    virtual ~arCallbackInteractable() { _cleanup(); }
+//    virtual ~arCallbackInteractable() { _cleanup(); }
+//  No, it probably isn't; I just noticed a boneheaded mistake in _untouch()
+//  (wrong signature)
+    virtual ~arCallbackInteractable() {}
     void setTouchCallback( bool (*callback)( arCallbackInteractable* object, arEffector* effector ) ) {
       _touchCallback = callback;
     }
     void setProcessCallback( bool (*callback)( arCallbackInteractable* object, arEffector* effector ) ) {
       _processCallback = callback;
     }
-    void setUntouchCallback( bool (*callback)( arCallbackInteractable* object ) ) {
+    void setUntouchCallback( bool (*callback)( arCallbackInteractable* object, arEffector* effector ) ) {
       _untouchCallback = callback;
     }
     void setMatrixCallback( void (*callback)( arCallbackInteractable* object, const arMatrix4& matrix ) ) {
@@ -29,11 +32,11 @@ class SZG_CALL arCallbackInteractable : public arInteractable {
   protected:
     virtual bool _processInteraction( arEffector& effector );
     virtual bool _touch( arEffector& effector );
-    virtual bool _untouch();
+    virtual bool _untouch( arEffector& effector );
     int _id;
     bool (*_touchCallback)( arCallbackInteractable* object, arEffector* effector );
     bool (*_processCallback)( arCallbackInteractable* object, arEffector* effector );
-    bool (*_untouchCallback)( arCallbackInteractable* object );
+    bool (*_untouchCallback)( arCallbackInteractable* object, arEffector* effector );
     void (*_matrixCallback)( arCallbackInteractable* object, const arMatrix4& matrix );
 };
 

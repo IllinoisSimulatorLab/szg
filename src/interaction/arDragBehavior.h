@@ -19,6 +19,37 @@ class SZG_CALL arDragBehavior {
     virtual arDragBehavior* copy() const = 0;
 };
 
+typedef void (* arDragInitCallback_t)( const arEffector* const,
+                                       const arInteractable* const );
+typedef void (* arDragUpdateCallback_t)( const arEffector* const,
+                                         const arInteractable* const,
+                                         const arGrabCondition* const );
+
+class SZG_CALL arCallbackDragBehavior : public arDragBehavior {
+  public:
+    arCallbackDragBehavior() :
+      _initCallback(0),
+      _updateCallback(0) {
+      }
+    arCallbackDragBehavior( arDragInitCallback_t initFunc, arDragUpdateCallback_t updateFunc ) {
+      setCallbacks( initFunc, updateFunc );
+      }
+    virtual ~arCallbackDragBehavior() {}
+    virtual void init( const arEffector* const effector,
+                       const arInteractable* const object );
+    virtual void update( const arEffector* const effector,
+                         arInteractable* const object,
+                         const arGrabCondition* const grabCondition );
+    virtual arDragBehavior* copy() const;
+    void setCallbacks( arDragInitCallback_t initFunc, arDragUpdateCallback_t updateFunc ) {
+      _initCallback = initFunc;
+      _updateCallback = updateFunc;
+    }
+  private:
+    arDragInitCallback_t _initCallback;
+    arDragUpdateCallback_t _updateCallback;
+};
+
 class SZG_CALL arWandRelativeDrag : public arDragBehavior {
   public:
     arWandRelativeDrag();

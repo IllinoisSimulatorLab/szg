@@ -10,6 +10,7 @@ ALL = \
   calibrationdemo$(EXE) \
   cubevars$(EXE) \
   DeskCalibrator$(EXE) \
+  dmsg$(EXE) \
   killalldemo$(EXE) \
   PictureViewer$(EXE) \
   restarttracker$(EXE) \
@@ -34,6 +35,10 @@ cubevars$(EXE): cubevars$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
 
 DeskCalibrator$(EXE): DeskCalibrator$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
 	$(SZG_USR_FIRST) DeskCalibrator$(OBJ_SUFFIX) $(SZG_USR_SECOND)
+	$(COPY)
+
+dmsg$(EXE): dmsg$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) dmsg$(OBJ_SUFFIX) $(SZG_USR_SECOND)
 	$(COPY)
 
 killalldemo$(EXE): killalldemo$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)

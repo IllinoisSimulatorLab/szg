@@ -66,7 +66,6 @@ endif
 
 ALL =   $(SZG_CURRENT_DLL) \
   wandsimserver$(EXE) \
-  dmsg$(EXE) \
   MasterSlaveSkeleton$(EXE)
 
 # NOTE: We now include the "magic" Everything target in Makefile.rules
@@ -82,10 +81,6 @@ $(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
 
 wandsimserver$(EXE): wandsimserver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_EXE_FIRST) wandsimserver$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
-	$(COPY)
-
-dmsg$(EXE): dmsg$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_EXE_FIRST) dmsg$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
 MasterSlaveSkeleton$(EXE): MasterSlaveSkeleton$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)

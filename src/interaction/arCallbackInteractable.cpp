@@ -49,9 +49,9 @@ bool arCallbackInteractable::_touch( arEffector& effector ) {
   return true;
 }
 
-bool arCallbackInteractable::_untouch() {
+bool arCallbackInteractable::_untouch( arEffector& effector ) {
   if (_untouchCallback != 0)
-    return (_untouchCallback)( this );
+    return (_untouchCallback)( this, &effector );
   return true;
 }
 

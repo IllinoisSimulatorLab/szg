@@ -7,6 +7,19 @@
 <p><font size=+2>Syzygy Change Log</font>
 <p><font size=+2>Changes Between szg-0.7 and szg-0.6</font>
 <p><ul>
+<li>Changed arGraphicsWindow so it supports much more general drawing modes into a single
+window. Before, a few were hard-coded in, now things are fairly general.
+<li>Added an arHead class to hold head-related data (e.g. eye spacing), automatically shared
+master->slaves and scene-graph controller->clients. Associated parameters
+are read from the SZG_HEAD group by the master and scene-graph controller only.
+<li>Deleted the arScreenObject. Its head-related info was moved into arHead,
+virtual screen location into the new arGraphicsScreen, and the frustum and
+lookat matrix computations are done by the new arVRCamera class.
+<li>Changed the way the arViewport interacts with the arGraphicsWindow
+and the camera in setting up the rendering context & frustum parameters.
+Among other changes, each viewport now has an associated eye sign and
+OpenGL draw buffer (e.g. left or right). This will allow Ben to mix
+active stereo & anaglyph in the same display (oooo!).
 <li>The discovery packet/ response packet formats have changed to allow
     version numbers and also bring the interior contents up to date.
 <li>TCP wrapper filtering has been improved so that lists and netmasks
@@ -16,7 +29,7 @@
     descriptions. It is also needed for pforth programs.
 <li>dhunt/dlogin now work with netmasks != 255.255.255.0. And also play
     better with firewalls (i.e. use port 4621 on the return).
-<li>PForth program no longer live in a directory but are instead embedded
+<li>PForth program no longer live in an XML file, but are instead embedded
     in the input node description.
 <li>DeviceServer is now extensible via loadable modules.
 <li>Python bindings plus system support for python executables has been
@@ -45,8 +58,6 @@ arGraphicsServer and arGraphicsClient.
 and has gone away with better Irix compilers. This issue is explored in
 depth elsewhere in the documentation (including a simple test program to
 diagnose whether your compiler is OK or not).
-<li>PForth filters are now used differently. They are in $(SZG_DATA)/PForth.
-Furthermore, the filter is stored in a file $(MY_FILTER_NAME).pf
 <li>Fixed the FOB driver so that it can be used with more general FOB set-ups.
     MUST CHANGE DOCUMENTATION!
 <li>Added the "EASY" build style and improved the project template. There
@@ -68,8 +79,6 @@ the presence of an szgserver.
 <li>Added rudimentary security to the szgserver. It is now possible to reject connections
 based on incoming IP adddress (similar to TCP wrappers). Added because of the increasing
 frequency of port scanning.
-<li>Changed arGraphicsWindow so it supports much more general drawing modes into a single
-window. Before, a few were hard-coded in, now things are fairly general.
 </ul>
 
 <p><font size=+2>Changes Between szg-0.6 and szg-0.55</font>
