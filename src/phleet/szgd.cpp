@@ -393,6 +393,7 @@ void execProcess(void* i){
       dynamicLibraryPath.replace( pos, 1, ":" );
     }
 #endif
+  
   // Deal with python if necessary.
   string oldPythonPath;
   string pythonPath("");
@@ -404,12 +405,26 @@ void execProcess(void* i){
     pyLibPath = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", 
                                         "path", "");
     if (pyLibPath != "NULL"){
-      pythonPath += 
+      pythonPath += pyLibPath;
     }
+    if (szgExecPath != "NULL"){
+      pythonPath += ";";
+      pythonPath += szgExecPath;
+    }
+    if (oldPythonPath != "" && oldPythonPath != "NULL"){
+      pythonPath += ';';
+      pythonPath += oldPythonPath;
+    }
+    // Make sure that all the slashes point the right direction.
+    ar_scrubPath(pythonPath);
+    // Finally, szg paths follow the Win32 convention of ';' as
+    // seperator. If we are a Unix, then this must be changed to ':'
+#ifndef AR_USE_WIN_32
     unsigned int pos;
-    while ((pos = szgExecPath.find(";")) != string::npos) {
-      szgExecPath.replace( pos, 1, ":" );
+    while ((pos = pythonPath.find(";")) != string::npos) {
+      pythonPath.replace( pos, 1, ":" );
     }
+#endif
   }
 
 #ifndef AR_USE_WIN_32
@@ -513,11 +528,14 @@ void execProcess(void* i){
     ar_setenv("SZGCONTEXT",messageContext);
     ar_setenv("SZGPIPEID", pipeDescriptors[1]);
     ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
+    
+    cout << "szgd remark: using dynamic library path =\n  "
+         << dynamicLibraryPath << "\n";
+    ar_setenv(dynamicLibraryPathVar, dynamicLibraryPath);
     if (execInfo->executableType == "python") {
-      // Python prepends the dir containing the .py file to the PYTHONPATH.
-      pythonPath = pyLibPath + ":" + szgExecPath + ":" + pythonPath;
-//      pythonPath = execInfo->pyDirPath + ":" + pyLibPath + ":" + szgExecPath + ":" + pythonPath;
-      ar_setenv("PYTHONPATH",pythonPath);
+      cout << "szgd remark: using python path =\n  "
+           << pythonPath << "\n";
+      ar_setenv("PYTHONPATH", pythonPath);
     }
     info << "szgd remark: running " << symbolicCommand << " on path\n"
          << execPath << ".\n";
@@ -612,24 +630,14 @@ void execProcess(void* i){
   // (where this would be a file descriptor)
   ar_setenv("SZGPIPEID", -1);
   ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
-
-  string oldPythonPath;
+  
+  cout << "szgd remark: using dynamic library path =\n  "
+       << dynamicLibraryPath << "\n";
+  ar_setenv(dynamicLibraryPathVar, dynamicLibraryPath);
   if (execInfo->executableType == "python") {
-    string oldPythonPath = ar_getenv( "PYTHONPATH" );
-    string pyLibPath = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "path", "");
-    if (pyLibPath == "NULL"){
-      cout << "szgd warning: SZG_PYTHON/path not set.\n";
-    }
-    // (for platform-specific modules, e.g. PySZG).
-    string execPath = SZGClient->getAttribute(userName, "NULL", "SZG_EXEC", "path", "");
-    if (execPath == "NULL"){
-      cout << "szgd warning: exec path not set.\n";
-    }
-//cerr << execInfo->pyDirPath << endl << pyLibPath << endl << execPath << endl << oldPythonPath << endl << endl;
-    // In Windows (maybe linux too), the directory containing the .py file is prepended to
-    // the pythonpath by python
-    string pythonPath = pyLibPath + ";" + execPath + ";" + oldPythonPath;
-    ar_setenv("PYTHONPATH",pythonPath);
+    cout << "szgd remark: using python path =\n  "
+         << pythonPath << "\n";
+    ar_setenv("PYTHONPATH", pythonPath);
   }
 
   // Stagger launches so the cluster's file server isn't hit so hard.
@@ -654,6 +662,9 @@ void execProcess(void* i){
                      NULL, NULL, false,
                      NORMAL_PRIORITY_CLASS, NULL, NULL, 
                      &si, &theInfo)){
+    // The variables must be set back before the mutex is
+    // unlocked.
+    ar_setenv( dynamicLibraryPathVar, oldDynamicLibraryPath);
     if (execInfo->executableType == "python") {
       ar_setenv( "PYTHONPATH", oldPythonPath );
     }
@@ -668,6 +679,8 @@ void execProcess(void* i){
     SZGClient->messageResponse(receivedMessageID, info.str());
   }
   else{
+    // This must be called before the mutex is unlocked.
+    ar_setenv( dynamicLibraryPathVar, oldDynamicLibraryPath);
     if (execInfo->executableType == "python") {
       ar_setenv( "PYTHONPATH", oldPythonPath );
     }

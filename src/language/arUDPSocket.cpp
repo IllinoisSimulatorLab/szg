@@ -47,6 +47,10 @@ void arUDPSocket::reuseAddress(bool flag){
   const int parameter = flag ? 1 : 0;
   setsockopt(_socketFD, SOL_SOCKET, SO_REUSEADDR, 
              (const char*)&parameter, sizeof(int));
+  // It seems necessary to do SO_REUSEPORT too for
+  // OS X, for instance.
+  setsockopt(_socketFD, SOL_SOCKET, SO_REUSEPORT,
+             (const char*)&parameter, sizeof(int));
 }
 
 int arUDPSocket::ar_bind(arSocketAddress* theAddress){

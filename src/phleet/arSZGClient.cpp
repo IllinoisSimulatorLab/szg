@@ -592,7 +592,7 @@ bool arSZGClient::parseParameterFile(const string& fileName){
   fileStream.ar_close();
 
   // Try the traditional way...
-  cout << "arSZGClient remark: Parsing config file using pre-0.7 syntax.";
+  cout << "arSZGClient remark: Parsing config file using pre-0.7 syntax.\n";
   FILE* theFile = ar_fileOpen(fileName, dataPath, "r");
   if (!theFile){
     cerr << _exeName << " error: failed to open batch file \"" 
