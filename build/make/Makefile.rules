@@ -1,10 +1,9 @@
 
-create-install: Everything
-	$(CP) $(OBJS) $(INSTALLDIR)/temp
-	$(CP) $(ALL) $(INSTALLDIR)/bin	
+#***************************************************************************
+# Seems reasonable to put the suffix definitions here
+#***************************************************************************
 
-create-install-exe: Everything
-	$(CP) $(ALL) $(INSTALLDIR)/bin	
+.SUFFIXES : .obj .cpp .c .o .so .lib .dll
 
 .cpp$(OBJ_SUFFIX):
 	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE)
@@ -12,9 +11,15 @@ create-install-exe: Everything
 .c$(OBJ_SUFFIX):
 	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE)
 
+create-install: Everything
+	$(CP) $(OBJS) $(INSTALLDIR)/temp
+	$(CP) $(ALL) $(INSTALLDIR)/bin	
+
+create-install-exe: Everything
+	$(CP) $(ALL) $(INSTALLDIR)/bin
+
 clean:
 	rm -rf *$(OBJ_SUFFIX) *.exp *.lib *.dll *.so *.a *.ilk *.pdb *.pch \
         .nfs* $(SRCDIR)/*~ \
 	$(ALL) $(patsubst %, $(BINDIR)/%, $(ALL)) \
-	$(patsubst %, $(BINDIR)/%.app, $(ALL)) \
 	$(BINDIR)/core $(BINDIR)/.nfs* ii_files core

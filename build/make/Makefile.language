@@ -27,25 +27,31 @@ OBJS = \
   arUDPSocket$(OBJ_SUFFIX) \
   arSocketAddress$(OBJ_SUFFIX)
 
-MYLIBNAME = libarLanguage
+# Local variable definitions for the build.
+MYLIBNAME = arLanguage
 MYLIB = $(MYLIBNAME)$(LIB_SUFFIX)
-LINK_LIBS := $(LINK_LIBS) $(MYLIB)
+# These internal library makefiles ONLY include the external files necessary
+# to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
+# Makefile.defines neglects to define these)
+SZG_INCLUDE = 
 
-# must do the precompiled header here... AND it must be the first thing
-ALL =   arPrecompiled$(OBJ_SUFFIX) \
-	RS232EchoTest$(EXE) \
+ALL =   $(MYLIB) \
+        RS232EchoTest$(EXE) \
 	RS232SendTest$(EXE) \
 	TestLanguageClient$(EXE) \
 	TestLanguage$(EXE)  \
 	TestLanguageServer$(EXE)
 
+# NOTE: "Everything" is the magic target name used by subsidiary targets
+# like "clean" and "create-install" (which puts all the 
 Everything: $(ALL)
 
-$(MYLIB): $(OBJS)
-	$(LIB_LINE1)
-	$(LIB_LINE2)
+# NOTE: We MUST compile the 
+$(MYLIB): arPrecompiled$(OBJ_SUFFIX) $(OBJS)
+	$(
+	$(COPY)
 
-# This should go AFTER our FIRST target
+# This should go AFTER our FIRST target (because Makefile.rules includes
 include $(SZGHOME)/build/make/Makefile.rules
 
 # note that originally, every object in this directory was optimized to
@@ -79,28 +85,23 @@ arPrecompiled$(OBJ_SUFFIX): arPrecompiled.cpp
 # since that is (at least in some cases) going to produce shared objects).
 # We do not want shared objects in these cases, since these are executables!
 
-RS232EchoTest$(OBJ_SUFFIX): RS232EchoTest.cpp
-	$(COMPILER) $(COMPILE_FLAGS_NONSHARED) $< $(SZG_INCLUDE)
-RS232EchoTest$(EXE): RS232EchoTest$(OBJ_SUFFIX)
-	$(LINKER) $(LINK_FLAGS) $(LINK_PREFIX)$@ $^ $(GENERAL_LIBS)
+RS232EchoTest$(EXE): $(MYLIB) RS232EchoTest$(OBJ_SUFFIX)
+	$(LINKER) $(FIRST_LINK_INFO) $(LINK_PREFIX)$@ RS232EchoTest$(OBJ_SUFFIX) $(SECOND_LINK_INFO)
+	$(COPY)
 
-RS232SendTest$(OBJ_SUFFIX): RS232SendTest.cpp
-	$(COMPILER) $(COMPILE_FLAGS_NONSHARED) $< $(SZG_INCLUDE)
-RS232SendTest$(EXE): RS232SendTest$(OBJ_SUFFIX)
-	$(LINKER) $(LINK_FLAGS) $(LINK_PREFIX)$@ $^ $(GENERAL_LIBS)
+RS232SendTest$(EXE): $(MYLIB) RS232SendTest$(OBJ_SUFFIX)
+	$(LINKER) $(FIRST_LINK_INFO) $(LINK_PREFIX)$@ RS232SendTest$(OBJ_SUFFIX) $(SECOND_LINK_INFO)
+	$(COPY)
 
-TestClient$(OBJ_SUFFIX): TestClient.cpp
-	$(COMPILER) $(COMPILE_FLAGS_NONSHARED) $< $(SZG_INCLUDE)
-TestLanguageClient$(EXE): TestClient$(OBJ_SUFFIX)
-	$(LINKER) $(LINK_FLAGS) $(LINK_PREFIX)$@ $^ $(GENERAL_LIBS)
+TestLanguageClient$(EXE): $(MYLIB) TestClient$(OBJ_SUFFIX)
+	$(LINKER) $(FIRST_LINK_INFO) $(LINK_PREFIX)$@ TestClient$(OBJ_SUFFIX) $(SECOND_LINK_INFO)
+	$(COPY)
 
-Test$(OBJ_SUFFIX): Test.cpp
-	$(COMPILER) $(COMPILE_FLAGS_NONSHARED) $< $(SZG_INCLUDE)
-TestLanguage$(EXE): Test$(OBJ_SUFFIX)
-	$(LINKER) $(LINK_FLAGS) $(LINK_PREFIX)$@ $^ $(GENERAL_LIBS)
+TestLanguage$(EXE): $(MYLIB) Test$(OBJ_SUFFIX)
+	$(LINKER) $(FIRST_LINK_INFO) $(LINK_PREFIX)$@ Test$(OBJ_SUFFIX) $(SECOND_LINK_INFO)
+	$(COPY)
 
-TestServer$(OBJ_SUFFIX): TestServer.cpp
-	$(COMPILER) $(COMPILE_FLAGS_NONSHARED) $< $(SZG_INCLUDE)
-TestLanguageServer$(EXE): TestServer$(OBJ_SUFFIX)
-	$(LINKER) $(LINK_FLAGS) $(LINK_PREFIX)$@ $^ $(GENERAL_LIBS)
+TestLanguageServer$(EXE): $(MYLIB) TestServer$(OBJ_SUFFIX)
+	$(LINKER) $(FIRST_LINK_INFO) $(LINK_PREFIX)$@ TestServer$(OBJ_SUFFIX) $(SECOND_LINK_INFO)
+	$(COPY)
 
