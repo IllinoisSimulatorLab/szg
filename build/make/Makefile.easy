@@ -1,18 +1,13 @@
 
-# This is a special Makefile for an "EASY" installation that contains two
-# special targets that those users might need.
+# This is a special Makefile for an "EASY" installation that contains a
+# special target that Windows users might want.
 
+# Needed to tell which os we are using.
 include $(SZGHOME)/build/make/Makefile.os
+# Needed for the PRECOMPILED_HEADER_LINE definition.
 include $(SZGHOME)/build/make/Makefile.vars
 
-# The first target is to needed to pluck shared libraries out from
-# SZGEXTERNAL and put them into SZGBIN.
-
-install-shared:
-	cp $(SZG_SHARED_COPY) $(SZG_BINDIR)
-	$(SZG_SHARED_COPY_ACTION)
-
-# The next target is needed to build the precompiled headers on the windows
+# This target is needed to build the precompiled headers on the windows
 # side, which is OPTIONAL (it needs to be done for the specific version
 # of Visual C++, and, consequently, cannot be done by the create-install
 # process on the packaging machine).

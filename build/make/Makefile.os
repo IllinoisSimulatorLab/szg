@@ -127,15 +127,8 @@ ifeq "$z" "mips4"
   MACHINE_DIR=mips4
 endif
 
-# BEWARE: This code is REPEATED in build/make/Makefile.vars
-# (The top-level Makefiles for normal development and easy development
-#  both require this).
-ifeq ($(strip $(SZGBIN)),)
-  ifneq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
-    SZG_BINDIR=$(SZGHOME)/bin/$(MACHINE_DIR)
-  else
-    SZG_BINDIR=$(SZGHOME)/bin
-  endif
-else
-  SZG_BINDIR=$(SZGBIN)
-endif
+# Want the definitions of SZG_BINDIR and INSTALLDIR to be consistent
+# pretty much everywhere. These definitions are in the following fragment.
+include $(SZGHOME)/build/make/Makefile.globals
+
+

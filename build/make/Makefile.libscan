@@ -20,15 +20,11 @@
 # header search is limited to those portions that need them (like FMOD only
 # for sound and framework).
 
-SZG_SHARED_COPY_ACTION_BIN=\
-  pushd $(SZG_BINDIR); \
-  $(SZG_SHARED_COPY_ACTION) \
-  popd
-
-SZG_SHARED_COPY_ACTION_SDK=\
-  pushd $(INSTALLDIR)/bin; \
-  $(SZG_SHARED_COPY_ACTION) \
-  popd
+# It is important that SZG_SHARED_COPY not be empty for proper Makefile
+# operation (of create-sdk and bin-install). Consequently, we guarantee that
+# at least a standard "placeholder" file will be copied.
+SZG_SHARED_COPY = $(SZGHOME)/build/make/blessing.txt
+SZG_SHARED_COPY_ACTION =
 
 ifeq ($(strip $(MACHINE)), LINUX)
   GLUT_DIR := $(SZGEXTERNAL)/linux/glut-3.7

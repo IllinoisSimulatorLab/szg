@@ -7,18 +7,44 @@
 .c$(OBJ_SUFFIX):
 	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE)
 
-# The "magic" Everything rule!
+# The "magic" Everything rule! The actual project Makefile sets
+# the variable $ALL with the targets.
 Everything: $(ALL)
 
-create-install: Everything
-	$(CP) $(ALL) $(INSTALLDIR)/bin
+# Copy all of the files produced by the local make into the "install"
+# directory. Moves any shared files needed there as well. If we are on
+# Windows, and if the local make produces a new library (like szg or vmat do)
+# then the .lib is copied into $(INSTALLDIR)/lib (SZG_LIB_COPY_LINE).
+# Finally, some platforms use sonames for shared libraries (like Linux).
+# In this case, we actually need to build some symbolic links in the 
+# installation directory.
+create-sdk: Everything
+	$(CP) $(ALL) $(SZG_SHARED_COPY_LOCAL) $(INSTALLDIR)/bin
 	$(SZG_LIB_COPY_LINE)
+	cd $(INSTALLDIR); $(SZG_SHARED_COPY_ACTION_LOCAL)
 
+# Installs everything, including the files built locally plus any external
+# libraries used by the local project, into SZG_BINDIR. Please note that
+# we do NOT use SZG_SHARED_COPY (which Makefile.os defines as ALL of the
+# used shared libraries) but instead have a variable SZG_SHARED_COPY_LOCAL.
 bin-install: Everything
-	$(CP) $(ALL) $(SZG_BINDIR)
+	$(CP) $(ALL) $(SZG_SHARED_COPY_LOCAL) $(SZG_BINDIR)
+	cd $(SZG_BINDIR); $(SZG_SHARED_COPY_ACTION_LOCAL)
 
+# Installs JUST the external libraries used by the local project into
+# SZG_BINDIR. This one doesn't depend on the code getting built, unlike
+# the previous two.
+install-shared:
+	$(CP) $(SZG_SHARED_COPY_LOCAL) $(SZG_BINDIR)
+	cd $(SZG_BINDIR); $(SZG_SHARED_COPY_ACTION_LOCAL)
+
+# Cleans the build directory and the binary directory of build-related files.
+# Also, clean up any editor-related "backup" files (*~) in the src directory.
+# NOTE: we explicitly ask to remove each object file extension. Previously,
+# the target removed *$(OBJ_SUFFIX), which is VERY dangerous if, by
+# a mistake somewhere, OBJ_SUFFIX is not defined!
 clean:
-	rm -rf *$(OBJ_SUFFIX) *.exp *.lib *.dll *.so *.a *.ilk *.pdb *.pch \
+	rm -rf *.obj *.o *.exp *.lib *.dll *.so *.a *.ilk *.pdb *.pch \
         .nfs* $(SRCDIR)/*~ \
 	$(ALL) $(patsubst %, $(SZG_BINDIR)/%, $(ALL)) \
 	$(SZG_BINDIR)/core $(SZG_BINDIR)/.nfs* ii_files core

@@ -1,10 +1,8 @@
+# Lets us guess the operating system type.
 include make/Makefile.os
-# Want to include Makefile.libscan here, so we can install-shared
+# Want to include Makefile.libscan here, so we can install the shared
+# libraries in the SZG_BINDIR (or in the INSTALLDIR for the SDK).
 include make/Makefile.libscan
-
-# This must be defined both here (for the create of the "install" directory
-# structure) AND in the local makefiles (via Makefile.vars)
-INSTALLDIR = $(SZGHOME)/szg-install
 
 ifeq "$z" "UNKNOWN_OS"
 all:
@@ -31,30 +29,50 @@ demo: all
 fast: all
 	@for i in $(DEMOFAST) ; do $(MAKE) -C $z/demo/$$i -j $(JOBS) ; done
 
-demo-clean:
-	@for i in $(DEMODIRS) ; do $(MAKE) -C $z/demo/$$i clean ; done
-
-create-install: all
+# This target needs INSTALLDIR.
+create-sdk: all
 	rm -rf $(INSTALLDIR)
+	rm -f $(SZGHOME)/doc/*~
 	mkdir $(INSTALLDIR)
 	cd $(INSTALLDIR); mkdir include bin lib build build/pch build/make
 	cp $(SZGHOME)/src/language/arPrecompiled.h \
 	   $(SZGHOME)/src/language/arPrecompiled.cpp $(INSTALLDIR)/build/pch
-	cd $(SZGHOME)/build/make; cp Makefile.os Makefile.libscan \
-	   Makefile.vars Makefile.rules $(INSTALLDIR)/build/make 
+	cd $(SZGHOME)/build/make; cp blessing.txt Makefile.os \
+           Makefile.libscan Makefile.vars Makefile.globals Makefile.toprule \
+           Makefile.rules $(INSTALLDIR)/build/make 
 	cp $(SZGHOME)/build/make/Makefile.easy $(INSTALLDIR)/build/Makefile
+	cp -r $(SZGHOME)/doc/ $(INSTALLDIR)/doc
+	find $(INSTALLDIR)/doc -name 'CVS' -print | xargs rm -rf
 	@for i in $(LIBDIRS) ; do cp $(SZGHOME)/src/$$i/*.h $(INSTALLDIR)/include ; done
-	@for i in $(SUBDIRS) ; do $(MAKE) -C $z/$$i create-install ; done
+	@for i in $(SUBDIRS) ; do $(MAKE) -C $z/$$i create-sdk ; done
+	cp $(SZG_SHARED_COPY) $(INSTALLDIR)/bin
+	cd $(INSTALLDIR)/bin; $(SZG_SHARED_COPY_ACTION)
 
-install-clean:
+clean-sdk:
 	rm -rf $(INSTALLDIR)
 
-# This target needs SZG_BINDIR.
+# This target needs SZG_BINDIR. It also copies the external shared libraries
+# into the right spot.
+bin-install: all
+	@for i in $(SUBDIRS) ; do $(MAKE) -C $z/$$i bin-install || exit 1 ; done
+	cp $(SZG_SHARED_COPY) $(SZG_BINDIR)
+	cd $(SZG_BINDIR); $(SZG_SHARED_COPY_ACTION)
+
+# This target needs SZG_BINDIR. It only copies the external shared libraries
+# into the right spot (sometimes this is all one wants).
 install-shared:
 	cp $(SZG_SHARED_COPY) $(SZG_BINDIR)
-	$(SZG_SHARED_COPY_ACTION)
+	cd $(SZG_BINDIR); $(SZG_SHARED_COPY_ACTION)
 
-bin-install:
-	@for i in $(SUBDIRS) ; do $(MAKE) -C $z/$$i bin-install || exit 1 ; done
+demo-clean:
+	@for i in $(DEMODIRS) ; do $(MAKE) -C $z/demo/$$i clean ; done
+
+# The "demo" rules only need to depend on "all" since the local Makefile
+# will build the software, if necessary.
+demo-create-sdk: all
+	@for i in $(DEMODIRS) ; do $(MAKE) -C $z/demo/$$i create-sdk ; done
+
+demo-bin-install: all
+	@for i in $(DEMODIRS) ; do $(MAKE) -C $z/demo/$$i bin-install ; done
 
 endif
