@@ -1,7 +1,8 @@
+<szg_config>
+<comment> definitions that change per user </comment>
 
-# definitions that change per user
-
-# machines in the R&D lab
+<comment> machines in the R&D lab </comment>
+<assign>
 smoke   SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
 cube6   SZG_EXEC path g:\THE_USER_NAME\bin\win32
 2northg SZG_EXEC path g:\THE_USER_NAME\bin\win32
@@ -12,8 +13,10 @@ wall4   SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
 2westh  SZG_EXEC path g:\THE_USER_NAME\bin\win32
 2southh SZG_EXEC path g:\THE_USER_NAME\bin\win32
 2toph	SZG_EXEC path g:\THE_USER_NAME\bin\win32
+</assign>
 
-# machines in the "boiler room" lab
+<comment> machines in the "boiler room" lab </comment>
+<assign>
 2bottomh SZG_EXEC path g:\THE_USER_NAME\bin\win32
 2northh  SZG_EXEC path g:\THE_USER_NAME\bin\win32
 2easth   SZG_EXEC path g:\THE_USER_NAME\bin\win32
@@ -21,9 +24,10 @@ gm4      SZG_EXEC path g:\THE_USER_NAME\bin\win32
 road1    SZG_EXEC path g:\THE_USER_NAME\bin\win32
 spirit   SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
 isl2     SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
+</assign>
 
-# virtual computer definitions
-
+<comment> virtual computer definitions </comment>
+<assign>
 wall SZG_CONF virtual true
 wall SZG_TRIGGER map smoke
 wall SZG_MASTER map SZG_SCREEN0
@@ -44,10 +48,14 @@ wall SZG_INPUT0 map smoke/wandsimserver
 wall SZG_INPUT0 networks internet
 wall SZG_SOUND map cube6
 wall SZG_SOUND networks internet
+</assign>
 
-# tests having the master and the trigger map to the
-# same computer
+<comment>
+tests having the master and the trigger map to the
+same computer
+</comment>
 
+<assign>
 wall_master1 SZG_CONF virtual true
 wall_master1 SZG_TRIGGER map wall1
 wall_master1 SZG_MASTER map SZG_SCREEN0
@@ -68,10 +76,13 @@ wall_master1 SZG_INPUT0 map smoke/wandsimserver
 wall_master1 SZG_INPUT0 networks internet
 wall_master1 SZG_SOUND map cube6
 wall_master1 SZG_SOUND networks internet
+</assign>
 
-# tests having the trigger map to one of the rendering
-# slaves
-
+<comment>
+tests having the trigger map to one of the rendering
+slaves
+</comment>
+<assign>
 wall_master2 SZG_CONF virtual true
 wall_master2 SZG_TRIGGER map wall2
 wall_master2 SZG_MASTER map SZG_SCREEN1
@@ -92,9 +103,10 @@ wall_master2 SZG_INPUT0 map smoke/wandsimserver
 wall_master2 SZG_INPUT0 networks internet
 wall_master2 SZG_SOUND map cube6
 wall_master2 SZG_SOUND networks internet
+</assign>
 
-#tests having several screens on a single computer
-
+<comment> tests having several screens on a single computer </comment>
+<assign>
 smoke_test SZG_CONF virtual true
 smoke_test SZG_TRIGGER map smoke
 smoke_test SZG_MASTER map SZG_SCREEN0
@@ -118,9 +130,10 @@ passive SZG_MASTER  map		         SZG_SCREEN0
 passive SZG_SCREEN  number_screens 1
 passive SZG_SCREEN0 map            gm4/SZG_SCREEN0
 passive SZG_INPUT0  map            road1
+</assign>
 
-# search paths
-
+<comment> search paths </comment>
+<assign>
 sim2    SZG_DATA   path         g:\Data
 sim2    SZG_SOUND  path         g:\Sounds
 sim2    SZG_RENDER texture_path g:\Texture
@@ -199,16 +212,20 @@ isl2    SZG_DATA   path         /home/public/Data
 isl2    SZG_SOUND  path         /home/public/Sounds
 isl2    SZG_RENDER texture_path /home/public/Texture
 isl2    SZG_RENDER text_path    /home/public/Texture/Text
+</assign>
 
-# misc. configuration
+<comment> misc. configuration </comment>
 
+<assign>
 smoke SZG_WANDSIM position 1305/0
 
 2northg SZG_TRACKER transmitter_offset 0.972229/0.196838/0.123962/0/-0.0494389/0.695801/-0.716003/0/-0.227356/0.69043/0.686707/0/0.0876952/6.71073/-2.72462/1
 2northg SZG_TRACKER sensor0_rot 0/0/1/-90
 2northg SZG_TRACKER sensor1_rot 0/0/1/180
+</assign>
 
-# New head parameters, defined on master/controller
+<comment>New head parameters, defined on master/controller</comment>
+<assign>
 wall1 SZG_HEAD eye_spacing 0.2
 wall1 SZG_HEAD eye_direction 1/0/0
 wall1 SZG_HEAD mid_eye_offset 0/0/0
@@ -217,9 +234,10 @@ smoke SZG_HEAD eye_spacing 0.2
 smoke SZG_HEAD eye_direction 1/0/0
 smoke SZG_HEAD mid_eye_offset 0/0/0
 smoke SZG_HEAD fixed_head_mode false
+</assign>
 
-# screen configuration
-
+<comment> screen configuration </comment>
+<assign>
 smoke SZG_SCREEN0 size 640/480
 smoke SZG_SCREEN0 tile 0/1/0/1
 smoke SZG_SCREEN0 screen_center 0/5/-5
@@ -267,16 +285,23 @@ wall1 SZG_SCREEN0 screen_normal 0/0/-1
 wall1 SZG_SCREEN0 screen_up 0/1/0
 wall1 SZG_SCREEN0 view_mode custom
 wall1 SZG_SCREEN0 viewport_list SZG_SCREEN1
+</assign>
 
+<comment>
+This will yield a superimposed viewport in the lower-left corner.
+Viewports are not currently individually cleared, so the background will
+effectively be transparent.
+</comment>
+
+<assign>
 wall1 SZG_SCREEN1 screen_center 0/5/5
 wall1 SZG_SCREEN1 screen_dim 10/10
 wall1 SZG_SCREEN1 screen_normal 0/0/1
 wall1 SZG_SCREEN1 screen_up 0/1/0
-# This will yield a superimposed viewport in the lower-left corner.
-# Viewports are not currently individually cleared, so the background will
-# effectively be transparent.
 wall1 SZG_SCREEN1 viewport_dim 0/0/.3/.3
+</assign>
 
+<assign>
 wall2 SZG_SCREEN0 size 0/0
 wall2 SZG_SCREEN0 tile 1/3/1/2
 wall2 SZG_SCREEN0 screen_center 0/5/-5
@@ -377,5 +402,7 @@ isl2     SZG_SCREEN0 screen_center 0/5/-5
 isl2     SZG_SCREEN0 screen_dim 10/10
 isl2     SZG_SCREEN0 screen_normal 0/0/-1
 isl2     SZG_SCREEN0 screen_up 0/1/0
+</assign>
+</szg_config>
 
 
