@@ -102,11 +102,11 @@ bool arReactionTimerDriver::restart() {
 }
 
 bool arReactionTimerDriver::_processInput() {
-  unsigned int numToRead(3); // Minimum message size ("!\r\n")
-  int numRead = _port.ar_read( _inbuf, 3, BUF_SIZE-1 );
+  const unsigned int numToRead = 3; // Minimum message size ("!\r\n")
+  const int numRead = _port.ar_read( _inbuf, numToRead, BUF_SIZE-1 );
   if (numRead == 0) {
     if (_statusTimer.done()) {
-      cerr << "arReactionTimerDriver warning: lost communication with ReactionTimer.\n";
+      cerr << "arReactionTimerDriver warning: ReactionTimer disconnected.\n";
       _imAlive = false;
     }
     return true; 
@@ -122,7 +122,7 @@ bool arReactionTimerDriver::_processInput() {
       return true;
     }
     if (!_imAlive) {
-      cerr << "arReactionTimerDriver remark: regained communication with ReactionTimer.\n";
+      cout << "arReactionTimerDriver remark: ReactionTimer reconnected.\n";
       _imAlive = true;
     }
     std::string messageString( _bufString.substr( 0, crpos ) );

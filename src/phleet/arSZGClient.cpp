@@ -994,13 +994,12 @@ bool arSZGClient::killProcessID(int id){
   // Must get storage for the message.
   arStructuredData* killIDData
     = _dataParser->getStorage(_l.AR_KILL);
-  bool state;
+  bool state = false;
   // One of the few places where we DON'T USE MATCH!
   (void)_fillMatchField(killIDData);
   if (!killIDData->dataIn(_l.AR_KILL_ID,&id,AR_INT,1) ||
       !_dataClient.sendData(killIDData)){
     cerr << _exeName << " warning: message send failed\n";
-    state = false;
   }
   else{
     state = true;
@@ -1292,7 +1291,7 @@ bool arSZGClient::messageResponse(int messageID, const string& body,
   // Must get storage for the message.
   arStructuredData* messageAdminData
     = _dataParser->getStorage(_l.AR_SZG_MESSAGE_ADMIN);
-  bool state;
+  bool state = false;
   // fill in the appropriate data
   int match = _fillMatchField(messageAdminData);
   if (!messageAdminData->dataIn(_l.AR_SZG_MESSAGE_ADMIN_ID, &messageID,
@@ -1305,7 +1304,6 @@ bool arSZGClient::messageResponse(int messageID, const string& body,
                                       body) ||
       !_dataClient.sendData(messageAdminData)){
     cerr << _exeName << " warning: failed to send message response.\n";
-    state =  false;
   }
   else{
     state = _getMessageAck(match, "message response");
@@ -1329,7 +1327,6 @@ int arSZGClient::startMessageOwnershipTrade(int messageID,
   // Must get storage for the message.
   arStructuredData* messageAdminData
     = _dataParser->getStorage(_l.AR_SZG_MESSAGE_ADMIN);
-  bool state;
   int match = _fillMatchField(messageAdminData);
   if (!messageAdminData->dataIn(_l.AR_SZG_MESSAGE_ADMIN_ID, &messageID,
 				AR_INT, 1) ||
@@ -1341,7 +1338,7 @@ int arSZGClient::startMessageOwnershipTrade(int messageID,
     match = -1;
   }
   else{
-    state = _getMessageAck(match, "message trade");
+    (void)_getMessageAck(match, "message trade");
   }
   _dataParser->recycle(messageAdminData);
   return match;
@@ -1368,14 +1365,13 @@ bool arSZGClient::revokeMessageOwnershipTrade(const string& key){
   // Must get storage for the message.
   arStructuredData* messageAdminData
     = _dataParser->getStorage(_l.AR_SZG_MESSAGE_ADMIN);
-  bool state;
   int match = _fillMatchField(messageAdminData);
+  bool state = false;
   if (!messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_TYPE,
 				      "SZG Revoke Trade") ||
       !messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_BODY, key) ||
       !_dataClient.sendData(messageAdminData)){
     cerr << _exeName << "warning: failed to send message trade revocation.\n";
-    state = false;
   }
   else{
     state = _getMessageAck(match, "message trade revocation");
@@ -1468,19 +1464,17 @@ bool arSZGClient::getLock(const string& lockName, int& ownerID){
   // Must get storage for the message.
   arStructuredData* lockRequestData
     = _dataParser->getStorage(_l.AR_SZG_LOCK_REQUEST);
-  bool state;
   int match = _fillMatchField(lockRequestData);
+  bool state = false;
   if (!lockRequestData->dataInString(_l.AR_SZG_LOCK_REQUEST_NAME, 
                                      lockName) ||
       !_dataClient.sendData(lockRequestData)){
     cerr << _exeName << " warning: failed to send lock request.\n";
-    state = false;
   }
   else{
     arStructuredData* ack = _getTaggedData(match, _l.AR_SZG_LOCK_RESPONSE);
     if (!ack){
       cerr << _exeName << " warning: no ack for lock.\n";
-      state = false;
     }
     else{
       ownerID = ack->getDataInt(_l.AR_SZG_LOCK_RESPONSE_OWNER);
@@ -1504,19 +1498,17 @@ bool arSZGClient::releaseLock(const string& lockName){
   // Must get storage for message.
   arStructuredData* lockReleaseData
     = _dataParser->getStorage(_l.AR_SZG_LOCK_RELEASE);
-  bool state;
   int match = _fillMatchField(lockReleaseData);
+  bool state = false;
   if (!lockReleaseData->dataInString(_l.AR_SZG_LOCK_RELEASE_NAME, 
                                      lockName) ||
       !_dataClient.sendData(lockReleaseData)){
     cerr << _exeName << " warning: failed to send lock request.\n";
-    state = false;
   }
   else{
     arStructuredData* ack = _getTaggedData(match, _l.AR_SZG_LOCK_RESPONSE);
     if (!ack){
       cerr << _exeName << " warning: no ack for lock.\n";
-      state = false;
     }
     else{
       state =
@@ -2383,14 +2375,13 @@ bool arSZGClient::_setLabel(const string& label){
   // Need to get some storage for the message.
   arStructuredData* connectionAckData
     = _dataParser->getStorage(_l.AR_CONNECTION_ACK);
-  bool state;
   const string fullLabel = _computerName + "/" + label;
+  bool state = false;
   int match = _fillMatchField(connectionAckData);
   if (!connectionAckData->dataInString(_l.AR_CONNECTION_ACK_LABEL,
                                        fullLabel) ||
       !_dataClient.sendData(connectionAckData)){
     cerr << _exeName << " warning: failed to set label.\n";
-    state = false;
   }
   else{
     _exeName = label;
@@ -2398,7 +2389,6 @@ bool arSZGClient::_setLabel(const string& label){
     arStructuredData* ack = _getTaggedData(match, _l.AR_CONNECTION_ACK);
     if (!ack){
       cerr << _exeName << " warning: failed to get szgserver name.\n";
-      state = false;
     }
     else{
       _serverName = ack->getDataString(_l.AR_CONNECTION_ACK_LABEL);

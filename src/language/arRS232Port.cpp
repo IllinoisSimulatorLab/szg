@@ -658,6 +658,7 @@ bool arRS232Port::setReadTimeout( const unsigned int timeoutTenths ) {
 
 bool arRS232Port::setReadBufferSize( const unsigned int numBytes ) {
 #ifndef AR_USE_WIN_32
+  (void)numBytes;
   return true;
 #else
   if (!_isOpen) {

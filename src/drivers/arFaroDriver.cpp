@@ -56,9 +56,6 @@ const float DEGREES_TO_RADIANS(M_PI/180.);
 
 void ar_FaroDriverEventTask(void* theDriver){
   arFaroDriver* faroDriver = (arFaroDriver*) theDriver;
-  float nums[9];
-  const float INCHES_TO_FEET = 1./12.;
-  const float DEGREES_TO_RADIANS = 0.017453293;
   faroDriver->_stopped = false;
   faroDriver->_eventThreadRunning = true;
   while (faroDriver->_eventThreadRunning && !faroDriver->_stopped) {

@@ -647,7 +647,7 @@ bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
   // NOTE: AN EXTRA BYTE IS ONLY DELIVERED IN GROUP MODE!
   int bytesPerBird = 2*_dataSize;
   int bytesRead;
-  int i, j;
+  int j;
   bytesRead = _comPort.ar_read( (char*)_dataBuffer, static_cast<unsigned int>(bytesPerBird) );
   if (bytesRead != bytesPerBird) {
     cerr << "arFOBDriver error: # bytes read (" << bytesRead

@@ -165,8 +165,6 @@ int main(int argc, char** argv){
     return 1;
   stringstream& initResponse = SZGClient.initResponse();
 
-  int i;
-
   // First, check to see if we've got the "simple" flag set (-s)
   // If so, we aren't planning on doing any filtering or other such,
   // just loading in the module and putting its output on the network.
