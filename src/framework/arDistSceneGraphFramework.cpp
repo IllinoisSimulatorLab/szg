@@ -615,6 +615,9 @@ bool arDistSceneGraphFramework::_initInput(){
     else{
       // the joystick is the only other option so far
       arSharedLib* joystickObject = new arSharedLib();
+      // It is annoying that, in here, we do not configure the arInputNode
+      // like it is done in DeviceServer. This looses us alot of flexibility
+      // that we might otherwise have.
       string sharedLibLoadPath = _SZGClient.getAttribute("SZG_EXEC","path");
       string pforthProgramName = _SZGClient.getAttribute("SZG_PFORTH",
                                                          "program_names");
@@ -627,13 +630,30 @@ bool arDistSceneGraphFramework::_initInput(){
       arInputSource* driver = (arInputSource*) joystickObject->createObject();
       // The input node is not responsible for clean-up
       _inputDevice->addInputSource(driver, false);
-      if (pforthProgramName != "NULL"){
-        arPForthFilter* filter = new arPForthFilter();
-        if (!filter->configure( pforthProgramName )){
-          return false;
-        }
-        // The input node is not responsible for clean-up
-        _inputDevice->addFilter(filter, false);
+      if (pforthProgramName == "NULL"){
+        cout << "arDistSceneGraphFramework remark: no pforth program for "
+	     << "standalone joystick.\n";
+      }
+      else{
+        string pforthProgram 
+          = _SZGClient.getGlobalAttribute(pforthProgramName);
+        if (pforthProgram == "NULL"){
+          cout << "arDistSceneGraphFramework remark: no pforth program exists "
+	       << "for name = " << pforthProgramName << "\n";
+	}
+        else{
+          arPForthFilter* filter = new arPForthFilter();
+          ar_PForthSetSZGClient( &_SZGClient );
+      
+          if (!filter->configure( pforthProgram )){
+	    cout << "arDistSceneGraphFramework remark: failed to configure "
+		 << "pforth\nfilter with program =\n "
+	         << pforthProgram << "\n";
+            return false;
+	  }
+          // The input node is not responsible for clean-up
+          _inputDevice->addFilter(filter, false);
+	}
       }
     }
   }

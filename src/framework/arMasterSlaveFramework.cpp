@@ -368,7 +368,13 @@ bool arMasterSlaveFramework::init(int& argc, char** argv){
       cerr << _label << " remark: COULD NOT LOAD PARAMETERS IN STANDALONE "
 	   << "MODE.\n";
     }
-    _initStandaloneObjects();
+    if (!_initStandaloneObjects()){
+      // NOTE: It is definitely possible for initialization of the standalone
+      // objects to fail. For instance, what if we are unable to load
+      // the joystick driver (which is a loadable module) or what if
+      // the configuration of the pforth filter fails?
+      return false;
+    }
     _parametersLoaded = true;
     // We do not start the message-receiving thread yet (because there's no
     // way yet to operate in a distributed fashion). We also do not
@@ -1265,13 +1271,29 @@ bool arMasterSlaveFramework::_initStandaloneObjects(){
     arInputSource* driver = (arInputSource*) joystickObject->createObject();
     // The input node is not responsible for clean-up
     _inputDevice->addInputSource(driver, false);
-    if (pforthProgramName != "NULL"){
-      arPForthFilter* filter = new arPForthFilter();
-      if (!filter->configure( pforthProgramName )){
-        return false;
+    if (pforthProgramName == "NULL"){
+      cout << "arMasterSlaveFramework remark: no pforth program for "
+	   << "standalone joystick.\n";
+    }
+    else{
+      string pforthProgram = _SZGClient.getGlobalAttribute(pforthProgramName);
+      if (pforthProgram == "NULL"){
+        cout << "arMasterSlaveFramework remark: no pforth program exists for "
+	     << "name = " << pforthProgramName << "\n";
       }
-      // The input node is not responsible for clean-up
-      _inputDevice->addFilter(filter, false);
+      else{
+        arPForthFilter* filter = new arPForthFilter();
+        ar_PForthSetSZGClient( &_SZGClient );
+      
+        if (!filter->configure( pforthProgram )){
+	  cout << "arMasterSlaveFramework remark: failed to configure pforth\n"
+	       << "filter with program =\n "
+	       << pforthProgram << "\n";
+          return false;
+        }
+        // The input node is not responsible for clean-up
+        _inputDevice->addFilter(filter, false);
+      }
     }
   }
   // NOTE: this will probably fail under the current hacked regime...

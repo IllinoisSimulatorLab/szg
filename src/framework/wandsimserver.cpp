@@ -124,16 +124,32 @@ int main(int argc, char** argv){
   // NOTE: we need to distinguish different kinds of SZG_INPUTn services...
   // and this is how we do it!
   netInputSink.setInfo("wandsimserver");
+
   string pforthProgramName = client->getAttribute("SZG_PFORTH",
-                                                  "program_names");
-  if (pforthProgramName != "NULL"){
-    arPForthFilter* filter = new arPForthFilter();
-    if (!filter->configure( pforthProgramName )){
-      client->sendInitResponse(false);
-      return 1; 
+                                                     "program_names");
+  if (pforthProgramName == "NULL"){
+    cout << "wandsimserver remark: no pforth program for "
+	 << "standalone joystick.\n";
+  }
+  else{
+    string pforthProgram = client->getGlobalAttribute(pforthProgramName);
+    if (pforthProgram == "NULL"){
+      cout << "wandsimserver remark: no pforth program exists for "
+	   << "name = " << pforthProgramName << "\n";
     }
-    // The input node is not responsible for clean-up
-    inputNode->addFilter(filter, false);
+    else{
+      arPForthFilter* filter = new arPForthFilter();
+      ar_PForthSetSZGClient( client );
+      if (!filter->configure( pforthProgram )){
+        cout << "wandsimserver remark: failed to configure pforth\n"
+	     << "filter with program =\n "
+	     << pforthProgram << "\n";
+        client->sendInitResponse(false);
+        return 1;
+      }
+      // The input node is not responsible for clean-up
+      inputNode->addFilter(filter, false);
+    }
   }
   
   simulator.registerInputNode(inputNode);

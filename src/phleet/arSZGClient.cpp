@@ -384,6 +384,42 @@ string arSZGClient::getAllAttributes(const string& substring){
   return result;
 }
 
+bool arSZGClient::parseAssignmentString(const string& text){
+  stringstream parsingStream(text);
+  string param1, param2, param3, param4;
+  while (true){
+    // Will skip whitespace(this is a default)
+    parsingStream >> param1;
+    if (parsingStream.fail()){
+      // This can actually legitimately happen at the end of the assignment
+      // block.
+      if (parsingStream.eof()){
+	return true;
+      }
+      cout << "arSZGClient error: malformed assignment string.\n";
+      return false;
+    }
+    parsingStream >> param2;
+    if (parsingStream.fail()){
+      cout << "arSZGClient error: malformed assignment string.\n";
+      return false;
+    }
+    parsingStream >> param3;
+    if (parsingStream.fail()){
+      cout << "arSZGClient error: malformed assignment string.\n";
+      return false;
+    }
+    parsingStream >> param4;
+    if (parsingStream.fail()){
+      cout << "arSZGClient error: malformed assignment string.\n";
+      return false;
+    }
+    else{
+      setAttribute(param1, param2, param3, param4);
+    }
+  }
+}
+
 /// Sometimes we want to be able to read in parameters from a file, as in
 /// dbatch or when starting a program in "standalone" mode (i.e. when it is
 /// not connected to the Phleet).
@@ -401,36 +437,27 @@ bool arSZGClient::parseParameterFile(const string& fileName){
   //
   // <szg_config>
   //   ... one of more of the following ...
-  //   <szg_param>
-  //      <szg_name>
+  //   <param>
+  //      <name>
   //
-  //      </szg_name>
-  //	  <szg_value>
+  //      </name>
+  //	  <value>
   //  
-  //      </szg_value>   
-  //   </szg_param>
+  //      </value>   
+  //   </param>
+  //
+  //   <comment>
+  //     ... text of comment goes here ...
+  //   </comment>
+  //   <assign>
+  //     a1 a2 a3 a4
+  //     b1 b2 b3 b4
+  //     c1 c2 c3 c4
+  //      ...
+  //   </assign>
   // </szg_config>
   // 
-  // In the szg_name field, we should have either 1 or 3 tokens
-  // (as determined by eliminating whitespace). If 1, then this is
-  // a "global" parameter. If 3, then this is a "local" parameter
-  // (i.e. tied to a particular computer) and we assume that the tokens
-  // are:
-  //
-  // computer parameter_group parameter
-  //
-  // Combined, these give the parameter's name (possibly after some mangling
-  // has occured).
-  //
-  // The parameter value, in either case, is given by the contents of the
-  // szg_value field with beginning and trailing whitespace removed. 
   // 
-  // In addition to szg_param blocks, the config file can contain comments
-  // expressed like so:
-  // <szg_comment>
-  //   ... text of the comment goes here ...
-  // </szg_commment>
-  //
   // The presence of <szg_config> as the first non-whitespace block of
   // characters in the file determines the config file format that is
   // assumed.
@@ -448,7 +475,7 @@ bool arSZGClient::parseParameterFile(const string& fileName){
     // Try parsing in the new way.
     while (true){
       tagText = ar_getTagText(&fileStream, &buffer);
-      if (tagText == "szg_comment"){
+      if (tagText == "comment"){
 	// Go ahead and get the comment text (but discard it).
         if (!ar_getTextBeforeTag(&fileStream, &buffer)){
 	  cout << _exeName << " error: failed to get all of comment text "
@@ -457,21 +484,21 @@ bool arSZGClient::parseParameterFile(const string& fileName){
 	  return false;
 	}
         tagText = ar_getTagText(&fileStream, &buffer);
-        if (tagText != "/szg_comment"){
+        if (tagText != "/comment"){
           cout << _exeName << " error: found an illegal tag= " << tagText
 	       << " when parsing phleet config file.\n"
-	       << "(should have found /szg_comment)\n";
+	       << "(should have found /comment)\n";
 	  fileStream.ar_close();
 	  return false;
 	}
       }
-      else if (tagText == "szg_param"){
+      else if (tagText == "param"){
         // First comes the name...
         tagText = ar_getTagText(&fileStream, &buffer);
-        if (tagText != "szg_name"){
+        if (tagText != "name"){
           cout << _exeName << " error: found an illegal tag= " << tagText
 	       << " when parsing phleet config file.\n"
-	       << "(should have found szg_name)\n";
+	       << "(should have found name)\n";
 	  fileStream.ar_close();
           return false;
 	}
@@ -492,23 +519,23 @@ bool arSZGClient::parseParameterFile(const string& fileName){
           return false;
 	}
         tagText = ar_getTagText(&fileStream, &buffer);
-        if (tagText != "/szg_name"){
+        if (tagText != "/name"){
           cout << _exeName << " error: found an illegal tag= " << tagText
 	       << " when parsing phleet config file.\n"
-	       << "(should have found /szg_name)\n";
+	       << "(should have found /name)\n";
 	  fileStream.ar_close();
           return false;
 	}
 	// Next comes the value...
         tagText = ar_getTagText(&fileStream, &buffer);
-        if (tagText != "szg_value"){
+        if (tagText != "value"){
           cout << _exeName << " error: found an illegal tag= " << tagText
 	       << " when parsing phleet config file.\n"
-	       << "(should have found szg_value)\n";
+	       << "(should have found value)\n";
 	  fileStream.ar_close();
           return false;
 	}
-        if (!ar_getTextUntilEndTag(&fileStream, "szg_value", &buffer)){
+        if (!ar_getTextUntilEndTag(&fileStream, "value", &buffer)){
           cout << _exeName << " error: failed to get all of parameter "
 	       << "value's text "
 	       << "while parsing phleet config file.\n";
@@ -521,12 +548,30 @@ bool arSZGClient::parseParameterFile(const string& fileName){
 
 	// Finally should come the closing tag for the parameter.
         tagText = ar_getTagText(&fileStream, &buffer);
-        if (tagText != "/szg_param"){
+        if (tagText != "/param"){
           cout << _exeName << " error: found an illegal tag= " << tagText
 	       << " when parsing phleet config file.\n"
-	       << "(should have found /szg_param)\n";
+	       << "(should have found /param)\n";
 	  fileStream.ar_close();
           return false;
+	}
+      }
+      else if (tagText == "assign"){
+        // Go ahead and parse the assignment info.
+        if (!ar_getTextBeforeTag(&fileStream, &buffer)){
+	  cout << _exeName << " error: failed to get all of assignment text "
+	       << "while parsing phleet config file.\n";
+	  fileStream.ar_close();
+	  return false;
+	}
+        parseAssignmentString(buffer.data);
+        tagText = ar_getTagText(&fileStream, &buffer);
+        if (tagText != "/assign"){
+          cout << _exeName << " error: found an illegal tag= " << tagText
+	       << " when parsing phleet config file.\n"
+	       << "(should have found /assign)\n";
+	  fileStream.ar_close();
+	  return false;
 	}
       }
       else if (tagText == "/szg_config"){
