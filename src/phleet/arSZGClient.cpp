@@ -50,6 +50,7 @@ arSZGClient::arSZGClient():
   _parseSpecialPhleetArgs(true),
   _nextMatch(0),
   _beginTimer(false),
+  _requestedName(""),
   _dataRequested(false),
   _keepRunning(true),
   _justPrinting(false)
@@ -330,21 +331,21 @@ bool arSZGClient::launchDiscoveryThreads(){
     return true;
   }
 
-  // initialize the server discovery socket
-  _incomingAddress.setAddress(NULL,4621);
+  // Initialize the server discovery socket
   _discoverySocket = new arUDPSocket;
   _discoverySocket->ar_create();
   _discoverySocket->setBroadcast(true);
-
-
+  _discoverySocket->reuseAddress(true);
+  arSocketAddress incomingAddress;
+  incomingAddress.setAddress(NULL,4620);
+  if (_discoverySocket->ar_bind(&incomingAddress) < 0){
+    cout << "arSZGClient remark: could not bind discovery response socket,\n";
+    return false;
+  }
 
   arThread dummy1(arSZGClientServerResponseThread,this);
   arThread dummy2(arSZGClientTimerThread,this);
   _discoveryThreadsLaunched = true;
-  // just a little paranoid in a putting a delay in here
-  // hope it promotes overall stability... I'm still a little
-  // wary about these auto-launching threads
-  ar_usleep(10000);
   return true;
 }
 
@@ -591,15 +592,16 @@ bool arSZGClient::parseParameterFile(const string& fileName){
   fileStream.ar_close();
 
   // Try the traditional way...
-  cout << "arSZGClient remark: Did not find opening <szg_config>.\n"
-	   << "Trying to parse the traditional dbatch syntax!\n";
+  cout << "arSZGClient remark: Parsing config file using pre-0.7 syntax.";
   FILE* theFile = ar_fileOpen(fileName, dataPath, "r");
   if (!theFile){
     cerr << _exeName << " error: failed to open batch file \"" 
          << fileName << "\"\n";
     return false;
   }
-  // PROBLEMS WITH FIXED-SIZED BUFFERS
+  // BUG: There are problems below with fixed sized buffers. NOTE: these
+  // problems will go away once we've fully converted over to the XML-based
+  // config files.
   char buf[4096];
   char buf1[4096], buf2[4096], buf3[4096], buf4[4096];
   while (fgets(buf, sizeof(buf)-1, theFile)) {
@@ -2776,10 +2778,10 @@ string arSZGClient::_changeToValidValue(const string& groupName,
 /// A somewhat baroque construction that lets us get configuration information
 /// from the szgservers on the network.
 void arSZGClient::_serverResponseThread() {
-  char buffer[512];
+  char buffer[200];
   while (_keepRunning) {
-
-    while (_discoverySocket->ar_read(buffer,299, &_incomingAddress) < 0) {
+    arSocketAddress fromAddress;
+    while (_discoverySocket->ar_read(buffer, 200, &fromAddress) < 0) {
       ar_usleep(10000);
       // Win32 returns -1 if no packet was received
       // (and therefore the data below would be garbage).
@@ -2789,18 +2791,42 @@ void arSZGClient::_serverResponseThread() {
     ar_usleep(10000); // avoid busy-waiting on Win32
     ar_mutex_lock(&_queueLock);
     if (_dataRequested){
-      memcpy(_responseBuffer,buffer,512);
-      if (_justPrinting){
-	// Print out the contents of this packet.
-        const string promiscuity(_responseBuffer[128] ? "true": "false");
-        cout << _responseBuffer  << "/"
-	     << _responseBuffer+129 << ":"
-	     << _responseBuffer+161 << "\n";
-      }
-      else {
-        // Discard subsequent packets.
-        _dataRequested = false;
-        _dataCondVar.signal();
+      // Make sure it is the right format. Both version number (first four
+      // bytes) and that it is a response (5th byte = 1).
+      if (buffer[0] == 0 && buffer[1] == 0 && 
+          buffer[2] == 0 && buffer[3] == 1 && buffer[4] == 1){
+        memcpy(_responseBuffer,buffer,200);
+        if (_justPrinting){
+	  // Print out the contents of this packet.
+          stringstream serverInfo;
+          serverInfo << _responseBuffer+5  << "/"
+	             << _responseBuffer+132 << ":"
+	             << _responseBuffer+164;
+          // Check to see that we haven't found it already.
+	  // This is possible since response packets are broadcast
+	  // and someone else on the network could be generating them.
+	  bool found = false;
+          for (list<string>::iterator i = _foundServers.begin();
+	       i != _foundServers.end(); i++){
+            if (*i == serverInfo.str()){
+	      // It's a duplicate to something we've already found.
+	      found = true;
+	      break;
+	    }
+	  }
+	  if (!found){
+            cout << serverInfo.str() << "\n";
+            _foundServers.push_back(serverInfo.str());
+	  }
+        }
+        else {
+          // If this matches the requested name, stop, discarding 
+	  // subsequent packets.
+	  if (_requestedName == string(_responseBuffer+5)){
+            _dataRequested = false;
+            _dataCondVar.signal();
+	  }
+        }
       }
     }
     ar_mutex_unlock(&_queueLock);
@@ -2866,26 +2892,34 @@ void arSZGClient::_dataThread() {
   }
 }
 
-// magic numbers 128 129 161 171 4620 are duplicates from phleet/szgserver.cpp
-// NOTE: this method expects the subnet parameter to have a trailing '.'
-// (i.e. 192.168.0.)
+// The format of the discovery and response packets is described in
+// szgserver.cpp.
+// 4620 is the magic port upon which the szgserver listens for discovery
+// packets. 4621 is the magic port upon which the response returns.
 void arSZGClient::_sendDiscoveryPacket(const string& name,
-                                       const string& affinity,
-				       const string& subnet){
-  char buffer[256];
-  ar_stringToBuffer(name, buffer, sizeof(buffer));
-  ar_stringToBuffer(affinity, buffer+128, sizeof(buffer)-128);
+                                       const string& broadcast){
+  char buffer[200];
+  // Zero out the buffer.
+  for (int i=0; i<200; i++){
+    buffer[i] = 0;
+  }
+  // We need to set the first 4 bytes to the magic version number.
+  buffer[0] = 0;
+  buffer[1] = 0;
+  buffer[2] = 0;
+  buffer[3] = 1;
+  // This is a discovery packet.
+  buffer[4] = 0;
+  ar_stringToBuffer(name, buffer+5, 127);
   arSocketAddress broadcastAddress;
-  const string IP(subnet + "255");
-  broadcastAddress.setAddress(IP.c_str(),4620);
-  _discoverySocket->ar_write(buffer, 160, &broadcastAddress);
+  broadcastAddress.setAddress(broadcast.c_str(),4620);
+  _discoverySocket->ar_write(buffer, 200, &broadcastAddress);
 }
 
 /// Sends a broadcast packet on a specified subnet to find the szgserver
 /// with the specified name. 
 bool arSZGClient::discoverSZGServer(const string& name,
-                                    const string& affinity,
-				    const string& subnet){
+                                    const string& broadcast){
   if (!_discoveryThreadsLaunched && !launchDiscoveryThreads()){
     cerr << _exeName << " error: failed to launch discovery threads.\n";
     return false;
@@ -2894,7 +2928,9 @@ bool arSZGClient::discoverSZGServer(const string& name,
   ar_mutex_lock(&_queueLock);
   _dataRequested = true;
   _beginTimer = true;
-  _sendDiscoveryPacket(name,affinity,subnet);
+  _requestedName = name;
+  _foundServers.clear();
+  _sendDiscoveryPacket(name,broadcast);
   _timerCondVar.signal();
   while (_dataRequested && _beginTimer){
     _dataCondVar.wait(&_queueLock);
@@ -2905,12 +2941,10 @@ bool arSZGClient::discoverSZGServer(const string& name,
     return false;
   }
 
-  // We actually got something
-  const string theServerIP  (_responseBuffer+129);
-  const string theServerPort(_responseBuffer+161);
-  // note that we receive the server name back (instead of the client name
-  // as before)
-  const string theServerName(_responseBuffer+171);
+  // We actually got something.
+  const string theServerName(_responseBuffer+5);
+  const string theServerIP  (_responseBuffer+132);
+  const string theServerPort(_responseBuffer+164);
 
   // to internal storage
   _IPaddress = theServerIP;
@@ -2923,9 +2957,10 @@ bool arSZGClient::discoverSZGServer(const string& name,
 
 /// Tries to find any szgservers out there and print their names. Useful
 /// for seeing who's running what.
-void arSZGClient::printSZGServers(const string& subnet){
+void arSZGClient::printSZGServers(const string& broadcast){
   if (!_discoveryThreadsLaunched && !launchDiscoveryThreads()){
-    cerr << _exeName << " error: no discovery threads.\n";
+    // Do not complain here. A complaint will have occured further
+    // down in the stack.
     return;
   }
   _justPrinting = true;
@@ -2933,7 +2968,8 @@ void arSZGClient::printSZGServers(const string& subnet){
   ar_mutex_lock(&_queueLock);
   _dataRequested = true;
   _beginTimer = true;
-  _sendDiscoveryPacket("**","*",subnet);
+  _requestedName = "";
+  _sendDiscoveryPacket("*",broadcast);
   _timerCondVar.signal();
   while (_beginTimer){
     _dataCondVar.wait(&_queueLock);

@@ -5,10 +5,24 @@
 <body bgcolor="#ffffff">
 <a href="index.html">Documentation Index</a>
 <p><font size=+2>Syzygy Change Log</font>
-<p><font size=+2>Changes Between szg-0.66 and szg-0.6</font>
+<p><font size=+2>Changes Between szg-0.7 and szg-0.6</font>
 <p><ul>
-<li>WE WILL MAKE AN INTERNAL RELEASE AT 0.66. THERE WILL BE A BRANCH TO
-EXPERIMENT WITH A NEW SZG PROTOCOL, WHICH WILL BE MERGED IN BEFORE 0.7.
+<li>The discovery packet/ response packet formats have changed to allow
+    version numbers and also bring the interior contents up to date.
+<li>TCP wrapper filtering has been improved so that lists and netmasks
+    can be employed (essentially exactly like TCP wrappers now)
+<li>dbatch format has changed. This allows "globals" not tied to a particular
+    computer into the parameter database. This is needed for input node
+    descriptions. It is also needed for pforth programs.
+<li>dhunt/dlogin now work with netmasks != 255.255.255.0. And also play
+    better with firewalls (i.e. use port 4621 on the return).
+<li>PForth program no longer live in a directory but are instead embedded
+    in the input node description.
+<li>DeviceServer is now extensible via loadable modules.
+<li>Python bindings plus system support for python executables has been
+added (thanks Peter and Jim)!
+<li>dll-ification has happened. Syzygy library is now built as dll's and
+    szgd has been modified to support this.
 <li>Changed the virtual computer set-up to include "location", which better
 allows different virtaul computers in the same setting to play nicely with
 one another.

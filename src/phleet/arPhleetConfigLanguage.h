@@ -25,6 +25,7 @@ class SZG_CALL arPhleetConfigLanguage: public arLanguage{
   int AR_INTERFACE_TYPE;     // is this a network interface or some other sort?
   int AR_INTERFACE_NAME;     // often, networks need a human-readbale name
   int AR_INTERFACE_ADDRESS;  // the actual address, like 192.168.0.1
+  int AR_INTERFACE_MASK;     // the netmask, with default = 255.255.255.0
 
   int AR_PORTS;          // used to describe the block of ports used on this
                          // computer for connection brokering

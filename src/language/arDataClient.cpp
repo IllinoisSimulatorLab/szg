@@ -104,51 +104,51 @@ bool arDataClient::getDataQueue(ARchar*& dest,int& availableSize){
 /// When connection occurs between two peers, they must exchange configuration
 /// information (so that each can translate the other's binary data format)
 bool arDataClient::_dialUpActivate(){
+  arStreamConfig localConfig;
+  localConfig.endian = AR_ENDIAN_MODE;
+  // We have only one socket in this data point.
+  localConfig.ID = 0;
+  // Now, the handshaking looks like so:
+  //   a. server sends config, waits for remote config.
+  //   b. client waits for remote config, sends config.
+  // In the future, it might be desirable for the server and client to
+  // simultaneously send configs. And then simultaneously receive. 
+  // (to minimize connection start-up latency). Fortunately, these future
+  // animals will be able to interoperate with the current ones, with their
+  // rigid handshakes (at least to the extent that outmoded clients will not
+  // hang). This is due to the buffering and async built into TCP sockets.
+  _remoteStreamConfig = handshakeReceiveConnection(_socket, localConfig);
+  if (!_remoteStreamConfig.valid){
+    cout << _exeName << " error: remote data point has wrong szg protocol "
+	 << "version = " << _remoteStreamConfig.version << ".\n";
+    return false;
+  }
+  // Must set the remote socket ID like so:
+  _socketIDRemote = _remoteStreamConfig.ID;
+
   ARchar sizeBuffer[AR_INT_SIZE];
-  // Get stream configuration (only endianness, more could happen later).
+  // Read in the dictionary from the server.
   if (!_socket->ar_safeRead(sizeBuffer,AR_INT_SIZE)){
-    cerr << _exeName << " error: dialUp failed to get stream config.\n";
-    return false;
-  }
-  _remoteStreamConfig.endian = sizeBuffer[0];
-
-  // Get ID of socket managed by the remote arDataServer object.
-  if (!_socket->ar_safeRead(sizeBuffer,AR_INT_SIZE)){
-    cerr << _exeName << " error: dialUp failed to get socket ID.\n";
-    return false;
-  }
-
-  _socketIDRemote = ar_translateInt(sizeBuffer,_remoteStreamConfig);
-  if (!_socket->ar_safeRead(sizeBuffer,AR_INT_SIZE)){
-    cerr << _exeName << " error: dialUp failed to get dictionary size.\n";
+    cerr << _exeName << " error: dialUp failed to read dictionary size.\n";
     return false;
   }
   const ARint totalSize = ar_translateInt(sizeBuffer,_remoteStreamConfig);
   if (totalSize<AR_INT_SIZE){
-    cerr << _exeName << " error: dialUp got a garbled dictionary.\n";
+    cerr << _exeName << " error: dialUp failed to translate dictionary "
+	 << "size.\n";
     return false;
   }
-
   ARchar* dataBuffer = new ARchar[totalSize];
   memcpy(dataBuffer, sizeBuffer, AR_INT_SIZE);
   if (!_socket->ar_safeRead(dataBuffer+AR_INT_SIZE, totalSize-AR_INT_SIZE)){
     cerr << _exeName << " error: dialUp failed to get dictionary.\n";
-    goto LAbort;
+    delete [] dataBuffer;
+    return false;
   }
   // Initialize the dictionary.
   _theDictionary = new arTemplateDictionary;
   if (!_theDictionary->unpack(dataBuffer,_remoteStreamConfig)){
     cerr << _exeName << " error: dialUp failed to unpack dictionary.\n";
-    goto LAbort;
-  }
-  // Handshake, since the arDataServer will potentially receive data from us.
-  sizeBuffer[0] = AR_ENDIAN_MODE;
-  sizeBuffer[1] = 0;
-  sizeBuffer[2] = 0;
-  sizeBuffer[3] = 0;
-  if (!_socket->ar_safeWrite(sizeBuffer,AR_INT_SIZE)){
-    cerr << _exeName << " error: dialUp failed to send local stream config.\n";
-LAbort:
     delete [] dataBuffer;
     return false;
   }

@@ -42,30 +42,32 @@ arMutex processCreationLock;
 
 arSZGClient* SZGClient = NULL;
 
+// By convention, we assume that python applications are installed as
+// "bundles" in sub-directories on a directory on SZG_PYTHON/path, where
+// the application bundle has the same directory name as the application.
+// This looks for the first such directory. Everything should look something
+// like:
+//
+// python_directory1
+//     my_app_1
+//          my_app_1.py
+//     my_app_2
+//          my_app_2.py
+// python_directory2
+//     my_app_3
+//          my_app_3.py
+//
+// where SZG_PYTHON/path = python_directory1;python_directory2
 string getPythonPath( const string& user, string pyfile ) {
   // Next, retrieve the python path.
-  string pythonDataPath = SZGClient->getAttribute(user, "NULL", "SZG_PYTHON", "path", "");
+  string pythonDataPath = SZGClient->getAttribute(user, "NULL", "SZG_PYTHON", 
+                                                  "path", "");
   if (pythonDataPath == "NULL") {
     cout << "szgd error: SZG_PYTHON/path not set.\n";
     return "NULL";
   }
   string fileDirectory = pyfile.substr( 0, pyfile.length()-3 );
-  arPathString pyPath( pythonDataPath );
-  pyPath /= fileDirectory;
-  bool exists, isDirectory;
-  if (!ar_directoryExists( pyPath, exists, isDirectory )) {
-    if (!exists) {
-      cerr << "szgd error: directory " << pyPath << " does not exist.\n";
-      return "NULL";
-    }
-    if (!isDirectory) {
-      cerr << "szgd error: " << pyPath << " is not a directory.\n";
-      return "NULL";
-    }
-    cerr << "szgd error: ar_directoryExists() failed.\n";
-    return "NULL";
-  }
-  return pyPath;
+  return ar_directoryFind(fileDirectory,"",pythonDataPath);
 }
 
 // Given the specified user and argument string, contact the szgserver and
@@ -311,36 +313,107 @@ void execProcess(void* i){
   cout << "szgd remark: using trading key = " << tradingKey << "\n";
   int match = SZGClient->startMessageOwnershipTrade(receivedMessageID,
 					            tradingKey);
+
+  // Two dynamic search paths (as embodied in environment variables) need
+  // to be altered before launching the new executable (and in the case of
+  // Win32 altered back after launch). The info to do the alterations comes
+  // from szg database variables. We go ahead and get this info here since
+  // the arSZGClient cannot be used after the Unix fork.
+  // Also, a description of the dynamic search paths follows:
+
+  // The library search path must be altered for each user. This is
+  // necessary to let multiple users (with different ways of arranging and
+  // loading dynamic libraries) to use szgd at once from another user's 
+  // account.
+  // By convention, we make the system search for libraries in the
+  // following order:
+  //   1. Directory on the exec path where the executable resides.
+  //   2. SZG_NATIVELIB/path
+  //   3. SZG_EXEC/path
+  //   4. The native DLL search path (i.e. LD_LIBRARY_PATH or
+  //      DYLD_LIBRARY_PATH or LD_LIBRARYN32_PATH or PATH) as held by the
+  //      user running the szgd.
+  // NOTE: This path must be altered both in the case of "native" AND "python"
+  // executables. 
+
+  // The python module search path must also be modified for each user, for
+  // similar reasons. It seems like python, by default, will prepend the
+  // directory in which the .py file lives.
+  //   1. SZG_PYTHON/path
+  //   2. SZG_EXEC/path (PySZG.py and PySZG.so (or .dll depending on platform)
+  //      must be in the same directory and on the PYTHONPATH).
+  //   3. PYTHONPATH, as held by the user running the szgd.
+
+  // Note that the dll search path has a DIFFERENT name on EVERY platform.
+#ifdef AR_USE_LINUX
+  string dynamicLibraryPathVar("LD_LIBRARY_PATH");
+#endif
+#ifdef AR_USE_SGI
+  string dynamicLibraryPathVar("LD_LIBRARYN32_PATH");
+#endif
+#ifdef AR_USE_WIN_32
+  string dynamicLibraryPathVar("PATH");
+#endif
+#ifdef AR_USE_DARWIN
+  string dynamicLibraryPathVar("DYLD_LIBRARY_PATH");
+#endif
+
+  // Do not warn again here if SZG_EXEC/path is NULL. Said warning has 
+  // already occured.
+  string szgExecPath = SZGClient->getAttribute(userName, "NULL", "SZG_EXEC",
+					       "path","");
+  string oldDynamicLibraryPath = ar_getenv(dynamicLibraryPathVar.c_str());
+  string nativeLibPath = SZGClient->getAttribute(userName, "NULL",
+						 "SZG_NATIVELIB","path", "");
+  string dynamicLibraryPath("");
+  // Go ahead and construct the new dynamic library path.
+  if (ar_exePath(newCommand) != ""){
+    dynamicLibraryPath += ar_exePath(newCommand);
+  }
+  if (nativeLibPath != "NULL"){
+    dynamicLibraryPath += ";";
+    dynamicLibraryPath += nativeLibPath;
+  }
+  if (szgExecPath != "NULL"){
+    dynamicLibraryPath += ";";
+    dynamicLibraryPath += szgExecPath;
+  }
+  if (oldDynamicLibraryPath != "" && oldDynamicLibraryPath != "NULL"){
+    dynamicLibraryPath += ";";
+    dynamicLibraryPath += oldDynamicLibraryPath;
+  }
+  // Make sure that the slashes are all in the right direction for our
+  // platform.
+  ar_scrubPath(dynamicLibraryPath);
+  // Finally, note that szg uses a path delimiter of ";" (which is the same
+  // as Win32) but Unix uses ":"
 #ifndef AR_USE_WIN_32
-  
-  //*******************************************************************
-  //*******************************************************************
-  // Get directories to prepend to PYTHONPATH. This stuff needs to
-  // go here because we can't use SZGClient->getAttribute() in the
-  // child after the fork().
-  //*******************************************************************
-  //*******************************************************************
-  string pythonPath;
+  unsigned int pos;
+  while ((pos = dynamicLibraryPath.find(";")) != string::npos) {
+      dynamicLibraryPath.replace( pos, 1, ":" );
+    }
+#endif
+  // Deal with python if necessary.
+  string oldPythonPath;
+  string pythonPath("");
   string pyLibPath;
-  string szgExecPath;
   if (execInfo->executableType == "python") {
-    pythonPath = ar_getenv( "PYTHONPATH" );
-    pyLibPath = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "path", "");
-    if (pyLibPath == "NULL"){
-      cout << "szgd warning: SZG_PYTHON/path not set.\n";
+    oldPythonPath = ar_getenv( "PYTHONPATH" );
+    // Do not warn if the SZG_PYTHON/path not set. That warning has already
+    // occured.
+    pyLibPath = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", 
+                                        "path", "");
+    if (pyLibPath != "NULL"){
+      pythonPath += 
     }
-    // also add the user's SZG_EXEC path to the PYTHON PATH
-    // (for platform-specific modules, e.g. PySZG).
-    szgExecPath = SZGClient->getAttribute(userName, "NULL", "SZG_EXEC", "path", "");
-    if (szgExecPath == "NULL"){
-      cout << "szgd warning: exec path not set.\n";
-    }
-    // python wants path elements separated by colons (I think).
     unsigned int pos;
     while ((pos = szgExecPath.find(";")) != string::npos) {
       szgExecPath.replace( pos, 1, ":" );
     }
   }
+
+#ifndef AR_USE_WIN_32
+
   //*******************************************************************
   //*******************************************************************
   // Code for spawning a new process on Unix (i.e. Linux, OS X, Irix)

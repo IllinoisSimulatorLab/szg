@@ -91,10 +91,12 @@ class SZG_CALL arTimer {
 
 // utilities for manipulating the records
 
-/// Configuration of a data stream (only endianness at the moment).
-
+/// Configuration of a data stream.
 struct SZG_CALL arStreamConfig{
   ARchar endian;
+  int  version;
+  int  ID;
+  bool valid; // Allows us to use this as a success/failure return value.
 };
 
 #define AR_LITTLE_ENDIAN 0
@@ -219,6 +221,8 @@ SZG_CALL string ar_packParameters(int,char**);
 
 /// strip pathname and .EXE from win32 exe's
 SZG_CALL string ar_stripExeName(const string&);
+/// get the path only from a fully qualified exectuable name.
+SZG_CALL string ar_exePath(const string&);
 /// find the extension of a particular file name (i.e. jpg or ppm or obj)
 SZG_CALL string ar_getExtension(const string&);
 /// add the right shared library extension for the system (.dll or .so)
@@ -246,19 +250,15 @@ SZG_CALL FILE* ar_fileOpen(const string& name,
 SZG_CALL FILE* ar_fileOpen(const string& name, 
                            const string& path,
                            const string& operation);
-/*
-ifstream ar_istreamOpen(const string& name, 
-                  const string& subdirectory,
-                  const string& path,
-                  int mode );
-ifstream ar_istreamOpen(const string& name, 
-                  const string& path,
-                  const string& operation);
-                  */
+
 /// Looks for the named file in the given subdirectory of the path
 SZG_CALL string ar_fileFind(const string& name, 
 		            const string& subdirectory,
 		            const string& path);
+/// Looks for the named directory in the given subdirectory of the path
+SZG_CALL string ar_DirectoryFind(const string& name, 
+		                 const string& subdirectory,
+		                 const string& path);
 SZG_CALL int ar_fileClose(FILE* pf);
 
 /// ARchar buffer management

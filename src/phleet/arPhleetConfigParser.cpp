@@ -89,7 +89,9 @@ LAlternative:
 
   arStructuredData* data;
   // sadly, this is actually normal... 
-  // BUG MUST FIX in arStructuredDataParser
+  // BUG in arStructuredDataParser: it would be a good idea to distinguish
+  // between end-of-file and error (but arStructuredDataParser does not do
+  // that).
   while ((data = _fileParser->parse(&configStream)) != NULL){
     const int ID = data->getID();
     if (ID == _l.AR_COMPUTER)
@@ -194,19 +196,14 @@ bool arPhleetConfigParser::writeLoginFile(){
 void arPhleetConfigParser::printConfig(){
   cout << "Phleet configuration:\n"
        << "    computer = " << _computerName << "\n";
-  list<pair<string, string> >::iterator i = _networkList.begin();
-  if (_networkList.size() == 1) {
-    // special case
+  list<pair<string, arInterfaceDescription> >::iterator i 
+    = _networkList.begin();
+  for (; i != _networkList.end(); i++){
     cout << "    network  = " << i->first
-	 << ", " << i->second << ":";
+	 << ", address = " << i->second.address 
+	 << ", netmask = " << i->second.mask  << "\n";
   }
-  else {
-    for (; i != _networkList.end(); i++){
-      cout << "    network  = " << i->first
-	   << ", address = " << i->second << "\n";
-    }
-    cout << "    ports    = ";
-  }
+  cout << "    ports    = ";
   cout << _firstPort << "-" << _firstPort+_blockSize-1 << "\n";
 }
 
@@ -221,16 +218,12 @@ void arPhleetConfigParser::printLogin(){
 
 /// Returns slash-delimited addresses (as defined in the config file) of
 /// interfaces used by this computer, or empty string if there are none.
-/// If networkName is not "", restrict addresses to that kind:
-/// Thus, if this computer has 2 dotted-quad addresses
-/// XXX.XXX.XXX.XXX and YYY.YYY.YYY.YYY, and networkName is "internet",
-/// then return XXX.XXX.XXX.XXX/YYY.YYY.YYY.YYY.
-arSlashString arPhleetConfigParser::getAddresses(const string& networkName){
+arSlashString arPhleetConfigParser::getAddresses(){
   arSlashString result;
-  for (list<pair<string, string> >::iterator i=_networkList.begin();
+  for (list<pair<string, arInterfaceDescription> >::iterator i
+         =_networkList.begin();
        i != _networkList.end(); i++){
-    if (networkName == "" || i->first == networkName)
-      result /= i->second;
+    result /= i->second.address;
   }
   return result;
 }
@@ -238,20 +231,32 @@ arSlashString arPhleetConfigParser::getAddresses(const string& networkName){
 /// Returns the networks to which the computer is connected. Note that
 /// the empty string is returned if the computer (according to the
 /// config file) is not attached to any networks. This is used
-/// in connection brokering.
+/// in connection brokering. NOTE: non-uniqueness of network names is
+/// possible. This is OK, since, really, networks, addresses, and masks
+/// form slices of a given "interface" structure.
 arSlashString arPhleetConfigParser::getNetworks(){
-  list<string> uniqueNetworks;
-  for (list<pair<string, string> >::iterator i=_networkList.begin();
-       i != _networkList.end(); i++){
-    uniqueNetworks.push_back(i->first);
-  }
-  // remove duplicates
-  uniqueNetworks.unique();
-
   arSlashString result;
-  for (list<string>::iterator j = uniqueNetworks.begin();
-       j != uniqueNetworks.end(); j++){
-    result /= *j;
+  for (list<pair<string, arInterfaceDescription> >::iterator i
+         =_networkList.begin();
+       i != _networkList.end(); i++){
+    result /= i->first;
+  }
+  return result;
+}
+
+/// Each interface has a netmask associated with it. This need not be
+/// specified in the configuration (it is given a default value of
+/// 255.255.255.0). This function returns a slash string, with the
+/// masks given in order of the network names.
+///
+/// NOTE: This is IP protocol specific and, in some ways, goes against the
+/// idea that some of these interfaces might be of a different sort entirely.
+arSlashString arPhleetConfigParser::getMasks(){
+  arSlashString result;
+  for (list<pair<string, arInterfaceDescription> >::iterator i
+         =_networkList.begin();
+       i != _networkList.end(); i++){
+    result /= i->second.mask;
   }
   return result;
 }
@@ -267,19 +272,26 @@ void arPhleetConfigParser::setComputerName(const string& name){
 /// not exist, adds a pair to the list. If the interface does exist,
 /// alters the address
 void arPhleetConfigParser::addInterface(const string& networkName,
-					const string& address){
+					const string& address,
+                                        const string& netmask){
   bool result = true; // don't know if it is a duplicate yet
-  for (list<pair<string, string> >::iterator i = _networkList.begin();
+  for (list<pair<string, arInterfaceDescription> >::iterator i 
+    = _networkList.begin();
        i != _networkList.end(); i++){
     if (networkName == i->first){
       result = false;
-      i->second = address;
+      i->second.address = address;
+      i->second.mask = netmask;
       break; // no need to search further
     }
   }
   if (result){
     // no match was found
-    _networkList.push_back(pair<string,string>(networkName,address));
+    arInterfaceDescription description;
+    description.address = address;
+    description.mask = netmask;
+    _networkList.push_back(pair<string,arInterfaceDescription>(networkName,
+                                                               description));
   }
 }
 
@@ -289,10 +301,10 @@ void arPhleetConfigParser::addInterface(const string& networkName,
 /// returns true otherwise.
 bool arPhleetConfigParser::deleteInterface(const string& networkName,
 					   const string& address){
-  const pair<string, string> candidate(networkName, address);
-  for (list<pair<string, string> >::iterator i = _networkList.begin();
+  for (list<pair<string, arInterfaceDescription> >::iterator i 
+         = _networkList.begin();
        i != _networkList.end(); i++){
-    if (*i == candidate){
+    if (i->first == networkName && i->second.address == address){
       _networkList.erase(i);
       return true; // no need to search further
     }
@@ -362,11 +374,13 @@ bool arPhleetConfigParser::_sanityCheck(){
   // exist). If it does not exist, create it.
   if (_stat(windowsPhleetDirectory, &statbuf) < 0){
     _mkdir(windowsPhleetDirectory);
-    // AARGH! This does't seem to work as expected! Specifically, the hope is that any
-    // user will be able to change the szg.conf file. Unfortunately, Windows file
-    // permissions are not really accessed this way (i.e. group and all don't seem to
-    // work). The upshot is that only an administrator or the original creator of the
-    // szg.conf file can change it after it has been created. Maybe that's a good thing...
+    // AARGH! This does't seem to work as expected! 
+    // Specifically, the hope is that any user will be able to change the 
+    // szg.conf file. Unfortunately, Windows file permissions are not really 
+    // accessed this way (i.e. group and all don't seem to work). The upshot 
+    // is that only an administrator or the original creator of the
+    // szg.conf file can change it after it has been created. Maybe that's a 
+    // good thing...
     _chmod(windowsPhleetDirectory, 00666);
   }
 #else
@@ -392,8 +406,14 @@ void arPhleetConfigParser::_processComputerRecord(arStructuredData* data){
 }
 
 void arPhleetConfigParser::_processInterfaceRecord(arStructuredData* data){
+  string netmask = data->getDataString(_l.AR_INTERFACE_MASK);
+  if (netmask == ""){
+    // A sensible default if it wasn't set in the config file.
+    netmask = "255.255.255.0";
+  }
   addInterface(data->getDataString(_l.AR_INTERFACE_NAME),
-	       data->getDataString(_l.AR_INTERFACE_ADDRESS));
+	       data->getDataString(_l.AR_INTERFACE_ADDRESS),
+               netmask);
 }
 
 void arPhleetConfigParser::_processPortsRecord(arStructuredData* data){
@@ -411,12 +431,14 @@ bool arPhleetConfigParser::_writeName(FILE* output){
 
 bool arPhleetConfigParser::_writeInterfaces(FILE* output){
   arStructuredData* data = _fileParser->getStorage(_l.AR_INTERFACE);
-  for (list<pair<string, string> >::iterator i = _networkList.begin();
+  for (list<pair<string, arInterfaceDescription> >::iterator i 
+    = _networkList.begin();
        i != _networkList.end(); i++){
     // so far, the software only supports socket communications
     data->dataInString(_l.AR_INTERFACE_TYPE, "IP");
     data->dataInString(_l.AR_INTERFACE_NAME, i->first);
-    data->dataInString(_l.AR_INTERFACE_ADDRESS, i->second);
+    data->dataInString(_l.AR_INTERFACE_ADDRESS, i->second.address);
+    data->dataInString(_l.AR_INTERFACE_MASK, i->second.mask);
     data->print(output);
   }
   _fileParser->recycle(data);

@@ -13,6 +13,15 @@
 #include <string>
 using namespace std;
 
+class arInterfaceDescription{
+ public:
+  arInterfaceDescription(){}
+  ~arInterfaceDescription(){}
+
+  string address;
+  string mask;
+};
+
 /// Used for parsing/storing/writing the szg.conf config file and
 /// the szg_<username>.conf login files
 class SZG_CALL arPhleetConfigParser{
@@ -47,8 +56,9 @@ class SZG_CALL arPhleetConfigParser{
   /// number of interfaces in the config.
   int getNumberInterfaces() const
     { return _numberInterfaces; }
-  arSlashString getAddresses(const string& networkName = "");
+  arSlashString getAddresses();
   arSlashString getNetworks();
+  arSlashString getMasks();
 
   // get login info
   string getUserName() const ///< syzygy username
@@ -64,7 +74,9 @@ class SZG_CALL arPhleetConfigParser{
   // manipulating the global config. using these methods,
   // command-line wrappers can be used to build the config file
   void   setComputerName(const string& name);
-  void   addInterface(const string& networkName, const string& address);
+  void   addInterface(const string& networkName, 
+                      const string& address,
+                      const string& netmask);
   bool   deleteInterface(const string& networkName, const string& address);
   bool   setPortBlock(int firstPort, int blockSize);
   // manipulating the individual login. using these methods,
@@ -81,7 +93,7 @@ class SZG_CALL arPhleetConfigParser{
   // global computer info
   string                           _computerName;
   int                              _numberInterfaces;
-  list<pair<string, string> >      _networkList;
+  list<pair<string, arInterfaceDescription> >      _networkList;
   int                              _firstPort;
   int                              _blockSize;
   // user login info

@@ -80,6 +80,11 @@ arStructuredDataParser::~arStructuredDataParser(){
        kk != _recycledSync.end(); kk++){
     delete (*kk);
   }
+  // delete the translation buffers.
+  for (list<arBuffer<char>*>::iterator n = _translationBuffers.begin();
+       n != _translationBuffers.end(); n++){
+    delete (*n);
+  }
 }
 
 /// Try to liberate a data record from the internal recycling list,
@@ -252,9 +257,33 @@ arStructuredData* arStructuredDataParser::parse(arTextStream* textStream,
   
   int whichAttribute = 0;
   int totalAttributes = theTemplate->getNumberAttributes();
+
+  // NOTE: we want to be able to deal with the case where the record is
+  // INCOMPLETE (i.e. some fields are missing). This is, after all, one
+  // of the big advantages of XML. At one point, this was an important
+  // backwards compatibility thing for szg.conf (netmask was added and
+  // we wanted to be able to continue to use the old config files).
+
+  // Zero out the data dimensions of all fields. This way, if a field doesn't
+  // get set, it will have no data!
+  for (int i = 0; i < totalAttributes; i++){
+    theData->setDataDimension(i, 0);
+  }
+
+  string fieldBegin;
+  bool foundEndTag = false;
   while (whichAttribute < totalAttributes){
-    string fieldBegin = ar_getTagText(textStream, workingBuffer);
-    if (fieldBegin == "NULL" || ar_isEndTag(fieldBegin)){
+    fieldBegin = ar_getTagText(textStream, workingBuffer);
+    // Check to see if this is a premature ending tag (i.e. some of the
+    // fields are missing. As was said before, fields are allowed to be
+    // missing.
+    if (ar_isEndTag(fieldBegin)){
+      // This is potentially OK. 
+      foundEndTag = true;
+      // Exit the loop, regardless of whether or not we've found all fields.
+      break;
+    }
+    if (fieldBegin == "NULL"){
       cerr << "arStructuredDataParser error: did not find a valid start tag "
 	   << "at the beginning of the field name.\n";
       delete theData;
@@ -364,17 +393,32 @@ arStructuredData* arStructuredDataParser::parse(arTextStream* textStream,
     }
     whichAttribute++;
   }
-  string recordEnd = ar_getTagText(textStream, workingBuffer);
-  if (recordEnd == "NULL" ||
-      !ar_isEndTag(recordEnd) ||
-      tagText != ar_getTagType(recordEnd)){
-    cerr << "arStructuredDataParser error: record not terminated with the "
-	 << "correct closing tag. Record began with " << tagText
-	 << " and closed with " << ar_getTagType(recordEnd) << ".\n";
-    delete theData;
-    recycleTranslationBuffer(workingBuffer);
-    return NULL;
+  if (foundEndTag){
+    // Found an end tag before reading all the fields.
+    if (tagText != ar_getTagType(fieldBegin)){
+      // The end tag DOES NOT match. This is an error.
+      cout << "arStructuredDataParser error: record terminated with "
+	   << "incorrect closing tag = " << ar_getTagType(fieldBegin) 
+	   << " when " << tagText << " was expected.\n";
+      delete theData;
+      recycleTranslationBuffer(workingBuffer);
+      return NULL;
+    }
   }
+  else{
+    string recordEnd = ar_getTagText(textStream, workingBuffer);
+    if (recordEnd == "NULL" ||
+        !ar_isEndTag(recordEnd) ||
+        tagText != ar_getTagType(recordEnd)){
+      cerr << "arStructuredDataParser error: record not terminated with the "
+	   << "correct closing tag. Record began with " << tagText
+	   << " and closed with " << ar_getTagType(recordEnd) << ".\n";
+      delete theData;
+      recycleTranslationBuffer(workingBuffer);
+      return NULL;
+    }
+  }
+  // Success.
   recycleTranslationBuffer(workingBuffer);
   return theData;
 }

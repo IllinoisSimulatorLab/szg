@@ -56,8 +56,7 @@ arCommunicatorHelper::arCommunicatorHelper(): _init(1)
 arSocket::arSocket(int type) :
   _type(type),
   _ID(-1),
-  _usageCount(0),
-  _acceptMask("NULL"){
+  _usageCount(0){
 
   ar_mutex_init(&_usageLock);
 #ifdef AR_USE_WIN_32
@@ -259,12 +258,13 @@ int arSocket::ar_accept(arSocket* communicationSocket){
     }
     // check to make sure that the address is valid, if the accept mask
     // has been set
-    if (_acceptMask == "NULL" || socketAddress.checkMask(_acceptMask)){
+    if (socketAddress.checkMask(_acceptMask)){
       keepTrying = false;
     }
     else{
       // close the offending socket... we will try again.
-      // NOTE: checkMask already printed out something.
+      cout << "arSocket remark: invalid connection attempt from "
+	   << socketAddress.getRepresentation() << "\n";
       communicationSocket->ar_close();
     }
   }

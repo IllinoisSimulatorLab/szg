@@ -21,8 +21,13 @@ arStructuredDataParser*  dataParser = NULL;
 arDataServer*            dataServer = NULL;
 arPhleetConnectionBroker connectionBroker;
 
-// we might want to do TCP-wrappers style filtering on the incoming IPs
-string serverAcceptMask;
+// We might want to do TCP-wrappers style filtering on the incoming IPs.
+list<string> serverAcceptMask;
+
+// Need to keep a record of the addresses of the NICs in this computer.
+// This pertains to the "discovery" process.
+arSlashString computerAddresses;
+arSlashString computerMasks;
 
 string serverName;
 int    serverPort = -1;
@@ -1037,15 +1042,38 @@ void SZGremoveComponentFromDatabase(int componentID){
 //********************************************************************
 
 /// This thread listens on port 4620 for discovery requests (as via dhunt
-/// or dconnect) and responds with an "I am here" packet.
+/// or dconnect) and responds with a broadcast "I am here" packet on
+/// port 4620. A positive feedback loop is avoided by including having
+/// a flag that indicates whether this is a discovery request or a response.
+///
+/// What do these packets look like?
+///
+/// discovery packet (size 200 bytes)
+/// bytes 0-3: A version number. Allows us to reject incompatible packets.
+/// byte 4: Is this discovery or response? 0 for discovery, 1 for response.
+/// bytes 4-131: The requested server name, NULL-terminated string.
+/// bytes 132-199: All 0's
+/// 
+/// response packet (size 200 bytes)
+/// bytes 0-3: A version number. Allows us to reject incompatible packets.
+/// byte 4: Is this discovery or response? 0 for discovery 1 for response.
+/// bytes 5-131: Our name, NULL-terminated string.
+/// bytes 132-163: The interface upon which the remote whatnot should
+///   connect, NULL-terminated string.
+/// bytes 164-199: The port upon which the remote whatnot should connect,
+///   NULL-terminated string. (yes, this is way more space than necessary).
+///   (in fact, all trailing zeros)
 /// @param pv Pointer to a bool that, when set to false, aborts szgserver.
 void serverDiscoveryFunction(void* pv){
-  char buffer[512];
+  char buffer[200];
   ar_stringToBuffer(serverInterface, buffer, sizeof(buffer));
   arSocketAddress incomingAddress;
   incomingAddress.setAddress(NULL, 4620);
   arUDPSocket _socket;
   _socket.ar_create();
+  _socket.setBroadcast(true);
+  // Allows multiple szgservers to exist on a single box!
+  _socket.reuseAddress(true);
   if (_socket.ar_bind(&incomingAddress) < 0){
     cerr << "szgserver error: failed to bind to " << "INADDR_ANY:"
          << 4620
@@ -1055,34 +1083,83 @@ void serverDiscoveryFunction(void* pv){
   }
 
   arSocketAddress fromAddress;
-  while (true) {
-    // magic numbers 128 129 160 161 171 4620 are duplicates
-    // from phleet/arSZGClient.cpp
-    _socket.ar_read(buffer,160,&fromAddress);
+  while (true){
+    _socket.ar_read(buffer,200,&fromAddress);
     if (!fromAddress.checkMask(serverAcceptMask)){
-      cout << "szgserver remark: received a suspicious discovery packet.\n";
+      // Do not complain if this might be a "response" packet.
+      if (buffer[4] != 1){
+        cout << "szgserver remark: received a suspicious discovery packet.\n";
+        cout << " (IP address = " << fromAddress.getRepresentation() << ")\n";
+      }
       // Look for the next discovery packet.
       continue;
     }
-    const string remoteServerName(buffer);
-    const string affinityFlag(buffer+128);
-
-    // now that we've extracted data, pack the buffer with a response that
-    // may or may not get made
-    ar_stringToBuffer(serverName, buffer, sizeof(buffer));
-
-    ar_stringToBuffer(serverInterface, buffer+129, sizeof(buffer)-129);
-    sprintf(buffer+161,"%i",serverPort);
-
-    // Tell the connecting box the local server name
-    char nameBuffer[256];
-    ar_stringToBuffer(serverName, nameBuffer, sizeof(nameBuffer));
-    strcpy(buffer+171, nameBuffer);
-
-    // respond if the names are identical or if this is a dhunt
-    // command
-    if (remoteServerName == serverName || remoteServerName == "**"){
-      _socket.ar_write(buffer,299,&fromAddress);
+    // Check the version number.
+    if (!(buffer[0] == 0 && buffer[1] == 0 && 
+          buffer[2] == 0 && buffer[3] == 1)){
+      cout << "szgserver remark: received a discovery packet with incorrect "
+	   << "format from " << fromAddress.getRepresentation() << ".\n";
+      continue;
+    }
+    // Is this a discovery packet or a response packet?
+    if (buffer[4] == 1){
+      // Response packet. Discard.
+      continue;
+    }
+    const string remoteServerName(buffer+5);
+    // Determine whether or not we should respond.
+    if (remoteServerName == serverName || remoteServerName == "*"){
+      // Better zero out the storage. Yes, it is lame to zero out an array
+      // like this.
+      int i;
+      for (i=0; i<200; i++){
+        buffer[i] = 0;
+      }
+      // Put in the version number.
+      buffer[0] = 0;
+      buffer[1] = 0;
+      buffer[2] = 0;
+      buffer[3] = 1;
+      // This is a response.
+      buffer[4] = 1;
+      // Put in the szgserver name.
+      ar_stringToBuffer(serverName, buffer+5, 127);
+      // Put in the szgserver interface.
+      ar_stringToBuffer(serverInterface, buffer+132, 32);
+      // Put in the szgserver port.
+      sprintf(buffer+164,"%i",serverPort);
+      // Walk through the server computer's NICs, as defined by the
+      // szg.conf file. If one of them has the same broadcast address
+      // as the fromAddress, then go ahead and broadcast to that
+      // broadcast address.
+      bool success = false;
+      for (i=0; i<computerAddresses.size(); i++){
+        arSocketAddress tmpAddress;
+        if (!tmpAddress.setAddress(computerAddresses[i].c_str(), 0)){
+          cout << "szgserver remark: bad address "
+	       << computerAddresses[i] << " in szg.conf.\n";
+          continue;
+	}
+        string broadcastAddress 
+          = tmpAddress.broadcastAddress(computerMasks[i].c_str());
+        if (broadcastAddress == "NULL"){
+	  cout << "szgserver remark: bad mask "
+	       << computerMasks[i] << " for address "
+	       << computerAddresses[i] << " in szg.conf.\n";
+	  continue;
+	}
+        if (broadcastAddress 
+            == fromAddress.broadcastAddress(computerMasks[i].c_str())){
+          fromAddress.setAddress(broadcastAddress.c_str(), 4620);
+          _socket.ar_write(buffer,200,&fromAddress);
+	  success = true;
+          break;
+	}
+      }
+      if (!success){
+	cout << "szgserver warning: failed to find correct broadcast address "
+	     << "for response.\n  szg.conf is misconfigured.\n";
+      }
     }
   }
 }
@@ -2056,17 +2133,15 @@ void SZGdisconnectFunction(void*, arSocket* theSocket){
 }
 
 int main(int argc, char** argv){
-  if (argc != 3 && argc != 4){
-    cerr << "usage: szgserver name port [mask]\n"
+  if (argc < 3){
+    cerr << "usage: szgserver name port [mask.1] ... [mask.n]\n"
 	 << "\texample: szgserver yoyodyne 8888\n";
     return 1;
   }
-  if (argc == 3){
-    // no filtering
-    serverAcceptMask = string("NULL");
-  }
-  else{
-    serverAcceptMask = string(argv[3]);
+  if (argc > 3){
+    for (int i = 3; i < argc; i++){
+      serverAcceptMask.push_back(string(argv[i]));
+    }
   }
 
   // If another szgserver on the network has the same name, abort.
@@ -2086,22 +2161,15 @@ int main(int argc, char** argv){
     return 1;
   }
 
-  {
-    // find the first network interface in the list.
-    const arSlashString networks(parser.getNetworks());
-    if ( networks.empty()){
-      cerr << "szgserver error: config file defines no networks.\n";
-      return 1;
-    }
-    // find the first address associated with the first network
-    const arSlashString addresses(parser.getAddresses(networks[0]));
-    if ( addresses.empty()){
-      cerr << "szgserver error: "
-	   << " no address associated with first network in config file.\n";
-      return 1;
-    }
-    serverInterface = addresses[0];
+  // Find the first address interface in the list. This is the address
+  // returned to dhunt and dlogin.
+  computerAddresses = parser.getAddresses();
+  computerMasks = parser.getMasks();
+  if (computerAddresses.empty()){
+    cerr << "szgserver error: config file defines no networks.\n";
+    return 1;
   }
+  serverInterface = computerAddresses[0];
 
   bool fAbort = false;
   arThread dummy(serverDiscoveryFunction, &fAbort);

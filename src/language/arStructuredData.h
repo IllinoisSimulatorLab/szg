@@ -86,9 +86,6 @@ class SZG_CALL arStructuredData {
    /// Experimenting here with not requiring data type.
    /// Called only by xxxClient, I think.
    bool ptrIn(int,void*,int);
-#ifdef UNUSED
-   void* ptrOut(int);         ///< called only by xxxServer, I think.
-#endif
    
    // byte stream representation
    int size() const;     ///< how many bytes will this data be when packed

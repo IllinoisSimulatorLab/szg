@@ -835,8 +835,9 @@ string ar_packParameters(int argc, char** argv){
 string ar_stripExeName(const string& name){
   // Find the position of the last '/' or '\' in the input.
   int position = 0;
-  if (name.find_last_of("/\\") != string::npos)
+  if (name.find_last_of("/\\") != string::npos){
     position = name.find_last_of("/\\")+1;
+  }
 
   bool extension = false;
 #ifdef AR_USE_WIN_32
@@ -854,8 +855,24 @@ string ar_stripExeName(const string& name){
   return name.substr(position, length);
 }
 
+/// Given a full path executable name, return just the path. For example,
+/// if the executable is:
+///   /home/public/schaeffr/bin/linux/atlantis
+/// return:
+///   /home/public/schaeffr/bin/linux
+/// This is used in szgd when setting the DLL library path.
+string ar_exePath(const string& name){
+  unsigned int position = 0;
+  if (name.find_last_of("/\\") != string::npos){
+    position = name.find_last_of("/\\");
+  }
+  return name.substr(0, position);
+}
+
 /// Takes a file name, finds the last period in the name, and returns
 /// a string filled with the characters to the right of the period.
+/// We want to do this to determine if something is a python script,
+/// for instance.
 string ar_getExtension(const string& name){
   unsigned int position = name.find_last_of(".");
   if (position == string::npos
@@ -965,7 +982,8 @@ bool ar_fileItemExists( const string name, bool& exists ) {
       exists = false;
       return true;
     } else {
-      cerr << "ar_fileItemExists error: stat() failed for an unknown reason.\n";
+      cerr << "ar_fileItemExists error: "
+	   << "stat() failed for an unknown reason.\n";
       return false;
     }
   } else {
@@ -998,8 +1016,8 @@ bool ar_isDirectory(const char* name){
   return (infoBuffer.st_mode & S_IFMT) == S_IFDIR;
 }
 
-/// \todo copy-paste from arFileOpen
-/// returns the first file name of a file that can be opened on 
+/// \todo copy-paste from ar_fileOpen
+/// Returns the first file name of a file that can be opened on 
 /// <path component>/<subdirectory>/<name>
 string ar_fileFind(const string& name, 
 		   const string& subdirectory,
@@ -1019,6 +1037,10 @@ string ar_fileFind(const string& name,
       possiblePath = ar_pathAddSlash(possiblePath)+subdirectory;
       possiblePath = ar_pathAddSlash(possiblePath)+name;
     }
+    // Make sure to "scrub" the path (i.e. replace '/' by '\' or vice-versa,
+    // as required by platform. This is necessary to allow the subdirectory
+    // to have multiple levels in a cross-platform sort of way.
+    ar_scrubPath(possiblePath);
     result = fopen(possiblePath.c_str(), "r");
     if (result && ar_isDirectory(possiblePath.c_str())){
       // Reject this directory.
@@ -1030,6 +1052,8 @@ string ar_fileFind(const string& name,
   // Next, try to find the file locally
   if (!result){
     possiblePath = name;
+    // Do not forget to "scrub" the path.
+    ar_scrubPath(possiblePath);
     result = fopen(possiblePath.c_str(),"r");
     if (result && ar_isDirectory(possiblePath.c_str())){
       // Reject this directory.
@@ -1047,31 +1071,85 @@ string ar_fileFind(const string& name,
   }
 }
 
+/// \todo copy-paste from ar_fileOpen and ar_fileFind
+/// Returns the first directory name determined like so:
+/// <path component>/<subdirectory>/<name>
+string ar_directoryFind(const string& name, 
+		        const string& subdirectory,
+		        const string& path){
+  // First, search the explicitly given path
+  FILE* result = NULL;
+  int location = 0;
+  string possiblePath("junk");
+  while (!result && possiblePath != ""){
+    possiblePath = ar_pathToken(path, location);
+    if (possiblePath == "")
+      continue;
+    if (subdirectory == ""){
+      possiblePath = ar_pathAddSlash(possiblePath)+name;
+    }
+    else{
+      possiblePath = ar_pathAddSlash(possiblePath)+subdirectory;
+      possiblePath = ar_pathAddSlash(possiblePath)+name;
+    }
+    // Do not forget to "scrub" the path!
+    ar_scrubPath(possiblePath);
+    result = fopen(possiblePath.c_str(), "r");
+    if (result && !ar_isDirectory(possiblePath.c_str())){
+      // Reject this file.
+      fclose(result);
+      result = NULL;
+    }
+  }
+  
+  // Next, try to find the file locally
+  if (!result){
+    possiblePath = name;
+    // Do not forget to "scrub" the path!
+    ar_scrubPath(possiblePath);
+    result = fopen(possiblePath.c_str(),"r");
+    if (result && !ar_isDirectory(possiblePath.c_str())){
+      // Reject this file.
+      fclose(result);
+      result = NULL;
+    }
+  }
+
+  if (result){
+    fclose(result);
+    return possiblePath;
+  }
+  else{
+    return string("NULL");
+  }
+}
+
+/// \todo cut-and-paste with ar_directoryOpen and ar_fileFind
 FILE* ar_fileOpen(const string& name,
                   const string& subdirectory, 
                   const string& path,
                   const string& operation){
   // First, search the explicitly given path
-  char bOp[32]; /// \todo fixed size buffer
-  char bName[1024]; /// \todo fixed size buffer
-  ar_stringToBuffer(operation, bOp, sizeof(bOp));
-  ar_stringToBuffer(name, bName, sizeof(bName));
   FILE* result = NULL;
-
   int location = 0;
-  string partialPath("junk");
-  string fullPath("junk");
-  while (!result && partialPath != ""){
-    partialPath = ar_pathToken(path, location);
-    if (partialPath == "")
+  string possiblePath("junk");
+  while (!result && possiblePath != ""){
+    possiblePath = ar_pathToken(path, location);
+    if (possiblePath == "")
       continue;
-    // ar_pathAddSlash modifies its argument
-    ar_pathAddSlash(partialPath);
-    fullPath = partialPath+subdirectory;
-    ar_stringToBuffer(ar_pathAddSlash(fullPath)+name, 
-                      bName, sizeof(bName));
-    result = fopen(bName, bOp);
-    if (result && ar_isDirectory(bName)){
+    if (subdirectory == ""){
+      possiblePath = ar_pathAddSlash(possiblePath)+name;
+    }
+    else{
+      possiblePath = ar_pathAddSlash(possiblePath)+subdirectory;
+      possiblePath = ar_pathAddSlash(possiblePath)+name;
+    }
+    // Make sure to "scrub" the path (i.e. replace '/' by '\' or vice-versa,
+    // as required by platform. This is necessary to allow the subdirectory
+    // to have multiple levels in a cross-platform sort of way.
+    ar_scrubPath(possiblePath);
+    result = fopen(possiblePath.c_str(), operation.c_str());
+    if (result && ar_isDirectory(possiblePath.c_str())){
       // Reject this directory.
       fclose(result);
       result = NULL;
@@ -1080,10 +1158,11 @@ FILE* ar_fileOpen(const string& name,
   
   // Next, try to find the file locally
   if (!result){
-    ar_stringToBuffer(operation, bOp, sizeof(bOp));
-    ar_stringToBuffer(name, bName, sizeof(bName));
-    result = fopen(bName,bOp);
-    if (result && ar_isDirectory(bName)){
+    possiblePath = name;
+    // Do not forget to "scrub" the path.
+    ar_scrubPath(possiblePath);
+    result = fopen(possiblePath.c_str(), operation.c_str());
+    if (result && ar_isDirectory(possiblePath.c_str())){
       // Reject this directory.
       fclose(result);
       result = NULL;

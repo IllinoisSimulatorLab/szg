@@ -207,9 +207,9 @@ class SZG_CALL arSZGClient{
                        const arSlashString& networks);
   
   // functions pertaining to connecting to an szgserver
-  bool discoverSZGServer(const string&, const string&, 
-                         const string& subnet="255.255.255");
-  void printSZGServers(const string& subnet="255.255.255");
+  bool discoverSZGServer(const string& name, 
+                         const string& broadcast);
+  void printSZGServers(const string& broadcast);
   void setServerLocation(const string& IPaddress, int port);
   bool writeLoginFile(const string& userName);
   bool logout();
@@ -250,10 +250,10 @@ class SZG_CALL arSZGClient{
   string               _parameterFileName;
   string               _virtualComputer;
 
-  arSocketAddress _incomingAddress;
-  // AARGH! FOR SOME REASON, SOME WINDOWS COMPUTERS CANNOT HAVE arSocket or
-  // arUDPSocket ALLOCATED IN THE GLOBAL SPACE! (MAYBE THIS IS VISUAL C++ 6
-  // vs. Visual C++ 7??????)
+  // We cannot have sockets (currently) initialized in the global name space.
+  // Why? Simply because of the "global" construction that lets 
+  // winsock init occur automatically. The best thing to do would be to
+  // eliminate that!
   arUDPSocket*  _discoverySocket;
   
   bool          _connected;
@@ -323,9 +323,10 @@ class SZG_CALL arSZGClient{
   int  _fillMatchField(arStructuredData*);
 
   // server discovery functions and variables
-  void    _sendDiscoveryPacket(const string&, const string&, const string&);
+  void    _sendDiscoveryPacket(const string&, const string&);
   bool    _discoveryThreadsLaunched;
   bool    _beginTimer;
+  string  _requestedName;
   bool    _dataRequested;
   arMutex _queueLock; // for server discovery functions
   bool    _keepRunning;
@@ -333,6 +334,7 @@ class SZG_CALL arSZGClient{
   arConditionVar _timerCondVar;
   bool    _justPrinting;
   char    _responseBuffer[512];
+  list<string> _foundServers; // prevents repeats being printed.
 
   void _serverResponseThread();
   void _timerThread();

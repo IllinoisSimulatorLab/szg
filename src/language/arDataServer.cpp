@@ -22,8 +22,7 @@ arDataServer::arDataServer(int dataBufferSize) :
   _consumerObject(NULL),
   _disconnectFunction(NULL),
   _disconnectObject(NULL),
-  _atomicReceive(true),
-  _acceptMask("NULL")
+  _atomicReceive(true)
 {
   ar_mutex_init(&_dataTransferMutex);
   ar_mutex_init(&_consumptionLock);
@@ -224,11 +223,11 @@ bool arDataServer::removeConnection(int id){
 }
 
 arSocket* arDataServer::_acceptConnection(bool addToActive){
-
-  // it seems like throttling the rate at which connections can
-  // be accepted prevents szgserver crashes on dual processor
-  // linux machines... not sure why! this is something it would
-  // be nice to remove if stability could be maintained.
+  // At one time, I thought that stability would be improved if the
+  // rate at which a server could accept connections was throttled.
+  // HOWEVER, the instability I was battling at the time was NOT due to
+  // syzygy but instead to a non-thread-safe standard C++ lib.
+  // It would be a good idea to experiment with removing this at some point.
   ar_usleep(30000);
 
   // we need to be able to accept connections in a different thread
@@ -247,63 +246,61 @@ arSocket* arDataServer::_acceptConnection(bool addToActive){
   _addSocketToDatabase(newSocketFD);
   if (!newSocketFD->smallPacketOptimize(_smallPacketOptimize)) {
     cerr << "arDataServer error: failed to smallPacketOptimize.\n";
+    ar_mutex_unlock(&_dataTransferMutex);
     return NULL;
   }
 
-  // based on the connection-acceptance state, we either add the new
+  // Based on the connection-acceptance state, we either add the new
   // socket to the active list or the passive list
   (addToActive ? _connectionSockets : _passiveSockets).push_back(newSocketFD);
 
-  // Send the connection's configuration information.
-  // first, the stream config, next the ID of the socket according to
-  // this arDataServer, and finally the dictionary that defines the
-  // language we'll use to communicate
+  // If there is no dictionary, abort! (we expect to SEND the dictionary to
+  // the connected data point)
   if (!_theDictionary){
-    cerr << "arDataServer error: no dictionary.\n";
+    cout << "arDataServer error: no dictionary.\n";
+    _deleteSocketFromDatabase(newSocketFD);
     ar_mutex_unlock(&_dataTransferMutex);
     return NULL;
   }
 
-  const int theSize = _theDictionary->size()+2*AR_INT_SIZE;
-  if (theSize<=0){
+  // Configuration handshake exchange.
+  arStreamConfig remoteStreamConfig;
+  arStreamConfig localConfig;
+  localConfig.endian = AR_ENDIAN_MODE;
+  localConfig.ID = newSocketFD->getID();
+  remoteStreamConfig = handshakeConnectTo(newSocketFD, localConfig);
+  if (!remoteStreamConfig.valid){
+    cout << "arDataServer error: remote data point has wrong szg protocol "
+	 << "version = " << remoteStreamConfig.version << ".\n";
+    _deleteSocketFromDatabase(newSocketFD);
     ar_mutex_unlock(&_dataTransferMutex);
-    cerr << "arDataServer error 1: garbled dictionary.\n";
+    return NULL;
+  }
+  // We need to know the remote stream config for this socket, since we
+  // might be sending data (i.e. szgserver or arBarrierServer).
+  _setSocketRemoteConfig(newSocketFD,remoteStreamConfig);
+
+  // Send the dictionary.
+  const int theSize = _theDictionary->size();
+  if (theSize<=0){
+    cout << "arDataServer error: could not pack dictionary.\n";
+    _deleteSocketFromDatabase(newSocketFD);
+    ar_mutex_unlock(&_dataTransferMutex);
     return NULL;
   }
   ARchar* buffer = new ARchar[theSize];
-  // send the config info
-  buffer[0] = AR_ENDIAN_MODE;
-  buffer[1] = 0;
-  buffer[2] = 0;
-  buffer[3] = 0;
-  ARint socketID = newSocketFD->getID();
-  ar_packData(buffer+AR_INT_SIZE,&socketID,AR_INT,1);
-  _theDictionary->pack(buffer+2*AR_INT_SIZE);
+  _theDictionary->pack(buffer);
   if (!newSocketFD->ar_safeWrite(buffer,theSize)){
-    cerr << "arDataServer error 2: failed to send dictionary.\n";
+    cerr << "arDataServer error: failed to send dictionary.\n";
     _deleteSocketFromDatabase(newSocketFD);
     ar_mutex_unlock(&_dataTransferMutex);
     return NULL;
   }
-  // now, we need the other round of the handshake... since the remote
-  // socket can also send *us* information
-
-  if (!newSocketFD->ar_safeRead(buffer,AR_INT_SIZE)){
-    cerr << "arDataServer error 3: failed to receive remote stream config.\n";
-    _deleteSocketFromDatabase(newSocketFD);
-    ar_mutex_unlock(&_dataTransferMutex);
-    return NULL;
-  }
-
-  /// The remote stream info is, in fact, used. For instance, if we are
-  /// reading data from external sources.
-  arStreamConfig remoteStreamConfig;
-  remoteStreamConfig.endian = buffer[0];
-  _setSocketRemoteConfig(newSocketFD,remoteStreamConfig);
+  // We can delete the storage for the dictionary.
   delete [] buffer;
 
-  // based on the connection-acceptance state, we might or might
-  // not need to increment the number of active connections
+  // Based on the connection-acceptance state, we might or might
+  // not need to increment the number of active connections.
   _numberConnected++;
   if (addToActive)
     _numberConnectedActive++;

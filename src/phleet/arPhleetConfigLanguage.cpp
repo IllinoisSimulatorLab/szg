@@ -19,6 +19,7 @@ arPhleetConfigLanguage::arPhleetConfigLanguage():
   AR_INTERFACE_TYPE = _interface.add("type", AR_CHAR);
   AR_INTERFACE_NAME = _interface.add("name", AR_CHAR);
   AR_INTERFACE_ADDRESS = _interface.add("address", AR_CHAR);
+  AR_INTERFACE_MASK = _interface.add("mask", AR_CHAR);
   AR_INTERFACE = _dictionary.add(&_interface);
 
   AR_PORTS_FIRST = _ports.add("first", AR_INT);

@@ -26,6 +26,7 @@
 
 #include "arThread.h"
 #include <string>
+#include <list>
 using namespace std;
 
 class ar_timeval; // forward reference into arDataUtilities.h
@@ -94,7 +95,7 @@ public:
   /// This is a tcp-wrappers-esque feature. As explained below, the mask
   /// allows ar_accept to automatically drop attempted connections, based
   /// on IP address.
-  void setAcceptMask(const string& mask){ _acceptMask = mask; }
+  void setAcceptMask(list<string>& mask){ _acceptMask = mask; }
 
 private:
   int _type;
@@ -111,12 +112,8 @@ private:
 #else
   int _socketFD;
 #endif
-  // the below is either XXX.XXX.XXX or XXX.XXX.XXX.XXX. If the former,
-  // then ar_accept will only return on IP addresses that match the first
-  // 3 numbers of the dotted quad (i.e. something like netmask 255.255.255.0).
-  // And if it's the later, then ar_accept will only return on an IP address
-  // that precisely matches.
-  string _acceptMask;
+  // See arSocketAddress to understand the format of _acceptMask.
+  list<string> _acceptMask;
 };
 
 #include "arDataUtilities.h" // for ar_timeval

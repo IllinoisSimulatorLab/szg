@@ -7,6 +7,7 @@
 #define AR_DATA_POINT
 
 #include "arDataUtilities.h"
+#include <map>
 using namespace std;
 
 /// Infrastructure for arDataClient and arDataServer.
@@ -37,6 +38,14 @@ class SZG_CALL arDataPoint {
 		   ARint& theSize, bool& fEndianMode, arSocket* fd,
 		   const arStreamConfig& remoteConfig);
   void setBufferSize(int numBytes); ///< Set size of socket buffer.
+  // The functions we need to do the initial socket handshake.
+  arStreamConfig handshakeConnectTo(arSocket* fd, arStreamConfig localConfig);
+  arStreamConfig handshakeReceiveConnection(arSocket* fd,
+                                            arStreamConfig localConfig);
+  string _remoteConfigString(arSocket* fd);
+  string _constructConfigString(arStreamConfig config);
+  map<string, string, less<string> > _parseKeyValueBlock(const string& text);
+  void _fillConfig(arStreamConfig& config, const string& text);
 };
 
 #endif

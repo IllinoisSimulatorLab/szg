@@ -91,7 +91,7 @@ class SZG_CALL arDataServer : public arDataPoint {
 
    // we can choose to only accept connections from certain IPs...
    // see arSocket and arSocketAddress for details
-   void setAcceptMask(const string& mask){ _acceptMask = mask; }
+   void setAcceptMask(list<string>& mask){ _acceptMask = mask; }
 
    // It is convenient to also let the arDataServer accept connections.
    int dialUpFallThrough(const string& s, int port);
@@ -144,7 +144,7 @@ class SZG_CALL arDataServer : public arDataPoint {
 
    arSignalObject  _threadLaunchSignal;
 
-   string          _acceptMask;
+   list<string>    _acceptMask;
 
    void _readDataTask();
    /// To a specific socket.

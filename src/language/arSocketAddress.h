@@ -10,12 +10,14 @@
 #include <windows.h>
 #include <iostream>
 #include <string>
+#include <list>
 #else
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string>
+#include <list>
 #include <iostream>
 #include <sys/un.h>
 #include <fcntl.h>
@@ -31,9 +33,12 @@ class SZG_CALL arSocketAddress{
  public:
   arSocketAddress();
   ~arSocketAddress() {}
-  void setAddress(const char* IPaddress, int port);
+  bool setAddress(const char* IPaddress, int port);
   void setPort(int port);
   sockaddr_in* getAddress();
+  string mask(const char* maskAddress);
+  string broadcastAddress(const char* maskAddress);
+  string getRepresentation();
 #ifndef AR_USE_WIN_32
 #ifdef AR_USE_SGI
   int* getAddressLengthPtr();
@@ -46,7 +51,7 @@ class SZG_CALL arSocketAddress{
   int* getAddressLengthPtr();
   int getAddressLength();
 #endif
-  bool checkMask(const string& mask);
+  bool checkMask(list<string>& criteria);
  private:
   sockaddr_in _theAddress;
 #ifndef AR_USE_WIN_32
