@@ -9,6 +9,9 @@
 input event processing software, and follows with an overview of the
 internals of Syzygy's input framework.
 
+<p>For specific information about supported input devices, please read 
+this <a href="InputDevices-Drivers.html">chapter</a>.
+
 <p><ul>
 <li><a href="#Practical">Syzygy Input Framework: Practical Examples</a>
 <li><a href="#Overview">Syzygy Input Framework: Overview</a>
@@ -146,6 +149,29 @@ might appear in a "complex" dbatch file.
   &lt;/param&gt;
 </pre>
 
+<p>The configuration records for DeviceServer refer to the names of loadable
+modules. These must exist on the SZG_EXEC/path for Syzygy to find them.
+Assuming you have set this parameter correctly and have entered
+the global parameters listed above into the database, you could type the
+following command on a computer with both a spacepad and joystick connected:
+
+<pre>
+  DeviceServer idesk_tracker 0
+</pre>
+
+<p>When this DeviceServer starts up, it reads the configuration information
+given by the global parameter "idesk_tracker". In the "input_sources" field,
+it finds a list of module names (leaving off the trailing .so or .dll for
+portability) which it will try to dynamically load as input sources. Recall
+again that these modules must live on the SZG_EXEC/path to be loaded by
+DeviceServer. Likewise, the "input_sinks" field gives a list of input sinks 
+(subclasses of arInputSink) to be dynamically loaded, and the "input_filters"
+field gives a list of input filters (subclasses of arIOFilter) to be
+dynamically loaded. Finally, if the "pforth" field is nonempty, it contains
+a PForth program to be applied to the data gathered from the defined
+input sources before it goes into the chain of input filters and finally into
+the input sinks.
+
 <a name="Overview">
 <p><font size="+2">Syzygy Input Framework: Overview</font>
 </a>
@@ -212,7 +238,6 @@ with minimal effort different kinds of drag behaviors can easily be
 added, and hooks are provided for implementing other kinds of
 user-initiated object state changes.<br>
 </p>
-<ul>
-</ul>
+<hr>
 </body>
 </html>

@@ -7,34 +7,46 @@
 
 <p><font size=+2>Syzygy: Tracking Simulator</font>
 
-<p>Since we are a VR installation, syzygy works best with a VR-style
+<p>The Syzygy VR framework applications tend to work best with a VR style
 interface, namely 6DOF head tracking and some kind of joystick type input
 device with another 6DOF sensor attached. Since this could very easily be
 unavailable, the software includes support for a simulator (wandsimserver)
 that can operate the included programs from a desktop.
 
-<p>This program can be run either from the command line or via
+<p>This program can be run either from the command line ("wandsimserver") or 
+via
 
 <pre>
     dex XXX wandsimserver
 </pre>
 
-<p>While executing, wandsimserver opens a window showing a view from behind into
-a 10-foot cubical space (remarkably reminiscent of the inside our CUBE). A wireframe
-sphere in the center represents the subject's head (initially facing away from us).
-The other visible object represents a wand with three buttons. wandsimserver sends
-data to the application specifying the position and orientation of
-the head and of the wand and the state of the wand's buttons.
+<p>If desired, wandsimserver can provide its input events on another Syzygy
+input slot (say 1) like so:
+
+<pre>
+  wandsimserver 1
+</pre>
+
+<p><img src="images/wandsimserver.png" height=400 width=400>
+
+<p>While executing, wandsimserver opens a window showing a view from behind 
+into a 10-foot cubical space (remarkably reminiscent of the inside our CUBE). 
+A wireframe sphere in the center represents the subject's head (initially 
+facing away from us). The other visible object represents a wand with six 
+buttons. wandsimserver sends data to the application specifying the position 
+and orientation of the head and of the wand and the state of the wand's 
+buttons.
 
 <p>When using the simulator, there are several modes, selected by the keys
 1-7. 
 <p><ol>
-<li>Move the head. Mousing with the left button down moves head in the screen plane.
-   Mouse with the middle button down moves head into/ out of the screen.
-<li>Rotate head. Mousing with the left button down rotates head around the y axis.
-   Mouse with the middle button down rotates the head around the x axis.
-<li>Translate wand: Mousing with the left button down translates the wand in the
-   screen plane. Mouse with the middle button down translates the wand into
+<li>Move the head. Mousing with the left button down moves head in the screen 
+   plane. Mouse with the middle button down moves head into/ out of the screen.
+<li>Rotate head. Mousing with the left button down rotates head around the 
+   y axis. Mouse with the middle button down rotates the head around the x 
+   axis.
+<li>Translate wand: Mousing with the left button down translates the wand in 
+   the screen plane. Mouse with the middle button down translates the wand into
    and out of the screen. 
 <li>Translate wand & use buttons: Mouse movement translates the wand in the
    x-y plane. Pressing mouse buttons activates the device buttons.
@@ -48,5 +60,8 @@ the head and of the wand and the state of the wand's buttons.
     By pressing the space bar, you can change the mapping of the mouse buttons
     from wand buttons 1-3 to wand button 4-6 and back again.
 </ol>
+
+<hr>
+
 </body>
 </html>
