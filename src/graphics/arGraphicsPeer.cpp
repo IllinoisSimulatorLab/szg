@@ -285,28 +285,21 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
   }
 }
 
-void ar_graphicsPeerDisconnectFunction(void* graphicsPeer,
-				       arSocket* socket){
-  // The arGraphicsPeer must maintain a list of sockets that have 
-  // requested updates. When the consumption function receives
-  // a special message, it adds the socket to the list. When a socket
-  // disconnects, we must remove from the list.
-  // THESE SOCKETS SEND INFORMATION
-  arGraphicsPeer* gp = (arGraphicsPeer*) graphicsPeer;
-  // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
-  // THere is a deadlock here! Since sendData is called within a socketsLock
-  // and can result in an immediate call to this callback!
+class arGraphicsPeerConnectionDeletionInfo{
+ public:
+  arGraphicsPeerConnectionDeletionInfo(){}
+  ~arGraphicsPeerConnectionDeletionInfo(){}
+
+  arGraphicsPeer* peer;
+  arSocket*       socket;
+};
+
+void ar_graphicsPeerConnectionDeletionFunction(void* deletionInfo){
+  arGraphicsPeerConnectionDeletionInfo* d =
+    (arGraphicsPeerConnectionDeletionInfo*) deletionInfo;
+  arGraphicsPeer* gp = d->peer;
+  arSocket* socket = d->socket;
   ar_mutex_lock(&gp->_socketsLock);
-  // NOTE: This has now been folded into the connection list.
-  /*for (list<arSocket*>::iterator i = gp->_outgoingSockets.begin();
-       i != gp->_outgoingSockets.end();
-       i++){
-    if (socket->getID() == (*i)->getID()){
-      gp->_outgoingSockets.erase(i);
-      // We are done.
-      break;
-    }
-    }*/
   // The arGraphicsPeer maintains a list of connections. The affected
   // connection must be removed from the list and any nodes it is currently
   // locking must be unlocked.
@@ -315,9 +308,10 @@ void ar_graphicsPeerDisconnectFunction(void* graphicsPeer,
   if (j != gp->_connectionContainer.end()){
     for (list<int>::iterator k = j->second->nodesLockedLocal.begin();
 	 k != j->second->nodesLockedLocal.end(); k++){
-      ar_mutex_lock(&gp->_alterLock);
+      // Not necessary to further lock this statement since every
+      // instance of _alterLock is inside _socketsLock. Indeed, using
+      // _alterLock here would allow a deadlock! (order of locks reversed)
       gp->_unlockNodeNoNotification(*k);
-      ar_mutex_unlock(&gp->_alterLock);
     }
     delete j->second;
     gp->_connectionContainer.erase(j);
@@ -327,6 +321,26 @@ void ar_graphicsPeerDisconnectFunction(void* graphicsPeer,
 	 << "without object.\n";
   }
   ar_mutex_unlock(&gp->_socketsLock);
+  // Don't forget to delete the local storage.
+  delete d;
+}
+
+void ar_graphicsPeerDisconnectFunction(void* graphicsPeer,
+				       arSocket* socket){
+  // We want to avoid a deadlock with the remote stuff.
+  // (this can occur since sendData(...) can cause this function to be called,
+  // it is within a socketsLock block, and the connection removal must
+  // come within a socketsLock block also). Consequently, for removal from
+  // the internal connection queue, we launch a thread that eliminates the
+  // connection when it can obtain the lock.
+
+  arThread deletionThread;
+  arGraphicsPeerConnectionDeletionInfo* deletionInfo = 
+    new arGraphicsPeerConnectionDeletionInfo();
+  deletionInfo->peer = (arGraphicsPeer*) graphicsPeer;
+  deletionInfo->socket = socket;
+  deletionThread.beginThread(ar_graphicsPeerConnectionDeletionFunction,
+			     deletionInfo);
 }
 
 void ar_graphicsPeerConnectionTask(void* graphicsPeer){
