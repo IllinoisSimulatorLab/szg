@@ -251,12 +251,12 @@ int main(int argc, char** argv){
     // DO NOT TURN THE AMBIENT SOUND ON/OFF, THIS IS A NICE TEST OF
     // "IS SPATIALIZED SOUNDS WORKING" AND TURNING ON/OFF MESSES THAT
     // UP.
-    (void)dsLoop(idLoop, "cosmos.mp3", 1, 1, xyz);
+    (void)dsLoop(idLoop, "cosmos.mp3", 1, 0, xyz);
 
     // Play a beep sporadically.
     if (rand() % 200 == 0) {
       (void)dsLoop(idBeep, "q33beep.wav", -1, 1, xyz);
-      (void)dsLoop(idBeep, "q33beep.wav",  0, .0, xyz);
+      (void)dsLoop(idBeep, "q33beep.wav",  0, 0, xyz);
     }
 
     // Change viewpoint.

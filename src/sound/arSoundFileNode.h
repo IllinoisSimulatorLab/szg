@@ -25,22 +25,17 @@ class arSoundFileNode : public arSoundNode{
  private:
   int _fInit;
   FSOUND_SAMPLE* _psamp;
-  int _chan;
+  // The fmod channel upon which the sound is playing.
+  int _channel;
   float _amplitudePrev;
   arVector3 _pointPrev;
   int _fLoop; // 0 or 1, normally;  -1 means trigger NOW.
   bool _fComplained[2];
-  inline void _adjust(bool fForce = false);
+  string _fileName;
+  string _oldFileName;
+  string _action;
 
-  // Keep track of which channel each node uses.
-  enum { _numchans = 30 };
-  static bool _chanUsed[_numchans]; // initially all false
-  int _getChan();
-  void _useChan(int chan) { _chanUsed[chan] = true; }
-  void _freeChan(int chan) { _chanUsed[chan] = false; }
-  void _loopStart();
-  void _loopStop();
-  void _triggerStart();
+  void _adjust(bool fForce = false);
 };
 
 #endif
