@@ -29,7 +29,7 @@ class arSharedMemDriver: public arInputSource {
     bool _inited;
     bool _stopped;
     bool _eventThreadRunning;
-    void* _shmHead;
+    void* _shmFoB;
     void* _shmWand;
     arMutex _lockShm;
     int _buttonPrev[10];

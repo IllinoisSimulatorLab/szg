@@ -29,7 +29,7 @@ arSharedMemDriver::arSharedMemDriver() :
   _inited( false ),
   _stopped( true ),
   _eventThreadRunning( false ),
-  _shmHead(NULL),
+  _shmFoB(NULL),
   _shmWand(NULL)
 {
   ar_mutex_init(&_lockShm);
@@ -48,9 +48,9 @@ inline float generateAxis(int ID, const void* m){
   // David Zielinski <djzielin@duke.edu> uses 23 not 42
 }
 
-inline arMatrix4 generateMatrix(const int ID, const void* mRaw){
-  float mLocal[6];
+arMatrix4 generateMatrix(const int ID, const void* mRaw){
   float* m = ((float*)mRaw) + 7 + ID*10;
+  float mLocal[6];
   if (ID == 1) {
     // Compute wand matrix's offset.
     // The offset for the head matrix seems to occur in the vrco trackd.
@@ -74,8 +74,6 @@ inline arMatrix4 generateMatrix(const int ID, const void* mRaw){
     ar_rotationMatrix('z', ar_convertToRad(m[5]));
 }
 
-
-
 bool arSharedMemDriver::init(arSZGClient&) {
   _inited = true;
   _setDeviceElements(8, 2, 3);
@@ -93,22 +91,22 @@ bool arSharedMemDriver::start() {
   }
 
   ar_mutex_lock(&_lockShm);
-  const int trackerSharedID = shmget(4136, 0, 0666);
-  if (trackerSharedID < 0){
-    perror("no shm segment for head (try ipcs -m;  run a cavelib app first)");
+  const int idFoB = shmget(4136, 0, 0666);
+  if (idFoB < 0){
+    perror("no shm segment for Flock of Birds (try ipcs -m;  run a cavelib app first)");
     return false;
   }
-  const int wandSharedID = shmget(4127, 0, 0666);
-  if (wandSharedID < 0){
+  const int idWand = shmget(4127, 0, 0666);
+  if (idWand < 0){
     perror("no shm segment for wand (try ipcs -m;  run a cavelib app first)");
     return false;
   }
-  _shmHead = shmat(trackerSharedID, (char*)0, 0);
-  if ((int)_shmHead == -1){
-    perror("shmat failed for head");
+  _shmFoB = shmat(idFoB, (char*)0, 0);
+  if ((int)_shmFoB == -1){
+    perror("shmat failed for Flock of Birds");
     return false;
   }
-  _shmWand = shmat(wandSharedID, (char*)0, 0);
+  _shmWand = shmat(idWand, (char*)0, 0);
   if ((int)_shmWand == -1){
     perror("shmat failed for wand");
     return false;
@@ -122,10 +120,10 @@ bool arSharedMemDriver::start() {
 void arSharedMemDriver::_detachMemory() {
 #ifndef AR_USE_WIN_32
   ar_mutex_lock(&_lockShm);
-  if (_shmHead) {
-    if (shmdt(_shmHead) < 0)
+  if (_shmFoB) {
+    if (shmdt(_shmFoB) < 0)
       cerr << "arSharedMemDriver warning: ignoring bogus shm pointer.\n";
-    _shmHead = NULL;
+    _shmFoB = NULL;
   }
   if (_shmWand) {
     if (shmdt(_shmWand) < 0)
@@ -157,9 +155,9 @@ void arSharedMemDriver::_dataThread() {
   memset(_buttonPrev, 0, sizeof(_buttonPrev));
   while (!_stopped && _eventThreadRunning) {
     ar_mutex_lock(&_lockShm);
-    queueMatrix(0, generateMatrix(0, _shmHead));
-    queueMatrix(1, generateMatrix(1, _shmHead));
-    queueMatrix(2, generateMatrix(2, _shmHead));
+    queueMatrix(0, generateMatrix(0, _shmFoB));
+    queueMatrix(1, generateMatrix(1, _shmFoB));
+    queueMatrix(2, generateMatrix(2, _shmFoB));
     queueAxis(0, generateAxis(0, _shmWand));
     queueAxis(1, generateAxis(1, _shmWand));
 
