@@ -21,7 +21,7 @@ Everything: $(ALL)
 create-sdk: Everything
 	$(CP) $(ALL) $(SZG_SHARED_COPY_LOCAL) $(INSTALLDIR)/bin
 	$(SZG_LIB_COPY_LINE)
-	cd $(INSTALLDIR); $(SZG_SHARED_COPY_ACTION_LOCAL)
+	cd $(INSTALLDIR)/bin; $(SZG_SHARED_COPY_ACTION_LOCAL)
 
 # Installs everything, including the files built locally plus any external
 # libraries used by the local project, into SZG_BINDIR. Please note that
