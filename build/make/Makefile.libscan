@@ -207,6 +207,15 @@ ifeq ($(strip $(MACHINE)), WIN32)
   LIB_EVART := $(wildcard $(EVART_DIR)/lib/macrtcom.lib)
   OBJ_EVART := $(wildcard $(EVART_DIR)/lib/macrtcom.dll)
 
+  ISENSE_DIR := $(SZGEXTERNAL)/win32/isense
+  OBJ_ISENSE := $(wildcard $(ISENSE_DIR)/lib/isense.dll)
+
+  # If the isense dll is available, we want to copy its objects to SZG_BINDIR
+  # in the install-shared target.
+  ifneq ($(strip $(OBJ_ISENSE)),)
+    SZG_SHARED_COPY += $(OBJ_ISENSE)
+  endif
+
   # If STLport is available, we want to copy its objects to SZG_BINDIR
   # in the install-shared target.
   ifneq ($(strip $(LIB_STLPORT)),)

@@ -601,8 +601,9 @@ bool arIntersenseDriver::init(arSZGClient& client){
     m_sleepTime = sig[0];
   }
 
+  DWORD comPortID = static_cast<DWORD>(client.getAttributeInt( ISENSE_GROUP_NAME, "com_port"));
   // Start the device.
-  if ( !Open() ) return false;
+  if ( !Open( comPortID ) ) return false;
 
   if ( !this->GetStationSettings( client ) ) return false;
 
@@ -627,25 +628,37 @@ bool arIntersenseDriver::init(arSZGClient& client){
 }
 
 
-bool arIntersenseDriver::Open()
+bool arIntersenseDriver::Open( DWORD port )
 {
   ISD_TRACKER_HANDLE trackerHandle[ ISD_MAX_TRACKERS ];
 
-  // Open every available unit.
-  Bool isOpened = ISD_OpenAllTrackers(
-    (Hwnd) NULL, trackerHandle, FALSE, m_isVerbose );
-  if ( FALSE == isOpened ) {
-    std::cerr << "IntersenseDriver::failed to open any trackers."
-      << std::endl;
-    return false;
-  }
+  if (port==0) { // scan all ports for any available trackers
+    // Open every available unit.
+    Bool isOpened = ISD_OpenAllTrackers(
+      (Hwnd) NULL, trackerHandle, FALSE, m_isVerbose );
+    if ( FALSE == isOpened ) {
+      std::cerr << "IntersenseDriver::failed to open any trackers."
+        << std::endl;
+      return false;
+    }
 
-  // Count the good handles and make struct to hold them.
-  int trackerIdx;
-  for ( trackerIdx = 0; trackerIdx < ISD_MAX_TRACKERS; trackerIdx++ ) {
-    if ( trackerHandle[ trackerIdx ] < 1 ) break;
+    // Count the good handles and make struct to hold them.
+    int trackerIdx;
+    for ( trackerIdx = 0; trackerIdx < ISD_MAX_TRACKERS; trackerIdx++ ) {
+      if ( trackerHandle[ trackerIdx ] < 1 ) break;
+    }
+    m_trackerCnt = trackerIdx;
+  } else { // check for a single tracker on specified port
+    Bool isVerbose = TRUE;
+    trackerHandle[0] = ISD_OpenTracker( (Hwnd) NULL, port, FALSE, isVerbose );
+    bool success = trackerHandle[0] > 0;
+    if ( !success ) {
+      std::cerr << "arIntersenseDriver error: failed to open tracker on port "
+      << port << ".  " << std::endl;
+      return false;
+    }
+    m_trackerCnt = 1;
   }
-  m_trackerCnt = trackerIdx;
   if ( 0 == m_trackerCnt ) {
 	  std::cerr << "IntersenseDriver::found no trackers." <<
 		  std::endl;

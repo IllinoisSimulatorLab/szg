@@ -55,6 +55,13 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
+#ifdef _LIB // static library
+    #define	DLLEXPORT 
+    #define	DLLENTRY __cdecl
+    typedef void (* DLL_EP)(void);
+    #define	DLL_EP_PTR __cdecl *
+#else
+
 #if defined(_WIN32) || defined(WIN32) || defined(__WIN32__)
     #define	DLLEXPORT __declspec(dllexport)
     #define	DLLENTRY __cdecl
@@ -66,7 +73,7 @@
     typedef void (* DLL_EP)(void);
     #define	DLL_EP_PTR *
 #endif
-
+#endif
 
 //////////////////////////////////////////////////////////////////////////////
 
@@ -100,7 +107,8 @@ typedef enum
     ISD_INTERTRAX_LC,   // InterTraxLC 
     ISD_ICUBE2,         // InertiaCube2 
     ISD_ICUBE2_PRO,     // InertiaCube2 Pro 
-    ISD_IS1200          // 6DOF system   
+    ISD_IS1200,         // 6DOF system   
+    ISD_ICUBE3          // InertiaCube3 
 }
 ISD_SYSTEM_MODEL;
 
@@ -185,7 +193,7 @@ typedef struct
     DWORD  Interface;   // hardware interface, read-only 
 
     DWORD  UltTimeout;  // IS-900 only, ultrasonic timeout (sampling rate)
-    DWORD  dwReserved3;
+    DWORD  UltVolume;   // IS-900 only, ultrasonic speaker volume
     DWORD  dwReserved4;
 
     float  FirmwareRev; // Firmware revision 
@@ -236,7 +244,24 @@ typedef struct
     Bool    bReserved1;     
 
     DWORD   CoordFrame;     // coord frame in which position and orientation data is reported  
-    DWORD   dwReserved2;    
+
+    // AccelSensitivity is used for 3-DOF tracking with InertiaCube2 only. It controls how fast 
+    // tilt correction, using accelerometers, is applied. Valid values are 1 to 4, with 2 as default. 
+    // Default is best for head tracking in static environment, with user sited. 
+    // Level 1 reduces the amount of tilt correction during movement. While it will prevent any effect  
+    // linear accelerations may have on pitch and roll, it will also reduce stability and dynamic accuracy. 
+    // It should only be used in situations when sensor is not expected to experience a lot of movement.
+    // Level 3 allows for more aggressive tilt compensation, appropriate when sensor is moved a lot, 
+    // for example, when user is walking for long durations of time. 
+    // Level 4 allows for even greater tilt corrections. It will reduce orientation accuracy by 
+    // allowing linear accelerations to effect orientation, but increase stability. This level 
+    // is appropriate for when user is running, or in other situations when sensor experiences 
+    // a great deal of movement. 
+    // AccelSensitivity is an advanced tuning parameter and is not used in the configuration files. 
+    // The only way to set it is through the API, otherwise it will remain at default.
+
+    DWORD   AccelSensitivity; 
+
     DWORD   dwReserved3;    
     DWORD   dwReserved4;
 
@@ -257,8 +282,8 @@ typedef struct
 {
     BYTE    TrackingStatus;   // tracking status byte 
     BYTE    NewData;          
-    BYTE    bReserved2;       // pack to 4 byte boundary 
-    BYTE    bReserved3;
+    BYTE    CommIntegrity;    // Communication integrity of wireless link 
+    BYTE    bReserved3;       // pack to 4 byte boundary
 
     float   Orientation[4];   // Supports both Euler and Quaternion formats 
     float   Position[3];      // Always in meters 
@@ -284,7 +309,7 @@ typedef struct
     DWORD   dwReserved3;
     DWORD   dwReserved4;
 
-    float   StillTime;
+    float   StillTime;      // IC2 and PC-Tracker only
     float   fReserved2;
     float   fReserved3;
     float   fReserved4;

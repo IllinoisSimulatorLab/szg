@@ -142,6 +142,11 @@ the data cell pointed to by "x".</p>
 17 cells, places the number 16 in the first one, and installs a new
 word &lt;name&gt; in the dictionary that pushes the address of the
 second cell onto the stack.</p>
+<p><font face="courier" size="+1">array </font> &lt;numItems&gt; &lt;name&gt;</p>
+<p>Effect: at compile time, allocates
+&lt;numItems&gt;+1 cells, places the number &lt;numItems&gt; in the first one, and installs a new
+word &lt;name&gt; in the dictionary that pushes the address of the
+second cell onto the stack.</p>
 <p><font face="courier" size="+1">define </font>&lt;name&gt;
 &lt;words&gt; <font face="courier" size="+1">enddef</font></p>
 <p>Effect: at compile time, adds a new
@@ -212,6 +217,10 @@ x4 x5 x6 x7
 x8 x9 x10 x11 x12 x13 x14 x15 x16 addr -- ) Pops 16 numbers and an
 address off the stack,
 stores the numbers in the data cell pointed to by addr.</p>
+<p><font face="courier" size="+1">matrixCopy</font> &nbsp; ( addr1
+addr2 -- ) Copies matrix at addr1 to addr2.</p>
+<p><font face="courier" size="+1">matrixInverse</font> &nbsp; ( addr1
+addr2 -- ) Computes inverse of matrix at addr1 and stores it at addr2.</p>
 <p><font face="courier" size="+1">matrixMultiply</font> &nbsp; ( addr1
 addr2 addr3 -- ) Multiplies matrix at addr1 by matrix at addr2
 and stores the result at addr3.</p>
@@ -230,6 +239,10 @@ at addr.</p>
 <p><font face="courier" size="+1">xaxis</font> , <font face="courier"
  size="+1">yaxis</font> , <font face="courier" size="+1">zaxis </font>
 ( -- n1 ) Constants for use with rotationMatrix.</p>
+<p><font face="courier" size="+1">extractTranslationMatrix</font> ( addr1 addr2
+-- ) Extracts translational component (matrix) of matrix at addr1 and stores it at addr2.</p>
+<p><font face="courier" size="+1">extractRotationMatrix</font> ( addr1 addr2
+-- ) Extracts rotational component (matrix) of matrix at addr1 and stores it at addr2.</p>
 <p><font face="courier" size="+1">stack</font> &nbsp; ( -- ) Prints the
 contents of the stack to the
 standard error.</p>

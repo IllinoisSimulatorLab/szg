@@ -166,6 +166,20 @@ bool MatStore::run( arPForth* pf ) {
   return true;
 }
 
+class MatCopy : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool MatCopy::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long address2 = (long)pf->stackPop();
+  long address1 = (long)pf->stackPop();
+  arMatrix4 result( pf->getDataMatrix( address1 ) );
+  pf->putDataMatrix( address2, result );
+  return true;
+}
+
 class MatMultiply : public arPForthAction {
   public:
     virtual bool run( arPForth* pf );
@@ -315,6 +329,18 @@ bool StringPrint::run( arPForth* pf ) {
   return true;
 }
 
+class IdentityMatrix : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool IdentityMatrix::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long address = (long)pf->stackPop();
+  pf->putDataMatrix( address, ar_identityMatrix() );
+  return true;
+}
+  
 class TranslationMatrix : public arPForthAction {
   public:
     virtual bool run( arPForth* pf );
@@ -346,6 +372,48 @@ bool RotationMatrix::run( arPForth* pf ) {
   return true;
 }
 
+class ExtractTranslationMatrix : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool ExtractTranslationMatrix::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long outAddress = (long)pf->stackPop();
+  long inAddress = (long)pf->stackPop();
+  arMatrix4 result( ar_extractTranslationMatrix( pf->getDataMatrix( inAddress ) ) );
+  pf->putDataMatrix( outAddress, result );
+  return true;
+}
+  
+class ExtractRotationMatrix : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool ExtractRotationMatrix::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long outAddress = (long)pf->stackPop();
+  long inAddress = (long)pf->stackPop();
+  arMatrix4 result( ar_extractRotationMatrix( pf->getDataMatrix( inAddress ) ) );
+  pf->putDataMatrix( outAddress, result );
+  return true;
+}
+  
+class InverseMatrix : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool InverseMatrix::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long outAddress = (long)pf->stackPop();
+  long inAddress = (long)pf->stackPop();
+  arMatrix4 result( (pf->getDataMatrix( inAddress )).inverse() );
+  pf->putDataMatrix( outAddress, result );
+  return true;
+}
+  
 class DefAction : public arPForthAction {
   public:
     vector<arPForthAction*> _actionList;
@@ -601,7 +669,11 @@ bool ar_PForthAddStandardVocabulary( arPForth* pf ) {
     return false;
   if (!pf->addSimpleActionWord( "not", new Not() ))
     return false;
+  if (!pf->addSimpleActionWord( "identityMatrix", new IdentityMatrix() ))
+    return false; 
   if (!pf->addSimpleActionWord( "matrixStore", new MatStore() ))
+    return false; 
+  if (!pf->addSimpleActionWord( "matrixCopy", new MatCopy() ))
     return false; 
   if (!pf->addSimpleActionWord( "matrixMultiply", new MatMultiply() ))
     return false;  
@@ -610,6 +682,12 @@ bool ar_PForthAddStandardVocabulary( arPForth* pf ) {
   if (!pf->addSimpleActionWord( "translationMatrix", new TranslationMatrix() ))
     return false;  
   if (!pf->addSimpleActionWord( "rotationMatrix", new RotationMatrix() ))
+    return false;  
+  if (!pf->addSimpleActionWord( "extractTranslationMatrix", new ExtractTranslationMatrix() ))
+    return false;  
+  if (!pf->addSimpleActionWord( "extractRotationMatrix", new ExtractRotationMatrix() ))
+    return false;  
+  if (!pf->addSimpleActionWord( "inverseMatrix", new InverseMatrix() ))
     return false;  
   if (!pf->addSimpleActionWord( "xaxis", new FetchNumber(0) ))
     return false;

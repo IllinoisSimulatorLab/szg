@@ -142,7 +142,7 @@ private:
   //! Re-open failed trackers.
   bool Reacquire();
   //! Open all Intersense trackers.
-  bool Open();
+  bool Open( DWORD port=0 );
   //! Makes all calls to retrieve client's group attributes.
   bool GetStationSettings( arSZGClient& client );
   size_t m_trackerCnt; //!< Number of Intersense tracker stations attached.

@@ -202,15 +202,6 @@ int main(int argc, char** argv){
   // Start with the input sources.
   // Necessary to assign input "slots" to the input sources.
   int nextInputSlot = slotNumber + 1;
-  // First, see if, via command line arg -netinput, we want to automatically
-  // add a net input source (i.e. not via the config file)
-  if (useNetInput){
-    arNetInputSource* commandLineNetInputSource = new arNetInputSource();
-    commandLineNetInputSource->setSlot(nextInputSlot);
-    nextInputSlot++;
-    // The node will "own" this source.
-    inputNode.addInputSource(commandLineNetInputSource,true);
-  }
   // Configure the input sources.
   list<string>::iterator iter;
   for (iter = nodeConfig.inputSources.begin();
@@ -222,8 +213,8 @@ int main(int argc, char** argv){
       arNetInputSource* netInputSource = new arNetInputSource();
       netInputSource->setSlot(nextInputSlot);
       nextInputSlot++;
-	  inputNode.addInputSource(netInputSource,true);
-    }
+      inputNode.addInputSource(netInputSource,true);
+    } 
     else{
       // A dynamically loaded library
       arSharedLib* inputSourceObject = new arSharedLib();
@@ -243,6 +234,16 @@ int main(int argc, char** argv){
       }
       inputNode.addInputSource(theSource,true);
     }
+  }
+
+  // First, see if, via command line arg -netinput, we want to automatically
+  // add a net input source (i.e. not via the config file)
+  if (useNetInput){
+    arNetInputSource* commandLineNetInputSource = new arNetInputSource();
+    commandLineNetInputSource->setSlot(nextInputSlot);
+    nextInputSlot++;
+    // The node will "own" this source.
+    inputNode.addInputSource(commandLineNetInputSource,true);
   }
 
   // Configure the input sinks. NOTE: by default, we include a net input

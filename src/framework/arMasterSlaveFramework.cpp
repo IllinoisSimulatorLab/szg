@@ -1550,7 +1550,8 @@ bool arMasterSlaveFramework::_start(bool useGLUT){
   // NOTE: so that _startCallback can know if this instance is the master or
   // a slave, it is important to call this AFTER _startDetermineMaster(...)
   if (_startCallback && !_startCallback(*this, _SZGClient)){
-    startResponse << "Programmer-defined init of component failed.\n";
+    cerr << "arMasterSlaveFramework error: start callback failed.\n";
+    startResponse << "Fatal error: arMasterSlaveFramework start callback failed.\n";
     _SZGClient.sendStartResponse(false);
     return false;
   }
