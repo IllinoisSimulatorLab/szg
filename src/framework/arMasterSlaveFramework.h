@@ -89,7 +89,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   arMatrix4 getProjectionMatrix(float eyeSign); // needed for custom stuff
   arMatrix4 getModelviewMatrix(float eyeSign);  // needed for custom stuff
-  arMatrix4 getMidEyeMatrix() { return _head.getMidEyeMatrix(); }
   // must be able to use a custom screen objects for those rare cases
   // (for instance noneuclidean visualization) where the standard euclidean
   // cameras are no good
