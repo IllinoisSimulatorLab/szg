@@ -24,7 +24,7 @@ class SZG_CALL arStringTextStream: public arTextStream{
 
   virtual int ar_getc(){ return _stream.get(); }
   // Since stringstream has a perfectly good unget, no need to get fancy.
-  virtual void ar_ungetc(int unused){ _stream.unget(); }
+  virtual void ar_ungetc(int){ _stream.unget(); }
 
   void setString(const string& newString){ _stream.str(newString); }
  private:
