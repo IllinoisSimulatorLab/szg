@@ -25,6 +25,7 @@ class arStructuredDataSynchronizer{
   arMutex lock;
   arConditionVar var;
   int tag;
+  bool exitFlag;
   int refCount;
 };
 

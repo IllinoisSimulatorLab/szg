@@ -570,6 +570,8 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
     // must create 
     syn = new arStructuredDataSynchronizer();
     syn->tag = -1;
+    // We could be using this to signal "fall through" the getNextTagged(...)
+    syn->exitFlag = false;
     syn->refCount = 0;
     ar_mutex_init(&syn->lock);
   }
@@ -577,6 +579,8 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
     // simply pop the front, making sure that tag is set to -1.
     syn = _recycledSync.front();
     syn->tag = -1;
+    // We could be using this to signal "fall through" the getNextTagged(...)
+    syn->exitFlag = false;
     syn->refCount = 0;
     _recycledSync.pop_front();
   }
@@ -604,7 +608,10 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   // of normalExit is determined by the wait.
   bool normalExit = true;
   ar_mutex_lock(&syn->lock);
-  while (syn->tag < 0){
+  // NOTE: it is important to check if the exitFlag has been set (because
+  // in this case the tag will be -1 and we will exit normally from the
+  // wait).
+  while (syn->tag < 0 && !syn->exitFlag){
     // The wait call returns false exactly when we've got a time-out.
     // It is important to distinguish this case, since we won't actually
     // have any data.
@@ -704,8 +711,11 @@ void arStructuredDataParser::clearQueues(){
   for (SZGtaggedMessageSync::iterator i = _messageSync.begin();
        i != _messageSync.end(); i++){
     ar_mutex_lock(&i->second->lock);
-    // Make sure we pass the "PROBLEM" tag.
+    // There is no tag to pass.
     i->second->tag = -1;
+    // We set the flag indicating that any woken getNextTagged(...) should
+    // return an error.
+    i->second->exitFlag = true;
     i->second->var.signal();
     ar_mutex_unlock(&i->second->lock);
   }
@@ -754,6 +764,14 @@ void arStructuredDataParser::clearQueues(){
 void arStructuredDataParser::activateQueues(){
   ar_mutex_lock(&_activationLock);
   _activated = true;
+  // step through the message-queues-by-ID and go ahead and reset the exit 
+  // flags to false.
+  for (SZGmessageQueue::iterator i = _messageQueue.begin();
+       i != _messageQueue.end(); i++){
+    i->second->exitFlag = false;
+  }
+  // NOTE: this DOES NOT have to be done with the tagged synchronizers since
+  // they always start out as reset.
   ar_mutex_unlock(&_activationLock);
 }
 

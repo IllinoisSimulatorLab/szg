@@ -1362,12 +1362,12 @@ bool arSZGClient::_getPortsCore2(arStructuredData* data, int match,
 
   // wait for the response
   data = _getTaggedData(match, _l.AR_SZG_BROKER_RESULT);
-  (void)data->getDataInt(_l.AR_PHLEET_MATCH);
   if (!data){
     cerr << _exeName << " warning: no response for service registration "
 	 << (fRetry ? "retry" : "") << "request.\n";
     return false;
   }
+  (void)data->getDataInt(_l.AR_PHLEET_MATCH);
 
   if (data->getDataString(_l.AR_SZG_BROKER_RESULT_STATUS) != "SZG_SUCCESS"){
     return false;
@@ -1494,12 +1494,13 @@ bool arSZGClient::confirmPorts(const string& serviceName,
   // communications pipe to the szgserver can go away while it is still
   // processing a message received on that pipe.
   data = _getTaggedData(match, _l.AR_SZG_BROKER_RESULT);
-  (void)data->getDataInt(_l.AR_PHLEET_MATCH);
   if (!data){
     cerr << _exeName << " error: failed to get broker result in response "
          << "to port confirmation.\n";
     return false;
   }
+  (void)data->getDataInt(_l.AR_PHLEET_MATCH);
+  
   return data->getDataString(_l.AR_SZG_BROKER_RESULT_STATUS) == "SZG_SUCCESS";
 }
 
@@ -1548,13 +1549,13 @@ arPhleetAddress arSZGClient::discoverService(const string& serviceName,
 
   // receive the response
   data = _getTaggedData(match, _l.AR_SZG_BROKER_RESULT);
-  (void)data->getDataInt(_l.AR_PHLEET_MATCH);
   if (!data){
     cerr << _exeName << " error: failed to get broker result in response "
 	 << "to discover service request.\n";
     result.valid = false;
     return result;
   }
+  (void)data->getDataInt(_l.AR_PHLEET_MATCH);
 
   // deal with the response
   if (data->getDataString(_l.AR_SZG_BROKER_RESULT_STATUS) == "SZG_SUCCESS"){
