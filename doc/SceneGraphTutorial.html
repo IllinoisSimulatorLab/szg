@@ -61,6 +61,23 @@ actually produces geometry.
 <p><font size=+2>Graphics Peers: Important Phleet Database Parameters</font>
 </a>
 
+<p>The graphics database requires a few Phleet parameters to be set for 
+proper operation. For every computer upon which you want to run a display,
+you should have
+
+<pre>
+  my_computer_name SZG_RENDER texture_path /the/textures/here
+  my_computer_name SZG_RENDER text_path /the/text/bitmaps/here
+</pre>
+
+<p>Furthermore, it will be easier to load and save snapshots of graphics peers
+if you set the SZG_PEER/path on each computer upon which you run a graphics
+peer. Files will be automatically loaded and saved to this directory.
+
+<pre>
+  my_computer_name SZG_PEER path /the/peer/files/go/here
+</pre>
+
 <a name="Peer">
 <p><font size=+2>Graphics Peers: Tutorial Set Up</font>
 </a>
@@ -348,13 +365,175 @@ The four points now define a box, with an "x" going through the middle.
 <p><font size=+2>Scene Graph: Node Types</font>
 </a>
 
-<a name="Meshes">
-<p><font size=+2>Scene Graph: Using Built-in Meshes</font>
-</a>
-
 <a name="Objects">
 <p><font size=+2>Scene Graph: Loading Objects</font>
 </a>
+
+<p>Syzygy has a number of built-in shapes and the ability to load meshes in
+the .obj and .3ds file formats. You can use these facilities to create a 
+world by positioning, changing the colors, and changing the textures of
+pre-made objects. 
+
+<p>We assume that you have completed the basic section on 
+<a href="#Peer">peers</a>, are working at the Python prompt, and that
+"peer" and "handle" are as in that section. You will also need to have some
+Phleet database variables set, as outlined <a href="#Database">here</a>.
+
+<p>First, we will add some lights
+to the scene, using a utility function from the "rp" module.
+
+<pre>
+  attachLights(peer)
+</pre>
+
+Now, add a sphere to the scene. This will start out simple, but gradually get
+more complex, eventually encompassing ways to position the sphere and add
+texture and color to it. Here, we make a sphere with 20 longitudinal and
+latitudanal divisions (and 20x20x2=800 triangles). The sphere has radius 1
+by default.
+
+<pre>
+  s = arSphereMesh(20)
+</pre>
+
+It will not appear yet in the scene graph. You have to attach it. The first
+parameter is the sphere's unique name. The second parameter is the name of the
+node we wish to attach it to.
+
+<pre>
+  s.attachMesh("sphere1","root")
+</pre>
+
+You will see a small white sphere, shaded by the lighting, in the center of
+your screen. Unfortunately, we cannot do much with it. It cannot be moved and
+its color cannot be changed. To do these things, we will have to start over.
+To do this, we have to erase the sphere. This is done by getting the ID of the
+sphere's top node and issuing the eraseNode method of arGraphicsPeer. To find
+the node ID, try:
+
+<pre>
+  peer.printStructure()
+</pre>
+
+You see:
+
+<pre>
+(0, "root", "root")
+ (1, "l0", "light")
+ (2, "l1", "light")
+ (3, "l2", "light")
+ (4, "sphere1 points", "points")
+  (5, "sphere1 indices", "index")
+   (6, "sphere1 normal3", "normal3")
+    (7, "sphere1 tex2", "tex2")
+     (8, "sphere1 drawable", "drawable")
+</pre>
+
+And you want to delete all the nodes below "sphere1 points" (with ID 4) like
+so:
+
+<pre>
+  peer.eraseNode(4)
+</pre>
+
+We want to be able to control the position and color of the sphere. To do
+this, we create a transform node (attached to the scene graph root) and
+a material node (attached to the transform node). Note how, in the factory
+function, the parent node comes first, followed by the node type, and then
+the node name. The sphere can be attached to the material node.
+
+<pre>
+  t1 = peer.new(peer.getRoot(), "transform", "transform1")
+  m1 = peer.new(t1, "material", "material1")
+</pre>
+
+Perhaps we want a red sphere.
+
+<pre>
+  mater = m1.getMaterial()
+  mater.diffuse = arVector3(1,0,0)
+  m1.setMaterial(mater)
+</pre>
+
+Attach the sphere.
+
+</pre>
+  s.attachMesh("sphere1","material1")
+</pre>
+
+You can translate the sphere to coordinates (0,5,0) by:
+
+<pre>
+  t1.setTransform(ar_translationMatrix(0,5,0))
+</pre>
+
+You can translate and scale the sphere by:
+
+<pre>
+  t1.setTransform(ar_translationMatrix(0,-5,0)*ar_scaleMatrix(2,2,2))
+</pre>
+
+You can change the sphere color to yellow by:
+
+<pre>
+  mater.diffuse = arVector3(1,1,0)
+  m1.setMaterial(mater)
+</pre>
+
+Instead, we could try a textured cube.
+
+<pre>
+  t2 = peer.new(peer.getRoot(), "transform", "transform2")
+  tex = peer.new(t2, "texture", "texture2")
+  tex.setFileName("wood.ppm")
+</pre>
+
+Attach the cube:
+
+<pre>
+  cube = arCubeMesh()
+  cube.attachMesh("cube2","texture2")
+</pre>
+
+All texture files must live in the directory list given by the Phleet
+parameter SZG_RENDER/texture_path. They must be either .ppm or .jpg in format
+and must be square and have dimension a power of 2. You can turn the cube image
+into a background by making the cube very large:
+
+<pre>
+  t2.setTransform(ar_scaleMatrix(100,100,100))
+</pre>
+
+Now, we will learn how to attach and edit models in .obj format. You are 
+assumed to have unpacked the OBJ.tar distribution of model data to a directory
+on your system, say /usr/local/OBJ. You can certainly put the models somewhere
+else, but you will need to change the examples below accordingly.
+
+<pre>
+  al = arOBJ()
+  t3 = peer.new(peer.getRoot(), "transform", "transform3")
+  al.readOBJ("al.obj","/usr/local/OBJ")
+</pre>
+
+If the file is successfully read, readOBJ will return "1".
+
+<pre>
+  al.attachMesh("al","transform3")
+</pre>
+
+A little man should now appear in your scene. You can edit the figure's colors
+like so:
+
+<pre>
+  mal = peer.find("al.default.colors3")
+  mater = mal.getMaterial()
+  mater.diffuse = arVector3(1,1,0)
+  mal.setMaterial(mater)
+</pre>
+
+You can change other colors in the model as well. Their nodes are given by the
+names: "al.default.colors1", "al.default.colors2", "al.default.colors3",
+and "al.default.colors4".
 
 <a name="File">
 <p><font size=+2>Scene Graph: File Operations</font>
