@@ -395,6 +395,45 @@ arStructuredData* arStructuredDataParser::parse(arTextStream* textStream,
   return theData;
 }
 
+arStructuredData* arStructuredDataParser::parseBinary(FILE* inputFile){
+  arBuffer<char>* buffer = getTranslationBuffer();
+  ARint recordSize;
+  if (fread(buffer->data, AR_INT_SIZE, 1, inputFile) == 0){
+    // Failure has occured in reading the file.
+    return NULL;
+  }
+  // All buffers in the store have size at least 1024, so they can handle
+  // one int.
+  ar_unpackData(buffer->data, &recordSize, AR_INT, 1);
+  if (recordSize>buffer->size()){
+    // resize buffer
+    if (recordSize > 2*buffer->size()){
+      buffer->resize(recordSize);
+    }
+    else{
+      buffer->resize(2*buffer->size());
+    }
+  }
+  const int result = fread(buffer->data+AR_INT_SIZE,1,
+                           recordSize-AR_INT_SIZE, inputFile);
+  if (result < recordSize - AR_INT_SIZE){
+    cerr << "arStructuredDataParser error: failed reading record: got only " 
+         << result+AR_INT_SIZE
+	 << " of " << recordSize << " expected bytes.\n";
+    recycleTranslationBuffer(buffer);
+    return NULL;
+  }
+  int ID = ar_rawDataGetID(buffer->data);
+  arStructuredData* data = getStorage(ID);
+  if (!data){
+    recycleTranslationBuffer(buffer);
+    return NULL;
+  }
+  data->unpack(buffer->data);
+  recycleTranslationBuffer(buffer);
+  return data;
+}
+
 /// Sometimes it is advantageous to read-in incoming data in a seperate thread 
 /// than in which it is actually used. In addition to holding raw "recycled" 
 /// storage, the arStructuredDataParser can hold received message lists. There 

@@ -80,6 +80,13 @@ void arStreamNode::render(){
       // (the seeking can be an expensive operation in fmod)
       if (_requestedTime >= 0 && !_paused){
         FSOUND_Stream_SetTime(_stream, _requestedTime);
+	// NOTE: THIS IS BUGGY BECAUSE....
+	//   RELIES ON THE FACT THAT ALTERATIONS TO THE DATABASE DO NOT
+	//   OVERLAP WITH THE ALTERATIONS.
+	//
+	//   IT RELIES ON THE RENDERER CHANGING NODE STATE (OTHERWISE WE'D
+	//   ALWAYS SEEK BACK TO THIS SPOT)
+        _requestedTime = -1;
       }
       // Set whether we are paused or not *after* setting everything else.
       // This allows us to unpause the stream at a particular spot.

@@ -57,10 +57,13 @@ class arStructuredDataParser{
   arStructuredData* getStorage(int ID);
   arBuffer<char>*   getTranslationBuffer();
   void              recycleTranslationBuffer(arBuffer<char>*);
+  // AARGH! THIS IS ALL A MESS! The parse command needs a better model...
+  // To be provided eventually...
   arStructuredData* parse(ARchar*,int&);
   arStructuredData* parse(ARchar*,int&,const arStreamConfig&);
   arStructuredData* parse(arTextStream*);
   arStructuredData* parse(arTextStream*, const string&);
+  arStructuredData* parseBinary(FILE*);
   bool parseIntoInternal(ARchar*, int&);
   bool parseIntoInternal(arTextStream*);
   bool pushIntoInternalTagged(arStructuredData*, int);
