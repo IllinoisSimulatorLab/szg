@@ -146,7 +146,9 @@ int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( windowHandle._dpy );
+
   glXSwapBuffers( windowHandle._dpy, windowHandle._win );
+
   XUnlockDisplay( windowHandle._dpy );
 
   #endif
@@ -501,7 +503,7 @@ int arGUIWindow::_processWMEvents( void )
       break;
     }
 
-    // the 'first' part of the event is done
+    // signal anyone waiting on this event that it has finally been processed
     wmEvent->signal();
 
     _WMEvents.pop();
@@ -606,7 +608,7 @@ int arGUIWindow::_windowCreation( void )
 
   RECT windowRect = { trueX, trueY, trueX + trueWidth, trueY + trueHeight };
 
-  // adjust window to true requested size since Windows treats the width and
+  // adjust window to true requested size since Win32 treats the width and
   // height as the whole window (including decorations) but we want it to be
   // just the client area
   if( !AdjustWindowRectEx( &windowRect, windowStyle, 0, windowExtendedStyle ) ) {
@@ -665,6 +667,10 @@ int arGUIWindow::_windowCreation( void )
   }
 
   _running = true;
+
+  if( _windowConfig._fullscreen ) {
+    fullscreen();
+  }
 
   ShowWindow( _windowHandle._hWnd, SW_SHOW );
 
@@ -852,7 +858,7 @@ int arGUIWindow::_windowCreation( void )
                            0, _windowHandle._vi->depth, InputOutput, _windowHandle._vi->visual,
                            mask, &_windowHandle._attr );
 
-   _running = true;
+    _running = true;
   }
 
   XSelectInput( _windowHandle._dpy, _windowHandle._win,
@@ -886,8 +892,6 @@ int arGUIWindow::_windowCreation( void )
   _windowHandle._wDelete = XInternAtom( _windowHandle._dpy, "WM_DELETE_WINDOW", True );
   XSetWMProtocols( _windowHandle._dpy, _windowHandle._win, &_windowHandle._wDelete, 1 );
 
-  XMapWindow( _windowHandle._dpy, _windowHandle._win );
-
   /*
   if( _windowConfig._fullscreen ) {
     XGrabKeyboard( _windowHandle._dpy, _windowHandle._win, True, GrabModeAsync, GrabModeAsync, CurrentTime );
@@ -902,7 +906,13 @@ int arGUIWindow::_windowCreation( void )
 
   decorate( _windowConfig._decorate );
 
+  if( _windowConfig._fullscreen ) {
+    fullscreen();
+  }
+
   XSync( _windowHandle._dpy, False );
+
+  XMapWindow( _windowHandle._dpy, _windowHandle._win );
 
   glXMakeCurrent( _windowHandle._dpy, _windowHandle._win, _windowHandle._ctx );
 
@@ -911,10 +921,6 @@ int arGUIWindow::_windowCreation( void )
   }
 
   #endif
-
-  if( _windowConfig._fullscreen ) {
-    fullscreen();
-  }
 
   // this should get properly set in arGUIEventManager, probably shouldn't
   // set it here
@@ -1025,7 +1031,11 @@ int arGUIWindow::resize( int newWidth, int newHeight )
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
+
   XResizeWindow( _windowHandle._dpy, _windowHandle._win, newWidth, newHeight );
+
+  XFlush( _windowHandle._dpy );
+
   XUnlockDisplay( _windowHandle._dpy );
 
   #endif
@@ -1127,16 +1137,16 @@ int arGUIWindow::fullscreen( void )
   }
   */
 
-  XLockDisplay( _windowHandle._dpy );
-
   XWindowChanges changes;
+
+  decorate( false );
+
+  XLockDisplay( _windowHandle._dpy );
 
   changes.x = 0;
   changes.y = 0;
   changes.width =  DisplayWidth( _windowHandle._dpy, _windowHandle._vi->screen );
   changes.height =  DisplayHeight( _windowHandle._dpy, _windowHandle._vi->screen );
-
-  decorate( false );
 
   XConfigureWindow( _windowHandle._dpy, _windowHandle._win,
                     CWX | CWY | CWWidth | CWHeight, &changes );
@@ -1258,12 +1268,18 @@ void arGUIWindow::decorate( const bool decorate )
   // remapped in order for decoration changes to take.  Unfortunately, this
   // causes OSX to freak out (the client area of the window blanks to white),
   // but if the window is /not/ remapped the changes don't take under OSX
-  // either.  Slackware 10.1 (KDE 3.4.0) doesn't need any remapping at all
-  // for the decoration changes to take.
+  // either, so for now windows on OSX will not be able to be redecorated
+  // (which has implications for going in and out of fullscreen mode as well).
+  // And, of course, Slackware 10.1 (KDE 3.4.0) doesn't need any remapping at
+  // all for this stuff to work...
   if( set ) {
+    #if !defined( AR_USE_DARWIN )
     XUnmapWindow( _windowHandle._dpy, _windowHandle._win );
     XMapWindow( _windowHandle._dpy, _windowHandle._win );
+    #endif
   }
+
+  XFlush( _windowHandle._dpy );
 
   XUnlockDisplay( _windowHandle._dpy );
 
@@ -1291,7 +1307,13 @@ void arGUIWindow::raise( void )
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
+  XLockDisplay( _windowHandle._dpy );
+
   XRaiseWindow( _windowHandle._dpy, _windowHandle._win );
+
+  XFlush( _windowHandle._dpy );
+
+  XUnlockDisplay( _windowHandle._dpy );
 
   #endif
 
@@ -1319,7 +1341,13 @@ void arGUIWindow::lower( void )
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
+  XLockDisplay( _windowHandle._dpy );
+
   XLowerWindow( _windowHandle._dpy, _windowHandle._win );
+
+  XFlush( _windowHandle._dpy );
+
+  XUnlockDisplay( _windowHandle._dpy );
 
   #endif
 
@@ -1345,7 +1373,13 @@ void arGUIWindow::minimize( void )
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
+  XLockDisplay( _windowHandle._dpy );
+
   XIconifyWindow( _windowHandle._dpy, _windowHandle._win, _windowHandle._screen );
+
+  XFlush( _windowHandle._dpy );
+
+  XUnlockDisplay( _windowHandle._dpy );
 
   #endif
 
@@ -1371,7 +1405,13 @@ void arGUIWindow::restore( void )
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
+  XLockDisplay( _windowHandle._dpy );
+
   XMapWindow( _windowHandle._dpy, _windowHandle._win );
+
+  XFlush( _windowHandle._dpy );
+
+  XUnlockDisplay( _windowHandle._dpy );
 
   #endif
 
@@ -1415,7 +1455,11 @@ int arGUIWindow::move( int newX, int newY )
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
+
   XMoveWindow( _windowHandle._dpy, _windowHandle._win, newX, newY );
+
+  XFlush( _windowHandle._dpy );
+
   XUnlockDisplay( _windowHandle._dpy );
 
   #endif
@@ -1450,8 +1494,10 @@ int arGUIWindow::getWidth( void ) const
   XWindowAttributes winAttributes;
 
   XLockDisplay( _windowHandle._dpy );
+
   XGetWindowAttributes( _windowHandle._dpy, _windowHandle._win,
                         &winAttributes );
+
   XUnlockDisplay( _windowHandle._dpy );
 
   return winAttributes.width;
@@ -1486,8 +1532,10 @@ int arGUIWindow::getHeight( void ) const
   XWindowAttributes winAttributes;
 
   XLockDisplay( _windowHandle._dpy );
+
   XGetWindowAttributes( _windowHandle._dpy, _windowHandle._win,
                         &winAttributes );
+
   XUnlockDisplay( _windowHandle._dpy );
 
   return winAttributes.height;
@@ -1522,6 +1570,7 @@ int arGUIWindow::getPosX( void ) const
   Window w;
 
   XLockDisplay( _windowHandle._dpy );
+
   XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win, _windowHandle._root,
                          0, 0, &x, &y, &w );
 
@@ -1531,6 +1580,7 @@ int arGUIWindow::getPosX( void ) const
 
     x -= bx;
   }
+
   XUnlockDisplay( _windowHandle._dpy );
 
   return x;
@@ -1565,6 +1615,7 @@ int arGUIWindow::getPosY( void ) const
   Window w;
 
   XLockDisplay( _windowHandle._dpy );
+
   XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win, _windowHandle._root,
                          0, 0, &x, &y, &w );
 
@@ -1574,6 +1625,7 @@ int arGUIWindow::getPosY( void ) const
 
     y -= by;
   }
+
   XUnlockDisplay( _windowHandle._dpy );
 
   return y;
