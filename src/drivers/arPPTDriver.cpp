@@ -63,7 +63,7 @@ bool arPPTDriver::init(arSZGClient& SZGClient) {
   _inited = true;
   // 0 buttons, 0 axes, 1 matrix
   _setDeviceElements( 0, 0, 1 );
-  cerr << "arPPTDriver remark: init() succeeded.\n";
+  cerr << "arPPTDriver remark: initialized.\n";
   return true;
 }
 
