@@ -129,7 +129,10 @@ top      SZG_EXEC path G:\THE_USER_NAME\bin\win32
 bottom   SZG_EXEC path G:\THE_USER_NAME\bin\win32
 </assign>
 
-<comment> Path for python applications. </comment>
+<comment> Path for python applications. Note that
+          picasso only needs the python path for
+          locating bundled data (sounds), it won't
+          be running any python apps. </comment>
 <assign>
 air      SZG_PYTHON path /home/public/pycube
 north    SZG_PYTHON path G:\pycube
@@ -139,6 +142,7 @@ west     SZG_PYTHON path G:\pycube
 top      SZG_PYTHON path G:\pycube
 bottom   SZG_PYTHON path G:\pycube
 fire     SZG_PYTHON path G:\pycube
+picasso  SZG_PYTHON path G:\pycube
 </assign>
 
 <comment> Path for python modules. Note that the application directory, the
