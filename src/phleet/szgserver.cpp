@@ -1877,6 +1877,35 @@ void serviceReleaseCallback(arStructuredData* theData,
 				    serviceName);
 }
 
+void serviceInfoCallback(arStructuredData* theData,
+			 arSocket* dataSocket){
+  // NOTE: since we are just sending the same data back, the match does not
+  // need to be propogated!
+  const string op(theData->getDataString(lang.AR_SZG_SERVICE_INFO_OP));
+  const string name(theData->getDataString(lang.AR_SZG_SERVICE_INFO_TAG));
+  if (op == "get"){
+    theData->dataInString(lang.AR_SZG_SERVICE_INFO_STATUS,
+                          connectionBroker.getServiceInfo(name));
+    if (!dataServer->sendData(theData, dataSocket)){
+      cout << "szgserver warning: failed to send service info.\n";
+    }
+  }
+  else if (op == "set"){
+    const string info(theData->getDataString(lang.AR_SZG_SERVICE_INFO_STATUS));
+    bool status = connectionBroker.setServiceInfo(dataSocket->getID(),
+                                                  name, info);
+    const string statusString = status ? "SZG_SUCCESS" : "SZG_FAILURE";
+    theData->dataInString(lang.AR_SZG_SERVICE_INFO_STATUS, statusString);
+    if (!dataServer->sendData(theData, dataSocket)){
+      cout << "szgserver warning: failed to get service info.\n";
+    }
+  }
+  else{
+    cout << "szgserver error: got incorrect service info operation = " << op
+	 << ".\n";
+  }
+}
+
 /// Handle receipt of data records from connected arSZGClients.
 /// (szgserver processes client requests serially, which may
 /// be bad but is hard to change:  see arDataServer.cpp for
@@ -1988,6 +2017,10 @@ void dataConsumptionFunction(arStructuredData* theData, void*,
   else if (theID == lang.AR_SZG_SERVICE_RELEASE){
     // The callback handles propogating the "match".
     serviceReleaseCallback(theData, dataSocket);
+  }
+  else if (theID == lang.AR_SZG_SERVICE_INFO){
+    // The callback handles propogating the match
+    serviceInfoCallback(theData, dataSocket);
   }
   else{
     cerr << "szgserver warning: ignoring record with unknown ID " << theID

@@ -20,6 +20,8 @@ class arLaunchInfo{
   string computer;
   string process;
   string context;
+  string tradingTag;
+  string info;
 };
 
 class arAppLauncher{
@@ -51,14 +53,7 @@ class arAppLauncher{
   string getMasterName();
   string getScreenName(int num);
   bool getRenderProgram(const int num, string& computer, string& renderName);
-  string getServiceComputer(const string serviceName);
   void updateRenderers(const string& attribute, const string& value);
-       ///< Set attr value for each rendering machine,
-       ///< and send reload to any running render programs.
-  bool updateService(const string& service,
-       const string& groupName, const string& parameterName, 
-       const string& parameterValue);
-       ///< Set attr value for client, and then restart services.
 
  private:
   arSZGClient*       _client;
@@ -74,6 +69,7 @@ class arAppLauncher{
   string             _location;
   string             _exeName;
   list<arLaunchInfo> _serviceList;
+  bool               _onlyIncompatibleServices;
 
   string _firstToken(const string&);
   string _getAttribute(const string& group, const string& param, 
@@ -86,13 +82,16 @@ class arAppLauncher{
   bool _setPipeName(int,stringstream&);
   string _screenName(int i);
   void _addService(const string& computer, const string& process,
-                   const string& context);
+                   const string& context, const string& tradingTag,
+                   const string& info);
   bool _trylock();
   void _unlock();
   bool _execList(list<arLaunchInfo>* appsToLaunch);
   void _blockingKillByID(list<int>*);
   void _graphicsKill(string);
   bool _demoKill();
+  void _relaunchAllServices(list<arLaunchInfo>&, list<int>&);
+  void _relaunchIncompatibleServices(list<arLaunchInfo>&, list<int>&);
 
   string _getRenderContext(int i);
   string _getInputContext();

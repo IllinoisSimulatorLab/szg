@@ -26,6 +26,8 @@ class arNetInputSink: public arInputSink{
   bool restart();
 
   virtual void receiveData(int,arStructuredData*);
+
+  void setInfo(const string& info);
  private:
   arSZGClient* _client;
   arDataServer _dataServer;
@@ -34,6 +36,7 @@ class arNetInputSink: public arInputSink{
   int _port;
   arInputLanguage _inp;
   bool _fValid;
+  string _info;
 };
 
 #endif

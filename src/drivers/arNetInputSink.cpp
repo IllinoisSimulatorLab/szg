@@ -21,8 +21,9 @@ arNetInputSink::arNetInputSink() :
   _slot(0),
   _interface(string("NULL")),
   _port(0),
-  _fValid(false)
-{
+  _fValid(false),
+  _info(""){
+
   _dataServer.smallPacketOptimize(true);
 }
 
@@ -88,6 +89,12 @@ bool arNetInputSink::start(){
   _client->confirmPorts(serviceName,"input",1,&port);
   _fValid = true;
   arThread dummy(ar_netInputSinkConnectionTask, this);
+
+  // Must set the service's "info" attribute.
+  if (!_client->setServiceInfo(serviceName, _info)){
+    cout << "arNetInputFilter remark: failed to set info type for service.\n";
+  }
+
   startResponse << "arNetInputSink remark: started.\n";
   return true;
 }
@@ -105,4 +112,8 @@ void arNetInputSink::receiveData(int,arStructuredData* data){
   if (_fValid){
     _dataServer.sendData(data);
   }
+}
+
+void arNetInputSink::setInfo(const string& info){
+  _info = info;
 }

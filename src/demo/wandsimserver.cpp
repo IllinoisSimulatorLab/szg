@@ -100,6 +100,9 @@ int main(int argc, char** argv){
   }
   arNetInputSink netInputSink;
   netInputSink.setSlot(slotNumber);
+  // NOTE: we need to distinguish different kinds of SZG_INPUTn services...
+  // and this is how we do it!
+  netInputSink.setInfo("wandsimserver");
   arPForthFilter pforth;
   if (!pforth.configure(&szgClient)){
     szgClient.sendInitResponse(false);

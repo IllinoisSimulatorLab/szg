@@ -19,7 +19,8 @@ arAppLauncher::arAppLauncher(const char* exeName) :
   _appType("NULL"),
   _renderProgram("NULL"),
   _vircomp("NULL"),
-  _location("NULL")
+  _location("NULL"),
+  _onlyIncompatibleServices(true)
 {
   if (exeName && *exeName)
     _exeName.assign(exeName);
@@ -144,6 +145,11 @@ bool arAppLauncher::setParameters(){
     initResponse << _exeName << " error: undefined virtual computer.\n";
     return false;
   }
+  // Does this virtual computer think all services should be relaunched always?
+  if (_client->getAttribute(_vircomp, "SZG_CONF", "relaunch_all", "")
+      == "true"){
+    _onlyIncompatibleServices = false;
+  }
  
   const int numberPipes = getNumberScreens();
   if (numberPipes <= 0){
@@ -178,28 +184,33 @@ bool arAppLauncher::setParameters(){
   for (i=0; i<numTokens; i+=2){
     const string computer(inputDevs[i]);
     string device(inputDevs[i+1]);
+    string info = device; // NOTE: device will be modified below.
+
     /// \todo hack, copypasted into demo/buttonfly/setinputfilter.cpp
     //
-      // NOTE: the input device in slot 0 is the one that actually
-      // connects to the application. Consequently, it must come FIRST
-      // in the <virtual computer>/SZG_INPUT0/map listing.
-      // The next entry in the listing is the first slave device.
-      char buffer[32];
-      sprintf(buffer," %i",i/2);
+    // NOTE: the input device in slot 0 is the one that actually
+    // connects to the application. Consequently, it must come FIRST
+    // in the <virtual computer>/SZG_INPUT0/map listing.
+    // The next entry in the listing is the first slave device.
+    char buffer[32];
+    sprintf(buffer,"%i",i/2);
+    
     if (device == "wandsimserver"){
-      device = device + string(buffer);
+      device = device + " " + string(buffer);
     } else {
-      device = "DeviceServer " + device + string(buffer);
+      device = "DeviceServer " + device + " " + string(buffer);
     }
     if (i < numTokens-2) {
       device = device + " -netinput";
     }
-    _addService(computer,device,_getInputContext());
+    _addService(computer, device, _getInputContext(),
+                "SZG_INPUT"+string(buffer), info);
   }
   // go ahead and deal with the sound stuff, if configured
   const string soundLocation(_getAttribute("SZG_SOUND","map",""));
   if (soundLocation != "NULL"){
-    _addService(soundLocation,"SoundRender",_getSoundContext());
+    _addService(soundLocation,"SoundRender",_getSoundContext(),
+                "SZG_WAVEFORM", "");
   }
   initResponse << _exeName << " remark: virtual computer definition valid.\n";
   _vircompDefined = true;
@@ -248,27 +259,20 @@ bool arAppLauncher::launchApp(){
     }
   }
 
- // this is the list of things we will launch
+  // This is the list of things we will launch.
   list<arLaunchInfo> appsToLaunch;
+  // Some things might need to be killed first (like incompatible services)
+  list<int> serviceKillList;
 
-  // Start services.
-  for (list<arLaunchInfo>::iterator iter = _serviceList.begin();
-       iter != _serviceList.end();
-       ++iter){
-    const int serviceSzgdID = _client->getProcessID(iter->computer, "szgd");
-    if (serviceSzgdID == -1){
-      cerr << _exeName << " error: no szgd on host \""
-           << iter->computer << "\"\n\tfor service \""
-	   << iter->process << "\".\n";
-    }
-    else{
-      //see if service is running before we execute it
-      if (_client->getProcessID(iter->computer, 
-                                _firstToken(iter->process)) == -1){
-        // if it isn't running, we execute it
-	appsToLaunch.push_back(*iter);
-      }
-    }
+  // There are, indeed, different ways in which an application can be
+  // launched. For instance, the underlying "virtual computer" can require
+  // that ALL services be killed and then restarted... or it can require
+  // only those deemed INCOMPATIBLE be killed and then restarted.
+  if (!_onlyIncompatibleServices){
+    _relaunchAllServices(appsToLaunch, serviceKillList);
+  }
+  else{
+    _relaunchIncompatibleServices(appsToLaunch, serviceKillList);
   }
 
   for (i=0; i<_numberPipes; i++){
@@ -281,6 +285,9 @@ bool arAppLauncher::launchApp(){
       appsToLaunch.push_back(_renderLaunchInfo[i]);
     }
   }
+
+  // Kill any incompatible services here.
+  _blockingKillByID(&serviceKillList);
 
   const bool ok = _execList(&appsToLaunch);
   _unlock(); 
@@ -327,9 +334,9 @@ bool arAppLauncher::restartServices(){
   // Kill the services.
   list<arLaunchInfo>::iterator iter;
   list<int> killList;
+  // NOTE: we kill the services by their TRADING KEY and NOT by name!
   for (iter = _serviceList.begin(); iter != _serviceList.end(); ++iter){
-    const int serviceID =
-      _client->getProcessID(iter->computer, _firstToken(iter->process)); 
+    const int serviceID = _client->getServiceComponentID(iter->tradingTag);
     if (serviceID != -1){
       killList.push_front(serviceID);
     }
@@ -361,14 +368,13 @@ bool arAppLauncher::killAll(){
   list<int> killList;
 
   // Kill the services.
-  // HMMMM.... There's a little bug in here. We want to be able to kill
-  // things by a UNIQUE identifier (like a lock or service name) instead
-  // of by a non-unique identifier like computer/process.
   for (list<arLaunchInfo>::iterator iter = _serviceList.begin();
        iter != _serviceList.end();
        ++iter){
+    cout << "arAppLauncher remark: attempting to kill service with tag = "
+	 << iter->tradingTag << "\n";
     const int serviceID =
-      _client->getProcessID(iter->computer, _firstToken(iter->process));
+      _client->getServiceComponentID(iter->tradingTag);
     if (serviceID != -1){
       killList.push_back(serviceID);
     }
@@ -524,22 +530,6 @@ bool arAppLauncher::getRenderProgram(const int num, string& computer,
   return false;
 }
 
-string arAppLauncher::getServiceComputer(const string serviceName) {
-  string reply("NULL");
-  if (!_prepareCommand())
-    return reply;
-  list<arLaunchInfo>::iterator iter;
-  for (iter=_serviceList.begin(); iter != _serviceList.end(); iter++) {
-    if (_firstToken(iter->process) == serviceName) {
-      reply = iter->computer;
-      goto done;
-    }
-  }
-done:
-  _unlock();
-  return reply;
-}
-
 void arAppLauncher::updateRenderers(const string& attribute, 
                                     const string& value) {
   // set up the virtual computer info, if necessary
@@ -560,37 +550,6 @@ void arAppLauncher::updateRenderers(const string& attribute,
       (void)_client->sendReload(host, program);
     }
   } 
-}
-
-bool arAppLauncher::updateService(const string& service,
-                                  const string& groupName, 
-                                  const string& parameterName, 
-                                  const string& parameterValue) {
-  // set up the virtual computer info, if necessary
-  if (!setParameters()){
-    cerr << "arAppLauncher error: invlid virtual computer definition for "
-	 << "updateService.\n";
-    return false;
-  }
-  const string computer(getServiceComputer(service));
-  if (computer == "NULL"){
-    cerr << _exeName << " warning: driver " << service << " not found for "
-         << _vircomp << ".\n";
-    return false;
-  }
- 
-  if (!_client->setAttribute(computer, groupName, 
-                             parameterName, parameterValue)){
-    return false;
-  }
- 
-  if (!restartServices()){
-    cerr << _exeName << " warning: failed to restart services for "
-         << _vircomp << ".\n";
-    return false;
-  }
- 
-  return true;
 }
 
 //**************************************************************************
@@ -664,11 +623,15 @@ string arAppLauncher::_screenName(int i) {
 
 void arAppLauncher::_addService(const string& computerName, 
                                 const string& serviceName,
-                                const string& context){
+                                const string& context,
+				const string& tradingTag,
+				const string& info){
   arLaunchInfo temp;
   temp.computer = computerName;
   temp.process = serviceName;
   temp.context = context;
+  temp.tradingTag = _vircomp + string("/") + tradingTag;
+  temp.info = info;
   _serviceList.push_back(temp);
 }
 
@@ -847,20 +810,6 @@ if (!_client){
     }
     tags.remove(killedID);
   }
-  // The old, NO-TIME-OUT, way!
-  /*while (kill.begin() != kill.end()) {
-    for (iter = kill.begin(); iter != kill.end(); ) {
-      if (_client->getProcessLabel(*iter) == "NULL"){
-	cout << _exeName << " remark: "
-	     << "pid " << *iter << " terminated.\n";
-	iter = kill.erase(iter);
-      }
-      else{
-	++iter;
-      }
-    }
-    ar_usleep(100000);
-    }*/
 }
 
 /// kills every render program that does NOT match the specified
@@ -926,6 +875,92 @@ bool arAppLauncher::_demoKill(){
     // got the lock
   }
   return true;
+}
+
+void arAppLauncher::_relaunchAllServices(list<arLaunchInfo>& appsToLaunch,
+                                         list<int>& serviceKillList){
+  for (list<arLaunchInfo>::iterator iter = _serviceList.begin();
+       iter != _serviceList.end();
+       ++iter){
+    int serviceID = _client->getServiceComponentID(iter->tradingTag);
+    if (serviceID >= 0){
+      serviceKillList.push_back(serviceID);
+    }
+    appsToLaunch.push_back(*iter);
+  }
+}
+
+void arAppLauncher::_relaunchIncompatibleServices(
+                                              list<arLaunchInfo>& appsToLaunch,
+                                              list<int>& serviceKillList){
+  for (list<arLaunchInfo>::iterator iter = _serviceList.begin();
+       iter != _serviceList.end();
+       ++iter){
+    // Here is the procedure:
+    //   1. See if there is a component offering the well-known service.
+    //      a. If so, check to see whether it is running on the right 
+    //         computer and has the right "info" tag.
+    //        i. If so, do nothing.
+    //        ii. If not, go ahead and kill and start again.
+    //      b. If not, go ahead and start.
+    int serviceID = _client->getServiceComponentID(iter->tradingTag);
+    if (serviceID == -1){
+      cout << "arAppLauncher remark: did not find service offering "
+	   << "trading tag = " << iter->tradingTag << ".\n";
+      cout << "  Will restart.\n";
+      appsToLaunch.push_back(*iter);
+    }
+    else{
+      // Check whether this is running on the right computer and has the
+      // right info tag.
+      arSlashString processLocation(_client->getProcessLabel(serviceID));
+      if (processLocation.size() == 2){
+        // The process location must, in fact, be computer/name
+        if (processLocation[0] == iter->computer
+	    && processLocation[1] == _firstToken(iter->process)){
+	  // There is something running, offering the service, with the
+	  // right process name and on the right computer.
+          // HOWEVER... is it the case that we have the right info?
+	  // (i.e. maybe it is a DeviceServer that is running the wrong
+	  //  driver)
+          const string info = _client->getServiceInfo(iter->tradingTag);
+	  // If info == iter->info then there is nothing to do. The service
+	  // seems to be in the right place and of the right type.
+          if (info != iter->info){
+            // Must go ahead and kill.
+	    cout << "arAppLauncher remark: the component currently offering "
+		 << "service = " << iter->tradingTag << " does not have the "
+		 << "right service info = " << iter->info << " (relaunching)"
+		 << ".\n";
+            serviceKillList.push_back(serviceID);
+            appsToLaunch.push_back(*iter);
+	  }
+	  else{
+            cout << "arAppLauncher remark: the component offering "
+	         << "service = " << iter->tradingTag << " is compatible.\n"
+	         << "No action taken.\n";
+	  }
+	}
+	else{
+          // There is something running, offering the service, but not on
+	  // the right computer or with the right process name.
+          cout << "arAppLauncher remark: the component offering "
+	       << "service = " << iter->tradingTag << " is not in the right "
+	       << "location. Relaunching.\n";
+          serviceKillList.push_back(serviceID);
+          appsToLaunch.push_back(*iter);
+	}
+      }
+      else{
+	// The service existed just a few lines up... but does not exist
+	// now.
+        cout << "arAppLauncher remark: the component offering "
+	       << "service = " << iter->tradingTag << " has disappeared. "
+	       << "Relaunching.\n";
+        appsToLaunch.push_back(*iter);
+      }
+    }
+  }
 }
 
 string arAppLauncher::_getRenderContext(int i){

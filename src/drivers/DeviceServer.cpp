@@ -144,7 +144,7 @@ int main(int argc, char** argv){
       case 12: theSource = new arFileSource;
         break;
       case 13: theSource = new arIntersenseDriver;
-	      break;
+	break;
       case 14: theSource = new arVRPNDriver;
         break;
       case 15: theSource = new arMotionstarDriver(true);
@@ -197,6 +197,10 @@ int main(int argc, char** argv){
   
   arNetInputSink netInputSink;
   netInputSink.setSlot(slotNumber);
+  // We need some way to distinguish between different DeviceServer instances
+  // (which are running different devices). This is one way to do it.
+  netInputSink.setInfo(argv[1]);
+  // And the sink to the input node.
   inputNode.addInputSink(&netInputSink,false);
 
   arFileSink fileSink;
