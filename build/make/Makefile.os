@@ -126,3 +126,16 @@ ifeq "$z" "mips4"
   MACHINE=SGI
   MACHINE_DIR=mips4
 endif
+
+# BEWARE: This code is REPEATED in build/make/Makefile.vars
+# (The top-level Makefiles for normal development and easy development
+#  both require this).
+ifeq ($(strip $(SZGBIN)),)
+  ifneq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
+    SZG_BINDIR=$(SZGHOME)/bin/$(MACHINE_DIR)
+  else
+    SZG_BINDIR=$(SZGHOME)/bin
+  endif
+else
+  SZG_BINDIR=$(SZGBIN)
+endif

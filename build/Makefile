@@ -6,17 +6,6 @@ include make/Makefile.libscan
 # structure) AND in the local makefiles (via Makefile.vars)
 INSTALLDIR = $(SZGHOME)/szg-install
 
-# BEWARE: This code is REPEATED in build/Makefile.
-ifeq ($(strip $(SZGBIN)),)
-  ifneq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
-    SZG_BINDIR=$(SZGHOME)/bin/$(MACHINE_DIR)
-  else
-    SZG_BINDIR=$(SZGHOME)/bin
-  endif
-else
-  SZG_BINDIR=$(SZGBIN)
-endif
-
 ifeq "$z" "UNKNOWN_OS"
 all:
 	@echo "Makefile failed to guess OS type."

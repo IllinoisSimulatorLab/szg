@@ -57,7 +57,7 @@ ifeq ($(strip $(MACHINE)), LINUX)
     # NOTE: It is IMPORTANT that the symbolic links are RELATIVE and not
     # ABSOLUTE!
     SZG_SHARED_COPY_ACTION += \
-      pushd $(SZGBIN) ; \
+      pushd $(SZG_BINDIR) ; \
       rm -f libglut.so.3; rm -f libglut.so; \
       ln -s libglut.so.3.7 libglut.so.3 ; \
       ln -s libglut.so.3 libglut.so ; popd ;
@@ -202,7 +202,7 @@ ifeq ($(strip $(MACHINE)), WIN32)
   LIB_EVART := $(wildcard $(EVART_DIR)/lib/macrtcom.lib)
   OBJ_EVART := $(wildcard $(EVART_DIR)/lib/macrtcom.dll)
 
-  # If STLport is available, we want to copy its objects to SZGBIN
+  # If STLport is available, we want to copy its objects to SZG_BINDIR
   # in the install-shared target.
   ifneq ($(strip $(LIB_STLPORT)),)
     SZG_SHARED_COPY += $(OBJ1_STLPORT) $(OBJ2_STLPORT)

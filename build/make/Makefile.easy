@@ -9,7 +9,7 @@ include $(SZGHOME)/build/make/Makefile.vars
 # SZGEXTERNAL and put them into SZGBIN.
 
 install-shared:
-	cp $(SZG_SHARED_COPY) $(SZGBIN)
+	cp $(SZG_SHARED_COPY) $(SZG_BINDIR)
 	$(SZG_SHARED_COPY_ACTION)
 
 # The next target is needed to build the precompiled headers on the windows
