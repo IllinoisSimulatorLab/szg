@@ -66,7 +66,6 @@ void changeDatabase(){
   dsLoop(fooID, "parade.wav", (trigger%20==0)?-1:0, 0.8, xyz);
   dsLoop(barID, "q33move.mp3", 1, 0.2, xyz);
   dsLoop(zipID, "q33collision.wav", (trigger%6==0)?-1:0, .8, xyz);
-  cout << "\t\tServer database changed.\n";
 }
 
 int main(int argc, char** argv){
@@ -75,31 +74,26 @@ int main(int argc, char** argv){
   if (!szgClient)
     return 1;
 
-#define NYI
-#ifdef NYI
-  cerr << "under reconstruction to use framework.  see cosmos/cosmos.cpp.\n";
-  return 1;
-#else
   loadParameters(szgClient);
   arSoundServer soundServer;
   dsSetSoundDatabase(&soundServer);
 
   arThread dummy(ar_messageTask, &szgClient);
-  if (!soundServer.setInterface(serverIP) ||
-      !soundServer.setPort(serverPort)) {
-    cerr << argv[0] << " error: invalid IP:port "
-	 << serverIP  << ":" << serverPort
-	 << " for sound server.\n";
+
+  if (!soundServer.init(szgClient)){
+    cout << "SoundServer failed to init.\n";
     return 1;
   }
-  initDatabase();
-  soundServer,init(szgClient);
-  if (!soundServer.start())
+  if (!soundServer.start()){
+    cout << "SoundServer failed to start.\n";
     return 1;
+  }
+
+  initDatabase();
+
   while (true){
     changeDatabase();
     ar_usleep(500000);
   }
   return 0;
-#endif
 }

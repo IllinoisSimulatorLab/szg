@@ -580,7 +580,13 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   ar_mutex_unlock(&_globalLock);
 
   // phase 2 begins... we wait.
-  bool normalExit = false;
+  // NOTE: there was originally a subtle bug here. Specifically, the 
+  // tag on the synchronizer may ALREADY be set. Consequently, a normal
+  // exit might never get into the body of the loop. Thus the default for
+  // normalExit must be TRUE and NOT false (as it was originally). If
+  // we do, in fact, make it into the body of the loop, then the final value
+  // of normalExit is determined by the wait.
+  bool normalExit = true;
   ar_mutex_lock(syn.lock);
   while (*(syn.tag) < 0){
     // The wait call returns false exactly when we've got a time-out.
