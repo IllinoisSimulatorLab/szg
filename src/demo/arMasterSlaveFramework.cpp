@@ -1274,9 +1274,11 @@ bool arMasterSlaveFramework::_initStandaloneObjects(){
   // Probably the key thing is that the _soundClient needs to hit its
   // registerLocalConnection method before any dsLoop, etc. calls are made.
   arSpeakerObject* speakerObject = new arSpeakerObject();
+
   // NOTE: using "new" to create the _soundClient since, otherwise, the 
-  // constructor creates a conflict with programs that want to use fmod themselves.
-  // (of course, the conflict is still present in standalone mode...)
+  // constructor creates a conflict with programs that want to use fmod 
+  // themselves. (of course, the conflict is still present in 
+  // standalone mode...)
   _soundClient = new arSoundClient();
   _soundClient->setSpeakerObject(speakerObject);
   _soundClient->configure(&_SZGClient);
@@ -1701,6 +1703,8 @@ void arMasterSlaveFramework::_messageTask(){
       if (!_useExternalThread){
         exit(0);
       }
+      // We DO NOT want to hit this again! (since things are DISCONNECTED)
+      break;
     }
     
     if (messageType=="quit"){

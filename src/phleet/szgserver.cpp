@@ -1972,6 +1972,11 @@ void dataConsumptionFunction(arStructuredData* theData, void*,
       }
     }
     // Finally, remove the socket from our table.
+    // BUG BUG BUG BUG BUG BUG BUG BUG BUG
+    // This is really weird. It seems that closing the socket on this
+    // side will go ahead and (potentially) prevent the socket on the other
+    // side from receiving the kill message we sent! WHY IS THIS?
+    // THIS TRULY IS A LITTLE BIT ALARMING!
     if (!dataServer->removeConnection(id)){
       cerr << "szgserver warning: failed to \"kill -9\" process id "
            << id << ".\n";

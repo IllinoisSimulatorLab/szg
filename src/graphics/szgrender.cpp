@@ -78,7 +78,19 @@ void messageTask(void* pClient){
   arSZGClient* cli = (arSZGClient*)pClient;
   string messageType, messageBody;
   while (true) {
-    cli->receiveMessage(&messageType,&messageBody);
+    int sendID = cli->receiveMessage(&messageType,&messageBody);
+    // Note how we only hit this ONCE!
+    if (!sendID){
+      // sendID == 0 exactly when we've been FORCED to shutdown by the 
+      // szgserver.
+      cout << "szgrender shutting down.\n";
+      // NOTE: these shutdown tasks are cut-and-pasted from the below.
+      exitFlag = true;
+      // make sure we actually get to the end of the draw loop
+      graphicsClient->_cliSync.skipConsumption();
+      // We WILL NOT be receiving any more messages. Go ahead and exit loop.
+      break;
+    }
     if (messageType=="quit"){
       // note that we exit within the draw loop to avoid crashes on Win32
       exitFlag = true;

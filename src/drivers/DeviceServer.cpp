@@ -264,7 +264,14 @@ int main(int argc, char** argv){
   // Message task.
   string messageType, messageBody;
   while (true) {
-    SZGClient.receiveMessage(&messageType, &messageBody);
+    int sendID = SZGClient.receiveMessage(&messageType, &messageBody);
+    if (!sendID){
+      // sendID == 0 exactly when we are "forced" to shutdown.
+      cout << "DeviceServer is shutting down.\n";
+      // Cut-and-pasted from below.
+      inputNode.stop();
+      exit(0);
+    }
     if (messageType=="quit"){
       inputNode.stop();
       return 0;

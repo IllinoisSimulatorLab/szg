@@ -17,7 +17,17 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
   arDistSceneGraphFramework* f = (arDistSceneGraphFramework*) framework;
   string messageType, messageBody;
   while (true) {
-    f->_SZGClient.receiveMessage(&messageType, &messageBody);
+    int sendID = f->_SZGClient.receiveMessage(&messageType, &messageBody);
+    if (!sendID){
+      // We have somehow been disconnected from the szgserver. We should
+      // now quit. NOTE: we cannot kill the stuff elsewhere since we are
+      // disconnected (i.e. we cannot manipulate the system anymore)
+      
+      // important that we stop the framework (the parameter is meaningless
+      // so far)
+      f->stop(true);
+      exit(0);
+    }
     if (messageType=="quit"){
       if (f->_vircompExecution){
         // we have an arAppLauncher object piggy-backing on us,

@@ -2482,6 +2482,12 @@ void arSZGClient::_dataThread() {
     if (!_dataClient.getData(_receiveBuffer, _receiveBufferSize)){
       // Don't complain if the destructor has already been invoked.
       // Should do something here, like maybe disconnect.
+      cout << "arSZGClient remark: the server has disconnected "
+	   << "(read error).\n";
+      _dataParser->clearQueues();
+      cout << "arSZGClient remark: message queues cleared.\n";
+      _connected = false;
+      // No need to get any more data!
       break;
     }
     int size = -1; // aren't actually going to use this here
@@ -2502,6 +2508,8 @@ void arSZGClient::_dataThread() {
       cout << "arSZGClient remark: message queues cleared.\n";
       // HMMMM.... should the below go inside a LOCK?
       _connected = false;
+      // No need to get any more data!
+      break;
     }
     else{
       arStructuredData* data = _dataParser->parse(_receiveBuffer, size);

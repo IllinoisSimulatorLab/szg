@@ -14,6 +14,8 @@
 #include "arPForthFilter.h"
 
 arInputState* inp;
+arSZGClient* client;
+arInputNode* inputNode;
 
 arHeadWandSimulator simulator;
 int xPos = 0, yPos = 0;
@@ -80,11 +82,30 @@ void mousePosition(int x, int y){
   simulator.mousePosition(x,y);
 }
 
+void messageTask(void* pClient){
+  string messageType, messageBody;
+  while (true) {
+    int sendID = client->receiveMessage(&messageType,&messageBody);
+    if (!sendID){
+      // sendID == 0 exactly when we are "forced" to shutdown.
+      cout << "Wandsimserver is shutting down.\n";
+      // Cut-and-pasted from below.
+      inputNode->stop();
+      exit(0);
+    }
+    if (messageType=="quit"){
+      inputNode->stop();
+      exit(0);
+    }
+  }
+}
+
 int main(int argc, char** argv){
-  arSZGClient szgClient;
-  szgClient.simpleHandshaking(false);
-  szgClient.init(argc, argv);  
-  if (!szgClient)
+  client = new arSZGClient();
+  inputNode = new arInputNode();
+  client->simpleHandshaking(false);
+  client->init(argc, argv);  
+  if (!(*client))
     return 1;
 
   int slotNumber(0);
@@ -104,37 +125,39 @@ int main(int argc, char** argv){
   // and this is how we do it!
   netInputSink.setInfo("wandsimserver");
   arPForthFilter pforth;
-  if (!pforth.configure(&szgClient)){
-    szgClient.sendInitResponse(false);
-    return 1;
-  }
-  arInputNode inputNode;
-  simulator.registerInputNode(&inputNode);
-  inp = &inputNode._inputState;
-  if (useNetInput) {
-    arNetInputSource* netSource = new arNetInputSource;
-    netSource->setSlot(slotNumber+1);
-    inputNode.addInputSource(netSource,true);
-    cerr << "wandsimserver remark: using net input, slot #" << slotNumber+1 << ".\n";
-    // Memory leak.  inputNode won't free its input sources, I think.
-  }
-  inputNode.addInputSink(&netInputSink,false);
-  inputNode.addFilter(&pforth, true);
-  if (!inputNode.init(szgClient)) {
-    szgClient.sendInitResponse(false);
-    return 1;
-  }
-  // initialization succeeded
-  szgClient.sendInitResponse(true);
-
-  if (!inputNode.start()){
-    szgClient.sendStartResponse(false);
+  if (!pforth.configure(client)){
+    client->sendInitResponse(false);
     return 1;
   }
   
-  arThread dummy(ar_messageTask, &szgClient);
+  simulator.registerInputNode(inputNode);
+  inp = &inputNode->_inputState;
+  if (useNetInput) {
+    arNetInputSource* netSource = new arNetInputSource;
+    netSource->setSlot(slotNumber+1);
+    inputNode->addInputSource(netSource,true);
+    cerr << "wandsimserver remark: using net input, slot #" 
+         << slotNumber+1 << ".\n";
+    // Memory leak.  inputNode won't free its input sources, I think.
+  }
+  inputNode->addInputSink(&netInputSink,false);
+  inputNode->addFilter(&pforth, true);
+  if (!inputNode->init(*client)) {
+    client->sendInitResponse(false);
+    return 1;
+  }
+  // initialization succeeded
+  client->sendInitResponse(true);
 
-  loadParameters(szgClient);
+  if (!inputNode->start()){
+    client->sendStartResponse(false);
+    return 1;
+  }
+  
+  arThread messageThread;
+  messageThread.beginThread(messageTask);
+
+  loadParameters(*client);
 
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB|GLUT_DEPTH);
@@ -149,6 +172,6 @@ int main(int argc, char** argv){
   glutMouseFunc(mouseButton);
 
   // start has succeeded by this point
-  szgClient.sendStartResponse(true);
+  client->sendStartResponse(true);
   glutMainLoop();
 }
