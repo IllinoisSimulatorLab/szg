@@ -1,0 +1,151 @@
+<html>
+<head>
+<title>Syzygy: Standalone Mode</title>
+</head>
+<body bgcolor="#ffffff">
+<a href="index.html">Documentation Index</a>
+
+<p><font size=+2>Syzygy: Running Programs in Standalone Mode</font>
+
+<p>Sometimes convenience dictates that Syzygy should scale down its operations.
+Cluster software operation has more overhead, from an administrative and user
+perspective, than running a self-contained program. Consequently, if the user
+wants run Syzygy programs on a single device, possibly for testing purposes or
+because a single computer is all that is available, Syzygy programs support
+standalone mode: running as self-contained executables on a single device.
+
+<p>This chapter describes standalone mode. It is an introduction to running
+Syzygy programs, allowing you to get started right away, before setting up
+your Syzygy cluster using Phleet. Information about Syzygy configuration
+is included, but the more advanced user should consult the chapter devoted
+to <a href="ConfigurationExamples.html">configuration examples</a> for 
+further information. We also only outline using two of the sample programs, 
+just to keep things simple, allowing the interested user to consult the
+chapter on <a href="ExampleCode.html">example code</a> to find out how to
+set things up further.
+
+<p>We outline how a Syzygy program starts up and makes the decision about
+whether or not it is operating in standalone mode or connected to a Phleet
+(Syzygy cluster). 
+
+<p><ol>
+<li>Check the current user's system name (as reported
+by the native operating system) and check the Syzygy login file. If this
+file exists and contains information about a szgserver (the program's gateway 
+to the Phleet), attempt to connect to the szgserver. If this all succeeds,
+the program is running in Phleet mode.
+<li>Otherwise, the program is running in standalone mode.
+</ol>
+
+<p>You can force programs to run in standalone mode by running the "dlogout"
+command. This marks your Syzygy login file as disconnected from any szgserver.
+When you are running in standalone mode, your program will print, in the
+midst of many other lines of start-up information, the following line:
+
+<pre>
+my_program_name remark: RUNNING IN STANDALONE MODE. NO DISTRIBUTION.
+</pre>
+
+<p>Test standalone mode by running "hspace", a master/slave sample application,
+and "parade", a distributed scene graph sample application. These are both
+contained in the base Syzygy distribution and can be downloaded or compiled as
+described <a href="GettingSoftware.html">here</a>. For more information on the
+different types of Syzygy applications, please consult the 
+<a href="Programming.html">introduction</a> to Syzygy programming. 
+
+<p>When running "hspace" in standalone mode, something looking like a 
+green spiderweb should fill the window. There will also be a small overlay
+window in the lower right corner showing the tracker simulator interface, whose
+operation is described in this <a href="TrackingSim.html">chapter</a>. When
+running "parade", you will see a collection of collection of virtual humans
+marching across the screen, again with the tracker simulator in the lower left
+corner. More information about these and other sample applications is
+included in the examples <a href="ExampleCode.html">chapter</a>.
+
+<p>Please note: there is a bug in standalone mode on the Mac OS X platform
+which prevents distributed scene graph standalone Syzygy programs from getting
+keyboard focus. All other platform/Syzgy program type combinations work.
+
+<p>When a Syzygy program starts, it needs to be configured with information
+regarding where it should find data files, where it should place its
+graphics screen on the desktop, and where sound and texture files exist,
+among other things. When running in Phleet mode, the program queries Phleet
+for these configuration parameters. When running in standalone mode, however,
+the Syzygy program, by default, looks in its local directory for a file
+called "szg_parameters.txt" that contains this information. If the Syzygy
+program is correctly written (i.e. it gives the underlying framework first
+shot at manipulating the command-line args) then the following allows you
+to use different parameter files.
+
+<pre>
+my_program_name arg1 arg2 -szg parameter_file=szg_anaglyph.txt
+my_program_name arg1 arg2 -szg parameter_file-szg_virtualcave.txt
+</pre>
+
+<p>The Syzygy code will strip its "special" args, which in the above lines
+are the -szg and what follows, from argc/argv before giving those to the
+program itself.
+
+<p>We show some sample lines in a configuration file here. Note that the first
+"NULL" replaces the computer name in a standard Syzygy parameter file
+assignment line and is interpreted as a wildcard indicating the computer on
+which the program is running. When Syzygy programs are run in Phleet mode,
+qualifying parameters with a computer name makes more sense than it does here
+in standalone mode.
+
+<pre>
+NULL SZG_DATA path /home/public/Data
+NULL SZG_RENDER texture_path /home/public/Texture
+NULL SZG_RENDER text_path /home/public/Texture/Text
+NULL SZG_SOUND path /home/public/Sounds
+</pre>
+
+<p>These parameters control where Syzygy programs look for data, textures,
+and sounds, as explained <a href="ConfigurationExamples.html">here</a>. You
+can also configure the screen using szg_parameters.txt. By default, the
+program will draw its image for "fixed-screen" virtual reality, with
+a default screen with center (0,5,-5), dimensions 10 by 10, outward facing
+normal (0,0,-1), and up direction (0,1,0). It is not necessary to put this
+information in the config file (since these are defaults). However, this
+is how it would be expressed:
+
+<pre>
+NULL SZG_SCREEN0 screen_center     0/5/-5
+NULL SZG_SCREEN0 screen_dim        10/10
+NULL SZG_SCREEN0 screen_normal     0/0/-1
+NULL SZG_SCREEN0 screen_up         0/1/0
+</pre>
+
+<p>These values can be changed to show the view on a different wall:
+
+<pre>
+NULL SZG_SCREEN0 screen_center     5/5/0
+NULL SZG_SCREEN0 screen_dim        10/10
+NULL SZG_SCREEN0 screen_normal     1/0/0
+NULL SZG_SCREEN0 screen_up         0/1/0
+</pre>
+
+<p>Or even two walls simultaneously.
+
+<pre>
+NULL SZG_SCREEN0 view_mode custom
+NULL SZG_SCREEN0 viewport_list SZG_SCREEN1
+NULL SZG_SCREEN0 screen_center     0/5/-5
+NULL SZG_SCREEN0 screen_dim        10/10
+NULL SZG_SCREEN0 screen_normal     0/0/-1
+NULL SZG_SCREEN0 screen_up         0/1/0
+NULL SZG_SCREEN0 viewport_dim      0/0/0.5/1
+NULL SZG_SCREEN1 screen_center     5/5/0
+NULL SZG_SCREEN1 screen_dim        10/10
+NULL SZG_SCREEN1 screen_normal     1/0/0
+NULL SZG_SCREEN1 screen_up         0/1/0
+NULL SZG_SCREEN1 viewport_dim      0.5/0/0.5/1
+</pre>
+
+<p>You should experiment with the effects of different szg_parameters.txt
+files on "hspace"a dn "parade". Information on how to set up more complex
+screen configurations can be found in the chapter on 
+<a href="ConfigurationExamples.html">configuration</a>.
+
+</body>
+</html>
