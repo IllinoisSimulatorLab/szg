@@ -1,92 +1,246 @@
 <html>
 <head>
-  <title>Syzygy: Configuration Examples</title>
+<title>Syzygy: How to Configure Your System</title>
 </head>
 <body bgcolor="#ffffff">
 <a href="index.html">Documentation Index</a>
-<p><font size="+2">Contents</font> </p>
+<p><font size="+2">Syzygy: How to Configure Your System</font>
+
+<p>This chapter will show you how to configure Syzygy to work with your
+equipment. First, and most importantly, you need to understand how Syzygy
+stores its configuration information, the commands used to make that
+information available to the Phleet (dbatch and dset), and the format(s) of
+the files that can store large collections of configuration information.
+After you understand, parameter database <a href="#Dbatch">basics</a>, you 
+can learn specifically about three important categories of patameters:
+<a href="#Graphics">graphics</a>, <a href="#DataAccess">data access</a>,
+and <a href="#InputDevice">input devices</a>. Subsequent sections detail
+how to set up a variety of environments, both for testing and production use.
+
 <p><ul>
-  <li><a href="#Parameters">Graphics: Parameter Explanation</a>
-  <li><a href="#DataAccess">Data Access: Parameter Explanation</a>
-  <li><a href="#StandaloneVirtualCube">Standalone mode: A Virtual Cube</a>
-  <li><a href="#PassiveStereo">Passive Stereo</a>
-  <li><a href="#StandalonePassive">Standalone mode: Easy Demo Passive Display</a>
-  <li><a href="#Immersive">Immersive (fixed-wall) Virtual Environments</a>
-  <li><a href="#HMD">Head-Mounted Displays</a>
-  <li><a href="#MultiScreen">Multiple Screens on a Single Computer</a>
-  <li><a href="#OffNetwork">Running Syzygy Applications in Phleet Mode When Off the Network</a>
-  
+<li><a href="#Dbatch">Phleet Parameter Database Basics</a>
+<li><a href="#Examples">Example Parameter Files</a>
+<li><a href="#Graphics">Graphics: Parameter Explanation</a>
+<li><a href="#DataAccess">Data Access: Parameter Explanation</a>
+<li><a href="#InputDevice">Input Devices: Parameter Explanation</a>
+<li><a href="#StandaloneVirtualCube">Standalone mode: A Virtual Cube</a>
+<li><a href="#PassiveStereo">Passive Stereo</a>
+<li><a href="#StandalonePassive">Standalone mode: Easy Demo Passive Display</a>
+<li><a href="#Immersive">Immersive (fixed-wall) Virtual Environments</a>
+<li><a href="#HMD">Head-Mounted Displays</a>
+<li><a href="#MultiScreen">Multiple Screens on a Single Computer</a>
+<li><a href="#OffNetwork">Running Syzygy Applications in Phleet Mode When Off the Network</a>  
 </ul>
 
-<a name="OffNetwork">
-<p><font size=+2>Running Syzygy Applications in Phleet Mode When Off the Network</font>
+<a name="Dbatch">
+<p><font size=+2>Phleet Parameter Database Basics</font>
 </a>
 
-<p>Sometimes it is desirable to be able to run Syzygy applications off the
-network. On nice way to do this is <a href="Standalone.html">standalone mode</a>.
-However, sometimes you will want to run in Phleet mode (as you would on a cluster),
-but only on a single computer. Since Phleet mode requires a network connection 
-and your operating system might turn off NICs if they are not connected,
-the solution is to use the loopback address (127.0.0.1).
+<p>When running in standalone mode, a Syzygy program looks, by default, in
+its current working directory for a file szg_parameters.txt that contains
+configuration information. The format of this file is the same as is accepted
+by the dbatch command.
 
-<p>First, you will need to make sure that the phleet configuration file is
-set up with the loopback address. Use
-the "daddinterface" and "ddelinterface" commands, as outlined in the
-<a href="QuickStart.html">introduction</a> to produce a configuration file
-that has "dconfig" produce output like:
+<p>When running in Phleet mode, a Syzygy program queries the szgserver for
+parameter information. The szgserver maintains a parameter database for each 
+Phleet user, but when the szgserver starts up, it contains no parameter 
+information at all. The user needs to, somehow, transmit that information to 
+the szgserver, where it is stored while that program continues to run. The
+user can make small adjustments to the parameter database using dset and
+bulk adjustments by using dbatch.
+
+<p>There are two types of parameters in the Phleet database, local and global.
+Local parameters give information that is particular to a given computer, and
+their database key is, essentially, a concatenation of their computer name,
+parameter group, and parameter name. Consider the local parameter giving the
+virtual world dimensions of graphics screen 0 on the computer smoke
+(as it would appear in a dbatch file):
 
 <pre>
-  Phleet configuration
-    computer = your_computer_name
-    network = local, address = 127.0.0.1, netmask=255.255.255.0
-    ports = 4700 - 4899
+  smoke SZG_SCREEN0 screen_dim 10/10
 </pre>
 
-<p>Next, run szgserver, as outlined in the 
-<a href="PhleetIntro.html">introduction</a>. An example (the given port number is
-arbitrary):
+In this case, the local parameter has key:
 
 <pre>
-  szgserver my_server_name 4999
+  smoke/SZG_SCREEN0/screen_dim
 </pre>
 
-<p>Finally, you need to dlogin. Since the loopback interface filters broadcast
-packets, you need to connect by IP/port instead of via server name.
+and value:
 
 <pre>
-  dlogin 127.0.0.1 4999 syzygy_user_name
+  10/10
+</pre>
+
+<p>Global parameters are used to store information that is not tied to a
+particular computer in the Phleet, for instance, a PForth program for
+transforming input data or an input node configuration. An input node
+configuration might appear like so in a dbatch file:
+
+<pre>
+  &lt;param&gt;
+  &lt;name&gt; cube_tracker &lt;/name&gt;
+  &lt;value&gt;
+    &lt;szg_device&gt;
+      &lt;input_sources&gt; arMotionstarDriver &lt;/input_sources&gt;
+      &lt;input_sinks&gt;&lt;/input_sinks&gt;
+      &lt;input_filters&gt; arTrackCalFilter &lt;/input_filters&gt;
+      &lt;pforth&gt;
+	  matrix inputMatrix
+	  matrix outputMatrix
+	  matrix correctXRotMatrix
+	  matrix correctYRotMatrix
+	  matrix correctZRotMatrix
+	  matrix correctHeadRotMatrix
+	  -30 0 correctXRotMatrix rotationMatrix
+	  6 1 correctYRotMatrix rotationMatrix
+	  -1 2 correctZRotMatrix rotationMatrix
+	  correctYRotMatrix correctZRotMatrix correctHeadRotMatrix matrixMultiply
+	  define filter_matrix_0
+	    inputMatrix getCurrentEventMatrix
+	    inputMatrix correctHeadRotMatrix outputMatrix matrixMultiply
+	    outputMatrix setCurrentEventMatrix
+	  enddef
+      &lt;/pforth&gt;
+    &lt;/szg_device&gt;
+  &lt;/value&gt;
+  &lt;/param&gt;
+</pre>
+
+The database key in this case is "cube_tracker" and the value is the
+string containing the szg_device XML record.
+
+<p>To set a single local parameter:
+
+<pre>
+  dset smoke SZG_SCREEN0 screen_dim 10/10
+</pre>
+
+<p>To set a single global parameter:
+
+<pre>
+  dset global_parameter_name global_parameter_value
+</pre>
+
+<p>To get large groups of parameters into the Phleet at once, use the
+dbatch command. This takes a specified file and sends all the parameter
+information encoded therein to the Phleet.
+
+<pre>
+  dbatch my_parameter_file
+</pre>
+
+<p>There are two formats for dbatch files (and szg_parameters.txt). The
+first consists of a sequence of local parameter settings, interspersed
+with comments. This "simple" style dbatch file is useful for quick 
+experimentation and is less verbose than the "complex" style described
+later. 
+
+<pre>
+# The "simple" style of dbatch file contains comments like so.
+  cavefront SZG_SCREEN0 size              0/0
+  cavefront SZG_SCREEN0 screen_center     0/5/-5
+  cavefront SZG_SCREEN0 screen_dim        10/10
+  cavefront SZG_SCREEN0 screen_normal     0/0/-1
+  cavefront SZG_SCREEN0 screen_up         0/1/0
+  cavefront SZG_SCREEN0 stereo            true
+</pre>
+
+Please note that each line must contain exactly 4 tokens, making this
+format unsuitable for more complex constructions, like input node
+configuration. 
+
+<p>Consequently, there is another "complex", dbatch file format, which
+is in XML. One of these files contains 3 types of XML records, "comment",
+"assign", and "param". These records cannot be nested. For instance,
+a "comment" block cannot appear within an "assign". They can, however,
+appear in any order in the "complex" dbatch file, and there can be any number
+of them.
+
+<p>The "comment" record is just what it says. These are discarded by the
+parser. The "assign" record holds data like in a "simple" dbatch file,
+but without the "simple" style comments (those are illegal here). Finally,
+the "param" record is used to encode Phleet global parameters. The following
+is a sample "complex" dbatch file.
+
+<pre>
+  &lt;szg_config&gt;
+
+  &lt;comment&gt; 
+  This is what comments look like in a "complex" dbatch file.
+  &lt;/comment&gt;
+
+  &lt;assign
+  cavefront SZG_SCREEN0 size              0/0
+  cavefront SZG_SCREEN0 screen_center     0/5/-5
+  cavefront SZG_SCREEN0 screen_dim        10/10
+  cavefront SZG_SCREEN0 screen_normal     0/0/-1
+  cavefront SZG_SCREEN0 screen_up         0/1/0
+  cavefront SZG_SCREEN0 stereo            true
+  &lt;/assign&gt;
+
+  &lt;param&gt;
+  &lt;name&gt; windows_joystick_filter &lt;/name&gt;
+  &lt;value&gt;
+    define filter_axis_0
+      getCurrentEventAxis 0.000031 * setCurrentEventAxis
+    enddef
+    define filter_axis_1
+      getCurrentEventAxis -0.000031 * setCurrentEventAxis
+    enddef
+  &lt;/value&gt;
+  &lt;/param&gt;
+
+  &lt;/szg_config&gt;
 </pre>
 
 <a name="Examples">
-<p><font size=+2>Configuration Examples</font>
+<p><font size=+2>Example Parameter Files</font>
 </a>
 
-<p>The components of the parameter database can be divided into several
-categories. Only one category, the executable paths, is necessarily specific
-to a given user. Another category of parameters is those defining the various
-virtual computers, and a third category is paths to various kinds of data
-(sound files, texture files, and straight data files). The various input devices
-can have configuration information stored in the parameter database (see
-<a href="InputDevices-Drivers.html">here</a> for details). Finally, the
-various graphics screens are configured via parameter blocks that take up the
-majority of the database. The example parameter files below (which are in "dbatch"
-ready format) are organized according to these categories.
+<p>Here are templates for the main parameter files at use in the Integrated 
+Systems Lab. For each template, a valid configuration file for a particular
+user is generated by substituting his lab user name for "THE_USER_NAME", like
+so:
 
-<p>The file <a href="cube.txt">cube.txt</a> gives an example template parameter
-file for a 6-sided VR environment (virtual computer=cube).
+<pre>
+  sed 's/THE_USER_NAME/schaeffr/g' cube.txt > cube-schaeffr.txt
+</pre>
 
-<p>The file <a href="lab.txt">lab.txt</a> gives an example template parameter file
-for a lab containing a group of workstations, a dual-headed passive stereo
+<p>The file <a href="cube.txt">cube.txt</a> gives a template parameter
+file for a 6-sided fixed screen VR environment (virtual computer=cube). 
+It also demonstrates how different virtual computers (cube and wincube) can 
+share the same virtual computer location (cube).
+
+<p>The file <a href="lab.txt">lab.txt</a> gives a template parameter 
+file for a lab containing a group of workstations, a dual-headed passive stereo
 display (virtual computer=passive), an Immersadesk-style active stereo display
 (virtual computer=idesk), and a 3x2 video wall (virtual computer=wall).
 
-<a name="Parameters">
-<p><font size=+2>Parameters Explanation</font>
+<p>The file <a href="cave.txt">cave.txt</a> gives a template parameter file
+for a 4-sided fixed screen VR environment (virtual computer=cave).
+
+<a name="Graphics">
+<p><font size=+2>Graphics: Parameter Explanation</font>
 </a>
 
-<p>An explanation of the various graphics parameters follows. For the
-sake of clarity, we use parameter group SZG_SCREEN0 but it could
+<p>In this section, we first explain the basic way to configure a graphics 
+screen. Next, we tackle advanced options like the special Syzygy demo mode 
+which sacrifices projection accuracy to
+accomodate large groups in an immersive virtual environment, how to enable
+framelocking for supported graphics cards, and how to configure multiple 
+graphics passes in a single window to produce a variety of effects.
+For the sake of clarity, we use parameter group SZG_SCREEN0 but it could
 just as easily be SZG_SCREEN1, SZG_SCREEN2, etc.
+
+<p>The various SZG_SCREEN(n)'s require some explanation. First of all,
+Syzygy supports multiple screens per computer (in seperate windows). Secondly,
+Syzygy supports having multiple viewports per graphics window. By default,
+the SZG_SCREEN0 parameters are used, but command line arguments (as in the
+<a href="PhleetIntro.html#Context">context</a>) can change that. When a
+virtual computer launches an application with 
+<a href="#MultiScreen">multiple windows</a> on a single computer, it will
+use a different SZG_SCREEN(n) for each screen. 
 
 <pre>
   SZG_SCREEN0 size x/y
@@ -127,34 +281,12 @@ just as easily be SZG_SCREEN1, SZG_SCREEN2, etc.
 
   SZG_SCREEN0 stereo [true, false]
 
-   Whether or not the screen should be drawn using active stereo. This requires 
-   LCD stereo shutter goggles and a graphics card that supports OpenGL stereo 
-   buffers. This parameter must be either "true" or "false", with the default 
-   being "false". The Syzygy application frameworks query the graphics card 
-   regarding stereo buffer support; if they aren't supported, this parameter is 
-   ignored.
-
-  SZG_SCREEN0 fixed_head [true, false]
-
-   Whether or not the screen is using fixed-head mode. In fixed-head mode, the
-   projection is determined based on a fixed head position and orientation. The 
-   orientation depends on the screen_normal. Fixed-head mode is better than the 
-   correct VR projection for a large group of people inside a projection-based 
-   virtual environment. The default is "false". The actual fixed position is taken 
-   from SZG_SCREEN0/fixed_head_pos.
-
-  SZG_SCREEN0 fixed_head_pos x/y/z
-
-   The fixed head position, in physical coordinates, that will be used
-   if fixed-head mode is enabled. The default is 0/5/0.
-
-  SZG_SCREEN0 fixed_head_up_angle x
-
-   In fixed-head mode, the viewing head is oriented so that it is pointing
-   directly towards the screen (as determined by screen_normal).
-   Note that this leaves one degree of rotational ambiguity. This
-   parameter (expressed in degrees) can be used to manipulate this.
-   Default is 0.
+   Whether or not the screen should be drawn using active stereo. This 
+   requires LCD stereo shutter goggles and a graphics card that supports 
+   OpenGL stereo buffers. This parameter must be either "true" or "false", 
+   with the default being "false". The Syzygy application frameworks query the 
+   graphics card regarding stereo buffer support; if it is not supported, this 
+   parameter is ignored.
 
   SZG_SCREEN0 default_eye [none,right, left]
 
@@ -163,63 +295,200 @@ just as easily be SZG_SCREEN1, SZG_SCREEN2, etc.
    a viewpoint from either the right or the left eye can be selected.
    This is useful for building a passive stereo display system using
    2 computers, each displaying a seperate channel. Defaults to "none".
+</pre>
 
-  SZG_SCREEN0 view_mode [normal,anaglyph,walleyed,crosseyed,overunder]
-  
-   It is possible to use syzygy to display passive stereo (i.e. not
-   requiring LCD goggles) in a variety of ways. The possible view modes
-   are:
-   
-     (1) normal: What it says. If active stereo is disabled, the scene
-     is rendered once for the default view position (see default_eye,
-     just above), by default taking up the entire window. If active
-     stereo is enabled, it's rendered into the left buffer from the
-     left-eye viewpoint, etc.
-     
-     Note that the following passive stereo view modes should work
-     properly even if active stereo is enabled, i.e. if active stereo is
-     enabled and the view mode is set to walleyed, the scene will be
-     rendered four times, once each into the left and right halves of the
-     window in both the left and right stereo buffers. It will look flat
-     through LCD goggles, the left & right viewports will have to be
-     fused for seeing 3-D.
-     
-     (2) anaglyph: The left-eye view is rendered into the red channel
-     and the right-eye view is rendered into the green and blue
-     channels, for viewing with red/green or red/blue glasses. Note that
-     this only works well if the scene itself does not contain color
-     information, or if large patches of color are restricted to the
-     plane of the screen.
-     
-     (3) walleyed: The window is split in half, with the left-eye view
-     in the left half and the right-eye view in the right half. This
-     arrangement can be viewed with mirrors, or if the window is small,
-     by diverging the eyes as for single-image stereograms. With a
-     dual-head graphics card, the user can configure the desktop so that
-     one output displays the left half and the displays the right half.
-     
-     (4) crosseyed: As above, but the left-eye image is on the right,
-     and vice-versa. To be viewed by crossing the eyes.
-     
-     (5) overunder: The left-eye view is in the bottom half and the
-     right-eye view is on top. For use with over/under stereo viewers
-     like the View Magic (google it).
+<p>Proper projections for fixed screen VR are really just for one person.
+The further away a secondary observer is from the tracked viewpoint, the more
+distorted things look. Furthermore, the eye seperation or drawing order on
+a screen might be very wrong for an observer if his head is oriented 
+differently than the tracked viewpoint. Consequently, Syzygy has a "demo mode"
+which sacrifices accuracy of projection (there will be misalignment at 
+screen junctions) in exchange for presenting as sensible as possible of a
+stereo view for everyone in a group on people wandering around and looking
+in all different directions simultaneously.
 
+<pre>
+  SZG_SCREEN0 fixed_head [true, false]
+
+   Whether or not the screen is using fixed-head mode. In fixed-head mode, 
+   the projection is determined based on a fixed head position and orientation.
+   The orientation depends on the screen_normal. Fixed-head mode is better than
+   the correct VR projection for a large group of people inside a 
+   projection-based virtual environment. The default is "false". The actual 
+   fixed position is taken from SZG_SCREEN0/fixed_head_pos.
+
+  SZG_SCREEN0 fixed_head_pos x/y/z
+
+   The fixed head position, in physical coordinates, that will be used if 
+   fixed-head mode is enabled. The default is 0/5/0.
+
+  SZG_SCREEN0 fixed_head_up_angle x
+
+   In fixed-head mode, the viewing head is oriented so that it is pointing
+   directly towards the screen (as determined by screen_normal). Note that 
+   this leaves one degree of rotational ambiguity. This parameter (expressed 
+   in degrees) can be used to manipulate this. Default is 0.
+</pre>
+
+<p>Syzygy supports the framelocking feature on Wildcat graphics cards. Since
+this should only be enabled for cards set up to framelock together (there
+are special cables to be connected between the cards), its use needs to be
+requested by a parameter.
+
+<pre>
   SZG_SCREEN0 wildcat_framelock [true, false]
 
    If a wildcat board is present, should framelocking be enabled?
    Default is "false".
 </pre>
 
-<p>The various data paths are now listed. Note how semi-colon delimited
-lists are used to give the paths.
+<p>Several forms of stereo (mostly passive as opposed to active) rely
+on drawing two different views of a scene in a single graphics window. Syzygy
+supports these stereo methods, however, please be advised that you should
+have:
+
+<pre>
+  my_display_computer SZG_SCREEN0 stereo false
+</pre>
+
+To take advantage of them. The Syzygy "stereo" parameter refers to 
+<em>active</em> stereo only!
+
+<p>These viewing modes are given by the following parameter. There are
+several ones built-in, along with a means ("custom") of defining your own.
+
+<pre>  
+  SZG_SCREEN0 view_mode [normal,anaglyph,walleyed,crosseyed,overunder,custom]
+</pre>
+
+<p><ol>
+<li>normal: This is the default. If active stereo is disabled, the scene
+is rendered once for the default view position (see default_eye, above), 
+taking up the entire window. If active stereo is enabled, it's rendered into 
+the left buffer from the left-eye viewpoint, etc.
+     
+<li>anaglyph: The left-eye view is rendered into the red channel
+and the right-eye view is rendered into the green and blue
+channels, for viewing with red/green or red/blue glasses. Note that
+this only works well if the scene itself does not contain color
+information, or if large patches of color are restricted to the plane of 
+the screen.
+     
+<li>walleyed: The window is split in half, with the left-eye view
+in the left half and the right-eye view in the right half. This
+arrangement can be viewed with mirrors, or if the window is small,
+by diverging the eyes as for single-image stereograms. With a
+dual-head graphics card, the user can configure the desktop so that
+one output displays the left half and the displays the right half.
+     
+<li>crosseyed: As above, but the left-eye image is on the right,
+and vice-versa. To be viewed by crossing the eyes.
+     
+<li>overunder: The left-eye view is in the bottom half and the
+right-eye view is on top. For use with over/under stereo viewers
+like the View Magic (google it).
+</ol>
+
+<p>We now give an explanation of the "custom" view mode, which is intended
+to handle exotic configurations not covered by the presets. When a window
+is configured using SZG_SCREEN0 (for instance) and view_mode is "custom",
+it checks viewport_list to find out what screen configuration variables
+should be used in defining the other viewports (there is a slash delimited
+list). Each viewport then has three parameters indicating how it is 
+displayed:
+
+<pre>
+  SZG_SCREEN0 viewport_dim lower_left_x/lower_left_y/width_x/width_y
+
+   The viewport's coordinates are given as window size relative floating
+   point numbers. The lower left corner of the window has coordinates
+   (0,0) and the upper right corner has coordinates (1,1). The width and
+   height of the window are both considered to be 1. The parameter value
+   defaults to 0/0/1/1.
+
+  SZG_SCREEN0 color_mask true/false/false/true
+
+   This determines what OpenGL color mask will be applied to the window,
+   as is necessary for doing anaglyph type stereo. The color mask values
+   are given in RGBA order, and must be either "true" or "false". In the
+   example here, only the red value of the scene's pixels will be drawn.
+   The default is "true/true/true/true", which draws the scene normally.
+
+  SZG_SCREEN0 depth_clear false
+
+   When mutliple passes of the same scene are drawn on the same piece of
+   screen real estate (as in anaglyph stereo), the second pass must clear
+   the depth buffer before drawing. If this parameter is set to "true",
+   the depth buffer will be cleared before drawing, otherwise it will
+   not. The default is "false".
+</pre>
+
+<p>This can be used to configure a screen for computer "smoke" with
+three viewports, giving the left, center, and right walls of an immersive
+virtual environment. This is in "simple" dbatch file format.
+
+<pre>
+smoke SZG_SCREEN0 view_mode custom
+smoke SZG_SCREEN0 screen_center     -5/5/0
+smoke SZG_SCREEN0 screen_dim        10/10
+smoke SZG_SCREEN0 screen_normal     -1/0/0
+smoke SZG_SCREEN0 screen_up         0/1/0
+smoke SZG_SCREEN0 viewport_list SZG_SCREEN1/SZG_SCREEN2
+smoke SZG_SCREEN0 viewport_dim 0/0/0.3333/1
+smoke SZG_SCREEN0 eye_sign 0
+smoke SZG_SCREEN0 color_mask true/true/true/true
+smoke SZG_SCREEN0 depth_clear false
+
+smoke SZG_SCREEN1 screen_center     0/5/-5
+smoke SZG_SCREEN1 screen_dim        10/10
+smoke SZG_SCREEN1 screen_normal     0/0/-1
+smoke SZG_SCREEN1 screen_up         0/1/0
+smoke SZG_SCREEN1 viewport_dim 0.3333/0/0.3333/1
+smoke SZG_SCREEN1 eye_sign 0
+smoke SZG_SCREEN1 color_mask true/true/true/true
+smoke SZG_SCREEN1 depth_clear false
+
+smoke SZG_SCREEN2 screen_center     5/5/0
+smoke SZG_SCREEN2 screen_dim        10/10
+smoke SZG_SCREEN2 screen_normal     1/0/0
+smoke SZG_SCREEN2 screen_up         0/1/0
+smoke SZG_SCREEN2 viewport_dim 0.6666/0/0.3333/1
+smoke SZG_SCREEN2 eye_sign 0
+smoke SZG_SCREEN2 color_mask true/true/true/true
+smoke SZG_SCREEN2 depth_clear false
+</pre>
+
+
+<a name="DataAccess">
+<p><font size=+2>Data Access: Parameter Explanation</font>
+</a>
+
+<p>The various paths the system uses to find executables, loadable libraries,
+textures, sound clips, and other data are now explained. These values of these
+parameters will often be the main variations in the databases of different
+users. Because Windows file names can use
+colons, we ensure portability by using semi-colon delimited lists to give the 
+paths. For clarity, we omit the computer name from these parameter examples.
+To use them in a dbatch file, you would have to include it.
 
 <pre>
   SZG_EXEC path directory_1;directory_2
 
    Location of the executables for a given user.
 
-  SZG_DATA path diretcory_1
+  SZG_NATIVELIB path directory_1
+
+   Location of dynamic libraries for a given user.
+
+  SZG_PYTHON path directory_1;directory_2
+
+   The directories in which the python "application bundles" live.
+
+  SZG_PYTHON lib_path directory_1;directory_2;directory_3
+
+   The directories where extra Python loadable modules exist.
+
+  SZG_DATA path directory_1
 
    Location of data.
 
@@ -235,6 +504,166 @@ lists are used to give the paths.
 
    Location of textured text font used by szgrender billboard.
 </pre>
+
+<a name="InputDevice">
+<p><font size=+2>Input Devices: Parameter Explanation</font>
+</a>
+
+<a name="StandaloneVirtualCube">
+<p><font size=+2>Standalone mode: A Virtual Cube</font>
+</a>
+
+<pre>
+NULL SZG_SCREEN0 view_mode custom
+NULL SZG_SCREEN0 screen_center     0/5/-5
+NULL SZG_SCREEN0 screen_dim        10/10
+NULL SZG_SCREEN0 screen_normal     0/0/-1
+NULL SZG_SCREEN0 screen_up         0/1/0
+NULL SZG_SCREEN0 viewport_list SZG_SCREEN1/SZG_SCREEN2/SZG_SCREEN3/SZG_SCREEN4
+NULL SZG_SCREEN0 viewport_dim 0.3333/0.3333/0.3333/0.3333
+NULL SZG_SCREEN0 eye_sign 0
+NULL SZG_SCREEN0 color_mask true/true/true/true
+NULL SZG_SCREEN0 depth_clear false
+
+NULL SZG_SCREEN1 screen_center     0/10/0
+NULL SZG_SCREEN1 screen_dim        10/10
+NULL SZG_SCREEN1 screen_normal     0/1/0
+NULL SZG_SCREEN1 screen_up         0/0/1
+NULL SZG_SCREEN1 viewport_dim 0.3333/0.6666/0.3333/0.3333
+NULL SZG_SCREEN1 eye_sign 0
+NULL SZG_SCREEN1 color_mask true/true/true/true
+NULL SZG_SCREEN1 depth_clear false
+
+NULL SZG_SCREEN2 screen_center     0/0/0
+NULL SZG_SCREEN2 screen_dim        10/10
+NULL SZG_SCREEN2 screen_normal     0/-1/0
+NULL SZG_SCREEN2 screen_up         0/0/-1
+NULL SZG_SCREEN2 viewport_dim 0.3333/0/0.3333/0.3333
+NULL SZG_SCREEN2 eye_sign 0
+NULL SZG_SCREEN2 color_mask true/true/true/true
+NULL SZG_SCREEN2 depth_clear false
+
+NULL SZG_SCREEN3 screen_center     5/5/0
+NULL SZG_SCREEN3 screen_dim        10/10
+NULL SZG_SCREEN3 screen_normal     1/0/0
+NULL SZG_SCREEN3 screen_up         0/1/0
+NULL SZG_SCREEN3 viewport_dim 0.6666/0.3333/0.3333/0.3333
+NULL SZG_SCREEN3 eye_sign 0
+NULL SZG_SCREEN3 color_mask true/true/true/true
+NULL SZG_SCREEN3 depth_clear false
+
+NULL SZG_SCREEN4 screen_center     -5/5/0
+NULL SZG_SCREEN4 screen_dim        10/10
+NULL SZG_SCREEN4 screen_normal     -1/0/0
+NULL SZG_SCREEN4 screen_up         0/1/0
+NULL SZG_SCREEN4 viewport_dim 0/0.3333/0.3333/0.3333
+NULL SZG_SCREEN4 eye_sign 0
+NULL SZG_SCREEN4 color_mask true/true/true/true
+NULL SZG_SCREEN4 depth_clear false
+</pre>
+
+<a name="PassiveStereo">
+<p><font size=+2>Passive Stereo</font>
+</a>
+
+<a name="StandalonePassive">
+<p><font size=+2>Standalone Mode: Easy Demo Passive Display</font>
+</a>
+
+<pre>
+&lt;szg_config&gt;
+&lt;param&gt;
+  &lt;name&gt; joystick &lt;/name&gt;
+  &lt;value&gt;
+    matrix temp
+    0 5 0 temp translationMatrix
+    define filter_axis_0
+      getCurrentEventAxis 0.000031 * setCurrentEventAxis
+    enddef
+    define filter_axis_1
+      temp 0 insertMatrixEvent
+      getCurrentEventAxis -0.000031 * setCurrentEventAxis
+    enddef
+    define filter_axis_2
+      getCurrentEventAxis -32768 + -0.000031 *
+      deleteCurrentEvent
+      3
+      insertAxisEvent
+    enddef
+    define filter_axis_5
+      getCurrentEventAxis -32768 + 0.000031 *
+      deleteCurrentEvent
+      2
+      insertAxisEvent
+    enddef
+  &lt;/value&gt;
+&lt;/param&gt;
+
+&lt;assign&gt;
+NULL SZG_DATA path ./
+NULL SZG_DEMO control_mode joystick
+NULL SZG_PFORTH program_names joystick
+NULL SZG_SCREEN0 view_mode walleyed
+NULL SZG_SCREEN0 size 0/0
+NULL SZG_SCREEN0 screen_center     0/5/-5
+NULL SZG_SCREEN0 screen_dim        13.333/10
+NULL SZG_SCREEN0 screen_normal     0/0/-1
+NULL SZG_SCREEN0 screen_up         0/1/0
+&lt;/assign&gt;
+</pre>
+
+<a name="Immersive">
+<p><font size=+2>Immersive (fixed-wall) Virtual Environments</font>
+</a>
+
+<a name="HMD">
+<p><font size=+2>Head-Mounted Displays</font>
+</a>
+
+<a name="MultiScreen">
+<p><font size=+2>Multiple Screens on a Single Computer</font>
+</a>
+
+<a name="OffNetwork">
+<p><font size=+2>Running Syzygy Applications in Phleet Mode When Off the Network</font>
+</a>
+
+<p>Sometimes it is desirable to be able to run Syzygy applications off the
+network. On nice way to do this is <a href="Standalone.html">standalone mode</a>.
+However, sometimes you will want to run in Phleet mode (as you would on a cluster),
+but only on a single computer. Since Phleet mode requires a network connection 
+and your operating system might turn off NICs if they are not connected,
+the solution is to use the loopback address (127.0.0.1).
+
+<p>First, you will need to make sure that the phleet configuration file is
+set up with the loopback address. Use
+the "daddinterface" and "ddelinterface" commands, as outlined in the
+<a href="QuickStart.html">introduction</a> to produce a configuration file
+that has "dconfig" produce output like:
+
+<pre>
+  Phleet configuration
+    computer = your_computer_name
+    network = local, address = 127.0.0.1, netmask=255.255.255.0
+    ports = 4700 - 4899
+</pre>
+
+<p>Next, run szgserver, as outlined in the 
+<a href="PhleetIntro.html">introduction</a>. An example (the given port number is
+arbitrary):
+
+<pre>
+  szgserver my_server_name 4999
+</pre>
+
+<p>Finally, you need to dlogin. Since the loopback interface filters broadcast
+packets, you need to connect by IP/port instead of via server name.
+
+<pre>
+  dlogin 127.0.0.1 4999 syzygy_user_name
+</pre>
+
+<hr>
 
 </body>
 </html>

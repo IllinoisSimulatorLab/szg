@@ -105,7 +105,8 @@ everything else. In particular, it has no szg_device record as in the above!
  user and only consists of the path upon which the system should search for
  executables... and another part which configures the system. This
  second part is further subdivided into "everything else" and "graphics"
- configuartion that varies per user (really just varies based on linu
+ configuartion that varies per user (really just varies based on linux
+ or windows).
 </comment>
 
 <comment> 

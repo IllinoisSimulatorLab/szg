@@ -72,7 +72,20 @@ graphics screen on the desktop, and where sound and texture files exist,
 among other things. When running in Phleet mode, the program queries Phleet
 for these configuration parameters. When running in standalone mode, however,
 the Syzygy program, by default, looks in its local directory for a file
-called "szg_parameters.txt" that contains this information. If the Syzygy
+called "szg_parameters.txt" that contains this information. This file has
+two valid formats, the simplest of which consists of a sequence of lines
+like so:
+
+<pre>
+  computer_name parameter_group parameter_name parameter_value
+</pre> 
+
+Later in this section, you will learn lines to put in your szg_parameters.txt
+configuration file. After you are done experimenting here, you can read
+the chapter on <a href="ConfigurationExamples.html">configuration</a> for
+a complete explanation.
+
+<p>If the Syzygy
 program is correctly written (i.e. it gives the underlying framework first
 shot at manipulating the command-line args) then the following allows you
 to use different parameter files.
@@ -143,9 +156,10 @@ NULL SZG_SCREEN1 viewport_dim      0.5/0/0.5/1
 </pre>
 
 <p>You should experiment with the effects of different szg_parameters.txt
-files on "hspace"a dn "parade". Information on how to set up more complex
+files on "hspace" and "parade". Information on how to set up more complex
 screen configurations can be found in the chapter on 
 <a href="ConfigurationExamples.html">configuration</a>.
 
+<hr>
 </body>
 </html>
