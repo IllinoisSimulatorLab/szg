@@ -35,8 +35,9 @@ bool arTextureNode::receiveData(arStructuredData* inData){
   }
 
   _fileName = inData->getDataString(_g->AR_TEXTURE_FILE);
-  // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
-  if (true || inData->getDataDimension(_g->AR_TEXTURE_WIDTH) == 0) {
+  // NOTE: Here is the flag via which we determine if the texture is
+  // based on a resource handle or is based on a bitmap.
+  if (inData->getDataDimension(_g->AR_TEXTURE_WIDTH) == 0) {
     _alpha = inData->getDataInt(_g->AR_TEXTURE_ALPHA);
     // SADLY, I DO NOT THINK THAT ALPHA IS BEING HANDLED CORRECTLY!
     _localTexture = _owningDatabase->addTexture(_fileName, &_alpha);
@@ -94,8 +95,7 @@ arStructuredData* arTextureNode::_dumpData(const string& fileName, int alpha,
                                            char* pixels){
   arStructuredData* result = _g->makeDataRecord(_g->AR_TEXTURE);
   _dumpGenericNode(result,_g->AR_TEXTURE_ID);
-  // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
-  if (true || pixels == NULL){
+  if (pixels == NULL){
     // filename. 
     // Make sure we have set the data dimension of the _width to 0.
     // This is the flag the remote node uses to know it is not rendering

@@ -163,6 +163,10 @@ bool dgTexture(int ID, const string& filename, int alphaValue){
   if (ID < 0)
     return false;
   arStructuredData* data = __currentGraphicsDatabase->textureData;
+  // Important to set the data dimension of the width field to 0.
+  // This is the flag we use to tell the implementation that this is
+  // a file, not a bitmap. (Of course, this is a little confused...)
+  data->setDataDimension(__gfx.AR_TEXTURE_WIDTH, 0);
   if (!data->dataIn(__gfx.AR_TEXTURE_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_TEXTURE_ALPHA,&alphaValue,AR_INT,1) ||
       !data->dataInString(__gfx.AR_TEXTURE_FILE, filename)) {

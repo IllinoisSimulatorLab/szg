@@ -224,7 +224,9 @@ int main(int argc, char** argv){
   
   headEffector.setInteractionSelector( arDistanceInteractionSelector( 2 ) );
   
-//  ar_setNavMatrix( ar_translationMatrix(0,-5,0) );
+  // DO NOT REMOVE THE LINE BELOW. WITHOUT IT, THE STUFF WILL SHOW UP IN
+  // A WEIRD POSITION.
+  ar_setNavMatrix( ar_translationMatrix(0,-5,0) );
   
   worldInit(framework);
 
