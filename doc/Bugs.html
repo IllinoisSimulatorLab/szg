@@ -57,78 +57,16 @@ CC -n32 -LANG:std -o test test.o -lpthread
 
 NOTE: This would probably catch the thread safety problem on RedHat 7.x 
 as well (?). Haven't really felt like re-installing something that ancient
-however to find out.
-
-<li>Some weirdness with libjpeg. Need better instructions for building this.
-Specifically, turned out that the library suddenly started crashing on 
-*one* Windows XP box. A fresh install seemed to do the trick. Here are the
-steps (on windows): 
-<ul>
-
-<li> Before compiling, copy jconfig.vc to jconfig.h
-
-<li> Before compiling, copy makefile.vc to Makefile
-
-<li> Before compiling, edit jmorecfg.h so that:
-
-<pre>
-#ifndef XMD_H                   /* X11/xmd.h correctly defines INT32 */
-typedef long INT32;
-#endif
-</pre>
-
-becomes
-
-<pre>
-#ifndef _BASETSD_H_
-#ifndef XMD_H                   /* X11/xmd.h correctly defines INT32 */
-typedef long INT32;
-#endif
-#endif
-</pre>
-
-<li> Before compiling, edit Makefile so that
-
-<pre>
-$(cc) $(CFLAGS) $*.c
-</pre>
-
-becomes
-
-<pre>
-$(cc) $(CFLAGS) /MT $*.c
-</pre>
-
-<li>Type nmake (DOS prompt, not cygwin shell) to build the library.
-
-<li>To install,
-  <ul>
-  
-<li> Copy libjpeg.lib into $SZGEXTERNAL/lib/jpeg/win32
-  
-<li> Copy jconfig.h, jmorecfg.h, jpeglib.h into $SZGEXTERNAL/include/jpeg/win32.
-  </ul>
-</ul>
+to find out.
 
 <li>The very latest fmod is NOT compatible with the headers we had
 previously.
-
-<li> Bad things happen on a Windows PC whose boot disk is not C: or D:.
-  This can happen if it has a built-in card reader which grabs several
-  drive letters, causing hard disks to start with F: or so.
-  Since such a configuration causes many other problems, this isn't a
-  priority to fix.
 
 </ul>
 <p><font size=+1>Configuration/Phleet</font> <ul>
 
 <li>Phleet needs new methods! Specifically, we must be able to release
 services. Also, need to be able to get service info from the command line!
-<li>On windows, if c:\szg_USERNAME.conf is present, then dlogin does not look
-at c:\szg\szg_USERNAME.conf. SERIOUS BUG since it impacts migrating to new
-versions of szg.
-<li> On windows, c:\szg is used to store config info. HOWEVER, this would
-be a natural place to put the szg code. This must change.
 <li> On Mac OS X, dhunt does not seem to work. If you run an szgserver
 on OS X and type dhunt on that box, the szgserver does not appear. Is the
 problem filtering of the broadcast packets?
@@ -250,9 +188,6 @@ program segfaults with an error message "arSyncDataServer error: start
 called before init".
 
 <li>Double key presses on master (when standalone). [What does this mean?]
-
-<li>FIX DOCS so that the various java whatnots no longer appear! They are
-hereby superceded by the web server stuff!
 
 </ul>
 </body>
