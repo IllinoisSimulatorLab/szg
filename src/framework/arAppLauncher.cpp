@@ -37,7 +37,7 @@ arAppLauncher::~arAppLauncher(){
 
 bool arAppLauncher::setRenderProgram(const string& name){
   _renderProgram = name;
-  cout << "arAppLauncher remark: render program is " << _renderProgram << endl;
+  cout << "arAppLauncher remark: render program is " << _renderProgram << ".\n";
   return true;
 }
 
@@ -370,20 +370,30 @@ bool arAppLauncher::killAll(){
   // kill the graphics
   _graphicsKill("");
 
-  list<int> killList;
-
   // Kill the services.
+  list<int> killList;
+  string namesKill;
   for (list<arLaunchInfo>::iterator iter = _serviceList.begin();
        iter != _serviceList.end();
        ++iter){
-    cout << "arAppLauncher remark: killing service with tag = "
-	 << iter->tradingTag << "\n";
+    namesKill += " " + iter->tradingTag;
+    //cout << "arAppLauncher remark: killing service "
+//	 << iter->tradingTag << ".\n";
     const int serviceID =
       _client->getServiceComponentID(iter->tradingTag);
     if (serviceID != -1){
       killList.push_back(serviceID);
     }
   }
+
+  const int i = killList.size();
+  if (i > 0) {
+    cout << "arAppLauncher remark: killing service";
+    if (i > 1)
+      cout << "s";
+    cout << namesKill << ".\n";
+  }
+
   _blockingKillByID(&killList);
   _unlock();
   return true;
@@ -845,7 +855,7 @@ if (!_client){
       }
       else{
 	// NOTE: This IS NOT killed ID!
-        cout << "arAppLauncher remark: killed component with ID = " 
+        cout << "arAppLauncher remark: killed component with ID " 
 	     << trans->second << ".\n";
       }
     }
@@ -924,7 +934,7 @@ void arAppLauncher::_relaunchAllServices(list<arLaunchInfo>& appsToLaunch,
   for (list<arLaunchInfo>::iterator iter = _serviceList.begin();
        iter != _serviceList.end();
        ++iter){
-    int serviceID = _client->getServiceComponentID(iter->tradingTag);
+    const int serviceID = _client->getServiceComponentID(iter->tradingTag);
     if (serviceID >= 0){
       serviceKillList.push_back(serviceID);
     }
@@ -945,7 +955,7 @@ void arAppLauncher::_relaunchIncompatibleServices(
     //        i. If so, do nothing.
     //        ii. If not, go ahead and kill and start again.
     //      b. If not, go ahead and start.
-    int serviceID = _client->getServiceComponentID(iter->tradingTag);
+    const int serviceID = _client->getServiceComponentID(iter->tradingTag);
     if (serviceID == -1){
       cout << _exeName << " remark: restarting service "
 	   << iter->tradingTag << ".\n";

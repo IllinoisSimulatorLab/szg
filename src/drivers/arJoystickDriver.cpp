@@ -232,7 +232,7 @@ bool arJoystickDriver::stop(){
     _shutdownVar.wait(&_shutdownLock);
   }
   ar_mutex_unlock(&_shutdownLock);
-  cout << "arJoystickDriver remark: polling thread has exited.\n";
+  cout << "arJoystickDriver remark: polling thread done.\n";
   return true;
 }
 

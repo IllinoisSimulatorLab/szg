@@ -149,12 +149,12 @@ void drawSpear( const arMatrix4& spearBaseMatrix ) {
 }
 
 void matrixCallback( arCallbackInteractable* object, const arMatrix4& matrix ) {
-  int index = object->getID();
-  arVector3 pos = ar_extractTranslation( matrix );
+  fishRec& shark = sharks[object->getID()];
+  arVector3 pos(ar_extractTranslation(matrix));
   // coordinate swapping based on FishTransform()
-  sharks[index].y = pos[0];
-  sharks[index].z = pos[1];
-  sharks[index].x = -pos[2];
+  shark.y = pos[0];
+  shark.z = pos[1];
+  shark.x = -pos[2];
 }
 
 void setAnaglyphMode(arMasterSlaveFramework&, bool on) {
@@ -299,7 +299,7 @@ bool init( arMasterSlaveFramework& fw, arSZGClient& SZGClient ) {
     cerr << "atlantis error: failed to read sea-texture.jpg.\n";
     useTexture = 0;
   } else {
-    cerr << "activating texture in init.\n";
+    // cerr << "atlantis remark: activating texture in init.\n";
     seaTexture.activate();
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);

@@ -537,7 +537,7 @@ void arMasterSlaveFramework::stop(bool blockUntilDisplayExit){
          || (_useExternalThread && _externalThreadRunning)){
     ar_usleep(100000);
   }
-  cout << _label << " remark: everything exited.\n";
+  cout << _label << " remark: done.\n";
   _stopped = true;
 }
 
@@ -1925,7 +1925,7 @@ void arMasterSlaveFramework::_display(){
     // also important that we do this in the display thread
     ar_deactivateWildcatFramelock();
 
-    cout << _label << " remark: GLUT display thread done.\n";
+    cout << _label << " remark: GLUT done.\n";
 
     _displayThreadRunning = false;
     // if stop(...) is called from the GLUT keyboard function, we
