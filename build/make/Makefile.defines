@@ -1,6 +1,0 @@
-# The Syzygy build variables are defined in Makefile.var
-include $(SZGHOME)/build/make/Makefile.vars
-
-
-
-
