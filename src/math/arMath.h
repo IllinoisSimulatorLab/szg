@@ -243,7 +243,7 @@ SZG_CALL arVector3 ar_projectPointToLine( const arVector3& linePoint,
 SZG_CALL arMatrix4 ar_planeToRotation(float,float);
 
 //********** screen-related transformations, useful for VR *******
-SZG_CALL arVector3 ar_tileScreenOffset(const arVector3&, const arVector3&,
+SZG_CALL arVector3 ar_tileScreenOffset(const arVector3&,
                                        const arVector3&,
 			               float, float, float, int, float, int );
 SZG_CALL arMatrix4 ar_frustumMatrix( const arVector3& screenCenter,

@@ -28,7 +28,8 @@ class SZG_CALL arViewport {
                     float width, float height );
   void setScreen( const arGraphicsScreen& screen ) { _screen = screen; }
   arGraphicsScreen* getScreen() { return &_screen; }
-  // NOTE: the viewport now owns its camera. It makes a copy here & returns the address of the copy
+  // NOTE: the viewport now owns its camera. 
+  // It makes a copy here & returns the address of the copy
   arCamera* setCamera( arCamera* camera);
   arCamera* getCamera();
   void setEyeSign(float eyeSign);
@@ -51,7 +52,8 @@ class SZG_CALL arViewport {
   float _height;
   arGraphicsScreen _screen;
   arCamera* _camera;
-  // each viewport has an eyeSign associated with it (i.e. if -1 it is the left eye
+  // each viewport has an eyeSign associated with it 
+  // (i.e. if -1 it is the left eye
   // and if 1 it is the right eye, 0 if no eye offset is needed)
   float _eyeSign;
   // so that we can draw anaglyph, we also need to deal with the color

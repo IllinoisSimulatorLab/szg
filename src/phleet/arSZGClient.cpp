@@ -591,6 +591,8 @@ bool arSZGClient::parseParameterFile(const string& fileName){
   fileStream.ar_close();
 
   // Try the traditional way...
+  cout << "arSZGClient remark: Did not find opening <szg_config>.\n"
+	   << "Trying to parse the traditional dbatch syntax!\n";
   FILE* theFile = ar_fileOpen(fileName, dataPath, "r");
   if (!theFile){
     cerr << _exeName << " error: failed to open batch file \"" 

@@ -544,12 +544,15 @@ arMatrix4 ar_planeToRotation(float posX, float posY){
 // Calculates the offset vector from the overall screen center to
 // the center of an individual tile.  Tiles are in a rectangular,
 // planar grid covering the screen, tile 0,0 in lower left corner.
-arVector3 ar_tileScreenOffset(const arVector3& /*screenCenter*/,
-			      const arVector3& screenNormal,
+arVector3 ar_tileScreenOffset(const arVector3& screenNormal,
 			      const arVector3& screenUp,
 			      float width, float height,
 			      float xTile, int nxTiles,
 			      float yTile, int nyTiles) {
+  // These values make no sense.
+  if (nxTiles == 0 || nyTiles == 0){
+    return arVector3(0,0,0);
+  }
   /// copypaste start
   float mag = ++screenNormal;
   if (mag <= 0.)
@@ -561,11 +564,10 @@ arVector3 ar_tileScreenOffset(const arVector3& /*screenCenter*/,
   const arVector3 xHat = zHat * screenUp/mag;  // '*' = cross product
   const arVector3 yHat = xHat * zHat;
   /// copypaste end
-
-  const arVector3 xOffset = ((xTile - 0.5*(nxTiles-1))*width ) * xHat;
-  const arVector3 yOffset = ((yTile - 0.5*(nyTiles-1))*height) * yHat;
-
-  return xOffset + yOffset;
+  float tileWidth = width/nxTiles;
+  float tileHeight = height/nyTiles;
+  return (-0.5*width + 0.5*tileWidth + xTile*tileWidth)*xHat 
+    + (-0.5*height + 0.5*tileHeight + yTile*tileHeight)*yHat;
 }
 
 arMatrix4 ar_frustumMatrix( const arVector3& screenCenter,

@@ -25,8 +25,9 @@ arMatrix4 arVRCamera::getProjectionMatrix() {
       return ar_identityMatrix();
     }
   }
-  bool demoMode = (_head->getFixedHeadMode() && !screen->getIgnoreFixedHeadMode())
-                      || screen->getAlwaysFixedHeadMode();
+  bool demoMode 
+    = (_head->getFixedHeadMode() && !screen->getIgnoreFixedHeadMode())
+       || screen->getAlwaysFixedHeadMode();
   arMatrix4 headMatrix = _head->getMatrix();
   if (demoMode) {
     headMatrix = _getFixedHeadModeMatrix( *screen );

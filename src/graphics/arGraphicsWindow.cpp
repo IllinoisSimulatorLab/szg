@@ -448,22 +448,24 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
   if (bufName == "normal") {
     cout << "arGraphicsWindow remark: " << screenName << "/draw_buffer_mode == normal,"
          << " ignoring eye_sign.\n";
+    // NOTE: This is all called from within a viewport lock. So, we must
+    // use the no-lock version of the call.
     if (_useOGLStereo) {
-      addViewport( arViewport( dim[0], dim[1], dim[2], dim[3], screen, _defaultCamera, -1.,
+      _addViewportNoLock( arViewport( dim[0], dim[1], dim[2], dim[3], screen, _defaultCamera, -1.,
                                 mask[0], mask[1], mask[2], mask[3],
                                 GL_BACK_LEFT, (depthClear!="false") ) );
-      addViewport( arViewport( dim[0], dim[1], dim[2], dim[3], screen, _defaultCamera, 1.,
+      _addViewportNoLock( arViewport( dim[0], dim[1], dim[2], dim[3], screen, _defaultCamera, 1.,
                                 mask[0], mask[1], mask[2], mask[3],
                                 GL_BACK_RIGHT, (depthClear!="false") ) );
     } else {
-      addViewport( arViewport( dim[0], dim[1], dim[2], dim[3], screen, _defaultCamera, 0.,
+      _addViewportNoLock( arViewport( dim[0], dim[1], dim[2], dim[3], screen, _defaultCamera, 0.,
                                 mask[0], mask[1], mask[2], mask[3],
                                 GL_BACK_LEFT, (depthClear!="false") ) );
   }
   } else {
     GLenum oglDrawBuf = (bufName == "right")?(GL_BACK_RIGHT):(GL_BACK_LEFT);
 
-    addViewport( arViewport( dim[0], dim[1], dim[2], dim[3], screen, _defaultCamera, eyeSign,
+    _addViewportNoLock( arViewport( dim[0], dim[1], dim[2], dim[3], screen, _defaultCamera, eyeSign,
                               mask[0], mask[1], mask[2], mask[3],
                               oglDrawBuf, (depthClear!="false") ) );
   }

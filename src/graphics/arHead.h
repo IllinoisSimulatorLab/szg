@@ -25,16 +25,19 @@ class SZG_CALL arHead {
   void setEyeSpacing( float spacing ) {_eyeSpacing = spacing; }
   float getEyeSpacing() const { return _eyeSpacing; }
 
-  void setMidEyeOffset( const arVector3& midEyeOffset ) { _midEyeOffset = midEyeOffset; }
+  void setMidEyeOffset( const arVector3& midEyeOffset ) 
+    { _midEyeOffset = midEyeOffset; }
   arVector3 getMidEyeOffset() const { return _midEyeOffset; }
 
-  void setEyeDirection( const arVector3& eyeDirection ) { _eyeDirection = eyeDirection; }
+  void setEyeDirection( const arVector3& eyeDirection ) 
+    { _eyeDirection = eyeDirection; }
   arVector3 getEyeDirection() const { return _eyeDirection; }
 
   void setMatrix( const arMatrix4& matrix ) { _matrix = matrix; }
   virtual arMatrix4 getMatrix() const { return _matrix; }
 
-  void setClipPlanes( float nearClip, float farClip ) { _nearClip = nearClip; _farClip = farClip; }
+  void setClipPlanes( float nearClip, float farClip ) 
+    { _nearClip = nearClip; _farClip = farClip; }
   float getNearClip() const { return _nearClip; }
   float getFarClip() const { return _farClip; }
 

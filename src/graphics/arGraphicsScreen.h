@@ -42,6 +42,8 @@ class SZG_CALL arGraphicsScreen {
  private:
   void _updateTileCenter();
   arVector3 _setCenter;
+  float     _setHeight;
+  float     _setWidth;
   arVector3 _center;
   arVector3 _normal;
   arVector3 _up;

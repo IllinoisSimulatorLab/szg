@@ -12,6 +12,8 @@
 // SIZE THAT IS DIFFERENT FROM THE CUBE FRONT WALL, i.e. 13.333 x 10.
 arGraphicsScreen::arGraphicsScreen():
   _setCenter( 0,5,-5 ),
+  _setHeight(10),
+  _setWidth(13.333),
   _center( 0,5,-5 ),
   _normal( 0,0,-1 ),
   _up( 0,1,0 ),
@@ -21,7 +23,11 @@ arGraphicsScreen::arGraphicsScreen():
   _numberTilesX( 1 ),
   _tileY( 0 ),
   _numberTilesY( 1 ),
-  _headMounted(false) {
+  _headMounted(false),
+  _ignoreFixedHeadMode(false),
+  _alwaysFixedHeadMode(false),
+  _fixedHeadPosition(0,5,0),
+  _fixedHeadUpAngle(0) {
 }
 
 bool arGraphicsScreen::configure(arSZGClient& client) {
@@ -49,6 +55,8 @@ bool arGraphicsScreen::configure(const string& screenName, arSZGClient& client) 
     _width = 13.333;
     _height = 10;
   }
+  _setHeight = _height;
+  _setWidth = _width;
 
   if (client.getAttributeVector3 ( screenName, "screen_center", _setCenter )) {
     _center = _setCenter;
@@ -130,8 +138,8 @@ void arGraphicsScreen::setUp(const arVector3& up){
 
 /// Manually set the screen's dimensions, width followed by height.
 void arGraphicsScreen::setDimensions(float width, float height){
-  _width = width;
-  _height = height;
+  _setWidth = width;
+  _setHeight = height;
   _updateTileCenter();
 }
 
@@ -151,8 +159,27 @@ void arGraphicsScreen::setTile(int tileX, int numberTilesX,
 
 void arGraphicsScreen::_updateTileCenter() {
   if (_numberTilesX > 1  ||  _numberTilesY > 1) {
-      _center = _setCenter + ar_tileScreenOffset( _center, _normal, _up, _width, _height,
-                                                _tileX, _numberTilesX, _tileY, _numberTilesY );
+    _center = _setCenter + ar_tileScreenOffset( _normal, _up, 
+                                                _width, _height,
+                                                _tileX, _numberTilesX, 
+                                                _tileY, _numberTilesY );
+    if (_numberTilesX != 0){
+      _width = _setWidth/_numberTilesX;
+    }
+    else{
+      _width = _setWidth;
+    }
+    if (_numberTilesY != 0){
+      _height = _setHeight/_numberTilesY;
+    }
+    else{
+      _height = _setHeight;
+    }
+  }
+  else{
+    _center = _setCenter;
+    _height = _setHeight;
+    _width = _setWidth;
   }
 }
 

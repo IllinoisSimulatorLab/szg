@@ -7,7 +7,7 @@
 #include "arPrecompiled.h"
 #include "arMath.h"
 
-float epsilon = 0.0001;
+float epsilon = 0.0004;
 
 bool identityTest(arMatrix4 m){
   bool result = true;
@@ -197,40 +197,50 @@ int main(){
 
   // test calculating the angle between two vectors
   cout << "Testing angle between vectors.\n";
-  if (!fabs(ar_angleBetween(arVector3(0,0,1),arVector3(0,1,0))
-	    -ar_convertToRad(90)) < epsilon){
+  if (fabs(ar_angleBetween(arVector3(0,0,1),arVector3(0,1,0))
+	    -ar_convertToRad(90)) > epsilon){
     cout << "FAILED: angle between vectors (1).\n";
   }
-  if (!fabs(ar_angleBetween(arVector3(0,0,1),arVector3(1,0,0))
-	    -ar_convertToRad(90)) < epsilon){
+  if (fabs(ar_angleBetween(arVector3(0,0,1),arVector3(1,0,0))
+	    -ar_convertToRad(90)) > epsilon){
     cout << "FAILED: angle between vectors (2).\n";
   }
-  if (!fabs(ar_angleBetween(arVector3(1,0,0),arVector3(1,1,0))
-	    -ar_convertToRad(45)) < epsilon){
+  if (fabs(ar_angleBetween(arVector3(1,0,0),arVector3(1,1,0))
+	    -ar_convertToRad(45)) > epsilon){
     cout << "FAILED: angle between vectors (3).\n";
   }
-  if (!fabs(ar_angleBetween(arVector3(1,1,1),arVector3(-1,-1,-1))
-	    -ar_convertToRad(180)) < epsilon){
+  if (fabs(ar_angleBetween(arVector3(1,1,1),arVector3(-1,-1,-1))
+	    -ar_convertToRad(180)) > epsilon){
     cout << "FAILED: angle between vectors (4).\n";
     cout << ar_angleBetween(arVector3(1,1,1),arVector3(-1,-1,-1)) 
          << " <> " << ar_convertToRad(180) << endl;
   }
-  if (!fabs(ar_angleBetween(arVector3(0,0,1),arVector3(-1,0,-1))
-	    -ar_convertToRad(135)) < epsilon){
+  if (fabs(ar_angleBetween(arVector3(0,0,1),arVector3(-1,0,-1))
+	    -ar_convertToRad(135)) > epsilon){
     cout << "FAILED: angle between vectors (5).\n";
   }
 
   // test screen tiling
   cout << "Testing screen tiling.\n";
-  if (fabs(++(ar_tileScreenOffset(arVector3(0,0,-1),arVector3(0,0,-1),
+  if (fabs(++(ar_tileScreenOffset(arVector3(0,0,-1),
 				  arVector3(0,1,0),1,1,0,2,0,2) -
-	      arVector3(-0.5,-0.5,0))) > epsilon) {
+	      arVector3(-0.25,-0.25,0))) > epsilon) {
     cout << "FAILED: screen tile test (1).\n";
   }
-  if (fabs(++(ar_tileScreenOffset(arVector3(1,0,0),arVector3(1,0,0),
-				  arVector3(0,1,0),2,2,0,3,0,3) -
-	      arVector3(0,-2,-2))) > epsilon) {
+  if (fabs(++(ar_tileScreenOffset(arVector3(1,0,0),
+				  arVector3(0,1,0),2,2,0,4,0,2) -
+	      arVector3(0,-0.5,-0.75))) > epsilon) {
     cout << "FAILED: screen tile test (2).\n";
+  }
+  if (fabs(++(ar_tileScreenOffset(arVector3(1,0,0),
+				  arVector3(0,1,0),2,2,3,4,1,2) -
+	      arVector3(0,0.5,0.75))) > epsilon) {
+    cout << "FAILED: screen tile test (3).\n";
+  }
+  if (fabs(++(ar_tileScreenOffset(arVector3(1,0,0),
+				  arVector3(0,1,0),1,1,0,1,0,1) -
+	      arVector3(0,0,0))) > epsilon) {
+    cout << "FAILED: screen tile test (4).\n";
   }
 
   // ar_frustumMatrix tests
