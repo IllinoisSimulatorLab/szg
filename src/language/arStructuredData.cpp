@@ -11,7 +11,7 @@
 
 static const char* debugTypename(int i){
   const char* internalTypeNames[7] = {
-    "AR_GARBAGE", "AR_CHAR", "AR_INT", "AR_LONG", "AR_INT64", "AR_FLOAT", "AR_DOUBLE" };
+    "AR_GARBAGE", "AR_CHAR", "AR_INT", "AR_LONG", "AR_FLOAT", "AR_DOUBLE", "AR_INT64" };
   if (i>=0 && i<7)
     return internalTypeNames[i];
 
@@ -94,13 +94,13 @@ arStructuredData::arStructuredData(arTemplateDictionary* d, const char* name) :
 
 const char* arDataTypeName(arDataType theType){
   static const char* names[7] = {
-    "ARgarbage", "ARchar", "ARint", "ARlong", "ARint64", "ARfloat", "ARdouble" };
+    "ARgarbage", "ARchar", "ARint", "ARlong", "ARfloat", "ARdouble", "ARint64" };
   return names[int(theType)];
 }
 
 arDataType arDataNameType(const char* const theName) {
   static const char* names[7] = {
-    "ARgarbage", "ARchar", "ARint", "ARlong", "ARint64", "ARfloat", "ARdouble" };
+    "ARgarbage", "ARchar", "ARint", "ARlong", "ARfloat", "ARdouble", "ARint64" };
   for (int i=0; i<7; i++)
     if (strcmp(theName,names[i])==0)
       return arDataType(i);
@@ -114,9 +114,9 @@ int arDataTypeSize(arDataType theType){
     AR_CHAR_SIZE,
     AR_INT_SIZE,
     AR_LONG_SIZE,
-    AR_INT64_SIZE,
     AR_FLOAT_SIZE,
-    AR_DOUBLE_SIZE};
+    AR_DOUBLE_SIZE,
+    AR_INT64_SIZE,};
   const int t = int(theType);
   if (t<0 || t>AR_DOUBLE) {
     cerr << "syzygy warning: unknown arDataType " << theType << endl;

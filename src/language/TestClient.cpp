@@ -195,6 +195,31 @@ int main(int argc, char** argv){
     testData1.dataOut(DOUBLE_DATA_ID,doubleSpace,AR_DOUBLE,10);
   } 
   done_time = ar_time();
+  if (guessMbps == 10){
+    if (testData1.size() != 20208){
+      cout << "  FAILED: test data size is wrong (" << testData1.size()
+	   << ").\n";
+      exit(1);
+    }
+  }
+  else if (guessMbps == 100){
+   if (testData1.size() != 200208){
+      cout << "  FAILED: test data size is wrong (" << testData1.size()
+	   << ").\n";
+      exit(1);
+    }
+  }
+  else if (guessMbps == 1000){
+    if (testData1.size() != 2000208){
+      cout << "  FAILED: test data size is wrong (" << testData1.size()
+	   << ").\n";
+      exit(1);
+    }
+  }
+  else{
+    cout << "  FAILED: guess of link speed has illegal value ("
+	 << guessMbps << ").\n";
+  }
   cout << "  PASSED: 10 records received, each of size "
        << testData1.size() << ", with speed " 
        << (80.0*testData1.size())/ar_difftime(done_time,init_time)
@@ -218,6 +243,31 @@ int main(int argc, char** argv){
     testData1.dataOut(DOUBLE_DATA_ID,doubleSpace,AR_DOUBLE,10);
   } 
   done_time = ar_time();
+  if (guessMbps == 10){
+    if (testData1.size() != 228){
+      cout << "  FAILED: test data size is wrong (" << testData1.size()
+	   << ").\n";
+      exit(1);
+    }
+  }
+  else if (guessMbps == 100){
+   if (testData1.size() != 408){
+      cout << "  FAILED: test data size is wrong (" << testData1.size()
+	   << ").\n";
+      exit(1);
+    }
+  }
+  else if (guessMbps == 1000){
+    if (testData1.size() != 2208){
+      cout << "  FAILED: test data size is wrong (" << testData1.size()
+	   << ").\n";
+      exit(1);
+    }
+  }
+  else{
+    cout << "  FAILED: guess of link speed has illegal value ("
+	 << guessMbps << ").\n";
+  }
   cout << "  PASSED: 10000 records received, each of size "
        << testData1.size() << ", with speed "
        << (80000.0*testData1.size())/ar_difftime(done_time,init_time)

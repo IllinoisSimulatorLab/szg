@@ -1223,15 +1223,11 @@ void attributeGetRequestCallback(arStructuredData* theData,
   }
   else if (type=="substring"){
     // Send an attribute or a list of attributes passing a substring test.
-    char attrBuf[1024];
-    ar_stringToBuffer(attrRaw, attrBuf, sizeof(attrBuf));
     attribute = attrRaw;
     value = string("(List):\n");
-    char buf[1024];
     for (i = valueContainer->begin(); i != valueContainer->end(); ++i){
       const string s(i->first + "  =  " + i->second + "\n");
-      ar_stringToBuffer(s, buf, sizeof(buf));
-      if (strstr(buf, attrBuf)){
+      if (s.find(attribute) != string::npos){
 	value += s;
       }
     }

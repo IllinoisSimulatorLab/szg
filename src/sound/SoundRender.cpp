@@ -105,10 +105,11 @@ int main(int argc, char** argv){
 
   soundClient->setSpeakerObject(&speakerObject);
   soundClient->setNetworks(szgClient.getNetworks("sound"));
-  // We want to start the DSP callback, which can be used to relay the
-  // playing waveform elsewhere.
-  soundClient->startDSP();
   (void)soundClient->init();
+  // We want to start the DSP callback, which can be used to relay the
+  // playing waveform elsewhere. This must occur AFTER init (since
+  // that is where the fmod library gets started!)
+  soundClient->startDSP();
   (void)soundClient->start(szgClient);
 
   // we've started by this point

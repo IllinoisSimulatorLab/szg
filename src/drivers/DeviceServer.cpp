@@ -366,6 +366,11 @@ int main(int argc, char** argv){
       cout << "DeviceServer remark: input node stopped.\n";
       return 0;
     }
+    else if (messageType=="restart"){
+      cout << "DeviceServer remark: got restart message.\n";
+      inputNode.restart();
+      cout << "DeviceServer remark: restart done.\n";
+    }
     else if (messageType=="dumpon"){
       fileSink.start();
     }

@@ -54,6 +54,15 @@ bool arNetInputSink::start(){
     cerr << "arNetInputSink error: init was not called before start.\n";
     return false;
   }
+  // If _fValid has been set, then we have succeeded in start() already.
+  // DO NOT start() again. This is important, since, for instance, stop()
+  // currently does nothing.
+  if (_fValid){
+    cout << "DeviceServer remark: attempted to start again. Ignore.\n";
+    // Return true, because otherwise arInputNode::restart might fail.
+    // This is to-be-fixed once stop() actually does the expected thing.
+    return true;
+  }
   // Important to send output to the component's start stream
   // (which will be realyed back to the launching dex command)
   stringstream& startResponse = _client->startResponse(); 
