@@ -7,23 +7,148 @@
 
 <p><font size=+2>Syzygy: Supporting Libraries</font>
 
-<p>Syzygy makes use of 10 libraries not found on all systems:
-GLUT (windowing for 3D graphics), libjpeg (for reading and writing jpeg files),
-libz (for compression/ decompression), fmod (sound), BirdWindowsDriver 
-(supports the Ascension Flock-of-Birds magnetic tracking system under Windows),
-lib3DS (supports loading 3D Studio Max models under Linux), EVaRT 
-(supports Motion Analysis optical trackers under Windows), CG supports 
-real-time shaders on modern graphics cards, VTK supports various
-scientific visualization algorithms, and vrpn supports connecting to a wide
-variety of input devices.
-You must install GLUT, but the others are 
-optional. Installation of GLUT has already been covered under the 
-<a href="#Requirements">Requirements</a> section at the start of this document. 
-When just starting out with the system, you should ignore the optional libraries. 
-You'll be able to experiment without them.
-<p>The Syzygy makefiles (via szg/build/make/Makefile.libscan) will automatically
-detect the presence of the libraries, given that they are copied to the places
-outlined below. See Makefile.libscan for details.
+<p>Syzygy's build system is designed to let you compile your software using
+the optional supporting libraries but without installing them in a standard 
+system location. This allows non-root users to compile Syzygy with supporting
+libraries. The build system expects the "external" libraries to be installed
+in a directory given by the SZGEXTERNAL environment variable. You will either
+create this directory structure by hand or download an external directory
+as part of the SDK.
+
+<p>The Syzygy makefiles (via szg/build/make/Makefile.libscan) will 
+automatically detect the presence of the libraries, given that they are copied 
+to the places outlined below. See Makefile.libscan for details. This is the
+file you should change if you need to use different library versions or
+otherwise tweak this process for your local installation.
+
+<p>The top level of the SZGEXTERNAL directory has subdirectories for each
+system (Linux, Windows, Mac OS X, SGI) that it supports. When creating
+your own SZGEXTERNAL, you do not need all of these subdirectories, since you
+might support only one or two system types.
+
+<pre>
+  SZGEXTERNAL
+    darwin
+    linux
+    sgi
+    win32
+</pre>
+
+<p>We now outline the subdirectories of each system-specific directory.
+These vary, based on the supporting libraries for a particular platform.
+As a general rule, each subdirectory will contain in turn "include" and "lib"
+subdirectories. 
+
+<pre>
+  darwin
+    fmod-3.7
+    jpeg
+</pre>
+
+<pre>
+  linux
+    Coin-2.3
+    VTK-4.2
+    fmod-3.7
+    glut-3.7
+    jpeg
+    lib3ds
+    vrpn
+    zlib
+</pre>
+
+<pre>
+  sgi
+    glut-3.7
+</pre>
+
+<pre>
+  win32
+    Coin-2.3
+    GL
+    STLport
+    VTK-4.2
+    ascension
+    evart
+    fmod-3.7
+    glut-3.7
+    isense
+    jpeg
+    lib3ds
+    sapi-5.1
+    zlib
+</pre>
+
+<p>For each system in turn, we now take a look at how to install the headers
+and libraries. Please note: every platform requires GLUT. You do not 
+necessarily need to install it in SZGEXTERNAL, but you will
+certainly need to have it on your system. See the notes under each platform
+section.
+
+<p><font size=+2>Installing Libraries for Mac OS X (darwin)</font>
+
+<p><ul>
+<li>fmod-3.7
+  <ul>
+  <li>For sound support, install 
+  <a href="http://www.fmod.org/">fmod</a> version 3.7.
+  <li>Copy libfmod.a into $(SZGEXTERNAL)/darwin/fmod-3.7/lib.
+  <li>Copy these include files into $(SZGEXTERNAL)/darwin/fmod-3.7/include:
+      fmoddyn.h, fmod.h, fmod_errors.h, wincompat.h.
+  </ul>
+<li>jpeg
+</ul>
+
+<p><font size=+2>Installing Libraries for Linux</font>
+
+<p><ul>
+<li>Coin-2.3
+<li>VTK-4.2
+<li>fmod-3.7
+  <ul>
+  <li>For sound support, install 
+  <a href="http://www.fmod.org/">fmod</a> version 3.7.
+  <li>Copy libfmod-3.7.so into $(SZGEXTERNAL)/linux/fmod-3.7/lib.
+  <li>Copy these include files into $(SZGEXTERNAL)/linux/fmod-3.7/include:
+      fmoddyn.h, fmod.h, fmod_errors.h, wincompat.h.
+  </ul>
+<li>glut-3.7
+<li>jpeg
+<li>lib3ds
+<li>vrpn
+<li>zlib
+</ul>
+
+<p><font size=+2>Installing Libraries for SGI</font>
+
+<p><ul>
+<li>glut-3.7
+</ul>
+
+<p><font size=+2>Installing Libraries for Windows</font>
+
+<li>Of special note is the STLport library. If you are using Visual Studio
+6 to compile Syzygy, you CANNOT use the native STL. In this case, you MUST
+use STLport (the software will crash otherwise). If you are using Visual
+STudio .NET, you should use the native STL.
+
+<p><ul>
+<li>Coin-2.3
+<li>GL
+<li>STLport
+<li>VTK-4.2
+<li>ascension
+<li>evart
+<li>fmod-3.7
+<p>For sound support, install 
+<a href="http://www.fmod.org/">fmod</a> version 3.7.
+<li>glut-3.7
+<li>isense
+<li>jpeg
+<li>lib3ds
+<li>sapi-5.1
+<li>zlib
+</ul>
 
 <ul>
 <li>For sound support, install
