@@ -14,19 +14,34 @@ using namespace std;
 /// If we hit EOF before the whitespace ends, return false. Otherwise,
 /// use ar_ungetc so that the next character in the stream will be the
 /// first non-whotespace character and return true.
-bool ar_ignoreWhitespace(arTextStream* textStream){
+///
+/// We can, optionally, pass a second parameter to this function so that
+/// the ignored characters will be recorded at the end of the given
+/// text buffer.
+bool ar_ignoreWhitespace(arTextStream* textStream, 
+                         arBuffer<char>* optionalBuffer){
   // IGNORE WHITESPACE! OK... so we've got:
   // ' ' = space
   // '\n' = linefeed
   // '\r' = 13 = carriage return (this doesn't really exist in Unix
   //   text files, but definitely exists in Windows text files)
   // 9 = horizontal tab 
-  int ch = ' ';
-  while (ch == ' ' || ch == '\n' || ch == 13 || ch == 9){
+  int ch;
+  while (true){
     ch = textStream->ar_getc();
     if (ch == EOF){
       // DO NOT PRINT OUT ANYTHING HERE!!
       return false;
+    }
+    if (ch == ' ' || ch == '\n' || ch == 13 || ch == 9){
+      // Whitespace (must record if the optional buffer has been set)
+      if (optionalBuffer){
+        optionalBuffer->push(char(ch));
+      }
+    }
+    else{
+      // Not whitespace.
+      break;
     }
   }
   textStream->ar_ungetc(ch);
@@ -43,9 +58,16 @@ bool ar_ignoreWhitespace(arTextStream* textStream){
 /// The parsers for various field types all call this first... and then
 /// try to parse the string into their types (for instance, into a sequence
 /// of floats).
-bool ar_getTextBeforeTag(arTextStream* textStream, arBuffer<char>* textBuffer){
+///
+/// NOTE: By default, we begin recording at the beginning of the buffer.
+/// However, sometimes it is more desirable to concatenate. In this case,
+/// the concatenate parameter must be set to true.
+bool ar_getTextBeforeTag(arTextStream* textStream, arBuffer<char>* textBuffer,
+                         bool concatenate){
   int ch = ' ';
-  int location = 0;
+  if (!concatenate){
+    textBuffer->pushPosition = 0;
+  }
   while (ch != '<'){
     ch = textStream->ar_getc();
     if (ch == EOF){
@@ -54,22 +76,49 @@ bool ar_getTextBeforeTag(arTextStream* textStream, arBuffer<char>* textBuffer){
       return false;
     }
     if (ch != '<'){
-      // Better over-grow a little bit... otherwise this code is slow as
-      // molasses
-      if (location >= textBuffer->size()){
-        textBuffer->grow(2*textBuffer->size() + 1);
-      }
-      textBuffer->data[location] = char(ch);
-      location++;
+      textBuffer->push(char(ch));
     }
   }
   textStream->ar_ungetc(ch);
-  textBuffer->grow(location+1);
+  textBuffer->grow(textBuffer->pushPosition+1);
   // VERY IMPORTANT THAT THE CHARACTER BUFFER BE NULL-TERMINATED.
   // THIS MAKES FOR EASY CONVERSION TO A C++ STRING!
-  textBuffer->data[location] = '\0';
+  // We do not change the "pushPosition" here (i.e. the terminator will
+  // be overwritten on the next "push").
+  textBuffer->data[textBuffer->pushPosition] = '\0';
   return true;
 } 
+
+/// Take an arTextStream and record any characters between the current position
+/// and the next occuring </end_tag>. The arTextStream is left at the first
+/// character after </end_tag>. 
+bool ar_getTextUntilEndTag(arTextStream* textStream,
+                           const string& endTag,
+			   arBuffer<char>* textBuffer){
+  // We always start at the beginning of the buffer in this case.
+  textBuffer->pushPosition = 0;
+  string tagText;
+  while (true){
+    // Get text until the next tag.
+    if (!ar_getTextBeforeTag(textStream, textBuffer, true)){
+      return false;
+    }
+    // Get the next tag.
+    tagText = ar_getTagText(textStream, textBuffer, true);
+    if (tagText == "NULL"){
+      // There has been an error!
+      return false;
+    }
+    // Is it our end tag? If so, break.
+    if (tagText == "/"+endTag){
+      break;
+    }
+  }
+  // Go ahead and NULL-terminate the array;
+  textBuffer->grow(textBuffer->pushPosition+1);
+  textBuffer->data[textBuffer->pushPosition] = '\0';
+  return true;
+}
 
 /// Gets the text of the next tag, leaving the arTextStream at the character
 /// after the closing '>'. For instance "<foo>" returns "foo" and 
@@ -79,9 +128,21 @@ bool ar_getTextBeforeTag(arTextStream* textStream, arBuffer<char>* textBuffer){
 /// NOTE: THIS IS NOT QUITE CORRECT!!! SPECIFICALLY, WE SHOULD IGNORE
 ///   INITIAL AND TRAILING WHITESPACE AND ONLY SUPPORT TAG NAMES WITH
 ///   NO WHITESPACE!
-string ar_getTagText(arTextStream* textStream, arBuffer<char>* buffer){
-  if (!ar_ignoreWhitespace(textStream)){
-    return string("NULL");
+/// 
+/// Sometimes we want to be able to record the entire text stream in
+/// our buffer. The default is NOT to do so, because the concatenate 
+/// parameter is false unless explicitly set.
+string ar_getTagText(arTextStream* textStream, arBuffer<char>* buffer,
+                     bool concatenate){
+  if (concatenate){
+    if (!ar_ignoreWhitespace(textStream, buffer)){
+      return string("NULL");
+    }
+  }
+  else{
+    if (!ar_ignoreWhitespace(textStream)){
+      return string("NULL");
+    }
   }
   int ch = textStream->ar_getc();
   if (ch == EOF){
@@ -93,8 +154,15 @@ string ar_getTagText(arTextStream* textStream, arBuffer<char>* buffer){
     cout << "Syzygy XML error: did not find expected tag start.\n";
     return string("NULL");
   }
-  // Packing at the beginning of our resizable buffer....
-  int location = 0;
+  // Only record the '<' character if we are concatenating!
+  else if (concatenate){
+    buffer->push(char(ch));
+  }
+  // Only begin packing at the beginning if we are NOT in concatenate mode.
+  if (!concatenate){
+    buffer->pushPosition = 0;
+  }
+  int tagStart = buffer->pushPosition;
   while (ch != '>'){
     ch = textStream->ar_getc();
     if (ch == EOF){
@@ -102,14 +170,19 @@ string ar_getTagText(arTextStream* textStream, arBuffer<char>* buffer){
       return string("NULL");
     }
     if (ch != '>'){
-      buffer->grow(location+1);
-      buffer->data[location] = char(ch);
-      location++;
+      buffer->push(char(ch));
     }
   }
-  buffer->grow(location+1);
-  buffer->data[location] = '\0';
-  string result(buffer->data);
+  int tagLength = buffer->pushPosition - tagStart;
+  // Record the final '>' if we are concatenating.
+  if (concatenate){
+    buffer->push(char(ch));
+  }
+  // NOTE: Code might try to treat the buffer array as a C-string.
+  // Null-terminate it.
+  buffer->grow(buffer->pushPosition+1);
+  buffer->data[buffer->pushPosition] = '\0';
+  string result(buffer->data + tagStart, tagLength);
   return result;
 } 
 

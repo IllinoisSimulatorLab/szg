@@ -14,9 +14,17 @@
 using namespace std;
 
 /// XML parsing
-SZG_CALL bool ar_ignoreWhitespace(arTextStream* textStream);
-SZG_CALL bool ar_getTextBeforeTag(arTextStream* textStream, arBuffer<char>*);
-SZG_CALL string ar_getTagText(arTextStream* textStream, arBuffer<char>*);
+SZG_CALL bool ar_ignoreWhitespace(arTextStream* textStream,
+                                  arBuffer<char>* optionalBuffer = NULL);
+SZG_CALL bool ar_getTextBeforeTag(arTextStream* textStream, 
+                                  arBuffer<char>* textBuffer,
+                                  bool concatenate = false);
+SZG_CALL bool ar_getTextUntilEndTag(arTextStream* textStream,
+                                    const string& endTag,
+                                    arBuffer<char>* textBuffer);
+SZG_CALL string ar_getTagText(arTextStream* textStream, 
+                              arBuffer<char>* buffer,
+                              bool concatenate = false);
 SZG_CALL string ar_getTagText(arTextStream*);
 SZG_CALL bool   ar_isEndTag(const string& tagText);
 SZG_CALL string ar_getTagType(const string& tagText);

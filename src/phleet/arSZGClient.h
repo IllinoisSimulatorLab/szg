@@ -98,6 +98,16 @@ class SZG_CALL arSZGClient{
                          int numvalues = 1);
   string getAllAttributes(const string& substring);
 
+  // For handling so-called "global" attributes.
+  bool setGlobalAttribute(const string& attributeName,
+			  const string& attributeValue);
+  bool setGlobalAttribute(const string& userName,
+			  const string& attributeName,
+			  const string& attributeValue);
+  string getGlobalAttribute(const string& attributeName);
+  string getGlobalAttribute(const string& userName,
+			    const string& attributeName);
+
   // A way to get parameters in from a file (as in dbatch, for instance)
   bool parseParameterFile(const string& fileName);
 
@@ -288,6 +298,8 @@ class SZG_CALL arSZGClient{
 			    const string&);
   bool _setAttributeLocal(const string&, const string&, const string&,
 			  const string&);
+  string _getGlobalAttributeLocal(const string&);
+  bool _setGlobalAttributeLocal(const string&, const string&);
   string _changeToValidValue(const string&, const string&, 
                              const string&, const string&);
   map<string, string, less<string> > _localParameters;

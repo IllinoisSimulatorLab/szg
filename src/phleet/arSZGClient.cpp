@@ -7,6 +7,7 @@
 #include "arPrecompiled.h"
 #include "arSZGClient.h"
 #include "arPhleetConfigParser.h"
+#include "arXMLUtilities.h"
 
 #include <stdio.h>
 
@@ -380,13 +381,169 @@ string arSZGClient::getAllAttributes(const string& substring){
 /// not connected to the Phleet).
 bool arSZGClient::parseParameterFile(const string& fileName){
   const string dataPath(getAttribute("SZG_SCRIPT","path"));
+
+  // There are two parameter file formats.
+  // The legacy format consists of a sequence of lines as follows:
+  //
+  //   computer parameter_group parameter parameter_value
+  // 
+  // While this format cannot express some of the more XML-y kinds of
+  // things that the "global" attributes (like an input node description)
+  // require. Consequently,
+  //
+  // <szg_config>
+  //   ... one of more of the following ...
+  //   <szg_param>
+  //      <szg_name>
+  //
+  //      </szg_name>
+  //	  <szg_value>
+  //  
+  //      </szg_value>   
+  //   </szg_param>
+  // </szg_config>
+  // 
+  // In the szg_name field, we should have either 1 or 3 tokens
+  // (as determined by eliminating whitespace). If 1, then this is
+  // a "global" parameter. If 3, then this is a "local" parameter
+  // (i.e. tied to a particular computer) and we assume that the tokens
+  // are:
+  //
+  // computer parameter_group parameter
+  //
+  // Combined, these give the parameter's name (possibly after some mangling
+  // has occured).
+  //
+  // The parameter value, in either case, is given by the contents of the
+  // szg_value field with beginning and trailing whitespace removed. 
+  // 
+  // In addition to szg_param blocks, the config file can contain comments
+  // expressed like so:
+  // <szg_comment>
+  //   ... text of the comment goes here ...
+  // </szg_commment>
+  //
+  // The presence of <szg_config> as the first non-whitespace block of
+  // characters in the file determines the config file format that is
+  // assumed.
+
+  // First, try the new and improved XML way!
+  arFileTextStream fileStream;
+  if (!fileStream.ar_open(fileName, dataPath)){
+    cerr << _exeName << " error: failed to open batch file " 
+	 << fileName << "\n";
+    return false;
+  }
+  arBuffer<char> buffer(128);
+  string tagText = ar_getTagText(&fileStream, &buffer);
+  if (tagText == "szg_config"){
+    // Try parsing in the new way.
+    while (true){
+      tagText = ar_getTagText(&fileStream, &buffer);
+      if (tagText == "szg_comment"){
+	// Go ahead and get the comment text (but discard it).
+        if (!ar_getTextBeforeTag(&fileStream, &buffer)){
+	  cout << _exeName << " error: failed to get all of comment text "
+	       << "while parsing phleet config file.\n";
+	  fileStream.ar_close();
+	  return false;
+	}
+        tagText = ar_getTagText(&fileStream, &buffer);
+        if (tagText != "/szg_comment"){
+          cout << _exeName << " error: found an illegal tag= " << tagText
+	       << " when parsing phleet config file.\n"
+	       << "(should have found /szg_comment)\n";
+	  fileStream.ar_close();
+	  return false;
+	}
+      }
+      else if (tagText == "szg_param"){
+        // First comes the name...
+        tagText = ar_getTagText(&fileStream, &buffer);
+        if (tagText != "szg_name"){
+          cout << _exeName << " error: found an illegal tag= " << tagText
+	       << " when parsing phleet config file.\n"
+	       << "(should have found szg_name)\n";
+	  fileStream.ar_close();
+          return false;
+	}
+        if (!ar_getTextBeforeTag(&fileStream, &buffer)){
+          cout << _exeName << " error: failed to get all of parameter "
+	       << "name's text "
+	       << "while parsing phleet config file.\n";
+	  fileStream.ar_close();
+	  return false;
+	}
+        stringstream nameText(buffer.data);
+        string name;
+        nameText >> name;
+        if (name == ""){
+          cout << _exeName << " error: empty name field found while"
+	       << "parsing phleet config file.\n";
+	  fileStream.ar_close();
+          return false;
+	}
+        tagText = ar_getTagText(&fileStream, &buffer);
+        if (tagText != "/szg_name"){
+          cout << _exeName << " error: found an illegal tag= " << tagText
+	       << " when parsing phleet config file.\n"
+	       << "(should have found /szg_name)\n";
+	  fileStream.ar_close();
+          return false;
+	}
+	// Next comes the value...
+        tagText = ar_getTagText(&fileStream, &buffer);
+        if (tagText != "szg_value"){
+          cout << _exeName << " error: found an illegal tag= " << tagText
+	       << " when parsing phleet config file.\n"
+	       << "(should have found szg_value)\n";
+	  fileStream.ar_close();
+          return false;
+	}
+        if (!ar_getTextUntilEndTag(&fileStream, "szg_value", &buffer)){
+          cout << _exeName << " error: failed to get all of parameter "
+	       << "value's text "
+	       << "while parsing phleet config file.\n";
+	  fileStream.ar_close();
+	  return false;
+	}
+	// Set the attribute.
+        setGlobalAttribute(name, buffer.data);
+	// NOTE: we actually have already gotten the closing tag.
+
+	// Finally should come the closing tag for the parameter.
+        tagText = ar_getTagText(&fileStream, &buffer);
+        if (tagText != "/szg_param"){
+          cout << _exeName << " error: found an illegal tag= " << tagText
+	       << " when parsing phleet config file.\n"
+	       << "(should have found /szg_param)\n";
+	  fileStream.ar_close();
+          return false;
+	}
+      }
+      else if (tagText == "/szg_config"){
+	// successful closure
+        break;
+      }
+      else{
+        cout << _exeName << " error: found an illegal tag=" << tagText
+	     << " in parsing the phleet config file.\n";
+        fileStream.ar_close();
+        return false;
+      }
+    }
+    fileStream.ar_close();
+    return true;
+  }
+  fileStream.ar_close();
+
+  // Try the traditional way...
   FILE* theFile = ar_fileOpen(fileName, dataPath, "r");
   if (!theFile){
     cerr << _exeName << " error: failed to open batch file \"" 
          << fileName << "\"\n";
     return false;
   }
-
   // PROBLEMS WITH FIXED-SIZED BUFFERS
   char buf[4096];
   char buf1[4096], buf2[4096], buf3[4096], buf4[4096];
@@ -430,10 +587,7 @@ string arSZGClient::getAttribute(const string& userName,
                               validValues);
   }
 
-  // We are going to the szgserver for information
-
-  // for speed in dget/dset we want the szgserver to do the name resolution
-  // this saves a communication round trip
+  // We are going to the szgserver for information.
   const string query(
     ((computerName == "NULL") ? _computerName : computerName) +
     "/" + groupName + "/" + parameterName);
@@ -575,8 +729,6 @@ bool arSZGClient::setAttribute(const string& userName,
                               parameterValue);
   }
 
-  // For speed in dget/dset, let szgserver do name resolution;
-  // this saves a communications round trip.
   const string query(
     (computerName=="NULL" ? _computerName : computerName) +
     "/"+groupName+"/"+parameterName);
@@ -615,6 +767,101 @@ bool arSZGClient::setAttribute(const string& userName,
   _dataParser->recycle(ack);
   return true;
 }
+
+/// Attributes in the database, from the arSZGClient perspective, have always
+/// been organized (under a given user name) hierarchically by
+/// computer/attribute group/attribute. Internally to the szgserver, this
+/// hierarchy had limited meaning since the paramter database is *really*
+/// given by key/value pairs. It turns out that sometimes we really want
+/// to dispense with the hierarchy altogether. For instance, the 
+/// configuration of an input node (the filters to use, whether it should
+/// get input from the network, whether there are any special input sinks,
+/// etc.) really isn't tied to a particular computer. 
+/// NOTE: We must use a different function name since there is already a
+/// getAttribute with 2 const string& parameters.
+/// The idea here is that "Global" attributes are different than the
+/// "local" attributes that are tied to a particular computer.
+string arSZGClient::getGlobalAttribute(const string& userName,
+                                       const string& attributeName){
+  if (!_connected){
+    // In this case, we are using the local parameter file.
+    return _getGlobalAttributeLocal(attributeName);
+  }
+
+  // We are going to the szgserver for information
+  arStructuredData* getRequestData 
+    = _dataParser->getStorage(_l.AR_ATTR_GET_REQ);
+  string result;
+  int match = _fillMatchField(getRequestData);
+  if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR,attributeName) ||
+      !getRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
+      !_dataClient.sendData(getRequestData)){
+    cerr << _exeName << " warning: failed to send command.\n";
+    result = string("NULL");
+  }
+  else{
+    result = _getAttributeResponse(match);
+  }
+  _dataParser->recycle(getRequestData);
+  return result;
+}
+
+/// The userName is implicit in this one (i.e. it is the name of the 
+/// phleet user executing the program)
+string arSZGClient::getGlobalAttribute(const string& attributeName){
+  return getGlobalAttribute(_userName, attributeName);
+}
+
+/// It is also necessary to set the global attributes...
+bool arSZGClient::setGlobalAttribute(const string& userName,
+				     const string& attributeName,
+				     const string& attributeValue){
+  if (!_connected){
+    // we set attributes in the local database (parseParameterFile
+    // uses this method when reading in the local config file in
+    // standalone mode.
+    return _setGlobalAttributeLocal(attributeName, attributeValue);
+  }
+
+  // Get storage for the message.
+  arStructuredData* setRequestData 
+    = _dataParser->getStorage(_l.AR_ATTR_SET);
+  bool status = true;
+  const ARint temp = 0; // don't test-and-set.
+  int match = _fillMatchField(setRequestData);
+  if (!setRequestData->dataInString(_l.AR_ATTR_SET_ATTR,attributeName) ||
+      !setRequestData->dataInString(_l.AR_ATTR_SET_VAL,attributeValue) ||
+      !setRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
+      !setRequestData->dataIn(_l.AR_ATTR_SET_TYPE,&temp,AR_INT,1) ||
+      !_dataClient.sendData(setRequestData)){
+    cerr << _exeName << " warning: failed to set "
+         << attributeName << "to " << attributeValue
+         << " (send failed).\n";
+    status = false;
+  }
+  // Must recycle this.
+  _dataParser->recycle(setRequestData);
+  if (!status){
+    return false;
+  }
+
+  arStructuredData* ack = _getTaggedData(match, _l.AR_CONNECTION_ACK);
+  if (!ack){
+    cerr << _exeName << " warning: failed to set "
+         << attributeName << "to " << attributeValue
+         << " (send failed).\n";
+    return false;
+  }
+  _dataParser->recycle(ack);
+  return true;
+}
+
+/// The phleet user name is implicit in this one.
+bool arSZGClient::setGlobalAttribute(const string& attributeName,
+				     const string& attributeValue){
+  return setGlobalAttribute(_userName, attributeName, attributeValue);
+}
+
 
 // DOES NOT WORK IN THE LOCAL (STANDALONE) CASE!!!
 // ALSO... Should this really be left in? This was an early attempt
@@ -2352,7 +2599,7 @@ string arSZGClient::_generateLaunchInfoHeader(){
 }
 
 /// It could be the case that we are relying on a locally parsed config
-// file. (i.e. standalone mode)
+/// file. (i.e. standalone mode)
 string arSZGClient::_getAttributeLocal(const string& computerName,
 				       const string& groupName,
 				       const string& parameterName,
@@ -2373,7 +2620,7 @@ string arSZGClient::_getAttributeLocal(const string& computerName,
 }
 
 /// It could be the case that we are relying on a locally parsed config
-// file. (i.e. standalone mode)
+/// file. (i.e. standalone mode)
 bool arSZGClient::_setAttributeLocal(const string& computerName,
 				     const string& groupName,
 				     const string& parameterName,
@@ -2388,6 +2635,41 @@ bool arSZGClient::_setAttributeLocal(const string& computerName,
   }
   _localParameters.insert(map<string,string,less<string> >::value_type
                           (query,parameterValue));
+  return true;
+}
+
+/// It could be the case that we are relying on a locally parsed config
+/// file. (i.e. standalone mode). In this case, we are pulling a so-called
+/// "global" attribute (i.e. one not tied to a computer) out of storage.
+/// Since we are locally getting a "global" attribute this leads to the
+/// following silly function name...
+string arSZGClient::_getGlobalAttributeLocal(const string& attributeName){
+  string result;
+  map<string, string, less<string> >::iterator i =
+    _localParameters.find(attributeName);
+  if (i == _localParameters.end()){
+    result = string("NULL");
+  }
+  else{
+    result = i->second;
+  }
+  return result;
+}
+
+/// It could be the case that we are relying on a locally parsed config
+/// file. (i.e. standalone mode). In this case, we are putting a so-called
+/// "global" attribute (i.e. one not tied to a computer) into storage.
+/// Since we are locally setting a "global" attribute this leads to the
+/// following silly function name...
+bool arSZGClient::_setGlobalAttributeLocal(const string& attributeName,
+					   const string& attributeValue){
+  map<string, string, less<string> >::iterator i =
+    _localParameters.find(attributeName);
+  if (i != _localParameters.end()){
+    _localParameters.erase(i);
+  }
+  _localParameters.insert(map<string,string,less<string> >::value_type
+                          (attributeName,attributeValue));
   return true;
 }
 

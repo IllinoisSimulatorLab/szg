@@ -357,9 +357,7 @@ int main(){
   }
   cout << "*** PASSED.\n";
 
-  exit(0);
-  
-  cout << "Beginning unit test 3: XML file I/O.\n";
+  cout << "Beginning unit test 4: XML file I/O.\n";
   // now, we will test speed of reading and writing..
   testFile = fopen("Junk.txt","w");
   if (!testFile){
@@ -367,6 +365,13 @@ int main(){
     exit(0);
   }
   float speedFloatBuffer[16];
+  // PLEASE NOTE: IT SEEMS LIKE STLPORT HAS SOME TROUBLE READING BACK
+  // BOGUS FLOAT DATA (SPECIFICALLY, IT SEEMS TO HANG UNDER SOME 
+  // CIRCUMSTANCES). Consequently, it is important to initialize this
+  // array...
+  for (i=0; i<16; i++){
+    speedFloatBuffer[i] = i;
+  }
   data1.dataIn(FLOAT_ID, speedFloatBuffer, AR_FLOAT, 16);
   time1 = ar_time();
   int s;
@@ -395,6 +400,10 @@ int main(){
        << " seconds to read 10000 records from a file.\n";
   fclose(testFile);
   cout << "*** PASSED.\n";
+
+  exit(0);
+  
+  
 
   cout << "Beginning unit test 4: Thread safety of platform's lib c++.\n";
   // THIS ISN'T NEARLY LONG ENOUGH!

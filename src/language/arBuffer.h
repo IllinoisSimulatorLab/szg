@@ -22,8 +22,10 @@ template<class T> class arBuffer{
   int size() const { return _numElements; }
   void resize(int);
   void grow(int);
+  void push(T);
 
   T* data;
+  int pushPosition;
  private:
   int _numElements;
 };
@@ -36,6 +38,9 @@ template<class T> arBuffer<T>::arBuffer(int numElements){
   }
   _numElements = numElements;
   data = new T[_numElements];
+
+  // This is where a new element will be pushed.
+  pushPosition = 0;
 }
 
 template <class T> arBuffer<T>::~arBuffer(){
@@ -67,6 +72,15 @@ template <class T> void arBuffer<T>::resize(int numElements){
 template <class T> void arBuffer<T>::grow(int numElements){
   if (numElements > size())
     resize(numElements);
+}
+
+template <class T> void arBuffer<T>::push(T element){
+  if (pushPosition >= _numElements){
+    // This isn't strictly correct... 
+    grow(2*_numElements + 1);
+  }
+  data[pushPosition] = element;
+  pushPosition++;
 }
 
 #endif

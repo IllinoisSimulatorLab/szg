@@ -9,25 +9,25 @@ VPATH = ../../../src/drivers
 OBJS = \
   arInputState$(OBJ_SUFFIX) \
   arInputNode$(OBJ_SUFFIX) \
-  arPForth$(OBJ_SUFFIX) \
-  arPForthStandardVocabulary$(OBJ_SUFFIX) \
-  arPForthDatabaseVocabulary$(OBJ_SUFFIX) \
-  arPForthEventVocabulary$(OBJ_SUFFIX) \
-  arPForthFilter$(OBJ_SUFFIX) \
   arInputEvent$(OBJ_SUFFIX) \
   arInputEventQueue$(OBJ_SUFFIX) \
   arEventUtilities$(OBJ_SUFFIX) \
-  arConstantHeadFilter$(OBJ_SUFFIX) \
-  arGenericDriver$(OBJ_SUFFIX) \
   arInputLanguage$(OBJ_SUFFIX) \
   arInputSource$(OBJ_SUFFIX) \
   arIOFilter$(OBJ_SUFFIX) \
   arNetInputSink$(OBJ_SUFFIX) \
   arNetInputSource$(OBJ_SUFFIX) \
-  arTrackCalFilter$(OBJ_SUFFIX) \
-  arFaroCalFilter$(OBJ_SUFFIX) \
   arFileSink$(OBJ_SUFFIX) \
   arFileSource$(OBJ_SUFFIX) \
+  arGenericDriver$(OBJ_SUFFIX) \
+  arPForth$(OBJ_SUFFIX) \
+  arPForthStandardVocabulary$(OBJ_SUFFIX) \
+  arPForthDatabaseVocabulary$(OBJ_SUFFIX) \
+  arPForthEventVocabulary$(OBJ_SUFFIX) \
+  arPForthFilter$(OBJ_SUFFIX) \
+  arConstantHeadFilter$(OBJ_SUFFIX) \
+  arTrackCalFilter$(OBJ_SUFFIX) \
+  arFaroCalFilter$(OBJ_SUFFIX) \
 
 # Local variable definitions for the build.
 # These internal library makefiles ONLY include the external files necessary
