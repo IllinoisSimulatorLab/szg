@@ -313,17 +313,15 @@ bool arAppLauncher::waitForKill(){
   while (true) {
     string messageType, messageBody;
     if (!_client->receiveMessage(&messageType,&messageBody)){
-      cout << "arAppLauncher remark: szgserver has stopped. We are quitting "
-	   << "also.\n";
-      // NOTE: calling killApp() doesn't make sense here since the 
-      // szgserver is gone.
+      cout << "arAppLauncher remark: stopping because szgserver stopped.\n";
+      // Don't bother calling killApp(), since szgserver is gone.
       break;
     }
     if (messageType == "quit"){
       killApp();
       break;
     } else {
-      string lockName = getMasterName();
+      const string lockName(getMasterName());
       int componentID;
       if (_client->getLock(lockName, componentID)) {
         // nobody was holding the lock
