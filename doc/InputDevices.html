@@ -1,11 +1,155 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
   <title>Syzygy Input Framework</title>
 </head>
 <body bgcolor="#ffffff">
 <a href="index.html">Documentation Index</a>
-<p><font size="+2">Syzygy Input Framework Overview</font> </p>
+
+<p>This chapter starts with practical examples of setting up Syzygy's
+input event processing software, and follows with an overview of the
+internals of Syzygy's input framework.
+
+<p><ul>
+<li><a href="#Practical">Syzygy Input Framework: Practical Examples</a>
+<li><a href="#Overview">Syzygy Input Framework: Overview</a>
+</ul>
+
+<a name="Practical">
+<p><font size=+2>Syzygy Input Framework: Practical Examples</font>
+</a>
+
+<p>The Syzygy input framework has two programs that produce input events,
+DveiceServer and wandsimserver. The first serves as a front end for
+dynamically loaded device driver libraries, and the second is a GUI
+intended to allow the generation of VR input events. Both programs
+make their input events available over the network. Syzygy VR framework
+programs can connect to get these events, as can any other client. 
+For instance, DeviceClient can attach and print out, 10 times a second,
+the data it has received. We now explain how to set up a DeviceServer and
+test its behavior using DeviceClient.
+
+<pre>
+  DeviceServer -s [-netinput] driver_name input_slot [pforth_program_name]
+  
+    The "-s" flag causes the program to run in "simple" mode. Instead of
+    trying to load an entire input node configuration, it just loads
+    the device driver given by driver_name. If pforth_program_name is 
+    specified, this program will try to load the text stored in
+    the global parameter of that name as a PForth program and apply
+    it to the input events from the driver. The input slot (integer) on
+    which this program transmits events is specified by input_slot, and, 
+    if the -netinput flag is specified, it tries to connect to input_slot+1 
+    to receive events from the network.
+  
+  DeviceServer [-netinput] node_config_name input_slot [pforth_program_name]
+  
+    The same operation as above, except that the program configures
+    itself according to the input node configuration in the global
+    parameter node_config_name.
+</pre>
+
+<p>We now describe how to send joystick events from
+one computer to another. First, plug a joystick into a computer in your Phleet,
+dlogin on that computer, and type:
+
+<pre>
+  DeviceServer -s arJoystickDriver 0
+</pre>
+
+<p>If you (in your Phleet user identity) are not already transmitting on input
+slot 0 elsewhere in the Phleet and your joystick is supported, DeviceServer will
+start running and not return. Subsequently, open a new shell on that computer
+and type:
+
+<pre>
+  DeviceClient 0
+</pre>
+
+<p>The raw event data from the joystick should now be printed at 10 second
+intervals. Try pressing some buttons and wriggling some axes. You should see
+the numbers change. If not, see the 
+<a href="PhleetIntro#Troubleshooting">troubleshooting</a> section. You can
+also run "DeviceClient 0" on other computers in the Phleet where you are
+dlogin'ed as the same Phleet user. The additional copies will print out 
+input information from the DeviceServer.
+
+<a>Once this is working, you can experiment with using 
+<a href="PForth.html">PForth</a> programs to 
+filter the data. The following global parameter can be entered in a 
+"complex" dbatch file.
+
+<pre>
+&lt;param&gt;
+  &lt;name&gt; joystick_test &lt;/name&gt;
+  &lt;value&gt;
+    define filter_axis_0
+      getCurrentEventAxis 0.000031 * setCurrentEventAxis
+    enddef
+    define filter_axis_1
+      getCurrentEventAxis -0.000031 * setCurrentEventAxis
+    enddef
+  &lt;/value&gt;
+&lt;/param&gt;
+</pre>
+
+<p>Kill the DeviceServer you ran before. DeviceClient can keep running. After typing
+the following, note how the values printed by DeviceClient change.
+
+<pre>
+  DeviceServer -s arJoystickDriver 0 joystick_test
+</pre>
+
+<p>Finally, we explain the input node configuration format. Two samples follow, as they
+might appear in a "complex" dbatch file.
+
+<pre>
+ &lt;param&gt;
+  &lt;name&gt; cube_tracker &lt;/name&gt;
+  &lt;value&gt;
+    &lt;szg_device&gt;
+      &lt;input_sources&gt; arMotionstarDriver &lt;/input_sources&gt;
+      &lt;input_sinks&gt;&lt;/input_sinks&gt;
+      &lt;input_filters&gt; arTrackCalFilter &lt;/input_filters&gt;
+      &lt;pforth&gt;
+	  matrix inputMatrix
+	  matrix outputMatrix
+	  matrix correctXRotMatrix
+	  matrix correctYRotMatrix
+	  matrix correctZRotMatrix
+	  matrix correctHeadRotMatrix
+	  -30 0 correctXRotMatrix rotationMatrix
+	  6 1 correctYRotMatrix rotationMatrix
+	  -1 2 correctZRotMatrix rotationMatrix
+	  correctYRotMatrix correctZRotMatrix correctHeadRotMatrix matrixMultiply
+	  define filter_matrix_0
+	    inputMatrix getCurrentEventMatrix
+	    inputMatrix correctHeadRotMatrix outputMatrix matrixMultiply
+	    outputMatrix setCurrentEventMatrix
+	  enddef
+      &lt;/pforth&gt;
+    &lt;/szg_device&gt;
+  &lt;/value&gt;
+  &lt;/param&gt;
+</pre>
+
+<pre>
+  &lt;param&gt;
+  &lt;name&gt; idesk_tracker &lt;/name&gt;
+  &lt;value&gt;
+    &lt;szg_device&gt;
+      &lt;input_sources&gt; arSpacepadDriver arJoystickDriver &lt;/input_sources&gt;
+      &lt;input_sinks&gt;&lt;/input_sinks&gt;
+      &lt;input_filters&gt;&lt;/input_filters&gt;
+      &lt;pforth&gt;&lt;/pforth&gt;
+    &lt;/szg_device&gt;
+  &lt;/value&gt;
+  &lt;/param&gt;
+</pre>
+
+<a name="Overview">
+<p><font size="+2">Syzygy Input Framework: Overview</font>
+</a>
+
 <p>Input data in Syzygy comes in the form of <span
  style="font-style: italic;">arInputEvents</span>. There are currently
 three types of events. <span style="font-style: italic;">Matrix</span>

@@ -428,34 +428,34 @@ three viewports, giving the left, center, and right walls of an immersive
 virtual environment. This is in "simple" dbatch file format.
 
 <pre>
-smoke SZG_SCREEN0 view_mode custom
-smoke SZG_SCREEN0 screen_center     -5/5/0
-smoke SZG_SCREEN0 screen_dim        10/10
-smoke SZG_SCREEN0 screen_normal     -1/0/0
-smoke SZG_SCREEN0 screen_up         0/1/0
-smoke SZG_SCREEN0 viewport_list SZG_SCREEN1/SZG_SCREEN2
-smoke SZG_SCREEN0 viewport_dim 0/0/0.3333/1
-smoke SZG_SCREEN0 eye_sign 0
-smoke SZG_SCREEN0 color_mask true/true/true/true
-smoke SZG_SCREEN0 depth_clear false
+  smoke SZG_SCREEN0 view_mode custom
+  smoke SZG_SCREEN0 screen_center     -5/5/0
+  smoke SZG_SCREEN0 screen_dim        10/10
+  smoke SZG_SCREEN0 screen_normal     -1/0/0
+  smoke SZG_SCREEN0 screen_up         0/1/0
+  smoke SZG_SCREEN0 viewport_list SZG_SCREEN1/SZG_SCREEN2
+  smoke SZG_SCREEN0 viewport_dim 0/0/0.3333/1
+  smoke SZG_SCREEN0 eye_sign 0
+  smoke SZG_SCREEN0 color_mask true/true/true/true
+  smoke SZG_SCREEN0 depth_clear false
 
-smoke SZG_SCREEN1 screen_center     0/5/-5
-smoke SZG_SCREEN1 screen_dim        10/10
-smoke SZG_SCREEN1 screen_normal     0/0/-1
-smoke SZG_SCREEN1 screen_up         0/1/0
-smoke SZG_SCREEN1 viewport_dim 0.3333/0/0.3333/1
-smoke SZG_SCREEN1 eye_sign 0
-smoke SZG_SCREEN1 color_mask true/true/true/true
-smoke SZG_SCREEN1 depth_clear false
+  smoke SZG_SCREEN1 screen_center     0/5/-5
+  smoke SZG_SCREEN1 screen_dim        10/10
+  smoke SZG_SCREEN1 screen_normal     0/0/-1
+  smoke SZG_SCREEN1 screen_up         0/1/0
+  smoke SZG_SCREEN1 viewport_dim 0.3333/0/0.3333/1
+  smoke SZG_SCREEN1 eye_sign 0
+  smoke SZG_SCREEN1 color_mask true/true/true/true
+  smoke SZG_SCREEN1 depth_clear false
 
-smoke SZG_SCREEN2 screen_center     5/5/0
-smoke SZG_SCREEN2 screen_dim        10/10
-smoke SZG_SCREEN2 screen_normal     1/0/0
-smoke SZG_SCREEN2 screen_up         0/1/0
-smoke SZG_SCREEN2 viewport_dim 0.6666/0/0.3333/1
-smoke SZG_SCREEN2 eye_sign 0
-smoke SZG_SCREEN2 color_mask true/true/true/true
-smoke SZG_SCREEN2 depth_clear false
+  smoke SZG_SCREEN2 screen_center     5/5/0
+  smoke SZG_SCREEN2 screen_dim        10/10
+  smoke SZG_SCREEN2 screen_normal     1/0/0
+  smoke SZG_SCREEN2 screen_up         0/1/0
+  smoke SZG_SCREEN2 viewport_dim 0.6666/0/0.3333/1
+  smoke SZG_SCREEN2 eye_sign 0
+  smoke SZG_SCREEN2 color_mask true/true/true/true
+  smoke SZG_SCREEN2 depth_clear false
 </pre>
 
 
@@ -468,7 +468,7 @@ textures, sound clips, and other data are now explained. These values of these
 parameters will often be the main variations in the databases of different
 users. Because Windows file names can use
 colons, we ensure portability by using semi-colon delimited lists to give the 
-paths. For clarity, we omit the computer name from these parameter examples.
+paths. For simplicity, we omit the computer name from these parameter examples.
 To use them in a dbatch file, you would have to include it.
 
 <pre>
@@ -509,120 +509,462 @@ To use them in a dbatch file, you would have to include it.
 <p><font size=+2>Input Devices: Parameter Explanation</font>
 </a>
 
+<p>Many input devices need special configuration, like specifying the serial
+port it uses or the mode in which it should operate. The 
+<a href="InputDevices-drivers.html">chapter</a> on supported input
+devices describes any specific parameters that must be configured to operate
+a particular device.
+
+<p>Two general kinds of configuration apply to all input devices. First, 
+<a href="PForth.html">PForth</a> programs can operate on input data streams,
+doing tasks like rescaling input event values or rearranging event IDs.
+
+<p>With joysticks and/or gamepads this functionality is critical for providing 
+cross platform or even cross device support on a single platform. Joystick axes 
+on Linux typically report 0 to 64k, whereas joystick axes of Windows 
+might report either [-32k,32k] or [0,64k]. Furthermore, 
+a given gamepad may, on different systems,
+have its axes numbered differently, and, more fundamentally, since no standard
+for gamepad design exists, the numbering given by the OS might not agree with
+the numbering we want for our interface. Additionally, the Syzygy VR framework
+applications expect a standard joystick type input, with axis 0 corresponding
+to the horizontal, axis1 corresponding to the vertical, both normalized to the
+range [-1,1], and the value (-1,-1) realized in the lower left corner. As
+a consequence of these constraints, some data filtration is required between
+the raw information reported by the input device and its use in a Syzygy
+application.
+
+<p>While general transformations of the input event stream are handled by
+loadable modules derived from arIOFilter, PForth programs are ideally suited
+to the event processing necessary for joystick/gamepad standardization, as well
+as being able to handle some simple tracker calibration tasks. Below, we give
+an example PForth program as it might appear in a "complex" dbatch file.
+
+<pre>
+&lt;param&gt;
+  &lt;name&gt; joystick_test &lt;/name&gt;
+  &lt;value&gt;
+    define filter_axis_0
+      getCurrentEventAxis 0.000031 * setCurrentEventAxis
+    enddef
+    define filter_axis_1
+      getCurrentEventAxis -0.000031 * setCurrentEventAxis
+    enddef
+  &lt;/value&gt;
+&lt;/param&gt;
+</pre>
+
+<p>This program (appropriate for a particular gamepad on Windows) and takes events 
+coming from axis 0 and scales them to the [-1,1] range. It also scales events from
+axis 1 into that same range, reversing their sign in the process. After the 
+global parameter "joystick_test" giving this PForth program is loaded into the
+parameter database, you can run the following programs in Phleet mode to see the
+results. Note that your joystick would actually need to be connected to the
+computer on which you run DeviceServer. In contrast, DeviceClient can be run
+anywhere else in the Phleet (though on each computer you will have to be dlogin'ed
+as the same Phleet user).
+
+<pre>
+  DeviceServer -s arJoystickDriver 0 joystick_test
+  
+  DeviceClient 0
+</pre>
+
+<p>DeviceClient should begin printing out values from the joystick. You can experiment
+with changing the PForth program to see how that affects the output. For instance, if
+you wanted to offset the values so that they were in the range [0,2], the following
+modified program would work (note that PForth is stack-based, so operation order
+resembles reverse Polish notation):
+
+<pre>
+&lt;param&gt;
+  &lt;name&gt; joystick_test2 &lt;/name&gt;
+  &lt;value&gt;
+    define filter_axis_0
+      getCurrentEventAxis 0.000031 * 1 + setCurrentEventAxis
+    enddef
+    define filter_axis_1
+      getCurrentEventAxis -0.000031 * 1 + setCurrentEventAxis
+    enddef
+  &lt;/value&gt;
+&lt;/param&gt;
+</pre>
+
+<p>Sometimes DeviceServer needs special configuration beyond what can be provided
+directly from the command line. In this case, a global parameter will store the
+DeviceServer configuration. This includes information on what input sinks and 
+sources will be deployed, what loadable IO filters will be used, along with
+a PForth program that will operate on the events, if any. An example follows,
+as it would appear in a "complex" dbatch file:
+
+<pre>
+&lt;param&gt;
+&lt;name&gt; cube_tracker &lt;/name&gt;
+&lt;value&gt;
+  &lt;szg_device&gt;
+    &lt;input_sources&gt; arMotionstarDriver &lt;/input_sources&gt;
+    &lt;input_sinks&gt;&lt;/input_sinks&gt;
+    &lt;input_filters&gt; arTrackCalFilter &lt;/input_filters&gt;
+    &lt;pforth&gt;
+	matrix inputMatrix
+	matrix outputMatrix
+	matrix correctXRotMatrix
+	matrix correctYRotMatrix
+	matrix correctZRotMatrix
+	matrix correctHeadRotMatrix
+	-30 0 correctXRotMatrix rotationMatrix
+	6 1 correctYRotMatrix rotationMatrix
+	-1 2 correctZRotMatrix rotationMatrix
+	correctYRotMatrix correctZRotMatrix correctHeadRotMatrix matrixMultiply
+	define filter_matrix_0
+	  inputMatrix getCurrentEventMatrix
+	  inputMatrix correctHeadRotMatrix outputMatrix matrixMultiply
+	  outputMatrix setCurrentEventMatrix
+	enddef
+    &lt;/pforth&gt;
+  &lt;/szg_device&gt;
+&lt;/value&gt;
+&lt;/param&gt;
+</pre>
+
+<p>This example shows how PForth programs can be used for tracker calibration tasks, and
+it would be activated by:
+
+<pre>
+  DeviceServer cube_tracker 0
+</pre>
+
+<p>Please read the chapter on <a href="inputDevices.html">input devices</a> for
+more information on how to use the DeviceServer and DeviceClient programs.
+
 <a name="StandaloneVirtualCube">
 <p><font size=+2>Standalone mode: A Virtual Cube</font>
 </a>
 
+<p>Sometimes, for debugging purposes, it might be convenient to be able to see, in
+a single window, most of the screens (in this case 5 out of 6) in an immersive
+virtual environment. This lets us make sure that are camera projection code is
+doing the right thing with minimal hassle and also gives an interesting
+visual effect. The string "NULL" in place of a computer name is interpreted as
+a wildcard, indicating the current computer, whatever that is. This can be
+allows the standalone dbatch files to be moved from computer to computer.
+The following parameters can be placed directly in a "simple" dbatch file
+or including in an "assign" record in a "complex" dbatch file.
+
 <pre>
-NULL SZG_SCREEN0 view_mode custom
-NULL SZG_SCREEN0 screen_center     0/5/-5
-NULL SZG_SCREEN0 screen_dim        10/10
-NULL SZG_SCREEN0 screen_normal     0/0/-1
-NULL SZG_SCREEN0 screen_up         0/1/0
-NULL SZG_SCREEN0 viewport_list SZG_SCREEN1/SZG_SCREEN2/SZG_SCREEN3/SZG_SCREEN4
-NULL SZG_SCREEN0 viewport_dim 0.3333/0.3333/0.3333/0.3333
-NULL SZG_SCREEN0 eye_sign 0
-NULL SZG_SCREEN0 color_mask true/true/true/true
-NULL SZG_SCREEN0 depth_clear false
+  NULL SZG_SCREEN0 view_mode custom
+  NULL SZG_SCREEN0 screen_center     0/5/-5
+  NULL SZG_SCREEN0 screen_dim        10/10
+  NULL SZG_SCREEN0 screen_normal     0/0/-1
+  NULL SZG_SCREEN0 screen_up         0/1/0
+  NULL SZG_SCREEN0 viewport_list SZG_SCREEN1/SZG_SCREEN2/SZG_SCREEN3/SZG_SCREEN4
+  NULL SZG_SCREEN0 viewport_dim 0.3333/0.3333/0.3333/0.3333
+  NULL SZG_SCREEN0 eye_sign 0
+  NULL SZG_SCREEN0 color_mask true/true/true/true
+  NULL SZG_SCREEN0 depth_clear false
 
-NULL SZG_SCREEN1 screen_center     0/10/0
-NULL SZG_SCREEN1 screen_dim        10/10
-NULL SZG_SCREEN1 screen_normal     0/1/0
-NULL SZG_SCREEN1 screen_up         0/0/1
-NULL SZG_SCREEN1 viewport_dim 0.3333/0.6666/0.3333/0.3333
-NULL SZG_SCREEN1 eye_sign 0
-NULL SZG_SCREEN1 color_mask true/true/true/true
-NULL SZG_SCREEN1 depth_clear false
+  NULL SZG_SCREEN1 screen_center     0/10/0
+  NULL SZG_SCREEN1 screen_dim        10/10
+  NULL SZG_SCREEN1 screen_normal     0/1/0
+  NULL SZG_SCREEN1 screen_up         0/0/1
+  NULL SZG_SCREEN1 viewport_dim 0.3333/0.6666/0.3333/0.3333
+  NULL SZG_SCREEN1 eye_sign 0
+  NULL SZG_SCREEN1 color_mask true/true/true/true
+  NULL SZG_SCREEN1 depth_clear false
 
-NULL SZG_SCREEN2 screen_center     0/0/0
-NULL SZG_SCREEN2 screen_dim        10/10
-NULL SZG_SCREEN2 screen_normal     0/-1/0
-NULL SZG_SCREEN2 screen_up         0/0/-1
-NULL SZG_SCREEN2 viewport_dim 0.3333/0/0.3333/0.3333
-NULL SZG_SCREEN2 eye_sign 0
-NULL SZG_SCREEN2 color_mask true/true/true/true
-NULL SZG_SCREEN2 depth_clear false
+  NULL SZG_SCREEN2 screen_center     0/0/0
+  NULL SZG_SCREEN2 screen_dim        10/10
+  NULL SZG_SCREEN2 screen_normal     0/-1/0
+  NULL SZG_SCREEN2 screen_up         0/0/-1
+  NULL SZG_SCREEN2 viewport_dim 0.3333/0/0.3333/0.3333
+  NULL SZG_SCREEN2 eye_sign 0
+  NULL SZG_SCREEN2 color_mask true/true/true/true
+  NULL SZG_SCREEN2 depth_clear false
 
-NULL SZG_SCREEN3 screen_center     5/5/0
-NULL SZG_SCREEN3 screen_dim        10/10
-NULL SZG_SCREEN3 screen_normal     1/0/0
-NULL SZG_SCREEN3 screen_up         0/1/0
-NULL SZG_SCREEN3 viewport_dim 0.6666/0.3333/0.3333/0.3333
-NULL SZG_SCREEN3 eye_sign 0
-NULL SZG_SCREEN3 color_mask true/true/true/true
-NULL SZG_SCREEN3 depth_clear false
+  NULL SZG_SCREEN3 screen_center     5/5/0
+  NULL SZG_SCREEN3 screen_dim        10/10
+  NULL SZG_SCREEN3 screen_normal     1/0/0
+  NULL SZG_SCREEN3 screen_up         0/1/0
+  NULL SZG_SCREEN3 viewport_dim 0.6666/0.3333/0.3333/0.3333
+  NULL SZG_SCREEN3 eye_sign 0
+  NULL SZG_SCREEN3 color_mask true/true/true/true
+  NULL SZG_SCREEN3 depth_clear false
 
-NULL SZG_SCREEN4 screen_center     -5/5/0
-NULL SZG_SCREEN4 screen_dim        10/10
-NULL SZG_SCREEN4 screen_normal     -1/0/0
-NULL SZG_SCREEN4 screen_up         0/1/0
-NULL SZG_SCREEN4 viewport_dim 0/0.3333/0.3333/0.3333
-NULL SZG_SCREEN4 eye_sign 0
-NULL SZG_SCREEN4 color_mask true/true/true/true
-NULL SZG_SCREEN4 depth_clear false
+  NULL SZG_SCREEN4 screen_center     -5/5/0
+  NULL SZG_SCREEN4 screen_dim        10/10
+  NULL SZG_SCREEN4 screen_normal     -1/0/0
+  NULL SZG_SCREEN4 screen_up         0/1/0
+  NULL SZG_SCREEN4 viewport_dim 0/0.3333/0.3333/0.3333
+  NULL SZG_SCREEN4 eye_sign 0
+  NULL SZG_SCREEN4 color_mask true/true/true/true
+  NULL SZG_SCREEN4 depth_clear false
 </pre>
 
 <a name="PassiveStereo">
 <p><font size=+2>Passive Stereo</font>
 </a>
 
+<p>Syzygy supports a variety of passive stereo configurations. One of them, "walleyed",
+is suited to working with dual-headed graphics cards under Windows. Many of these cards
+can be set up so that the Windows desktop extends across both monitors and a single
+hardware accelerated OpenGL window can cover the whole thing. Under this scenario,
+a full screen window, with a left eye view on one half and the right eye view on the
+other half, can provide passive stereo. Simply hook up projectors to each of the card's
+outputs, put polarizing filters on each, and project onto the same screen. You can
+then use cheap stereo glasses (based on polarized light) 
+to see the visualization in 3D. The following configuration shows how to do this
+for screen 0 of the computer "smoke". 
+NOTE: "stereo" is "false" because "stereo" means active stereo under Syzygy! Also,
+setting the window size to "0/0" means full screen.
+
+<pre>
+  smoke SZG_SCREEN0 size 0/0
+  smoke SZG_SCREEN0 view_mode walleyed
+  smoke SZG_SCREEN0 stereo false
+</pre>
+
 <a name="StandalonePassive">
 <p><font size=+2>Standalone Mode: Easy Demo Passive Display</font>
 </a>
 
-<pre>
-&lt;szg_config&gt;
-&lt;param&gt;
-  &lt;name&gt; joystick &lt;/name&gt;
-  &lt;value&gt;
-    matrix temp
-    0 5 0 temp translationMatrix
-    define filter_axis_0
-      getCurrentEventAxis 0.000031 * setCurrentEventAxis
-    enddef
-    define filter_axis_1
-      temp 0 insertMatrixEvent
-      getCurrentEventAxis -0.000031 * setCurrentEventAxis
-    enddef
-    define filter_axis_2
-      getCurrentEventAxis -32768 + -0.000031 *
-      deleteCurrentEvent
-      3
-      insertAxisEvent
-    enddef
-    define filter_axis_5
-      getCurrentEventAxis -32768 + 0.000031 *
-      deleteCurrentEvent
-      2
-      insertAxisEvent
-    enddef
-  &lt;/value&gt;
-&lt;/param&gt;
+<p>Since passive stereo displays are so easy to set up and so cheap, given how common
+dual headed video game graphics cards are, they are ideal for travelling demos, like
+one might bring to a conference or trade show. One consideration with demo system design
+is tracking, since, in the interests of simplicity, one would like to avoid it all
+together. Tracking can be of marginal benefit in such situations.
 
-&lt;assign&gt;
-NULL SZG_DATA path ./
-NULL SZG_DEMO control_mode joystick
-NULL SZG_PFORTH program_names joystick
-NULL SZG_SCREEN0 view_mode walleyed
-NULL SZG_SCREEN0 size 0/0
-NULL SZG_SCREEN0 screen_center     0/5/-5
-NULL SZG_SCREEN0 screen_dim        13.333/10
-NULL SZG_SCREEN0 screen_normal     0/0/-1
-NULL SZG_SCREEN0 screen_up         0/1/0
-&lt;/assign&gt;
+<p>Consequently, a simple demo system might skip tracking altogether in favor of gamepad
+control. Syzygy VR framework applications often assume their input device provides them
+with a matrix giving head position and orientation (matrix 0) and a matrix giving
+wand (manipulation device) position and orientation (matrix 1). Navigation in the world
+is accomplished by a combination of wand matrix plus button pushes and axis manipulation.
+In many cases, leaving the wand matrix in a default (identity matrix) position still
+allows for sufficient navigation for a successdul demo. However, the head matrix often
+needs to go into a non-default position (not (0,0,0)) to have things appear sensibly on
+screen.
+
+<p>To fix this problem, we construct a PForth filter that, when processing an event from
+the gamepad, creates an additional (and spurious) head matrix event, putting the head
+in the desired default position.
+
+<p>The following dbatch file ("complex" format) gives a standalone mode
+configuration for a demo system as described above. Note that the lone
+global parameter gives a PForth program instead of a full input node configuration.
+In standalone mode, Syzygy VR framework applications either use an embedded
+wandsimserver to generate input events or rely on joystick input. The value of
+SZG_DEMO/control_mode (either "joystick" or "normal", which is the default)
+determines the control scheme used. Also, SZG_PFORTH/program_names gives the
+name of the global parameter holding the PForth program to be applied, if any.
+
+<p>The "joystick" PForth program listed, of course, pertains to a particular
+gamepad. However, it does illustrate how to switch axes around. For instance,
+it addition to rescaling, axis 2 is mapped to axis 3 and axis 5 is mapped to
+axis 2.
+
+<pre>
+  &lt;szg_config&gt;
+  &lt;param&gt;
+    &lt;name&gt; joystick &lt;/name&gt;
+    &lt;value&gt;
+      matrix temp
+      0 5 0 temp translationMatrix
+      define filter_axis_0
+        getCurrentEventAxis 0.000031 * setCurrentEventAxis
+      enddef
+      define filter_axis_1
+        temp 0 insertMatrixEvent
+        getCurrentEventAxis -0.000031 * setCurrentEventAxis
+      enddef
+      define filter_axis_2
+        getCurrentEventAxis -32768 + -0.000031 *
+        deleteCurrentEvent
+        3
+        insertAxisEvent
+      enddef
+      define filter_axis_5
+        getCurrentEventAxis -32768 + 0.000031 *
+        deleteCurrentEvent
+        2
+        insertAxisEvent
+      enddef
+    &lt;/value&gt;
+  &lt;/param&gt;
+
+  &lt;assign&gt;
+  NULL SZG_DATA path ./
+  NULL SZG_DEMO control_mode joystick
+  NULL SZG_PFORTH program_names joystick
+  NULL SZG_SCREEN0 view_mode walleyed
+  NULL SZG_SCREEN0 size 0/0
+  NULL SZG_SCREEN0 screen_center     0/5/-5
+  NULL SZG_SCREEN0 screen_dim        13.333/10
+  NULL SZG_SCREEN0 screen_normal     0/0/-1
+  NULL SZG_SCREEN0 screen_up         0/1/0
+  &lt;/assign&gt;
 </pre>
 
 <a name="Immersive">
 <p><font size=+2>Immersive (fixed-wall) Virtual Environments</font>
 </a>
 
+<p>An early supported Syzygy configuration was one stereo window per PC, with each
+window supporting one wall of an immersive virtual environment. The following
+text shows screen definitions (plus a virtual computer employing them) for
+a six walled virtual environment. It can either be put, as is, into a "simple"
+format dbatch file or it can go into an "assign" record in a "complex"
+dbatch file.
+
+<pre>
+  cube SZG_CONF    location       cube
+  cube SZG_CONF    virtual        true
+  cube SZG_TRIGGER map            air
+  cube SZG_MASTER  map            SZG_SCREEN2
+  cube SZG_SCREEN  number_screens 6
+  cube SZG_SCREEN0 map            top/SZG_SCREEN0
+  cube SZG_SCREEN0 networks       internet
+  cube SZG_SCREEN1 map            bottom/SZG_SCREEN0
+  cube SZG_SCREEN1 networks       internet
+  cube SZG_SCREEN2 map            north/SZG_SCREEN0
+  cube SZG_SCREEN2 networks       internet
+  cube SZG_SCREEN3 map            south/SZG_SCREEN0
+  cube SZG_SCREEN3 networks       internet
+  cube SZG_SCREEN4 map            east/SZG_SCREEN0
+  cube SZG_SCREEN4 networks       internet
+  cube SZG_SCREEN5 map            west/SZG_SCREEN0
+  cube SZG_SCREEN5 networks       internet
+  cube SZG_INPUT0  map            air/cube_tracker/joystick/cube_joystick
+  cube SZG_INPUT0  networks       internet
+
+  north SZG_SCREEN0 size              0/0
+  north SZG_SCREEN0 screen_center     0/4.93/-4.93
+  north SZG_SCREEN0 screen_dim        9.86/9.86
+  north SZG_SCREEN0 screen_normal     0/0/-1
+  north SZG_SCREEN0 screen_up         0/1/0
+  north SZG_SCREEN0 stereo            true
+
+  south SZG_SCREEN0 size              0/0
+  south SZG_SCREEN0 screen_center     0/4.93/4.93
+  south SZG_SCREEN0 screen_dim        9.86/9.86
+  south SZG_SCREEN0 screen_normal     0/0/1
+  south SZG_SCREEN0 screen_up         0/1/0
+  south SZG_SCREEN0 stereo            true
+
+  top SZG_SCREEN0 size                0/0
+  top SZG_SCREEN0 screen_center       0/9.86/0
+  top SZG_SCREEN0 screen_dim          9.86/9.86
+  top SZG_SCREEN0 screen_normal       0/1/0
+  top SZG_SCREEN0 screen_up           -1/0/0
+  top SZG_SCREEN0 stereo              true
+
+  bottom SZG_SCREEN0 size              0/0
+  bottom SZG_SCREEN0 screen_center     0/0/0
+  bottom SZG_SCREEN0 screen_dim        9.86/9.86
+  bottom SZG_SCREEN0 screen_normal     0/-1/0
+  bottom SZG_SCREEN0 screen_up         0/0/-1
+  bottom SZG_SCREEN0 stereo            true
+
+  east SZG_SCREEN0 size              0/0
+  east SZG_SCREEN0 screen_center     4.93/4.93/0
+  east SZG_SCREEN0 screen_dim        9.86/9.86
+  east SZG_SCREEN0 screen_normal     1/0/0
+  east SZG_SCREEN0 screen_up         0/1/0
+  east SZG_SCREEN0 stereo            true
+
+  west SZG_SCREEN0 size              0/0
+  west SZG_SCREEN0 screen_center     -4.93/4.93/0
+  west SZG_SCREEN0 screen_dim        9.86/9.86
+  west SZG_SCREEN0 screen_normal     -1/0/0
+  west SZG_SCREEN0 screen_up         0/1/0
+  west SZG_SCREEN0 stereo            true
+</pre>
+
 <a name="HMD">
 <p><font size=+2>Head-Mounted Displays</font>
 </a>
 
+<p>Syzygy's first application in Spring 2000 was a cluster-driven HMD, with a seperate
+consumer PC driving each eye. This configuration is still supported, along with a single
+PC set up, where two viewports in a single window give left eye and right eye views,
+respectively.
+
 <a name="MultiScreen">
 <p><font size=+2>Multiple Screens on a Single Computer</font>
 </a>
+
+<p>Sometimes having multiple seperate graphics screens on a single computer is desirable.
+For instance, in this way, you can run Syzygy applications on an SMP computer
+(like the SGI Onyx series) with mutliple graphics cards. It also helps when testing whether
+a Syzygy master/slave application will work properly on a cluster, but without having to
+have a cluster available.
+
+<p>Note that consumer level graphics cards, as a rule, do not do very well having multiple
+OpenGL windows active simultaneously. Performance degrades significantly over the
+equivalent standalone mode case where there are multiple viewports in a single window.
+Indeed, on many common systems, just having a wandsimserver window open (which is a small
+window with very simple OpenGL graphics) in addition to an application window severely
+degrades application performance. This is actually why standalone mode was originally
+invented: to deal with the limitations of Syzygy application development on very low
+end hardware. 
+
+<p>Of course, these performance conisderations DO NOT apply to the high end computers with
+multiple graphics cards and processors that are designed to run these types of
+applications (again like an SGI Onyx or, say, a 4-way Linux box with multiple graphics
+cards).
+
+<p>The following example, suitable for inclusion directly in a "simple" dbatch file, or
+within an "assign" record in a "complex" dbatch file. It gives a virtual computer 
+"smoke_test" which has four screens and uses a wandsimserver for an input device. These
+screens give a 2x2 tiled display and are automatically placed in the proper arrangement upon
+launch, through the SZG_SCREEN(n)/position parameter. Similarly, the wandsimserver is
+placed to the right of everything, as given by the SZG_WANDSIM/position parameter.
+Please note that the desktop in question is 1600x1200. A smaller desktop would need positions
+and window sizes reduced.
+
+<pre>
+  smoke_test SZG_CONF virtual true
+  smoke_test SZG_TRIGGER map smoke
+  smoke_test SZG_MASTER map SZG_SCREEN0
+  smoke_test SZG_SCREEN number_screens 4
+  smoke_test SZG_SCREEN0 map smoke/SZG_SCREEN1
+  smoke_test SZG_SCREEN1 map smoke/SZG_SCREEN2
+  smoke_test SZG_SCREEN2 map smoke/SZG_SCREEN3
+  smoke_test SZG_SCREEN3 map smoke/SZG_SCREEN4
+  smoke_test SZG_INPUT0 map smoke/wandsimserver
+
+  smoke SZG_WANDSIM position 1305/0
+
+  smoke SZG_SCREEN1 size 640/480
+  smoke SZG_SCREEN1 position 0/0
+  smoke SZG_SCREEN1 tile 0/2/1/2
+  smoke SZG_SCREEN1 screen_center 0/5/-5
+  smoke SZG_SCREEN1 screen_dim 10/10
+  smoke SZG_SCREEN1 screen_normal 0/0/-1
+  smoke SZG_SCREEN1 screen_up 0/1/0
+
+  smoke SZG_SCREEN2 size 640/480
+  smoke SZG_SCREEN2 position 652/0
+  smoke SZG_SCREEN2 tile 1/2/1/2
+  smoke SZG_SCREEN2 screen_center 0/5/-5
+  smoke SZG_SCREEN2 screen_dim 10/10
+  smoke SZG_SCREEN2 screen_normal 0/0/-1
+  smoke SZG_SCREEN2 screen_up 0/1/0
+
+  smoke SZG_SCREEN3 size 640/480
+  smoke SZG_SCREEN3 position 0/505
+  smoke SZG_SCREEN3 tile 0/2/0/2
+  smoke SZG_SCREEN3 screen_center 0/5/-5
+  smoke SZG_SCREEN3 screen_dim 10/10
+  smoke SZG_SCREEN3 screen_normal 0/0/-1
+  smoke SZG_SCREEN3 screen_up 0/1/0
+
+  smoke SZG_SCREEN4 size 640/480
+  smoke SZG_SCREEN4 position 652/505
+  smoke SZG_SCREEN4 tile 1/2/0/2
+  smoke SZG_SCREEN4 screen_center 0/5/-5
+  smoke SZG_SCREEN4 screen_dim 10/10
+  smoke SZG_SCREEN4 screen_normal 0/0/-1
+  smoke SZG_SCREEN4 screen_up 0/1/0
+</pre>
 
 <a name="OffNetwork">
 <p><font size=+2>Running Syzygy Applications in Phleet Mode When Off the Network</font>
@@ -638,7 +980,7 @@ the solution is to use the loopback address (127.0.0.1).
 <p>First, you will need to make sure that the phleet configuration file is
 set up with the loopback address. Use
 the "daddinterface" and "ddelinterface" commands, as outlined in the
-<a href="QuickStart.html">introduction</a> to produce a configuration file
+<a href="PhleetIntro.html">introduction</a> to produce a configuration file
 that has "dconfig" produce output like:
 
 <pre>

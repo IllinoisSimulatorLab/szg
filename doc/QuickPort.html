@@ -16,7 +16,7 @@ issue.
 <ul>
 <li>
   <pre>
-  #include &lt;szg/arMasterSlaveFramework.h>
+  #include "arMasterSlaveFramework.h"
   arMasterSlaveFramework* framework = NULL; // global so callbacks can use this
   </pre>
 </ul>
@@ -32,9 +32,9 @@ issue.
   </pre>
 
 <li>
-  Move any opengl state initializations into the init() callback
+  Move any opengl state initializations into the start callback
   demanded by the framework. Other application specific initialization
-  should go here as well. The init() is called in the body
+  should go here as well. The user-defined start callback is called in the body
   of the framework's start() method (which does not return).
 <li>
   Sometimes computations and data exchanges need to occur before
@@ -46,6 +46,9 @@ issue.
   actions on the next input event, then work might occur in the
   postExchangeCallback(...), which occurs after the data sharing exchange
   between masters and slaves.
+<li>Please note that only the master does the preExchange during an event loop,
+while the master and all slaves connected to a master do the postExchange.
+Unconnected slaves do not do the postExchange.
 <li>
   You need to start the event loop in motion.
   
@@ -78,10 +81,14 @@ you can start as follows (which returns and does not open a window):
 <p> Thereafter, you need to invoke the preDraw() method before drawing and
 the postDraw() method after drawing but before buffer swapping.
 
-<p>Anywhere in the source code,
+<p>General issues with the source code,
 <ul>
-<li>
-  Don't call glutSetWindow().  Only one window.  Rewrite the user interface (ha!).
+<li> Do not use GLUT commands to manipulate the OpenGL window. Let Syzygy handle
+that itself.
+<li> You can have access to keyboard events if you set a keyboard callback.
+Otherwise, you will not get these events, and, in general, you will not have
+access to mouse events. Instead you should use
+Syzygy's event processing (of VR-style events, matrices, joystick-type events, etc.)
 </ul>
 
 </body>

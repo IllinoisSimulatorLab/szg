@@ -82,10 +82,15 @@ is called (because database parameters are read in the init(), and some
 of them may require the unit conversion factors), whereas the eye
 spacing and clipping planes should be set <span
  style="font-style: italic;">after</span> init() (because otherwise they
-may be overridden). Both have routines for accessing the Syzygy data
-path, stored on each machine in SZG_DATA/path:<br>
-</p>
-<pre>const string arSZGAppFramework::getDataPath()<br><br></pre>
+may be overridden). 
+
+<p>Both frameworks have a routine for accessing the Syzygy data
+path, stored on each machine in SZG_DATA/path:
+
+<pre>
+  const string arSZGAppFramework::getDataPath()
+</pre>
+
 <p>Input. The frameworks provide methods for polling the current state
 of the various <a href="InputDevices.html">input events</a>:</p>
 <pre>int arSZGAppFramework::getButton( unsigned int index );<br>  Returns the value (0 or 1) of the named button. Button numbering starts<br>  at 0.<br><br>float arSZGAppFramework::getAxis( unsigned int index );<br>  Returns the value of the named axis. Axis numbering starts at 0.<br><br>arMatrix4 arSZGAppFramework::getMatrix( unsigned int index );<br>  Returns the value of the named matrix. Matrix numbering starts at 0.<br>  Note that in our applications the "head matrix" is currently hard-coded as matrix 0<br>  and the "wand matrix" is currently hard-coded as matrix 1. Information<br>  about the arMatrix4 object can be found by examining szg/src/math/arMath.h.<br></pre>
@@ -136,20 +141,44 @@ usage of the distributed shared memory. First, let's outline the methods
 used to set the various callbacks. This also outlines the required
 signatures for the callbacks themselves. Note that each callback
 includes an argument for a framework reference, which will be filled on
-call with a reference to the owning framework object. The initialization
+call with a reference to the owning framework object. The start
 callback also receives a reference to the framework's arSZGClient,
-allowing the callback to, for instance, query the parameter database. </p>
-<pre>void arMasterSlaveFramework::setInitCallback<br>      (bool (*initCallback)(arMasterSlaveFramework&amp; fw,<br>                            arSZGClient&amp; client))<br><br>void arMasterSlaveFramework::setPreExchangeCallback<br>       (void (*preExchange)(arMasterSlaveFramework&amp; fw))<br><br>void arMasterSlaveFramework::setPostExchangeCallback<br>       (bool (*postExchange)(arMasterSlaveFramework&amp; fw))<br><br>void arMasterSlaveFramework::setDrawCallback<br>       (void (*draw)(arMasterSlaveFramework&amp; fw))<br><br>void arMasterSlaveFramework::setPlayCallback<br>       (void (*play)(arMasterSlaveFramework&amp; fw))<br></pre>
+allowing the callback to, for instance, query the parameter database.
+
+<pre>
+  void arMasterSlaveFramework::setStartCallback     
+    (bool (*startCallback)(arMasterSlaveFramework&amp; fw, 
+                           arSZGClient&amp; client))
+    
+  void arMasterSlaveFramework::setPreExchangeCallback
+    (void (*preExchange)(arMasterSlaveFramework&amp; fw))
+    
+  void arMasterSlaveFramework::setPostExchangeCallback
+    (void (*postExchange)(arMasterSlaveFramework&amp; fw))
+    
+  void arMasterSlaveFramework::setDrawCallback
+    (void (*draw)(arMasterSlaveFramework&amp; fw))
+    
+  void arMasterSlaveFramework::setPlayCallback
+    (void (*play)(arMasterSlaveFramework&amp; fw))
+</pre>
+
 <p>An arMasterSlaveFramework application begins by calling the init
 method, passing in the command line parameters: </p>
 <pre>if (!framework.init(argc,argv))<br>  return 1;<br></pre>
 <p>The application should quit if init fails (returns false). </p>
-<p>Next, the various callbacks are set, including the important init
+<p>Next, the various callbacks are set, including the important start
 callback where shared memory is registered. Other application-specific
-initialization can also occur at this time. Finally, the start() method
-sets the application in motion. It first executes the user-defined <em>initCallback(...)</em>
-and then runs an event loop defined by the other callbacks.  As with
-initCallback(...), if start() returns false then the application should
+initialization can also occur at this time, and this callback is guaranteed
+to be called after the graphics window has been initialized, allowing various
+OpenGL-related commands to be used. 
+
+<p>Finally, the start() method
+sets the application in motion by first executing the user-defined 
+startCallback(...). If this callback returns false, the
+start() method returns false. Otherwise, it begins
+running an event loop defined by the other callbacks.  As with
+init(...), if start() returns false then the application should
 terminate. </p>
 <pre>if (!framework.start())<br>  return 1;<br></pre>
 <p>We now detail the event loop: </p>
@@ -221,10 +250,7 @@ only be called on the master in preExchange(). &nbsp;loadNavMatrix(),
 which loads the current navigation matrix onto the OpenGL matrix stack,
 should be called on all instances at the beginning of the drawCallback().<br>
 </p>
-<p>The master/slave framework also includes a facility for generating
-parallel sequences of pseudorandom numbers on the various computers in a
-cluster. Use of this facility requires a modest amount of care, so it is
-separately documented in <a href="RandomNumbers.html">RandomNumbers.html</a>.</p>
+
 <p>Finally, the arMasterSlaveFramework object includes an internal
 graphics database that uses the same API as that used in writing
 distributed scene graph applications. However, in this case, the scene
@@ -302,6 +328,7 @@ to get the name of the navigation matrix node in the <a
 matrices, whatever) that you create to it:<br>
 </p>
 <pre>string arDistSceneGraphFramework::getNavNodeName();<br></pre>
+<hr>
 
 </body>
 </html>
