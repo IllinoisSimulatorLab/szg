@@ -1,8 +1,4 @@
 
-#***************************************************************************
-# Seems reasonable to put the suffix definitions here
-#***************************************************************************
-
 .SUFFIXES : .obj .cpp .c .o .so .lib .dll
 
 .cpp$(OBJ_SUFFIX):
@@ -12,11 +8,7 @@
 	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE)
 
 create-install: Everything
-	$(CP) $(OBJS) $(INSTALLDIR)/temp
 	$(CP) $(ALL) $(INSTALLDIR)/bin	
-
-create-install-exe: Everything
-	$(CP) $(ALL) $(INSTALLDIR)/bin
 
 bin: Everything
 	$(CP) $(ALL) $(BINDIR)
