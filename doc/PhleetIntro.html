@@ -110,6 +110,9 @@ determined as follows:
     </ul>
 </ol>
 
+<p>Please note: All Phleet users MUST be able to change into the directory
+containing the szg.conf file.
+
 <p>Every Syzygy program will try to read the szg.conf config file. It must
 exist for programs to work in Phleet (i.e. clustered) mode but it is not 
 necessary for programs to work in <a href="Standalone.html">standalone</a> 
@@ -124,43 +127,23 @@ flexibility in determining szg.conf's location.
 <li>Login to the computer to be configured.
 <li>You will use the command line to alter szg.conf, whose location is
     either a default or defined via $SZG_CONF, as described at the start of
-    this section.
-<li>On Windows this file is C:\szg\szg.conf
-    (or D:\szg\szg.conf if the C: drive does not exist). Note
-    that this changes the location from previous Syzygy versions. 
-    The change was forced because only an administrator user can write a file 
-    into the top level of the C: drive on WinXP. 
-<li>On Unix the default location is /etc/szg.conf
-    but only root can write this file. So an alternative, world-writeable
-    location, /tmp/szg.conf, can also be used. If /etc/szg.conf exists, the
-    system will ignore /tmp/szg.conf.
-<li>On Unix, in each of dname, daddinterface, ddelinterface, and dports, 
-    the -t option means to use /tmp/szg.conf.
+    this section. 
 <li>Name the computer. This must be unique across all the computers in your
     system. A good choice is the short version of your computer's DNS name
-    (i.e. XXX.YYY.YYY.edu becomes XXX) but other names are possible. If you can
-    write to /etc, it is preferable to use:
+    (i.e. XXX.YYY.YYY.edu becomes XXX) but other names are possible. We assume
+    that you can write to the file's location.
 
 <pre>
   dname the_name
 </pre>
 
-<li>On Unix, if you cannot write to /etc, use:
-
-<pre>
-  dname -t the_name
-</pre>
-
-<li>The -t option is not mentioned when daddinterface, ddelinterface, and 
-    dports are described below. YOU MUST USE IT CONSISTENTLY. In other words, 
-    use it with each of the listed commands or with none of them.
 <li>The syzygy config file contains information about the network interfaces
     in the computer. This information is used, for instance, in automatically
     connecting various components to one another. To add an interface to the 
     config file:
 
 <pre>
-  daddinterface network_name address
+  daddinterface network_name address [netmask]
 </pre>
 
 <li>The network_name gives a descriptive name for the network. Internet 
@@ -175,8 +158,10 @@ flexibility in determining szg.conf's location.
     This network should be one to which all computers in the distributed system
     are connected. Components will expect to connect to the szgserver on this
     network. Furthermore, if components have a choice about how to connect to
-    one another (i.e. they are connected by several networks), they will use
-    the first network to connect.
+    one another (i.e. they are connected by several networks), they will
+    default to using the first network.
+<li>You can optionally specify a netmask for the interface. By default,
+    a netmask of 255.255.255.0 is used.
 <li>One can remove networks from the config file.
 
 <pre>
@@ -220,8 +205,7 @@ flexibility in determining szg.conf's location.
 </pre>
 
 <li>The dconfig command will display the information in the config file Phleet
-    components running on the computer will use. If this seems different from
-    what you typed above, perhaps you used the -t option inconsistently.
+    components running on the computer will use, given 
 </ol>
 
 <a name="RunningSzgserver">
