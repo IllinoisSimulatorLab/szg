@@ -853,8 +853,6 @@ int arGUIWindow::_windowCreation( void )
                            mask, &_windowHandle._attr );
 
    _running = true;
-
-    decorate( _windowConfig._decorate );
   }
 
   XSelectInput( _windowHandle._dpy, _windowHandle._win,
@@ -902,7 +900,9 @@ int arGUIWindow::_windowCreation( void )
     raise();
   }
 
-  XSync( _windowHandle._dpy, True );
+  decorate( _windowConfig._decorate );
+
+  XSync( _windowHandle._dpy, False );
 
   glXMakeCurrent( _windowHandle._dpy, _windowHandle._win, _windowHandle._ctx );
 
@@ -1206,7 +1206,11 @@ void arGUIWindow::decorate( const bool decorate )
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
-  if( !decorate ) {
+  bool set = false;
+
+  XLockDisplay( _windowHandle._dpy );
+
+  if( !decorate && _windowHandle._wHints == None ) {
     // try Motif hints
     if( XInternAtom( _windowHandle._dpy, "_MOTIF_WM_HINTS", False ) != None ) {
       _windowHandle._wHints = XInternAtom( _windowHandle._dpy, "_MOTIF_WM_HINTS", False );
@@ -1240,10 +1244,28 @@ void arGUIWindow::decorate( const bool decorate )
       // couldn't find a decoration hint that matches this window manager.
       // print error/warning?
     }
+
+    set = true;
   }
-  else if( _windowHandle._wHints != None ) {
+  else if( decorate && _windowHandle._wHints != None ) {
     XDeleteProperty( _windowHandle._dpy, _windowHandle._win, _windowHandle._wHints );
+    _windowHandle._wHints = None;
+
+    set = true;
   }
+
+  // Under Xandros 2.0 (a tweaked version of KDE 3.1.4) the window has to be
+  // remapped in order for decoration changes to take.  Unfortunately, this
+  // causes OSX to freak out (the client area of the window blanks to white),
+  // but if the window is /not/ remapped the changes don't take under OSX
+  // either.  Slackware 10.1 (KDE 3.4.0) doesn't need any remapping at all
+  // for the decoration changes to take.
+  if( set ) {
+    XUnmapWindow( _windowHandle._dpy, _windowHandle._win );
+    XMapWindow( _windowHandle._dpy, _windowHandle._win );
+  }
+
+  XUnlockDisplay( _windowHandle._dpy );
 
   #endif
 }
