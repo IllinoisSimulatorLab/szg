@@ -1,0 +1,67 @@
+# No need to set the "include style" as INTERNAL, since we are compiling
+# exe's only.
+
+include $(SZGHOME)/build/make/Makefile.vars
+
+VPATH = ../../../src/utilities
+
+ALL = \
+  calibrationdemo$(EXE) \
+  cubevars$(EXE) \
+  DeskCalibrator$(EXE) \
+  killalldemo$(EXE) \
+  PictureViewer$(EXE) \
+  restarttracker$(EXE) \
+  screensaverdemo$(EXE) \
+  setdemomode$(EXE) \
+  setstereo$(EXE) \
+  StereoViewer$(EXE)
+
+# NOTE: "Everything" is the magic target name used by subsidiary targets
+# like "clean" and "create-install" (which puts all the exe's in a particular
+# place)
+Everything: $(ALL)
+
+# This should go AFTER our FIRST target (because Makefile.rules has rules
+# in it)
+include $(SZGHOME)/build/make/Makefile.rules
+
+calibrationdemo$(EXE): calibrationdemo$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) calibrationdemo$(OBJ_SUFFIX) $(SZG_USR_SECOND)
+	$(COPY)
+
+cubevars$(EXE): cubevars$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) cubevars$(OBJ_SUFFIX) $(SZG_USR_SECOND)
+	$(COPY)
+
+DeskCalibrator$(EXE): DeskCalibrator$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) DeskCalibrator$(OBJ_SUFFIX) $(SZG_USR_SECOND)
+	$(COPY)
+
+killalldemo$(EXE): killalldemo$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) killalldemo$(OBJ_SUFFIX) $(SZG_USR_SECOND)
+	$(COPY)
+
+PictureViewer$(EXE): PictureViewer$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) PictureViewer$(OBJ_SUFFIX) $(SZG_USR_SECOND)
+	$(COPY)
+
+restarttracker$(EXE): restarttracker$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) restarttracker$(OBJ_SUFFIX) $(SZG_USR_SECOND)
+	$(COPY)
+
+screensaverdemo$(EXE): screensaverdemo$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) screensaverdemo$(OBJ_SUFFIX) $(SZG_USR_SECOND)
+	$(COPY)
+
+setdemomode$(EXE): setdemomode$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) setdemomode$(OBJ_SUFFIX) $(SZG_USR_SECOND)
+	$(COPY)
+
+setstereo$(EXE): setstereo$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) setstereo$(OBJ_SUFFIX) $(SZG_USR_SECOND)
+	$(COPY)
+
+StereoViewer$(EXE): StereoViewer$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) StereoViewer$(OBJ_SUFFIX) $(SZG_USR_SECOND)
+	$(COPY)
