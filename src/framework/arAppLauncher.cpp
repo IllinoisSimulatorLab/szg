@@ -214,9 +214,10 @@ bool arAppLauncher::setParameters(){
 /// computer.
 bool arAppLauncher::launchApp(){
   // _prepareCommand() includes the lock to match the _unlock()'s below.
-  if (!_prepareCommand())
+  if (!_prepareCommand()){
     cerr << _exeName << " error: failed to prepare launch command.\n";
     return false;
+  }
 
   if (_appType == "NULL"){
     cerr << _exeName 
