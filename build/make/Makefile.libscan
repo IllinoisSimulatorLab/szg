@@ -289,7 +289,8 @@ ifeq ($(strip $(MACHINE)), DARWIN)
 
 endif
 
-ifeq ($(strip $(MACHINE)), MIPS3)
+ifeq ($(strip $(MACHINE)), SGI)
+  # This could be either mips3 or mips4, so use MACHINE_DIR
   GLUT_DIR := $(SZGEXTERNAL)/$(MACHINE_DIR)/glut-3.6
   INC_GLUT := $(wildcard $(GLUT_DIR)/include/GL)
   LIB_GLUT := $(wildcard $(GLUT_DIR)/lib/libglut.a)
@@ -306,19 +307,3 @@ ifeq ($(strip $(MACHINE)), MIPS3)
   endif
 endif
 
-ifeq ($(strip $(MACHINE)), MIPS4)
-  GLUT_DIR := $(SZGEXTERNAL)/$(MACHINE_DIR)/glut-3.6
-  INC_GLUT := $(wildcard $(GLUT_DIR)/include/GL)
-  LIB_GLUT := $(wildcard $(GLUT_DIR)/lib/libglut.a)
-
-  ifneq ($(strip $(INC_GLUT)),)
-  ifneq ($(strip $(LIB_GLUT)),)
-    SZG_INCLUDE_GLUT = -I$(INC_GLUT)
-    SZG_LINK_LINE_GLUT = -L$(GLUT_DIR)/lib
-    SZG_FILES_GLUT = $(LIB_GLUT)
-
-    SZG_OPT_INCLUDE_FULL += $(SZG_INCLUDE_GLUT)
-    SZG_OPT_LIBS_FULL += $(SZG_LINK_LINE_GLUT)
-  endif
-  endif
-endif
