@@ -297,6 +297,18 @@ is optional.
     the relevant executable. Please try installing cygwin again, this time
     making sure the packages mentioned <a href="#OSBuildInstructions">here</a>
     are included.
+<li>If you are using cygwin on Win32 and see the following error message:
+<pre>
+  link error: too many arguments
+</pre>
+    You should check the which executable you are running as the linker by typing
+    "which link". It is very likely that it will report you are running a cygwin
+    executable, whereas you should be running an executable in a Visual Studio
+    directory. There are various solutions to this problem. One is to simply
+    delete the cygwin executable, another is to change your $PATH environment
+    variable (say via the .bashrc in your home directory that cygwin reads
+    on start up) so that the Visual Studio directory comes first (see
+    <a href="VisualStudioBuildVars.html">here</a> for details).
 </ul>
 
 <p>This process will build a collection of shared libraries that collectively

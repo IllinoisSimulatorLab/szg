@@ -352,8 +352,23 @@ whether or not the developer style is "EASY".
   </ul>
 </ol>
 
-<p>We now examine the contents of szg_app_template, explaining each 
-one.
+<p>PLEASE NOTE: if you are compiling using cygwin on Windows then there can 
+be a problem. The Visual Studio linker is called "link" and some installs of
+cygwin mayn also install a "link" program. If, during your build, you see
+an error message like:
+
+<pre>
+  link error: too many arguments
+</pre>
+
+You will know you are getting the cygwin "link" program by mistake. You can
+solve this problem by typing "which link", seeing where the cygwin "link"
+resides, and removing it, or you can make sure your $PATH environment
+variable has the Visual Studio program in it first (as explained
+<a href="VisualStudioBuildVars.html">here</a>).
+
+<p>With that warning given, we now examine the contents of szg_app_template, 
+explaining each one.
 
 <p><ul>
 <li>szg_app_template/Makefile: The overall Makefile for the template project.

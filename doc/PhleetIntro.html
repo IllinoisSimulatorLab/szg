@@ -12,7 +12,9 @@ should read when beginning to set up a Syzygy cluster. Make sure you read
 the section on <a href="#Firewalls">firewalls</a> with particular care. Also,
 while you can run Syzygy applications without using "virtual computers",
 it is recommended that you read and understand this 
-<a href="#VirtualComputer">section</a>.
+<a href="#VirtualComputer">section</a>. Finally, special command line
+arguments and environment variables can be used to affect the operation
+of your Syzygy programs, as is explained <a href="#Context">here</a>.
 
 <p>
 <ul>
@@ -23,6 +25,7 @@ it is recommended that you read and understand this
 <li><A HREF="#TestingPhleet">Basic Testing of Your Phleet</a>
 <li><A HREF="#ManagingPhleet">Managing the Phleet</a>
 <li><A HREF="#VirtualComputer">Using Virtual Computers</a>
+<li><a href="#Context">Component Contexts in Phleet</a>
 </ul>
 
 <A NAME="Firewalls">
@@ -557,6 +560,144 @@ can directly kill the trigger instance. In our case, that would entail the follo
 <pre>
   dkillall wall
 </pre>
+
+<a name="Context">
+<p><font size=+2>Component Contexts in Phleet</font>
+</a>
+
+<p>Every component in Syzygy is executed in a "context". The context is
+determined via the value of the environment variable SZGCONTEXT and by
+special Phleet args that can be passed to the executable. The context
+determines the overall behavior of the component, whether the component
+is executing as part of a virtual computer, and what networks it will use
+for various sorts of communication. It consists of a list of 
+variable/value pairs of the following:
+
+<pre>
+  virtual=virtual_computer_name
+
+   The name of the virtual computer on which this component is
+   executing. Set to the value "NULL" if it is not executing
+   on a virtual computer (the default).
+
+  mode/default=[trigger, master, component]
+
+   The overall behavior of the component. The "trigger" value
+   causes a syzygy application to run as a trigger instance,
+   launching other necessary components on a virtual computer.
+   The "master" value causes a master/slave component to
+   take the master role. The "component" value is a default
+   and has no effect.
+
+  mode/graphics=SZG_SCREEN(n)
+
+   One of SZG_SCREEN0, SZG_SCREEN1, etc. If the component displays
+   a graphics window, this determines the screen configuration
+   it will use.
+
+  networks/default=network_list
+   
+   The value network_list is a slash-delimited list of network names,
+   like internet/wall. It indicates, in descending order of preference,
+   the network path via which service connections should occur, 
+   assuming that the service type (input, graphics, sound) has
+   not already defined similar information.
+
+  networks/input=network_list
+
+   Defines the network path upon which input-type service connections
+   should occur.
+
+  networks/graphics=network_list
+
+   Defines the network path upon which graphics-type service
+   connections should occur.
+
+  networks/sound=network_list
+
+   Defines the network path upon which sound-type service connections
+   should occur.
+
+  parameter_file=parameter_file_name
+
+   If the application is running in standalone mode (i.e. no distribution),
+   it reads its parameter database from a file in its current working
+   directory. The default file name is szg_parameters.txt, but this can
+   be changed by passing this special parameter. 
+
+  user=syzygy_user_name
+
+    The user under whose auspices the syzygy application will run.
+
+  server=IPaddress/port
+
+    Identifies the location of the szgserver to which the component should
+    attempt to connect.
+</pre> 
+
+<p>The value of SZGCONTEXT consists of a sequence of the above pairs seperated
+by ';'. You can set this environment variable manually to control the behavior
+of Phleet components you run locally. A sample one might look something like:
+
+<pre>
+  virtual=wall;mode/graphics=SZG_SCREEN0;networks/graphics=wall
+</pre>
+
+<p>When launching an application on a virtual computer,
+
+<pre>
+  dex virtual_computer_name application_name
+</pre>
+
+the application launching process will set the context appropriately for
+each launched component. However, sometimes the context must be set manually.
+For instance, if the user wishes to restart an individual component of
+the distributed application. 
+
+<p>This can be done by setting SZGCONTEXT,
+as described above. However, the user can also set the context of well-behaved
+Phleet components by passing special Phleet
+args to the executable. A well-behaved Phleet component will wait to check its
+args until after its arSZGClient has had a chance to read these args and strip
+them from argc/argv. This occurs in arSZGClient::init(...), which is called,
+for instance, in arDistSceneGraphFramework::init(...) and 
+arMasterSlaveFramework::init(...). If the component waits to examine its args
+until after this time, the special Phleet args can be mixed freely with
+other command line args. They consist of "-szg" followed by one of the
+variable/value context pairs listed above. There can be any number of them.
+For instance:
+
+<pre>
+  syzygy_executable -szg virtual=wall -szg networks/graphics=internet
+</pre>
+
+<p>There is one special case when the special Phleet args are not fully stripped.
+The dex command should be able to pass a subset of the special Phleet args on to
+its target szgd. For instance, if an szgrender is to be launched remotely and
+connect to a distributed scene graph application running on a virtual computer,
+we must be able to issue the follow command and have the szgrender launched on
+wall1 read the "virtual=wall" arg.
+
+<pre>
+  dex wall1 szgrender -szg virtual=wall
+</pre>
+
+<p>This is a way in which the special Phleet args are more powerful than the
+SZGCONTEXT variable, since they can be passed along in this special case,
+whereas SZGCONTEXT is only ever evaluated locally. However, SZGCONTEXT has
+the advantage not depending for its proper operation on a Phleet component
+being well-behaved.
+
+<p>On the other hand, dex, along with every other Syzygy component, will strip
+and interpret the "user" and "server" args. This is useful if you want to build
+a command-line based interface that can launch application on various Phleets
+under various user identities, without needing dconfig or dlogin to be run
+on the host machine. This is ideal for a web-based application launcher,
+for instance. Note the example:
+
+<pre>
+  dex my_virtual_computer my_app -szg server=the_IP_address/the_port -szg user=the_user_name
+</pre> 
 
 </body>
 </html>
