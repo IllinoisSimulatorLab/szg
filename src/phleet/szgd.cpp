@@ -29,6 +29,9 @@ public:
   string messageContext;
   string messageBody;
   int receivedMessageID;
+
+  string executableType;
+  string pyDirPath;
 };
 
 // We want to make every trading key unique. Consequently, use a 
@@ -38,6 +41,32 @@ arMutex tradingNumLock;
 arMutex processCreationLock;
 
 arSZGClient* SZGClient = NULL;
+
+string getPythonPath( const string& user, string pyfile ) {
+  // Next, retrieve the python path.
+  string pythonDataPath = SZGClient->getAttribute(user, "NULL", "SZG_PYTHON", "path", "");
+  if (pythonDataPath == "NULL") {
+    cout << "szgd error: SZG_PYTHON/path not set.\n";
+    return "NULL";
+  }
+  string fileDirectory = pyfile.substr( 0, pyfile.length()-3 );
+  arPathString pyPath( pythonDataPath );
+  pyPath /= fileDirectory;
+  bool exists, isDirectory;
+  if (!ar_directoryExists( pyPath, exists, isDirectory )) {
+    if (!exists) {
+      cerr << "szgd error: directory " << pyPath << " does not exist.\n";
+      return "NULL";
+    }
+    if (!isDirectory) {
+      cerr << "szgd error: " << pyPath << " is not a directory.\n";
+      return "NULL";
+    }
+    cerr << "szgd error: ar_directoryExists() failed.\n";
+    return "NULL";
+  }
+  return pyPath;
+}
 
 // Given the specified user and argument string, contact the szgserver and
 // determine the user's execution path. Next, given the arg string sent to 
@@ -63,12 +92,13 @@ arSZGClient* SZGClient = NULL;
 //    1. if we are executing a native program, this will be the arglist after
 //       the exename (i.e. on unix argv[1]... argv[argc-1])
 //    2. for python, this will be the full exename plus the args.
-bool buildFunctionArgs(const string& user,
-                       const string& argString,
+bool buildFunctionArgs(ExecutionInfo* execInfo,
                        string& execPath,
                        string& symbolicCommand,
                        string& command,
                        list<string>& args){
+  string user = execInfo->userName;
+  string argString = execInfo->messageBody;
   // First, clear "args" and tokenize the argString, placing the first token
   // in command and the other tokens in the args list. 
   // The first element is our candidate for the execuatble, either
@@ -104,30 +134,43 @@ bool buildFunctionArgs(const string& user,
   //      this fails.
   command = ar_stripExeName(command);
   symbolicCommand = command;
-  string executableType;
-  if (command.substr(command.length()-3, 3) == ".py"){
-    executableType = "python";
+  string fileName;
+  if (command.substr(command.length()-3, 3) == ".py") {
+    execInfo->executableType = "python";
+    fileName = command;
+    // Next, retrieve the python path.
+    execInfo->pyDirPath = getPythonPath( user, fileName );
+    if (execInfo->pyDirPath == "NULL") {
+      cerr << "szgd error: getPythonPath() failed.\n";
+      return false;
+    }
+    command = ar_fileFind( fileName, "", execInfo->pyDirPath);
+    if (command == "NULL") {
+      cerr << "szgd error: could not find file " << fileName
+           << "\n  on python source path " << execInfo->pyDirPath << ".\n";
+      return false;
+    }
   }
-  else{
-    executableType = "native";
+  else {
+    execInfo->executableType = "native";
 #ifdef AR_USE_WIN_32
     command = command + ".EXE";
 #endif
-  }
-  string fileName = command;
-  command = ar_fileFind(fileName, "", execPath);
-  if (command == "NULL"){
-    cout << "szgd error: could not find file " << fileName
-	 << "\n  on exec path " << execPath << ".\n";
-    return false;
+    fileName = command;
+    command = ar_fileFind(fileName, "", execPath);
+    if (command == "NULL") {
+      cout << "szgd error: could not find file " << fileName
+           << "\n  on exec path " << execPath << ".\n";
+      return false;
+    }
   }
 
   // If we did find the file, the next step depends on what sort of executable
   // we have.
-  if (executableType == "native"){
+  if (execInfo->executableType == "native"){
     // Nothing to do here
   }
-  else if (executableType == "python"){
+  else if (execInfo->executableType == "python"){
     // The command needs to be changed to "python" and the former command
     // needs to be push onto the front of the args list.
     args.push_front(command);
@@ -151,7 +194,7 @@ bool buildFunctionArgs(const string& user,
   cout << "szgd remark:\n"
        << "  user name=" << user << ".\n"
        << "  executable name=" << command << ".\n"
-       << "  executable type=" << executableType << ".\n"
+       << "  executable type=" << execInfo->executableType << ".\n"
        << "  arg list=(";
   for (list<string>::iterator iter = args.begin();
        iter != args.end(); iter++){
@@ -242,7 +285,7 @@ void execProcess(void* i){
   string symbolicCommand;
   string newCommand;
   list<string> mangledArgList;
-  if (!buildFunctionArgs(userName, messageBody, execPath, 
+  if (!buildFunctionArgs( execInfo, execPath, 
                          symbolicCommand,
                          newCommand, mangledArgList)){
     info << "szgd error: failed to find file " << symbolicCommand << "\n"
@@ -269,6 +312,36 @@ void execProcess(void* i){
   int match = SZGClient->startMessageOwnershipTrade(receivedMessageID,
 					            tradingKey);
 #ifndef AR_USE_WIN_32
+  
+  //*******************************************************************
+  //*******************************************************************
+  // Get directories to prepend to PYTHONPATH. This stuff needs to
+  // go here because we can't use SZGClient->getAttribute() in the
+  // child after the fork().
+  //*******************************************************************
+  //*******************************************************************
+  string pythonPath;
+  string pyLibPath;
+  string szgExecPath;
+  if (execInfo->executableType == "python") {
+    cerr << "python if.\n";
+    pythonPath = ar_getenv( "PYTHONPATH" );
+    pyLibPath = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "path", "");
+    if (pyLibPath == "NULL"){
+      cout << "szgd warning: SZG_PYTHON/path not set.\n";
+    }
+    // also add the user's SZG_EXEC path to the PYTHON PATH
+    // (for platform-specific modules, e.g. PySZG).
+    szgExecPath = SZGClient->getAttribute(userName, "NULL", "SZG_EXEC", "path", "");
+    if (szgExecPath == "NULL"){
+      cout << "szgd warning: exec path not set.\n";
+    }
+    // python wants path elements separated by colons (I think).
+    unsigned int pos;
+    while ((pos = szgExecPath.find(";")) != string::npos) {
+      szgExecPath.replace( pos, 1, ":" );
+    }
+  }
   //*******************************************************************
   //*******************************************************************
   // Code for spawning a new process on Unix (i.e. Linux, OS X, Irix)
@@ -368,7 +441,14 @@ void execProcess(void* i){
     ar_setenv("SZGCONTEXT",messageContext);
     ar_setenv("SZGPIPEID", pipeDescriptors[1]);
     ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
-
+    if (execInfo->executableType == "python") {
+      cerr << "python if.\n";
+      // Python prepends the dir containing the .py file to the PYTHONPATH.
+      pythonPath = pyLibPath + ":" + szgExecPath + ":" + pythonPath;
+//      pythonPath = execInfo->pyDirPath + ":" + pyLibPath + ":" + szgExecPath + ":" + pythonPath;
+      ar_setenv("PYTHONPATH",pythonPath);
+      cerr << "done python if.\n";
+    }
     info << "szgd remark: running " << symbolicCommand << " on path\n"
          << execPath << ".\n";
 
@@ -444,6 +524,14 @@ void execProcess(void* i){
   // (another solution would be to figure out a way to send the spawned process
   // a message)
   ar_mutex_lock(&processCreationLock);
+//  arEnvMap_t envMap;
+//  ar_getEnvVarMap( envMap );
+//  arEnvMap_t::iterator envIter = envMap.find( "PYTHONPATH" );
+//  if (envIter == envMap.end()) {
+//    cerr << "PYTHONPATH variable not found.\n";
+//  } else {
+//    cerr << "PYTHONPATH = " << envIter->second << endl;
+//  }
   // Set a few env vars for the child process.
   ar_setenv("SZGUSER",userName);
   ar_setenv("SZGCONTEXT",messageContext);
@@ -454,6 +542,25 @@ void execProcess(void* i){
   // (where this would be a file descriptor)
   ar_setenv("SZGPIPEID", -1);
   ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
+
+  string oldPythonPath;
+  if (execInfo->executableType == "python") {
+    string oldPythonPath = ar_getenv( "PYTHONPATH" );
+    string pyLibPath = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "path", "");
+    if (pyLibPath == "NULL"){
+      cout << "szgd warning: SZG_PYTHON/path not set.\n";
+    }
+    // (for platform-specific modules, e.g. PySZG).
+    string execPath = SZGClient->getAttribute(userName, "NULL", "SZG_EXEC", "path", "");
+    if (execPath == "NULL"){
+      cout << "szgd warning: exec path not set.\n";
+    }
+//cerr << execInfo->pyDirPath << endl << pyLibPath << endl << execPath << endl << oldPythonPath << endl << endl;
+    // In Windows (maybe linux too), the directory containing the .py file is prepended to
+    // the pythonpath by python
+    string pythonPath = pyLibPath + ";" + execPath + ";" + oldPythonPath;
+    ar_setenv("PYTHONPATH",pythonPath);
+  }
 
   // Stagger launches so the cluster's file server isn't hit so hard.
   randomDelay();
@@ -477,6 +584,9 @@ void execProcess(void* i){
                      NULL, NULL, false,
                      NORMAL_PRIORITY_CLASS, NULL, NULL, 
                      &si, &theInfo)){
+    if (execInfo->executableType == "python") {
+      ar_setenv( "PYTHONPATH", oldPythonPath );
+    }
     ar_mutex_unlock(&processCreationLock);
     info << "szgd warning: failed to exec \"" << command
          << " with args " << argsBuffer
@@ -488,6 +598,9 @@ void execProcess(void* i){
     SZGClient->messageResponse(receivedMessageID, info.str());
   }
   else{
+    if (execInfo->executableType == "python") {
+      ar_setenv( "PYTHONPATH", oldPythonPath );
+    }
     ar_mutex_unlock(&processCreationLock);
     // the spawned process will be responding
     if (!SZGClient->finishMessageOwnershipTrade(match, 10000)){
