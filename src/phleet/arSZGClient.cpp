@@ -1286,7 +1286,9 @@ bool arSZGClient::messageResponse(int messageID, const string& body,
   if (!_connected){
     return false;
   }
-  const string& statusField = partialResponse ? string("SZG_CONTINUE") : 
+  // Do not use a const string& here. That is the equivalent of a pointer
+  // to a temporary.
+  const string statusField = partialResponse ? string("SZG_CONTINUE") : 
                                                 string("SZG_SUCCESS");
   // Must get storage for the message.
   arStructuredData* messageAdminData
