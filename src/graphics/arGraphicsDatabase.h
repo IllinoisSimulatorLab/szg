@@ -65,6 +65,8 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   arMatrix4 accumulateTransform(int nodeID);
   arMatrix4 accumulateTransform(int startNodeID, int endNodeID);
 
+  void setVRCameraID(int cameraID);
+
   void draw();
   int intersect(const arRay&);
   list<int>* intersectList(const arRay&);
@@ -120,11 +122,9 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   pair<int,arLight*>             _lightContainer[8];
   // information about the auxilliary cameras in the scene...
   // the "VR camera" is still privileged as a default.
-//  int                            _cameraID;
   pair<int,arPerspectiveCamera*> _cameraContainer[8];
-  // information about the "ad hoc" local camera
-//  float _localCameraFrustum[6];
-//  float _localCameraLookat[9];
+  // The ID of the node that contains the VR camera information.
+  int _viewerNodeID;
 
   void _draw(arGraphicsNode*, stack<arMatrix4>&);
   void _intersect(arGraphicsNode*, float&, int&, stack<arRay>&);

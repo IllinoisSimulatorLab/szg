@@ -45,12 +45,13 @@ SZG_CALL arGraphicsNode* dgGetNode(const string& nodeName);
 SZG_CALL arDatabaseNode* dgMakeNode(const string&, const string&, 
                                     const string&);
 
-SZG_CALL bool dgViewer( const arHead& head );
+SZG_CALL int  dgViewer( const string& parent, const arHead& head);
+SZG_CALL bool dgViewer( int ID, const arHead& head );
 
-SZG_CALL bool dgViewer(const arMatrix4& headMatrix, const arVector3& midEyeOffset, 
-                      const arVector3& eyeDirection,
-                      float eyeSpacingFeet, float nearClip, float farClip,
-                      float unitConversion, bool fixedHeadMode );
+//SZG_CALL bool dgViewer(const arMatrix4& headMatrix, const arVector3& midEyeOffset, 
+//                    const arVector3& eyeDirection,
+//                    float eyeSpacingFeet, float nearClip, float farClip,
+//                    float unitConversion, bool fixedHeadMode );
 
 // I think that this guy is now gone...
 //SZG_CALL bool dgViewer(const arMatrix4&, const arVector3&, const arVector3&, 

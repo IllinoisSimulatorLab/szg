@@ -73,6 +73,9 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
 
   bool _disabled;
 
+  // We need to keep track of the node we use for the 
+  int _VRCameraID;
+
   // stuff for standalone mode only
   arGraphicsClient    _graphicsClient;
   arSoundClient       _soundClient;

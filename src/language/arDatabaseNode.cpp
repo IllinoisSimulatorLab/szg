@@ -48,14 +48,14 @@ void arDatabaseNode::setName(const string& name){
 arDatabaseNode* arDatabaseNode::findNode(const string& name){
   arDatabaseNode* result = NULL;
   bool success = false;
-  _findNode(result, name, success);
+  _findNode(result, name, success, true);
   return result;
 }
 
 arDatabaseNode* arDatabaseNode::findNodeByType(const string& nodeType){
   arDatabaseNode* result = NULL;
   bool success = false;
-  _findNodeByType(result, nodeType, success);
+  _findNodeByType(result, nodeType, success, true);
   return result;
 }
 
@@ -93,9 +93,10 @@ void arDatabaseNode::_dumpGenericNode(arStructuredData* theData,int IDField){
 
 void arDatabaseNode::_findNode(arDatabaseNode*& result,
                                const string& name,
-                               bool& success){
+                               bool& success,
+                               bool checkTop){
   // First, check self.
-  if (getName() == name){
+  if (checkTop && getName() == name){
     success = true;
     result = this;
     return;
@@ -117,15 +118,16 @@ void arDatabaseNode::_findNode(arDatabaseNode*& result,
       // we're already done.
       return;
     }
-    (*i)->_findNode(result, name, success);
+    (*i)->_findNode(result, name, success, true);
   }
 }
 
 void arDatabaseNode::_findNodeByType(arDatabaseNode*& result,
                                      const string& nodeType,
-                                     bool& success){
+                                     bool& success,
+                                     bool checkTop){
   // First, check self.
-  if (getTypeString() == nodeType){
+  if (checkTop && getTypeString() == nodeType){
     success = true;
     result = this;
     return;
@@ -147,7 +149,7 @@ void arDatabaseNode::_findNodeByType(arDatabaseNode*& result,
       // we're already done.
       return;
     }
-    (*i)->_findNodeByType(result, nodeType, success);
+    (*i)->_findNodeByType(result, nodeType, success, true);
   }
 }
 

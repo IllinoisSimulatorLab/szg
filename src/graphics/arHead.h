@@ -15,7 +15,7 @@ class arGraphicsScreen;
 class SZG_CALL arHead {
   friend class arViewerNode;
   friend class arMasterSlaveFramework;
-  friend SZG_CALL bool dgViewer( const arHead& head );
+  friend SZG_CALL bool dgViewer( int ID, const arHead& head );
  public:
   arHead();
   virtual ~arHead() {}

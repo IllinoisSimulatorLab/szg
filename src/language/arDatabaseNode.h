@@ -75,9 +75,10 @@ class SZG_CALL arDatabaseNode{
   bool       _invalidUpdateTime;
 
   void _dumpGenericNode(arStructuredData*, int);
-  void _findNode(arDatabaseNode*& result, const string& name, bool& success);
+  void _findNode(arDatabaseNode*& result, const string& name, bool& success,
+		 bool checkTop);
   void _findNodeByType(arDatabaseNode*& result, const string& nodeType,
-                       bool& success);
+                       bool& success, bool checkTop);
   void _printStructureOneLine(int level, int maxLevel, ostream& s);
 };
 

@@ -9,7 +9,8 @@
 
 arGraphicsDatabase::arGraphicsDatabase() :
   _texturePath(new list<string>),
-  _alphabet(new arTexture*[26])
+  _alphabet(new arTexture*[26]),
+  _viewerNodeID(-1)
 {
   _lang = (arDatabaseLanguage*)&_gfx;
   if (!_initDatabaseLanguage())
@@ -356,71 +357,19 @@ arMatrix4 arGraphicsDatabase::accumulateTransform(int startNodeID, int endNodeID
   return accumulateTransform(startNodeID).inverse() * accumulateTransform(endNodeID);
 }
 
+void arGraphicsDatabase::setVRCameraID(int cameraID){
+  arStructuredData cameraData(_lang->find("graphics admin"));
+  cameraData.dataInString("action", "camera_node");
+  cameraData.dataIn("node_ID", &cameraID, AR_INT, 1);
+  arGraphicsDatabase::alter(&cameraData);
+}
+
 arTexture* arGraphicsDatabase::addTexture(int w, int h, 
                                           bool alpha, const char* pixels){
   arTexture* t = new arTexture;
   t->fill(w, h, alpha, pixels);
   return t;
 }
-
-//void arGraphicsDatabase::setViewTransform(arScreenObject* screenObject,
-//                                          float eyeSign){
-////   When eyeSign = -1, we're talking about the left eye. When eyeSign = 1,
-////   we're talking about the right eye.  Consequently, eyeOffset is the
-////   vector from midEyeOffset (between the eyes) to the right eye!
-
-//  arMatrix4 headMatrix(ar_identityMatrix());
-//  arVector3 midEyeOffset(0,0,0);
-//  arVector3 eyeDirection(1,0,0);
-//  float eyeSpacing = 0.;
-//  float nearClip = 1.;
-//  float farClip = 1000.;
-//  float unitConversion = 1.;
-
-//  arDatabaseNode* viewerNode = getNode("szg_viewer");
-//  if (_cameraID == -2){
-//    glMatrixMode(GL_PROJECTION);
-//    glLoadIdentity();
-//    glFrustum(_localCameraFrustum[0], _localCameraFrustum[1], 
-//              _localCameraFrustum[2], _localCameraFrustum[3], 
-//              _localCameraFrustum[4], _localCameraFrustum[5]);
-//    glMatrixMode(GL_MODELVIEW);
-//    glLoadIdentity();
-//      
-//    gluLookAt(_localCameraLookat[0], _localCameraLookat[1], 
-//              _localCameraLookat[2], _localCameraLookat[3], 
-//              _localCameraLookat[4], _localCameraLookat[5],
-//              _localCameraLookat[6], _localCameraLookat[7], 
-//              _localCameraLookat[8]);
-//  }
-//  else if (_cameraID == -1 || !_cameraContainer[_cameraID].second){
-////     if we are set to be *not* the default camera but there is no referenced
-////     camera, then set camera back to default
-//    _cameraID = -1;
-////     this is the default "VR camera"
-//    if (viewerNode) {
-//      arHead head = ((arViewerNode*)viewerNode)->getHead();
-//      headMatrix = head.transform;
-//      midEyeOffset = head.midEyeOffset;
-//      eyeDirection = head.eyeDirection;
-//      eyeSpacing = head.eyeSpacing;
-//      nearClip = head.nearClip;
-//      farClip = head.farClip;
-//      unitConversion = head.unitConversion;
-//    }
-
-//    screenObject->setViewTransform(
-//      nearClip, farClip, unitConversion, eyeSpacing, 
-//      midEyeOffset, eyeDirection);
-//    screenObject->loadViewMatrices( eyeSign, headMatrix );
-//  }
-//  else{
-//    _cameraContainer[_cameraID].second->loadViewMatrices();
-//    arMatrix4 cameraTransform 
-//      = !accumulateTransform(_cameraContainer[_cameraID].first);
-//    glMultMatrixf(cameraTransform.v);
-//  }
-//}
 
 void arGraphicsDatabase::draw(){
   // replaces gl matrix stack... we want to support VERY deep trees
@@ -590,7 +539,15 @@ void arGraphicsDatabase::activateLights(){
 }
 
 arHead* arGraphicsDatabase::getHead() {
-  arViewerNode* viewerNode = (arViewerNode*)getNode("szg_viewer");
+  // This is a bit of a HACK! Somehow, we neeed to know where the head
+  // description for the VR camera is located.
+  arViewerNode* viewerNode = NULL;
+  if (_viewerNodeID != -1){
+    viewerNode = (arViewerNode*) getNode(_viewerNodeID);
+  }
+  if (!viewerNode){
+    viewerNode = (arViewerNode*) getNode("szg_viewer");
+  }
   if (!viewerNode) {
     cerr << "arGraphicsDatabase error: getHead() failed.\n";
     return 0;
@@ -712,14 +669,29 @@ arDatabaseNode* arGraphicsDatabase::_makeNode(const string& type){
 
 arDatabaseNode* arGraphicsDatabase::_processAdmin(arStructuredData* data){
   string name = data->getDataString("name");
-  cout << "arGraphicsDatabase remark: using texture bundle " << name << "\n";
-  arSlashString bundleInfo(name);
-  if (bundleInfo.size() != 2){
-    cout << "arGraphicsDatabase error: got garbled texture bundle "
-	 << "identification.\n";
-    return &_rootNode;
+  string action = data->getDataString("action");
+  if (action == "remote_path"){
+    cout << "arGraphicsDatabase remark: using texture bundle " << name << "\n";
+    arSlashString bundleInfo(name);
+    if (bundleInfo.size() != 2){
+      cout << "arGraphicsDatabase error: got garbled texture bundle "
+	   << "identification.\n";
+      return &_rootNode;
+    }
+    setDataBundlePath(bundleInfo[0], bundleInfo[1]);
   }
-  setDataBundlePath(bundleInfo[0], bundleInfo[1]);
+  else if (action == "camera_node"){
+    int nodeID = data->getDataInt("node_ID");
+    // If we have a node with this ID, then go ahead and set the camera to it.
+    arDatabaseNode* node = getNode(nodeID);
+    if (node && node->getTypeString() == "viewer"){
+      _viewerNodeID = nodeID;
+    }
+    else{
+      cout << "arGraphicsDatabase warning: no viewer node with "
+	   << "ID=" << nodeID << ".\n";
+    }
+  }
   return &_rootNode;
 }
 

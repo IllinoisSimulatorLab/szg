@@ -82,8 +82,12 @@ class SZG_CALL arStructuredData {
    string getDataString(const string& fieldName);
    int getDataInt(int id)
      { int x; return dataOut(id, &x, AR_INT, 1) ? x : -1; }
+   int getDataInt(const string& fieldName)
+     { int x; return dataOut(fieldName, &x, AR_INT, 1) ? x : -1; }
    float getDataFloat(int id)
      { float x; return dataOut(id, &x, AR_FLOAT, 1) ? x : 0.; }
+   float getDataFloat(const string& fieldName)
+     { float x; return dataOut(fieldName, &x, AR_FLOAT, 1) ? x : 0.; }
 
    /// Useful for manipulating big chunks of data with fewer mem copies.
    /// Experimenting here with not requiring data type.

@@ -48,6 +48,9 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
         f->_userMessageCallback(*f, messageBody);
       }
     }
+    else if (messageType=="print"){
+      f->getDatabase()->printStructure();
+    }
   }
 }
 
@@ -143,6 +146,7 @@ arDistSceneGraphFramework::arDistSceneGraphFramework() :
   _headMatrixID(AR_VR_HEAD_MATRIX_ID),
   _graphicsNavMatrixID(-1),
   _soundNavMatrixID(-1),
+  _VRCameraID(-1),
   _standaloneControlMode("simulator"),
   _peerName("NULL"),
   _peerMode("source"),
@@ -193,7 +197,15 @@ void arDistSceneGraphFramework::swapBuffers(){
 
 void arDistSceneGraphFramework::setViewer(){
   _head.setMatrix( _inputDevice->getMatrix(_headMatrixID) );
-  dgViewer( _head );
+  // Make sure that we route the information to the right spot.
+  if (_peerName != "NULL"){
+    // We must be in peer mode.
+    _graphicsPeer.setVRCameraID(_VRCameraID);
+  }
+  else{
+    _graphicsServer.setVRCameraID(_VRCameraID);
+  }
+  dgViewer( _VRCameraID, _head );
 }
 
 void arDistSceneGraphFramework::setPlayer(){
@@ -617,7 +629,7 @@ void arDistSceneGraphFramework::_initDatabases(){
   
   // Set up a default viewing position.
   
-  dgViewer( _head );
+  _VRCameraID = dgViewer( "root", _head );
 
   
   // Set up a default listening position.

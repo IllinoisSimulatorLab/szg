@@ -68,14 +68,23 @@ arDatabaseNode* dgMakeNode(const string& name,
   return __currentGraphicsDatabase->alter(data);
 }
 
-// This function is a friend of arHead
-bool dgViewer( const arHead& head ) {
-  arDatabaseNode* node 
+int dgViewer( const string& parent, const arHead& head){
+  arDatabaseNode* node = dgMakeNode("szg_viewer", parent, "viewer");
+  return node && dgViewer(node->getID(), head) ? node->getID() : -1;
+}
+
+// This function is a friend of arHead, in order to directly access the data
+// it holds.
+bool dgViewer( int ID, const arHead& head ) {
+  /*arDatabaseNode* node 
     = __currentGraphicsDatabase->getNode("szg_viewer", false);
   if (!node){
     node = dgMakeNode("szg_viewer","root","viewer");
   }
-  const ARint ID = node->getID();
+  const ARint ID = node->getID();*/
+  if (ID < 0){
+    return false;
+  }
   arStructuredData* data = __currentGraphicsDatabase->viewerData;
   if (!data->dataIn(__gfx.AR_VIEWER_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_VIEWER_MATRIX, head._matrix.v ,AR_FLOAT,AR_FLOATS_PER_MATRIX) ||
@@ -92,12 +101,10 @@ bool dgViewer( const arHead& head ) {
   return __currentGraphicsDatabase->alter(data) ? true : false;
 }
 
-bool dgViewer(const arMatrix4& headMatrix, const arVector3& midEyeOffset,
+/*bool dgViewer(const arMatrix4& headMatrix, const arVector3& midEyeOffset,
 	     const arVector3& eyeDirection, float eyeSpacing,
 	     float nearClip, float farClip, float unitConversion,
              bool fixedHeadMode ){
-  // AARGH! THIS IS NOT GOOD! getNode(nodeName) has become a very, very slow
-  // command!
   arDatabaseNode* node 
     = __currentGraphicsDatabase->getNode("szg_viewer", false);
   if (!node){
@@ -119,7 +126,7 @@ bool dgViewer(const arMatrix4& headMatrix, const arVector3& midEyeOffset,
     return false;
   }
   return __currentGraphicsDatabase->alter(data) ? true : false;
-}
+  }*/
 
 int dgTransform(const string& name, const string& parent,
                 const arMatrix4& matrix){

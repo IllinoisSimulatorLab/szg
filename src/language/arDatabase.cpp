@@ -109,7 +109,7 @@ arDatabaseNode* arDatabase::getNode(const string& name, bool fWarn) {
   // conducts a breadth-first search for the node with the given name.
   arDatabaseNode* result = NULL;
   bool success = false;
-  _rootNode._findNode(result, name, success);
+  _rootNode._findNode(result, name, success, true);
   if (!success && fWarn){
     cerr << "arDatabase warning: no node \"" << name << ".\n";
   }
@@ -120,7 +120,7 @@ arDatabaseNode* arDatabase::getNode(const string& name, bool fWarn) {
 arDatabaseNode* arDatabase::findNode(const string& name){
   arDatabaseNode* result = NULL;
   bool success = false;
-  _rootNode._findNode(result, name, success);
+  _rootNode._findNode(result, name, success, true);
   return result;
 }
 
@@ -229,7 +229,7 @@ bool arDatabase::handleDataQueue(ARchar* theData){
            << i+1 << " of " << numberRecords << ".\n";
       // We could process the remaining records, but better to tell caller
       // that an error happened.
-      return false;
+      //return false;
     }
     position += theSize;
     if (position > bufferSize){
@@ -796,7 +796,10 @@ void arDatabase::_eraseNode(arDatabaseNode* node){
     node->_children.clear();
   }
 }
-
+// BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
+// This is recreates the mapping algorithm in filter and is WRONG
+// in that it has problems with nodes that share the same type and
+// name with their parents.
 void arDatabase::_createNodeMap(arDatabaseNode* localNode, 
                                 int externalNodeID, 
                                 arDatabase* externalDatabase, 
@@ -952,11 +955,14 @@ int arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
     // and the same type? Everything will get redundantly mapped to them!
     // This is really a serious problem.
     // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
+    // Furthermore, what if the parent has a child of the same name and
+    // and type? This could result in an incorrect mapping to the parent
+    // node. Consequently, only strictly look at the children
     if (nodeType == "name"){
-      currentParent->_findNodeByType(target, nodeType, success);
+      currentParent->_findNodeByType(target, nodeType, success, false);
     }
     else{
-      currentParent->_findNode(target, nodeName, success);
+      currentParent->_findNode(target, nodeName, success, false);
     }
     if (!allNew && success && target->getTypeString() == nodeType){
       // go ahead and map to this node.

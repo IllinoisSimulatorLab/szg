@@ -261,7 +261,6 @@ void display(){
     ar_usleep(200000);
   }
   if (makeNice){
-    cout << "BLAARGH!\n";
     // Do not have this be a default for szgrender. It seriously throttles
     // the framerate of high framerate displays.
     ar_usleep(2000);
