@@ -61,6 +61,7 @@ void arSoundFileNode::_adjust(bool useTrigger){
 }
 
 void arSoundFileNode::render(){
+#ifdef EnableSound
   // Output some user warnings.=, just in case bogus values are being inputed.
   if (_amplitude < 0.) {
     if (!_fComplained[0]) {
@@ -147,6 +148,7 @@ void arSoundFileNode::render(){
       _action = "none";
     }
   }
+#endif
 }
 
 arStructuredData* arSoundFileNode::dumpData(){
