@@ -229,6 +229,7 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
         ar_scrubPath(potentialFileName);
         fDone = theTexture->readImage(potentialFileName.c_str(), *theAlpha,
 				      false);
+	theTexture->mipmap(true);
         if (fDone){
 	  // Don't look anymore. Success!
 	  break;
@@ -250,6 +251,7 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
       // starting with the current working directory, by doing this.
       fDone = theTexture->readImage(potentialFileName.c_str(), *theAlpha, 
                                     false);
+      theTexture->mipmap(true);
     }
     static bool fComplained = false;
     if (!fDone){

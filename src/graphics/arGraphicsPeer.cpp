@@ -333,6 +333,9 @@ arGraphicsPeer::arGraphicsPeer(){
   _dumped = false;
 
   _readWritePath = "";
+
+  _bridgeDatabase = NULL;
+  _bridgeRootMapNode = NULL;
 }
 
 arGraphicsPeer::~arGraphicsPeer(){
@@ -533,6 +536,9 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
     // If we are actually going to the local database, go ahead and get the
     // result from that...
     result = arGraphicsDatabase::alter(data);
+    if (_bridgeDatabase){
+      _sendDataToBridge(data);
+    }
     // If a new node has been created, we need to augment the node
     // map for this connection.
     if (potentialNewNodeID > 0 && result){
@@ -1354,3 +1360,50 @@ void arGraphicsPeer::_recDataOnOff(arDatabaseNode* pNode,
     _recDataOnOff(*i, value, filterMap);
   }
 }
+
+/// There is a *hack* whereby data is transfered to the "bridge"
+/// database. Note that we need to filter before putting into the bridge
+/// AND restore the record (since filtering can alter the "make node"
+/// message in place.
+void arGraphicsPeer::_sendDataToBridge(arStructuredData* data){
+  int parentID, nodeID;
+  // Some fields may be altered by the maps!
+  if (data->getID() == _lang->AR_MAKE_NODE){
+    parentID = data->getDataInt(_lang->AR_MAKE_NODE_PARENT_ID);
+    nodeID = data->getDataInt(_lang->AR_MAKE_NODE_ID);
+  }
+  else if (data->getID() == _lang->AR_ERASE){
+    // NOT HANDLED!
+    // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
+  }
+  else{
+    nodeID = data->getDataInt(_routingField[data->getID()]);
+  }
+  // The filterIDs parameter is NULL because there is no need to
+  // construct a reverse map... nothing is coming back... the bridge is
+  // one way.
+  int potentialNewNodeID = _filterIncoming(_bridgeRootMapNode,
+                                           data,
+				           _bridgeInMap,
+				           NULL,
+                                           false);
+  arDatabaseNode* result = _bridgeDatabase->alter(data);
+  if (potentialNewNodeID > 0 && result){
+    _bridgeInMap.insert(map<int, int, less<int> >::value_type
+      (potentialNewNodeID, result->getID()));
+  }
+  // Must put the piece of data back the way it was, if it was 
+  if (data->getID() == _lang->AR_MAKE_NODE){
+    data->dataIn(_lang->AR_MAKE_NODE_PARENT_ID, &parentID, AR_INT, 1);
+    nodeID = data->dataIn(_lang->AR_MAKE_NODE_ID, &nodeID, AR_INT, 1);
+  }
+  else if (data->getID() == _lang->AR_ERASE){
+    // NOT HANDLED!
+    // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
+  }
+  else{
+    data->dataIn(_routingField[data->getID()], &nodeID, AR_INT, 1);
+  }
+}
+
+

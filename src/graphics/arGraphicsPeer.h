@@ -75,6 +75,14 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   bool start();
   void stop();
 
+  void setBridge(arGraphicsDatabase* database){
+    _bridgeDatabase = database;
+    _bridgeRootMapNode = database->getRoot();
+  }
+  void setBridgeRootMapNode(arDatabaseNode* node){
+    _bridgeRootMapNode = node;
+  }
+
   arDatabaseNode* alter(arStructuredData*);
 
   // These functions are virtual so that they, by default, can use a path.
@@ -159,6 +167,14 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   // A path for reading and writing info might be specified.
   string _readWritePath;
 
+  // As a preliminary HACK for drawing a peer in a CLUSTER display environment,
+  // we might have a "bridge" to a local database. The bridge database might,
+  // for instance, be an arGraphicsServer embedded in an 
+  // arDistSceneGraphFramework.
+  arGraphicsDatabase* _bridgeDatabase;
+  map<int, int, less<int> > _bridgeInMap;
+  arDatabaseNode*           _bridgeRootMapNode;
+
   bool _setRemoteLabel(arSocket* sock, const string& name);
   bool _serializeAndSend(arSocket* socket, int remoteRootID, bool sendOn);
   void _serializeDoneNotify(arSocket* socket);
@@ -178,6 +194,7 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   void _recDataOnOff(arDatabaseNode* pNode,
                      int value,
                      map<int, int, less<int> >& filterMap);
+  void _sendDataToBridge(arStructuredData*);
 };
 
 #endif
