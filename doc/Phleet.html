@@ -67,7 +67,6 @@ manually thereon.
 <li> <a href="#Szgd">szgd</a>
 <li> <a href="#Names">Names, According to szgserver</a>
 <li> <a href="#User">How Clients Determine the Current User?</a>
-<li> <a href="#Lightweight">Integrating Lightweight Interfaces</a>
 <li> <a href="#CommandLine">Command Line Tools, Organized by Functionality</a>
 <li> <a href="#Message">How Do Clients Message Each Other (via szgserver)</a>
 <li> <a href="#MessageMethod">arSZGClient Methods Associated with Messaging</a>
@@ -362,34 +361,6 @@ szgd to execute programs at the same time user B is using it.
    The phleet user name is read from this file.
 </ol>
 
-<a name="Lightweight">
-<p><font size=+2>Integrating Lightweight Interfaces</font>
-</a>
-
-<p>A special protocol is provided to integrate lightweight components into the
-distributed system without those components being required to run a full
-arSZGClient object. This is currently used by the JavaInterface Phleet controller
-and the ButtonInterface application launcher.
-
-<p>Objects wishing to connect to a service, designated by
-a type/name string pair, send out a broadcast packet on port 4622 of the
-following format:
-
-<pre>
-  char[128] service type 
-  char[128] tag (the tag for this particular request)
-</pre>
-
-<p>If a service of that type is available and is set to respond to that tag, it
-sends back a port number where it can be reached.
-
-<pre>
-  char[16] port (string format)
-</pre>
-
-<p>Note that there is no need to send the IP address since that is already
-implicit in the datagram.
-
 <a name="CommandLine">
 <p><font size=+2>Command Line Tools, Organized by Functionality</font>
 </a>
@@ -538,8 +509,8 @@ implicit in the datagram.
      Log out the current user.
 
    dwho
-     Displays the mapping of the current system user to an szgserver and
-     a phleet user.
+     Displays the mapping of the current system user to a Phleet, as
+     represented by a szgserver, and a Phleet user identity.
 </pre>
 <li>Monitoring the operation of the system
 <pre>

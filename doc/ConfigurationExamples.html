@@ -119,7 +119,7 @@ performs a shutdown upon receiving it. </p>
 
 <p>Here are several useful commands for managing a virtual computer: </p>
 <pre>
-  killalldemo virtual_computer
+  dkillall virtual_computer
    
    Kill any demos currently running on virtual_computer.
 
@@ -143,16 +143,7 @@ performs a shutdown upon receiving it. </p>
 
    Turns active stereo rendering on and off for each rendering node of the cluster.
 
-  setinputfilter driver_name service filter
-
-   Locates the machine running the instance of DeviceServer specified by [driver_name] 
-   and [service] restarts it with a new input filter. For example, to restart the 
-   tracker driver for our cube setup with the tracker-calibration filter loaded, we 
-   would issue the command:
-
-    setinputfilter cube arCubeTracker SZG_INPUT arTrackCalFilter
-
-  screensaverdemo virtual_computer
+  screensaver virtual_computer
 
    Start szgrender programs on each render node in the cluster. Since szgrender is 
    black when no application is connected, this effectively is a screensaver.
@@ -279,7 +270,7 @@ In addition, the distributed scene graph application wants to connect to
 the SZG_INPUT0 service, which can be provided by a DeviceServer or 
 wandsimserver.
 
-<p>Locks can be used to assure atomic operation of the distributed system,
+<p>Locks can be used to assure atomic operation of the Phleet,
 like virtual_computer_name/SZG_DEMO/lock, which ensures that a demo
 launching on a particular virtual computer will be able to reorganize the
 components running there without being interrupted. They can also be used
@@ -289,7 +280,7 @@ If it fails, another copy must be running and it exits. If it succeeds,
 it holds the lock while running. Other resource reservation locks are
 SoundRender's computer_name/SoundRender lock and szgrender's
 computer_name/SZG_SCREEN(n) lock, which refers to the virtual screen
-designation of its graphics window. A final resource lock is the vritual
+designation of its graphics window. A final resource lock is the virtual
 computer's application lock (virtual_computer_name/SZG_DEMO/app), which
 ensures that only one syzygy application is running on a given virtual
 computer at a time. 
@@ -309,7 +300,7 @@ wait until the lock has been released.
 
 <p>Every component in Syzygy is executed in a "context". The context is
 determined via the value of the environment variable SZGCONTEXT and by
-special phleet args that can be passed to the executable/ The context
+special Phleet args that can be passed to the executable. The context
 determines the overall behavior of the component, whether the component
 is executing as part of a virtual computer, and what networks it will use
 for various sorts of communication. It consists of a list of 
@@ -377,6 +368,14 @@ variable/value pairs of the following:
     attempt to connect.
 </pre> 
 
+<p>The value of SZGCONTEXT consists of a sequence of the above pairs seperated
+by ';'. You can set this environment variable manually to control the behavior
+of Phleet components you run locally. A sample one might look something like:
+
+<pre>
+  virtual=wall;mode/graphics=SZG_SCREEN0;networks/graphics=wall
+</pre>
+
 <p>When launching an application on a virtual computer,
 
 <pre>
@@ -386,9 +385,17 @@ variable/value pairs of the following:
 the application launching process will set the context appropriately for
 each launched component. However, sometimes the context must be set manually.
 For instance, if the user wishes to restart an individual component of
-the distributed application. The context can be set by passing special phleet
-args to the executable. These arguments are stripped from argc/argv
-immediately after the executable launches, so they can be mixed freely with
+the distributed application. 
+
+<p>This can be done by setting SZGCONTEXT,
+as described above. However, the user can also set the context of well-behaved
+Phleet components by passing special Phleet
+args to the executable. A well-behaved Phleet component will wait to check its
+args until after its arSZGClient has had a chance to read these args and strip
+them from argc/argv. This occurs in arSZGClient::init(...), which is called,
+for instance, in arDistSceneGraphFramework::init(...) and 
+arMasterSlaveFramework::init(...). If the component waits to examine its args
+until after this time, the special Phleet args can be mixed freely with
 other command line args. They consist of "-szg" followed by one of the
 variable/value context pairs listed above. There can be any number of them.
 For instance:
@@ -396,6 +403,35 @@ For instance:
 <pre>
   syzygy_executable -szg virtual=wall -szg networks/graphics=internet
 </pre>
+
+<p>There is one special case when the special Phleet args are not fully stripped.
+The dex command should be able to pass a subset of the special Phleet args on to
+its target szgd. For instance, if an szgrender is to be launched remotely and
+connect to a distributed scene graph application running on a virtual computer,
+we must be able to issue the follow command and have the szgrender launched on
+wall1 read the "virtual=wall" arg.
+
+<pre>
+  dex wall1 szgrender -szg virtual=wall
+</pre>
+
+<p>This is a way in which the special Phleet args are more powerful than the
+SZGCONTEXT variable, since they can be passed along in this special case,
+whereas SZGCONTEXT is only ever evaluated locally. However, SZGCONTEXT has
+the advantage not depending for its proper operation on a Phleet component
+being well-behaved.
+
+<p>On the other hand, dex, along with every other Syzygy component, will strip
+and interpret the "user" and "server" args. This is useful if you want to build
+a command-line based interface that can launch application on various Phleets
+under various user identities, without needing dconfig or dlogin to be run
+on the host machine. This is ideal for a web-based application launcher,
+for instance. Note the example:
+
+<pre>
+  dex my_virtual_computer my_app -szg server=the_IP_address/the_port -szg user=the_user_name
+</pre> 
+
 
 <a name="OffNetwork">
 <p><font size=+2>How To Run Syzygy Applications off the Network</font>

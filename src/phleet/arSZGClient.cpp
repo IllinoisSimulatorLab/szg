@@ -2435,7 +2435,7 @@ bool arSZGClient::_parseContext(){
   const string context(ar_getenv("SZGCONTEXT"));
   if (context == "NULL"){
     // the environment variable has not been set. consequently, there's
-    // nothing to do. NOTE: this IS NOT ar error.
+    // nothing to do. NOTE: this IS NOT an error.
     return true;
   }
   // there are three components to the context

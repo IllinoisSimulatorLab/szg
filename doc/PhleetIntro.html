@@ -22,7 +22,7 @@ it is recommended that you read and understand this
 <li><A HREF="#RunningSzgserver">Creating a Phleet: Running szgserver and szgd</a>
 <li><A HREF="#TestingPhleet">Basic Testing of Your Phleet</a>
 <li><A HREF="#ManagingPhleet">Managing the Phleet</a>
-<li><A HREF="#VirtualComputer">Using Virtual Computers (Best Way to Launch an Application)</a>
+<li><A HREF="#VirtualComputer">Using Virtual Computers</a>
 </ul>
 
 <A NAME="Firewalls">
@@ -134,7 +134,7 @@ flexibility in determining szg.conf's location.
     that you can write to the file's location.
 
 <pre>
-  dname the_name
+  dname computer_name
 </pre>
 
 <li>The syzygy config file contains information about the network interfaces
@@ -205,11 +205,18 @@ flexibility in determining szg.conf's location.
 </pre>
 
 <li>The dconfig command will display the information in the config file Phleet
-    components running on the computer will use, given 
+    components running on the computer will use, given a particular value of
+    $SZG_CONF.
 </ol>
 
 <a name="RunningSzgserver">
 <p><font size=+2>Creating a Phleet: Running szgserver and szgd</font>
+
+<p>In this section, we show you how to run an szgserver, the program that
+controls the Phleet distributed OS, and szgd's, the Syzygy remote
+execution daemons. These programs will form the backbone of your Phleet,
+enabling you to control your cluster from an arbitrary location on your
+network.
 
 <ol>
 <li>Choose a computer that will act as the server for the Phleet
@@ -218,72 +225,95 @@ flexibility in determining szg.conf's location.
     command is as follows:
 
 <pre>
-  szgserver server_name server_port
+  szgserver server_name server_port [condition_1] ... [condition_n]
 </pre>
 
     You need to give the szgserver program a name, server_name, which
     can be anything. You also give it a server_port at which it listens
     for connections and the IP address of the server machine. DO NOT
     choose a port within the ports block that will be used for
-    connection brokering on the computer running szgserver.
+    connection brokering on the computer running szgserver. If you
+    do not specify any option "conditions", the szgserver will accept
+    connections from anywhere. However, if you do specify 
+    conditions, the szgserver will only accept conditions from IP
+    addresses that meet one of the conditions.
+
+<li>The following condition:
 
 <pre>
-  szgserver generic 4343
+  192.168.0.0/255.255.255.0
 </pre>
 
-<p>Windows XP NOTE:  if running Windows' built-in firewall (a good idea),
-poke a hole in the firewall for ports 4620/UDP and 4343/TCP (where "4343"
-is the port specified on the command that invoked szgserver).
+    will only be matched by IP addresses that, when masked by 255.255.255.0,
+    equal 192.168.0.0.
+    
+<li>The following szgserver will, for instance, accept a connection on 
+port 4343 from 192.168.0.224 but not 10.0.0.2.
 
-<li>To interact with the system, you'll need to login. This is 
-    done on a per-machine basis.
-    To run Syzygy commands from the commmand line on a particular
-    machine, first login on that machine by typing (and making sure
-    that the szgserver_name is the same as used above):
+<pre>
+  szgserver generic 4343 192.168.0.0/255.255.255.0
+</pre>
+
+<p>A reminder about firewalls:  if running one on the computer running
+szgserver, poke holes for ports 4620/UDP and 4343/TCP
+(where "4343" is the port specified on the example command line above).
+
+<li>To interact with the system, you'll need to login to the Phleet, which
+    is done on a per-machine basis.
+    To run Syzygy commands on a particular machine, first login on that machine 
+    by typing (and making sure that the szgserver_name is the same as used above):
 
 <pre>
   dlogin szgserver_name syzygy_user_name
 </pre>
 
-   Conceptually, this command logs you in to the szgserver given by szgserver_name
-   using user name syzygy_user_name. Syzygy login occurs on a computer by associating
-   a user name (in the context of the computer's OS) with a syzygy user name.
-   Subsequently (until dlogout), any syzygy command issued on that computer by the
-   given user (as understood by the OS)
-   will be controlled by the given szgserver and executed as the given
-   syzygy user.
+   Conceptually, this command logs you in to the Phleet managed by the
+   szgserver with szgserver_name
+   using Syzygy user name syzygy_user_name. Syzygy login associates
+   a user name (in the context of the computer's native OS) with a Syzygy user name.
+   Subsequently (until dlogout), any Syzygy command issued on that computer by the
+   given user (as that identity is understood by the OS)
+   will be sent to the Phleet and executed using the given Syzygy user's identity.
 <li>Make sure that you have issued the dlogin command, as above, on each computer
-    that'll be part of your distributed system. Upon success, a login file will
-    be written. If the OS thinks the user's name is XXX, then, on Unix, the
+    that will be part of your Phleet. Upon success, a login file will
+    be written, with its location depending on the value of $SZG_LOGIN and
+    its name depending on the native OS's idea of the user name XXX.
+    <ul>
+    <li>If $SZG_LOGIN is unset or is "NULL", then, on Unix, the
     login file will be /tmp/szg_XXX.conf while on Windows the login file
-    will be C:\szg\szg_XXX.conf (or D:\szg\szg_XXX.conf if the C: drive does not exist).
-    Also, upon successful login, the information in the login file will be printed,
+    will be C:\szg\szg_XXX.conf.
+    <li>Otherwise, the file's location will be given by $SZG_LOGIN, with its
+    filename as above.
+    </ul>
+<li>Upon successful dlogin, the information in the login file will be printed,
     looking something like:
     
 <pre>
-  Phleet Login
-  ------------
-  System user name = schaeffr
-  Phleet user name = ben
-  szgserver name = cube
-  szgserver IP = XXX.XXX.XXX.XXX
-  szgserver port = 8888
+  Phleet Login:
+      system user name = schaeffr
+      phleet user name = ben
+      szgserver        = "generic", XXX.XXX.XXX.XXX:4343
 </pre>
 
-<li>It is necessary to explain the login mechanics so that potential problems can
-    be idenitified and solved. The dlogin command, when connecting to the szgserver
-    via name, works by first reading the phleet 
-    config file on the machine on which it runs. It then sends broadcast packets
-    on each of the networks listed there (i.e. if 192.168.0.1 is an address, a packet
-    is sent to 192.168.0.255). The szgserver is continually listening for such packets,
-    and, if it receives one destined for an szgserver with its own name, returns 
-    information to dlogin about how to connect.
+<li>Whenever you run a Syzygy program, it uses this above procedure to
+find a login file directing it to a particular szgserver. Please
+recall that the login file location depends on $SZG_LOGIN.
+
+<li>We now outline the operation of dlogin. When connecting to the szgserver
+    via name, it works by first reading the Phleet config file on the local
+    machine (whose location can be altered by $SZG_CONF). The program then 
+    sends broadcast packets on each of the networks listed there 
+    (i.e. if 192.168.0.1 is an address with netmask 255.255.255.0, a packet
+    is sent to 192.168.0.255). The szgserver continually listens for such packets,
+    and, if it receives one tagged with its own name, returns information about 
+    how to connect.
 <li>This can fail in several ways. The failure possibilities and remedies are:
     <p><ul>
     <li>Broadcast packets are filtered by the network between dlogin and the szgserver.
         For instance, note that the loopback interface (127.0.0.1) filters broadcast
-        packets. You can solve this by connecting explicitly to the szgserver (see below).
-    <li>The networks in the phleet config file on the machine on which dlogin was issued
+        packets on several systems supported by Syzygy (like Mac OS X). 
+        You can work around this by connecting explicitly to the szgserver (see below).
+    <li>The networks in the Phleet config file on the machine on which dlogin was issued
         are incorrect. Check them again using dconfig.
     <li>The szgserver name given in dlogin and the name of the running szgserver are 
          different. Make sure they are the same.
@@ -321,150 +351,88 @@ is the port specified on the command that invoked szgserver).
 </pre>
 
     There should be a line for each computer on which you have run szgd.
-<li>PLEASE NOTE: the szgd's are not strictly necessary for the simple distributed
-    graphics tests described in the next section (in which there is no remote
-    execution of components), but they are needed to run your program using
-    a Phleet <a href="#VirtualComputer">virtual computer</a>.
-<li>Syzygy is a multi-user system. While you have to login to an szgserver to
-    run szgd, other users will be able to use your remote execution daemon
-    to launch THEIR executables.
-    the szgserver
-   where syzygy_user_name identifies you to the system.  (You only need to dlogin
-   on one machine, if you'll only be running commands on that one machine.)
-<li>Run dps on a machine that is part of the system and where you are
-    logged-on as in the previous step. This should list
-    an entry for szgd on each machine.
+<li>PLEASE NOTE: the szgd's are not necessary for many Phleet functions, like messaging
+or connection brokering, though they are required to operate a
+<a href="#VirtualComputer">virtual computer</a>.
+</ol>
+
+<a name="TestingPhleet">
+<p><font size=+2>Basic Testing of Your Phleet</font>
+</a>
+
+<p>We can now verify that basic connection brokering works between computers in your
+Phleet. The BarrierServer test program synchronizes the operation of a collection
+of BarrierClient test programs operating anywhere in the Phleet. The BarrierClient
+programs can appear and disappear, as can the BarrierServer. When computers are added
+or removed, the other components dynamically adjust. For instance, if BarrierServer
+is halted, any BarrierClients will wait for a BarrierServer to start up and register
+with the szgserver, at which point they will connect to it. If a new BarrierClient
+starts up, it will be dynamically added to the BarrierServer's synchronization group,
+with its internal loop falling into lockstep with that of the other BarrierClients.
+
+<p><ol>
+<li>Start BarrierServer on one of your Phleet nodes.
+<li>Start BarrierClient on another node. If all is well, the BarrierClient will
+begin printing the average time necessary to perform each synchronization through
+the BarrierServer.
+<li>Troubleshooting:
+  <ul>
+  <li>If BarrierClient fails to start, you do not dlogin.
+  <li>If BarrierClient starts but does not start printing, you have entered the
+      IP address incorrectly in the szg.conf file on the BarrierServer machine.
+      Use dconfig to examine it and ddelinterface/daddinterface to fix it.
+  </ul>
+<li>Start BarrierClient on other nodes.
+<li>Kill BarrierServer and restart on another node. If the various running
+    BarrierClients do not reconnect, see the troubleshooting section above.
 </ol>
 
 <A NAME="ManagingPhleet">
 <p><font size=+2>Managing the Phleet</font>
 </a>
 
-<p>Phleet includes commands to manage processes running on the cluster.
+<p>Phleet includes commands to manage components running on the cluster, distribute user
+configuration information, and to send messages from one component to another. We include
+an incomplete listing of Phleet-related commands here, with descriptions of their uses.
+The complete list, with explanation of parameters, is contained in
+another <a href="Phleet.html">chapter</a>.
 
-<dl>
-<dt>
-dps
-<dd>
-  List all programs registered with Phleet.  Each line in the listing has the form
-  <br>
-  XXX/YYY/###
-  <br>
-  where
-<br>
-  XXX = computer name
-  YYY = program name
-  ### = Phleet ID
-  
-<dt>
-dex XXX YYY
-<dd>
-  Run program named YYY on machine named XXX (where XXX is e.g. output by dps).
-  User identity is propogated through the system. If Phleet thinks syzygy user
-  ZZZ issued the dex command, then YYY will run as if issued by user ZZZ. Note
-  that szgd must be running on machine XXX for this to succeed.
-
-<dt>
-dkill XXX YYY
-<dd>
-  Kill program YYY running on machine XXX.
-  <br>
-  If machine XXX crashes, the szgserver may think that 
-  program YYY is still running. This is because XXX has not correctly closed the
-  TCP connection.
-  To close the connection for sure, type
-  <br>
-  dkill -9 XXX YYY
-
-<dt>
-dmsg component_ID TTT [YYY]
-<dd>
-  Send a message with tag TTT and body YYY to program with Phleet ID 
-  given by component_ID. If YYY is not present, an empty body is sent.
-  <br>
-  Examples:
-  <br>
-
-  dmsg 17 quit
-  <br>
-
-    - Same as dkill'ing the program with ID 17.
-  <p>
-  dmsg 17 reload
-  <br>
-    - Tell the program with ID 17 to reload its parameters from the database.
-<dt>
-dmsg -p computer_name component_name TTT [YYY]
-<dd>
-  Find the component, if such exists, with name component_name that is
-  running on computer computer_name. Send it a message with tag TTT and
-  body YYY. If YYY is not present, an empty body is sent.
-<dt>
-dmsg -m virtual_computer TTT [YYY]
-<dd>
-  Find the component, if such exists, running on the master screen of
-  the given virtual computer. Send it a message with tag TTT and body
-  YYY. If YYY is not present, an empty body is sent.
-<dt>
-dmsg -s virtual_computer screen_number TTT [YYY]
-<dd>
-  Find the component, if such exists, running on the screen indexed
-  by screen_number pertaining to the listed virtual computer. Send it
-  a message with tag TTT and body YYY. If YYY is not presnt, an empty 
-  body is sent.
-<dt>
-dmsg -c virtual_computer TTT [YYY]
-<dd>
-  Find the component, if such exists, which is currently running
-  as the trigger instance of the given virtual computer. Send it
-  a message with tag TTT and body YYY. If YYY is not present, an
-  empty body is sent.
-</dl>
-
-<p>Phleet also has a parameter database that provides functionality like
-that of environment variables. A separate database is maintained for each
-Phleet user. Values are stored as:
-
-<pre>
-  computer_name/parameter_group/parameter_name = value
-</pre>
-
-<p>Phleet-enabled programs query the database to configure themselves.
-
-<pre>
-dget XXX YYY ZZZ
-    Gets the database value for computer name XXX, parameter group YYY, and parameter name ZZZ.
-
-dset XXX YYY ZZZ AAA
-    Sets the database value for computer name XXX, parameter group YYY, and parameter name ZZZ 
-    to AAA.
-
-dbatch XXX
-  Inserts parameter values from the file XXX into the Phleet parameter
-  database. Note that if (current_computer)/SZG_SCRIPT/path is 
-  defined in the parameter database, this will define a search path
-  for the file XXX. Files accepted by dbatch consist of a list of
-  lines of the form:
-
-  XXX YYY ZZZ AAA
-
-  where XXX is a computer, YYY is a group, ZZZ is a parameter, and AAA is 
-  the value.
-</pre>
+<p><ul>
+<li>dps: Lists all the components registered with the Phleet.
+<li>dex: Either launches a component on a single computer or an entire application
+across a virtual computer.
+<li>dmsg: Sends a message to a Phleet component.
+<li>dkill: Sends a "quit" message to a Phleet component, which will be obeyed if the
+component is well-behaved. Can also be used to forcibly connect the component from
+the szgserver.
+<li>dget: Retrieve a value from the Phleet parameter database associated with the
+current Phleet user.
+<li>dset: Set a value in the Phleet paramtere database associated with the current
+Phleet user.
+<li>dbatch: Enter an entire parameter file into the user's Phleet database.
+</ul>
 
 <A NAME="VirtualComputer">
-<p><font size=+2>Using Virtual Computers (Best Way to Launch an Application)</font>
+<p><font size=+2>Using Virtual Computers</font>
 
-<p>The above examples focus on launching the application components by hand and 
-suitable for quick experimentation with the system or debugging. However, in a
-production setting, using a set collection of hardware, it is better to define a
-"virtual computer" and let Syzygy do the work of launching and killing the application.
-The following is a virtual computer definition for a 6 graphics pipe display, that
+<p>Syzygy components that need to communicate, like a graphics display (szgrender) and
+a source of graphics information, can be launched by hand computers in the Phleet and
+will find one another automatically via szgserver's connection brokering. You could,
+for instance, launch your cluster application via shell scripts. However, the
+Syzygy application frameworks (distributed scene graph and master/slave) have a built-in
+understanding of "virtual computers", a way to define how your application should
+launch and run on the Phleet. By using these definitions, you give Syzygy more ability
+to seemlessly manage your application's life cycle. Multiple virtual computers can
+operate within a single Phleet, some of which are linked by sharing a "location"
+(see below) and some of which are completely independent of one another.
+<p>The following is a virtual computer definition for a 6 graphics pipe display, that
 includes sound, and is controlled via a simulated tracker interface (the wandsimserver
-descrived below).
+described below).
 
 <pre>
   wall SZG_CONF virtual true
+  wall SZG_CONF location wall
+  wall SZG_CONF relaunch_all false
   wall SZG_TRIGGER map smoke
   wall SZG_MASTER map SZG_SCREEN0
   wall SZG_SCREEN number_screens 6
@@ -490,14 +458,33 @@ descrived below).
 wall6, and sound. The name of the virtual computer is wall. By setting
 SZG_CONF/virtual to true, the system understands that wall has been designated
 as a virtual computer. If this value does not appear in the database, Syzygy
-will not allow wall to be used as a virtual computer. The virtual computer name 
-must not occur as the name of a physical computer in the distributed system.
+will not allow "wall" to be used as a virtual computer. The virtual computer name 
+must not occur as the name of a physical computer in the Phleet.
+
+<p>The "location" of the virtual computer defaults to the virtual computer's name
+if SZG_CONF/location is unset. The location is used in conncetion brokering. When
+a cluster application is launched on a virtual computer, it uses its location to
+determine if there are running components it can reuse or that are incompatible and
+must be terminated. The location is also used as a key to make sure components
+running on that virtual computer only connect among themselves and not, for instance,
+with components running on another virtual computer in the Phleet.
+
+<p>Two different virtual computers can share the same set of computers happily with
+respect to application launching and component reuse if they define the same location.
+Different virtual computer definitions may be necessary, for instance,
+when some applications require special resource configurations.
+
+<p>By default, when an application launches on a virtual computer, it tries to
+reuse compatible components, like scene graph displays (szgrender) if it is a distributed
+scene graph application, sound displays (SoundRender), or sources of input information
+(DeviceServer). However, sometimes a user might wish to never reuse components between
+application starts. In this case, SZG_CONF/relaunch_all should be set to "true".
 
 <p>The virtual computer has one special node that must be determined by the
-user. These is the trigger node, which is set via the
-database values of SZG_TRIGGER/map. When executing
-an application on the virtual computer, the executable first runs on the trigger
-node. This "trigger instance" then scans the virtual computer and determines which
+user. This is the trigger node, which is set via the database value
+of SZG_TRIGGER/map. When executing
+an application on the virtual computer, an executable first runs on the trigger
+node. This "trigger instance" scans the Phleet and determines which
 running services are incompatible with the new application. These are terminated.
 For instance, any application already running on the virtual computer
 is forced to exit. Next, the trigger
@@ -512,7 +499,8 @@ shuts down its launched components.
 <p>While the trigger node has meaning for both master/slave and
 distributed scene graph applications, the "master" (as determined by 
 SZG_MASTER/map) does not. This designates the screen that will run the master
-instance of the application for a master/slave program. In the example above,
+instance of the application for a master/slave program, which creates and distributes 
+application state to the slave instances. In the example above,
 the master instance will run on wall1 and will be the instance associated with
 SZG_SCREEN0 (on wall1). Note that there may be more than one screen associated
 to a given cluster node.
@@ -520,7 +508,7 @@ to a given cluster node.
 <p>The virtual computer needs several rendering screens to be defined. First,
 the value of SZG_SCREEN/number_screens tells how many graphics pipes are part
 of the virtual computer. For each screen, two values need to be set. One determines
-the location where the component that produces its graphics will run. The second
+where the component that produces its graphics will run. The second
 determines the networks the graphics component will use to communicate. The above
 example shows a virtual computer with two distinct networks, the public internet
 and an internal private network designated "wall". To increase the efficiency of
@@ -535,11 +523,11 @@ virtual computer. The value of SZG_INPUT0/map is of the format:
   AAA(0)/BBB(0)/AAA(1)/BBB(1)/.../AAA(n)/BBB(n)
 </pre>
 
-The "AAA" entries are all computer names which designate the locations upon which
+The "AAA" entries are all computer names which designate the computers upon which
 the corresponding "BBB" components will be launched. A sequence of components
-can be launched because some "virtual" input devices can require the cooperation
+must be allowed since some "virtual" input devices can require the cooperation
 of several components running on multiple machines for their operation. The
-first component in this list is the one that will communication directly with the
+first component in this list is the one that will communicate directly with the
 application. The other components will funnel their data to this one.
 
 <p>The value of SZG_INPUT0/networks determines the communications path the
@@ -561,7 +549,7 @@ virtual computer wall, use the command:
 can directly kill the trigger instance. In our case, that would entail the following:
 
 <pre>
-  dkill smoke hspace
+  dmsg -c wall quit
 </pre>
 
 <p>Or you can:
