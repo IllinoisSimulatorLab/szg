@@ -116,6 +116,9 @@ arCamera* arGraphicsWindow::setCamera( arCamera* cam ) {
   return camout;
 }
 
+// This function MUST clone the passed-in pointer into it's local memory.
+// There are places in szg where a TEMPORARY pointer is used to pass in
+// a camera!
 arCamera* arGraphicsWindow::_setCameraNoLock( arCamera* cam ) {
   if (cam) {
     if (_defaultCamera) {

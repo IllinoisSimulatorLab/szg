@@ -342,16 +342,33 @@ arCamera* arGraphicsClient::setStereoViewportsCamera(unsigned int vpid, int came
   return _graphicsWindow.setStereoViewportsCamera( vpid, cam );
 }
 
-arCamera* arGraphicsClient::setWindowLocalCamera( const float* const frust, const float* const look ) {
-  return _graphicsWindow.setCamera( &arPerspectiveCamera( frust, look ) );
+arCamera* arGraphicsClient::setWindowLocalCamera( const float* const frust, 
+                                                  const float* const look ) {
+  // The Irix compiler does not like constructs like: foo(&my_constructor(...)), thus
+  // use a temporary variable. The setCamera* functions deep copy the camera pointer they are 
+  // passed, so this is OK.
+  arPerspectiveCamera temp( frust, look );
+  return _graphicsWindow.setCamera( &temp);
 }
 
-arCamera* arGraphicsClient::setViewportLocalCamera( unsigned int vpid, const float* const frust, const float* const look ) {
-  return _graphicsWindow.setViewportCamera( vpid, &arPerspectiveCamera( frust, look ) );
+arCamera* arGraphicsClient::setViewportLocalCamera( unsigned int vpid, 
+                                                    const float* const frust, 
+													const float* const look ) {
+  // The Irix compiler does not like constructs like: foo(&my_constructor(...)), thus
+  // use a temporary variable. The setCamera* functions deep copy the camera pointer they are 
+  // passed, so this is OK.
+  arPerspectiveCamera temp( frust, look );
+  return _graphicsWindow.setViewportCamera( vpid, &temp);
 }
 
-arCamera* arGraphicsClient::setStereoViewportsLocalCamera( unsigned int vpid, const float* const frust, const float* const look ) {
-  return _graphicsWindow.setStereoViewportsCamera( vpid, &arPerspectiveCamera( frust, look ) );
+arCamera* arGraphicsClient::setStereoViewportsLocalCamera( unsigned int vpid, 
+                                                           const float* const frust, 
+                                                           const float* const look ) {
+  // The Irix compiler does not like constructs like: foo(&my_constructor(...)), thus
+  // use a temporary variable. The setCamera* functions deep copy the camera pointer they are 
+  // passed, so this is OK.
+  arPerspectiveCamera temp( frust, look );													
+  return _graphicsWindow.setStereoViewportsCamera( vpid, &temp );
 }
 //
 //void arGraphicsClient::setLocalCamera(float* frustum, float* lookat){
