@@ -20,6 +20,18 @@
 </param>
 
 <param>
+<name> reaction_timer </name>
+<value>
+  <szg_device>
+    <input_sources> arReactionTimerDriver </input_sources>
+    <input_sinks></input_sinks>
+    <input_filters></input_filters>
+    <pforth></pforth>
+  </szg_device>
+</value>
+</param>
+
+<param>
 <name> cube_tracker </name>
 <value>
   <szg_device>
@@ -47,6 +59,54 @@
 </value>
 </param>
 
+<param>
+<name> expt_cube_tracker </name>
+<value>
+  <szg_device>
+    <input_sources> arMotionstarDriver </input_sources>
+    <input_sinks></input_sinks>
+    <input_filters> arTrackCalFilter </input_filters>
+    <pforth>
+      matrix inputMatrix
+      matrix outputMatrix
+      matrix correctXRotMatrix1
+      matrix correctXRotMatrix2
+      matrix correctYRotMatrix
+      matrix correctZRotMatrix
+      matrix correctHeadRotMatrix
+      -30 0 correctXRotMatrix1 rotationMatrix
+      30 0 correctXRotMatrix2 rotationMatrix
+      6 1 correctYRotMatrix rotationMatrix
+      -1 2 correctZRotMatrix rotationMatrix
+      correctYRotMatrix correctZRotMatrix correctHeadRotMatrix matrixMultiply
+      define filter_matrix_0
+        inputMatrix getCurrentEventMatrix
+        inputMatrix correctHeadRotMatrix outputMatrix matrixMultiply
+        outputMatrix setCurrentEventMatrix
+      enddef
+      define filter_matrix_2
+        inputMatrix getCurrentEventMatrix
+        inputMatrix correctXRotMatrix2 outputMatrix matrixMultiply
+        outputMatrix setCurrentEventMatrix
+        1 setCurrentEventIndex
+      enddef
+    </pforth>
+  </szg_device>
+</value>
+</param>
+
+<param>
+<name> cube_wandsim </name>
+<value>
+  <szg_device>
+    <input_sources> wandsimserver </input_sources>
+    <input_sinks></input_sinks>
+    <input_filters></input_filters>
+    <pforth></pforth>
+  </szg_device>
+</value>
+</param>
+
 <comment>
  The configuration of the cube has two parts, one which varies from user to
  user and only consists of the path upon which the system should search for
@@ -55,6 +115,7 @@
  configuartion that varies per user (really just varies based on linu
 </comment>
 
+<comment> Exec paths: replace THE_USER_NAME with your login name. </comment>
 <assign>
 picasso  SZG_EXEC path G:\THE_USER_NAME\bin\win32 
 joystick SZG_EXEC path G:\THE_USER_NAME\bin\win32
@@ -68,13 +129,41 @@ top      SZG_EXEC path G:\THE_USER_NAME\bin\win32
 bottom   SZG_EXEC path G:\THE_USER_NAME\bin\win32
 </assign>
 
+<comment> Path for python applications. </comment>
+<assign>
+air      SZG_PYTHON path /home/public/pycube
+north    SZG_PYTHON path G:\pycube
+south    SZG_PYTHON path G:\pycube
+east     SZG_PYTHON path G:\pycube
+west     SZG_PYTHON path G:\pycube
+top      SZG_PYTHON path G:\pycube
+bottom   SZG_PYTHON path G:\pycube
+fire     SZG_PYTHON path G:\pycube
+</assign>
+
+<comment> Path for python modules. Note that the application directory, the
+          SZG_PYTHON/path directory, and the PYTHONPATH on each machine
+          will also be searched.
+</comment>
+<assign>
+air      SZG_PYTHON lib_path NULL
+north    SZG_PYTHON lib_path NULL
+south    SZG_PYTHON lib_path NULL
+east     SZG_PYTHON lib_path NULL
+west     SZG_PYTHON lib_path NULL
+top      SZG_PYTHON lib_path NULL
+bottom   SZG_PYTHON lib_path NULL
+fire     SZG_PYTHON lib_path NULL
+</assign>
+
 <comment>
- configuration that is basically the same for all users
- everything besides graphics goes first
+ Configuration that is basically the same for all users
+ everything besides graphics goes first.
 </comment>
 
-<comment> definition of the cube virtual computer </comment>
+<comment> definitions of the cube virtual computers </comment>
 
+<comment> The "standard" virtual computer (trigger on air). </comment>
 <assign>
 cube SZG_CONF    location       cube
 cube SZG_CONF    virtual        true
@@ -97,7 +186,10 @@ cube SZG_INPUT0  map            air/cube_tracker/joystick/cube_joystick
 cube SZG_INPUT0  networks       internet
 cube SZG_SOUND   map            picasso
 cube SZG_SOUND   networks       internet
+</assign>
 
+<comment> Windows-only V.C., trigger on north </comment>
+<assign>
 wincube SZG_CONF    location       cube
 wincube SZG_CONF    virtual        true
 wincube SZG_TRIGGER map            north
@@ -121,9 +213,109 @@ wincube SZG_SOUND   map            picasso
 wincube SZG_SOUND   networks       internet
 </assign>
 
+<comment> V.C. for many experiments: Windows-only,
+          trigger on north, with a copy also running
+          on fire.
+</comment>
+<assign>
+expt_cube SZG_CONF    location       cube
+expt_cube SZG_CONF    virtual        true
+expt_cube SZG_TRIGGER map            north
+expt_cube SZG_MASTER  map            SZG_SCREEN2
+expt_cube SZG_SCREEN  number_screens 7
+expt_cube SZG_SCREEN0 map            top/SZG_SCREEN0
+expt_cube SZG_SCREEN0 networks       cube/internet
+expt_cube SZG_SCREEN1 map            bottom/SZG_SCREEN0
+expt_cube SZG_SCREEN1 networks       cube/internet
+expt_cube SZG_SCREEN2 map            north/SZG_SCREEN0
+expt_cube SZG_SCREEN2 networks       cube/internet
+expt_cube SZG_SCREEN3 map            south/SZG_SCREEN0
+expt_cube SZG_SCREEN3 networks       cube/internet
+expt_cube SZG_SCREEN4 map            east/SZG_SCREEN0
+expt_cube SZG_SCREEN4 networks       cube/internet
+expt_cube SZG_SCREEN5 map            west/SZG_SCREEN0
+expt_cube SZG_SCREEN5 networks       cube/internet
+expt_cube SZG_SCREEN6 map            fire/SZG_SCREEN0
+expt_cube SZG_SCREEN6 networks       internet
+expt_cube SZG_INPUT0  map            air/expt_cube_tracker/joystick/cube_joystick
+expt_cube SZG_INPUT0  networks       internet
+expt_cube SZG_SOUND   map            picasso
+expt_cube SZG_SOUND   networks       internet
+</assign>
+
+<comment> V.C. for reaction-time experiments: Windows-only,
+          trigger on north, with a copy also running
+          on fire, using reaction-timer instead of normal joystick.
+</comment>
+<assign>
+rt_expt_cube SZG_CONF    location       cube
+rt_expt_cube SZG_CONF    virtual        true
+rt_expt_cube SZG_TRIGGER map            north
+rt_expt_cube SZG_MASTER  map            SZG_SCREEN2
+rt_expt_cube SZG_SCREEN  number_screens 7
+rt_expt_cube SZG_SCREEN0 map            top/SZG_SCREEN0
+rt_expt_cube SZG_SCREEN0 networks       cube/internet
+rt_expt_cube SZG_SCREEN1 map            bottom/SZG_SCREEN0
+rt_expt_cube SZG_SCREEN1 networks       cube/internet
+rt_expt_cube SZG_SCREEN2 map            north/SZG_SCREEN0
+rt_expt_cube SZG_SCREEN2 networks       cube/internet
+rt_expt_cube SZG_SCREEN3 map            south/SZG_SCREEN0
+rt_expt_cube SZG_SCREEN3 networks       cube/internet
+rt_expt_cube SZG_SCREEN4 map            east/SZG_SCREEN0
+rt_expt_cube SZG_SCREEN4 networks       cube/internet
+rt_expt_cube SZG_SCREEN5 map            west/SZG_SCREEN0
+rt_expt_cube SZG_SCREEN5 networks       cube/internet
+rt_expt_cube SZG_SCREEN6 map            fire/SZG_SCREEN0
+rt_expt_cube SZG_SCREEN6 networks       internet
+rt_expt_cube SZG_INPUT0  map            air/expt_cube_tracker/joystick/reaction_timer
+rt_expt_cube SZG_INPUT0  networks       internet
+rt_expt_cube SZG_SOUND   map            picasso
+rt_expt_cube SZG_SOUND   networks       internet
+</assign>
+
+<comment> Windows-only V.C., trigger on fire </comment>
+<assign>
+firecube SZG_CONF    virtual        true
+firecube SZG_TRIGGER map            fire
+firecube SZG_MASTER  map            SZG_SCREEN6
+firecube SZG_SCREEN  number_screens 7
+firecube SZG_SCREEN0 map            top/SZG_SCREEN0
+firecube SZG_SCREEN0 networks       internet/cube
+firecube SZG_SCREEN1 map            bottom/SZG_SCREEN0
+firecube SZG_SCREEN1 networks       internet/cube
+firecube SZG_SCREEN2 map            north/SZG_SCREEN0
+firecube SZG_SCREEN2 networks       internet/cube
+firecube SZG_SCREEN3 map            south/SZG_SCREEN0
+firecube SZG_SCREEN3 networks       internet/cube
+firecube SZG_SCREEN4 map            east/SZG_SCREEN0
+firecube SZG_SCREEN4 networks       internet/cube
+firecube SZG_SCREEN5 map            west/SZG_SCREEN0
+firecube SZG_SCREEN5 networks       internet/cube
+firecube SZG_SCREEN6 map            fire/SZG_SCREEN0
+firecube SZG_SCREEN6 networks       internet
+firecube SZG_INPUT0  map            air/cube_tracker/joystick/cube_joystick
+firecube SZG_INPUT0  networks       internet
+firecube SZG_SOUND   map            picasso
+firecube SZG_SOUND   networks       internet
+</assign>
+
+<comment> fire-only V.C. </comment>
+<assign>
+vfire SZG_CONF    virtual        true
+vfire SZG_TRIGGER map            fire
+vfire SZG_MASTER  map            SZG_SCREEN0
+vfire SZG_SCREEN  number_screens 1
+vfire SZG_SCREEN0 map            fire/SZG_SCREEN0
+vfire SZG_SCREEN0 networks       internet
+vfire SZG_INPUT0  map            fire/cube_wandsim
+vfire SZG_INPUT0  networks       internet
+vfire SZG_SOUND   map            picasso
+vfire SZG_SOUND   networks       internet
+</assign>
+
 <comment>
  definitions of the various search paths that are the same from user to user
- (really just varies based upon linux versus windows)
+ (really just varies with OS).
 </comment>
 
 <assign>
@@ -167,6 +359,11 @@ bottom   SZG_DATA   path         c:\Data;g:\Data
 bottom   SZG_SOUND  path         g:\Sounds
 bottom   SZG_RENDER texture_path g:\Texture
 bottom   SZG_RENDER text_path    g:\Texture\Text
+fire     SZG_DATA   path         c:\Data;g:\Data
+fire     SZG_SOUND  path         g:\Sounds
+fire     SZG_RENDER texture_path g:\Texture
+fire     SZG_RENDER text_path    g:\Texture\Text
+
 </assign>
 
 <comment> definitions of miscellaneous stuff </comment>
@@ -187,23 +384,37 @@ air SZG_MOTIONSTAR calib_file               FaroCalLookupTables.txt
 air SZG_MOTIONSTAR use_button		    false
 air SZG_PFORTH     program_names            correct_tracker_rot
 air SZG_TRACKER    IPhost                   130.126.127.69
+</assign>
 
-isl20 SZG_FARO com_port         1
-isl20 SZG_FARO probe_dimensions .25/-2/57
-
+<comment> Experiment-related parameters </comment>
+<assign>
 north SZG_EXPT save_data false
-north SZG_EXPT file_name demo
+north  SZG_EXPT file_name Demo
 north SZG_EXPT method    enumerated
-north SZG_EXPT path      G:\Experiments
 north SZG_EXPT subject   DEMO
+north  SZG_EXPT path      G:\Experiments
+south  SZG_EXPT path      G:\Experiments
+east   SZG_EXPT path      G:\Experiments
+west   SZG_EXPT path      G:\Experiments
+top    SZG_EXPT path      G:\Experiments
+bottom SZG_EXPT path      G:\Experiments
+fire   SZG_EXPT path      G:\Experiments
+
+joystick SZG_RT  com_port      1
+
 </assign>
 
 <comment> Head parameters (on master & controller) </comment>
 <assign>
+
 north SZG_HEAD eye_spacing 0.2
 north SZG_HEAD eye_direction 1/0/0
 north SZG_HEAD mid_eye_offset 0.29/0/-0.21
 north SZG_HEAD fixed_head_mode false
+fire SZG_HEAD eye_spacing 0.2
+fire SZG_HEAD eye_direction 1/0/0
+fire SZG_HEAD mid_eye_offset 0.29/0/-0.21
+fire SZG_HEAD fixed_head_mode false
 air SZG_HEAD eye_spacing 0.2
 air SZG_HEAD eye_direction 1/0/0
 air SZG_HEAD mid_eye_offset 0.29/0/-0.21
@@ -211,8 +422,8 @@ air SZG_HEAD fixed_head_mode false
 </assign>
 
 <comment> graphics configuration </comment>
-
 <assign>
+
 north SZG_SCREEN0 size              0/0
 north SZG_SCREEN0 screen_center     0/4.93/-4.93
 north SZG_SCREEN0 screen_dim        9.86/9.86
@@ -222,7 +433,7 @@ north SZG_SCREEN0 stereo            true
 north SZG_SCREEN0 tile              0/1/0/1
 north SZG_SCREEN0 wildcat_framelock true
 north SZG_SCREEN0 fixed_head_pos    0/5.5/0
-north SZG_SCREEN0 use_fixed_head_mode yes
+north SZG_SCREEN0 use_fixed_head_mode allow
 
 south SZG_SCREEN0 size              0/0
 south SZG_SCREEN0 screen_center     0/4.93/4.93
@@ -233,7 +444,7 @@ south SZG_SCREEN0 stereo            true
 south SZG_SCREEN0 tile              0/1/0/1
 south SZG_SCREEN0 fixed_head_pos    0/5.5/0
 south SZG_SCREEN0 wildcat_framelock true
-south SZG_SCREEN0 use_fixed_head_mode yes
+south SZG_SCREEN0 use_fixed_head_mode allow
 
 top SZG_SCREEN0 size                0/0
 top SZG_SCREEN0 screen_center       0/9.86/0
@@ -244,7 +455,7 @@ top SZG_SCREEN0 stereo              true
 top SZG_SCREEN0 tile                0/1/0/1
 top SZG_SCREEN0 fixed_head_up_angle  -90
 top SZG_SCREEN0 fixed_head_pos      0/5.5/0
-top SZG_SCREEN0 use_fixed_head_mode yes
+top SZG_SCREEN0 use_fixed_head_mode allow
 top SZG_SCREEN0 wildcat_framelock   true
 
 bottom SZG_SCREEN0 size              0/0
@@ -255,7 +466,7 @@ bottom SZG_SCREEN0 screen_up         0/0/-1
 bottom SZG_SCREEN0 stereo            true
 bottom SZG_SCREEN0 tile              0/1/0/1
 bottom SZG_SCREEN0 fixed_head_pos    0/5.5/0
-bottom SZG_SCREEN0 use_fixed_head_mode yes
+bottom SZG_SCREEN0 use_fixed_head_mode allow
 bottom SZG_SCREEN0 wildcat_framelock true
 
 east SZG_SCREEN0 size              0/0
@@ -266,7 +477,7 @@ east SZG_SCREEN0 screen_up         0/1/0
 east SZG_SCREEN0 stereo            true
 east SZG_SCREEN0 tile              0/1/0/1
 east SZG_SCREEN0 fixed_head_pos    0/5.5/0
-east SZG_SCREEN0 use_fixed_head_mode yes
+east SZG_SCREEN0 use_fixed_head_mode allow
 east SZG_SCREEN0 wildcat_framelock true
 
 west SZG_SCREEN0 size              0/0
@@ -277,8 +488,23 @@ west SZG_SCREEN0 screen_up         0/1/0
 west SZG_SCREEN0 stereo            true
 west SZG_SCREEN0 tile              0/1/0/1
 west SZG_SCREEN0 fixed_head_pos    0/5.5/0
-west SZG_SCREEN0 use_fixed_head_mode yes
+west SZG_SCREEN0 use_fixed_head_mode allow
 west SZG_SCREEN0 wildcat_framelock true
+
+fire SZG_SCREEN0 size              400/400
+fire SZG_SCREEN0 screen_center     0/0/-5
+fire SZG_SCREEN0 screen_dim        10/10
+fire SZG_SCREEN0 screen_normal     0/0/-1
+fire SZG_SCREEN0 screen_up         0/1/0
+fire SZG_SCREEN0 stereo            false
+fire SZG_SCREEN0 tile              0/1/0/1
+fire SZG_SCREEN0 head_mounted      true
+fire SZG_SCREEN0 use_fixed_head_mode ignore
+fire SZG_SCREEN0 wildcat_framelock false
+fire SZG_WANDSIM position 600/100
+
 </assign>
 
 </szg_config>
+
+
