@@ -324,7 +324,6 @@ void execProcess(void* i){
   string pyLibPath;
   string szgExecPath;
   if (execInfo->executableType == "python") {
-    cerr << "python if.\n";
     pythonPath = ar_getenv( "PYTHONPATH" );
     pyLibPath = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "path", "");
     if (pyLibPath == "NULL"){
@@ -442,12 +441,10 @@ void execProcess(void* i){
     ar_setenv("SZGPIPEID", pipeDescriptors[1]);
     ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
     if (execInfo->executableType == "python") {
-      cerr << "python if.\n";
       // Python prepends the dir containing the .py file to the PYTHONPATH.
       pythonPath = pyLibPath + ":" + szgExecPath + ":" + pythonPath;
 //      pythonPath = execInfo->pyDirPath + ":" + pyLibPath + ":" + szgExecPath + ":" + pythonPath;
       ar_setenv("PYTHONPATH",pythonPath);
-      cerr << "done python if.\n";
     }
     info << "szgd remark: running " << symbolicCommand << " on path\n"
          << execPath << ".\n";
