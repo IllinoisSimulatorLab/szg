@@ -1224,7 +1224,10 @@ list<string> ar_listDirectory(const string& name){
   // everything in the directory.
   fileSpecification += "*";
   _finddata_t fileinfo;
-  intptr_t fileHandle = _findfirst(fileSpecification.c_str(), &fileinfo);
+  // NOTE: Visual Studio .NET uses intptr_t below instead of int, but
+  // Visual Studio 6 does not define intptr_t. I'm guessing that int is
+  // safe (the docs for VS 6 say long).
+  int fileHandle = _findfirst(fileSpecification.c_str(), &fileinfo);
   if (fileHandle == -1){
     // No file matching the "specification".
     return result;

@@ -52,7 +52,7 @@ arSoundLanguage::arSoundLanguage():
 const char* arSoundLanguage::_stringFromID(int id)
 {
   // This function is slow, but that's okay: it's only for debugging printf's.
-  const int cnames = 8;
+  const int cnames = 7;
   static const char* names[cnames+1] = {
     "AR_FILEWAV",
     "AR_TRANSFORM",
