@@ -315,7 +315,6 @@ int main(int argc, char** argv){
     }
   }
   
-  arIOFilter* filter = NULL;
   // Add the various optional filters...
   for (iter = nodeConfig.inputFilters.begin();
        iter != nodeConfig.inputFilters.end(); iter++){
@@ -342,7 +341,7 @@ int main(int argc, char** argv){
       return 1;
     }
     // We do, indeed, own this.
-    inputNode.addFilter(filter,true);
+    inputNode.addFilter(theFilter,true);
   }
 
   if (!inputNode.init(SZGClient)){
@@ -385,7 +384,5 @@ int main(int argc, char** argv){
     }
   }
 
-  if (filter)
-    delete filter;
   return 0;
 }
