@@ -61,7 +61,10 @@ ifeq ($(strip $(MACHINE)),WIN32)
 LINK_FLAGS += /stack:4000000
 endif
 
-ALL =   $(SZG_CURRENT_DLL)
+ALL =   $(SZG_CURRENT_DLL) \
+  wandsimserver$(EXE) \
+  dmsg$(EXE) \
+  MasterSlaveSkeleton$(EXE)
 
 # NOTE: "Everything" is the magic target name used by subsidiary targets
 # like "clean" and "create-install" (which puts all the exe's in a particular

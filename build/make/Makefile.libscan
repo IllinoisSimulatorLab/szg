@@ -29,9 +29,14 @@ ifeq ($(strip $(MACHINE)), LINUX)
   INC_3DS := $(wildcard $(SZGEXTERNAL)/include/lib3ds)
   LIB_3DS := $(wildcard $(SZGEXTERNAL)/lib/lib3ds/linux/lib3ds.a)
 
-  INCCG := $(wildcard $(SZGEXTERNAL)/include/Cg)
-  LIBCG := $(wildcard $(SZGEXTERNAL)/lib/Cg/linux/libCg.so)
-  LIBCGGL := $(wildcard $(SZGEXTERNAL)/lib/Cg/linux/libCgGL.so)
+# Dropping the CG experiment, for the time being.
+  INCCG := 
+  LIBCG := 
+  LIBCGGL :=
+
+#  INCCG := $(wildcard $(SZGEXTERNAL)/include/Cg)
+#  LIBCG := $(wildcard $(SZGEXTERNAL)/lib/Cg/linux/libCg.so)
+#  LIBCGGL := $(wildcard $(SZGEXTERNAL)/lib/Cg/linux/libCgGL.so)
   
   INC_VRPN := $(wildcard $(SZGEXTERNAL)/include/vrpn)
   LIB_VRPN := $(wildcard $(SZGEXTERNAL)/lib/vrpn/linux/libvrpn.a)
@@ -125,9 +130,14 @@ ifeq ($(strip $(MACHINE)), WIN32)
   INC_3DS := $(wildcard $(SZGEXTERNAL)/include/lib3ds)
   LIB_3DS := $(wildcard $(SZGEXTERNAL)/lib/lib3ds/win32/lib3ds.lib)
 
-  INCCG := $(wildcard $(SZGEXTERNAL)/include/Cg)
-  LIBCG := $(wildcard $(SZGEXTERNAL)/lib/Cg/win32/libCg.lib)
-  LIBCGGL := $(wildcard $(SZGEXTERNAL)/lib/Cg/win32/libCgGL.lib)
+# Dropping the CG experiment, for the time being.
+  INCCG := 
+  LIBCG := 
+  LIBCGGL :=
+
+#  INCCG := $(wildcard $(SZGEXTERNAL)/include/Cg)
+#  LIBCG := $(wildcard $(SZGEXTERNAL)/lib/Cg/win32/libCg.lib)
+#  LIBCGGL := $(wildcard $(SZGEXTERNAL)/lib/Cg/win32/libCgGL.lib)
 
   INC_SAPI := $(wildcard $(SZGEXTERNAL)/include/sapi-5.1)
   LIB_SAPI := $(wildcard $(SZGEXTERNAL)/lib/sapi-5.1/sapi.lib)

@@ -1,2 +1,2 @@
 include ../Makefile.machine
-include ../../make/Makefile.sound
+include ../../make/Makefile.framework
