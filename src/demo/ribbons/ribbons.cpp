@@ -527,7 +527,7 @@ void update(const int* fDown, const arVector3& wand)
     sCur.append(wand);
   if (fDrawEnd) {
     ar_mutex_lock(&lockDraw);
-    strokes.push_back(sCur);
+      strokes.push_back(sCur);
     ar_mutex_unlock(&lockDraw);
     sCur.clear();
     cursor = cursorDefault;
@@ -550,11 +550,9 @@ void update(const int* fDown, const arVector3& wand)
   memcpy(fDownPrev, fDown, sizeof(fDownPrev));
 }
 
-void preExchange(arMasterSlaveFramework& fw) {
+void postExchange(arMasterSlaveFramework& fw) {
   const int wandButton[3] = { fw.getButton(0), fw.getButton(1), fw.getButton(2) };
   update(wandButton, fw.getMatrix(1) * arVector3(0,0,-1));
-
-  // if (fw.getMaster()) ...
 }
 
 // Count how many nonblack pixels of each brightness.
@@ -672,8 +670,7 @@ void display(arMasterSlaveFramework& fw) {
   drawStars();
 
   // wand
-  const arMatrix4 wandMatrix = fw.getMatrix(1);
-  drawCursor(wandMatrix * arVector3(0,0,-1));
+  drawCursor(fw.getMatrix(1) * arVector3(0,0,-1));
 
   // framework
   fw.draw();
@@ -685,7 +682,7 @@ int main(int argc, char** argv){
 #endif
   arMasterSlaveFramework fw;
   fw.setStartCallback(init);
-  fw.setPreExchangeCallback(preExchange);
+  fw.setPostExchangeCallback(postExchange);
   fw.setDrawCallback(display);
   ar_mutex_init(&lockDraw);
   return fw.init(argc, argv) && fw.start() ? 0 : 1;
