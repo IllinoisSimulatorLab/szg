@@ -42,12 +42,16 @@ create-install: all
 	mkdir $(INSTALLDIR)/bin
 	mkdir $(INSTALLDIR)/lib
 	mkdir $(INSTALLDIR)/build
+	mkdir $(INSTALLDIR)/build/pch
+	cp $(SZGHOME)/src/language/arPrecompiled.h $(INSTALLDIR)/build/pch
+	cp $(SZGHOME)/src/language/arPrecompiled.cpp $(INSTALLDIR)/build/pch
 	mkdir $(INSTALLDIR)/build/make
 	cp $(SZGHOME)/build/make/Makefile.os $(INSTALLDIR)/build/make
 	cp $(SZGHOME)/build/make/Makefile.libscan $(INSTALLDIR)/build/make
 	cp $(SZGHOME)/build/make/Makefile.vars $(INSTALLDIR)/build/make
 	cp $(SZGHOME)/build/make/Makefile.rules $(INSTALLDIR)/build/make 
-	@for i in include $(LIBDIRS) ; do cp $(SZGHOME)/src/$$i/*.h $(INSTALLDIR)/include ; done
+	cp $(SZGHOME)/build/make/Makefile.easy $(INSTALLDIR)/build/Makefile
+	@for i in $(LIBDIRS) ; do cp $(SZGHOME)/src/$$i/*.h $(INSTALLDIR)/include ; done
 	@for i in $(SUBDIRS) ; do $(MAKE) -C $z/$$i create-install ; done
 
 install-clean:

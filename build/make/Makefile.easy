@@ -1,0 +1,31 @@
+
+# This is a special Makefile for an "EASY" installation that contains two
+# special targets that those users might need.
+
+include $(SZGHOME)/build/make/Makefile.os
+include $(SZGHOME)/build/make/Makefile.vars
+
+# The first target is to needed to pluck shared libraries out from
+# SZGEXTERNAL and put them into SZGBIN.
+
+install-shared:
+	cp $(SZG_SHARED_COPY) $(SZGBIN)
+	$(SZG_SHARED_COPY_ACTION)
+
+# The next target is needed to build the precompiled headers on the windows
+# side, which is OPTIONAL (it needs to be done for the specific version
+# of Visual C++, and, consequently, cannot be done by the create-install
+# process on the packaging machine).
+# NOTE: This is SPECIFIC to windows, and won't work on any other machine!
+# (indeed, it is meaningless on any other machine).
+
+install-pch:
+	$(PRECOMPILED_HEADER_LINE)
+	rm arPrecompiled.obj
+	mv arPrecompiled.pch pch/
+
+clean-pch:
+	rm pch/arPrecompiled.pch
+
+
+
