@@ -18,14 +18,15 @@ bool arFileTextStream::ar_open(const string& name, const string& subdirectory,
                                const string& path){
   string fileName = ar_fileFind(name, subdirectory, path);
   if (fileName == "NULL"){
-    cerr << "arFileTextStream error: could not open file = " << name << ".\n";
+    // It is always best to let the CALLER print out the error message,
+    // if such is desired.
     return false;
   }
   _reset();
   _source = fopen(fileName.c_str(),"r");
   if (!_source){
-    cerr << "arFileTextStream error: could not open existing file = "
-	 << fileName << ".\n";
+    // It is always best to let the CALLER print out the error message,
+    // if such is desired.
     return false;
   }
   return true;

@@ -220,10 +220,8 @@ bool arGraphicsClient::configure(arSZGClient* client){
   setTexturePath(client->getAttribute("SZG_RENDER", "texture_path"));
   // where to look for text textures
   string textPath = client->getAttribute("SZG_RENDER","text_path");
-  char fileNamePath[1024]; // buffer overflow
-  ar_stringToBuffer(ar_pathAddSlash(textPath), fileNamePath,
-    sizeof(fileNamePath));
-  loadAlphabet(fileNamePath);
+  ar_pathAddSlash(textPath);
+  loadAlphabet(textPath.c_str());
   return true;
 }
 

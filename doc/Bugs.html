@@ -8,8 +8,6 @@
 
 <p><font size=+1>Setup/Building</font> <ul>
 
-<li>want a new way to automatically generate a build tree... a wizard!
-
 <li> Thread-safety issues... The Irix port does, indeed, seem to be working.
 However, it seems sensitive to having an appropriately configured compiler.
 (or maybe a recent enough version). Specifically, if the following test
@@ -115,30 +113,6 @@ $(cc) $(CFLAGS) /MT $*.c
 <li>The very latest fmod is NOT compatible with the headers we had
 previously.
 
-<li>DeskCalibrator.cpp might not compile on some platforms.
-
-<pre>
-../../../../src/demo/utilities/DeskCalibrator.cpp: In function `void
-   keyboard(unsigned char, int, int)':
-../../../../src/demo/utilities/DeskCalibrator.cpp:88: error: name lookup of `i'
-   changed for new ISO `for' scoping
-../../../../src/demo/utilities/DeskCalibrator.cpp:78: error:   using obsolete
-   binding at `i'
-</pre>
-
-<li> q33 does not compile on RedHat 9. renderback.cpp must be compiled with
-NO_MULTITEX. Or the detection must be improved. Or maybe NVidia's linux
-drivers are at fault.
-
-<li>This isn't a bug, but deserves to be mentioned here. Syzygy requires
-a thread-safe libc++ to operate successfully. gcc-2.96 is known not to
-work. Yikes! So, for instance, RedHat 7.1 SMP kernels will cause some of the
-programs to crash randomly. (a "fix" if you can't upgrade is to boot into
-a single processor kernel, which improves matters dramatically).
-
-<li> Code will not compile on VC++ 5.0. szgd compilation complains
-  that not all control paths in main return a value.
-
 <li> Bad things happen on a Windows PC whose boot disk is not C: or D:.
   This can happen if it has a built-in card reader which grabs several
   drive letters, causing hard disks to start with F: or so.
@@ -154,65 +128,43 @@ includes space for a version number (to prevent mismatched stuff from
 communicating).
 <li>Phleet needs new methods! Specifically, we must be able to release
 services. Also, need to be able to get service info from the command line!
-<li>If the user is dlogout'ed, the szgd will JAM!
 <li>On windows, if c:\szg_USERNAME.conf is present, then dlogin does not look
 at c:\szg\szg_USERNAME.conf. SERIOUS BUG since it impacts migrating to new
 versions of szg.
 <li>THE CURRENT CODE DOES NOT WORK WHEN THE NETMASK IS NOT 255.255.255.0.
 (i.e. dlogin relies on broadcast and this will be incorrectly done). 
-<li>dlogin IS INSECURE. It should no longer rely on broadcasting for discovery.
-This will also eliminate the undesirable confusion of having a "cube" virtual
-computer and a "cube" szgserver.
-
-<li>If an application crashes on start-up or exit, the system can jam.
-There need to be ubiquitous time-outs in phleet!
-
-<li>arSZGClient should be ubiquitously threadsafe!
-
-<li>Need to differentiate "virtual computer" from "locale". THIS IS FIXED
-BUT NEEDS DOCUMENTATION.
-
 <li>There are spurious messages now (arFIleTextStream) when using
     /tmp/szg.conf instead of /etc/szg.conf.
-
 <li>Need access control lists for szgserver, instead of just single subnets.
     (for instance, need to screen connections for szgserver BUT there are
      cases where multiple subnets need to be able to connect).
-
-<li>"dex host foo" hangs when no szgd is running on host! Also, it hangs
-when there is no szgd on the trigger for the virtual computer. In connection
-with this, I noticed a weird coincidence. Namely that the szgserver segfaulted
-when I killed the trigger szgd. Hmmm.
-
 <li> On windows, c:\szg is used to store config info. HOWEVER, this would
 be a natural place to put the szg code. This must change.
-
 <li> On Mac OS X, dhunt does not seem to work. If you run an szgserver
 on OS X and type dhunt on that box, the szgserver does not appear. Is the
 problem filtering of the broadcast packets?
-
 <li>BUG: if someone is looking for a service on network X but the
 service is offered on network Y, the connection won't work, but the
 service will disappear from dpending.
-
-<li>szgd expects a hand-shake from the launched executable and blocks
-until that occurs. So, trying to launch a non-syzygy executable (or
-an executable which fails before reaching main, as might occur is dynamic
-library loads fail) will cause szgd to hang and need to be restarted!
-
 <li> Same computer name in szg.conf file on multiple computers
   destroys the system. We should be more robust!
-
+<li>szgd will need to deal with library paths for loading dll's!!!!
 <li> Double-clicking a program (like dps) works, when typing dps from a
   win98 dos shell fails:  try unchecking "Prevent MS-DOS-based programs
-  from detecting Windows".
+  from detecting Windows". (This is fast becoming an unimportant problem...
+  since Windows 98 is less and less useful)
 
   </ul>
   <p><font size=+1>Graphics/Scene Graph/Database</font> <ul>
 
-<li>Texture path for szgrender limited to 256 chars. Segfault otherwise.
+<li>Alpha value for textures is SERIOUSLY messed up! Alpha channel in 
+textures doesn't quite work anymore. Specifically,
+the drawing code only turns blending on if it thinks that the alpha is less
+than 1 and the texture doesn't contribute to that as currently formulated.
 
-<li>Alpha value for textures is SERIOUSLY messed up!
+<li>BUG: My switch for determining if a texture is a bit buggy! What if
+someone uses an empty string for the texture name? (temporarily...) This
+can result in a situation where you cannot download a database!
 
 <li>Cannot reorder nodes. Sometimes drawing order needs to be changed 
 like when transparency is used. And drawing order depends on node order.
@@ -249,8 +201,6 @@ changed based on whether or not it is part of a database!
 <li>Need to be able to delete a node, not a subtree (though deleting the
 subtree is important as well).
 
-<li>erase command will be fed-back to use (haven't implemented 
-
 <li>The node method calls are woefully inefficient for large arrays because 
 they do not use prtIn.
 
@@ -263,14 +213,6 @@ is implemented).
 
 <li>dgSetGraphicsDatabase must be eliminated!
 
-<li>BUG: My switch for determining if a texture is a bit buggy! What if
-someone uses an empty string for the texture name? (temporarily...) This
-can result in a situation where you cannot download a database!
-
-<li>Currently, the node dichotomy between the root node and everything
-else is very annoying. At the very least, getTypeString should move up the
-chain to arDatabaseNode.
-
 <li>The light direction seems to be wrong! (i.e. direction = (0,0,10,0)
     instead of direction = (0,0,-10,0)
 
@@ -280,23 +222,13 @@ contained within them.
 <li>3DS objects cannot have multiple parts! (i.e. only a single mesh 
 element, which means only a single material). Very bad!
 
-<li>BUG BIG BUG BUG BUG BUG BUG BUG BUG BUG BUG: I've disabled the pixel 
-reading part of the texture node!
-
-<li>obj parser barfs when reading win32 produced files on Unix
-
 <li>obj parser does not show textures!
 
 <li>Erase seems to have infinite erase problems!
 
-<li>_Performance_ can segfault after running through the whole thing. IT IS
-ALSO DAMN SLOW TO LOAD! NEED A BINARY FORMAT!
+<li>_Performance_ can segfault after running through the whole thng.
 
 <li>Cannot erase dgLight nodes.
-
-<li>Alpha channel in textures doesn't quite work anymore. Specifically,
-the drawing code only turns blending on if it thinks that the alpha is less
-than 1 and the texture doesn't contribute to that as currently formulated.
 
   </ul>
   <p><font size=+1>Python</font> <ul>
@@ -312,14 +244,14 @@ createNode crashes on an implicit name)
 <li>On the python side, obj.readOBJ does not work because of the path
 argument!
 
+<li>Must deal with the python examples (i.e. make them fit into the
+pattern...)
+
 </ul>
     <p><font size=+1>Other/I don't know</font> <ul>
 
-<li>Need string input event type.
-
-<li>Need to be able to load and save from a path! [Load and save what?]
-
-<li>AARGH! arSlashString is broken when feed a string with no slashes!
+<li>It would be helpful to have a string event type for the I/O framework
+(i.e src/drivers).
 
 <li>Our global init means that sockets cannot be declared globally!
 (the solution is to eliminate the global init for WinSock, i.e.
@@ -338,13 +270,8 @@ called before init".
 
 <li>Double key presses on master (when standalone). [What does this mean?]
 
-<li>Need better documentation about the -szg user and -szg server options.
-
 <li>FIX DOCS so that the various java whatnots no longer appear! They are
 hereby superceded by the web server stuff!
-
-<li>Names like wandsimserver and killalldemo are excessively long. Also,
-using "demo" everywhere to refer to APPLICATIONS sets the wrong tone...
 
 <li>Must improve (and document) the unit tests that already exist for the
 library. (For instance, the language unit test needs to test directory
@@ -352,19 +279,6 @@ operations, must be able to remove files (like Junk.txt), should test binary
 writing and reading, and needs the thread safety test integrated). Furthermore,
 the OTHER tests should be documented (TestLanguageServer, TestLanguageClient,
 phleettest, the service tests, etc.)
-
-<li>szgd will need to deal with library paths for loading dll's!!!!
-
-<li>Must deal with the python examples (i.e. make them fit into the
-pattern...)
-
-<li>Our dylibs WILL NOT load on Mac OS X 10.2 (on 10.3 this seems OK) unless
-the environment variable DYLD_BIND_AT_LAUNCH has been set.
-
-<li>DYLD_LIBRARY_PATH instead of LD_LIBRARY_PATH on OS X!!!
-
-<li>Need information in the build docs about setting LD_LIBRARY_PATH on
-Unixes, especially when using the precompiled libraries.
 
 </ul>
 </body>

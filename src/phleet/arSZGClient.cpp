@@ -150,7 +150,7 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
   // patterns (for instance, graphics info should go exclusively through
   // a high-speed private network). The "context", as stored in SZGCONTEXT
   // can be used to do this, as can command-line args. Other properties,
-  // like virtual computer and mode, can also be manipulated through
+  // like virtual computer and mode, can also be manipulated through these
   // means. SZGCONTEXT overwrites the command-line args. NOTE: the reason
   // argc is passed by reference is that the special Phleet args that
   // manipulate these values are stripped so as not to confuse programs.
@@ -2265,6 +2265,7 @@ bool arSZGClient::_dialUpFallThrough(){
     // szgserver and the name of the host computer
     if (!_configParser.parseConfigFile()){
       cout << "arSZGClient error: failed to open config file.\n";
+      cout << "  For non-standalone operation, you must run dname, etc.\n";
       return false;
     }
     // If we are not logged-in (i.e. standalone mode) the next conditional
@@ -2285,7 +2286,7 @@ bool arSZGClient::_dialUpFallThrough(){
     if (_configParser.getServerIP() == "NULL"){
       cout << "arSZGClient error: user not connected to szgserver."
 	   << "Please dlogin.\n";
-    return false;
+      return false;
     }
     // Find our syzygy user name.
     string userNameOverride = ar_getenv("SZGUSER");
