@@ -381,7 +381,7 @@ ifeq ($(strip $(MACHINE)), SGI)
   ifneq ($(strip $(LIB_GLUT)),)
     SZG_INCLUDE_GLUT = -I$(INC_GLUT)
     SZG_OPT_INCLUDE_FULL += $(SZG_INCLUDE_GLUT)
-    SZG_LINK_GLUT = $(GLUT_DIR)/lib/$(LINK_GLUT)
+    SZG_LINK_GLUT = $(LIB_GLUT)
     SZG_OPT_LIBS_FULL += $(SZG_LINK_GLUT)
   else
     SZG_LINK_GLUT = -lglut
