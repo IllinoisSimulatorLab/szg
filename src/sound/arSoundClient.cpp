@@ -95,65 +95,8 @@ arSoundClient::arSoundClient():
   _cliSync.setNullCallback(ar_soundClientNullCallback);
   _cliSync.setPostSyncCallback(ar_soundClientPostSyncCallback);
   _cliSync.setBondedObject(this);
-  //;; other FSOUND_ calls should not be called if _fSilent is true.
-  _fSilent = !_initSound();
   // AARGH! must set this so we can get it into the fmod callback
   __globalSoundClient = this;
-}
-
-// BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
-// It is NOT a good idea to initialize system-y things in 
-// constructors. This has reared its ugly head AGAIN and AGAIN.
-// (for instance, because of the global init for sockets on Win32
-// NO arSZGClient can be declared a static global. Below, the
-// problem is using ostream in a dylib (libarSound.dylib) on
-// Mac OS X.
-bool arSoundClient::_initSound(){
-#ifndef EnableSound
-  cerr << "syzygy warning: FMOD disabled, compiled with stub.\n";
-  return false;
-
-#else
-
-#ifdef AR_USE_LINUX
-  FSOUND_SetOutput(FSOUND_OUTPUT_OSS);
-#endif
-#ifdef AR_USE_WIN_32
-  FSOUND_SetOutput(FSOUND_OUTPUT_DSOUND);
-#endif
-#ifdef AR_USE_DARWIN
-  FSOUND_SetOutput(FSOUND_OUTPUT_MAC);
-#endif
-#ifndef AR_USE_DARWIN
-  // actually not needed, according to fmod docs
-  if (FSOUND_SetMixer(FSOUND_MIXER_QUALITY_FPU) == 0){
-    cout << "arSoundClient error: Set mixer request failed!\n";
-    return false;
-  }
-#else
-  if (FSOUND_SetMixer(FSOUND_MIXER_QUALITY_AUTODETECT) == 0){
-    cout << "arSoundClient error: Set mixer request failed!\n";
-    return false;
-  }
-#endif
-  cout << getLabel() << " remark: FMOD using output " 
-       << FSOUND_GetOutput() << endl;
-  // EXPERIMENTING WITH CHANGING THE FMOD INIT IN ARSOUNDCLIENT SO THAT
-  // IT IS LIKE THE INIT IN THE LIGHT SHOW...
-  //if (!FSOUND_Init(44100, 20, FSOUND_INIT_USEDEFAULTMIDISYNTH))
-  if (!FSOUND_Init(44100, 32, 0)){
-    cerr << getLabel() << " error: FMOD audio failed to initialize.\n";
-      // << FMOD_ErrorString(FSOUND_GetError()) << endl;
-    return false;
-  }
-
-  FSOUND_3D_SetDistanceFactor(3.28); // arFramework uses feet; FMOD uses meters
-  FSOUND_3D_SetRolloffFactor(.8);
-  // .8 puts sounds very quiet when 70 feet away
-  // .008 is very slight rolloff with distance
-
-  return true;
-#endif
 }
 
 void arSoundClient::terminateSound(){
@@ -293,6 +236,54 @@ void arSoundClient::relayWaveform(){
 
 void arSoundClient::setDSPTap(void (*callback)(float*)){
   _dspTap = callback;
+}
+
+bool arSoundClient::_initSound(){
+#ifndef EnableSound
+  cerr << "syzygy warning: FMOD disabled, compiled with stub.\n";
+  return false;
+
+#else
+
+#ifdef AR_USE_LINUX
+  FSOUND_SetOutput(FSOUND_OUTPUT_OSS);
+#endif
+#ifdef AR_USE_WIN_32
+  FSOUND_SetOutput(FSOUND_OUTPUT_DSOUND);
+#endif
+#ifdef AR_USE_DARWIN
+  FSOUND_SetOutput(FSOUND_OUTPUT_MAC);
+#endif
+#ifndef AR_USE_DARWIN
+  // actually not needed, according to fmod docs
+  if (FSOUND_SetMixer(FSOUND_MIXER_QUALITY_FPU) == 0){
+    cout << "arSoundClient error: Set mixer request failed!\n";
+    return false;
+  }
+#else
+  if (FSOUND_SetMixer(FSOUND_MIXER_QUALITY_AUTODETECT) == 0){
+    cout << "arSoundClient error: Set mixer request failed!\n";
+    return false;
+  }
+#endif
+  cout << getLabel() << " remark: FMOD using output " 
+       << FSOUND_GetOutput() << endl;
+  // EXPERIMENTING WITH CHANGING THE FMOD INIT IN ARSOUNDCLIENT SO THAT
+  // IT IS LIKE THE INIT IN THE LIGHT SHOW...
+  //if (!FSOUND_Init(44100, 20, FSOUND_INIT_USEDEFAULTMIDISYNTH))
+  if (!FSOUND_Init(44100, 32, 0)){
+    cerr << getLabel() << " error: FMOD audio failed to initialize.\n";
+      // << FMOD_ErrorString(FSOUND_GetError()) << endl;
+    return false;
+  }
+
+  FSOUND_3D_SetDistanceFactor(3.28); // arFramework uses feet; FMOD uses meters
+  FSOUND_3D_SetRolloffFactor(.8);
+  // .8 puts sounds very quiet when 70 feet away
+  // .008 is very slight rolloff with distance
+
+  return true;
+#endif
 }
 
 string arSoundClient::_processStreamInfo(const string& body){

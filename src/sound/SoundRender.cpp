@@ -108,7 +108,8 @@ int main(int argc, char** argv){
   // We want to start the DSP callback, which can be used to relay the
   // playing waveform elsewhere.
   soundClient->startDSP();
-  soundClient->start(szgClient);
+  (void)soundClient->init();
+  (void)soundClient->start(szgClient);
 
   // we've started by this point
   szgClient.sendStartResponse(true);  

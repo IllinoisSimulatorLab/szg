@@ -1250,6 +1250,8 @@ bool arMasterSlaveFramework::_initStandaloneObjects(){
   _soundClient->setSpeakerObject(speakerObject);
   _soundClient->configure(&_SZGClient);
   _soundClient->_cliSync.registerLocalConnection(&_soundServer._syncServer);
+  // The underlying sound engine for the sound client must be initialized.
+  (void)_soundClient->init();
   
   // Sound is inactive for the time being
   _soundActive = false;

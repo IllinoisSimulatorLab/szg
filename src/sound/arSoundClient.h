@@ -42,8 +42,12 @@ class SZG_CALL arSoundClient{
 
   bool configure(arSZGClient*);
 
-  void setBufferSize(int);
-  void setNetworks(string);
+  void   setBufferSize(int);
+  void   setNetworks(string);
+  // It might seem a little odd that this returns always, but we have no way
+  // of ditinguishing between "no fmod support" and "failure to init fmod".
+  // In the former case, it should probably "succeed".
+  bool   init(){ _fSilent = !_initSound(); return true; }
   bool   start(arSZGClient& client);
   string processMessage(const string& type, const string& body);
 

@@ -294,7 +294,13 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv){
     }
   }
 
-  // Gets the sound and graphics database going.
+  // Gets the sound and graphics database going. These must be initialized
+  // AFTER the virtual computer reshuffle (launchApp). Some OS configurations
+  // may only allow ONE connection to the sound card, meaning that 
+  // _soundClient.init() may block until a previous application goes away.
+  // Thus, if _soundClient.init() occurs before launchApp (which will kill
+  // other running applications, at least if virtual computers are being used
+  // correctly) there can be a deadlock!
   _initDatabases();
 
   // Get the input device going
@@ -588,6 +594,8 @@ void arDistSceneGraphFramework::_initDatabases(){
       (&_graphicsServer._syncServer);
     _soundClient._cliSync.registerLocalConnection
       (&_soundServer._syncServer);
+    // We'll be using the sound client locally to play. Must init it.
+    (void)_soundClient.init();
   }
   
   // Set up a default viewing position.
