@@ -185,9 +185,6 @@ void preExchange(arMasterSlaveFramework& fw){
   fps = fpsRaw * .05 + fpsPrev * .95;
   fpsPrev = fps;
   
-  if (!fw.getMaster())
-    return;
-
   /// Handle Joystick controls ///
   arVector3 wandDirection(ar_extractRotationMatrix(fw.getMatrix(1)) *
 		  	  arVector3(0,0,-1));
@@ -265,9 +262,15 @@ void preExchange(arMasterSlaveFramework& fw){
   updateSelfPositionTimes(1./fps);
 }
 
-bool postExchange(arMasterSlaveFramework&) {
+void postExchange(arMasterSlaveFramework& fw) {
+  if (!fw.getMaster()) {
+    const ARfloat fpsRaw = 1000./fw.getLastFrameTime();
+    static ARfloat fpsPrev = 40.;
+    fps = fpsRaw * .05 + fpsPrev * .95;
+    fpsPrev = fps;
+  }
   if (!self || !scene)
-    return false;
+    return;
 
   s_updateValues uv;
   uv.velocity = velocity;//movingBackwards?-velocity:velocity;
@@ -285,7 +288,6 @@ bool postExchange(arMasterSlaveFramework&) {
   uv.selfOffset = arVector3(selfOffset);
 
   scene->updateAll(uv);
-  return true;
 }
 
 void showRasterString(int x, int y, char* s){

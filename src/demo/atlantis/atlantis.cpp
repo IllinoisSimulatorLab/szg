@@ -377,61 +377,58 @@ static bool sharkAttack = false;
 void preExchange(arMasterSlaveFramework& fw) {
   int i;
   static bool firstAttack(true);
-  if (fw.getMaster()) {
-    fw.navUpdate();
-    if (fw.getOnButton(0)) {
-      toggleUseTexture();
-    }
-    if (fw.getOnButton(5)) {
-      sharkAttack = !sharkAttack;
-      if (sharkAttack) {
-        if (firstAttack) {
-          dsSpeak( "warning speech", "root", "Now Jim has excited the sharks into a feeding frenzy. See, here they come." );
-          firstAttack = false;
-        } else {
-          dsSpeak( "warning speech", "root", "Oh <emph>no</emph>, here they come again." );
-        }
-      } else {
-        dsSpeak( "warning speech", "root", "I guess they're not hungry." );
-      }
-    }
-    
-    // Animate the fishies
-    int i;
-    const arMatrix4 headMatrix = ar_matrixToNavCoords( fw.getMatrix(0) );
-    for (i = 0; i < NUM_SHARKS; i++) {
-      SharkPilot(&sharks[i], headMatrix, sharkAttack);
-      SharkMiss(i);
-      UpdateShark(&sharks[i]);
-    }
-    DolphinPilot(&dolph);
-    dolph.phi++;
-    UpdateDolphin(&dolph);
-    WhalePilot(&momWhale);
-    momWhale.phi++;
-    UpdateWhale(&momWhale);
-    WhalePilot(&babyWhale);
-    babyWhale.phi++;
-    UpdateWhale(&babyWhale);
-
-    if (fw.getOnButton(2)) {
-      spearTipIndex = (spearTipIndex > 1)?(0):(spearTipIndex+1);
-      gSpearRadius = distances[spearTipIndex];
-      spear.setInteractionSelector( arDistanceInteractionSelector( gSpearRadius ) );
-      gDrawSpearTip = 1;
-      tipTimer.start( 1.e6 ); // 1 sec.
-      cerr << "atlantis remark: target radius set to " << gSpearRadius << endl;
-    }
-    if ((gDrawSpearTip)&&tipTimer.done())
-      gDrawSpearTip = 0;
-    for (i=0; i<NUM_SHARKS; i++) {
-      interactableArray[i].setMatrix( ar_translationMatrix( 
-                           sharks[i].y, sharks[i].z, -sharks[i].x ) );
-    }
-    spear.updateState( fw.getInputState() );
-    ar_pollingInteraction( spear, interactionList );
-    gSpearBaseMatrix = spear.getBaseMatrix();
+  fw.navUpdate();
+  if (fw.getOnButton(0)) {
+    toggleUseTexture();
   }
+  if (fw.getOnButton(5)) {
+    sharkAttack = !sharkAttack;
+    if (sharkAttack) {
+      if (firstAttack) {
+        dsSpeak( "warning speech", "root", "Now Jim has excited the sharks into a feeding frenzy. See, here they come." );
+        firstAttack = false;
+      } else {
+        dsSpeak( "warning speech", "root", "Oh <emph>no</emph>, here they come again." );
+      }
+    } else {
+      dsSpeak( "warning speech", "root", "I guess they're not hungry." );
+    }
+  }
+  
+  // Animate the fishies
+  const arMatrix4 headMatrix = ar_matrixToNavCoords( fw.getMatrix(0) );
+  for (i = 0; i < NUM_SHARKS; i++) {
+    SharkPilot(&sharks[i], headMatrix, sharkAttack);
+    SharkMiss(i);
+    UpdateShark(&sharks[i]);
+  }
+  DolphinPilot(&dolph);
+  dolph.phi++;
+  UpdateDolphin(&dolph);
+  WhalePilot(&momWhale);
+  momWhale.phi++;
+  UpdateWhale(&momWhale);
+  WhalePilot(&babyWhale);
+  babyWhale.phi++;
+  UpdateWhale(&babyWhale);
+
+  if (fw.getOnButton(2)) {
+    spearTipIndex = (spearTipIndex > 1)?(0):(spearTipIndex+1);
+    gSpearRadius = distances[spearTipIndex];
+    spear.setInteractionSelector( arDistanceInteractionSelector( gSpearRadius ) );
+    gDrawSpearTip = 1;
+    tipTimer.start( 1.e6 ); // 1 sec.
+    cerr << "atlantis remark: target radius set to " << gSpearRadius << endl;
+  }
+  if ((gDrawSpearTip)&&tipTimer.done())
+    gDrawSpearTip = 0;
+  for (i=0; i<NUM_SHARKS; i++) {
+    interactableArray[i].setMatrix( ar_translationMatrix( 
+                         sharks[i].y, sharks[i].z, -sharks[i].x ) );
+  }
+  spear.updateState( fw.getInputState() );
+  ar_pollingInteraction( spear, interactionList );
+  gSpearBaseMatrix = spear.getBaseMatrix();
   
   // Send fish position data to slaves.
   packOneFish(&momWhale, 0);
@@ -461,7 +458,7 @@ void preExchange(arMasterSlaveFramework& fw) {
   dsTransform( dolphinSoundTransformID, soundMatrix );
 }
 
-bool postExchange(arMasterSlaveFramework& fw){
+void postExchange(arMasterSlaveFramework& fw){
   // Get fish positions from master.
   unpackOneFish(&momWhale, 0);
   unpackOneFish(&babyWhale, 1);
@@ -478,7 +475,6 @@ bool postExchange(arMasterSlaveFramework& fw){
   else
     glDisable( GL_TEXTURE_2D );
   //setAnaglyphMode(fw, anaglyphMode);
-  return true; 
 }
 
 #ifdef UNUSED

@@ -53,13 +53,13 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   friend class arMasterSlaveRenderCallback;
  public:
   arMasterSlaveFramework();
-  ~arMasterSlaveFramework();
+  virtual ~arMasterSlaveFramework();
 
   // set the callbacks
   void setInitCallback(bool (*initCallback)(arMasterSlaveFramework& fw, 
                                             arSZGClient&));
   void setPreExchangeCallback(void (*preExchange)(arMasterSlaveFramework&));
-  void setPostExchangeCallback(bool (*postExchange)(arMasterSlaveFramework&));
+  void setPostExchangeCallback(void (*postExchange)(arMasterSlaveFramework&));
   void setWindowCallback(void (*windowCallback)(arMasterSlaveFramework&));
   void setDrawCallback(void (*draw)(arMasterSlaveFramework&));
   void setPlayCallback(void (*play)(arMasterSlaveFramework&));
@@ -83,7 +83,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // exits
   void stop(bool blockUntilDisplayExit);
 
-  void preDraw();
+  virtual void preDraw();
   void drawWindow();
   void postDraw();
 
@@ -171,7 +171,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool soundActive() const { return _soundActive; }
   bool inputActive() const { return _inputActive; }
 
- private:
+ protected:
   arDataServer*        _stateServer; // used only by master
   arDataClient         _stateClient;
   arGraphicsDatabase   _graphicsDatabase;
@@ -201,7 +201,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   /// Callbacks.
   bool (*_init)(arMasterSlaveFramework&, arSZGClient&);
   void (*_preExchange)(arMasterSlaveFramework&);
-  bool (*_postExchange)(arMasterSlaveFramework&);
+  void (*_postExchange)(arMasterSlaveFramework&);
   void (*_window)(arMasterSlaveFramework&);
   void (*_drawCallback)(arMasterSlaveFramework&);
   void (*_play)(arMasterSlaveFramework&);
@@ -324,7 +324,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void _connectionTask();
 
   // draw-related utility functions
-  void _draw();
+  virtual void _draw();
   void _display();
 };
 

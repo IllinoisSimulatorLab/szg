@@ -76,9 +76,6 @@ bool init(arMasterSlaveFramework& fw, arSZGClient&){
 }
 
 void preExchange(arMasterSlaveFramework& fw){
-  if (!fw.getMaster())
-    return;
-
   const float j0 = fw.getAxis(0);
   const float j1 = fw.getAxis(1);
   // The time it took to draw the last frame... in milliseconds.
@@ -88,15 +85,14 @@ void preExchange(arMasterSlaveFramework& fw){
     * hyperRotate('y',frametime*j0/3200.0);
 }
 
-bool postExchange(arMasterSlaveFramework&){
+void postExchange(arMasterSlaveFramework&){
   if (!worldH3)
-    return false;
+    return;
   // Convert from floats to doubles.
   double m[16];
   for (int i=0; i<16; i++)
     m[i] = double(hyperTransform[i]);
   worldH3->update(m);
-  return true;
 }
 
 void drawCallback(arMasterSlaveFramework& fw){

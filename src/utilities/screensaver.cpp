@@ -15,17 +15,17 @@ int main(int argc, char** argv){
   arSZGClient szgClient;
   szgClient.init(argc, argv);
   if (!szgClient) {
-    cerr << "screensaverdemo error: failed to initialize SZGClient.\n";
+    cerr << "screensaver error: failed to initialize SZGClient.\n";
     return 1;
   }
 
-  arAppLauncher launcher("screensaverdemo");
+  arAppLauncher launcher("screensaver");
   launcher.setSZGClient(&szgClient);
   if (argc == 2){
     launcher.setVircomp(argv[1]);
   }
   if (argc > 2){
-    cerr << "usage: screensaverdemo [virtual_computer]\n";
+    cerr << "usage: screensaver [virtual_computer]\n";
     return 1;
   }
 

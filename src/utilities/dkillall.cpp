@@ -15,18 +15,18 @@ int main(int argc, char** argv){
   arSZGClient szgClient;
   szgClient.init(argc, argv);
   if (!szgClient) {
-    cerr << "killalldemo error: failed to initialize SZGClient.\n";
+    cerr << "dkillall error: failed to initialize SZGClient.\n";
     return 1;
   }
 
-  arAppLauncher launcher("killalldemo");
+  arAppLauncher launcher("dkillall");
   launcher.setSZGClient(&szgClient);
   if (argc == 2){
     launcher.setVircomp(argv[1]);
   }
 
   if (argc > 2){
-    cerr << "usage: killalldemo [virtual_computer]\n";
+    cerr << "usage: dkillall [virtual_computer]\n";
     return 1;
   }
 

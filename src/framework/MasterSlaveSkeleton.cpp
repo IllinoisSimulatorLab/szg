@@ -158,7 +158,7 @@ void preExchange( arMasterSlaveFramework& fw ) {
 
 // Callback called after transfer of data from master to slaves. Mostly used to
 // synchronize slaves with master based on transferred data.
-bool postExchange( arMasterSlaveFramework& fw ) {
+void postExchange( arMasterSlaveFramework& fw ) {
   // Do stuff after slaves got data and are again in sync with the master.
   if (!fw.getMaster()) {
     
@@ -170,7 +170,6 @@ bool postExchange( arMasterSlaveFramework& fw ) {
     theSquare.setHighlight( (bool)squareHighlightedTransfer );
     theSquare.setMatrix( squareMatrixTransfer.v );
   }
-  return true; 
 }
 
 void display( arMasterSlaveFramework& fw ) {

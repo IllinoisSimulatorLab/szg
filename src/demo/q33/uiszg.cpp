@@ -191,8 +191,6 @@ void do_sounds(double currentTime, bool fCollided){
 #define ALLOW_JUMP
 
 void preExchange(arMasterSlaveFramework& fw){
-  if (!fw.getMaster())
-    return;
 
   // time is in seconds, but these calls return milliseconds
   const double currentTime = fw.getTime() / 1000.0;

@@ -652,12 +652,10 @@ static int lastB0 = 0;
 void preExchange(arMasterSlaveFramework& fw){
   if (gUseNavigation)
     fw.navUpdate();
-  if (fw.getMaster()) {
-    int b0 = fw.getButton(0);
-    if (b0 && !lastB0)
-      gUseNavigation = !gUseNavigation;
-    lastB0 = b0;
-  }
+  int b0 = fw.getButton(0);
+  if (b0 && !lastB0)
+    gUseNavigation = !gUseNavigation;
+  lastB0 = b0;
   int l1 = int(plaatje);
   speed += (y[l1] - y[l1+4])*0.25;
 
@@ -681,10 +679,9 @@ void preExchange(arMasterSlaveFramework& fw){
   frame++;
 }
 
-bool postExchange(arMasterSlaveFramework&) {
+void postExchange(arMasterSlaveFramework&) {
   angle2 = frame*4*PI/503;
   angle3 = frame*6*PI/503;
-  return true;
 }
 
 void Display(arMasterSlaveFramework& fw){

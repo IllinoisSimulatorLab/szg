@@ -269,7 +269,7 @@ void arMasterSlaveFramework::setPreExchangeCallback
 }
 
 void arMasterSlaveFramework::setPostExchangeCallback
-  (bool (*postExchange)(arMasterSlaveFramework&)){
+  (void (*postExchange)(arMasterSlaveFramework&)){
   _postExchange = postExchange;
 }
 
