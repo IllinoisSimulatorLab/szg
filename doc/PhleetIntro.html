@@ -409,43 +409,52 @@ through the BarrierServer.
 <p><font size=+2>Managing the Phleet</font>
 </a>
 
-<p>Phleet includes commands to manage components running on the cluster, distribute user
-configuration information, and to send messages from one component to another. We include
-an incomplete listing of Phleet-related commands here, with descriptions of their uses.
-The complete list, with explanation of parameters, is contained in
-another <a href="Phleet.html">chapter</a>.
+<p>Phleet includes commands to manage components running on the cluster,
+distribute user configuration information, and to send messages from one 
+component to another. We include an incomplete listing of Phleet-related 
+commands here, with descriptions of their uses. The complete list, with 
+explanation of parameters, is contained in another 
+<a href="Phleet.html">chapter</a>.
 
 <p><ul>
 <li>dps: Lists all the components registered with the Phleet.
-<li>dex: Either launches a component on a single computer or an entire application
-across a virtual computer.
+<li>dex: Either launches a component on a single computer or an entire 
+application across a virtual computer.
 <li>dmsg: Sends a message to a Phleet component.
-<li>dkill: Sends a "quit" message to a Phleet component, which will be obeyed if the
-component is well-behaved. Can also be used to forcibly connect the component from
-the szgserver.
-<li>dget: Retrieve a value from the Phleet parameter database associated with the
+<li>dkill: Sends a "quit" message to a Phleet component, which will be obeyed 
+if the component is well-behaved. Can also be used to forcibly connect the 
+component from the szgserver.
+<li>dget: Retrieve a value from the Phleet parameter database associated with 
+the current Phleet user.
+<li>dset: Set a value in the Phleet paramtere database associated with the 
 current Phleet user.
-<li>dset: Set a value in the Phleet paramtere database associated with the current
-Phleet user.
 <li>dbatch: Enter an entire parameter file into the user's Phleet database.
 </ul>
 
 <A NAME="VirtualComputer">
 <p><font size=+2>Using Virtual Computers</font>
 
-<p>Syzygy components that need to communicate, like a graphics display (szgrender) and
-a source of graphics information, can be launched by hand computers in the Phleet and
-will find one another automatically via szgserver's connection brokering. You could,
-for instance, launch your cluster application via shell scripts. However, the
-Syzygy application frameworks (distributed scene graph and master/slave) have a built-in
-understanding of "virtual computers", a way to define how your application should
-launch and run on the Phleet. By using these definitions, you give Syzygy more ability
-to seemlessly manage your application's life cycle. Multiple virtual computers can
-operate within a single Phleet, some of which are linked by sharing a "location"
-(see below) and some of which are completely independent of one another.
-<p>The following is a virtual computer definition for a 6 graphics pipe display, that
-includes sound, and is controlled via a simulated tracker interface (the wandsimserver
-described below).
+<p>Syzygy components that need to communicate, like a graphics display 
+(szgrender) and a source of graphics information (like a VR application), can 
+be launched by hand computers in the Phleet and will find one another 
+automatically via szgserver's connection brokering. You could, for instance, 
+launch your cluster application via shell scripts. However, the Syzygy 
+application frameworks (distributed scene graph and master/slave) have a 
+built-in understanding of "virtual computers", a way to define how your 
+application should launch and run on the Phleet. By using these definitions, 
+you give Syzygy more ability to seemlessly manage your application's life 
+cycle. Multiple virtual computers can operate within a single Phleet, some of 
+which are linked by sharing a "location" (see below) and some of which are 
+completely independent of one another.
+
+<p>The following is a virtual computer definition for a 6 screen graphics 
+display, that includes sound, and is controlled via a simulated tracker 
+interface (the wandsimserver described <a href="TrackingSim.html">here</a>).
+
+<p>This definition must be entered into the Phleet parameter database via
+dset or dbatch. Please see the chapter on 
+<a href="ConfigurationExamples.html">configuration</a> for details on how
+to do this.
 
 <pre>
   wall SZG_CONF virtual true
@@ -475,64 +484,72 @@ described below).
 <p>The computers in the cluster are smoke, wall1, wall2, wall3, wall4, wall5,
 wall6, and sound. The name of the virtual computer is wall. By setting
 SZG_CONF/virtual to true, the system understands that wall has been designated
-as a virtual computer. If this value does not appear in the database, Syzygy
-will not allow "wall" to be used as a virtual computer. The virtual computer name 
-must not occur as the name of a physical computer in the Phleet.
+as a virtual computer, and if this value does not appear in the database, 
+Phleet will not allow "wall" to be used as a virtual computer. The virtual 
+computer name must not occur as the name of a physical computer in the Phleet.
 
-<p>The "location" of the virtual computer defaults to the virtual computer's name
-if SZG_CONF/location is unset. The location is used in conncetion brokering. When
-a cluster application is launched on a virtual computer, it uses its location to
-determine if there are running components it can reuse or that are incompatible and
-must be terminated. The location is also used as a key to make sure components
-running on that virtual computer only connect among themselves and not, for instance,
-with components running on another virtual computer in the Phleet.
+<p>The "location" of the virtual computer defaults to the virtual computer's 
+name if SZG_CONF/location is unset and is used in conncetion 
+brokering. When a cluster application is launched on a virtual computer, it 
+uses its location to determine if there are running components it can reuse or 
+that are incompatible and must be terminated. The location is used as a 
+key to make sure components running on that virtual computer only connect 
+among themselves and not, for instance, with components running on another 
+virtual computer (with a different location) in the Phleet.
 
-<p>Two different virtual computers can share the same set of computers happily with
-respect to application launching and component reuse if they define the same location.
-Different virtual computer definitions may be necessary, for instance,
-when some applications require special resource configurations.
+<p>Consequently, two different virtual computers can share the same set of 
+computers happily with respect to application launching and component reuse if 
+they use the same location. Different virtual computer definitions overlaid
+on shared resources may be necessary, for instance, when some applications 
+require special configurations that would be detrimental to other applications.
+For instance, a psychology experiment might want an extra graphics display
+in addition to those dedicated to the subject. The experimenter might sit
+at the extra display and monitor the subject's progress. While an extra display
+makes sense for this particular set-up, a data visualization application
+would not need the extra display and might even achieve lower performance 
+including it.
 
 <p>By default, when an application launches on a virtual computer, it tries to
-reuse compatible components, like scene graph displays (szgrender) if it is a distributed
-scene graph application, sound displays (SoundRender), or sources of input information
-(DeviceServer). However, sometimes a user might wish to never reuse components between
-application starts. In this case, SZG_CONF/relaunch_all should be set to "true".
+reuse compatible components, like scene graph displays (szgrender) if it is a 
+distributed scene graph application, sound displays (SoundRender), or sources 
+of input information (DeviceServer). However, sometimes a user might wish to 
+never reuse components between application starts. In this case, 
+SZG_CONF/relaunch_all should be set to "true".
 
 <p>The virtual computer has one special node that must be determined by the
 user. This is the trigger node, which is set via the database value
-of SZG_TRIGGER/map. When executing
-an application on the virtual computer, an executable first runs on the trigger
-node. This "trigger instance" scans the Phleet and determines which
-running services are incompatible with the new application. These are terminated.
-For instance, any application already running on the virtual computer
-is forced to exit. Next, the trigger
+of SZG_TRIGGER/map. When on the virtual computer, an executable first runs on
+the trigger node. This "trigger instance" scans the Phleet and determines which
+running services are incompatible with the new application. These are 
+terminated. For instance, any application already running on the virtual 
+computer is forced to exit. Next, the trigger
 instance begins launching needed application components. When this is done, the
 trigger instance behaves differently if it belongs to a distributed scene graph
 application or if it belongs to a master/slave application. In the former case,
-it actually begins to run the application. In the later case, it only launches the
-other application components. In either case, the 
-trigger instance waits for a kill message and, when it receives such, 
-shuts down its launched components.  
+it actually begins to run the application. In the later case, it only launches 
+the other application components. In either case, the  trigger instance waits 
+for a kill message and, when it receives such, shuts down its launched 
+components.  
 
 <p>While the trigger node has meaning for both master/slave and
 distributed scene graph applications, the "master" (as determined by 
 SZG_MASTER/map) does not. This designates the screen that will run the master
-instance of the application for a master/slave program, which creates and distributes 
-application state to the slave instances. In the example above,
+instance of the application for a master/slave program, which creates and 
+distributes application state to the slave instances. In the example above,
 the master instance will run on wall1 and will be the instance associated with
 SZG_SCREEN0 (on wall1). Note that there may be more than one screen associated
 to a given cluster node.
 
-<p>The virtual computer needs several rendering screens to be defined. First,
+<p>The virtual computer nees to define several rendering screens. First,
 the value of SZG_SCREEN/number_screens tells how many graphics pipes are part
-of the virtual computer. For each screen, two values need to be set. One determines
-where the component that produces its graphics will run. The second
-determines the networks the graphics component will use to communicate. The above
-example shows a virtual computer with two distinct networks, the public internet
-and an internal private network designated "wall". To increase the efficiency of
-the graphics data transfer, we force the graphics communication to occur via the
-private network only and have the other communication (sound and input) occur
-via the internet. 
+of the virtual computer. For each screen, two values need to be set. 
+One determines where the component that produces its graphics will run. 
+The second determines the networks the graphics component will use to 
+communicate. The above example shows a virtual computer with two distinct 
+networks, the public internet and an internal private network designated 
+"wall". To increase the efficiency of the graphics data transfer, we force the 
+graphics communication to occur via the private network only and have the other
+communication (sound and input) occur via the internet. 
 
 <p>The user also needs to map an input device to run applications on the 
 virtual computer. The value of SZG_INPUT0/map is of the format:
@@ -541,9 +558,15 @@ virtual computer. The value of SZG_INPUT0/map is of the format:
   AAA(0)/BBB(0)/AAA(1)/BBB(1)/.../AAA(n)/BBB(n)
 </pre>
 
-The "AAA" entries are all computer names which designate the computers upon which
-the corresponding "BBB" components will be launched. A sequence of components
-must be allowed since some "virtual" input devices can require the cooperation
+The "AAA" entries are all computer names designating the computers where the
+corresponding input event gathering components described by BBB will 
+be launched. If BBB is "wandsimserver", an instance of that program will be
+launched. Otherwise, an instance of DeviceServer will be launched and
+initialized using the configuration information stored in the global Phleet
+database parameter BBB.   
+
+<p>A sequence of components
+must be allowed since some "virtual" input devices require the cooperation
 of several components running on multiple machines for their operation. The
 first component in this list is the one that will communicate directly with the
 application. The other components will funnel their data to this one.
@@ -556,15 +579,17 @@ SZG_SOUND/networks gives the communications path it will use.
 
 <p>To launch an application on a virtual computer, you will need a copy of
 szgd running on every "mapped" node (i.e. any node whose name appears as
-the value of a "map" database value). Once this is done, to launch hspace on
+the value of a "map" database value). Once this is done, to launch hspace 
+(a sample application included with the szg source) on
 virtual computer wall, use the command:
 
 <pre>
   dex wall hspace
 </pre>
 
-<p>There are two ways to kill an application running on the virtual computer. You
-can directly kill the trigger instance. In our case, that would entail the following:
+<p>There are two ways to kill an application running on the virtual computer. 
+You can directly kill the trigger instance. In our case, that would entail the 
+following:
 
 <pre>
   dmsg -c wall quit
@@ -576,108 +601,80 @@ can directly kill the trigger instance. In our case, that would entail the follo
   dkillall wall
 </pre>
 
-<p>It is inconvenient to need to write a script to launch each separate
-application. This difficulty is compounded when one realizes that a new
-set of scripts needs to be written for each platform, be it a CAVE or
-video wall. Consequently, Syzygy supports intelligent application
-launching via the definition of a "virtual computer". To define a
-virtual computer, you simply pick a name different from the name of any 
-computer in the distributed system. This name can then be
-used to set up a structure in the parameter database defining a virtual
-computer. For instance, let's use the name "wall" for our virtual
-computer.
+<p>Having explained the concept of a virtual computer and how to use one,
+we now go on to examine more in depth what happens when an application launches
+on one, paying particular attention to the how it interacts with a previously
+running application, if any. For instance, it is possible to run one
+application on a virtual computer and then run another, without explicitly
+killing the first. The launch process for the second application takes care
+of that detail. Again, consider the command:
 
 <pre>
-  wall SZG_CONF virtual true
-  wall SZG_TRIGGER map smoke
-  wall SZG_MASTER map SZG_SCREEN0
-  wall SZG_SCREEN number_screens 6
-  wall SZG_SCREEN0 map wall1/SZG_SCREEN0
-  wall SZG_SCREEN0 networks wall
-  wall SZG_SCREEN1 map wall2/SZG_SCREEN0
-  wall SZG_SCREEN1 networks wall
-  wall SZG_SCREEN2 map wall3/SZG_SCREEN0
-  wall SZG_SCREEN2 networks wall
-  wall SZG_SCREEN3 map wall4/SZG_SCREEN0
-  wall SZG_SCREEN3 networks wall
-  wall SZG_SCREEN4 map wall5/SZG_SCREEN0
-  wall SZG_SCREEN4 networks wall
-  wall SZG_SCREEN5 map wall6/SZG_SCREEN0
-  wall SZG_SCREEN5 networks wall
-  wall SZG_INPUT0 map smoke/wandsimserver
-  wall SZG_INPUT0 networks internet
-  wall SZG_SOUND map sound
-  wall SZG_SOUND networks internet
+  dex wall hspace
 </pre>
 
-<p>In what follows, for the sake of clarity we refer directly to
-virtual computer "wall". In general, substitute the name of the virtual
-computer you have defined. </p>
-<p>Now, assuming that there are szgd daemons running on all the
-computers in the virtual computer "wall" (i.e. smoke, sound, wall1, wall2, wall3,
-wall4, wall5, wall6), the following command will suffice to launch the hspace demo
-on "wall": </p>
-<pre>dex wall hspace<br></pre>
-<p>To kill the demo: </p>
-<pre>dkill wall hspace<br></pre>
-<p>Note that one can launch a new demo without killing the old one. The
-launching process takes care of cleaning-up the old demo. So, the
-following sequence of command would bring up hspace, then cosmos, and
-then hspace. </p>
-<pre>dex wall hspace<br>dex wall cosmos<br>dex wall hspace<br></pre>
-<p>Let's now examine how this works. When you type </p>
-<pre>dex wall hspace<br></pre>
-<p>the "dex" command first checks to see if "wall" is the definition of
-a virtual computer by seeing if wall/SZG_CONF/virtual is set to true.
-If so, "dex" determines the trigger of the virtual computer via
+<p>The dex command first checks to see if "wall" is the definition of
+a virtual computer by seeing if wall/SZG_CONF/virtual is set to "true".
+If so, dex determines the trigger of the virtual computer via
 wall/SZG_TRIGGER/map and executes hspace there, passing the executable a
-special parameter indicating that it is being used to launch the full
-cluster application. </p>
+special parameter indicating that it is being used as a trigger to launch the 
+full cluster application.
+
 <p>When the application is being used as a launcher, it first makes
-sure that a previous demo isn't already running, by checking, in this
-case, if the named lock "wall/SZG_DEMO/app" is held. If so, the
-application sends a kill message to the owner of the lock and waits for
-it to exit. Once the old application has died, the new application
+sure that a previous application isn't already running, by checking, in this
+case, if the named lock "wall/SZG_DEMO/app" is held. Here, the first "wall"
+appearing in the lock name indicates the virtual computer location, which
+just happens in this case to be equal to the virtual computer name. If the
+lock is held, the trigger sends a kill message to the lock's owner and waits 
+for it to exit. Once the old application has died, the new application
 enters a clean-up phase which makes sure appropriate services are
-running on the cluster. </p>
+running on the cluster and incompatible ones are killed.
+
 <p>First, it checks to see if an incompatible render program is running
 on any of the screens. For virtual computer "wall" and screen 0, this
 is done by checking whether anyone is currently holding the lock
 wall1/SZG_SCREEN0. Note that a render program can
-still be active on a screen when an application has been killed. For
+remain active on a screen after an application has been killed. For
 instance, szgrender stays up after a distributed scene graph
-application as died, since it can just accept a new connection from a
+application has died since it can just accept a new connection from a
 new distributed scene graph application. If there is a render program
 currently registered and it is incompatible with the operation of the
-new render program, the old one is killed. </p>
-<p>Next, the application launcher makes sure that the required services
-are running on the cluster. So far, we are only launching input device and
-sound drivers. In the case of virtual computer "wall", this means making sure
+new render program (szgrender, for instance, cannot display the graphics for
+a master/slave program or vice-versa), the old one is killed.
+
+<p>Next, the application launcher makes sure other required services
+are running on the cluster, including input devices and sound drivers. 
+In the case of virtual computer "wall", this means making sure
 wandsimserver is running on computer "smoke" and that SoundRender is
 running on computer "sound". In each case, if the component is running
-already, leave it alone. If it isn't running, go ahead and launch it. </p>
-<p>A word about the syntax of wall/SZG_INPUT0/map is in order.
-Sometimes, as will be covered in the <a href="InputDevices.html">input
-devices</a> chapter, it is desirable to construct a virtual input device
-from different physical devices. In these cases, the value of
-wall/SZG_INPUT0/map would look something like: </p>
-<pre>computer1/service1/computer2/service2<br></pre>
-<p>indicating that "service1" should be launched on "computer1" and
-"service2" should be launched on "computer2". </p>
-<p>Now that its environment has been conditioned, the application
-launcher goes ahead and starts the application itself. In the
-master/slave application case, it launches an application instance on
-each of the render nodes. In the case of a distributed scene graph
-application, it goes ahead and makes sure szgrender is running on each
-render node and begins executing the application code locally. </p>
-<p>Finally, the application launcher waits for a kill signal. And
-performs a shutdown upon receiving it. </p>
+already, leave it alone. If it isn't running, go ahead and launch it.
 
-<p>Here are several useful commands for managing a virtual computer: </p>
+<p>Now that its environment has been conditioned, the trigger goes ahead and 
+starts the application itself. In the
+master/slave application case, it launches an application instance for each
+graphics screen. In the case of a distributed scene graph
+application, it goes ahead and makes sure szgrender is running on each
+render node and begins executing the application code locally.
+
+<p>Finally, the trigger waits for a kill signal, as might come from a new
+application, and performs a shutdown procedure upon receiving it. In the
+distributed scene graph case, this simply means shutting down itself, while,
+in the master/slave case, this means telling the connected slaves to shut down
+and waiting for them to do so.
+
+<p>Here are several useful commands for managing a virtual computer:
+
 <pre>
-  dkillall virtual_computer
+  dkillall virtual_computer_location
    
-   Kill any demos currently running on virtual_computer.
+   Kill any application currently running in the given virtual computer
+   location, along with any services like szgrender, SoundRender, or
+   DeviceServer.
+
+  dmsg -c virtual_computer_location quit
+
+   Kills the application, if any, currently running in the given virtual
+   computer location, but leaves services alone.
 
   restarttracker virtual_computer
 
@@ -686,23 +683,26 @@ performs a shutdown upon receiving it. </p>
 
   setdemomode virtual_computer [true, false]
 
-   If second argument is "true", sets each rendering node to use a fixed
-   head position rather than that reported by the tracking device. The head position
-   is read from SZG_SCREEN(n)/fixed_head_pos on each computer, and is a 
-   3-number x/y/z string, e.g. 0/5/0. Each rendering node will assume that the 
-   direction of gaze is perpendicular to its screen, and the up direction of the head 
-   will be taken from SZG_SCREEN(n)/fixed_head_up_angle (defaults to 0/1/0).
-   This is often preferable for multi-person demos, particularly for stereoscopic 
-   displays. To set things back to normal mode, use "false" as the second argument.
+   If second argument is "true", this sets each render node to use a fixed
+   head position rather than that reported by the tracking device. The head 
+   position is read from SZG_SCREEN(n)/fixed_head_pos on each computer, and is 
+   a 3-number x/y/z string, e.g. 0/5/0. Each rendering node will assume that 
+   the direction of gaze is perpendicular to its screen, and the up direction 
+   of the head will be taken from SZG_SCREEN(n)/fixed_head_up_angle 
+   (defaults to 0/1/0). This is often preferable for multi-person demos, 
+   particularly for stereoscopic displays. To set things back to normal mode, 
+   use "false" as the second argument.
 
   setstereo virtual_computer [true, false]
 
-   Turns active stereo rendering on and off for each rendering node of the cluster.
+   Turns active stereo rendering on and off for each rendering node of the 
+   cluster.
 
   screensaver virtual_computer
 
-   Start szgrender programs on each render node in the cluster. Since szgrender is 
-   black when no application is connected, this effectively is a screensaver.
+   Start szgrender programs on each render node in the cluster. Since 
+   szgrender is black when no application is connected, this is effectively a 
+   screensaver.
 
   calibrationdemo virtual_computer
 
@@ -856,7 +856,7 @@ for instance. Note the example:
 <p>Services in the cluster application (like sound information, scene graph
 information, input events) are brokered via a service name. Components
 will fail to launch if they want to provide a service with a given name but
-cannot since another component is already providing that service.
+cannot since another component already provides that service.
 Consequently, it is important to understand how services get their names and
 how to find out what services are being offered.
 
@@ -901,8 +901,8 @@ service names for the various syzygy service are mentioned below.
    Synchronization for the above service.
 </pre>
 
-<p>If a user launches a component, but does not do so in the context of a virtual
-computer, the component's service name will be:
+<p>If a user launches a component, but does not do so in the context of a 
+virtual computer, the component's service name will be:
 
 <pre>
   basic_service_name/syzygy_user_name
@@ -915,18 +915,18 @@ of another.
 a virtual computer, the component's service name will be:
 
 <pre>
-  virtual_computer_name/basic_service_name
+  virtual_computer_location/basic_service_name
 </pre>
 
-This allows various users to collaborate on using application components on a
-particular virtual computer. In a sense, the virtual computer is a shared
-resource.
+This allows various users to share application components running in the
+context of a particular virtual computer location, allowing them to be used as
+a communal resource.
 
-<p>Use the "dservices" command to see a listing of all currently offered services.
-Conversely, use the "dpending" command to see a listing of all service requests
-that have yet to be matched with a service. The user can debug problems
-with the distributed system, particularly issues with one component not 
-connecting to another, via these commands.
+<p>Use the "dservices" command to see a listing of all currently offered 
+services. Conversely, use the "dpending" command to see a listing of all 
+service requests that have yet to be matched with a service. The user can 
+debug problems with the distributed system, particularly issues with one 
+component not connecting to another, via these commands.
 
 <p>To get an idea of how this all fits together, consider a brief example.
 When running a distributed scene graph application, it will offer the
@@ -938,20 +938,26 @@ In addition, the distributed scene graph application wants to connect to
 the SZG_INPUT0 service, which can be provided by a DeviceServer or 
 wandsimserver.
 
-<p>Locks can be used to assure atomic operation of the Phleet,
-like virtual_computer_name/SZG_DEMO/lock, which ensures that a demo
-launching on a particular virtual computer will be able to reorganize the
-components running there without being interrupted. They can also be used
+<p>Services are not the only primitive utilized by the Phleet OS. Distributed
+locks can be used to ensure that sequences of Phleet operations occur 
+atomically. As an example, when an application trigger begins preparing a
+virtual computer for the full application's operation it obtains a named Phleet
+lock, virtual_computer_location/SZG_DEMO/lock, and holds the lock until it has
+finished launching its components. This ensures that an application
+launching on a particular virtual computer will be able to complete the
+necessary reorganization without being interrupted. 
+
+<p>Phleet locks are also used
 to reserve resources. A copy of szgd ensures that no other copy is running
 on its computer by, upon start, trying to grab a computer_name/szgd lock.
 If it fails, another copy must be running and it exits. If it succeeds,
 it holds the lock while running. Other resource reservation locks are
 SoundRender's computer_name/SoundRender lock and szgrender's
-computer_name/SZG_SCREEN(n) lock, which refers to the virtual screen
-designation of its graphics window. A final resource lock is the virtual
-computer's application lock (virtual_computer_name/SZG_DEMO/app), which
-ensures that only one syzygy application is running on a given virtual
-computer at a time. 
+computer_name/SZG_SCREEN(n) lock, which refers to the virtual screen that
+displays its window. A final resource lock is the virtual
+computer's application lock (virtual_computer_location/SZG_DEMO/app), which
+ensures that only one Syzygy VR framework application is running in a given 
+virtual computer location at a time.
 
 <p>Finally, locks facilitate automatic shutdown of previously running
 applications. Specifically, if a new application wants to get a resource,
@@ -960,11 +966,107 @@ it the phleet ID of the component holding the lock. The new application
 can then send the currently running component a kill message and 
 wait until the lock has been released.
 
-<p>The "dlocks" command will show a list of currently existing locks.
+<p>The "dlocks" command shows a list of currently existing locks.
 
 <a name="Troubleshooting">
 <p><font size="+2">Troubleshooting</font>
 </a>
+
+<p>Phleet's connection brokering and named locks are used to simplify 
+cluster set-up and management, providing a layer of abstraction that eliminates
+the need to enter IP addresses and port numbers in config files and allows
+components to be flexibly placed on different computers without manual
+reconfiguration. While this convenience is not so important for a static
+set-up which is used in essentially one way all the time, it is critical for
+easy, ad-hoc clustering in a fluid lab situation where most application testing
+and development occurs. It also facilitates special purpose clustering, where
+particular applications (or categories of applications) need cluster
+arrangements unique to them but still need to cooperate with other application
+categories.
+
+<p>Consequently, when things go wrong, like an application or application
+component does not launch, or when two components refuse to connect, the user
+needs to understand connection brokering and locks, along with the tools used
+to diagnose problems connected to their use. Misconfiguration or misuse of
+these features is the main cause of problems when using Syzygy applications.
+
+<p><ul>
+<li>szgrender, SoundRender, szgd refuse to launch: Each of these components
+holds a Phleet lock corresponding to a real world resource during its 
+operation. For szgrender, it is a given chunk of screen real estate. For
+SoundRender, it is the sound card. For szgd, it is the computer itself. 
+In the case of szgrender, executing a second copy to display on
+the same virtual screen (SZG_SCREEN0, SZG_SCREEN1, etc.) as an already
+running szgrender will result in the second copy quitting with
+the following error message (the component ID will vary):
+
+<pre>
+  szgrender error: failed to get screen resource held by component 46228.
+</pre>
+
+This is normal, and indeed desirable, behavior, since some resources cannot
+be shared.
+
+<li>A Syzygy VR framework application fails to launch with the following
+error message:
+
+<pre>
+  arSyncDataServer error: failed to register service.
+</pre>
+
+Again, this is an expected behavior. The VR framework application wants to
+offer a sound data service. If it is not run as part of a virtual computer,
+its service name will default to SZG_SOUND/the_user_name. Consequently,
+when logged in to a given szgserver both on computer A and computer B a user
+cannot, for instance, run one VR framework application on A and one VR
+framework application on B (neither as part of a virtual computer)
+simulatneously. The second one executed will quit, saying it cannot offer
+the service. Similarly, if a VR framework application is already running on
+a given virtual computer, the only way to run a new one is to kill the old one.
+Note that, as explained in the section on 
+<a href="#VirtualComputer">virtual computers</a>, launching a new
+application using
+
+<pre>
+  dex virtual_computer my_application_name
+</pre>
+
+kills the previous application automatically. There two workarounds for this
+problem if one wants to run multiple applications simultaneously: use
+different Phleet user names or use different virtual computers for each 
+application.
+
+<li>Component A does not connect to Component B (but they should): First, you
+should check that your szg.conf configuration files are correct on the
+computers in question. This is verified as <a href="#TestingPhleet">here</a>.
+If this tests succeeds, one of the following is almost certainly true:
+  <ol>
+  <li>Neither component is being run on a virtual computer, but they are
+      being run with different user names. You might have dlogin'ed
+      with different Phleet names on the different computers. In this case, you
+      must be dlogin'ed with the same Phleet name on both computers.
+  <li>One component is being run on a virtual computer but another is not.
+      Again, this will fail. Both must be running in the same virtual computer
+      location. Recall that every virtual computer has a location (that 
+      defaults to the virtual computer name).
+  <li>One component is being run in virtual computer location L1 while the 
+      other is being run in virtual computer location L2. Again, this is
+      going to fail. The virtual computer locations must be the same for
+      the components to connect. 
+  </ol>
+You can diagnose these problems by running "dservices" to see the names
+of services which are being offered and by running "dpending" to see the names
+of unfulfilled service requests. You should see the full name of the offered
+service, the full name of the request, and see how they fail to match.
+
+<li>A computer running some Phleet components hard crashed/ got the power
+cord yanked/ etc. Now these components are stuck in the Phleet process table,
+and, furthermore, new instances (like szgd) cannot be launched. This problem
+occurs because (in the case of szgd) the lock is still held internally by
+the szgserver and the new instance cannot get it. The solution is to "dkill -9"
+the old instance, which forcibly removes it from the process table. This will
+allow you to start again.
+</ul>
 
 <hr>
 
