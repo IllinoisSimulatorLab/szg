@@ -51,7 +51,7 @@ Peter and Jim: Created and did significant work on Syzygy Python bindings
 
 Ben- Made an szg SDK. Created a new build mode ("EASY") to support it.
 
-Jim and Ben- Reworked and generalized the graphics window code, allowing for
+Jim- Reworked and generalized the graphics window code, allowing for
 custom configuration of viewports and better camera handling (custom cameras 
 for instance). The problematic arScreenObject class was removed.
 
