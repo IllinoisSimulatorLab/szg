@@ -20,6 +20,16 @@
 # header search is limited to those portions that need them (like FMOD only
 # for sound and framework).
 
+SZG_SHARED_COPY_ACTION_BIN=\
+  pushd $(SZG_BINDIR); \
+  $(SZG_SHARED_COPY_ACTION) \
+  popd
+
+SZG_SHARED_COPY_ACTION_SDK=\
+  pushd $(INSTALLDIR)/bin; \
+  $(SZG_SHARED_COPY_ACTION) \
+  popd
+
 ifeq ($(strip $(MACHINE)), LINUX)
   GLUT_DIR := $(SZGEXTERNAL)/linux/glut-3.7
   INC_GLUT := $(wildcard $(GLUT_DIR)/include)
@@ -57,10 +67,9 @@ ifeq ($(strip $(MACHINE)), LINUX)
     # NOTE: It is IMPORTANT that the symbolic links are RELATIVE and not
     # ABSOLUTE!
     SZG_SHARED_COPY_ACTION += \
-      pushd $(SZG_BINDIR) ; \
       rm -f libglut.so.3; rm -f libglut.so; \
       ln -s libglut.so.3.7 libglut.so.3 ; \
-      ln -s libglut.so.3 libglut.so ; popd ;
+      ln -s libglut.so.3 libglut.so ;
     SZG_INCLUDE_GLUT = -I$(INC_GLUT)
     SZG_OPT_INCLUDE_FULL += $(SZG_INCLUDE_GLUT)
     # NOTE: Sometimes we will want to be able to put shared libs in our *local*
