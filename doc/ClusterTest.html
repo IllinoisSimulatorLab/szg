@@ -1,0 +1,395 @@
+<html>
+<head>
+<title>Syzygy: Testing Your Cluster</title>
+</head>
+<body bgcolor="#ffffff">
+<a href="index.html">Documentation Index</a>
+
+<p><font size=+2>Syzygy: Testing Your Cluster</font>
+
+<p>
+<ul>
+<li><A HREF="#SimpleTest">Simplest Possible Distributed Graphics Test</a>
+<li><A HREF="#DBExamples">Database Parameter Examples</a>
+<li><A HREF="#ConfidenceTest">Running the Distributed Graphics Confidence Test</a>
+<li><A HREF="#MasterSlave">Running a Master/Slave Application</a>
+</ul>
+
+<A NAME="SimpleTest">
+<p><font size=+2>A Simple Distributed Graphics Test</font>
+
+<p>One can now run some simple distributed graphics tests without any further configuration.
+A distributed scene graph application, in its simplest form, consists of 3 seperate executable
+components: the application itself, a renderer, and an input program. These can can be run in
+arbitrary locations in the distributed system prepared above. Concretely, on any computer in
+the distributed system, type (you'll have to have compiled the base demos):
+
+<pre>
+  cosmos
+</pre>
+
+The "cosmos" executable will not return, though no window will appear, if all goes well 
+(to exit you can ctrl-c). If this is not the case, the only possibility is that the servers
+embedded in cosmos could not bind to their ports, as determined by the szgserver. Try changing
+the ports block on this computer using dports, as above.
+
+<p>Next, on any computer in the system, type:
+
+<pre>
+  szgrender
+</pre>
+
+On the computer on which you typed "szgrender", a window will pop up and display 4 solid blue
+rotating torii, from which emerge a shimmering halo of lines. If this doesn't happen, either
+the phleet config file on this computer has incorrect network information (check using dconfig)
+or the computer running cosmos is not reachable via the first network listed in the phleet
+config file on this computer. 
+In the later case, reorder the addresses in the config file using ddelinterface
+and daddinterface (it is assumed that it is possible to reach cosmos over the network from
+this computer). Quit szgrender and run it again. Everything should now work.
+NOTE: to quit szgrender, type ESC.
+
+<p>Next, on any computer in the system, type:
+
+<pre>
+  wandsimserver
+</pre>
+
+On that computer, a window will appear with some geometrical objects. Move the mouse in that
+window with the left button down. The wireframe sphere should move and, furthermore, the torii
+in the szgrender window should move as well. The wandsimserver program has a server (for
+input device information) embedded in it like the cosmos program has a server embedded in it
+(for geometry). Consequently, the potential faults are similar. If it fails to launch,
+make attempt adjusting the ports block via dports on the computer on which it executed. If it
+launches, but the torii in the szgrender window do not move when the wireframe sphere moves,
+this is because the input device client embedded in cosmos could not connect. Make sure the
+phleet config file on the computer running cosmos has correct information and that the computer
+running wandsimserver is reachable via the first
+address listed in the phleet config file on the computer running cosmos. If the later is false,
+use daddinterface and ddelinterface to manipulate the config file on the computer running cosmos.
+Then, upon killing and then restarting cosmos, everything should work. NOTE: to quit wandsimserver,
+type ESC.
+
+<p>One can have fun exploring different possible configurations. 
+On any computer in the distributed
+system, run another copy of szgrender. Kill a currently running copy of szgrender. 
+Repeat in
+an arbitrary fashion. Note that only one copy of wandsimserver or cosmos 
+will run at a given time.
+Each offers a service (like SZG_INPUT0 in the case of wandsimserver), and 
+the szgserver enforces
+that only a single component can offer a particular service. Try running 
+mulitple copies of each and
+observe the failure. On the other hand, try killing wandsimserver and 
+restarting it on another
+computer in the distributed system. This will work, assuming that the 
+computers in question
+are configured correctly, as discussed above. Similarly, cosmos can be 
+killed and restarted
+on another computer. In each case, the components automatically reconnect 
+and recreate a working total application.
+
+<p>One can also run a simple master/slave application test without 
+any further configuration. Go ahead 
+and kill any instances of cosmos, szgrender, and wandsimserver that 
+you still have running from previous experiments. Next, on any computer 
+in the distributed system, type:
+
+<pre>
+  hspace
+</pre>
+
+A window should appear with a green spiderweb on a black background. 
+If the window fails to launch, the
+only possibility is that the ports were misconfigured on the machine on 
+which it executed. The
+remedy is the same as above. The first successfully launched instance of 
+hspace is the "master".
+Subsequently launched instances will be "slaves", depending upon the 
+master for information about navigation
+and the state of the world. Go ahead and launch hspace on other computers 
+in the distributed system. 
+You can quit the program by typing ESC.
+
+<p>Next, type:
+
+<pre>
+  wandsimserver
+</pre>
+
+on one of the computers in the distributed system. Move the mouse in the 
+resulting window with a button
+held down. The green spiderwebs should move in unison. If they do not move, 
+the configuration of the
+computer on which the FIRST instance of hspace (the master) ran must be incorrect. 
+Make sure that on that
+computer the network addresses are correct in the phleet config file. Furthermore,
+ make sure that that
+computer can communicate with the computer running wandsimserver over one of those 
+addresses.
+
+<p>As before, experiment with freely killing and restarting hspace and wandsimserver 
+on the various computers
+in the distributed system. Note that when you kill the master instance of hspace, 
+no motion of the
+wandsimserver will cause the slaves to move. This is because there now exists now 
+master instance. However,
+the next hspace instance you launch will become the new master and everything 
+will again work.
+
+<A NAME="DBExamples">
+<p><font size=+2>Database Parameters Example for Confidence Tests</font>
+</a>
+
+<p>While, as above, some of Syzygy's flavor can be experienced without specific
+configuration, more interesting effects require it. For instance, reading data
+files and constructing tiled displays require configuration. Here are some example 
+parameters, in a format readable by the
+dbatch command. We made the following assumptions in creating this list:
+<p><ol>
+<li>Syzygy contains two frameworks for constructing user applications. In a
+<em>distributed scene graph</em> application, the main application runs on a
+single cluster node, while
+rendering programs (in this case szgrender) create the graphics on the display
+nodes. In the case of a <em>master/slave</em> application, on the other hand,
+seperate copies
+of the application run on each render node, with one application, the master,
+controlling the execution of the others. This first example will demonstrate
+how to set the parameters for a distributed scene graph application ("cosmos").
+<li>In the parameters below, we've assumed that /szg is the location where
+you unpacked the code. This'll be easy to change to the actual location.
+ Also, the value of the SZG_EXEC/path parameter assumes you are
+using Linux machines. Pathnames in Windows will use backslashes 
+instead of forward slashes and appropriate drive letters.
+<li>The parameters used to configure the view are appropriate for a
+2x1 tiled wall placed in front of the observer's position in tracked
+coordinates.
+<li>The machine running the main program is named "control", while two machines
+running szgrender are named "slave1" and "slave2". These will need to be replaced
+with the names of your computers.
+</ol>
+<pre>
+# note how dbatch scripts can have comment lines
+slave1 SZG_SCREEN0 size 640/480
+slave1 SZG_SCREEN0 stereo false
+slave1 SZG_SCREEN0 screen_center 0/5/-5
+slave1 SZG_SCREEN0 screen_dim 10/10
+slave1 SZG_SCREEN0 screen_normal 0/0/-1
+slave1 SZG_SCREEN0 screen_up 0/1/0
+slave1 SZG_SCREEN0 tile 0/2/0/1
+slave1 SZG_RENDER texture_path /szg/rsc
+slave1 SZG_RENDER text_path /szg/rsc/Text
+slave1 SZG_SOUND path /szg/rsc
+slave1 SZG_EXEC path /szg/bin/linux
+slave1 SZG_DATA path /szg/data
+
+slave2 SZG_SCREEN0 size 640/480
+slave2 SZG_SCREEN0 stereo false
+slave2 SZG_SCREEN0 screen_center 0/5/-5
+slave2 SZG_SCREEN0 screen_dim 10/10
+slave2 SZG_SCREEN0 screen_normal 0/0/-1
+slave2 SZG_SCREEN0 screen_up 0/1/0
+slave2 SZG_SCREEN0 tile 1/2/0/1
+slave2 SZG_RENDER texture_path /szg/rsc
+slave2 SZG_RENDER text_path /szg/rsc/Text
+slave2 SZG_SOUND path /szg/rsc
+slave2 SZG_EXEC path /szg/bin/linux
+slave2 SZG_DATA path /szg/data
+
+control SZG_SCREEN0 size 640/480
+control SZG_SCREEN0 stereo false
+control SZG_SCREEN0 screen_center 0/5/-5
+control SZG_SCREEN0 screen_dim 10/10
+control SZG_SCREEN0 screen_normal 0/0/-1
+control SZG_SCREEN0 screen_up 0/1/0
+control SZG_SCREEN0 tile 0/1/0/1
+control SZG_RENDER texture_path /szg/rsc
+control SZG_RENDER text_path /szg/rsc/Text
+control SZG_SOUND path /szg/rsc
+control SZG_EXEC path /szg/bin/linux 
+control SZG_DATA path /szg/data
+</pre>
+
+<p>Descriptions of parameters:
+
+<p><ul>
+<li>SZG_SCREEN0/screen_center should give the center of the screen in question.
+Note that units are given in feet. Each computer can have several virtual screens
+attached to it, SZG_SCREEN0, SZG_SCREEN1, etc. Virtual screen 0 is the default used.
+<li>SZG_SCREEN0/screen_dim gives the dimensions of the screen, horizontal
+dimension followed by vertical dimension.
+<li>SZG_SCREEN0/screen_normal gives a unit normal vector to the screen pointing
+away from the observer.
+<li>SZG_SCREEN0/screen_up gives the up direction (another unit vector).
+<li>SZG_SCREEN0/tile allows you to amalgamate a set of screens into a tiled
+video wall. The format is x/nx/y/ny, where nx and ny specify the number
+of tiles in the horizontal and vertical directions, respectively, and x and y
+are numbers between 0 to n-1 identifying the specific tile position of the current
+machine's screen within this
+grid. Tile coordinates are calculated from the lower left
+corner of the screen. For instance, 0/2/0/2 denotes the lower left corner
+of a 2x2 video wall. If tiling is used, SZG_SCREEN0/screen_dim, screen_center, 
+screen_normal, and screen_up apply to the entire array, instead of
+an individual tile.
+</ul>
+
+<p><ul>
+<li>SZG_RENDER/texture_path and SZG_RENDER/text_path specify base paths to use
+in locating texture and font data.  For example,
+textures for the cosmos demo are located in szg/rsc/Texture (the donut textures)
+and szg/rsc/Texture/Text (the textured font). Note that these paths are defined
+on a per-computer (SZG_RENDER) instead of a per-screen (SZG_SCREEN(n)) basis.
+
+</ul>
+
+<p><ul>
+<li>SZG_EXEC/path is the path to search for executables to be run by the <em>dex</em>
+command.  If "control" runs Windows instead of Linux, you might
+see something more like this...
+
+<pre>
+control SZG_EXEC path c:\szg\bin\win32
+</pre>
+</ul>
+
+<p><ul>
+<li>SZG_DATA/path is the path that some executables search for data files.
+    This should be wherever you installed the optional data distribution
+    mentioned above.
+</ul>
+
+<p>You'll have to alter the following for your setup:
+<p><ul>
+<li>SZG_RENDER/texture_path should be XXX/szg/rsc (where XXX is the directory
+    in which szg was installed).
+<li>SZG_RENDER/text_path should be set to XXX/szg/rsc/Text 
+(where XXX is the directory in which szg was installed).
+<li>SZG_EXEC/path should be set to the location of the installed binaries. Look at the
+discussion of SZGBIN in the compilation section for more information.
+</ul>
+
+<p>The set-up outlined above assumes that the display computers will
+have monitors side by side. In this example, "slave1" is displaying the
+left half and "slave2" is displaying the right half. You can easily reverse this
+by swapping the SZG_SCREEN0/tile parameter values. Or you can set up a completely
+different type of display
+by changing the screen_center, screen_dim, screen_normal, screen_up, and
+tile values.
+
+<A NAME="ConfidenceTest">
+<p><font size=+2>Running the Distributed Graphics Confidence Test</font>
+</a>
+
+<p>These are the basic steps:
+<p><ol>
+<li>Configure your system as described <a href="#CreatingPhleet">here</a>.
+<li>Set the database parameters, either one at at time using <em>dset</em> or
+altogether using <em>dbatch</em>.
+<li>Run the main application and the rendering programs as follows (we assume
+    that <em>szgd</em> is running on each of slave1, slave2, and control):
+<pre>
+   dex slave1 szgrender 
+   dex slave2 szgrender 
+   dex control cosmos
+</pre>
+<li>These commands can be run from any computer in the system.
+</ol>
+   
+<p>What <em>should</em> happen is that each execution of szgrender should cause a black-filled
+window to open on the appropriate machine.  When cosmos runs, each window should show a partial
+view of a set of rotating, concentric, highly colorful tori, along with some other stuff.
+
+<p>If you get an error "szgd found no file foo in the SZG_EXEC path",
+   then you didn't set up the database properly in step 3.
+   The executables in question need to be in SZG_EXEC/path.
+
+<p>The various demo programs, including cosmos, want to connect to
+   a networked input device. See the <a href="InputDevices.html">
+   Input Devices</a> documentation page for an enumeration of the supported
+   devices. For simplicity's sake, here we assume you'll control the demo
+   using a program called <em>wandsimserver</em> (see below) that translates
+   mouse movements and keyboard presses into tracker-style events.
+
+<pre>
+  dex control wandsimserver
+</pre>
+
+<p>Type "dps" on a member of the Phleet and note the output. 
+You can see everything running now. To kill the test, type:
+
+<pre>
+   dkill control cosmos
+</pre>
+
+<p>The szgrender windows will go black again. You can execute cosmos on control again,
+   and the tori will return. Note that you can also
+   run any of these executables from the command line on the individual machines 
+   instead of via "dex". To kill the other stuff,
+   
+<pre>
+   dkill slave1 szgrender
+   dkill slave2 szgrender
+   dkill control wandsimserver
+</pre> 
+
+<p>You can also hear sound from many of the demos, assuming you've compiled
+with fmod support and have a sound card in control. Try:
+
+<pre>
+  dex control SoundRender
+</pre>
+
+<p>NOTE: the same parameters mentioned above will allow you to run everything
+on a single box. Typing:
+
+<pre>
+  dex control szgrender
+  dex control cosmos
+  dex control wandsimserver
+</pre>
+
+<p>will bring everything up. Appropriate dkill's will bring everything down.
+
+<A NAME="MasterSlave">
+<p><font size=+2>Running a Master/Slave Application</font>
+</a>
+
+<p>So far, you've seen how to run a distributed scene graph application. Let's
+now examine how to run a master/slave application (using dex, dkill, and configured screens). 
+As mentioned above, in a master/slave application , seperate copies
+of the application run on each render node, with one application, the master,
+controlling the execution of the others.
+
+<p>We'll use the same three-machine configuration for this example, the difference
+being that one of the rendering machines, "slave1" will be running the master application
+(OK, that's a little unfortunate, but you can handle it),
+the other, "slave2", will be running the slave application, and "control" will be
+responsible for input and sound as before.
+
+<p>We can now run a master/slave application, like hspace (one
+of the included demos) as follows:
+
+<pre>
+   dex slave1 hspace
+   dex slave2 hspace
+</pre>
+
+<p>To stop the application:
+
+<pre>
+   dkill slave1 hspace
+   dkill slave2 hspace
+</pre>
+
+<p>To hear sound (assuming you've compiled w/ fmod support and have
+a sound card in control):
+
+<pre>
+   dex control SoundRender
+</pre>
+
+<p>You can also run a master/slave application on a single box, just launch all
+components on, for instance, control.
+
+</body>
+</html>

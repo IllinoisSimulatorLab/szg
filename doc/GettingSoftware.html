@@ -1,0 +1,406 @@
+<html>
+<head>
+<title>Syzygy: Getting the Software</title>
+</head>
+<body bgcolor="#ffffff">
+<a href="index.html">Documentation Index</a>
+
+<p><font size=+2>Syzygy: Getting the Software</font>
+
+<p>
+<ul>
+<li><A HREF="#Requirements">Requirements</a>
+<li><A HREF="#BuildEnvVar">Syzygy Build Environment Variables</a>
+<li><A HREF="#VCCEnvVar">Visual C++ Command-Line Environment Variables</a>
+<li><A HREF="#SupportLibs">Installing Supporting Libraries</a>
+<li><A HREF="#CompileSyzygy">Compiling the Syzygy Toolkit</a>
+<li><A HREF="#CompileDemos">Compiling the Demos</a>
+<li><A HREF="#InstallData">Installing the Optional Data Distribution</a>
+<li><A HREF="#InstallDemos">Installing the 2nd Tier Demos</a>
+</ul>
+
+
+<A NAME="Requirements">
+<p><font size=+2>Requirements</font>
+</a>
+
+<p>Syzygy works on Linux, Windows, Mac OS X, and Irix platforms. 
+   Please read the notes below for your platform(s).
+
+<p>Some of the included demos require additional libraries and data, discussed below.
+
+<p>Linux: 
+<p><ol>
+<li>Most current versions include OpenGL libraries via Mesa. 
+  Hardware-accelerated graphics can be set up with minimal effort. 
+  NVidia graphics cards have high-quality <a href="http://www.nvidia.com">drivers</a>.
+<li>GLUT is not installed by default in many Linux distros. However,
+  it is very easy to find it on the <a href="http://www.opengl.org">web</a> 
+  and compile it. Note that Mesa includes GLUT.
+  Headers for GLUT and the .so must be installed in /usr/include/GL and /usr/lib,
+  as is standard.
+<li>IMPORTANT NOTE: for reliable operation, syzygy requires a thread-safe libc++.
+  gcc-2.96 fails in this regard, so occasional problems will be observed on,
+  for instance, RedHat 7.0 and RedHat 7.1, which use this compiler, when 
+  deployed in an SMP configuration. The solution is to use an earlier or later
+  version (RedHat 6.2 is OK as is RedHat 8.0). For other Linux distros, consider
+  that gcc-3.2.x is known to work.
+<li>IMPORTANT NOTE: the Syzygy build environment produces code for the i686 architecture
+  by default.
+  If you have an older processor, you need to change the "-march=i686" flag in
+  szg/build/make/Makefile.defines. Experiment with either removing it or 
+  downgrading, for instance to "-march=i586".
+</ol>
+
+<p>Windows: Syzygy's build system uses GNU make and the command line Visual Studio
+  compiler and linker. This has been tested with Visual Studio 6.0 and Visual
+  Studio .Net. Reports of compilation trouble with earlier versions of Visual Studio 
+  are welcome.
+  
+<p>You will need a unix-like shell for Windows that provides a GNU make utility. We
+  have tested two, MinGW/MSYS and Cygwin. If you're not currently using either, we
+  recommend MinGW (except perhaps for Win98, see below); Cygwin is a much larger package
+  and at the time of writing is
+  only available as a network installer. MinGW is relatively small and comes as
+  two self-contained installers, which we have included in our distribution. You can
+  also check for more recent versions at
+  <a href="http://www.mingw.org/">www.mingw.org</a>. Run the MinGW installer first,
+  then the MSYS installer. If you do install
+  Cygwin (<a href="http://www.cygwin.com/">www.cygwin.com</a>) instead, make sure that
+  the checkboxes for make and for bin/utils are checked. If you don't plan to use
+  Cygwin for anything else, you can create
+    a minimum-disk-space Cygwin which will still build Syzygy by 
+    selecting only these packages (uncheck <i>all</i> other checkboxes):
+    <dl>
+    <dt>Category: Base
+        <dd>ash bash cygwin fileutils login sh-utils
+    <dt>Category: Devel
+        <dd>bin-utils make
+    <dt>Category: Shells
+        <dd>ash bash sh-utils
+    </dl>
+<li>Install MS Visual Studio.  When it asks if you want to use
+    the tools from the command line, answer "yes." Note that this
+    document also shows you the right environment variable settings
+    in the <A HREF="#VCCEnvVar">VC++ Command Line Environment Variables section</a>.
+<li>Install <a href="http://www.xmission.com/~nate/glut.html">GLUT</a>.
+    For a standard install of Visual Studio 6, the directory:
+
+<pre>
+    Microsoft Visual Studio/Vc98/Include/GL
+</pre>
+ 
+    should hold the includes and
+
+<pre>
+    Microsoft Visual Studio/Vc98/Lib
+</pre> 
+
+    should hold the libraries.
+    For Visual Studio .Net 2003, use these directories instead:
+ 
+<pre>
+    Microsoft Visual Studio .NET 2003/Vc7/PlatformSDK/Include/gl
+    Microsoft Visual Studio .NET 2003/Vc7/PlatformSDK/Lib
+</pre>
+
+<li>IMPORTANT: Make sure that your SZGHOME environment variable is set to the
+    top-level of your szg tree. See below.
+<li>Launch a (MSYS or Cygwin) shell. Check that the PATH environment variable includes
+    the directory containing cl.exe and link.exe (the Visual Studio compiler
+    and linker). Directories containing dll's used
+    by the compiler and linker will also need to be in the BIN path.
+<li>The software will run on Win98, NT, Win2K, and Win XP. Note that there appear to
+    be problems with timing if some of the Syzygy executables are run directly from
+    the MSYS shell; specifically, the MSYS shell is not yet very good and outputing
+    text. In general, we recommend running commands from a regular Windows shell (cmd.exe).
+<li>IMPORTANT: the support for Win98 is limited, with normal usage necessitating
+    a work-around noted below. Specifically, the various syzygy
+    components check argv[0] to determine their name. Unfortunately, on Win98 when 
+    an executable is run from cmd.exe (the default shell), it
+    is impossible to retrieve the executable name with case preserved from argv[0]. 
+    Hence, a few critical components (szgd, SoundRender, and DeviceServer) 
+    have their correct names hard-coded. There will be problems running other 
+    components on Win98 from cmd.exe. However, the components can be run from
+    the Cygwin shell. We don't know how they will behave if run from the MSYS shell,
+	which is why people using Win98 might need to install Cygwin. This workaround
+	allows normal operation on Win98.
+</ol>
+
+<p>Mac OS X: GLUT is already installed so things will compile out of the box.
+   Note that early versions of Mac OS 10.2 have difficulty launching OpenGL windows
+   from the command line (the launched window might not be able to get
+   keyboard focus). Consequently, at least version 10.2.5 is recommended. 
+   The only additional library supported is fmod (though it might be easy to get others
+   to work). One important note, however. Since the source uses dlopen,
+   you need to compile szg/contrib/dlcompat. This is a simple:
+
+<p><ul>
+<li> cd szg/contrib/dlcompat-20020709
+<li> make
+</ul>
+
+<p>Irix: Unfortunately, the code is unstable on Irix due to the difficulty of 
+  finding a thread-safe compiler/libc combo. Any help here would be appreciated!
+  However, you will, at least, be able to try the software.
+
+<a NAME="BuildEnvVar">
+<p><font size=+2>Syzygy Build Environment Variables</font>
+</a>
+
+<p>The Syzygy build process uses recursive make. A top-level Makefile in
+szg/build guesses the operating system and then executes the appropriate
+Makefiles. For instance, there are both szg/build/win32/language and 
+szg/build/linux/language directories. On a Windows machine, the Makefile in 
+the first directory is executed. The Makefile guesses the operating system
+via uname, defaulting to the OSTYPE environment variable if this fails. 
+If the top-level makefile fails to guess your machine type, you can fix the 
+problem by setting the OSTYPE (to "linux" or "cygwin", for instance).
+
+<p>Several environment variables should be set to tell the makefiles
+where certain things are. You MUST set SZGHOME. SZGEXTERNAL is 
+optional (but needed
+if you want to use any of the additional libraries). SZGBIN is also optional.
+If you want to do a debug build on Linux or Win32, SZGDEBUG must be
+set to TRUE. By default, a non-debug build is produced. 
+
+<p>Syzygy also uses two environment variables, SZGUSER and SZGCONTEXT,
+to route internal communications to programs. Their use is explained below.
+<p><ul>
+<li>SZGHOME: required. The top-level syzygy directory 
+  (for instance, /home/user1/szg).
+<li>SZGBIN: optional. Where to put the binaries.  
+  If this is not set it defaults to
+  szg/bin/$(MACHINE_TYPE), where MACHINE_TYPE is one of linux, win32, darwin,
+  mips3, or mips4. (These last two refer to SGI processor families.)
+<li>SZGEXTERNAL: optional. The location of external
+  libraries like sound and motion tracking. If this is not set,
+  the code will compile but disable support for such features.
+  Libraries are expected to be in subdirectories of $(SZGEXTERNAL)/lib,
+  headers in subdirectories of $(SZGEXTERNAL)/include.
+<li>SZGDEBUG: optional. If set to "TRUE", a debug build will be produced.
+<li>SZGUSER: internal usage only. If this is set, a Syzygy component will
+  attempt to run under the identity of user $(SZGUSER).
+<li>SZGCONTEXT: internal usage only. This variable records the "context"
+  under which a component attempts to execute.For instance, SZGCONTEXT
+  encodes which virtual computer will be used, the particular virtual
+  screen (i.e. SZG_SCREEN(n)), etc.
+</ul>
+
+<p>In Windows, <i>use forward slashes instead of backslashes</i> (otherwise
+the VC++ compiler doesn't understand what the GNU makefile tells it).
+For example:
+<pre>
+  SZGHOME=D:/szg
+  SZGEXTERNAL=g:/public
+</pre>
+Also use drive letters ("D:/...") instead of the Cygwin abbreviations
+"/cygdrive/d/..." or "/d/...", so the latter aren't misinterpreted as
+MSDOS-style slash-delimited options.  Isn't multiplatform wonderful.
+
+<A NAME="VCCEnvVar">
+<p><font size=+2> Visual C++ Command-Line Environment Variables</font>
+</a>
+
+<p>The Windows build environment invokes the VC++ tools from the command line,
+via GNU make and the Cygwin shell. If you haven't set up VC++ to 
+run from the command line, compiling will fail. Possible error messages 
+include not being able to find cl.exe (the compiler) and the linker not
+finding required dll's. Here are the settings for the
+environment variables include, lib, MSDevDir, and path that work with
+a standard install of Visual Studio 6.0.
+
+<pre>
+include
+  C:\Program Files\Microsoft Visual Studio\VC98\atl\include;
+  C:\Program Files\Microsoft Visual Studio\VC98\mfc\include;
+  C:\Program Files\Microsoft Visual Studio\VC98\include
+
+lib
+  C:\Program Files\Microsoft Visual Studio\VC98\mfc\lib;
+  C:\Program Files\Microsoft Visual Studio\VC98\lib
+
+MSDevDir
+  C:\Program Files\Microsoft Visual Studio\Common\MSDev98
+
+path
+  C:\Program Files\Microsoft Visual Studio\Common\Tools\WinNT;
+  C:\Program Files\Microsoft Visual Studio\Common\MSDev98\Bin;
+  C:\Program Files\Microsoft Visual Studio\Common\Tools;
+  C:\Program Files\Microsoft Visual Studio\VC98\bin
+</pre>
+
+<p>The following work with a standard install of Microsoft Visual
+Studio .NET 2003.  (In Windows XP, it helps if these are "user variables"
+rather than "system variables" -- the Cygwin shell inherits values from
+the former.)
+
+<pre>
+include
+  C:\Program Files\Microsoft Visual Studio .NET 2003\Vc7\ATLMFC\INCLUDE;
+  C:\Program Files\Microsoft Visual Studio .NET 2003\Vc7\INCLUDE;
+  C:\Program Files\Microsoft Visual Studio .NET 2003\Vc7\PlatformSDK\include
+
+lib
+  C:\Program Files\Microsoft Visual Studio .NET 2003\Vc7\ATLMFC\Lib;
+  C:\Program Files\Microsoft Visual Studio .NET 2003\Vc7\PlatformSDK\Lib;
+  C:\Program Files\Microsoft Visual Studio .NET 2003\Vc7\Lib
+
+path
+  C:\Program Files\Microsoft Visual Studio .NET 2003\Common7\IDE;
+  C:\Program Files\Microsoft Visual Studio .NET 2003\Vc7\BIN;
+  C:\Program Files\Microsoft Visual Studio .NET 2003\Common7\Tools;
+  C:\Program Files\Microsoft Visual Studio .NET 2003\Common7\Tools\bin
+</pre>
+
+
+
+<A NAME="CompileSyzygy">
+<p><font size=+2>Compiling the Syzygy Toolkit</font> 
+</a>
+
+<p><ol>
+<li>Unpack szg.tar.gz.
+<li>In szg/build, type make. Note that 'make clean' does the expected thing.
+    On Windows this must be done from a cygwin shell since syzygy uses GNU make.
+<li>If you get compile or link errors, you may need to modify szg/build/make/Makefile.defines.
+    A common cause of this is a nonstandard location of OpenGL headers and libraries.
+    But this is relatively rare.
+<li>If fmod is not installed, Syzygy will build
+    but sound will be disabled. Similarly, support for the Flock of Birds, Motion Analysis
+    motion trackers, or importing 3D Studio Max models will be disabled if the
+    appropriate libraries and headers are not found at compile-time, as
+    outlined above.
+</ol>
+
+<p>Common problems:
+
+<p><ul>
+<li>If SZGBIN is set but isn't a directory, the cp command at the
+    end of each step in the recursive make will fail.
+<li>On most systems, the build system will automatically guess the
+    system type and proceed.
+    But if a top-level build fails with
+    "Makefile failed to guess OS type"
+    then manually set the environment variable 
+    OSTYPE to one of linux, cygwin, darwin, or irix.
+<li>If cygwin was not installed properly, you might not have gotten "make"
+    or "ar". In this case, the build will fail, complaining that it can't find
+    the relevant executable. Please try installing cygwin again, this time
+    with a customized install including these components.
+</ul>
+
+<p>You can also build individual directories, which can be very convenient during development.
+To build the objects derived from src/language, for instance, run make in
+the directory szg/build/$(MACHINE_TYPE)/language, where MACHINE_TYPE is
+one of linux, win32, darwin, mips3, or mips4. For this to work, the environment
+variables SZGHOME, SZGBIN, and SZGEXTERNAL must be set appropriately.
+
+<A NAME="CompileDemos">
+<p><font size=+2>Compiling the demos</font>
+</a>
+
+<p>Several demos are included with the Syzygy toolkit. The hope is that this
+will make it easy to go from simply having a collection of networked 
+computers to running cluster-based virtual reality applications in very little
+time!
+<p><ol>
+<li>To build all the demos, in szg/build type "make demo".
+   This also rebuilds the toolkit ("make") if needed.
+   It continues on to the next demo if one fails to build.
+   You can clean the demo directories with "make democlean". 
+<li>Of special note in building the Quake III level viewer demo, q33: 
+   On Unix (well, Linux at least), this
+   will likely proceed without problems. On Windows, you will need to install
+   some libraries and header files. In szg/contrib, you will find the
+   jpeg and zlib directories. These contain source for libraries needed
+   by the q33 demo. Check out the READMEs for which header files to copy
+   over to the Microsoft VC++ include directory. Also copy
+   the compiled libraries (instructions are in the READMEs) to 
+   C:\Windows\System32. Note: the included code repositories build
+   against multi-threaded libc. Libraries already existing on your Windows
+   system might be built against single-threaded libc and, consequently,
+   not be compatible with Syzygy. You'll also need to install the file
+   glext.h with VC++'s other header files (but not in the GL subdirectory).
+</ol>
+
+<p>It is also possible to build the demos individually. For example, to build the "cosmos"
+demo on a linux machine, go to
+
+<pre>
+  szg/build/linux/demo/cosmos
+</pre>
+
+and invoke make. As above, for this to work properly, SZGHOME, SZGBIN,
+and SZGEXTERNAL must be set correctly.
+
+<A NAME="InstallData">
+<p><font size=+2>Installing the Optional Data Distribution</font>
+</a>
+
+<p>Many of the <a href="Demos.html">demos</a> require additonal data files to run.
+Previous versions of Syzygy have included an optional data distribution as a gzip-ed
+tar file. This file has grown too large to be useful. Instead, the data for the
+demos is now distributed on the Syzygy DVD, which can be obtained by writing the
+<A href="www.isl.uiuc.edu">Integrated Systems Lab</a> (just follow the links to Syzygy
+from the lab's main page). To install the data, you will simply copy the 'data'
+folder from the top level of the DVD to your desired location.
+
+<p>Once the data is installed, set the following parameter in
+the Syzygy database (discussed below) for each machine that will be accessing the data.
+Of course, you will point to the actual location of the 'data' directory, instead of
+'/szg/data'.
+
+<pre>
+ XXX SZG_DATA path /szg/data
+</pre>
+
+<p>This sets the "path" parameter of the SZG_DATA parameter group on the machine named 
+XXX to /szg/data. Now, the programs will be able to find their data.
+
+<p>To install
+the q33 demo, for example, you'll need to install pak0.pk3 (available from the Quake3 CD or
+ID software demo download) into the data path. Either copy it into
+the data directory you've already created, or copy it to an /arbitrary/location
+and append to the data path:
+
+<pre>
+  XXX SZG_DATA path /szg/data;/arbitrary/location
+</pre>
+
+<A NAME="InstallDemos">
+<p><font size=+2>Installing the 2nd Tier Demos</font>
+</a>
+
+<p>Syzygy has a collection of demos that ship with the core distribution.
+These are included not only to give downloaders something interesting to
+do with their cluster right away but also to serve as a verfication base
+as the library grows and changes. These demos will always be working as
+the code base changes. However, the Syzygy project aims to distribute as
+many demos as possible, even though it is not practical to include these
+in the base distribution. Information about the demos found in the
+2nd tier can be found <a href="Demos.html">here</a>.
+
+<p><ul>
+<li>Unpacking the additional demos: 
+<a href="http://www.isl.uiuc.edu/syzygy/index.htm">Download</a>
+or otherwise obtain the appropriate version szgdemo-X.X.tar.gz. Extract
+to the directory szgdemo.
+<li>Compiling additional libraries: One of the 2nd tier demos requires
+the vmat library (a library for doing simple real-time physics). SZGHOME
+needs to be set for this to work. 
+<a href="http://www.isl.uiuc.edu/syzygy/index.htm">Download</a>
+and unpack the source. Set VMATHOME to the top-level directory where
+you unpacked the source. Go into vmat and type "make".
+<li>Compiling the demos:
+  <p><ul>
+  <li>SZGHOME and SZGBIN must be set as outlined above. SZGEXTERNAL
+  is optionally set (if you have some of the 3rd party supporting libraries).
+  <li>In the top level of the szgdemo distribution, type "make". Your
+  machine type is automatically detected and the various additional demos
+  are built. The executables are placed in your SZGBIN directory.
+  </ul>
+</ul>
+
+</body>
+</html>

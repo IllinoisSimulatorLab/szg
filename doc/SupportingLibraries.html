@@ -1,0 +1,196 @@
+<html>
+<head>
+<title>Syzygy: Supporting Libraries</title>
+</head>
+<body bgcolor="#ffffff">
+<a href="index.html">Documentation Index</a>
+
+<p><font size=+2>Syzygy: Supporting Libraries</font>
+
+<p>Syzygy makes use of 10 libraries not found on all systems:
+GLUT (windowing for 3D graphics), libjpeg (for reading and writing jpeg files),
+libz (for compression/ decompression), fmod (sound), BirdWindowsDriver 
+(supports the Ascension Flock-of-Birds magnetic tracking system under Windows),
+lib3DS (supports loading 3D Studio Max models under Linux), EVaRT 
+(supports Motion Analysis optical trackers under Windows), CG supports 
+real-time shaders on modern graphics cards, VTK supports various
+scientific visualization algorithms, and vrpn supports connecting to a wide
+variety of input devices.
+You must install GLUT, but the others are 
+optional. Installation of GLUT has already been covered under the 
+<a href="#Requirements">Requirements</a> section at the start of this document. 
+When just starting out with the system, you should ignore the optional libraries. 
+You'll be able to experiment without them.
+<p>The Syzygy makefiles (via szg/build/make/Makefile.libscan) will automatically
+detect the presence of the libraries, given that they are copied to the places
+outlined below. See Makefile.libscan for details.
+
+<ul>
+<li>For sound support, install
+<a href="http://www.fmod.org/">fmod</a> version 3.7. You will need to download and
+unzip (or untar) the file(s) appropriate for your platform(s).
+
+<p>Then, before building Syzygy, copy these libraries as directed for your system:
+<br> &nbsp&nbsp&nbsp libfmod-3.7.so into $(SZGEXTERNAL)/lib/fmod-3.7/linux (Linux) 
+<br> &nbsp&nbsp&nbsp libfmod.a into $(SZGEXTERNAL)/lib/fmod-3.7/darwin (Mac OS X)
+<br> &nbsp&nbsp&nbsp fmodvc.lib into $(SZGEXTERNAL)/lib/fmod-3.7/win32 (Win32)
+<br>
+And copy these include files into $(SZGEXTERNAL)/include/fmod-3.7:
+<br> &nbsp&nbsp&nbsp fmoddyn.h
+<br> &nbsp&nbsp&nbsp fmod.h
+<br> &nbsp&nbsp&nbsp fmod_errors.h
+<br> &nbsp&nbsp&nbsp wincompat.h
+
+<p>If you don't copy these files over, Syzygy will still build and run,
+but the executable file SoundRender will print a warning message and exit 
+instead of playing any sounds.
+
+<p>Before running programs which use fmod (currently, only SoundRender),
+place the fmod shared library where it can be found:
+
+<p><ul>
+<li>Linux: as root copy libfmod-3.7.so into /lib.
+<li>Windows: copy fmod.dll into into your system directory ($WINDIR\system).
+<li>Mac OS X: a statically linked version is used so no further action is needed.
+</ul>
+<p>
+<li>In order to import jpeg images (needed for the q33 demo to compile), you will
+need jpeg support. This feature is also useful for importing jpeg files into the
+Syzygy library in general. First, obtain libjpeg from the web and compile it for your
+platform. On a Linux system, this will not be necessary. However, in the Linux
+case, you will have to copy already installed files to new locations, as outlined
+below.
+<ul>
+<li> On Linux, make a directory $(SZGEXTERNAL)/lib/jpeg/linux and copy libjpeg.a
+there. Try 'locate libjpeg.a' to see if this is already present on your system.
+Next, make a directory $(SZGEXTERNAL)/include/jpeg/linux and copy jconfig.h, 
+jmorecfg.h, and jpeglib.h there. Once again, these files might already be on your
+system and can be found using the 'locate' command.
+<li> On Windows, make a directory $(SZGEXTERNAL)/lib/jpeg/win32 and copy libjpeg.lib,
+as produced by your compilation of the libjpeg sources, to there. Next, make a
+directory $(SZGEXTERNAL)/include/jpeg/win32 and copy jconfig.h, 
+jmorecfg.h, and jpeglib.h there.
+<li> On Mac OS X, make a directory $(SZGEXTERNAL)/lib/jpeg/darwin and copy libjpeg.a
+there. Try 'locate libjpeg.a' to see if this is already present on your system.
+Next, make a directory $(SZGEXTERNAL)/include/jpeg/darwin and copy jconfig.h, 
+jmorecfg.h, and jpeglib.h there. Once again, these files might already be on your
+system and can be found using the 'locate' command.
+</ul>
+<p>
+<li>In order to support compression/decompression of files (needed for the q33 demo
+to compile), you will need zlib support. This is not used anywhere else in the code.
+First, obtain zlib from the web and compile it for your platform.On a Linux system, 
+this will not be necessary. However, in the Linux case, you will have to copu already
+installed files to new locations, as outlined below.
+<ul>
+<li>On Linux, make a directory $(SZGEXTERNAL)/lib/zlib/linux and copy libz.a there.
+Try 'locate libz.a' to see if this is already present on your system. Next, make
+a directory $(SZGEXTERNAL)/include/zlib/linux and copy zconf.h and zlib.h there.
+Once again, these files might already be on your system and can be found using the
+'locate' command.
+<li>On Windows, make a directory $(SZGEXTERNAL)/lib/zlib/win32 and copy zlib.lib,
+as produced by your compilation of the library sources, to there. Next, make
+a directory $(SZGEXTERNAL)/include/zlib/win32 and copy zconf.h and zlib.h to there.
+<li>On Mac OS X, make a directory $(SZGEXTERNAL)/lib/zlib/darwin and copy libz.a there.
+Try 'locate libz.a' to see if this is already present on your system. Next, make
+a directory $(SZGEXTERNAL)/include/zlib/sarwin and copy zconf.h and zlib.h there.
+Once again, these files might already be on your system and can be found using the
+'locate' command.
+</ul>
+<p>
+<li>In order to import .3ds files (Autodesk 3D Studio format),
+you will need to build and install lib3ds. Included in $SZGHOME/contrib/ is a folder named
+"lib3ds", which is simply the latest release of lib3ds, downloaded from
+<A HREF="http://www.sourceforge.net/projects/lib3ds/">
+http://www.sourceforge.net/projects/lib3ds/</a>. Follow the instructions
+provided in $SZGHOME/contrib/lib3ds/INSTALL to build the library. To install for
+Syzygy compilation, follow the instructions for your platform:
+<p><ul>
+<li>Windows: Copy lib3ds.lib to $(SZGEXTERNAL)/lib/lib3ds/win32. Copy all
+    header files to $(SZGEXTERNAL)/include/lib3ds/lib3ds. 
+<li>Linux: Copy lib3ds.a to $(SZGEXTERNAL)/lib/lib3ds/linux. Copy header files
+    as in the Windows case.
+<li>Mac OS X: not supported yet, but this should be possible in the future.
+</ul>
+<p>
+<li>Syzygy currently supports the Ascension Flock-of-Birds tracking system under
+Windows. To enable this, you need to install the BirdWindowsDriver:
+
+<ul>
+<li>
+Download BirdWindowsDriver.zip from 
+	<a href="http://www.ascension-tech.com/support/downloads/">here</a>.
+<li>
+Copy Bird.dll to the appropriate location for your system
+(e.g. in Win2k, to C:\WINNT\system32). NOTE: that this device is
+currently supported only under Win32!
+<li>
+Copy Bird.lib to $(SZGEXTERNAL)/lib/ascension/win32.
+<li>
+Copy Bird.h to $(SZGEXTERNAL)/include/ascension.
+</ul>
+<p>If Bird.lib is not installed correctly, make will succeed without Flock-of-Birds
+support.  If Bird.lib is present but Bird.h is missing, make will fail.  If both
+of these are present but Bird.dll is not installed, make will succeed but the device
+driver will not run.
+<p>
+<li>Enabling EVaRT support: You should have received files EvaRT.h,
+macrtcom.lib, and macrtcom.dll with your optical motion capture
+system. 
+<p><ul>
+<li>Copy EvaRT.h into $(SZGEXTERNAL)/include/evart.
+<li>Copy macrtcom.lib into $(SZGEXTERNAL)/lib/evart/win32.
+<li>The build
+process will detect the presence of EVaRT.h and macrtcom.lib and
+will build executables with EVaRT support.
+<li>Place macrtcom.dll in the path
+of every Windows machine on which you want to execute.Alternatively, if your 
+executables are accessed from a central location, just place the dll in the
+same directory as your executables.
+</ul>
+<p>
+<li>Enabling vrpn support: You can use vrpn (Virtual Reality Peripheral
+Network, from UNC) to feed input events to Syzygy. Note that we only
+support vrpn on Linux so far.
+<p><ul>
+<li>Download and compile vrpn.
+<li>(on linux) Copy libvrpn.a to $(SZGEXTERNAL)/lib/vrpn/linux.
+<li>Make a directory $(SZGEXTERNAL)/include/vrpn and copy the vrpn header
+files there. Note that only vrpn_Shared.h, vrpn_Tracker.h, vrpn_Analog.h,
+and vrpn_Button.h are needed.
+</ul>
+<p>
+<li>Enabling CG support: This is currently only supported under Linux and
+does not (yet) do much. We have added an experimental bump map node to the
+graphics database API.
+<p><ul>
+<li>Obtain the CG developer's kit from NVIDIA. Compile (Linux) and copy
+libCgGL.so and libCg.so to $(SZGEXTERNAL)/lib/Cg/linux.
+<li>In $(SZGEXTERNAL)/include/Cg, make a directory "Cg" and copy the header
+files cg_bindlocations.h, cg_datatypes.h, cg_deprecated_api.h, cg_errors.h,
+cgGL_deprecated_api.h, cgGL.h, cgGL_profiles.h, cg.h, and cg_profiles.h to
+there. Note that the header files will be in $(SZGEXTERNAL)/include/Cg/Cg.
+<li>(Linux) Make sure your LD_LIBRARY_PATH variable has $(SZGEXTERNAL)/lib
+in the search path. This is necessary since libCgGL.so calls libCg.so.
+<li>The files cg_bump_mapping_fragment.cg and cg_bump_mapping_vertex.cg
+need to go in /home/public/Data (yes, this is experimental). To change the
+location, see src/graphics/arBumpMapNode.cpp. The aforementioned files can
+be found in src/graphics.
+</ul>
+<p>
+<li>Enabling VTK support: We just use this, so far, in the 2nd tier demo
+vtkfile. At this early stage, you'll have to decode that demo's Makefile
+to figure out how to make it work!
+<p>
+<li>Enabling vrpn support: Linux only. Using this library it is possible to
+import data into Syzygy from any device supported by vrpn.
+<p><ul>
+<li>Obtain the vrpn source from the UNC vrpn homepage. Compile.
+<li>Copy libvrpn.a to $(SZGEXTERNAL)/lib.
+<li>Make a directory $(SZGEXTERNAL)/include/vrpn and copy the vrpn header
+files there.
+</ul>
+</ul>
+
+</body>
+</html>
