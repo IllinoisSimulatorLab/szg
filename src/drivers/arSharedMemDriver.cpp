@@ -78,8 +78,6 @@ inline arMatrix4 generateMatrix(const int ID, const void* mRaw){
 bool arSharedMemDriver::init(arSZGClient&) {
   _inited = true;
   _setDeviceElements(8, 2, 3);
-  cout << "do addFilter \n"; //;; arPForthFilter
-  cerr << "arSharedMemDriver remark: initialized.\n";
   return true;
 }
 
