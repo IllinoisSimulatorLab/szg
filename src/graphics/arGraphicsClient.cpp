@@ -118,6 +118,12 @@ bool ar_graphicsClientActionCallback(void* client){
   if (c->_simulator){
     c->_simulator->drawWithComposition();
   }
+  if (c->_drawFrameworkObjects){
+    for (list<arFrameworkObject*>::iterator i = c->_frameworkObjects.begin();
+	 i != c->_frameworkObjects.end(); i++){
+      (*i)->drawWithComposition();
+    }
+  }
 
   // it seems like glFlush/glFinish are a little bit unreliable... not
   // every vendor has done a good job of implementing these. 
@@ -193,7 +199,8 @@ arGraphicsClient::arGraphicsClient() :
   _showFramerate(false),
   _stereoMode(false),
   _overrideColor(-1,-1,-1),
-  _simulator(NULL) {
+  _simulator(NULL),
+  _drawFrameworkObjects(false) {
 
   _cliSync.setConnectionCallback(ar_graphicsClientConnectionCallback);
   _cliSync.setDisconnectCallback(ar_graphicsClientDisconnectCallback);

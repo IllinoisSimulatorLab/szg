@@ -55,6 +55,7 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
 arDistSceneGraphFramework* __globalSceneGraphFramework = NULL;
 
 void ar_distSceneGraphFrameworkDisplay(){
+  ar_timeval time1 = ar_time();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   if (__globalSceneGraphFramework->_standalone && 
       __globalSceneGraphFramework->_standaloneControlMode == "simulator"){
@@ -62,6 +63,10 @@ void ar_distSceneGraphFrameworkDisplay(){
   }
   __globalSceneGraphFramework->_soundClient._cliSync.consume();
   __globalSceneGraphFramework->_graphicsClient._cliSync.consume();
+  arPerformanceElement* framerateElement 
+    = __globalSceneGraphFramework->_framerateGraph.getElement("framerate");
+  double frameTime = ar_difftime(ar_time(), time1);
+  framerateElement->pushNewValue(1000000.0/frameTime);
 }
 
 // AARGH! The button and mouse functions are largely copy-pasted from
@@ -97,6 +102,9 @@ void ar_distSceneGraphFrameworkKeyboard(unsigned char key, int x, int y){
     // Stop the framework (parameter meaningless so far)
     __globalSceneGraphFramework->stop(true);
     exit(0);
+  case 'P':
+    __globalSceneGraphFramework->_graphicsClient.toggleFrameworkObjects();
+    break;
   }
   // in standalone mode, keyboard events should also go to the interface
   if (__globalSceneGraphFramework->_standalone &&
@@ -138,7 +146,8 @@ arDistSceneGraphFramework::arDistSceneGraphFramework() :
   _standaloneControlMode("simulator"),
   _peerName("NULL"),
   _peerMode("source"),
-  _peerTarget("NULL"){
+  _peerTarget("NULL"),
+  _remoteRootID(0){
 }
 
 /// Syzygy messages currently consist of two strings, the first being
@@ -349,6 +358,8 @@ bool arDistSceneGraphFramework::start(){
   if (_standalone){
     _graphicsClient.configure(&_SZGClient);
     _graphicsClient.setSimulator(&_simulator);
+    _framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
+    _graphicsClient.addFrameworkObject(&_framerateGraph);
     arSpeakerObject* speakerObject = new arSpeakerObject();
     _soundClient.setSpeakerObject(speakerObject);
     _soundClient.configure(&_SZGClient);
@@ -409,7 +420,7 @@ bool arDistSceneGraphFramework::start(){
         }
         // In either case, we'll be sending data to the target.
         _graphicsPeer.sending(_peerTarget, true);
-        _graphicsPeer.pushSerial(_peerTarget, true);
+        _graphicsPeer.pushSerial(_peerTarget, _remoteRootID, true);
 	// BUG BUG BUG BUG BUG BUG BUG: Need better definition of "modes"!
 	// Really just one mode so far...
         // In the feedback case, we want a dump and relay.
@@ -744,6 +755,9 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
       }
       else if (key == "target"){
         _peerTarget = value;
+      }
+      else if (key == "root"){
+	_remoteRootID = atoi(value.c_str());
       }
       else{
 	cout << "arDistSceneGraphFramework error: key in arg pair is illegal "

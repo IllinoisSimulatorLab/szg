@@ -139,7 +139,6 @@ The "zillimath" demos are also compiled by a particular user (gfrancis)
 <assign>
 picasso  SZG_EXEC path G:\THE_USER_NAME\bin\win32 
 joystick SZG_EXEC path G:\THE_USER_NAME\bin\win32
-steel    SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
 air      SZG_EXEC path /home/public/THE_USER_NAME/bin/linux;/usr/bin
 north    SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22;g:\schaeffr\bin-stable\win32;g:\gfrancis\bin-stable\win32
 south    SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22;g:\schaeffr\bin-stable\win32;g:\gfrancis\bin-stable\win32
@@ -351,10 +350,6 @@ joystick SZG_DATA   path         g:\Data
 joystick SZG_SOUND  path         g:\Sounds
 joystick SZG_RENDER texture_path g:\Texture
 joystick SZG_RENDER text_path    g:\Texture\Text
-steel    SZG_DATA   path         /home/public/Data
-steel    SZG_SOUND  path         /home/public/Sounds
-steel    SZG_RENDER texture_path /home/public/Texture
-steel    SZG_RENDER text_path    /home/public/Texture/Text
 air      SZG_DATA   path         /home/public/Data
 air      SZG_SOUND  path         /home/public/Sounds
 air      SZG_RENDER texture_path /home/public/Texture

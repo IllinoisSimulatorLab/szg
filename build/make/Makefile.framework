@@ -17,7 +17,6 @@ OBJS = \
   arRoutableTemplate$(OBJ_SUFFIX) \
   arMasterSlaveDataRouter$(OBJ_SUFFIX) \
   arHeadWandSimulator$(OBJ_SUFFIX) \
-  arFramerateGraph$(OBJ_SUFFIX) \
   arAppLauncher$(OBJ_SUFFIX)
 
 # Local variable definitions for the build.

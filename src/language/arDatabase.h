@@ -144,6 +144,7 @@ class SZG_CALL arDatabase{
   int _filterIncoming(arDatabaseNode* mappingRoot,
                       arStructuredData* record, 
 	              map<int, int, less<int> >& nodeMap,
+		      int* mappedIDs,
                       bool allNew);
   
   // The factory function that is redefined by subclasses.

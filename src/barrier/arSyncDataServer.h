@@ -80,7 +80,9 @@ class SZG_CALL arSyncDataServer{
   arMutex _messageLock;
   arConditionVar _messageBufferVar;
   bool _messageBufferFull;
-  enum { _sendLimit = 100000 /* bytes */ };
+  // This had better be a pretty large default...
+  // How about the 50 avatars, 20 bones each, at 60 fps?
+  enum { _sendLimit = 300000 /* bytes */ };
 
   arTemplateDictionary* _dictionary;
   void* _bondedObject;

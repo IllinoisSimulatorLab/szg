@@ -23,6 +23,7 @@ class arSoundDatabase;
 class SZG_CALL arDatabaseNode{
   friend class arDatabase;
   friend class arGraphicsDatabase;
+  friend class arGraphicsPeer;
   friend class arSoundDatabase;
  public:
   arDatabaseNode();
@@ -30,8 +31,6 @@ class SZG_CALL arDatabaseNode{
 
   int getID() const { return _ID; }
   string getName() const { return _name; }
-  // NOTE: THE FOLLOWING IS SOMEWHAT UNSAFE SINCE CHANGES ARE NOT PROPOGATED
-  // to connected databases.
   void setName(const string& name);
   int getTypeCode() const { return _typeCode; }
   string getTypeString() const { return _typeString; }
@@ -50,6 +49,8 @@ class SZG_CALL arDatabaseNode{
   virtual arStructuredData* dumpData();
   virtual bool receiveData(arStructuredData*);
   virtual void initialize(arDatabase* d);
+
+  void setTransient(bool state){ _transient = state; }
  protected:
   ARint  _ID;
   string _name;
@@ -65,6 +66,13 @@ class SZG_CALL arDatabaseNode{
 
   arDatabaseNode* _parent;
   list<arDatabaseNode*> _children;
+
+  // Might be the case that we want to filter messages into the node based,
+  // somehow, on certain known properties it has. For instance, the node
+  // might just hold "transient data".
+  bool       _transient;
+  ar_timeval _lastUpdate;
+  bool       _invalidUpdateTime;
 
   void _dumpGenericNode(arStructuredData*, int);
   void _findNode(arDatabaseNode*& result, const string& name, bool& success);

@@ -16,8 +16,8 @@ class SZG_CALL arGraphicsPeerConnection{
   arGraphicsPeerConnection(){ remoteName = "NULL"; 
                               connectionID = -1;
                               receiving = false;
-                              sending = false; 
-                              inMap = NULL; }
+                              sending = false;
+                              remoteFrameTime = 0; }
   ~arGraphicsPeerConnection(){};
 
   string    remoteName;
@@ -37,7 +37,14 @@ class SZG_CALL arGraphicsPeerConnection{
   // filter. This allows IDs of the incoming records to be *mapped*
   // to the appropriate IDs locally. This must happen *before*
   // the records hit the inFilter, since that operates on *local* ID.
-  map<int, int, less<int> >* inMap;
+  map<int, int, less<int> > inMap;
+  // The in map starts somewhere, by default at the root node, but it
+  // could be elsewhere.
+  arDatabaseNode* rootMapNode;
+
+  // To be able to filter "transient" nodes on this side, we need to
+  // know the remote frame time.
+  int remoteFrameTime;
 
   // Each connection includes information about how stuff on it should
   // be filtered going out.
@@ -88,7 +95,7 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   // These functions are essentially set-up, not day-to-day usage.
   void useLocalDatabase(bool);
   void queueData(bool);
-  bool consume();
+  int consume();
   
   // These form the most important part of the API.
   int connectToPeer(const string& name);
@@ -96,8 +103,9 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   bool receiving(const string& name, bool state);
   bool sending(const string& name, bool state);
   bool pullSerial(const string& name, bool receiveOn);
-  bool pushSerial(const string& name, bool sendOn);
+  bool pushSerial(const string& name, int remoteRootID, bool sendOn);
   bool closeAllAndReset();
+  bool broadcastFrameTime(int frameTime);
   bool lockRemoteNode(const string& name, int nodeID);
   bool unlockRemoteNode(const string& name, int nodeID);
   bool lockLocalNode(const string& name, int nodeID);
@@ -152,12 +160,13 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   string _readWritePath;
 
   bool _setRemoteLabel(arSocket* sock, const string& name);
-  bool _serializeAndSend(arSocket* socket, bool sendOn);
+  bool _serializeAndSend(arSocket* socket, int remoteRootID, bool sendOn);
   void _serializeDoneNotify(arSocket* socket);
 
   void _activateSocket(arSocket*);
   void _deactivateSocket(arSocket*);
   void _closeConnection(arSocket*);
+  void _resetConnectionMap(int connectionID, int nodeID);
   void _lockNode(int nodeID, arSocket* socket);
   void _unlockNode(int nodeID);
   int  _unlockNodeNoNotification(int nodeID);

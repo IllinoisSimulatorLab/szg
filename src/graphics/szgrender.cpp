@@ -6,12 +6,19 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arGraphicsClient.h"
+#include "arFramerateGraph.h"
 #include "arWildcatUtilities.h"
 
 arGraphicsClient* graphicsClient = NULL;
+arFramerateGraph  framerateGraph;
+bool showFramerate = true;
 bool stereoMode = false;
 bool drawFramerate = false;
 bool framerateThrottle = false;
+bool drawPerformanceDisplay = false;
+// Make the szgrender use a few less resources. Set by passing in a "-n"
+// flag. 
+bool makeNice = false;
 bool exitFlag = false;
 
 // extra services
@@ -96,6 +103,16 @@ void messageTask(void* pClient){
       graphicsClient->_cliSync.skipConsumption();
       // We WILL NOT be receiving any more messages. Go ahead and exit loop.
       break;
+    }
+    if (messageType=="performance"){
+      if (messageBody=="on"){
+        drawPerformanceDisplay = true;
+        graphicsClient->drawFrameworkObjects(drawPerformanceDisplay);
+      }
+      if (messageBody=="off"){
+        drawPerformanceDisplay = false;
+        graphicsClient->drawFrameworkObjects(drawPerformanceDisplay);
+      }
     }
     if (messageType=="quit"){
       // note that we exit within the draw loop to avoid crashes on Win32
@@ -205,6 +222,8 @@ void display(){
     pauseVar.wait(&pauseLock);
   }
   ar_mutex_unlock(&pauseLock);
+  ar_timeval time1 = ar_time();
+  // All the drawing and syncing happens inside this call.
   graphicsClient->_cliSync.consume();
   if (screenshotFlag){
     char numberBuffer[5];
@@ -241,7 +260,16 @@ void display(){
   if (framerateThrottle){
     ar_usleep(200000);
   }
-  ar_usleep(2000); // cpu throttle: we might not be the only one on this CPU
+  if (makeNice){
+    cout << "BLAARGH!\n";
+    // Do not have this be a default for szgrender. It seriously throttles
+    // the framerate of high framerate displays.
+    ar_usleep(2000);
+  }
+  arPerformanceElement* framerateElement 
+    = framerateGraph.getElement("framerate");
+  double frameTime = ar_difftime(ar_time(), time1);
+  framerateElement->pushNewValue(1000000.0/frameTime);
 }
 
 void keyboard(unsigned char key, int /*x*/, int /*y*/){
@@ -255,6 +283,10 @@ void keyboard(unsigned char key, int /*x*/, int /*y*/){
     case 'F':
       glutReshapeWindow(640,480);
       break;
+    case 'P':
+      drawPerformanceDisplay = !drawPerformanceDisplay;
+      graphicsClient->drawFrameworkObjects(drawPerformanceDisplay);
+      break;
   }
 }
 
@@ -264,6 +296,13 @@ int main(int argc, char** argv){
   szgClient.init(argc, argv);
   if (!szgClient)
     return 1;
+
+  // Search for the -n arg
+  for (int i=0; i<argc; i++){
+    if (!strcmp(argv[i], "-n")){
+      makeNice = true;
+    }
+  }
 
   // we expect to be able to get a lock on the computer's screen
   string screenLock = szgClient.getComputerName() + string("/")
@@ -278,6 +317,8 @@ int main(int argc, char** argv){
   }
 
   graphicsClient = new arGraphicsClient;
+  framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
+  graphicsClient->addFrameworkObject(&framerateGraph);
 
   // get the initial parameters
   if (!loadParameters(szgClient)){

@@ -660,14 +660,14 @@ class arGraphicsPeer: public arGraphicsDatabase{
 
   void useLocalDatabase(bool);
   void queueData(bool);
-  bool consume();
+  int consume();
   
   int connectToPeer(const string& name);
   bool closeConnection(const string& name);
   bool receiving(const string& name, bool state);
   bool sending(const string& name, bool state);
   bool pullSerial(const string& name, bool receiveOn);
-  bool pushSerial(const string& name, bool sendOn);
+  bool pushSerial(const string& name, int remoteRootID, bool sendOn);
   bool closeAllAndReset();
   bool lockRemoteNode(const string& name, int nodeID);
   bool unlockRemoteNode(const string& name, int nodeID);

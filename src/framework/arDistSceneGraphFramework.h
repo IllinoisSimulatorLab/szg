@@ -13,6 +13,7 @@
 #include "arSoundClient.h"
 #include "arVRConstants.h"
 #include "arHeadWandSimulator.h"
+#include "arFramerateGraph.h"
 #include "arSZGAppFramework.h"
 
 /// Framework for cluster applications using a distributed scene graph.
@@ -77,6 +78,7 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   arSoundClient       _soundClient;
   string              _standaloneControlMode;
   arHeadWandSimulator _simulator;
+  arFramerateGraph    _framerateGraph;
   arGraphicsWindow    _graphicsWindow;
 
   // Are we operating a graphics peer?
@@ -86,6 +88,8 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   string _peerMode;
   // If in shell or feedback mode, to which peer are we connecting?
   string _peerTarget;
+  // To what remote root node should we attach?
+  int _remoteRootID;
 
   bool _loadParameters();
   void _getVector3(arVector3& v, const char* param);

@@ -79,6 +79,15 @@ class SZG_CALL arGraphicsClient{
   /// so greedy to be in charge (though maybe that's necessary given the
   /// way the callbacks have been defined).
   void setSimulator(arFrameworkObject* f){ _simulator = f; }
+  void toggleFrameworkObjects(){ 
+    _drawFrameworkObjects = !_drawFrameworkObjects; 
+  }
+  void drawFrameworkObjects(bool state){
+    _drawFrameworkObjects = state;
+  }
+  void addFrameworkObject(arFrameworkObject* f){ 
+    _frameworkObjects.push_back(f); 
+  }
 
   arSyncDataClient   _cliSync;
   
@@ -94,6 +103,8 @@ class SZG_CALL arGraphicsClient{
   bool _stereoMode;
   arVector3 _overrideColor;
   arFrameworkObject* _simulator;
+  bool _drawFrameworkObjects;
+  list<arFrameworkObject*> _frameworkObjects;
 };
 
 #endif

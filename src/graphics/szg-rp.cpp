@@ -6,10 +6,18 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arGraphicsPeer.h"
+#include "arFramerateGraph.h"
 
 // NOTE: arSZGClient CANNOT BE GLOBAL ON WINDOWS. THIS IS BECAUSE 
 // OF OUR METHOD OF INITIALIZING WINSOCK (USING GLOBALS).
 arSZGClient* szgClient;
+
+arFramerateGraph framerateGraph;
+// By default, the drawing function has a 1/100 second delay added to
+// every frame. This improves system responsiveness (the idea is that
+// the szg-rp will be only one of several things running on the computer).
+bool highPerformance = false;
+bool showPerformance = false;
 
 bool drawLabels = false;
 
@@ -69,7 +77,7 @@ bool loadParameters(arSZGClient& cli){
   }
 
   string posString = cli.getAttribute(screenName, "position");
-  if (sizeString != "NULL"
+  if (posString != "NULL"
       && ar_parseIntString(posString,sizeBuffer,2)){
     xPos = sizeBuffer[0];
     yPos = sizeBuffer[1];
@@ -225,7 +233,7 @@ string handlePushSerial(const string& messageBody, bool sendOn){
 	   << "  (" << bodyList[0] << ")\n";
     return result.str();
   }
-  if (!i->second.peer->pushSerial(bodyList[1], sendOn)){
+  if (!i->second.peer->pushSerial(bodyList[1], 0, sendOn)){
     result << "szg-rp error: failed to send serialization to named peer.\n";
   }
   else{
@@ -646,6 +654,14 @@ void messageTask(void* pClient){
     if (messageType == "quit"){
       exit(0);
     }
+    else if (messageType == "performance"){
+      if (messageBody == "on"){
+	showPerformance = true;
+      }
+      if (messageBody == "off"){
+	showPerformance = false;
+      }
+    }
     else if (messageType == "create"){
       responseBody = handleCreate(messageBody);
     }
@@ -768,6 +784,8 @@ void renderLabel(const string& name){
 }
 
 void display(){
+  static int frameSkip = 0;
+  ar_timeval time1 = ar_time();
   glClearColor(0,0,0,0);
   glEnable(GL_DEPTH_TEST);
   glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
@@ -782,18 +800,19 @@ void display(){
   PeerContainer::iterator i;
   ar_mutex_lock(&peerLock);
   // first pass to draw the peers
+  // We keep track of the time it takes to read in the data
+  // and draw that as well.
+  double dataTime = 0;
+  int dataAmount = 0;
   for (i = peers.begin(); i != peers.end(); i++){
-    //ar_timeval time1 = ar_time();
-    i->second.peer->consume();
-    //ar_timeval time2 = ar_time();
+    ar_timeval time1 = ar_time();
+    dataAmount += i->second.peer->consume();
+    dataTime += ar_difftime(ar_time(), time1)/1000.0;
     glPushMatrix();
     glMultMatrixf(i->second.transform.v);
     i->second.peer->activateLights();
     i->second.peer->draw();
     glPopMatrix();
-    //ar_timeval time3 = ar_time();
-    //cout << "process time = " << ar_difftime(time2, time1)
-    //	 << "draw time = " << ar_difftime(time3, time2) << "\n";
   }
   // second pass to draw the labels
   if (drawLabels){
@@ -810,13 +829,36 @@ void display(){
     }
     glEnable(GL_DEPTH_TEST);
   }
+  if (showPerformance){
+    framerateGraph.drawWithComposition();
+  }
   ar_mutex_unlock(&peerLock);
   // It seems like a good idea to throttle szg-rp artificially here.
   // After all, this workspace will be just *one* part of an overall
   // workflow. Whereas default throttling is bad in the dedicated 
   // display case, it makes sense here.
-  ar_usleep(10000);
+  // The command line option -p can override this setting.
+  if (!highPerformance){
+    ar_usleep(10000);
+  }
   glutSwapBuffers();
+  if (true || frameSkip == 20){
+    int frametime = int(ar_difftime(ar_time(), time1));
+    ar_mutex_lock(&peerLock);
+    for (i=peers.begin(); i!=peers.end(); i++){
+      i->second.peer->broadcastFrameTime(frametime);
+    }
+    arPerformanceElement* framerateElement 
+      = framerateGraph.getElement("framerate");
+    framerateElement->pushNewValue(1000000.0/frametime);
+    framerateElement = framerateGraph.getElement("consume");
+    framerateElement->pushNewValue(dataTime);
+    framerateElement = framerateGraph.getElement("bytes");
+    framerateElement->pushNewValue(dataAmount);
+    ar_mutex_unlock(&peerLock);
+    frameSkip = 0;
+  }
+  frameSkip++;
 }
 
 void keyboard(unsigned char key, int /*x*/, int /*y*/){
@@ -830,10 +872,17 @@ void keyboard(unsigned char key, int /*x*/, int /*y*/){
     case 'F':
       glutReshapeWindow(640,480);
       break;
+    case 'P':
+      showPerformance = !showPerformance;
+      break;
   }
 }
 
 int main(int argc, char** argv){
+
+  framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
+  framerateGraph.addElement("consume", 300, 100, arVector3(1,1,0));
+  framerateGraph.addElement("bytes", 300, 500000, arVector3(0,1,1));
   
   globalCamera.setSides(-0.1, 0.1, -0.1, 0.1);
   globalCamera.setNearFar(0.2, 200);
@@ -849,6 +898,18 @@ int main(int argc, char** argv){
     return 1;
   }
   stringstream& initResponse = szgClient->initResponse();
+  // Check for the flag indicating that "performance" is desired.
+  for (int i=0; i<argc; i++){
+    if (!strcmp("-p",argv[i])){
+      highPerformance = true;
+      // Go ahead and strip on the arg.
+      for (int j=i; j<argc-1; j++){
+        argv[j] = argv[j+1];
+      }
+      argc--;
+      i--;
+    }
+  }
   if (argc < 2){
     initResponse << "szg-rp usage: szg-rp <name>\n";
     szgClient->sendInitResponse(false);

@@ -20,6 +20,7 @@ OBJS = \
   arCamera$(OBJ_SUFFIX) \
   arOrthoCamera$(OBJ_SUFFIX) \
   arFrameworkObject$(OBJ_SUFFIX) \
+  arFramerateGraph$(OBJ_SUFFIX) \
   arBillboardNode$(OBJ_SUFFIX) \
   arBoundingSphereNode$(OBJ_SUFFIX) \
   arCubeEnvironment$(OBJ_SUFFIX) \

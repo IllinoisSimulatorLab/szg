@@ -24,6 +24,9 @@ gm4      SZG_EXEC path g:\THE_USER_NAME\bin\win32
 road1    SZG_EXEC path g:\THE_USER_NAME\bin\win32
 spirit   SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
 isl2     SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
+kam2     SZG_EXEC path g:\THE_USER_NAME\bin\win32
+isl63    SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
+isl83    SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
 </assign>
 
 <comment> virtual computer definitions </comment>
@@ -212,13 +215,32 @@ isl2    SZG_DATA   path         /home/public/Data
 isl2    SZG_SOUND  path         /home/public/Sounds
 isl2    SZG_RENDER texture_path /home/public/Texture
 isl2    SZG_RENDER text_path    /home/public/Texture/Text
+kam2    SZG_DATA   path         g:\Data
+kam2    SZG_SOUND  path         g:\Sounds
+kam2    SZG_RENDER texture_path g:\Texture
+kam2    SZG_RENDER text_path    g:\Texture\Text
+kam2    SZG_PEER   path         g:\Peer
+isl83   SZG_DATA   path         /home/public/Data
+isl83   SZG_SOUND  path         /home/public/Sounds
+isl83   SZG_RENDER texture_path /home/public/Texture
+isl83   SZG_RENDER text_path    /home/public/Texture/Text
+isl83   SZG_PEER   path         /home/public/Peer
+isl63   SZG_DATA   path         /home/public/Data
+isl63   SZG_SOUND  path         /home/public/Sounds
+isl63   SZG_RENDER texture_path /home/public/Texture
+isl63   SZG_RENDER text_path    /home/public/Texture/Text
+isl63   SZG_PEER   path         /home/public/Peer
 </assign>
 
 <comment> misc. configuration </comment>
 
 <assign>
 smoke SZG_WANDSIM position 1305/0
+</assign>
 
+<comment> The base calibration data for the iDesk tracker </comment>
+
+<assign>
 2northg SZG_TRACKER transmitter_offset 0.972229/0.196838/0.123962/0/-0.0494389/0.695801/-0.716003/0/-0.227356/0.69043/0.686707/0/0.0876952/6.71073/-2.72462/1
 2northg SZG_TRACKER sensor0_rot 0/0/1/-90
 2northg SZG_TRACKER sensor1_rot 0/0/1/180
@@ -247,7 +269,7 @@ smoke SZG_SCREEN0 screen_up 0/1/0
 
 smoke SZG_SCREEN1 size 640/480
 smoke SZG_SCREEN1 position 0/0
-smoke SZG_SCREEN1 tile 0/2/1/2
+smoke SZG_SCREEN1 tile 0/3/1/2
 smoke SZG_SCREEN1 screen_center 0/5/-5
 smoke SZG_SCREEN1 screen_dim 10/10
 smoke SZG_SCREEN1 screen_normal 0/0/-1
@@ -255,7 +277,7 @@ smoke SZG_SCREEN1 screen_up 0/1/0
 
 smoke SZG_SCREEN2 size 640/480
 smoke SZG_SCREEN2 position 652/0
-smoke SZG_SCREEN2 tile 1/2/1/2
+smoke SZG_SCREEN2 tile 1/3/1/2
 smoke SZG_SCREEN2 screen_center 0/5/-5
 smoke SZG_SCREEN2 screen_dim 10/10
 smoke SZG_SCREEN2 screen_normal 0/0/-1
@@ -263,7 +285,7 @@ smoke SZG_SCREEN2 screen_up 0/1/0
 
 smoke SZG_SCREEN3 size 640/480
 smoke SZG_SCREEN3 position 0/505
-smoke SZG_SCREEN3 tile 0/2/0/2
+smoke SZG_SCREEN3 tile 0/3/0/2
 smoke SZG_SCREEN3 screen_center 0/5/-5
 smoke SZG_SCREEN3 screen_dim 10/10
 smoke SZG_SCREEN3 screen_normal 0/0/-1
@@ -271,7 +293,7 @@ smoke SZG_SCREEN3 screen_up 0/1/0
 
 smoke SZG_SCREEN4 size 640/480
 smoke SZG_SCREEN4 position 652/505
-smoke SZG_SCREEN4 tile 1/2/0/2
+smoke SZG_SCREEN4 tile 1/3/0/2
 smoke SZG_SCREEN4 screen_center 0/5/-5
 smoke SZG_SCREEN4 screen_dim 10/10
 smoke SZG_SCREEN4 screen_normal 0/0/-1

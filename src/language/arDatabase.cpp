@@ -183,11 +183,8 @@ bool arDatabase::fillNodeData(arStructuredData* data, arDatabaseNode* node){
 
 // In the case of node creation, we actually want to be able to return
 // an arDatabaseNode* (i.e. the created node). This makes code easier to
-// manage. In other cases, we return the only node we are guaranteed
-// to have... the root node! NOTE: this really is necessary. Consider, for
-// instance, the newNode(...) method of arDatabase. It actually needs to get
-// the node back from alter since we are no longer counting on names being
-// unique!
+// manage. In other cases, upon success, return a pointer to the node
+// we altered.
 arDatabaseNode* arDatabase::alter(arStructuredData* inData){
   const ARint dataID = inData->getID();
   if (_databaseReceive[dataID]){
@@ -204,7 +201,10 @@ arDatabaseNode* arDatabase::alter(arStructuredData* inData){
          << pNode->_name << "\" failed.\n";
     return NULL;
   }
-  return &_rootNode;
+  // Sometimes, we actually want to manipulate the node that just got altered.
+  // For instance, maybe we want to update its time stamp
+  // (if it is "transient").
+  return pNode;
 }
 
 arDatabaseNode* arDatabase::alterRaw(ARchar* theData){
@@ -334,7 +334,7 @@ bool arDatabase::attachXML(arDatabaseNode* parent,
   while (!done){
     record = parser->parse(&fileStream);
     if (record){
-      int success = _filterIncoming(parent, record, nodeMap, true);
+      int success = _filterIncoming(parent, record, nodeMap, NULL, true);
       arDatabaseNode* altered = NULL;
       if (success){
         altered = alter(record);
@@ -382,7 +382,7 @@ bool arDatabase::attach(arDatabaseNode* parent,
   while (!done){
     record = parser->parseBinary(source);
     if (record){
-      int success = _filterIncoming(parent, record, nodeMap, true);
+      int success = _filterIncoming(parent, record, nodeMap, NULL, true);
       arDatabaseNode* altered = NULL;
       if (success){
 	altered = alter(record);
@@ -437,7 +437,7 @@ bool arDatabase::mapXML(arDatabaseNode* parent,
   while (!done){
     record = parser->parse(fileStream);
     if (record){
-      int success = _filterIncoming(parent, record, nodeMap, false);
+      int success = _filterIncoming(parent, record, nodeMap, NULL, false);
       arDatabaseNode* altered = NULL;
       if (success){
         altered = alter(record);
@@ -642,7 +642,7 @@ arDatabaseNode* arDatabase::_eraseNode(arStructuredData* inData){
 /// NULL, otherwise, return a pointer to the node in question.
 arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
   const int parentID = inData->getDataInt(_lang->AR_MAKE_NODE_PARENT_ID);
-  const int theID = inData->getDataInt(_lang->AR_MAKE_NODE_ID);
+  int theID = inData->getDataInt(_lang->AR_MAKE_NODE_ID);
   const string name(inData->getDataString(_lang->AR_MAKE_NODE_NAME));
   const string type(inData->getDataString(_lang->AR_MAKE_NODE_TYPE));
   // Must use the virtual factory function.
@@ -658,6 +658,9 @@ arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
       return NULL;
     }
   }
+  // We go ahead and modify the record in place with the new ID.
+  theID = node->getID();
+  inData->dataIn(_lang->AR_MAKE_NODE_ID, &theID, AR_INT, 1);
   return node;
 }
 
@@ -874,12 +877,25 @@ void arDatabase::_createNodeMap(arDatabaseNode* localNode,
 /// record being mapped to an already existing node), the record should
 /// just be discarded. This is also true if the map fails somehow.
 ///
-/// The return value is:
-///  0: The record should be discarded.
-///  -1: The record should be used but the map will not need to be changed.
-///  positive: The record should be used, it is a node creation message, and
-///   this is the ID of the original node, once we've figured out the new
-///   node ID, it should go in the map
+/// NOTE: Sometimes, we'll want to do something with the node map value
+/// (it is possible, in the case of a mapping to an existing node, that
+/// the map will be determined in here). For instance, two peer database
+/// may map IDs of their nodes to one another. In this case, the database
+/// that is the mapping target should respond to the mapped database.
+///
+/// The return value is an integer. 
+///  * -1: the record was successfully mapped. If any augmentation to the
+///    node map occured, it was internally to this function. If the node
+///    The caller should use the record.
+///  * 0: the record failed to be successfully mapped. It should be discarded.
+///  * > 0: the record is "half-mapped". The result of the external *alter*
+///         message to the database will finish the other "half" (it produces
+///         the ID of the new node).
+///
+/// If information about the alterations to the nodeMap parameter is desired,
+/// a pointer to a 4 int array should be passed in via mappedIDs. If no
+/// information is desired, then NULL should be passed in.
+
 //
 // In here, we have to consider the fact that the mapped source might
 // NOT be starting from the root, but from some other node. Consequently,
@@ -887,7 +903,15 @@ void arDatabase::_createNodeMap(arDatabaseNode* localNode,
 int arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
                                 arStructuredData* record, 
 	                        map<int, int, less<int> >& nodeMap,
+                                int* mappedIDs,
                                 bool allNew){
+  if (mappedIDs){
+    mappedIDs[0] = -1;
+    mappedIDs[1] = -1;
+    mappedIDs[2] = -1;
+    mappedIDs[3] = -1;
+  }
+  int position = 0;
   map<int, int, less<int> >::iterator i;
   if (record->getID() == _lang->AR_MAKE_NODE){
     int parentID = record->getDataInt(_lang->AR_MAKE_NODE_PARENT_ID);
@@ -906,6 +930,11 @@ int arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
     if (i == nodeMap.end()){
       nodeMap.insert(map<int, int, less<int> >::value_type
                      (parentID, mappingRoot->getID()));
+      position = 2;
+      if (mappedIDs){
+        mappedIDs[0] = parentID;
+        mappedIDs[1] = mappingRoot->getID();
+      }
       i = nodeMap.find(parentID);
     }
     // Go ahead and try to map the new node.
@@ -917,6 +946,12 @@ int arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
     // NOTE: we map things differently based on whether or not this is
     // a "name" node (in which case just map to any other name node)
     // or, otherwise, we must map to a node with the same name and type.
+
+    // AARGH! There is a pretty seriously BUG in my mapping algorithm!
+    // Specifically, what if a node has several children with the same name
+    // and the same type? Everything will get redundantly mapped to them!
+    // This is really a serious problem.
+    // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
     if (nodeType == "name"){
       currentParent->_findNodeByType(target, nodeType, success);
     }
@@ -927,6 +962,10 @@ int arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
       // go ahead and map to this node.
       nodeMap.insert(map<int, int, less<int> >::value_type
 	             (originalNodeID, target->getID()));
+      if (mappedIDs){
+        mappedIDs[position] = originalNodeID;
+        mappedIDs[position+1] = target->getID();
+      }
       // In this case, DO NOT create a new node! The record is simply
       // discarded. Remember: returning false means discard the record.
       return 0;
@@ -942,6 +981,9 @@ int arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
       int newParentID = i->second;
       record->dataIn(_lang->AR_MAKE_NODE_PARENT_ID, &newParentID,
 	             AR_INT, 1);
+      if (mappedIDs){
+        mappedIDs[position] = originalNodeID;
+      }
       // Returning true means "do not discard".
       return originalNodeID;
     }

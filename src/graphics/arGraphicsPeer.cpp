@@ -50,15 +50,60 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
     // requester. We can be told to dump the database.
     string action = data->getDataString(l->AR_GRAPHICS_ADMIN_ACTION);
     int nodeID;
-    if (action == "dump"){
-      gp->_serializeAndSend(socket, false);
+    if (action == "map"){
+      nodeID = data->getDataInt(l->AR_GRAPHICS_ADMIN_NODE_ID);
+      gp->_resetConnectionMap(socket->getID(), nodeID);
+    }
+    else if (action == "node_map"){
+      int* mapPtr = (int*) data->getDataPtr(l->AR_GRAPHICS_ADMIN_NODE_ID, 
+                                            AR_INT);
+      int mapDim = data->getDataDimension(l->AR_GRAPHICS_ADMIN_NODE_ID);
+      ar_mutex_lock(&gp->_socketsLock);
+      // Important that remember which sockets are receiving info.
+      // When we get this message, the remote peer informs us that
+      // it will be sending scene graph updates.
+      map<int, arGraphicsPeerConnection*, less<int> >::iterator i
+        = gp->_connectionContainer.find(socket->getID());
+      if (i == gp->_connectionContainer.end()){
+        cout << "arGraphicsPeer internal error: could not find connection "
+	     << "object.\n";
+      }
+      else{
+        i->second->inMap.insert(map<int,int,less<int> >::value_type(mapPtr[1],
+								    mapPtr[0]));
+        if (mapDim == 4){
+          i->second->inMap.insert
+            (map<int,int,less<int> >::value_type(mapPtr[3], mapPtr[2]));
+	}
+      }
+      ar_mutex_unlock(&gp->_socketsLock);
+    }
+    else if (action == "frame_time"){
+      // These locks must be CONSISTENTLY nested everywhere!
+      ar_mutex_lock(&gp->_alterLock); 
+      ar_mutex_lock(&gp->_socketsLock);
+      int frameTime = data->getDataInt(l->AR_GRAPHICS_ADMIN_NODE_ID);
+      map<int, arGraphicsPeerConnection*, less<int> >::iterator i
+        = gp->_connectionContainer.find(socket->getID());
+      if (i == gp->_connectionContainer.end()){
+        cout << "arGraphicsPeer internal error: could not find connection "
+	     << "object.\n";
+      }
+      else{
+        i->second->remoteFrameTime = frameTime;
+      }
+      ar_mutex_unlock(&gp->_socketsLock);
+      ar_mutex_unlock(&gp->_alterLock);  
+    }
+    else if (action == "dump"){
+      gp->_serializeAndSend(socket, 0, false);
       gp->_serializeDoneNotify(socket);
     }
-    if (action == "dump-relay"){
-      gp->_serializeAndSend(socket, true);
+    else if (action == "dump-relay"){
+      gp->_serializeAndSend(socket, 0, true);
       gp->_serializeDoneNotify(socket);
     }
-    if (action == "dump-done"){
+    else if (action == "dump-done"){
       ar_mutex_lock(&gp->_dumpLock);
       gp->_dumped = true;
       gp->_dumpVar.signal();
@@ -258,6 +303,7 @@ void ar_graphicsPeerConnectionTask(void* graphicsPeer){
     // us.
     newConnection->connectionID = socket->getID();
     newConnection->socket = socket;
+    newConnection->rootMapNode = &gp->_rootNode;
     gp->_connectionContainer.insert(
       map<int, arGraphicsPeerConnection*, less<int> >::value_type(
 	socket->getID(),
@@ -379,8 +425,17 @@ void arGraphicsPeer::stop(){
 }
 
 arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){ 
+  map<int, arGraphicsPeerConnection*, less<int> >::iterator connectionIter;
+  int potentialNewNodeID = -1;
   arDatabaseNode* result = &_rootNode;
+  int filterIDs[4];
+  // Needed for filtering on "transient" nodes.
+  ar_timeval currentTime;
+  // Important to do this so we don't mistakenly send a map record to the
+  // other side.
+  filterIDs[0] = -1;
   ar_mutex_lock(&_alterLock);
+  ar_mutex_lock(&_socketsLock);
   // NOTE: we exploit the fact that the ID field of the record is an ARRAY
   // of ints. As data comes in, classify it as follows:
   //  1. Does the ID have data dimension 1? If so, this record was LOCALLY
@@ -394,8 +449,10 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
   //        than the origin of this message, return, doing nothing.  
   int dataID = data->getID();
   int originID = -1;
-  bool nodeLocked = false;
-  int* IDPtr;
+  int* IDPtr = NULL;
+  // We must first determine the origin of the data. If it has come across
+  // a communications link then it will be subect to "mapping" (i.e. having the
+  // ID of the target node changed) 
   if (!_databaseReceive[dataID]){
     // We are not talking directly to the database, but instead have a
     // message for a particular node. NOTE: there are two data paths that
@@ -406,14 +463,6 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
     IDPtr = (int*) data->getDataPtr(_routingField[dataID], AR_INT);
     if (data->getDataDimension(_routingField[dataID]) == 2){
       originID = IDPtr[1];
-    }
-    // ALSO: we must check to see if the node is currently LOCKED. If so,
-    // do nothing. 
-    map<int, int, less<int> >::iterator j = _lockContainer.find(IDPtr[0]);
-    if (j != _lockContainer.end()){
-      if (j->second != originID){
-        nodeLocked = true;
-      }
     }
   }
   else{
@@ -435,41 +484,119 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
       }
     }
   }
-  // If the node has been locked, go ahead and return.
-  // (we return the root node for default success)
-  if (nodeLocked){
-    ar_mutex_unlock(&_alterLock);
-    return result;
+  // Do the mapping. 
+  if (originID != -1){
+    // This data has not come locally. Get the connection that spawned it
+    // and run it through the node map.
+    connectionIter = _connectionContainer.find(originID);
+    if (connectionIter == _connectionContainer.end()){
+      // There is no connection with that ID currently used. This is
+      // really an error.
+      ar_mutex_unlock(&_socketsLock);
+      ar_mutex_unlock(&_alterLock);
+      // Return a pointer to the root node.
+      return result; 
+    }
+    // Such a connection does exist. NOTE: we are using the *mapping*
+    // mode here (as indicated by the final false) of updating the
+    // node map.
+    potentialNewNodeID = _filterIncoming(connectionIter->second->rootMapNode,
+                                         data,
+					 connectionIter->second->inMap,
+					 filterIDs,
+                                         false);
+  }
+
+  // Check to see if the node is locked by a source other than the origin of
+  // this communication. If so, go ahead and return. Note that the
+  // _filterIncoming might have changed this ID. 
+  if (IDPtr){
+    map<int, int, less<int> >::iterator j = _lockContainer.find(IDPtr[0]);
+    if (j != _lockContainer.end()){
+      if (j->second != originID){
+        // If the node has been locked, go ahead and return.
+        // (we return the root node for default success).
+        ar_mutex_unlock(&_socketsLock);
+        ar_mutex_unlock(&_alterLock);
+        return result;
+      }
+    }
   }
   // We are not necessarily altering the local database. 
   // IT IS CRITICALLY IMPORTANT THAT THE ALTERATION OF THE LOCAL DATABASE
   // OCCURE BEFORE PASSING THE DATA ON TO OTHER PEERS. THE LOCAL PEER
   // IS ALLOWED TO MODIFY THE RECORD "IN PLACE" (AS IN BEING ABLE TO
-  // ATTACH A NODE TO THE DATABASE THAT WAS CREATED SOME OTHER WAY)
+  // ATTACH A NODE TO THE DATABASE THAT WAS CREATED SOME OTHER WAY).
+  // Node creation alters the record in place! See how arDatabase::_makeNode
+  // works...
   if (_localDatabase){
     // If we are actually going to the local database, go ahead and get the
     // result from that...
     result = arGraphicsDatabase::alter(data);
+    // If a new node has been created, we need to augment the node
+    // map for this connection.
+    if (potentialNewNodeID > 0 && result){
+      connectionIter->second->inMap.insert
+        (map<int, int, less<int> >::value_type
+      	  (potentialNewNodeID, result->getID()));
+      // Don't forget to put this in the filterIDs.
+      // Sometimes there can actually be TWO pairs in added to the node map,
+      // so we need to test for this.
+      if (filterIDs[1] == -1){
+        filterIDs[1] = result->getID();
+      }
+      else{
+        filterIDs[3] = result->getID();
+      }
+    }
   }
   // Go ahead and send to the connected peers who desire
   // updates. NOTE: The peers will either alter their
   // internal databases immediately (if they are NOT drawers)
   // or will queue the alterations (if they are drawers)
-  ar_mutex_lock(&_socketsLock);
-  map<int, arGraphicsPeerConnection*, less<int> >::iterator iter;
+  
   map<int, int, less<int> >::iterator outIter;
-  for (iter = _connectionContainer.begin();
-       iter != _connectionContainer.end(); 
-       iter++){
+  for (connectionIter = _connectionContainer.begin();
+       connectionIter != _connectionContainer.end(); 
+       connectionIter++){
     // NOTE: we do not want a feedback loop. So, we should not send back
-    // to the origin.
-    if (iter->second->connectionID != originID){
+    // to the origin, unless the origin made us update our node map,
+    // in which case, we need to send back the results.
+    if (connectionIter->second->connectionID != originID){
+      // Better check whether or not this is a "transient" node. If so,
+      // (and the update time has NOT passed), we might do nothing.
+      bool updateNodeEvenIfTransient = true;
+      if (result && result->_transient){
+        currentTime = ar_time();
+        if (result->_invalidUpdateTime
+            || ar_difftime(currentTime,result->_lastUpdate)
+	    > connectionIter->second->remoteFrameTime){
+          result->_invalidUpdateTime = false;
+          result->_lastUpdate = currentTime;
+	}
+        else{
+	  // Filter out this update on this connection.
+	  updateNodeEvenIfTransient = false;
+        }
+      }
       // Still need to check the connection's filter.
       IDPtr = (int*) data->getDataPtr(_routingField[dataID], AR_INT);
-      outIter = iter->second->outFilter.find(IDPtr[0]);
-      if (iter->second->sending && (outIter == iter->second->outFilter.end()
-                                    || outIter->second == 1)){
-        _dataServer->sendData(data, iter->second->socket);
+      outIter = connectionIter->second->outFilter.find(IDPtr[0]);
+      if (updateNodeEvenIfTransient && connectionIter->second->sending && 
+           (outIter == connectionIter->second->outFilter.end()
+            || outIter->second == 1)){
+        _dataServer->sendData(data, connectionIter->second->socket);
+      }
+    }
+    else{
+      // The sender's node map needs to be augmented exactly when the
+      // filterIDs array has been modified.
+      if (filterIDs[0] != -1){
+        arStructuredData adminData(_gfx.find("graphics admin"));
+        adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "node_map");
+        adminData.dataIn(_gfx.AR_GRAPHICS_ADMIN_NODE_ID, filterIDs, AR_INT, 
+                         filterIDs[2] == -1 ? 2 : 4);
+        _dataServer->sendData(&adminData, connectionIter->second->socket);
       }
     }
   }
@@ -562,15 +689,16 @@ void arGraphicsPeer::queueData(bool state){
 /// If our peer is displaying graphics, it is desirable to only alter
 /// its database between draws, not during draws. (HMMMM... or is it
 /// REALLY desirable if we aren't trying to maintain consistency?)
-bool arGraphicsPeer::consume(){
+int arGraphicsPeer::consume(){
   ar_mutex_lock(&_queueLock);
   _incomingQueue->swapBuffers();
   ar_mutex_unlock(&_queueLock);
   //int bufferSize;
   //ar_unpackData(_incomingQueue->getFrontBufferRaw(),&bufferSize,AR_INT,1);
   //cout << "buffer size = " << bufferSize << "\n";
+  int bufferSize = _incomingQueue->getFrontBufferSize();
   handleDataQueue(_incomingQueue->getFrontBufferRaw());
-  return true;
+  return bufferSize;
 }
 
 /// Attempt to connect to the named graphics peer (with service name
@@ -619,6 +747,7 @@ int arGraphicsPeer::connectToPeer(const string& name){
   newConnection->remoteName = name;
   newConnection->connectionID = socket->getID();
   newConnection->socket = socket;
+  newConnection->rootMapNode = &_rootNode;
   _connectionContainer.insert(
     map<int, arGraphicsPeerConnection*, less<int> >::value_type(
       socket->getID(),
@@ -761,14 +890,16 @@ bool arGraphicsPeer::pullSerial(const string& name, bool receiveOn){
 
 /// By default, nothing happens when we connect one graphics peer to another.
 /// The following call allows us to push our serialization to a connected peer.
-bool arGraphicsPeer::pushSerial(const string& name, bool sendOn){
+bool arGraphicsPeer::pushSerial(const string& name, 
+                                int remoteRootID,
+                                bool sendOn){
   int ID = _dataServer->getFirstIDWithLabel(name);
   arSocket* socket = _dataServer->getConnectedSocket(ID);
   if (!socket){
     return false;
   }
   // NOTE: this call does not send a serialization-done notification.
-  return _serializeAndSend(socket, sendOn);
+  return _serializeAndSend(socket, remoteRootID, sendOn);
 }
 
 /// Closes all connected sockets and resets the database. This is 
@@ -789,6 +920,14 @@ bool arGraphicsPeer::closeAllAndReset(){
   // AFTER disconnecting from everybody else. Why? Because we don't
   // want to erase THEIR databases as well!
   reset();
+  return true;
+}
+
+bool arGraphicsPeer::broadcastFrameTime(int frameTime){
+  arStructuredData adminData(_gfx.find("graphics admin"));
+  adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "frame_time");
+  adminData.dataIn(_gfx.AR_GRAPHICS_ADMIN_NODE_ID, &frameTime, AR_INT, 1);
+  _dataServer->sendData(&adminData);
   return true;
 }
 
@@ -951,7 +1090,19 @@ bool arGraphicsPeer::_setRemoteLabel(arSocket* sock, const string& name){
 /// Serialize the peer and send it out on the given socket. We might also
 /// activate sending on that socket as well. This does NOT notify the
 /// remote peer that the serialization is done.
-bool arGraphicsPeer::_serializeAndSend(arSocket* socket, bool sendOn){
+/// Note that the node map is constructed from a particular node ID base.
+/// This node ID is the *remote* node ID (from the perspective of the
+/// remote scene graph).  
+bool arGraphicsPeer::_serializeAndSend(arSocket* socket, 
+                                       int remoteRootID,
+                                       bool sendOn){
+  // First thing to do is to send the "map" command.
+  arStructuredData adminData(_gfx.find("graphics admin"));
+  adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "map");
+  adminData.dataIn(_gfx.AR_GRAPHICS_ADMIN_NODE_ID, &remoteRootID, AR_INT, 1);
+  if (!_dataServer->sendData(&adminData, socket)){
+    return false;
+  }
   ar_mutex_lock(&_alterLock);
   arStructuredData nodeData(_gfx.find("make node"));
   if (!nodeData){
@@ -1050,6 +1201,29 @@ void arGraphicsPeer::_closeConnection(arSocket* socket){
   // All the lock removal, _connectionContainer updating, etc. is handled
   // there. 
   _dataServer->removeConnection(socket->getID());
+}
+
+void arGraphicsPeer::_resetConnectionMap(int connectionID, int nodeID){
+  ar_mutex_lock(&_socketsLock);
+  map<int, arGraphicsPeerConnection*, less<int> >::iterator i
+    = _connectionContainer.find(connectionID);
+  if ( i == _connectionContainer.end()){
+    cout << "arGraphicsPeer internal error: missed connection when trying "
+	 << "to reset map.\n";
+  }
+  else{
+    i->second->inMap.clear();
+    arDatabaseNode* newRootNode = getNode(nodeID);
+    if (!newRootNode){
+      cout << "arGraphicsPeer error: connection map root node not present. "
+	   << "Using default.\n";
+      i->second->rootMapNode = &_rootNode;
+    } 
+    else{
+      i->second->rootMapNode = newRootNode;
+    }
+  }
+  ar_mutex_unlock(&_socketsLock);
 }
 
 void arGraphicsPeer::_lockNode(int nodeID, arSocket* socket){
