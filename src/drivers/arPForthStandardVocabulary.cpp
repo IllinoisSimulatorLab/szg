@@ -166,6 +166,23 @@ bool MatStore::run( arPForth* pf ) {
   return true;
 }
 
+class MatStoreTranspose : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool MatStoreTranspose::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long address = (long)pf->stackPop();
+  pf->testFailAddress( address, 16 );
+  arMatrix4 tempMat;
+  float* matPtr = tempMat.v+15;
+  for (int i=0; i<16; i++)
+    *matPtr-- = pf->stackPop();
+  pf->putDataMatrix( address, tempMat.transpose() );
+  return true;
+}
+
 class MatCopy : public arPForthAction {
   public:
     virtual bool run( arPForth* pf );
@@ -672,6 +689,8 @@ bool ar_PForthAddStandardVocabulary( arPForth* pf ) {
   if (!pf->addSimpleActionWord( "identityMatrix", new IdentityMatrix() ))
     return false; 
   if (!pf->addSimpleActionWord( "matrixStore", new MatStore() ))
+    return false; 
+  if (!pf->addSimpleActionWord( "matrixStoreTranspose", new MatStoreTranspose() ))
     return false; 
   if (!pf->addSimpleActionWord( "matrixCopy", new MatCopy() ))
     return false; 

@@ -216,7 +216,17 @@ Stores x1 at the address pointed to by addr.</p>
 x4 x5 x6 x7
 x8 x9 x10 x11 x12 x13 x14 x15 x16 addr -- ) Pops 16 numbers and an
 address off the stack,
-stores the numbers in the data cell pointed to by addr.</p>
+stores the numbers in the data cell pointed to by addr. Note that
+matrix indices go down the columns first.</p>
+<p><font face="courier" size="+1">matrixStoreTranspose</font> &nbsp; ( x1 x2 x3
+x4 x5 x6 x7
+x8 x9 x10 x11 x12 x13 x14 x15 x16 addr -- ) Pops 16 numbers and an
+address off the stack,
+stores the numbers in the data cell pointed to by addr after transposing
+the resulting matrix. This allows you to enter a 4x4 matrix in a PForth
+program in a nice readable way, i.e. entering the matrix in 4 rows and
+4 columns in a text editor and storing it with matrixStoreTranspose will
+give you the matrix as it looked in the editor.</p>
 <p><font face="courier" size="+1">matrixCopy</font> &nbsp; ( addr1
 addr2 -- ) Copies matrix at addr1 to addr2.</p>
 <p><font face="courier" size="+1">matrixInverse</font> &nbsp; ( addr1
