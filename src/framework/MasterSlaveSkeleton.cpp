@@ -99,9 +99,9 @@ int squareHighlightedTransfer = 0;
 arMatrix4 squareMatrixTransfer;
 
 
-// init callback (called in arMasterSlaveFramework::init()
+// start callback (called in arMasterSlaveFramework::start()
 //
-bool init( arMasterSlaveFramework& framework, arSZGClient& cli ) {
+bool start( arMasterSlaveFramework& framework, arSZGClient& cli ) {
   // Register shared memory.
   //  framework.addTransferField( char* name, void* address, arDataType type, int numElements ); e.g.
   framework.addTransferField("squareHighlighted", &squareHighlightedTransfer, AR_INT, 1);
@@ -194,7 +194,7 @@ int main(int argc, char** argv) {
   // Tell the framework what units we're using.
   framework.setUnitConversion(FEET_TO_LOCAL_UNITS);
   framework.setClipPlanes(nearClipDistance, farClipDistance);
-  framework.setInitCallback(init);
+  framework.setStartCallback(start);
   framework.setPreExchangeCallback(preExchange);
   framework.setPostExchangeCallback(postExchange);
   framework.setDrawCallback(display);

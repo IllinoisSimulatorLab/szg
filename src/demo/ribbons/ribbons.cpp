@@ -684,7 +684,7 @@ int main(int argc, char** argv){
   feedBuffer = new GLfloat[feedMax];
 #endif
   arMasterSlaveFramework fw;
-  fw.setInitCallback(init);
+  fw.setStartCallback(init);
   fw.setPreExchangeCallback(preExchange);
   fw.setDrawCallback(display);
   ar_mutex_init(&lockDraw);

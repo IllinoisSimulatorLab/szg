@@ -159,7 +159,7 @@ int main(int argc, char** argv){
   if (!framework.init(argc, argv))
     return 1;
 
-  framework.setInitCallback(setUpWorld);
+  framework.setStartCallback(setUpWorld);
   framework.setDrawCallback(drawCallback);
   framework.setClipPlanes( .1, 300. );
   return framework.start() ? 0 : 1;

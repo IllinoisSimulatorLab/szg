@@ -7,12 +7,19 @@
 <p><font size=+2>Syzygy Change Log</font>
 <p><font size=+2>Changes Between szg-0.7 and szg-0.6</font>
 <p><ul>
-<li>Master/slave preExchange callack is now only called on the master.
+<li>Master/slave preExchange callack is now only called on the master. postExchange
+callback is not called on a disconnected slave. postExchange callback returns void,
+not bool. setInitCallback has been changed to setStartCallback because the callback
+is invoked during arMasterSlaveFramework::start().
 <li>Changed arGraphicsWindow so it supports much more general drawing modes into a single
 window. Before, a few were hard-coded in, now things are fairly general.
-<li>Added an arHead class to hold head-related data (e.g. eye spacing), automatically shared
+<li>Added an arHead class to hold head-related data (eye spacing, mid-eye offset, eye
+direction), automatically shared
 master->slaves and scene-graph controller->clients. Associated parameters
-are read from the SZG_HEAD group by the master and scene-graph controller only.
+are read from the SZG_HEAD group by the master and scene-graph controller only (i.e. they
+only need to be set on the master and trigger computers). It also holds the graphics
+unit conversion factor, simply because that's an application-wide constant and that
+was a convenient place to put it.
 <li>Deleted the arScreenObject. Its head-related info was moved into arHead,
 virtual screen location into the new arGraphicsScreen, and the frustum and
 lookat matrix computations are done by the new arVRCamera class.

@@ -620,7 +620,7 @@ void exitCallback( arMasterSlaveFramework& ) {
 int main(int argc, char** argv){
   arMasterSlaveFramework framework;
   
-  framework.setInitCallback(init);
+  framework.setStartCallback(init);
   framework.setPreExchangeCallback(preExchange);
   framework.setPostExchangeCallback(postExchange);
   framework.setDrawCallback(display);

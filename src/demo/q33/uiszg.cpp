@@ -378,7 +378,7 @@ int main(int argc, char** argv){
     return 1;
 
   framework.setClipPlanes(0.5,3000);
-  framework.setInitCallback(init);
+  framework.setStartCallback(init);
   framework.setPreExchangeCallback(preExchange);
   framework.setWindowCallback(windowCallback);
   framework.setDrawCallback(drawCallback);

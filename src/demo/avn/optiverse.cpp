@@ -1816,7 +1816,7 @@ int main(int argc, char** argv){
     return 1;
 
   framework.setClipPlanes(0.15, 500);
-  framework.setInitCallback(init);
+  framework.setStartCallback(init);
   framework.setPreExchangeCallback(preExchange);
   framework.setDrawCallback(drawCallback);
   framework.setEyeSpacing(6/(12*2.54));

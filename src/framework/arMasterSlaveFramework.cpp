@@ -170,7 +170,7 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   _serviceName("NULL"),
   _serviceNameBarrier("NULL"),
   _networks("NULL"),
-  _init(NULL),
+  _startCallback(NULL),
   _preExchange(NULL),
   _postExchange(NULL),
   _window(NULL),
@@ -258,9 +258,9 @@ arMasterSlaveFramework::~arMasterSlaveFramework() {
     delete _inputState;
 }
 
-void arMasterSlaveFramework::setInitCallback
-  (bool (*initCallback)(arMasterSlaveFramework&, arSZGClient&)){
-  _init = initCallback;
+void arMasterSlaveFramework::setStartCallback
+  (bool (*startCallback)(arMasterSlaveFramework&, arSZGClient&)){
+  _startCallback = startCallback;
 }
 
 void arMasterSlaveFramework::setPreExchangeCallback
@@ -588,7 +588,7 @@ void arMasterSlaveFramework::preDraw(){
     _play(*this);
   }
 
-  if (_postExchange){
+  if (getConnected() && _postExchange) {
     _postExchange(*this);
   }
 
@@ -1464,7 +1464,7 @@ bool arMasterSlaveFramework::_startStandalone(bool useGLUT){
     _createGLUTWindow();
   }
   __globalFramework = this;
-  if (_init && !_init(*this, _SZGClient)){
+  if (_startCallback && !_startCallback(*this, _SZGClient)){
     cerr << _label << " error: failed to called user-defined init.\n";
     return false;
   }
@@ -1527,9 +1527,9 @@ bool arMasterSlaveFramework::_start(bool useGLUT){
   // do the user-defined init
   // NOTE: in some cases, the user-defined init must occur AFTER
   // the window has been created.
-  // NOTE: so that _init can know if this instance is the master or
+  // NOTE: so that _startCallback can know if this instance is the master or
   // a slave, it is important to call this AFTER _startDetermineMaster(...)
-  if (_init && !_init(*this, _SZGClient)){
+  if (_startCallback && !_startCallback(*this, _SZGClient)){
     startResponse << "Programmer-defined init of component failed.\n";
     _SZGClient.sendStartResponse(false);
     return false;

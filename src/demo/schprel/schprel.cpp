@@ -355,7 +355,7 @@ int main(int argc, char** argv){
   if (!framework.init(argc, argv))
     return 1;
 
-  framework.setInitCallback(init);
+  framework.setStartCallback(init);
   framework.setPreExchangeCallback(preExchange);
   framework.setPostExchangeCallback(postExchange);
   framework.setDrawCallback(draw);

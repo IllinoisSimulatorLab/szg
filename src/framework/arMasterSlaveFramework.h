@@ -56,7 +56,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   virtual ~arMasterSlaveFramework();
 
   // set the callbacks
-  void setInitCallback(bool (*initCallback)(arMasterSlaveFramework& fw, 
+  void setStartCallback(bool (*startCallback)(arMasterSlaveFramework& fw, 
                                             arSZGClient&));
   void setPreExchangeCallback(void (*preExchange)(arMasterSlaveFramework&));
   void setPostExchangeCallback(void (*postExchange)(arMasterSlaveFramework&));
@@ -199,7 +199,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   string _networks;
 
   /// Callbacks.
-  bool (*_init)(arMasterSlaveFramework&, arSZGClient&);
+  bool (*_startCallback)(arMasterSlaveFramework&, arSZGClient&);
   void (*_preExchange)(arMasterSlaveFramework&);
   void (*_postExchange)(arMasterSlaveFramework&);
   void (*_window)(arMasterSlaveFramework&);
