@@ -39,7 +39,9 @@ PFNGLCLIENTACTIVETEXTUREARBPROC         glClientActiveTextureARB = NULL;
 PFNGLLOCKARRAYSEXTPROC                  glLockArraysEXT = NULL;
 PFNGLUNLOCKARRAYSEXTPROC                glUnlockArraysEXT = NULL;
 #else
+#ifndef AR_USE_DARWIN
 #include <GL/glext.h>
+#endif
 extern void glLockArraysEXT(GLint, GLsizei);
 extern void glUnlockArraysEXT(void);
 #endif
