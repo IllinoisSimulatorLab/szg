@@ -11,7 +11,9 @@
 class SZG_CALL arOrthoCamera: public arCamera{
  public:
   arOrthoCamera();
+  arOrthoCamera( const float* const orth, const float* const look );
   virtual ~arOrthoCamera(){}
+  virtual arCamera* clone() const { return (arCamera*) new arOrthoCamera( ortho, lookat ); }
 
   virtual arMatrix4 getProjectionMatrix();
   virtual arMatrix4 getModelviewMatrix();

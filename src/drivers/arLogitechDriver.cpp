@@ -88,6 +88,12 @@ bool arLogitechDriver::init(arSZGClient& SZGClient) {
   }
   cerr << "arLogitechDriver remark: COM port open.\n";
 
+  // Set read timeout of 1 sec
+  if (!_comPort.setReadTimeout(10)){
+    cerr << "arLogitechDriver error: could not set timeout for COM port.\n";
+    return false;
+  }
+  
   if (!_reset()) {
     cerr << "arLogitechDriver error: _reset() failed.\n";
     return false;
@@ -95,12 +101,6 @@ bool arLogitechDriver::init(arSZGClient& SZGClient) {
 
   if (!_runDiagnostics()) {
     cerr << "arLogitechDriver error: diagnostics failed.\n";
-    return false;
-  }
-  
-  // Set read timeout of 1 sec
-  if (!_comPort.setReadTimeout(10)){
-    cerr << "arLogitechDriver error: could not set timeout for COM port.\n";
     return false;
   }
   

@@ -39,6 +39,7 @@ PFNGLCLIENTACTIVETEXTUREARBPROC         glClientActiveTextureARB = NULL;
 PFNGLLOCKARRAYSEXTPROC                  glLockArraysEXT = NULL;
 PFNGLUNLOCKARRAYSEXTPROC                glUnlockArraysEXT = NULL;
 #else
+#include <GL/glext.h>
 extern void glLockArraysEXT(GLint, GLsizei);
 extern void glUnlockArraysEXT(void);
 #endif

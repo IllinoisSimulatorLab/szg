@@ -20,10 +20,11 @@ OBJS = \
 # These internal library makefiles ONLY include the external files necessary
 # to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
 # Makefile.defines neglects to define these)
-SZG_INCLUDE = -I$(SZGHOME)/src/language $(SZG_DLL_INCLUDE)
+SZG_INCLUDE = -I$(SZGHOME)/src/language -I$(SZGHOME)/src/math $(SZG_DLL_INCLUDE)
 SZG_LINK_LIBS = $(GENERAL_LIBS)
 SZG_OPTIONAL_LIBS = 
 SZG_LIBRARY_LIBS = \
+  $(MATH_LIB_STRING) \
   $(LANGUAGE_LIB_STRING)
 SZG_LIBRARY_DEPS = \
   $(LANGUAGE_DEP_STRING)

@@ -31,7 +31,7 @@
 #include "arLight.h"
 #include "arPerspectiveCamera.h"
 #include "arPerspectiveCameraNode.h"
-#include "arScreenObject.h"
+#include "arHead.h"
 #include "arBumpMapNode.h"
 
 #ifdef USE_CG // Marks' Cg stuff
@@ -63,8 +63,8 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
 			float height, arTexture* decalTexture);
 
   arMatrix4 accumulateTransform(int nodeID);
+  arMatrix4 accumulateTransform(int startNodeID, int endNodeID);
 
-  void setViewTransform(arScreenObject*,float);
   void draw();
   int intersect(const arRay&);
   list<int>* intersectList(const arRay&);
@@ -72,11 +72,13 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   bool registerLight(int owningNodeID, arLight* theLight);
   void activateLights();
 
+  arHead* getHead();
   bool registerCamera(int owningNodeID, arPerspectiveCamera* theCamera);
   // normally we use the default "VR camera"... however, the database can
   // also be drawn from the perspective of one of the attached camera
-  bool setCamera(int cameraID);
-  void setLocalCamera(float* frustum, float* lookat);
+  arPerspectiveCamera* getCamera( unsigned int cameraID );
+//  bool setCamera(int cameraID);
+//  void setLocalCamera(float* frustum, float* lookat);
 
   // Deliberately public, for external data input.
   arStructuredData* transformData;
@@ -118,11 +120,11 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   pair<int,arLight*>             _lightContainer[8];
   // information about the auxilliary cameras in the scene...
   // the "VR camera" is still privileged as a default.
-  int                            _cameraID;
+//  int                            _cameraID;
   pair<int,arPerspectiveCamera*> _cameraContainer[8];
   // information about the "ad hoc" local camera
-  float _localCameraFrustum[6];
-  float _localCameraLookat[9];
+//  float _localCameraFrustum[6];
+//  float _localCameraLookat[9];
 
   void _draw(arGraphicsNode*, stack<arMatrix4>&);
   void _intersect(arGraphicsNode*, float&, int&, stack<arRay>&);

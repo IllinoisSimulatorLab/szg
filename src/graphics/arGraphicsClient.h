@@ -9,6 +9,7 @@
 #include "arGraphicsDatabase.h"
 #include "arSyncDataClient.h"
 #include "arGraphicsWindow.h"
+#include "arVRCamera.h"
 #include "arFrameworkObject.h"
 #include <string>
 
@@ -21,9 +22,7 @@ class SZG_CALL arGraphicsClient{
   friend bool 
     ar_graphicsClientConnectionCallback(void*, arTemplateDictionary*);
   friend bool ar_graphicsClientDisconnectCallback(void*);
-  friend void ar_graphicsClientDrawEye(arGraphicsClient*,
-                                       arScreenObject*,
-                                       float);
+  friend void ar_graphicsClientDraw(arGraphicsClient* client);
   friend bool ar_graphicsClientConsumptionCallback(void*, ARchar*);
   friend bool ar_graphicsClientActionCallback(void*);
   friend bool ar_graphicsClientNullCallback(void*);
@@ -38,15 +37,14 @@ class SZG_CALL arGraphicsClient{
   // initialization (so far only used for the wildcats)
   void init();
 
-  void monoEyeOffset( const string& eye );
+//  void monoEyeOffset( const string& eye );
 
   //AARGH! bad design...
   void loadAlphabet(const char*);
   void setTexturePath(const string&);
   void setStereoMode(bool);
   void setViewMode( const std::string& );
-  void setDemoMode(bool);
-  void setScreenObject(arScreenObject*);
+  void setFixedHeadMode(bool);
   void showFramerate(bool);
 
   // Sometimes, we want to be able to over-ride the super-controlled
@@ -61,12 +59,19 @@ class SZG_CALL arGraphicsClient{
   void reset() { _graphicsDatabase.reset(); }
 
   void setOverrideColor(arVector3 overrideColor);
+  // copy the head from the arViewerNode to here
+  bool updateHead();
+
   /// the setCamera function can be used to cycle through the cameras attached
   /// to a database
-  void setCamera(int cameraID);
+  arCamera* setWindowCamera(int cameraID);
+  arCamera* setViewportCamera(unsigned int vpid, int cameraID);
+  arCamera* setStereoViewportsCamera(unsigned int vpid, int cameraID);
   /// the setLocalCamera function can be used to create an arbitrary camera
   /// this camera has ID = -2, inelegant for sure
-  void setLocalCamera(float* frustum, float* lookat);
+  arCamera* setWindowLocalCamera( const float* const frust, const float* const look );
+  arCamera* setViewportLocalCamera( unsigned int vpid, const float* const frust, const float* const look );
+  arCamera* setStereoViewportsLocalCamera( unsigned int vpid, const float* const frust, const float* const look );
   /// Allows the arDistSceneGraphFramework standalone mode to have a simulator
   /// interface. I'm a little bit annoyed at how the arGraphicsClient is
   /// so greedy to be in charge (though maybe that's necessary given the
@@ -76,11 +81,11 @@ class SZG_CALL arGraphicsClient{
   arSyncDataClient   _cliSync;
   
  protected:
-  // I THINK THAT THE _screenObject IS NO LONGER REALLY USED. THIS HAS
-  // BEEN ROLLED UP INTO THE _graphicsWindow. DO NOT USE!!!!
-  arScreenObject*    _screenObject;
   arGraphicsDatabase _graphicsDatabase;
   arGraphicsWindow   _graphicsWindow;
+  bool _fixedHeadMode;
+  arHead _defaultHead;
+  arVRCamera _defaultCamera;
   // we can over-ride the default draw function with this
   void (*_drawFunction)(arGraphicsDatabase*);
   bool _showFramerate;

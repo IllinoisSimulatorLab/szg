@@ -761,6 +761,12 @@ bool arSZGClient::getAttributeLongs(const string& groupName,
   return true;
 }
 
+bool arSZGClient::getAttributeVector3( const string& groupName,
+                                       const string& parameterName,
+                                       arVector3& value ) {
+  return getAttributeFloats( groupName, parameterName, value.v, 3 );
+}
+
 bool arSZGClient::setAttribute(const string& computerName,
 			       const string& groupName,
 			       const string& parameterName,

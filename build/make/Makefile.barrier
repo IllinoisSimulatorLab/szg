@@ -20,15 +20,18 @@ OBJS = \
 # Makefile.defines neglects to define these)
 SZG_INCLUDE = \
   -I$(SZGHOME)/src/language \
+  -I$(SZGHOME)/src/math \
   -I$(SZGHOME)/src/phleet \
   $(SZG_DLL_INCLUDE)
 SZG_LINK_LIBS = $(GENERAL_LIBS)
 SZG_OPTIONAL_LIBS = 
 SZG_LIBRARY_LIBS = \
   $(PHLEET_LIB_STRING) \
+  $(MATH_LIB_STRING) \
   $(LANGUAGE_LIB_STRING)
 SZG_LIBRARY_DEPS = \
   $(PHLEET_DEP_STRING) \
+  $(MATH_DEP_STRING) \
   $(LANGUAGE_DEP_STRING)
 SZG_CURRENT_LIB_SHORT_NAME = arBarrier
 

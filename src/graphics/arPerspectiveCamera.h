@@ -11,7 +11,9 @@
 class SZG_CALL arPerspectiveCamera: public arCamera{
  public:
   arPerspectiveCamera();
+  arPerspectiveCamera( const float* const frust, const float* const look, int ID=-2 );
   virtual ~arPerspectiveCamera(){}
+  virtual arCamera* clone() const { return (arCamera*)new arPerspectiveCamera( frustum, lookat, cameraID ); } 
 
   virtual arMatrix4 getProjectionMatrix();
   virtual arMatrix4 getModelviewMatrix();

@@ -66,6 +66,7 @@ class SZG_CALL arGraphicsLanguage:public arDatabaseLanguage{
                                  // tracker, not from midpoint between eyes)
   int AR_VIEWER_FAR_CLIP;        // far clipping plane
   int AR_VIEWER_UNIT_CONVERSION; // and here we can have a global scale factor
+  int AR_VIEWER_FIXED_HEAD_MODE;       // and here we can have a global demo mode flag
 
   int AR_BLEND;
   int AR_BLEND_ID;

@@ -8,24 +8,37 @@
 
 #include "arGraphicsHeader.h"
 #include "arCamera.h"
+#include "arGraphicsScreen.h"
 
 class SZG_CALL arViewport {
  public:
   arViewport();
+  arViewport( float left, float bottom, float width, float height,
+              const arGraphicsScreen& screen,
+              arCamera* cam,
+              float eyeSign,
+              GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha,
+              GLenum oglDrawBuf,
+              bool clearZBuf );
   arViewport( const arViewport& x );
   arViewport& operator=( const arViewport& x );
   virtual ~arViewport();
 
   void setViewport( float left, float bottom,
                     float width, float height );
-  void setCamera(arCamera* camera);
+  void setScreen( const arGraphicsScreen& screen ) { _screen = screen; }
+  arGraphicsScreen* getScreen() { return &_screen; }
+  // NOTE: the viewport now owns its camera. It makes a copy here & returns the address of the copy
+  arCamera* setCamera( arCamera* camera);
   arCamera* getCamera();
   void setEyeSign(float eyeSign);
   float getEyeSign();
   void setColorMask(GLboolean red, GLboolean green, 
 		    GLboolean blue, GLboolean alpha);
   void clearDepthBuffer(bool flag);
-
+  // e.g. GL_BACK_LEFT
+  void setDrawBuffer( GLenum buf ) { _oglDrawBuffer = buf; }
+  GLenum getDrawBuffer() const { return _oglDrawBuffer; }
   void activate();
 
  private:
@@ -36,19 +49,10 @@ class SZG_CALL arViewport {
   float _bottom;
   float _width;
   float _height;
-  // the viewport can reference an arCamera, which might be used
-  // by the drawing object to put transforms on the stack. NOTE:
-  // as of yet, the frameworks DO NOT use this feature. BUT this feature
-  // will be required for drawing multiple viewports for (say) different
-  // walls in the same window.
-  // THERE ARE PROBLEMS IN THE WAY THIS POINTER IS COPIED AROUND IN THE
-  // COPY CONSTRUCTORS, ETC. HOWEVER, IT IS NOT YET USED IN THE FRAMEWORKS
-  // SO THAT DOES NOT MATTER (MUCH)... Maybe the pointer *should* be
-  // copied around though...
+  arGraphicsScreen _screen;
   arCamera* _camera;
-  // with the current confused state of cameras in Syzygy, one also
-  // needs to include the eye sign here (i.e. if -1 it is the left eye
-  // and if 1 it is the right eye)
+  // each viewport has an eyeSign associated with it (i.e. if -1 it is the left eye
+  // and if 1 it is the right eye, 0 if no eye offset is needed)
   float _eyeSign;
   // so that we can draw anaglyph, we also need to deal with the color
   // mask!
@@ -56,6 +60,7 @@ class SZG_CALL arViewport {
   GLboolean _green;
   GLboolean _blue;
   GLboolean _alpha;
+  GLenum _oglDrawBuffer;
   // as a KLUDGE we can make the viewport clear the depth buffer on activate.
   // this is needed for anaglyph (where the depth buffer must be cleared
   // between drawing the red and the blue image)

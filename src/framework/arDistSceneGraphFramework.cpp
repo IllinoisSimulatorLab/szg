@@ -38,6 +38,11 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
       // so far)
       f->stop(true);
       exit(0);
+
+    } else if (messageType=="demo") {
+      bool onoff = (messageBody=="on")?(true):(false);
+      f->setFixedHeadMode(onoff);
+
     } else if (messageType=="reload"){
       f->_loadParameters();
     }
@@ -124,8 +129,6 @@ void ar_distSceneGraphFrameworkWindowTask(void*){
 
 arDistSceneGraphFramework::arDistSceneGraphFramework() :
   arSZGAppFramework(),
-  _midEyeOffset(0,0,0),
-  _eyeDirection(1,0,0),
   _headMatrixID(AR_VR_HEAD_MATRIX_ID),
   _graphicsNavMatrixID(-1),
   _soundNavMatrixID(-1),
@@ -167,29 +170,13 @@ void arDistSceneGraphFramework::swapBuffers(){
 }
 
 void arDistSceneGraphFramework::setViewer(){
-  dgViewer(_inputDevice->getMatrix(_headMatrixID),
-	   _midEyeOffset, _eyeDirection, _eyeSpacingFeet,
-	   _nearClip, _farClip, _unitConversion);
-  if (_standalone){
-    // In the STANDALONE case,
-    // Want to make sure that any changes to the camera variables
-    // get passed in to the arGraphicsWindow cameras. This is a HACK
-    // and is copy-pasted from arMasterSlaveFramework.
-    list<arViewport>* viewportList 
-      = _graphicsClient.getGraphicsWindow()->getViewportList();
-    list<arViewport>::iterator i;
-    for (i=viewportList->begin(); i !=viewportList->end(); i++){
-      arScreenObject* temp = (arScreenObject*) (*i).getCamera();
-      temp->setEyeSpacing( _eyeSpacingFeet );
-      temp->setClipPlanes( _nearClip, _farClip );
-      temp->setUnitConversion( _unitConversion );
-    } 
-  }
+  _head.setMatrix( _inputDevice->getMatrix(_headMatrixID) );
+  dgViewer( _head );
 }
 
 void arDistSceneGraphFramework::setPlayer(){
   dsPlayer(_inputDevice->getMatrix(_headMatrixID),
-	   _midEyeOffset,
+	   _head.getMidEyeOffset(),
 	   _unitSoundConversion);
 }
 
@@ -518,16 +505,10 @@ bool arDistSceneGraphFramework::_loadParameters(){
     initResponse << _label << " warning: SZG_DATA/path undefined.\n";
   }
 
+  _head.configure( _SZGClient );
+
   // use the screen name passed from the distributed system
   string screenName(_SZGClient.getMode("graphics"));
-  // Eye/head parameters, copypasted with arScreenObject::configure().
-  if (!_SZGClient.getAttributeFloats(screenName, "eye_spacing", 
-                                     &_eyeSpacingFeet))
-    initResponse << _label << " remark: "
-		 << screenName << "/eye_spacing defaulting to "
-	         << _eyeSpacingFeet << endl;
-  _getVector3(_eyeDirection, "eye_direction");
-  _getVector3(_midEyeOffset, "mid_eye_offset");
 
   // in standalone mode, we might actually use a window
 
@@ -563,21 +544,12 @@ void arDistSceneGraphFramework::_initDatabases(){
   }
   
   // Set up a default viewing position.
-  dgViewer(arMatrix4(1,0,0,0,
-		     0,1,0,5,
-		     0,0,1,0,
-		     0,0,0,1),
-	   _midEyeOffset, _eyeDirection, _eyeSpacingFeet,
-	   _nearClip, _farClip, _unitConversion);
+  
+  dgViewer( _head );
 
   
   // Set up a default listening position.
-  dsPlayer(arMatrix4(1,0,0,0,
-		     0,1,0,5,
-		     0,0,1,0,
-		     0,0,0,1),
-	   _midEyeOffset,
-	   _unitSoundConversion);
+  dsPlayer( _head.getMatrix(), _head.getMidEyeOffset(), _unitSoundConversion );
 
   if (_graphicsNavMatrixID == -1){
     _graphicsNavMatrixID 

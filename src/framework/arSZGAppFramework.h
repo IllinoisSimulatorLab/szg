@@ -11,6 +11,7 @@
 #include "arInputNode.h"
 #include "arInputState.h"
 #include "arNetInputSource.h"
+#include "arHead.h"
 #include "arSoundServer.h"
 #include "arAppLauncher.h"
 #include "arNavManager.h"
@@ -32,6 +33,7 @@ class SZG_CALL arSZGAppFramework {
     
     void setEyeSpacing( float feet );
     void setClipPlanes( float near, float far );
+    virtual void setFixedHeadMode(bool isOn) { _head.setFixedHeadMode(isOn); }
     virtual void setUnitConversion( float conv );
     virtual void setUnitSoundConversion( float conv );
     virtual float getUnitConversion();
@@ -40,7 +42,7 @@ class SZG_CALL arSZGAppFramework {
       { return _dataPath; }
     int getButton(       const unsigned int index ) const;
     float getAxis(       const unsigned int index ) const;
-    arMatrix4 getMatrix( const unsigned int index ) const;
+    arMatrix4 getMatrix( const unsigned int index, bool doUnitConversion=true ) const;
     bool getOnButton(    const unsigned int index ) const;
     bool getOffButton(   const unsigned int index ) const;
     unsigned int getNumberButtons()  const;
@@ -127,16 +129,9 @@ class SZG_CALL arSZGAppFramework {
   
     string _dataPath;
     
-    // Variables related to the camera(s). These are a little bit confusing
-    // and should be dealt with in the future, I think. The eye spacing
-    // should be moved into a "head object", whereas the near clip and far
-    // clip belong in the camera. And the unit conversion seems to belong
-    // more in the "abstract scene graph". A fairly complex to-do, that's
-    // for sure. 
-    float _eyeSpacingFeet;
-    float _nearClip;
-    float _farClip;
-    float _unitConversion;
+    arHead _head;
+
+    // the graphics unitConversion resides in the head now for convenience.
     float _unitSoundConversion;
     
     arNavManager _navManager;

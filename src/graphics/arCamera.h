@@ -8,22 +8,25 @@
 
 #include "arMath.h"
 #include "arSZGClient.h"
+#include "arGraphicsScreen.h"
 
 class SZG_CALL arCamera{
  public:
-  arCamera(){}
-  virtual ~arCamera(){}
-  virtual bool configure(arSZGClient*){
-    cout << "arCamera warning: using empty configure.\n";
-    return true;
-  }
-  virtual bool configure(const string&, arSZGClient*){
-    cout << "arCamera warning: using empty configure.\n";
-    return true;
-  }
-  virtual arMatrix4 getProjectionMatrix(){ return ar_identityMatrix(); }
-  virtual arMatrix4 getModelviewMatrix(){ return ar_identityMatrix(); }
+  arCamera() : _eyeSign(0), _screen(0) {}
+  virtual ~arCamera() {}
+  void setEyeSign( float eyeSign ) { _eyeSign = eyeSign; }
+  float getEyeSign() const { return _eyeSign; }
+  void setScreen( arGraphicsScreen* screen ) { _screen = screen; }
+  arGraphicsScreen* getScreen() const { return _screen; }
+  virtual arMatrix4 getProjectionMatrix();
+  virtual arMatrix4 getModelviewMatrix();
   virtual void loadViewMatrices();
+  virtual arCamera* clone() const = 0;
+ private:
+  // NOTE: these parameters should not be copied, they are transient and only exist
+  // so they don't have to be passed to the verious get.. and load... matrix functions
+  float _eyeSign;
+  arGraphicsScreen* _screen;
 };
 
 #endif

@@ -14,6 +14,7 @@
 #include "arEventUtilities.h"
 #include "arWildcatUtilities.h"
 #include "arPForthFilter.h"
+#include "arVRConstants.h"
 
 /// to make the callbacks startable from GLUT, we need this
 /// global variable to pass in an arMasterSlaveFramework parameter
@@ -153,7 +154,7 @@ void arMasterSlaveRenderCallback::operator()( arGraphicsWindow&,
                                               arViewport& v ) {
   if (!_framework)
     return;
-  _framework->_drawEye( (arScreenObject*) v.getCamera(), v.getEyeSign() );
+  _framework->_draw();
 }
 
 
@@ -173,7 +174,7 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   _preExchange(NULL),
   _postExchange(NULL),
   _window(NULL),
-  _draw(NULL),
+  _drawCallback(NULL),
   _play(NULL),
   _reshape(NULL),
   _cleanup(NULL),
@@ -194,14 +195,6 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   _time(0.),
   _lastFrameTime(0.1),
   _firstTimePoll(true),
-  _randSeedSet(1),
-  _randomSeed(-1),
-  _newSeed(-1),
-  _numRandCalls(0),
-  _lastRandVal(0),
-  _randSynchError(0),
-  _firstTransfer(1),
-  _currentEye(0.),
   _screenshotFlag(false),
   _screenshotStartX(0),
   _screenshotStartY(0),
@@ -209,9 +202,6 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   _screenshotHeight(480),
   _whichScreenshot(0),
   _pauseFlag(false),
-  _cameraID(-1),
-  _cameraScale(1),
-  _headEffector(0,0,0,0,0,0,0),
   _connectionThreadRunning(false),
   _useGLUT(false),
   _standalone(false),
@@ -228,10 +218,13 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   _transferTemplate.addAttribute("buttons",AR_INT);
   _transferTemplate.addAttribute("axes",AR_FLOAT);
   _transferTemplate.addAttribute("eye_spacing",AR_FLOAT);
-  _transferTemplate.addAttribute("randSeedSet",AR_INT);
-  _transferTemplate.addAttribute("randSeed",AR_LONG);
-  _transferTemplate.addAttribute("numRandCalls",AR_LONG);
-  _transferTemplate.addAttribute("randVal",AR_FLOAT);
+  _transferTemplate.addAttribute("mid_eye_offset",AR_FLOAT);
+  _transferTemplate.addAttribute("eye_direction",AR_FLOAT);
+  _transferTemplate.addAttribute("head_matrix",AR_FLOAT);
+  _transferTemplate.addAttribute("near_clip",AR_FLOAT);
+  _transferTemplate.addAttribute("far_clip",AR_FLOAT);
+  _transferTemplate.addAttribute("unit_conversion",AR_FLOAT);
+  _transferTemplate.addAttribute("fixed_head_mode",AR_INT);
   _transferTemplate.addAttribute("szg_data_router",AR_CHAR);
 
   ar_mutex_init(&_pauseLock);
@@ -240,19 +233,14 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   // instead of a default color
   _defaultColor = arVector3(-1,-1,-1);
   _masterPort[0] = -1;
-  // The screen object does not get initialized here... but instead when
-  // the parameters are loaded.
-  // NOTE: This is a little bit awkward. Under the new regime, there is
-  // a camera for each viewport. However, some of the drawing interface
-  // funtions (like for the vtk interface) assume that we have only one
-  // camera per viewport. Consequently, we keep this variable... and set it to
-  // be the 
-  _screenObject = NULL;
   // Also, let's initialize the performance graph.
   _framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
   _framerateGraph.addElement("compute", 300, 100, arVector3(1,1,0));
   _framerateGraph.addElement("sync", 300, 100, arVector3(0,1,1));
   _showPerformance = false;
+
+  _defaultCamera.setHead( &_head );
+  
 }
 
 /// \bug memory leak for several pointer members
@@ -300,7 +288,7 @@ void arMasterSlaveFramework::setWindowCallback
 
 void arMasterSlaveFramework::setDrawCallback
   (void (*draw)(arMasterSlaveFramework&)){
-  _draw = draw;
+  _drawCallback = draw;
 }
 
 void arMasterSlaveFramework::setPlayCallback
@@ -609,20 +597,6 @@ void arMasterSlaveFramework::preDraw(){
     _soundClient->_cliSync.consume();
   }
 
-  // NOTE: we must do this over the entire viewport list! Not just for the
-  // "MASTER" viewport. Otherwise, "CUSTOM" viewports for apps which
-  // set the unit conversion, etc. will be messed up.
-  // NOTE: the "MASTER" camera (i.e. _screenObject) is also covered in this
-  // code.
-  list<arViewport>* viewportList = _graphicsWindow.getViewportList();
-  list<arViewport>::iterator i;
-  for (i=viewportList->begin(); i !=viewportList->end(); i++){
-    arScreenObject* temp = (arScreenObject*) (*i).getCamera();
-    temp->setEyeSpacing( _eyeSpacingFeet );
-    temp->setClipPlanes( _nearClip, _farClip );
-    temp->setUnitConversion( _unitConversion );
-  }
-
   // must let the framerate graph know about the current frametime.
   // NOTE: this is computed in _pollInputData... hmmm... doesn't make this
   // very useful for the slaves...
@@ -693,12 +667,13 @@ void arMasterSlaveFramework::postDraw(){
 }
 
 arMatrix4 arMasterSlaveFramework::getProjectionMatrix(float eyeSign){
-  return _screenObject->getProjectionMatrix(eyeSign, 
-                                            _inputState->getMatrix(0));
+  _defaultCamera.setEyeSign( eyeSign );
+  return _defaultCamera.getProjectionMatrix();
 }
 
 arMatrix4 arMasterSlaveFramework::getModelviewMatrix(float eyeSign){
-  return _screenObject->getModelviewMatrix(eyeSign, _inputState->getMatrix(0));
+  _defaultCamera.setEyeSign( eyeSign );
+  return _defaultCamera.getModelviewMatrix();
 }
 
 bool arMasterSlaveFramework::addTransferField(string fieldName, void* data,
@@ -823,15 +798,6 @@ void* arMasterSlaveFramework::getTransferField( string fieldName,
   return p.data;
 }
 
-void arMasterSlaveFramework::setViewTransform(float eyeSign){
-  _screenObject->loadViewMatrices( eyeSign, _inputState->getMatrix(0) );
-}
-
-void arMasterSlaveFramework::setViewTransform(arScreenObject* screenObject,
-											  float eyeSign){
-  screenObject->loadViewMatrices( eyeSign, _inputState->getMatrix(0) );
-}
-
 void arMasterSlaveFramework::setPlayTransform(){
   if (soundActive()) {
     _speakerObject.loadMatrices( _inputState->getMatrix(0) );
@@ -840,39 +806,6 @@ void arMasterSlaveFramework::setPlayTransform(){
 
 void arMasterSlaveFramework::draw(){
   _graphicsDatabase.draw();
-}
-
-void arMasterSlaveFramework::setRandomSeed( const long newSeed ) {
-  if (!_master)
-    return;
-  if (newSeed==0) {
-    cerr << _label
-	 << " warning: illegal random seed value 0 replaced with -1.\n";
-    _newSeed = -1;
-  } else
-    _newSeed = newSeed;
-  _randSeedSet = 1;
-}
-  
-bool arMasterSlaveFramework::randUniformFloat( float& value ) {
-  value = ar_randUniformFloat( &_randomSeed );
-  _lastRandVal = value;
-  ++_numRandCalls;
-  if (_randSynchError & 1) {
-    cerr << _label << " warning: unequal numbers of calls to "
-	 << "randUniformFloat() on different machines.\n";
-  }
-  if (_randSynchError & 2) {
-    cerr << _label << " warning: divergence of random number seeds "
-         << "on different machines.\n";
-  }
-  if (_randSynchError & 4) {
-    cerr << _label << " warning: divergence of random number values "
-         << "on different machines.\n";
-  }
-  bool success = _randSynchError==0;
-  _randSynchError = 0;
-  return success;
 }
 
 //************************************************************************
@@ -1140,63 +1073,46 @@ void arMasterSlaveFramework::_pollInputData(){
   _inputState->updateLastButtons();
   _inputDevice->processBufferedEvents();
   
-  _headEffector.updateState( _inputState );
+  _head.setMatrix( getMatrix(AR_VR_HEAD_MATRIX_ID,false) );
 }
 
 void arMasterSlaveFramework::_packInputData(){
-  if (_randSeedSet)
-    _randomSeed = -labs( _newSeed );
   const arMatrix4 navMatrix(ar_getNavMatrix());
   if (!_transferData->dataIn("time",&_time,AR_DOUBLE,1) ||
       !_transferData->dataIn("lastFrameTime",&_lastFrameTime,AR_DOUBLE,1) ||
       !_transferData->dataIn("navMatrix",navMatrix.v,AR_FLOAT,16) ||
-      !_transferData->dataIn("eye_spacing",&_eyeSpacingFeet,AR_FLOAT,1) ||
-      !_transferData->dataIn("randSeedSet",&_randSeedSet,AR_INT,1) ||
-      !_transferData->dataIn("randSeed",&_randomSeed,AR_LONG,1) ||
-      !_transferData->dataIn("numRandCalls",&_numRandCalls,AR_LONG,1) ||
-      !_transferData->dataIn("randVal",&_lastRandVal,AR_FLOAT,1)) {
+      !_transferData->dataIn("eye_spacing",&_head._eyeSpacing,AR_FLOAT,1) ||
+      !_transferData->dataIn("mid_eye_offset",_head._midEyeOffset.v,AR_FLOAT,3) ||
+      !_transferData->dataIn("eye_direction",_head._eyeDirection.v,AR_FLOAT,3) ||
+      !_transferData->dataIn("head_matrix",_head._matrix.v,AR_FLOAT,16) ||
+      !_transferData->dataIn("near_clip",&_head._nearClip,AR_FLOAT,1) ||
+      !_transferData->dataIn("far_clip",&_head._farClip,AR_FLOAT,1) ||
+      !_transferData->dataIn("unit_conversion",&_head._unitConversion,AR_FLOAT,1) ||
+      !_transferData->dataIn("fixed_head_mode",&_head._fixedHeadMode,AR_INT,1)) {
     cerr << _label << " warning: problem in _packInputData.\n";
   }
   if (!ar_saveInputStateToStructuredData( _inputState, _transferData )) {
     cerr << _label << " warning: failed to pack input state data.\n";
   }
-
-  _numRandCalls = 0;
-  _randSeedSet = 0;
-  _firstTransfer = 0;
 }
 
 void arMasterSlaveFramework::_unpackInputData(){
   _transferData->dataOut("time",&_time,AR_DOUBLE,1);
   _transferData->dataOut("lastFrameTime",&_lastFrameTime,AR_DOUBLE,1);
-  _transferData->dataOut("eye_spacing",&_eyeSpacingFeet,AR_FLOAT,1);
+  _transferData->dataOut("eye_spacing",&_head._eyeSpacing,AR_FLOAT,1);
+  _transferData->dataOut("mid_eye_offset",_head._midEyeOffset.v,AR_FLOAT,3);
+  _transferData->dataOut("eye_direction",_head._eyeDirection.v,AR_FLOAT,3);
+  _transferData->dataOut("head_matrix",_head._matrix.v,AR_FLOAT,16);
+  _transferData->dataOut("near_clip",&_head._nearClip,AR_FLOAT,1);
+  _transferData->dataOut("far_clip",&_head._farClip,AR_FLOAT,1);
+  _transferData->dataOut("unit_conversion",&_head._unitConversion,AR_FLOAT,1);
+  _transferData->dataOut("fixed_head_mode",&_head._fixedHeadMode,AR_INT,1);
   arMatrix4 navMatrix;
   _transferData->dataOut("navMatrix",navMatrix.v,AR_FLOAT,16);
   ar_setNavMatrix( navMatrix );
   if (!ar_setInputStateFromStructuredData( _inputState, _transferData )) {
     cerr << _label << " warning: failed to unpack input state data.\n";
   }
-  // NOTE this must happen after setNavMatrix and setInputState...
-  _headEffector.updateState( _inputState );
-  
-  const long lastNumCalls = _numRandCalls;
-  const long lastSeed = _randomSeed;
-  _transferData->dataOut("randSeedSet",&_randSeedSet,AR_INT,1);
-  _transferData->dataOut("randSeed",&_randomSeed,AR_LONG,1);
-  _transferData->dataOut("numRandCalls",&_numRandCalls,AR_LONG,1);
-  float tempRandVal;
-  _transferData->dataOut("randVal",&tempRandVal,AR_FLOAT,1);
-  _randSynchError = 0;
-  if (!_firstTransfer) {
-    if (lastNumCalls != _numRandCalls)
-      _randSynchError |= 1;
-    if ((lastSeed != _randomSeed)&&(!_randSeedSet))
-      _randSynchError |= 2;
-    if (tempRandVal != _lastRandVal)
-      _randSynchError |= 4;
-  } else
-    _firstTransfer = 0;
-  _numRandCalls = 0;
 }
 
 //************************************************************************
@@ -1663,16 +1579,22 @@ bool arMasterSlaveFramework::_loadParameters(){
   string received(_SZGClient.getAttribute("SZG_RENDER","text_path"));
   ar_stringToBuffer(ar_pathAddSlash(received), _textPath, sizeof(_textPath));
 
-  // Which screen should we use to define the view?
-  const string screenName(_SZGClient.getMode("graphics"));
-
   // We set a few window-wide attributes based on screen name. THIS IS AN
   // UGLY HACK!!!! (stereo, window size, window position, wildcat framelock)
+  const string screenName(_SZGClient.getMode("graphics"));
 
+  // Which screen should we use to define the view?
+  _defaultScreen.configure( screenName, _SZGClient );
+  _defaultCamera.setScreen( &_defaultScreen );
+  _graphicsWindow.setCamera( &_defaultCamera );
+
+  _graphicsWindow.configure(_SZGClient);
+
+  _stereoMode = _graphicsWindow.getUseOGLStereo();
   // NOTE: quad-buffered stereo is NOT compatible with custom viewports
-  _stereoMode = _SZGClient.getAttribute(screenName, "stereo",
-    "|false|true|") == "true";
-  _graphicsWindow.useOGLStereo( _stereoMode );
+//  _stereoMode = _SZGClient.getAttribute(screenName, "stereo",
+//    "|false|true|") == "true";
+//  _graphicsWindow.useOGLStereo( _stereoMode );
   
   float temp[2];
   if (_SZGClient.getAttributeFloats(screenName, "size", temp, 2)){
@@ -1694,19 +1616,13 @@ bool arMasterSlaveFramework::_loadParameters(){
     _windowPositionY = 0;
   }
 
+  if (getMaster()) {
+    _head.configure(_SZGClient);
+  }
+
   ar_useWildcatFramelock(_SZGClient.getAttribute(screenName, 
     "wildcat_framelock", "|false|true|") == "true");
 
-  _graphicsWindow.configure(&_SZGClient);
-  _screenObject = (arScreenObject*) _graphicsWindow.getDefaultCamera();
-  if (_screenObject) {
-    _headEffector.setTipOffset( _screenObject->getMidEyeOffset() );
-  }
-  
-  // For some reason, it seems necessary to retrieve this from the
-  // arScreenObject
-  _eyeSpacingFeet = _screenObject->eyeSpacing();
-  
   // Don't think the speaker object configuration actually does anything
   // yet!!!!
   if (!_speakerObject.configure(&_SZGClient)) {
@@ -1800,18 +1716,20 @@ void arMasterSlaveFramework::_messageTask(){
     else if (messageType=="look"){
       if (messageBody=="NULL"){
 	// the default camera
-        _cameraID = -1;
+        _graphicsWindow.setCamera( &_defaultCamera );
       }
       else{
 	// Activate a new camera, which may be better for screenshots.
-        float tmp[16];
-        int numberArgs = ar_parseFloatString(messageBody, tmp, 16);
-        _cameraID = 0;
-	/// \todo error checking
-        memcpy(_cameraFrustum, tmp, 6*sizeof(AR_FLOAT));
-	memcpy(_cameraLookat, tmp+6, 9*sizeof(AR_FLOAT));
-        _cameraScale = numberArgs==16 ? tmp[16] : 1.;
+        // tmp = 6 glFrustum params followed by 9 gluLookat params
+        float tmp[15];
+        int numberArgs = ar_parseFloatString(messageBody, tmp, 15);
+        _graphicsWindow.setCamera( &arPerspectiveCamera( tmp, tmp+6 ) );
       }
+    }
+    
+    else if (messageType=="demo") {
+      bool onoff = (messageBody=="on")?(true):(false);
+      setFixedHeadMode(onoff);
     }
     
     else if (messageType=="viewmode") {
@@ -1929,35 +1847,13 @@ void arMasterSlaveFramework::_connectionTask(){
 // Functions directly pertaining to drawing
 //**************************************************************************
 
-void arMasterSlaveFramework::_drawEye(arScreenObject* screenObject,
-				      float eyeSign){
-  if (!_draw) {
+void arMasterSlaveFramework::_draw(){
+  if (!_drawCallback) {
     cerr << _label << " warning: forgot to setDrawCallback().\n";
     return;
   }
   if (_defaultColor[0] == -1){
-    if (_cameraID == -1){
-      // use the default "VR camera"
-      _currentEye = eyeSign;
-      setViewTransform(screenObject, eyeSign);
-    }
-    else{
-      glMatrixMode(GL_PROJECTION);
-      glLoadIdentity();
-      glFrustum(_cameraFrustum[0], _cameraFrustum[1], _cameraFrustum[2],
-                _cameraFrustum[3], _cameraFrustum[4], _cameraFrustum[5]);
-      glMatrixMode(GL_MODELVIEW);
-      glLoadIdentity();
-      
-      gluLookAt(_cameraLookat[0], _cameraLookat[1], _cameraLookat[2],
-                _cameraLookat[3], _cameraLookat[4], _cameraLookat[5],
-                _cameraLookat[6], _cameraLookat[7], _cameraLookat[8]);
-      /// \bug atlantis demo interacts with this scaling.
-      const arMatrix4 scaleMatrix(ar_scaleMatrix(_cameraScale));
-      glMultMatrixf(scaleMatrix.v);
-    } 
-    _draw(*this);
-    _currentEye = 0.;
+    _drawCallback(*this);
   }
   else{
     // we just want a colored background

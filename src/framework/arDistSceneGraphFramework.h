@@ -60,9 +60,6 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   arGraphicsServer _graphicsServer;
   arGraphicsPeer _graphicsPeer;
 
-  arVector3 _midEyeOffset;
-  arVector3 _eyeDirection;
-  
   int _headMatrixID;
   int _graphicsNavMatrixID;
   int _soundNavMatrixID;

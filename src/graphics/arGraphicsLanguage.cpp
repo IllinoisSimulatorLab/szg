@@ -67,6 +67,7 @@ arGraphicsLanguage::arGraphicsLanguage():
   AR_VIEWER_NEAR_CLIP = _viewer.add("near clip",AR_FLOAT);
   AR_VIEWER_FAR_CLIP = _viewer.add("far clip",AR_FLOAT);
   AR_VIEWER_UNIT_CONVERSION = _viewer.add("unit conversion",AR_FLOAT);
+  AR_VIEWER_FIXED_HEAD_MODE = _viewer.add("fixed head mode",AR_INT);
   AR_VIEWER = _dictionary.add(&_viewer);
 
   AR_BLEND_ID = _blend.add("ID",AR_INT);

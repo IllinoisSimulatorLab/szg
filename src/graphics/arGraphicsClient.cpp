@@ -31,9 +31,7 @@ void ar_graphicsClientShowRasterString(int x, int y, char* s){
     glutBitmapCharacter(GLUT_BITMAP_9_BY_15, c);
 }
 
-void ar_graphicsClientDrawEye(arGraphicsClient* c, 
-                              arScreenObject* screenObject,
-                              float offset){
+void ar_graphicsClientDraw( arGraphicsClient* c ) {
   // if we are over-riding the default, do it here and then return
   if (c->_drawFunction){
     c->_drawFunction(&c->_graphicsDatabase);
@@ -49,7 +47,6 @@ void ar_graphicsClientDrawEye(arGraphicsClient* c,
     // viewer node in the database, if available, to provide
     // the additional info the screen object needs to calculate
     // the view transform
-    c->_graphicsDatabase.setViewTransform(screenObject,offset);
     c->_graphicsDatabase.activateLights();
     c->_graphicsDatabase.draw();
   }
@@ -108,6 +105,7 @@ bool ar_graphicsClientActionCallback(void* client){
   // there... so framelock needs to be enabled.
   ar_activateWildcatFramelock();
 
+  c->updateHead();
   c->_graphicsWindow.draw();
 
   // A HACK for drawing the simulator interface. This is used in
@@ -182,12 +180,10 @@ void arGraphicsClientRenderCallback::operator()( arGraphicsWindow&,
                                                  arViewport& v) {
   if (!_client)
     return;
-  ar_graphicsClientDrawEye( _client, (arScreenObject*) v.getCamera(),
-                            v.getEyeSign() );
+  ar_graphicsClientDraw( _client );
 }
 
 arGraphicsClient::arGraphicsClient() :
-  _screenObject(NULL),
   _drawFunction(NULL),
   _showFramerate(false),
   _stereoMode(false),
@@ -204,10 +200,11 @@ arGraphicsClient::arGraphicsClient() :
   
   _graphicsWindow.setInitCallback( new arGraphicsClientWindowInitCallback );
   _graphicsWindow.setDrawCallback( new arGraphicsClientRenderCallback(*this) );
+
+  _defaultCamera.setHead( &_defaultHead );
 }
 
 arGraphicsClient::~arGraphicsClient(){
-  // Don't delete _screenObject, since we don't own it.
 }
 
 /// Get the configuration parameters from the Syzygy database and set-up the
@@ -217,7 +214,8 @@ bool arGraphicsClient::configure(arSZGClient* client){
     return false;
   }
 
-  _graphicsWindow.configure(client);
+  _graphicsWindow.setCamera( &_defaultCamera );
+  _graphicsWindow.configure(*client);
 
   setTexturePath(client->getAttribute("SZG_RENDER", "texture_path"));
   // where to look for text textures
@@ -236,9 +234,9 @@ void arGraphicsClient::init(){
   ar_findWildcatFramelock();
 }
 
-void arGraphicsClient::monoEyeOffset( const string& eye ) {
-  _graphicsWindow.setDefaultEye( eye );
-}
+//void arGraphicsClient::monoEyeOffset( const string& eye ) {
+//  _graphicsWindow.setDefaultEye( eye );
+//}
 
 //void arGraphicsClient::addViewport(int /*originX*/, int /*originY*/, 
 //                                   int sizeX, int sizeY){
@@ -248,6 +246,16 @@ void arGraphicsClient::monoEyeOffset( const string& eye ) {
 //  _viewportXOffset = sizeX;
 //  _viewportYOffset = sizeY;
 //}
+
+bool arGraphicsClient::updateHead() {
+  arHead* head = _graphicsDatabase.getHead();
+  if (!head) {
+    cerr << "arGraphicsClient error: failed to update head.\n";
+    return false;
+  }
+  _defaultHead = *head;
+  return true;
+}
 
 void arGraphicsClient::loadAlphabet(const char* thePath){
   _graphicsDatabase.loadAlphabet(thePath);
@@ -270,12 +278,8 @@ void arGraphicsClient::setViewMode( const std::string& viewMode ) {
   _graphicsWindow.setViewMode( viewMode );
 }
 
-void arGraphicsClient::setDemoMode(bool f) {
-  _screenObject->setDemoMode(f);
-}
-
-void arGraphicsClient::setScreenObject(arScreenObject* screenObject){
-  _screenObject = screenObject;
+void arGraphicsClient::setFixedHeadMode(bool f) {
+  _fixedHeadMode = f;
 }
 
 void arGraphicsClient::showFramerate(bool f){
@@ -302,10 +306,54 @@ void arGraphicsClient::setOverrideColor(arVector3 overrideColor){
   _overrideColor = overrideColor;
 }
 
-void arGraphicsClient::setCamera(int cameraID){
-  _graphicsDatabase.setCamera(cameraID);
+arCamera* arGraphicsClient::setWindowCamera(int cameraID){
+  if (cameraID < 0) {
+    return _graphicsWindow.setCamera( &_defaultCamera );
+  }
+  arCamera* cam = (arCamera*)_graphicsDatabase.getCamera( (unsigned int)cameraID );
+  if (!cam) {
+    cerr << "arGraphicsClient error: failed to set camera.\n";
+    return 0;
+  }
+  return _graphicsWindow.setCamera( cam );
 }
 
-void arGraphicsClient::setLocalCamera(float* frustum, float* lookat){
-  _graphicsDatabase.setLocalCamera(frustum,lookat);
+arCamera* arGraphicsClient::setViewportCamera(unsigned int vpid, int cameraID) {
+  if (cameraID < 0) {
+    return _graphicsWindow.setViewportCamera( vpid, &_defaultCamera );
+  }
+  arCamera* cam = (arCamera*)_graphicsDatabase.getCamera( (unsigned int)cameraID );
+  if (!cam) {
+    cerr << "arGraphicsClient error: failed to set camera.\n";
+    return 0;
+  }
+  return _graphicsWindow.setViewportCamera( vpid, cam );
 }
+
+arCamera* arGraphicsClient::setStereoViewportsCamera(unsigned int vpid, int cameraID) {
+  if (cameraID < 0) {
+    return _graphicsWindow.setStereoViewportsCamera( vpid, &_defaultCamera );
+  }
+  arCamera* cam = (arCamera*)_graphicsDatabase.getCamera( (unsigned int)cameraID );
+  if (!cam) {
+    cerr << "arGraphicsClient error: failed to set camera.\n";
+    return 0;
+  }
+  return _graphicsWindow.setStereoViewportsCamera( vpid, cam );
+}
+
+arCamera* arGraphicsClient::setWindowLocalCamera( const float* const frust, const float* const look ) {
+  return _graphicsWindow.setCamera( &arPerspectiveCamera( frust, look ) );
+}
+
+arCamera* arGraphicsClient::setViewportLocalCamera( unsigned int vpid, const float* const frust, const float* const look ) {
+  return _graphicsWindow.setViewportCamera( vpid, &arPerspectiveCamera( frust, look ) );
+}
+
+arCamera* arGraphicsClient::setStereoViewportsLocalCamera( unsigned int vpid, const float* const frust, const float* const look ) {
+  return _graphicsWindow.setStereoViewportsCamera( vpid, &arPerspectiveCamera( frust, look ) );
+}
+//
+//void arGraphicsClient::setLocalCamera(float* frustum, float* lookat){
+//  _graphicsDatabase.setLocalCamera(frustum,lookat);
+//}

@@ -28,6 +28,11 @@ arOrthoCamera::arOrthoCamera(){
   lookat[8] = 0;
 }
 
+arOrthoCamera::arOrthoCamera( const float* const orth, const float* const look ) {
+  memcpy( ortho, orth, 6*sizeof(float) );
+  memcpy( lookat, look, 9*sizeof(float) );
+}
+
 arMatrix4 arOrthoCamera::getProjectionMatrix(){
   float l = ortho[0];
   float r = ortho[1];

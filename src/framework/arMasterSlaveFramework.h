@@ -14,8 +14,10 @@
 #include "arDataUtilities.h"
 #include "arGraphicsAPI.h"
 #include "arGraphicsWindow.h"
+#include "arPerspectiveCamera.h"
 #include "arSoundClient.h"
 #include "arSZGAppFramework.h"
+#include "arVRCamera.h"
 #include "arHeadWandSimulator.h"
 #include "arFramerateGraph.h"
 #include "arMasterSlaveDataRouter.h"
@@ -87,18 +89,28 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   arMatrix4 getProjectionMatrix(float eyeSign); // needed for custom stuff
   arMatrix4 getModelviewMatrix(float eyeSign);  // needed for custom stuff
-  arMatrix4 getMidEyeMatrix() { return _headEffector.getMatrix(); }
+  arMatrix4 getMidEyeMatrix() { return _head.getMidEyeMatrix(); }
   // must be able to use a custom screen objects for those rare cases
   // (for instance noneuclidean visualization) where the standard euclidean
   // cameras are no good
-  void            setCameraFactory(arCamera* (*factory)()){
-    _graphicsWindow.setCameraFactory(factory);
+  void setWindowCamera( arCamera* cam ) {
+    if (cam) {
+      _graphicsWindow.setCamera(cam);
+    } else {
+      _graphicsWindow.setCamera(&_defaultCamera);
+    }
+  }
+  bool setViewportCamera( unsigned int vpindex, arCamera* cam ) {
+    if (cam) {
+      return _graphicsWindow.setViewportCamera( vpindex, cam);
+    } else {
+      return _graphicsWindow.setViewportCamera( vpindex, &_defaultCamera);
+    }
   }
   // the user application might need to adjust the cameras frame-by-frame
-  list<arViewport>* getViewportList(){ 
-    return _graphicsWindow.getViewportList();
+  std::vector<arViewport>* getViewports(){ 
+    return _graphicsWindow.getViewports();
   }
-  arScreenObject* getScreenObject() const { return _screenObject; }
   int             getWindowSizeX() const { return _windowSizeX; }
   int             getWindowSizeY() const { return _windowSizeY; }
 
@@ -135,15 +147,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
     return _dataRouter.registerFrameworkObject(object);
   }
 
-  void setViewTransform(float eyeSign=0);
-  void setViewTransform(arScreenObject* screenObject, float eyeSign);
   void setPlayTransform();
   void draw();
-  // Shared random numbers.  Set the seed on the master,
-  // then make sure a data exchange occurs, then generate random numbers
-  // by calling randUniformFloat() identically on all machines.
-  void setRandomSeed( const long newSeed );
-  bool randUniformFloat( float& value );
 
   // tiny functions that only appear in the .h
 
@@ -153,10 +158,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void internalBufferSwap(bool state){ _internalBufferSwap = state; }
   void loadNavMatrix() { arMatrix4 temp = ar_getNavInvMatrix();
                          glMultMatrixf( temp.v ); }
-  void setDemoMode(bool isOn) { _screenObject->setDemoMode(isOn); }
-  //void setAnaglyphMode(bool isOn) { _anaglyphMode = isOn; }
   bool setViewMode( const string& viewMode ); 
-  float getCurrentEye() const { return _currentEye; }
+  float getCurrentEye() const { return _graphicsWindow.getCurrentEyeSign(); }
   /// msec since the first I/O poll (not quite start of the program).
   double getTime() const { return _time; }
   /// How many msec it took to compute/draw the last frame.
@@ -170,9 +173,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   arDataServer*        _stateServer; // used only by master
   arDataClient         _stateClient;
   arGraphicsDatabase   _graphicsDatabase;
-  // changing the arScreenObject to a pointer makes it easier to replace
-  // with a custom projection object.
-  arScreenObject*      _screenObject;
+  arGraphicsScreen     _defaultScreen;
+  arVRCamera           _defaultCamera;
   arSpeakerObject      _speakerObject;
 
   // Variables pertaining to the data transfer process.
@@ -199,7 +201,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void (*_preExchange)(arMasterSlaveFramework&);
   bool (*_postExchange)(arMasterSlaveFramework&);
   void (*_window)(arMasterSlaveFramework&);
-  void (*_draw)(arMasterSlaveFramework&);
+  void (*_drawCallback)(arMasterSlaveFramework&);
   void (*_play)(arMasterSlaveFramework&);
   void (*_reshape)(arMasterSlaveFramework&, int, int);
   void (*_cleanup)(arMasterSlaveFramework&);
@@ -242,16 +244,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   double     _lastSyncTime;
   bool       _firstTimePoll;
   
-  int   _randSeedSet;
-  long  _randomSeed;
-  long  _newSeed;
-  long  _numRandCalls;
-  float _lastRandVal;
-  int   _randSynchError;
-  int   _firstTransfer;
-  
-  float _currentEye;
-
   string _texturePath;
   char   _textPath[256]; //< \todo fixed size buffer
   char   _inputIP[256]; //< \todo fixed size buffer
@@ -271,14 +263,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool           _pauseFlag;
   arMutex        _pauseLock;
   arConditionVar _pauseVar;
-
-  // camera variables
-  int   _cameraID;
-  float _cameraFrustum[6];
-  float _cameraLookat[9];
-  float _cameraScale;
-  
-  arEffector _headEffector;
 
   // Allow a different screen color (for lighting effects).
   arVector3 _defaultColor;
@@ -338,7 +322,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void _connectionTask();
 
   // draw-related utility functions
-  void _drawEye(arScreenObject*, float);
+  void _draw();
   void _display();
 };
 

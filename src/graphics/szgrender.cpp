@@ -150,25 +150,29 @@ void messageTask(void* pClient){
       }
     }
     if (messageType=="camera"){
+      // NOTE: these routines copy the same camera to all viewports.
+      // the graphics client also has routines for setting individual
+      // viewports' cameras.
       if (messageBody == "NULL"){
-        graphicsClient->setCamera(-1);
+        graphicsClient->setWindowCamera(-1);
       }
       else{
 	int theCamera;
         ar_parseIntString(messageBody, &theCamera, 1);
-        graphicsClient->setCamera(theCamera);
+        graphicsClient->setWindowCamera(theCamera);
       }
     }
     if (messageType=="look"){
       if (messageBody=="NULL"){
 	// the default camera
-        graphicsClient->setCamera(-1);
+        graphicsClient->setWindowCamera(-1);
       }
       else{
 	// we activate a new camera, which may be better for screenshots
+        // the 15 parameters should be 6 glFrustum params and 9 gluLookat params
         float tempBuf[15];
         ar_parseFloatString(messageBody,tempBuf,15);
-        graphicsClient->setLocalCamera(tempBuf,tempBuf+6);
+        graphicsClient->setWindowLocalCamera(tempBuf,tempBuf+6);
       }
     }
     if (messageType=="reload"){

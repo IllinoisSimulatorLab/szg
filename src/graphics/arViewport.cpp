@@ -12,13 +12,40 @@ arViewport::arViewport() :
   _bottom(0),
   _width(1),
   _height(1),
+  _screen(),
   _camera(NULL),
   _eyeSign(0),
   _red(GL_TRUE),
   _green(GL_TRUE),
   _blue(GL_TRUE),
   _alpha(GL_TRUE),
+  _oglDrawBuffer(GL_BACK_LEFT),
   _clearDepthBuffer(false){
+}
+
+arViewport::arViewport( float left, float bottom, float width, float height,
+                        const arGraphicsScreen& screen,
+                        arCamera* cam,
+                        float eyeSign,
+                        GLboolean red, GLboolean green, GLboolean blue, GLboolean alpha,
+                        GLenum oglDrawBuf,
+                        bool clearZBuf ) :
+  _left(left),
+  _bottom(bottom),
+  _width(width),
+  _height(height),
+  _screen(screen),
+  _camera(0),
+  _eyeSign(eyeSign),
+  _red(red),
+  _green(green),
+  _blue(blue),
+  _alpha(alpha),
+  _oglDrawBuffer(oglDrawBuf),
+  _clearDepthBuffer(clearZBuf) {
+  if (cam) {
+    _camera = cam->clone();
+  }
 }
 
 arViewport::arViewport( const arViewport& v ) :
@@ -26,13 +53,18 @@ arViewport::arViewport( const arViewport& v ) :
   _bottom( v._bottom ),
   _width( v._width ),
   _height( v._height ),
-  _camera( v._camera ),
+  _screen( v._screen ),
+  _camera( 0 ),
   _eyeSign( v._eyeSign ),
   _red( v._red ),
   _green( v._green ),
   _blue( v._blue ),
   _alpha( v._alpha ),
+  _oglDrawBuffer( v._oglDrawBuffer ),
   _clearDepthBuffer( v._clearDepthBuffer){
+  if (v._camera) {
+    _camera = v._camera->clone();
+  }
 }
 
 arViewport& arViewport::operator=( const arViewport& v ) {
@@ -44,19 +76,30 @@ arViewport& arViewport::operator=( const arViewport& v ) {
   _bottom = v._bottom;
   _width = v._width;
   _height = v._height;
-  _camera = v._camera;
+  _screen = v._screen;
+  if (_camera) {
+    delete _camera;
+    _camera = 0;
+  }
+  if (v._camera) {
+    _camera = v._camera->clone();
+  }
+  _camera = v._camera->clone();
   _eyeSign = v._eyeSign;
   _red = v._red;
   _green = v._green;
   _blue = v._blue;
   _alpha = v._alpha;
+  _oglDrawBuffer = v._oglDrawBuffer;
   _clearDepthBuffer = v._clearDepthBuffer;
 
   return *this;
 }
 
 arViewport::~arViewport() {
-  // DO NOT DELETE THE arScreenObject HERE! IT MIGHT NOT BE OWNED!
+  if (_camera) {
+    delete _camera;
+  }
 }
 
 void arViewport::setViewport( float left, float bottom,
@@ -67,8 +110,15 @@ void arViewport::setViewport( float left, float bottom,
   _height = height;
 }
 
-void arViewport::setCamera(arCamera* camera){
-  _camera = camera;
+arCamera* arViewport::setCamera(arCamera* camera){
+  if (_camera) {
+    delete _camera;
+    _camera = 0;
+  }
+  if (camera) {
+    _camera = camera->clone();
+  }
+  return _camera;
 }
 
 arCamera* arViewport::getCamera(){
@@ -101,6 +151,10 @@ void arViewport::clearDepthBuffer(bool flag){
 }
 
 void arViewport::activate(){
+  // The viewport does not call glDrawBuffer(). The arGraphicsWindow performs
+  // rendering passes in which it clears the appropriate buffer & the queries
+  // its viewport list to determine which ones want to render into that buffer.
+
   // get the window size and set the viewport based on that and the 
   // proportions stored herein.
   int params[4];
@@ -115,6 +169,12 @@ void arViewport::activate(){
   height = int(params[3]*_height);
 
   glViewport( (GLint)left, (GLint)bottom, (GLsizei)width, (GLsizei)height );
+
+  if (_camera) {
+    _camera->setEyeSign( getEyeSign() );
+    _camera->setScreen( getScreen() );
+    _camera->loadViewMatrices();
+  }
 
   // set the follow mask
   glColorMask(_red, _green, _blue, _alpha);

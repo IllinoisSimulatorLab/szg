@@ -21,7 +21,7 @@ class SZG_CALL arViewerNode: public arGraphicsNode{
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
-  arHead getHead(){ return _head; }
+  arHead* getHead(){ return &_head; }
   void setHead(const arHead& head);
 
  protected:

@@ -6,6 +6,7 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arGraphicsAPI.h"
+#include "arHead.h"
 
 // global variables!
 static arGraphicsDatabase* __currentGraphicsDatabase = NULL;
@@ -67,9 +68,34 @@ arDatabaseNode* dgMakeNode(const string& name,
   return __currentGraphicsDatabase->alter(data);
 }
 
+// This function is a friend of arHead
+bool dgViewer( const arHead& head ) {
+  arDatabaseNode* node 
+    = __currentGraphicsDatabase->getNode("szg_viewer", false);
+  if (!node){
+    node = dgMakeNode("szg_viewer","root","viewer");
+  }
+  const ARint ID = node->getID();
+  arStructuredData* data = __currentGraphicsDatabase->viewerData;
+  if (!data->dataIn(__gfx.AR_VIEWER_ID,&ID,AR_INT,1) ||
+      !data->dataIn(__gfx.AR_VIEWER_MATRIX, head._matrix.v ,AR_FLOAT,AR_FLOATS_PER_MATRIX) ||
+      !data->dataIn(__gfx.AR_VIEWER_MID_EYE_OFFSET, head._midEyeOffset.v ,AR_FLOAT,AR_FLOATS_PER_POINT) ||
+      !data->dataIn(__gfx.AR_VIEWER_EYE_DIRECTION, head._eyeDirection.v ,AR_FLOAT,AR_FLOATS_PER_POINT) ||
+      !data->dataIn(__gfx.AR_VIEWER_EYE_SPACING, &head._eyeSpacing ,AR_FLOAT,1) ||
+      !data->dataIn(__gfx.AR_VIEWER_NEAR_CLIP, &head._nearClip ,AR_FLOAT,1) ||
+      !data->dataIn(__gfx.AR_VIEWER_FAR_CLIP, &head._farClip ,AR_FLOAT,1) ||
+      !data->dataIn(__gfx.AR_VIEWER_FIXED_HEAD_MODE, &head._fixedHeadMode ,AR_INT,1) ||
+      !data->dataIn(__gfx.AR_VIEWER_UNIT_CONVERSION, &head._unitConversion ,AR_FLOAT,1)) {
+    cerr << "dgViewer error: dataIn failed.\n";
+    return false;
+  }
+  return __currentGraphicsDatabase->alter(data) ? true : false;
+}
+
 bool dgViewer(const arMatrix4& headMatrix, const arVector3& midEyeOffset,
 	     const arVector3& eyeDirection, float eyeSpacing,
-	     float nearClip, float farClip, float unitConversion){
+	     float nearClip, float farClip, float unitConversion,
+             bool fixedHeadMode ){
   // AARGH! THIS IS NOT GOOD! getNode(nodeName) has become a very, very slow
   // command!
   arDatabaseNode* node 
@@ -77,6 +103,7 @@ bool dgViewer(const arMatrix4& headMatrix, const arVector3& midEyeOffset,
   if (!node){
     node = dgMakeNode("szg_viewer","root","viewer");
   }
+  int fixedHeadInt = (int)fixedHeadMode;
   const ARint ID = node->getID();
   arStructuredData* data = __currentGraphicsDatabase->viewerData;
   if (!data->dataIn(__gfx.AR_VIEWER_ID,&ID,AR_INT,1) ||
@@ -86,6 +113,7 @@ bool dgViewer(const arMatrix4& headMatrix, const arVector3& midEyeOffset,
       !data->dataIn(__gfx.AR_VIEWER_EYE_SPACING,&eyeSpacing,AR_FLOAT,1) ||
       !data->dataIn(__gfx.AR_VIEWER_NEAR_CLIP,&nearClip,AR_FLOAT,1) ||
       !data->dataIn(__gfx.AR_VIEWER_FAR_CLIP,&farClip,AR_FLOAT,1) ||
+      !data->dataIn(__gfx.AR_VIEWER_FIXED_HEAD_MODE,&fixedHeadInt,AR_INT,1) ||
       !data->dataIn(__gfx.AR_VIEWER_UNIT_CONVERSION,&unitConversion,AR_FLOAT,1)) {
     cerr << "dgViewer error: dataIn failed.\n";
     return false;

@@ -28,6 +28,12 @@ arPerspectiveCamera::arPerspectiveCamera(){
   lookat[8] = 0;
 }
 
+arPerspectiveCamera::arPerspectiveCamera( const float* const frust, const float* const look, int ID ) {
+  memcpy( frustum, frust, 6*sizeof(float) );
+  memcpy( lookat, look, 9*sizeof(float) );
+  cameraID = ID;
+}
+
 arMatrix4 arPerspectiveCamera::getProjectionMatrix(){
   float l = frustum[0];
   float r = frustum[1];

@@ -14,10 +14,6 @@ arSZGAppFramework::arSZGAppFramework() :
   _vircompExecution(false),
   _callbackFilter(this),
   _eventFilter(0),
-  _eyeSpacingFeet(6/(12*2.54)),
-  _nearClip(0.05),
-  _farClip(1000.),
-  _unitConversion(1.),
   _unitSoundConversion(1.),
   _useExternalThread(false),
   _externalThreadRunning(false),
@@ -33,17 +29,16 @@ arSZGAppFramework::~arSZGAppFramework() {
 }
 
 void arSZGAppFramework::setEyeSpacing( float feet) {
-  _eyeSpacingFeet = feet;
+  _head.setEyeSpacing( feet );
   cerr << "arSZGAppFramework remark: eyeSpacing set to " << feet << " feet.\n";
 }
 
 void arSZGAppFramework::setClipPlanes( float nearClip, float farClip ) {
-  _nearClip = nearClip;
-  _farClip = farClip;
+  _head.setClipPlanes( nearClip, farClip );
 }
 
 void arSZGAppFramework::setUnitConversion( float unitConv ) {
-  _unitConversion = unitConv;
+  _head.setUnitConversion( unitConv );
 }
 
 void arSZGAppFramework::setUnitSoundConversion( float unitSoundConv ) {
@@ -51,7 +46,7 @@ void arSZGAppFramework::setUnitSoundConversion( float unitSoundConv ) {
 }
 
 float arSZGAppFramework::getUnitConversion() {
-  return _unitConversion;
+  return _head.getUnitConversion();
 }
 
 float arSZGAppFramework::getUnitSoundConversion() {
@@ -75,14 +70,16 @@ float arSZGAppFramework::getAxis( const unsigned int i ) const {
 }
 
 // NOTE: scales translation component by _unitConversion
-arMatrix4 arSZGAppFramework::getMatrix( const unsigned int i ) const {
+arMatrix4 arSZGAppFramework::getMatrix( const unsigned int i, bool doUnitConversion ) const {
   if (!_inputState) {
     cerr << "arSZGAppFramework warning: no input state.\n";
     return ar_identityMatrix();
   }
   arMatrix4 theMatrix( _inputState->getMatrix( i ) );
+  if (doUnitConversion) {
   for (int j=12; j<15; j++)
-    theMatrix.v[j] *= _unitConversion;
+      theMatrix.v[j] *= _head.getUnitConversion();
+  }
   return theMatrix;
 }
 
@@ -229,7 +226,7 @@ void arSZGAppFramework::_loadNavParameters() {
     }
     initStream << "arSZGAppFramework remark: "
 	       << "setting translation speed to " << speed << endl;
-    setNavTransSpeed( speed*_unitConversion );
+    setNavTransSpeed( speed*_head.getUnitConversion() );
   }
   if ((___firstNavLoad)||_paramNotOwned( "rotation_speed" )) {
     speed = 30.;

@@ -71,7 +71,7 @@ arGraphicsDatabase::arGraphicsDatabase() :
     _lightContainer[i] = pair<int,arLight*>(0,NULL);
   }
   // initialize the camera container
-  _cameraID = -1; // make sure we are set up for the default "VR camera"
+//  _cameraID = -1; // make sure we are set up for the default "VR camera"
   for (i=0; i<8; i++){
     _cameraContainer[i] = pair<int,arPerspectiveCamera*>(0,NULL);
   }
@@ -317,6 +317,10 @@ arMatrix4 arGraphicsDatabase::accumulateTransform(int nodeID){
   return result;
 }
 
+arMatrix4 arGraphicsDatabase::accumulateTransform(int startNodeID, int endNodeID) {
+  return accumulateTransform(startNodeID).inverse() * accumulateTransform(endNodeID);
+}
+
 arTexture* arGraphicsDatabase::addTexture(int w, int h, 
                                           bool alpha, const char* pixels){
   arTexture* t = new arTexture;
@@ -324,64 +328,64 @@ arTexture* arGraphicsDatabase::addTexture(int w, int h,
   return t;
 }
 
-void arGraphicsDatabase::setViewTransform(arScreenObject* screenObject,
-                                          float eyeSign){
-  // When eyeSign = -1, we're talking about the left eye. When eyeSign = 1,
-  // we're talking about the right eye.  Consequently, eyeOffset is the
-  // vector from midEyeOffset (between the eyes) to the right eye!
+//void arGraphicsDatabase::setViewTransform(arScreenObject* screenObject,
+//                                          float eyeSign){
+////   When eyeSign = -1, we're talking about the left eye. When eyeSign = 1,
+////   we're talking about the right eye.  Consequently, eyeOffset is the
+////   vector from midEyeOffset (between the eyes) to the right eye!
 
-  arMatrix4 headMatrix(ar_identityMatrix());
-  arVector3 midEyeOffset(0,0,0);
-  arVector3 eyeDirection(1,0,0);
-  float eyeSpacing = 0.;
-  float nearClip = 1.;
-  float farClip = 1000.;
-  float unitConversion = 1.;
+//  arMatrix4 headMatrix(ar_identityMatrix());
+//  arVector3 midEyeOffset(0,0,0);
+//  arVector3 eyeDirection(1,0,0);
+//  float eyeSpacing = 0.;
+//  float nearClip = 1.;
+//  float farClip = 1000.;
+//  float unitConversion = 1.;
 
-  arDatabaseNode* viewerNode = getNode("szg_viewer");
-  if (_cameraID == -2){
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glFrustum(_localCameraFrustum[0], _localCameraFrustum[1], 
-              _localCameraFrustum[2], _localCameraFrustum[3], 
-              _localCameraFrustum[4], _localCameraFrustum[5]);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-      
-    gluLookAt(_localCameraLookat[0], _localCameraLookat[1], 
-              _localCameraLookat[2], _localCameraLookat[3], 
-              _localCameraLookat[4], _localCameraLookat[5],
-              _localCameraLookat[6], _localCameraLookat[7], 
-              _localCameraLookat[8]);
-  }
-  else if (_cameraID == -1 || !_cameraContainer[_cameraID].second){
-    // if we are set to be *not* the default camera but there is no referenced
-    // camera, then set camera back to default
-    _cameraID = -1;
-    // this is the default "VR camera"
-    if (viewerNode) {
-      arHead head = ((arViewerNode*)viewerNode)->getHead();
-      headMatrix = head.transform;
-      midEyeOffset = head.midEyeOffset;
-      eyeDirection = head.eyeDirection;
-      eyeSpacing = head.eyeSpacing;
-      nearClip = head.nearClip;
-      farClip = head.farClip;
-      unitConversion = head.unitConversion;
-    }
+//  arDatabaseNode* viewerNode = getNode("szg_viewer");
+//  if (_cameraID == -2){
+//    glMatrixMode(GL_PROJECTION);
+//    glLoadIdentity();
+//    glFrustum(_localCameraFrustum[0], _localCameraFrustum[1], 
+//              _localCameraFrustum[2], _localCameraFrustum[3], 
+//              _localCameraFrustum[4], _localCameraFrustum[5]);
+//    glMatrixMode(GL_MODELVIEW);
+//    glLoadIdentity();
+//      
+//    gluLookAt(_localCameraLookat[0], _localCameraLookat[1], 
+//              _localCameraLookat[2], _localCameraLookat[3], 
+//              _localCameraLookat[4], _localCameraLookat[5],
+//              _localCameraLookat[6], _localCameraLookat[7], 
+//              _localCameraLookat[8]);
+//  }
+//  else if (_cameraID == -1 || !_cameraContainer[_cameraID].second){
+////     if we are set to be *not* the default camera but there is no referenced
+////     camera, then set camera back to default
+//    _cameraID = -1;
+////     this is the default "VR camera"
+//    if (viewerNode) {
+//      arHead head = ((arViewerNode*)viewerNode)->getHead();
+//      headMatrix = head.transform;
+//      midEyeOffset = head.midEyeOffset;
+//      eyeDirection = head.eyeDirection;
+//      eyeSpacing = head.eyeSpacing;
+//      nearClip = head.nearClip;
+//      farClip = head.farClip;
+//      unitConversion = head.unitConversion;
+//    }
 
-    screenObject->setViewTransform(
-      nearClip, farClip, unitConversion, eyeSpacing, 
-      midEyeOffset, eyeDirection);
-    screenObject->loadViewMatrices( eyeSign, headMatrix );
-  }
-  else{
-    _cameraContainer[_cameraID].second->loadViewMatrices();
-    arMatrix4 cameraTransform 
-      = !accumulateTransform(_cameraContainer[_cameraID].first);
-    glMultMatrixf(cameraTransform.v);
-  }
-}
+//    screenObject->setViewTransform(
+//      nearClip, farClip, unitConversion, eyeSpacing, 
+//      midEyeOffset, eyeDirection);
+//    screenObject->loadViewMatrices( eyeSign, headMatrix );
+//  }
+//  else{
+//    _cameraContainer[_cameraID].second->loadViewMatrices();
+//    arMatrix4 cameraTransform 
+//      = !accumulateTransform(_cameraContainer[_cameraID].first);
+//    glMultMatrixf(cameraTransform.v);
+//  }
+//}
 
 void arGraphicsDatabase::draw(){
   // replaces gl matrix stack... we want to support VERY deep trees
@@ -550,6 +554,15 @@ void arGraphicsDatabase::activateLights(){
   }
 }
 
+arHead* arGraphicsDatabase::getHead() {
+  arViewerNode* viewerNode = (arViewerNode*)getNode("szg_viewer");
+  if (!viewerNode) {
+    cerr << "arGraphicsDatabase error: getHead() failed.\n";
+    return 0;
+  }
+  return viewerNode->getHead();
+}
+
 bool arGraphicsDatabase::registerCamera(int owningNodeID,
 					arPerspectiveCamera* theCamera){
   if (!theCamera){
@@ -570,20 +583,28 @@ bool arGraphicsDatabase::registerCamera(int owningNodeID,
   return true;
 }
 
-bool arGraphicsDatabase::setCamera(int cameraID){
-  if (cameraID < -1 || cameraID > 7){
+arPerspectiveCamera* arGraphicsDatabase::getCamera( unsigned int cameraID ) {
+  if (cameraID > 7){
     cerr << "arGraphicsDatabase error: invlid camera ID.\n";
-    return false;
+    return 0;
   }
-  _cameraID = cameraID;
-  return true;
+  return _cameraContainer[cameraID].second;
 }
 
-void arGraphicsDatabase::setLocalCamera(float* frustum, float* lookat){
-  memcpy(_localCameraFrustum,frustum,6*sizeof(float));
-  memcpy(_localCameraLookat,lookat,9*sizeof(float));
-  _cameraID = -2;
-}
+//bool arGraphicsDatabase::setCamera(int cameraID){
+//  if (cameraID < -1 || cameraID > 7){
+//    cerr << "arGraphicsDatabase error: invlid camera ID.\n";
+//    return false;
+//  }
+//  _cameraID = cameraID;
+//  return true;
+//}
+
+//void arGraphicsDatabase::setLogetUnitConversion()(float* frustum, float* lookat){
+//  memcpy(_localCameraFrustum,frustum,6*sizeof(float));
+//  memcpy(_localCameraLookat,lookat,9*sizeof(float));
+//  _cameraID = -2;
+//}
 
 arDatabaseNode* arGraphicsDatabase::_makeNode(const string& type){
   arDatabaseNode* outNode = NULL;

@@ -13,6 +13,7 @@
 #include "arPhleetConfigParser.h"
 #include "arPhleetConnectionBroker.h"
 #include "arPhleetOSLanguage.h"
+#include "arMath.h"
 #include <list>
 #include <string>
 #include <sstream>
@@ -96,6 +97,9 @@ class SZG_CALL arSZGClient{
 		         const string& parameterName,
                          long* values,
                          int numvalues = 1);
+  bool getAttributeVector3( const string& groupName,
+                            const string& parameterName,
+                            arVector3& value );
   string getAllAttributes(const string& substring);
 
   // For handling so-called "global" attributes.
