@@ -44,12 +44,25 @@ pak_openpak(const char *path)
   pakfile[numPaks] = unzOpen(path);
   // Wasn't in $PWD, so step through the data path looking for pak files.
   if (!pakfile[numPaks]){
-    string fileName = ar_fileFind(path,"q33",pakFilePath);
-    if (fileName != "NULL"){
+    string filePath = ar_fileFind(path,"quake",pakFilePath);
+    if (filePath != "NULL") {
+      cerr << "q33 remark: found " << filePath << endl;
       // file was found
       char bName[1024];
-      ar_stringToBuffer(fileName, bName, 1024);
+      ar_stringToBuffer(filePath, bName, 1024);
       pakfile[numPaks] = unzOpen(bName);
+    } else {
+      cerr << "q33 remark: Didn't find " << path << " in subdirectory 'quake'.\n";
+      filePath = ar_fileFind(path,"q33",pakFilePath);
+      if (filePath != "NULL") {
+        cerr << "q33 remark: found " << filePath << endl;
+        // file was found
+        char bName2[1024];
+        ar_stringToBuffer(filePath, bName2, 1024);
+        pakfile[numPaks] = unzOpen(bName2);
+      } else {
+        cerr << "q33 remark: Didn't find " << path << " in subdirectory 'q33'.\n";
+      }
     }
   }
 
