@@ -45,19 +45,20 @@ arSZGClient* SZGClient = NULL;
 // Finally, determine the proper command and the list of args, which are 
 // returned by reference. NOTE: the proper command and arg list will be 
 // constructed differently if this is a python script or a native executable.
-
 // NOTE: the only inputs are "user" and "argSring", with "user" being the
 // phleet user as determined by the message context of the "dex" message and
 // "argString" being the body of the "dex" message.
 // The rest of the args are really return values (by reference).
-// "execPath" is simply the user's SZG_EXEC path on the computer running this szgd.
-// "symbolicCommand" is the cross-platform command designation (i.e. atlantis not
-//   atlantis.exe). This WILL NOT be a long file name (i.e. not g:\foo\bar\atlantis)
+// "execPath" is simply the user's SZG_EXEC path on the computer running 
+//   this szgd.
+// "symbolicCommand" is the cross-platform command designation (i.e. atlantis 
+//   not atlantis.exe). This WILL NOT be a long file name 
+//   (i.e. not g:\foo\bar\atlantis)
 //   and, in fact, the leading path will be stripped away as well.
 // "command" can be one of two things:
 //    1. if we are executing a python program, this will be "python".
-//    2. if we are executing a native program, this will be the full path to the
-//       executable.
+//    2. if we are executing a native program, this will be the full path to 
+//       the executable.
 // "args" is a string list of the args.... but there may be MANGLING.
 //    1. if we are executing a native program, this will be the arglist after
 //       the exename (i.e. on unix argv[1]... argv[argc-1])
