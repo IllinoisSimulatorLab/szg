@@ -9,8 +9,6 @@
 #include "arPForthDatabaseVocabulary.h"
 #include "arSZGClient.h"
 
-using std::string;
-
 int main( int argc, char** argv ) {
   arSZGClient client;
   client.init(argc, argv);

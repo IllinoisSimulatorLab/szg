@@ -5,9 +5,8 @@
 
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include "arPForth.h"
 #include "arDataUtilities.h"
-#include "arSZGClient.h"
+#include "arPForthDatabaseVocabulary.h"
 
 namespace arPForthSpace {
 
