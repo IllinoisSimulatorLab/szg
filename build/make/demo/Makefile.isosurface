@@ -1,9 +1,0 @@
-VPATH = ../../../../src/demo/isosurface
-
-ALL = brain$(EXE)
-Everything: $(ALL)
-
-PRECOMPILED_HEADER_LOCATION := $(PRECOMPILED_HEADER_LOCATION_DEMO)
-
-brain$(EXE): brain$(OBJ_SUFFIX) $(SZG_LIBS)
-	$(DO_LINK_GRAPHICS)

@@ -1,9 +1,13 @@
+include $(SZGHOME)/build/make/Makefile.vars
+
 VPATH = ../../../../src/demo/ribbons
 
 ALL = ribbons$(EXE)
 Everything: $(ALL)
 
-PRECOMPILED_HEADER_LOCATION := $(PRECOMPILED_HEADER_LOCATION_DEMO)
+include $(SZGHOME)/build/make/Makefile.rules
 
-ribbons$(EXE): ribbons$(OBJ_SUFFIX) $(SZG_LIBS)
-	$(DO_LINK_GRAPHICS)
+ribbons$(EXE): ribbons$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) ribbons$(OBJ_SUFFIX) $(SZG_USR_SECOND)
+	$(COPY)
+
