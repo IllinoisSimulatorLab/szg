@@ -59,17 +59,18 @@ class SZG_CALL arDatabase{
 
   virtual bool readDatabase(const string& fileName, const string& path="");
   virtual bool readDatabaseXML(const string& fileName, const string& path="");
+  virtual bool attach(arDatabaseNode* parent, 
+                      const string& fileName, 
+                      const string& path="");
   virtual bool attachXML(arDatabaseNode* parent, 
                          const string& fileName, 
                          const string& path="");
-  // Don't make this virtual yet... preserve backwards compatibility of object
-  // code.
-  bool attach(arDatabaseNode* parent, 
-              const string& fileName, 
-              const string& path="");
-  virtual bool mapXML(arDatabaseNode* parent, 
-                      const string& fileName, 
-                      const string& path="");
+  virtual bool merge(arDatabaseNode* parent,
+                     const string& fileName,
+                     const string& path="");
+  virtual bool mergeXML(arDatabaseNode* parent, 
+                        const string& fileName, 
+                        const string& path="");
   virtual bool writeDatabase(const string& fileName, const string& path="");
   virtual bool writeDatabaseXML(const string& fileName, 
                                 const string& path="");

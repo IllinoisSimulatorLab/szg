@@ -536,15 +536,18 @@ class arDatabase{
                             const string& path = "");
   virtual bool readDatabaseXML(const string& fileName, 
                                const string& path = "");
+  virtual bool attach(arDatabaseNode* parent,
+                      const string& fileName,
+                      const string& path = "");
   virtual bool attachXML(arDatabaseNode* parent,
                          const string& fileName,
                          const string& path = "");
-  bool attach(arDatabaseNode* parent,
-              const string& fileName,
-              const string& path = "");
-  virtual bool mapXML(arDatabaseNode* parent,
-                      const string& fileName,
-                      const string& path = "");
+  virtual bool merge(arDatabaseNode* parent,
+                     const string& fileName,
+                     const string& path = "");
+  virtual bool mergeXML(arDatabaseNode* parent,
+                        const string& fileName,
+                        const string& path = "");
   virtual bool writeDatabase(const string& fileName, 
                              const string& path = "");
   virtual bool writeDatabaseXML(const string& fileName, 
@@ -617,7 +620,6 @@ class arGraphicsPeerConnection{
   // list<int> nodesLockedLocal;
   // list<int> nodesLockedRemote;
 
-  // string print();
 %extend{
     string __repr__() {
         return self->print();
@@ -631,7 +633,8 @@ class arGraphicsPeer: public arGraphicsDatabase{
  public:
   arGraphicsPeer();
   ~arGraphicsPeer();
-
+  
+  string getName();
   void setName(const string&);
 
   bool init(int&,char**);
@@ -644,12 +647,18 @@ class arGraphicsPeer: public arGraphicsDatabase{
                             const string& path = "");
   virtual bool readDatabaseXML(const string& fileName, 
                                const string& path = "");
+  virtual bool attach(arDatabaseNode* parent,
+                      const string& fileName,
+                      const string& path = "");
   virtual bool attachXML(arDatabaseNode* parent,
                          const string& fileName,
                          const string& path = "");
-  virtual bool mapXML(arDatabaseNode* parent,
-                      const string& fileName,
-                      const string& path = "");
+  virtual bool merge(arDatabaseNode* parent,
+                     const string& fileName,
+                     const string& path = "");
+  virtual bool mergeXML(arDatabaseNode* parent,
+                        const string& fileName,
+                        const string& path = "");
   virtual bool writeDatabase(const string& fileName, 
                              const string& path = "");
   virtual bool writeDatabaseXML(const string& fileName, 
@@ -669,18 +678,22 @@ class arGraphicsPeer: public arGraphicsDatabase{
   bool pullSerial(const string& name, bool receiveOn);
   bool pushSerial(const string& name, int remoteRootID, bool sendOn);
   bool closeAllAndReset();
-  bool lockRemoteNode(const string& name, int nodeID);
-  bool unlockRemoteNode(const string& name, int nodeID);
-  bool lockLocalNode(const string& name, int nodeID);
-  bool unlockLocalNode(int nodeID);
-  int  getNodeIDRemote(const string& peer, const string& nodeName);
+  bool broadcastFrameTime(int frameTime);
+  bool remoteLockNode(const string& name, int nodeID);
+  bool remoteUnlockNode(const string& name, int nodeID);
+  bool localLockNode(const string& name, int nodeID);
+  bool localUnlockNode(int nodeID);
+  bool remoteFilterDataBelow(const string& peer,
+                             int remoteNodeID, int on);
+  bool localFilterDataBelow(const string& peer,
+                            int localNodeID, int on);
+  int  remoteNodeID(const string& peer, const string& nodeName);
   
-  // list<arGraphicsPeerConnection> getConnections();
   string printConnections();
-  // string print();
+  string printPeer();
 %extend{
     string __repr__() {
-        return self->print();
+        return self->printPeer();
     }
 }
 %pythoncode{

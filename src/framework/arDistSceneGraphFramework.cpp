@@ -526,6 +526,7 @@ bool arDistSceneGraphFramework::restart(){
   return start();
 }
 
+/// Hmmm. This one seems like a little bit of a hack.
 int arDistSceneGraphFramework::getNodeID(const string& name){
   if (_peerName == "NULL"){
     return _graphicsServer.getNodeID(name);
@@ -533,7 +534,7 @@ int arDistSceneGraphFramework::getNodeID(const string& name){
   if (_peerMode == "source"){
     return _graphicsPeer.getNodeID(name);
   }
-  return _graphicsPeer.getNodeIDRemote(_peerTarget, name);
+  return _graphicsPeer.remoteNodeID(_peerTarget, name);
 }
 
 arDatabaseNode* arDistSceneGraphFramework::getNode(int ID){
@@ -548,22 +549,24 @@ arDatabaseNode* arDistSceneGraphFramework::getNode(int ID){
   return NULL;
 }
 
+/// Hmmm. Not sure whether this is BOGUS or not...
 bool arDistSceneGraphFramework::lockNode(int ID){
   if (_peerName == "NULL" || _peerMode == "source"){
     // does it make sense to locally lock a node? Maybe... but this isn't
     // implemented yet.
     return false;
   }
-  return _graphicsPeer.lockRemoteNode(_peerTarget, ID);
+  return _graphicsPeer.remoteLockNode(_peerTarget, ID);
 }
 
+/// Hmmm. Not sure whether this is BOGUS or not...
 bool arDistSceneGraphFramework::unlockNode(int ID){
   if (_peerName == "NULL" || _peerMode == "source"){
     // does it make sense to locally unlock a node? Maybe... but this isn't
     // implemented yet.
     return false;
   }
-  return _graphicsPeer.unlockRemoteNode(_peerTarget, ID);
+  return _graphicsPeer.remoteUnlockNode(_peerTarget, ID);
 }
 
 // If the attribute exists, stuff its value into v.

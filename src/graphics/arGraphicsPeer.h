@@ -92,10 +92,14 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   // (as set through the arSZGClient).
   virtual bool readDatabase(const string& fileName, const string& path="");
   virtual bool readDatabaseXML(const string& fileName, const string& path="");
+  virtual bool attach(arDatabaseNode* parent, const string& fileName,
+                      const string& path="");
   virtual bool attachXML(arDatabaseNode* parent, const string& fileName,
 			 const string& path="");
-  virtual bool mapXML(arDatabaseNode* parent, const string& fileName,
-		      const string& path="");
+  virtual bool merge(arDatabaseNode* parent, const string& fileName,
+                     const string& path="");
+  virtual bool mergeXML(arDatabaseNode* parent, const string& fileName,
+		        const string& path="");
   virtual bool writeDatabase(const string& fileName, const string& path="");
   virtual bool writeDatabaseXML(const string& fileName, 
                                 const string& path="");
@@ -117,20 +121,20 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   bool pushSerial(const string& name, int remoteRootID, bool sendOn);
   bool closeAllAndReset();
   bool broadcastFrameTime(int frameTime);
-  bool lockRemoteNode(const string& name, int nodeID);
-  bool unlockRemoteNode(const string& name, int nodeID);
-  bool lockLocalNode(const string& name, int nodeID);
-  bool unlockLocalNode(int nodeID);
-  bool filterDataBelowRemote(const string& peer,
+  bool remoteLockNode(const string& name, int nodeID);
+  bool remoteUnlockNode(const string& name, int nodeID);
+  bool localLockNode(const string& name, int nodeID);
+  bool localUnlockNode(int nodeID);
+  bool remoteFilterDataBelow(const string& peer,
                              int remoteNodeID, int on);
-  bool filterDataBelowLocal(const string& peer,
+  bool localFilterDataBelow(const string& peer,
                             int localNodeID, int on);
-  int  getNodeIDRemote(const string& peer, const string& nodeName);
+  int  remoteNodeID(const string& peer, const string& nodeName);
 
   // Not quite so important.
   //list<arGraphicsPeerConnection> getConnections();
   string printConnections();
-  string print();
+  string printPeer();
 
  protected:
   string          _name;

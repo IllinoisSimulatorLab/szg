@@ -698,6 +698,15 @@ bool arGraphicsPeer::readDatabaseXML(const string& fileName,
   return arGraphicsDatabase::readDatabaseXML(fileName, path);
 }
 
+bool arGraphicsPeer::attach(arDatabaseNode* parent,
+			    const string& fileName,
+			    const string& path){
+  if (_readWritePath != "" && path == ""){
+    return arGraphicsDatabase::attach(parent, fileName, _readWritePath);
+  }
+  return arGraphicsDatabase::attach(parent, fileName, path);
+}
+
 bool arGraphicsPeer::attachXML(arDatabaseNode* parent,
 			       const string& fileName,
 			       const string& path){
@@ -707,13 +716,22 @@ bool arGraphicsPeer::attachXML(arDatabaseNode* parent,
   return arGraphicsDatabase::attachXML(parent, fileName, path);
 }
 
-bool arGraphicsPeer::mapXML(arDatabaseNode* parent,
-			    const string& fileName,
-			    const string& path){
+bool arGraphicsPeer::merge(arDatabaseNode* parent,
+			   const string& fileName,
+			   const string& path){
   if (_readWritePath != "" && path == ""){
-    return arGraphicsDatabase::mapXML(parent, fileName, _readWritePath);
+    return arGraphicsDatabase::merge(parent, fileName, _readWritePath);
   }
-  return arGraphicsDatabase::mapXML(parent, fileName, path);
+  return arGraphicsDatabase::merge(parent, fileName, path);
+}
+
+bool arGraphicsPeer::mergeXML(arDatabaseNode* parent,
+			      const string& fileName,
+			      const string& path){
+  if (_readWritePath != "" && path == ""){
+    return arGraphicsDatabase::mergeXML(parent, fileName, _readWritePath);
+  }
+  return arGraphicsDatabase::mergeXML(parent, fileName, path);
 }
 
 bool arGraphicsPeer::writeDatabase(const string& fileName, 
@@ -1007,7 +1025,7 @@ bool arGraphicsPeer::broadcastFrameTime(int frameTime){
 /// Sometimes, we want a node on a remote peer to only change according to
 /// our actions. (this is useful if several peers are connected to a single
 /// remote peer and are changing the same things).
-bool arGraphicsPeer::lockRemoteNode(const string& name, int nodeID){
+bool arGraphicsPeer::remoteLockNode(const string& name, int nodeID){
   arStructuredData adminData(_gfx.find("graphics admin"));
   adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "lock");
   adminData.dataIn(_gfx.AR_GRAPHICS_ADMIN_NODE_ID, &nodeID, AR_INT, 1);
@@ -1023,7 +1041,7 @@ bool arGraphicsPeer::lockRemoteNode(const string& name, int nodeID){
 /// Of course, we want to be able to unlock the node as well.
 /// Why is the connection name present? Because we are unlocking the node
 /// on THAT peer (i.e. the one at the other end of the named connection)
-bool arGraphicsPeer::unlockRemoteNode(const string& name, int nodeID){
+bool arGraphicsPeer::remoteUnlockNode(const string& name, int nodeID){
   arStructuredData adminData(_gfx.find("graphics admin"));
   adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "unlock");
   adminData.dataIn(_gfx.AR_GRAPHICS_ADMIN_NODE_ID, &nodeID, AR_INT, 1);
@@ -1038,7 +1056,7 @@ bool arGraphicsPeer::unlockRemoteNode(const string& name, int nodeID){
 
 /// To preserve symmetry of operations, it would be nice to be able to
 /// lock a node to the updates from a particular connection.
-bool arGraphicsPeer::lockLocalNode(const string& name, int nodeID){
+bool arGraphicsPeer::localLockNode(const string& name, int nodeID){
   int ID = _dataServer->getFirstIDWithLabel(name);
   arSocket* socket = _dataServer->getConnectedSocket(ID);
   if (!socket){
@@ -1053,7 +1071,7 @@ bool arGraphicsPeer::lockLocalNode(const string& name, int nodeID){
 /// on another peer to do it for us). Note that it isn't necessary to name
 /// a connection since the model is that we are removing ALL locking on the
 /// node.
-bool arGraphicsPeer::unlockLocalNode(int nodeID){
+bool arGraphicsPeer::localUnlockNode(int nodeID){
   _unlockNode(nodeID);
   // REALLY LAME THAT THIS RETURNS TRUE NO MATTER WHAT!
   return true;
@@ -1061,7 +1079,7 @@ bool arGraphicsPeer::unlockLocalNode(int nodeID){
 
 /// We want to be able to prevent a remote peer from sending us data (or
 /// turn sending back on once we have turned it off).
-bool arGraphicsPeer::filterDataBelowRemote(const string& peer,
+bool arGraphicsPeer::remoteFilterDataBelow(const string& peer,
                                            int remoteNodeID,
                                            int on){
   arStructuredData adminData(_gfx.find("graphics admin"));
@@ -1081,7 +1099,7 @@ bool arGraphicsPeer::filterDataBelowRemote(const string& peer,
 
 /// Keep data from being relayed to a remote peer (or start relaying the
 /// data again).
-bool arGraphicsPeer::filterDataBelowLocal(const string& peer,
+bool arGraphicsPeer::localFilterDataBelow(const string& peer,
                                           int localNodeID,
                                           int on){
   int ID = _dataServer->getFirstIDWithLabel(peer);
@@ -1097,8 +1115,8 @@ bool arGraphicsPeer::filterDataBelowLocal(const string& peer,
 
 /// Sometimes, we want to be able to find the ID of the node on a remotely
 /// connected peer.
-int arGraphicsPeer::getNodeIDRemote(const string& peer,
-				    const string& nodeName){
+int arGraphicsPeer::remoteNodeID(const string& peer,
+				 const string& nodeName){
   arStructuredData adminData(_gfx.find("graphics admin"));
   adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "ID-request");
   adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_NAME, nodeName);
@@ -1143,7 +1161,7 @@ string arGraphicsPeer::printConnections(){
   return result.str();
 }
 
-string arGraphicsPeer::print(){
+string arGraphicsPeer::printPeer(){
   stringstream result;
   ar_mutex_lock(&_alterLock);
   printStructure(100, result);
