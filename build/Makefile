@@ -10,16 +10,6 @@ else
 #note that demo is still a target here... there are programs that live
 #in the top of that directory and not in subdirs
 SUBDIRS=language phleet barrier math drivers graphics sound obj interaction demo
-
-# AARGH! Here's an annoying kludge! PWD on Cygwin returns /cygdrive/...
-# but this makes the include path wrong as passed to Visual C++, sigh.
-# consequently, for the moment you'll have to have SZGHOME set to compile
-# on Win32. A better solution would be to include some shell magic to
-# replace /cydrive/h/ with h: in the output of pwd
-ifneq ($(z),win32)
-  SZGHOME := $(PWD)/..
-endif
-
 # put in here whatever you're working on at the moment
 DEMOFAST = ribbons
 # isosurface has been temporarily removed from the DEMODIRS until the code

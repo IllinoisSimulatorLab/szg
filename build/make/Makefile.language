@@ -49,7 +49,8 @@ ALL =   $(SZG_CURRENT_DLL)\
 	TestLanguageServer$(EXE)
 
 # NOTE: "Everything" is the magic target name used by subsidiary targets
-# like "clean" and "create-install" (which puts all the 
+# like "clean" and "create-install" (which puts all the exe's in a particular
+# place)
 Everything: $(ALL)
 
 # NOTE: We MUST compile the precompiled header FIRST on Windows.
