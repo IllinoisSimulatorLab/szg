@@ -307,6 +307,7 @@ ifeq ($(strip $(MACHINE)), MIPS3)
   LIB_3DS :=
 endif
 
+# While Irix is not a primary platform, it is still useful from time to time.
 ifeq ($(strip $(MACHINE)), MIPS4)
   INC_FMOD := 
   LIB_FMOD := 
