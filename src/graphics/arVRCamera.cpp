@@ -125,7 +125,7 @@ arMatrix4 arVRCamera::_getFixedHeadModeMatrix( const arGraphicsScreen& screen ) 
   for (int i=0; i<9; i+=4) {
     demoRotMatrix[i] = xPrime.v[j];
     demoRotMatrix[i+1] = yPrime.v[j];
-    demoRotMatrix[i+2] = -zHat.v[j++];
+    demoRotMatrix[i+2] = zHat.v[j++];
   }
   return ar_translationMatrix(screen.getFixedHeadHeadPosition()) * demoRotMatrix;
 }

@@ -11,8 +11,6 @@ all:
 	@echo "Makefile failed to guess OS type."
 else
 
-# Note that demo is still a target here... there are programs that live
-#in the top of that directory and not in subdirs
 LIBDIRS=language math phleet barrier drivers graphics sound obj interaction framework
 SUBDIRS=$(LIBDIRS) utilities 
 

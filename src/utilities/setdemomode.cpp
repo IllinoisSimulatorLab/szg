@@ -9,10 +9,9 @@
 #include "arSZGClient.h"
 #include <string>
 
-// Set demo mode for each rendering machine,
-// and send reload message to any running render programs.
-// TODO TODO TODO TODO TODO TODO TODO TODO
-// THIS DOES NOT HANDSHAKE PROPERLY WITH SZGD!
+//Send a message to the master/controller to turn on demo mode immediately,
+//then change the value of SZG_HEAD/fixed_head_mode on the
+//master and trigger computers so that the change persists.
 
 int main(int argc, char** argv) {
   // NOTE: arSZGClient::init(...) must come before the argument parsing...
@@ -40,6 +39,49 @@ Usage:
   if (paramVal != "true" && paramVal != "false")
     goto Usage; 
 
-  launcher.updateRenderers("fixed_head", paramVal);
+  // send message to trigger (which will relay to master if necessary).
+  // copied from dmsg.cpp
+  int    componentID;
+  string lockName = string(argv[1])+"/SZG_DEMO/app";
+  if (szgClient.getLock(lockName, componentID)){
+    // nobody else was holding the lock
+    szgClient.releaseLock(lockName);
+    cerr << "setdemomode error: no trigger component running.\n";
+    return 1;
+  }
+  string messageBody = (paramVal == "true")?("on"):("off");
+  int match = szgClient.sendMessage( "demo", messageBody, 
+                                    componentID, false);
+  if ( match < 0 ){
+    // no need to print something here... sendMessage already does.
+    return 1;
+  }
+  // end dmsg block
+
+  // set SZG_HEAD/fixed_head_mode on trigger & master.
+  string triggerName = launcher.getTriggerName();
+  if (triggerName == "NULL") {
+    cerr << "setdemomode error: no trigger map defined.\n";
+    return 1;
+  }
+  if (!szgClient.setAttribute( triggerName, "SZG_HEAD", "fixed_head_mode", paramVal )) {
+    cerr << "setdemomode error: setAttribute failed.\n";
+    return 1;
+  }
+  arSlashString masterMap = launcher.getMasterName();
+  if (masterMap == "NULL") {
+    cerr << "setdemomode error: no master map defined.\n";
+    return 1;
+  }
+  if (masterMap.size() != 2) {
+    cerr << "setdemomode error: badly-formed master map (" << masterMap << ").\n";
+    return 1;
+  }
+  string masterName = masterMap[0];
+  if (!szgClient.setAttribute( masterName, "SZG_HEAD", "fixed_head_mode", paramVal )) {
+    cerr << "setdemomode error: setAttribute failed.\n";
+    return 1;
+  }
+  
   return 0; 
 }

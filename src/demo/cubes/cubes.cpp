@@ -91,7 +91,7 @@ void worldAlter(void* f){
     count++;
     // Change zeroth cube.  (Lissajous motion.)
     cube0Matrix = ar_translationMatrix(6.*sin(count*.00001),
-                                       3.*sin(count*.0000141),
+                                       3.*sin(count*.0000141)+5.,
                                        6.*sin(count*.0000177));
 
     // Change any cube except the zeroth.
@@ -155,9 +155,13 @@ void worldInit(arDistSceneGraphFramework& framework){
     else
       sprintf(buffer, "WallTexture%i.ppm", rand()%4+1);
     const string whichTexture(buffer);
+calcpos:
     const float randX = -5. + (10.*(rand()%200))/200.0;
-    const float randY = -5. + (10.*(rand()%200))/200.0;
+    const float randY = (10.*(rand()%200))/200.0;
     const float randZ = -5. + (10.*(rand()%200))/200.0;
+    if (arVector3(randX,randY-5,randZ).magnitude() < 1.5) {
+      goto calcpos;
+    }
     arMatrix4 cubeTransform = ar_translationMatrix(randX,randY,randZ);
     arCallbackInteractable cubeInteractor( dgTransform( cubeParent, navNodeName, arMatrix4() ) );
     cubeInteractor.setMatrixCallback( matrixCallback );
@@ -228,10 +232,6 @@ int main(int argc, char** argv){
   
   headEffector.setInteractionSelector( arDistanceInteractionSelector( 2 ) );
   
-  // DO NOT REMOVE THE LINE BELOW. WITHOUT IT, THE STUFF WILL SHOW UP IN
-  // A WEIRD POSITION.
-  ar_setNavMatrix( ar_translationMatrix(0,-5,0) );
-  
   worldInit(framework);
 
   if (!framework.start())
@@ -252,7 +252,7 @@ int main(int argc, char** argv){
     ramp += .025;
     const float loudness = .42 + .4 * sin(ramp);
     // cube0Matrix is being updated by worldAlter().
-    const arVector3 xyz(cube0Matrix * arVector3(0,0,0));
+    const arVector3 xyz(cube0Matrix * arVector3(0,5,0));
 
     ar_mutex_lock(&databaseLock);
       framework.setViewer();

@@ -505,6 +505,13 @@ string arAppLauncher::getMasterName(){
   return _client->getAttribute(_vircomp, screenName, "map", "");
 }
 
+/// Returns the name of the computer where the trigger instance of the
+/// application is running. CAN ONLY BE CALLED AFTER ONE OF THE INITIALIZATION
+/// FUNCTIONS (either setVircomp or setParameters).
+string arAppLauncher::getTriggerName(){
+  return _client->getAttribute(_vircomp, "SZG_TRIGGER", "map", "");
+}
+
 /// returns the screen name of the nth screen in the current virtual computer
 string arAppLauncher::getScreenName(int num){
   if ((num < 0)||(num >= getNumberScreens())) {

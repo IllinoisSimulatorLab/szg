@@ -51,6 +51,7 @@ class SZG_CALL arAppLauncher{
   int getPipeNumber();
   int getMasterPipeNumber();
   string getMasterName();
+  string getTriggerName();
   string getScreenName(int num);
   bool getRenderProgram(const int num, string& computer, string& renderName);
   void updateRenderers(const string& attribute, const string& value);
