@@ -68,16 +68,17 @@ class SZG_CALL arPhleetOSLanguage: public arLanguage{
   int AR_PROCESS_INFO_ID;
   int AR_PROCESS_INFO_LABEL;
 
-  /// ATTR_GET_REQ: The user can request many different kinds of information
-  /// from the szgserver. In fact, too many different kinds. This really needs
-  /// to be changed. If the ATTR_GET_REQ_ATTR field is NULL, then the process
-  /// table is sent. If ALL, then the whole parameter database is sent (in
-  /// format suitable for dbatch-ing).
-  /// If the field holds something that looks like a database attribute key
-  /// (i.e. has two '/') then we'll just want to return the database value.
-  /// Otherwise, we return the parameter database, but with pattern matching
-  /// on the value (i.e. only return those lines that match).
+  /// ATTR_GET_REQ: The user can request several different kinds of
+  /// information from the szgserver, depending upon the value of
+  /// AR_ATTR_GET_REQ_TYPE:
+  ///
+  /// NULL: Get the process table.
+  /// ALL:  Get all parameters in a format suitable for dbatch-ing
+  /// substring: Return only those parameters whose names match the substring.
+  /// value: Return the value corresponding to the attribute name in
+  ///   AR_ATTR_GET_REQ_ATTR
   int AR_ATTR_GET_REQ;
+  int AR_ATTR_GET_REQ_TYPE;
   int AR_ATTR_GET_REQ_ATTR;
 
   /// ATTR_GET_RES: The response to the above record, with the value stored in

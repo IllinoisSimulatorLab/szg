@@ -48,6 +48,7 @@ arPhleetOSLanguage::arPhleetOSLanguage():
   AR_PROCESS_INFO = _dictionary.add(&_processInfo);
 
   AR_ATTR_GET_REQ_ATTR = _attributeGetRequest.add("Attribute",AR_CHAR);
+  AR_ATTR_GET_REQ_TYPE = _attributeGetRequest.add("Type",AR_CHAR);
   AR_ATTR_GET_REQ = _dictionary.add(&_attributeGetRequest);
 
   AR_ATTR_GET_RES_ATTR = _attributeGetResponse.add("Attribute",AR_CHAR);

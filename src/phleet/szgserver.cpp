@@ -1093,6 +1093,8 @@ void serverDiscoveryFunction(void* pv){
 /// @param dataSocket Socket upon which the request travels
 void attributeGetRequestCallback(arStructuredData* theData,
                                  arSocket* dataSocket){
+  string value, attribute;
+  map<string,string,less<string> >::iterator i;
   // Choose the user database.
   SZGactivateUser(theData->getDataString(lang.AR_PHLEET_USER));
   // The attribute name before it has been manipulated, etc.
@@ -1103,7 +1105,8 @@ void attributeGetRequestCallback(arStructuredData* theData,
     = dataParser->getStorage(lang.AR_ATTR_GET_RES);
   // Also, transfer the "match" value from the request to the response.
   _transferMatchFromTo(theData, attrGetResponseData);
-  if (attrRaw=="NULL"){
+  const string type(theData->getDataString(lang.AR_ATTR_GET_REQ_TYPE));
+  if (type=="NULL"){
     // Send the process table.
     (void)attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_ATTR, 
                                             attrRaw);
@@ -1111,69 +1114,67 @@ void attributeGetRequestCallback(arStructuredData* theData,
       dataServer->dumpConnectionLabels());
   }
 
-  else if (attrRaw=="ALL"){
+  else if (type=="ALL"){
     // Concatenate all members of valueContainer into a return value.
     (void)attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_ATTR, 
                                             attrRaw);
-    string value("# Sygyzy dbatch script\n");
+    // BUG BUG BUG BUG BUG BUG BUG
+    // This does not (yet) generate a new-style szg dbatch script!
     map<string,string,less<string> >::iterator i;
     for (i = valueContainer->begin();
 	 i != valueContainer->end();
 	 ++i){
-#ifdef LITERAL_DUMP
-      const string& s = i->first + "  =  " + i->second + "\n";
-#else
       // more useful:  output it in dbatch-style format.
       string first = i->first;
       // Replace both slashes with spaces,
       // to make it compatible with the syntax of dbatch.
-      int slash = first.find("/");
-      first.replace(slash, 1, " ");
-      slash = first.find("/");
-      first.replace(slash, 1, " ");
-      const string& s = first + "   " + i->second + "\n";
-#endif
-      value += s;
+      unsigned int slash = first.find("/");
+      // IMPORTANT NOTE: The attribute might be GLOBAL (in which case it
+      // has no slashes!) So... only replace the slashes if they exist!
+      if (slash != string::npos){
+        first.replace(slash, 1, " ");
+        slash = first.find("/");
+        first.replace(slash, 1, " ");
+        const string& s = first + "   " + i->second + "\n";
+        value += s;
+      }
+      else{
+        value += (first + "  " + i->second + "\n");
+      }
     }
     (void)attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_VAL, 
                                             value);
   }
-
-  else{
+  else if (type=="substring"){
     // Send an attribute or a list of attributes passing a substring test.
-    // First test to see whether this is a standard attribute string
-    // (XXX/YYY/ZZZ) or a string to be used as a grep arg against the
-    // whole attribute list
     char attrBuf[1024];
     ar_stringToBuffer(attrRaw, attrBuf, sizeof(attrBuf));
-    bool useMatch = true;
-    const char* pch = strchr(attrBuf, '/');
-    if (pch && strchr(pch,'/')){
-      // there are two slahses in the attribute... it must be standard
-      useMatch = false;
-    }
-    string value, attribute;
-    map<string,string,less<string> >::iterator i;
-    if (useMatch){
-      attribute = attrRaw;
-      value = string("(List):\n");
-      char buf[1024];
-      for (i = valueContainer->begin(); i != valueContainer->end(); ++i){
-	const string s(i->first + "  =  " + i->second + "\n");
-	ar_stringToBuffer(s, buf, sizeof(buf));
-	if (strstr(buf, attrBuf))
-	  value += s;
+    attribute = attrRaw;
+    value = string("(List):\n");
+    char buf[1024];
+    for (i = valueContainer->begin(); i != valueContainer->end(); ++i){
+      const string s(i->first + "  =  " + i->second + "\n");
+      ar_stringToBuffer(s, buf, sizeof(buf));
+      if (strstr(buf, attrBuf)){
+	value += s;
       }
-    }
-    else{
-      attribute = attrRaw; // AARGH! a layer of indirection that is no
-                           // longer needed since no more name resolution
-      i = valueContainer->find(attribute);
-      value = (i == valueContainer->end()) ? string("NULL") : i->second;
     }
     (void)attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_ATTR, 
                                             attribute);
     (void)attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_VAL, value);
+  }
+  else if (type=="value"){
+    attribute = attrRaw; // AARGH! a layer of indirection that is no
+                         // longer needed since no more name resolution
+    i = valueContainer->find(attribute);
+    value = (i == valueContainer->end()) ? string("NULL") : i->second;
+    (void)attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_ATTR, 
+                                            attribute);
+    (void)attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_VAL, value);
+  }
+  else{
+    cout << "szgserver internal error: got incorrect type for attribute "
+	 << "get request.\n";
   }
 
   // Send the record.

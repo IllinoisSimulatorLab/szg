@@ -351,12 +351,19 @@ bool arSZGClient::launchDiscoveryThreads(){
 // copypasted from getAttribute()
 string arSZGClient::getAllAttributes(const string& substring){
   // NOTE: THIS DOES NOT WORK WITH THE LOCAL PARAMETER FILE!!!!
-  if (!_connected)
+  if (!_connected){
     return string("NULL");
+  }
 
-  // note that there's some poor design here
-  // if substring == "ALL", we get a listing of user variables
-  // otherwise, we get a listing of variables that match a substring.
+  // We will either request ALL parameters (in dbatch-able form) or
+  // we'll request only those parameters that match the given substring.
+  string type;
+  if (substring == "ALL"){
+    type = "ALL";
+  }
+  else{
+    type = "substring";
+  }
 
   arStructuredData* getRequestData 
     = _dataParser->getStorage(_l.AR_ATTR_GET_REQ);
@@ -364,6 +371,7 @@ string arSZGClient::getAllAttributes(const string& substring){
   int match = _fillMatchField(getRequestData);
   string result;
   if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR,substring) ||
+      !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,type) || 
       !getRequestData->dataInString(_l.AR_PHLEET_USER,_userName) ||
       !_dataClient.sendData(getRequestData)){
     cerr << _exeName << " warning: failed to send command.\n";
@@ -596,6 +604,7 @@ string arSZGClient::getAttribute(const string& userName,
   string result;
   int match = _fillMatchField(getRequestData);
   if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR,query) ||
+      !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,"value") ||
       !getRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
       !_dataClient.sendData(getRequestData)){
     cerr << _exeName << " warning: failed to send command.\n";
@@ -794,6 +803,7 @@ string arSZGClient::getGlobalAttribute(const string& userName,
   string result;
   int match = _fillMatchField(getRequestData);
   if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR,attributeName) ||
+      !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,"value") ||
       !getRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
       !_dataClient.sendData(getRequestData)){
     cerr << _exeName << " warning: failed to send command.\n";
@@ -922,6 +932,7 @@ string arSZGClient::getProcessList(){
   // "NULL" asks the server for the process table
   int match = _fillMatchField(getRequestData);
   if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR,"NULL") ||
+      !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,"NULL") || 
       !getRequestData->dataInString(_l.AR_PHLEET_USER,_userName) ||
       !_dataClient.sendData(getRequestData)){
     cerr << _exeName << " warning: failed to send getProcessList command.\n";

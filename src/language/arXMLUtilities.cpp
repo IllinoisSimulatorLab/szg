@@ -71,8 +71,8 @@ bool ar_getTextBeforeTag(arTextStream* textStream, arBuffer<char>* textBuffer,
   while (ch != '<'){
     ch = textStream->ar_getc();
     if (ch == EOF){
-      cout << "Syzygy XML error: unexpected end of file while reading "
-	   << "field text.\n";
+      // DO NOT PRINT ANYTHING HERE! LET THE CALLER PRINT AN ERROR 
+      // MESSAGE!
       return false;
     }
     if (ch != '<'){
@@ -91,19 +91,23 @@ bool ar_getTextBeforeTag(arTextStream* textStream, arBuffer<char>* textBuffer,
 
 /// Take an arTextStream and record any characters between the current position
 /// and the next occuring </end_tag>. The arTextStream is left at the first
-/// character after </end_tag>. 
+/// character after </end_tag>. The textBuffer contains a NULL-terminated
+/// string with the characters up to the beginning of the final tag (but
+/// not including it).
 bool ar_getTextUntilEndTag(arTextStream* textStream,
                            const string& endTag,
 			   arBuffer<char>* textBuffer){
   // We always start at the beginning of the buffer in this case.
   textBuffer->pushPosition = 0;
   string tagText;
+  int finalPosition;
   while (true){
     // Get text until the next tag.
     if (!ar_getTextBeforeTag(textStream, textBuffer, true)){
       return false;
     }
-    // Get the next tag.
+    // Get the next tag. Note how we save the position.
+    finalPosition = textBuffer->pushPosition;
     tagText = ar_getTagText(textStream, textBuffer, true);
     if (tagText == "NULL"){
       // There has been an error!
@@ -114,9 +118,10 @@ bool ar_getTextUntilEndTag(arTextStream* textStream,
       break;
     }
   }
-  // Go ahead and NULL-terminate the array;
-  textBuffer->grow(textBuffer->pushPosition+1);
-  textBuffer->data[textBuffer->pushPosition] = '\0';
+  // Go ahead and NULL-terminate the array; We use the position before
+  // the final tag. Since the final tag has at least 4 characters, we
+  // do not need to grow the array.
+  textBuffer->data[finalPosition] = '\0';
   return true;
 }
 
@@ -146,12 +151,11 @@ string ar_getTagText(arTextStream* textStream, arBuffer<char>* buffer,
   }
   int ch = textStream->ar_getc();
   if (ch == EOF){
-    cout << "Syzygy XML error: unexpected end of file while searching for"
-	 << "tag begin.\n";
+    // DO NOT PRINT ANYTHING HERE! LET THE CALLER DO IT!
     return string("NULL");
   }
   if (ch != '<'){
-    cout << "Syzygy XML error: did not find expected tag start.\n";
+    // DO NOT PRINT ANYTHING HERE! LET THE CALLER DO IT!
     return string("NULL");
   }
   // Only record the '<' character if we are concatenating!
@@ -166,7 +170,7 @@ string ar_getTagText(arTextStream* textStream, arBuffer<char>* buffer,
   while (ch != '>'){
     ch = textStream->ar_getc();
     if (ch == EOF){
-      cout << "Syzygy XML error: unexpected end of file inside tag.\n";
+      // DO NOT PRINT ANYTHING HERE! LET THE CALLER DO IT!
       return string("NULL");
     }
     if (ch != '>'){
