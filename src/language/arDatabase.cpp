@@ -334,9 +334,18 @@ bool arDatabase::attachXML(arDatabaseNode* parent,
   while (!done){
     record = parser->parse(&fileStream);
     if (record){
-      bool success = _filterIncoming(parent, record, nodeMap, true);
+      int success = _filterIncoming(parent, record, nodeMap, true);
+      arDatabaseNode* altered = NULL;
+      if (success){
+        altered = alter(record);
+        if (success > 0 && altered){
+          // A node was created.
+          nodeMap.insert(map<int, int, less<int> >::value_type
+      	                  (success, altered->getID()));
+        }
+      }
       parser->recycle(record);
-      if (!success){
+      if (success && !altered){
         // There was an unrecoverable error. _filterIncoming already
 	// complained so do not do so here.
         break;
@@ -373,9 +382,18 @@ bool arDatabase::attach(arDatabaseNode* parent,
   while (!done){
     record = parser->parseBinary(source);
     if (record){
-      bool success = _filterIncoming(parent, record, nodeMap, true);
+      int success = _filterIncoming(parent, record, nodeMap, true);
+      arDatabaseNode* altered = NULL;
+      if (success){
+	altered = alter(record);
+        if (success > 0 && altered){
+          // A node was created.
+          nodeMap.insert(map<int, int, less<int> >::value_type
+      	                  (success, altered->getID()));
+        }
+      }
       parser->recycle(record);
-      if (!success){
+      if (success && !altered){
         // There was an unrecoverable error. _filterIncoming already
 	// complained so do not do so here.
         break;
@@ -419,9 +437,18 @@ bool arDatabase::mapXML(arDatabaseNode* parent,
   while (!done){
     record = parser->parse(fileStream);
     if (record){
-      bool success = _filterIncoming(parent, record, nodeMap, false);
+      int success = _filterIncoming(parent, record, nodeMap, false);
+      arDatabaseNode* altered = NULL;
+      if (success){
+        altered = alter(record);
+        if (success > 0 && altered){
+          // A node was created.
+          nodeMap.insert(map<int, int, less<int> >::value_type
+      	                  (success, altered->getID()));
+        }
+      }
       parser->recycle(record);
-      if (!success){
+      if (success && !altered){
         // There was an unrecoverable error. _filterIncoming already
 	// complained so do not do so here.
         break;
@@ -839,15 +866,28 @@ void arDatabase::_createNodeMap(arDatabaseNode* localNode,
 /// changed in place, as is the nodeMap. allNew should be set to true
 /// if every node should be a new one. And set to false if we will 
 /// attempt to associate nodes with existing ones (as in mapXML, instead of
-/// attachXML. NOTE: an alter actually occurs in here!
+/// attachXML.
+///
+/// NOTE: This function has been modified so that the "alter" no longer
+/// occurs inside it. It is the responsibility of the caller to put the
+/// record into the database. Sometimes (as in the case of a node creation
+/// record being mapped to an already existing node), the record should
+/// just be discarded. This is also true if the map fails somehow.
+///
+/// The return value is:
+///  0: The record should be discarded.
+///  -1: The record should be used but the map will not need to be changed.
+///  positive: The record should be used, it is a node creation message, and
+///   this is the ID of the original node, once we've figured out the new
+///   node ID, it should go in the map
 //
 // In here, we have to consider the fact that the mapped source might
 // NOT be starting from the root, but from some other node. Consequently,
 // we pass in a database node to map this parent-less node to...
-bool arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
-                                 arStructuredData* record, 
-	                         map<int, int, less<int> >& nodeMap,
-                                 bool allNew){
+int arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
+                                arStructuredData* record, 
+	                        map<int, int, less<int> >& nodeMap,
+                                bool allNew){
   map<int, int, less<int> >::iterator i;
   if (record->getID() == _lang->AR_MAKE_NODE){
     int parentID = record->getDataInt(_lang->AR_MAKE_NODE_PARENT_ID);
@@ -855,6 +895,14 @@ bool arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
     string nodeType = record->getDataString(_lang->AR_MAKE_NODE_TYPE);
     int originalNodeID = record->getDataInt(_lang->AR_MAKE_NODE_ID);
     i = nodeMap.find(parentID);
+    // Hmmm. This doesn't seem quite right. Whenever there is no
+    // mapped parent, we always go to the predefined map root. But what
+    // if someone has sent a node out-of-turn. This could result in
+    // something from a weird spot in the scene graph being attached to
+    // the top of the mapped graph. It seems like there would need to be
+    // some filtration attached to the other side (to guarantee that we are 
+    // only sending updates for either nodes that have already been mapped
+    // or nodes whose parents have already been mapped.
     if (i == nodeMap.end()){
       nodeMap.insert(map<int, int, less<int> >::value_type
                      (parentID, mappingRoot->getID()));
@@ -880,8 +928,8 @@ bool arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
       nodeMap.insert(map<int, int, less<int> >::value_type
 	             (originalNodeID, target->getID()));
       // In this case, DO NOT create a new node! The record is simply
-      // discarded.
-      return true;
+      // discarded. Remember: returning false means discard the record.
+      return 0;
     }
     else{
       // We could not find a suitable node for mapping.
@@ -894,17 +942,8 @@ bool arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
       int newParentID = i->second;
       record->dataIn(_lang->AR_MAKE_NODE_PARENT_ID, &newParentID,
 	             AR_INT, 1);
-      arDatabaseNode* newNode = alter(record);
-      if (!newNode){
-	cout << "arDatabase error: mapping of XML failed in node "
-	     << "creation.\n";
-	return false;
-      }
-      // It worked. Update the map.
-      nodeMap.insert(map<int, int, less<int> >::value_type
-      	             (originalNodeID, newNode->getID()));
-      // Nothing else to do.
-      return true;
+      // Returning true means "do not discard".
+      return originalNodeID;
     }
   }
   else{
@@ -914,12 +953,13 @@ bool arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
     if (i == nodeMap.end()){
       cout << "arDatabase error: mapping of XML file failed in "
 	   << "node remap.\n";
-      return false;
+      // Returning false means "discard"
+      return 0;
     }
     nodeID = i->second;
     record->dataIn(_routingField[record->getID()], &nodeID, AR_INT, 1);
-    alter(record);
-    return true;
+    // Returning true means "use"
+    return -1;
   }
 }
 

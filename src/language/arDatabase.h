@@ -141,10 +141,10 @@ class SZG_CALL arDatabase{
 		      map<int, int, less<int> >& nodeMap,
 		      bool& failure);
 
-  bool _filterIncoming(arDatabaseNode* mappingRoot,
-                       arStructuredData* record, 
-	               map<int, int, less<int> >& nodeMap,
-                       bool allNew);
+  int _filterIncoming(arDatabaseNode* mappingRoot,
+                      arStructuredData* record, 
+	              map<int, int, less<int> >& nodeMap,
+                      bool allNew);
   
   // The factory function that is redefined by subclasses.
   virtual arDatabaseNode* _makeNode(const string& type);
