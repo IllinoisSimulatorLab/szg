@@ -1,9 +1,14 @@
+include $(SZGHOME)/build/make/Makefile.vars
+
 VPATH = ../../../../src/demo/volume
+
+OBJS = volume$(OBJ_SUFFIX) slice$(OBJ_SUFFIX)
 
 ALL = volume$(EXE)
 Everything: $(ALL)
 
-PRECOMPILED_HEADER_LOCATION := $(PRECOMPILED_HEADER_LOCATION_DEMO)
+include $(SZGHOME)/build/make/Makefile.rules
 
-volume$(EXE): volume$(OBJ_SUFFIX) slice$(OBJ_SUFFIX) $(SZG_LIBS)
-	$(DO_LINK_GRAPHICS)
+volume$(EXE): $(OBJS) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) $(OBJS) $(SZG_USR_SECOND)
+	$(COPY)
