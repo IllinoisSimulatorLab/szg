@@ -70,6 +70,7 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   arGraphicsPeer();
   ~arGraphicsPeer();
 
+  string getName(){ return _name; }
   void setName(const string&);
 
   bool init(arSZGClient& client);
