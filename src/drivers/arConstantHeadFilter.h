@@ -10,7 +10,7 @@
 
 /// Fixed head position (for multi-person demos in a headtracked setup).
 
-class arConstantHeadFilter: public arIOFilter{
+class SZG_CALL arConstantHeadFilter: public arIOFilter{
   public:
     arConstantHeadFilter(){}
     virtual ~arConstantHeadFilter(){}

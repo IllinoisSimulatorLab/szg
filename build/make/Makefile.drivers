@@ -1,16 +1,14 @@
+SZG_INCLUDE_STYLE = INTERNAL
+
+include $(SZGHOME)/build/make/Makefile.vars
+
 VPATH = ../../../src/drivers
 
 # DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
 # with this sometimes.
 OBJS = \
-  arPPTDriver$(OBJ_SUFFIX) \
-  arLogitechDriver$(OBJ_SUFFIX) \
-  arFaroDriver$(OBJ_SUFFIX) \
-  arFOBDriver$(OBJ_SUFFIX) \
-  arReactionTimerDriver$(OBJ_SUFFIX) \
   arInputState$(OBJ_SUFFIX) \
   arInputNode$(OBJ_SUFFIX) \
-  arWildcatUtilities$(OBJ_SUFFIX) \
   arPForth$(OBJ_SUFFIX) \
   arPForthStandardVocabulary$(OBJ_SUFFIX) \
   arPForthDatabaseVocabulary$(OBJ_SUFFIX) \
@@ -20,64 +18,209 @@ OBJS = \
   arInputEventQueue$(OBJ_SUFFIX) \
   arEventUtilities$(OBJ_SUFFIX) \
   arConstantHeadFilter$(OBJ_SUFFIX) \
-  arController$(OBJ_SUFFIX) \
-  arFlyingGravisController$(OBJ_SUFFIX) \
-  arBirdWinDriver$(OBJ_SUFFIX) \
   arGenericDriver$(OBJ_SUFFIX) \
   arInputLanguage$(OBJ_SUFFIX) \
   arInputSource$(OBJ_SUFFIX) \
-  arIntelGamepadDriver$(OBJ_SUFFIX) \
   arIOFilter$(OBJ_SUFFIX) \
-  arJoystickDriver$(OBJ_SUFFIX) \
-  arMotionstarDriver$(OBJ_SUFFIX) \
-  arEVaRTDriver$(OBJ_SUFFIX) \
-  arSpacepadDriver$(OBJ_SUFFIX) \
-  arVRPNDriver$(OBJ_SUFFIX) \
   arNetInputSink$(OBJ_SUFFIX) \
   arNetInputSource$(OBJ_SUFFIX) \
   arTrackCalFilter$(OBJ_SUFFIX) \
   arFaroCalFilter$(OBJ_SUFFIX) \
   arFileSink$(OBJ_SUFFIX) \
   arFileSource$(OBJ_SUFFIX) \
-  arIntersenseDriver$(OBJ_SUFFIX) \
-  isense$(OBJ_SUFFIX)
-#  arFilterUtilities$(OBJ_SUFFIX) \
 
-MYLIB = libarDrivers.a
-$(MYLIB): $(OBJS)
-	$(AR) ru $@ $^
-	$(RANLIB) $@
-MYLIBS = \
-  ../phleet/libarPhleet.a \
-  ../language/libarLanguage.a \
-  ../math/libarMath.a
+# Local variable definitions for the build.
+# These internal library makefiles ONLY include the external files necessary
+# to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
+# Makefile.defines neglects to define these)
+SZG_INCLUDE = \
+  -I$(SZGHOME)/src/language \
+  -I$(SZGHOME)/src/phleet \
+  -I$(SZGHOME)/src/math
+SZG_LINK_LIBS = $(GENERAL_LIBS)
+SZG_OPTIONAL_LIBS = 
+SZG_LIBRARY_LIBS = \
+  $(MATH_LIB_STRING) \
+  $(PHLEET_LIB_STRING) \
+  $(LANGUAGE_LIB_STRING)
+SZG_LIBRARY_DEPS = \
+  $(MATH_DEP_STRING) \
+  $(PHLEET_DEP_STRING) \
+  $(LANGUAGE_DEP_STRING)
+SZG_CURRENT_LIB_SHORT_NAME = arDrivers
 
 ifeq ($(strip $(MACHINE)),WIN32)
 LINK_FLAGS += /stack:4000000
 endif
 
-ALL := DeviceServer$(EXE) \
-	DeviceClient$(EXE) \
-	FaroTest$(EXE) \
-	FOBServer$(EXE) \
-	PForthTest$(EXE) \
-	pfconsole$(EXE) \
-	EventTest$(EXE)
+# It turns out that libs in Win32 should appear in a different place on the
+# link line than in Unix.
 
+ifeq ($(strip $(MACHINE)),WIN32)
+  PRE_LINK_VRPN = $(LIB_VRPN)
+  POST_LINK_VRPN =
+
+  PRE_LINK_EVART = $(LIB_EVART)
+  POST_LINK_EVART =
+
+  PRE_LINK_BIRDWIN = $(LIB_WIN_BIRD)
+  POST_LINK_BIRDWIN =
+
+  PRE_LINK_GAMEPAD = $(GAMEPAD_LIBS)
+  POST_LINK_GAMEPAD =
+else
+  PRE_LINK_VRPN = 
+  POST_LINK_VRPN = $(LIB_VRPN)
+
+  PRE_LINK_EVART =
+  POST_LINK_EVART = $(LIB_EVART)
+
+  PRE_LINK_BIRDWIN = 
+  POST_LINK_BIRDWIN = $(LIB_WIN_BIRD)
+  
+  PRE_LINK_GAMEPAD =
+  POST_LINK_GAMEPAD = $(GAMEPAD_LIBS)
+endif
+
+ALL =   $(SZG_CURRENT_DLL) \
+  DeviceServer$(EXE) \
+  DeviceClient$(EXE) \
+  FaroTest$(EXE) \
+  PForthTest$(EXE) \
+  pfconsole$(EXE) \
+  EventTest$(EXE) \
+  arPPTDriver$(DLL_SUFFIX) \
+  arLogitechDriver$(DLL_SUFFIX) \
+  arFaroDriver$(DLL_SUFFIX) \
+  arFOBDriver$(DLL_SUFFIX) \
+  arReactionTimerDriver$(DLL_SUFFIX) \
+  arMotionstarDriver$(DLL_SUFFIX) \
+  arBirdWinDriver$(DLL_SUFFIX) \
+  arIntelGamepadDriver$(DLL_SUFFIX) \
+  arJoystickDriver$(DLL_SUFFIX) \
+  arSpacepadDriver$(DLL_SUFFIX) \
+  arEVaRTDriver$(DLL_SUFFIX) \
+  arVRPNDriver$(DLL_SUFFIX) \
+  arIntersenseDriver$(DLL_SUFFIX)
+
+
+# NOTE: "Everything" is the magic target name used by subsidiary targets
+# like "clean" and "create-install" (which puts all the exe's in a particular
+# place)
 Everything: $(ALL)
 
-DeviceClient$(EXE): DeviceClient$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-DeviceServer$(EXE): DeviceServer$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK) $(LIB_VRPN) $(LIB_EVART) $(LIB_WIN_BIRD)
-FaroTest$(EXE): FaroTest$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-FOBServer$(EXE): FOBServer$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK) $(LIB_WIN_BIRD)
-EventTest$(EXE): EventTest$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-PForthTest$(EXE): PForthTest$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
-pfconsole$(EXE): pfconsole$(OBJ_SUFFIX) $(MYLIB) $(MYLIBS)
-	$(DO_LINK)
+# NOTE: We MUST compile the precompiled header FIRST on Windows.
+$(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
+	$(LINK_SZG_LIB)
+	$(COPY)
+
+# This should go AFTER our FIRST target (because Makefile.rules has rules
+# in it)
+include $(SZGHOME)/build/make/Makefile.rules
+
+# The executables
+DeviceClient$(EXE): DeviceClient$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_EXE_FIRST) DeviceClient$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+DeviceServer$(EXE): DeviceServer$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_EXE_FIRST) DeviceServer$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+FaroTest$(EXE): FaroTest$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_EXE_FIRST) FaroTest$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+EventTest$(EXE): EventTest$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_EXE_FIRST) EventTest$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+PForthTest$(EXE): PForthTest$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_EXE_FIRST) PForthTest$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+pfconsole$(EXE): pfconsole$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_EXE_FIRST) pfconsole$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+# The device driver shared objects.
+
+# The first collection of shared objects is built on functionality found in
+# szg (like serial port communications)
+arPPTDriver$(DLL_SUFFIX): arPPTDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_SHARED_FIRST) arPPTDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+	$(COPY)
+
+arLogitechDriver$(DLL_SUFFIX): arLogitechDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_SHARED_FIRST) arLogitechDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+	$(COPY)
+
+arFaroDriver$(DLL_SUFFIX): arFaroDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_SHARED_FIRST) arFaroDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+	$(COPY)
+
+arFOBDriver$(DLL_SUFFIX): arFOBDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_SHARED_FIRST) arFOBDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+	$(COPY)
+  
+arReactionTimerDriver$(DLL_SUFFIX): arReactionTimerDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_SHARED_FIRST) arReactionTimerDriver$(OBJ_SUFFIX) \
+$(POST_LINK_LINE_EXE)
+	$(COPY)
+
+arMotionstarDriver$(DLL_SUFFIX): arMotionstarDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_SHARED_FIRST) arMotionstarDriver$(OBJ_SUFFIX) \
+$(POST_LINK_LINE_EXE)
+	$(COPY)
+
+arSpacepadDriver$(DLL_SUFFIX): arSpacepadDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_SHARED_FIRST) arSpacepadDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+	$(COPY)
+
+# Each of the next collection of shared objects uses some additional
+# libraries beyond the base szg. 
+
+arBirdWinDriver$(OBJ_SUFFIX): arBirdWinDriver.cpp
+	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE) $(SZG_INCLUDE_WIN_BIRD)
+
+arBirdWinDriver$(DLL_SUFFIX): arBirdWinDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(LINKER) $(PRE_LINK_BIRDWIN) $(PRE_LINK_LINE_EXE) \
+$(LINK_FLAGS_SHARED) $(LINK_PREFIX)arBirdWinDriver$(DLL_SUFFIX) \
+arBirdWinDriver$(OBJ_SUFFIX) $(POST_LINK_BIRDWIN) $(POST_LINK_LINE_EXE)
+	$(COPY)
+
+arIntelGamepadDriver$(DLL_SUFFIX): arIntelGamepadDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(LINKER) $(PRE_LINK_GAMEPAD) $(PRE_LINK_LINE_EXE) \
+$(LINK_FLAGS_SHARED) $(LINK_PREFIX)arIntelGamepadDriver$(DLL_SUFFIX) \
+arIntelGamepadDriver$(OBJ_SUFFIX) $(POST_LINK_GAMEPAD) $(POST_LINK_LINE_EXE)
+	$(COPY)
+
+arJoystickDriver$(DLL_SUFFIX): arJoystickDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(LINKER) $(PRE_LINK_GAMEPAD) $(PRE_LINK_LINE_EXE) \
+$(LINK_FLAGS_SHARED) $(LINK_PREFIX)arJoystickDriver$(DLL_SUFFIX) \
+arJoystickDriver$(OBJ_SUFFIX) $(POST_LINK_GAMEPAD) $(POST_LINK_LINE_EXE)
+	$(COPY)
+
+arEVaRTDriver$(OBJ_SUFFIX): arEVaRTDriver.cpp
+	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE) $(SZG_INCLUDE_EVART)
+
+arEVaRTDriver$(DLL_SUFFIX): arEVaRTDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(LINKER) $(PRE_LINK_EVART) $(PRE_LINK_LINE_EXE) $(LINK_FLAGS_SHARED) \
+$(LINK_PREFIX)arEVaRTDriver$(DLL_SUFFIX) arEVaRTDriver$(OBJ_SUFFIX) \
+$(POST_LINK_EVART) $(POST_LINK_LINE_EXE)
+	$(COPY)
+
+arVRPNDriver$(OBJ_SUFFIX): arVRPNDriver.cpp
+	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE) $(SZG_INCLUDE_VRPN)
+
+arVRPNDriver$(DLL_SUFFIX): arVRPNDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(LINKER) $(PRELINK_VRPN) $(PRE_LINK_LINE_EXE) $(LINK_FLAGS_SHARED) \
+$(LINK_PREFIX)arVRPNDriver$(DLL_SUFFIX) arVRPNDriver$(OBJ_SUFFIX) \
+$(POST_LINK_VRPN) $(POST_LINK_LINE_EXE)
+	$(COPY)
+
+arIntersenseDriver$(DLL_SUFFIX): arIntersenseDriver$(OBJ_SUFFIX) isense$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_SHARED_FIRST) arIntersenseDriver$(OBJ_SUFFIX) \
+isense$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+	$(COPY)
 

@@ -7,12 +7,28 @@
 #include "arPrecompiled.h"
 #include "arJoystickDriver.h"
 
+// The methods used by the dynamic library mappers. 
+// NOTE: These MUST have "C" linkage!
+extern "C"{
+  SZG_CALL arInputSource* factory(){
+    return new arJoystickDriver();
+  }
+
+  SZG_CALL void baseType(char* buffer, int size){
+    ar_stringToBuffer("arInputSource", buffer, size);
+  }
+}
+
 void ar_joystickDriverEventTask(void* joystickDriver){
   arJoystickDriver* joy = (arJoystickDriver*) joystickDriver;
  
 #ifdef AR_USE_LINUX
   js_event js;
   while (!joy->_shutdown) {
+    // NOTE: THERE IS A SHUTDOWN BUG IN HERE! Specifically, we are relying
+    // on the device producing an event to get us out of this loop!
+    // Consequently, the linux arJoystickDriver DOES NOT shut down in an 
+    // orderly fashion.
     read(joy->_fd, &js, sizeof(js_event));
     switch (js.type & ~JS_EVENT_INIT){
     case JS_EVENT_BUTTON:
@@ -136,6 +152,7 @@ bool arJoystickDriver::init(arSZGClient& client){
     return false;
   }
 #endif
+  cout << "AARGH! done with the device independent stuff!\n";
 
 #ifdef AR_USE_WIN_32
 // Initialize pStick.

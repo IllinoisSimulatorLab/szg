@@ -123,6 +123,8 @@ SZG_CALL bool ar_PForthAddStandardVocabulary( arPForth* pf );
 
 } // namespace arPForthSpace
 
+
+
 class SZG_CALL arPForthProgram {
   friend class arPForth;
   public:

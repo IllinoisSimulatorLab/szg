@@ -34,6 +34,7 @@ ifeq ($(strip $(MACHINE)), LINUX)
     # FMOD include file AND library exist.
     COMPILE_FLAGS += -DEnableSound
     COMPILE_FLAGS_DEBUG += -DEnableSound
+    SZG_INCLUDE_FMOD = -I$(INC_FMOD)
     SZG_INCLUDE += -I$(INC_FMOD)
     LIBS := $(LIB_FMOD) $(LIBS) 
   endif
@@ -45,6 +46,7 @@ ifeq ($(strip $(MACHINE)), LINUX)
     COMPILE_FLAGS += -DEnableJPEG
     COMPILE_FLAGS_DEBUG += -DEnableJPEG
     SZG_INCLUDE += -I$(INC_JPEG)
+    SZG_INCLUDE_JPEG = -I$(INC_JPEG)
     LIBS := $(LIB_JPEG) $(LIBS) 
   endif
   endif
@@ -54,6 +56,7 @@ ifeq ($(strip $(MACHINE)), LINUX)
     # library and headers exist
     COMPILE_FLAGS += -DEnableZlib
     COMPILE_FLAGS_DEBUG += -DEnableZlib
+    SZG_INCLUDE_ZLIB = -I$(INC_ZLIB)
     SZG_INCLUDE += -I$(INC_ZLIB)
     LIBS := $(LIB_ZLIB) $(LIBS)
   endif
@@ -64,6 +67,7 @@ ifeq ($(strip $(MACHINE)), LINUX)
     # lib3DS include file AND library exist.
     COMPILE_FLAGS += -DEnable3DS
     COMPILE_FLAGS_DEBUG += -DEnable3DS
+    SZG_INCLUDE_3DS = -I$(INC_3DS)
     SZG_INCLUDE += -I$(INC_3DS)
     LIBS := $(LIB_3DS) $(LIBS)
   endif
@@ -75,6 +79,7 @@ ifeq ($(strip $(MACHINE)), LINUX)
     # libCg include file AND library exist.
     COMPILE_FLAGS += -DUSE_CG
     COMPILE_FLAGS_DEBUG += -DUSE_CG
+    SZG_INCLUDE_CG = -I$(INCCG)
     SZG_INCLUDE += -I$(INCCG)
     LIBS := $(LIBCG) $(LIBCGGL) $(LIBS)
   endif
@@ -86,6 +91,7 @@ ifeq ($(strip $(MACHINE)), LINUX)
     # libvrpn include file AND library exist.
     COMPILE_FLAGS += -DEnable_VRPN
     COMPILE_FLAGS_DEBUG += -DEnable_VRPN
+    SZG_INCLUDE_VRPN = -I$(INC_VRPN)
     SZG_INCLUDE += -I$(INC_VRPN)
     LIBS := $(LIB_VRPN) $(LIBS)
   endif
@@ -125,6 +131,7 @@ ifeq ($(strip $(MACHINE)), WIN32)
     # FMOD include file AND library exist.
     COMPILE_FLAGS += -D "EnableSound"
     COMPILE_FLAGS_DEBUG += -D "EnableSound"
+    SZG_INCLUDE_FMOD = -I$(INC_FMOD)
     SZG_INCLUDE += -I$(INC_FMOD)
     LINK_LIBS := $(LIB_FMOD) $(LINK_LIBS) 
   endif
@@ -135,6 +142,7 @@ ifeq ($(strip $(MACHINE)), WIN32)
     # libjpeg and headers exist
     COMPILE_FLAGS += -D "EnableJPEG"
     COMPILE_FLAGS_DEBUG += -D "EnableJPEG"
+    SZG_INCLUDE_JPEG = -I$(INC_JPEG)
     SZG_INCLUDE += -I$(INC_JPEG)
     LINK_LIBS := $(LIB_JPEG) $(LINK_LIBS) 
   endif
@@ -145,6 +153,7 @@ ifeq ($(strip $(MACHINE)), WIN32)
     # library and headers exist
     COMPILE_FLAGS += -D "EnableZlib"
     COMPILE_FLAGS_DEBUG += -D "EnableZlib"
+    SZG_INCLUDE_ZLIB = -I$(INC_ZLIB)
     SZG_INCLUDE += -I$(INC_ZLIB)
     LINK_LIBS := $(LIB_ZLIB) $(LINK_LIBS)
   endif
@@ -156,6 +165,7 @@ ifeq ($(strip $(MACHINE)), WIN32)
     # libCg include file AND library exist.
     COMPILE_FLAGS += -D "USE_CG"
     COMPILE_FLAGS_DEBUG += -D "USE_CG"
+    SZG_INCLUDE_CG = -I$(INCCG)
     SZG_INCLUDE += -I$(INCCG)
     LINK_LIBS := $(LIBCG) $(LIBCGGL) $(LINK_LIBS)
   endif
@@ -167,6 +177,7 @@ ifeq ($(strip $(MACHINE)), WIN32)
     # lib3DS include file AND library exist.
     COMPILE_FLAGS += -D "Enable3DS"
     COMPILE_FLAGS_DEBUG += -D "Enable3DS"
+    SZG_INCLUDE_3DS = -I$(INC_3DS)
     SZG_INCLUDE += -I$(INC_3DS)
     LINK_LIBS := $(LIB_3DS) $(LINK_LIBS)
   endif
@@ -177,6 +188,7 @@ ifeq ($(strip $(MACHINE)), WIN32)
     # FoB include file AND library exist.
     COMPILE_FLAGS += -D "EnableBirdWinDriver"
     COMPILE_FLAGS_DEBUG += -D "EnableBirdWinDriver"
+    SZG_INCLUDE_WIN_BIRD = -I$(INC_WIN_BIRD)
     SZG_INCLUDE += -I$(INC_WIN_BIRD)
   endif
   endif
@@ -186,6 +198,7 @@ ifeq ($(strip $(MACHINE)), WIN32)
     # EVaRT include and library exist
     COMPILE_FLAGS += -D "EnableEVaRT"
     COMPILE_FLAGS_DEBUG += -D "EnableEVaRT"
+    SZG_INCLUDE_EVART = -I$(INC_EVART)
     SZG_INCLUDE += -I$(INC_EVART)
     LINK_LIBS := $(LIB_EVART) $(LINK_LIBS)
   endif
@@ -196,6 +209,7 @@ ifeq ($(strip $(MACHINE)), WIN32)
     # SAPI include file AND library exist.
     COMPILE_FLAGS += -D "EnableSpeech"
     COMPILE_FLAGS_DEBUG += -D "EnableSpeech"
+    SZG_INCLUDE_SAPI = -I$(INC_SAPI)
     SZG_INCLUDE += -I$(INC_SAPI)
     LINK_LIBS := $(LIB_SAPI) $(LINK_LIBS)
     LINK_FLAGS := $(LINK_LIBS_SAPI) $(LINK_FLAGS)
@@ -230,6 +244,7 @@ ifeq ($(strip $(MACHINE)), DARWIN)
     # FMOD include file AND library exist.
     COMPILE_FLAGS += -DEnableSound
     COMPILE_FLAGS_DEBUG += -DEnableSound
+    SZG_INCLUDE_FMOD = -I$(INC_FMOD)
     SZG_INCLUDE += -I$(INC_FMOD)
     LIB_FMOD += -framework Carbon
     LIBS := $(LIB_FMOD) $(LIBS) 
@@ -241,6 +256,7 @@ ifeq ($(strip $(MACHINE)), DARWIN)
     # libjpeg and headers exist
     COMPILE_FLAGS += -DEnableJPEG
     COMPILE_FLAGS_DEBUG += -DEnableJPEG
+    SZG_INCLUDE_JPEG = -I$(INC_JPEG)
     SZG_INCLUDE += -I$(INC_JPEG)
     LIBS := $(LIB_JPEG) $(LIBS) 
   endif
@@ -251,6 +267,7 @@ ifeq ($(strip $(MACHINE)), DARWIN)
     # library and headers exist
     COMPILE_FLAGS += -DEnableZlib
     COMPILE_FLAGS_DEBUG += -DEnableZlib
+    SZG_INCLUDE_ZLIB = -I$(INC_ZLIB)
     SZG_INCLUDE += -I$(INC_ZLIB)
     LIBS := $(LIB_ZLIB) $(LIBS)
   endif

@@ -3,20 +3,15 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-#ifndef ARPFORTHDATABASEVOCABULARY_H
-#define ARPFORTHDATABASEVOCABULARY_H
+#ifndef AR_PFORTH_DATABASE_VOCABULARY_H
+#define AR_PFORTH_DATABASE_VOCABULARY_H
 
 #include "arPForth.h"
-
-class arSZGClient;
-
-namespace arPForthSpace {
+#include "arSZGClient.h"
 
 SZG_CALL bool ar_PForthAddDatabaseVocabulary( arPForth* pf );
 SZG_CALL void ar_PForthSetSZGClient( arSZGClient* client );
 SZG_CALL arSZGClient* ar_PForthGetSZGClient();
-
-} // namespace arPForthSpace
 
 #endif        //  #ifndefARPFORTHDATABASEVOCABULARY_H
 

@@ -9,6 +9,14 @@
 #include "arFileTextStream.h"
 #include <sstream>
 
+arFilteringPForth::arFilteringPForth(){
+  _valid = _valid && ar_PForthAddEventVocabulary(this)
+                  && ar_PForthAddDatabaseVocabulary(this);
+}
+
+arFilteringPForth::~arFilteringPForth(){
+}
+
 arPForthFilter::arPForthFilter( const unsigned int progNumber ) :
     _progNumber( progNumber ),
     _valid(false),
@@ -20,7 +28,7 @@ arPForthFilter::arPForthFilter( const unsigned int progNumber ) :
   _buttonFilterPrograms.reserve(256);
   _axisFilterPrograms.reserve(256);
   _matrixFilterPrograms.reserve(256);
-  arPForthSpace::ar_PForthSetFilter(this);
+  ar_PForthSetFilter(this);
 
   // Simplest way of inserting a number into a string, sigh.
   std::stringstream s;
@@ -99,7 +107,7 @@ bool arPForthFilter::configure( arSZGClient* SZGClient ) {
     return false;
   }
   
-  arPForthSpace::ar_PForthSetSZGClient( SZGClient );
+  ar_PForthSetSZGClient( SZGClient );
 
   // Load the programs.
   const arSlashString programList(SZGClient->getAttribute("SZG_PFORTH","program_names"));
@@ -262,7 +270,7 @@ bool arPForthFilter::_processEvent( arInputEvent& inputEvent ) {
   if (!_valid)
     return true;
 
-  arPForthSpace::ar_PForthSetInputEvent( &inputEvent );
+  ar_PForthSetInputEvent( &inputEvent );
   const unsigned int i = inputEvent.getIndex();
 
   static std::vector< arPForthProgram* > programs;

@@ -15,15 +15,6 @@ namespace arPForthSpace {
 
 arSZGClient* __PForthSZGClient = 0;
 
-// functions
-
-void ar_PForthSetSZGClient( arSZGClient* client ) {
-  __PForthSZGClient = client;
-}
-arSZGClient* ar_PForthGetSZGClient() {
-  return __PForthSZGClient;
-}
-
 // Run-time behaviors
 
 class GetDatabaseParameter : public arPForthAction {
@@ -72,16 +63,26 @@ bool GetFloatDatabaseParameters::run( arPForth* pf ) {
   return true;
 }
 
+}; // PForthSpace namespace
+
+// functions
 
 // installer function
-
 bool ar_PForthAddDatabaseVocabulary( arPForth* pf ) {
-  if (!pf->addSimpleActionWord( "getStringParameter", new GetDatabaseParameter() ))
+  if (!pf->addSimpleActionWord( "getStringParameter", 
+                             new arPForthSpace::GetDatabaseParameter() ))
     return false;
-  if (!pf->addSimpleActionWord( "getFloatParameters", new GetFloatDatabaseParameters() ))
+  if (!pf->addSimpleActionWord( "getFloatParameters", 
+                             new arPForthSpace::GetFloatDatabaseParameters() ))
     return false;
   return true;
 }
 
-};
+void ar_PForthSetSZGClient( arSZGClient* client ) {
+  arPForthSpace::__PForthSZGClient = client;
+}
+
+arSZGClient* ar_PForthGetSZGClient() {
+  return arPForthSpace::__PForthSZGClient;
+}
 

@@ -6,12 +6,13 @@
 #ifndef AR_TRACKCAL_FILTER
 #define AR_TRACKCAL_FILTER
 
+#include "arCallingConventions.h"
 #include "arIOFilter.h"
 #include "arMath.h"
 
 /// Calibration table for an input device.
 
-class arTrackCalFilter: public arIOFilter {
+class SZG_CALL arTrackCalFilter: public arIOFilter {
  public:
   arTrackCalFilter();
   ~arTrackCalFilter();

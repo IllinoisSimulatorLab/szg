@@ -10,9 +10,9 @@
 #include "arInputEvent.h"
 #include "arPForthFilter.h"
 
-namespace arPForthSpace {
-
 // Run-time behaviors
+
+namespace arPForthSpace {
 
 class GetCurrentEventIndex : public arPForthAction {
   public:
@@ -275,6 +275,8 @@ bool InsertMatrixEvent::run( arPForth* pf ) {
   return true;
 }
 
+} // arPForthSpace namespace
+
 // variables
 
 arPForthFilter* __PForthFilterPtr = 0;
@@ -298,39 +300,36 @@ arPForthFilter* ar_PForthGetFilter() {
 bool ar_PForthAddEventVocabulary( arPForth* pf ) {
   
   // Simple action words (run-time behavior only)
-  if (!pf->addSimpleActionWord( "getCurrentEventIndex", new GetCurrentEventIndex() ))
+  if (!pf->addSimpleActionWord( "getCurrentEventIndex", new arPForthSpace::GetCurrentEventIndex() ))
     return false;
-  if (!pf->addSimpleActionWord( "getCurrentEventButton", new GetCurrentEventButton() ))
+  if (!pf->addSimpleActionWord( "getCurrentEventButton", new arPForthSpace::GetCurrentEventButton() ))
     return false;
-  if (!pf->addSimpleActionWord( "getCurrentEventAxis", new GetCurrentEventAxis() ))
+  if (!pf->addSimpleActionWord( "getCurrentEventAxis", new arPForthSpace::GetCurrentEventAxis() ))
     return false;
-  if (!pf->addSimpleActionWord( "getCurrentEventMatrix", new GetCurrentEventMatrix() ))
+  if (!pf->addSimpleActionWord( "getCurrentEventMatrix", new arPForthSpace::GetCurrentEventMatrix() ))
     return false;
-  if (!pf->addSimpleActionWord( "setCurrentEventIndex", new SetCurrentEventIndex() ))
+  if (!pf->addSimpleActionWord( "setCurrentEventIndex", new arPForthSpace::SetCurrentEventIndex() ))
     return false;
-  if (!pf->addSimpleActionWord( "setCurrentEventButton", new SetCurrentEventButton() ))
+  if (!pf->addSimpleActionWord( "setCurrentEventButton", new arPForthSpace::SetCurrentEventButton() ))
     return false;
-  if (!pf->addSimpleActionWord( "setCurrentEventAxis", new SetCurrentEventAxis() ))
+  if (!pf->addSimpleActionWord( "setCurrentEventAxis", new arPForthSpace::SetCurrentEventAxis() ))
     return false;
-  if (!pf->addSimpleActionWord( "setCurrentEventMatrix", new SetCurrentEventMatrix() ))
+  if (!pf->addSimpleActionWord( "setCurrentEventMatrix", new arPForthSpace::SetCurrentEventMatrix() ))
     return false;
-  if (!pf->addSimpleActionWord( "deleteCurrentEvent", new DeleteCurrentEvent() ))
+  if (!pf->addSimpleActionWord( "deleteCurrentEvent", new arPForthSpace::DeleteCurrentEvent() ))
     return false;
-  if (!pf->addSimpleActionWord( "getButton", new GetButton() ))
+  if (!pf->addSimpleActionWord( "getButton", new arPForthSpace::GetButton() ))
     return false;
-  if (!pf->addSimpleActionWord( "getAxis", new GetAxis() ))
+  if (!pf->addSimpleActionWord( "getAxis", new arPForthSpace::GetAxis() ))
     return false;
-  if (!pf->addSimpleActionWord( "getMatrix", new GetMatrix() ))
+  if (!pf->addSimpleActionWord( "getMatrix", new arPForthSpace::GetMatrix() ))
     return false;
-  if (!pf->addSimpleActionWord( "insertButtonEvent", new InsertButtonEvent() ))
+  if (!pf->addSimpleActionWord( "insertButtonEvent", new arPForthSpace::InsertButtonEvent() ))
     return false;
-  if (!pf->addSimpleActionWord( "insertAxisEvent", new InsertAxisEvent() ))
+  if (!pf->addSimpleActionWord( "insertAxisEvent", new arPForthSpace::InsertAxisEvent() ))
     return false;
-  if (!pf->addSimpleActionWord( "insertMatrixEvent", new InsertMatrixEvent() ))
+  if (!pf->addSimpleActionWord( "insertMatrixEvent", new arPForthSpace::InsertMatrixEvent() ))
     return false;
 
   return true;
 }    
-
-} // namespace arPForthSpace
-

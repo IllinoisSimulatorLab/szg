@@ -12,12 +12,9 @@
 #include "arPForthDatabaseVocabulary.h"
 
 class SZG_CALL arFilteringPForth : public arPForth {
-  public:
-    arFilteringPForth() :
-      arPForth()  {
-      _valid = _valid && arPForthSpace::ar_PForthAddEventVocabulary(this)
-                      && arPForthSpace::ar_PForthAddDatabaseVocabulary(this);
-    }
+ public:
+  arFilteringPForth();
+  ~arFilteringPForth();
 };
 
 /// Filter that uses the arPForth FORTH interpreter.

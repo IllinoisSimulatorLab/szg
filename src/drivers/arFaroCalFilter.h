@@ -6,12 +6,13 @@
 #ifndef AR_FAROCAL_FILTER
 #define AR_FAROCAL_FILTER
 
+#include "arCallingConventions.h"
 #include "arIOFilter.h"
 #include "arMath.h"
 
 /// Calibration table for an input device.
 
-class arFaroCalFilter: public arIOFilter {
+class SZG_CALL arFaroCalFilter: public arIOFilter {
  public:
   arFaroCalFilter();
   ~arFaroCalFilter();

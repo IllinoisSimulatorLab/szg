@@ -23,11 +23,11 @@ int main( int argc, char** argv ) {
     cerr << "failed to initialize PForth.\n";
     return 0;
   }
-  if (!arPForthSpace::ar_PForthAddDatabaseVocabulary( &pforth )) {
+  if (!ar_PForthAddDatabaseVocabulary( &pforth )) {
     cerr << "failed to add database vocabulary.\n";
     return 0;
   }
-  arPForthSpace::ar_PForthSetSZGClient( &client );
+  ar_PForthSetSZGClient( &client );
   string program;
   cout << "OK ";
   getline( cin, program );

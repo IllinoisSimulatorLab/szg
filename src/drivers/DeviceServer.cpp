@@ -5,35 +5,26 @@
 
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#define IMPORTING_SHARED_LIB
 
 #include "arInputNode.h"
 #include "arNetInputSink.h"
 #include "arNetInputSource.h"
 #include "arIOFilter.h"
 #include "arFileSink.h"
+#include "arSharedLib.h"
 
 // Various device driver headers.
-#include "arJoystickDriver.h"
-#include "arIntelGamepadDriver.h"
-#include "arMotionstarDriver.h"
-#include "arFOBDriver.h"
-#include "arBirdWinDriver.h"
-#include "arFaroDriver.h"
-#include "arSpacepadDriver.h"
-#include "arEVaRTDriver.h"
-#include "arIntersenseDriver.h"
-#include "arVRPNDriver.h"
-#include "arReactionTimerDriver.h"
 #include "arFileSource.h"
-#include "arLogitechDriver.h"
-#include "arPPTDriver.h"
 
 // Filters.
 #include "arConstantHeadFilter.h"
 #include "arTrackCalFilter.h"
 #include "arPForthFilter.h"
 #include "arFaroCalFilter.h"
+
+// These functions are embedded in the shared objects.
+typedef arInputSource* (*arInputSourceFactory)();
+typedef void (*arSharedObjectType)(char*, int);
 
 int main(int argc, char** argv){
   struct widget /* what's a good name for this? */ {
@@ -108,71 +99,56 @@ int main(int argc, char** argv){
 
   arInputSource* theSource = NULL;
   int iService;
-  for (iService = 0; iService < numServices; ++iService) {
-    if (!strcmp(argv[1], widgets[iService].arName)){
-      // Found a match.
-      //
-      // This switch() could eventually become an AbstractFactory or
-      // ConcreteFactory (see Design Patterns).
-      switch (iService) {
-      case 0:
-        theSource = new arJoystickDriver;
-        break;
-      case 1:
-        theSource = new arIntelGamepadDriver;
-        break;
-      case 2: theSource = new arMotionstarDriver;
-        break;
-      case 3: theSource = new arFaroDriver;
-        break;
-      case 4: theSource = new arMotionstarDriver;
-        break;
-      case 5: theSource = new arFaroDriver;
-        break;
-      case 6: theSource = new arFOBDriver;
-        break;
-      case 7: theSource = new arBirdWinDriver;
-        break;
-      case 8: theSource = new arMotionstarDriver;
-        break;
-      case 9: theSource = new arSpacepadDriver;
-        break;
-      case 10: theSource = new arSpacepadDriver;
-        break;
-      case 11: theSource = new arEVaRTDriver;
-        break;
-      case 12: theSource = new arFileSource;
-        break;
-      case 13: theSource = new arIntersenseDriver;
-	break;
-      case 14: theSource = new arVRPNDriver;
-        break;
-      case 15: theSource = new arMotionstarDriver(true);
-        break;
-      case 16: theSource = new arReactionTimerDriver;
-        break;
-      case 17: theSource = new arFOBDriver;
-        break;
-      case 18: theSource = new arLogitechDriver;
-        break;
-      case 19: theSource = new arPPTDriver;
-        break;
-      }
-      break;
-    }
+  arSharedLib inputSourceObject;
+  // We want to load the object from the SZG_EXEC path.
+  string execPath = SZGClient.getAttribute("SZG_EXEC","path");
+  if (execPath == "NULL"){
+    execPath = "";
   }
-
+  if (!inputSourceObject.open(argv[1],execPath)){
+    initResponse << "DeviceServer error: could not dynamically load object "
+		 << "(name=" << argv[1] << ") on path=" << execPath << ".\n";
+    SZGClient.sendInitResponse(false);
+    return 1;
+  }
+  // First, make sure that we do indeed have the right type.
+  arSharedObjectType sharedObjectType
+    = (arSharedObjectType) inputSourceObject.sym("baseType");
+  if (!sharedObjectType){
+    initResponse << "DeviceServer error: could not map type function.\n";
+    SZGClient.sendInitResponse(false);
+    return 1;
+  }
+  char typeBuffer[256];
+  sharedObjectType(typeBuffer, 256);
+  if (strcmp(typeBuffer, "arInputSource")){
+    initResponse << "DeviceServer error: dynamically loaded object "
+		 << "(name=" << argv[1] << ") declares wrong type="
+		 << typeBuffer << "\n";
+    SZGClient.sendInitResponse(false);
+    return 1;
+  }
+  // Get the factory function
+  arInputSourceFactory factory 
+    = (arInputSourceFactory) inputSourceObject.sym("factory");
+  if (!factory){
+    initResponse << "DeviceServer error: could not map factory function in "
+		 << "object (name=" << argv[1] << ").\n";
+    SZGClient.sendInitResponse(false);
+    return 1;
+  }
+  // Can create our object.
+  // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
+  // The motionstar driver has a "true" argument to its constructor in the
+  // original DeviceServer
+  theSource = factory();
+  
   if (!theSource) {
-    initResponse << "DeviceServer error: unsupported driver type \""
-                 << argv[1] << "\"; expected one of:\n";
-    for (i=0; i<numServices; ++i)
-      initResponse << "\t" << widgets[i].arName << endl;
+    initResponse << "DeviceServer error: failed to create input source.\n";
     SZGClient.sendInitResponse(false);
     return 1;
   }
 
-  initResponse << "DeviceServer remark: loading " 
-               << widgets[iService].printableName << ".\n";
   arInputNode inputNode;
   inputNode.addInputSource(theSource,true);
 //  if (widgets[iService].netName) {
@@ -189,11 +165,12 @@ int main(int argc, char** argv){
   // DeviceServer instance in a general way. But, for now, this is what I'm
   // doing to get the arIdeskTracker (and arPassiveTracker) going
 
-  if (widgets[iService].arName == "arIdeskTracker" 
-      || widgets[iService].arName == "arPassiveTracker"){
-    arInputSource* additionalSource = new arJoystickDriver;
-    inputNode.addInputSource(additionalSource,true);
-  }
+  // DOH! GET RID OF THIS HACK!!!!!
+  //if (widgets[iService].arName == "arIdeskTracker" 
+  //    || widgets[iService].arName == "arPassiveTracker"){
+  //  arInputSource* additionalSource = new arJoystickDriver;
+  //  inputNode.addInputSource(additionalSource,true);
+  //}
   
   arNetInputSink netInputSink;
   netInputSink.setSlot(slotNumber);
@@ -273,7 +250,9 @@ int main(int argc, char** argv){
       exit(0);
     }
     if (messageType=="quit"){
+      cout << "DeviceServer remark: received shutdown message.\n";
       inputNode.stop();
+      cout << "DeviceServer remark: input node has stopped.\n";
       return 0;
     }
     if (messageType=="dumpon"){

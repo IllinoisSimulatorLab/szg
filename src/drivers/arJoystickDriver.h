@@ -12,7 +12,7 @@
 
 /// Driver for (USB) joysticks or gamepads.
 
-class arJoystickDriver: public arInputSource{
+class SZG_CALL arJoystickDriver: public arInputSource{
   friend void ar_joystickDriverEventTask(void*);
  public:
   arJoystickDriver();
