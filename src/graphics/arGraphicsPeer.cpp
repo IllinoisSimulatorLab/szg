@@ -245,6 +245,9 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       gp->_IDResponseVar.signal();
       ar_mutex_unlock(&gp->_IDResponseLock);
     }
+    else if (action == "camera_node"){
+      // Just go ahead and discard.
+    }
   }
   else{
     // This is just a standard record. We either queue this OR send it

@@ -197,15 +197,13 @@ void arDistSceneGraphFramework::swapBuffers(){
 
 void arDistSceneGraphFramework::setViewer(){
   _head.setMatrix( _inputDevice->getMatrix(_headMatrixID) );
-  // Make sure that we route the information to the right spot.
-  if (_peerName != "NULL"){
-    // We must be in peer mode.
-    _graphicsPeer.setVRCameraID(_VRCameraID);
-  }
-  else{
+  // It does not make sense to do this for the peer case.
+  if (_peerName == "NULL"){
+    // An alter(...) on a "graphics admin" record, as occurs in setVRCameraID,
+    // cannot occur in a arGraphicsPeer.
     _graphicsServer.setVRCameraID(_VRCameraID);
-  }
-  dgViewer( _VRCameraID, _head );
+    dgViewer( _VRCameraID, _head );
+  } 
 }
 
 void arDistSceneGraphFramework::setPlayer(){
@@ -222,19 +220,25 @@ void arDistSceneGraphFramework::setHeadMatrixID(int id) {
 arDatabaseNode* arDistSceneGraphFramework::getNavNode(){
   // Standalone mode does not support peers.
   if (_peerName == "NULL" || _standalone){
-    return _graphicsServer.getNode("SZG_NAV_MATRIX");
+    return _graphicsServer.getNode(_graphicsNavMatrixID);
   }
   else{
-    return _graphicsPeer.getNode("SZG_NAV_MATRIX");
+    return _graphicsPeer.getNode(_graphicsNavMatrixID);
   }
 }
 
 void arDistSceneGraphFramework::loadNavMatrix() {
+  // Navigate whether or not we are in peer mode (in the
+  // case of peer mode, only explicit setNavMatrix calls
+  // will have an effect since the input device is
+  // "disconnected").
   const arMatrix4 navMatrix( ar_getNavInvMatrix() );
-  if (_graphicsNavMatrixID != -1)
+  if (_graphicsNavMatrixID != -1){
     dgTransform( _graphicsNavMatrixID, navMatrix );
-  if (_soundNavMatrixID != -1)
+  }
+  if (_soundNavMatrixID != -1){
     dsTransform( _soundNavMatrixID, navMatrix );
+  }
 }
 
 void arDistSceneGraphFramework::setDataBundlePath(const string& bundlePathName,
@@ -391,10 +395,13 @@ bool arDistSceneGraphFramework::start(){
   // we want to pack the start response stream
   stringstream& startResponse = _SZGClient.startResponse();
 
-  if (!_inputDevice->start()) {
-    startResponse << _label << " error: failed to start input device.\n";
-    _SZGClient.sendStartResponse(false);
-    return false;
+  // Don't start the input device if we are in peer mode!
+  if (_peerName == "NULL"){
+    if (!_inputDevice->start()) {
+      startResponse << _label << " error: failed to start input device.\n";
+      _SZGClient.sendStartResponse(false);
+      return false;
+    }
   }
 
   // We might be in peer mode.
