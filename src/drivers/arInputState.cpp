@@ -116,7 +116,7 @@ bool arInputState::_getOnButtonNoLock( const unsigned int buttonNumber ) const {
 
 bool arInputState::getOnButton( const unsigned int buttonNumber ){
   _lock();
-  bool result = _getOnButtonNoLock(buttonNumber);
+  const bool result = _getOnButtonNoLock(buttonNumber);
   _unlock();
   return result;
 }
@@ -129,7 +129,7 @@ bool arInputState::_getOffButtonNoLock( const unsigned int buttonNumber ) const 
 
 bool arInputState::getOffButton( const unsigned int buttonNumber ){
   _lock();
-  bool result = _getOffButtonNoLock(buttonNumber);
+  const bool result = _getOffButtonNoLock(buttonNumber);
   _unlock();
   return result;
 }
@@ -150,7 +150,7 @@ bool arInputState::_setButtonNoLock( const unsigned int buttonNumber,
 bool arInputState::setButton( const unsigned int buttonNumber, 
                               const int value ) {
   _lock();
-  bool result = _setButtonNoLock(buttonNumber, value);
+  const bool result = _setButtonNoLock(buttonNumber, value);
   _unlock();
   return result;
 }
@@ -169,7 +169,7 @@ bool arInputState::_setAxisNoLock( const unsigned int axisNumber,
 bool arInputState::setAxis( const unsigned int axisNumber, 
                             const float value ) {
   _lock();
-  bool result = _setAxisNoLock(axisNumber, value);
+  const bool result = _setAxisNoLock(axisNumber, value);
   _unlock();
   return result;
 }
@@ -189,7 +189,7 @@ bool arInputState::_setMatrixNoLock( const unsigned int matrixNumber,
 bool arInputState::setMatrix( const unsigned int matrixNumber,
 			      const arMatrix4& value){
   _lock();
-  bool result = _setMatrixNoLock(matrixNumber, value);
+  const bool result = _setMatrixNoLock(matrixNumber, value);
   _unlock();
   return result;
 }
@@ -226,7 +226,7 @@ void arInputState::_setSignatureNoLock( const unsigned int numButtons,
   // therefore we warn when this happens.
   bool changed = false;
   if (numButtons < _buttons.size()) {
-    cout << "arInputState warning: # of buttons decreased to "
+    cerr << "arInputState warning: buttons reduced to "
          << numButtons << ".\n";
     _buttons.erase( _buttons.begin()+numButtons, _buttons.end() );
     _lastButtons.erase( _lastButtons.begin()+numButtons, _lastButtons.end() );
@@ -238,7 +238,7 @@ void arInputState::_setSignatureNoLock( const unsigned int numButtons,
   }
     
   if (numAxes < _axes.size()) {
-    cout << "arInputState warning: # of axes decreased to "
+    cerr << "arInputState warning: axes reduced to "
          << numAxes << ".\n";
     _axes.erase( _axes.begin()+numAxes, _axes.end() );
     changed = true;
@@ -248,7 +248,7 @@ void arInputState::_setSignatureNoLock( const unsigned int numButtons,
   }
     
   if (numMatrices < _matrices.size()) {
-    cout << "arInputState warning: # of matrices decreased to "
+    cerr << "arInputState warning: matrices reduced to "
          << numMatrices << ".\n";
     _matrices.erase( _matrices.begin()+numMatrices, _matrices.end() );
     changed = true;
@@ -259,7 +259,7 @@ void arInputState::_setSignatureNoLock( const unsigned int numButtons,
   }
   
   if (changed)
-    cout << "arInputState remark: signature now ("
+    cout << "arInputState remark: signature ("
          << _buttons.size() << "," << _axes.size() << "," << _matrices.size()
          << ").\n";
 }
@@ -280,7 +280,7 @@ void arInputState::addInputDevice( const unsigned int numButtons,
   _setSignatureNoLock( oldButtons+numButtons, 
                       oldAxes+numAxes, 
                       oldMatrices+numMatrices );
-  cout << "arInputState remark: added input device "
+  cout << "arInputState remark: added device "
        << _buttonInputMap.getNumberDevices()-1
        << " (" << numButtons << "," << numAxes << "," << numMatrices
        << ").\n";
@@ -295,12 +295,12 @@ void arInputState::remapInputDevice( const unsigned int deviceNum,
   // of locks would deadlock... For instance, below we must use
   // setSignatureNoLock instead of setSignature.
   _lock();
-  int buttonDiff = numButtons 
-                   - _buttonInputMap.getNumberDeviceEvents( deviceNum );
-  int axisDiff = numAxes 
-                 - _axisInputMap.getNumberDeviceEvents( deviceNum );
-  int matrixDiff = numMatrices 
-                   - _matrixInputMap.getNumberDeviceEvents( deviceNum );
+  const int buttonDiff = numButtons -
+    _buttonInputMap.getNumberDeviceEvents( deviceNum );
+  const int axisDiff = numAxes -
+    _axisInputMap.getNumberDeviceEvents( deviceNum );
+  const int matrixDiff = numMatrices -
+    _matrixInputMap.getNumberDeviceEvents( deviceNum );
   if ((buttonDiff != 0)||(axisDiff != 0)||(matrixDiff != 0)) {
     if (buttonDiff < 0)
       cerr << "arInputState warning: decreasing maximum button"
@@ -321,7 +321,7 @@ void arInputState::remapInputDevice( const unsigned int deviceNum,
     _setSignatureNoLock( oldButtons+buttonDiff, 
                         oldAxes+axisDiff, 
                         oldMatrices+matrixDiff );
-    //cout << "arInputState remark: signature set to ("
+    //cout << "arInputState remark: signature ("
     //     << _buttons.size() << ", " << _axes.size() << ", " << _matrices.size()
     //     << ").\n";
   }

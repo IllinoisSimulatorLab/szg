@@ -37,7 +37,7 @@ arAppLauncher::~arAppLauncher(){
 
 bool arAppLauncher::setRenderProgram(const string& name){
   _renderProgram = name;
-  cout << "arAppLauncher remark: render program is " << _renderProgram << ".\n";
+  cout << _exeName << " remark: render program is " << _renderProgram << ".\n";
   return true;
 }
 
@@ -313,7 +313,7 @@ bool arAppLauncher::waitForKill(){
   while (true) {
     string messageType, messageBody;
     if (!_client->receiveMessage(&messageType,&messageBody)){
-      cout << "arAppLauncher remark: stopping because szgserver stopped.\n";
+      cout << _exeName << " remark: stopping because szgserver stopped.\n";
       // Don't bother calling killApp(), since szgserver is gone.
       break;
     }
@@ -326,7 +326,7 @@ bool arAppLauncher::waitForKill(){
       if (_client->getLock(lockName, componentID)) {
         // nobody was holding the lock
         _client->releaseLock(lockName);
-        cerr << "arAppLauncher error: no component running on master screen.\n";
+        cerr << _exeName << " error: no component running on master screen.\n";
       } else {
         // something is indeed running on the master screen
         _client->sendMessage(messageType, messageBody, componentID);
@@ -381,7 +381,7 @@ bool arAppLauncher::killAll(){
        iter != _serviceList.end();
        ++iter){
     namesKill += " " + iter->tradingTag;
-    //cout << "arAppLauncher remark: killing service "
+    //cout << _exeName << " remark: killing service "
 //	 << iter->tradingTag << ".\n";
     const int serviceID =
       _client->getServiceComponentID(iter->tradingTag);
@@ -392,7 +392,7 @@ bool arAppLauncher::killAll(){
 
   const int i = killList.size();
   if (i > 0) {
-    cout << "arAppLauncher remark: killing service";
+    cout << _exeName << " remark: killing service";
     if (i > 1)
       cout << "s";
     cout << namesKill << ".\n";
@@ -834,13 +834,13 @@ if (!_client){
   while (!tags.empty()){
     int killedID = _client->getKillNotification(tags, 8000);
     if (killedID < 0){
-      cout << "arAppLaunched remark: timeout killing remote processes:\n";
+      cout << _exeName << " remark: timeout killing remote processes:\n";
       for (list<int>::iterator n = tags.begin(); n != tags.end(); ++n){
 	// Just remove stuff from the process table, so we can move on.
         trans = tagToID.find(*n);
         if (trans == tagToID.end()){
 	  // THIS SHOULD NOT HAPPEN
-	  cout << "arAppLauncher error: failed to find kill ID.\n";
+	  cout << _exeName << " error: failed to find kill ID.\n";
 	}
 	else{
 	  // NOTE: THIS IS NOT THE TAG, but instead the process ID.
@@ -855,11 +855,11 @@ if (!_client){
       trans = tagToID.find(killedID);
       if (trans == tagToID.end()){
 	// THIS SHOULD NOT HAPPEN
-	cerr << "arAppLauncher internal error: missing kill ID.\n";
+	cerr << _exeName << " internal error: missing kill ID.\n";
       }
       else{
 	// NOTE: This IS NOT killed ID!
-        cout << "arAppLauncher remark: killed component with ID " 
+        cout << _exeName << " remark: killed component with ID " 
 	     << trans->second << ".\n";
       }
     }
@@ -984,7 +984,7 @@ void arAppLauncher::_relaunchIncompatibleServices(
 	  // seems to be in the right place and of the right type.
           if (info != iter->info){
             // Must go ahead and kill.
-	    cout << "arAppLauncher remark: relaunching service "
+	    cout << _exeName << " remark: relaunching service "
 		 << iter->tradingTag
 		 << ", because of invalid info " << iter->info << ".\n";
             serviceKillList.push_back(serviceID);
@@ -992,7 +992,7 @@ void arAppLauncher::_relaunchIncompatibleServices(
 	  }
 #if 0
 	  else{
-            cout << "arAppLauncher remark: compatible service "
+            cout << _exeName << " remark: compatible service "
 	         << iter->tradingTag << ".\n";
 	  }
 #endif
@@ -1000,14 +1000,14 @@ void arAppLauncher::_relaunchIncompatibleServices(
 	else{
           // There is something running, offering the service, but not on
 	  // the right computer.
-          cout << "arAppLauncher remark: relaunching service "
+          cout << _exeName << " remark: relaunching service "
 	       << iter->tradingTag << " on correct host.\n";
           serviceKillList.push_back(serviceID);
           appsToLaunch.push_back(*iter);
 	}
       }
       else{
-        cout << "arAppLauncher remark: relaunching disappeared service "
+        cout << _exeName << " remark: relaunching disappeared service "
 	     << iter->tradingTag << ".\n";
         appsToLaunch.push_back(*iter);
       }
