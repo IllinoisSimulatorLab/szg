@@ -11,21 +11,20 @@
 arStructuredDataParser::arStructuredDataParser(arTemplateDictionary* dictionary) :
   _dictionary(dictionary){
   ar_mutex_init(&_globalLock);
+  ar_mutex_init(&_recycleLock);
+  ar_mutex_init(&_activationLock);
+  _activated = true;
   ar_mutex_init(&_translationBufferListLock);
   // Each template in the dictionary has a queue lock and a condition variable.
   for (arTemplateType::iterator i = dictionary->begin();
        i != dictionary->end();
        ++i){
-    arMutex* theMutex = new arMutex;
-    ar_mutex_init(theMutex);
+    arMessageQueueByID* theQueue = new arMessageQueueByID();
+    ar_mutex_init(&theQueue->lock);
+    theQueue->exitFlag = false;
     int templateID = i->second->getID();
-    _messageQueueLock.insert(SZGmessageQueueLock::value_type(templateID, 
-                                                             theMutex));
-    arConditionVar* theConditionVar = new arConditionVar;
-    _messageQueueVar.insert(SZGmessageQueueVar::value_type(templateID, 
-                                                           theConditionVar));
-    list<arStructuredData*> theList;
-    _messageQueue.insert(SZGmessageQueue::value_type(templateID, theList));
+    _messageQueue.insert(SZGmessageQueue::value_type(templateID, 
+                                                     theQueue));
   }
 }
 
@@ -45,29 +44,18 @@ arStructuredDataParser::~arStructuredDataParser(){
     }
   }
   // Delete messages received but not yet delivered, one queue at a time.
+  // (these are the messages queued by ID, not the "tagged" messages.
   for (SZGmessageQueue::iterator k(_messageQueue.begin());
        k != _messageQueue.end();
        ++k){
-    for (list<arStructuredData*>::iterator l(k->second.begin());
-	 l != k->second.end();
+    for (list<arStructuredData*>::iterator l = k->second->messages.begin();
+	 l != k->second->messages.end();
 	 l++){
       if (*l)
 	delete *l;
     }
-  }
-  // Delete the mutexes.
-  for (SZGmessageQueueLock::iterator m(_messageQueueLock.begin());
-       m != _messageQueueLock.end();
-       ++m){
-    if (m->second)
-      delete m->second;
-  }
-  // Delete the condition vars.
-  for (SZGmessageQueueVar::iterator n(_messageQueueVar.begin());
-       n != _messageQueueVar.end();
-       ++n){
-    if (n->second)
-      delete n->second;
+    // Go ahead and delete the elements of the map as well.
+    delete k->second;
   }
   // delete the tagged messages
   for (SZGtaggedMessageQueue::iterator ii = _taggedMessages.begin();
@@ -85,16 +73,12 @@ arStructuredDataParser::~arStructuredDataParser(){
   // delete the currently used synchronization primitives
   for (SZGtaggedMessageSync::iterator jj = _messageSync.begin();
        jj != _messageSync.end(); jj++){
-    delete jj->second.lock;
-    delete jj->second.var;
-    delete jj->second.tag;
+    delete jj->second;
   }
   // delete the to-be-used synchronization primitives
   for (SZGunusedMessageSync::iterator kk = _recycledSync.begin();
        kk != _recycledSync.end(); kk++){
-    delete (*kk).lock;
-    delete (*kk).var;
-    delete (*kk).tag;
+    delete (*kk);
   }
 }
 
@@ -103,7 +87,7 @@ arStructuredDataParser::~arStructuredDataParser(){
 /// @param ID type of record we want
 arStructuredData* arStructuredDataParser::getStorage(int ID){
   arStructuredData* result = NULL;
-  ar_mutex_lock(&_globalLock);
+  ar_mutex_lock(&_recycleLock);
   // Is there a data record in the dictionary with this ID?
   arDataTemplate* theTemplate = _dictionary->find(ID);
   if (!theTemplate)
@@ -134,7 +118,7 @@ arStructuredData* arStructuredDataParser::getStorage(int ID){
   }
 
 LDone:
-  ar_mutex_unlock(&_globalLock);
+  ar_mutex_unlock(&_recycleLock);
   return result;
 }
 
@@ -478,14 +462,6 @@ bool arStructuredDataParser::parseIntoInternal(arTextStream* textStream){
 /// useful when, for instance, a syzygy message can get several responses.
 bool arStructuredDataParser::pushIntoInternalTagged(arStructuredData* data,
                                                     int tag){
-  //ar_mutex_lock(&_globalLock);
-  //if (_taggedMessages.find(tag) != _taggedMessages.end()){
-  //  cout << "arStructuredDataParser error: attempted to use previously "
-  //	 << "used tag.\n";
-  //  ar_mutex_unlock(&_globalLock);
-  //  return false;
-  //}
-  //ar_mutex_unlock(&_globalLock);
   if (!data){
     // we were passed bogus data
     return false;
@@ -496,7 +472,10 @@ bool arStructuredDataParser::pushIntoInternalTagged(arStructuredData* data,
 }
 
 /// Either returns the top piece of arStructuredData on the appropriate queue 
-/// or blocks until such is available
+/// or blocks until such is available.
+/// NOTE: This can be interrupted, both by the time-out OR by the clearQueues()
+/// method, which flushes all queues, releases any outstanding waits inside
+/// getNextInternal or getNextTaggedMessage, etc.
 arStructuredData* arStructuredDataParser::getNextInternal(int ID){
   SZGmessageQueue::iterator i(_messageQueue.find(ID));
   if (i == _messageQueue.end()){
@@ -504,17 +483,34 @@ arStructuredData* arStructuredDataParser::getNextInternal(int ID){
 	 << "ID.\n";
     return NULL;
   }
-  // these next 2 finds are guaranteed to succeed given that the above 
-  // one succeeded
-  SZGmessageQueueLock::iterator j(_messageQueueLock.find(ID));
-  SZGmessageQueueVar::iterator k(_messageQueueVar.find(ID));
-  ar_mutex_lock(j->second);
-  while (i->second.empty()){
-    k->second->wait(j->second);
+  ar_mutex_lock(&i->second->lock);
+  // NOTE: after calling clearQueues(), we should ALWAYS fall through here
+  // with an error UNTIL activateQueues() has been called.
+  // (NO MATTER HOW calls to getNextInternal(...) were "IN FLIGHT" when the
+  // original clearQueues() was issued. This allows classes that depend
+  // on this to be GLOBALLY turned on/off, no matter where they live in the
+  // threading universe.
+  ar_mutex_lock(&_activationLock);
+  if (!_activated){
+    ar_mutex_unlock(&_activationLock);
+    ar_mutex_unlock(&i->second->lock);
+    return NULL;
   }
-  arStructuredData* result = i->second.front();
-  i->second.pop_front();
-  ar_mutex_unlock(j->second);
+  ar_mutex_unlock(&_activationLock);
+  while (i->second->messages.empty() && !i->second->exitFlag){
+    i->second->var.wait(&i->second->lock);
+  }
+  arStructuredData* result = NULL;
+  if (!i->second->exitFlag){
+    result = i->second->messages.front();
+    i->second->messages.pop_front();
+  }
+  else{
+    // The exit flag tells us that we were woken by clearQueues().
+    // Want to return this to the false state.
+    i->second->exitFlag = false;
+  }
+  ar_mutex_unlock(&i->second->lock);
   return result;
 }
 
@@ -531,6 +527,16 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
                                                  int dataID,
                                                  int timeout){
   ar_mutex_lock(&_globalLock);
+  // As in getNextInternal(...), we want to be able to fall through this
+  // call. This allows arSZGClient to be effectively STOPPED and RESTARTED
+  // arbitrarily from that object's data thread!
+  ar_mutex_lock(&_activationLock);
+  if (!_activated){
+    ar_mutex_unlock(&_activationLock);
+    ar_mutex_unlock(&_globalLock);
+    return -1;
+  }
+  ar_mutex_unlock(&_activationLock);
   list<int>::iterator j;
   SZGtaggedMessageQueue::iterator i;
   arStructuredData* potentialData;
@@ -556,26 +562,36 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
       }
     }
   }
-  // the data does not yet exist. we must get a list of synchronizers.
-  arStructuredDataSynchronizer syn;
+  // The data does not yet exist. We must get a synchronizer and associate
+  // it with the list of tags. NOTE: it is important that it be the SAME
+  // synchronizer for ALL of these tags!
+  arStructuredDataSynchronizer* syn;
+  if (_recycledSync.empty()){
+    // must create 
+    syn = new arStructuredDataSynchronizer();
+    syn->tag = -1;
+    syn->refCount = 0;
+    ar_mutex_init(&syn->lock);
+  }
+  else{
+    // simply pop the front, making sure that tag is set to -1.
+    syn = _recycledSync.front();
+    syn->tag = -1;
+    syn->refCount = 0;
+    _recycledSync.pop_front();
+  }
+  // Now, associate it with the given tags. NOTE: It is critical that we
+  // not allow DUPLICATE tags... nor should we allow tags clearly ILLEGAL
+  // values (i.e. < 0)
+  list<int> actualUsedTags;
   for (j = tags.begin(); j != tags.end(); j++){
-    if (_recycledSync.empty()){
-      // must create 
-      syn.lock = new arMutex();
-      syn.var = new arConditionVar;
-      syn.tag = new int;
-      // These need to be pointers so copies will point to the same value.
-      *(syn.tag) = -1;
-      ar_mutex_init(syn.lock);
+    if (_messageSync.find(*j) == _messageSync.end() && *j >= 0){
+      // Push the synchronizer on the list and increment its ref count by
+      // one.
+      actualUsedTags.push_back(*j);
+      syn->refCount++;
+      _messageSync.insert(SZGtaggedMessageSync::value_type(*j, syn));
     }
-    else{
-      // simply pop the front, making sure that tag is set to -1.
-      syn = _recycledSync.front();
-      *(syn.tag) = -1;
-      _recycledSync.pop_front();
-    }
-    // in either case, push the synchronizer on the list of active ones
-    _messageSync.insert(SZGtaggedMessageSync::value_type(*j, syn));
   }
   ar_mutex_unlock(&_globalLock);
 
@@ -587,30 +603,32 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   // we do, in fact, make it into the body of the loop, then the final value
   // of normalExit is determined by the wait.
   bool normalExit = true;
-  ar_mutex_lock(syn.lock);
-  while (*(syn.tag) < 0){
+  ar_mutex_lock(&syn->lock);
+  while (syn->tag < 0){
     // The wait call returns false exactly when we've got a time-out.
     // It is important to distinguish this case, since we won't actually
     // have any data.
-    normalExit = syn.var->wait(syn.lock, timeout);
+    normalExit = syn->var.wait(&syn->lock, timeout);
     if (!normalExit){
       break;
     }
   }
   // Get the tag associated with the signal. This is the tag of the
   // message we've been awaiting.
-  int tag = *(syn.tag);
-  ar_mutex_unlock(syn.lock);
+  int tag = syn->tag;
+  ar_mutex_unlock(&syn->lock);
 
   // We don't need the synchronizers anymore. Go ahead and put them on the
-  // recycling list
-  _cleanupSynchronizers(tags);
+  // recycling list. NOTE: here use the ERROR-CHECKED list of tags 
+  // (which prevents us from putting tags on the list twice).
+  _cleanupSynchronizers(actualUsedTags);
 
-  if (!normalExit){
-    // we must have gotten a time-out instead of a signal indicating
-    // that data has arrived.
-    // DO NOT PRINT ANYTHING. THIS IS A NORAML OCCURENCE, UNLIKE
-    // GETTING A TAGGED ITEM WITH THE WRONG DATATYPE.
+  // Suppose we have either (a) timed-out (normalExit is false) or
+  // clearQueues() has been issued (which can release the wait(...) above
+  // with a value of -1). In this case, there is no data to get and we
+  // should return a failure response. This is a normal occurence (really)
+  // so do not go ahead and print anything.
+  if (!normalExit || tag == -1){
     return -1;
   }
 
@@ -647,7 +665,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
 /// Avoid memory leaks by providing a way to return data storage into the
 /// internal store
 void arStructuredDataParser::recycle(arStructuredData* trash){
-  ar_mutex_lock(&_globalLock);
+  ar_mutex_lock(&_recycleLock);
   const int ID = trash->getID();
   // Is there any recycling for this ID?
   SZGrecycler::iterator i = recycling.find(ID);
@@ -660,7 +678,83 @@ void arStructuredDataParser::recycle(arStructuredData* trash){
     tmp->push_back(trash);
     recycling.insert(SZGrecycler::value_type(ID,tmp));
   }
+  ar_mutex_unlock(&_recycleLock);
+}
+
+/// This function is intended to "release" every pending request for
+/// getNextTaggedMessage(...) or getNextInternal(...). It, furthermore,
+/// removes all already parsed messages from the internal queues for 
+/// particular message IDs AND from all the tagged queues. Why? Well,
+/// this is useful for allowing us to DISCONNECT a (for instance) arSZGClient
+/// from an szgserver, have all the current calls fall through, and then
+/// be able to reconnect to a DIFFERENT szgserver later, no matter what calls
+/// we are blocking on where!
+void arStructuredDataParser::clearQueues(){
+  ar_mutex_lock(&_globalLock);
+  // We should be "deactivated". This means that getNextInternal(...)
+  // and getNextTagged(...) will ALWAYS return errors until ativateQueues(...)
+  // is called.
+  ar_mutex_lock(&_activationLock);
+  _activated = false;
+  ar_mutex_unlock(&_activationLock);
+  // First, find any outstanding message sync requests (i.e. places where
+  // people are waiting on messages). Go ahead and send the release signal.
+  // NOTE: since a sunchronizer may appear in the list multiple times, we
+  // may be sending the release multiple times as well. That is OK. 
+  for (SZGtaggedMessageSync::iterator i = _messageSync.begin();
+       i != _messageSync.end(); i++){
+    ar_mutex_lock(&i->second->lock);
+    // Make sure we pass the "PROBLEM" tag.
+    i->second->tag = -1;
+    i->second->var.signal();
+    ar_mutex_unlock(&i->second->lock);
+  }
+  // DO NOT remove from the _messageQueue. That is the job of
+  // _cleanupSynchronizers(...) below. It will be executed by the various
+  // released getNextTaggedMessage(...) functions.
+
+  // We must recycle all tagged messages, removing them from their
+  // respective queues.
+  for (SZGtaggedMessageQueue::iterator k = _taggedMessages.begin(); 
+       k != _taggedMessages.end(); k++){
+    for (list<arStructuredData*>::iterator kk = k->second.begin();
+         kk != k->second.end(); kk++){
+      recycle(*kk);
+    }
+  }
+  // The map of lists of received tagged messages has been cleared. Go ahead
+  // and get rid of it.
+  _taggedMessages.clear();
+
+  // Now, we want to release all of the getNextInternal(...) calls that may
+  // be blocking. (and, incidentally, recycle all messages as waiting by ID)
+  for (SZGmessageQueue::iterator j = _messageQueue.begin();
+       j != _messageQueue.end(); j++){
+    ar_mutex_lock(&j->second->lock);
+    // recycle everything on the message list and then signal. NOTE:
+    // we must also set the variable indicating that data has been cleared.
+    for (list<arStructuredData*>::iterator jj = j->second->messages.begin();
+         jj != j->second->messages.end(); jj++){
+      recycle(*jj);
+    }
+    // Don't forget to CLEAR the list. HOWEVER, DO NOT delete the list!
+    j->second->messages.clear();
+    // WE ARE ASSUMING THAT THERE IS AT MOST *ONE* getNextInternal CALL
+    // WAITING! (for this particular ID). Thus, we can set the exit flag
+    // here... and the waiter, when woken, can UNSET it.
+    j->second->exitFlag = true;
+    j->second->var.signal();
+    ar_mutex_unlock(&j->second->lock);
+  }
   ar_mutex_unlock(&_globalLock);
+}
+
+/// Lets the flow of data from getNextInternal(...) and getNextTagged(...)
+/// start again.
+void arStructuredDataParser::activateQueues(){
+  ar_mutex_lock(&_activationLock);
+  _activated = true;
+  ar_mutex_unlock(&_activationLock);
 }
 
 /// here, we go ahead and push the received message onto one of the queues and
@@ -668,18 +762,20 @@ void arStructuredDataParser::recycle(arStructuredData* trash){
 void arStructuredDataParser::_pushOntoQueue(arStructuredData* theData){
   // we assume the next 3 iterators will find something, because we have a
   // valid piece of arStructuredData passed-in
-  SZGmessageQueueLock::iterator i(_messageQueueLock.find(theData->getID()));
-  SZGmessageQueueVar::iterator j(_messageQueueVar.find(theData->getID()));
-  SZGmessageQueue::iterator k(_messageQueue.find(theData->getID()));
-  ar_mutex_lock(i->second);
-  (k->second).push_back(theData);
-  (j->second)->signal();
-  ar_mutex_unlock(i->second);
+  SZGmessageQueue::iterator i(_messageQueue.find(theData->getID()));
+  ar_mutex_lock(&i->second->lock);
+  i->second->messages.push_back(theData);
+  i->second->var.signal();
+  ar_mutex_unlock(&i->second->lock);
 }
 
 /// go ahead and pushed the received message onto the tagged queue (a single
 /// queue for all message types, but indexed via ID). Signal a potentially
-/// blocked getNextTaggedMessage(...) that it can proceed
+/// blocked getNextTaggedMessage(...) that it can proceed.
+/// NOTE: because of "message continuations" it is INDEED possible that
+/// multiple messages can be received corresponding to a particular tag.
+/// The only uniqueness here is that we DO NOT allow waiting on a particular
+/// tag by more than one command at a time.
 void arStructuredDataParser::_pushOntoTaggedQueue(int tag,
                                                   arStructuredData* theData){
   ar_mutex_lock(&_globalLock);
@@ -698,17 +794,22 @@ void arStructuredDataParser::_pushOntoTaggedQueue(int tag,
   SZGtaggedMessageSync::iterator i = _messageSync.find(tag);
   if ( i != _messageSync.end() ){
     // must be the case that a getNextTaggedMessage is waiting on us
-    ar_mutex_lock(i->second.lock);
+    ar_mutex_lock(&i->second->lock);
     // must set the tag, this tells the other side that the
     // condition variable firing was not accidental (as can happen under
-    // POSIX)
-    *(i->second.tag) = tag;
-    i->second.var->signal();
-    ar_mutex_unlock(i->second.lock);
+    // POSIX)... AND it also tells the other side that THIS PARTICULAR TAG
+    // is the one responsible for the firing! NOTE: it is definitely 
+    // possible for MULTIPLE tags to correspond to ONE synchronizer!
+    i->second->tag = tag;
+    i->second->var.signal();
+    ar_mutex_unlock(&i->second->lock);
   }
   ar_mutex_unlock(&_globalLock);
 }
 
+/// This function is called to clean-up the synchronizer associated with a
+/// list of tags. All of the tags in the list are associated with the
+/// SAME synchronizer!
 void arStructuredDataParser::_cleanupSynchronizers(list<int> tags){
   list<int>::iterator i;
   SZGtaggedMessageSync::iterator j;
@@ -716,7 +817,10 @@ void arStructuredDataParser::_cleanupSynchronizers(list<int> tags){
   for (i = tags.begin(); i != tags.end(); i++){
     j = _messageSync.find(*i);
     if (j != _messageSync.end()){
-      _recycledSync.push_front(j->second);
+      j->second->refCount--;
+      if (j->second->refCount == 0){
+        _recycledSync.push_front(j->second);
+      }
       _messageSync.erase(j);
     }
   }

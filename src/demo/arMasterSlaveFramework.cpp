@@ -515,6 +515,7 @@ bool arMasterSlaveFramework::startWithoutGLUT(){
 /// THIS DOES NOT HALT EVERYTHING YET! JUST THE
 /// STUFF THAT SEEMS TO CAUSE SEGFAULTS OR OTHER PROBLEMS ON EXIT.
 void arMasterSlaveFramework::stop(bool blockUntilDisplayExit){
+
   _blockUntilDisplayExit = blockUntilDisplayExit;
   if (_vircompExecution){
     // arAppLauncher object piggy-backing on a renderer execution
@@ -677,7 +678,7 @@ void arMasterSlaveFramework::postDraw(){
   }
   else{
     // NEVER, NEVER, NEVER, NEVER PUT A SLEEP IN THE MAIN LOOP
-	// CAN'T COUNT ON THIS BEING LESS THAN 10 MS ON SOME SYSTEMS!!!!!
+    // CAN'T COUNT ON THIS BEING LESS THAN 10 MS ON SOME SYSTEMS!!!!!
     //ar_usleep(2000);
   }
   // the synchronization. NOTE: we DO NOT synchronize if we are standalone.
@@ -1692,7 +1693,15 @@ void arMasterSlaveFramework::_messageTask(){
   // there's no way to shut the arSZGClient down cleanly.
   string messageType, messageBody;
   while (!_exitProgram){
-    _SZGClient.receiveMessage(&messageType,&messageBody);
+    // NOTE: it is possible for receiveMessage to fail, precisely in the
+    // case that the szgserver has *hard-shutdown* our client object.
+    if (!_SZGClient.receiveMessage(&messageType,&messageBody)){
+      // NOTE: the shutdown procedure is the same as for the "quit" message.
+      stop(true);
+      if (!_useExternalThread){
+        exit(0);
+      }
+    }
     
     if (messageType=="quit"){
       // at this point, we do our best to bring everything to an orderly halt.

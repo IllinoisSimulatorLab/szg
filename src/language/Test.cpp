@@ -9,10 +9,31 @@
 #include "arTemplateDictionary.h"
 #include "arStructuredData.h"
 #include "arStructuredDataParser.h"
+#include <math.h>
 #include <sstream>
 #include <iostream>
 
+bool keepStringTestRunning = true;
+
+void hammerString1(void*){
+  cout << "XXX.\n";
+  while (keepStringTestRunning){
+    string temp("yyy_test_name");
+  }
+}
+
+void hammerString2(void*){
+  cout << "YYY.\n";
+  while (keepStringTestRunning){
+    string temp("xxx_test_name");
+  }
+}
+
 int main(){
+  cout << "\n";
+  cout << "PLEASE NOTE: $SZGHOME must be set to the top level of your szg\n"
+       << "installation for these tests to succeed.\n\n";
+  cout << "Beginning unit test 1: basic arStructuredData.\n";
   int i;
   arTemplateDictionary dict1, dict2;
   arDataTemplate t1("nice test");
@@ -28,6 +49,7 @@ int main(){
   arStructuredData data1(&t1);
   arStructuredData data2(&t2);
 
+  // We test packing/unpacking of various types of fields.
   ARint junkIntData[5];
   ARint moreIntData[5];
   for (i=0; i<5; i++)
@@ -54,36 +76,118 @@ int main(){
   (void)data2.dataIn("DOUBLE ID",(void*)junkDoubleData,AR_DOUBLE,5);
   data2.dataOut(DOUBLE_ID,(void*)moreDoubleData,AR_DOUBLE,5);
 
-  cout << "The first piece of data should have size 72 bytes.\n";
-  cout << "It should also have ID = 0 and have two fields, \"INT ID\" "
-       << "and \"FLOAT ID\".\n";
-  cout << "The integers should count from 0 to 20, skipping by 5.\n";
-  cout << "The floats should count from 0 to 0.8, skipping by 0.2.\n";
-  cout << "The integer in array position 1 should be 5 and is "
-       << moreIntData[1] << "\n";
-  cout << "The float in array position 2 should be 0.4 and is "
-       << moreFloatData[2] << "\n";
-  data1.dump(true);
-  cout << "We can also print the data in XML format.\n";
-  data1.print();
+  // Does the data have the right size?
+  if (data1.size() != 72){
+    cout << "*** Test failed because of wrong data size.\n";
+    exit(0);
+  }
+  // Have we received the right data upon unpacking?
+  for (i=0; i<5; i++){
+    if (moreIntData[i] != 5*i){
+      cout << "*** Test failed because of wrong integer field unpacking.\n";
+      exit(0);
+    }
+  }
+  for (i=0; i<5; i++){
+    // NOTE: floats will not be EXACTLY the same!
+    if (fabs(moreFloatData[i]-i/5.0) > 0.0001){
+      cout << "*** Test failed because of wrong float field unpacking.\n";
+      exit(0);
+    }
+  }
+  // Check the second piece of data.
+  if (data2.size() != 80){
+    cout << "*** Test failed because of wrong data size (2).\n";
+    exit(0);
+  }
+  // have we received the right data upon unpacking?
+  char* testCharPtr = (char*) data2.getDataPtr(CHAR_ID, AR_CHAR);
+   if (testCharPtr[0] != 'A'){
+     cout << "*** test failed (wrong char field unpacking, "
+	  << "record 2).\n";
+     exit(0);
+   }
+   if (testCharPtr[1] != 'B'){
+     cout << "*** test failed (wrong char field unpacking, "
+	  << "record 2).\n";
+     exit(0);
+   }
+   if (testCharPtr[2] != ' '){
+     cout << "*** test failed (wrong char field unpacking, "
+	  << "record 2).\n";
+     exit(0);
+   }
+   if (testCharPtr[3] != 'D'){
+      cout << "*** test failed (wrong char field unpacking, "
+	   << "record 2).\n";
+      exit(0);
+   }
+   if (testCharPtr[4] != 'E'){
+     cout << "*** test failed (wrong char field unpacking, "
+	  << "record 2).\n";
+     exit(0);
+   }
+   for (i=0; i<5; i++){
+     // NOTE: doubles will not be the same!
+     if (fabs(((double*)data2.getDataPtr(DOUBLE_ID, AR_DOUBLE))[i]
+	      -i/2.0) > 0.0001){
+       cout << "*** test failed (wrong double field unpacking, "
+	    << "record 2).\n";
+       exit(0);
+     }
+   }
 
-  cout << "*****************************************************\n";
-  cout << "We now test file I/O. If all goes well, you should "
-       << "see XML dumps of the two records defined above.\n";
+  char buffer[1000];
+  // Testing packing/unpacking into a buffer.
+  data2.pack(buffer);
+  arStructuredData data3(&t2);
+  data3.unpack(buffer);
+  // See if the data has the right size AND if it has the right double data.
+  if (data3.size() != 80){
+    cout << "*** Test failed because of wrong unpack data size.\n";
+    exit(0);
+  }
+  for (i=0; i<5; i++){
+     // NOTE: doubles will not be the same!
+     if (fabs(((double*)data3.getDataPtr(DOUBLE_ID, AR_DOUBLE))[i]
+	      -i/2.0) > 0.0001){
+       cout << "*** test failed (wrong double field unpacking, "
+	    << "record 2).\n";
+       exit(0);
+     }
+   }
+  
+  // Check the size of the template dictionary.
+  if (dict1.size() != 216){
+    cout << "*** Test failed (template dictionary has wrong size).\n";
+    exit(0);
+  }
+  dict1.pack(buffer);
+  dict2.unpack(buffer);
+  // See if the unpacked dictionary has the right size.
+  if (dict2.size() != 216){
+    cout << "*** Test failed (unpacked dictionary has the wrong size).\n";
+    exit(0);
+  }
+  
+  cout << "*** PASSED\n";
+
+  cout << "Beginning unit test 2: Basic file I/O.\n";
   ar_timeval time1;
   arFileTextStream fileStream2;
   arStructuredDataParser theParser2(&dict1);
   FILE* testFile = fopen("Junk.txt","w");
   if (!testFile){
-    cout << "failed to open test file for writing.\n";
-    goto LNext;
+    cout << "*** Test failed (could not open temp file for writing).\n";
+    exit(0);
   }
   data1.print(testFile);
   data2.print(testFile);
   fclose(testFile);
   testFile = fopen("Junk.txt","r");
   if (!testFile){
-    cout << "failed to open test file for reading.\n";
+    cout << "*** Test failed (could not open temp file for reading).\n";
+    exit(0);
   }
   else{
     arFileTextStream fileStream;
@@ -91,28 +195,167 @@ int main(){
     arStructuredDataParser theParser(&dict1);
     arStructuredData* fileData = theParser.parse(&fileStream);
     if (fileData){
-      fileData->print();
+      // check to see that the data is correct.
+      if (fileData->getID() != t1.getID()){
+	cout << "*** test failed (wrong ID on first record from file).\n";
+	exit(0);
+      }
+      if (fileData->getDataDimension(INT_ID) != 5){
+	cout << "*** test failed (wrong data dimension on first record "
+	     << "(int field) from file).\n";
+	exit(0);
+      }
+      for (i=0; i<5; i++){
+        if (((int*)fileData->getDataPtr(INT_ID, AR_INT))[i] != 5*i){
+	  cout << "*** test failed (wrong integer field unpacking, "
+	       << "record 1).\n";
+	  exit(0);
+	}
+      }
+      if (fileData->getDataDimension(FLOAT_ID) != 5){
+	cout << "*** test failed (wrong data dimension on first record "
+	     << "(float field) from file).\n";
+	exit(0);
+      }
+      for (i=0; i<5; i++){
+	// NOTE: floats will not be the same!
+        if (fabs(((float*)fileData->getDataPtr(FLOAT_ID, AR_FLOAT))[i]-i/5.0)
+            > 0.0001){
+	  cout << "*** test failed (wrong float field unpacking, "
+	       << "record 1).\n";
+	  exit(0);
+	}
+      }
       theParser.recycle(fileData);
     }
     else{
-      cout << "Parser failed to deal with input file.\n";
+      cout << "*** Test failed (could not read first record from file).\n";
+      exit(0);
     }
     
     fileData = theParser.parse(&fileStream);
     fclose(testFile);
     if (fileData){
-      fileData->print();
+      // check to see that the data is correct.
+      if (fileData->getID() != t2.getID()){
+	cout << "*** test failed (wrong ID on second record from file).\n";
+	exit(0);
+      }
+      if (fileData->getDataDimension(CHAR_ID) != 5){
+	cout << "*** test failed (wrong data dimension on second record "
+	     << "(char field) from file).\n";
+	exit(0);
+      }
+      testCharPtr = (char*)fileData->getDataPtr(CHAR_ID, AR_CHAR);
+      if (testCharPtr[0] != 'A'){
+	cout << "*** test failed (wrong char field unpacking, "
+	     << "record 2).\n";
+	exit(0);
+      }
+      if (testCharPtr[1] != 'B'){
+	cout << "*** test failed (wrong char field unpacking, "
+	     << "record 2).\n";
+	exit(0);
+      }
+      if (testCharPtr[2] != ' '){
+	cout << "*** test failed (wrong char field unpacking, "
+	     << "record 2).\n";
+	exit(0);
+      }
+      if (testCharPtr[3] != 'D'){
+        cout << "*** test failed (wrong char field unpacking, "
+	     << "record 2).\n";
+	exit(0);
+      }
+      if (testCharPtr[4] != 'E'){
+	cout << "*** test failed (wrong char field unpacking, "
+	     << "record 2).\n";
+        exit(0);
+      }
+      if (fileData->getDataDimension(DOUBLE_ID) != 5){
+	cout << "*** test failed (wrong data dimension on second record "
+	     << "(char field) from file).\n";
+	exit(0);
+      }
+      for (i=0; i<5; i++){
+	// NOTE: doubles will not be the same!
+        if (fabs(((double*)fileData->getDataPtr(DOUBLE_ID, AR_DOUBLE))[i]
+		 -i/2.0) > 0.0001){
+	  cout << "*** test failed (wrong double field unpacking, "
+	       << "record 2).\n";
+	  exit(0);
+	}
+      }
       theParser.recycle(fileData);
     }
     else{
-      cout << "Parser failed to deal with input file.\n";
+      cout << "*** Test failed (could not read second record from file).\n";
+      exit(0);
     }
   }
+  cout << "*** PASSED.\n";
+
+  cout << "Beginning unit test 3: conversion functions.\n";
+
+  // conversion tests
+  long theLong;
+  int theInt;
+  if (!ar_stringToLongValid("55555",theLong)){
+   cout << "String->long test 1 failed.\n";
+   exit(0);
+  }
+  if (theLong != 55555){
+   cout << "String->long test 1 failed.\n";
+   exit(0);
+  }
+  if (!ar_longToIntValid(5000,theInt)){
+   cout << "Long->int test 1 failed.\n";
+   exit(0);
+  }
+  if (!ar_stringToLongValid("-2140000000",theLong)){
+   cout << "String->long test 2 failed.\n";
+   exit(0);
+  }
+  if (theLong != -2140000000){
+   cout << "String->long test 2 failed.\n";
+   exit(0);
+  }
+  if (ar_stringToLongValid("10000000000000000",theLong)){
+   cout << "String->long test 3 failed.\n";
+   exit(0);
+  }
+  double theDouble;
+  float theFloat;
+  if (ar_stringToDoubleValid("1.2e500",theDouble)){
+     cout << "String->double test 1 failed.\n";
+     exit(0);
+  }
+  if (!ar_stringToDoubleValid("1.42678e125",theDouble)){
+     cout << "String->double test 2 failed.\n";
+     exit(0);
+  }
+  if (theDouble != 1.42678e125){
+     cout << "String->double test 2 failed.\n";
+     exit(0);
+  }
+  if (ar_doubleToFloatValid(theDouble,theFloat)){
+    cout << "Double->float test 1 failed.\n";
+    exit(0);
+  }
+  if (!ar_doubleToFloatValid(1.237e-10,theFloat)){
+     cout << "Double->float test 2 failed.\n";
+     exit(0);
+  }
+  cout << "*** PASSED.\n";
+
+  exit(0);
+
+  cout << "Beginning unit test 3: XML file I/O.\n";
   // now, we will test speed of reading and writing..
   testFile = fopen("Junk.txt","w");
   if (!testFile){
-    cout << "failed to open test file for speed writing.\n";
-    goto LNext;
+    cout << "*** Test failed (could not open file).\n";
+    exit(0);
   }
   float speedFloatBuffer[16];
   data1.dataIn(FLOAT_ID, speedFloatBuffer, AR_FLOAT, 16);
@@ -121,94 +364,48 @@ int main(){
   for (s=0; s<10000; s++){
     data1.print(testFile);
   }
-  cout << "^^^^^ It took " << ar_difftime(ar_time(), time1) 
-       << " microseconds to write 10000 records to a file.\n";
+  cout << "^^^^^ It took " << ar_difftime(ar_time(), time1)/1000000.0 
+       << " seconds to write 10000 records to a file.\n";
   fclose(testFile);
   testFile = fopen("Junk.txt","r");
   if (!testFile){
-    cout << "failed to open test file for speed reading.\n";
-    goto LNext;
+    cout << "*** Test failed (could not open file for reading)..\n";
+    exit(0);
   }
   fileStream2.setSource(testFile);
   time1 = ar_time();
   for (s=0; s<10000; s++){
     arStructuredData* result = theParser2.parse(&fileStream2);
     if (!result){
-      cout << "Error in reading 10000 records.\n";
-      break;
+      cout << "*** Test failed (could not read all records, stopped "
+	   << "at " << s << ").\n";
+      exit(0);
     }
   }
   cout << "^^^^^ It took " << ar_difftime(ar_time(), time1)/1000000.0 
        << " seconds to read 10000 records from a file.\n";
   fclose(testFile);
-LNext:
-    
-  cout << "*****************************************************\n";
+  cout << "*** PASSED.\n";
 
-  cout << "The next piece of data should have size 80 bytes.\n";
-  cout << "It should also have ID = 1 and have two fields, \"CHAR ID\" "
-       << "and \"DOUBLE ID\".\n";
-  cout << "The chars should go from A to E.\n";
-  cout << "The doubles should count from 0 to 2, skipping by 0.5.\n";
-  cout << "The char in array position 0 should be A and is "
-       << moreCharData[0] << "\n";
-  cout << "The float in array position 3 should be 1.5 and is "
-       << moreDoubleData[3] << "\n";
-  data2.dump(true);
-  cout << "We can also print the data in XML format.\n";
-  data2.print();
-  cout << "*****************************************************\n";
-  char buffer[1000];
-  data2.pack(buffer);
-  arStructuredData data3(&t2);
-  data3.unpack(buffer);
-  cout << "We now  pack this piece of data into a buffer and extract it into\n"
-       << "a new arStructuredData record from that buffer. The dump should\n"
-       << "be identical.\n";
-  data3.dump(true);
+  cout << "Beginning unit test 4: Thread safety of platform's lib c++.\n";
+  // THIS ISN'T NEARLY LONG ENOUGH!
+  arThread thread1(hammerString1);
+  arThread thread2(hammerString2);
+  time1 = ar_time();
+  while (ar_difftime(ar_time(), time1)/1000000.0 < 10){
+    ar_usleep(10000);
+  }
+  keepStringTestRunning = false;
+  cout << "*** PASSED.\n";
   
-  cout << "The template dictionary should have size 216\n";
-  dict1.dump();
-  dict1.pack(buffer);
-  dict2.unpack(buffer);
-  cout << "The template dictionary was packed into a buffer and then\n"
-       << "unpacked into a new structure. This should be identical.\n";
-  dict2.dump();
-  
-  
-  // conversion tests
-  cout << "\nTests of conversions with error-checking.\n";
-  cout << "Note that error messages do not necessarily indicate failure;\n"
-      << "some of the conversions are intended to fail.  Only messages\n"
-      << "of the form 'XXXX test failed' indicate failure.\n\n";
-  long theLong;
-  int theInt;
-  if (!ar_stringToLongValid("55555",theLong))
-   cout << "String->long test 1 failed.\n";
-  if (theLong != 55555)
-   cout << "String->long test 1 failed.\n";
-  if (!ar_longToIntValid(5000,theInt))
-   cout << "Long->int test 1 failed.\n";
-  if (!ar_stringToLongValid("-2140000000",theLong))
-   cout << "String->long test 2 failed.\n";
-  if (theLong != -2140000000)
-   cout << "String->long test 2 failed.\n";
-  if (ar_stringToLongValid("10000000000000000",theLong))
-   cout << "String->long test 3 failed.\n";
-  double theDouble;
-  float theFloat;
-  if (ar_stringToDoubleValid("1.2e500",theDouble))
-     cout << "String->double test 1 failed.\n";
-  if (!ar_stringToDoubleValid("1.42678e125",theDouble))
-     cout << "String->double test 2 failed.\n";
-  if (theDouble != 1.42678e125)
-     cout << "String->double test 2 failed.\n";
-  if (ar_doubleToFloatValid(theDouble,theFloat))
-    cout << "Double->float test 1 failed.\n";
-  if (!ar_doubleToFloatValid(1.237e-10,theFloat))
-     cout << "Double->float test 2 failed.\n";
-  cout << "Conversion tests completed.\n";
-  cout << "---------------------------\n";
+  // OK... SEVERAL MORE CONFIDENCE TESTS ARE REQUIRED.
+  // 1. Convert the below into a real confidence test (use $SZGHOME to
+  //    get known directories).
+  // 2. Make s *binary* reading/writing file test. This will highlight
+  //    the speed differences between XML and binary.
+  // 3. Make a arStructuredDataParser threading stress/memory leak test that
+  //    pounds the CPU for a few minutes.
+  // 4. The lib c++ thread-safety test really needs to run for MUCH longer.
   
   cout << "\nTest of file/directory checks.\n\n";
   string upDir("..");

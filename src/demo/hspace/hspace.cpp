@@ -81,8 +81,11 @@ void preExchange(arMasterSlaveFramework& fw){
 
   const float j0 = fw.getAxis(0);
   const float j1 = fw.getAxis(1);
+  // The time it took to draw the last frame... in milliseconds.
+  float frametime = fw.getLastFrameTime();
   hyperTransform =
-    hyperTranslate(j1/200.0) * hyperTransform * hyperRotate('y',j0/200.0);
+    hyperTranslate(frametime*j1/3200.0) * hyperTransform 
+    * hyperRotate('y',frametime*j0/3200.0);
 }
 
 bool postExchange(arMasterSlaveFramework&){

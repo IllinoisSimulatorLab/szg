@@ -690,6 +690,9 @@ string arSZGClient::getProcessList(){
 
 /// Kill (or remove from the szgserver table, really) by component ID.
 bool arSZGClient::killProcessID(int id){
+  if (!_connected){
+    return false;
+  }
   // Must get storage for the message.
   arStructuredData* killIDData
     = _dataParser->getStorage(_l.AR_KILL);
@@ -714,6 +717,9 @@ bool arSZGClient::killProcessID(int id){
 /// Return false if no process was found.
 bool arSZGClient::killProcessID(const string& computer,
                                 const string& processLabel){
+  if (!_connected){
+    return false;
+  }
   string realComputer;
   if (computer == "NULL" || computer == "localhost"){
     // use the computer we are on as the default
@@ -827,9 +833,13 @@ int arSZGClient::getProcessID(void){
 // MAYBE THIS IS A HIGHER_LEVEL CONSTRUCT.
 bool arSZGClient::sendReload(const string& computer,
                              const string& processLabel) {
-  if (processLabel == "NULL")
+  if (!_connected){
+    return false;
+  }
+  if (processLabel == "NULL"){
     // Vacuously ok.
     return true;
+  }
   const int pid = getProcessID(computer, processLabel);
   const int ok = pid != -1 && (sendMessage("reload", "NULL", pid) >= 0);
   if (!ok)
@@ -896,6 +906,9 @@ int arSZGClient::sendMessage(const string& type, const string& body,
 /// @param context Set to the context of the message (the virtual computer)
 int arSZGClient::receiveMessage(string* userName, string* messageType,
                                 string* messageBody, string* context){
+  if (!_connected){
+    return 0;
+  }
   // This is the one place we get a record via its type as opposed to its
   // match.
   arStructuredData* data = _getDataByID(_l.AR_SZG_MESSAGE);
@@ -927,6 +940,9 @@ int arSZGClient::getMessageResponse(list<int> tags,
                                     string& body, 
                                     int& match,
                                     int timeout){
+  if (!_connected){
+    return 0;
+  }
   arStructuredData* ack = NULL;
   match = _getTaggedData(ack, tags,_l.AR_SZG_MESSAGE_ADMIN, timeout);
   if (match < 0){
@@ -968,6 +984,9 @@ int arSZGClient::getMessageResponse(list<int> tags,
 /// (the default)
 bool arSZGClient::messageResponse(int messageID, const string& body,
                                   bool partialResponse){
+  if (!_connected){
+    return false;
+  }
   const string& statusField = partialResponse ? string("SZG_CONTINUE") : 
                                                 string("SZG_SUCCESS");
   // Must get storage for the message.
@@ -1004,6 +1023,9 @@ bool arSZGClient::messageResponse(int messageID, const string& body,
 /// @param key Value of which a future ownership trade can occur
 int arSZGClient::startMessageOwnershipTrade(int messageID,
                                             const string& key){
+  if (!_connected){
+    return -1;
+  }
   // Must get storage for the message.
   arStructuredData* messageAdminData
     = _dataParser->getStorage(_l.AR_SZG_MESSAGE_ADMIN);
@@ -1029,6 +1051,9 @@ int arSZGClient::startMessageOwnershipTrade(int messageID,
 /// timeout argument has elapsed). Returns false on timeout or other error
 /// and true otherwise.
 bool arSZGClient::finishMessageOwnershipTrade(int match, int timeout){
+  if (!_connected){
+    return false;
+  }
   return _getMessageAck(match, "message ownership trade", NULL, timeout);
 }
 
@@ -1037,6 +1062,9 @@ bool arSZGClient::finishMessageOwnershipTrade(int match, int timeout){
 /// taken, does not exist, or if we are not authorized to revoke it.
 /// @param key Fully expanded string on which the ownership trade rests
 bool arSZGClient::revokeMessageOwnershipTrade(const string& key){
+  if (!_connected){
+    return false;
+  }
   // Must get storage for the message.
   arStructuredData* messageAdminData
     = _dataParser->getStorage(_l.AR_SZG_MESSAGE_ADMIN);
@@ -1060,6 +1088,9 @@ bool arSZGClient::revokeMessageOwnershipTrade(const string& key){
 /// Returns the ID of the message if successful, and 0 otherwise
 /// NOTE: messages never have ID 0!
 int arSZGClient::requestMessageOwnership(const string& key){
+  if (!_connected){
+    return 0;
+  }
   // Must get storage for the message.
   arStructuredData* messageAdminData
     = _dataParser->getStorage(_l.AR_SZG_MESSAGE_ADMIN);
@@ -1086,6 +1117,9 @@ int arSZGClient::requestMessageOwnership(const string& key){
 /// exits (notification will occur immedicately if that ID is not currently
 /// held).
 int arSZGClient::requestKillNotification(int componentID){
+  if (!_connected){
+    return -1;
+  }
   arStructuredData* data 
     = _dataParser->getStorage(_l.AR_SZG_KILL_NOTIFICATION);
   int match = _fillMatchField(data);
@@ -1106,6 +1140,9 @@ int arSZGClient::requestKillNotification(int componentID){
 /// -1 on failure. 
 int arSZGClient::getKillNotification(list<int> tags, 
                                      int timeout){
+  if (!_connected){
+    return -1;
+  }
   // block until the response occurs (or timeout)
   arStructuredData* data = NULL;
   int match = _getTaggedData(data, tags,
@@ -1125,6 +1162,9 @@ int arSZGClient::getKillNotification(list<int> tags,
 /// (and set ownerID to -1). Otherwise, set ownerID to the lock-holding
 /// component's ID.  Return true iff the lock is acquired.
 bool arSZGClient::getLock(const string& lockName, int& ownerID){
+  if (!_connected){
+    return false;
+  }
   // Must get storage for the message.
   arStructuredData* lockRequestData
     = _dataParser->getStorage(_l.AR_SZG_LOCK_REQUEST);
@@ -1158,6 +1198,9 @@ bool arSZGClient::getLock(const string& lockName, int& ownerID){
 /// Release a lock.  Return false on error,
 /// if the lock does not exist or if another component is holding it.
 bool arSZGClient::releaseLock(const string& lockName){
+  if (!_connected){
+    return false;
+  }
   // Must get storage for message.
   arStructuredData* lockReleaseData
     = _dataParser->getStorage(_l.AR_SZG_LOCK_RELEASE);
@@ -1191,6 +1234,9 @@ bool arSZGClient::releaseLock(const string& lockName){
 /// not held by the server. NOTE: we return the function match on success
 /// (which is always nonnegative) or -1 on failure.
 int arSZGClient::requestLockReleaseNotification(const string& lockName){
+  if (!_connected){
+    return -1;
+  }
   arStructuredData* data 
     = _dataParser->getStorage(_l.AR_SZG_LOCK_NOTIFICATION);
   int match = _fillMatchField(data);
@@ -1211,6 +1257,9 @@ int arSZGClient::requestLockReleaseNotification(const string& lockName){
 /// -1 on failure. 
 int arSZGClient::getLockReleaseNotification(list<int> tags, 
                                             int timeout){
+  if (!_connected){
+    return -1;
+  }
   // block until the response occurs (or timeout)
   arStructuredData* data = NULL;
   int match = _getTaggedData(data, tags,
@@ -1227,6 +1276,9 @@ int arSZGClient::getLockReleaseNotification(list<int> tags,
 
 /// Prints all locks currently held inside the szgserver.
 void arSZGClient::printLocks(){
+  if (!_connected){
+    return;
+  }
   arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_LOCK_LISTING);
   // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
   // NOTE: we do not attempt to print out the computers on which the
@@ -1296,6 +1348,9 @@ bool arSZGClient::_getPortsCore1(
 /// @param fRetry true iff we're retrying
 bool arSZGClient::_getPortsCore2(arStructuredData* data, int match, 
                                  int* portIDs, bool fRetry) {
+  if (!_connected){
+    return false;
+  }
   // NOTE: the match field is filled-in in _getPortsCore1
   if (!_dataClient.sendData(data)){
     cerr << _exeName << " warning: failed to send service registration "
@@ -1348,6 +1403,9 @@ int arSZGClient::_fillMatchField(arStructuredData* data){
 bool arSZGClient::registerService(const string& serviceName, 
                                   const string& channel,
                                   int numberPorts, int* portIDs){
+  if (!_connected){
+    return false;
+  }
   arStructuredData* data = NULL;
   int match = -1;
   return _getPortsCore1(serviceName, channel, numberPorts, data, match, false) 
@@ -1368,6 +1426,9 @@ bool arSZGClient::registerService(const string& serviceName,
 bool arSZGClient::requestNewPorts(const string& serviceName, 
                                   const string& channel,
                                   int numberPorts, int* portIDs){
+  if (!_connected){
+    return false;
+  }
   arStructuredData* data = NULL;
   int match = -1;
   return
@@ -1393,6 +1454,9 @@ bool arSZGClient::requestNewPorts(const string& serviceName,
 bool arSZGClient::confirmPorts(const string& serviceName, 
                                const string& channel,
                                int numberPorts, int* portIDs){
+  if (!_connected){
+    return false;
+  }
   if (channel != "default" && channel != "graphics" && channel != "sound"
       && channel != "input"){
     cerr << _exeName << " error: confirmPorts(...) passed invalid "
@@ -1460,6 +1524,10 @@ arPhleetAddress arSZGClient::discoverService(const string& serviceName,
                                              const string& networks,
                                              bool   async){
   arPhleetAddress result;
+  if (!_connected){
+    result.valid = false;
+    return result;
+  }
 
   // pack the data
   arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_REQUEST_SERVICE);
@@ -1506,6 +1574,9 @@ arPhleetAddress arSZGClient::discoverService(const string& serviceName,
 
 /// The code to print either pending service requests or active services
 void arSZGClient::_printServices(const string& type){
+  if (!_connected){
+    return;
+  }
   arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_GET_SERVICES);
   int match = _fillMatchField(data);
   // we want to get the "registered" or "active" services
@@ -1548,6 +1619,9 @@ void arSZGClient::_printServices(const string& type){
 /// Returns the match to be used with the other side of this call on
 /// success or -1 on failure.
 int arSZGClient::requestServiceReleaseNotification(const string& serviceName){
+  if (!_connected){
+    return -1;
+  }
   arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_SERVICE_RELEASE);
   int match = _fillMatchField(data);
   data->dataInString(_l.AR_SZG_SERVICE_RELEASE_NAME, serviceName);
@@ -1569,6 +1643,9 @@ int arSZGClient::requestServiceReleaseNotification(const string& serviceName){
 /// succeed, we simply return the match upon which we were successful.
 int arSZGClient::getServiceReleaseNotification(list<int> tags,
                                                int timeout){
+  if (!_connected){
+    return -1;
+  }
   // block until the response occurs
   arStructuredData* data;
   int match = _getTaggedData(data, tags, _l.AR_SZG_SERVICE_RELEASE, timeout);
@@ -1586,6 +1663,9 @@ int arSZGClient::getServiceReleaseNotification(list<int> tags,
 /// Confusingly, at present, this returns the empty string both if the service
 /// fails to exist AND if the service has the empty string as its info!
 string arSZGClient::getServiceInfo(const string& serviceName){
+  if (!_connected){
+    return string("");
+  }
   arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_SERVICE_INFO);
   int match = _fillMatchField(data);
   data->dataInString(_l.AR_SZG_SERVICE_INFO_OP, "get");
@@ -1612,7 +1692,10 @@ string arSZGClient::getServiceInfo(const string& serviceName){
 /// Attempts to set the "info" string associated with the particular service.
 bool arSZGClient::setServiceInfo(const string& serviceName,
                                  const string& info){
-arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_SERVICE_INFO);
+  if (!_connected){
+    return false;
+  }
+  arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_SERVICE_INFO);
   int match = _fillMatchField(data);
   data->dataInString(_l.AR_SZG_SERVICE_INFO_OP, "set");
   data->dataInString(_l.AR_SZG_SERVICE_INFO_TAG, serviceName);
@@ -1662,6 +1745,9 @@ void arSZGClient::printPendingServiceRequests(){
 /// returned.
 /// @param serviceName the name of the service in question
 int arSZGClient::getServiceComponentID(const string& serviceName){
+  if (!_connected){
+    return -1;
+  }
   arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_GET_SERVICES);
   int match = _fillMatchField(data);
   // As usual, "NULL" is our reserved string. In this case, it tells the
@@ -2405,6 +2491,16 @@ void arSZGClient::_dataThread() {
     // hence has a "match" to enable multi-threading.
     if (ar_rawDataGetID(_receiveBuffer) == _l.AR_SZG_MESSAGE){
       _dataParser->parseIntoInternal(_receiveBuffer, size);
+    }
+    else if (ar_rawDataGetID(_receiveBuffer) == _l.AR_KILL){
+      // Yes, we really do need to GO AWAY at this point.
+      // NOTE: the clearQueues() call makes every future call for messages
+      // fail! And interrupts any waiting ones as well!
+      cout << "arSZGClient remark: the server has forcibly disconnected.\n";
+      _dataParser->clearQueues();
+      cout << "arSZGClient remark: message queues cleared.\n";
+      // HMMMM.... should the below go inside a LOCK?
+      _connected = false;
     }
     else{
       arStructuredData* data = _dataParser->parse(_receiveBuffer, size);

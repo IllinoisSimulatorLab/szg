@@ -630,7 +630,10 @@ void arAppLauncher::_addService(const string& computerName,
   temp.computer = computerName;
   temp.process = serviceName;
   temp.context = context;
-  temp.tradingTag = _vircomp + string("/") + tradingTag;
+  // VERY IMPORTANT THAT THIS USES _location and NOT _vircomp!
+  // (remember... we trade against LOCATION instead of _vircomp to allow
+  // multiple virtual computers in the same stop to share stuff.
+  temp.tradingTag = _location + string("/") + tradingTag;
   temp.info = info;
   _serviceList.push_back(temp);
 }
@@ -657,8 +660,6 @@ void arAppLauncher::_unlock(){
     cerr << _exeName << " warning: no arSZGClient.\n";
     return;
   }
-  // Trying to see if it's possible to get away with removing this
-  // ar_usleep(500000);
   if (!_client->releaseLock(_location+string("/SZG_DEMO/lock"))){
     cerr << "arAppLauncher warning: failed to release lock.\n";
   }
@@ -781,9 +782,13 @@ if (!_client){
   // NOTE: the remote components DO NOT need to respond to the kill message.
   // Consequently, we ask the szgserver.
   list<int> tags;
+  // Hmmm. It is annoying to have to do the following... Maybe we could
+  // do some data structure with the request*Notifications?
+  map<int, int, less<int> > tagToID;
   for (iter = kill.begin(); iter != kill.end(); ++iter){
     int tag = _client->requestKillNotification(*iter);
     tags.push_back(tag);
+    tagToID.insert(map<int,int,less<int> >::value_type(tag, *iter));
   }
 
   // Send kill signals.
@@ -793,6 +798,7 @@ if (!_client){
 
   // Wait for everything to die (up to a suitable time-out). The time-out
   // is 8 seconds.
+  map<int,int,less<int> >::iterator trans;
   while (!tags.empty()){
     int killedID = _client->getKillNotification(tags, 8000);
     if (killedID < 0){
@@ -800,14 +806,36 @@ if (!_client){
 	   << "kill some remote processes.\n";
       cout << "The components in question are: ";
       for (list<int>::iterator n = tags.begin(); n != tags.end(); n++){
-        cout << *n << " ";
-	// IS IT REALLY A GOOD IDEA TO REMOVE STUFF FROM THE PROCESS TABLE?
-        _client->killProcessID(*n);
+	// Go ahead and remove stuff from the process table. This is the
+	// only way to actually be able to move on.
+        trans = tagToID.find(*n);
+        if (trans == tagToID.end()){
+	  // THIS SHOULD NOT HAPPEN
+	  cout << "arAppLauncher error: failed to find kill ID.\n";
+	}
+	else{
+	  // NOTE: THIS IS NOT THE TAG, but instead the process ID.
+	  cout << trans->second << " ";
+          _client->killProcessID(trans->second);
+	}
       }
       cout << "\n";
       cout << "They have been removed from the syzygy process table.\n";
       return;
     }
+    else{
+      trans = tagToID.find(killedID);
+      if (trans == tagToID.end()){
+	// THIS SHOULD NOT HAPPEN
+	cout << "arAppLauncher error: failed to find kill ID.\n";
+      }
+      else{
+	// NOTE: This IS NOT killed ID!
+        cout << "arAppLauncher remark: killed component with ID = " 
+	     << trans->second << ".\n";
+      }
+    }
+    // Only get here in case of NO timeout!
     tags.remove(killedID);
   }
 }

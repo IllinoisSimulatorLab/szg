@@ -22,18 +22,28 @@ class arStructuredDataSynchronizer{
   arStructuredDataSynchronizer(){}
   ~arStructuredDataSynchronizer(){}
 
-  arMutex* lock;
-  arConditionVar* var;
-  int* tag;
+  arMutex lock;
+  arConditionVar var;
+  int tag;
+  int refCount;
+};
+
+class arMessageQueueByID{
+ public:
+  arMessageQueueByID(){}
+  ~arMessageQueueByID(){}
+
+  list<arStructuredData*> messages;
+  arMutex lock;
+  arConditionVar var;
+  bool exitFlag;
 };
 
 typedef map<int,list<arStructuredData*>*,less<int> > SZGrecycler;
-typedef map<int,list<arStructuredData*>,less<int> > SZGmessageQueue;
-typedef map<int,arMutex*,less<int> > SZGmessageQueueLock;
-typedef map<int,arConditionVar*,less<int> > SZGmessageQueueVar;
+typedef map<int,arMessageQueueByID*,less<int> > SZGmessageQueue;
 typedef map<int,list<arStructuredData*>,less<int> > SZGtaggedMessageQueue;
-typedef map<int,arStructuredDataSynchronizer,less<int> > SZGtaggedMessageSync;
-typedef list<arStructuredDataSynchronizer> SZGunusedMessageSync;
+typedef map<int,arStructuredDataSynchronizer*,less<int> > SZGtaggedMessageSync;
+typedef list<arStructuredDataSynchronizer*> SZGunusedMessageSync;
 
 /// This class converts a byte-stream or text-stream into a sequence of 
 /// arStructuredData objects. It encapsulates some of the commonly used 
@@ -74,19 +84,25 @@ class arStructuredDataParser{
                            int timeout = -1);
   
   void recycle(arStructuredData*);
+  void clearQueues();
+  void activateQueues();
  private:
   SZGrecycler recycling;
   SZGmessageQueue       _messageQueue;
-  SZGmessageQueueLock   _messageQueueLock;
-  SZGmessageQueueVar    _messageQueueVar;
   SZGtaggedMessageQueue _taggedMessages;
   SZGtaggedMessageSync  _messageSync;
   SZGunusedMessageSync  _recycledSync;
   arTemplateDictionary* _dictionary;
   list<arBuffer<char>*> _translationBuffers;
 
-  ///< Serialize access to the data storage pool.
+  /// Serialize access to the complex message storage structures
   arMutex _globalLock; 
+  /// Serialize access to the store of unused message storage
+  arMutex _recycleLock;
+  /// Deals with the clearQueues/activateQueues calls
+  arMutex _activationLock;
+  // Should we be allowing "clients" to grab data from the various queues?
+  bool _activated;
   /// Serialize access to the list of translation buffers
   arMutex _translationBufferListLock; 
 

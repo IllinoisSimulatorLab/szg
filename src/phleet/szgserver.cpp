@@ -1959,6 +1959,19 @@ void dataConsumptionFunction(arStructuredData* theData, void*,
     const int id = theData->getDataInt(lang.AR_KILL_ID);
     // No response to this command. (MAYBE THAT SHOULD CHANGE?)
     // Consequently, no reason to propogate the "match".
+
+    // We send the component in question a kill message.
+    arSocket* killSocket = dataServer->getConnectedSocket(id);
+    if (killSocket){
+      // Go ahead and inform the component that it is to be *rudely*
+      // shut down (as opposed to the polite messaging way of shutting
+      // it down).
+      if (!dataServer->sendData(theData, killSocket)){
+	cout << "szgserver remark: failed to send kill data to remotely "
+	     << "connected socket.\n";
+      }
+    }
+    // Finally, remove the socket from our table.
     if (!dataServer->removeConnection(id)){
       cerr << "szgserver warning: failed to \"kill -9\" process id "
            << id << ".\n";

@@ -90,6 +90,9 @@ bool arConditionVar::wait(arMutex* externalLock, int timeout){
   _numberWaiting--;
   ar_mutex_unlock(&_countLock);
 
+  // HMMMM.... SHOULD THIS BE MOVED ABOVE THE lock of _countLock?
+  // It might be a good idea to do so! BE VERY CONSERVATIVE ABOUT THIS,
+  // however.
   ar_mutex_lock(externalLock);
 #else
   if (timeout >= 0){

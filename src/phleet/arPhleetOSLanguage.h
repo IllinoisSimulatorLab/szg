@@ -53,6 +53,9 @@ class arPhleetOSLanguage: public arLanguage{
   /// This method is "dkill -9" and uses the KILL record, while "dkill" uses
   /// the MESSAGE record. NOTE: THIS MESSAGE DOES NOT SEEM TO AUTOMATICALLY
   /// GET A RESPONSE. IS THAT REALLY SAFE?
+
+  /// NOTE: This message is ALSO used to send to the component in question,
+  /// indicating that it is to be externally shut down.
   int AR_KILL;
   int AR_KILL_ID;
 

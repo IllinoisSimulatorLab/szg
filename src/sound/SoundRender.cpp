@@ -39,6 +39,14 @@ void messageTask(void* pClient){
   string messageType, messageBody;
   while (true) {
     int sendID = cli->receiveMessage(&messageType,&messageBody);
+    if (!sendID){
+      // sendID == 0 exactly when we are "forced" to shutdown.
+      cout << "SoundRender is shutting down.\n";
+      // Cut-and-pasted from below.
+      soundClient->_cliSync.skipConsumption(); // fold into terminateSound()?
+      soundClient->terminateSound();
+      exit(0);
+    }
     if (messageType=="quit"){
       soundClient->_cliSync.skipConsumption(); // fold into terminateSound()?
       soundClient->terminateSound();
