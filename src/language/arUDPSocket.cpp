@@ -47,10 +47,16 @@ void arUDPSocket::reuseAddress(bool flag){
   const int parameter = flag ? 1 : 0;
   setsockopt(_socketFD, SOL_SOCKET, SO_REUSEADDR, 
              (const char*)&parameter, sizeof(int));
-  // It seems necessary to do SO_REUSEPORT too for
-  // OS X, for instance.
+  // The SO_REUSEPORT socket option seems to exist and be necessary for
+  // OS X and SGI only (they have more BSD heritage than linux).
+#ifdef AR_USE_SGI
   setsockopt(_socketFD, SOL_SOCKET, SO_REUSEPORT,
              (const char*)&parameter, sizeof(int));
+#endif
+#ifdef AR_USE_DARWIN
+  setsockopt(_socketFD, SOL_SOCKET, SO_REUSEPORT,
+             (const char*)&parameter, sizeof(int));
+#endif
 }
 
 int arUDPSocket::ar_bind(arSocketAddress* theAddress){
