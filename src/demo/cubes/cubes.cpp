@@ -53,9 +53,10 @@ bool inputEventCallback( arInputEvent& event, arIOFilter* filter, arSZGAppFramew
   dragWand.updateState( event );
   headEffector.updateState( event );
   framework->navUpdate( event );
-  if (event.getType() == AR_EVENT_AXIS) {
-    framework->loadNavMatrix();
-  }
+  // Currently, the joystick driver on windows DOES NOT guarantee a stream
+  // of input events when the stick is held in a given position. Consequently,
+  // the navigation matrix should be updated every frame.
+  framework->loadNavMatrix();
   dragWand.draw();
   
   ar_mutex_unlock(&databaseLock);
