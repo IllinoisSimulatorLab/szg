@@ -969,9 +969,10 @@ void arAppLauncher::_relaunchIncompatibleServices(
       // right info tag.
       arSlashString processLocation(_client->getProcessLabel(serviceID));
       if (processLocation.size() == 2){
-        // The process location must, in fact, be computer/name
-        if (processLocation[0] == iter->computer
-	    && processLocation[1] == _firstToken(iter->process)){
+        // The process location must, in fact, be computer/name.
+	// NOTE: Only check here if it is running on the right computer!
+	// (do not, for instance, check the process name)
+        if (processLocation[0] == iter->computer){
 	  // There is something running, offering the service, with the
 	  // right process name and on the right computer.
           // HOWEVER... is it the case that we have the right info?
@@ -997,7 +998,7 @@ void arAppLauncher::_relaunchIncompatibleServices(
 	}
 	else{
           // There is something running, offering the service, but not on
-	  // the right computer or with the right process name.
+	  // the right computer.
           cout << "arAppLauncher remark: the component offering "
 	       << "service = " << iter->tradingTag << " is not in the right "
 	       << "location. Relaunching.\n";

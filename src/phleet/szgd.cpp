@@ -43,31 +43,58 @@ arMutex processCreationLock;
 arSZGClient* SZGClient = NULL;
 
 // By convention, we assume that python applications are installed as
-// "bundles" in sub-directories on a directory on SZG_PYTHON/path, where
-// the application bundle has the same directory name as the application.
-// This looks for the first such directory. Everything should look something
-// like:
+// "bundles" in sub-directories on a directory on SZG_PYTHON/path.
+// The application bundles can have arbitrary names. This function
+// searches the path, piece by piece. In each piece, it examines
+// subdirectories, looking for one containing the python script. The
+// first such found is returned.
 //
 // python_directory1
 //     my_app_1
-//          my_app_1.py
+//          some_name1.py
 //     my_app_2
-//          my_app_2.py
+//          some_name2.py
 // python_directory2
 //     my_app_3
-//          my_app_3.py
+//          some_name3.py
 //
-// where SZG_PYTHON/path = python_directory1;python_directory2
+// where SZG_PYTHON/path = python_directory1;python_directory2.
+//
+// In this case, if pyfile == some_name2.py, then 
+// python_directory2/my_app_2 will be returned.
 string getPythonPath( const string& user, string pyfile ) {
-  // Next, retrieve the python path.
-  string pythonDataPath = SZGClient->getAttribute(user, "NULL", "SZG_PYTHON", 
+  // Next, retrieve the python application path.
+  string pythonAppPath = SZGClient->getAttribute(user, "NULL", "SZG_PYTHON", 
                                                   "path", "");
-  if (pythonDataPath == "NULL") {
+  if (pythonAppPath == "NULL") {
     cout << "szgd error: SZG_PYTHON/path not set.\n";
     return "NULL";
   }
-  string fileDirectory = pyfile.substr( 0, pyfile.length()-3 );
-  return ar_directoryFind(fileDirectory,"",pythonDataPath);
+  // Go through the pieces of the python data path, in order. In each of these
+  // directories, we step through all subdirectories, looking for the named
+  // file. The first one we find is determined to be the directory of
+  // execution.
+  arSemicolonString pythonPath(pythonAppPath);
+  string actualDirectory("NULL");
+  for (unsigned int i=0; i<pythonAppPath.size(); i++){
+    list<string> contents = ar_listDirectory(pythonPath[i]);
+    for (list<string>::iterator iter = contents.begin(); 
+         iter != contents.end(); iter++){
+      string potentialFile = *iter;
+      ar_pathAddSlash(potentialFile);
+      potentialFile += pyfile;
+      FILE* filePtr = ar_fileOpen(potentialFile,"","","r");
+      if (filePtr){
+        ar_fileClose(filePtr);
+        actualDirectory = *iter;
+        break;
+      }
+    }
+    if (actualDirectory != "NULL"){
+      break;
+    }
+  }
+  return actualDirectory;
 }
 
 // Given the specified user and argument string, contact the szgserver and
@@ -339,10 +366,13 @@ void execProcess(void* i){
   // The python module search path must also be modified for each user, for
   // similar reasons. It seems like python, by default, will prepend the
   // directory in which the .py file lives.
-  //   1. SZG_PYTHON/path
-  //   2. SZG_EXEC/path (PySZG.py and PySZG.so (or .dll depending on platform)
+  //   1. SZG_PYTHON/path (python modules can be put in the top level of
+  //      your "application bundle directory")
+  //   2. SZG_PYTHON/lib_path (conceived of as where python modules might go,
+  //      but not "application bundles")
+  //   3. SZG_EXEC/path (PySZG.py and PySZG.so (or .dll depending on platform)
   //      must be in the same directory and on the PYTHONPATH).
-  //   3. PYTHONPATH, as held by the user running the szgd.
+  //   4. PYTHONPATH, as held by the user running the szgd.
 
   // Note that the dll search path has a DIFFERENT name on EVERY platform.
 #ifdef AR_USE_LINUX
@@ -715,8 +745,9 @@ int main(int argc, char** argv){
   // impossible to get the name automatically on Win98 and we want to run
   // szgd on Win98
   SZGClient->init(argc, argv, "szgd");
-  if (!*SZGClient)
+  if (!*SZGClient){
     return 1;
+  }
   
   // only a single szgd should be running on a given computer
   int ownerID = -1;

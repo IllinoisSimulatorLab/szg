@@ -18,11 +18,13 @@
 using namespace std;
 
 #ifndef AR_USE_WIN_32
+#include <dirent.h>
 #include <sys/types.h>
 #include <unistd.h>
 #endif
 
 #ifdef AR_USE_WIN_32
+#include <io.h>     // needed for directory listing
 #include <direct.h>
 #include <time.h>
 #include <iostream>
@@ -1173,6 +1175,70 @@ FILE* ar_fileOpen(const string& name,
 FILE* ar_fileOpen(const string& name, const string& path,
                   const string& operation){
   return ar_fileOpen(name, "", path, operation);
+}
+
+/// If the file system entity referenced by "name" is not a directory,
+/// return the empty list. If it is, return a list containing the full
+/// paths to each of its contents (since this is what is needed
+/// for further recursive operations on those contents).
+/// NOTE: we do NOT filter out the standard "." and ".."
+/// entries.
+list<string> ar_listDirectory(const string& name){
+  // We will return a full path to the included file.
+  string directoryPrefix = name;
+  ar_scrubPath(directoryPrefix);
+  ar_pathAddSlash(directoryPrefix);
+  list<string> result;
+  struct stat statbuf;
+  if (stat(name.c_str(), &statbuf) == -1){
+    // Cannot access the file system entity.
+    return result;
+  }
+  if ((statbuf.st_mode & S_IFMT) != S_IFDIR){
+    // Exists but is not a directory.
+    return result;
+  }
+  // It turns out that determining the contents of a directory is VERY
+  // different between Unix and Win32.
+#ifndef AR_USE_WIN_32
+  // The Unix side.
+  DIR* directory = opendir(name.c_str());
+  if (!directory){
+    return result;
+  }
+  dirent* directoryEntry;
+  while ((directoryEntry = readdir(directory)) != NULL){
+    // There is another entry. Push the name.
+    result.push_back(directoryPrefix+string(directoryEntry->d_name));
+  }
+  closedir(directory);
+#else
+  // The Windows side. Here, the file-system lets us browse through a list
+  // of files that match a name (including wildcards). 
+  string fileSpecification = name;
+  // Make sure the path is "scrubbed" and that it has a trailing slash of the
+  // right type.
+  ar_scrubPath(fileSpecification);
+  ar_pathAddSlash(fileSpecification);
+  // Finally, make sure that we add a "wildcard" character, since we want
+  // everything in the directory.
+  fileSpecification += "*";
+  _finddata_t fileinfo;
+  intptr_t fileHandle = _findfirst(fileSpecification.c_str(), &fileinfo);
+  if (fileHandle == -1){
+    // No file matching the "specification".
+    return result;
+  }
+  result.push_back(directoryPrefix+string(fileinfo.name));
+  while (true){ 
+    if (_findnext(fileHandle, &fileinfo) == -1){
+      break;
+    }
+    result.push_back(directoryPrefix+string(fileinfo.name));
+  }
+  _findclose(fileHandle);
+#endif
+  return result;
 }
 
 int ar_fileClose(FILE* pf){

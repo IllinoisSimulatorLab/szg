@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>
+#include <list>
 #include <vector>
 #include <fstream>
 using namespace std;
@@ -259,6 +260,7 @@ SZG_CALL string ar_fileFind(const string& name,
 SZG_CALL string ar_directoryFind(const string& name, 
 		                 const string& subdirectory,
 		                 const string& path);
+SZG_CALL list<string> ar_listDirectory(const string& name);
 SZG_CALL int ar_fileClose(FILE* pf);
 
 /// ARchar buffer management

@@ -2621,7 +2621,9 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
       }
     }
     if (!match){
-      cout << _exeName << " error: invalid network specified.\n";
+      cout << _exeName << " error: invalid network specified.\n"
+           << "  Have you specified a network in a virtual computer that "
+           << "  does not exist in your szg.conf file?\n";
       return false;
     }
   }
