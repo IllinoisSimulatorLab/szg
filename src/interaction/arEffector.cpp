@@ -221,6 +221,15 @@ void arEffector::requestUngrab( arInteractable* grabee ) {
     _grabbedObject = NULL;
 }
 
+void arEffector::forceUngrab() {
+  if (_grabbedObject) {
+    if (!_grabbedObject->untouch(*this)) {
+      cerr << "arEffector warning: object didn't want to be ungrabbed.\n";
+    }
+    _grabbedObject = NULL;
+  }
+}
+
 int arEffector::getButton( unsigned int index ){
   return _inputState.getButton( index - _buttonOffset );
 }

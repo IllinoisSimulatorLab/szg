@@ -26,6 +26,7 @@ arHeadWandSimulator::arHeadWandSimulator(){
   _matrix[1] = ar_translationMatrix(2,3,0);
   for (int i=0; i<6; i++){
     _button[i] = 0;
+    _newButton[i] = 0;
   }
   _axis[0] = 0;
   _axis[1] = 0;

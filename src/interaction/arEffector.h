@@ -44,6 +44,7 @@ class SZG_CALL arEffector {
     void updateState( arInputState* state );
     bool requestGrab( arInteractable* grabee );
     void requestUngrab( arInteractable* grabee );
+    void forceUngrab();
     int getButton( unsigned int index );
     float getAxis( unsigned int index );
     arMatrix4 getMatrix() const { return _tipMatrix; }
