@@ -332,7 +332,8 @@ bool arDatabase::attach(arDatabaseNode* parent,
   while (!done){
     record = parser->parseBinary(source);
     if (record){
-      int success = _filterIncoming(parent, record, nodeMap, NULL, true);
+      int success = _filterIncoming(parent, record, nodeMap, NULL, 
+                                    NULL, true, true);
       arDatabaseNode* altered = NULL;
       if (success){
 	altered = alter(record);
@@ -382,7 +383,8 @@ bool arDatabase::attachXML(arDatabaseNode* parent,
   while (!done){
     record = parser->parse(&fileStream);
     if (record){
-      int success = _filterIncoming(parent, record, nodeMap, NULL, true);
+      int success = _filterIncoming(parent, record, nodeMap, NULL, 
+                                    NULL, true, true);
       arDatabaseNode* altered = NULL;
       if (success){
         altered = alter(record);
@@ -430,7 +432,8 @@ bool arDatabase::merge(arDatabaseNode* parent,
   while (!done){
     record = parser->parseBinary(source);
     if (record){
-      int success = _filterIncoming(parent, record, nodeMap, NULL, false);
+      int success = _filterIncoming(parent, record, nodeMap, NULL, 
+                                    NULL, true, false);
       arDatabaseNode* altered = NULL;
       if (success){
 	altered = alter(record);
@@ -485,7 +488,8 @@ bool arDatabase::mergeXML(arDatabaseNode* parent,
   while (!done){
     record = parser->parse(fileStream);
     if (record){
-      int success = _filterIncoming(parent, record, nodeMap, NULL, false);
+      int success = _filterIncoming(parent, record, nodeMap, NULL, 
+                                    NULL, true, false);
       arDatabaseNode* altered = NULL;
       if (success){
         altered = alter(record);
@@ -930,6 +934,19 @@ void arDatabase::_createNodeMap(arDatabaseNode* localNode,
   } 
 }
 
+void arDatabase::_insertOutFilter(map<int,int,less<int> >& outFilter,
+				  int nodeID,
+				  bool sendOn){
+  map<int,int,less<int> >::iterator i = outFilter.find(nodeID);
+  if (i == outFilter.end()){
+    outFilter.insert(map<int,int,less<int> >::value_type(nodeID,
+							 sendOn ? 1 : 0));
+  }
+  else{
+    i->second = sendOn ? 1 : 0;
+  }
+}
+
 /// Helper function for filtering incoming messages (needed for mapping
 /// one database to another as in attachXML and mapXML). The record is
 /// changed in place, as is the nodeMap. allNew should be set to true
@@ -951,8 +968,8 @@ void arDatabase::_createNodeMap(arDatabaseNode* localNode,
 ///
 /// The return value is an integer. 
 ///  * -1: the record was successfully mapped. If any augmentation to the
-///    node map occured, it was internally to this function. If the node
-///    The caller should use the record.
+///    node map occured, it was internally to this function. No new node
+///    needs to be created and the caller should use the record.
 ///  * 0: the record failed to be successfully mapped. It should be discarded.
 ///  * > 0: the record is "half-mapped". The result of the external *alter*
 ///         message to the database will finish the other "half" (it produces
@@ -970,6 +987,8 @@ int arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
                                 arStructuredData* record, 
 	                        map<int, int, less<int> >& nodeMap,
                                 int* mappedIDs,
+				map<int, int, less<int> >* outFilter,
+				bool outFilterOn,
                                 bool allNew){
   int newNodeID, newParentID;
   if (mappedIDs){
@@ -998,10 +1017,15 @@ int arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
       nodeMap.insert(map<int, int, less<int> >::value_type
                      (parentID, mappingRoot->getID()));
       position = 2;
+      // Need to record any node mappings we made.
       if (mappedIDs){
         mappedIDs[0] = parentID;
         mappedIDs[1] = mappingRoot->getID();
       }
+      // If an "outFilter" has been supplied, update its mapping.
+      if (outFilter){
+        _insertOutFilter(*outFilter, mappingRoot->getID(), outFilterOn);
+      }  
       i = nodeMap.find(parentID);
     }
     // Go ahead and try to map the new node.
@@ -1032,10 +1056,16 @@ int arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
       // go ahead and map to this node.
       nodeMap.insert(map<int, int, less<int> >::value_type
 	             (originalNodeID, target->getID()));
+      // Need to record any node mappings we made.
       if (mappedIDs){
         mappedIDs[position] = originalNodeID;
         mappedIDs[position+1] = target->getID();
       }
+      // If an "outFilter" has been supplied, update its mapping.
+      if (outFilter){
+        _insertOutFilter(*outFilter, target->getID(), outFilterOn);
+      }     
+
       // In this case, DO NOT create a new node! The record is simply
       // discarded. Remember: returning false means discard the record.
 
@@ -1069,15 +1099,23 @@ int arDatabase::_filterIncoming(arDatabaseNode* mappingRoot,
     int nodeID = record->getDataInt(_routingField[record->getID()]);
     i = nodeMap.find(nodeID);
     if (i == nodeMap.end()){
-      cout << "arDatabase error: mapping of XML file failed in "
-	   << "node remap.\n";
+      // DO NOT PRINT ANYTHING HERE! THIS CAN RESULT IN HUGE AMOUNTS OF
+      // PRINTING UPON USER ERROR!
       // Returning false means "discard"
       return 0;
     }
     nodeID = i->second;
+    // NOTE: Perhaps we are mapping to the root node, in which case
+    // DISCARD. (i.e. special ID zero). THIS MUST HAPPEN OR THERE WILL
+    // BE A SEGFAULT!
     record->dataIn(_routingField[record->getID()], &nodeID, AR_INT, 1);
-    // Returning true means "use"
-    return -1;
+      // Returning true means "use"
+    if (nodeID){
+      return -1;
+    }
+    else{
+      return 0;
+    }
   }
 }
 

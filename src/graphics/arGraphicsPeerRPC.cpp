@@ -16,11 +16,11 @@ string ar_graphicsPeerHandleConnectToPeer(arGraphicsPeer* peer,
   stringstream result;
   int connectionID = peer->connectToPeer(messageBody);
   if (connectionID < 0){
-    result << "szg-rp error: failed to connect to remote peer.\n"
-	   << "  (" << messageBody << ")\n";
+    result << "szg-rp error: failed to connect to remote peer"
+	   << " (" << messageBody << ").";
     return result.str();
   }
-  result << "szg-rp success: peers connected (" << connectionID << ").\n";
+  result << "szg-rp success: peers connected (" << connectionID << ").";
   return result.str();
 }
 
@@ -30,11 +30,11 @@ string ar_graphicsPeerHandleCloseConnection(arGraphicsPeer* peer,
   stringstream result;
   int socketID = peer->closeConnection(messageBody);
   if (socketID < 0){
-    cerr << "szg-rp error: failed to close connection to remote peer.\n"
-	 << "  (" << messageBody << ")\n";
+    cerr << "szg-rp error: failed to close connection to remote peer"
+	 << " (" << messageBody << ").";
     return result.str();
   }
-  result << "szg-rp success: peers disconnected.\n";
+  result << "szg-rp success: peers disconnected.";
   return result.str();
 }
 
@@ -44,21 +44,21 @@ string ar_graphicsPeerHandleReceiving(arGraphicsPeer* peer,
   stringstream result;
   arSlashString parameters(messageBody);
   if (parameters.size() < 2){
-    result << "szg-rp error: usage is receive_from_peer_name/[0,1]\n";
+    result << "szg-rp error: usage is receive_from_peer_name/[0,1]";
     return result.str();
   } 
   if (!peer->receiving(parameters[0], parameters[1] == "1" ? true : false)){
-    result << "szg-rp error: remote peer not connected.\n"
-	   << "  (" << parameters << ")\n";
+    result << "szg-rp error: remote peer not connected"
+	   << " (" << parameters[0] << ").";
     return result.str();
   }
   if (parameters[1] == "1"){
     result << "szg-rp success: receiving on from " << parameters[0]
-	   << ".\n";
+	   << ".";
   }
   else{
     result << "szg-rp success: receiving off from " << parameters[0]
-	   << ".\n";
+	   << ".";
   }
   return result.str();
 }
@@ -69,21 +69,21 @@ string ar_graphicsPeerHandleSending(arGraphicsPeer* peer,
   stringstream result;
   arSlashString parameters(messageBody);
   if (parameters.size() < 2){
-    result << "szg-rp error: usage is sending_to_peer_name/[0,1]\n";
+    result << "szg-rp error: usage is sending_to_peer_name/[0,1]";
     return result.str();
   } 
   if (!peer->sending(parameters[0], parameters[1] == "1" ? true : false)){
-    result << "szg-rp error: remote peer not connected.\n"
-	   << "  (" << parameters << ")\n";
+    result << "szg-rp error: remote peer not connected"
+	   << " (" << parameters << ").\n";
     return result.str();
   }
   if (parameters[1] == "1"){
     result << "szg-rp success: sending on to " << parameters[0]
-	   << ".\n";
+	   << ".";
   }
   else{
     result << "szg-rp success: sending off to " << parameters[0]
-	   << ".\n";
+	   << ".";
   }
   return result.str();
 }
@@ -93,17 +93,35 @@ string ar_graphicsPeerHandlePullSerial(arGraphicsPeer* peer,
                                         const string& messageBody){
   stringstream result;
   arSlashString parameters(messageBody);
-  if (parameters.size() < 2){
-    result << "szg-rp error: usage is pull_from_peer_name/[0,1]\n";
+  if (parameters.size() < 5){
+    result << "szg-rp error: usage is pull_from_peer_name/remoteRootID/"
+	   << "localRootID/send_level/[0,1]";
     return result.str();
   }
-  if (!peer->pullSerial(parameters[0], 
-                        parameters[1] == "1" ? true : false)){
-    result << "szg-rp error: failed to pull from remote peer.\n"
-	   << "  (" <<  parameters[0] << ")\n";
+  int remoteRootID;
+  int localRootID;
+  int sendLevel;
+  stringstream value1;
+  value1 << parameters[1];
+  value1 >> remoteRootID;
+  stringstream value2;
+  value2 << parameters[2];
+  value2 >> localRootID;
+  stringstream value3;
+  value3 << parameters[3];
+  value3 >> sendLevel;
+  cout << "AARGH! peer = " << parameters[0]
+       << " remoteRootID = " << remoteRootID
+       << " localRootID = " << localRootID
+       << " sendLevel = " << sendLevel
+       << " sending = " << parameters[4] << "\n";
+  if (!peer->pullSerial(parameters[0], remoteRootID, localRootID, sendLevel,
+                        parameters[4] == "1" ? true : false)){
+    result << "szg-rp error: failed to pull from remote peer"
+	   << " (" <<  parameters[0] << ").";
     return result.str();
   }
-  result << "szg-rp success: pullSerial succeeded.\n";
+  result << "szg-rp success: pullSerial succeeded.";
   return result.str();
 }
 
@@ -112,23 +130,37 @@ string ar_graphicsPeerHandlePushSerial(arGraphicsPeer* peer,
                                        const string& messageBody){
   stringstream result;
   arSlashString parameters(messageBody);
-  if (parameters.size() < 3){
-    result << "szg-rp error: usage is push_to_peer_name/remoteRootID/[0,1]\n";
+  if (parameters.size() < 5){
+    result << "szg-rp error: usage is push_to_peer_name/remoteRootID/"
+	   << "localRootID/send_level/[0,1]";
     return result.str();
   }
-  stringstream value;
-  value << parameters[1];
   int remoteRootID;
-  value >> remoteRootID;
+  int localRootID;
+  int sendLevel;
+  stringstream value1;
+  value1 << parameters[1];
+  value1 >> remoteRootID;
+  stringstream value2;
+  value2 << parameters[2];
+  value2 >> localRootID;
+  stringstream value3;
+  value3 << parameters[3];
+  value3 >> sendLevel;
+  cout << "AARGH! peer = " << parameters[0]
+       << " remoteRootID = " << remoteRootID
+       << " localRootID = " << localRootID
+       << " sendLevel = " << sendLevel
+       << " sending = " << parameters[4] << "\n";
   if (!peer->pushSerial(parameters[0], 
-                        remoteRootID,
+                        remoteRootID, localRootID, sendLevel,
                         parameters[2] == "1" ? true : false)){
-    result << "szg-rp error: failed to push to remote peer.\n"
-	   << "  (" <<  parameters[0] << ", with remote ID = "
-	   << remoteRootID << ")\n";
+    result << "szg-rp error: failed to push to remote peer"
+	   << " (" <<  parameters[0] << ", with remote ID = "
+	   << remoteRootID << ").";
     return result.str();
   }
-  result << "szg-rp success: pushSerial succeeded.\n";
+  result << "szg-rp success: pushSerial succeeded.";
   return result.str();
 }
 
@@ -137,7 +169,7 @@ string ar_graphicsPeerHandleCloseAllAndReset(arGraphicsPeer* peer,
                                              const string&){
   stringstream result;
   peer->closeAllAndReset();
-  result << "szg-rp success: reset peer " << peer->getName() << ".\n";
+  result << "szg-rp success: reset peer " << peer->getName() << ".";
   return result.str();
 }
 
@@ -151,7 +183,7 @@ string ar_graphicsPeerHandleRemoteLockNode(arGraphicsPeer* peer,
   arSlashString bodyList(messageBody);
   if (bodyList.length() < 2){
     result << "szg-rp error: body format must be remote peer followed by "
-	   << "node ID.\n";
+	   << "node ID.";
     return result.str();
   }
   stringstream IDStream;
@@ -167,14 +199,52 @@ string ar_graphicsPeerHandleRemoteLockNode(arGraphicsPeer* peer,
   }
   if (!state){
     result << "szg-rp error: lock operation failed on node " << ID 
-	   << " on peer " << bodyList[0] << "\n";
+	   << " on peer " << bodyList[0] << ".";
     return result.str();
   }
   if (lock){
-    result << "szg-rp success: node locked.\n";
+    result << "szg-rp success: node locked.";
   }
   else{
-    result << "szg-rp success: node unlocked.\n";
+    result << "szg-rp success: node unlocked.";
+  }
+  return result.str();
+}
+
+// Two messages!
+// Lets us lock a node in a remote peer to us!
+// Format = remote_peer_name/node_ID
+string ar_graphicsPeerHandleRemoteLockNodeBelow(arGraphicsPeer* peer, 
+                                                const string& messageBody, 
+                                                bool lock){
+  stringstream result;
+  arSlashString bodyList(messageBody);
+  if (bodyList.length() < 2){
+    result << "szg-rp error: body format must be remote peer followed by "
+	   << "node ID.";
+    return result.str();
+  }
+  stringstream IDStream;
+  int ID;
+  IDStream << bodyList[1];
+  IDStream >> ID;
+  bool state;
+  if (lock){
+    state = peer->remoteLockNodeBelow(bodyList[0], ID);
+  }
+  else{
+    state = peer->remoteUnlockNodeBelow(bodyList[0], ID);
+  }
+  if (!state){
+    result << "szg-rp error: lock operation failed on node tree " << ID 
+	   << " on peer " << bodyList[0] << ".";
+    return result.str();
+  }
+  if (lock){
+    result << "szg-rp success: node tree locked.";
+  }
+  else{
+    result << "szg-rp success: node tree unlocked.";
   }
   return result.str();
 }
@@ -189,7 +259,7 @@ string ar_graphicsPeerHandleLocalLockNode(arGraphicsPeer* peer,
   arSlashString bodyList(messageBody);
   if (bodyList.length() < 2){
     result << "szg-rp error: body format must be remote peer followed by "
-	   << "node ID.\n";
+	   << "node ID.";
     return result.str();
   }
   stringstream IDStream;
@@ -206,14 +276,14 @@ string ar_graphicsPeerHandleLocalLockNode(arGraphicsPeer* peer,
   }
   if (!state){
     result << "szg-rp error: lock operation failed on node " << ID 
-	   << " on peer " << bodyList[0] << "\n";
+	   << " on peer " << bodyList[0] << ".";
     return result.str();
   }
   if (lock){
-    result << "szg-rp success: node locked.\n";
+    result << "szg-rp success: node locked.";
   }
   else{
-    result << "szg-rp success: node unlocked.\n";
+    result << "szg-rp success: node unlocked.";
   }
   return result.str();
 }
@@ -225,7 +295,7 @@ string ar_graphicsPeerHandleRemoteFilterDataBelow(arGraphicsPeer* peer,
   arSlashString bodyList(messageBody);
   if (bodyList.length() < 3){
     result << "szg-rp error: body format must be remote peer,"
-	   << "local node ID, filter code.\n";
+	   << "local node ID, filter code.";
     return result.str();
   }
   stringstream IDStream;
@@ -237,10 +307,10 @@ string ar_graphicsPeerHandleRemoteFilterDataBelow(arGraphicsPeer* peer,
   valueStream << bodyList[2];
   valueStream >> value;
   if (peer->remoteFilterDataBelow(bodyList[0], ID, value)){
-    result << "szg-rp success: filter applied.\n";
+    result << "szg-rp success: filter applied.";
   }
   else{
-    result << "szg-rp error: could not apply filter.\n";
+    result << "szg-rp error: could not apply filter.";
   }
   return result.str();
 }
@@ -252,7 +322,7 @@ string ar_graphicsPeerHandleLocalFilterDataBelow(arGraphicsPeer* peer,
   arSlashString bodyList(messageBody);
   if (bodyList.length() < 3){
     result << "szg-rp error: body format must be remote peer,"
-	   << "local node ID, filter code.\n";
+	   << "local node ID, filter code.";
     return result.str();
   }
   stringstream IDStream;
@@ -264,12 +334,21 @@ string ar_graphicsPeerHandleLocalFilterDataBelow(arGraphicsPeer* peer,
   valueStream << bodyList[2];
   valueStream >> value;
   if (peer->localFilterDataBelow(bodyList[0], ID, value)){
-    result << "szg-rp success: filter applied.\n";
+    result << "szg-rp success: filter applied.";
   }
   else{
-    result << "szg-rp error: could not apply filter.\n";
+    result << "szg-rp error: could not apply filter.";
   }
   return result.str();
+}
+
+// Format = node_name
+string ar_graphicsPeerHandleGetNodeID(arGraphicsPeer* peer,
+				      const string& messageBody){
+  stringstream result;
+  result << "szg-rp success: node ID = "
+	 << peer->getNodeID(messageBody);
+  return result.str(); 
 }
 
 // Format = remote_peer_name/remote_node_name
@@ -279,11 +358,11 @@ string ar_graphicsPeerHandleRemoteNodeID(arGraphicsPeer* peer,
   arSlashString bodyList(messageBody);
   if (bodyList.length() < 2){
     result << "szg-rp error: body format must be remote peer followed by "
-	   << "node name.\n";
+	   << "node name.";
     return result.str();
   }
-  result << "szg-rp success: node ID =\n  "
-	 << peer->remoteNodeID(bodyList[1], bodyList[2]);
+  result << "szg-rp success: node ID = "
+	 << peer->remoteNodeID(bodyList[0], bodyList[1]);
   return result.str();
 }
 
@@ -301,10 +380,10 @@ string ar_graphicsPeerHandleReadDatabase(arGraphicsPeer* peer,
     state = peer->readDatabase(messageBody);
   }
   if (!state){
-    result << "szg-rp error: failed to read specified database.\n";
+    result << "szg-rp error: failed to read specified database.";
     return result.str();
   }
-  result << "szg-rp success: database loaded.\n";
+  result << "szg-rp success: database loaded.";
   return result.str();
 }
 
@@ -322,10 +401,10 @@ string ar_graphicsPeerHandleWriteDatabase(arGraphicsPeer* peer,
     state = peer->writeDatabase(messageBody);
   }
   if (!state){
-    result << "szg-rp error: failed to write specified database.\n";
+    result << "szg-rp error: failed to write specified database.";
     return result.str();
   }
-  result << "szg-rp success: database saved.\n";
+  result << "szg-rp success: database saved.";
   return result.str();
 }
 
@@ -337,7 +416,7 @@ string ar_graphicsPeerHandleAttach(arGraphicsPeer* peer,
   stringstream result;
   arSlashString parameters(messageBody);
   if (parameters.length() < 2){
-    result << "szg-rp error: format must be remote_node_ID/file_name.\n";
+    result << "szg-rp error: format must be remote_node_ID/file_name.";
     return result.str();
   }
   bool state = false;
@@ -348,7 +427,7 @@ string ar_graphicsPeerHandleAttach(arGraphicsPeer* peer,
   // Is there a node with this ID?
   arDatabaseNode* node = peer->getNode(ID);
   if (!node){
-    result << "szg-rp error: no node with ID=" << ID << ".\n";
+    result << "szg-rp error: no node with ID=" << ID << ".";
     return result.str();
   }
   if (useXML){
@@ -358,10 +437,10 @@ string ar_graphicsPeerHandleAttach(arGraphicsPeer* peer,
     state = peer->attach(node, parameters[1]);
   }
   if (!state){
-    result << "szg-rp error: failed to attach specified database.\n";
+    result << "szg-rp error: failed to attach specified database.";
     return result.str();
   }
-  result << "szg-rp success: database attached.\n";
+  result << "szg-rp success: database attached.";
   return result.str();
 }
 
@@ -373,7 +452,7 @@ string ar_graphicsPeerHandleMerge(arGraphicsPeer* peer,
   stringstream result;
   arSlashString parameters(messageBody);
   if (parameters.length() < 2){
-    result << "szg-rp error: format must be remote_node_ID/file_name.\n";
+    result << "szg-rp error: format must be remote_node_ID/file_name.";
     return result.str();
   }
   bool state = false;
@@ -383,7 +462,7 @@ string ar_graphicsPeerHandleMerge(arGraphicsPeer* peer,
   value >> ID;
   arDatabaseNode* node = peer->getNode(ID);
   if (!node){
-    result << "szg-rp error: no node with ID=" << ID << ".\n";
+    result << "szg-rp error: no node with ID=" << ID << ".";
     return result.str();
   }
   if (useXML){
@@ -393,10 +472,10 @@ string ar_graphicsPeerHandleMerge(arGraphicsPeer* peer,
     state = peer->merge(node, parameters[1]);
   }
   if (!state){
-    result << "szg-rp error: failed to merge specified database.\n";
+    result << "szg-rp error: failed to merge specified database.";
     return result.str();
   }
-  result << "szg-rp success: database merged.\n";
+  result << "szg-rp success: database merged.";
   return result.str();
 }
 
@@ -467,15 +546,25 @@ string ar_graphicsPeerHandleMessage(arGraphicsPeer* peer,
   else if (messageType == "close_all_and_reset"){
     responseBody = ar_graphicsPeerHandleCloseAllAndReset(peer, messageBody);
   }
-   else if (messageType =="remote_lock_node"){
+  else if (messageType =="remote_lock_node"){
     responseBody = ar_graphicsPeerHandleRemoteLockNode(peer, 
                                                        messageBody, 
                                                        true);
+  }
+  else if (messageType =="remote_lock_node_below"){
+    responseBody = ar_graphicsPeerHandleRemoteLockNodeBelow(peer, 
+                                                            messageBody, 
+                                                            true);
   }
   else if (messageType == "remote_unlock_node"){
     responseBody = ar_graphicsPeerHandleRemoteLockNode(peer,  
                                                        messageBody, 
                                                        false);
+  } 
+  else if (messageType == "remote_unlock_node_below"){
+    responseBody = ar_graphicsPeerHandleRemoteLockNodeBelow(peer,  
+                                                            messageBody, 
+                                                            false);
   } 
   else if (messageType == "local_lock_node"){
     responseBody = ar_graphicsPeerHandleLocalLockNode(peer, 
@@ -494,6 +583,9 @@ string ar_graphicsPeerHandleMessage(arGraphicsPeer* peer,
   else if (messageType == "local_filter_data_below"){
     responseBody
       = ar_graphicsPeerHandleLocalFilterDataBelow(peer, messageBody);
+  }
+  else if (messageType == "get_node_id"){
+    responseBody = ar_graphicsPeerHandleGetNodeID(peer, messageBody);
   }
   else if (messageType == "remote_node_id"){
     responseBody = ar_graphicsPeerHandleRemoteNodeID(peer, messageBody);

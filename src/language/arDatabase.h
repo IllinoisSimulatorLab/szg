@@ -142,11 +142,15 @@ class SZG_CALL arDatabase{
 		      arDatabase* externalDatabase,
 		      map<int, int, less<int> >& nodeMap,
 		      bool& failure);
-
+  void _insertOutFilter(map<int,int,less<int> >& outFilter,
+			int nodeID,
+			bool sendOn);
   int _filterIncoming(arDatabaseNode* mappingRoot,
                       arStructuredData* record, 
 	              map<int, int, less<int> >& nodeMap,
 		      int* mappedIDs,
+		      map<int, int, less<int> >* outFilter,
+		      bool outFilterOn,
                       bool allNew);
   
   // The factory function that is redefined by subclasses.

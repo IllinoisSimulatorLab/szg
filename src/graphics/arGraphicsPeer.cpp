@@ -7,6 +7,18 @@
 #include "arPrecompiled.h"
 #include "arGraphicsPeer.h"
 
+arGraphicsPeerConnection::arGraphicsPeerConnection(){ 
+  remoteName = "NULL"; 
+  connectionID = -1;
+  receiving = false;
+  sending = false;
+  remoteFrameTime = 0;
+  // Without doing this, the children on the root node will never 
+  // get automatically mapped to a feedback peer!
+  cout << "AARGH! making a connection!\n";
+  outFilter.insert(map<int,int,less<int> >::value_type(0,1));
+}
+
 string arGraphicsPeerConnection::print(){ 
   stringstream result;
   result << "connection = " << remoteName << "/"
@@ -44,13 +56,21 @@ class arGraphicsPeerSerializeInfo{
 
   arGraphicsPeer* peer;
   arSocket* socket;
-  int rootID;
-  bool relay;
+  int localRootID;
+  int remoteRootID;
+  int sendLevel;
+  bool localSendOn;
+  bool remoteSendOn;
 };
 
 void ar_graphicsPeerSerializeFunction(void* info){
   arGraphicsPeerSerializeInfo* i = (arGraphicsPeerSerializeInfo*) info;
-  i->peer->_serializeAndSend(i->socket, i->rootID, i->relay);
+  i->peer->_serializeAndSend(i->socket, 
+                             i->remoteRootID,
+                             i->localRootID, 
+                             i->sendLevel, 
+                             i->localSendOn,
+			     i->remoteSendOn);
   i->peer->_serializeDoneNotify(i->socket);
   // It is our responsibility to delete this.
   delete i;
@@ -70,8 +90,10 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
     string action = data->getDataString(l->AR_GRAPHICS_ADMIN_ACTION);
     int nodeID;
     if (action == "map"){
-      nodeID = data->getDataInt(l->AR_GRAPHICS_ADMIN_NODE_ID);
-      gp->_resetConnectionMap(socket->getID(), nodeID);
+      int nodeIDs[2];
+      data->dataOut(l->AR_GRAPHICS_ADMIN_NODE_ID, nodeIDs, AR_INT, 2);
+      gp->_resetConnectionMap(socket->getID(), nodeIDs[0], 
+                              nodeIDs[1] ? true : false);
     }
     else if (action == "node_map"){
       int* mapPtr = (int*) data->getDataPtr(l->AR_GRAPHICS_ADMIN_NODE_ID, 
@@ -122,10 +144,16 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       arThread dumpThread;
       arGraphicsPeerSerializeInfo* serializeInfo 
         = new arGraphicsPeerSerializeInfo();
+      int nodeIDs[3];
+      data->dataOut(l->AR_GRAPHICS_ADMIN_NODE_ID, nodeIDs, AR_INT, 3);
       serializeInfo->peer = gp;
       serializeInfo->socket = socket;
-      serializeInfo->rootID = 0;
-      serializeInfo->relay = false;
+      serializeInfo->remoteRootID = nodeIDs[1];
+      serializeInfo->localRootID = nodeIDs[0];
+      serializeInfo->sendLevel = nodeIDs[2];
+      serializeInfo->localSendOn = false;
+      serializeInfo->remoteSendOn = true;
+      // The parameter is deleted inside the thread.
       dumpThread.beginThread(ar_graphicsPeerSerializeFunction, serializeInfo);
     }
     else if (action == "dump-relay"){
@@ -136,10 +164,16 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       arThread dumpThread;
       arGraphicsPeerSerializeInfo* serializeInfo 
         = new arGraphicsPeerSerializeInfo();
+      int nodeIDs[3];
+      data->dataOut(l->AR_GRAPHICS_ADMIN_NODE_ID, nodeIDs, AR_INT, 3);
       serializeInfo->peer = gp;
       serializeInfo->socket = socket;
-      serializeInfo->rootID = 0;
-      serializeInfo->relay = true;
+      serializeInfo->remoteRootID = nodeIDs[1];
+      serializeInfo->localRootID = nodeIDs[0];
+      serializeInfo->sendLevel = nodeIDs[2];
+      serializeInfo->localSendOn = true;
+      serializeInfo->remoteSendOn = true;
+      // The parameter is deleted inside the thread.
       dumpThread.beginThread(ar_graphicsPeerSerializeFunction, serializeInfo);
     }
     else if (action == "dump-done"){
@@ -201,9 +235,17 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       nodeID = data->getDataInt(l->AR_GRAPHICS_ADMIN_NODE_ID);
       gp->_lockNode(nodeID, socket);
     }
+    else if (action == "lock_below"){
+      nodeID = data->getDataInt(l->AR_GRAPHICS_ADMIN_NODE_ID);
+      gp->_lockNodeBelow(nodeID, socket);
+    }
     else if (action == "unlock"){
       nodeID = data->getDataInt(l->AR_GRAPHICS_ADMIN_NODE_ID);
       gp->_unlockNode(nodeID);
+    }
+    else if (action == "unlock_below"){
+      nodeID = data->getDataInt(l->AR_GRAPHICS_ADMIN_NODE_ID);
+      gp->_unlockNodeBelow(nodeID);
     }
     else if (action == "filter_data"){
       int dataFilterInfo[2];
@@ -570,6 +612,8 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
                                          data,
 					 connectionIter->second->inMap,
 					 filterIDs,
+					 &connectionIter->second->outFilter,
+					 connectionIter->second->sendOn,
                                          false);
   }
 
@@ -590,7 +634,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
   }
   // We are not necessarily altering the local database. 
   // IT IS CRITICALLY IMPORTANT THAT THE ALTERATION OF THE LOCAL DATABASE
-  // OCCURE BEFORE PASSING THE DATA ON TO OTHER PEERS. THE LOCAL PEER
+  // OCCUR BEFORE PASSING THE DATA ON TO OTHER PEERS. THE LOCAL PEER
   // IS ALLOWED TO MODIFY THE RECORD "IN PLACE" (AS IN BEING ABLE TO
   // ATTACH A NODE TO THE DATABASE THAT WAS CREATED SOME OTHER WAY).
   // Node creation alters the record in place! See how arDatabase::_makeNode
@@ -598,14 +642,17 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
   if (_localDatabase){
     // If we are actually going to the local database, go ahead and get the
     // result from that...
-    // BUG BUG BUG BUG BUG BUG BUG BUG BUG
-    // Sometimes it is not appropriate to send filtered messages to the
-    // local database.... but here we ALWAYS do so... (for instance,
-    // the return value from _filterIncoming might be 0.
-    result = arGraphicsDatabase::alter(data);
-    if (_bridgeDatabase){
-      _sendDataToBridge(data);
-    } 
+    // If the message is NOT from a connection, potentialNewNodeID = -1
+    // If the message is from a connection and is unmapped, 
+    // potentialNewNodeID = 0
+    // If the message is from a connection and creates a new node, 
+    // potentialNewNodeID > 0
+    if (potentialNewNodeID){ 
+      result = arGraphicsDatabase::alter(data);
+      if (_bridgeDatabase){
+        _sendDataToBridge(data);
+      } 
+    }
     // If a new node has been created, we need to augment the node
     // map for this connection.
     if (potentialNewNodeID > 0 && result){
@@ -621,6 +668,9 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
       else{
         filterIDs[3] = result->getID();
       }
+      // Finally, don't forget to activate the outFilter on this node!
+      _insertOutFilter(connectionIter->second->outFilter, result->getID(),
+		       connectionIter->second->sendOn);
     }
   }
   // Go ahead and send to the connected peers who desire
@@ -652,12 +702,41 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
 	  updateNodeEvenIfTransient = false;
         }
       }
-      // Still need to check the connection's filter.
-      IDPtr = (int*) data->getDataPtr(_routingField[dataID], AR_INT);
+      // 
+      // Still need to check the connection's filter. And augment it
+      // for node creation.
+      if (dataID == _gfx.AR_MAKE_NODE){
+	cout <<"AARGH! processing make node!\n";
+        int parentID = data->getDataInt(_gfx.AR_MAKE_NODE_PARENT_ID);
+	cout << "AARGH! parent ID = " << parentID << "\n";
+        outIter = connectionIter->second->outFilter.find(parentID);
+	if (outIter != connectionIter->second->outFilter.end()){
+	  cout << "AARGH! inserting!\n";
+          _insertOutFilter(connectionIter->second->outFilter, 
+                           data->getDataInt(_gfx.AR_MAKE_NODE_ID),
+		           connectionIter->second->sendOn);
+	}
+      }
+      if (!_databaseReceive[dataID]){
+	// Not new node or erase node record.
+        IDPtr = (int*) data->getDataPtr(_routingField[dataID], AR_INT);
+      }
+      else{
+        if (dataID == _gfx.AR_MAKE_NODE){
+          IDPtr = (int*) data->getDataPtr(_gfx.AR_MAKE_NODE_ID, AR_INT);
+        }
+        if (dataID == _gfx.AR_ERASE){
+          IDPtr = (int*)data->getDataPtr(_gfx.AR_ERASE_ID, AR_INT);
+        }
+      }
       outIter = connectionIter->second->outFilter.find(IDPtr[0]);
-      if (updateNodeEvenIfTransient && connectionIter->second->sending && 
-           (outIter == connectionIter->second->outFilter.end()
-            || outIter->second == 1)){
+      // THE OLD WAY...
+      //if (updateNodeEvenIfTransient && connectionIter->second->sending && 
+      //     (outIter == connectionIter->second->outFilter.end()
+      //      || outIter->second == 1)){
+      if (updateNodeEvenIfTransient && 
+          outIter != connectionIter->second->outFilter.end() &&
+          outIter->second == 1){
         _dataServer->sendData(data, connectionIter->second->socket);
       }
     }
@@ -941,7 +1020,11 @@ bool arGraphicsPeer::sending(const string& name, bool state){
 
 /// By default, nothing happens when we connect a graphics peer to another.
 /// The graphics peers must request actions.
-bool arGraphicsPeer::pullSerial(const string& name, bool receiveOn){
+bool arGraphicsPeer::pullSerial(const string& name,
+                                int remoteRootID,
+				int localRootID,
+				int sendLevel,
+				bool receiveOn){
   arStructuredData adminData(_gfx.find("graphics admin"));
   if (receiveOn){
     adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "dump-relay");
@@ -949,6 +1032,12 @@ bool arGraphicsPeer::pullSerial(const string& name, bool receiveOn){
   else{
     adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "dump");
   }
+  int nodeIDs[3];
+  nodeIDs[0] = remoteRootID;
+  nodeIDs[1] = localRootID;
+  nodeIDs[2] = sendLevel;
+  adminData.dataIn(_gfx.AR_GRAPHICS_ADMIN_NODE_ID, nodeIDs, AR_INT, 3);
+
   int ID = _dataServer->getFirstIDWithLabel(name);
   arSocket* socket = _dataServer->getConnectedSocket(ID);
   if (!socket){
@@ -983,14 +1072,18 @@ bool arGraphicsPeer::pullSerial(const string& name, bool receiveOn){
 /// The following call allows us to push our serialization to a connected peer.
 bool arGraphicsPeer::pushSerial(const string& name, 
                                 int remoteRootID,
-                                bool sendOn){
+                                int localRootID,
+				int sendLevel,
+                                bool localSendOn){
   int ID = _dataServer->getFirstIDWithLabel(name);
   arSocket* socket = _dataServer->getConnectedSocket(ID);
   if (!socket){
     return false;
   }
+  
   // NOTE: this call does not send a serialization-done notification.
-  return _serializeAndSend(socket, remoteRootID, sendOn);
+  return _serializeAndSend(socket, remoteRootID, localRootID, sendLevel,
+                           localSendOn, true);
 }
 
 /// Closes all connected sockets and resets the database. This is 
@@ -1038,12 +1131,47 @@ bool arGraphicsPeer::remoteLockNode(const string& name, int nodeID){
   return true;
 }
 
+/// Sometimes, we want a node on a remote peer to only change according to
+/// our actions. (this is useful if several peers are connected to a single
+/// remote peer and are changing the same things). This differs from 
+/// remoteLockNode in that every node (at and including the given node)
+/// is locked to us on the remote peer.
+bool arGraphicsPeer::remoteLockNodeBelow(const string& name, int nodeID){
+  arStructuredData adminData(_gfx.find("graphics admin"));
+  adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "lock_below");
+  adminData.dataIn(_gfx.AR_GRAPHICS_ADMIN_NODE_ID, &nodeID, AR_INT, 1);
+  int ID = _dataServer->getFirstIDWithLabel(name);
+  arSocket* socket = _dataServer->getConnectedSocket(ID);
+  if (!socket){
+    return false;
+  }
+  _dataServer->sendData(&adminData, socket);
+  return true;
+}
+
 /// Of course, we want to be able to unlock the node as well.
 /// Why is the connection name present? Because we are unlocking the node
 /// on THAT peer (i.e. the one at the other end of the named connection)
 bool arGraphicsPeer::remoteUnlockNode(const string& name, int nodeID){
   arStructuredData adminData(_gfx.find("graphics admin"));
   adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "unlock");
+  adminData.dataIn(_gfx.AR_GRAPHICS_ADMIN_NODE_ID, &nodeID, AR_INT, 1);
+  int ID = _dataServer->getFirstIDWithLabel(name);
+  arSocket* socket = _dataServer->getConnectedSocket(ID);
+  if (!socket){
+    return false;
+  }
+  _dataServer->sendData(&adminData, socket);
+  return true;
+}
+
+/// Of course, we want to be able to unlock the node as well.
+/// Why is the connection name present? Because we are unlocking the node
+/// on THAT peer (i.e. the one at the other end of the named connection).
+/// This differs from remoteUnlockNode in working recursively downwards.
+bool arGraphicsPeer::remoteUnlockNodeBelow(const string& name, int nodeID){
+  arStructuredData adminData(_gfx.find("graphics admin"));
+  adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "unlock_below");
   adminData.dataIn(_gfx.AR_GRAPHICS_ADMIN_NODE_ID, &nodeID, AR_INT, 1);
   int ID = _dataServer->getFirstIDWithLabel(name);
   arSocket* socket = _dataServer->getConnectedSocket(ID);
@@ -1123,7 +1251,7 @@ int arGraphicsPeer::remoteNodeID(const string& peer,
   int ID = _dataServer->getFirstIDWithLabel(peer);
   arSocket* socket = _dataServer->getConnectedSocket(ID);
   if (!socket){
-    return false;
+    return -1;
   }
   ar_mutex_lock(&_IDResponseLock);
   _requestedNodeID = -2;
@@ -1136,18 +1264,6 @@ int arGraphicsPeer::remoteNodeID(const string& peer,
   ar_mutex_unlock(&_IDResponseLock);
   return result;
 }
-
-/*list<arGraphicsPeerConnection> arGraphicsPeer::getConnections(){
-  list<arGraphicsPeerConnection> result;
-  ar_mutex_lock(&_socketsLock);
-  map<int, arGraphicsPeerConnection*, less<int> >::iterator i;
-  for (i = _connectionContainer.begin();
-       i != _connectionContainer.end(); i++){
-    result.push_back(i->second);
-  }
-  ar_mutex_unlock(&_socketsLock);
-  return result;
-  }*/
 
 string arGraphicsPeer::printConnections(){
   stringstream result;
@@ -1184,13 +1300,22 @@ bool arGraphicsPeer::_setRemoteLabel(arSocket* sock, const string& name){
 /// Note that the node map is constructed from a particular node ID base.
 /// This node ID is the *remote* node ID (from the perspective of the
 /// remote scene graph).  
+/// THIS IS REALLY THE *MAP* FUNCTION!
 bool arGraphicsPeer::_serializeAndSend(arSocket* socket, 
                                        int remoteRootID,
-                                       bool sendOn){
-  // First thing to do is to send the "map" command.
+                                       int localRootID,
+                                       int sendLevel,
+                                       bool localSendOn,
+                                       bool remoteSendOn){
+  // First thing to do is to send the "map" command. This tells the
+  // remote peer how to map our stuff AND whether or not we should be 
+  // receiving data back from the mapped nodes.
   arStructuredData adminData(_gfx.find("graphics admin"));
   adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "map");
-  adminData.dataIn(_gfx.AR_GRAPHICS_ADMIN_NODE_ID, &remoteRootID, AR_INT, 1);
+  int flags[2];
+  flags[0] = remoteRootID;
+  flags[1] = remoteSendOn ? 1 : 0;
+  adminData.dataIn(_gfx.AR_GRAPHICS_ADMIN_NODE_ID, flags, AR_INT, 2);
   if (!_dataServer->sendData(&adminData, socket)){
     return false;
   }
@@ -1202,10 +1327,23 @@ bool arGraphicsPeer::_serializeAndSend(arSocket* socket,
     return false;
   }
   bool success = true;
-  _recSerialize(&_rootNode, nodeData, socket, success);
-  // If relaying has also been requested, go ahead and enable that.
-  if (sendOn){
-    _activateSocket(socket);
+  // The local root node.
+  arDatabaseNode* pNode = getNode(localRootID);
+  // The connection information... since we need to augment the
+  // outgoing filter.
+  map<int, arGraphicsPeerConnection*, less<int> >::iterator
+    connectionIter = _connectionContainer.find(socket->getID());
+  if (!pNode || connectionIter == _connectionContainer.end()){
+    cout << "arGraphicsPeer error: failed to get local node or connection.\n";
+  }
+  else{
+    _recSerialize(pNode, nodeData, socket, connectionIter->second->outFilter,
+                  localSendOn, sendLevel, success);
+    // If relaying has also been requested, go ahead and enable that.
+    // THIS FEATURE IS DEPRECATED. IT WILL BE IGNORED SOON ENOUGH IN ALTER!
+    if (localSendOn){
+      _activateSocket(socket);
+    }
   }
   ar_mutex_unlock(&_alterLock);
 
@@ -1294,7 +1432,8 @@ void arGraphicsPeer::_closeConnection(arSocket* socket){
   _dataServer->removeConnection(socket->getID());
 }
 
-void arGraphicsPeer::_resetConnectionMap(int connectionID, int nodeID){
+void arGraphicsPeer::_resetConnectionMap(int connectionID, int nodeID,
+                                         bool sendOn){
   ar_mutex_lock(&_socketsLock);
   map<int, arGraphicsPeerConnection*, less<int> >::iterator i
     = _connectionContainer.find(connectionID);
@@ -1307,12 +1446,15 @@ void arGraphicsPeer::_resetConnectionMap(int connectionID, int nodeID){
     arDatabaseNode* newRootNode = getNode(nodeID);
     if (!newRootNode){
       cout << "arGraphicsPeer error: connection map root node not present. "
-	   << "Using default.\n";
+	   << "Using default.(ID = " << nodeID << ")\n";
       i->second->rootMapNode = &_rootNode;
     } 
     else{
       i->second->rootMapNode = newRootNode;
     }
+    i->second->sendOn = sendOn;
+    // DO NOT RESET THE outFilter HERE! THIS ALLOWS US TO MAP MULTIPLE TIMES
+    // ON A SINGLE CONNECTION!
   }
   ar_mutex_unlock(&_socketsLock);
 }
@@ -1353,6 +1495,19 @@ void arGraphicsPeer::_lockNode(int nodeID, arSocket* socket){
   ar_mutex_unlock(&_alterLock);
 }
 
+void arGraphicsPeer::_lockNodeBelow(int nodeID, arSocket* socket){
+  arDatabaseNode* node = getNode(nodeID);
+  if (!node){
+    return;
+  }
+  _lockNode(nodeID, socket);
+  list<arDatabaseNode*> children = node->getChildren();
+  for (list<arDatabaseNode*>::iterator i = children.begin();
+       i != children.end(); i++){
+    _lockNodeBelow((*i)->getID(), socket);
+  }
+}
+
 // Use this when someone else is unlocking the node.
 void arGraphicsPeer::_unlockNode(int nodeID){
   ar_mutex_lock(&_alterLock);
@@ -1369,6 +1524,19 @@ void arGraphicsPeer::_unlockNode(int nodeID){
   }
   ar_mutex_unlock(&_socketsLock);
   ar_mutex_unlock(&_alterLock);
+}
+
+void arGraphicsPeer::_unlockNodeBelow(int nodeID){
+  arDatabaseNode* node = getNode(nodeID);
+  if (!node){
+    return;
+  }
+  _unlockNode(nodeID);
+  list<arDatabaseNode*> children = node->getChildren();
+  for (list<arDatabaseNode*>::iterator i = children.begin();
+       i != children.end(); i++){
+    _unlockNodeBelow((*i)->getID());
+  }
 }
 
 // Use this when the fact that the connection is going away is unlocking
@@ -1407,23 +1575,30 @@ void arGraphicsPeer::_filterDataBelow(int nodeID,
 void arGraphicsPeer::_recSerialize(arDatabaseNode* pNode,
                                    arStructuredData& nodeData,
                                    arSocket* socket,
+				   map<int,int,less<int> >& outFilter,
+				   bool localSendOn,
+                                   int sendLevel,
                                    bool& success){
   // This will fail for the root node
   if (fillNodeData(&nodeData, pNode)){
     if (!_dataServer->sendData(&nodeData, socket)){
       success = false;
     }
-    arStructuredData* theData = pNode->dumpData();
-    if (!_dataServer->sendData(theData, socket)){
-      success = false;
+    if (sendLevel > 0){
+      arStructuredData* theData = pNode->dumpData();
+      if (!_dataServer->sendData(theData, socket)){
+        success = false;
+      }
+      delete theData;
     }
-    delete theData;
   }
+  _insertOutFilter(outFilter, pNode->getID(), localSendOn);
   list<arDatabaseNode*> children = pNode->getChildren();
   list<arDatabaseNode*>::iterator i;
   for (i=children.begin(); i!=children.end(); i++){
     if (success){
-      _recSerialize(*i, nodeData, socket, success);
+      _recSerialize(*i, nodeData, socket, outFilter, localSendOn,
+                    sendLevel, success);
     }
   }
 }
@@ -1474,6 +1649,8 @@ void arGraphicsPeer::_sendDataToBridge(arStructuredData* data){
                                        data,
 				       _bridgeInMap,
 				       NULL,
+				       NULL,
+				       true,
                                        false);
   arDatabaseNode* result = NULL;
   if (potentialNewNodeID){

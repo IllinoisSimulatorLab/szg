@@ -13,11 +13,7 @@
 
 class SZG_CALL arGraphicsPeerConnection{
  public:
-  arGraphicsPeerConnection(){ remoteName = "NULL"; 
-                              connectionID = -1;
-                              receiving = false;
-                              sending = false;
-                              remoteFrameTime = 0; }
+  arGraphicsPeerConnection();
   ~arGraphicsPeerConnection(){};
 
   string    remoteName;
@@ -41,6 +37,9 @@ class SZG_CALL arGraphicsPeerConnection{
   // The in map starts somewhere, by default at the root node, but it
   // could be elsewhere.
   arDatabaseNode* rootMapNode;
+  // Whether the mapped nodes should send backed to the mapping peer or not.
+  // THIS SUPERCEDED SENDING ABOVE!
+  bool sendOn;
 
   // To be able to filter "transient" nodes on this side, we need to
   // know the remote frame time.
@@ -117,14 +116,20 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   bool closeConnection(const string& name);
   bool receiving(const string& name, bool state);
   bool sending(const string& name, bool state);
-  bool pullSerial(const string& name, bool receiveOn);
-  bool pushSerial(const string& name, int remoteRootID, bool sendOn);
+  bool pullSerial(const string& name, int remoteRootID, int localRootID,
+                  int sendLevel, bool receiveOn);
+  bool pushSerial(const string& name, int remoteRootID, int localRootID,
+                  int sendLevel, bool sendOn);
   bool closeAllAndReset();
   bool broadcastFrameTime(int frameTime);
   bool remoteLockNode(const string& name, int nodeID);
+  bool remoteLockNodeBelow(const string& name, int nodeID);
   bool remoteUnlockNode(const string& name, int nodeID);
+  bool remoteUnlockNodeBelow(const string& name, int nodeID);
   bool localLockNode(const string& name, int nodeID);
+  //bool localLockNodeBelow(const string& name, int nodeID);
   bool localUnlockNode(int nodeID);
+  //bool localUnlockNodeBelow(int nodeID);
   bool remoteFilterDataBelow(const string& peer,
                              int remoteNodeID, int on);
   bool localFilterDataBelow(const string& peer,
@@ -183,21 +188,26 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   arDatabaseNode*           _bridgeRootMapNode;
 
   bool _setRemoteLabel(arSocket* sock, const string& name);
-  bool _serializeAndSend(arSocket* socket, int remoteRootID, bool sendOn);
+  bool _serializeAndSend(arSocket* socket, int remoteRootID, 
+                         int localRootID, int sendLevel, bool localSendOn,
+                         bool remoteSendOn);
   void _serializeDoneNotify(arSocket* socket);
 
   void _activateSocket(arSocket*);
   void _deactivateSocket(arSocket*);
   void _closeConnection(arSocket*);
-  void _resetConnectionMap(int connectionID, int nodeID);
+  void _resetConnectionMap(int connectionID, int nodeID, bool sendOn);
   void _lockNode(int nodeID, arSocket* socket);
+  void _lockNodeBelow(int nodeID, arSocket* socket);
   void _unlockNode(int nodeID);
+  void _unlockNodeBelow(int nodeID);
   int  _unlockNodeNoNotification(int nodeID);
   void _filterDataBelow(int nodeID,
                         arSocket* socket,
                         int on);
   void _recSerialize(arDatabaseNode* pNode, arStructuredData& nodeData,
-                     arSocket* socket, bool& success);
+                     arSocket* socket, map<int, int, less<int> >& outFilter,
+                     bool localSendOn, int sendLevel, bool& success);
   void _recDataOnOff(arDatabaseNode* pNode,
                      int value,
                      map<int, int, less<int> >& filterMap);

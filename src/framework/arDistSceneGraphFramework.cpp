@@ -453,7 +453,7 @@ bool arDistSceneGraphFramework::start(){
         }
         // In either case, we'll be sending data to the target.
         _graphicsPeer.sending(_peerTarget, true);
-        _graphicsPeer.pushSerial(_peerTarget, _remoteRootID, true);
+        _graphicsPeer.pushSerial(_peerTarget, _remoteRootID, 0, 1, true);
 	// BUG BUG BUG BUG BUG BUG BUG: Need better definition of "modes"!
 	// Really just one mode so far...
         // In the feedback case, we want a dump and relay.

@@ -675,8 +675,10 @@ class arGraphicsPeer: public arGraphicsDatabase{
   bool closeConnection(const string& name);
   bool receiving(const string& name, bool state);
   bool sending(const string& name, bool state);
-  bool pullSerial(const string& name, bool receiveOn);
-  bool pushSerial(const string& name, int remoteRootID, bool sendOn);
+  bool pullSerial(const string& name, int remoteRootID, int localRootID,
+                  int sendLevel, bool receiveOn);
+  bool pushSerial(const string& name, int remoteRootID, int localRootID,
+                  int sendLevel, bool sendOn);
   bool closeAllAndReset();
   bool broadcastFrameTime(int frameTime);
   bool remoteLockNode(const string& name, int nodeID);
