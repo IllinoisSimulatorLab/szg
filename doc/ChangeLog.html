@@ -9,6 +9,24 @@
 <p><ul>
 <li>WE WILL MAKE AN INTERNAL RELEASE AT 0.66. THERE WILL BE A BRANCH TO
 EXPERIMENT WITH A NEW SZG PROTOCOL, WHICH WILL BE MERGED IN BEFORE 0.7.
+<li>Changed the virtual computer set-up to include "location", which better
+allows different virtaul computers in the same setting to play nicely with
+one another.
+<li>Possible to set-up the virtual computer to kill everything instead of
+just the components determined to be incompatible at the launch of a new
+application.
+<li>None of the "killing" via arAppLauncher happens via names anymore but
+instead via services and locks.
+<li>Made the arSZGClient "stoppable" via remote kill (this fixes some 
+weirdnesses with dkill -9. Now, the szgserver sends a "kill" packet to the
+client, which cleans up all pending communications. Fixed some bugs in
+arStructuredDataParser in the process.
+<li>Fixed all the "jamming" issues in szgd and the arAppLauncher. The szgd
+is now fully multithreaded.
+<li>Have a working shared library implementation now.
+<li>Added "stream playing" functionality to the sound.
+<li>Added functionality to support "graphics peers" as a generalization of
+arGraphicsServer and arGraphicsClient.
 <li>The Irix port again seems to be working. This was a thread-safety issue
 and has gone away with better Irix compilers. This issue is explored in
 depth elsewhere in the documentation (including a simple test program to
