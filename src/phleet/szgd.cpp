@@ -427,15 +427,23 @@ void execProcess(void* i){
   // Deal with python if necessary.
   string oldPythonPath;
   string pythonPath("");
-  string pyLibPath;
+  string szgPythonPath;
+  string szgPythonLibPath;
   if (execInfo->executableType == "python") {
     oldPythonPath = ar_getenv( "PYTHONPATH" );
     // Do not warn if the SZG_PYTHON/path not set. That warning has already
     // occured.
-    pyLibPath = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", 
-                                        "path", "");
-    if (pyLibPath != "NULL"){
-      pythonPath += pyLibPath;
+    szgPythonPath = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", 
+                                            "path", "");
+    if (szgPythonPath != "NULL"){
+      pythonPath += szgPythonPath;
+    }
+    // Do not warn if this is unset.
+    szgPythonLibPath = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON",
+					       "lib_path", "");
+    if (szgPythonLibPath != "NULL"){
+      pythonPath += ";";
+      pythonPath += szgPythonLibPath;
     }
     if (szgExecPath != "NULL"){
       pythonPath += ";";
