@@ -221,14 +221,14 @@ bool buildFunctionArgs(ExecutionInfo* execInfo,
     return false;
   }
   cout << "szgd remark:\n"
-       << "  user name=" << user << ".\n"
-       << "  exe name=" << command << ".\n"
-       << "  exe type=" << execInfo->executableType << ".\n"
+       << "  user name=" << user << "\n"
+       << "  exe name=" << command << "\n"
+       << "  exe type=" << execInfo->executableType << "\n"
        << "  arg list=(";
   for (list<string>::iterator iter = args.begin();
        iter != args.end(); ++iter){
     if (iter != args.begin()){
-      cout << ",";
+      cout << ", ";
     }
     cout << *iter;
   }

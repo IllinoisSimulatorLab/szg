@@ -28,7 +28,7 @@ bool arFileSink::init(arSZGClient& SZGClient){
     _dataFilePath = temp;
   }
   else{
-    cerr << "arFileSink warning: no path.\n";
+    cerr << "arFileSink warning: no SZG_DATA/path.\n";
   }
   return true;
 }
@@ -54,6 +54,7 @@ bool arFileSink::stop(){
     cerr << "arFileSink warning: logging already stopped.\n";
     return true;
   }
+
   ar_mutex_lock(&_logLock);
   _logging = false;
   if (_dataFile)
