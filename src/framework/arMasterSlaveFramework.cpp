@@ -1723,7 +1723,10 @@ void arMasterSlaveFramework::_messageTask(){
         // tmp = 6 glFrustum params followed by 9 gluLookat params
         float tmp[15];
         int numberArgs = ar_parseFloatString(messageBody, tmp, 15);
-        _graphicsWindow.setCamera( &arPerspectiveCamera( tmp, tmp+6 ) );
+		// The Irix compiler does not like things like foo(&constructor(...)),
+		// consequently, use temp
+		arPerspectiveCamera temp( tmp, tmp+6 );
+        _graphicsWindow.setCamera( &temp );
       }
     }
     
