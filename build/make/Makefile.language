@@ -58,7 +58,8 @@ $(SZG_CURRENT_DLL): arPrecompiled$(OBJ_SUFFIX) $(OBJS)
 	$(LINK_SZG_LIB)
 	$(COPY)
 
-# This should go AFTER our FIRST target (because Makefile.rules includes
+# This should go AFTER our FIRST target (because Makefile.rules has rules
+# in it)
 include $(SZGHOME)/build/make/Makefile.rules
 
 # Originally, every object in this directory was optimized to

@@ -322,6 +322,6 @@ class SZG_CALL arSZGClient{
   void _dataThread();
 };  
 
-extern void ar_messageTask(void* pClient);
+SZG_CALL void ar_messageTask(void* pClient);
 
 #endif
