@@ -13,21 +13,21 @@ is controlled by an szgserver program, which performs several functions:
 
 <p><ul>
 <li> Manages multiple users.
-<li> Stores a parameter database for each user, which is used by software components to
-obtain configuration information. The parameter database is similar in character to
-Unix environment variables.
+<li> Stores a parameter database for each user, which is used by software 
+components to obtain configuration information. The parameter database is 
+similar in character to Unix environment variables.
 <li> Maintains a list of the software components registered with the Phleet,
 with each component being identified by the computer on which it is running,
 a symbolic string (equivalent to executable name), and a unique ID (equivalent
 to Unix process ID).
-<li> Can route messages from one registered software component to another. These
-messages can be used like Unix signals. For instance, to cause a component to
-terminate or reload its parameters.
+<li> Can route messages from one registered software component to another. 
+These messages can be used like Unix signals. For instance, to cause a 
+component to terminate or reload its parameters.
 <li> Contains a connection brokering service which deals with multi-homing and
 aids in ease of set-up.
-<li> Supports named locks that are owned by phleet components. Locks are necessary so
-that certain operations, like starting a distributed application, can be performed
-atomically. These locks are released when a component dies.
+<li> Supports named locks that are owned by Phleet components. Locks are 
+necessary so that certain operations, like starting a distributed application, 
+can be performed atomically. These locks are released when a component dies.
 </ul>
 
 <p>The Phleet can be controlled in two basic ways:
@@ -36,23 +36,24 @@ atomically. These locks are released when a component dies.
 <li> From the command line (or scripts). A complete selection of commands is
 provided. This is useful, for instance, in providing GUI front-ends for various
 categories of tasks via a scripting language like Python.
-<li> Programatically by using the methods of an arSZGClient object. There is almost
-a one-to-one mapping between the methods of this object and the command line
-executables. This method is used to make launching applications on "virtual computers"
-easier.
+<li> Programatically by using the methods of an arSZGClient object. There is 
+almost a one-to-one mapping between the methods of this object and the command 
+line executables. This method is used to make launching applications on 
+"virtual computers" easier.
 </ul>
 
-<p>A Phleet is comprised of a set of computers connected by a network. Each Phleet
-is controlled by an szgserver program. There is only one instance of this program 
-per Phleet instance. The connection to the szgserver is maintained on a 
+<p>A Phleet is comprised of a set of computers connected by a network. Each 
+Phleet is controlled by an szgserver program. There is only one instance of 
+this program per Phleet instance. The connection to the szgserver is 
+maintained on a 
 per-computer basis (for all users of the box), but you can switch a given
 computer to a new szgserver using the dconnect command. Furthermore, 
 for full operation, each computer in the Phleet
-should run a copy of szgd, the remote execution daemon. Like the rest of the Phleet
-toolset, szgd is designed to support multiple users. When you try to remotely execute
-a program with Phleet identity XXX, the remote program also gets identity XXX.
-A Phleet member doesn't <em>have</em> to run szgd, if programs will be executed
-manually thereon.
+should run a copy of szgd, the remote execution daemon. Like the rest of the 
+Phleet toolset, szgd is designed to support multiple users. When you try to 
+remotely execute a program with Phleet identity XXX, the remote program also 
+gets identity XXX. A Phleet member doesn't <em>have</em> to run szgd, if 
+programs will be executed manually thereon.
 
 <a name="Contents">
 <p><font size=+2>Contents</font>
@@ -96,16 +97,17 @@ representation.
 </a>
 
 <p>The Phleet components use UDP on port 4620 to provide automatic discovery of
-running szgserver's. Syzygy also needs a block of ports reserved on each machine
-in the Phleet, as a Syzygy cluster is called, for connection brokering. By default,
-the port block used is 4700-4899, but can be redefined by the user.
+running szgserver's. Syzygy also needs a block of ports reserved on each 
+machine in the Phleet, as a Syzygy cluster is called, for connection brokering.
+By default, the port block used is 4700-4899, but can be redefined by the user 
+with the dports command.
 
 <a name="PhleetConfiguration">
 <p><font size=+2>Phleet Configuration</font>
 </a>
 
-<p>The phleet configuration file, szg.conf, is comprised of several different XML
-record types.
+<p>The Phleet configuration file, szg.conf, is comprised of several different 
+XML record types.
 
   <pre>
   "computer"
@@ -127,106 +129,140 @@ record types.
     int[] size;  // the number of ports in the block
   </pre>
 
-<p>The szg.conf file contains one "computer" record, giving the computer's syzygy name,
-which can be different from any other names the computer has, for instance via DNS. It
-then contains several "interface" record, one for each communications interface the
-computer has. Finally, the szg.conf file contains one "ports" record, which determines
-which ports services running on that computer will use. If no such record is present,
-the dname command will write a default record to the file, The default port range is
-4700-4899. 
+<p>Here is an example of an szg.conf file
 
-<p>The szg.conf file is found at c:\szg.conf on Win32 systems and
-at /etc/szg.conf on Unix systems. To enable non-root users to use syzygy on Unix, if
-/etc/szg.conf is not present, /tmp/szg.conf will be used. However, the presence of
-/tmp/szg.conf will be ignored if the former file is present.
+<pre>
+  <computer>
+    <name>smoke</name>
+  </computer>
 
-<p>The user should not have to edit szg.conf by hand. Consequently, several command
-line programs are provided. Each of these commands parse the whole szg.conf file, writing
-it fresh upon completion, thus eliminating errors that could creep in via editting by
-hand. Both the "name" and "ports" record must be present in this file. If they are
-not, default values are written. The default "ports" record has already been mentioned.
-The default "name" record uses a default name of "NULL".
+  <interface>
+    <type>IP</type>
+    <name>wall</name>
+    <address>192.168.0.1</address>
+  </interface>
+
+  <ports>
+    <first>
+      4700
+    </first>
+    <size>
+      200
+    </size>
+  </ports>
+</pre>
+
+<p>The szg.conf file contains one "computer" record, giving the computer's 
+Syzygy name, which can be different from any other names the computer has, 
+for instance via DNS. It then contains several "interface" record, one for 
+each communications interface the computer has. Finally, the szg.conf file 
+contains one "ports" record, which determines which ports services running on 
+that computer will use. If no such record is present, the dname command will 
+write a default record to the file, The default port range is 4700-4899. 
+
+<p>By default, the szg.conf file is found at c:\szg\szg.conf on Win32 systems 
+and at /etc/szg.conf on Unix systems. To enable non-root users to use Syzygy 
+on Unix or let Windows boxes without a c: hard disk be Syzygized, the
+environment variable SZG_CONF can be used to change the location of the
+szg.conf file. If SZG_CONF is set and not equal to "NULL", it gives the
+location of the szg.conf file. The value must NOT include a trailing slash
+(i.e. it should be something like /usr/szg or /tmp/szg).
+
+<p>The user should not have to edit szg.conf by hand. Consequently, several 
+command line programs are provided. Each of these commands parse the whole 
+szg.conf file, writing it fresh upon completion, thus eliminating errors that 
+could creep in via editting by hand. Both the "name" and "ports" record must 
+be present in this file. If they are not, default values are written. The 
+default "ports" record has already been mentioned. The default "name" record 
+uses a default name of "NULL".
 
   <pre>
   dconfig
 
-  Reads the szg.conf file and prints the information contained therein in an easily
+  Reads the szg.conf file and prints the information contained therein in 
   human readable form.
   </pre>
 
   <pre>
-  daddinterface [-t] type name address
+  daddinterface type name address
 
   Adds an interface to szg.conf file with the given type/name/address.
-  If the "-t" option is present and the command is issued on a Unix system,
-  /tmp/szg.conf is altered instead of /etc/szg.conf. Note that the name/address
-  pair must be unique among interfaces on the system.
+  If the environment variable SZG_CONF is not set (or is set to "NULL")
+  a default location is used, which depends on the host operating system.
+  Otherwise, SZG_CONF gives the directory where szg.conf will be written.
   </pre>
 
   <pre>
-  ddelinterface [-t] name address
+  ddelinterface name address
 
-  Removes the interface with the given name/address pair from the szg.conf file.
-  If the "-t" option is present, /tmp/szg.conf is altered instead of /etc/szg.conf.
+  Removes the interface with the given name/address pair from the szg.conf 
+  file. As before, the environment variable SZG_CONF can change the 
+  config file's location.
   </pre>
 
   <pre>
-  dports [-t] first size
+  dports first size
 
-  Changes the "ports" record in the szg.conf file, with "first" giving the number of
-  the first port to be used and "size" giving the size of the port window. If the
-  "-t" option is present (and the command is issued on a Unix system), /tmp/szg.conf
-  is altered instead of /etc/szg.conf.
+  Changes the "ports" record in the szg.conf file, with "first" giving the 
+  number of the first port to be used and "size" giving the size of the port 
+  window. As before, the environment variable SZG_CONF can change the
+  config file's location.
   </pre>
 
   <pre>
-  dname [-t] name
+  dname name
 
-  Sets the computer's name in the szg.conf file. If no ports information is present,
-  it goes ahead and adds a default ports record, reserving the range 4700-4899.
-  As before, if the "-t" option is present (and the command is issued on a Unix system),
-  /tmp/szg.conf is altered instead of /etc/szg.conf.
+  Sets the computer's name in the szg.conf file. If no ports information is 
+  present, it goes ahead and adds a default ports record, reserving the range 
+  4700-4899. As before, the environment variable SZG_CONF can change the
+  config file's location.
   </pre>
 
-<p>The phleet configuration file really just determines the identity of an 
-individual computer in the system: its name, its network interfaces, and the ports
-it will use to offer services. This information is insufficient to join a phleet.
-For that, one also needs to know which szgserver and which phleet user name are
-being used. This information is maintained in a phleet login file, per host system
-user. The login file is manipulated via the dlogin and dlogout commands. Note that
-if the host system user is XXX, the phleet login file will be /tmp/szg_XXX.conf on
-Unix systems and c:\szg_XXX.conf on Win32 systems.
+<p>The Phleet configuration file really just determines the identity of an 
+individual computer in the distributed system: its name, its network 
+interfaces, and the ports it will use to offer services. This information is 
+insufficient to join a Phleet. For that, one also needs to know which 
+szgserver and which Phleet user name are being used. This information is 
+maintained, per host system user, in a Phleet login file. The login file is 
+manipulated via the dlogin and dlogout commands. By default, if the host
+system user is XXX, the Phleet login file will be /tmp/szg_XXX.conf on 
+Unix-like systems and c:\szg\szg_XXX.conf on Win32 systems. As with the
+szg.conf file, these locations might be inconvenient for
+some reason or another. Consequently, if the SZG_LOGIN environment variable
+is set and not equal to "NULL", it gives the directory where they will
+be stored. SZG_LOGIN must NOT have a trailing slash.
 
   <pre>
   dlogin szgserver_name user_name
   dlogin IP port user_name
 
-  In the first case, the dlogin program attempts to discover the szgserver given
-  by szgserver_name by broadcasting a discovery packet on the LAN. If such
-  is found, the phleet login file is written, using the given user_name.
+  In the first case, the dlogin program attempts to discover the szgserver 
+  given by szgserver_name by broadcasting a discovery packet on the LAN. If 
+  such is found, the Phleet login file is written, using the given user_name.
 
   In the second case, the dlogin program attempts to connect to the szgserver
-  using the IP/port parameters (much as a standard phleet component would using
-  corresponding parameters from the login file). If successful, the phleet
+  using the IP/port parameters (much as a standard Phleet component would using
+  corresponding parameters from the login file). If successful, the Phleet
   login file is written, using the given user_name.
 
   Note that the second case is necessary since the szgserver might not be 
   reachable via broadcast packets from the dlogin program. A good example of
   this occurs when running everything on a computer that is not connected to
-  a network. The loopback address 127.0.0.1 may be the only one available in this
-  case and it does not allow broadcast traffic.
+  a network. The loopback address 127.0.0.1 may be the only one available in 
+  this case and it does not allow broadcast traffic. Another example occurs
+  when wanting to dlogin to an szgserver on another network.
   </pre>
 
   <pre>
   dlogout
 
-  This command resets the phleet login file for the particular host system user.
+  This command resets the Phleet login file for the particular host system user.
   </pre>
 
   <pre>
   dwho
 
-  Prints the phleet login file of the particular host system user in a
+  Prints the Phleet login file of the particular host system user in a
   human-readable form.
   </pre>
 
@@ -241,42 +277,44 @@ To run szgserver, type:
   szgserver server_name server_port
 </pre>
 
-<p>"server_name" should be a unique alphanumeric tag. "server_port" is the port on which
-the szgserver will listen for TCP connection requests. All components in the Phleet
-distributed system maintain a TCP connection to the szgserver via this port. This 
-information is embedded in a user's login file (see below). While login can involve
-explicitly stating the IP address/ port pair of the desired szgserver, there is also
-an automated discovery mechanism keyed on the szgserver's name. Clients 
-can discover the szgserver
-by broadcasting UDP packets to port 4620. When the szgserver receives a packet on this
-port containing it's name, it replies with a UDP packet, on port 4621, directed to the
-origin address of the discovery packet. The reply contains the IP address and port
-of the szgserver. 
-<p>Note that the szgserver uses the phleet configuration file on the computer on which
-it is running to determine its primary IP address, which is simply the first IP address
-listed in the configuration file. This primary IP address is the one sent in 
-response to client discovery requests. Consequently, the user should make sure that
-this IP address is globally accessible via all computers that will be part of the
-distributed system.
+<p>"server_name" should be a unique alphanumeric tag. "server_port" is the 
+port on which the szgserver will listen for TCP connection requests. All 
+components in the Phleet distributed system maintain a TCP connection to the 
+szgserver via this port. This information is embedded in a user's login file 
+(see below). While login can involve explicitly stating the IP address/ port 
+pair of the desired szgserver, there is also an automated discovery mechanism 
+keyed on the szgserver's name. Clients can discover the szgserver
+by broadcasting UDP packets to port 4620. When the szgserver receives a packet 
+on this port containing it's name, it replies with a UDP packet, on port 4621, 
+directed to the origin address of the discovery packet. The reply contains the 
+IP address and port of the szgserver.
+ 
+<p>Note that the szgserver uses the Phleet configuration file on the computer 
+on which it is running to determine its primary IP address, which is simply 
+the first IP address listed in the configuration file. This primary IP address 
+is the one sent in response to client discovery requests. Consequently, the 
+user should make sure that this IP address is globally accessible via all 
+computers that will be part of the distributed system (Phleet).
 
 <a name="Connect">
 <p><font size=+2>How Clients Connect to the szgserver</font>
 </a>
 
-<p>When a phleet component starts, it needs to connect to an szgserver. It will
-check to see if the current host system user has a phleet login file. If not, the
-component will quit, printing a message suggesting that the user must dlogin.
-On the other hand, if the phleet login file exists, the phleet component will read
-the IP address and port contained therein and attempt to open a TCP connection
-to an szgserver using that information.
+<p>When a Phleet component starts, it needs to connect to an szgserver. It will
+check to see if the current host system user has a Phleet login file. If not, 
+the component will quit, printing a message suggesting that the user must 
+dlogin. On the other hand, if the Phleet login file exists, the Phleet 
+component will read the IP address and port contained therein and attempt to 
+open a TCP connection to an szgserver using that information.
 
-<p>As has been mentioned previously, the dlogin command creates the phleet login
-file. This is either done via explicitly feeding the command an IP address/port
-pair or by automatic discovery. In the automatic discovery, we just give dlogin
-the szgserver's name and it will broadcast it on the LAN, searching for an 
-szgserver with that name. The discovery process is described now.
+<p>As has been mentioned previously, the dlogin command creates the Phleet 
+login file. This is either done via explicitly feeding the command an IP 
+address/port pair or by automatic discovery. In the automatic discovery, we 
+just give dlogin the szgserver's name and it will broadcast it on the LAN, 
+searching for an szgserver with that name. The discovery process is described 
+now.
 
-<p>Broadcast a call to szgserver's out on the
+<p>First, broadcast a call to szgservers out on the
 LAN. All szgserver programs listen for UDP packets on port 4620. 
 Clients listen for responses on port 4621. The broadcast packet has the 
 following format:
@@ -306,32 +344,32 @@ with the following packet:
 <p><font size=+2>szgd</font>
 </a>
 
-<p>The remote execution daemon szgd should run on every computer in the system for
-maximum ease of use. However, as is shown in the 
-<a href="QuickStart.html">introduction</a>, this is not necessary.
-Only one instance may run on each host. Each instance
-of szgd grabs a lock named XXX/szgd, where XXX is the name of the computer on which it
-runs. As an szgd instance starts, it attempts to get this lock. If it fails, it quits
+<p>The remote execution daemon szgd should run on every computer in the system 
+for maximum ease of use. However, as is shown in the 
+<a href="PhleetIntro.html">introduction</a>, this is not necessary. Only one 
+instance may run on each host. Each instance of szgd grabs a lock named 
+XXX/szgd, where XXX is the name of the computer on which it runs. As an szgd 
+instance starts, it attempts to get this lock. If it fails, it quits
 immediately.
 
 <p>If user XXX attempts to execute a program on
-a computer YYY running szgd, the szgd instance finds the value of YYY/SZG_EXEC/path
-in the parameter database of user XXX and uses that as a search path for the
-requested executable.
+a computer YYY running szgd, the szgd instance finds the value of 
+YYY/SZG_EXEC/path in the parameter database of user XXX and uses that as a 
+search path for the requested executable.
 
-<p>For szgd to run, it is necessary for a user to successfully dlogin first. While the
-Phleet identity of the user running szgd is unimportant, the dlogin process also
-establishes a connection to a given szgserver, which is important.
+<p>For szgd to run, it is necessary for a user to successfully dlogin first. 
+While the Phleet identity of the user running szgd is unimportant, the dlogin 
+process also establishes a connection to a given szgserver, which is important.
 
 <a name="Names">
 <p><font size=+2>Names, According to the szgserver</font>
 </a>
 
-<p>The szgserver does not do name resolution of any kind. The phleet configuration
-files of individual computers determine the name of that computer, as used by
-phleet. When a client is communicating with the szgserver, it reads the phleet
-configuration file to determine the computer's name, and transmits that to the
-szgserver, which trusts the transmission.
+<p>The szgserver does not do name resolution of any kind. The Phleet 
+configuration files of individual computers determine the name of that 
+computer, as used by Phleet. When a client is communicating with the szgserver,
+it reads the Phleet configuration file to determine the computer's name, and 
+transmits that to the szgserver, which trusts the transmission.
 
 <a name="User">
 <p><font size=+2>How Do Clients Determine the Current User?</font>
@@ -356,9 +394,9 @@ szgd to execute programs at the same time user B is using it.
    the value is the user name.
 <li>If not, determine the current user name as reported by the host system
    (which can be completely different from an Phleet user name). Use this
-   user name to load a phleet login file. If the host system user name is
-   XXX, then the phleet login file, on a unix system, will be /tmp/szg_XXX.conf.
-   The phleet user name is read from this file.
+   user name to load a Phleet login file. If the host system user name is
+   XXX, then the Phleet login file, on a unix system, will be 
+   /tmp/szg_XXX.conf. The Phleet user name is read from this file.
 </ol>
 
 <a name="CommandLine">
@@ -368,38 +406,36 @@ szgd to execute programs at the same time user B is using it.
 <p><ul>
 <li>Creating and editing the Phleet configuration file
 <pre>
-   dname [-t] computer_name
-     Sets the phleet name of the computer to the value of the computer_name
+   dname computer_name
+     Sets the Phleet name of the computer to the value of the computer_name
      parameter. On Win32 systems, the -t option does nothing. In that
-     case, the phleet configuration file is always c:\szg.conf if a c:
+     case, the Phleet configuration file is always c:\szg.conf if a c:
      drive exists, and d:\szg.conf otherwise. In the Unix case, however,
      there are two possibilities. If -t is present, the file /tmp/szg.conf
      is altered. Otherwise, the file /etc/szg.conf is altered. 
 
-   daddinterface [-t] network_name interface_address
-     Adds a network interface to the phleet configuration file. The
+   daddinterface network_name interface_address
+     Adds a network interface to the Phleet configuration file. The
      network_name parameter is a dscriptive string that is used
      to differentiate different networks. This is helpful when the
      distributed system contains multiple private networks with
      duplicate IP address ranges. The interface_address parameter is
      the IP address. The meaning of the -t option is the same as in dname.
 
-   ddelinterface [-t] interface_name interface_address
-     Deletes the specified interface from the phleet configuration file. The
-     meaning of -t is the same as given in the dname section.
+   ddelinterface interface_name interface_address
+     Deletes the specified interface from the Phleet configuration file.
 
-   dports [-t] first_port size_of_block
+   dports first_port size_of_block
      Connection brokering uses a block of ports on a given machine that is,
      by default, given by 4700-4899. If this default range is unappectable
      for your installation, you can change it, for a particular machine,
      by issuing the dports command on that machine. The first port in the
      block is given by first_port and the size of the block is given by
-     size_of_block. The -t option has the same meaning as in dname. 
+     size_of_block. 
 
    dconfig
-     Prints the phleet configuration file. Note that, on Unix systems, if 
-     /etc/szg.conf and /tmp/szg.conf are both present, the information 
-     in /etc/szg.conf will be used.
+     Prints the Phleet configuration file, whose location is determined
+     by the value of SZG_CONF.
 </pre>
 <li>Parameter database management
 <pre>
@@ -468,7 +504,7 @@ szgd to execute programs at the same time user B is using it.
      a message with tag message_type and body message_body. If message_body 
      is not presnt, an empty body is sent.
 
-   dmsg -c virtual_computer message_type [message_body]
+   dmsg -c virtual_computer_location message_type [message_body]
 
      Find the component, if such exists, which is currently running
      as the trigger instance of the given virtual computer. Send it
@@ -492,18 +528,19 @@ szgd to execute programs at the same time user B is using it.
      Display all szgServer's running on the LAN, in the format:
        server_name/server_IP/server_port
 
-     This command reads the phleet configuration file and sends an szgserver
+     This command reads the Phleet configuration file and sends an szgserver
      discovery packet out on each of the interfaces defined therein. There
      is a 2 second time-out on the discovery process for each interface.
 
    dlogin szgserver_name user_name
-     This command takes a system user name (whatever identity the system currently
-     assigns to the user) and associates it with a particular szgserver, as given
-     by szgserver_name, and a particular phleet user, as given by user_name.
-     This association lasts until the dlogout command is issued (by the appropriate
-     system user) and, if the system user's identity is XXX, is recorded
-     in /tmp/szg_XXX.conf on Unix and c:\szg_XXX.conf on Win32. A dlogin
-     must occur before any syzygy programs will operate.
+     This command takes a system user name (whatever identity the system 
+     currently assigns to the user) and associates it with a particular 
+     szgserver, as given by szgserver_name, and a particular Phleet user, as 
+     given by user_name. This association lasts until the dlogout command is 
+     issued (by the appropriate system user) and, if the system user's 
+     identity is XXX, is recorded in /tmp/szg_XXX.conf on Unix and 
+     c:\szg_XXX.conf on Win32. A dlogin must occur before any syzygy programs 
+     will operate.
 
    dlogout
      Log out the current user.
@@ -515,15 +552,15 @@ szgd to execute programs at the same time user B is using it.
 <li>Monitoring the operation of the system
 <pre>
    dlocks
-     Prints a list of the locks currently held by phleet components, along
+     Prints a list of the locks currently held by Phleet components, along
      with their component IDs.
 
    dservices
-     Prints a list of services currently offered by phleet components.
+     Prints a list of services currently offered by Phleet components.
 
    dpending
      Prints a list of unfilled service requests that have been posted by
-     phleet components.
+     Phleet components.
 </pre>
 </ul>
 <a name="Message">
@@ -544,7 +581,7 @@ szgserver can then easily notify the message-sending component that an error has
 occured and that it will never receive a response. Unfortunately, this rule needs to
 be somewhat bent to enable the "dex" command's right to respond to an execution
 message to be passed on to the launched executable. In this case, szgd indicates to 
-the szgserver it wants to trade its right of message response to any phleet 
+the szgserver it wants to trade its right of message response to any Phleet 
 component making a trade request with an appropriate key. The launched executable is
 able to make such a request, and thus is able to respond to the original launch
 message.
@@ -586,7 +623,7 @@ message.
 differentiated by the "Command" field.
 
 <p>"SZG Response": The response to the client's message. The "Status" field tells
-whether or not this is valid (for instance, the phleet component owning the right to
+whether or not this is valid (for instance, the Phleet component owning the right to
 respond could have died, in which event, an "SZG Response" would be sent (by the
 szgserver) with
 "Status" set to "SZG_FAILURE". The "Body" field gives the text of the response.
@@ -771,7 +808,7 @@ lock, and giving that component's ID. If not, it sends the originating component
 message indicating that it now owns the lock. Appropriate modifications are made to
 the lock table plus the component's data structure that records the resources it owns.
 Specifically, each component maintains a list of locks it owns. When the component
-leaves the phleet, these are removed from the global list of held locks.
+leaves the Phleet, these are removed from the global list of held locks.
 
 <p>When the component wants to release a lock it owns, it sends an "SZG Lock Release"
 to the szgserver. The szgserver checks to see if the sending component does, in fact,
@@ -1179,5 +1216,6 @@ pending connections can be removed from the system.
   return -1. This is useful when a new component must offer a service, even to the
   extent of killing off a previous component offering the same service.
 </pre>
+<hr>
 </body>
 </html>

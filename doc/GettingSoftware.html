@@ -83,6 +83,17 @@ the executables.
 <p><font size=+2>OS-Specific Precompiled Install Instructions</font>
 </a>
 
+<p>Installing a precompiled SDK can be problematic since there are issues
+of compatibility with system libraries and compilers. Our Linux precompiled
+version (being compiled on Xandros 2) should work on a broad variety of modern 
+Linux systems (like RedHat 9, RedHat Advanced Server, Xandros 3, among others),
+but, would not, for instance, work on RedHat 8. On the Windows side, the issues
+are somewhat less severe, since the precompiled executables should run on 
+almost any version of Windows, no matter what is installed. However, problems
+arise when you want to compile your own projects.
+The Visual Studio 6 package is not compatible with Visual Studio .NET 
+compilers and vice-versa.
+
 <p>For all platforms, unpack the precompiled distribution to a directory 
 szg-0.7. To run Syzygy programs you will need to, assuming that $SZGHOME is 
 the location of the new directory:

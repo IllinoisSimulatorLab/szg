@@ -46,6 +46,11 @@ STLport with Visual Studio .NET (its native standard template library is OK).
   debugging information. If you want to debug, set this to TRUE.
 </ol>
 
+<p>PLEASE NOTE: If you are using the precompiled SDK for Windows, you must
+use the same SDK as your compiler (-vc6 for Visual Studio 6 and -vc7 for
+Visual Studio .NET). If you mix versions, your executables either will
+not link or will crash on startup.
+
 <p>Syzygy has a build system designed for writing cross-platform applications,
 hiding the differences from the programmer. A motivating example of
 its design is: if your build directory is simultaneously mounted on different 
