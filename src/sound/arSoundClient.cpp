@@ -67,7 +67,7 @@ bool ar_soundClientDisconnectCallback(void* client){
   // is really unique to each connection. This information is used to
   // let an application have its sound files in a flexible location (i.e.
   // NOT on the sound path).
-  c->setBundlePtr("NULL","NULL");
+  c->setDataBundlePath("NULL","NULL");
   c->reset();
   // NOTE: DO NOT CALL skipConsumption from here! That is done in the
   // arSyncDataClient proper.

@@ -34,11 +34,12 @@ bool arSharedLib::open(const string& sharedLibName, const string& path){
   ar_addSharedLibExtension(libName);
   // Only try to produce an absolute file name if the path is specified.
   if (path != ""){
+    string fileName = libName;
     // We want to use an absolute path name, if possible, to avoid the
     // unpredictability of the OS's internal shared library searching.
-    libName = ar_fileFind(libName,"",path);
+    libName = ar_fileFind(fileName,"",path);
     if (libName == "NULL"){
-      cout << "arSharedLib error: could not find named shared lib on given "
+      cout << "arSharedLib error: could not find shared lib " << fileName << " on given "
 	   << "path.\n";
       return false;
     }

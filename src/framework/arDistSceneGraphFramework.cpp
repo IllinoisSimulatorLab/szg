@@ -216,19 +216,19 @@ void arDistSceneGraphFramework::loadNavMatrix() {
     dsTransform( _soundNavMatrixID, navMatrix );
 }
 
-void arDistSceneGraphFramework::setBundlePtr(const string& bundlePathName,
-                                             const string& bundleName){
-  _graphicsServer.setBundlePtr(bundlePathName, bundleName);
+void arDistSceneGraphFramework::setDataBundlePath(const string& bundlePathName,
+                                                  const string& bundleSubDirectory) {
+  _graphicsServer.setDataBundlePath(bundlePathName, bundleSubDirectory);
   // The graphics client is only used for drawing in "standalone" mode.
   // It isn't used at all in "Phleet" mode. However, in the "standalone"
   // mode case, the connection process in the arGraphicsServer code
   // never occurs (client/server are just connected from the beginning).
   // Hence, we need to do this here, as well.
-  _graphicsClient.setBundlePtr(bundlePathName, bundleName);
+  _graphicsClient.setDataBundlePath(bundlePathName, bundleSubDirectory);
   // Must be done analogously for the sound (both texture files and sound
   // files live in the bundles).
-  _soundServer.setBundlePtr(bundlePathName, bundleName);
-  _soundClient.setBundlePtr(bundlePathName, bundleName);
+  _soundServer.setDataBundlePath(bundlePathName, bundleSubDirectory);
+  _soundClient.setDataBundlePath(bundlePathName, bundleSubDirectory);
 }
 
 bool arDistSceneGraphFramework::init(int& argc, char** argv){
@@ -534,18 +534,18 @@ bool arDistSceneGraphFramework::_loadParameters(){
   }
   // Must make sure everybody gets the right bundle map,
   // both for standalone and for normal operation.
-  _graphicsServer.addBundleMap("SZG_DATA", _dataPath);
-  _graphicsClient.addBundleMap("SZG_DATA", _dataPath);
-  _soundServer.addBundleMap("SZG_DATA", _dataPath);
-  _soundClient.addBundleMap("SZG_DATA", _dataPath);
+  _graphicsServer.addDataBundlePathMap("SZG_DATA", _dataPath);
+  _graphicsClient.addDataBundlePathMap("SZG_DATA", _dataPath);
+  _soundServer.addDataBundlePathMap("SZG_DATA", _dataPath);
+  _soundClient.addDataBundlePathMap("SZG_DATA", _dataPath);
   // Some data access might occur along the Python bundle path as well.
   string pythonPath = _SZGClient.getAttribute("SZG_PYTHON","path");
   // Do not warn if this is undefined.
   if (pythonPath != "NULL"){
-    _graphicsServer.addBundleMap("SZG_PYTHON", pythonPath);
-    _graphicsClient.addBundleMap("SZG_PYTHON", pythonPath);
-    _soundServer.addBundleMap("SZG_PYTHON", pythonPath);
-    _soundClient.addBundleMap("SZG_PYTHON", pythonPath);
+    _graphicsServer.addDataBundlePathMap("SZG_PYTHON", pythonPath);
+    _graphicsClient.addDataBundlePathMap("SZG_PYTHON", pythonPath);
+    _soundServer.addDataBundlePathMap("SZG_PYTHON", pythonPath);
+    _soundClient.addDataBundlePathMap("SZG_PYTHON", pythonPath);
   }
 
   _head.configure( _SZGClient );

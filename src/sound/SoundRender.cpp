@@ -34,12 +34,12 @@ bool loadParameters(arSZGClient& cli){
   // Must remember to set up the data bundle info.
   string dataPath = cli.getAttribute("SZG_DATA", "path");
   if (dataPath != "NULL"){
-    soundClient->addBundleMap("SZG_DATA", dataPath);
+    soundClient->addDataBundlePathMap("SZG_DATA", dataPath);
   }
   // Must also do this for the other bundle path possibility.
   string pythonPath = cli.getAttribute("SZG_PYTHON", "path");
   if (pythonPath != "NULL"){
-    soundClient->addBundleMap("SZG_PYTHON", pythonPath);
+    soundClient->addDataBundlePathMap("SZG_PYTHON", pythonPath);
   }
 
   return speakerObject.configure(&cli);

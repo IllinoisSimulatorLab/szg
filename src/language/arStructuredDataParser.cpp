@@ -303,6 +303,7 @@ arStructuredData* arStructuredDataParser::parse(arTextStream* textStream,
     ARint* intData = NULL;
     ARfloat* floatData = NULL;
     ARlong* longData = NULL;
+    ARint64* int64Data = NULL;
     ARdouble* doubleData = NULL;
     // Get the data from the record. 
     if (!ar_getTextBeforeTag(textStream, workingBuffer)){
@@ -359,6 +360,18 @@ arStructuredData* arStructuredDataParser::parse(arTextStream* textStream,
       }
       (void)theData->dataIn(fieldBegin, longData, AR_LONG, size);
       delete [] longData;
+      break;
+    case AR_INT64:
+      size = ar_parseXMLData<ARint64>(workingBuffer, int64Data);
+      if (!int64Data){
+        cerr << "arStructuredDataParser error: XML 64-bit int data expected but "
+	     << "not received.\n";
+	delete theData;
+        recycleTranslationBuffer(workingBuffer);
+	return NULL;
+      }
+      (void)theData->dataIn(fieldBegin, int64Data, AR_INT64, size);
+      delete [] int64Data;
       break;
     case AR_DOUBLE:
       size = ar_parseXMLData<ARdouble>(workingBuffer, doubleData);

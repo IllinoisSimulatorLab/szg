@@ -10,9 +10,9 @@
 #include "arDatabaseNode.h"     // for dataInMakenode()
 
 static const char* debugTypename(int i){
-  const char* internalTypeNames[6] = {
-    "AR_GARBAGE", "AR_CHAR", "AR_INT", "AR_LONG", "AR_FLOAT", "AR_DOUBLE" };
-  if (i>=0 && i<6)
+  const char* internalTypeNames[7] = {
+    "AR_GARBAGE", "AR_CHAR", "AR_INT", "AR_LONG", "AR_INT64", "AR_FLOAT", "AR_DOUBLE" };
+  if (i>=0 && i<7)
     return internalTypeNames[i];
 
   static int j = 0; // feeble attempt to support multiple calls from one printf
@@ -93,15 +93,15 @@ arStructuredData::arStructuredData(arTemplateDictionary* d, const char* name) :
 }
 
 const char* arDataTypeName(arDataType theType){
-  static const char* names[6] = {
-    "ARgarbage", "ARchar", "ARint", "ARlong", "ARfloat", "ARdouble" };
+  static const char* names[7] = {
+    "ARgarbage", "ARchar", "ARint", "ARlong", "ARint64", "ARfloat", "ARdouble" };
   return names[int(theType)];
 }
 
 arDataType arDataNameType(const char* const theName) {
-  static const char* names[6] = {
-    "ARgarbage", "ARchar", "ARint", "ARlong", "ARfloat", "ARdouble" };
-  for (int i=0; i<6; i++)
+  static const char* names[7] = {
+    "ARgarbage", "ARchar", "ARint", "ARlong", "ARint64", "ARfloat", "ARdouble" };
+  for (int i=0; i<7; i++)
     if (strcmp(theName,names[i])==0)
       return arDataType(i);
   return AR_GARBAGE;
@@ -109,11 +109,12 @@ arDataType arDataNameType(const char* const theName) {
 
 int arDataTypeSize(arDataType theType){
   // Faster than a switch(), but crashes with bad input data.
-  static const int sizes[6] = {
+  static const int sizes[7] = {
     AR_GARBAGE_SIZE,
     AR_CHAR_SIZE,
     AR_INT_SIZE,
     AR_LONG_SIZE,
+    AR_INT64_SIZE,
     AR_FLOAT_SIZE,
     AR_DOUBLE_SIZE};
   const int t = int(theType);
@@ -153,14 +154,17 @@ void arStructuredData::dump(bool verbosity)
 	case AR_INT:
 	  cout << ((ARint*)_dataPtr[i])[j] << " ";
 	  break;
+	case AR_LONG:
+	  cout << ((ARlong*)_dataPtr[i])[j] << " ";
+	  break;
 	case AR_FLOAT:
 	  cout << ((ARfloat*)_dataPtr[i])[j] << " ";
 	  break;
 	case AR_DOUBLE:
 	  cout << ((ARdouble*)_dataPtr[i])[j] << " ";
 	  break;
-	case AR_LONG:
-	  cout << ((ARlong*)_dataPtr[i])[j] << " ";
+	case AR_INT64:
+	  cout << ((ARint64*)_dataPtr[i])[j] << " ";
 	  break;
 	}
       }
@@ -873,14 +877,17 @@ void arStructuredData::print(ostream& s){
 	case AR_INT:
 	  s << ((ARint*)_dataPtr[i])[j] << " ";
 	  break;
+	case AR_LONG:
+	  s << ((ARlong*)_dataPtr[i])[j] << " ";
+	  break;
 	case AR_FLOAT:
 	  s << ((ARfloat*)_dataPtr[i])[j] << " ";
 	  break;
 	case AR_DOUBLE:
 	  s << ((ARdouble*)_dataPtr[i])[j] << " ";
 	  break;
-	case AR_LONG:
-	  s << ((ARlong*)_dataPtr[i])[j] << " ";
+	case AR_INT64:
+	  s << ((ARint64*)_dataPtr[i])[j] << " ";
 	  break;
 	}
 	if (j%numbersInRow == numbersInRow-1)
@@ -920,14 +927,17 @@ void arStructuredData::print(FILE* theFile){
 	case AR_INT:
 	  fprintf(theFile, "%i ", ((ARint*)_dataPtr[i])[j]);
 	  break;
+	case AR_LONG:
+	  fprintf(theFile, "%i ", ((ARlong*)_dataPtr[i])[j]);
+	  break;
 	case AR_FLOAT:
 	  fprintf(theFile, "%f ", ((ARfloat*)_dataPtr[i])[j]);
 	  break;
 	case AR_DOUBLE:
 	  fprintf(theFile, "%lg ", ((ARdouble*)_dataPtr[i])[j]);
 	  break;
-	case AR_LONG:
-	  fprintf(theFile, "%ld ", ((ARlong*)_dataPtr[i])[j]);
+	case AR_INT64:
+	  fprintf(theFile, "%ld ", ((ARint64*)_dataPtr[i])[j]);
 	  break;
 	}
 	if (j%numbersInRow == numbersInRow-1)

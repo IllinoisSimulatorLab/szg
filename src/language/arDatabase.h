@@ -26,8 +26,8 @@ class SZG_CALL arDatabase{
   arDatabase();
   virtual ~arDatabase();
 
-  void setBundlePtr(const string& bundlePathName, const string& bundleName);
-  void addBundleMap(const string& bundlePathName, const string& bundlePath);
+  void setDataBundlePath(const string& bundlePathName, const string& bundleSubDirectory);
+  void addDataBundlePathMap(const string& bundlePathName, const string& bundlePath);
 
   int getNodeID(const string& name, bool fWarn=true);
   arDatabaseNode* getNode(int, bool fWarn=true);

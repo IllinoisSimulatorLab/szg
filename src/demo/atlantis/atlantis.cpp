@@ -633,7 +633,7 @@ int main(int argc, char** argv){
   if (!framework.init(argc, argv)){
     return 1;
   }
-  framework.setBundlePtr("SZG_DATA", "atlantis");
+  framework.setDataBundlePath("SZG_DATA", "atlantis");
   if (!framework.start()){
     return 1;
   }

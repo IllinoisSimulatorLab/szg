@@ -548,15 +548,15 @@ void arMasterSlaveFramework::stop(bool blockUntilDisplayExit){
 /// The sound server should be able to find its files in the application
 /// directory. If this function is called between init(...) and start(...),
 /// the sound render will be able to find clips there. bundlePathName should
-/// be SZG_PYTHON or SZG_DATA and bundleName will likely (but not necessarily)
+/// be SZG_PYTHON or SZG_DATA and bundleSubDirectory will likely (but not necessarily)
 /// be the name of the app.
-void arMasterSlaveFramework::setBundlePtr(const string& bundlePathName,
-					  const string& bundleName){
-  _soundServer.setBundlePtr(bundlePathName, bundleName);
+void arMasterSlaveFramework::setDataBundlePath(const string& bundlePathName,
+                                               const string& bundleSubDirectory){
+  _soundServer.setDataBundlePath(bundlePathName, bundleSubDirectory);
   // For standalone mode, we also need to set-up the internal sound client.
   // Only in this case will the _soundClient ptr be non-NULL.
   if (_soundClient){
-    _soundClient->setBundlePtr(bundlePathName, bundleName);
+    _soundClient->setDataBundlePath(bundlePathName, bundleSubDirectory);
   }
 }
 
@@ -1663,17 +1663,17 @@ bool arMasterSlaveFramework::_loadParameters(){
     _dataPath = string("");
   }
   else{
-    _soundServer.addBundleMap("SZG_DATA", _dataPath);
+    _soundServer.addDataBundlePathMap("SZG_DATA", _dataPath);
     if (_soundClient){
-      _soundClient->addBundleMap("SZG_DATA", _dataPath);
+      _soundClient->addDataBundlePathMap("SZG_DATA", _dataPath);
     }
   }
   
   string pythonPath = _SZGClient.getAttribute("SZG_PYTHON", "path");
   if (pythonPath != "NULL"){
-    _soundServer.addBundleMap("SZG_PYTHON", pythonPath);
+    _soundServer.addDataBundlePathMap("SZG_PYTHON", pythonPath);
     if (_soundClient){
-      _soundClient->addBundleMap("SZG_PYTHON", pythonPath);
+      _soundClient->addDataBundlePathMap("SZG_PYTHON", pythonPath);
     }
   }
   return true;

@@ -33,8 +33,8 @@ class SZG_CALL arSZGAppFramework {
     bool getStandalone() const { return _standalone; }
     void setStandalone( bool onoff ) { _standalone = onoff; }
 
-    virtual void setBundlePtr(const string& bundlePathName,
-			      const string& bundleName){}
+    virtual void setDataBundlePath(const string& bundlePathName,
+                                   const string& bundleSubDirectory){}
 
     virtual void loadNavMatrix() = 0;
     

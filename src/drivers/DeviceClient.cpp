@@ -100,7 +100,7 @@ int main(int argc, char** argv){
 
   arThread dummy(ar_messageTask, &szgClient);
   while (true){
-    dumpState( inputNode._inputState );
+//    dumpState( inputNode._inputState );
     ar_usleep(500000);
   }
   return 0;

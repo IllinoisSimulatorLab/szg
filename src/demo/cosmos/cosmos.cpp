@@ -210,7 +210,7 @@ int main(int argc, char** argv){
     return 1;
 
   // Where we can put the textures and sounds.
-  framework->setBundlePtr("SZG_DATA", "cosmos");
+  framework->setDataBundlePath("SZG_DATA", "cosmos");
 
   arInterfaceObject interfaceObject;
   interfaceObject.setInputDevice(framework->getInputDevice());

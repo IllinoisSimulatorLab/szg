@@ -283,7 +283,7 @@ arDatabaseNode* arSoundDatabase::_processAdmin(arStructuredData* data){
 	 << "identification.\n";
     return &_rootNode;
   }
-  setBundlePtr(bundleInfo[0], bundleInfo[1]);
+  setDataBundlePath(bundleInfo[0], bundleInfo[1]);
   return &_rootNode;
 }
 

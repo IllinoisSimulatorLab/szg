@@ -53,21 +53,21 @@ arDatabase::~arDatabase(){
 /// reading a local config file, depending upon mode of operation).
 /// This associates a bundlePathName (SZG_DATA, SZG_PYTHON) with a
 /// file system path like my_directory_1;my_directory_2;my_directory3.
-/// If bundlePathName maps to a path like so, is not "NULL", and bundleName
+/// If bundlePathName maps to a path like so, is not "NULL", and bundleSubDirectory
 /// is not "NULL", then addTexture (for arGraphicsDatabase) or
 /// addFile (arSoundDatabase)  will look for the supporting object
 /// (texture or sound file) on the path
-/// my_directory_1/bundleName;my_directory_2/bundleName;
-/// my_directory_3/bundleName, in addition to the texture path.
-void arDatabase::setBundlePtr(const string& bundlePathName,
-			      const string& bundleName){
+/// my_directory_1/bundleSubDirectory;my_directory_2/bundleSubDirectory;
+/// my_directory_3/bundleSubDirectory, in addition to the texture path.
+void arDatabase::setDataBundlePath(const string& bundlePathName,
+			      const string& bundleSubDirectory){
   _bundlePathName = bundlePathName;
-  _bundleName = bundleName;
+  _bundleName = bundleSubDirectory;
 }
 
 /// Used to associated a bundle path name (SZG_DATA, SZG_PYTHON) with
 /// a file system path my_directory_1;my_directory_2;my_directory_3.
-void arDatabase::addBundleMap(const string& bundlePathName,
+void arDatabase::addDataBundlePathMap(const string& bundlePathName,
                               const string& bundlePath){
   map<string,string,less<string> >::iterator i
     = _bundlePathMap.find(bundlePathName);
