@@ -1,7 +1,8 @@
 # This Makefile fragment encapsulates library scanning (where we decide
 # which of the optional libraries is present). Note that neither of the 
-# sgi platforms supports any of the optional features
-# The wildcard operator resolves to the empty string, if the file is missing.
+# sgi platforms supports any of the optional features. The wildcard 
+# operator resolves to the empty string, if the file is missing, which lets
+# us figure out if 
 
 # BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
 # The library scanning needs to be modified so that absolute paths to shared
@@ -20,16 +21,15 @@ ifeq ($(strip $(MACHINE)), LINUX)
   INC_ZLIB := $(wildcard $(SZGEXTERNAL)/include/zlib/linux)
   LIB_ZLIB := $(wildcard $(SZGEXTERNAL)/lib/zlib/linux/libz.a)
 
-  INC_WIN_BIRD := 
-  LIB_WIN_BIRD := 
-
-  INC_EVART :=
-  LIB_EVART :=
-
   INC_3DS := $(wildcard $(SZGEXTERNAL)/include/lib3ds)
   LIB_3DS := $(wildcard $(SZGEXTERNAL)/lib/lib3ds/linux/lib3ds.a)
+  
+  INC_VRPN := $(wildcard $(SZGEXTERNAL)/include/vrpn)
+  LIB_VRPN := $(wildcard $(SZGEXTERNAL)/lib/vrpn/linux/libvrpn.a)
 
 # Dropping the CG experiment, for the time being.
+# Leave this comment plus those following so that things can be easily
+# reconstructed, if desired.
   INCCG := 
   LIBCG := 
   LIBCGGL :=
@@ -38,9 +38,6 @@ ifeq ($(strip $(MACHINE)), LINUX)
 #  LIBCG := $(wildcard $(SZGEXTERNAL)/lib/Cg/linux/libCg.so)
 #  LIBCGGL := $(wildcard $(SZGEXTERNAL)/lib/Cg/linux/libCgGL.so)
   
-  INC_VRPN := $(wildcard $(SZGEXTERNAL)/include/vrpn)
-  LIB_VRPN := $(wildcard $(SZGEXTERNAL)/lib/vrpn/linux/libvrpn.a)
-
   ifneq ($(strip $(INC_FMOD)),)
   ifneq ($(strip $(LIB_FMOD)),)
     # FMOD include file AND library exist.
@@ -292,32 +289,36 @@ ifeq ($(strip $(MACHINE)), DARWIN)
 
 endif
 
-# While Irix is not a primary platform, it is still useful from time to time.
 ifeq ($(strip $(MACHINE)), MIPS3)
-  INC_FMOD := 
-  LIB_FMOD := 
+  GLUT_DIR := $(SZGEXTERNAL)/$(MACHINE_DIR)/glut-3.6
+  INC_GLUT := $(wildcard $(GLUT_DIR)/include/GL)
+  LIB_GLUT := $(wildcard $(GLUT_DIR)/lib/libglut.a)
 
-  INC_WIN_BIRD := 
-  LIB_WIN_BIRD := 
+  ifneq ($(strip $(INC_GLUT)),)
+  ifneq ($(strip $(LIB_GLUT)),)
+    SZG_INCLUDE_GLUT = -I$(INC_GLUT)
+    SZG_LINK_LINE_GLUT = -L$(GLUT_DIR)/lib
+    SZG_FILES_GLUT = $(LIB_GLUT)
 
-  INC_EVART :=
-  LIB_EVART :=
-
-  INC_3DS :=
-  LIB_3DS :=
+    SZG_OPT_INCLUDE_FULL += $(SZG_INCLUDE_GLUT)
+    SZG_OPT_LIBS_FULL += $(SZG_LINK_LINE_GLUT)
+  endif
+  endif
 endif
 
-# While Irix is not a primary platform, it is still useful from time to time.
 ifeq ($(strip $(MACHINE)), MIPS4)
-  INC_FMOD := 
-  LIB_FMOD := 
+  GLUT_DIR := $(SZGEXTERNAL)/$(MACHINE_DIR)/glut-3.6
+  INC_GLUT := $(wildcard $(GLUT_DIR)/include/GL)
+  LIB_GLUT := $(wildcard $(GLUT_DIR)/lib/libglut.a)
 
-  INC_WIN_BIRD := 
-  LIB_WIN_BIRD := 
+  ifneq ($(strip $(INC_GLUT)),)
+  ifneq ($(strip $(LIB_GLUT)),)
+    SZG_INCLUDE_GLUT = -I$(INC_GLUT)
+    SZG_LINK_LINE_GLUT = -L$(GLUT_DIR)/lib
+    SZG_FILES_GLUT = $(LIB_GLUT)
 
-  INC_EVART :=
-  LIB_EVART :=
-
-  INC_3DS :=
-  LIB_3DS :=
+    SZG_OPT_INCLUDE_FULL += $(SZG_INCLUDE_GLUT)
+    SZG_OPT_LIBS_FULL += $(SZG_LINK_LINE_GLUT)
+  endif
+  endif
 endif
