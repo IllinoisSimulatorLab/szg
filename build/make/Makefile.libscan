@@ -53,6 +53,15 @@ ifeq ($(strip $(MACHINE)), LINUX)
   INC_VRPN := $(wildcard $(VRPN_DIR)/include)
   LIB_VRPN := $(wildcard $(VRPN_DIR)/lib/libvrpn.a)
 
+  ISENSE_DIR := $(SZGEXTERNAL)/linux/isense
+  OBJ_ISENSE := $(wildcard $(ISENSE_DIR)/lib/libisense.so)
+
+  # If the isense dll is available, we want to copy its objects to SZG_BINDIR
+  # in the install-shared target.
+  ifneq ($(strip $(OBJ_ISENSE)),)
+    SZG_SHARED_COPY += $(OBJ_ISENSE)
+  endif
+
   # NOTE: GLUT is currently REQUIRED for szg operation. Consequently, for
   # this library only, we go ahead and provide a default link and include
   # value. (though the include value is blank, since, if you already
