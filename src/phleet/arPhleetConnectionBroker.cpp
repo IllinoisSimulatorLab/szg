@@ -78,6 +78,7 @@ arPhleetService arPhleetConnectionBroker::requestPorts(int componentID,
   // create a phleet service record
   arPhleetService tempService;
   tempService.valid = true;
+  tempService.info = string("");
   tempService.computer = computer;
   tempService.componentID = componentID;
   tempService.networks = networks;
@@ -282,6 +283,82 @@ bool arPhleetConnectionBroker::confirmPorts(int componentID,
   // unlock the mutex and return success
   ar_mutex_unlock(&_brokerLock);
   return true;
+}
+
+/// Checks to see if a service with the given name exists, either on the
+/// temporary list or on the used list. If so, go ahead and return the
+/// "info" string managed by that service. If not, return the empty string.
+/// NOTE: maybe at some point it would be better to return FAILURE 
+/// (since the empty string is also a valid response!) BUG BUG BUG BUG BUG
+/// @param serviceName The full name of the service.
+string arPhleetConnectionBroker::getServiceInfo(const string& serviceName){
+  string result = string("");
+  // Must lock the data structure.
+  ar_mutex_lock(&_brokerLock);
+  SZGServiceData::iterator i = _temporaryServices.find(serviceName);
+  // Is the service on the temporary list?
+  if (i != _temporaryServices.end()){
+    result = i->second.info;
+    ar_mutex_unlock(&_brokerLock);
+    return result;
+  }
+  i = _usedServices.find(serviceName);
+  // Is the service on the used list?
+  if (i != _usedServices.end()){
+    result = i->second.info;
+    ar_mutex_unlock(&_brokerLock);
+    return result;
+  }
+  // We haven't found the service.
+  ar_mutex_unlock(&_brokerLock);
+  return result;
+}
+
+/// Attempt to set the "info" for a service, as specified by the given
+/// (full) service name. This will fail if the service in question does not
+/// exist (either on the temporary or used lists) or if the service is not
+/// owned by the component with the given ID. It succeeds otherwise and
+/// sets the "info" field for the service, returning true.
+/// @param componentID The ID of the component requesting the change.
+/// @param serviceName The full name of the service.
+/// @param info The new info string to be associated with the service in the
+///  event of success.
+bool arPhleetConnectionBroker::setServiceInfo(int componentID, 
+                                              const string& serviceName,
+                                              const string& info){
+  // Must lock the broker.
+  ar_mutex_lock(&_brokerLock);
+  SZGServiceData::iterator i = _temporaryServices.find(serviceName);
+  // Is the service on the temporary list?
+  if (i != _temporaryServices.end()){
+    // Does the component in question own it?
+    if (i->second.componentID != componentID){
+      // No. Return immediately.
+      ar_mutex_unlock(&_brokerLock);
+      return false;
+    }
+    // Yes. Set and return.
+    i->second.info = info;
+    ar_mutex_unlock(&_brokerLock);
+    return true;
+  }
+  i = _usedServices.find(serviceName);
+  // Is the service on the used list?
+  if (i != _usedServices.end()){
+    // Does the component in question own it?
+    if (i->second.componentID != componentID){
+      // No. Return immediately.
+      ar_mutex_unlock(&_brokerLock);
+      return false;
+    }
+    // Yes. Set and return.
+    i->second.info = info;
+    ar_mutex_unlock(&_brokerLock);
+    return true;
+  }
+  // We haven't found the service.
+  ar_mutex_unlock(&_brokerLock);
+  return false;
 }
 
 /// Used to determine if a service is, at this moment, either on the

@@ -37,6 +37,8 @@ class arPhleetService{
 
   bool valid;       // is this valid or not... means we can use
                     // arPhleetService as a success flag
+  string info;      // services can publish information here about their
+                    //  characteristics. important for flexible brokering.
   string computer;  // the computer on which the service is running
   int componentID;  // the phleet ID of the component running this service
   arSlashString networks;  // networks on which the service is offered
@@ -141,6 +143,10 @@ class arPhleetConnectionBroker{
                                int firstPort, int blockSize);
   arPhleetService retryPorts(int componentID, const string& serviceName);
   bool confirmPorts(int componentID, const string& serviceName);
+  string getServiceInfo(const string& serviceName);
+  bool setServiceInfo(int componentID, 
+                      const string& serviceName,
+                      const string& info);
   bool checkService(const string& serviceName);
   arPhleetAddress requestService(int componentID, const string& computer, int match,
                                  const string& serviceName, 

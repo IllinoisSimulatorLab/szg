@@ -169,6 +169,9 @@ class arSZGClient{
                                   bool async);
   int requestServiceReleaseNotification(const string& serviceName);
   int getServiceReleaseNotification(list<int> tags, int timeout = -1);
+  string getServiceInfo(const string& serviceName);
+  bool setServiceInfo(const string& serviceName,
+                      const string& info);
   void _printServices(const string& type); 
   void printServices();
   void printPendingServiceRequests();

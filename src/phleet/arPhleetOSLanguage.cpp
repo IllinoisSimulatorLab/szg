@@ -27,7 +27,8 @@ arPhleetOSLanguage::arPhleetOSLanguage():
   _requestService("request_service"),
   _brokerResult("broker_result"),
   _getServices("get_services"),
-  _serviceRelease("service_release"){
+  _serviceRelease("service_release"),
+  _serviceInfo("service_info"){
 
   // Don't forget to get the IDs of the fields shared by every record
   AR_PHLEET_USER = _connectionAck.getAttributeID("phleet_user");
@@ -133,6 +134,11 @@ arPhleetOSLanguage::arPhleetOSLanguage():
   AR_SZG_SERVICE_RELEASE_NAME = _serviceRelease.add("Name", AR_CHAR);
   AR_SZG_SERVICE_RELEASE_COMPUTER = _serviceRelease.add("Computer", AR_CHAR);
   AR_SZG_SERVICE_RELEASE = _dictionary.add(&_serviceRelease);
+
+  AR_SZG_SERVICE_INFO_OP = _serviceInfo.add("Op", AR_CHAR);
+  AR_SZG_SERVICE_INFO_STATUS = _serviceInfo.add("Status", AR_CHAR);
+  AR_SZG_SERVICE_INFO_TAG = _serviceInfo.add("Tag", AR_CHAR);
+  AR_SZG_SERVICE_INFO = _dictionary.add(&_serviceInfo);
 }
 
 arPhleetOSLanguage::~arPhleetOSLanguage(){

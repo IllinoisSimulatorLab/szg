@@ -1582,6 +1582,60 @@ int arSZGClient::getServiceReleaseNotification(list<int> tags,
   return match;
 }
 
+/// Tries to get the "info" associated with the given (full) service name.
+/// Confusingly, at present, this returns the empty string both if the service
+/// fails to exist AND if the service has the empty string as its info!
+string arSZGClient::getServiceInfo(const string& serviceName){
+  arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_SERVICE_INFO);
+  int match = _fillMatchField(data);
+  data->dataInString(_l.AR_SZG_SERVICE_INFO_OP, "get");
+  data->dataInString(_l.AR_SZG_SERVICE_INFO_TAG, serviceName);
+  const bool ok = _dataClient.sendData(data);
+  _dataParser->recycle(data);
+  if (!ok){
+    cerr << _exeName
+         << " warning: failed to request service info.\n";
+    return string("");
+  }
+  // Now, get the response.
+  data = _getTaggedData(match, _l.AR_SZG_SERVICE_INFO);
+  if (!data){
+    cerr << _exeName << " error: failed to get response to get service "
+	 << "info.\n";
+    return string("");
+  }
+  string result = data->getDataString(_l.AR_SZG_SERVICE_INFO_STATUS);
+  _dataParser->recycle(data);
+  return result;
+}
+
+/// Attempts to set the "info" string associated with the particular service.
+bool arSZGClient::setServiceInfo(const string& serviceName,
+                                 const string& info){
+arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_SERVICE_INFO);
+  int match = _fillMatchField(data);
+  data->dataInString(_l.AR_SZG_SERVICE_INFO_OP, "set");
+  data->dataInString(_l.AR_SZG_SERVICE_INFO_TAG, serviceName);
+  data->dataInString(_l.AR_SZG_SERVICE_INFO_STATUS, info);
+  const bool ok = _dataClient.sendData(data);
+  _dataParser->recycle(data);
+  if (!ok){
+    cerr << _exeName
+         << " warning: failed to set service info.\n";
+    return false;
+  }
+  // Now, get the response.
+  data = _getTaggedData(match, _l.AR_SZG_SERVICE_INFO);
+  if (!data){
+    cerr << _exeName << " error: failed to get response to set service "
+	 << "info.\n";
+    return false;
+  }
+  string result = data->getDataString(_l.AR_SZG_SERVICE_INFO_STATUS);
+  _dataParser->recycle(data);
+  return result == "SZG_SUCCESS" ? true : false;
+}
+
 /// Contacts the szgserver and obtains the listing of running services,
 /// including the computers on which they run, and the phleet IDs of
 /// the components hosting them. This information is then printed in

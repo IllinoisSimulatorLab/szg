@@ -203,6 +203,13 @@ class arPhleetOSLanguage: public arLanguage{
   int AR_SZG_SERVICE_RELEASE;
   int AR_SZG_SERVICE_RELEASE_NAME;
   int AR_SZG_SERVICE_RELEASE_COMPUTER;
+
+  /// AR_SZG_SERVICE_INFO: A client uses this to request a service's info.
+  int AR_SZG_SERVICE_INFO;
+  int AR_SZG_SERVICE_INFO_OP;
+  int AR_SZG_SERVICE_INFO_STATUS;
+  int AR_SZG_SERVICE_INFO_TAG;
+
  protected:
   // the client, upon connecting, needs to know the connection
   // ID provided by the server
@@ -274,6 +281,10 @@ class arPhleetOSLanguage: public arLanguage{
 
   // the client uses this to request notification when a service is released
   arPhleetTemplate _serviceRelease;
+
+  // the client uses this to request or set the service info for a given
+  // service. the server uses it to reply with the status of the request.
+  arPhleetTemplate _serviceInfo;
 };
 
 #endif
