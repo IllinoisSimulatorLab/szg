@@ -168,6 +168,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   double getLastFrameTime() const { return _lastFrameTime; }
   bool getMaster() const { return _master; }
   bool getConnected() const { return _master || _stateClientConnected; }
+  int getNumberSlavesConnected() const;
   bool soundActive() const { return _soundActive; }
   bool inputActive() const { return _inputActive; }
 
@@ -276,7 +277,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool _useGLUT;
 
   // Used in "standalone" mode
-  bool                _standalone;
   string              _standaloneControlMode;
   arHeadWandSimulator _simulator;
   arFramerateGraph    _framerateGraph;

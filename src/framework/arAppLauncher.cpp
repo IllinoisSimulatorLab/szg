@@ -497,6 +497,10 @@ int arAppLauncher::getMasterPipeNumber(){
 /// application is running. CAN ONLY BE CALLED AFTER ONE OF THE INITIALIZATION
 /// FUNCTIONS (either setVircomp or setParameters).
 string arAppLauncher::getMasterName(){
+  if (!_client){
+    cout << _exeName << " warning: no arSZGClient.\n";
+    return "NULL";
+  }
   // note that SZG_MASTER/map gives the screen designation
   string screenName = _client->getAttribute(_vircomp, "SZG_MASTER", "map", "");
   if (screenName == "NULL"){
@@ -509,6 +513,10 @@ string arAppLauncher::getMasterName(){
 /// application is running. CAN ONLY BE CALLED AFTER ONE OF THE INITIALIZATION
 /// FUNCTIONS (either setVircomp or setParameters).
 string arAppLauncher::getTriggerName(){
+  if (!_client){
+    cout << _exeName << " warning: no arSZGClient.\n";
+    return "NULL";
+  }
   return _client->getAttribute(_vircomp, "SZG_TRIGGER", "map", "");
 }
 

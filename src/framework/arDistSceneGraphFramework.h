@@ -72,7 +72,6 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   bool _disabled;
 
   // stuff for standalone mode only
-  bool                _standalone;
   arGraphicsClient    _graphicsClient;
   arSoundClient       _soundClient;
   string              _standaloneControlMode;

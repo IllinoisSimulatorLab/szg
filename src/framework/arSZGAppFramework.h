@@ -28,7 +28,11 @@ class SZG_CALL arSZGAppFramework {
     virtual bool start() = 0;
     virtual void stop(bool blockUntilDisplayExit) = 0;
     
+    arSZGClient* getSZGClient() { return &_SZGClient; }
     string  getLabel(){ return _label; }
+    bool getStandalone() const { return _standalone; }
+    void setStandalone( bool onoff ) { _standalone = onoff; }
+
     virtual void loadNavMatrix() = 0;
     
     void setEyeSpacing( float feet );
@@ -126,6 +130,9 @@ class SZG_CALL arSZGAppFramework {
     arThread _messageThread;
     arThread _inputConnectionThread;
     
+    // are we running in standalone mode?
+    bool  _standalone;
+
     arCallbackEventFilter _callbackFilter;
     arFrameworkEventFilter* _eventFilter;
   

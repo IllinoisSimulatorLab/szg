@@ -12,6 +12,7 @@ arSZGAppFramework::arSZGAppFramework() :
   _inputDevice(0),
   _inputState(0),
   _vircompExecution(false),
+  _standalone(false),
   _callbackFilter(this),
   _eventFilter(0),
   _unitSoundConversion(1.),

@@ -138,7 +138,6 @@ arDistSceneGraphFramework::arDistSceneGraphFramework() :
   _headMatrixID(AR_VR_HEAD_MATRIX_ID),
   _graphicsNavMatrixID(-1),
   _soundNavMatrixID(-1),
-  _standalone(false),
   _standaloneControlMode("simulator"),
   _peerName("NULL"),
   _peerMode("source"),

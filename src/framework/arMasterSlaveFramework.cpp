@@ -204,7 +204,6 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   _pauseFlag(false),
   _connectionThreadRunning(false),
   _useGLUT(false),
-  _standalone(false),
   _standaloneControlMode("simulator"){
 
   // also need to add fields for our default-shared data
@@ -1946,3 +1945,11 @@ bool arMasterSlaveFramework::setViewMode( const string& viewMode ) {
 //       << viewMode << endl;
   return _graphicsWindow.setViewMode( viewMode );
 }
+
+int arMasterSlaveFramework::getNumberSlavesConnected() const {
+  if (!getMaster()) {
+    cerr << "arMasterSlaveFramework warning: getNumberSlavesConnected() called on slave.\n";
+    return -1;
+  }
+  return _stateServer->getNumberConnected();
+}  
