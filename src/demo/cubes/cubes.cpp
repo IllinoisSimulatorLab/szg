@@ -27,6 +27,8 @@ arEffector dragWand( 1, 6, 2, 2, 0, 0, 0 );
 // headEffector urses matrix 0 (the head matrix), has no other input events.
 arEffector headEffector( 0, 0, 0, 0, 0, 0, 0 );
 
+bool jiggleStuffGlobal(true);
+
 std::list<arInteractable*> interactionList;
 arCallbackInteractable interactionArray[NUMBER_CUBES];
 int cubeTextureID[NUMBER_CUBES];
@@ -93,24 +95,24 @@ void worldAlter(void* f){
     cube0Matrix = ar_translationMatrix(6.*sin(count*.00001),
                                        3.*sin(count*.0000141)+5.,
                                        6.*sin(count*.0000177));
-
-    // Change any cube except the zeroth.
-    const int iCube = 1 + rand() % (NUMBER_CUBES-1);
-    const arMatrix4 randMatrix( interactionArray[iCube].getMatrix() *
-                 ar_translationMatrix(randDistance(), randDistance(), randDistance())
-                 * ar_rotationMatrix("xyz"[rand()%3], 0.02) );
-
-    // Update both cubes.
     interactionArray[0].setMatrix( cube0Matrix );
-    interactionArray[iCube].setMatrix( randMatrix );
 
-    if (count%20 == 0){
-      char buffer[32];
-      sprintf(buffer,"WallTexture%i.ppm",rand()%4+1);
-      const string whichTexture(buffer);
-      ar_mutex_lock(&databaseLock);
-      dgTexture(cubeTextureID[iCube], whichTexture);
-      ar_mutex_unlock(&databaseLock);
+    if (jiggleStuffGlobal) {
+      // Jiggle any cube except the zeroth.
+      const int iCube = 1 + rand() % (NUMBER_CUBES-1);
+      const arMatrix4 randMatrix( interactionArray[iCube].getMatrix() *
+                   ar_translationMatrix(randDistance(), randDistance(), randDistance())
+                   * ar_rotationMatrix("xyz"[rand()%3], 0.02) );
+      interactionArray[iCube].setMatrix( randMatrix );
+
+      if (count%20 == 0){
+        char buffer[32];
+        sprintf(buffer,"WallTexture%i.ppm",rand()%4+1);
+        const string whichTexture(buffer);
+        ar_mutex_lock(&databaseLock);
+        dgTexture(cubeTextureID[iCube], whichTexture);
+        ar_mutex_unlock(&databaseLock);
+      }
     }
 
     // Handle cube-dragging
@@ -193,6 +195,13 @@ calcpos:
 }
 
 int main(int argc, char** argv){
+  if (argc > 1) {
+    if (!strcmp(argv[1], "-static")){
+      // don't do all the random jiggling.
+      jiggleStuffGlobal = false;
+    }
+  }
+    
   arDistSceneGraphFramework framework;
 
   ar_mutex_init(&databaseLock);

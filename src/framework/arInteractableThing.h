@@ -25,6 +25,8 @@ class SZG_CALL arInteractableThing : public arInteractable {
     virtual void setColor( float r, float g, float b, float a=1. ) {_color = arVector4(r,g,b,a);}
     virtual void setColor( const arVector4& col ) {_color = col;}
     virtual void setColor( const arVector3& col ) {_color = arVector4(col,1);}
+    virtual void setAlpha( float a ) {_color[3] = a;}
+    virtual float getAlpha() { return _color[3]; }
     virtual arVector4 getColor() { return _color; }
     virtual void setVisible( bool vis ) {_visible = vis; }
     virtual bool getVisible() { return _visible; }

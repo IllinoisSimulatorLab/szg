@@ -13,165 +13,62 @@
 // The methods used by the dynamic library mappers. 
 // NOTE: These MUST have "C" linkage!
 extern "C"{
-  SZG_CALL void* factory(){
+  SZG_CALL void* factory() {
     return new arIntersenseDriver();
   }
 
-  SZG_CALL void baseType(char* buffer, int size){
+  SZG_CALL void baseType(char* buffer, int size) {
     ar_stringToBuffer("arInputSource", buffer, size);
   }
 }
 
-#define ISENSE_GROUP_NAME "SZG_INTERSENSE"
 
-const float IsenseTracker::c_meterToFoot = 3.280839895;
+const float METER_TO_FOOT(3.280839895);
+const Bool USE_VERBOSE(TRUE);
 
-IsenseTracker::IsenseTracker() : m_handle(0)
-{
-  ::memset( (void*) m_station, 0, sizeof( m_station ) );
+struct StationIDEquals : public unary_function<IsenseStation, bool> {
+  StationIDEquals( const unsigned int id ): _id(id) {}
+  bool operator()(const IsenseStation& s) { return s.getID()==_id; }
+  unsigned int _id;
+};
 
-  // Set the button counts now with maximum defaults.
-  for (
-    int stationIdx = 1;
-    stationIdx <= ISD_MAX_STATIONS;
-    stationIdx++
-    )
-  {
-      m_stationSettings[stationIdx-1].buttonCnt = ISD_MAX_BUTTONS;
-      m_stationSettings[stationIdx-1].analogCnt = ISD_MAX_CHANNELS;
-      m_stationSettings[stationIdx-1].auxCnt    = ISD_MAX_AUX_INPUTS;
-  }
+
+IsenseTracker::IsenseTracker() : 
+  _id(1000),
+  _imOK(true),
+  _handle(0) {
+  _stations.insert( _stations.begin(), ISD_MAX_STATIONS, IsenseStation() );
 }
 
-IsenseTracker::~IsenseTracker()
-{
-  Close();
+IsenseTracker::~IsenseTracker() {
+  ar_close();
+  _stations.clear();
 }
 
-/*! We load the configuration for the tracker in order
-    to find out what model we have and its capabilities.
-    It is here that we find out what the actual port is.
-
+/*!
+    \param port The port can refer to an RS232 port or a USB port,
+        numbered according to some Intersense-internal scheme not
+        documented.
+        Sending 0 indicates the first one found should be opened.
     \return False indicates failure of the driver.  This method
         will print problem to stderr.
     */
-bool IsenseTracker::GetTrackerConfig()
-{
-  Bool success =
-    ISD_GetTrackerConfig( m_handle, &m_trackerInfo, m_isVerbose );
-  if ( FALSE == success ) {
-    std::cerr << "Intersense::got no tracker information on " <<
-      "device port " << m_port << std::endl;
-    return false;
-  }
-
-  // Set the local variables that derive from tracker info.
-  m_port = m_trackerInfo.Port;
-  DWORD model = m_trackerInfo.TrackerModel;
-  if ( (ISD_IS600 == model) || (ISD_IS900 == model) ||
-    (ISD_IS1200 == model) )
-    m_bSupportsPositionMeasurement = true;
-  else m_bSupportsPositionMeasurement = false;
-
-  // Tell the world our configuration
-  std::cerr << "IntersenseDriver::Started tracker on port " << m_port << 
-    "." << std::endl;
-  return true;
-}
-
-
-/*! The station info struct holds the State variable,
-    which tells us whether a device is connected.  It
-    also holds the data to be read.  This queries
-    the Intersense tracker in order to get its information,
-    and the query can take a few seconds, so we do it once.
-
-    \return False indicates failure of the driver.  This method
-        will print problem to stderr.
-    */
-bool IsenseTracker::LoadStationInfo()
-{
-  for ( int statIdx = 1; statIdx <= ISD_MAX_STATIONS; statIdx++ ){
-    Bool gotConfig = ISD_GetStationConfig(
-      m_handle,
-      &m_station[ statIdx-1 ],
-      statIdx,
-      m_isVerbose
-      );
-    if ( false == gotConfig ) {
-      m_station[statIdx-1].State = 0;
+bool IsenseTracker::ar_open( DWORD port = 0 ) {
+  ar_close();
+  _port = port;
+  _handle = ISD_OpenTracker( (Hwnd) NULL, port, FALSE, USE_VERBOSE );
+  bool success = _isValidHandle( _handle );
+  if (success) {
+    std::vector< IsenseStation >::iterator statIter;
+    for (statIter = _stations.begin(); statIter != _stations.end(); ++statIter) {
+      statIter->setTrackerHandle( _handle );
     }
-  }
-  return true;
-}
-
-
-/*! We ask only that this work for at least one of the stations
-    because it is reasonable that it might not work for a station
-    which is not connected.  We could use the A command to set
-    the internal reference frame of the tracker, and that would 
-    likely result in a faster driver, but what we have in our
-    GetData works for now.
-
-    \return False indicates failure of the driver.  This method
-        will print problem to stderr.
-    */
-bool IsenseTracker::ResetAlignmentReferenceFrame()
-{
-  bool success = false;
-  char chReset[10];
-  for ( int statIdx = 1; statIdx <= ISD_MAX_STATIONS; statIdx++ ){
-    sprintf( chReset, "R%d\n", statIdx );
-    Bool bSent = ISD_SendScript( m_handle, chReset );
-    if ( TRUE == bSent ) success = true;
+  } else {   
+    cerr << "IntersenseDriver::failed to open tracker on port "
+         << port << ".  "
+         << "Set verbosity to true to see reason for failure." << endl;
   }
   return success;
-}
-
-
-/*! The Intersense station will not, by default, have camera
-    tracking enabled, so this method turns it on.  This method has
-    not been tested with an actual camera device.
-
-    \return False indicates the driver will not do camera tracking,
-        which may not be a failure.
-    */
-bool IsenseTracker::EnablePossibleCameraTracking()
-{
-  // The sample code has the line below, but CAMERA_TRACKER
-  // must just be a define.  We'll turn it on by default.
-  // ( CAMERA_TRACKER && m_trackerInfo.TrackerModel == ISD_IS900)
-  if ( (ISD_PRECISION_SERIES == m_trackerInfo.TrackerType ) &&
-    ( m_trackerInfo.TrackerModel == ISD_IS900) )
-  {
-    for (
-      int stationIdx = 1;
-      stationIdx <= ISD_MAX_STATIONS;
-      stationIdx++
-      )
-      {
-        if ( FALSE == m_station[ stationIdx-1 ].State ) continue;
-        if ( TRUE == m_station[ stationIdx-1 ].GetCameraData ) continue;
-
-        m_station[ stationIdx-1 ].GetCameraData = TRUE;
-        Bool setConfig = ISD_SetStationConfig(
-          m_handle,
-          &m_station[ stationIdx-1 ],
-          stationIdx,
-          m_isVerbose
-          );
-        if ( FALSE == setConfig ) {
-          std::cerr << "IntersenseDriver::failed to set configuration "
-            << "for station " << stationIdx << std::endl;
-          return false;
-        }
-
-        m_bSupportsCameraData = true;
-      }
-  } else {
-    m_bSupportsCameraData = false;
-  }
-  return true;
 }
 
 
@@ -185,42 +82,22 @@ bool IsenseTracker::EnablePossibleCameraTracking()
     \return False indicates failure of the driver.  This method
         will print problem to stderr.
    */
-bool IsenseTracker::Reopen( )
-{
-  return Open( m_port );
-}
-
-
-/*!
-    \param port The port can refer to an RS232 port or a USB port,
-        numbered according to some Intersense-internal scheme not
-        documented.
-        Sending 0 indicates the first one found should be opened.
-    \return False indicates failure of the driver.  This method
-        will print problem to stderr.
-    */
-bool IsenseTracker::Open( DWORD port = 0 )
-{
-  Close();
-  Bool isVerbose = TRUE;
-  m_port = port;
-  m_handle = ISD_OpenTracker( (Hwnd) NULL, port, FALSE, isVerbose );
-  bool success = IsValidHandle( m_handle );
-  if ( !success )
-    std::cerr << "IntersenseDriver::failed to open tracker on port "
-    << port << ".  " <<
-    "Set verbosity to true to see reason for failure." << std::endl;
-  return success;
+bool IsenseTracker::ar_reopen() {
+  _imOK = ar_open( _port );
+  return _imOK;
 }
 
 
 /*! \param handle The handle should have been returned from
         a call to ISD_OpenTracker or ISD_OpenAllTrackers.
     */
-void IsenseTracker::SetHandle( ISD_TRACKER_HANDLE handle )
-{
-  Close();
-  m_handle = handle;
+void IsenseTracker::setHandle( ISD_TRACKER_HANDLE handle ) {
+  ar_close();
+  _handle = handle;
+  std::vector< IsenseStation >::iterator statIter;
+  for (statIter = _stations.begin(); statIter != _stations.end(); ++statIter) {
+    statIter->setTrackerHandle( _handle );
+  }
 }
 
 
@@ -229,13 +106,29 @@ void IsenseTracker::SetHandle( ISD_TRACKER_HANDLE handle )
     \return False indicates failure of the driver.  This method
         will print problem to stderr.
     */
-bool IsenseTracker::Init()
-{
-  if ( !GetTrackerConfig() )             return false;
-  if ( !LoadStationInfo() )              return false;
-  if ( !ResetAlignmentReferenceFrame() ) return false;
+bool IsenseTracker::init() {
+  if ( !_getTrackerConfig() ) {
+    _imOK = false;
+    return false;
+  }
+  _loadAllStationInfo();
+  if ( !_resetAllAlignmentReferenceFrames() ) {
+    _imOK = false;
+    return false;
+  }
   // This isn't appropriate for VR?
-  //if ( !EnablePossibleCameraTracking() ) return false;
+  //if ( !_enablePossibleCameraTracking() ) return false;
+  return true;
+}
+
+
+bool IsenseTracker::configure( arSZGClient& client ) {
+  std::vector< IsenseStation >::iterator iter;
+  for (iter = _stations.begin(); iter != _stations.end(); ++iter) {
+    if (!iter->configure( client, getID() )) {
+      return false;
+    }
+  }
   return true;
 }
 
@@ -246,45 +139,16 @@ bool IsenseTracker::Init()
     \return False on failure to close.  Nothing to be
         done if it fails unless you can unload the Dll.
     */
-bool IsenseTracker::Close()
-{
+bool IsenseTracker::ar_close() {
   Bool success = TRUE;
-  if ( IsValidHandle( m_handle ) )
-    success = ISD_CloseTracker( m_handle );
-  if ( FALSE == success ) return false;
-  m_handle = 0;
-  return true;
-}
-
-
-/*! This method will not find the station requested until the IDs have
-    been read during LoadStationInfo().
-  
-    \param ID The Intersense station ID, usually 1-4.
-    \param buttonCnt Number of buttons the station should have.
-    \param analogCnt Number of analogs (axes) the station should have.
-    \param auxCnt Number of aux inputs the station should have.  No 
-        indication what an aux input might be, but it returns type BYTE.
-    \return False indicates the station ID given could not be found.
-    This method will print problem to stderr.
-    */
-bool IsenseTracker::SetStationInputCounts( int ID, size_t buttonCnt, size_t analogCnt,
-    size_t auxCnt )
-{
-  bool success = false;
-  for ( size_t statIdx = 0; statIdx < ISD_MAX_STATIONS; statIdx++ ) {
-    if ( m_station[ statIdx ].ID == ID ) {
-      m_stationSettings[ statIdx ].buttonCnt = buttonCnt;
-      m_stationSettings[ statIdx ].analogCnt = analogCnt;
-      m_stationSettings[ statIdx ].auxCnt    = auxCnt;
-      success = true;
-      break;
-    }
+  if ( _isValidHandle( _handle ) ) {
+    success = ISD_CloseTracker( _handle );
   }
-  if ( false == success )
-    std::cerr << "IntersenseDriver::found no station with ID " <<
-      ID << " in order to set its buttons, analogs, and auxes." << std::endl;
-  return success;
+  if ( FALSE == success ) {
+    return false;
+  }
+  _handle = 0;
+  return true;
 }
 
 
@@ -293,72 +157,25 @@ bool IsenseTracker::SetStationInputCounts( int ID, size_t buttonCnt, size_t anal
     to create an internal array of how to remap buttons, analogs
     and aux inputs to buttons and axes.
 
-    All parameters are incremented upon return.
+    All parameters are incremented upon return!!!! (matrixIndex by 1,
+    the others by the amount set in setStationInputCounts()).
 
-    \param sensor Index of the tracker in the arInputSource array.
-    \param button Index of first button in arInputSource array.
-    \param axis Index of first axis in arInputSource array.
+    \param matrixIndex Index of the tracker in the arInputSource array.
+    \param buttonIndex Index of first button in arInputSource array.
+    \param axisIndex Index of first axis in arInputSource array.
     \return Index of next available sensor, button, and axis.
     */
-bool IsenseTracker::SetDriverFirstIndices( size_t& sensor, size_t& button,
-    size_t& axis )
-{
-  for ( size_t statIdx = 0; statIdx < ISD_MAX_STATIONS; statIdx++ ) {
-    if ( FALSE == m_station[ statIdx ].State ) continue;
-
-    m_stationSettings[ statIdx ].sensorIdx = sensor++;
-
-    m_stationSettings[ statIdx ].firstButtonIdx = button;
-    button += m_stationSettings[ statIdx ].buttonCnt;
-
-    m_stationSettings[ statIdx ].firstAnalogIdx = axis;
-    axis   += m_stationSettings[ statIdx ].analogCnt;
-
-    m_stationSettings[ statIdx ].firstAuxIdx = axis;
-    axis   += m_stationSettings[ statIdx ].auxCnt;
+void IsenseTracker::setStationIndices( unsigned int& matrixIndex,
+                                       unsigned int& buttonIndex,
+                                       unsigned int& axisIndex ) {
+  std::vector< IsenseStation >::iterator iter;
+  for (iter = _stations.begin(); iter != _stations.end(); ++iter) {
+    iter->setIndices( matrixIndex, buttonIndex, axisIndex );
   }
-  return true;
 }
 
 
-/*! Prints to stderr all the setup information.
-    \param trackerIdx Index of this tracker in arInputSource
-        array.
-    \return true always.
-    */
-bool IsenseTracker::PrintSetup( size_t trackerIdx )
-{
-  std::cerr << "Intersense Tracker on port " << m_port << std::endl;
-  for ( size_t statIdx=0; statIdx < ISD_MAX_STATIONS; statIdx++ ) {
-    if ( FALSE == m_station[ statIdx ].State ) continue;
-    std::cerr << "\tStation ID " << m_station[ statIdx ].ID <<
-      " station" << trackerIdx << "_" << m_station[statIdx].ID << std::endl;
-    std::cerr << "\t\tbuttons " << m_stationSettings[ statIdx ].buttonCnt << " ";
-    std::cerr << "analogs " << m_stationSettings[ statIdx ].analogCnt << " ";
-    std::cerr << "aux " << m_stationSettings[ statIdx ].auxCnt << std::endl;
-    std::cerr << "\t\tfirst button " <<
-      m_stationSettings[ statIdx ].firstButtonIdx << " ";
-    std::cerr << "first analog " << m_stationSettings[ statIdx ].firstAnalogIdx <<
-      std::endl;
-  }
-  return true;
-}
-
-
-/*! This conversion matrix sets a rotation and subsequent translation
-    from the tracker's frame to the frame szg will use.
-    \return true always.
-    */
-bool IsenseTracker::SetConversionMatrix( arMatrix4& convert )
-{
-  m_conversionMatrix = convert;
-  std::cerr << "IntersenseDriver::Setting conversion matrix to " <<
-    std::endl << m_conversionMatrix;
-  return true;
-}
-
-
-/*! You must call Init() before calling GetData().
+/*! You must call init() before calling getData().
     The data is translated so that the Intersense position and
     orientation becomes a szg sensor, buttons become szg buttons,
     analogs become szg axes normalized (-1,1), and aux inputs 
@@ -368,99 +185,429 @@ bool IsenseTracker::SetConversionMatrix( arMatrix4& convert )
 
     \return False indicates we could not retrieve data.
     */
-bool IsenseTracker::GetData( arInputSource* source )
-{
-  if ( FALSE == ISD_GetData( m_handle, &m_data ) ) {
-    std::cerr << "IntersenseDriver::failed to get data from tracker " << 
-      m_handle << std::endl;
+bool IsenseTracker::getData( arInputSource* inputSource ) {
+  if ( FALSE == ISD_GetData( _handle, &_data ) ) {
+    cerr << "IsenseTracker error: Failed to get data from tracker "
+         << _handle << endl;
+    _imOK = false;
     return false;
   }
 
   // We retrieve camera data, but we don't know what to
   // do with "ApertureEncoder, FocusEncoder, and ZoomEncoder."
-  if ( m_bSupportsCameraData ) {
-    if (FALSE == ISD_GetCameraData( m_handle, &m_cameraData ) ) {
-      std::cerr << "IntersenseDriver::got no camera data from tracker "
-        << m_handle << std::endl;
-      return false;
-    }
+//  if ( _bSupportsCameraData ) {
+//    if (FALSE == ISD_GetCameraData( _handle, &_cameraData ) ) {
+//      std::cerr << "IntersenseDriver::got no camera data from tracker "
+//        << _handle << std::endl;
+//      _imOK = false;
+//      return false;
+//    }
+//  }
+
+  std::vector< IsenseStation >::iterator iter;
+  for (iter = _stations.begin(); iter != _stations.end(); ++iter) {
+    iter->queueData( _data, _bSupportsPositionMeasurement, inputSource );
+  }
+  // Send results as an event queue.
+  inputSource->sendQueue();
+  return true;
+}
+
+
+/*! We load the configuration for the tracker in order
+    to find out what model we have and its capabilities.
+    It is here that we find out what the actual port is.
+
+    \return False indicates failure of the driver.  This method
+        will print problem to stderr.
+    */
+bool IsenseTracker::_getTrackerConfig() {
+  Bool success = ISD_GetTrackerConfig( _handle, &_trackerInfo, USE_VERBOSE );
+  if ( FALSE == success ) {
+    std::cerr << "Intersense::got no tracker information on " <<
+      "device port " << _port << std::endl;
+    return false;
   }
 
-  for ( int station=1; station <= ISD_MAX_STATIONS; station++ ) {
-    ISD_STATION_INFO_TYPE*  stationInfo = &m_station[station-1];
-    ISD_STATION_STATE_TYPE* stationData = &m_data.Station[station-1];
-    StationSettings* stationSettings    = &m_stationSettings[station-1];
+  // Set the local variables that derive from tracker info.
+  _port = _trackerInfo.Port;
+  DWORD model = _trackerInfo.TrackerModel;
+  if ( (ISD_IS600 == model) || (ISD_IS900 == model) || (ISD_IS1200 == model) ) {
+    _bSupportsPositionMeasurement = true;
+  } else {
+    _bSupportsPositionMeasurement = false;
+  }
 
-    if ( FALSE == stationInfo->State ) continue;
+  // Tell the world our configuration
+  std::cerr << "IntersenseDriver::Started tracker on port " << _port << "." << endl;
+  return true;
+}
 
-    arMatrix4 theTransMatrix;
-    if ( m_bSupportsPositionMeasurement ) {
-    	// Rotate the position separately.
-      theTransMatrix =
-        ar_translationMatrix(m_conversionMatrix*arVector3(
-             c_meterToFoot*stationData->Position[0],
-             c_meterToFoot*stationData->Position[1],
-             c_meterToFoot*stationData->Position[2]));
-    } // else just use identity translation matrix.
 
-    arMatrix4 theRotMatrix;
-    if ( ISD_QUATERNION == stationInfo->AngleFormat ) {
-      theRotMatrix =
-        ar_transrotMatrix(arVector3(0, 0, 0),
-        arQuaternion(stationData->Orientation[0],
-        stationData->Orientation[1],
-        stationData->Orientation[2],
-        stationData->Orientation[3]));
-    } else { // Euler matrices
-      // The Intersense Euler angles are presented as yaw, pitch, roll,
-      // which are a rotation about z for yaw, y for pitch, and x for roll.
-      // Documentation shows right-handed coordinate system and positive
-      // angles.
-      // The rotation is in the old coordinate system.
-      theRotMatrix =
-        ar_rotationMatrix('z', ar_convertToRad( stationData->Orientation[0]))*
-        ar_rotationMatrix('y', ar_convertToRad( stationData->Orientation[1]))*
-        ar_rotationMatrix('x', ar_convertToRad( stationData->Orientation[2]));
+/*! The station info struct holds the State variable,
+    which tells us whether a device is connected.  It
+    also holds the data to be read.  This queries
+    the Intersense tracker in order to get its information,
+    and the query can take a few seconds, so we do it once.
+
+    \return False indicates failure of the driver.  This method
+        will print problem to stderr.
+    */
+void IsenseTracker::_loadAllStationInfo() {
+  unsigned int stationID(1);
+  std::vector< IsenseStation >::iterator iter;
+  for (iter = _stations.begin(); iter != _stations.end(); ++iter) {
+    iter->loadStationInfo( stationID++ );
+  }
+}
+
+
+/*! We ask only that this work for at least one of the stations
+    because it is reasonable that it might not work for a station
+    which is not connected.  We could use the A command to set
+    the internal reference frame of the tracker, and that would 
+    likely result in a faster driver, but what we have in our
+    GetData works for now.
+
+    \return False indicates failure of the driver.  This method
+        will print problem to stderr.
+    */
+bool IsenseTracker::_resetAllAlignmentReferenceFrames() {
+  bool success = false;
+  std::vector< IsenseStation >::iterator iter;
+  for (iter = _stations.begin(); iter != _stations.end(); ++iter) {
+    success |= iter->resetAlignmentReferenceFrame();
+  }
+  return success;
+}
+
+
+/*! The Intersense station will not, by default, have camera
+    tracking enabled, so this method turns it on.  This method has
+    not been tested with an actual camera device.
+
+    \return False indicates the driver will not do camera tracking,
+        which may not be a failure.
+    */
+void IsenseTracker::_enablePossibleCameraTracking() {
+  // The sample code has the line below, but CAMERA_TRACKER
+  // must just be a define.  We'll turn it on by default.
+  // ( CAMERA_TRACKER && _trackerInfo.TrackerModel == ISD_IS900)
+  _bSupportsCameraData = false;
+  if (!( (ISD_PRECISION_SERIES == _trackerInfo.TrackerType ) &&
+                        ( _trackerInfo.TrackerModel == ISD_IS900) )) {
+    return;
+  }
+  std::vector< IsenseStation >::iterator iter;
+  for (iter = _stations.begin(); iter != _stations.end(); ++iter) {
+    if (iter->enableCameraTracking()) {
+      _bSupportsCameraData = true;
     }
-    // We express the rotation in the new coordinate system.
-    arMatrix4 transformedMatrix = (m_conversionMatrix)*theRotMatrix*
-      (~m_conversionMatrix);
-    source->sendMatrix( stationSettings->sensorIdx,
-      theTransMatrix*transformedMatrix );
+  }
+}
 
-    const int analogCenter = 127;
-    // Normalize axis from (0,255) to (-1,1).
-    const float axisMultiple = 1.0f/128.0f;
-    if ( TRUE == stationInfo->GetInputs ) {
-      // Get buttons
-      for ( size_t butIdx=0; butIdx < stationSettings->buttonCnt; butIdx++ ) {
-        source->queueButton( stationSettings->firstButtonIdx+butIdx,
-          stationData->ButtonState[butIdx] );
-      }
-      // Get analogs
-      for ( size_t analogIdx=0;
-            analogIdx < stationSettings->analogCnt;
-            analogIdx++ ) {
-         source->queueAxis( stationSettings->firstAnalogIdx+analogIdx,
-           axisMultiple*(stationData->AnalogData[ analogIdx ]-analogCenter) );
-      }
-    }
 
-    // Get aux inputs, whatever they are.
-    const BYTE auxCenter = 0;
-    // Normalize BYTE from (0,255) to (0,1).
-    const float auxMultiple = 1.0f/255.0f;
-    if ( TRUE == stationInfo->GetAuxInputs ) {
-      for ( size_t auxIdx = 0; auxIdx < stationSettings->auxCnt; auxIdx++ ) {
-        source->queueAxis( stationSettings->firstAuxIdx+auxIdx,
-          auxMultiple*(stationData->AuxInputs[ auxIdx ]-auxCenter) );
-      }
+
+/*! Prints to stderr all the setup information.
+    \param trackerIndex Index of this tracker in arInputSource
+        array.
+    \return true always.
+    */
+ostream& operator<<(ostream& s, const IsenseTracker& tc) {
+  s << endl;
+  s << "Intersense Tracker on port " << tc._port << endl;
+  std::vector< IsenseStation >::iterator iter;
+  IsenseTracker& t = const_cast<IsenseTracker&>(tc);
+  for (iter = t._stations.begin(); iter != t._stations.end(); ++iter) {
+    s << *iter;
+  }
+  s << endl;
+  return s;
+}
+
+
+IsenseStation::IsenseStation() :
+  _matrixIndex(1000),
+  _numButtons(0),
+  _numAnalogInputs(0),
+  _numAuxInputs(0),
+  _firstButtonIndex(0),
+  _firstAnalogIndex(0),
+  _firstAuxIndex(0) {
+}
+
+IsenseStation::~IsenseStation() {
+}
+
+bool IsenseStation::getStatus() const {
+  return (_stationConfig.State != FALSE);
+}
+
+
+unsigned int IsenseStation::getID() const {
+  return static_cast<unsigned int>(_stationConfig.ID);
+}
+
+
+bool IsenseStation::configure( arSZGClient& client, unsigned int trackerIndex ) {
+  const unsigned int charCnt = 200;
+  char chStation[ charCnt ];
+
+  int sig[3] = {0,0,0};
+  sprintf( chStation, "station%d_%d", trackerIndex, getID() );
+  if (client.getAttributeInts( "SZG_INTERSENSE", chStation, sig, 3 ) ) {
+    _setInputCounts( sig[0], sig[1], sig[2] );
+    cerr << "IsenseStation remark: Set station " << getID() << " to "
+         << sig[0] << ":" << sig[1] << ":" << sig[2] << endl;
+  }
+
+  sprintf( chStation, "compass%d_%d", trackerIndex, getID() );
+  int useCompass;
+  if (client.getAttributeInts( "SZG_INTERSENSE", chStation, &useCompass, 1 ) ) {
+    if (!_setUseCompass( (Bool)useCompass )) {
+      cerr << "IsenseStation error: Failed to set compass usage for station " 
+           << getID() << " to " << (Bool)useCompass << endl;
+      return false;
     }
-    // Send results as an event.
-    source->sendQueue();
+    cerr << "IsenseStation remark: Set compass usage for station " 
+         << getID() << " to " << (Bool)useCompass << endl;
   }
   return true;
 }
+
+
+
+/*! The station info struct holds the State variable,
+    which tells us whether a device is connected.  It
+    also holds the data to be read.  This queries
+    the Intersense tracker in order to get its information,
+    and the query can take a few seconds, so we do it once.
+
+    \return False indicates failure of the driver.  This method
+        will print problem to stderr.
+    */
+void IsenseStation::loadStationInfo( unsigned int stationID ) {
+  _stationConfig.State = ISD_GetStationConfig( _trackerHandle, 
+                                               &_stationConfig,
+                                               static_cast<WORD>(stationID),
+                                               USE_VERBOSE ) != FALSE;
+}
+
+
+bool IsenseStation::resetAlignmentReferenceFrame() {
+  char chReset[10];
+  sprintf( chReset, "R%d\n", getID() );
+  Bool bSent = ISD_SendScript( _trackerHandle, chReset );
+  return bSent == TRUE;
+}
+
+
+/*! The Intersense station will not, by default, have camera
+    tracking enabled, so this method turns it on.  This method has
+    not been tested with an actual camera device.
+
+    \return False indicates the driver will not do camera tracking,
+        which may not be a failure.
+    */
+bool IsenseStation::enableCameraTracking() {
+  // The sample code has the line below, but CAMERA_TRACKER
+  // must just be a define.  We'll turn it on by default.
+  if (!getStatus()) {
+    return false;
+  }
+  if (_stationConfig.GetCameraData == TRUE) {
+    return true;
+  }
+  _stationConfig.GetCameraData = TRUE;
+  bool stat = ISD_SetStationConfig( _trackerHandle,
+                                    &_stationConfig,
+                                    static_cast<WORD>(getID()),
+                                    USE_VERBOSE ) != FALSE;
+  if (!stat) {
+    cerr << "IntersenseDriver::failed to set configuration "
+         << "for station " << getID() << endl;
+  }
+  return stat;
+}
+
+
+/*! \param buttonCnt Number of buttons the station should have.
+    \param analogCnt Number of analogs (axes) the station should have.
+    \param auxCnt Number of aux inputs the station should have.  No 
+        indication what an aux input might be, but it returns type BYTE.
+    */
+void IsenseStation::_setInputCounts( unsigned int buttonCnt,
+                                    unsigned int analogCnt,
+                                    unsigned int auxCnt ) {
+  _numButtons = buttonCnt;
+  _numAnalogInputs = analogCnt;
+  _numAuxInputs = auxCnt;
+}
+
+
+
+bool IsenseStation::_setUseCompass( unsigned int compassVal ) {
+  _stationConfig.Compass = (Bool)compassVal;
+  bool stat = (ISD_SetStationConfig( _trackerHandle,
+                                     &_stationConfig,
+                                     static_cast<WORD>(getID()),
+                                     USE_VERBOSE )!= FALSE);
+  if (stat) {
+    cerr << "IsenseStation remark: Set useCompass "
+         << "for station " << getID() << endl;
+  } else {
+    cerr << "IsenseStation error: Failed to set useCompass "
+         << "for station " << getID() << endl;
+  }
+  return stat;
+}
+
+
+
+/*! This object uses both configuration information and
+    the user's settings of the number of buttons and such in order
+    to create an internal array of how to remap buttons, analogs
+    and aux inputs to buttons and axes.
+
+    All parameters are incremented upon return.
+
+    \param matrixIndex Index of the tracker in the arInputSource array.
+    \param buttonIndex Index of first button in arInputSource array.
+    \param axisIndex Index of first axis in arInputSource array.
+    \return Index of next available sensor, button, and axis.
+    */
+void IsenseStation::setIndices( unsigned int& matrixIndex,
+                                unsigned int& buttonIndex,
+                                unsigned int& axisIndex ) {
+  if (!getStatus()) {
+    return;
+  }
+  _matrixIndex = matrixIndex++;
+
+  _firstButtonIndex = buttonIndex;
+  buttonIndex += _numButtons;
+
+  _firstAnalogIndex = axisIndex;
+  axisIndex += _numAnalogInputs;
+
+  _firstAuxIndex = axisIndex;
+  axisIndex += _numAuxInputs;
+}
+
+
+
+/*! The data is translated so that the Intersense position and
+    orientation becomes a szg sensor, buttons become szg buttons,
+    analogs become szg axes normalized (-1,1), and aux inputs 
+    become szg axes normalized (0,1).  Not having seen an aux
+    input or any documentation about it, I don't know whether
+    this normalization is correct.
+
+    \return False indicates we could not retrieve data.
+    */
+void IsenseStation::queueData( ISD_TRACKER_DATA_TYPE& data,
+                               bool usePositionMeasurement,
+                               arInputSource* inputSource ) {
+
+  if (!getStatus()) {
+    return;
+  }
+
+  ISD_STATION_STATE_TYPE& myData = data.Station[_matrixIndex];
+
+  arMatrix4 theTransMatrix;
+  if ( usePositionMeasurement ) {
+      // Rotate the position separately.
+    theTransMatrix =
+      ar_translationMatrix( arVector3(
+                             METER_TO_FOOT*myData.Position[0],
+                             METER_TO_FOOT*myData.Position[1],
+                             METER_TO_FOOT*myData.Position[2]
+                             ) );
+  } // else just use identity translation matrix.
+
+  arMatrix4 theRotMatrix;
+  if ( ISD_QUATERNION == _stationConfig.AngleFormat ) {
+    theRotMatrix =
+      ar_transrotMatrix(arVector3(0, 0, 0),
+      arQuaternion( myData.Orientation[0],
+                    myData.Orientation[1],
+                    myData.Orientation[2],
+                    myData.Orientation[3]));
+  } else { // Euler matrices
+    // The Intersense Euler angles are presented as yaw, pitch, roll,
+    // which are a rotation about z for yaw, y for pitch, and x for roll.
+    // Documentation shows right-handed coordinate system and positive
+    // angles.
+    // The rotation is in the old coordinate system.
+    theRotMatrix =
+      ar_rotationMatrix('z', ar_convertToRad( myData.Orientation[0]))*
+      ar_rotationMatrix('y', ar_convertToRad( myData.Orientation[1]))*
+      ar_rotationMatrix('x', ar_convertToRad( myData.Orientation[2]));
+  }
+  inputSource->queueMatrix( _matrixIndex, theTransMatrix*theRotMatrix );
+
+  const int analogCenter = 127;
+  // Normalize axis from (0,255) to (-1,1).
+  const float axisMultiple = 1.0f/128.0f;
+  if ( TRUE == _stationConfig.GetInputs ) {
+    // Get buttons
+    for ( unsigned int buttonIndex=0; buttonIndex < _numButtons; ++buttonIndex ) {
+      inputSource->queueButton( _firstButtonIndex+buttonIndex, 
+                                myData.ButtonState[buttonIndex] );
+    }
+    // Get analogs
+    for ( unsigned int analogIndex=0; analogIndex < _numAnalogInputs; ++analogIndex ) {
+       inputSource->queueAxis( _firstAnalogIndex+analogIndex,
+                 axisMultiple*( myData.AnalogData[ analogIndex ]-analogCenter ) );
+    }
+  }
+
+  // Get aux inputs, whatever they are.
+  const BYTE auxCenter = 0;
+  // Normalize BYTE from (0,255) to (0,1).
+  const float auxMultiple = 1.0f/255.0f;
+  if ( TRUE == _stationConfig.GetAuxInputs ) {
+    for ( unsigned int auxIndex = 0; auxIndex < _numAuxInputs; auxIndex++ ) {
+      inputSource->queueAxis( _firstAuxIndex+auxIndex,
+                 auxMultiple*( myData.AuxInputs[ auxIndex ]-auxCenter ) );
+    }
+  }
+}
+
+
+
+ostream& operator<<(ostream& s, const IsenseStation& t) {
+    if (!t.getStatus()) {
+      // just fail silently
+      return s;
+    }
+    s << endl;
+    s << "\tStation ID: " << t.getID() << endl;
+    s << "\tMatrix index: " << t._matrixIndex << endl;
+    s << "\tCompass usage: ";
+    switch (t._stationConfig.Compass) {
+      case 0:
+        s << "None.\n";
+        break;
+      case 1:
+        s << "Partial.\n";
+        break;
+      case 2:
+        s << "Full.\n";
+        break;
+      default:
+        s << "??Unrecognized value.\n";
+    }
+    s << "\tOther inputs:\n";
+    s << "\t\tbutton\tanalog\taux\n";
+    s << "\tFirst:\t" << t._firstButtonIndex << "\t" << t._firstAnalogIndex
+      << "\t" << t._firstAuxIndex << endl;
+    s << "\tTotal:\t" << t._numButtons << "\t" << t._numAnalogInputs << "\t"
+      << t._numAuxInputs << endl;
+  return s;
+}
+
 
 
 /***********************************************************/
@@ -480,12 +627,13 @@ void ar_intersenseDriverEventTask(void* intersenseDriver){
     (arIntersenseDriver*) intersenseDriver;
 
   for (;;) {
-    isense->WaitForData();
-    bool bSuccess = isense->GetData();
+//  I'm not sure if this is necessary...
+//    isense->_waitForData();
+    bool bSuccess = isense->_getData();
     if ( false == bSuccess ) {
       // Never get here b/c Intersense driver always 
       // returns a cheery success.
-      while ( false == isense->Reacquire() )
+      while ( false == isense->_reacquire() )
         ar_usleep( 15*1000 );
     }
   }
@@ -496,59 +644,13 @@ void ar_intersenseDriverEventTask(void* intersenseDriver){
 /*                     ar_intersenseDriver                 */
 /***********************************************************/
 
-arIntersenseDriver::arIntersenseDriver()
-  :m_tracker(0), m_trackerFailed(0), m_isVerbose(TRUE){
+arIntersenseDriver::arIntersenseDriver() {
   // does nothing yet
 }
 
 
-arIntersenseDriver::~arIntersenseDriver(){
-  if ( 0 != m_tracker )       delete[] m_tracker;
-  if ( 0 != m_trackerFailed ) delete[] m_trackerFailed;
-}
-
-
-bool arIntersenseDriver::GetStationSettings( arSZGClient& client )
-{
-  const size_t charCnt = 200;
-  char chStation[ charCnt ];
-
-  int sig[3] = {0,0,0};
-  for ( size_t trackIdx=0; trackIdx < m_trackerCnt; trackIdx++ ) {
-    for ( size_t statIdx=0; statIdx <= ISD_MAX_STATIONS; statIdx++ ) {
-      sprintf( chStation, "station%d_%d", trackIdx, statIdx );
-      if ( client.getAttributeInts( ISENSE_GROUP_NAME, chStation, sig, 3 ) ) {
-        m_tracker[trackIdx].SetStationInputCounts( statIdx, sig[0], sig[1],
-          sig[2] );
-        std::cerr << "IntersenseDriver::Set station " << statIdx << " to " <<
-          sig[0] << ":" << sig[1] << ":" << sig[2] << std::endl;
-      }
-    }
-  }
-
-  char chTracker[ charCnt ];
-  float matElems[16] = { 0,0,-1,0, 1,0,0,0, 0,-1,0,0, 0,0,0,1 };
-  for ( size_t matrixIdx=0; matrixIdx < m_trackerCnt; matrixIdx++ ) {
-    size_t foundCnt = 0;
-    for ( size_t vecIdx=0; vecIdx < 4; vecIdx++ ) {
-      sprintf( chTracker, "convert%d_%d", matrixIdx, vecIdx );
-      if ( client.getAttributeFloats( ISENSE_GROUP_NAME, chTracker,
-        matElems+4*vecIdx, 4 ) ) {
-          foundCnt++;
-      }
-    }
-    if ( foundCnt > 0 ) {
-      if ( 4 == foundCnt ) {
-        arMatrix4 convMatrix( matElems );
-        m_tracker[ matrixIdx ].SetConversionMatrix( convMatrix );
-      } else {
-        std::cerr << "IntersenseDriver::Found less than four vectors "
-          "to make the matrix for tracker " << matrixIdx << std::endl;
-        return false;
-      }
-    }
-  }
-  return true;
+arIntersenseDriver::~arIntersenseDriver() {
+  _trackers.clear();
 }
 
 
@@ -586,56 +688,63 @@ bool arIntersenseDriver::GetStationSettings( arSZGClient& client )
     4x4 matrix expressing how to rotate and translate the sensor's 
     output.  Each entry is a column in the matrix.
     */
-bool arIntersenseDriver::init(arSZGClient& client){
+bool arIntersenseDriver::init(arSZGClient& client) {
 
   // Retrieve settings from client
   int sig[2] = {10,0};
-  if (!client.getAttributeInts(ISENSE_GROUP_NAME,"sleep",sig,2)) {
-    m_sleepTime = 10;
-    cerr << "arIntersenseDriver remark: " << ISENSE_GROUP_NAME <<
-      "/sleep not set, "
-      << "defaulting to ( " << m_sleepTime << "." << std::endl;
+  if (!client.getAttributeInts("SZG_INTERSENSE","sleep",sig,2)) {
+    _sleepTime = 10;
+    cerr << "arIntersenseDriver remark: SZG_INTERSENSE/sleep not set, "
+         << "defaulting to ( " << _sleepTime << ")." << std::endl;
   } else {
-    cerr << "arIntersenseDriver remark: " << ISENSE_GROUP_NAME <<
-      "/sleep set to " << " ( " << sig[0] << " ).\n";
-    m_sleepTime = sig[0];
+    cerr << "arIntersenseDriver remark: SZG_INTERSENSE/sleep set to " 
+         << " ( " << sig[0] << " ).\n";
+    _sleepTime = sig[0];
   }
 
-  DWORD comPortID = static_cast<DWORD>(client.getAttributeInt( ISENSE_GROUP_NAME, "com_port"));
+  DWORD comPortID = static_cast<DWORD>(client.getAttributeInt( "SZG_INTERSENSE", "com_port"));
   // Start the device.
-  if ( !Open( comPortID ) ) return false;
+  if ( !_open( comPortID ) ) {
+    cerr << "arIntersenseDriver error: _open(" << comPortID << ") failed.\n";
+    return false;
+  }
 
-  if ( !this->GetStationSettings( client ) ) return false;
+  if ( !getStationSettings( client ) ) {
+    cerr << "arIntersenseDriver error: getStationSettings() failed.\n";
+    return false;
+  }
 
   // Construct a numbering scheme for sensors, buttons, and axes.
-  size_t sensorIdx = 0, buttonIdx = 0, axisIdx = 0;
-  for ( size_t trackIdx=0; trackIdx < m_trackerCnt; trackIdx++ ) {
-    // sensorIdx, buttonIdx, axisIdx are incremented by each tracker.
-    if ( !m_tracker[ trackIdx ].SetDriverFirstIndices( sensorIdx, buttonIdx,
-      axisIdx ) ) return false;
+  unsigned int matrixIndex = 0, buttonIndex = 0, axisIndex = 0;
+  std::vector< IsenseTracker >::iterator iter;
+  cerr << "numTrackers: " << _trackers.size() << endl;
+  for (iter = _trackers.begin(); iter != _trackers.end(); ++iter) {
+    // sensorIndex, buttonIndex, axisIndex are incremented by each tracker.
+    iter->setStationIndices( matrixIndex, buttonIndex, axisIndex );
   }
   // Tell arInputSource how many we have counted.
-  std::cerr << "IntersenseDriver::Totals buttons " << buttonIdx <<
-	  " axes " << axisIdx << " matrices " << sensorIdx << std::endl;
-  this->_setDeviceElements( buttonIdx, axisIdx, sensorIdx );
+  std::cerr << "IntersenseDriver::Totals buttons " << buttonIndex <<
+	  " axes " << axisIndex << " matrices " << matrixIndex << std::endl;
+  this->_setDeviceElements( buttonIndex, axisIndex, matrixIndex );
 
   // Print all information to stderr.
-  for ( size_t printIdx=0; printIdx < m_trackerCnt; printIdx++ ) {
-    m_tracker[ printIdx ].PrintSetup( printIdx );
+  for (iter = _trackers.begin(); iter != _trackers.end(); ++iter) {
+    cerr << *iter << endl;
   }
   // We have succeeded
   return true;
 }
 
 
-bool arIntersenseDriver::Open( DWORD port )
-{
+bool arIntersenseDriver::_open( DWORD port ) {
   ISD_TRACKER_HANDLE trackerHandle[ ISD_MAX_TRACKERS ];
-
+  std::vector< IsenseTracker >::iterator iter;
+  int numTrackers;
+  
   if (port==0) { // scan all ports for any available trackers
     // Open every available unit.
     Bool isOpened = ISD_OpenAllTrackers(
-      (Hwnd) NULL, trackerHandle, FALSE, m_isVerbose );
+      (Hwnd) NULL, trackerHandle, FALSE, _isVerbose );
     if ( FALSE == isOpened ) {
       std::cerr << "IntersenseDriver::failed to open any trackers."
         << std::endl;
@@ -643,11 +752,11 @@ bool arIntersenseDriver::Open( DWORD port )
     }
 
     // Count the good handles and make struct to hold them.
-    int trackerIdx;
-    for ( trackerIdx = 0; trackerIdx < ISD_MAX_TRACKERS; trackerIdx++ ) {
-      if ( trackerHandle[ trackerIdx ] < 1 ) break;
+    int trackerIndex;
+    for ( trackerIndex = 0; trackerIndex < ISD_MAX_TRACKERS; trackerIndex++ ) {
+      if ( trackerHandle[ trackerIndex ] < 1 ) break;
     }
-    m_trackerCnt = trackerIdx;
+    numTrackers = trackerIndex;
   } else { // check for a single tracker on specified port
     Bool isVerbose = TRUE;
     trackerHandle[0] = ISD_OpenTracker( (Hwnd) NULL, port, FALSE, isVerbose );
@@ -657,56 +766,60 @@ bool arIntersenseDriver::Open( DWORD port )
       << port << ".  " << std::endl;
       return false;
     }
-    m_trackerCnt = 1;
+    numTrackers = 1;
   }
-  if ( 0 == m_trackerCnt ) {
-	  std::cerr << "IntersenseDriver::found no trackers." <<
-		  std::endl;
-	  return false;
+  if ( numTrackers == 0 ) {
+    std::cerr << "IntersenseDriver::found no trackers." << endl;
+    return false;
   }
-  m_tracker = new IsenseTracker[ m_trackerCnt ];
-  m_trackerFailed = new bool[ m_trackerCnt ];
+  _trackers.insert( _trackers.begin(), (unsigned int)numTrackers, IsenseTracker() );
 
   // Execute initialization code for each tracker.
   bool created = true;
-  for ( size_t createIdx = 0; createIdx < m_trackerCnt; createIdx++ ) {
-    m_tracker[createIdx].SetHandle( trackerHandle[ createIdx ] );
-    bool didInit = m_tracker[createIdx].Init();
-    if ( didInit ) {
-      m_trackerFailed = false;
-    } else {
-      // Don't set trackerFailed b/c the tracker never started.
-      // If things don't start at first, then we just quit.
+  unsigned int count(0);
+  for (iter = _trackers.begin(); iter != _trackers.end(); ++iter) {
+    iter->setID( count );
+    iter->setHandle( trackerHandle[ count++ ] );
+    bool didInit = iter->init();
+    if ( !didInit ) {
       created = false;
     }
   }
-
   // Close down if we cannot start.
   if ( !created ) {
-    for ( size_t closeIdx = 0; closeIdx < m_trackerCnt; closeIdx++ ) {
-      m_tracker[closeIdx].Close();
+    for (iter = _trackers.begin(); iter != _trackers.end(); ++iter) {
+      iter->ar_close();
     }
   }
   return created;
 }
 
 
-/*! This calls the ar_usleep().
-    */
-bool arIntersenseDriver::WaitForData()
-{
-  ar_usleep( m_sleepTime );
+bool arIntersenseDriver::getStationSettings( arSZGClient& client ) {
+  std::vector< IsenseTracker >::iterator iter;
+  for (iter = _trackers.begin(); iter != _trackers.end(); ++iter) {
+    if (!iter->configure( client )) {
+      return false;
+    }
+  }
   return true;
 }
 
 
-bool arIntersenseDriver::GetData()
-{
+/*! This calls the ar_usleep().
+    */
+bool arIntersenseDriver::_waitForData() {
+  ar_usleep( _sleepTime );
+  return true;
+}
+
+
+bool arIntersenseDriver::_getData() {
   bool success = true;
-  for ( size_t trackerIdx=0; trackerIdx<m_trackerCnt; trackerIdx++ ) {
-    if ( !m_tracker[ trackerIdx ].GetData( this ) ) {
+  std::vector< IsenseTracker >::iterator iter;
+  for (iter = _trackers.begin(); iter != _trackers.end(); ++iter) {
+    if ( !iter->getData( this ) ) {
       success = false;
-      m_trackerFailed[ trackerIdx ] = true;
     }
   }
   return success;
@@ -716,16 +829,14 @@ bool arIntersenseDriver::GetData()
 /*! This method should open all trackers which were open previously.
     \return False if not all failed trackers could be opened.
     */
-bool arIntersenseDriver::Reacquire()
-{
+bool arIntersenseDriver::_reacquire() {
   bool bAllRunning = true;
 
-  for ( size_t trackIdx = 0; trackIdx < m_trackerCnt; trackIdx++ ) {
-    if ( m_trackerFailed[ trackIdx ] ) {
-      bool reopened = m_tracker[ trackIdx ].Reopen();
-      if ( reopened ) {
-        m_trackerFailed[ trackIdx ] = false;
-      } else {
+  std::vector< IsenseTracker >::iterator iter;
+  for (iter = _trackers.begin(); iter != _trackers.end(); ++iter) {
+    if (!iter->getStatus()) {
+      bool reopened = iter->ar_reopen();
+      if ( !reopened ) {
         bAllRunning = false;
       }
     }
@@ -754,3 +865,54 @@ bool arIntersenseDriver::stop(){
 bool arIntersenseDriver::restart(){
   return stop() && start();
 }
+
+
+void arIntersenseDriver::handleMessage( const string& messageType, const string& messageBody ) {
+  if (messageType != "arIntersenseDriver") {
+    cerr << "arIntersenseDriver warning: ignoring message of type "
+         << messageType << endl;
+    return;
+  }
+  arDelimitedString tokens( messageBody, ' ' );
+  if (tokens.size() < 1) {
+    cerr << "arIntersenseDriver warning: ignoring message with 0 tokens.\n";
+    return;
+  }
+  string command( tokens[0] );
+  if (command == "reset") { // reset heading
+    if (tokens.size() != 2) {
+      cerr << "arIntersenseDriver warning: reset usage: reset <tracker #>/<station #>.\n";
+      return;
+    }
+    int items[2];
+    int numItems = ar_parseIntString( tokens[1], items, 2 );
+    if (numItems != 2) {
+      cerr << "arIntersenseDriver warning: reset usage: reset <tracker #>/<station #>.\n";
+      return;
+    }
+    if (_resetHeading((unsigned int)items[0],(unsigned int)items[1])) {
+      cout << "arIntersenseDriver remark: reset heading for tracker #" << items[0]
+           << ", station #" << items[1] << endl;
+    } else {
+      cerr << "arIntersenseDriver warning: failed to reset heading for tracker #" << items[0]
+           << ", station #" << items[1] << endl;
+    }
+  } else {
+    cerr << "arIntersenseDriver warning: unknown comand " << command << endl;
+  }
+}
+
+bool arIntersenseDriver::_resetHeading( unsigned int trackerID, unsigned int stationID ) {
+  if (trackerID >= _trackers.size()) {
+    cerr << "arIntersenseDriver error: attempt to reset heading for tracker "
+         << trackerID << ",\n    max = " << _trackers.size() << endl;
+    return false;
+  }
+  if (stationID >= ISD_MAX_STATIONS) {
+    cerr << "arIntersenseDriver error: attempt to reset heading for station "
+         << stationID << ",\n    max = " << ISD_MAX_STATIONS << endl;
+    return false;
+  }
+  return ISD_ResetHeading( _trackers[trackerID].getHandle(), stationID );
+}
+

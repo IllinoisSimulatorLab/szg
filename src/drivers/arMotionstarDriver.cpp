@@ -428,16 +428,16 @@ void arMotionstarDriver::_generateEvent(int sensorID){
   if (sensorID == 0){
     // head sensor is rolled 90 degrees
     //    _receivedData[5] -= 90.;
-    _receivedData[5] += 90.;
-    if (_receivedData[5] < -180.) _receivedData[5] += 360.;
-    else if (_receivedData[5] > 180.) _receivedData[5] -= 360.;
+    //_receivedData[5] += 90.;
+    //if (_receivedData[5] < -180.) _receivedData[5] += 360.;
+    //else if (_receivedData[5] > 180.) _receivedData[5] -= 360.;
 
   }
   if (sensorID == 1){
     // wand sensor is rolled 180 degrees
-    _receivedData[5] -= 180.;
-    if (_receivedData[5] < -180.) _receivedData[5] += 360.;
-    else if (_receivedData[5] > 180.) _receivedData[5] -= 360.;
+//    _receivedData[5] -= 180.;
+//    if (_receivedData[5] < -180.) _receivedData[5] += 360.;
+//    else if (_receivedData[5] > 180.) _receivedData[5] -= 360.;
 
   }
   _tweak();

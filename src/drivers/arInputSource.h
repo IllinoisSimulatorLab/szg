@@ -72,6 +72,8 @@ class SZG_CALL arInputSource{
   void sendQueue();
   //@)
 
+  virtual void handleMessage( const string& /*messageType*/, const string& /*messageBody*/ ) {}
+
  protected:
   arInputLanguage _inp;
   int _inputChannelID;

@@ -41,17 +41,26 @@
     <pforth>
 	matrix inputMatrix
 	matrix outputMatrix
-	matrix correctXRotMatrix
 	matrix correctYRotMatrix
-	matrix correctZRotMatrix
+	matrix headZRotMatrix
+	matrix wandZRotMatrix
 	matrix correctHeadRotMatrix
-	-30 0 correctXRotMatrix rotationMatrix
-	6 1 correctYRotMatrix rotationMatrix
-	-1 2 correctZRotMatrix rotationMatrix
-	correctYRotMatrix correctZRotMatrix correctHeadRotMatrix matrixMultiply
+	matrix correctWandRotMatrix
+        matrix transMatrix
+        matrix rotMatrix
+	6 yaxis correctYRotMatrix rotationMatrix
+	-90 zaxis headZRotMatrix rotationMatrix
+	-180 zaxis wandZRotMatrix rotationMatrix
+	headZRotMatrix correctYRotMatrix correctHeadRotMatrix matrixMultiply
+	wandZRotMatrix correctYRotMatrix correctWandRotMatrix matrixMultiply
 	define filter_matrix_0
 	  inputMatrix getCurrentEventMatrix
 	  inputMatrix correctHeadRotMatrix outputMatrix matrixMultiply
+	  outputMatrix setCurrentEventMatrix
+	enddef
+	define filter_matrix_1
+	  inputMatrix getCurrentEventMatrix
+	  inputMatrix correctWandRotMatrix outputMatrix matrixMultiply
 	  outputMatrix setCurrentEventMatrix
 	enddef
     </pforth>
@@ -72,16 +81,25 @@
       matrix correctXRotMatrix1
       matrix correctXRotMatrix2
       matrix correctYRotMatrix
-      matrix correctZRotMatrix
+      matrix headZRotMatrix
+      matrix wandZRotMatrix
       matrix correctHeadRotMatrix
-      -30 0 correctXRotMatrix1 rotationMatrix
+      matrix correctWandRotMatrix
+      -15 0 correctXRotMatrix1 rotationMatrix
       30 0 correctXRotMatrix2 rotationMatrix
-      6 1 correctYRotMatrix rotationMatrix
-      -1 2 correctZRotMatrix rotationMatrix
-      correctYRotMatrix correctZRotMatrix correctHeadRotMatrix matrixMultiply
+      -2 1 correctYRotMatrix rotationMatrix
+      -90 2 headZRotMatrix rotationMatrix
+      -180 2 wandZRotMatrix rotationMatrix
+      headZRotMatrix correctYRotMatrix correctHeadRotMatrix matrixMultiply
+      wandZRotMatrix correctYRotMatrix correctWandRotMatrix matrixMultiply
       define filter_matrix_0
         inputMatrix getCurrentEventMatrix
         inputMatrix correctHeadRotMatrix outputMatrix matrixMultiply
+        outputMatrix setCurrentEventMatrix
+      enddef
+      define filter_matrix_1
+        inputMatrix getCurrentEventMatrix
+        inputMatrix correctWandRotMatrix outputMatrix matrixMultiply
         outputMatrix setCurrentEventMatrix
       enddef
       define filter_matrix_2

@@ -583,6 +583,41 @@ int ar_parseFloatString(const string& theString, float* outArray, int len){
 /// \todo use ar_parseLongString's method instead.  Better error handling.  (Create ar_stringToIntValid.)
 
 int ar_parseIntString(const string& theString, int* outArray, int len){
+  // takes a string which is a sequence of ints delimited by /
+  // and fills an array of ints
+  // Returns how many ints were found.
+
+  if (len <= 0) {
+    cerr << "ar_parseIntString warning: nonpositive length!\n";
+    return -1;
+  }
+
+  string localString = theString; //;;;; copy only if needed.  Use a string* pointing to the original or the copy.
+  int length = localString.length();
+  if (length < 1)
+    return 0;
+  if (localString[length-1] != '/')
+    localString = localString + "/";    
+  std::istringstream inStream( localString );
+  int numValues = 0;
+  string wordString;
+  while (numValues < len) {
+    getline( inStream, wordString, '/' );
+    if (wordString == "") {
+      cerr << "ar_parseIntString warning: empty field.\n";
+      break;
+    }
+    if (inStream.fail())
+      // Error message?
+      break;
+    int theInt;
+    if (!ar_stringToIntValid( wordString, theInt )) {
+      cerr << "ar_parseIntString warning: invalid field \"" << wordString << "\".\n";
+      break;
+    }
+    outArray[numValues++] = theInt;
+  }
+  return numValues;
 
   // takes a string which is a sequence of floats delimited by /
   // and fills an array of ints
@@ -591,35 +626,35 @@ int ar_parseIntString(const string& theString, int* outArray, int len){
   // Returns 0 or sometimes 1 if none are found (atoi's error handling sucks).
   // input example = 9/-8/0/5
 
-  if (len <= 0) {
-    cerr << "arParseIntString warning: nonpositive length!\n";
-    return -1;
-  }
+//  if (len <= 0) {
+//    cerr << "arParseIntString warning: nonpositive length!\n";
+//    return -1;
+//  }
 
-  char buf[1024]; /// \todo fixed size buffer
-  ar_stringToBuffer(theString, buf, sizeof(buf));
-  const int length = theString.length();
-  if (length < 1 || ((*buf<'0' || *buf>'9') && *buf!='-'))
-    return 0;
-  int currentPosition = 0;
-  int dimension = 0;
-  bool flag = false;
-  while (!flag){
-    if (dimension >= len){
-      cerr << "arParseIntString warning: truncating \""
-           << theString << "\" after "
-	   << len << " ints.\n";
-      return dimension;
-    }
-    outArray[dimension++] = atoi(buf+currentPosition);
-    while (buf[currentPosition]!='/' && !flag){
-      if (++currentPosition >= length){
-        flag = true;
-      }
-    }
-    ++currentPosition;
-  }
-  return dimension;
+//  char buf[1024]; /// \todo fixed size buffer
+//  ar_stringToBuffer(theString, buf, sizeof(buf));
+//  const int length = theString.length();
+//  if (length < 1 || ((*buf<'0' || *buf>'9') && *buf!='-'))
+//    return 0;
+//  int currentPosition = 0;
+//  int dimension = 0;
+//  bool flag = false;
+//  while (!flag){
+//    if (dimension >= len){
+//      cerr << "arParseIntString warning: truncating \""
+//           << theString << "\" after "
+//           << len << " ints.\n";
+//      return dimension;
+//    }
+//    outArray[dimension++] = atoi(buf+currentPosition);
+//    while (buf[currentPosition]!='/' && !flag){
+//      if (++currentPosition >= length){
+//        flag = true;
+//      }
+//    }
+//    ++currentPosition;
+//  }
+//  return dimension;
 }
 
 int ar_parseLongString(const string& theString, long* outArray, int len) {

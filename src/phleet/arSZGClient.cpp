@@ -407,7 +407,8 @@ bool arSZGClient::parseAssignmentString(const string& text){
     parsingStream >> param4;
     if (parsingStream.fail()){
 LFail:
-      cout << "arSZGClient error: malformed assignment string.\n";
+      cout << "arSZGClient error: malformed assignment string (follows).\n";
+      cout << "----------------\n" << text << "----------------" << endl;
       return false;
     }
     setAttribute(param1, param2, param3, param4);
@@ -664,25 +665,14 @@ int arSZGClient::getAttributeInt(const string& computerName,
 				 const string& defaults){
   const string& s = getAttribute(computerName, groupName, parameterName,
                                  defaults);
-  const int x = ar_stringToInt(s);
-  if (parameterName.find("port") != string::npos &&
-      parameterName != "com_port") {
-    // It's a port.
-    if (s == "NULL"){
-      cerr << _exeName << " warning: undefined port " << groupName << "/"
-           << parameterName << ".\n";
-    }
-    else{
-      if (x < 1024 || x > 50000)
-	cerr << _exeName << " warning: port " << groupName << "/"
-	     << parameterName << " \"" << s << "\" invalid or out of range.\n";
-#ifdef AR_USE_WIN_32
-      else if (x >= 10000)
-	cerr << _exeName << " warning: port " << groupName << "/"
-	     << parameterName << " \"" << s
-	     << "\" >= 10000: questionable in win32.\n";
-#endif
-    }
+  int x;
+  if (s == "NULL") {
+    return 0;
+  }
+  if (!ar_stringToIntValid( s, x )) {
+    cerr << "arSZGClient warning: failed to convert '" << s << "' to an int\n"
+         << "   in " << groupName << "/" << parameterName << endl;
+    return 0;
   }
   return x;
 }

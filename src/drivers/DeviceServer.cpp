@@ -19,6 +19,8 @@
 #include "arFileSource.h"
 #include "arPForthFilter.h"
 
+#include <map>
+
 class InputNodeConfig{
  public:
   InputNodeConfig(){ pforthProgram = ""; valid = false; }
@@ -194,6 +196,8 @@ int main(int argc, char** argv){
     nodeConfig.inputSources.push_back(argv[1]);
   }
 
+  std::map< std::string, arInputSource* > driverNameMap;
+
   // Configure the input node.
   arInputNode inputNode;
   // Need to know from where the shared lilbraries will be loaded.
@@ -232,7 +236,8 @@ int main(int argc, char** argv){
         SZGClient.sendInitResponse(false);
         return 1;
       }
-      inputNode.addInputSource(theSource,true);
+      driverNameMap[*iter] = theSource;
+      inputNode.addInputSource(theSource,false);
     }
   }
 
@@ -365,6 +370,13 @@ int main(int argc, char** argv){
       cout << "DeviceServer remark: got shutdown message.\n";
       inputNode.stop();
       cout << "DeviceServer remark: input node stopped.\n";
+      std::map< std::string, arInputSource* >::iterator killIter;
+      for (killIter = driverNameMap.begin(); killIter != driverNameMap.end(); ++killIter) {
+        if (killIter->second) {
+          delete killIter->second;
+        }
+      }
+      driverNameMap.clear();
       return 0;
     }
     else if (messageType=="restart"){
@@ -377,6 +389,21 @@ int main(int argc, char** argv){
     }
     else if (messageType=="dumpoff"){
       fileSink.stop();
+    } else {
+      std::map< std::string, arInputSource* >::iterator iter;
+      iter = driverNameMap.find( messageType );
+      if (iter == driverNameMap.end()) {
+        cerr << "DeviceServer warning: messageType " << messageType << " not recognized.\n";
+      } else {
+        cout << "DeviceServer remark: handling message " << messageType 
+             << "/" << messageBody << endl;
+        arInputSource* driver = iter->second;
+        if (!driver) {
+          cerr << "DeviceServer error: got a NULL pointer from driverNameMap.\n";
+        } else {
+          driver->handleMessage( messageType, messageBody );
+        }
+      }
     }
   }
 

@@ -221,9 +221,13 @@ void arHeadWandSimulator::mousePosition(int x, int y){
       * ar_extractRotationMatrix(_matrix[0]);
   }
   if (_interfaceState == AR_SIM_ROTATE_VIEW && _mouseButton[1]){
+    arVector3 rotAxis = ar_extractRotationMatrix(_matrix[0])*arVector3(1,0,0);
     _matrix[0] = ar_extractTranslationMatrix(_matrix[0])
-      * ar_rotationMatrix('x',-3*movementFactor*deltaY)
+      * ar_rotationMatrix(rotAxis,-3*movementFactor*deltaY)
       * ar_extractRotationMatrix(_matrix[0]);
+//    _matrix[0] = ar_extractTranslationMatrix(_matrix[0])
+//      * ar_rotationMatrix('x',-3*movementFactor*deltaY)
+//      * ar_extractRotationMatrix(_matrix[0]);
   }
   if (_interfaceState == AR_SIM_WAND_TRANSLATE && _mouseButton[0]){
     _matrix[1][12] += movementFactor*deltaX;

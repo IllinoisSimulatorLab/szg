@@ -88,6 +88,7 @@ ALL =   $(SZG_CURRENT_DLL) \
   EventTest$(EXE) \
   FaroTest$(EXE) \
   PForthTest$(EXE) \
+  arIntersenseDriver$(PLUGIN_SUFFIX) \
   arBirdWinDriver$(PLUGIN_SUFFIX) \
   arConstantHeadFilter$(PLUGIN_SUFFIX) \
   arEVaRTDriver$(PLUGIN_SUFFIX) \
@@ -95,7 +96,6 @@ ALL =   $(SZG_CURRENT_DLL) \
   arFaroCalFilter$(PLUGIN_SUFFIX) \
   arFaroDriver$(PLUGIN_SUFFIX) \
   arIntelGamepadDriver$(PLUGIN_SUFFIX) \
-  arIntersenseDriver$(PLUGIN_SUFFIX) \
   arJoystickDriver$(PLUGIN_SUFFIX) \
   arLogitechDriver$(PLUGIN_SUFFIX) \
   arMotionstarDriver$(PLUGIN_SUFFIX) \

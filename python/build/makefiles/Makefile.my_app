@@ -1,0 +1,76 @@
+# Should define VPATH before Makefile.vars inclusion.
+INTERFACE_DIR=../../src
+VPATH=$(INTERFACE_DIR)
+
+# This project is different enough that we depart from the standard template.
+include $(SZGHOME)/build/make/Makefile.vars
+
+MAIN = PySZG
+
+IFILES = PyGraphics.i PyMasterSlave.i PyMath.i PySZG.i PySceneGraph.i \
+PyTypemaps.i PySoundAPI.i PyObj.i PyPeer.i PyInteraction.i \
+PySZGApp.i PySZGClient.i PyAppLauncher.i PyDataUtilities.i PyInputEvents.i \
+PyEventFilter.i
+
+ifeq ($(strip $(MACHINE)),WIN32)
+LINK_FLAGS_SHARED += /stack:4000000
+endif
+
+SWIG_FLAGS = 
+
+ifeq ($(strip $(SWIG_SZGEXPT)),TRUE)
+IFILES += PyExperiment.i
+include $(SZGEXPT)/build/make/Makefile.szgexpt
+SWIG_FLAGS += -DAR_SWIG_SZGEXPT
+endif
+
+ALL=$(MAIN).py _$(MAIN)$(PLUGIN_SUFFIX)
+
+all: _$(MAIN)$(PLUGIN_SUFFIX)
+	$(CP) $(ALL) $(SZG_BINDIR)
+
+SZG_OPT_LIBS_FULL += $(SZG_PYLIB)
+SZG_INCLUDE += -I$(SZG_PYINCLUDE)
+
+_$(MAIN)$(PLUGIN_SUFFIX): $(MAIN)_wrap$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	rm -f *$(PLUGIN_SUFFIX)
+	$(LINKER) $(PRE_LINK_LINE_USR) $(LINK_FLAGS_PLUGIN) \
+        $(LINK_PREFIX)_$(MAIN)$(PLUGIN_SUFFIX) \
+	$(MAIN)_wrap$(OBJ_SUFFIX) $(POST_LINK_LINE_USR)
+
+$(MAIN)_wrap$(OBJ_SUFFIX): $(MAIN)_wrap.cxx
+	$(COMPILER) $(COMPILE_FLAGS_SHARED) $< $(SZG_INCLUDE)
+
+$(MAIN)_wrap.cxx: $(IFILES)
+	swig -c++ -python -I$(INTERFACE_DIR) $(SWIG_FLAGS) $(MAIN).i 
+
+test:
+	python test.py
+
+# PLEASE NOTE: py-szg does NOT include Makefile.rules, but instead defines
+# create-sdk, bin-install, install-shared, and clean itself. This is
+# simply because the clean target is a little bit different than the
+# standard one. Also note that we remove all PLUGIN_SUFFIX and
+# OBJ_SUFFIX files manually in "clean". This way, we never issue a dangerous
+# "rm -f *", even if the Makefiles have been messed up.
+
+create-sdk: all
+	$(CP) $(ALL) $(INSTALLDIR)/bin
+
+bin-install: all
+	$(CP) $(ALL) $(SZG_BINDIR)
+
+# This particular target doesn't make sense for py-szg, so just include
+# something random!
+install-shared: all
+	$(CP) $(ALL) $(SZG_BINDIR)
+
+clean:
+	rm -f *.dll *.so
+	rm -f *.obj *.o
+	rm -f *.exp
+	rm -f *.lib
+	rm -f *_wrap.cxx
+	rm -f *.py *.pyc
+	rm -f $(SZG_BINDIR)/$(MAIN).pyc
+	rm -f $(patsubst %, $(SZG_BINDIR)/%, $(ALL))
