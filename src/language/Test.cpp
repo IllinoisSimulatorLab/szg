@@ -34,6 +34,14 @@ int main(){
   cout << "PLEASE NOTE: $SZGHOME must be set to the top level of your szg\n"
        << "installation for these tests to succeed.\n\n";
   cout << "Beginning unit test 1: basic arStructuredData.\n";
+  // Check that it is possible to delete a template with an attribute added.
+  // (This was a source of a perplexing error once upon a time when moving
+  // to dll's on Win32). NOTE: A little web searching indicates that this
+  // is essentially a *thread-safety* issue. So better leave the test here.
+  arDataTemplate* t3 = new arDataTemplate("foo");
+  t3->add("bar", AR_INT);
+  delete t3;
+
   int i;
   arTemplateDictionary dict1, dict2;
   arDataTemplate t1("nice test");
@@ -43,13 +51,6 @@ int main(){
   int FLOAT_ID = t1.add("FLOAT ID",AR_FLOAT);
   int CHAR_ID = t2.add("CHAR ID",AR_CHAR);
   int DOUBLE_ID = t2.add("DOUBLE ID",AR_DOUBLE);
-
-  // Check that it is possible to delete a template with an attribute added.
-  // (This was a source of a perplexing error once upon a time when moving
-  // to dll's on Win32)
-  arDataTemplate* t3 = new arDataTemplate("foo");
-  t3->add("bar", AR_INT);
-  delete t3;
 
   dict1.add(&t1);
   dict1.add(&t2);

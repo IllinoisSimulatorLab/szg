@@ -38,7 +38,7 @@ class SZG_CALL arDataTemplate{
    arDataTemplate(const string&, int templateID = -1);
    arDataTemplate(const arDataTemplate&);
    arDataTemplate& operator=( const arDataTemplate& dataTemplate );
-   ~arDataTemplate(){ cout << "AARGH! in destructor " << _templateName << "\n";}
+   ~arDataTemplate(){}
 
    int add(const string&, arDataType);
    void addAttribute(const string& s, arDataType d); // backwards-compatible
