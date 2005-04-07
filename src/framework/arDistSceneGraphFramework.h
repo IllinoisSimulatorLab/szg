@@ -62,6 +62,10 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   arDatabaseNode* getNode(int ID);
   bool lockNode(int ID);
   bool unlockNode(int ID);
+
+  // Could be that we have an external peer which should really be receiving
+  // the peer messages. THIS IS A HACK!
+  void setExternalPeer(arGraphicsPeer* p){ _externalPeer = p; }
   
   bool processEventQueue() {
     if (_eventFilter) {
@@ -106,6 +110,9 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   string _peerTarget;
   // To what remote root node should we attach?
   int _remoteRootID;
+  // It could be that (as in the case of peerBridge) need to pass the
+  // peer messages on to someone external.
+  arGraphicsPeer* _externalPeer;
 
   bool _loadParameters();
   void _getVector3(arVector3& v, const char* param);

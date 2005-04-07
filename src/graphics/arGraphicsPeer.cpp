@@ -69,8 +69,8 @@ void ar_graphicsPeerSerializeFunction(void* info){
                              i->remoteRootID,
                              i->localRootID, 
                              i->sendLevel, 
-                             i->localSendOn,
-			     i->remoteSendOn);
+                             i->remoteSendOn,
+			     i->localSendOn);
   i->peer->_serializeDoneNotify(i->socket);
   // It is our responsibility to delete this.
   delete i;
@@ -136,7 +136,7 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       ar_mutex_unlock(&gp->_socketsLock);
       ar_mutex_unlock(&gp->_alterLock);  
     }
-    else if (action == "dump"){
+    else if (action == "pull_serial"){
       // Since every node creation message results in a message sent back
       // to us, to avoid a deadlock (when there are too many messages
       // in the return queue and none have been processed) we need to go
@@ -144,35 +144,15 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       arThread dumpThread;
       arGraphicsPeerSerializeInfo* serializeInfo 
         = new arGraphicsPeerSerializeInfo();
-      int nodeIDs[3];
-      data->dataOut(l->AR_GRAPHICS_ADMIN_NODE_ID, nodeIDs, AR_INT, 3);
+      int nodeIDs[5];
+      data->dataOut(l->AR_GRAPHICS_ADMIN_NODE_ID, nodeIDs, AR_INT, 5);
       serializeInfo->peer = gp;
       serializeInfo->socket = socket;
       serializeInfo->remoteRootID = nodeIDs[1];
       serializeInfo->localRootID = nodeIDs[0];
       serializeInfo->sendLevel = nodeIDs[2];
-      serializeInfo->localSendOn = false;
-      serializeInfo->remoteSendOn = true;
-      // The parameter is deleted inside the thread.
-      dumpThread.beginThread(ar_graphicsPeerSerializeFunction, serializeInfo);
-    }
-    else if (action == "dump-relay"){
-      // Since every node creation message results in a message sent back
-      // to us, to avoid a deadlock (when there are too many messages
-      // in the return queue and none have been processed) we need to go
-      // ahead and launch a new thread for this!
-      arThread dumpThread;
-      arGraphicsPeerSerializeInfo* serializeInfo 
-        = new arGraphicsPeerSerializeInfo();
-      int nodeIDs[3];
-      data->dataOut(l->AR_GRAPHICS_ADMIN_NODE_ID, nodeIDs, AR_INT, 3);
-      serializeInfo->peer = gp;
-      serializeInfo->socket = socket;
-      serializeInfo->remoteRootID = nodeIDs[1];
-      serializeInfo->localRootID = nodeIDs[0];
-      serializeInfo->sendLevel = nodeIDs[2];
-      serializeInfo->localSendOn = true;
-      serializeInfo->remoteSendOn = true;
+      serializeInfo->localSendOn = nodeIDs[3] ? true : false;
+      serializeInfo->remoteSendOn = nodeIDs[4] ? true : false;
       // The parameter is deleted inside the thread.
       dumpThread.beginThread(ar_graphicsPeerSerializeFunction, serializeInfo);
     }
@@ -1024,27 +1004,27 @@ bool arGraphicsPeer::pullSerial(const string& name,
                                 int remoteRootID,
 				int localRootID,
 				int sendLevel,
-				bool receiveOn){
+				bool remoteSendOn,
+                                bool localSendOn){
   arStructuredData adminData(_gfx.find("graphics admin"));
-  if (receiveOn){
-    adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "dump-relay");
-  }
-  else{
-    adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "dump");
-  }
-  int nodeIDs[3];
+  adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "pull_serial");
+  int nodeIDs[5];
   nodeIDs[0] = remoteRootID;
   nodeIDs[1] = localRootID;
   nodeIDs[2] = sendLevel;
-  adminData.dataIn(_gfx.AR_GRAPHICS_ADMIN_NODE_ID, nodeIDs, AR_INT, 3);
+  nodeIDs[3] = remoteSendOn ? 1 : 0;
+  nodeIDs[4] = localSendOn ? 1 : 0;
+  adminData.dataIn(_gfx.AR_GRAPHICS_ADMIN_NODE_ID, nodeIDs, AR_INT, 5);
 
   int ID = _dataServer->getFirstIDWithLabel(name);
   arSocket* socket = _dataServer->getConnectedSocket(ID);
   if (!socket){
     return false;
   }
-  if (receiveOn){
-    // Important to remember who has requested updates.
+
+  // The idea of having a bulk receiving on/off for each connection has
+  // disappeared. DEPRECATED!
+  /*if (receiveOn){
     ar_mutex_lock(&_socketsLock);
     map<int, arGraphicsPeerConnection*, less<int> >::iterator i
       = _connectionContainer.find(socket->getID());
@@ -1056,7 +1036,8 @@ bool arGraphicsPeer::pullSerial(const string& name,
       i->second->receiving = true;
     }
     ar_mutex_unlock(&_socketsLock);
-  }
+  }*/
+
   // We have to wait for the dump to be completed
   ar_mutex_lock(&_dumpLock);
   _dumped = false;
@@ -1074,6 +1055,7 @@ bool arGraphicsPeer::pushSerial(const string& name,
                                 int remoteRootID,
                                 int localRootID,
 				int sendLevel,
+                                bool remoteSendOn,
                                 bool localSendOn){
   int ID = _dataServer->getFirstIDWithLabel(name);
   arSocket* socket = _dataServer->getConnectedSocket(ID);
@@ -1083,7 +1065,7 @@ bool arGraphicsPeer::pushSerial(const string& name,
   
   // NOTE: this call does not send a serialization-done notification.
   return _serializeAndSend(socket, remoteRootID, localRootID, sendLevel,
-                           localSendOn, true);
+                           remoteSendOn, localSendOn);
 }
 
 /// Closes all connected sockets and resets the database. This is 
@@ -1305,8 +1287,8 @@ bool arGraphicsPeer::_serializeAndSend(arSocket* socket,
                                        int remoteRootID,
                                        int localRootID,
                                        int sendLevel,
-                                       bool localSendOn,
-                                       bool remoteSendOn){
+                                       bool remoteSendOn,
+                                       bool localSendOn){
   // First thing to do is to send the "map" command. This tells the
   // remote peer how to map our stuff AND whether or not we should be 
   // receiving data back from the mapped nodes.
@@ -1442,7 +1424,10 @@ void arGraphicsPeer::_resetConnectionMap(int connectionID, int nodeID,
 	 << "to reset map.\n";
   }
   else{
-    i->second->inMap.clear();
+    // DO NOT RESET THE outFilter HERE! THIS ALLOWS US TO MAP MULTIPLE TIMES
+    // ON A SINGLE CONNECTION!
+    // DO NOT RESET THE inMap HERE! FOR THE SAME REASON
+    //i->second->inMap.clear();
     arDatabaseNode* newRootNode = getNode(nodeID);
     if (!newRootNode){
       cout << "arGraphicsPeer error: connection map root node not present. "
@@ -1453,8 +1438,6 @@ void arGraphicsPeer::_resetConnectionMap(int connectionID, int nodeID,
       i->second->rootMapNode = newRootNode;
     }
     i->second->sendOn = sendOn;
-    // DO NOT RESET THE outFilter HERE! THIS ALLOWS US TO MAP MULTIPLE TIMES
-    // ON A SINGLE CONNECTION!
   }
   ar_mutex_unlock(&_socketsLock);
 }

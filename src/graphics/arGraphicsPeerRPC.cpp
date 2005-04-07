@@ -93,9 +93,9 @@ string ar_graphicsPeerHandlePullSerial(arGraphicsPeer* peer,
                                         const string& messageBody){
   stringstream result;
   arSlashString parameters(messageBody);
-  if (parameters.size() < 5){
+  if (parameters.size() < 6){
     result << "szg-rp error: usage is pull_from_peer_name/remoteRootID/"
-	   << "localRootID/send_level/[0,1]";
+	   << "localRootID/send_level/remote_send_on/local_send_on";
     return result.str();
   }
   int remoteRootID;
@@ -114,9 +114,11 @@ string ar_graphicsPeerHandlePullSerial(arGraphicsPeer* peer,
        << " remoteRootID = " << remoteRootID
        << " localRootID = " << localRootID
        << " sendLevel = " << sendLevel
-       << " sending = " << parameters[4] << "\n";
+       << " remoteSendOn = " << parameters[4] 
+       << " localSendOn = " << parameters[5];
   if (!peer->pullSerial(parameters[0], remoteRootID, localRootID, sendLevel,
-                        parameters[4] == "1" ? true : false)){
+                        parameters[4] == "1" ? true : false,
+                        parameters[5] == "1" ? true : false)){
     result << "szg-rp error: failed to pull from remote peer"
 	   << " (" <<  parameters[0] << ").";
     return result.str();
@@ -130,9 +132,9 @@ string ar_graphicsPeerHandlePushSerial(arGraphicsPeer* peer,
                                        const string& messageBody){
   stringstream result;
   arSlashString parameters(messageBody);
-  if (parameters.size() < 5){
+  if (parameters.size() < 6){
     result << "szg-rp error: usage is push_to_peer_name/remoteRootID/"
-	   << "localRootID/send_level/[0,1]";
+	   << "localRootID/send_level/remote_send_on/local_send_on";
     return result.str();
   }
   int remoteRootID;
@@ -151,10 +153,12 @@ string ar_graphicsPeerHandlePushSerial(arGraphicsPeer* peer,
        << " remoteRootID = " << remoteRootID
        << " localRootID = " << localRootID
        << " sendLevel = " << sendLevel
-       << " sending = " << parameters[4] << "\n";
+       << " remoteSendOn = " << parameters[4]
+       << " localSendOn = " << parameters[5];
   if (!peer->pushSerial(parameters[0], 
                         remoteRootID, localRootID, sendLevel,
-                        parameters[2] == "1" ? true : false)){
+                        parameters[4] == "1" ? true : false,
+                        parameters[5] == "1" ? true : false)){
     result << "szg-rp error: failed to push to remote peer"
 	   << " (" <<  parameters[0] << ", with remote ID = "
 	   << remoteRootID << ").";

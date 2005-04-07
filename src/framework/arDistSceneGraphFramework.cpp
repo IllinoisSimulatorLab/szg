@@ -54,11 +54,13 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
       f->getDatabase()->printStructure();
     }
     
-    if (f->_peerName != "NULL"){
+    if (f->_peerName != "NULL" || f->_externalPeer){
       // Go ahead and handle the messages to the peer.
       // We must strip the initial leading peer name.
       (void) ar_graphicsPeerStripName(messageBody);
-      string responseBody = ar_graphicsPeerHandleMessage(&f->_graphicsPeer,
+      arGraphicsPeer* messagePeer
+        = f->_peerName == "NULL" ? f->_externalPeer : &f->_graphicsPeer;
+      string responseBody = ar_graphicsPeerHandleMessage(messagePeer,
 							 messageType,
 							 messageBody);
       if (!f->_SZGClient.messageResponse(messageID, responseBody)){
@@ -165,7 +167,8 @@ arDistSceneGraphFramework::arDistSceneGraphFramework() :
   _peerName("NULL"),
   _peerMode("source"),
   _peerTarget("NULL"),
-  _remoteRootID(0){
+  _remoteRootID(0),
+  _externalPeer(NULL){
 }
 
 /// Syzygy messages currently consist of two strings, the first being
@@ -453,7 +456,8 @@ bool arDistSceneGraphFramework::start(){
         }
         // In either case, we'll be sending data to the target.
         _graphicsPeer.sending(_peerTarget, true);
-        _graphicsPeer.pushSerial(_peerTarget, _remoteRootID, 0, 1, true);
+	// The following sets up a FEEDBACK mode!
+        _graphicsPeer.pushSerial(_peerTarget, _remoteRootID, 0, 1, true, true);
 	// BUG BUG BUG BUG BUG BUG BUG: Need better definition of "modes"!
 	// Really just one mode so far...
         // In the feedback case, we want a dump and relay.

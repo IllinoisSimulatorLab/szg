@@ -117,9 +117,9 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   bool receiving(const string& name, bool state);
   bool sending(const string& name, bool state);
   bool pullSerial(const string& name, int remoteRootID, int localRootID,
-                  int sendLevel, bool receiveOn);
+                  int sendLevel, bool remoteSendOn, bool localSendOn);
   bool pushSerial(const string& name, int remoteRootID, int localRootID,
-                  int sendLevel, bool sendOn);
+                  int sendLevel, bool remoteSendOn, bool localSendOn);
   bool closeAllAndReset();
   bool broadcastFrameTime(int frameTime);
   bool remoteLockNode(const string& name, int nodeID);
@@ -189,8 +189,8 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
 
   bool _setRemoteLabel(arSocket* sock, const string& name);
   bool _serializeAndSend(arSocket* socket, int remoteRootID, 
-                         int localRootID, int sendLevel, bool localSendOn,
-                         bool remoteSendOn);
+                         int localRootID, int sendLevel, bool remoteSendOn,
+                         bool localSendOn);
   void _serializeDoneNotify(arSocket* socket);
 
   void _activateSocket(arSocket*);
