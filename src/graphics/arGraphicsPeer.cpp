@@ -15,7 +15,6 @@ arGraphicsPeerConnection::arGraphicsPeerConnection(){
   remoteFrameTime = 0;
   // Without doing this, the children on the root node will never 
   // get automatically mapped to a feedback peer!
-  cout << "AARGH! making a connection!\n";
   outFilter.insert(map<int,int,less<int> >::value_type(0,1));
 }
 
@@ -686,12 +685,9 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
       // Still need to check the connection's filter. And augment it
       // for node creation.
       if (dataID == _gfx.AR_MAKE_NODE){
-	cout <<"AARGH! processing make node!\n";
         int parentID = data->getDataInt(_gfx.AR_MAKE_NODE_PARENT_ID);
-	cout << "AARGH! parent ID = " << parentID << "\n";
         outIter = connectionIter->second->outFilter.find(parentID);
 	if (outIter != connectionIter->second->outFilter.end()){
-	  cout << "AARGH! inserting!\n";
           _insertOutFilter(connectionIter->second->outFilter, 
                            data->getDataInt(_gfx.AR_MAKE_NODE_ID),
 		           connectionIter->second->sendOn);
