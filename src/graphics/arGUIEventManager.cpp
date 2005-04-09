@@ -867,7 +867,7 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
       if( state == AR_MOUSE_DOWN ) {
         SetCapture( window->getWindowHandle()._hWnd );
       }
-      else if( !_mouseState._button && ( state == AR_MOUSE_UP ) ) {
+      else if( !(~button & _mouseState._button) && ( state == AR_MOUSE_UP ) ) {
         ReleaseCapture();
       }
 

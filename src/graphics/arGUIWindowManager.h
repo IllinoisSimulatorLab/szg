@@ -14,6 +14,7 @@
 #include "arGUIDefines.h"
 
 class arWMEvent;
+class arGUIRenderCallback;
 class arGUIInfo;
 class arGUIKeyInfo;
 class arGUIMouseInfo;
@@ -137,7 +138,7 @@ class SZG_CALL arGUIWindowManager
      * @see arGUIWindow::_performWindowCreation
      */
     int addWindow( const arGUIWindowConfig& windowConfig,
-                   void (*drawCallback)( arGUIWindowInfo* ) = NULL );
+                   arGUIRenderCallback* drawCallback = NULL );
 
     //@{
     /** @name Register Callbacks
@@ -165,7 +166,7 @@ class SZG_CALL arGUIWindowManager
      *           <li>-1 if the window could not be found.
      *         </ul>
      */
-    int registerDrawCallback( const int windowID, void (*drawCallback)( arGUIWindowInfo* ) );
+    int registerDrawCallback( const int windowID, arGUIRenderCallback* drawCallback );
 
     /**
      * Process any pending window events.

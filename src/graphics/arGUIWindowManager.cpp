@@ -118,7 +118,7 @@ int arGUIWindowManager::startWithoutSwap( void )
   return 0;
 }
 
-int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig, void (*drawCallback)( arGUIWindowInfo* ) )
+int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig, arGUIRenderCallback* drawCallback )
 {
   arGUIWindow* window = new arGUIWindow( _maxWindowID, windowConfig, drawCallback );
 
@@ -141,7 +141,7 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig, void (
   return _maxWindowID++;
 }
 
-int arGUIWindowManager::registerDrawCallback( const int windowID, void (*drawCallback)( arGUIWindowInfo* ) )
+int arGUIWindowManager::registerDrawCallback( const int windowID, arGUIRenderCallback* drawCallback )
 {
   if( _windows.find( windowID ) == _windows.end() ) {
     return -1;

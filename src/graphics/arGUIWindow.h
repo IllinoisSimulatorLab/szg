@@ -94,6 +94,7 @@
 
 class arGUIEventManager;
 class arGUIInfo;
+class arGUIWindowInfo;
 class arWMEvent;
 
 //@{
@@ -107,6 +108,91 @@ typedef std::vector<arWMEvent* > EventVector;
 
 typedef EventVector::iterator EventIterator;
 //@}
+
+/**
+ * An arGUWindow draw callback.
+ *
+ * @note If a programmer wishes to register a draw callback with an
+ *       arGUIWindow that has a signature different than the default they
+ *       should subclass this class and implement the () operater themselves.
+ *
+ * @see arGUIWindow::arGUIWindow
+ * @see arGUIWindow::registerDrawCallback
+ */
+class SZG_CALL arGUIRenderCallback
+{
+  public:
+
+    /**
+     * The arGUIRenderCallback constructer.
+     */
+    arGUIRenderCallback( void )  { }
+
+    /**
+     * The arGUIRenderCallback destructor.
+     */
+    virtual ~arGUIRenderCallback( void )  { }
+
+    /**
+     * Overload the () operator so this class can 'simulate' a function call.
+     *
+     * @warning As this function is pure virtual this class cannot be
+     *          instantiated and must be subclassed before use.
+     *
+     * @param windowInfo default drawcallback argument
+     */
+    virtual void operator()( arGUIWindowInfo* windowInfo ) = 0;
+
+    //@{
+    /**
+     * @name arGUIRenderCallback accessors.
+     *
+     * access arGURenderCallback state.
+     */
+    void enable( bool onoff )  { _enabled = onoff; }
+    bool enabled( void )  { return _enabled; }
+    //@}
+
+  private:
+
+    bool _enabled;                //< Is the draw callback enabled? (unused)
+};
+
+/**
+ * The default arGUIwindow draw callback.
+ *
+ * This draw callback can be used the majority of the time by any programmer
+ * registering a draw callback with arGUIWindow.
+ */
+class SZG_CALL arDefaultGUIRenderCallback : public arGUIRenderCallback
+{
+  public:
+
+    /**
+     * The arDefaultGUIRenderCallback constructor.
+     *
+     * @param drawCallback The user-defined function to use as a draw callback
+     */
+    arDefaultGUIRenderCallback( void (*drawCallback)( arGUIWindowInfo* ) = NULL ) :
+      _drawCallback( drawCallback ) { }
+
+    /**
+     * The arDefaultGUIRenderCallback destructor.
+     */
+    virtual ~arDefaultGUIRenderCallback( void )  { }
+
+    /**
+     * Implemented overloaded () operator.
+     *
+     * Makes the actual call to the user defined draw callback.
+     */
+    virtual void operator()( arGUIWindowInfo* windowInfo );
+
+  private:
+
+    void (*_drawCallback)( arGUIWindowInfo* );        ///< The user-defined drawcallback
+
+};
 
 /**
  * A window configuration object.
@@ -315,7 +401,7 @@ class SZG_CALL arGUIWindow
      *                     requests.
      */
     arGUIWindow( int ID, arGUIWindowConfig windowConfig,
-              void (*drawCallback)( arGUIWindowInfo* ) = NULL );
+                 arGUIRenderCallback* drawCallback = NULL );
 
    /**
      * The arGUIWindow destructor
@@ -339,7 +425,7 @@ class SZG_CALL arGUIWindow
      * @param drawCallback The user-defined function to be called on draw
      *                     requests.
      */
-    void registerDrawCallback( void (*drawCallback)( arGUIWindowInfo* ) );
+    void registerDrawCallback( arGUIRenderCallback* drawCallback = NULL );
 
     /**
      * Create a new window inside a new thread and start event processing.
@@ -727,7 +813,7 @@ class SZG_CALL arGUIWindow
      */
     virtual void _drawHandler( void );
 
-    void (*_drawCallback)( arGUIWindowInfo* );  ///< The user-defined draw callback.
+    arGUIRenderCallback* _drawCallback;         ///< The user-defined draw callback.
 
     int _ID;                                    ///< A unique identifier for this window.
 

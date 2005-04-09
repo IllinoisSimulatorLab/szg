@@ -22,6 +22,14 @@
 // convenience define
 #define USEC 1000000.0
 
+void arDefaultGUIRenderCallback::operator()( arGUIWindowInfo* windowInfo ) {
+  if( !_drawCallback ) {
+    return;
+  }
+
+  _drawCallback( windowInfo );
+}
+
 arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height, int bpp, int hz,
                                       bool decorate, bool topmost,
                                       bool fullscreen, bool stereo,
@@ -156,7 +164,7 @@ int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const 
   return 0;
 }
 
-arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig, void (*drawCallback)( arGUIWindowInfo* ) ) :
+arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig, arGUIRenderCallback* drawCallback ) :
   _drawCallback( drawCallback ),
   _ID( ID ),
   _windowConfig( windowConfig ),
@@ -192,15 +200,24 @@ arGUIWindow::~arGUIWindow( void )
   delete _GUIEventManager;
 
   delete _windowBuffer;
+
+  delete _drawCallback;
 }
 
-void arGUIWindow::registerDrawCallback( void (*drawCallback)( arGUIWindowInfo* ) )
+void arGUIWindow::registerDrawCallback( arGUIRenderCallback* drawCallback )
 {
   if( _drawCallback ) {
     // print warning that previous callback is being overwritten?
+    delete _drawCallback;
   }
 
-  _drawCallback = drawCallback;
+  if( !drawCallback ) {
+    // print warning that there is now no draw callback?
+    _drawCallback = NULL;
+  }
+  else {
+    _drawCallback = drawCallback;
+  }
 }
 
 void arGUIWindow::_drawHandler( void )
@@ -227,7 +244,7 @@ void arGUIWindow::_drawHandler( void )
     arGUIWindowInfo* windowInfo = new arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DRAW );
     windowInfo->_windowID = _ID;
 
-    _drawCallback( windowInfo );
+    (*_drawCallback)( windowInfo );
 
     delete windowInfo;
 

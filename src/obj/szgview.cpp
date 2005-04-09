@@ -12,6 +12,8 @@
 #include "arGraphicsHeader.h"
 #include "arMesh.h"
 
+#include "arGraphicsWindow.h"
+
 #include "arGUIInfo.h"
 #include "arGUIWindowManager.h"
 #include "arGUIWindow.h"
@@ -36,8 +38,44 @@ int sliderCenterX = -50, sliderCenterY = 10;   // slider position in pixels
 
 arObject *theObject = NULL;
 
+// To be able to use arGraphicsWindow::draw in the arGUIWindow as the draw
+// callback
+class arSZGViewRenderCallback : public arGUIRenderCallback
+{
+  public:
+
+    arSZGViewRenderCallback( arGraphicsWindow& gw ) :
+      _graphicsWindow( &gw ) {}
+    virtual ~arSZGViewRenderCallback( void )  { }
+
+    void operator()( arGUIWindowInfo* windowInfo );
+
+  private:
+
+    arGraphicsWindow* _graphicsWindow;
+};
+
+void arSZGViewRenderCallback::operator()( arGUIWindowInfo* windowInfo ) {
+  if( !_graphicsWindow ) {
+    return;
+  }
+
+  _graphicsWindow->draw();
+}
+
+// global just as a convience, not strictly necessar
 arGUIWindowManager* wm = NULL;
+
+// currently the assumption is that there is only one window
 int winID;
+
+// global head for the arVRCamera's
+arHead head;
+
+void parseConfig( const string& config )
+{
+
+}
 
 // Drawing functions
 void showRasterString( float x, float y, char* s )
@@ -524,7 +562,7 @@ int main( int argc, char** argv )
   windowConfig._topmost = false;
   windowConfig._title = "szgview";
 
-  winID = wm->addWindow( windowConfig, drawCB );
+  winID = wm->addWindow( windowConfig, new arDefaultGUIRenderCallback( drawCB ) );
 
   wm->startWithoutSwap();
 
