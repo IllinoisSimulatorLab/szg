@@ -18,8 +18,7 @@ arDatabaseNode::arDatabaseNode():
   _typeCode(-1),
   _typeString("root"),
   _parent(NULL),
-  _transient(false),
-  _invalidUpdateTime(true){
+  _transient(false){
   
   _databaseOwner = NULL;
   _dLang = NULL;

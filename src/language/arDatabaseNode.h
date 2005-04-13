@@ -71,8 +71,6 @@ class SZG_CALL arDatabaseNode{
   // somehow, on certain known properties it has. For instance, the node
   // might just hold "transient data".
   bool       _transient;
-  ar_timeval _lastUpdate;
-  bool       _invalidUpdateTime;
 
   void _dumpGenericNode(arStructuredData*, int);
   void _findNode(arDatabaseNode*& result, const string& name, bool& success,

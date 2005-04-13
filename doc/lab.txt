@@ -4,14 +4,13 @@
 <comment> machines in the R&D lab </comment>
 <assign>
 smoke   SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
-cube6   SZG_EXEC path g:\THE_USER_NAME\bin\win32
 2northg SZG_EXEC path g:\THE_USER_NAME\bin\win32
 wall1   SZG_EXEC path g:\THE_USER_NAME\bin\win32
 wall2   SZG_EXEC path g:\THE_USER_NAME\bin\win32
 wall3   SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
 wall4   SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
-2westh  SZG_EXEC path g:\THE_USER_NAME\bin\win32
-2southh SZG_EXEC path g:\THE_USER_NAME\bin\win32
+spirit  SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
+hank7   SZG_EXEC path g:\THE_USER_NAME\bin\win32
 2toph	SZG_EXEC path g:\THE_USER_NAME\bin\win32
 </assign>
 
@@ -43,13 +42,13 @@ wall SZG_SCREEN2 map wall3/SZG_SCREEN0
 wall SZG_SCREEN2 networks wall
 wall SZG_SCREEN3 map wall4/SZG_SCREEN0
 wall SZG_SCREEN3 networks wall
-wall SZG_SCREEN4 map 2westh/SZG_SCREEN0
+wall SZG_SCREEN4 map spirit/SZG_SCREEN0
 wall SZG_SCREEN4 networks wall
-wall SZG_SCREEN5 map 2southh/SZG_SCREEN0
+wall SZG_SCREEN5 map hank7/SZG_SCREEN0
 wall SZG_SCREEN5 networks wall
 wall SZG_INPUT0 map smoke/wandsimserver
 wall SZG_INPUT0 networks internet
-wall SZG_SOUND map cube6
+wall SZG_SOUND map smoke
 wall SZG_SOUND networks internet
 </assign>
 
@@ -71,13 +70,13 @@ wall_master1 SZG_SCREEN2 map wall3/SZG_SCREEN0
 wall_master1 SZG_SCREEN2 networks wall
 wall_master1 SZG_SCREEN3 map wall4/SZG_SCREEN0
 wall_master1 SZG_SCREEN3 networks wall
-wall_master1 SZG_SCREEN4 map 2westh/SZG_SCREEN0
+wall_master1 SZG_SCREEN4 map spirit/SZG_SCREEN0
 wall_master1 SZG_SCREEN4 networks wall
-wall_master1 SZG_SCREEN5 map 2southh/SZG_SCREEN0
+wall_master1 SZG_SCREEN5 map hank7/SZG_SCREEN0
 wall_master1 SZG_SCREEN5 networks wall
 wall_master1 SZG_INPUT0 map smoke/wandsimserver
 wall_master1 SZG_INPUT0 networks internet
-wall_master1 SZG_SOUND map cube6
+wall_master1 SZG_SOUND map smoke
 wall_master1 SZG_SOUND networks internet
 </assign>
 
@@ -98,13 +97,13 @@ wall_master2 SZG_SCREEN2 map wall3/SZG_SCREEN0
 wall_master2 SZG_SCREEN2 networks wall
 wall_master2 SZG_SCREEN3 map wall4/SZG_SCREEN0
 wall_master2 SZG_SCREEN3 networks wall
-wall_master2 SZG_SCREEN4 map 2westh/SZG_SCREEN0
+wall_master2 SZG_SCREEN4 map spirit/SZG_SCREEN0
 wall_master2 SZG_SCREEN4 networks wall
-wall_master2 SZG_SCREEN5 map 2southh/SZG_SCREEN0
+wall_master2 SZG_SCREEN5 map hank7/SZG_SCREEN0
 wall_master2 SZG_SCREEN5 networks wall
 wall_master2 SZG_INPUT0 map smoke/wandsimserver
 wall_master2 SZG_INPUT0 networks internet
-wall_master2 SZG_SOUND map cube6
+wall_master2 SZG_SOUND map smoke
 wall_master2 SZG_SOUND networks internet
 </assign>
 
@@ -147,10 +146,6 @@ smoke   SZG_SOUND  path         /home/public/Sounds
 smoke   SZG_RENDER texture_path /home/public/Texture
 smoke   SZG_RENDER text_path    /home/public/Texture/Text
 smoke   SZG_PEER   path         /home/public/Peer
-cube6   SZG_DATA   path         g:\Data
-cube6   SZG_SOUND  path         g:\Sounds
-cube6	SZG_RENDER texture_path g:\Texture
-cube6	SZG_RENDER text_path	g:\Texture\Text
 2northg	SZG_DATA   path         g:\Data
 2northg SZG_SOUND  path         g:\Sounds
 2northg SZG_RENDER texture_path g:\Texture
@@ -175,18 +170,20 @@ wall4   SZG_SOUND  path         /home/public/Sounds
 wall4   SZG_RENDER texture_path /home/public/Texture
 wall4   SZG_RENDER text_path    /home/public/Texture/Text
 wall4   SZG_PEER   path         /home/public/Peer
-2westh   SZG_DATA   path         c:\Data;g:\Data
-2westh   SZG_SOUND  path         g:\Sounds
-2westh   SZG_RENDER texture_path g:\Texture
-2westh   SZG_RENDER text_path    g:\Texture\Text
+spirit   SZG_DATA   path         /home/public/Data
+spirit   SZG_SOUND  path         /home/public/Sounds
+spirit   SZG_RENDER texture_path /home/public/Texture
+spirit   SZG_RENDER text_path    /home/public/Texture/Text
+spirit   SZG_PEER   path         /home/public/Peer
+hank7    SZG_DATA   path         c:\Data;g:\Data
+hank7    SZG_SOUND  path         g:\Sounds
+hank7    SZG_RENDER texture_path g:\Texture
+hank7    SZG_RENDER text_path    g:\Texture\Text
+hank7    SZG_PEER   path         g:\Peer
 2toph    SZG_DATA   path         c:\Data;g:\Data
 2toph    SZG_SOUND  path         g:\Sounds
 2toph    SZG_RENDER texture_path g:\Texture
 2toph    SZG_RENDER text_path    g:\Texture\Text
-2southh SZG_DATA   path         c:\Data;g:\Data
-2southh SZG_SOUND  path         g:\Sounds
-2southh SZG_RENDER texture_path g:\Texture
-2southh SZG_RENDER text_path    g:\Texture\Text
 2bottomh SZG_DATA   path         g:\Data
 2bottomh SZG_SOUND  path         g:\Sounds
 2bottomh SZG_RENDER texture_path g:\Texture
@@ -207,10 +204,6 @@ road1   SZG_DATA   path         g:\Data
 road1   SZG_SOUND  path         g:\Sounds
 road1   SZG_RENDER texture_path g:\Texture
 road1   SZG_RENDER text_path    g:\Texture\Text
-spirit  SZG_DATA   path         /home/public/Data
-spirit  SZG_SOUND  path         /home/public/Sounds
-spirit  SZG_RENDER texture_path /home/public/Texture
-spirit  SZG_RENDER text_path    /home/public/Texture/Text
 isl2    SZG_DATA   path         /home/public/Data
 isl2    SZG_SOUND  path         /home/public/Sounds
 isl2    SZG_RENDER texture_path /home/public/Texture
@@ -300,57 +293,46 @@ smoke SZG_SCREEN4 screen_normal 0/0/-1
 smoke SZG_SCREEN4 screen_up 0/1/0
 
 wall1 SZG_SCREEN0 size 0/0
-wall1 SZG_SCREEN0 tile 1/3/0/2
+wall1 SZG_SCREEN0 tile 0/3/1/2
 wall1 SZG_SCREEN0 screen_center 0/5/-5
-wall1 SZG_SCREEN0 screen_dim 10/10
+wall1 SZG_SCREEN0 screen_dim 15/10
 wall1 SZG_SCREEN0 screen_normal 0/0/-1
 wall1 SZG_SCREEN0 screen_up 0/1/0
-wall1 SZG_SCREEN0 view_mode custom
-wall1 SZG_SCREEN0 viewport_list SZG_SCREEN1
-</assign>
 
-<comment>
-This will yield a superimposed viewport in the lower-left corner.
-Viewports are not currently individually cleared, so the background will
-effectively be transparent.
-</comment>
-
-<assign>
-wall1 SZG_SCREEN1 screen_center 0/5/5
-wall1 SZG_SCREEN1 screen_dim 10/10
-wall1 SZG_SCREEN1 screen_normal 0/0/1
-wall1 SZG_SCREEN1 screen_up 0/1/0
-wall1 SZG_SCREEN1 viewport_dim 0/0/.3/.3
-</assign>
-
-<assign>
 wall2 SZG_SCREEN0 size 0/0
 wall2 SZG_SCREEN0 tile 1/3/1/2
 wall2 SZG_SCREEN0 screen_center 0/5/-5
-wall2 SZG_SCREEN0 screen_dim 10/10
+wall2 SZG_SCREEN0 screen_dim 15/10
 wall2 SZG_SCREEN0 screen_normal 0/0/-1
 wall2 SZG_SCREEN0 screen_up 0/1/0
 
 wall3 SZG_SCREEN0 size 0/0
-wall3 SZG_SCREEN0 tile 0/3/0/2
+wall3 SZG_SCREEN0 tile 2/3/1/2
 wall3 SZG_SCREEN0 screen_center 0/5/-5
-wall3 SZG_SCREEN0 screen_dim 10/10
+wall3 SZG_SCREEN0 screen_dim 15/10
 wall3 SZG_SCREEN0 screen_normal 0/0/-1
 wall3 SZG_SCREEN0 screen_up 0/1/0
 
 wall4 SZG_SCREEN0 size 0/0
-wall4 SZG_SCREEN0 tile 0/3/1/2
+wall4 SZG_SCREEN0 tile 0/3/0/2
 wall4 SZG_SCREEN0 screen_center 0/5/-5
-wall4 SZG_SCREEN0 screen_dim 10/10
+wall4 SZG_SCREEN0 screen_dim 15/10
 wall4 SZG_SCREEN0 screen_normal 0/0/-1
 wall4 SZG_SCREEN0 screen_up 0/1/0
 
-2westh SZG_SCREEN0 size 0/0
-2westh SZG_SCREEN0 tile 2/3/0/2
-2westh SZG_SCREEN0 screen_center 0/5/-5
-2westh SZG_SCREEN0 screen_dim 10/10
-2westh SZG_SCREEN0 screen_normal 0/0/-1
-2westh SZG_SCREEN0 screen_up 0/1/0
+spirit SZG_SCREEN0 size 0/0
+spirit SZG_SCREEN0 tile 1/3/0/2
+spirit SZG_SCREEN0 screen_center 0/5/-5
+spirit SZG_SCREEN0 screen_dim 15/10
+spirit SZG_SCREEN0 screen_normal 0/0/-1
+spirit SZG_SCREEN0 screen_up 0/1/0
+
+hank7 SZG_SCREEN0 size 0/0
+hank7 SZG_SCREEN0 tile 2/3/0/2
+hank7 SZG_SCREEN0 screen_center 0/5/-5
+hank7 SZG_SCREEN0 screen_dim 15/10
+hank7 SZG_SCREEN0 screen_normal 0/0/-1
+hank7 SZG_SCREEN0 screen_up 0/1/0
 
 2toph SZG_SCREEN0 size 0/0
 2toph SZG_SCREEN0 tile 0/1/0/1
@@ -358,13 +340,6 @@ wall4 SZG_SCREEN0 screen_up 0/1/0
 2toph SZG_SCREEN0 screen_dim 10/10
 2toph SZG_SCREEN0 screen_normal 0/0/-1
 2toph SZG_SCREEN0 screen_up 0/1/0
-
-2southh SZG_SCREEN0 size 0/0
-2southh SZG_SCREEN0 tile 2/3/1/2
-2southh SZG_SCREEN0 screen_center 0/5/-5
-2southh SZG_SCREEN0 screen_dim 10/10
-2southh SZG_SCREEN0 screen_normal 0/0/-1
-2southh SZG_SCREEN0 screen_up 0/1/0
 
 cube6 SZG_SCREEN0 size 0/0
 cube6 SZG_SCREEN0 tile 0/1/0/1
@@ -410,13 +385,6 @@ road1 SZG_PFORTH program_names filter_passive_tracker
 2easth   SZG_SCREEN0 screen_dim 10/10
 2easth   SZG_SCREEN0 screen_normal 0/0/-1
 2easth   SZG_SCREEN0 screen_up 0/1/0
-
-spirit   SZG_SCREEN0 size 640/480
-spirit   SZG_SCREEN0 tile 0/1/0/1
-spirit   SZG_SCREEN0 screen_center 0/5/-5
-spirit   SZG_SCREEN0 screen_dim 10/10
-spirit   SZG_SCREEN0 screen_normal 0/0/-1
-spirit   SZG_SCREEN0 screen_up 0/1/0
 
 isl2     SZG_SCREEN0 size 640/480
 isl2     SZG_SCREEN0 tile 0/1/0/1

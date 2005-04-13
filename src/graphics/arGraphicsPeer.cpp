@@ -670,16 +670,10 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
       bool updateNodeEvenIfTransient = true;
       if (result && result->_transient){
         currentTime = ar_time();
-        if (result->_invalidUpdateTime
-            || ar_difftime(currentTime,result->_lastUpdate)
-	    > connectionIter->second->remoteFrameTime){
-          result->_invalidUpdateTime = false;
-          result->_lastUpdate = currentTime;
-	}
-        else{
-	  // Filter out this update on this connection.
-	  updateNodeEvenIfTransient = false;
-        }
+        updateNodeEvenIfTransient 
+          = _updateTransientMap(result->getID(),
+                                connectionIter->second->transientMap,
+				connectionIter->second->remoteFrameTime);
       }
       // 
       // Still need to check the connection's filter. And augment it
@@ -1297,7 +1291,8 @@ bool arGraphicsPeer::_serializeAndSend(arSocket* socket,
   if (!_dataServer->sendData(&adminData, socket)){
     return false;
   }
-  ar_mutex_lock(&_alterLock);
+  // EXPERIMENTING WITH DUMPING IN THE BACKGROUND!
+  //ar_mutex_lock(&_alterLock);
   arStructuredData nodeData(_gfx.find("make node"));
   if (!nodeData){
     cerr << "arGraphicsPeer error: failed to create node record.\n";
@@ -1315,15 +1310,16 @@ bool arGraphicsPeer::_serializeAndSend(arSocket* socket,
     cout << "arGraphicsPeer error: failed to get local node or connection.\n";
   }
   else{
+    int dataSent = 0;
     _recSerialize(pNode, nodeData, socket, connectionIter->second->outFilter,
-                  localSendOn, sendLevel, success);
+                  localSendOn, sendLevel, dataSent, success);
     // If relaying has also been requested, go ahead and enable that.
     // THIS FEATURE IS DEPRECATED. IT WILL BE IGNORED SOON ENOUGH IN ALTER!
     if (localSendOn){
       _activateSocket(socket);
     }
   }
-  ar_mutex_unlock(&_alterLock);
+  //ar_mutex_unlock(&_alterLock);
 
   return success;
 }
@@ -1557,14 +1553,19 @@ void arGraphicsPeer::_recSerialize(arDatabaseNode* pNode,
 				   map<int,int,less<int> >& outFilter,
 				   bool localSendOn,
                                    int sendLevel,
+				   int& dataSent,
                                    bool& success){
+  // EXPERIMENTING WITH DUMPING IN THE BACKGROUND!
+  ar_mutex_lock(&_alterLock);
   // This will fail for the root node
   if (fillNodeData(&nodeData, pNode)){
+    dataSent += nodeData.size();
     if (!_dataServer->sendData(&nodeData, socket)){
       success = false;
     }
     if (sendLevel > 0){
       arStructuredData* theData = pNode->dumpData();
+      dataSent += theData->size();
       if (!_dataServer->sendData(theData, socket)){
         success = false;
       }
@@ -1573,11 +1574,19 @@ void arGraphicsPeer::_recSerialize(arDatabaseNode* pNode,
   }
   _insertOutFilter(outFilter, pNode->getID(), localSendOn);
   list<arDatabaseNode*> children = pNode->getChildren();
+  ar_mutex_unlock(&_alterLock);
+  // NOTE: We are CAPPING the serialize rate at about:
+  // 100 x (10000x8) = 8 Mbps here. Hopefully, this allows for
+  // reasonable connect behavior.
+  if (dataSent > 10000){
+    ar_usleep(10000);
+    dataSent = 0;
+  }
   list<arDatabaseNode*>::iterator i;
   for (i=children.begin(); i!=children.end(); i++){
     if (success){
       _recSerialize(*i, nodeData, socket, outFilter, localSendOn,
-                    sendLevel, success);
+                    sendLevel, dataSent, success);
     }
   }
 }
@@ -1651,6 +1660,28 @@ void arGraphicsPeer::_sendDataToBridge(arStructuredData* data){
   else{
     data->dataIn(_routingField[data->getID()], &nodeID, AR_INT, 1);
   }
+}
+
+bool arGraphicsPeer::_updateTransientMap(int nodeID,
+		  map<int, arGraphicsPeerUpdateInfo,less<int> >& transientMap,
+                  int remoteFrameTime){
+  ar_timeval currentTime = ar_time();
+  map<int, arGraphicsPeerUpdateInfo,less<int> >::iterator i 
+    = transientMap.find(nodeID);
+  if (i == transientMap.end()){
+    arGraphicsPeerUpdateInfo temp;
+    transientMap.insert
+      (map<int, arGraphicsPeerUpdateInfo,less<int> >::value_type
+        (nodeID, temp));
+    i = transientMap.find(nodeID);
+  }  
+  if (i->second.invalidUpdateTime
+      || ar_difftime(currentTime,i->second.lastUpdate) > remoteFrameTime){
+    i->second.invalidUpdateTime = false;
+    i->second.lastUpdate = currentTime;
+    return true;
+  }
+  return false;
 }
 
 

@@ -67,6 +67,7 @@ $(SZG_CURRENT_DLL): arPrecompiled$(OBJ_SUFFIX) $(OBJS)
 # try only heavily optimizing the raw-information-handling objects.
 # note that the optimization scheme was as follows:
 #COMPILE_FLAGS += $(OPTIMIZE_FLAG)
+
 # ... and we would not have any explict object compilation rules as below
 
 arDataTemplate$(OBJ_SUFFIX): arDataTemplate.cpp

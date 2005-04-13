@@ -11,6 +11,15 @@
 #include "arGraphicsDatabase.h"
 #include "arQueuedData.h"
 
+class SZG_CALL arGraphicsPeerUpdateInfo{
+ public:
+  arGraphicsPeerUpdateInfo(){ invalidUpdateTime = true; }
+  ~arGraphicsPeerUpdateInfo(){}
+  
+  bool invalidUpdateTime;
+  ar_timeval lastUpdate;
+};
+
 class SZG_CALL arGraphicsPeerConnection{
  public:
   arGraphicsPeerConnection();
@@ -53,6 +62,10 @@ class SZG_CALL arGraphicsPeerConnection{
   // filtered coming in. NOTE: Locks will eventually be implemented
   // this way, I think.
   map<int, int, less<int> > inFilter;
+
+  // Need to hold info on when a node is updated (for filtering messages
+  // to transient nodes).
+  map<int, arGraphicsPeerUpdateInfo, less<int> > transientMap;
 
   string print();
 };
@@ -207,11 +220,15 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
                         int on);
   void _recSerialize(arDatabaseNode* pNode, arStructuredData& nodeData,
                      arSocket* socket, map<int, int, less<int> >& outFilter,
-                     bool localSendOn, int sendLevel, bool& success);
+                     bool localSendOn, int sendLevel, int& dataSent,
+                     bool& success);
   void _recDataOnOff(arDatabaseNode* pNode,
                      int value,
                      map<int, int, less<int> >& filterMap);
   void _sendDataToBridge(arStructuredData*);
+  bool _updateTransientMap(int nodeID,
+		  map<int, arGraphicsPeerUpdateInfo,less<int> >& transientMap,
+		  int remoteFrameTime);
 };
 
 #endif
