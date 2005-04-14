@@ -654,24 +654,27 @@ arMatrix4 ar_frustumMatrix( const float screenDist,
   return result;
 }
 
-/// ar_lookatMatrix is equivalent to gluLookAt(...). Sometimes it is 
-/// desirable to be able to compute this matrix without using the internal
-/// OpenGL machinery.
+/// ar_lookatMatrix is equivalent to gluLookAt(...).
+/// It transforms the frame (a,b,c):
+///   c = unit vector pointing from lookatPosition to viewPosition
+///   b = unit vector along the portion of up orthogonal to c
+///   a = b cross c
+/// to the frame (x,y,z).
+/// NOTE: In OpenGL, the eye is looking in the negative z direction.
 arMatrix4 ar_lookatMatrix( const arVector3& viewPosition,
                            const arVector3& lookatPosition,
                            const arVector3& up ) {
-  // What follows does not appear to make sense (in terms of the
-  // directions of the unit vectors). I think
-  // it's necessary because of OpenGL's wrongheaded (right-handed)
-  // coordinate system, with default view along Z axis.
+  // The unit vector from lookatPosition to viewPosition.
+  // This will be positive z (after the transform).
   const arVector3 Lhat( (viewPosition - lookatPosition).normalize() );
+  // Uhat will be positive y (after the transform).
   const arVector3 Uhat( (up - (up % Lhat)*Lhat).normalize() );
+  // Xhat will be positive x (after the transform).
   const arVector3 Xhat( Uhat * Lhat );
   const arMatrix4 look( Xhat.v[0], Xhat.v[1], Xhat.v[2], 0.,
                         Uhat.v[0], Uhat.v[1], Uhat.v[2], 0.,
                         Lhat.v[0], Lhat.v[1], Lhat.v[2], 0.,
                         0., 0., 0., 1. );
-  //return ar_translationMatrix( -viewPosition ) * look;
   return look * ar_translationMatrix( -viewPosition );
 }
 

@@ -42,7 +42,7 @@ arMatrix4 arPerspectiveCamera::getProjectionMatrix(){
   float n = frustum[4];
   float f = frustum[5];
   
-  // lifted from the OpenGL textbook
+  // Lifted from the OpenGL textbook.
   return arMatrix4( 2*n/(r-l),   0,           (r+l)/(r-l),     0,
                     0,           2*n/(t-b),   (t+b)/(t-b),     0,
                     0,           0,           -(f+n)/(f-n),    -2*f*n/(f-n),
@@ -58,14 +58,11 @@ arMatrix4 arPerspectiveCamera::getModelviewMatrix(){
 void arPerspectiveCamera::loadViewMatrices(){
   glMatrixMode( GL_PROJECTION );
   glLoadIdentity();
-  // AARGH! the projection matrix calculation above is wrong!
-  glFrustum(frustum[0], frustum[1], frustum[2],
-	    frustum[3], frustum[4], frustum[5]);
-  //arMatrix4 temp = getProjectionMatrix();
-  //glMultMatrixf( temp.v );
+  arMatrix4 temp = getProjectionMatrix();
+  glMultMatrixf( temp.v );
 
   glMatrixMode( GL_MODELVIEW );
   glLoadIdentity();
-  arMatrix4 temp = getModelviewMatrix();
+  temp = getModelviewMatrix();
   glMultMatrixf( temp.v );
 }

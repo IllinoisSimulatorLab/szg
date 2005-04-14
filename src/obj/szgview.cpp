@@ -11,6 +11,7 @@
 #include "arGraphicsAPI.h"
 #include "arGraphicsHeader.h"
 #include "arMesh.h"
+#include "arOrthoCamera.h"
 
 #include "arGraphicsWindow.h"
 
@@ -232,16 +233,18 @@ void drawCB( arGUIWindowInfo* windowInfo )
 
   glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
+  arPerspectiveCamera camera;
+  camera.setSides(-0.03 * double( _ratio ), 0.03 * double( _ratio ), 
+                  -0.03, 0.03);
+  camera.setNearFar(0.1,100);
+  camera.setPosition(0,0,-5);
+  camera.setTarget(0,0,0);
+  camera.setUp(0,1,0);
   // set up the viewing transformation
-  glMatrixMode( GL_PROJECTION );
-  glLoadIdentity();
-  glFrustum( -0.03 * double( _ratio ), 0.03 * double( _ratio ), -0.03, 0.03, 0.1, 100.0 );
+  camera.loadViewMatrices();
 
-  glMatrixMode( GL_MODELVIEW );
-  glLoadIdentity();
   glEnable( GL_DEPTH_TEST );
   glEnable( GL_LIGHTING );
-  gluLookAt( 0.0, 0.0, -5.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0 );
   theDatabase->activateLights();
   theDatabase->draw();
 
@@ -489,7 +492,8 @@ int main( int argc, char** argv )
   arSZGClient SZGClient;
   SZGClient.init( argc, argv );
   if( !SZGClient ) {
-    return 1;
+    // It is OK if the arSZGClient fails to init.
+    std::cout << "RUNNING IN STANDALONE MODE.\n";
   }
 
   theDatabase = new arGraphicsDatabase;
@@ -556,6 +560,7 @@ int main( int argc, char** argv )
   windowConfig._y = 50;
   windowConfig._width = ( _width <= 0 ) ? 640 : _width;
   windowConfig._height = ( _height <= 0 ) ? 480 : _height;
+  _ratio = double(windowConfig._width)/windowConfig._height;
   windowConfig._fullscreen = false;
   windowConfig._decorate = true;
   windowConfig._stereo = false;
