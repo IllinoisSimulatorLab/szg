@@ -350,8 +350,8 @@ string ar_graphicsPeerHandleLocalFilterDataBelow(arGraphicsPeer* peer,
 string ar_graphicsPeerHandleGetNodeID(arGraphicsPeer* peer,
 				      const string& messageBody){
   stringstream result;
-  result << "szg-rp success: node ID = "
-	 << peer->getNodeID(messageBody);
+  result << "szg-rp success: node ID = ("
+	 << peer->getNodeID(messageBody) << ")";
   return result.str(); 
 }
 
@@ -365,8 +365,8 @@ string ar_graphicsPeerHandleRemoteNodeID(arGraphicsPeer* peer,
 	   << "node name.";
     return result.str();
   }
-  result << "szg-rp success: node ID = "
-	 << peer->remoteNodeID(bodyList[0], bodyList[1]);
+  result << "szg-rp success: node ID = ("
+	 << peer->remoteNodeID(bodyList[0], bodyList[1]) << ")";
   return result.str();
 }
 
