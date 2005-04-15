@@ -38,6 +38,8 @@ class SZG_CALL arBoundingSphere{
   arBoundingSphere(const arVector3&, float);
   ~arBoundingSphere(){}
 
+  bool intersectViewFrustum(arMatrix4& m);
+
   arVector3 position;
   float     radius;
   bool      visibility;

@@ -48,3 +48,39 @@ arBoundingSphere::arBoundingSphere(const arVector3& pos, float rad) :
   radius(rad)
 {
 }
+
+/// Given a camera viewing matrix, does this bounding sphere intersect?
+bool arBoundingSphere::intersectViewFrustum(arMatrix4& m){
+  arVector3 n1(m[0], m[4], m[8]);
+  arVector3 n2(m[1], m[5], m[9]);
+  arVector3 n3(m[2], m[6], m[10]);
+  arVector3 n4(m[3], m[7], m[11]);
+  arVector3 temp = n1 - n4;
+  // Check the frustum planes in turn. 
+  if (temp%position + m[12] - m[15] > radius*temp.magnitude()){
+    return false;
+  }
+  temp = -n1 - n4;
+  if (temp%position - m[12] - m[15] > radius*temp.magnitude()){
+    return false;
+  }
+  // Next 2.
+  temp = n2 - n4;
+  if (temp%position + m[13] - m[15] > radius*temp.magnitude()){
+    return false;
+  }
+  temp = -n2 - n4;
+  if (temp%position - m[13] - m[15] > radius*temp.magnitude()){
+    return false;
+  }
+  // Next 2.
+  temp = n3 - n4;
+  if (temp%position + m[14] - m[15] > radius*temp.magnitude()){
+    return false;
+  }
+  temp = -n3 - n4;
+  if (temp%position - m[14] - m[15] > radius*temp.magnitude()){
+    return false;
+  }
+  return true;
+}

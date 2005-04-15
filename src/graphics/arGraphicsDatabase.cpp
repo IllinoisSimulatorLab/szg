@@ -372,16 +372,17 @@ arTexture* arGraphicsDatabase::addTexture(int w, int h,
   return t;
 }
 
-void arGraphicsDatabase::draw(){
+void arGraphicsDatabase::draw(arMatrix4* projectionCullMatrix){
   // replaces gl matrix stack... we want to support VERY deep trees
   stack<arMatrix4> transformStack;
   ar_mutex_lock(&_eraseLock);
-  _draw((arGraphicsNode*)&_rootNode, transformStack);
+  _draw((arGraphicsNode*)&_rootNode, transformStack, projectionCullMatrix);
   ar_mutex_unlock(&_eraseLock);
 }
 
 void arGraphicsDatabase::_draw(arGraphicsNode* node, 
-			       stack<arMatrix4>& transformStack){
+			       stack<arMatrix4>& transformStack,
+			       arMatrix4* projectionCullMatrix){
   arMatrix4 tempMatrix;
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
     // Push current onto the matrix stack.
@@ -396,6 +397,18 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
     // We are not the root node or a name node, so it is OK to draw.
     node->draw();
   }
+  // Deal with view frustum culling.
+  if (projectionCullMatrix && node->getTypeCode() 
+      == AR_G_BOUNDING_SPHERE_NODE){
+    glGetFloatv(GL_MODELVIEW_MATRIX, tempMatrix.v);
+    arBoundingSphere b = ((arBoundingSphereNode*)node)->getBoundingSphere();
+    arMatrix4 view = (*projectionCullMatrix)*tempMatrix;
+    if (!b.intersectViewFrustum(view)){
+      // It is safe to return here.
+      return;
+    }
+  }
+  // Deal with visibility nodes.
   if ( !(node->getTypeCode() == AR_G_VISIBILITY_NODE 
          && !((arVisibilityNode*)node)->getVisibility() ) ){
     // We are not a visibility node in an invisible state. It is OK to draw
@@ -403,7 +416,7 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
     list<arDatabaseNode*> children = node->getChildren();
     for (list<arDatabaseNode*>::iterator i = children.begin();
 	 i != children.end(); i++){
-      _draw((arGraphicsNode*)(*i), transformStack);
+      _draw((arGraphicsNode*)(*i), transformStack, projectionCullMatrix);
     }
   }
 

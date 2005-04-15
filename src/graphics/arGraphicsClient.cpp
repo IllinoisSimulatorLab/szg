@@ -36,7 +36,8 @@ void ar_graphicsClientShowRasterString(int x, int y, char* s){
     glutBitmapCharacter(GLUT_BITMAP_9_BY_15, c);
 }
 
-void ar_graphicsClientDraw( arGraphicsClient* c ) {
+// Need to get the camera so we can do view frustum culling.
+void ar_graphicsClientDraw( arGraphicsClient* c, arCamera* camera) {
   // if we are over-riding the default, do it here and then return
   if (c->_drawFunction){
     c->_drawFunction(&c->_graphicsDatabase);
@@ -53,7 +54,8 @@ void ar_graphicsClientDraw( arGraphicsClient* c ) {
     // the additional info the screen object needs to calculate
     // the view transform
     c->_graphicsDatabase.activateLights();
-    c->_graphicsDatabase.draw();
+    arMatrix4 projectionCullMatrix = camera->getProjectionMatrix();
+    c->_graphicsDatabase.draw(&projectionCullMatrix);
   }
   else{
     // we just want a colored background
@@ -191,7 +193,7 @@ void arGraphicsClientRenderCallback::operator()( arGraphicsWindow&,
                                                  arViewport& v) {
   if (!_client)
     return;
-  ar_graphicsClientDraw( _client );
+  ar_graphicsClientDraw( _client, v.getCamera() );
 }
 
 arGraphicsClient::arGraphicsClient() :

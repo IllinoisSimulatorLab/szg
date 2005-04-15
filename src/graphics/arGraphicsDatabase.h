@@ -67,7 +67,7 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
 
   void setVRCameraID(int cameraID);
 
-  void draw();
+  void draw(arMatrix4* projectionCullMatrix = NULL);
   int intersect(const arRay&);
   list<int>* intersectList(const arRay&);
 
@@ -126,7 +126,7 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   // The ID of the node that contains the VR camera information.
   int _viewerNodeID;
 
-  void _draw(arGraphicsNode*, stack<arMatrix4>&);
+  void _draw(arGraphicsNode*, stack<arMatrix4>&, arMatrix4*);
   void _intersect(arGraphicsNode*, float&, int&, stack<arRay>&);
   void _intersectList(arGraphicsNode*, list<int>*, stack<arRay>&);
   virtual arDatabaseNode* _makeNode(const string& type);
