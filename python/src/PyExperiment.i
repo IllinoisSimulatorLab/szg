@@ -236,8 +236,8 @@ class arPythonExperiment: public arExperiment {
     bool addStringFactorSet( const std::string& sname, PyObject* defaultList );
 
     /// Get a factors value
-    long getLongFactor( const std::string& sname );
-    double getDoubleFactor( const std::string& sname );
+    PyObject* getLongFactor( const std::string& sname );
+    PyObject* getDoubleFactor( const std::string& sname );
     std::string getStringFactor( const std::string& sname );
 
     /// Define a data field (before init() only)
@@ -332,24 +332,58 @@ cerr << "arPythonExperiment::addStringFactorSet() string = " << tmp << endl;
   return result;
 }
 
-long arPythonExperiment::getLongFactor( const  std::string& sname ) {
+PyObject* arPythonExperiment::getLongFactor( const std::string& sname ) {
   unsigned int size;
   const long* const tmp = (const long* const)arExperiment::getFactor( sname, AR_LONG, size );
   if (!tmp) {
     PyErr_SetString(PyExc_ValueError,"arPythonExperiment::getLongFactor() failed to get factor");
-    return -1;
+    return NULL;
   }
-  return *tmp;
+  PyObject* result = PyTuple_New((int)size);
+  if (!result) {
+    PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongFactor() PyList_New() failed");
+    return NULL;
+  }
+  int i;
+  for (i = 0; i < size; ++i) {
+    PyObject *s = PyInt_FromLong(tmp[i]);
+    if (!s) {
+      PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongFactor() PyInt_FromLong() failed");
+      return NULL;
+    }
+    if (PyTuple_SetItem( result, i, s ) != 0) {
+      PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongFactor() PyTuple_SetItem() failed");
+      return NULL;
+    }
+  }
+  return result;
 }
 
-double arPythonExperiment::getDoubleFactor( const  std::string& sname ) {
+PyObject* arPythonExperiment::getDoubleFactor( const std::string& sname ) {
   unsigned int size;
   const double* const tmp = (const double* const)arExperiment::getFactor( sname, AR_DOUBLE, size );
   if (!tmp) {
     PyErr_SetString(PyExc_ValueError,"arPythonExperiment::getDoubleFactor() failed to get factor");
-    return -1.;
+    return NULL;
   }
-  return *tmp;
+  PyObject* result = PyTuple_New((int)size);
+  if (!result) {
+    PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getDoubleFactor() PyTuple_New() failed");
+    return NULL;
+  }
+  int i;
+  for (i = 0; i < size; ++i) {
+    PyObject *s = PyFloat_FromDouble(tmp[i]);
+    if (!s) {
+      PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getDoubleFactor() PyFloat_FromDouble() failed");
+      return NULL;
+    }
+    if (PyTuple_SetItem( result, i, s ) != 0) {
+      PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getDoubleFactor() PyTuple_SetItem() failed");
+      return NULL;
+    }
+  }
+  return result;
 }
 
 std::string arPythonExperiment::getStringFactor( const  std::string& sname ) {
@@ -440,9 +474,9 @@ PyObject* arPythonExperiment::getLongData( const std::string& sname ) {
     PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongData() getDataField() failed");
     return NULL;
   }
-  PyObject* result = PyList_New(0);
+  PyObject* result = PyTuple_New((int)size);
   if (!result) {
-    PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongData() PyList_New() failed");
+    PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongData() PyTuple_New() failed");
     return NULL;
   }
   int i;
@@ -452,8 +486,8 @@ PyObject* arPythonExperiment::getLongData( const std::string& sname ) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongData() PyInt_FromLong() failed");
       return NULL;
     }
-    if (PyList_Append( result, s )!= 0) {
-      PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongData() PyList_Append() failed");
+    if (PyTuple_SetItem( result, i, s ) != 0) {
+      PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongData() PyTuple_SetItem() failed");
       return NULL;
     }
   }
@@ -467,9 +501,9 @@ PyObject* arPythonExperiment::getDoubleData( const std::string& sname ) {
     PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getDoubleData() getDataField() failed");
     return NULL;
   }
-  PyObject* result = PyList_New(0);
+  PyObject* result = PyTuple_New((int)size);
   if (!result) {
-    PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getDoubleData() PyList_New() failed");
+    PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getDoubleData() PyTuple_New() failed");
     return NULL;
   }
   int i;
@@ -479,8 +513,8 @@ PyObject* arPythonExperiment::getDoubleData( const std::string& sname ) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getDoubleData() PyFloat_FromDouble() failed");
       return NULL;
     }
-    if (PyList_Append( result, s )!= 0) {
-      PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getDoubleData() PyList_Append() failed");
+    if (PyTuple_SetItem( result, i, s ) != 0) {
+      PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getDoubleData() PyTuple_SetItem() failed");
       return NULL;
     }
   }
@@ -682,8 +716,8 @@ class arPythonExperiment: public arExperiment {
     bool addStringFactorSet( const  string& sname, PyObject* defaultList );
 
     /// Get a factors value
-    long getLongFactor( const string& sname );
-    double getDoubleFactor( const string& sname );
+    PyObject* getLongFactor( const string& sname );
+    PyObject* getDoubleFactor( const string& sname );
     string getStringFactor( const string& sname );
 
     /// Define a data field (before init() only)

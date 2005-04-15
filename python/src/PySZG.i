@@ -1,4 +1,4 @@
-// $Id: PySZG.i,v 1.1 2005/03/18 20:13:01 crowell Exp $
+// $Id: PySZG.i,v 1.2 2005/04/15 18:03:24 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -68,6 +68,7 @@ class PySZGException(Exception):
 
 %include PyTypemaps.i   // Typemaps for conversions between Python types
                         // and C++ types.
+%include PyArrays.i
 %include PyMath.i       // Wrappers for math/arMath.h
 %include PyDataUtilities.i
 %include PySZGClient.i  // Wrappers for phleet/arSZGClient.h

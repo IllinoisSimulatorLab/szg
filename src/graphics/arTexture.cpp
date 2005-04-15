@@ -75,11 +75,33 @@ arTexture& arTexture::operator=( const arTexture& rhs ) {
   _texName = 0; // activate() assigns a new opengl texture object
   _mipmap = rhs._mipmap;
   _textureFunc = rhs._textureFunc;
-  if (_reallocPixels())
+  if (_reallocPixels()) {
     memcpy(_pixels, rhs._pixels, numbytes());
-  else
+    cout << "arTexture remark: copied " << numbytes() << " bytes.\n";
+  } else {
     cout << "arTexture error: out of memory.\n";
+  }
   return *this;
+}
+
+arTexture::arTexture( const arTexture& rhs, unsigned int left, unsigned int bottom,
+                                            unsigned int width, unsigned int height ) :
+  _fDirty( rhs._fDirty ),
+  _alpha( rhs._alpha ),
+  _grayScale( rhs._grayScale ),
+  _repeating( rhs._repeating ),
+  _texName( 0 ),  // activate() assigns a new opengl texture object
+  _mipmap( rhs._mipmap ),
+  _textureFunc( rhs._textureFunc )
+{
+  _pixels = rhs.getSubImage( left, bottom, width, height );
+  if (!_pixels) {
+    _width = 0;
+    _height = 0;
+  } else {
+    _width = width;
+    _height = height;
+  }
 }
 
 bool arTexture::operator!() {
@@ -155,6 +177,35 @@ void arTexture::setPixels(char* pixels, int width, int height){
   // AARGH! not supporting transparency
   _alpha = false;
 }
+
+
+/// Returns a pointer to a buffer containing a sub-image of the original.
+/// Caller owns the new pointer.
+char* arTexture::getSubImage( unsigned int left, unsigned int bottom, 
+    unsigned int width, unsigned int height ) const {
+  int depth = getDepth();
+  char* newPixels = new char[width*height*depth];
+  if (!newPixels) {
+    cerr << "arTexture error: memory allocation failed in getSubImage().\n";
+    return NULL;
+  }
+  char *newPtr = newPixels;
+  for (unsigned int i=bottom; i < bottom+height; ++i) {
+    for (unsigned int j=left; j < left+width; ++j) {
+      if ((i >= _height)||(j >= _width)) { // Not sure if necessary, but what the heck.
+        for (unsigned int k=0; k<depth; ++k) {
+          *newPtr++ = (char)0;
+        }
+      } else {
+        char *oldPtr = _pixels + depth*(j+i*_width);
+        memcpy( newPtr, oldPtr, depth );
+        newPtr += depth;
+      }
+    }
+  }
+  return newPixels;
+}
+
 
 
 void arTexture::mipmap(bool fEnable) {
@@ -390,26 +441,25 @@ bool arTexture::readJPEG(const string& fileName,
   while (_cinfo.output_scanline < _cinfo.output_height) {
     jpeg_read_scanlines(&_cinfo, buffer, 1);
     for (int i=0; i<row_stride; i++){
-      if (_cinfo.output_components  == 3){
-	int x = i/3;
+      if (_cinfo.output_components  == 3) {
+        int x = i/3;
         int component = i%3;
-	// getDepth() returns the internal depth, which might be 4 because
-	// of RGBA
+        // getDepth() returns the internal depth, which might be 4 because
+        // of RGBA
         // IMPORTANT NOTE: output_scanline increments by 1 after the
-	// jpeg_read_scanlines command. Consequently, one needs to subtract
-	// one below (but this is counterbalanced by another +1 due to the
-	// line image flip).
-	// ANOTHER IMPORTANT NOTE: OpenGL textures have as their first
-	// line the bottom of the image... but jpeg's have as their first
-	// line the top of the image
+        // jpeg_read_scanlines command. Consequently, one needs to subtract
+        // one below (but this is counterbalanced by another +1 due to the
+        // line image flip).
+        // ANOTHER IMPORTANT NOTE: OpenGL textures have as their first
+        // line the bottom of the image... but jpeg's have as their first
+        // line the top of the image
         _pixels[(_height-_cinfo.output_scanline)*_width*getDepth() 
                 + x*getDepth() + component] = buffer[0][i];
-      }
-      else{
+      } else {
         // 1 component
-	// NOTE: there might be a better way to do this using OpenGL
-	// grayscale textures, which do exist. For now, just going ahead
-	// and expanding the grayscale jpeg into an RGB one.
+        // NOTE: there might be a better way to do this using OpenGL
+        // grayscale textures, which do exist. For now, just going ahead
+        // and expanding the grayscale jpeg into an RGB one.
         _pixels[(_height-_cinfo.output_scanline)*_width*getDepth() 
                 + i*getDepth()] = buffer[0][i];
         _pixels[(_height-_cinfo.output_scanline)*_width*getDepth() 

@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.3 2005/03/31 19:44:39 crowell Exp $
+// $Id: PyMasterSlave.i,v 1.4 2005/04/15 18:03:24 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -571,19 +571,19 @@ void set##cbtype##Callback(PyObject *PyFunc) {\
 %}
 };
 
-void arswig_defaultWindowInit();
-void arswig_defaultReshape( PyObject* widthObject, PyObject* heightObject );
+void ar_defaultWindowInitCallback();
+void ar_defaultReshapeCallback( PyObject* widthObject, PyObject* heightObject );
 
 %{
-void arswig_defaultWindowInit() {
+void ar_defaultWindowInitCallback() {
   glEnable(GL_DEPTH_TEST);
   glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void arswig_defaultReshape( PyObject* widthObject, PyObject* heightObject ) {
+void ar_defaultReshapeCallback( PyObject* widthObject, PyObject* heightObject ) {
   if ((!PyInt_Check(widthObject))||(!PyInt_Check(heightObject))) {
-    PyErr_SetString(PyExc_TypeError,"arswig_defaultReshape error: glViewport params must be ints");
+    PyErr_SetString(PyExc_TypeError,"ar_defaultReshapeCallback error: glViewport params must be ints");
   }
   GLsizei width = (GLsizei)PyInt_AsLong( widthObject );
   GLsizei height = (GLsizei)PyInt_AsLong( heightObject );
@@ -638,11 +638,11 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
   def windowInitCallback( self, framework ):
     self.onWindowInit()
   def onWindowInit( self ):
-    arswig_defaultWindowInit()
+    ar_defaultWindowInitCallback()
   def reshapeCallback( self, framework, width, height ):
     self.onReshape( width, height )
   def onReshape( self, width, height ):
-    arswig_defaultReshape( width, height )
+    ar_defaultReshapeCallback( width, height )
   def overlayCallback( self, framework ):
     self.onOverlay()
   def onOverlay( self ):

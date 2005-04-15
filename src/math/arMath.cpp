@@ -368,9 +368,19 @@ arMatrix4 ar_extractScaleMatrix(const arMatrix4& original){
 /// Returns the nonnegative angle, in radians, from first to second
 /// (counterclockwise) around the vector first*second (cross product).
 float ar_angleBetween(const arVector3& first, const arVector3& second){
-  if (++first <=0. || ++second <= 0.)
+  if (first.magnitude() <=0. || second.magnitude() <= 0.)
     return 0.;
-  return acos( (first/++first) % (second/++second) );
+  // In some cases the result of the dot
+  // product (presumably because of rounding error) was going
+  // outside [-1,1] (at least on Windows, I didn't check
+  // Linux), and acos() was of course returning nan.
+  double dotProd = (first/first.magnitude()).dot(second/second.magnitude());
+  if (dotProd > 1.) {
+    dotProd = 1.;
+  } else if (dotProd < -1.) {
+    dotProd = -1.;
+  }
+  return (float)acos(dotProd);
 }
 
 /// Returns Euler angles calculated from fixed rotation axes.

@@ -166,6 +166,23 @@ bool MatStore::run( arPForth* pf ) {
   return true;
 }
 
+class VecStore : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool VecStore::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long address = (long)pf->stackPop();
+  pf->testFailAddress( address, 3 );
+  arVector3 temp;
+  float* ptr = temp.v+2;
+  for (int i=0; i<3; i++)
+    *ptr-- = pf->stackPop();
+  pf->putDataArray( address, temp.v, 3 );
+  return true;
+}
+
 class MatStoreTranspose : public arPForthAction {
   public:
     virtual bool run( arPForth* pf );
@@ -197,6 +214,21 @@ bool MatCopy::run( arPForth* pf ) {
   return true;
 }
 
+class VecCopy : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool VecCopy::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long address2 = (long)pf->stackPop();
+  long address1 = (long)pf->stackPop();
+  arVector3 temp;
+  pf->getDataArray( address1, temp.v, 3 );
+  pf->putDataArray( address2, temp.v, 3 );
+  return true;
+}
+
 class MatMultiply : public arPForthAction {
   public:
     virtual bool run( arPForth* pf );
@@ -209,6 +241,24 @@ bool MatMultiply::run( arPForth* pf ) {
   long address1 = (long)pf->stackPop();
   arMatrix4 result( pf->getDataMatrix( address1 )*pf->getDataMatrix( address2 ) );
   pf->putDataMatrix( address3, result );
+  return true;
+}
+
+class MatVecMultiply : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool MatVecMultiply::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long address3 = (long)pf->stackPop();
+  long address2 = (long)pf->stackPop();
+  long address1 = (long)pf->stackPop();
+  arMatrix4 M = pf->getDataMatrix( address1 );
+  arVector3 V;
+  pf->getDataArray( address2, V.v, 3 );
+  arVector3 result( M*V );
+  pf->putDataArray( address3, result.v, 3 );
   return true;
 }
 
@@ -257,6 +307,59 @@ bool Subtract::run( arPForth* pf ) {
   float num2 = pf->stackPop();
   float num1 = pf->stackPop();
   pf->stackPush( num1-num2 );
+  return true;
+}
+
+class AddVectors : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool AddVectors::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long address3 = (long)pf->stackPop();
+  long address2 = (long)pf->stackPop();
+  long address1 = (long)pf->stackPop();
+  arVector3 V1, V2;
+  pf->getDataArray( address1, V1.v, 3 );
+  pf->getDataArray( address2, V2.v, 3 );
+  arVector3 V3( V1+V2 );
+  pf->putDataArray( address3, V3.v, 3 );
+  return true;
+}
+
+class SubVectors : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool SubVectors::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long address3 = (long)pf->stackPop();
+  long address2 = (long)pf->stackPop();
+  long address1 = (long)pf->stackPop();
+  arVector3 V1, V2;
+  pf->getDataArray( address1, V1.v, 3 );
+  pf->getDataArray( address2, V2.v, 3 );
+  arVector3 V3( V1-V2 );
+  pf->putDataArray( address3, V3.v, 3 );
+  return true;
+}
+
+class VecScalarMultiply : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool VecScalarMultiply::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long address2 = (long)pf->stackPop();
+  long address1 = (long)pf->stackPop();
+  float scaleFactor = pf->stackPop();
+  arVector3 V1;
+  pf->getDataArray( address1, V1.v, 3 );
+  arVector3 V2( scaleFactor*V1 );
+  pf->putDataArray( address2, V2.v, 3 );
   return true;
 }
 
@@ -373,6 +476,20 @@ bool TranslationMatrix::run( arPForth* pf ) {
   return true;
 }
   
+class TranslationMatrixFromVector : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool TranslationMatrixFromVector::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long address = (long)pf->stackPop();
+  arVector3 V;
+  pf->getDataArray( address, V.v, 3 );
+  pf->putDataMatrix( address, ar_translationMatrix( V ) );
+  return true;
+}
+  
 class RotationMatrix : public arPForthAction {
   public:
     virtual bool run( arPForth* pf );
@@ -400,6 +517,20 @@ bool ExtractTranslationMatrix::run( arPForth* pf ) {
   long inAddress = (long)pf->stackPop();
   arMatrix4 result( ar_extractTranslationMatrix( pf->getDataMatrix( inAddress ) ) );
   pf->putDataMatrix( outAddress, result );
+  return true;
+}
+  
+class ExtractTranslationVector : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool ExtractTranslationVector::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long outAddress = (long)pf->stackPop();
+  long inAddress = (long)pf->stackPop();
+  arVector3 result( ar_extractTranslation( pf->getDataMatrix( inAddress ) ) );
+  pf->putDataArray( outAddress, result.v, 3 );
   return true;
 }
   
@@ -604,6 +735,12 @@ bool ar_PForthAddStandardVocabulary( arPForth* pf ) {
   pf->addCompiler( compiler );
   if (!pf->addDictionaryEntry( arPForthDictionaryEntry( "matrix", compiler ) ))
     return false;
+  compiler = new VariableCompiler(3);
+  if (compiler==0)
+    return false;
+  pf->addCompiler( compiler );
+  if (!pf->addDictionaryEntry( arPForthDictionaryEntry( "vector", compiler ) ))
+    return false;
   compiler = new ArrayCompiler();
   if (compiler==0)
     return false;
@@ -686,6 +823,20 @@ bool ar_PForthAddStandardVocabulary( arPForth* pf ) {
     return false;
   if (!pf->addSimpleActionWord( "not", new Not() ))
     return false;
+  if (!pf->addSimpleActionWord( "vectorStore", new VecStore() ))
+    return false; 
+  if (!pf->addSimpleActionWord( "vectorCopy", new VecCopy() ))
+    return false; 
+  if (!pf->addSimpleActionWord( "vectorAdd", new AddVectors() ))
+    return false; 
+  if (!pf->addSimpleActionWord( "vectorSubtract", new SubVectors() ))
+    return false; 
+  if (!pf->addSimpleActionWord( "vectorScale", new VecScalarMultiply() ))
+    return false; 
+  if (!pf->addSimpleActionWord( "translationMatrixV", new TranslationMatrixFromVector() ))
+    return false; 
+  if (!pf->addSimpleActionWord( "extractTranslation", new ExtractTranslationVector() ))
+    return false; 
   if (!pf->addSimpleActionWord( "identityMatrix", new IdentityMatrix() ))
     return false; 
   if (!pf->addSimpleActionWord( "matrixStore", new MatStore() ))

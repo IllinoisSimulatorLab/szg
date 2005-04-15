@@ -1,4 +1,4 @@
-// $Id: PyGraphics.i,v 1.1 2005/03/18 20:13:01 crowell Exp $
+// $Id: PyGraphics.i,v 1.2 2005/04/15 18:03:24 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -382,3 +382,73 @@ class arTexture {
   unsigned int glName() const; ///< OpenGL's name for texture
 };
 
+%{
+#include "arLargeImage.h"
+%}
+
+class arLargeImage {
+public:
+  arLargeImage( unsigned int tileWidth=256, unsigned int tileHeight=0 );
+  arLargeImage( const arTexture& x, unsigned int tileWidth=256, unsigned int tileHeight=0 );
+  arLargeImage( const arLargeImage& x );
+  arLargeImage& operator=( const arLargeImage& x );
+  virtual ~arLargeImage();
+
+  bool setTileSize( unsigned int tileWidth, unsigned int tileHeight=0 );
+  void setImage( const arTexture& image );
+  unsigned int getWidth() const { return originalImage.getWidth(); }
+  unsigned int getHeight() const { return originalImage.getHeight(); }
+  unsigned int numTilesWide() const { return _numTilesWide; }
+  unsigned int numTilesHigh() const { return _numTilesHigh; }
+  virtual void makeTiles();
+  arTexture* getTile( unsigned int colNum, unsigned int rowNum );
+  virtual void draw();
+
+  arTexture originalImage;
+};
+
+%{
+
+// checking to see if the broken-ness of vertex arrays is a pyopengl
+// bug. May not be, as these dont work either; I get a crash in
+// ar_drawVertexArrays().
+
+#include "arGraphicsHeader.h"
+
+void ar_vertexPointer( double* vertPtr ) {
+  glVertexPointer( 3, GL_DOUBLE, 0, (const GLvoid*)vertPtr );
+}
+
+void ar_texCoordPointer( double* texPtr ) {
+  glVertexPointer( 2, GL_DOUBLE, 0, (const GLvoid*)texPtr );
+}
+
+void ar_enableVertexArrays() {
+  glEnableClientState( GL_VERTEX_ARRAY );
+}
+
+void ar_enableTexCoordArrays() {
+  glEnableClientState( GL_TEXTURE_COORD_ARRAY );
+}
+
+void ar_disableVertexArrays() {
+  glDisableClientState( GL_VERTEX_ARRAY );
+}
+
+void ar_disableTexCoordArrays() {
+  glDisableClientState( GL_TEXTURE_COORD_ARRAY );
+}
+
+void ar_drawVertexArrays( int mode, int numVertices ) {
+  glDrawArrays( mode, 0, numVertices );
+}
+
+%}
+
+void ar_vertexPointer( double* vertPtr );
+void ar_texCoordPointer( double* texPtr );
+void ar_enableVertexArrays();
+void ar_enableTexCoordArrays();
+void ar_disableVertexArrays();
+void ar_disableTexCoordArrays();
+void ar_drawVertexArrays( int mode, int numVertices );

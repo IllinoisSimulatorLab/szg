@@ -22,6 +22,8 @@ class SZG_CALL arTexture {
   virtual ~arTexture();
   arTexture( const arTexture& rhs );
   arTexture& operator=( const arTexture& rhs );
+  arTexture( const arTexture& rhs, unsigned int left, unsigned int bottom, 
+                                   unsigned int width, unsigned int height );
   bool operator!();
   void activate();
   void reactivate();
@@ -34,6 +36,8 @@ class SZG_CALL arTexture {
     { return _width * _height * getDepth(); } ///< size of _pixels
   const char* getPixels() const { return _pixels; }
   void setPixels(char* pixels, int width, int height);
+  char* getSubImage( unsigned int left, unsigned int bottom,
+                     unsigned int width, unsigned int height ) const;
   void setTextureFunc( int texfunc ) { _textureFunc = texfunc; }
   void mipmap(bool fEnable);
   void repeating(bool fEnable);

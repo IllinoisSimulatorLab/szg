@@ -9,6 +9,7 @@ include $(SZGHOME)/build/make/Makefile.vars
 # DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
 # with this sometimes.
 OBJS = \
+  arLargeImage$(OBJ_SUFFIX) \
   arHead$(OBJ_SUFFIX) \
   arGraphicsAPI$(OBJ_SUFFIX) \
   arGraphicsScreen$(OBJ_SUFFIX) \
