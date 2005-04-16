@@ -540,6 +540,31 @@ bool arDatabase::writeDatabaseXML(const string& fileName,
   return writeRootedXML(&_rootNode, fileName, path); 
 }
 
+/// Writes a subtree of the database to a file, in binary format. DOES
+/// NOT INCLUDE THE ROOT NODE!
+bool arDatabase::writeRooted(arDatabaseNode* parent,
+                             const string& fileName,
+                             const string& path){
+  FILE* destFile = ar_fileOpen(fileName, path, "wb");
+  if (!destFile){
+    cerr << "arDatabase warning: failed to write file \""
+         << fileName << "\".\n";
+    return false;
+  }
+  size_t bufferSize = 1000;
+  ARchar* buffer = new ARchar[bufferSize];
+  arStructuredData nodeData(_lang->find("make node"));
+  list<arDatabaseNode*> l = parent->getChildren();
+  for (list<arDatabaseNode*>::iterator i = l.begin(); i != l.end(); i++){
+    _writeDatabase(*i, nodeData, buffer, bufferSize, destFile); 
+  }
+  delete [] buffer;
+  fclose(destFile);
+  return true;
+}
+
+/// Writes a subtree of the database to a file, in XML format. DOES NOT
+/// INCLUDE THE ROOT NODE!
 bool arDatabase::writeRootedXML(arDatabaseNode* parent,
                                 const string& fileName,
                                 const string& path){
@@ -550,7 +575,10 @@ bool arDatabase::writeRootedXML(arDatabaseNode* parent,
     return false;
   }
   arStructuredData nodeData(_lang->find("make node"));
-  _writeDatabaseXML(parent, nodeData, destFile);
+  list<arDatabaseNode*> l = parent->getChildren();
+  for (list<arDatabaseNode*>::iterator i = l.begin(); i != l.end(); i++){
+    _writeDatabaseXML(*i, nodeData, destFile);
+  }
   fclose(destFile);
   return true;
 }

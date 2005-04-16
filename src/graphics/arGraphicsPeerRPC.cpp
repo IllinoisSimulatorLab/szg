@@ -414,6 +414,42 @@ string ar_graphicsPeerHandleWriteDatabase(arGraphicsPeer* peer,
 
 // Two messages!
 // Format = remote_node_ID/file_name
+string ar_graphicsPeerHandleWriteRooted(arGraphicsPeer* peer,
+					const string& messageBody,
+					bool useXML){
+  stringstream result;
+  arSlashString parameters(messageBody);
+  if (parameters.length() < 2){
+    result << "szg-rp error: format must be remote_node_ID/file_name.";
+    return result.str();
+  }
+  bool state = false;
+  stringstream value;
+  value << parameters[0];
+  int ID;
+  value >> ID;
+  // Is there a node with this ID?
+  arDatabaseNode* node = peer->getNode(ID);
+  if (!node){
+    result << "szg-rp error: no node with ID=" << ID << ".";
+    return result.str();
+  }
+  if (useXML){
+    state = peer->writeRootedXML(node, parameters[1]);
+  }
+  else{
+    state = peer->writeRooted(node, parameters[1]);
+  }
+  if (!state){
+    result << "szg-rp error: failed to save specified database.";
+    return result.str();
+  }
+  result << "szg-rp success: database saved.";
+  return result.str();
+}
+
+// Two messages!
+// Format = remote_node_ID/file_name
 string ar_graphicsPeerHandleAttach(arGraphicsPeer* peer, 
                                    const string& messageBody, 
                                    bool useXML){
@@ -609,6 +645,16 @@ string ar_graphicsPeerHandleMessage(arGraphicsPeer* peer,
     responseBody = ar_graphicsPeerHandleWriteDatabase(peer, 
                                                       messageBody, 
                                                       true);
+  }
+  else if (messageType == "write_rooted"){
+    responseBody = ar_graphicsPeerHandleWriteRooted(peer,
+						    messageBody,
+						    false);
+  }
+  else if (messageType == "write_rooted_xml"){
+    responseBody = ar_graphicsPeerHandleWriteRooted(peer,
+						    messageBody,
+						    true);
   }
   else if (messageType == "attach"){
     responseBody = ar_graphicsPeerHandleAttach(peer, messageBody, false);

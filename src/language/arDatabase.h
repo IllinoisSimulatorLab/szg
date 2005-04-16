@@ -74,6 +74,9 @@ class SZG_CALL arDatabase{
   virtual bool writeDatabase(const string& fileName, const string& path="");
   virtual bool writeDatabaseXML(const string& fileName, 
                                 const string& path="");
+  virtual bool writeRooted(arDatabaseNode* parent,
+			   const string& fileName,
+			   const string& path="");
   virtual bool writeRootedXML(arDatabaseNode* parent,
                               const string& fileName,
                               const string& path="");

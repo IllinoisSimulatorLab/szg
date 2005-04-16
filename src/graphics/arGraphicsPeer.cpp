@@ -799,9 +799,20 @@ bool arGraphicsPeer::writeDatabaseXML(const string& fileName,
   return arGraphicsDatabase::writeDatabaseXML(fileName, path);
 }
 
+bool arGraphicsPeer::writeRooted(arDatabaseNode* parent,
+                                 const string& fileName, 
+                                 const string& path){
+  if (_readWritePath != "" && path == ""){
+    return arGraphicsDatabase::writeRooted(parent,
+                                           fileName, 
+                                           _readWritePath);
+  }  
+  return arGraphicsDatabase::writeRooted(parent, fileName, path);
+}
+
 bool arGraphicsPeer::writeRootedXML(arDatabaseNode* parent,
-                                      const string& fileName, 
-                                      const string& path){
+                                    const string& fileName, 
+                                    const string& path){
   if (_readWritePath != "" && path == ""){
     return arGraphicsDatabase::writeRootedXML(parent,
                                               fileName, 

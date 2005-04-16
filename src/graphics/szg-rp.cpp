@@ -381,6 +381,7 @@ void display(){
   glLoadIdentity();
   gluLookAt(0,5,20, 0,5,0, 0,1,0);*/
   globalCamera.loadViewMatrices();
+  arMatrix4 projectionCullMatrix = globalCamera.getProjectionMatrix();
   PeerContainer::iterator i;
   ar_mutex_lock(&peerLock);
   // first pass to draw the peers
@@ -395,7 +396,7 @@ void display(){
     glPushMatrix();
     glMultMatrixf(i->second.transform.v);
     i->second.peer->activateLights();
-    i->second.peer->draw();
+    i->second.peer->draw(&projectionCullMatrix);
     glPopMatrix();
   }
   // second pass to draw the labels
