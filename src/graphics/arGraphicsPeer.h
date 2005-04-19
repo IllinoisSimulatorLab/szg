@@ -11,6 +11,21 @@
 #include "arGraphicsDatabase.h"
 #include "arQueuedData.h"
 
+// Yes, this is a HACK!
+class SZG_CALL arGraphicsPeerCullObject{
+ public:
+  arGraphicsPeerCullObject(){}
+  ~arGraphicsPeerCullObject(){}
+
+  void clear();
+  void frame();
+  void insert(int ID, int state);
+
+  map<int, int, less<int> > cullOnOff;
+  list<int> cullChangeOn;
+  list<int> cullChangeOff;
+};
+
 class SZG_CALL arGraphicsPeerUpdateInfo{
  public:
   arGraphicsPeerUpdateInfo(){ invalidUpdateTime = true; }
@@ -148,6 +163,7 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   //bool localUnlockNodeBelow(int nodeID);
   bool remoteFilterDataBelow(const string& peer,
                              int remoteNodeID, int on);
+  bool mappedFilterDataBelow(int localNodeID, int on);
   bool localFilterDataBelow(const string& peer,
                             int localNodeID, int on);
   int  remoteNodeID(const string& peer, const string& nodeName);
@@ -156,6 +172,9 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   //list<arGraphicsPeerConnection> getConnections();
   string printConnections();
   string printPeer();
+
+  // a hack to enable us to do motion culling independently of drawing.
+  void motionCull(arGraphicsPeerCullObject*, arCamera*);
 
  protected:
   string          _name;
@@ -203,6 +222,8 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   map<int, int, less<int> > _bridgeInMap;
   arDatabaseNode*           _bridgeRootMapNode;
 
+  void _motionCull(arGraphicsNode*, stack<arMatrix4>&, 
+                   arGraphicsPeerCullObject*, arMatrix4&);
   bool _setRemoteLabel(arSocket* sock, const string& name);
   bool _serializeAndSend(arSocket* socket, int remoteRootID, 
                          int localRootID, int sendLevel, bool remoteSendOn,

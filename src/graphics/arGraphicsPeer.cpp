@@ -7,6 +7,34 @@
 #include "arPrecompiled.h"
 #include "arGraphicsPeer.h"
 
+void arGraphicsPeerCullObject::clear(){ 
+  cullOnOff.clear(); 
+}
+
+void arGraphicsPeerCullObject::frame(){ 
+  cullChangeOn.clear(); 
+  cullChangeOff.clear(); 
+}
+
+void arGraphicsPeerCullObject::insert(int ID, int state){
+  map<int,int,less<int> >::iterator i = cullOnOff.find(ID);
+  if (i == cullOnOff.end()){
+    cullOnOff.insert(map<int,int,less<int> >::value_type(ID, state));
+  }
+  else{
+    if (i->second != state){
+      i->second = state;
+      if (state){
+	// Now on.
+	cullChangeOn.push_back(ID);
+      }
+      else{
+	cullChangeOff.push_back(ID);
+      }
+    }
+  }
+}
+
 arGraphicsPeerConnection::arGraphicsPeerConnection(){ 
   remoteName = "NULL"; 
   connectionID = -1;
@@ -231,6 +259,29 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       data->dataOut(l->AR_GRAPHICS_ADMIN_NODE_ID, dataFilterInfo, AR_INT, 2);
       gp->_filterDataBelow(dataFilterInfo[0], socket, dataFilterInfo[1]);
     }
+    else if (action == "mapped_filter_data"){
+      int mappedNodeID = -1;
+      int dataFilterInfo[2];
+      data->dataOut(l->AR_GRAPHICS_ADMIN_NODE_ID, dataFilterInfo, AR_INT, 2);
+      ar_mutex_lock(&gp->_socketsLock);
+      map<int, arGraphicsPeerConnection*, less<int> >::iterator i
+        = gp->_connectionContainer.find(socket->getID());
+      if (i == gp->_connectionContainer.end()){
+        cout << "arGraphicsPeer internal error: could not find connection "
+	     << "object.\n";
+      }
+      else{
+        map<int, int, less<int> >::iterator mapIter 
+          = i->second->inMap.find(dataFilterInfo[0]);
+        if (mapIter != i->second->inMap.end()){
+          mappedNodeID = mapIter->second;
+	}
+      }
+      ar_mutex_unlock(&gp->_socketsLock);
+      if (mappedNodeID != -1){
+        gp->_filterDataBelow(mappedNodeID, socket, dataFilterInfo[1]);
+      }
+    }
     else if (action =="set-name"){
       string socketLabel = data->getDataString(l->AR_GRAPHICS_ADMIN_NAME);
       gp->_dataServer->setSocketLabel(socket, socketLabel);
@@ -406,7 +457,15 @@ arGraphicsPeer::arGraphicsPeer(){
   _client = NULL;
   _incomingQueue = new arQueuedData();
   _dataServer = new arDataServer(1000);
-  _dataServer->smallPacketOptimize(true);
+  // WEIRD... THIS SEEMS TO MAKE THINGS WORK BETTER! AT LEAST WITH LEGION!
+  // BUT... THIS IS DIFFERENT THAN THE BEHAVIOR ON WINDOWS, WHERE SETTING
+  // THIS FLAG = TRUE IS NECESSARY FOR THE NORMAL OPERATION OF szgrender
+  // and DIST SCENE GRAPH STUFF! 
+  // Also, it only seems to be a problem when windows sends to windows...
+  //
+  // Originally, this was TRUE... and this created a problem (many jerky
+  // instances of non-sending) on windows->windows...
+  _dataServer->smallPacketOptimize(false);
 
   _requestedNodeID = -1;
 
@@ -1208,6 +1267,21 @@ bool arGraphicsPeer::remoteFilterDataBelow(const string& peer,
   return true;
 }
 
+/// We want to change how people are sending data to us on a particular
+/// subtree.
+bool arGraphicsPeer::mappedFilterDataBelow(int localNodeID,
+                                           int on){
+  arStructuredData adminData(_gfx.find("graphics admin"));
+  adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "mapped_filter_data");
+  int data[2];
+  data[0] = localNodeID;
+  data[1] = on;
+  adminData.dataIn(_gfx.AR_GRAPHICS_ADMIN_NODE_ID, data, AR_INT, 2);
+  // Gets sent to everybody!
+  _dataServer->sendData(&adminData);
+  return true;
+}
+
 /// Keep data from being relayed to a remote peer (or start relaying the
 /// data again).
 bool arGraphicsPeer::localFilterDataBelow(const string& peer,
@@ -1266,6 +1340,59 @@ string arGraphicsPeer::printPeer(){
   printStructure(100, result);
   ar_mutex_unlock(&_alterLock);
   return result.str();
+}
+
+/// THIS IS A TEMPORARY HACK... eventually will do something more general!
+void arGraphicsPeer::motionCull(arGraphicsPeerCullObject* cull,
+				arCamera* camera){
+  stack<arMatrix4> transformStack;
+  transformStack.push(camera->getModelviewMatrix());
+  // AARGH! look at the coarse-grained locking!
+  ar_mutex_lock(&_eraseLock);
+  arMatrix4 temp = camera->getProjectionMatrix();
+  _motionCull((arGraphicsNode*)&_rootNode, 
+              transformStack, 
+	      cull,
+              temp);
+  ar_mutex_unlock(&_eraseLock);
+}
+
+void arGraphicsPeer::_motionCull(arGraphicsNode* node, 
+			         stack<arMatrix4>& transformStack,
+				 arGraphicsPeerCullObject* cull,
+			         arMatrix4& projectionCullMatrix){
+  arMatrix4 tempMatrix;
+  if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
+    // Push current onto the matrix stack.
+    glGetFloatv(GL_MODELVIEW_MATRIX, tempMatrix.v);
+    transformStack.push(transformStack.top()
+                        *((arTransformNode*)node)->getTransform());
+  }
+  // Deal with view frustum culling.
+  if (node->getTypeCode() == AR_G_BOUNDING_SPHERE_NODE){
+    arBoundingSphere b = ((arBoundingSphereNode*)node)->getBoundingSphere();
+    arMatrix4 temp = projectionCullMatrix*transformStack.top();
+    if (!b.intersectViewFrustum(temp)){
+      cull->insert(node->getID(),0);
+    }
+    else{
+      cull->insert(node->getID(),1);
+    }
+    // DO NOT DRAW CHILDREN EITHER WAY! THIS IS DEFINITELY A HACK!
+    // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
+    return;
+  }
+  list<arDatabaseNode*> children = node->getChildren();
+  for (list<arDatabaseNode*>::iterator i = children.begin();
+       i != children.end(); i++){
+    _motionCull((arGraphicsNode*)(*i), transformStack, 
+		cull, projectionCullMatrix);
+  }
+
+  if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
+    // Pop from stack.
+    transformStack.pop();
+  }
 }
 
 /// Sets the remote name for this connection (allows the mirroring graphics

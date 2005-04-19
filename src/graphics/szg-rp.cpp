@@ -44,6 +44,8 @@ string peerTexturePath, peerTextPath;
 
 // The camera can be moved.
 arPerspectiveCamera globalCamera;
+// A placeholder that helps with "motion culling", if such has been enabled.
+arGraphicsPeerCullObject cullObject;
 
 arGraphicsPeer* createNewPeer(const string& name){
   arGraphicsPeer* graphicsPeer = new arGraphicsPeer();
@@ -367,9 +369,24 @@ void renderLabel(const string& name){
   }
 }
 
+list<int> lastFrameTimes;
+
+int averageFrameTime(int thisTime){
+  if (lastFrameTimes.size() >= 20){
+    lastFrameTimes.pop_front();
+  }
+  lastFrameTimes.push_back(thisTime);
+  int total = 0;
+  for (list<int>::iterator i = lastFrameTimes.begin();
+       i != lastFrameTimes.end(); i++){
+    total += *i;
+  }
+  return int(total/20.0);
+}
+
 void display(){
-  static int frameSkip = 0;
-  ar_timeval time1 = ar_time();
+  static ar_timeval time1;
+  static bool timeInit = false;
   glClearColor(0,0,0,0);
   glEnable(GL_DEPTH_TEST);
   glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
@@ -399,6 +416,27 @@ void display(){
     i->second.peer->draw(&projectionCullMatrix);
     glPopMatrix();
   }
+  // AARGH! BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
+  // "motion culling" does not work when the peers are translated!
+  for (i = peers.begin(); i!= peers.end(); i++){
+    i->second.peer->motionCull(&cullObject,&globalCamera);
+    if (!cullObject.cullChangeOn.empty()){
+      for (list<int>::iterator onIter = cullObject.cullChangeOn.begin();
+	   onIter != cullObject.cullChangeOn.end();
+	   onIter++){
+        i->second.peer->mappedFilterDataBelow(*onIter, 1);
+      }
+    }
+    if (!cullObject.cullChangeOff.empty()){
+      for (list<int>::iterator offIter = cullObject.cullChangeOff.begin();
+	   offIter != cullObject.cullChangeOff.end();
+	   offIter++){
+        i->second.peer->mappedFilterDataBelow(*offIter, 0);
+      }
+    }
+    // MUST CLEAR THE LISTS!
+    cullObject.frame();
+  }
   // second pass to draw the labels
   if (drawLabels){
     // AARGH! The label code will not work with different camera angles.
@@ -427,26 +465,35 @@ void display(){
     ar_usleep(10000);
   }
   glutSwapBuffers();
+
   // It seems more advantageous to send the frame time back every
   // frame instead of more occasionally. This leads to a tighter
   // feedback loop. Still experimenting, though.
-  if (true || frameSkip == 20){
-    int frametime = int(ar_difftime(ar_time(), time1));
-    ar_mutex_lock(&peerLock);
-    for (i=peers.begin(); i!=peers.end(); i++){
-      i->second.peer->broadcastFrameTime(frametime);
-    }
-    arPerformanceElement* framerateElement 
-      = framerateGraph.getElement("framerate");
-    framerateElement->pushNewValue(1000000.0/frametime);
-    framerateElement = framerateGraph.getElement("consume");
-    framerateElement->pushNewValue(dataTime);
-    framerateElement = framerateGraph.getElement("bytes");
-    framerateElement->pushNewValue(dataAmount);
-    ar_mutex_unlock(&peerLock);
-    frameSkip = 0;
+  int frametime;
+  if (!timeInit){
+    timeInit = true;
+    time1 = ar_time();
+    // a sensible default.
+    frametime = 50000;
   }
-  frameSkip++;
+  else{
+    ar_timeval temp = time1;
+    time1 = ar_time();
+    frametime = int(ar_difftime(time1, temp)) ;
+  }
+
+  ar_mutex_lock(&peerLock);
+  for (i=peers.begin(); i!=peers.end(); i++){
+    i->second.peer->broadcastFrameTime(averageFrameTime(frametime));
+  }
+  arPerformanceElement* framerateElement 
+    = framerateGraph.getElement("framerate");
+  framerateElement->pushNewValue(1000000.0/frametime);
+  framerateElement = framerateGraph.getElement("consume");
+  framerateElement->pushNewValue(dataTime);
+  framerateElement = framerateGraph.getElement("bytes");
+  framerateElement->pushNewValue(dataAmount);
+  ar_mutex_unlock(&peerLock);
 }
 
 void keyboard(unsigned char key, int /*x*/, int /*y*/){

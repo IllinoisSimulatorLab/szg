@@ -7,10 +7,12 @@
 #include "arPrecompiled.h"
 #include "arSZGClient.h"
 #include "arTexture.h"
+#include "arLargeImage.h"
 #include "arDataUtilities.h"
 #include <math.h>
 
 arTexture bitmap;
+arLargeImage largeImage;
 int screenWidth, screenHeight;
 
 bool doSyncTest = false;
@@ -57,16 +59,15 @@ void keyboard(unsigned char key, int, int){
   }
 }
 
-void showCenteredImage( arTexture& theImage ) {
-  const int imageWidth = theImage.getWidth();
-  const int imageHeight = theImage.getHeight();
-  int xOffset = (imageWidth < screenWidth) ?
-    (int)floor( 0.5*(screenWidth-imageWidth) ) : 0;
-  int yOffset = (imageHeight < screenHeight) ?
-    (int)floor( 0.5*(screenHeight-imageHeight) ) : 0;
-  glRasterPos3i( xOffset, yOffset, 0 );
-  glDrawPixels( imageWidth, imageHeight, GL_RGB, GL_UNSIGNED_BYTE,
-                theImage.getPixels());
+void showCenteredImage() {
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  glOrtho(-0.5,0.5,-0.5,0.5,0,10);
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  gluLookAt(0,0,2, 0,0,0, 0,1,0);
+  
+  largeImage.draw();
 }
 
 void draw() {
@@ -81,10 +82,10 @@ void draw() {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glPixelStorei(GL_UNPACK_ALIGNMENT,1);
-  showCenteredImage( bitmap );
   if (doSyncTest) {
     drawSyncTest();
   }
+  showCenteredImage();
   glutSwapBuffers();
 }
 
@@ -134,12 +135,17 @@ int main(int argc, char** argv){
     szgClient.sendInitResponse(false);
     return 1;
   }
+  // BUG BUG BUG BUG
+  // Our PPM reader flips the image horizontally, so here's the kludge to
+  // make it right again.
   if (!bitmap.flipHorizontal()) {
     initResponse << "PictureViewer error: failed to flip picture " << argv[1]
                  << endl;
     szgClient.sendInitResponse(false);
     return 1;
   }
+  // Draw the "large image" instead of the texture.
+  largeImage.setImage(bitmap);
   // we have succeeded in the init
   initResponse << "The picture has been loaded.\n";
   szgClient.sendInitResponse(true); 
