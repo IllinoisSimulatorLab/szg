@@ -52,7 +52,12 @@ bool arSoundFile::read(const char* filename, bool fLoop) {
 
   if (!_psamp) {
     cerr << "arSoundFile error: failed to load file \""
-         << filename << "\", wrong format (need .wav or .mp3).\n";
+         << filename << "\",\n"
+#ifdef AR_USE_WIN_32
+         << "\t(Check control panel's Preferred Device settings.)\n";
+#else
+	 << "\tmaybe wrong format (need .wav or .mp3).\n";
+#endif
     return dummy();
     // FMOD supports wav mp3 ogg raw and others, but not aiff.
     // FMOD automatically converts stereo files to mono.
