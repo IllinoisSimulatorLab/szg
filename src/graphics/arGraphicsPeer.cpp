@@ -518,7 +518,15 @@ bool arGraphicsPeer::start(){
     cerr << "arGraphicsPeer error: start() called before init().\n";
     return false;
   }
-  string serviceName = _client->createComplexServiceName("szg-rp-"+_name);
+  // NOTE: We go against pretty much normal convention in szg and
+  // just use the peer's service name STRAIGHT instead of creating a
+  // "complex service name". The idea is that people will want to share peers
+  // and that applications like "peerBridge" want to peer able to take
+  // peers and run them under the auspices of a virtual computer.
+  // The old way...
+  //string serviceName = _client->createComplexServiceName("szg-rp-"+_name);
+  // The new way...
+  string serviceName = "szg-rp-"+_name;
   // Register the service. AARGH! THIS IS PRETTY-MUCH COPY-PASTED EVERYWHERE!
   int port;
   if (!_client->registerService(serviceName,"default",1,&port)){
@@ -928,9 +936,11 @@ int arGraphicsPeer::connectToPeer(const string& name){
     cerr << "arGraphicsPeer remark: cannot make duplicate connection.\n";
     return -1;
   }
+  // PLEASE NOTE: Previously, we were using arSZGClient's 
+  // creatComplexServiceName method, but no longer!
   arPhleetAddress result 
     = _client->discoverService(
-         _client->createComplexServiceName("szg-rp-"+name),
+         "szg-rp-"+name,
          _client->getNetworks("default"), false);
   if (!result.valid){
     cerr << "arGraphicsPeer remark: could not connect to named peer.\n";

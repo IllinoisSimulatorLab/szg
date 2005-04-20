@@ -49,6 +49,7 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
       if (f->_userMessageCallback){
         f->_userMessageCallback(*f, messageBody);
       }
+      return;
     }
     else if (messageType=="print"){
       f->getDatabase()->printStructure();

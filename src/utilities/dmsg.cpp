@@ -229,8 +229,12 @@ int main(int argc, char** argv){
       printusage();
       return 1;
     }
-    componentID = szgClient.getServiceComponentID(
-                              szgClient.createComplexServiceName(argv[1]));
+    // AARGH! Is this really the right thing to do?
+    // Previously, we used the arSZGClient method createComplexServiceName(..)
+    // to modify the service name given by the command line args.
+    // However, this seems to provide the same functionality in a less
+    // awkward fashion...
+    componentID = szgClient.getServiceComponentID(argv[1]);
     if (componentID < 0){
       cerr << "dmsg error: no such service exists (" << argv[1] << ").\n";
       return 1;

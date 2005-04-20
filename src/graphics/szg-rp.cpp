@@ -46,6 +46,7 @@ string peerTexturePath, peerTextPath;
 arPerspectiveCamera globalCamera;
 // A placeholder that helps with "motion culling", if such has been enabled.
 arGraphicsPeerCullObject cullObject;
+bool useMotionCull = false;
 
 arGraphicsPeer* createNewPeer(const string& name){
   arGraphicsPeer* graphicsPeer = new arGraphicsPeer();
@@ -275,6 +276,20 @@ string handleCamera(const string& messageBody){
   return result.str();
 }
 
+string handleMotionCull(const string& messageBody){
+  stringstream result;
+  result << "szg-rp success: ";
+  if (messageBody == "on"){
+    useMotionCull = true;
+    result << "motion cull on.\n";
+  }
+  else{
+    useMotionCull = false;
+    result << "motion cull off.\n";
+  }
+  return result.str();
+}
+
 void messageTask(void* pClient){
   arSZGClient* cli = (arSZGClient*)pClient;
   string messageType, messageBody;
@@ -324,6 +339,9 @@ void messageTask(void* pClient){
     }
     else if (messageType == "camera"){
       responseBody = handleCamera(messageBody);
+    }
+    else if (messageType == "motion_cull"){
+      responseBody = handleMotionCull(messageBody);
     }
     // This ends the messages specifically sent to the szg-rp.
     else{
@@ -418,24 +436,26 @@ void display(){
   }
   // AARGH! BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
   // "motion culling" does not work when the peers are translated!
-  for (i = peers.begin(); i!= peers.end(); i++){
-    i->second.peer->motionCull(&cullObject,&globalCamera);
-    if (!cullObject.cullChangeOn.empty()){
-      for (list<int>::iterator onIter = cullObject.cullChangeOn.begin();
-	   onIter != cullObject.cullChangeOn.end();
-	   onIter++){
-        i->second.peer->mappedFilterDataBelow(*onIter, 1);
+  if (useMotionCull){
+    for (i = peers.begin(); i!= peers.end(); i++){
+      i->second.peer->motionCull(&cullObject,&globalCamera);
+      if (!cullObject.cullChangeOn.empty()){
+        for (list<int>::iterator onIter = cullObject.cullChangeOn.begin();
+	     onIter != cullObject.cullChangeOn.end();
+	     onIter++){
+          i->second.peer->mappedFilterDataBelow(*onIter, 1);
+        }
       }
-    }
-    if (!cullObject.cullChangeOff.empty()){
-      for (list<int>::iterator offIter = cullObject.cullChangeOff.begin();
-	   offIter != cullObject.cullChangeOff.end();
-	   offIter++){
-        i->second.peer->mappedFilterDataBelow(*offIter, 0);
+      if (!cullObject.cullChangeOff.empty()){
+        for (list<int>::iterator offIter = cullObject.cullChangeOff.begin();
+	     offIter != cullObject.cullChangeOff.end();
+	     offIter++){
+          i->second.peer->mappedFilterDataBelow(*offIter, 0);
+        }
       }
+      // MUST CLEAR THE LISTS!
+      cullObject.frame();
     }
-    // MUST CLEAR THE LISTS!
-    cullObject.frame();
   }
   // second pass to draw the labels
   if (drawLabels){
