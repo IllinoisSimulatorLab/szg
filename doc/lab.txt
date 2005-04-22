@@ -200,6 +200,7 @@ gm4     SZG_DATA   path         g:\Data
 gm4     SZG_SOUND  path         g:\Sounds
 gm4     SZG_RENDER texture_path g:\Texture
 gm4     SZG_RENDER text_path    g:\Texture\Text
+gm4     SZG_PEER   path         g:\Peer
 road1   SZG_DATA   path         g:\Data
 road1   SZG_SOUND  path         g:\Sounds
 road1   SZG_RENDER texture_path g:\Texture
@@ -223,6 +224,11 @@ isl63   SZG_SOUND  path         /home/public/Sounds
 isl63   SZG_RENDER texture_path /home/public/Texture
 isl63   SZG_RENDER text_path    /home/public/Texture/Text
 isl63   SZG_PEER   path         /home/public/Peer
+kam4   SZG_DATA   path         /home/public/Data
+kam4   SZG_SOUND  path         /home/public/Sounds
+kam4   SZG_RENDER texture_path /home/public/Texture
+kam4   SZG_RENDER text_path    /home/public/Texture/Text
+kam4   SZG_PEER   path         /home/public/Peer
 </assign>
 
 <comment> misc. configuration </comment>
