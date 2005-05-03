@@ -688,7 +688,9 @@ class arGraphicsPeer: public arGraphicsDatabase{
   bool closeAllAndReset();
   bool broadcastFrameTime(int frameTime);
   bool remoteLockNode(const string& name, int nodeID);
+  bool remoteLockNodeBelow(const string& name, int nodeID);
   bool remoteUnlockNode(const string& name, int nodeID);
+  bool remoteUnlockNodeBelow(const string& name, int nodeID);
   bool localLockNode(const string& name, int nodeID);
   bool localUnlockNode(int nodeID);
   bool remoteFilterDataBelow(const string& peer,
