@@ -384,6 +384,14 @@ float ar_angleBetween(const arVector3& first, const arVector3& second){
 }
 
 /// Returns Euler angles calculated from fixed rotation axes.
+/// PLEASE NOTE: The given matrix must be a PURE rotation matrix for
+/// this to work!
+/// Of course, there are MANY different euler angles...
+/// However, this returns Euler angles so that the original matrix is
+/// ar_rotationMatrix('z', v[2])
+/// * ar_rotationMatrix('y', v[1])
+/// * ar_rotationMatrix('x', v[0])
+/// 
 arVector3 ar_extractEulerAngles(const arMatrix4& m){
   const arMatrix4 theMatrix(!ar_extractRotationMatrix(m));
   // find the vector mapped to the z-axis

@@ -6,6 +6,7 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arMath.h"
+#include "arDataUtilities.h"
 
 float epsilon = 0.0004;
 
@@ -321,4 +322,57 @@ int main(){
                         arVector3( 12,0,1 ) )) {
     cout << "FAILED: point-to-line projection test.\n";
   }
+
+  // Check the euler angle extraction.
+  cout << "Testing euler angle extraction.\n";
+  arMatrix4 eulerTestMatrix1 = ar_rotationMatrix('y',ar_convertToRad(45))
+    * ar_rotationMatrix('z', ar_convertToRad(45))
+    * ar_rotationMatrix('x', ar_convertToRad(45));
+  arVector3 eulerTestAngles = ar_extractEulerAngles(eulerTestMatrix1);
+  arMatrix4 eulerTestMatrix2 = ar_rotationMatrix('z', eulerTestAngles[2])
+    * ar_rotationMatrix('y', eulerTestAngles[1])
+    * ar_rotationMatrix('x', eulerTestAngles[0]);
+  int i,j;
+  for (i=0; i<16; i++){
+    if (fabs(eulerTestMatrix1[i]-eulerTestMatrix2[i]) > epsilon){
+      cout << "FAILED: euler angle extraction.\n";
+      break;
+    }
+  }
+
+  // Let's do some speed tests now...
+  arMatrix4* mm = new arMatrix4[10000];
+  arMatrix4* am = new arMatrix4[10000];
+  arMatrix4* bm = new arMatrix4[10000];
+  ar_timeval time1 = ar_time();
+  for (i=0; i<100000; i++){
+    j = i%10000;
+    mm[j] = am[j]*bm[j];
+  }
+  ar_timeval time2 = ar_time();
+  cout << "Matrix multiply time (microseconds) = " 
+       << ar_difftime(time2, time1)/100000 << "\n";
+
+  arVector3 v;
+  time1 = ar_time();
+  for (i=0; i<100000; i++){
+    j = i%10000;
+    v = ar_extractEulerAngles(mm[j]);
+  }
+  time2 = ar_time();
+  cout << "Extract euler angles time (microseconds) = " 
+       << ar_difftime(time2, time1)/100000 << "\n";
+
+  for (i=0; i<100000; i++){
+    am[j] = ar_rotationMatrix('y',ar_convertToRad(180))
+      *ar_translationMatrix(1,1,1);
+  }
+  time1 = ar_time();
+  for (i=0; i<100000; i++){
+    j = i%10000;
+    mm[j] = !am[j];
+  }
+  time2 = ar_time();
+  cout << "Matrix inverse time (microseconds) = " 
+       << ar_difftime(time2, time1)/100000 << "\n";
 }
