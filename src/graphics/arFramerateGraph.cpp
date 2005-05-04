@@ -91,6 +91,15 @@ void arFramerateGraph::drawWithComposition(){
   postComposition();
 }
 
+void arFramerateGraph::drawPlaced(float startX,
+				  float startY,
+				  float widthX,
+				  float widthY){
+  preComposition(startX, startY, widthX, widthY);
+  draw();
+  postComposition();
+}
+
 void arFramerateGraph::addElement(const string& name,
                                   int numberEntries,
                                   float scale,
