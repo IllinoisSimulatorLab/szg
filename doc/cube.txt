@@ -40,8 +40,7 @@
         initTrackerCalibration
         initIIRFilter
 
-        /* rotate & remap positional coordinates and rotate orientation by 135 degrees around Y */
-        vector position
+        /* Define stuff to rotate & remap positional coordinates and rotate orientation by 135 degrees around Y */
         matrix yTransRotMatrix
         -45. yaxis yTransRotMatrix rotationMatrix
 
@@ -77,45 +76,60 @@
         matrix rotMatrix
         matrix transMatrix
 
-        define remap_coords
+        /* Apply transformations that are common to all sensors */
+        define filter_all_matrices
+	  inputMatrix getCurrentEventMatrix
+
+          /* Extract translation, rotate it by 45 degrees about y */
           inputMatrix position extractTranslation
-          /* extract translation, rotate it by 45 degrees about y, y = 5+y */
           yTransRotMatrix position position vectorTransform
+
+          /* Rescale position coords */
           rescale_position
-          position transMatrix translationMatrixV
+
+          /* Rotate rotation component about Y */
           inputMatrix rotMatrix extractRotationMatrix
           yRotMatrix rotMatrix rotMatrix matrixMultiply
+
+          /* Recombine translational and rotational components */
+          position transMatrix translationMatrixV
           transMatrix rotMatrix inputMatrix matrixMultiply
+
+          /* Apply tracker-calibration lookup table */
           inputMatrix inputMatrix doTrackerCalibration
+
+	  inputMatrix setCurrentEventMatrix
         enddef
 
-        /* fix rotational matrix components (different for different sensors) */
+        /* Fix rotational matrix components (depends on how sensors are mounted) */
 	matrix headZRotMatrix
 	matrix wandZRotMatrix
         matrix wandTweakMatrix
 
-        /* head sensor is mounted sideways */
+        /* Head sensor is mounted sideways */
 	-90 zaxis headZRotMatrix rotationMatrix
-        /* wand sensor is mounted upside-down */
+
+        /* Wand sensor is mounted upside-down */
 	-180 zaxis wandZRotMatrix rotationMatrix
-        /* wand sensor points upwards by about 20 degrees with gamepad held
+
+        /* Wand sensor points upwards by about 20 degrees with gamepad held
            subjectively level (actually tilted up slightly, but it feels right) */
         -20. xaxis wandTweakMatrix rotationMatrix
+
         matrix wandRotMatrix
         wandZRotMatrix wandTweakMatrix wandRotMatrix matrixMultiply
 
+        /* Head-specific filter (applied after generic, above) */
 	define filter_matrix_0
 	  inputMatrix getCurrentEventMatrix
-          remap_coords
-          /* apply IIR filter to head only (usually to y only) */
           inputMatrix inputMatrix doIIRFilter
 	  inputMatrix headZRotMatrix inputMatrix matrixMultiply
 	  inputMatrix setCurrentEventMatrix
 	enddef
 
+        /* Hand-specific filter (applied after generic) */
 	define filter_matrix_1
 	  inputMatrix getCurrentEventMatrix
-          remap_coords
 	  inputMatrix wandRotMatrix inputMatrix matrixMultiply
 	  inputMatrix setCurrentEventMatrix
 	enddef
