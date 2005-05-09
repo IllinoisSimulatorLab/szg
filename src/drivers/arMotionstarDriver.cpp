@@ -45,10 +45,7 @@ arMotionstarDriver::arMotionstarDriver():
   _TCP_PORT(6000),
   _numberRemaps(0),
   _useButton(false),
-  _lastButtonValue(-1)
-{
-  for (int i=0; i<32; i++)
-    _remapArray[i] = -1;
+  _lastButtonValue(-1) {
 }
 
 bool arMotionstarDriver::init(arSZGClient& SZGClient){
@@ -63,19 +60,6 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
     initResponse << "arMotionstarDriver error: "
 	         << "SZG_TRACKER/IPhost undefined or invalid.\n";
     return false;
-  }
-
-  // What follows is a temporary hack to have remapping of birds work
-  // until we get a general remapping infrastructure available
-  const string birdRemapString = SZGClient.getAttribute("SZG_TRACKER","remap");
-  int i;
-  if (birdRemapString != "NULL"){
-    int remaps[64];
-    int numberGotten = ar_parseIntString(birdRemapString,remaps,64);
-    _numberRemaps = numberGotten/2;
-    for (i=0; i<_numberRemaps; i++){
-      _remapArray[remaps[2*i]] = remaps[2*i+1];
-    }
   }
 
 //  _setAlphaMin = true;
@@ -190,6 +174,7 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
   }
 
   BN_BIRD_STATUS* bird;
+  int i;
   for (i=2; i<=nDevices; i++){
     // get the status of an individual bird
     if (!_getStatusBird(i,&bird)){
@@ -417,81 +402,69 @@ void arMotionstarDriver::_generateButtonEvent(int value){
 
 void arMotionstarDriver::_generateEvent(int sensorID){
 
-  // HACK: we have a kludged-up remapping mechanism for use while we await the
-  // general solution
-  if (_remapArray[sensorID] != -1)
-    sensorID = _remapArray[sensorID];
+  // convert from motionstar coords (units=inches, right-handed, xy horizontal, z down)
+  // to generic Syzygy coordinates (units=feet, right-handed, xz horizontal, y up).
+  _receivedData[0] /= 12.;                      // x->x
+  float z = _receivedData[1]/12.;               // y->z
+  _receivedData[1] = -_receivedData[2]/12.;     // z->-y
+  _receivedData[2] = z;
+  _receivedData[3] = -_receivedData[3];         // azimuth -> -azimuth
+  _receivedData[5] = -_receivedData[5];         // roll -> -roll
 
-  // the following two items are specific to our current cube set-up
-  // at Beckman and really should be included in a config file or
-  // something similar
-  if (sensorID == 0){
-    // head sensor is rolled 90 degrees
-    //    _receivedData[5] -= 90.;
-    //_receivedData[5] += 90.;
-    //if (_receivedData[5] < -180.) _receivedData[5] += 360.;
-    //else if (_receivedData[5] > 180.) _receivedData[5] -= 360.;
+  const arMatrix4 transMatrix( 
+      ar_translationMatrix(_receivedData[0],
+                           _receivedData[1],
+                           _receivedData[2])
+      );
+     
+  const arMatrix4 rotMatrix(
+      ar_rotationMatrix('y',  ar_convertToRad(_receivedData[3])) *
+      ar_rotationMatrix('x',  ar_convertToRad(_receivedData[4])) *
+      ar_rotationMatrix('z',  ar_convertToRad(_receivedData[5]))
+      );
 
-  }
-  if (sensorID == 1){
-    // wand sensor is rolled 180 degrees
-//    _receivedData[5] -= 180.;
-//    if (_receivedData[5] < -180.) _receivedData[5] += 360.;
-//    else if (_receivedData[5] > 180.) _receivedData[5] -= 360.;
-
-  }
-  _tweak();
-  const arMatrix4 theMatrix = 
-    ar_translationMatrix(arVector3(_receivedData[0],
-                                   _receivedData[1],
-                                   _receivedData[2])) *
-    ar_rotationMatrix('y',  _degtorad(_receivedData[3])) *
-    ar_rotationMatrix('x',  _degtorad(_receivedData[4])) *
-    ar_rotationMatrix('z',  _degtorad(_receivedData[5]));
-  //    cerr << theMatrix << endl;
-  sendMatrix(sensorID,theMatrix);
+  sendMatrix(sensorID, transMatrix * rotMatrix );
 }
 
-void arMotionstarDriver::_tweak(){
-  float* p = _receivedData;
+
+// Old hack code, mostly moved to a PForth filter
+//void arMotionstarDriver::_tweak(){
+//  float* p = _receivedData;
   // convert from inches to feet, for cave-coords.
-  p[0] /= 12.;
-  p[1] /= 12.;
-  p[2] /= 12.;
+//  p[0] /= 12.;
+//  p[1] /= 12.;
+//  p[2] /= 12.;
 
-  const float rot = 1./sqrt(2.); // cos and sin of 45 degrees
-  float x = rot*p[0] - rot*p[1];
-  float z = rot*p[0] + rot*p[1];
-  float y = 5. - p[2];
+//  const float rot = 1./sqrt(2.); // cos and sin of 45 degrees
+//  float x = rot*p[0] - rot*p[1];
+//  float z = rot*p[0] + rot*p[1];
+//  float y = 5. - p[2];
 
-  // x and z are raw [1.2, 10.4];  convert to [-5, 5]
-  const float x0 = 1.2;
-  const float x1 = 10.4;
-  const float y0 = -5.;
-  const float y1 = 5.;
-  x = y0 + (y1-y0)/(x1-x0)*(x-x0);
-  z = y0 + (y1-y0)/(x1-x0)*(z-x0);
+   // x and z are raw [1.2, 10.4];  convert to [-5, 5]
+//  const float x0 = 1.2;
+//  const float x1 = 10.4;
+//  const float y0 = -5.;
+//  const float y1 = 5.;
+//  x = y0 + (y1-y0)/(x1-x0)*(x-x0);
+//  z = y0 + (y1-y0)/(x1-x0)*(z-x0);
 
-  p[0] = x;
-  p[1] = y;
-  p[2] = z;
+//  p[0] = x;
+//  p[1] = y;
+//  p[2] = z;
 
   // angles now... azi el roll
-  float azi = -p[3] - 135;
-  float el = p[4];
-  float roll = -p[5];
+//  float azi = -p[3] - 135;
+//  float el = p[4];
+//  float roll = -p[5];
 
-  if (azi < -180.) azi += 360.;
-  else if (azi > 180.) azi -= 360.;
+//  if (azi < -180.) azi += 360.;
+//  else if (azi > 180.) azi -= 360.;
 
-  if (roll < -180.) roll += 360.;
-  else if (roll > 180.) roll -= 360.;
+//  if (roll < -180.) roll += 360.;
+//  else if (roll > 180.) roll -= 360.;
 
-  p[3] = azi;
-  p[4] = el;
-  p[5] = roll;
-}
+//  p[3] = azi;
+//  p[4] = el;
+//  p[5] = roll;
+//}
 
-float arMotionstarDriver::_degtorad(float in){
-  return in / 180. * 3.1415927; 
-}

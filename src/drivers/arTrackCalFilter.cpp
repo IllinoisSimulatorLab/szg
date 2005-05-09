@@ -42,8 +42,6 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
   // not pointing straight ahead.  At some point we'll do this more formally.
   // y_filter_weight determines behavior of an IIR filter (y(i) = (1-w)y(i) + wy(i-1))
   // applied to the head vertical position to remove jitter.
-  if (szgClient->getAttributeFloats("SZG_MOTIONSTAR","y_rot_angle_deg",floatBuf,1))
-    _yRotAngle = ar_convertToRad( *floatBuf );
   if (szgClient->getAttributeFloats("SZG_MOTIONSTAR","IIR_filter_weights",floatBuf,3)) {
     for (i=0; i<3; i++) {
       if ((floatBuf[i] < 0)||(floatBuf[i] >= 1)) {
@@ -147,7 +145,6 @@ bool arTrackCalFilter::_processEvent( arInputEvent& inputEvent ) {
   arMatrix4 newMatrix(inputEvent.getMatrix());
   if (_useCalibration) {
     _doInterpolation( newMatrix );
-    newMatrix = newMatrix * ar_rotationMatrix( 'y', _yRotAngle );
   }
   if (inputEvent.getIndex() == HEAD_MATRIX_NUMBER)  // Apply old filter to head matrix
     _doIIRFilter( newMatrix );
@@ -165,7 +162,6 @@ bool arTrackCalFilter::_processEvent( arInputEvent& inputEvent ) {
 //      arMatrix4 newMatrix = ar_getEventMatrixValue(i,d);
 //      if (_useCalibration) {
 //        _doInterpolation( newMatrix );
-//        newMatrix = newMatrix * ar_rotationMatrix( 'y', _yRotAngle );
 //      }
 //      if (ar_getEventIndex(i,d) == 0)
 //        _doIIRFilter( newMatrix );

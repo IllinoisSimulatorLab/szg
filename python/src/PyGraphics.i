@@ -1,4 +1,4 @@
-// $Id: PyGraphics.i,v 1.2 2005/04/15 18:03:24 crowell Exp $
+// $Id: PyGraphics.i,v 1.3 2005/05/09 16:53:59 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -452,3 +452,4 @@ void ar_enableTexCoordArrays();
 void ar_disableVertexArrays();
 void ar_disableTexCoordArrays();
 void ar_drawVertexArrays( int mode, int numVertices );
+

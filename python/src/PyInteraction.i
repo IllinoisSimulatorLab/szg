@@ -301,6 +301,17 @@ class arPyDragBehavior(arPythonDragBehavior):
   def onUpdate( self, effector, object, grabCondition ):
     pass
 
+# Do nothing. You can still grab the object (i.e. all
+# events from the effector will go to it until you let go),
+# but it wont move.
+class arNullDrag(arPyDragBehavior):
+  def __init__(self):
+    arPyDragBehavior.__init__(self)
+  def onInit( self, effector, object ):
+    pass
+  def onUpdate( self, effector, object, grabCondition ):
+    pass
+    
 # The object will maintain a fixed relationship
 # to the effector tip, as though rigidly attached.
 class arWandRelativeDrag(arPyDragBehavior):
@@ -546,11 +557,20 @@ class arPythonInteractable : public arInteractable {
 };
 
 
+%{
+void ar_activateColor( const arVector4& colvec ) {
+  glColor4f( colvec.v[0], colvec.v[1], colvec.v[2], colvec.v[3] );
+}
+%}
+
+void ar_activateColor( const arVector4& color );
+
 // And here is the Python wrapper class.
 
 %pythoncode %{
 
 # Base class for objects you want to interact with
+# (basically a framework/arInteractableThing)
 
 class arPyInteractable(arPythonInteractable):
   def __init__(self):
@@ -558,6 +578,7 @@ class arPyInteractable(arPythonInteractable):
     self._visible = True
     self._highlighted = False
     self._color = arVector4(1,1,1,1)
+    self._texture = None
     self.setCallbacks( self.onTouch, self.onProcessInteraction, self.onUntouch, self.onMatrixSet )
   def setHighlight( self, flag ):
     self._highlighted = flag
@@ -567,6 +588,20 @@ class arPyInteractable(arPythonInteractable):
     self._color = col
   def getColor( self ):
     return self._color
+  def setTexture( self, tex ):
+    self._texture = tex
+  def getTexture( self ):
+    return self._texture
+  def activateTexture( self ):
+    if not self._texture:
+      return False
+    self._texture.activate()
+    return True
+  def deactivateTexture( self ):
+    if self._texture:
+      self._texture.deactivate()
+  def activateColor( self ):
+    ar_activateColor( self._color )
   def setVisible( self, vis ):
     self._visible = vis
   def getVisible( self ):

@@ -11,6 +11,10 @@
 #include "arEffector.h"
 #include "arNavigationUtilities.h"
 
+arDragBehavior* arNullDragBehavior::copy() const {
+  return (arDragBehavior*)new arNullDragBehavior();
+}
+
 void arCallbackDragBehavior::init( const arEffector* const effector,
                                    const arInteractable* const object ) {
   if (!_initCallback) {

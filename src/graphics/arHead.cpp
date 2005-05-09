@@ -68,7 +68,8 @@ arVector3 arHead::getMidEyePosition( arMatrix4* useMatrix ) {
 }
 
 arMatrix4 arHead::getMidEyeMatrix() const {
-  arMatrix4 mat(_matrix * ar_translationMatrix(_midEyeOffset));
+  arMatrix4 mat(_matrix * ar_translationMatrix(_midEyeOffset) * 
+      ar_rotateVectorToVector( arVector3(1,0,0),_eyeDirection ) );
   for (int i=12; i<15; ++i) {
     mat.v[i] *= _unitConversion;
   }

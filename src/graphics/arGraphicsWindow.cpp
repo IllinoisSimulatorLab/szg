@@ -23,6 +23,7 @@ void arDefaultRenderCallback::operator()( arGraphicsWindow&, arViewport& ) {
 
 arGraphicsWindow::arGraphicsWindow( arCamera* cam ) :
   _useOGLStereo(false),
+  _useColorFilter(false),
   _defaultCamera(0),
   _currentEyeSign(0.) {
   
@@ -68,12 +69,24 @@ arGraphicsWindow::~arGraphicsWindow() {
 }
 
 bool arGraphicsWindow::configure( arSZGClient& client ){
+  float colorFilterParams[7];
+
+  string screenName = client.getMode("graphics");
+  _useColorFilter = client.getAttributeFloats( screenName, "color_filter", colorFilterParams, 7 );
+  if (_useColorFilter) {
+    _contrastFilterParameters = arVector4( colorFilterParams );
+    _colorScaleFactors = arVector3( colorFilterParams+4 );
+    cout << "arGraphicsWindow remark: saturation/contrast filter parameters = " << _contrastFilterParameters
+         << "\n                         color scale values                    = " << _colorScaleFactors << endl;
+  } else {
+    cout << "arGraphicsWindow remark: no color filter set.\n";
+  }
+      
   // NOTE: We must assume that configure(...) can be called in a different
   // thread from draw(...). Hence the below lock is needed.
   lockViewports();
   
   // Figure out the viewport configuration
-  string screenName = client.getMode("graphics");
   string viewMode = client.getAttribute(screenName, "view_mode",
                     "|normal|anaglyph|walleyed|crosseyed|overunder|custom|");
   
@@ -335,9 +348,9 @@ void arGraphicsWindow::_renderPass( GLenum oglDrawBuffer ) {
   // by default, the depth buffer and color buffer are clear and depth test
   // is enabled.
   glDrawBuffer( oglDrawBuffer );
-GLint drawBuffer;
-glGetIntegerv( GL_DRAW_BUFFER, &drawBuffer );
-//cerr << "_renderPass start: set draw buffer = " << oglDrawBuffer << ", drawBuffer = " << drawBuffer << endl;
+//  GLint drawBuffer;
+//  glGetIntegerv( GL_DRAW_BUFFER, &drawBuffer );
+//  cerr << "_renderPass start: set draw buffer = " << oglDrawBuffer << ", drawBuffer = " << drawBuffer << endl;
   (*_initCallback)( *this );
 
   // NOTE: in what follows, we will be changing the viewport. Its current
@@ -353,14 +366,17 @@ glGetIntegerv( GL_DRAW_BUFFER, &drawBuffer );
     i->activate();
     _currentEyeSign = i->getEyeSign();
     (*_drawCallback)(*this, *i);
+    if (_useColorFilter) {
+      _applyColorFilter();
+    }
     // restore the original viewport. if this doesn't occur, the viewports
     // will get progressively smaller and disappear in modes like walleyed.
     glViewport( (GLint)params[0], (GLint)params[1], 
                 (GLsizei)params[2], (GLsizei)params[3] );
   }
 
-glGetIntegerv( GL_DRAW_BUFFER, &drawBuffer );
-//cerr << "_renderPass end: drawBuffer = " << drawBuffer << endl;
+//  glGetIntegerv( GL_DRAW_BUFFER, &drawBuffer );
+//  cerr << "_renderPass end: drawBuffer = " << drawBuffer << endl;
   _currentEyeSign = 0.;
 
   // It's a good idea to set this back to normal. What if the user-defined
@@ -368,6 +384,39 @@ glGetIntegerv( GL_DRAW_BUFFER, &drawBuffer );
   glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
 
   unlockViewports();
+}
+
+void arGraphicsWindow::_applyColorFilter() {
+  glPushAttrib( GL_ALL_ATTRIB_BITS );
+  glDisable( GL_TEXTURE_1D );
+  glDisable( GL_TEXTURE_2D );
+  glDisable( GL_DEPTH_TEST );
+  glDisable( GL_LIGHTING );
+  glMatrixMode(GL_TEXTURE);
+  glLoadIdentity();
+  glMatrixMode( GL_PROJECTION );
+  glLoadIdentity();
+  gluOrtho2D( -1., 1., -1., 1. );
+  glMatrixMode( GL_MODELVIEW );
+  glLoadIdentity();
+  glEnable( GL_BLEND );
+  glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+  glColor4fv( _contrastFilterParameters.v );
+  glBegin( GL_QUADS );
+  glVertex2f( -1., -1. );
+  glVertex2f( 1., -1. );
+  glVertex2f( 1., 1. );
+  glVertex2f( -1., 1. );
+  glEnd();
+  glBlendFunc( GL_DST_COLOR, GL_SRC_COLOR );
+  glColor3fv( (.5*_colorScaleFactors).v );
+  glBegin( GL_QUADS );
+  glVertex2f( -1., -1. );
+  glVertex2f( 1., -1. );
+  glVertex2f( 1., 1. );
+  glVertex2f( -1., 1. );
+  glEnd();
+  glPopAttrib();
 }
 
 bool arGraphicsWindow::_configureCustomViewport( const string& screenName,

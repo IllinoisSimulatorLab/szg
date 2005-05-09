@@ -60,15 +60,7 @@ space starts out with a size of zero, and must be grown using the
 "variable" and "matrix" commands. Attempting to read or write from
 unallocated data space will result in an error.</p>
 <p>For most purposes, PForth programs
-are all kept in a single directory determined by the Syzgygy data path,
-i.e. the directory is named "PForth" and resides in the
-directory specified in the Syzygy database variable SZG_DATA/path (they
-have to be kept there if they're being used by the arPForthFilter, but
-not for other purposes; in fact they don't have to reside in an
-external file at all, it just simplifies things). By convention, Pforth
-program files end with ".pf". They may contain nothing but PForth
-source text (which may now include C-style comments, beginning with /*
-and ending with */ <em>surrounded by whitespace</em>). Here's an
+are all kept in the user's dbatch file, in a device definition. Here's an
 example of an event-filtering
 program that swaps matrices 0 and 1 (named swap_matrices_0_1.pf):</p>
 <pre>define filter_matrix_0     /* Each time we come across a matrix event with index 0... */<br>&nbsp; 1 setCurrentEventIndex   /* ...change its index to 1 */<br>enddef<br>define filter_matrix_1<br>&nbsp; 0 setCurrentEventIndex<br>enddef<br><br></pre>
@@ -121,6 +113,8 @@ also typically add words to the dictionary. Note that additions to the
 dictionary are permanent (i.e. last until the arPForth object is
 destroyed) and attempting to redefine a word in the dictionary will
 result in an error.</p>
+<p>NEW 5/6/05: Added a bunch of words using (3-element) vectors, and several
+array... words for performing element-by-element operations on arrays.</p>
 <p><font face="courier" size="+1">&lt;number&gt;</font> (a string
 representing a number, e.g. "123" or
 "-12.5")</p>
@@ -137,14 +131,23 @@ dictionary that causes the address of the second cell to be pushed onto
 the stack. This new word then acts as a pointer to the data cell.
 Example: "variable x 12 x store" causes the number 12 to be placed in
 the data cell pointed to by "x".</p>
+<p><font face="courier" size="+1">constant </font>&lt;name&gt;
+&lt;number&gt;</p>
+<p>Effect: at compile time, it adds a word &lt;name&gt; to the
+dictionary that causes the specified number to be pushed onto
+the stack.
+Example: "constant x 12 x" causes the number 12 to be placed on the
+stack.</p>
 <p><font face="courier" size="+1">matrix </font>&lt;name&gt;</p>
 <p>Effect: at compile time, allocates
 17 cells, places the number 16 in the first one, and installs a new
 word &lt;name&gt; in the dictionary that pushes the address of the
 second cell onto the stack.</p>
-<p><font face="courier" size="+1">array </font> &lt;numItems&gt; &lt;name&gt;</p>
+<p><font face="courier" size="+1">array </font> &lt;numItems&gt;
+&lt;name&gt;</p>
 <p>Effect: at compile time, allocates
-&lt;numItems&gt;+1 cells, places the number &lt;numItems&gt; in the first one, and installs a new
+&lt;numItems&gt;+1 cells, places the number &lt;numItems&gt; in the
+first one, and installs a new
 word &lt;name&gt; in the dictionary that pushes the address of the
 second cell onto the stack.</p>
 <p><font face="courier" size="+1">define </font>&lt;name&gt;
@@ -201,6 +204,9 @@ on stack if x1 &lt; x2, 0 otherwise.</p>
 1on stack if x1 &gt;= x2, 0 otherwise.</p>
 <p><font face="courier" size="+1">&lt;= </font> (x1 x2 -- n1) Places
 1on stack if x1 &gt;= x2, 0 otherwise.</p>
+<p><font face="courier" size="+1">stringEquals </font> (addr1 addr22
+-- n1) Places
+1on stack if the string at addr1 = string at addr2, 0 otherwise.</p>
 <p><font face="courier" size="+1">+</font> &nbsp; ( x1 x2 -- x1+x2 )</p>
 <p><font face="courier" size="+1">-</font> &nbsp; ( x1 x2 -- x1-x2 )</p>
 <p><font face="courier" size="+1">*</font> &nbsp; ( x1 x2 -- x1*x2 )</p>
@@ -212,20 +218,56 @@ Pops an address off the stack, pushes the
 value of the data cell at that address onto it.</p>
 <p><font face="courier" size="+1">store</font> &nbsp; ( x1 addr -- )
 Stores x1 at the address pointed to by addr.</p>
+<p><font face="courier" size="+1">arrayAdd</font> &nbsp; ( addr1 addr2 N addr3 -- )
+Does elment-by-element addition of the arrays stored at addr1 and addr2 and
+stores the result in the array starting at addr3.</p>
+<p><font face="courier" size="+1">arraySubtract</font> &nbsp; ( addr1 addr2 N addr3 -- )
+Does elment-by-element subtraction of the arrays stored at addr1 and addr2 and
+stores the result in the array starting at addr3.</p>
+<p><font face="courier" size="+1">arrayMultiply</font> &nbsp; ( addr1 addr2 N addr3 -- )
+Does elment-by-element multiplication of the arrays stored at addr1 and addr2 and
+stores the result in the array starting at addr3.</p>
+<p><font face="courier" size="+1">arrayDivide</font> &nbsp; ( addr1 addr2 N addr3 -- )
+Does elment-by-element division of the arrays stored at addr1 and addr2 and
+stores the result in the array starting at addr3.</p>
+<p><font face="courier" size="+1">vectorStore</font> &nbsp; ( x1 x2 x3
+addr -- )
+Stores the three numbers at the address pointed to by addr.</p>
+<p><font face="courier" size="+1">vectorCopy</font> &nbsp; ( addr1
+addr2 -- )
+Copies a 3-element vector from addr1 to addr2.</p>
+<p><font face="courier" size="+1">vectorAdd</font> &nbsp; ( addr1 addr2
+addr3 -- )
+Adds 3-element vectors at addr1 and addr2, stores the result at addr3.</p>
+<p><font face="courier" size="+1">vectorSubtract</font> &nbsp; ( addr1
+addr2 addr3 -- )
+Subtracts 3-element vector at addr2 from that at addr1, stores the
+result at addr3.</p>
+<p><font face="courier" size="+1">vectorScale</font> &nbsp; ( x addr1
+addr2 -- )
+Scalar-vector multiplication: multiplies vector at addr1 by x, stores
+the result at addr2.</p>
+<p><font face="courier" size="+1">vectorTransform</font> &nbsp; ( addr1
+addr2 addr3 -- )
+Matrix-vector multiplication: multiplies vector at addr2 by matrix at
+addr1, stores the result at addr3.</p>
 <p><font face="courier" size="+1">matrixStore</font> &nbsp; ( x1 x2 x3
 x4 x5 x6 x7
 x8 x9 x10 x11 x12 x13 x14 x15 x16 addr -- ) Pops 16 numbers and an
 address off the stack,
 stores the numbers in the data cell pointed to by addr. Note that
 matrix indices go down the columns first.</p>
-<p><font face="courier" size="+1">matrixStoreTranspose</font> &nbsp; ( x1 x2 x3
+<p><font face="courier" size="+1">matrixStoreTranspose</font> &nbsp; (
+x1 x2 x3
 x4 x5 x6 x7
 x8 x9 x10 x11 x12 x13 x14 x15 x16 addr -- ) Pops 16 numbers and an
 address off the stack,
-stores the numbers in the data cell pointed to by addr after transposing
+stores the numbers in the data cell pointed to by addr after
+transposing
 the resulting matrix. This allows you to enter a 4x4 matrix in a PForth
 program in a nice readable way, i.e. entering the matrix in 4 rows and
-4 columns in a text editor and storing it with matrixStoreTranspose will
+4 columns in a text editor and storing it with matrixStoreTranspose
+will
 give you the matrix as it looked in the editor.</p>
 <p><font face="courier" size="+1">matrixCopy</font> &nbsp; ( addr1
 addr2 -- ) Copies matrix at addr1 to addr2.</p>
@@ -242,6 +284,10 @@ and stores the result at addrOut.</p>
 <p><font face="courier" size="+1">translationMatrix</font> ( x y z addr
 -- ) Constructs translation matrix for offsets x,
 y, and z, and stores at addr.</p>
+<p><font face="courier" size="+1">translationMatrixV</font> &nbsp; (
+addr1 addr2 -- )
+Generates a translation matrix for the vector at addr1 and stores it at
+addr2.</p>
 <p><font face="courier" size="+1">rotationMatrix</font> ( angle axis
 addr -- ) Constructs rotation matrix for rotation by
 angle degrees about axis (0(x)-2(z), use constants below) and stores it
@@ -249,10 +295,23 @@ at addr.</p>
 <p><font face="courier" size="+1">xaxis</font> , <font face="courier"
  size="+1">yaxis</font> , <font face="courier" size="+1">zaxis </font>
 ( -- n1 ) Constants for use with rotationMatrix.</p>
-<p><font face="courier" size="+1">extractTranslationMatrix</font> ( addr1 addr2
--- ) Extracts translational component (matrix) of matrix at addr1 and stores it at addr2.</p>
-<p><font face="courier" size="+1">extractRotationMatrix</font> ( addr1 addr2
--- ) Extracts rotational component (matrix) of matrix at addr1 and stores it at addr2.</p>
+<p><font face="courier" size="+1">rotationMatrixV</font> &nbsp; ( x
+addr1 addr2 -- )
+Generates a rotation matrix for a rotation through angle x (degrees)
+about the vector
+at addr1 and stores it at addr2.</p>
+<p><font face="courier" size="+1">extractTranslation</font> &nbsp; (
+addr1 addr2 -- )
+Extracts the translation vector from the matrix at addr1 and stores it
+at addr2.</p>
+<p><font face="courier" size="+1">extractTranslationMatrix</font> (
+addr1 addr2
+-- ) Extracts translational component (matrix) of matrix at addr1 and
+stores it at addr2.</p>
+<p><font face="courier" size="+1">extractRotationMatrix</font> ( addr1
+addr2
+-- ) Extracts rotational component (matrix) of matrix at addr1 and
+stores it at addr2.</p>
 <p><font face="courier" size="+1">stack</font> &nbsp; ( -- ) Prints the
 contents of the stack to the
 standard error.</p>
@@ -260,6 +319,14 @@ standard error.</p>
 -- ) Empties the stack.</p>
 <p><font face="courier" size="+1">dataspace </font> ( -- ) Prints
 contents of dataspace.</p>
+<p><font face="courier" size="+1">printString </font> ( addr -- ) Prints
+string at addr.</p>
+<p><font face="courier" size="+1">printVector </font> ( addr -- ) Prints
+vector at addr.</p>
+<p><font face="courier" size="+1">printMatrix </font> ( addr -- ) Prints
+matrix at addr.</p>
+<p><font face="courier" size="+1">printArray </font> ( addr N -- ) Prints
+N-element array starting at addr.</p>
 <p><font size="+1"><b>The arPForthFilter PForth and
 the Event-filtering Vocabulary</b></font></p>
 <p>These are words for processing
@@ -287,10 +354,11 @@ up to three
 words; the more specific one comes first, e.g. <font face="courier">filter_button_0</font>
 gets called before <font face="courier">filter_all_buttons</font>.
 </p>
+<p>CHANGED (05/09/04)!!!!! The order described above has been <em>reversed</em>! The
+more generic words are now called first, <em>followed by</em> the more specific ones.</p>
 <p><font face="courier" size="+1">getCurrentEventIndex</font> ( -- n1)
 Places the index of the current event on the
-stack. Not particularly useful, as you implicitly know that already,
-but what the heck.</p>
+stack.</p>
 <p><font face="courier" size="+1">getCurrentEventButton</font> ( -- n1)
 If the current event is a button event, places
 the button value on the stack. If it's not a button event, it throws an
@@ -341,5 +409,50 @@ the event stream.</p>
 <p><font face="courier" size="+1">insertMatrixEvent</font> ( n1 addr --
 ) Creates a new matrix event with index n1 and value taken from the
 dataspace at addr and inserts it into the event stream.</p>
+<p><font size="+1"><b>The Syzygy Database Vocabulary</b></font></p>
+<p>The following words access the Syzygy database either explicitly or
+implicitly:</p>
+<p><font face="courier" size="+1">getStringParameter</font> ( addr1
+addr2 addr3 --
+) Uses the string at addr1 as the group name and the string at addr2 as
+the parameter name, and
+stores the returned value at add3. For example, if addr1 pointed to
+"SZG_SCREEN0" and addr2 pointed
+to "stereo", then after execution addr3 would point to either "true" or
+"false" (assuming it
+was set).</p>
+<p><font face="courier" size="+1">getFloatParameters</font> ( addr1
+addr2 n1 addr3 --
+) Uses the string at addr1 as the group name, the string at addr2 as
+the parameter name, and n1 as the number of values to expect. addr3
+should
+point to an array of the correct size to hold the parameters For
+example, if addr1 pointed to
+"SZG_SCREEN0" and addr2 pointed
+to "screen_center", then after executing "addr1 addr2 3 addr3
+getFloatParameters", the array at addr3 would contain the 3 elements
+of the screen center position.</p>
+<p><font size="+1"><b>Special-purpose Words</b></font></p>
+<p>These words can replace the two C++ filters in arTrackCalFilter.cpp:</p>
+<p><font face="courier" size="+1">initTrackerCalibration</font> ( --
+) Loads our position-correction lookup table for the MotionStar
+tracker. It reads the same database parameters as the C++ version
+(see szg/src/drivers/arTrackCalFilter.cpp): It looks for a file
+with the name specified by SZG_MOTIONSTAR/calib_file (on the path
+specified by SZG_DATA/path). The file format is the same also. After
+reading in the lookup table, it adds the following word to the directionary:</p>
+<p><font face="courier" size="+1">doTrackerCalibration</font> ( addr1 addr2 --
+) Reads an input matrix from addr1 and uses the lookup table to correct the
+positional components, then stores the result at addr2.</p>
+<p><font face="courier" size="+1">initIIRFilter</font> ( --
+) Initializes a positional IIR filter. It reads the same database parameters as the C++ version
+(see szg/src/drivers/arTrackCalFilter.cpp): It reads 3 floats
+specified by SZG_MOTIONSTAR/IIR_filter_weights (filter weights for x, y, and z),
+then adds the following word to the directionary:</p>
+<p><font face="courier" size="+1">doIIRFilter</font> ( addr1 addr2 --
+) Reads an input matrix from addr1 and applies an IIR filter the
+positional components, then stores the result at addr2. The filter is
+<font face="courier" size="+1">output[i] = (1-w)*input[i] + w*output[i-1]</font>, where
+output[i-1] denotes the output from the previous event.</p>
 </body>
 </html>

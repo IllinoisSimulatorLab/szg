@@ -127,6 +127,7 @@ arCamera* arViewport::getCamera(){
 
 // IT SEEMS LIKE THIS SHOULD GO AWAY... BEING FOLDED BACK IN TO THE
 // CAMERA....
+// No, I don't think so.
 void arViewport::setEyeSign(float eyeSign){
   _eyeSign = eyeSign;
 }

@@ -288,7 +288,7 @@ arMatrix4 ar_rotationMatrix(char axis, float r){
 arMatrix4 ar_rotationMatrix(const arVector3& a, float radians){
   const arVector3 axis = (++a) == 0 ? arVector3(1,0,0) : a;
   const arQuaternion
-    quaternion(cos(radians/2), (sin(radians/2)/(++axis))*axis);
+    quaternion(cos(radians/2.), (sin(radians/2.)/(axis.magnitude()))*axis);
   const arVector3 rotX(quaternion*arVector3(1,0,0));
   const arVector3 rotY(quaternion*arVector3(0,1,0));
   const arVector3 rotZ(quaternion*arVector3(0,0,1));
@@ -396,7 +396,7 @@ arVector3 ar_extractEulerAngles(const arMatrix4& m){
   const arMatrix4 theMatrix(!ar_extractRotationMatrix(m));
   // find the vector mapped to the z-axis
   arVector3 v(theMatrix * arVector3(0,0,1));
-  float magnitude = ++v;
+  float magnitude = v.magnitude();
   if (magnitude <= 0.) {
     cerr << "ar_extractEulerAngles warning: bogus matrix.\n";
     return arVector3(0,0,0);
@@ -407,7 +407,7 @@ arVector3 ar_extractEulerAngles(const arMatrix4& m){
   const arVector3 vyz(0.,v[1],v[2]);
   // first euler angle is determined by rotating vyz to the z-axis
   float rotX = ar_angleBetween(vyz,arVector3(0,0,1));
-  if (arVector3(1,0,0) % (vyz*arVector3(0,0,1)) < 0)
+  if (arVector3(1,0,0).dot(vyz*arVector3(0,0,1)) < 0)
     rotX = -rotX;
 
   // project the rotated vector to the xz plane, determine the angle with
@@ -543,8 +543,14 @@ arMatrix4 ar_rotateVectorToVector( const arVector3& vec1, const arVector3& vec2 
   }
   const arVector3 rotAxis = vec1 * vec2;
   const float mag = rotAxis.magnitude();
-  if (mag==0.)
-    return ar_identityMatrix();
+  if (mag==0.) {
+    if (vec1.dot(vec2) < 0.) {
+      // cheat
+      return ar_scaleMatrix(-1.);
+    } else {
+      return ar_identityMatrix();
+    }
+  }
   return ar_rotationMatrix(rotAxis/mag, acos((vec1/mag1) % (vec2/mag2)));
 }
 

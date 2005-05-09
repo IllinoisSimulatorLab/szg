@@ -117,6 +117,7 @@ bool arPForthFilter::configure(const string& progText ) {
     return true;
   }
 
+  cout << "arPForthFilter remark: program text = \n" << progText << endl;
   if (!_pforth.compileProgram( progText )) {
     cerr << "arPForthFilter warning: failed to compile " 
          << "program with text:\n\n" << progText << endl 
@@ -187,6 +188,11 @@ bool arPForthFilter::configure(const string& progText ) {
 }
 
 // Return false iff program exists, yet fails to run.
+//CHANGE WARNING! I originally set it up so that the more specific filters
+//(e.g. filter_button_0) were run _before_ the more generic ones (e.g. filter_all_buttons).
+//I have since decided this was a bad thing to do, and have reversed the order.
+//Now filter_all_events comes _first_, followed by e.g. filter_all_buttons, followed by
+//e.g. filter_button_0.
 bool arPForthFilter::_processEvent( arInputEvent& inputEvent ) {
   if (!_valid)
     return true;
@@ -196,36 +202,36 @@ bool arPForthFilter::_processEvent( arInputEvent& inputEvent ) {
 
   static std::vector< arPForthProgram* > programs;
   programs.clear();
+  if (_allEventsFilterProgram) {
+    programs.push_back( _allEventsFilterProgram );
+  }
   const int eventType = inputEvent.getType();
   switch (eventType) {
     case AR_EVENT_BUTTON:
+      if (_allButtonsFilterProgram)
+        programs.push_back( _allButtonsFilterProgram );
       if (i < _buttonFilterPrograms.size())
         if (_buttonFilterPrograms[i])
           programs.push_back( _buttonFilterPrograms[i] );
-      if (_allButtonsFilterProgram)
-        programs.push_back( _allButtonsFilterProgram );
       break;
     case AR_EVENT_AXIS:
+      if (_allAxesFilterProgram)
+        programs.push_back( _allAxesFilterProgram );
       if (i < _axisFilterPrograms.size())
         if (_axisFilterPrograms[i])
           programs.push_back( _axisFilterPrograms[i] );
-      if (_allAxesFilterProgram)
-        programs.push_back( _allAxesFilterProgram );
       break;
     case AR_EVENT_MATRIX:
+      if (_allMatricesFilterProgram)
+        programs.push_back( _allMatricesFilterProgram );
       if (i < _matrixFilterPrograms.size())
         if (_matrixFilterPrograms[i])
           programs.push_back( _matrixFilterPrograms[i] );
-      if (_allMatricesFilterProgram)
-        programs.push_back( _allMatricesFilterProgram );
       break;
     default:
       cerr << _progName << " warning: ignoring event with unexpected type "
            << eventType << endl;
       return true;
-  }
-  if (_allEventsFilterProgram) {
-    programs.push_back( _allEventsFilterProgram );
   }
   std::vector< arPForthProgram* >::iterator iter;
   for (iter = programs.begin(); iter != programs.end(); ++iter) {

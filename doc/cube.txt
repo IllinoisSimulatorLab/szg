@@ -36,82 +36,95 @@
 <value>
   <szg_device>
     <input_sources> arMotionstarDriver </input_sources>
-    <input_sinks></input_sinks>
-    <input_filters> arTrackCalFilter </input_filters>
     <pforth>
+        initTrackerCalibration
+        initIIRFilter
+
+        /* rotate & remap positional coordinates and rotate orientation by 135 degrees around Y */
+        vector position
+        matrix yTransRotMatrix
+        -45. yaxis yTransRotMatrix rotationMatrix
+
+        vector oldLo
+        vector oldHi
+        vector newLo
+        vector newHi
+        1.2 -5. 1.2  oldLo vectorStore
+        10.4 5. 10.4 oldHi vectorStore
+        -5.  0. -5.  newLo vectorStore
+        5.   10. 5.  newHi vectorStore
+
+        vector oldRange
+        vector newRange
+        oldHi oldLo 3 oldRange arraySubtract
+        newHi newLo 3 newRange arraySubtract
+
+        vector newOldRatio
+        newRange oldRange 3 newOldRatio arrayDivide
+
+        vector position
+
+        define rescale_position
+          position oldLo 3 position arraySubtract
+          position newOldRatio 3 position arrayMultiply
+          position newLo 3 position arrayAdd
+        enddef
+
+        matrix yRotMatrix
+        -135 yaxis yRotMatrix rotationMatrix
+
 	matrix inputMatrix
-	matrix outputMatrix
-	matrix correctYRotMatrix
+        matrix rotMatrix
+        matrix transMatrix
+
+        define remap_coords
+          inputMatrix position extractTranslation
+          /* extract translation, rotate it by 45 degrees about y, y = 5+y */
+          yTransRotMatrix position position vectorTransform
+          rescale_position
+          position transMatrix translationMatrixV
+          inputMatrix rotMatrix extractRotationMatrix
+          yRotMatrix rotMatrix rotMatrix matrixMultiply
+          transMatrix rotMatrix inputMatrix matrixMultiply
+          inputMatrix inputMatrix doTrackerCalibration
+        enddef
+
+        /* fix rotational matrix components (different for different sensors) */
 	matrix headZRotMatrix
 	matrix wandZRotMatrix
-	matrix correctHeadRotMatrix
-	matrix correctWandRotMatrix
-        matrix transMatrix
-        matrix rotMatrix
-	6 yaxis correctYRotMatrix rotationMatrix
+        matrix wandTweakMatrix
+
+        /* head sensor is mounted sideways */
 	-90 zaxis headZRotMatrix rotationMatrix
+        /* wand sensor is mounted upside-down */
 	-180 zaxis wandZRotMatrix rotationMatrix
-	headZRotMatrix correctYRotMatrix correctHeadRotMatrix matrixMultiply
-	wandZRotMatrix correctYRotMatrix correctWandRotMatrix matrixMultiply
+        /* wand sensor points upwards by about 20 degrees with gamepad held
+           subjectively level (actually tilted up slightly, but it feels right) */
+        -20. xaxis wandTweakMatrix rotationMatrix
+        matrix wandRotMatrix
+        wandZRotMatrix wandTweakMatrix wandRotMatrix matrixMultiply
+
 	define filter_matrix_0
 	  inputMatrix getCurrentEventMatrix
-	  inputMatrix correctHeadRotMatrix outputMatrix matrixMultiply
-	  outputMatrix setCurrentEventMatrix
+          remap_coords
+          /* apply IIR filter to head only (usually to y only) */
+          inputMatrix inputMatrix doIIRFilter
+	  inputMatrix headZRotMatrix inputMatrix matrixMultiply
+	  inputMatrix setCurrentEventMatrix
 	enddef
+
 	define filter_matrix_1
 	  inputMatrix getCurrentEventMatrix
-	  inputMatrix correctWandRotMatrix outputMatrix matrixMultiply
-	  outputMatrix setCurrentEventMatrix
+          remap_coords
+	  inputMatrix wandRotMatrix inputMatrix matrixMultiply
+	  inputMatrix setCurrentEventMatrix
 	enddef
+
     </pforth>
   </szg_device>
 </value>
 </param>
 
-<param>
-<name> expt_cube_tracker </name>
-<value>
-  <szg_device>
-    <input_sources> arMotionstarDriver </input_sources>
-    <input_sinks></input_sinks>
-    <input_filters> arTrackCalFilter </input_filters>
-    <pforth>
-      matrix inputMatrix
-      matrix outputMatrix
-      matrix correctXRotMatrix1
-      matrix correctXRotMatrix2
-      matrix correctYRotMatrix
-      matrix headZRotMatrix
-      matrix wandZRotMatrix
-      matrix correctHeadRotMatrix
-      matrix correctWandRotMatrix
-      -15 0 correctXRotMatrix1 rotationMatrix
-      30 0 correctXRotMatrix2 rotationMatrix
-      -2 1 correctYRotMatrix rotationMatrix
-      -90 2 headZRotMatrix rotationMatrix
-      -180 2 wandZRotMatrix rotationMatrix
-      headZRotMatrix correctYRotMatrix correctHeadRotMatrix matrixMultiply
-      wandZRotMatrix correctYRotMatrix correctWandRotMatrix matrixMultiply
-      define filter_matrix_0
-        inputMatrix getCurrentEventMatrix
-        inputMatrix correctHeadRotMatrix outputMatrix matrixMultiply
-        outputMatrix setCurrentEventMatrix
-      enddef
-      define filter_matrix_1
-        inputMatrix getCurrentEventMatrix
-        inputMatrix correctWandRotMatrix outputMatrix matrixMultiply
-        outputMatrix setCurrentEventMatrix
-      enddef
-      define filter_matrix_2
-        inputMatrix getCurrentEventMatrix
-        inputMatrix correctXRotMatrix2 outputMatrix matrixMultiply
-        outputMatrix setCurrentEventMatrix
-        1 setCurrentEventIndex
-      enddef
-    </pforth>
-  </szg_device>
-</value>
-</param>
 
 <comment>
 PLEASE NOTE: wandsimserver is a HACK so far. And is treated differently than

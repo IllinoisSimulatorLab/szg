@@ -12,7 +12,7 @@
 #include "arDataUtilities.h"
 #include "arReactionTimerDriver.h"
 
-#define DEBUG
+#define RTDEBUG
 
 // The methods used by the dynamic library mappers. 
 // NOTE: These MUST have "C" linkage!
@@ -26,7 +26,8 @@ extern "C"{
   }
 }
 
-const std::string RT_AWAKE = "!";
+//const std::string RT_AWAKE = "!";
+const char RT_AWAKE = '!';
 double RT_TIMEOUT = 10.;
 const unsigned int BUF_SIZE = 4096;
 
@@ -127,13 +128,22 @@ bool arReactionTimerDriver::_processInput() {
     }
     std::string messageString( _bufString.substr( 0, crpos ) );
     _bufString.erase( 0, crpos+2 );
-    if (messageString != RT_AWAKE) {
+    if (messageString[0] == RT_AWAKE) {
+#ifdef RTDEBUG
+      if (messageString.size() > 1) {
+        cout << "+++++++++++++++++\nDEBUG: " << messageString << "\n++++++++++++++++++\n";
+      }
+#endif
+    } else {
       arDelimitedString inputString( messageString, '|' );
       if (inputString.size() != 3) {
         cerr << "arReactionTimerDriver warning: ill-formed input string:\n"
              << "     " << inputString << endl;
         continue;
       }
+#ifdef RTDEBUG
+    cout << "---------------------------------------\n";
+#endif
 
       // NOTE: rtDuration is currently encoded as a whole number of msecs.
       int rtDuration;
@@ -153,8 +163,8 @@ bool arReactionTimerDriver::_processInput() {
       istringstream b1Stream( inputString[2] );
       b1Stream >> button1;
 
-#ifdef DEBUG
-      cerr << inputString << ": " << rtDuration << ", " << button0 << ", " << button1 << endl;
+#ifdef RTDEBUG
+      cout << "Input: " << inputString << ": " << rtDuration << ", " << button0 << ", " << button1 << endl;
 //      cerr << "RT: '" << inputString[0] << "', " << rtDuration << endl;
 //      cerr << "Button 0: '" << inputString[1] << "', " << button0 << endl;
 //      cerr << "Button 1: '" << inputString[2] << "', " << button1 << endl;
@@ -164,8 +174,8 @@ bool arReactionTimerDriver::_processInput() {
         _rtTimer.reset();
         _rtTimer.start();
         _rtTimer.setRuntime( rtDuration*1.e3 );
-#ifdef DEBUG
-        cerr << "Setting runtime to " << rtDuration*1.e3 << " microsecs.\n";
+#ifdef RTDEBUG
+        cout << "Setting runtime to " << rtDuration*1.e3 << " microsecs.\n";
 #endif
       }
       if (button0 != lastb0) {
@@ -173,8 +183,8 @@ bool arReactionTimerDriver::_processInput() {
           queueAxis( 0, _rtTimer.runningTime()/1.e3 );
         queueButton( 0, button0 );
         lastb0 = button0;
-#ifdef DEBUG
-        cerr << _rtTimer.runningTime()/1.e3 << endl;
+#ifdef RTDEBUG
+        cout << "RT 0: " <<_rtTimer.runningTime()/1.e3 << endl;
 #endif
       }
       if (button1 != lastb1) {
@@ -182,12 +192,15 @@ bool arReactionTimerDriver::_processInput() {
           queueAxis( 1, _rtTimer.runningTime()/1.e3 );
         queueButton( 1, button1 );
         lastb1 = button1;
-#ifdef DEBUG
-        cerr << _rtTimer.runningTime()/1.e3 << endl;
+#ifdef RTDEBUG
+        cout << "RT 1: " << _rtTimer.runningTime()/1.e3 << endl;
 #endif
       }
       sendQueue();
       lastrt = rtDuration;
+#ifdef RTDEBUG
+    cout << "---------------------------------------\n";
+#endif
     }
   } while (crpos != std::string::npos);
   return true;

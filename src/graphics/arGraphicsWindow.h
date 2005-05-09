@@ -99,6 +99,7 @@ class SZG_CALL arGraphicsWindow {
     arGraphicsWindow( const arGraphicsWindow& x );
     arGraphicsWindow& operator=( const arGraphicsWindow& x );
     void _renderPass( GLenum oglDrawBuf );
+    void _applyColorFilter();
     bool _configureCustomViewport( const std::string& screenName, arSZGClient& client, bool masterViewport=false );
     void _addViewportNoLock( const arViewport& );
     bool _setViewModeNoLock( const std::string& viewModeString );
@@ -106,6 +107,9 @@ class SZG_CALL arGraphicsWindow {
     arCamera* _setCameraNoLock( arCamera* cam );
 
     bool             _useOGLStereo;
+    bool             _useColorFilter;
+    arVector3        _colorScaleFactors;
+    arVector4        _contrastFilterParameters;
     std::vector<arViewport> _viewportVector;
     arMutex _viewportLock;
     arWindowInitCallback* _initCallback;

@@ -308,16 +308,16 @@ int main(int argc, char** argv){
        iter != nodeConfig.inputFilters.end(); iter++){
     arIOFilter* theFilter = NULL;
     // A dynamically loaded library
-    arSharedLib* inputFilterObject = new arSharedLib();
+    arSharedLib* inputFilterSharedLib = new arSharedLib();
     string error;
-    if (!inputFilterObject->createFactory(*iter, execPath, 
+    if (!inputFilterSharedLib->createFactory(*iter, execPath, 
                                           "arIOFilter", error)){
       initResponse << error;
       SZGClient.sendInitResponse(false);
       return 1;
     }
     // Can create our object.
-    theFilter = (arIOFilter*) inputFilterObject->createObject();
+    theFilter = (arIOFilter*) inputFilterSharedLib->createObject();
     if (!theFilter) {
       initResponse << "DeviceServer error: failed to create input filter.\n";
       SZGClient.sendInitResponse(false);

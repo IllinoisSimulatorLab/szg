@@ -68,7 +68,6 @@ class arMotionstarDriver: public arInputSource {
 
   // HACK: remap birds in the absence of the general solution
   int _numberRemaps;
-  int _remapArray[32];
   
   bool _useButton;
   int _lastButtonValue;
@@ -87,8 +86,6 @@ class arMotionstarDriver: public arInputSource {
   void _parseData(BN_PACKET*);
   void _generateEvent(int);
   void _generateButtonEvent(int);
-  void _tweak();
-  float _degtorad(float);
 };
 
 #endif

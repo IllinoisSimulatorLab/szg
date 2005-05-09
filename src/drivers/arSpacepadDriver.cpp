@@ -231,7 +231,7 @@ LAbort:
 			       0,0,0,1);
 
   // Transform the translation matrix into syzygy coordinates.
-  arVector3 transVector(!switchMatrix *
+  arVector3 transVector(switchMatrix.inverse() *
     arVector3(values[0], values[1], values[2]));
   const arMatrix4 transMatrix(1,0,0,transVector[0],
 	                      0,1,0,transVector[1],
@@ -247,7 +247,7 @@ LAbort:
   // Finally, note how we do calibration with transmitter offset and sensor
   // rotation.
   return _transmitterOffset
-         *transMatrix*!switchMatrix*!rotMatrix*switchMatrix
+         *transMatrix*switchMatrix.inverse()*rotMatrix.inverse()*switchMatrix
          *ar_rotationMatrix('y',ar_convertToRad(-90))*_sensorRot[sensorID-1];
 }
    

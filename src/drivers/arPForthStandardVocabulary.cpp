@@ -363,6 +363,74 @@ bool VecScalarMultiply::run( arPForth* pf ) {
   return true;
 }
 
+class AddArrays : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool AddArrays::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long address3 = (long)pf->stackPop();
+  long num =      (long)pf->stackPop();
+  long address2 = (long)pf->stackPop();
+  long address1 = (long)pf->stackPop();
+  for (long i=0; i<num; ++i) {
+    pf->putDataValue( address3+i, pf->getDataValue( address1+i )+pf->getDataValue( address2+i ) );
+  }
+  return true;
+}
+
+class SubArrays : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool SubArrays::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long address3 = (long)pf->stackPop();
+  long num =      (long)pf->stackPop();
+  long address2 = (long)pf->stackPop();
+  long address1 = (long)pf->stackPop();
+  for (long i=0; i<num; ++i) {
+    pf->putDataValue( address3+i, pf->getDataValue( address1+i )-pf->getDataValue( address2+i ) );
+  }
+  return true;
+}
+
+class MultArrays : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool MultArrays::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long address3 = (long)pf->stackPop();
+  long num =      (long)pf->stackPop();
+  long address2 = (long)pf->stackPop();
+  long address1 = (long)pf->stackPop();
+  for (long i=0; i<num; ++i) {
+    pf->putDataValue( address3+i, pf->getDataValue( address1+i )*pf->getDataValue( address2+i ) );
+  }
+  return true;
+}
+
+class DivArrays : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool DivArrays::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long address3 = (long)pf->stackPop();
+  long num =      (long)pf->stackPop();
+  long address2 = (long)pf->stackPop();
+  long address1 = (long)pf->stackPop();
+  for (long i=0; i<num; ++i) {
+    pf->putDataValue( address3+i, pf->getDataValue( address1+i )/pf->getDataValue( address2+i ) );
+  }
+  return true;
+}
+
 class Multiply : public arPForthAction {
   public:
     virtual bool run( arPForth* pf );
@@ -425,6 +493,49 @@ bool DataspacePrint::run( arPForth* pf ) {
   return true;
 }
 
+class ArrayPrint : public arPForthAction {
+  public:
+  bool run( arPForth* pf );
+};
+bool ArrayPrint::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long num = (long)pf->stackPop();
+  long address1 = (long)pf->stackPop();
+  for (long i=0; i<num; ++i) {
+    cout << pf->getDataValue( address1+i ) << " ";
+  }
+  cout << endl;
+  return true;
+}
+
+class VectorPrint : public arPForthAction {
+  public:
+  bool run( arPForth* pf );
+};
+bool VectorPrint::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long address1 = (long)pf->stackPop();
+  for (long i=0; i<3; ++i) {
+    cout << pf->getDataValue( address1+i ) << " ";
+  }
+  cout << endl;
+  return true;
+}
+
+class MatrixPrint : public arPForthAction {
+  public:
+  bool run( arPForth* pf );
+};
+bool MatrixPrint::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long address = (long)pf->stackPop();
+  cout << pf->getDataMatrix( address ) << endl;
+  return true;
+}
+
 class StringspacePrint : public arPForthAction {
   public:
   bool run( arPForth* pf );
@@ -483,10 +594,11 @@ class TranslationMatrixFromVector : public arPForthAction {
 bool TranslationMatrixFromVector::run( arPForth* pf ) {
   if (pf == 0)
     return false;
-  long address = (long)pf->stackPop();
+  long address2 = (long)pf->stackPop();
+  long address1 = (long)pf->stackPop();
   arVector3 V;
-  pf->getDataArray( address, V.v, 3 );
-  pf->putDataMatrix( address, ar_translationMatrix( V ) );
+  pf->getDataArray( address1, V.v, 3 );
+  pf->putDataMatrix( address2, ar_translationMatrix( V ) );
   return true;
 }
   
@@ -503,6 +615,22 @@ bool RotationMatrix::run( arPForth* pf ) {
   if ((axis < 0)||(axis > 2))
     throw arPForthException("illegal rotation axis, must be 0(x)-2(z).");
   pf->putDataMatrix( address, ar_rotationMatrix( 'x'+axis, angle ) );
+  return true;
+}
+
+class RotationMatrixV : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool RotationMatrixV::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long outAddress = (long)pf->stackPop();
+  long axisAddress = (long)pf->stackPop();
+  float angle = ar_convertToRad( pf->stackPop() );
+  arVector3 V;
+  pf->getDataArray( axisAddress, V.v, 3 );
+  pf->putDataMatrix( outAddress, ar_rotationMatrix( V, angle ) );
   return true;
 }
 
@@ -547,7 +675,44 @@ bool ExtractRotationMatrix::run( arPForth* pf ) {
   pf->putDataMatrix( outAddress, result );
   return true;
 }
+
+class ExtractEulerAngles : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool ExtractEulerAngles::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long outAddress = (long)pf->stackPop();
+  long inAddress = (long)pf->stackPop();
+  arVector3 result( ar_extractEulerAngles( pf->getDataMatrix( inAddress ) ) );
+  for (unsigned int i=0; i<3; ++i) {
+    result.v[i] = ar_convertToDeg(result.v[i]);
+  }
+  pf->putDataArray( outAddress, result.v, 3 );
+  return true;
+}
   
+class RotationMatrixFromEulerAngles : public arPForthAction {
+  public:
+    virtual bool run( arPForth* pf );
+};
+bool RotationMatrixFromEulerAngles::run( arPForth* pf ) {
+  if (pf == 0)
+    return false;
+  long outAddress = (long)pf->stackPop();
+  long inAddress = (long)pf->stackPop();
+  arVector3 V;
+  pf->getDataArray( inAddress, V.v, 3 );
+  arMatrix4 result(
+    ar_rotationMatrix('y',  ar_convertToRad(V.v[0])) *
+    ar_rotationMatrix('x',  ar_convertToRad(V.v[1])) *
+    ar_rotationMatrix('z',  ar_convertToRad(V.v[2]))
+    );
+  pf->putDataMatrix( outAddress, result );
+  return true;
+}
+
 class InverseMatrix : public arPForthAction {
   public:
     virtual bool run( arPForth* pf );
@@ -674,24 +839,36 @@ bool StringCompiler::compile( arPForth* pf,
     throw arPForthException("word " + theName + " already in dictionary.");
   unsigned long address;
   address = pf->allocateString();
-  std::string theWord = pf->peekNextWord();
-  if (theWord != "endstring") {
-    theWord = pf->nextWord();
-    std::string theString;
-    bool firstWord = true;
-    while ((theWord = pf->nextWord()) != "endstring") {
-      if (theWord == "PFORTH_NULL_WORD")
-        throw arPForthException("end of input reached in string constant.");
-      if (!firstWord)
-        theString = theString + " ";
-      theString = theString + theWord;
-      firstWord = false;
-    }
-//cerr << "String: " << theString << endl;
-    pf->putString( address, theString );
-  } else {
-    theWord = pf->nextWord();
+  std::string theString;
+  std::string theWord;
+  bool firstWord = true;
+  while ((theWord = pf->nextWord()) != "endstring") {
+    if (theWord == "PFORTH_NULL_WORD")
+      throw arPForthException("end of input reached in string constant.");
+    if (!firstWord)
+      theString = theString + " ";
+    theString = theString + theWord;
+    firstWord = false;
   }
+  pf->putString( address, theString );
+//  std::string theWord = pf->peekNextWord();
+//  if (theWord != "endstring") {
+//    theWord = pf->nextWord();
+//    std::string theString;
+//    bool firstWord = true;
+//    while ((theWord = pf->nextWord()) != "endstring") {
+//      if (theWord == "PFORTH_NULL_WORD")
+//        throw arPForthException("end of input reached in string constant.");
+//      if (!firstWord)
+//        theString = theString + " ";
+//      theString = theString + theWord;
+//      firstWord = false;
+//    }
+//cerr << "String: " << theString << endl;
+//    pf->putString( address, theString );
+//  } else {
+//    theWord = pf->nextWord();
+//  }
   arPForthAction* action = new FetchNumber( (float)address );
   pf->addAction( action );
   arPForthCompiler* compiler = new SimpleCompiler( action );
@@ -718,11 +895,58 @@ bool CommentCompiler::compile( arPForth* pf,
   return true;
 }
 
+// Compiler for words that allocate a single cell 
+// in the dataspace (determined by constructor arg)
+// and initialize it with a value off the stack.
+// Note that unlike a variable, the new word returns
+// the _value_ passed at compilation time, not and
+// address.
+class ConstantCompiler : public arPForthCompiler {
+  private:
+    unsigned long _size;
+  public:
+    ConstantCompiler() {}
+    virtual ~ConstantCompiler() {}
+    virtual bool compile( arPForth* pf,
+                  vector<arPForthSpace::arPForthAction*>& actionList );
+};
+bool ConstantCompiler::compile( arPForth* pf,
+                               vector<arPForthSpace::arPForthAction*>& /*actionList*/ ) {
+  if (pf == 0)
+    return false;
+  string theName = pf->nextWord();
+  if (theName == "PFORTH_NULL_WORD")
+    throw arPForthException("end of input reached prematurely.");
+  if (pf->findWord( theName ))
+    throw arPForthException("word " + theName + " already in dictionary.");
+  string theValue = pf->nextWord();
+  if (theValue == "PFORTH_NULL_WORD")
+    throw arPForthException("end of input reached prematurely.");
+  double theDouble;
+  float theFloat;
+  if (!ar_stringToDoubleValid( theValue, theDouble ))
+    throw arPForthException("string->float conversion failed.");
+  if (!ar_doubleToFloatValid( theDouble, theFloat ))
+    throw arPForthException("string->float conversion failed.");
+  arPForthAction* action = new FetchNumber( theFloat );
+  pf->addAction( action );
+  arPForthCompiler* compiler = new SimpleCompiler( action );
+  pf->addCompiler( compiler );
+  return pf->addDictionaryEntry( arPForthDictionaryEntry( theName, compiler ));
+}
+
+
 bool ar_PForthAddStandardVocabulary( arPForth* pf ) {
   arPForthCompiler* compiler;
   
   // A few words with compile-time behaviors
   
+  compiler = new ConstantCompiler();
+  if (compiler==0)
+    return false;
+  pf->addCompiler( compiler );
+  if (!pf->addDictionaryEntry( arPForthDictionaryEntry( "constant", compiler ) ))
+    return false;
   compiler = new VariableCompiler(1);
   if (compiler==0)
     return false;
@@ -833,6 +1057,8 @@ bool ar_PForthAddStandardVocabulary( arPForth* pf ) {
     return false; 
   if (!pf->addSimpleActionWord( "vectorScale", new VecScalarMultiply() ))
     return false; 
+  if (!pf->addSimpleActionWord( "vectorTransform", new MatVecMultiply() ))
+    return false; 
   if (!pf->addSimpleActionWord( "translationMatrixV", new TranslationMatrixFromVector() ))
     return false; 
   if (!pf->addSimpleActionWord( "extractTranslation", new ExtractTranslationVector() ))
@@ -853,11 +1079,25 @@ bool ar_PForthAddStandardVocabulary( arPForth* pf ) {
     return false;  
   if (!pf->addSimpleActionWord( "rotationMatrix", new RotationMatrix() ))
     return false;  
+  if (!pf->addSimpleActionWord( "rotationMatrixV", new RotationMatrixV() ))
+    return false;  
+  if (!pf->addSimpleActionWord( "rotationMatrixEuler", new RotationMatrixFromEulerAngles() ))
+    return false;  
   if (!pf->addSimpleActionWord( "extractTranslationMatrix", new ExtractTranslationMatrix() ))
     return false;  
   if (!pf->addSimpleActionWord( "extractRotationMatrix", new ExtractRotationMatrix() ))
     return false;  
+  if (!pf->addSimpleActionWord( "extractEulerAngles", new ExtractEulerAngles() ))
+    return false;  
   if (!pf->addSimpleActionWord( "inverseMatrix", new InverseMatrix() ))
+    return false;  
+  if (!pf->addSimpleActionWord( "arrayAdd", new AddArrays() ))
+    return false;  
+  if (!pf->addSimpleActionWord( "arraySubtract", new SubArrays() ))
+    return false;  
+  if (!pf->addSimpleActionWord( "arrayMultiply", new MultArrays() ))
+    return false;  
+  if (!pf->addSimpleActionWord( "arrayDivide", new DivArrays() ))
     return false;  
   if (!pf->addSimpleActionWord( "xaxis", new FetchNumber(0) ))
     return false;
@@ -874,6 +1114,12 @@ bool ar_PForthAddStandardVocabulary( arPForth* pf ) {
   if (!pf->addSimpleActionWord( "stringspace", new StringspacePrint() ))
     return false;
   if (!pf->addSimpleActionWord( "printString", new StringPrint() ))
+    return false;
+  if (!pf->addSimpleActionWord( "printArray", new ArrayPrint() ))
+    return false;
+  if (!pf->addSimpleActionWord( "printMatrix", new MatrixPrint() ))
+    return false;
+  if (!pf->addSimpleActionWord( "printVector", new VectorPrint() ))
     return false;
   return true;
 }    
