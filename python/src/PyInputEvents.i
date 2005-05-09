@@ -27,7 +27,8 @@ class arInputEvent {
     void setIndex( const unsigned int i );
     bool setButton( const unsigned int b );
     bool setAxis( const float a );
-    bool setMatrix( const float* v );
+    // SWIG cant handle having both of these setMatrix() signatures.
+//    bool setMatrix( const float* v );
     bool setMatrix( const arMatrix4& m );
     void trash();
     void zero();
