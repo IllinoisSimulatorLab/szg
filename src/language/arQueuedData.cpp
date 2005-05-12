@@ -94,13 +94,13 @@ void arQueuedData::forceQueueData(arStructuredData* theData){
   int currentStorageDimension 
     = _backBuffer->getStorageDimension(BUFFER);
   if (actualSize > currentStorageDimension){
-    currentStorageDimension*= 2;
+    currentStorageDimension *= 2;
     if (currentStorageDimension < actualSize)
       currentStorageDimension = actualSize;
     // WHY DOESN't setStorageDimension work here? THIS MIGHT BE A BUG!
     _backBuffer->setDataDimension(BUFFER, currentStorageDimension);
-    cerr << "arQueuedData remark: _maxBufferSize increased to "
-         << currentStorageDimension << ".\n";
+//  cerr << "arQueuedData remark: _maxBufferSize increased to "
+//       << currentStorageDimension << ".\n";
   }
 
   ARchar* bufferPtr = (ARchar*) _backBuffer->getDataPtr(BUFFER,AR_CHAR);

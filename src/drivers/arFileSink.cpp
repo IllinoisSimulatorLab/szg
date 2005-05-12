@@ -24,7 +24,7 @@ arFileSink::~arFileSink(){
 bool arFileSink::init(arSZGClient& SZGClient){
   const string& temp = SZGClient.getAttribute("SZG_DATA","path");
   if (temp != "NULL"){
-    cout << "arFileSink remark: will write to path " << temp << ".\n";
+    cout << "arFileSink remark: writing to path " << temp << ".\n";
     _dataFilePath = temp;
   }
   else{

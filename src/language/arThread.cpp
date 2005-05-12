@@ -239,11 +239,12 @@ bool arThread::beginThread(void (*threadFunction)(void*),void* parameter){
   _threadID = _beginthread(threadFunction,0,parameter);
   if (_threadID < 0)
     {
-    cerr << "arThread error: _beginthread failed.\n";
+    cerr << "arThread error: _beginthread failed";
     if (errno == EAGAIN)
-      cerr << "  ...too many threads.\n";
+      cerr << ", too many threads.\n";
     else if (errno == EINVAL)
-      cerr << "  ...invalid argument, win32 claims.\n";
+      cerr << ", invalid argument.\n";
+    cerr << "\n";
     return false;
     }
 

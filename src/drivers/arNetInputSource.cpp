@@ -24,7 +24,7 @@ void arNetInputSource::_dataTask(){
       _clientInitialized = true;
     }
     else{
-      // need to check to see if the server has been reconfigured
+      // has the server has been reconfigured?
       // this can happen after the connection has occured, for instance
       // with an server that is the composite of several devices
       if (sig[0] != _numberButtons ||
@@ -58,20 +58,21 @@ void ar_netInputSourceConnectionTask(void* inputClient){
     arPhleetAddress result =
       i->_client->discoverService(serviceName, networks, true);
     if (!result.valid){
-      cout << "arNetInputSource warning: "
-           << "invalid result from service discovery.\n";
-      // try again
+      cerr << "arNetInputSource warning: no service \""
+	   << serviceName << "\" on network \""
+           << networks << "\".\n";
       continue;
     }
     // we know there is exactly one port for this service
     if (!i->_dataClient.dialUpFallThrough(result.address, result.portIDs[0])){
       cerr << "arNetInputSource warning: "
-           << "failed to connect to server at "
-	   << result.address << ":" << result.portIDs[0]
-	   << ", retrying.\n";
+           << "retrying connection to service "
+	   << serviceName << " at "
+	   << result.address << ":" << result.portIDs[0] << ".\n";
       continue;
     }
-    cout << "arNetInputSource remark: connected to server at "
+    cout << "arNetInputSource remark: connected to service "
+         << serviceName << " at "
 	 << result.address << ":" << result.portIDs[0] << ".\n";
     i->_clientConnected = true;
     ar_usleep(100000);
@@ -110,7 +111,7 @@ void arNetInputSource::setSlot(int slot){
 }
 
 bool arNetInputSource::init(arSZGClient& SZGClient){
-  // initially, the are no device elements, since we have nothing attached...
+  // no device elements, since nothing's attached yet
   _setDeviceElements(0,0,0);
   // this does not do much now that we are relying on 
   // connection brokering instead of
@@ -133,7 +134,6 @@ bool arNetInputSource::start(){
 }
 
 bool arNetInputSource::stop(){
-  // does nothing yet!
   return true;
 }
 

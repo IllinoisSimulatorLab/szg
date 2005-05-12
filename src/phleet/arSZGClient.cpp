@@ -222,18 +222,18 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
     // we are indeed trying to force the name. Go ahead and print out a 
     // warning, though, if there is a difference.
     if (forcedName != _exeName){
-      cout << _exeName << " warning: trying to force a component name\n"
-	   << "different from the executable name (undesirable except in Windows 98).\n";
+      cerr << _exeName << " warning: forcing a component name\n"
+	   << "different from the exe name (desirable only in Win98).\n";
     }
     _setLabel(forcedName); // tell the szgserver our name
   }
 
-  // we need to pack the init stream and the start stream with headers
+  // pack the init stream and the start stream with headers
   _initResponseStream << _generateLaunchInfoHeader();
   _startResponseStream << _generateLaunchInfoHeader();
 
-  // now, it's time to do the handshaking with "dex", if such is required
   if (_dexHandshaking){
+    // Shake hands with dex.
     // regardless of whether we are on Unix or Win32, we need to begin
     // responding to the execute message, if it was passed-through dex
     // this lets dex know that the executable did, indeed, launch.
@@ -245,7 +245,7 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
     // ownership trade. Perhaps we were late starting and the szgd has
     // already decided that we won't actually launch.
     if (!_launchingMessageID){
-      cerr << _exeName << " error: failed to get message ownership, "
+      cerr << _exeName << " error: failed to own message, "
 	   << "despite appearing to have been launched by szgd.\n";
       return false;
     }
@@ -258,7 +258,7 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
                            _exeName + string(" launched.\n"),
                            !_simpleHandshaking)){
         cerr << _exeName
-	     << " warning: failed to send message response during launch.\n";
+	     << " warning: response failed during launch.\n";
       }
     }
   }
@@ -276,16 +276,15 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
 
 /// Common core of sendInitResponse() and sendStartResponse().
 bool arSZGClient::_sendResponse(stringstream& s, const char* sz,
-                                bool state, bool state2) {
+                                bool ok, bool fNotFinalMessage) {
   // Append a standard success or failure message to the stream.
-  s << _exeName << " component " << sz << (state ? " ok.\n" : " failed.\n");
+  s << _exeName << " component " << sz << (ok ? " ok.\n" : " failed.\n");
 
   if (_dexHandshaking && !_simpleHandshaking){
-    // Another message to dex.  state2 is false iff it's the final message.
-    if (!messageResponse(_launchingMessageID, s.str(), state2)){
+    // Another message to dex.
+    if (!messageResponse(_launchingMessageID, s.str(), fNotFinalMessage)){
       cerr << _exeName
-	   << " warning: failed to send message response during "
-	   << sz << ".\n";
+	   << " warning: response failed during " << sz << ".\n";
       return false;
     }
   }
@@ -302,16 +301,16 @@ bool arSZGClient::_sendResponse(stringstream& s, const char* sz,
 /// and we'll be sending a start message later (so this will be a partial
 /// response). If the parameter is "false", then the init failed and we'll
 /// not be sending another response, so this should be the final one.
-bool arSZGClient::sendInitResponse(bool state){
-  return _sendResponse(_initResponseStream, "initialization", state, state);
+bool arSZGClient::sendInitResponse(bool ok){
+  return _sendResponse(_initResponseStream, "initialization", ok, ok);
 }
 
 /// If we have launched via szgd/dex, send the start message stream
 /// back to the launching dex command. If we launched from the command line,
 /// just print the stream. This is the final response to the launch message
 /// regardless, though the parameter does alter the message sent or printed.
-bool arSZGClient::sendStartResponse(bool state){
-  return _sendResponse(_startResponseStream, "start", state, false);
+bool arSZGClient::sendStartResponse(bool ok){
+  return _sendResponse(_startResponseStream, "start", ok, false);
 }
 
 void arSZGClient::closeConnection(){
@@ -566,8 +565,8 @@ bool arSZGClient::parseParameterFile(const string& fileName){
         break;
       }
       else{
-        cout << _exeName << " error: illegal tag=" << tagText
-	     << " in phleet config file.\n";
+        cerr << _exeName << " error: phleet config file has illegal XML tag \""
+	     << tagText << ".\n";
         fileStream.ar_close();
         return false;
       }
