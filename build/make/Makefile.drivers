@@ -1,13 +1,12 @@
 SZG_INCLUDE_STYLE = INTERNAL
 SZG_COPY_LIB = TRUE
 
-# VPATH needs to be set BEFORE Makefile.vars (to get SRCDIR defined correctly)
+# Set VPATH before Makefile.vars, to get SRCDIR defined correctly.
 VPATH = ../../../src/drivers
 
 include $(SZGHOME)/build/make/Makefile.vars
 
-# DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
-# with this sometimes.
+# Don't use tabs to indent for OBJS and MYLIBS.  It can upset gmake.
 OBJS = \
   arInputState$(OBJ_SUFFIX) \
   arInputNode$(OBJ_SUFFIX) \
@@ -53,8 +52,7 @@ ifeq ($(strip $(MACHINE)),WIN32)
 LINK_FLAGS += /stack:4000000
 endif
 
-# It turns out that libs in Win32 should appear in a different place on the
-# link line than in Unix.
+# libs in Win32 and unix need different orders.
 
 ifeq ($(strip $(MACHINE)),WIN32)
   PRE_LINK_VRPN = $(SZG_LINK_VRPN)
@@ -68,6 +66,8 @@ ifeq ($(strip $(MACHINE)),WIN32)
 
   PRE_LINK_GAMEPAD = $(GAMEPAD_LIBS)
   POST_LINK_GAMEPAD =
+
+  POST_LINK_TIMER = winmm.lib
 else
   PRE_LINK_VRPN = 
   POST_LINK_VRPN = $(SZG_LINK_VRPN)
@@ -104,6 +104,7 @@ ALL =   $(SZG_CURRENT_DLL) \
   arSharedMemDriver$(PLUGIN_SUFFIX) \
   arSpacepadDriver$(PLUGIN_SUFFIX) \
   arTrackCalFilter$(PLUGIN_SUFFIX) \
+  arUSBDriver$(PLUGIN_SUFFIX) \
   arVRPNDriver$(PLUGIN_SUFFIX) \
   pfconsole$(EXE)
 
@@ -165,6 +166,11 @@ arFOBDriver$(PLUGIN_SUFFIX): arFOBDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_L
 
 arSharedMemDriver$(PLUGIN_SUFFIX): arSharedMemDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_PLUGIN_FIRST) arSharedMemDriver$(OBJ_SUFFIX) \
+$(POST_LINK_LINE_EXE)
+	$(COPY)
+
+arUSBDriver$(PLUGIN_SUFFIX): arUSBDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arUSBDriver$(OBJ_SUFFIX) $(POST_LINK_TIMER) \
 $(POST_LINK_LINE_EXE)
 	$(COPY)
 
