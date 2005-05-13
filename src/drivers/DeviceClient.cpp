@@ -13,24 +13,21 @@
 void dumpState( arInputState& inp ) {
   cout << "buttons: " << inp.getNumberButtons() << ", "
        << "axes: " << inp.getNumberAxes() << ", "
-       << "matrices: " << inp.getNumberMatrices() << "\n";
-  cout << "buttons: ";
+       << "matrices: " << inp.getNumberMatrices() << "\n"
+       << "buttons: ";
   unsigned int i;
   for (i=0; i<inp.getNumberButtons(); i++){
     cout << inp.getButton(i) << " ";
   }
-  cout << "\n";
-  cout << "axes: ";
+  cout << "\naxes: ";
   for (i=0; i<inp.getNumberAxes(); i++){
     cout << inp.getAxis(i) << " ";
   }
-  cout << "\n";
-  cout << "matrices:\n";
+  cout << "\nmatrices:\n";
   for (i=0; i<inp.getNumberMatrices(); i++){
     cout << inp.getMatrix(i) << endl;
   }
-  cout << "\n";
-  cout << "*************************************************\n";
+  cout << "\n*************************************************\n";
 }
 
 class arClientEventFilter : public arIOFilter {
@@ -43,6 +40,7 @@ class arClientEventFilter : public arIOFilter {
     bool _first;
     arInputState _lastInput;
 };
+
 bool arClientEventFilter::_processEvent( arInputEvent& event ) {
   bool dump(false);
   switch (event.getType()) {
@@ -51,8 +49,6 @@ bool arClientEventFilter::_processEvent( arInputEvent& event ) {
         dump = true;
       }
       break;
-    default:
-      ;
   }
   _lastInput = *getInputState();
   if (dump) {
@@ -63,40 +59,40 @@ bool arClientEventFilter::_processEvent( arInputEvent& event ) {
 }
 
 int main(int argc, char** argv){
-
   arSZGClient szgClient;
   szgClient.simpleHandshaking(false);
-  cerr << "initing...\n";
   szgClient.init(argc, argv);
   if (!szgClient)
     return 1;
 
   if (argc != 2){
-    cerr << "Usage: DeviceClient slot_number\n";;
+    cerr << "Usage: DeviceClient slot_number\n";
     return 1;
   }
-  int slot = atoi(argv[1]);
 
+  const int slot = atoi(argv[1]);
   arInputNode inputNode;
   arNetInputSource netInputSource;
-  arClientEventFilter filter;
   inputNode.addInputSource(&netInputSource,false);
   netInputSource.setSlot(slot);
+  arClientEventFilter filter;
   inputNode.addFilter( &filter, false );
   if (!inputNode.init(szgClient)){
-    szgClient.sendInitResponse(false);
+    if (!szgClient.sendInitResponse(false))
+      cerr << "DeviceClient error: maybe szgserver died.\n";
     return 1;
   }
-  else{
-    szgClient.sendInitResponse(true);
-  }
+
+  if (!szgClient.sendInitResponse(true))
+    cerr << "DeviceClient error: maybe szgserver died.\n";
   if (!inputNode.start()){
-    szgClient.sendStartResponse(false);
+    if (!szgClient.sendStartResponse(false))
+      cerr << "DeviceClient error: maybe szgserver died.\n";
     return 1;
   }
-  else{
-    szgClient.sendStartResponse(true);
-  }
+
+  if (!szgClient.sendStartResponse(true))
+    cerr << "DeviceClient error: maybe szgserver died.\n";
 
   arThread dummy(ar_messageTask, &szgClient);
   while (true){

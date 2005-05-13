@@ -341,6 +341,13 @@ void arMasterSlaveFramework::setSlaveConnectedCallback
   _connectCallback = connectCallback;
 }
 
+bool arMasterSlaveFramework::_startrespond(const string& s){
+  _SZGClient.startResponse() << _label << " error: " << s << endl;
+  if (!_SZGClient.sendStartResponse(false))
+    cerr << _label << " error: maybe szgserver died.\n";
+  return false;
+}
+
 /// Initializes the syzygy objects, but does not start any threads
 bool arMasterSlaveFramework::init(int& argc, char** argv){
   _label = string(argv[0]);
@@ -435,11 +442,13 @@ bool arMasterSlaveFramework::init(int& argc, char** argv){
 
     // Wait for the message (render nodes do this in the message task).
     // we've suceeded in initing
-    _SZGClient.sendInitResponse(true);
+    if (!_SZGClient.sendInitResponse(true))
+      cerr << _label << " error: maybe szgserver died.\n";
     // there's no more starting to do... since this application instance
     // is just used as a launcher for other instances
     _SZGClient.startResponse() << _label << " trigger launched components.\n";
-    _SZGClient.sendStartResponse(true);
+    if (!_SZGClient.sendStartResponse(true))
+      cerr << _label << " error: maybe szgserver died.\n";
     (void)_launcher.waitForKill();
     exit(0);
   }
@@ -483,18 +492,20 @@ bool arMasterSlaveFramework::init(int& argc, char** argv){
   else{
     if (!_initSlaveObjects(initResponse)){
 fail:
-      _SZGClient.sendInitResponse(false);
+      if (!_SZGClient.sendInitResponse(false))
+        cerr << _label << " error: maybe szgserver died.\n";
       return false;
     }
   }
 
   _parametersLoaded = true;
-  _SZGClient.sendInitResponse(true);
+  if (!_SZGClient.sendInitResponse(true))
+    cerr << _label << " error: maybe szgserver died.\n";
   return true;
 }
 
 /// Starts the application, using the GLUT event loop. NOTE: this call does
-/// return in the event of success, since glutMainLoop() does not return.
+/// return if successful, since glutMainLoop() does not return.
 bool arMasterSlaveFramework::start(){
   // call _start and tell it that, yes, we are using GLUT.
   // AN ANNOYING HACK
@@ -1448,7 +1459,7 @@ bool arMasterSlaveFramework::_startSlaveObjects(stringstream& startResponse){
     startResponse << _label << " error: barrier client failed to start.\n";
     return false;
   }
-  startResponse << _label << " remark: slave objects successfully started.\n";
+  startResponse << _label << " remark: slave objects started.\n";
   return true;
 }
 
@@ -1531,12 +1542,10 @@ bool arMasterSlaveFramework::_start(bool useGLUT){
   if (!_parametersLoaded){
     _SZGClient.initResponse() << _label 
       << " error: start() method called before init() method.\n";
-    _SZGClient.sendInitResponse(false);
+    if (!_SZGClient.sendInitResponse(false))
+      cerr << _label << " error: maybe szgserver died.\n";
     return false;
   }
-
-  // accumulate the start response messages
-  stringstream& startResponse = _SZGClient.startResponse();
 
   // make sure we get the screen resource
   // this lock should only be grabbed AFTER an application launching.
@@ -1546,11 +1555,11 @@ bool arMasterSlaveFramework::_start(bool useGLUT){
                       +_SZGClient.getMode("graphics");
   int graphicsID;
   if (!_SZGClient.getLock(screenLock, graphicsID)){
-    startResponse << _label 
-         << " error: failed to get screen resource held by component "
-	 << graphicsID << ".\n(Kill that component to proceed.)\n";
-    _SZGClient.sendStartResponse(false);
-    return false;
+    char buf[20];
+    sprintf(buf, "%d", graphicsID);
+    return _startrespond(
+         "failed to get screen resource held by component " +
+	 string(buf) + ".\n(dkill that component to proceed.)");
   }
   
   _graphicsWindow.setDrawCallback( new arMasterSlaveRenderCallback( *this ) );
@@ -1571,22 +1580,19 @@ bool arMasterSlaveFramework::_start(bool useGLUT){
   // a slave, it is important to call this AFTER _startDetermineMaster(...)
   if (_startCallback && !_startCallback(*this, _SZGClient)){
     cerr << "arMasterSlaveFramework error: start callback failed.\n";
-    startResponse << "Fatal error: arMasterSlaveFramework start callback failed.\n";
-    _SZGClient.sendStartResponse(false);
-    return false;
+    return _startrespond("arMasterSlaveFramework start callback failed.");
   }
 
   // set-up the various objects and start services
   if (!_startObjects()){
-    startResponse << "The various objects failed to successfully start.\n";
-    _SZGClient.sendStartResponse(false);
-    return false;
+    return _startrespond("Objects failed to start.");
   }
 
   _userInitCalled = true;
 
   // the start succeeded
-  _SZGClient.sendStartResponse(true);
+  if (!_SZGClient.sendStartResponse(true))
+    cerr << _label << " error: maybe szgserver died.\n";
 
   // HMMM... This is a somewhat problematic place to put the function
   // that tries to find the wildcat framelock. It seems fairly likely
@@ -1624,7 +1630,7 @@ bool arMasterSlaveFramework::_loadParameters(){
   // UGLY HACK!!!! (stereo, window size, window position, wildcat framelock)
   const string screenName(_SZGClient.getMode("graphics"));
 
-  // Which screen should we use to define the view?
+  // Which screen defines the view?
   _defaultScreen.configure( screenName, _SZGClient );
   _defaultCamera.setScreen( &_defaultScreen );
   // It could be that we've already set a custom camera

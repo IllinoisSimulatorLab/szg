@@ -36,9 +36,9 @@ class SZG_CALL arSZGClient{
   void parseSpecialPhleetArgs(bool state);
   bool init(int&, char** argv, string forcedName = string("NULL"));
   stringstream& initResponse(){ return _initResponseStream; }
-  bool sendInitResponse(bool state);
+  bool sendInitResponse(bool ok);
   stringstream& startResponse(){ return _startResponseStream; }
-  bool sendStartResponse(bool state);
+  bool sendStartResponse(bool ok);
   
   bool launchDiscoveryThreads();
 

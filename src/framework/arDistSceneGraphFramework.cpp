@@ -310,7 +310,8 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv){
   if (!_messageThread.beginThread(ar_distSceneGraphFrameworkMessageTask,
                                   this)) {
     initResponse << _label << " error: failed to start message thread.\n";
-    _SZGClient.sendInitResponse(false);
+    if (!_SZGClient.sendInitResponse(false))
+      cerr << _label << " error: maybe szgserver died.\n";
     return false;
   }
 
@@ -332,7 +333,8 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv){
       initResponse << _label 
                    << " error: failed to launch on virtual computer "
                    << vircomp << ".\n";
-      _SZGClient.sendInitResponse(false);
+      if (!_SZGClient.sendInitResponse(false))
+        cerr << _label << " error: maybe szgserver died.\n";
       return false;
     }
   }
@@ -358,32 +360,44 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv){
   if (_peerName == "NULL" || _standalone){
     if (!_graphicsServer.init(_SZGClient)){
       initResponse << _label << " error: graphics server failed to init.\n";
-      _SZGClient.sendInitResponse(false);
+      if (!_SZGClient.sendInitResponse(false))
+        cerr << _label << " error: maybe szgserver died.\n";
       return false;
     }
   }
   else{
     if (!_graphicsPeer.init(_SZGClient)){
       initResponse << _label << " error: graphics peer failed to init.\n";
-      _SZGClient.sendInitResponse(false);
+      if (!_SZGClient.sendInitResponse(false))
+        cerr << _label << " error: maybe szgserver died.\n";
       return false;
     }
   }
 
-  // SOUND SERVER DOES NOT RUN IN THE PEER CASE (OTHERWISE WE CANNOT HAVE
-  // MULITPLE PEERS BASED ON THE SCENE GRAPH FRAMEWORK)
+  // SOUND SERVER DOES NOT RUN IN THE PEER CASE (OTHERWISE
+  // MULTIPLE PEERS CAN'T USE THE SCENE GRAPH FRAMEWORK)
   if (_peerName == "NULL" || _standalone){
     if (!_soundServer.init(_SZGClient)){
       initResponse << _label << " error: sound server failed to init.\n"
                    << "  (Is another application running?)\n";
-      _SZGClient.sendInitResponse(false);
+      if (!_SZGClient.sendInitResponse(false))
+        cerr << _label << " error: maybe szgserver died.\n";
       return false;
     }
   }
 
-  // we succeeded in initing
-  _SZGClient.sendInitResponse(true);
+  // init succeeded
+  if (!_SZGClient.sendInitResponse(true))
+    cerr << _label << " error: maybe szgserver died.\n";
   return true;
+}
+
+bool arDistSceneGraphFramework::_startrespond(const string& s, bool f = false){
+  if (!f)
+    _SZGClient.startResponse() << _label << " error: " << s << endl;
+  if (!_SZGClient.sendStartResponse(f))
+    cerr << _label << " error: maybe szgserver died.\n";
+  return f;
 }
 
 bool arDistSceneGraphFramework::start(){
@@ -407,89 +421,56 @@ bool arDistSceneGraphFramework::start(){
     return true;
   }
   
-  // The distributed case (i.e. connected to an szgserver and not in
-  // standalone).
-
-  // we want to pack the start response stream
-  stringstream& startResponse = _SZGClient.startResponse();
+  // Distributed, i.e. connected to an szgserver and not in standalone.
 
   // Don't start the input device if we are in peer mode!
-  if (_peerName == "NULL"){
-    if (!_inputDevice->start()) {
-      startResponse << _label << " error: failed to start input device.\n";
-      _SZGClient.sendStartResponse(false);
-      return false;
-    }
-  }
+  if (_peerName == "NULL" && !_inputDevice->start())
+    return _startrespond("failed to start input device.");
 
-  // We might be in peer mode.
   if (_peerName == "NULL" || _standalone){
-    if (!_graphicsServer.start()) {
-      startResponse << _label << " error: graphics server failed to listen.\n";
-      _SZGClient.sendStartResponse(false);
-      return false;
-    }
+    // Not in peer mode.
+    if (!_graphicsServer.start())
+      return _startrespond("graphics server failed to listen.");
   }
   else{
     // Peer mode.
     // Are we using the local database?
-    if (_peerMode == "shell"){
+    if (_peerMode == "shell")
       _graphicsPeer.useLocalDatabase(false);
-    }
-    if (!_graphicsPeer.start()) {
-      startResponse << _label << " error: graphics peer failed to start.\n";
-      _SZGClient.sendStartResponse(false);
-      return false;
-    }
+    if (!_graphicsPeer.start())
+      return _startrespond("graphics peer failed to start.");
+
     // Connect to the specified target, if required.
     if (_peerMode == "shell" || _peerMode == "feedback"){
-      if (_peerTarget == "NULL"){
-        startResponse << _label << " error: target not specified.\n";
-        _SZGClient.sendStartResponse(false);
-	return false;
-      }
-      else{
-        if (_graphicsPeer.connectToPeer(_peerTarget) < 0){
-	  startResponse << _label << " error: graphics peer failed to connect "
-	  	        << "to requested target=" << _peerTarget << ".\n";
-          _SZGClient.sendStartResponse(false);
-	  return false;
-        }
-        // In either case, we'll be sending data to the target.
-        _graphicsPeer.sending(_peerTarget, true);
-	// The following sets up a FEEDBACK mode!
-        _graphicsPeer.pushSerial(_peerTarget, _remoteRootID, 0, 1, true, true);
-	// BUG BUG BUG BUG BUG BUG BUG: Need better definition of "modes"!
-	// Really just one mode so far...
-        // In the feedback case, we want a dump and relay.
-        //if (_peerMode == "feedback"){
-        //  _graphicsPeer.pullSerial(_peerTarget, true);
-	//}
-      }
+      if (_peerTarget == "NULL")
+        return _startrespond("unspecified target.");
+
+      if (_graphicsPeer.connectToPeer(_peerTarget) < 0)
+        return _startrespond(
+	  "error: graphics peer failed to connect to requested target=" +
+	  _peerTarget + ".");
+
+      // In either case, send data to the target.
+      _graphicsPeer.sending(_peerTarget, true);
+      // The following sets up a FEEDBACK mode!
+      _graphicsPeer.pushSerial(_peerTarget, _remoteRootID, 0, 1, true, true);
+      // BUG BUG BUG BUG BUG BUG BUG: Need better definition of "modes"!
+      // Really just one mode so far...
+      // In the feedback case, we want a dump and relay.
+      //if (_peerMode == "feedback"){
+      //  _graphicsPeer.pullSerial(_peerTarget, true);
+      //}
     }
-    else{
-      if (_peerTarget != "NULL"){
-	startResponse << _label << " error: target improperly specified for "
-		      << "source mode.\n";
-        _SZGClient.sendStartResponse(false);
-	return false;
-      }
-    }
+    else if (_peerTarget != "NULL")
+      return _startrespond("target improperly specified for source mode.");
   }
 
-  // SOUND SERVER DOES NOT RUN IN THE PEER CASE (OTHERWISE WE CANNOT HAVE
-  // MULITPLE PEERS BASED ON THE SCENE GRAPH FRAMEWORK)
-  if (_peerName == "NULL" || _standalone){
-    if (!_soundServer.start()) {
-      startResponse << _label << " warning: sound server failed to listen.\n";
-      _SZGClient.sendStartResponse(false);
-      return false;
-    }
-  }
+  // SOUND SERVER DOES NOT RUN IN THE PEER CASE (OTHERWISE
+  // MULTIPLE PEERS CAN'T USE THE SCENE GRAPH FRAMEWORK)
+  if ((_peerName == "NULL" || _standalone) && !_soundServer.start())
+    return _startrespond("sound server failed to listen.");
 
-  // we succeeded in starting
-  _SZGClient.sendStartResponse(true);
-  return true;
+  return _startrespond("", true);
 }
 
 /// Does the best it can to shut components down. Don't actually do anything
@@ -745,7 +726,8 @@ bool arDistSceneGraphFramework::_initInput(){
 
   if (!_inputDevice->init(_SZGClient) && !_standalone){
     initResponse << _label << " warning: failed to init input device.\n";
-    _SZGClient.sendInitResponse(false);
+    if (!_SZGClient.sendInitResponse(false))
+      cerr << _label << " error: maybe szgserver died.\n";
     return false;
   }
   return true;

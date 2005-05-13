@@ -143,6 +143,11 @@ InputNodeConfig parseNodeConfig(const string& nodeConfig){
   return result;
 }
 
+static void respond(arSZGClient& cli, bool f = false) {
+  if (!cli.sendInitResponse(f))
+    cerr << "DeviceServer error: maybe szgserver died.\n";
+}
+
 int main(int argc, char** argv){
   arSZGClient SZGClient;
   SZGClient.simpleHandshaking(false);
@@ -152,6 +157,7 @@ int main(int argc, char** argv){
   SZGClient.init(argc, argv, "DeviceServer");
   if (!SZGClient)
     return 1;
+
   stringstream& initResponse = SZGClient.initResponse();
 
   // First, check to see if we've got the "simple" flag set (-s)
@@ -163,7 +169,7 @@ int main(int argc, char** argv){
   if (argc < 3){
     initResponse << "usage: DeviceServer [-s] [-netinput] device_description "
 		 << "driver_slot [pforth_filter_name]" << endl;
-    SZGClient.sendInitResponse(false);
+    respond(SZGClient);
     return 1;
   }
 
@@ -176,9 +182,9 @@ int main(int argc, char** argv){
   else{
     nodeConfig = parseNodeConfig(SZGClient.getGlobalAttribute(argv[1]));
     if (!nodeConfig.valid){
-      initResponse << "DeviceServer error: got invalid node config from "
+      initResponse << "DeviceServer error: invalid node config from "
 		   << "attribute " << argv[1] << "\n";
-      SZGClient.sendInitResponse(false);
+    respond(SZGClient);
     }
   }
 
@@ -211,14 +217,14 @@ int main(int argc, char** argv){
       if (!inputSourceObject->createFactory(*iter, execPath, 
                                             "arInputSource", error)){
         initResponse << error;
-        SZGClient.sendInitResponse(false);
+        respond(SZGClient);
         return 1;
       }
       // Can create our object.
       theSource = (arInputSource*) inputSourceObject->createObject();
       if (!theSource) {
         initResponse << "DeviceServer error: failed to create input source.\n";
-        SZGClient.sendInitResponse(false);
+        respond(SZGClient);
         return 1;
       }
       driverNameMap[*iter] = theSource;
@@ -260,14 +266,14 @@ int main(int argc, char** argv){
     if (!inputSinkObject->createFactory(*iter, execPath, 
                                         "arInputSink", error)){
       initResponse << error;
-      SZGClient.sendInitResponse(false);
+      respond(SZGClient);
       return 1;
     }
     // Can create our object.
     theSink = (arInputSink*) inputSinkObject->createObject();
     if (!theSink) {
       initResponse << "DeviceServer error: failed to create input sink.\n";
-      SZGClient.sendInitResponse(false);
+      respond(SZGClient);
       return 1;
     }
     inputNode.addInputSink(theSink,true);
@@ -313,31 +319,33 @@ int main(int argc, char** argv){
     if (!inputFilterSharedLib->createFactory(*iter, execPath, 
                                           "arIOFilter", error)){
       initResponse << error;
-      SZGClient.sendInitResponse(false);
+      respond(SZGClient);
       return 1;
     }
     // Can create our object.
     theFilter = (arIOFilter*) inputFilterSharedLib->createObject();
     if (!theFilter) {
       initResponse << "DeviceServer error: failed to create input filter.\n";
-      SZGClient.sendInitResponse(false);
+      respond(SZGClient);
       return 1;
     }
     if (!theFilter->configure( &SZGClient )){
       initResponse << "DeviceServer remark: could not configure filter.\n";
-      SZGClient.sendInitResponse(false);
+      respond(SZGClient);
       return 1;
     }
     // We do, indeed, own this.
     inputNode.addFilter(theFilter,true);
   }
 
-  SZGClient.sendInitResponse(inputNode.init(SZGClient));
+  respond(SZGClient, inputNode.init(SZGClient));
   if (!inputNode.start()){
-    SZGClient.sendStartResponse(false);
+    if (!SZGClient.sendStartResponse(false))
+      cerr << "DeviceServer error: maybe szgserver died.\n";
     return 1;
   }
-  SZGClient.sendStartResponse(true);
+  if (!SZGClient.sendStartResponse(true))
+    cerr << "DeviceServer error: maybe szgserver died.\n";
 
   // Message task.
   string messageType, messageBody;
@@ -348,11 +356,11 @@ int main(int argc, char** argv){
       cout << "DeviceServer remark: shutdown.\n";
       // Cut-and-pasted from below.
       inputNode.stop();
-      exit(0);
+      return 0;
     }
 
     if (messageType=="quit"){
-      cout << "DeviceServer remark: got shutdown message.\n";
+      cout << "DeviceServer remark: shutdown.\n";
       inputNode.stop();
       cout << "DeviceServer remark: input node stopped.\n";
       std::map< std::string, arInputSource* >::iterator killIter;
@@ -368,7 +376,6 @@ int main(int argc, char** argv){
     else if (messageType=="restart"){
       cout << "DeviceServer remark: restarting.\n";
       inputNode.restart();
-      cout << "DeviceServer remark: restarted.\n";
     }
     else if (messageType=="dumpon"){
       fileSink.start();

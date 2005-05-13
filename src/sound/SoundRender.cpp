@@ -88,20 +88,23 @@ int main(int argc, char** argv){
   // copy-pasted (more or less) from szgd.cpp
   int ownerID = -1;
   if (!szgClient.getLock(szgClient.getComputerName()+"/SoundRender", ownerID)){
-    szgClient.initResponse() << argv[0] 
-      << " error: another copy is already running (pid = " 
+    szgClient.initResponse()
+      << "SoundRender error: another copy is already running (pid = " 
       << ownerID << ").\n";
-    szgClient.sendInitResponse(false);
+    if (!szgClient.sendInitResponse(false))
+      cerr << "SoundRender error: maybe szgserver died.\n";
     return 1;
   }
   
   // get the initial parameters
   if (!loadParameters(szgClient)){
-    szgClient.sendInitResponse(false);
+    if (!szgClient.sendInitResponse(false))
+      cerr << "SoundRender error: maybe szgserver died.\n";
     return 1;
   }
   // we've succeeded in initialization
-  szgClient.sendInitResponse(true);
+  if (!szgClient.sendInitResponse(true))
+    cerr << "SoundRender error: maybe szgserver died.\n";
 
   soundClient->setSpeakerObject(&speakerObject);
   soundClient->setNetworks(szgClient.getNetworks("sound"));
@@ -112,8 +115,8 @@ int main(int argc, char** argv){
   soundClient->startDSP();
   (void)soundClient->start(szgClient);
 
-  // we've started by this point
-  szgClient.sendStartResponse(true);  
+  if (!szgClient.sendStartResponse(true))
+    cerr << "SoundRender error: maybe szgserver died.\n";
 
   arThread dummy(messageTask, &szgClient);
   while (true) {

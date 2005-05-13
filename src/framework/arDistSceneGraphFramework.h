@@ -119,6 +119,7 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   void _initDatabases();
   bool _initInput();
   bool _stripSceneGraphArgs(int& argc, char** argv);
+  bool _startrespond(const string& s, bool f);
 };
 
 #endif

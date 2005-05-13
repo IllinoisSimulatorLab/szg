@@ -324,6 +324,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool _startObjects();
   bool _startStandalone(bool);
   bool _start(bool);
+  bool _startrespond(const string& s);
 
   // systems level functions
   bool _loadParameters();

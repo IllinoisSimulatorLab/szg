@@ -14,15 +14,15 @@
 #include "arPForthFilter.h"
 
 arInputState* inp;
-arSZGClient* client;
+arSZGClient* szgclient;
 arInputNode* inputNode;
 
 arHeadWandSimulator simulator;
 int xPos = 0, yPos = 0;
 
-void loadParameters(arSZGClient& client){
+void loadParameters(arSZGClient& szgclient){
   int posBuffer[2];
-  string posString = client.getAttribute("SZG_WANDSIM", "position");
+  string posString = szgclient.getAttribute("SZG_WANDSIM", "position");
   if (posString != "NULL"
       && ar_parseIntString(posString,posBuffer,2)){
     xPos = posBuffer[0];
@@ -85,7 +85,7 @@ void mousePosition(int x, int y){
 void messageTask(void* /*pClient*/){
   string messageType, messageBody;
   while (true) {
-    if (!client->receiveMessage(&messageType,&messageBody)){
+    if (!szgclient->receiveMessage(&messageType,&messageBody)){
       cout << "Wandsimserver remark: shutdown.\n";
       // Cut-and-pasted from below.
       inputNode->stop();
@@ -99,11 +99,11 @@ void messageTask(void* /*pClient*/){
 }
 
 int main(int argc, char** argv){
-  client = new arSZGClient();
+  szgclient = new arSZGClient();
   inputNode = new arInputNode();
-  client->simpleHandshaking(false);
-  client->init(argc, argv);  
-  if (!(*client))
+  szgclient->simpleHandshaking(false);
+  szgclient->init(argc, argv);  
+  if (!*szgclient)
     return 1;
 
   int slotNumber(0);
@@ -123,26 +123,27 @@ int main(int argc, char** argv){
   // and this is how we do it!
   netInputSink.setInfo("wandsimserver");
 
-  string pforthProgramName = client->getAttribute("SZG_PFORTH",
+  string pforthProgramName = szgclient->getAttribute("SZG_PFORTH",
                                                      "program_names");
   if (pforthProgramName == "NULL"){
     cout << "wandsimserver remark: no pforth program for "
 	 << "standalone joystick.\n";
   }
   else{
-    string pforthProgram = client->getGlobalAttribute(pforthProgramName);
+    string pforthProgram = szgclient->getGlobalAttribute(pforthProgramName);
     if (pforthProgram == "NULL"){
       cout << "wandsimserver remark: no pforth program exists for "
 	   << "name = " << pforthProgramName << "\n";
     }
     else{
       arPForthFilter* filter = new arPForthFilter();
-      ar_PForthSetSZGClient( client );
+      ar_PForthSetSZGClient( szgclient );
       if (!filter->configure( pforthProgram )){
         cout << "wandsimserver remark: failed to configure pforth\n"
 	     << "filter with program =\n "
 	     << pforthProgram << "\n";
-        client->sendInitResponse(false);
+        if (!szgclient->sendInitResponse(false))
+          cerr << "wandsimserver error: maybe szgserver died.\n";
         return 1;
       }
       // The input node is not responsible for clean-up
@@ -162,22 +163,25 @@ int main(int argc, char** argv){
   }
   inputNode->addInputSink(&netInputSink,false);
   
-  if (!inputNode->init(*client)) {
-    client->sendInitResponse(false);
+  if (!inputNode->init(*szgclient)) {
+    if (!szgclient->sendInitResponse(false))
+      cerr << "wandsimserver error: maybe szgserver died.\n";
     return 1;
   }
   // initialization succeeded
-  client->sendInitResponse(true);
+  if (!szgclient->sendInitResponse(true))
+    cerr << "wandsimserver error: maybe szgserver died.\n";
 
   if (!inputNode->start()){
-    client->sendStartResponse(false);
+    if (!szgclient->sendStartResponse(false))
+      cerr << "wandsimserver error: maybe szgserver died.\n";
     return 1;
   }
   
   arThread messageThread;
   messageThread.beginThread(messageTask);
 
-  loadParameters(*client);
+  loadParameters(*szgclient);
 
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB|GLUT_DEPTH);
@@ -191,7 +195,8 @@ int main(int argc, char** argv){
   glutMotionFunc(mousePosition);
   glutMouseFunc(mouseButton);
 
-  // start has succeeded by this point
-  client->sendStartResponse(true);
+  // start succeeded
+  if (!szgclient->sendStartResponse(true))
+    cerr << "wandsimserver error: maybe szgserver died.\n";
   glutMainLoop();
 }

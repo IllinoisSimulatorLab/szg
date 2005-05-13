@@ -567,28 +567,33 @@ int main(int argc, char** argv){
   }
   if (argc < 2){
     initResponse << "szg-rp usage: szg-rp <name>\n";
-    szgClient->sendInitResponse(false);
+    if (!szgClient->sendInitResponse(false))
+      cerr << "szg-rp error: maybe szgserver died.\n";
     return 1;
   }
   initResponse << "szg-rp remark: trying to run as peer=" << argv[1] << "\n";
-  szgClient->sendInitResponse(true);
+  if (!szgClient->sendInitResponse(true))
+    cerr << "szg-rp error: maybe szgserver died.\n";
   // Use locks to ensure that we have a unique workspace name.
   int componentID;
   stringstream& startResponse = szgClient->startResponse();
   if (!szgClient->getLock(string("szg-rp-")+argv[1], componentID)){
-    startResponse << "szg-rp error: workspace name must be unique.\n"
+    startResponse << "szg-rp error: non-unique workspace name.\n"
                   << "  component with ID " << componentID 
                   << " holds this workspace.\n";
-    szgClient->sendStartResponse(false);
+    if (!szgClient->sendStartResponse(false))
+      cerr << "szg-rp error: maybe szgserver died.\n";
     return 1;
   }
   if (!loadParameters(*szgClient)){
     startResponse << "szg-rp error: failed to load parameters.\n";
-    szgClient->sendStartResponse(false);
+    if (!szgClient->sendStartResponse(false))
+      cerr << "szg-rp error: maybe szgserver died.\n";
   }
 
-  startResponse << "szg-rp remark: start succeeded.\n";
-  szgClient->sendStartResponse(true);
+  startResponse << "szg-rp remark: started.\n";
+  if (!szgClient->sendStartResponse(true))
+    cerr << "szg-rp error: maybe szgserver died.\n";
 
   arThread messageThread(messageTask, szgClient);
 

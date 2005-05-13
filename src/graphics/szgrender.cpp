@@ -311,7 +311,8 @@ int main(int argc, char** argv){
     cout << "szgrender error: failed to get screen resource held by component "
 	 << graphicsID 
          << ".\n(Kill that component to proceed.)\n";
-    szgClient.sendInitResponse(false);
+    if (!szgClient.sendInitResponse(false))
+      cerr << "szgrender error: maybe szgserver died.\n";
     return 1;
   }
 
@@ -321,17 +322,18 @@ int main(int argc, char** argv){
 
   // get the initial parameters
   if (!loadParameters(szgClient)){
-    szgClient.sendInitResponse(false);
+    if (!szgClient.sendInitResponse(false))
+      cerr << "szgrender error: maybe szgserver died.\n";
     return 1;
   }
 
-  // we have successfully inited
-  szgClient.sendInitResponse(true);
+  // we inited
+  if (!szgClient.sendInitResponse(true))
+    cerr << "szgrender error: maybe szgserver died.\n";
 
   ar_mutex_init(&pauseLock);
   arThread dummy(messageTask, &szgClient);
 
-  // cout << "szgrender remark: creating window.\n";
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB |
     (stereoMode ? GLUT_STEREO : 0));
@@ -355,8 +357,9 @@ int main(int argc, char** argv){
   graphicsClient->setNetworks(szgClient.getNetworks("graphics"));
   graphicsClient->start(szgClient);
 
-  // we've successfully started
-  szgClient.sendStartResponse(true);
+  // we've started
+  if (!szgClient.sendStartResponse(true))
+    cerr << "szgrender error: maybe szgserver died.\n";
 
   // so far, the init purely has to do with starting up 
   // the wildcat framelocking

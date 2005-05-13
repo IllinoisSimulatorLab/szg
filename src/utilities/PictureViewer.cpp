@@ -120,7 +120,8 @@ int main(int argc, char** argv){
     cout << "PictureViewer error: failed to get screen resource held "
 	 << "by component "
          << graphicsID << ".\n(Kill that component to proceed.)\n";
-    szgClient.sendInitResponse(false);
+    if (!szgClient.sendInitResponse(false))
+      cerr << "PictureViewer error: maybe szgserver died.\n";
     return 1;
   }
   
@@ -132,7 +133,8 @@ int main(int argc, char** argv){
   if (!bitmap.readPPM(argv[1], dataPath)){
     initResponse << argv[0] << " error: failed to read picture file " 
                  << argv[1] << " from path " << dataPath << ".\n";
-    szgClient.sendInitResponse(false);
+    if (!szgClient.sendInitResponse(false))
+      cerr << "PictureViewer error: maybe szgserver died.\n";
     return 1;
   }
   // BUG BUG BUG BUG
@@ -141,14 +143,16 @@ int main(int argc, char** argv){
   if (!bitmap.flipHorizontal()) {
     initResponse << "PictureViewer error: failed to flip picture " << argv[1]
                  << endl;
-    szgClient.sendInitResponse(false);
+    if (!szgClient.sendInitResponse(false))
+      cerr << "PictureViewer error: maybe szgserver died.\n";
     return 1;
   }
   // Draw the "large image" instead of the texture.
   largeImage.setImage(bitmap);
   // we have succeeded in the init
   initResponse << "The picture has been loaded.\n";
-  szgClient.sendInitResponse(true); 
+  if (!szgClient.sendInitResponse(true))
+    cerr << "PictureViewer error: maybe szgserver died.\n";
 
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE);
@@ -161,9 +165,9 @@ int main(int argc, char** argv){
   glutIdleFunc(idle);
   glutFullScreen();
 
-  // we have succeeded in starting
-  szgClient.startResponse() << "The picture window has appeared.\n";
-  szgClient.sendStartResponse(true);
+  szgClient.startResponse() << "Picture window visible.\n";
+  if (!szgClient.sendStartResponse(true))
+    cerr << "PictureViewer error: maybe szgserver died.\n";
   timer.start( FLIP_SECONDS*1e6 );
   glutMainLoop(); 
   return 0;
