@@ -1356,6 +1356,7 @@ bool arMasterSlaveFramework::_startMasterObjects(stringstream& startResponse){
                   << " error: master failed to construct state server.\n";
     return false;
   }
+
   _stateServer->smallPacketOptimize(true);
   _stateServer->setInterface("INADDR_ANY");
   // the _stateServer's initial ports were set in _determineMaster
@@ -1363,39 +1364,29 @@ bool arMasterSlaveFramework::_startMasterObjects(stringstream& startResponse){
   // TODO TODO TODO TODO TODO TODO TODO
   // there is a very annoying duplication of connection code in many places!
   // (i.e. of this try-to-connect-to-brokered ports 10 times)
+  // TODO TODO: copy this cleaned-up version (no "success" variable, no if/then)
+  // TODO TODO: to the other ones
   int tries = 0;
-  bool success = false;
-  while (tries<10 && !success){
-    if (!_stateServer->beginListening(&_transferLanguage)){
-      startResponse << _label << " warning: failed to listen on port "
-		    << _masterPort[0] << ".\n";
-      _SZGClient.requestNewPorts(_serviceName,"graphics",1,_masterPort);
-      _stateServer->setPort(_masterPort[0]);
-      tries++;
-    }
-    else{
-      success = true;
-    }
+  while (tries++<10 && !_stateServer->beginListening(&_transferLanguage)){
+    startResponse << _label << " warning: failed to listen on port "
+		  << _masterPort[0] << ".\n";
+    _SZGClient.requestNewPorts(_serviceName,"graphics",1,_masterPort);
+    _stateServer->setPort(_masterPort[0]);
   }
-  if (success){
-    if (!_SZGClient.confirmPorts(_serviceName,"graphics",1,_masterPort)){
-      startResponse << _label << " error: failed to confirm brokered "
-	            << "port..\n";
-      return false;
-    }
+  if (tries >= 10) {
+    // failed to bind to the ports
+    return false;
   }
-  else{
-    // we failed to bind to the ports
+  if (!_SZGClient.confirmPorts(_serviceName,"graphics",1,_masterPort)){
+    startResponse << _label << " error: brokered port unconfirmed.\n";
     return false;
   }
 
-  // start the barrier server
   if (!_barrierServer->start()) {
     startResponse << _label << " error: failed to start barrier server.\n";
     return false;
   }
 
-  // start the input device client 
   if (!_inputDevice->start()) {
     startResponse << _label << " error: failed to start input device.\n";
     delete _inputDevice;
