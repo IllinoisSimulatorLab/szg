@@ -39,7 +39,7 @@ bool arGraphicsScreen::configure(arSZGClient& client) {
 // the arSZGClient might query.
 bool arGraphicsScreen::configure(const string& screenName, arSZGClient& client) {
   stringstream& initResponse = client.initResponse();
-  _headMounted = client.getAttribute( screenName,"head_mounted","|false|true|") == "true";
+  _headMounted = client.getAttribute( screenName,"head_mounted","|true|false|") == "true";
 
   float floatbuf[2];
   if (client.getAttributeFloats( screenName,"screen_dim",floatbuf,2)) {
@@ -61,7 +61,7 @@ bool arGraphicsScreen::configure(const string& screenName, arSZGClient& client) 
   if (client.getAttributeVector3 ( screenName, "screen_center", _setCenter )) {
     _center = _setCenter;
   } else {
-    _setCenter = arVector3(0,5,-5);
+    _setCenter = arVector3(0,0,-5);
     _center = _setCenter;
   }
   

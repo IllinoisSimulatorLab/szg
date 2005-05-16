@@ -1211,7 +1211,7 @@ bool arMasterSlaveFramework::_determineMaster
 bool arMasterSlaveFramework::_initStandaloneObjects(){
   // Create the input node. NOTE: there are, so far, two different ways
   // to control a standalone master/slave application. An embedded
-  // wandsimserver and a joystick interface
+  // inputsimulator and a joystick interface
   _inputActive = true;
   _inputDevice = new arInputNode(true);
   _inputState = &_inputDevice->_inputState;
@@ -1662,6 +1662,10 @@ bool arMasterSlaveFramework::_loadParameters(){
 
   if (getMaster()) {
     _head.configure(_SZGClient);
+  }
+
+  if (_standalone) {
+    _simulator.configure(_SZGClient);
   }
 
   ar_useWildcatFramelock(_SZGClient.getAttribute(screenName, 

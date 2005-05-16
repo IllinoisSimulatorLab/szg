@@ -751,7 +751,7 @@ in the desired default position.
 configuration for a demo system as described above. Note that the lone
 global parameter gives a PForth program instead of a full input node configuration.
 In standalone mode, Syzygy VR framework applications either use an embedded
-wandsimserver to generate input events or rely on joystick input. The value of
+inputsimulator to generate input events or rely on joystick input. The value of
 SZG_DEMO/control_mode (either "joystick" or "normal", which is the default)
 determines the control scheme used. Also, SZG_PFORTH/program_names gives the
 name of the global parameter holding the PForth program to be applied, if any.
@@ -900,7 +900,7 @@ have a cluster available.
 <p>Note that consumer level graphics cards, as a rule, do not do very well having multiple
 OpenGL windows active simultaneously. Performance degrades significantly over the
 equivalent standalone mode case where there are multiple viewports in a single window.
-Indeed, on many common systems, just having a wandsimserver window open (which is a small
+Indeed, on many common systems, just having a inputsimulator window open (which is a small
 window with very simple OpenGL graphics) in addition to an application window severely
 degrades application performance. This is actually why standalone mode was originally
 invented: to deal with the limitations of Syzygy application development on very low
@@ -913,10 +913,10 @@ cards).
 
 <p>The following example, suitable for inclusion directly in a "simple" dbatch file, or
 within an "assign" record in a "complex" dbatch file. It gives a virtual computer 
-"smoke_test" which has four screens and uses a wandsimserver for an input device. These
+"smoke_test" which has four screens and uses a inputsimulator for an input device. These
 screens give a 2x2 tiled display and are automatically placed in the proper arrangement upon
-launch, through the SZG_SCREEN(n)/position parameter. Similarly, the wandsimserver is
-placed to the right of everything, as given by the SZG_WANDSIM/position parameter.
+launch, through the SZG_SCREEN(n)/position parameter. Similarly, the inputsimulator is
+placed to the right of everything, as given by the SZG_INPUTSIM/position parameter.
 Please note that the desktop in question is 1600x1200. A smaller desktop would need positions
 and window sizes reduced.
 
@@ -929,9 +929,9 @@ and window sizes reduced.
   smoke_test SZG_SCREEN1 map smoke/SZG_SCREEN2
   smoke_test SZG_SCREEN2 map smoke/SZG_SCREEN3
   smoke_test SZG_SCREEN3 map smoke/SZG_SCREEN4
-  smoke_test SZG_INPUT0 map smoke/wandsimserver
+  smoke_test SZG_INPUT0 map smoke/inputsimulator
 
-  smoke SZG_WANDSIM position 1305/0
+  smoke SZG_INPUTSIM position 1305/0
 
   smoke SZG_SCREEN1 size 640/480
   smoke SZG_SCREEN1 position 0/0

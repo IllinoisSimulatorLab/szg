@@ -9,6 +9,7 @@ include $(SZGHOME)/build/make/Makefile.vars
 # DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
 # with this sometimes.
 OBJS = \
+  arInputSimulator$(OBJ_SUFFIX) \
   arInteractableThing$(OBJ_SUFFIX) \
   arFrameworkEventFilter$(OBJ_SUFFIX) \
   arSZGAppFramework$(OBJ_SUFFIX) \
@@ -16,7 +17,6 @@ OBJS = \
   arDistSceneGraphFramework$(OBJ_SUFFIX) \
   arRoutableTemplate$(OBJ_SUFFIX) \
   arMasterSlaveDataRouter$(OBJ_SUFFIX) \
-  arHeadWandSimulator$(OBJ_SUFFIX) \
   arAppLauncher$(OBJ_SUFFIX)
 
 # Local variable definitions for the build.
@@ -64,7 +64,7 @@ LINK_FLAGS += /stack:4000000
 endif
 
 ALL =   $(SZG_CURRENT_DLL) \
-  wandsimserver$(EXE) \
+  inputsimulator$(EXE) \
   MasterSlaveSkeleton$(EXE)
 
 # NOTE: We now include the "magic" Everything target in Makefile.rules
@@ -78,8 +78,8 @@ $(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
 	$(LINK_SZG_LIB)
 	$(COPY)
 
-wandsimserver$(EXE): wandsimserver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_EXE_FIRST) wandsimserver$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+inputsimulator$(EXE): inputsimulator$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_EXE_FIRST) inputsimulator$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
 MasterSlaveSkeleton$(EXE): MasterSlaveSkeleton$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)

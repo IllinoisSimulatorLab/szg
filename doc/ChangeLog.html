@@ -5,6 +5,15 @@
 <body bgcolor="#ffffff">
 <a href="index.html">Documentation Index</a>
 <p><font size=+2>Syzygy Change Log</font>
+<p><font size=+2>Changes Between szg-0.8 and szg-0.7</font>
+<li>Removed Cube-specific code from Motionstar driver and moved it to a PForth filter (see cube.txt in this directory).
+<li>Functionality Change! (That I don’t think will affect anyone). In the PForth filter, the generic filter words
+(e.g. filter_all_matrices) are now executed <em>before</em> the specific ones (e.g. filter_matrix_0).
+<li>Added several new PForth words, e.g. to do element-by-element math ops on arrays.
+<li>Added words that duplicate the functionality of the arTrackCalFilter. These are used in the new cube.txt.
+<li>Added a color filter to the arGraphicsWindow to e.g. simulate how things will appear in the dim Cube on a brighter monitor.
+<li>Made a small tweak to fixed-head mode. Previously, SZG_SCREEN#/fixed_head_pos specified the position of the head sensor; it now specifies the mid-eye position. This improves the appearance of wall-to-wall transitions in the Cube noticeably.
+<li>Numerous additions to the Python bindings. Should all be backwards compatible with existing Python code.
 <p><font size=+2>Changes Between szg-0.7 and szg-0.6</font>
 <p><ul>
 <li>Changed the mechanism by which alternative config file and login file

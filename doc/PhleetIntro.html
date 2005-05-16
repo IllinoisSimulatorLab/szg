@@ -449,7 +449,7 @@ completely independent of one another.
 
 <p>The following is a virtual computer definition for a 6 screen graphics 
 display, that includes sound, and is controlled via a simulated tracker 
-interface (the wandsimserver described <a href="TrackingSim.html">here</a>).
+interface (the inputsimulator described <a href="TrackingSim.html">here</a>).
 
 <p>This definition must be entered into the Phleet parameter database via
 dset or dbatch. Please see the chapter on 
@@ -475,7 +475,7 @@ to do this.
   wall SZG_SCREEN4 networks wall
   wall SZG_SCREEN5 map wall6/SZG_SCREEN0
   wall SZG_SCREEN5 networks wall
-  wall SZG_INPUT0 map smoke/wandsimserver
+  wall SZG_INPUT0 map smoke/inputsimulator
   wall SZG_INPUT0 networks internet
   wall SZG_SOUND map sound
   wall SZG_SOUND networks internet
@@ -560,7 +560,7 @@ virtual computer. The value of SZG_INPUT0/map is of the format:
 
 The "AAA" entries are all computer names designating the computers where the
 corresponding input event gathering components described by BBB will 
-be launched. If BBB is "wandsimserver", an instance of that program will be
+be launched. If BBB is "inputsimulator", an instance of that program will be
 launched. Otherwise, an instance of DeviceServer will be launched and
 initialized using the configuration information stored in the global Phleet
 database parameter BBB.   
@@ -645,7 +645,7 @@ a master/slave program or vice-versa), the old one is killed.
 <p>Next, the application launcher makes sure other required services
 are running on the cluster, including input devices and sound drivers. 
 In the case of virtual computer "wall", this means making sure
-wandsimserver is running on computer "smoke" and that SoundRender is
+inputsimulator is running on computer "smoke" and that SoundRender is
 running on computer "sound". In each case, if the component is running
 already, leave it alone. If it isn't running, go ahead and launch it.
 
@@ -868,7 +868,7 @@ service names for the various syzygy service are mentioned below.
   SZG_INPUT(n)
 
    One of SZG_INPUT0, SZG_INPUT1, etc. The number refers to the driver slot.
-   wandsimserver and DeviceServer offer this service. DeviceClient
+   inputsimulator and DeviceServer offer this service. DeviceClient
    and Syzygy applications in general wish to connect to it.
 
   SZG_SOUND
@@ -936,7 +936,7 @@ service is running, will send the IP/port of the service to szgrender, which
 will then connect directly to the distributed scene graph application. 
 In addition, the distributed scene graph application wants to connect to
 the SZG_INPUT0 service, which can be provided by a DeviceServer or 
-wandsimserver.
+inputsimulator.
 
 <p>Services are not the only primitive utilized by the Phleet OS. Distributed
 locks can be used to ensure that sequences of Phleet operations occur 

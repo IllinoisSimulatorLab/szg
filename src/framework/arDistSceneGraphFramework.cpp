@@ -404,6 +404,7 @@ bool arDistSceneGraphFramework::start(){
   // We have two pathways depending upon whether or not we are in standalone
   // mode.
   if (_standalone){
+    _simulator.configure(_SZGClient);
     _graphicsClient.configure(&_SZGClient);
     _graphicsClient.setSimulator(&_simulator);
     _framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
@@ -671,7 +672,7 @@ bool arDistSceneGraphFramework::_initInput(){
   }
   else{
     // we are in the standalone case and are using either an embedded
-    // wandsimserver or a joystick
+    // inputsimulator or a joystick
     _standaloneControlMode = _SZGClient.getAttribute("SZG_DEMO",
 						     "control_mode",
 						     "|simulator|joystick|");

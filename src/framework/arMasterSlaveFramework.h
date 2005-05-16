@@ -18,7 +18,7 @@
 #include "arSoundClient.h"
 #include "arSZGAppFramework.h"
 #include "arVRCamera.h"
-#include "arHeadWandSimulator.h"
+#include "arInputSimulator.h"
 #include "arFramerateGraph.h"
 #include "arMasterSlaveDataRouter.h"
 #include <vector>
@@ -285,7 +285,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   // Used in "standalone" mode
   string              _standaloneControlMode;
-  arHeadWandSimulator _simulator;
+  arInputSimulator _simulator;
   arFramerateGraph    _framerateGraph;
   bool                _showPerformance;
 

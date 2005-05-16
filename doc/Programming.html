@@ -96,7 +96,7 @@ of the various <a href="InputDevices.html">input events</a>:</p>
 <pre>int arSZGAppFramework::getButton( unsigned int index );<br>  Returns the value (0 or 1) of the named button. Button numbering starts<br>  at 0.<br><br>float arSZGAppFramework::getAxis( unsigned int index );<br>  Returns the value of the named axis. Axis numbering starts at 0.<br><br>arMatrix4 arSZGAppFramework::getMatrix( unsigned int index );<br>  Returns the value of the named matrix. Matrix numbering starts at 0.<br>  Note that in our applications the "head matrix" is currently hard-coded as matrix 0<br>  and the "wand matrix" is currently hard-coded as matrix 1. Information<br>  about the arMatrix4 object can be found by examining szg/src/math/arMath.h.<br></pre>
 <p>Many of the included Syzygy sample applications expect a standard CAVE-style input
 device: 3 buttons, 2 axes, 2 matrices (which <a
- href="InputDevices-Drivers.html">wandsimserver</a> can simulate).
+ href="InputDevices-Drivers.html">inputsimulator</a> can simulate).
 However, both frameworks are capable of handling unlimited event
 indices, and also have methods for determining the number of event
 indices available:<br>

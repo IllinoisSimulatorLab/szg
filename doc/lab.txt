@@ -46,7 +46,7 @@ wall SZG_SCREEN4 map spirit/SZG_SCREEN0
 wall SZG_SCREEN4 networks wall
 wall SZG_SCREEN5 map hank7/SZG_SCREEN0
 wall SZG_SCREEN5 networks wall
-wall SZG_INPUT0 map smoke/wandsimserver
+wall SZG_INPUT0 map smoke/inputsimulator
 wall SZG_INPUT0 networks internet
 wall SZG_SOUND map smoke
 wall SZG_SOUND networks internet
@@ -74,7 +74,7 @@ wall_master1 SZG_SCREEN4 map spirit/SZG_SCREEN0
 wall_master1 SZG_SCREEN4 networks wall
 wall_master1 SZG_SCREEN5 map hank7/SZG_SCREEN0
 wall_master1 SZG_SCREEN5 networks wall
-wall_master1 SZG_INPUT0 map smoke/wandsimserver
+wall_master1 SZG_INPUT0 map smoke/inputsimulator
 wall_master1 SZG_INPUT0 networks internet
 wall_master1 SZG_SOUND map smoke
 wall_master1 SZG_SOUND networks internet
@@ -101,7 +101,7 @@ wall_master2 SZG_SCREEN4 map spirit/SZG_SCREEN0
 wall_master2 SZG_SCREEN4 networks wall
 wall_master2 SZG_SCREEN5 map hank7/SZG_SCREEN0
 wall_master2 SZG_SCREEN5 networks wall
-wall_master2 SZG_INPUT0 map smoke/wandsimserver
+wall_master2 SZG_INPUT0 map smoke/inputsimulator
 wall_master2 SZG_INPUT0 networks internet
 wall_master2 SZG_SOUND map smoke
 wall_master2 SZG_SOUND networks internet
@@ -117,7 +117,7 @@ smoke_test SZG_SCREEN0 map smoke/SZG_SCREEN1
 smoke_test SZG_SCREEN1 map smoke/SZG_SCREEN2
 smoke_test SZG_SCREEN2 map smoke/SZG_SCREEN3
 smoke_test SZG_SCREEN3 map smoke/SZG_SCREEN4
-smoke_test SZG_INPUT0 map smoke/wandsimserver
+smoke_test SZG_INPUT0 map smoke/inputsimulator
 
 idesk SZG_CONF    virtual        true
 idesk SZG_TRIGGER map            smoke
@@ -234,7 +234,7 @@ kam4   SZG_PEER   path         /home/public/Peer
 <comment> misc. configuration </comment>
 
 <assign>
-smoke SZG_WANDSIM position 1305/0
+smoke SZG_INPUTSIM position 1305/0
 </assign>
 
 <comment> The base calibration data for the iDesk tracker </comment>

@@ -188,7 +188,7 @@ bool arAppLauncher::setParameters(){
     char buffer[32];
     sprintf(buffer,"%i",i/2);
     
-    if (device == "wandsimserver"){
+    if (device == "inputsimulator"){
       device = device + " " + string(buffer);
     } else {
       device = "DeviceServer " + device + " " + string(buffer);

@@ -22,7 +22,7 @@ this <a href="InputDevices-Drivers.html">chapter</a>.
 </a>
 
 <p>The Syzygy input framework has two programs that produce input events,
-DveiceServer and wandsimserver. The first serves as a front end for
+DveiceServer and inputsimulator. The first serves as a front end for
 dynamically loaded device driver libraries, and the second is a GUI
 intended to allow the generation of VR input events. Both programs
 make their input events available over the network. Syzygy VR framework
@@ -214,7 +214,7 @@ flexible filters, in the provided <a
 </p>
 <p>Input events currently originate either in a device driver or the
 6DOF head &amp; wand tracking + joystick simulator program, <span
- style="font-style: italic;">wandsimserver</span>. All device drivers
+ style="font-style: italic;">inputsimulator</span>. All device drivers
 are managed by the <span style="font-style: italic;">DeviceServer</span>
 executable, with a separate instance of this program running on each
 machine connected to a hardware input device. Each instance of

@@ -143,6 +143,10 @@ void drawSpear( const arMatrix4& spearBaseMatrix ) {
       glColor3f(.4,.4,.4);
       glutSolidCube(1.);
     glPopMatrix();
+    glPushMatrix();
+     glTranslatef( 0, FEET_TO_AU, 0 );
+     glutSolidCube(.2);
+    glPopMatrix();
     if (gDrawSpearTip)
       drawTransparentSphere( arVector3(0,0,-0.5*SPEAR_LENGTH), gSpearRadius );
   glPopMatrix();

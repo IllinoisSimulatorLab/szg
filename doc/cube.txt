@@ -141,7 +141,7 @@
 
 
 <comment>
-PLEASE NOTE: wandsimserver is a HACK so far. And is treated differently than
+PLEASE NOTE: inputsimulator is a HACK so far. And is treated differently than
 everything else. In particular, it has no szg_device record as in the above!
 </comment>
 
@@ -357,7 +357,7 @@ vfire SZG_MASTER  map            SZG_SCREEN0
 vfire SZG_SCREEN  number_screens 1
 vfire SZG_SCREEN0 map            fire/SZG_SCREEN0
 vfire SZG_SCREEN0 networks       internet
-vfire SZG_INPUT0  map            fire/wandsimserver
+vfire SZG_INPUT0  map            fire/inputsimulator
 vfire SZG_INPUT0  networks       internet
 vfire SZG_SOUND   map            picasso
 vfire SZG_SOUND   networks       internet
@@ -547,7 +547,7 @@ fire SZG_SCREEN0 tile              0/1/0/1
 fire SZG_SCREEN0 head_mounted      true
 fire SZG_SCREEN0 use_fixed_head_mode ignore
 fire SZG_SCREEN0 wildcat_framelock false
-fire SZG_WANDSIM position 600/100
+fire SZG_INPUTSIM position 600/100
 
 </assign>
 

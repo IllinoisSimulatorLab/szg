@@ -10,30 +10,30 @@
 <p>The Syzygy VR framework applications tend to work best with a VR style
 interface, namely 6DOF head tracking and some kind of joystick type input
 device with another 6DOF sensor attached. Since this could very easily be
-unavailable, the software includes support for a simulator (wandsimserver)
+unavailable, the software includes support for a simulator (inputsimulator)
 that can operate the included programs from a desktop.
 
-<p>This program can be run either from the command line ("wandsimserver") or 
+<p>This program can be run either from the command line ("inputsimulator") or 
 via
 
 <pre>
-    dex XXX wandsimserver
+    dex XXX inputsimulator
 </pre>
 
-<p>If desired, wandsimserver can provide its input events on another Syzygy
+<p>If desired, inputsimulator can provide its input events on another Syzygy
 input slot (say 1) like so:
 
 <pre>
-  wandsimserver 1
+  inputsimulator 1
 </pre>
 
-<p><img src="images/wandsimserver.png" height=400 width=400>
+<p><img src="images/inputsimulator.png" height=400 width=400>
 
-<p>While executing, wandsimserver opens a window showing a view from behind 
+<p>While executing, inputsimulator opens a window showing a view from behind 
 into a 10-foot cubical space (remarkably reminiscent of the inside our CUBE). 
 A wireframe sphere in the center represents the subject's head (initially 
 facing away from us). The other visible object represents a wand with six 
-buttons. wandsimserver sends data to the application specifying the position 
+buttons. inputsimulator sends data to the application specifying the position 
 and orientation of the head and of the wand and the state of the wand's 
 buttons.
 
@@ -56,7 +56,7 @@ buttons.
    mousing moves the joystick.
 <li>Rotate the world: When a mouse button is pressed, the view rotates around
    the y axis.
-<li>The wandsimserver program emulates the use of a wand with 6 buttons.
+<li>The inputsimulator program emulates the use of a wand with 6 buttons.
     By pressing the space bar, you can change the mapping of the mouse buttons
     from wand buttons 1-3 to wand button 4-6 and back again.
 </ol>

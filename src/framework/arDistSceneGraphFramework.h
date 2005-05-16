@@ -12,7 +12,7 @@
 #include "arGraphicsWindow.h"
 #include "arSoundClient.h"
 #include "arVRConstants.h"
-#include "arHeadWandSimulator.h"
+#include "arInputSimulator.h"
 #include "arFramerateGraph.h"
 #include "arSZGAppFramework.h"
 
@@ -97,7 +97,7 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   arGraphicsClient    _graphicsClient;
   arSoundClient       _soundClient;
   string              _standaloneControlMode;
-  arHeadWandSimulator _simulator;
+  arInputSimulator _simulator;
   arFramerateGraph    _framerateGraph;
   arGraphicsWindow    _graphicsWindow;
 

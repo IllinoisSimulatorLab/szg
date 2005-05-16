@@ -6,7 +6,7 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arGraphicsHeader.h"
-#include "arHeadWandSimulator.h"
+#include "arInputSimulator.h"
 #include "arInputNode.h"
 #include "arNetInputSource.h"
 #include "arNetInputSink.h"
@@ -17,12 +17,12 @@ arInputState* inp;
 arSZGClient* szgclient;
 arInputNode* inputNode;
 
-arHeadWandSimulator simulator;
+arInputSimulator simulator;
 int xPos = 0, yPos = 0;
 
 void loadParameters(arSZGClient& szgclient){
   int posBuffer[2];
-  string posString = szgclient.getAttribute("SZG_WANDSIM", "position");
+  string posString = szgclient.getAttribute("SZG_INPUTSIM", "position");
   if (posString != "NULL"
       && ar_parseIntString(posString,posBuffer,2)){
     xPos = posBuffer[0];
@@ -86,7 +86,7 @@ void messageTask(void* /*pClient*/){
   string messageType, messageBody;
   while (true) {
     if (!szgclient->receiveMessage(&messageType,&messageBody)){
-      cout << "Wandsimserver remark: shutdown.\n";
+      cout << "inputsimulator remark: shutdown.\n";
       // Cut-and-pasted from below.
       inputNode->stop();
       exit(0);
@@ -110,7 +110,7 @@ int main(int argc, char** argv){
   if (argc > 1) {
     slotNumber = atoi(argv[1]);
   }
-  cout << "wandsimserver remark: using slot #" << slotNumber << endl;
+  cout << "inputsimulator remark: using slot #" << slotNumber << endl;
   bool useNetInput(false);
   if (argc > 2) {
     if (std::string(argv[2]) == "-netinput") {
@@ -121,29 +121,29 @@ int main(int argc, char** argv){
   netInputSink.setSlot(slotNumber);
   // NOTE: we need to distinguish different kinds of SZG_INPUTn services...
   // and this is how we do it!
-  netInputSink.setInfo("wandsimserver");
+  netInputSink.setInfo("inputsimulator");
 
   string pforthProgramName = szgclient->getAttribute("SZG_PFORTH",
                                                      "program_names");
   if (pforthProgramName == "NULL"){
-    cout << "wandsimserver remark: no pforth program for "
+    cout << "inputsimulator remark: no pforth program for "
 	 << "standalone joystick.\n";
   }
   else{
     string pforthProgram = szgclient->getGlobalAttribute(pforthProgramName);
     if (pforthProgram == "NULL"){
-      cout << "wandsimserver remark: no pforth program exists for "
+      cout << "inputsimulator remark: no pforth program exists for "
 	   << "name = " << pforthProgramName << "\n";
     }
     else{
       arPForthFilter* filter = new arPForthFilter();
       ar_PForthSetSZGClient( szgclient );
       if (!filter->configure( pforthProgram )){
-        cout << "wandsimserver remark: failed to configure pforth\n"
+        cout << "inputsimulator remark: failed to configure pforth\n"
 	     << "filter with program =\n "
 	     << pforthProgram << "\n";
         if (!szgclient->sendInitResponse(false))
-          cerr << "wandsimserver error: maybe szgserver died.\n";
+          cerr << "inputsimulator error: maybe szgserver died.\n";
         return 1;
       }
       // The input node is not responsible for clean-up
@@ -151,13 +151,14 @@ int main(int argc, char** argv){
     }
   }
   
+  simulator.configure(*szgclient);
   simulator.registerInputNode(inputNode);
   inp = &inputNode->_inputState;
   if (useNetInput) {
     arNetInputSource* netSource = new arNetInputSource;
     netSource->setSlot(slotNumber+1);
     inputNode->addInputSource(netSource,true);
-    cerr << "wandsimserver remark: using net input, slot #" 
+    cerr << "inputsimulator remark: using net input, slot #" 
          << slotNumber+1 << ".\n";
     // Memory leak.  inputNode won't free its input sources, I think.
   }
@@ -165,16 +166,16 @@ int main(int argc, char** argv){
   
   if (!inputNode->init(*szgclient)) {
     if (!szgclient->sendInitResponse(false))
-      cerr << "wandsimserver error: maybe szgserver died.\n";
+      cerr << "inputsimulator error: maybe szgserver died.\n";
     return 1;
   }
   // initialization succeeded
   if (!szgclient->sendInitResponse(true))
-    cerr << "wandsimserver error: maybe szgserver died.\n";
+    cerr << "inputsimulator error: maybe szgserver died.\n";
 
   if (!inputNode->start()){
     if (!szgclient->sendStartResponse(false))
-      cerr << "wandsimserver error: maybe szgserver died.\n";
+      cerr << "inputsimulator error: maybe szgserver died.\n";
     return 1;
   }
   
@@ -187,7 +188,7 @@ int main(int argc, char** argv){
   glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB|GLUT_DEPTH);
   glutInitWindowSize(250,250);
   glutInitWindowPosition(xPos, yPos);
-  glutCreateWindow("wandsimserver");
+  glutCreateWindow("inputsimulator");
   glutDisplayFunc(display);
   glutIdleFunc(idle);
   glutKeyboardFunc(keyboard);
@@ -197,6 +198,6 @@ int main(int argc, char** argv){
 
   // start succeeded
   if (!szgclient->sendStartResponse(true))
-    cerr << "wandsimserver error: maybe szgserver died.\n";
+    cerr << "inputsimulator error: maybe szgserver died.\n";
   glutMainLoop();
 }

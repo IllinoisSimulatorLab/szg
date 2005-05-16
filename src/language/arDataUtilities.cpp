@@ -580,8 +580,6 @@ int ar_parseFloatString(const string& theString, float* outArray, int len){
   return dimension;
 }
 
-/// \todo use ar_parseLongString's method instead.  Better error handling.  (Create ar_stringToIntValid.)
-
 int ar_parseIntString(const string& theString, int* outArray, int len){
   // takes a string which is a sequence of ints delimited by /
   // and fills an array of ints
@@ -612,7 +610,7 @@ int ar_parseIntString(const string& theString, int* outArray, int len){
       break;
     int theInt;
     if (!ar_stringToIntValid( wordString, theInt )) {
-      cerr << "ar_parseIntString warning: invalid field \"" << wordString << "\".\n";
+      cerr << "ar_parseIntString warning: invalid field value \"" << wordString << "\".\n";
       break;
     }
     outArray[numValues++] = theInt;
