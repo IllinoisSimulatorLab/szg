@@ -55,6 +55,29 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   arMasterSlaveFramework();
   virtual ~arMasterSlaveFramework();
 
+  // We've added another layer of indirection. Now, at the point where
+  // the callbacks were formerly called, we instead call these virtual
+  // (hence overrideable) methods, which in turn call the callbacks.
+  // Now those of us who prefer sub-classing to callbacks can do so.
+  // (If you override these, the corresponding callbacks are of course
+  // ignored).
+
+  // not really necessary to pass SZGClient, but convenient.
+  virtual bool onStart( arSZGClient& SZGClient );
+  virtual void onPreExchange();
+  virtual void onPostExchange();
+  virtual void onInitWindow();
+  virtual void onDraw();
+  virtual void onDisconnectDraw();
+  virtual void onPlay();
+  virtual void onReshape( int width, int height );
+  virtual void onCleanup();
+  virtual void onUserMessage( const string& messageBody );
+  virtual void onOverlay();
+  virtual void onKeypress( unsigned char key, int x, int y);
+  virtual void onSlaveConnected( int numConnected );
+
+  //
   // set the callbacks
   void setStartCallback(bool (*startCallback)(arMasterSlaveFramework& fw, 
                                             arSZGClient&));
@@ -62,6 +85,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void setPostExchangeCallback(void (*postExchange)(arMasterSlaveFramework&));
   void setWindowCallback(void (*windowCallback)(arMasterSlaveFramework&));
   void setDrawCallback(void (*draw)(arMasterSlaveFramework&));
+  void setDisconnectDrawCallback(void (*disConnDraw)(arMasterSlaveFramework&));
   void setPlayCallback(void (*play)(arMasterSlaveFramework&));
   void setReshapeCallback(void (*reshape)(arMasterSlaveFramework&, int, int));
   void setExitCallback(void (*cleanup)(arMasterSlaveFramework&));
@@ -175,6 +199,12 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool soundActive() const { return _soundActive; }
   bool inputActive() const { return _inputActive; }
 
+  // Shared random numbers.  Set the seed on the master,
+  // then make sure a data exchange occurs, then generate random numbers
+  // by calling randUniformFloat() identically on all machines.
+  void setRandomSeed( const long newSeed );
+  bool randUniformFloat( float& value );
+  
  protected:
   arDataServer*        _stateServer; // used only by master
   arDataClient         _stateClient;
@@ -208,7 +238,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void (*_postExchange)(arMasterSlaveFramework&);
   void (*_window)(arMasterSlaveFramework&);
   void (*_drawCallback)(arMasterSlaveFramework&);
-  void (*_play)(arMasterSlaveFramework&);
+  void (*_disconnectDrawCallback)(arMasterSlaveFramework&);
+  void (*_playCallback)(arMasterSlaveFramework&);
   void (*_reshape)(arMasterSlaveFramework&, int, int);
   void (*_cleanup)(arMasterSlaveFramework&);
   void (*_userMessageCallback)(arMasterSlaveFramework&, const string&);
@@ -239,6 +270,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   ARint   _inBufferSize;
 
   bool _newSlaveConnected; // used to trigger slave-connection callback
+  int _numSlavesConnected; // updated only once/frame, before preExchange
   arMutex _connectFlagMutex;
   
   // Input-event stuff
@@ -253,6 +285,14 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   double     _lastComputeTime;
   double     _lastSyncTime;
   bool       _firstTimePoll;
+  
+  int _randSeedSet;
+  long _randomSeed;
+  long _newSeed;
+  long _numRandCalls;
+  float _lastRandVal;
+  int _randSynchError;
+  int _firstTransfer;
   
   string _texturePath;
   char   _textPath[256]; //< \todo fixed size buffer
@@ -275,7 +315,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   arConditionVar _pauseVar;
 
   // Allow a different screen color (for lighting effects).
-  arVector3 _defaultColor;
+  arVector3 _noDrawFillColor;
 
   // Information about the various threads that are unique to the
   // arMasterSlaveFramework (some info about the status of thread types

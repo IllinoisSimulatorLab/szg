@@ -38,11 +38,7 @@ void ar_masterSlaveFrameworkReshapeFunction(int width, int height){
 
   __globalFramework->_windowSizeX = width;
   __globalFramework->_windowSizeY = height;
-
-  if (__globalFramework->_reshape)
-    __globalFramework->_reshape( *__globalFramework, width, height );
-  else
-    glViewport( 0, 0, width, height );
+  __globalFramework->onReshape( width, height );
 }
 
 void ar_masterSlaveFrameworkDisplayFunction(){
@@ -113,9 +109,8 @@ void ar_masterSlaveFrameworkKeyboardFunction(unsigned char key, int x, int y){
 
   // finally, keyboard events should be forwarded to the keyboard callback
   // *if* we are the master and *if* the callback has been defined.
-  if (__globalFramework->getMaster() 
-      && __globalFramework->_keyboardCallback){
-    __globalFramework->_keyboardCallback(*__globalFramework, key, x, y);
+  if (__globalFramework->getMaster()) {
+    __globalFramework->onKeypress( key, x, y );
   }
 }
 
@@ -175,7 +170,8 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   _postExchange(NULL),
   _window(NULL),
   _drawCallback(NULL),
-  _play(NULL),
+  _disconnectDrawCallback(NULL),
+  _playCallback(NULL),
   _reshape(NULL),
   _cleanup(NULL),
   _userMessageCallback(NULL),
@@ -194,9 +190,17 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   _inBuffer(NULL),
   _inBufferSize(-1),
   _newSlaveConnected(false),
+  _numSlavesConnected(0),
   _time(0.),
   _lastFrameTime(0.1),
   _firstTimePoll(true),
+  _randSeedSet(1),
+  _randomSeed(-1),
+  _newSeed(-1),
+  _numRandCalls(0),
+  _lastRandVal(0),
+  _randSynchError(0),
+  _firstTransfer(1),
   _screenshotFlag(false),
   _screenshotStartX(0),
   _screenshotStartY(0),
@@ -230,12 +234,16 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   _transferTemplate.addAttribute("unit_conversion",AR_FLOAT);
   _transferTemplate.addAttribute("fixed_head_mode",AR_INT);
   _transferTemplate.addAttribute("szg_data_router",AR_CHAR);
+  _transferTemplate.addAttribute("randSeedSet",AR_INT);
+  _transferTemplate.addAttribute("randSeed",AR_LONG);
+  _transferTemplate.addAttribute("numRandCalls",AR_LONG);
+  _transferTemplate.addAttribute("randVal",AR_FLOAT);
 
   ar_mutex_init(&_pauseLock);
   ar_mutex_init(&_eventLock);
   // when the default color is set like this, the app's gemetry is displayed
   // instead of a default color
-  _defaultColor = arVector3(-1,-1,-1);
+  _noDrawFillColor = arVector3(-1,-1,-1);
   _masterPort[0] = -1;
   // Also, let's initialize the performance graph.
   _framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
@@ -260,6 +268,105 @@ arMasterSlaveFramework::~arMasterSlaveFramework() {
   _internalTransferFieldData.clear();
   if (!_master && _inputState)
     delete _inputState;
+}
+
+bool arMasterSlaveFramework::onStart( arSZGClient& SZGClient ) {
+  if (_startCallback && !_startCallback( *this, SZGClient )){
+    cerr << _label << " error: failed to called user-defined start callback.\n";
+    return false;
+  }
+  return true;
+}
+
+void arMasterSlaveFramework::onPreExchange() {
+  if (_preExchange){
+    _preExchange(*this);
+  }
+}
+
+void arMasterSlaveFramework::onPostExchange() {
+  if (_postExchange) {
+    _postExchange(*this);
+  }
+}
+
+void arMasterSlaveFramework::onInitWindow() {
+}
+
+void arMasterSlaveFramework::onDraw() {
+  if (!_drawCallback) {
+    cerr << _label << " warning: forgot to setDrawCallback().\n";
+    return;
+  }
+  _drawCallback(*this);
+}
+
+void arMasterSlaveFramework::onDisconnectDraw() {
+  if (_disconnectDrawCallback) {
+    _disconnectDrawCallback(*this);
+  } else {
+    // just draw a black background
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-1,1,-1,1,0,1);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    glDisable(GL_LIGHTING);
+    glColor3f(0,0,0);
+    glBegin(GL_QUADS);
+    glVertex3f(1,1,-0.5);
+    glVertex3f(-1,1,-0.5);
+    glVertex3f(-1,-1,-0.5);
+    glVertex3f(1,-1,-0.5);
+    glEnd(); 
+    glPopAttrib();
+  }
+}
+
+void arMasterSlaveFramework::onPlay() {
+  if (_playCallback){
+    setPlayTransform();
+    _playCallback(*this);
+  }
+}
+
+void arMasterSlaveFramework::onReshape( int width, int height ) {
+  if (_reshape) {
+    _reshape( *this, width, height );
+  } else {
+    glViewport( 0, 0, width, height );
+  }
+}
+
+void arMasterSlaveFramework::onCleanup() {
+  if (_cleanup){
+    _cleanup(*this);
+  }
+}
+
+void arMasterSlaveFramework::onUserMessage( const string& messageBody ) {
+  if (_userMessageCallback){
+    _userMessageCallback(*this, messageBody);
+  }
+}
+
+void arMasterSlaveFramework::onOverlay() {
+  if (_overlay){
+    _overlay(*this);
+  }
+}
+
+void arMasterSlaveFramework::onKeypress( unsigned char key, int x, int y) {
+  if (_keyboardCallback) {
+    _keyboardCallback( *this, key, x, y );
+  }
+}
+
+void arMasterSlaveFramework::onSlaveConnected( int numConnected ) {
+  if (_connectCallback) {
+    _connectCallback( *this, numConnected );
+  }
 }
 
 void arMasterSlaveFramework::setStartCallback
@@ -297,7 +404,7 @@ void arMasterSlaveFramework::setDrawCallback
 
 void arMasterSlaveFramework::setPlayCallback
   (void (*play)(arMasterSlaveFramework&)){
-  _play = play;
+  _playCallback = play;
 }
 
 void arMasterSlaveFramework::setReshapeCallback
@@ -611,17 +718,16 @@ void arMasterSlaveFramework::preDraw(){
     if (_eventFilter) {
       _eventFilter->processEventQueue();
     }
-    if (_connectCallback) {
-      ar_mutex_lock( &_connectFlagMutex );
-      if (_newSlaveConnected) {
-        _connectCallback( *this, _stateServer->getNumberConnected() );
-        _newSlaveConnected = false;
-      }
-      ar_mutex_unlock( &_connectFlagMutex );
+    ar_mutex_lock( &_connectFlagMutex );
+    if (_newSlaveConnected) {
+      onSlaveConnected( _stateServer->getNumberConnected() );
+      _newSlaveConnected = false;
     }
-    if (_preExchange){
-      _preExchange(*this);
+    ar_mutex_unlock( &_connectFlagMutex );
+    if (_stateServer) {
+      _numSlavesConnected = _stateServer->getNumberConnected();
     }
+    onPreExchange();
   }
 
   // might not be running in a distributed fashion
@@ -632,13 +738,10 @@ void arMasterSlaveFramework::preDraw(){
     }
   }
 
-  if (_play){
-    setPlayTransform();
-    _play(*this);
-  }
+  onPlay();
 
-  if (getConnected() && _postExchange) {
-    _postExchange(*this);
+  if (getConnected()) {
+    onPostExchange();
   }
 
   if (_standalone){
@@ -686,8 +789,8 @@ void arMasterSlaveFramework::drawWindow(){
 
   // we draw the application's overlay last, if such exists. This is only
   // done on the master instance.
-  if (getMaster() && _overlay){
-    _overlay(*this);
+  if (getMaster()){
+    onOverlay();
   }
 }
 
@@ -856,6 +959,42 @@ void arMasterSlaveFramework::setPlayTransform(){
 void arMasterSlaveFramework::draw(){
   _graphicsDatabase.draw();
 }
+
+
+void arMasterSlaveFramework::setRandomSeed( const long newSeed ) {
+  if (!_master)
+    return;
+  if (newSeed==0) {
+    cerr << _label
+	 << " warning: illegal random seed value 0 replaced with -1.\n";
+    _newSeed = -1;
+  } else {
+    _newSeed = newSeed;
+  }
+  _randSeedSet = 1;
+}
+  
+bool arMasterSlaveFramework::randUniformFloat( float& value ) {
+  value = ar_randUniformFloat( &_randomSeed );
+  _lastRandVal = value;
+  ++_numRandCalls;
+  if (_randSynchError & 1) {
+    cerr << _label << " warning: unequal numbers of calls to randUniformFloat() "
+         << "on different machines.\n";
+  }
+  if (_randSynchError & 2) {
+    cerr << _label << " warning: divergence of random number seeds "
+         << "on different machines.\n";
+  }
+  if (_randSynchError & 4) {
+    cerr << _label << " warning: divergence of random number values "
+         << "on different machines.\n";
+  }
+  bool success = _randSynchError==0;
+  _randSynchError = 0;
+  return success;
+}
+
 
 //************************************************************************
 // Various small utility functions
@@ -1126,10 +1265,17 @@ void arMasterSlaveFramework::_pollInputData(){
 }
 
 void arMasterSlaveFramework::_packInputData(){
+  if (_randSeedSet) {
+    _randomSeed = -labs( _newSeed );
+  }
   const arMatrix4 navMatrix(ar_getNavMatrix());
   if (!_transferData->dataIn("time",&_time,AR_DOUBLE,1) ||
       !_transferData->dataIn("lastFrameTime",&_lastFrameTime,AR_DOUBLE,1) ||
       !_transferData->dataIn("navMatrix",navMatrix.v,AR_FLOAT,16) ||
+      !_transferData->dataIn("randSeedSet",&_randSeedSet,AR_INT,1) ||
+      !_transferData->dataIn("randSeed",&_randomSeed,AR_LONG,1) ||
+      !_transferData->dataIn("numRandCalls",&_numRandCalls,AR_LONG,1) ||
+      !_transferData->dataIn("randVal",&_lastRandVal,AR_FLOAT,1) ||
       !_transferData->dataIn("eye_spacing",&_head._eyeSpacing,AR_FLOAT,1) ||
       !_transferData->dataIn("mid_eye_offset",_head._midEyeOffset.v,AR_FLOAT,3) ||
       !_transferData->dataIn("eye_direction",_head._eyeDirection.v,AR_FLOAT,3) ||
@@ -1143,6 +1289,10 @@ void arMasterSlaveFramework::_packInputData(){
   if (!ar_saveInputStateToStructuredData( _inputState, _transferData )) {
     cerr << _label << " warning: failed to pack input state data.\n";
   }
+
+  _numRandCalls = 0;
+  _randSeedSet = 0;
+  _firstTransfer = 0;
 }
 
 void arMasterSlaveFramework::_unpackInputData(){
@@ -1162,6 +1312,26 @@ void arMasterSlaveFramework::_unpackInputData(){
   if (!ar_setInputStateFromStructuredData( _inputState, _transferData )) {
     cerr << _label << " warning: failed to unpack input state data.\n";
   }
+
+  const long lastNumCalls = _numRandCalls;
+  const long lastSeed = _randomSeed;
+  _transferData->dataOut("randSeedSet",&_randSeedSet,AR_INT,1);
+  _transferData->dataOut("randSeed",&_randomSeed,AR_LONG,1);
+  _transferData->dataOut("numRandCalls",&_numRandCalls,AR_LONG,1);
+  float tempRandVal;
+  _transferData->dataOut("randVal",&tempRandVal,AR_FLOAT,1);
+  _randSynchError = 0;
+  if (!_firstTransfer) {
+    if (lastNumCalls != _numRandCalls)
+      _randSynchError |= 1;
+    if ((lastSeed != _randomSeed)&&(!_randSeedSet))
+      _randSynchError |= 2;
+    if (tempRandVal != _lastRandVal)
+      _randSynchError |= 4;
+  } else {
+    _firstTransfer = 0;
+  }
+  _numRandCalls = 0;
 }
 
 //************************************************************************
@@ -1506,8 +1676,7 @@ bool arMasterSlaveFramework::_startStandalone(bool useGLUT){
     _createGLUTWindow();
   }
   __globalFramework = this;
-  if (_startCallback && !_startCallback(*this, _SZGClient)){
-    cerr << _label << " error: failed to called user-defined init.\n";
+  if (!onStart( _SZGClient )) {
     return false;
   }
   // this is from _startObjects... a CUT_AND_PASTE!!
@@ -1569,8 +1738,7 @@ bool arMasterSlaveFramework::_start(bool useGLUT){
   // the window has been created.
   // NOTE: so that _startCallback can know if this instance is the master or
   // a slave, it is important to call this AFTER _startDetermineMaster(...)
-  if (_startCallback && !_startCallback(*this, _SZGClient)){
-    cerr << "arMasterSlaveFramework error: start callback failed.\n";
+  if (!onStart( _SZGClient )) {
     return _startrespond("arMasterSlaveFramework start callback failed.");
   }
 
@@ -1743,19 +1911,17 @@ void arMasterSlaveFramework::_messageTask(){
       (void)_loadParameters();
     }
     else if (messageType== "user"){
-      if (_userMessageCallback){
-        _userMessageCallback(*this, messageBody);
-      }
+      onUserMessage( messageBody );
     }
     else if (messageType=="color"){
       if (messageBody=="NULL" || messageBody=="off"){
-        _defaultColor = arVector3(-1,-1,-1);
+        _noDrawFillColor = arVector3(-1,-1,-1);
       }
       else{
 	float tmp[3];
 	ar_parseFloatString(messageBody, tmp, 3);
 	/// \todo error checking
-        memcpy(_defaultColor.v, tmp, 3*sizeof(AR_FLOAT));
+        memcpy(_noDrawFillColor.v, tmp, 3*sizeof(AR_FLOAT));
       }
     }
 
@@ -1926,14 +2092,13 @@ void arMasterSlaveFramework::_connectionTask(){
 //**************************************************************************
 
 void arMasterSlaveFramework::_draw(){
-  if (!_drawCallback) {
-    cerr << _label << " warning: forgot to setDrawCallback().\n";
-    return;
-  }
-  if (_defaultColor[0] == -1){
-    _drawCallback(*this);
-  }
-  else{
+  if (_noDrawFillColor[0] == -1) {
+    if (getConnected()) {
+      onDraw();
+    } else {
+      onDisconnectDraw();
+    }
+  } else {
     // we just want a colored background
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -1942,7 +2107,7 @@ void arMasterSlaveFramework::_draw(){
     glLoadIdentity();
     glPushAttrib(GL_ALL_ATTRIB_BITS);
     glDisable(GL_LIGHTING);
-    glColor3fv(&_defaultColor[0]);
+    glColor3fv(&_noDrawFillColor[0]);
     glBegin(GL_QUADS);
     glVertex3f(1,1,-0.5);
     glVertex3f(-1,1,-0.5);
@@ -1986,9 +2151,7 @@ void arMasterSlaveFramework::_display(){
   if (_exitProgram){
     // guaranteed to get here--user-defined cleanup will be called
     // at the right time
-    if (_cleanup){
-      _cleanup(*this);
-    }
+    onCleanup();
 
     // wildcat framelock is only deactivated if this makes sense...
     // and if it makes sense, it is important to do so before exiting.
@@ -2021,5 +2184,5 @@ int arMasterSlaveFramework::getNumberSlavesConnected() const {
     cerr << "arMasterSlaveFramework warning: getNumberSlavesConnected() called on slave.\n";
     return -1;
   }
-  return _stateServer->getNumberConnected();
+  return _numSlavesConnected;
 }  
