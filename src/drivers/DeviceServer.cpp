@@ -143,9 +143,12 @@ InputNodeConfig parseNodeConfig(const string& nodeConfig){
   return result;
 }
 
-static void respond(arSZGClient& cli, bool f = false) {
-  if (!cli.sendInitResponse(f))
+static bool respond(arSZGClient& cli, bool f = false) {
+  if (!cli.sendInitResponse(f)) {
     cerr << "DeviceServer error: maybe szgserver died.\n";
+    return false;
+  }
+  return true;
 }
 
 int main(int argc, char** argv){
@@ -338,7 +341,10 @@ int main(int argc, char** argv){
     inputNode.addFilter(theFilter,true);
   }
 
-  respond(SZGClient, inputNode.init(SZGClient));
+  if (!respond(SZGClient, inputNode.init(SZGClient))){
+    cerr << "DeviceServer warning: ignoring failed init.\n";
+    // return 1;
+  }
   if (!inputNode.start()){
     if (!SZGClient.sendStartResponse(false))
       cerr << "DeviceServer error: maybe szgserver died.\n";
