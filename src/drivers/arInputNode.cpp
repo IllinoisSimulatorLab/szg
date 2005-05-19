@@ -61,8 +61,10 @@ bool arInputNode::init(arSZGClient& szgClient){
        i != _inputSourceList.end();
        ++i){
     // If one device initialization fails, the whole thing fails.
-    if (!(*i)->init(szgClient))
+    if (!(*i)->init(szgClient)) {
+      cerr << szgClient.getLabel() << " error: input source failed to init.\n";
       return false;
+    }
 
     _inputState.addInputDevice( (*i)->getNumberButtons(),
                                 (*i)->getNumberAxes(),
@@ -75,6 +77,7 @@ bool arInputNode::init(arSZGClient& szgClient){
        ++j){
     // If one device initialization fails, the whole thing fails.
     if (!(*j)->init(szgClient)){
+      cerr << szgClient.getLabel() << " error: input sink failed to init.\n";
       return false;
     }
   }
