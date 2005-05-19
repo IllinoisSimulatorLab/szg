@@ -297,9 +297,9 @@ bool arSZGClient::_sendResponse(stringstream& s, const char* sz,
 
 /// If we have launched via szgd/dex, send the init message stream
 /// back to the launching dex command. If we launched from the command line,
-/// just print the stream. If the parameter state is "true", the init succeeded
+/// just print the stream. If "ok" is true, the init succeeded
 /// and we'll be sending a start message later (so this will be a partial
-/// response). If the parameter is "false", then the init failed and we'll
+/// response). Otherwise, the init failed and we'll
 /// not be sending another response, so this should be the final one.
 bool arSZGClient::sendInitResponse(bool ok){
   return _sendResponse(_initResponseStream, "initialization", ok, ok);
