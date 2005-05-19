@@ -97,17 +97,24 @@ enum {
   FNCNumberDoGetRS232StopBits           =20     , // get stopbits of serial line
 };
 
+const double usecPoll = 150000.;
+  // 70 msec is so fast that the measurements are pure noise.
+  // 300 msec causes wraparound past 127.
+// Timing intervals overlap/interleave for x and y.
+double usecDuration = usecPoll;
+double usecDurationPrev = usecPoll;
+double usecDurationPrew = usecPoll;
+
 #ifdef AR_USE_WIN_32
 
 HANDLE SerializationEvent = 0;
-const int SerializationEventTimeout = 5000; // 5 seconds to wait to end previous device access
+const int SerializationEventTimeout = 3000; // 3 seconds to wait to end previous device access
 const int OutputDataLength = 256;
 char OutputData[OutputDataLength]; // data to USB
 DWORD OutLength = 0; // length of data to USB
 const char* DrvName = "\\\\.\\AVR309USB_0";
 HANDLE DrvHnd = INVALID_HANDLE_VALUE;
 bool UARTx2Mode = false;
-bool IsRS232PrevInst = true;
 HANDLE RS232MutexHandle = 0; // serialize access to the AVR USB chip
 const char* RS232BufferMutexName = "IgorPlugUSBRS232MutexHandleName";
 
@@ -122,17 +129,11 @@ int RS232BufferWrite = 0; // write position
 
 DWORD RS232BufferThreadId = 0; // read thread
 UINT DoGetRS232BufferTimer = 0; // timer generating event: reading to RS232 from device FIFO in intervals
-int RS232BufferTimerInterval = 35; // reading from device FIFO into RS232 buffer, was 10 msec
+int RS232BufferTimerInterval = 10; // reading from device FIFO into RS232 buffer, was 10 msec
 HANDLE RS232BufferThreadHND = 0; // read thread
 HANDLE RS232BufferGetEvent = 0; // signal for read from device FIFO
 HANDLE RS232BufferEndEvent = 0; // stop cyclic reading RS232 buffer thread
 HANDLE LocalThreadRunningEvent = 0; // end local RS232 buffer thread
-
-void ShowThreadErrorMessage()
-{
-  //;;;; called in only one place?
-  cerr << "arUSBDriver error: failed to acquire mutex lock.\n";
-}
 
 inline bool OpenDriver() { // open device driver
   DrvHnd = CreateFile(DrvName, GENERIC_WRITE | GENERIC_READ,
@@ -143,6 +144,44 @@ inline bool OpenDriver() { // open device driver
 inline void CloseDriver() {
   if (DrvHnd != INVALID_HANDLE_VALUE)
     CloseHandle(DrvHnd);
+}
+
+void Tick() {
+  static bool enableTick = true;
+  if (!enableTick) {
+    usecDurationPrew = usecDurationPrev;
+    usecDurationPrev = usecDuration;
+    usecDuration = usecPoll;
+    return;
+  }
+
+  // Measure duration between now and last time we were here.
+  LARGE_INTEGER value;
+  static LARGE_INTEGER valuePrev;
+  static double scale = 0.;
+  static bool fInited = false;
+  if (!fInited) {
+    LARGE_INTEGER Hz;
+    if (!QueryPerformanceFrequency(&Hz)) {
+      cerr << "arUSBdriver error: QueryPerformanceFrequency() failed.\n";
+      enableTick = false;
+      return;
+    }
+    // Hz is clock ticks per second
+    scale = 1000000. / double(Hz.QuadPart); // usec per tick
+    fInited = true;
+  }
+  if (fInited) {
+    if (!QueryPerformanceCounter(&value)) {
+      cerr << "arUSBdriver error: QueryPerformanceCounter() failed.\n";
+      enableTick = false;
+      return;
+    }
+    usecDurationPrew = usecDurationPrev;
+    usecDurationPrev = usecDuration;
+    usecDuration = double(value.QuadPart - valuePrev.QuadPart) * scale;
+    valuePrev = value;
+  }
 }
 
 bool SendToDriver(int FunctionNumber, int Param1, int Param2, char* pb, DWORD& cb) {
@@ -157,6 +196,10 @@ bool SendToDriver(int FunctionNumber, int Param1, int Param2, char* pb, DWORD& c
   int OutLengthMax = cb<0 ? OutputDataLength : cb;
   if (OutLengthMax > 255)
     OutLengthMax = 255;
+
+  if (FunctionNumber == FNCNumberDoRS232Send)
+    Tick();
+
   // Original source code (Delphi 7) repeats 3 times and re-calls OpenDriver.
   const int ok = DeviceIoControl(DrvHnd, 0x808, bufIn, sizeof(bufIn),
     pb, OutLengthMax, &cb, NULL);
@@ -167,13 +210,13 @@ bool SendToDriver(int FunctionNumber, int Param1, int Param2, char* pb, DWORD& c
 
 #define LOCK \
   if (WaitForSingleObject(SerializationEvent, SerializationEventTimeout)==WAIT_TIMEOUT) { \
-    ShowThreadErrorMessage(); \
+    cerr << "arUSBDriver error: failed to lock mutex.\n"; \
     return DEVICE_NOT_PRESENT; \
   }
 
 #define LOCKBLAH(statement) \
   if (WaitForSingleObject(SerializationEvent, SerializationEventTimeout)==WAIT_TIMEOUT) { \
-    ShowThreadErrorMessage(); \
+    cerr << "arUSBDriver error: failed to lock mutex.\n"; \
     statement; \
     return DEVICE_NOT_PRESENT; \
   }
@@ -312,7 +355,6 @@ int DoRS232Send(char c) {
   return ok ? USB_NO_ERROR : DEVICE_NOT_PRESENT;
 }
 
-
 // External function for sending bytes!
 int DoRS232BufferSend(const char* rgb, int& cb) {
   bool ok = true;
@@ -399,16 +441,6 @@ int DoSetRS232Baud(int BaudRate) {
   return ok ? USB_NO_ERROR : DEVICE_NOT_PRESENT;
 }
 
-// init system-unique RS232 buffer (memory mapped file)
-void InitRS232ExclusiveSystemBuffer() {
-  RS232MutexHandle = CreateMutex(NULL, false, RS232BufferMutexName);
-  IsRS232PrevInst = RS232MutexHandle && (GetLastError() == ERROR_ALREADY_EXISTS);
-  if (IsRS232PrevInst) {
-    // Get value from where previous instance stuffed it in buf itself.
-    cerr << "bad things will happen.  should abort.\n";;;;
-  }
-}
-
 // External function for getting the bytes!
 int DoGetRS232Buffer(char* RS232Buffer, int& RS232BufferLength) {
   int BufferLength = 0;
@@ -451,14 +483,12 @@ int DoGetRS232BufferLocal(char* RS232Buffer, int& RS232BufferLength) {
   return USB_NO_ERROR;
 }
 
+bool fThreadDied = false;
+
 // system-unique thread for reading device RS232 FIFO into bufCG
 DWORD WINAPI DoGetRS232BufferThreadProc(LPVOID Parameter) {
   const HANDLE MutexHandles[2] = { RS232MutexHandle, RS232BufferEndEvent };
   LocalThreadRunningEvent = CreateEvent(NULL, false, false, NULL);
-  if (IsRS232PrevInst) {
-    SetEvent(LocalThreadRunningEvent);
-    return 42;
-  }
 
   const HANDLE Handles[2] = { RS232BufferGetEvent, RS232BufferEndEvent };
   DoGetRS232BufferTimer = timeSetEvent(RS232BufferTimerInterval, 1,
@@ -471,7 +501,7 @@ DWORD WINAPI DoGetRS232BufferThreadProc(LPVOID Parameter) {
       do {
   	// read to end of bufCG
         int BufferLength = cbCG - RS232BufferWrite;
-	//;;;; get ACCURATE timing between now and last time.  queryperformancecounter ?
+
 	if (DoGetRS232BufferLocal(bufCG + RS232BufferWrite, BufferLength) != USB_NO_ERROR) {
           cerr << "arUSBDriver warning: rs232 problem\n";
 	  // wait 2 seconds if no answer, to save bandwidth for non-rs232 devices
@@ -495,11 +525,16 @@ LDone:
     DoGetRS232BufferTimer = 0;
   }
   SetEvent(LocalThreadRunningEvent);
+  fThreadDied = true;
+  return 0;
 }
 
-void InitLowLevel() {
+// Return false on error.
+bool InitLowLevel() {
   // Create buffers, threads, events and synchronization object.
-  InitRS232ExclusiveSystemBuffer();
+  RS232MutexHandle = CreateMutex(NULL, false, RS232BufferMutexName);
+  if (RS232MutexHandle && (GetLastError() == ERROR_ALREADY_EXISTS))
+    return false;
   SerializationEvent = CreateEvent(NULL, false, true, SerializationEventName);
     // Auto-reset, i.e. resets to nonsignaled (after SetEvent), once thread is released.
     // Initially signalled.
@@ -509,15 +544,12 @@ void InitLowLevel() {
     // Auto-reset.  Initially nonsignalled.
 
   // (securityattr, stacksize, pfn, pparam, flags, &id)
+  fThreadDied = false;
   RS232BufferThreadHND = CreateThread(NULL, 0, DoGetRS232BufferThreadProc, NULL, CREATE_SUSPENDED, &RS232BufferThreadId); // create FIFO reading thread (suspended)
-  SetThreadPriority(RS232BufferThreadHND, THREAD_PRIORITY_TIME_CRITICAL); // highest priority for FIFO reading thread, ;; originally THREAD_PRIORITY_TIME_CRITICAL not THREAD_PRIORITY_HIGHEST
+  SetThreadPriority(RS232BufferThreadHND, THREAD_PRIORITY_TIME_CRITICAL); // highest priority for FIFO reading thread
   ResumeThread(RS232BufferThreadHND); // start FIFO reading thread
-}
-
-void CloseRS232ExclusiveSystemBuffer() {
-  if (!IsRS232PrevInst)
-    ReleaseMutex(RS232MutexHandle);
-  CloseHandle(RS232MutexHandle);
+  ar_usleep(150000); // give thread a chance to abort
+  return !fThreadDied;
 }
 
 void StopLowLevel() {
@@ -543,7 +575,8 @@ void StopLowLevel() {
   CloseHandle(RS232BufferGetEvent);
   CloseHandle(RS232BufferEndEvent);
   CloseHandle(SerializationEvent);
-  CloseRS232ExclusiveSystemBuffer();
+  ReleaseMutex(RS232MutexHandle);
+  CloseHandle(RS232MutexHandle);
 }
 
 #else
@@ -568,7 +601,9 @@ bool arUSBDriver::init(arSZGClient&) {
   cerr << "arUSBDriver error: Windows-only.\n";
   return false;
 #else
-  InitLowLevel();
+  if (!InitLowLevel()) {
+    return false;
+  }
   const int baudSet = 57692; // close enough to 57600
   int baud = -1;
   if (DoSetRS232Baud(baudSet) != USB_NO_ERROR || DoGetRS232Baud(&baud) != USB_NO_ERROR){
@@ -606,7 +641,7 @@ bool arUSBDriver::stop() {
 #ifdef AR_USE_WIN_32
   StopLowLevel();
   while (_eventThreadRunning)
-    ar_usleep(10000);
+    ar_usleep(20000);
 #endif
   return true;
 }
@@ -620,7 +655,8 @@ void arUSBDriver::_dataThread() {
   _stopped = false;
   _eventThreadRunning = true;
   while (!_stopped && _eventThreadRunning) {
-    ar_usleep(10000); // throttle
+    // Throttle.
+    ar_usleep(int(usecPoll));
 
     int cb = 2;
     if (0 != DoRS232BufferSend("aa", cb)) {
@@ -633,29 +669,122 @@ void arUSBDriver::_dataThread() {
     }
     char buf[4];
     cb = 2;
-    if (0 != DoGetRS232Buffer(buf, cb))
+    if (0 != DoGetRS232Buffer(buf, cb)) {
       cerr << "arUSBDriver warning: joystick failed to respond to poll.\n";
-    if (cb != 2)
+      continue;
+    }
+    if (cb != 2) {
       cerr << "arUSBDriver warning: joystick responded with not 2 but " << cb << " bytes.\n";
+      continue;
+    }
 
-    const int x = int(buf[1]); // 35 neutral, 55 left, 27 right
-    const int y = -int(buf[0]); // 90 neutral, 63 forward, 100 backward
-    // scale to [-1,1]
-    float xx = (35-x) / 15.;
-//  if (xx < 0.1)
-//    xx *= 3.;
-    float yy = (90-y) / 25.;
-//  if (yy > 0.1)
-//    yy *= 3.;
+    // Could be off-by-one out of sync buf[0] and buf[1].
+    // But it's always x which has the high bit set.
+    const int x  =  int(buf[1] & ~0xffffff80);
+    const int y  =  int(buf[0]);
+    const int x_ =  int(buf[0] & ~0xffffff80);
+    const int y_ =  int(buf[1]);
 
-    cout << "XY: " << x << " ," << y << endl;
-    queueAxis(0, xx);
+    // Use the pair with one negative value.
+    // Correct, approximately, for the measured sleep duration (not just ar_usleep(usecPoll).
+    float xUse, yUse;
+    static float xUsePrev, yUsePrev;
+    if (x*y <= 0) {
+      xUse = x * usecPoll / (usecDuration + usecDurationPrev);
+      yUse = y * usecPoll / (usecDurationPrev + usecDurationPrew);
+    }
+    else if (x_*y_ <= 0) {
+      xUse = x_ * usecPoll / (usecDurationPrev + usecDurationPrew);
+      yUse = y_ * usecPoll / (usecDuration + usecDurationPrev);
+    }
+    else {
+      cerr << "arUSBDriver error: bogus data from USB chip.\n";
+      break;
+    }
+
+    // Autocalibrate: measure the mean x and y over the first 3 seconds.
+    const int cInit = int(3000000. / usecPoll);
+    static int iInit = cInit;
+    static float xAvg = 0., yAvg = 0., xAvgPrev, yAvgPrev;
+    static float xMin, xMax, yMin, yMax;
+    if (iInit > 0) {
+      if (iInit == cInit)
+	cout << "arUSBDriver remark: calibrating.  Don't wiggle joystick yet.\n";
+      xAvg += xUse;
+      yAvg += yUse;
+      if (--iInit > 0)
+	continue;
+      cout << "arUSBDriver remark: calibrated.  OK to wiggle joystick now.\n";
+      xAvg /= cInit;
+      yAvg /= cInit;
+      xAvgPrev = xAvg;
+      yAvgPrev = yAvg;
+      // These offsets avoid divide by zero.
+      // Offsets not too big though, for this initial estimate.
+      // 7 is experimentally determined.
+      xMin = xAvg - 7.;
+      xMax = xAvg + 7.;
+      yMin = yAvg - 7.;
+      yMax = yAvg + 7.;
+      xUsePrev = xUse;
+      yUsePrev = yUse;
+    }
+
+    // Reduce noise with moving-average filter.
+    xUse = xUse * .3 + xUsePrev * .7;
+    yUse = yUse * .3 + yUsePrev * .7;
+    xUsePrev = xUse;
+    yUsePrev = yUse;
+
+    // Update xMin xMax yMin yMax
+    if (xUse < xMin)
+      xMin = xUse;
+    if (xUse > xMax)
+      xMax = xUse;
+    if (yUse < yMin)
+      yMin = yUse;
+    if (yUse > yMax)
+      yMax = yUse;
+
+    // Scale to [-1,1] by lerping xUse w.r.t. xMin xMax xAvg.
+    // Though an exponential curve fit would better model the 555 timing circuit.
+    float xx = (xUse <= xAvg) ?
+      (xUse - xMin) / (xAvg - xMin) - 1. :
+      (xUse - xAvg) / (xMax - xAvg);
+    float yy = (yUse <= yAvg) ?
+      (yUse - yMin) / (yAvg - yMin) - 1. :
+      (yUse - yAvg) / (yMax - yAvg);
+    const float xxAbs = fabs(xx);
+    const float yyAbs = fabs(yy);
+
+    // Update xAvg yAvg, to correct for long-term thermal drift and cpu load.
+    // But not when the joystick is likely near an extreme.
+    if (xxAbs < .4) {
+      xAvg = xUse * .02 + xAvgPrev * .98;
+      xAvgPrev = xAvg;
+    }
+    if (yyAbs < .4) {
+      yAvg = yUse * .02 + yAvgPrev * .98;
+      yAvgPrev = yAvg;
+    }
+
+    // dead zone, to reduce noise easily seen when joystick's at rest
+    if (xxAbs < .25)
+      xx = 0.;
+    if (yyAbs < .25)
+      yy = 0.;
+
+//	printf("X %.1f %.1f %.1f   %5.0f = %5.2f           Y %.1f %.1f %.1f  %5.0f = %5.2f\n",
+//	  xMin,xAvg,xMax, xUse,xx,
+//	  yMin,yAvg,yMax, yUse,yy);
+
+//	printf("\t\t\t\t\t\tmsec: %9.1f %9.1f %9.1f\n", usecDuration/1000., usecDurationPrev/1000., usecDurationPrew/1000.);
+
+    queueAxis(0, -xx);
     queueAxis(1, yy);
 
     // todo: queueButton()
     sendQueue();
-
-    ar_usleep(100000);
   }
   _eventThreadRunning = false;
 }
