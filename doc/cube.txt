@@ -478,6 +478,7 @@ north SZG_SCREEN0 screen_up         0/1/0
 north SZG_SCREEN0 stereo            true
 north SZG_SCREEN0 tile              0/1/0/1
 north SZG_SCREEN0 wildcat_framelock true
+north SZG_SCREEN0 head_mounted      false
 north SZG_SCREEN0 fixed_head_pos    0/5.5/0
 north SZG_SCREEN0 use_fixed_head_mode allow
 
@@ -488,6 +489,7 @@ south SZG_SCREEN0 screen_normal     0/0/1
 south SZG_SCREEN0 screen_up         0/1/0
 south SZG_SCREEN0 stereo            true
 south SZG_SCREEN0 tile              0/1/0/1
+south SZG_SCREEN0 head_mounted      false
 south SZG_SCREEN0 fixed_head_pos    0/5.5/0
 south SZG_SCREEN0 wildcat_framelock true
 south SZG_SCREEN0 use_fixed_head_mode allow
@@ -499,6 +501,7 @@ top SZG_SCREEN0 screen_normal       0/1/0
 top SZG_SCREEN0 screen_up           -1/0/0
 top SZG_SCREEN0 stereo              true
 top SZG_SCREEN0 tile                0/1/0/1
+top SZG_SCREEN0 head_mounted      false
 top SZG_SCREEN0 fixed_head_up_angle  -90
 top SZG_SCREEN0 fixed_head_pos      0/5.5/0
 top SZG_SCREEN0 use_fixed_head_mode allow
@@ -511,6 +514,7 @@ bottom SZG_SCREEN0 screen_normal     0/-1/0
 bottom SZG_SCREEN0 screen_up         0/0/-1
 bottom SZG_SCREEN0 stereo            true
 bottom SZG_SCREEN0 tile              0/1/0/1
+bottom SZG_SCREEN0 head_mounted      false
 bottom SZG_SCREEN0 fixed_head_pos    0/5.5/0
 bottom SZG_SCREEN0 use_fixed_head_mode allow
 bottom SZG_SCREEN0 wildcat_framelock true
@@ -522,6 +526,7 @@ east SZG_SCREEN0 screen_normal     1/0/0
 east SZG_SCREEN0 screen_up         0/1/0
 east SZG_SCREEN0 stereo            true
 east SZG_SCREEN0 tile              0/1/0/1
+east SZG_SCREEN0 head_mounted      false
 east SZG_SCREEN0 fixed_head_pos    0/5.5/0
 east SZG_SCREEN0 use_fixed_head_mode allow
 east SZG_SCREEN0 wildcat_framelock true
@@ -533,6 +538,7 @@ west SZG_SCREEN0 screen_normal     -1/0/0
 west SZG_SCREEN0 screen_up         0/1/0
 west SZG_SCREEN0 stereo            true
 west SZG_SCREEN0 tile              0/1/0/1
+west SZG_SCREEN0 head_mounted      false
 west SZG_SCREEN0 fixed_head_pos    0/5.5/0
 west SZG_SCREEN0 use_fixed_head_mode allow
 west SZG_SCREEN0 wildcat_framelock true
