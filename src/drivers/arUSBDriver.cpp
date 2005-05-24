@@ -224,7 +224,7 @@ bool SendToDriver(int FunctionNumber, int Param1, int Param2, char* pb, DWORD& c
 #define UNLOCK \
   SetEvent(SerializationEvent);
 
-// Set direction of data bits
+// Set direction of data bits.  0=in, 1=out.
 int DoSetDataPortDirections(char portb, char portc, char portd, char UsedPorts) {
   short Param1, Param2;
   LOCK
@@ -582,6 +582,9 @@ void StopLowLevel() {
 #else
 int DoRS232BufferSend(const char*, int&) { return -1; }
 int DoGetRS232Buffer(char*, int&) { return -1; }
+int DoSetOutDataPort(char) { return -1; }
+int DoSetDataPortDirection(char) { return -1; }
+int DoGetInDataPort(char&) { return -1; }
 #endif
 
 // End of AVR309 application note
@@ -650,10 +653,24 @@ void ar_USBDriverDataTask(void* pv) {
   ((arUSBDriver*)pv)->_dataThread();
 }
 
+void BlinkLED(bool on = true) {
+    DoSetOutDataPort(on ? 0xfb : 0xff); // LED is on D2; no other outputs.  Keep inputs' pull-ups enabled.
+}
+
 void arUSBDriver::_dataThread() {
-  cerr << "todo: set data directions, poll pins / queueButton(), blinkenlight activity (see syzdot)\n";
   _stopped = false;
   _eventThreadRunning = true;
+  DoSetDataPortDirection(0x04); // D2 is the only output pin (activity/heartbeat LED).
+
+  // Initial default values: buttons up, joystick centered.
+  queueButton(0, 0);
+  queueButton(1, 0);
+  queueButton(2, 0);
+  queueAxis(0, 0.);
+  queueAxis(1, 0.);
+  sendQueue();
+
+  BlinkLED(); // enable all input pull-ups.
   while (!_stopped && _eventThreadRunning) {
     // Throttle.
     ar_usleep(int(usecPoll));
@@ -729,6 +746,7 @@ void arUSBDriver::_dataThread() {
       xUsePrev = xUse;
       yUsePrev = yUse;
     }
+    BlinkLED(false);
 
     // Reduce noise with moving-average filter.
     xUse = xUse * .3 + xUsePrev * .7;
@@ -759,11 +777,11 @@ void arUSBDriver::_dataThread() {
 
     // Update xAvg yAvg, to correct for long-term thermal drift and cpu load.
     // But not when the joystick is likely near an extreme.
-    if (xxAbs < .4) {
+    if (xxAbs < .5) {
       xAvg = xUse * .02 + xAvgPrev * .98;
       xAvgPrev = xAvg;
     }
-    if (yyAbs < .4) {
+    if (yyAbs < .5) {
       yAvg = yUse * .02 + yAvgPrev * .98;
       yAvgPrev = yAvg;
     }
@@ -774,6 +792,11 @@ void arUSBDriver::_dataThread() {
     if (yyAbs < .25)
       yy = 0.;
 
+    if (xxAbs > .7 || yyAbs > .55) {
+      //printf("xy  %.2f   %4.2f\n", xxAbs, yyAbs);
+      BlinkLED();
+    }
+
 //	printf("X %.1f %.1f %.1f   %5.0f = %5.2f           Y %.1f %.1f %.1f  %5.0f = %5.2f\n",
 //	  xMin,xAvg,xMax, xUse,xx,
 //	  yMin,yAvg,yMax, yUse,yy);
@@ -783,7 +806,26 @@ void arUSBDriver::_dataThread() {
     queueAxis(0, -xx);
     queueAxis(1, yy);
 
-    // todo: queueButton()
+    // Poll wand's buttons.
+    // todo: poll buttons much faster than RS232-based joystick.
+    static bool fButtonDown[3] = {0};
+    char cButtons = 0;
+    if (DoGetInDataPort(cButtons) != USB_NO_ERROR) {
+      cerr << "arUSBDriver warning: failed to read USB chip's input pins.\n";
+    }
+    else {
+      for (int i=0; i<3; ++i) {
+	// Read pins D3 D4 D5.
+	const bool fDown = !(cButtons & (1 << (i+3))); // 1=pulled up to 5V, 0=switched to ground.
+	// Send only state changes.
+	if (fDown != fButtonDown[i]) {
+	  queueButton(i, fDown);
+	  fButtonDown[i] = fDown;
+          BlinkLED();
+	}
+      }
+    }
+
     sendQueue();
   }
   _eventThreadRunning = false;
