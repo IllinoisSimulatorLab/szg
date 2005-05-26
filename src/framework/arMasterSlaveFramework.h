@@ -66,7 +66,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   virtual bool onStart( arSZGClient& SZGClient );
   virtual void onPreExchange();
   virtual void onPostExchange();
-  virtual void onInitWindow();
+  virtual void onWindowInit();
   virtual void onDraw();
   virtual void onDisconnectDraw();
   virtual void onPlay();
@@ -74,7 +74,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   virtual void onCleanup();
   virtual void onUserMessage( const string& messageBody );
   virtual void onOverlay();
-  virtual void onKeypress( unsigned char key, int x, int y);
+  virtual void onKey( unsigned char key, int x, int y);
   virtual void onSlaveConnected( int numConnected );
 
   //
@@ -95,6 +95,9 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void setKeyboardCallback(void (*keyboard)(arMasterSlaveFramework&,
                                             unsigned char, int, int));
   void setSlaveConnectedCallback( void (*connectCallback)(arMasterSlaveFramework&,int) );
+
+  void setGlutDisplayMode( unsigned int glutDisplayMode ) { _glutDisplayMode = glutDisplayMode; }
+  unsigned int getGlutDisplayMode() const { return _glutDisplayMode; }
 
   // initializes the various pieces but does not start the event loop
   bool init(int&, char**);
@@ -177,7 +180,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   }
 
   void setPlayTransform();
-  void draw();
+  void draw();  // HEAVILY deprecated; use the following.
+  void drawGraphicsDatabase();
 
   // tiny functions that only appear in the .h
 
@@ -221,6 +225,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   arTransferFieldData     _internalTransferFieldData;
   arMasterSlaveDataRouter _dataRouter;
 
+  unsigned int         _glutDisplayMode;
   bool                 _userInitCalled;
   bool                 _parametersLoaded;
 
@@ -236,7 +241,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool (*_startCallback)(arMasterSlaveFramework&, arSZGClient&);
   void (*_preExchange)(arMasterSlaveFramework&);
   void (*_postExchange)(arMasterSlaveFramework&);
-  void (*_window)(arMasterSlaveFramework&);
+  void (*_windowInitCallback)(arMasterSlaveFramework&);
   void (*_drawCallback)(arMasterSlaveFramework&);
   void (*_disconnectDrawCallback)(arMasterSlaveFramework&);
   void (*_playCallback)(arMasterSlaveFramework&);
@@ -279,7 +284,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   // time variables
   ar_timeval _startTime;
-  double     _hackStartTime;	//< only temporary, used for the glut's time
+//  double     _hackStartTime;	//< only temporary, used for the glut's time
   double     _time;
   double     _lastFrameTime;
   double     _lastComputeTime;

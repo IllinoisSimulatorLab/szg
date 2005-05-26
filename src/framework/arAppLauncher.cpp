@@ -20,6 +20,7 @@ arAppLauncher::arAppLauncher(const char* exeName) :
   _renderProgram("NULL"),
   _vircomp("NULL"),
   _location("NULL"),
+  _exeName("NULL"),
   _onlyIncompatibleServices(true)
 {
   if (exeName && *exeName)

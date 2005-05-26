@@ -11,10 +11,14 @@
 #include "arPerspectiveCamera.h"
 #include <iostream>
 
-void arDefaultWindowInitCallback::operator()( arGraphicsWindow& ) {
+void ar_defaultWindowInitCallback() {
   glEnable(GL_DEPTH_TEST);
   glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void arDefaultWindowInitCallback::operator()( arGraphicsWindow& ) {
+  ar_defaultWindowInitCallback();
 }
 
 void arDefaultRenderCallback::operator()( arGraphicsWindow&, arViewport& ) {

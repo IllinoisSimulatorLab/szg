@@ -88,7 +88,7 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   int _graphicsNavMatrixID;
   int _soundNavMatrixID;
 
-  bool _disabled;
+//  bool _disabled;
 
   // We need to keep track of the node we use for the 
   int _VRCameraID;

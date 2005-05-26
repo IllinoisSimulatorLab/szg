@@ -26,32 +26,33 @@ inline void ar_draw01DRaw(GLenum drawableType, int number, int* indices,
   if (colors)
     opType |= 2;
   glBegin(drawableType);
+  int i;
   switch (opType) {
   default:
     cerr << "ar_draw01DRaw internal error.\n";
     break;
   case 0:
     // nothing
-    for (int i=0; i<number; i++){
+    for (i=0; i<number; i++){
       doVertex(i);
     }
     break;
   case 1:
     // indices
-    for (int i=0; i<number; i++){
+    for (i=0; i<number; i++){
       doIndex(i);
     }
     break;
   case 2:
     // colors
-    for (int i=0; i<number; i++){
+    for (i=0; i<number; i++){
       doColor(i);
       doVertex(i);
     }
     break;
   case 3:
     // indices,colors
-    for (int i=0; i<number; i++){
+    for (i=0; i<number; i++){
       doColor(i);
       doIndex(i);
     }
@@ -142,27 +143,28 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
   if (texCoord)
     opType |= 4;
   glBegin(drawableType);
+  int i;
   switch (opType) {
   default:
     cerr << "ar_draw2DRaw internal error.\n";
     break;
   case 0:
     // nothing
-    for (int i=0; i<number; i++){
+    for (i=0; i<number; i++){
       doNormal(i);
       doVertex(i);
     }
     break;
   case 1:
     // indices
-    for (int i=0; i<number; i++){
+    for (i=0; i<number; i++){
       doNormal(i);
       doIndex(i);
     }
     break;
   case 2:
     // colors
-    for (int i=0; i<number; i++){
+    for (i=0; i<number; i++){
       doNormal(i);
       doColor(i);
       doVertex(i);
@@ -170,7 +172,7 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
     break;
   case 3:
     // indices,colors
-    for (int i=0; i<number; i++){
+    for (i=0; i<number; i++){
       doNormal(i);
       doColor(i);
       doIndex(i);
@@ -178,7 +180,7 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
     break;
   case 4:
     // texCoord
-    for (int i=0; i<number; i++){
+    for (i=0; i<number; i++){
       doNormal(i);
       doTex(i);
       doVertex(i);
@@ -186,7 +188,7 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
     break;
   case 5:
     // indices,texCoord
-    for (int i=0; i<number; i++){
+    for (i=0; i<number; i++){
       doNormal(i);
       doTex(i);
       doIndex(i);
@@ -194,7 +196,7 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
     break;
   case 6:
     // colors,texCoord
-    for (int i=0; i<number; i++){
+    for (i=0; i<number; i++){
       doNormal(i);
       doColor(i);
       doTex(i);
@@ -203,7 +205,7 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
     break;
   case 7:
     // indices,colors,texCoord
-    for (int i=0; i<number; i++){
+    for (i=0; i<number; i++){
       doNormal(i);
       doColor(i);
       doTex(i);

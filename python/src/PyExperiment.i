@@ -341,7 +341,7 @@ PyObject* arPythonExperiment::getLongFactor( const std::string& sname ) {
   }
   PyObject* result = PyTuple_New((int)size);
   if (!result) {
-    PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongFactor() PyList_New() failed");
+    PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongFactor() PyTuple_New() failed");
     return NULL;
   }
   int i;

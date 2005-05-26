@@ -1,4 +1,4 @@
-// $Id: PySZG.i,v 1.2 2005/04/15 18:03:24 crowell Exp $
+// $Id: PySZG.i,v 1.3 2005/05/26 18:38:52 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -49,6 +49,7 @@ import cPickle
 import pickle
 import os
 import sys
+import struct
 
 try:
     os.chdir(sys.path[0])

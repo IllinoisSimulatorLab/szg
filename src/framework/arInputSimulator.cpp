@@ -11,7 +11,9 @@
 #include "arSZGClient.h"
 
 arInputSimulator::arInputSimulator() : 
-  _numButtonEvents(0) {
+  _numButtonEvents(0),
+  _simulatorRotation(0.),
+  _buttonSelector(0) {
   // set the values of the internal simulator state appropriately
   _mousePosition[0] = 0;
   _mousePosition[1] = 0;

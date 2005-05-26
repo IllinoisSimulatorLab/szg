@@ -395,8 +395,7 @@ void arMotionstarDriver::_parseData(BN_PACKET *packet){
 void arMotionstarDriver::_generateButtonEvent(int value){
   static int prev = -1; // Guaranteed to mismatch, first time through.
     /// \todo Nonreentrant.  make "prev" a private member.
-  if (value != prev)
-  {
+  if (value != prev) {
     sendButton(0, value);
     prev = value;
   }

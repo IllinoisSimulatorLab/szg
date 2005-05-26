@@ -69,6 +69,8 @@ class SZG_CALL arVector3{
 
 /// vector of 4 floats. A position in 4-space
 
+class arMatrix4;
+
 class SZG_CALL arVector4{
  public:
   float v[4];
@@ -88,6 +90,9 @@ class SZG_CALL arVector4{
     { v[0]=x; v[1]=y; v[2]=z; v[3] = w;}
   float magnitude() const 
     { return sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]+v[3]*v[3]); }
+  float dot( const arVector4& y ) const {
+    return v[0]*y.v[0]+v[1]*y.v[1]+v[2]*y.v[2]+v[3]*y.v[3];
+  }
   arVector4 normalize() const {
     const float mag = magnitude();
     if (mag <= 0.) {
@@ -96,6 +101,7 @@ class SZG_CALL arVector4{
     }
     return arVector4(v[0]/mag,v[1]/mag,v[2]/mag,v[3]/mag);
   }
+  arMatrix4 outerProduct( const arVector4& rhs ) const;
 };
 
 /// 4x4 matrix.  Typically an OpenGL transformation.
@@ -194,6 +200,8 @@ SZG_CALL ostream& operator<<(ostream&, const arQuaternion&);
 SZG_CALL arVector3 operator*(const arMatrix4&, const arVector3&);
 SZG_CALL arVector3 operator*(const arQuaternion&, const arVector3&);
 
+//SZG_CALL arVector4 operator*(const arMatrix4&, const arVector4&);
+
 //********* utility functions ******
 SZG_CALL arMatrix4 ar_identityMatrix();
 SZG_CALL arMatrix4 ar_translationMatrix(float,float,float);
@@ -207,7 +215,6 @@ SZG_CALL arMatrix4 ar_transrotMatrix(const arVector3& position,
 SZG_CALL arMatrix4 ar_scaleMatrix(float);
 SZG_CALL arMatrix4 ar_scaleMatrix(float,float,float);
 SZG_CALL arMatrix4 ar_scaleMatrix(const arVector3& scaleFactors);
-SZG_CALL arMatrix4 ar_mirrorMatrix( const arMatrix4& placementMatrix );
 SZG_CALL arMatrix4 ar_extractTranslationMatrix(const arMatrix4&);
 SZG_CALL arVector3 ar_extractTranslation(const arMatrix4&);
 SZG_CALL arMatrix4 ar_extractRotationMatrix(const arMatrix4&);
@@ -241,6 +248,28 @@ SZG_CALL arVector3 ar_projectPointToLine( const arVector3& linePoint,
                                           const arVector3& lineDirection,
                                           const arVector3& otherPoint,
                                           const float threshold = 1e-6 );
+
+// Matrix for doing reflections in a plane. This matrix should pre-multiply
+// the object matrix on the stack (i.e. load this one on first, then multiply
+// by the object placement matrix).
+SZG_CALL arMatrix4 ar_mirrorMatrix( const arVector3& planePoint, const arVector3& planeNormal );
+
+// Matrix to project a set of vertices onto a plane (for cast shadows)
+// Note that this matrix should be post-multiplied on the top of the stack.
+// How to use: specify all parameters in top-level coordinates (i.e. the
+// coordinates that the object placement matrix objectMatrix are specified in).
+// Render your object normally.
+// Then glMultMatrixf() by the ar_castShadowMatrix() matrix. Either disable the depth
+// test or set the plane position just slightly in front of the actual plane.
+// Set color to black, disable lighting and texture. For the most realism
+// enable blending with the shadow's alpha set to .3 or so, but this will
+// backfire if you've got more than one shadow and they overlap (I think
+// you can fix that with the stencil buffer). Then redraw the object.
+SZG_CALL arMatrix4 ar_castShadowMatrix( const arMatrix4& objectMatrix,
+                                        const arVector4& lightPosition,
+                                        const arVector3& planePoint,
+                                        const arVector3& planeNormal );
+
 
 //********** useful user interface transformations ***********
 //********** good for mouse->3D                    ***********
@@ -469,6 +498,15 @@ inline arVector3 operator*(const arMatrix4& m,const arVector3& x){
 //  }
 //  return result;
 }
+
+//inline arVector4 operator*(const arMatrix4& m,const arVector4& x){
+// arVector4 result;
+// float scaleFactor = 1./(m.v[3]*x.v[0]+m.v[7]*x.v[1]+m.v[11]*x.v[2]+m.v[15]);
+//  for (int i=0; i<4; i++){
+//    result.v[i] = scaleFactor*(m.v[i]*x.v[0]+m.v[i+4]*x.v[1]+m.v[i+8]*x.v[2]+x.v[3]*m.v[i+12]);
+//  }
+//  return result;
+//}
 
 inline arVector3 operator*(const arQuaternion& q ,const arVector3& x){
   arQuaternion temp = q*arQuaternion(0,x.v[0],x.v[1],x.v[2])*!q;

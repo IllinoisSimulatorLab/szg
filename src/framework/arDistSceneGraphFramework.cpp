@@ -159,7 +159,7 @@ void ar_distSceneGraphFrameworkWindowTask(void*){
 
 arDistSceneGraphFramework::arDistSceneGraphFramework() :
   arSZGAppFramework(),
-  _userMessageCallback(0),
+  _userMessageCallback(NULL),
   _headMatrixID(AR_VR_HEAD_MATRIX_ID),
   _graphicsNavMatrixID(-1),
   _soundNavMatrixID(-1),

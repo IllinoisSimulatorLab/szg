@@ -15,6 +15,8 @@
 #include <vector>
 using namespace std;
 
+SZG_CALL void ar_defaultWindowInitCallback();
+
 class arGraphicsWindow;
 
 // Why do these callback classes exist? They act as wrappers for the

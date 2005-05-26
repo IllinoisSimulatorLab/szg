@@ -7,14 +7,17 @@
 #include "arPrecompiled.h"
 #include "arMasterSlaveDataRouter.h"
 
-arMasterSlaveDataRouter::arMasterSlaveDataRouter(){
-  _bufferPosition = 0;
-  _nextID = 0;
-  _started = false;
+arMasterSlaveDataRouter::arMasterSlaveDataRouter() :
+  _parser(NULL),
+  _bufferPosition(0),
+  _started(false),
+  _nextID(0) {
 }
 
 arMasterSlaveDataRouter::~arMasterSlaveDataRouter(){
-  delete [] _parser;
+  if (_parser) {
+    delete [] _parser;
+  }
 }
 
 /// Draws all the objects connected to the arMasterSlaveDataRouter. Very

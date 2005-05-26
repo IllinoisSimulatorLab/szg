@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.4 2005/04/15 18:03:24 crowell Exp $
+// $Id: PyMasterSlave.i,v 1.5 2005/05/26 18:38:52 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -6,6 +6,11 @@
 // the Free Software Foundation (http://www.gnu.org/copyleft/gpl.html).
 
 // ******************** based on arMasterSlaveFramework.h ********************
+
+%{
+#include "arMasterSlaveFramework.h"
+#include "arGraphicsWindow.h"
+%}
 
 // Callback mechanism based on
 // http://gd.tuwien.ac.at/softeng/SWIG/Examples/python/callback2/,
@@ -53,8 +58,8 @@ MASTERSLAVECALLBACK(Overlay)
 MASTERSLAVECALLBACK(Exit)
 
 
-// setInitcallback requires special treatment because the signature of
-// its callback function differs from everybody else's.
+// start callback requires special treatment because the signature of
+// its callback function differs from everybody elses.
 //
 //  void setStartCallback(bool (*initCallback)(arMasterSlaveFramework& fw, 
 //                                            arSZGClient&));
@@ -101,11 +106,6 @@ static void pyUserMessageCallback(arMasterSlaveFramework& fw,const string & s) {
     Py_DECREF(fwobj);
 }
 
-// setReshapeCallback requires special treatment because the signature of
-// its callback function differs from everybody else's.
-//
-// void setReshapeCallback(void (*reshape)(arMasterSlaveFramework&, int, int));
-
 // Coded By: Brett Witt (brett.witt@gmail.com)
 // Yet another function which requires special treatment because of
 // its unique callback signature.
@@ -135,7 +135,7 @@ static void pyKeyboardCallback(arMasterSlaveFramework &fw,
 }
 
 // setSlaveConnectedCallback requires special treatment because the signature of
-// its callback function differs from everybody else's.
+// its callback function differs from everybody elses.
 //
 // void setSlaveConnectedCallback(void (*connected)(arMasterSlaveFramework&,int));
 
@@ -183,6 +183,105 @@ static void pyReshapeCallback(arMasterSlaveFramework& fw, int x, int y) {
     Py_DECREF(fwobj);
 }
 
+bool ar_packSequenceData( PyObject* seq, std::vector<int>& typeData,
+                            std::vector<long>& intData, std::vector<double>& floatData,
+                            std::vector<char*>& stringData, std::vector<int>& stringSizeData ) {
+  if (!PySequence_Check( seq )) {
+    PyErr_SetString( PyExc_TypeError, 
+         "arMasterSlaveFramework error: ar_packSequenceData() requires a sequence." );
+    return false;
+  }
+  int len = PySequence_Size( seq );
+  // push the size of the sequence
+  typeData.push_back(len);
+  for (int i=0; i<len; ++i) {
+    PyObject* item = PySequence_GetItem( seq, i );
+ 
+    // Its an Int
+    if (PyInt_Check( item )) {
+      intData.push_back( PyInt_AsLong( item ) );
+      typeData.push_back( AR_LONG );
+
+    // Its a Float
+    } else if (PyFloat_Check(item)) {
+      floatData.push_back( PyFloat_AsDouble( item ) );
+      typeData.push_back( AR_DOUBLE );
+
+    // Its a String
+    } else if (PyString_Check( item )) {
+      char* cdata;
+      int ssize;
+      PyString_AsStringAndSize( item, &cdata, &ssize );
+      stringData.push_back( cdata );
+      stringSizeData.push_back( ssize+1 );
+      typeData.push_back( AR_CHAR );
+
+    // Its a nested sequence
+    } else if (PySequence_Check( item )) {
+
+      // push the sequence marker. the size of the subsequence will be pushed at the 
+      // beginning of the recurse.
+      typeData.push_back(-1);
+      bool stat = ar_packSequenceData( item, typeData, intData, floatData, stringData, stringSizeData );
+      if (!stat) {
+        return false;
+      }
+
+    // Its a what?
+    } else {
+      cerr << "arMasterSlaveFramework warning: invalid data type ignored in setSequence().\n";
+    }
+  }
+}
+
+PyObject* ar_unpackSequenceData( int** typePtrPtr, long** intPtrPtr, double** floatPtrPtr, char** charPtrPtr) {
+  int* typePtr = *typePtrPtr;
+  long* intDataPtr = *intPtrPtr;
+  double* floatDataPtr = *floatPtrPtr;
+  char* charPtr = *charPtrPtr;
+  int size = *typePtr++;
+  PyObject* seq = PyTuple_New( size );
+  if (!seq) {
+    PyErr_SetString( PyExc_MemoryError, "unable to get allocate new tuple." );
+    return NULL;
+  }
+  int stringLength;
+  PyObject* nestedSequence;
+  for(int i=0; i<size; ++i) {
+    switch (*typePtr++) {
+      case AR_LONG:
+        PyTuple_SetItem( seq, i, PyInt_FromLong(*intDataPtr++) );
+        break;
+      case AR_DOUBLE:
+        PyTuple_SetItem( seq, i, PyFloat_FromDouble(*floatDataPtr++) );
+        break;
+      case AR_CHAR:
+        stringLength = strlen( charPtr );
+        PyTuple_SetItem( seq, i, PyString_FromStringAndSize( charPtr, stringLength ) );
+        charPtr += stringLength+1;
+        break;
+      case -1:  // my arbitrary "seqeuence" type
+        nestedSequence = ar_unpackSequenceData( &typePtr, &intDataPtr, &floatDataPtr, &charPtr );
+        if (!nestedSequence) {
+          PyErr_SetString(PyExc_TypeError, "arMasterSlaveFramework error: ar_unpackSequenceData() failed.");
+          Py_DECREF( seq );
+          return NULL;
+        }
+        PyTuple_SetItem( seq, i, nestedSequence );
+        break;
+      default:
+        PyErr_SetString(PyExc_TypeError, "arMasterSlaveFramework error: invalid type in getSequenceAsTuple.");
+        Py_DECREF( seq );
+        return NULL;
+    }
+  }
+  *typePtrPtr = typePtr;
+  *intPtrPtr = intDataPtr;
+  *floatPtrPtr = floatDataPtr;
+  *charPtrPtr = charPtr;
+  return seq;
+}
+
 %}
 
 /// Framework for cluster applications using one master and several slaves.
@@ -212,6 +311,9 @@ class arMasterSlaveFramework : public arSZGAppFramework {
 
   bool getStandalone(); // Are we running in stand-alone mode?
   int getNumberSlavesConnected() const; // If master, number of slaves connected.
+
+  void setGlutDisplayMode( unsigned int glutDisplayMode ) { _glutDisplayMode = glutDisplayMode; }
+  unsigned int getGlutDisplayMode() const { return _glutDisplayMode; }
 
   // initializes the various pieces but does not start the event loop
   bool init(int&, char**);
@@ -269,7 +371,8 @@ class arMasterSlaveFramework : public arSZGAppFramework {
   }
 
   void setPlayTransform();
-  void draw();
+  void draw();  // HEAVILY deprecated, use the following:
+  void drawGraphicsDatabase();
 
   void setDataBundlePath(const string& bundlePathName, const string& bundleSubDirectory);
 
@@ -294,6 +397,148 @@ class arMasterSlaveFramework : public arSZGAppFramework {
   bool inputActive() const { return _inputActive; }
 
 %extend{
+
+PyObject *initSequenceTransfer(char* name) {
+  string nameStr(name);
+  if (!self->addInternalTransferField(nameStr+string("_INTDATA"),AR_LONG,1)) {
+      PyErr_SetString(PyExc_MemoryError,"unable to create transfer field");
+      return NULL;
+  }
+  if (!self->addInternalTransferField(nameStr+string("_FLOATDATA"),AR_DOUBLE,1)) {
+      PyErr_SetString(PyExc_MemoryError,"unable to create transfer field");
+      return NULL;
+  }
+  if (!self->addInternalTransferField(nameStr+string("_CHARDATA"),AR_CHAR,1)) {
+      PyErr_SetString(PyExc_MemoryError,"unable to create transfer field");
+      return NULL;
+  }
+  if (!self->addInternalTransferField(nameStr+string("_TYPES"),AR_INT,1)) {
+      PyErr_SetString(PyExc_MemoryError,"unable to create transfer field");
+      return NULL;
+  }
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+PyObject* setSequence( char* name, PyObject *seq ) {
+  std::vector<int> typeData;
+  std::vector<long> intData;
+  std::vector<double> floatData;
+  std::vector<char *> stringData;
+  std::vector<int> stringSizeData;
+  if (!ar_packSequenceData( seq, typeData, intData, floatData, stringData, stringSizeData )) {
+    cerr << "arMasterSlaveFramework error: setSequence() failed.\n";
+    return NULL;
+  }
+
+  string nameStr(name);
+  string intString = nameStr+string("_INTDATA");
+  string floatString = nameStr+string("_FLOATDATA");
+  string charString = nameStr+string("_CHARDATA");
+  string typeString = nameStr+string("_TYPES");
+
+  int totalStringSize(0);
+  std::vector<int>::iterator iter;
+  for (iter = stringSizeData.begin(); iter != stringSizeData.end(); ++iter) {
+    totalStringSize += *iter;
+  }
+  if (!self->setInternalTransferFieldSize( typeString, AR_INT, (int)typeData.size() )) {
+    cerr << "arMasterSlaveFramework error: unable to resize 'type' transfer field to "
+         << typeData.size() << endl;
+    return NULL;
+  }
+  if (!intData.empty()) {
+    if (!self->setInternalTransferFieldSize( intString, AR_LONG, (int)intData.size() )) {
+      cerr << "arMasterSlaveFramework error: unable to resize 'intData' transfer field to "
+           << intData.size() << endl;
+      return NULL;
+    }
+  }
+  if (!floatData.empty()) {
+    if (!self->setInternalTransferFieldSize( floatString, AR_DOUBLE, (int)floatData.size() )) {
+      cerr << "arMasterSlaveFramework error: unable to resize 'floatData' transfer field to "
+           << floatData.size() << endl;
+      return NULL;
+    }
+  }
+  if (totalStringSize > 0) {
+    if (!self->setInternalTransferFieldSize( charString, AR_CHAR, totalStringSize )) {
+      cerr << "arMasterSlaveFramework error: unable to resize 'stringData' transfer field to "
+           << totalStringSize << endl;
+      return NULL;
+    }
+  }
+
+  int i, osize;
+  long* typePtr=(long *)self->getTransferField( typeString, AR_INT, osize );
+  if (!typePtr) {
+    PyErr_SetString(PyExc_MemoryError, "unable to get transfer field pointer");
+    return NULL;
+  }
+  for(i=0; i<(int)typeData.size(); ++i) {
+      typePtr[i] = typeData[i];
+  }
+  if (!intData.empty()) {
+    long* longPtr=(long *)self->getTransferField( intString, AR_LONG, osize );
+    if (!longPtr) {
+      PyErr_SetString(PyExc_MemoryError, "unable to get transfer field pointer");
+      return NULL;
+    }
+    for(i=0; i<(int)intData.size(); ++i) {
+        longPtr[i] = intData[i];
+    }
+  }
+  if (!floatData.empty()) {
+    double* doublePtr=(double *)self->getTransferField( floatString, AR_DOUBLE, osize );
+    if (!doublePtr) {
+      PyErr_SetString(PyExc_MemoryError, "unable to get transfer field pointer");
+      return NULL;
+    }
+    for(i=0; i<(int)floatData.size(); ++i) {
+        doublePtr[i] = floatData[i];
+    }
+  }
+  if (totalStringSize > 0) {
+    char* charPtr=(char *)self->getTransferField( charString, AR_CHAR, osize );
+    if (!charPtr) {
+      PyErr_SetString(PyExc_MemoryError, "unable to get transfer field pointer");
+      return NULL;
+    }
+    for(i=0; i<(int)stringData.size(); ++i) {
+      memcpy( charPtr, stringData[i], stringSizeData[i] );
+      charPtr += stringSizeData[i];
+    }
+  }
+  Py_INCREF(Py_None);
+  return Py_None;
+}
+
+PyObject* getSequence( char* name ) {
+  string nameStr(name);
+  int size;
+  int* typePtr=(int *)self->getTransferField( nameStr+string("_TYPES"), AR_INT, size );
+  if (!typePtr) {
+    PyErr_SetString(PyExc_MemoryError, "unable to get transfer field pointer");
+    return NULL;
+  }
+  long* intDataPtr=(long *)self->getTransferField( nameStr+string("_INTDATA"), AR_LONG, size );
+  if (!intDataPtr) {
+    PyErr_SetString(PyExc_MemoryError, "unable to get transfer field pointer");
+    return NULL;
+  }
+  double* floatDataPtr=(double *)self->getTransferField( nameStr+string("_FLOATDATA"), AR_DOUBLE, size );
+  if (!floatDataPtr) {
+    PyErr_SetString(PyExc_MemoryError, "unable to get transfer field pointer");
+    return NULL;
+  }
+  char* charPtr=(char *)self->getTransferField( nameStr+string("_CHARDATA"), AR_CHAR, size );
+  if (!charPtr) {
+    PyErr_SetString(PyExc_MemoryError, "unable to get transfer field pointer");
+    return NULL;
+  }
+  return ar_unpackSequenceData( &typePtr, &intDataPtr, &floatDataPtr, &charPtr );
+}
+
 
 // The following functions expose a version of the data transfer mechanism
 // to Python. Fundamentally, the idea is to share lists of integers (or
@@ -322,7 +567,7 @@ class arMasterSlaveFramework : public arSZGAppFramework {
 //      someObject=fw.getObject('spam')
 
 PyObject *initIntTransfer(char* name) {
-    if (self->addInternalTransferField(string(name),AR_INT,1)) {
+    if (self->addInternalTransferField(string(name),AR_LONG,1)) {
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -333,12 +578,12 @@ PyObject *initIntTransfer(char* name) {
 }
 PyObject *getIntListSize(char *name) {
     int size;
-    int *ptr=(int *) self->getTransferField(string(name),AR_INT,size);
-    return PyInt_FromLong(size);
+    long *ptr=(long *) self->getTransferField(string(name),AR_LONG,size);
+    return PyInt_FromLong((long)size);
 }
-PyObject *setIntListItem(char* name,int idx,int val) {
+PyObject *setIntListItem(char* name,int idx,long val) {
     int size;
-    int *ptr=(int *) self->getTransferField(string(name),AR_INT,size);
+    long *ptr=(long *) self->getTransferField(string(name),AR_LONG,size);
     if ((idx>=size) || (idx<0)) {
         PyErr_SetString(PyExc_IndexError,"index out of range");
         return NULL;
@@ -349,7 +594,7 @@ PyObject *setIntListItem(char* name,int idx,int val) {
 }
 PyObject *getIntListItem(char* name,int idx) {
     int size;
-    int *ptr=(int *) self->getTransferField(string(name),AR_INT,size);
+    long *ptr=(long *) self->getTransferField(string(name),AR_LONG,size);
     if ((idx>=size) || (idx<0)) {
         PyErr_SetString(PyExc_IndexError,"index out of range");
         return NULL;
@@ -358,16 +603,16 @@ PyObject *getIntListItem(char* name,int idx) {
 }
 PyObject *setIntList(char* name,PyObject *lst) {
     int osize;
-    int *ptr=(int *) self->getTransferField(string(name),AR_INT,osize);
+    long *ptr=(long *) self->getTransferField(string(name),AR_LONG,osize);
     int size=PyList_Size(lst);
     if (osize!=size) {
-        if (!self->setInternalTransferFieldSize(string(name),AR_INT,size)) {
+        if (!self->setInternalTransferFieldSize(string(name),AR_LONG,size)) {
             PyErr_SetString(PyExc_MemoryError,
                     "unable to resize transfer field");
             return NULL;
         }
     }
-    ptr=(int *) self->getTransferField(string(name),AR_INT,size);
+    ptr=(long *) self->getTransferField(string(name),AR_LONG,size);
     for(int i=0;i<size;i++) {
         ptr[i]=PyInt_AsLong(PyList_GetItem(lst,i));
     }
@@ -376,7 +621,7 @@ PyObject *setIntList(char* name,PyObject *lst) {
 }
 PyObject *getIntList(char* name) {
     int size;
-    int *ptr=(int *) self->getTransferField(string(name),AR_INT,size);
+    long *ptr=(long *) self->getTransferField(string(name),AR_LONG,size);
     PyObject *lst=PyList_New(size);
     for(int i=0;i<size;i++) {
         PyList_SetItem(lst,i,PyInt_FromLong(ptr[i]));
@@ -385,7 +630,7 @@ PyObject *getIntList(char* name) {
 }
 
 PyObject *initFloatTransfer(char* name) {
-    if (self->addInternalTransferField(string(name),AR_FLOAT,1)) {
+    if (self->addInternalTransferField(string(name),AR_DOUBLE,1)) {
         Py_INCREF(Py_None);
         return Py_None;
     }
@@ -396,12 +641,12 @@ PyObject *initFloatTransfer(char* name) {
 }
 PyObject *getFloatListSize(char *name) {
     int size;
-    int *ptr=(int *) self->getTransferField(string(name),AR_FLOAT,size);
-    return PyInt_FromLong(size);
+    double *ptr=(double *) self->getTransferField(string(name),AR_DOUBLE,size);
+    return PyInt_FromLong((long)size);
 }
-PyObject *setFloatListItem(char* name,int idx,float val) {
+PyObject *setFloatListItem(char* name,int idx,double val) {
     int size;
-    float *ptr=(float *) self->getTransferField(string(name),AR_FLOAT,size);
+    double *ptr=(double *) self->getTransferField(string(name),AR_DOUBLE,size);
     if ((idx>=size) || (idx<0)) {
         PyErr_SetString(PyExc_IndexError,"index out of range");
         return NULL;
@@ -412,7 +657,7 @@ PyObject *setFloatListItem(char* name,int idx,float val) {
 }
 PyObject *getFloatListItem(char* name,int idx) {
     int size;
-    float *ptr=(float *) self->getTransferField(string(name),AR_FLOAT,size);
+    double *ptr=(double *) self->getTransferField(string(name),AR_DOUBLE,size);
     if ((idx>=size) || (idx<0)) {
         PyErr_SetString(PyExc_IndexError,"index out of range");
         return NULL;
@@ -421,16 +666,16 @@ PyObject *getFloatListItem(char* name,int idx) {
 }
 PyObject *setFloatList(char* name,PyObject *lst) {
     int osize;
-    float *ptr=(float *) self->getTransferField(string(name),AR_FLOAT,osize);
+    double *ptr=(double *) self->getTransferField(string(name),AR_DOUBLE,osize);
     int size=PyList_Size(lst);
     if (osize!=size) {
-        if (!self->setInternalTransferFieldSize(string(name),AR_FLOAT,size)) {
+        if (!self->setInternalTransferFieldSize(string(name),AR_DOUBLE,size)) {
             PyErr_SetString(PyExc_MemoryError,
                     "unable to resize transfer field");
             return NULL;
         }
     }
-    ptr=(float *) self->getTransferField(string(name),AR_FLOAT,size);
+    ptr=(double *) self->getTransferField(string(name),AR_DOUBLE,size);
     for(int i=0;i<size;i++) {
         ptr[i]=PyFloat_AsDouble(PyList_GetItem(lst,i));
     }
@@ -439,7 +684,7 @@ PyObject *setFloatList(char* name,PyObject *lst) {
 }
 PyObject *getFloatList(char* name) {
     int size;
-    float *ptr=(float *) self->getTransferField(string(name),AR_FLOAT,size);
+    double *ptr=(double *) self->getTransferField(string(name),AR_DOUBLE,size);
     PyObject *lst=PyList_New(size);
     for(int i=0;i<size;i++) {
         PyList_SetItem(lst,i,PyFloat_FromDouble(ptr[i]));
@@ -460,7 +705,7 @@ PyObject *initStringTransfer(char* name) {
 PyObject *getStringSize(char *name) {
     int size;
     char *ptr=(char *) self->getTransferField(string(name),AR_CHAR,size);
-    return PyInt_FromLong(size);
+    return PyInt_FromLong((long)size);
 }
 PyObject *setString(char *name,PyObject *val) {
     if (!PyString_Check(val)) {
@@ -568,6 +813,18 @@ void set##cbtype##Callback(PyObject *PyFunc) {\
     def initObjectTransfer(self,name): self.initStringTransfer(name)
     def setObject(self,name,obj): self.setString(name,cPickle.dumps(obj))
     def getObject(self,name): return cPickle.loads(self.getString(name))
+
+    def initStructTransfer( self, name ):
+      self.initStringTransfer( name+'_FORMAT' )
+      self.initStringTransfer( name+'_DATA' )
+    def setStruct( self, name, format, obj ):
+      self.setString( name+'_FORMAT', format )
+      tmp = struct.pack( format, *obj )
+      self.setString( name+'_DATA', tmp )
+    def getStruct( self, name ):
+      format = self.getString( name+'_FORMAT' )
+      data = self.getString( name+'_DATA' )
+      return struct.unpack( format, data )
 %}
 };
 
@@ -575,11 +832,6 @@ void ar_defaultWindowInitCallback();
 void ar_defaultReshapeCallback( PyObject* widthObject, PyObject* heightObject );
 
 %{
-void ar_defaultWindowInitCallback() {
-  glEnable(GL_DEPTH_TEST);
-  glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
 
 void ar_defaultReshapeCallback( PyObject* widthObject, PyObject* heightObject ) {
   if ((!PyInt_Check(widthObject))||(!PyInt_Check(heightObject))) {

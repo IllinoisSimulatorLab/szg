@@ -1,4 +1,4 @@
-// $Id: PyMath.i,v 1.1 2005/03/18 20:13:01 crowell Exp $
+// $Id: PyMath.i,v 1.2 2005/05/26 18:38:52 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -25,7 +25,6 @@ class arVector3{
   float v[3];
 
   arVector3();
-  arVector3(const float* p);
   arVector3(float x, float y, float z);
   ~arVector3();
 
@@ -47,6 +46,34 @@ class arVector3{
 // new C++ methods that show up as methods of the Python class that shadows
 // arVector3. The installation of szg is not affected by this.
 %extend{
+
+arVector3(PyObject *seq) {
+      arVector3* m = (arVector3*)malloc(sizeof(arVector3));
+      if (!PySequence_Check(seq)) {
+        cerr << "arVector3() error: attempt to construct with non-sequence.\n";
+        return NULL;
+      }
+      if (PySequence_Size(seq) != 3) {
+        cerr << "arVector3() error: sequence passed to constructor must contain 3 items.\n";
+        return NULL;
+      }
+      for (int i=0; i<3; ++i) {
+        PyObject* tmp = PySequence_GetItem( seq, i );
+        if (PyFloat_Check(tmp)) {
+          m->v[i] = (float)PyFloat_AsDouble(tmp);
+        } else if (PyInt_Check(tmp)) {
+          m->v[i] = (float)PyInt_AsLong(tmp);
+        } else {
+          cerr << "arVector3() error: sequence items must all be Floats or Ints\n";
+          return NULL;
+        }
+      } 
+      return m;
+    }
+
+   void setFromPtr( const float* const ptr ) {
+     memcpy( self->v, ptr, 3*sizeof(float) );
+   }
 
 //  const arVector3& operator+=(const arVector3&);
     arVector3 __iadd__(const arVector3& rhs) {
@@ -146,13 +173,63 @@ class arVector3{
         s << *self;
         return s.str();
     }
+
+PyObject* toList() {
+    PyObject *lst=PyList_New(3);
+    if (!lst) {
+      PyErr_SetString(PyExc_ValueError, "arVector3.toList() error: PyList_New() failed");
+      return NULL;
+    }
+    for(int i=0;i<3;i++) {
+        PyList_SetItem(lst,i,PyFloat_FromDouble(self->v[i]));
+    }
+    return lst;
+}
+
+PyObject* toTuple() {
+    PyObject *seq=PyTuple_New(3);
+    if (!seq) {
+      cerr << "arVector3.toTuple() error: PyTuple_New() failed.\n";
+      return NULL;
+    }
+    for(int i=0;i<3;i++) {
+        PyTuple_SetItem(seq,i,PyFloat_FromDouble(self->v[i]));
+    }
+    return seq;
+}
+
+PyObject* fromSequence( PyObject* seq ) {
+  PyObject *resultobj;
+  if (!PySequence_Check(seq)) {
+    PyErr_SetString(PyExc_ValueError, "arVector3.fromSequence() error: argument must be a sequence.");
+    return NULL;
+  }
+  if (PySequence_Size(seq) != 3) {
+    PyErr_SetString(PyExc_ValueError, "arVector3.fromSequence() error: passed sequence must contain 3 elements.");
+    return NULL;
+  }
+  for (int i = 0; i < 3; ++i) {
+    PyObject *num = PySequence_GetItem(seq,i);
+    if (PyFloat_Check(num)) {
+      self->v[i] = (float)PyFloat_AsDouble(num);
+    } else if (PyInt_Check(num)) {
+      self->v[i] = (float)PyInt_AsLong(num);
+    } else {
+      cerr << "arVector3() error: sequence items must all be Floats or Ints\n";
+      return NULL;
+    }
+  }
+  Py_INCREF(Py_None); resultobj = Py_None;
+  return resultobj;
+}
+
 }
 
 %pythoncode {
     # __getstate__ returns the contents of self in a format that can be
     # pickled, a list of floats in this case
     def __getstate__(self):
-        return [self[0],self[1],self[2]]
+        return self.toTuple()
 
     # __setstate__ recreates an object from its pickled state
     def __setstate__(self,v):
@@ -169,7 +246,6 @@ class arVector4{
   float v[4];
 
   arVector4();
-  arVector4(const float* p);
   arVector4(float x, float y, float z, float w);
   float operator[] (int i);
         // the output type of [] used to be float&;
@@ -177,8 +253,38 @@ class arVector4{
   void set(float x, float y, float z, float w);
   float magnitude() const;
   arVector4 normalize() const;
+  float dot( const arVector4& y ) const;
+  arMatrix4 outerProduct( const arVector4& rhs ) const;
 
 %extend{
+
+arVector4(PyObject *seq) {
+      arVector4* m = (arVector4*)malloc(sizeof(arVector4));
+      if (!PySequence_Check(seq)) {
+        PyErr_SetString(PyExc_TypeError, "arVector4() error: attempt to construct with non-sequence.");
+        return NULL;
+      }
+      if (PySequence_Size(seq) != 4) {
+        PyErr_SetString(PyExc_TypeError, "arVector4() error: sequence passed to constructor must contain 4 items.");
+        return NULL;
+      }
+      for (int i=0; i<4; ++i) {
+        PyObject* tmp = PySequence_GetItem( seq, i );
+        if (PyFloat_Check(tmp)) {
+          m->v[i] = (float)PyFloat_AsDouble(tmp);
+        } else if (PyInt_Check(tmp)) {
+          m->v[i] = (float)PyInt_AsLong(tmp);
+        } else {
+          PyErr_SetString(PyExc_ValueError, "arVector4() error: sequence items must all be Floats or Ints");
+          return NULL;
+        }
+      } 
+      return m;
+    }
+
+   void setFromPtr( const float* const ptr ) {
+     memcpy( self->v, ptr, 4*sizeof(float) );
+   }
 
     float __setitem__(int i,float rhs) {
         self->v[i]=rhs;
@@ -196,13 +302,63 @@ class arVector4{
         s << *self;
         return s.str();
     }
+
+PyObject* toList() {
+    PyObject *lst=PyList_New(4);
+    if (!lst) {
+      PyErr_SetString(PyExc_ValueError, "arVector4.toList() error: PyList_New() failed");
+      return NULL;
+    }
+    for(int i=0;i<4;i++) {
+        PyList_SetItem(lst,i,PyFloat_FromDouble(self->v[i]));
+    }
+    return lst;
+}
+
+PyObject* toTuple() {
+    PyObject *seq=PyTuple_New(4);
+    if (!seq) {
+      cerr << "arVector4.toTuple() error: PyTuple_New() failed.\n";
+      return NULL;
+    }
+    for(int i=0;i<4;i++) {
+        PyTuple_SetItem(seq,i,PyFloat_FromDouble(self->v[i]));
+    }
+    return seq;
+}
+
+PyObject* fromSequence( PyObject* seq ) {
+  PyObject *resultobj;
+  if (!PySequence_Check(seq)) {
+    PyErr_SetString(PyExc_ValueError, "arVector4.fromSequence() error: argument must be a sequence.");
+    return NULL;
+  }
+  if (PySequence_Size(seq) != 4) {
+    PyErr_SetString(PyExc_ValueError, "arVector4.fromSequence() error: passed sequence must contain 4 elements.");
+    return NULL;
+  }
+  int i;
+  for (i = 0; i < 4; ++i) {
+    PyObject *num = PySequence_GetItem(seq,i);
+    if (PyFloat_Check(num)) {
+      self->v[i] = (float)PyFloat_AsDouble(num);
+    } else if (PyInt_Check(num)) {
+      self->v[i] = (float)PyInt_AsLong(num);
+    } else {
+      cerr << "arVector4() error: sequence items must all be Floats or Ints\n";
+      return NULL;
+    }
+  }
+  Py_INCREF(Py_None); resultobj = Py_None;
+  return resultobj;
+}
 }
 
 %pythoncode {
     # __getstate__ returns the contents of self in a format that can be
-    # pickled, a list of floats in this case
+    # pickled, a tuple of floats in this case
     def __getstate__(self):
-        return [self[0],self[1],self[2],self[3]]
+        return self.toTuple()
 
     # __setstate__ recreates an object from its pickled state
     def __setstate__(self,v):
@@ -225,12 +381,12 @@ class arVector4{
 class arMatrix4{
  public:
   arMatrix4();
-  arMatrix4(const float* const);
   arMatrix4(float,float,float,float,float,float,float,float,
               float,float,float,float,float,float,float,float);
   ~arMatrix4() {}
   
   arMatrix4 inverse() const;
+  arMatrix4 transpose() const;
 
     operator arQuaternion() const;
     float operator[](int i); // used to be float&
@@ -240,6 +396,34 @@ class arMatrix4{
 /*  float v[16];*/
 
 %extend{
+
+arMatrix4(PyObject *seq) {
+      arMatrix4* m = (arMatrix4*)malloc(sizeof(arMatrix4));
+      if (!PySequence_Check(seq)) {
+        PyErr_SetString(PyExc_TypeError, "arMatrix4() error: attempt to construct with non-sequence.");
+        return NULL;
+      }
+      if (PySequence_Size(seq) != 16) {
+        PyErr_SetString(PyExc_TypeError, "arMatrix4() error: sequence passed to constructor must contain 16 items.");
+        return NULL;
+      }
+      for (int i=0; i<16; ++i) {
+        PyObject* tmp = PySequence_GetItem( seq, i );
+        if (PyFloat_Check(tmp)) {
+          m->v[i] = (float)PyFloat_AsDouble(tmp);
+        } else if (PyInt_Check(tmp)) {
+          m->v[i] = (float)PyInt_AsLong(tmp);
+        } else {
+          PyErr_SetString(PyExc_ValueError, "arMatrix4() error: sequence items must all be Floats or Ints");
+          return NULL;
+        }
+      } 
+      return m;
+    }
+
+   void setFromPtr( const float* const ptr ) {
+     memcpy( self->v, ptr, 16*sizeof(float) );
+   }
 
     float* getAddress() {
        return self->v;
@@ -259,6 +443,12 @@ class arMatrix4{
     arVector3 __mul__(const arVector3& rhs) {
         return *self*rhs;
     }
+
+// arVector4 operator*(const arMatrix4&, const arVector4&);
+//    arVector4 __mul__(const arVector4& rhs) {
+//        return *self*rhs;
+//    }
+
 
 // arMatrix4 operator+(const arMatrix4&, const arMatrix4&); //addition
     arMatrix4 __add__(const arMatrix4& rhs) {
@@ -322,16 +512,68 @@ class arMatrix4{
             s+=self->v[i]*self->v[i];
         return sqrt(s);
     }
+
+PyObject* toList() {
+    PyObject *lst=PyList_New(16);
+    if (!lst) {
+      PyErr_SetString(PyExc_ValueError, "arMatrix4.toList() error: PyList_New() failed");
+      return NULL;
+    }
+    for(int i=0;i<16;i++) {
+        PyList_SetItem(lst,i,PyFloat_FromDouble(self->v[i]));
+    }
+    return lst;
+}
+
+PyObject* toTuple() {
+    PyObject *seq=PyTuple_New(16);
+    if (!seq) {
+      cerr << "arMatrix4.toTuple() error: PyTuple_New() failed.\n";
+      return NULL;
+    }
+    for(int i=0;i<16;i++) {
+        PyTuple_SetItem(seq,i,PyFloat_FromDouble(self->v[i]));
+    }
+    return seq;
+}
+
+PyObject* fromSequence( PyObject* seq ) {
+  PyObject *resultobj;
+  if (!PySequence_Check(seq)) {
+    PyErr_SetString(PyExc_ValueError, "arMatrix4.fromSequence() error: argument must be a sequence.");
+    return NULL;
+  }
+  if (PySequence_Size(seq) != 16) {
+    PyErr_SetString(PyExc_ValueError, "arMatrix4.fromSequence() error: passed sequence must contain 16 elements.");
+    return NULL;
+  }
+  int i;
+  for (i = 0; i < 16; ++i) {
+    PyObject *num = PySequence_GetItem(seq,i);
+    if (PyFloat_Check(num)) {
+      self->v[i] = (float)PyFloat_AsDouble(num);
+    } else if (PyInt_Check(num)) {
+      self->v[i] = (float)PyInt_AsLong(num);
+    } else {
+      cerr << "arMatrix4() error: sequence items must all be Floats or Ints\n";
+      return NULL;
+    }
+  }
+  Py_INCREF(Py_None); resultobj = Py_None;
+  return resultobj;
+}
+
 }
 
 %pythoncode {
     # __getstate__ returns the contents of self in a format that can be
-    # pickled, a list of floats in this case
+    # pickled, a tuple of floats in this case
     def __getstate__(self):
-        return [self[0],self[4],self[8],self[12],
+        #return self.toTuple()
+        return (self[0],self[4],self[8],self[12],
                 self[1],self[5],self[9],self[13],
                 self[2],self[6],self[10],self[14],
-                self[3],self[7],self[11],self[15]]
+                self[3],self[7],self[11],self[15])
 
     # __setstate__ recreates an object from its pickled state
     def __setstate__(self,v):
@@ -354,7 +596,6 @@ class arQuaternion{
   arQuaternion();
   arQuaternion(float real, float pure1, float pure2, float pure3);
   arQuaternion(float real, const arVector3& pure);
-  arQuaternion( const float* numAddress );
   ~arQuaternion() {}
 
   operator arMatrix4() const;
@@ -363,6 +604,45 @@ class arQuaternion{
   arVector3 pure;
 
 %extend{
+
+arQuaternion(PyObject *seq) {
+      arQuaternion* m = (arQuaternion*)malloc(sizeof(arQuaternion));
+      if (!PySequence_Check(seq)) {
+        PyErr_SetString(PyExc_TypeError, "arQuaternion() error: attempt to construct with non-sequence.");
+        return NULL;
+      }
+      if (PySequence_Size(seq) != 4) {
+        PyErr_SetString(PyExc_TypeError, "arQuaternion() error: sequence passed to constructor must contain 4 items.");
+        return NULL;
+      }
+      for (int i=0; i<4; ++i) {
+        PyObject* tmp = PySequence_GetItem( seq, i );
+        if (PyFloat_Check(tmp)) {
+          if (i==0) {
+            m->real = (float)PyFloat_AsDouble(tmp); 
+          } else {
+            m->pure[i-1] = (float)PyFloat_AsDouble(tmp);
+          }
+        } else if (PyInt_Check(tmp)) {
+          if (i==0) {
+            m->real = (float)PyInt_AsLong(tmp); 
+          } else {
+            m->pure[i-1] = (float)PyInt_AsLong(tmp);
+          }
+        } else {
+          PyErr_SetString(PyExc_ValueError, "arQuaternion() error: sequence items must all be Floats or Ints");
+          return NULL;
+        }
+      } 
+      return m;
+    }
+
+   void setFromPtr( const float* const ptr ) {
+     self->real = *ptr; 
+     memcpy( &(self->pure), ptr+1, 3*sizeof(float) );
+   }
+
+
 // arQuaternion operator*(const arQuaternion&, const arQuaternion&);
     arQuaternion __mul__(const arQuaternion& rhs) {
         return *self*rhs;
@@ -423,14 +703,81 @@ class arQuaternion{
         s << *self;
         return s.str();
     }
+
+PyObject* toList() {
+    PyObject *lst=PyList_New(4);
+    if (!lst) {
+      PyErr_SetString(PyExc_ValueError, "arQuaternion.toList() error: PyList_New() failed");
+      return NULL;
+    }
+    PyList_SetItem(lst,0,PyFloat_FromDouble(self->real));
+    for(int i=1;i<4;i++) {
+        PyList_SetItem(lst,i,PyFloat_FromDouble(self->pure[i-1]));
+    }
+    return lst;
+}
+
+PyObject* toTuple() {
+    PyObject *seq=PyTuple_New(4);
+    if (!seq) {
+      cerr << "arMatrix4.toTuple() error: PyTuple_New() failed.\n";
+      return NULL;
+    }
+    PyTuple_SetItem(seq,0,PyFloat_FromDouble(self->real));
+    for(int i=1;i<4;i++) {
+        PyTuple_SetItem(seq,i,PyFloat_FromDouble(self->pure[i-1]));
+    }
+    return seq;
+}
+
+PyObject* fromSequence( PyObject* seq ) {
+  PyObject *resultobj;
+  if (!PySequence_Check(seq)) {
+    PyErr_SetString(PyExc_ValueError, "arQuaternion.fromSequence() error: argument must be a sequence.");
+    return NULL;
+  }
+  if (PySequence_Size(seq) != 4) {
+    PyErr_SetString(PyExc_ValueError, "arQuaternion.fromSequence() error: passed sequence must contain 4 elements.");
+    return NULL;
+  }
+  int i;
+  PyObject *num = PySequence_GetItem(seq,0);
+  if (PyFloat_Check(num)) {
+    self->real = (float)PyFloat_AsDouble(num);
+  } else if (PyInt_Check(num)) {
+    self->real = (float)PyInt_AsLong(num);
+  } else {
+    cerr << "arQuaternion() error: sequence items must all be Floats or Ints\n";
+    return NULL;
+  }
+  for (i = 1; i < 4; ++i) {
+    num = PySequence_GetItem(seq,i);
+    if (PyFloat_Check(num)) {
+      self->pure[i-1] = (float)PyFloat_AsDouble(num);
+    } else if (PyInt_Check(num)) {
+      self->pure[i-1] = (float)PyInt_AsLong(num);
+    } else {
+      cerr << "arQuaternion() error: sequence items must all be Floats or Ints\n";
+      return NULL;
+    }
+  }
+  Py_INCREF(Py_None); resultobj = Py_None;
+  return resultobj;
+}
+
 }
 
 %pythoncode {
+    # __getstate__ returns the contents of self in a format that can be
+    # pickled, a tuple of floats in this case
     def __getstate__(self):
-        raise "sorry, pickling not implemented for arQuaternion"
+        return self.toTuple()
 
+    # __setstate__ recreates an object from its pickled state
     def __setstate__(self,v):
-        raise "sorry, pickling not implemented for arQuaternion"
+        _swig_setattr(self, arQuaternion, 'this',
+            _PySZG.new_arQuaternion(v[0],v[1],v[2],v[3]))
+        _swig_setattr(self, arQuaternion, 'thisown', 1)
 }
 };
 
@@ -447,7 +794,6 @@ arMatrix4 ar_transrotMatrix(const arVector3& position, const arQuaternion& orien
 arMatrix4 ar_scaleMatrix(float);
 arMatrix4 ar_scaleMatrix(float,float,float);
 arMatrix4 ar_scaleMatrix(const arVector3& scaleFactors);
-arMatrix4 ar_mirrorMatrix( const arMatrix4& placementMatrix );
 arMatrix4 ar_extractTranslationMatrix(const arMatrix4&);
 arVector3 ar_extractTranslation(const arMatrix4&);
 arMatrix4 ar_extractRotationMatrix(const arMatrix4&);
@@ -475,6 +821,27 @@ arVector3 ar_projectPointToLine( const arVector3& linePoint,
                                  const arVector3& lineDirection,
                                  const arVector3& otherPoint,
                                  const float threshold = 1e-6 );
+
+// Matrix for doing reflections in a plane. This matrix should pre-multiply
+// the object matrix on the stack (i.e. load this one on first, then multiply
+// by the object placement matrix).
+arMatrix4 ar_mirrorMatrix( const arVector3& planePoint, const arVector3& planeNormal );
+
+// Matrix to project a set of vertices onto a plane (for cast shadows)
+// Note that this matrix should be post-multiplied on the top of the stack.
+// How to use: specify all parameters in top-level coordinates (i.e. the
+// coordinates that the object placement matrix objectMatrix are specified in).
+// Render your object normally.
+// Then glMultMatrixf() by the ar_castShadowMatrix() matrix. Either disable the depth
+// test or set the plane position just slightly in front of the actual plane.
+// Set color to black, disable lighting and texture. For the most realism
+// enable blending with the shadow's alpha set to .3 or so, but this will
+// backfire if you've got more than one shadow and they overlap (I think
+// you can fix that with the stencil buffer). Then redraw the object.
+arMatrix4 ar_castShadowMatrix( const arMatrix4& objectMatrix,
+                               const arVector4& lightPosition,
+                               const arVector3& planePoint,
+                               const arVector3& planeNormal );
 
 arMatrix4 ar_planeToRotation(float,float);
 

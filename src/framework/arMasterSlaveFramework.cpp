@@ -110,7 +110,7 @@ void ar_masterSlaveFrameworkKeyboardFunction(unsigned char key, int x, int y){
   // finally, keyboard events should be forwarded to the keyboard callback
   // *if* we are the master and *if* the callback has been defined.
   if (__globalFramework->getMaster()) {
-    __globalFramework->onKeypress( key, x, y );
+    __globalFramework->onKey( key, x, y );
   }
 }
 
@@ -119,21 +119,17 @@ void ar_masterSlaveFrameworkKeyboardFunction(unsigned char key, int x, int y){
 //***********************************************************************
 class arMasterSlaveWindowInitCallback : public arWindowInitCallback {
   public:
-    arMasterSlaveWindowInitCallback( arMasterSlaveFramework& fw,
-                                     void (*cb)( arMasterSlaveFramework& )
-                                     ) :
-       _framework( &fw ),
-       _callback( cb ) {}
+    arMasterSlaveWindowInitCallback( arMasterSlaveFramework& fw ) :
+       _framework( &fw ) {}
     ~arMasterSlaveWindowInitCallback() {}
     void operator()( arGraphicsWindow& );
   private:
     arMasterSlaveFramework* _framework;
-    void (*_callback)( arMasterSlaveFramework& );
 };  
 void arMasterSlaveWindowInitCallback::operator()( arGraphicsWindow& ) {
   if (!_framework)
     return;
-  _callback( *_framework );
+  _framework->onWindowInit();
 }
 
 class arMasterSlaveRenderCallback : public arRenderCallback {
@@ -159,7 +155,10 @@ void arMasterSlaveRenderCallback::operator()( arGraphicsWindow&,
 
 arMasterSlaveFramework::arMasterSlaveFramework():
   arSZGAppFramework(),
+  _stateServer(NULL),
   _transferTemplate("data"),
+  _transferData(NULL),
+  _glutDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA),
   _userInitCalled(false),
   _parametersLoaded(false),
   _serviceName("NULL"),
@@ -168,7 +167,7 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   _startCallback(NULL),
   _preExchange(NULL),
   _postExchange(NULL),
-  _window(NULL),
+  _windowInitCallback(NULL),
   _drawCallback(NULL),
   _disconnectDrawCallback(NULL),
   _playCallback(NULL),
@@ -195,10 +194,10 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   _lastFrameTime(0.1),
   _firstTimePoll(true),
   _randSeedSet(1),
-  _randomSeed(-1),
-  _newSeed(-1),
-  _numRandCalls(0),
-  _lastRandVal(0),
+  _randomSeed((long)-1),
+  _newSeed((long)-1),
+  _numRandCalls((long)0),
+  _lastRandVal(0.),
   _randSynchError(0),
   _firstTransfer(1),
   _screenshotFlag(false),
@@ -208,9 +207,11 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   _screenshotHeight(480),
   _whichScreenshot(0),
   _pauseFlag(false),
+  _noDrawFillColor(-1,-1,-1),
   _connectionThreadRunning(false),
   _useGLUT(false),
   _standaloneControlMode("simulator"),
+  _showPerformance(false),
   _soundClient(NULL){
 
   ar_mutex_init( &_connectFlagMutex );
@@ -243,7 +244,6 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   ar_mutex_init(&_eventLock);
   // when the default color is set like this, the app's gemetry is displayed
   // instead of a default color
-  _noDrawFillColor = arVector3(-1,-1,-1);
   _masterPort[0] = -1;
   // Also, let's initialize the performance graph.
   _framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
@@ -252,7 +252,8 @@ arMasterSlaveFramework::arMasterSlaveFramework():
   _showPerformance = false;
 
   _defaultCamera.setHead( &_head );
-  
+  _graphicsWindow.setInitCallback
+    ( new arMasterSlaveWindowInitCallback(*this) );
 }
 
 /// \bug memory leak for several pointer members
@@ -272,7 +273,7 @@ arMasterSlaveFramework::~arMasterSlaveFramework() {
 
 bool arMasterSlaveFramework::onStart( arSZGClient& SZGClient ) {
   if (_startCallback && !_startCallback( *this, SZGClient )){
-    cerr << _label << " error: failed to called user-defined start callback.\n";
+    cerr << _label << " error: user-defined start callback failed.\n";
     return false;
   }
   return true;
@@ -290,7 +291,11 @@ void arMasterSlaveFramework::onPostExchange() {
   }
 }
 
-void arMasterSlaveFramework::onInitWindow() {
+void arMasterSlaveFramework::onWindowInit() {
+  if (!_windowInitCallback) {
+    ar_defaultWindowInitCallback();
+  }
+  _windowInitCallback( *this );
 }
 
 void arMasterSlaveFramework::onDraw() {
@@ -357,7 +362,7 @@ void arMasterSlaveFramework::onOverlay() {
   }
 }
 
-void arMasterSlaveFramework::onKeypress( unsigned char key, int x, int y) {
+void arMasterSlaveFramework::onKey( unsigned char key, int x, int y) {
   if (_keyboardCallback) {
     _keyboardCallback( *this, key, x, y );
   }
@@ -393,8 +398,7 @@ void arMasterSlaveFramework::setPostExchangeCallback
 /// into this sort of callback.
 void arMasterSlaveFramework::setWindowCallback
   (void (*windowCallback)(arMasterSlaveFramework&)){
-  _graphicsWindow.setInitCallback
-    ( new arMasterSlaveWindowInitCallback(*this,windowCallback) );
+  _windowInitCallback = windowCallback;
 }
 
 void arMasterSlaveFramework::setDrawCallback
@@ -456,7 +460,7 @@ bool arMasterSlaveFramework::_startrespond(const string& s){
 }
 
 /// Initializes the syzygy objects, but does not start any threads
-bool arMasterSlaveFramework::init(int& argc, char** argv){
+bool arMasterSlaveFramework::init(int& argc, char** argv) {
   _label = string(argv[0]);
   _label = ar_stripExeName(_label);
 
@@ -720,13 +724,10 @@ void arMasterSlaveFramework::preDraw(){
     }
     ar_mutex_lock( &_connectFlagMutex );
     if (_newSlaveConnected) {
-      onSlaveConnected( _stateServer->getNumberConnected() );
+      onSlaveConnected( _numSlavesConnected );
       _newSlaveConnected = false;
     }
     ar_mutex_unlock( &_connectFlagMutex );
-    if (_stateServer) {
-      _numSlavesConnected = _stateServer->getNumberConnected();
-    }
     onPreExchange();
   }
 
@@ -956,10 +957,15 @@ void arMasterSlaveFramework::setPlayTransform(){
   }
 }
 
-void arMasterSlaveFramework::draw(){
+void arMasterSlaveFramework::drawGraphicsDatabase(){
   _graphicsDatabase.draw();
 }
 
+void arMasterSlaveFramework::draw() {
+  cout << "arMasterSlaveFramework warning: arMasterSlaveFramework::draw() "
+       << "has been renamed drawGraphicsDatabase().\n"
+       << "   Please modify your code accordingly.\n";
+}
 
 void arMasterSlaveFramework::setRandomSeed( const long newSeed ) {
   if (!_master)
@@ -1030,8 +1036,7 @@ void arMasterSlaveFramework::_createGLUTWindow(){
   argv[0] = "application";
   int argc = 1;
   glutInit(&argc, argv);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA |
-    (_stereoMode ? GLUT_STEREO : 0));
+  glutInitDisplayMode( _glutDisplayMode | (_stereoMode ? GLUT_STEREO : 0));
   glutInitWindowPosition(0,0);
   char label[256]; /// \todo fixed size buffer
   ar_stringToBuffer(_label, label, sizeof(label));
@@ -1686,6 +1691,7 @@ bool arMasterSlaveFramework::_startStandalone(bool useGLUT){
   _userInitCalled = true;
   if (_useGLUT){
     _displayThreadRunning = true;
+    cout << _label << " remark: entering glutMainLoop().\n";
     glutMainLoop(); // never returns
   }
   return true;
@@ -2036,11 +2042,14 @@ void arMasterSlaveFramework::_connectionTask(){
       if (num > 1)
 	cout << " (" << num << " in all)";
       cout << ".\n";
-      if (_connectCallback) {
-        ar_mutex_lock( &_connectFlagMutex );
-        _newSlaveConnected = true;
-        ar_mutex_unlock( &_connectFlagMutex );
+      ar_mutex_lock( &_connectFlagMutex );
+      _newSlaveConnected = true;
+      if (_stateServer) {
+        _numSlavesConnected = _stateServer->getNumberConnected();
+      } else {
+        _numSlavesConnected = -1;
       }
+      ar_mutex_unlock( &_connectFlagMutex );
     }
   }
   else{

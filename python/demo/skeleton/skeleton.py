@@ -19,16 +19,6 @@ import cPickle
 FEET_TO_LOCAL_UNITS = 1.
 
 
-# Utility routine to convert an arMatrix4 to a numarray array
-# (for glMultMatrixf)
-def arMatrix4ToNumarray( mat ):
-  result = array( [[mat[0],mat[1],mat[2],mat[3]],
-                  [mat[4],mat[5],mat[6],mat[7]],
-                  [mat[8],mat[9],mat[10],mat[11]],
-                  [mat[12],mat[13],mat[14],mat[15]]] )
-  return result
-
-
 #### Class definitions & implementations. ####
 
 # We'll have just one one interactable object class, a 2-ft colored square that
@@ -53,7 +43,7 @@ class ColoredSquare(arPyInteractable):
 
   def draw(self):
     glPushMatrix()
-    glMultMatrixf( arMatrix4ToNumarray(self.getMatrix()) )
+    glMultMatrixf( self.getMatrix().toTuple() )
     glScalef( 2., 2., 1./12. )
     if self.getVisible():
       # set one of two colors depending on if this object has been selected for interaction
@@ -76,8 +66,8 @@ class RodEffector( arEffector ):
   def __init__(self):
     arEffector.__init__(self,1,6,0,0,0)
 
-    # set length to 5 ft.
-    self.setTipOffset( arVector3(0,0,-5) )
+    # set length to 4 ft.
+    self.setTipOffset( arVector3(0,0,-4) )
 
     # set to interact with closest object within 1 ft. of tip
     # (see PySZG.py for alternative classes for selecting objects)
@@ -94,7 +84,7 @@ class RodEffector( arEffector ):
 
   def draw(self):
     glPushMatrix()
-    glMultMatrixf( arMatrix4ToNumarray(self.getCenterMatrix()) )
+    glMultMatrixf( self.getCenterMatrix().toTuple() )
     # draw grey rectangular solid 2"x2"x5'
     glScalef( 2./12, 2./12., 5. )
     glColor3f( .5,.5,.5 )
@@ -103,21 +93,6 @@ class RodEffector( arEffector ):
     glColor3f(0,0,0)
     glutWireCube(1.03)
     glPopMatrix()
-
-
-# An (optional) event filter. You would define & install one of these if
-# for some reason you needed to be absolutely sure of never missing an
-# input event (calling e.g. framework or effector getAxis() routines 
-# only gives you the most recent value of each event). Installing an event
-# filter gives you access to each individual event as it comes in.
-# See PyInputEvents.i and PyEventFilter.i.
-class SkeletonEventFilter(arPyEventFilter):
-  def __init__(self,framework):
-    arPyEventFilter.__init__(self,framework)
-    print 'SkeletonEventFilter.__init__(), getFramework() = ', self.getFramework()
-  def onEvent( self, event ):
-    print event
-    return True
 
 
 #####  The application framework ####
@@ -141,12 +116,6 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     # List of objects to interact with
     self.interactionList = [self.theSquare]
 
-    # Master-slave transfer variables
-    # All we need to explicity transfer in this program is the square's placement matrix and
-    # whether or not the it is highlighted (the effector's matrix can be updated by calling 
-    # updateState(), see below).
-    self.transferDict = {}
-
     # Tell the framework what units we're using.
     self.setUnitConversion( FEET_TO_LOCAL_UNITS )
 
@@ -154,10 +123,6 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     nearClipDistance = .1*FEET_TO_LOCAL_UNITS
     farClipDistance = 100.*FEET_TO_LOCAL_UNITS
     self.setClipPlanes( nearClipDistance, farClipDistance )
-
-    # Optional event filter. Can't be installed until after framework.init(),
-    # see __main__
-    #self.eventFilter = SkeletonEventFilter(self)
 
 
   #### Framework callbacks -- see szg/src/framework/arMasterSlaveFramework.h ####
@@ -167,7 +132,7 @@ class SkeletonFramework(arPyMasterSlaveFramework):
   def onStart( self, client ):
 
     # Register variables to be shared between master & slaves
-    self.initObjectTransfer('transfer')
+    self.initSequenceTransfer('transferTuple')
 
     # Setup navigation, so we can drive around with the joystick
     #
@@ -209,12 +174,11 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     # Any grabbing/dragging happens in here.
     ar_processInteractionList( self.theWand, self.interactionList )
 
-    # Pack data we have to transfer to slaves into appropriate variables
+    # Pack data we have to transfer to slaves into an appropriate sequence
     # (note that we can't currently transfer bools as such, must use ints).
-    self.transferDict['highlight'] = self.theSquare.getHighlight()
-    self.transferDict['visible'] = self.theSquare.getVisible()
-    self.transferDict['matrix'] = self.theSquare.getMatrix()
-    self.setObject( 'transfer', self.transferDict ) 
+    transferTuple = (self.theSquare.getHighlight(), self.theSquare.getVisible(), \
+        self.theSquare.getMatrix().toTuple())
+    self.setSequence( 'transferTuple', transferTuple )
 
 
   # Callback called after transfer of data from master to slaves. Mostly used to
@@ -231,10 +195,11 @@ class SkeletonFramework(arPyMasterSlaveFramework):
       # NOTE: The post-exchange callback is no longer called
       # on disconnected slaves (which used to cause an exception
       # here).
-      self.transferDict = self.getObject( 'transfer' )
-      self.theSquare.setHighlight( self.transferDict['highlight'] )
-      self.theSquare.setVisible( self.transferDict['visible'] )
-      self.theSquare.setMatrix( self.transferDict['matrix'] )
+      transferTuple = self.getSequence( 'transferTuple' )
+      self.theSquare.setHighlight( transferTuple[0] )
+      self.theSquare.setVisible( transferTuple[1] )
+      self.theSquare.setMatrix( arMatrix4( transferTuple[2] ) )
+
 
   # Draw callback
   def onDraw( self ):

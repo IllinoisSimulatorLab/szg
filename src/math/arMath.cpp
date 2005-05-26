@@ -21,6 +21,18 @@ ostream& operator<<(ostream& os, const arVector4& x){
   return os;
 }
 
+arMatrix4 arVector4::outerProduct( const arVector4& rhs ) const {
+  arMatrix4 result;
+  float* ptr = result.v;
+  for (unsigned int i=0; i<4; ++i) {
+    float y = rhs.v[i];
+    for (unsigned int j=0; j<4; ++j) {
+      *ptr++ = this->v[j]*y;
+    }
+  }
+  return result;
+}
+
 //***********************
 // matrix not-inlined
 //***********************
@@ -323,12 +335,6 @@ arMatrix4 ar_scaleMatrix(const arVector3& scaleFactors){
   return result;
 }
 
-arMatrix4 ar_mirrorMatrix( const arMatrix4& placementMatrix ) {
-  arMatrix4 reflect( ar_identityMatrix() );
-  reflect.v[10] = -1.;
-  return placementMatrix.inverse() * reflect * placementMatrix;
-}
-
 arMatrix4 ar_extractTranslationMatrix(const arMatrix4& original){
   arMatrix4 result;
   memcpy(&result.v[12], &original.v[12], 3 * sizeof(float));
@@ -533,6 +539,39 @@ arVector3 ar_projectPointToLine( const arVector3& linePoint,
   const arVector3 M = (lineDirection * N).normalize();
   return otherPoint - (V % M)*M;
 }
+
+//arMatrix4 ar_mirrorMatrix( const arMatrix4& placementMatrix ) {
+//  arMatrix4 reflect( ar_identityMatrix() );
+//  reflect.v[10] = -1.;
+//  return placementMatrix.inverse() * reflect * placementMatrix;
+//}
+
+arMatrix4 ar_mirrorMatrix( const arVector3& planePoint, const arVector3& planeNormal ) {
+  arVector4 tmp1( planeNormal.v[0], planeNormal.v[1], planeNormal.v[2], 0. );
+  float d = -planeNormal.dot( planePoint );
+  arVector4 tmp2( 2.*planeNormal.v[0], 2.*planeNormal.v[1], 2.*planeNormal.v[2], 2.*d );
+  return ar_identityMatrix() - tmp1.outerProduct( tmp2 );
+}
+
+arMatrix4 ar_castShadowMatrix( const arMatrix4& objectMatrix,
+                               const arVector4& lightPosition,
+                               const arVector3& planePoint,
+                               const arVector3& planeNormal ) {
+  const arMatrix4 theMatrix = objectMatrix.inverse();
+  arVector3 lightPos( lightPosition.v[0], lightPosition.v[1], lightPosition.v[2] );
+  lightPos = theMatrix * lightPos;
+  arVector4 lightVec( lightPos, lightPosition.v[3] );
+  arVector3 point = theMatrix * planePoint;
+  arVector3 normal = ar_extractRotationMatrix(theMatrix) * planeNormal;
+  arVector4 planeParams( normal, -normal.dot( point ) );
+  arMatrix4 outer( lightVec.outerProduct( planeParams ) );
+  float dot( lightVec.dot( planeParams ) );
+  arMatrix4 dotMatrix( ar_scaleMatrix( dot ) );
+  dotMatrix.v[15] = dot;
+  arMatrix4 result( dotMatrix - outer );
+  return result;
+}
+
 
 arMatrix4 ar_rotateVectorToVector( const arVector3& vec1, const arVector3& vec2 ) {
   const float mag1 = vec1.magnitude();
