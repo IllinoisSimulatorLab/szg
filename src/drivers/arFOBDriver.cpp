@@ -118,14 +118,16 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
     }
   }
   
-  int i;
+  int i = 0;
   // Determine the baud rate.
   const int baudRates[] = {2400,4800,9600,19200,38400,57600,115200};
   int baudRate = SZGClient.getAttributeInt("SZG_FOB", "baud_rate");
   bool baudRateFound = false;
   for (i=0; i<_nBaudRates; i++){
-    if (baudRate == baudRates[i])
+    if (baudRate == baudRates[i]) {
       baudRateFound = true;
+      break;
+    }
   }
   if (!baudRateFound) {
     cerr << "arFOBDriver warning: illegal value for SZG_FOB/baud_rate.\n"
@@ -303,19 +305,14 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
     cout << "arFOBDriver remark: using extended range transmitter.\n";
   }
   else{
-    bool longRange;
+    bool longRange = false;
     if (!_getPositionScale( longRange )) {
       cerr << "arFOBDriver error: _getPositionScale() failed.\n";
       return false;
     }
-    cout << "arFOBDriver remark: FOB reports position scale = ";
-    if (longRange){
-      cout << 72;
-    }
-    else{
-      cout << 36;
-    }
-    cout << " inches.\n";
+    cout << "arFOBDriver remark: FOB reports position scale = "
+         << (longRange ? 72 : 36)
+         << " inches.\n";
   }
 
   // Create a buffer for reading-in data. This must occur AFTER
@@ -346,9 +343,8 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
     }
   }
 
-  // We have successfully done it all! At this point, all the lights
-  // should be on solidly.
-  cout << "arFOBDriver remark: finished configuring the Flock.\n";
+  // Success. All the lights should be on solidly.
+  cout << "arFOBDriver remark: configured Flock.\n";
   return true;
 }
 
@@ -492,19 +488,12 @@ bool arFOBDriver::_getDataMode( std::string& modeString,
 
 bool arFOBDriver::_setPositionScale( bool longRange,
                                      unsigned char addr ) {
-  unsigned short scale;
-  if (longRange)
-    scale = 1;
-  else
-    scale = 0;
+  const unsigned short scale = longRange ? 1 : 0;
   if (!_setFOBParam( 3, (unsigned char *)&scale, 2, addr )) {
     cerr << "arFOBDriver error: _setFOBParam failed.\n";
     return false;
   }
-  if (longRange)
-    _positionScale = 6./32768.0;
-  else
-    _positionScale = 3./32768.0;
+  _positionScale = longRange ? 6./32768.0 : 3./32768.0;
   return true;
 }
 
@@ -515,8 +504,8 @@ bool arFOBDriver::_getPositionScale( bool& longRange,
     cerr << "arFOBDriver error: _getFOBParam() failed.\n";
     return false;
   }
-  unsigned short bigScale = *((unsigned short*)outdata);
-  bool stat(true);
+  const unsigned short bigScale = *((unsigned short*)outdata);
+  bool stat = true;
   switch (bigScale) {
     case 0:
       _positionScale = 3./32768.0; // convert to feet.
@@ -638,24 +627,22 @@ bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
   if (_numBirds > 1){
     _sendBirdAddress(addr);
   }
-  unsigned char pointCommand[] = {'B'};
+  const unsigned char pointCommand[] = {'B'};
   if (!_sendBirdCommand( pointCommand, 1 )) {
     cerr << "arFOBDriver error: failed to send 'point' command.\n";
     return false;
-  
   }
+
   // NOTE: AN EXTRA BYTE IS ONLY DELIVERED IN GROUP MODE!
-  int bytesPerBird = 2*_dataSize;
-  int bytesRead;
-  int j;
-  bytesRead = _comPort.ar_read( (char*)_dataBuffer, static_cast<unsigned int>(bytesPerBird) );
+  const int bytesPerBird = 2*_dataSize;
+  const int bytesRead = _comPort.ar_read( (char*)_dataBuffer, static_cast<unsigned int>(bytesPerBird) );
   if (bytesRead != bytesPerBird) {
     cerr << "arFOBDriver error: # bytes read (" << bytesRead
          << ") <> # requested (" << bytesPerBird << ")\n";
     return false;
   }
-  short* birdData;
-  birdData = (short*) _dataBuffer;
+  short* birdData = (short*) _dataBuffer;
+  int j;
   for (j=0; j<_dataSize; j++) {
     // Copied & pasted from Ascension code CMDUTIL.C
     *birdData = (short)((((short)(*(unsigned char *) birdData) & 0x7F) |
@@ -748,12 +735,13 @@ bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
     cerr << "arFOBDriver error: attempt to get data before init().\n";
     return false;
   }
-  int bytesPerBird = 2*_dataSize + ((_numBirds > 1)?(1):(0));
-  int numBytes;
-  int bytesRead;
-  int i, j;
+  const int bytesPerBird = 2*_dataSize + (_numBirds>1 ? 1 : 0);
+  int numBytes = bytesPerBird;
+  int bytesRead = -1;
+  int i = 0;
+  int j = 0;
   if (_numComports == 1) {
-    numBytes = _numBirds*bytesPerBird;
+    numBytes *= _numBirds;
     bytesRead = _comPorts[0].ar_read( (char*)_dataBuffer, numBytes );
     if (bytesRead != numBytes) {
       cerr << "arFOBDriver error: # bytes read (" << bytesRead
@@ -762,7 +750,6 @@ bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
       return false;
     }
   } else {
-    numBytes = bytesPerBird;
     for (i=0; i<_numComports; i++) {
       bytesRead = _comPorts[i].ar_read( (char*)_dataBuffer+i*numBytes, numBytes );
       if (bytesRead != numBytes) {
@@ -773,7 +760,7 @@ bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
       }
     }
   }
-  short* birdData;
+  short* birdData = NULL;
   // Convert & queue Bird data.
   for (i=0; i<_numBirds; i++) {
     birdData = (short*) _dataBuffer + i*bytesPerBird;
@@ -786,12 +773,9 @@ bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
     // specific to position+quaternion data mode!!!
     for (j=3; j<7; j++)
       _floatData[j] *= _orientScale;
-    int birdAddress;
-    if (_numBirds == 1)
-      birdAddress = 0;
-    else
+    const int birdAddress = (_numBirds == 1) ? 0 :
       // addresses go from 1-_numBirds (or else).  Subtract 1 to get matrix #
-      birdAddress = *(_dataBuffer + (i+1)*bytesPerBird - 1) - 1;
+      *(_dataBuffer + (i+1)*bytesPerBird - 1) - 1;
     if ((birdAddress < 0)||(birdAddress >= _numBirds)) {
       cerr << "arFOBDriver error: Bird address (" << birdAddress
            << ") out of range.\n";

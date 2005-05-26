@@ -156,12 +156,12 @@ void Tick() {
   }
 
   // Measure duration between now and last time we were here.
-  LARGE_INTEGER value;
-  static LARGE_INTEGER valuePrev;
+  LARGE_INTEGER value; // uninitializable
+  static LARGE_INTEGER valuePrev; // uninitializable
   static double scale = 0.;
   static bool fInited = false;
   if (!fInited) {
-    LARGE_INTEGER Hz;
+    LARGE_INTEGER Hz; // uninitializable
     if (!QueryPerformanceFrequency(&Hz)) {
       cerr << "arUSBdriver error: QueryPerformanceFrequency() failed.\n";
       enableTick = false;
@@ -341,7 +341,7 @@ int DoGetInDataPorts(char& portb, char& portc, char& portd, char& UsedPorts) {
 
 // read port B
 int DoGetInDataPort(char& portb) {
-  char dummy;
+  char dummy = 0;
   return DoGetInDataPorts(portb, dummy, dummy, dummy);
 }
 
@@ -404,9 +404,9 @@ int DoGetRS232Baud(int* BaudRate) {
 }
 
 int DoSetRS232Baud(int BaudRate) {
-  int BaudRateByte;
-  double BaudRateDouble;
-  int MaxBaudRateByte;
+  int BaudRateByte = 0;
+  double BaudRateDouble = 0.;
+  int MaxBaudRateByte = 0;
   DoGetRS232Baud(&MaxBaudRateByte); // no-op since MaxBaudRateByte gets clobbered below?
   if (UARTx2Mode) {
     BaudRate /= 2;
@@ -704,8 +704,8 @@ void arUSBDriver::_dataThread() {
 
     // Use the pair with one negative value.
     // Correct, approximately, for the measured sleep duration (not just ar_usleep(usecPoll).
-    float xUse, yUse;
-    static float xUsePrev, yUsePrev;
+    float xUse = 0., yUse = 0.;
+    static float xUsePrev = 0., yUsePrev = 0.;
     if (x*y <= 0) {
       xUse = x * usecPoll / (usecDuration + usecDurationPrev);
       yUse = y * usecPoll / (usecDurationPrev + usecDurationPrew);
@@ -722,8 +722,8 @@ void arUSBDriver::_dataThread() {
     // Autocalibrate: measure the mean x and y over the first 3 seconds.
     const int cInit = int(3000000. / usecPoll);
     static int iInit = cInit;
-    static float xAvg = 0., yAvg = 0., xAvgPrev, yAvgPrev;
-    static float xMin, xMax, yMin, yMax;
+    static float xAvg = 0., yAvg = 0., xAvgPrev = 0., yAvgPrev = 0.;
+    static float xMin = 0., xMax = 0., yMin = 0., yMax = 0.;
     if (iInit > 0) {
       if (iInit == cInit)
 	cout << "arUSBDriver remark: calibrating.  Don't wiggle joystick yet.\n";

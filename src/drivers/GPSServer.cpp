@@ -15,7 +15,7 @@ static void ReadGPS(HANDLE hCommPort)
   static char buf[10000];
 
   {
-  DWORD dwCount;
+  DWORD dwCount = 0;
   char str[400];
   int rc = ReadFile((HANDLE)hCommPort, str, 300, &dwCount, NULL);
   //if (!rc)

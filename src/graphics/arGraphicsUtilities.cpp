@@ -26,33 +26,32 @@ inline void ar_draw01DRaw(GLenum drawableType, int number, int* indices,
   if (colors)
     opType |= 2;
   glBegin(drawableType);
-  int i;
   switch (opType) {
   default:
     cerr << "ar_draw01DRaw internal error.\n";
     break;
   case 0:
     // nothing
-    for (i=0; i<number; i++){
+    for (int i=0; i<number; i++){
       doVertex(i);
     }
     break;
   case 1:
     // indices
-    for (i=0; i<number; i++){
+    for (int i=0; i<number; i++){
       doIndex(i);
     }
     break;
   case 2:
     // colors
-    for (i=0; i<number; i++){
+    for (int i=0; i<number; i++){
       doColor(i);
       doVertex(i);
     }
     break;
   case 3:
     // indices,colors
-    for (i=0; i<number; i++){
+    for (int i=0; i<number; i++){
       doColor(i);
       doIndex(i);
     }
@@ -90,7 +89,6 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
   // my blend factor hack). BUT... it could be that the blend factor hack is
   // a bad idea anyway
 #ifdef USE_CG
-  int i;
   // Vertex Arrays
   if (normals) {
     glEnableClientState(GL_NORMAL_ARRAY);
@@ -105,7 +103,7 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
     glTexCoordPointer(2, GL_FLOAT, 0, texCoord);
   }
   if (numCgParams && cgParams && cgData) {
-    for (i=0; i<numCgParams; ++i) {
+    for (int i=0; i<numCgParams; ++i) {
       cgGLEnableClientState(cgParams[i]);
       cgGLSetParameterPointer(cgParams[i], 3, GL_FLOAT, 0, cgData[i]);
     }
@@ -126,7 +124,7 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
   }
 
   if (numCgParams && cgParams && cgData) {
-    for (i=0; i<numCgParams; ++i)
+    for (int i=0; i<numCgParams; ++i)
       cgGLDisableClientState(cgParams[i]);
   }
   // clean up
@@ -144,28 +142,27 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
   if (texCoord)
     opType |= 4;
   glBegin(drawableType);
-  int i;
   switch (opType) {
   default:
     cerr << "ar_draw2DRaw internal error.\n";
     break;
   case 0:
     // nothing
-    for (i=0; i<number; i++){
+    for (int i=0; i<number; i++){
       doNormal(i);
       doVertex(i);
     }
     break;
   case 1:
     // indices
-    for (i=0; i<number; i++){
+    for (int i=0; i<number; i++){
       doNormal(i);
       doIndex(i);
     }
     break;
   case 2:
     // colors
-    for (i=0; i<number; i++){
+    for (int i=0; i<number; i++){
       doNormal(i);
       doColor(i);
       doVertex(i);
@@ -173,7 +170,7 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
     break;
   case 3:
     // indices,colors
-    for (i=0; i<number; i++){
+    for (int i=0; i<number; i++){
       doNormal(i);
       doColor(i);
       doIndex(i);
@@ -181,7 +178,7 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
     break;
   case 4:
     // texCoord
-    for (i=0; i<number; i++){
+    for (int i=0; i<number; i++){
       doNormal(i);
       doTex(i);
       doVertex(i);
@@ -189,7 +186,7 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
     break;
   case 5:
     // indices,texCoord
-    for (i=0; i<number; i++){
+    for (int i=0; i<number; i++){
       doNormal(i);
       doTex(i);
       doIndex(i);
@@ -197,7 +194,7 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
     break;
   case 6:
     // colors,texCoord
-    for (i=0; i<number; i++){
+    for (int i=0; i<number; i++){
       doNormal(i);
       doColor(i);
       doTex(i);
@@ -206,7 +203,7 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
     break;
   case 7:
     // indices,colors,texCoord
-    for (i=0; i<number; i++){
+    for (int i=0; i<number; i++){
       doNormal(i);
       doColor(i);
       doTex(i);
@@ -256,9 +253,7 @@ void ar_drawPolygon(int number, int* indices, float* positions,
 }
 
 bool ar_openglStereo() {
-  GLboolean glStereoSupported;
+  GLboolean glStereoSupported = 0;
   glGetBooleanv( GL_STEREO, &glStereoSupported );
   return (bool)glStereoSupported;
 }
-
-

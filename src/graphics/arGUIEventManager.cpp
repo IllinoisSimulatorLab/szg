@@ -67,15 +67,9 @@ arGUIEventManager::~arGUIEventManager( void )
 bool arGUIEventManager::eventsPending( void )
 {
   ar_mutex_lock( &_eventsMutex );
-
-  if( _events.empty() ) {
-    ar_mutex_unlock( &_eventsMutex );
-    return false;
-  }
-  else {
-    ar_mutex_unlock( &_eventsMutex );
-    return true;
-  }
+  const bool ok = !_events.empty();
+  ar_mutex_unlock( &_eventsMutex );
+  return ok;
 }
 
 arGUIInfo* arGUIEventManager::getNextEvent( void )
@@ -92,24 +86,21 @@ arGUIInfo* arGUIEventManager::getNextEvent( void )
 
   ar_mutex_unlock( &_eventsMutex );
 
-  arGUIEventType eventType = arGUIEventType( event.getDataInt( event.getDataFieldIndex( "eventType" ) ) );
+  const arGUIEventType eventType = arGUIEventType( event.getDataInt( event.getDataFieldIndex( "eventType" ) ) );
 
   // NOTE: caller (normally arGUIWindowManager::_processEvents) is responsible for
   // deleting these
-  if( eventType == AR_KEY_EVENT ) {
+  if( eventType == AR_KEY_EVENT )
     return new arGUIKeyInfo( event );
-  }
-  else if( eventType == AR_MOUSE_EVENT ) {
+
+  if( eventType == AR_MOUSE_EVENT )
     return new arGUIMouseInfo( event );
-  }
-  else if( eventType == AR_WINDOW_EVENT ) {
+
+  if( eventType == AR_WINDOW_EVENT )
     return new arGUIWindowInfo( event );
-  }
-  else {
-    // print a warning? (there probably aren't any cases where this is what the
-    // user is actually expecting)
-    return new arGUIInfo( event );
-  }
+
+  // print a warning? (does user ever expect this?)
+  return new arGUIInfo( event );
 }
 
 int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )

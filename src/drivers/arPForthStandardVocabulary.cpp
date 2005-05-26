@@ -22,10 +22,10 @@ class Equals : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool Equals::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  float val2 = pf->stackPop();  
-  float val1 = pf->stackPop();
+  const float val2 = pf->stackPop();  
+  const float val1 = pf->stackPop();
   pf->stackPush((float)val1==val2);
   return true;
 }  
@@ -35,10 +35,10 @@ class LessThan : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool LessThan::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  float val2 = pf->stackPop();  
-  float val1 = pf->stackPop();
+  const float val2 = pf->stackPop();  
+  const float val1 = pf->stackPop();
   pf->stackPush((float)val1<val2);
   return true;
 }  
@@ -48,10 +48,10 @@ class GreaterThan : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool GreaterThan::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  float val2 = pf->stackPop();  
-  float val1 = pf->stackPop();
+  const float val2 = pf->stackPop();  
+  const float val1 = pf->stackPop();
   pf->stackPush((float)val1>val2);
   return true;
 }  
@@ -61,10 +61,10 @@ class LessEquals : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool LessEquals::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  float val2 = pf->stackPop();  
-  float val1 = pf->stackPop();
+  const float val2 = pf->stackPop();  
+  const float val1 = pf->stackPop();
   pf->stackPush((float)val1<=val2);
   return true;
 }  
@@ -74,10 +74,10 @@ class GreaterEquals : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool GreaterEquals::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  float val2 = pf->stackPop();  
-  float val1 = pf->stackPop();
+  const float val2 = pf->stackPop();  
+  const float val1 = pf->stackPop();
   pf->stackPush((float)val1>=val2);
   return true;
 }  
@@ -87,13 +87,11 @@ class StringEquals : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool StringEquals::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address1 = (long)pf->stackPop();
-  long address2 = (long)pf->stackPop();
-  std::string string1 = pf->getString( address1 );
-  std::string string2 = pf->getString( address2 );
-  pf->stackPush((float)(string1==string2));
+  const long address1 = (long)pf->stackPop();
+  const long address2 = (long)pf->stackPop();
+  pf->stackPush((float)(pf->getString( address1 )==pf->getString( address2 )));
   return true;
 }  
 
@@ -103,9 +101,9 @@ class Not : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool Not::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  float val1 = pf->stackPop();
+  const float val1 = pf->stackPop();
   pf->stackPush((float)val1<1.0);
   return true;
 }  
@@ -115,9 +113,9 @@ class Fetch : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool Fetch::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address = (long)pf->stackPop();
+  const long address = (long)pf->stackPop();
   pf->testFailAddress( address, 1 );
   pf->stackPush( pf->getDataValue( address ) );
   return true;
@@ -128,10 +126,10 @@ class Store : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool Store::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address = (long)pf->stackPop();
-  float temp = pf->stackPop();
+  const long address = (long)pf->stackPop();
+  const float temp = pf->stackPop();
   pf->putDataValue( address, temp );
   return true;
 }
@@ -141,9 +139,9 @@ class Duplicate : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool Duplicate::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  float temp = pf->stackPop();
+  const float temp = pf->stackPop();
   pf->stackPush( temp );
   pf->stackPush( temp );
   return true;
@@ -154,9 +152,9 @@ class MatStore : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool MatStore::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address = (long)pf->stackPop();
+  const long address = (long)pf->stackPop();
   pf->testFailAddress( address, 16 );
   arMatrix4 tempMat;
   float* matPtr = tempMat.v+15;
@@ -171,9 +169,9 @@ class VecStore : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool VecStore::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address = (long)pf->stackPop();
+  const long address = (long)pf->stackPop();
   pf->testFailAddress( address, 3 );
   arVector3 temp;
   float* ptr = temp.v+2;
@@ -188,9 +186,9 @@ class MatStoreTranspose : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool MatStoreTranspose::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address = (long)pf->stackPop();
+  const long address = (long)pf->stackPop();
   pf->testFailAddress( address, 16 );
   arMatrix4 tempMat;
   float* matPtr = tempMat.v+15;
@@ -205,12 +203,11 @@ class MatCopy : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool MatCopy::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address2 = (long)pf->stackPop();
-  long address1 = (long)pf->stackPop();
-  arMatrix4 result( pf->getDataMatrix( address1 ) );
-  pf->putDataMatrix( address2, result );
+  const long address2 = (long)pf->stackPop();
+  const long address1 = (long)pf->stackPop();
+  pf->putDataMatrix( address2, pf->getDataMatrix( address1 ) );
   return true;
 }
 
@@ -219,10 +216,10 @@ class VecCopy : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool VecCopy::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address2 = (long)pf->stackPop();
-  long address1 = (long)pf->stackPop();
+  const long address2 = (long)pf->stackPop();
+  const long address1 = (long)pf->stackPop();
   arVector3 temp;
   pf->getDataArray( address1, temp.v, 3 );
   pf->putDataArray( address2, temp.v, 3 );
@@ -234,13 +231,12 @@ class MatMultiply : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool MatMultiply::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address3 = (long)pf->stackPop();
-  long address2 = (long)pf->stackPop();
-  long address1 = (long)pf->stackPop();
-  arMatrix4 result( pf->getDataMatrix( address1 )*pf->getDataMatrix( address2 ) );
-  pf->putDataMatrix( address3, result );
+  const long address3 = (long)pf->stackPop();
+  const long address2 = (long)pf->stackPop();
+  const long address1 = (long)pf->stackPop();
+  pf->putDataMatrix( address3, pf->getDataMatrix( address1 )*pf->getDataMatrix( address2 ) );
   return true;
 }
 
@@ -249,15 +245,14 @@ class MatVecMultiply : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool MatVecMultiply::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address3 = (long)pf->stackPop();
-  long address2 = (long)pf->stackPop();
-  long address1 = (long)pf->stackPop();
-  arMatrix4 M = pf->getDataMatrix( address1 );
+  const long address3 = (long)pf->stackPop();
+  const long address2 = (long)pf->stackPop();
+  const long address1 = (long)pf->stackPop();
   arVector3 V;
   pf->getDataArray( address2, V.v, 3 );
-  arVector3 result( M*V );
+  arVector3 result( pf->getDataMatrix(address1) * V );
   pf->putDataArray( address3, result.v, 3 );
   return true;
 }
@@ -267,18 +262,17 @@ class ConcatMatrices : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool ConcatMatrices::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long outputAddress = (long)pf->stackPop();
-  long numInputMatrices = (long)pf->stackPop();
+  const long outputAddress = (long)pf->stackPop();
+  const long numInputMatrices = (long)pf->stackPop();
   if (numInputMatrices <= 0) {
     throw arPForthException("concatMatrices # input matrices must be > 0.");
   }
   arMatrix4 result;
   for (long i=0; i<numInputMatrices; ++i) {
-    long inputAddress = (long)pf->stackPop();
-    arMatrix4 inputMatrix = pf->getDataMatrix( inputAddress );
-    result = inputMatrix * result;
+    const long inputAddress = (long)pf->stackPop();
+    result = pf->getDataMatrix( inputAddress ) * result;
   }
   pf->putDataMatrix( outputAddress, result );
   return true;
@@ -289,10 +283,10 @@ class Add : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool Add::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  float num2 = pf->stackPop();
-  float num1 = pf->stackPop();
+  const float num2 = pf->stackPop();
+  const float num1 = pf->stackPop();
   pf->stackPush( num1+num2 );
   return true;
 }
@@ -302,10 +296,10 @@ class Subtract : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool Subtract::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  float num2 = pf->stackPop();
-  float num1 = pf->stackPop();
+  const float num2 = pf->stackPop();
+  const float num1 = pf->stackPop();
   pf->stackPush( num1-num2 );
   return true;
 }
@@ -315,15 +309,15 @@ class AddVectors : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool AddVectors::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address3 = (long)pf->stackPop();
-  long address2 = (long)pf->stackPop();
-  long address1 = (long)pf->stackPop();
+  const long address3 = (long)pf->stackPop();
+  const long address2 = (long)pf->stackPop();
+  const long address1 = (long)pf->stackPop();
   arVector3 V1, V2;
   pf->getDataArray( address1, V1.v, 3 );
   pf->getDataArray( address2, V2.v, 3 );
-  arVector3 V3( V1+V2 );
+  const arVector3 V3( V1+V2 );
   pf->putDataArray( address3, V3.v, 3 );
   return true;
 }
@@ -333,15 +327,15 @@ class SubVectors : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool SubVectors::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address3 = (long)pf->stackPop();
-  long address2 = (long)pf->stackPop();
-  long address1 = (long)pf->stackPop();
+  const long address3 = (long)pf->stackPop();
+  const long address2 = (long)pf->stackPop();
+  const long address1 = (long)pf->stackPop();
   arVector3 V1, V2;
   pf->getDataArray( address1, V1.v, 3 );
   pf->getDataArray( address2, V2.v, 3 );
-  arVector3 V3( V1-V2 );
+  const arVector3 V3( V1-V2 );
   pf->putDataArray( address3, V3.v, 3 );
   return true;
 }
@@ -351,14 +345,14 @@ class VecScalarMultiply : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool VecScalarMultiply::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address2 = (long)pf->stackPop();
-  long address1 = (long)pf->stackPop();
-  float scaleFactor = pf->stackPop();
+  const long address2 = (long)pf->stackPop();
+  const long address1 = (long)pf->stackPop();
+  const float scaleFactor = pf->stackPop();
   arVector3 V1;
   pf->getDataArray( address1, V1.v, 3 );
-  arVector3 V2( scaleFactor*V1 );
+  const arVector3 V2( scaleFactor*V1 );
   pf->putDataArray( address2, V2.v, 3 );
   return true;
 }
@@ -368,12 +362,12 @@ class AddArrays : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool AddArrays::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address3 = (long)pf->stackPop();
-  long num =      (long)pf->stackPop();
-  long address2 = (long)pf->stackPop();
-  long address1 = (long)pf->stackPop();
+  const long address3 = (long)pf->stackPop();
+  const long num =      (long)pf->stackPop();
+  const long address2 = (long)pf->stackPop();
+  const long address1 = (long)pf->stackPop();
   for (long i=0; i<num; ++i) {
     pf->putDataValue( address3+i, pf->getDataValue( address1+i )+pf->getDataValue( address2+i ) );
   }
@@ -385,12 +379,12 @@ class SubArrays : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool SubArrays::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address3 = (long)pf->stackPop();
-  long num =      (long)pf->stackPop();
-  long address2 = (long)pf->stackPop();
-  long address1 = (long)pf->stackPop();
+  const long address3 = (long)pf->stackPop();
+  const long num =      (long)pf->stackPop();
+  const long address2 = (long)pf->stackPop();
+  const long address1 = (long)pf->stackPop();
   for (long i=0; i<num; ++i) {
     pf->putDataValue( address3+i, pf->getDataValue( address1+i )-pf->getDataValue( address2+i ) );
   }
@@ -402,12 +396,12 @@ class MultArrays : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool MultArrays::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address3 = (long)pf->stackPop();
-  long num =      (long)pf->stackPop();
-  long address2 = (long)pf->stackPop();
-  long address1 = (long)pf->stackPop();
+  const long address3 = (long)pf->stackPop();
+  const long num =      (long)pf->stackPop();
+  const long address2 = (long)pf->stackPop();
+  const long address1 = (long)pf->stackPop();
   for (long i=0; i<num; ++i) {
     pf->putDataValue( address3+i, pf->getDataValue( address1+i )*pf->getDataValue( address2+i ) );
   }
@@ -419,12 +413,12 @@ class DivArrays : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool DivArrays::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address3 = (long)pf->stackPop();
-  long num =      (long)pf->stackPop();
-  long address2 = (long)pf->stackPop();
-  long address1 = (long)pf->stackPop();
+  const long address3 = (long)pf->stackPop();
+  const long num =      (long)pf->stackPop();
+  const long address2 = (long)pf->stackPop();
+  const long address1 = (long)pf->stackPop();
   for (long i=0; i<num; ++i) {
     pf->putDataValue( address3+i, pf->getDataValue( address1+i )/pf->getDataValue( address2+i ) );
   }
@@ -436,10 +430,10 @@ class Multiply : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool Multiply::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  float num2 = pf->stackPop();
-  float num1 = pf->stackPop();
+  const float num2 = pf->stackPop();
+  const float num1 = pf->stackPop();
   pf->stackPush( num1*num2 );
   return true;
 }
@@ -449,10 +443,10 @@ class Divide : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool Divide::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  float num2 = pf->stackPop();
-  float num1 = pf->stackPop();
+  const float num2 = pf->stackPop();
+  const float num1 = pf->stackPop();
   pf->stackPush( num1/num2 );
   return true;
 }
@@ -462,7 +456,7 @@ class StackPrint : public arPForthAction {
   bool run( arPForth* fp );
 };
 bool StackPrint::run( arPForth* fp ) {
-  if (fp == 0)
+  if (!fp)
     return false;
   cerr << "Stack:\n";
   for (int i=fp->stackSize()-1; i>=0; i--)
@@ -475,7 +469,7 @@ class ClearStack : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool ClearStack::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
   for (unsigned int i=0; i<pf->stackSize(); i++)
     pf->stackPop();
@@ -487,7 +481,7 @@ class DataspacePrint : public arPForthAction {
   bool run( arPForth* pf );
 };
 bool DataspacePrint::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
   pf->printDataspace();
   return true;
@@ -498,10 +492,10 @@ class ArrayPrint : public arPForthAction {
   bool run( arPForth* pf );
 };
 bool ArrayPrint::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long num = (long)pf->stackPop();
-  long address1 = (long)pf->stackPop();
+  const long num = (long)pf->stackPop();
+  const long address1 = (long)pf->stackPop();
   for (long i=0; i<num; ++i) {
     cout << pf->getDataValue( address1+i ) << " ";
   }
@@ -514,9 +508,9 @@ class VectorPrint : public arPForthAction {
   bool run( arPForth* pf );
 };
 bool VectorPrint::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address1 = (long)pf->stackPop();
+  const long address1 = (long)pf->stackPop();
   for (long i=0; i<3; ++i) {
     cout << pf->getDataValue( address1+i ) << " ";
   }
@@ -529,9 +523,9 @@ class MatrixPrint : public arPForthAction {
   bool run( arPForth* pf );
 };
 bool MatrixPrint::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address = (long)pf->stackPop();
+  const long address = (long)pf->stackPop();
   cout << pf->getDataMatrix( address ) << endl;
   return true;
 }
@@ -541,7 +535,7 @@ class StringspacePrint : public arPForthAction {
   bool run( arPForth* pf );
 };
 bool StringspacePrint::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
   pf->printStringspace();
   return true;
@@ -552,11 +546,10 @@ class StringPrint : public arPForthAction {
   bool run( arPForth* pf );
 };
 bool StringPrint::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address = (long)pf->stackPop();
-  std::string theString = pf->getString( address );
-  cout << theString << endl;
+  const long address = (long)pf->stackPop();
+  cout << pf->getString( address ) << endl;
   return true;
 }
 
@@ -565,9 +558,9 @@ class IdentityMatrix : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool IdentityMatrix::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address = (long)pf->stackPop();
+  const long address = (long)pf->stackPop();
   pf->putDataMatrix( address, ar_identityMatrix() );
   return true;
 }
@@ -577,12 +570,12 @@ class TranslationMatrix : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool TranslationMatrix::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address = (long)pf->stackPop();
-  float z = pf->stackPop();
-  float y = pf->stackPop();
-  float x = pf->stackPop();
+  const long address = (long)pf->stackPop();
+  const float z = pf->stackPop();
+  const float y = pf->stackPop();
+  const float x = pf->stackPop();
   pf->putDataMatrix( address, ar_translationMatrix( x, y, z ) );
   return true;
 }
@@ -592,10 +585,10 @@ class TranslationMatrixFromVector : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool TranslationMatrixFromVector::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address2 = (long)pf->stackPop();
-  long address1 = (long)pf->stackPop();
+  const long address2 = (long)pf->stackPop();
+  const long address1 = (long)pf->stackPop();
   arVector3 V;
   pf->getDataArray( address1, V.v, 3 );
   pf->putDataMatrix( address2, ar_translationMatrix( V ) );
@@ -607,11 +600,11 @@ class RotationMatrix : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool RotationMatrix::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long address = (long)pf->stackPop();
-  long axis = (long)pf->stackPop();
-  float angle = ar_convertToRad( pf->stackPop() );
+  const long address = (long)pf->stackPop();
+  const long axis = (long)pf->stackPop();
+  const float angle = ar_convertToRad( pf->stackPop() );
   if ((axis < 0)||(axis > 2))
     throw arPForthException("illegal rotation axis, must be 0(x)-2(z).");
   pf->putDataMatrix( address, ar_rotationMatrix( 'x'+axis, angle ) );
@@ -623,11 +616,11 @@ class RotationMatrixV : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool RotationMatrixV::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long outAddress = (long)pf->stackPop();
-  long axisAddress = (long)pf->stackPop();
-  float angle = ar_convertToRad( pf->stackPop() );
+  const long outAddress = (long)pf->stackPop();
+  const long axisAddress = (long)pf->stackPop();
+  const float angle = ar_convertToRad( pf->stackPop() );
   arVector3 V;
   pf->getDataArray( axisAddress, V.v, 3 );
   pf->putDataMatrix( outAddress, ar_rotationMatrix( V, angle ) );
@@ -639,12 +632,11 @@ class ExtractTranslationMatrix : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool ExtractTranslationMatrix::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long outAddress = (long)pf->stackPop();
-  long inAddress = (long)pf->stackPop();
-  arMatrix4 result( ar_extractTranslationMatrix( pf->getDataMatrix( inAddress ) ) );
-  pf->putDataMatrix( outAddress, result );
+  const long outAddress = (long)pf->stackPop();
+  const long inAddress = (long)pf->stackPop();
+  pf->putDataMatrix( outAddress, ar_extractTranslationMatrix( pf->getDataMatrix( inAddress ) ));
   return true;
 }
   
@@ -653,11 +645,11 @@ class ExtractTranslationVector : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool ExtractTranslationVector::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long outAddress = (long)pf->stackPop();
-  long inAddress = (long)pf->stackPop();
-  arVector3 result( ar_extractTranslation( pf->getDataMatrix( inAddress ) ) );
+  const long outAddress = (long)pf->stackPop();
+  const long inAddress = (long)pf->stackPop();
+  const arVector3 result( ar_extractTranslation( pf->getDataMatrix( inAddress ) ) );
   pf->putDataArray( outAddress, result.v, 3 );
   return true;
 }
@@ -667,12 +659,11 @@ class ExtractRotationMatrix : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool ExtractRotationMatrix::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long outAddress = (long)pf->stackPop();
-  long inAddress = (long)pf->stackPop();
-  arMatrix4 result( ar_extractRotationMatrix( pf->getDataMatrix( inAddress ) ) );
-  pf->putDataMatrix( outAddress, result );
+  const long outAddress = (long)pf->stackPop();
+  const long inAddress = (long)pf->stackPop();
+  pf->putDataMatrix( outAddress, ar_extractRotationMatrix( pf->getDataMatrix( inAddress ) ));
   return true;
 }
 
@@ -681,10 +672,10 @@ class ExtractEulerAngles : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool ExtractEulerAngles::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long outAddress = (long)pf->stackPop();
-  long inAddress = (long)pf->stackPop();
+  const long outAddress = (long)pf->stackPop();
+  const long inAddress = (long)pf->stackPop();
   arVector3 result( ar_extractEulerAngles( pf->getDataMatrix( inAddress ) ) );
   for (unsigned int i=0; i<3; ++i) {
     result.v[i] = ar_convertToDeg(result.v[i]);
@@ -698,13 +689,13 @@ class RotationMatrixFromEulerAngles : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool RotationMatrixFromEulerAngles::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long outAddress = (long)pf->stackPop();
-  long inAddress = (long)pf->stackPop();
+  const long outAddress = (long)pf->stackPop();
+  const long inAddress = (long)pf->stackPop();
   arVector3 V;
   pf->getDataArray( inAddress, V.v, 3 );
-  arMatrix4 result(
+  const arMatrix4 result(
     ar_rotationMatrix('y',  ar_convertToRad(V.v[0])) *
     ar_rotationMatrix('x',  ar_convertToRad(V.v[1])) *
     ar_rotationMatrix('z',  ar_convertToRad(V.v[2]))
@@ -718,12 +709,11 @@ class InverseMatrix : public arPForthAction {
     virtual bool run( arPForth* pf );
 };
 bool InverseMatrix::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  long outAddress = (long)pf->stackPop();
-  long inAddress = (long)pf->stackPop();
-  arMatrix4 result( (pf->getDataMatrix( inAddress )).inverse() );
-  pf->putDataMatrix( outAddress, result );
+  const long outAddress = (long)pf->stackPop();
+  const long inAddress = (long)pf->stackPop();
+  pf->putDataMatrix( outAddress, pf->getDataMatrix( inAddress ).inverse() );
   return true;
 }
   
@@ -736,7 +726,7 @@ class DefAction : public arPForthAction {
     bool run( arPForth* pf );
 };
 bool DefAction::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
   return pf->runSubprogram( _actionList );
 }
@@ -749,25 +739,25 @@ class DefCompiler : public arPForthCompiler {
 };
 bool DefCompiler::compile( arPForth* pf,
                          vector<arPForthSpace::arPForthAction*>& /*actionList*/ ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  string theName = pf->nextWord();
+  const string theName = pf->nextWord();
   if (theName == "PFORTH_NULL_WORD")
     throw arPForthException("end of input reached prematurely.");
   if (pf->findWord( theName ))
     throw arPForthException("word " + theName + " already in dictionary.");
   DefAction* action = new DefAction();
-  if (action == 0)
+  if (!action)
     throw arPForthException("failed to allocate action object.");
   pf->addAction( action );
-  string theWord;
   pf->anonymousActionsAreTransient = false;
+  string theWord;
   while ((theWord = pf->nextWord()) != "enddef")
     if (!pf->compileWord( theWord, action->_actionList ))
       throw arPForthException("failed to compile " + theWord + ".");
   pf->anonymousActionsAreTransient = true;
   arPForthCompiler* compiler = new SimpleCompiler( action );
-  if (compiler == 0)
+  if (!compiler)
     throw arPForthException("failed to allocate compiler object.");    
   pf->addCompiler( compiler );
   return pf->addDictionaryEntry( arPForthDictionaryEntry( theName, compiler ));
@@ -783,13 +773,10 @@ class IfAction : public arPForthAction {
     bool run( arPForth* pf );
 };
 bool IfAction::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  bool test = ((long)pf->stackPop()) > 0; // >= 1
-  if (test)
-    return pf->runSubprogram( _trueProg );
-  else
-    return pf->runSubprogram( _falseProg );
+  const bool test = ((long)pf->stackPop()) > 0; // >= 1
+  return pf->runSubprogram( test ? _trueProg : _falseProg );
 }
 
 class IfCompiler : public arPForthCompiler {
@@ -800,7 +787,7 @@ class IfCompiler : public arPForthCompiler {
 };
 bool IfCompiler::compile( arPForth* pf,
                          vector<arPForthSpace::arPForthAction*>& actionList ) {
-  if (pf == 0)
+  if (!pf)
     return false;
   IfAction* action = new IfAction();
   if (action == 0)
@@ -830,15 +817,14 @@ class StringCompiler : public arPForthCompiler {
 };
 bool StringCompiler::compile( arPForth* pf,
                                vector<arPForthSpace::arPForthAction*>& /*actionList*/ ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  string theName = pf->nextWord();
+  const string theName = pf->nextWord();
   if (theName == "PFORTH_NULL_WORD")
     throw arPForthException("end of input reached prematurely.");
   if (pf->findWord( theName ))
     throw arPForthException("word " + theName + " already in dictionary.");
-  unsigned long address;
-  address = pf->allocateString();
+  const unsigned long address = pf->allocateString();
   std::string theString;
   std::string theWord;
   bool firstWord = true;
@@ -846,11 +832,12 @@ bool StringCompiler::compile( arPForth* pf,
     if (theWord == "PFORTH_NULL_WORD")
       throw arPForthException("end of input reached in string constant.");
     if (!firstWord)
-      theString = theString + " ";
-    theString = theString + theWord;
+      theString += " ";
+    theString += theWord;
     firstWord = false;
   }
   pf->putString( address, theString );
+
 //  std::string theWord = pf->peekNextWord();
 //  if (theWord != "endstring") {
 //    theWord = pf->nextWord();
@@ -869,9 +856,14 @@ bool StringCompiler::compile( arPForth* pf,
 //  } else {
 //    theWord = pf->nextWord();
 //  }
+
   arPForthAction* action = new FetchNumber( (float)address );
+  if (!action)
+    throw arPForthException("failed to allocate action object.");
   pf->addAction( action );
   arPForthCompiler* compiler = new SimpleCompiler( action );
+  if (!compiler)
+    throw arPForthException("failed to allocate compiler object.");    
   pf->addCompiler( compiler );
   return pf->addDictionaryEntry( arPForthDictionaryEntry( theName, compiler ));
 }
@@ -885,7 +877,7 @@ class CommentCompiler : public arPForthCompiler {
 };
 bool CommentCompiler::compile( arPForth* pf,
                                vector<arPForthSpace::arPForthAction*>& /*actionList*/ ) {
-  if (pf == 0)
+  if (!pf)
     return false;
   std::string theWord;
   while ((theWord = pf->nextWord()) != "*/") {
@@ -912,217 +904,177 @@ class ConstantCompiler : public arPForthCompiler {
 };
 bool ConstantCompiler::compile( arPForth* pf,
                                vector<arPForthSpace::arPForthAction*>& /*actionList*/ ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  string theName = pf->nextWord();
+  const string theName = pf->nextWord();
   if (theName == "PFORTH_NULL_WORD")
     throw arPForthException("end of input reached prematurely.");
   if (pf->findWord( theName ))
     throw arPForthException("word " + theName + " already in dictionary.");
-  string theValue = pf->nextWord();
+  const string theValue = pf->nextWord();
   if (theValue == "PFORTH_NULL_WORD")
     throw arPForthException("end of input reached prematurely.");
-  double theDouble;
-  float theFloat;
+  double theDouble = 0.;
+  float theFloat = 0.;
   if (!ar_stringToDoubleValid( theValue, theDouble ))
     throw arPForthException("string->float conversion failed.");
   if (!ar_doubleToFloatValid( theDouble, theFloat ))
     throw arPForthException("string->float conversion failed.");
+
+  /// \todo uncopypaste this block of code
   arPForthAction* action = new FetchNumber( theFloat );
   pf->addAction( action );
+  if (!action)
+    throw arPForthException("failed to allocate action object.");
   arPForthCompiler* compiler = new SimpleCompiler( action );
+  if (!compiler)
+    throw arPForthException("failed to allocate compiler object.");    
   pf->addCompiler( compiler );
   return pf->addDictionaryEntry( arPForthDictionaryEntry( theName, compiler ));
+  /// \todo uncopypaste this block of code
 }
 
 
 bool ar_PForthAddStandardVocabulary( arPForth* pf ) {
-  arPForthCompiler* compiler;
-  
+  if (!pf)
+    return false;
+
   // A few words with compile-time behaviors
-  
-  compiler = new ConstantCompiler();
-  if (compiler==0)
+
+  arPForthCompiler* compiler = new ConstantCompiler();
+  if (!compiler)
     return false;
   pf->addCompiler( compiler );
   if (!pf->addDictionaryEntry( arPForthDictionaryEntry( "constant", compiler ) ))
     return false;
+
   compiler = new VariableCompiler(1);
-  if (compiler==0)
+  if (!compiler)
     return false;
   pf->addCompiler( compiler );
   if (!pf->addDictionaryEntry( arPForthDictionaryEntry( "variable", compiler ) ))
     return false;
+
   compiler = new VariableCompiler(16);
-  if (compiler==0)
+  if (!compiler)
     return false;
   pf->addCompiler( compiler );
   if (!pf->addDictionaryEntry( arPForthDictionaryEntry( "matrix", compiler ) ))
     return false;
+
   compiler = new VariableCompiler(3);
-  if (compiler==0)
+  if (!compiler)
     return false;
   pf->addCompiler( compiler );
   if (!pf->addDictionaryEntry( arPForthDictionaryEntry( "vector", compiler ) ))
     return false;
+
   compiler = new ArrayCompiler();
-  if (compiler==0)
+  if (!compiler)
     return false;
   pf->addCompiler( compiler );
   if (!pf->addDictionaryEntry( arPForthDictionaryEntry( "array", compiler ) ))
     return false;
     
   compiler = new StringCompiler();
-  if (compiler==0)
+  if (!compiler)
     return false;
   pf->addCompiler( compiler );
   if (!pf->addDictionaryEntry( arPForthDictionaryEntry( "string", compiler ) ))
     return false;
 
   compiler = new CommentCompiler();
-  if (compiler==0)
+  if (!compiler)
     return false;
   pf->addCompiler( compiler );
   if (!pf->addDictionaryEntry( arPForthDictionaryEntry( "/*", compiler ) ))
     return false;
 
   compiler = new DefCompiler();
-  if (compiler==0)
+  if (!compiler)
     return false;
   pf->addCompiler( compiler );
   if (!pf->addDictionaryEntry( arPForthDictionaryEntry( "define", compiler ) ))
     return false;
   compiler = new PlaceHolderCompiler("enddef");
-  if (compiler==0)
+  if (!compiler)
     return false;
   pf->addCompiler( compiler );
   if (!pf->addDictionaryEntry( arPForthDictionaryEntry( "enddef", compiler ) ))
     return false;
 
   compiler = new IfCompiler();
-  if (compiler==0)
+  if (!compiler)
     return false;
   pf->addCompiler( compiler );
   if (!pf->addDictionaryEntry( arPForthDictionaryEntry( "if", compiler ) ))
     return false;
   compiler = new PlaceHolderCompiler("else");
-  if (compiler==0)
+  if (!compiler)
     return false;
   pf->addCompiler( compiler );
   if (!pf->addDictionaryEntry( arPForthDictionaryEntry( "else", compiler ) ))
     return false;
   compiler = new PlaceHolderCompiler("endif");
-  if (compiler==0)
+  if (!compiler)
     return false;
   pf->addCompiler( compiler );
   if (!pf->addDictionaryEntry( arPForthDictionaryEntry( "endif", compiler ) ))
     return false;
 
   // Simple action words (run-time behavior only)
-  if (!pf->addSimpleActionWord( "+", new Add() ))
-    return false;
-  if (!pf->addSimpleActionWord( "-", new Subtract() ))
-    return false;
-  if (!pf->addSimpleActionWord( "*", new Multiply() ))
-    return false;
-  if (!pf->addSimpleActionWord( "/", new Divide() ))
-    return false;
-  if (!pf->addSimpleActionWord( "fetch", new Fetch() ))
-    return false;
-  if (!pf->addSimpleActionWord( "store", new Store() ))
-    return false;
-  if (!pf->addSimpleActionWord( "dup", new Duplicate() ))
-    return false;
-  if (!pf->addSimpleActionWord( "=", new Equals() ))
-    return false;
-  if (!pf->addSimpleActionWord( "<", new LessThan() ))
-    return false;
-  if (!pf->addSimpleActionWord( ">", new GreaterThan() ))
-    return false;
-  if (!pf->addSimpleActionWord( "<=", new LessEquals() ))
-    return false;
-  if (!pf->addSimpleActionWord( ">=", new GreaterEquals() ))
-    return false;
-  if (!pf->addSimpleActionWord( "stringEquals", new StringEquals() ))
-    return false;
-  if (!pf->addSimpleActionWord( "not", new Not() ))
-    return false;
-  if (!pf->addSimpleActionWord( "vectorStore", new VecStore() ))
-    return false; 
-  if (!pf->addSimpleActionWord( "vectorCopy", new VecCopy() ))
-    return false; 
-  if (!pf->addSimpleActionWord( "vectorAdd", new AddVectors() ))
-    return false; 
-  if (!pf->addSimpleActionWord( "vectorSubtract", new SubVectors() ))
-    return false; 
-  if (!pf->addSimpleActionWord( "vectorScale", new VecScalarMultiply() ))
-    return false; 
-  if (!pf->addSimpleActionWord( "vectorTransform", new MatVecMultiply() ))
-    return false; 
-  if (!pf->addSimpleActionWord( "translationMatrixV", new TranslationMatrixFromVector() ))
-    return false; 
-  if (!pf->addSimpleActionWord( "extractTranslation", new ExtractTranslationVector() ))
-    return false; 
-  if (!pf->addSimpleActionWord( "identityMatrix", new IdentityMatrix() ))
-    return false; 
-  if (!pf->addSimpleActionWord( "matrixStore", new MatStore() ))
-    return false; 
-  if (!pf->addSimpleActionWord( "matrixStoreTranspose", new MatStoreTranspose() ))
-    return false; 
-  if (!pf->addSimpleActionWord( "matrixCopy", new MatCopy() ))
-    return false; 
-  if (!pf->addSimpleActionWord( "matrixMultiply", new MatMultiply() ))
-    return false;  
-  if (!pf->addSimpleActionWord( "concatMatrices", new ConcatMatrices() ))
-    return false;  
-  if (!pf->addSimpleActionWord( "translationMatrix", new TranslationMatrix() ))
-    return false;  
-  if (!pf->addSimpleActionWord( "rotationMatrix", new RotationMatrix() ))
-    return false;  
-  if (!pf->addSimpleActionWord( "rotationMatrixV", new RotationMatrixV() ))
-    return false;  
-  if (!pf->addSimpleActionWord( "rotationMatrixEuler", new RotationMatrixFromEulerAngles() ))
-    return false;  
-  if (!pf->addSimpleActionWord( "extractTranslationMatrix", new ExtractTranslationMatrix() ))
-    return false;  
-  if (!pf->addSimpleActionWord( "extractRotationMatrix", new ExtractRotationMatrix() ))
-    return false;  
-  if (!pf->addSimpleActionWord( "extractEulerAngles", new ExtractEulerAngles() ))
-    return false;  
-  if (!pf->addSimpleActionWord( "inverseMatrix", new InverseMatrix() ))
-    return false;  
-  if (!pf->addSimpleActionWord( "arrayAdd", new AddArrays() ))
-    return false;  
-  if (!pf->addSimpleActionWord( "arraySubtract", new SubArrays() ))
-    return false;  
-  if (!pf->addSimpleActionWord( "arrayMultiply", new MultArrays() ))
-    return false;  
-  if (!pf->addSimpleActionWord( "arrayDivide", new DivArrays() ))
-    return false;  
-  if (!pf->addSimpleActionWord( "xaxis", new FetchNumber(0) ))
-    return false;
-  if (!pf->addSimpleActionWord( "yaxis", new FetchNumber(1) ))
-    return false;
-  if (!pf->addSimpleActionWord( "zaxis", new FetchNumber(2) ))
-    return false;
-  if (!pf->addSimpleActionWord( "stack", new StackPrint() ))
-    return false;
-  if (!pf->addSimpleActionWord( "clearStack", new ClearStack() ))
-    return false;
-  if (!pf->addSimpleActionWord( "dataspace", new DataspacePrint() ))
-    return false;
-  if (!pf->addSimpleActionWord( "stringspace", new StringspacePrint() ))
-    return false;
-  if (!pf->addSimpleActionWord( "printString", new StringPrint() ))
-    return false;
-  if (!pf->addSimpleActionWord( "printArray", new ArrayPrint() ))
-    return false;
-  if (!pf->addSimpleActionWord( "printMatrix", new MatrixPrint() ))
-    return false;
-  if (!pf->addSimpleActionWord( "printVector", new VectorPrint() ))
-    return false;
-  return true;
+  return 
+    pf->addSimpleActionWord( "+", new Add() ) &&
+    pf->addSimpleActionWord( "-", new Subtract() ) &&
+    pf->addSimpleActionWord( "*", new Multiply() ) &&
+    pf->addSimpleActionWord( "/", new Divide() ) &&
+    pf->addSimpleActionWord( "fetch", new Fetch() ) &&
+    pf->addSimpleActionWord( "store", new Store() ) &&
+    pf->addSimpleActionWord( "dup", new Duplicate() ) &&
+    pf->addSimpleActionWord( "=", new Equals() ) &&
+    pf->addSimpleActionWord( "<", new LessThan() ) &&
+    pf->addSimpleActionWord( ">", new GreaterThan() ) &&
+    pf->addSimpleActionWord( "<=", new LessEquals() ) &&
+    pf->addSimpleActionWord( ">=", new GreaterEquals() ) &&
+    pf->addSimpleActionWord( "stringEquals", new StringEquals() ) &&
+    pf->addSimpleActionWord( "not", new Not() ) &&
+    pf->addSimpleActionWord( "vectorStore", new VecStore() ) &&
+    pf->addSimpleActionWord( "vectorCopy", new VecCopy() ) &&
+    pf->addSimpleActionWord( "vectorAdd", new AddVectors() ) &&
+    pf->addSimpleActionWord( "vectorSubtract", new SubVectors() ) &&
+    pf->addSimpleActionWord( "vectorScale", new VecScalarMultiply() ) &&
+    pf->addSimpleActionWord( "vectorTransform", new MatVecMultiply() ) &&
+    pf->addSimpleActionWord( "translationMatrixV", new TranslationMatrixFromVector() ) &&
+    pf->addSimpleActionWord( "extractTranslation", new ExtractTranslationVector() ) &&
+    pf->addSimpleActionWord( "identityMatrix", new IdentityMatrix() ) &&
+    pf->addSimpleActionWord( "matrixStore", new MatStore() ) &&
+    pf->addSimpleActionWord( "matrixStoreTranspose", new MatStoreTranspose() ) &&
+    pf->addSimpleActionWord( "matrixCopy", new MatCopy() ) &&
+    pf->addSimpleActionWord( "matrixMultiply", new MatMultiply() ) &&
+    pf->addSimpleActionWord( "concatMatrices", new ConcatMatrices() ) &&
+    pf->addSimpleActionWord( "translationMatrix", new TranslationMatrix() ) &&
+    pf->addSimpleActionWord( "rotationMatrix", new RotationMatrix() ) &&
+    pf->addSimpleActionWord( "rotationMatrixV", new RotationMatrixV() ) &&
+    pf->addSimpleActionWord( "rotationMatrixEuler", new RotationMatrixFromEulerAngles() ) &&
+    pf->addSimpleActionWord( "extractTranslationMatrix", new ExtractTranslationMatrix() ) &&
+    pf->addSimpleActionWord( "extractRotationMatrix", new ExtractRotationMatrix() ) &&
+    pf->addSimpleActionWord( "extractEulerAngles", new ExtractEulerAngles() ) &&
+    pf->addSimpleActionWord( "inverseMatrix", new InverseMatrix() ) &&
+    pf->addSimpleActionWord( "arrayAdd", new AddArrays() ) &&
+    pf->addSimpleActionWord( "arraySubtract", new SubArrays() ) &&
+    pf->addSimpleActionWord( "arrayMultiply", new MultArrays() ) &&
+    pf->addSimpleActionWord( "arrayDivide", new DivArrays() ) &&
+    pf->addSimpleActionWord( "xaxis", new FetchNumber(0) ) &&
+    pf->addSimpleActionWord( "yaxis", new FetchNumber(1) ) &&
+    pf->addSimpleActionWord( "zaxis", new FetchNumber(2) ) &&
+    pf->addSimpleActionWord( "stack", new StackPrint() ) &&
+    pf->addSimpleActionWord( "clearStack", new ClearStack() ) &&
+    pf->addSimpleActionWord( "dataspace", new DataspacePrint() ) &&
+    pf->addSimpleActionWord( "stringspace", new StringspacePrint() ) &&
+    pf->addSimpleActionWord( "printString", new StringPrint() ) &&
+    pf->addSimpleActionWord( "printArray", new ArrayPrint() ) &&
+    pf->addSimpleActionWord( "printMatrix", new MatrixPrint() ) &&
+    pf->addSimpleActionWord( "printVector", new VectorPrint() );
 }    
 
 } // namespace arPForthSpace
-

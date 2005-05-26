@@ -139,8 +139,8 @@ void arInputSource::sendButtonsAxesMatrices(
   // Gotta send all the stuff in *some* order, so might as well
   // do the obvious thing and pack the arrays with first buttons,
   // then axes, then matrices.
-  int iAll=0;
-  int i;
+  int iAll = 0;
+  int i =0 ;
   for (i=0; i<numButtons; i++){
     _theTypes[iAll] = AR_EVENT_BUTTON;
     _theIndices[iAll++] = rgiButtons ? rgiButtons[i] : i;
@@ -155,7 +155,7 @@ void arInputSource::sendButtonsAxesMatrices(
     }
 
   if (iAll != numThings)
-    cerr << "arInputSource internal error: numThings miscounted!\n";
+    cerr << "arInputSource internal error: numThings miscounted.\n";
 
   if (!_fillCommonData(_data) ||
       !_data->dataIn("types", _theTypes, AR_INT, numThings) ||
@@ -163,7 +163,7 @@ void arInputSource::sendButtonsAxesMatrices(
       !_data->dataIn("buttons", rgvalueButtons, AR_INT, numButtons) ||
       !_data->dataIn("axes", rgvalueAxes, AR_FLOAT, numAxes) ||
       !_data->dataIn("matrices", rgvalueMatrices, AR_FLOAT, 16*numMatrices)) {
-    cerr << "arInputSource warning: problem in sendButtonsAxesMatrices.\n";
+    cerr << "arInputSource warning: failed dataIn in sendButtonsAxesMatrices.\n";
   }
   _sendData();
 }

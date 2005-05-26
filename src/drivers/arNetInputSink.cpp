@@ -32,18 +32,15 @@ arNetInputSink::arNetInputSink() :
 /// @param slot the slot in question
 void arNetInputSink::setSlot(int slot){
   if (slot<0){
-    cout << "arNetInputSource warning: the input device slot must be nonnegative.\n";
-    _slot = 0; 
+    cerr << "arNetInputSource warning: overriding negative input device slot "
+         << slot << ".\n";
+    slot = 0; 
   }
-  else{
-    _slot = slot;
-  }
+  _slot = slot;
 }
 
 bool arNetInputSink::init(arSZGClient& SZGClient){
-  // does nothing accept cache the arSZGClient now that we no longer
-  // rely on the phleet database for connection information and
-  // instead use connection brokering
+  // cache the arSZGClient for connection brokering
   _client = &SZGClient;
   _client->initResponse() << "arNetInputSink remark: initialized.\n";
   return true;
@@ -71,14 +68,15 @@ bool arNetInputSink::start(){
   // that will exist!
   char buffer[32];
   sprintf(buffer,"SZG_INPUT%i",_slot);
-  string serviceName(_client->createComplexServiceName(buffer));
-  int port;
+  const string serviceName(_client->createComplexServiceName(buffer));
+  int port = -1;
   if (!_client->registerService(serviceName,"input",1,&port)){
     startResponse << "arNetInputSink error: failed to register service.\n";
     return false;
   }
   _dataServer.setPort(port);
   _dataServer.setInterface("INADDR_ANY");
+  //// \todo use better "< 10" code copypasted already elsewhere
   int trials = 0;
   bool success = false;
   while (trials < 10 && !success){
@@ -109,7 +107,6 @@ bool arNetInputSink::start(){
 }
 
 bool arNetInputSink::stop(){
-  // does nothing so far
   return true;
 }
 

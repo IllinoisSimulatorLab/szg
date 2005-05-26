@@ -78,7 +78,7 @@ string arGraphicsPeerConnection::print(){
 
 class arGraphicsPeerSerializeInfo{ 
  public:
-  arGraphicsPeerSerializeInfo(){}
+  arGraphicsPeerSerializeInfo() : peer(NULL), socket(NULL) {}
   ~arGraphicsPeerSerializeInfo(){}
 
   arGraphicsPeer* peer;
@@ -114,10 +114,10 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
   if (data->getID() == l->AR_GRAPHICS_ADMIN){
     // Various things can happen here. We can be told to relay data to the
     // requester. We can be told to dump the database.
-    string action = data->getDataString(l->AR_GRAPHICS_ADMIN_ACTION);
-    int nodeID;
+    string action(data->getDataString(l->AR_GRAPHICS_ADMIN_ACTION));
+    int nodeID = -1;
     if (action == "map"){
-      int nodeIDs[2];
+      int nodeIDs[2] = {0};
       data->dataOut(l->AR_GRAPHICS_ADMIN_NODE_ID, nodeIDs, AR_INT, 2);
       gp->_resetConnectionMap(socket->getID(), nodeIDs[0], 
                               nodeIDs[1] ? true : false);
@@ -362,7 +362,7 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
 
 class arGraphicsPeerConnectionDeletionInfo{
  public:
-  arGraphicsPeerConnectionDeletionInfo(){}
+  arGraphicsPeerConnectionDeletionInfo() : peer(NULL), socket(NULL) {}
   ~arGraphicsPeerConnectionDeletionInfo(){}
 
   arGraphicsPeer* peer;

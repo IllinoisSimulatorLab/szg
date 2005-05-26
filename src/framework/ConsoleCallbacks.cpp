@@ -21,27 +21,27 @@ enum {
 
 // The state of the simulator...
 // The physical input device (i.e. mouse)
-int _mousePosition[2];
-int _mouseButton[3];
+int _mousePosition[2] = {0};
+int _mouseButton[3] = {0};
 // A virtual input device, as driven by the mouse. Used to rotate the object
 // in 3D space.
-float _rotator[2];
+float _rotator[2] = {0};
 // We can rotate the simulator display
-float _worldRotation;
+float _worldRotation = 0.;
 // There are more buttons on the simulated device than there are on the
 // mouse. We have 6 simulated buttons so far, which makes sense since we
 // tend to use gamepads w/ 6 DOF sensors attached for wands. At some point,
 // it would be a good idea to increase the number of simulated buttons to 9!
 // In any case, the "button selector" toggles between sets of buttons.
-int _buttonSelector;
+int _buttonSelector = 0;
 // Overall state in which the simulator finds itself.
-int _interfaceState;
+int _interfaceState = 0;
 
 // The state of the simulated device. Two 4x4 matrices. 6 buttons. 2 axes.
 arMatrix4 _wandMatrix;
 arMatrix4 _headMatrix;
-int _button[6];
-float _caveJoystickX, _caveJoystickY; // wand joystick state
+int _button[6] = {0};
+float _caveJoystickX = 0., _caveJoystickY = 0.; // wand joystick state
 
 void console_init(){
   _rotator[0] = 0.;
@@ -346,12 +346,12 @@ void console_mouseMoved(int mouseX, int mouseY){
   }
   if (_interfaceState == EYE_TRANSLATE && _mouseButton[0]){
     _headMatrix = ar_translationMatrix(movementFactor*deltaX, 
-                                       -movementFactor*deltaY,0)
-                  *_headMatrix;
+                                       -movementFactor*deltaY,0) *
+                  _headMatrix;
   }
   if (_interfaceState == EYE_TRANSLATE && _mouseButton[1]){
-    _headMatrix = ar_translationMatrix(0,0,movementFactor*deltaY)
-      *_headMatrix;   
+    _headMatrix = ar_translationMatrix(0,0,movementFactor*deltaY) *
+      _headMatrix;   
   }
   if (_interfaceState == ROTATE_VIEW && _mouseButton[0]){
     _headMatrix = ar_extractTranslationMatrix(_headMatrix)

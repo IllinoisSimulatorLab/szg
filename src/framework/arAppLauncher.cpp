@@ -152,7 +152,7 @@ bool arAppLauncher::setParameters(){
   }
   _setNumberPipes(numberPipes);
  
-  int i;
+  int i = 0;
   for (i=0; i< numberPipes; ++i){
     if (!_setPipeName(i, initResponse)){
       // function already sent error message
@@ -245,8 +245,8 @@ bool arAppLauncher::launchApp(){
   // held!!!
 
   // make sure szgd's are running everywhere
-  int i;
   int* renderSzgdID = new int[_numberPipes]; // small memory leak
+  int i = 0;
   for (i=0; i<_numberPipes; i++){
     renderSzgdID[i] = _client->getProcessID(_pipeComp[i], "szgd");
     if (renderSzgdID[i] == -1){
@@ -421,10 +421,9 @@ bool arAppLauncher::screenSaver(){
   // get the locks they need 
   _graphicsKill("szgrender");
     
-  int i;
   list<arLaunchInfo> launchList;
   // run through each pipe and start the generic render client, if necessary
-  for (i=0; i<_numberPipes; i++){
+  for (int i=0; i<_numberPipes; i++){
     const int renderID = _client->getProcessID(_pipeComp[i], "szgrender");
     const int renderSzgdID = _client->getProcessID(_pipeComp[i], "szgd");
     if (renderID == -1 && renderSzgdID != -1){
@@ -710,7 +709,7 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch){
   list<arLaunchInfo>::iterator iter;
   list<int> sentMessageMatches;
   list<int> initialMessageMatches;
-  int match;
+  int match = -1;
   // when we launch an app, we put the ID of the launching message into 
   // the sentMessageIDs list. It remains there until the launched component
   // has fully responded to the message

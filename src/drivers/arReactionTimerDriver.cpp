@@ -146,12 +146,12 @@ bool arReactionTimerDriver::_processInput() {
 #endif
 
       // NOTE: rtDuration is currently encoded as a whole number of msecs.
-      int rtDuration;
-      int button0;
-      int button1;
-      static int lastrt(-2);
-      static int lastb0(0);
-      static int lastb1(0);
+      int rtDuration = 0;
+      int button0 = 0;
+      int button1 = 0;
+      static int lastrt = -2;
+      static int lastb0 = 0;
+      static int lastb1 = 0;
 //      istringstream numStream( inputString );
 //      numStream >> rtDuration;
 //      numStream >> button0;

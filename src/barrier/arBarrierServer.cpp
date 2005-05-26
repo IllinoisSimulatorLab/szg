@@ -196,11 +196,11 @@ bool arBarrierServer::start(){
     return false;
   }
   if (_channel == "NULL"){
-    cout << "arBarrierServer error: no channel.\n";
+    cerr << "arBarrierServer error: no channel.\n";
     return false;
   }
   // register the service and get some ports
-  int port;
+  int port = -1;
   if (!_client->registerService(_serviceName,_channel,1,&port)){
     cerr << "arBarrierServer error: failed to register service \""
          << _serviceName << "\".\n";

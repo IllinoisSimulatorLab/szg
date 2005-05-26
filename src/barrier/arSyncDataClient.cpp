@@ -144,7 +144,7 @@ void arSyncDataClient::_readTask(){
     if (ok) {
       // we got some data! before swapping buffers, wait for
       // the consumer to finish (and do a little performance analysis).
-      ARint bufferSize;
+      ARint bufferSize = -1;
       ar_unpackData(_data[_backBuffer],&bufferSize,AR_INT,1);
       _oldRecvSize = bufferSize>0 ? float(bufferSize) : 0.; // ignore garbage
 

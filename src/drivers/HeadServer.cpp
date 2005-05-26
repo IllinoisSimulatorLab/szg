@@ -36,7 +36,7 @@ static void ReadHead(HANDLE hCommPort)
   static char buf[500];
 
   {
-  DWORD dwCount;
+  DWORD dwCount = 0;
   char str[60];
   int rc = ReadFile((HANDLE)hCommPort, str, 50, &dwCount, NULL);
   //if (!rc)

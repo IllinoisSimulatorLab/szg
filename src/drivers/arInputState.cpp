@@ -357,7 +357,7 @@ bool arInputState::setFromBuffers( const int* const buttonData,
     return false;
   }
 
-  unsigned int i;
+  unsigned int i = 0;
   for (i=0; i<numButtons; i++)
     _setButtonNoLock( i, buttonData[i] );
   for (i=0; i<numAxes; i++)
@@ -378,7 +378,7 @@ bool arInputState::saveToBuffers( int* const buttonBuf,
     return false;
   }
 
-  unsigned int i;
+  unsigned int i = 0;
   for (i=0; i<_buttons.size(); i++)
     buttonBuf[i] = _buttons[i];
   for (i=0; i<_axes.size(); i++)
@@ -413,7 +413,7 @@ ostream& operator<<(ostream& os, const arInputState& cinp ) {
        << "axes: " << inp->getNumberAxes() << ", "
        << "matrices: " << inp->getNumberMatrices() << "\n";
   os << "buttons: ";
-  unsigned int i;
+  unsigned int i = 0;
   for (i=0; i<inp->getNumberButtons(); i++){
     os << inp->getButton(i) << " ";
   }

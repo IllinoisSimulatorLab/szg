@@ -16,19 +16,17 @@ arGraphicsDatabase::arGraphicsDatabase() :
   if (!_initDatabaseLanguage())
     return;
 
-  // Have to add the processing callback for the "graphics admin"
-  // message. Please note that the arGraphicsPeer processes this
+  // Add the processing callback for the "graphics admin"
+  // message. The arGraphicsPeer processes this
   // differently than here (i.e. the "graphics admin" messages 
   // are culled from the message stream before being sent to the
   // database for processing.
   arDataTemplate* t = _lang->find("graphics admin");
-  _databaseReceive[t->getID()] 
-    = (arDatabaseProcessingCallback)&arGraphicsDatabase::_processAdmin;
+  _databaseReceive[t->getID()] =
+    (arDatabaseProcessingCallback)&arGraphicsDatabase::_processAdmin;
   
   // Initialize the texture data.
-  int i;
-  for (i=0; i<26; i++)
-    _alphabet[i] = NULL;
+  memset(_alphabet, 0, 26 * sizeof(arTexture*));
 
   // Initialize the texture path list.
   _texturePath->push_back(string("") /* local directory */ );
@@ -77,6 +75,7 @@ arGraphicsDatabase::arGraphicsDatabase() :
   }
 
   // initialize the light container
+  int i = 0;
   for (i=0; i<8; i++){
     _lightContainer[i] = pair<int,arLight*>(0,NULL);
   }
@@ -120,7 +119,7 @@ void arGraphicsDatabase::reset(){
   // This is bad. Maybe the lights need to be owned by the database,
   // just like the textures?
   // initialize the light container
-  int j;
+  int j = 0;
   for (j=0; j<8; j++){
     _lightContainer[j] = pair<int,arLight*>(0,NULL);
   }

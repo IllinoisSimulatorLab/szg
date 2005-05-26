@@ -1121,8 +1121,8 @@ bool arMasterSlaveFramework::_sendData(){
   }
   // Pack the arMasterSlaveDataRouter's managed data
   _dataRouter.internalDumpState();
-  int dataRouterDumpSize;
-  char* dataRouterInfo = _dataRouter.getTransferBuffer(dataRouterDumpSize);
+  int dataRouterDumpSize = -1;
+  const char* dataRouterInfo = _dataRouter.getTransferBuffer(dataRouterDumpSize);
   _transferData->dataIn("szg_data_router", dataRouterInfo,
                         AR_CHAR, dataRouterDumpSize);
   // Pack other data.
@@ -1318,7 +1318,7 @@ void arMasterSlaveFramework::_unpackInputData(){
   _transferData->dataOut("randSeedSet",&_randSeedSet,AR_INT,1);
   _transferData->dataOut("randSeed",&_randomSeed,AR_LONG,1);
   _transferData->dataOut("numRandCalls",&_numRandCalls,AR_LONG,1);
-  float tempRandVal;
+  float tempRandVal = 0.;
   _transferData->dataOut("randVal",&tempRandVal,AR_FLOAT,1);
   _randSynchError = 0;
   if (!_firstTransfer) {

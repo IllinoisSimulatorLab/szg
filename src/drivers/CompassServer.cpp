@@ -14,7 +14,7 @@ void ReadCompass(HANDLE hCommPort)
   static char buf[10000];
 
   {
-  DWORD dwCount;
+  DWORD dwCount = 0;
   char str[110];
   int rc = ReadFile((HANDLE)hCommPort, str, 100, &dwCount, NULL);
   //if (!rc)
@@ -117,8 +117,7 @@ static arMatrix4 exportMatrix()
 
 static const float* exportAxes()
 {
-  static float val;
-  val = aziExport;
+  static float val = aziExport;
   return &val;
 }
 
@@ -128,5 +127,4 @@ int main(int argc, char** argv)
   return ar_RS232main(argc, argv, "CompassServer", "compass", "SZG_COMPASS",
     25000, exportMatrix, simTask, rs232Task, rs232,
     1, exportAxes);
-
 }

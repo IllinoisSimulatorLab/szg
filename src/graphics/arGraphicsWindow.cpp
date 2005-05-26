@@ -445,7 +445,7 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
     dim[0] = 0; dim[1] = 0; dim[2] = 1; dim[3] = 1;
   }
   // get viewport eye sign
-  float eyeSign;
+  float eyeSign = 0.;
   if (!client.getAttributeFloats(screenName, "eye_sign", &eyeSign, 1)) {
     cout << "arGraphicsWindow remark: Failed to get " << screenName
          << "/eye_sign; using 0.\n";
@@ -455,7 +455,7 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
   // get viewport color mask
   arSlashString colorMask(client.getAttribute(screenName, "color_mask"));
   GLboolean mask[4];
-  unsigned int i;
+  unsigned int i = 0;
   if (colorMask == "NULL") {
     cout << "arGraphicsWindow remark: could not get viewport color mask for "
 	 << screenName << ". Using (true/true/true/true).\n";
@@ -488,11 +488,11 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
   }
 
   // get viewport depth buffer clear
-  string depthClear = client.getAttribute(screenName, "depth_clear",
+  const string depthClear = client.getAttribute(screenName, "depth_clear",
 	                                   "|true|false|");
 
   // get associated OpenGL draw buffer
-  string bufName = client.getAttribute( screenName, "draw_buffer_mode",
+  const string bufName = client.getAttribute( screenName, "draw_buffer_mode",
 	                                   "|left|right|normal|mono|");
   if (bufName == "normal") {
     cout << "arGraphicsWindow remark: " << screenName << "/draw_buffer_mode == normal,"
@@ -512,7 +512,7 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
                                 GL_BACK_LEFT, (depthClear!="false") ) );
   }
   } else {
-    GLenum oglDrawBuf = (bufName == "right")?(GL_BACK_RIGHT):(GL_BACK_LEFT);
+    GLenum oglDrawBuf = bufName == "right" ? GL_BACK_RIGHT : GL_BACK_LEFT;
 
     _addViewportNoLock( arViewport( dim[0], dim[1], dim[2], dim[3], screen, _defaultCamera, eyeSign,
                               mask[0], mask[1], mask[2], mask[3],

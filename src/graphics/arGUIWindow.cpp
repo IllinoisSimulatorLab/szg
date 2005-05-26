@@ -20,14 +20,11 @@
 #include "arGUIWindow.h"
 
 // convenience define
-#define USEC 1000000.0
+const double USEC = 1000000.0;
 
 void arDefaultGUIRenderCallback::operator()( arGUIWindowInfo* windowInfo ) {
-  if( !_drawCallback ) {
-    return;
-  }
-
-  _drawCallback( windowInfo );
+  if( _drawCallback )
+    _drawCallback( windowInfo );
 }
 
 arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height, int bpp, int hz,
@@ -47,12 +44,10 @@ arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height, int b
   _title( title ),
   _XDisplay( XDisplay )
 {
-
 }
 
 arGUIWindowConfig::~arGUIWindowConfig( void )
 {
-
 }
 
 arWMEvent::arWMEvent( const arGUIWindowInfo& event ) :
@@ -110,18 +105,15 @@ void arWMEvent::signal( void )
 
 arWMEvent::~arWMEvent( void )
 {
-
 }
 
 arGUIWindowBuffer::arGUIWindowBuffer( bool dblBuf ) :
   _dblBuf( dblBuf )
 {
-
 }
 
 arGUIWindowBuffer::~arGUIWindowBuffer( void )
 {
-
 }
 
 int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const bool stereo ) const
@@ -154,9 +146,7 @@ int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( windowHandle._dpy );
-
   glXSwapBuffers( windowHandle._dpy, windowHandle._win );
-
   XUnlockDisplay( windowHandle._dpy );
 
   #endif
@@ -564,13 +554,8 @@ int arGUIWindow::_windowCreation( void )
 {
   #if defined( AR_USE_WIN_32 )
 
-  DWORD windowStyle;
-  DWORD windowExtendedStyle;
-  GLuint PixelFormat;
-  int trueX, trueY, trueWidth, trueHeight;
 
   int dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-
   if( _windowConfig._stereo ) {
     dwFlags |= PFD_STEREO;
   }
@@ -601,8 +586,8 @@ int arGUIWindow::_windowCreation( void )
   }
   */
 
-  windowExtendedStyle = WS_EX_APPWINDOW;
-  windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
+  DWORD windowExtendedStyle = WS_EX_APPWINDOW;
+  DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
 
   if( _windowConfig._decorate ) {
     windowStyle |= WS_OVERLAPPEDWINDOW;
@@ -612,10 +597,10 @@ int arGUIWindow::_windowCreation( void )
     windowExtendedStyle |= WS_EX_TOOLWINDOW;
   }
 
-  trueX = _windowConfig._x;
-  trueY = _windowConfig._y;
-  trueWidth = _windowConfig._width;
-  trueHeight = _windowConfig._height;
+  const int trueX = _windowConfig._x;
+  const int trueY = _windowConfig._y;
+  const int trueWidth = _windowConfig._width;
+  const int trueHeight = _windowConfig._height;
 
   /*
   if( _windowConfig._topmost ) {
@@ -657,7 +642,8 @@ int arGUIWindow::_windowCreation( void )
     return -1;
   }
 
-  if( !( PixelFormat = ChoosePixelFormat( _windowHandle._hDC, &pfd ) ) ) {
+  const GLuint PixelFormat = ChoosePixelFormat( _windowHandle._hDC, &pfd );
+  if(!PixelFormat) {
     std::cerr << "_windowCreation: ChoosePixelFormat failed" << std::endl;
     _killWindow();
     return -1;
@@ -716,11 +702,6 @@ int arGUIWindow::_windowCreation( void )
   _windowHandle._dpy = NULL;
   _windowHandle._vi = NULL;
   _windowHandle._wHints = None;
-  unsigned long mask = 0;
-  XSizeHints sizeHints;
-  XWMHints wmHints;
-  XTextProperty textProperty;
-  int trueX, trueY, trueWidth, trueHeight;
 
   if( _windowConfig._stereo ) {
     attrList[ 10 ] = GLX_STEREO;
@@ -768,11 +749,15 @@ int arGUIWindow::_windowCreation( void )
                                    ButtonPressMask | ButtonReleaseMask |
                                    PointerMotionMask | ButtonMotionMask;
 
-  mask = CWBackPixmap | CWBorderPixel | CWColormap | CWEventMask;
+  unsigned long mask = CWBackPixmap | CWBorderPixel | CWColormap | CWEventMask;
 
   // NOTE: for now we aren't going to even try to use extensions as they
   // aren't supported on every platform and the #else clause is just a massage
   // of fullscreen() anyhow
+  int trueX = 0;
+  int trueY = 0;
+  int trueWidth = 0;
+  int trueHeight = 0;
   if( 0 /* _windowConfig._fullscreen */ ) {
     /*
     int numExt;
@@ -787,11 +772,11 @@ int arGUIWindow::_windowCreation( void )
 
     #ifdef HAVE_X11_EXTENSIONS
 
-    XF86VidModeModeInfo **modes;
-    int modeNum = 0, bestMode = 0;
-
-    trueX = trueY = 0;
-
+    XF86VidModeModeInfo **modes = NULL;
+    int modeNum = 0;
+    int bestMode = 0;
+    int trueX = 0;
+    int trueY = 0;
     XF86VidModeGetAllModeLines( _windowHandle._dpy, _windowHandle._screen, &modeNum, &modes );
 
     // check freeglut::glutGameMode for more about resetting the desktop to its original state
@@ -829,13 +814,13 @@ int arGUIWindow::_windowCreation( void )
 
     #else // we dont have X11 extensions, just make the window the size of the desktop
 
-    int x, y;
+    int x = 0, y = 0;
     Window w;
 
-    trueWidth = DisplayWidth( _windowHandle._dpy, _windowHandle._vi->screen );
-    trueHeight = DisplayHeight( _windowHandle._dpy, _windowHandle._vi->screen );
-
-    trueX = trueY = 0;
+    const int trueWidth = DisplayWidth( _windowHandle._dpy, _windowHandle._vi->screen );
+    const int trueHeight = DisplayHeight( _windowHandle._dpy, _windowHandle._vi->screen );
+    trueX = 0;
+    trueY = 0;
 
     _windowHandle._attr.override_redirect = True;
     mask |= CWOverrideRedirect;
@@ -884,6 +869,7 @@ int arGUIWindow::_windowCreation( void )
 
   // regardless of what is set in XCreateWindow, these hints are what the WM
   // seems to honor
+  XSizeHints sizeHints;
   memset( &sizeHints, 0, sizeof( XSizeHints ) );
   sizeHints.flags  = USPosition | USSize;
   sizeHints.x      = trueX;
@@ -893,11 +879,13 @@ int arGUIWindow::_windowCreation( void )
   sizeHints.base_width = trueWidth;
   sizeHints.base_height = trueHeight;
 
+  XWMHints wmHints;
   wmHints.flags = StateHint;
   wmHints.initial_state = NormalState;
 
   const char* title = _windowConfig._title.c_str();
 
+  XTextProperty textProperty;
   XStringListToTextProperty( (char **) &title, 1, &textProperty );
 
   XSetWMProperties( _windowHandle._dpy, _windowHandle._win,
@@ -1019,7 +1007,7 @@ int arGUIWindow::resize( int newWidth, int newHeight )
   }
   */
 
-  // prevent any divide-by-0 errors
+  // avoid divide-by-0
   if( newHeight == 0 ) {
     newHeight = 1;
   }
@@ -1179,7 +1167,6 @@ int arGUIWindow::fullscreen( void )
   #endif
 
   _fullscreen = true;
-
   return 0;
 }
 
@@ -1194,7 +1181,6 @@ int arGUIWindow::setViewport( int newX, int newY, int newWidth, int newHeight )
   }
 
   glViewport( newX, newY, newWidth, newHeight );
-
   return 0;
 }
 
@@ -1297,7 +1283,6 @@ void arGUIWindow::decorate( const bool decorate )
   }
 
   XFlush( _windowHandle._dpy );
-
   XUnlockDisplay( _windowHandle._dpy );
 
   #endif
@@ -1325,11 +1310,8 @@ void arGUIWindow::raise( void )
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
-
   XRaiseWindow( _windowHandle._dpy, _windowHandle._win );
-
   XFlush( _windowHandle._dpy );
-
   XUnlockDisplay( _windowHandle._dpy );
 
   #endif
@@ -1359,11 +1341,8 @@ void arGUIWindow::lower( void )
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
-
   XLowerWindow( _windowHandle._dpy, _windowHandle._win );
-
   XFlush( _windowHandle._dpy );
-
   XUnlockDisplay( _windowHandle._dpy );
 
   #endif
@@ -1391,11 +1370,8 @@ void arGUIWindow::minimize( void )
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
-
   XIconifyWindow( _windowHandle._dpy, _windowHandle._win, _windowHandle._screen );
-
   XFlush( _windowHandle._dpy );
-
   XUnlockDisplay( _windowHandle._dpy );
 
   #endif
@@ -1423,11 +1399,8 @@ void arGUIWindow::restore( void )
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
-
   XMapWindow( _windowHandle._dpy, _windowHandle._win );
-
   XFlush( _windowHandle._dpy );
-
   XUnlockDisplay( _windowHandle._dpy );
 
   #endif
@@ -1472,11 +1445,8 @@ int arGUIWindow::move( int newX, int newY )
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
-
   XMoveWindow( _windowHandle._dpy, _windowHandle._win, newX, newY );
-
   XFlush( _windowHandle._dpy );
-
   XUnlockDisplay( _windowHandle._dpy );
 
   #endif
@@ -1511,12 +1481,8 @@ int arGUIWindow::getWidth( void ) const
   XWindowAttributes winAttributes;
 
   XLockDisplay( _windowHandle._dpy );
-
-  XGetWindowAttributes( _windowHandle._dpy, _windowHandle._win,
-                        &winAttributes );
-
+  XGetWindowAttributes(_windowHandle._dpy, _windowHandle._win, &winAttributes);
   XUnlockDisplay( _windowHandle._dpy );
-
   return winAttributes.width;
 
   #endif
@@ -1547,14 +1513,9 @@ int arGUIWindow::getHeight( void ) const
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XWindowAttributes winAttributes;
-
   XLockDisplay( _windowHandle._dpy );
-
-  XGetWindowAttributes( _windowHandle._dpy, _windowHandle._win,
-                        &winAttributes );
-
+  XGetWindowAttributes(_windowHandle._dpy, _windowHandle._win, &winAttributes);
   XUnlockDisplay( _windowHandle._dpy );
-
   return winAttributes.height;
 
   #endif
@@ -1569,7 +1530,6 @@ int arGUIWindow::getPosX( void ) const
   #if defined( AR_USE_WIN_32 )
 
   RECT rect;
-
   if( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
     std::cerr << "getPosX: GetWindowRect error" << std::endl;
     return -1;
@@ -1578,28 +1538,21 @@ int arGUIWindow::getPosX( void ) const
   if( 0 /*_windowConfig._decorate*/ ) {
     rect.left += GetSystemMetrics( SM_CXSIZEFRAME );
   }
-
   return rect.left;
 
   #elif defined( AR_USE_LINUX )  || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
+  XLockDisplay( _windowHandle._dpy );
   int x, y, bx, by;
   Window w;
-
-  XLockDisplay( _windowHandle._dpy );
-
   XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win, _windowHandle._root,
                          0, 0, &x, &y, &w );
-
   if( _windowConfig._decorate ) {
     XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win,
                            w, 0, 0, &bx, &by, &w );
-
     x -= bx;
   }
-
   XUnlockDisplay( _windowHandle._dpy );
-
   return x;
 
   #endif
@@ -1628,23 +1581,17 @@ int arGUIWindow::getPosY( void ) const
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
+  XLockDisplay( _windowHandle._dpy );
   int x, y, bx, by;
   Window w;
-
-  XLockDisplay( _windowHandle._dpy );
-
   XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win, _windowHandle._root,
                          0, 0, &x, &y, &w );
-
   if( _windowConfig._decorate ) {
     XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win,
                            w, 0, 0, &bx, &by, &w );
-
     y -= by;
   }
-
   XUnlockDisplay( _windowHandle._dpy );
-
   return y;
 
   #endif
@@ -1787,7 +1734,7 @@ int arGUIWindow::makeCurrent( bool release )
     // contexts and getting hit by the flushes that that incurs)
     return 0;
   }
-  else if( !wglMakeCurrent( _windowHandle._hDC, _windowHandle._hRC ) ) {
+  if( !wglMakeCurrent( _windowHandle._hDC, _windowHandle._hRC ) ) {
     return -1;
   }
 
@@ -1808,7 +1755,7 @@ int arGUIWindow::makeCurrent( bool release )
     XUnlockDisplay( _windowHandle._dpy );
     return 0;
   }
-  else if( !glXMakeCurrent( _windowHandle._dpy, _windowHandle._win, _windowHandle._ctx ) ) {
+  if( !glXMakeCurrent( _windowHandle._dpy, _windowHandle._win, _windowHandle._ctx ) ) {
     XUnlockDisplay( _windowHandle._dpy );
     return -1;
   }
@@ -1819,4 +1766,3 @@ int arGUIWindow::makeCurrent( bool release )
 
   return 0;
 }
-

@@ -77,8 +77,7 @@ bool arFaroCalFilter::_processEvent( arInputEvent& inputEvent ) {
 //}
 
 bool arFaroCalFilter::configure(arSZGClient* szgClient) {
-  float floatBuf;
-  
+  float floatBuf = 0.;
   string received(szgClient->getAttribute("SZG_FAROCAL", "coord_transform"));
   if (received == "NULL") {
     cerr << "arFaroCalFilter warning: SZG_FAROCAL/coord_transform undefined.\n";
@@ -149,9 +148,9 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
     return false;
   }
 
-  unsigned long i;
+  unsigned long i = 0;
   for (i=0; i<_n; i++) {
-    int stat = fscanf( fp, "%f", _xLookupTable+i );
+    const int stat = fscanf( fp, "%f", _xLookupTable+i );
     if ((stat == 0)||(stat == EOF)) {
       cerr << "arFaroCalFilter error: failed to read lookup table value #"
            << i << endl;
@@ -161,7 +160,7 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
     //    cerr << _xLookupTable[i] << endl;
   }
   for (i=0; i<_n; i++) {
-    int stat = fscanf( fp, "%f", _yLookupTable+i );
+    const int stat = fscanf( fp, "%f", _yLookupTable+i );
     if ((stat == 0)||(stat == EOF)) {
       cerr << "arFaroCalFilter error: failed to read lookup table value #"
            << i+_n << endl;
@@ -170,7 +169,7 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
     }
   }
   for (i=0; i<_n; i++) {
-    int stat = fscanf( fp, "%f", _zLookupTable+i );
+    const int stat = fscanf( fp, "%f", _zLookupTable+i );
     if ((stat == 0)||(stat == EOF)) {
       cerr << "arFaroCalFilter error: failed to read lookup table value #"
            << i+2*_n << endl;
@@ -179,7 +178,7 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
     }
   }
   fclose(fp);
-  cerr << "arFaroCalFilter remark: loaded " << 3*_n << "table entries.\n";
+  // cerr << "arFaroCalFilter remark: loaded " << 3*_n << "table entries.\n";
   _indexOffsets[0] = 0;
   _indexOffsets[1] = 1;
   _indexOffsets[2] = _nx;

@@ -91,37 +91,37 @@ void arCubeEnvironment::setWallTexture(int which, const string& fileName){
 
 void arCubeEnvironment::attachMesh(const string& name,
 				   const string& parentName){
-  int i,j;
+  int i=0;
   for (i=0; i<_numberWalls; i++){
-    j = (i+1 == _numberWalls) ? 0 : i+1;
-    float pointPositions[12];
-    pointPositions[0] = _cornerX[i];
-    pointPositions[1] = _vertBound + _origin[2];
-    pointPositions[2] = _cornerZ[i];
-    pointPositions[3] = _cornerX[j];
-    pointPositions[4] = _vertBound + _origin[2];
-    pointPositions[5] = _cornerZ[j];
-    pointPositions[6] = _cornerX[j];
-    pointPositions[7] = -_vertBound + _origin[2];
-    pointPositions[8] = _cornerZ[j];
-    pointPositions[9] = _cornerX[i];
-    pointPositions[10] = -_vertBound + _origin[2];
-    pointPositions[11] = _cornerZ[i]; 
+    const int j = (i+1 == _numberWalls) ? 0 : i+1;
+    float pointPositions[12] = {
+      _cornerX[i],
+      _vertBound + _origin[2],
+      _cornerZ[i],
+      _cornerX[j],
+      _vertBound + _origin[2],
+      _cornerZ[j],
+      _cornerX[j],
+      -_vertBound + _origin[2],
+      _cornerZ[j],
+      _cornerX[i],
+      -_vertBound + _origin[2],
+      _cornerZ[i]
+    };
 
     int triangleVertices[6] = {2,0,1, 2,3,0};
-
     float texCoords[12] = {1,0, 0,1, 1,1, 1,0, 0,0, 0,1};
-    float normals[18];
-    arVector3 normalDir
-      = (arVector3(pointPositions+6)-arVector3(pointPositions))
-	*(arVector3(pointPositions+3)-arVector3(pointPositions));
+    float normals[18] = {0};
+    arVector3 normalDir =
+      (arVector3(pointPositions+6) - arVector3(pointPositions)) *
+      (arVector3(pointPositions+3) - arVector3(pointPositions));
     normalDir.normalize();
-    for (i=0; i<6; i++){
-      normals[3*i] = normalDir[0];
-      normals[3*i+1] = normalDir[1];
-      normals[3*i+2] = normalDir[2];
+    for (int k=0; k<6; k++){
+      normals[3*k] = normalDir[0];
+      normals[3*k+1] = normalDir[1];
+      normals[3*k+2] = normalDir[2];
     }
-    char index = '0'+i;
+    const char index = '0'+i;
     dgTexture(name+index+" texture",parentName,_texFileName[i]);
     dgPoints(name+index+" points",name+index+" texture",
              4,pointPositions);
@@ -154,9 +154,9 @@ void arCubeEnvironment::attachMesh(const string& name,
     normals[9*i+6] = 0;
     normals[9*i+7] = -1;
     normals[9*i+8] = 0;
-    j = (i+1 == _numberWalls) ? 0 : i+1;
+    const int j = (i+1 == _numberWalls) ? 0 : i+1;
 
-    // i and j are swapped in this next dozen lines,
+    // swap i and j
     // to draw the ceiling's polygons in reversed orientation
     // so alpha-channel texture maps on buildings look nicer.
     triangleVertices[3*i] = _numberWalls;
@@ -210,7 +210,7 @@ void arCubeEnvironment::attachMesh(const string& name,
     normals[9*i+6] = 0;
     normals[9*i+7] = -1;
     normals[9*i+8] = 0;
-    j = (i+1 == _numberWalls) ? 0 : i+1;
+    const int j = (i+1 == _numberWalls) ? 0 : i+1;
     triangleVertices[3*i] = _numberWalls;
     triangleVertices[3*i+1] = i;
     triangleVertices[3*i+2] = j;

@@ -129,13 +129,12 @@ std::vector<unsigned int> arInputSimulator::getMouseButtons() {
 }
 
 void arInputSimulator::setNumberButtonEvents( unsigned int numButtonEvents ) {
-  unsigned int diff;
   if (numButtonEvents > _numButtonEvents) {
-    diff = numButtonEvents - _numButtonEvents;
+    const unsigned int diff = numButtonEvents - _numButtonEvents;
     _lastButtonEvents.insert( _lastButtonEvents.end(), diff, 0 );
     _newButtonEvents.insert( _newButtonEvents.end(), diff, 0 );
   } else if (numButtonEvents < _numButtonEvents) {
-    diff = _numButtonEvents - numButtonEvents;
+    const unsigned int diff = _numButtonEvents - numButtonEvents;
     _lastButtonEvents.erase( _lastButtonEvents.end()-diff, _lastButtonEvents.end() );
     _newButtonEvents.erase( _newButtonEvents.end()-diff, _newButtonEvents.end() );
   }
@@ -147,8 +146,7 @@ void arInputSimulator::setNumberButtonEvents( unsigned int numButtonEvents ) {
   for (unsigned int i=0; i<_numButtonEvents; ++i) {
     os.str("");
     os << i;
-    char c = os.str()[0];
-    _buttonLabels.push_back( c );
+    _buttonLabels.push_back( char(os.str()[0]) );
   }
 }
 

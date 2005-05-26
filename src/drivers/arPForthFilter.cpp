@@ -80,8 +80,8 @@ bool ar_parsePForthFilterWord( const string& theWord,
     return false;
 
   getline( wordStream, s ); // number
-  long theLong;
-  int theInt;
+  long theLong = -1;
+  int theInt = -1;
   if (!ar_stringToLongValid( s, theLong ) ||
       !ar_longToIntValid( theLong, theInt ) ||
       theInt < 0) {
@@ -96,7 +96,7 @@ bool ar_parsePForthFilterWord( const string& theWord,
 struct IsFilterWord {
   bool operator()( const string theWord ) {
     arInputEventType eventType;
-    unsigned int eventIndex;
+    unsigned int eventIndex = -1;
     return ar_parsePForthFilterWord( theWord, eventType, eventIndex );
   }
 };
@@ -144,8 +144,8 @@ bool arPForthFilter::configure(const string& progText ) {
 	     << word << endl;
         continue;
       }
-      arPForthProgram* prog;
-      if (!(prog = _pforth.getProgram())) {
+      arPForthProgram* prog = _pforth.getProgram();
+      if (!prog) {
         cerr << "arPForthFilter warning: failed to export program.\n";
         continue;
       }

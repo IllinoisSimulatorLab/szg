@@ -131,17 +131,12 @@ void arCylinderMesh::toggleEnds(bool value){
 }
 
 void arCylinderMesh::attachMesh(const string& name, const string& nameParent){
-  int numberPoints;
-  int numberTriangles;
+  int numberPoints = 2*_numberDivisions;
+  int numberTriangles = 2*_numberDivisions;
   if (_useEnds){
-    numberPoints = 2*_numberDivisions + 2;
-    numberTriangles = 4*_numberDivisions;
+    numberPoints += 2;
+    numberTriangles *= 2;
   }
-  else{
-    numberPoints = 2*_numberDivisions;
-    numberTriangles = 2*_numberDivisions;
-  }
-
   int* pointIDs = new int[numberPoints];
   float* pointPositions = new float[3*numberPoints];
   int* triangleIDs = new int[numberTriangles];
@@ -149,7 +144,7 @@ void arCylinderMesh::attachMesh(const string& name, const string& nameParent){
   float* texCoords = new float[2*texcoordsPerTri*numberTriangles];
   float* normals = new float[3*normalsPerTri*numberTriangles];
 
-  int i;
+  int i = 0;
   // fill in the common triangles first
   // populate the points array
   arVector3 location;
@@ -391,8 +386,8 @@ void arSphereMesh::attachMesh(const string& name, const string& nameParent){
   float* normals = new float[3*normalsPerTri*numberTriangles];
 
   // populate the points array
-  int i,j;
-  float z, radius;
+  int i=0, j=0;
+  float z=0., radius=0.;
   int iPoint = 0;
   for (j=0; j<_numberDivisions+1; j++){
     for (i=0; i<_numberDivisions; i++){
@@ -472,22 +467,17 @@ void arSphereMesh::attachMesh(const string& name, const string& nameParent){
   int nearCoord = 0;
   for (j=0; j<_numberDivisions; j++){
     for (i=0; i<_numberDivisions; i+=_sectionSkip){
-      int whichTriangle = 2*(j*_numberDivisions + i);
+      const int whichTriangle = 2*(j*_numberDivisions + i);
       int farVertex = 3*whichTriangle;
       int farNormal = 9*whichTriangle;
       int farCoord = 6*whichTriangle;
-      int k;
-      for (k=0; k<6; k++){
+      int k = 0;
+      for (k=0; k<6; k++)
         triangleVertices[nearVertex++] = triangleVertices[farVertex++];
-      }
-
-      for (k=0; k<18; k++){
+      for (k=0; k<18; k++)
         normals[nearNormal++] = normals[farNormal++];
-      }
-
-      for (k=0; k<12; k++){
+      for (k=0; k<12; k++)
         texCoords[nearCoord++] = texCoords[farCoord++];
-      }
     }
   }
 

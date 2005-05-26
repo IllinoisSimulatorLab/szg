@@ -13,7 +13,7 @@ namespace arPForthSpace {
 
 // variables
 
-arSZGClient* __PForthSZGClient = 0;
+arSZGClient* __PForthSZGClient = NULL;
 
 // Run-time behaviors
 
@@ -22,7 +22,7 @@ class GetDatabaseParameter : public arPForthAction {
     bool run( arPForth* pf );
 };
 bool GetDatabaseParameter::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
   if (arPForthSpace::__PForthSZGClient == 0)
     throw arPForthException("NULL arSZGClient pointer.");
@@ -42,7 +42,7 @@ class GetFloatDatabaseParameters : public arPForthAction {
     bool run( arPForth* pf );
 };
 bool GetFloatDatabaseParameters::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
   if (arPForthSpace::__PForthSZGClient == 0)
     throw arPForthException("NULL arSZGClient pointer.");
@@ -81,7 +81,7 @@ class TrackCalAction : public arPForthAction {
     int _indexOffsets[8];
 };
 bool TrackCalAction::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
   long outMatrixAddress = (long)pf->stackPop();
   long inMatrixAddress    = (long)pf->stackPop();
@@ -91,8 +91,6 @@ bool TrackCalAction::run( arPForth* pf ) {
   return true;
 }
 bool TrackCalAction::configure(arSZGClient* szgClient) {
-  unsigned long i;
-  
   const string dataPath(szgClient->getAttribute("SZG_DATA", "path"));
   const string calFileName(szgClient->getAttribute("SZG_MOTIONSTAR", "calib_file"));
   FILE *fp = ar_fileOpen( calFileName, dataPath, "r" );
@@ -102,7 +100,7 @@ bool TrackCalAction::configure(arSZGClient* szgClient) {
     return false;
   }
 
-  cerr << "TrackCalAction remark: loading file " << calFileName << endl;
+  cout << "TrackCalAction remark: loading file " << calFileName << endl;
   fscanf(fp, "%ld %f %f %ld %f %f %ld %f %f", &_nx, &_xmin, &_dx, &_ny, &_ymin, &_dy, &_nz, &_zmin, &_dz );
   if ((_nx<1) || (_ny<1) || (_nz<1)) {
     cerr << "TrackCalAction error: table dimension < 1.\n";
@@ -122,13 +120,13 @@ bool TrackCalAction::configure(arSZGClient* szgClient) {
   _xLookupTable = new float[_n];
   _yLookupTable = new float[_n];
   _zLookupTable = new float[_n];
-  
   if (!_xLookupTable || !_yLookupTable || !_zLookupTable) {
     cerr << "TrackCalAction error: failed to allocate memory for lookup tables.\n";
     fclose(fp);
     return false;
   }
 
+  unsigned long i = 0;
   for (i=0; i<_n; i++) {
     const int stat = fscanf( fp, "%f", _xLookupTable+i );
     if ((stat == 0)||(stat == EOF)) {
@@ -158,7 +156,7 @@ bool TrackCalAction::configure(arSZGClient* szgClient) {
     }
   }
   fclose(fp);
-  cout << "TrackCalAction remark: loaded " << 3*_n << " table entries.\n";
+  //cout << "TrackCalAction remark: loaded " << 3*_n << " table entries.\n";
   _indexOffsets[0] = 0;
   _indexOffsets[1] = 1;
   _indexOffsets[2] = _nx;
@@ -233,7 +231,7 @@ class TrackCalCompiler : public arPForthCompiler {
 };
 bool TrackCalCompiler::compile( arPForth* pf,
                          vector<arPForthSpace::arPForthAction*>& /*actionList*/ ) {
-  if (pf == 0)
+  if (!pf)
     return false;
   if (arPForthSpace::__PForthSZGClient == 0)
     throw arPForthException("NULL arSZGClient pointer.");
@@ -264,7 +262,7 @@ class IIRFilterAction : public arPForthAction {
     float _filterWeights[3];
 };
 bool IIRFilterAction::run( arPForth* pf ) {
-  if (pf == 0)
+  if (!pf)
     return false;
   long outMatrixAddress = (long)pf->stackPop();
   long inMatrixAddress    = (long)pf->stackPop();
@@ -274,12 +272,11 @@ bool IIRFilterAction::run( arPForth* pf ) {
   return true;
 }
 bool IIRFilterAction::configure(arSZGClient* szgClient) {
-  float floatBuf[3];
-  unsigned int i;
+  float floatBuf[3] = {0};
   // y_filter_weight determines behavior of an IIR filter (y(i) = (1-w)y(i) + wy(i-1))
   // applied to the head vertical position to remove jitter.
   if (szgClient->getAttributeFloats("SZG_MOTIONSTAR","IIR_filter_weights",floatBuf,3)) {
-    for (i=0; i<3; i++) {
+    for (unsigned int i=0; i<3; i++) {
       if ((floatBuf[i] < 0)||(floatBuf[i] >= 1)) {
         cerr << "IIRFilterAction warning: SZG_MOTIONSTAR/IIR_filter_weight value " << floatBuf[i]
              << " out of range [0,1).\n";
@@ -315,7 +312,7 @@ class IIRFilterCompiler : public arPForthCompiler {
 };
 bool IIRFilterCompiler::compile( arPForth* pf,
                          vector<arPForthSpace::arPForthAction*>& /*actionList*/ ) {
-  if (pf == 0)
+  if (!pf)
     return false;
   if (arPForthSpace::__PForthSZGClient == 0)
     throw arPForthException("NULL arSZGClient pointer.");

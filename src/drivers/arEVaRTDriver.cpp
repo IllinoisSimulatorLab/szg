@@ -27,12 +27,12 @@ arEVaRTDriver* __globalEVaRTDriver = NULL;
 
 #ifdef EnableEVaRT
 int ar_evartDataHandler(int iType, void* data){
-  int i;
+  int i = 0;
   if (iType == HIERARCHY){
-    cout << "Received hierarchy data packet.\n";
+    cout << "arEVaRTDriver remark: Received hierarchy data packet.\n";
     sHierarchy* Hierarchy = (sHierarchy*) data;
     __globalEVaRTDriver->_numberSegments = Hierarchy->nSegments;
-    cout << "Number segments = " 
+    cout << "arEVaRTDriver remark: Number segments = " 
          << __globalEVaRTDriver->_numberSegments << "\n";
 
     __globalEVaRTDriver->_children 
@@ -151,11 +151,13 @@ arEVaRTDriver::arEVaRTDriver(){
 }
 
 arEVaRTDriver::~arEVaRTDriver(){
-  // does nothing yet
 }
 
 bool arEVaRTDriver::init(arSZGClient& SZGClient){
-#ifdef EnableEVaRT
+#ifndef EnableEVaRT
+  cerr << "arEVaRTDriver warning: EVaRT unsupported on this platform.\n";
+  return false;
+#else
   __globalEVaRTDriver = this;
   if (SZGClient.getAttribute("SZG_EVART", "output_type") == "position"){
     _outputType = string("position");
@@ -175,20 +177,19 @@ bool arEVaRTDriver::init(arSZGClient& SZGClient){
     return false;
   }
   return true;
-#else
-  cout << "arEVaRTDriver warning: EVaRT is not supported on this platform.\n";
-  return false;
 #endif
 }
 
 bool arEVaRTDriver::start(){
-#ifdef EnableEVaRT
+#ifndef EnableEVaRT
+  return false;
+#else
   EVaRT_Initialize();
   EVaRT_SetDataHandlerFunc(ar_evartDataHandler);
   char buffer[256];
   ar_stringToBuffer(_deviceIP,buffer,256);
   if (EVaRT_Connect(buffer)){
-      cout << "arEVaRTDriver message: Connected to the EVaRT\n";
+    cout << "arEVaRTDriver remark: Connected to the EVaRT\n";
   }
   else{
     cout << "arEVaRTDriver error: failed to connect to the EVaRT\n";
@@ -199,23 +200,21 @@ bool arEVaRTDriver::start(){
     EVaRT_SetDataTypesWanted(GTR_DATA);
     // we need the hierarchy record before we can do anything with the data
     EVaRT_RequestHierarchy();
-    cout << "arEVaRTDriver message: Hierarchy Requested.\n";
+    cout << "arEVaRTDriver remark: Hierarchy Requested.\n";
 
     while (!_receivedEVaRTHierarchy){
       ar_usleep(100000);
     }
-    cout << "arEVaRTDriver message: Received Hierarchy\n";
+    cout << "arEVaRTDriver remark: Received Hierarchy\n";
   }
   else{
     // just tell the EVaRT that we want position data on the markers
-    cout << "arEVaRTDriver message: requesting position data.\n";
+    cout << "arEVaRTDriver remark: requesting position data.\n";
     EVaRT_SetDataTypesWanted(TRC_DATA);
   }
 
   EVaRT_StartStreaming();
   return true;
-#else
-  return false;
 #endif
 }
 

@@ -60,7 +60,7 @@ void arGraphicsArrayNode::_mergeElements(int number,
   else{
     // Coordinate vectors are packed in arbitrary order.
     // Find the maximum ID, and allocate more space if needed.
-    int i;
+    int i = 0;
     int max=-1;
     for (i=0; i<number; i++){
       if (IDs[i] > max){

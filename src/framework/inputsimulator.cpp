@@ -13,9 +13,9 @@
 #include "arGenericDriver.h"
 #include "arPForthFilter.h"
 
-arInputState* inp;
-arSZGClient* szgclient;
-arInputNode* inputNode;
+arInputState* inp = NULL;
+arSZGClient* szgclient = NULL;
+arInputNode* inputNode = NULL;
 
 arInputSimulator simulator;
 int xPos = 0, yPos = 0;

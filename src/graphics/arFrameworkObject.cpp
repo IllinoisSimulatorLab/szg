@@ -32,14 +32,13 @@ void arFrameworkObject::preComposition(float lowerX, float lowerY,
   // Very annoying. I've encountered at least one OpenGL implementation that
   // barfed on pushing the lighting bit with glPushAttrib. Consequently,
   // do that by hand
-  _lightingOn = glIsEnabled(GL_LIGHTING) == GL_TRUE ? true : false;
+  _lightingOn = glIsEnabled(GL_LIGHTING) == GL_TRUE;
   glDisable( GL_LIGHTING );
   glGetIntegerv( GL_VIEWPORT, _viewport);
-  int left, bottom, width, height;
-  left = int(_viewport[2]*lowerX);
-  bottom = int(_viewport[3]*lowerY);
-  width = int(_viewport[2]*widthX);
-  height = int(_viewport[3]*widthY);
+  const int left = int(_viewport[2]*lowerX);
+  const int bottom = int(_viewport[3]*lowerY);
+  const int width = int(_viewport[2]*widthX);
+  const int height = int(_viewport[3]*widthY);
   glViewport( (GLint)left, (GLint)bottom, (GLsizei)width, (GLsizei)height );
   glClear(GL_DEPTH_BUFFER_BIT);
   glEnable(GL_BLEND);

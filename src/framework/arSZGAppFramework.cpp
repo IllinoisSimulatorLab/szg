@@ -250,7 +250,7 @@ void arSZGAppFramework::_loadNavParameters() {
   }
   arInputEventType theType;
   unsigned int index = 1;
-  float threshold;
+  float threshold = 0.;
   if ((___firstNavLoad)||_paramNotOwned( "x_translation" )) {
     temp = _SZGClient.getAttribute("SZG_NAV", "x_translation");
     if (temp != "NULL") {
@@ -331,7 +331,6 @@ bool arSZGAppFramework::_parseNavParamString( const string& theString,
                                               unsigned int& index,
                                               float& threshold,
                                               stringstream& initStream ) {
-  int ind;
   std::vector<std::string> params;
   if (!ar_getTokenList( theString, params, '/' )) {
     initStream << "arSZGAppFramework error: failed to parse SZG_NAV string "
@@ -345,6 +344,7 @@ bool arSZGAppFramework::_parseNavParamString( const string& theString,
 	       << "/threshold(float).\n";
     return false;
   }
+  int ind = -1;
   if (!ar_stringToIntValid( params[1], ind ) ||
       !ar_stringToFloatValid( params[2], threshold )) {
     initStream << "arSZGAppFramework error: "

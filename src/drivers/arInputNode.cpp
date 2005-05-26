@@ -423,16 +423,16 @@ void arInputNode::_filterEventQueue( arInputEventQueue& queue ) {
   arFilterIterator f;
   std::vector< arInputState >::iterator stateIter = _filterStates.begin();
   for (f = _inputFilterList.begin(); f != _inputFilterList.end(); ++f) {
-     arInputState* statePtr;
+     arInputState* statePtr = NULL;
      if (stateIter == _filterStates.end()) {
       cerr << "arInputNode error: reading past end of filterStates array.\n";
       statePtr = &_inputState; // do something that may not be too bad? or return?
     } else
       statePtr = (arInputState*)&(*stateIter);
-    if (!((*f)->filter( &queue, statePtr )))
+    if (!(*f)->filter( &queue, statePtr ))
       cerr << "arInputNode warning: filter # " << filterNumber << " failed.\n";
-    filterNumber++;
-    stateIter++;
+    ++filterNumber;
+    ++stateIter;
   }
 }
 

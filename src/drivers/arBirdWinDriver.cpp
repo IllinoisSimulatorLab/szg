@@ -29,7 +29,7 @@ void ar_WinBirdDriverEventTask(void* FOBDriver) {
   arBirdWinDriver* fobDriver = (arBirdWinDriver*) FOBDriver;
   BOOL status = birdStartFrameStream( fobDriver->_groupID );
   if (!status) {
-    cerr << "arBirdWinDriver error: Unable to start data stream.\n";
+    cerr << "arBirdWinDriver error: failed to start data stream.\n";
     fobDriver->stop();
     return;
   }
@@ -48,9 +48,9 @@ void ar_WinBirdDriverEventTask(void* FOBDriver) {
     // Or better yet, factor out the common code from here and there!
 
     arVector3 pos;
-    float quat[4];
-    WORD posScale;
-    BIRDREADING* preading;
+    float quat[4] = {0};
+    WORD posScale = 0;
+    BIRDREADING* preading = NULL;
     if (fobDriver->_standAlone) {
       posScale = fobDriver->_devConfig[0].wScaling;
       preading = &frame.reading[0]; 
@@ -66,7 +66,7 @@ void ar_WinBirdDriverEventTask(void* FOBDriver) {
 //      arMatrix4 quatMatrix( arQuaternion(quat[0],quat[1],quat[2],quat[3]) );
 //      arMatrix4 fobMatrix( ar_translationMatrix(pos)*quatMatrix );
 
-      arMatrix4 fobMatrix( ar_transrotMatrix( pos, arQuaternion( quat ) ) );
+      const arMatrix4 fobMatrix( ar_transrotMatrix( pos, arQuaternion( quat ) ) );
       fobDriver->queueMatrix( 0, fobMatrix );
     } else {
       for (int i=1; i<=fobDriver->_numDevices; i++) {
@@ -84,7 +84,7 @@ void ar_WinBirdDriverEventTask(void* FOBDriver) {
       //	arQuaternion orient( quat[0],quat[1],quat[2],quat[3] );
       //	arMatrix4 fobMatrix( ar_translationMatrix(pos)*quatMatrix );
       
-        arMatrix4 fobMatrix( ar_transrotMatrix( pos, arQuaternion( quat ) ) );
+        const arMatrix4 fobMatrix( ar_transrotMatrix( pos, arQuaternion( quat ) ) );
         fobDriver->queueMatrix( i-1, fobMatrix );
       }
     }
@@ -109,7 +109,6 @@ arBirdWinDriver::arBirdWinDriver() :
 #ifdef EnableBirdWinDriver
 bool arBirdWinDriver::init(arSZGClient& SZGClient) {
 #ifdef AR_USE_WIN_32
-  int i;
   const int baudRates[] = {2400,4800,9600,19200,38400,57600,115200};
   const BYTE hemiNums[] = {BHC_FRONT,BHC_REAR,BHC_UPPER,BHC_LOWER,BHC_LEFT,BHC_RIGHT};
   const string hemispheres[] = {"front","rear","upper","lower","left","right"};
@@ -135,6 +134,7 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
   }
   _setDeviceElements( 0, 0, _numDevices );
   _standAlone = (_numDevices == 1);
+  int i = 0;
   if (_standAlone) {  // for standalone, we put the COM port # at array position 0
     cerr << "arBirdWinDriver remark: standalone configuration using COM port " << intComPorts[0] << endl;
     _comPorts[0] = static_cast<WORD>( intComPorts[0] );
@@ -148,9 +148,12 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
   }
   _baudRate = SZGClient.getAttributeInt("SZG_FOB", "baud_rate");
   bool baudRateFound = false;
-  for (i=0; i<_nBaudRates; i++)
-    if (_baudRate == baudRates[i])
+  for (i=0; i<_nBaudRates; i++) {
+    if (_baudRate == baudRates[i]) {
       baudRateFound = true;
+      break;
+    }
+  }
   if (!baudRateFound) {
     cerr << "arBirdWinDriver warning: illegal value for SZG_FOB/baud_rate.\n"
          << "  Legal values are:";
@@ -159,7 +162,7 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
     _baudRate = 115200;
     cerr << "\n   Defaulting to " << _baudRate << ".\n";
   }
-  string hemisphere = SZGClient.getAttribute("SZG_FOB", "hemisphere");
+  string hemisphere(SZGClient.getAttribute("SZG_FOB", "hemisphere"));
   int hemiFound = -1;
   BYTE hemisphereNum;
   for (i=0; i<_nHemi; i++)
@@ -178,7 +181,7 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
   
   if (!birdRS232WakeUp(_groupID,_standAlone,_numDevices,_comPorts,
                        _baudRate,_readTimeout,_writeTimeout)) {
-    cerr << "arBirdWinDriver error: Unable to wake up the flock.\n";
+    cerr << "arBirdWinDriver error: failed to wake up the flock.\n";
     stop();
     return false;
   }
@@ -187,14 +190,14 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
   _flockWoken = true;
   BOOL status = birdGetSystemConfig(_groupID,&_sysConfig);
   if (!status) {
-    cerr << "arBirdWinDriver error: Unable to get flock's system config.\n";
+    cerr << "arBirdWinDriver error: failed to get flock's system config.\n";
     stop();
     return false;
   }
   if (!_standAlone) {
     // check to see how many devices are really present
     int devcnt = 0;
-    for (i=0, devcnt= 0; i < _FOB_MAX_DEVICES; i++) {
+    for (i=0; i < _FOB_MAX_DEVICES; i++) {
       if (_sysConfig.byFlockStatus[i] & BFS_FBBACCESSIBLE)
         devcnt++;
     }
@@ -211,7 +214,7 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
   if (_standAlone) {
     status = birdGetDeviceConfig(_groupID,0,&_devConfig[0]);
     if (!status) {
-      cerr << "arBirdWinDriver error: Unable to get config for the bird\n" ;
+      cerr << "arBirdWinDriver error: failed to get config for the bird\n" ;
        stop();
       return false;
     }
@@ -219,7 +222,7 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
     _devConfig[0].byHemisphere = _hemisphereNum;
     status = birdSetDeviceConfig(_groupID,0,&_devConfig[0]);
     if (!status) {
-      cerr << "arBirdWinDriver error: Unable to set position/quaternion "
+      cerr << "arBirdWinDriver error: failed to set position/quaternion "
      << "mode + hemisphere for the bird" << endl;
       stop();
       return false;
@@ -228,7 +231,7 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
     for (i=1; i<=_numDevices; i++) {
       status = birdGetDeviceConfig(_groupID,i,&_devConfig[i]);
       if (!status) {
-        cerr << "arBirdWinDriver error: Unable to get config for device #" 
+        cerr << "arBirdWinDriver error: failed to get config for device #" 
              << i << endl;
         stop();
         return false;
@@ -240,7 +243,7 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
       _devConfig[i].byHemisphere = _hemisphereNum;
       status = birdSetDeviceConfig(_groupID,i,&_devConfig[i]);
       if (!status) {
-        cerr << "arBirdWinDriver error: Unable to set position/quaternion "
+        cerr << "arBirdWinDriver error: failed to set position/quaternion "
        << "mode + hemisphere for device #" << i << endl;
         stop();
         return false;

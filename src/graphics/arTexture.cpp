@@ -322,13 +322,12 @@ bool arTexture::readPPM(const string& fileName,
   // This would, in fact, be GLOBALLY obnoxious to change!!!
   // Better make sure everything is working correctly first... and then
   // change it.
-  int i;
   if (!strcmp(PPMHeader,"P6")){
     // BINARY PPM FILE
     char* localBuffer = new char[ _width*_height*3 ];
     fread(localBuffer, _width*_height*3, 1, fd);
     int count = 0;
-    for (i= _height*_width - 1; i>=0; i--) {
+    for (int i= _height*_width - 1; i>=0; i--) {
       char* pPixel = &_pixels[i*getDepth()];
       pPixel[0] = localBuffer[count++];
       pPixel[1] = localBuffer[count++];
@@ -339,9 +338,8 @@ bool arTexture::readPPM(const string& fileName,
   else{
     // ASCII PPM FILE
     int aPixel[3];
-    // AARGH!!!! This is definitely reversed horizontally, much like the
-    // above!
-    for (i = _height*_width -1; i >= 0; i--) {
+    // AARGH!!!! definitely reversed horizontally, much like the above!
+    for (int i = _height*_width -1; i >= 0; i--) {
       fscanf(fd, "%d %d %d", &(aPixel[0]), &(aPixel[1]), &(aPixel[2]));
       _pixels[( i*getDepth())] = (unsigned char)aPixel[0];
       _pixels[( i*getDepth()) + 1] = (unsigned char)aPixel[1];
@@ -570,17 +568,16 @@ bool arTexture::flipHorizontal() {
   char *temp = _pixels;
   _pixels = new char[numbytes()];
   if (!_pixels) {
-    cout << "arTexture error: flipHorizontal() failed.\n";
+    cerr << "arTexture error: flipHorizontal() failed.\n";
     return false;
   }
-  int j,k;
-  int depth = getDepth();
+  const int depth = getDepth();
   for (int i = 0; i<_height; i++) {
-    for (j = 0, k = _width-1; j<_width; j++, k--) {
-      char *pOld = temp + depth*(k+i*_width);
+    int k = _width-1;
+    for (int j = 0; j<_width; j++, k--) {
+      const char *pOld = temp + depth*(k+i*_width);
       char *pNew = _pixels + depth*(j+i*_width);
-      for (int l=0; l<depth; l++)
-        *pNew++ = *pOld++;
+      memcpy(pNew, pOld, depth);
     }
   }
   delete[] temp;
@@ -630,10 +627,10 @@ void arTexture::_assignAlpha(int alpha){
 /// the image. Consequently, we reverse that here as well.
 char* arTexture::_packPixels(){
   char* buffer = new char[_width*_height*3];
-  int depth = getDepth();
+  const int depth = getDepth();
   for (int i = 0; i < _height; i++){
     for (int j=0; j < _width; j++){
-      // note how the order of the scanlines is reversed
+      // reverse the order of the scanlines
       buffer[3*((_height-i-1)*_width + j)] = _pixels[depth*(i*_width + j)];
       buffer[3*((_height-i-1)*_width + j)+1] = _pixels[depth*(i*_width + j)+1];
       buffer[3*((_height-i-1)*_width + j)+2] = _pixels[depth*(i*_width + j)+2];
@@ -656,18 +653,11 @@ void arTexture::_loadIntoOpenGL() {
   // _width and _height must both be a power of two... otherwise
   // no texture will appear when this is invoked.
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, _textureFunc );
-  GLint internalFormat;
-  if (_grayScale) {
-    if (_alpha)
-      internalFormat = GL_LUMINANCE_ALPHA;
-    else
-      internalFormat = GL_LUMINANCE;
-  } else {
-    if (_alpha)
-      internalFormat = GL_RGBA;
-    else
-      internalFormat = GL_RGB;
-  }
+  GLint internalFormat = 0;
+  if (_grayScale)
+    internalFormat = _alpha ? GL_LUMINANCE_ALPHA : GL_LUMINANCE;
+  else
+    internalFormat = _alpha ? GL_RGBA : GL_RGB;
   if (_mipmap)
     gluBuild2DMipmaps(GL_TEXTURE_2D,
                       internalFormat,

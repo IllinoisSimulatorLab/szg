@@ -266,7 +266,7 @@ bool arSyncDataServer::init(arSZGClient& client){
   _serviceName = _client->createComplexServiceName(_serviceName);
   // connection brokering goes here
   _dataServer.smallPacketOptimize(true);
-  int port;
+  int port = -1;
   if (!_client->registerService(_serviceName,_channel,1,&port)){
     initStream << "arSyncDataServer error: failed to register service.\n";
     return false;

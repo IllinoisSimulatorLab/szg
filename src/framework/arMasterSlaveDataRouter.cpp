@@ -134,9 +134,8 @@ void arMasterSlaveDataRouter::setRemoteStreamConfig(const arStreamConfig& c){
 /// must happen here, since the buffer was transfered from computer to
 /// computer without reformating the raw data.
 bool arMasterSlaveDataRouter::routeMessages(char* inBuffer, int bufferSize){
-  int inBufferPosition = 0;
-  while (inBufferPosition < bufferSize){
-    int delta;
+  for (int inBufferPosition = 0; inBufferPosition < bufferSize; ){
+    int delta = -1;
     arStructuredData* message = _parser->parse(inBuffer+inBufferPosition, 
                                                delta,
                                                _remoteStreamConfig);
@@ -144,13 +143,14 @@ bool arMasterSlaveDataRouter::routeMessages(char* inBuffer, int bufferSize){
       cerr << "arMasterSlaveDataRouter error: failed to parse data.\n";
       return false;
     }
+
     // advance position to that of the next record
     inBufferPosition += delta;
     // before going on, remember to send record to framework object
-    int objectID;
+    int objectID = -1;
     message->dataOut("szg_router_id",&objectID,AR_INT,1);
-    map<int, arFrameworkObject*, less<int> >::iterator i 
-      = _objectTable.find(objectID);
+    map<int, arFrameworkObject*, less<int> >::iterator i =
+      _objectTable.find(objectID);
     if (i != _objectTable.end()){
       if (!i->second->receiveData(message)){
         cerr << "arMasterSlaveDataRouter error: receiveData failed.\n";

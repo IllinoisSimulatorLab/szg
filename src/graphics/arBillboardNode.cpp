@@ -33,7 +33,7 @@ void arBillboardNode::draw(){
   int numberLines = 0;
   int maxLineSize = 1;
   int currentLineSize = 0;
-  int i;
+  int i = 0;
   for (i=0; i<len; i++){
     if (_text[i] == '/' || i == len-1){
       ++numberLines;

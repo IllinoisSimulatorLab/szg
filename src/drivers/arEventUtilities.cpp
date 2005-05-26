@@ -390,7 +390,7 @@ bool ar_saveInputStateToStructuredData( arInputState* state,
       return false;
     }
 
-  int sigBuf[] = { _numButtons, _numAxes, _numMatrices };
+  const int sigBuf[] = { _numButtons, _numAxes, _numMatrices };
   int* typeBuf = new int[_numItems];
   int* indexBuf = new int[_numItems];
   int* buttonBuf = new int[_numButtons];

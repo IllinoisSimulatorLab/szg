@@ -98,9 +98,9 @@ string ar_graphicsPeerHandlePullSerial(arGraphicsPeer* peer,
 	   << "localRootID/send_level/remote_send_on/local_send_on";
     return result.str();
   }
-  int remoteRootID;
-  int localRootID;
-  int sendLevel;
+  int remoteRootID = -1;
+  int localRootID = -1;
+  int sendLevel = -1;
   stringstream value1;
   value1 << parameters[1];
   value1 >> remoteRootID;
@@ -117,8 +117,8 @@ string ar_graphicsPeerHandlePullSerial(arGraphicsPeer* peer,
        << " remoteSendOn = " << parameters[4] 
        << " localSendOn = " << parameters[5];
   if (!peer->pullSerial(parameters[0], remoteRootID, localRootID, sendLevel,
-                        parameters[4] == "1" ? true : false,
-                        parameters[5] == "1" ? true : false)){
+                        parameters[4] == "1",
+                        parameters[5] == "1")){
     result << "szg-rp error: failed to pull from remote peer"
 	   << " (" <<  parameters[0] << ").";
     return result.str();
@@ -137,9 +137,9 @@ string ar_graphicsPeerHandlePushSerial(arGraphicsPeer* peer,
 	   << "localRootID/send_level/remote_send_on/local_send_on";
     return result.str();
   }
-  int remoteRootID;
-  int localRootID;
-  int sendLevel;
+  int remoteRootID = -1;
+  int localRootID = -1;
+  int sendLevel = -1;
   stringstream value1;
   value1 << parameters[1];
   value1 >> remoteRootID;
@@ -157,8 +157,8 @@ string ar_graphicsPeerHandlePushSerial(arGraphicsPeer* peer,
        << " localSendOn = " << parameters[5];
   if (!peer->pushSerial(parameters[0], 
                         remoteRootID, localRootID, sendLevel,
-                        parameters[4] == "1" ? true : false,
-                        parameters[5] == "1" ? true : false)){
+                        parameters[4] == "1",
+                        parameters[5] == "1")){
     result << "szg-rp error: failed to push to remote peer"
 	   << " (" <<  parameters[0] << ", with remote ID = "
 	   << remoteRootID << ").";
@@ -267,28 +267,20 @@ string ar_graphicsPeerHandleLocalLockNode(arGraphicsPeer* peer,
     return result.str();
   }
   stringstream IDStream;
-  int ID;
+  int ID = -1;
   IDStream << bodyList[1];
   IDStream >> ID;
-  bool state;
-  if (lock){
-    state = peer->localLockNode(bodyList[0], ID);
-  }
-  else{
-    // NOTE: the second parameter is meaningless in this case.
-    state = peer->localUnlockNode(ID);
-  }
+  const bool state = lock ?
+    peer->localLockNode(bodyList[0], ID) :
+    peer->localUnlockNode(ID);
+    // The second parameter is meaningless if !lock.
   if (!state){
     result << "szg-rp error: lock operation failed on node " << ID 
 	   << " on peer " << bodyList[0] << ".";
     return result.str();
   }
-  if (lock){
-    result << "szg-rp success: node locked.";
-  }
-  else{
-    result << "szg-rp success: node unlocked.";
-  }
+  result << lock ? "szg-rp success: node locked." :
+                   "szg-rp success: node unlocked.";
   return result.str();
 }
 
@@ -303,11 +295,11 @@ string ar_graphicsPeerHandleRemoteFilterDataBelow(arGraphicsPeer* peer,
     return result.str();
   }
   stringstream IDStream;
-  int ID;
+  int ID = -1;
   IDStream << bodyList[1];
   IDStream >> ID;
   stringstream valueStream;
-  int value;
+  int value = -1;
   valueStream << bodyList[2];
   valueStream >> value;
   if (peer->remoteFilterDataBelow(bodyList[0], ID, value)){
@@ -330,11 +322,11 @@ string ar_graphicsPeerHandleLocalFilterDataBelow(arGraphicsPeer* peer,
     return result.str();
   }
   stringstream IDStream;
-  int ID;
+  int ID = -1;
   IDStream << bodyList[1];
   IDStream >> ID;
   stringstream valueStream;
-  int value;
+  int value = -1;
   valueStream << bodyList[2];
   valueStream >> value;
   if (peer->localFilterDataBelow(bodyList[0], ID, value)){
@@ -375,15 +367,11 @@ string ar_graphicsPeerHandleRemoteNodeID(arGraphicsPeer* peer,
 string ar_graphicsPeerHandleReadDatabase(arGraphicsPeer* peer, 
                                          const string& messageBody, 
                                          bool useXML){
+  const bool ok = useXML ?
+    peer->readDatabaseXML(messageBody) :
+    peer->readDatabase(messageBody);
   stringstream result;
-  bool state = false;
-  if (useXML){
-    state = peer->readDatabaseXML(messageBody);
-  }
-  else{
-    state = peer->readDatabase(messageBody);
-  }
-  if (!state){
+  if (!ok){
     result << "szg-rp error: failed to read specified database.";
     return result.str();
   }
@@ -396,15 +384,11 @@ string ar_graphicsPeerHandleReadDatabase(arGraphicsPeer* peer,
 string ar_graphicsPeerHandleWriteDatabase(arGraphicsPeer* peer, 
                                           const string& messageBody, 
                                           bool useXML){
+  const bool ok = useXML ?
+    peer->writeDatabaseXML(messageBody) :
+    peer->writeDatabase(messageBody);
   stringstream result;
-  bool state = false;
-  if (useXML){
-    state = peer->writeDatabaseXML(messageBody);
-  }
-  else{
-    state = peer->writeDatabase(messageBody);
-  }
-  if (!state){
+  if (!ok){
     result << "szg-rp error: failed to write specified database.";
     return result.str();
   }
@@ -423,10 +407,9 @@ string ar_graphicsPeerHandleWriteRooted(arGraphicsPeer* peer,
     result << "szg-rp error: format must be remote_node_ID/file_name.";
     return result.str();
   }
-  bool state = false;
   stringstream value;
   value << parameters[0];
-  int ID;
+  int ID = -1;
   value >> ID;
   // Is there a node with this ID?
   arDatabaseNode* node = peer->getNode(ID);
@@ -434,13 +417,10 @@ string ar_graphicsPeerHandleWriteRooted(arGraphicsPeer* peer,
     result << "szg-rp error: no node with ID=" << ID << ".";
     return result.str();
   }
-  if (useXML){
-    state = peer->writeRootedXML(node, parameters[1]);
-  }
-  else{
-    state = peer->writeRooted(node, parameters[1]);
-  }
-  if (!state){
+  const bool ok = useXML ?
+    peer->writeRootedXML(node, parameters[1]) :
+    peer->writeRooted(node, parameters[1]);
+  if (!ok){
     result << "szg-rp error: failed to save specified database.";
     return result.str();
   }
@@ -459,10 +439,9 @@ string ar_graphicsPeerHandleAttach(arGraphicsPeer* peer,
     result << "szg-rp error: format must be remote_node_ID/file_name.";
     return result.str();
   }
-  bool state = false;
   stringstream value;
   value << parameters[0];
-  int ID;
+  int ID = -1;
   value >> ID;
   // Is there a node with this ID?
   arDatabaseNode* node = peer->getNode(ID);
@@ -470,13 +449,10 @@ string ar_graphicsPeerHandleAttach(arGraphicsPeer* peer,
     result << "szg-rp error: no node with ID=" << ID << ".";
     return result.str();
   }
-  if (useXML){
-    state = peer->attachXML(node, parameters[1]);
-  }
-  else{
-    state = peer->attach(node, parameters[1]);
-  }
-  if (!state){
+  const bool ok = useXML ?
+    peer->attachXML(node, parameters[1]) :
+    peer->attach(node, parameters[1]);
+  if (!ok){
     result << "szg-rp error: failed to attach specified database.";
     return result.str();
   }
@@ -495,23 +471,19 @@ string ar_graphicsPeerHandleMerge(arGraphicsPeer* peer,
     result << "szg-rp error: format must be remote_node_ID/file_name.";
     return result.str();
   }
-  bool state = false;
   stringstream value;
   value << parameters[0];
-  int ID;
+  int ID = -1;
   value >> ID;
   arDatabaseNode* node = peer->getNode(ID);
   if (!node){
     result << "szg-rp error: no node with ID=" << ID << ".";
     return result.str();
   }
-  if (useXML){
-    state = peer->mergeXML(node, parameters[1]);
-  }
-  else{
-    state = peer->merge(node, parameters[1]);
-  }
-  if (!state){
+  const bool ok = useXML ?
+    peer->mergeXML(node, parameters[1]) :
+    peer->merge(node, parameters[1]);
+  if (!ok){
     result << "szg-rp error: failed to merge specified database.";
     return result.str();
   }
@@ -523,8 +495,7 @@ string ar_graphicsPeerHandleMerge(arGraphicsPeer* peer,
 string ar_graphicsPeerHandlePrintConnections(arGraphicsPeer* peer,
 					     const string&){
   stringstream result;
-  result << "szg-rp success:\n";
-  result << peer->printConnections();
+  result << "szg-rp success:\n" << peer->printConnections();
   return result.str();
 }
 
@@ -532,8 +503,7 @@ string ar_graphicsPeerHandlePrintConnections(arGraphicsPeer* peer,
 string ar_graphicsPeerHandlePrintPeer(arGraphicsPeer* peer, 
                                   const string&){
   stringstream result;
-  result << "szg-rp success:\n";
-  result << peer->printPeer();
+  result << "szg-rp success:\n" << peer->printPeer();
   return result.str();
 }
 
@@ -548,13 +518,8 @@ string ar_graphicsPeerStripName(string& messageBody){
   }
   else{
     peerName = messageBody.substr(0, position);
-    if (messageBody.length() > position+1){
-      actualMessageBody 
-        = messageBody.substr(position+1, messageBody.length()-position-1);
-    }
-    else{
-      actualMessageBody = "";
-    }
+    actualMessageBody = messageBody.length() > position+1 ?
+	messageBody.substr(position+1, messageBody.length()-position-1) : "";
   }
   messageBody = actualMessageBody;
   return peerName;
@@ -564,7 +529,6 @@ string ar_graphicsPeerHandleMessage(arGraphicsPeer* peer,
                                     const string& messageType,
 				    const string& messageBody){
   string responseBody;
-
   if (messageType == "connect_to_peer"){
     responseBody = ar_graphicsPeerHandleConnectToPeer(peer,messageBody);
   }

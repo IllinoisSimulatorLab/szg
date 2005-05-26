@@ -281,8 +281,9 @@ void arBumpMap::_computeFrame() {
   //printf("arBumpMap::_computeFrame(%i) starting...\n", _numTBN);
 
   arVector3 edge1, edge2, s, t, sxt;
-  float ds_dx, dt_dx, ds_dy, dt_dy, ds_dz, dt_dz;
-  int i, numFaces = (_indices ? _numInd/3 : _numPts/9);
+  float ds_dx = 0., dt_dx = 0., ds_dy = 0., dt_dy = 0., ds_dz = 0., dt_dz = 0.;
+  int i = 0;
+  int numFaces = _indices ? _numInd/3 : _numPts/9;
   // storage for new values
   arVector3 *dsList = new arVector3[numFaces];
   arVector3 *dtList = new arVector3[numFaces];
@@ -382,6 +383,8 @@ void arBumpMap::_computeFrame() {
     _normals[9*i+1] = _normals[9*i+4] = _normals[9*i+7] = tempN.v[1];
     _normals[9*i+2] = _normals[9*i+5] = _normals[9*i+8] = tempN.v[2];
   }
+  delete [] dsList;
+  delete [] dtList;
   _TBN[0] = _tangents;
   _TBN[1] = _binormals;
   _TBN[2] = _normals;

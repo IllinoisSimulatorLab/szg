@@ -207,24 +207,15 @@ ISD_OpenAllTrackers(
 DLLEXPORT Bool DLLENTRY 
 ISD_CloseTracker( ISD_TRACKER_HANDLE handle )
 {
-    Bool ret;
-    WORD num;
-    
-    if( _ISD_CloseTracker )
-    {
-        ret = (*_ISD_CloseTracker)( handle );
-        
-        // if all trackers are closed the dll can be freed 
-        if( ISD_NumOpenTrackers( &num ) )
-        {
-            if( num == 0 )
-            {
-                ISD_FreeLib();
-            }
-        }
-        return ret;
-    }
+  if( _ISD_CloseTracker )
     return FALSE;
+
+  const Bool ret = (*_ISD_CloseTracker)( handle );
+  // if all trackers are closed the dll can be freed 
+  WORD num = 0;
+  if( ISD_NumOpenTrackers( &num ) && num == 0)
+    ISD_FreeLib();
+  return ret;
 }
 
 
@@ -232,8 +223,9 @@ ISD_CloseTracker( ISD_TRACKER_HANDLE handle )
 DLLEXPORT Bool DLLENTRY 
 ISD_NumOpenTrackers( WORD *num )
 {
-    if( !_ISD_NumOpenTrackers ) return FALSE;
-    return (*_ISD_NumOpenTrackers)( num );
+  if( !_ISD_NumOpenTrackers )
+    return FALSE;
+  return (*_ISD_NumOpenTrackers)( num );
 }
 
 
@@ -421,9 +413,7 @@ static DLL_EP dll_entrypoint( DLL *dll, const char *name )
 {
 #if defined(_WIN32) || defined(WIN32) || defined(__WIN32__)
     
-    FARPROC proc;
-    
-    proc = GetProcAddress( (HMODULE) dll, (LPCSTR) name );
+    FARPROC proc = GetProcAddress( (HMODULE) dll, (LPCSTR) name );
     if( proc == NULL )
     {
         printf( "Failed to load %s. Error code %d\n", name, GetLastError() );
@@ -433,8 +423,7 @@ static DLL_EP dll_entrypoint( DLL *dll, const char *name )
 #else // UNIX
     
     void *handle = (void *) dll;
-    DLL_EP ep;
-    ep = (DLL_EP) dlsym( handle, name );
+    DLL_EP ep = (DLL_EP) dlsym( handle, name );
     return ( dlerror() == 0 ) ? ep : (DLL_EP) NULL;
     
 #endif
@@ -450,10 +439,8 @@ static DLL *dll_load( const char *name )
     
 #else // UNIX
     
-    DLL *dll;
-    
-    dll = dlopen( name, RTLD_NOW );
-    if(!dll) printf( "%s\n", (char *) dlerror() );
+    DLL *dll = dlopen( name, RTLD_NOW );
+    if (!dll) printf( "%s\n", (char *) dlerror() );
     return dll;
     
 #endif
@@ -465,14 +452,11 @@ static void dll_unload( DLL *dll )
 {
 #if defined(_WIN32) || defined(WIN32) || defined(__WIN32__)
     
-    HINSTANCE hInst = (HINSTANCE) dll;
-    FreeLibrary( hInst );
+    FreeLibrary( (HINSTANCE) dll );
     
 #else // UNIX
     
-    void *handle = (void *) dll;
-    dlclose( handle );
+    dlclose((void *) dll);
     
 #endif
 }
-

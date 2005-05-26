@@ -126,7 +126,7 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
   }
 
   // get the system status
-  BN_SYSTEM_STATUS* sys;
+  BN_SYSTEM_STATUS* sys = NULL;
   if (!_getStatusAll(&sys)){
     initResponse <<
       "arMotionstarDriver error: failed to set system status.\n";
@@ -173,8 +173,8 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
     return(-1);
   }
 
-  BN_BIRD_STATUS* bird;
-  int i;
+  BN_BIRD_STATUS* bird = NULL;
+  int i = 0;
   for (i=2; i<=nDevices; i++){
     // get the status of an individual bird
     if (!_getStatusBird(i,&bird)){
@@ -182,8 +182,9 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 	           << i-1 << "\n";
       return false;
     }
+
 //    if (i<10) {
-//      int j;
+//      int j = 0;
 //cout << "arMotionstarDriver remarks: bird #" << i << " has FFB address "
 //     << (unsigned int)bird->header.FBBaddress << endl;
 //cout << "    alphaMin: ";
@@ -199,6 +200,7 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 //  cout << (unsigned short)ntohs(bird->Vm.entry[j]) << " ";
 //cout << endl << endl;
 //    }
+
     // change the data format to something new for all birds
     if (i <= birdsRequired+1){
       // set reporting format to position/angles

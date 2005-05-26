@@ -21,7 +21,7 @@ namespace arPForthSpace {
 // Run-time behaviors
 
 bool FetchNumber::run( arPForth* pf ) {
-  if (pf==0)
+  if (!pf)
     return false;
   pf->stackPush( _value );
   return true;
@@ -31,7 +31,7 @@ bool FetchNumber::run( arPForth* pf ) {
 
 bool SimpleCompiler::compile( arPForth* pf,
                               vector<arPForthSpace::arPForthAction*>& actionList ) {
-  if (pf == 0)
+  if (!pf)
     return false;
   actionList.push_back( _action );
   return true;
@@ -39,15 +39,14 @@ bool SimpleCompiler::compile( arPForth* pf,
 
 bool VariableCompiler::compile( arPForth* pf,
                                vector<arPForthSpace::arPForthAction*>& /*actionList*/ ) {
-  if (pf == 0)
+  if (!pf)
     return false;
   string theName = pf->nextWord();
   if (theName == "PFORTH_NULL_WORD")
     throw arPForthException("end of input reached prematurely.");
   if (pf->findWord( theName ))
     throw arPForthException("word " + theName + " already in dictionary.");
-  unsigned long address;
-  address = pf->allocateStorage( _size ); // oops, needs a test
+  const unsigned long address = pf->allocateStorage( _size ); // oops, needs a test
   arPForthAction* action = new FetchNumber( (float)address );
   pf->addAction( action );
   arPForthCompiler* compiler = new SimpleCompiler( action );
@@ -57,13 +56,13 @@ bool VariableCompiler::compile( arPForth* pf,
 
 bool ArrayCompiler::compile( arPForth* pf,
                                vector<arPForthSpace::arPForthAction*>& /*actionList*/ ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  string numItemsString = pf->nextWord();
-  string theName = pf->nextWord();
+  const string numItemsString = pf->nextWord();
+  const string theName = pf->nextWord();
   if ((numItemsString == "PFORTH_NULL_WORD")||(theName == "PFORTH_NULL_WORD"))
     throw arPForthException("end of input reached prematurely.");
-  long numItemsSigned;
+  long numItemsSigned = -1;
   if (!ar_stringToLongValid( numItemsString, numItemsSigned ))
     throw arPForthException("string->numItems conversion failed.");
   if (pf->findWord( theName ))
@@ -79,10 +78,10 @@ bool ArrayCompiler::compile( arPForth* pf,
 
 bool NumberCompiler::compile( arPForth* pf,
                              vector<arPForthSpace::arPForthAction*>& actionList ) {
-  if (pf == 0)
+  if (!pf)
     return false;
-  double theDouble;
-  float theFloat;
+  double theDouble = 0.;
+  float theFloat = 0.;
   if (!ar_stringToDoubleValid( _theWord, theDouble ))
     throw arPForthException("string->float conversion failed.");
   if (!ar_doubleToFloatValid( theDouble, theFloat ))
@@ -98,7 +97,7 @@ bool NumberCompiler::compile( arPForth* pf,
 
 bool PlaceHolderCompiler::compile( arPForth* pf,
                 vector<arPForthSpace::arPForthAction*>& /*actionList*/ ) {
-  if (pf == 0)
+  if (!pf)
     return false;
   throw arPForthException("syntax error involving " + _theWord + ".");
   return true;
@@ -109,14 +108,14 @@ bool PlaceHolderCompiler::compile( arPForth* pf,
 //  bool compile( arPForth* pf, const string theWord );
 //}
 //bool ConstantCompile::compile( arPForth* pf, const string theWord ) {
-//  if (pf == 0)
+//  if (!pf)
 //    return false;
 //  const string theName = pf->nextWord();
 //  if (!pf->findWord( theName ))
 //    return false;
 //  if (pf->_wordIndex( theName )!=-1)
 //    return false;
-//  unsigned long address;
+//  unsigned long address = -1;
 //  if ((address = pf->_allocateStorage( _size )) < 0)
 //    return false;
 //  if (!pf->addDictionaryEntry( theName, FetchAddress( address ) ))
@@ -148,7 +147,7 @@ arPForth::~arPForth() {
     delete _program;
 //  _program.clear();
   _dictionary.clear();
-  unsigned int i;
+  unsigned int i = 0;
   for (i=0; i<_actions.size(); i++)
     delete _actions[i];
   _actions.clear();
@@ -356,10 +355,10 @@ bool arPForth::compileProgram( const string sourceCode ) {
   try {
     anonymousActionsAreTransient = true;
     _inputWords.clear();
-    if (_program != 0)
+    if (_program)
       delete _program;
     _program = new arPForthProgram;
-    if (_program == 0) {
+    if (!_program) {
       cerr << "arPForth error: failed to allocate program memory.\n";
       return false;
     }
@@ -378,13 +377,13 @@ bool arPForth::compileProgram( const string sourceCode ) {
   catch (arPForthSpace::arPForthException ce) {
     cerr << "arPForth error: " << ce._message << endl << endl;
 //    _program.clear();
-    if (_program != 0) {
+    if (_program) {
       delete _program;
-      _program = 0;
+      _program = NULL;
     }
     anonymousActionsAreTransient = true;
     cerr << "Dictionary:" << endl;
-    unsigned int i;
+    unsigned int i = 0;
     for (i = 0; i<_dictionary.size(); i++) {
       if (i!=0)
         cerr << ", ";
@@ -406,7 +405,7 @@ bool arPForth::compileProgram( const string sourceCode ) {
 // hand the _program pointer off and relinquish all responsibility for it.
 arPForthProgram* arPForth::getProgram() {
   arPForthProgram* temp = _program;
-  _program = 0;
+  _program = NULL;
   return temp;
 }
 

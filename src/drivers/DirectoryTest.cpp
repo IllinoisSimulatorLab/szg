@@ -34,17 +34,15 @@ int main() {
   cout << endl;
 
   cout << "Testing file search:\n";
-  if (here.fileExists(".bashrc"))
-    cout << "File .bashrc found.\n\n";
-  else
-    cout << "No file named .bashrc found.\n\n";
+  cout << here.fileExists(".bashrc") ?
+    "File .bashrc found.\n\n" :
+    "No file named .bashrc found.\n\n";
   
   cout << "Testing subdirectory search:\n";
   arDirectory tempDir = here.getSubdirectory("temp");
-  if (!tempDir)
-    cout << "Subdirectory temp not found.\n";
-  else
-    cout << "Opened subdirectory temp.\n";
+  cout << !tempDir ?
+    "Subdirectory temp not found.\n" :
+    "Opened subdirectory temp.\n";
   
   return 0;
 }

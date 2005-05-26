@@ -34,8 +34,8 @@ arTrackCalFilter::~arTrackCalFilter() {
 }
 
 bool arTrackCalFilter::configure(arSZGClient* szgClient) {
-  float floatBuf[3];
-  unsigned long i;
+  float floatBuf[3] = {0};
+  unsigned long i = 0;
   
   // This part is still a bit hokey.
   // y_rot_angle_deg is just a correction for the sensor on the goggles
@@ -86,7 +86,6 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
   _xLookupTable = new float[_n];
   _yLookupTable = new float[_n];
   _zLookupTable = new float[_n];
-  
   if (!_xLookupTable || !_yLookupTable || !_zLookupTable) {
     cerr << "arTrackCalFilter error: failed to allocate memory for lookup tables.\n";
     fclose(fp);
@@ -122,7 +121,7 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
     }
   }
   fclose(fp);
-  cout << "arTrackCalFilter remark: loaded " << 3*_n << " table entries.\n";
+  //cout << "arTrackCalFilter remark: loaded " << 3*_n << " table entries.\n";
   _indexOffsets[0] = 0;
   _indexOffsets[1] = 1;
   _indexOffsets[2] = _nx;

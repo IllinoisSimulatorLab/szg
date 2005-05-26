@@ -277,14 +277,14 @@ int main(int argc, char** argv){
   arThread dummy(worldAlter, &framework);
 
   const arVector3 xyz(cube0Matrix * arVector3(0,0,0));
-  int idSound = dsLoop("foo", framework.getNavNodeName(), "cubes.mp3", 1, 0.9, xyz);
+  /*int idSound = */dsLoop("foo", framework.getNavNodeName(), "cubes.mp3", 1, 0.9, xyz);
 
   // Main loop.
   while (true) {
     // Adjust attributes of the sound:  its loudness and position.
     static float ramp = 0.;
     ramp += .025;
-    const float loudness = .42 + .4 * sin(ramp);
+    //unused const float loudness = .42 + .4 * sin(ramp);
     // cube0Matrix is being updated by worldAlter().
     const arVector3 xyz(cube0Matrix * arVector3(0,5,0));
 

@@ -179,12 +179,12 @@ bool arLogitechDriver::_startStreaming() {
 #define DIAG_EEPROM                 0x02
 
 bool arLogitechDriver::_runDiagnostics() {
-  int stat = _comPort.ar_write("*\05");
+  const int stat = _comPort.ar_write("*\05");
   if (stat < 2) {
     cerr << "arLogitechDriver error: wrote " << stat << " bytes instead of 2 in _runDiagnostics().\n";
     return false;
   }
-  int bytesRead = _comPort.ar_read( _dataBuffer, 2 );
+  const int bytesRead = _comPort.ar_read( _dataBuffer, 2 );
   if (bytesRead != 2) {
     cerr << "arLogitechDriver error: tracker failed to respond to the 'diagnostic' command\n"
          << "   (# bytes read = " << bytesRead << ").\n";
@@ -192,46 +192,35 @@ bool arLogitechDriver::_runDiagnostics() {
   }
 //  printf("%x %x\n",(int)_dataBuffer[0],_dataBuffer[1]);
 //  cerr << (int)_dataBuffer[0] << ", " << (int)_dataBuffer[1] << endl;
-  unsigned char aByte( ~_dataBuffer[0] );
-  unsigned char bByte( ~_dataBuffer[1] );
-  if ((aByte & 0xBF)||(bByte & 0x3F)) {
-    cerr << "arLogitechDriver diagnostic failure:\n";
-    if (aByte & DIAG_MOTHERBOARD) {
-      cerr << "  Motherboard failed.\n";
-    } 
-    if (aByte & DIAG_CPU) {
-      cerr << "  CPU failed.\n";
-    } 
-    if (aByte & DIAG_ROM) {
-      cerr << "  ROM failed.\n";
-    } 
-    if (aByte & DIAG_RAM) {
-      cerr << "  RAM failed.\n";
-    } 
-    if (aByte & DIAG_T_FRAME) {
-      cerr << "  T-frame failed.\n";
-    } 
-    if (aByte & DIAG_MOUSE) {
-      cerr << "  Mouse failed.\n";
-    } 
-    if (bByte & DIAG_COMM_PORT) {
-      cerr << "  Comm. port failed.\n";
-    } 
-    if (bByte & DIAG_EEPROM) {
-      cerr << "  EEPROM failed.\n";
-    } 
-    return false;
-  }
-  return true;
+  const unsigned char aByte( ~_dataBuffer[0] );
+  const unsigned char bByte( ~_dataBuffer[1] );
+  if (!((aByte & 0xBF)||(bByte & 0x3F)))
+    return true;
+
+  cerr << "arLogitechDriver diagnostic failure:\n";
+  if (aByte & DIAG_MOTHERBOARD)
+    cerr << "  Motherboard failed.\n";
+  if (aByte & DIAG_CPU)
+    cerr << "  CPU failed.\n";
+  if (aByte & DIAG_ROM)
+    cerr << "  ROM failed.\n";
+  if (aByte & DIAG_RAM)
+    cerr << "  RAM failed.\n";
+  if (aByte & DIAG_T_FRAME)
+    cerr << "  T-frame failed.\n";
+  if (aByte & DIAG_MOUSE)
+    cerr << "  Mouse failed.\n";
+  if (bByte & DIAG_COMM_PORT)
+    cerr << "  Comm. port failed.\n";
+  if (bByte & DIAG_EEPROM)
+    cerr << "  EEPROM failed.\n";
+  return false;
 }
 
 bool arLogitechDriver::_update() {
-  int status;
-
   using namespace arLogitechDriverSpace;
-
-  unsigned int numToRead = ELEMENT_SIZE - _charsInBuffer;
-  int numRead = _comPort.ar_read( _dataBuffer+_charsInBuffer, numToRead, MAX_DATA );
+  const unsigned int numToRead = ELEMENT_SIZE - _charsInBuffer;
+  const int numRead = _comPort.ar_read( _dataBuffer+_charsInBuffer, numToRead, MAX_DATA );
   if (numRead < 0) {
     cerr << "arLogitechDriver error: read() failed in _update().\n";
     return false;
@@ -240,14 +229,14 @@ bool arLogitechDriver::_update() {
     return true;
   }
   _charsInBuffer += numRead;
-  unsigned int numElements = static_cast<unsigned int>(floor(_charsInBuffer/(float)ELEMENT_SIZE));
+  const unsigned int numElements = static_cast<unsigned int>(floor(_charsInBuffer/(float)ELEMENT_SIZE));
   if (numElements > 0) {
     unsigned int i;
     for (i=0; i<numElements; ++i) {
       _convertSendData( _dataBuffer+i*ELEMENT_SIZE );
     }
-    unsigned int numUsed( numElements*ELEMENT_SIZE );
-    unsigned int numLeft( _charsInBuffer - numUsed );
+    const unsigned int numUsed = numElements*ELEMENT_SIZE;
+    const unsigned int numLeft = _charsInBuffer - numUsed;
     for (i=0; i<numLeft; ++i) {
       _dataBuffer[i] = _dataBuffer[i+numUsed]; 
     }
@@ -268,8 +257,8 @@ bool arLogitechDriver::_update() {
 
 void arLogitechDriver::_convertSendData( char* record ) {
   const float INCHES_TO_FEET = 1./12.;
-  long ax, ay, az;        // integer form of absolute translational data
-  short arx, ary, arz;     // integer form of absolute rotational data
+  long ax=0, ay=0, az=0;         // integer form of absolute translational data
+  short arx=0, ary=0, arz=0;     // integer form of absolute rotational data
 
   // NOTE: the data-extraction code is lifted from the Logitech sample
   // collect unit's miscellaneous information
@@ -308,13 +297,10 @@ void arLogitechDriver::_convertSendData( char* record ) {
   arz += (record[15] & 0x7f);
 
   // calculate the rotational floating point values
-  float xAngle = ar_convertToRad( ((float) arx) / 40.0 );
-  float yAngle = ar_convertToRad( ((float) ary) / 40.0 );
-  float zAngle = ar_convertToRad( ((float) arz) / 40.0 );
+  const float xAngle = ar_convertToRad( ((float) arx) / 40.0 );
+  const float yAngle = ar_convertToRad( ((float) ary) / 40.0 );
+  const float zAngle = ar_convertToRad( ((float) arz) / 40.0 );
 
-  arMatrix4 matrix( ar_translationMatrix(x,y,z) *
-     ar_rotationMatrix('y',yAngle)*ar_rotationMatrix('x',xAngle)*ar_rotationMatrix('z',zAngle)
-     );
-  sendMatrix( matrix );
+  sendMatrix( ar_translationMatrix(x,y,z) *
+     ar_rotationMatrix('y',yAngle)*ar_rotationMatrix('x',xAngle)*ar_rotationMatrix('z',zAngle));
 }
-

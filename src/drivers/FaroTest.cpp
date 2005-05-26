@@ -46,8 +46,7 @@ int main(int, char **) {
   
   istringstream inStream( inString );
   double nums[14];
-  int i;
-  for (i=0; i<14; i++) {
+  for (int i=0; i<14; i++) {
     inStream >> nums[i];
     cerr << nums[i] << endl;
   }
@@ -74,7 +73,7 @@ int main(int, char **) {
     numRead = port.ar_read( inbuf, 90 );
     string dataString( inbuf );
     istringstream dataStream( dataString );
-    for (i=0; i<9; i++)
+    for (int i=0; i<9; i++)
       dataStream >> nums[i];
     const arVector3 position( nums[1], nums[2], nums[3] );
     const arVector3 angles(   nums[4], nums[5], nums[6] );
