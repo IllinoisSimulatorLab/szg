@@ -292,10 +292,11 @@ void arMasterSlaveFramework::onPostExchange() {
 }
 
 void arMasterSlaveFramework::onWindowInit() {
-  if (!_windowInitCallback) {
+  if (_windowInitCallback) {
+    _windowInitCallback( *this );
+  } else {
     ar_defaultWindowInitCallback();
   }
-  _windowInitCallback( *this );
 }
 
 void arMasterSlaveFramework::onDraw() {
