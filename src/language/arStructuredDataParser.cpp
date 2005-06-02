@@ -54,7 +54,7 @@ arStructuredDataParser::~arStructuredDataParser(){
       if (*l)
 	delete *l;
     }
-    // Go ahead and delete the elements of the map as well.
+    // Delete the elements of the map as well.
     delete k->second;
   }
   // delete the tagged messages
@@ -62,12 +62,10 @@ arStructuredDataParser::~arStructuredDataParser(){
        ii != _taggedMessages.end();
        ii++){
     // we have a list of arStructuredData records that are unclaimed
-    list<arStructuredData*>::iterator dataIter;
-    for (dataIter = ii->second.begin();
-	 dataIter != ii->second.end(); dataIter++){
-      if (*dataIter){
+    for (list<arStructuredData*>::iterator dataIter = ii->second.begin();
+	 dataIter != ii->second.end(); ++dataIter){
+      if (*dataIter)
         delete *dataIter;
-      }
     }
   }
   // delete the currently used synchronization primitives
@@ -78,12 +76,12 @@ arStructuredDataParser::~arStructuredDataParser(){
   // delete the to-be-used synchronization primitives
   for (SZGunusedMessageSync::iterator kk = _recycledSync.begin();
        kk != _recycledSync.end(); kk++){
-    delete (*kk);
+    delete *kk;
   }
   // delete the translation buffers.
   for (list<arBuffer<char>*>::iterator n = _translationBuffers.begin();
        n != _translationBuffers.end(); n++){
-    delete (*n);
+    delete *n;
   }
 }
 
@@ -130,7 +128,7 @@ LDone:
 /// Get one of the translation buffers. If none yet exist, create one and
 /// return that.
 arBuffer<char>* arStructuredDataParser::getTranslationBuffer(){
-  arBuffer<char>* result;
+  arBuffer<char>* result = NULL;
   ar_mutex_lock(&_translationBufferListLock);
   if (_translationBuffers.empty()){
     result = new arBuffer<char>(1024);
@@ -205,9 +203,9 @@ arStructuredData* arStructuredDataParser::parse
       recycleTranslationBuffer(transBuffer);
       return NULL;
     }
-    int temp;
     // we use "temp" because we don't care about the size of the data,
     // that was already taken care of above via "end=size"
+    int temp = -1;
     arStructuredData* result = parse(transBuffer->data, temp);
     recycleTranslationBuffer(transBuffer);
     return result;
@@ -298,7 +296,7 @@ arStructuredData* arStructuredDataParser::parse(arTextStream* textStream,
       recycleTranslationBuffer(workingBuffer);
       return NULL;
     }
-    int size;
+    int size = -1;
     ARchar* charData = NULL;
     ARint* intData = NULL;
     ARfloat* floatData = NULL;
@@ -438,7 +436,7 @@ arStructuredData* arStructuredDataParser::parse(arTextStream* textStream,
 
 arStructuredData* arStructuredDataParser::parseBinary(FILE* inputFile){
   arBuffer<char>* buffer = getTranslationBuffer();
-  ARint recordSize;
+  ARint recordSize = -1;
   if (fread(buffer->data, AR_INT_SIZE, 1, inputFile) == 0){
     // Failure has occured in reading the file.
     return NULL;
@@ -596,7 +594,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   ar_mutex_unlock(&_activationLock);
   list<int>::iterator j;
   SZGtaggedMessageQueue::iterator i;
-  arStructuredData* potentialData;
+  arStructuredData* potentialData = NULL;
   for (j = tags.begin(); j != tags.end(); j++){
     i = _taggedMessages.find(*j);
     if (i != _taggedMessages.end()){ 
@@ -622,7 +620,7 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   // The data does not yet exist. We must get a synchronizer and associate
   // it with the list of tags. NOTE: it is important that it be the SAME
   // synchronizer for ALL of these tags!
-  arStructuredDataSynchronizer* syn;
+  arStructuredDataSynchronizer* syn = NULL;
   if (_recycledSync.empty()){
     // must create 
     syn = new arStructuredDataSynchronizer();

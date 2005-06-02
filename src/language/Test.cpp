@@ -43,7 +43,7 @@ int main(){
   t3->add("bar", AR_INT);
   delete t3;
 
-  int i;
+  int i = -1;
   arTemplateDictionary dict1, dict2;
   arDataTemplate t1("nice test");
   arDataTemplate t2("test 2");
@@ -308,8 +308,8 @@ int main(){
   cout << "Beginning unit test 3: conversion functions.\n";
 
   // conversion tests
-  long theLong;
-  int theInt;
+  long theLong = -1;
+  int theInt = -1;
   if (!ar_stringToLongValid("55555",theLong)){
    cout << "String->long test 1 failed.\n";
    exit(0);
@@ -334,8 +334,8 @@ int main(){
    cout << "String->long test 3 failed.\n";
    exit(0);
   }
-  double theDouble;
-  float theFloat;
+  double theDouble = 0.;
+  float theFloat = 0.;
   if (ar_stringToDoubleValid("1.2e500",theDouble)){
      cout << "String->double test 1 failed.\n";
      exit(0);
@@ -375,7 +375,7 @@ int main(){
   }
   data1.dataIn(FLOAT_ID, speedFloatBuffer, AR_FLOAT, 16);
   time1 = ar_time();
-  int s;
+  int s = 0;
   for (s=0; s<10000; s++){
     data1.print(testFile);
   }
@@ -456,7 +456,7 @@ int main(){
         cout << ", but is not a directory (bad).\n";
     }
   }
-  bool isFile;
+  bool isFile = false;
   if (!ar_fileExists( "Makefile", itExists, isFile ))
     cout << "ar_fileExists() test 1 failed.\n";
   else {

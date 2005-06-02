@@ -323,25 +323,24 @@ void ar_packData(ARchar* destination, const void* data,
 
 void ar_unpackData(const ARchar* source, void* destination,
                    arDataType type, int dimension){
-  int totalSize = dimension * arDataTypeSize(type);
-  ARchar* dest = (char*) destination;
-  memcpy(dest,source,totalSize);
+  const int totalSize = dimension * arDataTypeSize(type);
+  memcpy(destination,source,totalSize);
 }
 
 ARint ar_rawDataGetSize(ARchar* data){
-  ARint result;
+  ARint result = -1;
   ar_unpackData(data,(void*) &result, AR_INT, 1);
   return result;
 }
 
 ARint ar_rawDataGetID(ARchar* data){
-  ARint result;
+  ARint result = -1;
   ar_unpackData(data+AR_INT_SIZE,(void*) &result, AR_INT, 1);
   return result;
 }
 
 ARint ar_rawDataGetFields(ARchar* data){
-  ARint result;
+  ARint result = -1;
   ar_unpackData(data+2*AR_INT_SIZE,(void*) &result, AR_INT, 1);
   return result;
 }
@@ -353,7 +352,7 @@ arStreamConfig ar_getLocalStreamConfig(){
 }
 
 ARint ar_translateInt(ARchar* buffer,arStreamConfig conf){
-  ARint result;
+  ARint result = -1;
   char* dest = (char*) &result;
   if (conf.endian == AR_ENDIAN_MODE){
     dest[0] = buffer[0];
@@ -475,7 +474,7 @@ void ar_usleep(int microseconds){
 
 // string->number conversions with error checking
 bool ar_stringToLongValid( const string& theString, long& theLong ) {
-  char *endPtr;
+  char *endPtr = NULL;
   theLong = strtol( theString.c_str(), &endPtr, 10 );
   if ((theString.c_str()+theString.size())!=endPtr) {
     cerr << "arStringToLong error: conversion failed for " << theString << endl;
@@ -500,14 +499,13 @@ bool ar_longToIntValid( const long theLong, int& theInt ) {
 }
 
 bool ar_stringToIntValid( const string& theString, int& theInt ) {
-  long theLong;
-  if (!ar_stringToLongValid( theString, theLong ))
-    return false;
-  return ar_longToIntValid( theLong, theInt );
+  long theLong = -1;
+  return ar_stringToLongValid( theString, theLong ) &&
+    ar_longToIntValid( theLong, theInt );
 }
 
 bool ar_stringToDoubleValid( const string& theString, double& theDouble ) {
-  char *endPtr;
+  char *endPtr = NULL;
   theDouble = strtod( theString.c_str(), &endPtr );
   if ((theString.c_str()+theString.size())!=endPtr) {
     cerr << "arStringToDouble error: conversion failed for " << theString << endl;
@@ -608,7 +606,7 @@ int ar_parseIntString(const string& theString, int* outArray, int len){
     if (inStream.fail())
       // Error message?
       break;
-    int theInt;
+    int theInt = -1;
     if (!ar_stringToIntValid( wordString, theInt )) {
       cerr << "ar_parseIntString warning: invalid field value \"" << wordString << "\".\n";
       break;
@@ -683,7 +681,7 @@ int ar_parseLongString(const string& theString, long* outArray, int len) {
     if (inStream.fail())
       // Error message?
       break;
-    long l;
+    long l = -1;
     if (!ar_stringToLongValid( wordString, l )) {
       cerr << "ar_parseLongString warning: invalid field \"" << wordString << "\".\n";
       break;
@@ -1113,9 +1111,8 @@ string ar_directoryFind(const string& name,
 		        const string& subdirectory,
 		        const string& path){
   // First, search the explicitly given path
-  bool state;
-  bool fileExists;
-  bool isDirectory;
+  bool fileExists = false;
+  bool isDirectory = false;
   bool result = false;
   int location = 0;
   string possiblePath("junk");
@@ -1130,10 +1127,9 @@ string ar_directoryFind(const string& name,
       possiblePath = ar_pathAddSlash(possiblePath)+subdirectory;
       possiblePath = ar_pathAddSlash(possiblePath)+name;
     }
-    // Do not forget to "scrub" the path!
     ar_scrubPath(possiblePath);
-    state = ar_directoryExists(possiblePath, fileExists, isDirectory);
-    if (state && isDirectory){
+    if (ar_directoryExists(possiblePath, fileExists, isDirectory) &&
+        isDirectory){
       result = true;
     }
   }
@@ -1141,20 +1137,14 @@ string ar_directoryFind(const string& name,
   // Next, try to find the file locally
   if (!result){
     possiblePath = name;
-    // Do not forget to "scrub" the path!
     ar_scrubPath(possiblePath);
-    state = ar_directoryExists(possiblePath, fileExists, isDirectory);
-    if (state && isDirectory){
+    if (ar_directoryExists(possiblePath, fileExists, isDirectory) &&
+        isDirectory){
       result = true;
     }
   }
 
-  if (result){
-    return possiblePath;
-  }
-  else{
-    return string("NULL");
-  }
+  return result ? possiblePath : string("NULL");
 }
 
 /// \todo cut-and-paste with ar_directoryOpen and ar_fileFind
@@ -1231,23 +1221,22 @@ list<string> ar_listDirectory(const string& name){
     // Exists but is not a directory.
     return result;
   }
-  // It turns out that determining the contents of a directory is VERY
-  // different between Unix and Win32.
+
+  // Determining contents of a directory is VERY different in Unix and Win32.
 #ifndef AR_USE_WIN_32
-  // The Unix side.
   DIR* directory = opendir(name.c_str());
   if (!directory){
     return result;
   }
-  dirent* directoryEntry;
+  dirent* directoryEntry = NULL;
   while ((directoryEntry = readdir(directory)) != NULL){
     // There is another entry. Push the name.
     result.push_back(directoryPrefix+string(directoryEntry->d_name));
   }
   closedir(directory);
 #else
-  // The Windows side. Here, the file-system lets us browse through a list
-  // of files that match a name (including wildcards). 
+  // Browse through a list of files that match a name
+  // (including wildcards). 
   string fileSpecification = name;
   // Make sure the path is "scrubbed" and that it has a trailing slash of the
   // right type.
@@ -1266,21 +1255,15 @@ list<string> ar_listDirectory(const string& name){
     return result;
   }
   result.push_back(directoryPrefix+string(fileinfo.name));
-  while (true){ 
-    if (_findnext(fileHandle, &fileinfo) == -1){
-      break;
-    }
+  while (_findnext(fileHandle, &fileinfo) != -1)
     result.push_back(directoryPrefix+string(fileinfo.name));
-  }
   _findclose(fileHandle);
 #endif
   return result;
 }
 
 int ar_fileClose(FILE* pf){
-  if (pf == NULL)
-    return 0;
-  return fclose(pf);
+  return !pf ? 0 : fclose(pf);
 }
 
 /*

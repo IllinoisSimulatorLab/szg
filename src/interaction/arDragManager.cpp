@@ -19,11 +19,10 @@ arDragManager::~arDragManager() {
 }
 
 arDragManager::arDragManager( const arDragManager& getActiveGrabber ) {
-  arDragMap_t::const_iterator iter;
-  for (iter = getActiveGrabber._draggers.begin(); 
-       iter != getActiveGrabber._draggers.end(); iter++) {
-    arGrabCondition* cond = iter->first;
-    arDragBehavior* behave = iter->second;
+  for (arDragMap_t::const_iterator iter = getActiveGrabber._draggers.begin();
+       iter != getActiveGrabber._draggers.end(); ++iter) {
+    const arGrabCondition* cond = iter->first;
+    const arDragBehavior* behave = iter->second;
     setDrag( *cond, *behave );
   }
 }
@@ -33,11 +32,10 @@ arDragManager& arDragManager::operator=
   if (&getActiveGrabber == this)
     return *this;
   _deleteDrags();
-  arDragMap_t::const_iterator iter;
-  for (iter = getActiveGrabber._draggers.begin(); 
-       iter != getActiveGrabber._draggers.end(); iter++) {
-    arGrabCondition* cond = iter->first;
-    arDragBehavior* behave = iter->second;
+  for (arDragMap_t::const_iterator iter = getActiveGrabber._draggers.begin();
+       iter != getActiveGrabber._draggers.end(); ++iter) {
+    const arGrabCondition* cond = iter->first;
+    const arDragBehavior* behave = iter->second;
     setDrag( *cond, *behave );
   }
   return *this;
@@ -45,29 +43,29 @@ arDragManager& arDragManager::operator=
 
 void arDragManager::setDrag( const arGrabCondition& cond,
                              const arDragBehavior& behave ) {
-  arDragMap_t::iterator iter;
-  for (iter = _draggers.begin(); iter != _draggers.end(); iter++) {
-    if (*(iter->first) == cond) {
-      if (iter->second != 0)
-        delete iter->second;
-      iter->second = behave.copy();
-      return;
-    }
+  for (arDragMap_t::iterator iter = _draggers.begin();
+       iter != _draggers.end(); iter++) {
+    if (!(*(iter->first) == cond))
+      continue;
+    if (iter->second != 0)
+      delete iter->second;
+    iter->second = behave.copy();
+    return;
   }
   _draggers.insert( std::make_pair( cond.copy(), behave.copy() ) );
 }
 
 void arDragManager::deleteDrag( const arGrabCondition& cond ) {
-  arDragMap_t::iterator iter;
-  for (iter = _draggers.begin(); iter != _draggers.end(); iter++) {
-    if (*(iter->first) == cond) {
-      if (iter->first != 0)
-        delete iter->first;
-      if (iter->second != 0)
-        delete iter->second;
-      _draggers.erase( iter );
-      return;
-    }
+  for (arDragMap_t::iterator iter = _draggers.begin();
+       iter != _draggers.end(); iter++) {
+    if (!(*(iter->first) == cond))
+      continue;
+    if (iter->first != 0)
+      delete iter->first;
+    if (iter->second != 0)
+      delete iter->second;
+    _draggers.erase( iter );
+    return;
   }
 }
 
@@ -86,8 +84,8 @@ void arDragManager::getActiveDrags( arEffector* eff,
   // is no longer met.
   if (!draggers.empty()) {
     std::vector< arDragMap_t::iterator > deletions;
-    arDragMap_t::iterator iter2;
-    for (iter2 = draggers.begin(); iter2 != draggers.end(); iter2++) {
+    for (arDragMap_t::iterator iter2 = draggers.begin();
+         iter2 != draggers.end(); iter2++) {
       arGrabCondition* gc = iter2->first;
       if (!gc->check( eff )) {
         delete iter2->first;
@@ -105,13 +103,13 @@ void arDragManager::getActiveDrags( arEffector* eff,
   // see if any one these have been newly activated. If so, go ahead
   // and and them to the passed list.
   if (!_draggers.empty()) {
-    arDragMap_t::const_iterator iter;
-    for (iter = _draggers.begin(); iter != _draggers.end(); iter++) {
+    for (arDragMap_t::const_iterator iter = _draggers.begin();
+         iter != _draggers.end(); ++iter) {
       arGrabCondition* gc = iter->first;
       if (gc->check( eff )) {
-        arDragMap_t::iterator iter3;
 	// Make sure we don't double up on the grab-conditions/drag-behaviors.
-        for (iter3 = draggers.begin(); iter3 != draggers.end(); iter3++) {
+        for (arDragMap_t::iterator iter3 = draggers.begin();
+	     iter3 != draggers.end(); ++iter3) {
           if (*(iter3->first) == *gc)
             goto FoundIt;
         }
@@ -125,13 +123,13 @@ FoundIt: ;
 }
 
 void arDragManager::_deleteDrags() {
-  arDragMap_t::iterator iter;
-  for (iter = _draggers.begin(); iter != _draggers.end(); iter++) {
+  for (arDragMap_t::iterator iter = _draggers.begin();
+       iter != _draggers.end(); iter++) {
     arGrabCondition* cond = iter->first;
     arDragBehavior* behave = iter->second;
-    if (cond != 0)
+    if (cond)
       delete cond;
-    if (behave != 0)
+    if (behave)
       delete behave;
   }
   _draggers.clear();

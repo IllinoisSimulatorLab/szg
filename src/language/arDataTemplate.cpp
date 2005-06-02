@@ -142,7 +142,7 @@ int arDataTemplate::translate(ARchar* dest, ARchar* src,
     ar_translateInt(dest,positionDest,src,positionSrc,streamConfig);
 
   // Translate each field.
-  ARint iField;
+  ARint iField = 0;
   for (iField=0; positionSrc<size && iField<numberFields; ++iField){
     const ARint dim =
       ar_translateInt(dest,positionDest,src,positionSrc,streamConfig);
@@ -161,11 +161,11 @@ int arDataTemplate::translate(ARchar* dest, ARchar* src,
 bool ar_addAttributesFromString( arDataTemplate& t,
                                  string nameString, string typeString ) {
   std::vector<std::string> names;
-  std::vector<std::string> types;
   if (!ar_getTokenList( nameString, names, '|' )) { // vertical bar, not slash
     cerr << "ar_addAttributesFromString error: failed to parse name string.\n";
     return false;
   }
+  std::vector<std::string> types;
   if (!ar_getTokenList( typeString, types, '|' )) { // vertical bar, not slash
     cerr << "ar_addAttributesFromString error: failed to parse name string.\n";
     return false;

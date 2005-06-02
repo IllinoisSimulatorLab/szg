@@ -97,7 +97,7 @@ arMatrix4 arVRCamera::getModelviewMatrix(){
 
 /// Puts the viewing matrices on the OpenGL stack.
 void arVRCamera::loadViewMatrices(){
-//  GLint drawBuffers;
+//  GLint drawBuffers = -1;
 //  glGetIntegerv( GL_DRAW_BUFFER, &drawBuffers );
 //  cerr << "Eye sign\n" << getEyeSign() << ", drawBuffers = " << drawBuffers << endl;
   glMatrixMode( GL_PROJECTION );

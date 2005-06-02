@@ -28,13 +28,12 @@ arUniqueInteractor::arUniqueInteractor() :
 }
 
 arUniqueInteractor::~arUniqueInteractor() {
-  list<arUniqueInteractor*>::iterator iter;
-  iter = std::find( _listUs.begin(), _listUs.end(), this );
+  list<arUniqueInteractor*>::iterator iter =
+    std::find( _listUs.begin(), _listUs.end(), this );
   if (iter != _listUs.end())
     _listUs.erase( iter );
-  if (_listUs.size()==0) {
+  if (_listUs.empty())
     _lastButtons.clear();
-  }
 }
 
 arUniqueInteractor::arUniqueInteractor( const arUniqueInteractor& ui ) :
@@ -77,12 +76,12 @@ void arUniqueInteractor::activateInteractionGroup( const unsigned int group ) {
   if (group == _activeInteractionGroup)
     return;
     
-  if (_lockedPtr != 0)
-      _lockedPtr = 0;
+  if (_lockedPtr)
+      _lockedPtr = NULL;
       
-  list<arUniqueInteractor*>::iterator iter;  
   unsigned int numTouched = 0;
-  for (iter = _listUs.begin(); iter != _listUs.end(); iter++) {
+  for (list<arUniqueInteractor*>::iterator iter = _listUs.begin();
+       iter != _listUs.end(); iter++) {
     if ((*iter)->_touched) {
       (*iter)->unTouch();
       (*iter)->_touched = false;
@@ -135,27 +134,24 @@ bool arUniqueInteractor::processAllTouches(  arInputState* inputState,
     _lastButtons[i] = button;
   }
     
-  list<arUniqueInteractor*>::iterator lockedIter;
-  bool status = false;
-  
-  if (_lockedPtr != 0) {
+  if (_lockedPtr) {
     // See if locked guy still exists
-    lockedIter = std::find( _listUs.begin(), _listUs.end(), _lockedPtr );
+    list<arUniqueInteractor*>::iterator lockedIter =
+      std::find( _listUs.begin(), _listUs.end(), _lockedPtr );
     if (lockedIter == _listUs.end())
-      _lockedPtr = 0;
+      _lockedPtr = NULL;
     else {
-      status = (*lockedIter)->processTouch( inputState, wandTipMatrix, events );
+      const bool ok =
+        (*lockedIter)->processTouch( inputState, wandTipMatrix, events );
       events.clear();
-      return status;
+      return ok;
     }
   }
   
-  list<arUniqueInteractor*>::iterator iter;
-  list<arUniqueInteractor*>::iterator highPriorityIter;
-  list<arUniqueInteractor*>::iterator touchedIter;
   
   unsigned int numTouched = 0;
-  touchedIter = _listUs.end();
+  list<arUniqueInteractor*>::iterator touchedIter = _listUs.end();
+  list<arUniqueInteractor*>::iterator iter;
   for (iter = _listUs.begin(); iter != _listUs.end(); iter++) {
     if ((*iter)->_touched) {
       touchedIter = iter;
@@ -168,9 +164,9 @@ bool arUniqueInteractor::processAllTouches(  arInputState* inputState,
     return false;
   }
   float highScore = -1.e-100;
-  highPriorityIter = _listUs.end();
-  for (iter = _listUs.begin(); iter != _listUs.end(); iter++) {
-    if (((*iter)->active())&&((*iter)->enabled())) {
+  list<arUniqueInteractor*>::iterator highPriorityIter = _listUs.end();
+  for (iter = _listUs.begin(); iter != _listUs.end(); ++iter) {
+    if (((*iter)->active()) && ((*iter)->enabled())) {
       const float score = (*iter)->priorityScore( wandTipMatrix );
       if (score >= minPriorityScore) {
         if (highPriorityIter == _listUs.end()) {
@@ -183,18 +179,14 @@ bool arUniqueInteractor::processAllTouches(  arInputState* inputState,
       }
     }
   }
-  if (highPriorityIter != touchedIter) {
-    if (touchedIter != _listUs.end()) {
-      (*touchedIter)->unTouch();
-      (*touchedIter)->_touched = false;
-    }
+  if (highPriorityIter != touchedIter && touchedIter != _listUs.end()) {
+    (*touchedIter)->unTouch();
+    (*touchedIter)->_touched = false;
   }
-  status = false;
-  if (highPriorityIter != _listUs.end()) {
-    status = (*highPriorityIter)->processTouch( inputState, wandTipMatrix, events );
-  }
+  const bool ok = (highPriorityIter != _listUs.end()) &&
+    (*highPriorityIter)->processTouch( inputState, wandTipMatrix, events );
   events.clear();   
-  return status;
+  return ok;
 }
 
 /// Partial determinant of which object gets interacted with.
@@ -216,7 +208,7 @@ float arUniqueInteractor::priorityScore( const arMatrix4& wandTipMatrix ) {
 bool arUniqueInteractor::lockMe() {
   if (_lockedPtr == this)
     return true;
-  if (_lockedPtr != 0)
+  if (_lockedPtr)
     return false;
   _lockedPtr = this;
   return true;
@@ -224,10 +216,10 @@ bool arUniqueInteractor::lockMe() {
 
 /// E.g. when the user lets go of the button at the end of a drag.
 bool arUniqueInteractor::unlockMe() {
-  if (_lockedPtr == 0)
+  if (!_lockedPtr)
     return true;
   if (_lockedPtr != this)
     return false;
-  _lockedPtr = 0;
+  _lockedPtr = NULL;
   return true;
 }

@@ -73,7 +73,7 @@ bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize,
   
   theSize = ar_translateInt(temp,remoteConfig);
   fEndianMode = (remoteConfig.endian == AR_ENDIAN_MODE);
-  ARchar* pch;
+  ARchar* pch = NULL;
   if (fEndianMode) {
     if (!ar_growBuffer(dest, availableSize, theSize))
       return false;
@@ -110,7 +110,7 @@ bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize,
 bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize, 
                               bool& fEndianMode, arSocket* fd, 
                               const arStreamConfig& remoteConfig){
-  ARint size;
+  ARint size = -1;
   return getDataCore(dest, availableSize, 
                      _translationBuffer, _translationBufferSize,
                      size, fEndianMode, fd, remoteConfig);

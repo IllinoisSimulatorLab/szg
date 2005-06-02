@@ -85,24 +85,20 @@ void arInteractable::deleteDrag( const arGrabCondition& cond ) {
 bool arInteractable::touch( arEffector& effector ) {
   if (!_enabled)
     return false;
-  std::vector<arEffector*>::iterator effIter;
-  effIter 
-    = std::find( _touchEffectors.begin(), _touchEffectors.end(), &effector );
-  bool state = effIter != _touchEffectors.end();
-  if (state){
+  std::vector<arEffector*>::iterator effIter =
+    std::find( _touchEffectors.begin(), _touchEffectors.end(), &effector );
+  if (effIter != _touchEffectors.end()){
     // This effector is already touching this interactable. Nothing to do!
     return true;
   }
   // Call the virtual _touch method on this effector.
-  state = _touch( effector );
-  if (state) {
-    // The touch has, indeed, succeeded.
+  const bool ok = _touch( effector );
+  if (ok) {
+    // The touch succeeded.
     effector.setTouchedObject( this );
     _touchEffectors.push_back( &effector );
   }
-  // If the virtual _touch method returned false, then we return that.
-  // If it succeeded, we'll return true.
-  return state;
+  return ok;
 }
 
 /// This is the most important method of arInteractable. We allow the 
@@ -129,28 +125,21 @@ bool arInteractable::processInteraction( arEffector& effector ) {
   // Handle grabbing. If another effector is grabbing us, go on to
   // the virtual _processInteraction method (as can be changed in subclasses
   // like arCallbackInteractable).
-  bool otherGrabbed = false;
-  if (grabbed() && (_grabEffector != &effector)){ 
-    // object locked to different effector
-    otherGrabbed = true;
-  }
+  const bool otherGrabbed = grabbed() && (_grabEffector != &effector);
+    // true iff object locked to different effector
   if (!otherGrabbed) {
-    const arDragManager* dm;
     // The drag manager is an object that associates grabbing conditions
     // with dragging behaviors. Essentially, this object defines how
     // the interactable will be manipulated. We either use the drag manager
     // associated with the effector OR the drag manager associated with the
     // interactable (as in the case of scene navigation).
-    if (_useDefaultDrags){
-      dm = effector.getDragManager();
-    }
-    else{
-      dm = (const arDragManager*)&_dragManager;
-    }
-    if (dm == 0) {
+    const arDragManager* dm = _useDefaultDrags ?
+      effector.getDragManager() : (const arDragManager*)&_dragManager;
+    if (!dm) {
       cerr << "arInteractable error: NULL grab manager pointer.\n";
       return false;
     }
+
     // The most important method of arDragManager is getActiveDrags.
     // The drag manager maintains a list of grab-conditions/ drag-behavior
     // pairs. As the grab conditions are met (based on the effector's input
@@ -161,14 +150,14 @@ bool arInteractable::processInteraction( arEffector& effector ) {
      if (grabbed())
         _ungrab();
     } else {
-      if (!effector.requestGrab( this )) {
+      if (effector.requestGrab( this )) {
+        _grabEffector = &effector;
+      } else {
         cerr << "arInteractable error: lock request failed.\n";
         _ungrab();
-      } else {
-        _grabEffector = &effector;
       }
-      arDragMap_t::iterator iter;
-      for (iter = _activeDrags.begin(); iter != _activeDrags.end(); iter++) {
+      for (arDragMap_t::iterator iter = _activeDrags.begin();
+           iter != _activeDrags.end(); iter++) {
 	// The drag behavior updates the interactable's matrix using the
 	// grab condition.
         iter->second->update( &effector, this, iter->first );
@@ -187,37 +176,30 @@ bool arInteractable::untouch( arEffector& effector ) {
   if (grabbed() == &effector)
     _ungrab();  
   effector.setTouchedObject(0);
-  std::vector<arEffector*>::iterator iter;
-  iter = std::find( _touchEffectors.begin(), 
-                    _touchEffectors.end(), 
-                    &effector );
+  std::vector<arEffector*>::iterator iter =
+    std::find( _touchEffectors.begin(), _touchEffectors.end(), &effector );
   if (iter != _touchEffectors.end())
     _touchEffectors.erase( iter );
-  bool stat = _untouch( effector );
-  return stat;
+  return _untouch( effector );
 }
 
 bool arInteractable::untouchAll() {
-  bool stat(true);
+  bool ok = true;
   while (!_touchEffectors.empty()) {
-    arEffector* eff = _touchEffectors.back();
-    if (!untouch( *eff ))
-      stat = false;
+    if (!untouch( *_touchEffectors.back() ))
+      ok = false;
   }
   if (grabbed()) { // shouldn't ever be
     cerr << "arInteractable warning: still grabbed after untouchAll().\n";
     _ungrab();
   }
-  return stat;
+  return ok;
 }    
 
-/// Tells us whether or not this effector is currently touching this object.
+/// Is this effector currently touching this object?
 bool arInteractable::touched( arEffector& effector ) {
-  std::vector<arEffector*>::iterator iter;
-  iter = std::find( _touchEffectors.begin(), 
-                    _touchEffectors.end(), 
-                    &effector );
-  return iter != _touchEffectors.end();
+  return std::find(_touchEffectors.begin(), _touchEffectors.end(), &effector)
+    != _touchEffectors.end();
 }
 
 bool arInteractable::touched() const {
@@ -233,14 +215,14 @@ void arInteractable::updateMatrix( const arMatrix4& deltaMatrix ) {
 }
 
 void arInteractable::_ungrab() {
-  if (_grabEffector != 0)
+  if (_grabEffector)
     _grabEffector->requestUngrab( this );
   _grabEffector = 0;
 }
 
 void arInteractable::_clearActiveDrags() {
-  arDragMap_t::iterator iter;
-  for (iter = _activeDrags.begin(); iter != _activeDrags.end(); iter++) {
+  for (arDragMap_t::iterator iter = _activeDrags.begin();
+       iter != _activeDrags.end(); ++iter) {
     delete iter->first;
     delete iter->second;
   }

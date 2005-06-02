@@ -60,7 +60,7 @@ int main(int argc, char** argv){
     comm->ar_safeWrite(charData,200000);
     // receive the guess from the other side as to the link rate
     comm->ar_safeRead(charData,1);
-    int numberSentChars;
+    int numberSentChars = -1;
     if (charData[0] == 0){
       numberSentChars = 200000;
     }
@@ -74,7 +74,7 @@ int main(int argc, char** argv){
     comm->ar_safeWrite(charData,numberSentChars);
 
     // Test the arStructuredData data rate!
-    int i;
+    int i = 0;
     // Very large records (here the memory copying will dominate the 
     // decoding).
     bool errorFlag = false;

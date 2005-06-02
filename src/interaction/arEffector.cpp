@@ -167,7 +167,7 @@ void arEffector::setMatrix( const arMatrix4& matrix ) {
 }
 
 void arEffector::updateState( arInputEvent& event ) {
-  int index;
+  int index = -1;
   switch (event.getType()) {
     case AR_EVENT_MATRIX:
       if (event.getIndex() != _matrixIndex)
@@ -176,13 +176,13 @@ void arEffector::updateState( arInputEvent& event ) {
       break;
     case AR_EVENT_AXIS:
       index = event.getIndex()-_loAxis;
-      if ((index < 0)||(index >= _numAxes))
+      if (index < 0 || index >= (int)_numAxes)
         return;
       _inputState.setAxis( index, event.getAxis() );
       break;
     case AR_EVENT_BUTTON:
       index = event.getIndex()-_loButton;
-      if ((index < 0)||(index >= _numButtons))
+      if (index < 0 || index >= (int)_numButtons)
         return;
       _inputState.setButton( index, event.getButton() );
       break;
@@ -192,8 +192,11 @@ void arEffector::updateState( arInputEvent& event ) {
 }
 
 void arEffector::updateState( arInputState* state ) {
-  unsigned int i,j;
-  unsigned int numButs = _inputState.getNumberButtons();
+#ifdef UNUSED
+  const unsigned int numButs = _inputState.getNumberButtons();
+  // Should this assign to _numButtons?
+#endif
+  unsigned int i=0,j=0;
   for (i=0,j=_loButton; i<_numButtons && j<state->getNumberButtons(); i++, j++)
     _inputState.setButton( i, state->getButton(j) );
   for (i=0,j=_loAxis; i<_numAxes && j<state->getNumberAxes(); i++, j++)

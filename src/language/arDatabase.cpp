@@ -218,7 +218,7 @@ arDatabaseNode* arDatabase::alterRaw(ARchar* theData){
 // in a buffer packed with various calls, we're pretty much guaranteeing that
 // we don't (or can't) care about specific outcomes.
 bool arDatabase::handleDataQueue(ARchar* theData){
-  ARint bufferSize, numberRecords;
+  ARint bufferSize = -1, numberRecords = -1;
   ar_unpackData(theData,&bufferSize,AR_INT,1);
   ar_unpackData(theData+AR_INT_SIZE,&numberRecords,AR_INT,1);
   ARint position = 2*AR_INT_SIZE;
@@ -254,7 +254,7 @@ bool arDatabase::readDatabase(const string& fileName,
   int bufferSize = 1000;
   ARchar* buffer = new ARchar[bufferSize];
   while (fread(buffer,AR_INT_SIZE,1,sourceFile) > 0){
-    ARint recordSize;
+    ARint recordSize = -1;
     ar_unpackData(buffer,&recordSize,AR_INT,1);
     if (recordSize>bufferSize){
       // resize buffer
@@ -289,24 +289,18 @@ bool arDatabase::readDatabaseXML(const string& fileName,
     return false;
   }
 
-  arStructuredDataParser* parser 
-    = new arStructuredDataParser(_lang->getDictionary());
-  arStructuredData* record;
+  arStructuredDataParser* parser =
+    new arStructuredDataParser(_lang->getDictionary());
   arFileTextStream fileStream;
   fileStream.setSource(sourceFile);
-  bool done = false;
-  while (!done){
-    record = parser->parse(&fileStream);
-    if (record){
-      alter(record);
-      parser->recycle(record);
-    }
-    else{
-      done = true;
-    }
+  for (;;){
+    arStructuredData* record = parser->parse(&fileStream);
+    if (!record)
+      break;
+    alter(record);
+    parser->recycle(record);
   }
   delete parser;
-
   fclose(sourceFile);
   return true;
 }
@@ -326,32 +320,27 @@ bool arDatabase::attach(arDatabaseNode* parent,
   }
   arStructuredDataParser* parser 
     = new arStructuredDataParser(_lang->getDictionary());
-  arStructuredData* record;
-  bool done = false;
   map<int, int, less<int> > nodeMap;
-  while (!done){
-    record = parser->parseBinary(source);
-    if (record){
-      int success = _filterIncoming(parent, record, nodeMap, NULL, 
-                                    NULL, true, true);
-      arDatabaseNode* altered = NULL;
-      if (success){
-	altered = alter(record);
-        if (success > 0 && altered){
-          // A node was created.
-          nodeMap.insert(map<int, int, less<int> >::value_type
-      	                  (success, altered->getID()));
-        }
-      }
-      parser->recycle(record);
-      if (success && !altered){
-        // There was an unrecoverable error. _filterIncoming already
-	// complained so do not do so here.
-        break;
+  for (;;){
+    arStructuredData* record = parser->parseBinary(source);
+    if (!record)
+      break;
+    const int success = _filterIncoming(parent, record, nodeMap, NULL, 
+				  NULL, true, true);
+    arDatabaseNode* altered = NULL;
+    if (success){
+      altered = alter(record);
+      if (success > 0 && altered){
+	// A node was created.
+	nodeMap.insert(map<int, int, less<int> >::value_type
+			(success, altered->getID()));
       }
     }
-    else{
-      done = true;
+    parser->recycle(record);
+    if (success && !altered){
+      // There was an unrecoverable error. _filterIncoming already
+      // complained so do not do so here.
+      break;
     }
   }
   delete parser;
@@ -364,6 +353,7 @@ bool arDatabase::attach(arDatabaseNode* parent,
 /// with the file's root node mapped to parent. All other nodes in the
 /// file will be associated with new nodes in the database.
 // DOH! CUT_AND_PASTE IS REARING ITS UGLY HEAD!
+/// \todo clean up like arDatabase::attach() above was cleaned up
 bool arDatabase::attachXML(arDatabaseNode* parent,
 			   const string& fileName,
 			   const string& path){
@@ -415,6 +405,7 @@ bool arDatabase::attachXML(arDatabaseNode* parent,
 /// with the file's root node mapped to parent. All other nodes in the
 /// file will be associated with new nodes in the database.
 // DOH! CUT_AND_PASTE IS REARING ITS UGLY HEAD!
+/// \todo clean up like arDatabase::attach() above was cleaned up
 bool arDatabase::merge(arDatabaseNode* parent,
 		       const string& fileName,
 		       const string& path){

@@ -180,7 +180,7 @@ void messageTask(void* pClient){
         graphicsClient->setWindowCamera(-1);
       }
       else{
-	int theCamera;
+	int theCamera = -1;
         ar_parseIntString(messageBody, &theCamera, 1);
         graphicsClient->setWindowCamera(theCamera);
       }

@@ -158,18 +158,18 @@ void arViewport::activate(){
 
   // get the window size and set the viewport based on that and the 
   // proportions stored herein.
-  int params[4];
+  int params[4] = {0};
   glGetIntegerv( GL_VIEWPORT, params );
-  int left, bottom, width, height;
+
   // there's a whole compilcated song and dance to ensure that, for instance,
   // viewports of (0,0,0.5,1) and (0.5,0,0.5,1) on a window of size 1024x768
   // give OpenGL viewports of (0,0,512,768) and (512,0,512,768) respectively
-  left = int(params[2]*_left);
-  bottom = int(params[3]*_bottom);
-  width = int(params[2]*_width);
-  height = int(params[3]*_height);
+  const GLint left = int(params[2]*_left);
+  const GLint bottom = int(params[3]*_bottom);
+  const GLsizei width = int(params[2]*_width);
+  const GLsizei height = int(params[3]*_height);
 
-  glViewport( (GLint)left, (GLint)bottom, (GLsizei)width, (GLsizei)height );
+  glViewport( left, bottom, width, height );
 
   if (_camera) {
     _camera->setEyeSign( getEyeSign() );
@@ -180,8 +180,8 @@ void arViewport::activate(){
   // set the follow mask
   glColorMask(_red, _green, _blue, _alpha);
   
-  // clear the depth buffer if necessary
   if (_clearDepthBuffer){
+    // clear the depth buffer
     glClear(GL_DEPTH_BUFFER_BIT);
   }
 }

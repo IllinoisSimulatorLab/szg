@@ -785,9 +785,10 @@ bool arStructuredData::unpack(ARchar* source){
     return false;
   }
   for (int i=0; i<_numberDataItems; i++){
-    ARint dim, type;
+    ARint dim = -1;
     ar_unpackData(source+offset,&dim,AR_INT,1);
     offset += AR_INT_SIZE;
+    ARint type = AR_GARBAGE;
     ar_unpackData(source+offset,&type,AR_INT,1);
     if (type == AR_GARBAGE)
       cerr << "arStructuredData::unpack warning: got an AR_GARBAGE type.\n";
@@ -863,16 +864,15 @@ void arStructuredData::print(ostream& s){
   const int numbersInRow = 8;
   s << "<" << _name << ">\n";
   for (int i=0; i<_numberDataItems; i++){
-    int j;
     s << "  <" << _dataName[i] << ">";
     if (_dataType[i] == AR_CHAR){
-      for (j=0; j<_dataDimension[i]; j++){
+      for (int j=0; j<_dataDimension[i]; j++){
         s << ((ARchar*)_dataPtr[i])[j];
       }
     }
     else{
       s << "\n    ";
-      for (j=0; j<_dataDimension[i]; j++){
+      for (int j=0; j<_dataDimension[i]; j++){
         switch (_dataType[i]) {
 	case AR_INT:
 	  s << ((ARint*)_dataPtr[i])[j] << " ";

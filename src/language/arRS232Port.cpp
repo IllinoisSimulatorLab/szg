@@ -15,7 +15,6 @@
 using namespace std;
 #endif
 
-
 #ifdef AR_USE_WIN_32
 #include <windows.h>
 #include <time.h>
@@ -117,7 +116,6 @@ using namespace std;
 //  indefinitely unless the NDELAY option is set on the port with open or fcntl.
 //  
 
-
 arRS232Port::arRS232Port() :
   _isOpen(false),
   _readTimeoutTenths(10)
@@ -153,7 +151,7 @@ bool arRS232Port::ar_open( const unsigned int port, const unsigned long baud,
     return false;
   }
 #ifdef AR_USE_WIN_32
-  DWORD baudRate;
+  DWORD baudRate = 0;
   switch (baud) {
     case 9600:
       baudRate = CBR_9600;
@@ -179,7 +177,7 @@ bool arRS232Port::ar_open( const unsigned int port, const unsigned long baud,
     return false;
   }
   BYTE byteSize = static_cast<BYTE>( dBits );
-  BYTE stopBits;
+  BYTE stopBits = 0;
   if (fltcomp( stBits, 1 ))
     stopBits = 0;
   else if (fltcomp( stBits, 1.5 ))
@@ -190,7 +188,7 @@ bool arRS232Port::ar_open( const unsigned int port, const unsigned long baud,
     cerr << "arRS232Port error: Win32 1,1.5, or 2 stop bits.\n";
     return false;
   }
-  BYTE parity;
+  BYTE parity = 0;
   if (par == "none")
     parity = 0;
   else if (par == "odd")
@@ -408,20 +406,14 @@ bool arRS232Port::ar_open( const unsigned int port, const unsigned long baud,
   // AARGH!
   // set some flags needed by FOB
   // will likely break other stuff.
-  int status;
+  int status = 0;
   ioctl( _fileDescriptor, TIOCMGET, &status);
   status |= TIOCM_DTR;
   status &= ~TIOCM_RTS;
   ioctl( _fileDescriptor, TIOCMSET, &status );
-  
-  if (!setReadTimeout( _readTimeoutTenths )) {
-    return false;
-  } 
-
-  return true;
+  return setReadTimeout( _readTimeoutTenths );
 #endif
 }
-
 
 bool arRS232Port::ar_close() {
   if (!_isOpen)
@@ -456,7 +448,7 @@ int arRS232Port::ar_read( char* buf, const unsigned int numBytes, const unsigned
   }
 #ifdef AR_USE_WIN_32
   // unsigned
-  DWORD bytesThisTime;
+  DWORD bytesThisTime = 0;
   
   unsigned int numBytesAvailable( getNumberBytes() );
   unsigned int numToRead( numBytes );
@@ -570,7 +562,7 @@ int arRS232Port::ar_write( const char* buf, const unsigned int numBytes ) {
     return -1;
   }
 #ifdef AR_USE_WIN_32
-  DWORD numWrit; // unsigned
+  DWORD numWrit = 0; // unsigned
   if (!WriteFile( _portHandle, (LPVOID)buf, (DWORD)numBytes, (LPDWORD)&numWrit, NULL )) {
     cerr << "arRS232Port error: WriteFile() failed.\n";
     return -1;
@@ -594,11 +586,9 @@ int arRS232Port::ar_write( const char* buf, const unsigned int numBytes ) {
   return -1;
 }
 
-
 int arRS232Port::ar_write( const char* buf ) {
   return ar_write( buf, strlen(buf) );
 }
-
 
 bool arRS232Port::flushInput() {
   if (!_isOpen) {
@@ -617,7 +607,6 @@ bool arRS232Port::flushInput() {
   return false;
 }
 
-
 bool arRS232Port::flushOutput() {
   if (!_isOpen) {
     cerr << "arRS232Port error: port not open.\n";
@@ -634,7 +623,6 @@ bool arRS232Port::flushOutput() {
   cerr << "arRS232Port error: Sorry, only Win32 and Linux so far.\n";
   return false;
 }
-
 
 bool arRS232Port::setReadTimeout( const unsigned int timeoutTenths ) {
 #if !defined( AR_USE_WIN_32 ) && !defined( AR_USE_LINUX )
@@ -674,16 +662,15 @@ bool arRS232Port::setReadBufferSize( const unsigned int numBytes ) {
 #endif
 }
 
-
 unsigned int arRS232Port::getNumberBytes() {
 #if !defined( AR_USE_WIN_32 ) && !defined( AR_USE_LINUX )
   cerr << "arRS232Port error: Sorry, only Win32 and Linux so far.\n";
   return 0;
 #endif 
 #ifdef AR_USE_WIN_32
-  DWORD errorFlags;
+  DWORD errorFlags = 0;
   COMSTAT comState;
-  DWORD numBytes;
+  DWORD numBytes = 0;
 
   ClearCommError( _portHandle, &errorFlags, &comState ) ;
   numBytes = comState.cbInQue;
@@ -692,11 +679,8 @@ unsigned int arRS232Port::getNumberBytes() {
 
 #endif
 #ifdef AR_USE_LINUX
-  int numBytes;
-
+  int numBytes = 0;
   ioctl( _fileDescriptor, FIONREAD, &numBytes );
-
   return static_cast<unsigned int>( numBytes );
 #endif
 }
-

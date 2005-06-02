@@ -332,7 +332,7 @@ int main(){
   arMatrix4 eulerTestMatrix2 = ar_rotationMatrix('z', eulerTestAngles[2])
     * ar_rotationMatrix('y', eulerTestAngles[1])
     * ar_rotationMatrix('x', eulerTestAngles[0]);
-  int i,j;
+  int i=0,j=0;
   for (i=0; i<16; i++){
     if (fabs(eulerTestMatrix1[i]-eulerTestMatrix2[i]) > epsilon){
       cout << "FAILED: euler angle extraction.\n";

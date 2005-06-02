@@ -35,7 +35,7 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
                                  const string& messageBody ));
 
   // inherited pure virtual functions
-  bool init(int&,char**);
+  bool init(int&, char**);
   bool start();
   void stop(bool);
   void loadNavMatrix();
@@ -63,19 +63,19 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   bool lockNode(int ID);
   bool unlockNode(int ID);
 
-  // Could be that we have an external peer which should really be receiving
-  // the peer messages. THIS IS A HACK!
-  void setExternalPeer(arGraphicsPeer* p){ _externalPeer = p; }
+  // HACK: maybe an external peer should be receiving the peer messages.
+  void setExternalPeer(arGraphicsPeer* p) {
+    if (p)
+      _externalPeer = p;
+  }
   
   bool processEventQueue() {
-    if (_eventFilter) {
-      return _eventFilter->processEventQueue();
-    }
+    return _eventFilter && _eventFilter->processEventQueue();
   }
+
   void flushEventQueue() { 
-    if (_eventFilter) {
+    if (_eventFilter)
       _eventFilter->flushEventQueue();
-    }
   }
 
  private:
@@ -90,7 +90,6 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
 
 //  bool _disabled;
 
-  // We need to keep track of the node we use for the 
   int _VRCameraID;
 
   // stuff for standalone mode only
@@ -110,8 +109,8 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   string _peerTarget;
   // To what remote root node should we attach?
   int _remoteRootID;
-  // It could be that (as in the case of peerBridge) need to pass the
-  // peer messages on to someone external.
+  // Maybe (as in the case of peerBridge) we should pass on
+  // peer messages to someone external.
   arGraphicsPeer* _externalPeer;
 
   bool _loadParameters();

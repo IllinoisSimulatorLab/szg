@@ -106,24 +106,23 @@ void ar3DS::attachChildNode(const string &baseName,
   // so that the matrix value at a node is, indeedm the absolute value,
   // not the value relative to the branch on which it resides.
   // Of course, the syzygy scene graph does things differently
-  arMatrix4 nodeTransform =
-    arMatrix4(node->matrix[0][0],node->matrix[0][1],
-	      node->matrix[0][2],node->matrix[0][3],
-              node->matrix[1][0],node->matrix[1][1],
-	      node->matrix[1][2],node->matrix[1][3],
-              node->matrix[2][0],node->matrix[2][1],
-	      node->matrix[2][2],node->matrix[2][3],
-              node->matrix[3][0],node->matrix[3][1],
-	      node->matrix[3][2],node->matrix[3][3]);
+  const arMatrix4 nodeTransform(
+    node->matrix[0][0],node->matrix[0][1],
+    node->matrix[0][2],node->matrix[0][3],
+    node->matrix[1][0],node->matrix[1][1],
+    node->matrix[1][2],node->matrix[1][3],
+    node->matrix[2][0],node->matrix[2][1],
+    node->matrix[2][2],node->matrix[2][3],
+    node->matrix[3][0],node->matrix[3][1],
+    node->matrix[3][2],node->matrix[3][3]);
   //dgTransform(newName, baseName, nodeTransform);
   arDatabase* database = parent->getOwningDatabase();
-  arTransformNode* newParent 
-    = (arTransformNode*) database->newNode(parent, "transform", newName);
+  arTransformNode* newParent =
+    (arTransformNode*) database->newNode(parent, "transform", newName);
   newParent->setTransform(nodeTransform);
   
   // recurse through children  
-  Lib3dsNode *p;
-  for (p=node->childs; p!=NULL; p=p->next){
+  for (Lib3dsNode* p=node->childs; p; p=p->next){
     attachChildNode(newName, newParent, p);
   }
 
@@ -132,9 +131,8 @@ void ar3DS::attachChildNode(const string &baseName,
 
   Lib3dsMesh *mesh = lib3ds_file_mesh_by_name(_file, node->name);
   ASSERT(mesh);
-  if (!mesh) {
+  if (!mesh)
     return;
-  }
  
   const string transformModifier(".transform");
   const string pointsModifier   (".points");
@@ -143,19 +141,18 @@ void ar3DS::attachChildNode(const string &baseName,
   const string materialsModifier(".materials.");
   const string geometryModifier (".geometry.");
 
-  unsigned int j, i;
-  vector<Lib3dsMaterial*> materials; 	///< pointers to actual materials
+  unsigned int j=0, i=0;
   ///< faces with indexed material
   // once again, the default material causes us to want to have plus one here
   vector<int>*	materialFaces = new vector<int>[_numMaterials+1]; 	
   ///< names of the materials
   // don't forget that we have the default material, hence the plus one
-  string*	materialNames = new string[_numMaterials+1]; 	
   Lib3dsMatrix	invMeshMatrix;		///< matrix for the mesh from Lib3DS
   lib3ds_matrix_copy(invMeshMatrix, mesh->matrix);
   lib3ds_matrix_inv(invMeshMatrix);
 
   /// Put a default material on the front of the material stack
+  vector<Lib3dsMaterial*> materials; 	///< pointers to actual materials
   materials.push_back(new Lib3dsMaterial);
   materials.back()->ambient[0] = 0.2; materials.back()->ambient[1] = 0.2;
   materials.back()->ambient[2] = 0.2; materials.back()->ambient[3] = 1.0;
@@ -164,6 +161,7 @@ void ar3DS::attachChildNode(const string &baseName,
   materials.back()->specular[0] = 0.0; materials.back()->specular[1] = 0.0;
   materials.back()->specular[2] = 0.0; materials.back()->specular[3] = 1.0;
   materials.back()->shininess = 0.0;
+  string* materialNames = new string[_numMaterials+1]; 	
   materialNames[0] = "(default)";	// no name on default material
   
   /// Calculate normals
@@ -304,12 +302,12 @@ bool ar3DS::normalizationMatrix(arMatrix4 &theMatrix) {
     cerr << "Cannot normalize model size: invalid file!\n";
     return false;
   }
-  Lib3dsNode *p;
+
   _minVec = arVector3( 10000, 10000, 10000);
   _maxVec = arVector3(-10000,-10000,-10000);
 
   // collect data (min/max)
-  for (p=_file->nodes; p!=NULL; p=p->next)
+  for (Lib3dsNode* p=_file->nodes; p!=NULL; p=p->next)
     subNormalizationMatrix(p, _minVec, _maxVec);
 
 //cout<<_minVec<<", "<<_maxVec<<endl;
@@ -333,33 +331,29 @@ bool ar3DS::normalizationMatrix(arMatrix4 &theMatrix) {
 /// @param _maxVec largest (x,y,z) position of all points in entire file
 void ar3DS::subNormalizationMatrix(Lib3dsNode* node,
                                    arVector3 &_minVec, arVector3 &_maxVec) {
-  Lib3dsNode *p;
   // recurse through children
-  for (p=node->childs; p!=NULL; p=p->next)
+  for (Lib3dsNode* p=node->childs; p!=NULL; p=p->next)
     subNormalizationMatrix(p, _minVec, _maxVec);
 
   if (node->type==LIB3DS_OBJECT_NODE) {
     if (!strcmp(node->name,"$$$DUMMY"))
-    return;
+      return;
 
-    Lib3dsMesh *mesh=lib3ds_file_mesh_by_name(_file, node->name);
+    Lib3dsMesh *mesh = lib3ds_file_mesh_by_name(_file, node->name);
     ASSERT(mesh);
     if (!mesh)
       return;
 
-    unsigned int k, j, i;
-    Lib3dsVector v;
     Lib3dsMatrix invMeshMatrix;
-
     lib3ds_matrix_copy(invMeshMatrix, mesh->matrix);
     lib3ds_matrix_inv(invMeshMatrix);
-
-    for (j=0; j<mesh->faces; ++j) {
+    Lib3dsVector v;
+    for (unsigned int j=0; j<mesh->faces; ++j) {
       Lib3dsFace &f=mesh->faceL[j];
-      for (i=0; i<3; ++i) {
+      for (unsigned int i=0; i<3; ++i) {
         lib3ds_vector_transform(v, invMeshMatrix, mesh->pointL[f.points[i]].pos);
 
-        for (k=0; k<3; k++) {
+        for (unsigned int k=0; k<3; k++) {
           if (v[k] > _maxVec[k])
             _maxVec[k] = v[k];
           if (v[k] < _minVec[k])

@@ -25,7 +25,7 @@ arMatrix4 arVector4::outerProduct( const arVector4& rhs ) const {
   arMatrix4 result;
   float* ptr = result.v;
   for (unsigned int i=0; i<4; ++i) {
-    float y = rhs.v[i];
+    const float y = rhs.v[i];
     for (unsigned int j=0; j<4; ++j) {
       *ptr++ = this->v[j]*y;
     }
@@ -62,7 +62,7 @@ arMatrix4::arMatrix4(float v0, float v4, float v8, float v12,
 
 // matrix inverse
 arMatrix4 arMatrix4::inverse() const {
-  int i,j,k;
+  int i=0,j=0;
   float buffer[4][8];
 
   // Prepare the Gaussian elimination.
@@ -100,7 +100,7 @@ arMatrix4 arMatrix4::inverse() const {
       buffer[i][j] /= temp;
     }
     // zero other entries in column
-    for (k=0; k<4; k++){
+    for (int k=0; k<4; k++){
       if (k!=i){
         const float scale = buffer[k][i];
         for (j=0; j<8; j++){
@@ -270,7 +270,6 @@ arMatrix4 ar_translationMatrix(const arVector3& v){
 // note that the angles are all in radians
 
 arMatrix4 ar_rotationMatrix(char axis, float r){
-  arMatrix4 result;
   switch (axis){
   case 'x':
     return arMatrix4(
@@ -290,11 +289,9 @@ arMatrix4 ar_rotationMatrix(char axis, float r){
       sin(r), cos(r), 0, 0,
       0, 0, 1, 0,
       0, 0, 0, 1);
-  default:
-    cout << "syzygy ar_rotationMatrix error: unknown axis " << axis << endl;
-    return ar_identityMatrix();
   }
-  return result;
+  cerr << "syzygy ar_rotationMatrix error: unknown axis " << axis << endl;
+  return ar_identityMatrix();
 }
 
 arMatrix4 ar_rotationMatrix(const arVector3& a, float radians){
@@ -376,6 +373,7 @@ arMatrix4 ar_extractScaleMatrix(const arMatrix4& original){
 float ar_angleBetween(const arVector3& first, const arVector3& second){
   if (first.magnitude() <=0. || second.magnitude() <= 0.)
     return 0.;
+
   // In some cases the result of the dot
   // product (presumably because of rounding error) was going
   // outside [-1,1] (at least on Windows, I didn't check

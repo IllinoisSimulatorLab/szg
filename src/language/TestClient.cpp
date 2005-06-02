@@ -28,7 +28,7 @@ bool dataCheck(arStructuredData* data, string identifier){
     cout << "  Test failed (" << identifier << "). char data not found.\n";
     return false;
   }
-  int i;
+  int i = 0;
   for (i=0; i<10; i++){
     if (charPtr[i] != 'A' + i){
       cout << "  Test failed (" << identifier << "). Reading char " 
@@ -147,7 +147,7 @@ int main(int argc, char** argv){
   comm->ar_safeRead(charSpace,200000);
   done_time = ar_time();
   float guessMbps = 1600000.0/ar_difftime(done_time,init_time);
-  int numberSentChars;
+  int numberSentChars = -1;
   if (guessMbps < 20){
     cout << " Guessing this is a 10 Mbps link\n";
     guessMbps = 10;
@@ -179,7 +179,7 @@ int main(int argc, char** argv){
 
   cout << "Test 2: Determine arStructuredData link speed (large records).\n";
   init_time = ar_time();
-  int i;
+  int i = 0;
   for (i=0; i<10; i++){
     if (!client.getData(charSpace,charSpaceSize)){
       cout << "Test failed. Did not receive data record " << i << ".\n";

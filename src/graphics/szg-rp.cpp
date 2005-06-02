@@ -10,7 +10,7 @@
 
 // NOTE: arSZGClient CANNOT BE GLOBAL ON WINDOWS. THIS IS BECAUSE 
 // OF OUR METHOD OF INITIALIZING WINSOCK (USING GLOBALS).
-arSZGClient* szgClient;
+arSZGClient* szgClient = NULL;
 
 arFramerateGraph framerateGraph;
 // By default, the drawing function has a 1/100 second delay added to
@@ -235,12 +235,11 @@ string handleCommentGet(const string& messageBody){
 
 string handleList(){
   stringstream result;
-  PeerContainer::iterator i;
   result << "szg-rp success: peer list follows:\n\n";
-  for (i = peers.begin(); i != peers.end(); i++){
+  for (PeerContainer::iterator i = peers.begin(); i != peers.end(); i++){
     result << "peer name = " << i->first << "\n"
-	   << "comment = " << i->second.comment << "\n";
-    result << i->second.peer->printConnections() << "\n\n";  
+	   << "comment = " << i->second.comment << "\n"
+           << i->second.peer->printConnections() << "\n\n";  
   }
   return result.str();
 }
@@ -262,7 +261,7 @@ string handleLabel(const string& messageBody){
 }
 
 string handleCamera(const string& messageBody){
-  float temp[15];
+  float temp[15] = {0};
   ar_parseFloatString(messageBody, temp, 15);
   int i;
   for (i=0; i<6; i++){
@@ -489,12 +488,10 @@ void display(){
   // It seems more advantageous to send the frame time back every
   // frame instead of more occasionally. This leads to a tighter
   // feedback loop. Still experimenting, though.
-  int frametime;
+  int frametime = 50000; // a sensible default.
   if (!timeInit){
     timeInit = true;
     time1 = ar_time();
-    // a sensible default.
-    frametime = 50000;
   }
   else{
     ar_timeval temp = time1;

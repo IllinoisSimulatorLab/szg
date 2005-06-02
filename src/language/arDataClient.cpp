@@ -91,7 +91,7 @@ bool arDataClient::getDataQueue(ARchar*& dest,int& availableSize){
   for (int i=0; i<numberRecords; ++i) {	
     const ARint recordSize =
       ar_translateInt(_translationBuffer+srcPos, _remoteStreamConfig);
-    int transSize;
+    int transSize = -1;
     if (!_translateID(_translationBuffer+srcPos, dest+destPos, transSize))
       return false;
 

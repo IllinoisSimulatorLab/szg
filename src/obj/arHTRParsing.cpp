@@ -276,14 +276,12 @@ bool arHTR::parseBasePosition(FILE *htrFileHandle){
 /// parses the frame data of .htr file
 /// @param htrFileHandle the HTR file
 bool arHTR::parseSegmentData(FILE *htrFileHandle){
-  char* value;
-  int i, j;
-  char textLine[MAXLINE];
-  char *token[MAXTOKENS];
-  char *genStr; // temp
-  htrSegmentData *newSegmentData;
-  htrFrame *newFrame;
-  for (i=0; i<numSegments; i++){
+  char* value = NULL;
+  char textLine[MAXLINE] = {0};
+  char *token[MAXTOKENS] = {0};
+  htrSegmentData *newSegmentData = NULL;
+  htrFrame *newFrame = NULL;
+  for (int i=0; i<numSegments; i++){
     //printf("new Seg Data[%i]:\n", i);
     newSegmentData = new htrSegmentData;
     //printf("/new seg data\n");
@@ -303,12 +301,13 @@ bool arHTR::parseSegmentData(FILE *htrFileHandle){
       return false;
     }
 
-    if ((genStr = strrchr(textLine, ']')))
+    char *genStr = strrchr(textLine, ']');
+    if (genStr)
       genStr[0] = '\0';
     //newSegmentData->name = (char*)malloc((strlen(textLine)-1)*sizeof(char));
     newSegmentData->name = new char[strlen(textLine)];
     strcpy(newSegmentData->name, textLine+1);
-    for (j=0; j<numFrames; j++){
+    for (int j=0; j<numFrames; j++){
       if (!parseLine(htrFileHandle, token, textLine, 8, "SegmentData"))
         return false;
 
@@ -334,8 +333,8 @@ bool arHTR::parseSegmentData(FILE *htrFileHandle){
 
 /// fills in the data structures for easy, efficient access
 bool arHTR::precomputeData(void){
-  unsigned int k, l;
-  int i, j;
+  unsigned int k=0, l=0;
+  int i=0, j=0;
 
   // connecting parents and children
   for (k=0; k<childParent.size(); k++)

@@ -43,7 +43,7 @@ bool ar_pollingInteraction( arEffector& effector,
   // Interact with the grabbed object, if any.
   const arInteractable* grabbedPtr = effector.getGrabbedObject();
   std::list<arInteractable*>::iterator grabbedIter;
-  if (grabbedPtr != 0) {
+  if (grabbedPtr) {
     // If this effector has grabbed an object not in this set, don't
     // interact with any of these
     grabbedIter = std::find( objects.begin(), objects.end(), grabbedPtr );
@@ -54,19 +54,17 @@ bool ar_pollingInteraction( arEffector& effector,
       // If it's grabbed an object in this set, interact only with it.
       return (*grabbedIter)->processInteraction( effector );
     } 
-    else{
-      // Ungrab it. HOW STRANGE! THIS DOESN'T DO ANYTHING!
-    }
+    // Ungrab it. HOW STRANGE! THIS DOESN'T DO ANYTHING!
   }
   // Figure out the closest interactable to the effector (as determined
   // by their matrices). Go ahead and touch it (while untouching the
   // previously touched object if such are different).
-  std::list<arInteractable*>::iterator iter;
   std::list<arInteractable*>::iterator touchedIter = objects.end();
   float minDist = BIGGEST_FLOAT;
-  for (iter = objects.begin(); iter != objects.end(); iter++) {
+  for (std::list<arInteractable*>::iterator iter = objects.begin();
+       iter != objects.end(); ++iter) {
     if ((*iter)->enabled()) {
-      float dist = effector.calcDistance( (*iter)->getMatrix() );
+      const float dist = effector.calcDistance( (*iter)->getMatrix() );
       if ((dist >= 0.)&&(dist < minDist)) {
         minDist = dist;
         touchedIter = iter;
@@ -74,15 +72,14 @@ bool ar_pollingInteraction( arEffector& effector,
     }
   }  
   arInteractable* touchedPtr = effector.getTouchedObject();
-  if (*touchedIter != touchedPtr) {
-    if (touchedPtr != 0)
-      touchedPtr->untouch( effector );
+  if (touchedPtr && touchedPtr != *touchedIter) {
+    touchedPtr->untouch( effector );
   }
   if (touchedIter == objects.end()){ 
     // Not touching any objects.
     return false;
   }
-  if (*touchedIter == 0) {
+  if (!*touchedIter) {
     cerr << "ar_pollingInteraction error: found NULL touched pointer.\n";
     return false;
   }
@@ -99,25 +96,18 @@ bool ar_pollingInteraction( arEffector& effector,
   }
   const arInteractable* grabbedPtr = effector.getGrabbedObject();
   if (grabbedPtr == object) {
-    if (object->enabled()) {
+    if (object->enabled())
       return object->processInteraction( effector );
-    } else {
-      // ungrab it
-    }
+    // ungrab it
   }
-  float minDist = BIGGEST_FLOAT;
-  float dist = effector.calcDistance( object->getMatrix() );
+  const float dist = effector.calcDistance( object->getMatrix() );
   arInteractable* touchedPtr = effector.getTouchedObject();
-  if ((dist < 0.)||(dist >= minDist)) {
+  if (dist < 0.) {
     if (object == touchedPtr)
       touchedPtr->untouch( effector );
     return false;
   }
-  if (object != touchedPtr) {
-    if (touchedPtr != 0)
-      touchedPtr->untouch( effector );
-  }
+  if (touchedPtr && touchedPtr != object)
+    touchedPtr->untouch( effector );
   return object->processInteraction( effector );
 }
-
-

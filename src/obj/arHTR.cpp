@@ -95,7 +95,7 @@ void arHTR::attachMesh(const string& baseName,
     return;
   }
   const string transformModifier(".transform");
-  unsigned int i;
+  unsigned int i = 0;
   arMatrix4 tempTransform;
   htrBasePosition* rootBasePosition = NULL;
   string rootName;
@@ -213,7 +213,7 @@ void arHTR::normalizeModelSize(void) {
   htrBasePosition* rootBasePosition = NULL;
   string rootName;
   vector<string> rootNames;
-  unsigned int i;
+  unsigned int i = 0;
 
   // find root node(s)
   for (i=0; i<childParent.size(); i++){
@@ -243,8 +243,7 @@ void arHTR::normalizeModelSize(void) {
 /// Helper function for normalizeModelSize recursion
 void arHTR::subNormalizeModelSize(arVector3 thePoint, arVector3& minVec,
 				  arVector3& maxVec, htrBasePosition* theBP) {
-  unsigned int i;
-  arVector3 newPoint;
+  unsigned int i = 0;
   for (int j=0; j<numFrames; j++) {
     arVector3 newPoint = HTRTransform(theBP,theBP->segment->frame[j])*thePoint;
     for (i=0; i<3; i++) {

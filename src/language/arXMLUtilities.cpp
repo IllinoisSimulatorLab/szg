@@ -26,11 +26,10 @@ bool ar_ignoreWhitespace(arTextStream* textStream,
   // '\r' = 13 = carriage return (this doesn't really exist in Unix
   //   text files, but definitely exists in Windows text files)
   // 9 = horizontal tab 
-  int ch;
+  int ch = 0;
   while (true){
     ch = textStream->ar_getc();
     if (ch == EOF){
-      // DO NOT PRINT OUT ANYTHING HERE!!
       return false;
     }
     if (ch == ' ' || ch == '\n' || ch == 13 || ch == 9){
@@ -100,7 +99,7 @@ bool ar_getTextUntilEndTag(arTextStream* textStream,
   // We always start at the beginning of the buffer in this case.
   textBuffer->pushPosition = 0;
   string tagText;
-  int finalPosition;
+  int finalPosition = 0;
   while (true){
     // Get text until the next tag.
     if (!ar_getTextBeforeTag(textStream, textBuffer, true)){
@@ -118,7 +117,7 @@ bool ar_getTextUntilEndTag(arTextStream* textStream,
       break;
     }
   }
-  // Go ahead and NULL-terminate the array; We use the position before
+  // NULL-terminate the array; We use the position before
   // the final tag. Since the final tag has at least 4 characters, we
   // do not need to grow the array.
   textBuffer->data[finalPosition] = '\0';
