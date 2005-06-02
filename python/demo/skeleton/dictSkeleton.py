@@ -2,16 +2,16 @@ from PySZG import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-from numarray import *
-import cPickle
-import pickle
+
 
 #### More complex master/slave framework skeleton example. Demonstrates
-#### a method (based on the arMasterSlaveListSync class in PySZG) for
-#### synchronizing a list of identical objects between master and slaves.
+#### a method (based on the arMasterSlaveDict class in PySZG) for
+#### synchronizing a dictionary of identical objects between master and slaves.
 #### Now clicking & holding button #2 creates a new square that you
 #### can drag around until the button is released. Existing squares can
-#### be dragged with button 0 as before.
+#### be dragged with button 0 as before. Clicking button #1 deletes the
+#### selected square. Clicking button #3 toggles it between solid and
+#### wireframe.
 
 # See szg/doc/Interaction.html for a discussion of user/object interaction
 # concepts & classes
@@ -20,16 +20,6 @@ import pickle
 # Atlantis, for example, uses 1/2-millimeters, so the appropriate conversion
 # factor is 12*2.54*10.*2.
 FEET_TO_LOCAL_UNITS = 1.
-
-
-# Utility routine to convert an arMatrix4 to a numarray array
-# (for glMultMatrixf)
-def arMatrix4ToNumarray( mat ):
-  result = array( [[mat[0],mat[1],mat[2],mat[3]],
-                  [mat[4],mat[5],mat[6],mat[7]],
-                  [mat[8],mat[9],mat[10],mat[11]],
-                  [mat[12],mat[13],mat[14],mat[15]]] )
-  return result
 
 
 #### Class definitions & implementations. ####
@@ -43,23 +33,25 @@ def arMatrix4ToNumarray( mat ):
 # (i.e. when the effector tip is within 1 ft.) and can be dragged around.
 # See szg/src/interaction/arInteractable.h.
 class ColoredSquare(arPyInteractable):
-
-  def __init__(self,args=None):
+  def __init__(self, container=None):
     # must call superclass init so that on...() methods get called
     # when appropriate.
     arPyInteractable.__init__(self)
-    if args:
-      self.setStateArgs(args)
+    self._container = container
 
   # This will get called on each frame in which this object is selected for
-  # interation ('touched')
+  # interaction ('touched')
   def onProcessInteraction( self, effector ):
+    # button 3 toggles visibility (actually solid/wireframe)
     if effector.getOnButton(3):
       self.setVisible( not self.getVisible() )
+    # button 1 deletes this square from the dictionary
+    elif effector.getOnButton(1):
+      self._container.delValue(self)
 
-  def draw(self):
+  def draw( self, framework=None ):
     glPushMatrix()
-    glMultMatrixf( arMatrix4ToNumarray(self.getMatrix()) )
+    glMultMatrixf( self.getMatrix().toTuple() )
     glScalef( 2., 2., 1./12. )
     if self.getVisible():
       # set one of two colors depending on if this object has been selected for interaction
@@ -78,13 +70,13 @@ class ColoredSquare(arPyInteractable):
   # state that must be shared between master and slaves has to be packed
   # into a tuple for each object. Note that the __init__ _MUST_ be able
   # to accept the same tuple as an argument.
-  def getStateArgs(self):
-    return (self.getHighlight(),self.getVisible(),self.getMatrix())
+  def getState(self):
+    return (self.getHighlight(),self.getVisible(),self.getMatrix().toTuple())
 
-  def setStateArgs(self,stateTuple):
+  def setState( self, stateTuple ):
     self.setHighlight( stateTuple[0] )
     self.setVisible( stateTuple[1] )
-    self.setMatrix( stateTuple[2] )
+    self.setMatrix( arMatrix4(stateTuple[2]) )
 
 
 # RodEffector: an effector that uses input matrix 1 for its position/orientatin
@@ -112,7 +104,7 @@ class RodEffector( arEffector ):
 
   def draw(self):
     glPushMatrix()
-    glMultMatrixf( arMatrix4ToNumarray(self.getCenterMatrix()) )
+    glMultMatrixf( self.getCenterMatrix().toTuple() )
     # draw grey rectangular solid 2"x2"x5'
     glScalef( 2./12, 2./12., 5. )
     glColor3f( .5,.5,.5 )
@@ -123,47 +115,38 @@ class RodEffector( arEffector ):
     glPopMatrix()
 
 
-# An (optional) event filter. You would define & install one of these if
-# for some reason you needed to be absolutely sure of never missing an
-# input event (calling e.g. framework or effector getAxis() routines 
-# only gives you the most recent value of each event). Installing an event
-# filter gives you access to each individual event as it comes in.
-# See PyInputEvents.i and PyEventFilter.i.
-class SkeletonEventFilter(arPyEventFilter):
-  def __init__(self,framework):
-    arPyEventFilter.__init__(self,framework)
-    print 'SkeletonEventFilter.__init__(), getFramework() = ', self.getFramework()
-  def onEvent( self, event ):
-    print event
-    return True
-
-
 #####  The application framework ####
 #
 #  The arPyMasterSlaveFramework automatically installs certain of its methods as the
-#  master/slave callbacks, e.g. the draw callback is onDraw(), etc. The only ones
-#  left out are the window init and reshape callbacks (because that would force the
-#  PySZG module to depend on pyopengl and numarray) and the event queue processing
-#  callback (because there aren't any bindings for the arInputEventQueue yet). To
-#  override the default behaviors for the first two, you'll need to call e.g.
-#  self.setReshapeCallback in your framework's __init__().
+#  master/slave callbacks, e.g. the draw callback is onDraw(), etc.
 
 class SkeletonFramework(arPyMasterSlaveFramework):
   def __init__(self):
     arPyMasterSlaveFramework.__init__(self)
 
-    # See PySZG.py, PyMasterSlave.i
-    # Utility class that synchronizes a list of identical objects (in this
-    # case a list of ColoredSquares) between master and slaves.
-    self.syncList = arMasterSlaveListSync(ColoredSquare)
+    # arMasterSlaveDict is a dictionary of objects to be shared between master
+    # and slaves. Dictionary keys MUST be Ints, Floats, or Strings.
+    # The second argument contains information about the classes the
+    # dictionary can contain, used to construct new objects in the slaves.
+    # In this particular instance, the value after the colon is a reference to
+    # the ColoredSquare class (remember, in Python a class is just an object that
+    # generates instances when called with (); if you're familiar with the standard
+    # OOP Design Patterns, it's basically a Factory).
+    # See arMasterSlaveDict.__doc__ for more information.
+    # Note that you can have multiple arMasterSlaveDicts in one application, if desired.
+    self.dictionary = arMasterSlaveDict( 'objects', {'ColoredSquare':ColoredSquare} )
 
-    # Our single object and effector
-    theSquare = ColoredSquare()
+    # Create a square
+    theSquare = ColoredSquare( self.dictionary )
     # set square's initial position
-    theSquare.setMatrix( ar_translationMatrix(0,5,-5) )
+    theSquare.setMatrix( ar_translationMatrix(0,5,-6) )
+    # Insert it in the dictionary, using an implicit integer key that's incremented after
+    # each push() (if you've manually inserted something using an integer key--e.g
+    # self.dictionary[1] = Foo()--it will skip it and go on until if finds an unused key).
+    # This method is special to arMasterSlaveDict.
+    self.dictionary.push( theSquare )
 
-    self.syncList.objList.append( theSquare )
-
+    # Instantiate our effector
     self.theWand = RodEffector()
 
     # Tell the framework what units we're using.
@@ -174,10 +157,6 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     farClipDistance = 100.*FEET_TO_LOCAL_UNITS
     self.setClipPlanes( nearClipDistance, farClipDistance )
 
-    # Optional event filter. Can't be installed until after framework.init(),
-    # see __main__
-    #self.eventFilter = SkeletonEventFilter(self)
-
 
   #### Framework callbacks -- see szg/src/framework/arMasterSlaveFramework.h ####
 
@@ -185,8 +164,8 @@ class SkeletonFramework(arPyMasterSlaveFramework):
   #
   def onStart( self, client ):
 
-    # Register variables to be shared between master & slaves
-    self.initObjectTransfer('transfer')
+    # Register the dictionary of objects to be shared between master & slaves
+    self.dictionary.start( self )
 
     # Setup navigation, so we can drive around with the joystick
     #
@@ -211,7 +190,8 @@ class SkeletonFramework(arPyMasterSlaveFramework):
 
   # Callback called before data is transferred from master to slaves. Now
   # called _only on the master_. This is where anything having to do with
-  # processing user input or random variables should happen.
+  # processing user input or random variables should happen. Normally, most
+  # of the frame-by-frame work of the program should be done here.
   def onPreExchange( self ):
 
     # handle joystick-based navigation (drive around). The resulting
@@ -221,25 +201,32 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     # update the input state (placement matrix & button states) of our effector.
     self.theWand.updateState( self.getInputState() )
 
-    # create a new square and grab it
+    # create a new square, add it to the dictionary, and grab it
     if self.theWand.getOnButton(2):
       self.theWand.forceUngrab()
-      theSquare = ColoredSquare()
+      theSquare = ColoredSquare( self.dictionary )
+      theSquare.setMatrix( self.theWand.getMatrix() )
       self.theWand.requestGrab( theSquare )
-      self.syncList.objList.append( theSquare )
+      self.dictionary.push( theSquare )
 
-    # Handle any interaction with the squares (see PySZG.i).
-    # Any grabbing/dragging happens in here.
-    ar_processInteractionList( self.theWand, self.syncList.objList )
+    # Handle any interaction with the squares (see interaction docs).
+    # Any grabbing/dragging/deletion of squares happens in here.
+    self.dictionary.processInteraction( self.theWand )
 
-    theString = self.syncList.dumpStateToString()
-    self.setString( 'transfer', theString )
+    # Pack the state of the arMasterSlaveDict (and its contents) into the framework.
+    # This generates a sequence of messages, starting with construction and deletion
+    # messages for objects that have been inserted or delete from the dictionary,
+    # and ending with state-change messages for each object currently in the
+    # dictionary, based on the sequence returned by each object's getState().
+    self.dictionary.packState( self )
     
-#    self.setObject( 'transfer', self.syncList ) 
-
 
   # Callback called after transfer of data from master to slaves. Mostly used to
-  # synchronize slaves with master based on transferred data.
+  # synchronize slaves with master based on transferred data. Note that you normally
+  # Shouldn't be doing a whole lot of computation here; the exception would be if
+  # you have a complex state that can be computed from a relatively small number of
+  # parameters, you might compute those parameters on the master, transfer them to
+  # the slaves, & do the complex state computation in master and slaves here.
   def onPostExchange( self ):
     # Do stuff after slaves got data and are again in sync with the master.
     if not self.getMaster():
@@ -248,20 +235,20 @@ class SkeletonFramework(arPyMasterSlaveFramework):
       # to be updated, for rendering purposes.
       self.theWand.updateState( self.getInputState() )
 
-      # Unpack our transfer variables.
-      # NOTE: The post-exchange callback is no longer called
-      # on disconnected slaves (which used to cause an exception
-      # here).
-      theString = self.getString( 'transfer' )
-      self.syncList.setStateFromString( theString )
+      # Unpack the message queue and use it to update the set
+      # of objects in the dictionary as well as the state of each (using
+      # its getState() method).
+      self.dictionary.unpackState( self )
+
 
   # Draw callback
   def onDraw( self):
-    # Load the navigation matrix.
+    # Load the [inverse of the] navigation matrix onto the OpenGL modelview matrix stack.
     self.loadNavMatrix()
     
-    # Draw stuff.
-    self.syncList.draw()
+    # Draw any objects in the dictionary with a 'draw' attribute.
+    self.dictionary.draw()
+    # Draw the effector.
     self.theWand.draw()
 
 
@@ -270,10 +257,7 @@ if __name__ == '__main__':
   framework = SkeletonFramework()
   if not framework.init(sys.argv):
     raise PySZGException,'Unable to init framework.'
-
-  # install event filter now.
-  #framework.setEventFilter( framework.eventFilter )
-
+  print 'Framework inited.'
   # Never returns unless something goes wrong
   if not framework.start():
     raise PySZGException,'Unable to start framework.'

@@ -2,8 +2,9 @@ from PySZG import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-from numarray import *
+import numarray
 import cPickle
+import array
 
 #### Master/slave framework skeleton example. Demonstrates usage of some
 #### interaction classes. Puts up a yellow square that the user can touch
@@ -36,8 +37,9 @@ class ColoredSquare(arPyInteractable):
     arPyInteractable.__init__(self)
 
   # This will get called on each frame in which this object is selected for
-  # interation ('touched')
+  # interaction ('touched')
   def onProcessInteraction( self, effector ):
+    # button 3 toggles visibility (actually solid/wireframe)
     if effector.getOnButton(3):
       self.setVisible( not self.getVisible() )
 
@@ -66,8 +68,8 @@ class RodEffector( arEffector ):
   def __init__(self):
     arEffector.__init__(self,1,6,0,0,0)
 
-    # set length to 4 ft.
-    self.setTipOffset( arVector3(0,0,-4) )
+    # set length to 5 ft.
+    self.setTipOffset( arVector3(0,0,-5) )
 
     # set to interact with closest object within 1 ft. of tip
     # (see PySZG.py for alternative classes for selecting objects)
@@ -98,12 +100,7 @@ class RodEffector( arEffector ):
 #####  The application framework ####
 #
 #  The arPyMasterSlaveFramework automatically installs certain of its methods as the
-#  master/slave callbacks, e.g. the draw callback is onDraw(), etc. The only ones
-#  left out are the window init and reshape callbacks (because that would force the
-#  PySZG module to depend on pyopengl and numarray) and the event queue processing
-#  callback (because there aren't any bindings for the arInputEventQueue yet). To
-#  override the default behaviors for the first two, you'll need to call e.g.
-#  self.setReshapeCallback in your framework's __init__().
+#  master/slave callbacks, e.g. the draw callback is onDraw(), etc.
 
 class SkeletonFramework(arPyMasterSlaveFramework):
   def __init__(self):
@@ -132,7 +129,7 @@ class SkeletonFramework(arPyMasterSlaveFramework):
   def onStart( self, client ):
 
     # Register variables to be shared between master & slaves
-    self.initSequenceTransfer('transferTuple')
+    self.initSequenceTransfer('transfer')
 
     # Setup navigation, so we can drive around with the joystick
     #
@@ -153,14 +150,15 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     glClearColor(0,0,0,0)
 
     # set square's initial position
-    self.theSquare.setMatrix( ar_translationMatrix(0,5,-5) )
+    self.theSquare.setMatrix( ar_translationMatrix(0,5,-6) )
 
     return True
 
 
   # Callback called before data is transferred from master to slaves. Now
   # called _only on the master_. This is where anything having to do with
-  # processing user input or random variables should happen.
+  # processing user input or random variables should happen. Normally, most
+  # of the frame-by-frame work of the program should be done here.
   def onPreExchange( self ):
 
     # handle joystick-based navigation (drive around). The resulting
@@ -170,19 +168,28 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     # update the input state (placement matrix & button states) of our effector.
     self.theWand.updateState( self.getInputState() )
 
-    # Handle any interaction with the square (see PySZG.i).
-    # Any grabbing/dragging happens in here.
+    # Handle any interaction with the squares (see interaction docs).
+    # Any grabbing/dragging/deletion of squares happens in here.
     ar_processInteractionList( self.theWand, self.interactionList )
 
-    # Pack data we have to transfer to slaves into an appropriate sequence
-    # (note that we can't currently transfer bools as such, must use ints).
+    # Pack data we have to transfer to slaves into appropriate variables
+    # What we end up with here is a tuple containing two Ints and a nested tuple
+    # containing 16 Floats. At this end (i.e. in the master), any sequence type
+    # is allowed (e.g. lists, numarray arrays, array module arrays, I don't know what
+    # all else), but the elements of any sequence must be Ints, Floats, or Strings (or
+    # a nested sequence). They don't all have to have the same type within a sequence,
+    # but only those types are allowed.
     transferTuple = (self.theSquare.getHighlight(), self.theSquare.getVisible(), \
         self.theSquare.getMatrix().toTuple())
-    self.setSequence( 'transferTuple', transferTuple )
+    self.setSequence( 'transfer', transferTuple )
 
 
   # Callback called after transfer of data from master to slaves. Mostly used to
-  # synchronize slaves with master based on transferred data.
+  # synchronize slaves with master based on transferred data. Note that you normally
+  # Shouldn't be doing a whole lot of computation here; the exception would be if
+  # you have a complex state that can be computed from a relatively small number of
+  # parameters, you might compute those parameters on the master, transfer them to
+  # the slaves, & do the complex state computation in master and slaves here.
   def onPostExchange( self ):
     # Do stuff after slaves got data and are again in sync with the master.
     if not self.getMaster():
@@ -191,19 +198,19 @@ class SkeletonFramework(arPyMasterSlaveFramework):
       # to be updated, for rendering purposes.
       self.theWand.updateState( self.getInputState() )
 
-      # Unpack our transfer variables.
-      # NOTE: The post-exchange callback is no longer called
-      # on disconnected slaves (which used to cause an exception
-      # here).
-      transferTuple = self.getSequence( 'transferTuple' )
+      # Unpack our transfer sequence. Note that no matter what sequence types
+      # you used at the input end in the master, they all come out as tuples here.
+      # For example, if in the master you passed in a sequence that was a 3-element
+      # numarray array of Floats, when you unpacked it here you'd have a 3-element
+      # tuple of Floats.
+      transferTuple = self.getSequence( 'transfer' )
       self.theSquare.setHighlight( transferTuple[0] )
       self.theSquare.setVisible( transferTuple[1] )
       self.theSquare.setMatrix( arMatrix4( transferTuple[2] ) )
 
-
   # Draw callback
   def onDraw( self ):
-    # Load the navigation matrix.
+    # Load the [inverse of the] navigation matrix onto the OpenGL modelview matrix stack.
     self.loadNavMatrix()
     
     # Draw stuff.
@@ -217,10 +224,6 @@ if __name__ == '__main__':
   if not framework.init(sys.argv):
     raise PySZGException,'Unable to init framework.'
   print 'Framework inited.'
-
-  # install event filter now.
-  #framework.setEventFilter( framework.eventFilter )
-
   # Never returns unless something goes wrong
   if not framework.start():
     raise PySZGExcreption,'Unable to start framework.'

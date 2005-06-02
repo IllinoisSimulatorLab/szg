@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.5 2005/05/26 18:38:52 crowell Exp $
+// $Id: PyMasterSlave.i,v 1.6 2005/06/02 17:29:18 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -921,6 +921,233 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
     pass
 
 # Utility classes
+
+import UserDict
+
+class arMasterSlaveDict(UserDict.IterableUserDict):
+  """
+  arMasterSlaveDict: An IterableUserDict subclass designed for use in Syzygy Master/slave apps.
+  Provides an easy method for synchronizing its contents between master and slaves. Also
+  supports easy user interaction. Most of its methods are intended for use only in the
+  onPreExchange() method in the master copy of the application; in the slaves, only
+  unpackState() should be called in onPostExchange() and draw() in onDraw().
+  It supports most of the usual methods for insertion, deletion, and extraction, including
+  d[key], d[key] = value, del d[key], and d.clear(). Note that keys MUST be Ints, Floats,
+  or Strings. It also has a delValue() method for deleting objects by reference. It does
+  not support d.copy() or d.popitem(). It supports iteration across either keys, values,
+  or items (key/value tuples).
+  Additional docs are available for:
+  __init__()
+  start()
+  packState()
+  unpackState()
+  delValue()
+  push()
+  draw()
+  processInteraction()
+  """
+
+  CONSTRUCT_MESSAGE = 0
+  DESTRUCT_MESSAGE = 1
+  STATE_MESSAGE = 2
+  # DUMMY_MESSAGE to work around a bug in framework.setSequence()--it crashes with empty sequences
+  DUMMY_MESSAGE = 3
+  keyTypes = [type(''),type(0),type(0.)]
+  def __init__( self, name, classData ):
+    """
+    d = arMasterSlaveDict( name, classData )
+    'name' should be a string. This is used by the master/slave framework sequence data transfer
+    methods, e.g. framework.initSequenceTransfer (called in the this class' start() method).
+
+    'classData' establishes a mapping between a string and a class factory. You have to provide an
+    entry for each class of object that you intent to insert in this container.
+    classData should be a dictionary with string keys and class factory values. The
+    keys would generally be the names of the classes in quotes, but they don't have to be. A class
+    factory can be any type of callable object that, when called with no arguments, returns an
+    instance of the desired class; in the simplest case, it would be the class itself. Take three examples:
+
+    1) You've defined class Foo in module Bar and imported it using 'from Bar import *'. Now  the class object
+    Foo is in the global namespace. So you could call
+    self.dict = arMasterSlaveDict( 'mydict', {'Foo':Foo} ).
+
+    2) You've defined class Foo in module Bar and imported it using 'import Bar'. Now Foo is not in the
+    global namespace, it's in the Bar namespace. So you would call
+    self.dict = arMasterSlaveDict( 'mydict', {'Foo':Bar.Foo} ).
+
+    3) You want to pass a parameter to the constructor of Foo, e.g. a reference to the framework object.
+    So you define a framework method newFoo():
+
+    def newFoo(self): return Foo(self)
+
+    and call self.dict = arMasterSlaveDict( 'mydict', {'Foo':self.newFoo} ).
+    """
+    UserDict.IterableUserDict.__init__(self)
+    self._name = name
+    self._classDict = {}
+    if type(classData) == type({}):
+      self._classDict = classData
+    else:
+      raise TypeError, 'arMasterSlaveDict() error: classData parameter must be a dictionary.'
+    self._messages = [(arMasterSlaveDict.DUMMY_MESSAGE,0.,'foo')]
+    self.pushKey = 0
+  def start( self, framework ):  # call in framework onStart() method or start callback
+    """ d.start( framework ).
+    Should be called in your framework's onStart() (start callback)."""
+    framework.initSequenceTransfer( self._name )
+  def packState( self, framework ):
+    """ d.packState( framework ).
+    Should be called in your framework's onPreExchange(). It generates a sequence of messages
+    starting with construction and deletion messages to signal insertion or deletion of objects
+    (note that when you replace an item with one of a different type, that generates both a deletion
+    and a construction message). Then it iterates through the dictionary's contents, calls each
+    item's getState() method (which should return a sequence type containing only Ints, Floats, Strings,
+    and nested sequences) and adding a state-change message with each returned tuple to its message
+    queue. You can instead have your class' getState() method return None if an object's state has not changed,
+    in which case no message is queued for that object; you might want to do this if e.g. you had a
+    gazillion objects, only a few of which were changing state on each frame.
+    Needless to say, all classes must provide a getState(). Finally, it calls
+    framework.setSequence() to hand its message queue to the framework.
+    """
+    if len(self.data) > 0:
+      for key in self.data:
+        item = self.data[key]
+        itemState = item.getState()
+        if itemState:
+          self._messages.append( (arMasterSlaveDict.STATE_MESSAGE, (key, item.getState())) )
+    framework.setSequence( self._name, self._messages )
+    self._messages = [(arMasterSlaveDict.DUMMY_MESSAGE,0.,'foo')]
+  def unpackState( self, framework ):
+    """ d.unpackState( framework ).
+    Should be called in your framework's onPostExchange(), optionally only in slaves. Calls
+    framework.getSequence to get the message queue from the master (see doc string for packState()),
+    applies each message to either construct a new object (using the factories specified in __init__()),
+    delete an object, or set its state using the object's setState() method. This method should expect a tuple
+    with the same structure as that returned by getState(). For example, if your class' getState() method
+    returned a 3-element numarray array, then setState() should expect a 3-element tuple.
+    """
+    messages = framework.getSequence( self._name )
+    for message in messages:
+      messageType = message[0]
+      messageParam = message[1]
+      if messageType == arMasterSlaveDict.STATE_MESSAGE:
+        key = messageParam[0]
+        newState = messageParam[1]
+        self.data[key].setState( newState )
+      elif messageType == arMasterSlaveDict.CONSTRUCT_MESSAGE:
+        key = messageParam[0]
+        className = messageParam[1]
+        classFactory = self._classDict[className]
+        self.data[key] = classFactory()
+      elif messageType == arMasterSlaveDict.DESTRUCT_MESSAGE:
+        key = messageParam
+        del self.data[key]
+  def __setitem__(self, key, item):
+    if not type(key) in arMasterSlaveDict.keyTypes:
+      raise KeyError, 'arMasterSlaveDict keys must be Ints, Floats, or Strings.'
+    if self.has_key(key):
+      if type(self.data[key]) == type(item):
+        self.data[key] = item
+        return
+      else:
+        del self[key]
+    theType = type(item)
+    className = None
+    for classKey in self._classDict:
+      if self._classDict[classKey] == theType:
+        className = classKey
+    if not className:
+      raise TypeError, 'arMasterSlaveDict: class '+theType+' not recognized.'
+    self._messages.append( (arMasterSlaveDict.CONSTRUCT_MESSAGE, (key, className))  )
+    self.data[key] = item
+  def __delitem__( self, key ):
+    self._messages.append( (arMasterSlaveDict.DESTRUCT_MESSAGE, key) )
+    del self.data[key]
+  def delValue( self, value ):
+    """ d.delValue( contained object reference ).
+    Delete an item from the dictionary by reference, i.e. if you have an external reference to
+    an item in the dictionary, call delValue() with that reference to delete it."""
+    for item in self.iteritems():
+      if item[1] is value:
+        del self[item[0]]
+        return
+    raise LookupError, 'arMasterSlaveDict.delValue() error: item not found.'
+  def push( self, object ):
+    """ d.push( object ).
+    arMasterSlaveDict maintains an internal integer key for use with this method. Each time you call it,
+    it checks to see whether that key already exists. If so, it increments it in a loop until it finds an
+    unused key. Then it inserts the object using the key and increments it again. """
+    while self.data.has_key( self.pushKey ):
+      self.pushKey += 1
+    self[self.pushKey] = object
+    self.pushKey += 1
+  def clear(self):
+    for key in self.data.keys():
+      self._messages.append( (arMasterSlaveDict.DESTRUCT_MESSAGE, key) )
+    self.data.clear()
+  def copy(self):
+    raise AttributeError, 'arMasterSlaveDict does not allow copying of itself.'
+  def popitem(self):
+    raise AttributeError, 'arMasterSlaveDict does not support popitem().'
+  def draw( self, framework=None ):
+    """ d.draw( framework=None ).
+    Loops through the dictionary, checks each item for an attribute named 'draw'. If
+    an object has this attribute, it calls it, passing 'framework' as an argument.  """
+    for item in self.data.itervalues():
+      if not hasattr( item, 'draw' ):
+        continue
+      drawMethod = getattr( item, 'draw' )
+      item.draw( framework )
+  def processInteraction( self, effector ):
+    """ d.processInteraction( effector ).
+    Handles interaction between an arEffector and the objects in the dictionary. This is
+    too complex a subject to describe here, see the Syzygy documentation on user interaction.
+    Note that not all objects in the container have to be interactable, any objects that
+    aren't instances of sub-classes of arPyInteractable are skipped.
+    """
+    # Interact with the grabbed object, if any.
+    if effector.hasGrabbedObject():
+      # get the grabbed object.
+      grabbedPtr = effector.getGrabbedObject()
+      # If this effector has grabbed an object not in this list, dont
+      # interact with any of this list
+      grabbedObject = None
+      for item in self.data.itervalues():
+        if isinstance( item, arPyInteractable ):
+          # HACK! Found object in list
+          if ar_getAddressFromSwigPtr(item.this) == ar_getAddressFromSwigPtr(grabbedPtr.this): 
+            grabbedObject = item
+            break
+      if not grabbedObject:
+        return True # not an error, just means no interaction occurred
+      if grabbedObject.enabled():
+        # If it's grabbed an object in this set, interact only with that object.
+        return grabbedObject.processInteraction( effector )
+    # Figure out the closest interactable to the effector (as determined
+    # by their matrices). Go ahead and touch it (while untouching the
+    # previously touched object if such are different).
+    minDist = 1.e10    # A really big number, haven't found how to get
+                       # the max in python yet
+    touchedObject = None
+    for item in self.data.itervalues():
+      if isinstance( item, arPyInteractable ):
+        if item.enabled():
+          dist = effector.calcDistance( item.getMatrix() )
+          if (dist >= 0.) and (dist < minDist):
+            minDist = dist
+            touchedObject = item
+    if effector.hasTouchedObject():
+      touchedPtr = effector.getTouchedObject()
+      if not touchedObject or ar_getAddressFromSwigPtr(touchedObject.this) != ar_getAddressFromSwigPtr(touchedPtr.this):
+        # ar_interactableUntouch( touchedPtr, effector )
+        touchedPtr.untouch( effector )
+    if not touchedObject:
+      # Not touching any objects.
+      return True
+    # Finally, and most importantly, process the action of the effector on
+    # the interactable.
+    return touchedObject.processInteraction( effector )
+
+
 
 # Auto-resizeable container for identical drawable objects.
 # Usage:
