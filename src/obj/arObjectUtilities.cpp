@@ -22,29 +22,22 @@
 ///        will affect external software built on this foundation
 bool attachOBJToHTRToNodeInDatabase(arOBJ* theOBJ, arHTR *theHTR, 
                                     const string &theNode){
-  arMatrix4 inverseMatrix;
-  string groupName, nodeName;
-  int j, TID;
-
   theOBJ->attachPoints(theNode+"object.points", theNode);
   theHTR->attachMesh(theNode+"object", theNode+"object.points");
   for (int i=0; i<theOBJ->numberOfGroups(); i++){
-    groupName = theOBJ->nameOfGroup(i);
-    j = theHTR->numberOfSegment(groupName);
-    TID = theHTR->inverseIDForSegment(j);
+    const string groupName(theOBJ->nameOfGroup(i));
+    const int j = theHTR->numberOfSegment(groupName);
+    const int TID = theHTR->inverseIDForSegment(j);
     if (theOBJ->numberInGroup(i)>0 && TID != -1){
-      inverseMatrix = theHTR->inverseTransformForSegment(j);
-      dgTransform(TID, inverseMatrix);
-      nodeName = dgGetNodeName(TID);
-      theOBJ->attachGroup(i, theNode+groupName, nodeName);
+      dgTransform(TID, theHTR->inverseTransformForSegment(j));
+      theOBJ->attachGroup(i, theNode+groupName, dgGetNodeName(TID));
       int boundingSphereID = theHTR->boundingSphereIDForSegment(j);
       arBoundingSphere theSphere = theOBJ->getGroupBoundingSphere(i);
       dgBoundingSphere(boundingSphereID, 0, theSphere.radius,
 		       theSphere.position);
     }
   }
-
-return true;
+  return true;
 }
 
 #ifdef AR_USE_WIN_32
@@ -143,24 +136,22 @@ arObject* arReadObjectFromFile(const char* fileName, const string& path) {
   arVector3 *duList = new arVector3[numVerts];
   //arVector3 *dvList = new arVector3[numVerts];
 
-  arVector3 edge, tempN, tempT, tempB, duVec, dvVec;
-  float du, dv;
-  int i, j;
+  int i=0;
   // assume numFaces = 0 and indices = NULL
   // run through all the faces, finding gradients of u and v along surface
   for (i=0; i<numVerts; i++) { // for every face
-    for (j=0; j<3; j++) { // for every vertex
-      int nextV = 3*(i+(j+1)%3);
-      int nextT = 2*(i+(j+1)%3);
+    for (int j=0; j<3; j++) { // for every vertex
+      const int nextV = 3*(i+(j+1)%3);
+      const int nextT = 2*(i+(j+1)%3);
       // vector pointing to next vertex
-      edge = arVector3(vertices[nextV+0],vertices[nextV+1],vertices[nextV+2]) - 
+      const arVector3 edge = arVector3(vertices[nextV+0],vertices[nextV+1],vertices[nextV+2]) - 
 	     arVector3(vertices[3*(i+j)+0],vertices[3*(i+j)+1],vertices[3*(i+j)+2]);
       // change in texCoord u value
-      du = (texCoords[nextT+0]-texCoords[2*(i+j)+0]);
-      //dv = (texCoords[nextT+1]-texCoords[2*(i+j)+1]);
+      const float du = (texCoords[nextT+0]-texCoords[2*(i+j)+0]);
+      //const float dv = (texCoords[nextT+1]-texCoords[2*(i+j)+1]);
       // gradient of u at this vertex
-      duVec = arVector3(edge.x?du/edge.x:du, edge.y?du/edge.y:du, edge.z?du/edge.z:du);
-      //dvVec = arVector3(edge.x?dv/edge.x:dv, edge.y?dv/edge.y:dv, edge.z?dv/edge.z:dv);
+      const arVector3 duVec = arVector3(edge.x?du/edge.x:du, edge.y?du/edge.y:du, edge.z?du/edge.z:du);
+      //const arVector3 dvVec = arVector3(edge.x?dv/edge.x:dv, edge.y?dv/edge.y:dv, edge.z?dv/edge.z:dv);
 
       // add gradient to both vertices
       duList[i+j] += duVec;
@@ -170,16 +161,13 @@ arObject* arReadObjectFromFile(const char* fileName, const string& path) {
     }
   }
 
+  // second pass: convert du's and dv's to tan and binorm
   tangents = new float[numVerts*3];
   binormals = new float[numVerts*3];
-
-  // second pass; take du's and dv's and convert to tan and binorm
   for (i=0; i<numVerts; i++) {
-    tempN = arVector3(normals[3*i], normals[3*i+1], normals[3*i+2]);
-    tempT = -(tempN % duList[i])*tempN;
-    tempT = ++tempT;
-    tempB = tempN * tempT; // we take dot prod for rt. angle
-    
+    const arvector3 tempN(normals[3*i], normals[3*i+1], normals[3*i+2]);
+    const arvector3 tempT = ++(-(tempN % duList[i])*tempN);
+    const arvector3 tempB = tempN * tempT; // dot prod for right angle
     tangents[3*i]   = tempT.x;
     tangents[3*i+1] = tempT.y;
     tangents[3*i+2] = tempT.z
@@ -188,6 +176,8 @@ arObject* arReadObjectFromFile(const char* fileName, const string& path) {
     binormals[3*i+2] = tempB.z
   }
 
-  return true; // no error
+  delete [] duList;
+  // delete [] dvList;
+  return true;
 }
 */

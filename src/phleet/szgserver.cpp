@@ -937,20 +937,17 @@ void SZGremoveComponentFromDatabase(int componentID){
   (void)messageAdminData->dataInString(lang.AR_SZG_MESSAGE_ADMIN_BODY, "");
   // first, we need to send "failure" messages to all components expecting
   // a message response from this component
-  SZGcomponentMessageOwnershipDatabase::iterator
-    i(componentMessageOwnershipDatabase.find(componentID));
-  SZGmessageOwnershipDatabase::iterator j;
+  const SZGcomponentMessageOwnershipDatabase::iterator i =
+    componentMessageOwnershipDatabase.find(componentID);
   // The componentMessageOwnershipDatabase gives the messages owned by
   // a particular component.
-  if (i == componentMessageOwnershipDatabase.end()){
-    // does nothing so far
-  }
-  else{
+  if (i != componentMessageOwnershipDatabase.end()){
     for (list<int>::iterator k=i->second.begin(); k!=i->second.end(); k++){
       // go through the list, sending failure messages as we go.
       messageID = *k;
       // we now need to find the component that originated the message
-      j = messageOwnershipDatabase.find(messageID);
+      const SZGmessageOwnershipDatabase::iterator j =
+        messageOwnershipDatabase.find(messageID);
       if (j == messageOwnershipDatabase.end()){
         cerr << "szgserver warning: in socket clean-up, failed to find "
 	     << "message ID information in database.\n";
@@ -983,20 +980,17 @@ void SZGremoveComponentFromDatabase(int componentID){
 
   // Remove all the message trades owned by this component,
   // again sending failure messages to the originating components.
-  SZGcomponentTradingOwnershipDatabase::iterator
-    l(componentTradingOwnershipDatabase.find(componentID));
-  if (l == componentTradingOwnershipDatabase.end()){
-    // does nothing so far
-  }
-  else{
+  const SZGcomponentTradingOwnershipDatabase::iterator l =
+    componentTradingOwnershipDatabase.find(componentID);
+  if (l != componentTradingOwnershipDatabase.end()){
     for (list<string>::iterator n=l->second.begin(); n!=l->second.end(); n++){
       const string messageKey = *n;
       // we now need to find the component that sent the message upon
       // which the trade is posted
-      SZGmessageTradingDatabase::iterator m =
+      const SZGmessageTradingDatabase::iterator m =
         messageTradingDatabase.find(messageKey);
       if (m == messageTradingDatabase.end()){
-        cerr << "szgserver warning: in socket cleanup, found no key info.\n";
+        cerr << "szgserver warning: no key info in socket cleanup.\n";
       }
       else{
         messageID = m->second.messageID;
@@ -1008,15 +1002,14 @@ void SZGremoveComponentFromDatabase(int componentID){
                                  AR_INT, 1);
         messageTradingDatabase.erase(m);
         // NOTE: we cannot assume that the response destination still exists!
-        arSocket* originatingSocket
-          = dataServer->getConnectedSocketNoLock(responseDest);
+        arSocket* originatingSocket =
+          dataServer->getConnectedSocketNoLock(responseDest);
         if (!originatingSocket){
 	  cerr << "szgserver warning: on socket cleanup, message destination "
 	       << "no longer exists for message ID " << messageID << "\n";
 	}
 	else{
-          dataServer->sendDataNoLock(messageAdminData,
-			             originatingSocket);
+          dataServer->sendDataNoLock(messageAdminData, originatingSocket);
 	}
       }
     }
@@ -1111,16 +1104,8 @@ void serverDiscoveryFunction(void* pv){
     const string remoteServerName(buffer+5);
     // Determine whether or not we should respond.
     if (remoteServerName == serverName || remoteServerName == "*"){
-      // Better zero out the storage. Yes, it is lame to zero out an array
-      // like this.
-      int i;
-      for (i=0; i<200; i++){
-        buffer[i] = 0;
-      }
+      memset(buffer, 0, sizeof(buffer));
       // Put in the version number.
-      buffer[0] = 0;
-      buffer[1] = 0;
-      buffer[2] = 0;
       buffer[3] = 1;
       // This is a response.
       buffer[4] = 1;
@@ -1135,6 +1120,7 @@ void serverDiscoveryFunction(void* pv){
       // as the fromAddress, then go ahead and broadcast to that
       // broadcast address.
       bool success = false;
+      int i;
       for (i=0; i<computerAddresses.size(); i++){
         arSocketAddress tmpAddress;
         if (!tmpAddress.setAddress(computerAddresses[i].c_str(), 0)){
@@ -1142,16 +1128,16 @@ void serverDiscoveryFunction(void* pv){
 	       << computerAddresses[i] << " in szg.conf.\n";
           continue;
 	}
-        string broadcastAddress 
-          = tmpAddress.broadcastAddress(computerMasks[i].c_str());
+        const string broadcastAddress =
+          tmpAddress.broadcastAddress(computerMasks[i].c_str());
         if (broadcastAddress == "NULL"){
 	  cout << "szgserver remark: bad mask "
 	       << computerMasks[i] << " for address "
 	       << computerAddresses[i] << " in szg.conf.\n";
 	  continue;
 	}
-        if (broadcastAddress 
-            == fromAddress.broadcastAddress(computerMasks[i].c_str())){
+        if (broadcastAddress ==
+            fromAddress.broadcastAddress(computerMasks[i].c_str())){
           fromAddress.setAddress(broadcastAddress.c_str(), 4620);
           _socket.ar_write(buffer,200,&fromAddress);
 	  success = true;
@@ -1180,17 +1166,17 @@ void attributeGetRequestCallback(arStructuredData* theData,
   const string attrRaw(theData->getDataString(lang.AR_ATTR_GET_REQ_ATTR));
 
   // Fill in the data from storage, first getting some place to put it.
-  arStructuredData* attrGetResponseData 
-    = dataParser->getStorage(lang.AR_ATTR_GET_RES);
+  arStructuredData* attrGetResponseData =
+    dataParser->getStorage(lang.AR_ATTR_GET_RES);
   // Also, transfer the "match" value from the request to the response.
   _transferMatchFromTo(theData, attrGetResponseData);
   const string type(theData->getDataString(lang.AR_ATTR_GET_REQ_TYPE));
   if (type=="NULL"){
     // Send the process table.
-    (void)attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_ATTR, 
-                                            attrRaw);
-    (void)attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_VAL,
-      dataServer->dumpConnectionLabels());
+    (void)attrGetResponseData->dataInString(
+      lang.AR_ATTR_GET_RES_ATTR, attrRaw);
+    (void)attrGetResponseData->dataInString(
+      lang.AR_ATTR_GET_RES_VAL, dataServer->dumpConnectionLabels());
   }
 
   else if (type=="ALL"){
@@ -1199,9 +1185,7 @@ void attributeGetRequestCallback(arStructuredData* theData,
                                             attrRaw);
     // BUG BUG BUG BUG BUG BUG BUG
     // This does not (yet) generate a new-style szg dbatch script!
-    for (i = valueContainer->begin();
-	 i != valueContainer->end();
-	 ++i){
+    for (i = valueContainer->begin(); i != valueContainer->end(); ++i){
       // more useful:  output it in dbatch-style format.
       string first = i->first;
       // Replace both slashes with spaces,
@@ -1253,7 +1237,7 @@ void attributeGetRequestCallback(arStructuredData* theData,
 
   // Send the record.
   dataServer->sendData(attrGetResponseData, dataSocket);
-  // Must recycle the storage
+  // recycle the storage
   dataParser->recycle(attrGetResponseData);
 }
 
@@ -1297,8 +1281,8 @@ void attributeSetCallback(arStructuredData* theData,
       if (i->second == "NULL"){
 	// Set the attr's value.
         valueContainer->erase(i);
-        valueContainer->insert
-          (map<string,string,less<string> >::value_type (attribute, value));
+        valueContainer->insert(
+          map<string,string,less<string> >::value_type (attribute, value));
 	returnString = value;
       }
       else{
@@ -1306,13 +1290,13 @@ void attributeSetCallback(arStructuredData* theData,
       }
     }
     else{
-      valueContainer->insert
-        (map<string,string,less<string> >::value_type (attribute, value));
+      valueContainer->insert(
+        map<string,string,less<string> >::value_type (attribute, value));
       returnString = value;
     }
     // Return the info, first getting some space to put it in.
-    arStructuredData* attrGetResponseData 
-      = dataParser->getStorage(lang.AR_ATTR_GET_RES);
+    arStructuredData* attrGetResponseData =
+      dataParser->getStorage(lang.AR_ATTR_GET_RES);
     _transferMatchFromTo(theData, attrGetResponseData);
     if (!attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_ATTR, 
                                            attribute) ||
@@ -1337,10 +1321,10 @@ bool SZGack(arStructuredData* messageAckData, bool ok) {
     szgSuccess(ok));
 }
 
-void processInfoCallback(arStructuredData* theData,
-			 arSocket* dataSocket){
+void processInfoCallback(arStructuredData* theData, arSocket* dataSocket){
  
-  string requestType = theData->getDataString(lang.AR_PROCESS_INFO_TYPE);
+  const string requestType =
+    theData->getDataString(lang.AR_PROCESS_INFO_TYPE);
   int theID = -1;
   string theLabel;
   if (requestType == "self"){
@@ -1356,8 +1340,7 @@ void processInfoCallback(arStructuredData* theData,
     theLabel = dataServer->getSocketLabel(theID);
   }
   else{
-    cerr << "szgserver warning: received unknown type on process "
-	 << "info request.\n";
+    cerr << "szgserver warning: got unknown type on process info request.\n";
   }
   theData->dataInString(lang.AR_PROCESS_INFO_LABEL, theLabel);
   theData->dataIn(lang.AR_PROCESS_INFO_ID, &theID, AR_INT, 1);

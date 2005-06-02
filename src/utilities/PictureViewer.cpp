@@ -13,7 +13,8 @@
 
 arTexture bitmap;
 arLargeImage largeImage;
-int screenWidth, screenHeight;
+int screenWidth = -1;
+int screenHeight = -1;
 
 bool doSyncTest = false;
 bool flipped = false;
@@ -24,20 +25,14 @@ const float STRIP_HEIGHT = 10;
 
 void drawSyncTest() {
   glColorMask( GL_TRUE, GL_FALSE, GL_FALSE, GL_FALSE );
-  if (flipped)
-    glColor3f(TEST_RED,0,0);
-  else
-    glColor3f(0,0,0);
+  glColor3f(flipped ? TEST_RED : 0, 0, 0);
   glBegin( GL_QUADS );
   glVertex2f( 0, 0 );
   glVertex2f( screenWidth, 0 );
   glVertex2f( screenWidth, STRIP_HEIGHT );
   glVertex2f( 0, STRIP_HEIGHT );
   glEnd();
-  if (flipped)
-    glColor3f(0,0,0);
-  else
-    glColor3f(TEST_RED,0,0);
+  glColor3f(flipped ? 0 : TEST_RED, 0, 0);
   glBegin( GL_QUADS );
   glVertex2f( 0, STRIP_HEIGHT );
   glVertex2f( screenWidth, STRIP_HEIGHT );
@@ -66,7 +61,6 @@ void showCenteredImage() {
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   gluLookAt(0,0,2, 0,0,0, 0,1,0);
-  
   largeImage.draw();
 }
 
@@ -103,9 +97,8 @@ int main(int argc, char** argv){
     cerr << "usage: PictureViewer filename [synctest]\n";
     return 1;
   }
-  if (argc == 3) {
-    doSyncTest = true;
-  }
+
+  doSyncTest = (argc == 3);
   arSZGClient szgClient;
   szgClient.simpleHandshaking(false);
   szgClient.init(argc, argv);
@@ -115,7 +108,7 @@ int main(int argc, char** argv){
   // we expect to be able to get a lock on the computer's screen
   const string screenLock(szgClient.getComputerName() + string("/")
                       + szgClient.getMode("graphics"));
-  int graphicsID;
+  int graphicsID = -1;
   if (!szgClient.getLock(screenLock, graphicsID)){
     cout << "PictureViewer error: failed to get screen resource held "
 	 << "by component "
@@ -147,6 +140,7 @@ int main(int argc, char** argv){
       cerr << "PictureViewer error: maybe szgserver died.\n";
     return 1;
   }
+
   // Draw the "large image" instead of the texture.
   largeImage.setImage(bitmap);
   // we have succeeded in the init

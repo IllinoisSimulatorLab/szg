@@ -14,11 +14,13 @@ int main(int argc, char** argv){
     cout << "usage: testlock <lock name>\n";
     return 1;
   }
+
   arSZGClient client;
   client.init(argc, argv);
   if (!client){
     return 1;
   }
+
   int ownerID = -1;
   for (;;){
     if (!client.getLock(argv[1], ownerID)){
@@ -37,17 +39,10 @@ int main(int argc, char** argv){
       }
     }
     cout << argv[0] << " remark: holding lock for 10 seconds.\n";
-    int i;
-    for (i=0; i<10; i++){
-      cout << i << "\n";
-      ar_usleep(1000000);
-    }
+    ar_usleep(10000000);
     client.releaseLock(argv[1]);
-    cout << argv[0] << "remark: will try to obtain lock again in 10 seconds.\n";
-    for (i=0; i<10; i++){
-      cout << i << "\n";
-      ar_usleep(1000000);
-    }
+    cout << argv[0] << "remark: will try to get lock again in 10 seconds.\n";
+    ar_usleep(10000000);
   }
   return 0;
 }

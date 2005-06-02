@@ -135,51 +135,45 @@ arPhleetService arPhleetConnectionBroker::requestPorts(int componentID,
 /// binding problem). And new ports are returned, as above.
 /// @param componentID the phleet ID of the component requesting the ports
 /// @param serviceName the name of the to-be-offered service
-arPhleetService arPhleetConnectionBroker::retryPorts(int componentID, 
-                                                   const string& serviceName){
-  arPhleetService result;
+arPhleetService arPhleetConnectionBroker::retryPorts(
+    int componentID, const string& serviceName){
   ar_mutex_lock(&_brokerLock);
   // the service should exist in the temporary service list (i.e. where
   // services go that have been temporarily registered, but have not had
   // there ports confirmed) and must be owned by the requesting component.
-  SZGServiceData::iterator i = _temporaryServices.find(serviceName);
+  const SZGServiceData::iterator i = _temporaryServices.find(serviceName);
   if (i == _temporaryServices.end()){
-    cout << "arPhleetConnectionBroker warning: component attempted to\n"
+    cerr << "arPhleetConnectionBroker warning: component attempted to\n"
 	 << "retry ports on nonexistant service name.\n";
-    result.valid = false;
-    ar_mutex_unlock(&_brokerLock);
-    return result;
+LAbort:
+      arPhleetService result;
+      result.valid = false;
+      ar_mutex_unlock(&_brokerLock);
+      return result;
   }
   if (i->second.componentID != componentID){
-    cout << "arPhleetConnectionBroker warning: component attempted to\n"
+    cerr << "arPhleetConnectionBroker warning: component attempted to\n"
 	 << "retry ports on service it does not own.\n";
-    result.valid = false;
-    ar_mutex_unlock(&_brokerLock);
-    return result;
+    goto LAbort;
   }
   // find the computer record. if it hasn't already been created, there has
   // been an error. also, find the component record, if it hasn't been 
   // created, this is, again, an error. the ports assigned to the service 
   // are moved from the temporary list to the available list (of the computer
   // record) and are removed from the temporary list of the component record
-  string computer = i->second.computer;
-  SZGComputerData::iterator j = _computerData.find(computer);
+  const SZGComputerData::iterator j = _computerData.find(i->second.computer);
   if (j == _computerData.end()){
-    cout << "arPhleetConnectionBroker error: computer record not found\n"
+    cerr << "arPhleetConnectionBroker error: computer record not found\n"
 	 << "on retry ports request.\n";
-    result.valid = false;
-    ar_mutex_unlock(&_brokerLock);
-    return result;
+    goto LAbort;
   }
-  SZGComponentData::iterator k = _componentData.find(componentID);
+  const SZGComponentData::iterator k = _componentData.find(componentID);
   if (k == _componentData.end()){
-    cout << "arPhleetConnectionBroker error: component record not found\n"
+    cerr << "arPhleetConnectionBroker error: component record not found\n"
 	 << "on retry ports request.\n";
-    result.valid = false;
-    ar_mutex_unlock(&_brokerLock);
-    return result;
+    goto LAbort;
   }
-  int nn;
+  int nn=0;
   for (nn = 0; nn < i->second.numberPorts; nn++){
     // clear port value from the computer's list of temporary ports
     j->second.temporaryPorts.remove(i->second.portIDs[nn]);
@@ -198,13 +192,11 @@ arPhleetService arPhleetConnectionBroker::retryPorts(int componentID,
   for (nn = 0; nn < i->second.numberPorts; nn++){
     // NOTE: we make sure that there is, in fact, a port to broker
     if (j->second.availablePorts.empty()){
-      cout << "arPhleetConnectionBroker error: computer "
+      cerr << "arPhleetConnectionBroker error: computer "
 	   << j->first << " has no available ports.\n";
-      result.valid = false;
-      ar_mutex_unlock(&_brokerLock);
-      return result;
+    goto LAbort;
     }
-    int port = j->second.availablePorts.front();
+    const int port = j->second.availablePorts.front();
     j->second.availablePorts.pop_front();
     i->second.portIDs[nn] = port;
     j->second.temporaryPorts.push_back(port);
@@ -710,19 +702,17 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
       list<arPhleetNotification>::iterator nn 
         = n->second.notifications.begin();
       while (nn != n->second.notifications.end()){
-        if (nn->componentID == componentID){
+        if (nn->componentID == componentID)
           nn = n->second.notifications.erase(nn);
-	}
-	else{
-	  nn++;
-	}
+	else
+	  ++nn;
       }
     }
   }
   // all temporary ports should be returned to the appropriate computer's pool
   // as should all used ports
-  string computer = i->second.computer;
-  SZGComputerData::iterator k = _computerData.find(computer);
+  const string computer = i->second.computer;
+  const SZGComputerData::iterator k = _computerData.find(computer);
   if (k != _computerData.end()){
     list<int>::iterator l;
     for (l = i->second.temporaryPorts.begin();

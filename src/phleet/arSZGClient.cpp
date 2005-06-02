@@ -355,20 +355,14 @@ string arSZGClient::getAllAttributes(const string& substring){
     return string("NULL");
   }
 
-  // We will either request ALL parameters (in dbatch-able form) or
-  // we'll request only those parameters that match the given substring.
-  string type;
-  if (substring == "ALL"){
-    type = "ALL";
-  }
-  else{
-    type = "substring";
-  }
+  // Request ALL parameters (in dbatch-able form) or
+  // request only those parameters that match the given substring.
+  const string type = substring=="ALL" ? "ALL" : "substring";
 
   arStructuredData* getRequestData 
     = _dataParser->getStorage(_l.AR_ATTR_GET_REQ);
   // Must use match for thread safety.
-  int match = _fillMatchField(getRequestData);
+  const int match = _fillMatchField(getRequestData);
   string result;
   if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR,substring) ||
       !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,type) || 
@@ -406,7 +400,7 @@ bool arSZGClient::parseAssignmentString(const string& text){
     parsingStream >> param4;
     if (parsingStream.fail()){
 LFail:
-      cout << "arSZGClient error: malformed assignment string (follows).\n";
+      cout << "arSZGClient error: malformed assignment string:\n";
       cout << "----------------\n" << text << "----------------" << endl;
       return false;
     }
@@ -662,18 +656,18 @@ int arSZGClient::getAttributeInt(const string& computerName,
                                  const string& groupName,
 		                 const string& parameterName,
 				 const string& defaults){
-  const string& s = getAttribute(computerName, groupName, parameterName,
-                                 defaults);
-  int x;
-  if (s == "NULL") {
+  const string& s =
+    getAttribute(computerName, groupName, parameterName, defaults);
+  if (s == "NULL")
     return 0;
-  }
-  if (!ar_stringToIntValid( s, x )) {
-    cerr << "arSZGClient warning: failed to convert '" << s << "' to an int\n"
-         << "   in " << groupName << "/" << parameterName << endl;
-    return 0;
-  }
-  return x;
+
+  int x = -1;
+  if (ar_stringToIntValid(s, x))
+    return x;
+
+  cerr << "arSZGClient warning: failed to convert '" << s << "' to an int in "
+       << groupName << "/" << parameterName << endl;
+  return 0;
 }
 
 bool arSZGClient::getAttributeFloats(const string& groupName,
@@ -977,25 +971,21 @@ string arSZGClient::getProcessList(){
 
 /// Kill (or remove from the szgserver table, really) by component ID.
 bool arSZGClient::killProcessID(int id){
-  if (!_connected){
+  if (!_connected)
     return false;
-  }
-  // Must get storage for the message.
-  arStructuredData* killIDData
-    = _dataParser->getStorage(_l.AR_KILL);
-  bool state = false;
+
+  // get storage for the message.
+  arStructuredData* killIDData = _dataParser->getStorage(_l.AR_KILL);
+  bool ok = true;
   // One of the few places where we DON'T USE MATCH!
   (void)_fillMatchField(killIDData);
   if (!killIDData->dataIn(_l.AR_KILL_ID,&id,AR_INT,1) ||
       !_dataClient.sendData(killIDData)){
     cerr << _exeName << " warning: message send failed\n";
+    ok = false;
   }
-  else{
-    state = true;
-  }
-  // Must recycle the storage.
-  _dataParser->recycle(killIDData);
-  return state;
+  _dataParser->recycle(killIDData); // recycle the storage
+  return ok;
 }
 
 /// Kill the ID of the first process in the process list
@@ -1003,33 +993,26 @@ bool arSZGClient::killProcessID(int id){
 /// Return false if no process was found.
 bool arSZGClient::killProcessID(const string& computer,
                                 const string& processLabel){
-  if (!_connected){
+  if (!_connected)
     return false;
-  }
-  string realComputer;
-  if (computer == "NULL" || computer == "localhost"){
+
+  const string realComputer = (computer == "NULL" || computer == "localhost") ?
     // use the computer we are on as the default
-    realComputer = _computerName;
-  }
-  else{
-    // syzygy no longer does name resolution
-    realComputer = computer;;
-  }
-  
+    _computerName :
+    computer;
+
   const int id = getProcessID(realComputer, processLabel);
-  if (id < 0){
-    return false;
-  }
-  return killProcessID(id);
+  return id >= 0 && killProcessID(id);
 }
 
 /// Given the process ID, return the process label
 string arSZGClient::getProcessLabel(int processID){
-  if (!_connected){
+  // massive copypaste between getProcessLabel and getProcessID
+  if (!_connected)
     return string("NULL");
-  }
+
   arStructuredData* data = _dataParser->getStorage(_l.AR_PROCESS_INFO);
-  int match = _fillMatchField(data);
+  const int match = _fillMatchField(data);
   data->dataInString(_l.AR_PROCESS_INFO_TYPE, "label");
   data->dataIn(_l.AR_PROCESS_INFO_ID, &processID, AR_INT, 1);
   if (!_dataClient.sendData(data)){
@@ -1040,10 +1023,10 @@ string arSZGClient::getProcessLabel(int processID){
   // get the response
   data = _getTaggedData(match, _l.AR_PROCESS_INFO);
   if (!data){
-    cerr << _exeName << " warning: failed to get process ID response.\n";
+    cerr << _exeName << " warning: failed to get process label response.\n";
     return string("NULL");
   }
-  string theLabel = data->getDataString(_l.AR_PROCESS_INFO_LABEL);
+  const string theLabel = data->getDataString(_l.AR_PROCESS_INFO_LABEL);
   // note that this is a different data record than above, needs to be recycled
   _dataParser->recycle(data);
   return theLabel;
@@ -1053,20 +1036,17 @@ string arSZGClient::getProcessLabel(int processID){
 /// running on the given computer with the given label.
 int arSZGClient::getProcessID(const string& computer,
                               const string& processLabel){
-  
-  if (!_connected){
+  // massive copypaste between getProcessLabel and getProcessID
+  if (!_connected)
     return -1;
-  }
-  string realComputer;
-  if (computer == "NULL" || computer == "localhost"){
-    realComputer = _computerName;
-  }
-  else{
-    // syzygy no longer does name resolution
-    realComputer = computer;
-  }
+
+  const string realComputer = (computer == "NULL" || computer == "localhost") ?
+    // use the computer we are on as the default
+    _computerName :
+    computer;
+
   arStructuredData* data = _dataParser->getStorage(_l.AR_PROCESS_INFO);
-  int match = _fillMatchField(data);
+  const int match = _fillMatchField(data);
   data->dataInString(_l.AR_PROCESS_INFO_TYPE, "ID");
   // zero-out the storage
   int dummy = 0;
@@ -1083,7 +1063,7 @@ int arSZGClient::getProcessID(const string& computer,
     cerr << _exeName << " warning: failed to get process ID response.\n";
     return -1;
   }
-  int theID = data->getDataInt(_l.AR_PROCESS_INFO_ID);
+  const int theID = data->getDataInt(_l.AR_PROCESS_INFO_ID);
   // note that this is a different data record than above, needs to be recycled
   _dataParser->recycle(data);
   return theID;
@@ -1095,7 +1075,7 @@ int arSZGClient::getProcessID(void){
     return -1;
 
   arStructuredData* data = _dataParser->getStorage(_l.AR_PROCESS_INFO);
-  int match = _fillMatchField(data);
+  const int match = _fillMatchField(data);
   data->dataInString(_l.AR_PROCESS_INFO_TYPE, "self");
   if (!_dataClient.sendData(data)){
     cerr << _exeName << " warning: getProcessID() send failed\n";
@@ -1109,7 +1089,7 @@ int arSZGClient::getProcessID(void){
     cerr << _exeName << " warning: ignoring illegal response packet\n";
     return -1;
   }
-  int theID = data->getDataInt(_l.AR_PROCESS_INFO_ID);
+  const int theID = data->getDataInt(_l.AR_PROCESS_INFO_ID);
   // note that this is a new piece of data, so we need to recycle it again
   _dataParser->recycle(data);
   return theID;
@@ -1119,9 +1099,9 @@ int arSZGClient::getProcessID(void){
 // MAYBE THIS IS A HIGHER_LEVEL CONSTRUCT.
 bool arSZGClient::sendReload(const string& computer,
                              const string& processLabel) {
-  if (!_connected){
+  if (!_connected)
     return false;
-  }
+
   if (processLabel == "NULL"){
     // Vacuously ok.
     return true;
@@ -1149,8 +1129,8 @@ int arSZGClient::sendMessage(const string& type, const string& body,
     return -1;
 
   // Must get storage for the message.
-  arStructuredData* messageData
-    = _dataParser->getStorage(_l.AR_SZG_MESSAGE);
+  arStructuredData* messageData =
+    _dataParser->getStorage(_l.AR_SZG_MESSAGE);
   // convert from bool to int
   const int response = responseRequested ? 1 : 0;
   int match = _fillMatchField(messageData);
@@ -2303,10 +2283,9 @@ arStructuredData* arSZGClient::_getTaggedData(int tag,
                                               int timeout){
   list<int> tags;
   tags.push_back(tag);
-  arStructuredData* message;
-  if (_dataParser->getNextTaggedMessage(message, tags, recordID, timeout)
-      < 0){
-    // Either timeout or other error has occured.
+  arStructuredData* message = NULL;
+  if (_dataParser->getNextTaggedMessage(message, tags, recordID, timeout) < 0){
+    // timeout or other error
     return NULL;
   }
   // We actually got the stuff.
@@ -2574,14 +2553,12 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
   const int numberCurrentNetworks = _networks.size();
   // Check to see if every one of the new networks is, in fact, one of the
   // current networks. If not, we have an error.
-  int i, j;
+  int i=0, j=0;
   for (i=0; i<numberNewNetworks; i++){
     bool match = false;
-    for (j=0; j<numberCurrentNetworks; j++){
-      if (networks[i] == _networks[j]){
+    for (j=0; j<numberCurrentNetworks && !match; j++){
+      if (networks[i] == _networks[j])
 	match = true;
-	break;
-      }
     }
     if (!match){
       cerr << _exeName << " error: virtual computer's network \""
@@ -2959,7 +2936,7 @@ bool arSZGClient::writeLoginFile(const string& userName){
   _configParser.setServerName(_serverName);
   _configParser.setServerIP(_IPaddress);
   _configParser.setServerPort(_port);
-  return (_configParser.writeLoginFile());
+  return _configParser.writeLoginFile();
 }
 
 /// Changes the login file to have the not-logged-in values
@@ -2968,7 +2945,7 @@ bool arSZGClient::logout(){
   _configParser.setServerName("NULL");
   _configParser.setServerIP("NULL");
   _configParser.setServerPort(0);
-  return (_configParser.writeLoginFile());
+  return _configParser.writeLoginFile();
 }
 
 /// Default message task which handles "quit" and nothing else.
@@ -2981,7 +2958,7 @@ void ar_messageTask(void* pClient){
   arSZGClient* cli = (arSZGClient*)pClient;
   while (true){
     string messageType, messageBody;
-    cli->receiveMessage(&messageType,&messageBody);
+    cli->receiveMessage(&messageType, &messageBody);
     if (messageType == "quit"){
       cli->closeConnection();
       // Do this?  But it's private.  cli->_keepRunning = false;

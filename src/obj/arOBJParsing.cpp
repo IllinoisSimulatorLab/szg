@@ -16,9 +16,12 @@
 /// Parses one line of an ASCII OBJ file
 /// @param inputFile file pointer to next line to be read in
 bool arOBJ::_parseOneLine(FILE* inputFile){
-  char buffer[1000], *token[50];
-  float x = -1., y = -1., z = -1.;
-  unsigned int i;
+  char buffer[1000] = {0};
+  char* token[50] = {0};
+  float x = -1.;
+  float y = -1.;
+  float z = -1.;
+  unsigned int i = 0;
   int found = 0;
   char* value = (char *)1;
   int numTokens = 0;
@@ -30,9 +33,8 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
     // win32 produced files on Unix)
     if (buffer[0] == '\n' || buffer[0] == '#' || buffer[0] == '\r')
       found = 0;
-    else
-      if (value)
-        found = 1;
+    else if (value)
+      found = 1;
   }
   if (!found){ // End of file
     return false;
@@ -42,10 +44,9 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
   // NOTE: very important to skip line feeds as well! (for running
   // win32 produced files on Unix)
   token[numTokens++] = strtok(buffer, " \t\r\n");
-  while (token[numTokens-1]){
+  while (token[numTokens-1])
     token[numTokens++] = strtok(NULL, " \t\r\n");
-  }
-  numTokens -= 1;
+  --numTokens;
 
   string lineType(token[0]);
 
@@ -86,18 +87,15 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
 
   ///// s: smoothing group /////
   else if (lineType == "s"){
+    const int tempName = (!strcmp(token[1], "off")) ? 0 : atoi(token[1]);
+    // "off" is equivalent to zero
     unsigned int iii;
-    int tempName;
-    if (!strcmp(token[1], "off")) // "off" is equivalent to zero
-      tempName = 0;
-    else
-      tempName = atoi(token[1]);
     for (iii=0; iii<_smoothingGroup.size(); iii++) // sg exists?
       if (tempName == _smoothingGroup[iii]._name){
         _thisSG = iii;
         break;
       }
-    if (iii == _smoothingGroup.size()){// new smoothing group
+    if (iii == _smoothingGroup.size()){ // new smoothing group
       _smoothingGroup.push_back(arOBJSmoothingGroup());
       _thisSG = _smoothingGroup.size()-1;
       _smoothingGroup[_thisSG]._name = tempName;
@@ -186,7 +184,7 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
 /// @param matFile the .mtl file to read in
 /// Hides colors and textures of OBJ files in the difficult .mtl file format.
 bool arOBJ::_readMaterialsFromFile(FILE* matFile){ 
-  char buffer[1000];
+  char buffer[1000] = {0};
   int typeChar = fgetc(matFile);
 
   switch (typeChar){
@@ -194,23 +192,25 @@ bool arOBJ::_readMaterialsFromFile(FILE* matFile){
     return false;
 
   case 'n':                   // newmtl
+    {
     fseek(matFile,-1,SEEK_CUR);
-    char mtlName[256];
+    char mtlName[256] = {0};
     fscanf(matFile,"%s %s",buffer,mtlName);
     if (!strcmp(buffer, "newmtl")){
       unsigned int i;
       for (i=0; i<_material.size(); i++)
-        if (strcmp(buffer, _material[i].name) == 0)
-        { _thisMaterial = i;
+        if (strcmp(buffer, _material[i].name) == 0) {
+          _thisMaterial = i;
           break;
         }
-      if (i == _material.size())
-      { _material.push_back(arOBJMaterial());
+      if (i == _material.size()) {
+        _material.push_back(arOBJMaterial());
         _thisMaterial = _material.size()-1;
         sprintf((_material[_thisMaterial]).name, "%s", mtlName);
       }
     }
     break;
+    }
 
   case 'K':
     typeChar=fgetc(matFile);

@@ -36,8 +36,8 @@ int mouseManipState = ROTATE, oldState = ROTATE;
 bool isPlaying = false, isModelSpinning = false, isLightSpinning = false;
 float bgColor = 0.0f, _ratio = 1.0f, frameRate = 0.0f;
 
-int _width = 0, _height = 0;	                 // window dimensions
-int sliderCenterX = -50, sliderCenterY = 10;   // slider position in pixels
+int _width = 0, _height = 0;	             // window dimensions
+int sliderCenterX = -50, sliderCenterY = 10; // slider position in pixels
 
 arObject *theObject = NULL;
 
@@ -46,55 +46,46 @@ arObject *theObject = NULL;
 class arSZGViewRenderCallback : public arGUIRenderCallback
 {
   public:
-
     arSZGViewRenderCallback( arGraphicsWindow& gw ) :
       _graphicsWindow( &gw ) {}
-    virtual ~arSZGViewRenderCallback( void )  { }
-
+    virtual ~arSZGViewRenderCallback( void ) {}
     void operator()( arGUIWindowInfo* windowInfo );
 
   private:
-
     arGraphicsWindow* _graphicsWindow;
 };
 
-void arSZGViewRenderCallback::operator()( arGUIWindowInfo* windowInfo ) {
-  if( !_graphicsWindow ) {
-    return;
-  }
-
-  _graphicsWindow->draw();
+void arSZGViewRenderCallback::operator()( arGUIWindowInfo* /*windowInfo*/ ) {
+  if (_graphicsWindow)
+    _graphicsWindow->draw();
 }
 
 // global just as a convience, not strictly necessar
 arGUIWindowManager* wm = NULL;
 
 // currently the assumption is that there is only one window
-int winID;
+int winID = -1;
 
 // global head for the arVRCamera's
 arHead head;
 
-void parseConfig( const string& config )
+void parseConfig( const string& /*config*/ )
 {
-
 }
 
 // Drawing functions
+
 void showRasterString( float x, float y, char* s )
 {
   glRasterPos2f( x, y );
-
-  char c;
-  for(; ( c = *s ) != '\0'; ++s ) {
+  for (char c; (c = *s) != '\0'; ++s)
     glutBitmapCharacter( GLUT_BITMAP_9_BY_15, c );
-  }
 }
 
 void drawHUD( void )
 {
   float width = _width, height = _height;
-  char displayString[ 128 ];
+  char displayString[ 128 ] = {0};
 
   glColor3f( 0.9f, 0.9f, 0.9f );
   glBegin( GL_QUADS );  // draw box to hold text
@@ -383,10 +374,8 @@ void windowCB( arGUIWindowInfo* windowInfo )
 void mouseCB( arGUIMouseInfo* mouseInfo )
 {
   if( mouseInfo->_state == AR_MOUSE_DRAG ) {
-    int deltaX = mouseInfo->_posX - mouseInfo->_prevPosX;
-    int deltaY = mouseInfo->_posY - mouseInfo->_prevPosY;
-
-    arVector3 rotationAxis;
+    const int deltaX = mouseInfo->_posX - mouseInfo->_prevPosX;
+    const int deltaY = mouseInfo->_posY - mouseInfo->_prevPosY;
 
     switch( mouseManipState ) {
       case SLIDER:
@@ -411,7 +400,8 @@ void mouseCB( arGUIMouseInfo* mouseInfo )
       break;
 
       case ROTATE:
-        rotationAxis = arVector3( 0.0f, 0.0f, 1.0f ) * arVector3( float( deltaX ), float( deltaY ), 0 );
+      {
+        arVector3 rotationAxis = arVector3( 0.0f, 0.0f, 1.0f ) * arVector3( float( deltaX ), float( deltaY ), 0 );
 
         if( ++rotationAxis > 0 ) {
           float mag = ++rotationAxis;
@@ -424,6 +414,7 @@ void mouseCB( arGUIMouseInfo* mouseInfo )
   			                     ar_extractScaleMatrix( mouseWorldMatrix );
         }
       break;
+      }
 
       case ZOOM:
         mouseWorldMatrix = mouseWorldMatrix * ar_scaleMatrix( 1.0f + 0.01f * float( deltaX ) );
@@ -485,11 +476,7 @@ int main( int argc, char** argv )
     return 1;
   }
 
-  arObject *theMesh = NULL;
-
-  if( argc == 3 ) {
-    theMesh = arReadObjectFromFile( argv[ 2 ], "" );
-  }
+  arObject *theMesh = argc==3 ? arReadObjectFromFile( argv[ 2 ], "" ) : NULL;
 
   arSZGClient SZGClient;
   SZGClient.init( argc, argv );
@@ -499,7 +486,7 @@ int main( int argc, char** argv )
   }
 
   theDatabase = new arGraphicsDatabase;
-  char texPath[ 256 ];
+  char texPath[ 256 ] = {0};
 
   #ifndef AR_USE_WIN_32
     getcwd( texPath, 256 );
@@ -512,7 +499,7 @@ int main( int argc, char** argv )
   _width = 640;  // sensible defaults
   _height = 480;
 
-  float sizeBuffer[ 2 ];
+  float sizeBuffer[ 2 ] = {0};
 
   // should use the screen name passed to the arSZGClient
   string screenName = SZGClient.getMode( "graphics" );
@@ -521,10 +508,12 @@ int main( int argc, char** argv )
     _height = int( sizeBuffer[ 1 ] );
   }
 
-  arMatrix4 worldMatrix;
   dgSetGraphicsDatabase( theDatabase );
-  dgTransform( "world", "root", worldMatrix );
-  int worldTransformID = theDatabase->getNodeID( "world" );
+    {
+    arMatrix4 worldMatrix;
+    dgTransform( "world", "root", worldMatrix );
+    }
+  //UNUSED int worldTransformID = theDatabase->getNodeID( "world" );
   dgTransform( "mouse", "world", mouseWorldMatrix );
   mouseTransformID = theDatabase->getNodeID( "mouse" );
 
@@ -557,7 +546,6 @@ int main( int argc, char** argv )
   wm = new arGUIWindowManager( windowCB, keyboardCB, mouseCB, true );
 
   arGUIWindowConfig windowConfig;
-
   windowConfig._x = 50;
   windowConfig._y = 50;
   windowConfig._width = ( _width <= 0 ) ? 640 : _width;
@@ -570,8 +558,6 @@ int main( int argc, char** argv )
   windowConfig._title = "szgview";
 
   winID = wm->addWindow( windowConfig, new arDefaultGUIRenderCallback( drawCB ) );
-
   wm->startWithoutSwap();
-
   return 0;
 }

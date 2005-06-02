@@ -45,11 +45,11 @@ bool arPhleetConfigParser::parseConfigFile(){
   // clear the internal storage first
   _networkList.clear();
 
-  arStructuredData* data;
   // sadly, this is actually normal... 
   // BUG in arStructuredDataParser: it would be a good idea to distinguish
   // between end-of-file and error (but arStructuredDataParser does not do
   // that).
+  arStructuredData* data = NULL;
   while ((data = _fileParser->parse(&configStream)) != NULL){
     const int ID = data->getID();
     if (ID == _l.AR_COMPUTER)

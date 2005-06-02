@@ -239,21 +239,16 @@ bool buildFunctionArgs(ExecutionInfo* execInfo,
 }
 
 char** buildUnixStyleArgList(const string& command, list<string>& args){
-  // Two passes. First of all, figure out the length of the string list.
-  int listLength = 0;
-  list<string>::iterator i;
-  for (i=args.begin(); i!=args.end(); i++){
-    listLength++;
-  }
   // Allocate storage and fill with the contents of args.
+  const int listLength = args.size();
   char** result = new char*[listLength+2];
   // The first element in the list should be the command.
   result[0] = new char[command.length()+1];
   ar_stringToBuffer(command, result[0], command.length()+1);
-  // Must be null terminated.
+  // Null-terminate.
   result[listLength+1] = NULL;
   int index = 1;
-  for (i=args.begin(); i!=args.end(); i++){
+  for (list<string>::iterator i=args.begin(); i!=args.end(); i++){
     result[index] = new char[(*i).length()+1];
     ar_stringToBuffer(*i, result[index], (*i).length()+1);
     index++;
@@ -262,19 +257,14 @@ char** buildUnixStyleArgList(const string& command, list<string>& args){
 }
 
 void deleteUnixStyleArgList(char** argList){
-  int index = 0;
-  while (argList[index]){
+  for (int index = 0; argList[index]; ++index)
     delete argList[index];
-    index++;
-  }
 }
 
 string buildWindowsStyleArgList(const string& command, list<string>& args){
-  string result;
-  result += command;
-  if (!args.empty()){
+  string result(command);
+  if (!args.empty())
     result += " ";
-  }
   for (list<string>::iterator i = args.begin();
        i != args.end(); i++){
     // for every element except for the first, we want to add a space
@@ -286,8 +276,7 @@ string buildWindowsStyleArgList(const string& command, list<string>& args){
   return result;
 }
 
-// a random delay before executing. this prevents a file server from getting
-// hit *too* hard
+// random delay before executing reduces load on file server
 void randomDelay(){
   // It seems that there can be bad interactions between 
   // samba and win32 when too many guys try to execute the same
@@ -295,6 +284,17 @@ void randomDelay(){
   ar_timeval time1 = ar_time();
   int delay = 100000 * abs(time1.usec%6);
   ar_usleep(delay);
+}
+
+static void TweakPath(string& path) {
+  // Point slashes in the right direction.
+  ar_scrubPath(path);
+#ifndef AR_USE_WIN_32
+  // szg paths use Win32 ';' separator.  In Unix, change to ':'
+  unsigned int pos;
+  while ((pos = path.find(";")) != string::npos)
+    path.replace( pos, 1, ":" );
+#endif
 }
 
 void execProcess(void* i){
@@ -376,122 +376,87 @@ void execProcess(void* i){
   //      must be in the same directory and on the PYTHONPATH).
   //   4. PYTHONPATH, as held by the user running the szgd.
 
-  // Note that the dll search path has a DIFFERENT name on EVERY platform.
+  string dynamicLibraryPathVar =
 #ifdef AR_USE_LINUX
-  string dynamicLibraryPathVar("LD_LIBRARY_PATH");
+    "LD_LIBRARY_PATH";
 #endif
 #ifdef AR_USE_SGI
-  string dynamicLibraryPathVar("LD_LIBRARYN32_PATH");
+    "LD_LIBRARYN32_PATH";
 #endif
 #ifdef AR_USE_WIN_32
-  string dynamicLibraryPathVar("PATH");
+    "PATH";
 #endif
 #ifdef AR_USE_DARWIN
-  string dynamicLibraryPathVar("DYLD_LIBRARY_PATH");
+    "DYLD_LIBRARY_PATH";
 #endif
 
   // Do not warn again here if SZG_EXEC/path is NULL. Said warning has 
   // already occured.
-  string szgExecPath = SZGClient->getAttribute(userName, "NULL", "SZG_EXEC",
-					       "path","");
-  string oldDynamicLibraryPath = ar_getenv(dynamicLibraryPathVar.c_str());
-  string nativeLibPath = SZGClient->getAttribute(userName, "NULL",
-						 "SZG_NATIVELIB","path", "");
-  string dynamicLibraryPath("");
-  // Go ahead and construct the new dynamic library path.
-  if (ar_exePath(newCommand) != ""){
+  const string szgExecPath =
+    SZGClient->getAttribute(userName, "NULL", "SZG_EXEC", "path","");
+  const string oldDynamicLibraryPath =
+    ar_getenv(dynamicLibraryPathVar.c_str());
+  const string nativeLibPath =
+    SZGClient->getAttribute(userName, "NULL", "SZG_NATIVELIB","path", "");
+  // Construct the new dynamic library path.
+  string dynamicLibraryPath;
+  if (ar_exePath(newCommand) != "")
     dynamicLibraryPath += ar_exePath(newCommand);
-  }
-  if (nativeLibPath != "NULL"){
-    dynamicLibraryPath += ";";
-    dynamicLibraryPath += nativeLibPath;
-  }
-  if (szgExecPath != "NULL"){
-    dynamicLibraryPath += ";";
-    dynamicLibraryPath += szgExecPath;
-  }
-  if (oldDynamicLibraryPath != "" && oldDynamicLibraryPath != "NULL"){
-    dynamicLibraryPath += ";";
-    dynamicLibraryPath += oldDynamicLibraryPath;
-  }
-  // Make sure that the slashes are all in the right direction for our
-  // platform.
-  ar_scrubPath(dynamicLibraryPath);
-  // Finally, note that szg uses a path delimiter of ";" (which is the same
-  // as Win32) but Unix uses ":"
-#ifndef AR_USE_WIN_32
-  unsigned int pos;
-  while ((pos = dynamicLibraryPath.find(";")) != string::npos) {
-      dynamicLibraryPath.replace( pos, 1, ":" );
-    }
-#endif
-  
-  // Deal with python if necessary.
+  if (nativeLibPath != "NULL")
+    dynamicLibraryPath += ";" + nativeLibPath;
+  if (szgExecPath != "NULL")
+    dynamicLibraryPath += ";" + szgExecPath;
+  if (oldDynamicLibraryPath != "" && oldDynamicLibraryPath != "NULL")
+    dynamicLibraryPath += ";" + oldDynamicLibraryPath;
+  TweakPath(dynamicLibraryPath);
+
+  // Deal with python
+  string pythonPath;
   string oldPythonPath;
-  string pythonPath("");
-  string szgPythonPath;
-  string szgPythonLibPath;
   if (execInfo->executableType == "python") {
     oldPythonPath = ar_getenv( "PYTHONPATH" );
-    // Do not warn if the SZG_PYTHON/path not set. That warning has already
-    // occured.
-    szgPythonPath = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", 
-                                            "path", "");
-    if (szgPythonPath != "NULL"){
+    // if SZG_PYTHON/path not set, warning was already displayed.
+    const string szgPythonPath =
+      SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "path", "");
+    if (szgPythonPath != "NULL")
       pythonPath += szgPythonPath;
-    }
+
     // Do not warn if this is unset.
-    szgPythonLibPath = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON",
-					       "lib_path", "");
-    if (szgPythonLibPath != "NULL"){
-      pythonPath += ";";
-      pythonPath += szgPythonLibPath;
-    }
-    if (szgExecPath != "NULL"){
-      pythonPath += ";";
-      pythonPath += szgExecPath;
-    }
-    if (oldPythonPath != "" && oldPythonPath != "NULL"){
-      pythonPath += ';';
-      pythonPath += oldPythonPath;
-    }
-    // Make sure that all the slashes point the right direction.
-    ar_scrubPath(pythonPath);
-    // Finally, szg paths follow the Win32 convention of ';' as
-    // seperator. If we are a Unix, then this must be changed to ':'
-#ifndef AR_USE_WIN_32
-    unsigned int pos;
-    while ((pos = pythonPath.find(";")) != string::npos) {
-      pythonPath.replace( pos, 1, ":" );
-    }
-#endif
+    const string szgPythonLibPath =
+      SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "lib_path", "");
+    if (szgPythonLibPath != "NULL")
+      pythonPath += ";" + szgPythonLibPath;
+    if (szgExecPath != "NULL")
+      pythonPath += ";" + szgExecPath;
+    if (oldPythonPath != "" && oldPythonPath != "NULL")
+      pythonPath += ';' + oldPythonPath;
+    TweakPath(pythonPath);
   }
 
 #ifndef AR_USE_WIN_32
 
   //*******************************************************************
+  // spawn a new process on Unix (i.e. Linux, OS X, Irix)
   //*******************************************************************
-  // Code for spawning a new process on Unix (i.e. Linux, OS X, Irix)
-  //*******************************************************************
-  //*******************************************************************
-  int pipeDescriptors[2];
+  int pipeDescriptors[2] = {0};
   if (pipe(pipeDescriptors) < 0){
-    cerr << "szgd warning: pipe creation failed.\n";
+    cerr << "szgd warning: failed to create pipe.\n";
     return;
   }
-  // NOTE: to make it impossible for szgd to JAM (which is very bad behavior)
-  // it is necessary to make the read pipe NONBLOCKING
-  int propertyValue = fcntl(pipeDescriptors[0], F_GETFL, 0);
-  fcntl(pipeDescriptors[0], F_SETFL, propertyValue | O_NONBLOCK);
+  // Make the read pipe nonblocking, to avoid szgd hanging
+  
+  fcntl(pipeDescriptors[0], F_SETFL,
+        fcntl(pipeDescriptors[0], F_GETFL, 0) | O_NONBLOCK);
 
-  char numberBuffer[8];
-  int PID = fork();
+  char numberBuffer[8] = {0};
+  const int PID = fork();
   if (PID < 0){
     cerr << "szgd error: fork failed.\n";
     return;
   }
-  else if (PID > 0){
-    // We are in the parent process still
+
+  if (PID > 0){
+    // parent process
 
     // we block here waiting on the child process to send
     // information regarding whether or not it has successfully launched
@@ -540,111 +505,109 @@ void execProcess(void* i){
       delete [] textBuffer;
       return;
     }
-    else{
-      // in this case, numberBuffer[0] = 1 and the launch must have
-      // succeeded. we do not receive the info via the pipe
-      // in this case... instead the launched client goes ahead
-      // and sends that to the "dex" directly. We must, however,
-      // wait for the "message trade" to have occured
-      if (!SZGClient->finishMessageOwnershipTrade(match,10000)){
-	info << "szgd remark: message ownership trade timed out.\n";
-        SZGClient->revokeMessageOwnershipTrade(tradingKey);
-        SZGClient->messageResponse(receivedMessageID, info.str());
-      }
+
+    // numberBuffer[0] = 1 and the launch worked.
+    // we do not receive the info via the pipe
+    // in this case... instead the launched client
+    // sends that to the "dex" directly.
+    // Wait for the "message trade".
+    if (!SZGClient->finishMessageOwnershipTrade(match,10000)){
+      info << "szgd remark: message ownership trade timed out.\n";
+      SZGClient->revokeMessageOwnershipTrade(tradingKey);
+      SZGClient->messageResponse(receivedMessageID, info.str());
     }
-    // don't forget to close the pipes, since they are allocated each
+
+    // close the pipes, since they are allocated each
     // time... would it be better to allocate the pipes once??
     // or would that be less secure?
     close(pipeDescriptors[0]);
     close(pipeDescriptors[1]);
     return;
   }
-  else{
-    // We are in the child process.
-    // Set a few env vars for the child process.
-    ar_setenv("SZGUSER",userName);
-    ar_setenv("SZGCONTEXT",messageContext);
-    ar_setenv("SZGPIPEID", pipeDescriptors[1]);
-    ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
-    
-    cout << "szgd remark: dynamic library path =\n  "
-         << dynamicLibraryPath << "\n";
-    ar_setenv(dynamicLibraryPathVar, dynamicLibraryPath);
-    if (execInfo->executableType == "python") {
-      cout << "szgd remark: python path =\n  "
-           << pythonPath << "\n";
-      ar_setenv("PYTHONPATH", pythonPath);
-    }
-    info << "szgd remark: running " << symbolicCommand << " on path\n"
-         << execPath << ".\n";
 
-    char** theArgs = buildUnixStyleArgList(newCommand, mangledArgList);
-    // Stagger launches so the cluster's file server isn't hit so hard.
-    randomDelay();
-    if (execv(newCommand.c_str(), theArgs) >= 0){
-      // The child spawned okay, so remove parent's side of the fork().
-      // (Actually, if the child spawned, exec() doesn't return
-      // so the exit(0) isn't reached.)
-      exit(0);
-    }
-    deleteUnixStyleArgList(theArgs);
+  // Child process
+  // Set a few env vars for the child process.
+  ar_setenv("SZGUSER",userName);
+  ar_setenv("SZGCONTEXT",messageContext);
+  ar_setenv("SZGPIPEID", pipeDescriptors[1]);
+  ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
+  
+  cout << "szgd remark: dynamic library path =\n  "
+       << dynamicLibraryPath << "\n";
+  ar_setenv(dynamicLibraryPathVar, dynamicLibraryPath);
+  if (execInfo->executableType == "python") {
+    cout << "szgd remark: python path =\n  "
+	 << pythonPath << "\n";
+    ar_setenv("PYTHONPATH", pythonPath);
+  }
+  info << "szgd remark: running " << symbolicCommand << " on path\n"
+       << execPath << ".\n";
 
-    info << "szgd error: failed to exec \"" 
-         << symbolicCommand << "\":\n\treason:  ";
-    switch (errno){
-    case E2BIG: info << "args + env too large\n";
-      break;
-    case EACCES: info << "locking or sharing violation\n";
-      break;
-    case ENOENT: info << "file not found\n";
-      break;
-    case ENOEXEC: info << "file format not executable\n";
-      break;
-    case ENOMEM: info << "out of memory, possibly\n";
-      break;
-    case EFAULT: info << "command or argv pointer was invalid:\n";
-      break;
-    default: info << "errno is " << errno << endl;
-      break;
-    }
-	  
-    // must do the handshake back to the parent process
-    string terminalOutput = info.str();
-    // we failed to launch the exe
-    numberBuffer[0] = 0;
-    if (!ar_safePipeWrite(pipeDescriptors[1], numberBuffer, 1)){
-      cout << "szgd remark: failed to send failure code over pipe.\n";
-    }
-    *((int*)numberBuffer) = terminalOutput.length();
-    if (!ar_safePipeWrite(pipeDescriptors[1], numberBuffer, 
-                          sizeof(int))){
-       cout << "szgd remark: incomplete pipe-based handshake.\n";
-    }   
-    if (!ar_safePipeWrite(pipeDescriptors[1], terminalOutput.c_str(),
-		          terminalOutput.length())){
-      cout << "szgd remark: incomplete pipe-based handshake, "
-	   << "text stage.\n";
-    }
-    // Kill the child process here,
-    // because we don't want the orphaned process to start up again 
-    // on the message loop, causing no end of confusion!!!
+  char** theArgs = buildUnixStyleArgList(newCommand, mangledArgList);
+  // Stagger launches so the cluster's file server isn't hit so hard.
+  randomDelay();
+  if (execv(newCommand.c_str(), theArgs) >= 0){
+    // The child spawned okay, so remove parent's side of the fork().
+    // (Actually, if the child spawned, exec() doesn't return
+    // so the exit(0) isn't reached.)
     exit(0);
   }
+  deleteUnixStyleArgList(theArgs);
+
+  info << "szgd error: failed to exec \"" 
+       << symbolicCommand << "\":\n\treason:  ";
+  switch (errno){
+  case E2BIG: info << "args + env too large\n";
+    break;
+  case EACCES: info << "locking or sharing violation\n";
+    break;
+  case ENOENT: info << "file not found\n";
+    break;
+  case ENOEXEC: info << "file format not executable\n";
+    break;
+  case ENOMEM: info << "out of memory, possibly\n";
+    break;
+  case EFAULT: info << "invalid command or argv pointer:\n";
+    break;
+  default: info << "errno is " << errno << endl;
+    break;
+  }
+	
+  // handshake back to the parent
+  const string terminalOutput = info.str();
+  // we failed to launch the exe
+  numberBuffer[0] = 0;
+  if (!ar_safePipeWrite(pipeDescriptors[1], numberBuffer, 1)){
+    cout << "szgd remark: failed to send failure code over pipe.\n";
+  }
+  *((int*)numberBuffer) = terminalOutput.length();
+  if (!ar_safePipeWrite(pipeDescriptors[1], numberBuffer, 
+			sizeof(int))){
+     cout << "szgd remark: incomplete pipe-based handshake.\n";
+  }   
+  if (!ar_safePipeWrite(pipeDescriptors[1], terminalOutput.c_str(),
+			terminalOutput.length())){
+    cout << "szgd remark: incomplete pipe-based handshake, text stage.\n";
+  }
+
+  // Kill the child, so the orphaned process doesn't start up again 
+  // on the message loop.
+  exit(0);
+
 #else
+
   //*******************************************************************
-  //*******************************************************************
-  // Code for spawning a new process on Win32
-  //*******************************************************************
+  // spawn a new process on Win32
   //*******************************************************************
   PROCESS_INFORMATION theInfo;
   STARTUPINFO si = {0};
   si.cb = sizeof(STARTUPINFO);
 
-  // NOTE: THIS IS REALLY ANNOYING. We are passing certain pieces of 
-  // information into the child process via environment variables.
+  // NOTE: THIS IS REALLY ANNOYING. We pass stuff to
+  // the child via environment variables.
   // On Unix this isn't so bad: we've already inside a fork and,
-  // consequently, can change the environment with impunity. On Windows, the
-  // situation is different. Here, process creation doesn't work in the
+  // consequently, can change the environment with impunity. On Windows,
+  // process creation doesn't work in the
   // tree-like unix fashion. Consequently, a lock is needed.
   // (another solution would be to pass in an altered environment block)
   // (another solution would be to figure out a way to send the spawned process
@@ -669,8 +632,8 @@ void execProcess(void* i){
   ar_setenv("SZGPIPEID", -1);
   ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
   
-  cout << "szgd remark: dynamic library path =\n  "
-       << dynamicLibraryPath << "\n";
+cout << "szgd remark: dynamic library path =\n  "
+     << dynamicLibraryPath << "\n";
   ar_setenv(dynamicLibraryPathVar, dynamicLibraryPath);
   if (execInfo->executableType == "python") {
     cout << "szgd remark: python path =\n  "
@@ -732,7 +695,6 @@ void execProcess(void* i){
   }
   delete [] command;
   delete [] argsBuffer;
-  return;
 #endif
 }
 

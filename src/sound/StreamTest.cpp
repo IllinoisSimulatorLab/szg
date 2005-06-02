@@ -43,7 +43,7 @@ int msecLatency  = 30; // DSP uses 25-msec buffers, don't go less than that.
 
 int samplesLatency() { return int(msecLatency * mySR / 1000.); }
 
-FSOUND_DSPUNIT* Unit;
+FSOUND_DSPUNIT* Unit = NULL;
 
 char* bufAcc = NULL;
 const int samplesAcc = mySR * 2;
@@ -183,7 +183,7 @@ int main(int argc, char** argv) {
     iSoundcard = 0;
   }
   if (numSoundcards > 1) {
-    int i;
+    int i = 0;
     printf("DirectSound play soundcards found:\n");
     for (i=0; i < numSoundcards; i++)
       printf("%s\t%d: %s\n",

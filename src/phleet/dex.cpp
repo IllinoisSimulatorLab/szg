@@ -64,7 +64,7 @@ bool isVirtualComputer(arSZGClient& szgClient, const char* host){
 }
 
 int main(int argc, char** argv){
-  int i,j;
+  int i=0, j=0;
   // Default is to have no timeout.
   int timeout = -1;
   bool verbosity = false;

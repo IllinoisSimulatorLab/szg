@@ -229,7 +229,6 @@ void arSoundDatabase::render(){
 }
 
 void arSoundDatabase::_render(arSoundNode* node){
-  arMatrix4 tempMatrix;
   if (node->getTypeCode() == AR_S_TRANSFORM_NODE){
     // Push current onto the matrix stack.
     ar_transformStack.push(ar_transformStack.top());
@@ -241,7 +240,7 @@ void arSoundDatabase::_render(arSoundNode* node){
   list<arDatabaseNode*> children = node->getChildren();
   for (list<arDatabaseNode*>::iterator i = children.begin();
        i != children.end(); i++){
-    _render((arSoundNode*)(*i));
+    _render((arSoundNode*)*i);
   }
   if (node->getTypeCode() == AR_S_TRANSFORM_NODE){
     // Pop from stack.

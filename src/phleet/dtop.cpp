@@ -94,7 +94,7 @@ void update(const string& lines)
     if (!strcmp(host, "NULL"))
       continue;
 
-    int ihost;
+    int ihost = 0;
     for (ihost=0; ihost<chost; ihost++)
       {
       if (!*hosts[ihost])

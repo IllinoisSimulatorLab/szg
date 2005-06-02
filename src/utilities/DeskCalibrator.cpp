@@ -9,10 +9,10 @@
 #include "arInputEvent.h"
 #include "arGraphicsHeader.h"
 
-arInputNode* inputDevice;
-arNetInputSource* netSource;
-arSZGClient* szgClient;
-arVector3 positions[100];
+arInputNode* inputDevice = NULL;
+arNetInputSource* netSource = NULL;
+arSZGClient* szgClient = NULL;
+arVector3 positions[100] = {0};
 arMatrix4 basePosition;
 int numberEventsLogged = 0;
 bool filled = false;
@@ -20,6 +20,7 @@ bool filled = false;
 void eventCallback(arInputEvent& inputEvent){
   if (inputEvent.getType() != AR_EVENT_BUTTON)
     return;
+
   if (inputEvent.getIndex() == 0 && inputEvent.getButton() == 1){
     positions[numberEventsLogged] = inputDevice->getMatrix(1)*arVector3(0,0,0);
     numberEventsLogged++;
@@ -30,22 +31,21 @@ void eventCallback(arInputEvent& inputEvent){
   }
   if (inputEvent.getIndex() == 1 && inputEvent.getButton() == 1){
     basePosition = ar_translationMatrix(0,5,0)*!inputDevice->getMatrix(1);
-	int i;
+    int i;
     for (i=0; i<16; i++){
       cout << basePosition[i] << "/";
     }
     cout << "\n";
-	FILE* outputFile = fopen("temp-config.txt","w");
-	if (!outputFile){
-	  cout << "DeskCalibrator remark: cannot write file.\n";
-	}
-	else{
-	  for (i=0; i<16; i++){
-        fprintf(outputFile,"%f/",basePosition[i]);
-	  }
-	  fprintf(outputFile,"\n");
-	}
-	fclose(outputFile);
+    FILE* outputFile = fopen("temp-config.txt","w");
+    if (!outputFile){
+      cout << "DeskCalibrator remark: cannot write file.\n";
+    }
+    else{
+      for (i=0; i<16; i++)
+	fprintf(outputFile,"%f/",basePosition[i]);
+      fprintf(outputFile,"\n");
+      fclose(outputFile);
+    }
   }
   if (inputEvent.getIndex() == 2 && inputEvent.getButton() == 1){
     filled = false;
@@ -62,36 +62,30 @@ void keyboard(unsigned char key, int /*x*/, int /*y*/){
     case 'a':
       positions[ numberEventsLogged ] = inputDevice->getMatrix( 1 ) * arVector3( 0, 0, 0 );
       numberEventsLogged++;
-      
       if( numberEventsLogged > 100 ) {
         numberEventsLogged = 0;
         filled = true;
       }
-      
       cout << "event logged" << endl;
     break;
     
     case 's':
       {
       basePosition = ar_translationMatrix( 0, 2.375, 0 ) * !inputDevice->getMatrix( 0 );
-
       int i;
-      for( i = 0; i < 16; i++ ) {
+      for( i = 0; i < 16; i++ )
         cout << basePosition[ i ] << "/";
-      }
-      
       cout << "\n";
-	  FILE* outputFile = fopen("temp-config.txt","w");
-	if (!outputFile){
-	  cout << "DeskCalibrator remark: cannot write file.\n";
-	}
-	else{
-	  for (i=0; i<16; i++){
-        fprintf(outputFile,"%f/",basePosition[i]);
-	  }
-	  fprintf(outputFile,"\n");
-	}
-	fclose(outputFile);
+	FILE* outputFile = fopen("temp-config.txt","w");
+      if (!outputFile){
+	cout << "DeskCalibrator remark: cannot write file.\n";
+      }
+      else{
+	for (i=0; i<16; i++)
+	  fprintf(outputFile,"%f/",basePosition[i]);
+	fprintf(outputFile,"\n");
+      }
+      fclose(outputFile);
       }
     break;
     
@@ -114,8 +108,8 @@ void display(){
   glLoadIdentity();
   gluLookAt(0, 5, 20, 0, 5, 4, 0, 1, 0);
   
-  arMatrix4 sensorMatrix0 = basePosition * inputDevice->getMatrix(0);
-  arMatrix4 sensorMatrix1 = basePosition * inputDevice->getMatrix(1);
+  const arMatrix4 sensorMatrix0 = basePosition * inputDevice->getMatrix(0);
+  const arMatrix4 sensorMatrix1 = basePosition * inputDevice->getMatrix(1);
 
   glPushMatrix();
   
@@ -222,25 +216,23 @@ void display(){
 
 int main(int argc, char** argv){
   szgClient = new arSZGClient();
-  // ONE AT LEAST ONE WINDOWS TEST SYSTEM, THESE MUST BE NEW'ED
+  // ON AT LEAST ONE WINDOWS TEST SYSTEM, THESE MUST BE NEW'ED
   // INSTEAD OF DECLARED AS GLOBALS. WHAT'S WRONG????
   inputDevice = new arInputNode();
   netSource = new arNetInputSource();
   szgClient->init(argc, argv);
-  if (!(*szgClient)){
+  if (!*szgClient)
     return 1;
-  }
   
   // we will connect to the primary input source
   netSource->setSlot(0);
   inputDevice->addInputSource(netSource, false);
   inputDevice->setEventCallback(eventCallback);
-  if (!inputDevice->init(*szgClient)){
+  if (!inputDevice->init(*szgClient))
     return 1;
-  }
-  if (!inputDevice->start()){
+
+  if (!inputDevice->start())
     return 1;
-  }
 
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB);

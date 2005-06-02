@@ -82,9 +82,8 @@ bool arOBJ::readOBJ(const char* fileName,
 ///Gets the numerical ID of a geometry group, given the name
 int arOBJ::groupID(const string& name){
   for (unsigned int i=0; i<_groupName.size(); i++){
-    if (name == _groupName[i]){
+    if (name == _groupName[i])
       return i;
-    }
   }
   return -1;
 }
@@ -153,12 +152,7 @@ void arOBJ::attachGroup(int group, const string& base, const string& where){
   const string colorsModifier   (".colors");
   const string texModifier      (".texCoords");
   const string textureModifier  (".texture:");
-  int i;
-  string baseName;
-  if (base == "")
-    baseName = "myOBJ."+_groupName[group];
-  else
-    baseName = base+"."+_groupName[group];
+  const string baseName((base=="" ? "myOBJ." : base+".") + _groupName[group]);
   
   // Attach triangles (faces)
   const int numberTriangles=_group[group].size();
@@ -166,7 +160,7 @@ void arOBJ::attachGroup(int group, const string& base, const string& where){
   // Attach colors and textures
   // sort triangles by material
   vector<int>* matIDs = new vector<int>[_material.size()];
-  unsigned int j;
+  unsigned int j = 0;
   for (j=0; j<(unsigned int)numberTriangles; j++){
     matIDs[_triangle[_group[group][j]].material].push_back(j);
   }
@@ -187,8 +181,8 @@ void arOBJ::attachGroup(int group, const string& base, const string& where){
       float* normals = new float[9*matIDs[j].size()];
       int* indices = new int[3*matIDs[j].size()];
       float* texCoords = new float[6*matIDs[j].size()];
-      for (i=0; i<(int)matIDs[j].size(); i++){
-        arOBJTriangle currentTriangle = _triangle[_group[group][matIDs[j][i]]];
+      for (int i=0; i<(int)matIDs[j].size(); i++){
+        const arOBJTriangle currentTriangle = _triangle[_group[group][matIDs[j][i]]];
         indices[3*i]   = currentTriangle.vertices[0];
 	indices[3*i+1] = currentTriangle.vertices[1];
 	indices[3*i+2] = currentTriangle.vertices[2];
@@ -253,7 +247,7 @@ void arOBJ::attachGroup(int group, const string& base, const string& where){
 /// returns a sphere centered at the average of all the triangles in the group
 /// with a radius that includes all the geometry
 arBoundingSphere arOBJ::getGroupBoundingSphere(int groupID){
-  int i,j;
+  int i=0,j=0;
   // first, walk through the triangle list and accumulate the average position
   int numberTriangles = _group[groupID].size();
   arVector3 center(0,0,0);
@@ -282,16 +276,13 @@ arBoundingSphere arOBJ::getGroupBoundingSphere(int groupID){
 }
 
 arAxisAlignedBoundingBox arOBJ::getAxisAlignedBoundingBox(int groupID){
-  int numberTriangles = _group[groupID].size();
-  arAxisAlignedBoundingBox box;
-  float xMin, xMax, yMin, yMax, zMin, zMax;
-  
-  xMin = _vertex[_triangle[_group[groupID][0]].vertices[0]][0];
-  xMax = _vertex[_triangle[_group[groupID][0]].vertices[0]][0];
-  yMin = _vertex[_triangle[_group[groupID][0]].vertices[0]][1];
-  yMax = _vertex[_triangle[_group[groupID][0]].vertices[0]][1];
-  zMin = _vertex[_triangle[_group[groupID][0]].vertices[0]][2];
-  zMax = _vertex[_triangle[_group[groupID][0]].vertices[0]][2];
+  const int numberTriangles = _group[groupID].size();
+  float xMin = _vertex[_triangle[_group[groupID][0]].vertices[0]][0];
+  float xMax = _vertex[_triangle[_group[groupID][0]].vertices[0]][0];
+  float yMin = _vertex[_triangle[_group[groupID][0]].vertices[0]][1];
+  float yMax = _vertex[_triangle[_group[groupID][0]].vertices[0]][1];
+  float zMin = _vertex[_triangle[_group[groupID][0]].vertices[0]][2];
+  float zMax = _vertex[_triangle[_group[groupID][0]].vertices[0]][2];
   for (int i=0; i<numberTriangles;i++){
     for (int j=0; j<3; j++){
       arVector3 vertex = _vertex[_triangle[_group[groupID][i]].vertices[j]];
@@ -315,6 +306,7 @@ arAxisAlignedBoundingBox arOBJ::getAxisAlignedBoundingBox(int groupID){
       }
     }
   }
+  arAxisAlignedBoundingBox box;
   box.center = arVector3( (xMin+xMax)/2.0, (yMin+yMax)/2.0, (zMin+zMax)/2.0);
   box.xSize = (xMax-xMin)/2.0;
   box.ySize = (yMax-yMin)/2.0;
@@ -349,21 +341,21 @@ float arOBJ::intersectGroup(int groupID, const arRay& theRay){
 /// @param numTokens how many vertices in this face
 /// @param token the actual data on this line, separated nicely
 void arOBJ::_parseFace(int numTokens, char *token[]){
-  int howManyVertices = numTokens-1;
+  const int howManyVertices = numTokens-1;
   int* vertexID = new int[numTokens-1];
   int* texCoordID = new int[numTokens-1];
   int* normalID = new int[numTokens-1];
-  int i, numVTokens;
-  char *vertexToken[4];
+  int i=0;
+  char *vertexToken[4] = {0};
   for (i=0; i<numTokens-1; i++){
     texCoordID[i] = normalID[i] = 0;
   
-    numVTokens = 0;
+    int numVTokens = 0;
     vertexToken[numVTokens++] = strtok(token[i+1], "/");
     while (vertexToken[numVTokens-1]){
       vertexToken[numVTokens++] = strtok(NULL, "/");
     }
-    numVTokens -= 1;
+    --numVTokens;
 
     if (numVTokens == 1)
       vertexID[i] = atoi(vertexToken[0]);
@@ -437,7 +429,7 @@ void arOBJ::_parseFace(int numTokens, char *token[]){
 /// Adds normals if there are none, smoothes normals in smoothing group, and
 /// adjust backwards-facing normals
 void arOBJ::_generateNormals(){
-  unsigned int i, j, k;
+  unsigned int i=0, j=0, k=0;
   _normal.erase(_normal.begin(),_normal.begin()+1);
   _texCoord.erase(_texCoord.begin(), _texCoord.begin()+1);
   for (i=0; i<_triangle.size(); i++)
@@ -513,20 +505,19 @@ void arOBJ::_generateNormals(){
  *  not just add a normalization matrix
  */
 void arOBJ::normalizeModelSize(){
-  unsigned int i, j;
-  arVector3 center(0,0,0),maxVec(-10000,-10000,-10000),minVec(10000,10000,10000);
-  for (i=0; i<_vertex.size(); i++)
-  { for (j=0; j<3; j++)
-    { if (_vertex[i].v[j] > maxVec.v[j])
+  arVector3 maxVec(-10000,-10000,-10000);
+  arVector3 minVec(10000,10000,10000);
+  unsigned int i = 0;
+  for (i=0; i<_vertex.size(); i++) {
+    for (unsigned int j=0; j<3; j++) {
+      if (_vertex[i].v[j] > maxVec.v[j])
         maxVec.v[j] = _vertex[i].v[j];
       if (_vertex[i].v[j] < minVec.v[j])
         minVec.v[j] = _vertex[i].v[j];
     }
   }
-  center = (maxVec+minVec)/2.;
-  float maxDist = sqrt((maxVec-minVec)%(maxVec-minVec))/2.;
-  for (i=0; i<_vertex.size(); i++){
+  const arVector3 center = (maxVec+minVec)/2.;
+  const float maxDist = sqrt((maxVec-minVec)%(maxVec-minVec))/2.;
+  for (i=0; i<_vertex.size(); i++)
     _vertex[i] = (_vertex[i] - center) / maxDist;
-  }
 }
-
