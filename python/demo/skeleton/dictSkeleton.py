@@ -126,14 +126,15 @@ class SkeletonFramework(arPyMasterSlaveFramework):
 
     # arMasterSlaveDict is a dictionary of objects to be shared between master
     # and slaves. Dictionary keys MUST be Ints, Floats, or Strings.
-    # The second argument contains information about the classes the
+    # The second constructor argument contains information about the classes the
     # dictionary can contain, used to construct new objects in the slaves.
     # In this particular instance, the value after the colon is a reference to
     # the ColoredSquare class (remember, in Python a class is just an object that
     # generates instances when called with (); if you're familiar with the standard
     # OOP Design Patterns, it's basically a Factory).
     # See arMasterSlaveDict.__doc__ for more information.
-    # Note that you can have multiple arMasterSlaveDicts in one application, if desired.
+    # Note that you can have multiple arMasterSlaveDicts with different names in one
+    # application, if desired.
     self.dictionary = arMasterSlaveDict( 'objects', {'ColoredSquare':ColoredSquare} )
 
     # Create a square
@@ -201,7 +202,7 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     # update the input state (placement matrix & button states) of our effector.
     self.theWand.updateState( self.getInputState() )
 
-    # create a new square, add it to the dictionary, and grab it
+    # create a new square, grab it, and add it to the dictionary
     if self.theWand.getOnButton(2):
       self.theWand.forceUngrab()
       theSquare = ColoredSquare( self.dictionary )
@@ -211,6 +212,8 @@ class SkeletonFramework(arPyMasterSlaveFramework):
 
     # Handle any interaction with the squares (see interaction docs).
     # Any grabbing/dragging/deletion of squares happens in here.
+    # Any objects in the dictionary that aren't instances of subclasses
+    # of arPyInteractable will be ignored.
     self.dictionary.processInteraction( self.theWand )
 
     # Pack the state of the arMasterSlaveDict (and its contents) into the framework.
@@ -247,6 +250,7 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     self.loadNavMatrix()
     
     # Draw any objects in the dictionary with a 'draw' attribute.
+    # (in this case, all of them).
     self.dictionary.draw()
     # Draw the effector.
     self.theWand.draw()
