@@ -8,6 +8,8 @@
 
 #include "arGraphicsNode.h"
 #include "arGraphicsUtilities.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 enum arDrawableType {DG_POINTS = 0, DG_LINES = 1, DG_LINE_STRIP = 2, 
                      DG_TRIANGLES = 3, DG_TRIANGLE_STRIP = 4,

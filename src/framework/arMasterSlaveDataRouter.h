@@ -10,6 +10,8 @@
 #include "arBuffer.h"
 #include "arStructuredDataParser.h"
 #include <map>
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arFrameworkCalling.h"
 using namespace std;
 
 /// The arMasterSlaveDataRouter manages a collection of arFrameworkObjects,

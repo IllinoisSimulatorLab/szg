@@ -1,10 +1,17 @@
-#ifndef AREFFECTOR_H
-#define AREFFECTOR_H
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
+#ifndef AR_EFFECTOR_H
+#define AR_EFFECTOR_H
 
 #include "arInputState.h"
 #include "arDragManager.h"
 #include "arInteractionSelector.h"
 #include <map>
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arInteractionCalling.h"
 
 class arInteractable;
 class arSZGAppFramework;

@@ -1,9 +1,13 @@
-/**
- * @file arGUIDefines.h
- * Header file for common enums, typedefs, and defines.
- */
-#ifndef _AR_GUI_DEFINES_H_
-#define _AR_GUI_DEFINES_H_
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
+#ifndef _AR_GUI_DEFINES_H
+#define _AR_GUI_DEFINES_H
+
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 /**
  * The different types of OS events that can occur.

@@ -9,6 +9,7 @@
 #include "arDataTemplate.h"
 #include "arStructuredData.h"
 #include "arDataUtilities.h"
+#include "arLanguageCalling.h"
 
 /// A way to group several arStructuredData objects into a single such object.
 

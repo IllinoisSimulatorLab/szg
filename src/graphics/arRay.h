@@ -7,6 +7,8 @@
 #define AR_RAY_H
 
 #include "arMath.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 // the classes in this file are related to geometric processing
 

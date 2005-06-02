@@ -8,6 +8,9 @@
 
 #include "arMath.h"
 #include "arSZGClient.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
+
 #include <iostream>
 
 class arGraphicsScreen;

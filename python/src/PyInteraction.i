@@ -357,7 +357,7 @@ class arWandTranslationDrag(arPyDragBehavior):
 // Some actual code that will get compiled, as opposed to being analyzed
 // by SWIG for bindings.
 
-class SZG_CALL arPythonInteractable : public arInteractable {
+class arPythonInteractable : public arInteractable {
   public:
     arPythonInteractable();
     ~arPythonInteractable();

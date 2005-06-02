@@ -11,6 +11,8 @@
 #include "arSoundLanguage.h"
 #include "arDatabaseNode.h"
 #include "arMath.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arSoundCalling.h"
 
 class arSoundDatabase;
 

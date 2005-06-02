@@ -27,6 +27,8 @@
 #include "arThread.h"
 #include <string>
 #include <list>
+
+#include "arLanguageCalling.h"
 using namespace std;
 
 class ar_timeval; // forward reference into arDataUtilities.h

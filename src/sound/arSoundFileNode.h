@@ -9,6 +9,8 @@
 #define AR_SOUNDFILE_NODE_H
 
 #include "arSoundNode.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arSoundCalling.h"
 
 /// Single sound in the scene graph.
 

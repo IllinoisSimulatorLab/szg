@@ -10,7 +10,8 @@
 #include <string>
 #include <iostream>
 #include "fmodStub.h"
-#include "arCallingConventions.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arSoundCalling.h"
 using namespace std; // needed for "string"
 
 /// Soundfile to play (in the scene graph).

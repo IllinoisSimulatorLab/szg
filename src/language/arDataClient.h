@@ -9,6 +9,7 @@
 #include "arDataPoint.h"
 #include "arStructuredData.h"
 #include "arTemplateDictionary.h"
+#include "arLanguageCalling.h"
 
 /// Get data from an arDataServer.
 

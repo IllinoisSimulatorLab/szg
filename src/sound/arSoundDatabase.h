@@ -18,6 +18,9 @@
 #include "arPlayerNode.h"
 #include "arSpeechNode.h"
 
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arSoundCalling.h"
+
 /// Scene graph for sound.
 
 class SZG_CALL arSoundDatabase: public arDatabase{

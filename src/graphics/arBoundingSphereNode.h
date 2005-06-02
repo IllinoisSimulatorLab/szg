@@ -9,6 +9,8 @@
 #include "arGraphicsNode.h"
 #include "arRay.h"
 #include "arMath.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 /// Bounding sphere.
 

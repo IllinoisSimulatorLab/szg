@@ -8,6 +8,8 @@
 
 #include "arTemplateDictionary.h"
 #include "arStructuredData.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 #include <list>
 using namespace std;
 

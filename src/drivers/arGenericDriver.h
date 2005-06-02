@@ -7,6 +7,8 @@
 #define AR_GENERIC_DRIVER_H
 
 #include "arInputSource.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 
 /// Example to copy-paste from, for writing drivers for input devices.
 

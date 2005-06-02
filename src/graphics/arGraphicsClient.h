@@ -11,6 +11,8 @@
 #include "arGraphicsWindow.h"
 #include "arVRCamera.h"
 #include "arFrameworkObject.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 #include <string>
 
 /// Something that renders graphics data

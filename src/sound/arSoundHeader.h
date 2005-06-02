@@ -6,6 +6,9 @@
 #ifndef AR_SOUND_HEADER_H
 #define AR_SOUND_HEADER_H
 
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arSoundCalling.h"
+
 // These IDs are used by the arSoundNodes. They identify the node type
 // and allow for efficient casting.
 

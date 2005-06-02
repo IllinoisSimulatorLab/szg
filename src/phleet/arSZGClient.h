@@ -14,6 +14,8 @@
 #include "arPhleetConnectionBroker.h"
 #include "arPhleetOSLanguage.h"
 #include "arMath.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arPhleetCalling.h"
 #include <list>
 #include <string>
 #include <sstream>

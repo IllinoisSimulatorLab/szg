@@ -11,6 +11,8 @@
 #include "arOBJ.h"
 #include "ar3DS.h"
 #include "arGraphicsAPI.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arObjCalling.h"
 
 SZG_CALL bool attachOBJToHTRToNodeInDatabase(arOBJ* theOBJ,
                                              arHTR *theHTR,

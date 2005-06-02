@@ -7,6 +7,8 @@
 #define AR_SOUND_TRANSFORM_NODE_H
 
 #include "arSoundNode.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arSoundCalling.h"
 
 /// OpenGL-style transformation matrix in the scene graph for sound.
 

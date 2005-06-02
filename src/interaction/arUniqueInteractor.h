@@ -1,3 +1,8 @@
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
 #ifndef ARUNIQUEINTERACTOR_H
 #define ARUNIQUEINTERACTOR_H
 
@@ -5,6 +10,8 @@
 #include "arInputState.h"
 #include <list>
 #include <vector>
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arInteractionCalling.h"
 
 enum buttonevent_t { NO_EVENT=0, ON_EVENT=1, OFF_EVENT=2 };
 

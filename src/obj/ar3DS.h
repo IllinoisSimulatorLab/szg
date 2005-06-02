@@ -8,7 +8,6 @@
 
 // part of the Graphics Language Library, some simple tools for communicating
 // 3D graphics between programs
-// Written under the GNU General Public License
 // -- mflider
 
 #include <stdio.h>
@@ -30,6 +29,9 @@
   #include <lib3ds/mesh.h>
   #include <lib3ds/node.h>
 #endif
+
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arObjCalling.h"
 
 /// .3DS wrapper class
 /** Needs lib3DS */

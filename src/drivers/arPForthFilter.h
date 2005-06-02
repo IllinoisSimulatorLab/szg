@@ -10,6 +10,8 @@
 #include "arPForth.h"
 #include "arPForthEventVocabulary.h"
 #include "arPForthDatabaseVocabulary.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 
 class SZG_CALL arFilteringPForth : public arPForth {
  public:

@@ -17,6 +17,8 @@ class arLanguage;
 #include "arThread.h"
 //*******************************************************************
 
+#include "arLanguageCalling.h"
+
 #include <iostream>
 #include <vector>
 using namespace std;

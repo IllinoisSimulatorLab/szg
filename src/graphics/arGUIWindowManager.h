@@ -1,3 +1,8 @@
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
 /**
  * @file arGUIWindowManager.h
  * Header file for the arGUIWindowManager class.
@@ -10,8 +15,9 @@
 #include <string>
 
 #include "arThread.h"
-
 #include "arGUIDefines.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 class arWMEvent;
 class arGUIRenderCallback;

@@ -3,17 +3,19 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-#ifndef ARPPTTIMERDRIVER_H
-#define ARPPTTIMERDRIVER_H
+#ifndef AR_PPT_TIMER_DRIVER_H
+#define AR_PPT_TIMER_DRIVER_H
 
 #include "arInputSource.h"
 #include "arThread.h"
 #include "arMath.h"
 #include "arRS232Port.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 
 /// Driver for the accurate Reaction Timer system.
 
-class arPPTDriver: public arInputSource {
+class SZG_CALL arPPTDriver: public arInputSource {
     friend void ar_PPTDriverEventTask(void*);
   public:
     arPPTDriver();

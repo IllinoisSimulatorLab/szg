@@ -10,11 +10,11 @@
 #include "arInputNode.h"
 #include "arNetInputSource.h"
 #include "arSZGClient.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arInteractionCalling.h"
 
 SZG_CALL void ar_connectionFlyingGravisJoystick(void*);
 SZG_CALL void ar_handleFlyingGravisJoystick(void*);
-
-/// Gravis Xterminator Digital Game Pad.
 
 class SZG_CALL arFlyingGravisController:public arController{
   friend void ar_handleFlyingGravisJoystick(void*);

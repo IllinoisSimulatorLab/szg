@@ -8,6 +8,8 @@
 
 #include "arStructuredData.h"
 #include "arSZGClient.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 
 /// Something which absorbs input-device messages and does something with them.
 

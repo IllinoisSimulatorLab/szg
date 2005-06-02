@@ -8,6 +8,8 @@
 
 #include "arFrameworkObject.h"
 #include "arMath.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 #include <map>
 
 class SZG_CALL arPerformanceElement{

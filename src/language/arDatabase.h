@@ -10,6 +10,7 @@
 #include "arDatabaseLanguage.h"
 #include "arThread.h"
 #include "arNameNode.h"
+#include "arLanguageCalling.h"
 #include <iostream>
 #include <stack>
 #include <vector>

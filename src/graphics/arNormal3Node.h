@@ -7,6 +7,8 @@
 #define AR_NORMAL3_NODE
 
 #include "arGraphicsArrayNode.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 class SZG_CALL arNormal3Node: public arGraphicsArrayNode{
  public:

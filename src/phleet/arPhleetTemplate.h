@@ -7,6 +7,8 @@
 #define AR_PHLEET_TEMPLATE
 
 #include "arDataTemplate.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arPhleetCalling.h"
 
 class SZG_CALL arPhleetTemplate: public arDataTemplate{
  public:

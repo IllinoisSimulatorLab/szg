@@ -10,6 +10,7 @@
 #include <string>
 #include "arStructuredData.h"
 #include "arDatabaseLanguage.h"
+#include "arLanguageCalling.h"
 using namespace std;
 
 // THIS IS AN OBNOXIOUS HACK!!!!!

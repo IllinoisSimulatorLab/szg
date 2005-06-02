@@ -7,6 +7,8 @@
 #define AR_PERSPECTIVE_CAMERA_H
 
 #include "arCamera.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 class SZG_CALL arPerspectiveCamera: public arCamera{
  public:

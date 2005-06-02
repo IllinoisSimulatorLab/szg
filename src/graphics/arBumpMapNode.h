@@ -7,6 +7,8 @@
 #define AR_BUMPMAP_NODE_H
 
 #include "arGraphicsNode.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 /// Bump map loaded from a file.
 

@@ -13,6 +13,7 @@
 #include "arDataUtilities.h"
 #include "arThread.h"
 #include "arQueuedData.h"
+#include "arLanguageCalling.h"
 #include <list>
 #include <map>
 

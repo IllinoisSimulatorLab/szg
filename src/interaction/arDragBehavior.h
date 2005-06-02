@@ -1,8 +1,15 @@
-#ifndef ARDRAGBEHAVIOR_H
-#define ARDRAGBEHAVIOR_H
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
+#ifndef AR_DRAG_BEHAVIOR_H
+#define AR_DRAG_BEHAVIOR_H
 
 #include "arMath.h"
 #include "arDataUtilities.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arInteractionCalling.h"
 
 class arGrabCondition;
 class arEffector;

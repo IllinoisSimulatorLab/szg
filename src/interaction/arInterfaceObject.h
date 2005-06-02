@@ -9,6 +9,8 @@
 #include "arInputNode.h"
 #include "arMath.h"
 #include <vector>
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arInteractionCalling.h"
 
 /// Input device (gamepad, motion tracker, keyboard, etc.).
 

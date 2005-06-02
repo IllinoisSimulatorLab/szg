@@ -8,7 +8,7 @@
 
 #include <stdio.h>
 #include "arBuffer.h"
-#include "arCallingConventions.h"
+#include "arLanguageCalling.h"
 
 /// A base class that provides a very simple stream interface.
 /// This is mostly used for XML-style data parsing. Via subclasses, one

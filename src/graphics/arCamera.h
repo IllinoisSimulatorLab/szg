@@ -9,6 +9,8 @@
 #include "arMath.h"
 #include "arSZGClient.h"
 #include "arGraphicsScreen.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 class SZG_CALL arCamera{
  public:

@@ -33,6 +33,9 @@
 
 #endif
 
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
+
 // also want to include the node type IDs enum (as distinct from the
 // record IDs in the graphics language)
 enum{

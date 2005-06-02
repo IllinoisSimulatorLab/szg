@@ -9,6 +9,7 @@
 #include "arTextStream.h"
 #include "arBuffer.h"
 #include "arDataType.h"
+#include "arLanguageCalling.h"
 #include <string>
 #include <sstream>
 using namespace std;

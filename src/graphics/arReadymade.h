@@ -9,6 +9,8 @@
 #include "arGraphicsDatabase.h"
 #include "arMath.h"
 #include <string>
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 /// 2 balls joined by a cylinder.
 

@@ -18,6 +18,8 @@
 #include "arNavigationUtilities.h"
 #include "arFrameworkEventFilter.h"
 #include <set>
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arFrameworkCalling.h"
 
 class SZG_CALL arSZGAppFramework {
   public:

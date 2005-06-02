@@ -15,6 +15,9 @@
   typedef int CGparameter;
 #endif
 
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
+
 /// This function draws "number" points. There should be number values in
 /// the indices array.
 void ar_drawPoints(int number, int* indices, float* positions, float* colors,

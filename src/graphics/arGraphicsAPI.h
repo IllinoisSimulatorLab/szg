@@ -7,6 +7,8 @@
 #define AR_GRAPHICS_API_H
 
 #include "arGraphicsDatabase.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 // Naming conventions:
 // arXXX refers to classes in the library.

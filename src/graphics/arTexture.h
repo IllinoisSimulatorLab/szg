@@ -7,11 +7,12 @@
 #define AR_TEXTURE_H
 
 #include "arGraphicsHeader.h"
-#include "arCallingConventions.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
 #include <string>
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 using namespace std;
 
 /// Texture map loaded from a file, or loaded from a block of memory.

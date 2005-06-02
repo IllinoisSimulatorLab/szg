@@ -1,13 +1,19 @@
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
 /**
  * @file arGUIInfo.h
  * Header file for the arGUIInfo, arGUIInfo, arGUIMouseInfo and arGUIWindowInfo classes.
  */
-#ifndef _AR_GUI_INFO_H_
-#define _AR_GUI_INFO_H_
+#ifndef AR_GUI_INFO_H
+#define AR_GUI_INFO_H
 
 #include "arStructuredData.h"
-
 #include "arGUIDefines.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 /**
  * Information about an OS event.

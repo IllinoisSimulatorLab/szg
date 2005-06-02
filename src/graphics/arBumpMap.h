@@ -15,6 +15,9 @@ using namespace std;
 typedef int CGparameter;
 #endif
 
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
+
 /// Bump map loaded from a file, or loaded from a block of memory.
 
 class SZG_CALL arBumpMap : public arTexture {

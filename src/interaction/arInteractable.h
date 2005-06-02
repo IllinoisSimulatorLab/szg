@@ -1,3 +1,8 @@
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
 #ifndef ARINTERACTABLE_H
 #define ARINTERACTABLE_H
 
@@ -7,6 +12,8 @@
 #include "arDragBehavior.h"
 #include "arDragManager.h"
 #include <vector>
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arInteractionCalling.h"
 
 class SZG_CALL arInteractable {
   public:

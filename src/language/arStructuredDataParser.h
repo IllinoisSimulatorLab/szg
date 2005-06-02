@@ -13,6 +13,7 @@
 #include "arBuffer.h"
 #include "arTextStream.h"
 #include "arFileTextStream.h"
+#include "arLanguageCalling.h"
 #include <list>
 #include <map>
 using namespace std;

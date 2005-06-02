@@ -23,7 +23,11 @@
  *  Derived classes should use members _name and _invalidFile.
  * \todo perhaps make (virtual) arGeometryObject, arAnimationObject, deriving from arObject
 */
-class SZG_CALL arObject {
+
+// WARNING: If a class ONLY exists in the .h, then we SHOULD NOT decorate it
+// with SZG_CALL. In the Win32 case, this will lead to the linker getting
+// confused when trying to import the class.
+class arObject {
  public:
   arObject() : _name(""), _invalidFile(false), _vertexNodeID(-1) {}
   virtual ~arObject() {}

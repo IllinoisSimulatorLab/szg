@@ -11,6 +11,9 @@
 #include "arViewport.h"
 #include "arGraphicsScreen.h"
 #include "arCamera.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
+
 #include <string>
 #include <vector>
 using namespace std;

@@ -2,6 +2,8 @@
 #define ARINPUTEVENTQUEUE_H
 
 #include "arInputEvent.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 #include <deque>
 
 class SZG_CALL arInputEventQueue {

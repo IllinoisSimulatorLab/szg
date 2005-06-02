@@ -10,6 +10,8 @@
 #include "arDataServer.h"
 #include "arGraphicsDatabase.h"
 #include "arQueuedData.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 // Yes, this is a HACK!
 class SZG_CALL arGraphicsPeerCullObject{

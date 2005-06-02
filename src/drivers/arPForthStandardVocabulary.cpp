@@ -7,6 +7,8 @@
 #include "arPrecompiled.h"
 #include "arPForth.h"
 #include "arDataUtilities.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 #include <sstream>
 
 using std::vector;

@@ -16,6 +16,8 @@
 #include <vector>
 #include "arOBJSmoothingGroup.h"
 #include "arObject.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arObjCalling.h"
 
 // rotation orders
 enum { XYZ = 1, XZY, YXZ, YZX, ZXY, ZYX };

@@ -12,6 +12,8 @@
 
 #include "arSoundNode.h"
 #include "arSoundDatabase.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arSoundCalling.h"
 
 class SZG_CALL arStreamNode: public arSoundNode{
  public:

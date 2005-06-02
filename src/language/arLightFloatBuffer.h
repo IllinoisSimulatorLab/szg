@@ -7,6 +7,7 @@
 #define AR_LIGHT_FLOAT_BUFFER_H
 
 #include "arDataType.h"
+#include "arLanguageCalling.h"
 
 /// Utility class.  A simple buffer of floats. This class is a little
 /// annoying. It is definitely a hack. First of all, it's a weird relic

@@ -5,12 +5,10 @@
 
 #ifndef AR_CUBE_ENVIRONMENT_H
 #define AR_CUBE_ENVIRONMENT_H
-// part of the Graphics Language Library, some simple tools for communicating
-// 3D graphics between programs
-// Written under the GNU General Public License
-// -- BJS
 
 #include "arMesh.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 /// Texture-mapped prism: n walls (often 4), a floor, and a ceiling.
 

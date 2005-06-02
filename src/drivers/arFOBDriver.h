@@ -31,6 +31,8 @@
 #include "arThread.h"
 #include "arRS232Port.h"
 #include "arMath.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 #include <string>
 
 /// Driver for Ascension Flock of Birds.

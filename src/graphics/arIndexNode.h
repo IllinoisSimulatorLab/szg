@@ -7,6 +7,8 @@
 #define AR_INDEX_NODE_H
 
 #include "arGraphicsArrayNode.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 class SZG_CALL arIndexNode:public arGraphicsArrayNode{
  public:

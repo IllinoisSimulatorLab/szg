@@ -17,6 +17,8 @@
 #include "arOBJSmoothingGroup.h"
 #include "arRay.h"
 #include "arAxisAlignedBoundingBox.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arObjCalling.h"
 
 /// Wrapper for OpenGL material.
 class SZG_CALL arOBJMaterial {

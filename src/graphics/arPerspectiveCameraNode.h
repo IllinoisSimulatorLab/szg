@@ -8,6 +8,8 @@
 
 #include "arGraphicsNode.h"
 #include "arPerspectiveCamera.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 class SZG_CALL arPerspectiveCameraNode:public arGraphicsNode{
  public:

@@ -9,6 +9,8 @@
 #include "arInputSource.h"
 #include "arThread.h"
 #include "arInputHeaders.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 
 #ifdef Enable_VRPN
 #include "vrpn_Shared.h"
@@ -19,7 +21,7 @@
 
 /// Driver for connecting to an external VRPN server
 
-class arVRPNDriver: public arInputSource{
+class SZG_CALL arVRPNDriver: public arInputSource{
   friend void ar_VRPNDriverEventTask(void*);
 #ifdef Enable_VRPN
   friend void ar_VRPNHandleTracker(void* data, const vrpn_TRACKERCB event);

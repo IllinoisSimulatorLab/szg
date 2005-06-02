@@ -8,6 +8,7 @@
 
 #include "arDataType.h"
 #include "arSocket.h"
+#include "arLanguageCalling.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string>

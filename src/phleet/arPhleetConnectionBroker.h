@@ -8,6 +8,8 @@
 
 #include "arThread.h"
 #include "arDataUtilities.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arPhleetCalling.h"
 #include <string>
 #include <list>
 #include <map>

@@ -6,17 +6,14 @@
 #ifndef AR_OBJ_SMOOTHING_GROUP
 #define AR_OBJ_SMOOTHING_GROUP
 
-// part of the Graphics Language Library, some simple tools for communicating
-// 3D graphics between programs
-// Written under the GNU General Public License
-// -- BJS
-
 #include <stdio.h>
 #include <iostream>
 #include "arMath.h"
 #include "arGraphicsDatabase.h"
 #include <string>
 #include <vector>
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arObjCalling.h"
 
 /// Helper class for arOBJ objects
 /// \todo get rid of this, or put it in arOBJ's files

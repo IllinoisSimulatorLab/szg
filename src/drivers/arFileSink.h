@@ -12,6 +12,8 @@
 /// addressed.
 
 #include "arInputSink.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 
 class SZG_CALL arFileSink:public arInputSink{
  public:

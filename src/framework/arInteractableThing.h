@@ -3,12 +3,14 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-#ifndef ARINTERACTABLETHING_H
-#define ARINTERACTABLETHING_H
+#ifndef AR_INTERACTABLE_THING_H
+#define AR_INTERACTABLE_THING_H
 
 #include "arMath.h"
 #include "arTexture.h"
 #include "arInteractable.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arFrameworkCalling.h"
 
 class arMasterSlaveFramework;
 

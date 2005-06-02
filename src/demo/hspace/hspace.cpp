@@ -99,7 +99,7 @@ void drawCallback(arMasterSlaveFramework& fw){
   if (fw.getConnected()) {
     glTranslatef(0,5,0);
     glScalef(10,10,10);
-    fw.draw();
+    fw.drawGraphicsDatabase();
   }
 }
 

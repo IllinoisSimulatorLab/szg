@@ -3,16 +3,18 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-#ifndef ARSHAREDMEMDRIVER_H
-#define ARSHAREDMEMDRIVER_H
+#ifndef AR_SHARED_MEM_DRIVER_H
+#define AR_SHARED_MEM_DRIVER_H
 
 #include "arInputSource.h"
 #include "arThread.h"
 #include "arMath.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 
 /// Driver for shared-memory segments holding mocap data from VRCO trackd.
 
-class arSharedMemDriver: public arInputSource {
+class SZG_CALL arSharedMemDriver: public arInputSource {
     friend void ar_ShmDriverDataTask(void*);
   public:
     arSharedMemDriver();

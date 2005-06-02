@@ -1,5 +1,10 @@
-#ifndef ARINPUTSTATE_H
-#define ARINPUTSTATE_H
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
+#ifndef AR_INPUT_STATE_H
+#define AR_INPUT_STATE_H
 
 #include "arMath.h"
 #include "arThread.h"
@@ -7,11 +12,8 @@
 #include <vector>
 #include <ostream>
 #include "arSTLalgo.h"
-//#if (defined(__GNUC__)&&(__GNUC__<3))
-//#include <algo.h>
-//#else
-//#include <algorithm>
-//#endif
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 
 template <class eventDataType> class arInputDeviceMap {
   public:

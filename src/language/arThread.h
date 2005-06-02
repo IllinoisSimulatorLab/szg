@@ -6,7 +6,7 @@
 #ifndef AR_THREAD_H
 #define AR_THREAD_H
 
-#include "arCallingConventions.h"
+#include "arLanguageCalling.h"
 
 #ifdef AR_USE_WIN_32
 #include <process.h>

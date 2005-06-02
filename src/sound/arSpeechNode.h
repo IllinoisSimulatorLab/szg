@@ -1,5 +1,10 @@
-#ifndef ARSPEECHNODE_H
-#define ARSPEECHNODE_H
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
+#ifndef AR_SPEECH_NODE_H
+#define AR_SPEECH_NODE_H
 
 #include "arSoundNode.h"
 #ifdef EnableSpeech
@@ -7,6 +12,9 @@
 #include <sapi.h>
 #endif
 #endif
+
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arSoundCalling.h"
 
 /// Utterance in the scene graph.
 

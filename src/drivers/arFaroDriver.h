@@ -10,6 +10,8 @@
 #include "arThread.h"
 #include "arMath.h"
 #include "arRS232Port.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 
 /// Driver for the Faro Arm.
 

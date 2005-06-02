@@ -1,7 +1,14 @@
-#ifndef ARFRAMEWORKEVENTFILTER_H
-#define ARFRAMEWORKEVENTFILTER_H
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
+#ifndef AR_FRAMEWORK_EVENT_FILTER_H
+#define AR_FRAMEWORK_EVENT_FILTER_H
 
 #include "arIOFilter.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arFrameworkCalling.h"
 
 class arSZGAppFramework;
 

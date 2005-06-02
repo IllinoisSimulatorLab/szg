@@ -9,6 +9,8 @@
 #include "arTemplateDictionary.h"
 #include "arStructuredData.h"
 #include "arDatabaseLanguage.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arSoundCalling.h"
 
 /// Language for the sound scene graph.
 

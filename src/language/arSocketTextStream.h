@@ -8,6 +8,7 @@
 
 #include "arTextStream.h"
 #include "arSocket.h"
+#include "arLanguageCalling.h"
 
 class SZG_CALL arSocketTextStream: public arTextStream{
  public:

@@ -22,6 +22,8 @@
 #include "arFramerateGraph.h"
 #include "arMasterSlaveDataRouter.h"
 #include <vector>
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arFrameworkCalling.h"
 
 /// Helper for arMasterSlaveFramework.
 class arTransferFieldDescriptor{

@@ -6,9 +6,10 @@
 #ifndef AR_FAROCAL_FILTER
 #define AR_FAROCAL_FILTER
 
-#include "arCallingConventions.h"
 #include "arIOFilter.h"
 #include "arMath.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 
 /// Calibration table for an input device.
 

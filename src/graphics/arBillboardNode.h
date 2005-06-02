@@ -7,6 +7,8 @@
 #define AR_BILLBOARD_NODE_H
 
 #include "arGraphicsNode.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 /// Billboard display of text.
 

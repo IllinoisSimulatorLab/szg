@@ -1,9 +1,16 @@
-#ifndef ARNAVMANAGER_H
-#define ARNAVMANAGER_H
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
+#ifndef AR_NAV_MANAGER_H
+#define AR_NAV_MANAGER_H
 
 #include "arEffector.h"
 #include "arInteractable.h"
 #include "arGrabCondition.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arInteractionCalling.h"
 
 class SZG_CALL arNavInteractable : public arInteractable {
   friend class arNavManager;

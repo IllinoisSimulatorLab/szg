@@ -1,7 +1,14 @@
-#ifndef ARCALLBACKINTERACTABLE_H
-#define ARCALLBACKINTERACTABLE_H
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
+#ifndef AR_CALLBACK_INTERACTABLE_H
+#define AR_CALLBACK_INTERACTABLE_H
 
 #include "arInteractable.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arInteractionCalling.h"
 
 class SZG_CALL arCallbackInteractable : public arInteractable {
   public:

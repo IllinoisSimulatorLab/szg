@@ -3,17 +3,19 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-#ifndef arUSBDRIVER_H
-#define arUSBDRIVER_H
+#ifndef AR_USB_DRIVER_H
+#define AR_USB_DRIVER_H
 
 #include "arInputSource.h"
 #include "arThread.h"
 #include "arMath.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 
 /// Driver for USB cave-wand,
 /// and possibly other USB "igorplug" Atmel-AVR devices.
 
-class arUSBDriver: public arInputSource {
+class SZG_CALL arUSBDriver: public arInputSource {
     friend void ar_USBDriverDataTask(void*);
   public:
     arUSBDriver();

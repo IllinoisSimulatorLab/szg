@@ -6,6 +6,7 @@
 #ifndef AR_DATABASE_LANGUAGE
 #define AR_DATABASE_LANGUAGE
 #include "arLanguage.h"
+#include "arLanguageCalling.h"
 
 // Also want to include the built-in IDs for the pure database nodes here.
 // NOTE: THERE IS A VERY WICKED KLUDGE GOING ON HERE! SPECIFICALLY, TO

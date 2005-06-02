@@ -8,11 +8,12 @@
 
 #include "arSZGClient.h"
 // NOTE: These items can be shared objects
-#include "arCallingConventions.h"
 #include "arInputSink.h"
 #include "arIOFilter.h"
 #include "arInputLanguage.h"
 #include "arInputEvent.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 
 class arInputNode;
 

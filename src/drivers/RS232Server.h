@@ -8,6 +8,8 @@
 #include "arSZGClient.h"
 #include "arMath.h"
 #include "arInput.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 #include <iostream>
 using namespace std;
 

@@ -12,6 +12,8 @@
 #include "arSocket.h"
 #include "arDataUtilities.h"
 #include "birdnet.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 
 struct BN_PACKET {
   BN_HEADER header;

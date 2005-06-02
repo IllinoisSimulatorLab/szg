@@ -1,7 +1,14 @@
-#ifndef ARINTERACTIONSELECTOR_H
-#define ARINTERACTIONSELECTOR_H
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
+#ifndef AR_INTERACTION_SELECTOR_H
+#define AR_INTERACTION_SELECTOR_H
 
 #include "arMath.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arInteractionCalling.h"
 
 class arEffector;
 

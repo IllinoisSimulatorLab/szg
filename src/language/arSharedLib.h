@@ -12,7 +12,7 @@
 typedef HMODULE LibHandle;
 #endif
 
-#include "arCallingConventions.h"
+#include "arLanguageCalling.h"
 
 #ifdef AR_USE_LINUX
 typedef void* LibHandle;

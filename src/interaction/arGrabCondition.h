@@ -1,7 +1,14 @@
-#ifndef ARGRABCONDITION_H
-#define ARGRABCONDITION_H
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
+#ifndef AR_GRAB_CONDITION_H
+#define AR_GRAB_CONDITION_H
 
 #include "arInputEvent.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arInteractionCalling.h"
 
 class arEffector;
 

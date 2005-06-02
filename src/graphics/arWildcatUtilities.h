@@ -3,10 +3,11 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-#ifndef ARWILDCATUTILTIES_H
-#define ARWILDCATUTILTIES_H
+#ifndef AR_WILDCAT_UTILTIES_H
+#define AR_WILDCAT_UTILTIES_H
 
-#include "arCallingConventions.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 SZG_CALL void ar_useWildcatFramelock( bool isOn );
 SZG_CALL void ar_findWildcatFramelock();

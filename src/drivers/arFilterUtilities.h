@@ -9,6 +9,8 @@
 #include "arStructuredData.h"
 #include "arMath.h"
 #include "arInputEvent.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 
 //enum {AR_EVENT_GARBAGE=-1, AR_EVENT_BUTTON=0, 
 //      AR_EVENT_AXIS=1, AR_EVENT_MATRIX=2};

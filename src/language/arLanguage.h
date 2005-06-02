@@ -9,6 +9,7 @@
 class arStructuredData;
 #include "arTemplateDictionary.h"
 #include "arStructuredData.h"
+#include "arLanguageCalling.h"
 
 /// Generic language.
 

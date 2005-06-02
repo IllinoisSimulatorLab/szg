@@ -182,24 +182,31 @@ void arCylinderMesh::attachMesh(const string& name, const string& nameParent){
     triangleVertices[6*i+4] = j;
     triangleVertices[6*i+5] = j+_numberDivisions;
 
-    normals[18*i   ] = cos((6.283*i)/_numberDivisions);
-    normals[18*i+1 ] = sin((6.283*i)/_numberDivisions);
-    normals[18*i+2 ] = 0;
-    normals[18*i+3 ] = cos((6.283*i)/_numberDivisions);
-    normals[18*i+4 ] = sin((6.283*i)/_numberDivisions);
-    normals[18*i+5 ] = 0;
-    normals[18*i+6 ] = cos((6.283*j)/_numberDivisions);
-    normals[18*i+7 ] = sin((6.283*j)/_numberDivisions);
-    normals[18*i+8 ] = 0;
-    normals[18*i+9 ] = cos((6.283*i)/_numberDivisions);
-    normals[18*i+10] = sin((6.283*i)/_numberDivisions);
-    normals[18*i+11] = 0;
-    normals[18*i+12] = cos((6.283*j)/_numberDivisions);
-    normals[18*i+13] = sin((6.283*j)/_numberDivisions);
-    normals[18*i+14] = 0;
-    normals[18*i+15] = cos((6.283*j)/_numberDivisions);
-    normals[18*i+16] = sin((6.283*j)/_numberDivisions);
-    normals[18*i+17] = 0;
+    arVector3 n = arVector3(cos((6.283*i)/_numberDivisions),
+                            sin((6.283*i)/_numberDivisions), 0);
+    arVector3 n2 = _matrix*n - _matrix*arVector3(0,0,0);
+    memcpy(normals+18*i, n2.v, 3*sizeof(float));
+    n = arVector3(cos((6.283*i)/_numberDivisions),
+                  sin((6.283*i)/_numberDivisions), 0);
+    n2 = _matrix*n - _matrix*arVector3(0,0,0);
+    memcpy(normals+18*i+3, n2.v, 3*sizeof(float));
+    n = arVector3(cos((6.283*j)/_numberDivisions),
+                  sin((6.283*j)/_numberDivisions), 0);
+    n2 = _matrix*n - _matrix*arVector3(0,0,0);
+    memcpy(normals+18*i+6, n2.v, 3*sizeof(float));
+
+    n = arVector3(cos((6.283*i)/_numberDivisions),
+                  sin((6.283*i)/_numberDivisions), 0);
+    n2 = _matrix*n - _matrix*arVector3(0,0,0);
+    memcpy(normals+18*i+9, n2.v, 3*sizeof(float));
+    n = arVector3(cos((6.283*j)/_numberDivisions),
+                  sin((6.283*j)/_numberDivisions), 0);
+    n2 = _matrix*n - _matrix*arVector3(0,0,0);
+    memcpy(normals+18*i+12, n2.v, 3*sizeof(float));
+    n = arVector3(cos((6.283*j)/_numberDivisions),
+                  sin((6.283*j)/_numberDivisions), 0);
+    n2 = _matrix*n - _matrix*arVector3(0,0,0);
+    memcpy(normals+18*i+15, n2.v, 3*sizeof(float));
 
     texCoords[12*i  ] = float(i)/_numberDivisions;
     texCoords[12*i+1] = 0.;

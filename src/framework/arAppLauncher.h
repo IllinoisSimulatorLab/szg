@@ -8,6 +8,8 @@
 
 #include "arSZGClient.h"
 #include <list>
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arFrameworkCalling.h"
 using namespace std;
 
 /// Launch and kill applications running on multiple nodes of a cluster.

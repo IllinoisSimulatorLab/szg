@@ -12,6 +12,8 @@
 #include "arLightFloatBuffer.h"
 #include "arGraphicsLanguage.h"
 #include "arDatabaseNode.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 class arGraphicsDatabase;
 

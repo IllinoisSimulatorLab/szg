@@ -9,6 +9,8 @@
 #include "arInputSink.h"
 #include "arInputLanguage.h"
 #include "arDataServer.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 
 /// Something that absorbs input-device messages over ethernet.
 

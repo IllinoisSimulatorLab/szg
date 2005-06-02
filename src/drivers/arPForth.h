@@ -3,13 +3,15 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-#ifndef ARPSEUDOFORTH_H
-#define ARPSEUDOFORTH_H
+#ifndef AR_PSEUDO_FORTH_H
+#define AR_PSEUDO_FORTH_H
 
 #include "arMath.h"
 #include "arStructuredData.h"
 #include "arInputEvent.h"
 #include "arInputState.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
 #include <vector>
 #include <string>
 #include <list>

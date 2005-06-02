@@ -22,6 +22,7 @@
 
 #include "arSocket.h"
 #include "arSocketAddress.h"
+#include "arLanguageCalling.h"
 
 /// UDP socket (as opposed to TCP socket, arSocket).
 /// Note that this class needs to descend from arCommunicator, just like

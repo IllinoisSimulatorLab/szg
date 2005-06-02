@@ -142,7 +142,9 @@ int main(int argc, char** argv){
     }
     componentID = szgClient.getProcessID(argv[1], argv[2]);
     if (componentID == -1){
-      cerr << "dmsg error: no process corresponds to that computer/name "
+      // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
+      // This makes it easier to build RPC scripts on top of these calls.
+      cout << "dmsg error: no process corresponds to that computer/name "
 	   << "pair.\n";
       return 1;
     }
@@ -159,7 +161,9 @@ int main(int argc, char** argv){
     launcher.setSZGClient(&szgClient);
     launcher.setVircomp(argv[1]);
     if (!launcher.setParameters()){
-      cerr << "dmsg error: invalid virtual computer definition.\n";
+      // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
+      // This makes it easier to build RPC scripts on top of these calls.
+      cout << "dmsg error: invalid virtual computer definition.\n";
       return 1;
     }
     string lockName = launcher.getMasterName();
@@ -171,7 +175,9 @@ int main(int argc, char** argv){
     else{
       // nobody was holding the lock
       szgClient.releaseLock(lockName);
-      cerr << "dmsg error: no component running on master screen.\n";
+      // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
+      // This makes it easier to build RPC scripts on top of these calls.
+      cout << "dmsg error: no component running on master screen.\n";
       return 1;
     }
   }
@@ -185,7 +191,9 @@ int main(int argc, char** argv){
     launcher.setSZGClient(&szgClient);
     launcher.setVircomp(argv[1]);
     if (!launcher.setParameters()){
-      cerr << "dmsg error: invalid virtual computer definition.\n";
+      // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
+      // This makes it easier to build RPC scripts on top of these calls.
+      cout << "dmsg error: invalid virtual computer definition.\n";
       return 1;
     }
     string lockName = launcher.getScreenName(atoi(argv[2]));
@@ -197,7 +205,9 @@ int main(int argc, char** argv){
     else{
       // nobody else was holding the lock
       szgClient.releaseLock(lockName);
-      cerr << "dmsg error: no component running on specified screen.\n";
+      // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
+      // This makes it easier to build RPC scripts on top of these calls.
+      cout << "dmsg error: no component running on specified screen.\n";
       return 1;
     }
   }
@@ -220,7 +230,9 @@ int main(int argc, char** argv){
     else{
       // nobody else was holding the lock
       szgClient.releaseLock(lockName);
-      cerr << "dmsg error: no trigger component running.\n";
+      // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
+      // This makes it easier to build RPC scripts on top of these calls.
+      cout << "dmsg error: no trigger component running.\n";
       return 1;
     }
   }
@@ -236,7 +248,9 @@ int main(int argc, char** argv){
     // awkward fashion...
     componentID = szgClient.getServiceComponentID(argv[1]);
     if (componentID < 0){
-      cerr << "dmsg error: no such service exists (" << argv[1] << ").\n";
+      // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
+      // This makes it easier to build RPC scripts on top of these calls.
+      cout << "dmsg error: no such service exists (" << argv[1] << ").\n";
       return 1;
     }
     messageType = string(argv[2]);
@@ -249,7 +263,9 @@ int main(int argc, char** argv){
     }
     if (szgClient.getLock(argv[1], componentID)){
       // nobody is holding the lock because we were able to get it
-      cerr << "dmsg error: no such lock is currently held (" 
+      // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
+      // This makes it easier to build RPC scripts on top of these calls.
+      cout << "dmsg error: no such lock is currently held (" 
 	   << argv[1] << ").\n";
       // The lock will be released when we exit.
       return 1;
@@ -279,7 +295,9 @@ int main(int argc, char** argv){
       int status = szgClient.getMessageResponse(tags, responseBody, 
                                                 remoteMatch);
       if (status == 0){
-        cerr << "dmsg error: problem in receiving message response.\n";
+	// PLEASE DO NOT use the "cerr" output stream. Only use "cout".
+        // This makes it easier to build RPC scripts on top of these calls.
+        cout << "dmsg error: problem in receiving message response.\n";
 	done = true;
       }
       if (status == -1){

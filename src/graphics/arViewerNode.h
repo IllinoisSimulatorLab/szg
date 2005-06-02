@@ -8,6 +8,8 @@
 
 #include "arGraphicsNode.h"
 #include "arHead.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 /// Point of view (gaze direction, eye spacing, viewing transformation, etc.).
 

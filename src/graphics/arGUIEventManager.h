@@ -1,9 +1,10 @@
-/**
- * @file arGUIEventManager.h
- * Header file for the arGUIEventManager class.
- */
-#ifndef _AR_GUI_EVENT_MANAGER_H_
-#define _AR_GUI_EVENT_MANAGER_H_
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
+#ifndef AR_GUI_EVENT_MANAGER_H
+#define AR_GUI_EVENT_MANAGER_H
 
 #if defined( AR_USE_WIN_32 )
   #include <windows.h>
@@ -21,6 +22,9 @@
 
 #include "arGUIDefines.h"
 #include "arGUIInfo.h"
+
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 class arStructuredData;
 class arTemplateDictionary;

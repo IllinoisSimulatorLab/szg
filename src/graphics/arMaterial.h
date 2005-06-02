@@ -7,6 +7,8 @@
 #define AR_MATERIAL_H
 
 #include "arMath.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 /// A simple class describing an OpenGL material...
 /// Later, this should expand to manage everything about the surface

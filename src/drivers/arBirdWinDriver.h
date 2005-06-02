@@ -17,6 +17,9 @@
 #endif
 #endif
 
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDriversCalling.h"
+
 /// Windows driver for Ascension Flock of Birds.
 
 class arBirdWinDriver: public arInputSource {

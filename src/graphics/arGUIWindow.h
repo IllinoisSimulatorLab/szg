@@ -1,3 +1,8 @@
+//********************************************************
+// Syzygy source code is licensed under the GNU LGPL
+// see the file SZG_CREDITS for details
+//********************************************************
+
 /**
  * @file arGUIWindow.h
  * Header file for the arGUIWindow class.
@@ -13,6 +18,9 @@
 
 #include <string>
 #include <queue>
+
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
 
 /**
  * \struct arGUIWindowHandle

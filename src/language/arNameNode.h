@@ -7,6 +7,7 @@
 #define AR_NAME_NODE_H
 
 #include "arDatabaseNode.h"
+#include "arLanguageCalling.h"
 
 class SZG_CALL arNameNode: public arDatabaseNode{
  public:

@@ -41,6 +41,9 @@
 #include <Cg/cgGL.h>
 #endif
 
+// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arGraphicsCalling.h"
+
 /// Contains a scene graph created by an arGraphicsServer
 /// and rendered by one or more arGraphicsClient objects.
 
