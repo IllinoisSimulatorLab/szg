@@ -26,11 +26,17 @@ class SZG_CALL arGraphicsScreen {
   arVector3 getNormal() const { return _normal; }
   arVector3 getUp() const { return _up; }
   arVector3 getCenter() const { return _center; }
+
+  void setWidth( float width ) { setDimensions( width, _height ); }
+  void setHeight( float height ) { setDimensions( _width, height ); }
   float getWidth() const { return _width; }
   float getHeight() const { return _height; }
 
   void setHeadMounted( bool hmd ) { _headMounted = hmd; }
   bool getHeadMounted() const { return _headMounted; }
+
+  void setTile( arVector4& tile ) { setTile( int( tile[ 0 ] ), int( tile[ 1 ] ),
+                                             int( tile[ 2 ] ), int( tile[ 3 ] ) ); }
 
   void setTile( int tileX, int numberTilesX, int tileY, int numberTilesY );
 
@@ -39,8 +45,10 @@ class SZG_CALL arGraphicsScreen {
   bool getAlwaysFixedHeadMode() const { return _alwaysFixedHeadMode; }
 
   arVector3 getFixedHeadHeadPosition() const { return _fixedHeadPosition; }
+  void setFixedHeadPosition( const arVector3& position ) { _fixedHeadPosition = position; }
   float getFixedHeadHeadUpAngle() const { return _fixedHeadUpAngle; }
-  
+  void setFixedHeadHeadUpAngle( float angle ) { _fixedHeadUpAngle = angle; }
+
  private:
   void _updateTileCenter();
   arVector3 _setCenter;

@@ -78,6 +78,8 @@ class SZG_CALL arGraphicsWindow {
     // Note that only a pointer is passed in, cameras are externally owned.
     arCamera* setCamera( arCamera* cam=0 );
     arCamera* getCamera(){ return _defaultCamera; }
+    void setScreen( const arGraphicsScreen& screen ) { _defaultScreen = screen; }
+    arGraphicsScreen* getScreen( void ) { return &_defaultScreen; }
     // This sets the camera for just a single viewport
     arCamera* setViewportCamera( unsigned int vpindex, arCamera* cam );
     // Sets the camera for two adjacent (in the list) viewports
@@ -119,6 +121,7 @@ class SZG_CALL arGraphicsWindow {
     arMutex _viewportLock;
     arWindowInitCallback* _initCallback;
     arRenderCallback* _drawCallback;
+    // This is the 'master' screen, used by viewports by default
     arGraphicsScreen _defaultScreen;
     // This is the 'master' camera, used by viewports by default
     arCamera* _defaultCamera;

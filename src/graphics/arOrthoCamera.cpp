@@ -10,12 +10,12 @@
 
 arOrthoCamera::arOrthoCamera(){
   // sensible defaults
-  ortho[0] = -1;
-  ortho[1] = 1;
-  ortho[2] = -1;
-  ortho[3] = 1;
-  ortho[4] = -1;
-  ortho[5] = 1;
+  frustum[0] = -1;
+  frustum[1] = 1;
+  frustum[2] = -1;
+  frustum[3] = 1;
+  frustum[4] = -1;
+  frustum[5] = 1;
 
   lookat[0] = 0;
   lookat[1] = 0;
@@ -28,19 +28,19 @@ arOrthoCamera::arOrthoCamera(){
   lookat[8] = 0;
 }
 
-arOrthoCamera::arOrthoCamera( const float* const orth, const float* const look ) {
-  memcpy( ortho, orth, 6*sizeof(float) );
+arOrthoCamera::arOrthoCamera( const float* const frust, const float* const look ) {
+  memcpy( frustum, frust, 6*sizeof(float) );
   memcpy( lookat, look, 9*sizeof(float) );
 }
 
 arMatrix4 arOrthoCamera::getProjectionMatrix(){
-  float l = ortho[0];
-  float r = ortho[1];
-  float b = ortho[2];
-  float t = ortho[3]; 
-  float n = ortho[4];
-  float f = ortho[5];
- 
+  float l = frustum[0];
+  float r = frustum[1];
+  float b = frustum[2];
+  float t = frustum[3];
+  float n = frustum[4];
+  float f = frustum[5];
+
   // The default OpenGL viewing cube is centered on the origin,
   // with the negative z axis into the screen, up the positive
   // y axis, and x to the right. The clipping planes are the coordinate

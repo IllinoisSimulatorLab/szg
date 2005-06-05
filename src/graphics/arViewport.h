@@ -26,17 +26,18 @@ class SZG_CALL arViewport {
   arViewport& operator=( const arViewport& x );
   virtual ~arViewport();
 
+  void setViewport( arVector4& viewport );
   void setViewport( float left, float bottom,
                     float width, float height );
   void setScreen( const arGraphicsScreen& screen ) { _screen = screen; }
   arGraphicsScreen* getScreen() { return &_screen; }
-  // NOTE: the viewport now owns its camera. 
+  // NOTE: the viewport now owns its camera.
   // It makes a copy here & returns the address of the copy
   arCamera* setCamera( arCamera* camera);
   arCamera* getCamera();
   void setEyeSign(float eyeSign);
   float getEyeSign();
-  void setColorMask(GLboolean red, GLboolean green, 
+  void setColorMask(GLboolean red, GLboolean green,
 		    GLboolean blue, GLboolean alpha);
   void clearDepthBuffer(bool flag);
   // e.g. GL_BACK_LEFT
@@ -54,7 +55,7 @@ class SZG_CALL arViewport {
   float _height;
   arGraphicsScreen _screen;
   arCamera* _camera;
-  // each viewport has an eyeSign associated with it 
+  // each viewport has an eyeSign associated with it
   // (i.e. if -1 it is the left eye
   // and if 1 it is the right eye, 0 if no eye offset is needed)
   float _eyeSign;

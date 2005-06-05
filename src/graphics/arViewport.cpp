@@ -102,6 +102,10 @@ arViewport::~arViewport() {
   }
 }
 
+void arViewport::setViewport( arVector4& viewport ) {
+  setViewport( viewport[ 0 ], viewport[ 1 ], viewport[ 2 ], viewport[ 3 ] );
+}
+
 void arViewport::setViewport( float left, float bottom,
                               float width, float height ) {
   _left = left;
@@ -137,7 +141,7 @@ float arViewport::getEyeSign(){
 }
 
 /// The viewport sets the color mask upon drawing (used for anaglyph stereo).
-void arViewport::setColorMask(GLboolean red, GLboolean green, 
+void arViewport::setColorMask(GLboolean red, GLboolean green,
 		              GLboolean blue, GLboolean alpha){
   _red = red;
   _blue = blue;
@@ -156,7 +160,7 @@ void arViewport::activate(){
   // rendering passes in which it clears the appropriate buffer & the queries
   // its viewport list to determine which ones want to render into that buffer.
 
-  // get the window size and set the viewport based on that and the 
+  // get the window size and set the viewport based on that and the
   // proportions stored herein.
   int params[4] = {0};
   glGetIntegerv( GL_VIEWPORT, params );
@@ -179,7 +183,7 @@ void arViewport::activate(){
 
   // set the follow mask
   glColorMask(_red, _green, _blue, _alpha);
-  
+
   if (_clearDepthBuffer){
     // clear the depth buffer
     glClear(GL_DEPTH_BUFFER_BIT);
