@@ -99,7 +99,7 @@ int arGUIWindowManager::startWithSwap( void )
   while( true ) {
     drawAllWindows( false );
 
-    swapAllWindowBuffers( !_singleThreaded );
+    swapAllWindowBuffers( true );
 
     processWindowEvents();
   }
@@ -500,6 +500,41 @@ arVector3 arGUIWindowManager::getWindowPos( const int windowID )
   }
 
   return arVector3( float( _windows[ windowID ]->getPosX() ), float( _windows[ windowID ]->getPosY() ), 0.0f );
+}
+
+bool arGUIWindowManager::isStereo( const int windowID )
+{
+  if( _windows.find( windowID ) == _windows.end() ) {
+    return false;
+  }
+
+  return _windows[ windowID ]->isStereo();
+}
+bool arGUIWindowManager::isFullscreen( const int windowID )
+{
+  if( _windows.find( windowID ) == _windows.end() ) {
+    return false;
+  }
+
+  return _windows[ windowID ]->isFullscreen();
+}
+
+bool arGUIWindowManager::isDecorated( const int windowID )
+{
+  if( _windows.find( windowID ) == _windows.end() ) {
+    return true;
+  }
+
+  return _windows[ windowID ]->isDecorated();
+}
+
+bool arGUIWindowManager::isTopmost( const int windowID )
+{
+  if( _windows.find( windowID ) == _windows.end() ) {
+    return false;
+  }
+
+  return _windows[ windowID ]->isTopmost();
 }
 
 arVector3 arGUIWindowManager::getMousePos( const int windowID )

@@ -99,6 +99,7 @@
 #endif
 
 #include "arThread.h"
+#include "arGraphicsWindow.h"
 
 class arGUIEventManager;
 class arGUIInfo;
@@ -120,6 +121,9 @@ typedef EventVector::iterator EventIterator;
 /**
  * An arGUWindow draw callback.
  *
+ * Derives from arRenderCallback so that setting draw callbacks with
+ * arWindowInfo* arguments is a little easier.
+ *
  * @note If a programmer wishes to register a draw callback with an
  *       arGUIWindow that has a signature different than the default they
  *       should subclass this class and implement the () operater themselves.
@@ -127,7 +131,7 @@ typedef EventVector::iterator EventIterator;
  * @see arGUIWindow::arGUIWindow
  * @see arGUIWindow::registerDrawCallback
  */
-class SZG_CALL arGUIRenderCallback
+class SZG_CALL arGUIRenderCallback : public arRenderCallback
 {
   public:
 
@@ -142,6 +146,11 @@ class SZG_CALL arGUIRenderCallback
     virtual ~arGUIRenderCallback( void )  { }
 
     /**
+     * Leave it up to the subclass to decide to implement this
+     */
+    virtual void operator()( arGraphicsWindow&, arViewport& ) = 0;
+
+    /**
      * Overload the () operator so this class can 'simulate' a function call.
      *
      * @warning As this function is pure virtual this class cannot be
@@ -151,19 +160,8 @@ class SZG_CALL arGUIRenderCallback
      */
     virtual void operator()( arGUIWindowInfo* windowInfo ) = 0;
 
-    //@{
-    /**
-     * @name arGUIRenderCallback accessors.
-     *
-     * access arGURenderCallback state.
-     */
-    void enable( bool onoff )  { _enabled = onoff; }
-    bool enabled( void )  { return _enabled; }
-    //@}
-
   private:
 
-    bool _enabled;                //< Is the draw callback enabled? (unused)
 };
 
 /**
@@ -194,7 +192,9 @@ class SZG_CALL arDefaultGUIRenderCallback : public arGUIRenderCallback
      *
      * Makes the actual call to the user defined draw callback.
      */
-    virtual void operator()( arGUIWindowInfo* windowInfo );
+    virtual void operator()( arGUIWindowInfo* windowInfo = NULL );
+
+    virtual void operator()( arGraphicsWindow&, arViewport& );
 
   private:
 
@@ -236,11 +236,11 @@ class SZG_CALL arGUIWindowConfig
      *
      * @todo Test windows with XDisplay strings other than the default
      */
-    arGUIWindowConfig( int x = 0, int y = 0, int width = 640, int height = 480,
+    arGUIWindowConfig( int x = 50, int y = 50, int width = 640, int height = 480,
                        int bpp = 16, int Hz = 0, bool decorate = true, bool topmost = false,
                        bool fullscreen = false, bool stereo = false,
-                       const std::string& title = "",
-                       const std::string& XDisplay = "" );
+                       const std::string& title = "SyzygyWindow",
+                       const std::string& XDisplay = ":0.0" );
 
     /**
      * The arGUIWindowConfig destructor.
@@ -653,6 +653,11 @@ class SZG_CALL arGUIWindow
     int getPosX( void ) const;
     int getPosY( void ) const;
 
+    bool isStereo( void )     const { return _windowConfig._stereo; }
+    bool isFullscreen( void ) const { return _fullscreen; }
+    bool isDecorated( void )  const { return _decorate; }
+    bool isTopmost( void )    const { return _topmost; }
+
     bool running( void ) const { return _running; }
     bool eventsPending( void ) const;
 
@@ -824,6 +829,7 @@ class SZG_CALL arGUIWindow
     arGUIRenderCallback* _drawCallback;         ///< The user-defined draw callback.
 
     int _ID;                                    ///< A unique identifier for this window.
+    string _className;                          ///< Registered class for this window (Win32 only)
 
     arGUIWindowConfig _windowConfig;            ///< The initial window configuration object, should never be changed.
 
@@ -835,6 +841,8 @@ class SZG_CALL arGUIWindow
     bool _running;                              ///< Is the window currently running?
     bool _threaded;                             ///< Is the window in threaded or non-threaded mode?
     bool _fullscreen;                           ///< Is the window currently in fullscreen mode?
+    bool _topmost;                              ///< Is the window currently topmost?
+    bool _decorate;                             ///< Is the window currently decorated?
 
     ar_timeval _lastFrameTime;                  ///< For framerate throttling
 

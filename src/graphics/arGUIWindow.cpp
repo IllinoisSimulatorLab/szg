@@ -27,6 +27,14 @@ void arDefaultGUIRenderCallback::operator()( arGUIWindowInfo* windowInfo ) {
     _drawCallback( windowInfo );
 }
 
+void arDefaultGUIRenderCallback::operator()( arGraphicsWindow&, arViewport& ) {
+  if( !_drawCallback ) {
+    return;
+  }
+
+  _drawCallback( NULL );
+}
+
 arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height, int bpp, int hz,
                                       bool decorate, bool topmost,
                                       bool fullscreen, bool stereo,
@@ -162,9 +170,14 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig, arGUIRenderCal
   _running( false ),
   _threaded( false ),
   _fullscreen( false ),
+  _topmost( false ),
+  _decorate( true ),
   _creationFlag( false ),
   _destructionFlag( false )
 {
+  std::stringstream ss; ss << _ID;
+  _className = std::string( _windowConfig._title + ss.str() );
+
   _windowBuffer = new arGUIWindowBuffer( true );
 
   _GUIEventManager = new arGUIEventManager();
@@ -621,7 +634,7 @@ int arGUIWindow::_windowCreation( void )
   // NOTE: the last argument needs to be a pointer to this object so that the
   // static event processing function in GUIEventManager can access the window
   if( !( _windowHandle._hWnd = CreateWindowEx( windowExtendedStyle,
-                                 _windowConfig._title.c_str(),
+                                 _className.c_str(),
                                  _windowConfig._title.c_str(),
                                  windowStyle,
                                  windowRect.left, windowRect.top,
@@ -952,9 +965,9 @@ int arGUIWindow::_setupWindowCreation( void )
   windowClass.hIcon         = LoadIcon( NULL, IDI_WINLOGO );
   windowClass.lpszMenuName  = NULL;
   // NOTE: classname's *must* be unique to each window, if two windows are
-  // created with the same title, it will cause problems, may want to include
-  // some random element into the classname so this isn't possible
-  windowClass.lpszClassName = _windowConfig._title.c_str();
+  // created with the same title, it will cause problems, _className mitigates
+  // this problem
+  windowClass.lpszClassName = _className.c_str();
 
   if( !RegisterClassEx( &windowClass ) ) {
     std::cerr << "_setupWindowCreation: RegisterClassEx Failed" << std::endl;
@@ -1167,6 +1180,8 @@ int arGUIWindow::fullscreen( void )
   #endif
 
   _fullscreen = true;
+  _topmost = true;
+
   return 0;
 }
 
@@ -1286,6 +1301,8 @@ void arGUIWindow::decorate( const bool decorate )
   XUnlockDisplay( _windowHandle._dpy );
 
   #endif
+
+  _decorate = decorate;
 }
 
 void arGUIWindow::raise( void )
@@ -1317,6 +1334,7 @@ void arGUIWindow::raise( void )
   #endif
 
   _visible = true;
+  _topmost = true;
 }
 
 void arGUIWindow::lower( void )
@@ -1348,6 +1366,7 @@ void arGUIWindow::lower( void )
   #endif
 
   _visible = false;
+  _topmost = false;
 }
 
 void arGUIWindow::minimize( void )
@@ -1377,6 +1396,7 @@ void arGUIWindow::minimize( void )
   #endif
 
   _visible = false;
+  _topmost = false;
 }
 
 void arGUIWindow::restore( void )
@@ -1671,7 +1691,7 @@ int arGUIWindow::_killWindow( void )
     _windowHandle._hWnd = NULL;
   }
 
-  if( !UnregisterClass( _windowConfig._title.c_str(), _windowHandle._hInstance ) ) {
+  if( !UnregisterClass( _className.c_str(), _windowHandle._hInstance ) ) {
     std::cerr << "_killWindow: could not unregister class" << std::endl;
     _windowHandle._hInstance = NULL;
   }

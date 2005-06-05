@@ -462,6 +462,11 @@ class SZG_CALL arGUIWindowManager
     arVector3 getWindowSize( const int windowID );
     arVector3 getWindowPos( const int windowID );
     arVector3 getMousePos( const int windowID );
+
+    bool isStereo( const int windowID );
+    bool isFullscreen( const int windowID );
+    bool isDecorated( const int windowID );
+    bool isTopmost( const int windowID );
     //@}
 
     /**
