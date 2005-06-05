@@ -6,6 +6,9 @@
 #ifndef AR_BUFFER_H
 #define AR_BUFFER_H
 
+#include <iostream>
+using namespace std;
+
 /// Utility class. Useful for the many times one wants a simple,
 /// resizeable array of elements (i.e. when dealing with moving buffers of
 /// network data).
@@ -18,7 +21,7 @@ template<class T> class arBuffer{
  public:
   arBuffer(int numElements = 1);
   ~arBuffer();
-  
+
   int size() const { return _numElements; }
   void resize(int);
   void grow(int);
@@ -76,7 +79,7 @@ template <class T> void arBuffer<T>::grow(int numElements){
 
 template <class T> void arBuffer<T>::push(T element){
   if (pushPosition >= _numElements){
-    // This isn't strictly correct... 
+    // This isn't strictly correct...
     grow(2*_numElements + 1);
   }
   data[pushPosition] = element;
