@@ -30,7 +30,7 @@ arGraphicsWindow::arGraphicsWindow( arCamera* cam ) :
   _useColorFilter(false),
   _defaultCamera(0),
   _currentEyeSign(0.) {
-  
+
   // by default, the graphics window contains a single "normal" viewport
   // in its list (note that the default viewport corresponds to normal).
   _addViewportNoLock( arViewport() );
@@ -85,15 +85,15 @@ bool arGraphicsWindow::configure( arSZGClient& client ){
   } else {
     cout << "arGraphicsWindow remark: no color filter set.\n";
   }
-      
+
   // NOTE: We must assume that configure(...) can be called in a different
   // thread from draw(...). Hence the below lock is needed.
   lockViewports();
-  
+
   // Figure out the viewport configuration
   string viewMode = client.getAttribute(screenName, "view_mode",
                     "|normal|anaglyph|walleyed|crosseyed|overunder|custom|");
-  
+
   _useOGLStereo = client.getAttribute( screenName, "stereo", "|false|true|" ) == "true";
 cerr << "Window configuration: viewMode = " << viewMode << ", stereo = " << _useOGLStereo << endl;
   _defaultScreen.configure( screenName, client );
@@ -206,7 +206,7 @@ bool arGraphicsWindow::_setViewModeNoLock( const std::string& viewModeString ) {
   else if (viewModeString == "anaglyph"){
     // NOTE only uses GL_BACK_LEFT buffer
     // important to go ahead and clear the list
-    clearViewportList();
+    _clearViewportListNoLock();
     _addViewportNoLock(
       arViewport( 0,0,1,1, _defaultScreen, _defaultCamera, -1.,
                   GL_TRUE, GL_FALSE, GL_FALSE, GL_TRUE,
@@ -348,7 +348,7 @@ void arGraphicsWindow::_renderPass( GLenum oglDrawBuffer ) {
   // thread from draw(...). Hence the below lock is needed.
   lockViewports();
 
-  // do whatever it takes to initialize the window. 
+  // do whatever it takes to initialize the window.
   // by default, the depth buffer and color buffer are clear and depth test
   // is enabled.
   glDrawBuffer( oglDrawBuffer );
@@ -375,7 +375,7 @@ void arGraphicsWindow::_renderPass( GLenum oglDrawBuffer ) {
     }
     // restore the original viewport. if this doesn't occur, the viewports
     // will get progressively smaller and disappear in modes like walleyed.
-    glViewport( (GLint)params[0], (GLint)params[1], 
+    glViewport( (GLint)params[0], (GLint)params[1],
                 (GLsizei)params[2], (GLsizei)params[3] );
   }
 
