@@ -31,15 +31,16 @@ OBJS = \
   arXMLUtilities$(OBJ_SUFFIX) \
   arThread$(OBJ_SUFFIX) \
   arUDPSocket$(OBJ_SUFFIX) \
-  arSocketAddress$(OBJ_SUFFIX)
+  arSocketAddress$(OBJ_SUFFIX) \
+  arXMLParser$(OBJ_SUFFIX)
 
 # Local variable definitions for the build.
 # These internal library makefiles ONLY include the external files necessary
-# to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
+# to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so
 # Makefile.defines neglects to define these)
 SZG_INCLUDE = $(SZG_DLL_INCLUDE)
 SZG_LINK_LIBS = $(GENERAL_LIBS) $(SZG_DLL_LIB)
-SZG_OPTIONAL_LIBS = 
+SZG_OPTIONAL_LIBS =
 SZG_LIBRARY_LIBS =
 SZG_CURRENT_LIB_SHORT_NAME = arLanguage
 ifeq ($(strip $(MACHINE)),WIN32)
@@ -79,7 +80,7 @@ arDataTemplate$(OBJ_SUFFIX): arDataTemplate.cpp
 arDataUtilities$(OBJ_SUFFIX): arDataUtilities.cpp
 	$(COMPILER) $(COMPILE_FLAGS) $(OPTIMIZE_FLAG) $< $(SZG_INCLUDE)
 
-arLightFloatBuffer$(OBJ_SUFFIX): arLightFloatBuffer.cpp 
+arLightFloatBuffer$(OBJ_SUFFIX): arLightFloatBuffer.cpp
 	$(COMPILER) $(COMPILE_FLAGS) $(OPTIMIZE_FLAG) $< $(SZG_INCLUDE)
 
 arQueuedData$(OBJ_SUFFIX): arQueuedData.cpp
