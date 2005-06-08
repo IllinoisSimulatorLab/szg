@@ -16,14 +16,34 @@ explained more fully in the documentation.
 
 <p>Environment variables affecting the Syzygy build process:
 <p><ul>
-<li>SZGHOME
-<li>SZGBIN
-<li>SZGEXTERNAL
-<li>SZGDEBUG
-<li>SZG_DEVELOPER_STYLE
-<li>SZG_MULTITEX
-<li>SZG_STLPORT
-<li>SZG_USE_PCH
+<li>SZGHOME: The top-level directory of your Syzygy installation, whether
+ DEVELOPER (you are compiling the library yourself) or EASY (you are using
+ a prepackaged version). This must be set.
+<li>SZGBIN: The directory into which executables and DLLs should be placed. 
+ If this is not set, the system assumes it is $(SZGHOME)/bin/$(MACHINE_DIR).
+<li>SZGEXTERNAL: The top-level directory of the external libraries
+ installation.
+<li>SZGDEBUG: By default, software is not built with debugging information.
+ By setting this to TRUE, debugging symbols will be built in.
+<li>SZG_DEVELOPER_STYLE: By default, the build process assumes you are
+ compiling the software yourself (DEVELOPER). However, if you are using a
+ precompiled library, then you MUST set this variable to EASY.
+<li>SZG_MULTITEX: 
+<li>SZG_STLPORT: Only meaningful on Windows platforms.
+ Visual Studio 6's STL implementation is INCOMPATIBLE with 
+ dynamically linking the szg libraries. Consequently, to use Visual Studio 6
+ (on Windows), you must use STLport as your STL implementation. (Set this
+ to TRUE). By default, the native STL implementation will be used. This is
+ fine for Visual Studio .NET and above.
+<li>SZG_USE_PCH: Again, only meaningful on Windows platforms. By default,
+ on these platforms, a pre-compiled header is used to (greatly) speed up
+ compilation. However, this can sometimes be a pain when working with code
+ produced by a variety of compiler patch levels. Consequently, setting this
+ to FALSE negates the use of precompiled headers.
+<li>SZG_LINKING: By default, all the szg libraries are built as shared objects
+ (dlls). However, by setting this variable to STATIC, you can have them
+ built as static objects and linked that way with your executables. This 
+ is advantageous for archiving code.
 </ul>
 
 <p>Environment variables affecting the operation of Syzygy components:
