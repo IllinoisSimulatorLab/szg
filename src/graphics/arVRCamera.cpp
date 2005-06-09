@@ -17,15 +17,15 @@
 arMatrix4 arVRCamera::getProjectionMatrix() {
   arGraphicsScreen* screen = getScreen();
   if ((!_head)||(!screen)) {
-    if (_complained) {
+    if (!_complained) {
       cerr << "arVRCamera error: getProjectionMatrix called with NULL head ("
            << _head << ") or screen (" << screen << ") pointer.\n"
            << "  (Suppressing further error messages).\n";
       _complained = true;
-      return ar_identityMatrix();
     }
+    return ar_identityMatrix();
   }
-  bool demoMode 
+  bool demoMode
     = (_head->getFixedHeadMode() && !screen->getIgnoreFixedHeadMode())
        || screen->getAlwaysFixedHeadMode();
   arMatrix4 headMatrix = _head->getMatrix();
@@ -47,9 +47,9 @@ arMatrix4 arVRCamera::getProjectionMatrix() {
   arVector3 up = screen->getUp();
   if (screen->getHeadMounted()) {
     center = unitConversion*(headMatrix*(center+_head->getMidEyeOffset()));
-    arMatrix4 orient(ar_extractRotationMatrix(headMatrix)); 
-    normal = orient*normal; 
-    up = orient*up; 
+    arMatrix4 orient(ar_extractRotationMatrix(headMatrix));
+    normal = orient*normal;
+    up = orient*up;
   } else {
     center *= unitConversion;
   }
@@ -69,13 +69,13 @@ arMatrix4 arVRCamera::getProjectionMatrix() {
 arMatrix4 arVRCamera::getModelviewMatrix(){
   arGraphicsScreen* screen = getScreen();
   if ((!_head)||(!screen)) {
-    if (_complained) {
+    if (!_complained) {
       cerr << "arVRCamera error: getModelviewMatrix called with NULL head ("
            << _head << ") or screen (" << screen << ") pointer.\n"
            << "  (Suppressing further error messages).\n";
       _complained = true;
-      return ar_identityMatrix();
     }
+    return ar_identityMatrix();
   }
   bool demoMode = (_head->getFixedHeadMode() && !screen->getIgnoreFixedHeadMode())
                       || screen->getAlwaysFixedHeadMode();
@@ -88,9 +88,9 @@ arMatrix4 arVRCamera::getModelviewMatrix(){
   arVector3 normal = screen->getNormal();
   arVector3 up = screen->getUp();
   if (screen->getHeadMounted()) {
-    arMatrix4 orient(ar_extractRotationMatrix(headMatrix)); 
-    normal = orient*normal; 
-    up = orient*up; 
+    arMatrix4 orient(ar_extractRotationMatrix(headMatrix));
+    normal = orient*normal;
+    up = orient*up;
   }
   return ar_lookatMatrix( eyePosition, eyePosition+normal, up);
 }
@@ -114,6 +114,15 @@ void arVRCamera::loadViewMatrices(){
 }
 
 arMatrix4 arVRCamera::_getFixedHeadModeMatrix( const arGraphicsScreen& screen ) {
+  if (!_head) {
+    if (!_complained) {
+      cerr << "arVRCamera error: _getFixedHeadModeMatrix called with NULL head "
+           << " pointer. (Suppressing further error messages).\n";
+      _complained = true;
+    }
+    return ar_identityMatrix();
+  }
+
   const arVector3 zHat = screen.getNormal().normalize();
   const arVector3 xHat = zHat * screen.getUp().normalize();  // '*' = cross product
   const arVector3 yHat = xHat * zHat;
