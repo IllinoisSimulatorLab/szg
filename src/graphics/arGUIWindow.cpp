@@ -344,7 +344,7 @@ int arGUIWindow::_consumeWindowEvents( void )
     return -1;
   }
 
-  // ARGH!! the thread will just spin forever in this loop, even if there
+  // ARGH!! the thread will just spin 'forever' in this loop, even if there
   // are no GUI events or wm events.  This can cause a delay of around 8-10ms
   // between draw/swap messages as the window threads do the draw then just
   // spin in this loop not allowing the wm to send the next draw message.

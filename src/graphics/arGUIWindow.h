@@ -16,6 +16,10 @@
  #endif
 #endif
 
+#include "arThread.h"
+#include "arGraphicsWindow.h"
+#include "arGUIInfo.h"
+
 #include <string>
 #include <queue>
 
@@ -97,9 +101,6 @@
     Atom _wDelete, _wHints;
   } arGUIWindowHandle;
 #endif
-
-#include "arThread.h"
-#include "arGraphicsWindow.h"
 
 class arGUIEventManager;
 class arGUIInfo;
