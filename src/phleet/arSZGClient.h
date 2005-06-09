@@ -41,21 +41,21 @@ class SZG_CALL arSZGClient{
   bool sendInitResponse(bool ok);
   stringstream& startResponse(){ return _startResponseStream; }
   bool sendStartResponse(bool ok);
-  
+
   bool launchDiscoveryThreads();
 
   // Here are the functions for dealing with the parameter database
   bool setAttribute(const string& computerName,
-                    const string& groupName, 
+                    const string& groupName,
                     const string& parameterName,
                     const string& parameterValue);
   bool setAttribute(const string& userName,
                     const string& computerName,
-                    const string& groupName, 
+                    const string& groupName,
                     const string& parameterName,
                     const string& parameterValue);
   // An abbreviation for the common case computerName=="NULL".
-  bool setAttribute(const string& groupName, 
+  bool setAttribute(const string& groupName,
                     const string& parameterName,
                     const string& parameterValue)
     { return setAttribute("NULL", groupName, parameterName, parameterValue); }
@@ -74,16 +74,16 @@ class SZG_CALL arSZGClient{
 		      const string& parameterName,
 		      const string& validValues);
   string getAttribute(const string& computerName,
-                      const string& groupName, 
+                      const string& groupName,
                       const string& parameterName,
 		      const string& validValues /* no default */);
   // An abbreviation for the common case computerName=="NULL".
-  string getAttribute(const string& groupName, 
+  string getAttribute(const string& groupName,
                       const string& parameterName,
 		      const string& validValues = "")
     { return getAttribute("NULL", groupName, parameterName, validValues); }
   // More abbreviations.
-  int getAttributeInt(const string& groupName, 
+  int getAttributeInt(const string& groupName,
                       const string& parameterName);
   int getAttributeInt(const string&, const string&, const string&,
 		      const string&);
@@ -138,17 +138,17 @@ class SZG_CALL arSZGClient{
   int sendMessage(const string& type, const string& body, int destination,
                    bool responseRequested = false);
   int sendMessage(const string& type, const string& body,
-		   const string& context, int destination, 
+		   const string& context, int destination,
                    bool responseRequested = false);
   int receiveMessage(string* messageType, string* messageBody)
     { return receiveMessage(NULL, messageType, messageBody, NULL); }
-  int receiveMessage(string* userName, string* messageType, 
+  int receiveMessage(string* userName, string* messageType,
                       string* messageBody)
     { return receiveMessage(userName, messageType, messageBody, NULL); }
-  int receiveMessage(string* userName, string* messageType, 
+  int receiveMessage(string* userName, string* messageType,
                       string* messageBody, string* context);
-  int getMessageResponse(list<int> tags, 
-                         string& body, 
+  int getMessageResponse(list<int> tags,
+                         string& body,
                          int& match,
                          int timeout = -1);
   bool messageResponse(int messageID, const string& body,
@@ -181,7 +181,7 @@ class SZG_CALL arSZGClient{
                        int numberPorts, int* portIDs);
   bool confirmPorts(const string& serviceName, const string& channel,
                     int numberPorts, int* portIDs);
-  arPhleetAddress discoverService(const string& serviceName, 
+  arPhleetAddress discoverService(const string& serviceName,
                                   const string& networks,
                                   bool async);
   int requestServiceReleaseNotification(const string& serviceName);
@@ -189,7 +189,7 @@ class SZG_CALL arSZGClient{
   string getServiceInfo(const string& serviceName);
   bool setServiceInfo(const string& serviceName,
                       const string& info);
-  void _printServices(const string& type); 
+  void _printServices(const string& type);
   void printServices();
   void printPendingServiceRequests();
   int  getServiceComponentID(const string& serviceName);
@@ -207,9 +207,9 @@ class SZG_CALL arSZGClient{
                        const string& mode,
 		       const string& networksChannel,
                        const arSlashString& networks);
-  
+
   // functions pertaining to connecting to an szgserver
-  bool discoverSZGServer(const string& name, 
+  bool discoverSZGServer(const string& name,
                          const string& broadcast);
   void printSZGServers(const string& broadcast);
   void setServerLocation(const string& IPaddress, int port);
@@ -243,21 +243,23 @@ class SZG_CALL arSZGClient{
   arSlashString       _soundNetworks;
   arSlashString       _soundAddresses;
   arSlashString       _inputNetworks;
-  arSlashString       _inputAddresses; 
+  arSlashString       _inputAddresses;
   // the overall mode: master, trigger, component
-  string               _mode;  
+  string               _mode;
   // the graphics mode: screen0, etc.
-  string               _graphicsMode; 
+  string               _graphicsMode;
+  // the gui mode: display0, etc.
+  string               _guiMode;
   // the file name from which parameters will be read in standalone mode
   string               _parameterFileName;
   string               _virtualComputer;
 
   // We cannot have sockets (currently) initialized in the global name space.
-  // Why? Simply because of the "global" construction that lets 
+  // Why? Simply because of the "global" construction that lets
   // winsock init occur automatically. The best thing to do would be to
   // eliminate that!
   arUDPSocket*  _discoverySocket;
-  
+
   bool          _connected;
 
   ARchar*       _receiveBuffer;
@@ -272,7 +274,7 @@ class SZG_CALL arSZGClient{
   stringstream  _startResponseStream;
   // member related to service registration/discovery. NOTE: we want to be
   // able to use the service/registration/discovery functions in multiple
-  // threads. 
+  // threads.
   arMutex       _serviceLock;
   int           _nextMatch;   // used in matching-up async rpc's
                               // (conceptually, at any rate)
@@ -282,16 +284,16 @@ class SZG_CALL arSZGClient{
 
   bool _dialUpFallThrough();
   arStructuredData* _getDataByID(int recordID);
-  arStructuredData* _getTaggedData(int tag, 
-                                   int recordID = -1, 
+  arStructuredData* _getTaggedData(int tag,
+                                   int recordID = -1,
                                    int timeout = -1);
   int _getTaggedData(arStructuredData*& message,
                      list<int> tags,
                      int recordID = -1,
-                     int timeout = -1);     
+                     int timeout = -1);
   string _getAttributeResponse(int match);
-  bool _getMessageAck(int match, 
-                      const char* transaction, 
+  bool _getMessageAck(int match,
+                      const char* transaction,
                       int* id = NULL,
                       int timeout = -1);
   bool _send(const char* diagnostic);
@@ -307,7 +309,7 @@ class SZG_CALL arSZGClient{
 			  const string&);
   string _getGlobalAttributeLocal(const string&);
   bool _setGlobalAttributeLocal(const string&, const string&);
-  string _changeToValidValue(const string&, const string&, 
+  string _changeToValidValue(const string&, const string&,
                              const string&, const string&);
   map<string, string, less<string> > _localParameters;
 
@@ -315,7 +317,7 @@ class SZG_CALL arSZGClient{
   bool _parseContext();
   bool _parsePhleetArgs(int& argc, char** argv);
   bool _parseContextPair(const string& pair);
-  bool _checkAndSetNetworks(const string& channel, 
+  bool _checkAndSetNetworks(const string& channel,
                             const arSlashString& networks);
   bool _getPortsCore1(const string& serviceName, const string& channel,
                       int numberPorts, arStructuredData*& data, int& match,
@@ -341,7 +343,7 @@ class SZG_CALL arSZGClient{
   void _serverResponseThread();
   void _timerThread();
   void _dataThread();
-};  
+};
 
 SZG_CALL void ar_messageTask(void* pClient);
 

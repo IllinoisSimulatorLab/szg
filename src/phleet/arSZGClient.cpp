@@ -39,6 +39,7 @@ arSZGClient::arSZGClient():
   _inputAddresses("NULL"),
   _mode("component"),
   _graphicsMode("SZG_SCREEN0"),
+  _guiMode("SZG_DISPLAY0"),
   _parameterFileName("szg_parameters.txt"),
   _virtualComputer("NULL"),
   _connected(false),
@@ -72,8 +73,8 @@ arSZGClient::arSZGClient():
 arSZGClient::~arSZGClient(){
   _keepRunning = false;
 
-  /// \todo add handshaking to tell the server to quit the read and 
-  /// close the socket at its end, so we can close without blocking on 
+  /// \todo add handshaking to tell the server to quit the read and
+  /// close the socket at its end, so we can close without blocking on
   /// our data thread's blocking read (e.g. IRIX).
   //_dataClient.closeConnection();
 
@@ -83,7 +84,7 @@ arSZGClient::~arSZGClient(){
 /// Lets the programmer control the complexity of a phleet component's
 /// handshaking when it has been invoked by "dex". The default is "true",
 /// under which state the arSZGClient sends a final response during its
-/// init method. Otherwise, if simple handshaking has been disabled (by 
+/// init method. Otherwise, if simple handshaking has been disabled (by
 /// passing in "false" before init), the programmer will need to
 /// send an init response using sendInitResponse and a start response using
 /// sendStartResponse (which is the final response in this case). This allows
@@ -111,7 +112,7 @@ void arSZGClient::parseSpecialPhleetArgs(bool state){
 /// @param forcedName An optional parameter. Ideally, we'd like to be able to
 /// read the exe name from the command line parameters, but this fails to work
 /// on Windows 98, where one gets, at best, a name in all caps. Consequently,
-/// the few (support) components that might run on Win98 (like szgd, 
+/// the few (support) components that might run on Win98 (like szgd,
 /// DeviceServer, and SoundRender) all force their names. Note that a warning
 /// is printed if the forced name and the name scraped from the command line
 /// do not match.
@@ -123,7 +124,7 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
   // ANOTHER IMPORTANT NOTE: IT IS ASSUMED THAT THIS FUNCTION WILL ALWAYS,
   // REGARDLESS OF WHETHER OR NOT IT IS SUCCESSFUL FINISH THE HANSHAKE WITH
   // DEX!!! Conequently, no return statements, except at the end.
-  bool success = true; // assume suceess unless there has been a 
+  bool success = true; // assume suceess unless there has been a
                        // specific failure
   const string pipeIDString(ar_getenv("SZGPIPEID"));
   if (pipeIDString != "NULL"){
@@ -176,7 +177,7 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
   if (_addresses == "NULL"){
     _addresses = _configParser.getAddresses();
   }
-  
+
   // The special Phleet args are or are not removed in the _parsePhleetArgs
   // call.
   if (!_parsePhleetArgs(argc, argv)){
@@ -199,7 +200,7 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
 
   // This needs to go after phleet args parsing, etc. It could be that we
   // specify where the server is, what the user name is, etc. via command
-  // line args. 
+  // line args.
   if (!_dialUpFallThrough()) {
     // Don't complain here -- dialUpFallThrough() already did.
     _connected = false;
@@ -210,7 +211,7 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
   // this from the command-line args, since some of the component management
   // occurs via names, so this is a vital consistency guarantee (letting
   // the programmer set names manually is a good way for things to get out of
-  // sync) 
+  // sync)
   _exeName = string(argv[0]);
   _exeName = ar_stripExeName(_exeName);
   if (forcedName == "NULL"){
@@ -219,7 +220,7 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
     _setLabel(_exeName); // tell szgserver our name
   }
   else{
-    // we are indeed trying to force the name. Go ahead and print out a 
+    // we are indeed trying to force the name. Go ahead and print out a
     // warning, though, if there is a difference.
     if (forcedName != _exeName){
       cerr << _exeName << " warning: forcing a component name\n"
@@ -253,7 +254,7 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
       // send the message response
       // NOTE: if we are doing simple handshaking, we send a complete response
       // if we are not doing simple handshaking, we send a partial response
-      if (!messageResponse(_launchingMessageID, 
+      if (!messageResponse(_launchingMessageID,
                            _generateLaunchInfoHeader() +
                            _exeName + string(" launched.\n"),
                            !_simpleHandshaking)){
@@ -270,7 +271,7 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
     cout << _exeName << " remark: parsing local parameter file.\n";
     parseParameterFile(_parameterFileName);
   }
- 
+
   return success;
 }
 
@@ -359,13 +360,13 @@ string arSZGClient::getAllAttributes(const string& substring){
   // request only those parameters that match the given substring.
   const string type = substring=="ALL" ? "ALL" : "substring";
 
-  arStructuredData* getRequestData 
+  arStructuredData* getRequestData
     = _dataParser->getStorage(_l.AR_ATTR_GET_REQ);
   // Must use match for thread safety.
   const int match = _fillMatchField(getRequestData);
   string result;
   if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR,substring) ||
-      !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,type) || 
+      !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,type) ||
       !getRequestData->dataInString(_l.AR_PHLEET_USER,_userName) ||
       !_dataClient.sendData(getRequestData)){
     cerr << _exeName << " warning: failed to send command.\n";
@@ -418,7 +419,7 @@ bool arSZGClient::parseParameterFile(const string& fileName){
   // The legacy format consists of a sequence of lines as follows:
   //
   //   computer parameter_group parameter parameter_value
-  // 
+  //
   // While this format cannot express some of the more XML-y kinds of
   // things that the "global" attributes (like an input node description)
   // require. Consequently,
@@ -430,8 +431,8 @@ bool arSZGClient::parseParameterFile(const string& fileName){
   //
   //      </name>
   //	  <value>
-  //  
-  //      </value>   
+  //
+  //      </value>
   //   </param>
   //
   //   <comment>
@@ -444,8 +445,8 @@ bool arSZGClient::parseParameterFile(const string& fileName){
   //      ...
   //   </assign>
   // </szg_config>
-  // 
-  // 
+  //
+  //
   // The presence of <szg_config> as the first non-whitespace block of
   // characters in the file determines the config file format that is
   // assumed.
@@ -453,7 +454,7 @@ bool arSZGClient::parseParameterFile(const string& fileName){
   // First, try the new and improved XML way!
   arFileTextStream fileStream;
   if (!fileStream.ar_open(fileName, dataPath)){
-    cerr << _exeName << " error: failed to open batch file " 
+    cerr << _exeName << " error: failed to open batch file "
 	 << fileName << "\n";
     return false;
   }
@@ -574,7 +575,7 @@ bool arSZGClient::parseParameterFile(const string& fileName){
   cout << "arSZGClient remark: parsing config file using pre-0.7 syntax.\n";
   FILE* theFile = ar_fileOpen(fileName, dataPath, "r");
   if (!theFile){
-    cerr << _exeName << " error: failed to open config file \"" 
+    cerr << _exeName << " error: failed to open config file \""
          << fileName << "\"\n";
     return false;
   }
@@ -627,7 +628,7 @@ string arSZGClient::getAttribute(const string& userName,
   const string query(
     ((computerName == "NULL") ? _computerName : computerName) +
     "/" + groupName + "/" + parameterName);
-  arStructuredData* getRequestData 
+  arStructuredData* getRequestData
     = _dataParser->getStorage(_l.AR_ATTR_GET_REQ);
   string result;
   int match = _fillMatchField(getRequestData);
@@ -639,7 +640,7 @@ string arSZGClient::getAttribute(const string& userName,
     result = string("NULL");
   }
   else{
-    result = _changeToValidValue(groupName, parameterName, 
+    result = _changeToValidValue(groupName, parameterName,
                                  _getAttributeResponse(match), validValues);
   }
   _dataParser->recycle(getRequestData);
@@ -766,7 +767,7 @@ bool arSZGClient::setAttribute(const string& userName,
     "/"+groupName+"/"+parameterName);
 
   // Get storage for the message.
-  arStructuredData* setRequestData 
+  arStructuredData* setRequestData
     = _dataParser->getStorage(_l.AR_ATTR_SET);
   bool status = true;
   const ARint temp = 0; // don't test-and-set.
@@ -805,10 +806,10 @@ bool arSZGClient::setAttribute(const string& userName,
 /// computer/attribute group/attribute. Internally to the szgserver, this
 /// hierarchy had limited meaning since the paramter database is *really*
 /// given by key/value pairs. It turns out that sometimes we really want
-/// to dispense with the hierarchy altogether. For instance, the 
+/// to dispense with the hierarchy altogether. For instance, the
 /// configuration of an input node (the filters to use, whether it should
 /// get input from the network, whether there are any special input sinks,
-/// etc.) really isn't tied to a particular computer. 
+/// etc.) really isn't tied to a particular computer.
 /// NOTE: We must use a different function name since there is already a
 /// getAttribute with 2 const string& parameters.
 /// The idea here is that "Global" attributes are different than the
@@ -821,7 +822,7 @@ string arSZGClient::getGlobalAttribute(const string& userName,
   }
 
   // We are going to the szgserver for information
-  arStructuredData* getRequestData 
+  arStructuredData* getRequestData
     = _dataParser->getStorage(_l.AR_ATTR_GET_REQ);
   string result;
   int match = _fillMatchField(getRequestData);
@@ -839,7 +840,7 @@ string arSZGClient::getGlobalAttribute(const string& userName,
   return result;
 }
 
-/// The userName is implicit in this one (i.e. it is the name of the 
+/// The userName is implicit in this one (i.e. it is the name of the
 /// phleet user executing the program)
 string arSZGClient::getGlobalAttribute(const string& attributeName){
   return getGlobalAttribute(_userName, attributeName);
@@ -857,7 +858,7 @@ bool arSZGClient::setGlobalAttribute(const string& userName,
   }
 
   // Get storage for the message.
-  arStructuredData* setRequestData 
+  arStructuredData* setRequestData
     = _dataParser->getStorage(_l.AR_ATTR_SET);
   bool status = true;
   const ARint temp = 0; // don't test-and-set.
@@ -927,7 +928,7 @@ string arSZGClient::testSetAttribute(const string& userName,
     = _dataParser->getStorage(_l.AR_ATTR_SET);
   string result;
   // Do test-and-set.
-  ARint temp = 1; 
+  ARint temp = 1;
   int match = _fillMatchField(setRequestData);
   if (!setRequestData->dataInString(_l.AR_ATTR_SET_ATTR,query) ||
       !setRequestData->dataInString(_l.AR_ATTR_SET_VAL,parameterValue) ||
@@ -949,13 +950,13 @@ string arSZGClient::getProcessList(){
     return string("NULL");
 
   // Get storage for the message.
-  arStructuredData* getRequestData 
+  arStructuredData* getRequestData
     = _dataParser->getStorage(_l.AR_ATTR_GET_REQ);
   string result;
   // "NULL" asks the server for the process table
   int match = _fillMatchField(getRequestData);
   if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR,"NULL") ||
-      !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,"NULL") || 
+      !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,"NULL") ||
       !getRequestData->dataInString(_l.AR_PHLEET_USER,_userName) ||
       !_dataClient.sendData(getRequestData)){
     cerr << _exeName << " warning: failed to send getProcessList command.\n";
@@ -1134,7 +1135,7 @@ int arSZGClient::sendMessage(const string& type, const string& body,
   // convert from bool to int
   const int response = responseRequested ? 1 : 0;
   int match = _fillMatchField(messageData);
-  if (!messageData->dataIn(_l.AR_SZG_MESSAGE_RESPONSE, 
+  if (!messageData->dataIn(_l.AR_SZG_MESSAGE_RESPONSE,
                            &response, AR_INT,1) ||
       !messageData->dataInString(_l.AR_SZG_MESSAGE_TYPE,type) ||
       !messageData->dataInString(_l.AR_SZG_MESSAGE_BODY,body) ||
@@ -1152,7 +1153,7 @@ int arSZGClient::sendMessage(const string& type, const string& body,
       match = -1;
     }
     else{
-      if (ack->getDataString(_l.AR_SZG_MESSAGE_ACK_STATUS) 
+      if (ack->getDataString(_l.AR_SZG_MESSAGE_ACK_STATUS)
             != string("SZG_SUCCESS")){
         cerr << _exeName << " warning: message send failed.\n";
       }
@@ -1199,13 +1200,13 @@ int arSZGClient::receiveMessage(string* userName, string* messageType,
 
 /// Get a response to the client's messages.  Returns 1 if a final response has
 /// been received, -1 if a partial response has been received, and 0 if failure
-/// (as might happen, for instance, if a component dies before having a 
-/// chance to respond to a message). 
+/// (as might happen, for instance, if a component dies before having a
+/// chance to respond to a message).
 /// @param body is filled-in with the body of the message response
 /// @param match is filled-in with the "match" of this response (which is
 ///   the same as the "match" of the original message that generated it.
-int arSZGClient::getMessageResponse(list<int> tags, 
-                                    string& body, 
+int arSZGClient::getMessageResponse(list<int> tags,
+                                    string& body,
                                     int& match,
                                     int timeout){
   if (!_connected){
@@ -1248,7 +1249,7 @@ int arSZGClient::getMessageResponse(list<int> tags,
 /// true iff the response was successfully dispatched.
 /// @param messageID ID of the message to which we are trying to respond
 /// @param body Body we wish to send
-/// @param partialResponse False iff we won't send further responses 
+/// @param partialResponse False iff we won't send further responses
 /// (the default)
 bool arSZGClient::messageResponse(int messageID, const string& body,
                                   bool partialResponse){
@@ -1257,7 +1258,7 @@ bool arSZGClient::messageResponse(int messageID, const string& body,
   }
   // Do not use a const string& here. That is the equivalent of a pointer
   // to a temporary.
-  const string statusField = partialResponse ? string("SZG_CONTINUE") : 
+  const string statusField = partialResponse ? string("SZG_CONTINUE") :
                                                 string("SZG_SUCCESS");
   // Must get storage for the message.
   arStructuredData* messageAdminData
@@ -1271,7 +1272,7 @@ bool arSZGClient::messageResponse(int messageID, const string& body,
 				      statusField) ||
       !messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_TYPE,
 				      "SZG Response") ||
-      !messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_BODY, 
+      !messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_BODY,
                                       body) ||
       !_dataClient.sendData(messageAdminData)){
     cerr << _exeName << " warning: failed to send message response.\n";
@@ -1387,7 +1388,7 @@ int arSZGClient::requestKillNotification(int componentID){
   if (!_connected){
     return -1;
   }
-  arStructuredData* data 
+  arStructuredData* data
     = _dataParser->getStorage(_l.AR_SZG_KILL_NOTIFICATION);
   int match = _fillMatchField(data);
   data->dataIn(_l.AR_SZG_KILL_NOTIFICATION_ID, &componentID, AR_INT, 1);
@@ -1404,8 +1405,8 @@ int arSZGClient::requestKillNotification(int componentID){
 
 /// Receives a notification, as requested by the previous method, that a
 /// component has exited. Return the match if we have succeeded. Return
-/// -1 on failure. 
-int arSZGClient::getKillNotification(list<int> tags, 
+/// -1 on failure.
+int arSZGClient::getKillNotification(list<int> tags,
                                      int timeout){
   if (!_connected){
     return -1;
@@ -1437,7 +1438,7 @@ bool arSZGClient::getLock(const string& lockName, int& ownerID){
     = _dataParser->getStorage(_l.AR_SZG_LOCK_REQUEST);
   int match = _fillMatchField(lockRequestData);
   bool state = false;
-  if (!lockRequestData->dataInString(_l.AR_SZG_LOCK_REQUEST_NAME, 
+  if (!lockRequestData->dataInString(_l.AR_SZG_LOCK_REQUEST_NAME,
                                      lockName) ||
       !_dataClient.sendData(lockRequestData)){
     cerr << _exeName << " warning: failed to send lock request.\n";
@@ -1450,7 +1451,7 @@ bool arSZGClient::getLock(const string& lockName, int& ownerID){
     else{
       ownerID = ack->getDataInt(_l.AR_SZG_LOCK_RESPONSE_OWNER);
       state =
-        ack->getDataString(_l.AR_SZG_LOCK_RESPONSE_STATUS) 
+        ack->getDataString(_l.AR_SZG_LOCK_RESPONSE_STATUS)
         == string("SZG_SUCCESS");
       _dataParser->recycle(ack);
     }
@@ -1471,7 +1472,7 @@ bool arSZGClient::releaseLock(const string& lockName){
     = _dataParser->getStorage(_l.AR_SZG_LOCK_RELEASE);
   int match = _fillMatchField(lockReleaseData);
   bool state = false;
-  if (!lockReleaseData->dataInString(_l.AR_SZG_LOCK_RELEASE_NAME, 
+  if (!lockReleaseData->dataInString(_l.AR_SZG_LOCK_RELEASE_NAME,
                                      lockName) ||
       !_dataClient.sendData(lockReleaseData)){
     cerr << _exeName << " warning: failed to send lock request.\n";
@@ -1483,7 +1484,7 @@ bool arSZGClient::releaseLock(const string& lockName){
     }
     else{
       state =
-        ack->getDataString(_l.AR_SZG_LOCK_RESPONSE_STATUS) 
+        ack->getDataString(_l.AR_SZG_LOCK_RESPONSE_STATUS)
         == string("SZG_SUCCESS");
       _dataParser->recycle(ack);
     }
@@ -1500,7 +1501,7 @@ int arSZGClient::requestLockReleaseNotification(const string& lockName){
   if (!_connected){
     return -1;
   }
-  arStructuredData* data 
+  arStructuredData* data
     = _dataParser->getStorage(_l.AR_SZG_LOCK_NOTIFICATION);
   int match = _fillMatchField(data);
   data->dataInString(_l.AR_SZG_LOCK_NOTIFICATION_NAME, lockName);
@@ -1517,8 +1518,8 @@ int arSZGClient::requestLockReleaseNotification(const string& lockName){
 
 /// Receives a notification, as requested by the previous method, that a
 /// lock is no longer held. Return the match if we have succeeded. Return
-/// -1 on failure. 
-int arSZGClient::getLockReleaseNotification(list<int> tags, 
+/// -1 on failure.
+int arSZGClient::getLockReleaseNotification(list<int> tags,
                                             int timeout){
   if (!_connected){
     return -1;
@@ -1589,12 +1590,12 @@ bool arSZGClient::_getPortsCore1(
   // pack the data
   data =_dataParser->getStorage(_l.AR_SZG_REGISTER_SERVICE);
   match = _fillMatchField(data);
-  data->dataInString(_l.AR_SZG_REGISTER_SERVICE_STATUS, 
+  data->dataInString(_l.AR_SZG_REGISTER_SERVICE_STATUS,
                      fRetry ? "SZG_RETRY" : "SZG_TRY");
   data->dataInString(_l.AR_SZG_REGISTER_SERVICE_TAG, serviceName);
-  data->dataInString(_l.AR_SZG_REGISTER_SERVICE_NETWORKS, 
+  data->dataInString(_l.AR_SZG_REGISTER_SERVICE_NETWORKS,
                      getNetworks(channel));
-  data->dataInString(_l.AR_SZG_REGISTER_SERVICE_ADDRESSES, 
+  data->dataInString(_l.AR_SZG_REGISTER_SERVICE_ADDRESSES,
                      getAddresses(channel));
   data->dataIn(_l.AR_SZG_REGISTER_SERVICE_SIZE, &numberPorts, AR_INT, 1);
   data->dataInString(_l.AR_SZG_REGISTER_SERVICE_COMPUTER, _computerName);
@@ -1609,7 +1610,7 @@ bool arSZGClient::_getPortsCore1(
 /// @param match from AR_PHLEET_MATCH
 /// @param portIDs stuffed with the good port values
 /// @param fRetry true iff we're retrying
-bool arSZGClient::_getPortsCore2(arStructuredData* data, int match, 
+bool arSZGClient::_getPortsCore2(arStructuredData* data, int match,
                                  int* portIDs, bool fRetry) {
   if (!_connected){
     return false;
@@ -1663,7 +1664,7 @@ int arSZGClient::_fillMatchField(arStructuredData* data){
 /// @param numberPorts number of ports the service requires (up to 10)
 /// @param portIDs on success, stuffed with the ports on which
 /// the service should be offered
-bool arSZGClient::registerService(const string& serviceName, 
+bool arSZGClient::registerService(const string& serviceName,
                                   const string& channel,
                                   int numberPorts, int* portIDs){
   if (!_connected){
@@ -1671,7 +1672,7 @@ bool arSZGClient::registerService(const string& serviceName,
   }
   arStructuredData* data = NULL;
   int match = -1;
-  return _getPortsCore1(serviceName, channel, numberPorts, data, match, false) 
+  return _getPortsCore1(serviceName, channel, numberPorts, data, match, false)
          && _getPortsCore2(data, match, portIDs, false);
 }
 
@@ -1686,7 +1687,7 @@ bool arSZGClient::registerService(const string& serviceName,
 /// @param numberPorts the number of ports required.
 /// @param portIDs passes in the old, problematic ports, and will be filled
 /// with new ports on success.
-bool arSZGClient::requestNewPorts(const string& serviceName, 
+bool arSZGClient::requestNewPorts(const string& serviceName,
                                   const string& channel,
                                   int numberPorts, int* portIDs){
   if (!_connected){
@@ -1696,7 +1697,7 @@ bool arSZGClient::requestNewPorts(const string& serviceName,
   int match = -1;
   return
     _getPortsCore1(serviceName, channel, numberPorts, data, match, true) &&
-    data->dataIn(_l.AR_SZG_REGISTER_SERVICE_PORT, portIDs, 
+    data->dataIn(_l.AR_SZG_REGISTER_SERVICE_PORT, portIDs,
                  AR_INT, numberPorts) &&
     _getPortsCore2(data, match, portIDs, true);
 }
@@ -1714,7 +1715,7 @@ bool arSZGClient::requestNewPorts(const string& serviceName,
 /// @param numberPorts the number of ports used by the service
 /// @param portIDs an array containing the port IDs (all of which were
 /// successfully bound).
-bool arSZGClient::confirmPorts(const string& serviceName, 
+bool arSZGClient::confirmPorts(const string& serviceName,
                                const string& channel,
                                int numberPorts, int* portIDs){
   if (!_connected){
@@ -1742,7 +1743,7 @@ bool arSZGClient::confirmPorts(const string& serviceName,
   temp[0] = _configParser.getFirstPort();
   temp[1] = _configParser.getPortBlockSize();
   data->dataIn(_l.AR_SZG_REGISTER_SERVICE_BLOCK, temp, AR_INT, 2);
-  
+
   if (!_dataClient.sendData(data)){
     cerr << _exeName << " warning: failed to send service registration "
 	 << "retry request.\n";
@@ -1762,7 +1763,7 @@ bool arSZGClient::confirmPorts(const string& serviceName,
     return false;
   }
   (void)data->getDataInt(_l.AR_PHLEET_MATCH);
-  
+
   return data->getDataString(_l.AR_SZG_BROKER_RESULT_STATUS) == "SZG_SUCCESS";
 }
 
@@ -1825,7 +1826,7 @@ arPhleetAddress arSZGClient::discoverService(const string& serviceName,
     result.address = data->getDataString(_l.AR_SZG_BROKER_RESULT_ADDRESS);
     int dimension = data->getDataDimension(_l.AR_SZG_BROKER_RESULT_PORT);
     result.numberPorts = dimension;
-    data->dataOut(_l.AR_SZG_BROKER_RESULT_PORT, result.portIDs, 
+    data->dataOut(_l.AR_SZG_BROKER_RESULT_PORT, result.portIDs,
                   AR_INT, dimension);
   }
   else{
@@ -1861,9 +1862,9 @@ void arSZGClient::_printServices(const string& type){
     return;
   }
   const string services(data->getDataString(_l.AR_SZG_GET_SERVICES_SERVICES));
-  const arSlashString 
+  const arSlashString
     computers(data->getDataString(_l.AR_SZG_GET_SERVICES_COMPUTERS));
-  int* IDs = (int*) data->getDataPtr(_l.AR_SZG_GET_SERVICES_COMPONENTS, 
+  int* IDs = (int*) data->getDataPtr(_l.AR_SZG_GET_SERVICES_COMPONENTS,
                                      AR_INT);
   int number = data->getDataDimension(_l.AR_SZG_GET_SERVICES_COMPONENTS);
   // print out the stuff
@@ -1984,7 +1985,7 @@ bool arSZGClient::setServiceInfo(const string& serviceName,
 /// the components hosting them. This information is then printed in
 /// the style of dps.
 void arSZGClient::printServices(){
-  _printServices("active"); 
+  _printServices("active");
 }
 
 /// Contacts the szgserver and obtains the list of pending service requests,
@@ -1998,7 +1999,7 @@ void arSZGClient::printPendingServiceRequests(){
 
 /// Sometimes it is desirable to be able to directly retrieve the phleet ID
 /// of the component running a service. For instance, open launching an
-/// application on a virtual computer, we may wish to kill a previous 
+/// application on a virtual computer, we may wish to kill a previous
 /// application that has been running and supplying a service that the
 /// new application wishes to supply. The ID of the component is returned
 /// if the service in question does, in fact, exist. Otherwise, -1 is
@@ -2027,7 +2028,7 @@ int arSZGClient::getServiceComponentID(const string& serviceName){
     cerr << _exeName << " error: no response to service ID request.\n";
     return -1;
   }
-  int* IDs = (int*) data->getDataPtr(_l.AR_SZG_GET_SERVICES_COMPONENTS, 
+  int* IDs = (int*) data->getDataPtr(_l.AR_SZG_GET_SERVICES_COMPONENTS,
                                      AR_INT);
   int result = IDs[0];
   _dataParser->recycle(data);
@@ -2061,7 +2062,7 @@ arSlashString arSZGClient::getNetworks(const string& channel){
 /// Returns the network addresses upon which this component will offer
 /// services. Used when registering a service to determine the
 /// addresses of the interfaces to which other components will try to
-/// connect. 
+/// connect.
 arSlashString arSZGClient::getAddresses(const string& channel){
   if (channel == "default"){
     return _addresses;
@@ -2081,7 +2082,7 @@ arSlashString arSZGClient::getAddresses(const string& channel){
 
 /// If this component is operating as part of a virtual computer, return
 /// its name. Otherwise, return "NULL". As with networks, the
-/// virtual computer is set via a combination of the phleet command line 
+/// virtual computer is set via a combination of the phleet command line
 /// args, and the context.
 const string& arSZGClient::getVirtualComputer(){
   return _virtualComputer;
@@ -2091,12 +2092,15 @@ const string& arSZGClient::getVirtualComputer(){
 /// to a particular channel). For instance, the "default" channel mode is
 /// one of "trigger", "master" or "component". This refers to the global
 /// character of what this piece of the system does. The "graphics" channel
-/// mode is one of "screen0", "screen1", "screen2", etc. 
+/// mode is one of "screen0", "screen1", "screen2", etc.
 const string& arSZGClient::getMode(const string& channel){
   if (channel == "default")
     return _mode;
   if (channel == "graphics")
     return _graphicsMode;
+  if (channel == "gui")
+    return _guiMode;
+
   cout << _exeName << " warning: unknown channel for getMode().\n";
   return _mode;
 }
@@ -2108,8 +2112,8 @@ string arSZGClient::getTrigger(const string& virtualComputer){
   if (getAttribute(virtualComputer, "SZG_CONF", "virtual", "") != "true"){
     // not a virtual computer
     return "NULL";
-  } 
-  return getAttribute(virtualComputer, "SZG_TRIGGER", "map", "");  
+  }
+  return getAttribute(virtualComputer, "SZG_TRIGGER", "map", "");
 }
 
 /// Phleet components should use service names that are compartmentalized
@@ -2149,6 +2153,8 @@ string arSZGClient::createContext(){
   // Additional mode stuff.
   if (_graphicsMode != "NULL")
     result += string(";mode/graphics=")+_graphicsMode;
+  if (_guiMode != "NULL")
+    result += string(";mode/gui=")+_guiMode;
   result += string(";")+string("networks/default=")+_networks;
 
   // Additional network stuff.
@@ -2167,10 +2173,10 @@ string arSZGClient::createContext(){
 /// to encapsulate a data format that may change over time.
 /// NOTE: this is a little BOGUS as there is currently no way to specify
 /// the channels upon which multiple services operate!
-string arSZGClient::createContext(const string& virtualComputer, 
-                                  const string& modeChannel, 
+string arSZGClient::createContext(const string& virtualComputer,
+                                  const string& modeChannel,
                                   const string& mode,
-                                  const string& networksChannel, 
+                                  const string& networksChannel,
                                   const arSlashString& networks){
   return string("virtual=")+virtualComputer+string(";")+
     string("mode/")+modeChannel+string("=")+mode+string(";")+
@@ -2190,14 +2196,14 @@ bool arSZGClient::_dialUpFallThrough(){
 
   // In standalone mode, we want to be able to run, even if the computer
   // has not yet been configured. The szg.conf file only contains
-  // information like the computer name and the networks to which it is 
+  // information like the computer name and the networks to which it is
   // attached, which doesn't really matter if we are in standalone mode.
   // In the standalone mode case, the computer name is set to NULL and,
-  // consequently, a fixed parameters file can have its info read in using 
-  // computer string NULL. 
+  // consequently, a fixed parameters file can have its info read in using
+  // computer string NULL.
   // It could be that _IPaddress, _port, and _userName have all been defined
   // from the command line... In this case, go ahead and over-ride the
-  // login/ other config information. 
+  // login/ other config information.
 
   // We need the following pieces of information:
   //   1. server IP/ server port
@@ -2207,7 +2213,7 @@ bool arSZGClient::_dialUpFallThrough(){
   //   2. computer name
   // If the first 3 have been set already (i.e. via command line args)
   // then go ahead and don't bother to parse the config files.
-  if (_IPaddress == "NULL" || _port == -1 || _userName == "NULL"){ 
+  if (_IPaddress == "NULL" || _port == -1 || _userName == "NULL"){
     // determine the other configuration information, like the location of the
     // szgserver and the name of the host computer
     if (!_configParser.parseConfigFile()){
@@ -2219,7 +2225,7 @@ bool arSZGClient::_dialUpFallThrough(){
     // will FAIL! However, some information from the config file is needed
     // for operation in standalone mode (like _computerName).
     // Consequently, set that before returning.
-    _computerName = _configParser.getComputerName(); 
+    _computerName = _configParser.getComputerName();
 
     // parse the login file
     if (!_configParser.parseLoginFile()){
@@ -2255,7 +2261,7 @@ bool arSZGClient::_dialUpFallThrough(){
 
   if (!_dataClient.dialUpFallThrough(_IPaddress.c_str(),_port)){
     // Look on the LAN for an szgserver.
-    /// \todo say "dlogin first" and leave it at that, 
+    /// \todo say "dlogin first" and leave it at that,
     /// (if dconfig would report that nobody's logged in)
     cout << _exeName
          << " remark: szgserver not found.\n"
@@ -2278,7 +2284,7 @@ arStructuredData* arSZGClient::_getDataByID(int recordID){
   return _dataParser->getNextInternal(recordID);
 }
 
-arStructuredData* arSZGClient::_getTaggedData(int tag, 
+arStructuredData* arSZGClient::_getTaggedData(int tag,
                                               int recordID,
                                               int timeout){
   list<int> tags;
@@ -2301,8 +2307,8 @@ int arSZGClient::_getTaggedData(arStructuredData*& message,
 
 bool arSZGClient::_getMessageAck(int match, const char* transaction, int* id,
                                  int timeout){
-  arStructuredData* ack = _getTaggedData(match, 
-                                         _l.AR_SZG_MESSAGE_ACK, 
+  arStructuredData* ack = _getTaggedData(match,
+                                         _l.AR_SZG_MESSAGE_ACK,
                                          timeout);
   if (!ack){
     cerr << _exeName << " warning: no ack for " << transaction << ".\n";
@@ -2391,7 +2397,7 @@ bool arSZGClient::_parseContext(){
   return true;
 }
 
-/// It is important that we pass argc by reference since we are potentially 
+/// It is important that we pass argc by reference since we are potentially
 /// changing the arg list.
 /// Every time a client is launched, we go ahead and examine the "phleet args",
 /// i.e. those prefaced by a -szg. In most cases, we will delete these args
@@ -2429,7 +2435,7 @@ bool arSZGClient::_parsePhleetArgs(int& argc, char** argv){
 
       // parse the arg exactly if we are parsing all args or if it is one
       // of the special ones (user or server) that are always parsed.
-      if (_parseSpecialPhleetArgs 
+      if (_parseSpecialPhleetArgs
 	  || pair1Type == "user" || pair1Type == "server"){
         if (!_parseContextPair(argv[i+1])){
           return false;
@@ -2444,7 +2450,7 @@ bool arSZGClient::_parsePhleetArgs(int& argc, char** argv){
       }
       else{
 	// we didn't parse these args... move on (without this ++ we will
-	// be at i+1 at the beginning of the next loop and we should be at 
+	// be at i+1 at the beginning of the next loop and we should be at
 	// i+2
         i++;
       }
@@ -2495,6 +2501,9 @@ bool arSZGClient::_parseContextPair(const string& thePair){
     else if (modeChannel == "graphics"){
       _graphicsMode = pair2;
     }
+    else if( modeChannel == "gui"){
+      _guiMode = pair2;
+    }
     else{
       cout << _exeName << " error: parseContextPair() got invalid "
 	   << "mode channel.\n";
@@ -2540,7 +2549,7 @@ bool arSZGClient::_parseContextPair(const string& thePair){
 }
 
 /// networks contains various network names. channel is one of "default",
-/// "graphics", "input", or "sound". This allows for traffic shaping. 
+/// "graphics", "input", or "sound". This allows for traffic shaping.
 bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashString& networks){
   // sanity check!
   if (channel != "default" && channel != "graphics" && channel != "input"
@@ -2590,7 +2599,7 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
   else if (channel == "input"){
     _inputNetworks = networks;
     _inputAddresses = newAddresses;
-  } 
+  }
   return true;
 }
 
@@ -2601,7 +2610,7 @@ string arSZGClient::_generateLaunchInfoHeader(){
   resultStream << "*user=" << _userName << ", "
 	       << "context=" << createContext() << "\n"
 	       << "*computer=" << _computerName << ", "
-	       << "executable=" << _exeName << "\n"; 
+	       << "executable=" << _exeName << "\n";
   return resultStream.str();
 }
 
@@ -2611,7 +2620,7 @@ string arSZGClient::_getAttributeLocal(const string& computerName,
 				       const string& groupName,
 				       const string& parameterName,
                                        const string& validValues){
-  const string query = 
+  const string query =
     ((computerName == "NULL") ? _computerName : computerName) + "/"
     + groupName + "/" + parameterName;
   string result;
@@ -2632,7 +2641,7 @@ bool arSZGClient::_setAttributeLocal(const string& computerName,
 				     const string& groupName,
 				     const string& parameterName,
 				     const string& parameterValue){
-  const string query = 
+  const string query =
     ((computerName == "NULL") ? _computerName : computerName) + "/"
     + groupName + "/" + parameterName;
   map<string, string, less<string> >::iterator i =
@@ -2733,7 +2742,7 @@ void arSZGClient::_serverResponseThread() {
     if (_dataRequested){
       // Make sure it is the right format. Both version number (first four
       // bytes) and that it is a response (5th byte = 1).
-      if (buffer[0] == 0 && buffer[1] == 0 && 
+      if (buffer[0] == 0 && buffer[1] == 0 &&
           buffer[2] == 0 && buffer[3] == 1 && buffer[4] == 1){
         memcpy(_responseBuffer,buffer,200);
         if (_justPrinting){
@@ -2760,7 +2769,7 @@ void arSZGClient::_serverResponseThread() {
 	  }
         }
         else {
-          // If this matches the requested name, stop, discarding 
+          // If this matches the requested name, stop, discarding
 	  // subsequent packets.
 	  if (_requestedName == string(_responseBuffer+5)){
             _dataRequested = false;
@@ -2854,7 +2863,7 @@ void arSZGClient::_sendDiscoveryPacket(const string& name,
 }
 
 /// Sends a broadcast packet on a specified subnet to find the szgserver
-/// with the specified name. 
+/// with the specified name.
 bool arSZGClient::discoverSZGServer(const string& name,
                                     const string& broadcast){
   if (!_discoveryThreadsLaunched && !launchDiscoveryThreads()){
