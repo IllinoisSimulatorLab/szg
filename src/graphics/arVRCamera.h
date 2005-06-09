@@ -9,6 +9,7 @@
 #include "arCamera.h"
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
+#include <string>
 
 class arHead;
 class arGraphicsScreen;
@@ -17,11 +18,12 @@ class SZG_CALL arVRCamera : public arCamera {
   public:
     arVRCamera( arHead* head=0 ) : _head(head),  _complained(false) {}
     virtual ~arVRCamera() {}
-    virtual arCamera* clone() const 
+    virtual arCamera* clone() const
       { return (arCamera*) new arVRCamera(_head); }
     virtual arMatrix4 getProjectionMatrix();
     virtual arMatrix4 getModelviewMatrix();
     virtual void loadViewMatrices();
+    virtual std::string type( void ) const { return "arVRCamera"; }
     void setHead( arHead* head) { _head = head; }
     arHead* getHead() const { return _head; }
   private:

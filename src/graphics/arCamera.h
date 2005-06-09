@@ -11,6 +11,7 @@
 #include "arGraphicsScreen.h"
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
+#include <string>
 
 class SZG_CALL arCamera{
  public:
@@ -24,6 +25,7 @@ class SZG_CALL arCamera{
   virtual arMatrix4 getModelviewMatrix();
   virtual void loadViewMatrices();
   virtual arCamera* clone() const { return new arCamera(); }
+  virtual std::string type( void ) const { return "arCamera"; }
  private:
   // NOTE: these parameters should not be copied, they are transient and only exist
   // so they don't have to be passed to the verious get.. and load... matrix functions

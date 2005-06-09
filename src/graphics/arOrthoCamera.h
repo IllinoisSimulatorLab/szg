@@ -9,6 +9,7 @@
 #include "arCamera.h"
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
+#include <string>
 
 class SZG_CALL arOrthoCamera: public arCamera{
  public:
@@ -20,6 +21,7 @@ class SZG_CALL arOrthoCamera: public arCamera{
   virtual arMatrix4 getProjectionMatrix();
   virtual arMatrix4 getModelviewMatrix();
   virtual void loadViewMatrices();
+  virtual std::string type( void ) const { return "arOrthoCamera"; }
 
   void setFrustum( float* frust ) { memcpy( frustum, frust, 6*sizeof(float) ); }
   void setLook( float* look ) { memcpy( lookat, look, 9*sizeof(float) ); }
