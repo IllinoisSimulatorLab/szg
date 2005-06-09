@@ -1094,6 +1094,7 @@ int main( int argc, char** argv )
     std::cout << "RUNNING IN STANDALONE MODE" << std::endl;
     // return 1;
   }
+  string textPath = SZGClient.getAttribute("SZG_RENDER","text_path");
 
   theDatabase = new arGraphicsDatabase;
   char texPath[ 256 ] = {0};
@@ -1184,7 +1185,14 @@ int main( int argc, char** argv )
   */
 
   // must be done *after* an opengl context is created!
-  texFont.loadFont( "courier_bold.txf" );
+  string fontLocation = ar_fileFind("courier_bold.txf","",textPath);
+  if (fontLocation != "NULL"){
+    cout << "szgview remark: found szg system font.\n";
+    texFont.loadFont(fontLocation);
+  }
+  else{
+    texFont.loadFont( "courier_bold.txf" );
+  }
 
   // wm->startWithoutSwap();
   wm->startWithSwap();
