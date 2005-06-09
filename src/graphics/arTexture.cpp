@@ -22,6 +22,8 @@ struct arTexture_error_mgr {
 };
 #endif
 
+// Note that if _texName == 0, _loadIntoOpenGL() will be called and _fDirty will be set to false.
+// So it really doesn't matter what we initialize it to.
 arTexture::arTexture() :
   _fDirty(false),
   _width(0),
@@ -37,8 +39,9 @@ arTexture::arTexture() :
 }
 
 arTexture::~arTexture(){
-  if (_pixels)
+  if (_pixels) {
     delete [] _pixels;
+  }
 
 #ifdef DISABLED
   // This causes a seg fault when called from arGraphicsDatabase::reset()
@@ -48,6 +51,8 @@ arTexture::~arTexture(){
 #endif
 }
 
+// Note that if _texName == 0, _loadIntoOpenGL() will be called and _fDirty will be set to false.
+// So it really doesn't matter what we initialize it to.
 arTexture::arTexture( const arTexture& rhs ) :
   _fDirty( rhs._fDirty ),
   _width( rhs._width ),
@@ -60,9 +65,15 @@ arTexture::arTexture( const arTexture& rhs ) :
   _textureFunc( rhs._textureFunc )
 {
   _pixels = new char[ numbytes() ];
+  if (!_pixels) {
+    cerr << "arTexture error: _pixels allocation failed in copy constructor.\n";
+    return;
+  }
   memcpy(_pixels, rhs._pixels, numbytes());
 }
 
+// Note that if _texName == 0, _loadIntoOpenGL() will be called and _fDirty will be set to false.
+// So it really doesn't matter what we initialize it to.
 arTexture& arTexture::operator=( const arTexture& rhs ) {
   if (this == &rhs)
     return *this;
@@ -79,7 +90,7 @@ arTexture& arTexture::operator=( const arTexture& rhs ) {
     memcpy(_pixels, rhs._pixels, numbytes());
     cout << "arTexture remark: copied " << numbytes() << " bytes.\n";
   } else {
-    cout << "arTexture error: out of memory.\n";
+    cerr << "arTexture error: _reallocPixels() failed in operator=().\n";
   }
   return *this;
 }
@@ -96,6 +107,7 @@ arTexture::arTexture( const arTexture& rhs, unsigned int left, unsigned int bott
 {
   _pixels = rhs.getSubImage( left, bottom, width, height );
   if (!_pixels) {
+    cerr << "arTexture error: rhs.getSubImage() failed in sub-image copy constructor.\n";
     _width = 0;
     _height = 0;
   } else {
@@ -113,33 +125,33 @@ void arTexture::activate() {
 
   if (_texName == 0) {
     glGenTextures(1,&_texName);
+    if (_texName == 0) {
+      cerr << "arTexture error: glGenTextures() failed in activate().\n";
+      return;
+    }
+    // Note this was previously called in _loadIntoOpenGL(), so it was sometimes
+    // being called twice.
+    glBindTexture(GL_TEXTURE_2D, _texName);
     _loadIntoOpenGL();
   } else {
     glBindTexture(GL_TEXTURE_2D, _texName);
-
     if (_fDirty) {
-      _fDirty = false;
       _loadIntoOpenGL();
     }
-
-    //**********************************************************
-    /// A big kludge! It turns out that my trickiness
-    /// in letting the remote render client draw partial scenes
-    /// during the initial load bit me in the ass. I need better
-    /// locking! Specifically, a texture context can have a different
-    /// glTexEnvf bound to it at start-up than was intended...
-    /// didn't see this before because I was using uniform contexts.
-    /// The solution? Simply rebind as appropriate each time!
-    //***********************************************************
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, _textureFunc );
   }
 }
 
 void arTexture::reactivate(){
   glEnable(GL_TEXTURE_2D);
 
-  if (_texName == 0)
+  if (_texName == 0) {
     glGenTextures(1,&_texName);
+    if (_texName == 0) {
+      cerr << "arTexture error: glGenTextures() failed in reactivate().\n";
+      return;
+    }
+  }
+  glBindTexture(GL_TEXTURE_2D, _texName);
   _loadIntoOpenGL();
 }
 
@@ -152,9 +164,11 @@ void arTexture::dummy() {
   _width = _height = 1; // 1 could be some other power of two.
   _alpha = false;
   _textureFunc = GL_DECAL;
-  if (!_reallocPixels())
+  if (!_reallocPixels()) {
+    cerr << "arTexture error: _reallocPixels() failed in dummy().\n";
     return;
-  for (int i= _height*_width - 1; i>=0; i--){
+  }
+  for (int i = _height*_width - 1; i>=0; --i) {
     char* pPixel = &_pixels[i * getDepth()];
     // Solid blue.
     pPixel[0] = 0;
@@ -192,8 +206,8 @@ char* arTexture::getSubImage( unsigned int left, unsigned int bottom,
   char *newPtr = newPixels;
   for (unsigned int i=bottom; i < bottom+height; ++i) {
     for (unsigned int j=left; j < left+width; ++j) {
-      if ((i >= _height)||(j >= _width)) { // Not sure if necessary, but what the heck.
-        for (unsigned int k=0; k<depth; ++k) {
+      if ((i >= (unsigned int)_height)||(j >= (unsigned int)_width)) { // Not sure if necessary, but what the heck.
+        for (unsigned int k=0; k<(unsigned int)depth; ++k) {
           *newPtr++ = (char)0;
         }
       } else {
@@ -206,62 +220,63 @@ char* arTexture::getSubImage( unsigned int left, unsigned int bottom,
   return newPixels;
 }
 
-
-
 void arTexture::mipmap(bool fEnable) {
   const bool reload = (fEnable != _mipmap) && (_texName != 0);
   _mipmap = fEnable;
-  if (reload)
+  if (reload) {
     reactivate();
+  }
 }
 
 void arTexture::repeating(bool fEnable) {
   const bool reload = (fEnable != _repeating) && (_texName != 0);
   _repeating = fEnable;
-  if (reload)
+  if (reload) {
     reactivate();
+  }
 }
 
 void arTexture::grayscale(bool fEnable) {
   const bool reload = (fEnable != _grayScale) && (_texName != 0);
   _grayScale = fEnable;
-  if (reload)
+  if (reload) {
     reactivate();
+  }
 }
 
-bool arTexture::readImage(const string& fileName, int alpha, bool complain){
+bool arTexture::readImage(const string& fileName, int alpha, bool complain) {
   return readImage(fileName, "", "", alpha, complain);
 }
 
 bool arTexture:: readImage(const string& fileName, const string& path,
-			   int alpha, bool complain){
+			   int alpha, bool complain) {
   return readImage(fileName, "", path, alpha, complain);
 }
 
 bool arTexture::readImage(const string& fileName, 
                           const string& subdirectory,
                           const string& path,
-                          int alpha, bool complain){
+                          int alpha, bool complain) {
   string extension = ar_getExtension(fileName);
-  if (extension == "jpg"){
+  if (extension == "jpg") {
     return readJPEG(fileName, subdirectory, path, alpha, complain);
   }
-  else if (extension == "ppm"){
+  else if (extension == "ppm") {
     return readPPM(fileName, subdirectory, path, alpha, complain);
   }
   
   // if we've made it here, there must have been an unknown extension
-  cerr << "arTexture error: asked to read image with unsupported extension "
-       << extension << "\n";
+  cerr << "arTexture error: asked to read image with unsupported extension ("
+       << extension << ")\n";
   return false;  
 }
 
-bool arTexture::readPPM(const string& fileName, int alpha, bool complain){
+bool arTexture::readPPM(const string& fileName, int alpha, bool complain) {
   return readPPM(fileName, "", "", alpha, complain);
 }
 
 bool arTexture::readPPM(const string& fileName, const string& path,
-			int alpha, bool complain){
+			int alpha, bool complain) {
   return readPPM(fileName, "", path, alpha, complain);
 }
 
@@ -269,7 +284,7 @@ bool arTexture::readPPM(const string& fileName,
                         const string& subdirectory,
                         const string& path,
                         int alpha, 
-                        bool complain){
+                        bool complain) {
   // TODO TODO TODO TODO: HOW ABOUT GRAYSCALE PPM????????????
   FILE* fd = ar_fileOpen(fileName, subdirectory, path, "rb");
   if (!fd){
@@ -283,7 +298,7 @@ bool arTexture::readPPM(const string& fileName,
   char PPMHeader[3];
   fscanf(fd, "%s ", PPMHeader);
   if (strcmp(PPMHeader, "P3") && strcmp(PPMHeader, "P6")) {
-    cout << "arTexture error: Unexpected header \""
+    cerr << "arTexture error: Unexpected header \""
 	 << PPMHeader << "\" in PPM file \""
 	 << "\" (not in binary format?).\n";
     return false;
@@ -310,6 +325,7 @@ bool arTexture::readPPM(const string& fileName,
   fscanf(fd, "%d", &maxGrey);
   _alpha = (alpha != -1);
   if (!_reallocPixels()){
+    cerr << "arTexture error: _reallocPixels() failed in readPPM().\n";
     fclose(fd);
     return false;
   }
@@ -325,6 +341,10 @@ bool arTexture::readPPM(const string& fileName,
   if (!strcmp(PPMHeader,"P6")){
     // BINARY PPM FILE
     char* localBuffer = new char[ _width*_height*3 ];
+    if (!localBuffer) {
+      cerr << "arTexture error: localBuffer allocation failed in readPPM().\n";
+      return false;
+    }
     fread(localBuffer, _width*_height*3, 1, fd);
     int count = 0;
     for (int i= _height*_width - 1; i>=0; i--) {
@@ -334,8 +354,7 @@ bool arTexture::readPPM(const string& fileName,
       pPixel[2] = localBuffer[count++];
     } 
     delete [] localBuffer;
-  }
-  else{
+  } else {
     // ASCII PPM FILE
     int aPixel[3];
     // AARGH!!!! definitely reversed horizontally, much like the above!
@@ -355,20 +374,20 @@ bool arTexture::readPPM(const string& fileName,
 
 /// Attempts to write the texture as a jpeg with the given file name in
 /// the current working directory.
-bool arTexture::writePPM(const string& fileName){
+bool arTexture::writePPM(const string& fileName) {
   return writePPM(fileName, "", "");
 }
 
 /// Attempts to write texture as a jpeg with the given file name on
 /// the given path.
-bool arTexture::writePPM(const string& fileName, const string& path){
+bool arTexture::writePPM(const string& fileName, const string& path) {
   return writePPM(fileName, "", path);
 }
 
 /// Attempts to write texture as a jpeg with the given file name on
 /// the given subdirectory of the given path
 bool arTexture::writePPM(const string& fileName, const string& subdirectory, 
-                         const string& path){
+                         const string& path) {
   
   FILE* fp = ar_fileOpen(fileName, subdirectory, path, "wb");
 
@@ -385,17 +404,21 @@ bool arTexture::writePPM(const string& fileName, const string& subdirectory,
   // we might have everything stored internally as RGBA, this will return
   // pixel data in RGB format
   char* buffer = _packPixels();
+  if (!buffer) {
+    cerr << "arTexture error: _packPixels() failed in writePPM().\n";
+    return false;
+  }
   fwrite(buffer,1,_height*_width*3,fp);
   fclose(fp);
   return true;
 }
 
-bool arTexture::readJPEG(const string& fileName, int alpha, bool complain){
+bool arTexture::readJPEG(const string& fileName, int alpha, bool complain) {
   return readJPEG(fileName, "", "", alpha, complain);
 }
 
 bool arTexture::readJPEG(const string& fileName, const string& path,
-			 int alpha, bool complain){
+			 int alpha, bool complain) {
   return readJPEG(fileName, "", path, alpha, complain);
 }
 
@@ -404,11 +427,11 @@ bool arTexture::readJPEG(const string& fileName,
                          const string& subdirectory,
                          const string& path,
                          int alpha, 
-                         bool complain){
+                         bool complain) {
 #ifdef EnableJPEG
   FILE* fd = ar_fileOpen(fileName, subdirectory, path, "rb");
-  if (!fd){
-    if (complain){
+  if (!fd) {
+    if (complain) {
       cerr << "arTexture error: readJPEG(...) could not open file\n  "
   	   << fileName << " for reading.\n";
     }
@@ -433,6 +456,7 @@ bool arTexture::readJPEG(const string& fileName,
   _height = _cinfo.output_height;
   _alpha = (alpha != -1);
   if (!_reallocPixels()){
+    cerr << "arTexture error: _reallocPixels() failed in readJPEG().\n";
     fclose(fd);
     return false;
   }
@@ -480,20 +504,20 @@ bool arTexture::readJPEG(const string& fileName,
 #endif
 }
 
-bool arTexture::writeJPEG(const string& fileName){
+bool arTexture::writeJPEG(const string& fileName) {
   return writeJPEG(fileName, "", "");
 }
 
 /// Attempts to write texture as a jpeg with the given file name on
 /// the given path.
-bool arTexture::writeJPEG(const string& fileName, const string& path){
+bool arTexture::writeJPEG(const string& fileName, const string& path) {
   return writeJPEG(fileName, "", path);
 }
 
 /// Attempts to write texture as a jpeg with the given file name on
 /// the given subdirectory of the given path
 bool arTexture::writeJPEG(const string& fileName, const string& subdirectory, 
-                          const string& path){
+                          const string& path) {
 #ifdef EnableJPEG
   struct jpeg_compress_struct cinfo;
   struct jpeg_error_mgr jerr;
@@ -511,6 +535,10 @@ bool arTexture::writeJPEG(const string& fileName, const string& subdirectory,
 
   // we might be (internally) in RGBA format
   char* buf1 = _packPixels();
+  if (!buf1) {
+    cerr << "arTexture error: _packPixels() failed in writeJPEG().\n";
+    return false;
+  }
 
   JSAMPLE* image_buffer = (JSAMPLE*) buf1;
   cinfo.err = jpeg_std_error(&jerr);
@@ -544,20 +572,24 @@ bool arTexture::writeJPEG(const string& fileName, const string& subdirectory,
 }
 
 bool arTexture::fill(int w, int h, bool alpha, const char* pixels) {
-  if (w<=0 || h<=0 || !pixels)
+  if (w<=0 || h<=0 || !pixels) {
     return false;
+  }
 
   if (_width != w || _height != h || _alpha != alpha || !_pixels) {
     _width = w;
     _height = h;
     _alpha = alpha;
-    if (!_reallocPixels())
+    if (!_reallocPixels()) {
+      cerr << "arTexture error: _reallocPixels() failed in fill().\n";
       return false;
+    }
   }
-  if (_alpha)
+  if (_alpha) {
     _textureFunc = GL_MODULATE;
-  else
+  } else {
     _textureFunc = GL_DECAL;
+  }
   // else, we're just updating the pixel data and everything else is unchanged.
   memcpy(_pixels, pixels, numbytes());
   _fDirty = true;
@@ -565,10 +597,14 @@ bool arTexture::fill(int w, int h, bool alpha, const char* pixels) {
 }
 
 bool arTexture::flipHorizontal() {
+  if (!_pixels) {
+    cerr << "arTexture warning: flipHorizontal() called with no pixels.\n";
+    return false;
+  }
   char *temp = _pixels;
   _pixels = new char[numbytes()];
   if (!_pixels) {
-    cerr << "arTexture error: flipHorizontal() failed.\n";
+    cerr << "arTexture error: memory allocation failed in flipHorizontal().\n";
     return false;
   }
   const int depth = getDepth();
@@ -585,8 +621,9 @@ bool arTexture::flipHorizontal() {
 }
 
 bool arTexture::_reallocPixels() {
-  if (_pixels)
+  if (_pixels) {
     delete [] _pixels;
+  }
   _pixels = new char[numbytes()];
   return _pixels ? true : false;
 }
@@ -627,6 +664,10 @@ void arTexture::_assignAlpha(int alpha){
 /// the image. Consequently, we reverse that here as well.
 char* arTexture::_packPixels(){
   char* buffer = new char[_width*_height*3];
+  if (!buffer) {
+    cerr << "arTexture error: buffer allocation failed in _packPixels().\n";
+    return NULL;
+  }
   const int depth = getDepth();
   for (int i = 0; i < _height; i++){
     for (int j=0; j < _width; j++){
@@ -640,34 +681,40 @@ char* arTexture::_packPixels(){
 }
 
 void arTexture::_loadIntoOpenGL() {
-  glBindTexture(GL_TEXTURE_2D, _texName);
+  if (!_pixels) {
+    return;
+  }
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
                   _repeating ? GL_REPEAT : GL_CLAMP);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
                     _repeating ? GL_REPEAT : GL_CLAMP);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, 
-                  _mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, 
+//                  _mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
                   _mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR); 
   // _width and _height must both be a power of two... otherwise
   // no texture will appear when this is invoked.
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, _textureFunc );
   GLint internalFormat = 0;
-  if (_grayScale)
+  if (_grayScale) {
     internalFormat = _alpha ? GL_LUMINANCE_ALPHA : GL_LUMINANCE;
-  else
+  } else {
     internalFormat = _alpha ? GL_RGBA : GL_RGB;
-  if (_mipmap)
+  }
+  if (_mipmap) {
     gluBuild2DMipmaps(GL_TEXTURE_2D,
                       internalFormat,
                       _width, _height,
 	              _alpha ? GL_RGBA : GL_RGB,
                       GL_UNSIGNED_BYTE, (GLubyte*) _pixels);
-  else
+  } else {
     glTexImage2D(GL_TEXTURE_2D, 0,
                   internalFormat,
                   _width, _height, 0,
                   _alpha ? GL_RGBA : GL_RGB,
                   GL_UNSIGNED_BYTE, (GLubyte*) _pixels);
+  }
+  _fDirty = false;
 }

@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.6 2005/06/02 17:29:18 crowell Exp $
+// $Id: PyMasterSlave.i,v 1.7 2005/06/09 18:21:40 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -1041,6 +1041,9 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
       elif messageType == arMasterSlaveDict.DESTRUCT_MESSAGE:
         key = messageParam
         del self.data[key]
+    # If someones been adding and deleting stuff on slaves, we need to keep this
+    # from growing uncontrollably...
+    self._messages = [(arMasterSlaveDict.DUMMY_MESSAGE,0.,'foo')]
   def __setitem__(self, key, item):
     if not type(key) in arMasterSlaveDict.keyTypes:
       raise KeyError, 'arMasterSlaveDict keys must be Ints, Floats, or Strings.'
@@ -1091,12 +1094,15 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
   def draw( self, framework=None ):
     """ d.draw( framework=None ).
     Loops through the dictionary, checks each item for an attribute named 'draw'. If
-    an object has this attribute, it calls it, passing 'framework' as an argument.  """
+    an object has this attribute, it calls it, passing 'framework' as an argument if it is not None.  """
     for item in self.data.itervalues():
       if not hasattr( item, 'draw' ):
         continue
       drawMethod = getattr( item, 'draw' )
-      item.draw( framework )
+      if framework:
+        item.draw( framework )
+      else:
+        item.draw()
   def processInteraction( self, effector ):
     """ d.processInteraction( effector ).
     Handles interaction between an arEffector and the objects in the dictionary. This is
