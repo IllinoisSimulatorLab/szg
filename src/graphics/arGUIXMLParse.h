@@ -44,3 +44,4 @@ SZG_CALL int parseGUIXML( arGUIWindowManager* wm,
                           const std::string& config );
 
 #endif
+

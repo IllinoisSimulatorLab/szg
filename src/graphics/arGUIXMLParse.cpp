@@ -113,25 +113,25 @@ int configureScreen( arSZGClient& SZGClient, arGraphicsScreen& screen,
   TiXmlNode* screenElement = NULL;
 
   // <center x="float" y="float" z="float" />
-  if( screenElement = screenNode->FirstChild( "center" ) ) {
+  if( (screenElement = screenNode->FirstChild( "center" )) ) {
     arVector3 vec = AttributearVector3( screenElement );
     screen.setCenter( vec );
   }
 
   // <normal x="float" y="float" z="float" />
-  if( screenElement = screenNode->FirstChild( "normal" ) ) {
+  if( (screenElement = screenNode->FirstChild( "normal" )) ) {
     arVector3 vec = AttributearVector3( screenElement );
     screen.setNormal( vec );
   }
 
   // <up x="float" y="float" z="float" />
-  if( screenElement = screenNode->FirstChild( "up" ) ) {
+  if( (screenElement = screenNode->FirstChild( "up" )) ) {
     arVector3 vec = AttributearVector3( screenElement );
     screen.setUp( vec );
   }
 
   // <dim width="float" height="float" />
-  if( screenElement = screenNode->FirstChild( "dim" ) ) {
+  if( (screenElement = screenNode->FirstChild( "dim" )) ) {
     float dim[ 2 ] = { 0.0f };
     screenElement->ToElement()->Attribute( "width",  &dim[ 0 ] );
     screenElement->ToElement()->Attribute( "height", &dim[ 1 ] );
@@ -140,29 +140,29 @@ int configureScreen( arSZGClient& SZGClient, arGraphicsScreen& screen,
   }
 
   // <headmounted value="true|false|yes|no" />
-  if( screenElement = screenNode->FirstChild( "headmounted" ) ) {
+  if( (screenElement = screenNode->FirstChild( "headmounted" )) ) {
     screen.setHeadMounted( AttributeBool( screenElement ) );
   }
 
   // <tile tilex="integer" numtilesx="integer" tiley="integer" numtilesy="integer" />
-  if( screenElement = screenNode->FirstChild( "tile" ) ) {
+  if( (screenElement = screenNode->FirstChild( "tile" )) ) {
     arVector4 vec = AttributearVector4( screenElement, "tilex", "numtilesx", "tiley", "numtilesy" );
     screen.setTile( vec );
   }
 
   // <usefixedhead value="allow|always|ignore" />
-  if( screenElement = screenNode->FirstChild( "usefixedhead" ) ) {
+  if( (screenElement = screenNode->FirstChild( "usefixedhead" )) ) {
     screen.setUseFixedHeadMode( screenElement->ToElement()->Attribute( "value" ) );
   }
 
   // <fixedheadpos x="float" y="float" z="float" />
-  if( screenElement = screenNode->FirstChild( "fixedheadpos" ) ) {
+  if( (screenElement = screenNode->FirstChild( "fixedheadpos" )) ) {
     arVector3 vec = AttributearVector3( screenElement );
     screen.setFixedHeadPosition( vec );
   }
 
   // <fixedheadupangle value="float" />
-  if( screenElement = screenNode->FirstChild( "fixedheadupangle" ) ) {
+  if( (screenElement = screenNode->FirstChild( "fixedheadupangle" )) ) {
     float angle;
     screenElement->ToElement()->Attribute( "value", &angle );
 
@@ -180,7 +180,7 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
                            TiXmlNode* cameraNode )
 {
   // caller owns this and should delete it
-  arCamera* camera;
+  arCamera* camera = NULL;
 
   if( !cameraNode || !cameraNode->ToElement() ) {
     // not necessarily an error, the camera node could legitimately not exist
@@ -212,16 +212,17 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
 
   if( cameraType == "ortho" || cameraType == "perspective" ) {
     std::cout << "creating " << cameraType << " camera" << std::endl;
-    if( cameraType == "ortho" ) {
+    
+   if( cameraType == "ortho" ) {
       #define CAM_CAST( x ) ((arOrthoCamera*) x)
       camera = new arOrthoCamera();
     }
-    else if( cameraType== "perspective" ) {
+    else {
       #define CAM_CAST( x ) ((arPerspectiveCamera*) x)
       camera = new arPerspectiveCamera();
     }
 
-    if( cameraElement = cameraNode->FirstChild( "frustum" ) ) {
+    if( (cameraElement = cameraNode->FirstChild( "frustum" )) ) {
       float ortho[ 6 ] = { 0.0f };
       cameraElement->ToElement()->Attribute( "left",   &ortho[ 0 ] );
       cameraElement->ToElement()->Attribute( "right",  &ortho[ 1 ] );
@@ -233,7 +234,7 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
       CAM_CAST( camera )->setFrustum( ortho );
     }
 
-    if( cameraElement = cameraNode->FirstChild( "lookat" ) ) {
+    if( (cameraElement = cameraNode->FirstChild( "lookat" )) ) {
       float look[ 9 ] = { 0.0f };
       cameraElement->ToElement()->Attribute( "viewx",   &look[ 0 ] );
       cameraElement->ToElement()->Attribute( "viewy",   &look[ 1 ] );
@@ -248,12 +249,12 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
       CAM_CAST( camera )->setLook( look );
     }
 
-    if( cameraElement = cameraNode->FirstChild( "sides" ) ) {
+    if( (cameraElement = cameraNode->FirstChild( "sides" )) ) {
       arVector4 vec = AttributearVector4( cameraElement, "left", "right", "bottom", "sides" );
       CAM_CAST( camera )->setSides( vec );
     }
 
-    if( cameraElement = cameraNode->FirstChild( "clipping" ) ) {
+    if( (cameraElement = cameraNode->FirstChild( "clipping" )) ) {
       float planes[ 2 ] = { 0.0f };
       cameraElement->ToElement()->Attribute( "near", &planes[ 0 ] );
       cameraElement->ToElement()->Attribute( "far",  &planes[ 1 ] );
@@ -261,17 +262,17 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
       CAM_CAST( camera )->setNearFar( planes[ 0 ], planes[ 1 ] );
     }
 
-    if( cameraElement = cameraNode->FirstChild( "position" ) ) {
+    if( (cameraElement = cameraNode->FirstChild( "position" )) ) {
       arVector3 vec = AttributearVector3( cameraElement );
       CAM_CAST( camera )->setPosition( vec );
     }
 
-    if( cameraElement = cameraNode->FirstChild( "target" ) ) {
+    if( (cameraElement = cameraNode->FirstChild( "target" )) ) {
       arVector3 vec = AttributearVector3( cameraElement );
       CAM_CAST( camera )->setTarget( vec );
     }
 
-    if( cameraElement = cameraNode->FirstChild( "up" ) ) {
+    if( (cameraElement = cameraNode->FirstChild( "up" )) ) {
       arVector3 vec = AttributearVector3( cameraElement );
       CAM_CAST( camera )->setUp( vec );
     }
@@ -344,49 +345,49 @@ int parseGUIXML( arGUIWindowManager* wm,
     arGUIWindowConfig windowConfig;
 
     // <size width="integer" height="integer" />
-    if( windowElement = windowNode->FirstChild( "size" ) ) {
+    if( (windowElement = windowNode->FirstChild( "size" )) ) {
       windowElement->ToElement()->Attribute( "width",  &windowConfig._width );
       windowElement->ToElement()->Attribute( "height", &windowConfig._height );
     }
 
     // <position x="integer" y="integer" />
-    if( windowElement = windowNode->FirstChild( "position" ) ) {
+    if( (windowElement = windowNode->FirstChild( "position" )) ) {
       windowElement->ToElement()->Attribute( "x", &windowConfig._x );
       windowElement->ToElement()->Attribute( "y", &windowConfig._y );
     }
 
     // <fullscreen value="true|false|yes|no" />
-    if( windowElement = windowNode->FirstChild( "fullscreen" ) ) {
+    if( (windowElement = windowNode->FirstChild( "fullscreen" )) ) {
       windowConfig._fullscreen = AttributeBool( windowElement );
     }
 
     // <decorate value="true|false|yes|no" />
-    if( windowElement = windowNode->FirstChild( "decorate" ) ) {
+    if( (windowElement = windowNode->FirstChild( "decorate" )) ) {
       windowConfig._decorate = AttributeBool( windowElement );
     }
 
     // <stereo value="true|false|yes|no" />
-    if( windowElement = windowNode->FirstChild( "stereo" ) ) {
+    if( (windowElement = windowNode->FirstChild( "stereo" )) ) {
       windowConfig._stereo = AttributeBool( windowElement );
     }
 
     // <topmost value="true|false|yes|no" />
-    if( windowElement = windowNode->FirstChild( "topmost" ) ) {
+    if( (windowElement = windowNode->FirstChild( "topmost" )) ) {
       windowConfig._topmost = AttributeBool( windowElement );
     }
 
     // <bpp value="integer" />
-    if( windowElement = windowNode->FirstChild( "bpp" ) ) {
+    if( (windowElement = windowNode->FirstChild( "bpp" )) ) {
       windowElement->ToElement()->Attribute( "value", &windowConfig._bpp );
     }
 
     // <title value="string" />
-    if( windowElement = windowNode->FirstChild( "title" ) ) {
+    if( (windowElement = windowNode->FirstChild( "title" )) ) {
       windowConfig._title = windowElement->ToElement()->Attribute( "value" );
     }
 
     // <xdisplay value="string" />
-    if( windowElement = windowNode->FirstChild( "xdisplay" ) ) {
+    if( (windowElement = windowNode->FirstChild( "xdisplay" )) ) {
       windowConfig._XDisplay = windowElement->ToElement()->Attribute( "value" );
     }
 
@@ -595,3 +596,4 @@ int parseGUIXML( arGUIWindowManager* wm,
 
   return 0;
 }
+
