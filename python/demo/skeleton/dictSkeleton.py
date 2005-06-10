@@ -7,9 +7,9 @@ from OpenGL.GLUT import *
 #### More complex master/slave framework skeleton example. Demonstrates
 #### a method (based on the arMasterSlaveDict class in PySZG) for
 #### synchronizing a dictionary of identical objects between master and slaves.
-#### Now clicking & holding button #2 creates a new square that you
+#### Clicking & holding button #1 creates a new square that you
 #### can drag around until the button is released. Existing squares can
-#### be dragged with button 0 as before. Clicking button #1 deletes the
+#### be dragged with button #0. Clicking button #2 deletes the
 #### selected square. Clicking button #3 toggles it between solid and
 #### wireframe.
 
@@ -42,12 +42,19 @@ class ColoredSquare(arPyInteractable):
   # This will get called on each frame in which this object is selected for
   # interaction ('touched')
   def onProcessInteraction( self, effector ):
+    # button 2 deletes this square from the dictionary
+    if effector.getOnButton(2):
+      # For the moment, forceUngrab() is necessary. Otherwise, if we delete an
+      # object while dragging it, we can't interact with anything else (even
+      # though the dragged object disappears). This is a bug in the bindings that
+      # I still have to track down. Presumably the effector is holding a reference
+      # to the object, so it isn't being deleted, though it should be when you
+      # release button #0...?
+      effector.forceUngrab()
+      self._container.delValue(self)
     # button 3 toggles visibility (actually solid/wireframe)
     if effector.getOnButton(3):
       self.setVisible( not self.getVisible() )
-    # button 1 deletes this square from the dictionary
-    elif effector.getOnButton(1):
-      self._container.delValue(self)
 
   def draw( self, framework=None ):
     glPushMatrix()
@@ -94,13 +101,11 @@ class RodEffector( arEffector ):
     self.setInteractionSelector( arDistanceInteractionSelector(1.) )
 
     # set to grab an object (that has already been selected for interaction
-    # using rule specified on previous line) when button 0 or button 2
+    # using rule specified on previous line) when button 0 
     # is pressed and held. Button 0 will allow user to drag the object with orientation
-    # change, button 2 will allow dragging but square will maintain fixed orientation.
-    # The arGrabCondition specifies that a grab will occur whenever the value
-    # of the specified button event # is > 0.5.
+    # change. The arGrabCondition specifies that a grab will occur whenever the value
+    # of the specified button event is > 0.5.
     self.setDrag( arGrabCondition( AR_EVENT_BUTTON, 0, 0.5 ), arWandRelativeDrag() )
-    self.setDrag( arGrabCondition( AR_EVENT_BUTTON, 2, 0.5 ), arWandTranslationDrag(False) )
 
   def draw(self):
     glPushMatrix()
@@ -135,7 +140,7 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     # See arMasterSlaveDict.__doc__ for more information.
     # Note that you can have multiple arMasterSlaveDicts with different names in one
     # application, if desired.
-    self.dictionary = arMasterSlaveDict( 'objects', {'ColoredSquare':ColoredSquare} )
+    self.dictionary = arMasterSlaveDict( 'objects', [('ColoredSquare',ColoredSquare)] )
 
     # Create a square
     theSquare = ColoredSquare( self.dictionary )
@@ -158,6 +163,9 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     farClipDistance = 100.*FEET_TO_LOCAL_UNITS
     self.setClipPlanes( nearClipDistance, farClipDistance )
 
+
+  def newSquare( self ):
+    return ColoredSquare()
 
   #### Framework callbacks -- see szg/src/framework/arMasterSlaveFramework.h ####
 
@@ -202,12 +210,11 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     # update the input state (placement matrix & button states) of our effector.
     self.theWand.updateState( self.getInputState() )
 
-    # create a new square, grab it, and add it to the dictionary
-    if self.theWand.getOnButton(2):
+    # create a new square and add it to the dictionary
+    if self.theWand.getOnButton(1):
       self.theWand.forceUngrab()
       theSquare = ColoredSquare( self.dictionary )
       theSquare.setMatrix( self.theWand.getMatrix() )
-      self.theWand.requestGrab( theSquare )
       self.dictionary.push( theSquare )
 
     # Handle any interaction with the squares (see interaction docs).

@@ -54,7 +54,6 @@ bool ar_pollingInteraction( arEffector& effector,
       // If it's grabbed an object in this set, interact only with it.
       return (*grabbedIter)->processInteraction( effector );
     } 
-    // Ungrab it. HOW STRANGE! THIS DOESN'T DO ANYTHING!
   }
   // Figure out the closest interactable to the effector (as determined
   // by their matrices). Go ahead and touch it (while untouching the

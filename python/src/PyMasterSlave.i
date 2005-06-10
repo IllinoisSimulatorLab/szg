@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.7 2005/06/09 18:21:40 crowell Exp $
+// $Id: PyMasterSlave.i,v 1.8 2005/06/10 15:26:59 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -959,35 +959,71 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
     'name' should be a string. This is used by the master/slave framework sequence data transfer
     methods, e.g. framework.initSequenceTransfer (called in the this class' start() method).
 
-    'classData' establishes a mapping between a string and a class factory. You have to provide an
-    entry for each class of object that you intent to insert in this container.
-    classData should be a dictionary with string keys and class factory values. The
-    keys would generally be the names of the classes in quotes, but they don't have to be. A class
-    factory can be any type of callable object that, when called with no arguments, returns an
-    instance of the desired class; in the simplest case, it would be the class itself. Take three examples:
+    'classData' establishes a mapping between a string, a class, and a class factory. It is
+    used for two functions: First, whenever you try to insert an object into the arMasterSlaveDict,
+    it is checked against the set of classes that you have provided; if not present, TypeError
+    is raised. Second, if you insert an object into the dictionary in the master instance of
+    your application, it is used to construct an instance of the same class in the slaves.
+    You have to provide an entry for each class of object that you intent to insert
+    in this container.  classData can be either a list or a tuple. Each item must be a tuple
+    containing either 2 or 3 items. The first item must be a string; typically, it should be
+    the name of the class in quotes. The second item should be an unambiguous reference to the
+    class object (see below for examples). The third, optional item should be a reference to a
+    callable object that takes no parameters and returns an object of the specified class
+    (a 'class factory'). If the class factory item is not presented, then the class itself will
+    be used as the factory; it will be called without arguments (again, see below), so the class
+    must provide a zero-argument constructor. Take three examples:
 
-    1) You've defined class Foo in module Bar and imported it using 'from Bar import *'. Now  the class object
-    Foo is in the global namespace. So you could call
-    self.dict = arMasterSlaveDict( 'mydict', {'Foo':Foo} ).
+    1) You've defined class Foo, either in the current file or in a module Bar that youve imported
+    using 'from Bar import *'. Now  the class object Foo is in the global namespace. So you could call
+    self.dict = arMasterSlaveDict( 'mydict', [('Foo',Foo)] ).
+    In this case, inserted objects are type-checked against the type of Foo and the class itself is
+    used as the factory, i.e. Foo() is called to generate new instances in the slaves.
 
     2) You've defined class Foo in module Bar and imported it using 'import Bar'. Now Foo is not in the
     global namespace, it's in the Bar namespace. So you would call
-    self.dict = arMasterSlaveDict( 'mydict', {'Foo':Bar.Foo} ).
+    self.dict = arMasterSlaveDict( 'mydict', [('Foo',Bar.Foo)] ).
+    Now, objects you insert are type-checked agains Bar.Foo and Bar.Foo() is called to create new
+    instances in the slaves.
 
     3) You want to pass a parameter to the constructor of Foo, e.g. a reference to the framework object.
     So you define a framework method newFoo():
 
     def newFoo(self): return Foo(self)
 
-    and call self.dict = arMasterSlaveDict( 'mydict', {'Foo':self.newFoo} ).
+    and call self.dict = arMasterSlaveDict( 'mydict', [('Foo',Foo,self.newFoo)] ).
+    Now inserted objects are type-checked against Foo and framework.newFoo() is called to generate
+    new instances in slaves.
     """
     UserDict.IterableUserDict.__init__(self)
+    import types
     self._name = name
+    self._classFactoryDict = {}
     self._classDict = {}
-    if type(classData) == type({}):
-      self._classDict = classData
-    else:
-      raise TypeError, 'arMasterSlaveDict() error: classData parameter must be a dictionary.'
+    if type(classData) != types.TupleType and type(classData) != types.ListType:
+      raise TypeError, 'arMasterSlaveDict() error: classData parameter must be a list or tuple.'
+    for item in classData:
+      if type(item) != types.TupleType:
+        raise TypeError, 'arMasterSlaveDict() error: each item of classData must be a tuple.'
+      if len(item) < 2 or len(item) > 3:
+        raise TypeError, 'arMasterSlaveDict() error: each item of classData must contain 2 or 3 elements.'
+      className = item[0]
+      classRef = item[1]
+      if len(item) == 3:
+        classFactory = item[2]
+      else:
+        classFactory = classRef
+      if type(className) != types.StringType:
+        raise TypeError, 'arMasterSlaveDict(): each item of classData must be of the form '+ \
+            '( classNameString, class [, class factory] ) (classNameString error)'
+      if type(classRef) != types.ClassType and type(classRef) != types.TypeType:
+        raise TypeError, 'arMasterSlaveDict(): each item of classData must be of the form '+ \
+            '( classNameString, class [, class factory] ) (classRef error)'
+      if not callable( classFactory ):
+        raise TypeError, 'arMasterSlaveDict(): each item of classData must be of the form '+ \
+            '( classNameString, class [, class factory] ) (class factory error)'
+      self._classFactoryDict[className] = classFactory
+      self._classDict[classRef] = className
     self._messages = [(arMasterSlaveDict.DUMMY_MESSAGE,0.,'foo')]
     self.pushKey = 0
   def start( self, framework ):  # call in framework onStart() method or start callback
@@ -1036,7 +1072,7 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
       elif messageType == arMasterSlaveDict.CONSTRUCT_MESSAGE:
         key = messageParam[0]
         className = messageParam[1]
-        classFactory = self._classDict[className]
+        classFactory = self._classFactoryDict[className]
         self.data[key] = classFactory()
       elif messageType == arMasterSlaveDict.DESTRUCT_MESSAGE:
         key = messageParam
@@ -1044,24 +1080,25 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
     # If someones been adding and deleting stuff on slaves, we need to keep this
     # from growing uncontrollably...
     self._messages = [(arMasterSlaveDict.DUMMY_MESSAGE,0.,'foo')]
-  def __setitem__(self, key, item):
+  def __setitem__(self, key, newItem):
     if not type(key) in arMasterSlaveDict.keyTypes:
       raise KeyError, 'arMasterSlaveDict keys must be Ints, Floats, or Strings.'
+    className = None
+    newType = type(newItem)
+    for item in self._classDict.iteritems():
+      if item[0] == newType:
+        className = item[1]
+        break
+    if not className:
+      raise TypeError, 'arMasterSlaveDict error: non-registered type '+str(newType)+' in __setitem__().'
     if self.has_key(key):
-      if type(self.data[key]) == type(item):
-        self.data[key] = item
+      if type(self.data[key]) == newType:
+        self.data[key] = newItem
         return
       else:
         del self[key]
-    theType = type(item)
-    className = None
-    for classKey in self._classDict:
-      if self._classDict[classKey] == theType:
-        className = classKey
-    if not className:
-      raise TypeError, 'arMasterSlaveDict: class '+theType+' not recognized.'
+    self.data[key] = newItem
     self._messages.append( (arMasterSlaveDict.CONSTRUCT_MESSAGE, (key, className))  )
-    self.data[key] = item
   def __delitem__( self, key ):
     self._messages.append( (arMasterSlaveDict.DESTRUCT_MESSAGE, key) )
     del self.data[key]
@@ -1152,7 +1189,6 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
     # Finally, and most importantly, process the action of the effector on
     # the interactable.
     return touchedObject.processInteraction( effector )
-
 
 
 # Auto-resizeable container for identical drawable objects.
