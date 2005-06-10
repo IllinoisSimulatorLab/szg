@@ -132,3 +132,19 @@ class arOBJ : public arObject{
   inline void attachGroup(int g, const string& p){attachGroup(g, _name, p);}
 
 };
+
+class ar3DS : public arObject{
+  public:
+
+    ar3DS();
+    ~ar3DS();
+
+    bool read3DS(char* fileName);
+    void normalizeModelSize();
+    bool normalizationMatrix(arMatrix4 &theMatrix);
+
+    void attachMesh(const string& baseName, const string& where);
+    void attachMesh(const string& baseName, arGraphicsNode* parent);
+};
+
+

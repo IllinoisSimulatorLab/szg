@@ -184,12 +184,17 @@ uses a default name of "NULL".
   </pre>
 
   <pre>
-  daddinterface type name address
+  daddinterface name address [netmask]
 
-  Adds an interface to szg.conf file with the given type/name/address.
-  If the environment variable SZG_CONF is not set (or is set to "NULL")
-  a default location is used, which depends on the host operating system.
-  Otherwise, SZG_CONF gives the directory where szg.conf will be written.
+  Adds an interface to szg.conf file with the given name, IP address, and
+  (optionally) netmask. The name is descriptive (like "internet") can is
+  meant to uniquely identify a network. IP address alone cannot do this
+  because of private networks like 192.168.0.*. The network's netmask can
+  also be given (the default is 255.255.255.0) so that Syzygy's broadcast
+  system for szgserver discovery will work correctly. If the environment 
+  variable SZG_CONF is not set (or is set to "NULL") a default location is 
+  used, which depends on the host operating system. Otherwise, SZG_CONF gives 
+  the directory where szg.conf will be written.
   </pre>
 
   <pre>

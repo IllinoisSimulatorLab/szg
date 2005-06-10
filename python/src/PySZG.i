@@ -1,4 +1,4 @@
-// $Id: PySZG.i,v 1.3 2005/05/26 18:38:52 crowell Exp $
+// $Id: PySZG.i,v 1.4 2005/06/09 22:36:04 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -34,8 +34,8 @@
 #include "arGraphicsAPI.h"
 #include "arGraphicsHeader.h"
 #include "arMesh.h"
-#include "arObject.h"
 #include "arOBJ.h"
+#include "ar3DS.h"
 #include "arInputNode.h"
 #include "arInterfaceObject.h"
 #include "arDistSceneGraphFramework.h"
