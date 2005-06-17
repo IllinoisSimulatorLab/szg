@@ -144,48 +144,50 @@ arMatrix4 operator!(const arMatrix4& in) {
   return in.inverse();
 }
 
-/// \bug correct only up to a rotation around a particular axis
 arMatrix4::operator arQuaternion() const {
   const float trace = v[0]+v[5]+v[10]+1.;
   if (trace > 1e-8) {
     const float scale = 0.5 / sqrt(trace);
-    return arQuaternion( 0.25/scale, (v[6]-v[9])*scale, (v[8]-v[2])*scale, (v[1]-v[4])*scale );
+    return arQuaternion( 0.25/scale, 
+                         (v[6]-v[9])*scale, 
+                         (v[8]-v[2])*scale, 
+                         (v[1]-v[4])*scale );
   }
 
   if ((v[0]>v[5])&&(v[0]>v[10]))  {	// Column 0:
-    /// \bug division by zero
+    if (1.+v[0]-v[5]-v[10] <= 0){
+      // Error.
+      return arQuaternion(0,0,0,1);
+    }
     const float scale  = 0.5/sqrt( 1.+v[0]-v[5]-v[10] ) ;
-    return arQuaternion( (v[6]-v[9])*scale, 0.25/scale, (v[1]+v[4])*scale, (v[8]+v[2])*scale );
+    return arQuaternion( (v[6]-v[9])*scale, 
+                          0.25/scale, 
+                          (v[1]+v[4])*scale, 
+                          (v[8]+v[2])*scale );
   }
 
   if ( v[5] > v[10] ) {			// Column 1:
-    /// \bug division by zero
+    if (1.+v[5]-v[0]-v[10] <= 0){
+      // Error
+      return arQuaternion(0,0,0,1);
+    }
     const float scale = 0.5/sqrt( 1.+v[5]-v[0]-v[10] );
-    return arQuaternion( (v[8]-v[2] )*scale, (v[1]+v[4] )*scale, 0.25/scale, (v[6]+v[9] )*scale );
-  } 					// Column 2:
-
-  /// \bug division by zero
+    return arQuaternion( (v[8]-v[2] )*scale, 
+                         (v[1]+v[4] )*scale, 
+                         0.25/scale, 
+                         (v[6]+v[9] )*scale );
+  } 				      
+  // Column 2
+  if (1.+v[10]-v[0]-v[5] <= 0){
+    // Error
+    return arQuaternion(0,0,0,1);
+  }
   const float scale = 0.5/sqrt( 1.+v[10]-v[0]-v[5] );
-  return arQuaternion( (v[1]-v[4])*scale, (v[8]+v[2])*scale, (v[6]+v[9])*scale, 0.25/scale );
+  return arQuaternion( (v[1]-v[4])*scale, 
+                       (v[8]+v[2])*scale, 
+                       (v[6]+v[9])*scale, 
+                       0.25/scale );
 
-//  arQuaternion result;
-//  const arVector3 ZAxis(0,0,1);
-//  arVector3 inVect(0,0,1);
-//  arVector3 outVect((*this) * inVect);
-//  if ( ++(outVect * ZAxis) > 0.01){
-//    float theAngle = asin( ++(outVect*ZAxis) );
-//    result.real = cos(2*theAngle);
-//    result.pure = sin(2*theAngle) * (outVect*ZAxis) / ++(outVect*ZAxis);
-//  }
-//  else{
-//    const arVector3 YAxis(0,1,0);
-//    inVect.set(0,1,0);
-//    outVect = (*this) * inVect;
-//    float theAngle = asin( ++(outVect*YAxis) );
-//    result.real = cos(2*theAngle);
-//    result.pure = sin(2*theAngle) * (outVect*YAxis) / ++(outVect*YAxis);
-//  }
-//  return result;
 }
 
 ostream& operator<<(ostream& os, const arMatrix4& x){

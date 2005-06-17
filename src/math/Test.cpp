@@ -342,6 +342,17 @@ int main(){
     }
   }
 
+  // Test quaternion/matrix conversions
+  cout << "Testing quaternion/matrix conversions\n";
+  arQuaternion testQ = eulerTestMatrix1;
+  arMatrix4 newTest = testQ;
+  for (i=0; i<16; i++){
+    if (fabs(eulerTestMatrix1[i]-newTest[i]) > epsilon){
+      cout << "FAILED: quaternion/matrix conversion.\n";
+      break;
+    }
+  }
+
   // Let's do some speed tests now...
   arMatrix4* mm = new arMatrix4[10000];
   arMatrix4* am = new arMatrix4[10000];
