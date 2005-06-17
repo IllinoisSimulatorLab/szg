@@ -1,5 +1,45 @@
 <szg_config>
 
+<comment>
+This PForth program will operate on info coming from a Saitek Wireless
+gamepad on Windows and turn it into something that landspeeder can deal
+with. This program is a special-case in that it is for gamepad control only...
+no sensors.
+</comment>
+
+<param>
+  <name> filter_saitek_wireless </name>
+  <value>
+    matrix temp
+    0 5 0 temp translationMatrix
+    define filter_axis_0
+      getCurrentEventAxis 0.000031 * setCurrentEventAxis
+    enddef
+    define filter_axis_1
+      temp 0 insertMatrixEvent
+      getCurrentEventAxis -0.000031 * setCurrentEventAxis
+    enddef
+    define filter_axis_6
+      getCurrentEventAxis -32768 + -0.000031 *
+      deleteCurrentEvent
+      3
+      insertAxisEvent
+    enddef
+    define filter_axis_5
+      getCurrentEventAxis -32768 + 0.000031 *
+      deleteCurrentEvent
+      2
+      insertAxisEvent
+    enddef
+    define filter_button_4
+      deleteCurrentEvent
+    enddef
+    define filter_button_3
+      deleteCurrentEvent
+    enddef
+  </value>
+</param>
+
 <param>
 <name>double_window</name>
 <value>
@@ -371,6 +411,7 @@ smoke SZG_SCREEN0 screen_center 0/5/-5
 smoke SZG_SCREEN0 screen_dim 10/10
 smoke SZG_SCREEN0 screen_normal 0/0/-1
 smoke SZG_SCREEN0 screen_up 0/1/0
+smoke SZG_SCREEN0 head_mounted false
 
 smoke SZG_SCREEN1 size 640/480
 smoke SZG_SCREEN1 position 0/0
@@ -379,6 +420,7 @@ smoke SZG_SCREEN1 screen_center 0/5/-5
 smoke SZG_SCREEN1 screen_dim 10/10
 smoke SZG_SCREEN1 screen_normal 0/0/-1
 smoke SZG_SCREEN1 screen_up 0/1/0
+smoke SZG_SCREEN1 head_mounted false
 
 smoke SZG_SCREEN2 size 640/480
 smoke SZG_SCREEN2 position 652/0
@@ -387,6 +429,7 @@ smoke SZG_SCREEN2 screen_center 0/5/-5
 smoke SZG_SCREEN2 screen_dim 10/10
 smoke SZG_SCREEN2 screen_normal 0/0/-1
 smoke SZG_SCREEN2 screen_up 0/1/0
+smoke SZG_SCREEN2 head_mounted false
 
 smoke SZG_SCREEN3 size 640/480
 smoke SZG_SCREEN3 position 0/505
@@ -395,6 +438,7 @@ smoke SZG_SCREEN3 screen_center 0/5/-5
 smoke SZG_SCREEN3 screen_dim 10/10
 smoke SZG_SCREEN3 screen_normal 0/0/-1
 smoke SZG_SCREEN3 screen_up 0/1/0
+smoke SZG_SCREEN3 head_mounted false
 
 smoke SZG_SCREEN4 size 640/480
 smoke SZG_SCREEN4 position 652/505
@@ -403,6 +447,7 @@ smoke SZG_SCREEN4 screen_center 0/5/-5
 smoke SZG_SCREEN4 screen_dim 10/10
 smoke SZG_SCREEN4 screen_normal 0/0/-1
 smoke SZG_SCREEN4 screen_up 0/1/0
+smoke SZG_SCREEN4 head_mounted false
 
 wall1 SZG_SCREEN0 size 0/0
 wall1 SZG_SCREEN0 tile 0/3/1/2
@@ -410,6 +455,7 @@ wall1 SZG_SCREEN0 screen_center 0/5/-5
 wall1 SZG_SCREEN0 screen_dim 15/10
 wall1 SZG_SCREEN0 screen_normal 0/0/-1
 wall1 SZG_SCREEN0 screen_up 0/1/0
+wall1 SZG_SCREEN0 head_mounted false
 
 wall2 SZG_SCREEN0 size 0/0
 wall2 SZG_SCREEN0 tile 1/3/1/2
@@ -417,6 +463,7 @@ wall2 SZG_SCREEN0 screen_center 0/5/-5
 wall2 SZG_SCREEN0 screen_dim 15/10
 wall2 SZG_SCREEN0 screen_normal 0/0/-1
 wall2 SZG_SCREEN0 screen_up 0/1/0
+wall2 SZG_SCREEN0 head_mounted false
 
 wall3 SZG_SCREEN0 size 0/0
 wall3 SZG_SCREEN0 tile 2/3/1/2
@@ -424,6 +471,7 @@ wall3 SZG_SCREEN0 screen_center 0/5/-5
 wall3 SZG_SCREEN0 screen_dim 15/10
 wall3 SZG_SCREEN0 screen_normal 0/0/-1
 wall3 SZG_SCREEN0 screen_up 0/1/0
+wall3 SZG_SCREEN0 head_mounted false
 
 wall4 SZG_SCREEN0 size 0/0
 wall4 SZG_SCREEN0 tile 0/3/0/2
@@ -431,6 +479,7 @@ wall4 SZG_SCREEN0 screen_center 0/5/-5
 wall4 SZG_SCREEN0 screen_dim 15/10
 wall4 SZG_SCREEN0 screen_normal 0/0/-1
 wall4 SZG_SCREEN0 screen_up 0/1/0
+wall4 SZG_SCREEN0 head_mounted false
 
 spirit SZG_SCREEN0 size 0/0
 spirit SZG_SCREEN0 tile 1/3/0/2
@@ -438,6 +487,7 @@ spirit SZG_SCREEN0 screen_center 0/5/-5
 spirit SZG_SCREEN0 screen_dim 15/10
 spirit SZG_SCREEN0 screen_normal 0/0/-1
 spirit SZG_SCREEN0 screen_up 0/1/0
+spirit SZG_SCREEN0 head_mounted false
 
 hank7 SZG_SCREEN0 size 0/0
 hank7 SZG_SCREEN0 tile 2/3/0/2
@@ -445,6 +495,7 @@ hank7 SZG_SCREEN0 screen_center 0/5/-5
 hank7 SZG_SCREEN0 screen_dim 15/10
 hank7 SZG_SCREEN0 screen_normal 0/0/-1
 hank7 SZG_SCREEN0 screen_up 0/1/0
+hank7 SZG_SCREEN0 head_mounted false
 
 2toph SZG_SCREEN0 size 0/0
 2toph SZG_SCREEN0 tile 0/1/0/1
@@ -452,6 +503,7 @@ hank7 SZG_SCREEN0 screen_up 0/1/0
 2toph SZG_SCREEN0 screen_dim 10/10
 2toph SZG_SCREEN0 screen_normal 0/0/-1
 2toph SZG_SCREEN0 screen_up 0/1/0
+2toph SZG_SCREEN0 head_mounted false
 
 cube6 SZG_SCREEN0 size 0/0
 cube6 SZG_SCREEN0 tile 0/1/0/1
@@ -460,6 +512,7 @@ cube6 SZG_SCREEN0 screen_dim 10/10
 cube6 SZG_SCREEN0 screen_normal 0/0/-1
 cube6 SZG_SCREEN0 screen_up 0/1/0
 cube6 SZG_SCREEN0 stereo true
+cube6 SZG_SCREEN0 head_mounted false
 
 gm4 SZG_SCREEN0 size 0/0
 gm4 SZG_SCREEN0 tile 0/1/0/1
@@ -483,6 +536,7 @@ road1 SZG_PFORTH program_names filter_passive_tracker
 2bottomh SZG_SCREEN0 screen_dim 10/10
 2bottomh SZG_SCREEN0 screen_normal 0/0/-1
 2bottomh SZG_SCREEN0 screen_up 0/1/0
+2bottomh SZG_SCREEN0 head_mounted false
 
 2northh  SZG_SCREEN0 size 640/480
 2northh  SZG_SCREEN0 tile 0/1/0/1
@@ -490,6 +544,7 @@ road1 SZG_PFORTH program_names filter_passive_tracker
 2northh  SZG_SCREEN0 screen_dim 10/10
 2northh  SZG_SCREEN0 screen_normal 0/0/-1
 2northh  SZG_SCREEN0 screen_up 0/1/0
+2northh  SZG_SCREEN0 head_mounted false
 
 2easth   SZG_SCREEN0 size 640/480
 2easth   SZG_SCREEN0 tile 0/1/0/1
@@ -497,6 +552,7 @@ road1 SZG_PFORTH program_names filter_passive_tracker
 2easth   SZG_SCREEN0 screen_dim 10/10
 2easth   SZG_SCREEN0 screen_normal 0/0/-1
 2easth   SZG_SCREEN0 screen_up 0/1/0
+2easth   SZG_SCREEN0 head_mounted false
 
 isl2     SZG_SCREEN0 size 640/480
 isl2     SZG_SCREEN0 tile 0/1/0/1
@@ -504,6 +560,7 @@ isl2     SZG_SCREEN0 screen_center 0/5/-5
 isl2     SZG_SCREEN0 screen_dim 10/10
 isl2     SZG_SCREEN0 screen_normal 0/0/-1
 isl2     SZG_SCREEN0 screen_up 0/1/0
+isl2     SZG_SCREEN0 head_mounted false
 </assign>
 </szg_config>
 

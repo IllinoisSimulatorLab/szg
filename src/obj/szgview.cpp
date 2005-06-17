@@ -584,6 +584,9 @@ int main( int argc, char** argv )
   /* Useful for debugging */
   // theDatabase->prettyDump();
 
+  // FIXME: The window manager is *always* single threaded here.
+  // This might not really make sense for computers with mutliple graphics
+  // cards.
   wm = new arGUIWindowManager( windowCB, keyboardCB, mouseCB, true );
 
   // set up the head we'll use throughout
