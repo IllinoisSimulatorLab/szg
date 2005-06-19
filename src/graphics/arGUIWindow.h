@@ -53,13 +53,16 @@
   // fullscreen and non-fullscreen windows easier, plus it's just plain not
   // supported on many platforms
 
+  #include <X11/Xlib.h>
+  #include <X11/cursorfont.h>
+
   #if defined( AR_USE_LINUX ) || defined( AR_USE_SGI )
 
     #undef HAVE_X11_EXTENSIONS
 
-    #include <GL/glx.h>
     #include <GL/gl.h>
     #include <GL/glu.h>
+    #include <GL/glx.h>
 
     #ifdef HAVE_X11_EXTENSIONS
       #include <X11/extensions/xf86vmode.h>
@@ -80,12 +83,16 @@
     #include <OpenGL/gl.h>
     #include <OpenGL/glu.h>
     #include <GL/glx.h>
-    #include <X11/Xlib.h>
 
     #ifdef HAVE_X11_EXTENSIONS
       #include <X11/extensions/xf86vmode.h>
     #endif
   #endif
+
+  typedef struct {
+    unsigned int cursorShape;    ///< an XC_{cursor} value
+    Cursor cachedCursor;         ///< None if the corresponding cursor has not been created yet
+  } cursorCacheEntry;
 
   typedef struct {
     Display*   _dpy;
@@ -410,7 +417,7 @@ class SZG_CALL arGUIWindow
      *                     requests.
      */
     arGUIWindow( int ID, arGUIWindowConfig windowConfig,
-                 arGUIRenderCallback* drawCallback = NULL );
+                 void (*windowInitGLCallback)( arGUIWindowInfo* windowInfo ) = NULL );
 
    /**
      * The arGUIWindow destructor
@@ -434,7 +441,7 @@ class SZG_CALL arGUIWindow
      * @param drawCallback The user-defined function to be called on draw
      *                     requests.
      */
-    void registerDrawCallback( arGUIRenderCallback* drawCallback = NULL );
+    void registerDrawCallback( arGUIRenderCallback* drawCallback );
 
     /**
      * Create a new window inside a new thread and start event processing.
@@ -617,17 +624,14 @@ class SZG_CALL arGUIWindow
      */
     void decorate( const bool decorate );
 
-    //@{
     /**
-     * @name Cursor state accessors.
+     * Set the state of the window's cursor
      *
-     * Access cursor state.
+     * @param cursor The new cursor state.
      *
-     * @todo Actually implement different cursors states for the window.
+     * @todo implement more cursor states.
      */
-    void setCursorState( arGUICursorState );
-    arGUICursorState getCursorState( void ) const;
-    //@}
+    arCursor setCursor( arCursor cursor );
 
     //@{
     /**
@@ -662,6 +666,8 @@ class SZG_CALL arGUIWindow
     bool running( void ) const { return _running; }
     bool eventsPending( void ) const;
 
+    arCursor getCursor( void ) const { return _cursor; }
+
     const arGUIWindowHandle& getWindowHandle( void ) const { return _windowHandle; }
 
     const arGUIWindowConfig& getWindowConfig( void ) const { return _windowConfig; }
@@ -678,6 +684,11 @@ class SZG_CALL arGUIWindow
      *       exposing the pointer, as it cannot even be returned as const.
      */
     arGUIEventManager* getGUIEventManager( void ) const {  return _GUIEventManager; }
+
+    void useWildcatFramelock( bool isOn );
+    void findWildcatFramelock( void );
+    void activateWildcatFramelock( void );
+    void deactivateWildcatFramelock( void );
 
   private:
 
@@ -827,8 +838,6 @@ class SZG_CALL arGUIWindow
      */
     virtual void _drawHandler( void );
 
-    arGUIRenderCallback* _drawCallback;         ///< The user-defined draw callback.
-
     int _ID;                                    ///< A unique identifier for this window.
     string _className;                          ///< Registered class for this window (Win32 only)
 
@@ -838,12 +847,17 @@ class SZG_CALL arGUIWindow
 
     arThread _windowEventThread;                ///< Thread in which the window exists in multi-threaded mode
 
+    arGUIRenderCallback* _drawCallback;         ///< The user-defined draw callback.
+    void (*_windowInitGLCallback)( arGUIWindowInfo* );      ///< The user-defined window opengl initialization callback.
+
     bool _visible;                              ///< Is the window currently visible?
     bool _running;                              ///< Is the window currently running?
     bool _threaded;                             ///< Is the window in threaded or non-threaded mode?
     bool _fullscreen;                           ///< Is the window currently in fullscreen mode?
     bool _topmost;                              ///< Is the window currently topmost?
     bool _decorate;                             ///< Is the window currently decorated?
+
+    arCursor _cursor;                           ///< The current window cursor.
 
     ar_timeval _lastFrameTime;                  ///< For framerate throttling
 

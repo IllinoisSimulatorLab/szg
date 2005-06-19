@@ -14,6 +14,7 @@
 
 #include "arStructuredData.h"
 #include "arDataUtilities.h"
+#include "arWildcatUtilities.h"
 
 #include "arGUIEventManager.h"
 #include "arGUIInfo.h"
@@ -28,11 +29,9 @@ void arDefaultGUIRenderCallback::operator()( arGUIWindowInfo* windowInfo ) {
 }
 
 void arDefaultGUIRenderCallback::operator()( arGraphicsWindow&, arViewport& ) {
-  if( !_drawCallback ) {
-    return;
+  if( _drawCallback ) {
+    _drawCallback( NULL );
   }
-
-  _drawCallback( NULL );
 }
 
 arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height, int bpp, int hz,
@@ -162,16 +161,18 @@ int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const 
   return 0;
 }
 
-arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig, arGUIRenderCallback* drawCallback ) :
-  _drawCallback( drawCallback ),
+arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig, void (*windowInitGLCallback)( arGUIWindowInfo* ) ) :
   _ID( ID ),
   _windowConfig( windowConfig ),
+  _drawCallback( NULL ),
+  _windowInitGLCallback( windowInitGLCallback ),
   _visible( false ),
   _running( false ),
   _threaded( false ),
   _fullscreen( false ),
   _topmost( false ),
   _decorate( true ),
+  _cursor( AR_CURSOR_ARROW ),
   _creationFlag( false ),
   _destructionFlag( false )
 {
@@ -510,6 +511,10 @@ int arGUIWindow::_processWMEvents( void )
         decorate( wmEvent->_event._flag == 1 );
       break;
 
+      case AR_WINDOW_CURSOR:
+        setCursor( arCursor( wmEvent->_event._flag ) );
+      break;
+
       case AR_WINDOW_CLOSE:
         if( _running ) {
           if( _killWindow() < 0 ) {
@@ -551,7 +556,8 @@ int arGUIWindow::_performWindowCreation( void )
     return -1;
   }
 
-  InitGL( getWidth(), getHeight() );
+  // taken care of by the windowInitGL callback now
+  // InitGL( getWidth(), getHeight() );
 
   // tell anyone listening that the window has been successfully created
   // and initialized
@@ -983,6 +989,14 @@ int arGUIWindow::_setupWindowCreation( void )
 
 int arGUIWindow::_tearDownWindowCreation( void )
 {
+  // now that the window is created, perform any necessary user-defined opengl
+  // initialization.
+  if( _windowInitGLCallback ) {
+    arGUIWindowInfo* windowInfo = new arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_INITGL, _ID );
+    _windowInitGLCallback( windowInfo );
+    delete windowInfo;
+  }
+
   #if defined( AR_USE_WIN_32 )
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
@@ -1474,6 +1488,115 @@ int arGUIWindow::move( int newX, int newY )
   return 0;
 }
 
+arCursor arGUIWindow::setCursor( arCursor cursor )
+{
+  if( !_running ) {
+    return _cursor;
+  }
+
+  // FIXME: must be a better way to check for valid cursor....
+  switch( cursor ) {
+    case AR_CURSOR_ARROW:
+    case AR_CURSOR_WAIT:
+    case AR_CURSOR_HELP:
+    case AR_CURSOR_NONE:
+    break;
+
+    default:
+      // print error?
+      return _cursor;
+    break;
+  }
+
+  #if defined( AR_USE_WIN_32 )
+
+  static LPSTR cursorCache[] = { IDC_ARROW, IDC_HELP, IDC_WAIT };
+
+  switch( cursor ) {
+    case AR_CURSOR_NONE:
+      SetCursor( NULL );
+      SetClassLong( _windowHandle._hWnd, GCL_HCURSOR, (LONG) NULL );
+    break;
+
+    case AR_CURSOR_ARROW:
+    case AR_CURSOR_HELP:
+    case AR_CURSOR_WAIT:
+      SetCursor( LoadCursor( NULL, cursorCache[ cursor ] ) );
+      SetClassLong( _windowHandle._hWnd, GCL_HCURSOR, (LONG) LoadCursor( NULL, cursorCache[ cursor ] ) );
+    break;
+  }
+
+  _cursor = cursor;
+
+  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+
+  static cursorCacheEntry cursorCache[] = {
+    { XC_arrow,           None },
+    { XC_question_arrow,  None },
+    { XC_watch,           None } };
+
+  static Cursor cursorNone = None;
+
+  Cursor XCursor;
+
+  switch( cursor ) {
+    case AR_CURSOR_NONE:
+    {
+      if( cursorNone == None ) {
+        char cursorNoneBits[ 32 ];
+        XColor dontCare;
+        Pixmap cursorNonePixmap;
+
+        memset( cursorNoneBits, 0, sizeof( cursorNoneBits ) );
+        memset( &dontCare, 0, sizeof( dontCare ) );
+
+        cursorNonePixmap = XCreateBitmapFromData( _windowHandle._dpy, _windowHandle._root,
+                                                  cursorNoneBits, 16, 16 );
+        if( cursorNonePixmap == None ) {
+          std::cerr << "Could not create AR_CURSOR_NONE" << std::endl;
+          return _cursor;
+        }
+
+        cursorNone = XCreatePixmapCursor( _windowHandle._dpy,
+                                          cursorNonePixmap, cursorNonePixmap,
+                                          &dontCare, &dontCare, 0, 0 );
+
+        XFreePixmap( _windowHandle._dpy, cursorNonePixmap );
+      }
+
+      XCursor = cursorNone;
+    }
+    break;
+
+    case AR_CURSOR_ARROW:
+    case AR_CURSOR_WAIT:
+    case AR_CURSOR_HELP:
+    {
+      cursorCacheEntry* entry = &cursorCache[ cursor ];
+
+      if( entry->cachedCursor == None ) {
+        entry->cachedCursor = XCreateFontCursor( _windowHandle._dpy, entry->cursorShape );
+      }
+
+      XCursor = entry->cachedCursor;
+    }
+    break;
+  }
+
+  if( XCursor == None ) {
+    std::cerr << "Could not create requested X cursor." << std::endl;
+    return _cursor;
+  }
+
+  _cursor = cursor;
+
+  XDefineCursor( _windowHandle._dpy, _windowHandle._win, XCursor );
+
+  #endif
+
+  return _cursor;
+}
+
 int arGUIWindow::getWidth( void ) const
 {
   if( !_running ) {
@@ -1785,4 +1908,24 @@ int arGUIWindow::makeCurrent( bool release )
   #endif
 
   return 0;
+}
+
+void arGUIWindow::useWildcatFramelock( bool isOn )
+{
+  ar_useWildcatFramelock( isOn );
+}
+
+void arGUIWindow::findWildcatFramelock( void )
+{
+  ar_findWildcatFramelock();
+}
+
+void arGUIWindow::activateWildcatFramelock( void )
+{
+  ar_activateWildcatFramelock();
+}
+
+void arGUIWindow::deactivateWildcatFramelock( void )
+{
+  ar_deactivateWildcatFramelock();
 }

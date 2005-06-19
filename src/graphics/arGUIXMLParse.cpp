@@ -212,7 +212,7 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
 
   if( cameraType == "ortho" || cameraType == "perspective" ) {
     std::cout << "creating " << cameraType << " camera" << std::endl;
-    
+
    if( cameraType == "ortho" ) {
       #define CAM_CAST( x ) ((arOrthoCamera*) x)
       camera = new arOrthoCamera();
@@ -315,8 +315,8 @@ int parseGUIXML( arGUIWindowManager* wm,
 
   TiXmlHandle docHandle( &doc );
 
-  doc.Print();
-  std::cout << std::endl;
+  // doc.Print();
+  // std::cout << std::endl;
 
   // get a reference to <szg_display>
   TiXmlNode* szgDisplayNode = doc.FirstChild();

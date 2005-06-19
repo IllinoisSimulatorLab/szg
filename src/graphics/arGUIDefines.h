@@ -43,24 +43,12 @@ SZG_CALL enum arGUIState
   AR_WINDOW_CLOSE,          ///< The window has been closed.
   AR_WINDOW_FULLSCREEN,     ///< Change the window to fullscreen.
   AR_WINDOW_DECORATE,       ///< Change the window's decoration state.
+  AR_WINDOW_CURSOR,         ///< Change the window's cursor.
   AR_WINDOW_DRAW,           ///< Draw the window.
   AR_WINDOW_SWAP,           ///< Swap the window's buffers.
   AR_WINDOW_VIEWPORT,       ///< Set the window's viewport.
+  AR_WINDOW_INITGL,         ///< Initialize the window's opengl context.
   AR_NUM_GUI_STATES         ///< The number of different event states.
-};
-
-
-/**
- * The different states a window cursor can be in.
- *
- * @note Currently unused.
- */
-SZG_CALL enum arGUICursorState
-{
-  AR_GENERIC_CURSOR,        ///< Placeholder event (for default constructors).
-  AR_HIDE_CURSOR,           ///< Hide the mouse cursor.
-  AR_SHOW_CURSOR,           ///< Show the mouse cursor.
-  AR_NUM_CURSOR_STATES      ///< The number of different cursor states.
 };
 
 /**
@@ -84,6 +72,7 @@ typedef struct {
  */
 typedef unsigned int arGUIKey;
 typedef unsigned int arGUIButton;
+typedef unsigned int arCursor;
 //@}
 
 
@@ -263,6 +252,11 @@ typedef unsigned int arGUIButton;
   #define AR_BUTTON_GARBAGE  0x0000
   //@}
 
+  #define AR_CURSOR_ARROW    0x0000
+  #define AR_CURSOR_HELP     0x0001
+  #define AR_CURSOR_WAIT     0x0002
+  #define AR_CURSOR_NONE     0x0003
+
 #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   #include <X11/keysym.h>
@@ -438,6 +432,11 @@ typedef unsigned int arGUIButton;
   #define AR_RBUTTON         0x0100
   #define AR_BUTTON_GARBAGE  0x0000
   //@}
+
+  #define AR_CURSOR_ARROW    0x0000
+  #define AR_CURSOR_HELP     0x0001
+  #define AR_CURSOR_WAIT     0x0002
+  #define AR_CURSOR_NONE     0x0003
 
 #endif
 

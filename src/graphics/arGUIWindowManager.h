@@ -67,13 +67,14 @@ class SZG_CALL arGUIWindowManager
      *                         keyboard events.
      * @param mouseCallback    The user-defined function that will be passed
      *                         mouse events
-     * @param singleThreaded   A flag determining whether the window manager
+     * @param threaded         A flag determining whether the window manager
      *                         will operate in single-threaded mode or not.
      */
     arGUIWindowManager( void (*windowCallback)( arGUIWindowInfo* ) = NULL,
                         void (*keyboardCallback)( arGUIKeyInfo* ) = NULL,
                         void (*mouseCallback)( arGUIMouseInfo* ) = NULL,
-                        bool singleThreaded = false );
+                        void (*windowInitGLCallback)( arGUIWindowInfo* ) = NULL,
+                        bool threaded = true );
 
     /**
      * The arGUIWindowManager destructor
@@ -131,8 +132,6 @@ class SZG_CALL arGUIWindowManager
      *
      * @param windowConfig The window configuration object specifying the
      *                     parameters of the new window.
-     * @param drawCallback The user-defined function called when the window
-     *                     is issued a draw request.
      *
      * @return <ul>
      *           <li>The new window's ID (an integer > 0) on success.
@@ -143,8 +142,7 @@ class SZG_CALL arGUIWindowManager
      * @see arGUIWindow::beginEventThread
      * @see arGUIWindow::_performWindowCreation
      */
-    int addWindow( const arGUIWindowConfig& windowConfig,
-                   arGUIRenderCallback* drawCallback = NULL );
+    int addWindow( const arGUIWindowConfig& windowConfig );
 
     //@{
     /** @name Register Callbacks
@@ -159,6 +157,7 @@ class SZG_CALL arGUIWindowManager
     void registerWindowCallback( void (*windowCallback) ( arGUIWindowInfo* ) );
     void registerKeyboardCallback( void (*keyboardCallback) ( arGUIKeyInfo* ) );
     void registerMouseCallback( void (*mouseCallback) ( arGUIMouseInfo* ) );
+    void registerWindowInitGLCallback( void (*windowInitGLCallback)( arGUIWindowInfo* ) );
     //@}
 
     /**
@@ -454,6 +453,8 @@ class SZG_CALL arGUIWindowManager
      */
     int decorateWindow( const int windowID, bool decorate );
 
+    int setWindowCursor( const int windowID, arCursor cursor );
+
     //@{
     /** @name Window state accessors
      *
@@ -462,6 +463,8 @@ class SZG_CALL arGUIWindowManager
     arVector3 getWindowSize( const int windowID );
     arVector3 getWindowPos( const int windowID );
     arVector3 getMousePos( const int windowID );
+
+    arCursor getWindowCursor( const int windowID );
 
     bool isStereo( const int windowID );
     bool isFullscreen( const int windowID );
@@ -496,7 +499,7 @@ class SZG_CALL arGUIWindowManager
      * Retrieve information about a window manager's current state.
      */
     int getNumWindows( void ) const { return _windows.size(); }
-    bool isSingleThreaded( void ) const { return _singleThreaded; }
+    bool isThreaded( void ) const { return _threaded; }
     bool hasActiveWindows( void ) const { return !_windows.empty(); }
     //@}
 
@@ -536,6 +539,11 @@ class SZG_CALL arGUIWindowManager
      * @see deleteWindow
      */
     int deleteAllWindows( void );
+
+    void useWildcatFramelock( bool isOn );
+    void findWildcatFramelock( void );
+    void activateWildcatFramelock( void );
+    void deactivateWildcatFramelock( void );
 
   private:
 
@@ -599,12 +607,13 @@ class SZG_CALL arGUIWindowManager
     void (*_keyboardCallback)( arGUIKeyInfo* keyInfo );       ///< The keyboard event callback
     void (*_mouseCallback)( arGUIMouseInfo* mouseInfo );      ///< The mouse event callback
     void (*_windowCallback)( arGUIWindowInfo* windowInfo );   ///< The window event callback
+    void (*_windowInitGLCallback)( arGUIWindowInfo* windowInfo );    ///< The window initialization callback
 
     WindowMap _windows;       ///< A map of all the managed windows and their id's.
 
     int _maxWindowID;         ///< The maximum window ID, used in creating new windows.
 
-    bool _singleThreaded;     ///< The mode of operation for the window manager.
+    bool _threaded;           ///< The mode of operation for the window manager.
 
 };
 

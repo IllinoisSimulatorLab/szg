@@ -105,7 +105,7 @@ arGUIInfo* arGUIEventManager::getNextEvent( void )
 
 int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
 {
-  if( !_active ) {
+  if( !_active || !window ) {
     return -1;
   }
 
@@ -642,10 +642,22 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
       window->setVisible( true );
     break;
 
+    case WM_ACTIVATE:
+      if( LOWORD( wParam ) != WA_INACTIVE ) {
+        window->setCursor( window->getCursor() );
+      }
+    break;
+
     case WM_QUIT:
       // reserved for closing the current window and reopening it with
       // different parameters
       return 0;
+    break;
+
+    case WM_SETCURSOR:
+      if( LOWORD( lParam ) == HTCLIENT ) {
+        window->setCursor( window->getCursor() );
+      }
     break;
 
     case WM_SIZE:

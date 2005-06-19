@@ -17,12 +17,14 @@
 arGUIWindowManager::arGUIWindowManager( void (*windowCallback)( arGUIWindowInfo* ) ,
                                         void (*keyboardCallback)( arGUIKeyInfo* ),
                                         void (*mouseCallback)( arGUIMouseInfo* ),
-                                        bool singleThreaded ) :
+                                        void (*windowInitGLCallback)( arGUIWindowInfo* ),
+                                        bool threaded ) :
   _keyboardCallback( keyboardCallback ),
   _mouseCallback( mouseCallback ),
   _windowCallback( windowCallback ),
+  _windowInitGLCallback( windowInitGLCallback ),
   _maxWindowID( 0 ),
-  _singleThreaded( singleThreaded )
+  _threaded( threaded )
 {
   #if defined( AR_USE_WIN_32 )
 
@@ -94,6 +96,15 @@ void arGUIWindowManager::registerMouseCallback( void (*mouseCallback) ( arGUIMou
   _mouseCallback = mouseCallback;
 }
 
+void arGUIWindowManager::registerWindowInitGLCallback( void (*windowInitGLCallback)( arGUIWindowInfo* ) )
+{
+  if( _windowInitGLCallback ) {
+    // print warning that previous callback is being overwritten?
+  }
+
+  _windowInitGLCallback = windowInitGLCallback;
+}
+
 int arGUIWindowManager::startWithSwap( void )
 {
   while( true ) {
@@ -118,13 +129,13 @@ int arGUIWindowManager::startWithoutSwap( void )
   return 0;
 }
 
-int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig, arGUIRenderCallback* drawCallback )
+int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig )
 {
-  arGUIWindow* window = new arGUIWindow( _maxWindowID, windowConfig, drawCallback );
+  arGUIWindow* window = new arGUIWindow( _maxWindowID, windowConfig, _windowInitGLCallback );
 
   _windows[ _maxWindowID ] = window;
 
-  if( !_singleThreaded ) {
+  if( _threaded ) {
     // this should only return once the window is actually up and running
     if( window->beginEventThread() < 0 ) {
       delete window;
@@ -164,7 +175,7 @@ int arGUIWindowManager::processWindowEvents( void )
   // if the WM is in single-threaded mode, first it needs to tell the windows
   // to push any pending gui events onto their stack and process any lingering
   // WM events since they are not doing this in their own thread
-  if( _singleThreaded && ( consumeAllWindowEvents() < 0 ) ) {
+  if( !_threaded && ( consumeAllWindowEvents() < 0 ) ) {
     std::cerr << "processWindowEvents: consumeAllWindowEvents Error" << std::endl;
   }
 
@@ -258,7 +269,7 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int windowID, arGUIWindowInfo e
 
   // in single threaded mode, just execute this command directly, no need to
   // do all the message passing
-  if( _singleThreaded ) {
+  if( !_threaded ) {
     switch( event._state ) {
       case AR_WINDOW_SWAP:
         _windows[ windowID ]->swap();
@@ -289,6 +300,10 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int windowID, arGUIWindowInfo e
         _windows[ windowID ]->decorate( event._flag == 1 ? true : false );
       break;
 
+      case AR_WINDOW_CURSOR:
+        _windows[ windowID ]->setCursor( arCursor( event._flag ) );
+      break;
+
       case AR_WINDOW_CLOSE:
         _windows[ windowID ]->_killWindow();
 
@@ -314,8 +329,8 @@ int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent, bool blocking )
   EventIterator eitr;
 
   static bool warn = false;
-  if( !warn && blocking && _singleThreaded ) {
-    // std::cerr << "Called addAllWMEvent with blocking == true in singleThreaded "
+  if( !warn && blocking && !_threaded ) {
+    // std::cerr << "Called addAllWMEvent with blocking == true in single threaded "
     //           << "mode, are you sure that's what you meant to do?" << std::endl;
     warn = true;
   }
@@ -327,7 +342,7 @@ int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent, bool blocking )
     if( eventHandle ) {
       eventHandles.push_back( eventHandle );
     }
-    else if( !_singleThreaded ) {
+    else if( _threaded ) {
       // in single threaded mode, addWMEvent *will* return NULL's
       // print error/warning?
     }
@@ -379,7 +394,7 @@ int arGUIWindowManager::consumeWindowEvents( const int windowID, bool blocking )
     return -1;
   }
 
-  if( !_singleThreaded ) {
+  if( _threaded ) {
     return -1;
   }
 
@@ -391,7 +406,7 @@ int arGUIWindowManager::consumeAllWindowEvents( bool blocking )
 {
   bool allSuccess = 0;
 
-  if( !_singleThreaded ) {
+  if( _threaded ) {
     return -1;
   }
 
@@ -484,6 +499,20 @@ int arGUIWindowManager::decorateWindow( const int windowID, bool decorate )
   return 0;
 }
 
+int arGUIWindowManager::setWindowCursor( const int windowID, arCursor cursor )
+{
+  arGUIWindowInfo event( AR_WINDOW_EVENT, AR_WINDOW_CURSOR );
+  event._flag = int( cursor );
+
+  arWMEvent* eventHandle = addWMEvent( windowID, event );
+
+  if( eventHandle ) {
+    eventHandle->wait( false );
+  }
+
+  return 0;
+}
+
 arVector3 arGUIWindowManager::getWindowSize( const int windowID )
 {
   if( _windows.find( windowID ) == _windows.end() ) {
@@ -535,6 +564,15 @@ bool arGUIWindowManager::isTopmost( const int windowID )
   }
 
   return _windows[ windowID ]->isTopmost();
+}
+
+arCursor arGUIWindowManager::getWindowCursor( const int windowID )
+{
+  if( _windows.find( windowID ) == _windows.end() ) {
+    return AR_CURSOR_NONE;
+  }
+
+  return _windows[ windowID ]->getCursor();
 }
 
 arVector3 arGUIWindowManager::getMousePos( const int windowID )
@@ -591,5 +629,33 @@ int arGUIWindowManager::deleteAllWindows( void )
   }
 
   return 0;
+}
+
+void arGUIWindowManager::useWildcatFramelock( bool isOn )
+{
+  if( _windows.size() == 1 && !_threaded ) {
+    _windows.begin()->second->useWildcatFramelock( isOn );
+  }
+}
+
+void arGUIWindowManager::findWildcatFramelock( void )
+{
+  if( _windows.size() == 1 && !_threaded ) {
+    _windows.begin()->second->findWildcatFramelock();
+  }
+}
+
+void arGUIWindowManager::activateWildcatFramelock( void )
+{
+  if( _windows.size() == 1 && !_threaded ) {
+    _windows.begin()->second->activateWildcatFramelock();
+  }
+}
+
+void arGUIWindowManager::deactivateWildcatFramelock( void )
+{
+  if( _windows.size() == 1 && !_threaded ) {
+    _windows.begin()->second->deactivateWildcatFramelock();
+  }
 }
 
