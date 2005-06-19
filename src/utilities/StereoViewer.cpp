@@ -17,7 +17,7 @@ int numImages = -1;
 bool init(arMasterSlaveFramework&, arSZGClient& cli) {
   const string dataPath(cli.getAttribute( "SZG_DATA", "path" ));
   if (!leftImage.readPPM( leftFile, dataPath )){
-    cerr << "StereoViewer error: failed to read picture file \"" 
+    cerr << "StereoViewer error: failed to read picture file \""
          << leftFile << "\".\n";
     return false;
   }
@@ -25,7 +25,7 @@ bool init(arMasterSlaveFramework&, arSZGClient& cli) {
     cerr << "StereoViewer error: failed to flip picture " << leftFile << endl;
     return false;
   }
-  cerr << "Image size: " << leftImage.getWidth()/2 << " X " 
+  cerr << "Image size: " << leftImage.getWidth()/2 << " X "
        << leftImage.getHeight() << endl;
   if (numImages == 2) {
     if (!rightImage.readPPM( rightFile, dataPath )){
@@ -81,7 +81,11 @@ void display(arMasterSlaveFramework& fw) {
   glMatrixMode( GL_MODELVIEW );
   glLoadIdentity();
   glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-  const bool fLeftEye = fw.getCurrentEye() <= 0.;
+
+  std::map<int, arGraphicsWindow* >* windows = fw.getWindows();
+  // NOTE: assumes *exactly* one window!
+  const bool fLeftEye = windows->begin()->second->getCurrentEyeSign() <= 0.0f; // fw.getCurrentEye() <= 0.;
+
   if (numImages == 2)
     showCenteredImage( fLeftEye ? leftImage : rightImage );
   else
@@ -94,6 +98,26 @@ void reshape(arMasterSlaveFramework&, int width, int height) {
   glViewport(0,0,width,height);
 }
 
+void windowEvent( arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo ) {
+  if( !windowInfo ) {
+    return;
+  }
+
+  switch( windowInfo->_state ) {
+    case AR_WINDOW_RESIZE:
+      screenWidth = windowInfo->_sizeY;
+      screenHeight = windowInfo->_sizeX;
+      fw.getWindowManager()->setWindowViewport( windowInfo->_windowID,
+                                                0, 0, windowInfo->_sizeX, windowInfo->_sizeY );
+    break;
+
+    default:
+    break;
+  }
+}
+
+
+
 int main(int argc, char** argv){
   if (argc != 2 && argc != 3) {
     cerr << "usage: StereoViewer left_image right_image\n"
@@ -105,13 +129,14 @@ int main(int argc, char** argv){
   leftFile = argv[1];
   if (numImages == 2)
     rightFile = argv[2];
-  
+
   arMasterSlaveFramework framework;
   if (!framework.init(argc, argv))
     return 1;
 
   framework.setStartCallback(init);
   framework.setDrawCallback(display);
-  framework.setReshapeCallback(reshape);
+  // framework.setReshapeCallback(reshape);
+  framework.setWindowEventCallback(windowEvent);
   return framework.start() ? 0 : 1;
 }

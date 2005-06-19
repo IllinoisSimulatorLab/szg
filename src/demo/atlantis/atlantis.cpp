@@ -266,7 +266,7 @@ void initFishs(void) {
     babyWhale.htail = 45.0;
 }
 
-bool init( arMasterSlaveFramework& fw, arSZGClient& SZGClient ) {
+void initGL( arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo ) {
   static float ambient[] = {0.1, 0.1, 0.1, 1.0};
   static float diffuse[] = {1.0, 1.0, 1.0, 1.0};
 	static float position[] =	{0.0, 1.0, 0.0, 0.0};
@@ -281,7 +281,7 @@ bool init( arMasterSlaveFramework& fw, arSZGClient& SZGClient ) {
 
   glDepthFunc(GL_LEQUAL);
   glEnable(GL_DEPTH_TEST);
-  
+
   glEnable(GL_CULL_FACE);
   glEnable(GL_NORMALIZE);
   glShadeModel(GL_SMOOTH);
@@ -298,7 +298,7 @@ bool init( arMasterSlaveFramework& fw, arSZGClient& SZGClient ) {
   glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse);
   glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
 
-  std::string dataPath = SZGClient.getAttribute("SZG_DATA","path");
+  std::string dataPath = fw.getSZGClient()->getAttribute("SZG_DATA","path");
   if (!seaTexture.readJPEG( "sea-texture.jpg", "atlantis", dataPath )) {
     cerr << "atlantis error: failed to read sea-texture.jpg.\n";
     useTexture = 0;
@@ -312,22 +312,24 @@ bool init( arMasterSlaveFramework& fw, arSZGClient& SZGClient ) {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     glTexGeni (GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-    glTexGeni (GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);  
+    glTexGeni (GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
     glEnable(GL_TEXTURE_GEN_S);
     glEnable(GL_TEXTURE_GEN_T);
     glEnable(GL_TEXTURE_2D);
   }
-  
-//  setAnaglyphMode(fw, anaglyphMode);
+}
+
+bool init( arMasterSlaveFramework& fw, arSZGClient& SZGClient ) {
+  //  setAnaglyphMode(fw, anaglyphMode);
   initFishs();
 
   // This is cube-specific (the origin is on the floor, so the center
   // of the screen is 5 feet high).
   ar_navTranslate(arVector3(0., -5.*FEET_TO_AU, 0.));
-  
+
   if (fw.getMaster()) {
     connected = true;
-  
+
     // set max interaction distance at .5 ft. in real-world coordinates
     spear.setUnitConversion( FEET_TO_AU );
     spear.setInteractionSelector( arDistanceInteractionSelector( gSpearRadius ) );
@@ -340,7 +342,7 @@ bool init( arMasterSlaveFramework& fw, arSZGClient& SZGClient ) {
     spear.setDrag( arGrabCondition( AR_EVENT_BUTTON, 7, 0.5 ),
                          arWandRelativeDrag() );
     spear.setTipOffset( arVector3(0,0,-SPEAR_LENGTH) );
-  
+
     for (int i = 0; i < NUM_SHARKS; i++) {
       arCallbackInteractable cbi(i);
       cbi.setMatrixCallback( matrixCallback );
@@ -348,9 +350,9 @@ bool init( arMasterSlaveFramework& fw, arSZGClient& SZGClient ) {
       interactionList.push_back( (arInteractable*)(interactableArray+i) );
     }
   }
-  
+
   // Load in sounds & start them looping
-  const arMatrix4 ident;
+  const arMatrix4  ident;
   whaleSoundTransformID = dsTransform( "whale sound matrix", "root", ident );
   dolphinSoundTransformID = dsTransform( "dolphin sound matrix", "root", ident );
   (void)dsLoop("whale song", "whale sound matrix", "whale.mp3", 1,
@@ -366,7 +368,7 @@ bool init( arMasterSlaveFramework& fw, arSZGClient& SZGClient ) {
   fw.addTransferField("spearRadius", &gSpearRadius, AR_FLOAT, 1);
   fw.addTransferField("drawSpearTip", &gDrawSpearTip, AR_INT, 1);
   fw.addTransferField("useTexture", &useTexture, AR_INT, 1);
-  
+
   fw.setNavTransSpeed( 20.*FEET_TO_AU );
   fw.ownNavParam("translation_speed");
   return true;
@@ -398,7 +400,7 @@ void preExchange(arMasterSlaveFramework& fw) {
       dsSpeak( "warning speech", "root", "I guess they're not hungry." );
     }
   }
-  
+
   // Animate the fishies
   const arMatrix4 headMatrix = ar_matrixToNavCoords( fw.getMatrix(0) );
   for (i = 0; i < NUM_SHARKS; i++) {
@@ -427,31 +429,31 @@ void preExchange(arMasterSlaveFramework& fw) {
   if ((gDrawSpearTip)&&tipTimer.done())
     gDrawSpearTip = 0;
   for (i=0; i<NUM_SHARKS; i++) {
-    interactableArray[i].setMatrix( ar_translationMatrix( 
+    interactableArray[i].setMatrix( ar_translationMatrix(
                          sharks[i].y, sharks[i].z, -sharks[i].x ) );
   }
   spear.updateState( fw.getInputState() );
   ar_pollingInteraction( spear, interactionList );
   gSpearBaseMatrix = spear.getBaseMatrix();
-  
+
   // Send fish position data to slaves.
   packOneFish(&momWhale, 0);
   packOneFish(&babyWhale, 1);
   packOneFish(&dolph, 2);
   for (i = 0; i<NUM_SHARKS; i++)
     packOneFish(&sharks[i], i+3);
-  
+
   // Calculate transformation matrix from head to whale (should be whale's
   // mouth (or blowhole?), haven't gotten that far yet) for sound rendering.
   arMatrix4 fishMatrix( ar_translationMatrix( momWhale.y, momWhale.z, -momWhale.x ) );
   const arMatrix4 navMatrix( ar_getNavInvMatrix() );
   const arMatrix4 headInvMatrix( fw.getMatrix(0).inverse() );
   arMatrix4 soundMatrix( headInvMatrix*navMatrix*fishMatrix );
-  
+
   // Decrease attenuation 'cause we're under water (and it sounds better)
   for (i=12; i<15; i++ )
     soundMatrix[i] /= 25*FEET_TO_AU;
-  
+
   // Load matrices for whale and dolphin.
   dsTransform( whaleSoundTransformID, soundMatrix );
   fishMatrix = ar_translationMatrix( dolph.y, dolph.z, -dolph.x );
@@ -522,7 +524,7 @@ static void drawGradient() {
     glDisable(GL_TEXTURE_2D);
     glEnable(GL_TEXTURE_1D);
     glBindTexture(GL_TEXTURE_1D, gradientTexObject);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL); 
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
     glTexParameterf(GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_CLAMP);
 
     glMatrixMode(GL_PROJECTION);
@@ -541,7 +543,7 @@ static void drawGradient() {
 
     glPopMatrix();
 
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); 
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     glDisable(GL_TEXTURE_1D);
 
     glDepthMask (true);
@@ -613,9 +615,27 @@ void display(arMasterSlaveFramework& fw)
   drawSpear( gSpearBaseMatrix );
 }
 
+void windowEvent( arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo ) {
+  if( !windowInfo ) {
+    return;
+  }
+
+  switch( windowInfo->_state ) {
+    case AR_WINDOW_RESIZE:
+      fw.getWindowManager()->setWindowViewport( windowInfo->_windowID,
+                                                0, 0, windowInfo->_sizeX, windowInfo->_sizeY );
+    break;
+
+    default:
+    break;
+  }
+}
+
+/*
 void reshape(arMasterSlaveFramework&, int width, int height) {
   glViewport(0,0,width,height);
 }
+*/
 
 void exitCallback( arMasterSlaveFramework& ) {
   cerr << "atlantis remark: exiting.\n";
@@ -623,21 +643,25 @@ void exitCallback( arMasterSlaveFramework& ) {
 
 int main(int argc, char** argv){
   arMasterSlaveFramework framework;
-  
+
   framework.setStartCallback(init);
   framework.setPreExchangeCallback(preExchange);
   framework.setPostExchangeCallback(postExchange);
   framework.setDrawCallback(display);
-  framework.setReshapeCallback(reshape);
+  // framework.setReshapeCallback(reshape);
+  framework.setWindowEventCallback( windowEvent );
+  framework.setWindowInitGLCallback( initGL );
   framework.setClipPlanes(nearClipDistance, farClipDistance);
   framework.setExitCallback( exitCallback );
   // Tell the framework that we're using half-millimeter units.
   // Do this before framework.init() if we use framework-based navigation.
   framework.setUnitConversion(FEET_TO_AU);
+
   if (!framework.init(argc, argv)){
     return 1;
   }
   framework.setDataBundlePath("SZG_DATA", "atlantis");
+
   if (!framework.start()){
     return 1;
   }
