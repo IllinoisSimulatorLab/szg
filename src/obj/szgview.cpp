@@ -587,7 +587,7 @@ int main( int argc, char** argv )
   // FIXME: The window manager is *always* single threaded here.
   // This might not really make sense for computers with mutliple graphics
   // cards.
-  wm = new arGUIWindowManager( windowCB, keyboardCB, mouseCB, NULL, true );
+  wm = new arGUIWindowManager( windowCB, keyboardCB, mouseCB, NULL, false );
 
   // set up the head we'll use throughout
   head.setMatrix( ar_translationMatrix( 0.0, 5.0, 0.0 ) );
