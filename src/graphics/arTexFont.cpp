@@ -604,7 +604,7 @@ int arTexFont::renderString( const std::string& text )
 
   setupOpenGL( false );
 
-  for ( int i = 0; i < text.length(); i++ ) {
+  for ( unsigned int i = 0; i < text.length(); i++ ) {
     renderGlyph( text[ i ] );
   }
 
@@ -649,7 +649,7 @@ int arTexFont::renderString2D( const std::string& text,
 
 	float lineWidth = 0.0f;
 
-  for ( int i = 0; i < text.length(); i++ ) {
+  for( unsigned int i = 0; i < text.length(); i++ ) {
     float glyphWidth = 0.0f, glyphHeight = 0.0f;
     float perScaleX = 1.0f, perScaleY = 1.0f;
 
@@ -751,7 +751,7 @@ int arTexFont::renderStringCurses( const std::string& text, int row, int col,
   float cellWidth = float( view[ 2 ] ) / float( _cols );
   float cellHeight = float( view[ 3 ] ) / float( _rows );
 
-  for( int i = 0; i < text.length(); i++ ) {
+  for( unsigned int i = 0; i < text.length(); i++ ) {
     glMatrixMode( GL_MODELVIEW );
     glPushMatrix();
 
