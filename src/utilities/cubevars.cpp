@@ -20,7 +20,7 @@ bool setUpWorld(arMasterSlaveFramework&, arSZGClient&){
   bigCube.setRadius(14.14);
   bigCube.setOrigin(0,5,0);
   bigCube.setNumberWalls(6);
-  
+
   bigCube.setWallTexture(0,"Nature1.ppm");
   bigCube.setWallTexture(1,"Nature2.ppm");
   bigCube.setWallTexture(2,"Nature3.ppm");
@@ -79,7 +79,7 @@ void drawCallback(arMasterSlaveFramework& fw){
       glTranslatef(0,0,-1);
       glColor3f(0,1,1);
       glutSolidSphere(0.07,10,10);
-    glPopMatrix(); 
+    glPopMatrix();
   glPopMatrix();
 
   // draw the wand display
@@ -100,7 +100,7 @@ void drawCallback(arMasterSlaveFramework& fw){
       glTranslatef(0,0,-1);
       glColor3f(1,0,1);
       glutSolidSphere(0.07,10,10);
-    glPopMatrix(); 
+    glPopMatrix();
   glPopMatrix();
 
   glLineWidth(1);
@@ -151,7 +151,8 @@ void drawCallback(arMasterSlaveFramework& fw){
   glEnable(GL_LIGHTING);
 
   // and finally, draw the framework itself.
-  fw.draw();
+  // DEPRECATED in this use, re-purposed by arGUI
+  // fw.draw();
 }
 
 int main(int argc, char** argv){

@@ -23,7 +23,7 @@ const int numberVolumes = 10;
 // we pack the data like...
 // z*(dimX*dimY) + y*dimX + x
 // so... this is basically like sequences of x/y slices
-char volume[numberVolumes][volumeX*volumeY*volumeZ]; 
+char volume[numberVolumes][volumeX*volumeY*volumeZ];
 int currentVolume = 0;
 
 // the poor graphics boards can't take too much!
@@ -100,7 +100,7 @@ void fillTexel(char* data, char value){
 
 void fillTextures(){
   int x,y,z;
-  for (int whichVolume =0; whichVolume<numberVolumes; whichVolume++){ 
+  for (int whichVolume =0; whichVolume<numberVolumes; whichVolume++){
     for (int i=0; i<numberSlices; i++){
       for (int j=0; j<sliceWidth; j++){
         for (int k=0; k<sliceHeight;k++){
@@ -110,7 +110,7 @@ void fillTextures(){
           // in this case, i = x coord, j = z coord, k = y coord
           x = int((numberSlices-1-i)*((volumeX*1.0)/numberSlices));
           y = int(k*((volumeY*1.0)/sliceHeight));
-          z = int(j*((volumeZ*1.0)/sliceWidth));	
+          z = int(j*((volumeZ*1.0)/sliceWidth));
           fillTexel(xStack[whichVolume][i].getPtr()+4*(sliceHeight*j+k),
             volume[whichVolume][(z * volumeY + y) * volumeX + x]);
 
@@ -118,7 +118,7 @@ void fillTextures(){
           // in this case, i = y coord, j = z, k = x
           y = int(i*(float(volumeY)/numberSlices));
           x = int(k*(float(volumeX)/sliceHeight));
-          z = int(j*(float(volumeZ)/sliceWidth));	
+          z = int(j*(float(volumeZ)/sliceWidth));
           fillTexel(yStack[whichVolume][i].getPtr()+4*(sliceHeight*j+k),
             volume[whichVolume][(z * volumeY + y) * volumeX + x]);
 
@@ -126,7 +126,7 @@ void fillTextures(){
           // in this case, i = z, j = x, k = y;
           z = int((numberSlices-1-i)*((volumeZ*1.0)/numberSlices));
           y = int(k*(float(volumeY)/sliceHeight));
-          x = int(j*(float(volumeX)/sliceWidth));	
+          x = int(j*(float(volumeX)/sliceWidth));
           fillTexel(zStack[whichVolume][i].getPtr()+4*(sliceHeight*j+k),
             volume[whichVolume][(z * volumeY + y) * volumeX + x]);
         }
@@ -175,7 +175,7 @@ void setUpWorld(){
   bigCube.setRadius(180);
   bigCube.setOrigin(0,5,0);
   bigCube.setNumberWalls(4);
-  
+
   bigCube.setWallTexture(0,"fMRI.ppm");
   bigCube.setWallTexture(1,"fMRI.ppm");
   bigCube.setWallTexture(2,"fMRI.ppm");
@@ -210,7 +210,7 @@ bool init(arMasterSlaveFramework& fw, arSZGClient& cli){
 
   setUpWorld();
   // initial viewpoint location
-  ar_navTranslate( arVector3(0,-5,5) ); 
+  ar_navTranslate( arVector3(0,-5,5) );
 
   // must register the networked shared memory
   fw.addTransferField("world",world.v,AR_FLOAT,16);
@@ -293,10 +293,10 @@ void drawCallback(arMasterSlaveFramework& fw){
   glClearColor(0,0,0,0);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA,GL_DST_ALPHA);
-  
+
   if (fw.getConnected()) {
     glEnable(GL_DEPTH_TEST);
-  
+
     // draw a wand
     glPushMatrix();
     glTranslatef(0,5,-4);
@@ -314,15 +314,16 @@ void drawCallback(arMasterSlaveFramework& fw){
         glVertex3f(0,1,0);
     glEnd();
     glPopMatrix();
-  
+
     fw.loadNavMatrix();
-  
+
     glPushMatrix();
-      fw.draw();
+      // DEPRECATED in this use, re-purposed by arGUI
+      // fw.draw();
     glPopMatrix();
     glMultMatrixf(world.v);
     const float size = 2.0;
-  
+
     // draw the volume
     arVector3 eyeVector =
       !world * ar_pointToNavCoords(headMatrix * arVector3(0,0,0));
@@ -335,8 +336,8 @@ void drawCallback(arMasterSlaveFramework& fw){
     const float dirs[3] = { dirZ, dirY, dirX };
     const bool dir = dirs[which] >= 0.;
     // these 3 should be an array to begin with!
-    slice* stacks[3] = { zStack[currentVolume], yStack[currentVolume], 
-                         xStack[currentVolume] }; 
+    slice* stacks[3] = { zStack[currentVolume], yStack[currentVolume],
+                         xStack[currentVolume] };
     slice* stack = stacks[which];
     for (int i=0; i<numberSlices; i++){
       const int textureIndex = dir ? i : numberSlices-1-i;
@@ -376,7 +377,7 @@ void drawCallback(arMasterSlaveFramework& fw){
       glEnd();
       stack[textureIndex].deactivate();
     }
-  
+
     // Draw wireframe box around the data volume.
     // After the volume's drawn, for cool hidden-line effect.
     glColor3f(1,1,1);

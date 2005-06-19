@@ -673,7 +673,8 @@ void display(arMasterSlaveFramework& fw) {
   drawCursor(fw.getMatrix(1) * arVector3(0,0,-1));
 
   // framework
-  fw.draw();
+  // DEPRECATED in this use, re-purposed by arGUI
+  // fw.draw();
 }
 
 int main(int argc, char** argv){
