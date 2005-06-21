@@ -26,6 +26,10 @@ arGUIEventManager::arGUIEventManager( void ) :
   _GUIInfoTemplate->add( "windowID",  AR_INT );
   _GUIInfoTemplate->add( "flag",      AR_INT );
 
+  // ACK, understandably there is no AR_POINTER dataType so we have to make due
+  // with AR_INT, not sure if this is entirely un-problematic
+  _GUIInfoTemplate->add( "userData",  AR_INT );
+
   // now add the pieces exclusive to each info subtype
   _keyInfoTemplate = new arDataTemplate( *_GUIInfoTemplate );
   _keyInfoTemplate->setName( "keyInfo" );
@@ -86,21 +90,21 @@ arGUIInfo* arGUIEventManager::getNextEvent( void )
 
   ar_mutex_unlock( &_eventsMutex );
 
-  const arGUIEventType eventType = arGUIEventType( event.getDataInt( event.getDataFieldIndex( "eventType" ) ) );
+  const arGUIEventType eventType = arGUIEventType( event.getDataInt( "eventType" ) );
 
   // NOTE: caller (normally arGUIWindowManager::_processEvents) is responsible for
   // deleting these
   if( eventType == AR_KEY_EVENT )
-    return new arGUIKeyInfo( event );
+    return( new arGUIKeyInfo( event ) );
 
   if( eventType == AR_MOUSE_EVENT )
-    return new arGUIMouseInfo( event );
+    return( new arGUIMouseInfo( event ) );
 
   if( eventType == AR_WINDOW_EVENT )
-    return new arGUIWindowInfo( event );
+    return( new arGUIWindowInfo( event ) );
 
-  // print a warning? (does user ever expect this?)
-  return new arGUIInfo( event );
+  // print a warning? (does user ever actually expect this?)
+  return( new arGUIInfo( event ) );
 }
 
 int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
@@ -108,6 +112,9 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
   if( !_active || !window ) {
     return -1;
   }
+
+  // update the user data
+  _userData = window->getUserData();
 
   #if defined( AR_USE_WIN_32 )
 
@@ -403,9 +410,12 @@ int arGUIEventManager::addEvent( arStructuredData& event )
   }
 
   // carry out any pre-processing on the event before it is added
-  // FIXME: should be checking the returns of getDataFieldIndex
-  if( event.getDataInt( event.getDataFieldIndex( "eventType" ) ) == AR_KEY_EVENT ) {
-    int key = event.getDataInt( event.getDataFieldIndex( "key" ) );
+
+  // all events should get their userData set
+  event.dataIn( "userData", &_userData, AR_INT, 1 );
+
+  if( arGUIEventType( event.getDataInt( "eventType" ) ) == AR_KEY_EVENT ) {
+    int key = event.getDataInt( "key" );
 
     if( key < 0 ) {
       std::cerr << "addEvent: getDataInt error" << std::endl;
@@ -431,9 +441,9 @@ int arGUIEventManager::addEvent( arStructuredData& event )
     }
     #endif
   }
-  else if( event.getDataInt( event.getDataFieldIndex( "eventType" ) ) == AR_MOUSE_EVENT ) {
-    arGUIState state = arGUIState( event.getDataInt( event.getDataFieldIndex( "state" ) ) );
-    arGUIButton button = arGUIButton( event.getDataInt( event.getDataFieldIndex( "button" ) ) );
+  else if( arGUIEventType( event.getDataInt( "eventType" ) ) == AR_MOUSE_EVENT ) {
+    arGUIState state = arGUIState( event.getDataInt( "state" ) );
+    arGUIButton button = arGUIButton( event.getDataInt( "button" ) );
 
     arGUIButton totalButtons = _mouseState._button;
 
@@ -450,7 +460,7 @@ int arGUIEventManager::addEvent( arStructuredData& event )
 
     _mouseState._button = totalButtons;
   }
-  else if( event.getDataInt( event.getDataFieldIndex( "eventType" ) ) == AR_WINDOW_EVENT ) {
+  else if( arGUIEventType( event.getDataInt( "eventType" ) ) == AR_WINDOW_EVENT ) {
     _windowState = arGUIWindowInfo( event );
   }
   else {
@@ -714,7 +724,8 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
       // could also check if the current x/y, width/height are the exact same
       // as the new ones, probably don't need to send the message in that case
 
-      if( addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, state, window->getID(), 0, posX, posY, sizeX, sizeY ) ) < 0 ) {
+      if( addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, state, window->getID(), 0,
+                                     posX, posY, sizeX, sizeY ) ) < 0 ) {
         // print an error?
       }
 

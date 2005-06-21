@@ -470,6 +470,9 @@ class SZG_CALL arGUIWindowManager
     bool isFullscreen( const int windowID );
     bool isDecorated( const int windowID );
     bool isTopmost( const int windowID );
+
+    void* getUserData( const int windowID );
+    void setUserData( const int windowID, void* userData );
     //@}
 
     /**
@@ -501,6 +504,8 @@ class SZG_CALL arGUIWindowManager
     int getNumWindows( void ) const { return _windows.size(); }
     bool isThreaded( void ) const { return _threaded; }
     bool hasActiveWindows( void ) const { return !_windows.empty(); }
+    void setUserData( void* userData ) { _userData = userData; }
+    void* getUserData( void ) const { return _userData; }
     //@}
 
     /**
@@ -614,6 +619,8 @@ class SZG_CALL arGUIWindowManager
     int _maxWindowID;         ///< The maximum window ID, used in creating new windows.
 
     bool _threaded;           ///< The mode of operation for the window manager.
+
+    void* _userData;          ///< Default user defined data pointer passed to created windows.
 
 };
 

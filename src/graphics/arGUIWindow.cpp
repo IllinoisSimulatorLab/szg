@@ -161,7 +161,8 @@ int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const 
   return 0;
 }
 
-arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig, void (*windowInitGLCallback)( arGUIWindowInfo* ) ) :
+arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
+                          void (*windowInitGLCallback)( arGUIWindowInfo* ), void* userData ) :
   _ID( ID ),
   _windowConfig( windowConfig ),
   _drawCallback( NULL ),
@@ -174,7 +175,8 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig, void (*windowI
   _decorate( true ),
   _cursor( AR_CURSOR_ARROW ),
   _creationFlag( false ),
-  _destructionFlag( false )
+  _destructionFlag( false ),
+  _userData( userData )
 {
   std::stringstream ss; ss << _ID;
   _className = std::string( _windowConfig._title + ss.str() );
@@ -388,13 +390,17 @@ bool arGUIWindow::eventsPending( void ) const
   return _GUIEventManager->eventsPending();
 }
 
-arWMEvent* arGUIWindow::addWMEvent( const arGUIWindowInfo& wmEvent )
+arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
 {
   if( !_running ) {
     return NULL;
   }
 
   arWMEvent* event = NULL;
+
+  if( !wmEvent._userData ) {
+    wmEvent._userData = _userData;
+  }
 
   EventIterator eitr;
 
@@ -993,6 +999,7 @@ int arGUIWindow::_tearDownWindowCreation( void )
   // initialization.
   if( _windowInitGLCallback ) {
     arGUIWindowInfo* windowInfo = new arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_INITGL, _ID );
+    windowInfo->_userData = _userData;
     _windowInitGLCallback( windowInfo );
     delete windowInfo;
   }
@@ -1102,7 +1109,8 @@ int arGUIWindow::resize( int newWidth, int newHeight )
 
     // for some reason this resize event doesn't get raised either (see note in
     // fullscreen())
-    _GUIEventManager->addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_RESIZE, _ID, 0, getPosX(), getPosY(), getWidth(), getHeight() ) );
+    _GUIEventManager->addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_RESIZE, _ID, 0,
+                                                 getPosX(), getPosY(), getWidth(), getHeight() ) );
   }
 
   return 0;
@@ -1146,7 +1154,8 @@ int arGUIWindow::fullscreen( void )
   // NOTE: seems to only be necessary on windows as the event is 'correctly'
   // raised on linux (odder still is that the move to 0x0 is raised, just not
   // the resize...)
-  _GUIEventManager->addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_RESIZE, _ID, 0, getPosX(), getPosY(), getWidth(), getHeight() ) );
+  _GUIEventManager->addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_RESIZE, _ID, 0,
+                                               getPosX(), getPosY(), getWidth(), getHeight() ) );
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 

@@ -38,7 +38,7 @@ class SZG_CALL arGUIInfo
      */
     arGUIInfo( arGUIEventType eventType = AR_GENERIC_EVENT,
                arGUIState state = AR_GENERIC_STATE,
-               int windowID = -1, int flag = 0 );
+               int windowID = -1, int flag = 0, void* userData = NULL );
 
     /**
      * An arGUIInfo constructor.
@@ -63,6 +63,8 @@ class SZG_CALL arGUIInfo
     int _windowID;                ///< Identifier for the window this event took place in.
 
     int _flag;                    ///< A generic flag, use is defined on a per-function basis.
+
+    void* _userData;              ///< A user-defined data pointer, defined on a per window basis.
 };
 
 /**

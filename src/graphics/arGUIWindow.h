@@ -417,7 +417,8 @@ class SZG_CALL arGUIWindow
      *                     requests.
      */
     arGUIWindow( int ID, arGUIWindowConfig windowConfig,
-                 void (*windowInitGLCallback)( arGUIWindowInfo* windowInfo ) = NULL );
+                 void (*windowInitGLCallback)( arGUIWindowInfo* windowInfo ) = NULL,
+                 void* userData = NULL );
 
    /**
      * The arGUIWindow destructor
@@ -496,7 +497,7 @@ class SZG_CALL arGUIWindow
      *
      * @see arGUIWindowManager::addWMEvent
      */
-    arWMEvent* addWMEvent( const arGUIWindowInfo& event );
+    arWMEvent* addWMEvent( arGUIWindowInfo& event );
 
 
     /**
@@ -671,6 +672,9 @@ class SZG_CALL arGUIWindow
     const arGUIWindowHandle& getWindowHandle( void ) const { return _windowHandle; }
 
     const arGUIWindowConfig& getWindowConfig( void ) const { return _windowConfig; }
+
+    void* getUserData( void ) const { return _userData; }
+    void setUserData( void* userData ) { _userData = userData; }
     //@}
 
     /**
@@ -871,6 +875,8 @@ class SZG_CALL arGUIWindow
 
     EventQueue _WMEvents;                       ///< Queue of to-be-processed events received from the window manager.
     arMutex _WMEventsMutex;                     ///< Mutex protecting the window manager event queue.
+
+    void* _userData;                            ///< User-set data pointer.
 
 
     /**

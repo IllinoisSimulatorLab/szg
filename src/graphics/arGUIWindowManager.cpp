@@ -131,7 +131,8 @@ int arGUIWindowManager::startWithoutSwap( void )
 
 int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig )
 {
-  arGUIWindow* window = new arGUIWindow( _maxWindowID, windowConfig, _windowInitGLCallback );
+  arGUIWindow* window = new arGUIWindow( _maxWindowID, windowConfig,
+                                         _windowInitGLCallback, _userData );
 
   _windows[ _maxWindowID ] = window;
 
@@ -564,6 +565,24 @@ bool arGUIWindowManager::isTopmost( const int windowID )
   }
 
   return _windows[ windowID ]->isTopmost();
+}
+
+void* arGUIWindowManager::getUserData( const int windowID )
+{
+  if( _windows.find( windowID ) == _windows.end() ) {
+    return NULL;
+  }
+
+  return _windows[ windowID ]->getUserData();
+}
+
+void arGUIWindowManager::setUserData( const int windowID, void* userData )
+{
+  if( _windows.find( windowID ) == _windows.end() ) {
+    return;
+  }
+
+  _windows[ windowID ]->setUserData( userData );
 }
 
 arCursor arGUIWindowManager::getWindowCursor( const int windowID )

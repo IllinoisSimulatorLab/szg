@@ -9,11 +9,12 @@
 #include "arGUIInfo.h"
 
 arGUIInfo::arGUIInfo( arGUIEventType eventType, arGUIState state,
-                      int windowID, int flag ) :
+                      int windowID, int flag, void* userData ) :
   _eventType( eventType ),
   _state( state ),
   _windowID( windowID ),
-  _flag( flag )
+  _flag( flag ),
+  _userData( userData )
 {
 
 }
@@ -24,12 +25,15 @@ arGUIInfo::arGUIInfo( arGUIEventType eventType, arGUIState state,
 // these getDataInt's fail, then the whole constructor should likewise 'fail'
 arGUIInfo::arGUIInfo( arStructuredData& data )
 {
-  _state = arGUIState( data.getDataInt( data.getDataFieldIndex( "state" ) ) );
-  _eventType = arGUIEventType( data.getDataInt( data.getDataFieldIndex( "eventType" ) ) );
+  _state = arGUIState( data.getDataInt( "state" ) );
 
-  _windowID = data.getDataInt( data.getDataFieldIndex( "windowID" ) );
+  _eventType = arGUIEventType( data.getDataInt( "eventType" ) );
 
-  _flag = data.getDataInt( data.getDataFieldIndex( "flag" ) );
+  _windowID = data.getDataInt( "windowID" );
+
+  _flag = data.getDataInt( "flag" );
+
+  data.dataOut( "userData", &_userData, AR_INT, 1 );
 }
 
 arGUIInfo::~arGUIInfo( void )
@@ -51,15 +55,15 @@ arGUIKeyInfo::arGUIKeyInfo( arGUIEventType eventType, arGUIState state,
 arGUIKeyInfo::arGUIKeyInfo( arStructuredData& data ) :
   arGUIInfo( data )
 {
-  if( data.getDataInt( data.getDataFieldIndex( "eventType" ) ) != AR_KEY_EVENT ) {
+  if( arGUIEventType( data.getDataInt( "eventType" ) ) != AR_KEY_EVENT ) {
     std::cout << "Cannot build arKeyInfo from this arStructuredData" << std::endl;
     return;
   }
 
-  _key = data.getDataInt( data.getDataFieldIndex( "key" ) );
+  _key = data.getDataInt( "key" );
 
-  _ctrl = data.getDataInt( data.getDataFieldIndex( "ctrl" ) );
-  _alt = data.getDataInt( data.getDataFieldIndex( "alt" ) );
+  _ctrl = data.getDataInt( "ctrl" );
+  _alt = data.getDataInt( "alt" );
 }
 
 arGUIKeyInfo::~arGUIKeyInfo( void )
@@ -83,18 +87,18 @@ arGUIMouseInfo::arGUIMouseInfo( arGUIEventType eventType, arGUIState state,
 arGUIMouseInfo::arGUIMouseInfo( arStructuredData& data ) :
   arGUIInfo( data )
 {
-  if( data.getDataInt( data.getDataFieldIndex( "eventType" ) ) != AR_MOUSE_EVENT ) {
+  if( arGUIEventType( data.getDataInt( "eventType" ) ) != AR_MOUSE_EVENT ) {
     std::cout << "Cannot build arMouseInfo from this arStructuredData" << std::endl;
     return;
   }
 
-  _button = data.getDataInt( data.getDataFieldIndex( "button" ) );
+  _button = data.getDataInt( "button" );
 
-  _posX = data.getDataInt( data.getDataFieldIndex( "posX" ) );
-  _posY = data.getDataInt( data.getDataFieldIndex( "posY" ) );
+  _posX = data.getDataInt( "posX" );
+  _posY = data.getDataInt( "posY" );
 
-  _prevPosX = data.getDataInt( data.getDataFieldIndex( "prevPosX" ) );
-  _prevPosY = data.getDataInt( data.getDataFieldIndex( "prevPosY" ) );
+  _prevPosX = data.getDataInt( "prevPosX" );
+  _prevPosY = data.getDataInt( "prevPosY" );
 
 }
 
@@ -118,16 +122,16 @@ arGUIWindowInfo::arGUIWindowInfo( arGUIEventType eventType, arGUIState state,
 arGUIWindowInfo::arGUIWindowInfo( arStructuredData& data ) :
   arGUIInfo( data )
 {
-  if( data.getDataInt( data.getDataFieldIndex( "eventType" ) ) != AR_WINDOW_EVENT ) {
+  if( arGUIEventType( data.getDataInt( "eventType" ) ) != AR_WINDOW_EVENT ) {
     std::cout << "Cannot build arWindowInfo from this arStructuredData" << std::endl;
     return;
   }
 
-  _posX = data.getDataInt( data.getDataFieldIndex( "posX" ) );
-  _posY = data.getDataInt( data.getDataFieldIndex( "posY" ) );
+  _posX = data.getDataInt( "posX" );
+  _posY = data.getDataInt( "posY" );
 
-  _sizeX = data.getDataInt( data.getDataFieldIndex( "sizeX" ) );
-  _sizeY = data.getDataInt( data.getDataFieldIndex( "sizeY" ) );
+  _sizeX = data.getDataInt( "sizeX" );
+  _sizeY = data.getDataInt( "sizeY" );
 }
 
 arGUIWindowInfo::~arGUIWindowInfo( void )
