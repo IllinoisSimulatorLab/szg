@@ -18,7 +18,7 @@
 
 /// to make the callbacks startable from GLUT, we need this
 /// global variable to pass in an arMasterSlaveFramework parameter
-arMasterSlaveFramework* __globalFramework = NULL;
+// arMasterSlaveFramework* __globalFramework = NULL;
 
 //***********************************************************************
 // GLUT callbacks
@@ -49,23 +49,25 @@ void ar_masterSlaveFrameworkDisplayFunction(){
 */
 
 void ar_masterSlaveFrameworkWindowEventFunction( arGUIWindowInfo* windowInfo ) {
-  if( __globalFramework ) {
-    __globalFramework->onWindowEvent( windowInfo );
+  if( windowInfo && windowInfo->_userData ) {
+    ((arMasterSlaveFramework*) windowInfo->_userData)->onWindowEvent( windowInfo );
   }
 }
 
 void ar_masterSlaveFrameworkWindowInitGLFunction( arGUIWindowInfo* windowInfo ) {
-  if( __globalFramework ) {
-    __globalFramework->onWindowInitGL( windowInfo );
+  if( windowInfo && windowInfo->_userData ) {
+    ((arMasterSlaveFramework*) windowInfo->_userData)->onWindowInitGL( windowInfo );
   }
 }
 
 void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
-  if( !keyInfo ) {
+  if( !keyInfo || !keyInfo->_userData ) {
     return;
   }
 
-  if( __globalFramework && __globalFramework->_exitProgram ) {
+  arMasterSlaveFramework* fw = (arMasterSlaveFramework*) keyInfo->_userData;
+
+  if( fw && fw->_exitProgram ) {
     // do not process key strokes after we have begun shutdown
     return;
   }
@@ -73,67 +75,69 @@ void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
   if( keyInfo->_state == AR_KEY_DOWN ) {
     switch( keyInfo->_key ) {
       case AR_VK_ESC:
-        if( __globalFramework ) {
-          std::cout << "RECEIVED ESC" << std::endl;
+        if( fw ) {
           // We do not block until the display thread is done... but we do
           // block on everything else.
-          __globalFramework->stop( false );
+          fw->stop( false );
         }
         // NOTE: we do not exit(0) here. Instead, that occurs in the display
         // thread!
       break;
       case AR_VK_f:
         // glutFullScreen();
-        __globalFramework->_wm->fullscreenWindow( keyInfo->_windowID );
+        fw->_wm->fullscreenWindow( keyInfo->_windowID );
       break;
       case AR_VK_F:
         // glutReshapeWindow(600,600);
-        __globalFramework->_wm->resizeWindow( keyInfo->_windowID, 600, 600 );
+        fw->_wm->resizeWindow( keyInfo->_windowID, 600, 600 );
       break;
       case AR_VK_P:
-        __globalFramework->_showPerformance = !__globalFramework->_showPerformance;
+        fw->_showPerformance = !fw->_showPerformance;
       break;
       case AR_VK_t:
-        std::cout << "Frame time = " << __globalFramework->_lastFrameTime << std::endl;
+        std::cout << "Frame time = " << fw->_lastFrameTime << std::endl;
       break;
     }
 
     // in standalone mode, keyboard events should also go to the interface
-    if( __globalFramework->_standalone &&
-        __globalFramework->_standaloneControlMode == "simulator" ) {
-      __globalFramework->_simulator.keyboard( keyInfo->_key, 1, 0, 0 );
+    if( fw->_standalone &&
+        fw->_standaloneControlMode == "simulator" ) {
+      fw->_simulator.keyboard( keyInfo->_key, 1, 0, 0 );
     }
   }
 
   // finally, keyboard events should be forwarded to the keyboard callback
   // *if* we are the master and *if* the callback has been defined.
-  if( __globalFramework->getMaster() ) {
-    __globalFramework->onKey( keyInfo );
+  if( fw->getMaster() ) {
+    fw->onKey( keyInfo );
   }
 }
 
 void ar_masterSlaveFrameworkMouseFunction( arGUIMouseInfo* mouseInfo ) {
-  if( !mouseInfo ) {
+  if( !mouseInfo || !mouseInfo->_userData ) {
     return;
   }
 
-  if( __globalFramework->_standalone &&
-      __globalFramework->_standaloneControlMode == "simulator" ) {
+  arMasterSlaveFramework* fw = (arMasterSlaveFramework*) mouseInfo->_userData;
+
+  if( fw->_standalone &&
+      fw->_standaloneControlMode == "simulator" ) {
     if( mouseInfo->_state == AR_MOUSE_DOWN || mouseInfo->_state == AR_MOUSE_UP ) {
       int whichButton = ( mouseInfo->_button == AR_LBUTTON ) ? 0 :
                         ( mouseInfo->_button == AR_MBUTTON ) ? 1 :
                         ( mouseInfo->_button == AR_RBUTTON ) ? 2 : 0;
       int whichState = ( mouseInfo->_state == AR_MOUSE_DOWN ) ? 1 : 0;
 
-      __globalFramework->_simulator.mouseButton( whichButton, whichState, mouseInfo->_posX, mouseInfo->_posY );
+      fw->_simulator.mouseButton( whichButton, whichState, mouseInfo->_posX, mouseInfo->_posY );
     }
     else {
-      __globalFramework->_simulator.mousePosition( mouseInfo->_posX, mouseInfo->_posY );
+      std::cout << "MOUSE POS: " << mouseInfo->_posX << " : " << mouseInfo->_posY << std::endl;
+      fw->_simulator.mousePosition( mouseInfo->_posX, mouseInfo->_posY );
     }
   }
 
-  if( __globalFramework->getMaster() ) {
-    __globalFramework->onMouse( mouseInfo );
+  if( fw->getMaster() ) {
+    fw->onMouse( mouseInfo );
   }
 }
 
@@ -328,7 +332,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   // so, we are forced to use globals. Not really too limiting since
   // GLUT already assumes only one GLUT will be running per application.
   // NOTE: this should be done regardless of whether we are using GLUT.
-  __globalFramework = this;
+  // __globalFramework = this;
 
   ar_mutex_init( &_connectFlagMutex );
 
@@ -2153,10 +2157,14 @@ void arMasterSlaveFramework::_createWindowing( void ) {
   const string screenName( _SZGClient.getMode( "graphics" ) );
 
   _wm = new arGUIWindowManager( ar_masterSlaveFrameworkWindowEventFunction,
-                                  ar_masterSlaveFrameworkKeyboardFunction,
-                                  ar_masterSlaveFrameworkMouseFunction,
-                                  ar_masterSlaveFrameworkWindowInitGLFunction,
-                                  false );
+                                ar_masterSlaveFrameworkKeyboardFunction,
+                                ar_masterSlaveFrameworkMouseFunction,
+                                ar_masterSlaveFrameworkWindowInitGLFunction,
+                                false );
+
+  // as a replacement for the global __globalFramework pointer, each window will
+  // have a user data pointer set
+  _wm->setUserData( this );
 
   if( _useWindowing ) {
     std::string whichDisplay = _SZGClient.getMode( "gui" );
