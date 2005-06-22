@@ -687,7 +687,7 @@ void postExchange(arMasterSlaveFramework&) {
   angle3 = frame*6*PI/503;
 }
 
-void Display(arMasterSlaveFramework& fw){
+void draw(arMasterSlaveFramework& fw){
   if (!fw.getConnected())
     glClearColor(0,0,0,0);
   else {
@@ -706,7 +706,7 @@ int main(int argc, char** argv){
   framework.setWindowInitGLCallback(initGL);
   framework.setPreExchangeCallback(preExchange);
   framework.setPostExchangeCallback(postExchange);
-  framework.setDrawCallback(Display);
+  framework.setDrawCallback(draw);
   framework.setClipPlanes(nearClipDistance, farClipDistance);
   framework.setUnitConversion(FEET_TO_COASTER_UNITS);
   if (!framework.init(argc, argv))

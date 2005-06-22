@@ -34,10 +34,13 @@ void arDefaultGUIRenderCallback::operator()( arGraphicsWindow&, arViewport& ) {
   }
 }
 
-arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height, int bpp, int hz,
+arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height, 
+                                      int bpp, int hz,
                                       bool decorate, bool topmost,
                                       bool fullscreen, bool stereo,
-                                      const std::string& title, const std::string& XDisplay ) :
+                                      const std::string& title, 
+                                      const std::string& XDisplay,
+                                      int initialCursor ) :
   _x( x ),
   _y( y ),
   _width( width ),
@@ -49,7 +52,8 @@ arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height, int b
   _fullscreen( fullscreen ),
   _stereo( stereo ),
   _title( title ),
-  _XDisplay( XDisplay )
+  _XDisplay( XDisplay ),
+  _initialCursor( initialCursor )
 {
 }
 
@@ -162,7 +166,8 @@ int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const 
 }
 
 arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
-                          void (*windowInitGLCallback)( arGUIWindowInfo* ), void* userData ) :
+                          void (*windowInitGLCallback)( arGUIWindowInfo* ), 
+                          void* userData ) :
   _ID( ID ),
   _windowConfig( windowConfig ),
   _drawCallback( NULL ),
@@ -173,11 +178,16 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
   _fullscreen( false ),
   _topmost( false ),
   _decorate( true ),
-  _cursor( AR_CURSOR_ARROW ),
   _creationFlag( false ),
   _destructionFlag( false ),
   _userData( userData )
 {
+  // The window config gives the type of cursor (none, arrow, etc.).
+  // "arrow" is the default (within the window config's context).
+  // BUG: Setting the cursor can only happen through the arGUIWindowManager.
+  // Consequently, the cursor change needs to be manually enforced by
+  // the programmer.
+  _cursor = windowConfig._initialCursor;
   std::stringstream ss; ss << _ID;
   _className = std::string( _windowConfig._title + ss.str() );
 
@@ -1500,6 +1510,7 @@ int arGUIWindow::move( int newX, int newY )
 arCursor arGUIWindow::setCursor( arCursor cursor )
 {
   if( !_running ) {
+    cout << "arGUIWindow remark: called setCursor when not running.\n";
     return _cursor;
   }
 
@@ -1513,6 +1524,7 @@ arCursor arGUIWindow::setCursor( arCursor cursor )
 
     default:
       // print error?
+      cout << "arGUIWindow remark: given an invalid cursor type.\n";
       return _cursor;
     break;
   }
@@ -1539,57 +1551,55 @@ arCursor arGUIWindow::setCursor( arCursor cursor )
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
-  static cursorCacheEntry cursorCache[] = {
+
+  // Using the caching code below seems to cause segfaults on Linux when
+  // running multiple windows in the master/slave framework.
+  /*static cursorCacheEntry cursorCache[] = {
     { XC_arrow,           None },
     { XC_question_arrow,  None },
     { XC_watch,           None } };
 
-  static Cursor cursorNone = None;
+  static Cursor cursorNone = None;*/
 
   Cursor XCursor;
 
   switch( cursor ) {
     case AR_CURSOR_NONE:
     {
-      if( cursorNone == None ) {
-        char cursorNoneBits[ 32 ];
-        XColor dontCare;
-        Pixmap cursorNonePixmap;
+      // At first, this code was doing caching via cursorNone. However,
+      // that lead to instability. Consequently, no caching now.
+      char cursorNoneBits[ 32 ];
+      XColor dontCare;
+      Pixmap cursorNonePixmap;
 
-        memset( cursorNoneBits, 0, sizeof( cursorNoneBits ) );
-        memset( &dontCare, 0, sizeof( dontCare ) );
+      memset( cursorNoneBits, 0, sizeof( cursorNoneBits ) );
+      memset( &dontCare, 0, sizeof( dontCare ) );
 
-        cursorNonePixmap = XCreateBitmapFromData( _windowHandle._dpy, _windowHandle._root,
-                                                  cursorNoneBits, 16, 16 );
-        if( cursorNonePixmap == None ) {
-          std::cerr << "Could not create AR_CURSOR_NONE" << std::endl;
-          return _cursor;
-        }
-
-        cursorNone = XCreatePixmapCursor( _windowHandle._dpy,
-                                          cursorNonePixmap, cursorNonePixmap,
-                                          &dontCare, &dontCare, 0, 0 );
-
-        XFreePixmap( _windowHandle._dpy, cursorNonePixmap );
+      cursorNonePixmap = XCreateBitmapFromData( _windowHandle._dpy, 
+                                                _windowHandle._root,
+                                                cursorNoneBits, 16, 16 );
+      if ( cursorNonePixmap == None ) {
+        std::cerr << "Could not create AR_CURSOR_NONE" << std::endl;
+        return _cursor;
       }
 
-      XCursor = cursorNone;
+      XCursor = XCreatePixmapCursor( _windowHandle._dpy,
+                                     cursorNonePixmap, cursorNonePixmap,
+                                     &dontCare, &dontCare, 0, 0 );
+
+      XFreePixmap( _windowHandle._dpy, cursorNonePixmap );
     }
     break;
 
     case AR_CURSOR_ARROW:
+      XCursor = XCreateFontCursor( _windowHandle._dpy, XC_arrow );
+      break;
     case AR_CURSOR_WAIT:
+      XCursor = XCreateFontCursor( _windowHandle._dpy, XC_watch );
+      break;
     case AR_CURSOR_HELP:
-    {
-      cursorCacheEntry* entry = &cursorCache[ cursor ];
-
-      if( entry->cachedCursor == None ) {
-        entry->cachedCursor = XCreateFontCursor( _windowHandle._dpy, entry->cursorShape );
-      }
-
-      XCursor = entry->cachedCursor;
-    }
-    break;
+      XCursor = XCreateFontCursor( _windowHandle._dpy, XC_question_arrow );
+      break;
   }
 
   if( XCursor == None ) {

@@ -428,6 +428,24 @@ int parseGUIXML( arGUIWindowManager* wm,
       windowConfig._XDisplay = windowElement->ToElement()->Attribute( "value" );
     }
 
+    // <cursor value="arrow|none|help|wait" />
+    if ( (windowElement = windowNode->FirstChild( "cursor")) ){
+      string initialCursor = windowElement->ToElement()->Attribute( "value" );
+      if (initialCursor == "none"){
+        windowConfig._initialCursor = AR_CURSOR_NONE;
+      }
+      else if (initialCursor == "help"){
+	windowConfig._initialCursor = AR_CURSOR_HELP;
+      }
+      else if (initialCursor == "wait"){
+	windowConfig._initialCursor = AR_CURSOR_WAIT;
+      }
+      else{
+	// The default is for there to be an arrow cursor.
+        windowConfig._initialCursor = AR_CURSOR_ARROW;
+      }
+    }
+
     std::cout << "TITLE: " << windowConfig._title << std::endl;
     std::cout << "WIDTH: " << windowConfig._width << std::endl;
     std::cout << "HEIGHT: " << windowConfig._height << std::endl;
@@ -453,14 +471,19 @@ int parseGUIXML( arGUIWindowManager* wm,
     std::string viewMode( "normal" );
 
     // run through all the viewports in the viewport list
-    TiXmlNode* viewportListNode = windowNode->FirstChild( "szg_viewport_list" );
+    TiXmlNode* viewportListNode 
+      = windowNode->FirstChild( "szg_viewport_list" );
     TiXmlNode* namedViewportListNode = NULL;
 
     // possible not to have a <szg_viewport_list>, so the viewportListNode
     // pointer needs to be checked from here on out
     if( viewportListNode ) {
+      cout << "AARGH! There is a viewport_list_node!\n";
+
       // check if this is a pointer to another viewportlist
-      namedViewportListNode = getNamedNode( SZGClient, viewportListNode->ToElement()->Attribute( "usenamed" ) );
+      namedViewportListNode 
+        = getNamedNode( SZGClient, 
+                        viewportListNode->ToElement()->Attribute("usenamed"));
       if( namedViewportListNode ) {
         viewportListNode = namedViewportListNode;
       }
@@ -472,8 +495,10 @@ int parseGUIXML( arGUIWindowManager* wm,
       // determine which viewmode was specified, anything other than "custom"
       // doesn't need any viewports to actually be listed
       // <viewmode value="normal|anaglyph|walleyed|crosseyed|overunder|custom" />
-      if( viewportListNode->ToElement()->Attribute( "viewmode" ) ) {
-        viewMode = viewportListNode->ToElement()->Attribute( "viewmode" );
+      TiXmlNode* viewportListElement = NULL;
+
+      if( (viewportListElement = viewportListNode->FirstChild( "viewmode" )) ){
+        viewMode = viewportListElement->ToElement()->Attribute( "value" );
       }
     }
 

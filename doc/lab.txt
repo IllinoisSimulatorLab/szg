@@ -70,7 +70,7 @@ no sensors.
 
 
 <param>
-<name>default_window</name>
+<name>double_window_not_working</name>
 <value>
 <szg_display>
  <szg_window>
@@ -116,6 +116,49 @@ no sensors.
    <stereo value="false" />
    <topmost value="false" />
    <xdisplay value="" />
+
+   <szg_viewport_list>
+     <viewmode value="custom" />
+
+     <szg_viewport>
+       <coords left="0.0" bottom="0.0" width="1.0" height="1.0" />
+       <depthclear value="false" />
+       <colormask R="true" G="true" B="true" A="true" />
+       <eyesign value="0.0" />
+       <ogldrawbuf value="GL_BACK_LEFT" />
+
+       <szg_screen>
+         <center x="0" y="0" z="0" />
+         <up x="1" y="0" z="0" />
+         <dim width="10" height="10" />
+         <normal x="0" y="-1" z="0" />
+         <headmounted value="false" />
+         <tile tilex="0", numtilesx="1", tiley="0" numtilesy="1" />
+         <usefixedhead value="allow" />
+         <fixedheadpos x="0.0" y="0.0" z="0.0" />
+         <fixedheadupangle value="0.0" />
+       </szg_screen>
+     </szg_viewport>
+   </szg_viewport_list>
+ </szg_window>
+</szg_display>
+</value>
+</param>
+
+
+<param>
+<name>single_window</name>
+<value>
+<szg_display>
+ <szg_window>
+   <size width="640" height="480" />
+   <position x="50" y="50" />
+   <decorate value="false" />
+   <fullscreen value="false" />
+   <title value="SZGView" />
+   <stereo value="false" />
+   <topmost value="false" />
+   <xdisplay value=":0.0" />
 
    <szg_viewport_list>
      <viewmode value="custom" />

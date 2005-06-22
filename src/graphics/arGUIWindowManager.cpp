@@ -122,7 +122,6 @@ int arGUIWindowManager::startWithoutSwap( void )
 {
   while( true ) {
     drawAllWindows( false );
-
     processWindowEvents();
   }
 
@@ -322,8 +321,8 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int windowID, arGUIWindowInfo e
   return eventHandle;
 }
 
-int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent, bool blocking )
-{
+int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent, 
+                                       bool blocking ){
   WindowIterator witr;
 
   EventVector eventHandles;
@@ -335,11 +334,9 @@ int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent, bool blocking )
     //           << "mode, are you sure that's what you meant to do?" << std::endl;
     warn = true;
   }
-
   // first, pass the event to all windows so they can get started on it
   for( witr = _windows.begin(); witr != _windows.end(); witr++ ) {
     arWMEvent* eventHandle = addWMEvent( witr->second->getID(), wmEvent );
-
     if( eventHandle ) {
       eventHandles.push_back( eventHandle );
     }
@@ -500,6 +497,9 @@ int arGUIWindowManager::decorateWindow( const int windowID, bool decorate )
   return 0;
 }
 
+/// Sends an event to the window manager, requesting that a particular
+/// window's cursor be set to AR_CURSOR_ARROW, AR_CURSOR_NONE, etc.
+/// The setCursor(...) method of the window gets called as a consequence.
 int arGUIWindowManager::setWindowCursor( const int windowID, arCursor cursor )
 {
   arGUIWindowInfo event( AR_WINDOW_EVENT, AR_WINDOW_CURSOR );

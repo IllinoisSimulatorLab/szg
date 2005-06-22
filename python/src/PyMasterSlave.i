@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.8 2005/06/10 15:26:59 crowell Exp $
+// $Id: PyMasterSlave.i,v 1.9 2005/06/22 00:31:34 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -160,28 +160,6 @@ static void pySlaveConnectedCallback(arMasterSlaveFramework& fw, int numConnecte
    Py_DECREF(fwobj);
 }
 
-// William Baker (wtbaker@uiuc.edu) 2004
-//
-// setReshapeCallback requires special treatment because the signature of
-// its callback function differs from everybody else's.
-//
-// void setReshapeCallback(void (*reshape)(arMasterSlaveFramework&, int, int));
-static PyObject *pyReshapeFunc = NULL;
-static void pyReshapeCallback(arMasterSlaveFramework& fw, int x, int y) {
-    PyObject *fwobj = SWIG_NewPointerObj((void *) &fw,
-                             SWIGTYPE_p_arMasterSlaveFramework, 0);
-    PyObject *arglist=Py_BuildValue("(O,i,i)",fwobj,x,y);
-    PyObject *result=PyEval_CallObject(pyReshapeFunc, arglist);
-    if (result==NULL) {
-        PyErr_Print();
-        string errmsg="A Python exception occurred in Reshape callback.";
-        cerr << errmsg << "\n";
-        throw  errmsg;
-    }
-    Py_XDECREF(result);
-    Py_DECREF(arglist);
-    Py_DECREF(fwobj);
-}
 
 bool ar_packSequenceData( PyObject* seq, std::vector<int>& typeData,
                             std::vector<long>& intData, std::vector<double>& floatData,
@@ -290,52 +268,22 @@ class arMasterSlaveFramework : public arSZGAppFramework {
   arMasterSlaveFramework();
   ~arMasterSlaveFramework();
 
-// The callbacks are commented out because they required special
-// handling (see extend section and macros)
-
-//  void setDrawCallback(void (*draw)(arMasterSlaveFramework&));
-//  void setStartCallback(bool (*initCallback)(arMasterSlaveFramework& fw, 
-//                                            arSZGClient&));
-//  void setPreExchangeCallback(void (*preExchange)(arMasterSlaveFramework&));
-//  void setWindowCallback(void (*windowCallback)(arMasterSlaveFramework&));
-//  void setPlayCallback(void (*play)(arMasterSlaveFramework&));
-//  void setOverlayCallback(void (*overlay)(arMasterSlaveFramework&));
-//  void setExitCallback(void (*cleanup)(arMasterSlaveFramework&));
-//  void setUserMessageCallback(
-//    void (*userMessageCallback)(arMasterSlaveFramework&, const string&));
-//  void setPostExchangeCallback(bool (*postExchange)(arMasterSlaveFramework&));
-//  void setReshapeCallback(void (*reshape)(arMasterSlaveFramework&, int, int));
-//  void setKeyboardCallback(void (*keyboard)(arMasterSlaveFramework&,
-//                                            unsigned char, int, int));
-//  void setSlaveConnectedCallback(void (*connected)(arMasterSlaveFramework&, int));
+  // The callbacks are commented out because they required special
+  // handling (see extend section and macros)
 
   bool getStandalone(); // Are we running in stand-alone mode?
   int getNumberSlavesConnected() const; // If master, number of slaves connected.
-
-  void setGlutDisplayMode( unsigned int glutDisplayMode ) { _glutDisplayMode = glutDisplayMode; }
-  unsigned int getGlutDisplayMode() const { return _glutDisplayMode; }
-
   // initializes the various pieces but does not start the event loop
   bool init(int&, char**);
   // starts services and the default GLUT-based event loop
   bool start();
-  // lets us work without the GLUT event loop... i.e. it starts the various
-  // services but lets the user control the event loop
-  bool startWithoutGLUT();
   // shut-down for much (BUT NOT ALL YET) of the arMasterSlaveFramework
   // if the parameter is set to true, we will block until the display thread
   // exits
   void stop(bool blockUntilDisplayExit);
 
   void preDraw();
-  void drawWindow();
   void postDraw();
-
-  arMatrix4 getProjectionMatrix(float eyeSign); // needed for custom stuff
-  arMatrix4 getModelviewMatrix(float eyeSign);  // needed for custom stuff
-
-  int             getWindowSizeX() const { return _windowSizeX; }
-  int             getWindowSizeY() const { return _windowSizeY; }
 
   // Various methods of sharing data from the master to the slaves...
 
@@ -384,9 +332,6 @@ class arMasterSlaveFramework : public arSZGAppFramework {
   void internalBufferSwap(bool state){ _internalBufferSwap = state; }
   void loadNavMatrix() { arMatrix4 temp = ar_getNavInvMatrix();
                          glMultMatrixf( temp.v ); }
-  //void setAnaglyphMode(bool isOn) { _anaglyphMode = isOn; }
-  bool setViewMode( const string& viewMode ); 
-  float getCurrentEye() const { return _graphicsWindow.getCurrentEyeSign(); }
   /// msec since the first I/O poll (not quite start of the program).
   double getTime() const { return _time; }
   /// How many msec it took to compute/draw the last frame.
@@ -800,9 +745,6 @@ void set##cbtype##Callback(PyObject *PyFunc) {\
 
 //  void setPostExchangeCallback(bool (*postExchange)(arMasterSlaveFramework&));
     SETMASTERSLAVECALLBACK(PostExchange)
-
-//  void setReshapeCallback(void (*reshape)(arMasterSlaveFramework&, int, int));
-    SETMASTERSLAVECALLBACK(Reshape)
 
 //  void setSlaveConnectedCallback(void (*connected)(arMasterSlaveFramework&, int));
     SETMASTERSLAVECALLBACK(SlaveConnected)

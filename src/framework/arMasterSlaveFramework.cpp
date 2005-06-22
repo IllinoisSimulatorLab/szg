@@ -1027,7 +1027,7 @@ void arMasterSlaveFramework::preDraw( void ) {
 
 /// Draw the window. Note that for VR this can be somewhat complex,
 /// given that we may be doing a stereo window, a window with multiple
-/// viewports, and anaglyph window, etc.
+/// viewports, an anaglyph window, etc.
 void arMasterSlaveFramework::_drawWindow( int windowID ){
   // if the shutdown flag has been triggered, go ahead and return
   if( _exitProgram ) {
@@ -2172,23 +2172,37 @@ void arMasterSlaveFramework::_createWindowing( void ) {
     std::string whichDisplay = _SZGClient.getMode( "gui" );
     std::string displayName  = _SZGClient.getAttribute( whichDisplay, "name" );
 
-    std::cout << "Using display: " << whichDisplay << " : " << displayName << std::endl;
+    std::cout << "Using display: " << whichDisplay << " : " 
+              << displayName << std::endl;
 
-    parseGUIXML( _wm, _windows, _SZGClient, _SZGClient.getGlobalAttribute( displayName ) );
+    parseGUIXML( _wm, _windows, _SZGClient, 
+                 _SZGClient.getGlobalAttribute( displayName ) );
 
     std::map<int, arGraphicsWindow* >::iterator itr;
 
-    // register all the draw callbacks with the newly created {arGUI|arGraphics}Windows
+    // Register all the draw callbacks with the newly created 
+    // {arGUI|arGraphics}Windows
     for( itr = _windows.begin(); itr != _windows.end(); itr++ ) {
-      // register the framework's draw and init callbacks with the arGraphicsWindow
+      // Register the framework's draw and init callbacks with the 
+      // arGraphicsWindow.
       itr->second->setDrawCallback( new arMasterSlaveRenderCallback( *this ) );
-      itr->second->setInitCallback( new arMasterSlaveWindowInitCallback( *this ) );
+      itr->second->setInitCallback
+        ( new arMasterSlaveWindowInitCallback( *this ) );
 
-      // register the framework's draw callback with the arGUIWindow
-      _wm->registerDrawCallback( itr->first, new arMasterSlaveRenderCallback( *this ) );
+      // Register the framework's draw callback with the arGUIWindow.
+      _wm->registerDrawCallback
+        ( itr->first, new arMasterSlaveRenderCallback( *this ) );
 
-      // for the m/s framework, don't use any cursor
-      _wm->setWindowCursor( itr->first, AR_CURSOR_NONE );
+      // The window configuration tells us which cursor bitmap to use.
+      // Yes, this is indeed very circuitous. The window manager doesn't
+      // let us get at its arGUIWindows directly, so we need to communicate
+      // with them via handle. 
+      // Also, while the arGUIWindow has the cursor type information, this
+      // won't be acted upon by the window manager until a "cursor" setting
+      // event has occured.... Perhaps at some point it would be a
+      // good idea to have the window manager take care of this detail
+      // itself...
+      _wm->setWindowCursor( itr->first, _wm->getWindowCursor(itr->first));
 
       // set the virtual head for any VR cameras
       std::vector<arViewport>* viewports = itr->second->getViewports();
@@ -2201,9 +2215,9 @@ void arMasterSlaveFramework::_createWindowing( void ) {
     }
   }
 
-  std::string wildcatFramelockStatus = _SZGClient.getAttribute( screenName,
-                                                                "wildcat_framelock",
-                                                                "|false|true|" );
+  std::string wildcatFramelockStatus 
+    = _SZGClient.getAttribute( screenName, "wildcat_framelock",
+                               "|false|true|" );
 
   _wm->useWildcatFramelock( wildcatFramelockStatus == "true" );
 
@@ -2595,7 +2609,6 @@ void arMasterSlaveFramework::_draw( void ) {
 void arMasterSlaveFramework::_display( int windowID ) {
   // handle the stuff that occurs before drawing
   preDraw();
-
   // draw the window
   _drawWindow( windowID );
 

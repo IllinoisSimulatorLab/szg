@@ -234,13 +234,14 @@ class SZG_CALL arGUIWindowConfig
      * @param width      The width of the window.
      * @param height     The height of the window.
      * @param bpp        The bit-depth of the window.
-     * @param Hz         The refresh-rate of the window.
+     * @param Hz         The refresh-rate of the window. 
      * @param decorate   Whether the window should have border decorations.
      * @param topmost    Whether the window should be on top or not.
      * @param fullscreen Whether the window should be fullscreen.
      * @param stereo     Whether the window should support active stereo.
      * @param title      The text in the title bar of the window.
      * @param XDisplay   The connection string to the X server.
+     * @param initialCursor Request for initial cursor shape.
      *
      * @todo Test windows with XDisplay strings other than the default
      */
@@ -248,7 +249,8 @@ class SZG_CALL arGUIWindowConfig
                        int bpp = 16, int Hz = 0, bool decorate = true, bool topmost = false,
                        bool fullscreen = false, bool stereo = false,
                        const std::string& title = "SyzygyWindow",
-                       const std::string& XDisplay = ":0.0" );
+                       const std::string& XDisplay = ":0.0",
+                       int initialCursor = AR_CURSOR_ARROW );
 
     /**
      * The arGUIWindowConfig destructor.
@@ -266,6 +268,8 @@ class SZG_CALL arGUIWindowConfig
     bool _decorate, _topmost, _fullscreen, _stereo;
 
     std::string _title, _XDisplay;
+
+    int _initialCursor;
 
 };
 
