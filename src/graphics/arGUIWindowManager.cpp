@@ -179,9 +179,7 @@ int arGUIWindowManager::processWindowEvents( void )
     std::cerr << "processWindowEvents: consumeAllWindowEvents Error" << std::endl;
   }
 
-  WindowIterator it;
-
-  for( it = _windows.begin(); it != _windows.end(); ++it ) {
+  for( WindowIterator it = _windows.begin(); it != _windows.end(); ++it ) {
     arGUIWindow* currentWindow = it->second;
 
     while( currentWindow->eventsPending() ) {
@@ -321,7 +319,7 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int windowID, arGUIWindowInfo e
   return eventHandle;
 }
 
-int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent, 
+int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent,
                                        bool blocking ){
   WindowIterator witr;
 

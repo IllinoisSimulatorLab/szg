@@ -234,7 +234,7 @@ class SZG_CALL arGUIWindowConfig
      * @param width      The width of the window.
      * @param height     The height of the window.
      * @param bpp        The bit-depth of the window.
-     * @param Hz         The refresh-rate of the window. 
+     * @param Hz         The refresh-rate of the window.
      * @param decorate   Whether the window should have border decorations.
      * @param topmost    Whether the window should be on top or not.
      * @param fullscreen Whether the window should be fullscreen.
@@ -250,7 +250,7 @@ class SZG_CALL arGUIWindowConfig
                        bool fullscreen = false, bool stereo = false,
                        const std::string& title = "SyzygyWindow",
                        const std::string& XDisplay = ":0.0",
-                       int initialCursor = AR_CURSOR_ARROW );
+                       arCursor cursor = AR_CURSOR_ARROW );
 
     /**
      * The arGUIWindowConfig destructor.
@@ -269,7 +269,7 @@ class SZG_CALL arGUIWindowConfig
 
     std::string _title, _XDisplay;
 
-    int _initialCursor;
+    arCursor _cursor;
 
 };
 
@@ -847,7 +847,7 @@ class SZG_CALL arGUIWindow
     virtual void _drawHandler( void );
 
     int _ID;                                    ///< A unique identifier for this window.
-    string _className;                          ///< Registered class for this window (Win32 only)
+    std::string _className;                     ///< Registered class for this window (Win32 only)
 
     arGUIWindowConfig _windowConfig;            ///< The initial window configuration object, should never be changed.
 

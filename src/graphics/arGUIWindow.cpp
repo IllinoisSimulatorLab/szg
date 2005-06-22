@@ -34,13 +34,13 @@ void arDefaultGUIRenderCallback::operator()( arGraphicsWindow&, arViewport& ) {
   }
 }
 
-arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height, 
+arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height,
                                       int bpp, int hz,
                                       bool decorate, bool topmost,
                                       bool fullscreen, bool stereo,
-                                      const std::string& title, 
+                                      const std::string& title,
                                       const std::string& XDisplay,
-                                      int initialCursor ) :
+                                      arCursor cursor ) :
   _x( x ),
   _y( y ),
   _width( width ),
@@ -53,7 +53,7 @@ arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height,
   _stereo( stereo ),
   _title( title ),
   _XDisplay( XDisplay ),
-  _initialCursor( initialCursor )
+  _cursor( cursor )
 {
 }
 
@@ -166,7 +166,7 @@ int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const 
 }
 
 arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
-                          void (*windowInitGLCallback)( arGUIWindowInfo* ), 
+                          void (*windowInitGLCallback)( arGUIWindowInfo* ),
                           void* userData ) :
   _ID( ID ),
   _windowConfig( windowConfig ),
@@ -178,6 +178,7 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
   _fullscreen( false ),
   _topmost( false ),
   _decorate( true ),
+  _cursor( AR_CURSOR_NONE ),
   _creationFlag( false ),
   _destructionFlag( false ),
   _userData( userData )
@@ -187,13 +188,14 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
   // BUG: Setting the cursor can only happen through the arGUIWindowManager.
   // Consequently, the cursor change needs to be manually enforced by
   // the programmer.
-  _cursor = windowConfig._initialCursor;
+  // _cursor = windowConfig._initialCursor;
+
   std::stringstream ss; ss << _ID;
   _className = std::string( _windowConfig._title + ss.str() );
 
   _windowBuffer = new arGUIWindowBuffer( true );
 
-  _GUIEventManager = new arGUIEventManager();
+  _GUIEventManager = new arGUIEventManager( _userData );
 
   _lastFrameTime = ar_time();
 
@@ -589,7 +591,6 @@ int arGUIWindow::_windowCreation( void )
 {
   #if defined( AR_USE_WIN_32 )
 
-
   int dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
   if( _windowConfig._stereo ) {
     dwFlags |= PFD_STEREO;
@@ -712,10 +713,6 @@ int arGUIWindow::_windowCreation( void )
 
   ShowWindow( _windowHandle._hWnd, SW_SHOW );
 
-  if( _windowConfig._topmost ) {
-    raise();
-  }
-
   if( !SetForegroundWindow( _windowHandle._hWnd ) ) {
     std::cerr << "_windowCreation: SetForegroundWindow failure" << std::endl;
   }
@@ -724,14 +721,20 @@ int arGUIWindow::_windowCreation( void )
     std::cerr << "_windowCreation: SetFocus failure" << std::endl;
   }
 
+  // seems to be somewhat superfluous since there are SetForegroundWindow
+  // and SetFocus calls above
+  if( !_windowConfig._fullscreen && _windowConfig._topmost ) {
+    raise();
+  }
+
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   int attrList[ 32 ] = { GLX_RGBA,
                          GLX_DOUBLEBUFFER,
-                         GLX_RED_SIZE, 4,
-                         GLX_GREEN_SIZE, 4,
-                         GLX_BLUE_SIZE, 4,
-                         GLX_DEPTH_SIZE, 16,
+                         GLX_RED_SIZE,      4,
+                         GLX_GREEN_SIZE,    4,
+                         GLX_BLUE_SIZE,     4,
+                         GLX_DEPTH_SIZE,   16,
                          None };
 
   _windowHandle._dpy = NULL;
@@ -747,7 +750,7 @@ int arGUIWindow::_windowCreation( void )
   _windowHandle._dpy = XOpenDisplay( _windowConfig._XDisplay.length() ? _windowConfig._XDisplay.c_str() : NULL );
 
   if( !_windowHandle._dpy ) {
-    std::cout << "_windowCreation: XOpenDisplay failure on: " << _windowConfig._XDisplay << std::endl;
+    std::cerr << "_windowCreation: XOpenDisplay failure on: " << _windowConfig._XDisplay << std::endl;
     return -1;
   }
 
@@ -965,6 +968,8 @@ int arGUIWindow::_windowCreation( void )
   // this should get properly set in arGUIEventManager, probably shouldn't
   // set it here
   _visible = true;
+
+  setCursor( _windowConfig._cursor );
 
   return 0;
 }
@@ -1554,12 +1559,14 @@ arCursor arGUIWindow::setCursor( arCursor cursor )
 
   // Using the caching code below seems to cause segfaults on Linux when
   // running multiple windows in the master/slave framework.
-  /*static cursorCacheEntry cursorCache[] = {
+  /*
+  static cursorCacheEntry cursorCache[] = {
     { XC_arrow,           None },
     { XC_question_arrow,  None },
     { XC_watch,           None } };
 
-  static Cursor cursorNone = None;*/
+  static Cursor cursorNone = None;
+  */
 
   Cursor XCursor;
 
@@ -1575,7 +1582,7 @@ arCursor arGUIWindow::setCursor( arCursor cursor )
       memset( cursorNoneBits, 0, sizeof( cursorNoneBits ) );
       memset( &dontCare, 0, sizeof( dontCare ) );
 
-      cursorNonePixmap = XCreateBitmapFromData( _windowHandle._dpy, 
+      cursorNonePixmap = XCreateBitmapFromData( _windowHandle._dpy,
                                                 _windowHandle._root,
                                                 cursorNoneBits, 16, 16 );
       if ( cursorNonePixmap == None ) {
@@ -1593,13 +1600,15 @@ arCursor arGUIWindow::setCursor( arCursor cursor )
 
     case AR_CURSOR_ARROW:
       XCursor = XCreateFontCursor( _windowHandle._dpy, XC_arrow );
-      break;
+    break;
+
     case AR_CURSOR_WAIT:
       XCursor = XCreateFontCursor( _windowHandle._dpy, XC_watch );
-      break;
+    break;
+
     case AR_CURSOR_HELP:
       XCursor = XCreateFontCursor( _windowHandle._dpy, XC_question_arrow );
-      break;
+    break;
   }
 
   if( XCursor == None ) {

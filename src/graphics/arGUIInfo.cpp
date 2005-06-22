@@ -33,6 +33,7 @@ arGUIInfo::arGUIInfo( arStructuredData& data )
 
   _flag = data.getDataInt( "flag" );
 
+  // use getDataInt and <reinterpret_cast> instead?
   data.dataOut( "userData", &_userData, AR_INT, 1 );
 }
 
