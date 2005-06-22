@@ -12,8 +12,9 @@
 #include "arGUIEventManager.h"
 #include "arGUIWindow.h"
 
-arGUIEventManager::arGUIEventManager( void ) :
-  _active( true )
+arGUIEventManager::arGUIEventManager( void* userData ) :
+  _active( true ),
+  _userData( userData )
 {
   ar_mutex_init( &_eventsMutex );
 
@@ -114,7 +115,7 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
   }
 
   // update the user data
-  _userData = window->getUserData();
+  setUserData( window->getUserData() );
 
   #if defined( AR_USE_WIN_32 )
 

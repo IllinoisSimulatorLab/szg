@@ -59,7 +59,7 @@ class SZG_CALL arGUIEventManager
     /**
      * The arGUIEventManager constructor.
      */
-    arGUIEventManager( void );
+    arGUIEventManager( void* userData = NULL );
 
     /**
      * The arGUIEventManager destructor.
@@ -155,8 +155,9 @@ class SZG_CALL arGUIEventManager
     bool eventsPending( void );
 
     bool isActive( void ) const { return _active; }
-
     void setActive( const bool active = true );
+
+    void setUserData( void* userData ) { _userData = userData; }
     //@}
 
     #if defined( AR_USE_WIN_32 )
