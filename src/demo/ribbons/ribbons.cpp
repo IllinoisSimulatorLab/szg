@@ -217,7 +217,7 @@ LAgain:
   glEnd();
 }
 
-bool init(arMasterSlaveFramework&, arSZGClient&){
+void initGL( arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo ) {
   const float ambient[] = {0.07, 0.07, 0.07, 1.0};
   const float diffuse[4][4] = {
     { 0.0,  0.4,  0.6, 1.0},
@@ -266,7 +266,9 @@ bool init(arMasterSlaveFramework&, arSZGClient&){
   glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
   glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
   glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, mat_emission);
+}
 
+bool init(arMasterSlaveFramework&, arSZGClient&){
   return true;
 }
 
@@ -682,6 +684,7 @@ int main(int argc, char** argv){
   feedBuffer = new GLfloat[feedMax];
 #endif
   arMasterSlaveFramework fw;
+  fw.setWindowInitGLCallback(initGL);
   fw.setStartCallback(init);
   fw.setPostExchangeCallback(postExchange);
   fw.setDrawCallback(display);

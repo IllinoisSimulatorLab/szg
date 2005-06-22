@@ -605,6 +605,14 @@ void myinit(void) {
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 }
 
+void initGL( arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo )
+{
+  glNewList(1, GL_COMPILE);
+  do_display();
+  glEndList();
+  myinit();
+}
+
 void parsekey(unsigned char key, int, int)
 {
   switch (key)
@@ -616,7 +624,7 @@ void parsekey(unsigned char key, int, int)
       break;
     case ' ':
       printf("%d %f %f\n", frame, plaatje, speed);
-      break; 
+      break;
     }
 }
 
@@ -629,11 +637,6 @@ bool init(arMasterSlaveFramework& fw, arSZGClient& cli){
 
   extern void calculate_rc(void); // defined in defrc.cpp
   calculate_rc();
-
-  glNewList(1, GL_COMPILE);
-  do_display();
-  glEndList();
-  myinit();
 
   // Data to be shared over the network.
   fw.addTransferField("position", &plaatje, AR_FLOAT, 1);
@@ -700,6 +703,7 @@ void Display(arMasterSlaveFramework& fw){
 int main(int argc, char** argv){
   arMasterSlaveFramework framework;
   framework.setStartCallback(init);
+  framework.setWindowInitGLCallback(initGL);
   framework.setPreExchangeCallback(preExchange);
   framework.setPostExchangeCallback(postExchange);
   framework.setDrawCallback(Display);
