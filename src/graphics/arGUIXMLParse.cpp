@@ -213,12 +213,10 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
   if( cameraType == "ortho" || cameraType == "perspective" ) {
     std::cout << "creating " << cameraType << " camera" << std::endl;
 
-   if( cameraType == "ortho" ) {
-      #define CAM_CAST( x ) ((arOrthoCamera*) x)
+    if( cameraType == "ortho" ) {
       camera = new arOrthoCamera();
     }
     else {
-      #define CAM_CAST( x ) ((arPerspectiveCamera*) x)
       camera = new arPerspectiveCamera();
     }
 
@@ -231,7 +229,12 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
       cameraElement->ToElement()->Attribute( "near",   &ortho[ 4 ] );
       cameraElement->ToElement()->Attribute( "far",    &ortho[ 5 ] );
 
-      CAM_CAST( camera )->setFrustum( ortho );
+      if( cameraType == "ortho" ) {
+        ((arOrthoCamera*) camera)->setFrustum( ortho );
+      }
+      else {
+        ((arPerspectiveCamera*) camera)->setFrustum( ortho );
+      }
     }
 
     if( (cameraElement = cameraNode->FirstChild( "lookat" )) ) {
@@ -246,12 +249,23 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
       cameraElement->ToElement()->Attribute( "upy",     &look[ 7 ] );
       cameraElement->ToElement()->Attribute( "upz",     &look[ 8 ] );
 
-      CAM_CAST( camera )->setLook( look );
+      if( cameraType == "ortho" ) {
+        ((arOrthoCamera*) camera)->setLook( look );
+      }
+      else {
+        ((arPerspectiveCamera*) camera)->setLook( look );
+      }
     }
 
     if( (cameraElement = cameraNode->FirstChild( "sides" )) ) {
       arVector4 vec = AttributearVector4( cameraElement, "left", "right", "bottom", "sides" );
-      CAM_CAST( camera )->setSides( vec );
+
+      if( cameraType == "ortho" ) {
+        ((arOrthoCamera*) camera)->setSides( vec );
+      }
+      else {
+        ((arPerspectiveCamera*) camera)->setSides( vec );
+      }
     }
 
     if( (cameraElement = cameraNode->FirstChild( "clipping" )) ) {
@@ -259,22 +273,45 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
       cameraElement->ToElement()->Attribute( "near", &planes[ 0 ] );
       cameraElement->ToElement()->Attribute( "far",  &planes[ 1 ] );
 
-      CAM_CAST( camera )->setNearFar( planes[ 0 ], planes[ 1 ] );
+      if( cameraType == "ortho" ) {
+        ((arOrthoCamera*) camera)->setNearFar( planes[ 0 ], planes[ 1 ] );
+      }
+      else {
+        ((arPerspectiveCamera*) camera)->setNearFar( planes[ 0 ], planes[ 1 ] );
+      }
     }
 
     if( (cameraElement = cameraNode->FirstChild( "position" )) ) {
       arVector3 vec = AttributearVector3( cameraElement );
-      CAM_CAST( camera )->setPosition( vec );
+
+      if( cameraType == "ortho" ) {
+        ((arOrthoCamera*) camera)->setPosition( vec );
+      }
+      else {
+        ((arPerspectiveCamera*) camera)->setPosition( vec );
+      }
     }
 
     if( (cameraElement = cameraNode->FirstChild( "target" )) ) {
       arVector3 vec = AttributearVector3( cameraElement );
-      CAM_CAST( camera )->setTarget( vec );
+
+      if( cameraType == "ortho" ) {
+        ((arOrthoCamera*) camera)->setTarget( vec );
+      }
+      else {
+        ((arPerspectiveCamera*) camera)->setTarget( vec );
+      }
     }
 
     if( (cameraElement = cameraNode->FirstChild( "up" )) ) {
       arVector3 vec = AttributearVector3( cameraElement );
-      CAM_CAST( camera )->setUp( vec );
+
+      if( cameraType == "ortho" ) {
+        ((arOrthoCamera*) camera)->setUp( vec );
+      }
+      else {
+        ((arPerspectiveCamera*) camera)->setUp( vec );
+      }
     }
   }
   else if( cameraType == "vr" ) {
