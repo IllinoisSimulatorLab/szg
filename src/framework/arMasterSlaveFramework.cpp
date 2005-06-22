@@ -131,7 +131,6 @@ void ar_masterSlaveFrameworkMouseFunction( arGUIMouseInfo* mouseInfo ) {
       fw->_simulator.mouseButton( whichButton, whichState, mouseInfo->_posX, mouseInfo->_posY );
     }
     else {
-      std::cout << "MOUSE POS: " << mouseInfo->_posX << " : " << mouseInfo->_posY << std::endl;
       fw->_simulator.mousePosition( mouseInfo->_posX, mouseInfo->_posY );
     }
   }
@@ -514,6 +513,8 @@ void arMasterSlaveFramework::onKey( arGUIKeyInfo* keyInfo ) {
     return;
   }
 
+  // if the 'newer' keyboard callback type is registered, use it instead of
+  // the legacy version
   if( _arGUIKeyboardCallback ) {
     _arGUIKeyboardCallback( *this, keyInfo );
   }
@@ -1034,6 +1035,7 @@ void arMasterSlaveFramework::_drawWindow( int windowID ){
   }
 
   if( _windows.find( windowID ) == _windows.end() ) {
+    // print warning?
     return;
   }
 
