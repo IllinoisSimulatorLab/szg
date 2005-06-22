@@ -2048,6 +2048,10 @@ bool arMasterSlaveFramework::_startStandalone( bool useWindowing ){
     return false;
   }
 
+  if( _useWindowing ) {
+    _createWindowing();
+  }
+
   // this is from _startObjects... a CUT_AND_PASTE!!
   _graphicsDatabase.loadAlphabet( _textPath );
   _graphicsDatabase.setTexturePath( _texturePath );
@@ -2076,10 +2080,6 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
     }
 
     return false;
-  }
-
-  if( _useWindowing ) {
-    _createWindowing();
   }
 
   // A HACK!
@@ -2111,12 +2111,14 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
   */
 
   // do the user-defined init
-  // NOTE: in some cases, the user-defined init must occur AFTER
-  // the window has been created.
   // NOTE: so that _startCallback can know if this instance is the master or
   // a slave, it is important to call this AFTER _startDetermineMaster(...)
   if( !onStart( _SZGClient ) ) {
     return _startrespond( "arMasterSlaveFramework start callback failed." );
+  }
+
+  if( _useWindowing ) {
+    _createWindowing();
   }
 
   // set-up the various objects and start services
@@ -2172,37 +2174,36 @@ void arMasterSlaveFramework::_createWindowing( void ) {
     std::string whichDisplay = _SZGClient.getMode( "gui" );
     std::string displayName  = _SZGClient.getAttribute( whichDisplay, "name" );
 
-    std::cout << "Using display: " << whichDisplay << " : " 
+    std::cout << "Using display: " << whichDisplay << " : "
               << displayName << std::endl;
 
-    parseGUIXML( _wm, _windows, _SZGClient, 
+    parseGUIXML( _wm, _windows, _SZGClient,
                  _SZGClient.getGlobalAttribute( displayName ) );
 
     std::map<int, arGraphicsWindow* >::iterator itr;
 
-    // Register all the draw callbacks with the newly created 
+    // Register all the draw callbacks with the newly created
     // {arGUI|arGraphics}Windows
     for( itr = _windows.begin(); itr != _windows.end(); itr++ ) {
-      // Register the framework's draw and init callbacks with the 
+      // Register the framework's draw and init callbacks with the
       // arGraphicsWindow.
       itr->second->setDrawCallback( new arMasterSlaveRenderCallback( *this ) );
-      itr->second->setInitCallback
-        ( new arMasterSlaveWindowInitCallback( *this ) );
+      itr->second->setInitCallback( new arMasterSlaveWindowInitCallback( *this ) );
 
       // Register the framework's draw callback with the arGUIWindow.
-      _wm->registerDrawCallback
-        ( itr->first, new arMasterSlaveRenderCallback( *this ) );
+      _wm->registerDrawCallback( itr->first,
+                                 new arMasterSlaveRenderCallback( *this ) );
 
       // The window configuration tells us which cursor bitmap to use.
       // Yes, this is indeed very circuitous. The window manager doesn't
       // let us get at its arGUIWindows directly, so we need to communicate
-      // with them via handle. 
+      // with them via handle.
       // Also, while the arGUIWindow has the cursor type information, this
       // won't be acted upon by the window manager until a "cursor" setting
       // event has occured.... Perhaps at some point it would be a
       // good idea to have the window manager take care of this detail
       // itself...
-      _wm->setWindowCursor( itr->first, _wm->getWindowCursor(itr->first));
+      // _wm->setWindowCursor( itr->first, _wm->getWindowCursor(itr->first));
 
       // set the virtual head for any VR cameras
       std::vector<arViewport>* viewports = itr->second->getViewports();
@@ -2215,9 +2216,8 @@ void arMasterSlaveFramework::_createWindowing( void ) {
     }
   }
 
-  std::string wildcatFramelockStatus 
-    = _SZGClient.getAttribute( screenName, "wildcat_framelock",
-                               "|false|true|" );
+  std::string wildcatFramelockStatus
+    = _SZGClient.getAttribute( screenName, "wildcat_framelock", "|false|true|" );
 
   _wm->useWildcatFramelock( wildcatFramelockStatus == "true" );
 
@@ -2609,6 +2609,7 @@ void arMasterSlaveFramework::_draw( void ) {
 void arMasterSlaveFramework::_display( int windowID ) {
   // handle the stuff that occurs before drawing
   preDraw();
+
   // draw the window
   _drawWindow( windowID );
 
