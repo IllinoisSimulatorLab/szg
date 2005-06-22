@@ -12,6 +12,7 @@
 
 std::string minimumConfig( "<szg_display><szg_window /></szg_display>" );
 
+// NOTE: this function can and often *does* return NULL!
 TiXmlNode* getNamedNode( arSZGClient& SZGClient, const char* name )
 {
   if( !name ) {
@@ -83,7 +84,11 @@ bool AttributeBool( TiXmlNode* node, const std::string& value )
     return result;
   }
 
-  // err, pasing strcmp NULL's is undefined...
+  // passing NULL to strcmp below is undefined
+  if( !node->ToElement()->Attribute( value.c_str() ) ) {
+    return result;
+  }
+
   if( !strcmp( node->ToElement()->Attribute( value.c_str() ), "true" ) ||
       !strcmp( node->ToElement()->Attribute( value.c_str() ), "yes" ) ) {
     result = true;
@@ -131,7 +136,8 @@ int configureScreen( arSZGClient& SZGClient, arGraphicsScreen& screen,
   }
 
   // <dim width="float" height="float" />
-  if( (screenElement = screenNode->FirstChild( "dim" )) ) {
+  if( (screenElement = screenNode->FirstChild( "dim" )) &&
+      screenElement->ToElement() ) {
     float dim[ 2 ] = { 0.0f };
     screenElement->ToElement()->Attribute( "width",  &dim[ 0 ] );
     screenElement->ToElement()->Attribute( "height", &dim[ 1 ] );
@@ -151,7 +157,9 @@ int configureScreen( arSZGClient& SZGClient, arGraphicsScreen& screen,
   }
 
   // <usefixedhead value="allow|always|ignore" />
-  if( (screenElement = screenNode->FirstChild( "usefixedhead" )) ) {
+  if( (screenElement = screenNode->FirstChild( "usefixedhead" )) &&
+      screenElement->ToElement() &&
+      screenElement->ToElement()->Attribute( "value" ) ) {
     screen.setUseFixedHeadMode( screenElement->ToElement()->Attribute( "value" ) );
   }
 
@@ -162,7 +170,8 @@ int configureScreen( arSZGClient& SZGClient, arGraphicsScreen& screen,
   }
 
   // <fixedheadupangle value="float" />
-  if( (screenElement = screenNode->FirstChild( "fixedheadupangle" )) ) {
+  if( (screenElement = screenNode->FirstChild( "fixedheadupangle" )) &&
+      screenElement->ToElement() ) {
     float angle;
     screenElement->ToElement()->Attribute( "value", &angle );
 
@@ -220,7 +229,8 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
       camera = new arPerspectiveCamera();
     }
 
-    if( (cameraElement = cameraNode->FirstChild( "frustum" )) ) {
+    if( (cameraElement = cameraNode->FirstChild( "frustum" )) &&
+        cameraElement->ToElement() ) {
       float ortho[ 6 ] = { 0.0f };
       cameraElement->ToElement()->Attribute( "left",   &ortho[ 0 ] );
       cameraElement->ToElement()->Attribute( "right",  &ortho[ 1 ] );
@@ -237,7 +247,8 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
       }
     }
 
-    if( (cameraElement = cameraNode->FirstChild( "lookat" )) ) {
+    if( (cameraElement = cameraNode->FirstChild( "lookat" )) &&
+        cameraElement->ToElement() ) {
       float look[ 9 ] = { 0.0f };
       cameraElement->ToElement()->Attribute( "viewx",   &look[ 0 ] );
       cameraElement->ToElement()->Attribute( "viewy",   &look[ 1 ] );
@@ -268,7 +279,8 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
       }
     }
 
-    if( (cameraElement = cameraNode->FirstChild( "clipping" )) ) {
+    if( (cameraElement = cameraNode->FirstChild( "clipping" )) &&
+         cameraElement->ToElement() ) {
       float planes[ 2 ] = { 0.0f };
       cameraElement->ToElement()->Attribute( "near", &planes[ 0 ] );
       cameraElement->ToElement()->Attribute( "far",  &planes[ 1 ] );
@@ -382,13 +394,15 @@ int parseGUIXML( arGUIWindowManager* wm,
     arGUIWindowConfig windowConfig;
 
     // <size width="integer" height="integer" />
-    if( (windowElement = windowNode->FirstChild( "size" )) ) {
+    if( (windowElement = windowNode->FirstChild( "size" )) &&
+         windowElement->ToElement() ) {
       windowElement->ToElement()->Attribute( "width",  &windowConfig._width );
       windowElement->ToElement()->Attribute( "height", &windowConfig._height );
     }
 
     // <position x="integer" y="integer" />
-    if( (windowElement = windowNode->FirstChild( "position" )) ) {
+    if( (windowElement = windowNode->FirstChild( "position" )) &&
+         windowElement->ToElement() ) {
       windowElement->ToElement()->Attribute( "x", &windowConfig._x );
       windowElement->ToElement()->Attribute( "y", &windowConfig._y );
     }
@@ -414,35 +428,43 @@ int parseGUIXML( arGUIWindowManager* wm,
     }
 
     // <bpp value="integer" />
-    if( (windowElement = windowNode->FirstChild( "bpp" )) ) {
+    if( (windowElement = windowNode->FirstChild( "bpp" )) &&
+        windowElement->ToElement() ) {
       windowElement->ToElement()->Attribute( "value", &windowConfig._bpp );
     }
 
     // <title value="string" />
-    if( (windowElement = windowNode->FirstChild( "title" )) ) {
+    if( (windowElement = windowNode->FirstChild( "title" )) &&
+         windowElement->ToElement() &&
+         windowElement->ToElement()->Attribute( "value" ) ) {
       windowConfig._title = windowElement->ToElement()->Attribute( "value" );
     }
 
     // <xdisplay value="string" />
-    if( (windowElement = windowNode->FirstChild( "xdisplay" )) ) {
+    if( (windowElement = windowNode->FirstChild( "xdisplay" )) &&
+        windowElement->ToElement() &&
+        windowElement->ToElement()->Attribute( "value" ) ) {
       windowConfig._XDisplay = windowElement->ToElement()->Attribute( "value" );
     }
 
     // <cursor value="arrow|none|help|wait" />
-    if ( (windowElement = windowNode->FirstChild( "cursor")) ){
+    if( (windowElement = windowNode->FirstChild( "cursor")) &&
+        windowElement->ToElement() &&
+        windowElement->ToElement()->Attribute( "value" ) ) {
       string initialCursor = windowElement->ToElement()->Attribute( "value" );
-      if (initialCursor == "none"){
-        windowConfig._initialCursor = AR_CURSOR_NONE;
+
+      if( initialCursor == "none" ) {
+        windowConfig._cursor = AR_CURSOR_NONE;
       }
-      else if (initialCursor == "help"){
-	windowConfig._initialCursor = AR_CURSOR_HELP;
+      else if( initialCursor == "help" ) {
+        windowConfig._cursor = AR_CURSOR_HELP;
       }
-      else if (initialCursor == "wait"){
-	windowConfig._initialCursor = AR_CURSOR_WAIT;
+      else if( initialCursor == "wait" ) {
+        windowConfig._cursor = AR_CURSOR_WAIT;
       }
-      else{
-	// The default is for there to be an arrow cursor.
-        windowConfig._initialCursor = AR_CURSOR_ARROW;
+      else {
+        // The default is for there to be an arrow cursor.
+        windowConfig._cursor = AR_CURSOR_ARROW;
       }
     }
 
@@ -456,6 +478,7 @@ int parseGUIXML( arGUIWindowManager* wm,
     std::cout << "TOPMOST: " << windowConfig._topmost << std::endl;
     std::cout << "BPP: " << windowConfig._bpp << std::endl;
     std::cout << "XDISPLAY: " << windowConfig._XDisplay << std::endl;
+    std::cout << "CURSOR: " << windowConfig._cursor << std::endl;
 
     int winID = wm->addWindow( windowConfig );
     if( winID < 0 ) {
@@ -471,19 +494,16 @@ int parseGUIXML( arGUIWindowManager* wm,
     std::string viewMode( "normal" );
 
     // run through all the viewports in the viewport list
-    TiXmlNode* viewportListNode 
-      = windowNode->FirstChild( "szg_viewport_list" );
+    TiXmlNode* viewportListNode = windowNode->FirstChild( "szg_viewport_list" );
     TiXmlNode* namedViewportListNode = NULL;
 
     // possible not to have a <szg_viewport_list>, so the viewportListNode
     // pointer needs to be checked from here on out
     if( viewportListNode ) {
-      cout << "AARGH! There is a viewport_list_node!\n";
-
       // check if this is a pointer to another viewportlist
-      namedViewportListNode 
-        = getNamedNode( SZGClient, 
-                        viewportListNode->ToElement()->Attribute("usenamed"));
+      namedViewportListNode = getNamedNode( SZGClient,
+                                            viewportListNode->ToElement()->Attribute( "usenamed" ) );
+
       if( namedViewportListNode ) {
         viewportListNode = namedViewportListNode;
       }
@@ -497,7 +517,8 @@ int parseGUIXML( arGUIWindowManager* wm,
       // <viewmode value="normal|anaglyph|walleyed|crosseyed|overunder|custom" />
       TiXmlNode* viewportListElement = NULL;
 
-      if( (viewportListElement = viewportListNode->FirstChild( "viewmode" )) ){
+      if( (viewportListElement = viewportListNode->FirstChild( "viewmode" )) &&
+          viewportListElement->ToElement()->Attribute( "value" ) ) {
         viewMode = viewportListElement->ToElement()->Attribute( "value" );
       }
     }
@@ -552,18 +573,18 @@ int parseGUIXML( arGUIWindowManager* wm,
 
         // fill in viewport parameters from viewportNode elements
         // <coords left="float" bottom="float" width="float" height="float" />
-        if( ( viewportElement = viewportNode->FirstChild( "coords" ) ) && viewportElement->ToElement() ) {
+        if( (viewportElement = viewportNode->FirstChild( "coords" )) ) {
           arVector4 vec = AttributearVector4( viewportElement, "left", "bottom", "width", "height" );
           viewport.setViewport( vec );
         }
 
         // <depthclear value="true|false|yes|no" />
-        if( ( viewportElement = viewportNode->FirstChild( "depthclear" ) ) && viewportElement->ToElement() ) {
+        if( (viewportElement = viewportNode->FirstChild( "depthclear" )) ) {
           viewport.clearDepthBuffer( AttributeBool( viewportElement ) );
         }
 
         // <colormask R="true|false|yes|no" G="true|false|yes|no" B="true|false|yes|no" A="true|false|yes|no" />
-        if( ( viewportElement = viewportNode->FirstChild( "colormask" ) ) && viewportElement->ToElement() ) {
+        if( (viewportElement = viewportNode->FirstChild( "colormask" )) ) {
           bool colorMask[ 4 ];
           colorMask[ 0 ] = AttributeBool( viewportElement, "R" );
           colorMask[ 1 ] = AttributeBool( viewportElement, "G" );
@@ -573,14 +594,16 @@ int parseGUIXML( arGUIWindowManager* wm,
         }
 
         // <eyesign value="float" />
-        if( ( viewportElement = viewportNode->FirstChild( "eyesign" ) ) && viewportElement->ToElement() ) {
+        if( (viewportElement = viewportNode->FirstChild( "eyesign" )) &&
+            viewportElement->ToElement() ) {
           float eyesign;
           viewportElement->ToElement()->Attribute( "value", &eyesign );
           viewport.setEyeSign( eyesign );
         }
 
         // <ogldrawbuf value="GL_NONE|GL_FRONT_LEFT|GL_FRONT_RIGHT|GL_BACK_LEFT|GL_BACK_RIGHT|GL_FRONT|GL_BACK|GL_LEFT|GL_RIGHT|GL_FRONT_AND_BACK" />
-        if( ( viewportElement = viewportNode->FirstChild( "ogldrawbuf" ) ) && viewportElement->ToElement() ) {
+        if( (viewportElement = viewportNode->FirstChild( "ogldrawbuf" )) &&
+            viewportElement->ToElement() ) {
           GLenum ogldrawbuf;
 
           std::string buf = viewportElement->ToElement()->Attribute( "value" );
@@ -621,7 +644,8 @@ int parseGUIXML( arGUIWindowManager* wm,
       arCamera* camera = NULL;
       arGraphicsScreen screen;
 
-      if( !(camera = configureCamera( SZGClient, screen, viewportListNode ? viewportListNode->FirstChild( "szg_camera" ) : NULL )) ) {
+      if( !(camera = configureCamera( SZGClient, screen,
+                                      viewportListNode ? viewportListNode->FirstChild( "szg_camera" ) : NULL )) ) {
         // should never happen, configureCamera should always return at least /something/
         std::cout << "non-custom configureCamera failure" << std::endl;
       }
