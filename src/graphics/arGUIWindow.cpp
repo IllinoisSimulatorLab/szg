@@ -36,7 +36,7 @@ void arDefaultGUIRenderCallback::operator()( arGraphicsWindow&, arViewport& ) {
 
 arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height,
                                       int bpp, int hz,
-                                      bool decorate, bool topmost,
+                                      bool decorate, arZOrder zorder,
                                       bool fullscreen, bool stereo,
                                       const std::string& title,
                                       const std::string& XDisplay,
@@ -48,7 +48,7 @@ arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height,
   _bpp( bpp ),
   _Hz( hz ),
   _decorate( decorate ),
-  _topmost( topmost ),
+  _zorder( zorder ),
   _fullscreen( fullscreen ),
   _stereo( stereo ),
   _title( title ),
@@ -176,7 +176,7 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
   _running( false ),
   _threaded( false ),
   _fullscreen( false ),
-  _topmost( false ),
+  _zorder( AR_ZORDER_TOP ),
   _decorate( true ),
   _cursor( AR_CURSOR_NONE ),
   _creationFlag( false ),
@@ -723,8 +723,8 @@ int arGUIWindow::_windowCreation( void )
 
   // seems to be somewhat superfluous since there are SetForegroundWindow
   // and SetFocus calls above
-  if( !_windowConfig._fullscreen && _windowConfig._topmost ) {
-    raise();
+  if( !_windowConfig._fullscreen ) {
+    raise( _windowConfig._zorder );
   }
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
@@ -943,8 +943,8 @@ int arGUIWindow::_windowCreation( void )
   }
   */
 
-  if( _windowConfig._topmost ) {
-    raise();
+  if( windowConfig._fullscreen ) {
+    raise( _windowConfig._zorder );
   }
 
   decorate( _windowConfig._decorate );
@@ -1213,12 +1213,11 @@ int arGUIWindow::fullscreen( void )
 
   // just to be safe... (NOTE: windows doesn't need this since we specify the
   // HWND_TOPMOST flag)
-  raise();
+  raise( AR_ZORDER_TOPMOST );
 
   #endif
 
   _fullscreen = true;
-  _topmost = true;
 
   return 0;
 }
@@ -1343,7 +1342,7 @@ void arGUIWindow::decorate( const bool decorate )
   _decorate = decorate;
 }
 
-void arGUIWindow::raise( void )
+void arGUIWindow::raise( arZOrder zorder )
 {
   if( !_running ) {
     return;
@@ -1358,9 +1357,23 @@ void arGUIWindow::raise( void )
 
   #if defined( AR_USE_WIN_32 )
 
-  SetWindowPos( _windowHandle._hWnd, HWND_TOP,
+  HWND flag;
+
+  if( zorder == AR_ZORDER_NORMAL ) {
+    flag = HWND_NOTOPMOST;
+  }
+  else if( zorder == AR_ZORDER_TOP ) {
+    flag = HWND_TOP;
+  }
+  else if( zorder == AR_ZORDER_TOPMOST ) {
+    flag = HWND_TOPMOST;
+  }
+
+  SetWindowPos( _windowHandle._hWnd, flag,
                 0, 0, 0, 0,
                 SWP_NOSIZE | SWP_NOMOVE );
+
+  _zorder = zorder;
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
@@ -1372,7 +1385,6 @@ void arGUIWindow::raise( void )
   #endif
 
   _visible = true;
-  _topmost = true;
 }
 
 void arGUIWindow::lower( void )
@@ -1404,7 +1416,6 @@ void arGUIWindow::lower( void )
   #endif
 
   _visible = false;
-  _topmost = false;
 }
 
 void arGUIWindow::minimize( void )
@@ -1434,7 +1445,6 @@ void arGUIWindow::minimize( void )
   #endif
 
   _visible = false;
-  _topmost = false;
 }
 
 void arGUIWindow::restore( void )

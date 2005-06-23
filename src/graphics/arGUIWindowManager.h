@@ -469,7 +469,8 @@ class SZG_CALL arGUIWindowManager
     bool isStereo( const int windowID );
     bool isFullscreen( const int windowID );
     bool isDecorated( const int windowID );
-    bool isTopmost( const int windowID );
+
+    arZOrder getZOrder( const int windowID );
 
     void* getUserData( const int windowID );
     void setUserData( const int windowID, void* userData );
@@ -502,8 +503,11 @@ class SZG_CALL arGUIWindowManager
      * Retrieve information about a window manager's current state.
      */
     int getNumWindows( void ) const { return _windows.size(); }
-    bool isThreaded( void ) const { return _threaded; }
     bool hasActiveWindows( void ) const { return !_windows.empty(); }
+
+    bool isThreaded( void ) const { return _threaded; }
+    void setThreaded( bool threaded );
+
     void setUserData( void* userData ) { _userData = userData; }
     void* getUserData( void ) const { return _userData; }
     //@}

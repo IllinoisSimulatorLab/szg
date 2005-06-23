@@ -73,6 +73,7 @@ typedef struct {
 typedef unsigned int arGUIKey;
 typedef unsigned int arGUIButton;
 typedef unsigned int arCursor;
+typedef unsigned int arZOrder;
 //@}
 
 
@@ -257,6 +258,10 @@ typedef unsigned int arCursor;
   #define AR_CURSOR_WAIT     0x0002
   #define AR_CURSOR_NONE     0x0003
 
+  #define AR_ZORDER_NORMAL   0x0000
+  #define AR_ZORDER_TOP      0x0001
+  #define AR_ZORDER_TOPMOST  0x0002
+
 #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   #include <X11/keysym.h>
@@ -437,6 +442,10 @@ typedef unsigned int arCursor;
   #define AR_CURSOR_HELP     0x0001
   #define AR_CURSOR_WAIT     0x0002
   #define AR_CURSOR_NONE     0x0003
+
+  #define AR_ZORDER_NORMAL   0x0000
+  #define AR_ZORDER_TOP      0x0001
+  #define AR_ZORDER_TOPMOST  0x0002
 
 #endif
 

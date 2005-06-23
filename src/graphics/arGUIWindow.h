@@ -236,17 +236,18 @@ class SZG_CALL arGUIWindowConfig
      * @param bpp        The bit-depth of the window.
      * @param Hz         The refresh-rate of the window.
      * @param decorate   Whether the window should have border decorations.
-     * @param topmost    Whether the window should be on top or not.
+     * @param zorder     Whether the window should be on top or not.
      * @param fullscreen Whether the window should be fullscreen.
      * @param stereo     Whether the window should support active stereo.
      * @param title      The text in the title bar of the window.
      * @param XDisplay   The connection string to the X server.
-     * @param initialCursor Request for initial cursor shape.
+     * @param cursor     The initial cursor shape.
      *
      * @todo Test windows with XDisplay strings other than the default
      */
     arGUIWindowConfig( int x = 50, int y = 50, int width = 640, int height = 480,
-                       int bpp = 16, int Hz = 0, bool decorate = true, bool topmost = false,
+                       int bpp = 16, int Hz = 0, bool decorate = true,
+                       arZOrder zorder = AR_ZORDER_TOP,
                        bool fullscreen = false, bool stereo = false,
                        const std::string& title = "SyzygyWindow",
                        const std::string& XDisplay = ":0.0",
@@ -265,7 +266,9 @@ class SZG_CALL arGUIWindowConfig
 
     int _x, _y, _width, _height, _bpp, _Hz;
 
-    bool _decorate, _topmost, _fullscreen, _stereo;
+    bool _decorate, _fullscreen, _stereo;
+
+    arZOrder _zorder;
 
     std::string _title, _XDisplay;
 
@@ -599,7 +602,7 @@ class SZG_CALL arGUIWindow
     /**
      * Raise the window in the z ordering.
      */
-    void raise( void );
+    void raise( arZOrder zorder );
 
     /**
      * Lower the window in the z ordering.
@@ -663,10 +666,10 @@ class SZG_CALL arGUIWindow
     int getPosX( void ) const;
     int getPosY( void ) const;
 
-    bool isStereo( void )     const { return _windowConfig._stereo; }
-    bool isFullscreen( void ) const { return _fullscreen; }
-    bool isDecorated( void )  const { return _decorate; }
-    bool isTopmost( void )    const { return _topmost; }
+    bool isStereo( void )      const { return _windowConfig._stereo; }
+    bool isFullscreen( void )  const { return _fullscreen; }
+    bool isDecorated( void )   const { return _decorate; }
+    arZOrder getZOrder( void ) const { return _zorder; }
 
     bool running( void ) const { return _running; }
     bool eventsPending( void ) const;
@@ -862,8 +865,9 @@ class SZG_CALL arGUIWindow
     bool _running;                              ///< Is the window currently running?
     bool _threaded;                             ///< Is the window in threaded or non-threaded mode?
     bool _fullscreen;                           ///< Is the window currently in fullscreen mode?
-    bool _topmost;                              ///< Is the window currently topmost?
     bool _decorate;                             ///< Is the window currently decorated?
+
+    arZOrder _zorder;                           ///< The current window z-ordering.
 
     arCursor _cursor;                           ///< The current window cursor.
 

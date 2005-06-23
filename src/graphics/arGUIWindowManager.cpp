@@ -556,13 +556,13 @@ bool arGUIWindowManager::isDecorated( const int windowID )
   return _windows[ windowID ]->isDecorated();
 }
 
-bool arGUIWindowManager::isTopmost( const int windowID )
+arZOrder arGUIWindowManager::getZOrder( const int windowID )
 {
   if( _windows.find( windowID ) == _windows.end() ) {
     return false;
   }
 
-  return _windows[ windowID ]->isTopmost();
+  return _windows[ windowID ]->getZOrder();
 }
 
 void* arGUIWindowManager::getUserData( const int windowID )
@@ -603,7 +603,7 @@ arVector3 arGUIWindowManager::getMousePos( const int windowID )
   return arVector3( float( mouseState._posX ), float( mouseState._posY ), 0.0f );
 }
 
-arGUIKeyInfo getKeyState( const arGUIKey key )
+arGUIKeyInfo arGUIWindowManager::getKeyState( const arGUIKey key )
 {
   #if defined( AR_USE_WIN_32 )
 
@@ -612,6 +612,15 @@ arGUIKeyInfo getKeyState( const arGUIKey key )
   #endif
 
   return arGUIKeyInfo();
+}
+
+void arGUIWindowManager::setThreaded( bool threaded ) {
+  if( _windows.size() ) {
+    // can't change threading mode once windows have been created
+    return;
+  }
+
+  _threaded = threaded;
 }
 
 int arGUIWindowManager::deleteWindow( const int windowID )
