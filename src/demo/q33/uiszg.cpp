@@ -50,7 +50,7 @@ void rc_free(void *mem) { free(mem); }
 #include <iostream>
 using namespace std;
 
-// the way to pass information into the quake arg parser 
+// the way to pass information into the quake arg parser
 char** g_argv;
 int    g_argc;
 
@@ -83,9 +83,15 @@ bool parseNavArgs(int& argc, char** argv){
   return true;
 }
 
+void initGL(arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo ) {
+  // Set up rendering context.
+  r_context = (r_context_t *) rc_malloc(sizeof(r_context_t));
+  ui_init_gl(r_context);
+}
+
 bool init(arMasterSlaveFramework& fw, arSZGClient& cli){
   parseNavArgs( g_argc, g_argv );
-  
+
   pakFilePath = cli.getAttribute("SZG_DATA","path");
 
   g = (global_shared_t *) gc_malloc(sizeof(global_shared_t));
@@ -97,18 +103,14 @@ bool init(arMasterSlaveFramework& fw, arSZGClient& cli){
   ui_init_bsp();
   printf("\n\n");
 
-  // Set up rendering context.
-  r_context = (r_context_t *) rc_malloc(sizeof(r_context_t));
-  ui_init_gl(r_context);
-  
   ar_navRotate( arVector3(0,1,0), g->r_eye_az+90. );
 
   // Register fields shared over the network.
   fw.addTransferField("eyepos",r_context->r_eyepos,AR_FLOAT,3);
   fw.addTransferField("eye_az",&r_context->r_eye_az,AR_FLOAT,1);
-  fw.addTransferField("eye_el",&r_context->r_eye_el,AR_FLOAT,1); 
+  fw.addTransferField("eye_el",&r_context->r_eye_el,AR_FLOAT,1);
   fw.addTransferField("time",&r_context->r_frametime,AR_DOUBLE,1);
-  fw.addTransferField("eyecluster",&r_context->r_eyecluster,AR_INT,1); 
+  fw.addTransferField("eyecluster",&r_context->r_eyecluster,AR_INT,1);
   return true;
 }
 
@@ -157,7 +159,7 @@ void do_sounds(double currentTime, bool fCollided){
 
     // Play a beep sporadically.
     {
-      const float xyzBeep[3] 
+      const float xyzBeep[3]
         = { 5.*(drand48()-.5), 5.*(drand48()-.5), 5.*(drand48()-.5) };
       static bool fReset = true;
       if (drand48() < .02) {
@@ -195,7 +197,7 @@ void preExchange(arMasterSlaveFramework& fw){
   // time is in seconds, but these calls return milliseconds
   const double currentTime = fw.getTime() / 1000.0;
   const double timeDelta = fw.getLastFrameTime() / 1000.0;
-  
+
   // Translate forwards/backwards, in direction wand is pointing.
   g->g_move =
     (fw.getAxis(1) >  0.5) ?  1 :
@@ -223,11 +225,11 @@ void preExchange(arMasterSlaveFramework& fw){
   g->g_keylook = 0;
   g->g_acceleration = 100.;
   g->g_maxvel = 100.;
-  
+
   // Button 3 enables scooting: translate sideways instead of rotating world
   // button 2 disables it.
   static bool fScoot = false;
-  
+
   if (!noNavRotation) {
     if (fw.getButton(2))
       fScoot = true;
@@ -270,7 +272,7 @@ void preExchange(arMasterSlaveFramework& fw){
       ar_navRotate( arVector3(0,1,0), 30*timeDelta );
     }
   }
-  
+
 #ifdef SWAY_DEMO
   // testing a vection/sway demo
   static bool lastB4 = false;
@@ -303,7 +305,7 @@ void preExchange(arMasterSlaveFramework& fw){
   ar_navRotate( arVector3(1,0,0), swayOffset-lastSwayOffset );
   // ar_navTranslate( arVector3(0,0,swayOffset-lastSwayOffset) );
   lastSwayOffset = swayOffset;
-  
+
 #endif
 
 #ifdef ALLOW_JUMP
@@ -322,7 +324,7 @@ void preExchange(arMasterSlaveFramework& fw){
   }
   lastb0 = b0;
 #endif
-  
+
   if (fw.soundActive()){
     do_sounds(currentTime, ui_move(currentTime));
   }
@@ -338,10 +340,10 @@ void playCallback(arMasterSlaveFramework& fw){
   if (!fw.soundActive())
     return;
   // do something here.  root -> world -> other things in sound database,
-  // modify world from position in q33 world, 
+  // modify world from position in q33 world,
   // that's the nav matrix, setHeadMatrix from that?
 
-  // this sets head matrix: /* navMatrix * */ 
+  // this sets head matrix: /* navMatrix * */
   // ar_rotationMatrix('y',3.14) * ar_rotationMatrix('x',-1.57)
   // see the glMultMatrixf call in drawCallback().
 }
@@ -360,7 +362,7 @@ void drawCallback(arMasterSlaveFramework& fw){
     glEnable(GL_LIGHT0);
     glDisable(GL_LIGHTING);
     fw.loadNavMatrix();
-    const arMatrix4 worldCoordinateRotation = 
+    const arMatrix4 worldCoordinateRotation =
       ar_rotationMatrix('y',3.14)*ar_rotationMatrix('x',-1.57);
     glMultMatrixf(worldCoordinateRotation.v);
     double placeHolder = 0;
@@ -381,6 +383,7 @@ int main(int argc, char** argv){
   framework.setStartCallback(init);
   framework.setPreExchangeCallback(preExchange);
   framework.setWindowCallback(windowCallback);
+  framework.setWindowInitGLCallback(initGL);
   framework.setDrawCallback(drawCallback);
   framework.setPlayCallback(playCallback);
   framework.setEyeSpacing(6/(12*2.54));
