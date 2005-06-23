@@ -5,15 +5,68 @@
 
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include "arGUIXMLParse.h"
+#include "arGUIXMLParser.h"
+#include "arGUIWindowManager.h"
+#include "arGUIWindow.h"
+#include "arGraphicsScreen.h"
+#include "arGraphicsWindow.h"
+#include "arViewport.h"
+#include "arCamera.h"
 #include "arVRCamera.h"
 #include "arPerspectiveCamera.h"
 #include "arOrthoCamera.h"
 
-std::string minimumConfig( "<szg_display><szg_window /></szg_display>" );
+#include <iostream>
+
+arGUIXMLParser::arGUIXMLParser( arGUIWindowManager* wm,
+                                std::map<int, arGraphicsWindow* >& windows,
+                                arSZGClient& SZGClient,
+                                const std::string& config ) :
+  _wm( wm ),
+  _windows( &windows ),
+  _SZGClient( &SZGClient ),
+  _config( config ),
+  _mininumConfig( "<szg_display><szg_window /></szg_display>" )
+{
+  if( config == "NULL" ) {
+    std::cout << "config == NULL, using minimum config" << std::endl;
+    _doc.Parse( _mininumConfig.c_str() );
+  }
+  else {
+    _doc.Parse( _config.c_str() );
+  }
+
+  if( _doc.Error() ) {
+    std::cout << "error in parsing gui xml" << std::endl;
+  }
+}
+
+arGUIXMLParser::~arGUIXMLParser( void )
+{
+
+}
+
+int arGUIXMLParser::numberOfWindows( void )
+{
+  int count = 0;
+
+  // get a reference to <szg_display>
+  TiXmlNode* szgDisplayNode = _doc.FirstChild();
+
+  if( !szgDisplayNode ) {
+    return count;
+  }
+
+  // iterate over all <szg_window> elements
+  for( TiXmlNode* windowNode = szgDisplayNode->FirstChild( "szg_window" ); windowNode; windowNode = windowNode->NextSibling() ) {
+    count++;
+  }
+
+  return count;
+}
 
 // NOTE: this function can and often *does* return NULL!
-TiXmlNode* getNamedNode( arSZGClient& SZGClient, const char* name )
+TiXmlNode* arGUIXMLParser::_getNamedNode( const char* name )
 {
   if( !name ) {
     return NULL;
@@ -22,7 +75,7 @@ TiXmlNode* getNamedNode( arSZGClient& SZGClient, const char* name )
   // caller will own this and should delete it
   TiXmlDocument* nodeDoc = new TiXmlDocument();
 
-  std::string nodeDesc = SZGClient.getGlobalAttribute( name );
+  std::string nodeDesc = _SZGClient->getGlobalAttribute( name );
 
   if( !nodeDesc.length() || nodeDesc == "NULL" ) {
     std::cout << "node points to non-existent node: " << name << std::endl;
@@ -41,9 +94,10 @@ TiXmlNode* getNamedNode( arSZGClient& SZGClient, const char* name )
   return nodeDoc->FirstChild();
 }
 
-arVector3 AttributearVector3( TiXmlNode* node,
-                              const std::string& x, const std::string& y,
-                              const std::string& z )
+arVector3 arGUIXMLParser::_attributearVector3( TiXmlNode* node,
+                                               const std::string& x,
+                                               const std::string& y,
+                                               const std::string& z )
 {
   arVector3 vec;
 
@@ -58,9 +112,11 @@ arVector3 AttributearVector3( TiXmlNode* node,
   return vec;
 }
 
-arVector4 AttributearVector4( TiXmlNode* node,
-                              const std::string& x, const std::string& y,
-                              const std::string& z, const std::string& w )
+arVector4 arGUIXMLParser::_attributearVector4( TiXmlNode* node,
+                                               const std::string& x,
+                                               const std::string& y,
+                                               const std::string& z,
+                                               const std::string& w )
 {
   arVector4 vec;
 
@@ -76,7 +132,8 @@ arVector4 AttributearVector4( TiXmlNode* node,
   return vec;
 }
 
-bool AttributeBool( TiXmlNode* node, const std::string& value )
+bool arGUIXMLParser::_attributeBool( TiXmlNode* node,
+                                     const std::string& value )
 {
   bool result = false;
 
@@ -97,8 +154,8 @@ bool AttributeBool( TiXmlNode* node, const std::string& value )
   return result;
 }
 
-int configureScreen( arSZGClient& SZGClient, arGraphicsScreen& screen,
-                     TiXmlNode* screenNode ){
+int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
+                                      TiXmlNode* screenNode ){
 
   if( !screenNode || !screenNode->ToElement() ) {
     // not necessarily an error, <szg_screen> could legitimately not exist and
@@ -111,9 +168,7 @@ int configureScreen( arSZGClient& SZGClient, arGraphicsScreen& screen,
   std::cout << "configuring screen" << std::endl;
 
   // check if this is a pointer to another screen
-  TiXmlNode* namedNode 
-    = getNamedNode( SZGClient, 
-                    screenNode->ToElement()->Attribute( "usenamed" ) );
+  TiXmlNode* namedNode = _getNamedNode( screenNode->ToElement()->Attribute( "usenamed" ) );
   if( namedNode ) {
     screenNode = namedNode;
   }
@@ -122,19 +177,19 @@ int configureScreen( arSZGClient& SZGClient, arGraphicsScreen& screen,
 
   // <center x="float" y="float" z="float" />
   if( (screenElement = screenNode->FirstChild( "center" )) ) {
-    arVector3 vec = AttributearVector3( screenElement );
+    arVector3 vec = _attributearVector3( screenElement );
     screen.setCenter( vec );
   }
 
   // <normal x="float" y="float" z="float" />
   if( (screenElement = screenNode->FirstChild( "normal" )) ) {
-    arVector3 vec = AttributearVector3( screenElement );
+    arVector3 vec = _attributearVector3( screenElement );
     screen.setNormal( vec );
   }
 
   // <up x="float" y="float" z="float" />
   if( (screenElement = screenNode->FirstChild( "up" )) ) {
-    arVector3 vec = AttributearVector3( screenElement );
+    arVector3 vec = _attributearVector3( screenElement );
     screen.setUp( vec );
   }
 
@@ -150,12 +205,12 @@ int configureScreen( arSZGClient& SZGClient, arGraphicsScreen& screen,
 
   // <headmounted value="true|false|yes|no" />
   if( (screenElement = screenNode->FirstChild( "headmounted" )) ) {
-    screen.setHeadMounted( AttributeBool( screenElement ) );
+    screen.setHeadMounted( _attributeBool( screenElement ) );
   }
 
   // <tile tilex="integer" numtilesx="integer" tiley="integer" numtilesy="integer" />
   if( (screenElement = screenNode->FirstChild( "tile" )) ) {
-    arVector4 vec = AttributearVector4( screenElement, "tilex", "numtilesx", "tiley", "numtilesy" );
+    arVector4 vec = _attributearVector4( screenElement, "tilex", "numtilesx", "tiley", "numtilesy" );
     screen.setTile( vec );
   }
 
@@ -168,7 +223,7 @@ int configureScreen( arSZGClient& SZGClient, arGraphicsScreen& screen,
 
   // <fixedheadpos x="float" y="float" z="float" />
   if( (screenElement = screenNode->FirstChild( "fixedheadpos" )) ) {
-    arVector3 vec = AttributearVector3( screenElement );
+    arVector3 vec = _attributearVector3( screenElement );
     screen.setFixedHeadPosition( vec );
   }
 
@@ -188,8 +243,8 @@ int configureScreen( arSZGClient& SZGClient, arGraphicsScreen& screen,
   return 0;
 }
 
-arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
-                           TiXmlNode* cameraNode )
+arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
+                                            TiXmlNode* cameraNode )
 {
   // caller owns this and should delete it
   arCamera* camera = NULL;
@@ -205,7 +260,7 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
   std::cout << "configuring camera" << std::endl;
 
   // check if this is a pointer to another camera
-  TiXmlNode* namedNode = getNamedNode( SZGClient, cameraNode->ToElement()->Attribute( "usenamed" ) );
+  TiXmlNode* namedNode = _getNamedNode( cameraNode->ToElement()->Attribute( "usenamed" ) );
   if( namedNode ) {
     cameraNode = namedNode;
   }
@@ -218,7 +273,7 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
     cameraType = cameraNode->ToElement()->Attribute( "type" );
   }
 
-  if( configureScreen( SZGClient, screen, cameraNode->FirstChild( "szg_screen" ) ) < 0 ) {
+  if( _configureScreen( screen, cameraNode->FirstChild( "szg_screen" ) ) < 0 ) {
     // print warning, return default camera + screen
   }
 
@@ -272,7 +327,7 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
     }
 
     if( (cameraElement = cameraNode->FirstChild( "sides" )) ) {
-      arVector4 vec = AttributearVector4( cameraElement, "left", "right", "bottom", "sides" );
+      arVector4 vec = _attributearVector4( cameraElement, "left", "right", "bottom", "sides" );
 
       if( cameraType == "ortho" ) {
         ((arOrthoCamera*) camera)->setSides( vec );
@@ -297,7 +352,7 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
     }
 
     if( (cameraElement = cameraNode->FirstChild( "position" )) ) {
-      arVector3 vec = AttributearVector3( cameraElement );
+      arVector3 vec = _attributearVector3( cameraElement );
 
       if( cameraType == "ortho" ) {
         ((arOrthoCamera*) camera)->setPosition( vec );
@@ -308,7 +363,7 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
     }
 
     if( (cameraElement = cameraNode->FirstChild( "target" )) ) {
-      arVector3 vec = AttributearVector3( cameraElement );
+      arVector3 vec = _attributearVector3( cameraElement );
 
       if( cameraType == "ortho" ) {
         ((arOrthoCamera*) camera)->setTarget( vec );
@@ -319,7 +374,7 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
     }
 
     if( (cameraElement = cameraNode->FirstChild( "up" )) ) {
-      arVector3 vec = AttributearVector3( cameraElement );
+      arVector3 vec = _attributearVector3( cameraElement );
 
       if( cameraType == "ortho" ) {
         ((arOrthoCamera*) camera)->setUp( vec );
@@ -347,31 +402,24 @@ arCamera* configureCamera( arSZGClient& SZGClient, arGraphicsScreen& screen,
   return camera;
 }
 
-int parseGUIXML( arGUIWindowManager* wm,
-                 std::map<int, arGraphicsWindow* >& windows,
-                 arSZGClient& SZGClient,
-                 const std::string& config )
+int arGUIXMLParser::parse( void )
 {
-  std::cout << "Parsing GUI XML config: " << std::endl
-            << config << std::endl << std::endl;
-
-  TiXmlDocument doc;
-
-  if( config == "NULL" ) {
-    std::cout << "config == NULL, using minimum config" << std::endl;
-    doc.Parse( minimumConfig.c_str() );
-  }
-  else {
-    doc.Parse( config.c_str() );
-  }
-
-  TiXmlHandle docHandle( &doc );
-
-  // doc.Print();
-  // std::cout << std::endl;
+  std::cout << "Parsing GUI XML config: " << std::endl;
+  _doc.Print();
 
   // get a reference to <szg_display>
-  TiXmlNode* szgDisplayNode = doc.FirstChild();
+  TiXmlNode* szgDisplayNode = _doc.FirstChild();
+
+  if( !szgDisplayNode ) {
+    std::cout << "malformed <szg_display> node" << std::endl;
+    return -1;
+  }
+
+  // before any windows are created, set the threading mode
+  TiXmlNode* wmNode = szgDisplayNode->FirstChild( "threaded" );
+  if( wmNode->ToElement() && wmNode->ToElement()->Attribute( "threaded" ) ) {
+    _wm->setThreaded( _attributeBool( wmNode->ToElement(), "threaded" ) );
+  }
 
   // iterate over all <szg_window> elements
   for( TiXmlNode* windowNode = szgDisplayNode->FirstChild( "szg_window" ); windowNode; windowNode = windowNode->NextSibling() ) {
@@ -384,7 +432,7 @@ int parseGUIXML( arGUIWindowManager* wm,
     TiXmlNode* savedWindowNode = windowNode;
 
     // check if this is a pointer to another window
-    TiXmlNode* namedWindowNode = getNamedNode( SZGClient, windowNode->ToElement()->Attribute( "usenamed" ) );
+    TiXmlNode* namedWindowNode = _getNamedNode( windowNode->ToElement()->Attribute( "usenamed" ) );
     if( namedWindowNode ) {
       windowNode = namedWindowNode;
     }
@@ -412,22 +460,33 @@ int parseGUIXML( arGUIWindowManager* wm,
 
     // <fullscreen value="true|false|yes|no" />
     if( (windowElement = windowNode->FirstChild( "fullscreen" )) ) {
-      windowConfig._fullscreen = AttributeBool( windowElement );
+      windowConfig._fullscreen = _attributeBool( windowElement );
     }
 
     // <decorate value="true|false|yes|no" />
     if( (windowElement = windowNode->FirstChild( "decorate" )) ) {
-      windowConfig._decorate = AttributeBool( windowElement );
+      windowConfig._decorate = _attributeBool( windowElement );
     }
 
     // <stereo value="true|false|yes|no" />
     if( (windowElement = windowNode->FirstChild( "stereo" )) ) {
-      windowConfig._stereo = AttributeBool( windowElement );
+      windowConfig._stereo = _attributeBool( windowElement );
     }
 
     // <topmost value="true|false|yes|no" />
-    if( (windowElement = windowNode->FirstChild( "topmost" )) ) {
-      windowConfig._topmost = AttributeBool( windowElement );
+    if( (windowElement = windowNode->FirstChild( "zorder" )) &&
+         windowElement->ToElement() ) {
+      std::string zorder = windowElement->ToElement()->Attribute( "value" );
+
+      if( zorder == "normal" ) {
+        windowConfig._zorder = AR_ZORDER_NORMAL;
+      }
+      else if( zorder == "top" ) {
+        windowConfig._zorder = AR_ZORDER_TOP;
+      }
+      else if( zorder == "topmost" ) {
+        windowConfig._zorder = AR_ZORDER_TOPMOST;
+      }
     }
 
     // <bpp value="integer" />
@@ -478,21 +537,21 @@ int parseGUIXML( arGUIWindowManager* wm,
     std::cout << "Y: " << windowConfig._y << std::endl;
     std::cout << "FULLSCREEN: " << windowConfig._fullscreen << std::endl;
     std::cout << "STEREO: " << windowConfig._stereo << std::endl;
-    std::cout << "TOPMOST: " << windowConfig._topmost << std::endl;
+    std::cout << "ZORDER: " << windowConfig._zorder << std::endl;
     std::cout << "BPP: " << windowConfig._bpp << std::endl;
     std::cout << "XDISPLAY: " << windowConfig._XDisplay << std::endl;
     std::cout << "CURSOR: " << windowConfig._cursor << std::endl;
 
-    int winID = wm->addWindow( windowConfig );
+    int winID = _wm->addWindow( windowConfig );
     if( winID < 0 ) {
       std::cout << "addWindow failure" << std::endl;
     }
 
     std::cout << "creating arGraphicsWindow" << std::endl;
     // create the associated arGraphicsWindow
-    windows[ winID ] = new arGraphicsWindow();
+    (*_windows)[ winID ] = new arGraphicsWindow();
 
-    windows[ winID ]->useOGLStereo( wm->isStereo( winID ) );
+    (*_windows)[ winID ]->useOGLStereo( _wm->isStereo( winID ) );
 
     std::string viewMode( "normal" );
 
@@ -504,8 +563,7 @@ int parseGUIXML( arGUIWindowManager* wm,
     // pointer needs to be checked from here on out
     if( viewportListNode ) {
       // check if this is a pointer to another viewportlist
-      namedViewportListNode = getNamedNode( SZGClient,
-                                            viewportListNode->ToElement()->Attribute( "usenamed" ) );
+      namedViewportListNode = _getNamedNode( viewportListNode->ToElement()->Attribute( "usenamed" ) );
 
       if( namedViewportListNode ) {
         viewportListNode = namedViewportListNode;
@@ -537,7 +595,7 @@ int parseGUIXML( arGUIWindowManager* wm,
       }
 
       // clear out the 'standard' viewport
-      windows[ winID ]->clearViewportList();
+      (*_windows)[ winID ]->clearViewportList();
 
       // iterate over all <szg_viewport> elements
       for( viewportNode = viewportListNode->FirstChild( "szg_viewport" ); viewportNode; viewportNode = viewportNode->NextSibling( "szg_viewport" ) ) {
@@ -545,7 +603,7 @@ int parseGUIXML( arGUIWindowManager* wm,
         TiXmlNode* savedViewportNode = viewportNode;
 
         // check if this is a pointer to another window
-        TiXmlNode* namedViewportNode = getNamedNode( SZGClient, viewportNode->ToElement()->Attribute( "usenamed" ) );
+        TiXmlNode* namedViewportNode = _getNamedNode( viewportNode->ToElement()->Attribute( "usenamed" ) );
         if( namedViewportNode ) {
           viewportNode = namedViewportNode;
         }
@@ -561,7 +619,7 @@ int parseGUIXML( arGUIWindowManager* wm,
         arCamera* camera = NULL;
         arGraphicsScreen screen;
 
-        if( !(camera = configureCamera( SZGClient, screen, viewportNode->FirstChild( "szg_camera" ) )) ) {
+        if( !(camera = _configureCamera( screen, viewportNode->FirstChild( "szg_camera" ) )) ) {
           // should never happen, configureCamera should always return at least /something/
           std::cout << "custom configureCamera failure" << std::endl;
         }
@@ -574,22 +632,22 @@ int parseGUIXML( arGUIWindowManager* wm,
         // fill in viewport parameters from viewportNode elements
         // <coords left="float" bottom="float" width="float" height="float" />
         if( (viewportElement = viewportNode->FirstChild( "coords" )) ) {
-          arVector4 vec = AttributearVector4( viewportElement, "left", "bottom", "width", "height" );
+          arVector4 vec = _attributearVector4( viewportElement, "left", "bottom", "width", "height" );
           viewport.setViewport( vec );
         }
 
         // <depthclear value="true|false|yes|no" />
         if( (viewportElement = viewportNode->FirstChild( "depthclear" )) ) {
-          viewport.clearDepthBuffer( AttributeBool( viewportElement ) );
+          viewport.clearDepthBuffer( _attributeBool( viewportElement ) );
         }
 
         // <colormask R="true|false|yes|no" G="true|false|yes|no" B="true|false|yes|no" A="true|false|yes|no" />
         if( (viewportElement = viewportNode->FirstChild( "colormask" )) ) {
           bool colorMask[ 4 ];
-          colorMask[ 0 ] = AttributeBool( viewportElement, "R" );
-          colorMask[ 1 ] = AttributeBool( viewportElement, "G" );
-          colorMask[ 2 ] = AttributeBool( viewportElement, "B" );
-          colorMask[ 3 ] = AttributeBool( viewportElement, "A" );
+          colorMask[ 0 ] = _attributeBool( viewportElement, "R" );
+          colorMask[ 1 ] = _attributeBool( viewportElement, "G" );
+          colorMask[ 2 ] = _attributeBool( viewportElement, "B" );
+          colorMask[ 3 ] = _attributeBool( viewportElement, "A" );
           viewport.setColorMask( colorMask[ 0 ], colorMask[ 1 ], colorMask[ 2 ], colorMask[ 3 ] );
         }
 
@@ -623,7 +681,7 @@ int parseGUIXML( arGUIWindowManager* wm,
         }
 
         std::cout << "adding custom viewport" << std::endl;
-        windows[ winID ]->addViewport( viewport );
+        (*_windows)[ winID ]->addViewport( viewport );
 
         // if viewportNode was a pointer, revert it back so that its
         // siblings can be traversed properly
@@ -644,18 +702,18 @@ int parseGUIXML( arGUIWindowManager* wm,
       arCamera* camera = NULL;
       arGraphicsScreen screen;
 
-      if( !(camera = configureCamera( SZGClient, screen,
-                                      viewportListNode ? viewportListNode->FirstChild( "szg_camera" ) : NULL )) ) {
+      if( !(camera = _configureCamera( screen,
+                                       viewportListNode ? viewportListNode->FirstChild( "szg_camera" ) : NULL )) ) {
         // should never happen, configureCamera should always return at least /something/
         std::cout << "non-custom configureCamera failure" << std::endl;
       }
 
       // viewports added by setViewMode will use this camera and screen
-      windows[ winID ]->setCamera( camera );
-      windows[ winID ]->setScreen( screen );
+      (*_windows)[ winID ]->setCamera( camera );
+      (*_windows)[ winID ]->setScreen( screen );
 
       // set up the appropriate viewports
-      if( !windows[ winID ]->setViewMode( viewMode ) ) {
+      if( !(*_windows)[ winID ]->setViewMode( viewMode ) ) {
         std::cout << "setViewMode failure!" << std::endl;
       }
 
