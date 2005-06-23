@@ -41,7 +41,8 @@ class arCallbackEventFilter;
 typedef bool (*arFrameworkEventCallback)( arInputEvent& event, 
                                           arCallbackEventFilter* filter );
 
-typedef bool (*arFrameworkEventQueueCallback)( arInputEventQueue& queue, 
+// Visual Studio 6 complains if "theQueue" is replaced by "queue".
+typedef bool (*arFrameworkEventQueueCallback)( arInputEventQueue& theQueue, 
                                                arCallbackEventFilter* filter );
 
 class SZG_CALL arCallbackEventFilter : public arFrameworkEventFilter {
