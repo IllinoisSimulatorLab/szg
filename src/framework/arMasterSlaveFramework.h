@@ -416,7 +416,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool _startMasterObjects( std::stringstream& startResponse );
   bool _startSlaveObjects( std::stringstream& startResponse );
   bool _startObjects( void );
-  bool _startStandalone( bool );
+  // bool _startStandalone( bool );
   bool _start( bool );
   bool _startrespond( const std::string& s );
 

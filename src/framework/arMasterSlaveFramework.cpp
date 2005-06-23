@@ -14,7 +14,7 @@
 #include "arEventUtilities.h"
 #include "arPForthFilter.h"
 #include "arVRConstants.h"
-#include "arGUIXMLParse.h"
+#include "arGUIXMLParser.h"
 
 /// to make the callbacks startable from GLUT, we need this
 /// global variable to pass in an arMasterSlaveFramework parameter
@@ -430,6 +430,15 @@ void arMasterSlaveFramework::onWindowInit( void ) {
 void arMasterSlaveFramework::onWindowEvent( arGUIWindowInfo* windowInfo ) {
   if( windowInfo && _windowEventCallback ) {
     _windowEventCallback( *this, windowInfo );
+  }
+  else if( windowInfo ) {
+    // default window event handler, at least to handle a resizing event
+    // (should we be handling window close events as well?)
+    if( windowInfo->_state == AR_WINDOW_RESIZE ) {
+      ((arMasterSlaveFramework*) windowInfo->_userData)->_wm->setWindowViewport( windowInfo->_windowID,
+                                                                                 0, 0,
+                                                                                 windowInfo->_sizeX, windowInfo->_sizeY );
+    }
   }
 }
 
@@ -2033,16 +2042,11 @@ bool arMasterSlaveFramework::_startObjects( void ){
   return true;
 }
 
+/*
 /// What we need to do to start in standalone mode... this should be factored
 /// BACK into my normal stuff. HACK HACK HACK HACK HACK HACK HACK HACK HACK
 bool arMasterSlaveFramework::_startStandalone( bool useWindowing ){
-  /*
-  _graphicsWindow.setDrawCallback( new arMasterSlaveRenderCallback( *this ) );
-
-  if( _useGLUT ) {
-    _createGLUTWindow();
-  }
-  */
+  // _graphicsWindow.setDrawCallback( new arMasterSlaveRenderCallback( *this ) );
 
   if( !onStart( _SZGClient ) ) {
     return false;
@@ -2068,39 +2072,40 @@ bool arMasterSlaveFramework::_startStandalone( bool useWindowing ){
 
   return true;
 }
+*/
 
 /// Functionality common to start() and startWithoutGLUT().
 bool arMasterSlaveFramework::_start( bool useWindowing ) {
   _useWindowing = useWindowing;
 
   if( !_parametersLoaded ) {
-    _SZGClient.initResponse() << _label
-                              << " error: start() method called before init() method." << std::endl;
-    if( !_SZGClient.sendInitResponse( false ) ) {
-      cerr << _label << " error: maybe szgserver died." << std::endl;
+    if( _SZGClient ) {
+      _SZGClient.initResponse() << _label
+                                << " error: start() method called before init() method." << std::endl;
+
+      if( !_SZGClient.sendInitResponse( false ) ) {
+        cerr << _label << " error: maybe szgserver died." << std::endl;
+      }
     }
 
     return false;
   }
 
-  // A HACK!
-  if( _standalone ) {
-    return _startStandalone( useWindowing );
-  }
+  if( !_standalone ) {
+    // make sure we get the screen resource
+    // this lock should only be grabbed AFTER an application launching.
+    // i.e. DO NOT do this in init(), which is called even on the trigger
+    // instance... but do it here (which is only reached on render instances)
+    std::string screenLock = _SZGClient.getComputerName() + "/" +
+                             _SZGClient.getMode( "graphics" );
+    int graphicsID;
 
-  // make sure we get the screen resource
-  // this lock should only be grabbed AFTER an application launching.
-  // i.e. DO NOT do this in init(), which is called even on the trigger
-  // instance... but do it here (which is only reached on render instances)
-  std::string screenLock = _SZGClient.getComputerName() + "/" +
-                           _SZGClient.getMode( "graphics" );
-  int graphicsID;
-
-  if( !_SZGClient.getLock( screenLock, graphicsID ) ) {
-    char buf[ 20 ];
-    sprintf( buf, "%d", graphicsID );
-    return _startrespond( "failed to get screen resource held by component " +
-	                        std::string( buf ) + ".\n(dkill that component to proceed.)" );
+    if( !_SZGClient.getLock( screenLock, graphicsID ) ) {
+      char buf[ 20 ];
+      sprintf( buf, "%d", graphicsID );
+      return _startrespond( "failed to get screen resource held by component " +
+  	                        std::string( buf ) + ".\n(dkill that component to proceed.)" );
+    }
   }
 
   /*
@@ -2115,38 +2120,64 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
   // NOTE: so that _startCallback can know if this instance is the master or
   // a slave, it is important to call this AFTER _startDetermineMaster(...)
   if( !onStart( _SZGClient ) ) {
-    return _startrespond( "arMasterSlaveFramework start callback failed." );
+    if( _SZGClient ) {
+      return _startrespond( "arMasterSlaveFramework start callback failed." );
+    }
+    else {
+      return false;
+    }
   }
 
   if( _useWindowing ) {
     _createWindowing();
   }
 
-  // set-up the various objects and start services
-  if( !_startObjects() ) {
-    return _startrespond( "Objects failed to start." );
+  if( _standalone ) {
+    // this is from _startObjects... a CUT_AND_PASTE!!
+    _graphicsDatabase.loadAlphabet( _textPath );
+    _graphicsDatabase.setTexturePath( _texturePath );
+    _startStandaloneObjects();
+  }
+  else {
+    // set-up the various objects and start services
+    if( !_startObjects() ) {
+      return _startrespond( "Objects failed to start." );
+    }
   }
 
   _userInitCalled = true;
 
   // the start succeeded
-  if( !_SZGClient.sendStartResponse( true ) ) {
+  if( _SZGClient && !_SZGClient.sendStartResponse( true ) ) {
     std::cerr << _label << " error: maybe szgserver died." << std::endl;
   }
 
-  // HMMM... This is a somewhat problematic place to put the function
-  // that tries to find the wildcat framelock. It seems fairly likely
-  // that this must occur AFTER the graphics window has been mapped!
-  // BUT... this call only occurs after the mapping of the graphics window
-  // when we are using GLUT to manage the window! DOH!!!
-  // ar_findWildcatFramelock();
-  _wm->findWildcatFramelock();
-
+  if( !_standalone ) {
+    // HMMM... This is a somewhat problematic place to put the function
+    // that tries to find the wildcat framelock. It seems fairly likely
+    // that this must occur AFTER the graphics window has been mapped!
+    _wm->findWildcatFramelock();
+  }
 
   if( _useWindowing ) {
     _displayThreadRunning = true;
     // glutMainLoop(); // never returns
-    _wm->startWithoutSwap();
+    // _wm->startWithoutSwap();
+
+    // unrolled event loop
+    while( true ) {
+      preDraw();
+
+      _wm->drawAllWindows( true );
+
+      postDraw();
+
+      if( _internalBufferSwap ) {
+        _wm->swapAllWindowBuffers( true );
+      }
+
+      _wm->processWindowEvents();
+    }
   }
 
   return true;
@@ -2161,25 +2192,30 @@ void arMasterSlaveFramework::_createWindowing( void ) {
   // UGLY HACK!!!! (stereo, window size, window position, wildcat framelock)
   const string screenName( _SZGClient.getMode( "graphics" ) );
 
+  std::string whichDisplay = _SZGClient.getMode( "gui" );
+  std::string displayName  = _SZGClient.getAttribute( whichDisplay, "name" );
+
+  std::cout << "Using display: " << whichDisplay << " : "
+            << displayName << std::endl;
+
   _wm = new arGUIWindowManager( ar_masterSlaveFrameworkWindowEventFunction,
                                 ar_masterSlaveFrameworkKeyboardFunction,
                                 ar_masterSlaveFrameworkMouseFunction,
-                                ar_masterSlaveFrameworkWindowInitGLFunction,
-                                false );
+                                ar_masterSlaveFrameworkWindowInitGLFunction );
 
   // as a replacement for the global __globalFramework pointer, each window will
   // have a user data pointer set
   _wm->setUserData( this );
 
   if( _useWindowing ) {
-    std::string whichDisplay = _SZGClient.getMode( "gui" );
-    std::string displayName  = _SZGClient.getAttribute( whichDisplay, "name" );
+    arGUIXMLParser guiXMLParser( _wm, _windows, _SZGClient, _SZGClient.getGlobalAttribute( displayName ) );
 
-    std::cout << "Using display: " << whichDisplay << " : "
-              << displayName << std::endl;
+    // if there are multiple windows, default to threaded mode (this can be forced
+    // back in the xml)
+    _wm->setThreaded( guiXMLParser.numberOfWindows() > 1 );
 
-    parseGUIXML( _wm, _windows, _SZGClient,
-                 _SZGClient.getGlobalAttribute( displayName ) );
+    // now run through the xml and create all the windows
+    guiXMLParser.parse();
 
     std::map<int, arGraphicsWindow* >::iterator itr;
 
@@ -2607,11 +2643,11 @@ void arMasterSlaveFramework::_draw( void ) {
   }
 }
 
-// Every window calls this function from its arGUI event loop. 
+// Every window calls this function from its arGUI event loop.
 void arMasterSlaveFramework::_display( int windowID ) {
   // handle the stuff that occurs before drawing
   // THIS MUST OCCUR ONLY ONCE PER ALL WINDOWS!
-  preDraw();
+  // preDraw();
 
   // draw the window
   _drawWindow( windowID );
@@ -2625,15 +2661,16 @@ void arMasterSlaveFramework::_display( int windowID ) {
 
   // occurs after drawing and right before the buffer swap
   // THIS MUST OCCUR ONLY ONCE PER ALL WINDOWS!
-  postDraw();
+  // postDraw();
 
+  /*
   if( _internalBufferSwap ) {
     // sometimes, it might be most convenient to let an external
     // library do the buffer swap, even though this degrades synchronization
     // glutSwapBuffers();
-    // PLAYING WITH SWAP... This line used to be uncommented.
     _wm->swapWindowBuffer( windowID );
   }
+  */
 
   // if we are supposed to take a screenshot, go ahead and do so.
   _handleScreenshot( _wm->isStereo( windowID ) );
