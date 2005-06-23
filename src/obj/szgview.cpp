@@ -26,7 +26,7 @@
 #include "arTexFont.h"
 
 #include "arXMLParser.h"
-#include "arGUIXMLParse.h"
+#include "arGUIXMLParser.h"
 
 #include <iostream>
 #include <string>
@@ -597,7 +597,14 @@ int main( int argc, char** argv )
 
   std::cout << "Using display: " << displayName << std::endl;
 
-  parseGUIXML( wm, windows, SZGClient, SZGClient.getGlobalAttribute( displayName ) );
+  arGUIXMLParser guiXMLParser( wm, windows, SZGClient, SZGClient.getGlobalAttribute( displayName ) );
+
+  // if there are multiple windows, default to threaded mode (this can be forced
+  // back in the xml)
+  wm->setThreaded( guiXMLParser.numberOfWindows() > 1 );
+
+  // now run through the xml and create all the windows
+  guiXMLParser.parse();
 
   std::map<int, arGraphicsWindow* >::iterator itr;
 
