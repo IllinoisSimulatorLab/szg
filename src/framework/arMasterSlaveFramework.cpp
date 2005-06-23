@@ -2058,10 +2058,11 @@ bool arMasterSlaveFramework::_startStandalone( bool useWindowing ){
   _startStandaloneObjects();
   _userInitCalled = true;
 
-  if( useWindowing ) {
+  if ( useWindowing ) {
     _displayThreadRunning = true;
     std::cout << _label << " remark: entering glutMainLoop()." << std::endl;
     // glutMainLoop(); // never returns
+    // PLAYING WITH SWAP (formerly startWithoutSwap), how about startWithSwap
     _wm->startWithoutSwap();
   }
 
@@ -2606,8 +2607,10 @@ void arMasterSlaveFramework::_draw( void ) {
   }
 }
 
+// Every window calls this function from its arGUI event loop. 
 void arMasterSlaveFramework::_display( int windowID ) {
   // handle the stuff that occurs before drawing
+  // THIS MUST OCCUR ONLY ONCE PER ALL WINDOWS!
   preDraw();
 
   // draw the window
@@ -2615,17 +2618,20 @@ void arMasterSlaveFramework::_display( int windowID ) {
 
   // it seems like glFlush/glFinish are a little bit unreliable... not
   // every vendor has done a good job of implementing these.
-  // Consequently, we do a small pixel read to force drawing to complete
+  // Consequently, we do a small pixel read to force drawing to complete.
+  // THIS IS EXTREMELY IMPORTANT!
   char buffer[ 32 ];
   glReadPixels( 0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, buffer );
 
   // occurs after drawing and right before the buffer swap
+  // THIS MUST OCCUR ONLY ONCE PER ALL WINDOWS!
   postDraw();
 
   if( _internalBufferSwap ) {
     // sometimes, it might be most convenient to let an external
     // library do the buffer swap, even though this degrades synchronization
     // glutSwapBuffers();
+    // PLAYING WITH SWAP... This line used to be uncommented.
     _wm->swapWindowBuffer( windowID );
   }
 

@@ -98,19 +98,22 @@ bool AttributeBool( TiXmlNode* node, const std::string& value )
 }
 
 int configureScreen( arSZGClient& SZGClient, arGraphicsScreen& screen,
-                     TiXmlNode* screenNode )
-{
+                     TiXmlNode* screenNode ){
+
   if( !screenNode || !screenNode->ToElement() ) {
     // not necessarily an error, <szg_screen> could legitimately not exist and
     // in that case let the caller use the screen as it was passed in
-    std::cout << "NULL or invalid screen, returning passed in arGraphicsScreen" << std::endl;
+    std::cout << "NULL or invalid screen description, "
+	      << "returning passed in arGraphicsScreen" << std::endl;
     return 0;
   }
 
   std::cout << "configuring screen" << std::endl;
 
   // check if this is a pointer to another screen
-  TiXmlNode* namedNode = getNamedNode( SZGClient, screenNode->ToElement()->Attribute( "usenamed" ) );
+  TiXmlNode* namedNode 
+    = getNamedNode( SZGClient, 
+                    screenNode->ToElement()->Attribute( "usenamed" ) );
   if( namedNode ) {
     screenNode = namedNode;
   }
@@ -515,11 +518,8 @@ int parseGUIXML( arGUIWindowManager* wm,
       // determine which viewmode was specified, anything other than "custom"
       // doesn't need any viewports to actually be listed
       // <viewmode value="normal|anaglyph|walleyed|crosseyed|overunder|custom" />
-      TiXmlNode* viewportListElement = NULL;
-
-      if( (viewportListElement = viewportListNode->FirstChild( "viewmode" )) &&
-          viewportListElement->ToElement()->Attribute( "value" ) ) {
-        viewMode = viewportListElement->ToElement()->Attribute( "value" );
+      if( viewportListNode->ToElement()->Attribute( "viewmode" ) ) {
+        viewMode = viewportListNode->ToElement()->Attribute( "viewmode" );
       }
     }
 

@@ -41,103 +41,218 @@ no sensors.
 </param>
 
 <param>
-<name>double_window</name>
+<name> front_tile_2x2_00 </name>
 <value>
-<szg_display>
-  <szg_window>
-    <position x="0" y="0" />
-    <decorate value="false" />
-
-    <szg_viewport_list viewmode="custom">
-      <szg_viewport>
-        <eyesign value="-1.0" />
-      </szg_viewport>
-    </szg_viewport_list>
-  </szg_window>
-  <szg_window>
-    <position x="641" y="0" />
-    <decorate value="false" />
-
-    <szg_viewport_list viewmode="custom">
-      <szg_viewport>
-        <eyesign value="1.0" />
-      </szg_viewport>
-    </szg_viewport_list>
-  </szg_window>
-</szg_display>
+<szg_screen>
+  <center x="0" y="5" z="-5" />
+  <up x="0" y="1" z="0" />
+  <dim width="10" height="10" />
+  <normal x="0" y="0" z="-1" />
+  <headmounted value="false" />
+  <tile tilex="0" numtilesx="2" tiley="0" numtilesy="2" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.0" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
 </value>
 </param>
 
+<param>
+<name> front_tile_2x2_10 </name>
+<value>
+<szg_screen>
+  <center x="0" y="5" z="-5" />
+  <up x="0" y="1" z="0" />
+  <dim width="10" height="10" />
+  <normal x="0" y="0" z="-1" />
+  <headmounted value="false" />
+  <tile tilex="1" numtilesx="2" tiley="0" numtilesy="2" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.0" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
+</value>
+</param>
 
 <param>
-<name>double_window_not_working</name>
+<name> front_tile_2x2_11 </name>
+<value>
+<szg_screen>
+  <center x="0" y="5" z="-5" />
+  <up x="0" y="1" z="0" />
+  <dim width="10" height="10" />
+  <normal x="0" y="0" z="-1" />
+  <headmounted value="false" />
+  <tile tilex="1" numtilesx="2" tiley="1" numtilesy="2" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.0" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
+</value>
+</param>
+
+<param>
+<name> front_tile_2x2_01 </name>
+<value>
+<szg_screen>
+  <center x="0" y="5" z="-5" />
+  <up x="0" y="1" z="0" />
+  <dim width="10" height="10" />
+  <normal x="0" y="0" z="-1" />
+  <headmounted value="false" />
+  <tile tilex="0" numtilesx="2" tiley="1" numtilesy="2" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.0" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
+</value>
+</param>
+
+<param>
+<name> front_wall </name>
+<value>
+<szg_screen>
+  <center x="0" y="5" z="-5" />
+  <up x="0" y="1" z="0" />
+  <dim width="10" height="10" />
+  <normal x="0" y="0" z="-1" />
+  <headmounted value="false" />
+  <tile tilex="0", numtilesx="1", tiley="0" numtilesy="1" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.0" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
+</value>
+</param>
+
+<param>
+<name> right_wall </name>
+<value>
+<szg_screen>
+  <center x="5" y="5" z="0" />
+  <up x="0" y="1" z="0" />
+  <dim width="10" height="10" />
+  <normal x="1" y="0" z="0" />
+  <headmounted value="false" />
+  <tile tilex="0", numtilesx="1", tiley="0" numtilesy="1" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.0" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
+</value>
+</param>
+
+<param>
+<name> left_wall </name>
+<value>
+<szg_screen>
+  <center x="-5" y="5" z="0" />
+  <up x="0" y="1" z="0" />
+  <dim width="10" height="10" />
+  <normal x="-1" y="0" z="0" />
+  <headmounted value="false" />
+  <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.0" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
+</value>
+</param>
+
+<param>
+<name> rear_wall </name>
+<value>
+<szg_screen>
+  <center x="0" y="5" z="-5" />
+  <up x="0" y="1" z="0" />
+  <dim width="10" height="10" />
+  <normal x="0" y="0" z="1" />
+  <headmounted value="false" />
+  <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.0" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
+</value>
+</param>
+
+<param>
+<name> top_wall </name>
+<value>
+<szg_screen>
+  <center x="0" y="10" z="0" />
+  <up x="0" y="0" z="1" />
+  <dim width="10" height="10" />
+  <normal x="0" y="1" z="0" />
+  <headmounted value="false" />
+  <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.0" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
+</value>
+</param>
+
+<param>
+<name> bottom_wall </name>
+<value>
+<szg_screen>
+  <center x="0" y="0" z="0" />
+  <up x="0" y="0" z="-1" />
+  <dim width="10" height="10" />
+  <normal x="0" y="-1" z="0" />
+  <headmounted value="false" />
+  <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.0" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
+</value>
+</param>
+
+<param>
+<name>virtual_cube_window</name>
 <value>
 <szg_display>
  <szg_window>
    <size width="640" height="480" />
    <position x="50" y="50" />
-   <decorate value="false" />
-   <fullscreen value="false" />
-   <title value="SZGView" />
-   <stereo value="false" />
-   <topmost value="false" />
-   <xdisplay value="" />
-
-   <szg_viewport_list>
-     <viewmode value="custom" />
-
-     <szg_viewport>
-       <coords left="0.0" bottom="0.0" width="1.0" height="1.0" />
-       <depthclear value="false" />
-       <colormask R="true" G="true" B="true" A="true" />
-       <eyesign value="0.0" />
-       <ogldrawbuf value="GL_BACK_LEFT" />
-
-       <szg_screen>
-         <center x="0" y="0" z="0" />
-         <up x="1" y="0" z="0" />
-         <dim width="10" height="10" />
-         <normal x="0" y="-1" z="0" />
-         <headmounted value="false" />
-         <tile tilex="0", numtilesx="1", tiley="0" numtilesy="1" />
-         <usefixedhead value="allow" />
-         <fixedheadpos x="0.0" y="0.0" z="0.0" />
-         <fixedheadupangle value="0.0" />
-       </szg_screen>
-     </szg_viewport>
-   </szg_viewport_list>
- </szg_window>
- <szg_window>
-   <size width="640" height="480" />
-   <position x="700" y="50" />
    <decorate value="true" />
    <fullscreen value="false" />
-   <title value="SZGView2" />
+   <title value="szg" />
    <stereo value="false" />
    <topmost value="false" />
    <xdisplay value="" />
-
-   <szg_viewport_list>
-     <viewmode value="custom" />
-
+   <szg_viewport_list viewmode="custom">
      <szg_viewport>
-       <coords left="0.0" bottom="0.0" width="1.0" height="1.0" />
-       <depthclear value="false" />
-       <colormask R="true" G="true" B="true" A="true" />
-       <eyesign value="0.0" />
-       <ogldrawbuf value="GL_BACK_LEFT" />
-
-       <szg_screen>
-         <center x="0" y="0" z="0" />
-         <up x="1" y="0" z="0" />
-         <dim width="10" height="10" />
-         <normal x="0" y="-1" z="0" />
-         <headmounted value="false" />
-         <tile tilex="0", numtilesx="1", tiley="0" numtilesy="1" />
-         <usefixedhead value="allow" />
-         <fixedheadpos x="0.0" y="0.0" z="0.0" />
-         <fixedheadupangle value="0.0" />
-       </szg_screen>
+       <coords left="0.3333" bottom="0.3333" width="0.3333" height="0.3333" />
+       <szg_camera>
+         <szg_screen usenamed="front_wall" />
+       </szg_camera>
+     </szg_viewport>
+     <szg_viewport>
+       <coords left="0.6666" bottom="0.3333" width="0.3333" height="0.3333" />
+       <szg_camera>
+         <szg_screen usenamed="right_wall" />
+       </szg_camera>
+     </szg_viewport>
+     <szg_viewport>
+       <coords left="0" bottom="0.3333" width="0.3333" height="0.3333" />
+       <szg_camera>
+         <szg_screen usenamed="left_wall" />
+       </szg_camera>
+     </szg_viewport>
+     <szg_viewport>
+       <coords left="0.3333" bottom="0.6666" width="0.3333" height="0.3333" />
+       <szg_camera>
+         <szg_screen usenamed="top_wall" />
+       </szg_camera>
+     </szg_viewport>
+     <szg_viewport>
+       <coords left="0.3333" bottom="0" width="0.3333" height="0.3333" />
+       <szg_camera>
+         <szg_screen usenamed="bottom_wall" />
+       </szg_camera>
      </szg_viewport>
    </szg_viewport_list>
  </szg_window>
@@ -145,6 +260,70 @@ no sensors.
 </value>
 </param>
 
+<param>
+<name>quad_window</name>
+<value>
+<szg_display>
+  <szg_window>
+    <size width="400" height="400" />
+    <position x="0" y="0" />
+    <decorate value="false" />
+    <cursor value="none" />
+    <szg_viewport_list viewmode="custom">
+      <szg_viewport>
+        <szg_camera>
+          <szg_screen usenamed="front_tile_2x2_01" />
+        </szg_camera>
+      </szg_viewport>
+    </szg_viewport_list>
+  </szg_window>
+
+  <szg_window>
+    <size width="400" height="400" />
+    <position x="400" y="0" />
+    <decorate value="false" />
+    <cursor value="none" />
+    <szg_viewport_list viewmode="custom">
+      <szg_viewport>
+        <szg_camera>
+          <szg_screen usenamed="front_tile_2x2_11" />
+        </szg_camera>
+      </szg_viewport>
+    </szg_viewport_list>
+  </szg_window>
+
+  <szg_window>
+    <size width="400" height="400" />
+    <position x="0" y="400" />
+    <decorate value="false" />
+    <cursor value="none" />
+
+    <szg_viewport_list viewmode="custom">
+      <szg_viewport>
+        <szg_camera>
+          <szg_screen usenamed="front_tile_2x2_00" />
+        </szg_camera>
+      </szg_viewport>
+    </szg_viewport_list>
+  </szg_window>
+
+  <szg_window>
+    <size width="400" height="400" />
+    <position x="400" y="400" />
+    <decorate value="false" />
+    <cursor value="none" />
+
+    <szg_viewport_list viewmode="custom">
+      <szg_viewport>
+        <szg_camera>
+          <szg_screen usenamed="front_tile_2x2_10" />
+        </szg_camera>
+      </szg_viewport>
+    </szg_viewport_list>
+  </szg_window>
+</szg_display>
+</value>
+</param>
 
 <param>
 <name>single_window</name>
@@ -153,15 +332,14 @@ no sensors.
  <szg_window>
    <size width="640" height="480" />
    <position x="50" y="50" />
-   <decorate value="false" />
+   <decorate value="true" />
    <fullscreen value="false" />
    <title value="SZGView" />
    <stereo value="false" />
    <topmost value="false" />
    <xdisplay value=":0.0" />
 
-   <szg_viewport_list>
-     <viewmode value="custom" />
+   <szg_viewport_list viewmode="custom">
 
      <szg_viewport>
        <coords left="0.0" bottom="0.0" width="1.0" height="1.0" />
@@ -171,14 +349,55 @@ no sensors.
        <ogldrawbuf value="GL_BACK_LEFT" />
 
        <szg_screen>
-         <center x="0" y="0" z="0" />
-         <up x="1" y="0" z="0" />
+         <center x="0" y="5" z="-5" />
+         <up x="0" y="1" z="0" />
          <dim width="10" height="10" />
-         <normal x="0" y="-1" z="0" />
+         <normal x="0" y="0" z="-1" />
          <headmounted value="false" />
          <tile tilex="0", numtilesx="1", tiley="0" numtilesy="1" />
          <usefixedhead value="allow" />
-         <fixedheadpos x="0.0" y="0.0" z="0.0" />
+         <fixedheadpos x="0.0" y="5" z="0.0" />
+         <fixedheadupangle value="0.0" />
+       </szg_screen>
+     </szg_viewport>
+   </szg_viewport_list>
+ </szg_window>
+</szg_display>
+</value>
+</param>
+
+<param>
+<name>single_window_fullscreen</name>
+<value>
+<szg_display>
+ <szg_window>
+   <size width="640" height="480" />
+   <position x="50" y="50" />
+   <decorate value="true" />
+   <fullscreen value="true" />
+   <title value="SZGView" />
+   <stereo value="false" />
+   <topmost value="false" />
+   <xdisplay value=":0.0" />
+
+   <szg_viewport_list viewmode="custom">
+
+     <szg_viewport>
+       <coords left="0.0" bottom="0.0" width="1.0" height="1.0" />
+       <depthclear value="false" />
+       <colormask R="true" G="true" B="true" A="true" />
+       <eyesign value="0.0" />
+       <ogldrawbuf value="GL_BACK_LEFT" />
+
+       <szg_screen>
+         <center x="0" y="5" z="-5" />
+         <up x="0" y="1" z="0" />
+         <dim width="10" height="10" />
+         <normal x="0" y="0" z="-1" />
+         <headmounted value="false" />
+         <tile tilex="0", numtilesx="1", tiley="0" numtilesy="1" />
+         <usefixedhead value="allow" />
+         <fixedheadpos x="0.0" y="5" z="0.0" />
          <fixedheadupangle value="0.0" />
        </szg_screen>
      </szg_viewport>
