@@ -515,7 +515,8 @@ bool arStructuredData::dataIn(int field, const void* data,
   if (dim < 0){
     cerr << "arStructuredData warning: ignoring dataIn() with negative "
 	 << "dimension " << dim
-         << " for \"" << _name << "\".\n";
+         << " for data type \"" << _name << "\" on field "
+	 << _dataName[field] << ".\n";
     return false;
   }
   if (!data){
