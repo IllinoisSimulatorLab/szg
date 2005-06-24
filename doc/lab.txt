@@ -263,7 +263,7 @@ no sensors.
 <param>
 <name>quad_window</name>
 <value>
-<szg_display>
+<szg_display threaded="true">
   <szg_window>
     <size width="400" height="400" />
     <position x="0" y="0" />
@@ -375,11 +375,11 @@ no sensors.
  <szg_window>
    <size width="640" height="480" />
    <position x="50" y="50" />
-   <decorate value="true" />
+   <decorate value="false" />
    <fullscreen value="true" />
    <title value="szg" />
    <stereo value="false" />
-   <zorder value="topmost" />
+   <zorder value="top" />
    <xdisplay value=":0.0" />
 
    <szg_viewport_list viewmode="custom">
@@ -404,6 +404,31 @@ no sensors.
          </szg_screen>
        </szg_camera>
      </szg_viewport>
+   </szg_viewport_list>
+ </szg_window>
+</szg_display>
+</value>
+</param>
+
+<param>
+<name>single_window_stereo</name>
+<value>
+<szg_display>
+ <szg_window>
+   <size width="640" height="480" />
+   <position x="50" y="50" />
+   <decorate value="false" />
+   <fullscreen value="true" />
+   <title value="szg" />
+   <stereo value="true" />
+   <zorder value="top" />
+   <xdisplay value=":0.0" />
+   <cursor value="none" />
+
+   <szg_viewport_list viewmode="normal">
+     <szg_camera>
+       <szg_screen usenamed="front_wall" />
+     </szg_camera>
    </szg_viewport_list>
  </szg_window>
 </szg_display>
