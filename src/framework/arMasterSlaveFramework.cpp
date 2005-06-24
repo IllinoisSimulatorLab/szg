@@ -2172,6 +2172,7 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
 
       postDraw();
 
+      // Will _internalBufferSwap always be "true"?
       if( _internalBufferSwap ) {
         _wm->swapAllWindowBuffers( true );
       }
@@ -2208,13 +2209,16 @@ void arMasterSlaveFramework::_createWindowing( void ) {
   _wm->setUserData( this );
 
   if( _useWindowing ) {
-    arGUIXMLParser guiXMLParser( _wm, _windows, _SZGClient, _SZGClient.getGlobalAttribute( displayName ) );
+    arGUIXMLParser guiXMLParser(_wm, 
+                                _windows, 
+                                _SZGClient, 
+                                _SZGClient.getGlobalAttribute( displayName ));
 
-    // if there are multiple windows, default to threaded mode (this can be forced
-    // back in the xml)
+    // If there are multiple windows, default to threaded mode.
+    // (this can be forced back in the xml)
     _wm->setThreaded( guiXMLParser.numberOfWindows() > 1 );
 
-    // now run through the xml and create all the windows
+    // Now run through the xml and create all the windows
     guiXMLParser.parse();
 
     std::map<int, arGraphicsWindow* >::iterator itr;
@@ -2690,7 +2694,7 @@ void arMasterSlaveFramework::_display( int windowID ) {
     // ar_deactivateWildcatFramelock();
     _wm->deactivateWildcatFramelock();
 
-    std::cout << _label << " remark: GLUT done." << std::endl;
+    std::cout << _label << " remark: window done." << std::endl;
 
     _displayThreadRunning = false;
     // if stop(...) is called from the GLUT keyboard function, we

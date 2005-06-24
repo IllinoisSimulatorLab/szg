@@ -943,7 +943,7 @@ int arGUIWindow::_windowCreation( void )
   }
   */
 
-  if( windowConfig._fullscreen ) {
+  if( _windowConfig._fullscreen ) {
     raise( _windowConfig._zorder );
   }
 

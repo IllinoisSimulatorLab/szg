@@ -61,7 +61,7 @@ OBJS = \
   arGUIEventManager$(OBJ_SUFFIX) \
   arGUIInfo$(OBJ_SUFFIX) \
   arTexFont$(OBJ_SUFFIX) \
-  arGUIXMLParse$(OBJ_SUFFIX)
+  arGUIXMLParser$(OBJ_SUFFIX)
 
 # Local variable definitions for the build.
 # These internal library makefiles ONLY include the external files necessary

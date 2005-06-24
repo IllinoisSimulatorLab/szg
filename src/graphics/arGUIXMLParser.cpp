@@ -415,10 +415,17 @@ int arGUIXMLParser::parse( void )
     return -1;
   }
 
-  // before any windows are created, set the threading mode
-  TiXmlNode* wmNode = szgDisplayNode->FirstChild( "threaded" );
-  if( wmNode->ToElement() && wmNode->ToElement()->Attribute( "threaded" ) ) {
-    _wm->setThreaded( _attributeBool( wmNode->ToElement(), "threaded" ) );
+  // Before any windows are created, set the threading mode
+  
+  // The previous code....
+  //TiXmlNode* wmNode = szgDisplayNode->FirstChild( "threaded" );
+  //if( wmNode->ToElement() && wmNode->ToElement()->Attribute( "threaded" ) ){
+  //  _wm->setThreaded( _attributeBool( wmNode->ToElement(), "threaded" ) );
+  //}
+  if( szgDisplayNode->ToElement() 
+      && szgDisplayNode->ToElement()->Attribute( "threaded" ) ) {
+    _wm->setThreaded
+      ( _attributeBool( szgDisplayNode->ToElement(), "threaded" ) );
   }
 
   // iterate over all <szg_window> elements
