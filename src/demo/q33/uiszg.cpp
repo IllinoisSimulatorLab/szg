@@ -37,7 +37,7 @@ string pakFilePath;
 
 global_shared_t *g = NULL;
 
-static r_context_t *r_context;
+static r_context_t *r_context = NULL;
 
 int global_start_type = START_TYPE_DEATHMATCH;
 
@@ -84,8 +84,11 @@ bool parseNavArgs(int& argc, char** argv){
 }
 
 void initGL(arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo ) {
+  // Load map.
+  ui_init_bsp();
+  printf("\n\n");
+
   // Set up rendering context.
-  r_context = (r_context_t *) rc_malloc(sizeof(r_context_t));
   ui_init_gl(r_context);
 }
 
@@ -99,9 +102,7 @@ bool init(arMasterSlaveFramework& fw, arSZGClient& cli){
   ui_read_args(g_argc, g_argv);
   strcpy(g->r_help_fname, "paul/helpGL.jpg");
 
-  // Load map.
-  ui_init_bsp();
-  printf("\n\n");
+  r_context = (r_context_t *) rc_malloc(sizeof(r_context_t));
 
   ar_navRotate( arVector3(0,1,0), g->r_eye_az+90. );
 
@@ -111,6 +112,7 @@ bool init(arMasterSlaveFramework& fw, arSZGClient& cli){
   fw.addTransferField("eye_el",&r_context->r_eye_el,AR_FLOAT,1);
   fw.addTransferField("time",&r_context->r_frametime,AR_DOUBLE,1);
   fw.addTransferField("eyecluster",&r_context->r_eyecluster,AR_INT,1);
+
   return true;
 }
 
