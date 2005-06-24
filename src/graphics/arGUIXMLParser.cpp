@@ -37,13 +37,13 @@ arGUIXMLParser::arGUIXMLParser( arGUIWindowManager* wm,
   }
 
   if( _doc.Error() ) {
-    std::cout << "error in parsing gui xml" << std::endl;
+    std::cout << "error in parsing gui xml on line: " << _doc.ErrorRow() << std::endl;
   }
 }
 
 arGUIXMLParser::~arGUIXMLParser( void )
 {
-
+  _doc.Clear();
 }
 
 int arGUIXMLParser::numberOfWindows( void )
@@ -58,7 +58,8 @@ int arGUIXMLParser::numberOfWindows( void )
   }
 
   // iterate over all <szg_window> elements
-  for( TiXmlNode* windowNode = szgDisplayNode->FirstChild( "szg_window" ); windowNode; windowNode = windowNode->NextSibling() ) {
+  for( TiXmlNode* windowNode = szgDisplayNode->FirstChild( "szg_window" ); windowNode;
+       windowNode = windowNode->NextSibling() ) {
     count++;
   }
 
@@ -210,7 +211,8 @@ int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
 
   // <tile tilex="integer" numtilesx="integer" tiley="integer" numtilesy="integer" />
   if( (screenElement = screenNode->FirstChild( "tile" )) ) {
-    arVector4 vec = _attributearVector4( screenElement, "tilex", "numtilesx", "tiley", "numtilesy" );
+    arVector4 vec = _attributearVector4( screenElement, "tilex", "numtilesx",
+                                                        "tiley", "numtilesy" );
     screen.setTile( vec );
   }
 
@@ -236,8 +238,8 @@ int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
     screen.setFixedHeadHeadUpAngle( angle );
   }
 
-  if( namedNode && namedNode->GetDocument() ) {
-    delete namedNode->GetDocument();
+  if( namedNode ) {
+    delete namedNode;
   }
 
   return 0;
@@ -393,8 +395,8 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
     camera = new arVRCamera();
   }
 
-  if( namedNode && namedNode->GetDocument() ) {
-    delete namedNode->GetDocument();
+  if( namedNode ) {
+    delete namedNode;
   }
 
   camera->setScreen( &screen );
@@ -416,20 +418,14 @@ int arGUIXMLParser::parse( void )
   }
 
   // Before any windows are created, set the threading mode
-  
-  // The previous code....
-  //TiXmlNode* wmNode = szgDisplayNode->FirstChild( "threaded" );
-  //if( wmNode->ToElement() && wmNode->ToElement()->Attribute( "threaded" ) ){
-  //  _wm->setThreaded( _attributeBool( wmNode->ToElement(), "threaded" ) );
-  //}
-  if( szgDisplayNode->ToElement() 
+  if( szgDisplayNode->ToElement()
       && szgDisplayNode->ToElement()->Attribute( "threaded" ) ) {
-    _wm->setThreaded
-      ( _attributeBool( szgDisplayNode->ToElement(), "threaded" ) );
+    _wm->setThreaded( _attributeBool( szgDisplayNode->ToElement(), "threaded" ) );
   }
 
   // iterate over all <szg_window> elements
-  for( TiXmlNode* windowNode = szgDisplayNode->FirstChild( "szg_window" ); windowNode; windowNode = windowNode->NextSibling() ) {
+  for( TiXmlNode* windowNode = szgDisplayNode->FirstChild( "szg_window" ); windowNode;
+       windowNode = windowNode->NextSibling() ) {
     std::cout << "creating window" << std::endl;
 
     TiXmlNode* windowElement = NULL;
@@ -480,9 +476,10 @@ int arGUIXMLParser::parse( void )
       windowConfig._stereo = _attributeBool( windowElement );
     }
 
-    // <topmost value="true|false|yes|no" />
+    // <zorder value="normal|top|topmost" />
     if( (windowElement = windowNode->FirstChild( "zorder" )) &&
-         windowElement->ToElement() ) {
+         windowElement->ToElement() &&
+         windowElement->ToElement()->Attribute( "value" ) ) {
       std::string zorder = windowElement->ToElement()->Attribute( "value" );
 
       if( zorder == "normal" ) {
@@ -605,7 +602,8 @@ int arGUIXMLParser::parse( void )
       (*_windows)[ winID ]->clearViewportList();
 
       // iterate over all <szg_viewport> elements
-      for( viewportNode = viewportListNode->FirstChild( "szg_viewport" ); viewportNode; viewportNode = viewportNode->NextSibling( "szg_viewport" ) ) {
+      for( viewportNode = viewportListNode->FirstChild( "szg_viewport" ); viewportNode;
+           viewportNode = viewportNode->NextSibling( "szg_viewport" ) ) {
         std::cout << "creating viewport" << std::endl;
         TiXmlNode* savedViewportNode = viewportNode;
 
@@ -694,8 +692,8 @@ int arGUIXMLParser::parse( void )
         // siblings can be traversed properly
         viewportNode = savedViewportNode;
 
-        if( namedViewportNode && namedViewportNode->GetDocument() ) {
-          delete namedViewportNode->GetDocument();
+        if( namedViewportNode ) {
+          delete namedViewportNode;
         }
         if( camera ) {
           // setCamera made a copy and now 'owns' the camera, safe to delete
@@ -735,11 +733,11 @@ int arGUIXMLParser::parse( void )
     // <szg_display>
     windowNode = savedWindowNode;
 
-    if( namedWindowNode && namedWindowNode->GetDocument() ) {
-      delete namedWindowNode->GetDocument();
+    if( namedWindowNode ) {
+      delete namedWindowNode;
     }
-    if( namedViewportListNode && namedViewportListNode->GetDocument() ) {
-      delete namedViewportListNode->GetDocument();
+    if( namedViewportListNode ) {
+      delete namedViewportListNode;
     }
   }
 
