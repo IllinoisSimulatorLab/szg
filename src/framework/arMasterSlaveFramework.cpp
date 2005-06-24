@@ -67,7 +67,7 @@ void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
 
   arMasterSlaveFramework* fw = (arMasterSlaveFramework*) keyInfo->_userData;
 
-  if( fw && fw->_exitProgram ) {
+  if( fw->_exitProgram ) {
     // do not process key strokes after we have begun shutdown
     return;
   }
@@ -75,13 +75,11 @@ void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
   if( keyInfo->_state == AR_KEY_DOWN ) {
     switch( keyInfo->_key ) {
       case AR_VK_ESC:
-        if( fw ) {
           // We do not block until the display thread is done... but we do
           // block on everything else.
+          // NOTE: we do not exit(0) here. Instead, that occurs in the display
+          // thread!
           fw->stop( false );
-        }
-        // NOTE: we do not exit(0) here. Instead, that occurs in the display
-        // thread!
       break;
       case AR_VK_f:
         // glutFullScreen();
@@ -395,6 +393,11 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
   }
 
   delete _wm;
+
+  std::map<int, arGraphicsWindow* >::iterator itr;
+  for( itr = _windows.begin(); itr != _windows.end(); itr++ ) {
+    delete itr->second;
+  }
 }
 
 bool arMasterSlaveFramework::onStart( arSZGClient& SZGClient ) {
@@ -431,7 +434,7 @@ void arMasterSlaveFramework::onWindowEvent( arGUIWindowInfo* windowInfo ) {
   if( windowInfo && _windowEventCallback ) {
     _windowEventCallback( *this, windowInfo );
   }
-  else if( windowInfo ) {
+  else if( windowInfo && windowInfo->_userData ) {
     // default window event handler, at least to handle a resizing event
     // (should we be handling window close events as well?)
     if( windowInfo->_state == AR_WINDOW_RESIZE ) {
@@ -2209,13 +2212,11 @@ void arMasterSlaveFramework::_createWindowing( void ) {
   _wm->setUserData( this );
 
   if( _useWindowing ) {
-    arGUIXMLParser guiXMLParser(_wm, 
-                                _windows, 
-                                _SZGClient, 
-                                _SZGClient.getGlobalAttribute( displayName ));
+    arGUIXMLParser guiXMLParser( _wm, _windows, _SZGClient,
+                                 _SZGClient.getGlobalAttribute( displayName ) );
 
     // If there are multiple windows, default to threaded mode.
-    // (this can be forced back in the xml)
+    // (this can be forced to a different value from the xml)
     _wm->setThreaded( guiXMLParser.numberOfWindows() > 1 );
 
     // Now run through the xml and create all the windows
