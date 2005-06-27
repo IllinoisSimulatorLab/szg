@@ -355,8 +355,9 @@ void ui_init_bsp()
 
     fprintf(stderr, " Loading bsp...");
     /* load paks */
-    for (i=0; i < g->g_pak_num; i++)
+    for (i=0; i < g->g_pak_num; i++){
       pak_openpak(g->g_pak_fnames[i]);
+    }
     bsp_read(g->g_bsp_fname);
     fprintf(stderr, " done\n");
 

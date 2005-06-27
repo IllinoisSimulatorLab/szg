@@ -8,12 +8,12 @@ OBJSRAW = bsp entity globalshared lightmap mapent md3 mesh pak renderback \
 OBJS = $(OBJSRAW:%=%$(OBJ_SUFFIX))
 
 # Bug: q33 will sometimes crash in the graphics routines if it isn't built
-# debug (on win32)... also note that we add the libraries for zlib
-# and libjpeg here, as opposed to some more obscure place in the build
-# as previously
+# debug (on win32)... Unfortunately, it CANNOT be built debug anymore with
+# Visual Studio 7! It will crash at the first place an STL object is passed
+# back from the szg dlls. (this is in pak.cpp::pak_openpak)
 ifeq ($(strip $(MACHINE)),WIN32)
-  COMPILE_FLAGS = $(COMPILE_FLAGS_DEBUG)
-  LINK_FLAGS = $(LINK_FLAGS_DEBUG)
+  #COMPILE_FLAGS = $(COMPILE_FLAGS_DEBUG)
+  #LINK_FLAGS = $(LINK_FLAGS_DEBUG)
 endif
 
 # On some platforms, we need to define this.

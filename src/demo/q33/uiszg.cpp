@@ -84,9 +84,11 @@ bool parseNavArgs(int& argc, char** argv){
 }
 
 void initGL(arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo ) {
+  // The maps should be loaded only once (in the glbal start) instead
+  // of once per rendering thread.
   // Load map.
-  ui_init_bsp();
-  printf("\n\n");
+  //ui_init_bsp();
+  //printf("\n\n");
 
   // Set up rendering context.
   ui_init_gl(r_context);
@@ -101,6 +103,10 @@ bool init(arMasterSlaveFramework& fw, arSZGClient& cli){
   init_global_shared(g);
   ui_read_args(g_argc, g_argv);
   strcpy(g->r_help_fname, "paul/helpGL.jpg");
+
+  // Load map. (moved here from initGL)
+  ui_init_bsp();
+  printf("\n\n");
 
   r_context = (r_context_t *) rc_malloc(sizeof(r_context_t));
 
@@ -373,13 +379,16 @@ void drawCallback(arMasterSlaveFramework& fw){
 }
 
 int main(int argc, char** argv){
-  // Set global variables for quake argument parser.
-  g_argc = argc;
-  g_argv = argv;
 
   arMasterSlaveFramework framework;
   if (!framework.init(argc, argv))
     return 1;
+
+  // Set global variables for quake argument parser.
+  // These should come *after* the framework init, because
+  // that function can strip special phleet args.
+  g_argc = argc;
+  g_argv = argv;
 
   framework.setClipPlanes(0.5,3000);
   framework.setStartCallback(init);
