@@ -2215,6 +2215,11 @@ void arMasterSlaveFramework::_createWindowing( void ) {
     arGUIXMLParser guiXMLParser( _wm, _windows, _SZGClient,
                                  _SZGClient.getGlobalAttribute( displayName ) );
 
+    if( guiXMLParser.error() ) {
+      // already complained, just return
+      return;
+    }
+
     // If there are multiple windows, default to threaded mode.
     // (this can be forced to a different value from the xml)
     _wm->setThreaded( guiXMLParser.numberOfWindows() > 1 );

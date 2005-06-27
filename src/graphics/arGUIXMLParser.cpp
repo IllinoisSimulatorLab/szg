@@ -50,6 +50,10 @@ int arGUIXMLParser::numberOfWindows( void )
 {
   int count = 0;
 
+  if( _doc.Error() ) {
+    return count;
+  }
+
   // get a reference to <szg_display>
   TiXmlNode* szgDisplayNode = _doc.FirstChild();
 
@@ -406,7 +410,12 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
 
 int arGUIXMLParser::parse( void )
 {
-  std::cout << "Parsing GUI XML config: " << std::endl;
+  if( _doc.Error() ) {
+    std::cout << "error in parsing gui xml, cannot create windows" << std::endl;
+    return -1;
+  }
+
+  std::cout << "using GUI XML config: " << std::endl;
   _doc.Print();
 
   // get a reference to <szg_display>
@@ -548,7 +557,8 @@ int arGUIXMLParser::parse( void )
 
     int winID = _wm->addWindow( windowConfig );
     if( winID < 0 ) {
-      std::cout << "addWindow failure" << std::endl;
+      std::cout << "addWindow failure during parsing" << std::endl;
+      return -1;
     }
 
     std::cout << "creating arGraphicsWindow" << std::endl;
@@ -575,6 +585,7 @@ int arGUIXMLParser::parse( void )
 
       if( !viewportListNode->ToElement() ) {
         std::cout << "invalid viewportlist" << std::endl;
+        return -1;
       }
 
       // determine which viewmode was specified, anything other than "custom"
@@ -596,6 +607,7 @@ int arGUIXMLParser::parse( void )
       if( !(viewportNode = viewportListNode->FirstChild( "szg_viewport" ) ) ) {
         // malformed!, delete currentwindow, print warning, continue on to next window tage
         std::cout << "viewmode == custom, but no <szg_viewport> tags!" << std::endl;
+        return -1;
       }
 
       // clear out the 'standard' viewport

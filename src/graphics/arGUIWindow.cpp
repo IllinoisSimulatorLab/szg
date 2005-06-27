@@ -1609,7 +1609,7 @@ arCursor arGUIWindow::setCursor( arCursor cursor )
     break;
 
     case AR_CURSOR_ARROW:
-      XCursor = XCreateFontCursor( _windowHandle._dpy, XC_arrow );
+      XCursor = XCreateFontCursor( _windowHandle._dpy, XC_top_left_arrow );
     break;
 
     case AR_CURSOR_WAIT:

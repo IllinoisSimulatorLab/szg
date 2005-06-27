@@ -31,6 +31,8 @@ class SZG_CALL arGUIXMLParser {
 
     int numberOfWindows( void );
 
+    bool error( void ) { return _doc.Error(); }
+
   private:
 
     TiXmlNode* _getNamedNode( const char* name = NULL );
@@ -61,6 +63,7 @@ class SZG_CALL arGUIXMLParser {
     std::string _config, _mininumConfig;
 
     TiXmlDocument _doc;
+
 };
 
 #endif
