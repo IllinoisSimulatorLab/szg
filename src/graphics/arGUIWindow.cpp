@@ -1329,8 +1329,15 @@ void arGUIWindow::decorate( const bool decorate )
   // all for this stuff to work...
   if( set ) {
     #if !defined( AR_USE_DARWIN )
-    XUnmapWindow( _windowHandle._dpy, _windowHandle._win );
-    XMapWindow( _windowHandle._dpy, _windowHandle._win );
+    // While Xandros needs these calls to be able to redecorate a window during
+    // runtime, they also seem to preclude fullscreen mode working properly
+    // (since they window must be un-decorated before going fullscreen) in that
+    // the fullscreen window does not cover the taskbar.  As above, under
+    // Slackware this is not a problem.  Since working fullscreen is more
+    // important than re-decoration they are commented out for the time being
+
+    // XUnmapWindow( _windowHandle._dpy, _windowHandle._win );
+    // XMapWindow( _windowHandle._dpy, _windowHandle._win );
     #endif
   }
 
