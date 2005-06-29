@@ -581,7 +581,8 @@ void arMasterSlaveFramework::onKey( arGUIKeyInfo* keyInfo ) {
     _arGUIKeyboardCallback( *this, keyInfo );
   }
   else if( keyInfo->_state == AR_KEY_DOWN ) {
-    // for legacy reasons, this call expects only key press (not release) events
+    // for legacy reasons, this call expects only key press 
+    // (not release) events
     onKey( keyInfo->_key, 0, 0 );
   }
 }
@@ -669,7 +670,7 @@ void arMasterSlaveFramework::setExitCallback
 /// using this callback. A message w/ type "user" and value "foo" will
 /// be passed into this callback, if set, with "foo" going into the string.
 void arMasterSlaveFramework::setUserMessageCallback
-  ( void (*userMessageCallback)( arMasterSlaveFramework&, const std::string& ) ) {
+  ( void (*userMessageCallback)(arMasterSlaveFramework&, const std::string& )){
   _userMessageCallback = userMessageCallback;
 }
 
