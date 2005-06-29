@@ -10,7 +10,7 @@
 #include "arSTLalgo.h"
 #include "arSZGClient.h"
 
-arInputSimulator::arInputSimulator() : 
+arInputSimulator::arInputSimulator() :
   _numButtonEvents(0),
   _simulatorRotation(0.),
   _buttonSelector(0) {
@@ -32,9 +32,9 @@ arInputSimulator::arInputSimulator() :
   _simulatorRotation = 0;
   _buttonSelector = 0;
   _interfaceState = AR_SIM_HEAD_TRANSLATE;
-  
+
   // set the initial values of the simulated device appropriately
-  _matrix[0] = ar_translationMatrix(0,5,0); 
+  _matrix[0] = ar_translationMatrix(0,5,0);
   _matrix[1] = ar_translationMatrix(2,3,-1);
 //  for (int i=0; i<6; i++){
 //    _button[i] = 0;
@@ -161,10 +161,10 @@ arInputSimulator::~arInputSimulator(){
 /// The simulator can connect to an arInputNode so that it is able to
 /// communicate with other entities in the system.
 void arInputSimulator::registerInputNode(arInputNode* node){
-  node->addInputSource(&_driver, false); 
+  node->addInputSource(&_driver, false);
 }
 
-/// The simulator can draw it's current state. This can be used as a 
+/// The simulator can draw it's current state. This can be used as a
 /// stand-alone display, like in inputsimulator, or it can be used as an
 /// overlay.
 void arInputSimulator::draw(){
@@ -179,7 +179,7 @@ void arInputSimulator::draw(){
 
   arMatrix4 rotMatrix = ar_rotationMatrix('y',_simulatorRotation);
   glMultMatrixf(rotMatrix.v);
- 
+
   // wireframe cube
   glColor3f(1,1,1);
   glPushMatrix();
@@ -331,11 +331,11 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
            << " to index list.\n";
       return;
     }
-  } 
+  }
   if (haveIndex) {
     _mouseButtons[buttonIndex] = state;
   }
-  
+
   switch (_interfaceState) {
   case AR_SIM_WAND_ROTATE_BUTTONS:
   case AR_SIM_WAND_TRANS_BUTTONS:
@@ -370,6 +370,14 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
 
 /// Process mouse movement events to drive the simulated interface.
 void arInputSimulator::mousePosition(int x, int y){
+  // ensure that _mousePosition has been initialized before being as the
+  // 'previous' mouse position below.  Note that in the uncommon case
+  // that the previous mouse position /was/ (0,0) this will be incorrect.
+  if( _mousePosition[0] == 0 && _mousePosition[1] == 0 ) {
+    _mousePosition[0] = x;
+    _mousePosition[1] = y;
+  }
+
   const float deltaX = x - _mousePosition[0];
   const float deltaY = y - _mousePosition[1];
   const float movementFactor = 0.03;
@@ -386,14 +394,14 @@ void arInputSimulator::mousePosition(int x, int y){
       ar_planeToRotation(_rotator[0], _rotator[1]);
   }
   if (_interfaceState == AR_SIM_HEAD_TRANSLATE && leftButton){
-    _matrix[0] = ar_translationMatrix(movementFactor*deltaX, 
+    _matrix[0] = ar_translationMatrix(movementFactor*deltaX,
                                       -movementFactor*deltaY,0)
                                       *_matrix[0];
   }
   if (_interfaceState == AR_SIM_HEAD_TRANSLATE && rightButton){
     _matrix[0] = ar_translationMatrix(movementFactor*deltaX,
                                       0,movementFactor*deltaY)
-                                      *_matrix[0];   
+                                      *_matrix[0];
   }
   if (_interfaceState == AR_SIM_HEAD_ROTATE && leftButton){
     _matrix[0] = ar_extractTranslationMatrix(_matrix[0])
@@ -546,7 +554,7 @@ void arInputSimulator::_drawGamepad(){
     std::vector<int>::iterator iter;
     float xlo((-.5*((float)rowLength) + .5)*BUTTON_SPACING);
     float x(xlo);
-    float y(BUTTON_YBORDER); 
+    float y(BUTTON_YBORDER);
     unsigned int rowCount(0);
     float labelScale = .004*BUTTON_SPACING;
     for (unsigned int i = 0; i<_newButtonEvents.size(); ++i) {
@@ -645,7 +653,7 @@ void arInputSimulator::_drawWand(){
     glTranslatef(0,0,-1);
     glColor3f(1,0,1);
     glutSolidSphere(0.4,10,10);
-    glPopMatrix(); 
+    glPopMatrix();
   glPopMatrix();
 }
 
