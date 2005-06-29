@@ -229,6 +229,48 @@ void arMasterSlaveWindowInitCallback::operator()( arGraphicsWindow& ) {
   }
 }
 
+//****************************************************************************
+// Drawing the master/slave framework is complex. At the top level, the arGUI
+// window manager (_wm) draws all of the application's arGUI windows, each of
+// which is a seperate OS window. Each of these arGUI windows has an
+// associated arGraphicsWindow, which contains enough information to draw
+// the OpenGL inside the arGUI window. The arGraphicsWindow, in turn, holds
+// a list of arViewports. The application draw callback that issues the OpenGL
+// commands is called for each viewport (this occurs inside the 
+// arGraphicsWindow code). 
+//
+// How are the callbacks registered?
+// When the "graphics display" is parsed, the _wm creates a collection
+// of arGUI windows (each of which has an arGraphicsWindow) and installs
+// callbacks in them. The arGUI window
+// has a draw callback (to occur once per window draw) and its
+// arGraphicsWindow has a draw callback (to occur once per contained viewport
+// and actually issue the OpenGL). Both of these callbacks are implemented
+// as operators on an arGUIRenderCallback (which is a subclass of 
+// arRenderCallback). The arGUI window callback takes an arGUIWindowInfo*
+// parameter and the arGraphicsWindow callback takes arGraphicsWindow
+// and arViewport parameters (these give it enough information to perform
+// view frustum culling, LOD, and other tricks). 
+//
+// What is the call sequence?
+// 1. From the event loop, the window manager requests that all (arGUI)
+//    windows draw.
+// 2. Each window (possibly in its own display thread) then calls the
+//    its arGUI render callback. 
+// 3. arMasterSlaveFramework::_display(...) is called. It is responsible for
+//    drawing the whole window and then blocking until all OpenGL commands
+//    have written to the frame buffer.
+// 4. To draw the window, it calls arMasterSlaveFramework::_drawWindow(...).
+//    This calls the arGraphicsWindow draw. It also draws various overlays
+//    (like the performance graph or the inputsimulator).
+// 5. Inside the graphics window draw, for each owned viewport, the code
+//    calls the installed arRenderCallback (i.e. arMasterSlaveRenderCallback
+//    below) using parameters arGraphicsWindow and arViewport.
+// 6. The framework _draw(...) method is then called. This calls the
+//    (virtual) onDraw method.
+// 7. If the onDraw method hasn't been over-ridden, then the application's
+//    installed draw callback is used.
+//****************************************************************************
 class arMasterSlaveRenderCallback : public arGUIRenderCallback {
   public:
     arMasterSlaveRenderCallback( arMasterSlaveFramework& fw ) :
@@ -365,9 +407,12 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _masterPort[ 0 ] = -1;
 
   // Also, let's initialize the performance graph.
-  _framerateGraph.addElement( "framerate", 300, 100, arVector3( 1.0f, 1.0f, 1.0f ) );
-  _framerateGraph.addElement( "compute",   300, 100, arVector3( 1.0f, 1.0f, 0.0f ) );
-  _framerateGraph.addElement( "sync",      300, 100, arVector3( 0.0f, 1.0f, 1.0f ) );
+  _framerateGraph.addElement( "framerate", 
+                              300, 100, arVector3( 1.0f, 1.0f, 1.0f ) );
+  _framerateGraph.addElement( "compute",   
+                              300, 100, arVector3( 1.0f, 1.0f, 0.0f ) );
+  _framerateGraph.addElement( "sync",      
+                              300, 100, arVector3( 0.0f, 1.0f, 1.0f ) );
   _showPerformance = false;
 
   // _defaultCamera.setHead( &_head );
@@ -402,7 +447,8 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
 
 bool arMasterSlaveFramework::onStart( arSZGClient& SZGClient ) {
   if( _startCallback && !_startCallback( *this, SZGClient ) ) {
-    std::cerr << _label << " error: user-defined start callback failed." << std::endl;
+    std::cerr << _label << " error: user-defined start callback failed." 
+              << std::endl;
     return false;
   }
 
@@ -438,9 +484,9 @@ void arMasterSlaveFramework::onWindowEvent( arGUIWindowInfo* windowInfo ) {
     // default window event handler, at least to handle a resizing event
     // (should we be handling window close events as well?)
     if( windowInfo->_state == AR_WINDOW_RESIZE ) {
-      ((arMasterSlaveFramework*) windowInfo->_userData)->_wm->setWindowViewport( windowInfo->_windowID,
-                                                                                 0, 0,
-                                                                                 windowInfo->_sizeX, windowInfo->_sizeY );
+      ((arMasterSlaveFramework*) windowInfo->_userData)
+        ->_wm->setWindowViewport( windowInfo->_windowID, 0, 0,
+                                  windowInfo->_sizeX, windowInfo->_sizeY );
     }
   }
 }
@@ -451,9 +497,13 @@ void arMasterSlaveFramework::onWindowInitGL( arGUIWindowInfo* windowInfo ) {
   }
 }
 
+/// Yes, this is really the application-provided draw function. It is
+/// called once per viewport of each arGraphicsWindow (arGUIWindow).
+/// It is a virtual method that issues the user-defined draw callback.
 void arMasterSlaveFramework::onDraw( void ) {
   if( !_drawCallback ) {
-    std::cerr << _label << " warning: forgot to setDrawCallback()." << std::endl;
+    std::cout << _label 
+              << " warning: forgot to setDrawCallback()." << std::endl;
     return;
   }
 
@@ -1037,9 +1087,19 @@ void arMasterSlaveFramework::preDraw( void ) {
   _lastComputeTime = ar_difftime( ar_time(), preDrawStart );
 }
 
-/// Draw the window. Note that for VR this can be somewhat complex,
-/// given that we may be doing a stereo window, a window with multiple
-/// viewports, an anaglyph window, etc.
+/// This function is called by arMasterSlaveFramework::_display().
+/// Draw the graphics inside the arGUIWindow by calling the appropriate
+/// arGraphicsWindow's draw method (in addition to drawing a few framework
+/// specific overlays and tools). Note that for VR this can be somewhat 
+/// complex, given that we may be doing a stereo window, a window with multiple
+/// viewports, an anaglyph window, etc. However, the arGraphicsWindow handles
+/// this, potentially making multiple calls to the application-defined 
+/// _draw(...). This one doesn't do much except go one more level down the
+/// chain to onDraw(...), except that it allows the viewport to be drawn
+/// as a uniform color.
+/// 
+/// Look at the arMasterSlaveRenderCallback to understand how _draw(...)
+/// is called.
 void arMasterSlaveFramework::_drawWindow( int windowID ){
   // if the shutdown flag has been triggered, go ahead and return
   if( _exitProgram ) {
@@ -2631,6 +2691,10 @@ void arMasterSlaveFramework::_connectionTask( void ) {
 // Functions directly pertaining to drawing
 //**************************************************************************
 
+/// Called from the arMasterSlaveRenderCallback (once per viewport of the
+/// arGraphicsWindow, which is contained in the arGUIWindow). Doesn't do 
+/// very much except call onDraw(...), and allow for the viewport to be
+/// drawn a falt color in response to external (message) requests.
 void arMasterSlaveFramework::_draw( void ) {
   if( _noDrawFillColor[ 0 ] == -1 ) {
     if( getConnected() ) {
@@ -2660,7 +2724,9 @@ void arMasterSlaveFramework::_draw( void ) {
   }
 }
 
-// Every window calls this function from its arGUI event loop.
+/// This function is responsible for displaying a whole arGUIWindow.
+/// Look at the definition of arMasterSlaveRenderCallback to understand
+/// how it is called from arGUIWindow.
 void arMasterSlaveFramework::_display( int windowID ) {
   // handle the stuff that occurs before drawing
   // THIS MUST OCCUR ONLY ONCE PER ALL WINDOWS!
