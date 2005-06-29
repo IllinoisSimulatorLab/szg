@@ -1,439 +1,32 @@
 <szg_config>
 
 <comment>
-This PForth program will operate on info coming from a Saitek Wireless
-gamepad on Windows and turn it into something that landspeeder can deal
-with. This program is a special-case in that it is for gamepad control only...
-no sensors.
+The config files now have includes, which contain some of the verbose
+configuration information, like screen, window, and display definitions
+or definitions of virtual devices or pforth filtering programs. In the lab,
+we put these includes in a particular location. Consequently, this location
+needs to be specified (per machine where the dbatch command might be executed)
+before any include directives.
 </comment>
 
-<param>
-  <name> filter_saitek_wireless </name>
-  <value>
-    matrix temp
-    0 5 0 temp translationMatrix
-    define filter_axis_0
-      getCurrentEventAxis 0.000031 * setCurrentEventAxis
-    enddef
-    define filter_axis_1
-      temp 0 insertMatrixEvent
-      getCurrentEventAxis -0.000031 * setCurrentEventAxis
-    enddef
-    define filter_axis_6
-      getCurrentEventAxis -32768 + -0.000031 *
-      deleteCurrentEvent
-      3
-      insertAxisEvent
-    enddef
-    define filter_axis_5
-      getCurrentEventAxis -32768 + 0.000031 *
-      deleteCurrentEvent
-      2
-      insertAxisEvent
-    enddef
-    define filter_button_4
-      deleteCurrentEvent
-    enddef
-    define filter_button_3
-      deleteCurrentEvent
-    enddef
-  </value>
-</param>
+<assign>
+smoke SZG_SCRIPT path /home/public/Data/szg_config
+kam2 SZG_SCRIPT path g:\Data\szg_config
+2easth SZG_SCRIPT path g:\Data\szg_config
+isl83 SZG_SCRIPT path /home/public/Data/szg_config
+</assign>
 
-<param>
-<name> front_tile_2x2_00 </name>
-<value>
-<szg_screen>
-  <center x="0" y="5" z="-5" />
-  <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
-  <normal x="0" y="0" z="-1" />
-  <headmounted value="false" />
-  <tile tilex="0" numtilesx="2" tiley="0" numtilesy="2" />
-  <usefixedhead value="allow" />
-  <fixedheadpos x="0.0" y="5.0" z="0.0" />
-  <fixedheadupangle value="0.0" />
-</szg_screen>
-</value>
-</param>
+<include>
+window_configs_0_8.txt
+</include>
 
-<param>
-<name> front_tile_2x2_10 </name>
-<value>
-<szg_screen>
-  <center x="0" y="5" z="-5" />
-  <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
-  <normal x="0" y="0" z="-1" />
-  <headmounted value="false" />
-  <tile tilex="1" numtilesx="2" tiley="0" numtilesy="2" />
-  <usefixedhead value="allow" />
-  <fixedheadpos x="0.0" y="5.0" z="0.0" />
-  <fixedheadupangle value="0.0" />
-</szg_screen>
-</value>
-</param>
+<include>
+device_configs_0_8.txt
+</include>
 
-<param>
-<name> front_tile_2x2_11 </name>
-<value>
-<szg_screen>
-  <center x="0" y="5" z="-5" />
-  <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
-  <normal x="0" y="0" z="-1" />
-  <headmounted value="false" />
-  <tile tilex="1" numtilesx="2" tiley="1" numtilesy="2" />
-  <usefixedhead value="allow" />
-  <fixedheadpos x="0.0" y="5.0" z="0.0" />
-  <fixedheadupangle value="0.0" />
-</szg_screen>
-</value>
-</param>
-
-<param>
-<name> front_tile_2x2_01 </name>
-<value>
-<szg_screen>
-  <center x="0" y="5" z="-5" />
-  <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
-  <normal x="0" y="0" z="-1" />
-  <headmounted value="false" />
-  <tile tilex="0" numtilesx="2" tiley="1" numtilesy="2" />
-  <usefixedhead value="allow" />
-  <fixedheadpos x="0.0" y="5.0" z="0.0" />
-  <fixedheadupangle value="0.0" />
-</szg_screen>
-</value>
-</param>
-
-<param>
-<name> front_wall </name>
-<value>
-<szg_screen>
-  <center x="0" y="5" z="-5" />
-  <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
-  <normal x="0" y="0" z="-1" />
-  <headmounted value="false" />
-  <tile tilex="0", numtilesx="1", tiley="0" numtilesy="1" />
-  <usefixedhead value="allow" />
-  <fixedheadpos x="0.0" y="5.0" z="0.0" />
-  <fixedheadupangle value="0.0" />
-</szg_screen>
-</value>
-</param>
-
-<param>
-<name> right_wall </name>
-<value>
-<szg_screen>
-  <center x="5" y="5" z="0" />
-  <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
-  <normal x="1" y="0" z="0" />
-  <headmounted value="false" />
-  <tile tilex="0", numtilesx="1", tiley="0" numtilesy="1" />
-  <usefixedhead value="allow" />
-  <fixedheadpos x="0.0" y="5.0" z="0.0" />
-  <fixedheadupangle value="0.0" />
-</szg_screen>
-</value>
-</param>
-
-<param>
-<name> left_wall </name>
-<value>
-<szg_screen>
-  <center x="-5" y="5" z="0" />
-  <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
-  <normal x="-1" y="0" z="0" />
-  <headmounted value="false" />
-  <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-  <usefixedhead value="allow" />
-  <fixedheadpos x="0.0" y="5.0" z="0.0" />
-  <fixedheadupangle value="0.0" />
-</szg_screen>
-</value>
-</param>
-
-<param>
-<name> rear_wall </name>
-<value>
-<szg_screen>
-  <center x="0" y="5" z="-5" />
-  <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
-  <normal x="0" y="0" z="1" />
-  <headmounted value="false" />
-  <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-  <usefixedhead value="allow" />
-  <fixedheadpos x="0.0" y="5.0" z="0.0" />
-  <fixedheadupangle value="0.0" />
-</szg_screen>
-</value>
-</param>
-
-<param>
-<name> top_wall </name>
-<value>
-<szg_screen>
-  <center x="0" y="10" z="0" />
-  <up x="0" y="0" z="1" />
-  <dim width="10" height="10" />
-  <normal x="0" y="1" z="0" />
-  <headmounted value="false" />
-  <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-  <usefixedhead value="allow" />
-  <fixedheadpos x="0.0" y="5.0" z="0.0" />
-  <fixedheadupangle value="0.0" />
-</szg_screen>
-</value>
-</param>
-
-<param>
-<name> bottom_wall </name>
-<value>
-<szg_screen>
-  <center x="0" y="0" z="0" />
-  <up x="0" y="0" z="-1" />
-  <dim width="10" height="10" />
-  <normal x="0" y="-1" z="0" />
-  <headmounted value="false" />
-  <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-  <usefixedhead value="allow" />
-  <fixedheadpos x="0.0" y="5.0" z="0.0" />
-  <fixedheadupangle value="0.0" />
-</szg_screen>
-</value>
-</param>
-
-<param>
-<name>virtual_cube_window</name>
-<value>
-<szg_display>
- <szg_window>
-   <size width="640" height="480" />
-   <position x="50" y="50" />
-   <decorate value="true" />
-   <fullscreen value="false" />
-   <title value="szg" />
-   <stereo value="false" />
-   <topmost value="false" />
-   <xdisplay value="" />
-   <szg_viewport_list viewmode="custom">
-     <szg_viewport>
-       <coords left="0.3333" bottom="0.3333" width="0.3333" height="0.3333" />
-       <szg_camera>
-         <szg_screen usenamed="front_wall" />
-       </szg_camera>
-     </szg_viewport>
-     <szg_viewport>
-       <coords left="0.6666" bottom="0.3333" width="0.3333" height="0.3333" />
-       <szg_camera>
-         <szg_screen usenamed="right_wall" />
-       </szg_camera>
-     </szg_viewport>
-     <szg_viewport>
-       <coords left="0" bottom="0.3333" width="0.3333" height="0.3333" />
-       <szg_camera>
-         <szg_screen usenamed="left_wall" />
-       </szg_camera>
-     </szg_viewport>
-     <szg_viewport>
-       <coords left="0.3333" bottom="0.6666" width="0.3333" height="0.3333" />
-       <szg_camera>
-         <szg_screen usenamed="top_wall" />
-       </szg_camera>
-     </szg_viewport>
-     <szg_viewport>
-       <coords left="0.3333" bottom="0" width="0.3333" height="0.3333" />
-       <szg_camera>
-         <szg_screen usenamed="bottom_wall" />
-       </szg_camera>
-     </szg_viewport>
-   </szg_viewport_list>
- </szg_window>
-</szg_display>
-</value>
-</param>
-
-<param>
-<name>quad_window</name>
-<value>
-<szg_display threaded="true">
-  <szg_window>
-    <size width="400" height="400" />
-    <position x="0" y="0" />
-    <decorate value="false" />
-    <cursor value="none" />
-    <szg_viewport_list viewmode="custom">
-      <szg_viewport>
-        <szg_camera>
-          <szg_screen usenamed="front_tile_2x2_01" />
-        </szg_camera>
-      </szg_viewport>
-    </szg_viewport_list>
-  </szg_window>
-
-  <szg_window>
-    <size width="400" height="400" />
-    <position x="400" y="0" />
-    <decorate value="false" />
-    <cursor value="none" />
-    <szg_viewport_list viewmode="custom">
-      <szg_viewport>
-        <szg_camera>
-          <szg_screen usenamed="front_tile_2x2_11" />
-        </szg_camera>
-      </szg_viewport>
-    </szg_viewport_list>
-  </szg_window>
-
-  <szg_window>
-    <size width="400" height="400" />
-    <position x="0" y="400" />
-    <decorate value="false" />
-    <cursor value="none" />
-
-    <szg_viewport_list viewmode="custom">
-      <szg_viewport>
-        <szg_camera>
-          <szg_screen usenamed="front_tile_2x2_00" />
-        </szg_camera>
-      </szg_viewport>
-    </szg_viewport_list>
-  </szg_window>
-
-  <szg_window>
-    <size width="400" height="400" />
-    <position x="400" y="400" />
-    <decorate value="false" />
-    <cursor value="none" />
-
-    <szg_viewport_list viewmode="custom">
-      <szg_viewport>
-        <szg_camera>
-          <szg_screen usenamed="front_tile_2x2_10" />
-        </szg_camera>
-      </szg_viewport>
-    </szg_viewport_list>
-  </szg_window>
-</szg_display>
-</value>
-</param>
-
-<param>
-<name>single_window</name>
-<value>
-<szg_display>
- <szg_window>
-   <size width="640" height="480" />
-   <position x="50" y="50" />
-   <decorate value="true" />
-   <fullscreen value="false" />
-   <title value="szg" />
-   <stereo value="false" />
-   <zorder value="topmost" />
-   <xdisplay value=":0.0" />
-
-   <szg_viewport_list viewmode="custom">
-
-     <szg_viewport>
-       <coords left="0.0" bottom="0.0" width="1.0" height="1.0" />
-       <depthclear value="false" />
-       <colormask R="true" G="true" B="true" A="true" />
-       <eyesign value="0.0" />
-       <ogldrawbuf value="GL_BACK_LEFT" />
-
-       <szg_camera>
-         <szg_screen>
-           <center x="0" y="5" z="-5" />
-           <up x="0" y="1" z="0" />
-           <dim width="10" height="10" />
-           <normal x="0" y="0" z="-1" />
-           <headmounted value="false" />
-           <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-           <usefixedhead value="allow" />
-           <fixedheadpos x="0.0" y="5" z="0.0" />
-           <fixedheadupangle value="0.0" />
-         </szg_screen>
-       </szg_camera>
-     </szg_viewport>
-   </szg_viewport_list>
- </szg_window>
-</szg_display>
-</value>
-</param>
-
-<param>
-<name>single_window_fullscreen</name>
-<value>
-<szg_display>
- <szg_window>
-   <size width="640" height="480" />
-   <position x="50" y="50" />
-   <decorate value="false" />
-   <fullscreen value="true" />
-   <title value="szg" />
-   <stereo value="false" />
-   <zorder value="top" />
-   <xdisplay value=":0.0" />
-
-   <szg_viewport_list viewmode="custom">
-
-     <szg_viewport>
-       <coords left="0.0" bottom="0.0" width="1.0" height="1.0" />
-       <depthclear value="false" />
-       <colormask R="true" G="true" B="true" A="true" />
-       <eyesign value="0.0" />
-       <ogldrawbuf value="GL_BACK_LEFT" />
-       <szg_camera>
-         <szg_screen>
-           <center x="0" y="5" z="-5" />
-           <up x="0" y="1" z="0" />
-           <dim width="10" height="10" />
-           <normal x="0" y="0" z="-1" />
-           <headmounted value="false" />
-           <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-           <usefixedhead value="allow" />
-           <fixedheadpos x="0.0" y="5" z="0.0" />
-           <fixedheadupangle value="0.0" />
-         </szg_screen>
-       </szg_camera>
-     </szg_viewport>
-   </szg_viewport_list>
- </szg_window>
-</szg_display>
-</value>
-</param>
-
-<param>
-<name>single_window_stereo</name>
-<value>
-<szg_display>
- <szg_window>
-   <size width="640" height="480" />
-   <position x="50" y="50" />
-   <decorate value="false" />
-   <fullscreen value="true" />
-   <title value="szg" />
-   <stereo value="true" />
-   <zorder value="top" />
-   <xdisplay value=":0.0" />
-   <cursor value="none" />
-
-   <szg_viewport_list viewmode="normal">
-     <szg_camera>
-       <szg_screen usenamed="front_wall" />
-     </szg_camera>
-   </szg_viewport_list>
- </szg_window>
-</szg_display>
-</value>
-</param>
+<include>
+virtual_computer_configs_0_8.txt
+</include>
 
 <comment> definitions that change per user </comment>
 
@@ -462,112 +55,6 @@ isl2     SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
 kam2     SZG_EXEC path g:\THE_USER_NAME\bin\win32
 isl63    SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
 isl83    SZG_EXEC path /home/public/THE_USER_NAME/bin/linux
-</assign>
-
-<comment> virtual computer definitions </comment>
-<assign>
-wall SZG_CONF virtual true
-wall SZG_TRIGGER map smoke
-wall SZG_MASTER map SZG_SCREEN0
-wall SZG_SCREEN number_screens 6
-wall SZG_SCREEN0 map wall1/SZG_SCREEN0
-wall SZG_SCREEN0 networks wall
-wall SZG_SCREEN1 map wall2/SZG_SCREEN0
-wall SZG_SCREEN1 networks wall
-wall SZG_SCREEN2 map wall3/SZG_SCREEN0
-wall SZG_SCREEN2 networks wall
-wall SZG_SCREEN3 map wall4/SZG_SCREEN0
-wall SZG_SCREEN3 networks wall
-wall SZG_SCREEN4 map spirit/SZG_SCREEN0
-wall SZG_SCREEN4 networks wall
-wall SZG_SCREEN5 map hank7/SZG_SCREEN0
-wall SZG_SCREEN5 networks wall
-wall SZG_INPUT0 map smoke/inputsimulator
-wall SZG_INPUT0 networks internet
-wall SZG_SOUND map smoke
-wall SZG_SOUND networks internet
-</assign>
-
-<comment>
-tests having the master and the trigger map to the
-same computer
-</comment>
-
-<assign>
-wall_master1 SZG_CONF virtual true
-wall_master1 SZG_TRIGGER map wall1
-wall_master1 SZG_MASTER map SZG_SCREEN0
-wall_master1 SZG_SCREEN number_screens 6
-wall_master1 SZG_SCREEN0 map wall1/SZG_SCREEN0
-wall_master1 SZG_SCREEN0 networks wall
-wall_master1 SZG_SCREEN1 map wall2/SZG_SCREEN0
-wall_master1 SZG_SCREEN1 networks wall
-wall_master1 SZG_SCREEN2 map wall3/SZG_SCREEN0
-wall_master1 SZG_SCREEN2 networks wall
-wall_master1 SZG_SCREEN3 map wall4/SZG_SCREEN0
-wall_master1 SZG_SCREEN3 networks wall
-wall_master1 SZG_SCREEN4 map spirit/SZG_SCREEN0
-wall_master1 SZG_SCREEN4 networks wall
-wall_master1 SZG_SCREEN5 map hank7/SZG_SCREEN0
-wall_master1 SZG_SCREEN5 networks wall
-wall_master1 SZG_INPUT0 map smoke/inputsimulator
-wall_master1 SZG_INPUT0 networks internet
-wall_master1 SZG_SOUND map smoke
-wall_master1 SZG_SOUND networks internet
-</assign>
-
-<comment>
-tests having the trigger map to one of the rendering
-slaves
-</comment>
-<assign>
-wall_master2 SZG_CONF virtual true
-wall_master2 SZG_TRIGGER map wall2
-wall_master2 SZG_MASTER map SZG_SCREEN1
-wall_master2 SZG_SCREEN number_screens 6
-wall_master2 SZG_SCREEN0 map wall1/SZG_SCREEN0
-wall_master2 SZG_SCREEN0 networks wall
-wall_master2 SZG_SCREEN1 map wall2/SZG_SCREEN0
-wall_master2 SZG_SCREEN1 networks wall
-wall_master2 SZG_SCREEN2 map wall3/SZG_SCREEN0
-wall_master2 SZG_SCREEN2 networks wall
-wall_master2 SZG_SCREEN3 map wall4/SZG_SCREEN0
-wall_master2 SZG_SCREEN3 networks wall
-wall_master2 SZG_SCREEN4 map spirit/SZG_SCREEN0
-wall_master2 SZG_SCREEN4 networks wall
-wall_master2 SZG_SCREEN5 map hank7/SZG_SCREEN0
-wall_master2 SZG_SCREEN5 networks wall
-wall_master2 SZG_INPUT0 map smoke/inputsimulator
-wall_master2 SZG_INPUT0 networks internet
-wall_master2 SZG_SOUND map smoke
-wall_master2 SZG_SOUND networks internet
-</assign>
-
-<comment> tests having several screens on a single computer </comment>
-<assign>
-smoke_test SZG_CONF virtual true
-smoke_test SZG_TRIGGER map smoke
-smoke_test SZG_MASTER map SZG_SCREEN0
-smoke_test SZG_SCREEN number_screens 4
-smoke_test SZG_SCREEN0 map smoke/SZG_SCREEN1
-smoke_test SZG_SCREEN1 map smoke/SZG_SCREEN2
-smoke_test SZG_SCREEN2 map smoke/SZG_SCREEN3
-smoke_test SZG_SCREEN3 map smoke/SZG_SCREEN4
-smoke_test SZG_INPUT0 map smoke/inputsimulator
-
-idesk SZG_CONF    virtual        true
-idesk SZG_TRIGGER map            smoke
-idesk SZG_MASTER  map		 SZG_SCREEN0
-idesk SZG_SCREEN  number_screens 1
-idesk SZG_SCREEN0 map            cube6/SZG_SCREEN0
-idesk SZG_INPUT0  map            2northg/arIdeskTracker
-
-passive SZG_CONF    virtual        true
-passive SZG_TRIGGER map            smoke
-passive SZG_MASTER  map		         SZG_SCREEN0
-passive SZG_SCREEN  number_screens 1
-passive SZG_SCREEN0 map            gm4/SZG_SCREEN0
-passive SZG_INPUT0  map            road1
 </assign>
 
 <comment> search paths </comment>
@@ -851,6 +338,25 @@ isl2     SZG_SCREEN0 screen_dim 10/10
 isl2     SZG_SCREEN0 screen_normal 0/0/-1
 isl2     SZG_SCREEN0 screen_up 0/1/0
 isl2     SZG_SCREEN0 head_mounted false
+</assign>
+
+<comment>
+The following parameters show the arGUI way to configure windows.
+</comment>
+
+<assign>
+smoke SZG_DISPLAY0 name single_window
+smoke SZG_DISPLAY1 name single_window_3x2_00
+smoke SZG_DISPLAY2 name single_window_3x2_01
+smoke SZG_DISPLAY3 name single_window_3x2_11
+smoke SZG_DISPLAY4 name single_window_3x2_10
+
+wall1 SZG_DISPLAY0 name fullscreen_3x2_01
+wall2 SZG_DISPLAY0 name fullscreen_3x2_11
+wall3 SZG_DISPLAY0 name fullscreen_3x2_21
+wall4 SZG_DISPLAY0 name fullscreen_3x2_00
+spirit SZG_DISPLAY0 name fullscreen_3x2_10
+hank7 SZG_DISPLAY0 name fullscreen_3x2_20
 </assign>
 </szg_config>
 

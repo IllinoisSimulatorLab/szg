@@ -414,7 +414,6 @@ LFail:
 /// not connected to the Phleet).
 bool arSZGClient::parseParameterFile(const string& fileName){
   const string dataPath(getAttribute("SZG_SCRIPT","path"));
-
   // There are two parameter file formats.
   // The legacy format consists of a sequence of lines as follows:
   //
@@ -434,6 +433,9 @@ bool arSZGClient::parseParameterFile(const string& fileName){
   //
   //      </value>
   //   </param>
+  //   <include>
+  //    ... a file name with more config info goes here.
+  //   </include>
   //
   //   <comment>
   //     ... text of comment goes here ...
@@ -452,6 +454,8 @@ bool arSZGClient::parseParameterFile(const string& fileName){
   // assumed.
 
   // First, try the new and improved XML way!
+  cout << "arSZGClient remark: parsing config file " 
+       << ar_fileFind(fileName, "", dataPath) << ".\n";
   arFileTextStream fileStream;
   if (!fileStream.ar_open(fileName, dataPath)){
     cerr << _exeName << " error: failed to open batch file "
@@ -477,6 +481,30 @@ bool arSZGClient::parseParameterFile(const string& fileName){
           cout << _exeName << " error: expected /comment, not tag= " << tagText
 	       << " in phleet config file.\n";
 	  fileStream.ar_close();
+	  return false;
+	}
+      }
+      else if (tagText == "include"){
+        // Go ahead and get the comment text (but discard it).
+        if (!ar_getTextBeforeTag(&fileStream, &buffer)){
+	  cout << _exeName << " error: incomplete include text "
+	       << "in phleet config file.\n";
+	  fileStream.ar_close();
+	  return false;
+	}
+        stringstream includeText(buffer.data);
+        string include;
+	includeText >> include;
+        tagText = ar_getTagText(&fileStream, &buffer);
+        if (tagText != "/include"){
+          cout << _exeName << " error: expected /include, not tag= " << tagText
+	       << " in phleet config file.\n";
+	  fileStream.ar_close();
+	  return false;
+	}
+        if (!parseParameterFile(include)){
+	  cout << _exeName << " error: include directive ("
+	       << include << ") failed in parsing parameter file.\n";
 	  return false;
 	}
       }

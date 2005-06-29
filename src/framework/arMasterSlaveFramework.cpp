@@ -1393,7 +1393,8 @@ void arMasterSlaveFramework::_handleScreenshot( bool stereo ) {
     arTexture texture;
     texture.setPixels( buf1, _screenshotWidth, _screenshotHeight );
     if( !texture.writeJPEG( screenshotName.c_str(),_dataPath ) ) {
-      std::cerr << "arMasterSlaveFramework remark: screenshot write failed." << std::endl;
+      std::cerr << "arMasterSlaveFramework remark: screenshot write failed." 
+                << std::endl;
     }
 
     // the pixels are copied into arTexture's memory so we must delete them here.
@@ -1465,7 +1466,8 @@ bool arMasterSlaveFramework::_sendData( void ) {
   // Send data, if there are any receivers.
   if( _stateServer->getNumberConnectedActive() > 0 &&
       !_stateServer->sendData( _transferData ) ){
-    std::cout << _label << " remark: state server failed to send data." << std::endl;
+    std::cout << _label 
+              << " remark: state server failed to send data." << std::endl;
     return false;
   }
 
@@ -2164,8 +2166,8 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
 
   if( _useWindowing ) {
     _displayThreadRunning = true;
+    // This used to be the GLUT main loop....
     // glutMainLoop(); // never returns
-    // _wm->startWithoutSwap();
 
     // unrolled event loop
     while( true ) {
@@ -2196,7 +2198,12 @@ void arMasterSlaveFramework::_createWindowing( void ) {
   // UGLY HACK!!!! (stereo, window size, window position, wildcat framelock)
   const string screenName( _SZGClient.getMode( "graphics" ) );
 
-  std::string whichDisplay = _SZGClient.getMode( "gui" );
+  // There is a transition in configuration occuring, from the previous one
+  // to one based on arGUI. The "magic" keywords are changing from
+  // SZG_SCREENn to SZG_DISPLAYn.
+  //std::string whichDisplay = _SZGClient.getMode( "gui" );
+  string whichDisplay 
+    = "SZG_DISPLAY"+screenName.substr(screenName.length()-1, 1);
   std::string displayName  = _SZGClient.getAttribute( whichDisplay, "name" );
 
   std::cout << "Using display: " << whichDisplay << " : "
@@ -2668,19 +2675,11 @@ void arMasterSlaveFramework::_display( int windowID ) {
   // THIS IS EXTREMELY IMPORTANT!
   char buffer[ 32 ];
   glReadPixels( 0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, buffer );
-
-  // occurs after drawing and right before the buffer swap
-  // THIS MUST OCCUR ONLY ONCE PER ALL WINDOWS!
-  // postDraw();
-
-  /*
-  if( _internalBufferSwap ) {
-    // sometimes, it might be most convenient to let an external
-    // library do the buffer swap, even though this degrades synchronization
-    // glutSwapBuffers();
-    _wm->swapWindowBuffer( windowID );
-  }
-  */
+  // Weirdly, with arGUI, the following seems necessary for "high quality"
+  // synchronization. Maybe GLUT was implicitly posting one of these itself?
+  // What makes this strange is that I'd expect the glReadPixels to have 
+  // already done this...
+  glFinish();
 
   // if we are supposed to take a screenshot, go ahead and do so.
   _handleScreenshot( _wm->isStereo( windowID ) );

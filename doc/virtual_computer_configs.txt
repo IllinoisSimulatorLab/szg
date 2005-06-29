@@ -1,0 +1,123 @@
+<szg_config>
+
+<comment>
+Before too terribly long, these should be changed into XML.
+</comment>
+
+<comment> 
+Virtual computer definitions. These are specific to the R&D lab.
+(indeed, some are obsolete because equipment has moved, etc.)
+</comment>
+
+<assign>
+wall SZG_CONF virtual true
+wall SZG_TRIGGER map smoke
+wall SZG_MASTER map SZG_SCREEN0
+wall SZG_SCREEN number_screens 6
+wall SZG_SCREEN0 map wall1/SZG_SCREEN0
+wall SZG_SCREEN0 networks wall
+wall SZG_SCREEN1 map wall2/SZG_SCREEN0
+wall SZG_SCREEN1 networks wall
+wall SZG_SCREEN2 map wall3/SZG_SCREEN0
+wall SZG_SCREEN2 networks wall
+wall SZG_SCREEN3 map wall4/SZG_SCREEN0
+wall SZG_SCREEN3 networks wall
+wall SZG_SCREEN4 map spirit/SZG_SCREEN0
+wall SZG_SCREEN4 networks wall
+wall SZG_SCREEN5 map hank7/SZG_SCREEN0
+wall SZG_SCREEN5 networks wall
+wall SZG_INPUT0 map smoke/inputsimulator
+wall SZG_INPUT0 networks internet
+wall SZG_SOUND map smoke
+wall SZG_SOUND networks internet
+</assign>
+
+<comment>
+This virtual computer tests having the master and the trigger map to the
+same computer
+</comment>
+
+<assign>
+wall_master1 SZG_CONF virtual true
+wall_master1 SZG_TRIGGER map wall1
+wall_master1 SZG_MASTER map SZG_SCREEN0
+wall_master1 SZG_SCREEN number_screens 6
+wall_master1 SZG_SCREEN0 map wall1/SZG_SCREEN0
+wall_master1 SZG_SCREEN0 networks wall
+wall_master1 SZG_SCREEN1 map wall2/SZG_SCREEN0
+wall_master1 SZG_SCREEN1 networks wall
+wall_master1 SZG_SCREEN2 map wall3/SZG_SCREEN0
+wall_master1 SZG_SCREEN2 networks wall
+wall_master1 SZG_SCREEN3 map wall4/SZG_SCREEN0
+wall_master1 SZG_SCREEN3 networks wall
+wall_master1 SZG_SCREEN4 map spirit/SZG_SCREEN0
+wall_master1 SZG_SCREEN4 networks wall
+wall_master1 SZG_SCREEN5 map hank7/SZG_SCREEN0
+wall_master1 SZG_SCREEN5 networks wall
+wall_master1 SZG_INPUT0 map smoke/inputsimulator
+wall_master1 SZG_INPUT0 networks internet
+wall_master1 SZG_SOUND map smoke
+wall_master1 SZG_SOUND networks internet
+</assign>
+
+<comment>
+This virtual computer tests having the trigger map to one of the rendering
+slaves.
+</comment>
+
+<assign>
+wall_master2 SZG_CONF virtual true
+wall_master2 SZG_TRIGGER map wall2
+wall_master2 SZG_MASTER map SZG_SCREEN1
+wall_master2 SZG_SCREEN number_screens 6
+wall_master2 SZG_SCREEN0 map wall1/SZG_SCREEN0
+wall_master2 SZG_SCREEN0 networks wall
+wall_master2 SZG_SCREEN1 map wall2/SZG_SCREEN0
+wall_master2 SZG_SCREEN1 networks wall
+wall_master2 SZG_SCREEN2 map wall3/SZG_SCREEN0
+wall_master2 SZG_SCREEN2 networks wall
+wall_master2 SZG_SCREEN3 map wall4/SZG_SCREEN0
+wall_master2 SZG_SCREEN3 networks wall
+wall_master2 SZG_SCREEN4 map spirit/SZG_SCREEN0
+wall_master2 SZG_SCREEN4 networks wall
+wall_master2 SZG_SCREEN5 map hank7/SZG_SCREEN0
+wall_master2 SZG_SCREEN5 networks wall
+wall_master2 SZG_INPUT0 map smoke/inputsimulator
+wall_master2 SZG_INPUT0 networks internet
+wall_master2 SZG_SOUND map smoke
+wall_master2 SZG_SOUND networks internet
+</assign>
+
+<comment> 
+Tests having several screens on a single computer.
+</comment>
+
+<assign>
+smoke_test SZG_CONF virtual true
+smoke_test SZG_TRIGGER map smoke
+smoke_test SZG_MASTER map SZG_SCREEN0
+smoke_test SZG_SCREEN number_screens 4
+smoke_test SZG_SCREEN0 map smoke/SZG_SCREEN1
+smoke_test SZG_SCREEN1 map smoke/SZG_SCREEN2
+smoke_test SZG_SCREEN2 map smoke/SZG_SCREEN3
+smoke_test SZG_SCREEN3 map smoke/SZG_SCREEN4
+smoke_test SZG_INPUT0 map smoke/inputsimulator
+</assign>
+
+<assign>
+idesk SZG_CONF    virtual        true
+idesk SZG_TRIGGER map            smoke
+idesk SZG_MASTER  map		 SZG_SCREEN0
+idesk SZG_SCREEN  number_screens 1
+idesk SZG_SCREEN0 map            cube6/SZG_SCREEN0
+idesk SZG_INPUT0  map            2northg/arIdeskTracker
+
+passive SZG_CONF    virtual        true
+passive SZG_TRIGGER map            smoke
+passive SZG_MASTER  map		         SZG_SCREEN0
+passive SZG_SCREEN  number_screens 1
+passive SZG_SCREEN0 map            gm4/SZG_SCREEN0
+passive SZG_INPUT0  map            road1
+</assign>
+
+</szg_config>
