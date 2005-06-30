@@ -19,6 +19,8 @@ ALL = \
   setstereo$(EXE) \
   StereoViewer$(EXE)
 
+SZG_INCLUDE += $(SZG_INCLUDE_GLUT)
+
 # NOTE: We now include the "magic" Everything target in Makefile.rules
 
 # This should go BEFORE our FIRST target (because Makefile.rules has rules
