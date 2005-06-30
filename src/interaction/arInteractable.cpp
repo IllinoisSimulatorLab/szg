@@ -30,7 +30,6 @@ arInteractable::arInteractable( const arInteractable& ui ) :
 arInteractable& arInteractable::operator=( const arInteractable& ui ) {
   if (&ui == this)
     return *this;
-  // should it do this? Might be better to retain this stuff.
   if (grabbed())
     _ungrab();
   if (touched())
@@ -45,8 +44,10 @@ arInteractable& arInteractable::operator=( const arInteractable& ui ) {
 
 void arInteractable::_cleanup() {
 //  cerr << "_cleanup() " << touched() << ".\n";
-  if (touched())
+  if (touched()) {
     untouchAll(); // also ungrab()s
+  }
+  _touchEffectors.clear();
 }
 
 arInteractable::~arInteractable() {
@@ -96,7 +97,7 @@ bool arInteractable::touch( arEffector& effector ) {
   if (ok) {
     // The touch succeeded.
     effector.setTouchedObject( this );
-    _touchEffectors.push_back( &effector );
+    _touchEffectors.push_back( &effector ); // ASSIGNMENT
   }
   return ok;
 }
@@ -151,7 +152,7 @@ bool arInteractable::processInteraction( arEffector& effector ) {
         _ungrab();
     } else {
       if (effector.requestGrab( this )) {
-        _grabEffector = &effector;
+        _grabEffector = &effector;  // ASSIGNMENT
       } else {
         cerr << "arInteractable error: lock request failed.\n";
         _ungrab();
@@ -179,7 +180,7 @@ bool arInteractable::untouch( arEffector& effector ) {
   std::vector<arEffector*>::iterator iter =
     std::find( _touchEffectors.begin(), _touchEffectors.end(), &effector );
   if (iter != _touchEffectors.end())
-    _touchEffectors.erase( iter );
+    _touchEffectors.erase( iter );  // ASSIGNMENT
   return _untouch( effector );
 }
 
@@ -189,7 +190,7 @@ bool arInteractable::untouchAll() {
     if (!untouch( *_touchEffectors.back() ))
       ok = false;
   }
-  if (grabbed()) { // shouldn't ever be
+  if (grabbed()) { // shouldn't ever be, after untouches
     cerr << "arInteractable warning: still grabbed after untouchAll().\n";
     _ungrab();
   }
@@ -217,7 +218,7 @@ void arInteractable::updateMatrix( const arMatrix4& deltaMatrix ) {
 void arInteractable::_ungrab() {
   if (_grabEffector)
     _grabEffector->requestUngrab( this );
-  _grabEffector = 0;
+  _grabEffector = 0;  // ASSIGNMENT
 }
 
 void arInteractable::_clearActiveDrags() {

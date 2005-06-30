@@ -44,7 +44,7 @@ void ar_masterSlaveFrameworkReshapeFunction(int width, int height){
 
 void ar_masterSlaveFrameworkDisplayFunction(){
   if (__globalFramework)
-    __globalFramework->_display();
+    __globalFramework->_drawWindow();
 }
 */
 
@@ -256,20 +256,19 @@ void arMasterSlaveWindowInitCallback::operator()( arGraphicsWindow& ) {
 // 1. From the event loop, the window manager requests that all (arGUI)
 //    windows draw.
 // 2. Each window (possibly in its own display thread) then calls the
-//    its arGUI render callback. 
-// 3. arMasterSlaveFramework::_display(...) is called. It is responsible for
+//    its arGUI render callback. In a master/slave app, this is actually
+//    a call to arMasterSlaveRenderCallback::operator( arGUIWindowInfo* ).
+// 3. arMasterSlaveFramework::_drawWindow(...) is called. It is responsible for
 //    drawing the whole window and then blocking until all OpenGL commands
 //    have written to the frame buffer.
-// 4. To draw the window, it calls arMasterSlaveFramework::_drawWindow(...).
-//    This calls the arGraphicsWindow draw. It also draws various overlays
+//    It calls the arGraphicsWindow draw. It also draws various overlays
 //    (like the performance graph or the inputsimulator).
-// 5. Inside the graphics window draw, for each owned viewport, the code
-//    calls the installed arRenderCallback (i.e. arMasterSlaveRenderCallback
-//    below) using parameters arGraphicsWindow and arViewport.
-// 6. The framework _draw(...) method is then called. This calls the
-//    (virtual) onDraw method.
-// 7. If the onDraw method hasn't been over-ridden, then the application's
-//    installed draw callback is used.
+// 4. Inside the arGraphicsWindow draw, for each owned viewport, the graphics window's
+//    render callback is called. In an m/s app, this is a call to
+//    arMasterSlaveRenderCallback::operator( arGraphicsWindow&, arViewport& ).
+// 5. The arMasterSlaveRenderCallback calls the framework's (virtual) onDraw method.
+// 6. If the onDraw method hasn't been over-ridden, then the application's
+//    installed draw callback function is used.
 //****************************************************************************
 class arMasterSlaveRenderCallback : public arGUIRenderCallback {
   public:
@@ -284,15 +283,15 @@ class arMasterSlaveRenderCallback : public arGUIRenderCallback {
     arMasterSlaveFramework* _framework;
 };
 
-void arMasterSlaveRenderCallback::operator()( arGraphicsWindow&, arViewport& ) {
+void arMasterSlaveRenderCallback::operator()( arGraphicsWindow& win, arViewport& vp ) {
   if( _framework ) {
-    _framework->_draw();
+    _framework->onDraw( win, vp );
   }
 }
 
 void arMasterSlaveRenderCallback::operator()( arGUIWindowInfo* windowInfo ) {
-  if( _framework && windowInfo ) {
-    _framework->_display( windowInfo->_windowID );
+  if(_framework) {
+    _framework->_drawWindow( windowInfo );
   }
 }
 
@@ -309,6 +308,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   // _glutDisplayMode( GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA ),
   _userInitCalled( false ),
   _parametersLoaded( false ),
+  _wm( NULL ),
   _serviceName( "NULL" ),
   _serviceNameBarrier( "NULL" ),
   _networks( "NULL" ),
@@ -317,6 +317,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _postExchange( NULL ),
   _windowInitCallback( NULL ),
   _drawCallback( NULL ),
+  _oldDrawCallback( NULL ),
   _disconnectDrawCallback( NULL ),
   _playCallback( NULL ),
   // _reshape(NULL),
@@ -332,7 +333,6 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   // _stereoMode( false ),
   _internalBufferSwap( true ),
   _framerateThrottle( false ),
-  _wm( NULL ),
   _barrierServer( NULL ),
   _barrierClient( NULL ),
   _master( true ),
@@ -500,14 +500,18 @@ void arMasterSlaveFramework::onWindowInitGL( arGUIWindowInfo* windowInfo ) {
 /// Yes, this is really the application-provided draw function. It is
 /// called once per viewport of each arGraphicsWindow (arGUIWindow).
 /// It is a virtual method that issues the user-defined draw callback.
-void arMasterSlaveFramework::onDraw( void ) {
-  if( !_drawCallback ) {
-    std::cout << _label 
-              << " warning: forgot to setDrawCallback()." << std::endl;
+void arMasterSlaveFramework::onDraw( arGraphicsWindow& win, arViewport& vp ) {
+  if( (!_oldDrawCallback) && (!_drawCallback) ) {
+    std::cerr << _label << " warning: forgot to setDrawCallback()." << std::endl;
     return;
   }
 
-  _drawCallback( *this );
+  if (_drawCallback) {
+    _drawCallback( *this, win, vp );
+    return;
+  }
+
+  _oldDrawCallback( *this );
 }
 
 void arMasterSlaveFramework::onDisconnectDraw( void ) {
@@ -642,9 +646,13 @@ void arMasterSlaveFramework::setWindowInitGLCallback
   _windowInitGLCallback = windowInitGL;
 }
 
-void arMasterSlaveFramework::setDrawCallback
-  ( void (*draw)( arMasterSlaveFramework& ) ) {
+void arMasterSlaveFramework::setDrawCallback( 
+              void (*draw)( arMasterSlaveFramework&, arGraphicsWindow&, arViewport& ) ) {
   _drawCallback = draw;
+}
+
+void arMasterSlaveFramework::setDrawCallback( void (*draw)( arMasterSlaveFramework& ) ) {
+  _oldDrawCallback = draw;
 }
 
 void arMasterSlaveFramework::setPlayCallback
@@ -1088,48 +1096,6 @@ void arMasterSlaveFramework::preDraw( void ) {
   _lastComputeTime = ar_difftime( ar_time(), preDrawStart );
 }
 
-/// This function is called by arMasterSlaveFramework::_display().
-/// Draw the graphics inside the arGUIWindow by calling the appropriate
-/// arGraphicsWindow's draw method (in addition to drawing a few framework
-/// specific overlays and tools). Note that for VR this can be somewhat 
-/// complex, given that we may be doing a stereo window, a window with multiple
-/// viewports, an anaglyph window, etc. However, the arGraphicsWindow handles
-/// this, potentially making multiple calls to the application-defined 
-/// _draw(...). This one doesn't do much except go one more level down the
-/// chain to onDraw(...), except that it allows the viewport to be drawn
-/// as a uniform color.
-/// 
-/// Look at the arMasterSlaveRenderCallback to understand how _draw(...)
-/// is called.
-void arMasterSlaveFramework::_drawWindow( int windowID ){
-  // if the shutdown flag has been triggered, go ahead and return
-  if( _exitProgram ) {
-    return;
-  }
-
-  if( _windows.find( windowID ) == _windows.end() ) {
-    // print warning?
-    return;
-  }
-
-  if( _windows[ windowID ] ) {
-    _windows[ windowID ]->draw();
-  }
-
-  if( _standalone && _standaloneControlMode == "simulator" ) {
-    _simulator.drawWithComposition();
-  }
-
-  if( _showPerformance ){
-    _framerateGraph.drawWithComposition();
-  }
-
-  // we draw the application's overlay last, if such exists. This is only
-  // done on the master instance.
-  if( getMaster() ) {
-    onOverlay();
-  }
-}
 
 /// The sequence of events that should occur after the window is drawn,
 /// but before the synchronization is called.
@@ -2692,50 +2658,79 @@ void arMasterSlaveFramework::_connectionTask( void ) {
 // Functions directly pertaining to drawing
 //**************************************************************************
 
-/// Called from the arMasterSlaveRenderCallback (once per viewport of the
-/// arGraphicsWindow, which is contained in the arGUIWindow). Doesn't do 
-/// very much except call onDraw(...), and allow for the viewport to be
-/// drawn a falt color in response to external (message) requests.
-void arMasterSlaveFramework::_draw( void ) {
-  if( _noDrawFillColor[ 0 ] == -1 ) {
-    if( getConnected() ) {
-      onDraw();
-    }
-    else {
-      onDisconnectDraw();
-    }
-  }
-  else {
-    // we just want a colored background
-    glMatrixMode( GL_PROJECTION );
-    glLoadIdentity();
-    glOrtho( -1.0, 1.0, -1.0, 1.0, 0.0, 1.0 );
-    glMatrixMode( GL_MODELVIEW );
-    glLoadIdentity();
-    glPushAttrib( GL_ALL_ATTRIB_BITS );
-    glDisable( GL_LIGHTING );
-    glColor3fv( &_noDrawFillColor[ 0 ] );
-    glBegin( GL_QUADS );
-    glVertex3f(  1.0f,  1.0f, -0.5f );
-    glVertex3f( -1.0f,  1.0f, -0.5f );
-    glVertex3f( -1.0f, -1.0f, -0.5f );
-    glVertex3f(  1.0f, -1.0f, -0.5f );
-    glEnd();
-    glPopAttrib();
-  }
-}
-
 /// This function is responsible for displaying a whole arGUIWindow.
 /// Look at the definition of arMasterSlaveRenderCallback to understand
 /// how it is called from arGUIWindow.
-void arMasterSlaveFramework::_display( int windowID ) {
+void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo ) {
   // handle the stuff that occurs before drawing
   // THIS MUST OCCUR ONLY ONCE PER ALL WINDOWS!
   // preDraw();
 
-  // draw the window
-  _drawWindow( windowID );
+  if (!windowInfo) {
+    cerr << "arMasterSlaveFramework error: NULL arGUIWindowInfo* passed to _drawWindow().\n";
+    return;
+  }
 
+  int currentWinID = windowInfo->_windowID;
+  if( _windows.find( currentWinID ) == _windows.end() ) {
+    cerr << "arMasterSlaveFramework error: arGraphicsWindow with ID " << currentWinID
+         << " not found in _drawWindow().\n";
+    return;
+  }
+
+  arGraphicsWindow* currentWin = _windows[ currentWinID ];
+  if(!currentWin) {
+    cerr << "arMasterSlaveFramework error: arGraphicsWindow with ID " << currentWinID
+         << " is a NULL pointer in _drawWindow().\n";
+    return;
+  }
+  // stuff pixel dimensions into arGraphicsWindow
+  currentWin->setPixelDimensions( windowInfo->_posX, windowInfo->_posY,
+                                  windowInfo->_sizeX, windowInfo->_sizeY );
+  // draw the window
+  if(!_exitProgram ) {
+    if( _noDrawFillColor[ 0 ] == -1 ) {
+      if( getConnected() ) {
+        currentWin->draw();
+
+        if (currentWinID == 0) {
+          if( _standalone && _standaloneControlMode == "simulator" ) {
+            _simulator.drawWithComposition();
+          }
+
+          if( _showPerformance ){
+            _framerateGraph.drawWithComposition();
+          }
+
+          // we draw the application's overlay last, if such exists. This is only
+          // done on the master instance.
+          if( getMaster() ) {
+            onOverlay();
+          }
+        }
+      } else {
+        onDisconnectDraw();
+      }
+    } else {
+      // we just want a colored background
+      glMatrixMode( GL_PROJECTION );
+      glLoadIdentity();
+      glOrtho( -1.0, 1.0, -1.0, 1.0, 0.0, 1.0 );
+      glMatrixMode( GL_MODELVIEW );
+      glLoadIdentity();
+      glPushAttrib( GL_ALL_ATTRIB_BITS );
+      glDisable( GL_LIGHTING );
+      glColor3fv( &_noDrawFillColor[ 0 ] );
+      glBegin( GL_QUADS );
+      glVertex3f(  1.0f,  1.0f, -0.5f );
+      glVertex3f( -1.0f,  1.0f, -0.5f );
+      glVertex3f( -1.0f, -1.0f, -0.5f );
+      glVertex3f(  1.0f, -1.0f, -0.5f );
+      glEnd();
+      glPopAttrib();
+    }
+  }
+  
   // it seems like glFlush/glFinish are a little bit unreliable... not
   // every vendor has done a good job of implementing these.
   // Consequently, we do a small pixel read to force drawing to complete.
@@ -2749,10 +2744,10 @@ void arMasterSlaveFramework::_display( int windowID ) {
   glFinish();
 
   // if we are supposed to take a screenshot, go ahead and do so.
-  _handleScreenshot( _wm->isStereo( windowID ) );
+  _handleScreenshot( _wm->isStereo( currentWinID ) );
 
   // if we are in shutdown mode, we want to stop everything and
-  // then go away. NOTE: there are special problems since _display()
+  // then go away. NOTE: there are special problems since _drawWindow()
   // and the keyboard function where the ESC press is caught are in the
   // same thread
   if( _exitProgram ) {
@@ -2766,7 +2761,7 @@ void arMasterSlaveFramework::_display( int windowID ) {
     // ar_deactivateWildcatFramelock();
     _wm->deactivateWildcatFramelock();
 
-    std::cout << _label << " remark: window done." << std::endl;
+    std::cout << _label << " remark: window " << currentWinID << " done." << std::endl;
 
     _displayThreadRunning = false;
     // if stop(...) is called from the GLUT keyboard function, we

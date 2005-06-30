@@ -49,9 +49,9 @@ class SZG_CALL arEffector {
     void setTipOffset( const arVector3& offset );
     void updateState( arInputEvent& event );
     void updateState( arInputState* state );
-    bool requestGrab( arInteractable* grabee );
-    void requestUngrab( arInteractable* grabee );
-    void forceUngrab();
+    virtual bool requestGrab( arInteractable* grabee );
+    virtual void requestUngrab( arInteractable* grabee );
+    virtual void forceUngrab();
     int getButton( unsigned int index );
     float getAxis( unsigned int index );
     arMatrix4 getMatrix() const { return _tipMatrix; }
@@ -67,9 +67,9 @@ class SZG_CALL arEffector {
     void deleteDrag( const arGrabCondition& cond );
     void setDragManager( const arDragManager& dm ) { _dragManager = dm; }
     const arDragManager* getDragManager() const;
-    const arInteractable* getGrabbedObject();
-    void setTouchedObject( arInteractable* touched ) { _touchedObject = touched; }
-    arInteractable* getTouchedObject();
+    virtual const arInteractable* getGrabbedObject();
+    virtual void setTouchedObject( arInteractable* touched );
+    virtual arInteractable* getTouchedObject();
     void setDrawCallback( void (*drawCallback)( const arEffector* effector ) ) {
       _drawCallback = drawCallback;
     }

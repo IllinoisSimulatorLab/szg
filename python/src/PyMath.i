@@ -1,4 +1,4 @@
-// $Id: PyMath.i,v 1.2 2005/05/26 18:38:52 crowell Exp $
+// $Id: PyMath.i,v 1.3 2005/06/29 20:42:24 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -397,29 +397,59 @@ class arMatrix4{
 
 %extend{
 
+// new arMatrix4 constructor. Takes any Python sequence type as an argument. Can either be a flat
+// 16-element sequence (in which case numbers go down columns first, as for OpenGL) or a 4-element
+// sequence in which each element is a 4-element sequence of numbers. In the second case, each
+// subsequence maps to a row. Numbers can be Floats or Ints.
 arMatrix4(PyObject *seq) {
-      arMatrix4* m = (arMatrix4*)malloc(sizeof(arMatrix4));
-      if (!PySequence_Check(seq)) {
-        PyErr_SetString(PyExc_TypeError, "arMatrix4() error: attempt to construct with non-sequence.");
+  arMatrix4* m = (arMatrix4*)malloc(sizeof(arMatrix4));
+  if (!PySequence_Check(seq)) {
+    PyErr_SetString(PyExc_TypeError, "arMatrix4() error: attempt to construct with non-sequence.");
+    return NULL;
+  }
+  int i;
+  int sequenceLength = PySequence_Size(seq);
+  if (sequenceLength == 16) {
+    for (i=0; i<16; ++i) {
+      PyObject* tmp = PySequence_GetItem( seq, i );
+      if (PyFloat_Check(tmp)) {
+        m->v[i] = (float)PyFloat_AsDouble(tmp);
+      } else if (PyInt_Check(tmp)) {
+        m->v[i] = (float)PyInt_AsLong(tmp);
+      } else {
+        PyErr_SetString(PyExc_ValueError, "arMatrix4() error: sequence items must all be Floats or Ints");
         return NULL;
       }
-      if (PySequence_Size(seq) != 16) {
-        PyErr_SetString(PyExc_TypeError, "arMatrix4() error: sequence passed to constructor must contain 16 items.");
+    } 
+  } else if (sequenceLength == 4) {
+    for (i=0; i<4; ++i) {
+      PyObject* row = PySequence_GetItem( seq, i );
+      if (!PySequence_Check(row)) {
+        PyErr_SetString(PyExc_TypeError, "arMatrix4() error: If you pass a 4-element sequence, each item (row) must be a sequence.");
         return NULL;
       }
-      for (int i=0; i<16; ++i) {
-        PyObject* tmp = PySequence_GetItem( seq, i );
+      if (PySequence_Size(row) != 4) {
+        PyErr_SetString(PyExc_TypeError, "arMatrix4() error: If you pass a 4-element sequence, each item (row) must contain 4 element.");
+        return NULL;
+      }
+      for (int j=0; j<4; ++j) {
+        PyObject* tmp = PySequence_GetItem( row, j );
         if (PyFloat_Check(tmp)) {
-          m->v[i] = (float)PyFloat_AsDouble(tmp);
+          m->v[i+4*j] = (float)PyFloat_AsDouble(tmp);
         } else if (PyInt_Check(tmp)) {
-          m->v[i] = (float)PyInt_AsLong(tmp);
+          m->v[i+4*j] = (float)PyInt_AsLong(tmp);
         } else {
           PyErr_SetString(PyExc_ValueError, "arMatrix4() error: sequence items must all be Floats or Ints");
           return NULL;
         }
-      } 
-      return m;
+      }
     }
+  } else {
+    PyErr_SetString(PyExc_TypeError, "arMatrix4() error: sequence passed to constructor must contain 4 or 16 items.");
+    return NULL;
+  }
+  return m;
+}
 
    void setFromPtr( const float* const ptr ) {
      memcpy( self->v, ptr, 16*sizeof(float) );
@@ -537,27 +567,56 @@ PyObject* toTuple() {
     return seq;
 }
 
+// Set a matrix from a sequence. Takes any Python sequence type as an argument. Can either be a flat
+// 16-element sequence (in which case numbers go down columns first, as for OpenGL) or a 4-element
+// sequence in which each element is a 4-element sequence of numbers. In the second case, each
+// subsequence maps to a row. Numbers can be Floats or Ints.
 PyObject* fromSequence( PyObject* seq ) {
   PyObject *resultobj;
   if (!PySequence_Check(seq)) {
     PyErr_SetString(PyExc_ValueError, "arMatrix4.fromSequence() error: argument must be a sequence.");
     return NULL;
   }
-  if (PySequence_Size(seq) != 16) {
-    PyErr_SetString(PyExc_ValueError, "arMatrix4.fromSequence() error: passed sequence must contain 16 elements.");
-    return NULL;
-  }
   int i;
-  for (i = 0; i < 16; ++i) {
-    PyObject *num = PySequence_GetItem(seq,i);
-    if (PyFloat_Check(num)) {
-      self->v[i] = (float)PyFloat_AsDouble(num);
-    } else if (PyInt_Check(num)) {
-      self->v[i] = (float)PyInt_AsLong(num);
-    } else {
-      cerr << "arMatrix4() error: sequence items must all be Floats or Ints\n";
-      return NULL;
+  int sequenceLength = PySequence_Size(seq);
+  if (sequenceLength == 16) {
+    for (i=0; i<16; ++i) {
+      PyObject* tmp = PySequence_GetItem( seq, i );
+      if (PyFloat_Check(tmp)) {
+        self->v[i] = (float)PyFloat_AsDouble(tmp);
+      } else if (PyInt_Check(tmp)) {
+        self->v[i] = (float)PyInt_AsLong(tmp);
+      } else {
+        PyErr_SetString(PyExc_ValueError, "arMatrix4() error: sequence items must all be Floats or Ints");
+        return NULL;
+      }
+    } 
+  } else if (sequenceLength == 4) {
+    for (i=0; i<4; ++i) {
+      PyObject* row = PySequence_GetItem( seq, i );
+      if (!PySequence_Check(row)) {
+        PyErr_SetString(PyExc_TypeError, "arMatrix4() error: If you pass a 4-element sequence, each item (row) must be a sequence.");
+        return NULL;
+      }
+      if (PySequence_Size(row) != 4) {
+        PyErr_SetString(PyExc_TypeError, "arMatrix4() error: If you pass a 4-element sequence, each item (row) must contain 4 element.");
+        return NULL;
+      }
+      for (int j=0; j<4; ++j) {
+        PyObject* tmp = PySequence_GetItem( row, j );
+        if (PyFloat_Check(tmp)) {
+          self->v[i+4*j] = (float)PyFloat_AsDouble(tmp);
+        } else if (PyInt_Check(tmp)) {
+          self->v[i+4*j] = (float)PyInt_AsLong(tmp);
+        } else {
+          PyErr_SetString(PyExc_ValueError, "arMatrix4() error: sequence items must all be Floats or Ints");
+          return NULL;
+        }
+      }
     }
+  } else {
+    PyErr_SetString(PyExc_TypeError, "arMatrix4() error: sequence passed to constructor must contain 4 or 16 items.");
+    return NULL;
   }
   Py_INCREF(Py_None); resultobj = Py_None;
   return resultobj;

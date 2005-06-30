@@ -27,16 +27,7 @@ class arEffector {
     // to grab from the input. If numButtons = 3 and loButton = 2, then input button
     // events with indices 2-4 will be captured here. By default they get mapped to
     // a starting index of 0, e.g. in the case just described asking the effector
-    // for button 0 will get you what was input button event 2. You can change that
-    // with the buttonOffset parameter, e.g. if it is also set to to then you will
-    // ask the effector for button 2 to get input event 2.
-    arEffector( const unsigned int matrixIndex,
-                const unsigned int numButtons,
-                const unsigned int loButton,
-                const unsigned int buttonOffset,
-                const unsigned int numAxes,
-                const unsigned int loAxis,
-                const unsigned int axisOffset );
+    // for button 0 will get you what was input button event 2.
     arEffector( const unsigned int matrixIndex,
                 const unsigned int numButtons,
                 const unsigned int loButton,
@@ -116,12 +107,135 @@ class arAlwaysInteractionSelector : public arInteractionSelector {
 // Select object based on angular separation with effector direction.
 class arAngleInteractionSelector: public arInteractionSelector {
   public:
-    arAngleInteractionSelector( float maxAngle = ar_convertToRad(10) );
+    arAngleInteractionSelector( float maxAngle = ar_convertToRad(10.) );
     virtual ~arAngleInteractionSelector();
     void setMaxAngle( float maxAngle );
     virtual float calcDistance( const arEffector& effector,
                                 const arMatrix4& objectMatrix ) const;
 };
+
+// We define a new arInteractionSelector subclass here and a set of corresponding
+// Python subclasses below to make the
+// interface cleaner. arPythonInteractionSelector contains pointers to callbacks that are
+// actually Python function objects.
+
+%{
+
+// Some actual code that will get compiled, as opposed to being analyzed
+// by SWIG for bindings.
+
+class arPythonInteractionSelector : public arInteractionSelector {
+  public:
+    arPythonInteractionSelector() :
+      arInteractionSelector(),
+      _distanceCallback(NULL) {
+    }
+    arPythonInteractionSelector( PyObject* distanceCallback ) :
+      arInteractionSelector(),
+      _distanceCallback(NULL) {
+      setCallback( distanceCallback );
+    }
+    virtual ~arPythonInteractionSelector();
+    virtual float calcDistance( const arEffector& effector,
+                                const arMatrix4& objectMatrix ) const;
+    virtual arInteractionSelector* copy() const;
+    void setCallback( PyObject* distanceCallback );
+  private:
+    PyObject* _distanceCallback;
+};
+
+arPythonInteractionSelector::~arPythonInteractionSelector() {
+  if (_distanceCallback != NULL) {
+    Py_XDECREF(_distanceCallback);
+  } 
+}
+
+float arPythonInteractionSelector::calcDistance( const arEffector& effector,
+                                                 const arMatrix4& objectMatrix ) const {
+  if (_distanceCallback == NULL) {
+    throw "arPythonInteractionSelector error: no distance callback.";
+  }
+  PyObject *effobj = SWIG_NewPointerObj( (void *) &effector,
+                                         SWIGTYPE_p_arEffector, 0); 
+  PyObject *matObj = SWIG_NewPointerObj( (void *) &objectMatrix,
+                                         SWIGTYPE_p_arMatrix4, 0); 
+  PyObject *arglist = Py_BuildValue( "(O,O)", effobj, matObj ); 
+  PyObject *result = PyEval_CallObject( _distanceCallback, arglist );  
+  if (result==NULL) { 
+      PyErr_Print(); 
+      string errmsg="A Python exception occurred in the distance callback.";
+      cerr << errmsg << "\n";
+      throw  errmsg; 
+  }
+  if (!PyFloat_Check( result )) {
+    throw "arPythonInteractionSelector error: distance callback returned non-Float.";
+  }
+  float returnVal = (float)PyFloat_AsDouble( result );
+  Py_XDECREF( result ); 
+  Py_DECREF( arglist ); 
+  Py_DECREF( matObj ); 
+  Py_DECREF( effobj ); 
+  return returnVal;
+}
+
+arInteractionSelector* arPythonInteractionSelector::copy() const {
+  return (arInteractionSelector*)new arPythonInteractionSelector( _distanceCallback );
+}
+
+void arPythonInteractionSelector::setCallback( PyObject* distanceCallback ) {
+  if (!PyCallable_Check( distanceCallback )) {
+    PyErr_SetString(PyExc_TypeError, "arPythonInteractionSelector error: distanceCallback not callable");
+    return;
+  }
+  Py_XDECREF(_distanceCallback);
+  Py_XINCREF(distanceCallback);
+  _distanceCallback = distanceCallback;
+}
+
+%}
+
+// This is the arPythonInteractionSelector description that SWIG uses to 
+// construct the bindings that a Python program will see.
+
+class arPythonInteractionSelector : public arInteractionSelector {
+  public:
+    arPythonInteractionSelector();
+    virtual ~arPythonInteractionSelector();
+    virtual float calcDistance( const arEffector& effector,
+                                const arMatrix4& objectMatrix );
+    void setCallback( PyObject* distanceCallback );
+};
+
+// And THIS is a python class that wraps the arPythonInteractionSelector
+// class. It gets copied automagically to PySZG.py.
+// Sub-class it and override the onInit and onUpdate methods
+// (and call arPyDragBehavior.__init__ in your classes __init__).
+
+%pythoncode %{
+
+class arPyInteractionSelector(arPythonInteractionSelector):
+  def __init__(self):
+    arPythonInteractionSelector.__init__(self)
+    self.setCallback( self.onCalcDistance )
+  def onCalcDistance( self, effector, objectMatrix ):
+    return 1.
+
+# A Python arPyInteractionSelector subclass that mimics the
+# functionality of arDistanceInteractionSelector, provided
+# as a demo.
+class arPyDistanceInteractionSelector(arPyInteractionSelector):
+  def __init__( self, maxDistance ):
+    arPyInteractionSelector.__init__(self)
+    self._maxDistance = maxDistance
+  def onCalcDistance( self, effector, objectMatrix ):
+    distance = (ar_extractTranslation( effector.getMatrix() ) -
+                    ar_extractTranslation( objectMatrix )).magnitude()
+    if (self._maxDistance > 0.) and (distance > self._maxDistance):
+      return -1.
+    return distance
+
+%}
+
 
 // **************** based on interaction/arGrabCondition.h *******************
 
@@ -274,8 +388,26 @@ void arPythonDragBehavior::setCallbacks( PyObject* initCallback,
 
 %}
 
-// This is the arPythonDragBehavior description that SWIG uses to 
-// construct the bindings that a Python program will see.
+// These are the arDragBehavior subclass descriptions that
+// SWIG will use to construct the bindings that a Python program will see.
+
+class arNullDragBehavior : public arDragBehavior {
+  public:
+    arNullDragBehavior();
+    virtual ~arNullDragBehavior();
+};
+
+class arWandRelativeDrag : public arDragBehavior {
+  public:
+    arWandRelativeDrag();
+    virtual ~arWandRelativeDrag();
+};
+
+class arWandTranslationDrag : public arDragBehavior {
+  public:
+    arWandTranslationDrag( bool allowOffset = true );
+    virtual ~arWandTranslationDrag();
+};
 
 class arPythonDragBehavior : public arDragBehavior {
   public:
@@ -301,10 +433,14 @@ class arPyDragBehavior(arPythonDragBehavior):
   def onUpdate( self, effector, object, grabCondition ):
     pass
 
+# Here are some arPyDragBehavior subclasses that mimic the
+# functionality of the C++ arDragBehavior subclasses above
+# (here for illustrative purposes).
+
 # Do nothing. You can still grab the object (i.e. all
 # events from the effector will go to it until you let go),
 # but it wont move.
-class arNullDrag(arPyDragBehavior):
+class arPyNullDrag(arPyDragBehavior):
   def __init__(self):
     arPyDragBehavior.__init__(self)
   def onInit( self, effector, object ):
@@ -314,7 +450,7 @@ class arNullDrag(arPyDragBehavior):
     
 # The object will maintain a fixed relationship
 # to the effector tip, as though rigidly attached.
-class arWandRelativeDrag(arPyDragBehavior):
+class arPyWandRelativeDrag(arPyDragBehavior):
   def __init__(self):
     arPyDragBehavior.__init__(self)
     self.diffMatrix = arMatrix4()
@@ -326,7 +462,7 @@ class arWandRelativeDrag(arPyDragBehavior):
 # As above, object maintains a fixed _positional_
 # relationship with the effector tip as it moves around,
 # but the objects orientation does not change.
-class arWandTranslationDrag(arPyDragBehavior):
+class arPyWandTranslationDrag(arPyDragBehavior):
   def __init__(self,allowOffset=True):
     arPyDragBehavior.__init__(self)
     self.allowOffset = allowOffset
@@ -366,6 +502,7 @@ class arPythonInteractable : public arInteractable {
                        PyObject* processCallback,
                        PyObject* untouchCallback,
                        PyObject* matrixCallback );
+    void clearCallbacks();
   protected:
     virtual bool _processInteraction( arEffector& effector );
     virtual bool _touch( arEffector& effector );
@@ -385,22 +522,16 @@ arPythonInteractable::arPythonInteractable() :
 }
 
 arPythonInteractable::~arPythonInteractable() {
-  if (_touchCallback != NULL) {
-    Py_XDECREF(_touchCallback);
-  } 
-  if (_processCallback != NULL) {
-    Py_XDECREF(_processCallback);
-  } 
-  if (_untouchCallback != NULL) {
-    Py_XDECREF(_untouchCallback);
-  } 
-  if (_matrixCallback != NULL) {
-    Py_XDECREF(_matrixCallback);
-  } 
+/*  cout << "arPythonInteractable remark: destructor called.\n";*/
+  _cleanup();
+  Py_XDECREF(_touchCallback);
+  Py_XDECREF(_processCallback);
+  Py_XDECREF(_untouchCallback);
+  Py_XDECREF(_matrixCallback);
 }
 
 bool arPythonInteractable::_processInteraction( arEffector& effector ) {
-  if (_processCallback == NULL) {
+  if ((_processCallback == NULL)||(_processCallback == Py_None)) {
     return true;
   }
   PyObject *effobj = SWIG_NewPointerObj((void *) &effector,
@@ -409,9 +540,8 @@ bool arPythonInteractable::_processInteraction( arEffector& effector ) {
   PyObject *result=PyEval_CallObject(_processCallback, arglist);  
   if (result==NULL) { 
       PyErr_Print(); 
-      string errmsg="A Python exception occurred in the Process callback.";
-      cerr << errmsg << "\n";
-      throw  errmsg; 
+      PyErr_SetString( PyExc_RuntimeError, "A Python exception occurred in the Process callback." );
+      return false;
   }
   bool res=(bool) PyInt_AsLong(result); 
   Py_XDECREF(result); 
@@ -421,7 +551,7 @@ bool arPythonInteractable::_processInteraction( arEffector& effector ) {
 }
 
 bool arPythonInteractable::_touch( arEffector& effector ) {
-  if (_touchCallback == NULL) {
+  if ((_touchCallback == NULL)||(_touchCallback == Py_None)) {
     return true;
   }
   PyObject *effobj = SWIG_NewPointerObj((void *) &effector,
@@ -430,9 +560,8 @@ bool arPythonInteractable::_touch( arEffector& effector ) {
   PyObject *result=PyEval_CallObject(_touchCallback, arglist);  
   if (result==NULL) { 
       PyErr_Print(); 
-      string errmsg="A Python exception occurred in the Touch callback.";
-      cerr << errmsg << "\n";
-      throw  errmsg; 
+      PyErr_SetString( PyExc_RuntimeError, "A Python exception occurred in the Touch callback." );
+      return false;
   }
   bool res=(bool) PyInt_AsLong(result); 
   Py_XDECREF(result); 
@@ -442,7 +571,7 @@ bool arPythonInteractable::_touch( arEffector& effector ) {
 }
 
 bool arPythonInteractable::_untouch( arEffector& effector ) {
-  if (_untouchCallback == NULL) {
+  if ((_untouchCallback == NULL)||(_untouchCallback == Py_None)) {
     return true;
   }
   PyObject *effobj = SWIG_NewPointerObj((void *) &effector,
@@ -451,9 +580,8 @@ bool arPythonInteractable::_untouch( arEffector& effector ) {
   PyObject *result=PyEval_CallObject(_untouchCallback, arglist);  
   if (result==NULL) { 
     PyErr_Print(); 
-    string errmsg="A Python exception occurred in the Untouch callback.";
-    cerr << errmsg << "\n"; 
-    throw  errmsg; 
+    PyErr_SetString( PyExc_RuntimeError, "A Python exception occurred in the Untouch callback." );
+    return false;
   }
   bool res = (bool) PyInt_AsLong(result);
   Py_XDECREF(result); 
@@ -464,7 +592,7 @@ bool arPythonInteractable::_untouch( arEffector& effector ) {
 
 void arPythonInteractable::setMatrix( const arMatrix4& matrix ) {
   arInteractable::setMatrix( matrix );
-  if (_matrixCallback == NULL) {
+  if ((_matrixCallback == NULL)||(_matrixCallback == Py_None)) {
     return;
   }
   PyObject *matobj = SWIG_NewPointerObj((void *) &matrix, 
@@ -473,9 +601,8 @@ void arPythonInteractable::setMatrix( const arMatrix4& matrix ) {
   PyObject *result=PyEval_CallObject( _matrixCallback, arglist );  
   if (result==NULL) { 
     PyErr_Print(); 
-    string errmsg="A Python exception occurred in the setMatrix callback.";
-    cerr << errmsg << "\n"; 
-    throw  errmsg; 
+    PyErr_SetString( PyExc_RuntimeError, "A Python exception occurred in the setMatrix callback." );
+    return;
   }
   Py_XDECREF(result); 
   Py_DECREF(arglist); 
@@ -486,21 +613,29 @@ void arPythonInteractable::setCallbacks( PyObject* touchCallback,
                                          PyObject* processCallback,
                                          PyObject* untouchCallback,
                                          PyObject* matrixCallback ) {
-  if (!PyCallable_Check(touchCallback)) {
-    PyErr_SetString(PyExc_TypeError, "arPythonInteractable error: touchCallback not callable");
-    return;
+  if (touchCallback != Py_None) {
+    if (!PyCallable_Check(touchCallback)) {
+      PyErr_SetString(PyExc_TypeError, "arPythonInteractable error: touchCallback not callable");
+      return;
+    }
   }
-  if (!PyCallable_Check(processCallback)) {
-    PyErr_SetString(PyExc_TypeError, "arPythonInteractable error: processCallback not callable");
-    return;
+  if (processCallback != Py_None) {
+    if (!PyCallable_Check(processCallback)) {
+      PyErr_SetString(PyExc_TypeError, "arPythonInteractable error: processCallback not callable");
+      return;
+    }
   }
-  if (!PyCallable_Check(untouchCallback)) {
-    PyErr_SetString(PyExc_TypeError, "arPythonInteractable error: untouchCallback not callable");
-    return;
+  if (untouchCallback != Py_None) {
+    if (!PyCallable_Check(untouchCallback)) {
+      PyErr_SetString(PyExc_TypeError, "arPythonInteractable error: untouchCallback not callable");
+      return;
+    }
   }
-  if (!PyCallable_Check(matrixCallback)) {
-    PyErr_SetString(PyExc_TypeError, "arPythonInteractable error: matrixCallback not callable");
-    return;
+  if (matrixCallback != Py_None) {
+    if (!PyCallable_Check(matrixCallback)) {
+      PyErr_SetString(PyExc_TypeError, "arPythonInteractable error: matrixCallback not callable");
+      return;
+    }
   }
 
   Py_XDECREF(_touchCallback);
@@ -520,6 +655,10 @@ void arPythonInteractable::setCallbacks( PyObject* touchCallback,
   _matrixCallback = matrixCallback;
 }
 
+void arPythonInteractable::clearCallbacks() {
+  setCallbacks( Py_None, Py_None, Py_None, Py_None );
+}
+
 %}
 
 // And here is the description for SWIG binding generation.
@@ -527,7 +666,7 @@ void arPythonInteractable::setCallbacks( PyObject* touchCallback,
 class arPythonInteractable : public arInteractable {
   public:
     arPythonInteractable();
-    virtual ~arCallbackInteractable();
+    virtual ~arPythonInteractable();
 
     virtual bool touch( arEffector& effector );
     virtual bool processInteraction( arEffector& effector );
@@ -554,6 +693,7 @@ class arPythonInteractable : public arInteractable {
                        PyObject* untouchCallback,
                        PyObject* matrixCallback );
 
+    void clearCallbacks();
 };
 
 
@@ -646,48 +786,68 @@ def ar_processInteractionList( effector, interactionList ):
 
     # get the grabbed object.
     grabbedPtr = effector.getGrabbedObject()
+    grabbedAddress = ar_getAddressFromSwigPtr(grabbedPtr.this)
 
     # If this effector has grabbed an object not in this list, dont
     # interact with any of this list
     grabbedObject = None
     for item in interactionList:
       # HACK! Found object in list
-      if ar_getAddressFromSwigPtr(item.this) == ar_getAddressFromSwigPtr(grabbedPtr.this): 
+      if ar_getAddressFromSwigPtr(item.this) == grabbedAddress: 
         grabbedObject = item
         break
     if not grabbedObject:
       return False # not an error, just means no interaction occurred
 
     if grabbedObject.enabled():
-      # If it's grabbed an object in this set, interact only with that object.
+      # If its grabbed an object in this set, interact only with that object.
       return grabbedObject.processInteraction( effector )
+
+  # check to see if effector is already touching an object
+  # if so, and it does not belong to this list, then abort
+  oldTouchedObject = None
+  oldTouchedPtr = None
+  oldTouchedAddress = None
+  if effector.hasTouchedObject():
+    oldTouchedPtr = effector.getTouchedObject()
+    oldTouchedAddress = ar_getAddressFromSwigPtr(oldTouchedPtr.this)
+    for item in interactionList:
+      # HACK! Found object in list
+      if ar_getAddressFromSwigPtr(item.this) == oldTouchedAddress: 
+        oldTouchedObject = item
+    if not oldTouchedObject:
+      return False # not an error, just means no interaction occurred
+                   # with items in this list
 
   # Figure out the closest interactable to the effector (as determined
   # by their matrices). Go ahead and touch it (while untouching the
   # previously touched object if such are different).
-  minDist = 1.e10    # A really big number, haven't found how to get
+  minDist = 1.e10    # A really big number, havent found how to get
                      # the max in python yet
-  touchedObject = None
+  newTouchedObject = None
   for item in interactionList:
     if item.enabled():
       dist = effector.calcDistance( item.getMatrix() )
       if (dist >= 0.) and (dist < minDist):
         minDist = dist
-        touchedObject = item
+        newTouchedObject = item
+  newTouchedAddress = None
+  if newTouchedObject:
+    newTouchedAddress = ar_getAddressFromSwigPtr(newTouchedObject.this)
 
-  if effector.hasTouchedObject():
-    touchedPtr = effector.getTouchedObject()
-    if not touchedObject or ar_getAddressFromSwigPtr(touchedObject.this) != ar_getAddressFromSwigPtr(touchedPtr.this):
-      # ar_interactableUntouch( touchedPtr, effector )
-      touchedPtr.untouch( effector )
+  if oldTouchedPtr and oldTouchedAddress:
+    if (not newTouchedAddress) or (newTouchedAddress != oldTouchedAddress):
+      oldTouchedPtr.untouch( effector )
 
-  if not touchedObject:
+  if not newTouchedObject:
     # Not touching any objects.
     return False
 
   # Finally, and most importantly, process the action of the effector on
   # the interactable.
-  return touchedObject.processInteraction( effector )
+  return newTouchedObject.processInteraction( effector )
+
+
 
 %}
 

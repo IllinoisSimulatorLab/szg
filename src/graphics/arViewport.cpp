@@ -165,7 +165,7 @@ void arViewport::activate(){
   int params[4] = {0};
   glGetIntegerv( GL_VIEWPORT, params );
 
-  // there's a whole compilcated song and dance to ensure that, for instance,
+  // there's a whole complicated song and dance to ensure that, for instance,
   // viewports of (0,0,0.5,1) and (0.5,0,0.5,1) on a window of size 1024x768
   // give OpenGL viewports of (0,0,512,768) and (512,0,512,768) respectively
   const GLint left = int(params[2]*_left);

@@ -29,7 +29,11 @@ arGraphicsWindow::arGraphicsWindow( arCamera* cam ) :
   _useOGLStereo(false),
   _useColorFilter(false),
   _defaultCamera(0),
-  _currentEyeSign(0.) {
+  _currentEyeSign(0.),
+  _posX(-1),
+  _posY(-1),
+  _sizeX(-1),
+  _sizeY(-1) {
 
   // by default, the graphics window contains a single "normal" viewport
   // in its list (note that the default viewport corresponds to normal).
@@ -341,6 +345,14 @@ bool arGraphicsWindow::draw() {
     _renderPass( GL_BACK_RIGHT );
   }
   return true;
+}
+
+void arGraphicsWindow::setPixelDimensions( int posX, int posY, int sizeX, int sizeY ) {
+  _posX = posX; _posY = posY; _sizeX = sizeX; _sizeY = sizeY;
+}
+
+void arGraphicsWindow::getPixelDimensions( int& posX, int& posY, int& sizeX, int& sizeY ) {
+  posX = _posX; posY = _posY; sizeX = _sizeX; sizeY = _sizeY;
 }
 
 void arGraphicsWindow::_renderPass( GLenum oglDrawBuffer ) {

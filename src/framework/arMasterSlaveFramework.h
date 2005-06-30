@@ -76,7 +76,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   virtual void onPreExchange( void );
   virtual void onPostExchange( void );
   virtual void onWindowInit( void );
-  virtual void onDraw( void );
+  virtual void onDraw( arGraphicsWindow& win, arViewport& vp );
   virtual void onDisconnectDraw( void );
   virtual void onPlay( void );
   // virtual void onReshape( int width, int height );
@@ -97,6 +97,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void setPreExchangeCallback( void (*preExchange)( arMasterSlaveFramework& ) );
   void setPostExchangeCallback( void (*postExchange)( arMasterSlaveFramework& ) );
   void setWindowCallback( void (*windowCallback)( arMasterSlaveFramework& ) );
+  void setDrawCallback( void (*draw)( arMasterSlaveFramework&, arGraphicsWindow&, arViewport& ) );
   void setDrawCallback( void (*draw)( arMasterSlaveFramework& ) );
   void setDisconnectDrawCallback( void (*disConnDraw)( arMasterSlaveFramework& ) );
   void setPlayCallback( void (*play)( arMasterSlaveFramework& ) );
@@ -225,9 +226,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   /*
   bool setViewMode( const std::string& viewMode );
-  float getCurrentEye() const { return _graphicsWindow.getCurrentEyeSign(); }
   */
-
   /// msec since the first I/O poll (not quite start of the program).
   double getTime( void ) const { return _time; }
   /// How many msec it took to compute/draw the last frame.
@@ -284,7 +283,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void (*_preExchange)( arMasterSlaveFramework& );
   void (*_postExchange)( arMasterSlaveFramework& );
   void (*_windowInitCallback)( arMasterSlaveFramework& );
-  void (*_drawCallback)( arMasterSlaveFramework& );
+  void (*_drawCallback)( arMasterSlaveFramework& fw, arGraphicsWindow& win, arViewport& vp );
+  void (*_oldDrawCallback)( arMasterSlaveFramework& );
   void (*_disconnectDrawCallback)( arMasterSlaveFramework& );
   void (*_playCallback)( arMasterSlaveFramework& );
   // void (*_reshape)( arMasterSlaveFramework&, int, int );
@@ -426,9 +426,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void _connectionTask( void );
 
   // draw-related utility functions
-  virtual void _draw( void );
-  void _drawWindow( int windowID );
-  void _display( int windowID );
+  void _drawWindow( arGUIWindowInfo* windowInfo );
 };
 
 #endif

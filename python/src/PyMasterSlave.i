@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.9 2005/06/22 00:31:34 schaeffr Exp $
+// $Id: PyMasterSlave.i,v 1.10 2005/06/29 20:42:24 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -1093,44 +1093,68 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
     if effector.hasGrabbedObject():
       # get the grabbed object.
       grabbedPtr = effector.getGrabbedObject()
+      grabbedAddress = ar_getAddressFromSwigPtr(grabbedPtr.this)
       # If this effector has grabbed an object not in this list, dont
       # interact with any of this list
       grabbedObject = None
       for item in self.data.itervalues():
         if isinstance( item, arPyInteractable ):
           # HACK! Found object in list
-          if ar_getAddressFromSwigPtr(item.this) == ar_getAddressFromSwigPtr(grabbedPtr.this): 
+          if ar_getAddressFromSwigPtr(item.this) == grabbedAddress: 
             grabbedObject = item
             break
       if not grabbedObject:
-        return True # not an error, just means no interaction occurred
+        return False # not an error, just means no interaction occurred
       if grabbedObject.enabled():
-        # If it's grabbed an object in this set, interact only with that object.
+        # If its grabbed an object in this set, interact only with that object.
         return grabbedObject.processInteraction( effector )
+
+    # check to see if effector is already touching an object
+    # if so, and it does not belong to this list, then abort
+    oldTouchedObject = None
+    oldTouchedPtr = None
+    oldTouchedAddress = None
+    if effector.hasTouchedObject():
+      oldTouchedPtr = effector.getTouchedObject()
+      oldTouchedAddress = ar_getAddressFromSwigPtr(oldTouchedPtr.this)
+      for item in self.data.itervalues():
+        if isinstance( item, arPyInteractable ):
+          # HACK! Found object in list
+          if ar_getAddressFromSwigPtr(item.this) == oldTouchedAddress: 
+            oldTouchedObject = item
+      if not oldTouchedObject:
+        return False # not an error, just means no interaction occurred
+                     # with items in this list
+
     # Figure out the closest interactable to the effector (as determined
     # by their matrices). Go ahead and touch it (while untouching the
     # previously touched object if such are different).
-    minDist = 1.e10    # A really big number, haven't found how to get
+    minDist = 1.e10    # A really big number, havent found how to get
                        # the max in python yet
-    touchedObject = None
+    newTouchedObject = None
     for item in self.data.itervalues():
       if isinstance( item, arPyInteractable ):
         if item.enabled():
           dist = effector.calcDistance( item.getMatrix() )
           if (dist >= 0.) and (dist < minDist):
             minDist = dist
-            touchedObject = item
-    if effector.hasTouchedObject():
-      touchedPtr = effector.getTouchedObject()
-      if not touchedObject or ar_getAddressFromSwigPtr(touchedObject.this) != ar_getAddressFromSwigPtr(touchedPtr.this):
-        # ar_interactableUntouch( touchedPtr, effector )
-        touchedPtr.untouch( effector )
-    if not touchedObject:
+            newTouchedObject = item
+    newTouchedAddress = None
+    if newTouchedObject:
+      newTouchedAddress = ar_getAddressFromSwigPtr(newTouchedObject.this)
+
+    if oldTouchedPtr and oldTouchedAddress:
+      if (not newTouchedAddress) or (newTouchedAddress != oldTouchedAddress):
+        oldTouchedPtr.untouch( effector )
+
+    if not newTouchedObject:
       # Not touching any objects.
-      return True
+      return False
+
     # Finally, and most importantly, process the action of the effector on
     # the interactable.
-    return touchedObject.processInteraction( effector )
+    return newTouchedObject.processInteraction( effector )
+
 
 
 # Auto-resizeable container for identical drawable objects.

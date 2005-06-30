@@ -99,6 +99,8 @@ class SZG_CALL arGraphicsWindow {
     std::vector<arViewport>* getViewports();
     arViewport* getViewport( unsigned int vpindex );
     float getCurrentEyeSign() const { return _currentEyeSign; }
+    void setPixelDimensions( int posX, int posY, int sizeX, int sizeY );
+    void getPixelDimensions( int& posX, int& posY, int& sizeX, int& sizeY );
     bool draw();
   protected:
   private:
@@ -126,6 +128,10 @@ class SZG_CALL arGraphicsWindow {
     // This is the 'master' camera, used by viewports by default
     arCamera* _defaultCamera;
     float _currentEyeSign;
+    int _posX;      ///< The x position of the window.
+    int _posY;      ///< The y position of the window.
+    int _sizeX;     ///< The width of the window.
+    int _sizeY;     ///< The height of the window.
 };
 
 

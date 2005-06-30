@@ -67,9 +67,16 @@ int main(int argc, char** argv){
   if (!szgClient)
     return 1;
 
-  if (argc != 2){
-    cerr << "Usage: DeviceClient slot_number\n";
+  if ((argc != 2)&&(argc != 3)) {
+    cerr << "Usage: DeviceClient slot_number [-button]\n";
     return 1;
+  }
+
+  bool continuousDump(true);
+  if (argc == 3) {
+    if (std::string(argv[2]) == "-button") {
+      continuousDump = false;
+    }
   }
 
   const int slot = atoi(argv[1]);
@@ -98,7 +105,9 @@ int main(int argc, char** argv){
 
   arThread dummy(ar_messageTask, &szgClient);
   while (true){
-    dumpState( inputNode._inputState );
+    if (continuousDump) {
+      dumpState( inputNode._inputState );
+    }
     ar_usleep(500000);
   }
   return 0;

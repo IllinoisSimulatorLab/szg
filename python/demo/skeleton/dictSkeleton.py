@@ -3,7 +3,6 @@ from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
 
-
 #### More complex master/slave framework skeleton example. Demonstrates
 #### a method (based on the arMasterSlaveDict class in PySZG) for
 #### synchronizing a dictionary of identical objects between master and slaves.
@@ -44,13 +43,17 @@ class ColoredSquare(arPyInteractable):
   def onProcessInteraction( self, effector ):
     # button 2 deletes this square from the dictionary
     if effector.getOnButton(2):
-      # For the moment, forceUngrab() is necessary. Otherwise, if we delete an
-      # object while dragging it, we can't interact with anything else (even
-      # though the dragged object disappears). This is a bug in the bindings that
-      # I still have to track down. Presumably the effector is holding a reference
-      # to the object, so it isn't being deleted, though it should be when you
-      # release button #0...?
-      effector.forceUngrab()
+      # NOTE! self.clearCallbacks() is necessary here. Why? Because the arPyInteractable
+      # installs some of its own methods as its callbacks when it is instantiated. This means
+      # that it has several references to itself, which in turn means that unless we
+      # manually clear the callbacks (clearCallbacks() sets all the callbacks to None),
+      # the object's reference
+      # count will never go to zero, it won't be deleted, and it won't tell the effector
+      # to release it. So for the moment, whenever you want to delete an arPyInteractable
+      # or instance of a sub-class thereof, you must call clearCallbacks() as well as
+      # getting rid of any explicit references you may have. Eventually, I'll probably
+      # re-write this stuff in Python, at which point this problem will go away.
+      self.clearCallbacks()
       self._container.delValue(self)
     # button 3 toggles visibility (actually solid/wireframe)
     if effector.getOnButton(3):
@@ -135,8 +138,7 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     # dictionary can contain, used to construct new objects in the slaves.
     # In this particular instance, the value after the colon is a reference to
     # the ColoredSquare class (remember, in Python a class is just an object that
-    # generates instances when called with (); if you're familiar with the standard
-    # OOP Design Patterns, it's basically a Factory).
+    # generates instances when called with ()).
     # See arMasterSlaveDict.__doc__ for more information.
     # Note that you can have multiple arMasterSlaveDicts with different names in one
     # application, if desired.
@@ -163,9 +165,6 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     farClipDistance = 100.*FEET_TO_LOCAL_UNITS
     self.setClipPlanes( nearClipDistance, farClipDistance )
 
-
-  def newSquare( self ):
-    return ColoredSquare()
 
   #### Framework callbacks -- see szg/src/framework/arMasterSlaveFramework.h ####
 
@@ -212,7 +211,6 @@ class SkeletonFramework(arPyMasterSlaveFramework):
 
     # create a new square and add it to the dictionary
     if self.theWand.getOnButton(1):
-      self.theWand.forceUngrab()
       theSquare = ColoredSquare( self.dictionary )
       theSquare.setMatrix( self.theWand.getMatrix() )
       self.dictionary.push( theSquare )
@@ -247,7 +245,7 @@ class SkeletonFramework(arPyMasterSlaveFramework):
 
       # Unpack the message queue and use it to update the set
       # of objects in the dictionary as well as the state of each (using
-      # its getState() method).
+      # its setState() method).
       self.dictionary.unpackState( self )
 
 

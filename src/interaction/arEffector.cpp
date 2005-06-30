@@ -124,10 +124,11 @@ arEffector& arEffector::operator=( const arEffector& e ) {
   _loAxis = e._loAxis;
   _axisOffset = e._axisOffset;
   _unitConversion = e._unitConversion;
-  if (_touchedObject)
+  if (_touchedObject) {
     _touchedObject->untouch( *this ); // also unlocks if necessary
-  _touchedObject = NULL;
-  _grabbedObject = NULL;
+  }
+  _touchedObject = NULL; // ASSIGNMENT
+  _grabbedObject = NULL; // ASSIGNMENT
   _dragManager = e._dragManager;
   _framework = e._framework;
   _drawCallback = e._drawCallback;
@@ -136,8 +137,9 @@ arEffector& arEffector::operator=( const arEffector& e ) {
 
 arEffector::~arEffector() {
   // this should also ungrab() if necessary
-  if (_touchedObject)
+  if (_touchedObject) {
     _touchedObject->untouch( *this );
+  }
 }
 
 void arEffector::setInteractionSelector( const arInteractionSelector& selector ) {
@@ -205,23 +207,28 @@ void arEffector::updateState( arInputState* state ) {
 }
 
 bool arEffector::requestGrab( arInteractable* grabee ) {
-  if (_grabbedObject == grabee)
+  if (_grabbedObject == grabee) {
     return true;
-  if (_grabbedObject)
-    return false;
-  if (_touchedObject != grabee) {
-    if (_touchedObject)
-      _touchedObject->untouch( *this );
-    if (grabee)
-      grabee->touch( *this );
   }
-  _grabbedObject = grabee;
+  if (_grabbedObject) {
+    return false;
+  }
+  if (_touchedObject != grabee) {
+    if (_touchedObject) {
+      _touchedObject->untouch( *this );
+    }
+    if (grabee) {
+      grabee->touch( *this );
+    }
+  }
+  _grabbedObject = grabee; // ASSIGNMENT
   return true;
 }
 
 void arEffector::requestUngrab( arInteractable* grabee ) {
-  if (_grabbedObject == grabee)
-    _grabbedObject = NULL;
+  if (_grabbedObject == grabee) {
+    _grabbedObject = NULL; // ASSIGNMENT
+  }
 }
 
 void arEffector::forceUngrab() {
@@ -229,7 +236,7 @@ void arEffector::forceUngrab() {
     if (!_grabbedObject->untouch(*this)) {
       cerr << "arEffector warning: object didn't want to be ungrabbed.\n";
     }
-    _grabbedObject = NULL;
+    _grabbedObject = NULL; // ASSIGNMENT
   }
 }
 
@@ -270,17 +277,21 @@ const arInteractable* arEffector::getGrabbedObject() {
   if (_grabbedObject) {
     if (!_grabbedObject->enabled()) {
       _grabbedObject->untouch( *this );
-      _grabbedObject = 0;
+      _grabbedObject = 0;  // ASSIGNMENT
     }
   }
   return (const arInteractable*)_grabbedObject;
+}
+
+void arEffector::setTouchedObject( arInteractable* touched ) {
+  _touchedObject = touched; // ASSIGNMENT
 }
 
 arInteractable* arEffector::getTouchedObject() {
   if (_touchedObject) {
     if (!_touchedObject->enabled()) {
       _touchedObject->untouch( *this );
-      _touchedObject = 0;
+      _touchedObject = 0; // ASSIGNMENT
     }
   }
   return _touchedObject;

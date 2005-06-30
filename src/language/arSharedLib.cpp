@@ -166,7 +166,8 @@ bool arSharedLib::createFactory(const string& sharedLibName,
   // First, make sure that we do indeed have the right type.
   _objectType = (arSharedLibObjectType) arSharedLib::sym("baseType");
   if (!_objectType){
-    message << "arSharedLib error: could not map type function.\n";
+    message << "arSharedLib error: could not retrieve type function from object "
+            << sharedLibName << endl;
     error = message.str();
     return false;
   }
@@ -182,7 +183,7 @@ bool arSharedLib::createFactory(const string& sharedLibName,
   // Get the factory function
   _factory = (arSharedLibFactory) arSharedLib::sym("factory");
   if (!_factory){
-    message << "DeviceServer error: could not map factory function in "
+    message << "DeviceServer error: could not retrieve factory function from "
 	    << "object (name=" << sharedLibName << ").\n";
     error = message.str();
     return false;
