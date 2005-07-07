@@ -684,7 +684,7 @@ int main(int argc, char** argv){
   feedBuffer = new GLfloat[feedMax];
 #endif
   arMasterSlaveFramework fw;
-  fw.setWindowInitGLCallback(initGL);
+  fw.setWindowStartGLCallback(initGL);
   fw.setStartCallback(init);
   fw.setPostExchangeCallback(postExchange);
   fw.setDrawCallback(display);

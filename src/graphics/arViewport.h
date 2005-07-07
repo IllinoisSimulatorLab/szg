@@ -29,6 +29,7 @@ class SZG_CALL arViewport {
   void setViewport( arVector4& viewport );
   void setViewport( float left, float bottom,
                     float width, float height );
+  arVector4 getViewport() const { return arVector4( _left, _bottom, _width, _height ); }
   void setScreen( const arGraphicsScreen& screen ) { _screen = screen; }
   arGraphicsScreen* getScreen() { return &_screen; }
   // NOTE: the viewport now owns its camera.

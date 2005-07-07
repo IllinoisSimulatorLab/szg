@@ -83,7 +83,7 @@ bool parseNavArgs(int& argc, char** argv){
   return true;
 }
 
-void initGL(arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo ) {
+void initGL(arMasterSlaveFramework& fw, arGUIWindowInfo* /*windowInfo*/ ) {
   // The maps should be loaded only once (in the glbal start) instead
   // of once per rendering thread.
   // Load map.
@@ -394,7 +394,7 @@ int main(int argc, char** argv){
   framework.setStartCallback(init);
   framework.setPreExchangeCallback(preExchange);
   framework.setWindowCallback(windowCallback);
-  framework.setWindowInitGLCallback(initGL);
+  framework.setWindowStartGLCallback(initGL);
   framework.setDrawCallback(drawCallback);
   framework.setPlayCallback(playCallback);
   framework.setEyeSpacing(6/(12*2.54));

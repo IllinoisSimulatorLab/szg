@@ -266,7 +266,7 @@ void initFishs(void) {
     babyWhale.htail = 45.0;
 }
 
-void initGL( arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo ) {
+void initGL( arMasterSlaveFramework& fw, arGUIWindowInfo* /*windowInfo*/ ) {
   static float ambient[] = {0.1, 0.1, 0.1, 1.0};
   static float diffuse[] = {1.0, 1.0, 1.0, 1.0};
 	static float position[] =	{0.0, 1.0, 0.0, 0.0};
@@ -319,7 +319,7 @@ void initGL( arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo ) {
   }
 }
 
-bool init( arMasterSlaveFramework& fw, arSZGClient& SZGClient ) {
+bool init( arMasterSlaveFramework& fw, arSZGClient& /*SZGClient*/ ) {
   //  setAnaglyphMode(fw, anaglyphMode);
   initFishs();
 
@@ -650,7 +650,7 @@ int main(int argc, char** argv){
   framework.setDrawCallback(display);
   // framework.setReshapeCallback(reshape);
   framework.setWindowEventCallback( windowEvent );
-  framework.setWindowInitGLCallback( initGL );
+  framework.setWindowStartGLCallback( initGL );
   framework.setClipPlanes(nearClipDistance, farClipDistance);
   framework.setExitCallback( exitCallback );
   // Tell the framework that we're using half-millimeter units.

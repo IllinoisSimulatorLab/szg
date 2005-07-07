@@ -703,7 +703,7 @@ void draw(arMasterSlaveFramework& fw){
 int main(int argc, char** argv){
   arMasterSlaveFramework framework;
   framework.setStartCallback(init);
-  framework.setWindowInitGLCallback(initGL);
+  framework.setWindowStartGLCallback(initGL);
   framework.setPreExchangeCallback(preExchange);
   framework.setPostExchangeCallback(postExchange);
   framework.setDrawCallback(draw);

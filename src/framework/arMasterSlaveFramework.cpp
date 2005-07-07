@@ -56,7 +56,7 @@ void ar_masterSlaveFrameworkWindowEventFunction( arGUIWindowInfo* windowInfo ) {
 
 void ar_masterSlaveFrameworkWindowInitGLFunction( arGUIWindowInfo* windowInfo ) {
   if( windowInfo && windowInfo->_userData ) {
-    ((arMasterSlaveFramework*) windowInfo->_userData)->onWindowInitGL( windowInfo );
+    ((arMasterSlaveFramework*) windowInfo->_userData)->onWindowStartGL( windowInfo );
   }
 }
 
@@ -322,7 +322,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _playCallback( NULL ),
   // _reshape(NULL),
   _windowEventCallback( NULL ),
-  _windowInitGLCallback( NULL ),
+  _windowStartGLCallback( NULL ),
   _cleanup( NULL ),
   _userMessageCallback( NULL ),
   _overlay( NULL ),
@@ -491,9 +491,9 @@ void arMasterSlaveFramework::onWindowEvent( arGUIWindowInfo* windowInfo ) {
   }
 }
 
-void arMasterSlaveFramework::onWindowInitGL( arGUIWindowInfo* windowInfo ) {
-  if( windowInfo && _windowInitGLCallback ) {
-    _windowInitGLCallback( *this, windowInfo );
+void arMasterSlaveFramework::onWindowStartGL( arGUIWindowInfo* windowInfo ) {
+  if( windowInfo && _windowStartGLCallback ) {
+    _windowStartGLCallback( *this, windowInfo );
   }
 }
 
@@ -641,9 +641,9 @@ void arMasterSlaveFramework::setWindowEventCallback
   _windowEventCallback = windowEvent;
 }
 
-void arMasterSlaveFramework::setWindowInitGLCallback
-  ( void (*windowInitGL)( arMasterSlaveFramework&, arGUIWindowInfo* ) ) {
-  _windowInitGLCallback = windowInitGL;
+void arMasterSlaveFramework::setWindowStartGLCallback
+  ( void (*windowStartGL)( arMasterSlaveFramework&, arGUIWindowInfo* ) ) {
+  _windowStartGLCallback = windowStartGL;
 }
 
 void arMasterSlaveFramework::setDrawCallback( 

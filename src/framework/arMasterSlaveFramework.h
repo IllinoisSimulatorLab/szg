@@ -81,7 +81,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   virtual void onPlay( void );
   // virtual void onReshape( int width, int height );
   virtual void onWindowEvent( arGUIWindowInfo* );
-  virtual void onWindowInitGL( arGUIWindowInfo* );
+  virtual void onWindowStartGL( arGUIWindowInfo* );
   virtual void onCleanup( void );
   virtual void onUserMessage( const std::string& messageBody );
   virtual void onOverlay( void );
@@ -104,7 +104,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // void setReshapeCallback( void (*reshape)( arMasterSlaveFramework&, int, int ) );
   void setWindowEventCallback( void (*windowEvent)( arMasterSlaveFramework&,
                                                     arGUIWindowInfo* ) );
-  void setWindowInitGLCallback( void (*windowInitGL)( arMasterSlaveFramework&,
+  void setWindowStartGLCallback( void (*windowStartGL)( arMasterSlaveFramework&,
                                                       arGUIWindowInfo* ) );
   void setExitCallback( void (*cleanup)( arMasterSlaveFramework& ) );
   void setUserMessageCallback( void (*userMessageCallback)( arMasterSlaveFramework&,
@@ -289,7 +289,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void (*_playCallback)( arMasterSlaveFramework& );
   // void (*_reshape)( arMasterSlaveFramework&, int, int );
   void (*_windowEventCallback)( arMasterSlaveFramework&, arGUIWindowInfo* );
-  void (*_windowInitGLCallback)( arMasterSlaveFramework&, arGUIWindowInfo* );
+  void (*_windowStartGLCallback)( arMasterSlaveFramework&, arGUIWindowInfo* );
   void (*_cleanup)( arMasterSlaveFramework& );
   void (*_userMessageCallback)( arMasterSlaveFramework&, const std::string& );
   void (*_overlay)( arMasterSlaveFramework& );
