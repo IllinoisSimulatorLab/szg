@@ -6,47 +6,36 @@
 #ifndef AR_GRAPHICS_CONTEXT_H
 #define AR_GRAPHICS_CONTEXT_H
 
-#include "arTexture.h"
-#include "arBumpMap.h"
-#include "arMaterial.h"
-#include "arPointsNode.h"
-#include "arBlendNode.h"
-#include "arNormal3Node.h"
-#include "arColor4Node.h"
-#include "arTex2Node.h"
-#include "arIndexNode.h"
-#include "arMaterialNode.h"
-#include "arTextureNode.h"
-#include "arBumpMapNode.h"
-#include <stack>
+#include "arDatabaseNode.h"
+#include "arGraphicsHeader.h"
+#include <list>
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-class arGraphicsDatabase;
 
-/// Node in an arGraphicsDatabase.
+/// Information maintained during the traversal of a scene graph.
 
 class SZG_CALL arGraphicsContext{
  public:
   arGraphicsContext();
   virtual ~arGraphicsContext();
 
-  void pushNode(arGraphicsNode* node);
+  void pushNode(arDatabaseNode* node);
   void popNode(int nodeType);
-  arGraphicsNode* getNode(int nodeType);
+  arDatabaseNode* getNode(int nodeType);
 
   void clear();
 
  protected:
-  stack<arPointsNode*>   _pointsStack;
-  stack<arBlendNode*>    _blendStack;
-  stack<arNormal3Node*>  _normal3Stack;
-  stack<arColor4Node*>   _color4Stack;
-  stack<arTex2Node*>     _tex2Stack;
-  stack<arIndexNode*>    _indexStack;
-  stack<arMaterialNode*> _materialStack;
-  stack<arTextureNode*>  _textureStack;
-  stack<arBumpMapNode*>  _bumpMapStack;
+  list<arDatabaseNode*>   _pointsStack;
+  list<arDatabaseNode*>    _blendStack;
+  list<arDatabaseNode*>  _normal3Stack;
+  list<arDatabaseNode*>   _color4Stack;
+  list<arDatabaseNode*>     _tex2Stack;
+  list<arDatabaseNode*>    _indexStack;
+  list<arDatabaseNode*> _materialStack;
+  list<arDatabaseNode*>  _textureStack;
+  list<arDatabaseNode*>  _bumpMapStack;
 };
 
 #endif

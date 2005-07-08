@@ -18,7 +18,7 @@ arBillboardNode::arBillboardNode():
   _typeString = "billboard";
 }
 
-void arBillboardNode::draw(){
+void arBillboardNode::draw(arGraphicsContext*){
   glDisable(GL_LIGHTING);
   glDisable(GL_TEXTURE_2D);
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_FALSE);

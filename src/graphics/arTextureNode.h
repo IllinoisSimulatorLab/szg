@@ -17,7 +17,7 @@ class SZG_CALL arTextureNode: public arGraphicsNode{
   arTextureNode();
   ~arTextureNode(){}
 
-  void draw(){}
+  void draw(arGraphicsContext*){}
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 

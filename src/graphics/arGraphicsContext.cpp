@@ -13,34 +13,35 @@ arGraphicsContext::arGraphicsContext(){
 arGraphicsContext::~arGraphicsContext(){
 }
 
-void arGraphicsContext::pushNode(arGraphicsNode* node){
-switch(nodeType){
+void arGraphicsContext::pushNode(arDatabaseNode* node){
+  int nodeType = node->getTypeCode();
+  switch(nodeType){
   case AR_G_POINTS_NODE: 
-    _pointsStack.pop();
+    _pointsStack.push_front(node);
     break;
   case AR_G_BLEND_NODE:
-    _blendStack.pop();
+    _blendStack.push_front(node);
     break;
   case AR_G_NORMAL3_NODE:
-    _normal3Stack.pop();
+    _normal3Stack.push_front(node);
     break;
   case AR_G_COLOR4_NODE:
-    _color4Stack.pop();
+    _color4Stack.push_front(node);
     break;
   case AR_G_TEX2_NODE:
-    _tex2Stack.pop();
+    _tex2Stack.push_front(node);
     break;
   case AR_G_INDEX_NODE:
-    _indexStack.pop();
+    _indexStack.push_front(node);
     break;
   case AR_G_MATERIAL_NODE:
-    _materialStack.pop();
+    _materialStack.push_front(node);
     break;
   case AR_G_TEXTURE_NODE:
-    _textureStack.pop();
+    _textureStack.push_front(node);
     break;
   case AR_G_BUMP_MAP_NODE:
-    _bumpMapStack.pop();
+    _bumpMapStack.push_front(node);
     break;
   }
 }
@@ -48,84 +49,85 @@ switch(nodeType){
 void arGraphicsContext::popNode(int nodeType){
   switch(nodeType){
   case AR_G_POINTS_NODE: 
-    _pointsStack.pop();
+    _pointsStack.pop_front();
     break;
   case AR_G_BLEND_NODE:
-    _blendStack.pop();
+    _blendStack.pop_front();
     break;
   case AR_G_NORMAL3_NODE:
-    _normal3Stack.pop();
+    _normal3Stack.pop_front();
     break;
   case AR_G_COLOR4_NODE:
-    _color4Stack.pop();
+    _color4Stack.pop_front();
     break;
   case AR_G_TEX2_NODE:
-    _tex2Stack.pop();
+    _tex2Stack.pop_front();
     break;
   case AR_G_INDEX_NODE:
-    _indexStack.pop();
+    _indexStack.pop_front();
     break;
   case AR_G_MATERIAL_NODE:
-    _materialStack.pop();
+    _materialStack.pop_front();
     break;
   case AR_G_TEXTURE_NODE:
-    _textureStack.pop();
+    _textureStack.pop_front();
     break;
   case AR_G_BUMP_MAP_NODE:
-    _bumpMapStack.pop();
+    _bumpMapStack.pop_front();
     break;
   }
 }
 
-arGraphicsNode* arGraphicsContext::getNode(int nodeType){
-  arGraphicsNode* result = NULL;
+arDatabaseNode* arGraphicsContext::getNode(int nodeType){
+  arDatabaseNode* result = NULL;
   switch(nodeType){
   case AR_G_POINTS_NODE: 
     if (!_pointsStack.empty()){
-      result = _pointsStack.top();
+      result = _pointsStack.front();
     }
     break;
   case AR_G_BLEND_NODE:
     if (!_blendStack.empty()){
-      result = _blendStack.top();
+      result = _blendStack.front();
     }
     break;
   case AR_G_NORMAL3_NODE:
     if (!_normal3Stack.empty()){
-      result = _normal3Stack.top();
+      result = _normal3Stack.front();
     }
     break;
   case AR_G_COLOR4_NODE:
     if (!_color4Stack.empty()){
-      result = _color4Stack.top();
+      result = _color4Stack.front();
     }
     break;
   case AR_G_TEX2_NODE:
     if (!_tex2Stack.empty()){
-      result = _tex2Stack.top();
+      result = _tex2Stack.front();
     }
     break;
   case AR_G_INDEX_NODE:
     if (!_indexStack.empty()){
-      result = _indexStack.top();
+      result = _indexStack.front();
     }
     break;
   case AR_G_MATERIAL_NODE:
     if (!_materialStack.empty()){
-      result = _materialStack.top();
+      result = _materialStack.front();
     }
     break;
   case AR_G_TEXTURE_NODE:
     if (!_textureStack.empty()){
-      result = _textureStack.top();
+      result = _textureStack.front();
     }
     break;
   case AR_G_BUMP_MAP_NODE:
     if (!_bumpMapStack.empty()){
-      result = _bumpMapStack.top();
+      result = _bumpMapStack.front();
     }
     break;
   }
+  return result;
 }
 
 void arGraphicsContext::clear(){

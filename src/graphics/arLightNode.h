@@ -16,7 +16,7 @@ class SZG_CALL arLightNode:public arGraphicsNode{
   arLightNode();
   ~arLightNode(){}
 
-  void draw(){}
+  void draw(arGraphicsContext*){}
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 

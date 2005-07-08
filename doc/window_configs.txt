@@ -179,14 +179,14 @@ and 3x2, and the walls of the ISL CUBE.
 <name> front_wall </name>
 <value>
 <szg_screen>
-  <center x="0" y="5" z="-5" />
+  <center x="0" y="4.93" z="-4.93" />
   <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
+  <dim width="9.86" height="9.86" />
   <normal x="0" y="0" z="-1" />
   <headmounted value="false" />
   <tile tilex="0", numtilesx="1", tiley="0" numtilesy="1" />
   <usefixedhead value="allow" />
-  <fixedheadpos x="0.0" y="5.0" z="0.0" />
+  <fixedheadpos x="0.0" y="5.5" z="0.0" />
   <fixedheadupangle value="0.0" />
 </szg_screen>
 </value>
@@ -196,14 +196,14 @@ and 3x2, and the walls of the ISL CUBE.
 <name> right_wall </name>
 <value>
 <szg_screen>
-  <center x="5" y="5" z="0" />
+  <center x="4.93" y="4.93" z="0" />
   <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
+  <dim width="9.86" height="9.86" />
   <normal x="1" y="0" z="0" />
   <headmounted value="false" />
   <tile tilex="0", numtilesx="1", tiley="0" numtilesy="1" />
   <usefixedhead value="allow" />
-  <fixedheadpos x="0.0" y="5.0" z="0.0" />
+  <fixedheadpos x="0.0" y="5.5" z="0.0" />
   <fixedheadupangle value="0.0" />
 </szg_screen>
 </value>
@@ -213,14 +213,14 @@ and 3x2, and the walls of the ISL CUBE.
 <name> left_wall </name>
 <value>
 <szg_screen>
-  <center x="-5" y="5" z="0" />
+  <center x="-4.93" y="4.93" z="0" />
   <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
+  <dim width="9.86" height="9.86" />
   <normal x="-1" y="0" z="0" />
   <headmounted value="false" />
   <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
   <usefixedhead value="allow" />
-  <fixedheadpos x="0.0" y="5.0" z="0.0" />
+  <fixedheadpos x="0.0" y="5.5" z="0.0" />
   <fixedheadupangle value="0.0" />
 </szg_screen>
 </value>
@@ -230,14 +230,14 @@ and 3x2, and the walls of the ISL CUBE.
 <name> rear_wall </name>
 <value>
 <szg_screen>
-  <center x="0" y="5" z="-5" />
+  <center x="0" y="4.93" z="4.93" />
   <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
+  <dim width="9.86" height="9.86" />
   <normal x="0" y="0" z="1" />
   <headmounted value="false" />
   <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
   <usefixedhead value="allow" />
-  <fixedheadpos x="0.0" y="5.0" z="0.0" />
+  <fixedheadpos x="0.0" y="5.5" z="0.0" />
   <fixedheadupangle value="0.0" />
 </szg_screen>
 </value>
@@ -247,15 +247,32 @@ and 3x2, and the walls of the ISL CUBE.
 <name> top_wall </name>
 <value>
 <szg_screen>
-  <center x="0" y="10" z="0" />
-  <up x="0" y="0" z="1" />
-  <dim width="10" height="10" />
+  <center x="0" y="9.86" z="0" />
+  <up x="-1" y="0" z="0" />
+  <dim width="9.86" height="9.86" />
   <normal x="0" y="1" z="0" />
   <headmounted value="false" />
   <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
   <usefixedhead value="allow" />
-  <fixedheadpos x="0.0" y="5.0" z="0.0" />
-  <fixedheadupangle value="0.0" />
+  <fixedheadpos x="0.0" y="5.5" z="0.0" />
+  <fixedheadupangle value="-90" />
+</szg_screen>
+</value>
+</param>
+
+<param>
+<name> top_wall_unrotated </name>
+<value>
+<szg_screen>
+  <center x="0" y="9.86" z="0" />
+  <up x="0" y="0" z="1" />
+  <dim width="9.86" height="9.86" />
+  <normal x="0" y="1" z="0" />
+  <headmounted value="false" />
+  <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.5" z="0.0" />
+  <fixedheadupangle value="0" />
 </szg_screen>
 </value>
 </param>
@@ -266,12 +283,12 @@ and 3x2, and the walls of the ISL CUBE.
 <szg_screen>
   <center x="0" y="0" z="0" />
   <up x="0" y="0" z="-1" />
-  <dim width="10" height="10" />
+  <dim width="9.86" height="9.86" />
   <normal x="0" y="-1" z="0" />
   <headmounted value="false" />
   <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
   <usefixedhead value="allow" />
-  <fixedheadpos x="0.0" y="5.0" z="0.0" />
+  <fixedheadpos x="0.0" y="5.5" z="0.0" />
   <fixedheadupangle value="0.0" />
 </szg_screen>
 </value>
@@ -296,30 +313,35 @@ Shows how to make a single window with multiple viewports.
    <xdisplay value="" />
    <szg_viewport_list viewmode="custom">
      <szg_viewport>
+       <eyesign value="0" />
        <coords left="0.3333" bottom="0.3333" width="0.3333" height="0.3333" />
        <szg_camera>
          <szg_screen usenamed="front_wall" />
        </szg_camera>
      </szg_viewport>
      <szg_viewport>
+       <eyesign value="0" />
        <coords left="0.6666" bottom="0.3333" width="0.3333" height="0.3333" />
        <szg_camera>
          <szg_screen usenamed="right_wall" />
        </szg_camera>
      </szg_viewport>
      <szg_viewport>
+       <eyesign value="0" />
        <coords left="0" bottom="0.3333" width="0.3333" height="0.3333" />
        <szg_camera>
          <szg_screen usenamed="left_wall" />
        </szg_camera>
      </szg_viewport>
      <szg_viewport>
+       <eyesign value="0" />
        <coords left="0.3333" bottom="0.6666" width="0.3333" height="0.3333" />
        <szg_camera>
-         <szg_screen usenamed="top_wall" />
+         <szg_screen usenamed="top_wall_unrotated" />
        </szg_camera>
      </szg_viewport>
      <szg_viewport>
+       <eyesign value="0" />
        <coords left="0.3333" bottom="0" width="0.3333" height="0.3333" />
        <szg_camera>
          <szg_screen usenamed="bottom_wall" />

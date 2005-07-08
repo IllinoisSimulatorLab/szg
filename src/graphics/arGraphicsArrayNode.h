@@ -14,7 +14,7 @@ class SZG_CALL arGraphicsArrayNode:public arGraphicsNode{
   arGraphicsArrayNode(){}
   ~arGraphicsArrayNode(){}
 
-  void draw(){}
+  void draw(arGraphicsContext*){}
   virtual void initialize(arDatabase* database){
     arGraphicsNode::initialize(database);
     // The following is necessary for the current inheritance scheme.

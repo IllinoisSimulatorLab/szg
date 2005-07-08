@@ -12,7 +12,7 @@ arBoundingSphereNode::arBoundingSphereNode(){
   _typeString = "bounding sphere";
 }
 
-void arBoundingSphereNode::draw(){
+void arBoundingSphereNode::draw(arGraphicsContext*){
   if (_boundingSphere.visibility){
     glDisable(GL_LIGHTING);
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_FALSE);

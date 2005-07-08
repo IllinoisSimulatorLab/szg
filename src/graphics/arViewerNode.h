@@ -18,7 +18,7 @@ class SZG_CALL arViewerNode: public arGraphicsNode{
   arViewerNode();
   ~arViewerNode(){}
 
-  void draw() {}
+  void draw(arGraphicsContext*) {}
 
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);

@@ -19,7 +19,7 @@ class SZG_CALL arBoundingSphereNode: public arGraphicsNode {
   arBoundingSphereNode();
   ~arBoundingSphereNode(){}
 
-  void draw();
+  void draw(arGraphicsContext*);
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 

@@ -375,12 +375,15 @@ void arGraphicsDatabase::draw(arMatrix4* projectionCullMatrix){
   // replaces gl matrix stack... we want to support VERY deep trees
   stack<arMatrix4> transformStack;
   ar_mutex_lock(&_eraseLock);
-  _draw((arGraphicsNode*)&_rootNode, transformStack, projectionCullMatrix);
+  // Not using graphics context yet.
+  _draw((arGraphicsNode*)&_rootNode, transformStack, NULL,
+        projectionCullMatrix);
   ar_mutex_unlock(&_eraseLock);
 }
 
 void arGraphicsDatabase::_draw(arGraphicsNode* node, 
 			       stack<arMatrix4>& transformStack,
+                               arGraphicsContext* context,
 			       arMatrix4* projectionCullMatrix){
   arMatrix4 tempMatrix;
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
@@ -394,7 +397,7 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
   //      draw either node or children.
   if (node->getTypeCode() != -1 && node->getTypeCode() != AR_D_NAME_NODE){
     // We are not the root node or a name node, so it is OK to draw.
-    node->draw();
+    node->draw(context);
   }
   // Deal with view frustum culling.
   if (projectionCullMatrix && node->getTypeCode() 
@@ -415,7 +418,8 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
     list<arDatabaseNode*> children = node->getChildren();
     for (list<arDatabaseNode*>::iterator i = children.begin();
 	 i != children.end(); i++){
-      _draw((arGraphicsNode*)(*i), transformStack, projectionCullMatrix);
+      _draw((arGraphicsNode*)(*i), transformStack, context, 
+            projectionCullMatrix);
     }
   }
 

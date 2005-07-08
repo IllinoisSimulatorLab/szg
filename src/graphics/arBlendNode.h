@@ -17,7 +17,7 @@ class SZG_CALL arBlendNode:public arGraphicsNode{
   arBlendNode();
   ~arBlendNode(){}
 
-  void draw(){}
+  void draw(arGraphicsContext*){}
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 

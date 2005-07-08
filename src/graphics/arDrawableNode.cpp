@@ -143,7 +143,7 @@ void arDrawableNode::_2DPostDraw(){
 }
 
 /// \todo Add errorchecking for howMany, so bad data doesn't segfault.
-void arDrawableNode::draw(){
+void arDrawableNode::draw(arGraphicsContext*){
   // A PROBLEM! Currently, the database node is created with a message to
   // the database. Then, a message initializing it is sent. What if
   // we try to draw between these messages?

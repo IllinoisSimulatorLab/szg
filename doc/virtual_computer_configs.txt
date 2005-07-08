@@ -102,6 +102,7 @@ smoke_test SZG_SCREEN1 map smoke/SZG_SCREEN2
 smoke_test SZG_SCREEN2 map smoke/SZG_SCREEN3
 smoke_test SZG_SCREEN3 map smoke/SZG_SCREEN4
 smoke_test SZG_INPUT0 map smoke/inputsimulator
+smoke_test SZG_SOUND map kam2
 </assign>
 
 <assign>

@@ -37,6 +37,7 @@ OBJS = \
   arReadymade$(OBJ_SUFFIX) \
   arTextureNode$(OBJ_SUFFIX) \
   arTexture$(OBJ_SUFFIX) \
+  arGraphicsContext$(OBJ_SUFFIX) \
   arTransformNode$(OBJ_SUFFIX) \
   arVisibilityNode$(OBJ_SUFFIX) \
   arViewerNode$(OBJ_SUFFIX) \

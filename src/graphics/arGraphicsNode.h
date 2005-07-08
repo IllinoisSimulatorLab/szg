@@ -12,6 +12,7 @@
 #include "arLightFloatBuffer.h"
 #include "arGraphicsLanguage.h"
 #include "arDatabaseNode.h"
+#include "arGraphicsContext.h"
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
@@ -33,7 +34,7 @@ class SZG_CALL arGraphicsNode: public arDatabaseNode{
 
   // unique to arGraphicsNode
   arMatrix4 accumulateTransform();
-  virtual void draw(){};
+  virtual void draw(arGraphicsContext*){};
 
  protected:
   arGraphicsDatabase* _owningDatabase;

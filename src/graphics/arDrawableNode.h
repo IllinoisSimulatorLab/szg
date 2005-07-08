@@ -21,7 +21,7 @@ class SZG_CALL arDrawableNode:public arGraphicsNode{
   arDrawableNode();
   ~arDrawableNode(){}
 
-  void draw();
+  void draw(arGraphicsContext*);
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 

@@ -18,7 +18,7 @@ class SZG_CALL arTransformNode: public arGraphicsNode{
   arTransformNode();
   ~arTransformNode(){}
 
-  void draw();
+  void draw(arGraphicsContext*);
 
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);

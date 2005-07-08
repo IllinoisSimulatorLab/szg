@@ -14,7 +14,7 @@ arTransformNode::arTransformNode(){
   ar_mutex_init(&_accessLock);
 }
 
-void arTransformNode::draw(){ 
+void arTransformNode::draw(arGraphicsContext*){ 
   ar_mutex_lock(&_accessLock);
   glMultMatrixf(_transform.v);
   ar_mutex_unlock(&_accessLock);
