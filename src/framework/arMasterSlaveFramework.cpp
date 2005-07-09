@@ -49,31 +49,31 @@ void ar_masterSlaveFrameworkDisplayFunction(){
 */
 
 void ar_masterSlaveFrameworkWindowEventFunction( arGUIWindowInfo* windowInfo ) {
-  if( windowInfo && windowInfo->_userData ) {
-    ((arMasterSlaveFramework*) windowInfo->_userData)->onWindowEvent( windowInfo );
+  if( windowInfo && windowInfo->getUserData() ) {
+    ((arMasterSlaveFramework*) windowInfo->getUserData())->onWindowEvent( windowInfo );
   }
 }
 
 void ar_masterSlaveFrameworkWindowInitGLFunction( arGUIWindowInfo* windowInfo ) {
-  if( windowInfo && windowInfo->_userData ) {
-    ((arMasterSlaveFramework*) windowInfo->_userData)->onWindowStartGL( windowInfo );
+  if( windowInfo && windowInfo->getUserData() ) {
+    ((arMasterSlaveFramework*) windowInfo->getUserData())->onWindowStartGL( windowInfo );
   }
 }
 
 void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
-  if( !keyInfo || !keyInfo->_userData ) {
+  if( !keyInfo || !keyInfo->getUserData() ) {
     return;
   }
 
-  arMasterSlaveFramework* fw = (arMasterSlaveFramework*) keyInfo->_userData;
+  arMasterSlaveFramework* fw = (arMasterSlaveFramework*) keyInfo->getUserData();
 
   if( fw->_exitProgram ) {
     // do not process key strokes after we have begun shutdown
     return;
   }
 
-  if( keyInfo->_state == AR_KEY_DOWN ) {
-    switch( keyInfo->_key ) {
+  if( keyInfo->getState() == AR_KEY_DOWN ) {
+    switch( keyInfo->getKey() ) {
       case AR_VK_ESC:
           // We do not block until the display thread is done... but we do
           // block on everything else.
@@ -83,11 +83,11 @@ void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
       break;
       case AR_VK_f:
         // glutFullScreen();
-        fw->_wm->fullscreenWindow( keyInfo->_windowID );
+        fw->_wm->fullscreenWindow( keyInfo->getWindowID() );
       break;
       case AR_VK_F:
         // glutReshapeWindow(600,600);
-        fw->_wm->resizeWindow( keyInfo->_windowID, 600, 600 );
+        fw->_wm->resizeWindow( keyInfo->getWindowID(), 600, 600 );
       break;
       case AR_VK_P:
         fw->_showPerformance = !fw->_showPerformance;
@@ -100,7 +100,7 @@ void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
     // in standalone mode, keyboard events should also go to the interface
     if( fw->_standalone &&
         fw->_standaloneControlMode == "simulator" ) {
-      fw->_simulator.keyboard( keyInfo->_key, 1, 0, 0 );
+      fw->_simulator.keyboard( keyInfo->getKey(), 1, 0, 0 );
     }
   }
 
@@ -112,24 +112,24 @@ void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
 }
 
 void ar_masterSlaveFrameworkMouseFunction( arGUIMouseInfo* mouseInfo ) {
-  if( !mouseInfo || !mouseInfo->_userData ) {
+  if( !mouseInfo || !mouseInfo->getUserData() ) {
     return;
   }
 
-  arMasterSlaveFramework* fw = (arMasterSlaveFramework*) mouseInfo->_userData;
+  arMasterSlaveFramework* fw = (arMasterSlaveFramework*) mouseInfo->getUserData();
 
   if( fw->_standalone &&
       fw->_standaloneControlMode == "simulator" ) {
-    if( mouseInfo->_state == AR_MOUSE_DOWN || mouseInfo->_state == AR_MOUSE_UP ) {
-      int whichButton = ( mouseInfo->_button == AR_LBUTTON ) ? 0 :
-                        ( mouseInfo->_button == AR_MBUTTON ) ? 1 :
-                        ( mouseInfo->_button == AR_RBUTTON ) ? 2 : 0;
-      int whichState = ( mouseInfo->_state == AR_MOUSE_DOWN ) ? 1 : 0;
+    if( mouseInfo->getState() == AR_MOUSE_DOWN || mouseInfo->getState() == AR_MOUSE_UP ) {
+      int whichButton = ( mouseInfo->getButton() == AR_LBUTTON ) ? 0 :
+                        ( mouseInfo->getButton() == AR_MBUTTON ) ? 1 :
+                        ( mouseInfo->getButton() == AR_RBUTTON ) ? 2 : 0;
+      int whichState = ( mouseInfo->getState() == AR_MOUSE_DOWN ) ? 1 : 0;
 
-      fw->_simulator.mouseButton( whichButton, whichState, mouseInfo->_posX, mouseInfo->_posY );
+      fw->_simulator.mouseButton( whichButton, whichState, mouseInfo->getPosX(), mouseInfo->getPosY() );
     }
     else {
-      fw->_simulator.mousePosition( mouseInfo->_posX, mouseInfo->_posY );
+      fw->_simulator.mousePosition( mouseInfo->getPosX(), mouseInfo->getPosY() );
     }
   }
 
@@ -236,8 +236,8 @@ void arMasterSlaveWindowInitCallback::operator()( arGraphicsWindow& ) {
 // associated arGraphicsWindow, which contains enough information to draw
 // the OpenGL inside the arGUI window. The arGraphicsWindow, in turn, holds
 // a list of arViewports. The application draw callback that issues the OpenGL
-// commands is called for each viewport (this occurs inside the 
-// arGraphicsWindow code). 
+// commands is called for each viewport (this occurs inside the
+// arGraphicsWindow code).
 //
 // How are the callbacks registered?
 // When the "graphics display" is parsed, the _wm creates a collection
@@ -246,11 +246,11 @@ void arMasterSlaveWindowInitCallback::operator()( arGraphicsWindow& ) {
 // has a draw callback (to occur once per window draw) and its
 // arGraphicsWindow has a draw callback (to occur once per contained viewport
 // and actually issue the OpenGL). Both of these callbacks are implemented
-// as operators on an arGUIRenderCallback (which is a subclass of 
+// as operators on an arGUIRenderCallback (which is a subclass of
 // arRenderCallback). The arGUI window callback takes an arGUIWindowInfo*
 // parameter and the arGraphicsWindow callback takes arGraphicsWindow
 // and arViewport parameters (these give it enough information to perform
-// view frustum culling, LOD, and other tricks). 
+// view frustum culling, LOD, and other tricks).
 //
 // What is the call sequence?
 // 1. From the event loop, the window manager requests that all (arGUI)
@@ -407,11 +407,11 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _masterPort[ 0 ] = -1;
 
   // Also, let's initialize the performance graph.
-  _framerateGraph.addElement( "framerate", 
+  _framerateGraph.addElement( "framerate",
                               300, 100, arVector3( 1.0f, 1.0f, 1.0f ) );
-  _framerateGraph.addElement( "compute",   
+  _framerateGraph.addElement( "compute",
                               300, 100, arVector3( 1.0f, 1.0f, 0.0f ) );
-  _framerateGraph.addElement( "sync",      
+  _framerateGraph.addElement( "sync",
                               300, 100, arVector3( 0.0f, 1.0f, 1.0f ) );
   _showPerformance = false;
 
@@ -447,7 +447,7 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
 
 bool arMasterSlaveFramework::onStart( arSZGClient& SZGClient ) {
   if( _startCallback && !_startCallback( *this, SZGClient ) ) {
-    std::cerr << _label << " error: user-defined start callback failed." 
+    std::cerr << _label << " error: user-defined start callback failed."
               << std::endl;
     return false;
   }
@@ -480,13 +480,27 @@ void arMasterSlaveFramework::onWindowEvent( arGUIWindowInfo* windowInfo ) {
   if( windowInfo && _windowEventCallback ) {
     _windowEventCallback( *this, windowInfo );
   }
-  else if( windowInfo && windowInfo->_userData ) {
+  else if( windowInfo && windowInfo->getUserData() ) {
     // default window event handler, at least to handle a resizing event
     // (should we be handling window close events as well?)
-    if( windowInfo->_state == AR_WINDOW_RESIZE ) {
-      ((arMasterSlaveFramework*) windowInfo->_userData)
-        ->_wm->setWindowViewport( windowInfo->_windowID, 0, 0,
-                                  windowInfo->_sizeX, windowInfo->_sizeY );
+    arMasterSlaveFramework* fw = (arMasterSlaveFramework*) windowInfo->getUserData();
+
+    if( !fw ) {
+      return;
+    }
+
+    switch( windowInfo->getState() ) {
+      case AR_WINDOW_RESIZE:
+        fw->_wm->setWindowViewport( windowInfo->getWindowID(), 0, 0,
+                                    windowInfo->getSizeX(), windowInfo->getSizeY() );
+      break;
+
+      case AR_WINDOW_CLOSE:
+        fw->stop( false );
+      break;
+
+      default:
+      break;
     }
   }
 }
@@ -584,10 +598,10 @@ void arMasterSlaveFramework::onKey( arGUIKeyInfo* keyInfo ) {
   if( _arGUIKeyboardCallback ) {
     _arGUIKeyboardCallback( *this, keyInfo );
   }
-  else if( keyInfo->_state == AR_KEY_DOWN ) {
-    // for legacy reasons, this call expects only key press 
+  else if( keyInfo->getState() == AR_KEY_DOWN ) {
+    // for legacy reasons, this call expects only key press
     // (not release) events
-    onKey( keyInfo->_key, 0, 0 );
+    onKey( keyInfo->getKey(), 0, 0 );
   }
 }
 
@@ -646,7 +660,7 @@ void arMasterSlaveFramework::setWindowStartGLCallback
   _windowStartGLCallback = windowStartGL;
 }
 
-void arMasterSlaveFramework::setDrawCallback( 
+void arMasterSlaveFramework::setDrawCallback(
               void (*draw)( arMasterSlaveFramework&, arGraphicsWindow&, arViewport& ) ) {
   _drawCallback = draw;
 }
@@ -1420,7 +1434,7 @@ void arMasterSlaveFramework::_handleScreenshot( bool stereo ) {
     arTexture texture;
     texture.setPixels( buf1, _screenshotWidth, _screenshotHeight );
     if( !texture.writeJPEG( screenshotName.c_str(),_dataPath ) ) {
-      std::cerr << "arMasterSlaveFramework remark: screenshot write failed." 
+      std::cerr << "arMasterSlaveFramework remark: screenshot write failed."
                 << std::endl;
     }
 
@@ -1483,7 +1497,7 @@ bool arMasterSlaveFramework::_sendData( void ) {
 
   // only activates it if necessary (and possible)
   // ar_activateWildcatFramelock();
-  _wm->activateWildcatFramelock();
+  _wm->activateFramelock();
 
   // Activate pending connections.
   if( _barrierServer->checkWaitingSockets() ) {
@@ -1493,7 +1507,7 @@ bool arMasterSlaveFramework::_sendData( void ) {
   // Send data, if there are any receivers.
   if( _stateServer->getNumberConnectedActive() > 0 &&
       !_stateServer->sendData( _transferData ) ){
-    std::cout << _label 
+    std::cout << _label
               << " remark: state server failed to send data." << std::endl;
     return false;
   }
@@ -1520,7 +1534,7 @@ bool arMasterSlaveFramework::_getData( void ) {
 
   // only activates it if necessary (and possible)
   // ar_activateWildcatFramelock();
-  _wm->activateWildcatFramelock();
+  _wm->activateFramelock();
 
   // Read data, since we will be receiving data from the master.
   if( !_stateClient.getData( _inBuffer,_inBufferSize ) ) {
@@ -1531,7 +1545,7 @@ bool arMasterSlaveFramework::_getData( void ) {
     // re-enabled upon reconnection to the master
     // wildcat framelock is only deactivated if this makes sense
     // ar_deactivateWildcatFramelock();
-    _wm->deactivateWildcatFramelock();
+    _wm->deactivateFramelock();
     return false;
   }
 
@@ -2188,7 +2202,7 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
     // HMMM... This is a somewhat problematic place to put the function
     // that tries to find the wildcat framelock. It seems fairly likely
     // that this must occur AFTER the graphics window has been mapped!
-    _wm->findWildcatFramelock();
+    _wm->findFramelock();
   }
 
   if( _useWindowing ) {
@@ -2229,8 +2243,9 @@ void arMasterSlaveFramework::_createWindowing( void ) {
   // to one based on arGUI. The "magic" keywords are changing from
   // SZG_SCREENn to SZG_DISPLAYn.
   //std::string whichDisplay = _SZGClient.getMode( "gui" );
-  string whichDisplay 
-    = "SZG_DISPLAY"+screenName.substr(screenName.length()-1, 1);
+  string whichDisplay
+    = "SZG_DISPLAY" + screenName.substr( screenName.length() - 1, 1 );
+
   std::string displayName  = _SZGClient.getAttribute( whichDisplay, "name" );
 
   std::cout << "Using display: " << whichDisplay << " : "
@@ -2246,61 +2261,44 @@ void arMasterSlaveFramework::_createWindowing( void ) {
   _wm->setUserData( this );
 
   if( _useWindowing ) {
-    arGUIXMLParser guiXMLParser( _wm, _windows, _SZGClient,
+    arGUIXMLParser guiXMLParser( _wm, &_SZGClient,
                                  _SZGClient.getGlobalAttribute( displayName ) );
-
-    if( guiXMLParser.error() ) {
-      // already complained, just return
-      return;
-    }
 
     // If there are multiple windows, default to threaded mode.
     // (this can be forced to a different value from the xml)
     _wm->setThreaded( guiXMLParser.numberOfWindows() > 1 );
 
-    // Now run through the xml and create all the windows
-    guiXMLParser.parse();
+    // first parse the xml
+    if( guiXMLParser.parse() < 0 ) {
+      // already complained, just return
+      return;
+    }
 
-    std::map<int, arGraphicsWindow* >::iterator itr;
+    // then create the windows and register the drawcallbacks and head
+    if( guiXMLParser.createWindows( new arMasterSlaveWindowInitCallback( *this ),
+                                    new arMasterSlaveRenderCallback( *this ),
+                                    new arMasterSlaveRenderCallback( *this ),
+                                    &_head ) < 0 ) {
+      // already complained, just return;
+      return;
+    }
 
-    // Register all the draw callbacks with the newly created
-    // {arGUI|arGraphics}Windows
-    for( itr = _windows.begin(); itr != _windows.end(); itr++ ) {
-      // Register the framework's draw and init callbacks with the
-      // arGraphicsWindow.
-      itr->second->setDrawCallback( new arMasterSlaveRenderCallback( *this ) );
-      itr->second->setInitCallback( new arMasterSlaveWindowInitCallback( *this ) );
+    // populate the framework's set of {arGUI|arGraphics} windows with data
+    // from the arGUIXMLParser
+    const std::vector< arGUIXMLWindowConstruct* >* windowConstructs = guiXMLParser.getWindowConstructs();
+    std::vector< arGUIXMLWindowConstruct* >::const_iterator itr;
 
-      // Register the framework's draw callback with the arGUIWindow.
-      _wm->registerDrawCallback( itr->first,
-                                 new arMasterSlaveRenderCallback( *this ) );
-
-      // The window configuration tells us which cursor bitmap to use.
-      // Yes, this is indeed very circuitous. The window manager doesn't
-      // let us get at its arGUIWindows directly, so we need to communicate
-      // with them via handle.
-      // Also, while the arGUIWindow has the cursor type information, this
-      // won't be acted upon by the window manager until a "cursor" setting
-      // event has occured.... Perhaps at some point it would be a
-      // good idea to have the window manager take care of this detail
-      // itself...
-      // _wm->setWindowCursor( itr->first, _wm->getWindowCursor(itr->first));
-
-      // set the virtual head for any VR cameras
-      std::vector<arViewport>* viewports = itr->second->getViewports();
-      std::vector<arViewport>::iterator vitr;
-      for( vitr = viewports->begin(); vitr != viewports->end(); vitr++ ) {
-        if( vitr->getCamera()->type() == "arVRCamera" ) {
-          ((arVRCamera*) vitr->getCamera())->setHead( &_head );
-        }
-      }
+    for( itr = windowConstructs->begin(); itr != windowConstructs->end(); itr++ ) {
+      _windows[ (*itr)->getWindowID() ] = (*itr)->getGraphicsWindow();
     }
   }
 
+  /*
   std::string wildcatFramelockStatus
     = _SZGClient.getAttribute( screenName, "wildcat_framelock", "|false|true|" );
 
   _wm->useWildcatFramelock( wildcatFramelockStatus == "true" );
+  */
 
   // ar_useWildcatFramelock( _SZGClient.getAttribute( screenName, "wildcat_framelock", "|false|true|" ) == "true" );
 }
@@ -2662,16 +2660,12 @@ void arMasterSlaveFramework::_connectionTask( void ) {
 /// Look at the definition of arMasterSlaveRenderCallback to understand
 /// how it is called from arGUIWindow.
 void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo ) {
-  // handle the stuff that occurs before drawing
-  // THIS MUST OCCUR ONLY ONCE PER ALL WINDOWS!
-  // preDraw();
-
   if (!windowInfo) {
     cerr << "arMasterSlaveFramework error: NULL arGUIWindowInfo* passed to _drawWindow().\n";
     return;
   }
 
-  int currentWinID = windowInfo->_windowID;
+  int currentWinID = windowInfo->getWindowID();
   if( _windows.find( currentWinID ) == _windows.end() ) {
     cerr << "arMasterSlaveFramework error: arGraphicsWindow with ID " << currentWinID
          << " not found in _drawWindow().\n";
@@ -2685,8 +2679,8 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo ) {
     return;
   }
   // stuff pixel dimensions into arGraphicsWindow
-  currentWin->setPixelDimensions( windowInfo->_posX, windowInfo->_posY,
-                                  windowInfo->_sizeX, windowInfo->_sizeY );
+  currentWin->setPixelDimensions( windowInfo->getPosX(), windowInfo->getPosY(),
+                                  windowInfo->getSizeX(), windowInfo->getSizeY() );
   // draw the window
   if(!_exitProgram ) {
     if( _noDrawFillColor[ 0 ] == -1 ) {
@@ -2730,7 +2724,7 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo ) {
       glPopAttrib();
     }
   }
-  
+
   // it seems like glFlush/glFinish are a little bit unreliable... not
   // every vendor has done a good job of implementing these.
   // Consequently, we do a small pixel read to force drawing to complete.
@@ -2739,7 +2733,7 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo ) {
   glReadPixels( 0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, buffer );
   // Weirdly, with arGUI, the following seems necessary for "high quality"
   // synchronization. Maybe GLUT was implicitly posting one of these itself?
-  // What makes this strange is that I'd expect the glReadPixels to have 
+  // What makes this strange is that I'd expect the glReadPixels to have
   // already done this...
   glFinish();
 
@@ -2759,7 +2753,7 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo ) {
     // and if it makes sense, it is important to do so before exiting.
     // also important that we do this in the display thread
     // ar_deactivateWildcatFramelock();
-    _wm->deactivateWildcatFramelock();
+    _wm->deactivateFramelock();
 
     std::cout << _label << " remark: window " << currentWinID << " done." << std::endl;
 
