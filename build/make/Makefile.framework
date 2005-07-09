@@ -23,6 +23,9 @@ OBJS = \
 # These internal library makefiles ONLY include the external files necessary
 # to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
 # Makefile.defines neglects to define these)
+
+# SZG_INCLUDE_GLUT is there so that (surprisingly) the X11 include is
+# available for Mac OS X.
 SZG_INCLUDE = \
   -I$(SZGHOME)/src/language \
   -I$(SZGHOME)/src/phleet \
@@ -34,6 +37,7 @@ SZG_INCLUDE = \
   -I$(SZGHOME)/src/obj \
   -I$(SZGHOME)/src/interaction \
   $(SZG_DLL_INCLUDE) \
+  $(SZG_INCLUDE_GLUT) \
   $(SZG_OPT_INCLUDE_FULL)
 SZG_LINK_LIBS = $(GRAPHICS_LIBS) $(GENERAL_LIBS)
 SZG_OPTIONAL_LIBS = $(SZG_OPT_LIBS_FULL)
