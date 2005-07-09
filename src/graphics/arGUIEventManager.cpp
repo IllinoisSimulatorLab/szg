@@ -160,11 +160,11 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
     switch( event.type ) {
       case ClientMessage:
         if( (Atom) event.xclient.data.l[ 0 ] == window->getWindowHandle()._wDelete ) {
-          int posX = _windowState._posX;
-          int posY = _windowState._posY;
+          int posX = _windowState.getPosX();
+          int posY = _windowState.getPosY();
 
-          int sizeX = _windowState._sizeX;
-          int sizeY = _windowState._sizeY;
+          int sizeX = _windowState.getSizeX();
+          int sizeY = _windowState.getSizeY();
 
           if( addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_CLOSE, window->getID(), 0, posX, posY, sizeX, sizeY ) ) < 0 ) {
             // print an error
@@ -186,17 +186,17 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
         // 0 then this is actually a resize event, however it can be both a
         // resize *and* a move simultaneously if the upper left corner of the
         // window is dragged (drugged?)
-        if( ( posX != _windowState._posX || posY != _windowState._posY ) &&
+        if( ( posX != _windowState.getPosX() || posY != _windowState.getPosY() ) &&
             ( posX != 0 || posY != 0 ) ) {
           if( addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_MOVE, window->getID(), 0, posX, posY, sizeX, sizeY ) ) < 0 ) {
             // print an error?
           }
         }
 
-        if( ( sizeX != _windowState._sizeX || sizeY != _windowState._sizeY  ) &&
+        if( ( sizeX != _windowState.getSizeX() || sizeY != _windowState.getSizeY()  ) &&
             ( posX == 0 && posY == 0 ) ) {
-          posX = _windowState._posX;
-          posY = _windowState._posY;
+          posX = _windowState.getPosX();
+          posY = _windowState.getPosY();
 
           if( addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_RESIZE, window->getID(), 0, posX, posY, sizeX, sizeY ) ) < 0 ) {
             // print an error?
@@ -249,10 +249,10 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
         int posX = event.xmotion.x;
         int posY = event.xmotion.y;
 
-        int prevPosX = _mouseState._posX;
-        int prevPosY = _mouseState._posY;
+        int prevPosX = _mouseState.getPosX();
+        int prevPosY = _mouseState.getPosY();
 
-        arGUIButton button = _mouseState._button;
+        arGUIButton button = _mouseState.getButton();
         arGUIState state = AR_GENERIC_STATE;
 
         if( button ) {
@@ -274,8 +274,8 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
         int posX = event.xbutton.x;
         int posY = event.xbutton.y;
 
-        int prevPosX = _mouseState._posX;
-        int prevPosY = _mouseState._posY;
+        int prevPosX = _mouseState.getPosX();
+        int prevPosY = _mouseState.getPosY();
 
         arGUIButton button = AR_BUTTON_GARBAGE;
         arGUIState state = AR_GENERIC_STATE;
@@ -372,7 +372,7 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
            }
         }
         else if( ( kitr = _keyboardState.find( key ) ) != _keyboardState.end() &&
-              (kitr->second)._state != AR_KEY_UP ) {
+              (kitr->second).getState() != AR_KEY_UP ) {
           // ARGH, _only_ place we need to use recorded state, Windows has a
           // flag set in the message for determining repeatedness, can't find
           // a similar struct in Linux, but that doesnt mean it doesnt exist
@@ -446,20 +446,20 @@ int arGUIEventManager::addEvent( arStructuredData& event )
     arGUIState state = arGUIState( event.getDataInt( "state" ) );
     arGUIButton button = arGUIButton( event.getDataInt( "button" ) );
 
-    arGUIButton totalButtons = _mouseState._button;
+    arGUIButton totalButtons = _mouseState.getButton();
 
     // "add" on to the mouse state which button is now down, or "subtract" off
     // which button is now up so that the mouse callback can do boolean comparisons
     if( state == AR_MOUSE_DOWN ) {
-      totalButtons = button | _mouseState._button;
+      totalButtons = button | _mouseState.getButton();
     }
     else if( state == AR_MOUSE_UP ) {
-      totalButtons = ~button & _mouseState._button;
+      totalButtons = ~button & _mouseState.getButton();
     }
 
     _mouseState = arGUIMouseInfo( event );
 
-    _mouseState._button = totalButtons;
+    _mouseState.setButton( totalButtons );
   }
   else if( arGUIEventType( event.getDataInt( "eventType" ) ) == AR_WINDOW_EVENT ) {
     _windowState = arGUIWindowInfo( event );
@@ -479,31 +479,38 @@ int arGUIEventManager::addEvent( const arGUIKeyInfo& keyInfo )
 {
   arStructuredData keyInfoSD( _keyInfoTemplate );
 
-  if( !keyInfoSD.dataIn( "eventType", &keyInfo._eventType, AR_INT, 1 ) ) {
+  arGUIEventType eventType = keyInfo.getEventType();
+  if( !keyInfoSD.dataIn( "eventType", &eventType, AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !keyInfoSD.dataIn( "state",     &keyInfo._state,     AR_INT, 1 ) ) {
+  arGUIState state = keyInfo.getState();
+  if( !keyInfoSD.dataIn( "state",     &state,     AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !keyInfoSD.dataIn( "windowID",  &keyInfo._windowID,  AR_INT, 1 ) ) {
+  int windowID = keyInfo.getWindowID();
+  if( !keyInfoSD.dataIn( "windowID",  &windowID,  AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !keyInfoSD.dataIn( "flag",      &keyInfo._flag,      AR_INT, 1 ) ) {
+  int flag = keyInfo.getFlag();
+  if( !keyInfoSD.dataIn( "flag",      &flag,      AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !keyInfoSD.dataIn( "key",       &keyInfo._key,       AR_INT, 1 ) ) {
+  arGUIKey key = keyInfo.getKey();
+  if( !keyInfoSD.dataIn( "key",       &key,       AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !keyInfoSD.dataIn( "ctrl",      &keyInfo._ctrl,      AR_INT, 1 ) ) {
+  int ctrl = keyInfo.getCtrl();
+  if( !keyInfoSD.dataIn( "ctrl",      &ctrl,      AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !keyInfoSD.dataIn( "alt",       &keyInfo._alt,       AR_INT, 1 ) ) {
+  int alt = keyInfo.getAlt();
+  if( !keyInfoSD.dataIn( "alt",       &alt,       AR_INT, 1 ) ) {
     return -1;
   }
 
@@ -518,39 +525,48 @@ int arGUIEventManager::addEvent( const arGUIMouseInfo& mouseInfo )
 {
   arStructuredData mouseInfoSD( _mouseInfoTemplate );
 
-  if( !mouseInfoSD.dataIn( "eventType", &mouseInfo._eventType, AR_INT, 1 ) ) {
+  arGUIEventType eventType = mouseInfo.getEventType();
+  if( !mouseInfoSD.dataIn( "eventType", &eventType, AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !mouseInfoSD.dataIn( "state",     &mouseInfo._state,     AR_INT, 1 ) ) {
+  arGUIState state = mouseInfo.getState();
+  if( !mouseInfoSD.dataIn( "state",     &state,     AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !mouseInfoSD.dataIn( "windowID",  &mouseInfo._windowID,  AR_INT, 1 ) ) {
+  int windowID = mouseInfo.getWindowID();
+  if( !mouseInfoSD.dataIn( "windowID",  &windowID,  AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !mouseInfoSD.dataIn( "flag",      &mouseInfo._flag,      AR_INT, 1 ) ) {
+  int flag = mouseInfo.getFlag();
+  if( !mouseInfoSD.dataIn( "flag",      &flag,      AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !mouseInfoSD.dataIn( "button",    &mouseInfo._button,    AR_INT, 1 ) ) {
+  arGUIButton button = mouseInfo.getButton();
+  if( !mouseInfoSD.dataIn( "button",    &button,    AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !mouseInfoSD.dataIn( "posX",      &mouseInfo._posX,      AR_INT, 1 ) ) {
+  int posX = mouseInfo.getPosX();
+  if( !mouseInfoSD.dataIn( "posX",      &posX,      AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !mouseInfoSD.dataIn( "posY",      &mouseInfo._posY,      AR_INT, 1 ) ) {
+  int posY = mouseInfo.getPosY();
+  if( !mouseInfoSD.dataIn( "posY",      &posY,      AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !mouseInfoSD.dataIn( "prevPosX",  &mouseInfo._prevPosX,  AR_INT, 1 ) ) {
+  int prevPosX = mouseInfo.getPrevPosX();
+  if( !mouseInfoSD.dataIn( "prevPosX",  &prevPosX,  AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !mouseInfoSD.dataIn( "prevPosY",  &mouseInfo._prevPosY,  AR_INT, 1 ) ) {
+  int prevPosY = mouseInfo.getPrevPosY();
+  if( !mouseInfoSD.dataIn( "prevPosY",  &prevPosY,  AR_INT, 1 ) ) {
     return -1;
   }
 
@@ -565,35 +581,43 @@ int arGUIEventManager::addEvent( const arGUIWindowInfo& windowInfo )
 {
   arStructuredData windowInfoSD( _windowInfoTemplate );
 
-  if( !windowInfoSD.dataIn( "eventType", &windowInfo._eventType, AR_INT, 1 ) ) {
+  arGUIEventType eventType = windowInfo.getEventType();
+  if( !windowInfoSD.dataIn( "eventType", &eventType, AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !windowInfoSD.dataIn( "state",     &windowInfo._state,     AR_INT, 1 ) ) {
+  arGUIState state = windowInfo.getState();
+  if( !windowInfoSD.dataIn( "state",     &state,     AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !windowInfoSD.dataIn( "windowID",  &windowInfo._windowID,  AR_INT, 1 ) ) {
+  int windowID = windowInfo.getWindowID();
+  if( !windowInfoSD.dataIn( "windowID",  &windowID,  AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !windowInfoSD.dataIn( "flag",      &windowInfo._flag,      AR_INT, 1 ) ) {
+  int flag = windowInfo.getFlag();
+  if( !windowInfoSD.dataIn( "flag",      &flag,      AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !windowInfoSD.dataIn( "posX",      &windowInfo._posX,      AR_INT, 1 ) ) {
+  int posX = windowInfo.getPosX();
+  if( !windowInfoSD.dataIn( "posX",      &posX,      AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !windowInfoSD.dataIn( "posY",      &windowInfo._posY,      AR_INT, 1 ) ) {
+  int posY = windowInfo.getPosY();
+  if( !windowInfoSD.dataIn( "posY",      &posY,      AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !windowInfoSD.dataIn( "sizeX",     &windowInfo._sizeX,     AR_INT, 1 ) ) {
+  int sizeX = windowInfo.getSizeX();
+  if( !windowInfoSD.dataIn( "sizeX",     &sizeX,     AR_INT, 1 ) ) {
     return -1;
   }
 
-  if( !windowInfoSD.dataIn( "sizeY",     &windowInfo._sizeY,     AR_INT, 1 ) ) {
+  int sizeY = windowInfo.getSizeY();
+  if( !windowInfoSD.dataIn( "sizeY",     &sizeY,     AR_INT, 1 ) ) {
     return -1;
   }
 
@@ -804,8 +828,8 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
       int posX = LOWORD( lParam );
       int posY = HIWORD( lParam );
 
-      int prevPosX = _mouseState._posX;
-      int prevPosY = _mouseState._posY;
+      int prevPosX = _mouseState.getPosX();
+      int prevPosY = _mouseState.getPosY();
 
 
       // Match X11 behavior by restricting to [ -32768, 32767 ]
@@ -828,7 +852,7 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
       switch( uMsg )
       {
         case WM_MOUSEMOVE:
-          button = _mouseState._button;
+          button = _mouseState.getButton();
 
           if( button ) {
             state = AR_MOUSE_DRAG;
@@ -882,7 +906,7 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
       if( state == AR_MOUSE_DOWN ) {
         SetCapture( window->getWindowHandle()._hWnd );
       }
-      else if( !(~button & _mouseState._button) && ( state == AR_MOUSE_UP ) ) {
+      else if( !(~button & _mouseState.getButton()) && ( state == AR_MOUSE_UP ) ) {
         ReleaseCapture();
       }
 

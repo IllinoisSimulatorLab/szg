@@ -258,11 +258,37 @@ class SZG_CALL arGUIWindowConfig
      */
     ~arGUIWindowConfig( void );
 
-    // int readFromFile( ... );
-    // int readFromCommandLine( ... );
-    // int readFromSZGDatabase( ... );
+    void setPos( int x, int y ) { _x = x; _y = y; }
+    void setPosX( int x ) { _x = x; }
+    void setPosY( int y ) { _y = y; }
+    void setWidth( int width ) { _width = width; }
+    void setHeight( int height ) { _height = height; }
+    void setSize( int width, int height ) { _width = width; _height = height; }
+    void setBpp( int bpp ) { _bpp = bpp; }
+    void setHz( int Hz ) { _Hz = Hz; }
+    void setDecorate( bool decorate ) { _decorate = decorate; }
+    void setFullscreen( bool fullscreen ) { _fullscreen = fullscreen; }
+    void setStereo( bool stereo ) { _stereo = stereo; }
+    void setZOrder( arZOrder zorder ) { _zorder = zorder; }
+    void setTitle( const std::string& title ) { _title = title; }
+    void setXDisplay( const std::string& XDisplay ) { _XDisplay = XDisplay; }
+    void setCursor( arCursor cursor ) { _cursor = cursor; }
 
-  public:
+    int getPosX( void ) const { return _x; }
+    int getPosY( void ) const { return _y; }
+    int getWidth( void ) const { return _width; }
+    int getHeight( void ) const { return _height; }
+    int getBpp( void ) const { return _bpp; }
+    int getHz( void ) const { return _Hz; }
+    bool getDecorate( void ) const { return _decorate; }
+    bool getFullscreen( void ) const { return _fullscreen; }
+    bool getStereo( void ) const { return _stereo; }
+    bool getZOrder( void ) const { return _zorder; }
+    std::string getTitle( void ) const { return _title; }
+    std::string getXDisplay( void ) const { return _XDisplay; }
+    arCursor getCursor( void ) const { return _cursor; }
+
+  private:
 
     int _x, _y, _width, _height, _bpp, _Hz;
 
@@ -333,8 +359,12 @@ class SZG_CALL arWMEvent
      */
     void signal( void );
 
-  // should change this to private...
-  public:
+    void setEvent( arGUIWindowInfo event ) { _event = event; }
+    const arGUIWindowInfo& getEvent( void ) const { return _event; }
+
+    int getDone( void ) const { return _done; }
+
+  private:
 
     arGUIWindowInfo _event;             ///< The current message information.
     bool _conditionFlag;                ///< Condition flag for use in conjunction with _eventCond.
@@ -656,7 +686,7 @@ class SZG_CALL arGUIWindow
     void setVisible( const bool visible )  {  _visible = visible;  }
     bool getVisible( void ) const {  return _visible;  }
 
-    std::string getTitle( void ) const {  return _windowConfig._title; }
+    std::string getTitle( void ) const {  return _windowConfig.getTitle(); }
 
     int getID( void ) const { return _ID; }
 
@@ -666,7 +696,7 @@ class SZG_CALL arGUIWindow
     int getPosX( void ) const;
     int getPosY( void ) const;
 
-    bool isStereo( void )      const { return _windowConfig._stereo; }
+    bool isStereo( void )      const { return _windowConfig.getStereo(); }
     bool isFullscreen( void )  const { return _fullscreen; }
     bool isDecorated( void )   const { return _decorate; }
     arZOrder getZOrder( void ) const { return _zorder; }

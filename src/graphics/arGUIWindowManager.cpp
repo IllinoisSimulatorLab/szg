@@ -196,7 +196,7 @@ int arGUIWindowManager::processWindowEvents( void )
       // (or in single-threaded mode the context of the last window added),
       // they must either use some recorded state in the drawcallback, or use
       // the provided accessors off the window manager
-      switch( GUIInfo->_eventType ) {
+      switch( GUIInfo->getEventType() ) {
         case AR_KEY_EVENT:
           if( _keyboardCallback ) {
             _keyboardHandler( (arGUIKeyInfo*) GUIInfo );
@@ -229,7 +229,7 @@ int arGUIWindowManager::processWindowEvents( void )
 
       // one of the windows got removed out from under us, most likely in a
       // deleteWindow call from the user callback
-      if( _windows.find( currentWindow->_ID ) == _windows.end() ) {
+      if( _windows.find( currentWindow->getID() ) == _windows.end() ) {
         delete currentWindow;
 
         // it seems like the iterator in the outer for loop gets confused
@@ -263,12 +263,12 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int windowID, arGUIWindowInfo e
 
   // ensure that the windowID is set correctly, some functions depend on it
   // being present
-  event._windowID = windowID;
+  event.setWindowID( windowID );
 
   // in single threaded mode, just execute this command directly, no need to
   // do all the message passing
   if( !_threaded ) {
-    switch( event._state ) {
+    switch( event.getState() ) {
       case AR_WINDOW_SWAP:
         _windows[ windowID ]->swap();
       break;
@@ -278,16 +278,16 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int windowID, arGUIWindowInfo e
       break;
 
       case AR_WINDOW_RESIZE:
-        _windows[ windowID ]->resize( event._sizeX, event._sizeY );
+        _windows[ windowID ]->resize( event.getSizeX(), event.getSizeY() );
       break;
 
       case AR_WINDOW_MOVE:
-        _windows[ windowID ]->move( event._posX, event._posY );
+        _windows[ windowID ]->move( event.getPosX(), event.getPosY() );
       break;
 
       case AR_WINDOW_VIEWPORT:
-        _windows[ windowID ]->setViewport( event._posX, event._posY,
-                                           event._sizeX, event._sizeY );
+        _windows[ windowID ]->setViewport( event.getPosX(), event.getPosY(),
+                                           event.getSizeX(), event.getSizeY() );
       break;
 
       case AR_WINDOW_FULLSCREEN:
@@ -295,15 +295,16 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int windowID, arGUIWindowInfo e
       break;
 
       case AR_WINDOW_DECORATE:
-        _windows[ windowID ]->decorate( event._flag == 1 ? true : false );
+        _windows[ windowID ]->decorate( event.getFlag() == 1 ? true : false );
       break;
 
       case AR_WINDOW_CURSOR:
-        _windows[ windowID ]->setCursor( arCursor( event._flag ) );
+        _windows[ windowID ]->setCursor( arCursor( event.getFlag() ) );
       break;
 
       case AR_WINDOW_CLOSE:
         _windows[ windowID ]->_killWindow();
+      break;
 
       default:
         // print error/warning?
@@ -420,8 +421,8 @@ int arGUIWindowManager::consumeAllWindowEvents( bool blocking )
 int arGUIWindowManager::resizeWindow( const int windowID, int width, int height )
 {
   arGUIWindowInfo event( AR_WINDOW_EVENT, AR_WINDOW_RESIZE );
-  event._sizeX = width;
-  event._sizeY = height;
+  event.setSizeX( width );
+  event.setSizeY( height );
 
   arWMEvent* eventHandle = addWMEvent( windowID, event );
 
@@ -437,8 +438,8 @@ int arGUIWindowManager::resizeWindow( const int windowID, int width, int height 
 int arGUIWindowManager::moveWindow( const int windowID, int x, int y )
 {
   arGUIWindowInfo event( AR_WINDOW_EVENT, AR_WINDOW_MOVE );
-  event._posX = x;
-  event._posY = y;
+  event.setPosX( x );
+  event.setPosY( y );
 
   arWMEvent* eventHandle = addWMEvent( windowID, event );
 
@@ -454,10 +455,10 @@ int arGUIWindowManager::moveWindow( const int windowID, int x, int y )
 int arGUIWindowManager::setWindowViewport( const int windowID, int x, int y, int width, int height )
 {
   arGUIWindowInfo event( AR_WINDOW_EVENT, AR_WINDOW_VIEWPORT );
-  event._posX = x;
-  event._posY = y;
-  event._sizeX = width;
-  event._sizeY = height;
+  event.setPosX( x );
+  event.setPosY( y );
+  event.setSizeX( width );
+  event.setSizeY( height );
 
   arWMEvent* eventHandle = addWMEvent( windowID, event );
 
@@ -484,7 +485,7 @@ int arGUIWindowManager::fullscreenWindow( const int windowID )
 int arGUIWindowManager::decorateWindow( const int windowID, bool decorate )
 {
   arGUIWindowInfo event( AR_WINDOW_EVENT, AR_WINDOW_DECORATE );
-  event._flag = decorate ? 1 : 0;
+  event.setFlag( decorate ? 1 : 0 );
 
   arWMEvent* eventHandle = addWMEvent( windowID, event );
 
@@ -501,7 +502,7 @@ int arGUIWindowManager::decorateWindow( const int windowID, bool decorate )
 int arGUIWindowManager::setWindowCursor( const int windowID, arCursor cursor )
 {
   arGUIWindowInfo event( AR_WINDOW_EVENT, AR_WINDOW_CURSOR );
-  event._flag = int( cursor );
+  event.setFlag( int( cursor ) );
 
   arWMEvent* eventHandle = addWMEvent( windowID, event );
 
@@ -600,7 +601,7 @@ arVector3 arGUIWindowManager::getMousePos( const int windowID )
 
   arGUIMouseInfo mouseState = _windows[ windowID ]->getGUIEventManager()->getMouseState();
 
-  return arVector3( float( mouseState._posX ), float( mouseState._posY ), 0.0f );
+  return arVector3( float( mouseState.getPosX() ), float( mouseState.getPosY() ), 0.0f );
 }
 
 arGUIKeyInfo arGUIWindowManager::getKeyState( const arGUIKey key )
@@ -657,30 +658,30 @@ int arGUIWindowManager::deleteAllWindows( void )
   return 0;
 }
 
-void arGUIWindowManager::useWildcatFramelock( bool isOn )
+void arGUIWindowManager::useFramelock( bool isOn )
 {
-  if( _windows.size() == 1 && !_threaded ) {
+  if( /* _windows.size() == 1 && */ !_threaded ) {
     _windows.begin()->second->useWildcatFramelock( isOn );
   }
 }
 
-void arGUIWindowManager::findWildcatFramelock( void )
+void arGUIWindowManager::findFramelock( void )
 {
-  if( _windows.size() == 1 && !_threaded ) {
+  if( /* _windows.size() == 1 && */ !_threaded ) {
     _windows.begin()->second->findWildcatFramelock();
   }
 }
 
-void arGUIWindowManager::activateWildcatFramelock( void )
+void arGUIWindowManager::activateFramelock( void )
 {
-  if( _windows.size() == 1 && !_threaded ) {
+  if( /* _windows.size() == 1 && */ !_threaded ) {
     _windows.begin()->second->activateWildcatFramelock();
   }
 }
 
-void arGUIWindowManager::deactivateWildcatFramelock( void )
+void arGUIWindowManager::deactivateFramelock( void )
 {
-  if( _windows.size() == 1 && !_threaded ) {
+  if( /* _windows.size() == 1 && */ !_threaded ) {
     _windows.begin()->second->deactivateWildcatFramelock();
   }
 }

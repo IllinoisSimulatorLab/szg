@@ -48,9 +48,9 @@ arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height,
   _bpp( bpp ),
   _Hz( hz ),
   _decorate( decorate ),
-  _zorder( zorder ),
   _fullscreen( fullscreen ),
   _stereo( stereo ),
+  _zorder( zorder ),
   _title( title ),
   _XDisplay( XDisplay ),
   _cursor( cursor )
@@ -176,8 +176,8 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
   _running( false ),
   _threaded( false ),
   _fullscreen( false ),
-  _zorder( AR_ZORDER_TOP ),
   _decorate( true ),
+  _zorder( AR_ZORDER_TOP ),
   _cursor( AR_CURSOR_NONE ),
   _creationFlag( false ),
   _destructionFlag( false ),
@@ -191,7 +191,7 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
   // _cursor = windowConfig._initialCursor;
 
   std::stringstream ss; ss << _ID;
-  _className = std::string( _windowConfig._title + ss.str() );
+  _className = std::string( _windowConfig.getTitle() + ss.str() );
 
   _windowBuffer = new arGUIWindowBuffer( true );
 
@@ -214,20 +214,31 @@ arGUIWindow::~arGUIWindow( void )
   }
 
   // delete both event queues (what if the wm is still holding onto a handle?)
+  if( _GUIEventManager ) {
+    delete _GUIEventManager;
+  }
 
-  delete _GUIEventManager;
+  if( _windowBuffer ) {
+    delete _windowBuffer;
+  }
 
-  delete _windowBuffer;
-
-  delete _drawCallback;
+  // arGUIWindow's do not own their draw callbacks
+  /*
+  if( _drawCallback ) {
+    delete _drawCallback;
+  }
+  */
 }
 
 void arGUIWindow::registerDrawCallback( arGUIRenderCallback* drawCallback )
 {
+  // arGUIWindow's do not own their draw callbacks
+  /*
   if( _drawCallback ) {
     // print warning that previous callback is being overwritten?
     delete _drawCallback;
   }
+  */
 
   if( !drawCallback ) {
     // print warning that there is now no draw callback?
@@ -260,7 +271,7 @@ void arGUIWindow::_drawHandler( void )
     #endif
 
     arGUIWindowInfo* windowInfo = new arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DRAW );
-    windowInfo->_windowID = _ID;
+    windowInfo->setWindowID( _ID );
 
     (*_drawCallback)( windowInfo );
 
@@ -410,8 +421,8 @@ arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
 
   arWMEvent* event = NULL;
 
-  if( !wmEvent._userData ) {
-    wmEvent._userData = _userData;
+  if( !wmEvent.getUserData() ) {
+    wmEvent.setUserData( _userData );
   }
 
   EventIterator eitr;
@@ -420,7 +431,7 @@ arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
 
   // find an 'empty' event and recycle it
   for( eitr = _usableEvents.begin(); eitr != _usableEvents.end(); eitr++ ) {
-    if( (*eitr)->_done == 2 ) {
+    if( (*eitr)->getDone() == 2 ) {
       event = *eitr;
       event->reset( wmEvent );
       break;
@@ -455,7 +466,7 @@ int arGUIWindow::_processWMEvents( void )
 
     arWMEvent* wmEvent = _WMEvents.front();
 
-    switch( wmEvent->_event._state ) {
+    switch( wmEvent->getEvent().getState() ) {
       case AR_WINDOW_DRAW:
 
         // NOTE: for now we won't worry about _Hz, it complicates things quite
@@ -466,7 +477,7 @@ int arGUIWindow::_processWMEvents( void )
           ar_timeval currentTime = ar_time();
 
           // NOTE: assumes the user won't want less than 1 frame per second
-          int uSec = int( USEC / double( _windowConfig._Hz ) );
+          int uSec = int( USEC / double( _windowConfig.getHz() ) );
           ar_timeval nextFrameTime( _lastFrameTime.sec, _lastFrameTime.usec + ( uSec > int( USEC ) ? int( USEC ) : uSec ) );
 
           // rollover the microseconds
@@ -503,20 +514,20 @@ int arGUIWindow::_processWMEvents( void )
       break;
 
       case AR_WINDOW_MOVE:
-        if( move( wmEvent->_event._posX, wmEvent->_event._posY ) < 0 ) {
+        if( move( wmEvent->getEvent().getPosX(), wmEvent->getEvent().getPosY() ) < 0 ) {
           std::cerr << "_processWMEvents: move error" << std::endl;
         }
       break;
 
       case AR_WINDOW_RESIZE:
-        if( resize( wmEvent->_event._sizeX, wmEvent->_event._sizeY ) < 0 ) {
+        if( resize( wmEvent->getEvent().getSizeX(), wmEvent->getEvent().getSizeY() ) < 0 ) {
           std::cerr << "_processWMEvents: resize error" << std::endl;
         }
       break;
 
       case AR_WINDOW_VIEWPORT:
-        if( setViewport( wmEvent->_event._posX, wmEvent->_event._posY,
-                         wmEvent->_event._sizeX, wmEvent->_event._sizeY ) < 0 ) {
+        if( setViewport( wmEvent->getEvent().getPosX(), wmEvent->getEvent().getPosY(),
+                         wmEvent->getEvent().getSizeX(), wmEvent->getEvent().getSizeY() ) < 0 ) {
           std::cerr << "_processWMEvents: setViewport error" << std::endl;
         }
       break;
@@ -526,11 +537,11 @@ int arGUIWindow::_processWMEvents( void )
       break;
 
       case AR_WINDOW_DECORATE:
-        decorate( wmEvent->_event._flag == 1 );
+        decorate( wmEvent->getEvent().getFlag() == 1 );
       break;
 
       case AR_WINDOW_CURSOR:
-        setCursor( arCursor( wmEvent->_event._flag ) );
+        setCursor( arCursor( wmEvent->getEvent().getFlag() ) );
       break;
 
       case AR_WINDOW_CLOSE:
@@ -592,7 +603,7 @@ int arGUIWindow::_windowCreation( void )
   #if defined( AR_USE_WIN_32 )
 
   int dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-  if( _windowConfig._stereo ) {
+  if( _windowConfig.getStereo() ) {
     dwFlags |= PFD_STEREO;
   }
 
@@ -601,7 +612,7 @@ int arGUIWindow::_windowCreation( void )
     1,                                  // version number
     dwFlags,                            // window creation flags
     PFD_TYPE_RGBA,                      // request an RGBA format
-    _windowConfig._bpp,                 // select the color depth
+    _windowConfig.getBpp(),             // select the color depth
     0, 0, 0, 0, 0, 0,                   // color bits are ignored
     0,                                  // no alpha buffer
     0,                                  // shift bit is ignored
@@ -625,7 +636,7 @@ int arGUIWindow::_windowCreation( void )
   DWORD windowExtendedStyle = WS_EX_APPWINDOW;
   DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
 
-  if( _windowConfig._decorate ) {
+  if( _windowConfig.getDecorate() ) {
     windowStyle |= WS_OVERLAPPEDWINDOW;
   }
   else {
@@ -633,10 +644,10 @@ int arGUIWindow::_windowCreation( void )
     windowExtendedStyle |= WS_EX_TOOLWINDOW;
   }
 
-  const int trueX = _windowConfig._x;
-  const int trueY = _windowConfig._y;
-  const int trueWidth = _windowConfig._width;
-  const int trueHeight = _windowConfig._height;
+  const int trueX = _windowConfig.getPosX();
+  const int trueY = _windowConfig.getPosY();
+  const int trueWidth = _windowConfig.getWidth();
+  const int trueHeight = _windowConfig.getHeight();
 
   /*
   if( _windowConfig._topmost ) {
@@ -658,7 +669,7 @@ int arGUIWindow::_windowCreation( void )
   // static event processing function in GUIEventManager can access the window
   if( !( _windowHandle._hWnd = CreateWindowEx( windowExtendedStyle,
                                  _className.c_str(),
-                                 _windowConfig._title.c_str(),
+                                 _windowConfig.getTitle().c_str(),
                                  windowStyle,
                                  windowRect.left, windowRect.top,
                                  windowRect.right - windowRect.left,
@@ -707,7 +718,7 @@ int arGUIWindow::_windowCreation( void )
 
   _running = true;
 
-  if( _windowConfig._fullscreen ) {
+  if( _windowConfig.getFullscreen() ) {
     fullscreen();
   }
 
@@ -723,8 +734,8 @@ int arGUIWindow::_windowCreation( void )
 
   // seems to be somewhat superfluous since there are SetForegroundWindow
   // and SetFocus calls above
-  if( !_windowConfig._fullscreen ) {
-    raise( _windowConfig._zorder );
+  if( !_windowConfig.getFullscreen() ) {
+    raise( _windowConfig.getZOrder() );
   }
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
@@ -741,16 +752,16 @@ int arGUIWindow::_windowCreation( void )
   _windowHandle._vi = NULL;
   _windowHandle._wHints = None;
 
-  if( _windowConfig._stereo ) {
+  if( _windowConfig.getStereo() ) {
     attrList[ 10 ] = GLX_STEREO;
     attrList[ 11 ] = None;
   }
 
   // if the XDisplay window config parameter has not been set, use the $DISPLAY env variable.
-  _windowHandle._dpy = XOpenDisplay( _windowConfig._XDisplay.length() ? _windowConfig._XDisplay.c_str() : NULL );
+  _windowHandle._dpy = XOpenDisplay( _windowConfig.getXDisplay().length() ? _windowConfig.getXDisplay().c_str() : NULL );
 
   if( !_windowHandle._dpy ) {
-    std::cerr << "_windowCreation: XOpenDisplay failure on: " << _windowConfig._XDisplay << std::endl;
+    std::cerr << "_windowCreation: XOpenDisplay failure on: " << _windowConfig.getXDisplay() << std::endl;
     return -1;
   }
 
@@ -821,8 +832,8 @@ int arGUIWindow::_windowCreation( void )
     _windowHandle._dMode = *modes[ 0 ];
 
     for( int i = 0; i < modeNum; i++) {
-      if( ( modes[ i ]->hdisplay == _windowConfig._width ) &&
-          ( modes[ i ]->vdisplay == _windowConfig._height ) ) {
+      if( ( modes[ i ]->hdisplay == _windowConfig.getWidth() ) &&
+          ( modes[ i ]->vdisplay == _windowConfig.getHeight() ) ) {
         bestMode = i;
         // break here? i.e. should the last or first usable mode we find be the
         // one we actually use?
@@ -888,10 +899,10 @@ int arGUIWindow::_windowCreation( void )
     _fullscreen = true;
   }
   else {
-    trueX = _windowConfig._x;
-    trueY = _windowConfig._y;
-    trueWidth = _windowConfig._width;
-    trueHeight = _windowConfig._height;
+    trueX = _windowConfig.getPosX();
+    trueY = _windowConfig.getPosY();
+    trueWidth = _windowConfig.getWidth();
+    trueHeight = _windowConfig.getHeight();
 
     _windowHandle._win = XCreateWindow( _windowHandle._dpy, _windowHandle._root,
                            trueX, trueY, trueWidth, trueHeight,
@@ -921,7 +932,7 @@ int arGUIWindow::_windowCreation( void )
   wmHints.flags = StateHint;
   wmHints.initial_state = NormalState;
 
-  const char* title = _windowConfig._title.c_str();
+  const char* title = _windowConfig.getTitle().c_str();
 
   XTextProperty textProperty;
   XStringListToTextProperty( (char **) &title, 1, &textProperty );
@@ -943,13 +954,13 @@ int arGUIWindow::_windowCreation( void )
   }
   */
 
-  if( _windowConfig._fullscreen ) {
-    raise( _windowConfig._zorder );
+  if( _windowConfig.getFullscreen() ) {
+    raise( _windowConfig.getZOrder() );
   }
 
-  decorate( _windowConfig._decorate );
+  decorate( _windowConfig.getDecorate() );
 
-  if( _windowConfig._fullscreen ) {
+  if( _windowConfig.getFullscreen() ) {
     fullscreen();
   }
 
@@ -969,7 +980,7 @@ int arGUIWindow::_windowCreation( void )
   // set it here
   _visible = true;
 
-  setCursor( _windowConfig._cursor );
+  setCursor( _windowConfig.getCursor() );
 
   return 0;
 }
@@ -1014,7 +1025,7 @@ int arGUIWindow::_tearDownWindowCreation( void )
   // initialization.
   if( _windowInitGLCallback ) {
     arGUIWindowInfo* windowInfo = new arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_INITGL, _ID );
-    windowInfo->_userData = _userData;
+    windowInfo->setUserData( _userData );
     _windowInitGLCallback( windowInfo );
     delete windowInfo;
   }
@@ -1038,7 +1049,7 @@ int arGUIWindow::swap( void )
     std::cerr << "swap: could not make context current" << std::endl;
   }
 
-  return _windowBuffer->swapBuffer( _windowHandle, _windowConfig._stereo );
+  return _windowBuffer->swapBuffer( _windowHandle, _windowConfig.getStereo() );
 }
 
 int arGUIWindow::resize( int newWidth, int newHeight )
@@ -1069,7 +1080,7 @@ int arGUIWindow::resize( int newWidth, int newHeight )
     std::cerr << "resize: GetWindowRect error" << std::endl;
   }
 
-  if( _windowConfig._decorate )
+  if( _decorate )
   {
     newWidth  += GetSystemMetrics( SM_CXSIZEFRAME ) * 2;
     newHeight += GetSystemMetrics( SM_CYSIZEFRAME ) * 2 +
@@ -1104,13 +1115,13 @@ int arGUIWindow::resize( int newWidth, int newHeight )
     // don't need to do this under win32 as the window didn't get undecorated
     // to go fullscreen
     #if defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
-    if( _windowConfig._decorate ) {
+    if( _windowConfig.getDecorate() ) {
       decorate( true );
     }
     #endif
 
     // move the window back to its original position
-    move( _windowConfig._x, _windowConfig._y );
+    move( _windowConfig.getPosX(), _windowConfig.getPosY() );
 
     // NOTE: really what we should do for the last two calls (move and
     // decorate) is keep some prior state (e.g. right before the fullscreen
@@ -1160,9 +1171,9 @@ int arGUIWindow::fullscreen( void )
   // (a) fill the screen but (b) have its decoration visible. In other
   // words, fullscreen is different from GLUT's version of fullscreen.
   // Actually, that might be a good thing.
-  //AdjustWindowRect( &windowRect,
-  //                  WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-  //                  false );
+  // AdjustWindowRect( &windowRect,
+  //                   WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+  //                   false );
 
   // set HWND_TOPMOST as sometimes the taskbar will stay on the top of the
   // window (this flag needs to be unset if coming out of fullscreen mode)
@@ -1176,9 +1187,9 @@ int arGUIWindow::fullscreen( void )
   // NOTE: seems to only be necessary on windows as the event is 'correctly'
   // raised on linux (odder still is that the move to 0x0 is raised, just not
   // the resize...)
-  _GUIEventManager->addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, 
+  _GUIEventManager->addEvent( arGUIWindowInfo( AR_WINDOW_EVENT,
                                                AR_WINDOW_RESIZE, _ID, 0,
-                                               getPosX(), getPosY(), 
+                                               getPosX(), getPosY(),
                                                getWidth(), getHeight() ) );
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
@@ -1666,7 +1677,7 @@ int arGUIWindow::getWidth( void ) const
     return -1;
   }
 
-  if( _windowConfig._decorate ) {
+  if( _decorate ) {
     rect.left  += GetSystemMetrics( SM_CXSIZEFRAME );
     rect.right -= GetSystemMetrics( SM_CXSIZEFRAME );
   }
@@ -1700,7 +1711,7 @@ int arGUIWindow::getHeight( void ) const
     return -1;
   }
 
-  if( _windowConfig._decorate ) {
+  if( _decorate ) {
     rect.top    += GetSystemMetrics( SM_CYSIZEFRAME ) + GetSystemMetrics( SM_CYCAPTION );
     rect.bottom -= GetSystemMetrics( SM_CYSIZEFRAME );
   }
@@ -1740,15 +1751,19 @@ int arGUIWindow::getPosX( void ) const
   #elif defined( AR_USE_LINUX )  || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
+
   int x, y, bx, by;
   Window w;
+
   XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win, _windowHandle._root,
                          0, 0, &x, &y, &w );
-  if( _windowConfig._decorate ) {
+
+  if( _windowConfig.getDecorate() ) {
     XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win,
                            w, 0, 0, &bx, &by, &w );
     x -= bx;
   }
+
   XUnlockDisplay( _windowHandle._dpy );
   return x;
 
@@ -1779,15 +1794,19 @@ int arGUIWindow::getPosY( void ) const
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
+
   int x, y, bx, by;
   Window w;
+
   XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win, _windowHandle._root,
                          0, 0, &x, &y, &w );
-  if( _windowConfig._decorate ) {
+
+  if( _windowConfig.getDecorate() ) {
     XTranslateCoordinates( _windowHandle._dpy, _windowHandle._win,
                            w, 0, 0, &bx, &by, &w );
     y -= by;
   }
+
   XUnlockDisplay( _windowHandle._dpy );
   return y;
 
@@ -1805,9 +1824,9 @@ int arGUIWindow::_changeScreenResolution( void )
   DEVMODE dmScreenSettings;
   ZeroMemory( &dmScreenSettings, sizeof( DEVMODE ) );
   dmScreenSettings.dmSize       = sizeof( DEVMODE );
-  dmScreenSettings.dmPelsWidth  = _windowConfig._width;
-  dmScreenSettings.dmPelsHeight = _windowConfig._height;
-  dmScreenSettings.dmBitsPerPel = _windowConfig._bpp;
+  dmScreenSettings.dmPelsWidth  = _windowConfig.getWidth();
+  dmScreenSettings.dmPelsHeight = _windowConfig.getHeight();
+  dmScreenSettings.dmBitsPerPel = _windowConfig.getBpp();
   dmScreenSettings.dmFields     = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 
   if( ChangeDisplaySettings( &dmScreenSettings, CDS_FULLSCREEN ) != DISP_CHANGE_SUCCESSFUL ) {
@@ -1835,7 +1854,7 @@ int arGUIWindow::_killWindow( void )
   #if defined( AR_USE_WIN_32 )
 
   // switch back to the desktop
-  if( _windowConfig._fullscreen ) {
+  if( _fullscreen ) {
     /*
     if( ChangeDisplaySettings( NULL, 0 ) != DISP_CHANGE_SUCCESSFUL ) {
       std::cerr << "_killWindow: ChangeDisplaySettings failure" << std::endl;
@@ -1886,7 +1905,7 @@ int arGUIWindow::_killWindow( void )
   }
 
   // switch back to the desktop
-  if( _windowConfig._fullscreen ) {
+  if( _fullscreen ) {
     #ifdef HAVE_X11_EXTENSIONS
       XF86VidModeSwitchToMode( _windowHandle._dpy, _windowHandle._screen, &_windowHandle._dMode );
       XF86VidModeSetViewPort( _windowHandle._dpy, _windowHandle._screen, 0, 0 );

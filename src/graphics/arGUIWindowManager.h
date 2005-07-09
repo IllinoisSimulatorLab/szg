@@ -549,10 +549,10 @@ class SZG_CALL arGUIWindowManager
      */
     int deleteAllWindows( void );
 
-    void useWildcatFramelock( bool isOn );
-    void findWildcatFramelock( void );
-    void activateWildcatFramelock( void );
-    void deactivateWildcatFramelock( void );
+    void useFramelock( bool isOn );
+    void findFramelock( void );
+    void activateFramelock( void );
+    void deactivateFramelock( void );
 
   private:
 

@@ -53,7 +53,22 @@ class SZG_CALL arGUIInfo
      */
     ~arGUIInfo( void );
 
-  public:
+    void setEventType( arGUIEventType eventType ) { _eventType = eventType; }
+    arGUIEventType getEventType( void ) const { return _eventType; }
+
+    void setState( arGUIState state ) { _state = state; }
+    arGUIState getState( void ) const { return _state; }
+
+    void setWindowID( int windowID ) { _windowID = windowID; }
+    int getWindowID( void ) const { return _windowID; }
+
+    void setFlag( int flag ) { _flag = flag; }
+    int getFlag( void ) const { return _flag; }
+
+    void setUserData( void* userData ) { _userData = userData; }
+    void* getUserData( void ) const { return _userData; }
+
+  private:
 
     // variables common to all events
 
@@ -108,7 +123,16 @@ class SZG_CALL arGUIKeyInfo : public arGUIInfo
      */
     ~arGUIKeyInfo( void );
 
-  public:
+    void setKey( arGUIKey key ) { _key = key; }
+    arGUIKey getKey( void ) const { return _key; }
+
+    void setCtrl( int ctrl ) { _ctrl = ctrl; }
+    int getCtrl( void ) const { return _ctrl; }
+
+    void setAlt( int alt ) { _alt = alt; }
+    int getAlt( void ) const { return _alt; }
+
+  private:
 
     arGUIKey _key;      ///< The key involved in this event.
 
@@ -162,7 +186,24 @@ class SZG_CALL arGUIMouseInfo : public arGUIInfo
      */
     ~arGUIMouseInfo( void );
 
-  public:
+    void setButton( arGUIButton button ) { _button = button; }
+    arGUIButton getButton( void ) const { return _button; }
+
+    void setPosX( int posX ) { _posX = posX; }
+    void setPosY( int posY ) { _posY = posY; }
+    void setPos( int posX, int posY ) { _posX = posX; _posY = posY; }
+
+    void setPrevPosX( int prevPosX ) { _prevPosX = prevPosX; }
+    void setPrevPosY( int prevPosY ) { _prevPosY = prevPosY; }
+    void setPrevPos( int prevPosX, int prevPosY ) { _prevPosX = prevPosX; _prevPosY = prevPosY; }
+
+    int getPosX( void ) const { return _posX; }
+    int getPosY( void ) const { return _posY; }
+
+    int getPrevPosX( void ) const { return _prevPosX; }
+    int getPrevPosY( void ) const { return _prevPosY; }
+
+  private:
 
     arGUIButton _button;    ///< The mouse button involved in this event.
 
@@ -213,7 +254,21 @@ class SZG_CALL arGUIWindowInfo : public arGUIInfo
      */
     ~arGUIWindowInfo( void );
 
-  public:
+    void setPosX( int posX ) { _posX = posX; }
+    void setPosY( int posY ) { _posY = posY; }
+    void setPos( int posX, int posY ) { _posX = posX; _posY = posY; }
+
+    void setSizeX( int sizeX ) { _sizeX = sizeX; }
+    void setSizeY( int sizeY ) { _sizeY = sizeY; }
+    void setSize( int sizeX, int sizeY ) { _sizeX = sizeX; _sizeY = sizeY; }
+
+    int getPosX( void ) const { return _posX; }
+    int getPosY( void ) const { return _posY; }
+
+    int getSizeX( void ) const { return _sizeX; }
+    int getSizeY( void ) const { return _sizeY; }
+
+  private:
 
     int _posX;      ///< The x position of the window.
     int _posY;      ///< The y position of the window.
