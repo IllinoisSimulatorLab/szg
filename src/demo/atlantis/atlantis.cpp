@@ -620,10 +620,14 @@ void windowEvent( arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo ) {
     return;
   }
 
-  switch( windowInfo->_state ) {
+  switch( windowInfo->getState() ) {
     case AR_WINDOW_RESIZE:
-      fw.getWindowManager()->setWindowViewport( windowInfo->_windowID,
-                                                0, 0, windowInfo->_sizeX, windowInfo->_sizeY );
+      fw.getWindowManager()->setWindowViewport( windowInfo->getWindowID(),
+                                                0, 0, windowInfo->getSizeX(), windowInfo->getSizeY() );
+    break;
+
+    case AR_WINDOW_CLOSE:
+      fw.stop( false );
     break;
 
     default:
