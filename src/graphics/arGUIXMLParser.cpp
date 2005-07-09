@@ -18,32 +18,53 @@
 
 #include <iostream>
 
+arGUIXMLWindowConstruct::arGUIXMLWindowConstruct( int windowID,
+                                                  arGUIWindowConfig* windowConfig,
+                                                  arGraphicsWindow* graphicsWindow ) :
+  _windowID( windowID ),
+  _windowConfig( windowConfig ),
+  _graphicsWindow( graphicsWindow )
+{
+
+}
+
+arGUIXMLWindowConstruct::~arGUIXMLWindowConstruct( void )
+{
+  delete _windowConfig;
+
+  // possible it doesn't own this graphics window anymore
+  // delete _graphicsWindow;
+}
+
 arGUIXMLParser::arGUIXMLParser( arGUIWindowManager* wm,
-                                std::map<int, arGraphicsWindow* >& windows,
-                                arSZGClient& SZGClient,
+                                arSZGClient* SZGClient,
                                 const std::string& config ) :
   _wm( wm ),
-  _windows( &windows ),
-  _SZGClient( &SZGClient ),
+  _SZGClient( SZGClient ),
   _config( config ),
   _mininumConfig( "<szg_display><szg_window /></szg_display>" )
 {
-  if( config == "NULL" ) {
-    std::cout << "config == NULL, using minimum config" << std::endl;
-    _doc.Parse( _mininumConfig.c_str() );
-  }
-  else {
-    _doc.Parse( _config.c_str() );
+  if( !_config.length() || _config == "NULL" ) {
+    std::cout << "config is NULL or empty, using minimum config" << std::endl;
+    _config = _mininumConfig;
   }
 
-  if( _doc.Error() ) {
-    std::cout << "error in parsing gui xml on line: " << _doc.ErrorRow() << std::endl;
-  }
+  // need to call parse here rather than in parse() so that functions like
+  // numberOfWindows can be called before parse()
+  _doc.Parse( _config.c_str() );
 }
 
 arGUIXMLParser::~arGUIXMLParser( void )
 {
   _doc.Clear();
+}
+
+void arGUIXMLParser::setConfig( const std::string& config )
+{
+  _config = config;
+
+  // repopulate the xml structures with the new data
+  _doc.Parse( _config.c_str() );
 }
 
 int arGUIXMLParser::numberOfWindows( void )
@@ -73,7 +94,7 @@ int arGUIXMLParser::numberOfWindows( void )
 // NOTE: this function can and often *does* return NULL!
 TiXmlNode* arGUIXMLParser::_getNamedNode( const char* name )
 {
-  if( !name ) {
+  if( !name || !_SZGClient ) {
     return NULL;
   }
 
@@ -410,32 +431,41 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
 
 int arGUIXMLParser::parse( void )
 {
+  // _doc.Parse( _config.c_str() );
+
   if( _doc.Error() ) {
-    std::cout << "error in parsing gui xml, cannot create windows" << std::endl;
+    std::cout << "error in parsing gui config xml on line: " << _doc.ErrorRow() << std::endl;
     return -1;
   }
 
-  std::cout << "using GUI XML config: " << std::endl;
+  std::cout << "parsing gui config xml: " << std::endl;
   _doc.Print();
 
   // get a reference to <szg_display>
   TiXmlNode* szgDisplayNode = _doc.FirstChild();
 
-  if( !szgDisplayNode ) {
+  if( !szgDisplayNode || !szgDisplayNode->ToElement() ) {
     std::cout << "malformed <szg_display> node" << std::endl;
     return -1;
   }
 
-  // Before any windows are created, set the threading mode
-  if( szgDisplayNode->ToElement()
-      && szgDisplayNode->ToElement()->Attribute( "threaded" ) ) {
+  // Before any windows are created, set the threading mode and framelock
+
+  // <threaded value="true|false|yes|no" />
+  if( _wm && szgDisplayNode->ToElement()->Attribute( "threaded" ) ) {
     _wm->setThreaded( _attributeBool( szgDisplayNode->ToElement(), "threaded" ) );
+  }
+
+  // <framelock value="wildcat" />
+  if( _wm && szgDisplayNode->ToElement()->Attribute( "framelock" ) ) {
+    std::string framelock = szgDisplayNode->ToElement()->Attribute( "framelock" );
+    _wm->useFramelock( framelock == "wildcat" );
   }
 
   // iterate over all <szg_window> elements
   for( TiXmlNode* windowNode = szgDisplayNode->FirstChild( "szg_window" ); windowNode;
        windowNode = windowNode->NextSibling() ) {
-    std::cout << "creating window" << std::endl;
+    std::cout << "parsing window" << std::endl;
 
     TiXmlNode* windowElement = NULL;
 
@@ -454,35 +484,39 @@ int arGUIXMLParser::parse( void )
       continue;
     }
 
-    arGUIWindowConfig windowConfig;
+    arGUIWindowConfig* windowConfig = new arGUIWindowConfig();
 
     // <size width="integer" height="integer" />
     if( (windowElement = windowNode->FirstChild( "size" )) &&
          windowElement->ToElement() ) {
-      windowElement->ToElement()->Attribute( "width",  &windowConfig._width );
-      windowElement->ToElement()->Attribute( "height", &windowConfig._height );
+      int width, height;
+      windowElement->ToElement()->Attribute( "width",  &width );
+      windowElement->ToElement()->Attribute( "height", &height );
+      windowConfig->setSize( width, height );
     }
 
     // <position x="integer" y="integer" />
     if( (windowElement = windowNode->FirstChild( "position" )) &&
          windowElement->ToElement() ) {
-      windowElement->ToElement()->Attribute( "x", &windowConfig._x );
-      windowElement->ToElement()->Attribute( "y", &windowConfig._y );
+      int x, y;
+      windowElement->ToElement()->Attribute( "x", &x );
+      windowElement->ToElement()->Attribute( "y", &y );
+      windowConfig->setPos( x, y );
     }
 
     // <fullscreen value="true|false|yes|no" />
     if( (windowElement = windowNode->FirstChild( "fullscreen" )) ) {
-      windowConfig._fullscreen = _attributeBool( windowElement );
+      windowConfig->setFullscreen( _attributeBool( windowElement ) );
     }
 
     // <decorate value="true|false|yes|no" />
     if( (windowElement = windowNode->FirstChild( "decorate" )) ) {
-      windowConfig._decorate = _attributeBool( windowElement );
+      windowConfig->setDecorate( _attributeBool( windowElement ) );
     }
 
     // <stereo value="true|false|yes|no" />
     if( (windowElement = windowNode->FirstChild( "stereo" )) ) {
-      windowConfig._stereo = _attributeBool( windowElement );
+      windowConfig->setStereo( _attributeBool( windowElement ) );
     }
 
     // <zorder value="normal|top|topmost" />
@@ -491,35 +525,40 @@ int arGUIXMLParser::parse( void )
          windowElement->ToElement()->Attribute( "value" ) ) {
       std::string zorder = windowElement->ToElement()->Attribute( "value" );
 
+      arZOrder arzorder;
       if( zorder == "normal" ) {
-        windowConfig._zorder = AR_ZORDER_NORMAL;
+        arzorder = AR_ZORDER_NORMAL;
       }
       else if( zorder == "top" ) {
-        windowConfig._zorder = AR_ZORDER_TOP;
+        arzorder = AR_ZORDER_TOP;
       }
       else if( zorder == "topmost" ) {
-        windowConfig._zorder = AR_ZORDER_TOPMOST;
+        arzorder = AR_ZORDER_TOPMOST;
       }
+
+      windowConfig->setZOrder( arzorder );
     }
 
     // <bpp value="integer" />
     if( (windowElement = windowNode->FirstChild( "bpp" )) &&
         windowElement->ToElement() ) {
-      windowElement->ToElement()->Attribute( "value", &windowConfig._bpp );
+      int bpp;
+      windowElement->ToElement()->Attribute( "value", &bpp );
+      windowConfig->setBpp( bpp );
     }
 
     // <title value="string" />
     if( (windowElement = windowNode->FirstChild( "title" )) &&
          windowElement->ToElement() &&
          windowElement->ToElement()->Attribute( "value" ) ) {
-      windowConfig._title = windowElement->ToElement()->Attribute( "value" );
+      windowConfig->setTitle( windowElement->ToElement()->Attribute( "value" ) );
     }
 
     // <xdisplay value="string" />
     if( (windowElement = windowNode->FirstChild( "xdisplay" )) &&
         windowElement->ToElement() &&
         windowElement->ToElement()->Attribute( "value" ) ) {
-      windowConfig._XDisplay = windowElement->ToElement()->Attribute( "value" );
+      windowConfig->setXDisplay( windowElement->ToElement()->Attribute( "value" ) );
     }
 
     // <cursor value="arrow|none|help|wait" />
@@ -528,44 +567,39 @@ int arGUIXMLParser::parse( void )
         windowElement->ToElement()->Attribute( "value" ) ) {
       string initialCursor = windowElement->ToElement()->Attribute( "value" );
 
+      arCursor cursor;
       if( initialCursor == "none" ) {
-        windowConfig._cursor = AR_CURSOR_NONE;
+        cursor = AR_CURSOR_NONE;
       }
       else if( initialCursor == "help" ) {
-        windowConfig._cursor = AR_CURSOR_HELP;
+        cursor = AR_CURSOR_HELP;
       }
       else if( initialCursor == "wait" ) {
-        windowConfig._cursor = AR_CURSOR_WAIT;
+        cursor = AR_CURSOR_WAIT;
       }
       else {
         // The default is for there to be an arrow cursor.
-        windowConfig._cursor = AR_CURSOR_ARROW;
+        cursor = AR_CURSOR_ARROW;
       }
+
+      windowConfig->setCursor( cursor );
     }
 
-    std::cout << "TITLE: " << windowConfig._title << std::endl;
-    std::cout << "WIDTH: " << windowConfig._width << std::endl;
-    std::cout << "HEIGHT: " << windowConfig._height << std::endl;
-    std::cout << "X: " << windowConfig._x << std::endl;
-    std::cout << "Y: " << windowConfig._y << std::endl;
-    std::cout << "FULLSCREEN: " << windowConfig._fullscreen << std::endl;
-    std::cout << "STEREO: " << windowConfig._stereo << std::endl;
-    std::cout << "ZORDER: " << windowConfig._zorder << std::endl;
-    std::cout << "BPP: " << windowConfig._bpp << std::endl;
-    std::cout << "XDISPLAY: " << windowConfig._XDisplay << std::endl;
-    std::cout << "CURSOR: " << windowConfig._cursor << std::endl;
+    std::cout << "TITLE: " << windowConfig->getTitle() << std::endl;
+    std::cout << "WIDTH: " << windowConfig->getWidth() << std::endl;
+    std::cout << "HEIGHT: " << windowConfig->getHeight() << std::endl;
+    std::cout << "X: " << windowConfig->getPosX() << std::endl;
+    std::cout << "Y: " << windowConfig->getPosY() << std::endl;
+    std::cout << "FULLSCREEN: " << windowConfig->getFullscreen() << std::endl;
+    std::cout << "STEREO: " << windowConfig->getStereo() << std::endl;
+    std::cout << "ZORDER: " << windowConfig->getZOrder() << std::endl;
+    std::cout << "BPP: " << windowConfig->getBpp() << std::endl;
+    std::cout << "XDISPLAY: " << windowConfig->getXDisplay() << std::endl;
+    std::cout << "CURSOR: " << windowConfig->getCursor() << std::endl;
 
-    int winID = _wm->addWindow( windowConfig );
-    if( winID < 0 ) {
-      std::cout << "addWindow failure during parsing" << std::endl;
-      return -1;
-    }
+    _windowConstructs.push_back( new arGUIXMLWindowConstruct( -1, windowConfig, new arGraphicsWindow() ) );
 
-    std::cout << "creating arGraphicsWindow" << std::endl;
-    // create the associated arGraphicsWindow
-    (*_windows)[ winID ] = new arGraphicsWindow();
-
-    (*_windows)[ winID ]->useOGLStereo( _wm->isStereo( winID ) );
+    _windowConstructs.back()->getGraphicsWindow()->useOGLStereo( windowConfig->getStereo() );
 
     std::string viewMode( "normal" );
 
@@ -611,7 +645,7 @@ int arGUIXMLParser::parse( void )
       }
 
       // clear out the 'standard' viewport
-      (*_windows)[ winID ]->clearViewportList();
+      _windowConstructs.back()->getGraphicsWindow()->clearViewportList();
 
       // iterate over all <szg_viewport> elements
       for( viewportNode = viewportListNode->FirstChild( "szg_viewport" ); viewportNode;
@@ -698,7 +732,7 @@ int arGUIXMLParser::parse( void )
         }
 
         std::cout << "adding custom viewport" << std::endl;
-        (*_windows)[ winID ]->addViewport( viewport );
+        _windowConstructs.back()->getGraphicsWindow()->addViewport( viewport );
 
         // if viewportNode was a pointer, revert it back so that its
         // siblings can be traversed properly
@@ -726,11 +760,11 @@ int arGUIXMLParser::parse( void )
       }
 
       // viewports added by setViewMode will use this camera and screen
-      (*_windows)[ winID ]->setCamera( camera );
-      (*_windows)[ winID ]->setScreen( screen );
+      _windowConstructs.back()->getGraphicsWindow()->setCamera( camera );
+      _windowConstructs.back()->getGraphicsWindow()->setScreen( screen );
 
       // set up the appropriate viewports
-      if( !(*_windows)[ winID ]->setViewMode( viewMode ) ) {
+      if( !_windowConstructs.back()->getGraphicsWindow()->setViewMode( viewMode ) ) {
         std::cout << "setViewMode failure!" << std::endl;
       }
 
@@ -758,3 +792,46 @@ int arGUIXMLParser::parse( void )
   return 0;
 }
 
+int arGUIXMLParser::createWindows( arWindowInitCallback* initCB,
+                                   arRenderCallback* graphicsDrawCB,
+                                   arGUIRenderCallback* guiDrawCB,
+                                   arHead* head )
+{
+  if( !_wm ) {
+    return -1;
+  }
+
+  std::cout << "creating windows" << std::endl;
+
+  std::vector< arGUIXMLWindowConstruct* >::iterator itr;
+
+  for( itr = _windowConstructs.begin(); itr != _windowConstructs.end(); itr++ ) {
+    (*itr)->setWindowID( _wm->addWindow( *((*itr)->getWindowConfig()) ) );
+
+    // next, register all the callbacks
+    // NOTE: since the pointer is passed into us, each {arGraphics|arGUI} window
+    // will get the same pointer, thus they do *not* own them and should *not*
+    // delete them.  this may need to be changed in the future.
+    (*itr)->getGraphicsWindow()->setInitCallback( initCB );
+    (*itr)->getGraphicsWindow()->setDrawCallback( graphicsDrawCB );
+
+    _wm->registerDrawCallback( (*itr)->getWindowID(), guiDrawCB );
+
+    // if a viable head was passed it, set it up for any arVRCamera's
+    if( head ) {
+      std::vector<arViewport>* viewports = (*itr)->getGraphicsWindow()->getViewports();
+      std::vector<arViewport>::iterator vitr;
+
+      for( vitr = viewports->begin(); vitr != viewports->end(); vitr++ ) {
+        if( vitr->getCamera()->type() == "arVRCamera" ) {
+          ((arVRCamera*) vitr->getCamera())->setHead( head );
+        }
+      }
+
+    }
+  }
+
+  std::cout << "done creating" << std::endl;
+
+  return 0;
+}
