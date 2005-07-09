@@ -36,6 +36,8 @@
 <value>
   <szg_device>
     <input_sources> arMotionstarDriver </input_sources>
+    <input_sinks></input_sinks>
+    <input_filters></input_filters>
     <pforth>
         initTrackerCalibration
         initIIRFilter

@@ -1153,9 +1153,16 @@ int arGUIWindow::fullscreen( void )
   windowRect.right  = GetSystemMetrics( SM_CXSCREEN );
   windowRect.bottom = GetSystemMetrics( SM_CYSCREEN );
 
-  AdjustWindowRect( &windowRect,
-                    WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
-                    false );
+  // It's a good idea to comment this out. If these lines are used, there
+  // are many subtle interactions between whether or not the window has
+  // decoration, whether the taskbar is set to be always on top, etc.
+  // The price we pay is that a fullscreen window with decoration will
+  // (a) fill the screen but (b) have its decoration visible. In other
+  // words, fullscreen is different from GLUT's version of fullscreen.
+  // Actually, that might be a good thing.
+  //AdjustWindowRect( &windowRect,
+  //                  WS_OVERLAPPEDWINDOW | WS_CLIPSIBLINGS | WS_CLIPCHILDREN,
+  //                  false );
 
   // set HWND_TOPMOST as sometimes the taskbar will stay on the top of the
   // window (this flag needs to be unset if coming out of fullscreen mode)
@@ -1169,8 +1176,10 @@ int arGUIWindow::fullscreen( void )
   // NOTE: seems to only be necessary on windows as the event is 'correctly'
   // raised on linux (odder still is that the move to 0x0 is raised, just not
   // the resize...)
-  _GUIEventManager->addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_RESIZE, _ID, 0,
-                                               getPosX(), getPosY(), getWidth(), getHeight() ) );
+  _GUIEventManager->addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, 
+                                               AR_WINDOW_RESIZE, _ID, 0,
+                                               getPosX(), getPosY(), 
+                                               getWidth(), getHeight() ) );
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
