@@ -8,6 +8,16 @@
 #include "arGraphicsScreen.h"
 #include "arGraphicsHeader.h"
 
+ostream& operator<<(ostream& s, arGraphicsScreen& g) {
+  s << "arGraphicsScreen:\n"
+    << "  Center = " << g.getCenter() << "\n"
+    << "  Normal = " << g.getNormal() << "\n"
+    << "  Up = " << g.getUp()<< "\n"
+    << "  Width x Height = (" << g.getWidth() << "," << g.getHeight() << ")\n"
+    << "  Head-mounted = " << g.getHeadMounted() << "\n";
+  return s;
+}
+
 // PLEASE NOTE: SINCE OUR DEFAULT WINDOW IS 640x480, WE MUST USE A WALL
 // SIZE THAT IS DIFFERENT FROM THE CUBE FRONT WALL, i.e. 13.333 x 10.
 arGraphicsScreen::arGraphicsScreen():

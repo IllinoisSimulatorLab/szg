@@ -65,4 +65,6 @@ class SZG_CALL arHead {
   int _fixedHeadMode;
 };
 
+SZG_CALL ostream& operator<<(ostream& s, arHead& h);
+
 #endif // AR_HEAD_H

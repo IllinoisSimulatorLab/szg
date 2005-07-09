@@ -8,7 +8,7 @@
 #include "arHead.h"
 #include "arGraphicsScreen.h"
 
-SZG_CALL ostream& operator<<(ostream& s, arHead& h) {
+ostream& operator<<(ostream& s, arHead& h) {
   s << "Head:\n  Matrix:\n" << h.getMatrix();
   s << "  MidEyeOffset  : " << h.getMidEyeOffset() << endl;
   s << "  EyeDirection  : " << h.getEyeDirection() << endl;

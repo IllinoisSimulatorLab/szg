@@ -72,5 +72,7 @@ class SZG_CALL arGraphicsScreen {
   float _fixedHeadUpAngle;
 };
 
+SZG_CALL ostream& operator<<(ostream& s, arGraphicsScreen& g);
+
 #endif // AR_GRAPHICSSCREEN_H
 
