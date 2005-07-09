@@ -30,6 +30,7 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
 
 arMatrix4 mouseWorldMatrix = arMatrix4();
 arMatrix4 lightTransformMatrix = arMatrix4();
@@ -84,7 +85,7 @@ class arSZGViewRenderCallback : public arGUIRenderCallback
         // HACK because the width/height could be different between windows but
         // because we can't pass anything to the graphicswindow draw the
         // globals need to be set here
-        arVector3 size = wm->getWindowSize( windowInfo->_windowID );
+        arVector3 size = wm->getWindowSize( windowInfo->getWindowID() );
         _width =  int( size[ 0 ] );
         _height = int( size[ 1 ] );
 
@@ -301,21 +302,21 @@ void keyboardCB( arGUIKeyInfo* keyInfo )
 
   // only perform actions on key release, otherwise everything is done
   // twice, once on press and once on release
-  if( keyInfo->_state == AR_KEY_DOWN ) {
+  if( keyInfo->getState() == AR_KEY_DOWN ) {
     return;
   }
 
-  switch( keyInfo->_key ) {
+  switch( keyInfo->getKey() ) {
     case AR_VK_ESC:
       exit( 0 );
     break;
 
     case AR_VK_f:
-      wm->fullscreenWindow( keyInfo->_windowID );
+      wm->fullscreenWindow( keyInfo->getWindowID() );
     break;
 
     case AR_VK_F:
-      wm->resizeWindow( keyInfo->_windowID, 640, 480 );
+      wm->resizeWindow( keyInfo->getWindowID(), 640, 480 );
     break;
 
     case AR_VK_0:
@@ -358,7 +359,7 @@ void keyboardCB( arGUIKeyInfo* keyInfo )
 
   // animation functions
   if( theObject->supportsAnimation() ) {
-    switch( keyInfo->_key  ) {
+    switch( keyInfo->getKey() ) {
       case AR_VK_j:
         theObject->prevFrame();
       break;
@@ -385,13 +386,13 @@ void windowCB( arGUIWindowInfo* windowInfo )
     return;
   }
 
-  switch( windowInfo->_state ) {
+  switch( windowInfo->getState() ) {
     case AR_WINDOW_RESIZE:
-      wm->setWindowViewport( windowInfo->_windowID, 0, 0, windowInfo->_sizeX, windowInfo->_sizeY );
+      wm->setWindowViewport( windowInfo->getWindowID(), 0, 0, windowInfo->getSizeX(), windowInfo->getSizeY() );
     break;
 
     case AR_WINDOW_CLOSE:
-      wm->deleteWindow( windowInfo->_windowID );
+      wm->deleteWindow( windowInfo->getWindowID() );
 
       if( !wm->hasActiveWindows() ) {
         exit( 0 );
@@ -405,23 +406,23 @@ void windowCB( arGUIWindowInfo* windowInfo )
 
 void mouseCB( arGUIMouseInfo* mouseInfo )
 {
-  arVector3 size = wm->getWindowSize( mouseInfo->_windowID );
+  arVector3 size = wm->getWindowSize( mouseInfo->getWindowID() );
   int width = int( size[ 0 ] );
   int height = int( size[ 1 ] );
 
-  if( mouseInfo->_state == AR_MOUSE_DRAG ) {
-    const int deltaX = mouseInfo->_posX - mouseInfo->_prevPosX;
-    const int deltaY = mouseInfo->_posY - mouseInfo->_prevPosY;
+  if( mouseInfo->getState() == AR_MOUSE_DRAG ) {
+    const int deltaX = mouseInfo->getPosX() - mouseInfo->getPrevPosX();
+    const int deltaY = mouseInfo->getPosY() - mouseInfo->getPrevPosY();
 
     switch( mouseManipState ) {
       case SLIDER:
       {
         arGUIMouseInfo* tMouseInfo = new arGUIMouseInfo( AR_MOUSE_EVENT, AR_GENERIC_STATE );
-        tMouseInfo->_button = AR_LBUTTON;
-        tMouseInfo->_posX = mouseInfo->_posX;
-        tMouseInfo->_posY = mouseInfo->_posY;
-        tMouseInfo->_prevPosX = mouseInfo->_prevPosX;
-        tMouseInfo->_prevPosY = mouseInfo->_prevPosY;
+        tMouseInfo->setButton( AR_LBUTTON );
+        tMouseInfo->setPosX( mouseInfo->getPosX() );
+        tMouseInfo->setPosY( mouseInfo->getPosY() );
+        tMouseInfo->setPrevPosX( mouseInfo->getPrevPosX() );
+        tMouseInfo->setPrevPosY( mouseInfo->getPrevPosY() );
 
         mouseCB( tMouseInfo );
 
@@ -464,15 +465,15 @@ void mouseCB( arGUIMouseInfo* mouseInfo )
   }
 
   // the rest is only applicable when the model supports animation
-  if( mouseInfo->_button != AR_LBUTTON || !theObject->supportsAnimation() ||
+  if( mouseInfo->getButton() != AR_LBUTTON || !theObject->supportsAnimation() ||
       ( theObject->numberOfFrames() < 1 ) ) {
     return;
   }
 
   // mouse down on the slider bar
-  if( mouseInfo->_posY > height - 20 && mouseInfo->_state == AR_MOUSE_DOWN ) {
+  if( mouseInfo->getPosY() > height - 20 && mouseInfo->getState() == AR_MOUSE_DOWN ) {
     oldState = mouseManipState;
-    if( mouseInfo->_posX <= width - 57 && mouseInfo->_posX >= 20 ) {
+    if( mouseInfo->getPosX() <= width - 57 && mouseInfo->getPosX() >= 20 ) {
       mouseManipState = SLIDER;
     }
     else {
@@ -481,19 +482,19 @@ void mouseCB( arGUIMouseInfo* mouseInfo )
   }
 
   if( mouseManipState == SLIDER ) { // we're dragging
-    if( mouseInfo->_posX < 20 ) {
+    if( mouseInfo->getPosX() < 20 ) {
       theObject->setFrame( 0 );
     }
-    else if( mouseInfo->_posX > width - 57 ) {
+    else if( mouseInfo->getPosX() > width - 57 ) {
       theObject->setFrame( theObject->numberOfFrames() - 1 );
     }
     else {
-      theObject->setFrame( int( float( mouseInfo->_posX - 20 ) / float( width - 77 ) *
+      theObject->setFrame( int( float( mouseInfo->getPosX() - 20 ) / float( width - 77 ) *
                                 float( theObject->numberOfFrames() ) ) );
 	  }
   }
 
-  if( mouseInfo->_state == AR_MOUSE_UP ) {
+  if( mouseInfo->getState() == AR_MOUSE_UP ) {
     mouseManipState = oldState;	// done dragging bar
   }
 }
@@ -597,34 +598,38 @@ int main( int argc, char** argv )
 
   std::cout << "Using display: " << displayName << std::endl;
 
-  arGUIXMLParser guiXMLParser( wm, windows, SZGClient, SZGClient.getGlobalAttribute( displayName ) );
+  arGUIXMLParser guiXMLParser( wm, &SZGClient,
+                               SZGClient.getGlobalAttribute( displayName ) );
 
   // if there are multiple windows, default to threaded mode (this can be forced
   // back in the xml)
   wm->setThreaded( guiXMLParser.numberOfWindows() > 1 );
 
-  // now run through the xml and create all the windows
-  guiXMLParser.parse();
+  // first parse the xml
+  if( guiXMLParser.parse() < 0 ) {
+    return -1;
+  }
 
-  std::map<int, arGraphicsWindow* >::iterator itr;
+  // then create all the windows and register the callbacks
+  if( guiXMLParser.createWindows( new arDefaultWindowInitCallback(),
+                                  new arDefaultGUIRenderCallback( drawCB ),
+                                  NULL,
+                                  &head ) < 0 ) {
+    return -1;
+  }
 
-  // register all the draw callbacks with the newly created {arGUI|arGraphics}Windows
-  for( itr = windows.begin(); itr != windows.end(); itr++ ) {
-    // register this program's draw callback with the arGraphicsWindow
-    itr->second->setDrawCallback( new arDefaultGUIRenderCallback( drawCB ) );
-    itr->second->setInitCallback( new arDefaultWindowInitCallback() );
+  // populate the 'windows' set with data from the arGUIXMLParser
+  const std::vector< arGUIXMLWindowConstruct* >* windowConstructs = guiXMLParser.getWindowConstructs();
+  std::vector< arGUIXMLWindowConstruct* >::const_iterator itr;
 
-    // register the arGraphicsWindow's draw callback with the arGUIWindow
-    wm->registerDrawCallback( itr->first, new arSZGViewRenderCallback( itr->second ) );
+  for( itr = windowConstructs->begin(); itr != windowConstructs->end(); itr++ ) {
+    windows[ (*itr)->getWindowID() ] = (*itr)->getGraphicsWindow();
 
-    // set the virtual head for any VR cameras
-    std::vector<arViewport>* viewports = itr->second->getViewports();
-    std::vector<arViewport>::iterator vitr;
-    for( vitr = viewports->begin(); vitr != viewports->end(); vitr++ ) {
-      if( vitr->getCamera()->type() == "arVRCamera" ) {
-        ((arVRCamera*) vitr->getCamera())->setHead( &head );
-      }
-    }
+    // HACK, this is a kludge, have to do this because there is no way to add a
+    // drawcallback to the createWindows call above that is different for each
+    // gui window
+    wm->registerDrawCallback( (*itr)->getWindowID(),
+                              new arSZGViewRenderCallback( (*itr)->getGraphicsWindow() ) );
   }
 
   /*
