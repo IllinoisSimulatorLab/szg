@@ -13,10 +13,7 @@
 #include "arBarrierServer.h"
 #include "arDataUtilities.h"
 #include "arGraphicsAPI.h"
-#include "arGUIWindow.h"
-#include "arGUIWindowManager.h"
 #include "arGraphicsWindow.h"
-#include "arPerspectiveCamera.h"
 #include "arSoundClient.h"
 #include "arSZGAppFramework.h"
 #include "arVRCamera.h"
@@ -26,6 +23,12 @@
 #include <vector>
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arFrameworkCalling.h"
+
+class arGUIWindowManager;
+class arGUIXMLParser;
+class arGUIWindowInfo;
+class arGUIMouseInfo;
+class arGUIKeyInfo;
 
 /// Helper for arMasterSlaveFramework.
 class arTransferFieldDescriptor {
@@ -271,6 +274,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // arGraphicsWindow     _graphicsWindow;
   arGUIWindowManager* _wm;
   std::map<int, arGraphicsWindow* > _windows;
+  arGUIXMLParser* _guiXMLParser;
 
   // need to store the networks on which we'll try to connect to services
   // as well as the name of the service we'll be using

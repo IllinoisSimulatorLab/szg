@@ -14,7 +14,10 @@
 #include "arEventUtilities.h"
 #include "arPForthFilter.h"
 #include "arVRConstants.h"
+#include "arGUIWindow.h"
+#include "arGUIWindowManager.h"
 #include "arGUIXMLParser.h"
+
 
 /// to make the callbacks startable from GLUT, we need this
 /// global variable to pass in an arMasterSlaveFramework parameter
@@ -309,6 +312,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _userInitCalled( false ),
   _parametersLoaded( false ),
   _wm( NULL ),
+  _guiXMLParser( NULL ),
   _serviceName( "NULL" ),
   _serviceNameBarrier( "NULL" ),
   _networks( "NULL" ),
@@ -417,6 +421,16 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
 
   // _defaultCamera.setHead( &_head );
   // _graphicsWindow.setInitCallback( new arMasterSlaveWindowInitCallback( *this ) );
+  _wm = new arGUIWindowManager( ar_masterSlaveFrameworkWindowEventFunction,
+                                ar_masterSlaveFrameworkKeyboardFunction,
+                                ar_masterSlaveFrameworkMouseFunction,
+                                ar_masterSlaveFrameworkWindowInitGLFunction );
+
+  // as a replacement for the global __globalFramework pointer, each window will
+  // have a user data pointer set
+  _wm->setUserData( this );
+
+  _guiXMLParser = new arGUIXMLParser( _wm, &_SZGClient );
 }
 
 /// \bug memory leak for several pointer members
@@ -2235,62 +2249,22 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
 //**************************************************************************
 
 void arMasterSlaveFramework::_createWindowing( void ) {
-  // We set a few window-wide attributes based on screen name. THIS IS AN
-  // UGLY HACK!!!! (stereo, window size, window position, wildcat framelock)
-  const string screenName( _SZGClient.getMode( "graphics" ) );
-
-  // There is a transition in configuration occuring, from the previous one
-  // to one based on arGUI. The "magic" keywords are changing from
-  // SZG_SCREENn to SZG_DISPLAYn.
-  //std::string whichDisplay = _SZGClient.getMode( "gui" );
-  string whichDisplay
-    = "SZG_DISPLAY" + screenName.substr( screenName.length() - 1, 1 );
-
-  std::string displayName  = _SZGClient.getAttribute( whichDisplay, "name" );
-
-  std::cout << "Using display: " << whichDisplay << " : "
-            << displayName << std::endl;
-
-  _wm = new arGUIWindowManager( ar_masterSlaveFrameworkWindowEventFunction,
-                                ar_masterSlaveFrameworkKeyboardFunction,
-                                ar_masterSlaveFrameworkMouseFunction,
-                                ar_masterSlaveFrameworkWindowInitGLFunction );
-
-  // as a replacement for the global __globalFramework pointer, each window will
-  // have a user data pointer set
-  _wm->setUserData( this );
-
-  if( _useWindowing ) {
-    arGUIXMLParser guiXMLParser( _wm, &_SZGClient,
-                                 _SZGClient.getGlobalAttribute( displayName ) );
-
-    // If there are multiple windows, default to threaded mode.
-    // (this can be forced to a different value from the xml)
-    _wm->setThreaded( guiXMLParser.numberOfWindows() > 1 );
-
-    // first parse the xml
-    if( guiXMLParser.parse() < 0 ) {
-      // already complained, just return
-      return;
-    }
-
-    // then create the windows and register the drawcallbacks and head
-    if( guiXMLParser.createWindows( new arMasterSlaveWindowInitCallback( *this ),
+  // create the windows and register the drawcallbacks and head
+  if( _guiXMLParser->createWindows( new arMasterSlaveWindowInitCallback( *this ),
                                     new arMasterSlaveRenderCallback( *this ),
                                     new arMasterSlaveRenderCallback( *this ),
                                     &_head ) < 0 ) {
-      // already complained, just return;
-      return;
-    }
+    // already complained, just return;
+    return;
+  }
 
-    // populate the framework's set of {arGUI|arGraphics} windows with data
-    // from the arGUIXMLParser
-    const std::vector< arGUIXMLWindowConstruct* >* windowConstructs = guiXMLParser.getWindowConstructs();
-    std::vector< arGUIXMLWindowConstruct* >::const_iterator itr;
+  // populate the framework's set of {arGUI|arGraphics} windows with data
+  // from the arGUIXMLParser
+  const std::vector< arGUIXMLWindowConstruct* >* windowConstructs = _guiXMLParser->getWindowConstructs();
+  std::vector< arGUIXMLWindowConstruct* >::const_iterator itr;
 
-    for( itr = windowConstructs->begin(); itr != windowConstructs->end(); itr++ ) {
-      _windows[ (*itr)->getWindowID() ] = (*itr)->getGraphicsWindow();
-    }
+  for( itr = windowConstructs->begin(); itr != windowConstructs->end(); itr++ ) {
+    _windows[ (*itr)->getWindowID() ] = (*itr)->getGraphicsWindow();
   }
 
   /*
@@ -2320,6 +2294,32 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
   // We set a few window-wide attributes based on screen name. THIS IS AN
   // UGLY HACK!!!! (stereo, window size, window position, wildcat framelock)
   const string screenName( _SZGClient.getMode( "graphics" ) );
+
+  // There is a transition in configuration occuring, from the previous one
+  // to one based on arGUI. The "magic" keywords are changing from
+  // SZG_SCREENn to SZG_DISPLAYn.
+  //std::string whichDisplay = _SZGClient.getMode( "gui" );
+  string whichDisplay
+    = "SZG_DISPLAY" + screenName.substr( screenName.length() - 1, 1 );
+
+  std::string displayName  = _SZGClient.getAttribute( whichDisplay, "name" );
+
+  std::cout << "Using display: " << whichDisplay << " : "
+            << displayName << std::endl;
+
+  _guiXMLParser->setConfig( _SZGClient.getGlobalAttribute( displayName ) );
+
+  // If there are multiple windows, default to threaded mode.
+  // (this can be forced to a different value from the xml)
+  // ACK, this is a bad place for this, should be closer to createWindows but
+  // it *can't* come after arGUIXMLParser::parse or it will be overwritten
+  _wm->setThreaded( _guiXMLParser->numberOfWindows() > 1 );
+
+  // first parse the xml
+  if( _guiXMLParser->parse() < 0 ) {
+    // already complained, just return
+    return false;
+  }
 
   /*
   // Which screen defines the view?
@@ -2449,6 +2449,9 @@ void arMasterSlaveFramework::_messageTask( void ) {
     }
     else if ( messageType == "reload" ) {
       (void) _loadParameters();
+
+      // now try to 'diff' the current set of arGUI windows with the
+      // reloaded set
     }
     else if ( messageType == "user" ) {
       onUserMessage( messageBody );

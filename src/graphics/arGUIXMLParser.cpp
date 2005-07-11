@@ -44,14 +44,7 @@ arGUIXMLParser::arGUIXMLParser( arGUIWindowManager* wm,
   _config( config ),
   _mininumConfig( "<szg_display><szg_window /></szg_display>" )
 {
-  if( !_config.length() || _config == "NULL" ) {
-    std::cout << "config is NULL or empty, using minimum config" << std::endl;
-    _config = _mininumConfig;
-  }
-
-  // need to call parse here rather than in parse() so that functions like
-  // numberOfWindows can be called before parse()
-  _doc.Parse( _config.c_str() );
+  setConfig( config );
 }
 
 arGUIXMLParser::~arGUIXMLParser( void )
@@ -61,9 +54,17 @@ arGUIXMLParser::~arGUIXMLParser( void )
 
 void arGUIXMLParser::setConfig( const std::string& config )
 {
+  if( _config == config ) {
+    // return;
+  }
+
   _config = config;
 
-  // repopulate the xml structures with the new data
+  if( !_config.length() || _config == "NULL" ) {
+    std::cout << "config is NULL or empty, using minimum config" << std::endl;
+    _config = _mininumConfig;
+  }
+
   _doc.Parse( _config.c_str() );
 }
 
