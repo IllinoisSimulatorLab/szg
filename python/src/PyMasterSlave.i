@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.10 2005/06/29 20:42:24 crowell Exp $
+// $Id: PyMasterSlave.i,v 1.11 2005/07/11 19:00:38 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -14,13 +14,25 @@
 
 // Callback mechanism based on
 // http://gd.tuwien.ac.at/softeng/SWIG/Examples/python/callback2/,
-// with a number of changes. See also setDrawCallback(PyObject *PyFunc) etc.
-// in the %extend section.
+// with a number of changes.
+
+// Routines to install the callbacks are defined way below in the %extend section.
+
+// Note that if you use the old-style arMasterSlaveFramework (for which you manually
+// install callable objects as callbacks), no callbacks are installed by default &
+// if you fail to install a required callback youll get an exception. With the
+// more object-oriented arPyMasterSlaveFramework, which installs some of its methods
+// as the callbacks, all callbacks are installed in its __init__(). Only the new-style
+// draw callback (that takes arGraphicsWindow and arViewport refs as args) is supported
+// with the latter.
+
 %{
 // The following macro defines a C++-functions that serve as callbacks
 // for the original C++ classes. Internally, these functions convert
 // their arguments to Python classes and call the appropriate Python
-// method.
+// method. This macro works for all the callbacks with the most common
+// signature, i.e. void callback( arMasterSlaveFramework& ). Callbacks
+// with different signatures are handled individually below.
 #define MASTERSLAVECALLBACK(cbtype) \
 static PyObject *py##cbtype##Func = NULL; \
 static void py##cbtype##Callback(arMasterSlaveFramework& fw) { \
@@ -83,6 +95,57 @@ static bool pyStartCallback(arMasterSlaveFramework& fw,arSZGClient& cl) {
     Py_DECREF(clobj);
     Py_DECREF(fwobj);
     return res;
+}
+
+
+// windowStartGL callback requires special treatment because the signature of
+// its callback function differs from everybody elses.
+//
+//  void setWindowStartGLCallback(bool (*windowStartGLCallback)(arMasterSlaveFramework& fw, 
+//                                            arGUIWindowInfo*));
+static PyObject *pyWindowStartGLFunc = NULL;
+static void pyWindowStartGLCallback( arMasterSlaveFramework& fw, arGUIWindowInfo* winInfoPtr ) {
+    PyObject *fwobj = SWIG_NewPointerObj( (void *) &fw, SWIGTYPE_p_arMasterSlaveFramework, 0 );
+    PyObject *winInfoObj = SWIG_NewPointerObj( (void *) winInfoPtr, SWIGTYPE_p_arGUIWindowInfo, 0 );
+    PyObject *arglist=Py_BuildValue( "(O,O)", fwobj, winInfoObj );
+    PyObject *result=PyEval_CallObject( pyWindowStartGLFunc, arglist );
+    if (result==NULL) {
+        PyErr_Print();
+        string errmsg="A Python exception occurred in arMasterSlaveFramework windowStartGL callback.";
+        cerr << errmsg << "\n";
+        throw  errmsg;
+    }
+    Py_XDECREF(result);
+    Py_DECREF(arglist);
+    Py_DECREF(winInfoObj);
+    Py_DECREF(fwobj);
+}
+
+
+// new-style draw callback requires special treatment because the signature of
+// its callback function differs from everybody elses.
+//
+//  void setDrawCallback(void (*drawCallback)(arMasterSlaveFramework& fw, 
+//                                            arGraphicsWindow&, arViewport& ));
+static PyObject *pyNewDrawFunc = NULL;
+static void pyNewDrawCallback( arMasterSlaveFramework& fw,
+                               arGraphicsWindow& win, arViewport& vp ) {
+    PyObject *fwobj = SWIG_NewPointerObj( (void *) &fw, SWIGTYPE_p_arMasterSlaveFramework, 0 );
+    PyObject *winobj = SWIG_NewPointerObj( (void *) &win, SWIGTYPE_p_arGraphicsWindow, 0 );
+    PyObject *vpobj = SWIG_NewPointerObj( (void *) &vp, SWIGTYPE_p_arViewport, 0 );
+    PyObject *arglist=Py_BuildValue( "(O,O,O)", fwobj, winobj, vpobj );
+    PyObject *result=PyEval_CallObject( pyNewDrawFunc, arglist );
+    if (result==NULL) {
+        PyErr_Print();
+        string errmsg="A Python exception occurred in arMasterSlaveFramework new-style draw callback.";
+        cerr << errmsg << "\n";
+        throw  errmsg;
+    }
+    Py_XDECREF(result);
+    Py_DECREF(arglist);
+    Py_DECREF(vpobj);
+    Py_DECREF(winobj);
+    Py_DECREF(fwobj);
 }
 
 
@@ -317,6 +380,8 @@ class arMasterSlaveFramework : public arSZGAppFramework {
   bool registerFrameworkObject(arFrameworkObject* object){
     return _dataRouter.registerFrameworkObject(object);
   }
+
+  arGraphicsWindow* getWindow( int id );
 
   void setPlayTransform();
   void draw();  // HEAVILY deprecated, use the following:
@@ -704,7 +769,7 @@ PyObject *getString(char* name) {
 // A macro that yields the body of methods that set callback functions
 // Note how reference counters are increased and decreased to avoid
 // memory leaks (or so I hope...)
-#define SETMASTERSLAVECALLBACK(cbtype) \
+#define MAKEMASTERSLAVECALLBACKSETTER(cbtype) \
 void set##cbtype##Callback(PyObject *PyFunc) {\
     Py_XDECREF(py##cbtype##Func); \
     Py_XINCREF(PyFunc); \
@@ -713,49 +778,62 @@ void set##cbtype##Callback(PyObject *PyFunc) {\
 }
 
 
-//  void setDrawCallback(void (*draw)(arMasterSlaveFramework&));
-    SETMASTERSLAVECALLBACK(Draw)
+//  void setStartCallback(bool (*startcb)(arMasterSlaveFramework& fw, arSZGClient&));
+    MAKEMASTERSLAVECALLBACKSETTER(Start)
 
-//  void setStartCallback(bool (*initCallback)(arMasterSlaveFramework& fw, 
-//                                            arSZGClient&));
-    SETMASTERSLAVECALLBACK(Start)
+//  void setWindowStartGLCallback(bool (*windowStartGL)(arMasterSlaveFramework& fw, arGUIWindowInfo*));
+    MAKEMASTERSLAVECALLBACKSETTER(WindowStartGL)
+
+//  void setDrawCallback(void (*draw)(arMasterSlaveFramework&));
+    MAKEMASTERSLAVECALLBACKSETTER(Draw)
+
+//  void setDrawCallback(void (*draw)(arMasterSlaveFramework&,arGraphicsWindow&,arViewport&));
+void setNewDrawCallback(PyObject *PyFunc) {
+    Py_XDECREF(pyNewDrawFunc); 
+    Py_XINCREF(PyFunc); 
+    pyNewDrawFunc = PyFunc; 
+    self->setDrawCallback(pyNewDrawCallback);
+}
 
 // void setKeyboardCallback(void (*keyboard)(arMasterSlaveFramework&,
 //                                           unsigned char, int, int));
-    SETMASTERSLAVECALLBACK(Keyboard)
+    MAKEMASTERSLAVECALLBACKSETTER(Keyboard)
 
 //  void setPreExchangeCallback(void (*preExchange)(arMasterSlaveFramework&));
-    SETMASTERSLAVECALLBACK(PreExchange)
+    MAKEMASTERSLAVECALLBACKSETTER(PreExchange)
 
 //  void setWindowCallback(void (*windowCallback)(arMasterSlaveFramework&));
-    SETMASTERSLAVECALLBACK(Window)
+    MAKEMASTERSLAVECALLBACKSETTER(Window)
 
 //  void setPlayCallback(void (*play)(arMasterSlaveFramework&));
-    SETMASTERSLAVECALLBACK(Play)
+    MAKEMASTERSLAVECALLBACKSETTER(Play)
 
 //  void setOverlayCallback(void (*overlay)(arMasterSlaveFramework&));
-    SETMASTERSLAVECALLBACK(Overlay)
+    MAKEMASTERSLAVECALLBACKSETTER(Overlay)
 
 //  void setExitCallback(void (*cleanup)(arMasterSlaveFramework&));
-    SETMASTERSLAVECALLBACK(Exit)
+    MAKEMASTERSLAVECALLBACKSETTER(Exit)
 
 //  void setUserMessageCallback(
 //    void (*userMessageCallback)(arMasterSlaveFramework&, const string&));
-    SETMASTERSLAVECALLBACK(UserMessage)
+    MAKEMASTERSLAVECALLBACKSETTER(UserMessage)
 
 //  void setPostExchangeCallback(bool (*postExchange)(arMasterSlaveFramework&));
-    SETMASTERSLAVECALLBACK(PostExchange)
+    MAKEMASTERSLAVECALLBACKSETTER(PostExchange)
 
 //  void setSlaveConnectedCallback(void (*connected)(arMasterSlaveFramework&, int));
-    SETMASTERSLAVECALLBACK(SlaveConnected)
+    MAKEMASTERSLAVECALLBACKSETTER(SlaveConnected)
 
 }
 
+// Some master->slave data-transfer methods...
 %pythoncode %{
+    # master->slave data-transfer based on cPickle module
     def initObjectTransfer(self,name): self.initStringTransfer(name)
     def setObject(self,name,obj): self.setString(name,cPickle.dumps(obj))
     def getObject(self,name): return cPickle.loads(self.getString(name))
 
+    # master->slave data-transfer based on struct module
     def initStructTransfer( self, name ):
       self.initStringTransfer( name+'_FORMAT' )
       self.initStringTransfer( name+'_DATA' )
@@ -775,6 +853,8 @@ void ar_defaultReshapeCallback( PyObject* widthObject, PyObject* heightObject );
 
 %{
 
+// C implementation of standard reshape behavior (currently unused, reshape callback is gone,
+// I need to add something for the window event callback).
 void ar_defaultReshapeCallback( PyObject* widthObject, PyObject* heightObject ) {
   if ((!PyInt_Check(widthObject))||(!PyInt_Check(heightObject))) {
     PyErr_SetString(PyExc_TypeError,"ar_defaultReshapeCallback error: glViewport params must be ints");
@@ -801,13 +881,13 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
   def __init__(self):
     arMasterSlaveFramework.__init__(self)
     self.setStartCallback( self.startCallback )
+    self.setWindowStartGLCallback( self.windowStartGLCallback )
     self.setSlaveConnectedCallback( self.slaveConnectedCallback )
     self.setPreExchangeCallback( self.preExchangeCallback )
     self.setPostExchangeCallback( self.postExchangeCallback )
     self.setWindowCallback( self.windowInitCallback )
-    self.setReshapeCallback( self.reshapeCallback )
     self.setOverlayCallback( self.overlayCallback )
-    self.setDrawCallback( self.drawCallback )
+    self.setNewDrawCallback( self.drawCallback )
     self.setPlayCallback( self.playCallback )
     self.setKeyboardCallback( self.keyboardCallback )
     self.setUserMessageCallback( self.userMessageCallback )
@@ -817,6 +897,10 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
     return self.onStart( client )
   def onStart( self, client ):
     return True
+  def windowStartGLCallback( self, framework, winInfo ):
+    return self.onWindowStartGL( winInfo )
+  def onWindowStartGL( self, winInfo ):
+    pass
   def slaveConnectedCallback( self, framework, numConnected ):
     self.onSlaveConnected( numConnected )
   def onSlaveConnected( self, numConnected ):
@@ -833,17 +917,13 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
     self.onWindowInit()
   def onWindowInit( self ):
     ar_defaultWindowInitCallback()
-  def reshapeCallback( self, framework, width, height ):
-    self.onReshape( width, height )
-  def onReshape( self, width, height ):
-    ar_defaultReshapeCallback( width, height )
   def overlayCallback( self, framework ):
     self.onOverlay()
   def onOverlay( self ):
     pass
-  def drawCallback( self, framework ):
-    self.onDraw()
-  def onDraw( self ):
+  def drawCallback( self, framework, graphicsWin, viewport ):
+    self.onDraw( graphicsWin, viewport )
+  def onDraw( self, graphicsWin, viewport ):
     pass
   def playCallback( self, framework ):
     self.onPlay()

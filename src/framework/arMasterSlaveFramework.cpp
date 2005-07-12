@@ -1301,6 +1301,16 @@ void* arMasterSlaveFramework::getTransferField( std::string fieldName,
   return p.data;
 }
 
+arGraphicsWindow* arMasterSlaveFramework::getWindow( int id ) {
+  std::map<int,arGraphicsWindow*>::iterator iter = _windows.find( id );
+  if( iter == _windows.end() ) {
+    cerr << "arMasterSlaveFramework error: arGraphicsWindow with ID " << id
+         << " not found in getWindow().\n";
+    return NULL;
+  }
+  return iter->second;
+}
+
 void arMasterSlaveFramework::setPlayTransform( void ){
   if( soundActive() ) {
     _speakerObject.loadMatrices( _inputState->getMatrix( 0 ) );

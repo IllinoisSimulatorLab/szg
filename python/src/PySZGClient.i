@@ -98,15 +98,25 @@ class arSZGClient{
               const string& validValues /* no default */) {
     return self->getAttribute( computerName, groupName, parameterName, validValues );
     }
-  arVector3 getAttributeVector( const string& groupName,
+  PyObject* getAttributeVector( const string& groupName,
                                 const string& parameterName ) {
-    arVector3 result;
-    if (!self->getAttributeVector3( groupName, parameterName, result )) {
-        PyErr_SetString(PyExc_RuntimeError,"arSZGClient error: getAttributeVector3() failed.\n");
-        return false;
+    arVector3 theVec;
+    if (!self->getAttributeVector3( groupName, parameterName, theVec )) {
+        std::string msg("arSZGClient error: getAttributeVector() failed, probably ");
+        msg += groupName+std::string("/")+parameterName+std::string(" undefined.");
+        PyErr_SetString(PyExc_RuntimeError,msg.c_str());
+        return NULL;
+    }
+    PyObject* result = PyTuple_New( 3 );
+    if (!result) {
+      PyErr_SetString( PyExc_MemoryError, "unable to allocate new tuple for getAttributeVector3() result." );
+      return NULL;
+    }
+    for (int i=0; i<3; ++i) {
+      PyTuple_SetItem( result, i, PyFloat_FromDouble((double)theVec.v[i]) );
     }
     return result;
-    }
+  }
 }
   // More abbreviations.
   int getAttributeInt(const string& groupName, 

@@ -20,6 +20,8 @@
 #include "arInputSimulator.h"
 #include "arFramerateGraph.h"
 #include "arMasterSlaveDataRouter.h"
+#include "arGUIWindowManager.h"
+#include "arGUIInfo.h"
 #include <vector>
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arFrameworkCalling.h"
@@ -76,6 +78,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   // not really necessary to pass SZGClient, but convenient.
   virtual bool onStart( arSZGClient& SZGClient );
+  virtual void onWindowStartGL( arGUIWindowInfo* );
   virtual void onPreExchange( void );
   virtual void onPostExchange( void );
   virtual void onWindowInit( void );
@@ -84,7 +87,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   virtual void onPlay( void );
   // virtual void onReshape( int width, int height );
   virtual void onWindowEvent( arGUIWindowInfo* );
-  virtual void onWindowStartGL( arGUIWindowInfo* );
   virtual void onCleanup( void );
   virtual void onUserMessage( const std::string& messageBody );
   virtual void onOverlay( void );
@@ -97,6 +99,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // set the callbacks
   void setStartCallback( bool (*startCallback)( arMasterSlaveFramework& fw,
                                                 arSZGClient& ) );
+  void setWindowStartGLCallback( void (*windowStartGL)( arMasterSlaveFramework&,
+                                                      arGUIWindowInfo* ) );
   void setPreExchangeCallback( void (*preExchange)( arMasterSlaveFramework& ) );
   void setPostExchangeCallback( void (*postExchange)( arMasterSlaveFramework& ) );
   void setWindowCallback( void (*windowCallback)( arMasterSlaveFramework& ) );
@@ -107,8 +111,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // void setReshapeCallback( void (*reshape)( arMasterSlaveFramework&, int, int ) );
   void setWindowEventCallback( void (*windowEvent)( arMasterSlaveFramework&,
                                                     arGUIWindowInfo* ) );
-  void setWindowStartGLCallback( void (*windowStartGL)( arMasterSlaveFramework&,
-                                                      arGUIWindowInfo* ) );
   void setExitCallback( void (*cleanup)( arMasterSlaveFramework& ) );
   void setUserMessageCallback( void (*userMessageCallback)( arMasterSlaveFramework&,
                                                             const std::string& messageBody ) );
@@ -250,6 +252,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   arGUIWindowManager* getWindowManager( void ) { return _wm; }
 
   std::map<int, arGraphicsWindow* >* getWindows( void ) { return &_windows; }
+  arGraphicsWindow* getWindow( int id );
 
  protected:
   arDataServer*        _stateServer;        // used only by master

@@ -1,4 +1,4 @@
-// $Id: PyGraphics.i,v 1.3 2005/05/09 16:53:59 crowell Exp $
+// $Id: PyGraphics.i,v 1.4 2005/07/11 19:00:38 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -406,6 +406,134 @@ public:
 
   arTexture originalImage;
 };
+
+%{
+#include "arGraphicsScreen.h"
+%}
+
+class arGraphicsScreen {
+ public:
+  arGraphicsScreen();
+  virtual ~arGraphicsScreen() {}
+
+  void setCenter(const arVector3& center);
+  void setNormal(const arVector3& normal);
+  void setUp(const arVector3& up);
+  void setDimensions(float width, float height);
+  arVector3 getNormal() const { return _normal; }
+  arVector3 getUp() const { return _up; }
+  arVector3 getCenter() const { return _center; }
+
+  void setWidth( float width ) { setDimensions( width, _height ); }
+  void setHeight( float height ) { setDimensions( _width, height ); }
+  float getWidth() const { return _width; }
+  float getHeight() const { return _height; }
+
+  void setHeadMounted( bool hmd ) { _headMounted = hmd; }
+  bool getHeadMounted() const { return _headMounted; }
+
+  void setTile( arVector4& tile ) { setTile( int( tile[ 0 ] ), int( tile[ 1 ] ),
+                                             int( tile[ 2 ] ), int( tile[ 3 ] ) ); }
+
+  void setTile( int tileX, int numberTilesX, int tileY, int numberTilesY );
+
+  bool setUseFixedHeadMode( const std::string& usageMode );
+  bool getIgnoreFixedHeadMode() const { return _ignoreFixedHeadMode; }
+  bool getAlwaysFixedHeadMode() const { return _alwaysFixedHeadMode; }
+
+  arVector3 getFixedHeadHeadPosition() const { return _fixedHeadPosition; }
+  void setFixedHeadPosition( const arVector3& position ) { _fixedHeadPosition = position; }
+  float getFixedHeadHeadUpAngle() const { return _fixedHeadUpAngle; }
+  void setFixedHeadHeadUpAngle( float angle ) { _fixedHeadUpAngle = angle; }
+};
+
+%{
+#include "arViewport.h"
+%}
+
+class arViewport {
+ public:
+  void setScreen( const arGraphicsScreen& screen ) { _screen = screen; }
+  arGraphicsScreen* getScreen() { return &_screen; }
+  // NOTE: the viewport now owns its camera.
+  // It makes a copy here & returns the address of the copy
+
+  // NOTE also: we need to write a Python-callback-based camera class
+  // before these will be of any use.
+  // arCamera* setCamera( arCamera* camera);
+  // arCamera* getCamera();
+  arVector4 getViewport() const;
+  void setEyeSign(float eyeSign);
+  float getEyeSign();
+  void setColorMask(GLboolean red, GLboolean green,
+		    GLboolean blue, GLboolean alpha);
+  void clearDepthBuffer(bool flag);
+  // e.g. GL_BACK_LEFT
+  void setDrawBuffer( GLenum buf ) { _oglDrawBuffer = buf; }
+  GLenum getDrawBuffer() const { return _oglDrawBuffer; }
+};
+
+%{
+#include "arGraphicsWindow.h"
+%}
+
+class arGraphicsWindow {
+  public:
+    // This sets the camera for all viewports as well as future ones
+    // Note that only a pointer is passed in, cameras are externally owned.
+    // arCamera* setCamera( arCamera* cam=0 );
+    // arCamera* getCamera(){ return _defaultCamera; }
+    void setScreen( const arGraphicsScreen& screen ) { _defaultScreen = screen; }
+    arGraphicsScreen* getScreen( void ) { return &_defaultScreen; }
+    // This sets the camera for just a single viewport
+    // arCamera* setViewportCamera( unsigned int vpindex, arCamera* cam );
+    // Sets the camera for two adjacent (in the list) viewports
+    // arCamera* setStereoViewportsCamera( unsigned int startVPIndex, arCamera* cam );
+    // arCamera* getViewportCamera( unsigned int vpindex );
+    bool getUseOGLStereo() const { return _useOGLStereo; }
+    void addViewport(const arViewport&);
+    // NOTE: the following two routines invalidate any externally held pointers
+    // to individual viewport cameras (a pointer to the window default camera,
+    // returned by getCamera() or setCamera(), will still be valid).
+    bool setViewMode( const std::string& viewModeString );
+    // std::vector<arViewport>* getViewports();
+    arViewport* getViewport( unsigned int vpindex );
+    float getCurrentEyeSign() const { return _currentEyeSign; }
+};
+
+%extend arGraphicsWindow {
+
+PyObject* getPixelDimensions(void) {
+  PyObject* dims = PyTuple_New( 4 );
+  if (!dims) {
+    PyErr_SetString( PyExc_MemoryError, "unable to allocate new tuple for arGraphicsWindow pixel dimensions." );
+    return NULL;
+  }
+  int left, bottom, width, height;
+  self->getPixelDimensions( left, bottom, width, height );
+  PyTuple_SetItem( dims, 0, PyInt_FromLong((long)left) );
+  PyTuple_SetItem( dims, 1, PyInt_FromLong((long)bottom) );
+  PyTuple_SetItem( dims, 2, PyInt_FromLong((long)width) );
+  PyTuple_SetItem( dims, 3, PyInt_FromLong((long)height) );
+  return dims;
+}
+
+} // end %extend arGraphicsWindow
+
+%{
+#include "arGUIInfo.h"
+%}
+
+class arGUIWindowInfo {
+  public:
+    // inherited from arGUIInfo
+    int getWindowID();
+    int getPosX( void ) const;
+    int getPosY( void ) const;
+    int getSizeX( void ) const;
+    int getSizeY( void ) const;
+};
+
 
 %{
 

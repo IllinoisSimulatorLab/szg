@@ -69,7 +69,6 @@ class SZG_CALL arGUIInfo
     void* getUserData( void ) const { return _userData; }
 
   private:
-
     // variables common to all events
 
     arGUIEventType _eventType;    ///< The type of event.
@@ -269,7 +268,6 @@ class SZG_CALL arGUIWindowInfo : public arGUIInfo
     int getSizeY( void ) const { return _sizeY; }
 
   private:
-
     int _posX;      ///< The x position of the window.
     int _posY;      ///< The y position of the window.
     int _sizeX;     ///< The width of the window.

@@ -207,7 +207,7 @@ class arGraphicsNode: public arDatabaseNode{
   virtual bool receiveData(arStructuredData*);
   virtual arStructuredData* dumpData();
 
-  virtual void draw();
+  virtual void draw( arGraphicsContext* );
 
 %pythoncode{
   def find(self, name):
@@ -231,7 +231,7 @@ class arGraphicsArrayNode:public arGraphicsNode{
   arGraphicsArrayNode(){}
   ~arGraphicsArrayNode(){}
 
-  void draw();
+  void draw( arGraphicsContext* );
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 };
@@ -272,7 +272,7 @@ class arLightNode:public arGraphicsNode{
   arLightNode(){}
   ~arLightNode(){}
 
-  void draw(){}
+  void draw( arGraphicsContext* ){}
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
@@ -285,7 +285,7 @@ class arMaterialNode:public arGraphicsNode{
   arMaterialNode(){}
   ~arMaterialNode(){}
 
-  void draw(){} 
+  void draw( arGraphicsContext* ){} 
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
@@ -336,7 +336,7 @@ class arTextureNode: public arGraphicsNode{
   arTextureNode();
   ~arTextureNode(){}
 
-  void draw(){}
+  void draw( arGraphicsContext* ){}
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
@@ -359,7 +359,7 @@ class arTransformNode: public arGraphicsNode{
   arTransformNode(){}
   ~arTransformNode(){}
 
-  void draw() { glMultMatrixf(_transform.v); }
+  void draw( arGraphicsContext* ) { glMultMatrixf(_transform.v); }
 
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
@@ -376,7 +376,7 @@ class arVisibilityNode: public arGraphicsNode{
   arVisibilityNode();
   ~arVisibilityNode(){}
 
-  void draw(){}
+  void draw(arGraphicsNode*){}
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
@@ -390,7 +390,7 @@ class arBillboardNode: public arGraphicsNode{
   arBillboardNode();
   ~arBillboardNode(){}
 
-  void draw();
+  void draw( arGraphicsContext* );
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
@@ -405,7 +405,7 @@ class arBumpMapNode: public arGraphicsNode{
   arBumpMapNode(){}
   ~arBumpMapNode(){}
 
-  void draw(){}
+  void draw( arGraphicsContext* ){}
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 };
@@ -415,7 +415,7 @@ class arDrawableNode:public arGraphicsNode{
   arDrawableNode();
   ~arDrawableNode(){}
 
-  void draw();
+  void draw( arGraphicsContext* );
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 

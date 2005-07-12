@@ -139,3 +139,4 @@ arGUIWindowInfo::~arGUIWindowInfo( void )
 {
 
 }
+

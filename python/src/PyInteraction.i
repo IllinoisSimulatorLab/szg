@@ -639,19 +639,18 @@ void arPythonInteractable::setCallbacks( PyObject* touchCallback,
   }
 
   Py_XDECREF(_touchCallback);
-  Py_XINCREF(touchCallback);
-  _touchCallback = touchCallback;
-
   Py_XDECREF(_processCallback);
-  Py_XINCREF(processCallback);
-  _processCallback = processCallback;
-
   Py_XDECREF(_untouchCallback);
-  Py_XINCREF(untouchCallback);
-  _untouchCallback = untouchCallback;
-
   Py_XDECREF(_matrixCallback);
+
+  Py_XINCREF(touchCallback);
+  Py_XINCREF(processCallback);
+  Py_XINCREF(untouchCallback);
   Py_XINCREF(matrixCallback);
+
+  _touchCallback = touchCallback;
+  _processCallback = processCallback;
+  _untouchCallback = untouchCallback;
   _matrixCallback = matrixCallback;
 }
 
@@ -701,9 +700,15 @@ class arPythonInteractable : public arInteractable {
 void ar_activateColor( const arVector4& colvec ) {
   glColor4f( colvec.v[0], colvec.v[1], colvec.v[2], colvec.v[3] );
 }
+
+/*int ar_compareSwigPtrs( PySwigObject* a, PySwigObject* b ) {*/
+/*  return PySwigObject_compare(a,b) == 0;*/
+/*}*/
+
 %}
 
 void ar_activateColor( const arVector4& color );
+//int ar_compareSwigPtrs( PySwigObject* a, PySwigObject* b );
 
 // And here is the Python wrapper class.
 
@@ -719,6 +724,9 @@ class arPyInteractable(arPythonInteractable):
     self._highlighted = False
     self._color = arVector4(1,1,1,1)
     self._texture = None
+    # NOTE!! The last argument, incRefCounts, defaults to True and should _only_
+    # be set to False this method is used for this particular purpose, i.e. installing
+    # the classes own methods as its callbacks.
     self.setCallbacks( self.onTouch, self.onProcessInteraction, self.onUntouch, self.onMatrixSet )
   def setHighlight( self, flag ):
     self._highlighted = flag
@@ -769,6 +777,7 @@ class arPyInteractable(arPythonInteractable):
 # A Hack for getting the address portion of a SWIG pointer
 # (used for determining object identity).
 
+# going to try & write this better in C++...
 def ar_getAddressFromSwigPtr( ptr ):
   # is this ever an ugly hack
   # A SWIG pointer (currently) has the form
@@ -787,6 +796,7 @@ def ar_processInteractionList( effector, interactionList ):
     # get the grabbed object.
     grabbedPtr = effector.getGrabbedObject()
     grabbedAddress = ar_getAddressFromSwigPtr(grabbedPtr.this)
+    #grabbedAddress = grabbedPtr.this
 
     # If this effector has grabbed an object not in this list, dont
     # interact with any of this list
@@ -794,6 +804,8 @@ def ar_processInteractionList( effector, interactionList ):
     for item in interactionList:
       # HACK! Found object in list
       if ar_getAddressFromSwigPtr(item.this) == grabbedAddress: 
+      #if ar_compareSwigPtrs( item.this, grabbedAddress ):
+      #if item.this == grabbedAddress:
         grabbedObject = item
         break
     if not grabbedObject:
@@ -811,9 +823,12 @@ def ar_processInteractionList( effector, interactionList ):
   if effector.hasTouchedObject():
     oldTouchedPtr = effector.getTouchedObject()
     oldTouchedAddress = ar_getAddressFromSwigPtr(oldTouchedPtr.this)
+    #oldTouchedAddress = oldTouchedPtr.this
     for item in interactionList:
       # HACK! Found object in list
       if ar_getAddressFromSwigPtr(item.this) == oldTouchedAddress: 
+      #if ar_compareSwigPtrs( item.this, oldTouchedAddress ):
+      #if item.this == oldTouchedAddress:
         oldTouchedObject = item
     if not oldTouchedObject:
       return False # not an error, just means no interaction occurred
@@ -833,10 +848,13 @@ def ar_processInteractionList( effector, interactionList ):
         newTouchedObject = item
   newTouchedAddress = None
   if newTouchedObject:
+    #newTouchedAddress = newTouchedObject.this
     newTouchedAddress = ar_getAddressFromSwigPtr(newTouchedObject.this)
 
   if oldTouchedPtr and oldTouchedAddress:
     if (not newTouchedAddress) or (newTouchedAddress != oldTouchedAddress):
+    #if (not newTouchedAddress) or not ar_compareSwigPtrs(newTouchedAddress, oldTouchedAddress):
+    #if (not newTouchedAddress) or newTouchedAddress != oldTouchedAddress:
       oldTouchedPtr.untouch( effector )
 
   if not newTouchedObject:

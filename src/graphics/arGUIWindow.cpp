@@ -585,7 +585,7 @@ int arGUIWindow::_performWindowCreation( void )
     return -1;
   }
 
-  // taken care of by the windowInitGL callback now
+  // taken care of by the windowStartGL callback now
   // InitGL( getWidth(), getHeight() );
 
   // tell anyone listening that the window has been successfully created
