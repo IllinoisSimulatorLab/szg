@@ -154,9 +154,90 @@ void ar_distSceneGraphFrameworkWindowTask(void*){
   glutMotionFunc(ar_distSceneGraphFrameworkMouseFunction);
   glutPassiveMotionFunc(ar_distSceneGraphFrameworkMouseFunction);
   glutKeyboardFunc(ar_distSceneGraphFrameworkKeyboard);
-  __globalSceneGraphFramework->_graphicsClient.init();
+  // AARGH!!!! This is totally bogus!
+  //__globalSceneGraphFramework->_graphicsClient.init();
   glutMainLoop();
 }
+
+void ar_distSceneGraphGUIMouseFunction( arGUIMouseInfo* mouseInfo ) {
+  if( !mouseInfo || !mouseInfo->getUserData() ) {
+    return;
+  }
+
+  arDistSceneGraphFramework* fw 
+    = (arDistSceneGraphFramework*) mouseInfo->getUserData();
+
+  // in standalone mode, button events should go to the interface
+  if (fw->_standalone && 
+      fw->_standaloneControlMode == "simulator"){
+    if (mouseInfo->getState() == AR_MOUSE_DOWN 
+        || mouseInfo->getState() == AR_MOUSE_UP){
+      int whichButton = ( mouseInfo->getButton() == AR_LBUTTON ) ? 0 :
+                        ( mouseInfo->getButton() == AR_MBUTTON ) ? 1 :
+                        ( mouseInfo->getButton() == AR_RBUTTON ) ? 2 : 0;
+      int whichState = ( mouseInfo->getState() == AR_MOUSE_DOWN ) ? 1 : 0;
+      fw->_simulator.mouseButton(whichButton, whichState,
+                                 mouseInfo->getPosX(), mouseInfo->getPosY());
+    }
+    else{
+      fw->_simulator.mousePosition(mouseInfo->getPosY(),
+				   mouseInfo->getPosX());
+    }
+  }
+}
+
+void ar_distSceneGraphFrameworkGUIKeyboardFunction( arGUIKeyInfo* keyInfo ){
+  if (!keyInfo || !keyInfo->getUserData() ){
+    return;
+  }
+
+  arDistSceneGraphFramework* fw 
+    = (arDistSceneGraphFramework*) keyInfo->getUserData();
+  
+  if ( keyInfo->getState() == AR_KEY_DOWN ){
+    switch ( keyInfo->getKey() ){
+    case AR_VK_ESC:
+      // Stop the framework (parameter meaningless so far)
+      fw->stop(true);
+      exit(0);
+    case 'P':
+      fw->_graphicsClient.toggleFrameworkObjects();
+      break;
+    }
+  }
+  // in standalone mode, keyboard events should also go to the interface
+  if (fw->_standalone &&
+      fw->_standaloneControlMode == "simulator"){
+    fw->_simulator.keyboard(keyInfo->getKey(), 1, 0, 0);
+  }
+}
+
+void ar_distSceneGraphFrameworkGUIWindowFunction(arGUIWindowInfo* windowInfo){
+  if (!windowInfo || !windowInfo->getUserData()){
+    return;
+  }
+
+  arDistSceneGraphFramework* fw
+    = (arDistSceneGraphFramework*) windowInfo->getUserData();
+
+  arGUIWindowManager* windowManager = fw->_graphicsClient.getWindowManager();
+  switch(windowInfo->getState()){
+  case AR_WINDOW_RESIZE:
+    windowManager->setWindowViewport(windowInfo->getWindowID(),
+				     0, 0,
+				     windowInfo->getSizeX(),
+				     windowInfo->getSizeY());
+    break;
+  case AR_WINDOW_CLOSE:
+    // Stop the framework (parameter is meaningless so far)
+    fw->stop(true);
+    exit(0);
+    break;
+  default:
+    break;
+  }
+}
+
 
 arDistSceneGraphFramework::arDistSceneGraphFramework() :
   arSZGAppFramework(),
@@ -605,10 +686,6 @@ bool arDistSceneGraphFramework::_loadParameters(){
   ar_useWildcatFramelock(_SZGClient.getAttribute(screenName, 
                                                  "wildcat_framelock",
                                                  "|false|true|") == "true");
-  bool stereoMode 
-    = _SZGClient.getAttribute(screenName, "stereo", "|false|true|") == "true";
-  _graphicsClient.setStereoMode(stereoMode);
-  
   _loadNavParameters();
 
   return true;

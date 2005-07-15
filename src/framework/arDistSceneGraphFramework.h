@@ -26,6 +26,9 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   friend void ar_distSceneGraphFrameworkButtonFunction(int, int, int, int);
   friend void ar_distSceneGraphFrameworkMouseFunction(int, int);
   friend void ar_distSceneGraphFrameworkKeyboard(unsigned char, int, int);
+  friend void ar_distSceneGraphGUIMouseFunction( arGUIMouseInfo* mouseInfo );
+  friend void ar_distSceneGraphFrameworkGUIKeyboardFunction( arGUIKeyInfo* keyInfo );
+  friend void ar_distSceneGraphFrameworkGUIWindowFunction( arGUIWindowInfo* windowInfo);
  public:
   arDistSceneGraphFramework();
   ~arDistSceneGraphFramework() {}

@@ -69,7 +69,7 @@ class SZG_CALL arGUIXMLParser {
 
     // NOTE: since the same callback pointer is used for each {arGUI|arGraphics}
     // window in the _windowsConstructs, this means that those windows do *not*
-    // own their callbacks and should *not* ever call delete on them
+    // own their callbacks and should never call delete on them
     int createWindows( arWindowInitCallback* initCB = NULL,
                        arRenderCallback* graphicsDrawCB = NULL,
                        arGUIRenderCallback* guiDrawCB = NULL,

@@ -9,13 +9,14 @@
 #define SZG_DO_NOT_EXPORT
 #include "arGraphicsClient.h"
 #include "arFramerateGraph.h"
-#include "arWildcatUtilities.h"
+#include "arGUIWindowManager.h"
+#include "arGUIXMLParser.h"
 
 arGraphicsClient* graphicsClient = NULL;
 arFramerateGraph  framerateGraph;
-bool showFramerate = true;
-bool stereoMode = false;
-bool drawFramerate = false;
+arGUIWindowManager* windowManager;
+arGUIXMLParser*     guiParser;
+
 bool framerateThrottle = false;
 bool drawPerformanceDisplay = false;
 // Make the szgrender use a few less resources. Set by passing in a "-n"
@@ -27,57 +28,12 @@ bool exitFlag = false;
 arConditionVar pauseVar;
 arMutex        pauseLock;
 bool           pauseFlag = false;
-bool           screenshotFlag = false;
-// we start with screenshot0.ppm, then do screenshot1.ppm, etc.
-int            whichScreenshot = 0;
-int            screenshotStartX = 0;
-int            screenshotStartY = 0;
-int            screenshotWidth = 640;
-int            screenshotHeight = 480;
 string         dataPath;  // For storing screenshots.
 
-// the parameter variables
-int xSize = -1, ySize = -1;
-int xPos = -1, yPos = -1;
 string textPath;
 
 bool loadParameters(arSZGClient& cli){
   // important that we use the parameters for our particular screen
-  const string screenName(cli.getMode("graphics"));
-
-  int sizeBuffer[2];
-  string sizeString = cli.getAttribute(screenName, "size");
-  if (sizeString != "NULL" 
-      && ar_parseIntString(sizeString,sizeBuffer,2)== 2){
-    xSize = sizeBuffer[0];
-    ySize = sizeBuffer[1];
-  }
-  else{
-    xSize = 640;
-    ySize = 480;
-  }
-
-  const string posString(cli.getAttribute(screenName, "position"));
-  if (sizeString != "NULL"
-      && ar_parseIntString(posString,sizeBuffer,2)){
-    xPos = sizeBuffer[0];
-    yPos = sizeBuffer[1];
-  }
-  else{
-    xPos = 0;
-    yPos = 0;
-  }
-
-  stereoMode = cli.getAttribute(screenName, "stereo",
-    "|false|true|") == "true";
-  graphicsClient->setStereoMode(stereoMode);
-  drawFramerate = cli.getAttribute(screenName, "show_framerate",
-    "|false|true|") == "true";
-  graphicsClient->showFramerate(drawFramerate);
-  ar_useWildcatFramelock(cli.getAttribute(
-    screenName, "wildcat_framelock", "|false|true|") == "true");
-  // the arScreenObject(s) are now implicitly configured in arGraphicsClient
-  // via the arGraphicsWindow contained therein.
   graphicsClient->configure(&cli);
   dataPath = cli.getAttribute("SZG_DATA", "path"); // For storing screenshots.
   // Must remember to set up the data bundle info.
@@ -90,6 +46,15 @@ bool loadParameters(arSZGClient& cli){
     graphicsClient->addDataBundlePathMap("SZG_PYTHON", pythonPath);
   }
   return true;
+}
+
+void shutdownAction(){
+  // Do not do this again while an exit is already pending.
+  if (!exitFlag){
+    exitFlag = true;
+    // This command guarantees we'll get to the end of _cliSync.consume().
+    graphicsClient->_cliSync.skipConsumption();
+  }
 }
 
 void messageTask(void* pClient){
@@ -130,12 +95,12 @@ void messageTask(void* pClient){
         if (messageBody != "NULL"){
           int tempBuffer[4];
           ar_parseIntString(messageBody,tempBuffer,4);
-          screenshotStartX = tempBuffer[0];
-          screenshotStartY = tempBuffer[1];
-          screenshotWidth  = tempBuffer[2];
-          screenshotHeight = tempBuffer[3];
+          graphicsClient->requestScreenshot(dataPath, 
+                                            tempBuffer[0],
+					    tempBuffer[1],
+					    tempBuffer[2],
+					    tempBuffer[3]);
         }
-        screenshotFlag = true;
       }
     }
     if (messageType=="delay"){
@@ -157,9 +122,6 @@ void messageTask(void* pClient){
         cerr << "szgrender warning: unexpected messageBody \""
 	     << messageBody << "\".\n";
     }
-    if (messageType=="viewmode") {
-      graphicsClient->setViewMode( messageBody );
-    }
     if (messageType=="color"){
       float theColors[3] = {0,0,0};
       if (messageBody == "off"){
@@ -174,121 +136,45 @@ void messageTask(void* pClient){
         graphicsClient->setOverrideColor(arVector3(theColors));
       }
     }
-    if (messageType=="camera"){
-      // NOTE: these routines copy the same camera to all viewports.
-      // the graphics client also has routines for setting individual
-      // viewports' cameras.
-      if (messageBody == "NULL"){
-        graphicsClient->setWindowCamera(-1);
-      }
-      else{
-	int theCamera = -1;
-        ar_parseIntString(messageBody, &theCamera, 1);
-        graphicsClient->setWindowCamera(theCamera);
-      }
-    }
-    if (messageType=="look"){
-      if (messageBody=="NULL"){
-	// the default camera
-        graphicsClient->setWindowCamera(-1);
-      }
-      else{
-	// we activate a new camera, which may be better for screenshots
-        // the 15 parameters should be 6 glFrustum params and 9 gluLookat params
-        float tempBuf[15];
-        ar_parseFloatString(messageBody,tempBuf,15);
-        graphicsClient->setWindowLocalCamera(tempBuf,tempBuf+6);
-      }
-    }
     if (messageType=="reload"){
-      (void)loadParameters(*cli);
-      /// \bug if stereoMode changes from true to false, one eye remains drawn.
-      // Is it safe to clear both branches of initGraphics() here?
+      (void) loadParameters(*cli);
     }
   }
 }
 
-void initGraphics(){
-  if (stereoMode){
-    glDrawBuffer(GL_BACK_LEFT);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-    glDrawBuffer(GL_BACK_RIGHT);
+// The GUI window callbacks. The "init GL" and "mouse" callbacks are not used
+// here.
+
+void ar_guiWindowEvent(arGUIWindowInfo* windowInfo){
+  switch(windowInfo->getState()){
+  case AR_WINDOW_RESIZE:
+    windowManager->setWindowViewport(windowInfo->getWindowID(),
+				     0, 0,
+				     windowInfo->getSizeX(),
+				     windowInfo->getSizeY());
+    break;
+  case AR_WINDOW_CLOSE:
+    shutdownAction();
+    break;
+  default:
+    break;
   }
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); 
-  glutSwapBuffers();
 }
 
-void display(){
-  ar_mutex_lock(&pauseLock);
-  while (pauseFlag){
-    pauseVar.wait(&pauseLock);
-  }
-  ar_mutex_unlock(&pauseLock);
-  ar_timeval time1 = ar_time();
-  // All the drawing and syncing happens inside this call.
-  graphicsClient->_cliSync.consume();
-  if (screenshotFlag){
-    char numberBuffer[5];
-    sprintf(numberBuffer,"%i",whichScreenshot);
-    string screenshotName = string("screenshot")+numberBuffer+string(".jpg");
-    char* buffer1 = new char[screenshotWidth*screenshotHeight*3];
-    if (!stereoMode){
-      glReadBuffer(GL_FRONT);
-    }
-    else{
-      glReadBuffer(GL_FRONT_LEFT);
-    }
-    glReadPixels(screenshotStartX, screenshotStartY,
-                 screenshotWidth, screenshotHeight,
-                 GL_RGB,GL_UNSIGNED_BYTE,buffer1);
-    arTexture* texture = new arTexture;
-    texture->setPixels(buffer1,screenshotWidth,screenshotHeight);
-    if (!texture->writeJPEG(screenshotName.c_str(),dataPath)){
-      cerr << "szgrender remark: failed to write screenshot.\n";
-    }
-    delete texture;
-    delete buffer1;
-    // don't forget to increment the screenshot number
-    whichScreenshot++;
-    screenshotFlag = false;
-  }
-  // we want to exit here, if requested, to avoid crashes on Win32
-  if (exitFlag){
-    graphicsClient->_cliSync.stop();
-    // this should occur in the display thread before exiting
-    ar_deactivateWildcatFramelock();
-    exit(0);
-  }
-  if (framerateThrottle){
-    ar_usleep(200000);
-  }
-  if (makeNice){
-    // Do not have this be a default for szgrender. It seriously throttles
-    // the framerate of high framerate displays.
-    ar_usleep(2000);
-  }
-  arPerformanceElement* framerateElement 
-    = framerateGraph.getElement("framerate");
-  double frameTime = ar_difftime(ar_time(), time1);
-  framerateElement->pushNewValue(1000000.0/frameTime);
-}
-
-void keyboard(unsigned char key, int /*x*/, int /*y*/){
-  switch (key) {
-    case 27: /* escape key */
-      // AARGH!!! This should use the stop mechanism as well!!!!
+void ar_guiWindowKeyboard(arGUIKeyInfo* keyInfo){
+  if (keyInfo->getState() == AR_KEY_DOWN){
+    switch(keyInfo->getKey()){
+    case AR_VK_ESC:
       exit(0);
-    case 'f':
-      glutFullScreen();
-      break;
-    case 'F':
-      glutReshapeWindow(640,480);
-      break;
-    case 'P':
+    case AR_VK_P:
       drawPerformanceDisplay = !drawPerformanceDisplay;
       graphicsClient->drawFrameworkObjects(drawPerformanceDisplay);
       break;
+    default:
+      break;
+    }
   }
+
 }
 
 int main(int argc, char** argv){
@@ -322,13 +208,6 @@ int main(int argc, char** argv){
   framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
   graphicsClient->addFrameworkObject(&framerateGraph);
 
-  // get the initial parameters
-  if (!loadParameters(szgClient)){
-    if (!szgClient.sendInitResponse(false))
-      cerr << "szgrender error: maybe szgserver died.\n";
-    return 1;
-  }
-
   // we inited
   if (!szgClient.sendInitResponse(true))
     cerr << "szgrender error: maybe szgserver died.\n";
@@ -336,39 +215,76 @@ int main(int argc, char** argv){
   ar_mutex_init(&pauseLock);
   arThread dummy(messageTask, &szgClient);
 
-  glutInit(&argc,argv);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB |
-    (stereoMode ? GLUT_STEREO : 0));
-  glutInitWindowPosition(xPos,yPos);
-  if (xSize>0 && ySize>0){
-    glutInitWindowSize(xSize,ySize);
-    glutCreateWindow("Syzygy Graphics Viewer");
-  }
-  else{
-    glutInitWindowSize(640,480);
-    glutCreateWindow("Syzygy Graphics Viewer");
-    glutFullScreen();
-  }
-  // cout << "szgrender remark: created window.\n";
-  glutSetCursor(GLUT_CURSOR_NONE);
-  glutKeyboardFunc(keyboard);
-  glutDisplayFunc(display);
-  glutIdleFunc(display);
+  // We make the window manager object up here.
+  windowManager = new arGUIWindowManager(ar_guiWindowEvent,
+					 ar_guiWindowKeyboard,
+					 NULL,
+					 NULL);
+  // The graphics client actually does all of the window configuration, etc.
+  // internally. The window threads also get started inside it.
+  // However, we control the event loop out here.
+  graphicsClient->setWindowManager(windowManager);
 
-  initGraphics();
+  // AARGH! What is the purpose of the init graphics function? All it seems
+  // to do is clear the draw buffers and force a buffer swap.
+  //initGraphics();
+  if (!loadParameters(szgClient)){
+    cout << "szgrender remark: Parameter loading failed.\n";
+  }
+  
+
   graphicsClient->setNetworks(szgClient.getNetworks("graphics"));
+  // The connection threads + the window threads start in here.
   graphicsClient->start(szgClient);
+  // Framelock assumes we are running in single-threaded mode!
+  // (consequently, this is the display thread). NOTE: whether or not
+  // we are using framelock should be set by the parsing of the window config
+  // itself.
+  windowManager->findFramelock();
 
   // we've started
   if (!szgClient.sendStartResponse(true))
     cerr << "szgrender error: maybe szgserver died.\n";
 
-  // so far, the init purely has to do with starting up 
-  // the wildcat framelocking
-  // after the window has popped up... this is CONFUSING givent the way init
-  // is used elsewhere
-  graphicsClient->init();
+  while (true){ 
+    ar_mutex_lock(&pauseLock);
+    while (pauseFlag){
+      pauseVar.wait(&pauseLock);
+    }
+    ar_mutex_unlock(&pauseLock);
+    ar_timeval time1 = ar_time();
 
-  glutMainLoop();
+    // Inside here, through callbacks to the arSyncDataClient embedded inside
+    // the arGraphicsClient, is where all the scene graph event processing,
+    // drawing, and synchronization happens.
+    graphicsClient->_cliSync.consume();
+
+    // We want to exit here, if requested, to avoid crashes on Win32.
+    if (exitFlag){
+      graphicsClient->_cliSync.stop();
+      // This should occur in the display thread before exiting.
+      // NOTE: we are assuming that framelock is ONLY used in the window
+      // manager's single threaded mode.
+      windowManager->deactivateFramelock();
+      // Stops all the window threads and deletes the windows.
+      // Definitely a good idea to do this here as it increases the
+      // determinism of the exit.
+      windowManager->deleteAllWindows();
+      exit(0);
+    }
+    if (framerateThrottle){
+      ar_usleep(200000);
+    }
+    if (makeNice){
+      // Do not have this be a default for szgrender. It seriously throttles
+      // the framerate of high framerate displays.
+      ar_usleep(2000);
+    }
+    windowManager->processWindowEvents();
+    arPerformanceElement* framerateElement 
+      = framerateGraph.getElement("framerate");
+    double frameTime = ar_difftime(ar_time(), time1);
+    framerateElement->pushNewValue(1000000.0/frameTime);
+  }
   return 0;
 }

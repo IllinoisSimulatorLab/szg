@@ -406,7 +406,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   ar_mutex_init( &_pauseLock );
   ar_mutex_init( &_eventLock );
 
-  // when the default color is set like this, the app's gemetry is displayed
+  // when the default color is set like this, the app's geometry is displayed
   // instead of a default color
   _masterPort[ 0 ] = -1;
 
@@ -2751,7 +2751,11 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo ) {
   glFinish();
 
   // if we are supposed to take a screenshot, go ahead and do so.
-  _handleScreenshot( _wm->isStereo( currentWinID ) );
+  // only the "first" window (if there are multiple GUI windows) will be
+  // captured.
+  if (currentWinID == 0){
+    _handleScreenshot( _wm->isStereo( currentWinID ) );
+  }
 
   // if we are in shutdown mode, we want to stop everything and
   // then go away. NOTE: there are special problems since _drawWindow()

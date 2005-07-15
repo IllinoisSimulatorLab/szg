@@ -65,6 +65,10 @@ void arGUIXMLParser::setConfig( const std::string& config )
     _config = _mininumConfig;
   }
 
+  // NOTE: It is very important to clear the document first. Otherwise, this
+  // new config string will just be appended to the end of old config strings,
+  // which is NOT what is wanted.  
+  _doc.Clear();
   _doc.Parse( _config.c_str() );
 }
 
