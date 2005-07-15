@@ -26,25 +26,53 @@ class arHead;
 class SZG_CALL arGUIXMLWindowConstruct {
   public:
 
-    arGUIXMLWindowConstruct( int windowID = -1,
-                             arGUIWindowConfig* windowConfig = NULL,
-                             arGraphicsWindow* graphicsWindow = NULL );
+    arGUIXMLWindowConstruct( arGUIWindowConfig* windowConfig = NULL,
+                             arGraphicsWindow* graphicsWindow = NULL,
+                             arGUIRenderCallback* guiDrawCallback = NULL );
     ~arGUIXMLWindowConstruct( void );
 
-    void setWindowID( int windowID ) { _windowID = windowID; }
     void setWindowConfig( arGUIWindowConfig* windowConfig ) { _windowConfig = windowConfig; }
     void setGraphicsWindow( arGraphicsWindow* graphicsWindow ) { _graphicsWindow = graphicsWindow; }
+    void setGUIDrawCallback( arGUIRenderCallback* guiDrawCallback ) { _guiDrawCallback = guiDrawCallback; }
 
-    int getWindowID( void ) const { return _windowID; }
+    // conceptually both of these pointers should /probably/ be returned const,
+    // but there's places they're used where it's not currently possible to do so
     arGUIWindowConfig* getWindowConfig( void ) const { return _windowConfig; }
     arGraphicsWindow* getGraphicsWindow( void ) const { return _graphicsWindow; }
 
+    arGUIRenderCallback* getGUIDrawCallback( void ) const { return _guiDrawCallback; }
+
   private:
 
-    int _windowID;                        ///< -1 if the window has not yet been created
     arGUIWindowConfig* _windowConfig;
     arGraphicsWindow* _graphicsWindow;
 
+    arGUIRenderCallback* _guiDrawCallback;
+
+};
+
+class SZG_CALL arGUIWindowingConstruct {
+  public:
+    arGUIWindowingConstruct( int threaded = -1, int useFramelock = -1,
+                             std::vector< arGUIXMLWindowConstruct* >* windowConstructs = NULL );
+    ~arGUIWindowingConstruct( void );
+
+    void setThreaded( int threaded ) { _threaded = threaded; }
+    void setUseFramelock( int useFramelock ) { _useFramelock = useFramelock; }
+    void setWindowConstructs( std::vector< arGUIXMLWindowConstruct* >* windowConstructs ) { _windowConstructs = windowConstructs; }
+
+    int getThreaded( void ) const { return _threaded; }
+    int getUseFramelock( void ) const { return _useFramelock; }
+    std::vector< arGUIXMLWindowConstruct* >* getWindowConstructs( void ) const { return _windowConstructs; }
+
+  private:
+
+    // both of these are set to -1 if they have not been *explicitly* set from
+    // the xml
+    int _threaded;
+    int _useFramelock;
+
+    std::vector< arGUIXMLWindowConstruct* >* _windowConstructs;
 };
 
 class SZG_CALL arGUIXMLParser {
@@ -53,7 +81,7 @@ class SZG_CALL arGUIXMLParser {
     // all the functions off the SZGClient that the arGUIXMLParser needs to
     // call /should/ be made const, but they arent right now so this has
     // to be passed in non-const
-    arGUIXMLParser( arGUIWindowManager* wm = NULL,
+    arGUIXMLParser( /* arGUIWindowManager* wm = NULL, */
                     arSZGClient* SZGClient = NULL,
                     const std::string& config = "" );
 
@@ -63,23 +91,13 @@ class SZG_CALL arGUIXMLParser {
     std::string getConfig( void ) const { return _config; }
 
     void setSZGClient( arSZGClient* SZGClient ) { _SZGClient = SZGClient; }
-    void setWindowManager( arGUIWindowManager* wm ) { _wm = wm; }
+    // void setWindowManager( arGUIWindowManager* wm ) { _wm = wm; }
 
     int parse( void );
 
-    // NOTE: since the same callback pointer is used for each {arGUI|arGraphics}
-    // window in the _windowsConstructs, this means that those windows do *not*
-    // own their callbacks and should never call delete on them
-    int createWindows( arWindowInitCallback* initCB = NULL,
-                       arRenderCallback* graphicsDrawCB = NULL,
-                       arGUIRenderCallback* guiDrawCB = NULL,
-                       arHead* head = NULL );
-
-    int numberOfWindows( void );
-
     bool error( void ) const { return _doc.Error(); }
 
-    const std::vector< arGUIXMLWindowConstruct* >* getWindowConstructs( void ) const { return &_windowConstructs; }
+    arGUIWindowingConstruct* getWindowingConstruct( void ) const { return _windowingConstruct; }
 
   private:
 
@@ -105,10 +123,13 @@ class SZG_CALL arGUIXMLParser {
     arCamera* _configureCamera( arGraphicsScreen& screen,
                                 TiXmlNode* cameraNode = NULL );
 
-    arGUIWindowManager* _wm;
+    // arGUIWindowManager* _wm;
     arSZGClient* _SZGClient;
 
-    std::vector< arGUIXMLWindowConstruct* > _windowConstructs;
+    arGUIWindowingConstruct* _windowingConstruct;
+
+    std::vector< arGUIXMLWindowConstruct* > _parsedWindowConstructs;
+    // std::vector< arGUIXMLWindowConstruct* > _createdWindowConstructs;
 
     std::string _config, _mininumConfig;
 

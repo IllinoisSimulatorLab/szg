@@ -18,33 +18,47 @@
 
 #include <iostream>
 
-arGUIXMLWindowConstruct::arGUIXMLWindowConstruct( int windowID,
-                                                  arGUIWindowConfig* windowConfig,
-                                                  arGraphicsWindow* graphicsWindow ) :
-  _windowID( windowID ),
+arGUIXMLWindowConstruct::arGUIXMLWindowConstruct( arGUIWindowConfig* windowConfig,
+                                                  arGraphicsWindow* graphicsWindow,
+                                                  arGUIRenderCallback* guiDrawCallback ) :
   _windowConfig( windowConfig ),
-  _graphicsWindow( graphicsWindow )
+  _graphicsWindow( graphicsWindow ),
+  _guiDrawCallback( guiDrawCallback )
 {
 
 }
 
 arGUIXMLWindowConstruct::~arGUIXMLWindowConstruct( void )
 {
+  // depending on how windows have been reloaded and who might have copied
+  // around the graphisWindow pointer, this may or may not be safe...
+  delete _graphicsWindow;
   delete _windowConfig;
-
-  // possible it doesn't own this graphics window anymore
-  // delete _graphicsWindow;
 }
 
-arGUIXMLParser::arGUIXMLParser( arGUIWindowManager* wm,
-                                arSZGClient* SZGClient,
+arGUIWindowingConstruct::arGUIWindowingConstruct( int threaded, int useFramelock,
+                                                     std::vector< arGUIXMLWindowConstruct* >* windowConstructs ) :
+  _threaded( threaded ),
+  _useFramelock( useFramelock ),
+  _windowConstructs( windowConstructs )
+{
+
+}
+
+arGUIWindowingConstruct::~arGUIWindowingConstruct( void )
+{
+
+}
+
+arGUIXMLParser::arGUIXMLParser( arSZGClient* SZGClient,
                                 const std::string& config ) :
-  _wm( wm ),
   _SZGClient( SZGClient ),
-  _config( config ),
+  // _config( config ),
   _mininumConfig( "<szg_display><szg_window /></szg_display>" )
 {
   setConfig( config );
+
+  _windowingConstruct = new arGUIWindowingConstruct();
 }
 
 arGUIXMLParser::~arGUIXMLParser( void )
@@ -67,11 +81,13 @@ void arGUIXMLParser::setConfig( const std::string& config )
 
   // NOTE: It is very important to clear the document first. Otherwise, this
   // new config string will just be appended to the end of old config strings,
-  // which is NOT what is wanted.  
+  // which is NOT what is wanted.
   _doc.Clear();
+
   _doc.Parse( _config.c_str() );
 }
 
+/*
 int arGUIXMLParser::numberOfWindows( void )
 {
   int count = 0;
@@ -95,6 +111,7 @@ int arGUIXMLParser::numberOfWindows( void )
 
   return count;
 }
+*/
 
 // NOTE: this function can and often *does* return NULL!
 TiXmlNode* arGUIXMLParser::_getNamedNode( const char* name )
@@ -436,8 +453,6 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
 
 int arGUIXMLParser::parse( void )
 {
-  // _doc.Parse( _config.c_str() );
-
   if( _doc.Error() ) {
     std::cout << "error in parsing gui config xml on line: " << _doc.ErrorRow() << std::endl;
     return -1;
@@ -445,6 +460,12 @@ int arGUIXMLParser::parse( void )
 
   std::cout << "parsing gui config xml: " << std::endl;
   _doc.Print();
+
+  // clear out any previous parsings
+  // the graphicsWindow's and drawcallback's are externally owned, but this
+  // *will* cause a leak of the windowconfig's (and obviously the
+  // arGUIWindowConstruct pointers themselves)
+  _parsedWindowConstructs.clear();
 
   // get a reference to <szg_display>
   TiXmlNode* szgDisplayNode = _doc.FirstChild();
@@ -457,14 +478,14 @@ int arGUIXMLParser::parse( void )
   // Before any windows are created, set the threading mode and framelock
 
   // <threaded value="true|false|yes|no" />
-  if( _wm && szgDisplayNode->ToElement()->Attribute( "threaded" ) ) {
-    _wm->setThreaded( _attributeBool( szgDisplayNode->ToElement(), "threaded" ) );
+  if( szgDisplayNode->ToElement()->Attribute( "threaded" ) ) {
+    _windowingConstruct->setThreaded( _attributeBool( szgDisplayNode->ToElement(), "threaded" ) ? 1 : 0 );
   }
 
   // <framelock value="wildcat" />
-  if( _wm && szgDisplayNode->ToElement()->Attribute( "framelock" ) ) {
+  if( szgDisplayNode->ToElement()->Attribute( "framelock" ) ) {
     std::string framelock = szgDisplayNode->ToElement()->Attribute( "framelock" );
-    _wm->useFramelock( framelock == "wildcat" );
+    _windowingConstruct->setUseFramelock( framelock == "wildcat" ? 1 : 0 );
   }
 
   // iterate over all <szg_window> elements
@@ -602,9 +623,9 @@ int arGUIXMLParser::parse( void )
     std::cout << "XDISPLAY: " << windowConfig->getXDisplay() << std::endl;
     std::cout << "CURSOR: " << windowConfig->getCursor() << std::endl;
 
-    _windowConstructs.push_back( new arGUIXMLWindowConstruct( -1, windowConfig, new arGraphicsWindow() ) );
+    _parsedWindowConstructs.push_back( new arGUIXMLWindowConstruct( windowConfig, new arGraphicsWindow(), NULL ) );
 
-    _windowConstructs.back()->getGraphicsWindow()->useOGLStereo( windowConfig->getStereo() );
+    _parsedWindowConstructs.back()->getGraphicsWindow()->useOGLStereo( windowConfig->getStereo() );
 
     std::string viewMode( "normal" );
 
@@ -650,7 +671,7 @@ int arGUIXMLParser::parse( void )
       }
 
       // clear out the 'standard' viewport
-      _windowConstructs.back()->getGraphicsWindow()->clearViewportList();
+      _parsedWindowConstructs.back()->getGraphicsWindow()->clearViewportList();
 
       // iterate over all <szg_viewport> elements
       for( viewportNode = viewportListNode->FirstChild( "szg_viewport" ); viewportNode;
@@ -737,7 +758,7 @@ int arGUIXMLParser::parse( void )
         }
 
         std::cout << "adding custom viewport" << std::endl;
-        _windowConstructs.back()->getGraphicsWindow()->addViewport( viewport );
+        _parsedWindowConstructs.back()->getGraphicsWindow()->addViewport( viewport );
 
         // if viewportNode was a pointer, revert it back so that its
         // siblings can be traversed properly
@@ -765,11 +786,11 @@ int arGUIXMLParser::parse( void )
       }
 
       // viewports added by setViewMode will use this camera and screen
-      _windowConstructs.back()->getGraphicsWindow()->setCamera( camera );
-      _windowConstructs.back()->getGraphicsWindow()->setScreen( screen );
+      _parsedWindowConstructs.back()->getGraphicsWindow()->setCamera( camera );
+      _parsedWindowConstructs.back()->getGraphicsWindow()->setScreen( screen );
 
       // set up the appropriate viewports
-      if( !_windowConstructs.back()->getGraphicsWindow()->setViewMode( viewMode ) ) {
+      if( !_parsedWindowConstructs.back()->getGraphicsWindow()->setViewMode( viewMode ) ) {
         std::cout << "setViewMode failure!" << std::endl;
       }
 
@@ -794,49 +815,7 @@ int arGUIXMLParser::parse( void )
 
   std::cout << "Done parsing" << std::endl;
 
-  return 0;
-}
-
-int arGUIXMLParser::createWindows( arWindowInitCallback* initCB,
-                                   arRenderCallback* graphicsDrawCB,
-                                   arGUIRenderCallback* guiDrawCB,
-                                   arHead* head )
-{
-  if( !_wm ) {
-    return -1;
-  }
-
-  std::cout << "creating windows" << std::endl;
-
-  std::vector< arGUIXMLWindowConstruct* >::iterator itr;
-
-  for( itr = _windowConstructs.begin(); itr != _windowConstructs.end(); itr++ ) {
-    (*itr)->setWindowID( _wm->addWindow( *((*itr)->getWindowConfig()) ) );
-
-    // next, register all the callbacks
-    // NOTE: since the pointer is passed into us, each {arGraphics|arGUI} window
-    // will get the same pointer, thus they do *not* own them and should *not*
-    // delete them.  this may need to be changed in the future.
-    (*itr)->getGraphicsWindow()->setInitCallback( initCB );
-    (*itr)->getGraphicsWindow()->setDrawCallback( graphicsDrawCB );
-
-    _wm->registerDrawCallback( (*itr)->getWindowID(), guiDrawCB );
-
-    // if a viable head was passed it, set it up for any arVRCamera's
-    if( head ) {
-      std::vector<arViewport>* viewports = (*itr)->getGraphicsWindow()->getViewports();
-      std::vector<arViewport>::iterator vitr;
-
-      for( vitr = viewports->begin(); vitr != viewports->end(); vitr++ ) {
-        if( vitr->getCamera()->type() == "arVRCamera" ) {
-          ((arVRCamera*) vitr->getCamera())->setHead( head );
-        }
-      }
-
-    }
-  }
-
-  std::cout << "done creating" << std::endl;
+  _windowingConstruct->setWindowConstructs( &_parsedWindowConstructs );
 
   return 0;
 }
