@@ -26,11 +26,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arFrameworkCalling.h"
 
-class arGUIWindowManager;
 class arGUIXMLParser;
-class arGUIWindowInfo;
-class arGUIMouseInfo;
-class arGUIKeyInfo;
 
 /// Helper for arMasterSlaveFramework.
 class arTransferFieldDescriptor {
@@ -251,8 +247,10 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // is this really a good thing to let the user access???
   arGUIWindowManager* getWindowManager( void ) { return _wm; }
 
-  std::map<int, arGraphicsWindow* >* getWindows( void ) { return &_windows; }
-  arGraphicsWindow* getWindow( int id );
+  // technically, this function isn't necessary, one could just call
+  // arMasterSlaveFramework::getWindowManager()->getGraphicsWindow() though
+  // this function is a /tad/ more convenient
+  arGraphicsWindow* getGraphicsWindow( const int windowID );
 
  protected:
   arDataServer*        _stateServer;        // used only by master
@@ -275,8 +273,9 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool                 _parametersLoaded;
 
   // arGraphicsWindow     _graphicsWindow;
+  arMutex _windowingMutex;
   arGUIWindowManager* _wm;
-  std::map<int, arGraphicsWindow* > _windows;
+  // std::vector<int> _windows;
   arGUIXMLParser* _guiXMLParser;
 
   // need to store the networks on which we'll try to connect to services
@@ -433,7 +432,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void _connectionTask( void );
 
   // draw-related utility functions
-  void _drawWindow( arGUIWindowInfo* windowInfo );
+  void _drawWindow( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow );
 };
 
 #endif

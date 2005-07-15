@@ -216,8 +216,8 @@ void ar_masterSlaveFrameworkKeyboardFunction(unsigned char key, int x, int y){
 //***********************************************************************
 class arMasterSlaveWindowInitCallback : public arWindowInitCallback {
   public:
-    arMasterSlaveWindowInitCallback( arMasterSlaveFramework& fw ) :
-       _framework( &fw ) {}
+    arMasterSlaveWindowInitCallback( arMasterSlaveFramework* fw ) :
+       _framework( fw ) {}
     ~arMasterSlaveWindowInitCallback( void ) {}
 
     void operator()( arGraphicsWindow& );
@@ -258,7 +258,7 @@ void arMasterSlaveWindowInitCallback::operator()( arGraphicsWindow& ) {
 // What is the call sequence?
 // 1. From the event loop, the window manager requests that all (arGUI)
 //    windows draw.
-// 2. Each window (possibly in its own display thread) then calls the
+// 2. Each window (possibly in its own display thread) then calls
 //    its arGUI render callback. In a master/slave app, this is actually
 //    a call to arMasterSlaveRenderCallback::operator( arGUIWindowInfo* ).
 // 3. arMasterSlaveFramework::_drawWindow(...) is called. It is responsible for
@@ -275,12 +275,14 @@ void arMasterSlaveWindowInitCallback::operator()( arGraphicsWindow& ) {
 //****************************************************************************
 class arMasterSlaveRenderCallback : public arGUIRenderCallback {
   public:
-    arMasterSlaveRenderCallback( arMasterSlaveFramework& fw ) :
-      _framework( &fw ) {}
+    arMasterSlaveRenderCallback( arMasterSlaveFramework* fw ) :
+      _framework( fw ) {}
     ~arMasterSlaveRenderCallback( void ) {}
 
     void operator()( arGraphicsWindow&, arViewport& );
-    void operator()( arGUIWindowInfo* );
+    void operator()( arGUIWindowInfo* windowInfo ) { }
+    void operator()( arGUIWindowInfo* windowInfo,
+                     arGraphicsWindow* graphicsWindow );
 
   private:
     arMasterSlaveFramework* _framework;
@@ -292,9 +294,10 @@ void arMasterSlaveRenderCallback::operator()( arGraphicsWindow& win, arViewport&
   }
 }
 
-void arMasterSlaveRenderCallback::operator()( arGUIWindowInfo* windowInfo ) {
+void arMasterSlaveRenderCallback::operator()( arGUIWindowInfo* windowInfo,
+                                              arGraphicsWindow* graphicsWindow ) {
   if(_framework) {
-    _framework->_drawWindow( windowInfo );
+    _framework->_drawWindow( windowInfo, graphicsWindow );
   }
 }
 
@@ -371,13 +374,8 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _showPerformance( false ),
   _soundClient( NULL ) {
 
-  // Unfortunately, GLUT does not have facilities for passing a pointer
-  // so, we are forced to use globals. Not really too limiting since
-  // GLUT already assumes only one GLUT will be running per application.
-  // NOTE: this should be done regardless of whether we are using GLUT.
-  // __globalFramework = this;
-
   ar_mutex_init( &_connectFlagMutex );
+  ar_mutex_init( &_windowingMutex );
 
   // also need to add fields for our default-shared data
   _transferTemplate.addAttribute( "time",            AR_DOUBLE );
@@ -430,7 +428,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   // have a user data pointer set
   _wm->setUserData( this );
 
-  _guiXMLParser = new arGUIXMLParser( _wm, &_SZGClient );
+  _guiXMLParser = new arGUIXMLParser( &_SZGClient );
 }
 
 /// \bug memory leak for several pointer members
@@ -452,11 +450,7 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
   }
 
   delete _wm;
-
-  std::map<int, arGraphicsWindow* >::iterator itr;
-  for( itr = _windows.begin(); itr != _windows.end(); itr++ ) {
-    delete itr->second;
-  }
+  delete _guiXMLParser;
 }
 
 bool arMasterSlaveFramework::onStart( arSZGClient& SZGClient ) {
@@ -753,12 +747,18 @@ bool arMasterSlaveFramework::_startrespond( const std::string& s ) {
 
 /// Initializes the syzygy objects, but does not start any threads
 bool arMasterSlaveFramework::init( int& argc, char** argv ) {
+  std::cout << "HERE: " << argv[ 0 ] << std::endl;
   _label = std::string( argv[ 0 ] );
+    std::cout << "HEREa" << std::endl;
   _label = ar_stripExeName( _label );
+
+  std::cout << "HEREb" << std::endl;
 
   // Connect to the szgserver.
   _SZGClient.simpleHandshaking( false );
   _SZGClient.init( argc, argv );
+
+  std::cout << "HERE 0" << std::endl;
 
   if ( !_SZGClient ) {
     // HACK!!! For right now, if the arSZGClient fails to init, we assume
@@ -807,6 +807,8 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   dgSetGraphicsDatabase( &_graphicsDatabase );
   dsSetSoundDatabase( &_soundServer );
 
+  std::cout << "HERE 1" << std::endl;
+
   // Load the parameters before executing any user callbacks
   // (since this determines if we're master or slave).
   if( !_loadParameters() ) {
@@ -820,6 +822,8 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   // to query info about the virtual computer, which requires the arSZGClient
   // be registered with the arAppLauncher
   (void)_launcher.setSZGClient( &_SZGClient );
+
+  std::cout << "HERE 2" << std::endl;
 
   if( _SZGClient.getMode( "default" ) == "trigger" ) {
     // if we are the trigger node, we launch the rest of the application
@@ -875,6 +879,8 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     exit( 0 );
   }
 
+  std::cout << "HERE 3" << std::endl;
+
   // Mode isn't trigger.
 
   // NOTE: sometimes user programs need to be able to determine
@@ -903,6 +909,8 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   if( !_determineMaster( initResponse ) ) {
     goto fail;
   }
+
+  std::cout << "HERE 4" << std::endl;
 
   // init the objects, either master or slave
   if( getMaster() ) {
@@ -1301,14 +1309,8 @@ void* arMasterSlaveFramework::getTransferField( std::string fieldName,
   return p.data;
 }
 
-arGraphicsWindow* arMasterSlaveFramework::getWindow( int id ) {
-  std::map<int,arGraphicsWindow*>::iterator iter = _windows.find( id );
-  if( iter == _windows.end() ) {
-    cerr << "arMasterSlaveFramework error: arGraphicsWindow with ID " << id
-         << " not found in getWindow().\n";
-    return NULL;
-  }
-  return iter->second;
+arGraphicsWindow* arMasterSlaveFramework::getGraphicsWindow( const int windowID ) {
+  return _wm->getGraphicsWindow( windowID );
 }
 
 void arMasterSlaveFramework::setPlayTransform( void ){
@@ -2223,9 +2225,6 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
   }
 
   if( !_standalone ) {
-    // HMMM... This is a somewhat problematic place to put the function
-    // that tries to find the wildcat framelock. It seems fairly likely
-    // that this must occur AFTER the graphics window has been mapped!
     _wm->findFramelock();
   }
 
@@ -2236,6 +2235,7 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
 
     // unrolled event loop
     while( true ) {
+      ar_mutex_lock( &_windowingMutex );
       preDraw();
 
       _wm->drawAllWindows( true );
@@ -2248,6 +2248,7 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
       }
 
       _wm->processWindowEvents();
+      ar_mutex_unlock( &_windowingMutex );
     }
   }
 
@@ -2259,32 +2260,35 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
 //**************************************************************************
 
 void arMasterSlaveFramework::_createWindowing( void ) {
-  // create the windows and register the drawcallbacks and head
-  if( _guiXMLParser->createWindows( new arMasterSlaveWindowInitCallback( *this ),
-                                    new arMasterSlaveRenderCallback( *this ),
-                                    new arMasterSlaveRenderCallback( *this ),
-                                    &_head ) < 0 ) {
-    // already complained, just return;
+  std::vector< arGUIXMLWindowConstruct* >* windowConstructs = _guiXMLParser->getWindowingConstruct()->getWindowConstructs();
+
+  if( !windowConstructs ) {
+    // print error?
     return;
   }
 
-  // populate the framework's set of {arGUI|arGraphics} windows with data
-  // from the arGUIXMLParser
-  const std::vector< arGUIXMLWindowConstruct* >* windowConstructs = _guiXMLParser->getWindowConstructs();
-  std::vector< arGUIXMLWindowConstruct* >::const_iterator itr;
-
+  // populate the callbacks for both the gui and graphics windows and the head
+  // for any vr cameras
+  std::vector< arGUIXMLWindowConstruct*>::iterator itr;
   for( itr = windowConstructs->begin(); itr != windowConstructs->end(); itr++ ) {
-    _windows[ (*itr)->getWindowID() ] = (*itr)->getGraphicsWindow();
+    (*itr)->getGraphicsWindow()->setInitCallback( new arMasterSlaveWindowInitCallback( this ) );
+    (*itr)->getGraphicsWindow()->setDrawCallback( new arMasterSlaveRenderCallback( this ) );
+    (*itr)->setGUIDrawCallback( new arMasterSlaveRenderCallback( this ) );
+
+    std::vector<arViewport>* viewports = (*itr)->getGraphicsWindow()->getViewports();
+    std::vector<arViewport>::iterator vItr;
+    for( vItr = viewports->begin(); vItr != viewports->end(); vItr++ ) {
+      if( vItr->getCamera()->type() == "arVRCamera" ) {
+        ((arVRCamera*) vItr->getCamera())->setHead( &_head );
+       }
+    }
   }
 
-  /*
-  std::string wildcatFramelockStatus
-    = _SZGClient.getAttribute( screenName, "wildcat_framelock", "|false|true|" );
-
-  _wm->useWildcatFramelock( wildcatFramelockStatus == "true" );
-  */
-
-  // ar_useWildcatFramelock( _SZGClient.getAttribute( screenName, "wildcat_framelock", "|false|true|" ) == "true" );
+  // actually create the windows
+  if( _wm->createWindows( _guiXMLParser->getWindowingConstruct() ) < 0 ) {
+    std::cout << "could not create windows" << std::endl;
+    // exit( 0 );
+  }
 }
 
 bool arMasterSlaveFramework::_loadParameters( void ) {
@@ -2319,13 +2323,7 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
 
   _guiXMLParser->setConfig( _SZGClient.getGlobalAttribute( displayName ) );
 
-  // If there are multiple windows, default to threaded mode.
-  // (this can be forced to a different value from the xml)
-  // ACK, this is a bad place for this, should be closer to createWindows but
-  // it *can't* come after arGUIXMLParser::parse or it will be overwritten
-  _wm->setThreaded( _guiXMLParser->numberOfWindows() > 1 );
-
-  // first parse the xml
+  // perform the parsing of the xml
   if( _guiXMLParser->parse() < 0 ) {
     // already complained, just return
     return false;
@@ -2460,8 +2458,10 @@ void arMasterSlaveFramework::_messageTask( void ) {
     else if ( messageType == "reload" ) {
       (void) _loadParameters();
 
-      // now try to 'diff' the current set of arGUI windows with the
-      // reloaded set
+      // recreate the windows as a diff against the current set of windows
+      ar_mutex_lock( &_windowingMutex );
+      _createWindowing();
+      ar_mutex_unlock( &_windowingMutex );
     }
     else if ( messageType == "user" ) {
       onUserMessage( messageBody );
@@ -2672,33 +2672,27 @@ void arMasterSlaveFramework::_connectionTask( void ) {
 /// This function is responsible for displaying a whole arGUIWindow.
 /// Look at the definition of arMasterSlaveRenderCallback to understand
 /// how it is called from arGUIWindow.
-void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo ) {
-  if (!windowInfo) {
-    cerr << "arMasterSlaveFramework error: NULL arGUIWindowInfo* passed to _drawWindow().\n";
+void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow ) {
+  if( !windowInfo || !graphicsWindow ) {
+    std::cerr << "arMasterSlaveFramework error: NULL arGUIWindowInfo*|arGraphicsWindow* passed to _drawWindow()." << std::endl;;
     return;
   }
 
   int currentWinID = windowInfo->getWindowID();
-  if( _windows.find( currentWinID ) == _windows.end() ) {
-    cerr << "arMasterSlaveFramework error: arGraphicsWindow with ID " << currentWinID
-         << " not found in _drawWindow().\n";
+  if( !_wm->windowExists( currentWinID ) ) {
+    std:: cerr << "arMasterSlaveFramework error: arGraphicsWindow with ID " << currentWinID
+         << " not found in _drawWindow()." << std::endl;
     return;
   }
 
-  arGraphicsWindow* currentWin = _windows[ currentWinID ];
-  if(!currentWin) {
-    cerr << "arMasterSlaveFramework error: arGraphicsWindow with ID " << currentWinID
-         << " is a NULL pointer in _drawWindow().\n";
-    return;
-  }
   // stuff pixel dimensions into arGraphicsWindow
-  currentWin->setPixelDimensions( windowInfo->getPosX(), windowInfo->getPosY(),
-                                  windowInfo->getSizeX(), windowInfo->getSizeY() );
+  graphicsWindow->setPixelDimensions( windowInfo->getPosX(), windowInfo->getPosY(),
+                                      windowInfo->getSizeX(), windowInfo->getSizeY() );
   // draw the window
   if(!_exitProgram ) {
     if( _noDrawFillColor[ 0 ] == -1 ) {
       if( getConnected() ) {
-        currentWin->draw();
+        graphicsWindow->draw();
 
         if (currentWinID == 0) {
           if( _standalone && _standaloneControlMode == "simulator" ) {
@@ -2753,7 +2747,7 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo ) {
   // if we are supposed to take a screenshot, go ahead and do so.
   // only the "first" window (if there are multiple GUI windows) will be
   // captured.
-  if (currentWinID == 0){
+  if( _wm->isFirstWindow( currentWinID ) ) {
     _handleScreenshot( _wm->isStereo( currentWinID ) );
   }
 
