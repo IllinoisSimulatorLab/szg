@@ -13,6 +13,7 @@
 #include "arGUIWindowManager.h"
 #include "arGUIEventManager.h"
 #include "arGUIWindow.h"
+#include "arGUIXMLParser.h"
 
 arGUIWindowManager::arGUIWindowManager( void (*windowCallback)( arGUIWindowInfo* ) ,
                                         void (*keyboardCallback)( arGUIKeyInfo* ),
@@ -37,6 +38,8 @@ arGUIWindowManager::arGUIWindowManager( void (*windowCallback)( arGUIWindowInfo*
   }
 
   #endif
+
+  ar_mutex_init( &_windowsMutex );
 }
 
 arGUIWindowManager::~arGUIWindowManager( void )
@@ -122,6 +125,7 @@ int arGUIWindowManager::startWithoutSwap( void )
 {
   while( true ) {
     drawAllWindows( false );
+
     processWindowEvents();
   }
 
@@ -133,6 +137,8 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig )
   arGUIWindow* window = new arGUIWindow( _maxWindowID, windowConfig,
                                          _windowInitGLCallback, _userData );
 
+  ar_mutex_lock( &_windowsMutex );
+
   _windows[ _maxWindowID ] = window;
 
   if( _threaded ) {
@@ -140,25 +146,37 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig )
     if( window->beginEventThread() < 0 ) {
       delete window;
       _windows.erase( _maxWindowID );
+      ar_mutex_unlock( &_windowsMutex );
       return -1;
     }
   }
   else {
     if( window->_performWindowCreation() < 0 ) {
       std::cerr << "addWindow: _performWindowCreation error" << std::endl;
+      delete window;
+      _windows.erase( _maxWindowID );
+      ar_mutex_unlock( &_windowsMutex );
+      return -1;
     }
   }
+
+  ar_mutex_unlock( &_windowsMutex );
 
   return _maxWindowID++;
 }
 
 int arGUIWindowManager::registerDrawCallback( const int windowID, arGUIRenderCallback* drawCallback )
 {
+  ar_mutex_lock( &_windowsMutex );
+
   if( _windows.find( windowID ) == _windows.end() ) {
+    ar_mutex_unlock( &_windowsMutex );
     return -1;
   }
 
   _windows[ windowID ]->registerDrawCallback( drawCallback );
+
+  ar_mutex_unlock( &_windowsMutex );
 
   return 0;
 }
@@ -179,6 +197,7 @@ int arGUIWindowManager::processWindowEvents( void )
     std::cerr << "processWindowEvents: consumeAllWindowEvents Error" << std::endl;
   }
 
+  ar_mutex_lock( &_windowsMutex );
   for( WindowIterator it = _windows.begin(); it != _windows.end(); ++it ) {
     arGUIWindow* currentWindow = it->second;
 
@@ -226,36 +245,33 @@ int arGUIWindowManager::processWindowEvents( void )
       }
 
       delete GUIInfo;
-
-      // one of the windows got removed out from under us, most likely in a
-      // deleteWindow call from the user callback
-      if( _windows.find( currentWindow->getID() ) == _windows.end() ) {
-        delete currentWindow;
-
-        // it seems like the iterator in the outer for loop gets confused
-        // because of the erase, safest just to just return now and deal
-        // with the rest of the events next time through (but we should just
-        // be able to break; {my lack of stl knowledge shines through})
-        return -1;
-      }
     }
   }
+  ar_mutex_unlock( &_windowsMutex );
 
   return 0;
 }
 
 arGUIInfo* arGUIWindowManager::getNextWindowEvent( const int windowID )
 {
+  ar_mutex_lock( &_windowsMutex );
   if( _windows.find( windowID ) == _windows.end() ) {
+    ar_mutex_unlock( &_windowsMutex );
     return NULL;
   }
 
-  return _windows[ windowID ]->getNextGUIEvent();
+  arGUIInfo* guiInfo = _windows[ windowID ]->getNextGUIEvent();
+
+  ar_mutex_unlock( &_windowsMutex );
+
+  return guiInfo;
 }
 
 arWMEvent* arGUIWindowManager::addWMEvent( const int windowID, arGUIWindowInfo event )
 {
+  ar_mutex_lock( &_windowsMutex );
   if( _windows.find( windowID ) == _windows.end() ) {
+    ar_mutex_unlock( &_windowsMutex );
     return NULL;
   }
 
@@ -298,12 +314,18 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int windowID, arGUIWindowInfo e
         _windows[ windowID ]->decorate( event.getFlag() == 1 ? true : false );
       break;
 
+      case AR_WINDOW_RAISE:
+        _windows[ windowID ]->raise( arZOrder( event.getFlag() ) );
+      break;
+
       case AR_WINDOW_CURSOR:
         _windows[ windowID ]->setCursor( arCursor( event.getFlag() ) );
       break;
 
       case AR_WINDOW_CLOSE:
+        std::cout << "FOO 1" << std::endl;
         _windows[ windowID ]->_killWindow();
+        std::cout << "FOO 2" << std::endl;
       break;
 
       default:
@@ -314,6 +336,8 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int windowID, arGUIWindowInfo e
   else {
     eventHandle = _windows[ windowID ]->addWMEvent( event );
   }
+
+  ar_mutex_unlock( &_windowsMutex );
 
   // do not call wait on the eventHandle here, the caller is the one who
   // decides whether this was a blocking request or not
@@ -333,9 +357,16 @@ int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent,
     //           << "mode, are you sure that's what you meant to do?" << std::endl;
     warn = true;
   }
+
+  ar_mutex_lock( &_windowsMutex );
+
   // first, pass the event to all windows so they can get started on it
   for( witr = _windows.begin(); witr != _windows.end(); witr++ ) {
+    // ARGH, how can we make this locking cleaner?
+    ar_mutex_unlock( &_windowsMutex );
     arWMEvent* eventHandle = addWMEvent( witr->second->getID(), wmEvent );
+    ar_mutex_lock( &_windowsMutex );
+
     if( eventHandle ) {
       eventHandles.push_back( eventHandle );
     }
@@ -344,6 +375,8 @@ int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent,
       // print error/warning?
     }
   }
+
+  ar_mutex_unlock( &_windowsMutex );
 
   // then, if necessary, wait for all the events to complete
   for( eitr = eventHandles.begin(); eitr != eventHandles.end(); eitr++ ) {
@@ -387,15 +420,17 @@ int arGUIWindowManager::drawAllWindows( bool blocking )
 
 int arGUIWindowManager::consumeWindowEvents( const int windowID, bool blocking )
 {
-  if( _windows.find( windowID ) == _windows.end() ) {
+  ar_mutex_lock( &_windowsMutex );
+  if( _threaded || _windows.find( windowID ) == _windows.end() ) {
+    ar_mutex_unlock( &_windowsMutex );
     return -1;
   }
 
-  if( _threaded ) {
-    return -1;
-  }
+  int returnVal = _windows[ windowID ]->_consumeWindowEvents();
 
-  return _windows[ windowID ]->_consumeWindowEvents();
+  ar_mutex_unlock( &_windowsMutex );
+
+  return returnVal;
 }
 
 
@@ -409,11 +444,13 @@ int arGUIWindowManager::consumeAllWindowEvents( bool blocking )
 
   WindowIterator itr;
 
+  ar_mutex_lock( &_windowsMutex );
   for( itr = _windows.begin(); itr != _windows.end(); itr++ ) {
     if( itr->second->_consumeWindowEvents() < 0 ) {
       allSuccess = -1;
     }
   }
+  ar_mutex_unlock( &_windowsMutex );
 
   return allSuccess;
 }
@@ -496,6 +533,20 @@ int arGUIWindowManager::decorateWindow( const int windowID, bool decorate )
   return 0;
 }
 
+int arGUIWindowManager::raiseWindow( const int windowID, arZOrder zorder )
+{
+  arGUIWindowInfo event( AR_WINDOW_EVENT, AR_WINDOW_RAISE );
+  event.setFlag( int( zorder ) );
+
+  arWMEvent* eventHandle = addWMEvent( windowID, event );
+
+  if( eventHandle ) {
+    eventHandle->wait( false );
+  }
+
+  return 0;
+}
+
 /// Sends an event to the window manager, requesting that a particular
 /// window's cursor be set to AR_CURSOR_ARROW, AR_CURSOR_NONE, etc.
 /// The setCursor(...) method of the window gets called as a consequence.
@@ -511,6 +562,54 @@ int arGUIWindowManager::setWindowCursor( const int windowID, arCursor cursor )
   }
 
   return 0;
+}
+
+bool arGUIWindowManager::windowExists( const int windowID )
+{
+  ar_mutex_lock( &_windowsMutex );
+  if( _windows.find( windowID ) == _windows.end() ) {
+    ar_mutex_unlock( &_windowsMutex );
+    return false;
+  }
+
+  ar_mutex_unlock( &_windowsMutex );
+
+  return true;
+}
+
+int arGUIWindowManager::getBpp( const int windowID )
+{
+  if( _windows.find( windowID ) == _windows.end() ) {
+    return 0;
+  }
+
+  return _windows[ windowID ]->getBpp();
+}
+
+std::string arGUIWindowManager::getTitle( const int windowID )
+{
+  if( _windows.find( windowID ) == _windows.end() ) {
+    return std::string( "" );
+  }
+
+  return _windows[ windowID ]->getTitle();
+}
+
+std::string arGUIWindowManager::getXDisplay( const int windowID ){
+  if( _windows.find( windowID ) == _windows.end() ) {
+    return std::string( "" );
+  }
+
+  return _windows[ windowID ]->getXDisplay();
+}
+
+void arGUIWindowManager::setTitle( const int windowID, const std::string& title )
+{
+  if( _windows.find( windowID ) == _windows.end() ) {
+    return;
+  }
+
+  _windows[ windowID ]->setTitle( title );
 }
 
 arVector3 arGUIWindowManager::getWindowSize( const int windowID )
@@ -584,6 +683,33 @@ void arGUIWindowManager::setUserData( const int windowID, void* userData )
   _windows[ windowID ]->setUserData( userData );
 }
 
+arGraphicsWindow* arGUIWindowManager::getGraphicsWindow( const int windowID )
+{
+  if( _windows.find( windowID ) == _windows.end() ) {
+    return NULL;
+  }
+
+  return _windows[ windowID ]->getGraphicsWindow();
+}
+
+void arGUIWindowManager::returnGraphicsWindow( const int windowID )
+{
+  if( _windows.find( windowID ) == _windows.end() ) {
+    return;
+  }
+
+  _windows[ windowID ]->returnGraphicsWindow();
+}
+
+void arGUIWindowManager::setGraphicsWindow( const int windowID, arGraphicsWindow* graphicsWindow )
+{
+  if( _windows.find( windowID ) == _windows.end() ) {
+    return;
+  }
+
+  _windows[ windowID ]->setGraphicsWindow( graphicsWindow );
+}
+
 arCursor arGUIWindowManager::getWindowCursor( const int windowID )
 {
   if( _windows.find( windowID ) == _windows.end() ) {
@@ -616,28 +742,45 @@ arGUIKeyInfo arGUIWindowManager::getKeyState( const arGUIKey key )
 }
 
 void arGUIWindowManager::setThreaded( bool threaded ) {
+  ar_mutex_lock( &_windowsMutex );
   if( _windows.size() ) {
     // can't change threading mode once windows have been created
+    ar_mutex_unlock( &_windowsMutex );
     return;
   }
 
   _threaded = threaded;
+
+  ar_mutex_unlock( &_windowsMutex );
 }
 
-int arGUIWindowManager::deleteWindow( const int windowID )
+void arGUIWindowManager::_sendDeleteEvent( const int windowID )
 {
-  arWMEvent* eventHandle = addWMEvent( windowID, arGUIWindowInfo ( AR_WINDOW_EVENT, AR_WINDOW_CLOSE ) );
+  arWMEvent* eventHandle = addWMEvent( windowID, arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_CLOSE ) );
 
   if( eventHandle ) {
     // in multi-threading mode, wait until the window has processed the message
     // before returning
     eventHandle->wait( true );
   }
+}
 
-  // do NOT call delete on the window here, processEvents may still be in the
-  // middle of a loop on this window.  THIS NEEDS TO BE CHECKED OUT IN
-  // GREATER DETAIL!!!!
+int arGUIWindowManager::deleteWindow( const int windowID )
+{
+  _sendDeleteEvent( windowID );
+
+  ar_mutex_lock( &_windowsMutex );
+
+  if( _windows.find( windowID ) == _windows.end() ) {
+    ar_mutex_unlock( &_windowsMutex );
+    return -1;
+  }
+
+  delete _windows[ windowID ];
+
   _windows.erase( windowID );
+
+  ar_mutex_unlock( &_windowsMutex );
 
   // call the user's window callback with a close event? (probably shouldn't,
   // the callback is most likely how we got here in the first place)
@@ -647,42 +790,165 @@ int arGUIWindowManager::deleteWindow( const int windowID )
 
 int arGUIWindowManager::deleteAllWindows( void )
 {
-  WindowIterator witr;
+  WindowIterator witr = _windows.begin();
 
-  for( witr = _windows.begin(); witr != _windows.end(); witr++ ) {
-    if( deleteWindow( witr->first ) < 0 ) {
-      // print an error, continue with other deletes?
+  ar_mutex_lock( &_windowsMutex );
+
+  while( witr != _windows.end() ) {
+    _sendDeleteEvent( witr->first );
+
+    delete witr->second;
+
+    _windows.erase( witr++ );
+  }
+
+  ar_mutex_unlock( &_windowsMutex );
+
+  return 0;
+}
+
+int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingConstruct )
+{
+  if( !windowingConstruct ) {
+    return -1;
+  }
+  std::cout << "creating windows" << std::endl;
+
+  const std::vector< arGUIXMLWindowConstruct* >* windowConstructs = windowingConstruct->getWindowConstructs();
+
+  // If there are multiple windows, default to threaded mode.
+  // (this can be forced to a different value from the xml below)
+  // note that if this call is the result of a reload message neither
+  // setThreaded calls are going to have any affect
+  if( windowConstructs->size() > 1 ) {
+    setThreaded( true );
+  }
+
+  if( windowingConstruct->getThreaded() != -1 ) {
+    setThreaded( bool( windowingConstruct->getThreaded() ) );
+  }
+
+  if( windowingConstruct->getUseFramelock() != -1 ) {
+    useFramelock( bool( windowingConstruct->getUseFramelock() ) );
+  }
+
+  // several function calls below also try to lock this mutex, so we'll
+  // deadlock if we try to lock it here, instead this entire function should
+  // be atomic wrt the window manager's event loop
+  // ar_mutex_lock( &_windowsMutex );
+
+  std::vector< arGUIXMLWindowConstruct* >::const_iterator cItr;
+  WindowIterator wItr;
+
+  for( cItr = windowConstructs->begin(), wItr = _windows.begin();
+       (cItr != windowConstructs->end()) && (wItr != _windows.end());
+       cItr++, wItr++ ) {
+    // get some easier to handle names
+    int windowID = wItr->first;
+    const arGUIWindowConfig* config = (*cItr)->getWindowConfig();
+
+    // there are certain attributes that cannot be tweaked during runtime and
+    // if they differ from the new attributes the window must be re-created
+    if( isStereo( windowID ) != config->getStereo() ||
+        getBpp( windowID ) != config->getBpp() ||
+        getXDisplay( windowID ) != config->getXDisplay() ) {
+      // delete the current window
+      deleteWindow( windowID );
+
+      // create the new window
+      addWindow( *config );
+    }
+    else {
+      // we can just tweak all the window's settings
+      // NOTE: the order of these tweaks *does* matter, if the current window
+      // is fullscreen, resize needs to come first or the move and decorate
+      // will get ignored.  There may be other order interactions as well
+
+      resizeWindow( windowID, config->getWidth(), config->getHeight() );
+
+      moveWindow( windowID, config->getPosX(), config->getPosY() );
+
+      decorateWindow( windowID, config->getDecorate() );
+
+      setTitle( windowID, config->getTitle() );
+
+      setWindowCursor( windowID, config->getCursor() );
+
+      raiseWindow( windowID, config->getZOrder() );
+
+      if( config->getFullscreen() ) {
+        fullscreenWindow( windowID );
+      }
     }
   }
+
+  // if there are more created than parsed windows, they then need to be deleted
+  if( wItr != _windows.end() ) {
+    while( wItr != _windows.end() ) {
+      if( deleteWindow( (wItr++)->first ) < 0 ) {
+        std::cout << "could not delete window: " << wItr->first << std::endl;
+      }
+    }
+  }
+
+  // if there are more parsed than created windows, they then need to be created
+  if( cItr != windowConstructs->end() ) {
+    for( ; cItr != windowConstructs->end(); cItr++ ) {
+      if( addWindow( *((*cItr)->getWindowConfig()) ) < 0 ) {
+        std::cout << "could not create new gui window" << std::endl;
+      }
+    }
+  }
+
+  // set all the drawcallbacks and graphicsWindows (the collections should
+  // now match in size and order)
+  for( cItr = windowConstructs->begin(), wItr = _windows.begin();
+       (cItr != windowConstructs->end()) && (wItr != _windows.end());
+       cItr++, wItr++ ) {
+    registerDrawCallback( wItr->first, (*cItr)->getGUIDrawCallback() );
+    setGraphicsWindow( wItr->first, (*cItr)->getGraphicsWindow() );
+  }
+
+  std::cout << "done creating" << std::endl;
+
+  // ar_mutex_unlock( &_windowsMutex );
 
   return 0;
 }
 
 void arGUIWindowManager::useFramelock( bool isOn )
 {
-  if( /* _windows.size() == 1 && */ !_threaded ) {
+  ar_mutex_lock( &_windowsMutex );
+  if( _windows.size() == 1 && !_threaded ) {
     _windows.begin()->second->useWildcatFramelock( isOn );
   }
+  ar_mutex_unlock( &_windowsMutex );
 }
 
 void arGUIWindowManager::findFramelock( void )
 {
-  if( /* _windows.size() == 1 && */ !_threaded ) {
+  ar_mutex_lock( &_windowsMutex );
+  if( _windows.size() == 1 && !_threaded ) {
     _windows.begin()->second->findWildcatFramelock();
   }
+  ar_mutex_unlock( &_windowsMutex );
 }
 
 void arGUIWindowManager::activateFramelock( void )
 {
-  if( /* _windows.size() == 1 && */ !_threaded ) {
+  ar_mutex_lock( &_windowsMutex );
+  if( _windows.size() == 1 && !_threaded ) {
     _windows.begin()->second->activateWildcatFramelock();
   }
+  ar_mutex_unlock( &_windowsMutex );
 }
 
 void arGUIWindowManager::deactivateFramelock( void )
 {
-  if( /* _windows.size() == 1 && */ !_threaded ) {
+  ar_mutex_lock( &_windowsMutex );
+  if( _windows.size() == 1 && !_threaded ) {
     _windows.begin()->second->deactivateWildcatFramelock();
   }
+  ar_mutex_unlock( &_windowsMutex );
 }
 

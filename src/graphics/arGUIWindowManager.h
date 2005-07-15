@@ -21,6 +21,8 @@
 
 class arWMEvent;
 class arGUIRenderCallback;
+class arGUIWindowingConstruct;
+class arGraphicsWindow;
 class arGUIInfo;
 class arGUIKeyInfo;
 class arGUIMouseInfo;
@@ -143,6 +145,8 @@ class SZG_CALL arGUIWindowManager
      * @see arGUIWindow::_performWindowCreation
      */
     int addWindow( const arGUIWindowConfig& windowConfig );
+
+    int createWindows( const arGUIWindowingConstruct* windowingConstruct = NULL );
 
     //@{
     /** @name Register Callbacks
@@ -455,11 +459,15 @@ class SZG_CALL arGUIWindowManager
 
     int setWindowCursor( const int windowID, arCursor cursor );
 
+    int raiseWindow( const int windowID, arZOrder zorder );
+
     //@{
     /** @name Window state accessors
      *
      * Retrieve information about a window's current state.
      */
+    bool windowExists( const int windowID );
+
     arVector3 getWindowSize( const int windowID );
     arVector3 getWindowPos( const int windowID );
     arVector3 getMousePos( const int windowID );
@@ -472,8 +480,18 @@ class SZG_CALL arGUIWindowManager
 
     arZOrder getZOrder( const int windowID );
 
+    int getBpp( const int windowID );
+    std::string getTitle( const int windowID );
+    std::string getXDisplay( const int windowID );
+
+    void setTitle( const int windowID, const std::string& title );
+
     void* getUserData( const int windowID );
     void setUserData( const int windowID, void* userData );
+
+    arGraphicsWindow* getGraphicsWindow( const int windowID );
+    void returnGraphicsWindow( const int windowID );
+    void setGraphicsWindow( const int windowID, arGraphicsWindow* graphicsWindow );
     //@}
 
     /**
@@ -504,6 +522,9 @@ class SZG_CALL arGUIWindowManager
      */
     int getNumWindows( void ) const { return _windows.size(); }
     bool hasActiveWindows( void ) const { return !_windows.empty(); }
+
+    bool isFirstWindow( const int windowID ) const { return( _windows.find( windowID ) == _windows.begin() ); }
+    int getFirstWindowID( void ) const { return _windows.begin()->first; }
 
     bool isThreaded( void ) const { return _threaded; }
     void setThreaded( bool threaded );
@@ -601,6 +622,8 @@ class SZG_CALL arGUIWindowManager
      */
     int addAllWMEvent( arGUIWindowInfo wmEvent, bool blocking );
 
+    void _sendDeleteEvent( const int windowID );
+
     //@{
     /** @name Wrappers for the keyboard, mouse, and window callbacks.
      *
@@ -618,6 +641,7 @@ class SZG_CALL arGUIWindowManager
     void (*_windowCallback)( arGUIWindowInfo* windowInfo );   ///< The window event callback
     void (*_windowInitGLCallback)( arGUIWindowInfo* windowInfo );    ///< The window initialization callback
 
+    arMutex _windowsMutex;
     WindowMap _windows;       ///< A map of all the managed windows and their id's.
 
     int _maxWindowID;         ///< The maximum window ID, used in creating new windows.
