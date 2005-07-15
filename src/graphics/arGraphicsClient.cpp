@@ -303,10 +303,14 @@ void arGraphicsClient::setNetworks(string networks){
   _cliSync.setNetworks(networks);
 }
 
-bool arGraphicsClient::start(arSZGClient& client){
-  _cliSync.setServiceName("SZG_GEOMETRY");
-  if (!(_cliSync.init(client) && _cliSync.start())){
-    return false;
+bool arGraphicsClient::start(arSZGClient& client, bool startSynchronization){
+  // In the case of standalone mode in the arDistSceneGraphFramework, we
+  // do not want the synchronization to begin, only the windowing.
+  if (startSynchronization){
+    _cliSync.setServiceName("SZG_GEOMETRY");
+    if (!(_cliSync.init(client) && _cliSync.start())){
+      return false;
+    }
   }
 
   std::vector< arGUIXMLWindowConstruct* >* windowConstructs =

@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.11 2005/07/11 19:00:38 crowell Exp $
+// $Id: PyMasterSlave.i,v 1.12 2005/07/15 18:24:48 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -380,8 +380,6 @@ class arMasterSlaveFramework : public arSZGAppFramework {
   bool registerFrameworkObject(arFrameworkObject* object){
     return _dataRouter.registerFrameworkObject(object);
   }
-
-  arGraphicsWindow* getWindow( int id );
 
   void setPlayTransform();
   void draw();  // HEAVILY deprecated, use the following:

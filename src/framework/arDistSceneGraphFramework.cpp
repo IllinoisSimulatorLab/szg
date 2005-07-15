@@ -11,7 +11,6 @@
 #include "arSoundAPI.h"
 #include "arSharedLib.h"
 #include "arPForthFilter.h"
-#include "arWildcatUtilities.h"
 #include "arDistSceneGraphFramework.h"
 
 void ar_distSceneGraphFrameworkMessageTask(void* framework){
@@ -24,7 +23,7 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
       // now quit. NOTE: we cannot kill the stuff elsewhere since we are
       // disconnected (i.e. we cannot manipulate the system anymore)
       
-      // important that we stop the framework (the parameter is meaningless
+      // Important that we stop the framework (the parameter is meaningless
       // so far)
       f->stop(true);
       exit(0);
@@ -72,91 +71,33 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
   }
 }
 
-// GLUT functions for standalone mode
-arDistSceneGraphFramework* __globalSceneGraphFramework = NULL;
-
-void ar_distSceneGraphFrameworkDisplay(){
-  ar_timeval time1 = ar_time();
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  if (__globalSceneGraphFramework->_standalone && 
-      __globalSceneGraphFramework->_standaloneControlMode == "simulator"){
-    __globalSceneGraphFramework->_simulator.advance();
-  }
-  __globalSceneGraphFramework->_soundClient._cliSync.consume();
-  __globalSceneGraphFramework->_graphicsClient._cliSync.consume();
-  arPerformanceElement* framerateElement 
-    = __globalSceneGraphFramework->_framerateGraph.getElement("framerate");
-  double frameTime = ar_difftime(ar_time(), time1);
-  framerateElement->pushNewValue(1000000.0/frameTime);
-}
-
-// AARGH! The button and mouse functions are largely copy-pasted from
-// arMasterSlaveFramework.cpp
-void ar_distSceneGraphFrameworkButtonFunction(int button, int state,
-                                              int x, int y){
-  // in standalone mode, button events should go to the interface
-  if (__globalSceneGraphFramework->_standalone && 
-      __globalSceneGraphFramework->_standaloneControlMode == "simulator"){
-    // Must translate from the GLUT constants
-    const int whichButton = 
-    (button == GLUT_LEFT_BUTTON  ) ? 0:
-    (button == GLUT_MIDDLE_BUTTON) ? 1 :
-    (button == GLUT_RIGHT_BUTTON ) ? 2 : 0;
-    const int whichState = (state == GLUT_DOWN) ? 1 : 0;
-    __globalSceneGraphFramework->_simulator.mouseButton(whichButton, 
-                                                        whichState, x, y);
-  }
-}
-
-void ar_distSceneGraphFrameworkMouseFunction(int x, int y){
-  // in standalone mode, mouse motion events should go to the interface
-  if (__globalSceneGraphFramework->_standalone &&
-      __globalSceneGraphFramework->_standaloneControlMode == "simulator"){
-    __globalSceneGraphFramework->_simulator.mousePosition(x,y);
-  }
-}
-
-
-void ar_distSceneGraphFrameworkKeyboard(unsigned char key, int x, int y){
-  switch (key){
-  case 27:
-    // Stop the framework (parameter meaningless so far)
-    __globalSceneGraphFramework->stop(true);
-    exit(0);
-  case 'P':
-    __globalSceneGraphFramework->_graphicsClient.toggleFrameworkObjects();
-    break;
-  }
-  // in standalone mode, keyboard events should also go to the interface
-  if (__globalSceneGraphFramework->_standalone &&
-      __globalSceneGraphFramework->_standaloneControlMode == "simulator"){
-    __globalSceneGraphFramework->_simulator.keyboard(key, 1, x, y);
-  }
-}
-
 // In standalone mode, we might actually like to run our own window,
 // instead of having an szgrender do it.
-void ar_distSceneGraphFrameworkWindowTask(void*){
-  // Annoying to have to make dummy parameters
-  int argc=1;
-  char* argv[1];
+void ar_distSceneGraphFrameworkWindowTask(void* f){
+  arDistSceneGraphFramework* fw = (arDistSceneGraphFramework*) f;
   
-  argv[0] = "dummy";
-  glutInit(&argc, argv);
-  glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB);
-  glutInitWindowPosition(0,0);
-  glutInitWindowSize(640,480);
-  string label = __globalSceneGraphFramework->getLabel();
-  glutCreateWindow(label.c_str());
-  glutDisplayFunc(ar_distSceneGraphFrameworkDisplay);
-  glutIdleFunc(ar_distSceneGraphFrameworkDisplay);
-  glutMouseFunc(ar_distSceneGraphFrameworkButtonFunction);
-  glutMotionFunc(ar_distSceneGraphFrameworkMouseFunction);
-  glutPassiveMotionFunc(ar_distSceneGraphFrameworkMouseFunction);
-  glutKeyboardFunc(ar_distSceneGraphFrameworkKeyboard);
-  // AARGH!!!! This is totally bogus!
-  //__globalSceneGraphFramework->_graphicsClient.init();
-  glutMainLoop();
+  while (!fw->stopped()){ 
+    ar_timeval time1 = ar_time();
+    if (fw->_standalone && 
+        fw->_standaloneControlMode == "simulator"){
+      fw->_simulator.advance();
+    }
+    fw->_soundClient._cliSync.consume();
+    // Inside here, through callbacks to the arSyncDataClient embedded inside
+    // the arGraphicsClient, is where all the scene graph event processing,
+    // drawing, and synchronization happens.
+    fw->_graphicsClient._cliSync.consume();
+    // Events like closing the window and hitting the ESC key that cause the
+    // window to close occur inside processWindowEvents(). Once they happen,
+    // fw-stopped() will return true and this loop will exit.
+    fw->_windowManager->processWindowEvents();
+    arPerformanceElement* framerateElement 
+      = fw->_framerateGraph.getElement("framerate");
+    double frameTime = ar_difftime(ar_time(), time1);
+    framerateElement->pushNewValue(1000000.0/frameTime);
+  }
+  fw->_windowManager->deleteAllWindows();
+  exit(0);
 }
 
 void ar_distSceneGraphGUIMouseFunction( arGUIMouseInfo* mouseInfo ) {
@@ -180,13 +121,13 @@ void ar_distSceneGraphGUIMouseFunction( arGUIMouseInfo* mouseInfo ) {
                                  mouseInfo->getPosX(), mouseInfo->getPosY());
     }
     else{
-      fw->_simulator.mousePosition(mouseInfo->getPosY(),
-				   mouseInfo->getPosX());
+      fw->_simulator.mousePosition(mouseInfo->getPosX(),
+				   mouseInfo->getPosY());
     }
   }
 }
 
-void ar_distSceneGraphFrameworkGUIKeyboardFunction( arGUIKeyInfo* keyInfo ){
+void ar_distSceneGraphGUIKeyboardFunction( arGUIKeyInfo* keyInfo ){
   if (!keyInfo || !keyInfo->getUserData() ){
     return;
   }
@@ -199,7 +140,9 @@ void ar_distSceneGraphFrameworkGUIKeyboardFunction( arGUIKeyInfo* keyInfo ){
     case AR_VK_ESC:
       // Stop the framework (parameter meaningless so far)
       fw->stop(true);
-      exit(0);
+      // Do not exit here. Instead, let that happen inside the standalone
+      // thread of control.
+      break;
     case 'P':
       fw->_graphicsClient.toggleFrameworkObjects();
       break;
@@ -212,7 +155,7 @@ void ar_distSceneGraphFrameworkGUIKeyboardFunction( arGUIKeyInfo* keyInfo ){
   }
 }
 
-void ar_distSceneGraphFrameworkGUIWindowFunction(arGUIWindowInfo* windowInfo){
+void ar_distSceneGraphGUIWindowFunction(arGUIWindowInfo* windowInfo){
   if (!windowInfo || !windowInfo->getUserData()){
     return;
   }
@@ -231,7 +174,8 @@ void ar_distSceneGraphFrameworkGUIWindowFunction(arGUIWindowInfo* windowInfo){
   case AR_WINDOW_CLOSE:
     // Stop the framework (parameter is meaningless so far)
     fw->stop(true);
-    exit(0);
+    // Do not exit here. Instead, let that happen inside the main thread of
+    // control for standalone mode.
     break;
   default:
     break;
@@ -251,7 +195,8 @@ arDistSceneGraphFramework::arDistSceneGraphFramework() :
   _peerMode("source"),
   _peerTarget("NULL"),
   _remoteRootID(0),
-  _externalPeer(NULL){
+  _externalPeer(NULL),
+  _windowManager(NULL){
 }
 
 /// Syzygy messages currently consist of two strings, the first being
@@ -370,8 +315,6 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv){
   if (!_SZGClient){
     // We must be in standalone mode.
     _standalone = true;
-    // This global variable is needed for GLUT, unfortunately
-    __globalSceneGraphFramework = this;
     cout << _label << " remark: RUNNING IN STANDALONE MODE. "
 	 << "NO DISTRIBUTION.\n";
     _loadParameters();
@@ -487,6 +430,15 @@ bool arDistSceneGraphFramework::start(){
   // mode.
   if (_standalone){
     _simulator.configure(_SZGClient);
+    // Must configure the window manager here and pass it to the graphicsClient
+    // before configure (because, inside graphicsClient configure, it is used
+    // with the arGUIXMLParser).
+    _windowManager = new arGUIWindowManager(ar_distSceneGraphGUIWindowFunction,
+					    ar_distSceneGraphGUIKeyboardFunction,
+					    ar_distSceneGraphGUIMouseFunction,
+					    NULL);
+    _windowManager->setUserData(this);
+    _graphicsClient.setWindowManager(_windowManager);
     _graphicsClient.configure(&_SZGClient);
     _graphicsClient.setSimulator(&_simulator);
     _framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
@@ -498,7 +450,9 @@ bool arDistSceneGraphFramework::start(){
     // NOTE: peer mode is meaningless in standalone.
     _graphicsServer.start();
     _inputDevice->start();
-    // in standalone mode, we need to start a thread for the display
+    // Start the windowing.
+    _graphicsClient.start(_SZGClient, false);
+    // In standalone mode, we need to start a thread for the display.
     arThread graphicsThread;
     graphicsThread.beginThread(ar_distSceneGraphFrameworkWindowTask, this);
     return true;
@@ -678,14 +632,6 @@ bool arDistSceneGraphFramework::_loadParameters(){
 
   _head.configure( _SZGClient );
 
-  // use the screen name passed from the distributed system
-  string screenName(_SZGClient.getMode("graphics"));
-
-  // in standalone mode, we might actually use a window
-
-  ar_useWildcatFramelock(_SZGClient.getAttribute(screenName, 
-                                                 "wildcat_framelock",
-                                                 "|false|true|") == "true");
   _loadNavParameters();
 
   return true;

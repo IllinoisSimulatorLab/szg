@@ -67,7 +67,7 @@ class SZG_CALL arGraphicsClient{
   //void setDrawFunction(void (*drawFunction)(arGraphicsDatabase*));
 
   void setNetworks(string networks);
-  bool start(arSZGClient&);
+  bool start(arSZGClient&, bool startSynchronization=true);
 
   bool empty() { return _graphicsDatabase.empty(); }
   void reset() { _graphicsDatabase.reset(); }

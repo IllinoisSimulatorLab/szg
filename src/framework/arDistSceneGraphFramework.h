@@ -15,6 +15,7 @@
 #include "arInputSimulator.h"
 #include "arFramerateGraph.h"
 #include "arSZGAppFramework.h"
+#include "arGUIWindowManager.h"
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arFrameworkCalling.h"
 
@@ -27,8 +28,8 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   friend void ar_distSceneGraphFrameworkMouseFunction(int, int);
   friend void ar_distSceneGraphFrameworkKeyboard(unsigned char, int, int);
   friend void ar_distSceneGraphGUIMouseFunction( arGUIMouseInfo* mouseInfo );
-  friend void ar_distSceneGraphFrameworkGUIKeyboardFunction( arGUIKeyInfo* keyInfo );
-  friend void ar_distSceneGraphFrameworkGUIWindowFunction( arGUIWindowInfo* windowInfo);
+  friend void ar_distSceneGraphGUIKeyboardFunction( arGUIKeyInfo* keyInfo );
+  friend void ar_distSceneGraphGUIWindowFunction( arGUIWindowInfo* windowInfo);
  public:
   arDistSceneGraphFramework();
   ~arDistSceneGraphFramework() {}
@@ -117,6 +118,9 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   // Maybe (as in the case of peerBridge) we should pass on
   // peer messages to someone external.
   arGraphicsPeer* _externalPeer;
+
+  // Standalone mode requires a window manager.
+  arGUIWindowManager* _windowManager;
 
   bool _loadParameters();
   void _getVector3(arVector3& v, const char* param);
