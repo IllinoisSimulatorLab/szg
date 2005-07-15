@@ -157,8 +157,7 @@ arCamera* arGraphicsWindow::_setCameraNoLock( arCamera* cam ) {
 
 void arGraphicsWindow::setInitCallback( arWindowInitCallback* callback ) {
   if (_initCallback != 0) {
-    // doesn't own the callback
-    // delete _initCallback;
+    delete _initCallback;
   }
 
   if (callback != 0) {
@@ -170,8 +169,7 @@ void arGraphicsWindow::setInitCallback( arWindowInitCallback* callback ) {
 
 void arGraphicsWindow::setDrawCallback( arRenderCallback* callback ) {
   if (_drawCallback != 0) {
-    // doesn't own the callback
-    // delete _drawCallback;
+    delete _drawCallback;
   }
 
   if (callback != 0) {
