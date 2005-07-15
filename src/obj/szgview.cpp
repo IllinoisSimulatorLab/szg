@@ -54,14 +54,11 @@ arTexFont texFont;
 
 arGUIWindowManager* wm = NULL;
 
-// window id's along with their associated arGraphicsWindows
-std::map<int, arGraphicsWindow* > windows;
-
 // since we don't get this from a tracker just make a sensible default one
 arHead head;
 
 // forward declaration
-void drawCB( arGUIWindowInfo* windowInfo );
+void display( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow );
 
 // To be able to use arGraphicsWindow::draw in the arGUIWindow as the draw
 // callback
@@ -69,19 +66,16 @@ class arSZGViewRenderCallback : public arGUIRenderCallback
 {
   public:
 
-    arSZGViewRenderCallback( arGraphicsWindow* gw ) :
-      _graphicsWindow( gw ) { }
+    arSZGViewRenderCallback( void ) { }
 
     virtual ~arSZGViewRenderCallback( void )  { }
 
-    virtual void operator()( arGraphicsWindow&, arViewport& ) {
-      if( _graphicsWindow ) {
-        _graphicsWindow->draw();
-      }
-    }
+    virtual void operator()( arGraphicsWindow&, arViewport& ) { }
 
-    virtual void operator()( arGUIWindowInfo* windowInfo ) {
-      if( _graphicsWindow ) {
+    virtual void operator()( arGUIWindowInfo* windowInfo ) { }
+
+    virtual void operator()( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow ) {
+      if( graphicsWindow ) {
         // HACK because the width/height could be different between windows but
         // because we can't pass anything to the graphicswindow draw the
         // globals need to be set here
@@ -89,13 +83,11 @@ class arSZGViewRenderCallback : public arGUIRenderCallback
         _width =  int( size[ 0 ] );
         _height = int( size[ 1 ] );
 
-        _graphicsWindow->draw();
+        graphicsWindow->draw();
       }
     }
 
   private:
-
-    arGraphicsWindow* _graphicsWindow;
 
 };
 
@@ -226,7 +218,7 @@ void drawHUD( int width, int height )
   }
 }
 
-void drawCB( arGUIWindowInfo* windowInfo )
+void display( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow )
 {
   // loop animation
   if( isPlaying ) {
@@ -598,55 +590,36 @@ int main( int argc, char** argv )
 
   std::cout << "Using display: " << displayName << std::endl;
 
-  arGUIXMLParser guiXMLParser( wm, &SZGClient,
+  arGUIXMLParser guiXMLParser( &SZGClient,
                                SZGClient.getGlobalAttribute( displayName ) );
-
-  // if there are multiple windows, default to threaded mode (this can be forced
-  // back in the xml)
-  wm->setThreaded( guiXMLParser.numberOfWindows() > 1 );
 
   // first parse the xml
   if( guiXMLParser.parse() < 0 ) {
     return -1;
   }
 
-  // then create all the windows and register the callbacks
-  if( guiXMLParser.createWindows( new arDefaultWindowInitCallback(),
-                                  new arDefaultGUIRenderCallback( drawCB ),
-                                  NULL,
-                                  &head ) < 0 ) {
+  const std::vector< arGUIXMLWindowConstruct* >* windowConstructs = guiXMLParser.getWindowingConstruct()->getWindowConstructs();
+
+  // populate the callbacks for both the gui and graphics windows and the head
+  // for any vr cameras
+  std::vector< arGUIXMLWindowConstruct*>::const_iterator itr;
+  for( itr = windowConstructs->begin(); itr != windowConstructs->end(); itr++ ) {
+    (*itr)->getGraphicsWindow()->setInitCallback( new arDefaultWindowInitCallback() );
+    (*itr)->getGraphicsWindow()->setDrawCallback( new arDefaultGUIRenderCallback( display ) );
+    (*itr)->setGUIDrawCallback( new arSZGViewRenderCallback() );
+
+    std::vector<arViewport>* viewports = (*itr)->getGraphicsWindow()->getViewports();
+    std::vector<arViewport>::iterator vItr;
+    for( vItr = viewports->begin(); vItr != viewports->end(); vItr++ ) {
+      if( vItr->getCamera()->type() == "arVRCamera" ) {
+        ((arVRCamera*) vItr->getCamera())->setHead( &head );
+      }
+    }
+  }
+
+  if( wm->createWindows( guiXMLParser.getWindowingConstruct() ) < 0 ) {
     return -1;
   }
-
-  // populate the 'windows' set with data from the arGUIXMLParser
-  const std::vector< arGUIXMLWindowConstruct* >* windowConstructs = guiXMLParser.getWindowConstructs();
-  std::vector< arGUIXMLWindowConstruct* >::const_iterator itr;
-
-  for( itr = windowConstructs->begin(); itr != windowConstructs->end(); itr++ ) {
-    windows[ (*itr)->getWindowID() ] = (*itr)->getGraphicsWindow();
-
-    // HACK, this is a kludge, have to do this because there is no way to add a
-    // drawcallback to the createWindows call above that is different for each
-    // gui window
-    wm->registerDrawCallback( (*itr)->getWindowID(),
-                              new arSZGViewRenderCallback( (*itr)->getGraphicsWindow() ) );
-  }
-
-  /*
-  arGUIWindowConfig windowConfig;
-  windowConfig._x = 50;
-  windowConfig._y = 50;
-  windowConfig._width = ( _width <= 0 ) ? 640 : _width;
-  windowConfig._height = ( _height <= 0 ) ? 480 : _height;
-  _ratio = double(windowConfig._width) / double(windowConfig._height);
-  windowConfig._fullscreen = false;
-  windowConfig._decorate = true;
-  windowConfig._stereo = false;
-  windowConfig._topmost = false;
-  windowConfig._title = "szgview";
-
-  int winID = wm->addWindow( windowConfig, new arDefaultGUIRenderCallback( drawCB ) );
-  */
 
   // must be done *after* an opengl context is created!
   std::string fontLocation = ar_fileFind( "courier_bold.txf", "", textPath );

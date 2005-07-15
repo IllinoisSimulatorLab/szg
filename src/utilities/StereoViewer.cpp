@@ -74,7 +74,7 @@ void showCenteredHalfImage( arTexture& theImage, bool leftHalf ) {
                 theImage.getPixels());
 }
 
-void display(arMasterSlaveFramework& fw) {
+void display( arMasterSlaveFramework& fw, arGraphicsWindow& graphicsWindow, arViewport& viewport ) {
   glMatrixMode( GL_PROJECTION );
   glLoadIdentity();
   glOrtho( 0, screenWidth, 0, screenHeight, -1, 1 );
@@ -82,9 +82,7 @@ void display(arMasterSlaveFramework& fw) {
   glLoadIdentity();
   glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 
-  std::map<int, arGraphicsWindow* >* windows = fw.getWindows();
-  // NOTE: assumes *exactly* one window!
-  const bool fLeftEye = windows->begin()->second->getCurrentEyeSign() <= 0.0f; // fw.getCurrentEye() <= 0.;
+  const bool fLeftEye = graphicsWindow.getCurrentEyeSign() <= 0.0f; // fw.getCurrentEye() <= 0.;
 
   if (numImages == 2)
     showCenteredImage( fLeftEye ? leftImage : rightImage );
