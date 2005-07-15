@@ -1313,6 +1313,10 @@ arGraphicsWindow* arMasterSlaveFramework::getGraphicsWindow( const int windowID 
   return _wm->getGraphicsWindow( windowID );
 }
 
+void arMasterSlaveFramework::returnGraphicsWindow( const int windowID ) {
+  _wm->returnGraphicsWindow( windowID );
+}
+
 void arMasterSlaveFramework::setPlayTransform( void ){
   if( soundActive() ) {
     _speakerObject.loadMatrices( _inputState->getMatrix( 0 ) );

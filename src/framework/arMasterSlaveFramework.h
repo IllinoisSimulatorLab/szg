@@ -251,6 +251,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // arMasterSlaveFramework::getWindowManager()->getGraphicsWindow() though
   // this function is a /tad/ more convenient
   arGraphicsWindow* getGraphicsWindow( const int windowID );
+  void returnGraphicsWindow( const int windowID );
 
  protected:
   arDataServer*        _stateServer;        // used only by master
