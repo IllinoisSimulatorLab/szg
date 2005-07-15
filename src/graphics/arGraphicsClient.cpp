@@ -30,16 +30,16 @@ bool ar_graphicsClientDisconnectCallback(void* client){
   return true;
 }
 
-// This function draws a particular viewing frustum (not the whole 
-// arGraphicsWindow). It is called from the arGraphicsClientRenderCallback 
-// callback object. 
+// This function draws a particular viewing frustum (not the whole
+// arGraphicsWindow). It is called from the arGraphicsClientRenderCallback
+// callback object.
 //
 // Need to get the camera so we can do view frustum culling.
 void ar_graphicsClientDraw( arGraphicsClient* c, arCamera* camera) {
 
   glEnable(GL_DEPTH_TEST);
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-  
+
   glColor3f(1.0,1.0,1.0);
   if (c->_overrideColor[0] == -1){
     // this is where the view transform is set. We use the
@@ -81,7 +81,7 @@ bool ar_graphicsClientConsumptionCallback(void* client,
 // Callback registered with the arSyncDataClient.
 bool ar_graphicsClientActionCallback(void* client){
   arGraphicsClient* c = (arGraphicsClient*) client;
-  
+
   // A HACK for the wildcat cards! Framelock needs to be enabled there.
   c->getWindowManager()->activateFramelock();
 
@@ -96,8 +96,8 @@ bool ar_graphicsClientActionCallback(void* client){
 // Callback registered with the arSyncDataClient.
 bool ar_graphicsClientNullCallback(void* client){
   arGraphicsClient* c = (arGraphicsClient*) client;
-  
-  // We need to disable framelock now, so that it can be appropriately 
+
+  // We need to disable framelock now, so that it can be appropriately
   // re-enabled upon reconnection to the master. This occurs here
   // because it is called in the same thread as the graphics (critical)
   // and is called when a disconnect occurs
@@ -105,7 +105,7 @@ bool ar_graphicsClientNullCallback(void* client){
 
   // Have everything drawn black.
   c->setOverrideColor(arVector3(0,0,0));
-  // Draw all windows (simultaneously if threading is turned on), 
+  // Draw all windows (simultaneously if threading is turned on),
   // blocking until draws are completed.
   c->_windowManager->drawAllWindows(true);
   // Return to normal drawing mode.
@@ -132,7 +132,7 @@ class arGraphicsClientWindowInitCallback : public arWindowInitCallback {
     ~arGraphicsClientWindowInitCallback() {}
     void operator()( arGraphicsWindow& );
   private:
-};  
+};
 
 void arGraphicsClientWindowInitCallback::operator()( arGraphicsWindow& ) {
   glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );
@@ -144,14 +144,16 @@ class arGraphicsClientRenderCallback : public arGUIRenderCallback {
     arGraphicsClientRenderCallback( arGraphicsClient& cli ) :
       _client( &cli ) {}
     ~arGraphicsClientRenderCallback() {}
-    void operator()( arGraphicsWindow&, arViewport&);
-    void operator()(arGUIWindowInfo* windowInfo);
+    void operator()(arGraphicsWindow&, arViewport&);
+    void operator()(arGUIWindowInfo* windowInfo) { }
+    void operator()(arGUIWindowInfo* windowInfo,
+                    arGraphicsWindow* graphicsWindow);
   private:
     arGraphicsClient* _client;
 };
 
 // The callback for the arGraphicsWindow (i.e. for an individual viewport).
-void arGraphicsClientRenderCallback::operator()( arGraphicsWindow&, 
+void arGraphicsClientRenderCallback::operator()( arGraphicsWindow&,
                                                  arViewport& v) {
   if (!_client){
     return;
@@ -160,16 +162,17 @@ void arGraphicsClientRenderCallback::operator()( arGraphicsWindow&,
 }
 
 // The callback for the arGUIWindow.
-void arGraphicsClientRenderCallback::operator()(arGUIWindowInfo* windowInfo){
+void arGraphicsClientRenderCallback::operator()(arGUIWindowInfo* windowInfo,
+                                                arGraphicsWindow* graphicsWindow){
   if (!_client){
     return;
   }
   // Draws all the stuff in the window.
-  _client->getGraphicsWindow(windowInfo->getWindowID())->draw();
-  
+  graphicsWindow->draw();
+
   // Some additional graphical widgets might need to be drawn, but only
   // do this for the "main" window.
-  if (windowInfo->getWindowID() == 0){
+  if( _client->getWindowManager()->isFirstWindow( windowInfo->getWindowID() ) ) {
     // A HACK for drawing the simulator interface. This is used in
     // standalone mode on the arDistSceneGraphFramework.
     if (_client->_simulator){
@@ -177,7 +180,7 @@ void arGraphicsClientRenderCallback::operator()(arGUIWindowInfo* windowInfo){
     }
     // Used for the performance display.
     if (_client->_drawFrameworkObjects){
-      for (list<arFrameworkObject*>::iterator i 
+      for (list<arFrameworkObject*>::iterator i
              = _client->_frameworkObjects.begin();
 	   i != _client->_frameworkObjects.end(); i++){
         (*i)->drawWithComposition();
@@ -189,18 +192,18 @@ void arGraphicsClientRenderCallback::operator()(arGUIWindowInfo* windowInfo){
   // these commands have written to the frame buffer before proceeding.
 
   // It seems like glFlush/glFinish are a little bit unreliable... not
-  // every vendor has done a good job of implementing these. 
+  // every vendor has done a good job of implementing these.
   // Consequently, we do a small pixel read to force drawing to complete
   char buffer[32];
   glReadPixels(0,0,1,1,GL_RGBA,GL_UNSIGNED_BYTE,buffer);
-  // It *also* seems like it's helpful to throw a glFinish() in for good 
+  // It *also* seems like it's helpful to throw a glFinish() in for good
   // measure....
   glFinish();
 
   // Deal with a potential screenshot here in the drawing thread.
   // (NOTE: only screenshot the main window)
   if (windowInfo->getWindowID() == 0){
-    bool stereo 
+    bool stereo
       = _client->getWindowManager()->isStereo(windowInfo->getWindowID());
     if (_client->screenshotRequested()){
       _client->takeScreenshot(stereo);
@@ -243,14 +246,14 @@ bool arGraphicsClient::configure(arSZGClient* client){
 
   // Configure the window manager, do the initial window parsing.
   if (!_guiParser){
-    _guiParser = new arGUIXMLParser(_windowManager, client);
+    _guiParser = new arGUIXMLParser(client);
   }
   const string screenName( client->getMode( "graphics" ) );
   string whichDisplay
     = "SZG_DISPLAY" + screenName.substr( screenName.length() - 1, 1 );
   std::string displayName  = client->getAttribute( whichDisplay, "name" );
   std::cout << "Using display: " << whichDisplay << " : "
-            << displayName << std::endl; 
+            << displayName << std::endl;
   _guiParser->setConfig( client->getGlobalAttribute(displayName) );
   // It's weird that the following is set in this way...
   //_windowManager->setThreaded( _guiParser->numberOfWindows() > 1);
@@ -284,17 +287,17 @@ void arGraphicsClient::setTexturePath(const string& thePath){
   _graphicsDatabase.setTexturePath(thePath);
 }
 
-void arGraphicsClient::setDataBundlePath(const string& bundlePathName, 
+void arGraphicsClient::setDataBundlePath(const string& bundlePathName,
                                     const string& bundleSubDirectory){
   _graphicsDatabase.setDataBundlePath(bundlePathName, bundleSubDirectory);
 }
 
-void arGraphicsClient::addDataBundlePathMap(const string& bundlePathName, 
+void arGraphicsClient::addDataBundlePathMap(const string& bundlePathName,
                                     const string& bundlePath){
   _graphicsDatabase.addDataBundlePathMap(bundlePathName, bundlePath);
 }
 
-/// Sets the networks on which this object will try to connect to a server, in 
+/// Sets the networks on which this object will try to connect to a server, in
 /// descending order of preference
 void arGraphicsClient::setNetworks(string networks){
   _cliSync.setNetworks(networks);
@@ -305,24 +308,33 @@ bool arGraphicsClient::start(arSZGClient& client){
   if (!(_cliSync.init(client) && _cliSync.start())){
     return false;
   }
+
+  std::vector< arGUIXMLWindowConstruct* >* windowConstructs =
+    _guiParser->getWindowingConstruct()->getWindowConstructs();
+
+  // populate the callbacks for both the gui and graphics windows and the head
+  // for any vr cameras
+  std::vector< arGUIXMLWindowConstruct*>::iterator itr;
+  for( itr = windowConstructs->begin(); itr != windowConstructs->end(); itr++ ) {
+    (*itr)->getGraphicsWindow()->setInitCallback( new arGraphicsClientWindowInitCallback() );
+    (*itr)->getGraphicsWindow()->setDrawCallback( new arGraphicsClientRenderCallback(*this) );
+    (*itr)->setGUIDrawCallback( new arGraphicsClientRenderCallback(*this) );
+
+    std::vector<arViewport>* viewports = (*itr)->getGraphicsWindow()->getViewports();
+    std::vector<arViewport>::iterator vItr;
+    for( vItr = viewports->begin(); vItr != viewports->end(); vItr++ ) {
+      if( vItr->getCamera()->type() == "arVRCamera" ) {
+        ((arVRCamera*) vItr->getCamera())->setHead( &_defaultHead );
+       }
+    }
+  }
+
   // Start the various window threads going.
-  if (_guiParser->createWindows( new arGraphicsClientWindowInitCallback(),
-                                 new arGraphicsClientRenderCallback(*this),
-                                 new arGraphicsClientRenderCallback(*this),
-                                 &_defaultHead ) < 0){
+  if( _windowManager->createWindows( _guiParser->getWindowingConstruct() ) < 0 ) {
     // An error occured.
     return false;
   }
-  // populate the framework's set of {arGUI|arGraphics} windows with data
-  // from the arGUIXMLParser
-  const std::vector< arGUIXMLWindowConstruct* >* windowConstructs 
-    = _guiParser->getWindowConstructs();
-  std::vector< arGUIXMLWindowConstruct* >::const_iterator itr;
-  for( itr = windowConstructs->begin(); 
-       itr != windowConstructs->end(); itr++ ) {
-    (*itr)->getGraphicsWindow();
-    _windows.push_back((*itr)->getGraphicsWindow());
-  }
+
   // Everything is OK.
   return true;
 }

@@ -24,7 +24,7 @@
 
 class SZG_CALL arGraphicsClient{
   // Needs assignment operator and copy constructor, for pointer members.
-  friend bool 
+  friend bool
     ar_graphicsClientConnectionCallback(void*, arTemplateDictionary*);
   friend bool ar_graphicsClientDisconnectCallback(void*);
   friend void ar_graphicsClientDraw(arGraphicsClient* client, arCamera*);
@@ -41,7 +41,7 @@ class SZG_CALL arGraphicsClient{
     _windowManager = wm;
   }
   arGUIWindowManager* getWindowManager(){ return _windowManager; }
-  arGraphicsWindow* getGraphicsWindow(int ID){  return _windows[ID]; }
+  arGraphicsWindow* getGraphicsWindow(int ID){  return _windowManager->getGraphicsWindow( ID ); }
   bool configure(arSZGClient*);
   //arGraphicsWindow* getGraphicsWindow(){ return &_graphicsWindow; }
 
@@ -93,32 +93,29 @@ class SZG_CALL arGraphicsClient{
   /// so greedy to be in charge (though maybe that's necessary given the
   /// way the callbacks have been defined).
   void setSimulator(arFrameworkObject* f){ _simulator = f; }
-  void toggleFrameworkObjects(){ 
-    _drawFrameworkObjects = !_drawFrameworkObjects; 
+  void toggleFrameworkObjects(){
+    _drawFrameworkObjects = !_drawFrameworkObjects;
   }
   void drawFrameworkObjects(bool state){
     _drawFrameworkObjects = state;
   }
-  void addFrameworkObject(arFrameworkObject* f){ 
-    _frameworkObjects.push_back(f); 
+  void addFrameworkObject(arFrameworkObject* f){
+    _frameworkObjects.push_back(f);
   }
 
-  void requestScreenshot(const string& path, int x, int y, 
+  void requestScreenshot(const string& path, int x, int y,
                          int width, int height);
   bool screenshotRequested();
   void takeScreenshot(bool stereo);
 
   arSyncDataClient   _cliSync;
-  
+
  protected:
   arGraphicsDatabase _graphicsDatabase;
   arGraphicsWindow   _graphicsWindow;
 
   arGUIWindowManager* _windowManager;
   arGUIXMLParser*     _guiParser;
-  // Hmmm... This seems kinda bogus. We should be able to move this back
-  // into the window manager.....
-  vector<arGraphicsWindow*> _windows;
 
   //bool _fixedHeadMode;
   arHead _defaultHead;
