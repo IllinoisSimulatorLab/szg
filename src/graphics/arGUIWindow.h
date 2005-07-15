@@ -18,6 +18,7 @@
 
 #include "arThread.h"
 #include "arGraphicsWindow.h"
+#include "arGUIDefines.h"
 #include "arGUIInfo.h"
 
 #include <string>
@@ -54,6 +55,7 @@
   // supported on many platforms
 
   #include <X11/Xlib.h>
+  #include <X11/Xatom.h>
   #include <X11/cursorfont.h>
 
   #if defined( AR_USE_LINUX ) || defined( AR_USE_SGI )
@@ -110,8 +112,6 @@
 #endif
 
 class arGUIEventManager;
-class arGUIInfo;
-class arGUIWindowInfo;
 class arWMEvent;
 
 //@{
@@ -166,6 +166,9 @@ class SZG_CALL arGUIRenderCallback : public arRenderCallback
      *
      * @param windowInfo default drawcallback argument
      */
+    virtual void operator()( arGUIWindowInfo* windowInfo,
+                             arGraphicsWindow* graphicsWindow ) = 0;
+
     virtual void operator()( arGUIWindowInfo* windowInfo ) = 0;
 
   private:
@@ -187,8 +190,14 @@ class SZG_CALL arDefaultGUIRenderCallback : public arGUIRenderCallback
      *
      * @param drawCallback The user-defined function to use as a draw callback
      */
-    arDefaultGUIRenderCallback( void (*drawCallback)( arGUIWindowInfo* ) = NULL ) :
-      _drawCallback( drawCallback ) { }
+    arDefaultGUIRenderCallback( void (*drawCallback)( arGUIWindowInfo*, arGraphicsWindow* ) ) :
+      _drawCallback0( drawCallback ), _drawCallback1( NULL ), _drawCallback2( NULL ) { }
+
+    arDefaultGUIRenderCallback( void (*drawCallback)( arGUIWindowInfo* ) ) :
+      _drawCallback0( NULL ), _drawCallback1( drawCallback ), _drawCallback2( NULL ) { }
+
+    arDefaultGUIRenderCallback( void (*drawCallback)( arGraphicsWindow&, arViewport& ) ) :
+      _drawCallback0( NULL ), _drawCallback1( NULL ), _drawCallback2( drawCallback )  { }
 
     /**
      * The arDefaultGUIRenderCallback destructor.
@@ -200,13 +209,19 @@ class SZG_CALL arDefaultGUIRenderCallback : public arGUIRenderCallback
      *
      * Makes the actual call to the user defined draw callback.
      */
-    virtual void operator()( arGUIWindowInfo* windowInfo = NULL );
+    virtual void operator()( arGUIWindowInfo* windowInfo );
+
+    virtual void operator()( arGUIWindowInfo* windowInfo,
+                             arGraphicsWindow* graphicsWindow );
 
     virtual void operator()( arGraphicsWindow&, arViewport& );
 
   private:
 
-    void (*_drawCallback)( arGUIWindowInfo* );        ///< The user-defined drawcallback
+    /// @todo clean up the naming scheme
+    void (*_drawCallback0)( arGUIWindowInfo*, arGraphicsWindow* );
+    void (*_drawCallback1)( arGUIWindowInfo* );
+    void (*_drawCallback2)( arGraphicsWindow&, arViewport& );
 
 };
 
@@ -687,6 +702,7 @@ class SZG_CALL arGUIWindow
     bool getVisible( void ) const {  return _visible;  }
 
     std::string getTitle( void ) const {  return _windowConfig.getTitle(); }
+    void setTitle( const std::string& title );
 
     int getID( void ) const { return _ID; }
 
@@ -706,12 +722,19 @@ class SZG_CALL arGUIWindow
 
     arCursor getCursor( void ) const { return _cursor; }
 
+    int getBpp( void ) const { return _windowConfig.getBpp(); }
+    std::string getXDisplay( void ) const { return _windowConfig.getXDisplay(); }
+
     const arGUIWindowHandle& getWindowHandle( void ) const { return _windowHandle; }
 
     const arGUIWindowConfig& getWindowConfig( void ) const { return _windowConfig; }
 
     void* getUserData( void ) const { return _userData; }
     void setUserData( void* userData ) { _userData = userData; }
+
+    arGraphicsWindow* getGraphicsWindow( void );
+    void returnGraphicsWindow( void );
+    void setGraphicsWindow( arGraphicsWindow* graphicsWindow );
     //@}
 
     /**
@@ -915,6 +938,9 @@ class SZG_CALL arGUIWindow
     arMutex _WMEventsMutex;                     ///< Mutex protecting the window manager event queue.
 
     void* _userData;                            ///< User-set data pointer.
+
+    arMutex _graphicsWindowMutex;
+    arGraphicsWindow* _graphicsWindow;
 
 
     /**

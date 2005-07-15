@@ -23,14 +23,37 @@
 // convenience define
 const double USEC = 1000000.0;
 
-void arDefaultGUIRenderCallback::operator()( arGUIWindowInfo* windowInfo ) {
-  if( _drawCallback )
-    _drawCallback( windowInfo );
+// the 'fall-throughs' in these operators /might/ be dangerous (e.g. a
+// drawcallback expecting a windowinfo and/or a graphicsWindow gets passed
+// NULL(s)), but they *should* be robust to deal with such a situation.  This
+// allows us a bit more flexibility in how callbacks are registered and used.
+void arDefaultGUIRenderCallback::operator()( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow ) {
+  if( _drawCallback0 ) {
+    _drawCallback0( windowInfo, graphicsWindow );
+  }
+  else if( _drawCallback1 ) {
+    _drawCallback1( windowInfo );
+  }
 }
 
-void arDefaultGUIRenderCallback::operator()( arGraphicsWindow&, arViewport& ) {
-  if( _drawCallback ) {
-    _drawCallback( NULL );
+void arDefaultGUIRenderCallback::operator()( arGUIWindowInfo* windowInfo ) {
+  if( _drawCallback1 ) {
+    _drawCallback1( windowInfo );
+  }
+  else if( _drawCallback0 ) {
+    _drawCallback0( windowInfo, NULL );
+  }
+}
+
+void arDefaultGUIRenderCallback::operator()( arGraphicsWindow& graphicsWindow, arViewport& viewport ) {
+  if( _drawCallback2 ) {
+    _drawCallback2( graphicsWindow, viewport );
+  }
+  else if( _drawCallback0 ) {
+    _drawCallback0( NULL, NULL );
+  }
+  else if( _drawCallback1 ) {
+    _drawCallback1( NULL );
   }
 }
 
@@ -129,10 +152,6 @@ arGUIWindowBuffer::~arGUIWindowBuffer( void )
 
 int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const bool stereo ) const
 {
-  if( !_dblBuf ) {
-    return -1;
-  }
-
   // NOTE: since this should only be called from arGUIWindow, we've already
   // ensured that the correct gl context is on deck in arGUIWindow::swap
 
@@ -181,7 +200,8 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
   _cursor( AR_CURSOR_NONE ),
   _creationFlag( false ),
   _destructionFlag( false ),
-  _userData( userData )
+  _userData( userData ),
+  _graphicsWindow( NULL )
 {
   // The window config gives the type of cursor (none, arrow, etc.).
   // "arrow" is the default (within the window config's context).
@@ -203,6 +223,7 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
   ar_mutex_init( &_usableEventsMutex );
   ar_mutex_init( &_creationMutex );
   ar_mutex_init( &_destructionMutex );
+  ar_mutex_init( &_graphicsWindowMutex );
 }
 
 arGUIWindow::~arGUIWindow( void )
@@ -222,23 +243,17 @@ arGUIWindow::~arGUIWindow( void )
     delete _windowBuffer;
   }
 
-  // arGUIWindow's do not own their draw callbacks
-  /*
   if( _drawCallback ) {
     delete _drawCallback;
   }
-  */
 }
 
 void arGUIWindow::registerDrawCallback( arGUIRenderCallback* drawCallback )
 {
-  // arGUIWindow's do not own their draw callbacks
-  /*
   if( _drawCallback ) {
     // print warning that previous callback is being overwritten?
     delete _drawCallback;
   }
-  */
 
   if( !drawCallback ) {
     // print warning that there is now no draw callback?
@@ -273,7 +288,10 @@ void arGUIWindow::_drawHandler( void )
     arGUIWindowInfo* windowInfo = new arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DRAW );
     windowInfo->setWindowID( _ID );
 
-    (*_drawCallback)( windowInfo );
+    // always try to pass through the graphicswindow, if the user has
+    // registered a callback that does not take it, the callback class will
+    // handle letting that fall through
+    (*_drawCallback)( windowInfo, _graphicsWindow );
 
     delete windowInfo;
 
@@ -413,6 +431,30 @@ bool arGUIWindow::eventsPending( void ) const
   return _GUIEventManager->eventsPending();
 }
 
+arGraphicsWindow* arGUIWindow::getGraphicsWindow( void )
+{
+  ar_mutex_lock( &_graphicsWindowMutex );
+  return _graphicsWindow;
+}
+
+void arGUIWindow::returnGraphicsWindow( void )
+{
+  ar_mutex_unlock( &_graphicsWindowMutex );
+}
+
+void arGUIWindow::setGraphicsWindow( arGraphicsWindow* graphicsWindow )
+{
+  ar_mutex_lock( &_graphicsWindowMutex );
+
+  if( _graphicsWindow ) {
+    delete _graphicsWindow;
+  }
+
+  _graphicsWindow = graphicsWindow;
+
+  ar_mutex_unlock( &_graphicsWindowMutex );
+}
+
 arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
 {
   if( !_running ) {
@@ -538,6 +580,10 @@ int arGUIWindow::_processWMEvents( void )
 
       case AR_WINDOW_DECORATE:
         decorate( wmEvent->getEvent().getFlag() == 1 );
+      break;
+
+      case AR_WINDOW_RAISE:
+        raise( arZOrder( wmEvent->getEvent().getFlag() ) );
       break;
 
       case AR_WINDOW_CURSOR:
@@ -1046,7 +1092,7 @@ int arGUIWindow::swap( void )
   }
 
   if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
-    std::cerr << "swap: could not make context current" << std::endl;
+    // std::cerr << "swap: could not make context current" << std::endl;
   }
 
   return _windowBuffer->swapBuffer( _windowHandle, _windowConfig.getStereo() );
@@ -1662,6 +1708,30 @@ arCursor arGUIWindow::setCursor( arCursor cursor )
   return _cursor;
 }
 
+void arGUIWindow::setTitle( const std::string& title )
+{
+  if( !_running ) {
+    return;
+  }
+
+  #if defined( AR_USE_WIN_32 )
+
+  SetWindowText( _windowHandle._hWnd, title.c_str() );
+
+  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+
+  XTextProperty text;
+
+  text.value = (unsigned char *) title.c_str();
+  text.encoding = XA_STRING;
+  text.format = 8;
+  text.nitems = title.length();
+
+  XSetWMName( _windowHandle._dpy, _windowHandle._win, &text );
+
+  #endif
+}
+
 int arGUIWindow::getWidth( void ) const
 {
   if( !_running ) {
@@ -1689,7 +1759,7 @@ int arGUIWindow::getWidth( void ) const
   XWindowAttributes winAttributes;
 
   XLockDisplay( _windowHandle._dpy );
-  XGetWindowAttributes(_windowHandle._dpy, _windowHandle._win, &winAttributes);
+  XGetWindowAttributes( _windowHandle._dpy, _windowHandle._win, &winAttributes);
   XUnlockDisplay( _windowHandle._dpy );
   return winAttributes.width;
 
@@ -1871,7 +1941,7 @@ int arGUIWindow::_killWindow( void )
     }
 
     if( !wglDeleteContext( _windowHandle._hRC ) ) {
-      std::cerr << "_killWindow: release RC failed" << std::endl;
+      std::cerr << "_killWindow: delete RC failed" << std::endl;
     }
 
     _windowHandle._hRC = NULL;
