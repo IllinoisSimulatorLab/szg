@@ -419,13 +419,15 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
 
   // _defaultCamera.setHead( &_head );
   // _graphicsWindow.setInitCallback( new arMasterSlaveWindowInitCallback( *this ) );
+  // By default, the window manager will operate in single-threaded mode.
   _wm = new arGUIWindowManager( ar_masterSlaveFrameworkWindowEventFunction,
                                 ar_masterSlaveFrameworkKeyboardFunction,
                                 ar_masterSlaveFrameworkMouseFunction,
-                                ar_masterSlaveFrameworkWindowInitGLFunction );
+                                ar_masterSlaveFrameworkWindowInitGLFunction,
+                                false );
 
-  // as a replacement for the global __globalFramework pointer, each window will
-  // have a user data pointer set
+  // as a replacement for the global __globalFramework pointer, each window 
+  // will have a user data pointer set.
   _wm->setUserData( this );
 
   _guiXMLParser = new arGUIXMLParser( &_SZGClient );

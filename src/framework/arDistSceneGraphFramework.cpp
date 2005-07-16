@@ -75,7 +75,10 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
 // instead of having an szgrender do it.
 void ar_distSceneGraphFrameworkWindowTask(void* f){
   arDistSceneGraphFramework* fw = (arDistSceneGraphFramework*) f;
-  
+  // Start the windowing. If there is only one window, then the window
+  // manager will be in single-threaded mode. Consequently, the windowing
+  // needs to be started in the window thread.
+  fw->_graphicsClient.start(fw->_SZGClient, false);
   while (!fw->stopped()){ 
     ar_timeval time1 = ar_time();
     if (fw->_standalone && 
@@ -433,10 +436,12 @@ bool arDistSceneGraphFramework::start(){
     // Must configure the window manager here and pass it to the graphicsClient
     // before configure (because, inside graphicsClient configure, it is used
     // with the arGUIXMLParser).
+    // By default, we ask for a non-threaded window manager.
     _windowManager = new arGUIWindowManager(ar_distSceneGraphGUIWindowFunction,
 					    ar_distSceneGraphGUIKeyboardFunction,
 					    ar_distSceneGraphGUIMouseFunction,
-					    NULL);
+					    NULL,
+                                            false);
     _windowManager->setUserData(this);
     _graphicsClient.setWindowManager(_windowManager);
     _graphicsClient.configure(&_SZGClient);
@@ -450,8 +455,6 @@ bool arDistSceneGraphFramework::start(){
     // NOTE: peer mode is meaningless in standalone.
     _graphicsServer.start();
     _inputDevice->start();
-    // Start the windowing.
-    _graphicsClient.start(_SZGClient, false);
     // In standalone mode, we need to start a thread for the display.
     arThread graphicsThread;
     graphicsThread.beginThread(ar_distSceneGraphFrameworkWindowTask, this);

@@ -216,10 +216,12 @@ int main(int argc, char** argv){
   arThread dummy(messageTask, &szgClient);
 
   // We make the window manager object up here.
+  // By default, we ask for a non-threaded window manager.
   windowManager = new arGUIWindowManager(ar_guiWindowEvent,
 					 ar_guiWindowKeyboard,
 					 NULL,
-					 NULL);
+					 NULL,
+                                         false);
   // The graphics client actually does all of the window configuration, etc.
   // internally. The window threads also get started inside it.
   // However, we control the event loop out here.

@@ -323,9 +323,7 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int windowID, arGUIWindowInfo e
       break;
 
       case AR_WINDOW_CLOSE:
-        std::cout << "FOO 1" << std::endl;
         _windows[ windowID ]->_killWindow();
-        std::cout << "FOO 2" << std::endl;
       break;
 
       default:
@@ -817,20 +815,33 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
   const std::vector< arGUIXMLWindowConstruct* >* windowConstructs = windowingConstruct->getWindowConstructs();
 
   // If there are multiple windows, default to threaded mode.
-  // (this can be forced to a different value from the xml below)
-  // note that if this call is the result of a reload message neither
-  // setThreaded calls are going to have any affect
+  // If there is just one window, default to non-threaded mode. 
+  // Note that if this call is the result of a reload message neither
+  // setThreaded calls are going to have any affect, since this basic window
+  // manager state can only be altered at the initial window creation.
+  
   if( windowConstructs->size() > 1 ) {
     setThreaded( true );
   }
+  else{
+    setThreaded( false );
+  }
 
+  // If the XML has something explicit to say about threading, go ahead and
+  // override the defaults listed above.
   if( windowingConstruct->getThreaded() != -1 ) {
     setThreaded( bool( windowingConstruct->getThreaded() ) );
   }
 
+  // By default, we are NOT use framelocking.
   if( windowingConstruct->getUseFramelock() != -1 ) {
     useFramelock( bool( windowingConstruct->getUseFramelock() ) );
   }
+  else{
+    cout << "SLAARGH!\n";
+    useFramelock( false );
+  }
+  cout << "BLAARGH!!!!\n";
 
   // several function calls below also try to lock this mutex, so we'll
   // deadlock if we try to lock it here, instead this entire function should
@@ -918,19 +929,24 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
 
 void arGUIWindowManager::useFramelock( bool isOn )
 {
+  // This call should be able to work BEFORE the windows have been
+  // created (as in createWindows(...)).
+  // If not (as in the checks in activateFramelock and deactivateFramelock)
+  // framelocking will not work (useWildcatFramelock(true) would never get
+  // issued).
   ar_mutex_lock( &_windowsMutex );
-  if( _windows.size() == 1 && !_threaded ) {
-    _windows.begin()->second->useWildcatFramelock( isOn );
-  }
+  _windows.begin()->second->useWildcatFramelock( isOn );
   ar_mutex_unlock( &_windowsMutex );
 }
 
 void arGUIWindowManager::findFramelock( void )
 {
+  // This call should be able to work BEFORE the windows have been 
+  // created (as in createWindows(...)).
+  // If not (as in the checks in activateFramelock and deactivateFramelock),
+  // findWildcatFramelock() will not get issued.
   ar_mutex_lock( &_windowsMutex );
-  if( _windows.size() == 1 && !_threaded ) {
-    _windows.begin()->second->findWildcatFramelock();
-  }
+  _windows.begin()->second->findWildcatFramelock();
   ar_mutex_unlock( &_windowsMutex );
 }
 
