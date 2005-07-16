@@ -202,7 +202,7 @@ void arGraphicsClientRenderCallback::operator()(arGUIWindowInfo* windowInfo,
 
   // Deal with a potential screenshot here in the drawing thread.
   // (NOTE: only screenshot the main window)
-  if (windowInfo->getWindowID() == 0){
+  if( _client->getWindowManager()->isFirstWindow( windowInfo->getWindowID() ) ) {
     bool stereo
       = _client->getWindowManager()->isStereo(windowInfo->getWindowID());
     if (_client->screenshotRequested()){
@@ -255,8 +255,7 @@ bool arGraphicsClient::configure(arSZGClient* client){
   std::cout << "Using display: " << whichDisplay << " : "
             << displayName << std::endl;
   _guiParser->setConfig( client->getGlobalAttribute(displayName) );
-  // It's weird that the following is set in this way...
-  //_windowManager->setThreaded( _guiParser->numberOfWindows() > 1);
+
   if (_guiParser->parse() < 0){
     cout << "szgrender remark: failed to parse the XML configuration.\n";
   }
