@@ -66,10 +66,10 @@ bool inputEventCallback( arInputEvent& event, arCallbackEventFilter* filter ) {
   return true;
 }
 
-bool inputEventQueueCallback( arInputEventQueue& queue, arCallbackEventFilter* filter ) {
+bool inputEventQueueCallback( arInputEventQueue& eventQueue, arCallbackEventFilter* filter ) {
   ar_mutex_lock(&databaseLock);
-  while (!queue.empty()) {
-    arInputEvent event = queue.popNextEvent();
+  while (!eventQueue.empty()) {
+    arInputEvent event = eventQueue.popNextEvent();
     dragWand.updateState( event );
     headEffector.updateState( event );
     filter->getFramework()->navUpdate( event );

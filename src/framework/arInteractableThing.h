@@ -13,6 +13,8 @@
 #include "arFrameworkCalling.h"
 
 class arMasterSlaveFramework;
+class arGraphicsWindow;
+class arViewport;
 
 class SZG_CALL arInteractableThing : public arInteractable {
   public:
@@ -35,7 +37,8 @@ class SZG_CALL arInteractableThing : public arInteractable {
     virtual void activateColor() { glColor4f( _color[0], _color[1], _color[2], _color[3] ); }
     virtual bool activateTexture() { if (!_texture) return false; _texture->activate(); return true; }
     virtual void deactivateTexture() { if (_texture) _texture->deactivate(); }
-    virtual void draw( arMasterSlaveFramework* fw=0 ) = 0;
+    virtual void draw( arMasterSlaveFramework* fw=0 ) {}
+    virtual void draw( arMasterSlaveFramework& fw, arGraphicsWindow& win, arViewport& vp ) {}
   private:
     virtual bool _touch( arEffector& effector );
     virtual bool _processInteraction( arEffector& /*effector*/ ) { return true; }
