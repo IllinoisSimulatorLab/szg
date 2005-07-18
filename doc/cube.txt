@@ -397,12 +397,12 @@ The "zillimath" demos are also compiled by a particular user (gfrancis)
 picasso  SZG_EXEC path G:\THE_USER_NAME\bin\win32 
 joystick SZG_EXEC path G:\THE_USER_NAME\bin\win32
 air      SZG_EXEC path /home/public/THE_USER_NAME/bin/linux;/usr/bin
-north    SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22;g:\schaeffr\bin-stable\win32;g:\gfrancis\bin-stable\win32
-south    SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22;g:\schaeffr\bin-stable\win32;g:\gfrancis\bin-stable\win32
-east     SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22;g:\schaeffr\bin-stable\win32;g:\gfrancis\bin-stable\win32
-west     SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22;g:\schaeffr\bin-stable\win32;g:\gfrancis\bin-stable\win32
-top      SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22;g:\schaeffr\bin-stable\win32;g:\gfrancis\bin-stable\win32
-bottom   SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22;g:\schaeffr\bin-stable\win32;g:\gfrancis\bin-stable\win32
+north    SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
+south    SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
+east     SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
+west     SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
+top      SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
+bottom   SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
 </assign>
 
 <comment> Path for python applications. Note that
