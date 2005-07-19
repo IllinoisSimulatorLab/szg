@@ -5,7 +5,8 @@
 
 /**
  * @file arGUIWindow.h
- * Header file for the arGUIWindow class.
+ * Header file for the arGUIWindowConfig, arWMEvent, arGUIWindow,
+ *                     arGUIRenderCallback and arDefaultGUIRenderCallback classes.
  */
 #ifndef _AR_GUI_WINDOW_H_
 #define _AR_GUI_WINDOW_H_
@@ -21,11 +22,11 @@
 #include "arGUIDefines.h"
 #include "arGUIInfo.h"
 
-#include <string>
-#include <queue>
-
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
+
+#include <string>
+#include <queue>
 
 /**
  * \struct arGUIWindowHandle
@@ -93,7 +94,7 @@
 
   typedef struct {
     unsigned int cursorShape;    ///< an XC_{cursor} value
-    Cursor cachedCursor;         ///< None if the corresponding cursor has not been created yet
+    Cursor cachedCursor;         ///< 'None' if the corresponding cursor has not been created yet
   } cursorCacheEntry;
 
   typedef struct {
@@ -153,23 +154,20 @@ class SZG_CALL arGUIRenderCallback : public arRenderCallback
      */
     virtual ~arGUIRenderCallback( void )  { }
 
-    /**
-     * Leave it up to the subclass to decide to implement this
+    //@{
+    /** @name arGUI callbacks.
+     *
+     * Perform the draw callback as a () function call on this class.
+     *
+     * @note All pure virtual so that they must be implemented by a subclass.
      */
     virtual void operator()( arGraphicsWindow&, arViewport& ) = 0;
 
-    /**
-     * Overload the () operator so this class can 'simulate' a function call.
-     *
-     * @warning As this function is pure virtual this class cannot be
-     *          instantiated and must be subclassed before use.
-     *
-     * @param windowInfo default drawcallback argument
-     */
     virtual void operator()( arGUIWindowInfo* windowInfo,
                              arGraphicsWindow* graphicsWindow ) = 0;
 
     virtual void operator()( arGUIWindowInfo* windowInfo ) = 0;
+    //@}
 
   private:
 
@@ -185,8 +183,8 @@ class SZG_CALL arDefaultGUIRenderCallback : public arGUIRenderCallback
 {
   public:
 
-    /**
-     * The arDefaultGUIRenderCallback constructor.
+    //@{
+    /** @name arDefaultGUIRenderCallback constructors.
      *
      * @param drawCallback The user-defined function to use as a draw callback
      */
@@ -198,14 +196,15 @@ class SZG_CALL arDefaultGUIRenderCallback : public arGUIRenderCallback
 
     arDefaultGUIRenderCallback( void (*drawCallback)( arGraphicsWindow&, arViewport& ) ) :
       _drawCallback0( NULL ), _drawCallback1( NULL ), _drawCallback2( drawCallback )  { }
+    //@}
 
     /**
      * The arDefaultGUIRenderCallback destructor.
      */
     virtual ~arDefaultGUIRenderCallback( void )  { }
 
-    /**
-     * Implemented overloaded () operator.
+    //@{
+    /** @name overloaded () operators.
      *
      * Makes the actual call to the user defined draw callback.
      */
@@ -219,9 +218,10 @@ class SZG_CALL arDefaultGUIRenderCallback : public arGUIRenderCallback
   private:
 
     /// @todo clean up the naming scheme
-    void (*_drawCallback0)( arGUIWindowInfo*, arGraphicsWindow* );
-    void (*_drawCallback1)( arGUIWindowInfo* );
-    void (*_drawCallback2)( arGraphicsWindow&, arViewport& );
+
+    void (*_drawCallback0)( arGUIWindowInfo*, arGraphicsWindow* );    ///< type 1 draw callback
+    void (*_drawCallback1)( arGUIWindowInfo* );                       ///< type 2 draw callback
+    void (*_drawCallback2)( arGraphicsWindow&, arViewport& );         ///< type 3 draw callback
 
 };
 
@@ -232,7 +232,6 @@ class SZG_CALL arDefaultGUIRenderCallback : public arGUIRenderCallback
  * means of specifying the window parameter than passing them in one by one.
  *
  * @note Should be immutable - the window should not change any values
- *
  *
  * @see arGUIWindowManager::addWindow
  * @see arGUIWindow::arGUIWindow
@@ -251,7 +250,7 @@ class SZG_CALL arGUIWindowConfig
      * @param bpp        The bit-depth of the window.
      * @param Hz         The refresh-rate of the window.
      * @param decorate   Whether the window should have border decorations.
-     * @param zorder     Whether the window should be on top or not.
+     * @param zorder     The window's z order.
      * @param fullscreen Whether the window should be fullscreen.
      * @param stereo     Whether the window should support active stereo.
      * @param title      The text in the title bar of the window.
@@ -273,6 +272,11 @@ class SZG_CALL arGUIWindowConfig
      */
     ~arGUIWindowConfig( void );
 
+    //@{
+    /** @name arGUIWindowConfig accessors
+     *
+     * Retrieve or set arGUIWindowConfig stat.
+     */
     void setPos( int x, int y ) { _x = x; _y = y; }
     void setPosX( int x ) { _x = x; }
     void setPosY( int y ) { _y = y; }
@@ -302,6 +306,7 @@ class SZG_CALL arGUIWindowConfig
     std::string getTitle( void ) const { return _title; }
     std::string getXDisplay( void ) const { return _XDisplay; }
     arCursor getCursor( void ) const { return _cursor; }
+    //@}
 
   private:
 
@@ -338,7 +343,7 @@ class SZG_CALL arWMEvent
     /**
      * The arWMEvent constructor.
      *
-     * @param event Information about the event.
+     * @param event Information about the window event.
      */
     arWMEvent( const arGUIWindowInfo& event );
 
@@ -374,10 +379,16 @@ class SZG_CALL arWMEvent
      */
     void signal( void );
 
+    //@{
+    /** @name arWMEvent accessors.
+     *
+     * Retrieve or set arWMEvent state.
+     */
     void setEvent( arGUIWindowInfo event ) { _event = event; }
     const arGUIWindowInfo& getEvent( void ) const { return _event; }
 
     int getDone( void ) const { return _done; }
+    //@}
 
   private:
 
@@ -434,17 +445,16 @@ class arGUIWindowBuffer
  * A GUI Window in which graphics can be displayed.
  *
  * This class is responsible for creating an OS-level window to be managed by
- * an arGUIWindowManager.  It is also responsible for responding to any draw
- * requests by calling the appropriate handler.  It can operate in either a
- * threaded or non-threaded mode.
+ * an arGUIWindowManager.  It is also responsible for responding to any draw or
+ * swap requests by calling the appropriate handler.  It can operate in either
+ // a threaded or non-threaded mode.
 
- * @note This class is never actually exposed to the programmer, she must
- * access arGUIWindow functionality through the arGUIWindowManager.
+ * @note This class is never actually exposed to the programmer, she should
+ *       access arGUIWindow functionality through the arGUIWindowManager.
  *
  * @see arGUIWindowManager
  * @see arGUIWindowBuffer
  * @see arWMEvent
- *
  */
 class SZG_CALL arGUIWindow
 {
@@ -461,19 +471,20 @@ class SZG_CALL arGUIWindow
      * The arGUIWindow constructor.
      *
      * @note Because of flow control issues elsewhere the OS window is not
-     *       actually  created in the constructor.
+     *       actually created in the constructor.
      *
-     * @param ID           A unique identifier for this window.
-     * @param windowConfig The window configuration object.
-     * @param drawCallback The user-defined function to be called on draw
-     *                     requests.
+     * @param ID                   A unique identifier for this window.
+     * @param windowConfig         The window configuration object.
+     * @param windowInitGLCallback The user-defined function called after the
+     *                             window's opengl context is created.
+     * @param userData             User-defined data pointer.
      */
     arGUIWindow( int ID, arGUIWindowConfig windowConfig,
-                 void (*windowInitGLCallback)( arGUIWindowInfo* windowInfo ) = NULL,
+                 void (*windowInitGLCallback)( arGUIWindowInfo* ) = NULL,
                  void* userData = NULL );
 
-   /**
-     * The arGUIWindow destructor
+    /**
+     * The arGUIWindow destructor.
      *
      * @note The destructor is virtual so that arGUIWindowManager can be
      *       sub-classed if desired.
@@ -484,10 +495,6 @@ class SZG_CALL arGUIWindow
 
     /**
      * Register a draw callback.
-     *
-     * If the arGUIWindow constructor was called with NULL for the draw
-     * callback this function can be used to later register an appropriate
-     * callback.
      *
      * @note Will blindly overwrite any previously registered callback.
      *
@@ -550,7 +557,6 @@ class SZG_CALL arGUIWindow
      * @see arGUIWindowManager::addWMEvent
      */
     arWMEvent* addWMEvent( arGUIWindowInfo& event );
-
 
     /**
      * Perform a buffer swap.
@@ -645,7 +651,11 @@ class SZG_CALL arGUIWindow
     int makeCurrent( bool release = false );
 
     /**
-     * Raise the window in the z ordering.
+     * Set the window's z order.
+     *
+     * @note There are some behavioral differences between Win32 and X11.
+     *
+     * @param zorder The window's new z order.
      */
     void raise( arZOrder zorder );
 
@@ -682,7 +692,7 @@ class SZG_CALL arGUIWindow
      *
      * @param cursor The new cursor state.
      *
-     * @todo implement more cursor states.
+     * @return The current cursor state of the window.
      */
     arCursor setCursor( arCursor cursor );
 
@@ -690,13 +700,11 @@ class SZG_CALL arGUIWindow
     /**
      * @name Window state accessors.
      *
-     * Retrieve or set window state data.
+     * Retrieve or set window state.
      *
      * @note getWidth, getHeight, getPosX, and getPosY follow the freeglut
      *       conventions concerning how border decorations and screen area
      *       vs client area play into these values.
-     *
-     * @todo Add setters for members such as the title.
      */
     void setVisible( const bool visible )  {  _visible = visible;  }
     bool getVisible( void ) const {  return _visible;  }
@@ -731,11 +739,35 @@ class SZG_CALL arGUIWindow
 
     void* getUserData( void ) const { return _userData; }
     void setUserData( void* userData ) { _userData = userData; }
-
-    arGraphicsWindow* getGraphicsWindow( void );
-    void returnGraphicsWindow( void );
-    void setGraphicsWindow( arGraphicsWindow* graphicsWindow );
     //@}
+
+    /**
+     * Retrieve the arGraphicsWindow associated with this window.
+     *
+     * @warning This call will lock the graphics window, a corresponding call
+     *          to \ref returnGraphicsWindow should be made to unlock the
+     *          graphics window.
+     *
+     * @return A pointer to the associated arGraphicsWindow, which could be
+     *         NULL.
+     */
+    arGraphicsWindow* getGraphicsWindow( void );
+
+    /**
+     * 'Return' the graphics window locked on a previous call to
+     * \ref getGraphicsWindow
+     *
+     * @note Necessary as the associated graphics window can be set in a
+     *       different thread by a call to arGUIWindowManager::createWindows()
+     */
+    void returnGraphicsWindow( void );
+
+    /**
+     * Set the associated arGraphicsWindow.
+     *
+     * @param graphicsWindow A pointer to the new graphics window.
+     */
+    void setGraphicsWindow( arGraphicsWindow* graphicsWindow );
 
     /**
      * Retrieve the arGUIEventManager for this window.
@@ -749,10 +781,16 @@ class SZG_CALL arGUIWindow
      */
     arGUIEventManager* getGUIEventManager( void ) const {  return _GUIEventManager; }
 
+    //@{
+    /** @name arGUIWindow wildcat framelock accessors.
+     *
+     * Operate upon the wildcat framelock.
+     */
     void useWildcatFramelock( bool isOn );
     void findWildcatFramelock( void );
     void activateWildcatFramelock( void );
     void deactivateWildcatFramelock( void );
+    //@}
 
   private:
 
@@ -939,12 +977,11 @@ class SZG_CALL arGUIWindow
 
     void* _userData;                            ///< User-set data pointer.
 
-    arMutex _graphicsWindowMutex;
-    arGraphicsWindow* _graphicsWindow;
-
+    arMutex _graphicsWindowMutex;               ///< An associated arGraphicsWindow (can be NULL).
+    arGraphicsWindow* _graphicsWindow;          ///< A lock protecting access to the arGraphicsWindow.
 
     /**
-     * A queue of usable (and possible in-use) arWMEvents.
+     * A queue of usable (and possibly in-use) arWMEvents.
      *
      * This queue is necessary as both the window manager and the windows
      * themselves need a handle to added arWMEvents (the window manager to be

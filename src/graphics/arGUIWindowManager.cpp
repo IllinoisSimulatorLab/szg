@@ -191,8 +191,8 @@ int arGUIWindowManager::processWindowEvents( void )
   }
 
   // if the WM is in single-threaded mode, first it needs to tell the windows
-  // to push any pending gui events onto their stack and process any lingering
-  // WM events since they are not doing this in their own thread
+  // to push any pending gui events onto their stack since they are not doing
+  // this in their own thread
   if( !_threaded && ( consumeAllWindowEvents() < 0 ) ) {
     std::cerr << "processWindowEvents: consumeAllWindowEvents Error" << std::endl;
   }
@@ -311,7 +311,7 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int windowID, arGUIWindowInfo e
       break;
 
       case AR_WINDOW_DECORATE:
-        _windows[ windowID ]->decorate( event.getFlag() == 1 ? true : false );
+        _windows[ windowID ]->decorate( (event.getFlag() == 1) );
       break;
 
       case AR_WINDOW_RAISE:
@@ -360,7 +360,7 @@ int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent,
 
   // first, pass the event to all windows so they can get started on it
   for( witr = _windows.begin(); witr != _windows.end(); witr++ ) {
-    // ARGH, how can we make this locking cleaner?
+    // AARGH, how can we make this locking cleaner?
     ar_mutex_unlock( &_windowsMutex );
     arWMEvent* eventHandle = addWMEvent( witr->second->getID(), wmEvent );
     ar_mutex_lock( &_windowsMutex );
@@ -545,9 +545,6 @@ int arGUIWindowManager::raiseWindow( const int windowID, arZOrder zorder )
   return 0;
 }
 
-/// Sends an event to the window manager, requesting that a particular
-/// window's cursor be set to AR_CURSOR_ARROW, AR_CURSOR_NONE, etc.
-/// The setCursor(...) method of the window gets called as a consequence.
 int arGUIWindowManager::setWindowCursor( const int windowID, arCursor cursor )
 {
   arGUIWindowInfo event( AR_WINDOW_EVENT, AR_WINDOW_CURSOR );
@@ -797,6 +794,8 @@ int arGUIWindowManager::deleteAllWindows( void )
 
     delete witr->second;
 
+    // make sure the iterator is advanced otherwise it will be invalidated
+    // by the call to erase
     _windows.erase( witr++ );
   }
 
@@ -810,16 +809,16 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
   if( !windowingConstruct ) {
     return -1;
   }
+
   std::cout << "creating windows" << std::endl;
 
   const std::vector< arGUIXMLWindowConstruct* >* windowConstructs = windowingConstruct->getWindowConstructs();
 
   // If there are multiple windows, default to threaded mode.
-  // If there is just one window, default to non-threaded mode. 
+  // If there is just one window, default to non-threaded mode.
   // Note that if this call is the result of a reload message neither
   // setThreaded calls are going to have any affect, since this basic window
   // manager state can only be altered at the initial window creation.
-  
   if( windowConstructs->size() > 1 ) {
     setThreaded( true );
   }
@@ -838,10 +837,8 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
     useFramelock( bool( windowingConstruct->getUseFramelock() ) );
   }
   else{
-    cout << "SLAARGH!\n";
     useFramelock( false );
   }
-  cout << "BLAARGH!!!!\n";
 
   // several function calls below also try to lock this mutex, so we'll
   // deadlock if we try to lock it here, instead this entire function should
@@ -897,7 +894,7 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
   if( wItr != _windows.end() ) {
     while( wItr != _windows.end() ) {
       if( deleteWindow( (wItr++)->first ) < 0 ) {
-        std::cout << "could not delete window: " << wItr->first << std::endl;
+        std::cerr << "could not delete window: " << wItr->first << std::endl;
       }
     }
   }
@@ -906,7 +903,7 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
   if( cItr != windowConstructs->end() ) {
     for( ; cItr != windowConstructs->end(); cItr++ ) {
       if( addWindow( *((*cItr)->getWindowConfig()) ) < 0 ) {
-        std::cout << "could not create new gui window" << std::endl;
+        std::cerr << "could not create new gui window" << std::endl;
       }
     }
   }
@@ -941,7 +938,7 @@ void arGUIWindowManager::useFramelock( bool isOn )
 
 void arGUIWindowManager::findFramelock( void )
 {
-  // This call should be able to work BEFORE the windows have been 
+  // This call should be able to work BEFORE the windows have been
   // created (as in createWindows(...)).
   // If not (as in the checks in activateFramelock and deactivateFramelock),
   // findWildcatFramelock() will not get issued.

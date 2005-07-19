@@ -46,7 +46,7 @@ typedef KeyboardMap::iterator KeyboardIterator;
 /**
  * Consumes pending OS events for a specific window and packages them into a
  * form usable by the event callbacks in arGUIWindowManager.  Can be controlled
- * externally be being fed manufactured OS events.
+ * externally by being fed manufactured OS events.
  *
  * @see arGUIWindow
  * @see arGUIWindow::_consumeWindowEvents
@@ -58,6 +58,8 @@ class SZG_CALL arGUIEventManager
 
     /**
      * The arGUIEventManager constructor.
+     *
+     * @param userData User-defined data pointer set for all OS events.
      */
     arGUIEventManager( void* userData = NULL );
 
@@ -137,9 +139,9 @@ class SZG_CALL arGUIEventManager
      * Retrieve GUI state data.
      *
      * @warning If the focus of the app is lost then certain state may be
-     *          wrong.  Furthermore, if the mouse is moved outside the
-     *          window then the state will only reflect its last movement
-     *          <em>inside</em> the window.
+     *          wrong.  Furthermore, if the mouse is moved outside the window
+     *          (without a button held down) then the state will only reflect
+     *          its last movement <em>inside</em> the window.
      */
     arGUIKeyInfo getKeyState( const arGUIKey key );
     arGUIMouseInfo getMouseState( void ) const;
@@ -191,12 +193,12 @@ class SZG_CALL arGUIEventManager
 
     bool _active;                             ///< Is the event manager active?
 
-    // this is a lot of data to be copying around, any way to do this without
-    // passing-by-value?
+    /// this is a lot of data to be copying around, any way to do this without
+    /// passing-by-value?
     std::queue<arStructuredData > _events;    ///< Queue of consumed os events waiting to be processed by the window manager.
     arMutex _eventsMutex;                     ///< Mutex protecting the event queue.
 
-    void* _userData;                          ///< Data pointer defined from associated window.
+    void* _userData;                          ///< Data pointer defined by associated window.
 
     //@{
     /**

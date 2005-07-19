@@ -254,14 +254,28 @@ typedef unsigned int arZOrder;
   #define AR_BUTTON_GARBAGE  0x0000
   //@}
 
+  //@{
+  /**
+   * @name Cursor virtual 'key' codes.
+   *
+   * @todo Support for more cursor types.
+   */
   #define AR_CURSOR_ARROW    0x0000
   #define AR_CURSOR_HELP     0x0001
   #define AR_CURSOR_WAIT     0x0002
   #define AR_CURSOR_NONE     0x0003
+  //@}
 
+  //@{
+  /**
+   * @name Z ordering virtual 'key' codes.
+   *
+   * @todo Support for different z orderings.
+   */
   #define AR_ZORDER_NORMAL   0x0000
   #define AR_ZORDER_TOP      0x0001
   #define AR_ZORDER_TOPMOST  0x0002
+  //@}
 
 #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
@@ -439,14 +453,28 @@ typedef unsigned int arZOrder;
   #define AR_BUTTON_GARBAGE  0x0000
   //@}
 
+  //@{
+  /**
+   * @name Cursor virtual 'key' codes.
+   *
+   * @todo Support for more cursor types.
+   */
   #define AR_CURSOR_ARROW    0x0000
   #define AR_CURSOR_HELP     0x0001
   #define AR_CURSOR_WAIT     0x0002
   #define AR_CURSOR_NONE     0x0003
+  //@}
 
+  //@{
+  /**
+   * @name Z ordering virtual 'key' codes.
+   *
+   * @todo Support for different z orderings.
+   */
   #define AR_ZORDER_NORMAL   0x0000
   #define AR_ZORDER_TOP      0x0001
   #define AR_ZORDER_TOPMOST  0x0002
+  //@}
 
 #endif
 

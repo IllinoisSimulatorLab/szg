@@ -20,9 +20,9 @@ arGUIInfo::arGUIInfo( arGUIEventType eventType, arGUIState state,
 }
 
 // in this, and all the constructors below, the return value of
-// getDataFieldIndex should be checked before being passed to getDataInt, it's
-// possible it can return -1 in which case getDataInt fails, but if any of
-// these getDataInt's fail, then the whole constructor should likewise 'fail'
+// getDataInt should be getting checked, it's possible it can return -1 in
+// which case getDataInt has failed, but if any of these getDataInt's fail,
+// then the whole constructor should likewise 'fail'
 arGUIInfo::arGUIInfo( arStructuredData& data )
 {
   _state = arGUIState( data.getDataInt( "state" ) );
@@ -57,7 +57,7 @@ arGUIKeyInfo::arGUIKeyInfo( arStructuredData& data ) :
   arGUIInfo( data )
 {
   if( arGUIEventType( data.getDataInt( "eventType" ) ) != AR_KEY_EVENT ) {
-    std::cout << "Cannot build arKeyInfo from this arStructuredData" << std::endl;
+    std::cerr << "Cannot build arKeyInfo from this arStructuredData" << std::endl;
     return;
   }
 
@@ -89,7 +89,7 @@ arGUIMouseInfo::arGUIMouseInfo( arStructuredData& data ) :
   arGUIInfo( data )
 {
   if( arGUIEventType( data.getDataInt( "eventType" ) ) != AR_MOUSE_EVENT ) {
-    std::cout << "Cannot build arMouseInfo from this arStructuredData" << std::endl;
+    std::cerr << "Cannot build arMouseInfo from this arStructuredData" << std::endl;
     return;
   }
 
@@ -124,7 +124,7 @@ arGUIWindowInfo::arGUIWindowInfo( arStructuredData& data ) :
   arGUIInfo( data )
 {
   if( arGUIEventType( data.getDataInt( "eventType" ) ) != AR_WINDOW_EVENT ) {
-    std::cout << "Cannot build arWindowInfo from this arStructuredData" << std::endl;
+    std::cerr << "Cannot build arWindowInfo from this arStructuredData" << std::endl;
     return;
   }
 

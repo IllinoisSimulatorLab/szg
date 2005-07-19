@@ -1,6 +1,7 @@
 /**
  * @file arGUIWindow.cpp
- * Implementation of the arGUIWindow class.
+ * Implementation of the arGUIWindowConfig, arWMEvent,
+                         arGUIWindow and arDefaultGUIRenderCallback classes.
  */
 #include "arPrecompiled.h"
 
@@ -23,7 +24,7 @@
 // convenience define
 const double USEC = 1000000.0;
 
-// the 'fall-throughs' in these operators /might/ be dangerous (e.g. a
+// the 'fall-throughs' in these operators /might/ be 'dangerous' (e.g. a
 // drawcallback expecting a windowinfo and/or a graphicsWindow gets passed
 // NULL(s)), but they *should* be robust to deal with such a situation.  This
 // allows us a bit more flexibility in how callbacks are registered and used.
@@ -78,10 +79,12 @@ arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height,
   _XDisplay( XDisplay ),
   _cursor( cursor )
 {
+
 }
 
 arGUIWindowConfig::~arGUIWindowConfig( void )
 {
+
 }
 
 arWMEvent::arWMEvent( const arGUIWindowInfo& event ) :
@@ -139,15 +142,18 @@ void arWMEvent::signal( void )
 
 arWMEvent::~arWMEvent( void )
 {
+
 }
 
 arGUIWindowBuffer::arGUIWindowBuffer( bool dblBuf ) :
   _dblBuf( dblBuf )
 {
+
 }
 
 arGUIWindowBuffer::~arGUIWindowBuffer( void )
 {
+
 }
 
 int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const bool stereo ) const
@@ -203,13 +209,7 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
   _userData( userData ),
   _graphicsWindow( NULL )
 {
-  // The window config gives the type of cursor (none, arrow, etc.).
-  // "arrow" is the default (within the window config's context).
-  // BUG: Setting the cursor can only happen through the arGUIWindowManager.
-  // Consequently, the cursor change needs to be manually enforced by
-  // the programmer.
-  // _cursor = windowConfig._initialCursor;
-
+  // construct a unique class name for window registration under Win32
   std::stringstream ss; ss << _ID;
   _className = std::string( _windowConfig.getTitle() + ss.str() );
 
@@ -268,6 +268,8 @@ void arGUIWindow::_drawHandler( void )
 {
   if( _running && _drawCallback ) {
 
+    // need to ensure (in non-threaded mode) that this window's opengl context
+    // is in fact current
     if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
       std::cerr << "_drawHandler: could not make context current" << std::endl;
     }
@@ -367,15 +369,6 @@ void arGUIWindow::_mainLoop( void )
       // print error?
     }
   }
-
-  // because of some threading changes, this is no longer necessary, the
-  // window will now be killed in processarWMEvents() (i.e. running == false
-  // iff _killWindow has /already/ been called)
-  /*
-  if( _killWindow() < 0 ) {
-    // window was not cleaned up properly, print warning?
-  }
-  */
 }
 
 int arGUIWindow::_consumeWindowEvents( void )
@@ -447,6 +440,7 @@ void arGUIWindow::setGraphicsWindow( arGraphicsWindow* graphicsWindow )
   ar_mutex_lock( &_graphicsWindowMutex );
 
   if( _graphicsWindow ) {
+    // are we sure we own this graphics window?
     delete _graphicsWindow;
   }
 
@@ -463,6 +457,7 @@ arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
 
   arWMEvent* event = NULL;
 
+  // every event's user data should be set
   if( !wmEvent.getUserData() ) {
     wmEvent.setUserData( _userData );
   }
@@ -579,7 +574,7 @@ int arGUIWindow::_processWMEvents( void )
       break;
 
       case AR_WINDOW_DECORATE:
-        decorate( wmEvent->getEvent().getFlag() == 1 );
+        decorate( (wmEvent->getEvent().getFlag() == 1) );
       break;
 
       case AR_WINDOW_RAISE:
@@ -631,7 +626,7 @@ int arGUIWindow::_performWindowCreation( void )
     return -1;
   }
 
-  // taken care of by the windowStartGL callback now
+  // taken care of by the windowInitGL callback now
   // InitGL( getWidth(), getHeight() );
 
   // tell anyone listening that the window has been successfully created
@@ -966,16 +961,16 @@ int arGUIWindow::_windowCreation( void )
   // seems to honor
   XSizeHints sizeHints;
   memset( &sizeHints, 0, sizeof( XSizeHints ) );
-  sizeHints.flags  = USPosition | USSize;
-  sizeHints.x      = trueX;
-  sizeHints.y      = trueY;
-  sizeHints.width  = trueWidth;
-  sizeHints.height = trueHeight;
-  sizeHints.base_width = trueWidth;
+  sizeHints.flags       = USPosition | USSize;
+  sizeHints.x           = trueX;
+  sizeHints.y           = trueY;
+  sizeHints.width       = trueWidth;
+  sizeHints.height      = trueHeight;
+  sizeHints.base_width  = trueWidth;
   sizeHints.base_height = trueHeight;
 
   XWMHints wmHints;
-  wmHints.flags = StateHint;
+  wmHints.flags         = StateHint;
   wmHints.initial_state = NormalState;
 
   const char* title = _windowConfig.getTitle().c_str();
@@ -1050,7 +1045,7 @@ int arGUIWindow::_setupWindowCreation( void )
   windowClass.lpszMenuName  = NULL;
   // NOTE: classname's *must* be unique to each window, if two windows are
   // created with the same title, it will cause problems, _className mitigates
-  // this problem
+  // this issue
   windowClass.lpszClassName = _className.c_str();
 
   if( !RegisterClassEx( &windowClass ) ) {
@@ -1092,7 +1087,7 @@ int arGUIWindow::swap( void )
   }
 
   if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
-    // std::cerr << "swap: could not make context current" << std::endl;
+    std::cerr << "swap: could not make context current" << std::endl;
   }
 
   return _windowBuffer->swapBuffer( _windowHandle, _windowConfig.getStereo() );
@@ -1331,7 +1326,7 @@ void arGUIWindow::decorate( const bool decorate )
   SetWindowLong( _windowHandle._hWnd, GWL_STYLE, windowStyle );
   SetWindowLong( _windowHandle._hWnd, GWL_EXSTYLE, windowExtendedStyle );
 
-  // needed to flush the changes
+  // needed to actually flush the changes
   SetWindowPos( _windowHandle._hWnd, HWND_TOP, 0, 0, 0, 0,
                 SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER );
 
@@ -1631,14 +1626,14 @@ arCursor arGUIWindow::setCursor( arCursor cursor )
     case AR_CURSOR_HELP:
     case AR_CURSOR_WAIT:
       SetCursor( LoadCursor( NULL, cursorCache[ cursor ] ) );
-      SetClassLong( _windowHandle._hWnd, GCL_HCURSOR, (LONG) LoadCursor( NULL, cursorCache[ cursor ] ) );
+      SetClassLong( _windowHandle._hWnd, GCL_HCURSOR,
+                    (LONG) LoadCursor( NULL, cursorCache[ cursor ] ) );
     break;
   }
 
   _cursor = cursor;
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
-
 
   // Using the caching code below seems to cause segfaults on Linux when
   // running multiple windows in the master/slave framework.

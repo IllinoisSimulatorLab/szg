@@ -35,6 +35,7 @@ class SZG_CALL arGUIInfo
      * @param state     What state the event is in.
      * @param windowID  Which window this event took place in.
      * @param flag      Generic flag for function specific information.
+     * @param userData  User-defined data pointer.
      */
     arGUIInfo( arGUIEventType eventType = AR_GENERIC_EVENT,
                arGUIState state = AR_GENERIC_STATE,
@@ -53,6 +54,11 @@ class SZG_CALL arGUIInfo
      */
     ~arGUIInfo( void );
 
+    //@{
+    /** @name arGUIInfo state accessors.
+     *
+     * Retrieve or set an arGUIInfo's state.
+     */
     void setEventType( arGUIEventType eventType ) { _eventType = eventType; }
     arGUIEventType getEventType( void ) const { return _eventType; }
 
@@ -67,9 +73,10 @@ class SZG_CALL arGUIInfo
 
     void setUserData( void* userData ) { _userData = userData; }
     void* getUserData( void ) const { return _userData; }
+    //@}
 
   private:
-    // variables common to all events
+    /// variables common to all events
 
     arGUIEventType _eventType;    ///< The type of event.
     arGUIState _state;            ///< The state of the event.
@@ -122,6 +129,11 @@ class SZG_CALL arGUIKeyInfo : public arGUIInfo
      */
     ~arGUIKeyInfo( void );
 
+    //@{
+    /** @name arGUIKeyInfo state accessors.
+     *
+     * Retrieve or set an arGUIKeyInfo's state.
+     */
     void setKey( arGUIKey key ) { _key = key; }
     arGUIKey getKey( void ) const { return _key; }
 
@@ -130,6 +142,7 @@ class SZG_CALL arGUIKeyInfo : public arGUIInfo
 
     void setAlt( int alt ) { _alt = alt; }
     int getAlt( void ) const { return _alt; }
+    //@}
 
   private:
 
@@ -138,12 +151,12 @@ class SZG_CALL arGUIKeyInfo : public arGUIInfo
     int _ctrl;          ///< The ctrl key modifier.
     int _alt;           ///< The alt key modifier.
 
-    // By design shift is not considered a modifier, all ascii
-    // keypresses are translated to their shift'ed variants.
+    /// By design shift is not considered a modifier, all ascii
+    /// keypresses are translated to their shift'ed variants.
 };
 
 /**
- * Information about a keyboard event.
+ * Information about a mouse event.
  *
  * @see arGUIInfo
  * @see arGUIWindowManager::_mouseHandler
@@ -185,6 +198,11 @@ class SZG_CALL arGUIMouseInfo : public arGUIInfo
      */
     ~arGUIMouseInfo( void );
 
+    //@{
+    /** @name arGUIMouseInfo state accessors.
+     *
+     * Retrieve or set an arGUIMouseInfo's state.
+     */
     void setButton( arGUIButton button ) { _button = button; }
     arGUIButton getButton( void ) const { return _button; }
 
@@ -194,13 +212,15 @@ class SZG_CALL arGUIMouseInfo : public arGUIInfo
 
     void setPrevPosX( int prevPosX ) { _prevPosX = prevPosX; }
     void setPrevPosY( int prevPosY ) { _prevPosY = prevPosY; }
-    void setPrevPos( int prevPosX, int prevPosY ) { _prevPosX = prevPosX; _prevPosY = prevPosY; }
+    void setPrevPos( int prevPosX, int prevPosY ) { _prevPosX = prevPosX;
+                                                    _prevPosY = prevPosY; }
 
     int getPosX( void ) const { return _posX; }
     int getPosY( void ) const { return _posY; }
 
     int getPrevPosX( void ) const { return _prevPosX; }
     int getPrevPosY( void ) const { return _prevPosY; }
+    //@}
 
   private:
 
@@ -253,19 +273,26 @@ class SZG_CALL arGUIWindowInfo : public arGUIInfo
      */
     ~arGUIWindowInfo( void );
 
+    //@{
+    /** @name arGUIWindowInfo state accessors.
+     *
+     * Retrieve or set an arGUIWindowInfo's state.
+     */
     void setPosX( int posX ) { _posX = posX; }
     void setPosY( int posY ) { _posY = posY; }
     void setPos( int posX, int posY ) { _posX = posX; _posY = posY; }
 
     void setSizeX( int sizeX ) { _sizeX = sizeX; }
     void setSizeY( int sizeY ) { _sizeY = sizeY; }
-    void setSize( int sizeX, int sizeY ) { _sizeX = sizeX; _sizeY = sizeY; }
+    void setSize( int sizeX, int sizeY ) { _sizeX = sizeX;
+                                           _sizeY = sizeY; }
 
     int getPosX( void ) const { return _posX; }
     int getPosY( void ) const { return _posY; }
 
     int getSizeX( void ) const { return _sizeX; }
     int getSizeY( void ) const { return _sizeY; }
+    //@}
 
   private:
     int _posX;      ///< The x position of the window.

@@ -63,14 +63,17 @@ class SZG_CALL arGUIWindowManager
     /**
      * The arGUIWindowManager constructor.
      *
-     * @param windowCallback   The user-defined function that will be passed
-     *                         window events.
-     * @param keyboardCallback The user-defined function that will be passed
-     *                         keyboard events.
-     * @param mouseCallback    The user-defined function that will be passed
-     *                         mouse events
-     * @param threaded         A flag determining whether the window manager
-     *                         will operate in single-threaded mode or not.
+     * @param windowCallback       The user-defined function that will be
+     *                             passed window events.
+     * @param keyboardCallback     The user-defined function that will be
+     *                             passed keyboard events.
+     * @param mouseCallback        The user-defined function that will be
+     *                             passed  mouse events
+     * @param windowInitGLCallback The user-defined function that will be
+     *                             called after a window's OpenGL context is
+     *                             created
+     * @param threaded             A flag determining whether the window
+     *                             manager will operate in single-threaded mode
      */
     arGUIWindowManager( void (*windowCallback)( arGUIWindowInfo* ) = NULL,
                         void (*keyboardCallback)( arGUIKeyInfo* ) = NULL,
@@ -146,6 +149,29 @@ class SZG_CALL arGUIWindowManager
      */
     int addWindow( const arGUIWindowConfig& windowConfig );
 
+    /**
+     * Create a set of (possibly) new arGUIWindows.
+     *
+     * A utility function that uses a parsed XML description of arGUIWindow's
+     * to create the windows.  If any windows currently exist this function
+     * will attempt to do an intelligent 'diff' of the new windows against the
+     * old windows, tweaking windows where possible and only creating or
+     * deleting windows where necessary.
+     *
+     * @note This function may modify the window manager's threaded state.
+     *
+     * @return <ul>
+     *           <li>0 on success.
+     *           <li>-1 on failure.
+     *         </ul>
+     *
+     * @see addWindow
+     * @see deleteWindow
+     * @see setGraphicsWindow
+     * @see registerDrawCallback
+     * @see arGUIWindowingConstruct
+     * @see arGUIXMLWindowConstruct
+     */
     int createWindows( const arGUIWindowingConstruct* windowingConstruct = NULL );
 
     //@{
@@ -156,7 +182,7 @@ class SZG_CALL arGUIWindowManager
      * functions.
      *
      * @warning These functions will blindly overwrite any currently registered
-     *          callbacks
+     *          callbacks.
      */
     void registerWindowCallback( void (*windowCallback) ( arGUIWindowInfo* ) );
     void registerKeyboardCallback( void (*keyboardCallback) ( arGUIKeyInfo* ) );
@@ -198,9 +224,6 @@ class SZG_CALL arGUIWindowManager
      * @see _keyboardHandler
      * @see _mouseHandler
      * @see _windowHandler
-     *
-     * @bug There are some weird issues with 'races' between this function and
-     *       window deletion that need some more investigation.
      */
     int processWindowEvents( void );
 
@@ -305,9 +328,9 @@ class SZG_CALL arGUIWindowManager
      */
     int consumeAllWindowEvents( bool blocking = false );
 
-    // NOTE: if this wm is managing multiple windows with different _Hz's, then
-    // blocking must be false otherwise both windows will run at whatever the
-    // lowest rate is
+    /// NOTE: if this wm is managing multiple windows with different _Hz's, then
+    /// blocking must be false otherwise both windows will run at whatever the
+    /// lowest rate is
 
     /**
      * Issue a swap request to a single window.
@@ -441,7 +464,7 @@ class SZG_CALL arGUIWindowManager
      * @warning Under X11 this function is window manager specific, currently
      *          it should work under Motif, KDE and Gnome.
      *
-     * @note has no effect if the window is in fullscreen mode.
+     * @note Has no effect if the window is in fullscreen mode.
      *
      * @param windowID The window to perform the operation on.
      * @param decorate A flag determining whether border decorations should be
@@ -457,14 +480,44 @@ class SZG_CALL arGUIWindowManager
      */
     int decorateWindow( const int windowID, bool decorate );
 
+    /**
+     * Set the state of the window's mouse cursor.
+     *
+     * @param windowID The window to perform the operation on.
+     * @param cursor   The new cursor type of the window.
+     *
+     * @return <ul>
+     *           <li>0 on success.
+     *           <li>-1 if the window could not be found or there was otherwise
+     *               an error.
+     *         </ul>
+     *
+     * @see addWMEvent
+     * @see arGUIWindow::setCursor
+     */
     int setWindowCursor( const int windowID, arCursor cursor );
 
+    /**
+     * Set the state of the window's z order.
+     *
+     * @param windowID The window to perform the operation on.
+     * @param zorder   The new zorder of the window.
+     *
+     * @return <ul>
+     *           <li>0 on success.
+     *           <li>-1 if the window could not be found or there was otherwise
+     *               an error.
+     *         </ul>
+     *
+     * @see addWMEvent
+     * @see arGUIWindow::raise
+     */
     int raiseWindow( const int windowID, arZOrder zorder );
 
     //@{
     /** @name Window state accessors
      *
-     * Retrieve information about a window's current state.
+     * Retrieve or set a window's current state.
      */
     bool windowExists( const int windowID );
 
@@ -511,14 +564,14 @@ class SZG_CALL arGUIWindowManager
      */
     static arGUIKeyInfo getKeyState( const arGUIKey key );
 
-    // Getting the mouse state outside of the context of a window doesn't make
-    // sense.
-    // static arMouseInfo getMouseState( void );
+    /// Getting the mouse state outside of the context of a window doesn't make
+    /// sense.
+    /// static arMouseInfo getMouseState( void );
 
     //@{
     /** @name Window manager state accessors
      *
-     * Retrieve information about a window manager's current state.
+     * Retrieve or set the window manager's current state.
      */
     int getNumWindows( void ) const { return _windows.size(); }
     bool hasActiveWindows( void ) const { return !_windows.empty(); }
@@ -570,10 +623,16 @@ class SZG_CALL arGUIWindowManager
      */
     int deleteAllWindows( void );
 
+    //@{
+    /** @name Window manager wildcat framelock accessors.
+     *
+     * Operate upon the wildcat framelock.
+     */
     void useFramelock( bool isOn );
     void findFramelock( void );
     void activateFramelock( void );
     void deactivateFramelock( void );
+    //@}
 
   private:
 
@@ -622,6 +681,13 @@ class SZG_CALL arGUIWindowManager
      */
     int addAllWMEvent( arGUIWindowInfo wmEvent, bool blocking );
 
+    /**
+     * A helper function for \ref deleteWindow and \ref deleteAllWindows.
+     *
+     * Organizes functionality common to both delete calls.
+     *
+     * @param windowID The window to send the message to.
+     */
     void _sendDeleteEvent( const int windowID );
 
     //@{
@@ -636,12 +702,12 @@ class SZG_CALL arGUIWindowManager
     virtual void _windowHandler( arGUIWindowInfo* windowInfo );
     //@}
 
-    void (*_keyboardCallback)( arGUIKeyInfo* keyInfo );       ///< The keyboard event callback
-    void (*_mouseCallback)( arGUIMouseInfo* mouseInfo );      ///< The mouse event callback
-    void (*_windowCallback)( arGUIWindowInfo* windowInfo );   ///< The window event callback
-    void (*_windowInitGLCallback)( arGUIWindowInfo* windowInfo );    ///< The window initialization callback
+    void (*_keyboardCallback)( arGUIKeyInfo* keyInfo );              ///< The keyboard event callback
+    void (*_mouseCallback)( arGUIMouseInfo* mouseInfo );             ///< The mouse event callback
+    void (*_windowCallback)( arGUIWindowInfo* windowInfo );          ///< The window event callback
+    void (*_windowInitGLCallback)( arGUIWindowInfo* windowInfo );    ///< The window opengl initialization callback
 
-    arMutex _windowsMutex;
+    arMutex _windowsMutex;    ///< Lock protecting access to the collection of windows.
     WindowMap _windows;       ///< A map of all the managed windows and their id's.
 
     int _maxWindowID;         ///< The maximum window ID, used in creating new windows.
