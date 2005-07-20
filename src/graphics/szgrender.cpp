@@ -149,9 +149,9 @@ void ar_guiWindowEvent(arGUIWindowInfo* windowInfo){
   switch(windowInfo->getState()){
   case AR_WINDOW_RESIZE:
     windowManager->setWindowViewport(windowInfo->getWindowID(),
-				     0, 0,
-				     windowInfo->getSizeX(),
-				     windowInfo->getSizeY());
+    				     0, 0,
+   				     windowInfo->getSizeX(),
+    				     windowInfo->getSizeY());
     break;
   case AR_WINDOW_CLOSE:
     shutdownAction();
@@ -271,7 +271,9 @@ int main(int argc, char** argv){
       // Stops all the window threads and deletes the windows.
       // Definitely a good idea to do this here as it increases the
       // determinism of the exit.
+      cout << "szgrender AARGH about to deleteAllWindows.\n";
       windowManager->deleteAllWindows();
+      cout << "szgrender AARGH deleteAllWindows is done!\n";
       exit(0);
     }
     if (framerateThrottle){

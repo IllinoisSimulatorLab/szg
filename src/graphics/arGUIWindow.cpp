@@ -1228,10 +1228,17 @@ int arGUIWindow::fullscreen( void )
   // NOTE: seems to only be necessary on windows as the event is 'correctly'
   // raised on linux (odder still is that the move to 0x0 is raised, just not
   // the resize...)
+  // NOTE: DO NOT query the window for it's believed x,y,width,height here.
+  // These haven't yet been changed with a resize event.
+  // That is a mistake on ever-finicky Win32. Instead, go ahead and feed
+  // it (again) the information we computed before. This is needed so that
+  // the viewport is resized appropriately at the framework level.
   _GUIEventManager->addEvent( arGUIWindowInfo( AR_WINDOW_EVENT,
                                                AR_WINDOW_RESIZE, _ID, 0,
-                                               getPosX(), getPosY(),
-                                               getWidth(), getHeight() ) );
+                                               windowRect.left,
+					       windowRect.top,
+                                        windowRect.right-windowRect.left,
+                                        windowRect.bottom - windowRect.top ) );
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 

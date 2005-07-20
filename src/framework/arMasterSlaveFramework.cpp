@@ -2252,9 +2252,9 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
       if( _internalBufferSwap ) {
         _wm->swapAllWindowBuffers( true );
       }
-
       _wm->processWindowEvents();
       ar_mutex_unlock( &_windowingMutex );
+      
     }
   }
 
