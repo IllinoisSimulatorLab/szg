@@ -1235,10 +1235,9 @@ int arGUIWindow::fullscreen( void )
   // the viewport is resized appropriately at the framework level.
   _GUIEventManager->addEvent( arGUIWindowInfo( AR_WINDOW_EVENT,
                                                AR_WINDOW_RESIZE, _ID, 0,
-                                               windowRect.left,
-					       windowRect.top,
-                                        windowRect.right-windowRect.left,
-                                        windowRect.bottom - windowRect.top ) );
+                                               windowRect.left, windowRect.top,
+                                               windowRect.right - windowRect.left,
+                                               windowRect.bottom - windowRect.top ) );
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 

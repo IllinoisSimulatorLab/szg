@@ -340,7 +340,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
                                 ar_masterSlaveFrameworkWindowInitGLFunction,
                                 false );
 
-  // as a replacement for the global __globalFramework pointer, each window 
+  // as a replacement for the global __globalFramework pointer, each window
   // will have a user data pointer set.
   _wm->setUserData( this );
 
@@ -774,7 +774,7 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
 
     // there's no more starting to do... since this application instance
     // is just used as a launcher for other instances
-    _SZGClient.startResponse() << _label 
+    _SZGClient.startResponse() << _label
                                << " trigger launched components." << std::endl;
 
     if( !_SZGClient.sendStartResponse( true ) ) {
@@ -798,8 +798,8 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   // should launch
   if( _SZGClient.getVirtualComputer() != "NULL" &&
       !_launcher.setParameters() ) {
-    initResponse << _label 
-                 << " warning: invalid virtual computer definition." 
+    initResponse << _label
+                 << " warning: invalid virtual computer definition."
                  << std::endl;
   }
 
@@ -808,8 +808,8 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   // But launch after the trigger code above, lest we catch messages both
   // in the waitForKill() AND in the message thread.
   if(!_messageThread.beginThread( ar_masterSlaveFrameworkMessageTask, this )){
-    initResponse << _label 
-                 << " error: failed to start message thread." 
+    initResponse << _label
+                 << " error: failed to start message thread."
                  << std::endl;
     goto fail;
   }
@@ -967,7 +967,7 @@ void arMasterSlaveFramework::preDraw( void ) {
   }
 
   // Please note: the reloading of parameters MUST occur in this thread,
-  // given that the arGUIWindowManager might be single threaded. 
+  // given that the arGUIWindowManager might be single threaded.
   // AND when the arGUIWindowManager is single-threaded, all calls to it
   // must occur in that single thread!
 
@@ -1080,9 +1080,9 @@ void arMasterSlaveFramework::postDraw( void ){
 }
 
 
-bool arMasterSlaveFramework::addTransferField( std::string fieldName, 
+bool arMasterSlaveFramework::addTransferField( std::string fieldName,
                                                void* data,
-                                               arDataType dataType, 
+                                               arDataType dataType,
                                                int size ) {
   if( _userInitCalled ) {
     std::cerr << _label << " warning: ignoring addTransferField() after init()." << std::endl;
@@ -2135,7 +2135,7 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
         // Wildcat framelock is only deactivated if this makes sense...
         // and if it makes sense, it is important to do so before exiting.
         // also important that we do this in the display thread
-        _wm->deactivateFramelock(); 
+        _wm->deactivateFramelock();
 	// Now that framelock is deactivated, go ahead and exit all windows.
         _wm->deleteAllWindows();
         // Guaranteed to get here--user-defined cleanup will be called
@@ -2151,10 +2151,10 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
         while( _blockUntilDisplayExit ){
           ar_usleep( 100000 );
         }
-	// We only get to this exit if the 
+	// We only get to this exit if the
         exit( 0 );
       }
-      
+
     }
   }
 
@@ -2305,7 +2305,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
 
     if( messageType == "quit" ) {
       // At this point, we do our best to bring everything to an orderly halt.
-      // This keeps some programs from seg-faulting on exit, which is bad news 
+      // This keeps some programs from seg-faulting on exit, which is bad news
       // on Win32 since it (using default registry settings) brings up a dialog
       // box that must be clicked!
       // NOTE: we block here until the display thread is finished.
@@ -2329,7 +2329,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
     else if ( messageType == "reload" ) {
       // Yes, this is a little bit bogus. By setting the variable here,
       // the event loop goes ahead and does the reload over there...
-      // setting _requestReload back to false after it is done. 
+      // setting _requestReload back to false after it is done.
       // Consequently, if there are multiple reload messages, sent in quick
       // succession, some might fail.
       _requestReload = true;
@@ -2350,7 +2350,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
     }
     else if( messageType == "screenshot" ) {
       if ( _dataPath == "NULL" ) {
-	std::cerr << _label 
+	std::cerr << _label
                   << " warning: screenshot failed, no SZG_DATA/path."
                   << std::endl;
       }
@@ -2515,7 +2515,7 @@ void arMasterSlaveFramework::_connectionTask( void ) {
 /// This function is responsible for displaying a whole arGUIWindow.
 /// Look at the definition of arMasterSlaveRenderCallback to understand
 /// how it is called from arGUIWindow.
-void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo, 
+void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
                                           arGraphicsWindow* graphicsWindow ) {
   if( !windowInfo || !graphicsWindow ) {
     std::cerr << "arMasterSlaveFramework error: "
@@ -2533,9 +2533,9 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
   }
 
   // stuff pixel dimensions into arGraphicsWindow
-  graphicsWindow->setPixelDimensions( windowInfo->getPosX(), 
+  graphicsWindow->setPixelDimensions( windowInfo->getPosX(),
                                       windowInfo->getPosY(),
-                                      windowInfo->getSizeX(), 
+                                      windowInfo->getSizeX(),
                                       windowInfo->getSizeY() );
   // draw the window
   if(!_exitProgram ) {
@@ -2543,7 +2543,7 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
       if( getConnected() ) {
         graphicsWindow->draw();
 
-        if (currentWinID == 0) {
+        if ( _wm->isFirstWindow( currentWinID ) ) {
           if( _standalone && _standaloneControlMode == "simulator" ) {
             _simulator.drawWithComposition();
           }

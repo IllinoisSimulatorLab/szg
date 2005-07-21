@@ -337,7 +337,6 @@ int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent,
 
   // first, pass the event to all windows so they can get started on it
   for( witr = _windows.begin(); witr != _windows.end(); witr++ ) {
-    // AARGH, how can we make this locking cleaner?
     arWMEvent* eventHandle = addWMEvent( witr->second->getID(), wmEvent );
 
     if( eventHandle ) {
@@ -763,7 +762,7 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
 
   std::cout << "arGUIWindowManager remark:: creating windows." << std::endl;
 
-  const std::vector< arGUIXMLWindowConstruct* >* windowConstructs 
+  const std::vector< arGUIXMLWindowConstruct* >* windowConstructs
     = windowingConstruct->getWindowConstructs();
 
   // If there are multiple windows, default to threaded mode.
@@ -792,18 +791,23 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
     useFramelock( false );
   }
 
-  // several function calls below also try to lock this mutex, so we'll
-  // deadlock if we try to lock it here, instead this entire function should
-  // be atomic wrt the window manager's event loop
+  // instead of trying to worry about invalidating iterators with the
+  // {add|delete}Window calls in the loops below, we first make a temp
+  // copy of all the window IDs and iterate over that instead.
+  std::vector< int > windowIDs;
+  WindowIterator WItr;
+  for( WItr = _windows.begin(); WItr != _windows.end(); WItr++ ) {
+    windowIDs.push_back( WItr->first );
+  }
 
   std::vector< arGUIXMLWindowConstruct* >::const_iterator cItr;
-  WindowIterator wItr;
-  
-  for( cItr = windowConstructs->begin(), wItr = _windows.begin();
-       (cItr != windowConstructs->end()) && (wItr != _windows.end());
+  std::vector< int >::iterator wItr;
+
+  for( cItr = windowConstructs->begin(), wItr = windowIDs.begin();
+       (cItr != windowConstructs->end()) && (wItr != windowIDs.end());
        cItr++, wItr++ ) {
     // get some easier to handle names
-    int windowID = wItr->first;
+    int windowID = *wItr;
     const arGUIWindowConfig* config = (*cItr)->getWindowConfig();
 
     // there are certain attributes that cannot be tweaked during runtime and
@@ -824,9 +828,13 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
       // will get ignored.  There may be other order interactions as well
       resizeWindow( windowID, config->getWidth(), config->getHeight() );
 
-      moveWindow( windowID, config->getPosX(), config->getPosY() );
-
       decorateWindow( windowID, config->getDecorate() );
+
+      // since the decoration can affect the size of the window, we have to
+      // resize /again/ to get our real requested size
+      resizeWindow( windowID, config->getWidth(), config->getHeight() );
+
+      moveWindow( windowID, config->getPosX(), config->getPosY() );
 
       setTitle( windowID, config->getTitle() );
 
@@ -840,12 +848,12 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
     }
   }
 
-  // if there are more created than parsed windows, they then need to be 
-  // deleted.  
-  if( wItr != _windows.end() ) {
-    while( wItr != _windows.end() ) {
-      if( deleteWindow( (wItr++)->first ) < 0 ) {
-        std::cerr << "could not delete window: " << wItr->first << std::endl;
+  // if there are more created than parsed windows, they then need to be
+  // deleted.
+  if( wItr != windowIDs.end() ) {
+    for( ; wItr != windowIDs.end(); wItr++ ) {
+      if( deleteWindow( *wItr ) < 0 ) {
+        std::cerr << "could not delete window: " << *wItr << std::endl;
       }
     }
   }
@@ -859,13 +867,14 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
     }
   }
 
-  // set all the drawcallbacks and graphicsWindows (the collections should
-  // now match in size and order)
-  for( cItr = windowConstructs->begin(), wItr = _windows.begin();
-       (cItr != windowConstructs->end()) && (wItr != _windows.end());
-       cItr++, wItr++ ) {
-    registerDrawCallback( wItr->first, (*cItr)->getGUIDrawCallback() );
-    setGraphicsWindow( wItr->first, (*cItr)->getGraphicsWindow() );
+  // set all the drawcallbacks and graphicsWindows (Now we can use the 'real'
+  // _windows as the collections should now match in size and order and we
+  // don't have to worry about invalidating any iterators)
+  for( cItr = windowConstructs->begin(), WItr = _windows.begin();
+       (cItr != windowConstructs->end()) && (WItr != _windows.end());
+       cItr++, WItr++ ) {
+    registerDrawCallback( WItr->first, (*cItr)->getGUIDrawCallback() );
+    setGraphicsWindow( WItr->first, (*cItr)->getGraphicsWindow() );
   }
 
   std::cout << "arGUIWindowManager remark:: done creating." << std::endl;
