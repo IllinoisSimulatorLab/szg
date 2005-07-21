@@ -51,6 +51,7 @@ bool loadParameters(arSZGClient& cli){
 void shutdownAction(){
   // Do not do this again while an exit is already pending.
   if (!exitFlag){
+    cout << "szgrender remark: shutdown.\n";
     exitFlag = true;
     // This command guarantees we'll get to the end of _cliSync.consume().
     graphicsClient->_cliSync.skipConsumption();
@@ -63,12 +64,7 @@ void messageTask(void* pClient){
   while (true) {
     // Note how we only hit this ONCE!
     if (!cli->receiveMessage(&messageType,&messageBody)){
-      cout << "szgrender remark: shutdown.\n";
-      // NOTE: these shutdown tasks are cut-and-pasted from the below.
-      exitFlag = true;
-      // make sure we actually get to the end of the draw loop
-      graphicsClient->_cliSync.skipConsumption();
-      // We WILL NOT be receiving any more messages. Go ahead and exit loop.
+      shutdownAction();
       break;
     }
     if (messageType=="performance"){
@@ -165,7 +161,8 @@ void ar_guiWindowKeyboard(arGUIKeyInfo* keyInfo){
   if (keyInfo->getState() == AR_KEY_DOWN){
     switch(keyInfo->getKey()){
     case AR_VK_ESC:
-      exit(0);
+      shutdownAction();
+      break;
     case AR_VK_P:
       drawPerformanceDisplay = !drawPerformanceDisplay;
       graphicsClient->drawFrameworkObjects(drawPerformanceDisplay);
@@ -227,9 +224,6 @@ int main(int argc, char** argv){
   // However, we control the event loop out here.
   graphicsClient->setWindowManager(windowManager);
 
-  // AARGH! What is the purpose of the init graphics function? All it seems
-  // to do is clear the draw buffers and force a buffer swap.
-  //initGraphics();
   if (!loadParameters(szgClient)){
     cout << "szgrender remark: Parameter loading failed.\n";
   }
@@ -248,7 +242,7 @@ int main(int argc, char** argv){
   if (!szgClient.sendStartResponse(true))
     cerr << "szgrender error: maybe szgserver died.\n";
 
-  while (true){ 
+  while (!exitFlag){ 
     ar_mutex_lock(&pauseLock);
     while (pauseFlag){
       pauseVar.wait(&pauseLock);
@@ -261,21 +255,6 @@ int main(int argc, char** argv){
     // drawing, and synchronization happens.
     graphicsClient->_cliSync.consume();
 
-    // We want to exit here, if requested, to avoid crashes on Win32.
-    if (exitFlag){
-      graphicsClient->_cliSync.stop();
-      // This should occur in the display thread before exiting.
-      // NOTE: we are assuming that framelock is ONLY used in the window
-      // manager's single threaded mode.
-      windowManager->deactivateFramelock();
-      // Stops all the window threads and deletes the windows.
-      // Definitely a good idea to do this here as it increases the
-      // determinism of the exit.
-      cout << "szgrender AARGH about to deleteAllWindows.\n";
-      windowManager->deleteAllWindows();
-      cout << "szgrender AARGH deleteAllWindows is done!\n";
-      exit(0);
-    }
     if (framerateThrottle){
       ar_usleep(200000);
     }
@@ -290,5 +269,15 @@ int main(int argc, char** argv){
     double frameTime = ar_difftime(ar_time(), time1);
     framerateElement->pushNewValue(1000000.0/frameTime);
   }
+  // Clean-up.
+  graphicsClient->_cliSync.stop();
+  // This should occur in the display thread before exiting.
+  // NOTE: we are assuming that framelock is ONLY used in the window
+  // manager's single threaded mode.
+  windowManager->deactivateFramelock();
+  // Stops all the window threads and deletes the windows.
+  // Definitely a good idea to do this here as it increases the
+  // determinism of the exit.
+  windowManager->deleteAllWindows();
   return 0;
 }

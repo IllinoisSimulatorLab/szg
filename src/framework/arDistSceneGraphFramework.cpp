@@ -141,7 +141,8 @@ void ar_distSceneGraphGUIKeyboardFunction( arGUIKeyInfo* keyInfo ){
   if ( keyInfo->getState() == AR_KEY_DOWN ){
     switch ( keyInfo->getKey() ){
     case AR_VK_ESC:
-      // Stop the framework (parameter meaningless so far)
+      // Stop the framework (parameter meaningless so far here, though it
+      // does have meaning for the arMasterSlaveFramework)
       fw->stop(true);
       // Do not exit here. Instead, let that happen inside the standalone
       // thread of control.
@@ -159,6 +160,8 @@ void ar_distSceneGraphGUIKeyboardFunction( arGUIKeyInfo* keyInfo ){
   }
 }
 
+// NOTE: These window events come specifically from the OS, not from any
+// arGUIWindowManager calls.
 void ar_distSceneGraphGUIWindowFunction(arGUIWindowInfo* windowInfo){
   if (!windowInfo || !windowInfo->getUserData()){
     return;
@@ -176,7 +179,7 @@ void ar_distSceneGraphGUIWindowFunction(arGUIWindowInfo* windowInfo){
 				     windowInfo->getSizeY());
     break;
   case AR_WINDOW_CLOSE:
-    // Stop the framework (parameter is meaningless so far)
+    // Stop the framework (parameter is meaningless so far, though it does
     fw->stop(true);
     // Do not exit here. Instead, let that happen inside the main thread of
     // control for standalone mode.

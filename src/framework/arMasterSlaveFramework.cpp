@@ -966,6 +966,17 @@ void arMasterSlaveFramework::preDraw( void ) {
     return;
   }
 
+  // Please note: the reloading of parameters MUST occur in this thread,
+  // given that the arGUIWindowManager might be single threaded. 
+  // AND when the arGUIWindowManager is single-threaded, all calls to it
+  // must occur in that single thread!
+
+  if (_requestReload){
+    (void) _loadParameters();
+    _createWindowing();
+    _requestReload = false;
+  }
+
   // want to time this function...
   ar_timeval preDrawStart = ar_time();
 
@@ -2101,17 +2112,6 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
 
     // unrolled event loop
     while( true ) {
-      // Please note: the reloading of parameters MUST occur in this thread,
-      // given that the arGUIWindowManager might be single threaded. 
-      // AND when the arGUIWindowManager is single-threaded, all calls to it
-      // must occur in that single thread!
-
-      // Hmmmm. Maybe this should be moved into preDraw()? Actually, YES!
-      if (_requestReload){
-        (void) _loadParameters();
-        _createWindowing();
-	_requestReload = false;
-      }
       preDraw();
 
       _wm->drawAllWindows( true );
