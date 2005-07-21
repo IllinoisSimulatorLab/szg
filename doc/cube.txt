@@ -261,7 +261,7 @@ everything else. In particular, it has no szg_device record as in the above!
 <param>
 <name>front_window_stereo</name>
 <value>
-<szg_display>
+<szg_display framelock="wildcat">
  <szg_window>
    <decorate value="false" />
    <fullscreen value="true" />
@@ -282,7 +282,7 @@ everything else. In particular, it has no szg_device record as in the above!
 <param>
 <name>right_window_stereo</name>
 <value>
-<szg_display>
+<szg_display framelock="wildcat">
  <szg_window>
    <decorate value="false" />
    <fullscreen value="true" />
@@ -303,7 +303,7 @@ everything else. In particular, it has no szg_device record as in the above!
 <param>
 <name>left_window_stereo</name>
 <value>
-<szg_display>
+<szg_display framelock="wildcat">
  <szg_window>
    <decorate value="false" />
    <fullscreen value="true" />
@@ -324,7 +324,7 @@ everything else. In particular, it has no szg_device record as in the above!
 <param>
 <name>rear_window_stereo</name>
 <value>
-<szg_display>
+<szg_display framelock="wildcat">
  <szg_window>
    <decorate value="false" />
    <fullscreen value="true" />
@@ -345,7 +345,7 @@ everything else. In particular, it has no szg_device record as in the above!
 <param>
 <name>top_window_stereo</name>
 <value>
-<szg_display>
+<szg_display framelock="wildcat">
  <szg_window>
    <decorate value="false" />
    <fullscreen value="true" />
@@ -366,7 +366,7 @@ everything else. In particular, it has no szg_device record as in the above!
 <param>
 <name>bottom_window_stereo</name>
 <value>
-<szg_display>
+<szg_display framelock="wildcat">
  <szg_window>
    <decorate value="false" />
    <fullscreen value="true" />

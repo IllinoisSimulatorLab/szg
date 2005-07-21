@@ -150,11 +150,12 @@ void ar_distSceneGraphGUIKeyboardFunction( arGUIKeyInfo* keyInfo ){
       fw->_graphicsClient.toggleFrameworkObjects();
       break;
     }
-  }
-  // in standalone mode, keyboard events should also go to the interface
-  if (fw->_standalone &&
+
+    // in standalone mode, keyboard events should also go to the interface
+    if (fw->_standalone &&
       fw->_standaloneControlMode == "simulator"){
-    fw->_simulator.keyboard(keyInfo->getKey(), 1, 0, 0);
+      fw->_simulator.keyboard(keyInfo->getKey(), 1, 0, 0);
+    }
   }
 }
 

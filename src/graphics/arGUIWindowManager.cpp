@@ -39,7 +39,6 @@ arGUIWindowManager::arGUIWindowManager( void (*windowCallback)( arGUIWindowInfo*
 
   #endif
 
-  ar_mutex_init( &_windowsMutex );
 }
 
 arGUIWindowManager::~arGUIWindowManager( void )
@@ -137,8 +136,6 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig )
   arGUIWindow* window = new arGUIWindow( _maxWindowID, windowConfig,
                                          _windowInitGLCallback, _userData );
 
-  //ar_mutex_lock( &_windowsMutex );
-
   _windows[ _maxWindowID ] = window;
 
   if( _threaded ) {
@@ -146,7 +143,6 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig )
     if( window->beginEventThread() < 0 ) {
       delete window;
       _windows.erase( _maxWindowID );
-      //ar_mutex_unlock( &_windowsMutex );
       return -1;
     }
   }
@@ -155,28 +151,21 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig )
       std::cerr << "addWindow: _performWindowCreation error" << std::endl;
       delete window;
       _windows.erase( _maxWindowID );
-      //ar_mutex_unlock( &_windowsMutex );
       return -1;
     }
   }
-
-  //ar_mutex_unlock( &_windowsMutex );
 
   return _maxWindowID++;
 }
 
 int arGUIWindowManager::registerDrawCallback( const int windowID, arGUIRenderCallback* drawCallback )
 {
-  //ar_mutex_lock( &_windowsMutex );
 
   if( _windows.find( windowID ) == _windows.end() ) {
-    //ar_mutex_unlock( &_windowsMutex );
     return -1;
   }
 
   _windows[ windowID ]->registerDrawCallback( drawCallback );
-
-  //ar_mutex_unlock( &_windowsMutex );
 
   return 0;
 }
@@ -197,7 +186,6 @@ int arGUIWindowManager::processWindowEvents( void )
     std::cerr << "processWindowEvents: consumeAllWindowEvents Error" << std::endl;
   }
 
-  //ar_mutex_lock( &_windowsMutex );
   for( WindowIterator it = _windows.begin(); it != _windows.end(); ++it ) {
     arGUIWindow* currentWindow = it->second;
 
@@ -247,31 +235,24 @@ int arGUIWindowManager::processWindowEvents( void )
       delete GUIInfo;
     }
   }
-  //ar_mutex_unlock( &_windowsMutex );
 
   return 0;
 }
 
 arGUIInfo* arGUIWindowManager::getNextWindowEvent( const int windowID )
 {
-  //ar_mutex_lock( &_windowsMutex );
   if( _windows.find( windowID ) == _windows.end() ) {
-    //ar_mutex_unlock( &_windowsMutex );
     return NULL;
   }
 
   arGUIInfo* guiInfo = _windows[ windowID ]->getNextGUIEvent();
-
-  //ar_mutex_unlock( &_windowsMutex );
 
   return guiInfo;
 }
 
 arWMEvent* arGUIWindowManager::addWMEvent( const int windowID, arGUIWindowInfo event )
 {
-  //ar_mutex_lock( &_windowsMutex );
   if( _windows.find( windowID ) == _windows.end() ) {
-    //ar_mutex_unlock( &_windowsMutex );
     return NULL;
   }
 
@@ -335,8 +316,6 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int windowID, arGUIWindowInfo e
     eventHandle = _windows[ windowID ]->addWMEvent( event );
   }
 
-  //ar_mutex_unlock( &_windowsMutex );
-
   // do not call wait on the eventHandle here, the caller is the one who
   // decides whether this was a blocking request or not
   return eventHandle;
@@ -356,14 +335,10 @@ int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent,
     warn = true;
   }
 
-  //ar_mutex_lock( &_windowsMutex );
-
   // first, pass the event to all windows so they can get started on it
   for( witr = _windows.begin(); witr != _windows.end(); witr++ ) {
     // AARGH, how can we make this locking cleaner?
-    //ar_mutex_unlock( &_windowsMutex );
     arWMEvent* eventHandle = addWMEvent( witr->second->getID(), wmEvent );
-    //ar_mutex_lock( &_windowsMutex );
 
     if( eventHandle ) {
       eventHandles.push_back( eventHandle );
@@ -373,8 +348,6 @@ int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent,
       // print error/warning?
     }
   }
-
-  //ar_mutex_unlock( &_windowsMutex );
 
   // then, if necessary, wait for all the events to complete
   for( eitr = eventHandles.begin(); eitr != eventHandles.end(); eitr++ ) {
@@ -418,15 +391,11 @@ int arGUIWindowManager::drawAllWindows( bool blocking )
 
 int arGUIWindowManager::consumeWindowEvents( const int windowID, bool blocking )
 {
-  //ar_mutex_lock( &_windowsMutex );
   if( _threaded || _windows.find( windowID ) == _windows.end() ) {
-    //ar_mutex_unlock( &_windowsMutex );
     return -1;
   }
 
   int returnVal = _windows[ windowID ]->_consumeWindowEvents();
-
-  //ar_mutex_unlock( &_windowsMutex );
 
   return returnVal;
 }
@@ -442,13 +411,11 @@ int arGUIWindowManager::consumeAllWindowEvents( bool blocking )
 
   WindowIterator itr;
 
-  //ar_mutex_lock( &_windowsMutex );
   for( itr = _windows.begin(); itr != _windows.end(); itr++ ) {
     if( itr->second->_consumeWindowEvents() < 0 ) {
       allSuccess = -1;
     }
   }
-  //ar_mutex_unlock( &_windowsMutex );
 
   return allSuccess;
 }
@@ -561,13 +528,9 @@ int arGUIWindowManager::setWindowCursor( const int windowID, arCursor cursor )
 
 bool arGUIWindowManager::windowExists( const int windowID )
 {
-  //ar_mutex_lock( &_windowsMutex );
   if( _windows.find( windowID ) == _windows.end() ) {
-    //ar_mutex_unlock( &_windowsMutex );
     return false;
   }
-
-  //ar_mutex_unlock( &_windowsMutex );
 
   return true;
 }
@@ -737,16 +700,13 @@ arGUIKeyInfo arGUIWindowManager::getKeyState( const arGUIKey key )
 }
 
 void arGUIWindowManager::setThreaded( bool threaded ) {
-  //ar_mutex_lock( &_windowsMutex );
   if( _windows.size() ) {
     // can't change threading mode once windows have been created
-    //ar_mutex_unlock( &_windowsMutex );
     return;
   }
 
   _threaded = threaded;
 
-  //ar_mutex_unlock( &_windowsMutex );
 }
 
 void arGUIWindowManager::_sendDeleteEvent( const int windowID )
@@ -764,18 +724,13 @@ int arGUIWindowManager::deleteWindow( const int windowID )
 {
   _sendDeleteEvent( windowID );
 
-  //ar_mutex_lock( &_windowsMutex );
-
   if( _windows.find( windowID ) == _windows.end() ) {
-    //ar_mutex_unlock( &_windowsMutex );
     return -1;
   }
 
   delete _windows[ windowID ];
 
   _windows.erase( windowID );
-
-  //ar_mutex_unlock( &_windowsMutex );
 
   // call the user's window callback with a close event? (probably shouldn't,
   // the callback is most likely how we got here in the first place)
@@ -787,8 +742,6 @@ int arGUIWindowManager::deleteAllWindows( void )
 {
   WindowIterator witr = _windows.begin();
 
-  //ar_mutex_lock( &_windowsMutex );
-
   while( witr != _windows.end() ) {
     _sendDeleteEvent( witr->first );
 
@@ -798,8 +751,6 @@ int arGUIWindowManager::deleteAllWindows( void )
     // by the call to erase
     _windows.erase( witr++ );
   }
-
-  //ar_mutex_unlock( &_windowsMutex );
 
   return 0;
 }
@@ -844,7 +795,6 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
   // several function calls below also try to lock this mutex, so we'll
   // deadlock if we try to lock it here, instead this entire function should
   // be atomic wrt the window manager's event loop
-  // ar_mutex_lock( &_windowsMutex );
 
   std::vector< arGUIXMLWindowConstruct* >::const_iterator cItr;
   WindowIterator wItr;
@@ -920,8 +870,6 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
 
   std::cout << "arGUIWindowManager remark:: done creating." << std::endl;
 
-  // ar_mutex_unlock( &_windowsMutex );
-
   return 0;
 }
 
@@ -932,9 +880,7 @@ void arGUIWindowManager::useFramelock( bool isOn )
   // If not (as in the checks in activateFramelock and deactivateFramelock)
   // framelocking will not work (useWildcatFramelock(true) would never get
   // issued).
-  //ar_mutex_lock( &_windowsMutex );
   _windows.begin()->second->useWildcatFramelock( isOn );
-  //ar_mutex_unlock( &_windowsMutex );
 }
 
 void arGUIWindowManager::findFramelock( void )
@@ -943,26 +889,20 @@ void arGUIWindowManager::findFramelock( void )
   // created (as in createWindows(...)).
   // If not (as in the checks in activateFramelock and deactivateFramelock),
   // findWildcatFramelock() will not get issued.
-  //ar_mutex_lock( &_windowsMutex );
   _windows.begin()->second->findWildcatFramelock();
-  //ar_mutex_unlock( &_windowsMutex );
 }
 
 void arGUIWindowManager::activateFramelock( void )
 {
-  //ar_mutex_lock( &_windowsMutex );
   if( _windows.size() == 1 && !_threaded ) {
     _windows.begin()->second->activateWildcatFramelock();
   }
-  //ar_mutex_unlock( &_windowsMutex );
 }
 
 void arGUIWindowManager::deactivateFramelock( void )
 {
-  //ar_mutex_lock( &_windowsMutex );
   if( _windows.size() == 1 && !_threaded ) {
     _windows.begin()->second->deactivateWildcatFramelock();
   }
-  //ar_mutex_unlock( &_windowsMutex );
 }
 

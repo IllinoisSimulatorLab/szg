@@ -707,7 +707,6 @@ class SZG_CALL arGUIWindowManager
     void (*_windowCallback)( arGUIWindowInfo* windowInfo );          ///< The window event callback
     void (*_windowInitGLCallback)( arGUIWindowInfo* windowInfo );    ///< The window opengl initialization callback
 
-    arMutex _windowsMutex;    ///< Lock protecting access to the collection of windows.
     WindowMap _windows;       ///< A map of all the managed windows and their id's.
 
     int _maxWindowID;         ///< The maximum window ID, used in creating new windows.

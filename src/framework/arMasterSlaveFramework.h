@@ -274,7 +274,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool                 _parametersLoaded;
 
   // arGraphicsWindow     _graphicsWindow;
-  arMutex _windowingMutex;
   arGUIWindowManager* _wm;
   // std::vector<int> _windows;
   arGUIXMLParser* _guiXMLParser;
@@ -389,12 +388,18 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   arFramerateGraph _framerateGraph;
   bool             _showPerformance;
 
-  // storage for the brokered port on which the master will
+  // Storage for the brokered port on which the master will
   // offer the state data.
   int  _masterPort[ 1 ];
 
-  // in standalone mode, we produce sound locally
+  // In standalone mode, we produce sound locally
   arSoundClient* _soundClient;
+
+  // It turns out that reloading parameters must occur in the main event
+  // thread. This is because we allow the window manager to be single
+  // threaded... and, in this case, all window manager calls should occur
+  // in one thread only.
+  bool _requestReload;
 
   // small utility functions
   void _setMaster( bool );
