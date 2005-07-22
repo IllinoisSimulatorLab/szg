@@ -727,7 +727,9 @@ int arGUIWindowManager::deleteWindow( const int windowID )
     return -1;
   }
 
-  delete _windows[ windowID ];
+  // Hmmmm. Not quite sure (yet) why deleting this here seems like BAD news.
+  // (i.e. causing crashes, etc.)
+  //delete _windows[ windowID ];
 
   _windows.erase( windowID );
 
@@ -770,7 +772,7 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
   // Note that if this call is the result of a reload message neither
   // setThreaded calls are going to have any affect, since this basic window
   // manager state can only be altered at the initial window creation.
-  if( windowConstructs->size() > 1 ) {
+  if( windowConstructs->size() >= 1 ) {
     setThreaded( true );
   }
   else{
@@ -811,10 +813,18 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
     const arGUIWindowConfig* config = (*cItr)->getWindowConfig();
 
     // there are certain attributes that cannot be tweaked during runtime and
-    // if they differ from the new attributes the window must be re-created
+    // if they differ from the new attributes the window must be re-created.
+    // NOTE: we are a little bit *over* generous here. The OS *should* be able
+    // to add/remove decoration or enter/leave fullscreen... but some Linux
+    // window managers (like the one in Xandros circa 2005) are not so
+    // capable. In reality, it doesn't hurt to have the remap the windows, so
+    // go ahead in these cases (even for platforms where it isn't strictly 
+    // necessary).
     if( isStereo( windowID ) != config->getStereo() ||
         getBpp( windowID ) != config->getBpp() ||
-        getXDisplay( windowID ) != config->getXDisplay() ) {
+        getXDisplay( windowID ) != config->getXDisplay() ||
+        isDecorated( windowID ) != config->getDecorate() ||
+        isFullscreen( windowID ) != config->getFullscreen() ) {
       // delete the current window.
       deleteWindow( windowID );
 
@@ -828,7 +838,9 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
       // will get ignored.  There may be other order interactions as well
       resizeWindow( windowID, config->getWidth(), config->getHeight() );
 
-      decorateWindow( windowID, config->getDecorate() );
+      // The check ensures that decorate <-> not decorate, there is a new
+      // window.
+      //decorateWindow( windowID, config->getDecorate() );
 
       // since the decoration can affect the size of the window, we have to
       // resize /again/ to get our real requested size
@@ -842,14 +854,16 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
 
       raiseWindow( windowID, config->getZOrder() );
 
-      if( config->getFullscreen() ) {
-        fullscreenWindow( windowID );
-      }
+      // The check ensures that nonfullscreen <-> fullscreen, there is
+      // a new window.
+      //if( config->getFullscreen() ) {
+      //  fullscreenWindow( windowID );
+      //}
     }
   }
 
-  // if there are more created than parsed windows, they then need to be
-  // deleted.
+  // If there are more already existing than parsed windows, they then need 
+  // to be deleted.
   if( wItr != windowIDs.end() ) {
     for( ; wItr != windowIDs.end(); wItr++ ) {
       if( deleteWindow( *wItr ) < 0 ) {
@@ -858,7 +872,8 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
     }
   }
 
-  // if there are more parsed than created windows, they then need to be created
+  // If there are more parsed than created windows, they then need to be 
+  // created
   if( cItr != windowConstructs->end() ) {
     for( ; cItr != windowConstructs->end(); cItr++ ) {
       if( addWindow( *((*cItr)->getWindowConfig()) ) < 0 ) {

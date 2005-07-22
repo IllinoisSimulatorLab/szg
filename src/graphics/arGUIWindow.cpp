@@ -250,6 +250,7 @@ arGUIWindow::~arGUIWindow( void )
 
 void arGUIWindow::registerDrawCallback( arGUIRenderCallback* drawCallback )
 {
+  ar_mutex_lock(&_creationMutex);
   if( _drawCallback ) {
     // print warning that previous callback is being overwritten?
     delete _drawCallback;
@@ -262,10 +263,12 @@ void arGUIWindow::registerDrawCallback( arGUIRenderCallback* drawCallback )
   else {
     _drawCallback = drawCallback;
   }
+  ar_mutex_unlock(&_creationMutex);
 }
 
 void arGUIWindow::_drawHandler( void )
 {
+  ar_mutex_lock(&_creationMutex);
   if( _running && _drawCallback ) {
 
     // need to ensure (in non-threaded mode) that this window's opengl context
@@ -301,6 +304,7 @@ void arGUIWindow::_drawHandler( void )
     XUnlockDisplay( _windowHandle._dpy );
     #endif
   }
+  ar_mutex_unlock(&_creationMutex);
 }
 
 // the most vanilla opengl setup possible
@@ -437,6 +441,7 @@ void arGUIWindow::returnGraphicsWindow( void )
 
 void arGUIWindow::setGraphicsWindow( arGraphicsWindow* graphicsWindow )
 {
+  ar_mutex_lock(&_creationMutex);
   ar_mutex_lock( &_graphicsWindowMutex );
 
   if( _graphicsWindow ) {
@@ -447,6 +452,7 @@ void arGUIWindow::setGraphicsWindow( arGraphicsWindow* graphicsWindow )
   _graphicsWindow = graphicsWindow;
 
   ar_mutex_unlock( &_graphicsWindowMutex );
+  ar_mutex_unlock(&_creationMutex);
 }
 
 arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
