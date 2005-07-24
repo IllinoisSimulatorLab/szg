@@ -5,7 +5,7 @@
    provided without guarantee or warrantee expressed or  implied. This
    program is -not- in the public domain. */
 
-/* X compile line: cc -o gentexfont gentexfont.c -lX11 */
+/* compile line: cc -o gentexfont gentexfont.c -I/usr/X11R6/include -L/usr/X11R6/lib -lXmu -lXext -lX11 -lm */
 
 #include <assert.h>
 #include <stdlib.h>
@@ -14,19 +14,20 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <math.h>
+#include <string.h>
 #include <GL/gl.h>
 
 #define TXF_FORMAT_BYTE		0
 #define TXF_FORMAT_BITMAP	1
 
 typedef struct {
-  unsigned short c;
+  unsigned short c;       /* Potentially support 16-bit glyphs. */
   unsigned char width;
   unsigned char height;
   signed char xoffset;
   signed char yoffset;
   signed char advance;
-  char dummy;
+  char dummy;           /* Space holder for alignment reasons. */
   short x;
   short y;
 } TexGlyphInfo;
@@ -483,10 +484,6 @@ main(int argc, char *argv[])
   qsort(glist, len, sizeof(unsigned char), glyphCompare);
 
   file = fopen(filename, "wb");
-  if (!file) {
-    printf("could not open %s for writing\n", filename);
-    exit(1);
-  }
   fwrite("\377txf", 1, 4, file);
   endianness = 0x12345678;
   assert(sizeof(int) == 4);  /* Ensure external file format size. */
@@ -595,4 +592,6 @@ main(int argc, char *argv[])
   }
   free(texarea);
   fclose(file);
+
+  return 0;
 }
