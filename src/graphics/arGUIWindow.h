@@ -993,6 +993,8 @@ class SZG_CALL arGUIWindow
     EventVector _usableEvents;
     arMutex _usableEventsMutex;  ///< Mutex protecting the usable events queue.
 
+    arConditionVar _WMEventsVar;
+
 };
 
 #endif

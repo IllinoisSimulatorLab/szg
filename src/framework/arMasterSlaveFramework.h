@@ -49,13 +49,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // Needs assignment operator and copy constructor, for pointer members.
   friend void ar_masterSlaveFrameworkConnectionTask( void* );
   friend void ar_masterSlaveFrameworkMessageTask( void* );
-  // friend void ar_masterSlaveFrameworkDisplayFunction();
-  // friend void ar_masterSlaveFrameworkReshapeFunction(int,int);
   friend void ar_masterSlaveFrameworkWindowEventFunction( arGUIWindowInfo* );
   friend void ar_masterSlaveFrameworkWindowInitGLFunction( arGUIWindowInfo* );
-  // friend void ar_masterSlaveFrameworkButtonFunction( int, int, int, int );
-  // friend void ar_masterSlaveFrameworkMouseFunction( int, int );
-  // friend void ar_masterSlaveFrameworkKeyboardFunction( unsigned char, int, int );
   friend void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* );
   friend void ar_masterSlaveFrameworkMouseFunction( arGUIMouseInfo* );
 
@@ -81,7 +76,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   virtual void onDraw( arGraphicsWindow& win, arViewport& vp );
   virtual void onDisconnectDraw( void );
   virtual void onPlay( void );
-  // virtual void onReshape( int width, int height );
   virtual void onWindowEvent( arGUIWindowInfo* );
   virtual void onCleanup( void );
   virtual void onUserMessage( const std::string& messageBody );
@@ -104,7 +98,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void setDrawCallback( void (*draw)( arMasterSlaveFramework& ) );
   void setDisconnectDrawCallback( void (*disConnDraw)( arMasterSlaveFramework& ) );
   void setPlayCallback( void (*play)( arMasterSlaveFramework& ) );
-  // void setReshapeCallback( void (*reshape)( arMasterSlaveFramework&, int, int ) );
   void setWindowEventCallback( void (*windowEvent)( arMasterSlaveFramework&,
                                                     arGUIWindowInfo* ) );
   void setExitCallback( void (*cleanup)( arMasterSlaveFramework& ) );
@@ -116,11 +109,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void setKeyboardCallback( void (*keyboard)( arMasterSlaveFramework&, arGUIKeyInfo* ) );
   void setMouseCallback( void (*mouse)( arMasterSlaveFramework&, arGUIMouseInfo* ) );
   void setSlaveConnectedCallback( void (*connectCallback)( arMasterSlaveFramework&, int ) );
-
-  /*
-  void setGlutDisplayMode( unsigned int glutDisplayMode ) { _glutDisplayMode = glutDisplayMode; }
-  unsigned int getGlutDisplayMode( void ) const { return _glutDisplayMode; }
-  */
 
   // initializes the various pieces but does not start the event loop
   bool init( int&, char** );
@@ -144,37 +132,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void postDraw( void );
 
   void swap( int windowID = -1 );
-
-  /*
-  arMatrix4 getProjectionMatrix(float eyeSign); // needed for custom stuff
-  arMatrix4 getModelviewMatrix(float eyeSign);  // needed for custom stuff
-  // must be able to use a custom screen objects for those rare cases
-  // (for instance noneuclidean visualization) where the standard euclidean
-  // cameras are no good
-  void setWindowCamera( arVRCamera* cam ) {
-    if (cam) {
-      // Very important to set the head here, since this is, in fact,
-      // used by the camera!
-      cam->setHead(&_head);
-      _graphicsWindow.setCamera(cam);
-    } else {
-      _graphicsWindow.setCamera(&_defaultCamera);
-    }
-  }
-  bool setViewportCamera( unsigned int vpindex, arCamera* cam ) {
-    if (cam) {
-      return _graphicsWindow.setViewportCamera( vpindex, cam);
-    } else {
-      return _graphicsWindow.setViewportCamera( vpindex, &_defaultCamera);
-    }
-  }
-  // the user application might need to adjust the cameras frame-by-frame
-  std::vector<arViewport>* getViewports(){
-    return _graphicsWindow.getViewports();
-  }
-  int             getWindowSizeX() const { return _windowSizeX; }
-  int             getWindowSizeY() const { return _windowSizeY; }
-  */
 
   // Various methods of sharing data from the master to the slaves...
 
@@ -225,9 +182,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void loadNavMatrix(void ) { arMatrix4 temp = ar_getNavInvMatrix();
                               glMultMatrixf( temp.v ); }
 
-  /*
-  bool setViewMode( const std::string& viewMode );
-  */
   /// msec since the first I/O poll (not quite start of the program).
   double getTime( void ) const { return _time; }
   /// How many msec it took to compute/draw the last frame.
@@ -293,7 +247,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void (*_oldDrawCallback)( arMasterSlaveFramework& );
   void (*_disconnectDrawCallback)( arMasterSlaveFramework& );
   void (*_playCallback)( arMasterSlaveFramework& );
-  // void (*_reshape)( arMasterSlaveFramework&, int, int );
   void (*_windowEventCallback)( arMasterSlaveFramework&, arGUIWindowInfo* );
   void (*_windowStartGLCallback)( arMasterSlaveFramework&, arGUIWindowInfo* );
   void (*_cleanup)( arMasterSlaveFramework& );
@@ -303,14 +256,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void (*_arGUIKeyboardCallback)( arMasterSlaveFramework&, arGUIKeyInfo* );
   void (*_mouseCallback)( arMasterSlaveFramework&, arGUIMouseInfo* );
   void (*_connectCallback)( arMasterSlaveFramework&, int numConnected );
-
-  /*
-  int   _windowSizeX;
-  int   _windowSizeY;
-  int   _windowPositionX;
-  int   _windowPositionY;
-  bool  _stereoMode;
-  */
 
   bool  _internalBufferSwap;
   bool  _framerateThrottle;
@@ -338,7 +283,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   // time variables
   ar_timeval _startTime;
-  // double     _hackStartTime;	    //< only temporary, used for the glut's time
   double     _time;
   double     _lastFrameTime;
   double     _lastComputeTime;

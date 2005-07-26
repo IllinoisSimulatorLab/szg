@@ -7,10 +7,13 @@
 #define AR_TEXTURE_H
 
 #include "arGraphicsHeader.h"
+#include "arDataType.h"
+#include "arThread.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
 #include <string>
+#include <map>
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 using namespace std;
@@ -26,8 +29,7 @@ class SZG_CALL arTexture {
   arTexture( const arTexture& rhs, unsigned int left, unsigned int bottom, 
                                    unsigned int width, unsigned int height );
   bool operator!();
-  void activate();
-  void reactivate();
+  void activate(bool forceRebind = false);
   void deactivate();
 
   int getWidth()  const { return _width; }
@@ -77,7 +79,6 @@ class SZG_CALL arTexture {
   
   bool fill(int w, int h, bool alpha, const char* pixels);
   bool flipHorizontal();
-  GLuint glName() const { return _texName; } ///< OpenGL's name for texture
 
  protected:
   bool _fDirty; ///< New _pixels need to be _loadIntoOpenGL()'d.
@@ -86,7 +87,6 @@ class SZG_CALL arTexture {
   bool _alpha; ///< true iff alpha channel exists
   bool _grayScale;
   bool _repeating; ///< Is texture periodic for coords outside [0,1]?
-  GLuint _texName; ///< internal OpenGL name of texture
   bool _mipmap; ///< use GL_LINEAR_MIPMAP_LINEAR or GL_LINEAR
   int _textureFunc;
   char* _pixels;
@@ -94,6 +94,10 @@ class SZG_CALL arTexture {
   bool _reallocPixels();
   void _assignAlpha(int);
   char* _packPixels();
+  arMutex                              _lock;
+  // The handles to the OpenGL textures are stored below (per calling graphics
+  // context).
+  map<ARint64, GLuint, less<ARint64> > _texNameMap;
   virtual void _loadIntoOpenGL();
 };
 

@@ -385,23 +385,14 @@ int arGUIWindow::_consumeWindowEvents( void )
     return -1;
   }
 
-  // ARGH!! the thread will just spin 'forever' in this loop, even if there
-  // are no GUI events or wm events.  This can cause a delay of around 8-10ms
-  // between draw/swap messages as the window threads do the draw then just
-  // spin in this loop not allowing the wm to send the next draw message.
-  // need some way (besides sleeping) of allowing the window threads to
-  // relinquish control when they really don't have anything to do, seems to
-  // really only be a problem with multiple windows open (only seems to be a
-  // a real problem on linux, but it aint snappy under windows either)
-  if( _threaded && _WMEvents.empty() ) {
-    // what we should probably do is wait on a condition variable the wm
-    // sets at a routine interval (ala heartbeating).  however, this raises
-    // its own issues, i.e. at what interval?  how does it keep this interval
-    // if it's just spinning in its own loop (where its ostensibly sending us
-    // draw messages and filling up _wmEvents anyhow)?  what if the user is
-    // controlling the loop, do we require that they have to send a heartbeat?
-    ar_usleep( 0 );
+  // Only spin a "little bit". Note that there is a time-out on the wait.
+  // (which guarantees we won't wait forever). Thus, we can, conceivably,
+  // make it to _processWMEvents with nothing in the queue. But that is OK.
+  ar_mutex_lock(&_WMEventsMutex);
+  if (_threaded && _WMEvents.empty()){
+    _WMEventsVar.wait(&_WMEventsMutex, 100);
   }
+  ar_mutex_unlock(&_WMEventsMutex);
 
   if( _processWMEvents() < 0 ) {
     return -1;
@@ -491,6 +482,8 @@ arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
 
   ar_mutex_lock( &_WMEventsMutex );
   _WMEvents.push( event );
+  // If we are waiting in _consumeWindowEvents, go ahead and release.
+  _WMEventsVar.signal();
   ar_mutex_unlock( &_WMEventsMutex );
 
   return event;

@@ -488,17 +488,6 @@ void arMasterSlaveFramework::onPlay( void ) {
   }
 }
 
-/*
-void arMasterSlaveFramework::onReshape( int width, int height ) {
-  if( _reshape ) {
-    _reshape( *this, width, height );
-  }
-  else {
-    glViewport( 0, 0, width, height );
-  }
-}
-*/
-
 void arMasterSlaveFramework::onCleanup( void ) {
   if( _cleanup ) {
     _cleanup( *this );
@@ -1991,39 +1980,7 @@ bool arMasterSlaveFramework::_startObjects( void ){
   return true;
 }
 
-/*
-/// What we need to do to start in standalone mode... this should be factored
-/// BACK into my normal stuff. HACK HACK HACK HACK HACK HACK HACK HACK HACK
-bool arMasterSlaveFramework::_startStandalone( bool useWindowing ){
-  // _graphicsWindow.setDrawCallback( new arMasterSlaveRenderCallback( *this ) );
-
-  if( !onStart( _SZGClient ) ) {
-    return false;
-  }
-
-  if( _useWindowing ) {
-    _createWindowing();
-  }
-
-  // this is from _startObjects... a CUT_AND_PASTE!!
-  _graphicsDatabase.loadAlphabet( _textPath );
-  _graphicsDatabase.setTexturePath( _texturePath );
-  _startStandaloneObjects();
-  _userInitCalled = true;
-
-  if ( useWindowing ) {
-    _displayThreadRunning = true;
-    std::cout << _label << " remark: entering glutMainLoop()." << std::endl;
-    // glutMainLoop(); // never returns
-    // PLAYING WITH SWAP (formerly startWithoutSwap), how about startWithSwap
-    _wm->startWithoutSwap();
-  }
-
-  return true;
-}
-*/
-
-/// Functionality common to start() and startWithoutGLUT().
+/// Functionality common to start() and startWithoutWindowing().
 bool arMasterSlaveFramework::_start( bool useWindowing ) {
   _useWindowing = useWindowing;
 
@@ -2056,14 +2013,6 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
   	                        std::string( buf ) + ".\n(dkill that component to proceed.)" );
     }
   }
-
-  /*
-  _graphicsWindow.setDrawCallback( new arMasterSlaveRenderCallback( *this ) );
-
-  if( _useGLUT ) {
-    _createGLUTWindow();
-  }
-  */
 
   // do the user-defined init
   // NOTE: so that _startCallback can know if this instance is the master or

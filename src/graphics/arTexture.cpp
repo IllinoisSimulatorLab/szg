@@ -22,8 +22,6 @@ struct arTexture_error_mgr {
 };
 #endif
 
-// Note that if _texName == 0, _loadIntoOpenGL() will be called and _fDirty will be set to false.
-// So it really doesn't matter what we initialize it to.
 arTexture::arTexture() :
   _fDirty(false),
   _width(0),
@@ -31,11 +29,11 @@ arTexture::arTexture() :
   _alpha(false),
   _grayScale(false),
   _repeating(false),
-  _texName(0),
   _mipmap(false),
   _textureFunc( GL_DECAL ),
   _pixels(NULL)
 {
+  ar_mutex_init(&_lock);
 }
 
 arTexture::~arTexture(){
@@ -51,8 +49,6 @@ arTexture::~arTexture(){
 #endif
 }
 
-// Note that if _texName == 0, _loadIntoOpenGL() will be called and _fDirty will be set to false.
-// So it really doesn't matter what we initialize it to.
 arTexture::arTexture( const arTexture& rhs ) :
   _fDirty( rhs._fDirty ),
   _width( rhs._width ),
@@ -60,7 +56,6 @@ arTexture::arTexture( const arTexture& rhs ) :
   _alpha( rhs._alpha ),
   _grayScale( rhs._grayScale ),
   _repeating( rhs._repeating ),
-  _texName( 0 ),  // activate() assigns a new opengl texture object
   _mipmap( rhs._mipmap ),
   _textureFunc( rhs._textureFunc )
 {
@@ -72,8 +67,6 @@ arTexture::arTexture( const arTexture& rhs ) :
   memcpy(_pixels, rhs._pixels, numbytes());
 }
 
-// Note that if _texName == 0, _loadIntoOpenGL() will be called and _fDirty will be set to false.
-// So it really doesn't matter what we initialize it to.
 arTexture& arTexture::operator=( const arTexture& rhs ) {
   if (this == &rhs)
     return *this;
@@ -83,7 +76,6 @@ arTexture& arTexture::operator=( const arTexture& rhs ) {
   _alpha = rhs._alpha;
   _grayScale = rhs._grayScale;
   _repeating = rhs._repeating;
-  _texName = 0; // activate() assigns a new opengl texture object
   _mipmap = rhs._mipmap;
   _textureFunc = rhs._textureFunc;
   if (_reallocPixels()) {
@@ -101,7 +93,6 @@ arTexture::arTexture( const arTexture& rhs, unsigned int left, unsigned int bott
   _alpha( rhs._alpha ),
   _grayScale( rhs._grayScale ),
   _repeating( rhs._repeating ),
-  _texName( 0 ),  // activate() assigns a new opengl texture object
   _mipmap( rhs._mipmap ),
   _textureFunc( rhs._textureFunc )
 {
@@ -120,39 +111,38 @@ bool arTexture::operator!() {
   return _pixels==0 || numbytes()==0;
 }
 
-void arTexture::activate() {
+void arTexture::activate(bool forceRebind) {
   glEnable(GL_TEXTURE_2D);
-
-  if (_texName == 0) {
-    glGenTextures(1,&_texName);
-    if (_texName == 0) {
+  ar_mutex_lock(&_lock);
+#ifdef AR_USE_WIN_32
+  ARint64 threadID = GetCurrentThreadId();
+#else
+  ARint64 threadID = pthread_self();
+#endif
+  // Has it been used so far?
+  map<ARint64,GLuint,less<ARint64> >::iterator i = _texNameMap.find(threadID);
+  GLuint temp;
+  if (i == _texNameMap.end()){
+    glGenTextures(1,&temp);
+    if (temp == 0) {
       cerr << "arTexture error: glGenTextures() failed in activate().\n";
+      ar_mutex_unlock(&_lock);
       return;
     }
-    // Note this was previously called in _loadIntoOpenGL(), so it was sometimes
-    // being called twice.
-    glBindTexture(GL_TEXTURE_2D, _texName);
+    _texNameMap.insert(map<ARint64,GLuint,less<ARint64> >::value_type
+                       (threadID, temp));
+    // Must go ahead and load the bitmap on card regardless.
+    forceRebind = true;
+  }
+  else{
+    temp = i->second;
+  }
+  ar_mutex_unlock(&_lock);
+  glBindTexture(GL_TEXTURE_2D, temp);
+  if (_fDirty || forceRebind){
     _loadIntoOpenGL();
-  } else {
-    glBindTexture(GL_TEXTURE_2D, _texName);
-    if (_fDirty) {
-      _loadIntoOpenGL();
-    }
   }
-}
-
-void arTexture::reactivate(){
-  glEnable(GL_TEXTURE_2D);
-
-  if (_texName == 0) {
-    glGenTextures(1,&_texName);
-    if (_texName == 0) {
-      cerr << "arTexture error: glGenTextures() failed in reactivate().\n";
-      return;
-    }
-  }
-  glBindTexture(GL_TEXTURE_2D, _texName);
-  _loadIntoOpenGL();
+  
 }
 
 void arTexture::deactivate() {
@@ -221,27 +211,18 @@ char* arTexture::getSubImage( unsigned int left, unsigned int bottom,
 }
 
 void arTexture::mipmap(bool fEnable) {
-  const bool reload = (fEnable != _mipmap) && (_texName != 0);
+  _fDirty = true;
   _mipmap = fEnable;
-  if (reload) {
-    reactivate();
-  }
 }
 
 void arTexture::repeating(bool fEnable) {
-  const bool reload = (fEnable != _repeating) && (_texName != 0);
+  _fDirty = true;
   _repeating = fEnable;
-  if (reload) {
-    reactivate();
-  }
 }
 
 void arTexture::grayscale(bool fEnable) {
-  const bool reload = (fEnable != _grayScale) && (_texName != 0);
+  _fDirty = true;
   _grayScale = fEnable;
-  if (reload) {
-    reactivate();
-  }
 }
 
 bool arTexture::readImage(const string& fileName, int alpha, bool complain) {

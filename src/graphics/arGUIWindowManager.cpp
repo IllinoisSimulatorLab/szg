@@ -776,7 +776,7 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
   // Note that if this call is the result of a reload message neither
   // setThreaded calls are going to have any affect, since this basic window
   // manager state can only be altered at the initial window creation.
-  if( windowConstructs->size() >= 1 ) {
+  if( windowConstructs->size() > 1 ) {
     setThreaded( true );
   }
   else{
