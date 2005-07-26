@@ -23,6 +23,7 @@ bool drawPerformanceDisplay = false;
 // flag. 
 bool makeNice = false;
 bool exitFlag = false;
+bool requestReload = false;
 
 // extra services
 arConditionVar pauseVar;
@@ -133,7 +134,11 @@ void messageTask(void* pClient){
       }
     }
     if (messageType=="reload"){
-      (void) loadParameters(*cli);
+      // This isn't quite the right way to communicate between the threads.
+      // If a reload request comes too quickly on the heals of a previous
+      // one, then one of the requests might be ignored. Doesn't really
+      // seem too problematic, given the way the software gets used.
+      requestReload = true;
     }
   }
 }
@@ -249,6 +254,14 @@ int main(int argc, char** argv){
     }
     ar_mutex_unlock(&pauseLock);
     ar_timeval time1 = ar_time();
+    if (requestReload){
+      // We essentially get here when a "reload" message comes in.
+      (void) loadParameters(szgClient);
+      // Make the new windows, but do not, for instance, start the
+      // underlying synchronization objects going.
+      graphicsClient->start(szgClient, false);
+      requestReload = false;
+    }
 
     // Inside here, through callbacks to the arSyncDataClient embedded inside
     // the arGraphicsClient, is where all the scene graph event processing,
