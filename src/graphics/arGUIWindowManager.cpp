@@ -139,17 +139,17 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig,
 
   _windows[ _maxWindowID ] = window;
 
-  if( _threaded ) {
-    // this should only return once the window is actually up and running
-    if( window->beginEventThread() < 0 ) {
-      delete window;
-      _windows.erase( _maxWindowID );
-      return -1;
+  // Only make the OS window if it has been requested.
+  if (useWindowing){
+    if( _threaded ) {
+      // this should only return once the window is actually up and running
+      if( window->beginEventThread() < 0 ) {
+        delete window;
+        _windows.erase( _maxWindowID );
+        return -1;
+      }
     }
-  }
-  else {
-    // Only actually make the OS window if it has been requested.
-    if (useWindowing){
+    else {
       if( window->_performWindowCreation() < 0 ) {
         std::cerr << "addWindow: _performWindowCreation error" << std::endl;
         delete window;
