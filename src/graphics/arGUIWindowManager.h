@@ -147,7 +147,8 @@ class SZG_CALL arGUIWindowManager
      * @see arGUIWindow::beginEventThread
      * @see arGUIWindow::_performWindowCreation
      */
-    int addWindow( const arGUIWindowConfig& windowConfig );
+    int addWindow( const arGUIWindowConfig& windowConfig,
+                   bool useWindowing = true );
 
     /**
      * Create a set of (possibly) new arGUIWindows.
@@ -172,7 +173,8 @@ class SZG_CALL arGUIWindowManager
      * @see arGUIWindowingConstruct
      * @see arGUIXMLWindowConstruct
      */
-    int createWindows( const arGUIWindowingConstruct* windowingConstruct = NULL );
+    int createWindows(const arGUIWindowingConstruct* windowingConstruct=NULL,  
+                      bool useWindowwing = true );
 
     //@{
     /** @name Register Callbacks

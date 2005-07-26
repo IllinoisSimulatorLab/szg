@@ -973,7 +973,7 @@ void arMasterSlaveFramework::preDraw( void ) {
 
   if (_requestReload){
     (void) _loadParameters();
-    _createWindowing();
+    _createWindowing(_useWindowing);
     _requestReload = false;
   }
 
@@ -2077,9 +2077,7 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
     }
   }
 
-  if( _useWindowing ) {
-    _createWindowing();
-  }
+  _createWindowing(_useWindowing);
 
   if( _standalone ) {
     // this is from _startObjects... a CUT_AND_PASTE!!
@@ -2165,7 +2163,7 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
 // Other system-level functions
 //**************************************************************************
 
-void arMasterSlaveFramework::_createWindowing( void ) {
+void arMasterSlaveFramework::_createWindowing( bool useWindowing ) {
   std::vector< arGUIXMLWindowConstruct* >* windowConstructs = _guiXMLParser->getWindowingConstruct()->getWindowConstructs();
 
   if( !windowConstructs ) {
@@ -2191,7 +2189,8 @@ void arMasterSlaveFramework::_createWindowing( void ) {
   }
 
   // actually create the windows
-  if( _wm->createWindows( _guiXMLParser->getWindowingConstruct() ) < 0 ) {
+  if( _wm->createWindows( _guiXMLParser->getWindowingConstruct(),
+                          useWindowing ) < 0 ) {
     std::cout << "could not create windows" << std::endl;
     // exit( 0 );
   }

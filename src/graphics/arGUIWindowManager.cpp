@@ -131,7 +131,8 @@ int arGUIWindowManager::startWithoutSwap( void )
   return 0;
 }
 
-int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig )
+int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig,
+                                   bool useWindowing )
 {
   arGUIWindow* window = new arGUIWindow( _maxWindowID, windowConfig,
                                          _windowInitGLCallback, _userData );
@@ -147,11 +148,14 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig )
     }
   }
   else {
-    if( window->_performWindowCreation() < 0 ) {
-      std::cerr << "addWindow: _performWindowCreation error" << std::endl;
-      delete window;
-      _windows.erase( _maxWindowID );
-      return -1;
+    // Only actually make the OS window if it has been requested.
+    if (useWindowing){
+      if( window->_performWindowCreation() < 0 ) {
+        std::cerr << "addWindow: _performWindowCreation error" << std::endl;
+        delete window;
+        _windows.erase( _maxWindowID );
+        return -1;
+      }
     }
   }
 
@@ -756,7 +760,7 @@ int arGUIWindowManager::deleteAllWindows( void )
   return 0;
 }
 
-int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingConstruct )
+int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingConstruct, bool useWindowing )
 {
   if( !windowingConstruct ) {
     return -1;
@@ -829,7 +833,7 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
       deleteWindow( windowID );
 
       // create the new window
-      addWindow( *config );
+      addWindow( *config, useWindowing );
     }
     else {
       // we can just tweak all the window's settings
@@ -876,7 +880,7 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
   // created
   if( cItr != windowConstructs->end() ) {
     for( ; cItr != windowConstructs->end(); cItr++ ) {
-      if( addWindow( *((*cItr)->getWindowConfig()) ) < 0 ) {
+      if( addWindow( *((*cItr)->getWindowConfig()), useWindowing ) < 0 ) {
         std::cerr << "could not create new gui window" << std::endl;
       }
     }

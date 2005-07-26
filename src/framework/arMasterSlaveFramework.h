@@ -408,7 +408,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   // graphics utility functions
   // void _createGLUTWindow( void );
-  void _createWindowing( void );
+  void _createWindowing( bool useWindowing );
   void _handleScreenshot( bool stereo );
 
   // data transfer functions
