@@ -416,6 +416,8 @@ void arMasterSlaveFramework::onWindowEvent( arGUIWindowInfo* windowInfo ) {
     }
 
     switch( windowInfo->getState() ) {
+      case AR_WINDOW_FULLSCREEN:
+	break;
       case AR_WINDOW_RESIZE:
         fw->_wm->setWindowViewport( windowInfo->getWindowID(), 0, 0,
                                     windowInfo->getSizeX(), windowInfo->getSizeY() );

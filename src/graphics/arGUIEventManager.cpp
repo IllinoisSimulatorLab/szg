@@ -706,6 +706,14 @@ LRESULT CALLBACK arGUIEventManager::windowProcCB( HWND hWnd, UINT uMsg, WPARAM w
         case SIZE_MAXIMIZED:
         case SIZE_RESTORED:
           window->setVisible( true );
+          // We need to add an explicit resize event too, so the application
+	  // framework reshape callback will get hit.
+          addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_RESIZE,
+				     window->getID(), 0,
+				     window->getPosX(),
+				     window->getPosY(),
+				     window->getWidth(),
+				     window->getHeight()) );
         break;
 
         default:
