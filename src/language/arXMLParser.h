@@ -74,10 +74,18 @@ class TiXmlAttribute;
 class TiXmlText;
 class TiXmlDeclaration;
 class TiXmlParsingData;
+class TiXmlNode;
 
 const int TIXML_MAJOR_VERSION = 2;
 const int TIXML_MINOR_VERSION = 3;
 const int TIXML_PATCH_VERSION = 4;
+
+// This is a code change (needed so that we can use the output functions
+// below in DLLs on Win32).
+#ifdef TIXML_USE_STL
+SZG_CALL std::ostream& operator<< (std::ostream& out, const TiXmlNode& base);
+SZG_CALL std::string & operator<< (std::string& out, const TiXmlNode& base );
+#endif
 
 /*	Internal structure for tracking location of items
 	in the XML file.
