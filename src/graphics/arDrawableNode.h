@@ -25,10 +25,17 @@ class SZG_CALL arDrawableNode:public arGraphicsNode{
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
-  bool _01DPreDraw();
-  void _01DPostDraw();
-  bool _2DPreDraw();
-  void _2DPostDraw();
+  bool _01DPreDraw(arGraphicsNode* pointsNode,
+                   arGraphicsNode* blendNode,
+                   arGraphicsNode* materialNode);
+  void _01DPostDraw(arGraphicsNode* blendNode);
+  bool _2DPreDraw(arGraphicsNode* pointsNode,
+                  arGraphicsNode* normal3Node,
+                  arGraphicsNode* blendNode,
+                  arGraphicsNode* materialNode,
+                  arGraphicsNode* textureNode);
+  void _2DPostDraw(arGraphicsNode* blendNode,
+                   arGraphicsNode* textureNode);
 
   int getType();
   int getNumber();

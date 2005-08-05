@@ -13,7 +13,8 @@ arNormal3Node::arNormal3Node(arGraphicsDatabase* owner){
   _typeString = "normal3";
   _nodeDataType = AR_FLOAT;
   _arrayStride = 3;
-  _whichBufferToReplace = &_normal3;
+  // DEFUNCT
+  //_whichBufferToReplace = &_normal3;
   _g = &(owner->_gfx);
   _recordType = _g->AR_NORMAL3;
   _IDField = _g->AR_NORMAL3_ID;

@@ -1,4 +1,4 @@
-// $Id: PyGraphics.i,v 1.4 2005/07/11 19:00:38 crowell Exp $
+// $Id: PyGraphics.i,v 1.5 2005/08/04 21:24:13 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -347,8 +347,7 @@ class arTexture {
     return self->getPixels()!=0 && self->numbytes()!=0;
   }
 }
-  void activate();
-  void reactivate();
+  void activate(bool forceRebind = false);
   void deactivate();
 
   int getWidth()  const;
@@ -379,7 +378,6 @@ class arTexture {
                  const string& path);
   
   bool flipHorizontal();
-  unsigned int glName() const; ///< OpenGL's name for texture
 };
 
 %{

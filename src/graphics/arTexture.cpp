@@ -138,6 +138,7 @@ void arTexture::activate(bool forceRebind) {
     temp = i->second;
   }
   ar_mutex_unlock(&_lock);
+
   glBindTexture(GL_TEXTURE_2D, temp);
   if (_fDirty || forceRebind){
     _loadIntoOpenGL();

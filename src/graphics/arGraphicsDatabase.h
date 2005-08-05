@@ -73,6 +73,8 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   void draw(arMatrix4* projectionCullMatrix = NULL);
   int intersect(const arRay&);
   list<int>* intersectList(const arRay&);
+  arGraphicsNode* arGraphicsDatabase::intersectGeometry(const arRay& theRay,
+							int excludeBelow = -1);
 
   bool registerLight(int owningNodeID, arLight* theLight);
   void activateLights();
@@ -133,6 +135,15 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
              arMatrix4*);
   void _intersect(arGraphicsNode*, float&, int&, stack<arRay>&);
   void _intersectList(arGraphicsNode*, list<int>*, stack<arRay>&);
+  float _intersectSingleGeometry(arGraphicsNode* node,
+                                 arGraphicsContext* context,
+                                 const arRay& theRay);
+  void _intersectGeometry(arGraphicsNode* node,
+                          arGraphicsContext* context,
+                          stack<arRay>& rayStack,
+			  int excludeBelow,
+                          arGraphicsNode*& bestNode,
+                          float bestDistance);
   virtual arDatabaseNode* _makeNode(const string& type);
   arDatabaseNode* _processAdmin(arStructuredData*);
 };

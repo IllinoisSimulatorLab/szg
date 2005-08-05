@@ -41,7 +41,8 @@ bool arTextureNode::receiveData(arStructuredData* inData){
     _alpha = inData->getDataInt(_g->AR_TEXTURE_ALPHA);
     // SADLY, I DO NOT THINK THAT ALPHA IS BEING HANDLED CORRECTLY!
     _localTexture = _owningDatabase->addTexture(_fileName, &_alpha);
-    _texture = &_localTexture;
+    // DEFUNCT
+    //_texture = &_localTexture;
     // zero out the pixels, if they exist from previous.
     if (_pixels){
       delete [] _pixels;
@@ -59,7 +60,8 @@ bool arTextureNode::receiveData(arStructuredData* inData){
       // first time
       _localTexture = _owningDatabase->addTexture(_width, _height, 
                                                   _alpha, pixels);
-      _texture = &_localTexture;
+      // DEFUNCT
+      //_texture = &_localTexture;
     }
     else {
       // later times

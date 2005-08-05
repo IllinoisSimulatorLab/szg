@@ -13,7 +13,8 @@ arPointsNode::arPointsNode(arGraphicsDatabase* owner){
   _typeString = "points";
   _nodeDataType = AR_FLOAT;
   _arrayStride = 3;
-  _whichBufferToReplace = &_points;
+  // DEFUNCT
+  //_whichBufferToReplace = &_points;
   _g = &(owner->_gfx);
   _recordType = _g->AR_POINTS;
   _IDField = _g->AR_POINTS_ID;

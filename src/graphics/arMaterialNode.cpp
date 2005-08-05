@@ -31,7 +31,8 @@ bool arMaterialNode::receiveData(arStructuredData* inData){
   inData->dataOut(_g->AR_MATERIAL_EMISSIVE,_lMaterial.emissive.v,AR_FLOAT,3);
   inData->dataOut(_g->AR_MATERIAL_EXPONENT,&_lMaterial.exponent,AR_FLOAT,1);
   inData->dataOut(_g->AR_MATERIAL_ALPHA,&_lMaterial.alpha,AR_FLOAT,1); 
-  _material = &_lMaterial;
+  // DEFUNCT
+  //_material = &_lMaterial;
   return true;
 }
 

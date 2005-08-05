@@ -24,6 +24,9 @@ class SZG_CALL arTextureNode: public arGraphicsNode{
   string getFileName(){ return _fileName; }
   void setFileName(const string& fileName);
 
+  // Need to be able to get the texture itself for database draw.
+  arTexture* getTexture(){ return _localTexture; }
+
  protected:
   string _fileName;
   int    _alpha;

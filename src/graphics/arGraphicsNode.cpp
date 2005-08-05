@@ -11,17 +11,18 @@
 
 arGraphicsNode::arGraphicsNode() :
   _owningDatabase(NULL),
-  _points(NULL),
-  _blend(NULL),
-  _normal3(NULL),
-  _color(NULL),
-  _tex2(NULL),
-  _index(NULL),
-  _material(NULL),
-  _texture(&_localTexture),
-  _localTexture(NULL),
-  _bumpMap(&_localBumpMap),
-  _localBumpMap(NULL)
+  // DEFUNCT
+  //_points(NULL),
+  //_blend(NULL),
+  //_normal3(NULL),
+  //_color(NULL),
+  //_tex2(NULL),
+  //_index(NULL),
+  //_material(NULL),
+  //_texture(&_localTexture),
+  _localTexture(NULL)
+  //_bumpMap(&_localBumpMap),
+  //_localBumpMap(NULL)
 {
 }
 
@@ -51,7 +52,8 @@ void arGraphicsNode::initialize(arDatabase* owner){
   // THIS IS A BIG PROBLEM! THE WAY INHERITANCE WORKS ASSUMES THAT
   // ALL NODES EXCEPT THE ROOT NODE ARE arGraphicsNodes!
   // And, also, the inheritance model sucks since it doesn't allow inserts!
-  if (parent && parent->getName() != "root" 
+  // DEFUNCT
+  /*if (parent && parent->getName() != "root" 
       && parent->getTypeString() != "name"){
     _points = parent->_points;
     _blend = parent->_blend;
@@ -62,7 +64,7 @@ void arGraphicsNode::initialize(arDatabase* owner){
     _material = parent->_material;
     _texture = parent->_texture;
     _bumpMap = parent->_bumpMap;
-  }
+    }*/
 }
 
 arMatrix4 arGraphicsNode::accumulateTransform(){

@@ -13,7 +13,8 @@ arColor4Node::arColor4Node(arGraphicsDatabase* owner){
   _typeString = "color4";
   _nodeDataType = AR_FLOAT;
   _arrayStride = 4;
-  _whichBufferToReplace = &_color;
+  // DEFUNCT
+  //_whichBufferToReplace = &_color;
   _g = &(owner->_gfx);
   _recordType = _g->AR_COLOR4;
   _IDField = _g->AR_COLOR4_ID;

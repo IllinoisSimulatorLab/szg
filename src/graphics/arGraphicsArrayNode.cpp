@@ -44,7 +44,8 @@ bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
   
   // Bookkeeping.
   _commandBuffer.setType(_recordType);
-  *_whichBufferToReplace = &_commandBuffer;
+  // DEFUNCT
+  //*_whichBufferToReplace = &_commandBuffer;
   return true;
 }
 

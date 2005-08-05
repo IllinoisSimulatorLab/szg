@@ -35,23 +35,25 @@ class SZG_CALL arGraphicsNode: public arDatabaseNode{
   // unique to arGraphicsNode
   arMatrix4 accumulateTransform();
   virtual void draw(arGraphicsContext*){};
+  ARfloat* getBuffer(){ return _commandBuffer.v; }
 
  protected:
   arGraphicsDatabase* _owningDatabase;
   arGraphicsLanguage* _g;
   
-  arLightFloatBuffer* _points;   ///< state at this node
-  arLightFloatBuffer* _blend;
-  arLightFloatBuffer* _normal3;  ///< 3 float normals, packed one after another
-  arLightFloatBuffer* _color;
-  arLightFloatBuffer* _tex2;
-  arLightFloatBuffer* _index;
-  arMaterial*         _material;
+  // DEFUNCT
+  //arLightFloatBuffer* _points;   ///< state at this node
+  //arLightFloatBuffer* _blend;
+  //arLightFloatBuffer* _normal3;  ///< 3 float normals, packed one after another
+  //arLightFloatBuffer* _color;
+  //arLightFloatBuffer* _tex2;
+  //arLightFloatBuffer* _index;
+  //arMaterial*         _material;
   
-  arTexture** _texture;
+  //arTexture** _texture;
   arTexture*  _localTexture; ///< texture, if any, owned by this node
-  arBumpMap** _bumpMap;
-  arBumpMap*  _localBumpMap; ///< bump map, if any, owned by this node
+  //arBumpMap** _bumpMap;
+  //arBumpMap*  _localBumpMap; ///< bump map, if any, owned by this node
 
   arLightFloatBuffer _commandBuffer;
 

@@ -20,7 +20,8 @@ class SZG_CALL arGraphicsArrayNode:public arGraphicsNode{
     // The following is necessary for the current inheritance scheme.
     // (otherwise, if we attach a node to a node that hasn't had its
     // data set yet, we won't get any inheritance!)
-    *_whichBufferToReplace = &_commandBuffer;
+    // DEFUNCT
+    //*_whichBufferToReplace = &_commandBuffer;
   }
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
@@ -40,7 +41,8 @@ class SZG_CALL arGraphicsArrayNode:public arGraphicsNode{
   int _dataField;
 
   /// Which array pointer to replace (_color, tex2, _points, etc.).
-  arLightFloatBuffer** _whichBufferToReplace;
+  // DEFUNCT.
+  //arLightFloatBuffer** _whichBufferToReplace;
 
   void _mergeElements(int number, void* elements, int* IDs = NULL);
   arStructuredData* _dumpData(int number, void* elements, int* IDs = NULL);

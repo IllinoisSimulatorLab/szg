@@ -375,8 +375,9 @@ void arGraphicsDatabase::draw(arMatrix4* projectionCullMatrix){
   // replaces gl matrix stack... we want to support VERY deep trees
   stack<arMatrix4> transformStack;
   ar_mutex_lock(&_eraseLock);
+  arGraphicsContext context;
   // Not using graphics context yet.
-  _draw((arGraphicsNode*)&_rootNode, transformStack, NULL,
+  _draw((arGraphicsNode*)&_rootNode, transformStack, &context,
         projectionCullMatrix);
   ar_mutex_unlock(&_eraseLock);
 }
@@ -385,6 +386,18 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
 			       stack<arMatrix4>& transformStack,
                                arGraphicsContext* context,
 			       arMatrix4* projectionCullMatrix){
+
+  // Word of warning: lock/unlock is DEFINITELY costly when done per-node.
+  // To make the API really thread-safe, some kind of node-level locking
+  // is necessary... but it clearly should be a bit constrained (10 node
+  // locks/unlocks per node per draw is a 25% performance hit over no locks
+  // at all (when drawing a scene graph with a high nodes/geometry ratio...
+  // i.e. where scene graph traversal is significant).
+
+  // Store the node on the arGraphicsContext's stack.
+  if (context){
+    context->pushNode(node);
+  }
   arMatrix4 tempMatrix;
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
     // Push current onto the matrix stack.
@@ -397,6 +410,8 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
   //      draw either node or children.
   if (node->getTypeCode() != -1 && node->getTypeCode() != AR_D_NAME_NODE){
     // We are not the root node or a name node, so it is OK to draw.
+    // These nodes are actually just arDatabaseNodes instead of
+    // arGraphicsNodes.
     node->draw(context);
   }
   // Deal with view frustum culling.
@@ -406,7 +421,10 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
     arBoundingSphere b = ((arBoundingSphereNode*)node)->getBoundingSphere();
     arMatrix4 view = (*projectionCullMatrix)*tempMatrix;
     if (!b.intersectViewFrustum(view)){
-      // It is safe to return here.
+      // It is safe to return here... but don't forget to pop the node stack!
+      if (context){
+        context->popNode(node->getTypeCode());
+      }
       return;
     }
   }
@@ -429,6 +447,10 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
     transformStack.pop();
     // Return the matrix state to what it was when we were called.
     glLoadMatrixf(tempMatrix.v);
+  }
+  // Must remember to pop the node stack upon leaving this function.
+  if (context){
+    context->popNode(node->getTypeCode());
   }
 }
 
@@ -522,6 +544,132 @@ void arGraphicsDatabase::_intersectList(arGraphicsNode* node,
   // On the way out, undo the effects of the transform
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
     rayStack.pop();
+  }
+}
+
+arGraphicsNode* arGraphicsDatabase::intersectGeometry(const arRay& theRay,
+                                                      int excludeBelow){
+  stack<arRay> rayStack;
+  rayStack.push(theRay);
+  arGraphicsContext context;
+  arGraphicsNode* bestNode = NULL;
+  float bestDistance = -1;
+  _intersectGeometry((arGraphicsNode*)&_rootNode, &context, rayStack,
+		     excludeBelow, bestNode, bestDistance);
+  return bestNode;
+}
+
+float arGraphicsDatabase::_intersectSingleGeometry(arGraphicsNode* node,
+                                                   arGraphicsContext* context,
+                                                   const arRay& theRay){
+  if (!node || !context){
+    return -1;
+  }
+  if (node->getTypeCode() != AR_G_DRAWABLE_NODE){
+    return -1;
+  }
+  arDrawableNode* d = (arDrawableNode*) node;
+  if (d->getType() != DG_TRIANGLES){
+    cout << "arGraphicsDatabase warning: only able to intersect with triangle "
+	 << "soups so far.\n";
+    return -1;
+  }
+  arGraphicsNode* p = (arGraphicsNode*) context->getNode(AR_G_POINTS_NODE);
+  if (!p){
+    cout << "arGraphicsDatabase error: no points node for drawable.\n";
+    return -1;
+  }
+  arGraphicsNode* i = (arGraphicsNode*) context->getNode(AR_G_INDEX_NODE);
+  int number = d->getNumber();
+  float* points = p->getBuffer();
+  int* index = NULL;
+  if (i){
+    index = (int*)i->getBuffer();
+  }
+  float bestDistance = -1;
+  float dist;
+  arVector3 a, b, c;
+  for (int j = 0; j < number; j++){
+    if (index){
+      a = arVector3(points + 3*index[3*j]);
+      b = arVector3(points + 3*index[3*j+1]);
+      c = arVector3(points + 3*index[3*j+2]);
+    }
+    else{
+      a = arVector3(points + 9*j);
+      b = arVector3(points + 9*j+3);
+      c = arVector3(points + 9*j+6);
+    }
+    dist = ar_intersectRayTriangle(theRay.getOrigin(),
+				   theRay.getDirection(),
+				   a, b, c);
+    if (bestDistance < 0 || dist < bestDistance){
+      bestDistance = dist;
+    }
+  }
+  cout << bestDistance << "\n";
+  return bestDistance;
+}
+
+void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
+                                            arGraphicsContext* context,
+                                            stack<arRay>& rayStack,
+                                            int excludeBelow,
+                                            arGraphicsNode*& bestNode,
+                                            float bestDistance){
+  if (node->getID() == excludeBelow){
+    return;
+  }
+  // Store the node on the arGraphicsContext's stack.
+  if (context){
+    context->pushNode(node);
+  }
+  // If this is a transform node, go ahead and transform the ray.
+  if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
+    arMatrix4 theMatrix = ((arTransformNode*)node)->getTransform();
+    arRay currentRay = rayStack.top();
+    rayStack.push(arRay((!theMatrix)*currentRay.getOrigin(),
+			(!theMatrix)*currentRay.getDirection()
+                        - (!theMatrix)*arVector3(0,0,0)));
+  }
+  // If it is a bounding sphere, go ahead and intersect.
+  // If we do not intersect, return.
+  if (node->getTypeCode() == AR_G_BOUNDING_SPHERE_NODE){
+    arBoundingSphere sphere 
+      = ((arBoundingSphereNode*)node)->getBoundingSphere();
+    arRay intRay(rayStack.top());
+    float distance = intRay.intersect(sphere.radius, 
+				      sphere.position);
+    if (distance < 0){
+      // Must remember to pop the node stack upon leaving this function.
+      if (context){
+        context->popNode(node->getTypeCode());
+      }
+      return;
+    }
+  }
+  // If it is a drawable node, go ahead and intersect.
+  if (node->getTypeCode() == AR_G_DRAWABLE_NODE){
+    float dist = _intersectSingleGeometry(node, context, rayStack.top());
+    if (bestDistance < 0 || dist < bestDistance){
+      bestNode = node;
+      bestDistance = dist;
+    }
+  }
+  // Deal with intersections with children
+  list<arDatabaseNode*> children = node->getChildren();
+  for (list<arDatabaseNode*>::iterator i = children.begin();
+       i != children.end(); i++){
+    _intersectGeometry((arGraphicsNode*)(*i), context, rayStack, 
+                       excludeBelow, bestNode, bestDistance);
+  }
+  // On the way out, undo the effects of the transform
+  if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
+    rayStack.pop();
+  }
+  // Must remember to pop the node stack upon leaving this function.
+  if (context){
+    context->popNode(node->getTypeCode());
   }
 }
 

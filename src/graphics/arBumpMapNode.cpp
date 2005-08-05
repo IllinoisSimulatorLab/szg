@@ -31,7 +31,14 @@ arStructuredData* arBumpMapNode::dumpData(){
   return result;
 }
 
-bool arBumpMapNode::receiveData(arStructuredData* inData){
+bool arBumpMapNode::receiveData(arStructuredData* /*inData*/){
+  //**********************************************************************
+  // Bump map is disabled. It does not fit the evolving database model...
+  // and it isn't really used. So no point in updating.
+  //**********************************************************************
+  // DEFUNCT
+
+  /*
   if (inData->getID() != _g->AR_BUMPMAP){
     cerr << "arBumpMapNode error: expected "
          << _g->AR_BUMPMAP
@@ -62,13 +69,6 @@ bool arBumpMapNode::receiveData(arStructuredData* inData){
 					      _tex2->v, height,
 					      _texture ? *_texture : NULL );
   _bumpMap = &_localBumpMap;
-/*
-  for (int i=0; i<5; ++i)
-    printf("D[%i]: P(%0.2f,%0.2f,%0.2f) I(%i) T(%0.2f,%0.2f)\n", i,
-           _points->v[3*i], _points->v[3*i+1], _points->v[3*i+2],
-           (int)(_index->v[i]),
-           _tex2->v[2*i], _tex2->v[2*i+1]);
-*/
   _commandBuffer.grow(flen + 2);
 
   // filename
@@ -78,6 +78,6 @@ bool arBumpMapNode::receiveData(arStructuredData* inData){
 
   // height
   _commandBuffer.v[currPos++] = height;
-
+  */
   return true;
 }

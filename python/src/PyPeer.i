@@ -419,11 +419,6 @@ class arDrawableNode:public arGraphicsNode{
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
-  bool _01DPreDraw();
-  void _01DPostDraw();
-  bool _2DPreDraw();
-  void _2DPostDraw();
-
   int getType();
   int getNumber();
   void setDrawable(arDrawableType type, int number);

@@ -13,7 +13,8 @@ arIndexNode::arIndexNode(arGraphicsDatabase* owner){
   _typeString = "index";
   _nodeDataType = AR_INT;
   _arrayStride = 1;
-  _whichBufferToReplace = &_index;
+  // DEFUNCT
+  //_whichBufferToReplace = &_index;
   _g = &(owner->_gfx);
   _recordType = _g->AR_INDEX;
   _IDField = _g->AR_INDEX_ID;

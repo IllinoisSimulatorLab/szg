@@ -43,6 +43,8 @@ void arGraphicsContext::pushNode(arDatabaseNode* node){
   case AR_G_BUMP_MAP_NODE:
     _bumpMapStack.push_front(node);
     break;
+  default:
+    break;
   }
 }
   

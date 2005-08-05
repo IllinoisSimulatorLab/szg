@@ -31,7 +31,8 @@ bool arBlendNode::receiveData(arStructuredData* inData){
   _commandBuffer.v[0] = inData->getDataFloat(_g->AR_BLEND_FACTOR);
   // AARGH! annoying duplication of resources with the blend factor.
   _blendFactor = _commandBuffer.v[0];
-  _blend = &_commandBuffer;
+  // DEFUNCT
+  //_blend = &_commandBuffer;
   return true;
 }
 

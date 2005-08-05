@@ -13,7 +13,8 @@ arTex2Node::arTex2Node(arGraphicsDatabase* owner){
   _typeString = "tex2";
   _nodeDataType = AR_FLOAT;
   _arrayStride = 2;
-  _whichBufferToReplace = &_tex2;
+  // DEFUNCT
+  //_whichBufferToReplace = &_tex2;
   _g = &(owner->_gfx);
   _recordType = _g->AR_TEX2;
   _IDField = _g->AR_TEX2_ID;
