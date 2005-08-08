@@ -1,0 +1,50 @@
+For each of arGUI, arXMLParser, and arTexFont there exist resources which are
+helpful in debugging current code or developing new code.
+
+
+arGUI:
+For more information on the arGUI framework see arGUI.README.  However, the
+"brains" of arGUI (OS-level window creation and manipulation and the OS-
+level event pump) have been both directly and indirectly inspired by three
+libraries: GLUT, freeglut, and OpenGLUT.  OpenGLUT and freeglut are both open-
+source spinoffs of GLUT itself, but they each contribute their own enhancements
+and bug-fixes.  Some useful windowing code and techniques can also be found in
+the open-source SDL and Cpw libraries.
+
+GLUT home page: http://www.opengl.org/resources/libraries/glut.html
+GLUT binaries/source download: http://www.xmission.com/~nate/glut.html
+GLUT FAQ: http://www.opengl.org/resources/libraries/glut/glut_faq.html
+
+freeglut home page: http://freeglut.sourceforge.net/
+freeglut source download: http://freeglut.sourceforge.net/index.php#download
+freegul discussion boards: http://sourceforge.net/mailarchive/forum.php?forum=freeglut-developer
+
+OpenGLUT home page: http://openglut.sourceforge.net/
+OpenGLUT source download: http://sourceforge.net/project/showfiles.php?group_id=104013
+OpenGLUT discussion boards: http://sourceforge.net/mailarchive/forum.php?forum_id=39302
+
+SDL home page: http://www.libsdl.org/index.php
+SDL source download: http://www.libsdl.org/download-1.2.php
+SDL discussion boards: http://news.gmane.org/gmane.comp.lib.sdl and http://www.devolution.com/pipermail/sdl/
+
+Cpw home page: http://www.mathies.com/cpw/
+Cpw source download: http://www.mathies.com/cpw/download.html
+Cpw online documentation: http://www.mathies.com/cpw/cpwdocs.html
+
+
+arXMLParser:
+For more information on arXMLParser see arXMLParser.README.  However, there
+exist some other resources as well.
+
+TinyXML online documentation: http://www.grinninglizard.com/tinyxmldocs/index.html
+TinyXML tutorial: http://software.ellerton.net/tinyxml.html
+
+
+arTexFont:
+For more information on arTexFont see arTexFont.README.  For more information
+on textured mapped fonts in general here are some other resources:
+
+ftgl: http://homepages.paradise.net.nz/henryj/code/index.html#FTGL
+NeHe texture fonts: http://nehe.gamedev.net/data/lessons/lesson.asp?lesson=17
+glFont: http://students.cs.byu.edu/~bfish/glfont.php
+texture mapped fonts: http://www.levp.de/3d/fonts.html

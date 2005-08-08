@@ -1,0 +1,709 @@
+Graphics: Parameter Explanation
+
+In this section we first explain the general concept behind and construction of
+a Syzygy graphics-rendering environment.  Next, some of the more advanced
+options such as the special Syzygy demo mode, framelocking for supported video
+cards, and multiple graphics passes in a single window will be discussed.
+Finally, some examples of various configurations will be given.
+
+
+In order to correctly render a Syzygy scene, a Syzygy OS-level windowis
+associated with several other Syzygy classes, such as a viewport, a camera,
+a screen, a vr head, and so on.  Several of these classes are non-trivial to
+configure and furthermore there can be complex relationships between the
+classes.  To this end an xml based scheme for specifying a desired rendering
+environment is used by Syzygy.  The format /is/ true xml, making use of tag
+nesting and tag attributes amongst others (i.e., unlike other Syzygy
+configuration schemes, there are no tags surrounding a large chunk of otherwise
+un-marked-up text).  Note that since the format is true xml, any normal xml
+features are also supported, such as <!--- ... ---> for comments (which can be
+freely interspersed within the specification itself), and the use of "/>" to
+close tags that do not have sub-sections.
+
+Here is a pseudo-DTD for the xml format:
+
+<param>
+  <name> string </name>
+  <value>
+    <szg_display>
+      <threaded value="true|yes|false|no" />
+      <framelock value="wildcat" />
+
+      <szg_window usenamed="string">
+        <size width="integer" height="integer" />
+        <position x="integer" y="integer" />
+        <decorate value="true|yes|false|no" />
+        <fullscreen value="true|yes|false|no" />
+        <title value="string" />
+        <stereo value="true|yes|false|no" />
+        <zorder value="normal|top|topmost" />
+        <xdisplay value="string" />
+        <cursor value="arrow|none|help|wait" />
+
+        <szg_viewport_list viewmode="normal|anaglyph|walleyed|crosseyed|overunder|custom" usenamed="string">
+          <szg_viewport usenamed="string">
+            <coords left="float" bottom="float" width="float" height="float" />
+            <depthclear value="true|false|yes|no" />
+            <colormask R="true|yes|false|no" G="true|yes|false|no" B="true|yes|false|no" A="true|yes|false|no" />
+            <eyesign value="float" />
+            <ogldrawbuf value="GLEnum" />
+
+            <szg_camera type="ortho|perspective|vr" usenamed="string">
+              <sides left="float" right="float" bottom="float" top="float" />
+              <clipping near="float" far="float" />
+              <position x="float" y="float" z="float" />
+              <target x="float" y="float" z="float" />
+              <up x="float" y="float" z="float" />
+
+              <szg_screen usenamed="string">
+                <center x="float" y="float" z="float" />
+                <up x="float" y="float" z="float" />
+                <dim width="float" height="float" />
+                <normal x="float" y="float" z="float" />
+                <tile tilex="integer" numtilesx="integer" tiley="integer" numtilesy="integer" />
+                <headmounted value="true|yes|false|no" />
+                <usefixedhead value="allow|always|ignore" />
+                <fixedheadpos x="float" y="float" z="float" />
+                <fixedheadupangle value="float" />
+              </szg_screen>
+            </szg_camera>
+          </szg_viewport>
+        </szg_viewport_list>
+      </szg_window>
+    </szg_display>
+  </value>
+</param>
+
+In this example every value that can be specified is specified, but note that
+in normal usage every value need not be given.  This is because for any tag
+that is not directly specified, sensible defaults will be used.  To give an
+extreme example of this, consider the below, which is a perfectly valid
+specification (from here on the surrounding <param><value> pairs will be left
+out for brevity's sake):
+
+<szg_display>
+  <szg_window />
+</szg_display>
+
+This example will create a Syzygy window with completely default values.  The
+usefulness of this is that such a specification is completely usable a
+substantial portion of the time.  Also note that any specification in-between
+these two extremes is also perfectly valid.  If a mostly default window is
+acceptable, but one would like the window to have a non-default size, the
+following example could be used:
+
+<szg_display>
+  <szg_window>
+    <size width="800" height="600" />
+  </szg_window>
+</szg_display>
+
+This behavior is the same for all sections of the format, the guiding rule is
+that one should only need to specify what one cares about and let the rest be
+automatically handled.  However, note that this does *not* hold inside tags,
+if a tag is present /all/ of its attributes must be specified, not to do so is
+an error.  For instance, the following is not a valid specification:
+
+<szg_display>
+  <szg_window>
+    <size width="800" />
+  </szg_window>
+</szg_display>
+
+The exceptions to this rule are attributes for the <szg_*> sections.  The
+"usenamed", "type", and "viewmode" attributes can safely be left out of
+their respective tags and sensible defaults will be assumed.
+
+
+
+
+One powerful feature of this format is the concept of 'pointers'.  That is, a
+<szg_window> (or any of the other <szg_*> tags) can be specified as a lone,
+global parameter in the Syzygy database and then subsequently referenced in
+some other <szg_display>.  For instance:
+
+<param>
+  <name>TEST_WINDOW</name>
+  <value>
+    <szg_window>
+      <!--- parameters for this window --->
+    </szg_window>
+  <value>
+</param>
+
+<param>
+  <name>default_display></name>
+  <value>
+    <szg_display>
+      <szg_window usenamed="TEST_WINDOW" />
+    </szg_display>
+  </value>
+</param>
+
+In this example, all the parameters (and sub-sections, etc.) for TEST_WINDOW
+will be imported into the second window of the <szg_display>  As noted, the
+same can be done for any of the <szg_*> sections.  Note that, 'pointer'ed and
+non-'pointer'ed sections can be freely intermixed as siblings and there can
+also be as many levels of indirection as desired (e.g. a pointer to a
+<szg_window> can contain a pointer to a <szg_viewport_list> which itself can
+contain a pointer to a <szg_viewport>, etc.) One caveat is that if there are
+any parameters specified in a section that has a "usenamed" attribute they will
+be completely ignored, though there is no harm in leaving them there. This
+allows a collection of "known" windows, viewports, etc. to be built up and then
+used as components to construct new rendering environments.
+
+Now that a general understanding of the format is in place, we give a further
+explanation of each tag:
+
+<name>
+
+The identifier for this display in Syzygy's database.  By default the display
+named by SZG_DISPLAY0 will be used, e.g.
+
+<assign>
+COMPUTER_NAME SZG_DISPLAY0 name name_of_default_display
+COMPUTER_NAME SZG_DISPLAY1 name some_other_display
+</assign>
+
+however, command line arguments (as in the context) can change that, i.e.
+it can be set to use the SZG_DISPLAY1 display above instead.
+
+<szg_display>
+
+The highest level tag, container for an entire rendering environment.
+
+<threaded value="true|yes|false|no" />
+
+Whether the window management framework should run in a multi-threaded or
+single-threaded fashion.  Defaultly, if there is only one window it will be
+single-threaded and if there is more than one window it will be multi-
+threaded.  This default behavior can be overridden by this tag.  Has no default
+value.
+
+<framelock value="wildcat" />
+
+Syzygy supports the framelocking feature on Wildcat graphics cards. Since this
+should only be enabled for cards set up to framelock together (there are
+special cables to be connected between the cards), its use needs to be
+requested explicitly by this tag.  Has no default value.
+
+<szg_window usenamed="string" />
+
+An OS-level Syzygy window.  "usenamed" has no default value.
+
+<size width="integer" height="integer" />
+
+Width and height give the window's dimensions.  Default is 640x480.
+
+<position x="integer" y="integer" />
+
+X and y give the window's (client area) position.  Default is 0x0.
+
+<decorate value="true|yes|false|no" />
+
+Whether the window has "decorations" (a window border).  Default is true.
+
+<fullscreen value="true|yes|false|no" />
+
+Whether the window is fullscreen.  Default is false.
+
+<title value="string" />
+
+The title of the window.  Default is "SyzygyWindow".
+
+<stereo value="true|yes|false|no" />
+
+Whether the window should support active stereo. This requires LCD stereo
+shutter glasses and a graphics card that supports OpenGL stereo buffers.
+Default is false.
+
+<zorder value="normal|top|topmost" />
+
+The z order of the window relative to other windows.
+"normal": The default.  Syzygy will make no effort to affect the default z
+order of the window upon creation.
+"top" - Syzygy will attempt to place the window on top of other "normal"
+windows.
+"topmost" - Syzygy will place the window on top of all other windows, but
+other windows will then not be able to be brought above this window.
+
+<xdisplay value="string" />
+
+The X11 connection string for the X server the window should run on.  Only
+used under Linux and OS X, the default value is ":0.0".
+
+<cursor value="arrow|none|help|wait" />
+
+The type of cursor for the window.  "none" means that no cursor will be
+visible, "help" is a normal cursor with a question mark attached, "wait" is
+an hourglass, and "arrow" is the normal cursor (and also the default value).
+
+<szg_viewport_list viewmode="normal|anaglyph|walleyed|crosseyed|overunder|custom" usenamed="string">
+
+The container for a list of (possibly custom) viewports.  viewmode can have the
+following values:
+"normal": The default. If active stereo is disabled, the scene is rendered once
+for the default view position, taking up the entire window. If active stereo is
+enabled, it's rendered into the left buffer from the left-eye viewpoint, etc.
+"anaglyph": The left-eye view is rendered into the red channel and the right-eye
+view is rendered into the green and blue channels, for viewing with red/green
+or red/blue glasses. Note that this only works well if the scene itself does
+not contain color information, or if large patches of color are restricted to
+the plane of the screen.
+"walleyed": The window is split in half, with the left-eye view in the left
+half and the right-eye view in the right half. This arrangement can be viewed
+with mirrors, or if the window is small, by diverging the eyes as for single-
+image stereograms. With a dual-head graphics card, the user can configure the
+desktop so that one output displays the left half and the displays the right
+half.  Simply hook up projectors to each of the card's outputs, put polarizing
+filters on each, and project onto the same screen. You can then use cheap stereo
+glasses (based on polarized light) to see the visualization in 3D.
+"crosseyed": As above, but the left-eye image is on the right, and vice-versa.
+To be viewed by crossing the eyes.
+"overunder": The left-eye view is in the bottom half and the right-eye view
+is on top. For use with over/under stereo viewers like the View Magic.
+The "usenamed" attribute has no default.
+"custom": Intended to handle exotic configurations not covered by the presets.
+More detail on "custom" mode is given below.
+
+<szg_viewport usenamed="string">
+
+A viewport description.  "usenamed" has no default.
+
+<coords left="float" bottom="float" width="float" height="float" />
+
+The viewport's window size relative coordinates. The lower left corner of the
+window has coordinates (0,0) and the upper right corner has coordinates (1,1).
+The width and height of the window are both considered to be 1.  The default
+values are left="0", bottom="0", width="1", height="1"
+
+<depthclear value="true|false|yes|no" />
+
+When mutliple passes of the same scene are drawn on the same piece of screen
+real estate (as in anaglyph stereo), the second pass must clear the depth
+buffer before drawing. If this parameter is set to "true", the depth buffer
+will be cleared before drawing, otherwise it will not. The default is "false".
+
+<colormask R="true|yes|false|no" G="true|yes|false|no" B="true|yes|false|no" A="true|yes|false|no" />
+
+This determines what OpenGL color mask will be applied to the window, as is
+necessary for doing anaglyph type stereo. If R="true" and the other attributes
+are "false", only the red value of the scene's pixels will be drawn. The
+default is "true" for every attribute, which draws the scene normally.
+
+<eyesign value="float" />
+
+Normally, a nonstereo screen is displayed using a viewpoint midway between the
+two eyes (0). However, if this parameter is set, a viewpoint from either the
+right (-1) or the left (1) eye can be selected. This is useful for building a
+passive stereo display system using 2 computers, each displaying a seperate
+channel. Default value is "0".
+
+<ogldrawbuf value="GLEnum" />
+
+The OpenGL drawing buffer to render the scene to.  Can be one of GL_NONE,
+GL_FRONT_LEFT, GL_FRONT_RIGHT, GL_BACK_LEFT, GL_BACK_RIGHT, GL_FRONT, GL_BACK,
+GL_LEFT, GL_RIGHT, GL_FRONT_AND_BACK.  Default is "GL_BACK_LEFT".
+
+<szg_camera type="ortho|perspective|vr" usenamed="string">
+
+The Syzygy camera, from whose 'viewpoint' the scene is rendered.  Can be
+an orthographic, perspective or vr camera (default is "vr").  "usenamed" has
+no default.
+
+<sides left="float" right="float" bottom="float" top="float" />
+
+The left, right, bottom, and top coordinates of the camera's viewing frustum.
+The default values are left="-1", right="1", bottom="-1", top="-1".  Not used
+for vr camera's.
+
+<clipping near="float" far="float" />
+
+The near and far clipping planes for the camera.  The default values are
+near="0.1" and far="1".  Not used for vr camera's.
+
+<position x="float" y="float" z="float" />
+
+The 3D world position of the camera.  The default values are x="0", y="0",
+and z="0".  Not used for vr camera's.
+
+<target x="float" y="float" z="float" />
+
+The look-at target of the camera.  The default values are x="0", y="0", and
+z="-1".  Not used for vr camera's.
+
+<up x="float" y="float" z="float" />
+
+The up direction for the camera.  The default values are x="0", y="1", and
+z="0".  Not used for vr camera's.
+
+<szg_screen usenamed="string">
+
+A graphics screen for use by a vr camera (i.e., if the <szg_camera> has a type
+different than "vr" any <szg_screen> sub-sections will be ignored as they apply
+only to "vr" cameras). "usenamed" has no default value.
+
+<center x="float" y="float" z="float" />
+
+The screen center in physical coordinates (feet). The default values are x="0",
+y="5", z="-5".
+
+<up x="float" y="float" z="float" />
+
+The screen's up direction in physical coordinates. This can be used to correct
+for projector rotation. The default values are x="0", y="1", z="0".
+
+<dim width="float" height="float" />
+
+The screen dimensions in feet. The default values are width="10", height="10".
+
+<normal x="float" y="float" z="float" />
+
+Outward pointing screen normal (away from the viewer), expressed in physical
+coordinates. The default values are x="0", y="0", z="-1".
+
+<tile tilex="integer" numtilesx="integer" tiley="integer" numtilesy="integer" />
+
+Used for working with tiled display walls. There are 'numtilesx' horizontal
+tile and 'numtilesy' vertical tiles. This particular tile is the (tilex)th
+horizontal one, with numbering starting at 0 and the display's left. The tile
+is the (tiley)th vertical one, with numbering starting at 0 and the display's
+bottom. The default values are tilex="0", numtilesx="1", tiley="0", and
+numtilesy="1" (i.e. no tiling).
+
+<headmounted value="true|yes|false|no" />
+
+Whether the screen is using fixed-head mode. In fixed-head mode, the projection
+is determined based on a fixed head position and orientation.  The orientation
+depends on the screen_normal. Fixed-head mode is better than the correct VR
+projection for a large group of people inside a projection-based virtual
+environment. The default is "false".
+
+<usefixedhead value="allow|always|ignore" />
+
+Whether fixed-head mode is allowed or ignored.  The default value is "allow".
+
+<fixedheadpos x="float" y="float" z="float" />
+
+The fixed head position, in physical coordinates, that will be used if fixed-
+head mode is enabled. The default values are x="0", y="5", z="0".
+
+<fixedheadupangle value="float" />
+
+In fixed-head mode, the viewing head is oriented so that it is pointing
+directly towards the screen (as determined by screen_normal). Note that this
+leaves one degree of rotational ambiguity. This parameter (expressed in
+in degrees) can be used to manipulate this. The default value is 0.
+
+
+
+Proper projections for fixed screen VR are really just for one person. The
+further away a secondary observer is from the tracked viewpoint, the more
+distorted things look. Furthermore, the eye seperation or drawing order on a
+screen might be very wrong for an observer if his head is oriented differently
+than the tracked viewpoint. Consequently, Syzygy has a "demo mode" which
+sacrifices accuracy of projection (there will be misalignment at screen
+junctions) in exchange for presenting as sensible as possible of a stereo view
+for everyone in a group on people wandering around and looking in all different
+directions simultaneously.  The headmounted, usefixedhead, fixedheadpos, and
+fixedheadupangle tags are useful for constructing such an environment.
+
+
+
+
+
+
+There are two places the xml format allows for repeating sibling tags.  The
+first is <szg_window> - if more than one window is desired, simply insert
+more <szg_window> sections, as follows:
+
+<szg_display>
+  <szg_window>
+    <!--- window 1 parameters --->
+  <szg_window>
+  <szg_window usenamed="TEST_WINDOW" />
+  <szg_window>
+    <!--- window 3 parameters --->
+  </szg_window>
+</szg_display>
+
+Sometimes having multiple seperate windows on a single computer is desirable.
+For instance, in this way, you can run Syzygy applications on an SMP computer
+(like the SGI Onyx series) with mutliple graphics cards. It also helps when
+testing whether a Syzygy master/slave application will work properly on a
+cluster, but without having to have a cluster available.
+
+Note that consumer level graphics cards, as a rule, do not do very well having
+multiple OpenGL windows active simultaneously. Performance degrades
+significantly over the equivalent standalone mode case where there are multiple
+viewports in a single window. Indeed, on many common systems, just having a
+inputsimulator window open (which is a small window with very simple OpenGL
+graphics) in addition to an application window severely degrades application
+performance. This is actually why standalone mode was originally invented: to
+deal with the limitations of Syzygy application development on very low end
+hardware.
+
+Of course, these performance conisderations DO NOT apply to the high end
+computers with multiple graphics cards and processors that are designed to run
+these types of applications (again like an SGI Onyx or, say, a 4-way Linux box
+with multiple graphics cards).
+
+
+
+The second place <szg_viewport> - one can supply as many viewports as needed in
+the <szg_viewport_list> section. This is when the viewmode attribute of the
+<szg_viewport_list> should be set to "custom".  Note that when viewmode="custom"
+is the *only* time that contained <szg_viewport> sections will be honored.  All
+other viewmodes will use 'pre-built' viewports.  Also note that this does not
+mean the <szg_viewport> tags need be removed if one wants to try an anaglyph or
+stereo setup temporarily, they will be safely ignored in such a situation.
+
+This functionality is useful in a variety of situations.   Sometimes, for
+debugging purposes, it might be convenient to be able to see, in a single
+window, most of the screens (in this case 5 out of 6) in an immersive virtual
+environment.  This lets us make sure that the camera projection code is doing
+the right thing with minimal hassle and is also an interesting visual effect.
+
+
+
+Furthermore, if a non-custom viewmode is specified, then the <szg_camera> tag
+can actually appear as a sub-section of the <szg_viewport_list> instead of its
+normal position in <szg_viewport>.  For instance, consider the following:
+
+<szg_display>
+  <szg_window>
+    <!--- window parameters --->
+
+    <szg_viewport_list viewmode="anaglyph">
+      <szg_camera type="vr">
+        <!--- camera parameters --->
+
+        <!--- possible szg_screen section if desired --->
+      </szg_camera>
+    </szg_viewport_list>
+  </szg_window>
+</szg_display>
+
+If viewmode is "custom", then any such <szg_camera> inside the <szg_viewport_list>
+will be simply ignored.  Also note that if the <szg_camera> has a type different
+than "vr" any <szg_screen> subsections will be ignored as they apply only to
+"vr" cameras.
+
+
+
+
+
+
+Here are some examples of different, valid specifications:
+
+
+This is one wall of a tiled, six-projector display wall:
+
+<param>
+<name>front_tile_3x2_01</name>
+<value>
+<szg_screen>
+  <center x="0" y="5" z="-5" />
+  <up x="0" y="1" z="0" />
+  <dim width="10" height="10" />
+  <normal x="0" y="0" z="-1" />
+  <headmounted value="false" />
+  <tile tilex="0" numtilesx="3" tiley="1" numtilesy="2" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.0" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
+</value>
+</param>
+
+<param>
+<name>fullscreen_3x2_01</name>
+<value>
+<szg_display threaded="false">
+ <szg_window>
+   <decorate value="false" />
+   <fullscreen value="true" />
+   <cursor value="none" />
+
+   <szg_viewport_list viewmode="normal">
+     <szg_camera>
+       <szg_screen usenamed="front_tile_3x2_01" />
+     </szg_camera>
+   </szg_viewport_list>
+ </szg_window>
+</szg_display>
+</value>
+</param>
+
+
+
+This is the right wall of an active-stereo, immersive VR environment:
+
+<param>
+<name>right_wall</name>
+<value>
+<szg_screen>
+  <center x="4.93" y="4.93" z="0" />
+  <up x="0" y="1" z="0" />
+  <dim width="9.86" height="9.86" />
+  <normal x="1" y="0" z="0" />
+  <headmounted value="false" />
+  <tile tilex="0", numtilesx="1", tiley="0" numtilesy="1" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.5" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
+</value>
+</param>
+
+<param>
+<name>cube_window</name>
+<value>
+<szg_display>
+ <szg_window>
+   <decorate value="false" />
+   <fullscreen value="true" />
+   <stereo value="true" />
+   <topmost value="true" />
+
+   <szg_viewport_list viewmode="custom">
+     <szg_viewport>
+       <szg_camera>
+         <szg_screen usenamed="right_wall" />
+       </szg_camera>
+     </szg_viewport>
+   </szg_viewport_list>
+ </szg_window>
+</szg_display>
+</value>
+</param>
+
+
+This is a display with 4 different Syzygy windows:
+
+<param>
+<name>quad_window</name>
+<value>
+<szg_display>
+  <threaded value="true" />
+
+  <szg_window>
+    <size width="400" height="400" />
+    <position x="0" y="0" />
+    <decorate value="false" />
+    <cursor value="none" />
+    <szg_viewport_list viewmode="custom">
+      <szg_viewport>
+        <szg_camera>
+          <szg_screen usenamed="front_tile_2x2_01" />
+        </szg_camera>
+      </szg_viewport>
+    </szg_viewport_list>
+  </szg_window>
+
+  <szg_window>
+    <size width="400" height="400" />
+    <position x="400" y="0" />
+    <decorate value="false" />
+    <cursor value="none" />
+    <szg_viewport_list viewmode="custom">
+      <szg_viewport>
+        <szg_camera>
+          <szg_screen usenamed="front_tile_2x2_11" />
+        </szg_camera>
+      </szg_viewport>
+    </szg_viewport_list>
+  </szg_window>
+
+  <szg_window>
+    <size width="400" height="400" />
+    <position x="0" y="400" />
+    <decorate value="false" />
+    <cursor value="none" />
+
+    <szg_viewport_list viewmode="custom">
+      <szg_viewport>
+        <szg_camera>
+          <szg_screen usenamed="front_tile_2x2_00" />
+        </szg_camera>
+      </szg_viewport>
+    </szg_viewport_list>
+  </szg_window>
+
+  <szg_window>
+    <size width="400" height="400" />
+    <position x="400" y="400" />
+    <decorate value="false" />
+    <cursor value="none" />
+
+    <szg_viewport_list viewmode="custom">
+      <szg_viewport>
+        <szg_camera>
+          <szg_screen usenamed="front_tile_2x2_10" />
+        </szg_camera>
+      </szg_viewport>
+    </szg_viewport_list>
+  </szg_window>
+</szg_display>
+</value>
+</param>
+
+
+This is a single window with multiple viewports which emulates an immersive
+vr environment:
+
+<param>
+<name>virtual_cube_window</name>
+<value>
+<szg_display>
+ <szg_window>
+   <size width="640" height="480" />
+   <position x="50" y="50" />
+   <decorate value="true" />
+   <fullscreen value="false" />
+   <title value="szg" />
+   <stereo value="false" />
+   <topmost value="false" />
+   <xdisplay value="" />
+   <szg_viewport_list viewmode="custom">
+     <szg_viewport>
+       <eyesign value="0" />
+       <coords left="0.3333" bottom="0.3333" width="0.3333" height="0.3333" />
+       <szg_camera>
+         <szg_screen usenamed="front_wall" />
+       </szg_camera>
+     </szg_viewport>
+     <szg_viewport>
+       <eyesign value="0" />
+       <coords left="0.6666" bottom="0.3333" width="0.3333" height="0.3333" />
+       <szg_camera>
+         <szg_screen usenamed="right_wall" />
+       </szg_camera>
+     </szg_viewport>
+     <szg_viewport>
+       <eyesign value="0" />
+       <coords left="0" bottom="0.3333" width="0.3333" height="0.3333" />
+       <szg_camera>
+         <szg_screen usenamed="left_wall" />
+       </szg_camera>
+     </szg_viewport>
+     <szg_viewport>
+       <eyesign value="0" />
+       <coords left="0.3333" bottom="0.6666" width="0.3333" height="0.3333" />
+       <szg_camera>
+         <szg_screen usenamed="top_wall_unrotated" />
+       </szg_camera>
+     </szg_viewport>
+     <szg_viewport>
+       <eyesign value="0" />
+       <coords left="0.3333" bottom="0" width="0.3333" height="0.3333" />
+       <szg_camera>
+         <szg_screen usenamed="bottom_wall" />
+       </szg_camera>
+     </szg_viewport>
+   </szg_viewport_list>
+ </szg_window>
+</szg_display>
+</value>
+</param>
+

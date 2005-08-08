@@ -1,0 +1,180 @@
+arTexFont is meant as a drop-in replacement for the GLUT calls
+glutBitmapCharacter and glutStrokeCharacter.  It also provides further
+text rendering functionality.
+
+The arTexFont class is an adaption of the texfont.c and TexFont.h code from
+http://www.opengl.org/resources/code/rendering/mjktips/TexFont/TexFont.html.
+
+The general concept behind arTexFont's functioning is that instead of using
+bitmap or outline fonts as GLUT does,  arTexFont uses specially designed
+texture maps (as .txf files) to render fonts as texture-maps in an OpenGL
+context.  This provides several different advantages, including speed
+and improved text quality.
+
+To create the texture maps that arTexFont needs the gentexfont utility is
+used.  A modified-for-Syzygy-use version of this utility exists in
+szg/src/utilities.  For information on its use see the "Generating Your Own
+Textured Font Files" section of the above link.  To check that a texture has
+been properly generated the showtxf utility (again in szg/src/utilities) can be
+used.  Its use is also outlined in the above link.  Several examples of
+.txf files are given in szg/rsc/Text.
+
+Before arTexFont can render any characters a font must first be loaded.  A font
+can either be loaded when the arTexFont class is constructed or at any later
+point with arTexFont::loadFont.  Any number of different fonts can be loaded,
+whichever font has last been set with arTexFont::setCurrentFont is the one that
+will be used in following render calls.  Do note that since a font is a texture
+map the font can only be loaded when an OpenGL context is in place, thus the
+loading should be done only after a window has been created.
+
+
+As a replacement for glutBitmapCharacter arTexFont can be used as follows:
+
+glutBitmapCharacter:
+
+char* displayString = { "The string to be rendered." };
+glColor3f( 1.0f, 0.0f, 0.0f );
+glRasterPos2f( GLUTX, GLUTY );
+for( char* c = displayString; *c; ++c ) {
+  glutBitmapCharacter( GLUT_BITMAP_9_BY_15, *c );
+}
+
+arTexFont::renderString2D:
+
+arTexFont texFont( "default.txf" );
+char* displayString = { "The string to be rendered." };
+glColor3f( 1.0f, 0.0f, 0.0f );
+texFont.renderString2D( displayString, arTexFontX, arTexFontY, arTexFontScaleX, arTexFontScaleY, false, false );
+
+There are a few things to note in this example.  First, since arTexFont uses
+textures glColor3f will affect the color of the text to be rendered.  Secondly,
+it will most likely be the case that GLUTX != arTexFontX, and GLUTY !=
+arTexFontY (as the way text is positioned is different between the two
+implementations), and furthermore the scaling factors passed to renderString2D
+will need to be experimented with to find, for the font used, the right values
+to match the size of the glutBitmapCharacter call.
+
+
+As a replacement for glutStrokeCharacter arTexFont can be used as follows:
+
+glutStrokeCharacter:
+
+char* displayString = { "The string to be rendered." };
+
+glDisable( GL_DEPTH_TEST );
+glDisable( GL_LIGHTING );
+glMatrixMode( GL_PROJECTION );
+glLoadIdentity();
+glMatrixMode( GL_MODELVIEW );
+glLoadIdentity();
+
+glColor3f( 1.0f, 1.0f, 1.0f );
+glPushMatrix();
+  glTranslatef( GLUTX, GLUTX, GLUTZ );
+  glScalef( GLUTSCALEY, GLUTSCALEY, GLUTSCALEZ );
+  for( const char* c = displayString; *c; ++c ) {
+    glutStrokeCharacter( GLUT_STROKE_MONO_ROMAN, *c );
+  }
+glPopMatrix();
+
+arTexFont::renderString:
+
+arTexFont texFont( "default.txf" );
+char* displayString = { "The string to be rendered." };
+
+glDisable( GL_DEPTH_TEST );
+glDisable( GL_LIGHTING );
+glMatrixMode( GL_PROJECTION );
+glLoadIdentity();
+glMatrixMode( GL_MODELVIEW );
+glLoadIdentity();
+
+glColor3f( 1.0f, 1.0f, 1.0f );
+glPushMatrix();
+  glTranslatef( arTexFontX, arTexFontY, arTexFontZ );
+  glScalef( arTexFontScaleX, arTexFontScaleY, arTexFontZ );
+  texFont.renderString( displayString );
+glPopMatrix();
+
+There are also a few things to note in this example.  As in the example above
+it is most likely (if not guaranteed) that the parameters to the glTranslatef
+and glScalef calls will differ between the two versions, some experimentation
+will need to be done to find the matching values for arTexFont.  Note that if
+renderString2D is used instead of renderString, loading the identity matrices
+on the OpenGL matrix stacks and also disabling lighting and depth testing is
+unnecessary in the arTexFont version, the class handles this step itself.
+However, as a drop-in replacement, renderString most closely emulates the
+glutStrokeCharacter call.
+
+
+arTexFont also provides some further text rendering facilities.
+
+The first is the ability to render text from a file.  Assuming a text file with
+the name "file.txt" exists the following can be used to render the contents of
+the file to the screen (with line breaks intact):
+
+arTexFont texFont( "default.txf" );
+texFont.renderFile( "file.txt", posX, posY, scaleX, scaleY, false, false );
+
+The second is the ability to emulate an ncurses terminal.  In this rendering
+mode arTexFont renders monospaced text in a user-defined grid of rows and
+columns:
+
+arTexFont texFont( "courier.txt" );
+char* displayString = { "The string to be rendered." };
+
+texFont.setRows( 20 );
+texFont.setCols( 80 );
+
+texFont.renderCurses( displayString, 0, 0, false );
+
+The screen will be divided into 20 equally spaced rows and 80 equally spaced
+columns, of which this particular string will take up 26 columns.  The string
+can be rendered starting at any row or column (the second and third parameters
+to renderCurses), and can be rendered either in a horizontal (left to right and
+top to bottom) or vertical (top to bottom and left to right) fashion.  Note
+that monospace fonts (e.g., courier) look best in curses mode, non-monospace
+fonts may be scaled in undesirable ways.
+
+
+There are a couple of important things to note about parameters to arTexFont.
+In renderString, renderString2D, or renderFile calls the posX and posY
+parameters are a percentage of the screen size, not an absolute pixel
+coordinate.  For instance, if the screen was 640x480 the following
+renderString2D call would begin rendering at coordinates 512x432:
+
+texFont.renderString2D( displayString, 0.8f, 0.9f );
+
+Also, the scaleX and scaleY parameters are given as percentage of the total
+'normal' string length and are (defaultly) applied to the entire string.  For
+instance, a string normally has a scaleX and scaleY of 1.0f, if the string
+should instead take up 50% of its usual width on the screen the following call
+could be used:
+
+texFont.renderString2D( displayString, posX, posY, 0.5f, 0.5f );
+
+However, sometimes it is desirable that a scaling be applied character-by-
+character instead of across the entire string.  In this case the following
+call could be used and each character would be scaled individually:
+
+texFont.renderString2D( displayString, posX, posY, 0.75f, 0.9f, true );
+
+Do note that even given the same scaling factor, a string scaled over the
+entire string will not necessarily have the same width on screen as a string
+scaled character by character, especially when a non-monospace font is used.
+
+
+There are still a few TODO's left for arTexFont:
+
+ - Implement text 'regions', an (x,y,width,height) region in which text
+   will be rendered with word-wrap inside the region.
+ - Allow escape characters inside the text to give finer granularity
+   of character/substring rendering (i.e., "the next character's color is
+   (R,G,B)", or "the next character's scaling factor is (float)", etc.)
+ - Texture loading when multiple arGUI windows are present is problematic as
+   the font texture only exists in one OpenGL context.  Whichever window is
+   'current' when arTexFont loads a font is the only window in which the font
+   will actually exist.
+ - Allow both absolute pixel coordinates and screen size percentages as
+   parameters to renderString/renderFile, perhaps switching on a class-wide
+   flag to determine which he parameter is.

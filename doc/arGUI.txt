@@ -1,0 +1,347 @@
+OVERVIEW
+-------------------------------------------------------------------------------
+
+The arGUI framework is meant as a replacement for GLUT, insofar as window
+creation, window manipulation, and os event handling is concerned.  The API is
+platform agnostic, the programmer will never be required to make any OS
+specific calls.
+
+It offers several improvements over GLUT, including:
+ - Ability to control the "main loop", in that the control of the application
+   does not need to pass permanently to the windowing system.
+ - Choice between multi-threaded and single-threaded modes of operation for
+   enhanced performance on SMP machines.
+ - More than one window can be created and controlled from a single instance
+   of the application.
+ - Events (such as key presses and mouse clicks, or window move and window
+   redraw requests, etc.) have the ability to be passed over a network.  In
+   effect, windows do not need to be controlled by the local machine.
+ - Ability to dynamically destroy old windows and create new windows with
+   possibly different configurations on the fly.
+ - Window loading and configuration can be done at runtime through a
+   standardized xml format.
+
+
+ARCHITECTURE
+-------------------------------------------------------------------------------
+
+The three most important classes comprising arGUI are arGUIWindowManager,
+arGUIWindow, and arGUIEventManager.  A single arGUIWindowManager instance is
+created by the application and exists for the duration of the application's
+execution.  The programmer may, at any time, add arGUIWindow's to or delete
+arGUIWindow's from the arGUIWindowManager instance.  Active windows are
+manipulated through the arGUIWindowManager by using window IDs, at no time is
+an arGUIWindow object exposed to the programmer.  Each arGUIWindow contains an
+arGUIEventManager which is responsible for consuming OS-level events and
+translating them into arGUI events that can and will be acted upon by the
+arGUIWindow.  The arGUIWindowManager is responsible for 'driving' its
+arGUIWindows, in that window drawing, swapping, moving, resizing, etc. all
+happen in response to 'messages' sent from the arGUIWindowManager to its
+respective arGUIWindows.  In single-threaded mode the arGUIEventManager message
+pump is also driven by the arGUIWindowManager.  For video cards that support it
+(currently only 3lab's wildcats), the arGUIWindowManager is also responsible
+for frame-locking.
+
+A utility class, arGUIXMLParser, exists to facilitate loading and configuring
+arGUIWindows from xml.  This class will be explained in further detail later
+on.  Several helper classes, such as the arGUIInfo heirarchy, the
+arGUIRenderCallback hierarchy, arGUIWindowConfig, and arGUIWindowingConstruct
+exist to assist in the operation of the arGUI framework.  When applicable these
+classes will be expounded upon.
+
+
+When dealing with window drawing, or keyboard, mouse, and window events, the
+programmer has two approaches she can take.  As was done in GLUT, the first
+approach uses callbacks, in that the programmer is responsible for defining and
+registering callbacks used by the arGUIWindowManager and its arGUIWindow's:
+  - the draw callback: Every time a window is told to redraw itself, it will
+    call this function once its OpenGL context is correctly setup.  This
+    callback is on a per-arGUIWindow basis - each window can use a different
+    draw callback, or they can all use the same one.
+  - the startGL callback: Directly after a window has been created but before
+    any events are passed to the window, the startGL callback will be called.
+    The callback should be used to do any necessary initialization of OpenGL.
+    This callback is on an arGUIWindowManager basis and should be registered
+    before any arGUIWindows are created.
+  - the keyboard handler: On a keyboard event (key press or key release) this
+    function will be called with all necessary information about the event.
+    This callback is on an arGUIWindowManager basis.
+  - the mouse handler: On a mouse event (mouse move, drag, click, release)
+    this function will be called with all necessary information about the
+    event.  This callback is on an arGUIWindowManager basis.
+  - the window handler: On a window event (window move, resize, close, etc.)
+    this function will be called with all necessary information about the
+    event.  This callback is on an arGUIWindowManager basis.
+
+The second approach uses overloaded virtual member functions.  If the
+programmer does not wish to define callbacks she can simply subclass the
+arGUIWindow and arGUIWindowManager classes and provide her own
+arGUIWindow::_drawHandler and arGUIWindowManager::{_keyboardHandler,
+_mouseHandler, _windowHandler} functions.
+
+As most keyboard, mouse, and window event handlers will be highly
+similar in form but draw handlers may vary between applications the draw
+callback is not a simple, user-defined function, but rather a callback object
+which can be subclassed by the programmer such that different drawing scenarios
+can be handled more elegantly than a 'straight' function would allow.  The
+arDefaultGUIRenderCallback object can be used in many different situations
+and further subclassing should not normally be necessary.
+
+
+APPLICATION EXAMPLES AND EXPLANATIONS
+-------------------------------------------------------------------------------
+
+What follows are examples of the different ways of running an arGUI application.
+
+Here is the first example, which is most applicable for a standalone application
+which may not use any of the Syzygy frameworks or connection architecture:
+
+1.) The programmer creates an arGUIWindowManager and adds as many
+    arGUIWindow's as desired.
+
+arGUIWindowManager* wm = new arGUIWindowManager( /* constructor params */ );
+
+arGUIWindowConfig windowConfig1( /* configuration parameters */ );
+
+int winID1 = wm->addWindow( windowConfig1 );
+
+arGUIWindowConfig windowConfig2( /* configuration parameters */ );
+
+int winID2 = wm->addWindow( windowConfig2 );
+
+2.) Now that the arGUIWindow's are created the programmer should register
+    the draw callbacks the windows should use for drawing.  Note that
+    arGUIWindow's own their draw callbacks so the new operator can (and
+    should) be used to create the draw callback.
+
+void display( arGUIWindowInfo* windowInfo ) {
+  // OpenGL drawing commands
+}
+
+wm->registerDrawCallback( winID1, new arDefaultGUIRenderCallback( display ) );
+wm->registerDrawCallback( winID2, new arDefaultGUIRenderCallback( display ) );
+
+
+3.) If the programmer is not interested in retaining control of the
+    application they can then simply call wm->start() (or wm->startWithoutSwap
+    to most closely emulate GLUT) and the arGUIWindowManager will 'run' the
+    application in the same way that glutMainLoop() does, drawing all the
+    windows and processing OS-level events. Otherwise, the loop below provides
+    the same functionality while allowing the programmer to retain control of
+    the application.
+
+while( true ) {
+  wm->drawAllWindows( /* blocking flag */ );
+
+  // if the draw callback does not swap the window buffer itself
+  wm->swapAllWindowBuffers( /* blocking flag */ );
+
+  wm->processWindowEvents();
+
+  // any other processing the programmer wants to do
+}
+
+Further explanation of the three functions in the loop above:
+ - drawAllWindows sends a redraw message to all currently active windows.
+   If in non-blocking mode, it will pass the 'message' to the arGUIWindow's
+   and return without waiting for the windows to complete the request,
+   otherwise it will not return until each arGUIWindow has completed the
+   request.
+ - swapAllWindowBuffers sends a swap buffer message to all currently active
+   windows.  This function behaves the same as drawAllWindows with respect
+   to the blocking flag.
+ - processWindowEvents is responsible for popping all OS level events (i.e.,
+   keyboard, mouse, and window events) off an arGUIWindow stack and calling
+   the appropriate programmer-defined event handlers.  If in multi-threaded
+   mode this function simply (indirectly) queries the arGUIWindow's
+   arGUIEventManager for all the events it has consumed since the last
+   iteration.  If in single-threaded mode this function actually does an
+   explicit 'pump' of the arGUIEventManager since the arGUIWindow is not
+   consuming OS-events on its own.
+
+A further explanation of the 'messages' an arGUIWindowManager uses is also
+in order.  In multi-threaded mode when request is made on an arGUIWindow
+through the arGUIWindowManager the arGUIWindowManager constructs a message
+object and passes this object to the arGUIWindow, which places it on a
+stack of other such objects.  In the arGUIWindow's event loop (which is in
+its own thread in this mode), these events are popped off the stack and acted
+upon appropriately, signaling the arGUIWindowManager upon completetion.  In
+single-threaded mode these 'messages' take the form of a direct call on the
+arGUIWindow itself.  That is, no actual message passing is done in single-
+threaded mode, the request is immediately acted upon by the arGUIWindow as a
+result of the direct function call by the arGUIWindowManager.
+
+To further define this interaction, The 'guts' of an arGUIWindow is the loop
+below:
+
+while( running ) {
+  GUIEventManager->consumeEvents( /* parameters */ );
+  processWMEvents();
+}
+
+Further explanation of the two functions in the loop above:
+  - consumeEvents is responsible for 'consuming' all OS level events that
+    occurred in the last iteration, that is, translating them into a structure
+    (one of the objects in the arGUIInfo hierarchy) usable by an arGUIWindow,
+    and pushing them onto an 'event' stack that the arGUIWindowManager will
+    then query and pass to any registered user-defined callbacks.
+  - processWMEvents is responsible for parsing any arGUIWindowManager events
+    that were received since the last iteration.  This function is the one
+    ultimately responsible for calling the draw callback, swapping buffers,
+    moving the window, etc. in multi-threaded mode.
+
+
+Here is the second example, which is most applicable as the usage of arGUI
+a Syzygy framework might exhibit, or perhaps a standalone application which
+does use the connection architecture:
+
+1.) An arGUIWindowManager and arGUIXMLParser are created.
+
+arGUIWindowManager wm = new arGUIWindowManager( /* constructor params */ );
+
+guiXMLParser = new arGUIXMLParser( /* arSZGClient reference */ );
+
+2.) The arGUIXMLParser is fed the xml configuration and parses it.
+
+guiXMLParser->setConfig( /* xml configuration string */ );
+guiXMLParser->parse();
+
+The parse call will run through the xml configuration string and create a
+set of objects (such as arGUIWindowConstruct and arGUIXMLWindowConstruct)
+that can be later used by the arGUIWindowManager to load and configure a set
+of arGUIWindow's.
+
+3.) When desired, the actual windows can be created.  First however, the draw
+    callbacks should be set on the objects that the arGUIXMLParser created.
+
+// in pseudo-code
+for( each arGUIXMLWindowConstruct in the guiXMLParser ) {
+  // register an arGUI draw callback on the object
+
+  // make any modifications necessary to the arGraphicsWindow (or the
+  // classes it 'holds') in the object
+}
+
+wm->createWindows( _guiXMLParser->getWindowingConstruct() );
+
+4.) The next action is similar to the first example.  If the programmer is not
+    interested in retaining control of the application they can then simply call
+    wm->start().  Otherwise, the loop from the first example provides the same
+    functionality while allowing the programmer to retain control of the
+    application.
+
+while( true ) {
+  wm->drawAllWindows( /* blocking flag */ );
+
+  // if the draw callback does not swap the window buffer itself
+  wm->swapAllWindowBuffers( /* blocking flag */ );
+
+  wm->processWindowEvents();
+
+  // any other processing the programmer wants to do
+}
+
+5.) If the windows have been changed during runtime and the programmer wants to
+    return them to their original configuration the arGUIWindowManager::
+    createWindows() call from (3) can simply be repeated.  If the xml has
+    changed while the application has been running and the programmer wants the
+    application to reflect this change without having to restart it and such a
+    change can be programmatically detected (or triggered through a possible
+    "reload" message) then (2) and (3) can then be repeated in sequence.  The
+    createWindows call will attempt to do an intelligent "diff" of the current
+    window set against the desired window set and attempt to reuse window
+    resources where possible.
+
+
+The power of arGUI lies in its flexibility.  For instance, a programmer could
+easily mix and match from the above two examples, perhaps setting up the
+arGUI framework as in (1) from the first example, but then later using an
+arGUIXMLParser object to (re)load the arGUIWindow's when necessary.  It is
+entirely up to the programmer how windows are created and manipulated and how
+the framework is run.  However, with this flexbility also comes some
+responsibility; it is the programmer's responsibility to ensure that calls into
+the arGUIWindowManager are atomic with respect to each other.  For instance,
+the event loop of the arGUIWindowManager (as show in (4) above) could easily
+exist in a separate thread than the reload of (5) above.  It should be obvious
+that if a call to arGUIWindowManager::createWindows were made in the middle of
+(4) Bad Things would happen.  Thus, any such calls into the arGUIWindowManager
+need to be protected/locked and should be atomic with respect to each other.
+
+
+ARGUIWINDOW CREATION OPTIONS
+-------------------------------------------------------------------------------
+
+Each arGUIWindow is created using an arGUIWindowConfig structure, which outlines
+the window's specific configuration.  The following parameters can be set:
+
+ x: The window's horizontal position (in screen coordinates).
+ y: The window's vertical position (in screen coordinates).
+ width: The window's width (the client area).
+ height: The window's height (the client area).
+ bpp: The window's bit depth.
+ Hz: The window's refresh rate (set to 0 for maximum fps) (currently not used).
+
+ decorate: Whether the window should have a border decoration.
+ zorder: The z ordering the window should have.
+ fullscreen: Whether the window should be created as fullscreen window.  The
+             window will be created to cover the OS' desktop, the resolution
+             of the desktop itself will *not* be changed.
+ stereo: Whether the window should support active stereo.
+
+ title: The title of the window.
+ XDisplay: The X server connection string (only used under Linux/OS X).
+ cursor: The type of cursor for the window.
+
+
+
+KNOWN PROBLEMS/ISSUES (otherwise known as the TODO)
+-------------------------------------------------------------------------------
+
+ - Application control/knowledge of vsync is unsupported.
+
+ - Proper Checking of Xlib return values, as they are not always 0 or < 0,
+   sometimes a #define (e.g. BadAlloc, BadValue, etc.)
+
+ - Consistent and proper error/warning printing.
+
+ - There should only ever be one fullscreen window at a time, if the user
+   tries to make multiple fullscreen windows certain behavior may very well
+   be undefined.  If the user is running a multi-headed display and wants
+   two windows filling both displays they should use two un-decorated windows
+   set to the desktop resolution of each display and positioned accordingly.
+
+ - Still a few spots where cpu-burning spinning loops are an issue.  Need to
+   be able to relinqish control of the cpu in a thread that has nothing to do.
+   Currently this is accomplished with an ar_usleep( 0 ) call.
+
+ - Support for more than 3 mouse buttons, and/or left vs. right handed mice.
+
+ - Different window managers in Linux have different methods of making a
+   window un-decorated, etc.  Currently only KDE, Gnome, and Motif are
+   explicitly supported.
+
+ - The arGUIInfo class hierarchy needs some more marshaling/demarshaling
+   utilies beyond simple constructors.
+
+ - Still some state related issues in arGUIEventManager, mostly hinging around
+   how behavior should be defined when a user's mouse or keyboard focus enters
+   and leaves the window.  If focus is stolen from the window, and the keyboard
+   state changes and then focus is regained, the state could be corrupted.
+
+ - Support for different OS messages besides keyboard/mouse or window
+   close/move/resize (e.g., mousewheel, minimize, window enter/exit, SIG's,
+   etc.)
+
+ - Some API issues under different flavors of windows (e.g., GetKeyState is
+   just flat out not supported in WinME, they literally hard-coded it to return
+   nothing, are there more functions like that?)
+
+ - Thread saftey needs to be double and triple checked.  Mutexes are used
+   liberally, but some checking should be done that appropriate functions are
+   actually reentrant.
+
+ - Proper use of the arGUIWindow _visible flag, (i.e., no need to be calling
+   the draw callback if the window isn't visible).
+
+ - Need to test having X running on a different machine than the window (i.e.,
+   does passing a string other than "localhost:0.0" to XOpenDisplay work?)
