@@ -494,7 +494,7 @@ void mouseCB( arGUIMouseInfo* mouseInfo )
 int main( int argc, char** argv )
 {
   if( argc < 2 ) {
-    std::cerr << "usage: " << argv[ 0 ] << " file.{obj|3ds|htr} [mesh.obj]\n";
+    std::cerr << "usage: " << argv[ 0 ] << " file.{obj|3ds|htr|htr2} [mesh.obj]\n";
     return 1;
   }
 

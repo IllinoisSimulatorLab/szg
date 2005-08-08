@@ -273,9 +273,8 @@ bool arHTR::parseBasePosition(FILE *htrFileHandle){
   return true;
 }
 
-/// parses the frame data of .htr file
-/// @param htrFileHandle the HTR file
-bool arHTR::parseSegmentData(FILE *htrFileHandle){
+/// Parses the segment data for a .htr file.
+bool arHTR::parseSegmentData1(FILE* htrFileHandle){
   char* value = NULL;
   char textLine[MAXLINE] = {0};
   char *token[MAXTOKENS] = {0};
@@ -331,6 +330,94 @@ bool arHTR::parseSegmentData(FILE *htrFileHandle){
   return true;
 }
 
+/// Parses the segment data for a .htr2 file. This file type has
+/// a significantly different format than the .htr data.
+/// Most importantly, it is streamable (instead of placing all
+/// of one segment's frames together... all of the segments for
+/// a frame are placed together).
+bool arHTR::parseSegmentData2(FILE* htrFileHandle){
+  char* value = NULL;
+  char textLine[MAXLINE] = {0};
+  char *token[MAXTOKENS] = {0};
+  htrSegmentData *newSegmentData = NULL;
+  htrFrame *newFrame = NULL;
+  // First, we need to create storage for each segment's data.
+  // The arHTR object stores all data for a segment together
+  // (i.e. values for all frames) in an htrSegmentData object.
+  for (int j=0; j<numSegments; j++){
+    newSegmentData = new htrSegmentData();
+    htrSegmentHierarchy* segment = childParent[j];
+    newSegmentData->name = new char[strlen(segment->child)+1];
+    strcpy(newSegmentData->name, segment->child);
+    segmentData.push_back(newSegmentData);
+  }
+  for (int i=0; i<numFrames; i++){
+    //printf("new Seg Data[%i]:\n", i);
+    newSegmentData = new htrSegmentData;
+    // First, go ahead and skip over comments, blank lines, etc.
+    // until we get to the magic "Frame n:".
+    bool found = false;
+    value = (char *)1;
+    while (!found && value){
+      value = fgets(textLine, MAXLINE, htrFileHandle);
+      // skip if comment or newline
+      if (textLine[0] == '\n' || textLine[0] == '#')
+        found = false;
+      else
+        if (value)
+          found = true;
+    }
+    if (!found){
+      cerr << "arHTR error: premature end of file.\n";
+      return false;
+    }
+    // Check that we've found the correct marker for the
+    // beginning of the frame data. 
+    stringstream checkStream;
+    checkStream << "Frame " << i << ":";
+    if (false && strcmp(textLine, checkStream.str().c_str())){
+      cout << "arHTR error: failed to find correct frame marker "
+	   << "for frame=" << i << " (" << textLine << ").\n";
+      return false;
+    }
+  
+    for (int k=0; k<numSegments; k++){
+      if (!parseLine(htrFileHandle, token, textLine, 8, "SegmentData"))
+        return false;
+
+      //printf("New frame[%i][%i]:\n", i, j);
+      newFrame = new htrFrame;
+      //printf("/new frame\n");
+      newFrame->frameNum = i;
+    //printf("numFrames: %i\n", numFrames);
+      newFrame->Tx = atof(token[1]);
+      newFrame->Ty = atof(token[2]);
+      newFrame->Tz = atof(token[3]);
+      newFrame->Rx = atof(token[4]);
+      newFrame->Ry = atof(token[5]);
+      newFrame->Rz = atof(token[6]);
+      newFrame->scale = atof(token[7]);
+      segmentData[k]->frame.push_back(newFrame);
+    }
+  }
+
+  return true;
+}
+
+/// parses the frame data of .htr file
+/// @param htrFileHandle the HTR file
+bool arHTR::parseSegmentData(FILE* htrFileHandle){
+  if (fileVersion == 1){
+    return parseSegmentData1(htrFileHandle);
+  }
+  if (fileVersion == 2){
+    return parseSegmentData2(htrFileHandle);
+  }
+  cout << "arHTR error: unhandled HTR file version = "
+       << fileVersion << ".\n";
+  return false;
+}
+
 /// fills in the data structures for easy, efficient access
 bool arHTR::precomputeData(void){
   unsigned int k=0, l=0;
@@ -366,6 +453,7 @@ bool arHTR::precomputeData(void){
     for (l=0; l<segmentData[k]->frame.size(); l++){
       h = segmentData[k]->frame[l];
       h->trans = HTRTransform(segmentData[k]->basePosition, h);
+      h->totalScale = segmentData[k]->basePosition->boneLength * h->scale;
     }
   return true;
 }

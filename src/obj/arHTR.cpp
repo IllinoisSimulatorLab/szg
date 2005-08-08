@@ -180,12 +180,17 @@ void arHTR::attachChildNode(const string& baseName,
     
   /// add geom -- adds lines to show bones (placeholder)
   if (withLines) {
+    node->segment->scaleID = dgTransform(baseName + tempName + ".bonescale",
+                                         baseName + tempName + ".transform",
+                                         ar_scaleMatrix(node->boneLength, 
+							node->boneLength,
+							node->boneLength));
     float pointPositions[6] = {0,0,0,
-                               (boneLengthAxis=='X')?node->boneLength:0,
-                               (boneLengthAxis=='Y')?node->boneLength:0,
-                               (boneLengthAxis=='Z')?node->boneLength:0};
+                               (boneLengthAxis=='X')?1:0,
+                               (boneLengthAxis=='Y')?1:0,
+                               (boneLengthAxis=='Z')?1:0};
     dgPoints(baseName + tempName + ".points",
-	     baseName + tempName + ".transform",
+	     baseName + tempName + ".bonescale",
 	     2, pointPositions);
     arVector3 lineColor((double)rand()/(double)RAND_MAX,
                         (double)rand()/(double)RAND_MAX,
@@ -246,9 +251,13 @@ void arHTR::subNormalizeModelSize(arVector3 thePoint, arVector3& minVec,
   unsigned int i = 0;
   for (int j=0; j<numFrames; j++) {
     arVector3 newPoint = HTRTransform(theBP,theBP->segment->frame[j])*thePoint;
-    for (i=0; i<3; i++) {
-      maxVec[i] = newPoint[i] > maxVec[i] ? newPoint[i] : maxVec[i];
-      minVec[i] = newPoint[i] < minVec[i] ? newPoint[i] : minVec[i];
+    // Throw out bogus data (the MotionAnalysis system tags problematic points
+    // with 9999999.
+    if (++newPoint < 1000000){
+      for (i=0; i<3; i++) {
+        maxVec[i] = newPoint[i] > maxVec[i] ? newPoint[i] : maxVec[i];
+        minVec[i] = newPoint[i] < minVec[i] ? newPoint[i] : minVec[i];
+      }
     }
   }
   for (i=0; i<theBP->segment->children.size(); i++)
@@ -293,6 +302,11 @@ bool arHTR::setFrame(int newFrame){
   for(unsigned int i=0; i<segmentData.size(); i++){
     dgTransform(segmentData[i]->transformID, 
                 segmentData[i]->frame[newFrame]->trans);
+    // There is a scale matrix for the bone.
+    if (segmentData[i]->scaleID > 0){
+      dgTransform(segmentData[i]->scaleID,
+                  ar_scaleMatrix(segmentData[i]->frame[newFrame]->totalScale));
+    }
   }
 
   _currentFrame = newFrame;

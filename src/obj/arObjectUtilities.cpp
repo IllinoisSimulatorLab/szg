@@ -56,7 +56,7 @@ arObject* arReadObjectFromFile(const char* fileName, const string& path) {
     cerr << "arObjUtil error: invalid file name \"" << fileName << "\".\n";
     return NULL;
   }
-  if (strlen(++dot) <= 3) {
+  if (strlen(++dot) <= 4) {
     const string theFileName(fileName);
     FILE* pFile = ar_fileOpen(theFileName, path, "r");
     if (!pFile){
@@ -73,7 +73,7 @@ arObject* arReadObjectFromFile(const char* fileName, const string& path) {
     }
     
     // Motion Analysis HTR
-    if (!strcasecmp(dot,"HTR")) {
+    if (!strcasecmp(dot,"HTR") || !strcasecmp(dot,"HTR2")) {
       arHTR* theHTR = new arHTR;
       theHTR->readHTR(pFile);
       return theHTR;

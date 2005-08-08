@@ -140,6 +140,9 @@ bool arInputState::_setButtonNoLock( const unsigned int buttonNumber,
     //cout << "arInputState remark: growing button array to size "
     //     << buttonNumber+1 << endl;
     _buttons.insert( _buttons.end(), buttonNumber - _buttons.size() + 1, 0 );
+    
+  }
+  if (buttonNumber >= _lastButtons.size()){
     _lastButtons.insert( _lastButtons.end(), buttonNumber - _lastButtons.size() + 1, 0 );
   }
   _lastButtons[buttonNumber] = _buttons[buttonNumber];

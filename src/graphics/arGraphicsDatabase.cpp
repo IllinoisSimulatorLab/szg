@@ -603,11 +603,10 @@ float arGraphicsDatabase::_intersectSingleGeometry(arGraphicsNode* node,
     dist = ar_intersectRayTriangle(theRay.getOrigin(),
 				   theRay.getDirection(),
 				   a, b, c);
-    if (bestDistance < 0 || dist < bestDistance){
+    if (dist >= 0 && (bestDistance < 0 || dist < bestDistance)){
       bestDistance = dist;
     }
   }
-  cout << bestDistance << "\n";
   return bestDistance;
 }
 
@@ -650,10 +649,23 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
   }
   // If it is a drawable node, go ahead and intersect.
   if (node->getTypeCode() == AR_G_DRAWABLE_NODE){
-    float dist = _intersectSingleGeometry(node, context, rayStack.top());
-    if (bestDistance < 0 || dist < bestDistance){
-      bestNode = node;
-      bestDistance = dist;
+    arRay localRay = rayStack.top();
+    float rawDist = _intersectSingleGeometry(node, context, localRay);
+    
+    if (rawDist >= 0){
+      // NOTE: there can be scaling. So, consequently, we DO NOT yet know how
+      // far, in global terms, the intersection is from the ray origin.
+      arMatrix4 toGlobal = accumulateTransform(node->getID());
+      // Take two points on the ray, the origin and the intersection in the
+      // local coordinate frame. Transform these to the global coordinate
+      // system and find the distance.
+      arVector3 v1 = toGlobal*localRay.getOrigin();
+      arVector3 v2 = toGlobal*(localRay.getOrigin() + rawDist*(localRay.getDirection().normalize()));
+      float dist = ++(v1-v2);
+      if (bestDistance < 0 || dist < bestDistance){
+        bestNode = node;
+        bestDistance = dist;
+      }
     }
   }
   // Deal with intersections with children

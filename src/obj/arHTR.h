@@ -39,12 +39,14 @@ class SZG_CALL htrSegmentHierarchy {
 class SZG_CALL htrSegmentData{
  public:
   htrSegmentData(): parent(NULL)
-    {}
+    { scaleID = -1; }
   ~htrSegmentData()
     { if (name) delete [] name; }
   char *name;
   /// ID of the transform node associated with this segment
   int transformID;
+  /// the ID of the scale node associated with this segment
+  int scaleID;
   /// to adjust for different actors animating the same
   /// HTR, we need to be able to adjust the position,
   /// size, etc. of each segment from a well-defined
@@ -92,6 +94,7 @@ struct htrFrame{
   double Tx, Ty, Tz; ///< transformations
   double Rx, Ry, Rz;
   double scale;      ///< segment scaling factor
+  double totalScale;
 };
 
 /// Wrapper for .htr format
@@ -156,7 +159,9 @@ class SZG_CALL arHTR : public arObject {
     // Reading in data functions
     bool parseHeader(FILE* htrFileHandle);
     bool parseHierarchy(FILE* htrFileHandle);
-    bool parseBasePosition(FILE *htrFileHandle);
+    bool parseBasePosition(FILE* htrFileHandle);
+    bool parseSegmentData1(FILE* htrFileHandle);
+    bool parseSegmentData2(FILE* htrFileHandle);
     bool parseSegmentData(FILE* htrFileHandle);
     bool precomputeData(void);
     bool setInvalid();
