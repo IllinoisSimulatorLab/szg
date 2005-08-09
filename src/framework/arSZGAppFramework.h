@@ -42,6 +42,7 @@ class SZG_CALL arSZGAppFramework {
     
     void setEyeSpacing( float feet );
     void setClipPlanes( float near, float far );
+    arHead* getHead(){ return &_head; }
     virtual void setFixedHeadMode(bool isOn) { _head.setFixedHeadMode(isOn); }
     virtual arMatrix4 getMidEyeMatrix() { return _head.getMidEyeMatrix(); }
     virtual arVector3 getMidEyePosition() { return _head.getMidEyePosition(); }
