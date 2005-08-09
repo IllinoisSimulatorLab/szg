@@ -8,6 +8,7 @@
 #include "arSZGClient.h"
 #include "arPhleetConfigParser.h"
 #include "arXMLUtilities.h"
+#include "arXMLParser.h"
 
 #include <stdio.h>
 
@@ -924,6 +925,263 @@ bool arSZGClient::setGlobalAttribute(const string& attributeName,
   return setGlobalAttribute(_userName, attributeName, attributeValue);
 }
 
+/// Using XML records in the szg parameter database has upsides and downsides.
+/// Upside: easy to manipulate whole display descriptions.
+/// Downside: hard to make little changes to a (possibly quite complex)
+/// display description.
+/// This method attempts to mitigate this downside. It accesses XML stored
+/// in the Phleet parameter database, exploiting the hierarchical nature of
+/// XML to access individual attributes in the doc tree.
+/// The pathList variable stores the path via which we search into the XML.
+/// 
+/// 1. The first member of the path gives the name of the Phleet global
+/// parameter where we will start.
+///
+/// 2. Subsequent members define child XML "elements". They are element names
+/// and can be given array indices (so that the 2nd element can be specified).
+///
+/// global parameter name = foo
+/// global parameter value =
+/// <szg_display>
+///  <szg_window>
+///  ...
+///  </szg_window>
+///  <szg_window>
+///  +++
+///  </szg_window>
+/// </szg_display>
+///
+/// In this case, the path foo/szg_window refers to:
+///
+/// <szg_window>
+/// ...
+/// </szg_window>
+/// 
+/// while foo/szg_window[1] refers to:
+///
+/// <szg_window>
+/// +++
+/// </szg_window>
+/// 
+/// 3. The final member of the path can refer to an XML "attribute". All of
+/// the configuration data for arGUI is stored in "attributes". They look like
+/// this in the XML:
+///
+/// <szg_viewport_list viewmode="custom" />
+///
+/// Here, viewmode is an attribute of the szg_viewport_list element. If a path
+/// parses down to an attribute BEFORE getting to its final member, an error
+/// occurs (return "NULL").
+///
+/// 4. Phleet allows the XML documents to be stored in multiple global
+/// parameters, which facilitates reuse of individual pieces of complex configs.
+/// This feat is accomplished via "pointers" embedded in the XML in a standard
+/// way. For instance,
+///
+/// <szg_window usenamed="foo" />
+///
+/// In this case, if we encounter this element while parsing the path, we
+/// replace the current element with that contained in the global parameter
+/// "foo" and continue parsing from there. Any alteration to an attribute value
+/// from this point forward will occur inside the XML document inside the
+/// global parameter "foo".
+///
+/// NOTE: There is an exception to the aforementioned pointer parsing rule. We
+/// need to be able to change the usenamed attribute instead of just following
+/// the pointer. Consequently, if the *next* member of the path is "usenamed"
+/// we won't actually follow the pointer, but will instead stop at the
+/// attribute in question.
+///
+/// pathList gives the path, which is parsed and interpreted as above.
+/// attributeValue is set to something besides "NULL" if we will be altering
+///  an attribute value. If the path does not parse to an attribute, then this
+///  is an error (returning "NULL") but otherwise returning "SZG_SUCCESS".
+///  On the other hand, if attributeValue is "NULL" (the default) then the 
+///  method just returns the value indicated by the parsed path (or "NULL"
+///  if there is an error in the parsing).
+
+string arSZGClient::getSetGlobalXML(const string& userName,
+                                    const arSlashString& pathList,
+                                    const string& attributeValue = "NULL"){
+  int pathPlace = 0;
+  // The first element in the path gives the name of the global attribute
+  // where the XML document is stored.
+  string szgDocLocation = pathList[0];
+  // The XML document itself, in string format.
+  string docString = getGlobalAttribute(userName, szgDocLocation);
+  TiXmlDocument doc;
+  doc.Clear();
+  doc.Parse(docString.c_str());
+  if (doc.Error()){
+    cout << "dget error: in parsing gui config xml on line: " 
+         << doc.ErrorRow() << endl;
+    return string("NULL");
+  }
+  TiXmlNode* node = doc.FirstChild();
+  if (!node || !node->ToElement()){
+    cout << "dget error: malformed XML (global node).\n";
+    return string("NULL");
+  }
+  TiXmlNode* child = node;
+  pathPlace = 1;
+  // Walk down the XML tree, using the path defined by pathList.
+  while (pathPlace < pathList.size()){
+    // As we are searching down the doc tree, we allow an array syntax for
+    // picking out child elements.
+    // For instance,
+    //     szg_viewport[0]
+    // or
+    //     szg_viewport
+    // mean the first szg_viewport child, while
+    //     szg_viewport[1]
+    // means the second child.
+    unsigned int firstArrayLoc;
+    // The default is to use the first child element with the appropriate name.
+    int actualArrayIndex = 0;
+    // This is the actual type of the element. The default is the current step
+    // in the path... but this could change if there is an array index.
+    string actualElementType = pathList[pathPlace];
+    // Check to see if there is an array index. If so, we'll go ahead and 
+    // remove it.
+    if ( (firstArrayLoc = pathList[pathPlace].find('[')) 
+	  != string::npos ){
+      // There might be a valid array index.
+      unsigned int lastArrayLoc 
+        = pathList[pathPlace].find_last_of("]");
+      if (lastArrayLoc == string::npos){
+	// It seems like we should have a valid array index, but we do not.
+	cout << "dget error: invalid array index in "
+	     << pathList[pathPlace] << ".\n";
+	return string("NULL");
+      }
+      string potentialIndex 
+        = pathList[pathPlace].substr(firstArrayLoc+1, 
+                                      lastArrayLoc-firstArrayLoc-1);
+      stringstream indexStream;
+      indexStream << potentialIndex;
+      indexStream >> actualArrayIndex;
+      if (indexStream.fail()){
+	cout << "dget error: invalid array index " << potentialIndex
+	     << ".\n";
+	return string("NULL");
+      }
+      if (actualArrayIndex < 0){
+	cout << "dget error: array index cannot be negative.\n";
+	return string("NULL");
+      }
+      // We now strip out the index. We've got the actualArrayIndex already.
+      actualElementType = pathList[pathPlace].substr(0, firstArrayLoc);
+    }
+    // Must get the first child. If we want something further (i.e. we are
+    // trying to use an array index, as tested for above), iterate from that 
+    // starting place.
+    TiXmlNode* newChild = child->FirstChild(actualElementType);
+    int which = 1;
+    if (newChild){
+      // Step through siblings.
+      while (newChild && which <= actualArrayIndex){
+        newChild = newChild->NextSibling();
+	which++;
+      }
+    }
+    // At this point, we've either got the element itself (as determined by the
+    // array index) or we've got an error (maybe there weren't enough elements
+    // of this type in the doc tree to justify the array index).
+    if (which < actualArrayIndex){
+      cout << "dget error: could not find elements of type "
+	   << actualElementType << " up to index " 
+	   << actualArrayIndex << ".\n";
+      return string("NULL");
+    }
+     
+    // Actually, there is one more possibility. Our path might have specified
+    // an "attribute" instead of an "element". This is OK (as long as it is the
+    // final step in the path and does not have an array index).
+    if (!newChild){
+      // This might still be OK. It could be an "attribute".
+      if (!child->ToElement()->Attribute(pathList[pathPlace])){
+	// Neither an "element" or an "attribute". This is an error.
+	cout << "dget error: " << pathList[pathPlace]
+	     << " is neither an element or an attribute.\n";
+	return string("NULL");
+      }
+      else{
+	// OK, it's an attribute. This is an error if it isn't the last
+	// value on the path.
+        string attribute = child->ToElement()->Attribute(pathList[pathPlace]);
+        if (pathPlace != pathList.size() -1){
+	  cout << "dget warning: attribute name ("
+	       << pathList[pathPlace] << ") not last in path list.\n";
+	  return string("NULL");
+	}
+        if (attributeValue != "NULL"){
+          // We are altering the XML document residing in the parameter
+	  // database.
+          child->ToElement()->SetAttribute(pathList[pathPlace],
+					   attributeValue.c_str());
+          string databaseValue;
+	  databaseValue << doc;
+          setGlobalAttribute(szgDocLocation, databaseValue);
+	  // We just wanted to alter the parameter database. Don't need
+	  // to get a value back, just an indication of success.
+          return string("SZG_SUCCESS");
+        }
+	// Actually want the value of the attribute back.
+	// (i.e. attributeValue == "NULL")
+	return attribute;
+      }
+    }
+    else{
+      // Check to make sure this is valid XML. 
+      if (!newChild->ToElement()){
+	cout << "dget error: malformed XML in " << pathList[pathPlace] 
+             << ".\n";
+        return string("NULL");
+      }
+      // Valid XML. Continue the walk down the tree.
+      // NOTE: Syzygy supports POINTERS. So, a node might really be stored
+      // inside another global parameter. Like so:
+      //     <szg_screen usenamed="left_wall" />
+      // If this is the case, we must get THAT document and start again.
+      // NOTE: We also want to be able to SET the pointer. So, when the
+      // very next step in the path is "usenamed" then do not retrieve the
+      // pointed-to data.
+      if (newChild->ToElement()->Attribute("usenamed")
+          && (pathPlace+1 >= pathList.size() 
+              || pathList[pathPlace+1] != "usenamed")){
+	// Important to keep track of which sub-document we are, in fact,
+	// holding as we search down the tree of pointers.
+	szgDocLocation = newChild->ToElement()->Attribute("usenamed");
+        string newDocString 
+          = getGlobalAttribute(userName, szgDocLocation);
+        doc.Clear();
+        doc.Parse(newDocString.c_str());
+        newChild = doc.FirstChild();
+	if (!newChild || !newChild->ToElement()){
+          cout << "dget error: malformed XML in pointer ("
+	       << szgDocLocation << ").\n";
+	  return string("NULL");
+	}
+      }
+      child = newChild;
+    }
+    pathPlace++;
+  }
+  // By making it out here, we know that the final piece of the path refers
+  // to an element (not an attribute).
+  //
+  // NOTE: This is an ERROR if we were trying to set an attribute to a new
+  // value. Why? Because the parameter path didn't end in an attribute!
+  // (but instead in an XML element).
+  if (attributeValue != "NULL"){
+    return string("NULL");
+  }
+  // In this case, we are just querying a value. It could be that we want to
+  // get a whole XML document from the szg parameter database.
+  std::string output;
+  output << *child;
+  return output;
+}
 
 // DOES NOT WORK IN THE LOCAL (STANDALONE) CASE!!!
 // ALSO... Should this really be left in? This was an early attempt

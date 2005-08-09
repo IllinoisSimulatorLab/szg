@@ -31,7 +31,17 @@ int main(int argc, char** argv){
     szgClient.setAttribute(argv[1], argv[2], argv[3], argv[4]);
   }
   else{
-    szgClient.setGlobalAttribute(argv[1], argv[2]);
+    // NOTE: we might be trying to reach into the guts of an XML doc stored
+    // in a global parameter. This is triggered if arg 1 is a
+    // forward-slash-delimited string (in which case it will give the path
+    // to the XML attribute to be modified).
+    arSlashString pathList(argv[1]);
+    if (pathList.size() > 1){
+      szgClient.getSetGlobalXML(argv[1], argv[2]);
+    }
+    else{
+      szgClient.setGlobalAttribute(argv[1], argv[2]);
+    }
   }
   return 0;
 }

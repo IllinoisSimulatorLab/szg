@@ -113,6 +113,13 @@ class SZG_CALL arSZGClient{
   string getGlobalAttribute(const string& attributeName);
   string getGlobalAttribute(const string& userName,
 			    const string& attributeName);
+  string getSetGlobalXML(const string& userName,
+			 const arSlashString& pathList,
+			 const string& attributeValue);
+  string getSetGlobalXML(const arSlashString& pathList,
+                         const string& attributeValue = "NULL"){
+    return getSetGlobalXML(_userName, pathList, attributeValue);
+  }
 
   bool parseAssignmentString(const string& text);
   // A way to get parameters in from a file (as in dbatch, for instance)
