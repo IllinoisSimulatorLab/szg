@@ -16,6 +16,9 @@ using namespace std;
 #define M_PI 3.14159265359
 #endif
 
+// Sometimes we need to define a axis order.
+enum arAxisOrder { AR_XYZ = 1, AR_XZY, AR_YXZ, AR_YZX, AR_ZXY, AR_ZYX };
+
 class arQuaternion;
 
 /// vector of 3 points.  Position or direction in 3-space.
@@ -220,7 +223,7 @@ SZG_CALL arVector3 ar_extractTranslation(const arMatrix4&);
 SZG_CALL arMatrix4 ar_extractRotationMatrix(const arMatrix4&);
 SZG_CALL arMatrix4 ar_extractScaleMatrix(const arMatrix4&);
 SZG_CALL float     ar_angleBetween(const arVector3&, const arVector3&);
-SZG_CALL arVector3 ar_extractEulerAngles(const arMatrix4&);
+SZG_CALL arVector3 ar_extractEulerAngles(const arMatrix4& m, arAxisOrder o=AR_ZYX);
 SZG_CALL arQuaternion ar_angleVectorToQuaternion(const arVector3&,float);
 SZG_CALL float ar_convertToRad(float);
 SZG_CALL float ar_convertToDeg(float);

@@ -102,10 +102,11 @@ bool parseLine(FILE* theFile, char* theResult[], char* buffer, int desiredTokens
     return false;
   }
 
-  // Parse Line
-  theResult[numTokens++] = strtok(buffer, " \t\n");
+  // Parse Line. Note how we need to add the '\r' to acomodate reading Win32
+  // text files on Unix.
+  theResult[numTokens++] = strtok(buffer, " \t\n\r");
   while (theResult[numTokens-1]){
-    theResult[numTokens++] = strtok(NULL, " \t\n");
+    theResult[numTokens++] = strtok(NULL, " \t\n\r");
   }
   if (--numTokens < desiredTokens){
     cerr << "arHTR error: invalid or missing \"" << errorString << "\" parameter.\n"
@@ -162,17 +163,17 @@ bool arHTR::parseHeader(FILE* htrFileHandle){
 
   const string eRO(token[1]);
   if (eRO=="XYZ")
-    eulerRotationOrder = XYZ;
+    eulerRotationOrder = AR_XYZ;
   else if (eRO=="XZY")
-    eulerRotationOrder = XZY;
+    eulerRotationOrder = AR_XZY;
   else if (eRO=="YXZ")
-    eulerRotationOrder = YXZ;
+    eulerRotationOrder = AR_YXZ;
   else if (eRO=="YZX")
-    eulerRotationOrder = YZX;
+    eulerRotationOrder = AR_YZX;
   else if (eRO=="ZXY")
-    eulerRotationOrder = ZXY;
+    eulerRotationOrder = AR_ZXY;
   else if (eRO=="ZYX")
-    eulerRotationOrder = ZYX;
+    eulerRotationOrder = AR_ZYX;
   else
     printf("Invalid rotation order: %s\n", token[1]);
 
@@ -360,8 +361,9 @@ bool arHTR::parseSegmentData2(FILE* htrFileHandle){
     value = (char *)1;
     while (!found && value){
       value = fgets(textLine, MAXLINE, htrFileHandle);
-      // skip if comment or newline
-      if (textLine[0] == '\n' || textLine[0] == '#')
+      // Skip if comment or newline. Note how we need to handle '\r' so
+      // that 
+      if (textLine[0] == '\n' || textLine[0] == '#' || textLine[0] == '\r')
         found = false;
       else
         if (value)
@@ -476,9 +478,9 @@ bool arHTR::writeToFile(char *fileName){
   fprintf(htrFile, "NumSegments %i\n", numSegments);
   fprintf(htrFile, "NumFrames %i\n", numFrames);
   fprintf(htrFile, "DataFrameRate %i\n", dataFrameRate);
-  fprintf(htrFile, "EulerRotationOrder %s\n", eulerRotationOrder==XYZ?"XYZ":
-          eulerRotationOrder==XZY?"XZY":eulerRotationOrder==YXZ?"YXZ":
-	  eulerRotationOrder==YZX?"YZX":eulerRotationOrder==ZXY?"ZXY":"ZYX");
+  fprintf(htrFile, "EulerRotationOrder %s\n", eulerRotationOrder==AR_XYZ?"XYZ":
+          eulerRotationOrder==AR_XZY?"XZY":eulerRotationOrder==AR_YXZ?"YXZ":
+	  eulerRotationOrder==AR_YZX?"YZX":eulerRotationOrder==AR_ZXY?"ZXY":"ZYX");
   fprintf(htrFile, "CalibrationUnits %s\n", calibrationUnits);
   fprintf(htrFile, "RotationUnits %s\n", rotationUnits);
   fprintf(htrFile, "GlobalAxisofGravity %c\n", globalAxisOfGravity);

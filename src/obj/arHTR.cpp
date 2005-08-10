@@ -30,32 +30,32 @@ arMatrix4 arHTR::HTRRotation(double Rx, double Ry, double Rz){
   arVector3 xVec(1,0,0), yVec(0,1,0), zVec(0,0,1);
 
   switch (eulerRotationOrder) {
-    case XYZ:
+    case AR_XYZ:
       rotMatrix = ar_rotationMatrix(xVec,deg2rad(Rx)) *
 	ar_rotationMatrix(yVec,deg2rad(Ry)) *
 	ar_rotationMatrix(zVec,deg2rad(Rz));
       break;
-    case XZY:
+    case AR_XZY:
       rotMatrix = ar_rotationMatrix(xVec,deg2rad(Rx)) *
 	ar_rotationMatrix(zVec,deg2rad(Rz)) *
 	ar_rotationMatrix(yVec,deg2rad(Ry));
       break;
-    case YXZ:
+    case AR_YXZ:
       rotMatrix = ar_rotationMatrix(yVec,deg2rad(Ry)) *
 	ar_rotationMatrix(xVec,deg2rad(Rx)) *
 	ar_rotationMatrix(zVec,deg2rad(Rz));
       break;
-    case YZX:
+    case AR_YZX:
       rotMatrix = ar_rotationMatrix(yVec,deg2rad(Ry)) *
 	ar_rotationMatrix(zVec,deg2rad(Rz)) *
 	ar_rotationMatrix(xVec,deg2rad(Rx));
       break;
-    case ZXY:
+    case AR_ZXY:
       rotMatrix = ar_rotationMatrix(zVec,deg2rad(Rz)) *
 	ar_rotationMatrix(xVec,deg2rad(Rx)) *
 	ar_rotationMatrix(yVec,deg2rad(Ry));
       break;
-    case ZYX:
+    case AR_ZYX:
       rotMatrix = ar_rotationMatrix(zVec,deg2rad(Rz)) *
         ar_rotationMatrix(yVec,deg2rad(Ry)) *
 	ar_rotationMatrix(xVec,deg2rad(Rx));
@@ -269,6 +269,117 @@ arMatrix4 arHTR::segmentBaseTransformRelative(int segmentID){
   return HTRTransform(basePosition[segmentID], NULL);
 }
 
+// Here, we are relying on the fact that the MotionAnalysis data tells us
+// it is bogus by having absurdly large values (actually 9999999).
+bool arHTR::frameValid(htrFrame* f){
+  if (fabs(f->Tx) < 9000000 && fabs(f->Ty) < 9000000 && 
+      fabs(f->Tz) < 9000000 && fabs(f->Rx) < 9000000 && 
+      fabs(f->Ry) < 9000000 && fabs(f->Rz) < 9000000 &&
+      fabs(f->scale) < 9000000){
+    return true;
+  }
+  return false;
+}
+
+void arHTR::frameInterpolate(htrFrame* f,
+			     htrFrame* interp1,
+			     htrFrame* interp2){
+  // We only try to interpolate if both interp1 and interp2 are valid.
+  if (interp1 && interp2){
+    arQuaternion q1 = HTRRotation(interp1->Rx, interp1->Ry, interp1->Rz);
+    arQuaternion q2 = HTRRotation(interp2->Rx, interp2->Ry, interp2->Rz);
+    // Must determine *which* quaternion representation to use since the 
+    // negative of a quaternion is the SAME rotation! We must, for instance,
+    // NOT linearly interpolate between a quaternion and its negative.
+    float dot = q1.real*q2.real + q1.pure[0]*q2.pure[0]
+      + q1.pure[1]*q2.pure[1] + q1.pure[2]*q2.pure[2];
+    if (dot < 0){
+      q2 = -q2;
+    }
+    float weight = 1 - ((float)(f->frameNum - interp1->frameNum))/
+                   ((float)(interp2->frameNum - interp1->frameNum)); 
+    arQuaternion newRot = weight*q1 + (1-weight)*q2;
+    newRot = newRot/++newRot;
+    arMatrix4 m = newRot;
+    
+    // Notice how we allow for different euler angle orders.
+    arVector3 euler = ar_extractEulerAngles(m, eulerRotationOrder);
+    switch(eulerRotationOrder){
+    case AR_XYZ:
+      f->Rx = ar_convertToDeg(euler[2]);
+      f->Ry = ar_convertToDeg(euler[1]);
+      f->Rz = ar_convertToDeg(euler[0]);
+      break;
+    case AR_XZY:
+      f->Rx = ar_convertToDeg(euler[2]);
+      f->Ry = ar_convertToDeg(euler[0]);
+      f->Rz = ar_convertToDeg(euler[1]);
+      break;
+    case AR_YXZ:
+      f->Rx = ar_convertToDeg(euler[1]);
+      f->Ry = ar_convertToDeg(euler[2]);
+      f->Rz = ar_convertToDeg(euler[0]);
+      break;
+    case AR_YZX:
+      f->Rx = ar_convertToDeg(euler[0]);
+      f->Ry = ar_convertToDeg(euler[2]);
+      f->Rz = ar_convertToDeg(euler[1]);
+      break;
+    case AR_ZXY:
+      f->Rx = ar_convertToDeg(euler[1]);
+      f->Ry = ar_convertToDeg(euler[0]);
+      f->Rz = ar_convertToDeg(euler[2]);
+      break;
+    case AR_ZYX:
+      f->Rx = ar_convertToDeg(euler[0]);
+      f->Ry = ar_convertToDeg(euler[1]);
+      f->Rz = ar_convertToDeg(euler[2]);
+      break;
+    }
+    f->Tx = weight*interp1->Tx + (1-weight)*interp2->Tx;
+    f->Ty = weight*interp1->Ty + (1-weight)*interp2->Ty;
+    f->Tz = weight*interp1->Tz + (1-weight)*interp2->Tz;
+    f->scale = weight*interp1->scale+(1-weight)*interp2->scale;
+  }
+}
+
+/// Goes through the HTR data, finds where gaps exist (as indicated by the
+/// MotionAnalysis 9999999 representation of "infinity" and interpolates them
+/// out of existence (just a simple linear interpolation, but that's actually
+/// good enough for most cases).
+void arHTR::basicDataSmoothing(){
+  for (unsigned int i=0; i<segmentData.size(); i++){
+    for (unsigned int j=0; j<segmentData[i]->frame.size(); j++){
+      htrFrame* f = segmentData[i]->frame[j];
+      if (!frameValid(f)){
+	// Find the latest previous valid frame, if any.
+	int prev = j;
+	while (prev >= 0 && !frameValid(segmentData[i]->frame[prev])){
+	  prev--;
+	}
+	int next = j;
+	// Find the next valid frame, if any.
+	while (next < segmentData[i]->frame.size()
+	       && !frameValid(segmentData[i]->frame[next])){
+	  next++;
+	}
+	htrFrame* interp1 = NULL;
+	htrFrame* interp2 = NULL;
+	if (prev >= 0){
+	  interp1 = segmentData[i]->frame[prev];
+	}
+	if (next < segmentData[i]->frame.size()){
+	  interp2 = segmentData[i]->frame[next];
+	}
+        frameInterpolate(f, interp1, interp2);
+	// Must update the matrices.
+        f->trans = HTRTransform(segmentData[i]->basePosition, f);
+        f->totalScale = segmentData[i]->basePosition->boneLength * f->scale;
+      }
+    }
+  }
+}
+
 /// returns internal index of specified segment
 /// @param segmentName name of the segment whose index we want
 int arHTR::numberOfSegment(const string& segmentName){
@@ -299,7 +410,7 @@ bool arHTR::setFrame(int newFrame){
   if (newFrame >= numFrames || newFrame < 0)
     return false;
 
-  for(unsigned int i=0; i<segmentData.size(); i++){
+  for(unsigned int i=0; i<segmentData.size(); i++){    
     dgTransform(segmentData[i]->transformID, 
                 segmentData[i]->frame[newFrame]->trans);
     // There is a scale matrix for the bone.
@@ -308,7 +419,7 @@ bool arHTR::setFrame(int newFrame){
                   ar_scaleMatrix(segmentData[i]->frame[newFrame]->totalScale));
     }
   }
-
+  
   _currentFrame = newFrame;
   return true;
 }

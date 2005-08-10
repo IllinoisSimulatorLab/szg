@@ -20,7 +20,8 @@
 #include "arObjCalling.h"
 
 // rotation orders
-enum { XYZ = 1, XZY, YXZ, YZX, ZXY, ZYX };
+// AARGH!!!
+//enum { XYZ = 1, XZY, YXZ, YZX, ZXY, ZYX };
 
 /// Hierarchy pairs
 class SZG_CALL htrSegmentHierarchy {
@@ -126,6 +127,8 @@ class SZG_CALL arHTR : public arObject {
     /// in a unit sphere...
     void normalizeModelSize(void);
 
+    void basicDataSmoothing();
+
     // animation functions
     bool supportsAnimation(void) { return true; }
     bool setFrame(int newFrame);
@@ -167,6 +170,8 @@ class SZG_CALL arHTR : public arObject {
     bool setInvalid();
     void subNormalizeModelSize(arVector3 thePoint, arVector3 &minVec,
 		    	       arVector3 &maxVec, htrBasePosition *theBP);
+    bool frameValid(htrFrame* f);
+    void frameInterpolate(htrFrame* f, htrFrame* inetrp1, htrFrame* interp2);
     arMatrix4 HTRTransform(struct htrBasePosition* theBP, struct htrFrame* theFrame);
     arMatrix4 HTRRotation(double Rx, double Ry, double Rz);
     
@@ -179,11 +184,11 @@ class SZG_CALL arHTR : public arObject {
     int numSegments;
     int numFrames;
     int dataFrameRate;
-    char *fileType;
-    char *dataType;
-    int  eulerRotationOrder;	//< global order of rotations
-    char *calibrationUnits;	//< units of translation
-    char *rotationUnits;
+    char* fileType;
+    char* dataType;
+    arAxisOrder eulerRotationOrder;	//< global order of rotations
+    char* calibrationUnits;	//< units of translation
+    char* rotationUnits;
     char globalAxisOfGravity;
     char boneLengthAxis;
     double scaleFactor;

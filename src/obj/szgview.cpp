@@ -563,6 +563,7 @@ int main( int argc, char** argv )
   // theObject->setTransform( ar_translationMatrix( 0.0, 5.0, -5.0 ) );
 
   if( theObject->type() == "HTR" ) {
+    ((arHTR*) theObject)->basicDataSmoothing();
     if( argc == 3 ) {
       attachOBJToHTRToNodeInDatabase( (arOBJ*) theMesh,(arHTR*) theObject, "mouse" );
     }
