@@ -154,7 +154,7 @@ void arTexture::deactivate() {
 void arTexture::dummy() {
   _width = _height = 1; // 1 could be some other power of two.
   _alpha = false;
-  _textureFunc = GL_DECAL;
+  _textureFunc = GL_MODULATE;
   if (!_reallocPixels()) {
     cerr << "arTexture error: _reallocPixels() failed in dummy().\n";
     return;
@@ -567,10 +567,9 @@ bool arTexture::fill(int w, int h, bool alpha, const char* pixels) {
       return false;
     }
   }
+  // Texture blending only works if we are in GL_MODULATE mode.
   if (_alpha) {
     _textureFunc = GL_MODULATE;
-  } else {
-    _textureFunc = GL_DECAL;
   }
   // else, we're just updating the pixel data and everything else is unchanged.
   memcpy(_pixels, pixels, numbytes());
@@ -625,13 +624,9 @@ void arTexture::_assignAlpha(int alpha){
     }
   }
   
-  // AARGH! THIS MIGHT NOT BE THE RIGHT THING... PROBABLY THE CURRENT
-  // DEFAULT IS TO BE DOING GL_MODULATE (i.e. lit textures)
+  // Texture blending only works if we are in GL_MODULATE mode.
   if (_alpha){
     _textureFunc = GL_MODULATE;
-  }
-  else{
-    _textureFunc = GL_DECAL;
   }
 }
 

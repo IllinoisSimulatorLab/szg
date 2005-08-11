@@ -201,6 +201,9 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
 
   // A new texture.
   arTexture* theTexture = new arTexture;
+  // The default for the arTexture object is to use GL_DECAL mode, but we
+  // want LIT textures.
+  theTexture->setTextureFunc(GL_MODULATE);
   if (name.length() <= 0) {
     cerr << "arGraphicsDatabase warning: "
 	 << "ignoring empty filename for texture.\n";
@@ -367,6 +370,9 @@ void arGraphicsDatabase::setVRCameraID(int cameraID){
 arTexture* arGraphicsDatabase::addTexture(int w, int h, 
                                           bool alpha, const char* pixels){
   arTexture* t = new arTexture;
+  // The default for the texture object is GL_DECAL, but we really want
+  // LIT textures.
+  t->setTextureFunc(GL_MODULATE);
   t->fill(w, h, alpha, pixels);
   return t;
 }

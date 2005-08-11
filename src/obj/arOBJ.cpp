@@ -209,8 +209,17 @@ void arOBJ::attachGroup(int group, const string& base, const string& where){
       dgIndex(baseName+".indices"+temp, where, 3*matIDs[j].size(), indices);
       dgNormal3(baseName+normalsModifier+temp, baseName+".indices"+temp,
                 3*matIDs[j].size(), normals);
+      // NOTE: some exporters will attach a "pure black" color to anything
+      // with a texture. Since by default we use GL_MODULATE with textures,
+      // this will be a problem. Instead, use (1,1,1).
+      arVector3 correctedDiffuse = _material[j].Kd;
+      if (correctedDiffuse[0] < 0.001 
+	  && correctedDiffuse[1] < 0.001 
+	  && correctedDiffuse[2] < 0.001){
+	correctedDiffuse = arVector3(1,1,1);
+      }
       dgMaterial(baseName+colorsModifier+temp, baseName+normalsModifier+temp,
-		 _material[j].Kd, _material[j].Ka, _material[j].Ks,
+		 correctedDiffuse, _material[j].Ka, _material[j].Ks,
 		 arVector3(0,0,0), _material[j].Ns);
       if (useTexture){
         dgTex2(baseName+texModifier+temp,baseName+colorsModifier+temp,
