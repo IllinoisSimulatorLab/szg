@@ -140,6 +140,11 @@ void arTexture::activate(bool forceRebind) {
   ar_mutex_unlock(&_lock);
 
   glBindTexture(GL_TEXTURE_2D, temp);
+  // Very odd... if the following statement isn't included, then 
+  // the wrong GL_TEXTURE_ENV_MODE can be used by the scene graph for
+  // drawing textures. I'm very perplexed since I'd thought that the
+  // texture object, as bound above, should deal with this...
+  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, _textureFunc );
   if (_fDirty || forceRebind){
     _loadIntoOpenGL();
   }
