@@ -99,6 +99,7 @@ bool arDrawableNode::_2DPreDraw(arGraphicsNode* pointsNode,
   glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
   glColor4f(1,1,1,1);
 
+  // Determine if blending has been requested.
   float blendFactor = 1.0;
   if (blendNode){
     blendFactor *= (blendNode->getBuffer())[0];
