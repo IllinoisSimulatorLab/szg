@@ -139,6 +139,13 @@ class SZG_CALL arGraphicsLanguage:public arDatabaseLanguage{
   int AR_GRAPHICS_ADMIN_NODE_ID;
   int AR_GRAPHICS_ADMIN_NAME;
 
+  int AR_GRAPHICS_STATE;        // Used in manipulating rendering state inside
+  int AR_GRAPHICS_STATE_ID;     // the scene graph. Stuff like point size,
+  int AR_GRAPHICS_STATE_STRING; // line width, etc.
+  int AR_GRAPHICS_STATE_INT;
+  int AR_GRAPHICS_STATE_FLOAT;
+  
+
  protected:
   arDataTemplate _transform;
   arDataTemplate _points;
@@ -158,6 +165,7 @@ class SZG_CALL arGraphicsLanguage:public arDatabaseLanguage{
   arDataTemplate _perspCamera;
   arDataTemplate _bumpMap;
   arDataTemplate _graphicsAdmin;
+  arDataTemplate _graphicsState;
 public:
   const char* _stringFromID(int id);
 };

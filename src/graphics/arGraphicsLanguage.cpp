@@ -25,7 +25,8 @@ arGraphicsLanguage::arGraphicsLanguage():
   _light("light"),
   _perspCamera("persp camera"),
   _bumpMap("bump map"),
-  _graphicsAdmin("graphics admin"){
+  _graphicsAdmin("graphics admin"),
+  _graphicsState("graphics state"){
   
   AR_TRANSFORM_ID = _transform.add("ID",AR_INT);
   AR_TRANSFORM_MATRIX = _transform.add("matrix",AR_FLOAT);
@@ -136,6 +137,12 @@ arGraphicsLanguage::arGraphicsLanguage():
   AR_GRAPHICS_ADMIN_NODE_ID = _graphicsAdmin.add("node_ID", AR_INT);
   AR_GRAPHICS_ADMIN_NAME = _graphicsAdmin.add("name", AR_CHAR);
   AR_GRAPHICS_ADMIN = _dictionary.add(&_graphicsAdmin);
+
+  AR_GRAPHICS_STATE_ID = _graphicsState.add("ID", AR_INT);
+  AR_GRAPHICS_STATE_STRING = _graphicsState.add("string", AR_CHAR);
+  AR_GRAPHICS_STATE_INT = _graphicsState.add("int", AR_INT);
+  AR_GRAPHICS_STATE_FLOAT = _graphicsState.add("float", AR_FLOAT);
+  AR_GRAPHICS_STATE = _dictionary.add(&_graphicsState);
 }
 
 string arGraphicsLanguage::typeFromID(int ID){
@@ -149,7 +156,7 @@ string arGraphicsLanguage::typeFromID(int ID){
 const char* arGraphicsLanguage::_stringFromID(int id)
 {
   // This is slow, but it's only for debugging printf's.
-  const int cnames = 20;
+  const int cnames = 21;
   static const char* names[cnames+1] = {
     "AR_TRANSFORM",
     "AR_POINTS",
@@ -171,6 +178,7 @@ const char* arGraphicsLanguage::_stringFromID(int id)
     "AR_PERSP_CAMERA",
     "AR_BUMPMAP",
     "AR_GRAPHICS_ADMIN",
+    "AR_GRAPHICS_STATE",
     "(unknown!)"
     };
   const int ids[cnames] = {
@@ -193,7 +201,8 @@ const char* arGraphicsLanguage::_stringFromID(int id)
     AR_LIGHT,
     AR_PERSP_CAMERA,
     AR_BUMPMAP,
-    AR_GRAPHICS_ADMIN
+    AR_GRAPHICS_ADMIN,
+    AR_GRAPHICS_STATE
     };
   for (int i=0; i<cnames; ++i)
     if (id == ids[i])

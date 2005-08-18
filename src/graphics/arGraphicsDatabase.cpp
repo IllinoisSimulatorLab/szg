@@ -52,6 +52,7 @@ arGraphicsDatabase::arGraphicsDatabase() :
   materialData = new arStructuredData(d, "material");
   perspCameraData = new arStructuredData(d, "persp camera");
   bumpMapData = new arStructuredData(d, "bump map");
+  graphicsStateData = new arStructuredData(d, "graphics state");
 
   if (!transformData      || !*transformData ||
       !pointsData         || !*pointsData ||
@@ -69,9 +70,9 @@ arGraphicsDatabase::arGraphicsDatabase() :
       !lightData          || !*lightData ||
       !materialData       || !*materialData ||
       !perspCameraData    || !*perspCameraData ||
-      !bumpMapData        || !*bumpMapData){
+      !bumpMapData        || !*bumpMapData ||
+      !graphicsStateData  || !*graphicsStateData){
     cerr << "arGraphicsDatabase error: incomplete dictionary.\n";
-    // Destructor may crash if it deletes a NULL pointer.
   }
 
   // initialize the light container
@@ -88,22 +89,57 @@ arGraphicsDatabase::arGraphicsDatabase() :
 
 /// \todo Lots more deleting should really be done here, e.g. the font.
 arGraphicsDatabase::~arGraphicsDatabase(){
-  delete transformData;
-  delete pointsData;
-  delete boundingSphereData;
-  delete billboardData;
-  delete visibilityData;
-  delete viewerData;
-  delete blendData;
-  delete normal3Data;
-  delete color4Data;
-  delete tex2Data;
-  delete indexData;
-  delete drawableData;
-  delete lightData;
-  delete materialData;
-  delete perspCameraData;
-  delete bumpMapData;
+  if (transformData){
+    delete transformData;
+  }
+  if (pointsData){
+    delete pointsData;
+  }
+  if (boundingSphereData){
+    delete boundingSphereData;
+  }
+  if (billboardData){
+    delete billboardData;
+  }
+  if (visibilityData){
+    delete visibilityData;
+  }
+  if (viewerData){
+    delete viewerData;
+  }
+  if (blendData){
+    delete blendData;
+  }
+  if (normal3Data){
+    delete normal3Data;
+  }
+  if (color4Data){
+    delete color4Data;
+  }
+  if (tex2Data){
+    delete tex2Data;
+  }
+  if (indexData){
+    delete indexData;
+  }
+  if (drawableData){
+    delete drawableData;
+  }
+  if (lightData){
+    delete lightData;
+  }
+  if (materialData){
+    delete materialData;
+  }
+  if (perspCameraData){
+    delete perspCameraData;
+  }
+  if (bumpMapData){
+    delete bumpMapData;
+  }
+  if (graphicsStateData){
+    delete graphicsStateData;
+  }
 }
 
 arDatabaseNode* arGraphicsDatabase::alter(arStructuredData* inData){
@@ -840,6 +876,9 @@ arDatabaseNode* arGraphicsDatabase::_makeNode(const string& type){
   }
   else if (type == "bump map"){
     outNode = (arDatabaseNode*) new arBumpMapNode();
+  }
+  else if (type == "graphics state"){
+    outNode = (arDatabaseNode*) new arGraphicsStateNode();
   }
   else{
     cerr << "arGraphicsDatabase error: makeNode factory got unknown type="

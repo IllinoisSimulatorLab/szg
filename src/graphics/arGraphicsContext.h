@@ -26,6 +26,10 @@ class SZG_CALL arGraphicsContext{
 
   void clear();
 
+  void setPointState(){}
+  void setLineState(){}
+  void setTriangleState(){}
+
  protected:
   list<arDatabaseNode*>   _pointsStack;
   list<arDatabaseNode*>    _blendStack;
@@ -36,6 +40,18 @@ class SZG_CALL arGraphicsContext{
   list<arDatabaseNode*> _materialStack;
   list<arDatabaseNode*>  _textureStack;
   list<arDatabaseNode*>  _bumpMapStack;
+
+  list<float>                _pointSizeStateStack;
+  list<float>                _lineWidthStateStack;
+  list<arGraphicsStateValue> _shadeModelStateStack;
+  list<bool>                 _lightingStateStack;
+  list<bool>                 _depthTestStateStack;
+  list<bool>                 _blendStateStack;
+  list<pair<arGraphicsStateValue,arGraphicsStateValue> > _blendFuncStateStack;
+
+  bool _convertStateToBool(arGraphicsStateValue value){ return false; }
+  GLenum _convertStateToGLenum(arGraphicsStateValue value){ return GL_SMOOTH; }
+  
 };
 
 #endif

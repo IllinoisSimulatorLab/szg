@@ -33,6 +33,7 @@
 #include "arPerspectiveCameraNode.h"
 #include "arHead.h"
 #include "arBumpMapNode.h"
+#include "arGraphicsStateNode.h"
 
 #ifdef USE_CG // Marks' Cg stuff
 // Unfortunately, the internal includes in the Cg headers necessitate that
@@ -105,6 +106,7 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   arStructuredData* materialData;
   arStructuredData* perspCameraData;
   arStructuredData* bumpMapData;
+  arStructuredData* graphicsStateData;
 
   arGraphicsLanguage _gfx;  
 
