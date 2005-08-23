@@ -6,6 +6,11 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arGraphicsContext.h"
+// The following includes cannot be in arGraphicsContext.h because of problems
+// with recursive definition.
+#include "arTextureNode.h"
+#include "arGraphicsStateNode.h"
+#include "arMaterialNode.h"
 
 arGraphicsContext::arGraphicsContext(){
 }
@@ -43,12 +48,18 @@ void arGraphicsContext::pushNode(arDatabaseNode* node){
   case AR_G_BUMP_MAP_NODE:
     _bumpMapStack.push_front(node);
     break;
+  case AR_G_GRAPHICS_STATE_NODE:
+    // There is quite a variation in what pushing graphics
+    // state does.
+    _pushGraphicsState(node);
+    break;
   default:
     break;
   }
 }
   
-void arGraphicsContext::popNode(int nodeType){
+void arGraphicsContext::popNode(arDatabaseNode* node){
+  int nodeType = node->getTypeCode();
   switch(nodeType){
   case AR_G_POINTS_NODE: 
     _pointsStack.pop_front();
@@ -76,6 +87,10 @@ void arGraphicsContext::popNode(int nodeType){
     break;
   case AR_G_BUMP_MAP_NODE:
     _bumpMapStack.pop_front();
+    break;
+  case AR_G_GRAPHICS_STATE_NODE:
+    _popGraphicsState(node);
+  default:
     break;
   }
 }
@@ -142,5 +157,273 @@ void arGraphicsContext::clear(){
   _materialStack.clear();
   _textureStack.clear();
   _bumpMapStack.clear();
+
+  _pointSizeStateStack.clear();
+  _lineWidthStateStack.clear();
+  _shadeModelStateStack.clear();
+  _lightingStateStack.clear();
+  _depthTestStateStack.clear();
+  _blendStateStack.clear();
+  _blendFuncStateStack.clear();
+}
+
+void arGraphicsContext::setPointState(float& blendFactor){
+  // Lighting: always disabled for points.
+  // Shade model: irrelevant for points. (Set to a sensible default).
+  // Texture mapping: always disabled for points.
+  // Point size: Use value from stack.
+
+  // Lighting.
+  glDisable(GL_LIGHTING);
+  // Shade model
+  glShadeModel(GL_SMOOTH);
+  // Texture.
+  glDisable(GL_TEXTURE_2D);
+  // Point size.
+  if (_pointSizeStateStack.empty()){
+    glPointSize(1.0);
+  }
+  else{
+    glPointSize(_pointSizeStateStack.front());
+  }
+  // Set the common state (over the various types of primitives).
+  _setState(blendFactor);
+}
+
+void arGraphicsContext::setLineState(float& blendFactor){
+  // Lighting: always disabled for lines.
+  // Shade model: irrelevant for lines. (Set to a sensible default).
+  // Texture mapping: always disabled for lines.
+  // Line width: Use value from stack.
+
+  // Lighting.
+  glDisable(GL_LIGHTING);
+  // Shade model
+  glShadeModel(GL_SMOOTH);
+  // Texture.
+  glDisable(GL_TEXTURE_2D);
+  // Line width.
+  if (_lineWidthStateStack.empty()){
+    glLineWidth(1.0);
+  }
+  else{
+    glLineWidth(_lineWidthStateStack.front());
+  }
+  // Set the common state (over the various types of primitives).
+  _setState(blendFactor);
+}
+
+void arGraphicsContext::setTriangleState(float& blendFactor){
+  // Lighting: Might be enabled or disabled.
+  // Shade model: Can be either GL_FLAT or GL_SMOOTH
+  // Texture mapping: Can be enabled or disabled, depending on the presence
+  //                  of an ancestor texture node.
+
+  // Lighting.
+  glEnable(GL_NORMALIZE);
+  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_TRUE);
+  if (_lightingStateStack.empty() ||
+      _lightingStateStack.front() != AR_G_FALSE){
+    glEnable(GL_LIGHTING);
+  }
+  else{
+    glDisable(GL_LIGHTING);
+  }
+
+  // Shade model
+  if (_shadeModelStateStack.empty() ||
+      _shadeModelStateStack.front() != AR_G_FLAT){
+    glShadeModel(GL_SMOOTH);
+  }
+  else{
+    glShadeModel(GL_FLAT);
+  }
+
+  // Texture.
+  if (_textureStack.empty()){
+    glDisable(GL_TEXTURE_2D);
+  }
+  else{
+    arTextureNode* tn = (arTextureNode*)_textureStack.front();
+    arTexture* t = tn->getTexture();
+    if (t){
+      // Activating the texture also enables GL_TEXTURE_2D.
+      t->activate();
+    }
+  }  
+
+  // Set the common state (over the various types of primitives).
+  _setState(blendFactor);
+}
+
+void arGraphicsContext::_pushGraphicsState(arDatabaseNode* node){
+  arGraphicsStateNode* g = (arGraphicsStateNode*) node;
+  arGraphicsStateValue v1, v2;
+  float f;
+  switch(g->getStateID()){
+  case AR_G_POINT_SIZE:
+    if (g->getStateValueFloat(f)){
+      _pointSizeStateStack.push_front(f);
+    }
+    else{
+      _pointSizeStateStack.push_front(1.0);
+    }
+    break;
+  case AR_G_LINE_WIDTH:
+    if (g->getStateValueFloat(f)){
+      _lineWidthStateStack.push_front(f);
+    }
+    else{
+      _lineWidthStateStack.push_front(1.0);
+    }
+    break;
+  case AR_G_SHADE_MODEL:
+    g->getStateValuesInt(v1, v2);
+    _shadeModelStateStack.push_front(v1);
+    break;
+  case AR_G_LIGHTING:
+    g->getStateValuesInt(v1, v2);
+    _lightingStateStack.push_front(v1);
+    break;
+  case AR_G_BLEND:
+    g->getStateValuesInt(v1, v2);
+    _blendStateStack.push_front(v1);
+    break;
+  case AR_G_DEPTH_TEST:
+    g->getStateValuesInt(v1, v2);
+    _depthTestStateStack.push_front(v1);
+    break;
+  case AR_G_BLEND_FUNC:
+    g->getStateValuesInt(v1, v2);
+    _blendFuncStateStack.push_front(make_pair<arGraphicsStateValue, arGraphicsStateValue>(v1, v2));
+    break;
+  default:
+    break;
+  }
+}
+
+void arGraphicsContext::_popGraphicsState(arDatabaseNode* node){
+arGraphicsStateNode* g = (arGraphicsStateNode*) node;
+  switch(g->getStateID()){
+  case AR_G_POINT_SIZE:
+    _pointSizeStateStack.pop_front();
+    break;
+  case AR_G_LINE_WIDTH:
+    _lineWidthStateStack.pop_front();
+    break;
+  case AR_G_SHADE_MODEL:
+    _shadeModelStateStack.pop_front();
+    break;
+  case AR_G_LIGHTING:
+    _lightingStateStack.pop_front();
+    break;
+  case AR_G_BLEND:
+    _blendStateStack.pop_front();
+    break;
+  case AR_G_DEPTH_TEST:
+    _depthTestStateStack.pop_front();
+    break;
+  case AR_G_BLEND_FUNC:
+    _blendFuncStateStack.pop_front();
+    break;
+  default:
+    break;
+  }
+}
+
+GLenum arGraphicsContext::_decodeBlendFunction(arGraphicsStateValue v){
+  switch(v){
+  case AR_G_ZERO:
+    return GL_ZERO;
+  case AR_G_ONE:
+    return GL_ONE;
+  case AR_G_DST_COLOR:
+    return GL_DST_COLOR;
+  case AR_G_SRC_COLOR:
+    return GL_SRC_COLOR;
+  case AR_G_ONE_MINUS_DST_COLOR:
+    return GL_ONE_MINUS_DST_COLOR;
+  case AR_G_ONE_MINUS_SRC_COLOR:
+    return GL_ONE_MINUS_SRC_COLOR;
+  case AR_G_SRC_ALPHA:
+    return GL_SRC_ALPHA;
+  case AR_G_ONE_MINUS_SRC_ALPHA:
+    return GL_ONE_MINUS_SRC_ALPHA;
+  case AR_G_DST_ALPHA:
+    return GL_DST_ALPHA;
+  case AR_G_ONE_MINUS_DST_ALPHA:
+    return GL_ONE_MINUS_DST_ALPHA;
+  case AR_G_SRC_ALPHA_SATURATE:
+    return GL_SRC_ALPHA_SATURATE;
+  default:
+    return GL_ONE;
+  }
+}
+
+void arGraphicsContext::_setState(float& blendFactor){
+  // 0,1,2 D primitives all have the following state setting code.
+  // Blending, color (also materials), and depth testing.
+
+  // Blend. Must come before color, since that uses the blendFactor we
+  // compute here. Note how this computation is passed out to the caller.
+  if (_blendStack.empty()){
+    glDisable(GL_BLEND);
+  }
+  else{
+    blendFactor = (((arGraphicsNode*)_blendStack.front())->getBuffer())[0];
+    if (blendFactor < 1.0){
+      glEnable(GL_BLEND);
+      // The blend functions need to get set now.
+      if (_blendFuncStateStack.empty()){
+        // The default if nothing is specified.
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+      }
+      else{
+        pair<arGraphicsStateValue, arGraphicsStateValue> p = 
+          _blendFuncStateStack.front();
+        glBlendFunc(_decodeBlendFunction(p.first),
+                    _decodeBlendFunction(p.second));
+      } 
+    }
+    else{
+      // There is indeed a blend node... but it is set to non-transparent.
+      glDisable(GL_BLEND);
+    }
+  }
+
+  // Color.
+  glEnable(GL_COLOR_MATERIAL);
+  glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
+  if (_materialStack.empty()){
+    glColor4f(1,1,1,1);
+  }
+  else{
+    arMaterialNode* mn = (arMaterialNode*) _materialStack.front();
+    arMaterial* m = mn->getMaterialPtr();
+    arVector4 temp(m->diffuse[0], m->diffuse[1], 
+                   m->diffuse[2], m->alpha*blendFactor);
+    glColor4fv(temp.v);
+    // Set the material normally also. Grumble.
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, temp.v);
+    temp = arVector4(m->ambient[0], m->ambient[1], 
+                     m->ambient[2], m->alpha);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, temp.v);
+    temp = arVector4(m->specular[0], m->specular[1], 
+                     m->specular[2], m->alpha);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, temp.v);
+    temp = arVector4(m->emissive[0], m->emissive[1], 
+                     m->emissive[2], m->alpha);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, temp.v);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, m->exponent);
+  }
+  
+  // Depth test.
+  if (_depthTestStateStack.empty() ||
+      _depthTestStateStack.front() != AR_G_FALSE){
+    glEnable(GL_DEPTH_TEST);
+  }
+  else{
+    glDisable(GL_DEPTH_TEST);
+  }
 }
 

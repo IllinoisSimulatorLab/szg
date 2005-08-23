@@ -21,14 +21,14 @@ class SZG_CALL arGraphicsContext{
   virtual ~arGraphicsContext();
 
   void pushNode(arDatabaseNode* node);
-  void popNode(int nodeType);
+  void popNode(arDatabaseNode* node);
   arDatabaseNode* getNode(int nodeType);
 
   void clear();
 
-  void setPointState(){}
-  void setLineState(){}
-  void setTriangleState(){}
+  void setPointState(float& blendFactor);
+  void setLineState(float& blendFactor);
+  void setTriangleState(float& blendFactor);
 
  protected:
   list<arDatabaseNode*>   _pointsStack;
@@ -49,8 +49,10 @@ class SZG_CALL arGraphicsContext{
   list<bool>                 _blendStateStack;
   list<pair<arGraphicsStateValue,arGraphicsStateValue> > _blendFuncStateStack;
 
-  bool _convertStateToBool(arGraphicsStateValue value){ return false; }
-  GLenum _convertStateToGLenum(arGraphicsStateValue value){ return GL_SMOOTH; }
+  void _pushGraphicsState(arDatabaseNode* node);
+  void _popGraphicsState(arDatabaseNode* node);
+  GLenum _decodeBlendFunction(arGraphicsStateValue v);
+  void _setState(float& blendFactor);
   
 };
 

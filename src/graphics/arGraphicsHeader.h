@@ -85,7 +85,7 @@ enum arGraphicsStateValue{
   AR_G_ONE_MINUS_SRC_ALPHA = 11,
   AR_G_DST_ALPHA = 12,
   AR_G_ONE_MINUS_DST_ALPHA = 13,
-  AR_G_ALPHA_SATURATE = 14
+  AR_G_SRC_ALPHA_SATURATE = 14
 };
 
 #endif

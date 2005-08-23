@@ -465,7 +465,7 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
     if (!b.intersectViewFrustum(view)){
       // It is safe to return here... but don't forget to pop the node stack!
       if (context){
-        context->popNode(node->getTypeCode());
+        context->popNode(node);
       }
       return;
     }
@@ -492,7 +492,7 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
   }
   // Must remember to pop the node stack upon leaving this function.
   if (context){
-    context->popNode(node->getTypeCode());
+    context->popNode(node);
   }
 }
 
@@ -684,7 +684,7 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
     if (distance < 0){
       // Must remember to pop the node stack upon leaving this function.
       if (context){
-        context->popNode(node->getTypeCode());
+        context->popNode(node);
       }
       return;
     }
@@ -723,7 +723,7 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
   }
   // Must remember to pop the node stack upon leaving this function.
   if (context){
-    context->popNode(node->getTypeCode());
+    context->popNode(node);
   }
 }
 

@@ -29,150 +29,6 @@ arDrawableNode::arDrawableNode():
  *  Instead, handle the types with an internal arStructuredData record.
  */
 
-bool arDrawableNode::_01DPreDraw(arGraphicsNode* pointsNode,
-                                 arGraphicsNode* blendNode,
-                                 arGraphicsNode* materialNode){
-  if (!pointsNode){
-    return false;
-  }
-
-  glDisable(GL_LIGHTING);
-  glColor4f(1,1,1,1);
-  float blendFactor = 1;
-  if (blendNode){
-    blendFactor *= (blendNode->getBuffer())[0];
-  }
-  if (materialNode){
-    arMaterialNode* mn = (arMaterialNode*) materialNode;
-    arMaterial* m = mn->getMaterialPtr();
-    const arVector4 temp(m->diffuse[0], m->diffuse[1], 
-                         m->diffuse[2], m->alpha*blendFactor);
-    glColor4fv(temp.v);
-  }
-  if (blendFactor < 1.0){
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  }
-  return true;
-}
-
-void arDrawableNode::_01DPostDraw(arGraphicsNode* blendNode){
-  if (blendNode && (blendNode->getBuffer())[0] < 1.0){
-    glDisable(GL_BLEND);
-  }
-}
-
-// Consigning CG to the dustbin of history.
-//#ifdef USE_CG
-//extern CGcontext myContext;
-//extern void cgErrorCallback(void);
-//#endif
-
-bool arDrawableNode::_2DPreDraw(arGraphicsNode* pointsNode,
-                                arGraphicsNode* normal3Node,
-                                arGraphicsNode* blendNode,
-                                arGraphicsNode* materialNode,
-                                arGraphicsNode* textureNode){
-
-  arMaterialNode* mn = (arMaterialNode*) materialNode;
-  arTextureNode* tn = (arTextureNode*) textureNode;
-
-  // GRUMBLE. This function essentially MAXIMIZES OpenGL state changes before
-  // a new drawable node. It seems like a little bit of extra machinery might
-  // result in something better (i.e. we might be keeping track of state
-  // changes).
-
-  // some data is necessary to draw triangles
-  if (!pointsNode){
-    cerr << "arDrawableNode error: missing points set for 2D geometry.\n";
-    return false;
-  }
-  if (!normal3Node){
-    cerr << "arDrawableNode error: missing normals set for 2D geometry.\n";
-    return false;
-  }
-  // OK the following block gives the overall configuration that I'm
-  // using... these are a little arbitrary
-  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_TRUE);
-  glEnable(GL_LIGHTING);
-  glEnable(GL_NORMALIZE);
-  glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
-  glColor4f(1,1,1,1);
-
-  // Determine if blending has been requested.
-  float blendFactor = 1.0;
-  if (blendNode){
-    blendFactor *= (blendNode->getBuffer())[0];
-  }
-  
-  if (materialNode) {
-    // We actually have a material
-    arMaterial* m = mn->getMaterialPtr();
-    arVector4 temp(m->diffuse[0], m->diffuse[1], 
-                   m->diffuse[2], m->alpha*blendFactor);
-    // Since we are enabling GL_COLOR_MATERIAL, this needs to happen as well
-    glColor4fv(temp.v);
-    // Set the material normally also. Grumble.
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, temp.v);
-    temp = arVector4(m->ambient[0], m->ambient[1], 
-                     m->ambient[2], m->alpha);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, temp.v);
-    temp = arVector4(m->specular[0], m->specular[1], 
-                     m->specular[2], m->alpha);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, temp.v);
-    temp = arVector4(m->emissive[0], m->emissive[1], 
-                     m->emissive[2], m->alpha);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, temp.v);
-    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, m->exponent);
-  }
-
-  if (blendFactor < 1.0){
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  }
-
-  glEnable(GL_COLOR_MATERIAL);
-
-  // CG is being consigned to the dustbin of history.
-  //#ifdef USE_CG
-  //  if (*_bumpMap)	// bump map overrides texture call
-  //   (*_bumpMap)->activate();
-  //  else
-  //#endif
-  if (textureNode){
-    arTexture* t = tn->getTexture();
-    if (t){
-      t->activate();
-    }
-  }
-  
-  return true;
-}
-
-void arDrawableNode::_2DPostDraw(arGraphicsNode* blendNode,
-                                 arGraphicsNode* textureNode){
-
-  // CG is being consigned to the dustbin of history.
-  //#ifdef USE_CG
-  //if (*_bumpMap)
-  //  (*_bumpMap)->deactivate();
-  //else
-  //#endif
-  arTextureNode* tn = (arTextureNode*) textureNode;
-  if (textureNode){
-    arTexture* t = tn->getTexture();
-    if (t){
-      t->deactivate();
-    }
-  }
-  
-  if (blendNode && (blendNode->getBuffer())[0] < 1.0){
-    glDisable(GL_BLEND);
-  }
-  
-  glDisable(GL_LIGHTING);
-}
-
 /// \todo Add errorchecking for howMany, so bad data doesn't segfault.
 void arDrawableNode::draw(arGraphicsContext* context){
   // A PROBLEM! Currently, the database node is created with a message to
@@ -186,60 +42,50 @@ void arDrawableNode::draw(arGraphicsContext* context){
   const ARint whatKind = _type;
   const ARint howMany = _number;
   // Get the context.
-  arGraphicsNode* bNode = NULL;
   arGraphicsNode* iNode = NULL;
   arGraphicsNode* pNode = NULL;
   arGraphicsNode* nNode = NULL;
   arGraphicsNode* cNode = NULL;
   arGraphicsNode* tNode = NULL;
-  arGraphicsNode* mNode = NULL;
   arGraphicsNode* t2Node = NULL;
   if (context){
-    bNode = (arGraphicsNode*) context->getNode(AR_G_BLEND_NODE);
     iNode = (arGraphicsNode*) context->getNode(AR_G_INDEX_NODE);
     pNode = (arGraphicsNode*) context->getNode(AR_G_POINTS_NODE);
     nNode = (arGraphicsNode*) context->getNode(AR_G_NORMAL3_NODE);
     cNode = (arGraphicsNode*) context->getNode(AR_G_COLOR4_NODE);
     tNode = (arGraphicsNode*) context->getNode(AR_G_TEXTURE_NODE);
-    mNode = (arGraphicsNode*) context->getNode(AR_G_MATERIAL_NODE);
     t2Node = (arGraphicsNode*) context->getNode(AR_G_TEX2_NODE);
   }
 
-  // AARGH! this code adds blending but it is repeated in the post/pre draws
   float blendFactor = 1.0;
-  if (bNode){
-    blendFactor *= (bNode->getBuffer())[0];    
-  }
   switch (whatKind) {
   case DG_POINTS:
-    if (_01DPreDraw(pNode, bNode, mNode)){
+    if (_0DPreDraw(pNode, context, blendFactor)){
       ar_drawPoints(howMany,
 		    (int*) (iNode ? iNode->getBuffer() : NULL),
 		    (float*) (pNode ? pNode->getBuffer() : NULL),
 		    (float*) (cNode ? cNode->getBuffer(): NULL), blendFactor);
-      _01DPostDraw(bNode);
     }
     break;
   case DG_LINES:
-    if (_01DPreDraw(pNode, bNode, mNode)){
+    if (_1DPreDraw(pNode, context, blendFactor)){
       ar_drawLines(howMany,
 		   (int*) (iNode ? iNode->getBuffer() : NULL),
 		   (float*) (pNode ? pNode->getBuffer() : NULL),
 		   (float*) (cNode ? cNode->getBuffer() : NULL), blendFactor);
-      _01DPostDraw(bNode);
     }
     break;
   case DG_LINE_STRIP:
-    if (_01DPreDraw(pNode, bNode, mNode)){
+    if (_1DPreDraw(pNode, context, blendFactor)){
       ar_drawLineStrip(howMany,
 		       (int*) (iNode ? iNode->getBuffer() : NULL),
 		       (float*) (pNode ? pNode->getBuffer() : NULL),
-		       (float*) (cNode ? cNode->getBuffer() : NULL), blendFactor);
-      _01DPostDraw(bNode);
+		       (float*) (cNode ? cNode->getBuffer() : NULL), 
+                       blendFactor);
     }
     break;
   case DG_TRIANGLES:
-    if (_2DPreDraw(pNode, nNode, bNode, mNode, tNode)){
+    if (_2DPreDraw(pNode, nNode, context, blendFactor)){
       // There used to be CG code in here... but no longer. That turned out
       // to be a failed experiment.
       ar_drawTriangles(howMany, 
@@ -254,51 +100,50 @@ void arDrawableNode::draw(arGraphicsContext* context){
       //(CGparameter*) ((*_bumpMap) ? (*_bumpMap)->cgTBN() : NULL),
       //(float**) ((*_bumpMap) ? (*_bumpMap)->TBN() : NULL)
       //);
-      _2DPostDraw(bNode, tNode);
     }
     break;
   case DG_TRIANGLE_STRIP:
-    if (_2DPreDraw(pNode, nNode, bNode, mNode, tNode)){
+    if (_2DPreDraw(pNode, nNode, context, blendFactor)){
       ar_drawTriangleStrip(howMany, 
                            (int*) (iNode ? iNode->getBuffer() : NULL), 
                            (float*) (pNode ? pNode->getBuffer(): NULL), 
                            (float*) (nNode ? nNode->getBuffer() : NULL), 
                            (float*) (cNode ? cNode->getBuffer() : NULL), 
-                           (float*) (t2Node ? t2Node->getBuffer() : NULL), blendFactor);
-      _2DPostDraw(bNode, tNode);
+                           (float*) (t2Node ? t2Node->getBuffer() : NULL), 
+                           blendFactor);
     }
     break;
   case DG_QUADS:
-    if (_2DPreDraw(pNode, nNode, bNode, mNode, tNode)){
+    if (_2DPreDraw(pNode, nNode, context, blendFactor)){
       ar_drawQuads(howMany, 
                    (int*) (iNode ? iNode->getBuffer() : NULL), 
                    (float*) (pNode ? pNode->getBuffer() : NULL), 
                    (float*) (nNode ? nNode->getBuffer() : NULL), 
                    (float*) (cNode ? cNode->getBuffer() : NULL), 
-                   (float*) (t2Node ? t2Node->getBuffer() : NULL), blendFactor);
-      _2DPostDraw(bNode, tNode);
+                   (float*) (t2Node ? t2Node->getBuffer() : NULL), 
+                   blendFactor);
     }
     break;
   case DG_QUAD_STRIP:
-    if (_2DPreDraw(pNode, nNode, bNode, mNode, tNode)){
+    if (_2DPreDraw(pNode, nNode, context, blendFactor)){
       ar_drawQuadStrip(howMany, 
                        (int*) (iNode ? iNode->getBuffer() : NULL), 
                        (float*) (pNode ? pNode->getBuffer() : NULL), 
                        (float*) (nNode ? nNode->getBuffer() : NULL), 
                        (float*) (cNode ? cNode->getBuffer() : NULL), 
-                       (float*) (t2Node ? t2Node->getBuffer() : NULL), blendFactor);
-      _2DPostDraw(bNode, tNode);
+                       (float*) (t2Node ? t2Node->getBuffer() : NULL), 
+                       blendFactor);
     }
     break;
   case DG_POLYGON:
-    if (_2DPreDraw(pNode, nNode, bNode, mNode, tNode)){
+    if (_2DPreDraw(pNode, nNode, context, blendFactor)){
       ar_drawPolygon(howMany, 
                      (int*) (iNode ? iNode->getBuffer() : NULL), 
                      (float*) (pNode ? pNode->getBuffer() : NULL), 
                      (float*) (nNode ? nNode->getBuffer() : NULL), 
                      (float*) (cNode ? cNode->getBuffer() : NULL), 
-                     (float*) (t2Node ? t2Node->getBuffer() : NULL), blendFactor);
-      _2DPostDraw(bNode, tNode);
+                     (float*) (t2Node ? t2Node->getBuffer() : NULL), 
+		     blendFactor);
     }
     break;
   default:
@@ -454,4 +299,53 @@ arStructuredData* arDrawableNode::_dumpData(int type, int number){
   result->dataIn(_g->AR_DRAWABLE_TYPE, &type, AR_INT, 1);
   result->dataIn(_g->AR_DRAWABLE_NUMBER, &number, AR_INT, 1);
   return result;
+}
+
+bool arDrawableNode::_0DPreDraw(arGraphicsNode* pointsNode,
+				arGraphicsContext* context,
+                                float& blendFactor){
+  if (!pointsNode){
+    return false;
+  }
+  if (context){
+    context->setPointState(blendFactor);
+  }
+  return true;
+}
+
+bool arDrawableNode::_1DPreDraw(arGraphicsNode* pointsNode,
+                                arGraphicsContext* context,
+                                float& blendFactor){
+  if (!pointsNode){
+    return false;
+  }
+  if (context){
+    context->setLineState(blendFactor);
+  }
+  return true;
+}
+
+// Consigning CG to the dustbin of history.
+//#ifdef USE_CG
+//extern CGcontext myContext;
+//extern void cgErrorCallback(void);
+//#endif
+
+bool arDrawableNode::_2DPreDraw(arGraphicsNode* pointsNode,
+                                arGraphicsNode* normal3Node,
+                                arGraphicsContext* context,
+                                float& blendFactor){
+  // Some data is necessary to draw triangles.
+  if (!pointsNode){
+    cerr << "arDrawableNode error: missing points set for 2D geometry.\n";
+    return false;
+  }
+  if (!normal3Node){
+    cerr << "arDrawableNode error: missing normals set for 2D geometry.\n";
+    return false;
+  }
+  if (context){
+    context->setTriangleState(blendFactor);
+  }
+  return true;
 }

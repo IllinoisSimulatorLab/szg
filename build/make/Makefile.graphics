@@ -97,7 +97,8 @@ endif
 
 ALL =   $(SZG_CURRENT_DLL) \
   szgrender$(EXE) \
-  szg-rp$(EXE)
+  szg-rp$(EXE) \
+  TestGraphics$(EXE)
 
 # NOTE: We now include the "magic" Everything target in Makefile.rules
 
@@ -116,5 +117,9 @@ szgrender$(EXE): szgrender$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 
 szg-rp$(EXE): szg-rp$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_EXE_FIRST) szg-rp$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
+	$(COPY)
+
+TestGraphics$(EXE): TestGraphics$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_EXE_FIRST) TestGraphics$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
