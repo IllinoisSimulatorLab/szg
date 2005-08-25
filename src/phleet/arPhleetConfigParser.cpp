@@ -163,8 +163,8 @@ void arPhleetConfigParser::printLogin(){
   cout << "Phleet login:\n"
        << "    system user name = " << ar_getUser() << "\n"
        << "    phleet user name = " << _userName << "\n"
-       << "    szgserver        = \""
-       << _serverName << "\", " << _serverIP << ":" << _serverPort << "\n";
+       << "    szgserver        = "
+       << _serverName << ", " << _serverIP << ":" << _serverPort << "\n";
 }
 
 /// Returns slash-delimited addresses (as defined in the config file) of

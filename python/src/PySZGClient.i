@@ -71,7 +71,7 @@ class arSZGClient{
               const string& groupName,
               const string& parameterName,
               const string& parameterValue);
-%extend{
+%extend {
   string testSetAttributeUser(const string& userName,
                           const string& computerName,
               const string& groupName,
@@ -84,7 +84,7 @@ class arSZGClient{
   string getAttribute(const string& groupName, 
                       const string& parameterName,
               const string& validValues = "");
-%extend{
+%extend {
   string getAttributeUser(const string& userName,
               const string& computerName,
               const string& groupName,
@@ -154,6 +154,38 @@ class arSZGClient{
   int getProcessID(void); // get my own process ID
   int sendMessage(const string& type, const string& body, int destination,
                    bool responseRequested = false);
+
+%extend {
+  PyObject* receiveMessage(void) {
+    std::string messageType, messageBody;
+/* We need to store the current thread state and release the Python
+   global interpreter lock before calling receiveMessage() here;
+   otherwise, all of Python will lock up until receiveMessage()
+   returns (and receiveMessage() blocks until it receives a message,
+   so that would be bad). After receiveMessage() returns, we
+   re-acquire the interpreter lock and restore the thread state.
+*/
+    PyThreadState *_save;
+    _save = PyThreadState_Swap(NULL);
+    PyEval_ReleaseLock();
+    int messageID = self->receiveMessage( &messageType, &messageBody );
+    PyEval_AcquireLock();
+    PyThreadState_Swap(_save);
+    PyObject* retTuple = PyTuple_New(3);
+    PyTuple_SetItem( retTuple, 0, PyInt_FromLong( (long)messageID ) );
+    if (messageID != 0) {
+      PyTuple_SetItem( retTuple, 1, PyString_FromString( messageType.c_str() ) );
+      PyTuple_SetItem( retTuple, 2, PyString_FromString( messageBody.c_str() ) );
+    } else {
+      PyTuple_SetItem( retTuple, 1, Py_None );
+      PyTuple_SetItem( retTuple, 2, Py_None );
+    }
+    return retTuple;
+  }
+}
+
+  bool messageResponse(int messageID, const string& body,
+                       bool partialResponse = false);
 
 };  
 

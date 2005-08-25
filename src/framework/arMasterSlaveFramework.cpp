@@ -582,10 +582,12 @@ void arMasterSlaveFramework::setWindowStartGLCallback
 
 void arMasterSlaveFramework::setDrawCallback(
               void (*draw)( arMasterSlaveFramework&, arGraphicsWindow&, arViewport& ) ) {
+  cout << "arMasterSlaveFramework remark: installing new-style draw callback.\n";
   _drawCallback = draw;
 }
 
 void arMasterSlaveFramework::setDrawCallback( void (*draw)( arMasterSlaveFramework& ) ) {
+  cout << "arMasterSlaveFramework remark: installing old-style draw callback.\n";
   _oldDrawCallback = draw;
 }
 

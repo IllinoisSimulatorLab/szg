@@ -259,7 +259,30 @@ void IsenseTracker::_loadAllStationInfo() {
   for (iter = _stations.begin(); iter != _stations.end(); ++iter) {
     iter->loadStationInfo( stationID++ );
   }
+  // Hack, i.e. I'm not sure this is the right thing to do. Driver worked in ISL,
+  // not in Frances' lab (DeviceServer crashes when resetting coord axes for
+  // invalid stations). So here I prune the list of invalid stations.
+  bool done(false);
+  while (!done) {
+    done = true;
+    for (iter = _stations.begin(); iter != _stations.end(); ++iter) {
+      if (!iter->getStatus()) {
+        _stations.erase(iter);
+	done = false;
+	break;
+      }
+    }
+  }
 }
+
+// old version
+//void IsenseTracker::_loadAllStationInfo() {
+//  unsigned int stationID(1);
+//  std::vector< IsenseStation >::iterator iter;
+//  for (iter = _stations.begin(); iter != _stations.end(); ++iter) {
+//    iter->loadStationInfo( stationID++ );
+//  }
+//}
 
 
 /*! We ask only that this work for at least one of the stations
@@ -361,6 +384,7 @@ bool IsenseStation::configure( arSZGClient& client, unsigned int trackerIndex ) 
          << sig[0] << ":" << sig[1] << ":" << sig[2] << endl;
   }
 
+  // Get value of e.g. SZG_INTERSENSE/compass0_1 (should be 0=off, 1=partial, or 2=full).
   sprintf( chStation, "compass%d_%d", trackerIndex, getID() );
   int useCompass;
   if (client.getAttributeInts( "SZG_INTERSENSE", chStation, &useCompass, 1 ) ) {

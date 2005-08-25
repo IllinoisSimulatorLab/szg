@@ -123,7 +123,7 @@ string getPythonPath( const string& user, string pyfile ) {
 //    1. if we are executing a native program, this will be the arglist after
 //       the exename (i.e. on unix argv[1]... argv[argc-1])
 //    2. for python, this will be the full exename plus the args.
-bool buildFunctionArgs(ExecutionInfo* execInfo,
+string buildFunctionArgs(ExecutionInfo* execInfo,
                        string& execPath,
                        string& symbolicCommand,
                        string& command,
@@ -137,8 +137,7 @@ bool buildFunctionArgs(ExecutionInfo* execInfo,
   args.clear();
   arDelimitedString tmpArgs(argString, ' ');
   if (tmpArgs.size() < 1){
-    cout << "szgd error: execution attempt on empty arg string.\n";
-    return false;
+    return "szgd error: execution attempt on empty arg string.\n";
   }
   command = tmpArgs[0];
   int i;
@@ -166,20 +165,22 @@ bool buildFunctionArgs(ExecutionInfo* execInfo,
   command = ar_stripExeName(command);
   symbolicCommand = command;
   string fileName;
+  ostringstream errStream;
   if (command.substr(command.length()-3, 3) == ".py") {
     execInfo->executableType = "python";
     fileName = command;
     // Next, retrieve the python path.
     execInfo->pyDirPath = getPythonPath( user, fileName );
     if (execInfo->pyDirPath == "NULL") {
-      cerr << "szgd error: getPythonPath() failed.\n";
-      return false;
+      errStream << "szgd error: Failed to find a python file '" << fileName
+                << "' on user " << user << "'s SZG_PYTHON/path.\n";
+      return errStream.str();
     }
     command = ar_fileFind( fileName, "", execInfo->pyDirPath);
     if (command == "NULL") {
-      cerr << "szgd error: could not find file " << fileName
+      errStream << "szgd error: could not find file " << fileName
            << "\n  on python source path " << execInfo->pyDirPath << ".\n";
-      return false;
+      return errStream.str();
     }
   }
   else {
@@ -190,9 +191,9 @@ bool buildFunctionArgs(ExecutionInfo* execInfo,
     fileName = command;
     command = ar_fileFind(fileName, "", execPath);
     if (command == "NULL") {
-      cout << "szgd error: no file " << fileName
+      errStream << "szgd error: no file " << fileName
            << "\n  on exec path " << execPath << ".\n";
-      return false;
+      return errStream.str();
     }
   }
 
@@ -212,15 +213,15 @@ bool buildFunctionArgs(ExecutionInfo* execInfo,
     fileName = command;
     command = ar_fileFind( fileName, "", execPath );
     if (command == "NULL"){
-      cout << "szgd error: no file " << fileName
+      errStream << "szgd error: no file " << fileName
            << "\n  on exec path " << execPath << ".\n";
-      return false;
+      return errStream.str();
     }
   }
-  else{
-    cerr << "szgd error: unhandled executable type \""
+  else {
+    errStream << "szgd error: unhandled executable type \""
          << execInfo->executableType << "\".\n";
-    return false;
+    return errStream.str();
   }
   cout << "szgd remark:\n"
        << "  user name=" << user << "\n"
@@ -235,7 +236,7 @@ bool buildFunctionArgs(ExecutionInfo* execInfo,
     cout << *iter;
   }
   cout << ")\n";
-  return true;
+  return string("OK");
 }
 
 char** buildUnixStyleArgList(const string& command, list<string>& args){
@@ -316,11 +317,11 @@ void execProcess(void* i){
   string symbolicCommand;
   string newCommand;
   list<string> mangledArgList;
-  if (!buildFunctionArgs( execInfo, execPath, 
+  string statString = buildFunctionArgs( execInfo, execPath, 
                          symbolicCommand,
-                         newCommand, mangledArgList)){
-    info << "szgd error: no file " << symbolicCommand << "\n"
-	  << "on path " << execPath << ".\n";
+                         newCommand, mangledArgList);
+  if (statString != "OK") {
+    info << statString;
     // note how we respond to the message ourselves
     SZGClient->messageResponse(receivedMessageID, info.str());
     return;
