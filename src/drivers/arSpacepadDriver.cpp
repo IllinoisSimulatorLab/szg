@@ -121,7 +121,7 @@ bool arSpacepadDriver::init(arSZGClient& c){
   _setDeviceElements(0,0,2);
   // read in the calibration information
   string transmitterOffset 
-    = c.getAttribute("SZG_TRACKER","transmitter_offset");
+    = c.getAttribute("SZG_SPACEPAD","transmitter_offset");
   if (transmitterOffset != "NULL"){
     ar_parseFloatString(transmitterOffset, _transmitterOffset.v, 16);
     initResponse << "Using transmitter offset =\n"
@@ -129,7 +129,7 @@ bool arSpacepadDriver::init(arSZGClient& c){
   }
   float temp[4];
   string sensor0Rot
-    = c.getAttribute("SZG_TRACKER","sensor0_rot");
+    = c.getAttribute("SZG_SPACEPAD","sensor0_rot");
   if (sensor0Rot != "NULL"){
     ar_parseFloatString(sensor0Rot, temp, 4);
     _sensorRot[0] 
@@ -138,7 +138,7 @@ bool arSpacepadDriver::init(arSZGClient& c){
 	         << _sensorRot[0] <<"\n";
   }
   string sensor1Rot
-    = c.getAttribute("SZG_TRACKER","sensor1_rot");
+    = c.getAttribute("SZG_SPACEPAD","sensor1_rot");
   if (sensor1Rot != "NULL"){
     ar_parseFloatString(sensor1Rot, temp, 4);
     _sensorRot[1] 

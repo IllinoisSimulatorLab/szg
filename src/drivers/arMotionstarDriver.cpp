@@ -51,14 +51,14 @@ arMotionstarDriver::arMotionstarDriver():
 bool arMotionstarDriver::init(arSZGClient& SZGClient){
   // Use the arSZGClient's message forwarding facility.
   stringstream& initResponse = SZGClient.initResponse();
-  _birdnetIP = SZGClient.getAttribute("SZG_TRACKER", "IPhost");
+  _birdnetIP = SZGClient.getAttribute("SZG_MOTIONSTAR", "IPhost");
   initResponse << "arMotionstarDriver remark: tracker host is " 
                << _birdnetIP << ".\n";
 
   // this test could be better
   if (_birdnetIP.length()<7){
     initResponse << "arMotionstarDriver error: "
-	         << "SZG_TRACKER/IPhost undefined or invalid.\n";
+	         << "SZG_MOTIONSTAR/IPhost undefined or invalid.\n";
     return false;
   }
 
