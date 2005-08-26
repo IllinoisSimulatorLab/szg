@@ -6,8 +6,6 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arAppLauncher.h"
-// TODO TODO TODO TODO TODO TODO TODO TODO
-// THIS DOES NOT HANDSHAKE PROPERLY WITH SZGD!
 
 int main(int argc, char** argv){
   // NOTE: arSZGClient::init(...) must come before the argument parsing...

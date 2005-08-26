@@ -39,8 +39,7 @@ arSZGClient::arSZGClient():
   _inputNetworks("NULL"),
   _inputAddresses("NULL"),
   _mode("component"),
-  _graphicsMode("SZG_SCREEN0"),
-  _guiMode("SZG_DISPLAY0"),
+  _graphicsMode("SZG_DISPLAY0"),
   _parameterFileName("szg_parameters.txt"),
   _virtualComputer("NULL"),
   _connected(false),
@@ -380,6 +379,7 @@ string arSZGClient::getAllAttributes(const string& substring){
   return result;
 }
 
+// This is called only when parsing the assign blocks in the dbatch files.
 bool arSZGClient::parseAssignmentString(const string& text){
   stringstream parsingStream(text);
   string param1, param2, param3, param4;
@@ -405,6 +405,11 @@ LFail:
       cout << "arSZGClient error: malformed assignment string:\n";
       cout << "----------------\n" << text << "----------------" << endl;
       return false;
+    }
+    if (param2.substr(0,10) == "SZG_SCREEN"){
+      cout << "arSZGClient warning: are you sure you want to use SZG_SCREEN "
+	   << "parameters?\n";
+      cout << "  THESE ARE OBSOLETE FOR VERSIONS PAST 0.7!\n";
     }
     setAttribute(param1, param2, param3, param4);
   }
@@ -2384,8 +2389,6 @@ const string& arSZGClient::getMode(const string& channel){
     return _mode;
   if (channel == "graphics")
     return _graphicsMode;
-  if (channel == "gui")
-    return _guiMode;
 
   cout << _exeName << " warning: unknown channel for getMode().\n";
   return _mode;
@@ -2439,8 +2442,6 @@ string arSZGClient::createContext(){
   // Additional mode stuff.
   if (_graphicsMode != "NULL")
     result += string(";mode/graphics=")+_graphicsMode;
-  if (_guiMode != "NULL")
-    result += string(";mode/gui=")+_guiMode;
   result += string(";")+string("networks/default=")+_networks;
 
   // Additional network stuff.
@@ -2786,9 +2787,6 @@ bool arSZGClient::_parseContextPair(const string& thePair){
     }
     else if (modeChannel == "graphics"){
       _graphicsMode = pair2;
-    }
-    else if( modeChannel == "gui"){
-      _guiMode = pair2;
     }
     else{
       cout << _exeName << " error: parseContextPair() got invalid "

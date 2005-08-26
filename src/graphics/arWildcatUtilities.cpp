@@ -88,12 +88,6 @@ void ar_activateWildcatFramelock() {
       else{
 	cout << "\nwglEnableFrameLockI3D succeeded.\n";
       }
-      // the next line is actually necessary for the wildcats...
-      // frame-locking needs to be working when next we try to swap frames
-      // there's a little bit of a lesson in here... syzygy is trying to
-      // maintain frame-by-frame precision, while the wildcat cards seem to
-      // be built to tolerate (or even require) some slop from frame to frame
-      //ar_usleep(900000);
     }
     __frameLockInitted = true;
   }
@@ -118,8 +112,6 @@ void ar_deactivateWildcatFramelock() {
       else{
         cout << "\nwglDisableFrameLockI3D() succeeded.\n";
       }
-      // make sure this really took...
-      //ar_usleep(900000);
       __frameLockInitted = false;
     }
   }

@@ -717,7 +717,7 @@ arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
   const string name(inData->getDataString(_lang->AR_MAKE_NODE_NAME));
   const string type(inData->getDataString(_lang->AR_MAKE_NODE_TYPE));
   arDatabaseNode* result = 
-    _insertDatabaseNode(type, parentID, theID, name);
+    _addDatabaseNode(type, parentID, theID, name);
   if (result){
     // We go ahead and modify the record in place with the new ID.
     // The arGraphicsServer and arGraphicsClient combo depend on there
@@ -726,16 +726,19 @@ arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
     theID = result->getID();
     inData->dataIn(_lang->AR_MAKE_NODE_ID, &theID, AR_INT, 1);
   }
-  // _insertDatabaseNode already complained if a complaint was necessary.
+  // _addDatabaseNode already complained if a complaint was necessary.
   return result;
 }
 
 // Returns NULL on error, otherwise returns the new database node,
 // already initialized.
-arDatabaseNode* arDatabase::_insertDatabaseNode(const string& typeString,
-                                                int parentID,
-                                                int nodeID,
-                                                const string& nodeName){
+// PLEASE NOTE: This function does double duty: both as a creator of new
+// database nodes AND as a "mapper" of existing database nodes
+// (consequently, we allow an existing node to get returned).
+arDatabaseNode* arDatabase::_addDatabaseNode(const string& typeString,
+                                             int parentID,
+                                             int nodeID,
+                                             const string& nodeName){
   // Make sure no node exists with this ID.
   if (nodeID != -1){
     // In this case, we're trying to insert a node with a specific ID.

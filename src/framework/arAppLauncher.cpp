@@ -461,7 +461,7 @@ int arAppLauncher::getNumberScreens() {
     return -1;
   }
   const int num =
-    _client->getAttributeInt(_vircomp, "SZG_SCREEN", "number_screens", "");
+    _client->getAttributeInt(_vircomp, "SZG_DISPLAY", "number_screens", "");
   if (num <= 0){
     cerr << _exeName << " warning: no screens defined for virtual computer "
          << _vircomp << ".\n";
@@ -571,6 +571,11 @@ bool arAppLauncher::getRenderProgram(const int num, string& computer,
   return false;
 }
 
+// This method allows on-the-fly modification of certain attributes in
+// a XML configuration for a display. The first window specified in the
+// display is the only one modified... and only top-level elements
+// with attributes "value" can be modified (currently decorate, fullscreen,
+// title, stereo, zorder, xdisplay).
 void arAppLauncher::updateRenderers(const string& attribute, 
                                     const string& value) {
   // set up the virtual computer info, if necessary
@@ -582,10 +587,28 @@ void arAppLauncher::updateRenderers(const string& attribute,
   const int numScreens = getNumberScreens();
   string host, program;
   for (int i=0; i<numScreens; i++) {
-    // even if no render program is running, we want to update the
-    // database
-    (void)_client->setAttribute(_pipeComp[i], _pipeScreen[i], 
-                                attribute, value);
+    // Even if no render program is running, we want to update the
+    // database.
+    
+    // First, figure out the where the XML is located. Note that we
+    // explicitly have the empty string as the final parameter, to 
+    // disambiguate a case where "computer" (1st param) is not specified
+    // but "valid values" are.
+    string configName 
+      = _client->getAttribute(_pipeComp[i], _pipeScreen[i], "name", "");
+    if (configName == "NULL"){
+      cout << "arAppLauncher warning: no XML configuration specified for "
+	   << _pipeComp[i] << "/" << _pipeScreen[i] << ".\n";
+    }
+    else{
+      // We attempt to go into the first window defined in the XML global
+      // parameter given by configName and set the specified attribute.
+      configName += "/szg_window/";
+      configName += attribute;
+      configName += "/value";
+      _client->getSetGlobalXML(configName, value);
+
+    }
     if (getRenderProgram(i, host, program)) {
       // Keep going if we hit any errors along the way.
       (void)_client->sendReload(host, program);
@@ -646,9 +669,9 @@ bool arAppLauncher::_setPipeName(int i, stringstream& initResponse){
     return false;
   }
   const arSlashString pipe(_getAttribute(_screenName(i), "map", ""));
-  if (pipe.size() != 2 || pipe[1].substr(0,10) != "SZG_SCREEN"){
+  if (pipe.size() != 2 || pipe[1].substr(0,11) != "SZG_DISPLAY"){
     initResponse << _exeName << " warning: screen " << i << " of "
-         << _vircomp << " does not map to a (computer, screen(n)) pair.\n";
+         << _vircomp << " does not map to a (computer, display(n)) pair.\n";
     return false;
   }
   _pipeComp[i] = pipe[0];
@@ -658,7 +681,7 @@ bool arAppLauncher::_setPipeName(int i, stringstream& initResponse){
 
 string arAppLauncher::_screenName(int i) {
   char buf[20];
-  sprintf(buf, "SZG_SCREEN%d", i);
+  sprintf(buf, "SZG_DISPLAY%d", i);
   return string(buf);
 }
 
@@ -1031,7 +1054,7 @@ string arAppLauncher::_getRenderContext(int i){
   char buffer[32];
   sprintf(buffer,"%i",i);
   const string networks(_client->getAttribute(
-    _vircomp,string("SZG_SCREEN")+buffer, "networks",""));
+    _vircomp,string("SZG_DISPLAY")+buffer, "networks",""));
   return _client->createContext(
     _vircomp, "graphics", _pipeScreen[i], "graphics", networks);
 }

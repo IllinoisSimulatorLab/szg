@@ -2151,11 +2151,6 @@ void arMasterSlaveFramework::_createWindowing( bool useWindowing ) {
 
 bool arMasterSlaveFramework::_loadParameters( void ) {
 
-  // The graphics configuration is in a bit of a state of transition.
-  // Some of the global window values will still be gotten from the
-  // SZG_SCREENx data structure (like window size and view mode)... but
-  // this data sctructure is moving towards defining the camera for a
-  // viewport.
   std::cout << "arMasterSlaveFramework remark: reloading parameters." << std::endl;
 
   // some things just depend on the SZG_RENDER
@@ -2163,16 +2158,9 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
   std::string received( _SZGClient.getAttribute( "SZG_RENDER","text_path" ) );
   ar_stringToBuffer( ar_pathAddSlash( received ), _textPath, sizeof( _textPath ) );
 
-  // We set a few window-wide attributes based on screen name. THIS IS AN
-  // UGLY HACK!!!! (stereo, window size, window position, wildcat framelock)
-  const string screenName( _SZGClient.getMode( "graphics" ) );
-
-  // There is a transition in configuration occuring, from the previous one
-  // to one based on arGUI. The "magic" keywords are changing from
-  // SZG_SCREENn to SZG_DISPLAYn.
-  //std::string whichDisplay = _SZGClient.getMode( "gui" );
-  string whichDisplay
-    = "SZG_DISPLAY" + screenName.substr( screenName.length() - 1, 1 );
+  // We set a few window-wide attributes based on the display name.
+  // Such as stereo, window size, window position, wildcat framelock, etc.
+  const string whichDisplay( _SZGClient.getMode( "graphics" ) );
 
   std::string displayName  = _SZGClient.getAttribute( whichDisplay, "name" );
 

@@ -133,8 +133,8 @@ class SZG_CALL arDatabase{
   bool _initDatabaseLanguage();
   arDatabaseNode* _eraseNode(arStructuredData*);
   arDatabaseNode* _makeDatabaseNode(arStructuredData*);
-  arDatabaseNode* _insertDatabaseNode(const string& typeString, int parentID, 
-                                      int nodeID, const string& nodeName);
+  arDatabaseNode* _addDatabaseNode(const string& typeString, int parentID, 
+                                   int nodeID, const string& nodeName);
   
   // Helper functions for recursive operations.
   void _writeDatabase(arDatabaseNode* pNode, arStructuredData& nodeData,

@@ -10,8 +10,6 @@
 #include <string>
 
 // Enable/disable stereo, and send reload message to, all render clients.
-// TODO TODO TODO TODO TODO TODO TODO TODO
-// THIS DOES NOT HANDSHAKE PROPERLY WITH SZGD!
 
 int main(int argc, char** argv) {
   // NOTE: arSZGClient::init(...) must come before the argument parsing...

@@ -152,8 +152,15 @@ arStructuredData* arGraphicsStateNode::_dumpData(const string& stateName,
   result->dataInString(_g->AR_GRAPHICS_STATE_STRING, stateName);
   int data[2];
   // Don't use the member variable. Instead, use the function parameter.
-  data[0] = stateValueInt[0];
-  data[1] = stateValueInt[1];
+  if (stateValueInt){
+    data[0] = stateValueInt[0];
+    data[1] = stateValueInt[1];
+  }
+  else{
+    // Sensible defaults.
+    data[0] = AR_G_FALSE;
+    data[1] = AR_G_FALSE;
+  }
   result->dataIn(_g->AR_GRAPHICS_STATE_INT, data, AR_INT, 2);
   // Don't use the member variable. Instead, use the function parameter.
   result->dataIn(_g->AR_GRAPHICS_STATE_FLOAT, &stateValueFloat, AR_FLOAT, 1);

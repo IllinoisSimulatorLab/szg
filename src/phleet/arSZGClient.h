@@ -253,10 +253,8 @@ class SZG_CALL arSZGClient{
   arSlashString       _inputAddresses;
   // the overall mode: master, trigger, component
   string               _mode;
-  // the graphics mode: screen0, etc.
+  // the graphics mode: SZG_DISPLAY0, etc.
   string               _graphicsMode;
-  // the gui mode: display0, etc.
-  string               _guiMode;
   // the file name from which parameters will be read in standalone mode
   string               _parameterFileName;
   string               _virtualComputer;

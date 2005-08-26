@@ -38,11 +38,29 @@ class SZG_CALL arDatabaseLanguage: public arLanguage{
   int AR_NAME;
   int AR_NAME_ID;
   int AR_NAME_NAME;
+  int AR_NAME_INFO;
+
+  int AR_INSERT;
+  int AR_INSERT_PARENT_ID;
+  int AR_INSERT_CHILD_ID;
+  int AR_INSERT_ID;
+  int AR_INSERT_NAME;
+  int AR_INSERT_TYPE;
+
+  int AR_CUT;
+  int AR_CUT_ID;
+
+  int AR_PERMUTE;
+  int AR_PERMUTE_PARENT_ID;
+  int AR_PERMUTE_CHILD_IDS;
 
  protected:
   arDataTemplate _erase;
   arDataTemplate _makeNode;
   arDataTemplate _nameNode;
+  arDataTemplate _insertNode;
+  arDataTemplate _cut;
+  arDataTemplate _permute;
 };
 
 #endif
