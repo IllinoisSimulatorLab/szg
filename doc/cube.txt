@@ -410,15 +410,15 @@ bottom   SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
           locating bundled data (sounds), it won't
           be running any python apps. </comment>
 <assign>
-air      SZG_PYTHON path /home/public/pycube
-north    SZG_PYTHON path G:\pycube
-south    SZG_PYTHON path G:\pycube
-east     SZG_PYTHON path G:\pycube
-west     SZG_PYTHON path G:\pycube
-top      SZG_PYTHON path G:\pycube
-bottom   SZG_PYTHON path G:\pycube
-fire     SZG_PYTHON path G:\pycube
-picasso  SZG_PYTHON path G:\pycube
+air      SZG_PYTHON path /home/public/THE_USER_NAME/pycube
+north    SZG_PYTHON path G:\THE_USER_NAME\pycube
+south    SZG_PYTHON path G:\THE_USER_NAME\pycube
+east     SZG_PYTHON path G:\THE_USER_NAME\pycube
+west     SZG_PYTHON path G:\THE_USER_NAME\pycube
+top      SZG_PYTHON path G:\THE_USER_NAME\pycube
+bottom   SZG_PYTHON path G:\THE_USER_NAME\pycube
+fire     SZG_PYTHON path G:\THE_USER_NAME\pycube
+picasso  SZG_PYTHON path G:\THE_USER_NAME\pycube
 </assign>
 
 <comment> Path for python modules. Note that the application directory, the
@@ -517,7 +517,7 @@ expt_cube SZG_DISPLAY5 map            west/SZG_DISPLAY0
 expt_cube SZG_DISPLAY5 networks       cube/internet
 expt_cube SZG_DISPLAY6 map            fire/SZG_DISPLAY0
 expt_cube SZG_DISPLAY6 networks       internet
-expt_cube SZG_INPUT0  map            air/expt_cube_tracker/joystick/cube_joystick
+expt_cube SZG_INPUT0  map            air/cube_tracker/joystick/cube_joystick
 expt_cube SZG_INPUT0  networks       internet
 expt_cube SZG_SOUND   map            picasso
 expt_cube SZG_SOUND   networks       internet
@@ -547,7 +547,7 @@ rt_expt_cube SZG_DISPLAY5 map            west/SZG_DISPLAY0
 rt_expt_cube SZG_DISPLAY5 networks       cube/internet
 rt_expt_cube SZG_DISPLAY6 map            fire/SZG_DISPLAY0
 rt_expt_cube SZG_DISPLAY6 networks       internet
-rt_expt_cube SZG_INPUT0  map            air/expt_cube_tracker/joystick/reaction_timer
+rt_expt_cube SZG_INPUT0  map            air/cube_tracker/joystick/reaction_timer
 rt_expt_cube SZG_INPUT0  networks       internet
 rt_expt_cube SZG_SOUND   map            picasso
 rt_expt_cube SZG_SOUND   networks       internet
@@ -658,8 +658,7 @@ air SZG_INPUT      filter                   arTrackCalFilter
 air SZG_MOTIONSTAR IIR_filter_weights       0/0.9/0
 air SZG_MOTIONSTAR calib_file               FaroCalLookupTables.txt
 air SZG_MOTIONSTAR use_button		    false
-air SZG_PFORTH     program_names            correct_tracker_rot
-air SZG_TRACKER    IPhost                   130.126.127.69
+air SZG_MOTIONSTAR    IPhost                   130.126.127.69
 </assign>
 
 <comment> Experiment-related parameters </comment>
