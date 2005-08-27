@@ -59,6 +59,7 @@ arTexture::arTexture( const arTexture& rhs ) :
   _mipmap( rhs._mipmap ),
   _textureFunc( rhs._textureFunc )
 {
+  ar_mutex_init(&_lock);
   _pixels = new char[ numbytes() ];
   if (!_pixels) {
     cerr << "arTexture error: _pixels allocation failed in copy constructor.\n";
@@ -96,6 +97,7 @@ arTexture::arTexture( const arTexture& rhs, unsigned int left, unsigned int bott
   _mipmap( rhs._mipmap ),
   _textureFunc( rhs._textureFunc )
 {
+  ar_mutex_init(&_lock);
   _pixels = rhs.getSubImage( left, bottom, width, height );
   if (!_pixels) {
     cerr << "arTexture error: rhs.getSubImage() failed in sub-image copy constructor.\n";
