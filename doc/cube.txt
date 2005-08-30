@@ -384,6 +384,38 @@ everything else. In particular, it has no szg_device record as in the above!
 </value>
 </param>
 
+<param>
+<name>experiment_console_window</name>
+<value>
+<szg_display>
+ <szg_window>
+   <size width="400" height="400" />
+   <position x="0" y="0" />
+   <decorate value="true" />
+   <fullscreen value="false" />
+   <title value="szg" />
+   <stereo value="false" />
+
+   <szg_viewport_list viewmode="normal">
+     <szg_viewport>
+       <eyesign value="0.0" />
+       <szg_camera>
+         <szg_screen>
+           <center x="0" y="0" z="-5" />
+           <up x="0" y="1" z="0" />
+           <dim width="10" height="10" />
+           <normal x="0" y="0" z="-1" />
+           <headmounted value="false" />
+           <usefixedhead value="ignore" />
+         </szg_screen>
+       </szg_camera>
+     </szg_viewport>
+   </szg_viewport_list>
+ </szg_window>
+</szg_display>
+</value>
+</param>
+
 <comment> 
 Exec paths: replace THE_USER_NAME with your login name. 
 NOTE: The computers that may need to run a python executable must have
@@ -696,94 +728,13 @@ air SZG_HEAD mid_eye_offset 0.29/0/-0.21
 air SZG_HEAD fixed_head_mode false
 </assign>
 
-<comment> graphics configuration </comment>
+<comment>
+Want the inputsimulator to appear in a reasonable spot on fire (which is the
+psychology experimenter's console).
+</comment>
+
 <assign>
-
-north SZG_DISPLAY0 size              0/0
-north SZG_DISPLAY0 screen_center     0/4.93/-4.93
-north SZG_DISPLAY0 screen_dim        9.86/9.86
-north SZG_DISPLAY0 screen_normal     0/0/-1
-north SZG_DISPLAY0 screen_up         0/1/0
-north SZG_DISPLAY0 stereo            true
-north SZG_DISPLAY0 tile              0/1/0/1
-north SZG_DISPLAY0 wildcat_framelock true
-north SZG_DISPLAY0 head_mounted      false
-north SZG_DISPLAY0 fixed_head_pos    0/5.5/0
-north SZG_DISPLAY0 use_fixed_head_mode allow
-
-south SZG_DISPLAY0 size              0/0
-south SZG_DISPLAY0 screen_center     0/4.93/4.93
-south SZG_DISPLAY0 screen_dim        9.86/9.86
-south SZG_DISPLAY0 screen_normal     0/0/1
-south SZG_DISPLAY0 screen_up         0/1/0
-south SZG_DISPLAY0 stereo            true
-south SZG_DISPLAY0 tile              0/1/0/1
-south SZG_DISPLAY0 head_mounted      false
-south SZG_DISPLAY0 fixed_head_pos    0/5.5/0
-south SZG_DISPLAY0 wildcat_framelock true
-south SZG_DISPLAY0 use_fixed_head_mode allow
-
-top SZG_DISPLAY0 size                0/0
-top SZG_DISPLAY0 screen_center       0/9.86/0
-top SZG_DISPLAY0 screen_dim          9.86/9.86
-top SZG_DISPLAY0 screen_normal       0/1/0
-top SZG_DISPLAY0 screen_up           -1/0/0
-top SZG_DISPLAY0 stereo              true
-top SZG_DISPLAY0 tile                0/1/0/1
-top SZG_DISPLAY0 head_mounted      false
-top SZG_DISPLAY0 fixed_head_up_angle  -90
-top SZG_DISPLAY0 fixed_head_pos      0/5.5/0
-top SZG_DISPLAY0 use_fixed_head_mode allow
-top SZG_DISPLAY0 wildcat_framelock   true
-
-bottom SZG_DISPLAY0 size              0/0
-bottom SZG_DISPLAY0 screen_center     0/0/0
-bottom SZG_DISPLAY0 screen_dim        9.86/9.86
-bottom SZG_DISPLAY0 screen_normal     0/-1/0
-bottom SZG_DISPLAY0 screen_up         0/0/-1
-bottom SZG_DISPLAY0 stereo            true
-bottom SZG_DISPLAY0 tile              0/1/0/1
-bottom SZG_DISPLAY0 head_mounted      false
-bottom SZG_DISPLAY0 fixed_head_pos    0/5.5/0
-bottom SZG_DISPLAY0 use_fixed_head_mode allow
-bottom SZG_DISPLAY0 wildcat_framelock true
-
-east SZG_DISPLAY0 size              0/0
-east SZG_DISPLAY0 screen_center     4.93/4.93/0
-east SZG_DISPLAY0 screen_dim        9.86/9.86
-east SZG_DISPLAY0 screen_normal     1/0/0
-east SZG_DISPLAY0 screen_up         0/1/0
-east SZG_DISPLAY0 stereo            true
-east SZG_DISPLAY0 tile              0/1/0/1
-east SZG_DISPLAY0 head_mounted      false
-east SZG_DISPLAY0 fixed_head_pos    0/5.5/0
-east SZG_DISPLAY0 use_fixed_head_mode allow
-east SZG_DISPLAY0 wildcat_framelock true
-
-west SZG_DISPLAY0 size              0/0
-west SZG_DISPLAY0 screen_center     -4.93/4.93/0
-west SZG_DISPLAY0 screen_dim        9.86/9.86
-west SZG_DISPLAY0 screen_normal     -1/0/0
-west SZG_DISPLAY0 screen_up         0/1/0
-west SZG_DISPLAY0 stereo            true
-west SZG_DISPLAY0 tile              0/1/0/1
-west SZG_DISPLAY0 head_mounted      false
-west SZG_DISPLAY0 fixed_head_pos    0/5.5/0
-west SZG_DISPLAY0 use_fixed_head_mode allow
-west SZG_DISPLAY0 wildcat_framelock true
-
-fire SZG_DISPLAY0 size              400/400
-fire SZG_DISPLAY0 screen_center     0/0/-5
-fire SZG_DISPLAY0 screen_dim        10/10
-fire SZG_DISPLAY0 screen_normal     0/0/-1
-fire SZG_DISPLAY0 screen_up         0/1/0
-fire SZG_DISPLAY0 stereo            false
-fire SZG_DISPLAY0 tile              0/1/0/1
-fire SZG_DISPLAY0 head_mounted      true
-fire SZG_DISPLAY0 use_fixed_head_mode ignore
-fire SZG_DISPLAY0 wildcat_framelock false
 fire SZG_INPUTSIM position 600/100
-
 </assign>
 
 <assign>
@@ -793,6 +744,7 @@ west SZG_DISPLAY0 name left_window_stereo
 south SZG_DISPLAY0 name rear_window_stereo
 top SZG_DISPLAY0 name top_window_stereo
 bottom SZG_DISPLAY0 name bottom_window_stereo
+fire SZG_DISPLAY0 name experiment_console_window
 </assign>
 
 </szg_config>

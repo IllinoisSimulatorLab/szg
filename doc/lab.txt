@@ -168,176 +168,27 @@ smoke SZG_INPUTSIM position 1305/0
 2northg SZG_TRACKER sensor1_rot 0/0/1/180
 </assign>
 
+<comment> The base calibration for the NCSA CAVE FOB </comment>
+
+<assign>
+road1 SZG_FOB baud_rate 38400 
+road1 SZG_FOB com_ports 1
+road1 SZG_FOB hemisphere front
+road1 SZG_FOB transmitter_offset 0.27781/0.0484243/0.959204/0/0.957395/-0.0932247/-0.27258/0/0.0762373/0.994264/-0.0722748/0/-0.756236/4.45035/-2.49907/1
+road1 SZG_FOB sensor0_rot 0/0/1/180
+</assign>
+
 <comment>New head parameters, defined on master/controller</comment>
 <assign>
 wall1 SZG_HEAD eye_spacing 0.2
 wall1 SZG_HEAD eye_direction 1/0/0
 wall1 SZG_HEAD mid_eye_offset 0/0/0
 wall1 SZG_HEAD fixed_head_mode false
+
 smoke SZG_HEAD eye_spacing 0.2
 smoke SZG_HEAD eye_direction 1/0/0
 smoke SZG_HEAD mid_eye_offset 0/0/0
 smoke SZG_HEAD fixed_head_mode false
-</assign>
-
-<comment> screen configuration </comment>
-<assign>
-smoke SZG_DISPLAY0 size 640/480
-smoke SZG_DISPLAY0 tile 0/1/0/1
-smoke SZG_DISPLAY0 screen_center 0/5/-5
-smoke SZG_DISPLAY0 screen_dim 10/10
-smoke SZG_DISPLAY0 screen_normal 0/0/-1
-smoke SZG_DISPLAY0 screen_up 0/1/0
-smoke SZG_DISPLAY0 head_mounted false
-
-smoke SZG_DISPLAY1 size 640/480
-smoke SZG_DISPLAY1 position 0/0
-smoke SZG_DISPLAY1 tile 0/3/1/2
-smoke SZG_DISPLAY1 screen_center 0/5/-5
-smoke SZG_DISPLAY1 screen_dim 10/10
-smoke SZG_DISPLAY1 screen_normal 0/0/-1
-smoke SZG_DISPLAY1 screen_up 0/1/0
-smoke SZG_DISPLAY1 head_mounted false
-
-smoke SZG_DISPLAY2 size 640/480
-smoke SZG_DISPLAY2 position 652/0
-smoke SZG_DISPLAY2 tile 1/3/1/2
-smoke SZG_DISPLAY2 screen_center 0/5/-5
-smoke SZG_DISPLAY2 screen_dim 10/10
-smoke SZG_DISPLAY2 screen_normal 0/0/-1
-smoke SZG_DISPLAY2 screen_up 0/1/0
-smoke SZG_DISPLAY2 head_mounted false
-
-smoke SZG_DISPLAY3 size 640/480
-smoke SZG_DISPLAY3 position 0/505
-smoke SZG_DISPLAY3 tile 0/3/0/2
-smoke SZG_DISPLAY3 screen_center 0/5/-5
-smoke SZG_DISPLAY3 screen_dim 10/10
-smoke SZG_DISPLAY3 screen_normal 0/0/-1
-smoke SZG_DISPLAY3 screen_up 0/1/0
-smoke SZG_DISPLAY3 head_mounted false
-
-smoke SZG_DISPLAY4 size 640/480
-smoke SZG_DISPLAY4 position 652/505
-smoke SZG_DISPLAY4 tile 1/3/0/2
-smoke SZG_DISPLAY4 screen_center 0/5/-5
-smoke SZG_DISPLAY4 screen_dim 10/10
-smoke SZG_DISPLAY4 screen_normal 0/0/-1
-smoke SZG_DISPLAY4 screen_up 0/1/0
-smoke SZG_DISPLAY4 head_mounted false
-
-wall1 SZG_DISPLAY0 size 0/0
-wall1 SZG_DISPLAY0 tile 0/3/1/2
-wall1 SZG_DISPLAY0 screen_center 0/5/-5
-wall1 SZG_DISPLAY0 screen_dim 15/10
-wall1 SZG_DISPLAY0 screen_normal 0/0/-1
-wall1 SZG_DISPLAY0 screen_up 0/1/0
-wall1 SZG_DISPLAY0 head_mounted false
-
-wall2 SZG_DISPLAY0 size 0/0
-wall2 SZG_DISPLAY0 tile 1/3/1/2
-wall2 SZG_DISPLAY0 screen_center 0/5/-5
-wall2 SZG_DISPLAY0 screen_dim 15/10
-wall2 SZG_DISPLAY0 screen_normal 0/0/-1
-wall2 SZG_DISPLAY0 screen_up 0/1/0
-wall2 SZG_DISPLAY0 head_mounted false
-
-wall3 SZG_DISPLAY0 size 0/0
-wall3 SZG_DISPLAY0 tile 2/3/1/2
-wall3 SZG_DISPLAY0 screen_center 0/5/-5
-wall3 SZG_DISPLAY0 screen_dim 15/10
-wall3 SZG_DISPLAY0 screen_normal 0/0/-1
-wall3 SZG_DISPLAY0 screen_up 0/1/0
-wall3 SZG_DISPLAY0 head_mounted false
-
-wall4 SZG_DISPLAY0 size 0/0
-wall4 SZG_DISPLAY0 tile 0/3/0/2
-wall4 SZG_DISPLAY0 screen_center 0/5/-5
-wall4 SZG_DISPLAY0 screen_dim 15/10
-wall4 SZG_DISPLAY0 screen_normal 0/0/-1
-wall4 SZG_DISPLAY0 screen_up 0/1/0
-wall4 SZG_DISPLAY0 head_mounted false
-
-spirit SZG_DISPLAY0 size 0/0
-spirit SZG_DISPLAY0 tile 1/3/0/2
-spirit SZG_DISPLAY0 screen_center 0/5/-5
-spirit SZG_DISPLAY0 screen_dim 15/10
-spirit SZG_DISPLAY0 screen_normal 0/0/-1
-spirit SZG_DISPLAY0 screen_up 0/1/0
-spirit SZG_DISPLAY0 head_mounted false
-
-hank7 SZG_DISPLAY0 size 0/0
-hank7 SZG_DISPLAY0 tile 2/3/0/2
-hank7 SZG_DISPLAY0 screen_center 0/5/-5
-hank7 SZG_DISPLAY0 screen_dim 15/10
-hank7 SZG_DISPLAY0 screen_normal 0/0/-1
-hank7 SZG_DISPLAY0 screen_up 0/1/0
-hank7 SZG_DISPLAY0 head_mounted false
-
-2toph SZG_DISPLAY0 size 0/0
-2toph SZG_DISPLAY0 tile 0/1/0/1
-2toph SZG_DISPLAY0 screen_center 0/5/-5
-2toph SZG_DISPLAY0 screen_dim 10/10
-2toph SZG_DISPLAY0 screen_normal 0/0/-1
-2toph SZG_DISPLAY0 screen_up 0/1/0
-2toph SZG_DISPLAY0 head_mounted false
-
-cube6 SZG_DISPLAY0 size 0/0
-cube6 SZG_DISPLAY0 tile 0/1/0/1
-cube6 SZG_DISPLAY0 screen_center 0/5/-5
-cube6 SZG_DISPLAY0 screen_dim 10/10
-cube6 SZG_DISPLAY0 screen_normal 0/0/-1
-cube6 SZG_DISPLAY0 screen_up 0/1/0
-cube6 SZG_DISPLAY0 stereo true
-cube6 SZG_DISPLAY0 head_mounted false
-
-gm4 SZG_DISPLAY0 size 0/0
-gm4 SZG_DISPLAY0 tile 0/1/0/1
-gm4 SZG_DISPLAY0 screen_center 0/5/-5
-gm4 SZG_DISPLAY0 screen_dim 10/10
-gm4 SZG_DISPLAY0 screen_normal 0/0/-1
-gm4 SZG_DISPLAY0 screen_up 0/1/0
-gm4 SZG_DISPLAY0 stereo false
-gm4 SZG_DISPLAY0 view_mode walleyed
-
-road1 SZG_FOB baud_rate 38400 
-road1 SZG_FOB com_ports 1
-road1 SZG_FOB hemisphere front
-road1 SZG_FOB transmitter_offset 0.27781/0.0484243/0.959204/0/0.957395/-0.0932247/-0.27258/0/0.0762373/0.994264/-0.0722748/0/-0.756236/4.45035/-2.49907/1
-road1 SZG_FOB sensor0_rot 0/0/1/180
-road1 SZG_PFORTH program_names filter_passive_tracker
-
-2bottomh SZG_DISPLAY0 size 640/480
-2bottomh SZG_DISPLAY0 tile 0/1/0/1
-2bottomh SZG_DISPLAY0 screen_center 0/5/-5
-2bottomh SZG_DISPLAY0 screen_dim 10/10
-2bottomh SZG_DISPLAY0 screen_normal 0/0/-1
-2bottomh SZG_DISPLAY0 screen_up 0/1/0
-2bottomh SZG_DISPLAY0 head_mounted false
-
-2northh  SZG_DISPLAY0 size 640/480
-2northh  SZG_DISPLAY0 tile 0/1/0/1
-2northh  SZG_DISPLAY0 screen_center 0/5/-5
-2northh  SZG_DISPLAY0 screen_dim 10/10
-2northh  SZG_DISPLAY0 screen_normal 0/0/-1
-2northh  SZG_DISPLAY0 screen_up 0/1/0
-2northh  SZG_DISPLAY0 head_mounted false
-
-2easth   SZG_DISPLAY0 size 640/480
-2easth   SZG_DISPLAY0 tile 0/1/0/1
-2easth   SZG_DISPLAY0 screen_center 0/5/-5
-2easth   SZG_DISPLAY0 screen_dim 10/10
-2easth   SZG_DISPLAY0 screen_normal 0/0/-1
-2easth   SZG_DISPLAY0 screen_up 0/1/0
-2easth   SZG_DISPLAY0 head_mounted false
-
-isl2     SZG_DISPLAY0 size 640/480
-isl2     SZG_DISPLAY0 tile 0/1/0/1
-isl2     SZG_DISPLAY0 screen_center 0/5/-5
-isl2     SZG_DISPLAY0 screen_dim 10/10
-isl2     SZG_DISPLAY0 screen_normal 0/0/-1
-isl2     SZG_DISPLAY0 screen_up 0/1/0
-isl2     SZG_DISPLAY0 head_mounted false
 </assign>
 
 <comment>

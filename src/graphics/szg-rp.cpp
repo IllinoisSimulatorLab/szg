@@ -41,6 +41,7 @@ int xPos = 0;
 int yPos = 0;
 int xSize = 600;
 int ySize = 600;
+bool useFullscreen = false;
 arMatrix4 translationMatrix;
 string peerTexturePath, peerTextPath;
 
@@ -66,30 +67,46 @@ arGraphicsPeer* createNewPeer(const string& name){
 }
 
 bool loadParameters(arSZGClient& cli){
-  // important that we use the parameters for our particular screen
+  // Important that we load the parameters for our particular display.
+  // NOTE: szg-rp is different from the frameworks (szgrender and 
+  // arMasterSlaveFramework) in that it DOES NOT try to set up multiple
+  // windows, cameras, etc. Instead, we just go ahead and query the
+  // config of the first window in the XML and determine the position,
+  // size, and fullscreen/not-fullscreen specified.
   string screenName = cli.getMode("graphics");
-
-  int sizeBuffer[2];
-  string sizeString = cli.getAttribute(screenName, "size");
-  if (sizeString != "NULL" 
-      && ar_parseIntString(sizeString,sizeBuffer,2)== 2){
-    xSize = sizeBuffer[0];
-    ySize = sizeBuffer[1];
-  }
-  else{
-    xSize = 640;
-    ySize = 480;
-  }
-
-  string posString = cli.getAttribute(screenName, "position");
-  if (posString != "NULL"
-      && ar_parseIntString(posString,sizeBuffer,2)){
-    xPos = sizeBuffer[0];
-    yPos = sizeBuffer[1];
-  }
-  else{
-    xPos = 0;
-    yPos = 0;
+  string configName = cli.getAttribute(screenName, "name");
+  if (configName != "NULL"){
+    // A configuration record has actually been specified.
+    string queryName = configName + "/szg_window/size/width";
+    string queryResult = cli.getSetGlobalXML(queryName);
+    if (queryResult != "NULL"){
+      // Something was actually defined. A default is already set globally.
+      xSize = atoi(queryResult.c_str());
+    }
+    queryName = configName + "/szg_window/size/height";
+    queryResult = cli.getSetGlobalXML(queryName);
+    if (queryResult != "NULL"){
+      // Something was actually defined. A default is already set globally.
+      ySize = atoi(queryResult.c_str());
+    }
+    queryName = configName + "/szg_window/position/x";
+    queryResult = cli.getSetGlobalXML(queryName);
+    if (queryResult != "NULL"){
+      // Something was actually defined. A default is already set globally.
+      xPos = atoi(queryResult.c_str());
+    }
+    queryName = configName + "/szg_window/position/y";
+    queryResult = cli.getSetGlobalXML(queryName);
+    if (queryResult != "NULL"){
+      // Something was actually defined. A default is already sey globally.
+      yPos = atoi(queryResult.c_str());
+    }
+    queryName = configName + "/szg_window/fullscreen/value";
+    queryResult = cli.getSetGlobalXML(queryName);
+    if (queryResult == "true"){
+      // The default is false and is set in the globals.
+      useFullscreen = true;
+    }
   }
 
   peerTexturePath = cli.getAttribute("SZG_RENDER", "texture_path");
@@ -599,13 +616,9 @@ int main(int argc, char** argv){
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB);
   glutInitWindowPosition(xPos,yPos);
-  if (xSize>0 && ySize>0){
-    glutInitWindowSize(xSize,ySize);
-    glutCreateWindow("Syzygy Reality Peer");
-  }
-  else{
-    glutInitWindowSize(640,480);
-    glutCreateWindow("Syzygy Reality Peer");
+  glutInitWindowSize(xSize, ySize);
+  glutCreateWindow("Syzygy Reality Peer");
+  if (useFullscreen){
     glutFullScreen();
   }
   glutSetCursor(GLUT_CURSOR_NONE);

@@ -586,7 +586,7 @@ int main( int argc, char** argv )
   // set up the head we'll use throughout
   head.setMatrix( ar_translationMatrix( 0.0, 5.0, 0.0 ) );
 
-  std::string whichDisplay = SZGClient.getMode( "gui" );
+  std::string whichDisplay = SZGClient.getMode( "graphics" );
   std::string displayName = SZGClient.getAttribute( whichDisplay, "name" );
 
   std::cout << "Using display: " << displayName << std::endl;
