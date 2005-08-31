@@ -1,10 +1,11 @@
+#!/usr/bin/python
 from PySZG import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
-import numarray
-import cPickle
-import array
+import sys
+
+firstFrame = True
 
 #### Master/slave framework skeleton example. Demonstrates usage of some
 #### interaction classes. Puts up a yellow square that the user can touch
@@ -17,7 +18,7 @@ import array
 # Unit conversions.  Tracker (and cube screen descriptions) use feet.
 # Atlantis, for example, uses 1/2-millimeters, so the appropriate conversion
 # factor is 12*2.54*10.*2.
-FEET_TO_LOCAL_UNITS = 1.
+LOCAL_UNITS_PER_FOOT = 1.
 
 
 #### Class definitions & implementations. ####
@@ -114,24 +115,24 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     self.interactionList = [self.theSquare]
 
     # Tell the framework what units we're using.
-    self.setUnitConversion( FEET_TO_LOCAL_UNITS )
+    self.setUnitConversion( LOCAL_UNITS_PER_FOOT )
 
     # Near & far clipping planes.
-    nearClipDistance = .1*FEET_TO_LOCAL_UNITS
-    farClipDistance = 100.*FEET_TO_LOCAL_UNITS
+    nearClipDistance = .1*LOCAL_UNITS_PER_FOOT
+    farClipDistance = 100.*LOCAL_UNITS_PER_FOOT
     self.setClipPlanes( nearClipDistance, farClipDistance )
 
 
   #### Framework callbacks -- see szg/src/framework/arMasterSlaveFramework.h ####
 
   # start (formerly init) callback (called in arMasterSlaveFramework::start())
-  #
+  # NOTE: now called before window is created, so no OpenGL initialization here.
   def onStart( self, client ):
 
     # Register variables to be shared between master & slaves
     self.initSequenceTransfer('transfer')
 
-    # Setup navigation, so we can drive around with the joystick
+    #Setup navigation, so we can drive around with the joystick
     #
     # Tilting the joystick by more than 20% along axis 1 (the vertical on ours) will cause
     # translation along Z (forwards/backwards). This is actually the default behavior, so this
@@ -145,14 +146,15 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     # Set translation & rotation speeds to 5 ft/sec & 30 deg/sec (defaults)
     self.setNavTransSpeed( 5. )
     self.setNavRotSpeed( 30. )
-    
-    # OpenGL initialization
-    glClearColor(0,0,0,0)
 
     # set square's initial position
     self.theSquare.setMatrix( ar_translationMatrix(0,5,-6) )
 
     return True
+    
+  # Callback for doing window OpenGL initialization. Called from framework.start().
+  def onWindowStartGL( self, winInfo ):
+    glClearColor(0,0,0,0)
 
 
   # Callback called before data is transferred from master to slaves. Now
@@ -209,7 +211,12 @@ class SkeletonFramework(arPyMasterSlaveFramework):
       self.theSquare.setMatrix( arMatrix4( transferTuple[2] ) )
 
   # Draw callback
-  def onDraw( self ):
+  def onDraw( self, win, viewport ):
+    global firstFrame
+    if firstFrame:
+      screen = viewport.getScreen()
+      print screen.getCenter(), screen.getWidth(), screen.getHeight()
+      firstFrame = False
     # Load the [inverse of the] navigation matrix onto the OpenGL modelview matrix stack.
     self.loadNavMatrix()
     

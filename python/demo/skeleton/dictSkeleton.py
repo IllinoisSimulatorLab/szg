@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from PySZG import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
@@ -18,7 +20,7 @@ from OpenGL.GLUT import *
 # Unit conversions.  Tracker (and cube screen descriptions) use feet.
 # Atlantis, for example, uses 1/2-millimeters, so the appropriate conversion
 # factor is 12*2.54*10.*2.
-FEET_TO_LOCAL_UNITS = 1.
+LOCAL_UNITS_PER_FOOT = 1.
 
 
 #### Class definitions & implementations. ####
@@ -158,18 +160,18 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     self.theWand = RodEffector()
 
     # Tell the framework what units we're using.
-    self.setUnitConversion( FEET_TO_LOCAL_UNITS )
+    self.setUnitConversion( LOCAL_UNITS_PER_FOOT )
 
     # Near & far clipping planes.
-    nearClipDistance = .1*FEET_TO_LOCAL_UNITS
-    farClipDistance = 100.*FEET_TO_LOCAL_UNITS
+    nearClipDistance = .1*LOCAL_UNITS_PER_FOOT
+    farClipDistance = 100.*LOCAL_UNITS_PER_FOOT
     self.setClipPlanes( nearClipDistance, farClipDistance )
 
 
   #### Framework callbacks -- see szg/src/framework/arMasterSlaveFramework.h ####
 
   # start (formerly init) callback (called in arMasterSlaveFramework::start())
-  #
+  # NOTE: now called before window is created, so no OpenGL initialization here.
   def onStart( self, client ):
 
     # Register the dictionary of objects to be shared between master & slaves
@@ -190,10 +192,13 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     self.setNavTransSpeed( 5. )
     self.setNavRotSpeed( 30. )
     
-    # OpenGL initialization
-    glClearColor(0,0,0,0)
-
     return True
+
+
+  # windowStartGL callback. OpenGL initialization goes here.
+  #
+  def onWindowStartGL( self, winInfo ):
+    glClearColor(0,0,0,0)
 
 
   # Callback called before data is transferred from master to slaves. Now
@@ -250,7 +255,7 @@ class SkeletonFramework(arPyMasterSlaveFramework):
 
 
   # Draw callback
-  def onDraw( self):
+  def onDraw( self, win, viewport ):
     # Load the [inverse of the] navigation matrix onto the OpenGL modelview matrix stack.
     self.loadNavMatrix()
     
@@ -263,6 +268,7 @@ class SkeletonFramework(arPyMasterSlaveFramework):
 
 
 if __name__ == '__main__':
+  import sys
   framework = SkeletonFramework()
   if not framework.init(sys.argv):
     raise PySZGException,'Unable to init framework.'
