@@ -10,6 +10,7 @@
 #include "arDatabaseLanguage.h"
 #include "arThread.h"
 #include "arNameNode.h"
+#include "arStructuredDataParser.h"
 #include "arLanguageCalling.h"
 #include <iostream>
 #include <stack>
@@ -42,15 +43,17 @@ class SZG_CALL arDatabase{
   // WHICH BELONG MORE PROPERLY AS METHODS OF arDatabaseNode
   arDatabaseNode* newNode(arDatabaseNode* parent, const string& type,
                           const string& name = "");
-  bool eraseNode(int ID);
-  // THE FOLLOWING ARE FUNCTIONS TO BE IMPLEMENTED AT SOME POINT...
-  /*arDatabaseNode* insertNode(arDatabaseNode* parent,
+  arDatabaseNode* insertNode(arDatabaseNode* parent,
 			     arDatabaseNode* child,
 			     const string& type,
 			     const string& name = "");
-  void attachNode(arDatabaseNode* parent,
-                  arDatabaseNode* node);
-  void detachNode(arDatabaseNode* node);*/
+  bool cutNode(int ID);
+  bool eraseNode(int ID);
+  
+  // THE FOLLOWING ARE FUNCTIONS TO BE IMPLEMENTED AT SOME POINT...
+  //void attachNode(arDatabaseNode* parent,
+  //                arDatabaseNode* node);
+  //void detachNode(arDatabaseNode* node);
 
   bool fillNodeData(arStructuredData* data, arDatabaseNode* node);
 
@@ -93,16 +96,20 @@ class SZG_CALL arDatabase{
   void printStructure(int maxLevel);
   void printStructure(int maxLevel, ostream& s);
   void printStructure() { printStructure(10000); }
+  // Abbreviations for the above.
+  void ps(int maxLevel){ printStructure(maxLevel); }
+  void ps(int maxLevel, ostream& s){ printStructure(maxLevel, s); }
+  void ps(){ printStructure(); }
 
-  // THIS isServer stuff is REALLY OBNOXIOUS! IT HAS LED TO SEVERAL BUGS!
-  // REALLY ALL IT IS DOING IS FIGURING OUT WHEN NOT TO LOAD TEXTURES!
-  // (MAYBE IT SHOULD BE CALLED SOMETHING ELSE???)
+  // Sometimes a database only needs to store information, not manage it
+  // for some other activity (as in the case of the arGraphicsDatabase and
+  // loading textures). If isServer() returns true (in the arGraphicsDatabase
+  // case), it will not load textures.
   bool isServer() const
     { return _server; }
 
   //available for external data input use  (public data members are dangerous!)
   arStructuredData* eraseData;
-  arStructuredData* queuedDataData;
   arStructuredData* makeNodeData;
 
   arDatabaseLanguage* _lang;
@@ -125,23 +132,31 @@ class SZG_CALL arDatabase{
   int _nextAssignedID;
   arDatabaseNode _rootNode;
   
-  // here is the machinery that assists in the data processing
+  // Here is the machinery that assists in the data processing
   arDatabaseProcessingCallback _databaseReceive[256];
   arStructuredData*            _parsingData[256];
   int                          _routingField[256];
+  arStructuredDataParser*      _dataParser;
 
   bool _initDatabaseLanguage();
-  arDatabaseNode* _eraseNode(arStructuredData*);
   arDatabaseNode* _makeDatabaseNode(arStructuredData*);
-  arDatabaseNode* _addDatabaseNode(const string& typeString, int parentID, 
-                                   int nodeID, const string& nodeName);
+  arDatabaseNode* _insertDatabaseNode(arStructuredData*);
+  arDatabaseNode* _cutDatabaseNode(arStructuredData*);
+  arDatabaseNode* _eraseNode(arStructuredData*);
+  arDatabaseNode* _createChildNode(arDatabaseNode* parentNode, 
+                                   const string& typeString, 
+                                   int nodeID, 
+                                   const string& nodeName);
+  bool _removeFromChildren(arDatabaseNode* parent, arDatabaseNode* child);
+  bool _addToChildren(arDatabaseNode* parent, arDatabaseNode* child);
+  void _cutNode(arDatabaseNode*);
+  void _eraseNode(arDatabaseNode*);
   
   // Helper functions for recursive operations.
   void _writeDatabase(arDatabaseNode* pNode, arStructuredData& nodeData,
                       ARchar*& buffer, size_t& bufferSize, FILE* destFile);
   void _writeDatabaseXML(arDatabaseNode* pNode, arStructuredData& nodeData,
                          FILE* destFile);
-  void _eraseNode(arDatabaseNode*);
   void _createNodeMap(arDatabaseNode* localNode, int externalNodeID,
 		      arDatabase* externalDatabase,
 		      map<int, int, less<int> >& nodeMap,

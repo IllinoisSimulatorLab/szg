@@ -22,6 +22,8 @@ arDatabaseNode::arDatabaseNode():
   
   _databaseOwner = NULL;
   _dLang = NULL;
+
+  ar_mutex_init(&_nodeLock);
 }
 
 arDatabaseNode::~arDatabaseNode(){

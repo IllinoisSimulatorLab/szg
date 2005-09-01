@@ -68,6 +68,9 @@ class SZG_CALL arDatabaseNode{
   arDatabaseNode* _parent;
   list<arDatabaseNode*> _children;
 
+  // Allows us to make operations atomic.
+  arMutex _nodeLock;
+
   // Might be the case that we want to filter messages into the node based,
   // somehow, on certain known properties it has. For instance, the node
   // might just hold "transient data".

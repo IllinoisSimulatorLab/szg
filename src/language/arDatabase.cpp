@@ -16,7 +16,8 @@ arDatabase::arDatabase() :
   _bundleName("NULL"),
   // We start at ID 1 for subsequent nodes since the root node has ID = 0
   // (the default)
-  _nextAssignedID(1){
+  _nextAssignedID(1),
+  _dataParser(NULL){
   ar_mutex_init(&_bufferLock);
   ar_mutex_init(&_eraseLock);
   ar_mutex_init(&_deletionLock);
@@ -38,6 +39,9 @@ arDatabase::arDatabase() :
 arDatabase::~arDatabase(){
   delete eraseData;
   delete makeNodeData;
+  if (_dataParser){
+    delete _dataParser;
+  }
 }
 
 /// Sometimes, we want to store supporting objects like textures or
@@ -148,6 +152,48 @@ arDatabaseNode* arDatabase::newNode(arDatabaseNode* parent,
   makeNodeData->dataInString(_lang->AR_MAKE_NODE_TYPE, type);
   // The alter(...) call will return the new node.
   return alter(makeNodeData);
+}
+
+arDatabaseNode* arDatabase::insertNode(arDatabaseNode* parent,
+			               arDatabaseNode* child,
+			               const string& type,
+			               const string& name){
+  string nodeName = name;
+  if (nodeName == ""){
+    // we must choose a default name
+    stringstream def;
+    def << "szg_default_" << _nextAssignedID;
+    nodeName = def.str();
+  }
+  // BUG BUG BUG BUG: Not testing to see if these nodes are part of this
+  // database.
+  int parentID = parent->getID();
+  int childID = child->getID();
+  arStructuredData* data = _dataParser->getStorage(_lang->AR_INSERT);
+  data->dataIn(_lang->AR_INSERT_PARENT_ID, &parentID, AR_INT, 1);
+  data->dataIn(_lang->AR_INSERT_CHILD_ID, &childID, AR_INT, 1);
+  int temp = -1;
+  data->dataIn(_lang->AR_INSERT_ID, &temp, AR_INT, 1);
+  data->dataInString(_lang->AR_INSERT_NAME, name);
+  data->dataInString(_lang->AR_INSERT_TYPE, type);
+  arDatabaseNode* result = alter(data);
+  // Very important that this gets recycled to prevent a memory leak.
+  _dataParser->recycle(data);
+  return result;
+}
+
+bool arDatabase::cutNode(int ID){
+  // Make sure that there is a node with this ID.
+  arDatabaseNode* node = getNode(ID, false);
+  if (!node){
+    return false;
+  }
+  arStructuredData* data = _dataParser->getStorage(_lang->AR_CUT);
+  data->dataIn(_lang->AR_CUT_ID, &ID, AR_INT, 1);
+  arDatabaseNode* result = alter(data);
+  // Very important that this gets recycled to prevent a memory leak.
+  _dataParser->recycle(data);
+  return result ? true : false;
 }
 
 // NOT THREAD_SAFE EITHER!
@@ -675,7 +721,139 @@ bool arDatabase::_initDatabaseLanguage(){
   _databaseReceive[t->getID()] = &arDatabase::_eraseNode;
   t = _lang->find("make node");
   _databaseReceive[t->getID()] = &arDatabase::_makeDatabaseNode;
+  t = _lang->find("insert_node");
+  _databaseReceive[t->getID()] = &arDatabase::_insertDatabaseNode;
+  t = _lang->find("cut");
+  _databaseReceive[t->getID()] = &arDatabase::_cutDatabaseNode;
+
+  // Create the arStructuredDataParser for our language.
+  _dataParser = new arStructuredDataParser(d);
   return true;
+}
+
+/// When the database receives a message demanding creation of a node,
+/// it is handled here. If we cannot succeed for some reason, return
+/// NULL, otherwise, return a pointer to the node in question.
+/// PLEASE NOTE: This function does double duty: both as a creator of new
+/// database nodes AND as a "mapper" of existing database nodes
+/// (consequently, we allow an existing node to get returned).
+arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
+  // NOTE: inData is guaranteed to have the right type because alter(...)
+  // distributes messages to handlers based on type.
+  const int parentID = inData->getDataInt(_lang->AR_MAKE_NODE_PARENT_ID);
+  int theID = inData->getDataInt(_lang->AR_MAKE_NODE_ID);
+  const string name(inData->getDataString(_lang->AR_MAKE_NODE_NAME));
+  const string type(inData->getDataString(_lang->AR_MAKE_NODE_TYPE));
+  
+  // If no parent node exists, then there is nothing to do.
+  arDatabaseNode* parentNode = getNode(parentID, false);
+  if (!parentNode){
+    // This is an error.
+    cout << "arDatabase warning: parent (ID=" << parentID << ") "
+	 << "does not exist.\n";
+    return NULL;
+  }
+  arDatabaseNode* result = NULL;
+  // See if a node exists with this ID. If so, and it is of the correct type,
+  // we will go ahead and use it. NOTE: ID -1 means "make a new node" since
+  // all nodes have ID >= 0.
+  if (theID != -1){
+    // In this case, we're trying to insert a node with a specific ID.
+    // If there is already a node by this ID, we'll just use it.
+    arDatabaseNode* pNode = getNode(theID, false);
+    if (pNode){
+      // Determine if the existing node is suitable for "mapping".
+      if (pNode->getTypeString() == type){
+        // Such a node already exists and has the right type. Use it.
+        // This is not an error. Do not print a warning since this is a
+        // normal occurence during "mapping".
+        result = pNode;
+      }
+      else{
+	// A node already exists with that ID but the wrong type. This is
+	// an error!
+        cout << "arDatabase error: tried to map node type " 
+	     << type << " to node with ID=" 
+	     << theID << " and name=" << pNode->getName() << ".\n";
+	return NULL;
+      }
+    }
+  }
+  // If no suitable node has been found, make one.
+  if (!result){
+    result =_createChildNode(parentNode, type, theID, name);
+  }
+  // If we succeeded...
+  if (result){
+    // We go ahead and modify the record in place with the new ID.
+    // The arGraphicsServer and arGraphicsClient combo depend on there
+    // being no mapping. Consequently, the client needs to always receive
+    // *commands* about how to structure the IDs.
+    theID = result->getID();
+    inData->dataIn(_lang->AR_MAKE_NODE_ID, &theID, AR_INT, 1);
+  }
+  // _createChildNode already complained if a complaint was necessary.
+  return result;
+}
+
+// Inserts a new node between existing nodes (parent and child).
+arDatabaseNode* arDatabase::_insertDatabaseNode(arStructuredData* data){
+  // NOTE: data is guaranteed to be the right type because alter(...)
+  // sends messages to handlers (like this one) based on type information.
+  int parentID = data->getDataInt(_lang->AR_INSERT_PARENT_ID);
+  int childID = data->getDataInt(_lang->AR_INSERT_CHILD_ID);
+  int nodeID = data->getDataInt(_lang->AR_INSERT_ID);
+  string nodeName = data->getDataString(_lang->AR_INSERT_NAME);
+  string nodeType = data->getDataString(_lang->AR_INSERT_TYPE);
+  // Check that both parent and child nodes (between which we will insert)
+  // exist. If not, return an error.
+  // DO NOT print warnings if the node is not found (the meaning of the
+  // second "false" parameter).
+  arDatabaseNode* parentNode = getNode(parentID, false);
+  arDatabaseNode* childNode = getNode(childID, false);
+  if (!parentNode || !childNode){
+    return NULL;
+  }
+  // Check that the child is, indeed, a child of the parent.
+  if (!childNode->_parent ||
+      childNode->_parent->getID() != parentNode->getID()){
+    return NULL;
+  }
+  // If the node ID is specified (i.e. not -1), check that there is no node 
+  // with that ID. Insert (unlike add) does not support node "mappings". If
+  // a node exists with the ID, return an error.
+  if (nodeID > -1){
+    if (getNode(nodeID)){
+      return NULL;
+    }
+  }
+  // Add the node.
+  arDatabaseNode* result =
+    _createChildNode(parentNode, nodeType, nodeID, nodeName);
+  if (result){
+    // Take the child node, break it off from its parent, and add it is a child
+    // of the new node. Each of these calls will definitely succeed by
+    // our construction, so no point in checking return values.
+    (void)_removeFromChildren(parentNode, childNode);
+    (void)_addToChildren(result, childNode);
+  }
+  return result;
+}
+
+/// When we cut a node, we remove the node and make all its children
+/// become children of its parent. This stands in contrast to the erasing,
+/// whereby the whole subtree gets blown away.
+arDatabaseNode* arDatabase::_cutDatabaseNode(arStructuredData* data){
+  // NOTE: data is guaranteed to be the righttype because alter(...)
+  // sends messages to handlers (like this one) based on type information.
+  int ID = data->getDataInt(_lang->AR_CUT_ID);
+  arDatabaseNode* node = getNode(ID);
+  if (!node){
+    cout << "arDatabase remark: _cutNode failed. No such node.\n";
+    return NULL;
+  }
+  _cutNode(node);
+  return &_rootNode;
 }
 
 /// When the database receives a message demanding erasure of a node,
@@ -708,77 +886,17 @@ arDatabaseNode* arDatabase::_eraseNode(arStructuredData* inData){
   return &_rootNode;
 }
 
-/// When the database receives a message demanding creation of a node,
-/// it is handled here. If we cannot succeed for some reason, return
-/// NULL, otherwise, return a pointer to the node in question.
-arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
-  const int parentID = inData->getDataInt(_lang->AR_MAKE_NODE_PARENT_ID);
-  int theID = inData->getDataInt(_lang->AR_MAKE_NODE_ID);
-  const string name(inData->getDataString(_lang->AR_MAKE_NODE_NAME));
-  const string type(inData->getDataString(_lang->AR_MAKE_NODE_TYPE));
-  arDatabaseNode* result = 
-    _addDatabaseNode(type, parentID, theID, name);
-  if (result){
-    // We go ahead and modify the record in place with the new ID.
-    // The arGraphicsServer and arGraphicsClient combo depend on there
-    // being no mapping. Consequently, the client needs to always receive
-    // *commands* about how to structure the IDs.
-    theID = result->getID();
-    inData->dataIn(_lang->AR_MAKE_NODE_ID, &theID, AR_INT, 1);
-  }
-  // _addDatabaseNode already complained if a complaint was necessary.
-  return result;
-}
-
-// Returns NULL on error, otherwise returns the new database node,
-// already initialized.
-// PLEASE NOTE: This function does double duty: both as a creator of new
-// database nodes AND as a "mapper" of existing database nodes
-// (consequently, we allow an existing node to get returned).
-arDatabaseNode* arDatabase::_addDatabaseNode(const string& typeString,
-                                             int parentID,
+// Makes a new child for the given parent.
+arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
+                                             const string& typeString,
                                              int nodeID,
                                              const string& nodeName){
-  // Make sure no node exists with this ID.
-  if (nodeID != -1){
-    // In this case, we're trying to insert a node with a specific ID.
-    // If there is already a node by this ID, we'll just use it.
-    arDatabaseNode* pNode = getNode(nodeID, false);
-    if (pNode){
-      if (pNode->getTypeString() == typeString){
-        // Such a node already exists and has the right type. Return its ID.
-        // This is not an error. Do not print a warning since this is a
-        // normal occurence during "mapping".
-        return pNode; 
-      }
-      else{
-	// A node already exists with that ID but the wrong type. This is
-	// an error!
-        cout << "arDatabase error: tried to map node type " 
-	     << typeString << " to node with ID=" 
-	     << nodeID << " and name=" << pNode->getName() << ".\n";
-	return NULL;
-      }
-    }
-    // If we've made it to here, there is no node with the given ID. Go
-    // ahead and fall through.
-  }
   // We will actually be creating a new node.
   arDatabaseNode* node = _makeNode(typeString);
   if (!node){
     // This is an error.
     cout << "arDatabase error: could not create node with type="
 	 << typeString << ".\n";
-    return NULL;
-  }
-  // Make sure that the parent node (as given by ID) exists.
-  arDatabaseNode* parentNode = getNode(parentID, false);
-  if (!parentNode){
-    // This is an error.
-    cout << "arDatabase warning: parent (ID=" << parentID << ") "
-	 << "does not exist.\n";
-    // Make sure we delete the new node storage.
-    delete node;
     return NULL;
   }
   // Set parameters.
@@ -802,16 +920,94 @@ arDatabaseNode* arDatabase::_addDatabaseNode(const string& typeString,
       map<int,arDatabaseNode*,less<int> >::value_type(node->_ID, node));
   ar_mutex_unlock(&_bufferLock);
 
-  // nodes can inherit attributes from nodes above them in the tree
-  // BOY THIS SURE IS SUCKY DESIGN!
-  // THIS REALLY NEEDS TO CHANGE! (perhaps via some kind of...
-  // "rendering context", for lack of a better word)
+  // Nodes that belong to a particular database (like this class itself)
+  // need to know that, as is allowed by this initialization.
   node->initialize(this);
 
   if (node->_ID < 0)
     cerr << "arDatabase error: "
 	 << "insertion failed because of outNode->initialize().\n";
   return node;
+}
+
+// Removes child from the current parent (if it is a child).
+// Returns false on failure (i.e. the supposed child node is not actually
+// a child).
+bool arDatabase::_removeFromChildren(arDatabaseNode* parent,
+				     arDatabaseNode* child){
+  // Remove from the children list of the parent node.
+  bool found = false;
+  for (list<arDatabaseNode*>::iterator i = parent->_children.begin();
+       i != parent->_children.end(); i++){
+    if ( (*i)->getID() == child->getID()){
+      found  = true;
+      // Remove from children.
+      parent->_children.erase(i);
+      break;
+    }
+  }
+  // The former child does not have a parent now (assuming this was, in
+  // fact, a child of the supposed parent).
+  if (found){
+    child->_parent = NULL;
+    return true;
+  }
+  else{
+    return false;
+  }
+}
+
+// Adds child to the parent. For this to succeed, the child must not currently
+// have a parent. Returns false on failure (i.e. the child node has a
+// parent).
+bool arDatabase::_addToChildren(arDatabaseNode* parent,
+				arDatabaseNode* child){
+  if (child->_parent){
+    // If the child currently has a parent
+    return false;
+  }
+  child->_parent = parent;
+  parent->_children.push_back(child);
+  return true;
+}
+
+// Deletes a node from the database... plus everything in its subtree.
+void arDatabase::_eraseNode(arDatabaseNode* node){
+  // Go to each child and erase that node
+  for (list<arDatabaseNode*>::iterator i = node->_children.begin();
+       i != node->_children.end(); i++){
+    _eraseNode(*i);
+  }
+  // Delete this node
+  const int nodeID = node->getID();
+  if (nodeID != 0){
+    // DO NOT DELETE the root node!
+    _nodeIDContainer.erase(nodeID);
+    /// \bug memory leak in texture held by the deleted node
+    delete node;
+  }
+  else{
+    // This is the root node. Make sure that we eliminate its children.
+    node->_children.clear();
+  }
+}
+
+// Cuts a node from the database (the node's children become the children
+// of the parent).
+void arDatabase::_cutNode(arDatabaseNode* node){
+  if (node->getID() == 0){
+    // This is the root node. Do nothing.
+    return;
+  }
+  arDatabaseNode* parent = node->_parent;
+  if (!_removeFromChildren(parent, node)){
+    cout << "arDatabase error: invalid cut node command.\n";
+  }
+  for (list<arDatabaseNode*>::iterator i = node->_children.begin();
+       i != node->_children.end(); i++){
+    parent->_children.push_back(*i);
+  }
+  delete node;
 }
 
 void arDatabase::_writeDatabase(arDatabaseNode* pNode,
@@ -866,27 +1062,8 @@ void arDatabase::_writeDatabaseXML(arDatabaseNode* pNode,
   }  
 }
 
-void arDatabase::_eraseNode(arDatabaseNode* node){
-  // Go to each child and erase that node
-  for (list<arDatabaseNode*>::iterator i = node->_children.begin();
-       i != node->_children.end(); i++){
-    _eraseNode(*i);
-  }
-  // Delete this node
-  const int nodeID = node->getID();
-  if (nodeID != 0){
-    // DO NOT DELETE the root node!
-    _nodeIDContainer.erase(nodeID);
-    /// \bug memory leak in texture held by the deleted node
-    delete node;
-  }
-  else{
-    // This is the root node. Make sure that we eliminate its children.
-    node->_children.clear();
-  }
-}
 // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
-// This is recreates the mapping algorithm in filter and is WRONG
+// This recreates the mapping algorithm in filter and is WRONG
 // in that it has problems with nodes that share the same type and
 // name with their parents.
 void arDatabase::_createNodeMap(arDatabaseNode* localNode, 

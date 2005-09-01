@@ -7,9 +7,9 @@
 #include "arPrecompiled.h"
 // MUST come before other szg includes. See arCallingConventions.h for details.
 #define SZG_DO_NOT_EXPORT
-#include "arGraphicsDatabase.h"
+#include "arGraphicsServer.h"
 
-arGraphicsDatabase g;
+arGraphicsServer g;
 
 void display(){
   glClearColor(0,0,0,0);
@@ -45,10 +45,20 @@ int main(int argc, char** argv){
   cout << "Average time to create/delete graphics context = "
        << t/num << " microseconds.\n";
 
+  // For drawing from szgrender, there must be a viewer node.
+  arViewerNode* viewer 
+    = (arViewerNode*) g.newNode(g.getRoot(), "viewer", "szg_viewer");
+  arHead head;
+  head.setMatrix(ar_translationMatrix(0,5,0));
+  viewer->setHead(head);
+
   // This database tests using different point sizes and line widths, along
   // with color variations.
+  arTransformNode* globalTrans 
+    = (arTransformNode*) g.newNode(g.getRoot(), "transform");
+  globalTrans->setTransform(ar_translationMatrix(0,5,-5));
   arGraphicsStateNode* s 
-    = (arGraphicsStateNode*) g.newNode(g.getRoot(), "graphics state");
+    = (arGraphicsStateNode*) g.newNode(globalTrans, "graphics state");
   s->setGraphicsState("point_size", NULL, 20.0);
   float c[12] = {-1, -1, 0, 
                  1, -1, 0,
@@ -89,7 +99,7 @@ int main(int argc, char** argv){
   d = (arDrawableNode*) g.newNode(color, "drawable");
   d->setDrawable(DG_LINES, 2);
 
-  s = (arGraphicsStateNode*) g.newNode(g.getRoot(), "graphics state");
+  s = (arGraphicsStateNode*) g.newNode(globalTrans, "graphics state");
   s->setGraphicsState("point_size", NULL, 10.0);
   float c2[12] = {-0.7, -0.7, 0,
 	          0.7, -0.7, 0,
@@ -105,9 +115,44 @@ int main(int argc, char** argv){
   color->setColor4(4, clr);
   d = (arDrawableNode*) g.newNode(color, "drawable");
   d->setDrawable(DG_POINTS, 4); 
-  
 
-  glutInit(&argc,argv);
+  arSZGClient client;
+  client.init(argc, argv);
+  if (!client){
+    // Failed to connect to szgserver. That's it since we are testing
+    // the distributed graphics as well.
+    cout << "TestGraphics error: szgserver must be running and user must "
+	 << "be dlogin'ed.\n";
+    return 1;
+  }
+  if (!g.init(client)){
+    cout << "TestGraphics error: graphics server failed to init.\n";
+    return 1;
+  }
+  if (!g.start()){
+    cout << "TestGraphics error: graphics server failed to start.\n";
+    return 1;
+  }
+  int count = 0;
+  arGraphicsStateNode* insertedState;
+  while (true){
+    g.setVRCameraID(viewer->getID());
+    if (count == 100){
+      insertedState = (arGraphicsStateNode*) g.insertNode(color, d,
+							  "graphics state");
+      insertedState->setGraphicsState("point_size", NULL, 5);
+      g.ps();
+    }
+    if (count == 200){
+      g.cutNode(insertedState->getID());
+      g.ps();
+      count = 0;
+    }
+    count++;
+    ar_usleep(10000);
+  }
+
+  /*glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB|GLUT_DEPTH);
   glutInitWindowSize(600,600);
   glutInitWindowPosition(0, 0);
@@ -116,5 +161,5 @@ int main(int argc, char** argv){
   glutIdleFunc(display);
   glutKeyboardFunc(keyboard);
 
-  glutMainLoop();
+  glutMainLoop();*/
 }
