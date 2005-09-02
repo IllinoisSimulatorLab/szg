@@ -424,7 +424,7 @@ void mouseCB( arGUIMouseInfo* mouseInfo )
       break;
 
       case PAN:
-        mouseWorldMatrix = ar_translationMatrix( deltaX * -0.01f, deltaY * -0.01f, 0.0f ) *
+        mouseWorldMatrix = ar_translationMatrix( deltaX * 0.01f, deltaY * -0.01f, 0.0f ) *
 			                     mouseWorldMatrix;
       break;
 
@@ -437,7 +437,7 @@ void mouseCB( arGUIMouseInfo* mouseInfo )
           rotationAxis = rotationAxis / mag;
 
           mouseWorldMatrix = ar_extractTranslationMatrix( mouseWorldMatrix ) *
-   		                       ar_rotationMatrix( arVector3( -1.0f, 0.0f, 0.0f ), float( deltaY ) / 300.0f ) *
+   		                       ar_rotationMatrix( arVector3( -1.0f, 0.0f, 0.0f ), float( -deltaY ) / 300.0f ) *
    		                       ar_rotationMatrix( arVector3( 0.0f, 1.0f, 0.0f ), float( deltaX ) / 300.0f ) *
   		                       ar_extractRotationMatrix( mouseWorldMatrix ) *
   			                     ar_extractScaleMatrix( mouseWorldMatrix );
@@ -491,17 +491,36 @@ void mouseCB( arGUIMouseInfo* mouseInfo )
   }
 }
 
-int main( int argc, char** argv )
-{
-  if( argc < 2 ) {
-    std::cerr << "usage: " << argv[ 0 ] << " file.{obj|3ds|htr|htr2} [mesh.obj]\n";
-    return 1;
+int main( int argc, char** argv ){
+  string fileName;
+  if (argc == 1){
+    // Attempt to open local config file.
+    FILE* configFile = fopen("szgview.txt", "r");
+    if (!configFile){
+      cout << "szgview error: no parameter supplied and no szgview.txt config "
+	   << "file.\n";
+      cout << "usage: " << argv[ 0 ] << " file.{obj|3ds|htr|htr2} "
+	   << "[mesh.obj]\n";
+      return 1;
+    }
+    char buf[1024];
+    if (fscanf(configFile, "%s", buf) < 1){
+      // Config file is empty. This is an error.
+      cout << "szgview error: config file szgview.txt is empty.\n";
+      return 1;
+    }
+    fileName = string(buf);
   }
+  else{
+    // Using the first parameter as the file name.
+    fileName = string(argv[1]);
+  }
+   
 
-  theObject = arReadObjectFromFile( argv[ 1 ], "" );
+  theObject = arReadObjectFromFile( fileName.c_str(), "" );
 
   if( !theObject ) {
-    std::cerr << "Invalid File: " << argv[ 1 ] << std::endl;
+    std::cerr << "Invalid File: " << fileName.c_str() << std::endl;
     return 1;
   }
 
