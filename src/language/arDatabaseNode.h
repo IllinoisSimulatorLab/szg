@@ -37,6 +37,8 @@ class SZG_CALL arDatabaseNode{
   string getTypeString() const { return _typeString; }
 
   arDatabase* getOwningDatabase(){ return _databaseOwner; }
+  // If the node has an owner, it can act as a node factory as well.
+  arDatabaseNode* newNode(const string& type, const string& name = ""); 
 
   arDatabaseNode* getParent(){ return _parent; }
   list<arDatabaseNode*> getChildren(){ return _children; }
@@ -59,7 +61,7 @@ class SZG_CALL arDatabaseNode{
   string _typeString;
 
   // THIS IS A LITTLE OBNOXIOUS... the arGraphicsDatabase and arSoundDatabase
-  // both have a referenced owing database and language. Which is duplicated
+  // both have a referenced owning database and language. Which is duplicated
   // here.... This will be solved once all the database operations are
   // made better unified.
   arDatabase*         _databaseOwner;
@@ -70,6 +72,9 @@ class SZG_CALL arDatabaseNode{
 
   // Allows us to make operations atomic.
   arMutex _nodeLock;
+
+  // Must keep a reference count.
+  int _refs;
 
   // Might be the case that we want to filter messages into the node based,
   // somehow, on certain known properties it has. For instance, the node

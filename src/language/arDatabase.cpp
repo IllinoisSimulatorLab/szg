@@ -154,6 +154,12 @@ arDatabaseNode* arDatabase::newNode(arDatabaseNode* parent,
   return alter(makeNodeData);
 }
 
+// The parent node MUST be given. If no child node is given (i.e. the 
+// parameter is NULL) then the new node should go between the parent and
+// its current children. If a child node is given, then put the new node
+// between the two specified nodes (assuming they are truly parent and 
+// child). If successful, return a pointer to the new node, otherwise
+// return NULL.
 arDatabaseNode* arDatabase::insertNode(arDatabaseNode* parent,
 			               arDatabaseNode* child,
 			               const string& type,
@@ -168,13 +174,17 @@ arDatabaseNode* arDatabase::insertNode(arDatabaseNode* parent,
   // BUG BUG BUG BUG: Not testing to see if these nodes are part of this
   // database.
   int parentID = parent->getID();
-  int childID = child->getID();
+  // If child is NULL, then we want to use the "invalid" ID of -1.
+  int childID = -1;
+  if (child){
+    childID = child->getID();
+  }
   arStructuredData* data = _dataParser->getStorage(_lang->AR_INSERT);
   data->dataIn(_lang->AR_INSERT_PARENT_ID, &parentID, AR_INT, 1);
   data->dataIn(_lang->AR_INSERT_CHILD_ID, &childID, AR_INT, 1);
   int temp = -1;
   data->dataIn(_lang->AR_INSERT_ID, &temp, AR_INT, 1);
-  data->dataInString(_lang->AR_INSERT_NAME, name);
+  data->dataInString(_lang->AR_INSERT_NAME, nodeName);
   data->dataInString(_lang->AR_INSERT_TYPE, type);
   arDatabaseNode* result = alter(data);
   // Very important that this gets recycled to prevent a memory leak.
@@ -205,6 +215,29 @@ bool arDatabase::eraseNode(int ID){
   eraseData->dataIn(_lang->AR_ERASE_ID, &ID, AR_INT, 1);
   alter(eraseData);
   return true;
+}
+
+void arDatabase::permuteChildren(arDatabaseNode* parent,
+		                 list<int>& childIDs){
+  int size = childIDs.size();
+  if (size == 0){
+    // There's nothing to do. Just return.
+    return;
+  }
+  arStructuredData* data = _dataParser->getStorage(_lang->AR_PERMUTE);
+  int parentID = parent->getID();
+  data->dataIn(_lang->AR_PERMUTE_PARENT_ID, &parentID, AR_INT, 1);
+  int* IDs = new int[size];
+  int count = 0;
+  for (list<int>::iterator i = childIDs.begin(); i != childIDs.end(); i++){
+    IDs[count] = *i;
+    count++;
+  }
+  data->dataIn(_lang->AR_PERMUTE_CHILD_IDS, IDs, AR_INT, size);
+  delete [] IDs;
+  alter(data);
+  // Very important that this gets recycled to prevent a memory leak
+  _dataParser->recycle(data);
 }
 
 /// When transfering the database state, we often want to dump the structure
@@ -725,6 +758,8 @@ bool arDatabase::_initDatabaseLanguage(){
   _databaseReceive[t->getID()] = &arDatabase::_insertDatabaseNode;
   t = _lang->find("cut");
   _databaseReceive[t->getID()] = &arDatabase::_cutDatabaseNode;
+  t = _lang->find("permute");
+  _databaseReceive[t->getID()] = &arDatabase::_permuteDatabaseNodes;
 
   // Create the arStructuredDataParser for our language.
   _dataParser = new arStructuredDataParser(d);
@@ -781,7 +816,7 @@ arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
   }
   // If no suitable node has been found, make one.
   if (!result){
-    result =_createChildNode(parentNode, type, theID, name);
+    result =_createChildNode(parentNode, type, theID, name, false);
   }
   // If we succeeded...
   if (result){
@@ -811,12 +846,18 @@ arDatabaseNode* arDatabase::_insertDatabaseNode(arStructuredData* data){
   // second "false" parameter).
   arDatabaseNode* parentNode = getNode(parentID, false);
   arDatabaseNode* childNode = getNode(childID, false);
-  if (!parentNode || !childNode){
+  // Only the parentNode is assumed to exist. If childID is -1, then we
+  // do not deal with the child node.
+  if (!parentNode || (!childNode && childID != -1)){
+    cout << "arDatabase error: either parent or child does not exist.\n";
     return NULL;
   }
-  // Check that the child is, indeed, a child of the parent.
-  if (!childNode->_parent ||
-      childNode->_parent->getID() != parentNode->getID()){
+  // If the child is specified, check that the child is, indeed, a child 
+  // of the parent.
+  if (childNode && (!childNode->_parent ||
+                    childNode->_parent->getID() != parentNode->getID())){
+    cout << "arDatabase error: insert database node failed. Not child of "
+	 << "parent.\n";
     return NULL;
   }
   // If the node ID is specified (i.e. not -1), check that there is no node 
@@ -827,10 +868,15 @@ arDatabaseNode* arDatabase::_insertDatabaseNode(arStructuredData* data){
       return NULL;
     }
   }
-  // Add the node.
+  // Add the node. If no child node was specified, then we make all the
+  // parentNode's children into children of the new node (this is the
+  // action of the final parameter). Otherwise, it is just another child!
   arDatabaseNode* result =
-    _createChildNode(parentNode, nodeType, nodeID, nodeName);
-  if (result){
+    _createChildNode(parentNode, nodeType, nodeID, nodeName,
+                     childNode ? false : true);
+  // We only need to change the tree structure if a child node was specified
+  // and the node creation was a success.
+  if (childNode && result){
     // Take the child node, break it off from its parent, and add it is a child
     // of the new node. Each of these calls will definitely succeed by
     // our construction, so no point in checking return values.
@@ -886,11 +932,17 @@ arDatabaseNode* arDatabase::_eraseNode(arStructuredData* inData){
   return &_rootNode;
 }
 
-// Makes a new child for the given parent.
+arDatabaseNode* arDatabase::_permuteDatabaseNodes(arStructuredData* data){
+  return &_rootNode;
+}
+
+// Makes a new child for the given parent. If moveChildren is true,
+// go ahead and attach all the parent's current children to the new node.
 arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
                                              const string& typeString,
                                              int nodeID,
-                                             const string& nodeName){
+                                             const string& nodeName,
+					     bool moveChildren){
   // We will actually be creating a new node.
   arDatabaseNode* node = _makeNode(typeString);
   if (!node){
@@ -913,8 +965,18 @@ arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
       _nextAssignedID = nodeID+1;
     }
   }
-  // Add to children of parent.
+  // Add to children of parent, remembering that if moveChildren is true,
+  // then all the parent's previous children will be attached to the new
+  // node.
   ar_mutex_lock(&_bufferLock);
+    if (moveChildren){
+      for (list<arDatabaseNode*>::iterator i = parentNode->_children.begin();
+	   i != parentNode->_children.end(); i++){
+        node->_children.push_back(*i);
+      }
+      parentNode->_children.clear();
+    }
+    // Either way, make the new node a child of the parent.
     parentNode->_children.push_back(node);
     _nodeIDContainer.insert(
       map<int,arDatabaseNode*,less<int> >::value_type(node->_ID, node));
@@ -1003,10 +1065,14 @@ void arDatabase::_cutNode(arDatabaseNode* node){
   if (!_removeFromChildren(parent, node)){
     cout << "arDatabase error: invalid cut node command.\n";
   }
+  // Attach the children to their new parent.
   for (list<arDatabaseNode*>::iterator i = node->_children.begin();
        i != node->_children.end(); i++){
     parent->_children.push_back(*i);
+    (*i)->_parent = parent;
   }
+  // Must remove the node from the database's storage.
+  _nodeIDContainer.erase(node->getID());
   delete node;
 }
 

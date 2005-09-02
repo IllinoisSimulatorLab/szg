@@ -49,6 +49,8 @@ class SZG_CALL arDatabase{
 			     const string& name = "");
   bool cutNode(int ID);
   bool eraseNode(int ID);
+  void permuteChildren(arDatabaseNode* parent,
+                       list<int>& childIDs);
   
   // THE FOLLOWING ARE FUNCTIONS TO BE IMPLEMENTED AT SOME POINT...
   //void attachNode(arDatabaseNode* parent,
@@ -143,10 +145,13 @@ class SZG_CALL arDatabase{
   arDatabaseNode* _insertDatabaseNode(arStructuredData*);
   arDatabaseNode* _cutDatabaseNode(arStructuredData*);
   arDatabaseNode* _eraseNode(arStructuredData*);
+  arDatabaseNode* _permuteDatabaseNodes(arStructuredData*);
+
   arDatabaseNode* _createChildNode(arDatabaseNode* parentNode, 
                                    const string& typeString, 
                                    int nodeID, 
-                                   const string& nodeName);
+                                   const string& nodeName,
+                                   bool moveChildren);
   bool _removeFromChildren(arDatabaseNode* parent, arDatabaseNode* child);
   bool _addToChildren(arDatabaseNode* parent, arDatabaseNode* child);
   void _cutNode(arDatabaseNode*);

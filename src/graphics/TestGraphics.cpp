@@ -116,6 +116,25 @@ int main(int argc, char** argv){
   d = (arDrawableNode*) g.newNode(color, "drawable");
   d->setDrawable(DG_POINTS, 4); 
 
+  // Want to go ahead and try out the other mode of node insertion, whereby
+  // the node in question makes its parent's children its own. Here we
+  // are trying out the code that lets an arDatabaseNode be a node factory
+  // (via it's owning database). Two additional points are attached.
+  arNameNode* n = (arNameNode*) globalTrans->newNode("name");
+  n->setName("foo");
+  arPointsNode* additionalPoints = (arPointsNode*) n->newNode("points");
+  float c3[3] = { -0.5, 0, 0 };
+  additionalPoints->setPoints(1, c3);
+  arDrawableNode* additionalDraw 
+    = (arDrawableNode*) additionalPoints->newNode("drawable");
+  additionalDraw->setDrawable(DG_POINTS, 1);
+  additionalPoints = (arPointsNode*) n->newNode("points");
+  float c4[3] = { 0.5, 0, 0 };
+  additionalPoints->setPoints(1, c4);
+  additionalDraw = (arDrawableNode*) additionalPoints->newNode("drawable");
+  additionalDraw->setDrawable(DG_POINTS, 1);
+  
+
   arSZGClient client;
   client.init(argc, argv);
   if (!client){
@@ -135,16 +154,27 @@ int main(int argc, char** argv){
   }
   int count = 0;
   arGraphicsStateNode* insertedState;
+  arGraphicsStateNode* insertedState2;
   while (true){
     g.setVRCameraID(viewer->getID());
     if (count == 100){
+      cout << "About to insert node.\n";
       insertedState = (arGraphicsStateNode*) g.insertNode(color, d,
 							  "graphics state");
+      if (!insertedState){
+        cout << "Insert node failed.\n";
+      }
       insertedState->setGraphicsState("point_size", NULL, 5);
+      
+      insertedState2 = (arGraphicsStateNode*) g.insertNode(n, NULL,
+							   "graphics state");
+      insertedState2->setGraphicsState("point_size", NULL, 10);
       g.ps();
     }
     if (count == 200){
+      cout << "About to cut node.\n";
       g.cutNode(insertedState->getID());
+      g.cutNode(insertedState2->getID());
       g.ps();
       count = 0;
     }

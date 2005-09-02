@@ -29,6 +29,16 @@ arDatabaseNode::arDatabaseNode():
 arDatabaseNode::~arDatabaseNode(){
 }
 
+// If this node has an owning database, go ahead and use that as a node
+// factory. Otherwise, return NULL.
+arDatabaseNode* arDatabaseNode::newNode(const string& type,
+					const string& name){
+  if (!_databaseOwner){
+    return NULL;
+  }
+  return _databaseOwner->newNode(this, type, name);
+}
+
 void arDatabaseNode::setName(const string& name){
   if (_name == "root"){
     cout << "arDatabaseNode warning: cannot set root name.\n";
