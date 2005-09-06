@@ -23,6 +23,7 @@ class SZG_CALL arTextureNode: public arGraphicsNode{
 
   string getFileName(){ return _fileName; }
   void setFileName(const string& fileName);
+  void setPixels(int width, int height, char* pixels, bool alpha);
 
   // Need to be able to get the texture itself for database draw.
   arTexture* getTexture(){ return _localTexture; }
@@ -36,6 +37,7 @@ class SZG_CALL arTextureNode: public arGraphicsNode{
 
   arStructuredData* _dumpData(const string& fileName, int alpha,
 			      int width, int height, char* pixels);
+  void _addLocalTexture(int alpha, int width, int height, char* pixels);
 };
 
 #endif

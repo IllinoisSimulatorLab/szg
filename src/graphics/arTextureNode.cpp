@@ -51,30 +51,10 @@ bool arTextureNode::receiveData(arStructuredData* inData){
   }
   else {
     // Raw pixels, not a filename.
-    _width = inData->getDataInt(_g->AR_TEXTURE_WIDTH);
-    _height = inData->getDataInt(_g->AR_TEXTURE_HEIGHT);
-    _alpha = inData->getDataInt(_g->AR_TEXTURE_ALPHA);
-    ARchar* pixels 
-      = (ARchar*)inData->getDataPtr(_g->AR_TEXTURE_PIXELS, AR_CHAR);
-    if (!_localTexture) {
-      // first time
-      _localTexture = _owningDatabase->addTexture(_width, _height, 
-                                                  _alpha, pixels);
-      // DEFUNCT
-      //_texture = &_localTexture;
-    }
-    else {
-      // later times
-      ((arTexture*)_localTexture)->fill(_width, _height, _alpha, pixels);
-    }
-    const int bytesPerPixel = _alpha ? 4 : 3;
-    const int cPixels = _width * _height * bytesPerPixel;
-    if (_pixels){
-      delete _pixels;
-    }
-    _pixels = new char[cPixels];
-    // must store these for later dumps.
-    memcpy(_pixels, pixels, cPixels);
+    _addLocalTexture(inData->getDataInt(_g->AR_TEXTURE_ALPHA),
+                  inData->getDataInt(_g->AR_TEXTURE_WIDTH),
+                  inData->getDataInt(_g->AR_TEXTURE_ALPHA),
+		  (ARchar*)inData->getDataPtr(_g->AR_TEXTURE_PIXELS, AR_CHAR));
   }
 
   return true;
@@ -89,6 +69,17 @@ void arTextureNode::setFileName(const string& fileName){
   else{
     _fileName = fileName;
     _pixels = NULL;
+  }
+}
+
+void arTextureNode::setPixels(int width, int height, char* pixels, bool alpha){
+  if (_owningDatabase){
+    arStructuredData* r = _dumpData("", alpha ? 1 : 0, width, height, pixels);
+    _owningDatabase->alter(r);
+    delete r;
+  }
+  else{
+    _addLocalTexture(alpha ? 1 : 0, width, height, pixels);
   }
 }
 
@@ -126,4 +117,28 @@ arStructuredData* arTextureNode::_dumpData(const string& fileName, int alpha,
     memcpy(outPixels, pixels, cPixels);
   }
   return result;
+}
+
+void arTextureNode::_addLocalTexture(int alpha, int width, int height,
+				     char* pixels){
+  _width = width;
+  _height = height;
+  _alpha = alpha;
+  if (!_localTexture) {
+    // first time
+    _localTexture = _owningDatabase->addTexture(_width, _height, 
+                                                _alpha, pixels);
+  }
+  else {
+    // later times
+    ((arTexture*)_localTexture)->fill(_width, _height, _alpha, pixels);
+  }
+  const int bytesPerPixel = _alpha ? 4 : 3;
+  const int cPixels = _width * _height * bytesPerPixel;
+  if (_pixels){
+    delete _pixels;
+  }
+  _pixels = new char[cPixels];
+  // must store these for later dumps.
+  memcpy(_pixels, pixels, cPixels);
 }

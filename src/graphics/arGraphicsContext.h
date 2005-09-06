@@ -52,7 +52,7 @@ class SZG_CALL arGraphicsContext{
   void _pushGraphicsState(arDatabaseNode* node);
   void _popGraphicsState(arDatabaseNode* node);
   GLenum _decodeBlendFunction(arGraphicsStateValue v);
-  void _setState(float& blendFactor);
+  void _setState(float& blendFactor, bool forceBlend = false);
   
 };
 

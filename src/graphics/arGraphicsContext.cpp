@@ -240,6 +240,7 @@ void arGraphicsContext::setTriangleState(float& blendFactor){
   }
 
   // Texture.
+  bool forceBlend = false;
   if (_textureStack.empty()){
     glDisable(GL_TEXTURE_2D);
   }
@@ -247,13 +248,16 @@ void arGraphicsContext::setTriangleState(float& blendFactor){
     arTextureNode* tn = (arTextureNode*)_textureStack.front();
     arTexture* t = tn->getTexture();
     if (t){
+      if (t->getDepth() == 4){
+	forceBlend = true;
+      }
       // Activating the texture also enables GL_TEXTURE_2D.
       t->activate();
     }
   }  
 
   // Set the common state (over the various types of primitives).
-  _setState(blendFactor);
+  _setState(blendFactor, forceBlend);
 }
 
 void arGraphicsContext::_pushGraphicsState(arDatabaseNode* node){
@@ -360,18 +364,25 @@ GLenum arGraphicsContext::_decodeBlendFunction(arGraphicsStateValue v){
   }
 }
 
-void arGraphicsContext::_setState(float& blendFactor){
+void arGraphicsContext::_setState(float& blendFactor, bool forceBlend){
   // 0,1,2 D primitives all have the following state setting code.
   // Blending, color (also materials), and depth testing.
 
   // Blend. Must come before color, since that uses the blendFactor we
   // compute here. Note how this computation is passed out to the caller.
-  if (_blendStack.empty()){
+  // There are two ways blending can be enabled: either we have a blend node
+  // explicitly set to blend (value < 1.0) OR we are forcing blending
+  // (which might happen if a texture has an alpha channel).
+  if (_blendStack.empty() && !forceBlend){
     glDisable(GL_BLEND);
   }
   else{
-    blendFactor = (((arGraphicsNode*)_blendStack.front())->getBuffer())[0];
-    if (blendFactor < 1.0){
+    // We can get here because forceBlend is true, so make sure that
+    // the blendStack isn't empty.
+    if (!_blendStack.empty()){
+      blendFactor = (((arGraphicsNode*)_blendStack.front())->getBuffer())[0];
+    }
+    if (blendFactor < 1.0 || forceBlend){
       glEnable(GL_BLEND);
       // The blend functions need to get set now.
       if (_blendFuncStateStack.empty()){

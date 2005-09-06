@@ -8,6 +8,7 @@
 // MUST come before other szg includes. See arCallingConventions.h for details.
 #define SZG_DO_NOT_EXPORT
 #include "arGraphicsServer.h"
+#include "arMesh.h"
 
 arGraphicsServer g;
 
@@ -33,6 +34,22 @@ void keyboard(unsigned char key, int x, int y){
   }
 }
 
+// Makes a simple test texture.
+char* makePixels(){
+  int width = 256;
+  int height = 256;
+  char* pixels = new char[width*height*4];
+  for (int i = 0; i < height; i++){
+    for (int j = 0; j < width; j++){
+      pixels[4*(i*width + j)] = 128 & (j << 2) ? 255 : 0;
+      pixels[4*(i*width + j)+1] = 0;
+      pixels[4*(i*width + j)+2] = 0;
+      pixels[4*(i*width + j)+3] = 128 & (j << 2) ? 255 : 0;
+    }
+  }
+  return pixels;
+}
+
 int main(int argc, char** argv){
   ar_timeval time1 = ar_time();
   int i;
@@ -55,8 +72,9 @@ int main(int argc, char** argv){
   // This database tests using different point sizes and line widths, along
   // with color variations.
   arTransformNode* globalTrans 
-    = (arTransformNode*) g.newNode(g.getRoot(), "transform");
+    = (arTransformNode*) g.newNode(g.getRoot(), "transform", "global_trans");
   globalTrans->setTransform(ar_translationMatrix(0,5,-5));
+
   arGraphicsStateNode* s 
     = (arGraphicsStateNode*) g.newNode(globalTrans, "graphics state");
   s->setGraphicsState("point_size", NULL, 20.0);
@@ -133,7 +151,26 @@ int main(int argc, char** argv){
   additionalPoints->setPoints(1, c4);
   additionalDraw = (arDrawableNode*) additionalPoints->newNode("drawable");
   additionalDraw->setDrawable(DG_POINTS, 1);
-  
+
+  // Go ahead and attach a rectangle. We'll use this to test the texture
+  // and transparency functionality. 
+  arTransformNode* rt 
+    = (arTransformNode*) globalTrans->newNode("transform", "rect_rot");
+  rt->setTransform(ar_translationMatrix(0,0,0.1)
+                   *ar_rotationMatrix('x', ar_convertToRad(-90)));
+  // Turn off lighting for our rectangle since there are no lights in the
+  // scene.
+  arGraphicsStateNode* ls 
+    = (arGraphicsStateNode*) rt->newNode("graphics state", "lighting_off");
+  arGraphicsStateValue stateValue[2];
+  stateValue[0] = AR_G_FALSE;
+  ls->setGraphicsState("lighting", stateValue, 0);
+  arTextureNode* tn = (arTextureNode*) ls->newNode("texture", "rect_texture");
+  tn->setPixels(256, 256, makePixels(), true);
+  // BUG BUG BUG BUG BUG BUG BUG BUG: Still need to call dgSetGraphicsDatabase
+  dgSetGraphicsDatabase(&g);
+  arRectangleMesh rect;
+  rect.attachMesh("the_rect", "rect_texture");
 
   arSZGClient client;
   client.init(argc, argv);

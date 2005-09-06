@@ -23,14 +23,6 @@
 // Node creation commands return -1 on error and otherwise the node ID.
 // Node modification commands return false on error and true otherwise.
 
-/** @todo: this language isn't really
- *  very well designed... ideally there would be (XYZ) coordinate
- *  arrays, ID arrays, tex coord arrays, etc... but these would be
- *  be used differently by a tri-strip drawable or a tri soup drawable
- *  or a line drawable... for instance. what I have here dangerously
- *  conflates the coord or color or whatever arrays with the drawable type.
- */
-
 //;;;; used only in arGraphicsAPI.cpp?  private to it?  or use these elsewhere?
 const int AR_FLOATS_PER_MATRIX = 16;
 const int AR_FLOATS_PER_POINT = 3;
@@ -49,15 +41,6 @@ SZG_CALL arDatabaseNode* dgMakeNode(const string&, const string&,
 
 SZG_CALL int  dgViewer( const string& parent, const arHead& head);
 SZG_CALL bool dgViewer( int ID, const arHead& head );
-
-//SZG_CALL bool dgViewer(const arMatrix4& headMatrix, const arVector3& midEyeOffset, 
-//                    const arVector3& eyeDirection,
-//                    float eyeSpacingFeet, float nearClip, float farClip,
-//                    float unitConversion, bool fixedHeadMode );
-
-// I think that this guy is now gone...
-//SZG_CALL bool dgViewer(const arMatrix4&, const arVector3&, const arVector3&, 
-//                       float, float, float, float);
 
 SZG_CALL int dgTransform(const string&, const string&, const arMatrix4&);
 SZG_CALL bool dgTransform(int, const arMatrix4&);

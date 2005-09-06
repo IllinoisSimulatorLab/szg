@@ -25,14 +25,6 @@ string dgGetNodeName(int nodeID){
   return theNode->getName();
 }
 
-/** @bug If one node's gizmo count changes, other nodes' counts
- *  can't change atomically with it.  Maybe if nodes are grouped together?
- */
-
-/** @todo Report an error if a node is created with
- * a dgDrawable node as its parent.  
- */
-
 arGraphicsNode* dgGetNode(const string& nodeName){
   return (arGraphicsNode*) __currentGraphicsDatabase->getNode(nodeName);
 }
