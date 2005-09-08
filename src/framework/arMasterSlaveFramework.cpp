@@ -1395,10 +1395,21 @@ bool arMasterSlaveFramework::_sendData( void ) {
   // ar_activateWildcatFramelock();
   _wm->activateFramelock();
 
-  // Activate pending connections.
+  // Activate pending connections. We queue all connection attempts.
+  // They are "activated" in an orderly fashion at this precise point in
+  // the code.
   if( _barrierServer->checkWaitingSockets() ) {
+    // The barrierServer (the synchronization engine) will now mark
+    // the corresponding connections to the stateServer (the data engine)
+    // as ready to receive. ("passive sockets" correspond to
+    // acceptConnectionNoSend in the connection thread)
     _barrierServer->activatePassiveSockets( _stateServer );
   }
+
+  // Here, all connection attempts that were queued up during the previous
+  // frame have been fulfilled. The number of "active" connections is the
+  // number of slaves to whom we will be sending data in the next 
+  // _stateServer->sendData() (right below).
 
   // Send data, if there are any receivers.
   if( _stateServer->getNumberConnectedActive() > 0 &&
@@ -2073,6 +2084,8 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
       if( _internalBufferSwap ) {
         _wm->swapAllWindowBuffers( true );
       }
+      // Keyboard events, events from the window manager, etc. are all
+      // processed in here. 
       _wm->processWindowEvents();
       // If we are in shutdown mode, we want to stop everything and
       // then go away. NOTE: there are special problems since _drawWindow()
