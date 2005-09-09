@@ -1012,6 +1012,10 @@ void arMasterSlaveFramework::preDraw( void ) {
   if( getMaster() ) {
     _pollInputData();
 
+    if (_harmonyInUse && !_harmonyReady) {
+      _harmonyReady = allSlavesReady();
+    }
+      
     if( _eventFilter ) {
       _eventFilter->processEventQueue();
     }
@@ -2113,10 +2117,6 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
       // processed in here. 
       _wm->processWindowEvents();
       
-      if (getMaster() && _harmonyInUse && !_harmonyReady) {
-        _harmonyReady = _allSlavesReady();
-      }
-      
       // If we are in shutdown mode, we want to stop everything and
       // then go away. NOTE: there are special problems since _drawWindow()
       // and the keyboard function where the ESC press is caught are in the
@@ -2623,7 +2623,7 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
   }
 }
 
-bool arMasterSlaveFramework::_allSlavesReady() {
+bool arMasterSlaveFramework::allSlavesReady() {
   return _numSlavesConnected >= _getNumberSlavesExpected();
 }
 

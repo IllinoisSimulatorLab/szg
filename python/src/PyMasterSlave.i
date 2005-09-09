@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.13 2005/09/08 20:44:55 crowell Exp $
+// $Id: PyMasterSlave.i,v 1.14 2005/09/09 15:36:44 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -307,6 +307,7 @@ class arMasterSlaveFramework : public arSZGAppFramework {
   ~arMasterSlaveFramework();
 
   void usePredeterminedHarmony();
+  bool allSlavesReady();
 
   // The callbacks are commented out because they required special
   // handling (see extend section and macros)
@@ -380,7 +381,18 @@ class arMasterSlaveFramework : public arSZGAppFramework {
   bool soundActive() const { return _soundActive; }
   bool inputActive() const { return _inputActive; }
 
+  void setRandomSeed( const long newSeed );
+
 %extend{
+
+PyObject* randUniformFloat(void) {
+  float val;
+  if (!self->randUniformFloat( val )) {
+      PyErr_SetString(PyExc_RuntimeError,"error in randUniformFloat()");
+      return NULL;
+  }
+  return PyFloat_FromDouble( (double)val );
+}
 
 PyObject *initSequenceTransfer(char* name) {
   string nameStr(name);
