@@ -2287,13 +2287,13 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
 //}
 
 
-int arMasterSlaveFramework::_getNumberSlavesExpected() {
+int arMasterSlaveFramework::getNumberSlavesExpected() {
   static int totalSlaves(-1);
   if (getStandalone()) {
     return 0;
   }
   if (!getMaster()) {
-    cerr << "arMasterSlaveFramework error: _getNumberSlavesExpected() called on slave.\n";
+    cerr << "arMasterSlaveFramework error: getNumberSlavesExpected() called on slave.\n";
     return 0;
   }
   if (totalSlaves == -1) {
@@ -2624,7 +2624,7 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
 }
 
 bool arMasterSlaveFramework::allSlavesReady() {
-  return _numSlavesConnected >= _getNumberSlavesExpected();
+  return _numSlavesConnected >= getNumberSlavesExpected();
 }
 
 int arMasterSlaveFramework::getNumberSlavesConnected( void ) const {

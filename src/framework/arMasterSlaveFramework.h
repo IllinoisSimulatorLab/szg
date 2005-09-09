@@ -126,6 +126,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void stop( bool blockUntilDisplayExit );
 
   void usePredeterminedHarmony();
+  int getNumberSlavesExpected();
   bool allSlavesReady();
 
   void setDataBundlePath( const std::string& bundlePathName,
@@ -386,7 +387,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool _loadParameters( void );
   void _messageTask( void );
   void _connectionTask( void );
-  int _getNumberSlavesExpected();
 
   // draw-related utility functions
   void _drawWindow( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow );
