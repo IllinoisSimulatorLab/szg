@@ -139,8 +139,10 @@ arMatrix4 arVRCamera::_getFixedHeadModeMatrix( const arGraphicsScreen& screen ) 
   // NOTE: previously, the screen's fixed_head_pos specified where the head
   // _sensor_ should go in demo mode. The correct behavior is to use it to 
   // specify the mid-eye position; the lines below do this.
+//  cerr << screen.getFixedHeadHeadPosition() << endl;
   arMatrix4 headMatrix = ar_translationMatrix(screen.getFixedHeadHeadPosition()) * demoRotMatrix;
   arMatrix4 headSensorMatrix = headMatrix * ar_translationMatrix( -1.*_head->getMidEyeOffset() );
+//cerr << headSensorMatrix << endl << endl;
   return headSensorMatrix;
 }
 

@@ -87,7 +87,7 @@ void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
     // in standalone mode, keyboard events should also go to the interface
     if( fw->_standalone &&
         fw->_standaloneControlMode == "simulator" ) {
-      fw->_simulator.keyboard( keyInfo->getKey(), 1, 0, 0 );
+      fw->_simPtr->keyboard( keyInfo->getKey(), 1, 0, 0 );
     }
   }
 
@@ -113,10 +113,10 @@ void ar_masterSlaveFrameworkMouseFunction( arGUIMouseInfo* mouseInfo ) {
                         ( mouseInfo->getButton() == AR_RBUTTON ) ? 2 : 0;
       int whichState = ( mouseInfo->getState() == AR_MOUSE_DOWN ) ? 1 : 0;
 
-      fw->_simulator.mouseButton( whichButton, whichState, mouseInfo->getPosX(), mouseInfo->getPosY() );
+      fw->_simPtr->mouseButton( whichButton, whichState, mouseInfo->getPosX(), mouseInfo->getPosY() );
     }
     else {
-      fw->_simulator.mousePosition( mouseInfo->getPosX(), mouseInfo->getPosY() );
+      fw->_simPtr->mousePosition( mouseInfo->getPosX(), mouseInfo->getPosY() );
     }
   }
 
@@ -250,7 +250,6 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _keyboardCallback( NULL ),
   _arGUIKeyboardCallback( NULL ),
   _mouseCallback( NULL ),
-  _connectCallback( NULL ),
   // _stereoMode( false ),
   _internalBufferSwap( true ),
   _framerateThrottle( false ),
@@ -262,8 +261,9 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _soundActive( false ),
   _inBuffer( NULL ),
   _inBufferSize( -1 ),
-  _newSlaveConnected( false ),
   _numSlavesConnected( 0 ),
+  _harmonyInUse(false),
+  _harmonyReady(0),
   _time( 0.0 ),
   _lastFrameTime( 0.1 ),
   _firstTimePoll( true ),
@@ -289,9 +289,10 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _soundClient( NULL ),
   _requestReload( false ) {
 
-  ar_mutex_init( &_connectFlagMutex );
+  _simPtr = &_simulator;
 
   // also need to add fields for our default-shared data
+  _transferTemplate.addAttribute( "harmony_ready",   AR_INT );
   _transferTemplate.addAttribute( "time",            AR_DOUBLE );
   _transferTemplate.addAttribute( "lastFrameTime",   AR_DOUBLE );
   _transferTemplate.addAttribute( "navMatrix",       AR_FLOAT  );
@@ -367,6 +368,33 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
 
   delete _wm;
   delete _guiXMLParser;
+}
+
+void arMasterSlaveFramework::usePredeterminedHarmony() {
+  if (_userInitCalled) {
+    cerr << "arMasterSlaveFramework error: usePredeterminedHarmony() may not be called after "
+         << "the start callback.\n";
+    return;
+  }
+  cout << "arMasterSlaveFramework remark: You are using pre-determined harmony." << endl
+       << "   This means that under normal circumstances you should not do any" << endl
+       << "   computation in the pre-exchange (because that's only called on the " << endl
+       << "   master). Just thought we'd remind you." << endl;
+  _harmonyInUse = true;
+}
+
+bool arMasterSlaveFramework::setInputSimulator( arInputSimulator* sim ) {
+  if (_parametersLoaded) {
+    cerr << "arMasterSlaveFramework error: you can't set a new input simulator after "
+         << "the framework init().\n";
+    return false;
+  }
+  if (!sim) {
+    cerr << "arMasterSlaveFramework error: setInputSimulator() called with NULL pointer.\n";
+    return false;
+  }
+  _simPtr = sim;
+  return true;
 }
 
 bool arMasterSlaveFramework::onStart( arSZGClient& SZGClient ) {
@@ -537,12 +565,6 @@ void arMasterSlaveFramework::onMouse( arGUIMouseInfo* mouseInfo ) {
   }
 }
 
-void arMasterSlaveFramework::onSlaveConnected( int numConnected ) {
-  if( _connectCallback ) {
-    _connectCallback( *this, numConnected );
-  }
-}
-
 void arMasterSlaveFramework::setStartCallback
   ( bool (*startCallback)( arMasterSlaveFramework&, arSZGClient& ) ) {
   _startCallback = startCallback;
@@ -591,6 +613,10 @@ void arMasterSlaveFramework::setDrawCallback( void (*draw)( arMasterSlaveFramewo
   _oldDrawCallback = draw;
 }
 
+void arMasterSlaveFramework::setDisconnectDrawCallback( void (*disConnDraw)( arMasterSlaveFramework& ) ) {
+  _disconnectDrawCallback = disConnDraw;
+}
+
 void arMasterSlaveFramework::setPlayCallback
   ( void (*play)( arMasterSlaveFramework& ) ) {
   _playCallback = play;
@@ -635,11 +661,6 @@ void arMasterSlaveFramework::setKeyboardCallback
 void arMasterSlaveFramework::setMouseCallback
   ( void (*mouse)( arMasterSlaveFramework&, arGUIMouseInfo* ) ) {
   _mouseCallback = mouse;
-}
-
-void arMasterSlaveFramework::setSlaveConnectedCallback
-  ( void (*connectCallback)( arMasterSlaveFramework& fw, int numConnected ) ) {
-  _connectCallback = connectCallback;
 }
 
 bool arMasterSlaveFramework::_startrespond( const std::string& s ) {
@@ -995,14 +1016,9 @@ void arMasterSlaveFramework::preDraw( void ) {
       _eventFilter->processEventQueue();
     }
 
-    ar_mutex_lock( &_connectFlagMutex );
-    if( _newSlaveConnected ) {
-      onSlaveConnected( _numSlavesConnected );
-      _newSlaveConnected = false;
+    if (!(_harmonyInUse && !_harmonyReady)) {
+      onPreExchange();
     }
-    ar_mutex_unlock( &_connectFlagMutex );
-
-    onPreExchange();
   }
 
   // might not be running in a distributed fashion
@@ -1015,7 +1031,7 @@ void arMasterSlaveFramework::preDraw( void ) {
 
   onPlay();
 
-  if( getConnected() ) {
+  if( getConnected() && !(_harmonyInUse && !_harmonyReady) ) {
     onPostExchange();
   }
 
@@ -1410,6 +1426,12 @@ bool arMasterSlaveFramework::_sendData( void ) {
   // frame have been fulfilled. The number of "active" connections is the
   // number of slaves to whom we will be sending data in the next 
   // _stateServer->sendData() (right below).
+  if( _stateServer ) {
+    _numSlavesConnected = _stateServer->getNumberConnected();
+  }
+  else {
+    _numSlavesConnected = -1;
+  }
 
   // Send data, if there are any receivers.
   if( _stateServer->getNumberConnectedActive() > 0 &&
@@ -1540,7 +1562,7 @@ void arMasterSlaveFramework::_pollInputData( void ) {
   // If we are in standalone mode, get the input events now.
   // AARGH!!!! This could be done more generally...
   if( _standalone && _standaloneControlMode == "simulator" ) {
-    _simulator.advance();
+    _simPtr->advance();
   }
 
   _inputState->updateLastButtons();
@@ -1557,6 +1579,7 @@ void arMasterSlaveFramework::_packInputData( void ){
   const arMatrix4 navMatrix( ar_getNavMatrix() );
   if (!_transferData->dataIn( "time",            &_time,                 AR_DOUBLE, 1 ) ||
       !_transferData->dataIn( "lastFrameTime",   &_lastFrameTime,        AR_DOUBLE, 1 ) ||
+      !_transferData->dataIn( "harmony_ready",   &_harmonyReady,         AR_INT,    1 ) ||
       !_transferData->dataIn( "navMatrix",       navMatrix.v,            AR_FLOAT, 16 ) ||
       !_transferData->dataIn( "randSeedSet",     &_randSeedSet,          AR_INT,    1 ) ||
       !_transferData->dataIn( "randSeed",        &_randomSeed,           AR_LONG,   1 ) ||
@@ -1585,6 +1608,7 @@ void arMasterSlaveFramework::_packInputData( void ){
 void arMasterSlaveFramework::_unpackInputData( void ){
   _transferData->dataOut( "time",            &_time,                 AR_DOUBLE, 1 );
   _transferData->dataOut( "lastFrameTime",   &_lastFrameTime,        AR_DOUBLE, 1 );
+  _transferData->dataOut( "harmony_ready",   &_harmonyReady,         AR_INT,    1 );
   _transferData->dataOut( "eye_spacing",     &_head._eyeSpacing,     AR_FLOAT,  1 );
   _transferData->dataOut( "mid_eye_offset",  _head._midEyeOffset.v,  AR_FLOAT,  3 );
   _transferData->dataOut( "eye_direction",   _head._eyeDirection.v,  AR_FLOAT,  3 );
@@ -1625,6 +1649,7 @@ void arMasterSlaveFramework::_unpackInputData( void ){
     }
   }
   else {
+//    _sendSlaveReadyMessage();
     _firstTransfer = 0;
   }
 
@@ -1685,7 +1710,7 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
   _standaloneControlMode = _SZGClient.getAttribute( "SZG_DEMO", "control_mode",
                                                     "|simulator|joystick|");
   if (_standaloneControlMode == "simulator") {
-    _simulator.registerInputNode( _inputDevice );
+    _simPtr->registerInputNode( _inputDevice );
   }
   else {
     // the joystick is the only other option so far
@@ -2087,6 +2112,11 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
       // Keyboard events, events from the window manager, etc. are all
       // processed in here. 
       _wm->processWindowEvents();
+      
+      if (getMaster() && _harmonyInUse && !_harmonyReady) {
+        _harmonyReady = _allSlavesReady();
+      }
+      
       // If we are in shutdown mode, we want to stop everything and
       // then go away. NOTE: there are special problems since _drawWindow()
       // and the keyboard function where the ESC press is caught are in the
@@ -2160,6 +2190,8 @@ void arMasterSlaveFramework::_createWindowing( bool useWindowing ) {
     std::cout << "could not create windows" << std::endl;
     // exit( 0 );
   }
+
+  _wm->setAllTitles( _label, false );
 }
 
 bool arMasterSlaveFramework::_loadParameters( void ) {
@@ -2193,7 +2225,7 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
   }
 
   if( _standalone ) {
-    _simulator.configure( _SZGClient );
+    _simPtr->configure( _SZGClient );
   }
 
   // Don't think the speaker object configuration actually does anything
@@ -2233,6 +2265,46 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
   return true;
 }
 
+
+//bool arMasterSlaveFramework::_sendSlaveReadyMessage() {
+//  if (getMaster()) {
+//    cerr << "arMasterSlaveFramework error: sendConnectedMessage() called on master.\n";
+//    return false;
+//  }
+//  arSZGClient* cl = getSZGClient();
+//  arAppLauncher* al = getAppLauncher();
+//  int masterNum = al->getMasterPipeNumber();
+//  std::string computer, renderName;
+//  if (!al->getRenderProgram( masterNum, computer, renderName )) {
+//    cerr << "arMasterSlaveFramework error: getRenderProgram() failed in sendConnectedMessage().\n";
+//    return false;
+//  }
+//  cout << "arMasterSlaveFramework remark: master render program = '"
+//       << renderName << "' on '" << computer << "'\n.";
+//  int procID = cl->getProcessID( computer, renderName );
+//  cout << "arMasterSlaveFramework remark: master process ID = " << procID << endl;
+//  return cl->sendMessage( "slaveready", "connected", procID, false );
+//}
+
+
+int arMasterSlaveFramework::_getNumberSlavesExpected() {
+  static int totalSlaves(-1);
+  if (getStandalone()) {
+    return 0;
+  }
+  if (!getMaster()) {
+    cerr << "arMasterSlaveFramework error: _getNumberSlavesExpected() called on slave.\n";
+    return 0;
+  }
+  if (totalSlaves == -1) {
+    arAppLauncher* al = getAppLauncher();
+    totalSlaves = al->getNumberScreens()-1;
+    cout << "arMasterSlaveFramework remark: " << totalSlaves << " slaves expected.\n";
+  }
+  return totalSlaves;
+}
+
+
 void arMasterSlaveFramework::_messageTask( void ) {
   // might be a good idea to shut this down cleanly... BUT currently
   // there's no way to shut the arSZGClient down cleanly.
@@ -2271,6 +2343,13 @@ void arMasterSlaveFramework::_messageTask( void ) {
         exit( 0 );
       }
     }
+//    else if ( messageType == "slaveready" ) {
+//      ++_numSlavesReady;
+//      cout << "arMasterSlaveFramework remark: " << _numSlavesReady << " slaves ready.\n";
+//      if (allSlavesReady()) {
+//        cout << "   (That's all of them).\n";
+//      }
+//    }
     else if ( messageType== "performance" ) {
       if ( messageBody == "on" ) {
 	      _showPerformance = true;
@@ -2394,16 +2473,6 @@ void arMasterSlaveFramework::_connectionTask( void ) {
 	      std::cout << " (" << num << " in all)";
 	    }
       std::cout << std::endl;
-
-      ar_mutex_lock( &_connectFlagMutex );
-      _newSlaveConnected = true;
-      if( _stateServer ) {
-        _numSlavesConnected = _stateServer->getNumberConnected();
-      }
-      else {
-        _numSlavesConnected = -1;
-      }
-      ar_mutex_unlock( &_connectFlagMutex );
     }
   }
   else {
@@ -2493,12 +2562,12 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
   // draw the window
   if(!_exitProgram ) {
     if( _noDrawFillColor[ 0 ] == -1 ) {
-      if( getConnected() ) {
+      if( getConnected() && !(_harmonyInUse && !_harmonyReady) ) {
         graphicsWindow->draw();
 
         if ( _wm->isFirstWindow( currentWinID ) ) {
           if( _standalone && _standaloneControlMode == "simulator" ) {
-            _simulator.drawWithComposition();
+            _simPtr->drawWithComposition();
           }
 
           if( _showPerformance ){
@@ -2552,6 +2621,10 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
   if( _wm->isFirstWindow( currentWinID ) ) {
     _handleScreenshot( _wm->isStereo( currentWinID ) );
   }
+}
+
+bool arMasterSlaveFramework::_allSlavesReady() {
+  return _numSlavesConnected >= _getNumberSlavesExpected();
 }
 
 int arMasterSlaveFramework::getNumberSlavesConnected( void ) const {

@@ -5,6 +5,7 @@
 #include "arPrecompiled.h"
 
 #include <iostream>
+#include <sstream>
 
 #include "arStructuredData.h"
 #include "arMath.h"
@@ -571,6 +572,22 @@ void arGUIWindowManager::setTitle( const int windowID, const std::string& title 
   }
 
   _windows[ windowID ]->setTitle( title );
+}
+
+void arGUIWindowManager::setAllTitles( const std::string& baseTitle, bool overwrite )
+{
+  ostringstream os;
+  WindowIterator iter;
+  for (iter = _windows.begin(); iter != _windows.end(); ++iter) {
+    int ID = iter->first;
+    os.str(""); // clear it.
+    os << ID;
+    std::string title = baseTitle + " #" + os.str();
+    arGUIWindow* win = iter->second;
+    if (overwrite || win->getTitle() == "SyzygyWindow") {
+      win->setTitle( title );
+    }
+  }
 }
 
 arVector3 arGUIWindowManager::getWindowSize( const int windowID )

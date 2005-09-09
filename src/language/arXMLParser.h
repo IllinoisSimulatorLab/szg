@@ -257,11 +257,11 @@ protected:
 		Wickedly complex options, but it keeps the (sensitive) code in one place.
 	*/
 	static const char* ReadText(	const char* in,				// where to start
-									TIXML_STRING* text,			// the string read
-									bool ignoreWhiteSpace,		// whether to keep the white space
-									const char* endTag,			// what ends this text
-									bool ignoreCase,			// whether to ignore case in the end tag
-									TiXmlEncoding encoding );	// the current encoding
+                            TIXML_STRING* text,			// the string read
+                            bool ignoreWhiteSpace,		// whether to keep the white space
+                            const char* endTag,			// what ends this text
+                            bool ignoreCase,			// whether to ignore case in the end tag
+                            TiXmlEncoding encoding );	// the current encoding
 
 	// If an entity has been found, transform it into a character.
 	static const char* GetEntity( const char* in, char* value, int* length, TiXmlEncoding encoding );

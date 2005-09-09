@@ -60,6 +60,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   arMasterSlaveFramework( void );
   virtual ~arMasterSlaveFramework( void );
 
+  bool setInputSimulator( arInputSimulator* sim );
+
   // We've added another layer of indirection. Now, at the point where
   // the callbacks were formerly called, we instead call these virtual
   // (hence overrideable) methods, which in turn call the callbacks.
@@ -83,7 +85,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   virtual void onKey( unsigned char key, int x, int y );
   virtual void onKey( arGUIKeyInfo* );
   virtual void onMouse( arGUIMouseInfo* );
-  virtual void onSlaveConnected( int numConnected );
 
   //
   // set the callbacks
@@ -123,6 +124,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // if the parameter is set to true, we will block until the display thread
   // exits
   void stop( bool blockUntilDisplayExit );
+
+  void usePredeterminedHarmony();
 
   void setDataBundlePath( const std::string& bundlePathName,
                           const std::string& bundleSubDirectory );
@@ -255,7 +258,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void (*_keyboardCallback)( arMasterSlaveFramework&, unsigned char key, int x, int y );
   void (*_arGUIKeyboardCallback)( arMasterSlaveFramework&, arGUIKeyInfo* );
   void (*_mouseCallback)( arMasterSlaveFramework&, arGUIMouseInfo* );
-  void (*_connectCallback)( arMasterSlaveFramework&, int numConnected );
 
   bool  _internalBufferSwap;
   bool  _framerateThrottle;
@@ -272,10 +274,10 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool    _soundActive;	            //< Set by master's _start().
   ARchar* _inBuffer;
   ARint   _inBufferSize;
-
-  bool    _newSlaveConnected;       //< used to trigger slave-connection callback
   int     _numSlavesConnected;      //< updated only once/frame, before preExchange
-  arMutex _connectFlagMutex;
+
+  bool _harmonyInUse;
+  int _harmonyReady;
 
   // Input-event stuff
   arInputEventQueue _eventQueue;
@@ -328,7 +330,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   // Used in "standalone" mode
   std::string      _standaloneControlMode;
-  arInputSimulator _simulator;
+  arInputSimulator  _simulator;
+  arInputSimulator* _simPtr;
   arFramerateGraph _framerateGraph;
   bool             _showPerformance;
 
@@ -363,6 +366,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void _unpackInputData( void );
   void _eventCallback( arInputEvent& event );
 
+  bool _sendSlaveReadyMessage();
+  
   // functions pertaining to initing/starting services
   bool _determineMaster( std::stringstream& initResponse );
   bool _initStandaloneObjects( void );
@@ -380,6 +385,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool _loadParameters( void );
   void _messageTask( void );
   void _connectionTask( void );
+  bool _allSlavesReady();
+  int _getNumberSlavesExpected();
 
   // draw-related utility functions
   void _drawWindow( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow );

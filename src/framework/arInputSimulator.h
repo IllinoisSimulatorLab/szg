@@ -29,9 +29,9 @@ enum arHeadWandSimState{
 class SZG_CALL arInputSimulator: public arFrameworkObject{
  public:
   arInputSimulator();
-  ~arInputSimulator();
+  virtual ~arInputSimulator();
 
-  bool configure( arSZGClient& SZGClient );
+  virtual bool configure( arSZGClient& SZGClient );
   void registerInputNode(arInputNode* node);
 
   virtual void draw();
@@ -39,16 +39,16 @@ class SZG_CALL arInputSimulator: public arFrameworkObject{
   void advance();
 
   // used to capture and process mouse/keyboard data
-  void keyboard(unsigned char key, int state, int x, int y);
-  void mouseButton(int button, int state, int x, int y);
-  void mousePosition(int x, int y);
+  virtual void keyboard(unsigned char key, int state, int x, int y);
+  virtual void mouseButton(int button, int state, int x, int y);
+  virtual void mousePosition(int x, int y);
 
-  bool setMouseButtons( std::vector<unsigned int>& mouseButtons );
+  virtual bool setMouseButtons( std::vector<unsigned int>& mouseButtons );
   std::vector<unsigned int> getMouseButtons();
   void setNumberButtonEvents( unsigned int numButtonEvents ); 
   unsigned int getNumberButtonEvents() const { return _numButtonEvents; }
 
- private:
+ protected:
   // The state of the simulator...
   // The physical input device (i.e. mouse)
   int _mousePosition[2];

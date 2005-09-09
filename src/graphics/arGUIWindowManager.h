@@ -540,6 +540,7 @@ class SZG_CALL arGUIWindowManager
     std::string getXDisplay( const int windowID );
 
     void setTitle( const int windowID, const std::string& title );
+    void setAllTitles( const std::string& baseTitle, bool overwrite=true );
 
     void* getUserData( const int windowID );
     void setUserData( const int windowID, void* userData );

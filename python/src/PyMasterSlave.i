@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.12 2005/07/15 18:24:48 schaeffr Exp $
+// $Id: PyMasterSlave.i,v 1.13 2005/09/08 20:44:55 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -56,6 +56,8 @@ static void py##cbtype##Callback(arMasterSlaveFramework& fw) { \
 
 //  void setDrawCallback(void (*draw)(arMasterSlaveFramework&));
 MASTERSLAVECALLBACK(Draw)
+//  void setDisconnectDrawCallback(void (*draw)(arMasterSlaveFramework&));
+MASTERSLAVECALLBACK(DisconnectDraw)
 //  void setPreExchangeCallback(void (*preExchange)(arMasterSlaveFramework&));
 MASTERSLAVECALLBACK(PreExchange)
 //  void setPostExchangeCallback(void (*preExchange)(arMasterSlaveFramework&));
@@ -197,33 +199,6 @@ static void pyKeyboardCallback(arMasterSlaveFramework &fw,
    Py_DECREF(fwobj);
 }
 
-// setSlaveConnectedCallback requires special treatment because the signature of
-// its callback function differs from everybody elses.
-//
-// void setSlaveConnectedCallback(void (*connected)(arMasterSlaveFramework&,int));
-
-static PyObject *pySlaveConnectedFunc = NULL;
-static void pySlaveConnectedCallback(arMasterSlaveFramework& fw, int numConnected)
-{
-   PyObject* fwobj = SWIG_NewPointerObj((void*) &fw,
-                                        SWIGTYPE_p_arMasterSlaveFramework, 0);
-   PyObject* arglist = Py_BuildValue("(O,i)", fwobj, numConnected);
-   PyObject* result = PyEval_CallObject(pySlaveConnectedFunc, arglist);
-
-   if(result == NULL)
-   {
-      PyErr_Print();
-      string errMsg = "A Python exception occured in slaveConnected callback.";
-      cerr << errMsg << "\n";
-      throw errMsg;
-   }
-
-   Py_XDECREF(result);
-   Py_DECREF(arglist);
-   Py_DECREF(fwobj);
-}
-
-
 bool ar_packSequenceData( PyObject* seq, std::vector<int>& typeData,
                             std::vector<long>& intData, std::vector<double>& floatData,
                             std::vector<char*>& stringData, std::vector<int>& stringSizeData ) {
@@ -331,11 +306,12 @@ class arMasterSlaveFramework : public arSZGAppFramework {
   arMasterSlaveFramework();
   ~arMasterSlaveFramework();
 
+  void usePredeterminedHarmony();
+
   // The callbacks are commented out because they required special
   // handling (see extend section and macros)
 
   bool getStandalone(); // Are we running in stand-alone mode?
-  int getNumberSlavesConnected() const; // If master, number of slaves connected.
   // initializes the various pieces but does not start the event loop
   bool init(int&, char**);
   // starts services and the default GLUT-based event loop
@@ -785,6 +761,9 @@ void set##cbtype##Callback(PyObject *PyFunc) {\
 //  void setDrawCallback(void (*draw)(arMasterSlaveFramework&));
     MAKEMASTERSLAVECALLBACKSETTER(Draw)
 
+//  void setDisconnectDrawCallback(void (*draw)(arMasterSlaveFramework&));
+    MAKEMASTERSLAVECALLBACKSETTER(DisconnectDraw)
+
 //  void setDrawCallback(void (*draw)(arMasterSlaveFramework&,arGraphicsWindow&,arViewport&));
 void setNewDrawCallback(PyObject *PyFunc) {
     Py_XDECREF(pyNewDrawFunc); 
@@ -818,10 +797,6 @@ void setNewDrawCallback(PyObject *PyFunc) {
 
 //  void setPostExchangeCallback(bool (*postExchange)(arMasterSlaveFramework&));
     MAKEMASTERSLAVECALLBACKSETTER(PostExchange)
-
-//  void setSlaveConnectedCallback(void (*connected)(arMasterSlaveFramework&, int));
-    MAKEMASTERSLAVECALLBACKSETTER(SlaveConnected)
-
 }
 
 // Some master->slave data-transfer methods...
@@ -880,12 +855,12 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
     arMasterSlaveFramework.__init__(self)
     self.setStartCallback( self.startCallback )
     self.setWindowStartGLCallback( self.windowStartGLCallback )
-    self.setSlaveConnectedCallback( self.slaveConnectedCallback )
     self.setPreExchangeCallback( self.preExchangeCallback )
     self.setPostExchangeCallback( self.postExchangeCallback )
     self.setWindowCallback( self.windowInitCallback )
     self.setOverlayCallback( self.overlayCallback )
     self.setNewDrawCallback( self.drawCallback )
+    self.setDisconnectDrawCallback( self.disconnectDrawCallback )
     self.setPlayCallback( self.playCallback )
     self.setKeyboardCallback( self.keyboardCallback )
     self.setUserMessageCallback( self.userMessageCallback )
@@ -898,10 +873,6 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
   def windowStartGLCallback( self, framework, winInfo ):
     return self.onWindowStartGL( winInfo )
   def onWindowStartGL( self, winInfo ):
-    pass
-  def slaveConnectedCallback( self, framework, numConnected ):
-    self.onSlaveConnected( numConnected )
-  def onSlaveConnected( self, numConnected ):
     pass
   def preExchangeCallback( self, framework ):
     self.onPreExchange()
@@ -923,6 +894,25 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
     self.onDraw( graphicsWin, viewport )
   def onDraw( self, graphicsWin, viewport ):
     pass
+  def disconnectDrawCallback( self, framework ):
+    self.onDisconnectDraw()
+  def onDisconnectDraw( self ):
+    # just draw a black background
+    glMatrixMode( GL_PROJECTION )
+    glLoadIdentity()
+    glOrtho( -1.0, 1.0, -1.0, 1.0, 0.0, 1.0 )
+    glMatrixMode( GL_MODELVIEW )
+    glLoadIdentity()
+    glPushAttrib( GL_ALL_ATTRIB_BITS )
+    glDisable( GL_LIGHTING )
+    glColor3f( 0.0, 0.0, 0.0 )
+    glBegin( GL_QUADS )
+    glVertex3f(  1.0,  1.0, -0.5 )
+    glVertex3f( -1.0,  1.0, -0.5 )
+    glVertex3f( -1.0, -1.0, -0.5 )
+    glVertex3f(  1.0, -1.0, -0.5 )
+    glEnd()
+    glPopAttrib()
   def playCallback( self, framework ):
     self.onPlay()
   def onPlay( self ):

@@ -224,7 +224,7 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
     // warning, though, if there is a difference.
     if (forcedName != _exeName){
       cerr << _exeName << " warning: forcing a component name\n"
-	   << "different from the exe name (desirable only in Win98).\n";
+	   << "different from the exe name (necessary only in Win98).\n";
     }
     _setLabel(forcedName); // tell the szgserver our name
   }
