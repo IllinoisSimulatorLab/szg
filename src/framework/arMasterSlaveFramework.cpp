@@ -2624,6 +2624,9 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
 }
 
 bool arMasterSlaveFramework::allSlavesReady() {
+  if (_harmonyReady) {
+    return true;
+  }
   return _numSlavesConnected >= getNumberSlavesExpected();
 }
 
