@@ -128,30 +128,44 @@ arDatabaseNode* arDatabase::findNode(const string& name){
   return result;
 }
 
-// NOT THREAD-SAFE!!!!!!! (because of the naming methodlogy)
-// (also because we use the global data structure... but... then again...
-// the dgMakeNode isn't thread safe for the same reason)
+// NOT THREAD-SAFE!!!!!!! Because _nextDefaultName is not thread-safe.
 arDatabaseNode* arDatabase::newNode(arDatabaseNode* parent,
                                     const string& type,
                                     const string& name){
   string nodeName = name;
   if (nodeName == ""){
-    // we must choose a default name
-    stringstream def;
-    def << "szg_default_" << _nextAssignedID;
-    nodeName = def.str();
+    nodeName = _nextDefaultName();
   }
   // BUG: NOT TESTING TO SEE IF THIS DATABASE NODE IS, INDEED, OWNED BY
   // THIS DATABASE!
   int parentID = parent->getID();
-  makeNodeData->dataIn(_lang->AR_MAKE_NODE_PARENT_ID, &parentID, AR_INT, 1);
+  arStructuredData* data = _dataParser->getStorage(_lang->AR_MAKE_NODE);
+  data->dataIn(_lang->AR_MAKE_NODE_PARENT_ID, &parentID, AR_INT, 1);
   int temp = -1;
-  // we are requesting an ID be assigned.
-  makeNodeData->dataIn(_lang->AR_MAKE_NODE_ID, &temp, AR_INT, 1);
-  makeNodeData->dataInString(_lang->AR_MAKE_NODE_NAME, nodeName);
-  makeNodeData->dataInString(_lang->AR_MAKE_NODE_TYPE, type);
+  // We are requesting an ID be assigned.
+  data->dataIn(_lang->AR_MAKE_NODE_ID, &temp, AR_INT, 1);
+  data->dataInString(_lang->AR_MAKE_NODE_NAME, nodeName);
+  data->dataInString(_lang->AR_MAKE_NODE_TYPE, type);
   // The alter(...) call will return the new node.
-  return alter(makeNodeData);
+  arDatabaseNode* result = alter(data);
+  // Must recycle. Otherwise there will be a memory leak.
+  _dataParser->recycle(data);
+  return result;
+}
+
+// A node has been created, but NOT through the database's factory method.
+// Instead, the node has been created directly. And now we want to add it to
+// the database.
+arDatabaseNode* arDatabase::attach(arDatabaseNode* parent,
+				   arDatabaseNode* child){
+  // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
+  // Should probably be checking that the parent is actually part of this
+  // database...
+  
+  // Must be sure to add this child to this parent.
+  parent->_children.push_back(child);
+  _attachNodeTree(parent, child);
+  return &_rootNode;
 }
 
 // The parent node MUST be given. If no child node is given (i.e. the 
@@ -160,16 +174,14 @@ arDatabaseNode* arDatabase::newNode(arDatabaseNode* parent,
 // between the two specified nodes (assuming they are truly parent and 
 // child). If successful, return a pointer to the new node, otherwise
 // return NULL.
+// NOT THREAD-SAFE (because _nextDefaultName is not thread-safe).
 arDatabaseNode* arDatabase::insertNode(arDatabaseNode* parent,
 			               arDatabaseNode* child,
 			               const string& type,
 			               const string& name){
   string nodeName = name;
   if (nodeName == ""){
-    // we must choose a default name
-    stringstream def;
-    def << "szg_default_" << _nextAssignedID;
-    nodeName = def.str();
+    nodeName = _nextDefaultName();
   }
   // BUG BUG BUG BUG: Not testing to see if these nodes are part of this
   // database.
@@ -206,14 +218,16 @@ bool arDatabase::cutNode(int ID){
   return result ? true : false;
 }
 
-// NOT THREAD_SAFE EITHER!
 bool arDatabase::eraseNode(int ID){
   arDatabaseNode* node = getNode(ID, false);
   if (!node){
     return false;
   }
-  eraseData->dataIn(_lang->AR_ERASE_ID, &ID, AR_INT, 1);
-  alter(eraseData);
+  arStructuredData* data = _dataParser->getStorage(_lang->AR_ERASE);
+  data->dataIn(_lang->AR_ERASE_ID, &ID, AR_INT, 1);
+  alter(data);
+  // Very important that this gets recycled in order to prevent a memory leak.
+  _dataParser->recycle(data);
   return true;
 }
 
@@ -766,12 +780,20 @@ bool arDatabase::_initDatabaseLanguage(){
   return true;
 }
 
+string arDatabase::_nextDefaultName(){
+  stringstream def;
+  def << "szg_default_" << _nextAssignedID;
+  return def.str();
+}
+
 /// When the database receives a message demanding creation of a node,
 /// it is handled here. If we cannot succeed for some reason, return
 /// NULL, otherwise, return a pointer to the node in question.
 /// PLEASE NOTE: This function does double duty: both as a creator of new
 /// database nodes AND as a "mapper" of existing database nodes
-/// (consequently, we allow an existing node to get returned).
+/// (consequently, we allow an existing node to get returned). Also,
+/// when we "attach" a node (really a whole subtree), the mapping feature 
+/// gets used.
 arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
   // NOTE: inData is guaranteed to have the right type because alter(...)
   // distributes messages to handlers based on type.
@@ -864,7 +886,7 @@ arDatabaseNode* arDatabase::_insertDatabaseNode(arStructuredData* data){
   // with that ID. Insert (unlike add) does not support node "mappings". If
   // a node exists with the ID, return an error.
   if (nodeID > -1){
-    if (getNode(nodeID)){
+    if (getNode(nodeID, false)){
       return NULL;
     }
   }
@@ -883,6 +905,13 @@ arDatabaseNode* arDatabase::_insertDatabaseNode(arStructuredData* data){
     (void)_removeFromChildren(parentNode, childNode);
     (void)_addToChildren(result, childNode);
   }
+  // NOTE: We need to fill in the ID so that it can be passed to connected
+  // databases (as in the operation of subclasses arGraphicsServer or 
+  // arGraphicsPeer).
+  if (result){
+    int theID = result->getID();
+    data->dataIn(_lang->AR_INSERT_ID, &theID, AR_INT, 1);
+  }
   return result;
 }
 
@@ -890,7 +919,7 @@ arDatabaseNode* arDatabase::_insertDatabaseNode(arStructuredData* data){
 /// become children of its parent. This stands in contrast to the erasing,
 /// whereby the whole subtree gets blown away.
 arDatabaseNode* arDatabase::_cutDatabaseNode(arStructuredData* data){
-  // NOTE: data is guaranteed to be the righttype because alter(...)
+  // NOTE: data is guaranteed to be the right type because alter(...)
   // sends messages to handlers (like this one) based on type information.
   int ID = data->getDataInt(_lang->AR_CUT_ID);
   arDatabaseNode* node = getNode(ID);
@@ -933,6 +962,32 @@ arDatabaseNode* arDatabase::_eraseNode(arStructuredData* inData){
 }
 
 arDatabaseNode* arDatabase::_permuteDatabaseNodes(arStructuredData* data){
+  // This algorithm is pretty inefficient.
+  // NOTE: data is guaranteed to be the right type because alter(...)
+  // sends messages to handlers (like this one) based on type information.
+  int ID = data->getDataInt(_lang->AR_PERMUTE_PARENT_ID);
+  arDatabaseNode* parent = getNode(ID);
+  if (!parent){
+    cout << "arDatabase:: _permuteDatabaseNodes failed: no such parent.\n";
+    return NULL;
+  }
+  int* IDs = (int*) data->getDataPtr(_lang->AR_PERMUTE_CHILD_IDS, AR_INT);
+  int numIDs = data->getDataDimension(_lang->AR_PERMUTE_CHILD_IDS);
+  for (int i=numIDs; i>=0; i--){
+    // Given the current ID. Find the node with that ID and move it to the
+    // front of the child list.
+    for (list<arDatabaseNode*>::iterator j = parent->_children.begin();
+	 j != parent->_children.end(); j++){
+      arDatabaseNode* node = *j;
+      if ( node->getID() == IDs[i]){
+        // Move this node to the front of the list.
+        parent->_children.erase(j);
+        parent->_children.push_front(node);
+	// We are done with the search.
+	break;
+      }
+    }
+  }
   return &_rootNode;
 }
 
@@ -951,45 +1006,50 @@ arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
 	 << typeString << ".\n";
     return NULL;
   }
-  // Set parameters.
-  node->_parent = parentNode;
   node->_name = nodeName;
-  // Set ID appropriately.
-  if (nodeID == -1){
-    // assign an ID automatically
-    node->_ID = _nextAssignedID++;
-  }
-  else{
-    node->_ID = nodeID;
-    if (_nextAssignedID <= nodeID){
-      _nextAssignedID = nodeID+1;
-    }
-  }
+
   // Add to children of parent, remembering that if moveChildren is true,
   // then all the parent's previous children will be attached to the new
   // node.
   ar_mutex_lock(&_bufferLock);
-    if (moveChildren){
-      for (list<arDatabaseNode*>::iterator i = parentNode->_children.begin();
-	   i != parentNode->_children.end(); i++){
-        node->_children.push_back(*i);
-      }
-      parentNode->_children.clear();
+  if (moveChildren){
+    for (list<arDatabaseNode*>::iterator i = parentNode->_children.begin();
+	 i != parentNode->_children.end(); i++){
+      node->_children.push_back(*i);
     }
-    // Either way, make the new node a child of the parent.
-    parentNode->_children.push_back(node);
-    _nodeIDContainer.insert(
-      map<int,arDatabaseNode*,less<int> >::value_type(node->_ID, node));
+    parentNode->_children.clear();
+  }
+  // Either way, make the new node a child of the parent.
+  parentNode->_children.push_back(node);
   ar_mutex_unlock(&_bufferLock);
 
-  // Nodes that belong to a particular database (like this class itself)
-  // need to know that, as is allowed by this initialization.
-  node->initialize(this);
+  _nodeRegistration(parentNode, node, nodeID);
 
-  if (node->_ID < 0)
-    cerr << "arDatabase error: "
-	 << "insertion failed because of outNode->initialize().\n";
   return node;
+}
+
+void arDatabase::_nodeRegistration(arDatabaseNode* parentNode,
+				   arDatabaseNode* childNode,
+                                   int nodeID){
+  // Set parameters.
+  childNode->_parent = parentNode;
+  // Set ID appropriately.
+  if (nodeID == -1){
+    // assign an ID automatically
+    childNode->_ID = _nextAssignedID++;
+  }
+  else{
+    childNode->_ID = nodeID;
+    if (_nextAssignedID <= nodeID){
+      _nextAssignedID = nodeID+1;
+    }
+  }
+  // Must enter the database's registry.
+  _nodeIDContainer.insert(
+      map<int,arDatabaseNode*,less<int> >::value_type(childNode->_ID, 
+                                                      childNode));
+  // Do not forget to intialize.
+  childNode->initialize(this);
 }
 
 // Removes child from the current parent (if it is a child).
@@ -1074,6 +1134,36 @@ void arDatabase::_cutNode(arDatabaseNode* node){
   // Must remove the node from the database's storage.
   _nodeIDContainer.erase(node->getID());
   delete node;
+}
+
+// The work-horse function for arDatabase::attach(arDatabaseNode*,
+//                                                arDatabaseNode*).
+// This is used when arDatabaseNodes are created outside the arDatabase's
+// factories.
+void arDatabase::_attachNodeTree(arDatabaseNode* parent,
+		                 arDatabaseNode* child){
+  // Adds the child to the database. The "-1" means "assign an ID".
+  _nodeRegistration(parent, child, -1);
+  // Now, must send a message so that connected databases will add the node.
+  // In our case, the node already exists, so the local database will simply
+  // *map* it (not create another one).
+  int parentID = parent->getID();
+  arStructuredData* data = _dataParser->getStorage(_lang->AR_MAKE_NODE);
+  data->dataIn(_lang->AR_MAKE_NODE_PARENT_ID, &parentID, AR_INT, 1);
+  int childID = child->getID();
+  // We are requesting an ID be assigned.
+  data->dataIn(_lang->AR_MAKE_NODE_ID, &childID, AR_INT, 1);
+  data->dataInString(_lang->AR_MAKE_NODE_NAME, child->getName());
+  data->dataInString(_lang->AR_MAKE_NODE_TYPE, child->getTypeString());
+  // Send the message.
+  alter(data);
+  // Must recycle. Otherwise there will be a memory leak.
+  _dataParser->recycle(data);
+  // Recurse through the children.
+  for (list<arDatabaseNode*>::iterator i = child->_children.begin();
+       i != child->_children.end(); i++){
+    _attachNodeTree(child, *i);
+  }
 }
 
 void arDatabase::_writeDatabase(arDatabaseNode* pNode,

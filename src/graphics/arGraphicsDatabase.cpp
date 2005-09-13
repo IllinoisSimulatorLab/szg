@@ -140,6 +140,15 @@ arGraphicsDatabase::~arGraphicsDatabase(){
   if (graphicsStateData){
     delete graphicsStateData;
   }
+  
+  // Don't forget to get rid of the textures. However, deleting them isn't
+  // so smart. Instead, unref and let that operator delete if no-one else
+  // is holding a reference.
+  for (map<string,arTexture*,less<string> >::iterator 
+       i = _textureNameContainer.begin(); i != _textureNameContainer.end(); 
+       i++){
+    i->second->unref();
+  }
 }
 
 arDatabaseNode* arGraphicsDatabase::alter(arStructuredData* inData){
@@ -166,13 +175,14 @@ void arGraphicsDatabase::reset(){
     _cameraContainer[j] = pair<int,arPerspectiveCamera*>(0,NULL);
   }
 
-  // Delete textures.
+  // Unref the textures. Do not delete them. They will be automatically
+  // deleted if no other object has ref-ed them.
   for (map<string,arTexture*,less<string> >::iterator i
         (_textureNameContainer.begin());
        i != _textureNameContainer.end();
        ++i){
     if (i->second) {
-      delete i->second;
+      i->second->unref();
       i->second = NULL;
     }
   }
@@ -229,11 +239,16 @@ void arGraphicsDatabase::setTexturePath(const string& thePath){
   ar_mutex_unlock(&_texturePathLock);
 }
 
+// Creates a new texture and then refs it before returning. Consequently,
+// the caller is responsible for unref'ing to prevent a memory leak.
 arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
   const map<string,arTexture*,less<string> >::iterator
     iFind(_textureNameContainer.find(name));
-  if (iFind != _textureNameContainer.end())
+  if (iFind != _textureNameContainer.end()){
+    // MUST ref the texture!
+    iFind->second->ref();
     return iFind->second;
+  }
 
   // A new texture.
   arTexture* theTexture = new arTexture;
@@ -308,6 +323,10 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
   }
   _textureNameContainer.insert(
     map<string,arTexture*,less<string> >::value_type(name,theTexture));
+  // NOTE: It is very important to ref this texture again for its return.
+  // This way, the arTextureNode (which is who called addTexture) can unref it
+  // on deletion or texture change.
+  theTexture->ref();
   return theTexture; 
 }
 
@@ -401,16 +420,6 @@ void arGraphicsDatabase::setVRCameraID(int cameraID){
   cameraData.dataIn("node_ID", &cameraID, AR_INT, 1);
   // This admin message *must* be passed on in the case of an arGraphicsServer.
   alter(&cameraData);
-}
-
-arTexture* arGraphicsDatabase::addTexture(int w, int h, 
-                                          bool alpha, const char* pixels){
-  arTexture* t = new arTexture;
-  // The default for the texture object is GL_DECAL, but we really want
-  // LIT textures.
-  t->setTextureFunc(GL_MODULATE);
-  t->fill(w, h, alpha, pixels);
-  return t;
 }
 
 void arGraphicsDatabase::draw(arMatrix4* projectionCullMatrix){
@@ -830,7 +839,7 @@ arDatabaseNode* arGraphicsDatabase::_makeNode(const string& type){
     outNode = (arDatabaseNode*) new arTransformNode();
   }
   else if (type=="points"){
-    outNode = (arDatabaseNode*) new arPointsNode(this);
+    outNode = (arDatabaseNode*) new arPointsNode();
   }
   else if (type=="texture"){
     outNode = (arDatabaseNode*) new arTextureNode();
@@ -851,16 +860,16 @@ arDatabaseNode* arGraphicsDatabase::_makeNode(const string& type){
     outNode = (arDatabaseNode*) new arBlendNode();
   }
   else if (type == "normal3"){
-    outNode = (arDatabaseNode*) new arNormal3Node(this);
+    outNode = (arDatabaseNode*) new arNormal3Node();
   }
   else if (type == "color4"){
-    outNode = (arDatabaseNode*) new arColor4Node(this);
+    outNode = (arDatabaseNode*) new arColor4Node();
   }
   else if (type == "tex2"){
-    outNode = (arDatabaseNode*) new arTex2Node(this);
+    outNode = (arDatabaseNode*) new arTex2Node();
   }
   else if (type == "index"){
-    outNode = (arDatabaseNode*) new arIndexNode(this);
+    outNode = (arDatabaseNode*) new arIndexNode();
   }
   else if (type == "drawable"){
     outNode = (arDatabaseNode*) new arDrawableNode();

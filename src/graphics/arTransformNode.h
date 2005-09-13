@@ -16,7 +16,7 @@
 class SZG_CALL arTransformNode: public arGraphicsNode{
  public:
   arTransformNode();
-  ~arTransformNode(){}
+  virtual ~arTransformNode(){}
 
   void draw(arGraphicsContext*);
 

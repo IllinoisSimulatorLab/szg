@@ -8,6 +8,8 @@
 #include "arGraphicsDatabase.h"
 
 arBoundingSphereNode::arBoundingSphereNode(){
+  // A sensible default name.
+  _name = "bounding_sphere_node";
   _typeCode = AR_G_BOUNDING_SPHERE_NODE;
   _typeString = "bounding sphere";
 }

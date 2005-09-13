@@ -61,7 +61,6 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   arTexture** getAlphabet();
   void setTexturePath(const string& thePath);
   arTexture* addTexture(const string&, int*);
-  arTexture* addTexture(int w, int h, bool alpha, const char* pixels);
   arBumpMap* addBumpMap(const string& name, int numPts, int numInd,
 		  	float* points, int* indices, float* tex2,
 			float height, arTexture* decalTexture);

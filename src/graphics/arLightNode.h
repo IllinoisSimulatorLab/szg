@@ -14,7 +14,7 @@
 class SZG_CALL arLightNode:public arGraphicsNode{
  public:
   arLightNode();
-  ~arLightNode(){}
+  virtual ~arLightNode(){}
 
   void draw(arGraphicsContext*){}
   arStructuredData* dumpData();

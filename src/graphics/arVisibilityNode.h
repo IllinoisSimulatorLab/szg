@@ -15,7 +15,7 @@
 class SZG_CALL arVisibilityNode: public arGraphicsNode{
  public:
   arVisibilityNode();
-  ~arVisibilityNode(){}
+  virtual ~arVisibilityNode(){}
 
   void draw(arGraphicsNode*){}
   arStructuredData* dumpData();

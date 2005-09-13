@@ -12,8 +12,10 @@
 
 class SZG_CALL arNormal3Node: public arGraphicsArrayNode{
  public:
-  arNormal3Node(arGraphicsDatabase*);
-  ~arNormal3Node(){}
+  arNormal3Node();
+  virtual ~arNormal3Node(){}
+
+  virtual void initialize(arDatabase* database);
 
   float* getNormal3(int& number);
   void   setNormal3(int number, float* normal3, int* IDs = NULL);

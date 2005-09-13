@@ -17,7 +17,8 @@ arDrawableNode::arDrawableNode():
   _firstMessageReceived(false),
   _type(DG_POINTS),
   _number(0){
-
+  // A sensible default name.
+  _name = "drawable_node";
   // does not compile on RedHat 8 if these statements appear outside the
   // constructor body.
   _typeCode = AR_G_DRAWABLE_NODE;

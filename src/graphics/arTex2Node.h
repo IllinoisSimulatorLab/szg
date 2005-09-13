@@ -12,8 +12,10 @@
 
 class SZG_CALL arTex2Node:public arGraphicsArrayNode{
  public:
-  arTex2Node(arGraphicsDatabase*);
-  ~arTex2Node(){}
+  arTex2Node();
+  virtual ~arTex2Node(){}
+
+  virtual void initialize(arDatabase* database);
 
   float* getTex2(int& number);
   void   setTex2(int number, float* tex2, int* IDs = NULL);

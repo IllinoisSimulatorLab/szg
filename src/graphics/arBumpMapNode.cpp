@@ -9,6 +9,8 @@
 #include "arGraphicsDatabase.h"
 
 arBumpMapNode::arBumpMapNode(){
+  // A sensible default name.
+  _name = "bump_map_node";
   _typeCode = AR_G_BUMP_MAP_NODE;
   _typeString = "bump map";
 }

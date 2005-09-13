@@ -19,7 +19,7 @@
 class SZG_CALL arGraphicsStateNode: public arGraphicsNode{
  public:
   arGraphicsStateNode();
-  ~arGraphicsStateNode();
+  virtual ~arGraphicsStateNode();
 
   void draw(arGraphicsContext*);
 

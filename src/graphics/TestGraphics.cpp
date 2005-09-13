@@ -58,9 +58,18 @@ int main(int argc, char** argv){
     arGraphicsContext* g = new arGraphicsContext();
     delete g;
   }
+  // It turns out to not be *that* expensive to create and delete a graphics
+  // context. Here we are checking that.
   double t = ar_difftime(ar_time(), time1);
   cout << "Average time to create/delete graphics context = "
        << t/num << " microseconds.\n";
+
+  // Test the reference counting on texture objects.
+  arTexture* tex1 = new arTexture();
+  arTexture* tex2 = tex1->ref();
+  tex1->unref(true);
+  cout << "The second texture (ref) has width = " << tex2->getWidth() << "\n";
+  tex2->unref(true);
 
   // For drawing from szgrender, there must be a viewer node.
   arViewerNode* viewer 
@@ -91,9 +100,10 @@ int main(int argc, char** argv){
   arDrawableNode* d = (arDrawableNode*) g.newNode(p, "drawable");
   d->setDrawable(DG_POINTS, 4); 
   
-  s = (arGraphicsStateNode*) g.newNode(p, "graphics state");
-  s->setGraphicsState("line_width", NULL, 5.0);
-  arIndexNode* in = (arIndexNode*) g.newNode(s, "index");
+  arGraphicsStateNode* s2 
+    = (arGraphicsStateNode*) g.newNode(p, "graphics state");
+  s2->setGraphicsState("line_width", NULL, 5.0);
+  arIndexNode* in = (arIndexNode*) g.newNode(s2, "index");
   int index[8] = {0,1, 1,2, 2,3, 3,0};
   in->setIndices(8, index);
   arColor4Node* color = (arColor4Node*) g.newNode(in, "color4");
@@ -105,9 +115,33 @@ int main(int argc, char** argv){
   d = (arDrawableNode*) g.newNode(color, "drawable");
   d->setDrawable(DG_LINES, 4);
 
-  s = (arGraphicsStateNode*) g.newNode(p, "graphics state");
-  s->setGraphicsState("line_width", NULL, 2.0);
-  in = (arIndexNode*) g.newNode(s, "index");
+  // Want to test "attach", whereby nodes are created outside the
+  // arDatabase factory.
+  arGraphicsStateNode* s3 = new arGraphicsStateNode();
+  s3->setName("state_node");
+  s3->setGraphicsState("line_width", NULL, 2.0);
+  in = new arIndexNode();
+  in->setName("index_node");
+  int index2[4] = {0,2, 1,3};
+  in->setIndices(4, index2);
+  s3->attach(in);
+  color = new arColor4Node();
+  color->setName("color_node");
+  float lineColor2[16] = {0,1,0,1, 0,1,0,1,
+			 0,1,0,1, 0,1,0,1};
+  color->setColor4(4, lineColor2);
+  in->attach(color);
+  d = new arDrawableNode();
+  d->setName("drawable_node");
+  d->setDrawable(DG_LINES, 2);
+  color->attach(d);
+
+  p->attach(s3);
+
+  /*arGraphicsStateNode* s3 
+    = (arGraphicsStateNode*) g.newNode(p, "graphics state");
+  s3->setGraphicsState("line_width", NULL, 2.0);
+  in = (arIndexNode*) g.newNode(s3, "index");
   int index2[4] = {0,2, 1,3};
   in->setIndices(4, index2);
   color = (arColor4Node*) g.newNode(in, "color4");
@@ -115,15 +149,16 @@ int main(int argc, char** argv){
 			 0,1,0,1, 0,1,0,1};
   color->setColor4(4, lineColor2);
   d = (arDrawableNode*) g.newNode(color, "drawable");
-  d->setDrawable(DG_LINES, 2);
+  d->setDrawable(DG_LINES, 2);*/
 
-  s = (arGraphicsStateNode*) g.newNode(globalTrans, "graphics state");
-  s->setGraphicsState("point_size", NULL, 10.0);
+  arGraphicsStateNode* s4 
+    = (arGraphicsStateNode*) g.newNode(globalTrans, "graphics state");
+  s4->setGraphicsState("point_size", NULL, 10.0);
   float c2[12] = {-0.7, -0.7, 0,
 	          0.7, -0.7, 0,
                   0.7, 0.7, 0,
 	          -0.7, 0.7, 0};
-  p = (arPointsNode*) g.newNode(s, "points");
+  p = (arPointsNode*) g.newNode(s4, "points");
   p->setPoints(4, c2);
   color = (arColor4Node*) g.newNode(p, "color4");
   float clr[16] = {1,0,0,1,
@@ -213,6 +248,24 @@ int main(int argc, char** argv){
       g.cutNode(insertedState->getID());
       g.cutNode(insertedState2->getID());
       g.ps();
+    }
+    list<int> IDs;
+    if (count == 300){
+      // s, s4, n, rt are the initial children for the global trans node.
+      IDs.push_back(rt->getID());
+      IDs.push_back(s->getID());
+      IDs.push_back(s4->getID());
+      IDs.push_back(n->getID());
+      g.permuteChildren(globalTrans, IDs);
+    }
+    if (count == 400){
+      // s, s4, n, rt are the initial children for the global trans node.
+      // Return to the original order.
+      IDs.push_back(s->getID());
+      IDs.push_back(s4->getID());
+      IDs.push_back(n->getID());
+      IDs.push_back(rt->getID());
+      g.permuteChildren(globalTrans, IDs);
       count = 0;
     }
     count++;

@@ -43,6 +43,7 @@ class SZG_CALL arDatabase{
   // WHICH BELONG MORE PROPERLY AS METHODS OF arDatabaseNode
   arDatabaseNode* newNode(arDatabaseNode* parent, const string& type,
                           const string& name = "");
+  arDatabaseNode* attach(arDatabaseNode* parent, arDatabaseNode* child);
   arDatabaseNode* insertNode(arDatabaseNode* parent,
 			     arDatabaseNode* child,
 			     const string& type,
@@ -141,6 +142,7 @@ class SZG_CALL arDatabase{
   arStructuredDataParser*      _dataParser;
 
   bool _initDatabaseLanguage();
+  string          _nextDefaultName();
   arDatabaseNode* _makeDatabaseNode(arStructuredData*);
   arDatabaseNode* _insertDatabaseNode(arStructuredData*);
   arDatabaseNode* _cutDatabaseNode(arStructuredData*);
@@ -152,10 +154,14 @@ class SZG_CALL arDatabase{
                                    int nodeID, 
                                    const string& nodeName,
                                    bool moveChildren);
+  void _nodeRegistration(arDatabaseNode* parentNode,
+			 arDatabaseNode* childNode,
+			 int nodeID);
   bool _removeFromChildren(arDatabaseNode* parent, arDatabaseNode* child);
   bool _addToChildren(arDatabaseNode* parent, arDatabaseNode* child);
   void _cutNode(arDatabaseNode*);
   void _eraseNode(arDatabaseNode*);
+  void _attachNodeTree(arDatabaseNode* parent, arDatabaseNode* child);
   
   // Helper functions for recursive operations.
   void _writeDatabase(arDatabaseNode* pNode, arStructuredData& nodeData,

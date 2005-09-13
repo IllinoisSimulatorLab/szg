@@ -8,6 +8,8 @@
 #include "arGraphicsDatabase.h"
 
 arGraphicsStateNode::arGraphicsStateNode(){
+  // A sensible default name.
+  _name = "graphics_state";
   _typeCode = AR_G_GRAPHICS_STATE_NODE;
   _typeString = "graphics state";
   _stateName = "garbage_state";

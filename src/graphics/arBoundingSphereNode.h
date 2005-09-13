@@ -17,7 +17,7 @@
 class SZG_CALL arBoundingSphereNode: public arGraphicsNode {
  public:
   arBoundingSphereNode();
-  ~arBoundingSphereNode(){}
+  virtual ~arBoundingSphereNode(){}
 
   void draw(arGraphicsContext*);
   arStructuredData* dumpData();

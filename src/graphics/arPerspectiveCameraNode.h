@@ -14,7 +14,7 @@
 class SZG_CALL arPerspectiveCameraNode:public arGraphicsNode{
  public:
   arPerspectiveCameraNode();
-  ~arPerspectiveCameraNode(){}
+  virtual ~arPerspectiveCameraNode(){}
 
   void draw(arGraphicsContext*){}
   arStructuredData* dumpData();

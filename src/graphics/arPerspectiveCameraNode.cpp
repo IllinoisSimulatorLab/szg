@@ -10,6 +10,8 @@
 using namespace std;
 
 arPerspectiveCameraNode::arPerspectiveCameraNode(){
+  // A sensible default name.
+  _name = "persp_camera_node";
   _typeCode = AR_G_PERSP_CAMERA_NODE;
   _typeString = "persp camera";
 }

@@ -9,6 +9,8 @@
 #include "arGraphicsDatabase.h"
 
 arTransformNode::arTransformNode(){
+  // A sensible default name.
+  _name = "transform_node";
   _typeCode = AR_G_TRANSFORM_NODE;
   _typeString = "transform";
   ar_mutex_init(&_accessLock);

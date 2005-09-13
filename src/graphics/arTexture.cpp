@@ -31,7 +31,8 @@ arTexture::arTexture() :
   _repeating(false),
   _mipmap(false),
   _textureFunc( GL_DECAL ),
-  _pixels(NULL)
+  _pixels(NULL),
+  _refs(1)
 {
   ar_mutex_init(&_lock);
 }
@@ -57,7 +58,8 @@ arTexture::arTexture( const arTexture& rhs ) :
   _grayScale( rhs._grayScale ),
   _repeating( rhs._repeating ),
   _mipmap( rhs._mipmap ),
-  _textureFunc( rhs._textureFunc )
+  _textureFunc( rhs._textureFunc ),
+  _refs(1)
 {
   ar_mutex_init(&_lock);
   _pixels = new char[ numbytes() ];
@@ -79,6 +81,7 @@ arTexture& arTexture::operator=( const arTexture& rhs ) {
   _repeating = rhs._repeating;
   _mipmap = rhs._mipmap;
   _textureFunc = rhs._textureFunc;
+  // In this case, the number of references should not change!
   if (_reallocPixels()) {
     memcpy(_pixels, rhs._pixels, numbytes());
     cout << "arTexture remark: copied " << numbytes() << " bytes.\n";
@@ -95,7 +98,8 @@ arTexture::arTexture( const arTexture& rhs, unsigned int left, unsigned int bott
   _grayScale( rhs._grayScale ),
   _repeating( rhs._repeating ),
   _mipmap( rhs._mipmap ),
-  _textureFunc( rhs._textureFunc )
+  _textureFunc( rhs._textureFunc ),
+  _refs(1)
 {
   ar_mutex_init(&_lock);
   _pixels = rhs.getSubImage( left, bottom, width, height );
@@ -111,6 +115,33 @@ arTexture::arTexture( const arTexture& rhs, unsigned int left, unsigned int bott
 
 bool arTexture::operator!() {
   return _pixels==0 || numbytes()==0;
+}
+
+arTexture* arTexture::ref(){
+  // Returning the pointer allows us to atomically create
+  // a reference to the object.
+  ar_mutex_lock(&_lock);
+  _refs++;
+  ar_mutex_unlock(&_lock);
+  return this;
+}
+
+void arTexture::unref(bool debug){
+  ar_mutex_lock(&_lock);
+  _refs--;
+  bool mustDelete = _refs == 0 ? true : false;
+  if (debug){
+    if (mustDelete){
+      cout << "arTexture will be deleted. Ref count zero.\n";
+    }
+    else{
+      cout << "arTexture will not be deleted. Ref count nonzero.\n";
+    }
+  }
+  ar_mutex_unlock(&_lock);
+  if (mustDelete){
+    delete this;
+  }
 }
 
 void arTexture::activate(bool forceRebind) {
@@ -177,6 +208,8 @@ void arTexture::dummy() {
 
 /// Copies an externally given array of pixels into internal memory.
 /// DO NOT change this so that only the pointer is copied in.
+/// Please note: the fill(...) method actually deals with transparency.
+/// This deals with RGB textures only.
 void arTexture::setPixels(char* pixels, int width, int height){
   // AARGH! This does not deal with different pixel formats!!!
   if (_pixels){

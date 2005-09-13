@@ -421,6 +421,18 @@ arDatabaseNode* arSyncDataServer::receiveMessage(arStructuredData* data){
       _messageBufferVar.wait(&_queueLock);
     }
   }
+
+  // Very important that this occurs after the wait on a full buffer
+  // but before putting the data on the queue!
+  // If it comes before the wait on full before, a connection
+  // happening on a blocked buffer could, in fact, send an initial
+  // dump that's one record ahead of the buffer sent to the already 
+  // connected clients.
+  // If it comes after putting data on the queue, then we can send the
+  // record to a connected client without crucial info added (like the ID
+  // of a new node, as in newNode or insert).
+  arDatabaseNode* node = _messageCallback(_bondedObject,data);  
+
   // Only queue the data if there are currently connected processes...
   // OR if we are purely connected locally (i.e. a arSyncDataClient is
   // in the same process as us).
@@ -428,11 +440,7 @@ arDatabaseNode* arSyncDataServer::receiveMessage(arStructuredData* data){
       || _locallyConnected){
     _dataQueue->forceQueueData(data);
   }
-  // very important that this occurs second! Otherwise, a connection
-  // happening on a blocked buffer could, in fact, send an initial
-  // dump that's one record ahead of the buffer sent to the already 
-  // connected clients
-  arDatabaseNode* node = _messageCallback(_bondedObject,data);
+  
   ar_mutex_unlock(&_queueLock);
   ar_mutex_unlock(&_messageLock);
   return node;  

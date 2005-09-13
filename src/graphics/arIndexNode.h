@@ -12,8 +12,10 @@
 
 class SZG_CALL arIndexNode:public arGraphicsArrayNode{
  public:
-  arIndexNode(arGraphicsDatabase*);
-  ~arIndexNode(){}
+  arIndexNode();
+  virtual ~arIndexNode(){}
+
+  virtual void initialize(arDatabase* database);
 
   int* getIndices(int& number);
   void setIndices(int number, int* indices, int* IDs = NULL);

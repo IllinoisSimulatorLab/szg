@@ -24,6 +24,7 @@ arDatabaseNode::arDatabaseNode():
   _dLang = NULL;
 
   ar_mutex_init(&_nodeLock);
+  ar_mutex_init(&_dataLock);
 }
 
 arDatabaseNode::~arDatabaseNode(){
@@ -37,6 +38,26 @@ arDatabaseNode* arDatabaseNode::newNode(const string& type,
     return NULL;
   }
   return _databaseOwner->newNode(this, type, name);
+}
+
+
+// Take an existing child (and all of its children recursively) and make
+// them children of this node. NOTE: If this node is already associated with
+// an arDatabase, then we need to make it generate messages to modify attached
+// databases (like in arGraphicsServer/arGraphicsClient, for instance).
+void arDatabaseNode::attach(arDatabaseNode* child){
+  // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
+  // Not checking to see if this new child node is of the right *type*
+  // (i.e. arGraphicsNode instead of arSoundNode).
+  if (!_databaseOwner){
+    _addChild(child);
+  }
+  else{
+    // There is an owning database. Consequently, the owning database needs
+    // to generate a message (which does things like update connected, mirrored
+    // databases).
+    _databaseOwner->attach(this, child);
+  }
 }
 
 void arDatabaseNode::setName(const string& name){
@@ -93,13 +114,22 @@ arStructuredData* arDatabaseNode::dumpData(){
 }
 
 void arDatabaseNode::initialize(arDatabase* d){
-  // AARGH! THIS IS JUST BAD DESIGN!
+  // We keep track of who owns us and the language use to encode messages.
   _databaseOwner = d;
   _dLang = d->_lang;
 }
 
 void arDatabaseNode::_dumpGenericNode(arStructuredData* theData,int IDField){
   (void)theData->dataIn(IDField,&_ID,AR_INT,1);
+}
+
+void arDatabaseNode::_addChild(arDatabaseNode* node){
+  // This is only called when there is no "owning database".
+  node->_databaseOwner = NULL;
+  node->_dLang = NULL;
+  // Book-keeping for the tree structure.
+  node->_parent = this;
+  _children.push_back(node);
 }
 
 void arDatabaseNode::_findNode(arDatabaseNode*& result,

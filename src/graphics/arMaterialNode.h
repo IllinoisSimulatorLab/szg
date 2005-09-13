@@ -14,7 +14,7 @@
 class SZG_CALL arMaterialNode:public arGraphicsNode{
  public:
   arMaterialNode();
-  ~arMaterialNode(){}
+  virtual ~arMaterialNode(){}
 
   void draw(arGraphicsContext*){} 
   arStructuredData* dumpData();

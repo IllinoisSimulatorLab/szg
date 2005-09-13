@@ -8,6 +8,8 @@
 #include "arGraphicsDatabase.h"
 
 arMaterialNode::arMaterialNode(){
+  // A sensible default name.
+  _name = "material_node";
   _typeCode = AR_G_MATERIAL_NODE;
   _typeString = "material";
 }

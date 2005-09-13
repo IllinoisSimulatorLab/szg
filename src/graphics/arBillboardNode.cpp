@@ -11,7 +11,8 @@
 arBillboardNode::arBillboardNode():
   _visibility(true),
   _text(""){
-
+  // A sensible default name.
+  _name = "billboard_node";
   // Doesn't compile on gcc/Linux (RedHat 8.0) if these are outside
   // of the constructor body.
   _typeCode = AR_G_BILLBOARD_NODE;

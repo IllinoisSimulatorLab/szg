@@ -39,15 +39,26 @@ class SZG_CALL arDatabaseNode{
   arDatabase* getOwningDatabase(){ return _databaseOwner; }
   // If the node has an owner, it can act as a node factory as well.
   arDatabaseNode* newNode(const string& type, const string& name = ""); 
+  // Sometimes we want to be able to take an existing node and add it to
+  // the database.
+  // BUG BUG BUG BUG BUG BUG BUG BUG BUG
+  // There should be some sort of check to make sure that the node is of the
+  // right type (i.e. arGraphicsNode or arSoundNode).
+  void attach(arDatabaseNode* child);
 
   arDatabaseNode* getParent(){ return _parent; }
   list<arDatabaseNode*> getChildren(){ return _children; }
 
   arDatabaseNode* findNode(const string& name);
   arDatabaseNode* findNodeByType(const string& nodeType);
+
   void printStructure(){ printStructure(10000); }
   void printStructure(int maxLevel){ printStructure(maxLevel, cout); }
   void printStructure(int maxLevel, ostream& s);
+  // Abbreviations for the above.
+  void ps(){ printStructure(); }
+  void ps(int maxLevel){ printStructure(maxLevel); }
+  void ps(int maxLevel, ostream& s){ printStructure(maxLevel, s); }
 
   virtual arStructuredData* dumpData();
   virtual bool receiveData(arStructuredData*);
@@ -70,8 +81,12 @@ class SZG_CALL arDatabaseNode{
   arDatabaseNode* _parent;
   list<arDatabaseNode*> _children;
 
-  // Allows us to make operations atomic.
+  // This lock guards all changes to node structure. Such as changing the
+  // database owner, removing children, adding children.
   arMutex _nodeLock;
+  // This lock guards all changes to node data. Used on a case by case basis
+  // by the code in individual nodes.
+  arMutex _dataLock;
 
   // Must keep a reference count.
   int _refs;
@@ -82,6 +97,7 @@ class SZG_CALL arDatabaseNode{
   bool       _transient;
 
   void _dumpGenericNode(arStructuredData*, int);
+  void _addChild(arDatabaseNode* node);
   void _findNode(arDatabaseNode*& result, const string& name, bool& success,
 		 bool checkTop);
   void _findNodeByType(arDatabaseNode*& result, const string& nodeType,

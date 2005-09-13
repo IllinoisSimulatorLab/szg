@@ -8,6 +8,8 @@
 #include "arGraphicsDatabase.h"
 
 arBlendNode::arBlendNode(){
+  // A sensible default name.
+  _name = "blend_node";
   _typeCode = AR_G_BLEND_NODE;
   _typeString = "blend"; 
   _blendFactor = 1.0; 

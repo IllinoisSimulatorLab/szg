@@ -9,6 +9,8 @@
 #include "arGraphicsDatabase.h"
 
 arLightNode::arLightNode(){
+  // A sensible default name.
+  _name = "light_node";
   _typeCode = AR_G_LIGHT_NODE;
   _typeString = "light";
 }

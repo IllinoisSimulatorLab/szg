@@ -8,19 +8,23 @@
 #include "arColor4Node.h"
 #include "arGraphicsDatabase.h"
 
-arColor4Node::arColor4Node(arGraphicsDatabase* owner){
+arColor4Node::arColor4Node(){
+  _name = "color4_node";
   _typeCode = AR_G_COLOR4_NODE;
   _typeString = "color4";
   _nodeDataType = AR_FLOAT;
   _arrayStride = 4;
-  // DEFUNCT
-  //_whichBufferToReplace = &_color;
-  _g = &(owner->_gfx);
+  _commandBuffer.grow(1);
+}
+
+void arColor4Node::initialize(arDatabase* database){
+  arGraphicsArrayNode::initialize(database);
+  arGraphicsDatabase* d = (arGraphicsDatabase*) database;
+  _g = &(d->_gfx);
   _recordType = _g->AR_COLOR4;
   _IDField = _g->AR_COLOR4_ID;
   _indexField = _g->AR_COLOR4_COLOR_IDS;
   _dataField = _g->AR_COLOR4_COLORS;
-  _commandBuffer.grow(1);
   _commandBuffer.setType(_g->AR_COLOR4);
 }
 

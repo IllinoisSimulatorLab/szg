@@ -15,7 +15,7 @@
 class SZG_CALL arBumpMapNode: public arGraphicsNode{
  public:
   arBumpMapNode();
-  ~arBumpMapNode(){}
+  virtual ~arBumpMapNode(){}
 
   void draw(arGraphicsContext*){}
   arStructuredData* dumpData();

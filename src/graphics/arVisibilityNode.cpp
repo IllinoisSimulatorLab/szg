@@ -9,7 +9,8 @@
 
 arVisibilityNode::arVisibilityNode():
   _visibility(false){
-
+  // A sensible default node.
+  _name = "visibility_node";
   // doesn't compile on RedHat 8 if these are not in the constructor body
   _typeCode = AR_G_VISIBILITY_NODE;
   _typeString = "visibility";

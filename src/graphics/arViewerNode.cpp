@@ -8,6 +8,8 @@
 #include "arGraphicsDatabase.h"
 
 arViewerNode::arViewerNode(){
+  // A sensible default name.
+  _name = "viewer_node";
   _typeCode = AR_G_VIEWER_NODE;
   _typeString = "viewer";
 }

@@ -16,7 +16,7 @@
 class SZG_CALL arViewerNode: public arGraphicsNode{
  public:
   arViewerNode();
-  ~arViewerNode(){}
+  virtual ~arViewerNode(){}
 
   void draw(arGraphicsContext*) {}
 

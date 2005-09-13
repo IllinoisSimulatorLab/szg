@@ -13,8 +13,10 @@
 class SZG_CALL arPointsNode:public arGraphicsArrayNode{
 /// Set of (OpenGL) points.
  public:
-  arPointsNode(arGraphicsDatabase*);
-  ~arPointsNode(){}
+  arPointsNode();
+  virtual ~arPointsNode(){}
+
+  virtual void initialize(arDatabase* database);
 
   float* getPoints(int& number);
   void   setPoints(int number, float* points, int* IDs = NULL);

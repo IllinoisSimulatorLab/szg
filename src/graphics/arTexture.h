@@ -29,6 +29,12 @@ class SZG_CALL arTexture {
   arTexture( const arTexture& rhs, unsigned int left, unsigned int bottom, 
                                    unsigned int width, unsigned int height );
   bool operator!();
+
+  // Textures need to be reference counted because of the way we share them
+  // in the arGraphicsDatabase.
+  arTexture* ref();
+  void unref(bool debug = false);
+
   void activate(bool forceRebind = false);
   void deactivate();
 
@@ -91,13 +97,16 @@ class SZG_CALL arTexture {
   int _textureFunc;
   char* _pixels;
 
-  bool _reallocPixels();
-  void _assignAlpha(int);
-  char* _packPixels();
   arMutex                              _lock;
   // The handles to the OpenGL textures are stored below (per calling graphics
   // context).
   map<ARint64, GLuint, less<ARint64> > _texNameMap;
+
+  int _refs;
+
+  bool _reallocPixels();
+  void _assignAlpha(int);
+  char* _packPixels();
   virtual void _loadIntoOpenGL();
 };
 

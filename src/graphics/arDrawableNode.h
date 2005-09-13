@@ -19,7 +19,7 @@ enum arDrawableType {DG_POINTS = 0, DG_LINES = 1, DG_LINE_STRIP = 2,
 class SZG_CALL arDrawableNode:public arGraphicsNode{
  public:
   arDrawableNode();
-  ~arDrawableNode(){}
+  virtual ~arDrawableNode(){}
 
   void draw(arGraphicsContext*);
   arStructuredData* dumpData();

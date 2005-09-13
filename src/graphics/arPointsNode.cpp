@@ -8,19 +8,23 @@
 #include "arPointsNode.h"
 #include "arGraphicsDatabase.h"
 
-arPointsNode::arPointsNode(arGraphicsDatabase* owner){
+arPointsNode::arPointsNode(){
+  // A sensible default name.
+  _name = "points_node";
   _typeCode = AR_G_POINTS_NODE;
   _typeString = "points";
   _nodeDataType = AR_FLOAT;
   _arrayStride = 3;
-  // DEFUNCT
-  //_whichBufferToReplace = &_points;
-  _g = &(owner->_gfx);
+  _commandBuffer.grow(1);
+}
+
+void arPointsNode::initialize(arDatabase* database){
+  // _g (the graphics language) is set in this call.
+  arGraphicsNode::initialize(database);
   _recordType = _g->AR_POINTS;
   _IDField = _g->AR_POINTS_ID;
   _indexField = _g->AR_POINTS_POINT_IDS;
   _dataField = _g->AR_POINTS_POSITIONS;
-  _commandBuffer.grow(1);
   _commandBuffer.setType(_g->AR_POINTS);
 }
 

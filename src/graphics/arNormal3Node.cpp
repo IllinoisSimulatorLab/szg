@@ -8,19 +8,23 @@
 #include "arNormal3Node.h"
 #include "arGraphicsDatabase.h"
 
-arNormal3Node::arNormal3Node(arGraphicsDatabase* owner){
+arNormal3Node::arNormal3Node(){
+  // A sensible default name.
+  _name = "normal3_node";
   _typeCode = AR_G_NORMAL3_NODE;
   _typeString = "normal3";
   _nodeDataType = AR_FLOAT;
   _arrayStride = 3;
-  // DEFUNCT
-  //_whichBufferToReplace = &_normal3;
-  _g = &(owner->_gfx);
+  _commandBuffer.grow(1);
+}
+
+void arNormal3Node::initialize(arDatabase* database){
+  // _g (the graphics language) is set in this call.
+  arGraphicsNode::initialize(database);
   _recordType = _g->AR_NORMAL3;
   _IDField = _g->AR_NORMAL3_ID;
   _indexField = _g->AR_NORMAL3_NORMAL_IDS;
   _dataField = _g->AR_NORMAL3_NORMALS;
-  _commandBuffer.grow(1);
   _commandBuffer.setType(_g->AR_NORMAL3);
 }
 

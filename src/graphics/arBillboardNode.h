@@ -15,7 +15,7 @@
 class SZG_CALL arBillboardNode: public arGraphicsNode{
  public:
   arBillboardNode();
-  ~arBillboardNode(){}
+  virtual ~arBillboardNode(){}
 
   void draw(arGraphicsContext*);
   arStructuredData* dumpData();

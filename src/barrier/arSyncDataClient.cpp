@@ -500,10 +500,16 @@ void arSyncDataClient::consume(){
         _receiveStack.clear();
       }
       else{
-	// consume exactly one thing, as we are in synchronized
-	// read mode, AR_SYNC_CLIENT
-        _consumeStack.push_back(_receiveStack.front());
-	_receiveStack.pop_front();
+	// Consume exactly one thing, as we are in synchronized
+	// read mode, AR_SYNC_CLIENT.
+	// PLEASE NOTE: If the arSyncDataServer (that is providing us data)
+	// was killed by SIGNINT instead of dkill then we might get here
+	// during connection shutdown with nothing in the receive stack!
+	// Consequently, test for this.
+        if (!_receiveStack.empty()){
+          _consumeStack.push_back(_receiveStack.front());
+	  _receiveStack.pop_front();
+	}
       }
       ar_mutex_unlock(&_stackLock);
       for (iter = _consumeStack.begin(); iter != _consumeStack.end(); iter++){

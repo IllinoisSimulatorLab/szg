@@ -8,19 +8,23 @@
 #include "arIndexNode.h"
 #include "arGraphicsDatabase.h"
 
-arIndexNode::arIndexNode(arGraphicsDatabase* owner){
+arIndexNode::arIndexNode(){
+  // A sensible default name.
+  _name = "index_node";
   _typeCode = AR_G_INDEX_NODE;
   _typeString = "index";
   _nodeDataType = AR_INT;
   _arrayStride = 1;
-  // DEFUNCT
-  //_whichBufferToReplace = &_index;
-  _g = &(owner->_gfx);
+  _commandBuffer.grow(1);
+}
+
+void arIndexNode::initialize(arDatabase* database){
+  // _g (the graphics language) is set in this call.
+  arGraphicsNode::initialize(database);
   _recordType = _g->AR_INDEX;
   _IDField = _g->AR_INDEX_ID;
   _indexField = _g->AR_INDEX_INDEX_IDS;
   _dataField = _g->AR_INDEX_INDICES;
-  _commandBuffer.grow(1);
   _commandBuffer.setType(_g->AR_INDEX);
 }
 
