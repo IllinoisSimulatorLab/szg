@@ -10,14 +10,14 @@
 
 // DO NOT CHANGE THE BELOW DEFAULTS! THE ROOT NODE IS ASSUMED TO BE 
 // INITIALIZED WITH THESE! For instance, sometimes we detect that it
-// is the root node by testing one of them (all of which are unique
-// for all nodes in the database)
+// is the root node by testing one of them (i.e. the ID or name).)
 arDatabaseNode::arDatabaseNode():
   _ID(0),
   _name("root"),
   _typeCode(-1),
   _typeString("root"),
   _parent(NULL),
+  _refs(1),
   _transient(false){
   
   _databaseOwner = NULL;
@@ -28,6 +28,23 @@ arDatabaseNode::arDatabaseNode():
 }
 
 arDatabaseNode::~arDatabaseNode(){
+}
+
+void arDatabaseNode::ref(){
+  ar_mutex_lock(&_nodeLock);
+  _refs++;
+  ar_mutex_unlock(&_nodeLock);
+}
+
+void arDatabaseNode::unref(){
+  ar_mutex_lock(&_nodeLock);
+  _refs--;
+  bool state = _refs == 0 ? true : false;
+  ar_mutex_unlock(&_nodeLock);
+  // If the reference count has gone down to zero, delete the object.
+  if (state){
+    delete this;
+  }
 }
 
 // If this node has an owning database, go ahead and use that as a node
@@ -98,8 +115,8 @@ void arDatabaseNode::printStructure(int maxLevel, ostream& s){
 bool arDatabaseNode::receiveData(arStructuredData* data){
   if (data->getID() != _dLang->AR_NAME){
     // DO NOT PRINT ANYTHING OUT HERE. THE ASSUMPTION IS THAT THIS IS
-    // BEING CALLED FROM ELSEWHERE (i.e. FROM A SUBCLASS) WHERE THE
-    // MESSAGE WILL, IN FACT, BE PRINTED. 
+    // BEING CALLED FROM ELSEWHERE (i.e. FROM A SUBCLASS) WHERE ANY
+    // NECESSARY MESSAGE WILL, IN FACT, BE PRINTED. 
     return false;
   } 
   _name = data->getDataString(_dLang->AR_NAME_NAME);

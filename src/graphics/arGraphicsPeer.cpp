@@ -1358,13 +1358,13 @@ void arGraphicsPeer::motionCull(arGraphicsPeerCullObject* cull,
   stack<arMatrix4> transformStack;
   transformStack.push(camera->getModelviewMatrix());
   // AARGH! look at the coarse-grained locking!
-  ar_mutex_lock(&_eraseLock);
+  //ar_mutex_lock(&_eraseLock);
   arMatrix4 temp = camera->getProjectionMatrix();
   _motionCull((arGraphicsNode*)&_rootNode, 
               transformStack, 
 	      cull,
               temp);
-  ar_mutex_unlock(&_eraseLock);
+  //ar_mutex_unlock(&_eraseLock);
 }
 
 void arGraphicsPeer::_motionCull(arGraphicsNode* node, 

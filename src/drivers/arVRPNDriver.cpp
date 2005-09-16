@@ -22,8 +22,10 @@ extern "C"{
 #ifdef Enable_VRPN
 void ar_VRPNHandleTracker(void* data, const vrpn_TRACKERCB event){
   arVRPNDriver* vrpn = (arVRPNDriver*) data;
-  arMatrix4 rotMatrix(arQuaternion(event.quat[0], event.quat[1],
-				   event.quat[2], event.quat[3]));
+  // NOTE: VRPN puts the scalar component of the quaternion first while
+  // Syzygy puts in last. Hence the reordering below.
+  arMatrix4 rotMatrix(arQuaternion(event.quat[3], event.quat[0],
+				   event.quat[1], event.quat[2]));
   arMatrix4 transMatrix = ar_translationMatrix(event.pos[0], event.pos[1],
 					       event.pos[2]);
   vrpn->sendMatrix(event.sensor, transMatrix*rotMatrix);

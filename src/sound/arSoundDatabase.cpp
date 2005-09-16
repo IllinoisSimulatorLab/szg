@@ -222,9 +222,9 @@ stack<arMatrix4, deque<arMatrix4> > ar_transformStack;
 
 void arSoundDatabase::render(){
   ar_transformStack.push(ar_identityMatrix());
-  ar_mutex_lock(&_eraseLock);
+  //ar_mutex_lock(&_eraseLock);
   _render((arSoundNode*)&_rootNode);
-  ar_mutex_unlock(&_eraseLock);
+  //ar_mutex_unlock(&_eraseLock);
   ar_transformStack.pop();
 }
 

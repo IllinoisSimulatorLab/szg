@@ -18,9 +18,10 @@ arDatabase::arDatabase() :
   // (the default)
   _nextAssignedID(1),
   _dataParser(NULL){
-  ar_mutex_init(&_bufferLock);
-  ar_mutex_init(&_eraseLock);
-  ar_mutex_init(&_deletionLock);
+  //ar_mutex_init(&_bufferLock);
+  //ar_mutex_init(&_eraseLock);
+  //ar_mutex_init(&_deletionLock);
+  ar_mutex_init(&_databaseLock);
 
   // The root node is already initialized properly by the default 
   // arDatabaseNode constructor.
@@ -106,11 +107,12 @@ arDatabaseNode* arDatabase::getNode(int theID, bool fWarn) {
 // assumed to be unique. Indeed, this is a very important FEATURE now.
 // It simplifies many of the name management issues that existed before...
 // AND it allows us to use the names to present SEMANTIC information for
-// mapping one tree to another. ONE PROBLEM: getNode is now HORRENDOUSLY slow
+// mapping one database tree to another. 
+// ONE PROBLEM: getNode is now HORRENDOUSLY slow
 // in comparison to its old version (where one could rely on uniqueness of
 // names via the mapping container). 
 arDatabaseNode* arDatabase::getNode(const string& name, bool fWarn) {
-  // conducts a breadth-first search for the node with the given name.
+  // Conducts a breadth-first search for the node with the given name.
   arDatabaseNode* result = NULL;
   bool success = false;
   _rootNode._findNode(result, name, success, true);
@@ -134,7 +136,7 @@ arDatabaseNode* arDatabase::newNode(arDatabaseNode* parent,
                                     const string& name){
   string nodeName = name;
   if (nodeName == ""){
-    nodeName = _nextDefaultName();
+    nodeName = _getDefaultName();
   }
   // BUG: NOT TESTING TO SEE IF THIS DATABASE NODE IS, INDEED, OWNED BY
   // THIS DATABASE!
@@ -158,9 +160,12 @@ arDatabaseNode* arDatabase::newNode(arDatabaseNode* parent,
 // the database.
 arDatabaseNode* arDatabase::attach(arDatabaseNode* parent,
 				   arDatabaseNode* child){
-  // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
-  // Should probably be checking that the parent is actually part of this
-  // database...
+  // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG. There are definitely race
+  // conditions in here. For instance,
+  // The parent must be part of this database.
+  if (parent->_databaseOwner != this){
+
+  }
   
   // Must be sure to add this child to this parent.
   parent->_children.push_back(child);
@@ -173,18 +178,28 @@ arDatabaseNode* arDatabase::attach(arDatabaseNode* parent,
 // its current children. If a child node is given, then put the new node
 // between the two specified nodes (assuming they are truly parent and 
 // child). If successful, return a pointer to the new node, otherwise
-// return NULL.
+// return NULL. This method will also fail if either of the nodes
+// is not *owned* by this database.
+
 // NOT THREAD-SAFE (because _nextDefaultName is not thread-safe).
 arDatabaseNode* arDatabase::insertNode(arDatabaseNode* parent,
 			               arDatabaseNode* child,
 			               const string& type,
 			               const string& name){
+
+  // The parent node can't be NULL and must be owned by this database.
+  // If the child node is not NULL, it must be owned by this database as well.
+  if (!parent || parent->_databaseOwner != this ||
+      (child && child->_databaseOwner != this)){
+    cout << "arDatabase error: attempted to insert using foreign nodes.\n";
+    return NULL;
+  }
+
   string nodeName = name;
   if (nodeName == ""){
-    nodeName = _nextDefaultName();
+    nodeName = _getDefaultName();
   }
-  // BUG BUG BUG BUG: Not testing to see if these nodes are part of this
-  // database.
+  
   int parentID = parent->getID();
   // If child is NULL, then we want to use the "invalid" ID of -1.
   int childID = -1;
@@ -320,8 +335,9 @@ bool arDatabase::handleDataQueue(ARchar* theData){
     if (!alterRaw(theData+position)){
       cerr << "arDatabase::handleDataQueue error: failure in record "
            << i+1 << " of " << numberRecords << ".\n";
-      // We could process the remaining records, but better to tell caller
-      // that an error happened.
+      // It seems better to proces the remaining records than to abort
+      // with a return false here. This allows the processing of the records
+      // that can be processed.
       //return false;
     }
     position += theSize;
@@ -343,7 +359,6 @@ bool arDatabase::readDatabase(const string& fileName,
     return false;
   }
 
-  //**********AARGH!!! Do I really need to list this number explicitly?
   int bufferSize = 1000;
   ARchar* buffer = new ARchar[bufferSize];
   while (fread(buffer,AR_INT_SIZE,1,sourceFile) > 0){
@@ -692,23 +707,22 @@ bool arDatabase::filterData(arStructuredData* record,
 }
 
 bool arDatabase::empty(){
-  ar_mutex_lock( &_deletionLock );
+  ar_mutex_lock(&_databaseLock);
   bool isEmpty = _rootNode._children.begin() == _rootNode._children.end();
-  ar_mutex_unlock( &_deletionLock );
+  ar_mutex_unlock( &_databaseLock );
   return isEmpty;
 }
 
-/// \todo inefficient: this locking section is too big.
 void arDatabase::reset(){
-  ar_mutex_lock( &_deletionLock );
-  ar_mutex_lock(&_eraseLock);
+  ar_mutex_lock(&_databaseLock);
   for (arNodeIDIterator i(_nodeIDContainer.begin());
        i != _nodeIDContainer.end();
        ++i){
     arDatabaseNode* theNode = i->second;
     if (theNode->getID() != 0){
-      // not the root node, delete
-      delete theNode;
+      // Not the root node. Unreference. Do NOT delete. Someone else
+      // could be holding a pointer to the node.
+      theNode->unref();
     }
   }
 
@@ -717,8 +731,7 @@ void arDatabase::reset(){
 			  value_type (0,&_rootNode));
   _rootNode._children.clear();
   _nextAssignedID = 1;
-  ar_mutex_unlock(&_eraseLock);
-  ar_mutex_unlock( &_deletionLock );
+  ar_mutex_unlock(&_databaseLock);
 }
 
 void arDatabase::printStructure(int maxLevel){
@@ -735,11 +748,10 @@ void arDatabase::printStructure(int maxLevel, ostream& s){
 }
 
 // The node creation/deletion functions require arStructuredData storage.
-// However, this cannot be created (under the current goofy model) until
-// the language is set (like graphics language or sound language) by one
-// of the subclasses. Consequently, this function needs to exist to be
-// called from arGraphicsDatabase, etc. constructors. NOTE: this model
-// will SOON BE IMPROVED... AND THIS WILL BECOME UNECESSARY!
+// However, this cannot be created until the language is set (like graphics 
+// language or sound language) by one of the subclasses. Consequently, this 
+// function needs to exist to be called from arGraphicsDatabase, etc. 
+// constructors.
 bool arDatabase::_initDatabaseLanguage(){
   // Allocate storage for external parsing.
   arTemplateDictionary* d = _lang->getDictionary();
@@ -780,9 +792,11 @@ bool arDatabase::_initDatabaseLanguage(){
   return true;
 }
 
-string arDatabase::_nextDefaultName(){
+string arDatabase::_getDefaultName(){
   stringstream def;
+  ar_mutex_lock(&_databaseLock);
   def << "szg_default_" << _nextAssignedID;
+  ar_mutex_unlock(&_databaseLock);
   return def.str();
 }
 
@@ -942,7 +956,7 @@ arDatabaseNode* arDatabase::_eraseNode(arStructuredData* inData){
     cerr << "arDatabase::_eraseNode failed: no such node.\n";
     return NULL;
   }
-  ar_mutex_lock(&_eraseLock);
+  //ar_mutex_lock(&_eraseLock);
   // Delete the startNode from the child list of its parent
   arDatabaseNode* parent = startNode->getParent();
   if (parent){
@@ -957,12 +971,13 @@ arDatabaseNode* arDatabase::_eraseNode(arStructuredData* inData){
     }
   }
   _eraseNode(startNode);
-  ar_mutex_unlock(&_eraseLock);
+  //ar_mutex_unlock(&_eraseLock);
   return &_rootNode;
 }
 
 arDatabaseNode* arDatabase::_permuteDatabaseNodes(arStructuredData* data){
-  // This algorithm is pretty inefficient.
+  // This algorithm is pretty inefficient. We are assuming that the number
+  // of permuted children is not "large".
   // NOTE: data is guaranteed to be the right type because alter(...)
   // sends messages to handlers (like this one) based on type information.
   int ID = data->getDataInt(_lang->AR_PERMUTE_PARENT_ID);
@@ -1011,7 +1026,7 @@ arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
   // Add to children of parent, remembering that if moveChildren is true,
   // then all the parent's previous children will be attached to the new
   // node.
-  ar_mutex_lock(&_bufferLock);
+  //ar_mutex_lock(&_bufferLock);
   if (moveChildren){
     for (list<arDatabaseNode*>::iterator i = parentNode->_children.begin();
 	 i != parentNode->_children.end(); i++){
@@ -1021,7 +1036,7 @@ arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
   }
   // Either way, make the new node a child of the parent.
   parentNode->_children.push_back(node);
-  ar_mutex_unlock(&_bufferLock);
+  //ar_mutex_unlock(&_bufferLock);
 
   _nodeRegistration(parentNode, node, nodeID);
 
@@ -1105,7 +1120,6 @@ void arDatabase::_eraseNode(arDatabaseNode* node){
   if (nodeID != 0){
     // DO NOT DELETE the root node!
     _nodeIDContainer.erase(nodeID);
-    /// \bug memory leak in texture held by the deleted node
     delete node;
   }
   else{

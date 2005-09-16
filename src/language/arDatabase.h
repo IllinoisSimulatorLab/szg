@@ -29,8 +29,10 @@ class SZG_CALL arDatabase{
   arDatabase();
   virtual ~arDatabase();
 
-  void setDataBundlePath(const string& bundlePathName, const string& bundleSubDirectory);
-  void addDataBundlePathMap(const string& bundlePathName, const string& bundlePath);
+  void setDataBundlePath(const string& bundlePathName, 
+                         const string& bundleSubDirectory);
+  void addDataBundlePathMap(const string& bundlePathName, 
+                            const string& bundlePath);
 
   int getNodeID(const string& name, bool fWarn=true);
   arDatabaseNode* getNode(int, bool fWarn=true);
@@ -39,8 +41,7 @@ class SZG_CALL arDatabase{
   arDatabaseNode* getRoot(){ return &_rootNode; }
 
   // These functions manipulate the tree structure of the database.
-  // IT IS UNCLEAR TO ME EXTACTLY WHICH OF THESE BELONG HERE AND
-  // WHICH BELONG MORE PROPERLY AS METHODS OF arDatabaseNode
+  // Some of them are mirrored as methods of arDatabase nodes.
   arDatabaseNode* newNode(arDatabaseNode* parent, const string& type,
                           const string& name = "");
   arDatabaseNode* attach(arDatabaseNode* parent, arDatabaseNode* child);
@@ -53,11 +54,6 @@ class SZG_CALL arDatabase{
   void permuteChildren(arDatabaseNode* parent,
                        list<int>& childIDs);
   
-  // THE FOLLOWING ARE FUNCTIONS TO BE IMPLEMENTED AT SOME POINT...
-  //void attachNode(arDatabaseNode* parent,
-  //                arDatabaseNode* node);
-  //void detachNode(arDatabaseNode* node);
-
   bool fillNodeData(arStructuredData* data, arDatabaseNode* node);
 
   virtual arDatabaseNode* alter(arStructuredData*);
@@ -118,19 +114,21 @@ class SZG_CALL arDatabase{
   arDatabaseLanguage* _lang;
 
  protected:
-  // GRUMBLE. I'm a little annoyed by the _server flag. BUT... it does
-  // do something helpful... namely enable a object that doesn't need to
+  // The server flag enables a object that doesn't need to
   // display (i.e. arGraphicsServer in the arDistSceneGraphFramework) do
-  // LESS (unnecessary) work (like load textures into memory, which might fail
-  // anyway since there is no graphics window).
+  // LESS unnecessary work (like load textures into memory, which might fail
+  // anyway since there is no OpenGL context).
   bool _server;
   // Stuff pertaining to finding the data bundles.
   string                               _bundlePathName;
   string                               _bundleName;
   map<string,string,less<string> >     _bundlePathMap;
-  arMutex _bufferLock;
-  arMutex _eraseLock;
-  arMutex _deletionLock;
+
+  //arMutex _bufferLock;
+  //arMutex _eraseLock;
+  //arMutex _deletionLock;
+  arMutex _databaseLock;
+
   map<int,arDatabaseNode*,less<int> > _nodeIDContainer;
   int _nextAssignedID;
   arDatabaseNode _rootNode;
@@ -142,7 +140,7 @@ class SZG_CALL arDatabase{
   arStructuredDataParser*      _dataParser;
 
   bool _initDatabaseLanguage();
-  string          _nextDefaultName();
+  string          _getDefaultName();
   arDatabaseNode* _makeDatabaseNode(arStructuredData*);
   arDatabaseNode* _insertDatabaseNode(arStructuredData*);
   arDatabaseNode* _cutDatabaseNode(arStructuredData*);

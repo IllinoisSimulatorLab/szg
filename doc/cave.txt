@@ -1,12 +1,12 @@
 <szg_config>
 
 <assign>
-cave6		SZG_EXEC path G:\cube\bin\win32 
-cavefront	SZG_EXEC path G:\cube\bin\win32
-caveleft	SZG_EXEC path G:\cube\bin\win32
-caveright	SZG_EXEC path G:\cube\bin\win32
-cavefloor	SZG_EXEC path G:\cube\bin\win32
-kam1		SZG_EXEC path G:\cube\bin\win32
+cave6		SZG_EXEC path G:\THE_USER_NAME\bin\win32 
+cavefront	SZG_EXEC path G:\THE_USER_NAME\bin\win32
+caveleft	SZG_EXEC path G:\THE_USER_NAME\bin\win32
+caveright	SZG_EXEC path G:\THE_USER_NAME\bin\win32
+cavefloor	SZG_EXEC path G:\THE_USER_NAME\bin\win32
+kam1		SZG_EXEC path G:\THE_USER_NAME\bin\win32
 kam3		SZG_EXEC path /home/public/cube/bin/linux
 cassatt		SZG_EXEC path /afs/ncsa.uiuc.edu/.u6/camilleg/bin
 </assign>
@@ -26,20 +26,42 @@ cassatt		SZG_EXEC path /afs/ncsa.uiuc.edu/.u6/camilleg/bin
 cave SZG_CONF    location       cave
 cave SZG_CONF    virtual        true
 cave SZG_TRIGGER map            cavefront
-cave SZG_MASTER  map            SZG_SCREEN0
-cave SZG_SCREEN  number_screens 4
-cave SZG_SCREEN0 map            cavefront/SZG_SCREEN0
-cave SZG_SCREEN0 networks       cave/internet
-cave SZG_SCREEN1 map            caveleft/SZG_SCREEN0
-cave SZG_SCREEN1 networks       cave/internet
-cave SZG_SCREEN2 map            caveright/SZG_SCREEN0
-cave SZG_SCREEN2 networks       cave/internet
-cave SZG_SCREEN3 map            cavefloor/SZG_SCREEN0
-cave SZG_SCREEN3 networks       cave/internet
+cave SZG_MASTER  map            SZG_DISPLAY0
+cave SZG_DISPLAY  number_screens 4
+cave SZG_DISPLAY0 map            cavefront/SZG_DISPLAY0
+cave SZG_DISPLAY0 networks       cave/internet
+cave SZG_DISPLAY1 map            caveleft/SZG_DISPLAY0
+cave SZG_DISPLAY1 networks       cave/internet
+cave SZG_DISPLAY2 map            caveright/SZG_DISPLAY0
+cave SZG_DISPLAY2 networks       cave/internet
+cave SZG_DISPLAY3 map            cavefloor/SZG_DISPLAY0
+cave SZG_DISPLAY3 networks       cave/internet
 cave SZG_INPUT0  map            cassatt/cave_tracker
 cave SZG_INPUT0  networks       internet
 cave SZG_SOUND   map            kam1
 cave SZG_SOUND   networks       internet
+</assign>
+
+<comment> definition of a demo computer, not using tracking </comment>
+
+<assign>
+cavedemo SZG_CONF    location       cave
+cavedemo SZG_CONF    virtual        true
+cavedemo SZG_TRIGGER map            cavefront
+cavedemo SZG_MASTER  map            SZG_DISPLAY0
+cavedemo SZG_DISPLAY  number_screens 4
+cavedemo SZG_DISPLAY0 map            cavefront/SZG_DISPLAY0
+cavedemo SZG_DISPLAY0 networks       cave/internet
+cavedemo SZG_DISPLAY1 map            caveleft/SZG_DISPLAY0
+cavedemo SZG_DISPLAY1 networks       cave/internet
+cavedemo SZG_DISPLAY2 map            caveright/SZG_DISPLAY0
+cavedemo SZG_DISPLAY2 networks       cave/internet
+cavedemo SZG_DISPLAY3 map            cavefloor/SZG_DISPLAY0
+cavedemo SZG_DISPLAY3 networks       cave/internet
+cavedemo SZG_INPUT0  map            kam1/inputsimulator
+cavedemo SZG_INPUT0  networks       internet
+cavedemo SZG_SOUND   map            kam1
+cavedemo SZG_SOUND   networks       internet
 </assign>
 
 <assign>
@@ -90,56 +112,182 @@ cavefront SZG_HEAD mid_eye_offset 0.29/0/-0.21
 cavefront SZG_HEAD fixed_head_mode false
 </assign>
 
+
+<param>
+<name> front_wall </name>
+<value>
+<szg_screen>
+  <center x="0" y="4.93" z="-4.93" />
+  <up x="0" y="1" z="0" />
+  <dim width="9.86" height="9.86" />
+  <normal x="0" y="0" z="-1" />
+  <headmounted value="false" />
+  <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.5" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
+</value>
+</param>
+
+<param>
+<name> right_wall </name>
+<value>
+<szg_screen>
+  <center x="4.93" y="4.93" z="0" />
+  <up x="0" y="1" z="0" />
+  <dim width="9.86" height="9.86" />
+  <normal x="1" y="0" z="0" />
+  <headmounted value="false" />
+  <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.5" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
+</value>
+</param>
+
+<param>
+<name> left_wall </name>
+<value>
+<szg_screen>
+  <center x="-4.93" y="4.93" z="0" />
+  <up x="0" y="1" z="0" />
+  <dim width="9.86" height="9.86" />
+  <normal x="-1" y="0" z="0" />
+  <headmounted value="false" />
+  <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.5" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
+</value>
+</param>
+
+<param>
+<name> bottom_wall </name>
+<value>
+<szg_screen>
+  <center x="0" y="0" z="0" />
+  <up x="0" y="0" z="-1" />
+  <dim width="9.86" height="9.86" />
+  <normal x="0" y="-1" z="0" />
+  <headmounted value="false" />
+  <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.5" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
+</value>
+</param>
+
+<param>
+<name> rear_wall </name>
+<value>
+<szg_screen>
+  <center x="0" y="4.93" z="4.93" />
+  <up x="0" y="1" z="0" />
+  <dim width="9.86" height="9.86" />
+  <normal x="0" y="0" z="1" />
+  <headmounted value="false" />
+  <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
+  <usefixedhead value="allow" />
+  <fixedheadpos x="0.0" y="5.5" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
+</value>
+</param>
+
+<param>
+<name>front_window_stereo</name>
+<value>
+<szg_display framelock="wildcat">
+ <szg_window>
+   <decorate value="false" />
+   <fullscreen value="true" />
+   <stereo value="true" />
+   <zorder value="topmost" />
+   <cursor value="none" />
+
+   <szg_viewport_list viewmode="normal">
+     <szg_camera>
+       <szg_screen usenamed="front_wall" />
+     </szg_camera>
+   </szg_viewport_list>
+ </szg_window>
+</szg_display>
+</value>
+</param>
+
+<param>
+<name>right_window_stereo</name>
+<value>
+<szg_display framelock="wildcat">
+ <szg_window>
+   <decorate value="false" />
+   <fullscreen value="true" />
+   <stereo value="true" />
+   <zorder value="topmost" />
+   <cursor value="none" />
+
+   <szg_viewport_list viewmode="normal">
+     <szg_camera>
+       <szg_screen usenamed="right_wall" />
+     </szg_camera>
+   </szg_viewport_list>
+ </szg_window>
+</szg_display>
+</value>
+</param>
+
+<param>
+<name>left_window_stereo</name>
+<value>
+<szg_display framelock="wildcat">
+ <szg_window>
+   <decorate value="false" />
+   <fullscreen value="true" />
+   <stereo value="true" />
+   <zorder value="topmost" />
+   <cursor value="none" />
+
+   <szg_viewport_list viewmode="normal">
+     <szg_camera>
+       <szg_screen usenamed="left_wall" />
+     </szg_camera>
+   </szg_viewport_list>
+ </szg_window>
+</szg_display>
+</value>
+</param>
+
+<param>
+<name>bottom_window_stereo</name>
+<value>
+<szg_display framelock="wildcat">
+ <szg_window>
+   <decorate value="false" />
+   <fullscreen value="true" />
+   <stereo value="true" />
+   <zorder value="topmost" />
+   <cursor value="none" />
+
+   <szg_viewport_list viewmode="normal">
+     <szg_camera>
+       <szg_screen usenamed="bottom_wall" />
+     </szg_camera>
+   </szg_viewport_list>
+ </szg_window>
+</szg_display>
+</value>
+</param>
+
 <comment> graphics configuration </comment>
 <assign>
-cavefront SZG_SCREEN0 size              0/0
-cavefront SZG_SCREEN0 screen_center     0/5/-5
-cavefront SZG_SCREEN0 screen_dim        10/10
-cavefront SZG_SCREEN0 screen_normal     0/0/-1
-cavefront SZG_SCREEN0 screen_up         0/1/0
-cavefront SZG_SCREEN0 stereo            true
-cavefront SZG_SCREEN0 mid_eye_offset    0.29/0/-0.21
-cavefront SZG_SCREEN0 tile              0/1/0/1
-cavefront SZG_SCREEN0 fixed_head        false
-cavefront SZG_SCREEN0 fixed_head_pos    0/5.5/0
-cavefront SZG_SCREEN0 wildcat_framelock true
-
-caveleft SZG_SCREEN0 size              0/0
-caveleft SZG_SCREEN0 screen_center     -5/5/0
-caveleft SZG_SCREEN0 screen_dim        10/10
-caveleft SZG_SCREEN0 screen_normal     -1/0/0
-caveleft SZG_SCREEN0 screen_up         0/1/0
-caveleft SZG_SCREEN0 stereo            true
-caveleft SZG_SCREEN0 mid_eye_offset    0.29/0/-0.21
-caveleft SZG_SCREEN0 tile              0/1/0/1
-caveleft SZG_SCREEN0 fixed_head        false
-caveleft SZG_SCREEN0 fixed_head_pos    0/5.5/0
-caveleft SZG_SCREEN0 wildcat_framelock true
-
-caveright SZG_SCREEN0 size                0/0
-caveright SZG_SCREEN0 screen_center       5/5/0
-caveright SZG_SCREEN0 screen_dim          10/10
-caveright SZG_SCREEN0 screen_normal       1/0/0
-caveright SZG_SCREEN0 screen_up           0/1/0
-caveright SZG_SCREEN0 stereo              true
-caveright SZG_SCREEN0 mid_eye_offset      0.29/0/-0.21
-caveright SZG_SCREEN0 tile                0/1/0/1
-caveright SZG_SCREEN0 fixed_head          false
-caveright SZG_SCREEN0 fixed_head_up_angle  -90
-caveright SZG_SCREEN0 fixed_head_pos      0/5.5/0
-caveright SZG_SCREEN0 wildcat_framelock   true
-
-cavefloor SZG_SCREEN0 size              0/0
-cavefloor SZG_SCREEN0 screen_center     0/0/0
-cavefloor SZG_SCREEN0 screen_dim        10/10
-cavefloor SZG_SCREEN0 screen_normal     0/-1/0
-cavefloor SZG_SCREEN0 screen_up         0/0/-1
-cavefloor SZG_SCREEN0 stereo            true
-cavefloor SZG_SCREEN0 mid_eye_offset    0.29/0/-0.21
-cavefloor SZG_SCREEN0 tile              0/1/0/1
-cavefloor SZG_SCREEN0 fixed_head        false
-cavefloor SZG_SCREEN0 fixed_head_pos    0/5.5/0
-cavefloor SZG_SCREEN0 wildcat_framelock   true
+cavefront SZG_DISPLAY0 name front_window_stereo
+caveleft SZG_DISPLAY0 name left_window_stereo
+caveright SZG_DISPLAY0 name right_window_stereo
+cavefloor SZG_DISPLAY0 name bottom_window_stereo
 </assign>
 
 </szg_config>

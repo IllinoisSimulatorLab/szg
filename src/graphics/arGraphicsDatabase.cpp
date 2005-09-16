@@ -425,12 +425,12 @@ void arGraphicsDatabase::setVRCameraID(int cameraID){
 void arGraphicsDatabase::draw(arMatrix4* projectionCullMatrix){
   // replaces gl matrix stack... we want to support VERY deep trees
   stack<arMatrix4> transformStack;
-  ar_mutex_lock(&_eraseLock);
+  //ar_mutex_lock(&_eraseLock);
   arGraphicsContext context;
   // Not using graphics context yet.
   _draw((arGraphicsNode*)&_rootNode, transformStack, &context,
         projectionCullMatrix);
-  ar_mutex_unlock(&_eraseLock);
+  //ar_mutex_unlock(&_eraseLock);
 }
 
 void arGraphicsDatabase::_draw(arGraphicsNode* node, 

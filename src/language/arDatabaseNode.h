@@ -30,6 +30,9 @@ class SZG_CALL arDatabaseNode{
   arDatabaseNode();
   virtual ~arDatabaseNode();
 
+  void ref();
+  void unref();
+
   int getID() const { return _ID; }
   string getName() const { return _name; }
   void setName(const string& name);
