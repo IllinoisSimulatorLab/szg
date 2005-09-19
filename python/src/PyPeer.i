@@ -282,10 +282,10 @@ class arLightNode:public arGraphicsNode{
 
 class arMaterialNode:public arGraphicsNode{
  public:
-  arMaterialNode(){}
-  ~arMaterialNode(){}
+  arMaterialNode();
+  ~arMaterialNode();
 
-  void draw( arGraphicsContext* ){} 
+  void draw( arGraphicsContext* );
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
@@ -296,8 +296,8 @@ class arMaterialNode:public arGraphicsNode{
 class arPointsNode:public arGraphicsArrayNode{
 /// Set of (OpenGL) points.
  public:
-  arPointsNode(arGraphicsDatabase*);
-  ~arPointsNode(){}
+  arPointsNode();
+  ~arPointsNode();
 
   float* getPoints(int& number);
   void   setPoints(int number, float* points, int* IDs = NULL);
@@ -305,8 +305,8 @@ class arPointsNode:public arGraphicsArrayNode{
 
 class arIndexNode:public arGraphicsArrayNode{
  public:
-  arIndexNode(arGraphicsDatabase*);
-  ~arIndexNode(){}
+  arIndexNode();
+  ~arIndexNode();
 
   int* getIndices(int& number);
   void setIndices(int number, int* indices, int* IDs = NULL);
@@ -314,8 +314,8 @@ class arIndexNode:public arGraphicsArrayNode{
 
 class arNormal3Node: public arGraphicsArrayNode{
  public:
-  arNormal3Node(arGraphicsDatabase*);
-  ~arNormal3Node(){}
+  arNormal3Node();
+  ~arNormal3Node();
 
   float* getNormal3(int& number);
   void   setNormal3(int number, float* normal3, int* IDs = NULL);
@@ -323,8 +323,8 @@ class arNormal3Node: public arGraphicsArrayNode{
 
 class arTex2Node:public arGraphicsArrayNode{
  public:
-  arTex2Node(arGraphicsDatabase*);
-  ~arTex2Node(){}
+  arTex2Node();
+  ~arTex2Node();
 
   float* getTex2(int& number);
   void   setTex2(int number, float* tex2, int* IDs = NULL);
@@ -334,7 +334,7 @@ class arTex2Node:public arGraphicsArrayNode{
 class arTextureNode: public arGraphicsNode{
  public:
   arTextureNode();
-  ~arTextureNode(){}
+  ~arTextureNode();
 
   void draw( arGraphicsContext* ){}
   arStructuredData* dumpData();
@@ -346,8 +346,8 @@ class arTextureNode: public arGraphicsNode{
 
 class arColor4Node:public arGraphicsArrayNode{
  public:
-  arColor4Node(arGraphicsDatabase*);
-  ~arColor4Node(){}
+  arColor4Node();
+  ~arColor4Node();
 
   float* getColor4(int& number);
   void   setColor4(int number, float* color4, int* IDs = NULL);
@@ -574,10 +574,6 @@ class arGraphicsDatabase: public arDatabase{
   arTexture** getAlphabet();
   void setTexturePath(const string& thePath);
   arTexture* addTexture(const string&, int*);
-  arTexture* addTexture(int w, int h, bool alpha, const char* pixels);
-  arBumpMap* addBumpMap(const string& name, int numPts, int numInd,
-		  	float* points, int* indices, float* tex2,
-			float height, arTexture* decalTexture);
 
   arMatrix4 accumulateTransform(int nodeID);
 

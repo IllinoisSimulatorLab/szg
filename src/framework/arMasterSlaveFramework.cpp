@@ -1759,9 +1759,11 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
     }
   }
 
-  // NOTE: this will probably fail under the current hacked regime...
-  // BUT... if this doesn't occur, then the various filters and such
-  // complain constantly.
+  // Do not bother checking to see whether or not init(...) succeeds. Since
+  // we are in standalone mode (and thus the arSZGClient is not connected to
+  // an szgserver) it might very well fail. But if we don't init(...) all the
+  // arInputNode components will incessantly complain that they have not been
+  // init'ed.
   _inputDevice->init( _SZGClient );
   _inputDevice->start();
 
