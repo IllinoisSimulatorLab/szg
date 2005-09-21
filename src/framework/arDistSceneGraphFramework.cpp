@@ -756,6 +756,8 @@ bool arDistSceneGraphFramework::_initInput(){
     }
   }
 
+  _installFilters();
+
   if (!_inputDevice->init(_SZGClient) && !_standalone){
     initResponse << _label << " warning: failed to init input device.\n";
     if (!_SZGClient.sendInitResponse(false))

@@ -75,15 +75,6 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
       _externalPeer = p;
   }
   
-  bool processEventQueue() {
-    return _eventFilter && _eventFilter->processEventQueue();
-  }
-
-  void flushEventQueue() { 
-    if (_eventFilter)
-      _eventFilter->flushEventQueue();
-  }
-
  private:
   arGraphicsServer _graphicsServer;
   arGraphicsPeer _graphicsPeer;

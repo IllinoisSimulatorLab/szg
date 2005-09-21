@@ -1,4 +1,4 @@
-// $Id: PySceneGraph.i,v 1.1 2005/03/18 20:13:01 crowell Exp $
+// $Id: PySceneGraph.i,v 1.2 2005/09/20 19:55:39 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -44,6 +44,69 @@ class arInterfaceObject{
 };
 
 // **************** based on arDistSceneGraphFramework.h *******************
+
+%{
+
+//    void setEventCallback( bool (*callback)( arSZGAppFramework& fw, arInputEvent& event,
+//                             arCallbackEventFilter& filter) );
+//
+static PyObject *pySGEventFunc = NULL;
+static bool pySGEventCallback( arSZGAppFramework& fw, arInputEvent& theEvent, arCallbackEventFilter& filter ) {
+    // Note cast from arSZGAppFramework to arDistSceneGraphFramework
+    PyObject *fwobj = SWIG_NewPointerObj((void *) &fw,
+                             SWIGTYPE_p_arDistSceneGraphFramework, 0);
+    PyObject *eventobj = SWIG_NewPointerObj((void *) &theEvent,
+                             SWIGTYPE_p_arInputEvent, 0);
+    PyObject *filterobj = SWIG_NewPointerObj((void *) &filter,
+                             SWIGTYPE_p_arCallbackEventFilter, 0);
+    PyObject *arglist=Py_BuildValue( "(O,O,O)", fwobj, eventobj, filterobj );
+    PyObject *result=PyEval_CallObject(pySGEventFunc, arglist);
+    if (result==NULL) {
+        PyErr_Print();
+        string errmsg="A Python exception occurred in Event callback.";
+        cerr << errmsg << "\n";
+        throw  errmsg;
+    }
+    bool res=(bool) PyInt_AsLong(result);
+    Py_XDECREF(result);
+    Py_DECREF(arglist);
+    Py_DECREF(filterobj);
+    Py_DECREF(eventobj);
+    Py_DECREF(fwobj);
+    return res;
+}
+
+
+//    void setEventQueueCallback( bool (*callback)( arSZGAppFramework& fw,
+//                             arInputEventQueue& theQueue ) );
+//
+static PyObject *pySGEventQueueFunc = NULL;
+static bool pySGEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& theQueue ) {
+  // Note cast from arSZGAppFramework to arDistSceneGraphFramework
+  PyObject *fwobj = SWIG_NewPointerObj((void *) &fw,
+                           SWIGTYPE_p_arDistSceneGraphFramework, 0);
+  PyObject *queueobj = SWIG_NewPointerObj((void *) &theQueue,
+                           SWIGTYPE_p_arInputEventQueue, 0);
+  PyObject *arglist=Py_BuildValue( "(O,O)", fwobj, queueobj );
+  PyObject *result=PyEval_CallObject(pySGEventQueueFunc, arglist);
+  if (result==NULL) {
+    PyErr_Print();
+    string errmsg="A Python exception occurred in EventQueue callback.";
+    cerr << errmsg << "\n";
+    throw  errmsg;
+  }
+  bool res=(bool) PyInt_AsLong(result);
+  Py_XDECREF(result);
+  Py_DECREF(arglist);
+  Py_DECREF(queueobj);
+  Py_DECREF(fwobj);
+  return res;
+}
+
+
+
+%}
+
 
 class arDistSceneGraphFramework : public arSZGAppFramework {
  public:

@@ -8,6 +8,7 @@
 #include "arIOFilter.h"
 
 arIOFilter::arIOFilter() :
+  _id(-1),
   _inputState(0) {
   // does nothing so far
 }
@@ -64,6 +65,22 @@ int arIOFilter::getButton( const unsigned int index ) const {
     return 0;
   }
   return _inputState->getButton( index );
+}
+
+bool arIOFilter::getOnButton( const unsigned int index ) {
+  if (!_inputState) {
+    cerr << "arIOFilter error: null inputState pointer.\n";
+    return 0;
+  }
+  return _inputState->getOnButton( index );
+}
+
+bool arIOFilter::getOffButton( const unsigned int index ) {
+  if (!_inputState) {
+    cerr << "arIOFilter error: null inputState pointer.\n";
+    return 0;
+  }
+  return _inputState->getOffButton( index );
 }
 
 float arIOFilter::getAxis( const unsigned int index ) const {

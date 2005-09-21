@@ -97,7 +97,8 @@ class SZG_CALL arTexture {
   int _textureFunc;
   char* _pixels;
 
-  arMutex                              _lock;
+  arLock _lock;
+ 
   // The handles to the OpenGL textures are stored below (per calling graphics
   // context).
   map<ARint64, GLuint, less<ARint64> > _texNameMap;

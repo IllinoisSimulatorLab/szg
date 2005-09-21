@@ -36,10 +36,11 @@ class SZG_CALL arInputNode: public arInputSink {
   
     // iOwnIt == true => the input node owns it & should delete.
     void addInputSource( arInputSource* theSource, bool iOwnIt );
-    void addFilter( arIOFilter* theFilter, bool iOwnIt );
+    int addFilter( arIOFilter* theFilter, bool iOwnIt );
     void addInputSink( arInputSink* theSink, bool iOwnIt );
     
-    void removeFilter(  arIOFilter* theFilter );
+    bool removeFilter( int filterID );
+    bool replaceFilter( int filterID, arIOFilter* newFilter, bool iOwnIt );
 
     void setEventCallback(void (*callback)(arInputEvent&))
       { _eventCallback = callback; }
@@ -65,6 +66,7 @@ class SZG_CALL arInputNode: public arInputSink {
     void _remapData( unsigned int channelNumber, arStructuredData* data );
     void _filterEventQueue( arInputEventQueue& queue );
     void _updateState( arInputEventQueue& queue );
+    int _findUnusedFilterID();
     
     arInputLanguage _inp;
     arInputEventQueue _eventQueue;

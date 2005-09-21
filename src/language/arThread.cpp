@@ -13,8 +13,9 @@ using namespace std;
 
 void ar_mutex_init(arMutex* theMutex){
 #ifdef AR_USE_WIN_32
-	// This is probably no more tolerant of repeated calls than
-	// pthread_mutex_init is (see below).
+        // "A critical section object must be deleted before it can be reinitialized.
+        // Initializing a critical section that has already been initialized results
+        // in undefined behavior." -MSDN online
 	InitializeCriticalSection(theMutex);
 #else
 	// "Attempting to initialise an already initialised mutex
@@ -36,6 +37,48 @@ void ar_mutex_unlock(arMutex* theMutex){
 	LeaveCriticalSection(theMutex);
 #else
 	pthread_mutex_unlock(theMutex);
+#endif
+}
+
+//Implementation lifted from MUTEX class of
+// Walmsley, "Multi-threaded Programming in C++"
+arLock::arLock() {
+#ifdef AR_USE_WIN_32
+  _mutex = CreateMutex( NULL, FALSE, NULL);
+#else
+  pthread_mutex_init( &_mutex, NULL );
+#endif
+}
+
+arLock::~arLock() {
+#ifdef AR_USE_WIN_32
+  CloseHandle(_mutex);
+#else
+  pthread_mutex_destroy( &_mutex );
+#endif
+}
+
+void arLock::lock() {
+#ifdef AR_USE_WIN_32
+  WaitForSingleObject( _mutex, INFINITE );
+#else
+  pthread_mutex_lock( &_mutex );
+#endif
+}
+
+bool arLock::tryLock() {
+#ifdef AR_USE_WIN_32
+  return (WaitForSingleObject( _mutex, 0 ) != WAIT_TIMEOUT);
+#else
+  return (pthread_mutex_trylock( &_mutex ) == 0);
+#endif
+}
+
+void arLock::unlock() {
+#ifdef AR_USE_WIN_32
+  ReleaseMutex( _mutex );
+#else
+  pthread_mutex_unlock( &_mutex );
 #endif
 }
 
@@ -131,6 +174,8 @@ void arConditionVar::signal(){
 }
   
   
+//Implementation lifted from EVENT class of
+// Walmsley, "Multi-threaded Programming in C++"
 arThreadEvent::arThreadEvent( bool automatic ) {
 #ifdef AR_USE_WIN_32
   _event = CreateEvent( NULL, (BOOL)!automatic, FALSE, NULL );

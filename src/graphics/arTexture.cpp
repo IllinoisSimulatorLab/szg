@@ -34,7 +34,7 @@ arTexture::arTexture() :
   _pixels(NULL),
   _refs(1)
 {
-  ar_mutex_init(&_lock);
+//  ar_mutex_init(&_lock);
 }
 
 arTexture::~arTexture(){
@@ -61,7 +61,7 @@ arTexture::arTexture( const arTexture& rhs ) :
   _textureFunc( rhs._textureFunc ),
   _refs(1)
 {
-  ar_mutex_init(&_lock);
+//  ar_mutex_init(&_lock);
   _pixels = new char[ numbytes() ];
   if (!_pixels) {
     cerr << "arTexture error: _pixels allocation failed in copy constructor.\n";
@@ -101,7 +101,7 @@ arTexture::arTexture( const arTexture& rhs, unsigned int left, unsigned int bott
   _textureFunc( rhs._textureFunc ),
   _refs(1)
 {
-  ar_mutex_init(&_lock);
+//  ar_mutex_init(&_lock);
   _pixels = rhs.getSubImage( left, bottom, width, height );
   if (!_pixels) {
     cerr << "arTexture error: rhs.getSubImage() failed in sub-image copy constructor.\n";
@@ -120,14 +120,17 @@ bool arTexture::operator!() {
 arTexture* arTexture::ref(){
   // Returning the pointer allows us to atomically create
   // a reference to the object.
-  ar_mutex_lock(&_lock);
+  _lock.lock();
+//  ar_mutex_lock(&_lock);
   _refs++;
-  ar_mutex_unlock(&_lock);
+  _lock.unlock();
+//  ar_mutex_unlock(&_lock);
   return this;
 }
 
 void arTexture::unref(bool debug){
-  ar_mutex_lock(&_lock);
+  _lock.lock();
+//  ar_mutex_lock(&_lock);
   _refs--;
   bool mustDelete = _refs == 0 ? true : false;
   if (debug){
@@ -138,7 +141,8 @@ void arTexture::unref(bool debug){
       cout << "arTexture will not be deleted. Ref count nonzero.\n";
     }
   }
-  ar_mutex_unlock(&_lock);
+  _lock.unlock();
+//  ar_mutex_unlock(&_lock);
   if (mustDelete){
     delete this;
   }
@@ -146,7 +150,8 @@ void arTexture::unref(bool debug){
 
 void arTexture::activate(bool forceRebind) {
   glEnable(GL_TEXTURE_2D);
-  ar_mutex_lock(&_lock);
+  _lock.lock();
+//  ar_mutex_lock(&_lock);
 #ifdef AR_USE_WIN_32
   ARint64 threadID = GetCurrentThreadId();
 #else
@@ -159,7 +164,8 @@ void arTexture::activate(bool forceRebind) {
     glGenTextures(1,&temp);
     if (temp == 0) {
       cerr << "arTexture error: glGenTextures() failed in activate().\n";
-      ar_mutex_unlock(&_lock);
+      _lock.unlock();
+//      ar_mutex_unlock(&_lock);
       return;
     }
     _texNameMap.insert(map<ARint64,GLuint,less<ARint64> >::value_type
@@ -170,7 +176,8 @@ void arTexture::activate(bool forceRebind) {
   else{
     temp = i->second;
   }
-  ar_mutex_unlock(&_lock);
+  _lock.unlock();
+//  ar_mutex_unlock(&_lock);
 
   glBindTexture(GL_TEXTURE_2D, temp);
   // Very odd... if the following statement isn't included, then 

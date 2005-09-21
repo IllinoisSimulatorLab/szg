@@ -6,6 +6,43 @@
 %{
 #include "arInputEvent.h"
 #include "arInputState.h"
+#include "arInputEventQueue.h"
+
+PyObject* ar_inputEventToDict( arInputEvent& event ) {
+  PyObject* dict = PyDict_New();
+  if (!dict) {
+    PyErr_SetString( PyExc_TypeError, "arInputEvent error: failed to allocate dictionary." );
+    return NULL;
+  }
+  int theType = event.getType();
+  std::string typeString;
+  PyObject* value;
+  switch (theType) {
+    case AR_EVENT_MATRIX:
+      typeString = "matrix";
+      value = ar_matrix4ToTuple( event.getMatrix() );
+      break;
+    case AR_EVENT_AXIS:
+      typeString = "axis";
+      value = PyFloat_FromDouble( (double)event.getAxis() );
+      break;
+    case AR_EVENT_BUTTON:
+      typeString = "button";
+      value = PyInt_FromLong( (long)event.getButton() );
+      break;
+    default:
+      return dict;
+   }
+  PyObject* pIndex = PyInt_FromLong( (long)event.getIndex() );
+  if ((PyDict_SetItemString( dict, typeString.c_str(), value ) == -1) ||
+       (PyDict_SetItemString( dict, "index", pIndex ) == -1)) {
+    PyErr_SetString( PyExc_TypeError, "arInputEvent error: failed to populate dictionary." );
+    return NULL;
+  }
+  Py_XDECREF(value);
+  Py_XDECREF(pIndex);
+  return dict;
+}
 %}
 
 enum arInputEventType {AR_EVENT_GARBAGE=-1, AR_EVENT_BUTTON=0, 
@@ -34,26 +71,31 @@ class arInputEvent {
     void zero();
 
 %extend{
-    string __str__(void) {
-      ostringstream s(ostringstream::out);
-      switch (self->getType()) {
-        case AR_EVENT_BUTTON:
-          s << "BUTTON[" << self->getIndex() << "]: " << self->getButton();
-          break;
-        case AR_EVENT_AXIS:
-          s << "AXIS[" << self->getIndex() << "]: " << self->getAxis();
-            break;
-        case AR_EVENT_MATRIX:
-          s << "MATRIX[" << self->getIndex() << "]:\n" << self->getMatrix();
-          break;
-        case AR_EVENT_GARBAGE:
-          s << "GARBAGE[" << self->getIndex() << "]";
-          break;
-        default:
-          s << "EVENT_ERROR[" << self->getIndex() << "]";
-      }
-      return s.str();
-    }
+string __str__(void) {
+  ostringstream s(ostringstream::out);
+  switch (self->getType()) {
+    case AR_EVENT_BUTTON:
+      s << "BUTTON[" << self->getIndex() << "]: " << self->getButton();
+      break;
+    case AR_EVENT_AXIS:
+      s << "AXIS[" << self->getIndex() << "]: " << self->getAxis();
+        break;
+    case AR_EVENT_MATRIX:
+      s << "MATRIX[" << self->getIndex() << "]:\n" << self->getMatrix();
+      break;
+    case AR_EVENT_GARBAGE:
+      s << "GARBAGE[" << self->getIndex() << "]";
+      break;
+    default:
+      s << "EVENT_ERROR[" << self->getIndex() << "]";
+  }
+  return s.str();
+}
+
+PyObject* toDict() {
+  return ar_inputEventToDict(*self);
+}
+
 }
 
 };
@@ -88,3 +130,52 @@ class arInputState {
     bool update( const arInputEvent& event );
 };
 
+class arInputEventQueue {
+  public:
+    arInputEventQueue() :
+      _numButtons(0),
+      _numAxes(0),
+      _numMatrices(0),
+      _buttonSignature(0),
+      _axisSignature(0),
+      _matrixSignature(0) {
+      }
+    ~arInputEventQueue();
+    void appendEvent( const arInputEvent& event );
+    void appendQueue( const arInputEventQueue& queue );
+    bool empty() const { return _queue.empty(); }
+    bool size() const { return _queue.size(); }
+    arInputEvent popNextEvent();
+    
+    unsigned int getNumberButtons() const { return _numButtons; }
+    unsigned int getNumberAxes() const { return _numAxes; }
+    unsigned int getNumberMatrices() const { return _numMatrices; }
+
+    unsigned int getButtonSignature() const { return _buttonSignature; }
+    unsigned int getAxisSignature() const { return _axisSignature; }
+    unsigned int getMatrixSignature() const { return _matrixSignature; }
+                        
+    void clear();
+
+%extend{
+PyObject* toList() {
+  PyObject *lst=PyList_New(0);
+  if (!lst) {
+    PyErr_SetString(PyExc_ValueError, "arInputEventQueue.toList() error: PyList_New() failed");
+    return NULL;
+  }
+  while (true) {
+    arInputEvent event = self->popNextEvent();
+    if (event.getType() == AR_EVENT_GARBAGE) {
+      break;
+    } 
+    PyObject* dict = ar_inputEventToDict( event );
+    PyList_Append( lst, dict );
+    Py_XDECREF(dict);
+  }
+  return lst;
+}
+
+}
+
+};

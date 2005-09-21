@@ -19,10 +19,6 @@
 #include "arGUIXMLParser.h"
 
 
-/// to make the callbacks startable from GLUT, we need this
-/// global variable to pass in an arMasterSlaveFramework parameter
-// arMasterSlaveFramework* __globalFramework = NULL;
-
 //***********************************************************************
 // GLUT callbacks
 //***********************************************************************
@@ -291,6 +287,9 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
 
   _simPtr = &_simulator;
 
+  // This is where input events are buffered for transfer to slaves.
+  _callbackFilter.saveEventQueue( true );
+
   // also need to add fields for our default-shared data
   _transferTemplate.addAttribute( "harmony_ready",   AR_INT );
   _transferTemplate.addAttribute( "time",            AR_DOUBLE );
@@ -317,7 +316,6 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _transferTemplate.addAttribute( "randVal",         AR_FLOAT  );
 
   ar_mutex_init( &_pauseLock );
-  ar_mutex_init( &_eventLock );
 
   // when the default color is set like this, the app's geometry is displayed
   // instead of a default color
@@ -661,6 +659,11 @@ void arMasterSlaveFramework::setKeyboardCallback
 void arMasterSlaveFramework::setMouseCallback
   ( void (*mouse)( arMasterSlaveFramework&, arGUIMouseInfo* ) ) {
   _mouseCallback = mouse;
+}
+
+void arMasterSlaveFramework::setEventQueueCallback( arFrameworkEventQueueCallback callback ) {
+  _eventQueueCallback = callback;
+  cout << "arMasterSlaveFramework remark: event queue callback set.\n";
 }
 
 bool arMasterSlaveFramework::_startrespond( const std::string& s ) {
@@ -1010,15 +1013,23 @@ void arMasterSlaveFramework::preDraw( void ) {
   // the user might want to use current input data via
   // arMasterSlaveFramework::getButton() or some other method in that callback
   if( getMaster() ) {
-    _pollInputData();
-
     if (_harmonyInUse && !_harmonyReady) {
       _harmonyReady = allSlavesReady();
+      if (_harmonyReady) {
+        // All slaves are connected, so we start accepting input in pre-determined
+        // harmony mode.
+        if (!_startInput()) {
+          // What else should we do here?
+          cerr << "arMasterSlaveFramework error: _startInput() failed.\n";
+        }
+      }
     }
       
-    if( _eventFilter ) {
-      _eventFilter->processEventQueue();
-    }
+    _pollInputData();
+
+    _inputEventQueue = _callbackFilter.getEventQueue();
+    arInputEventQueue myQueue( _inputEventQueue );
+    onProcessEventQueue( myQueue );
 
     if (!(_harmonyInUse && !_harmonyReady)) {
       onPreExchange();
@@ -1036,6 +1047,11 @@ void arMasterSlaveFramework::preDraw( void ) {
   onPlay();
 
   if( getConnected() && !(_harmonyInUse && !_harmonyReady) ) {
+    if (_harmonyInUse && !getMaster()) {
+      // in pre-determined harmony mode, slaves get to process event queue.
+      arInputEventQueue myQueue( _inputEventQueue );
+      onProcessEventQueue( myQueue );
+    }
     onPostExchange();
   }
 
@@ -1529,12 +1545,6 @@ bool arMasterSlaveFramework::_getData( void ) {
   return true;
 }
 
-void arMasterSlaveFramework::_eventCallback( arInputEvent& event ) {
-  ar_mutex_lock( &_eventLock );
-  _eventQueue.appendEvent( event );
-  ar_mutex_unlock( &_eventLock );
-}
-
 void arMasterSlaveFramework::_pollInputData( void ) {
   // Should ensure that start() has been called already.
   if( !_master ) {
@@ -1600,8 +1610,11 @@ void arMasterSlaveFramework::_packInputData( void ){
     std::cerr << _label << " warning: problem in _packInputData." << std::endl;
   }
 
-  if( !ar_saveInputStateToStructuredData( _inputState, _transferData ) ) {
-    std::cerr << _label << " warning: failed to pack input state data." << std::endl;
+//  if( !ar_saveInputStateToStructuredData( _inputState, _transferData ) ) {
+//    std::cerr << _label << " warning: failed to pack input state data." << std::endl;
+//  }
+  if( !ar_saveEventQueueToStructuredData( &_inputEventQueue, _transferData ) ) {
+    std::cerr << _label << " warning: failed to pack input event queue." << std::endl;
   }
 
   _numRandCalls = 0;
@@ -1625,8 +1638,17 @@ void arMasterSlaveFramework::_unpackInputData( void ){
   arMatrix4 navMatrix;
   _transferData->dataOut( "navMatrix", navMatrix.v, AR_FLOAT, 16 );
   ar_setNavMatrix( navMatrix );
-  if (!ar_setInputStateFromStructuredData( _inputState, _transferData )) {
-    cerr << _label << " warning: failed to unpack input state data.\n";
+//  if (!ar_setInputStateFromStructuredData( _inputState, _transferData )) {
+//    cerr << _label << " warning: failed to unpack input state data.\n";
+//  }
+  _inputEventQueue.clear();
+  if (!ar_setEventQueueFromStructuredData( &_inputEventQueue, _transferData )) {
+    cerr << _label << " warning: failed to unpack input event queue data.\n";
+  } else {
+    arInputEvent nextEvent;
+    while ((nextEvent = _inputEventQueue.popNextEvent()).getType() != AR_EVENT_GARBAGE) {
+      _inputState->update( nextEvent );
+    }
   }
 
   const long lastNumCalls = _numRandCalls;
@@ -1766,6 +1788,7 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
   // init'ed.
   _inputDevice->init( _SZGClient );
   _inputDevice->start();
+  _installFilters();
 
   // the below sound initialization must occur here (and not in
   // startStandaloneObjects) since this occurs before the user-defined init.
@@ -1903,16 +1926,14 @@ bool arMasterSlaveFramework::_startMasterObjects( std::stringstream& startRespon
     return false;
   }
 
-  if( !_inputDevice->start() ) {
-    startResponse << _label << " error: failed to start input device." << std::endl;
-
-    delete _inputDevice;
-    _inputDevice = NULL;
-
-    return false;
+  if (!_harmonyInUse) {
+    if (!_startInput()) {
+      startResponse << _label << " error: failed to start input device." << std::endl;
+      return false;
+    }
   }
-
-  _inputActive = true;
+  
+  _installFilters();
 
   // start the sound server
   if( !_soundServer.start() ) {
@@ -1924,6 +1945,19 @@ bool arMasterSlaveFramework::_startMasterObjects( std::stringstream& startRespon
   _soundActive = true;
 
   startResponse << _label << " remark: master's objects started.\n";
+  return true;
+}
+
+bool arMasterSlaveFramework::_startInput() {
+  if( !_inputDevice->start() ) {
+    cerr << _label << " error: failed to start input device." << std::endl;
+
+    delete _inputDevice;
+    _inputDevice = NULL;
+
+    return false;
+  }
+  _inputActive = true;
   return true;
 }
 

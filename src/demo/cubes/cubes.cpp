@@ -50,34 +50,37 @@ void drawWand( const arEffector* effector ) {
 //  ar_mutex_unlock(&databaseLock);
 }
 
-bool inputEventCallback( arInputEvent& event, arCallbackEventFilter* filter ) {
+bool inputEventCallback( arSZGAppFramework& fw, arInputEvent& event, arCallbackEventFilter& filter ) {
   ar_mutex_lock(&databaseLock);
   dragWand.updateState( event );
   headEffector.updateState( event );
-  filter->getFramework()->navUpdate( event );
+  fw.navUpdate( event );
   // Currently, the joystick driver on windows DOES NOT guarantee a stream
   // of input events when the stick is held in a given position. Consequently,
   // the navigation matrix should be updated every frame.
   // NOTE: this callback will generally be called many times/frame.
-  filter->getFramework()->loadNavMatrix();
+  fw.loadNavMatrix();
   dragWand.draw();
   
   ar_mutex_unlock(&databaseLock);
   return true;
 }
 
-bool inputEventQueueCallback( arInputEventQueue& eventQueue, arCallbackEventFilter* filter ) {
+bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQueue ) {
+  if (eventQueue.size() == 0) {
+    return true;
+  }
   ar_mutex_lock(&databaseLock);
   while (!eventQueue.empty()) {
     arInputEvent event = eventQueue.popNextEvent();
     dragWand.updateState( event );
     headEffector.updateState( event );
-    filter->getFramework()->navUpdate( event );
+    fw.navUpdate( event );
   }
   // Currently, the joystick driver on windows DOES NOT guarantee a stream
   // of input events when the stick is held in a given position. Consequently,
   // the navigation matrix should be updated every frame.
-  filter->getFramework()->loadNavMatrix();
+  fw.loadNavMatrix();
   dragWand.draw();
   
   ar_mutex_unlock(&databaseLock);
@@ -240,7 +243,7 @@ int main(int argc, char** argv){
     return 1;
 
   // This must come AFTER the init(...)
-  framework.setNavTransSpeed(1);
+  framework.setNavTransSpeed(3.);
   
   // Configure stereo view.
   framework.setEyeSpacing( 6/(2.54*12) );

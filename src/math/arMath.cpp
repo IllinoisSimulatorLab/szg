@@ -617,7 +617,7 @@ arMatrix4 ar_rotateVectorToVector( const arVector3& vec1, const arVector3& vec2 
   }
   const arVector3 rotAxis = vec1 * vec2;
   const float mag = rotAxis.magnitude();
-  if (mag==0.) {
+  if (mag<1.e-6) {
     if (vec1.dot(vec2) < 0.) {
       // cheat
       return ar_scaleMatrix(-1.);

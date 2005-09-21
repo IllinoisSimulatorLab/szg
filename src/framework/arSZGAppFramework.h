@@ -83,9 +83,9 @@ class SZG_CALL arSZGAppFramework {
     arInputState* getInputState()
       { return (arInputState*)_inputState; }
       
-    void setEventFilter( arFrameworkEventFilter* filter );
+    bool setEventFilter( arFrameworkEventFilter* filter );
     void setEventCallback( arFrameworkEventCallback callback );
-    void setEventQueueCallback( arFrameworkEventQueueCallback callback );
+    virtual void setEventQueueCallback( arFrameworkEventQueueCallback callback );
 
     // Some applications need a thread running external to the library.
     // For deterministic shutdown, we need to be able to register that
@@ -108,6 +108,9 @@ class SZG_CALL arSZGAppFramework {
     // tells stop() that our external thread has shut-down cleanly
     void externalThreadStopped(){ _externalThreadRunning = false; }
     
+    void processEventQueue();
+    virtual void onProcessEventQueue( arInputEventQueue& theQueue );
+
     // some applications need to be able to find out information
     // about the virtual computer
     arAppLauncher* getAppLauncher(){ return &_launcher; }
@@ -119,6 +122,7 @@ class SZG_CALL arSZGAppFramework {
     arSZGClient _SZGClient;
 
   protected:
+    void _installFilters();
     virtual bool _loadParameters() = 0;
     void _loadNavParameters();
     bool _parseNavParamString( const string& theString,
@@ -141,7 +145,9 @@ class SZG_CALL arSZGAppFramework {
     bool  _standalone;
 
     arCallbackEventFilter _callbackFilter;
-    arFrameworkEventFilter* _eventFilter;
+    arFrameworkEventQueueCallback _eventQueueCallback;
+    arFrameworkEventFilter _defaultUserFilter;
+    arFrameworkEventFilter* _userEventFilter;
   
     string _dataPath;
     

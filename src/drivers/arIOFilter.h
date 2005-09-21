@@ -22,15 +22,20 @@ class SZG_CALL arIOFilter {
     virtual bool configure(arSZGClient*);
     bool filter( arInputEventQueue* qin, arInputState* s );
     int getButton( const unsigned int index ) const;
+    bool getOnButton(  const unsigned int buttonNumber );
+    bool getOffButton( const unsigned int buttonNumber );
     float getAxis( const unsigned int index ) const;
     arMatrix4 getMatrix( const unsigned int index ) const;
     arInputState* getInputState() const { return _inputState; }
     void insertNewEvent( const arInputEvent& newEvent );
+    void setID( int id ) { _id = id; }
+    int getID() const { return _id; }
     
   protected:
     virtual bool _processEvent( arInputEvent& /*inputEvent*/ ) { return true; }
     
   private:
+    int _id;
     arInputEventQueue _outputQueue;
     arInputEventQueue _tempQueue;
     arInputState* _inputState;

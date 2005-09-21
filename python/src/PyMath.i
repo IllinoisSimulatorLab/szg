@@ -1,4 +1,4 @@
-// $Id: PyMath.i,v 1.3 2005/06/29 20:42:24 crowell Exp $
+// $Id: PyMath.i,v 1.4 2005/09/20 19:55:39 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -371,6 +371,18 @@ PyObject* fromSequence( PyObject* seq ) {
 
 %{
 #include "arMath.h"
+
+PyObject* ar_matrix4ToTuple( const arMatrix4& mat ) {
+  PyObject *seq=PyTuple_New(16);
+  if (!seq) {
+    cerr << "arMatrix4.toTuple() error: PyTuple_New() failed.\n";
+    return NULL;
+  }
+  for(int i=0;i<16;i++) {
+      PyTuple_SetItem(seq,i,PyFloat_FromDouble(mat.v[i]));
+  }
+  return seq;
+}
 %}
 
 %rename(__eq__) arMatrix4::operator==;
@@ -556,15 +568,7 @@ PyObject* toList() {
 }
 
 PyObject* toTuple() {
-    PyObject *seq=PyTuple_New(16);
-    if (!seq) {
-      cerr << "arMatrix4.toTuple() error: PyTuple_New() failed.\n";
-      return NULL;
-    }
-    for(int i=0;i<16;i++) {
-        PyTuple_SetItem(seq,i,PyFloat_FromDouble(self->v[i]));
-    }
-    return seq;
+  return ar_matrix4ToTuple( *self );
 }
 
 // Set a matrix from a sequence. Takes any Python sequence type as an argument. Can either be a flat

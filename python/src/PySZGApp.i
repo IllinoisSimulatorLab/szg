@@ -5,6 +5,10 @@
 
 // **************** based on arSZGAppFramework.h *******************
 
+%{
+#include "arSZGAppFramework.h"
+%}
+
 class arSZGAppFramework {
   public:
     arSZGAppFramework();
@@ -57,14 +61,9 @@ class arSZGAppFramework {
     void navUpdate();
     void navUpdate( arInputEvent& event );
 
-    // should this return a copy instead? In some cases it points
-    // inside the arInputNode
     arInputState* getInputState()
       { return (arInputState*)_inputState; }
       
-    void setEventFilter( arPythonEventFilter* filter );
-    void setEventCallback( arFrameworkEventCallback callback );
-
     // Some applications need a thread running external to the library.
     // For deterministic shutdown, we need to be able to register that
     // thread's existence, know when it is shutting down, etc.
@@ -92,9 +91,6 @@ class arSZGAppFramework {
 
     // some applications want to do nonstandard things with the input node
     arInputNode* getInputNode(){ return _inputDevice; }
-      
-    // hide as soon as possible
-//    arSZGClient _SZGClient;
 };
 
 

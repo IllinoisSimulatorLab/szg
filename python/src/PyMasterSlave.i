@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.14 2005/09/09 15:36:44 crowell Exp $
+// $Id: PyMasterSlave.i,v 1.15 2005/09/20 19:55:39 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -124,6 +124,64 @@ static void pyWindowStartGLCallback( arMasterSlaveFramework& fw, arGUIWindowInfo
 }
 
 
+//    void setEventCallback( bool (*callback)( arSZGAppFramework& fw, arInputEvent& event,
+//                             arCallbackEventFilter& filter) );
+//
+static PyObject *pyEventFunc = NULL;
+static bool pyEventCallback( arSZGAppFramework& fw, arInputEvent& theEvent, arCallbackEventFilter& filter ) {
+    // Note cast from arSZGAppFramework to arMasterSlaveFramework
+    PyObject *fwobj = SWIG_NewPointerObj((void *) &fw,
+                             SWIGTYPE_p_arMasterSlaveFramework, 0);
+    PyObject *eventobj = SWIG_NewPointerObj((void *) &theEvent,
+                             SWIGTYPE_p_arInputEvent, 0);
+    PyObject *filterobj = SWIG_NewPointerObj((void *) &filter,
+                             SWIGTYPE_p_arCallbackEventFilter, 0);
+    PyObject *arglist=Py_BuildValue( "(O,O,O)", fwobj, eventobj, filterobj );
+    PyObject *result=PyEval_CallObject(pyEventFunc, arglist);
+    if (result==NULL) {
+        PyErr_Print();
+        string errmsg="A Python exception occurred in Event callback.";
+        cerr << errmsg << "\n";
+        throw  errmsg;
+    }
+    bool res=(bool) PyInt_AsLong(result);
+    Py_XDECREF(result);
+    Py_DECREF(arglist);
+    Py_DECREF(filterobj);
+    Py_DECREF(eventobj);
+    Py_DECREF(fwobj);
+    return res;
+}
+
+
+//    void setEventQueueCallback( bool (*callback)( arSZGAppFramework& fw,
+//                             arInputEventQueue& theQueue ) );
+//
+static PyObject *pyEventQueueFunc = NULL;
+static bool pyEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& theQueue ) {
+  // Note cast from arSZGAppFramework to arMasterSlaveFramework
+  PyObject *fwobj = SWIG_NewPointerObj((void *) &fw,
+                           SWIGTYPE_p_arMasterSlaveFramework, 0);
+  PyObject *queueobj = SWIG_NewPointerObj((void *) &theQueue,
+                           SWIGTYPE_p_arInputEventQueue, 0);
+  PyObject *arglist=Py_BuildValue( "(O,O)", fwobj, queueobj );
+  PyObject *result=PyEval_CallObject(pyEventQueueFunc, arglist);
+  if (result==NULL) {
+    PyErr_Print();
+    string errmsg="A Python exception occurred in EventQueue callback.";
+    cerr << errmsg << "\n";
+    throw  errmsg;
+  }
+  bool res=(bool) PyInt_AsLong(result);
+  Py_XDECREF(result);
+  Py_DECREF(arglist);
+  Py_DECREF(queueobj);
+  Py_DECREF(fwobj);
+  return res;
+}
+
+
+
 // new-style draw callback requires special treatment because the signature of
 // its callback function differs from everybody elses.
 //
@@ -240,6 +298,7 @@ bool ar_packSequenceData( PyObject* seq, std::vector<int>& typeData,
       typeData.push_back(-1);
       bool stat = ar_packSequenceData( item, typeData, intData, floatData, stringData, stringSizeData );
       if (!stat) {
+        Py_XDECREF(item);
         return false;
       }
 
@@ -247,6 +306,7 @@ bool ar_packSequenceData( PyObject* seq, std::vector<int>& typeData,
     } else {
       cerr << "arMasterSlaveFramework warning: invalid data type ignored in setSequence().\n";
     }
+    Py_XDECREF(item);
   }
 }
 
@@ -770,6 +830,14 @@ void set##cbtype##Callback(PyObject *PyFunc) {\
 //  void setWindowStartGLCallback(bool (*windowStartGL)(arMasterSlaveFramework& fw, arGUIWindowInfo*));
     MAKEMASTERSLAVECALLBACKSETTER(WindowStartGL)
 
+//  void setEventCallback(bool (*callback)(arMasterSlaveFramework&, 
+//          arInputEvent& event, arCallbackEventFilter& filter));
+    MAKEMASTERSLAVECALLBACKSETTER(Event)
+
+//  void setEventCallback(bool (*callback)(arMasterSlaveFramework&, 
+//          arInputEventQueue& theQueue, arCallbackEventFilter& filter));
+    MAKEMASTERSLAVECALLBACKSETTER(EventQueue)
+
 //  void setDrawCallback(void (*draw)(arMasterSlaveFramework&));
     MAKEMASTERSLAVECALLBACKSETTER(Draw)
 
@@ -835,6 +903,7 @@ void setNewDrawCallback(PyObject *PyFunc) {
 
 void ar_defaultWindowInitCallback();
 void ar_defaultReshapeCallback( PyObject* widthObject, PyObject* heightObject );
+void ar_defaultDisconnectDraw();
 
 %{
 
@@ -848,6 +917,26 @@ void ar_defaultReshapeCallback( PyObject* widthObject, PyObject* heightObject ) 
   GLsizei height = (GLsizei)PyInt_AsLong( heightObject );
   glViewport( 0, 0, width, height );
 }
+
+
+void ar_defaultDisconnectDraw() {
+  glMatrixMode( GL_PROJECTION );
+  glLoadIdentity();
+  glOrtho( -1.0, 1.0, -1.0, 1.0, 0.0, 1.0 );
+  glMatrixMode( GL_MODELVIEW );
+  glLoadIdentity();
+  glPushAttrib( GL_ALL_ATTRIB_BITS );
+  glDisable( GL_LIGHTING );
+  glColor3f( 0.0, 0.0, 0.0 );
+  glBegin( GL_QUADS );
+  glVertex3f(  1.0,  1.0, -0.5 );
+  glVertex3f( -1.0,  1.0, -0.5 );
+  glVertex3f( -1.0, -1.0, -0.5 );
+  glVertex3f(  1.0, -1.0, -0.5 );
+  glEnd();
+  glPopAttrib();
+}
+
 %}
 
 %pythoncode %{
@@ -867,6 +956,8 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
     arMasterSlaveFramework.__init__(self)
     self.setStartCallback( self.startCallback )
     self.setWindowStartGLCallback( self.windowStartGLCallback )
+    self.setEventCallback( self.eventCallback );
+    self.setEventQueueCallback( self.eventQueueCallback );
     self.setPreExchangeCallback( self.preExchangeCallback )
     self.setPostExchangeCallback( self.postExchangeCallback )
     self.setWindowCallback( self.windowInitCallback )
@@ -885,6 +976,14 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
   def windowStartGLCallback( self, framework, winInfo ):
     return self.onWindowStartGL( winInfo )
   def onWindowStartGL( self, winInfo ):
+    pass
+  def eventCallback( self, framework, theEvent, filter ):
+    self.onInputEvent( theEvent, filter )
+  def onInputEvent( self, theEvent, filter ):
+    pass
+  def eventQueueCallback( self, framework, eventQueue ):
+    self.onInputEventQueue( eventQueue )
+  def onInputEventQueue( self, eventQueue ):
     pass
   def preExchangeCallback( self, framework ):
     self.onPreExchange()
@@ -910,21 +1009,7 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
     self.onDisconnectDraw()
   def onDisconnectDraw( self ):
     # just draw a black background
-    glMatrixMode( GL_PROJECTION )
-    glLoadIdentity()
-    glOrtho( -1.0, 1.0, -1.0, 1.0, 0.0, 1.0 )
-    glMatrixMode( GL_MODELVIEW )
-    glLoadIdentity()
-    glPushAttrib( GL_ALL_ATTRIB_BITS )
-    glDisable( GL_LIGHTING )
-    glColor3f( 0.0, 0.0, 0.0 )
-    glBegin( GL_QUADS )
-    glVertex3f(  1.0,  1.0, -0.5 )
-    glVertex3f( -1.0,  1.0, -0.5 )
-    glVertex3f( -1.0, -1.0, -0.5 )
-    glVertex3f(  1.0, -1.0, -0.5 )
-    glEnd()
-    glPopAttrib()
+    ar_defaultDisconnectDraw()
   def playCallback( self, framework ):
     self.onPlay()
   def onPlay( self ):
@@ -1018,10 +1103,14 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
     new instances in slaves.
     """
     UserDict.IterableUserDict.__init__(self)
-    import types
     self._name = name
     self._classFactoryDict = {}
     self._classDict = {}
+    self.addTypes( classData )
+    self._messages = [(arMasterSlaveDict.DUMMY_MESSAGE,0.,'foo')]
+    self.pushKey = 0
+  def addTypes( self, classData ):
+    import types
     if type(classData) != types.TupleType and type(classData) != types.ListType:
       raise TypeError, 'arMasterSlaveDict() error: classData parameter must be a list or tuple.'
     for item in classData:
@@ -1046,8 +1135,6 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
             '( classNameString, class [, class factory] ) (class factory error)'
       self._classFactoryDict[className] = classFactory
       self._classDict[classRef] = className
-    self._messages = [(arMasterSlaveDict.DUMMY_MESSAGE,0.,'foo')]
-    self.pushKey = 0
   def start( self, framework ):  # call in framework onStart() method or start callback
     """ d.start( framework ).
     Should be called in your framework's onStart() (start callback)."""

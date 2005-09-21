@@ -109,7 +109,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
                                               unsigned char, int, int ) );
   void setKeyboardCallback( void (*keyboard)( arMasterSlaveFramework&, arGUIKeyInfo* ) );
   void setMouseCallback( void (*mouse)( arMasterSlaveFramework&, arGUIMouseInfo* ) );
-  void setSlaveConnectedCallback( void (*connectCallback)( arMasterSlaveFramework&, int ) );
+  virtual void setEventQueueCallback( arFrameworkEventQueueCallback callback );
 
   // initializes the various pieces but does not start the event loop
   bool init( int&, char** );
@@ -282,8 +282,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   int _harmonyReady;
 
   // Input-event stuff
-  arInputEventQueue _eventQueue;
-  arMutex _eventLock;
+  arInputEventQueue _inputEventQueue;
 
   // time variables
   ar_timeval _startTime;
@@ -366,7 +365,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void _pollInputData( void );
   void _packInputData( void );
   void _unpackInputData( void );
-  void _eventCallback( arInputEvent& event );
 
   bool _sendSlaveReadyMessage();
   
@@ -377,6 +375,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool _initMasterObjects( std::stringstream& initResponse );
   bool _initSlaveObjects( std::stringstream& initResponse );
   bool _startMasterObjects( std::stringstream& startResponse );
+  bool _startInput( void );
   bool _startSlaveObjects( std::stringstream& startResponse );
   bool _startObjects( void );
   // bool _startStandalone( bool );

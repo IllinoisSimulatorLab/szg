@@ -29,6 +29,24 @@ void SZG_CALL ar_mutex_init(arMutex*);
 void SZG_CALL ar_mutex_lock(arMutex*);
 void SZG_CALL ar_mutex_unlock(arMutex*);
 
+
+//Implementation lifted from MUTEX class of
+// Walmsley, "Multi-threaded Programming in C++"
+class SZG_CALL arLock {
+  public:
+    arLock();
+    virtual ~arLock();
+    virtual void lock();
+    virtual bool tryLock();
+    virtual void unlock();
+  protected:
+#ifdef AR_USE_WIN_32
+    HANDLE _mutex;
+#else
+    pthread_mutex_t _mutex;
+#endif
+};
+
 //*****************************************
 // signals
 //*****************************************
@@ -83,6 +101,8 @@ class SZG_CALL arConditionVar{
 /// event - condition variable with a memory
 ///**************************************
 
+//Implementation lifted from EVENT class of
+// Walmsley, "Multi-threaded Programming in C++"
 class SZG_CALL arThreadEvent {
   public:
     arThreadEvent( bool automatic = true );

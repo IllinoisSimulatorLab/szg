@@ -8,54 +8,55 @@
 #include "arFrameworkEventFilter.h"
 
 arFrameworkEventFilter::arFrameworkEventFilter( arSZGAppFramework* fw ) :
-  _framework( fw ) {
-  ar_mutex_init( &_queueMutex );
+  _framework( fw ),
+  _saveEventQueue( false ) {
 }
 
 void arFrameworkEventFilter::queueEvent( const arInputEvent& event ) {
-  ar_mutex_lock( &_queueMutex );
+  _queueLock.lock();
   _queue.appendEvent( event );
-  ar_mutex_unlock( &_queueMutex );
+  _queueLock.unlock();
 }
 
-bool arFrameworkEventFilter::processEventQueue() {
-  ar_mutex_lock( &_queueMutex );
+arInputEventQueue arFrameworkEventFilter::getEventQueue() {
+  _queueLock.lock();
   arInputEventQueue queue( _queue );
   _queue.clear();
-  ar_mutex_unlock( &_queueMutex );
-  return _processEventQueue( queue );
+  _queueLock.unlock();
+  return queue;
 }
 
 void arFrameworkEventFilter::flushEventQueue() {
-  ar_mutex_lock( &_queueMutex );
+  _queueLock.lock();
   _queue.clear();
-  ar_mutex_unlock( &_queueMutex );
+  _queueLock.unlock();
+}
+
+bool arFrameworkEventFilter::_processEvent( arInputEvent& inputEvent ) {
+  if (_saveEventQueue) {
+    queueEvent( inputEvent );
+  }
+  return true;
 }
 
 arCallbackEventFilter::arCallbackEventFilter( arSZGAppFramework* fw,
-                                              arFrameworkEventCallback cb,
-                                              arFrameworkEventQueueCallback qcb ) :
+                                              arFrameworkEventCallback cb ) :
   arFrameworkEventFilter(fw),
-  _callback(cb),
-  _queueCallback(qcb) {
+  _callback(cb) {
 }
 
 bool arCallbackEventFilter::_processEvent( arInputEvent& inputEvent ) {
   bool stat(true);
   if (_callback) {
-    stat = _callback( inputEvent, this );
+    if (!_framework) {
+      cerr << "arCallbackEventFilter error: NULL framework pointer in _processEvent().\n";
+      return false;
+    }
+    stat = _callback( *_framework, inputEvent, *this );
   }
-  if (_queueCallback) {
+  if (_saveEventQueue) {
     queueEvent( inputEvent );
   }
-  return stat;
-}
-
-bool arCallbackEventFilter::_processEventQueue( arInputEventQueue& queue ) {
-  if (!_queueCallback) { // not an error, just no event-handling
-    return true;
-  }
-  bool stat = _queueCallback( queue, this );
   return stat;
 }
 

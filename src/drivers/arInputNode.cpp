@@ -244,38 +244,67 @@ void arInputNode::addInputSource( arInputSource* theSource, bool iOwnIt ){
   _iOwnSources.push_back( iOwnIt );
 }
 
-void arInputNode::addFilter( arIOFilter* theFilter, bool iOwnIt ){
+int arInputNode::addFilter( arIOFilter* theFilter, bool iOwnIt ){
   if (!theFilter) {
     cerr << "arInputNode warning: ignoring NULL filter.\n";
-    return;
+    return -1;
   }
 
+  int newID = _findUnusedFilterID();
+  cout << "arInputNode remark: generated ID " << newID << endl;
+  theFilter->setID( newID );
   _inputFilterList.push_back( theFilter );
   _iOwnFilters.push_back( iOwnIt );
   if (_filterStates.empty())
     _filterStates.push_back( _inputState );
   else
     _filterStates.push_back( _filterStates.back() );
+  cout << "arInputNode remark: installed event filter with ID " << newID << endl;
+  return newID;
 }
 
-void arInputNode::removeFilter(  arIOFilter* theFilter ) {
+bool arInputNode::removeFilter( int filterID ) {
+  cout << "arInputNode remark: removing event filter with ID " << filterID << endl;
   _lock();
   unsigned int filterNumber = 0;
   arFilterIterator f;
   for (f = _inputFilterList.begin(); f != _inputFilterList.end(); ++f) {
-    // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
-    // Very bad to try to determine object identity based on ptr identity.
-    arIOFilter* fptr = (arIOFilter*)&(*f);
-    if (fptr == theFilter) {
+    if ((*f)->getID() == filterID) {
+      cout << "arInputNode remark: found filter with ID " << filterID << endl;
       _inputFilterList.erase(f);
       _iOwnFilters.erase( _iOwnFilters.begin() + filterNumber );
       _filterStates.erase( _filterStates.begin() + filterNumber );
       _unlock();
-      return;
+      return true;
     }
     ++filterNumber;
   }
   _unlock();
+  cerr << "arInputNode error: filter ID : " << filterID << " not found.\n";
+  return false;
+}
+
+
+bool arInputNode::replaceFilter( int filterID, arIOFilter* newFilter, bool iOwnIt ) {
+  cout << "arInputNode remark: replacing event filter with ID " << filterID << endl;
+  _lock();
+  unsigned int filterNumber = 0;
+  arFilterIterator f;
+  for (f = _inputFilterList.begin(); f != _inputFilterList.end(); ++f) {
+    if ((*f)->getID() == filterID) {
+      cout << "arInputNode remark: found filter with ID " << filterID << endl;
+      newFilter->setID( filterID );
+      *f = newFilter;
+      _iOwnFilters[filterNumber] = iOwnIt;
+      _filterStates[filterNumber] = arInputState();
+      _unlock();
+      return true;
+    }
+    ++filterNumber;
+  }
+  _unlock();
+  cerr << "arInputNode error: filter ID : " << filterID << " not found.\n";
+  return false;
 }
 
 
@@ -447,4 +476,19 @@ void arInputNode::_updateState( arInputEventQueue& queue ) {
   }
 }
     
-
+int arInputNode::_findUnusedFilterID() {
+  std::list<arIOFilter*>::iterator iter;
+  int id(1);
+  bool done(false);
+  while (!done) {
+    done = true;
+    for (iter = _inputFilterList.begin(); iter != _inputFilterList.end(); ++iter) {
+      if ((*iter)->getID() == id) {
+        ++id;
+        done = false;
+        break;
+      }
+    }
+  }
+  return id;
+}

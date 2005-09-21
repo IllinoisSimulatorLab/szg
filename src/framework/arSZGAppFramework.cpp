@@ -15,7 +15,8 @@ arSZGAppFramework::arSZGAppFramework() :
   _vircompExecution(false),
   _standalone(false),
   _callbackFilter(this),
-  _eventFilter(NULL),
+  _defaultUserFilter(),
+  _userEventFilter(NULL),
   _unitSoundConversion(1.),
   _useExternalThread(false),
   _externalThreadRunning(false),
@@ -23,6 +24,7 @@ arSZGAppFramework::arSZGAppFramework() :
   _exitProgram(false),
   _displayThreadRunning(false),
   _stopped(false){
+  setEventQueueCallback(NULL);
 }
 
 arSZGAppFramework::~arSZGAppFramework() {
@@ -169,35 +171,55 @@ void arSZGAppFramework::navUpdate( arInputEvent& event ) {
   _navManager.update( event );
 }
 
-void arSZGAppFramework::setEventFilter( arFrameworkEventFilter* filter ) {
+void arSZGAppFramework::_installFilters() {
+  setEventFilter( &_defaultUserFilter ); 
+  _inputDevice->addFilter( (arIOFilter*)&_callbackFilter, false );
+}
+
+bool arSZGAppFramework::setEventFilter( arFrameworkEventFilter* filter ) {
   if (!_inputDevice) {
     cerr << "arSZGAppFramework error: attempt to install event filter in NULL "
          << "input device.\n";
-    return;
+    return false;
   }
-  if (_eventFilter != 0) {
-    _inputDevice->removeFilter( (arIOFilter*)_eventFilter );
+  if (!filter) {
+    filter = &_defaultUserFilter;
   }
-  if (filter != 0) {
-    _eventFilter = filter;
+  bool stat;
+  if (_userEventFilter != 0) {
+    stat = _inputDevice->replaceFilter( _userEventFilter->getID(), (arIOFilter*)filter, false );
   } else {
-    _eventFilter = (arFrameworkEventFilter*)&_callbackFilter;
+    stat = (_inputDevice->addFilter( (arIOFilter*)filter, false ) != -1);
   }
-  _inputDevice->addFilter( (arIOFilter*)_eventFilter, false );
-  cout << "arSZGAppFramework remark: event filter set.\n";
+  if (stat) {
+    _userEventFilter = filter;
+  }
+  return stat;
 }
 
 void arSZGAppFramework::setEventCallback( arFrameworkEventCallback callback ) {
   _callbackFilter.setCallback( callback );
-  setEventFilter(0);
   cout << "arSZGAppFramework remark: event callback set.\n";
 }
 
 void arSZGAppFramework::setEventQueueCallback( arFrameworkEventQueueCallback callback ) {
-  _callbackFilter.setQueueCallback( callback );
-  setEventFilter(0);
+  _eventQueueCallback = callback;
+  _callbackFilter.saveEventQueue( callback != NULL );
   cout << "arSZGAppFramework remark: event queue callback set.\n";
 }
+
+void arSZGAppFramework::processEventQueue() {
+  // Note both gets and clears buffered events.
+  arInputEventQueue theQueue = _callbackFilter.getEventQueue();
+  onProcessEventQueue( theQueue );
+}
+
+void arSZGAppFramework::onProcessEventQueue( arInputEventQueue& theQueue ) {
+  if (_eventQueueCallback) {
+    _eventQueueCallback( *this, theQueue );
+  }
+}
+
 
 static bool ___firstNavLoad = true;
 
