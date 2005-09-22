@@ -140,14 +140,15 @@ int main(int argc, char** argv){
       printusage();
       return 1;
     }
+
     componentID = szgClient.getProcessID(argv[1], argv[2]);
     if (componentID == -1){
       // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
       // This makes it easier to build RPC scripts on top of these calls.
-      cout << "dmsg error: no process corresponds to that computer/name "
-	   << "pair.\n";
+      cout << "dmsg error: no process for that computer/name pair.\n";
       return 1;
     }
+
     messageType = string(argv[3]);
     messageBody = argc == 5 ? string(argv[4]) : string("NULL");
   }
@@ -156,6 +157,7 @@ int main(int argc, char** argv){
       printusage();
       return 1;
     }
+
     // we actually need to do the virtual computer thing
     arAppLauncher launcher;
     launcher.setSZGClient(&szgClient);
@@ -216,6 +218,7 @@ int main(int argc, char** argv){
       printusage();
       return 1;
     }
+
     // WE DO NOT NEED TO MESS WITH VIRTUAL COMPUTERS IN THIS CASE!
     // (WE ARE DIRECTLY TARGETING THE "APPLICATION LOCK")
 
@@ -241,6 +244,7 @@ int main(int argc, char** argv){
       printusage();
       return 1;
     }
+
     // AARGH! Is this really the right thing to do?
     // Previously, we used the arSZGClient method createComplexServiceName(..)
     // to modify the service name given by the command line args.
@@ -261,6 +265,7 @@ int main(int argc, char** argv){
       printusage();
       return 1;
     }
+
     if (szgClient.getLock(argv[1], componentID)){
       // nobody is holding the lock because we were able to get it
       // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
@@ -274,39 +279,41 @@ int main(int argc, char** argv){
     messageBody = argc == 4 ? string(argv[3]) : string("NULL");
   } 
 
-  int match = szgClient.sendMessage(messageType, messageBody, 
+  const int match = szgClient.sendMessage(messageType, messageBody, 
                                     componentID, responseExpected);
   if ( match < 0 ){
     // no need to print something here... sendMessage already does.
     return 1;
   }
+
   if (responseExpected){
     // with the new szg, we will eventually be able to have a timeout here
-    int messageID;
     string responseBody;
     // getMessageResponse returns -1 upon receiving a "continuation",
     // 1 upon receiving a final response, and 0 upon failure.
-    bool done = false;
-    while (!done){
+    for (;;){
       list<int> tags;
       tags.push_back(match);
       // will be filled-in with the original match, unless there is an error.
       int remoteMatch;
-      int status = szgClient.getMessageResponse(tags, responseBody, 
+      const int status = szgClient.getMessageResponse(tags, responseBody, 
                                                 remoteMatch);
       if (status == 0){
 	// PLEASE DO NOT use the "cerr" output stream. Only use "cout".
         // This makes it easier to build RPC scripts on top of these calls.
         cout << "dmsg error: problem in receiving message response.\n";
-	done = true;
+	break;
       }
-      if (status == -1){
+      else if (status == -1){
 	cout << responseBody << "\n";
       }
-      if (status == 1){
+      else if (status == 1){
 	cout << responseBody << "\n";
-	done = true;
+	break;
       }
+      else
+        cout << "dmsg warning: getMessageResponse unexpectedly returned "
+	     << status << ".\n";
     }
   }
   return 0;
