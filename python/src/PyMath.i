@@ -1,4 +1,4 @@
-// $Id: PyMath.i,v 1.4 2005/09/20 19:55:39 crowell Exp $
+// $Id: PyMath.i,v 1.5 2005/09/22 15:47:46 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -170,7 +170,7 @@ arVector3(PyObject *seq) {
 // ostream& operator<<(ostream&, const arVector3&);
     string __repr__(void) {
         ostringstream s(ostringstream::out);
-        s << *self;
+        s << "arVector3" << *self;
         return s.str();
     }
 
@@ -299,7 +299,7 @@ arVector4(PyObject *seq) {
 // ostream& operator<<(ostream&, const arVector4&);
     string __repr__(void) {
         ostringstream s(ostringstream::out);
-        s << *self;
+        s << "arVector4" << *self;
         return s.str();
     }
 
@@ -543,7 +543,7 @@ arMatrix4(PyObject *seq) {
 // ostream& operator<<(ostream&, const arMatrix4&);
     string __repr__(void) {
         ostringstream s(ostringstream::out);
-        s << *self;
+        s << "arMatrix4" << *self;
         return s.str();
     }
 
@@ -763,7 +763,7 @@ arQuaternion(PyObject *seq) {
 // ostream& operator<<(ostream&, const arQuaternion&);
     string __repr__(void) {
         ostringstream s(ostringstream::out);
-        s << *self;
+        s << "arQuaternion" << *self;
         return s.str();
     }
 

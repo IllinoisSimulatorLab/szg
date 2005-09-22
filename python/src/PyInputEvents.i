@@ -35,17 +35,21 @@ PyObject* ar_inputEventToDict( arInputEvent& event ) {
    }
   PyObject* pIndex = PyInt_FromLong( (long)event.getIndex() );
   // Amazingly, some versions of Python *do not* have const char* as the
-  // second parameter below. Consequently, the copy.
+  // second parameter below & barf when passed typeString.c_str(). Consequently, the copy.
   char* tmp = new char[typeString.length()+1];
+  if (!tmp) {
+    PyErr_SetString( PyExc_TypeError, "arInputEvent error: failed to allocate temp string buffer." );
+    return NULL;
+  }
   strcpy(tmp, typeString.c_str());
   if ((PyDict_SetItemString( dict, tmp, value ) == -1) ||
        (PyDict_SetItemString( dict, "index", pIndex ) == -1)) {
     PyErr_SetString( PyExc_TypeError, "arInputEvent error: failed to populate dictionary." );
-    // Must delete the "bogus" memory before returning.
+    // Must delete the temporary string buffer.
     delete [] tmp;
     return NULL;
   }
-  // Must delete the "bogus" memory before returning.
+  // Must delete the temporary string buffer.
   delete [] tmp;
   Py_XDECREF(value);
   Py_XDECREF(pIndex);
@@ -178,8 +182,14 @@ PyObject* toList() {
       break;
     } 
     PyObject* dict = ar_inputEventToDict( event );
+    if (!dict) {
+      // already set error string in ar_inputEventToDict(), should not
+      // set it again here.
+      Py_DECREF(lst);
+      return NULL;
+    }
     PyList_Append( lst, dict );
-    Py_XDECREF(dict);
+    Py_DECREF(dict);
   }
   return lst;
 }
