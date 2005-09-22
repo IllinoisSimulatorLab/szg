@@ -34,11 +34,19 @@ PyObject* ar_inputEventToDict( arInputEvent& event ) {
       return dict;
    }
   PyObject* pIndex = PyInt_FromLong( (long)event.getIndex() );
-  if ((PyDict_SetItemString( dict, typeString.c_str(), value ) == -1) ||
+  // Amazingly, some versions of Python *do not* have const char* as the
+  // second parameter below. Consequently, the copy.
+  char* tmp = new char[typeString.length()+1];
+  strcpy(tmp, typeString.c_str());
+  if ((PyDict_SetItemString( dict, tmp, value ) == -1) ||
        (PyDict_SetItemString( dict, "index", pIndex ) == -1)) {
     PyErr_SetString( PyExc_TypeError, "arInputEvent error: failed to populate dictionary." );
+    // Must delete the "bogus" memory before returning.
+    delete [] tmp;
     return NULL;
   }
+  // Must delete the "bogus" memory before returning.
+  delete [] tmp;
   Py_XDECREF(value);
   Py_XDECREF(pIndex);
   return dict;

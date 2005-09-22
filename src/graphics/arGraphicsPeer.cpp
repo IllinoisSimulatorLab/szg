@@ -322,41 +322,60 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
     }
   }
   else{
-    // This is just a standard record. We either queue this OR send it
+    // This is just a standard message. We either queue this OR send it
     // along to the alter, based on the configuration of the peer.
-    // First, however, we tag it according to its origin.
-    int* IDs;
+    // First, however, we examine a distinguished field (the ID field).
+    // This field (in its first place) contains information about this
+    // message's destination. Subsequent places contain a history of where
+    // the message has been. The final place contains a socket ID upon which
+    // the *previous* peer received this message (this is irrelevant to us
+    // here and will be over-written by our current component ID). 
+    // We check to make sure that our component ID does no appear on the
+    // previously visited list. If so, the message is discarded.
+    // If not, we expand the field by one place. The next-to-last place 
+    // gets our component ID. The last place gets the incoming socket ID.
+    
     int dataID = data->getID();
-    if (!gp->_databaseReceive[dataID]){
-      // NOT a message directed to the database itself.
-      data->setDataDimension(gp->_routingField[dataID], 2);
-      IDs = (int*)data->getDataPtr(gp->_routingField[dataID],AR_INT);
-      IDs[1] = socket->getID();
-    }
-    else{
-      // We must take care to deal with "make node" commands as well.
-      // (and erase node commands)
-      if (dataID == l->AR_MAKE_NODE){
-        data->setDataDimension(l->AR_MAKE_NODE_ID, 2);
-        IDs = (int*)data->getDataPtr(l->AR_MAKE_NODE_ID, AR_INT);
-        IDs[1] = socket->getID();
-      }
-      if (dataID == l->AR_ERASE){
-        data->setDataDimension(l->AR_ERASE_ID, 2);
-        IDs = (int*)data->getDataPtr(l->AR_ERASE_ID, AR_INT);
-        IDs[1] = socket->getID();
+    int fieldID = gp->_getRoutingFieldID(dataID);
+    int fieldSize = data->getDataDimension(fieldID);
+    int* IDs = (int*)data->getDataPtr(fieldID, AR_INT);
+    // Checking for component repeat. The first and last item are not
+    // relevant. If we exceed a certain hop limit, also go ahead and 
+    // discard. (here the hop limit is 10)
+    bool cycleFound = fieldSize > 12 ? true : false;
+    for (int i=1; i<fieldSize-1 && !cycleFound; i++){
+      if (IDs[i] == gp->_componentID){
+        cycleFound = true;
       }
     }
-    if (gp->_queueingData){
-      ar_mutex_lock(&gp->_queueLock);
-      gp->_incomingQueue->forceQueueData(data);
-      ar_mutex_unlock(&gp->_queueLock);
-    }
-    else{
-      if (!gp->alter(data)){
-        cout << "arGraphicsPeer error: alter failed.\n";
+    if (!cycleFound){
+      if (fieldSize == 1){
+	fieldSize += 2;
+        data->setDataDimension(fieldID, fieldSize);
+      }
+      else{
+        fieldSize++;
+        data->setDataDimension(fieldID, fieldSize);
+      }
+      // Must reget the ptr since it might have changed.
+      IDs = (int*)data->getDataPtr(fieldID, AR_INT);
+      // Go ahead and alter the message's history.
+      IDs[fieldSize-2] = gp->_componentID;
+      IDs[fieldSize-1] = socket->getID();
+      // Process the message as appropriate for our application's style
+      // (either queued or not).
+      if (gp->_queueingData){
+        ar_mutex_lock(&gp->_queueLock);
+        gp->_incomingQueue->forceQueueData(data);
+        ar_mutex_unlock(&gp->_queueLock);
+      }
+      else{
+        if (!gp->alter(data)){
+          cout << "arGraphicsPeer error: alter failed.\n";
+        }
       }
     }
+    // Otherwise, just return.
   }
 }
 
@@ -475,6 +494,8 @@ arGraphicsPeer::arGraphicsPeer(){
 
   _bridgeDatabase = NULL;
   _bridgeRootMapNode = NULL;
+  
+  _componentID = -1;
 }
 
 arGraphicsPeer::~arGraphicsPeer(){
@@ -510,6 +531,7 @@ bool arGraphicsPeer::init(int& argc, char** argv){
   if (result != "NULL"){
     _readWritePath = result;
   }
+  _componentID = _client->getProcessID();
   return true;
 }
 
@@ -602,42 +624,14 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
   //     b. Check the "lock" on that node. If one exists, and is different
   //        than the origin of this message, return, doing nothing.  
   int dataID = data->getID();
-  int originID = -1;
-  int* IDPtr = NULL;
-  // We must first determine the origin of the data. If it has come across
+  int fieldID = _getRoutingFieldID(dataID);
+  int* IDPtr = (int*)data->getDataPtr(fieldID, AR_INT);
+  // Determine the socket ID upon which the message originated (this will
+  // be -1 if it was generated locally). If it has come across
   // a communications link then it will be subect to "mapping" (i.e. having the
   // ID of the target node changed) 
-  if (!_databaseReceive[dataID]){
-    // We are not talking directly to the database, but instead have a
-    // message for a particular node. NOTE: there are two data paths that
-    // the peer can take to get to here. Either local (in which case the
-    // data dimension will be 1 or remote (in which case the data dimension
-    // will be 2). In the local case, go ahead and leave the originID at
-    // its default of -1.
-    IDPtr = (int*) data->getDataPtr(_routingField[dataID], AR_INT);
-    if (data->getDataDimension(_routingField[dataID]) == 2){
-      originID = IDPtr[1];
-    }
-  }
-  else{
-    // Even if we are talking to the database, the database messages
-    // should not be casually relayed. For instance, consider the message
-    // to create a node.
-    if (dataID == _gfx.AR_MAKE_NODE){
-      IDPtr = (int*)data->getDataPtr(_gfx.AR_MAKE_NODE_ID, AR_INT);
-      if (data->getDataDimension(_gfx.AR_MAKE_NODE_ID) == 2){
-        originID = IDPtr[1];
-        // NO NEED TO DEAL WITH LOCKING IN NODE CREATION
-      }
-    }
-    if (dataID == _gfx.AR_ERASE){
-      IDPtr = (int*)data->getDataPtr(_gfx.AR_ERASE_ID, AR_INT);
-      if (data->getDataDimension(_gfx.AR_ERASE_ID) == 2){
-        originID = IDPtr[1];
-        // NO NEED TO DEAL WITH LOCKING IN NODE ERASE??
-      }
-    }
-  }
+  int originID = _getOriginSocketID(data, fieldID);
+
   // Do the mapping. 
   if (originID != -1){
     // This data has not come locally. Get the connection that spawned it
@@ -684,7 +678,8 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
   // IS ALLOWED TO MODIFY THE RECORD "IN PLACE" (AS IN BEING ABLE TO
   // ATTACH A NODE TO THE DATABASE THAT WAS CREATED SOME OTHER WAY).
   // Node creation alters the record in place! See how arDatabase::_makeNode
-  // works...
+  // works... (specifically, an ID is assigned to the node, whereby the
+  // original message might just have asked for an arbitrary ID).
   if (_localDatabase){
     // If we are actually going to the local database, go ahead and get the
     // result from that...
@@ -706,7 +701,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
         (map<int, int, less<int> >::value_type
       	  (potentialNewNodeID, result->getID()));
       // Don't forget to put this in the filterIDs.
-      // Sometimes there can actually be TWO pairs in added to the node map,
+      // Sometimes there can actually be TWO pairs added to the node map,
       // so we need to test for this.
       if (filterIDs[1] == -1){
         filterIDs[1] = result->getID();
@@ -730,7 +725,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
        connectionIter++){
     // NOTE: we do not want a feedback loop. So, we should not send back
     // to the origin, unless the origin made us update our node map,
-    // in which case, we need to send back the results.
+    // in which case, we need to send back the *inverse* node map update.
     if (connectionIter->second->connectionID != originID){
       // Better check whether or not this is a "transient" node. If so,
       // (and the update time has NOT passed), we might do nothing.
@@ -779,7 +774,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
     }
     else{
       // The sender's node map needs to be augmented exactly when the
-      // filterIDs array has been modified.
+      // filterIDs array has been modified. (see _filterIncoming above)
       if (filterIDs[0] != -1){
         arStructuredData adminData(_gfx.find("graphics admin"));
         adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "node_map");
@@ -1365,6 +1360,41 @@ void arGraphicsPeer::motionCull(arGraphicsPeerCullObject* cull,
 	      cull,
               temp);
   //ar_mutex_unlock(&_eraseLock);
+}
+
+// Returns the ID of the socket upon which this message originated
+// (if it wasn't local) and -1 (if it was local).
+int arGraphicsPeer::_getOriginSocketID(arStructuredData* data, int fieldID){
+  int dim = data->getDataDimension(fieldID);
+  if (dim < 2){
+    // local
+    return -1;
+  }
+  return ((int*)data->getDataPtr(fieldID, AR_INT))[dim-1];
+}
+
+int arGraphicsPeer::_getRoutingFieldID(int dataID){
+  if (!_databaseReceive[dataID]){
+    return _routingField[dataID];
+  }
+  else if (dataID == _gfx.AR_MAKE_NODE){
+    return _gfx.AR_MAKE_NODE_ID;
+  }
+  else if (dataID == _gfx.AR_ERASE){
+    return _gfx.AR_ERASE_ID;
+  }
+  else if (dataID == _gfx.AR_INSERT){
+    return _gfx.AR_INSERT_ID;
+  }
+  else if (dataID == _gfx.AR_CUT){
+    return _gfx.AR_CUT_ID;
+  }
+  else if (dataID == _gfx.AR_PERMUTE){
+    return _gfx.AR_PERMUTE_PARENT_ID;
+  }
+  cout << "arGraphicsPeer error: invalid data record ID "
+       << "(_getRoutingFieldID).\n";
+  return -1;
 }
 
 void arGraphicsPeer::_motionCull(arGraphicsNode* node, 

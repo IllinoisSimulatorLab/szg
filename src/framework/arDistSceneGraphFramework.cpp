@@ -392,6 +392,8 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv){
   if (_peerName == "NULL" || _standalone){
     if (!_graphicsServer.init(_SZGClient)){
       initResponse << _label << " error: graphics server failed to init.\n";
+      initResponse << "  (THE LIKELY REASON IS THAT YOU ARE RUNNING ANOTHER "
+		   << "APP).\n";
       if (!_SZGClient.sendInitResponse(false))
         cerr << _label << " error: maybe szgserver died.\n";
       return false;

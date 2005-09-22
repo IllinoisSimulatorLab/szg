@@ -19,10 +19,6 @@
 #include <sstream>
 using namespace std;
 
-// Used to make sure that incompatible communications protocols do not
-// attempt to speak to one another.
-const int SZG_VERSION_NUMBER = 1;
-
 arDataPoint::arDataPoint(int dataBufferSize) :
   _bufferSize(-1), // Set socket's TCP receive buffer to its default.
   _smallPacketOptimize(false)

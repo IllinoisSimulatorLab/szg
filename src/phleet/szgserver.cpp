@@ -1091,7 +1091,7 @@ void serverDiscoveryFunction(void* pv){
     }
     // Check the version number.
     if (!(buffer[0] == 0 && buffer[1] == 0 && 
-          buffer[2] == 0 && buffer[3] == 1)){
+          buffer[2] == 0 && buffer[3] == SZG_VERSION_NUMBER)){
       cout << "szgserver remark: received a discovery packet with incorrect "
 	   << "format from " << fromAddress.getRepresentation() << ".\n";
       continue;
@@ -1106,7 +1106,7 @@ void serverDiscoveryFunction(void* pv){
     if (remoteServerName == serverName || remoteServerName == "*"){
       memset(buffer, 0, sizeof(buffer));
       // Put in the version number.
-      buffer[3] = 1;
+      buffer[3] = SZG_VERSION_NUMBER;
       // This is a response.
       buffer[4] = 1;
       // Put in the szgserver name.

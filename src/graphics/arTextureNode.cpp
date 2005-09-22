@@ -117,7 +117,7 @@ arStructuredData* arTextureNode::_dumpData(const string& fileName, int alpha,
                                            const char* pixels){
   arStructuredData* result = _g->makeDataRecord(_g->AR_TEXTURE);
   _dumpGenericNode(result,_g->AR_TEXTURE_ID);
-  if (pixels == NULL){
+  if (fileName != ""){
     // filename. 
     // Make sure we have set the data dimension of the _width to 0.
     // This is the flag the remote node uses to know it is not rendering
@@ -158,6 +158,9 @@ void arTextureNode::_addLocalTexture(int alpha, int width, int height,
   _width = width;
   _height = height;
   _alpha = alpha;
+  // Important to set the file name to the empty string, since this is one way
+  // we know whether or not there is a locally created bitmap.
+  _fileName = "";
   if (!_texture) {
     _texture = new arTexture();
   }

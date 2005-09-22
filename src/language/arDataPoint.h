@@ -13,6 +13,10 @@ using namespace std;
 
 /// Infrastructure for arDataClient and arDataServer.
 
+// Used to make sure that incompatible communications protocols do not
+// attempt to speak to one another.
+enum {SZG_VERSION_NUMBER = 1};
+
 class SZG_CALL arDataPoint {
  private:
   int _bufferSize;

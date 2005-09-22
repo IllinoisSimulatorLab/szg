@@ -224,6 +224,15 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   map<int, int, less<int> > _bridgeInMap;
   arDatabaseNode*           _bridgeRootMapNode;
 
+  // To prevent loops, we keep track of the component ID (this is the Phleet
+  // component ID and is determined in the init(...) method;
+  int _componentID;
+
+  // Some utility functions for dealing with the message path recording/reading
+  // in the graphics peer messages.
+  int _getOriginSocketID(arStructuredData* data, int fieldID);
+  int _getRoutingFieldID(int dataID);
+
   void _motionCull(arGraphicsNode*, stack<arMatrix4>&, 
                    arGraphicsPeerCullObject*, arMatrix4&);
   bool _setRemoteLabel(arSocket* sock, const string& name);

@@ -3027,7 +3027,7 @@ void arSZGClient::_serverResponseThread() {
       // Make sure it is the right format. Both version number (first four
       // bytes) and that it is a response (5th byte = 1).
       if (buffer[0] == 0 && buffer[1] == 0 &&
-          buffer[2] == 0 && buffer[3] == 1 && buffer[4] == 1){
+          buffer[2] == 0 && buffer[3] == SZG_VERSION_NUMBER && buffer[4] == 1){
         memcpy(_responseBuffer,buffer,200);
         if (_justPrinting){
 	  // Print out the contents of this packet.
@@ -3130,15 +3130,14 @@ LDone:
 void arSZGClient::_sendDiscoveryPacket(const string& name,
                                        const string& broadcast){
   char buf[200];
+  // Set all the bytes to zero.
   memset(buf, 0, sizeof(buf));
 
-  // Set the first 4 bytes to the magic version number.
-  // buf[0] = 0;
-  // buf[1] = 0;
-  // buf[2] = 0;
-  buf[3] = 1;
-  // This is a discovery packet.
-  // buf[4] = 0;
+  // The first 3 bytes are 0. This is the beginning of the magic version
+  // number.
+  // The fourth byte contains the magic version number.
+  buf[3] = SZG_VERSION_NUMBER;
+  // Since the 5th byte is 0, this is a discovery packet.
 
   ar_stringToBuffer(name, buf+5, 127);
   arSocketAddress broadcastAddress;
