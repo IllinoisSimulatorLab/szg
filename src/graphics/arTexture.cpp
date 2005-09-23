@@ -34,7 +34,6 @@ arTexture::arTexture() :
   _pixels(NULL),
   _refs(1)
 {
-//  ar_mutex_init(&_lock);
 }
 
 arTexture::~arTexture(){
@@ -51,7 +50,6 @@ arTexture::~arTexture(){
 }
 
 arTexture::arTexture( const arTexture& rhs ) :
-  _fDirty( rhs._fDirty ),
   _width( rhs._width ),
   _height( rhs._height ),
   _alpha( rhs._alpha ),
@@ -61,7 +59,12 @@ arTexture::arTexture( const arTexture& rhs ) :
   _textureFunc( rhs._textureFunc ),
   _refs(1)
 {
-//  ar_mutex_init(&_lock);
+  // Note above that this object starts out with one reference.
+
+  // We must set the "dirty" flag so that this texture will be loaded into
+  // OpenGL on the next try. (Because we have changed the pixels)
+  _fDirty = true;
+
   _pixels = new char[ numbytes() ];
   if (!_pixels) {
     cerr << "arTexture error: _pixels allocation failed in copy constructor.\n";
@@ -73,7 +76,9 @@ arTexture::arTexture( const arTexture& rhs ) :
 arTexture& arTexture::operator=( const arTexture& rhs ) {
   if (this == &rhs)
     return *this;
-  _fDirty = rhs._fDirty;
+  // We must set the "dirty" flag so that this texture will be loaded into
+  // OpenGL on the next try. (because we are changing the pixels)
+  _fDirty = true;
   _width = rhs._width;
   _height = rhs._height;
   _alpha = rhs._alpha;
@@ -81,7 +86,10 @@ arTexture& arTexture::operator=( const arTexture& rhs ) {
   _repeating = rhs._repeating;
   _mipmap = rhs._mipmap;
   _textureFunc = rhs._textureFunc;
-  // In this case, the number of references should not change!
+  // In this case, the number of references should not change. After the
+  // assignment operation, the number of external objects using this
+  // texture will remain the same. There will just be a different image
+  // inside it. 
   if (_reallocPixels()) {
     memcpy(_pixels, rhs._pixels, numbytes());
     cout << "arTexture remark: copied " << numbytes() << " bytes.\n";
@@ -91,9 +99,9 @@ arTexture& arTexture::operator=( const arTexture& rhs ) {
   return *this;
 }
 
-arTexture::arTexture( const arTexture& rhs, unsigned int left, unsigned int bottom,
-                                            unsigned int width, unsigned int height ) :
-  _fDirty( rhs._fDirty ),
+arTexture::arTexture( const arTexture& rhs, 
+                      unsigned int left, unsigned int bottom,
+                      unsigned int width, unsigned int height ) :
   _alpha( rhs._alpha ),
   _grayScale( rhs._grayScale ),
   _repeating( rhs._repeating ),
@@ -101,10 +109,18 @@ arTexture::arTexture( const arTexture& rhs, unsigned int left, unsigned int bott
   _textureFunc( rhs._textureFunc ),
   _refs(1)
 {
-//  ar_mutex_init(&_lock);
+  // Note how this texture has exactly one reference (this is what makes
+  // sense for copy constructors). (see above)
+
+  // We must set the "dirty" flag so that this texture will be loaded into
+  // OpenGL on the next try.
+  _fDirty = true;
+
+  // A new chunk of memory gets returned.
   _pixels = rhs.getSubImage( left, bottom, width, height );
   if (!_pixels) {
-    cerr << "arTexture error: rhs.getSubImage() failed in sub-image copy constructor.\n";
+    cerr << "arTexture error: rhs.getSubImage() failed in sub-image copy "
+	 << "constructor.\n";
     _width = 0;
     _height = 0;
   } else {
@@ -117,20 +133,25 @@ bool arTexture::operator!() {
   return _pixels==0 || numbytes()==0;
 }
 
+int arTexture::getRef(){
+  int result;
+  _lock.lock();
+  result = _refs;
+  _lock.unlock();
+  return result;
+}
+
 arTexture* arTexture::ref(){
   // Returning the pointer allows us to atomically create
   // a reference to the object.
   _lock.lock();
-//  ar_mutex_lock(&_lock);
   _refs++;
   _lock.unlock();
-//  ar_mutex_unlock(&_lock);
   return this;
 }
 
 void arTexture::unref(bool debug){
   _lock.lock();
-//  ar_mutex_lock(&_lock);
   _refs--;
   bool mustDelete = _refs == 0 ? true : false;
   if (debug){
@@ -142,7 +163,6 @@ void arTexture::unref(bool debug){
     }
   }
   _lock.unlock();
-//  ar_mutex_unlock(&_lock);
   if (mustDelete){
     delete this;
   }
@@ -151,7 +171,6 @@ void arTexture::unref(bool debug){
 void arTexture::activate(bool forceRebind) {
   glEnable(GL_TEXTURE_2D);
   _lock.lock();
-//  ar_mutex_lock(&_lock);
 #ifdef AR_USE_WIN_32
   ARint64 threadID = GetCurrentThreadId();
 #else
@@ -165,7 +184,6 @@ void arTexture::activate(bool forceRebind) {
     if (temp == 0) {
       cerr << "arTexture error: glGenTextures() failed in activate().\n";
       _lock.unlock();
-//      ar_mutex_unlock(&_lock);
       return;
     }
     _texNameMap.insert(map<ARint64,GLuint,less<ARint64> >::value_type
@@ -177,7 +195,6 @@ void arTexture::activate(bool forceRebind) {
     temp = i->second;
   }
   _lock.unlock();
-//  ar_mutex_unlock(&_lock);
 
   glBindTexture(GL_TEXTURE_2D, temp);
   // Very odd... if the following statement isn't included, then 
@@ -605,6 +622,9 @@ bool arTexture::fill(int w, int h, bool alpha, const char* pixels) {
     return false;
   }
 
+  // Note how _reallocPixels is only called if the number of bytes allocated
+  // will change (or no memory has been allocated yet). This prevents us
+  // from needlessly deleting and allocating memory.
   if (_width != w || _height != h || _alpha != alpha || !_pixels) {
     _width = w;
     _height = h;

@@ -13,7 +13,8 @@ arTextureNode::arTextureNode():
   _alpha(0),
   _width(0),
   _height(0),
-  _texture(NULL){
+  _texture(NULL),
+  _locallyHeldTexture(true){
   // A sensible default name.
   _name = "texture_node";
   // Does not compile on RedHat 8 if these are not in the constructor's body.
@@ -46,28 +47,30 @@ bool arTextureNode::receiveData(arStructuredData* inData){
     return false;
   }
 
-  // Before doing anything else, must be careful to unref the current texture.
-  // This prevents possible memory leaks. We do not need to create a new
-  // pointer since this gets done for us, by either addTexture or
-  // _addLocalTexture.
-  if (_texture){
-    _texture->unref();
-  }
-
   _fileName = inData->getDataString(_g->AR_TEXTURE_FILE);
   // NOTE: Here is the flag via which we determine if the texture is
   // based on a resource handle or is based on a bitmap.
   if (inData->getDataDimension(_g->AR_TEXTURE_WIDTH) == 0) {
     _alpha = inData->getDataInt(_g->AR_TEXTURE_ALPHA);
+    // If we are currently holding a referenced texture pointer, release.
+    // If the texture is locally held, it will be deleted. If the texture
+    // was from the arGraphicsDatabase store, then it will have its
+    // reference count decremented... but will still exist in the store.
+    // Either way, this _texture ptr should not be used by us anymore.
+    if (_texture){
+      _texture->unref();
+    }
     // NOTE: The database returns a pointer with an extra ref added to it.
     _texture = _owningDatabase->addTexture(_fileName, &_alpha);
+    // The texture is not locally held. The arGraphicsDatabase store owns it.
+    _locallyHeldTexture = false;
   }
   else {
     // Raw pixels, not a filename. We're the only object that will actually
-    // use this.
+    // use this. Consequently, there is no need to reference the texture.
     _addLocalTexture(inData->getDataInt(_g->AR_TEXTURE_ALPHA),
                   inData->getDataInt(_g->AR_TEXTURE_WIDTH),
-                  inData->getDataInt(_g->AR_TEXTURE_ALPHA),
+                  inData->getDataInt(_g->AR_TEXTURE_HEIGHT),
 		  (ARchar*)inData->getDataPtr(_g->AR_TEXTURE_PIXELS, AR_CHAR));
   }
 
@@ -93,6 +96,8 @@ void arTextureNode::setFileName(const string& fileName, int alpha){
     // We are free to create a new texture now. It will be locally held only.
     _texture = new arTexture();
     _texture->readImage(fileName.c_str(), _alpha, true);
+    // We must note that the texture is locally held.
+    _locallyHeldTexture = true;
   }
 }
 
@@ -103,10 +108,6 @@ void arTextureNode::setPixels(int width, int height, char* pixels, bool alpha){
     delete r;
   }
   else{
-    if (_texture){
-      // This will cause a delete in the case of a locally held texture.
-      _texture->unref();
-    }
     // We're the only object that will actually use this.
     _addLocalTexture(alpha ? 1 : 0, width, height, pixels);
   }
@@ -161,11 +162,24 @@ void arTextureNode::_addLocalTexture(int alpha, int width, int height,
   // Important to set the file name to the empty string, since this is one way
   // we know whether or not there is a locally created bitmap.
   _fileName = "";
+  // If _texture is NULL, allocate a new texture.
+  // If _texture is non-NULL but locally held, reuse it (to avoid reallocating
+  // a potentially large block of memory).
+  // If _texture is non-NULL but not locally held, unref it and allocate a new
+  // texture.
   if (!_texture) {
     _texture = new arTexture();
+  }
+  else{
+    if (!_locallyHeldTexture){
+      _texture->unref();
+      _texture = new arTexture();
+    }
   }
   // We assume that GL_MODULATE is the way to go.
   // This is mirrored in the addTexture method of arGraphicsDatabase.
   _texture->setTextureFunc(GL_MODULATE);
   _texture->fill(width, height, alpha, pixels);
+  // This texture is locally held by us.
+  _locallyHeldTexture = true;
 }

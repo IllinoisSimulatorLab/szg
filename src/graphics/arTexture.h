@@ -32,6 +32,7 @@ class SZG_CALL arTexture {
 
   // Textures need to be reference counted because of the way we share them
   // in the arGraphicsDatabase.
+  int getRef();
   arTexture* ref();
   void unref(bool debug = false);
 
