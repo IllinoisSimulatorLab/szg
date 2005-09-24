@@ -2504,41 +2504,39 @@ bool arSZGClient::_dialUpFallThrough(){
     // determine the other configuration information, like the location of the
     // szgserver and the name of the host computer
     if (!_configParser.parseConfigFile()){
-      cout << "arSZGClient error: failed to open config file.\n";
+      cout << _exeName << " error: failed to open config file.\n";
       cout << "  For non-standalone operation, you must run dname, etc.\n";
       return false;
     }
+
     // If we are not logged-in (i.e. standalone mode) the next conditional
     // will FAIL! However, some information from the config file is needed
     // for operation in standalone mode (like _computerName).
     // Consequently, set that before returning.
     _computerName = _configParser.getComputerName();
 
-    // parse the login file
     if (!_configParser.parseLoginFile()){
-      cout << "arSZGClient error: no login file. Please dlogin.\n";
+      cout << _exeName << " error: no login file. Please dlogin.\n";
       return false;
     }
-    // currently, there is a little bug! if we connect to the szgserver
+
+    // Bug: if we connect to the szgserver
     // via an explicit IP address and port, the server name is not set.
-    // consequently, we cannot use the configParser's getServerName() to
+    // So, we cannot use configParser's getServerName() to
     // determine if login was valid!
     if (_configParser.getServerIP() == "NULL"){
-      cout << "arSZGClient error: user not connected to szgserver."
-	   << "Please dlogin.\n";
+      cout << _exeName << " error: "
+	   << "user not connected to szgserver. Please dlogin.\n";
       return false;
     }
+
     // Find our syzygy user name.
-    string userNameOverride = ar_getenv("SZGUSER");
-    // NOTE: ar_getenv returns "NULL" if the environment var is not set
-    if (userNameOverride != "NULL"){
-      // the environment variable is set and that over-rides what
-      // is in the log-in file. this allows programs like szgd to work.
-      _userName = userNameOverride;
-    }
-    else{
-      _userName = _configParser.getUserName();
-    }
+    const string userNameOverride = ar_getenv("SZGUSER");
+    // ar_getenv returns "NULL" if the environment var is not set
+    // Otherwise it's set and it overrides what
+    // is in the log-in file. This lets programs like szgd work.
+    _userName = (userNameOverride == "NULL") ?
+      _configParser.getUserName() : userNameOverride;
 
     // set all the other information
     _serverName   = _configParser.getServerName();
@@ -2550,8 +2548,7 @@ bool arSZGClient::_dialUpFallThrough(){
     // Look on the LAN for an szgserver.
     /// \todo say "dlogin first" and leave it at that,
     /// (if dconfig would report that nobody's logged in)
-    cout << _exeName
-         << " remark: szgserver not found.\n"
+    cout << _exeName << " remark: szgserver not found.\n"
 	 << "\t(first dlogin;  type dhunt to find an szgserver.\n";
     return false;
   }
