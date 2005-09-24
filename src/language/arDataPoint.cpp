@@ -157,8 +157,12 @@ arStreamConfig arDataPoint::handshakeConnectTo(arSocket* fd,
   if (keys == "NULL"){
     // Do not complain here.
     result.valid = false;
+    // The connection attempt was refused.
+    result.refused = true;
     return result;
   }
+  // We've got a parseable header for the stream. _fillConfig can mark "result"
+  // as invalid if the header does not contain valid info.
   _fillConfig(result, keys);
   return result;
 }
@@ -171,8 +175,12 @@ arStreamConfig arDataPoint::handshakeReceiveConnection(arSocket* fd,
   if (keys == "NULL"){
     // Do not complain here.
     result.valid = false;
+    // The connection attempt was refused.
+    result.refused = true;
     return result;
   }
+  // We've got a parseable header for the stream. _fillConfig can mark "result"
+  // as invalid if the header does not contain valid info.
   _fillConfig(result, keys);
   string configString = _constructConfigString(localConfig);
   // As the one receiving the connection, we send second!
@@ -196,6 +204,13 @@ string arDataPoint::_remoteConfigString(arSocket* fd){
   socketStream.setSource(fd);
   arStructuredData* remoteConfig = parser.parse(&socketStream);
   if (!remoteConfig){
+    // This happens mainly when the other connection end rejects
+    // our connection attempt outright (for instance when our IP address
+    // does not meet the filtering requirements)
+
+    // It might also happen if the other end does not speak the szg connection
+    // protocol.
+    
     // Do not complain here.
     return "NULL";
   }
@@ -256,6 +271,9 @@ map<string, string, less<string> > arDataPoint::_parseKeyValueBlock(
 }
 
 void arDataPoint::_fillConfig(arStreamConfig& config, const string& text){
+  // If we've gotten here, the connection has not been refused.
+  config.refused = false;
+
   map<string,string,less<string> > table = _parseKeyValueBlock(text);
   map<string,string,less<string> >::iterator iter;
   // First, check to see that version numbers match.

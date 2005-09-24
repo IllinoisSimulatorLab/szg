@@ -119,9 +119,19 @@ bool arDataClient::_dialUpActivate(){
   // hang). This is due to the buffering and async built into TCP sockets.
   _remoteStreamConfig = handshakeReceiveConnection(_socket, localConfig);
   if (!_remoteStreamConfig.valid){
-    cout << _exeName << " error: remote data point has wrong szg protocol "
-	 << "version = " << _remoteStreamConfig.version << ".\n";
-    return false;
+    if (_remoteStreamConfig.refused){
+      cout << _exeName << " remark: remote data point has closed the "
+	   << "connection.\n"
+	   << "  ARE YOU TRYING TO CONNECT FROM A BLOCKED IP?\n"
+	   << "  For instance, is your IP not on the szgserver's "
+	   << "whitelist?\n";
+      return false;
+    }
+    else{
+      cout << _exeName << " error: remote data point has wrong szg protocol "
+	   << "version = " << _remoteStreamConfig.version << ".\n";
+      return false;
+    }
   }
   // Must set the remote socket ID like so:
   _socketIDRemote = _remoteStreamConfig.ID;

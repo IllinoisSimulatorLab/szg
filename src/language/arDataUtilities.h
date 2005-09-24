@@ -99,6 +99,8 @@ struct SZG_CALL arStreamConfig{
   int  version;
   int  ID;
   bool valid; // Allows us to use this as a success/failure return value.
+  bool refused; // Tells us that the other end of the connection has rejected
+                // our connection attempt.
 };
 
 #define AR_LITTLE_ENDIAN 0

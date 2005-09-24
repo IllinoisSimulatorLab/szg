@@ -698,9 +698,19 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
   arStreamConfig remoteStreamConfig;
   remoteStreamConfig = handshakeReceiveConnection(socket, localConfig);
   if (!remoteStreamConfig.valid){
-    cout << "arDataServer error: remote data point has wrong szg protocol "
-	 << "version = " << remoteStreamConfig.version << ".\n";
-    return false;
+    if (remoteStreamConfig.refused){
+      cout << "arDataServer remark: remote data point has closed the "
+	   << "connection.\n"
+	   << "  ARE YOU TRYING TO CONNECT FROM A BLOCKED IP?\n"
+	   << "  For instance, is your IP not on the szgserver's "
+	   << "whitelist?\n";
+      return false;
+    }
+    else{
+      cout << "arDataServer error: remote data point has wrong szg protocol "
+	   << "version = " << remoteStreamConfig.version << ".\n";
+      return false;
+    }
   }
   
   ARchar sizeBuffer[AR_INT_SIZE];

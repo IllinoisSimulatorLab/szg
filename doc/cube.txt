@@ -420,9 +420,6 @@ everything else. In particular, it has no szg_device record as in the above!
 Exec paths: replace THE_USER_NAME with your login name. 
 NOTE: The computers that may need to run a python executable must have
 python in the EXEC_PATH!
-NOTE: Some of the applications need to be compiled seperately. For instance,
-vtkfile needs Visual Studio 7, so it is compiled by a certain user (schaeffr)
-The "zillimath" demos are also compiled by a particular user (gfrancis)
 </comment>
 
 <assign>
