@@ -1,4 +1,4 @@
-// $Id: PyTypemaps.i,v 1.1 2005/03/18 20:13:01 crowell Exp $
+// $Id: PyTypemaps.i,v 1.2 2005/09/23 19:49:13 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -37,7 +37,7 @@
     int size = PyList_Size($input);
     for (int i = 0; i < size; i++) {
       PyObject *o = PyList_GetItem($input,i);
-      if (PyLong_Check(o)) {
+      if (PyInt_Check(o)) {
         $1->push_back( PyInt_AsLong(o) );
       } else {
         PyErr_SetString(PyExc_TypeError,"list must contain ints");

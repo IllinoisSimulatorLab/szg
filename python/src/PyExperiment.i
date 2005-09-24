@@ -55,6 +55,7 @@ bool arPythonTrialGenerator::newTrial( arExperimentDataRecord& factors ) {
   PyObject *arglist=Py_BuildValue("(O)",facobj);
   PyObject *result=PyEval_CallObject(_newTrialCallback, arglist);  
   if (result==NULL) { 
+    PyErr_Print(); 
     PyErr_SetString(PyExc_RuntimeError,"A Python exception occurred in the newTrial callback.");
     return false;
   }
