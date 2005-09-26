@@ -259,6 +259,23 @@ everything else. In particular, it has no szg_device record as in the above!
 </param>
 
 <param>
+<name> fire_screen </name>
+<value>
+<szg_screen>
+  <center x="0" y="0" z="-1" />
+  <up x="0" y="1" z="0" />
+  <dim width="1.5" height="1." />
+  <normal x="0" y="0" z="-1" />
+  <headmounted value="true" />
+  <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
+  <usefixedhead value="ignore" />
+  <fixedheadpos x="0.0" y="5.5" z="0.0" />
+  <fixedheadupangle value="0.0" />
+</szg_screen>
+</value>
+</param>
+
+<param>
 <name>front_window_stereo</name>
 <value>
 <szg_display framelock="wildcat">
@@ -385,31 +402,19 @@ everything else. In particular, it has no szg_device record as in the above!
 </param>
 
 <param>
-<name>experiment_console_window</name>
+<name>hmd_window_mono</name>
 <value>
-<szg_display>
+<szg_display framelock="none">
  <szg_window>
-   <size width="400" height="400" />
-   <position x="0" y="0" />
+   <size width="450" height="300" />
+   <position x="50" y="50" />
    <decorate value="true" />
    <fullscreen value="false" />
-   <title value="szg" />
    <stereo value="false" />
-
    <szg_viewport_list viewmode="normal">
-     <szg_viewport>
-       <eyesign value="0.0" />
-       <szg_camera>
-         <szg_screen>
-           <center x="0" y="0" z="-5" />
-           <up x="0" y="1" z="0" />
-           <dim width="10" height="10" />
-           <normal x="0" y="0" z="-1" />
-           <headmounted value="false" />
-           <usefixedhead value="ignore" />
-         </szg_screen>
-       </szg_camera>
-     </szg_viewport>
+     <szg_camera>
+       <szg_screen usenamed="fire_screen" />
+     </szg_camera>
    </szg_viewport_list>
  </szg_window>
 </szg_display>
@@ -417,7 +422,7 @@ everything else. In particular, it has no szg_device record as in the above!
 </param>
 
 <comment> 
-Exec paths: replace THE_USER_NAME with your login name. 
+Exec paths: replace THE_USER_NAME with your login name. Note also that Python 2.4 is also available for Windows machines, if using it change Python22 to Python24.
 NOTE: The computers that may need to run a python executable must have
 python in the EXEC_PATH!
 </comment>
@@ -713,17 +718,25 @@ joystick SZG_RT  com_port      1
 
 north SZG_HEAD eye_spacing 0.2
 north SZG_HEAD eye_direction 1/0/0
-north SZG_HEAD mid_eye_offset 0.29/0/-0.21
+north SZG_HEAD mid_eye_offset 0.29/0/0.25
 north SZG_HEAD fixed_head_mode false
 fire SZG_HEAD eye_spacing 0.2
 fire SZG_HEAD eye_direction 1/0/0
-fire SZG_HEAD mid_eye_offset 0.29/0/-0.21
+fire SZG_HEAD mid_eye_offset 0.29/0/0.25
 fire SZG_HEAD fixed_head_mode false
 air SZG_HEAD eye_spacing 0.2
 air SZG_HEAD eye_direction 1/0/0
-air SZG_HEAD mid_eye_offset 0.29/0/-0.21
+air SZG_HEAD mid_eye_offset 0.29/0/0.25
 air SZG_HEAD fixed_head_mode false
 </assign>
+
+<comment>
+This is the true mid-eye offset...
+An incorrect one is used because it makes the tracker error
+& latency less noticeable during head turns.
+north SZG_HEAD mid_eye_offset 0.29/0/-0.21
+</comment>
+
 
 <comment>
 Want the inputsimulator to appear in a reasonable spot on fire (which is the
@@ -741,7 +754,7 @@ west SZG_DISPLAY0 name left_window_stereo
 south SZG_DISPLAY0 name rear_window_stereo
 top SZG_DISPLAY0 name top_window_stereo
 bottom SZG_DISPLAY0 name bottom_window_stereo
-fire SZG_DISPLAY0 name experiment_console_window
+fire SZG_DISPLAY0 name hmd_window_mono
 </assign>
 
 </szg_config>

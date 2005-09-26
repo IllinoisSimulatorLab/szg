@@ -29,9 +29,7 @@ arPythonTrialGenerator::arPythonTrialGenerator() :
 }
 
 arPythonTrialGenerator::~arPythonTrialGenerator() {
-  if (_newTrialCallback != NULL) {
-    Py_XDECREF(_newTrialCallback);
-  } 
+  Py_XDECREF(_newTrialCallback);
 }
 
 void arPythonTrialGenerator::setCallback( PyObject* newTrialCallback ) {
@@ -60,7 +58,7 @@ bool arPythonTrialGenerator::newTrial( arExperimentDataRecord& factors ) {
     return false;
   }
   bool res=(bool) PyInt_AsLong(result); 
-  Py_XDECREF(result); 
+  Py_DECREF(result); 
   Py_DECREF(arglist); 
   Py_DECREF(facobj); 
   return res; 
@@ -88,15 +86,9 @@ class arPythonExperimentTrialPhase : public arExperimentTrialPhase {
 };
 
 arPythonExperimentTrialPhase::~arPythonExperimentTrialPhase() {
-  if (_initCallback != NULL) {
-    Py_XDECREF(_initCallback);
-  } 
-  if (_updateCallback != NULL) {
-    Py_XDECREF(_updateCallback);
-  } 
-  if (_updateEventCallback != NULL) {
-    Py_XDECREF(_updateEventCallback);
-  } 
+  Py_XDECREF(_initCallback);
+  Py_XDECREF(_updateCallback);
+  Py_XDECREF(_updateEventCallback);
 }
 
 void arPythonExperimentTrialPhase::setCallbacks( PyObject* initCallback,
@@ -144,13 +136,14 @@ bool arPythonExperimentTrialPhase::init( arSZGAppFramework* fw, arExperiment* ex
   PyObject *arglist=Py_BuildValue("(O,O)",fwobj,exptobj); 
   PyObject *result=PyEval_CallObject(_initCallback, arglist);  
   if (result==NULL) { 
-    PyErr_Print(); 
-    errmsg="A Python exception occurred in the TrialPhaseInit callback.";
-    cerr << errmsg << "\n";
-    throw  errmsg; 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString( PyExc_RuntimeError, "A Python exception occurred in the TrialPhaseInit callback." );
+    return false;
   }
   bool res=(bool) PyInt_AsLong(result); 
-  Py_XDECREF(result); 
+  Py_DECREF(result); 
   Py_DECREF(arglist); 
   Py_DECREF(exptobj); 
   Py_DECREF(fwobj); 
@@ -173,13 +166,14 @@ bool arPythonExperimentTrialPhase::update( arSZGAppFramework* fw, arExperiment* 
   PyObject *arglist=Py_BuildValue("(O,O)",fwobj,exptobj); 
   PyObject *result=PyEval_CallObject(_updateCallback, arglist);  
   if (result==NULL) { 
-    PyErr_Print(); 
-    errmsg="A Python exception occurred in the TrialPhaseUpdate callback.";
-    cerr << errmsg << "\n";
-    throw  errmsg; 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString( PyExc_RuntimeError, "A Python exception occurred in the TrialPhaseUpdate callback." );
+    return false;
   }
   bool res=(bool) PyInt_AsLong(result); 
-  Py_XDECREF(result); 
+  Py_DECREF(result); 
   Py_DECREF(arglist); 
   Py_DECREF(exptobj); 
   Py_DECREF(fwobj); 
@@ -190,10 +184,10 @@ bool arPythonExperimentTrialPhase::update( arSZGAppFramework* fw, arExperiment* 
                                            arIOFilter* filt, arInputEvent& event ) {
   string errmsg;
   if (_updateEventCallback == NULL) {
-    cerr << "arPythonExperimentTrialPhase " << getName() << " error: no updateEvent callback.\n";
-    errmsg="A NULL-pointer exception occurred in the TrialPhaseUpdateEvent callback.";
-    cerr << errmsg << "\n";
-    throw  errmsg; 
+    ostringstream os;
+    os << "arPythonExperimentTrialPhase " << getName() << " error: no updateEvent callback.\n";
+    std::string msg = os.str();
+    PyErr_SetString( PyExc_RuntimeError, msg.c_str() );
     return false;
   }
   PyObject *fwobj = SWIG_NewPointerObj((void *) fw,
@@ -207,13 +201,14 @@ bool arPythonExperimentTrialPhase::update( arSZGAppFramework* fw, arExperiment* 
   PyObject *arglist=Py_BuildValue("(O,O,O,O)",fwobj,exptobj,filtobj,eventobj); 
   PyObject *result=PyEval_CallObject(_updateEventCallback, arglist);  
   if (result==NULL) { 
-    PyErr_Print(); 
-    errmsg="A Python exception occurred in the TrialPhaseUpdateEvent callback.";
-    cerr << errmsg << "\n";
-    throw  errmsg; 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString( PyExc_RuntimeError, "A Python exception occurred in the TrialPhaseUpdateEvent callback." );
+    return false;
   }
   bool res=(bool) PyInt_AsLong(result); 
-  Py_XDECREF(result); 
+  Py_DECREF(result); 
   Py_DECREF(arglist); 
   Py_DECREF(eventobj); 
   Py_DECREF(filtobj); 
@@ -304,6 +299,7 @@ bool arPythonExperiment::addStringFactorSet( const  std::string& sname, PyObject
   int i;
   int totalStringLength = 1;
   for (i = 0; i < size; ++i) {
+    // Note we do not own s...
     PyObject *s = PyList_GetItem(defaultList,i);
     if (!PyString_Check(s)) {
         PyErr_SetString(PyExc_ValueError, "arPythonExperiment::addStringFactorSet() list items must be strings");
@@ -313,7 +309,7 @@ bool arPythonExperiment::addStringFactorSet( const  std::string& sname, PyObject
   }
   char* tmp = new char[totalStringLength+1];
   if (!tmp) {
-    PyErr_SetString(PyExc_ValueError, "arPythonExperiment::addStringFactorSet() memory allocation failed");
+    PyErr_SetString(PyExc_MemoryError, "arPythonExperiment::addStringFactorSet() memory allocation failed");
     return false;
   }
   char* inc = tmp;
@@ -337,23 +333,26 @@ PyObject* arPythonExperiment::getLongFactor( const std::string& sname ) {
   unsigned int size;
   const long* const tmp = (const long* const)arExperiment::getFactor( sname, AR_LONG, size );
   if (!tmp) {
-    PyErr_SetString(PyExc_ValueError,"arPythonExperiment::getLongFactor() failed to get factor");
+    PyErr_SetString(PyExc_RuntimeError,"arPythonExperiment::getLongFactor() failed to get factor");
     return NULL;
   }
   PyObject* result = PyTuple_New((int)size);
   if (!result) {
-    PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongFactor() PyTuple_New() failed");
+    PyErr_SetString(PyExc_RuntimeError, "arPythonExperiment::getLongFactor() PyTuple_New() failed");
     return NULL;
   }
   int i;
-  for (i = 0; i < size; ++i) {
+  for (i=0; i<size; ++i) {
     PyObject *s = PyInt_FromLong(tmp[i]);
     if (!s) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongFactor() PyInt_FromLong() failed");
+      // Note: memory-leaks tuple and any already-installed values.
       return NULL;
     }
+    // PyTuple_SetItem() steals our reference to s, so we dont need to Py_DECREF() it (if successful).
     if (PyTuple_SetItem( result, i, s ) != 0) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongFactor() PyTuple_SetItem() failed");
+      // Note: memory-leaks tuple and any already-installed values.
       return NULL;
     }
   }
@@ -377,10 +376,12 @@ PyObject* arPythonExperiment::getDoubleFactor( const std::string& sname ) {
     PyObject *s = PyFloat_FromDouble(tmp[i]);
     if (!s) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getDoubleFactor() PyFloat_FromDouble() failed");
+      // Note: memory-leaks tuple and any already-installed values.
       return NULL;
     }
     if (PyTuple_SetItem( result, i, s ) != 0) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getDoubleFactor() PyTuple_SetItem() failed");
+      // Note: memory-leaks tuple and any already-installed values.
       return NULL;
     }
   }
@@ -421,7 +422,7 @@ bool arPythonExperiment::setLongData( const std::string& sname, PyObject* intDat
     return false;
   }
   int i;
-  for (i = 0; i < size; ++i) {
+  for (i=0; i<size; ++i) {
     PyObject *s = PyList_GetItem(intDataList,i);
     if (!PyInt_Check(s)) {
         delete[] tmp;
@@ -485,10 +486,12 @@ PyObject* arPythonExperiment::getLongData( const std::string& sname ) {
     PyObject *s = PyInt_FromLong(tmp[i]);
     if (!s) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongData() PyInt_FromLong() failed");
+      // Note: memory-leaks tuple and any already-installed values.
       return NULL;
     }
     if (PyTuple_SetItem( result, i, s ) != 0) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongData() PyTuple_SetItem() failed");
+      // Note: memory-leaks tuple and any already-installed values.
       return NULL;
     }
   }
@@ -512,10 +515,12 @@ PyObject* arPythonExperiment::getDoubleData( const std::string& sname ) {
     PyObject *s = PyFloat_FromDouble(tmp[i]);
     if (!s) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getDoubleData() PyFloat_FromDouble() failed");
+      // Note: memory-leaks tuple and any already-installed values.
       return NULL;
     }
     if (PyTuple_SetItem( result, i, s ) != 0) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getDoubleData() PyTuple_SetItem() failed");
+      // Note: memory-leaks tuple and any already-installed values.
       return NULL;
     }
   }
@@ -529,7 +534,7 @@ std::string arPythonExperiment::getStringData( const std::string& sname ) {
     PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getStringData() getDataField() failed");
     return NULL;
   }
-  // What the heck, let's assume 0-termination (I think that's OK)
+  // What the heck, lets assume 0-termination (I think thats OK)
   return std::string(tmp);
 }
 
@@ -561,13 +566,13 @@ double arPythonExperiment::getDoubleSubjectParameter( const  std::string& sname 
     float *ftmp;
     if (!arExperiment::getSubjectParameter( sname, AR_FLOAT, (void*)ftmp )) {
       PyErr_SetString(PyExc_ValueError,"arPythonExperiment::getDoubleSubjectParameter() failed to get parameter");
-      return -1;
+      return -1.;
     }
     return (double)*ftmp;
   }
   if (!arExperiment::getSubjectParameter( sname, AR_DOUBLE, (void*)tmp )) {
     PyErr_SetString(PyExc_ValueError,"arPythonExperiment::getDoubleSubjectParameter() failed to get parameter");
-    return -1;
+    return -1.;
   }
   return *tmp;
 }

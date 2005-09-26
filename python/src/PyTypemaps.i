@@ -1,4 +1,4 @@
-// $Id: PyTypemaps.i,v 1.2 2005/09/23 19:49:13 crowell Exp $
+// $Id: PyTypemaps.i,v 1.3 2005/09/26 18:39:55 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -128,7 +128,7 @@
 
 // avoid memory leaks...
 %typemap(freearg) int * {
-  free((int *) $1);
+  if ($1) delete[] $1;
 }
 
 // This typemap makes sure that passing Python floats will not cause
@@ -174,7 +174,7 @@
 
 // avoid memory leaks...
 %typemap(freearg) float * {
-  free((float *) $1);
+  if ($1) delete[] $1;
 }
 
 // convert a list of Python strings to (int argc,char** argv)
