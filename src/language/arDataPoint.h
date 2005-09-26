@@ -15,7 +15,7 @@ using namespace std;
 
 // Used to make sure that incompatible communications protocols do not
 // attempt to speak to one another.
-enum {SZG_VERSION_NUMBER = 1};
+enum {SZG_VERSION_NUMBER = 2};
 
 class SZG_CALL arDataPoint {
  private:
