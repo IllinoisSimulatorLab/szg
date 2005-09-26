@@ -91,16 +91,6 @@ bool ar_parsePForthFilterWord( const string& theWord,
   return true;
 }
 
-// determines whether word is a string of the form
-// filter_<event type>_<number>
-struct IsFilterWord {
-  bool operator()( const string theWord ) {
-    arInputEventType eventType;
-    unsigned int eventIndex = -1;
-    return ar_parsePForthFilterWord( theWord, eventType, eventIndex );
-  }
-};
-    
 bool arPForthFilter::configure(const string& progText ) {
   if (!_pforth) {
     cerr << "failed to initialize PForth.\n";
