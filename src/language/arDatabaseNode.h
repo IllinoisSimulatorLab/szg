@@ -102,9 +102,10 @@ class SZG_CALL arDatabaseNode{
   void _dumpGenericNode(arStructuredData*, int);
   void _addChild(arDatabaseNode* node);
   void _findNode(arDatabaseNode*& result, const string& name, bool& success,
-		 bool checkTop);
+		 map<int,int,less<int> >* nodeMap, bool checkTop);
   void _findNodeByType(arDatabaseNode*& result, const string& nodeType,
-                       bool& success, bool checkTop);
+                       bool& success, map<int,int,less<int> >* nodeMap,  
+                       bool checkTop);
   void _printStructureOneLine(int level, int maxLevel, ostream& s);
 };
 

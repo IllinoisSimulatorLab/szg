@@ -97,14 +97,14 @@ void arDatabaseNode::setName(const string& name){
 arDatabaseNode* arDatabaseNode::findNode(const string& name){
   arDatabaseNode* result = NULL;
   bool success = false;
-  _findNode(result, name, success, true);
+  _findNode(result, name, success, NULL, true);
   return result;
 }
 
 arDatabaseNode* arDatabaseNode::findNodeByType(const string& nodeType){
   arDatabaseNode* result = NULL;
   bool success = false;
-  _findNodeByType(result, nodeType, success, true);
+  _findNodeByType(result, nodeType, success, NULL, true);
   return result;
 }
 
@@ -152,6 +152,7 @@ void arDatabaseNode::_addChild(arDatabaseNode* node){
 void arDatabaseNode::_findNode(arDatabaseNode*& result,
                                const string& name,
                                bool& success,
+                               map<int,int,less<int> >* nodeMap,
                                bool checkTop){
   // First, check self.
   if (checkTop && getName() == name){
@@ -163,8 +164,11 @@ void arDatabaseNode::_findNode(arDatabaseNode*& result,
   // we are doing a breadth-first search (maybe..), check the children first
   // then recurse
   list<arDatabaseNode*>::iterator i;
+  // If a node map has been passed, make sure that we do NOT find an already
+  // mapped node.
   for (i = children.begin(); i != children.end(); i++){
-    if ( (*i)->getName() == name ){
+    if ( (*i)->getName() == name && 
+         (!nodeMap || nodeMap->find((*i)->getID()) == nodeMap->end())){
       success = true;
       result = *i;
       return;
@@ -176,13 +180,14 @@ void arDatabaseNode::_findNode(arDatabaseNode*& result,
       // we're already done.
       return;
     }
-    (*i)->_findNode(result, name, success, true);
+    (*i)->_findNode(result, name, success, nodeMap, true);
   }
 }
 
 void arDatabaseNode::_findNodeByType(arDatabaseNode*& result,
                                      const string& nodeType,
                                      bool& success,
+                                     map<int,int,less<int> >* nodeMap,
                                      bool checkTop){
   // First, check self.
   if (checkTop && getTypeString() == nodeType){
@@ -191,11 +196,14 @@ void arDatabaseNode::_findNodeByType(arDatabaseNode*& result,
     return;
   }
   list<arDatabaseNode*> children = getChildren();
-  // we are doing a breadth-first search (maybe..), check the children first
+  // We are doing a breadth-first search (maybe..), check the children first
   // then recurse
   list<arDatabaseNode*>::iterator i;
+  // If a node map has been passed, make sure we do NOT find an already mapped
+  // node.
   for (i = children.begin(); i != children.end(); i++){
-    if ( (*i)->getTypeString() == nodeType ){
+    if ( (*i)->getTypeString() == nodeType &&
+         (!nodeMap || nodeMap->find((*i)->getID()) == nodeMap->end())){
       success = true;
       result = *i;
       return;
@@ -207,7 +215,7 @@ void arDatabaseNode::_findNodeByType(arDatabaseNode*& result,
       // we're already done.
       return;
     }
-    (*i)->_findNodeByType(result, nodeType, success, true);
+    (*i)->_findNodeByType(result, nodeType, success, nodeMap, true);
   }
 }
 

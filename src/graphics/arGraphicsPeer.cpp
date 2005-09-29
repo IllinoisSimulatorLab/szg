@@ -595,12 +595,17 @@ bool arGraphicsPeer::start(){
 }
   
 void arGraphicsPeer::stop(){
-  // DOESN'T DO ANYTHING YET... DOH!
   closeAllAndReset();
   _client->closeConnection();  
 }
 
 arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){ 
+  // NOTE: no "graphics admin" message should make it into this function.
+  // The model is that the arGraphicsPeer sends these directly to connected
+  // peers, instead of automatically sending them through alter(...).
+  if (data->getID() == _gfx.AR_GRAPHICS_ADMIN){
+    return &_rootNode;
+  }
   map<int, arGraphicsPeerConnection*, less<int> >::iterator connectionIter;
   int potentialNewNodeID = -1;
   arDatabaseNode* result = &_rootNode;
@@ -624,13 +629,14 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
   //     b. Check the "lock" on that node. If one exists, and is different
   //        than the origin of this message, return, doing nothing.  
   int dataID = data->getID();
-  int fieldID = _getRoutingFieldID(dataID);
-  int* IDPtr = (int*)data->getDataPtr(fieldID, AR_INT);
+  int routingFieldID = _getRoutingFieldID(dataID);
+  int workingNodeFieldID = _getWorkingFieldID(dataID);
+  int* IDPtr = (int*)data->getDataPtr(routingFieldID, AR_INT);
   // Determine the socket ID upon which the message originated (this will
   // be -1 if it was generated locally). If it has come across
   // a communications link then it will be subect to "mapping" (i.e. having the
   // ID of the target node changed) 
-  int originID = _getOriginSocketID(data, fieldID);
+  int originID = _getOriginSocketID(data, routingFieldID);
 
   // Do the mapping. 
   if (originID != -1){
@@ -660,6 +666,14 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
   // Check to see if the node is locked by a source other than the origin of
   // this communication. If so, go ahead and return. Note that the
   // _filterIncoming might have changed this ID. 
+  // How do locks influence the "structure messages"... namely 
+  // make node, insert, erase, cut, permute? The identity of their routing
+  // field determines this.
+  // make node: the parent node ID.
+  // insert: the parent node ID.
+  // erase: the ID of the node to be erased.
+  // cut: the ID of the node to be cut.
+  // permute: the parent ID of the sibling nodes to be permuted.
   if (IDPtr){
     map<int, int, less<int> >::iterator j = _lockContainer.find(IDPtr[0]);
     if (j != _lockContainer.end()){
@@ -737,35 +751,32 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
                                 connectionIter->second->transientMap,
 				connectionIter->second->remoteFrameTime);
       }
-      // 
+     
       // Still need to check the connection's filter. And augment it
-      // for node creation.
-      if (dataID == _gfx.AR_MAKE_NODE){
-        int parentID = data->getDataInt(_gfx.AR_MAKE_NODE_PARENT_ID);
+      // for node creation. We've already augmented the node maps for the
+      // incoming connection... but now we need to alter the node maps for
+      // the outgoing connection(s) as well!
+      if (dataID == _gfx.AR_MAKE_NODE || dataID == _gfx.AR_INSERT){
+	// The parentID is stored in the routing field of both message types.
+        int parentID = data->getDataInt(routingFieldID);
         outIter = connectionIter->second->outFilter.find(parentID);
+	// Note how we only update if our parent is currently mapped.
+	// This makes sense. We should not start mapping updates from
+	// "unmapped" parts of the scene graph.
+
+	// The ID of the created node is stored in the working field of both
+	// message types.
 	if (outIter != connectionIter->second->outFilter.end()){
           _insertOutFilter(connectionIter->second->outFilter, 
-                           data->getDataInt(_gfx.AR_MAKE_NODE_ID),
+                           data->getDataInt(workingNodeFieldID),
 		           connectionIter->second->sendOn);
 	}
       }
-      if (!_databaseReceive[dataID]){
-	// Not new node or erase node record.
-        IDPtr = (int*) data->getDataPtr(_routingField[dataID], AR_INT);
-      }
-      else{
-        if (dataID == _gfx.AR_MAKE_NODE){
-          IDPtr = (int*) data->getDataPtr(_gfx.AR_MAKE_NODE_ID, AR_INT);
-        }
-        if (dataID == _gfx.AR_ERASE){
-          IDPtr = (int*)data->getDataPtr(_gfx.AR_ERASE_ID, AR_INT);
-        }
-      }
+      // We now determine whether the outbound filtering allows
+      // us to relay our message. The working node field corresponds to the
+      // new node ID (for make node or insert)
+      IDPtr = (int*) data->getDataPtr(workingNodeFieldID, AR_INT);
       outIter = connectionIter->second->outFilter.find(IDPtr[0]);
-      // THE OLD WAY...
-      //if (updateNodeEvenIfTransient && connectionIter->second->sending && 
-      //     (outIter == connectionIter->second->outFilter.end()
-      //      || outIter->second == 1)){
       if (updateNodeEvenIfTransient && 
           outIter != connectionIter->second->outFilter.end() &&
           outIter->second == 1){
@@ -1087,22 +1098,6 @@ bool arGraphicsPeer::pullSerial(const string& name,
     return false;
   }
 
-  // The idea of having a bulk receiving on/off for each connection has
-  // disappeared. DEPRECATED!
-  /*if (receiveOn){
-    ar_mutex_lock(&_socketsLock);
-    map<int, arGraphicsPeerConnection*, less<int> >::iterator i
-      = _connectionContainer.find(socket->getID());
-    if (i == _connectionContainer.end()){
-      cout << "arGraphicsPeer internal error: could not find connection "
-	   << "object.\n";
-    }
-    else{
-      i->second->receiving = true;
-    }
-    ar_mutex_unlock(&_socketsLock);
-  }*/
-
   // We have to wait for the dump to be completed
   ar_mutex_lock(&_dumpLock);
   _dumped = false;
@@ -1378,6 +1373,30 @@ int arGraphicsPeer::_getRoutingFieldID(int dataID){
     return _routingField[dataID];
   }
   else if (dataID == _gfx.AR_MAKE_NODE){
+    return _gfx.AR_MAKE_NODE_PARENT_ID;
+  }
+  else if (dataID == _gfx.AR_ERASE){
+    return _gfx.AR_ERASE_ID;
+  }
+  else if (dataID == _gfx.AR_INSERT){
+    return _gfx.AR_INSERT_PARENT_ID;
+  }
+  else if (dataID == _gfx.AR_CUT){
+    return _gfx.AR_CUT_ID;
+  }
+  else if (dataID == _gfx.AR_PERMUTE){
+    return _gfx.AR_PERMUTE_PARENT_ID;
+  }
+  cout << "arGraphicsPeer error: invalid data record ID "
+       << "(_getRoutingFieldID).\n";
+  return -1;
+}
+
+int arGraphicsPeer::_getWorkingFieldID(int dataID){
+  if (!_databaseReceive[dataID]){
+    return _routingField[dataID];
+  }
+  else if (dataID == _gfx.AR_MAKE_NODE){
     return _gfx.AR_MAKE_NODE_ID;
   }
   else if (dataID == _gfx.AR_ERASE){
@@ -1393,7 +1412,7 @@ int arGraphicsPeer::_getRoutingFieldID(int dataID){
     return _gfx.AR_PERMUTE_PARENT_ID;
   }
   cout << "arGraphicsPeer error: invalid data record ID "
-       << "(_getRoutingFieldID).\n";
+       << "(_getWorkingFieldID).\n";
   return -1;
 }
 

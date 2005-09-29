@@ -232,6 +232,7 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   // in the graphics peer messages.
   int _getOriginSocketID(arStructuredData* data, int fieldID);
   int _getRoutingFieldID(int dataID);
+  int _getWorkingFieldID(int dataID);
 
   void _motionCull(arGraphicsNode*, stack<arMatrix4>&, 
                    arGraphicsPeerCullObject*, arMatrix4&);

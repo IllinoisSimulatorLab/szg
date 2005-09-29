@@ -8,31 +8,11 @@
 // MUST come before other szg includes. See arCallingConventions.h for details.
 #define SZG_DO_NOT_EXPORT
 #include "arGraphicsServer.h"
+#include "arGraphicsPeer.h"
 #include "arMesh.h"
 
 arGraphicsServer g;
-
-void display(){
-  glClearColor(0,0,0,0);
-  glEnable(GL_DEPTH_TEST);
-  glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(-2,2, -2,2, 0.1, 100);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  gluLookAt(0,0,2, 0,0,0, 0,1,0);
-  g.draw();
-  glutSwapBuffers();
-}
-
-void keyboard(unsigned char key, int x, int y){
-  switch(key){
-  case 27:
-    exit(0);
-    break;
-  }
-}
+arGraphicsPeer peer;
 
 // Makes a simple test texture.
 char* makePixels(){
@@ -50,27 +30,7 @@ char* makePixels(){
   return pixels;
 }
 
-int main(int argc, char** argv){
-  ar_timeval time1 = ar_time();
-  int i;
-  int num = 100000;
-  for (i=0; i<num; i++){
-    arGraphicsContext* g = new arGraphicsContext();
-    delete g;
-  }
-  // It turns out to not be *that* expensive to create and delete a graphics
-  // context. Here we are checking that.
-  double t = ar_difftime(ar_time(), time1);
-  cout << "Average time to create/delete graphics context = "
-       << t/num << " microseconds.\n";
-
-  // Test the reference counting on texture objects.
-  arTexture* tex1 = new arTexture();
-  arTexture* tex2 = tex1->ref();
-  tex1->unref(true);
-  cout << "The second texture (ref) has width = " << tex2->getWidth() << "\n";
-  tex2->unref(true);
-
+void testDatabase(arGraphicsDatabase& g){
   // For drawing from szgrender, there must be a viewer node.
   arViewerNode* viewer 
     = (arViewerNode*) g.newNode(g.getRoot(), "viewer", "szg_viewer");
@@ -138,6 +98,7 @@ int main(int argc, char** argv){
 
   p->attach(s3);
 
+  // The stuff that was here before attach!
   /*arGraphicsStateNode* s3 
     = (arGraphicsStateNode*) g.newNode(p, "graphics state");
   s3->setGraphicsState("line_width", NULL, 2.0);
@@ -207,27 +168,10 @@ int main(int argc, char** argv){
   arRectangleMesh rect;
   rect.attachMesh("the_rect", "rect_texture");
 
-  arSZGClient client;
-  client.init(argc, argv);
-  if (!client){
-    // Failed to connect to szgserver. That's it since we are testing
-    // the distributed graphics as well.
-    cout << "TestGraphics error: szgserver must be running and user must "
-	 << "be dlogin'ed.\n";
-    return 1;
-  }
-  if (!g.init(client)){
-    cout << "TestGraphics error: graphics server failed to init.\n";
-    return 1;
-  }
-  if (!g.start()){
-    cout << "TestGraphics error: graphics server failed to start.\n";
-    return 1;
-  }
   int count = 0;
-  arGraphicsStateNode* insertedState;
-  arGraphicsStateNode* insertedState2;
-  while (true){
+  arGraphicsStateNode* insertedState = NULL;
+  arGraphicsStateNode* insertedState2 = NULL;
+  while (count <= 600){
     g.setVRCameraID(viewer->getID());
     if (count == 100){
       cout << "About to insert node.\n";
@@ -266,20 +210,71 @@ int main(int argc, char** argv){
       IDs.push_back(n->getID());
       IDs.push_back(rt->getID());
       g.permuteChildren(globalTrans, IDs);
-      count = 0;
     }
     count++;
     ar_usleep(10000);
   }
+}
 
-  /*glutInit(&argc,argv);
-  glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB|GLUT_DEPTH);
-  glutInitWindowSize(600,600);
-  glutInitWindowPosition(0, 0);
-  glutCreateWindow("szg graphics test");
-  glutDisplayFunc(display);
-  glutIdleFunc(display);
-  glutKeyboardFunc(keyboard);
+int main(int argc, char** argv){
+  ar_timeval time1 = ar_time();
+  int i;
+  int num = 100000;
+  for (i=0; i<num; i++){
+    arGraphicsContext* g = new arGraphicsContext();
+    delete g;
+  }
+  // It turns out to not be *that* expensive to create and delete a graphics
+  // context. Here we are checking that.
+  double t = ar_difftime(ar_time(), time1);
+  cout << "Average time to create/delete graphics context = "
+       << t/num << " microseconds.\n";
 
-  glutMainLoop();*/
+  // Test the reference counting on texture objects.
+  arTexture* tex1 = new arTexture();
+  arTexture* tex2 = tex1->ref();
+  tex1->unref(true);
+  cout << "The second texture (ref) has width = " << tex2->getWidth() << "\n";
+  tex2->unref(true);
+
+  arSZGClient client;
+  client.init(argc, argv);
+  if (!client){
+    // Failed to connect to szgserver. That's it since we are testing
+    // the distributed graphics as well.
+    cout << "TestGraphics error: szgserver must be running and user must "
+	 << "be dlogin'ed.\n";
+    return 1;
+  }
+  if (!g.init(client)){
+    cout << "TestGraphics error: graphics server failed to init.\n";
+    return 1;
+  }
+  if (!g.start()){
+    cout << "TestGraphics error: graphics server failed to start.\n";
+    return 1;
+  }
+  testDatabase(g);
+  g.stop();
+  
+  peer.setName("test_graphics");
+  if (!peer.init(client)){
+    cout << "TestGraphics error: could not initialize graphics peer.\n";
+    return 1;
+  }
+  if (!peer.start()){
+    cout << "TestGraphics error: could not start graphics peer.\n";
+    return 1;
+  }
+  if (peer.connectToPeer("target")<0){
+    cout << "TestGraphics error: peer named \"target\" does not exist.\n";
+    peer.stop();
+    return 1;
+  }
+  peer.pullSerial("target",0,0,1,1,1);
+  peer.reset();
+  // sleep for 2 seconds.
+  ar_usleep(2000000);
+  testDatabase(peer);
+  peer.stop();
 }

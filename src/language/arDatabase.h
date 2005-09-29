@@ -180,6 +180,28 @@ class SZG_CALL arDatabase{
 		      map<int, int, less<int> >* outFilter,
 		      bool outFilterOn,
                       bool allNew);
+  arDatabaseNode* _mapNodeBelow(arDatabaseNode* parent,
+				const string& nodeType,
+				const string& nodeName,
+				map<int,int,less<int> >& nodeMap);
+  int _filterIncomingMakeNode(arDatabaseNode* mappingRoot,
+                      arStructuredData* record, 
+	              map<int, int, less<int> >& nodeMap,
+		      int* mappedIDs,
+		      map<int, int, less<int> >* outFilter,
+		      bool outFilterOn,
+                      bool allNew);
+  int _filterIncomingInsert(arDatabaseNode* mappingRoot,
+                      arStructuredData* data, 
+	              map<int, int, less<int> >& nodeMap,
+		      int* mappedIDs);
+  int _filterIncomingErase(arDatabaseNode* mappingRoot,
+                           arStructuredData* data,
+			   map<int, int, less<int> >& nodeMap);
+  int _filterIncomingCut(arStructuredData* data,
+			 map<int, int, less<int> >& nodeMap);
+  int _filterIncomingPermute(arStructuredData* data,
+			     map<int, int, less<int> >& nodeMap);
   
   // The factory function that is redefined by subclasses.
   virtual arDatabaseNode* _makeNode(const string& type);
