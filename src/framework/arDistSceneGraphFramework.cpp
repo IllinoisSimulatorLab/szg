@@ -496,8 +496,6 @@ bool arDistSceneGraphFramework::start(){
 	  "error: graphics peer failed to connect to requested target=" +
 	  _peerTarget + ".");
 
-      // In either case, send data to the target.
-      _graphicsPeer.sending(_peerTarget, true);
       // The following sets up a FEEDBACK mode!
       _graphicsPeer.pushSerial(_peerTarget, _remoteRootID, 0, 1, true, true);
       // BUG BUG BUG BUG BUG BUG BUG: Need better definition of "modes"!

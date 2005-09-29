@@ -34,8 +34,10 @@ class SZG_CALL arDatabaseNode{
   void unref();
 
   int getID() const { return _ID; }
-  string getName() const { return _name; }
+  string getName() const;
   void setName(const string& name);
+  string getInfo() const;
+  void setInfo(const string& info);
   int getTypeCode() const { return _typeCode; }
   string getTypeString() const { return _typeString; }
 
@@ -98,6 +100,9 @@ class SZG_CALL arDatabaseNode{
   // somehow, on certain known properties it has. For instance, the node
   // might just hold "transient data".
   bool       _transient;
+
+  // The node is allowed to hold an "info" string.
+  string _info;
 
   void _dumpGenericNode(arStructuredData*, int);
   void _addChild(arDatabaseNode* node);

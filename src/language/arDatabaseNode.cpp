@@ -18,7 +18,8 @@ arDatabaseNode::arDatabaseNode():
   _typeString("root"),
   _parent(NULL),
   _refs(1),
-  _transient(false){
+  _transient(false),
+  _info(""){
   
   _databaseOwner = NULL;
   _dLang = NULL;
@@ -77,6 +78,10 @@ void arDatabaseNode::attach(arDatabaseNode* child){
   }
 }
 
+string arDatabaseNode::getName() const{
+  return _name;
+}
+
 void arDatabaseNode::setName(const string& name){
   if (_name == "root"){
     cout << "arDatabaseNode warning: cannot set root name.\n";
@@ -86,11 +91,34 @@ void arDatabaseNode::setName(const string& name){
     arStructuredData* r = _dLang->makeDataRecord(_dLang->AR_NAME);
     r->dataIn(_dLang->AR_NAME_ID, &_ID, AR_INT, 1);
     r->dataInString(_dLang->AR_NAME_NAME, name);
+    r->dataInString(_dLang->AR_NAME_INFO, _info);
     _databaseOwner->alter(r);
     delete r;
   }
   else{
     _name = name;
+  }
+}
+
+string arDatabaseNode::getInfo() const{
+  return _info;
+}
+
+void arDatabaseNode::setInfo(const string& info){
+  if (_name == "root"){
+    cout << "arDatabaseNode warning: cannot set root info.\n";
+    return;
+  }
+  if (_databaseOwner){
+    arStructuredData* r = _dLang->makeDataRecord(_dLang->AR_NAME);
+    r->dataIn(_dLang->AR_NAME_ID, &_ID, AR_INT, 1);
+    r->dataInString(_dLang->AR_NAME_NAME, _name);
+    r->dataInString(_dLang->AR_NAME_INFO, info);
+    _databaseOwner->alter(r);
+    delete r;
+  }
+  else{
+    _info = info;
   }
 }
 
@@ -120,6 +148,7 @@ bool arDatabaseNode::receiveData(arStructuredData* data){
     return false;
   } 
   _name = data->getDataString(_dLang->AR_NAME_NAME);
+  _info = data->getDataString(_dLang->AR_NAME_INFO);
   return true;
 }
 
@@ -127,6 +156,7 @@ arStructuredData* arDatabaseNode::dumpData(){
   arStructuredData* result = _dLang->makeDataRecord(_dLang->AR_NAME);
   _dumpGenericNode(result,_dLang->AR_NAME_ID);
   result->dataInString(_dLang->AR_NAME_NAME, _name);
+  result->dataInString(_dLang->AR_NAME_INFO, _info);
   return result;
 }
 

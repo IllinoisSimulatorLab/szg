@@ -38,56 +38,6 @@ string ar_graphicsPeerHandleCloseConnection(arGraphicsPeer* peer,
   return result.str();
 }
 
-// Format = receive_from_peer_name/[0,1]
-string ar_graphicsPeerHandleReceiving(arGraphicsPeer* peer, 
-                                      const string& messageBody){
-  stringstream result;
-  arSlashString parameters(messageBody);
-  if (parameters.size() < 2){
-    result << "szg-rp error: usage is receive_from_peer_name/[0,1]";
-    return result.str();
-  } 
-  if (!peer->receiving(parameters[0], parameters[1] == "1" ? true : false)){
-    result << "szg-rp error: remote peer not connected"
-	   << " (" << parameters[0] << ").";
-    return result.str();
-  }
-  if (parameters[1] == "1"){
-    result << "szg-rp success: receiving on from " << parameters[0]
-	   << ".";
-  }
-  else{
-    result << "szg-rp success: receiving off from " << parameters[0]
-	   << ".";
-  }
-  return result.str();
-}
-
-// Format = sending_to_peer_name/[0,1]
-string ar_graphicsPeerHandleSending(arGraphicsPeer* peer, 
-                                    const string& messageBody){
-  stringstream result;
-  arSlashString parameters(messageBody);
-  if (parameters.size() < 2){
-    result << "szg-rp error: usage is sending_to_peer_name/[0,1]";
-    return result.str();
-  } 
-  if (!peer->sending(parameters[0], parameters[1] == "1" ? true : false)){
-    result << "szg-rp error: remote peer not connected"
-	   << " (" << parameters << ").\n";
-    return result.str();
-  }
-  if (parameters[1] == "1"){
-    result << "szg-rp success: sending on to " << parameters[0]
-	   << ".";
-  }
-  else{
-    result << "szg-rp success: sending off to " << parameters[0]
-	   << ".";
-  }
-  return result.str();
-}
-
 // Format = pull_from_peer_name/[0,1]
 string ar_graphicsPeerHandlePullSerial(arGraphicsPeer* peer, 
                                         const string& messageBody){
@@ -110,7 +60,7 @@ string ar_graphicsPeerHandlePullSerial(arGraphicsPeer* peer,
   stringstream value3;
   value3 << parameters[3];
   value3 >> sendLevel;
-  cout << "AARGH! peer = " << parameters[0]
+  cout << " (pull serial) peer = " << parameters[0]
        << " remoteRootID = " << remoteRootID
        << " localRootID = " << localRootID
        << " sendLevel = " << sendLevel
@@ -534,12 +484,6 @@ string ar_graphicsPeerHandleMessage(arGraphicsPeer* peer,
   }
   else if (messageType == "close_connection"){
     responseBody = ar_graphicsPeerHandleCloseConnection(peer, messageBody);
-  }
-  else if (messageType == "receiving"){
-    responseBody = ar_graphicsPeerHandleReceiving(peer, messageBody);
-  }
-  else if (messageType == "sending"){
-    responseBody = ar_graphicsPeerHandleSending(peer, messageBody);
   }
   else if (messageType == "pull_serial"){
     responseBody = ar_graphicsPeerHandlePullSerial(peer, messageBody);

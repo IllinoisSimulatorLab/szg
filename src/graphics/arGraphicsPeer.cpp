@@ -38,8 +38,6 @@ void arGraphicsPeerCullObject::insert(int ID, int state){
 arGraphicsPeerConnection::arGraphicsPeerConnection(){ 
   remoteName = "NULL"; 
   connectionID = -1;
-  receiving = false;
-  sending = false;
   remoteFrameTime = 0;
   // Without doing this, the children on the root node will never 
   // get automatically mapped to a feedback peer!
@@ -50,20 +48,6 @@ string arGraphicsPeerConnection::print(){
   stringstream result;
   result << "connection = " << remoteName << "/"
          << connectionID << ":";
-  if (receiving){
-    result << "1";
-  }
-  else{
-    result << "0";
-  }
-  result << ":";
-  if (sending){
-    result << "1";
-  }
-  else{
-    result << "0";
-  }
-  result << ":";
   for (list<int>::iterator i = nodesLockedLocal.begin();
        i != nodesLockedLocal.end();
        i++){
@@ -189,44 +173,6 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       gp->_dumpVar.signal();
       ar_mutex_unlock(&gp->_dumpLock);
     }
-    else if (action == "receive-on"){
-      ar_mutex_lock(&gp->_socketsLock);
-      // Important that remember which sockets are receiving info.
-      // When we get this message, the remote peer informs us that
-      // it will be sending scene graph updates.
-      map<int, arGraphicsPeerConnection*, less<int> >::iterator i
-        = gp->_connectionContainer.find(socket->getID());
-      if (i == gp->_connectionContainer.end()){
-        cout << "arGraphicsPeer internal error: could not find connection "
-	     << "object.\n";
-      }
-      else{
-        i->second->receiving = true;
-      }
-      ar_mutex_unlock(&gp->_socketsLock);
-    }
-    else if (action == "receive-off"){
-      ar_mutex_lock(&gp->_socketsLock);
-      // Important that remember which sockets are receiving info.
-      // When we get this message, the remote peer informs us that
-      // it will be sending scene graph updates.
-      map<int, arGraphicsPeerConnection*, less<int> >::iterator i
-        = gp->_connectionContainer.find(socket->getID());
-      if (i == gp->_connectionContainer.end()){
-        cout << "arGraphicsPeer internal error: could not find connection "
-	     << "object.\n";
-      }
-      else{
-        i->second->receiving = false;
-      }
-      ar_mutex_unlock(&gp->_socketsLock);
-    }
-    else if (action == "relay-on"){
-      gp->_activateSocket(socket);
-    }
-    else if (action == "relay-off"){
-      gp->_deactivateSocket(socket);
-    }
     else if (action == "close"){
       // Probably a good idea to handshake back with the following.
       // We want an *active* close on the other end. This avoids
@@ -319,6 +265,10 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
     }
     else if (action == "camera_node"){
       // Just go ahead and discard.
+    }
+    else{
+      cout << "arGraphicsPeer error: received illegal admin message ("
+	   << action << ").\n";
     }
   }
   else{
@@ -1003,78 +953,6 @@ bool arGraphicsPeer::closeConnection(const string& name){
 }
 
 /// By default, nothing happens when we connect a graphics peer to another.
-/// The graphics peers must request actions. For instance, we might want the
-/// remote peer to relay all messages it receives to us. For this effect,
-/// set "state" to true. To stop relaying once it has started, set "state"
-/// to false.
-bool arGraphicsPeer::receiving(const string& name, bool state){
-  arStructuredData adminData(_gfx.find("graphics admin"));
-  if (state){
-    adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "relay-on");
-  }
-  else{
-    adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "relay-off"); 
-  }
-  // NOTE: labels are FORCED to be unique since they are connected with
-  // peer names.
-  int socketID = _dataServer->getFirstIDWithLabel(name);
-  arSocket* socket = _dataServer->getConnectedSocket(socketID);
-  if (!socket){
-    return false;
-  }
-  _dataServer->sendData(&adminData, socket);
-  ar_mutex_lock(&_socketsLock);
-  // Important that remember which sockets have requested updates.
-  map<int, arGraphicsPeerConnection*, less<int> >::iterator i
-    = _connectionContainer.find(socket->getID());
-  if (i == _connectionContainer.end()){
-    cout << "arGraphicsPeer internal error: could not find connection "
-	 << "object.\n";
-  }
-  else{
-    if (state){
-      i->second->receiving = true;
-    }
-    else{
-      // relaying is off
-      i->second->receiving = false;
-    }
-  }
-  ar_mutex_unlock(&_socketsLock);
-  return true;
-}
-
-/// Proactively start sending the connected peer data, without being asked.
-bool arGraphicsPeer::sending(const string& name, bool state){
-  // NOTE: labels are forced to be unique since they are connected with 
-  // peer names.
-  int socketID = _dataServer->getFirstIDWithLabel(name);
-  arSocket* socket = _dataServer->getConnectedSocket(socketID);
-  if (!socket){
-    return false;
-  }
-  // NOTE: the remote peer needs to be able to keep track of whether it
-  // is receiving data. COnsequently, we must send a message saying we
-  // are doing so...
-  arStructuredData adminData(_gfx.find("graphics admin"));
-  if (state){
-    adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "receive-on");
-  }
-  else{
-    adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "receive-off"); 
-  }
-  _dataServer->sendData(&adminData, socket);
-
-  if (state){
-    _activateSocket(socket);
-  }
-  else{
-    _deactivateSocket(socket);
-  }
-  return true;
-}
-
-/// By default, nothing happens when we connect a graphics peer to another.
 /// The graphics peers must request actions.
 bool arGraphicsPeer::pullSerial(const string& name,
                                 int remoteRootID,
@@ -1510,11 +1388,6 @@ bool arGraphicsPeer::_serializeAndSend(arSocket* socket,
     int dataSent = 0;
     _recSerialize(pNode, nodeData, socket, connectionIter->second->outFilter,
                   localSendOn, sendLevel, dataSent, success);
-    // If relaying has also been requested, go ahead and enable that.
-    // THIS FEATURE IS DEPRECATED. IT WILL BE IGNORED SOON ENOUGH IN ALTER!
-    if (localSendOn){
-      _activateSocket(socket);
-    }
   }
   //ar_mutex_unlock(&_alterLock);
 
@@ -1530,70 +1403,6 @@ void arGraphicsPeer::_serializeDoneNotify(arSocket* socket){
   if (!_dataServer->sendData(&adminData, socket)){
     cout << "szg-rp error: failed to send dump-completion response.\n";
   }
-}
-
-void arGraphicsPeer::_activateSocket(arSocket* socket){
-  ar_mutex_lock(&_socketsLock);
-  // We see if the socket can be found. This is a bit of a hack... since
-  // we've got pointers but instead want to match the stuff via handles.
-
-  // It is redundant to use the sockets list too. Instead, we use the
-  // connection list exclusively.
-  /*bool found = false;
-  for (list<arSocket*>::iterator i = _outgoingSockets.begin();
-       i != _outgoingSockets.end();
-       i++){
-    if (socket->getID() == (*i)->getID()){
-      found = true;
-      break;
-    }
-  }
-  if (!found){
-    _outgoingSockets.push_back(socket);
-  }*/
-  map<int, arGraphicsPeerConnection*, less<int> >::iterator j
-    = _connectionContainer.find(socket->getID());
-  if ( j == _connectionContainer.end()){
-    cout << "arGraphicsPeer internal error: could not find requested "
-	 << "object.\n";
-  }
-  else{
-    j->second->sending = true;
-  }
-  ar_mutex_unlock(&_socketsLock);
-}
-
-void arGraphicsPeer::_deactivateSocket(arSocket* socket){
-  ar_mutex_lock(&_socketsLock);
-  /*for (list<arSocket*>::iterator i = _outgoingSockets.begin();
-       i != _outgoingSockets.end();
-       i++){
-    if (socket->getID() == (*i)->getID()){
-      _outgoingSockets.erase(i);
-      map<int, arGraphicsPeerConnection*, less<int> >::iterator j
-        = _connectionContainer.find(socket->getID());
-      if ( j == _connectionContainer.end()){
-        cout << "arGraphicsPeer internal error: could not find requested "
-	     << "object.\n";
-      }
-      else{
-        j->second->sending = false;
-      }
-      break;
-    }
-    }*/
-  // Again, it is redundant to have a connection list and an outgoing 
-  // sockets list.
-  map<int, arGraphicsPeerConnection*, less<int> >::iterator j
-    = _connectionContainer.find(socket->getID());
-  if ( j == _connectionContainer.end()){
-    cout << "arGraphicsPeer internal error: could not find requested "
-	 << "object.\n";
-  }
-  else{
-    j->second->sending = false;
-  }
-  ar_mutex_unlock(&_socketsLock);
 }
 
 void arGraphicsPeer::_closeConnection(arSocket* socket){

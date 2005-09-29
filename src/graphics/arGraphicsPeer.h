@@ -49,8 +49,6 @@ class SZG_CALL arGraphicsPeerConnection{
   // closed, then opened again, a connection between two peers. 
   int       connectionID;
   arSocket* socket;
-  bool      receiving;
-  bool      sending;
   list<int> nodesLockedLocal;
   list<int> nodesLockedRemote;
 
@@ -147,8 +145,6 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   // These form the most important part of the API.
   int connectToPeer(const string& name);
   bool closeConnection(const string& name);
-  bool receiving(const string& name, bool state);
-  bool sending(const string& name, bool state);
   bool pullSerial(const string& name, int remoteRootID, int localRootID,
                   int sendLevel, bool remoteSendOn, bool localSendOn);
   bool pushSerial(const string& name, int remoteRootID, int localRootID,
@@ -182,9 +178,6 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   string          _name;
   arQueuedData*   _incomingQueue;
   arDataServer*   _dataServer;
-  // The IDs of the sockets that are sending information.
-  // We will just rely on the list of connections in general for now.
-  //list<arSocket*> _outgoingSockets;
   arSZGClient*    _client;
   arThread        _connectionThread;
 
@@ -242,8 +235,6 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
                          bool localSendOn);
   void _serializeDoneNotify(arSocket* socket);
 
-  void _activateSocket(arSocket*);
-  void _deactivateSocket(arSocket*);
   void _closeConnection(arSocket*);
   void _resetConnectionMap(int connectionID, int nodeID, bool sendOn);
   void _lockNode(int nodeID, arSocket* socket);

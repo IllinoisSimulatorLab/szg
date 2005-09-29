@@ -99,9 +99,12 @@ class arDatabaseNode{
   int getID() const;
   string getName() const;
   void setName(const string&);
+  string getInfo() const;
+  void setInfo(const string&);
   int getTypeCode() const;
   string getTypeString() const;
   
+  arDatabaseNode* newNode(const string& type, const string& name="");
   arDatabaseNode* getParent();
   list<arDatabaseNode*> getChildren();
 
@@ -109,10 +112,15 @@ class arDatabaseNode{
   arDatabaseNode* findNodeByType(const string& nodeType);
   void printStructure();
   void printStructure(int maxLevel);
+  void ps();
+  void ps(int maxLevel);
 
 %pythoncode{
   # simply present to provide a uniform interface to the nodes
   # vis-a-vis arGraphicsNode
+  def new(self, type, name=""):
+      return self.newNode(type, name)
+
   def parent(self):
       return self.getParent() 
 
@@ -212,6 +220,12 @@ class arGraphicsNode: public arDatabaseNode{
 %pythoncode{
   def find(self, name):
       return gcast(self.findNode(name))
+
+  def findByType(self, type):
+      return gcast(self.findNodeByType(type))
+
+  def new(self, type, name=""):
+      return gcast(self.newNode(type, name))
 
   def parent(self):
       return gcast(self.getParent()) 
@@ -514,6 +528,11 @@ class arDatabase{
   arDatabase();
   virtual ~arDatabase();
 
+  void setDataBundlePath(const string& bundlePathName, 
+                         const string& bundleSubDirectory);
+  void addDataBundlePathMap(const string& bundlePathName, 
+                            const string& bundlePath);
+
   int getNodeID(const string& name, bool fWarn=true);
   arDatabaseNode* getNode(int, bool fWarn=true);
   arDatabaseNode* getNode(const string&, bool fWarn=true);
@@ -521,7 +540,14 @@ class arDatabase{
   arDatabaseNode* getRoot(){ return &_rootNode; }
   arDatabaseNode* newNode(arDatabaseNode* parent, const string& type,
                           const string& name="");
+  arDatabaseNode* insertNode(arDatabaseNode* parent,
+			     arDatabaseNode* child,
+			     const string& type,
+			     const string& name = "");
+  bool cutNode(int ID);
   bool eraseNode(int ID);
+  void permuteChildren(arDatabaseNode* parent,
+                       list<int>& childIDs);
 
   virtual arDatabaseNode* alter(arStructuredData*);
   arDatabaseNode* alterRaw(ARchar*);
@@ -559,6 +585,8 @@ class arDatabase{
   virtual void reset();
   void printStructure(int maxLevel);
   void printStructure();
+  void ps(int maxLevel);
+  void ps();
 };
 
 class arGraphicsDatabase: public arDatabase{
@@ -571,7 +599,6 @@ class arGraphicsDatabase: public arDatabase{
   virtual void reset();
 
   void loadAlphabet(const char*);
-  arTexture** getAlphabet();
   void setTexturePath(const string& thePath);
   arTexture* addTexture(const string&, int*);
 
@@ -586,9 +613,11 @@ class arGraphicsDatabase: public arDatabase{
   bool registerCamera(int owningNodeID, arPerspectiveCamera* theCamera);
 
 %pythoncode{
-    def new(self, node, type, name):
-        theNode = gcast(self.newNode(node,type,name))
-        return theNode
+    def new(self, node, type, name=""):
+        return gcast(self.newNode(node,type,name))
+
+    def insert(self, parent, child, type, name=""):
+        return gcast(self.insertNode(parent, child, type, name))
     
     def get(self, name):
         return gcast(self.getNode(name))
@@ -604,15 +633,7 @@ class arGraphicsPeerConnection{
   ~arGraphicsPeerConnection();
 
   string    remoteName;
-  // Critical that we use the connection ID... this is one thing that is
-  // actually unique about the connection. The remoteName is not unique
-  // (though it is at any particular time) since we could have open, then
-  // closed, then opened again, a connection between two peers. 
   int       connectionID;
-  bool      receiving;
-  bool      sending;
-  // list<int> nodesLockedLocal;
-  // list<int> nodesLockedRemote;
 
 %extend{
     string __repr__() {
@@ -670,8 +691,6 @@ class arGraphicsPeer: public arGraphicsDatabase{
   
   int connectToPeer(const string& name);
   bool closeConnection(const string& name);
-  bool receiving(const string& name, bool state);
-  bool sending(const string& name, bool state);
   bool pullSerial(const string& name, int remoteRootID, int localRootID,
                   int sendLevel, bool remoteSendOn, bool localSendOn);
   bool pushSerial(const string& name, int remoteRootID, int localRootID,
