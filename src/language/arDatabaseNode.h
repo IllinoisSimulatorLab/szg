@@ -13,19 +13,14 @@
 #include "arLanguageCalling.h"
 using namespace std;
 
-// THIS IS AN OBNOXIOUS HACK!!!!!
-// REALLY SHOULD TRY TO REMOVE THESE FORWARD DECLARATIONS!!!!
+// This forward declaration is necessary since an arDatabaseNode can be
+// owned by an arDatabase.
 class arDatabase;
-class arGraphicsDatabase;
-class arSoundDatabase;
 
 /// Node in an arDatabase.
 
 class SZG_CALL arDatabaseNode{
   friend class arDatabase;
-  friend class arGraphicsDatabase;
-  friend class arGraphicsPeer;
-  friend class arSoundDatabase;
  public:
   arDatabaseNode();
   virtual ~arDatabaseNode();
@@ -33,7 +28,6 @@ class SZG_CALL arDatabaseNode{
   void ref();
   void unref();
 
-  int getID() const { return _ID; }
   string getName() const;
   void setName(const string& name);
   string getInfo() const;
@@ -41,18 +35,12 @@ class SZG_CALL arDatabaseNode{
   int getTypeCode() const { return _typeCode; }
   string getTypeString() const { return _typeString; }
 
-  arDatabase* getOwningDatabase(){ return _databaseOwner; }
   // If the node has an owner, it can act as a node factory as well.
   arDatabaseNode* newNode(const string& type, const string& name = ""); 
-  // Sometimes we want to be able to take an existing node and add it to
-  // the database.
-  // BUG BUG BUG BUG BUG BUG BUG BUG BUG
-  // There should be some sort of check to make sure that the node is of the
-  // right type (i.e. arGraphicsNode or arSoundNode).
-  void attach(arDatabaseNode* child);
-
-  arDatabaseNode* getParent(){ return _parent; }
-  list<arDatabaseNode*> getChildren(){ return _children; }
+  // Sometimes we want to work with node trees that are not controlled by
+  // an arDatabase.
+  bool addChild(arDatabaseNode* child);
+  bool removeChild(arDatabaseNode* child);
 
   arDatabaseNode* findNode(const string& name);
   arDatabaseNode* findNodeByType(const string& nodeType);
@@ -69,6 +57,13 @@ class SZG_CALL arDatabaseNode{
   virtual bool receiveData(arStructuredData*);
   virtual void initialize(arDatabase* d);
 
+  int getID() const;
+  arDatabase* getOwner() const;
+  arDatabaseNode* getParent() const;
+  list<arDatabaseNode*> getChildren() const;
+  bool hasChildren() const;
+
+  bool getTransient(){ return _transient; }
   void setTransient(bool state){ _transient = state; }
  protected:
   ARint  _ID;
@@ -104,8 +99,20 @@ class SZG_CALL arDatabaseNode{
   // The node is allowed to hold an "info" string.
   string _info;
 
+  // Generic structure manipulation functions.
+  void _setName(const string& name);
+  void _setOwner(arDatabase* database);
+  void _setID(int ID);
+  bool _setParentNotAddingToParentsChildren(arDatabaseNode* parent);
+  void _removeParentLeavingInParentsChildren();
+  bool _addChild(arDatabaseNode* node);
+  void _removeChild(arDatabaseNode* node);
+  void _removeAllChildren();
+  void _stealChildren(arDatabaseNode* node);
+  void _permuteChildren(list<arDatabaseNode*> childList);
+  // Helper function for serializing a generic node.
   void _dumpGenericNode(arStructuredData*, int);
-  void _addChild(arDatabaseNode* node);
+  // Recursive helper functions.
   void _findNode(arDatabaseNode*& result, const string& name, bool& success,
 		 map<int,int,less<int> >* nodeMap, bool checkTop);
   void _findNodeByType(arDatabaseNode*& result, const string& nodeType,

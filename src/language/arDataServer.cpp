@@ -34,7 +34,7 @@ arDataServer::~arDataServer(){
     cerr << "arDataServer warning: destructor trying to close sockets.\n";
     for (list<arSocket*>::iterator i(_connectionSockets.begin());
          i != (_connectionSockets.end());
-         ++i){
+         i++){
       arSocket* theSocket = *i;
       theSocket->ar_close();
       delete theSocket;

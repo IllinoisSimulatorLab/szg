@@ -11,7 +11,7 @@
 #include "arGraphicsPeer.h"
 #include "arMesh.h"
 
-arGraphicsServer g;
+arGraphicsServer* g;
 arGraphicsPeer peer;
 
 // Makes a simple test texture.
@@ -75,31 +75,7 @@ void testDatabase(arGraphicsDatabase& g){
   d = (arDrawableNode*) g.newNode(color, "drawable");
   d->setDrawable(DG_LINES, 4);
 
-  // Want to test "attach", whereby nodes are created outside the
-  // arDatabase factory.
-  arGraphicsStateNode* s3 = new arGraphicsStateNode();
-  s3->setName("state_node");
-  s3->setGraphicsState("line_width", NULL, 2.0);
-  in = new arIndexNode();
-  in->setName("index_node");
-  int index2[4] = {0,2, 1,3};
-  in->setIndices(4, index2);
-  s3->attach(in);
-  color = new arColor4Node();
-  color->setName("color_node");
-  float lineColor2[16] = {0,1,0,1, 0,1,0,1,
-			 0,1,0,1, 0,1,0,1};
-  color->setColor4(4, lineColor2);
-  in->attach(color);
-  d = new arDrawableNode();
-  d->setName("drawable_node");
-  d->setDrawable(DG_LINES, 2);
-  color->attach(d);
-
-  p->attach(s3);
-
-  // The stuff that was here before attach!
-  /*arGraphicsStateNode* s3 
+  arGraphicsStateNode* s3 
     = (arGraphicsStateNode*) g.newNode(p, "graphics state");
   s3->setGraphicsState("line_width", NULL, 2.0);
   in = (arIndexNode*) g.newNode(s3, "index");
@@ -110,7 +86,7 @@ void testDatabase(arGraphicsDatabase& g){
 			 0,1,0,1, 0,1,0,1};
   color->setColor4(4, lineColor2);
   d = (arDrawableNode*) g.newNode(color, "drawable");
-  d->setDrawable(DG_LINES, 2);*/
+  d->setDrawable(DG_LINES, 2);
 
   arGraphicsStateNode* s4 
     = (arGraphicsStateNode*) g.newNode(globalTrans, "graphics state");
@@ -185,16 +161,15 @@ void testDatabase(arGraphicsDatabase& g){
       insertedState2 = (arGraphicsStateNode*) g.insertNode(n, NULL,
 							   "graphics state");
       insertedState2->setGraphicsState("point_size", NULL, 10);
-      g.ps();
     }
     if (count == 200){
       cout << "About to cut node.\n";
       g.cutNode(insertedState->getID());
       g.cutNode(insertedState2->getID());
-      g.ps();
     }
     list<int> IDs;
     if (count == 300){
+      cout << "testgraphics remark: about to permute nodes.\n";
       // s, s4, n, rt are the initial children for the global trans node.
       IDs.push_back(rt->getID());
       IDs.push_back(s->getID());
@@ -205,6 +180,7 @@ void testDatabase(arGraphicsDatabase& g){
     if (count == 400){
       // s, s4, n, rt are the initial children for the global trans node.
       // Return to the original order.
+      cout << "testgraphics remark: about to permute again.\n";
       IDs.push_back(s->getID());
       IDs.push_back(s4->getID());
       IDs.push_back(n->getID());
@@ -246,17 +222,20 @@ int main(int argc, char** argv){
 	 << "be dlogin'ed.\n";
     return 1;
   }
-  if (!g.init(client)){
+  g = new arGraphicsServer();
+  if (!g->init(client)){
     cout << "TestGraphics error: graphics server failed to init.\n";
     return 1;
   }
-  if (!g.start()){
+  if (!g->start()){
     cout << "TestGraphics error: graphics server failed to start.\n";
     return 1;
   }
-  testDatabase(g);
-  g.stop();
-  
+  testDatabase(*g);
+  // PLEASE NOTE: it is actually UNSAFE to delete an arDataServer object that
+  // is currently receiving connections. Consequently, these objects should
+  // never be declared as static globals in an szg application.
+ 
   peer.setName("test_graphics");
   if (!peer.init(client)){
     cout << "TestGraphics error: could not initialize graphics peer.\n";
@@ -276,5 +255,9 @@ int main(int argc, char** argv){
   // sleep for 2 seconds.
   ar_usleep(2000000);
   testDatabase(peer);
-  peer.stop();
+  cout << "testgraphics remark: about to stop peer.\n";
+  peer.closeAllAndReset();
+  // NOTE: arGraphicsPeer::stop() should not be used here. Really all it does
+  // is closeAllAndReset followed by closing the arSZGClient connection.
+  cout << "testgraphics remark: peer has stopped.\n";
 }

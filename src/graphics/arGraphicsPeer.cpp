@@ -449,7 +449,7 @@ arGraphicsPeer::arGraphicsPeer(){
 }
 
 arGraphicsPeer::~arGraphicsPeer(){
-
+ 
 }
 
 /// The graphics peer uses the "phleet" to offer its services to the
@@ -604,18 +604,18 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
     // Such a connection does exist. NOTE: we are using the *mapping*
     // mode here (as indicated by the final false) of updating the
     // node map.
-    potentialNewNodeID = _filterIncoming(connectionIter->second->rootMapNode,
-                                         data,
-					 connectionIter->second->inMap,
-					 filterIDs,
-					 &connectionIter->second->outFilter,
-					 connectionIter->second->sendOn,
-                                         false);
+    potentialNewNodeID = filterIncoming(connectionIter->second->rootMapNode,
+                                        data,
+					connectionIter->second->inMap,
+					filterIDs,
+					&connectionIter->second->outFilter,
+					connectionIter->second->sendOn,
+                                        false);
   }
 
   // Check to see if the node is locked by a source other than the origin of
   // this communication. If so, go ahead and return. Note that the
-  // _filterIncoming might have changed this ID. 
+  // filterIncoming might have changed this ID. 
   // How do locks influence the "structure messages"... namely 
   // make node, insert, erase, cut, permute? The identity of their routing
   // field determines this.
@@ -694,7 +694,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
       // Better check whether or not this is a "transient" node. If so,
       // (and the update time has NOT passed), we might do nothing.
       bool updateNodeEvenIfTransient = true;
-      if (result && result->_transient){
+      if (result && result->getTransient()){
         currentTime = ar_time();
         updateNodeEvenIfTransient 
           = _updateTransientMap(result->getID(),
@@ -735,7 +735,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
     }
     else{
       // The sender's node map needs to be augmented exactly when the
-      // filterIDs array has been modified. (see _filterIncoming above)
+      // filterIDs array has been modified. (see filterIncoming above)
       if (filterIDs[0] != -1){
         arStructuredData adminData(_gfx.find("graphics admin"));
         adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "node_map");
@@ -1639,13 +1639,13 @@ void arGraphicsPeer::_sendDataToBridge(arStructuredData* data){
   // construct a reverse map... nothing is coming back... the bridge is
   // one way.
   int potentialNewNodeID 
-    = _bridgeDatabase->_filterIncoming(_bridgeRootMapNode,
-                                       data,
-				       _bridgeInMap,
-				       NULL,
-				       NULL,
-				       true,
-                                       false);
+    = _bridgeDatabase->filterIncoming(_bridgeRootMapNode,
+                                      data,
+				      _bridgeInMap,
+				      NULL,
+				      NULL,
+				      true,
+                                      false);
   arDatabaseNode* result = NULL;
   if (potentialNewNodeID){
     result = _bridgeDatabase->alter(data);

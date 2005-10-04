@@ -29,6 +29,11 @@ arDatabaseNode::arDatabaseNode():
 }
 
 arDatabaseNode::~arDatabaseNode(){
+  // If we are being deleted AND the conventions for using arDatabaseNodes
+  // have been followed, our parent no longer holds us in its child list,
+  // so the following call is safe.
+  _removeParentLeavingInParentsChildren();
+  _removeAllChildren();
 }
 
 void arDatabaseNode::ref(){
@@ -52,29 +57,38 @@ void arDatabaseNode::unref(){
 // factory. Otherwise, return NULL.
 arDatabaseNode* arDatabaseNode::newNode(const string& type,
 					const string& name){
-  if (!_databaseOwner){
+  if (!getOwner()){
     return NULL;
   }
-  return _databaseOwner->newNode(this, type, name);
+  return getOwner()->newNode(this, type, name);
 }
 
 
-// Take an existing child (and all of its children recursively) and make
-// them children of this node. NOTE: If this node is already associated with
-// an arDatabase, then we need to make it generate messages to modify attached
-// databases (like in arGraphicsServer/arGraphicsClient, for instance).
-void arDatabaseNode::attach(arDatabaseNode* child){
+/// Take an existing node and make it a child of this node. In this case,
+/// neither node can be owned by an arDatabase. Note that we do not bother to
+/// try detecting loops here. The user is on his or her own in that regard.
+bool arDatabaseNode::addChild(arDatabaseNode* child){
   // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
   // Not checking to see if this new child node is of the right *type*
   // (i.e. arGraphicsNode instead of arSoundNode).
-  if (!_databaseOwner){
-    _addChild(child);
+  if (!getOwner() && !child->getOwner()){
+    return _addChild(child);
   }
   else{
-    // There is an owning database. Consequently, the owning database needs
-    // to generate a message (which does things like update connected, mirrored
-    // databases).
-    _databaseOwner->attach(this, child);
+    return false;
+  }
+}
+
+/// Take an existing node and remove it from the child list of this node.
+/// Returns false if the operation cannot be completed (i.e. one of the nodes
+/// is owned by an arDatabase).
+bool arDatabaseNode::removeChild(arDatabaseNode* child){
+  if (!getOwner() && !child->getOwner()){
+    _removeChild(child);
+    return true;
+  }
+  else{
+    return false;
   }
 }
 
@@ -83,20 +97,17 @@ string arDatabaseNode::getName() const{
 }
 
 void arDatabaseNode::setName(const string& name){
-  if (_name == "root"){
-    cout << "arDatabaseNode warning: cannot set root name.\n";
-    return;
-  }
-  if (_databaseOwner){
+  if (getOwner()){
     arStructuredData* r = _dLang->makeDataRecord(_dLang->AR_NAME);
-    r->dataIn(_dLang->AR_NAME_ID, &_ID, AR_INT, 1);
+    int ID = getID();
+    r->dataIn(_dLang->AR_NAME_ID, &ID, AR_INT, 1);
     r->dataInString(_dLang->AR_NAME_NAME, name);
     r->dataInString(_dLang->AR_NAME_INFO, _info);
-    _databaseOwner->alter(r);
+    getOwner()->alter(r);
     delete r;
   }
   else{
-    _name = name;
+    _setName(name);
   }
 }
 
@@ -109,12 +120,13 @@ void arDatabaseNode::setInfo(const string& info){
     cout << "arDatabaseNode warning: cannot set root info.\n";
     return;
   }
-  if (_databaseOwner){
+  if (getOwner()){
     arStructuredData* r = _dLang->makeDataRecord(_dLang->AR_NAME);
-    r->dataIn(_dLang->AR_NAME_ID, &_ID, AR_INT, 1);
+    int ID = getID();
+    r->dataIn(_dLang->AR_NAME_ID, &ID, AR_INT, 1);
     r->dataInString(_dLang->AR_NAME_NAME, _name);
     r->dataInString(_dLang->AR_NAME_INFO, info);
-    _databaseOwner->alter(r);
+    getOwner()->alter(r);
     delete r;
   }
   else{
@@ -147,7 +159,12 @@ bool arDatabaseNode::receiveData(arStructuredData* data){
     // NECESSARY MESSAGE WILL, IN FACT, BE PRINTED. 
     return false;
   } 
-  _name = data->getDataString(_dLang->AR_NAME_NAME);
+  if (_name == "root"){
+    cout << "arDatabaseNode warning: cannot set root name.\n";
+  }
+  else{
+    _name = data->getDataString(_dLang->AR_NAME_NAME);
+  }
   _info = data->getDataString(_dLang->AR_NAME_INFO);
   return true;
 }
@@ -162,21 +179,197 @@ arStructuredData* arDatabaseNode::dumpData(){
 
 void arDatabaseNode::initialize(arDatabase* d){
   // We keep track of who owns us and the language use to encode messages.
-  _databaseOwner = d;
+  _setOwner(d);
   _dLang = d->_lang;
 }
 
-void arDatabaseNode::_dumpGenericNode(arStructuredData* theData,int IDField){
-  (void)theData->dataIn(IDField,&_ID,AR_INT,1);
+//**********************************************************************
+// These accessor functions (combined with the next block of functions)
+// should be the only way(s) that external code touches _databaseOwner,
+// _ID, _parent, and _children. Even though these are simple functions,
+// do not put them in the header file. This gives us greater flexibility
+// looking towards the future.
+//**********************************************************************
+
+int arDatabaseNode::getID() const { 
+  return _ID; 
 }
 
-void arDatabaseNode::_addChild(arDatabaseNode* node){
-  // This is only called when there is no "owning database".
-  node->_databaseOwner = NULL;
-  node->_dLang = NULL;
+arDatabase* arDatabaseNode::getOwner() const{ 
+  return _databaseOwner; 
+}
+
+arDatabaseNode* arDatabaseNode::getParent() const{ 
+  return _parent; 
+}
+  
+list<arDatabaseNode*> arDatabaseNode::getChildren() const{ 
+  return _children; 
+}
+
+bool arDatabaseNode::hasChildren() const{
+  return _children.begin() == _children.end();
+}
+
+//**********************************************************************
+// The following functions are for tree structure manipulation. These
+// are the ONLY functions in arDatabaseNode and arDatabase that should
+// modify _databaseOwner, _ID, _parent, and _children.
+// Note that none of these check _databaseOwner. It is assumed that
+// the caller has done the appropriate checks and that all nodes in 
+// question are owned by the same arDatabase (in which case these are
+// being called from arDatabase methods) or are owned by none (in which
+// case they are being called by arDatabaseNode methods.
+//**********************************************************************
+
+// What it says. Sets the node's name.
+void arDatabaseNode::_setName(const string& name){
+  _name = name;
+}
+
+// A node either belongs to an arDatabase or it doesn't. This will only be
+// changed around the time of node creation. If the node is created by the
+// user directly, then it will never be owned by an arDatabase. If it is
+// created by an arDatabase, then this function will be called soon after
+// creation (from inside arDatabaseNode::initialize()).
+void arDatabaseNode::_setOwner(arDatabase* owner){
+  _databaseOwner = owner;
+}
+
+// The node's ID we only be set away from the default (0) if it is part of
+// an arDatabase. If so, it will be set once upon creation and never 
+// subsequently changed.
+void arDatabaseNode::_setID(int ID){
+  _ID = ID;
+}
+
+// This function is given an awkward name to discourage its use (outside of
+// this block of functions). It means just what it says. We add a ref to the
+// parent and set our pointer BUT we do not add ourselves to the parent's
+// children.
+bool arDatabaseNode::_setParentNotAddingToParentsChildren
+  (arDatabaseNode* parent){
+  // If the node currently has a parent, it is illegal to try to give it
+  // another.
+  if (_parent){
+    return false;
+  }
+  if (parent){
+    // Each node holds a reference to its parent.
+    _parent = parent;
+    _parent->ref();
+    return true;
+  }
+  // It is an error to pass in a NULL pointer.
+  return false;
+}
+
+// This function is given an awkward name to discourage its use (outside of
+// this block of helper functions and the arDatabaseNode destructor).
+// It means just what it says. We get rid of the node's parent ref without
+// being concerned that our pointer might still be in the parent's child list.
+void arDatabaseNode::_removeParentLeavingInParentsChildren(){
+  if (_parent){
+    // Each node holds a reference to its parent.
+    _parent->unref();
+    _parent = NULL;
+  }
+}
+
+bool arDatabaseNode::_addChild(arDatabaseNode* node){
   // Book-keeping for the tree structure.
-  node->_parent = this;
+  // If there is already a parent, then this fails.
+  if (node->_parent){
+    return false;
+  }
+  node->_setParentNotAddingToParentsChildren(this);
   _children.push_back(node);
+  // We've added the child. Must add a reference to it as well.
+  node->ref();
+  return true;
+}
+
+void arDatabaseNode::_removeChild(arDatabaseNode* node){
+  // Book-keeping for the tree structure.
+  for (list<arDatabaseNode*>::iterator i = _children.begin();
+       i != _children.end(); i++){
+    if (*i == node){
+      (*i)->unref();
+      node->_removeParentLeavingInParentsChildren();
+      _children.erase(i);
+      // We are done.
+      break;
+    }
+  }
+}
+
+void arDatabaseNode::_removeAllChildren(){
+  // Book-keeping for the tree structure. Be careful to do the reference
+  // releasing correctly.
+  for (list<arDatabaseNode*>::iterator i = _children.begin();
+       i != _children.end(); i++){
+    // Must release the node's reference to the parent. 
+    (*i)->_removeParentLeavingInParentsChildren();
+    // Must release OUR reference to the node.
+    (*i)->unref();
+  }
+  // Go ahead and empty the list.
+  _children.clear();
+}
+
+// Steal the children from the given node... and add them to our child list.
+void arDatabaseNode::_stealChildren(arDatabaseNode* node){
+  for (list<arDatabaseNode*>::iterator i = node->_children.begin();
+       i != node->_children.end(); i++){
+    _children.push_back(*i);
+    // Here we are essentially remove the child node's reference to its old
+    // parent. BUT... the node's child list still contains *i. We'll remove
+    // it at the final step.
+    (*i)->_removeParentLeavingInParentsChildren();
+    // Set the node's parent to the current node.
+    (*i)->_parent = this;
+    // We need to add a reference to the new parent (i.e. us)
+    ref();
+    // We do not, however, need to add a reference to the node, since
+    // that the old parent had already incremented the ref count.
+  }
+  // The old node has no children now!
+  node->_children.clear();
+}
+
+// This algorithm is inefficient. We're assuming that permute will only be
+// called on small node lists.
+// The given children (if they are children of the node) will be moved to
+// the front of the list, in the order they are given.
+void arDatabaseNode::_permuteChildren(list<arDatabaseNode*> childList){
+  // Must reverse the input list first.
+  childList.reverse();
+  for (list<arDatabaseNode*>::iterator i = childList.begin();
+       i != childList.end(); i++){
+    // Given the current node. Attempt to find it in the list and move it
+    // to the front. Note how we need to iterate over this list in reverse.
+    for (list<arDatabaseNode*>::iterator j = _children.begin();
+	 j != _children.end(); j++){
+      if (*i == *j){
+        // NOTE: We do not need to do any ref or unref since we're just
+	// moving this node to the front of the list.
+	arDatabaseNode* node = *j;
+        _children.erase(j);
+        _children.push_front(node);
+	// We're done with the search.
+	break;
+      }
+    }
+  }
+}
+
+//***************************************************************************
+// Various helper functions, mostly for recursions.
+//***************************************************************************
+
+void arDatabaseNode::_dumpGenericNode(arStructuredData* theData,int IDField){
+  int ID = getID();
+  (void)theData->dataIn(IDField,&ID,AR_INT,1);
 }
 
 void arDatabaseNode::_findNode(arDatabaseNode*& result,

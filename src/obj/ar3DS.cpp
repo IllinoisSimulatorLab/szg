@@ -70,7 +70,7 @@ void ar3DS::attachMesh(const string& baseName, arGraphicsNode* parent){
 
   // NOTE HOW KLUGEY THIS CODE SEEMS. IT WOULD BE BETTER TO HAVE THE
   // NODES BE IN CHARGE OF THE NEW NODE CREATION.
-  arDatabase* database = parent->getOwningDatabase();
+  arDatabase* database = parent->getOwner();
   arTransformNode* transformNode 
     = (arTransformNode*) database->newNode(parent, "transform", baseName);
   transformNode->setTransform(topMatrix);
@@ -116,7 +116,7 @@ void ar3DS::attachChildNode(const string &baseName,
     node->matrix[3][0],node->matrix[3][1],
     node->matrix[3][2],node->matrix[3][3]);
   //dgTransform(newName, baseName, nodeTransform);
-  arDatabase* database = parent->getOwningDatabase();
+  arDatabase* database = parent->getOwner();
   arTransformNode* newParent =
     (arTransformNode*) database->newNode(parent, "transform", newName);
   newParent->setTransform(nodeTransform);

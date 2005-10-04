@@ -24,7 +24,6 @@ typedef arDatabaseNode*
 
 /// Generic database distributed across a cluster.
 class SZG_CALL arDatabase{
- friend class arGraphicsPeer;
  public:
   arDatabase();
   virtual ~arDatabase();
@@ -44,7 +43,6 @@ class SZG_CALL arDatabase{
   // Some of them are mirrored as methods of arDatabase nodes.
   arDatabaseNode* newNode(arDatabaseNode* parent, const string& type,
                           const string& name = "");
-  arDatabaseNode* attach(arDatabaseNode* parent, arDatabaseNode* child);
   arDatabaseNode* insertNode(arDatabaseNode* parent,
 			     arDatabaseNode* child,
 			     const string& type,
@@ -88,6 +86,13 @@ class SZG_CALL arDatabase{
 		     map<int, int, less<int> >& nodeMap);
   bool filterData(arStructuredData* record,
 		  map<int, int, less<int> >& nodeMap);
+  int  filterIncoming(arDatabaseNode* mappingRoot,
+                      arStructuredData* record, 
+	              map<int, int, less<int> >& nodeMap,
+		      int* mappedIDs,
+		      map<int, int, less<int> >* outFilter,
+		      bool outFilterOn,
+                      bool allNew);
 
   bool empty(); // not const, because it uses a lock
   virtual void reset();
@@ -152,14 +157,8 @@ class SZG_CALL arDatabase{
                                    int nodeID, 
                                    const string& nodeName,
                                    bool moveChildren);
-  void _nodeRegistration(arDatabaseNode* parentNode,
-			 arDatabaseNode* childNode,
-			 int nodeID);
-  bool _removeFromChildren(arDatabaseNode* parent, arDatabaseNode* child);
-  bool _addToChildren(arDatabaseNode* parent, arDatabaseNode* child);
   void _cutNode(arDatabaseNode*);
   void _eraseNode(arDatabaseNode*);
-  void _attachNodeTree(arDatabaseNode* parent, arDatabaseNode* child);
   
   // Helper functions for recursive operations.
   void _writeDatabase(arDatabaseNode* pNode, arStructuredData& nodeData,
@@ -173,13 +172,6 @@ class SZG_CALL arDatabase{
   void _insertOutFilter(map<int,int,less<int> >& outFilter,
 			int nodeID,
 			bool sendOn);
-  int _filterIncoming(arDatabaseNode* mappingRoot,
-                      arStructuredData* record, 
-	              map<int, int, less<int> >& nodeMap,
-		      int* mappedIDs,
-		      map<int, int, less<int> >* outFilter,
-		      bool outFilterOn,
-                      bool allNew);
   arDatabaseNode* _mapNodeBelow(arDatabaseNode* parent,
 				const string& nodeType,
 				const string& nodeName,
