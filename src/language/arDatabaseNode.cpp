@@ -18,7 +18,7 @@ arDatabaseNode::arDatabaseNode():
   _typeString("root"),
   _parent(NULL),
   _refs(1),
-  _transient(false),
+  _nodeLevel(AR_STRUCTURE_NODE),
   _info(""){
   
   _databaseOwner = NULL;
@@ -209,6 +209,14 @@ list<arDatabaseNode*> arDatabaseNode::getChildren() const{
 
 bool arDatabaseNode::hasChildren() const{
   return _children.begin() == _children.end();
+}
+
+arNodeLevel arDatabaseNode::getNodeLevel(){ 
+  return _nodeLevel;
+}
+
+void arDatabaseNode::setNodeLevel(arNodeLevel nodeLevel){ 
+  _nodeLevel = nodeLevel;
 }
 
 //**********************************************************************

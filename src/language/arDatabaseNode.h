@@ -17,6 +17,13 @@ using namespace std;
 // owned by an arDatabase.
 class arDatabase;
 
+/// The nodes are of various types.
+
+enum arNodeLevel{ AR_STRUCTURE_NODE = 0, 
+                  AR_STABLE_NODE = 1,
+                  AR_OPTIONAL_NODE = 2,
+                  AR_TRANSIENT_NODE = 3 };
+
 /// Node in an arDatabase.
 
 class SZG_CALL arDatabaseNode{
@@ -63,8 +70,8 @@ class SZG_CALL arDatabaseNode{
   list<arDatabaseNode*> getChildren() const;
   bool hasChildren() const;
 
-  bool getTransient(){ return _transient; }
-  void setTransient(bool state){ _transient = state; }
+  arNodeLevel getNodeLevel();
+  void setNodeLevel(arNodeLevel nodeLevel);
  protected:
   ARint  _ID;
   string _name;
@@ -94,7 +101,7 @@ class SZG_CALL arDatabaseNode{
   // Might be the case that we want to filter messages into the node based,
   // somehow, on certain known properties it has. For instance, the node
   // might just hold "transient data".
-  bool       _transient;
+  arNodeLevel  _nodeLevel;
 
   // The node is allowed to hold an "info" string.
   string _info;

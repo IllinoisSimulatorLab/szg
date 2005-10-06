@@ -654,6 +654,8 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
     // potentialNewNodeID > 0
     if (potentialNewNodeID){ 
       result = arGraphicsDatabase::alter(data);
+      // The "bridge database" is a way to integrate an arGraphicsPeer into
+      // a distributed scene graph application.
       if (_bridgeDatabase){
         _sendDataToBridge(data);
       } 
@@ -694,7 +696,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
       // Better check whether or not this is a "transient" node. If so,
       // (and the update time has NOT passed), we might do nothing.
       bool updateNodeEvenIfTransient = true;
-      if (result && result->getTransient()){
+      if (result && result->getNodeLevel() == AR_TRANSIENT_NODE){
         currentTime = ar_time();
         updateNodeEvenIfTransient 
           = _updateTransientMap(result->getID(),
@@ -976,7 +978,7 @@ bool arGraphicsPeer::pullSerial(const string& name,
     return false;
   }
 
-  // We have to wait for the dump to be completed
+  // We have to wait for the serialization to be completed
   ar_mutex_lock(&_dumpLock);
   _dumped = false;
   _dataServer->sendData(&adminData, socket);
@@ -1366,7 +1368,7 @@ bool arGraphicsPeer::_serializeAndSend(arSocket* socket,
   if (!_dataServer->sendData(&adminData, socket)){
     return false;
   }
-  // EXPERIMENTING WITH DUMPING IN THE BACKGROUND!
+  // EXPERIMENTING WITH BACKGROUND SERIALIZATION!
   //ar_mutex_lock(&_alterLock);
   arStructuredData nodeData(_gfx.find("make node"));
   if (!nodeData){
@@ -1389,6 +1391,7 @@ bool arGraphicsPeer::_serializeAndSend(arSocket* socket,
     _recSerialize(pNode, nodeData, socket, connectionIter->second->outFilter,
                   localSendOn, sendLevel, dataSent, success);
   }
+  // EXPERIMENTING WITH BACKGROUND SERIALIZATION.
   //ar_mutex_unlock(&_alterLock);
 
   return success;

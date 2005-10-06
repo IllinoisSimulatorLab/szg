@@ -20,41 +20,47 @@
 
 /// This function draws "number" points. There should be number values in
 /// the indices array.
-void ar_drawPoints(int number, int* indices, float* positions, float* colors,
-                   float blendFactor);
+void ar_drawPoints(int number, int* indices, int numberPos, float* positions, 
+                   float* colors, float blendFactor);
 /// This function draws "number" independent lines. There should be
 /// 2*number values in the indices array.
-void ar_drawLines(int number, int* indices, float* positions,
+void ar_drawLines(int number, int* indices, int numberPos, float* positions,
                   float* colors, float blendFactor);
 /// This function draws "number" lines in an OpenGL line strip.
 /// There should be 1+number values in the indices array.
-void ar_drawLineStrip(int number, int* indices, float* positions,
+void ar_drawLineStrip(int number, int* indices, 
+                      int numberPos, float* positions,
 		      float* colors, float blendFactor);
 /// This function draws "number" independent triangles. There should, for 
 /// instance, be 3*number values in the indices array
 void ar_drawTriangles(int number, int* indices, 
-                      float* positions, float* normals, float* colors,
+                      int numberPos, float* positions, 
+                      float* normals, float* colors,
                       float* texCoord, float blendFactor, int numCgParams=0,
 		      CGparameter* cgParams = 0, float** cgData = 0);
 /// This function draws "number" triangles in an OpenGL triangle strip.
 /// There should 2+number values in the indices array. And 3*(2+number)
 /// values in the normals array.
-void ar_drawTriangleStrip(int number, int* indices, float* positions,
+void ar_drawTriangleStrip(int number, int* indices, 
+                          int numberPos, float* positions,
                           float* normals, float* colors, float* texCoord,
 			  float blendFactor);
 /// This function draws "number" independent quads. There should be
 /// 4*number values in the indices array.
 void ar_drawQuads(int number, int* indices, 
-                  float* positions, float* normals, float* colors,
+                  int numberPos, float* positions, 
+                  float* normals, float* colors,
                   float* texCoord, float blendFactor);
 /// This function draws "number" quads in an OpenGL quad strip.
 /// There should be 2+2*number values in the indices array
-void ar_drawQuadStrip(int number, int* indices, float* positions,
+void ar_drawQuadStrip(int number, int* indices, 
+                      int numberPos, float* positions,
                       float* normals, float* colors, float* texCoord,
 		      float blendFactor);
 /// This function draws a single polygon with "number" vertices.
 /// There should be "number" values in the indices array
-void ar_drawPolygon(int number, int* indices, float* positions,
+void ar_drawPolygon(int number, int* indices,
+                    int numberPos, float* positions,
                     float* normals, float* colors, float* texCoord,
 		    float blendFactor);
 

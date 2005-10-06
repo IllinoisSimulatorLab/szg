@@ -35,7 +35,8 @@ class SZG_CALL arGraphicsNode: public arDatabaseNode{
   // unique to arGraphicsNode
   arMatrix4 accumulateTransform();
   virtual void draw(arGraphicsContext*){};
-  ARfloat* getBuffer(){ return _commandBuffer.v; }
+  inline ARfloat* getBuffer(){ return _commandBuffer.v; }
+  inline int getBufferSize(){ return _commandBuffer.size(); }
 
  protected:
   arGraphicsDatabase* _owningDatabase;
