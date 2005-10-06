@@ -50,7 +50,7 @@ void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
 
   arMasterSlaveFramework* fw = (arMasterSlaveFramework*) keyInfo->getUserData();
 
-  if( fw->_exitProgram ) {
+  if( fw->stopping() ) {
     // do not process key strokes after we have begun shutdown
     return;
   }

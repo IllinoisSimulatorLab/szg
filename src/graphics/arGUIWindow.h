@@ -977,8 +977,8 @@ class SZG_CALL arGUIWindow
 
     void* _userData;                            ///< User-set data pointer.
 
-    arMutex _graphicsWindowMutex;               ///< An associated arGraphicsWindow (can be NULL).
-    arGraphicsWindow* _graphicsWindow;          ///< A lock protecting access to the arGraphicsWindow.
+    arMutex _graphicsWindowMutex;               ///< A lock protecting access to the arGraphicsWindow.
+    arGraphicsWindow* _graphicsWindow;          ///< An associated arGraphicsWindow (can be NULL). 
 
     /**
      * A queue of usable (and possibly in-use) arWMEvents.
