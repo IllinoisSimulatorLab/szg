@@ -16,19 +16,15 @@ arSpeechNode::arSpeechNode() : arSoundNode() {
 }
 
 arSpeechNode::~arSpeechNode(){
-#ifdef EnableSpeech
-#ifdef AR_USE_WIN_32
-  if (_voice != NULL) {
-    _voice->Release();
-    _voice = NULL;
-    ::CoUninitialize();
-  }
-#endif
-#endif
+  _deleteVoice();
 }
 
 void arSpeechNode::initialize( arDatabase* owner ) {
   arSoundNode::initialize( owner );
+  _initVoice();
+}
+
+void arSpeechNode::_initVoice() {
 #ifdef EnableSpeech
 #ifdef AR_USE_WIN_32
   _voice = NULL;
@@ -48,6 +44,18 @@ void arSpeechNode::initialize( arDatabase* owner ) {
   }
 #endif
 #endif  
+}
+
+void arSpeechNode::_deleteVoice() {
+#ifdef EnableSpeech
+#ifdef AR_USE_WIN_32
+  if (_voice != NULL) {
+    _voice->Release();
+    _voice = NULL;
+    ::CoUninitialize();
+  }
+#endif
+#endif
 }
 
 void arSpeechNode::render() {
@@ -104,20 +112,25 @@ void arSpeechNode::_speak( const std::string& speechText ) {
     return;
   }
   int numChars = speechText.size();
-  WCHAR* text = new WCHAR[numChars+1];
-  if (!text) {
-    cerr << "arSpeechNode error: memory panic.\n";
-    return;
-  }
-  const char* txt = speechText.c_str();
-  for (int i=0; i<numChars; i++) {
-    text[i] = (WCHAR)txt[i];
-  }
-  text[numChars] = (WCHAR)0;
+  if (numChars > 0) {
+    WCHAR* text = new WCHAR[numChars+1];
+    if (!text) {
+      cerr << "arSpeechNode error: memory panic.\n";
+      return;
+    }
+    cout << "arSpeechNode remark: saying(" << speechText << ")" << endl;
+    const char* txt = speechText.c_str();
+    for (int i=0; i<numChars; i++) {
+      text[i] = (WCHAR)txt[i];
+    }
+    text[numChars] = (WCHAR)0;
 
-  HRESULT hr = _voice->Speak( (const WCHAR *)text, SPF_ASYNC | SPF_PURGEBEFORESPEAK | SPF_IS_XML, NULL );
-  
-  delete[] text; // is this safe?
+    HRESULT hr = _voice->Speak( (const WCHAR *)text, SPF_ASYNC | SPF_IS_XML, NULL );
+    
+    delete[] text;
+  } else {
+    HRESULT hr = _voice->Speak( (const WCHAR *)NULL, SPF_ASYNC | SPF_PURGEBEFORESPEAK, NULL );
+  }
 #endif
 #endif
 }

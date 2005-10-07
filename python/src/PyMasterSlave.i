@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.16 2005/09/22 15:47:46 crowell Exp $
+// $Id: PyMasterSlave.i,v 1.17 2005/10/07 18:19:34 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -995,6 +995,7 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
     self.setKeyboardCallback( self.keyboardCallback )
     self.setUserMessageCallback( self.userMessageCallback )
     self.setExitCallback( self.exitCallback )
+    self.speechNodeID = -1
 
   def startCallback( self, framework, client ):
     return self.onStart( client )
@@ -1053,6 +1054,11 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
     self.onExit()
   def onExit( self ):
     pass
+  def speak( self, message ):
+    if self.speechNodeID == -1:
+      self.speechNodeID = dsSpeak( 'messages', 'root', message )
+    else:
+      dsSpeak( self.speechNodeID, message )
 
 # Utility classes
 
