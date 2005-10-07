@@ -91,6 +91,12 @@ class NodeListWrapper{
   void next();
 };
 
+enum arNodeLevel{ AR_IGNORE_NODE = -1,
+                  AR_STRUCTURE_NODE = 0, 
+                  AR_STABLE_NODE = 1,
+                  AR_OPTIONAL_NODE = 2,
+                  AR_TRANSIENT_NODE = 3 };
+
 class arDatabaseNode{
  public:
   arDatabaseNode();
@@ -114,6 +120,9 @@ class arDatabaseNode{
   void printStructure(int maxLevel);
   void ps();
   void ps(int maxLevel);
+
+  arNodeLevel getNodeLevel();
+  void setNodeLevel(arNodeLevel nodeLevel);
 
 %pythoncode{
   # simply present to provide a uniform interface to the nodes
@@ -692,9 +701,11 @@ class arGraphicsPeer: public arGraphicsDatabase{
   int connectToPeer(const string& name);
   bool closeConnection(const string& name);
   bool pullSerial(const string& name, int remoteRootID, int localRootID,
-                  int sendLevel, bool remoteSendOn, bool localSendOn);
+                  arNodeLevel sendLevel, 
+                  arNodeLevel remoteSendLevel, arNodeLevel localSendLevel);
   bool pushSerial(const string& name, int remoteRootID, int localRootID,
-                  int sendLevel, bool remoteSendOn, bool localSendOn);
+                  arNodeLevel sendLevel, 
+                  arNodeLevel remoteSendOn, arNodeLevel localSendOn);
   bool closeAllAndReset();
   bool broadcastFrameTime(int frameTime);
   bool remoteLockNode(const string& name, int nodeID);
@@ -704,9 +715,10 @@ class arGraphicsPeer: public arGraphicsDatabase{
   bool localLockNode(const string& name, int nodeID);
   bool localUnlockNode(int nodeID);
   bool remoteFilterDataBelow(const string& peer,
-                             int remoteNodeID, int on);
+                             int remoteNodeID, arNodeLevel level);
+  bool mappedFilterDataBelow(int localNodeID, arNodeLevel level);
   bool localFilterDataBelow(const string& peer,
-                            int localNodeID, int on);
+                            int localNodeID, arNodeLevel level);
   int  remoteNodeID(const string& peer, const string& nodeName);
   
   string printConnections();

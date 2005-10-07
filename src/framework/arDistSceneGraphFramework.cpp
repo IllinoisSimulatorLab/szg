@@ -497,7 +497,10 @@ bool arDistSceneGraphFramework::start(){
 	  _peerTarget + ".");
 
       // The following sets up a FEEDBACK mode!
-      _graphicsPeer.pushSerial(_peerTarget, _remoteRootID, 0, 1, true, true);
+      _graphicsPeer.pushSerial(_peerTarget, _remoteRootID, 0, 
+                               AR_TRANSIENT_NODE,
+                               AR_TRANSIENT_NODE,
+                               AR_TRANSIENT_NODE);
       // BUG BUG BUG BUG BUG BUG BUG: Need better definition of "modes"!
       // Really just one mode so far...
       // In the feedback case, we want a dump and relay.

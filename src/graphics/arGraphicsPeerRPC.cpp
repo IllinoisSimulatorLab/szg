@@ -6,6 +6,7 @@
 // This must be the first line in every .cpp
 #include "arPrecompiled.h"
 #include "arGraphicsPeerRPC.h"
+#include "arGraphicsUtilities.h"
 
 // The next block of message handlers really just relay messages
 // to the appropriate peers.
@@ -51,6 +52,8 @@ string ar_graphicsPeerHandlePullSerial(arGraphicsPeer* peer,
   int remoteRootID = -1;
   int localRootID = -1;
   int sendLevel = -1;
+  int remoteSendLevel = AR_TRANSIENT_NODE;
+  int localSendLevel = AR_TRANSIENT_NODE;
   stringstream value1;
   value1 << parameters[1];
   value1 >> remoteRootID;
@@ -60,15 +63,22 @@ string ar_graphicsPeerHandlePullSerial(arGraphicsPeer* peer,
   stringstream value3;
   value3 << parameters[3];
   value3 >> sendLevel;
+  stringstream value4;
+  value4 << parameters[4];
+  value4 >> remoteSendLevel;
+  stringstream value5;
+  value5 << parameters[5];
+  value5 >> localSendLevel;
   cout << " (pull serial) peer = " << parameters[0]
        << " remoteRootID = " << remoteRootID
        << " localRootID = " << localRootID
        << " sendLevel = " << sendLevel
-       << " remoteSendOn = " << parameters[4] 
-       << " localSendOn = " << parameters[5];
-  if (!peer->pullSerial(parameters[0], remoteRootID, localRootID, sendLevel,
-                        parameters[4] == "1",
-                        parameters[5] == "1")){
+       << " remoteSendLevel = " << remoteSendLevel 
+       << " localSendLevel = " << localSendLevel;
+  if (!peer->pullSerial(parameters[0], remoteRootID, localRootID, 
+                        ar_convertToNodeLevel(sendLevel),
+                        ar_convertToNodeLevel(remoteSendLevel),
+                        ar_convertToNodeLevel(localSendLevel))){
     result << "szg-rp error: failed to pull from remote peer"
 	   << " (" <<  parameters[0] << ").";
     return result.str();
@@ -90,6 +100,8 @@ string ar_graphicsPeerHandlePushSerial(arGraphicsPeer* peer,
   int remoteRootID = -1;
   int localRootID = -1;
   int sendLevel = -1;
+  int remoteSendLevel = AR_TRANSIENT_NODE;
+  int localSendLevel = AR_TRANSIENT_NODE;
   stringstream value1;
   value1 << parameters[1];
   value1 >> remoteRootID;
@@ -99,16 +111,23 @@ string ar_graphicsPeerHandlePushSerial(arGraphicsPeer* peer,
   stringstream value3;
   value3 << parameters[3];
   value3 >> sendLevel;
-  cout << "AARGH! peer = " << parameters[0]
+  stringstream value4;
+  value4 << parameters[4];
+  value4 >> remoteSendLevel;
+  stringstream value5;
+  value5 << parameters[5];
+  value5 >> localSendLevel;
+  cout << "(push serial) peer = " << parameters[0]
        << " remoteRootID = " << remoteRootID
        << " localRootID = " << localRootID
        << " sendLevel = " << sendLevel
-       << " remoteSendOn = " << parameters[4]
-       << " localSendOn = " << parameters[5];
+       << " remoteSendLevel = " << remoteSendLevel
+       << " localSendLevel = " << localSendLevel;
   if (!peer->pushSerial(parameters[0], 
-                        remoteRootID, localRootID, sendLevel,
-                        parameters[4] == "1",
-                        parameters[5] == "1")){
+                        remoteRootID, localRootID,
+                        ar_convertToNodeLevel(sendLevel),
+                        ar_convertToNodeLevel(remoteSendLevel),
+                        ar_convertToNodeLevel(localSendLevel))){
     result << "szg-rp error: failed to push to remote peer"
 	   << " (" <<  parameters[0] << ", with remote ID = "
 	   << remoteRootID << ").";
@@ -249,10 +268,11 @@ string ar_graphicsPeerHandleRemoteFilterDataBelow(arGraphicsPeer* peer,
   IDStream << bodyList[1];
   IDStream >> ID;
   stringstream valueStream;
-  int value = -1;
+  int value = AR_TRANSIENT_NODE;
   valueStream << bodyList[2];
   valueStream >> value;
-  if (peer->remoteFilterDataBelow(bodyList[0], ID, value)){
+  if (peer->remoteFilterDataBelow(bodyList[0], ID, 
+                                  ar_convertToNodeLevel(value))){
     result << "szg-rp success: filter applied.";
   }
   else{
@@ -276,10 +296,11 @@ string ar_graphicsPeerHandleLocalFilterDataBelow(arGraphicsPeer* peer,
   IDStream << bodyList[1];
   IDStream >> ID;
   stringstream valueStream;
-  int value = -1;
+  int value = AR_TRANSIENT_NODE;
   valueStream << bodyList[2];
   valueStream >> value;
-  if (peer->localFilterDataBelow(bodyList[0], ID, value)){
+  if (peer->localFilterDataBelow(bodyList[0], ID, 
+                                 ar_convertToNodeLevel(value))){
     result << "szg-rp success: filter applied.";
   }
   else{

@@ -15,8 +15,12 @@
   typedef int CGparameter;
 #endif
 
+// For arNodeLevel...
+#include "arDatabaseNode.h"
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
+
+arNodeLevel ar_convertToNodeLevel(int level);
 
 /// This function draws "number" points. There should be number values in
 /// the indices array.

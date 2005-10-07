@@ -452,8 +452,10 @@ void display(){
     i->second.peer->draw(&projectionCullMatrix);
     glPopMatrix();
   }
-  // AARGH! BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
-  // "motion culling" does not work when the peers are translated!
+  // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
+  // "motion culling" does not work when the peers are translated using
+  // the translation function of the workspace. Maybe that function is 
+  // outmoded anyway...
   if (useMotionCull){
     for (i = peers.begin(); i!= peers.end(); i++){
       i->second.peer->motionCull(&cullObject,&globalCamera);
@@ -461,14 +463,16 @@ void display(){
         for (list<int>::iterator onIter = cullObject.cullChangeOn.begin();
 	     onIter != cullObject.cullChangeOn.end();
 	     onIter++){
-          i->second.peer->mappedFilterDataBelow(*onIter, 1);
+	  // Every node's update is requested.
+          i->second.peer->mappedFilterDataBelow(*onIter, AR_TRANSIENT_NODE);
         }
       }
       if (!cullObject.cullChangeOff.empty()){
         for (list<int>::iterator offIter = cullObject.cullChangeOff.begin();
 	     offIter != cullObject.cullChangeOff.end();
 	     offIter++){
-          i->second.peer->mappedFilterDataBelow(*offIter, 0);
+	  // Only the updates to transient nodes are discarded.
+          i->second.peer->mappedFilterDataBelow(*offIter, AR_OPTIONAL_NODE);
         }
       }
       // MUST CLEAR THE LISTS!

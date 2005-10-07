@@ -61,9 +61,9 @@ class SZG_CALL arGraphicsPeerConnection{
   // The in map starts somewhere, by default at the root node, but it
   // could be elsewhere.
   arDatabaseNode* rootMapNode;
-  // Whether the mapped nodes should send backed to the mapping peer or not.
-  // THIS SUPERCEDED SENDING ABOVE!
-  bool sendOn;
+  // Controls whether mapped nodes should send messages back to the mapping 
+  // peer or not.
+  arNodeLevel sendLevel;
 
   // To be able to filter "transient" nodes on this side, we need to
   // know the remote frame time.
@@ -72,11 +72,6 @@ class SZG_CALL arGraphicsPeerConnection{
   // Each connection includes information about how stuff on it should
   // be filtered going out.
   map<int, int, less<int> > outFilter;
-
-  // Each connection includes information on how stuff on it should be
-  // filtered coming in. NOTE: Locks will eventually be implemented
-  // this way, I think.
-  map<int, int, less<int> > inFilter;
 
   // Need to hold info on when a node is updated (for filtering messages
   // to transient nodes).
@@ -146,9 +141,11 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   int connectToPeer(const string& name);
   bool closeConnection(const string& name);
   bool pullSerial(const string& name, int remoteRootID, int localRootID,
-                  int sendLevel, bool remoteSendOn, bool localSendOn);
+                  arNodeLevel sendLevel, 
+                  arNodeLevel remoteSendLevel, arNodeLevel localSendLevel);
   bool pushSerial(const string& name, int remoteRootID, int localRootID,
-                  int sendLevel, bool remoteSendOn, bool localSendOn);
+                  arNodeLevel sendLevel, 
+                  arNodeLevel remoteSendLevel, arNodeLevel localSendLevel);
   bool closeAllAndReset();
   bool broadcastFrameTime(int frameTime);
   bool remoteLockNode(const string& name, int nodeID);
@@ -160,10 +157,10 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   bool localUnlockNode(int nodeID);
   //bool localUnlockNodeBelow(int nodeID);
   bool remoteFilterDataBelow(const string& peer,
-                             int remoteNodeID, int on);
-  bool mappedFilterDataBelow(int localNodeID, int on);
+                             int remoteNodeID, arNodeLevel level);
+  bool mappedFilterDataBelow(int localNodeID, arNodeLevel level);
   bool localFilterDataBelow(const string& peer,
-                            int localNodeID, int on);
+                            int localNodeID, arNodeLevel level);
   int  remoteNodeID(const string& peer, const string& nodeName);
 
   // Not quite so important.
@@ -231,12 +228,14 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
                    arGraphicsPeerCullObject*, arMatrix4&);
   bool _setRemoteLabel(arSocket* sock, const string& name);
   bool _serializeAndSend(arSocket* socket, int remoteRootID, 
-                         int localRootID, int sendLevel, bool remoteSendOn,
-                         bool localSendOn);
+                         int localRootID, 
+                         arNodeLevel sendLevel, 
+                         arNodeLevel remoteSendLevel, 
+                         arNodeLevel localSendLevel);
   void _serializeDoneNotify(arSocket* socket);
 
   void _closeConnection(arSocket*);
-  void _resetConnectionMap(int connectionID, int nodeID, bool sendOn);
+  void _resetConnectionMap(int connectionID, int nodeID, arNodeLevel level);
   void _lockNode(int nodeID, arSocket* socket);
   void _lockNodeBelow(int nodeID, arSocket* socket);
   void _unlockNode(int nodeID);
@@ -244,10 +243,12 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   int  _unlockNodeNoNotification(int nodeID);
   void _filterDataBelow(int nodeID,
                         arSocket* socket,
-                        int on);
+                        arNodeLevel level);
   void _recSerialize(arDatabaseNode* pNode, arStructuredData& nodeData,
                      arSocket* socket, map<int, int, less<int> >& outFilter,
-                     bool localSendOn, int sendLevel, int& dataSent,
+                     arNodeLevel localSendLevel, 
+                     arNodeLevel sendLevel, 
+                     int& dataSent,
                      bool& success);
   void _recDataOnOff(arDatabaseNode* pNode,
                      int value,

@@ -250,7 +250,8 @@ int main(int argc, char** argv){
     peer.stop();
     return 1;
   }
-  peer.pullSerial("target",0,0,1,1,1);
+  peer.pullSerial("target",0,0,
+                  AR_TRANSIENT_NODE,AR_TRANSIENT_NODE,AR_TRANSIENT_NODE);
   peer.reset();
   // sleep for 2 seconds.
   ar_usleep(2000000);

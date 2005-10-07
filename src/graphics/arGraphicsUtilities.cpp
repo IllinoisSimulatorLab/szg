@@ -10,6 +10,31 @@
 #include <iostream>
 using namespace std;
 
+arNodeLevel ar_convertToNodeLevel(int level){
+  switch(level){
+  case -1:
+    return AR_IGNORE_NODE;
+    break;
+  case 0:
+    return AR_STRUCTURE_NODE;
+    break;
+  case 1:
+    return AR_STABLE_NODE;
+    break;
+  case 2:
+    return AR_OPTIONAL_NODE;
+    break;
+  case 3:
+    return AR_TRANSIENT_NODE;
+    break;
+  default:
+    cout << "arGraphicsPeer error: unexpected integer conversion to "
+	 << "arNodeLevel.\n";
+    return AR_IGNORE_NODE;
+    break;
+  }
+}
+
 // Ugly preprocessor hack, but at least it shows the structure of ar_drawXXX().
 #define doVertex(i) glVertex3fv(positions+3*(i))
 // This branch doesn't seem to cost us that much. And it needs to be here

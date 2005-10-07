@@ -91,7 +91,7 @@ class SZG_CALL arDatabase{
 	              map<int, int, less<int> >& nodeMap,
 		      int* mappedIDs,
 		      map<int, int, less<int> >* outFilter,
-		      bool outFilterOn,
+		      arNodeLevel outFilterLevel,
                       bool allNew);
 
   bool empty(); // not const, because it uses a lock
@@ -171,7 +171,7 @@ class SZG_CALL arDatabase{
 		      bool& failure);
   void _insertOutFilter(map<int,int,less<int> >& outFilter,
 			int nodeID,
-			bool sendOn);
+			arNodeLevel outFilterLevel);
   arDatabaseNode* _mapNodeBelow(arDatabaseNode* parent,
 				const string& nodeType,
 				const string& nodeName,
@@ -181,7 +181,7 @@ class SZG_CALL arDatabase{
 	              map<int, int, less<int> >& nodeMap,
 		      int* mappedIDs,
 		      map<int, int, less<int> >* outFilter,
-		      bool outFilterOn,
+		      arNodeLevel outFilterLevel,
                       bool allNew);
   int _filterIncomingInsert(arDatabaseNode* mappingRoot,
                       arStructuredData* data, 

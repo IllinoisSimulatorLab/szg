@@ -19,7 +19,8 @@ class arDatabase;
 
 /// The nodes are of various types.
 
-enum arNodeLevel{ AR_STRUCTURE_NODE = 0, 
+enum arNodeLevel{ AR_IGNORE_NODE = -1,
+                  AR_STRUCTURE_NODE = 0, 
                   AR_STABLE_NODE = 1,
                   AR_OPTIONAL_NODE = 2,
                   AR_TRANSIENT_NODE = 3 };

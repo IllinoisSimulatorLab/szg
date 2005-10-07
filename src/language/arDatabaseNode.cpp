@@ -18,6 +18,8 @@ arDatabaseNode::arDatabaseNode():
   _typeString("root"),
   _parent(NULL),
   _refs(1),
+  // Important that the node level defaults to this. See arGraphicsPeer::alter
+  // for details.
   _nodeLevel(AR_STRUCTURE_NODE),
   _info(""){
   

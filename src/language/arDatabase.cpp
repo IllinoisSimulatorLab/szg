@@ -418,8 +418,9 @@ bool arDatabase::attach(arDatabaseNode* parent,
     arStructuredData* record = parser->parseBinary(source);
     if (!record)
       break;
+    // NOTE: the AR_IGNORE_NODE parameter is ignored (no outFilter specified).
     const int success = filterIncoming(parent, record, nodeMap, NULL, 
-				       NULL, true, true);
+				       NULL, AR_IGNORE_NODE, true);
     arDatabaseNode* altered = NULL;
     if (success){
       altered = alter(record);
@@ -466,8 +467,9 @@ bool arDatabase::attachXML(arDatabaseNode* parent,
   while (!done){
     record = parser->parse(&fileStream);
     if (record){
+      // NOTE: the AR_IGNORE_NODE parameter is ignored (no outFilter specified)
       int success = filterIncoming(parent, record, nodeMap, NULL, 
-                                   NULL, true, true);
+                                   NULL, AR_IGNORE_NODE, true);
       arDatabaseNode* altered = NULL;
       if (success){
         altered = alter(record);
@@ -516,8 +518,9 @@ bool arDatabase::merge(arDatabaseNode* parent,
   while (!done){
     record = parser->parseBinary(source);
     if (record){
+      // NOTE: The AR_IGNORE_NODE parameter is ignored (no outFilter specified)
       int success = filterIncoming(parent, record, nodeMap, NULL, 
-                                   NULL, true, false);
+                                   NULL, AR_IGNORE_NODE, false);
       arDatabaseNode* altered = NULL;
       if (success){
 	altered = alter(record);
@@ -572,8 +575,9 @@ bool arDatabase::mergeXML(arDatabaseNode* parent,
   while (!done){
     record = parser->parse(fileStream);
     if (record){
+      // NOTE: the AR_IGNORE_NODE parameter is ignored (no outFilter specifed)
       int success = filterIncoming(parent, record, nodeMap, NULL, 
-                                   NULL, true, false);
+                                   NULL, AR_IGNORE_NODE, false);
       arDatabaseNode* altered = NULL;
       if (success){
         altered = alter(record);
@@ -732,7 +736,7 @@ int arDatabase::filterIncoming(arDatabaseNode* mappingRoot,
 	                       map<int, int, less<int> >& nodeMap,
                                int* mappedIDs,
 			       map<int, int, less<int> >* outFilter,
-			       bool outFilterOn,
+			       arNodeLevel outFilterLevel,
                                bool allNew){
   // Give mappedIDs the right default values, if they have been passed in.
   if (mappedIDs){
@@ -747,7 +751,7 @@ int arDatabase::filterIncoming(arDatabaseNode* mappingRoot,
       // Just pass down the chain. Without breaking filterIncoming up like 
       // this, it becomes illegibly long.
       return _filterIncomingMakeNode(mappingRoot, record, nodeMap, mappedIDs,
-				     outFilter, outFilterOn, allNew);
+				     outFilter, outFilterLevel, allNew);
     }
     else if (record->getID() == _lang->AR_INSERT){
       return _filterIncomingInsert(mappingRoot, record, nodeMap, mappedIDs);
@@ -1068,6 +1072,8 @@ arDatabaseNode* arDatabase::_permuteDatabaseNodes(arStructuredData* data){
     }
   }
   parent->_permuteChildren(childList);
+  // Important that we return the parent node upon success. The filtering
+  // algorithms in arGraphicsPeer::alter depend on it.
   return &_rootNode;
 }
 
@@ -1285,14 +1291,14 @@ void arDatabase::_createNodeMap(arDatabaseNode* localNode,
 
 void arDatabase::_insertOutFilter(map<int,int,less<int> >& outFilter,
 				  int nodeID,
-				  bool sendOn){
+				  arNodeLevel outFilterLevel){
   map<int,int,less<int> >::iterator i = outFilter.find(nodeID);
   if (i == outFilter.end()){
     outFilter.insert(map<int,int,less<int> >::value_type(nodeID,
-							 sendOn ? 1 : 0));
+							 outFilterLevel));
   }
   else{
-    i->second = sendOn ? 1 : 0;
+    i->second = outFilterLevel;
   }
 }
 
@@ -1334,7 +1340,7 @@ int arDatabase::_filterIncomingMakeNode(arDatabaseNode* mappingRoot,
 	                        map<int, int, less<int> >& nodeMap,
                                 int* mappedIDs,
 				map<int, int, less<int> >* outFilter,
-				bool outFilterOn,
+				arNodeLevel outFilterLevel,
                                 bool allNew){
   int newNodeID, newParentID;
   map<int, int, less<int> >::iterator i;
@@ -1355,7 +1361,8 @@ int arDatabase::_filterIncomingMakeNode(arDatabaseNode* mappingRoot,
     currentParent = getNode(i->second);
   }
   // Make sure that the parent actually exists (maybe there was a stale entry
-  // in the node map).
+  // in the node map). Or maybe mappingRoot was NULL as passed in from the
+  // caller.
   if (!currentParent){
     return 0;
   }
@@ -1376,7 +1383,7 @@ int arDatabase::_filterIncomingMakeNode(arDatabaseNode* mappingRoot,
     }
     // If an "outFilter" has been supplied, update its mapping.
     if (outFilter){
-      _insertOutFilter(*outFilter, target->getID(), outFilterOn);
+      _insertOutFilter(*outFilter, target->getID(), outFilterLevel);
     }     
 
     // In this case, DO NOT create a new node! (instead reuse an old node)
