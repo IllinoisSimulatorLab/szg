@@ -146,7 +146,27 @@ string ar_graphicsPeerHandleCloseAllAndReset(arGraphicsPeer* peer,
   return result.str();
 }
 
-// Two messages!
+// Lets us ping a remote peer.
+// Format = remote_peer_name
+string ar_graphicsPeerHandlePingPeer(arGraphicsPeer* peer,
+				     const string& messageBody){
+  stringstream result;
+  arSlashString bodyList(messageBody);
+  if (bodyList.length() < 1){
+    result << "szg-rp error: body must contain name of remote peer.";
+    return result.str();
+  }
+  bool state = peer->pingPeer(bodyList[0]);
+  if (!state){
+    result << "szg-rp error: pingPeer failed.";
+  }
+  else{
+    result << "szg-rp success: pingPeer succeded.\n";
+  }
+  return result.str();
+}
+
+// Two messages!  
 // Lets us lock a node in a remote peer to us!
 // Format = remote_peer_name/node_ID
 string ar_graphicsPeerHandleRemoteLockNode(arGraphicsPeer* peer, 
@@ -514,6 +534,9 @@ string ar_graphicsPeerHandleMessage(arGraphicsPeer* peer,
   }
   else if (messageType == "close_all_and_reset"){
     responseBody = ar_graphicsPeerHandleCloseAllAndReset(peer, messageBody);
+  }
+  else if (messageType == "ping_peer"){
+    responseBody = ar_graphicsPeerHandlePingPeer(peer, messageBody);
   }
   else if (messageType =="remote_lock_node"){
     responseBody = ar_graphicsPeerHandleRemoteLockNode(peer, 

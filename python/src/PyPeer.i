@@ -706,6 +706,7 @@ class arGraphicsPeer: public arGraphicsDatabase{
   bool pushSerial(const string& name, int remoteRootID, int localRootID,
                   arNodeLevel sendLevel, 
                   arNodeLevel remoteSendOn, arNodeLevel localSendOn);
+  bool pingPeer(const string& name);
   bool closeAllAndReset();
   bool broadcastFrameTime(int frameTime);
   bool remoteLockNode(const string& name, int nodeID);

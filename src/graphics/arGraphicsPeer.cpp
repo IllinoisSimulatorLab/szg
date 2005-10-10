@@ -43,7 +43,7 @@ arGraphicsPeerConnection::arGraphicsPeerConnection(){
   // By default, send all updates.
   sendLevel = AR_TRANSIENT_NODE;
   remoteFrameTime = 0;
-  // Without doing this, the children on the root node will never 
+  // Without doing this, the children of the root node will never 
   // get automatically mapped to a feedback peer! Choose the most permissive
   // send level. (because we send updates if the node level is <= the
   // filter level)
@@ -178,6 +178,34 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       gp->_dumped = true;
       gp->_dumpVar.signal();
       ar_mutex_unlock(&gp->_dumpLock);
+    }
+    else if (action == "ping"){
+      arStructuredData adminData(l->find("graphics admin"));
+      adminData.dataInString(l->AR_GRAPHICS_ADMIN_ACTION, "ping_reply");
+      // If we are queuing data, do not send release until the signal has 
+      // occured (happens when consumption happens). Without this safeguard,
+      // some previously received messages might not have been commited
+      // to the database upon sending of the ping reply.
+      if (gp->_queueingData){
+        // Unfortunately, there can be only ONE of these active at a time
+	// (our portable condition vars do not support broadcast).
+	// Hence the "uniqueness lock".
+        ar_mutex_lock(&gp->_queueQueryUniquenessLock);
+        ar_mutex_lock(&gp->_queueConsumeLock);
+        gp->_queueConsumeQuery = true;
+        while (gp->_queueConsumeQuery){
+          gp->_queueConsumeVar.wait(&gp->_queueConsumeLock);
+	}
+        ar_mutex_unlock(&gp->_queueConsumeLock);
+        ar_mutex_unlock(&gp->_queueQueryUniquenessLock);
+      }
+      gp->_dataServer->sendData(&adminData, socket);
+    }
+    else if (action == "ping_reply"){
+      ar_mutex_lock(&gp->_pingLock);
+      gp->_pinged = true;
+      gp->_pingVar.signal();
+      ar_mutex_unlock(&gp->_pingLock);
     }
     else if (action == "close"){
       // Probably a good idea to handshake back with the following.
@@ -428,6 +456,9 @@ arGraphicsPeer::arGraphicsPeer(){
   ar_mutex_init(&_queueLock);
   ar_mutex_init(&_IDResponseLock);
   ar_mutex_init(&_dumpLock);
+  ar_mutex_init(&_pingLock);
+  ar_mutex_init(&_queueConsumeLock);
+  ar_mutex_init(&_queueQueryUniquenessLock);
   _localDatabase = true;
   _queueingData = false;
   _name = string("default");
@@ -445,6 +476,8 @@ arGraphicsPeer::arGraphicsPeer(){
   _dataServer->smallPacketOptimize(false);
 
   _requestedNodeID = -1;
+
+  _queueConsumeQuery = false;
 
   _dumped = false;
 
@@ -898,6 +931,13 @@ int arGraphicsPeer::consume(){
   //cout << "buffer size = " << bufferSize << "\n";
   int bufferSize = _incomingQueue->getFrontBufferSize();
   handleDataQueue(_incomingQueue->getFrontBufferRaw());
+  // We must released a pending ping reply.
+  ar_mutex_lock(&_queueConsumeLock);
+  if (_queueConsumeQuery){
+    _queueConsumeQuery = false;
+    _queueConsumeVar.signal();
+  }
+  ar_mutex_unlock(&_queueConsumeLock);
   return bufferSize;
 }
 
@@ -1052,6 +1092,30 @@ bool arGraphicsPeer::closeAllAndReset(){
   // AFTER disconnecting from everybody else. Why? Because we don't
   // want to erase THEIR databases as well!
   reset();
+  return true;
+}
+
+/// Sends a ping message to the connected peer specified by name. Waits
+/// until that peer responds. This can be used to ensure that previously
+/// sent messages have been processed. BUG: Because of limitations in the
+/// way pings are handled, there can be only one in flight at any given
+/// time.
+bool arGraphicsPeer::pingPeer(const string& name){
+  arStructuredData adminData(_gfx.find("graphics admin"));
+  adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "ping");
+  int ID = _dataServer->getFirstIDWithLabel(name);
+  arSocket* socket = _dataServer->getConnectedSocket(ID);
+  if (!socket){
+    return false;
+  }
+  ar_mutex_lock(&_pingLock);
+  _pinged = false;
+  _dataServer->sendData(&adminData, socket);
+  while (!_pinged){
+    _pingVar.wait(&_pingLock);
+  }
+  _pinged = false;
+  ar_mutex_unlock(&_pingLock);
   return true;
 }
 
@@ -1650,10 +1714,14 @@ void arGraphicsPeer::_recDataOnOff(arDatabaseNode* pNode,
 
 /// There is a *hack* whereby data is transfered to the "bridge"
 /// database. Note that we need to filter before putting into the bridge
-/// AND restore the record (since filtering can alter the "make node"
-/// message in place.
+/// AND restore the record (since filtering can alter the various messages in
+/// place).
 void arGraphicsPeer::_sendDataToBridge(arStructuredData* data){
   int parentID, nodeID;
+  // NOTE: We CANNOT use dataIn because that also sets the data dimension.
+  // Recall that some of the fields do double duty and have EXTRA stuff
+  // in their routing field that records the path the messages have taken.
+  // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
   //int* parentIDPtr = (int*)data->getPtr(_lang->AR_MAKE_NODE_PARENT_ID, AR_INT);
   //int* nodeIDPtr = (int*)data->getPtr(_lang->AR_MAKE_NODE_ID, AR_INT);
   // Some fields may be altered by the maps!

@@ -783,6 +783,7 @@ int arDatabase::filterIncoming(arDatabaseNode* mappingRoot,
       return 0;
     }
     nodeID = i->second;
+    // BUG BUG BUG BUG BUG BUG BUG BUG. We need to NOT use dataIn.
     record->dataIn(_routingField[record->getID()], &nodeID, AR_INT, 1);
     // Returning true means "use". The -1 means that there is an
     // incomplete mapping.

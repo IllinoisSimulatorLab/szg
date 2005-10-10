@@ -147,6 +147,7 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
                   arNodeLevel sendLevel, 
                   arNodeLevel remoteSendLevel, arNodeLevel localSendLevel);
   bool closeAllAndReset();
+  bool pingPeer(const string& name);
   bool broadcastFrameTime(int frameTime);
   bool remoteLockNode(const string& name, int nodeID);
   bool remoteLockNodeBelow(const string& name, int nodeID);
@@ -198,10 +199,23 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   arConditionVar _IDResponseVar;
   int            _requestedNodeID;
 
-  // Also, involving a round trip to the remote peer is a request to dump
+  // Also, involving a round trip to the remote peer is a request to serialize
   arMutex        _dumpLock;
   arConditionVar _dumpVar;
   bool           _dumped;
+
+  // Finally, we can "ping" a connected peer. This allows us to be sure that
+  // all previous messages we've sent have been processed.
+  arMutex _pingLock;
+  arConditionVar _pingVar;
+  bool           _pinged;
+
+  // We need to delay sending a ping reply until consumption of queued messages
+  // has occured.
+  arMutex        _queueConsumeLock;
+  arConditionVar _queueConsumeVar;
+  bool           _queueConsumeQuery;
+  arMutex        _queueQueryUniquenessLock;
 
   // A path for reading and writing info might be specified.
   string _readWritePath;
