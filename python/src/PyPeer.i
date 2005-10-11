@@ -102,6 +102,9 @@ class arDatabaseNode{
   arDatabaseNode();
   virtual ~arDatabaseNode();
 
+  void ref();
+  void unref();
+
   int getID() const;
   string getName() const;
   void setName(const string&);
