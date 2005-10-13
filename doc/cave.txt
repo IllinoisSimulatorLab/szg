@@ -1,7 +1,7 @@
 <szg_config>
 
 <assign>
-cave6		SZG_EXEC path G:\THE_USER_NAME\bin\win32 
+cube6		SZG_EXEC path G:\THE_USER_NAME\bin\win32 
 cavefront	SZG_EXEC path G:\THE_USER_NAME\bin\win32
 caveleft	SZG_EXEC path G:\THE_USER_NAME\bin\win32
 caveright	SZG_EXEC path G:\THE_USER_NAME\bin\win32
