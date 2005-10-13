@@ -327,7 +327,8 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
     int* IDs = (int*)data->getDataPtr(fieldID, AR_INT);
     // Checking for component repeat. The first and last item are not
     // relevant. If we exceed a certain hop limit, also go ahead and 
-    // discard. (here the hop limit is 10)
+    // discard. (here the hop limit is 10... note that there are 2 extra items
+    // beyond routing ID in the field, the node ID and the socket ID).
     bool cycleFound = fieldSize > 12 ? true : false;
     for (int i=1; i<fieldSize-1 && !cycleFound; i++){
       if (IDs[i] == gp->_componentID){
@@ -507,6 +508,7 @@ bool arGraphicsPeer::init(arSZGClient& client){
   if (result != "NULL"){
     _readWritePath = result;
   }
+  _componentID = _client->getProcessID();
   return true;
 }
 
@@ -622,13 +624,13 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
   int dataID = data->getID();
   int routingFieldID = _getRoutingFieldID(dataID);
   int workingNodeFieldID = _getWorkingFieldID(dataID);
+  // NOTE: The routing field is guaranteed to have at least one entry.
   int* IDPtr = (int*)data->getDataPtr(routingFieldID, AR_INT);
   // Determine the socket ID upon which the message originated (this will
   // be -1 if it was generated locally). If it has come across
   // a communications link then it will be subect to "mapping" (i.e. having the
   // ID of the target node changed) 
   int originID = _getOriginSocketID(data, routingFieldID);
-
   // Do the mapping. 
   if (originID != -1){
     // This data has not come locally. Get the connection that spawned it
@@ -920,19 +922,17 @@ void arGraphicsPeer::queueData(bool state){
 }
 
 /// If our peer is displaying graphics, it is desirable to only alter
-/// its database between draws, not during draws. (HMMMM... or is it
-/// REALLY desirable if we aren't trying to maintain consistency?)
+/// its database between draws, not during draws.
 int arGraphicsPeer::consume(){
+  // We must release a pending ping reply. The _queueConsumeLock goes
+  // first to ensure that pings are registered atomically with buffer swap
+  // and buffer consumption.
+  ar_mutex_lock(&_queueConsumeLock);
   ar_mutex_lock(&_queueLock);
   _incomingQueue->swapBuffers();
   ar_mutex_unlock(&_queueLock);
-  //int bufferSize;
-  //ar_unpackData(_incomingQueue->getFrontBufferRaw(),&bufferSize,AR_INT,1);
-  //cout << "buffer size = " << bufferSize << "\n";
   int bufferSize = _incomingQueue->getFrontBufferSize();
   handleDataQueue(_incomingQueue->getFrontBufferRaw());
-  // We must released a pending ping reply.
-  ar_mutex_lock(&_queueConsumeLock);
   if (_queueConsumeQuery){
     _queueConsumeQuery = false;
     _queueConsumeVar.signal();
@@ -1338,6 +1338,9 @@ int arGraphicsPeer::_getOriginSocketID(arStructuredData* data, int fieldID){
   return ((int*)data->getDataPtr(fieldID, AR_INT))[dim-1];
 }
 
+// DO NOT change the routing field. The code in _sendDataToBridge 
+// depends on this remaining the same. (there we are restoring old values from
+// mappings when sent to the local peer)
 int arGraphicsPeer::_getRoutingFieldID(int dataID){
   if (!_databaseReceive[dataID]){
     return _routingField[dataID];
@@ -1717,25 +1720,38 @@ void arGraphicsPeer::_recDataOnOff(arDatabaseNode* pNode,
 /// AND restore the record (since filtering can alter the various messages in
 /// place).
 void arGraphicsPeer::_sendDataToBridge(arStructuredData* data){
-  int parentID, nodeID;
-  // NOTE: We CANNOT use dataIn because that also sets the data dimension.
-  // Recall that some of the fields do double duty and have EXTRA stuff
-  // in their routing field that records the path the messages have taken.
-  // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
-  //int* parentIDPtr = (int*)data->getPtr(_lang->AR_MAKE_NODE_PARENT_ID, AR_INT);
-  //int* nodeIDPtr = (int*)data->getPtr(_lang->AR_MAKE_NODE_ID, AR_INT);
-  // Some fields may be altered by the maps!
-  if (data->getID() == _lang->AR_MAKE_NODE){
-    parentID = data->getDataInt(_lang->AR_MAKE_NODE_PARENT_ID);
-    nodeID = data->getDataInt(_lang->AR_MAKE_NODE_ID);
+  int secondID = -1;
+  int thirdID = -1;
+  int childDim = -1;
+  int* childIDs = NULL;
+  // NOTE: We CANNOT use dataIn on the routing fields because that also sets 
+  // the data dimension. Recall that some of the fields do double duty and 
+  // have EXTRA stuff in their routing field that records the path the 
+  // messages have taken.
+  int dataID = data->getID();
+  // Some fields may be altered by the maps! Consequently, we save the info
+  // the might be altered for reintroduction.
+  int routingFieldID = _getRoutingFieldID(dataID);
+  int originalID = data->getDataInt(routingFieldID);
+  if (_databaseReceive[dataID]){
+    // The message is one of "make node", "insert", "erase", "cut", or 
+    // "permute". We take special action in the case of "make node", "insert",
+    // and "permute".
+    if (dataID == _lang->AR_MAKE_NODE){
+      secondID = data->getDataInt(_lang->AR_MAKE_NODE_ID);
+    }
+    else if (dataID == _lang->AR_INSERT){
+      secondID = data->getDataInt(_lang->AR_INSERT_CHILD_ID);
+      thirdID = data->getDataInt(_lang->AR_INSERT_ID);
+    }
+    else if (dataID == _lang->AR_PERMUTE){
+      childDim = data->getDataDimension(_lang->AR_PERMUTE_CHILD_IDS);
+      childIDs = new int[childDim];
+      memcpy(childIDs, data->getDataPtr(_lang->AR_PERMUTE_CHILD_IDS, AR_INT),
+	     childDim*sizeof(int));
+    }
   }
-  else if (data->getID() == _lang->AR_ERASE){
-    // NOT HANDLED!
-    // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
-  }
-  else{
-    nodeID = data->getDataInt(_routingField[data->getID()]);
-  }
+  
   // The filterIDs parameter is NULL because there is no need to
   // construct a reverse map... nothing is coming back... the bridge is
   // one way.
@@ -1758,16 +1774,35 @@ void arGraphicsPeer::_sendDataToBridge(arStructuredData* data){
       (potentialNewNodeID, result->getID()));
   }
   // Must put the piece of data back the way it was, if it was altered.
-  if (data->getID() == _lang->AR_MAKE_NODE){
-    data->dataIn(_lang->AR_MAKE_NODE_PARENT_ID, &parentID, AR_INT, 1);
-    data->dataIn(_lang->AR_MAKE_NODE_ID, &nodeID, AR_INT, 1);
-  }
-  else if (data->getID() == _lang->AR_ERASE){
-    // NOT HANDLED!
-    // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
-  }
-  else{
-    data->dataIn(_routingField[data->getID()], &nodeID, AR_INT, 1);
+  // Do not use dataIn since that will resize the field (and erase 
+  // arGraphicsPeer routing information).
+  int* IDptr = (int*)data->getDataPtr(routingFieldID, AR_INT);
+  // Guaranteed to have at least 1 element.
+  IDptr[0] = originalID;
+  if (_databaseReceive[dataID]){
+    // The message is one of "make node", "insert", "erase", "cut", or 
+    // "permute". We take special action in the case of "make node", "insert",
+    // and "permute".
+    if (dataID == _lang->AR_MAKE_NODE){
+      // Do not use dataIn. We are preserving the possibility of extra info
+      // being encoded in these fields.
+      IDptr = (int*)data->getDataPtr(_lang->AR_MAKE_NODE_ID, AR_INT);
+      IDptr[0] = secondID;
+    }
+    else if (dataID == _lang->AR_INSERT){
+      // Do not use dataIn. We are preserving the possibility of extra info
+      // being encoded in these fields.
+      IDptr = (int*)data->getDataPtr(_lang->AR_INSERT_CHILD_ID, AR_INT);
+      IDptr[0] = secondID;
+      IDptr = (int*)data->getDataPtr(_lang->AR_INSERT_ID, AR_INT);
+      IDptr[0] = thirdID;
+    }
+    else if (dataID == _lang->AR_PERMUTE){
+      // dataIn is OK here.
+      data->dataIn(_lang->AR_PERMUTE_CHILD_IDS, childIDs, AR_INT, childDim);
+      // This data was dynamically allocated.
+      delete [] childIDs;
+    }
   }
 }
 

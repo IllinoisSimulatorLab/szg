@@ -247,7 +247,7 @@ int main(int argc, char** argv){
   }
   if (peer.connectToPeer("target")<0){
     cout << "TestGraphics error: peer named \"target\" does not exist.\n";
-    peer.stop();
+    peer.closeAllAndReset();;
     return 1;
   }
   peer.pullSerial("target",0,0,

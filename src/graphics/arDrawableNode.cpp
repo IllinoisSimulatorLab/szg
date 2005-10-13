@@ -69,6 +69,10 @@ void arDrawableNode::draw(arGraphicsContext* context){
     if (iNode){
       maxNumber = iNode->getBufferSize();
     }
+    else{
+      // No index node exists. We will be using the points one after another.
+      maxNumber = numberPos;
+    }
     nNode = (arGraphicsNode*) context->getNode(AR_G_NORMAL3_NODE);
     // If a normals node will be used in drawing, determine amount of data.
     if (nNode && (maxNumber < 0 || nNode->getBufferSize()/3 < maxNumber)){
@@ -85,6 +89,7 @@ void arDrawableNode::draw(arGraphicsContext* context){
     if (t2Node && (maxNumber < 0 || t2Node->getBufferSize()/2 < howMany)){
       maxNumber = t2Node->getBufferSize()/2;
     }
+    // The texture node has nothing to say about bounds checking.
     tNode = (arGraphicsNode*) context->getNode(AR_G_TEXTURE_NODE);
   }
 

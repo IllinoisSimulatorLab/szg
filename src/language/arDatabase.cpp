@@ -783,8 +783,14 @@ int arDatabase::filterIncoming(arDatabaseNode* mappingRoot,
       return 0;
     }
     nodeID = i->second;
-    // BUG BUG BUG BUG BUG BUG BUG BUG. We need to NOT use dataIn.
-    record->dataIn(_routingField[record->getID()], &nodeID, AR_INT, 1);
+    // NOTE: do not use dataIn here. That sets the field data dimension,
+    // which we should NOT do since a "history" can get stored in the
+    // messages routing field (i.e. which peers have been visited in the
+    // case of arGraphicsPeer).
+    int* IDptr = (int*)record->getDataPtr(_routingField[record->getID()],
+					  AR_INT);
+    // This field is guaranteed to have at least dimension 1.
+    IDptr[0] = nodeID;
     // Returning true means "use". The -1 means that there is an
     // incomplete mapping.
     if (nodeID){
@@ -1043,7 +1049,7 @@ arDatabaseNode* arDatabase::_eraseNode(arStructuredData* inData){
   // Delete the startNode from the child list of its parent
   arDatabaseNode* parent = startNode->getParent();
   if (parent){
-    parent->removeChild(startNode);
+    parent->_removeChild(startNode);
   }
   _eraseNode(startNode);
   //ar_mutex_unlock(&_eraseLock);
@@ -1369,7 +1375,11 @@ int arDatabase::_filterIncomingMakeNode(arDatabaseNode* mappingRoot,
   }
   // Must alter the message in place.
   newParentID = currentParent->getID();
-  record->dataIn(_lang->AR_MAKE_NODE_PARENT_ID, &newParentID, AR_INT, 1);
+  // NOTE: do not use dataIn. That will resize the field. We do not want this
+  // since routing information through the network of arGraphicsPeers can be
+  // stored in here.
+  int* IDptr = (int*)record->getDataPtr(_lang->AR_MAKE_NODE_PARENT_ID, AR_INT);
+  IDptr[0] = newParentID;
   // This helper function is used in common with _createNodeMap.
   arDatabaseNode* target = _mapNodeBelow(currentParent, nodeType, nodeName,
                                          nodeMap);
@@ -1392,7 +1402,11 @@ int arDatabase::_filterIncomingMakeNode(arDatabaseNode* mappingRoot,
     // However, it is a good idea to do the message mapping *anyway* in case
     // the application code fails to discard.
     newNodeID = target->getID();
-    record->dataIn(_lang->AR_MAKE_NODE_ID, &newNodeID, AR_INT, 1);
+    // NOTE: do not use dataIn. This will resize the field, which is 
+    // undesirable since it will wipe out routing info as stored by the
+    // arGraphicsPeer.
+    IDptr = (int*)record->getDataPtr(_lang->AR_MAKE_NODE_ID, AR_INT);
+    IDptr[0] = newNodeID;
     // In this case, no new node was created (the node map was simply 
     // augmented). The message should be discarded.
     return 0;
@@ -1402,8 +1416,10 @@ int arDatabase::_filterIncomingMakeNode(arDatabaseNode* mappingRoot,
     // new nodes (if allNew is true).
     newNodeID = -1;
     // Setting the parameter like so (-1) indicates that we will be
-    // requesting a new node.
-    record->dataIn(_lang->AR_MAKE_NODE_ID, &newNodeID, AR_INT, 1);
+    // requesting a new node. Do not use dataIn here because it can wipe out
+    // routing information used by arGraphicsPeer.
+    IDptr = (int*)record->getDataPtr(_lang->AR_MAKE_NODE_ID, AR_INT);
+    IDptr[0] = newNodeID;
     if (mappedIDs){
       mappedIDs[0] = originalNodeID;
     }
@@ -1474,14 +1490,20 @@ int arDatabase::_filterIncomingInsert(arDatabaseNode* mappingRoot,
   // childNode is NULL).
   int newChildID = childID == -1 ? -1 : childNode->getID();
   int newParentID = parentNode->getID();
-  data->dataIn(_lang->AR_INSERT_CHILD_ID, &newChildID, AR_INT, 1);
-  data->dataIn(_lang->AR_INSERT_PARENT_ID, &newParentID, AR_INT, 1);
+  // Do not use dataIn in the remapping to avoid resizing fields (we encoded
+  // peer routing information in "extra" spaces in arGraphicsPeer)
+  int* IDptr = (int*)data->getDataPtr(_lang->AR_INSERT_CHILD_ID, AR_INT);
+  IDptr[0] = newChildID;
+  IDptr = (int*)data->getDataPtr(_lang->AR_INSERT_PARENT_ID, AR_INT);
+  IDptr[0] = newParentID;
   // We should go ahead and use the mapped message.
   // (note that the node ID will NOT be -1 on any code pathway that calls
   //  filterIncoming... that will only be true for locally produced messages)
   int originalNodeID = data->getDataInt(_lang->AR_INSERT_ID);
   int newNodeID = -1;
-  data->dataIn(_lang->AR_INSERT_ID, &newNodeID, AR_INT, 1);
+  // Do not use dataIn because it will resize the field to 1.
+  IDptr = (int*)data->getDataPtr(_lang->AR_INSERT_ID, AR_INT);
+  IDptr[0] = newNodeID;
   if (mappedIDs){
     mappedIDs[0] = originalNodeID;
   }
@@ -1518,7 +1540,10 @@ int arDatabase::_filterIncomingErase(arDatabaseNode* mappingRoot,
     return 0;
   }
   int newNodeID = node->getID();
-  data->dataIn(_lang->AR_ERASE_ID, &newNodeID, AR_INT, 1);
+  // NOTE: do not use dataIn here. It would set the field dimension to 1 and
+  // wipe out any routing info that an arGraphicsPeer might have stored.
+  int* IDptr = (int*)data->getDataPtr(_lang->AR_ERASE_ID, AR_INT);
+  IDptr[0] = newNodeID;
   // Use the message.
   return -1;
 }
@@ -1543,7 +1568,10 @@ int arDatabase::_filterIncomingCut(arStructuredData* data,
     return 0;
   }
   int newNodeID = node->getID();
-  data->dataIn(_lang->AR_CUT_ID, &newNodeID, AR_INT, 1);
+  // NOTE: do not use dataIn here. It would set the field dimension to 1 and
+  // wipe out any routing info that an arGraphicsPeer might have stored.
+  int* IDptr = (int*)data->getDataPtr(_lang->AR_CUT_ID, AR_INT);
+  IDptr[0] = newNodeID;
   // Use this message.
   return -1;
 }
@@ -1568,7 +1596,10 @@ int arDatabase::_filterIncomingPermute(arStructuredData* data,
     return 0;
   }
   int newParentID = parentNode->getID();
-  data->dataIn(_lang->AR_PERMUTE_PARENT_ID, &newParentID, AR_INT, 1);
+  // NOTE: do not use dataIn here. It would set the field dimension to 1 and
+  // wipe out any routing info that an arGraphicsPeer might have stored.
+  int* IDptr = (int*)data->getDataPtr(_lang->AR_PERMUTE_PARENT_ID, AR_INT);
+  IDptr[0] = newParentID;
   // Check the child IDs for mapping. We drop any IDs that are unmapped
   // and permute the rest.
   int numberToPermute = data->getDataDimension(_lang->AR_PERMUTE_CHILD_IDS);
@@ -1592,6 +1623,8 @@ int arDatabase::_filterIncomingPermute(arStructuredData* data,
       }
     }
   }
+  // It is OK to use dataIn here since we will NOT route based on "extra"
+  // information encoded in this field.
   data->dataIn(_lang->AR_PERMUTE_CHILD_IDS, mappedChildIDs, AR_INT, 
                whichMappedID);
   delete [] mappedChildIDs;
