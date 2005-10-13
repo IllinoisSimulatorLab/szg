@@ -1,1 +1,4 @@
 Please bless these files and the filesystem upon which they reside.
+
+This file is here to guarantee that a variable needed for the 'easy install'
+option never comes up empty (which could cause it to abort).
