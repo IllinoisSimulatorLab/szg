@@ -38,6 +38,19 @@ arDatabaseNode::~arDatabaseNode(){
   _removeAllChildren();
 }
 
+/// The node is owned by a database and has a parent (consequently it has not
+/// been deleted from the node container) OR it is owned by a database and
+/// is the root node. This call is thread-safe (indeed, it is how we determine
+/// whether or not to route our function calls through the arDatabase message
+/// stream OR through the local memory).
+bool arDatabaseNode::active(){
+  // The root node is the unique node with ID = 0
+  if (getOwner() && (getParent() || getID() == 0)){
+    return true;
+  }
+  return false;
+}
+
 void arDatabaseNode::ref(){
   ar_mutex_lock(&_nodeLock);
   _refs++;
@@ -204,9 +217,35 @@ arDatabase* arDatabaseNode::getOwner() const{
 arDatabaseNode* arDatabaseNode::getParent() const{ 
   return _parent; 
 }
+
+/// A little bit unusual. To achieve thread-safety with respect to the
+/// owning database, we must have the owning database (if such exists)
+/// execute the function. If there is no owning database, just ref the
+/// parent and return it. 
+arDatabaseNode* arDatabaseNode::getParentRef(){
+  if (getOwner()){
+    return getOwner()->getParentRef(this);
+  }
+  if (_parent){
+    _parent->ref();
+  }
+  return _parent;
+}
   
 list<arDatabaseNode*> arDatabaseNode::getChildren() const{ 
   return _children; 
+}
+
+/// A little bit unusual. To achieve thread-safety with respect to the
+/// owning database, we must have the owning database (if such exists)
+/// execute the function. If there is no owning database, just ref the
+/// list and return it.
+list<arDatabaseNode*> arDatabaseNode::getChildrenRef(){
+  if (getOwner()){
+    return getOwner()->getChildrenRef(this);
+  }
+  ar_refNodeList(_children);
+  return _children;
 }
 
 bool arDatabaseNode::hasChildren() const{

@@ -278,6 +278,11 @@ SZG_CALL void ar_deallocateBuffer( void* ptr );
 SZG_CALL void ar_copyBuffer( void* const outBuf, const void* const inBuf,
                              arDataType theType, unsigned int size );
 
+/// Some global database node manipulation functions.
+class arDatabaseNode;
+SZG_CALL void ar_refNodeList(list<arDatabaseNode*>& nodeList);
+SZG_CALL void ar_unrefNodeList(list<arDatabaseNode*>& nodeList);
+
 #define CALL_MEMBER_FUNCTION( object, ptrToMember ) ((object).*(ptrToMember))
 
 #endif

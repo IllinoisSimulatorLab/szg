@@ -18,9 +18,6 @@ arDatabase::arDatabase() :
   // (the default)
   _nextAssignedID(1),
   _dataParser(NULL){
-  //ar_mutex_init(&_bufferLock);
-  //ar_mutex_init(&_eraseLock);
-  //ar_mutex_init(&_deletionLock);
   ar_mutex_init(&_databaseLock);
 
   // The root node is already initialized properly by the default 
@@ -70,7 +67,7 @@ arDatabase::~arDatabase(){
 /// my_directory_1/bundleSubDirectory;my_directory_2/bundleSubDirectory;
 /// my_directory_3/bundleSubDirectory, in addition to the texture path.
 void arDatabase::setDataBundlePath(const string& bundlePathName,
-			      const string& bundleSubDirectory){
+			           const string& bundleSubDirectory){
   _bundlePathName = bundlePathName;
   _bundleName = bundleSubDirectory;
 }
@@ -78,7 +75,7 @@ void arDatabase::setDataBundlePath(const string& bundlePathName,
 /// Used to associated a bundle path name (SZG_DATA, SZG_PYTHON) with
 /// a file system path my_directory_1;my_directory_2;my_directory_3.
 void arDatabase::addDataBundlePathMap(const string& bundlePathName,
-                              const string& bundlePath){
+                                      const string& bundlePath){
   map<string,string,less<string> >::iterator i
     = _bundlePathMap.find(bundlePathName);
   if (i != _bundlePathMap.end()){
@@ -132,6 +129,37 @@ arDatabaseNode* arDatabase::findNode(const string& name){
   arDatabaseNode* result = NULL;
   bool success = false;
   _rootNode._findNode(result, name, success, NULL, true);
+  return result;
+}
+
+/// Just a way to make getting a node's parent thread-safe with respect to
+/// the other database operations. The idea is that the alter method
+/// (within which all database operations occur) will be guarded by
+/// _databaseLock. This is called when an owned node's getParentRef()
+/// method is invoked.
+arDatabaseNode* arDatabase::getParentRef(arDatabaseNode* node){
+  ar_mutex_lock(&_databaseLock);
+  arDatabaseNode* result = NULL;
+  // Make sure this is a *active* node owned by this database.
+  // Here, active means that the node is owned AND has a parent (or is the
+  // root node).
+  if (node && node->active() && node->getOwner() == this){
+    result = node->getParentRef();
+  }
+  ar_mutex_unlock(&_databaseLock);
+  return result;
+}
+
+list<arDatabaseNode*> arDatabase::getChildrenRef(arDatabaseNode* node){
+  ar_mutex_lock(&_databaseLock);
+  list<arDatabaseNode*> result;
+  // Make sure this is a *active* node owned by this database.
+  // Here, active means that the node is owned AND has a parent (or is the
+  // root node).
+  if (node && node->active() && node->getOwner() == this){
+    result = node->getChildrenRef();
+  }
+  ar_mutex_unlock(&_databaseLock);
   return result;
 }
 

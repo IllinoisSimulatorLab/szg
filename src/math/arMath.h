@@ -206,6 +206,8 @@ SZG_CALL arVector3 operator*(const arQuaternion&, const arVector3&);
 //SZG_CALL arVector4 operator*(const arMatrix4&, const arVector4&);
 
 //********* utility functions ******
+
+// Matrix creation.
 SZG_CALL arMatrix4 ar_identityMatrix();
 SZG_CALL arMatrix4 ar_translationMatrix(float,float,float);
 SZG_CALL arMatrix4 ar_translationMatrix(const arVector3&);
@@ -218,10 +220,49 @@ SZG_CALL arMatrix4 ar_transrotMatrix(const arVector3& position,
 SZG_CALL arMatrix4 ar_scaleMatrix(float);
 SZG_CALL arMatrix4 ar_scaleMatrix(float,float,float);
 SZG_CALL arMatrix4 ar_scaleMatrix(const arVector3& scaleFactors);
+// Abbreviations.
+inline arMatrix4 ar_TM(float x, float y, float z){
+  return ar_translationMatrix(x,y,z);
+}
+inline arMatrix4 ar_TM(const arVector3& v){
+  return ar_translationMatrix(v);
+}
+inline arMatrix4 ar_RM(char axis, float angle){
+  return ar_rotationMatrix(axis, angle);
+}
+inline arMatrix4 ar_RM(const arVector3& axis, float angle){
+  return ar_rotationMatrix(axis, angle);
+}
+inline arMatrix4 ar_SM(float scale){
+  return ar_scaleMatrix(scale);
+}
+inline arMatrix4 ar_SM(float a, float b, float c){
+  return ar_scaleMatrix(a,b,c);
+}
+inline arMatrix4 ar_SM(const arVector3& scaleFactors){
+  return ar_scaleMatrix(scaleFactors);
+}
+// Matrix factoring. NOTE: These only work for matrices that are the
+// product of a rotation, translation and uniform scaling.
 SZG_CALL arMatrix4 ar_extractTranslationMatrix(const arMatrix4&);
 SZG_CALL arVector3 ar_extractTranslation(const arMatrix4&);
 SZG_CALL arMatrix4 ar_extractRotationMatrix(const arMatrix4&);
 SZG_CALL arMatrix4 ar_extractScaleMatrix(const arMatrix4&);
+// Abbreviations.
+inline arMatrix4 ar_ETM(const arMatrix4& matrix){
+  return ar_extractTranslationMatrix(matrix);
+}
+inline arVector3 ar_ET(const arMatrix4& matrix){
+  return ar_extractTranslation(matrix);
+}
+inline arMatrix4 ar_ERM(const arMatrix4& matrix){
+  return ar_extractRotationMatrix(matrix);
+}
+inline arMatrix4 ar_ESM(const arMatrix4& matrix){
+  return ar_extractScaleMatrix(matrix);
+}
+
+// Other utility functions.
 SZG_CALL float     ar_angleBetween(const arVector3&, const arVector3&);
 SZG_CALL arVector3 ar_extractEulerAngles(const arMatrix4& m, arAxisOrder o=AR_ZYX);
 SZG_CALL arQuaternion ar_angleVectorToQuaternion(const arVector3&,float);

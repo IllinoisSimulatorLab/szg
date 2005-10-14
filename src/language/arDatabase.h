@@ -39,6 +39,9 @@ class SZG_CALL arDatabase{
   arDatabaseNode* findNode(const string& name);
   arDatabaseNode* getRoot(){ return &_rootNode; }
 
+  arDatabaseNode* getParentRef(arDatabaseNode*);
+  list<arDatabaseNode*> getChildrenRef(arDatabaseNode*);
+
   // These functions manipulate the tree structure of the database.
   // Some of them are mirrored as methods of arDatabase nodes.
   arDatabaseNode* newNode(arDatabaseNode* parent, const string& type,
@@ -129,9 +132,6 @@ class SZG_CALL arDatabase{
   string                               _bundleName;
   map<string,string,less<string> >     _bundlePathMap;
 
-  //arMutex _bufferLock;
-  //arMutex _eraseLock;
-  //arMutex _deletionLock;
   arMutex _databaseLock;
 
   map<int,arDatabaseNode*,less<int> > _nodeIDContainer;

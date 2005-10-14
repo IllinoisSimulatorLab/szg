@@ -65,7 +65,6 @@ arGraphicsServer::arGraphicsServer() :
 }
 
 arGraphicsServer::~arGraphicsServer(){
-  cout << "AARGH arGraphicsServer destructor.\n" << endl;
   if (_connectionQueue)
     delete _connectionQueue;
 }

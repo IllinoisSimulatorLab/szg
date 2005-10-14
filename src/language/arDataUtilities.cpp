@@ -6,6 +6,8 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arDataUtilities.h"
+// Needed for the ar_refNodeList, etc.
+#include "arDatabaseNode.h"
 #include <string>
 #include <sys/stat.h>
 #include <stdlib.h>
@@ -1342,3 +1344,16 @@ void ar_copyBuffer( void* const outBuf, const void* const inBuf,
   memcpy( outBuf, inBuf, size * arDataTypeSize(theType) );
 }
 
+void ar_refNodeList(list<arDatabaseNode*>& nodeList){
+  for (list<arDatabaseNode*>::iterator i = nodeList.begin();
+       i != nodeList.end(); i++){
+    (*i)->ref();
+  }
+}
+
+void ar_unrefNodeList(list<arDatabaseNode*>& nodeList){
+  for (list<arDatabaseNode*>::iterator i = nodeList.begin();
+       i != nodeList.end(); i++){
+    (*i)->unref();
+  }
+}

@@ -33,6 +33,8 @@ class SZG_CALL arDatabaseNode{
   arDatabaseNode();
   virtual ~arDatabaseNode();
 
+  bool active();
+
   void ref();
   void unref();
 
@@ -44,10 +46,13 @@ class SZG_CALL arDatabaseNode{
   string getTypeString() const { return _typeString; }
 
   // If the node has an owner, it can act as a node factory as well.
-  arDatabaseNode* newNode(const string& type, const string& name = ""); 
+  // This method will NOT worked with an "unowned" node.
+  arDatabaseNode* newNode(const string& type, const string& name = "");
+ 
   // Sometimes we want to work with node trees that are not controlled by
-  // an arDatabase.
+  // an arDatabase. This method will NOT work with an "owned" node.
   bool addChild(arDatabaseNode* child);
+  // Also only for node trees that are NOT owned by an arDatabase.
   bool removeChild(arDatabaseNode* child);
 
   arDatabaseNode* findNode(const string& name);
@@ -68,7 +73,16 @@ class SZG_CALL arDatabaseNode{
   int getID() const;
   arDatabase* getOwner() const;
   arDatabaseNode* getParent() const;
+  // A version of getParent() that is thread-safe with respect to database
+  // manipulations. The arDatabaseNode ptr returned has an extra reference
+  // added to it (will not be deleted out from under us, for instance).
+  // Only really useful when this node is OWNED by a database.
+  arDatabaseNode* getParentRef();
   list<arDatabaseNode*> getChildren() const;
+  // A version of getChildren() that is thread-safe with respect to database
+  // manipulations. Each arDatabaseNode ptr returned has am extra reference
+  // added.
+  list<arDatabaseNode*> getChildrenRef();
   bool hasChildren() const;
 
   arNodeLevel getNodeLevel();
@@ -89,11 +103,13 @@ class SZG_CALL arDatabaseNode{
   arDatabaseNode* _parent;
   list<arDatabaseNode*> _children;
 
-  // This lock guards all changes to node structure. Such as changing the
-  // database owner, removing children, adding children.
-  arMutex _nodeLock;
-  // This lock guards all changes to node data. Used on a case by case basis
-  // by the code in individual nodes.
+  // This lock guards changes to the reference count and lets data go into
+  // and out of the node atomically. NOTE: it does not ensure total thread
+  // safety since changes to the database owner, children, and parent are not
+  // counted. Must be mutable since it is locked/unlocked in some const
+  // methods.
+  mutable arMutex _nodeLock;
+  // DEPRECATED. TO BE REMOVED.
   arMutex _dataLock;
 
   // Must keep a reference count.
