@@ -108,7 +108,9 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
     _bridgeRootMapNode = node;
   }
 
-  arDatabaseNode* alter(arStructuredData*);
+  // Default should be false (i.e. we do not need an extra reference
+  // tacked on to the indicated node in the case of node creation).
+  arDatabaseNode* alter(arStructuredData*, bool refNode=false);
 
   // These functions are virtual so that they, by default, can use a path.
   // (as set through the arSZGClient).
@@ -180,7 +182,6 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   arThread        _connectionThread;
 
   arMutex _socketsLock;
-  arMutex _alterLock;
   arMutex _queueLock;
   
   bool    _queueingData;

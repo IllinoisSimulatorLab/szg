@@ -138,7 +138,7 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
     }
     else if (action == "frame_time"){
       // These locks must be CONSISTENTLY nested everywhere!
-      ar_mutex_lock(&gp->_alterLock); 
+      ar_mutex_lock(&gp->_databaseLock); 
       ar_mutex_lock(&gp->_socketsLock);
       int frameTime = data->getDataInt(l->AR_GRAPHICS_ADMIN_NODE_ID);
       map<int, arGraphicsPeerConnection*, less<int> >::iterator i
@@ -151,7 +151,7 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
         i->second->remoteFrameTime = frameTime;
       }
       ar_mutex_unlock(&gp->_socketsLock);
-      ar_mutex_unlock(&gp->_alterLock);  
+      ar_mutex_unlock(&gp->_databaseLock);  
     }
     else if (action == "pull_serial"){
       // Since every node creation message results in a message sent back
@@ -390,8 +390,8 @@ void ar_graphicsPeerConnectionDeletionFunction(void* deletionInfo){
     for (list<int>::iterator k = j->second->nodesLockedLocal.begin();
 	 k != j->second->nodesLockedLocal.end(); k++){
       // Not necessary to further lock this statement since every
-      // instance of _alterLock is inside _socketsLock. Indeed, using
-      // _alterLock here would allow a deadlock! (order of locks reversed)
+      // instance of _socketsLock is inside _databaseLockLock. Indeed, using
+      // _databaseLock here would allow a deadlock! (order of locks reversed)
       gp->_unlockNodeNoNotification(*k);
     }
     delete j->second;
@@ -452,7 +452,6 @@ void ar_graphicsPeerConnectionTask(void* graphicsPeer){
 
 arGraphicsPeer::arGraphicsPeer(){
   // set a few defaults and initialize the mutexes.
-  ar_mutex_init(&_alterLock);
   ar_mutex_init(&_socketsLock);
   ar_mutex_init(&_queueLock);
   ar_mutex_init(&_IDResponseLock);
@@ -592,7 +591,8 @@ void arGraphicsPeer::stop(){
   _client->closeConnection();  
 }
 
-arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){ 
+arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
+                                      bool refNode){ 
   // NOTE: no "graphics admin" message should make it into this function.
   // The model is that the arGraphicsPeer sends these directly to connected
   // peers, instead of automatically sending them through alter(...).
@@ -608,7 +608,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
   // Important to do this so we don't mistakenly send a map record to the
   // other side.
   filterIDs[0] = -1;
-  ar_mutex_lock(&_alterLock);
+  ar_mutex_lock(&_databaseLock);
   ar_mutex_lock(&_socketsLock);
   // NOTE: we exploit the fact that the ID field of the record is an ARRAY
   // of ints. As data comes in, classify it as follows:
@@ -640,7 +640,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
       // There is no connection with that ID currently used. This is
       // really an error.
       ar_mutex_unlock(&_socketsLock);
-      ar_mutex_unlock(&_alterLock);
+      ar_mutex_unlock(&_databaseLock);
       // Return a pointer to the root node.
       return result; 
     }
@@ -674,7 +674,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
         // If the node has been locked, go ahead and return.
         // (we return the root node for default success).
         ar_mutex_unlock(&_socketsLock);
-        ar_mutex_unlock(&_alterLock);
+        ar_mutex_unlock(&_databaseLock);
         return result;
       }
     }
@@ -696,7 +696,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
     // If the message is from a connection and creates a new node, 
     // potentialNewNodeID > 0
     if (potentialNewNodeID){ 
-      result = arGraphicsDatabase::alter(data);
+      result = arGraphicsDatabase::alter(data, refNode);
       // The "bridge database" is a way to integrate an arGraphicsPeer into
       // a distributed scene graph application.
       if (_bridgeDatabase){
@@ -807,7 +807,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data){
     }
   }
   ar_mutex_unlock(&_socketsLock);
-  ar_mutex_unlock(&_alterLock);
+  ar_mutex_unlock(&_databaseLock);
   // No matter what happened just above, we return the state from just before.
   return result;
 }
@@ -1306,9 +1306,8 @@ string arGraphicsPeer::printConnections(){
 
 string arGraphicsPeer::printPeer(){
   stringstream result;
-  ar_mutex_lock(&_alterLock);
+  // This call is thread-safe since arDatabase::printStructure() is.
   printStructure(100, result);
-  ar_mutex_unlock(&_alterLock);
   return result.str();
 }
 
@@ -1317,14 +1316,11 @@ void arGraphicsPeer::motionCull(arGraphicsPeerCullObject* cull,
 				arCamera* camera){
   stack<arMatrix4> transformStack;
   transformStack.push(camera->getModelviewMatrix());
-  // AARGH! look at the coarse-grained locking!
-  //ar_mutex_lock(&_eraseLock);
   arMatrix4 temp = camera->getProjectionMatrix();
   _motionCull((arGraphicsNode*)&_rootNode, 
               transformStack, 
 	      cull,
               temp);
-  //ar_mutex_unlock(&_eraseLock);
 }
 
 // Returns the ID of the socket upon which this message originated
@@ -1414,13 +1410,15 @@ void arGraphicsPeer::_motionCull(arGraphicsNode* node,
     // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
     return;
   }
-  list<arDatabaseNode*> children = node->getChildren();
+  // Thread-safety requires we ref all the children in the list.
+  list<arDatabaseNode*> children = node->getChildrenRef();
   for (list<arDatabaseNode*>::iterator i = children.begin();
        i != children.end(); i++){
     _motionCull((arGraphicsNode*)(*i), transformStack, 
 		cull, projectionCullMatrix);
   }
-
+  // Must unref to prevent memory leaks. 
+  ar_unrefNodeList(children);
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
     // Pop from stack.
     transformStack.pop();
@@ -1461,17 +1459,14 @@ bool arGraphicsPeer::_serializeAndSend(arSocket* socket,
   if (!_dataServer->sendData(&adminData, socket)){
     return false;
   }
-  // EXPERIMENTING WITH BACKGROUND SERIALIZATION!
-  //ar_mutex_lock(&_alterLock);
   arStructuredData nodeData(_gfx.find("make node"));
   if (!nodeData){
     cerr << "arGraphicsPeer error: failed to create node record.\n";
-    ar_mutex_unlock(&_alterLock);
     return false;
   }
   bool success = true;
-  // The local root node.
-  arDatabaseNode* pNode = getNode(localRootID);
+  // The local root node. To ensure thread-safety, must add a ref.
+  arDatabaseNode* pNode = getNodeRef(localRootID);
   // The connection information... since we need to augment the
   // outgoing filter.
   map<int, arGraphicsPeerConnection*, less<int> >::iterator
@@ -1488,9 +1483,10 @@ bool arGraphicsPeer::_serializeAndSend(arSocket* socket,
     _recSerialize(pNode, nodeData, socket, connectionIter->second->outFilter,
                   localSendLevel, sendLevel, dataSent, success);
   }
-  // EXPERIMENTING WITH BACKGROUND SERIALIZATION.
-  //ar_mutex_unlock(&_alterLock);
-
+  // To prevent a memory leak, must unref the node.
+  if (pNode){
+    pNode->unref();
+  }
   return success;
 }
 
@@ -1543,7 +1539,7 @@ void arGraphicsPeer::_resetConnectionMap(int connectionID, int nodeID,
 void arGraphicsPeer::_lockNode(int nodeID, arSocket* socket){
   // This is a little bit cheesy. We let whoever requests the lock
   // have the lock. Maybe not too bad assuming a cooperative model.
-  ar_mutex_lock(&_alterLock);
+  ar_mutex_lock(&_databaseLock);
   map<int, int, less<int> >::iterator i = _lockContainer.find(nodeID);
   if (i != _lockContainer.end()){
     _lockContainer.erase(i);
@@ -1573,25 +1569,32 @@ void arGraphicsPeer::_lockNode(int nodeID, arSocket* socket){
     }
   }
   ar_mutex_unlock(&_socketsLock);
-  ar_mutex_unlock(&_alterLock);
+  ar_mutex_unlock(&_databaseLock);
 }
 
 void arGraphicsPeer::_lockNodeBelow(int nodeID, arSocket* socket){
-  arDatabaseNode* node = getNode(nodeID);
+  // For thread-safety, must add a ref to the node.
+  arDatabaseNode* node = getNodeRef(nodeID);
   if (!node){
     return;
   }
+  // _lockNode just alters the locking info... it doesn't actually query
+  // the scene graph database.
   _lockNode(nodeID, socket);
-  list<arDatabaseNode*> children = node->getChildren();
+  // For thread-safety, must use getChildrenRef instead of getChildren.
+  list<arDatabaseNode*> children = node->getChildrenRef();
   for (list<arDatabaseNode*>::iterator i = children.begin();
        i != children.end(); i++){
     _lockNodeBelow((*i)->getID(), socket);
   }
+  // Unref the children and the node itself to prevent memory leaks.
+  node->unref();
+  ar_unrefNodeList(children);
 }
 
 // Use this when someone else is unlocking the node.
 void arGraphicsPeer::_unlockNode(int nodeID){
-  ar_mutex_lock(&_alterLock);
+  ar_mutex_lock(&_databaseLock);
   ar_mutex_lock(&_socketsLock);
   int socketID = _unlockNodeNoNotification(nodeID);
   map<int, arGraphicsPeerConnection*, less<int> >::iterator i
@@ -1604,20 +1607,25 @@ void arGraphicsPeer::_unlockNode(int nodeID){
     i->second->nodesLockedLocal.remove(nodeID);
   }
   ar_mutex_unlock(&_socketsLock);
-  ar_mutex_unlock(&_alterLock);
+  ar_mutex_unlock(&_databaseLock);
 }
 
 void arGraphicsPeer::_unlockNodeBelow(int nodeID){
-  arDatabaseNode* node = getNode(nodeID);
+  // For thread-safety, must add an extra ref to this node ptr.
+  arDatabaseNode* node = getNodeRef(nodeID);
   if (!node){
     return;
   }
   _unlockNode(nodeID);
-  list<arDatabaseNode*> children = node->getChildren();
+  // For thread-safety, must use getChildrenRef instead of getChildren.
+  list<arDatabaseNode*> children = node->getChildrenRef();
   for (list<arDatabaseNode*>::iterator i = children.begin();
        i != children.end(); i++){
     _unlockNodeBelow((*i)->getID());
   }
+  // To prevent a memory leak, must unref.
+  node->unref();
+  ar_unrefNodeList(children);
 }
 
 // Use this when the fact that the connection is going away is unlocking
@@ -1636,7 +1644,8 @@ int arGraphicsPeer::_unlockNodeNoNotification(int nodeID){
 void arGraphicsPeer::_filterDataBelow(int nodeID,
                                       arSocket* socket,
                                       arNodeLevel level){
-  arDatabaseNode* pNode = getNode(nodeID);
+  // For thread-safety, must go ahead and add a ref to this node ptr.
+  arDatabaseNode* pNode = getNodeRef(nodeID);
   if (!pNode){
     return;
   }
@@ -1651,8 +1660,13 @@ void arGraphicsPeer::_filterDataBelow(int nodeID,
     _recDataOnOff(pNode, level, i->second->outFilter);
   }
   ar_mutex_unlock(&_socketsLock);
+  // To prevent a memory leak, must unref the node.
+  pNode->unref();
 }
 
+// The recursive helper function for background serialization of the current
+// database state. NOTE: This is thread-safe (assuming there is an extra ref
+// floating around for pNode).
 void arGraphicsPeer::_recSerialize(arDatabaseNode* pNode,
                                    arStructuredData& nodeData,
                                    arSocket* socket,
@@ -1661,8 +1675,6 @@ void arGraphicsPeer::_recSerialize(arDatabaseNode* pNode,
                                    arNodeLevel sendLevel,
 				   int& dataSent,
                                    bool& success){
-  // EXPERIMENTING WITH DUMPING IN THE BACKGROUND!
-  ar_mutex_lock(&_alterLock);
   // This will fail for the root node
   if (fillNodeData(&nodeData, pNode)){
     dataSent += nodeData.size();
@@ -1678,9 +1690,13 @@ void arGraphicsPeer::_recSerialize(arDatabaseNode* pNode,
       delete theData;
     }
   }
+  // Must lock this call since it is not thread-safe in and of itself.
+  ar_mutex_lock(&_databaseLock);
   _insertOutFilter(outFilter, pNode->getID(), localSendLevel);
-  list<arDatabaseNode*> children = pNode->getChildren();
-  ar_mutex_unlock(&_alterLock);
+  ar_mutex_unlock(&_databaseLock);
+  // Important to add references to the children so they aren't deleted out
+  // from under us. NOTE: this call locks and unlocks _databaseLock.
+  list<arDatabaseNode*> children = pNode->getChildrenRef();
   // NOTE: We are CAPPING the serialize rate at about:
   // 100 x (10000x8) = 8 Mbps here. Hopefully, this allows for
   // reasonable connect behavior.
@@ -1688,13 +1704,15 @@ void arGraphicsPeer::_recSerialize(arDatabaseNode* pNode,
     ar_usleep(10000);
     dataSent = 0;
   }
-  list<arDatabaseNode*>::iterator i;
-  for (i=children.begin(); i!=children.end(); i++){
+  for (list<arDatabaseNode*>::iterator i=children.begin(); 
+       i!=children.end(); i++){
     if (success){
       _recSerialize(*i, nodeData, socket, outFilter, localSendLevel,
                     sendLevel, dataSent, success);
     }
   }
+  // Must unref the children
+  ar_unrefNodeList(children);
 }
 
 void arGraphicsPeer::_recDataOnOff(arDatabaseNode* pNode,
@@ -1708,11 +1726,14 @@ void arGraphicsPeer::_recDataOnOff(arDatabaseNode* pNode,
   else{
     iter->second = value;
   }
-  list<arDatabaseNode*> children = pNode->getChildren();
+  // For thread-safety, must add refs to each of the children.
+  list<arDatabaseNode*> children = pNode->getChildrenRef();
   list<arDatabaseNode*>::iterator i;
   for (i=children.begin(); i!=children.end(); i++){
     _recDataOnOff(*i, value, filterMap);
   }
+  // To prevent a memory leak, must unref the children.
+  ar_unrefNodeList(children);
 }
 
 /// There is a *hack* whereby data is transfered to the "bridge"

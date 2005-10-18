@@ -175,7 +175,6 @@ arSyncDataServer::arSyncDataServer() :
   _localProducerReady(0){
 
   ar_mutex_init(&_queueLock);
-  ar_mutex_init(&_messageLock);
   ar_mutex_init(&_localConsumerReadyLock);
   ar_mutex_init(&_localProducerReadyLock);
 }
@@ -405,13 +404,7 @@ void arSyncDataServer::swapBuffers(){
 }
 
 arDatabaseNode* arSyncDataServer::receiveMessage(arStructuredData* data){
-  // We need both locks!
-  // _messageLock ensures the database is altered atomically,
-  // i.e., receiveMessage() is re-entrant.
-  // _queueLock can't do this since it is released if the
-  // message buffer is full in the middle of the call.
-
-  ar_mutex_lock(&_messageLock);
+  // Caller is responsible for ensuring atomicity.
   ar_mutex_lock(&_queueLock);
   if (_dataQueue->getBackBufferSize() > _sendLimit &&
       _barrierServer.getNumberConnectedActive() > 0 &&
@@ -430,8 +423,8 @@ arDatabaseNode* arSyncDataServer::receiveMessage(arStructuredData* data){
   // connected clients.
   // If it comes after putting data on the queue, then we can send the
   // record to a connected client without crucial info added (like the ID
-  // of a new node, as in newNode or insert).
-  arDatabaseNode* node = _messageCallback(_bondedObject,data);  
+  // of a new node, as in newNode or insert), which would be bad!
+  arDatabaseNode* node = _messageCallback(_bondedObject,data); 
 
   // Only queue the data if there are currently connected processes...
   // OR if we are purely connected locally (i.e. a arSyncDataClient is
@@ -442,6 +435,5 @@ arDatabaseNode* arSyncDataServer::receiveMessage(arStructuredData* data){
   }
   
   ar_mutex_unlock(&_queueLock);
-  ar_mutex_unlock(&_messageLock);
   return node;  
 }

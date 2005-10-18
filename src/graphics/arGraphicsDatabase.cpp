@@ -151,8 +151,9 @@ arGraphicsDatabase::~arGraphicsDatabase(){
   }
 }
 
-arDatabaseNode* arGraphicsDatabase::alter(arStructuredData* inData){
-  return arDatabase::alter(inData);
+arDatabaseNode* arGraphicsDatabase::alter(arStructuredData* inData,
+                                          bool refNode){
+  return arDatabase::alter(inData, refNode);
 }
 
 void arGraphicsDatabase::reset(){

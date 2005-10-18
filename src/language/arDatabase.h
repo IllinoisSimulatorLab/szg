@@ -34,9 +34,20 @@ class SZG_CALL arDatabase{
                             const string& bundlePath);
 
   int getNodeID(const string& name, bool fWarn=true);
-  arDatabaseNode* getNode(int, bool fWarn=true);
-  arDatabaseNode* getNode(const string&, bool fWarn=true);
-  arDatabaseNode* findNode(const string& name);
+  arDatabaseNode* getNode(int ID, bool fWarn=true, bool refNode=false);
+  arDatabaseNode* getNodeRef(int ID, bool fWarn=true);
+  arDatabaseNode* getNode(const string& name, bool fWarn=true, 
+                          bool refNode=false);
+  arDatabaseNode* getNodeRef(const string& name, bool fWarn=true);
+  arDatabaseNode* findNode(const string& name, bool refNode=false);
+  arDatabaseNode* findNodeRef(const string& name);
+  arDatabaseNode* findNode(arDatabaseNode* node, const string& name,
+			   bool refNode = false);
+  arDatabaseNode* findNodeRef(arDatabaseNode* node, const string& name);
+  arDatabaseNode* findNodeByType(arDatabaseNode* node, const string& nodeType,
+				 bool refNode = false);
+  arDatabaseNode* findNodeByTypeRef(arDatabaseNode* node, 
+                                    const string& nodeType);
   arDatabaseNode* getRoot(){ return &_rootNode; }
 
   arDatabaseNode* getParentRef(arDatabaseNode*);
@@ -45,19 +56,28 @@ class SZG_CALL arDatabase{
   // These functions manipulate the tree structure of the database.
   // Some of them are mirrored as methods of arDatabase nodes.
   arDatabaseNode* newNode(arDatabaseNode* parent, const string& type,
-                          const string& name = "");
+                          const string& name = "", bool refNode = false);
+  arDatabaseNode* newNodeRef(arDatabaseNode* parent, const string& type,
+                             const string& name = "");
   arDatabaseNode* insertNode(arDatabaseNode* parent,
 			     arDatabaseNode* child,
 			     const string& type,
+			     const string& name = "",
+                             bool refNode = false);
+  arDatabaseNode* insertNodeRef(arDatabaseNode* parent,
+                             arDatabaseNode* child,
+			     const string& type,
 			     const string& name = "");
+  bool cutNode(arDatabaseNode* node);
   bool cutNode(int ID);
+  bool eraseNode(arDatabaseNode* node);
   bool eraseNode(int ID);
   void permuteChildren(arDatabaseNode* parent,
                        list<int>& childIDs);
   
   bool fillNodeData(arStructuredData* data, arDatabaseNode* node);
 
-  virtual arDatabaseNode* alter(arStructuredData*);
+  virtual arDatabaseNode* alter(arStructuredData* data, bool refNode = false);
   arDatabaseNode* alterRaw(ARchar*);
   bool handleDataQueue(ARchar*);
 
@@ -115,6 +135,8 @@ class SZG_CALL arDatabase{
   bool isServer() const
     { return _server; }
 
+  inline arStructuredDataParser* getDataParser(){ return _dataParser; }
+
   //available for external data input use  (public data members are dangerous!)
   arStructuredData* eraseData;
   arStructuredData* makeNodeData;
@@ -145,6 +167,7 @@ class SZG_CALL arDatabase{
   arStructuredDataParser*      _dataParser;
 
   bool _initDatabaseLanguage();
+  arDatabaseNode* _getNodeNoLock(int ID, bool fWarn=false);
   string          _getDefaultName();
   arDatabaseNode* _makeDatabaseNode(arStructuredData*);
   arDatabaseNode* _insertDatabaseNode(arStructuredData*);

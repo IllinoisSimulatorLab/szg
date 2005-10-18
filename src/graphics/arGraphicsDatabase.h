@@ -54,7 +54,9 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   arGraphicsDatabase();
   virtual ~arGraphicsDatabase();
 
-  virtual arDatabaseNode* alter(arStructuredData*);
+  // Default should be false (i.e. we do not need an extra reference
+  // tacked on to the indicated node in the case of node creation).
+  virtual arDatabaseNode* alter(arStructuredData*, bool refNode=false);
   virtual void reset();
 
   void loadAlphabet(const char*);

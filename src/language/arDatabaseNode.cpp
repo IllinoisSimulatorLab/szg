@@ -27,7 +27,6 @@ arDatabaseNode::arDatabaseNode():
   _dLang = NULL;
 
   ar_mutex_init(&_nodeLock);
-  ar_mutex_init(&_dataLock);
 }
 
 arDatabaseNode::~arDatabaseNode(){
@@ -68,14 +67,29 @@ void arDatabaseNode::unref(){
   }
 }
 
-// If this node has an owning database, go ahead and use that as a node
-// factory. Otherwise, return NULL.
+void arDatabaseNode::lock(){
+  ar_mutex_lock(&_nodeLock);
+}
+
+void arDatabaseNode::unlock(){
+  ar_mutex_unlock(&_nodeLock);
+}
+
+/// If this node has an owning database, go ahead and use that as a node
+/// factory. Otherwise, return NULL.
 arDatabaseNode* arDatabaseNode::newNode(const string& type,
-					const string& name){
-  if (!getOwner()){
+					const string& name,
+                                        bool refNode){
+  if (!active()){
     return NULL;
   }
-  return getOwner()->newNode(this, type, name);
+  return getOwner()->newNode(this, type, name, refNode);
+}
+
+/// A wrapper for newNode that returns a ref'ed node pointer always.
+arDatabaseNode* arDatabaseNode::newNodeRef(const string& type,
+					   const string& name){
+  return newNode(type, name, true);
 }
 
 
@@ -108,26 +122,37 @@ bool arDatabaseNode::removeChild(arDatabaseNode* child){
 }
 
 string arDatabaseNode::getName() const{
-  return _name;
+  ar_mutex_lock(&_nodeLock);
+  string result = _name;
+  ar_mutex_unlock(&_nodeLock);
+  return result;
 }
 
 void arDatabaseNode::setName(const string& name){
-  if (getOwner()){
-    arStructuredData* r = _dLang->makeDataRecord(_dLang->AR_NAME);
+  if (active()){
+    arStructuredData* r 
+      = getOwner()->getDataParser()->getStorage(_dLang->AR_NAME);
     int ID = getID();
     r->dataIn(_dLang->AR_NAME_ID, &ID, AR_INT, 1);
     r->dataInString(_dLang->AR_NAME_NAME, name);
     r->dataInString(_dLang->AR_NAME_INFO, _info);
     getOwner()->alter(r);
-    delete r;
+    // Must recycle or there will be a memory leak.
+    getOwner()->getDataParser()->recycle(r);
   }
   else{
+    ar_mutex_lock(&_nodeLock);
     _setName(name);
+    ar_mutex_lock(&_nodeLock);
   }
 }
 
 string arDatabaseNode::getInfo() const{
-  return _info;
+  ar_mutex_lock(&_nodeLock);
+  string result = _info;
+  ar_mutex_unlock(&_nodeLock);
+  return result;
+  
 }
 
 void arDatabaseNode::setInfo(const string& info){
@@ -135,32 +160,70 @@ void arDatabaseNode::setInfo(const string& info){
     cout << "arDatabaseNode warning: cannot set root info.\n";
     return;
   }
-  if (getOwner()){
-    arStructuredData* r = _dLang->makeDataRecord(_dLang->AR_NAME);
+  if (active()){
+    arStructuredData* r 
+      = getOwner()->getDataParser()->getStorage(_dLang->AR_NAME);
     int ID = getID();
     r->dataIn(_dLang->AR_NAME_ID, &ID, AR_INT, 1);
     r->dataInString(_dLang->AR_NAME_NAME, _name);
     r->dataInString(_dLang->AR_NAME_INFO, info);
     getOwner()->alter(r);
-    delete r;
+    // Must do this or there will be a memory leak.
+    getOwner()->getDataParser()->recycle(r);
   }
   else{
+    ar_mutex_lock(&_nodeLock);
     _info = info;
+    ar_mutex_unlock(&_nodeLock);
   }
 }
 
-arDatabaseNode* arDatabaseNode::findNode(const string& name){
+/// We do not worry about thread-safety if the caller does not request that
+/// the returned node ptr be ref'ed. If, on the other hand, the caller does
+/// so request, thread safety gets handled by forwarding the request to
+/// the owning database (if one exists) which then calls back to us (but from 
+/// within a locked _databaseLock).
+arDatabaseNode* arDatabaseNode::findNode(const string& name,
+                                         bool refNode){
+  if (refNode && getOwner()){
+    // Will return a ptr with an extra ref.
+    return getOwner()->findNode(this, name, true); 
+  }
   arDatabaseNode* result = NULL;
   bool success = false;
   _findNode(result, name, success, NULL, true);
+  if (result && refNode){
+    result->ref();
+  }
   return result;
 }
 
-arDatabaseNode* arDatabaseNode::findNodeByType(const string& nodeType){
+arDatabaseNode* arDatabaseNode::findNodeRef(const string& name){
+  return findNode(name, true);
+}
+
+/// We do not worry about thread-safety if the caller does not request that
+/// the returned node ptr be ref'ed. If, on the other hand, the caller does
+/// so request, thread safety gets handled by forwarding the request to
+/// the owning database (if one exists) which then calls back to us (but from 
+/// within a locked _databaseLock).
+arDatabaseNode* arDatabaseNode::findNodeByType(const string& nodeType,
+                                               bool refNode){
+  if (refNode && getOwner()){
+    // Will return a ptr with an extra ref.
+    return getOwner()->findNodeByType(this, nodeType, true);
+  }
   arDatabaseNode* result = NULL;
   bool success = false;
   _findNodeByType(result, nodeType, success, NULL, true);
+  if (result && refNode){
+    result->ref();
+  }
   return result;
+}
+
+arDatabaseNode* arDatabaseNode::findNodeByTypeRef(const string& nodeType){
+  return findNodeByType(nodeType, true);
 }
 
 void arDatabaseNode::printStructure(int maxLevel, ostream& s){
@@ -175,20 +238,26 @@ bool arDatabaseNode::receiveData(arStructuredData* data){
     return false;
   } 
   if (_name == "root"){
-    cout << "arDatabaseNode warning: cannot set root name.\n";
+    cout << "arDatabaseNode warning: cannot set root name or info.\n";
   }
   else{
+    ar_mutex_lock(&_nodeLock);
     _name = data->getDataString(_dLang->AR_NAME_NAME);
+    ar_mutex_unlock(&_nodeLock);
   }
+  ar_mutex_lock(&_nodeLock);
   _info = data->getDataString(_dLang->AR_NAME_INFO);
+  ar_mutex_unlock(&_nodeLock);
   return true;
 }
 
 arStructuredData* arDatabaseNode::dumpData(){
   arStructuredData* result = _dLang->makeDataRecord(_dLang->AR_NAME);
   _dumpGenericNode(result,_dLang->AR_NAME_ID);
+  ar_mutex_lock(&_nodeLock);
   result->dataInString(_dLang->AR_NAME_NAME, _name);
   result->dataInString(_dLang->AR_NAME_INFO, _info);
+  ar_mutex_unlock(&_nodeLock);
   return result;
 }
 
@@ -421,6 +490,9 @@ void arDatabaseNode::_dumpGenericNode(arStructuredData* theData,int IDField){
   (void)theData->dataIn(IDField,&ID,AR_INT,1);
 }
 
+/// Have not tried to make this call thread-safe (it uses getChildren instead
+/// of getChildrenRef). However, if thread-safety is desired, it will always
+/// be called (for instance) from within an arDatabase's _databaseLock.
 void arDatabaseNode::_findNode(arDatabaseNode*& result,
                                const string& name,
                                bool& success,
@@ -456,6 +528,7 @@ void arDatabaseNode::_findNode(arDatabaseNode*& result,
   }
 }
 
+/// See comments re: thread-safety above findNode.
 void arDatabaseNode::_findNodeByType(arDatabaseNode*& result,
                                      const string& nodeType,
                                      bool& success,
@@ -508,8 +581,10 @@ void arDatabaseNode::_printStructureOneLine(int level, int maxLevel,
     }
   }
 
-  // Is it really efficient to COPY the list like this?
-  list<arDatabaseNode*> childList = getChildren();
+  // Might not be that efficient to copy the list but this operation need
+  // not be incredibly optimized. Note how we use ref-ing to ensure
+  // thread-safety.
+  list<arDatabaseNode*> childList = getChildrenRef();
  
   s << '(' << getID() << ", " 
     << "\"" << getName() << "\", " 
@@ -519,4 +594,6 @@ void arDatabaseNode::_printStructureOneLine(int level, int maxLevel,
        i != childList.end(); ++i){
     (*i)->_printStructureOneLine(level+1, maxLevel, s);
   }
+  // Since we ref'ed the list of nodes, must unref.
+  ar_unrefNodeList(childList);
 }

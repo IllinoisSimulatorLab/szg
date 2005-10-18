@@ -27,7 +27,9 @@ class SZG_CALL arGraphicsServer: public arGraphicsDatabase {
   bool start();
   void stop();
 
-  arDatabaseNode* alter(arStructuredData*);
+  // Default should be false (i.e. we do not need an extra reference
+  // tacked on to the indicated node in the case of node creation).
+  arDatabaseNode* alter(arStructuredData*, bool refNode=false);
 
   arSyncDataServer _syncServer; 
 

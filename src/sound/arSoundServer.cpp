@@ -79,8 +79,17 @@ void arSoundServer::stop(){
   _syncServer.stop();
 }
  
-arDatabaseNode* arSoundServer::alter(arStructuredData* theData){
-  return _syncServer.receiveMessage(theData);
+arDatabaseNode* arSoundServer::alter(arStructuredData* theData,
+                                     bool refNode){
+  // Serialization must occur at this level AND must use the thread-safety lock
+  // for arDatabase.
+  ar_mutex_lock(&_databaseLock);
+  arDatabaseNode* result = _syncServer.receiveMessage(theData);
+  if (result && refNode){
+    result->ref();
+  }
+  ar_mutex_unlock(&_databaseLock);
+  return result;
 }
 
 void arSoundServer::_recSerialize(arDatabaseNode* pNode,

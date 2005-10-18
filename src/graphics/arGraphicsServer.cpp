@@ -50,6 +50,8 @@ bool arGraphicsServer::_connectionCallback(list<arSocket*>* socketList) {
 
 arDatabaseNode* ar_graphicsServerMessageCallback(void* server,
 				                 arStructuredData* data){
+  // NOTE: we do NOT allow node creation ref'ing here. 
+  // Such is dealt with inside the receiveMessage call of the arSyncDataServer.
   return ((arGraphicsServer*)server)->arGraphicsDatabase::alter(data);
 }
 
@@ -88,8 +90,17 @@ void arGraphicsServer::stop(){
   _syncServer.stop();
 }
 
-arDatabaseNode* arGraphicsServer::alter(arStructuredData* theData){
-  return _syncServer.receiveMessage(theData);
+arDatabaseNode* arGraphicsServer::alter(arStructuredData* theData, 
+                                        bool refNode){
+  // Serialization must occur at this level AND must use the thread-safety lock
+  // for the arDatabase.
+  ar_mutex_lock(&_databaseLock);
+  arDatabaseNode* result = _syncServer.receiveMessage(theData);
+  if (result && refNode){
+    result->ref();
+  }
+  ar_mutex_unlock(&_databaseLock);
+  return result;
 }
 
 void arGraphicsServer::_recSerialize(arDatabaseNode* pNode,

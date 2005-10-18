@@ -59,8 +59,9 @@ arSoundDatabase::~arSoundDatabase(){
   }
 }
 
-arDatabaseNode* arSoundDatabase::alter(arStructuredData* inData){
-  return arDatabase::alter(inData);
+arDatabaseNode* arSoundDatabase::alter(arStructuredData* inData,
+                                       bool refNode){
+  return arDatabase::alter(inData, refNode);
 }
 
 void arSoundDatabase::reset(){

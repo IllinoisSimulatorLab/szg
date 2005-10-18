@@ -38,6 +38,9 @@ class SZG_CALL arDatabaseNode{
   void ref();
   void unref();
 
+  void lock();
+  void unlock();
+
   string getName() const;
   void setName(const string& name);
   string getInfo() const;
@@ -47,7 +50,9 @@ class SZG_CALL arDatabaseNode{
 
   // If the node has an owner, it can act as a node factory as well.
   // This method will NOT worked with an "unowned" node.
-  arDatabaseNode* newNode(const string& type, const string& name = "");
+  arDatabaseNode* newNode(const string& type, const string& name = "",
+                          bool refNode = false);
+  arDatabaseNode* newNodeRef(const string& type, const string& name = "");
  
   // Sometimes we want to work with node trees that are not controlled by
   // an arDatabase. This method will NOT work with an "owned" node.
@@ -55,8 +60,10 @@ class SZG_CALL arDatabaseNode{
   // Also only for node trees that are NOT owned by an arDatabase.
   bool removeChild(arDatabaseNode* child);
 
-  arDatabaseNode* findNode(const string& name);
-  arDatabaseNode* findNodeByType(const string& nodeType);
+  arDatabaseNode* findNode(const string& name, bool refNode = false);
+  arDatabaseNode* findNodeRef(const string& name);
+  arDatabaseNode* findNodeByType(const string& nodeType, bool refNode = false);
+  arDatabaseNode* findNodeByTypeRef(const string& nodeType);
 
   void printStructure(){ printStructure(10000); }
   void printStructure(int maxLevel){ printStructure(maxLevel, cout); }
@@ -109,8 +116,6 @@ class SZG_CALL arDatabaseNode{
   // counted. Must be mutable since it is locked/unlocked in some const
   // methods.
   mutable arMutex _nodeLock;
-  // DEPRECATED. TO BE REMOVED.
-  arMutex _dataLock;
 
   // Must keep a reference count.
   int _refs;

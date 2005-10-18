@@ -87,33 +87,38 @@ void arDatabase::addDataBundlePathMap(const string& bundlePathName,
                         (bundlePathName, bundlePath));
 }
 
-// This function is simply an ABOMINATION and will go away.
+/// An abbreiviation for depth-first search for the node via its name,
+/// returning the ID of the first such node found (and -1 if none is found).
 int arDatabase::getNodeID(const string& name, bool fWarn) {
   const arDatabaseNode* pNode = getNode(name,fWarn);
   return pNode ? pNode->getID() : -1;
 }
 
-arDatabaseNode* arDatabase::getNode(int theID, bool fWarn) {
-  arNodeIDIterator i(_nodeIDContainer.find(theID));
-  if (i == _nodeIDContainer.end()){
-    if (fWarn){
-      cerr << "arDatabase warning: no node with ID " << theID <<
-	   (empty() ? " in empty database.\n" : ".\n");
-    }
-    return NULL;
+/// Note how this call is thread-safe using the global arDatabase lock.
+/// Consequently, it cannot be called internally in any of the arDatabase
+/// (or subclass) code for message processing in order to avoid deadlocks.
+arDatabaseNode* arDatabase::getNode(int ID, bool fWarn, bool refNode){
+  ar_mutex_lock(&_databaseLock);
+  arDatabaseNode* result = _getNodeNoLock(ID, fWarn);
+  if (result && refNode){
+    result->ref();
   }
-  return i->second;
+  ar_mutex_unlock(&_databaseLock);
+  return result;
 }
 
-// The meaning of the below function is changing. Names are no longer
-// assumed to be unique. Indeed, this is a very important FEATURE now.
-// It simplifies many of the name management issues that existed before...
-// AND it allows us to use the names to present SEMANTIC information for
-// mapping one database tree to another. 
-// ONE PROBLEM: getNode is now HORRENDOUSLY slow
-// in comparison to its old version (where one could rely on uniqueness of
-// names via the mapping container). 
-arDatabaseNode* arDatabase::getNode(const string& name, bool fWarn) {
+arDatabaseNode* arDatabase::getNodeRef(int ID, bool fWarn){
+  return getNode(ID, fWarn, true);
+}
+
+
+// Node names are not assumed to be unique within the arDatabase.
+// Consequently, this function is really just a restatement of findNode(...).
+// We do a breadth-first search for the first node with the given name and
+// return that.
+arDatabaseNode* arDatabase::getNode(const string& name, bool fWarn, 
+                                    bool refNode){
+  ar_mutex_lock(&_databaseLock);
   // Conducts a breadth-first search for the node with the given name.
   arDatabaseNode* result = NULL;
   bool success = false;
@@ -121,15 +126,83 @@ arDatabaseNode* arDatabase::getNode(const string& name, bool fWarn) {
   if (!success && fWarn){
     cerr << "arDatabase warning: no node \"" << name << "\".\n";
   }
+  if (result && refNode){
+    result->ref();
+  }
+  ar_mutex_unlock(&_databaseLock);
   return result;
 }
 
-/// What getNode(nodeName) really is...
-arDatabaseNode* arDatabase::findNode(const string& name){
+arDatabaseNode* arDatabase::getNodeRef(const string& name, bool fWarn){
+  return getNode(name, fWarn, true);
+}
+
+/// Does a depth-first search for a node with the given name, starting at the
+/// arDatabase's root node.
+arDatabaseNode* arDatabase::findNode(const string& name, bool refNode){
+  ar_mutex_lock(&_databaseLock);
   arDatabaseNode* result = NULL;
   bool success = false;
   _rootNode._findNode(result, name, success, NULL, true);
+  if (result && refNode){
+    result->ref();
+  }
+  ar_mutex_unlock(&_databaseLock);
   return result;
+}
+
+arDatabaseNode* arDatabase::findNodeRef(const string& name){
+  return findNode(name, true);
+}
+
+arDatabaseNode* arDatabase::findNode(arDatabaseNode* node, const string& name,
+			             bool refNode){
+  if (!node || !node->active() || node->getOwner() != this){
+    cout << "arDatabase error: attempted to findNode starting at node "
+	 << "not owned by this database.\n";
+    return NULL;
+  }
+  ar_mutex_lock(&_databaseLock);
+  // NOTE: regardless of whether or not the caller has requested the ptr be
+  // ref'ed, we CANNOT request this of the arDatabaseNode, since that will
+  // result in a call to arDatabase::findNode again and an infinite recursion.
+  arDatabaseNode* result = node->findNode(name, false);
+  if (result && refNode){
+    result->ref();
+  }
+  ar_mutex_unlock(&_databaseLock);
+  return result;
+}
+
+arDatabaseNode* arDatabase::findNodeRef(arDatabaseNode* node, 
+                                        const string& name){
+  return findNode(node, name, true);
+}
+
+arDatabaseNode* arDatabase::findNodeByType(arDatabaseNode* node, 
+                                           const string& nodeType,
+			                   bool refNode){
+  if (!node || !node->active() || node->getOwner() != this){
+    cout << "arDatabase error: attempted to findNode starting at node "
+	 << "not owned by this database.\n";
+    return NULL;
+  }
+  ar_mutex_lock(&_databaseLock);
+  // NOTE: regardless of whether or not the caller has requested the ptr be
+  // ref'ed, we CANNOT request this of the arDatabaseNode, since that will
+  // result in a call to arDatabase::findNodeByType again and an infinite 
+  // recursion.
+  arDatabaseNode* result = node->findNodeByType(nodeType, false);
+  if (result && refNode){
+    result->ref();
+  }
+  ar_mutex_unlock(&_databaseLock);
+  return result;
+}
+
+arDatabaseNode* arDatabase::findNodeByTypeRef(arDatabaseNode* node, 
+                                              const string& nodeType){
+  return findNodeByType(node, nodeType, true);
 }
 
 /// Just a way to make getting a node's parent thread-safe with respect to
@@ -144,7 +217,13 @@ arDatabaseNode* arDatabase::getParentRef(arDatabaseNode* node){
   // Here, active means that the node is owned AND has a parent (or is the
   // root node).
   if (node && node->active() && node->getOwner() == this){
-    result = node->getParentRef();
+    // NOTE: We CANNOT call arDatabaseNode::getParentRef here, since that
+    // will simply lead to another call to arDatabase::getParentRef (an
+    // infinite recursion).
+    result = node->getParent();
+    if (result){
+      result->ref();
+    }
   }
   ar_mutex_unlock(&_databaseLock);
   return result;
@@ -157,7 +236,11 @@ list<arDatabaseNode*> arDatabase::getChildrenRef(arDatabaseNode* node){
   // Here, active means that the node is owned AND has a parent (or is the
   // root node).
   if (node && node->active() && node->getOwner() == this){
-    result = node->getChildrenRef();
+    // NOTE: We CANNOT call arDatabaseNode::getChildrenRef here, since that
+    // will simply lead to another call to arDatabase::getChildrenRef (an
+    // infinite recursion).
+    result = node->getChildren();
+    ar_refNodeList(result);
   }
   ar_mutex_unlock(&_databaseLock);
   return result;
@@ -165,13 +248,17 @@ list<arDatabaseNode*> arDatabase::getChildrenRef(arDatabaseNode* node){
 
 arDatabaseNode* arDatabase::newNode(arDatabaseNode* parent,
                                     const string& type,
-                                    const string& name){
+                                    const string& name,
+                                    bool refNode){
   string nodeName = name;
   if (nodeName == ""){
     nodeName = _getDefaultName();
   }
-  // BUG: NOT TESTING TO SEE IF THIS DATABASE NODE IS, INDEED, OWNED BY
-  // THIS DATABASE!
+  if (!parent || !parent->active() || parent->getOwner() != this){
+    cout << "arDatabase error: designated parent is not part of this "
+	 << "database.\n";
+    return NULL;
+  }
   int parentID = parent->getID();
   arStructuredData* data = _dataParser->getStorage(_lang->AR_MAKE_NODE);
   data->dataIn(_lang->AR_MAKE_NODE_PARENT_ID, &parentID, AR_INT, 1);
@@ -180,11 +267,19 @@ arDatabaseNode* arDatabase::newNode(arDatabaseNode* parent,
   data->dataIn(_lang->AR_MAKE_NODE_ID, &temp, AR_INT, 1);
   data->dataInString(_lang->AR_MAKE_NODE_NAME, nodeName);
   data->dataInString(_lang->AR_MAKE_NODE_TYPE, type);
-  // The alter(...) call will return the new node.
-  arDatabaseNode* result = alter(data);
+  // The alter(...) call will return the new node. Note: in subclasses,
+  // alter(...) will be atomic (protected by _databaseLock). If refNode is
+  // true, then the node pointer returned will have an extra reference added.
+  arDatabaseNode* result = alter(data, refNode);
   // Must recycle. Otherwise there will be a memory leak.
   _dataParser->recycle(data);
   return result;
+}
+
+arDatabaseNode* arDatabase::newNodeRef(arDatabaseNode* parent,
+				       const string& type,
+				       const string& name){
+  return newNode(parent, type, name);
 }
 
 // The parent node MUST be given. If no child node is given (i.e. the 
@@ -198,12 +293,13 @@ arDatabaseNode* arDatabase::newNode(arDatabaseNode* parent,
 arDatabaseNode* arDatabase::insertNode(arDatabaseNode* parent,
 			               arDatabaseNode* child,
 			               const string& type,
-			               const string& name){
+			               const string& name,
+                                       bool refNode){
 
   // The parent node can't be NULL and must be owned by this database.
   // If the child node is not NULL, it must be owned by this database as well.
-  if (!parent || parent->getOwner() != this ||
-      (child && child->getOwner() != this)){
+  if (!parent || !parent->active() || parent->getOwner() != this ||
+      (child && (!child->active() || child->getOwner() != this))){
     cout << "arDatabase error: attempted to insert using foreign nodes.\n";
     return NULL;
   }
@@ -226,18 +322,33 @@ arDatabaseNode* arDatabase::insertNode(arDatabaseNode* parent,
   data->dataIn(_lang->AR_INSERT_ID, &temp, AR_INT, 1);
   data->dataInString(_lang->AR_INSERT_NAME, nodeName);
   data->dataInString(_lang->AR_INSERT_TYPE, type);
-  arDatabaseNode* result = alter(data);
+  // Subclasses may guarantee that alter(...) occurs atomically. Consequently,
+  // this call is thread-safe. If refNode is true, then the node pointer will
+  // be returned with an extra reference.
+  arDatabaseNode* result = alter(data, refNode);
   // Very important that this gets recycled to prevent a memory leak.
   _dataParser->recycle(data);
   return result;
 }
 
-bool arDatabase::cutNode(int ID){
-  // Make sure that there is a node with this ID.
-  arDatabaseNode* node = getNode(ID, false);
-  if (!node){
+arDatabaseNode* arDatabase::insertNodeRef(arDatabaseNode* parent,
+			                  arDatabaseNode* child,
+			                  const string& type,
+			                  const string& name){
+  return insertNode(parent, child, type, name, true);
+}
+
+bool arDatabase::cutNode(arDatabaseNode* node){
+  if (!node || !node->active() || node->getOwner() != this){
+    cout << "arDatabase error: node does not belong to this arDatabase.\n";
     return false;
   }
+  return cutNode(node->getID());
+}
+
+bool arDatabase::cutNode(int ID){
+  // There is no need to check (here) whether or not there is a node in the
+  // arDatabase with this ID. This will occur inside the alter(...).
   arStructuredData* data = _dataParser->getStorage(_lang->AR_CUT);
   data->dataIn(_lang->AR_CUT_ID, &ID, AR_INT, 1);
   arDatabaseNode* result = alter(data);
@@ -246,11 +357,17 @@ bool arDatabase::cutNode(int ID){
   return result ? true : false;
 }
 
-bool arDatabase::eraseNode(int ID){
-  arDatabaseNode* node = getNode(ID, false);
-  if (!node){
+bool arDatabase::eraseNode(arDatabaseNode* node){
+  if (!node || !node->active() || node->getOwner() != this){
+    cout << "arDatabaseNode error: node does not belong to this database.\n";
     return false;
   }
+  return eraseNode(node->getID());
+}
+
+bool arDatabase::eraseNode(int ID){
+  // There is no need to check (here) whether or not there is a node in the
+  // arDatabase with this ID. This will occur inside the alter(...).
   arStructuredData* data = _dataParser->getStorage(_lang->AR_ERASE);
   data->dataIn(_lang->AR_ERASE_ID, &ID, AR_INT, 1);
   alter(data);
@@ -284,6 +401,10 @@ void arDatabase::permuteChildren(arDatabaseNode* parent,
 
 /// When transfering the database state, we often want to dump the structure
 /// before dumping the data of the individual nodes.
+/// NOTE: This call is thread-safe and need not involve _databaseLock
+/// (hence we do not need a "no lock" version) under the assumption that node
+/// is ref'ed outside the arDatabase (or is the root). This means the parent
+/// is also ref'ed since the node refs its parent.
 bool arDatabase::fillNodeData(arStructuredData* data, arDatabaseNode* node){
   if (!data || !node){
     return false;
@@ -305,18 +426,33 @@ bool arDatabase::fillNodeData(arStructuredData* data, arDatabaseNode* node){
 // In the case of node creation, we actually want to be able to return
 // an arDatabaseNode* (i.e. the created node). This makes code easier to
 // manage. In other cases, upon success, return a pointer to the node
-// we altered.
-arDatabaseNode* arDatabase::alter(arStructuredData* inData){
+// we altered. Subclasses that intend to operate in a thread-safe fashion will
+// have to ensure that this is excuted atomically (via _databaseLock).
+arDatabaseNode* arDatabase::alter(arStructuredData* inData, bool refNode){
   const ARint dataID = inData->getID();
+  arDatabaseNode* pNode = NULL;
   if (_databaseReceive[dataID]){
     // Call one of _handleQueuedData _eraseNode _makeDatabaseNode.
     // If it fails, it prints its own error message,
     // so we don't need to print another one here.
-    return (this->*(_databaseReceive[dataID]))(inData); 
+    pNode = (this->*(_databaseReceive[dataID]))(inData); 
+    // Only requests for new nodes (i.e. make node and insert) will actually
+    // set refNode to true. Consequently, we won't be, for instance, increasing
+    // the reference count on the root node.
+    if (refNode && pNode){
+      pNode->ref();
+    }
+    return pNode;
   }
-  arDatabaseNode* pNode = getNode(inData->getDataInt(_routingField[dataID]));
-  if (!pNode)
+  // Note that we are careful to use _getNodeNoLock instead of getNode here.
+  // This method may be called by subclasses within a locked _databaseLock.
+  // NOTE: there is no real reason to give this node pointer an extra reference
+  // (unlike with the make node or insert cases above, where new nodes can be
+  // created).
+  pNode = _getNodeNoLock(inData->getDataInt(_routingField[dataID]));
+  if (!pNode){
     return NULL;
+  }
   if (!pNode->receiveData(inData)){
     cerr << "arDatabase warning: receiveData() of child \""
          << pNode->_name << "\" failed.\n";
@@ -670,10 +806,12 @@ bool arDatabase::writeRooted(arDatabaseNode* parent,
   size_t bufferSize = 1000;
   ARchar* buffer = new ARchar[bufferSize];
   arStructuredData nodeData(_lang->find("make node"));
-  list<arDatabaseNode*> l = parent->getChildren();
+  // To make this call thread-safe, we must ref and unref the children.
+  list<arDatabaseNode*> l = parent->getChildrenRef();
   for (list<arDatabaseNode*>::iterator i = l.begin(); i != l.end(); i++){
     _writeDatabase(*i, nodeData, buffer, bufferSize, destFile); 
   }
+  ar_unrefNodeList(l);
   delete [] buffer;
   fclose(destFile);
   return true;
@@ -691,15 +829,18 @@ bool arDatabase::writeRootedXML(arDatabaseNode* parent,
     return false;
   }
   arStructuredData nodeData(_lang->find("make node"));
-  list<arDatabaseNode*> l = parent->getChildren();
+  // To make this call thread-safe, we must ref and unref the node list.
+  list<arDatabaseNode*> l = parent->getChildrenRef();
   for (list<arDatabaseNode*>::iterator i = l.begin(); i != l.end(); i++){
     _writeDatabaseXML(*i, nodeData, destFile);
   }
+  ar_unrefNodeList(l);
   fclose(destFile);
   return true;
 }
 
-// NOTE: this is another attempt at the algorithm found in filterIncoming
+// NOTE: Similar to the algorithm found in filterIncoming.
+// NOTE: NOT THREAD-SAFE.
 bool arDatabase::createNodeMap(int externalNodeID, 
                                arDatabase* externalDatabase,
                                map<int, int, less<int> >& nodeMap){
@@ -907,6 +1048,20 @@ bool arDatabase::_initDatabaseLanguage(){
   return true;
 }
 
+/// We often want to be able to convert an ID into a node pointer from within
+/// a method that uses the _databaseLock.
+arDatabaseNode* arDatabase::_getNodeNoLock(int ID, bool fWarn){
+  arNodeIDIterator i(_nodeIDContainer.find(ID));
+  if (i == _nodeIDContainer.end()){
+    if (fWarn){
+      cerr << "arDatabase warning: no node with ID " << ID <<
+	   (empty() ? " in empty database.\n" : ".\n");
+    }
+    return NULL;
+  }
+  return i->second;
+}
+
 string arDatabase::_getDefaultName(){
   stringstream def;
   ar_mutex_lock(&_databaseLock);
@@ -932,7 +1087,9 @@ arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
   const string type(inData->getDataString(_lang->AR_MAKE_NODE_TYPE));
   
   // If no parent node exists, then there is nothing to do.
-  arDatabaseNode* parentNode = getNode(parentID, false);
+  // We MUST use _getNodeNoLock here since this will likely be called from
+  // within a locked _databaseLock.
+  arDatabaseNode* parentNode = _getNodeNoLock(parentID, false);
   if (!parentNode){
     // This is an error.
     cout << "arDatabase warning: parent (ID=" << parentID << ") "
@@ -946,7 +1103,8 @@ arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
   if (theID != -1){
     // In this case, we're trying to insert a node with a specific ID.
     // If there is already a node by this ID, we'll just use it.
-    arDatabaseNode* pNode = getNode(theID, false);
+    // MUST use _getNodeNoLock here.
+    arDatabaseNode* pNode = _getNodeNoLock(theID, false);
     if (pNode){
       // Determine if the existing node is suitable for "mapping".
       if (pNode->getTypeString() == type){
@@ -995,8 +1153,10 @@ arDatabaseNode* arDatabase::_insertDatabaseNode(arStructuredData* data){
   // exist. If not, return an error.
   // DO NOT print warnings if the node is not found (the meaning of the
   // second "false" parameter).
-  arDatabaseNode* parentNode = getNode(parentID, false);
-  arDatabaseNode* childNode = getNode(childID, false);
+  // MUST use _getNodeNoLock in this function (instead of getNode) because
+  // this will likely be called from within a locked _databaseLock.
+  arDatabaseNode* parentNode = _getNodeNoLock(parentID, false);
+  arDatabaseNode* childNode = _getNodeNoLock(childID, false);
   // Only the parentNode is assumed to exist. If childID is -1, then we
   // do not deal with the child node.
   if (!parentNode || (!childNode && childID != -1)){
@@ -1014,7 +1174,7 @@ arDatabaseNode* arDatabase::_insertDatabaseNode(arStructuredData* data){
   // with that ID. Insert (unlike add) does not support node "mappings". If
   // a node exists with the ID, return an error.
   if (nodeID > -1){
-    if (getNode(nodeID, false)){
+    if (_getNodeNoLock(nodeID, false)){
       return NULL;
     }
   }
@@ -1053,7 +1213,9 @@ arDatabaseNode* arDatabase::_cutDatabaseNode(arStructuredData* data){
   // NOTE: data is guaranteed to be the right type because alter(...)
   // sends messages to handlers (like this one) based on type information.
   int ID = data->getDataInt(_lang->AR_CUT_ID);
-  arDatabaseNode* node = getNode(ID);
+  // MUST use _getNodeNoLock instead of getNode here since this function will
+  // likely be called inside a locked _databaseLock.
+  arDatabaseNode* node = _getNodeNoLock(ID);
   if (!node){
     cout << "arDatabase remark: _cutNode failed. No such node.\n";
     return NULL;
@@ -1068,7 +1230,9 @@ arDatabaseNode* arDatabase::_cutDatabaseNode(arStructuredData* data){
 /// when this returned bool.
 arDatabaseNode* arDatabase::_eraseNode(arStructuredData* inData){
   int ID = inData->getDataInt(_lang->AR_ERASE_ID);
-  arDatabaseNode* startNode = getNode(ID);
+  // MUST use _getNodeNoLock instead of getNode here since this function will
+  // likely be called inside a locked _databaseLock.
+  arDatabaseNode* startNode = _getNodeNoLock(ID);
   if (!startNode){
     cerr << "arDatabase::_eraseNode failed: no such node.\n";
     return NULL;
@@ -1090,7 +1254,9 @@ arDatabaseNode* arDatabase::_permuteDatabaseNodes(arStructuredData* data){
   // NOTE: data is guaranteed to be the right type because alter(...)
   // sends messages to handlers (like this one) based on type information.
   int ID = data->getDataInt(_lang->AR_PERMUTE_PARENT_ID);
-  arDatabaseNode* parent = getNode(ID);
+  // MUST use _getNodeNoLock instead of getNode here since this function will
+  // likely be called inside a locked _databaseLock.
+  arDatabaseNode* parent = _getNodeNoLock(ID);
   if (!parent){
     cout << "arDatabase:: _permuteDatabaseNodes failed: no such parent.\n";
     return NULL;
@@ -1100,7 +1266,9 @@ arDatabaseNode* arDatabase::_permuteDatabaseNodes(arStructuredData* data){
   // Create the list of arDatabaseNodes.
   list<arDatabaseNode*> childList;
   for (int i=0; i<numIDs; i++){
-    arDatabaseNode* node = getNode(IDs[i]);
+    // MUST use _getNodeNoLock instead of getNode here since this function will
+    // likely be called inside a locked _databaseLock.
+    arDatabaseNode* node = _getNodeNoLock(IDs[i]);
     // Only the node if it is, in fact, a child of ours.
     if (node && node->getParent() == parent){
       childList.push_back(node);
@@ -1168,6 +1336,9 @@ void arDatabase::_eraseNode(arDatabaseNode* node){
   // Go to each child and erase that node. Yes, copying the node list out
   // is somewhat inefficient... BUT it this keeps us from putting our hands
   // in the guts of the arDatabaseNode unnecessarily.
+  // No need to use getChildrenRef here since this function is called from
+  // within a locked _databaseLock (when thread-safety is desired, as in
+  // arGraphicsPeer, arGraphicsServer, etc.)
   list<arDatabaseNode*> childList = node->getChildren();
   for (list<arDatabaseNode*>::iterator i = childList.begin();
        i != childList.end(); i++){
@@ -1237,12 +1408,14 @@ void arDatabase::_writeDatabase(arDatabaseNode* pNode,
     }
     delete theRecord;
   }
-  // Now, recurse to the node's children.
-  list<arDatabaseNode*> children = pNode->getChildren();
+  // Now, recurse to the node's children. To make this call thread-safe, we
+  // must ref and unref the node list.
+  list<arDatabaseNode*> children = pNode->getChildrenRef();
   for (list<arDatabaseNode*>::iterator i = children.begin();
        i != children.end(); i++){
     _writeDatabase(*i, nodeData, buffer, bufferSize, destFile);
   }
+  ar_unrefNodeList(children);
 }
 
 void arDatabase::_writeDatabaseXML(arDatabaseNode* pNode,
@@ -1256,19 +1429,24 @@ void arDatabase::_writeDatabaseXML(arDatabaseNode* pNode,
     delete theRecord;                               
   }
   // Now, recurse to the node's children.
-  list<arDatabaseNode*> children = pNode->getChildren();
+  list<arDatabaseNode*> children = pNode->getChildrenRef();
   for (list<arDatabaseNode*>::iterator i = children.begin();
        i != children.end(); i++){
     _writeDatabaseXML(*i, nodeData, destFile);
   }  
+  ar_unrefNodeList(children);
 }
 
 /// Recursive helper function for createNodeMap.
+/// NOTE: THIS FUNCTION IS NOT THREAD-SAFE.
 void arDatabase::_createNodeMap(arDatabaseNode* localNode, 
                                 int externalNodeID, 
                                 arDatabase* externalDatabase, 
 				map<int, int, less<int> >& nodeMap,
 		                bool& failure){
+  // Since this function is not called from the inner loop of message
+  // processing (like filterIncoming, for instance), we do not risk deadlock
+  // by using getNode instead of _getNodeNoLock
   // If the map has failed, just return.
   if (failure){
     return;
@@ -1393,7 +1571,9 @@ int arDatabase::_filterIncomingMakeNode(arDatabaseNode* mappingRoot,
     currentParent = mappingRoot;
   }
   else{
-    currentParent = getNode(i->second);
+    // MUST use _getNodeNoLock instead of getNode here since this function will
+    // likely be called inside a locked _databaseLock.
+    currentParent = _getNodeNoLock(i->second);
   }
   // Make sure that the parent actually exists (maybe there was a stale entry
   // in the node map). Or maybe mappingRoot was NULL as passed in from the
@@ -1486,7 +1666,9 @@ int arDatabase::_filterIncomingInsert(arDatabaseNode* mappingRoot,
     parentNode = mappingRoot;
   }
   else{
-    parentNode = getNode(i->second);
+    // MUST use _getNodeNoLock instead of getNode here since this function will
+    // likely be called inside a locked _databaseLock.
+    parentNode = _getNodeNoLock(i->second);
   }
   // Check to make sure that the node still exists. (It could be that it was
   // erased on our side but not on the other side).
@@ -1502,7 +1684,9 @@ int arDatabase::_filterIncomingInsert(arDatabaseNode* mappingRoot,
       childNode = mappingRoot;
     }
     else{
-      childNode = getNode(i->second);
+      // MUST use _getNodeNoLock instead of getNode here since this function 
+      // will likely be called inside a locked _databaseLock.
+      childNode = _getNodeNoLock(i->second);
     }
     if (!childNode){
       return 0;
@@ -1558,7 +1742,9 @@ int arDatabase::_filterIncomingErase(arDatabaseNode* mappingRoot,
   // Check to see that the entry in the node map is not "stale".
   arDatabaseNode* node = NULL;
   if (nodeID){
-    node = getNode(i->second);
+    // MUST use _getNodeNoLock instead of getNode here since this function will
+    // likely be called inside a locked _databaseLock.
+    node = _getNodeNoLock(i->second);
   }
   else{
     node = mappingRoot;
@@ -1590,7 +1776,9 @@ int arDatabase::_filterIncomingCut(arStructuredData* data,
     return 0;
   }
   // Check to see that the entry in the node map is not "stale".
-  arDatabaseNode* node = getNode(i->second);
+  // MUST use _getNodeNoLock instead of getNode here since this function will
+  // likely be called inside a locked _databaseLock.
+  arDatabaseNode* node = _getNodeNoLock(i->second);
   if (!node){
     // Node map entry is "stale". Discard this message.
     return 0;
@@ -1618,7 +1806,9 @@ int arDatabase::_filterIncomingPermute(arStructuredData* data,
     return 0;
   }
   // Check to see that the entry in the node map is not "stale".
-  arDatabaseNode* parentNode = getNode(i->second);
+  // MUST use _getNodeNoLock instead of getNode here since this function will
+  // likely be called inside a locked _databaseLock.
+  arDatabaseNode* parentNode = _getNodeNoLock(i->second);
   if (!parentNode){
     // Node map entry is "stale". Discard this message.
     return 0;
@@ -1643,7 +1833,9 @@ int arDatabase::_filterIncomingPermute(arStructuredData* data,
     i = nodeMap.find(childIDs[j]);
     if (i != nodeMap.end()){
       // Check to see that the entry in the node map is not stale.
-      arDatabaseNode* childNode = getNode(i->second);
+      // MUST use _getNodeNoLock instead of getNode here since this function 
+      // will likely be called inside a locked _databaseLock.
+      arDatabaseNode* childNode = _getNodeNoLock(i->second);
       if (childNode){
 	// Yes, we can map now.
 	mappedChildIDs[whichMappedID] = childNode->getID();

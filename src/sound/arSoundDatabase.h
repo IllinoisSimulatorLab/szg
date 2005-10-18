@@ -29,7 +29,7 @@ class SZG_CALL arSoundDatabase: public arDatabase{
   arSoundDatabase();
   virtual ~arSoundDatabase();
 
-  virtual arDatabaseNode* alter(arStructuredData*);
+  virtual arDatabaseNode* alter(arStructuredData*, bool refNode=false);
   virtual void reset();
 
   string getPath();

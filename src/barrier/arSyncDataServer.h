@@ -79,7 +79,6 @@ class SZG_CALL arSyncDataServer{
   arSignalObject _signalObject;
   arSignalObject _signalObjectRelease;
   arMutex _queueLock;
-  arMutex _messageLock;
   arConditionVar _messageBufferVar;
   bool _messageBufferFull;
   // This had better be a pretty large default...

@@ -27,7 +27,7 @@ class SZG_CALL arSoundServer: public arSoundDatabase {
   bool start();
   void stop();
  
-  arDatabaseNode* alter(arStructuredData*);
+  arDatabaseNode* alter(arStructuredData*, bool refNode=false);
  
   arSyncDataServer _syncServer;
  
