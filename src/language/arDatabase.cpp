@@ -1351,6 +1351,10 @@ void arDatabase::_eraseNode(arDatabaseNode* node){
   const int nodeID = node->getID();
   if (nodeID != 0){
     _nodeIDContainer.erase(nodeID);
+    // Must call the node's deactivate method. The arGraphicsDatabase, for
+    // instance, uses this to remove the lights of deleted nodes from its
+    // list.
+    node->deactivate();
     // Must remove our, internal, arDatabase ref to the node.
     // This ref happens when our factory creates the node.
     // Recall that we are unref-ing nodes, not deleting them.
@@ -1378,6 +1382,8 @@ void arDatabase::_cutNode(arDatabaseNode* node){
   parent->_stealChildren(node);
   // Must remove the node from the database's storage.
   _nodeIDContainer.erase(node->getID());
+  // Must call the node's deactivate method.
+  node->deactivate();
   // Must unreference the node, which might cause a delete.
   node->unref();
 }

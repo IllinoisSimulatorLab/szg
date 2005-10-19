@@ -75,15 +75,15 @@ arGraphicsDatabase::arGraphicsDatabase() :
     cerr << "arGraphicsDatabase error: incomplete dictionary.\n";
   }
 
-  // initialize the light container
+  // Initialize the light container.
   int i = 0;
   for (i=0; i<8; i++){
-    _lightContainer[i] = pair<int,arLight*>(0,NULL);
+    _lightContainer[i] = pair<arGraphicsNode*,arLight*>(NULL,NULL);
   }
-  // initialize the camera container
-//  _cameraID = -1; // make sure we are set up for the default "VR camera"
+  // Initialize the camera container.
   for (i=0; i<8; i++){
-    _cameraContainer[i] = pair<int,arPerspectiveCamera*>(0,NULL);
+    _cameraContainer[i] 
+      = pair<arGraphicsNode*,arPerspectiveCamera*>(NULL,NULL);
   }
 }
 
@@ -142,7 +142,7 @@ arGraphicsDatabase::~arGraphicsDatabase(){
   }
   
   // Don't forget to get rid of the textures. However, deleting them isn't
-  // so smart. Instead, unref and let that operator delete if no-one else
+  // so smart. Instead, unref and let that operator delete if no one else
   // is holding a reference.
   for (map<string,arTexture*,less<string> >::iterator 
        i = _textureNameContainer.begin(); i != _textureNameContainer.end(); 
@@ -160,21 +160,9 @@ void arGraphicsDatabase::reset(){
   // Call base class to do that cleaning.
   arDatabase::reset();
 
-  // reset light container
-  // NOTE: there is a memory leak here! Not deleting the known lights!
-  // This is bad. Maybe the lights need to be owned by the database,
-  // just like the textures?
-  // initialize the light container
-  int j = 0;
-  for (j=0; j<8; j++){
-    _lightContainer[j] = pair<int,arLight*>(0,NULL);
-  }
-  // rset camera container
-  // NOTE: there is a memory leak here! Not deleting the known camera!
-  // This is bad!
-  for (j=0; j<8; j++){
-    _cameraContainer[j] = pair<int,arPerspectiveCamera*>(0,NULL);
-  }
+  // The light container and the camera container are automatically cleared
+  // by arDatabase::reset() and the deactivate methods of arLightNode and
+  // arPerspectiveCameraNode.
 
   // Unref the textures. Do not delete them. They will be automatically
   // deleted if no other object has ref-ed them.
@@ -390,48 +378,61 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
   return theBumpMap; 
 }
 
-
-
+/// Figure out the total transformation matrix from ABOVE the current node
+/// to the database's root. This call is thread-safe with respect to 
+/// database operations (it uses hidden global database locks). Consequently,
+/// this cannot be called from any message handling code.
 arMatrix4 arGraphicsDatabase::accumulateTransform(int nodeID){
   arMatrix4 result = ar_identityMatrix();
-  arDatabaseNode* thisNode = getNode(nodeID);
+  arDatabaseNode* thisNode = getNodeRef(nodeID);
   if (!thisNode){
     cerr << "arGraphicsDatabase error: accumulateTransform was passed "
 	 << "an invalid node ID.\n";
     return result;
   }
-  thisNode = thisNode->getParent();
-  while (thisNode->getID() != 0){
+  arDatabaseNode* temp = thisNode->getParentRef();
+  // Must release our reference to the node to prevent a memory leak.
+  thisNode->unref();
+  thisNode = temp;
+  while (thisNode && thisNode->getID() != 0){
     if (thisNode->getTypeCode() == AR_G_TRANSFORM_NODE){
       arTransformNode* transformNode = (arTransformNode*) thisNode;
       result = transformNode->getTransform()*result;
     }
-    thisNode = thisNode->getParent();
+    temp = thisNode->getParentRef();
+    // Must release our reference to the node to prevent a memory leak.
+    thisNode->unref();
+    thisNode = temp;
+  }
+  if (thisNode){
+    // Must release our reference to the node to prevent a memory leak.
+    thisNode->unref();
   }
   return result;
 }
 
-arMatrix4 arGraphicsDatabase::accumulateTransform(int startNodeID, int endNodeID) {
-  return accumulateTransform(startNodeID).inverse() * accumulateTransform(endNodeID);
+arMatrix4 arGraphicsDatabase::accumulateTransform(int startNodeID, 
+                                                  int endNodeID) {
+  return accumulateTransform(startNodeID).inverse() 
+         * accumulateTransform(endNodeID);
 }
 
 void arGraphicsDatabase::setVRCameraID(int cameraID){
   arStructuredData cameraData(_lang->find("graphics admin"));
   cameraData.dataInString("action", "camera_node");
   cameraData.dataIn("node_ID", &cameraID, AR_INT, 1);
-  // This admin message *must* be passed on in the case of an arGraphicsServer.
+  // This admin message *must* be passed on in the case of an arGraphicsServer
+  // (i.e. we CANNOT use arGraphicsDatabase::alter here).
   alter(&cameraData);
 }
 
 void arGraphicsDatabase::draw(arMatrix4* projectionCullMatrix){
-  // replaces gl matrix stack... we want to support VERY deep trees
+  // Replaces gl matrix stack... we want to support VERY deep trees
   stack<arMatrix4> transformStack;
-  //ar_mutex_lock(&_eraseLock);
   arGraphicsContext context;
-  // Not using graphics context yet.
+  // Note how we use a "graphics context" for rendering.
   _draw((arGraphicsNode*)&_rootNode, transformStack, &context,
         projectionCullMatrix);
-  //ar_mutex_unlock(&_eraseLock);
 }
 
 void arGraphicsDatabase::_draw(arGraphicsNode* node, 
@@ -506,7 +507,10 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
   }
 }
 
-/// \todo Space-partitioning would speed up intersection testing.
+/// Finds the bounding sphere node (if any) with the closest point of
+/// intersection to the given ray and returns its ID. If no bounding sphere
+/// intersects, return -1 (which is the ID of no node). This method is
+/// thread-safe.
 int arGraphicsDatabase::intersect(const arRay& theRay){
   float bestDistance = -1;
   int bestNodeID = -1;
@@ -543,19 +547,23 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
       }
     }
   }
-  // Deal with intersections with children
-  list<arDatabaseNode*> children = node->getChildren();
+  // Deal with intersections with children. NOTE: we must use getChildrenRef
+  // instead of getChildren for thread-safety.
+  list<arDatabaseNode*> children = node->getChildrenRef();
   for (list<arDatabaseNode*>::iterator i = children.begin();
        i != children.end(); i++){
     _intersect((arGraphicsNode*)(*i), bestDistance, bestNodeID, rayStack);
   }
+  // Must unref the nodes to prevent a memory leak.
+  ar_unrefNodeList(children);
   // On the way out, undo the effects of the transform
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
     rayStack.pop();
   }
 }
 
-/// \todo Space-partitioning would speed up intersection testing.
+/// Returns the IDs of all bounding sphere nodes that intersect the given
+/// ray. Caller is responsible for deleting the list. Thread-safe.
 list<int>* arGraphicsDatabase::intersectList(const arRay& theRay){
   list<int>* result = new list<int>;
   stack<arRay> rayStack;
@@ -587,18 +595,30 @@ void arGraphicsDatabase::_intersectList(arGraphicsNode* node,
       result->push_back(node->getID());
     }
   }
-  // Deal with intersections with children
-  list<arDatabaseNode*> children = node->getChildren();
+  // Deal with intersections with children. NOTE: we must use
+  // getChildrenRef instead of getChildren for thread-safety.
+  list<arDatabaseNode*> children = node->getChildrenRef();
   for (list<arDatabaseNode*>::iterator i = children.begin();
        i != children.end(); i++){
     _intersectList((arGraphicsNode*)(*i), result, rayStack);
   }
+  // Must unref the nodes to prevent a memory leak.
+  ar_unrefNodeList(children);
   // On the way out, undo the effects of the transform
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
     rayStack.pop();
   }
 }
 
+/// Intersects a ray with the database. At bounding sphere nodes, if there
+/// is no intersection, go ahead and skip that subtree. At drawable nodes
+/// (consisting of triangles or quads... incompletely implemented) 
+/// intersect the ray with the polygons, figuring out the point of closest
+/// intersection. In the end, return a pointer to the geometry node with
+/// the closest intersection point or NULL if there is no intersection at
+/// all.
+///
+/// This method is thread-safe.
 arGraphicsNode* arGraphicsDatabase::intersectGeometry(const arRay& theRay,
                                                       int excludeBelow){
   stack<arRay> rayStack;
@@ -611,6 +631,8 @@ arGraphicsNode* arGraphicsDatabase::intersectGeometry(const arRay& theRay,
   return bestNode;
 }
 
+/// A helper function for _intersectGeometry, which is, in turn, a helper
+/// function for intersectGeometry. 
 float arGraphicsDatabase::_intersectSingleGeometry(arGraphicsNode* node,
                                                    arGraphicsContext* context,
                                                    const arRay& theRay){
@@ -712,7 +734,8 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
       // local coordinate frame. Transform these to the global coordinate
       // system and find the distance.
       arVector3 v1 = toGlobal*localRay.getOrigin();
-      arVector3 v2 = toGlobal*(localRay.getOrigin() + rawDist*(localRay.getDirection().normalize()));
+      arVector3 v2 = toGlobal*(localRay.getOrigin() 
+                               +rawDist*(localRay.getDirection().normalize()));
       float dist = ++(v1-v2);
       if (bestDistance < 0 || dist < bestDistance){
         bestNode = node;
@@ -720,13 +743,16 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
       }
     }
   }
-  // Deal with intersections with children
-  list<arDatabaseNode*> children = node->getChildren();
+  // Deal with intersections with children. For thread-safety, hold references
+  // to the node pointers,
+  list<arDatabaseNode*> children = node->getChildrenRef();
   for (list<arDatabaseNode*>::iterator i = children.begin();
        i != children.end(); i++){
     _intersectGeometry((arGraphicsNode*)(*i), context, rayStack, 
                        excludeBelow, bestNode, bestDistance);
   }
+  // To prevent a memory leak, must release the references.
+  ar_unrefNodeList(children);
   // On the way out, undo the effects of the transform
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
     rayStack.pop();
@@ -737,54 +763,99 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
   }
 }
 
-bool arGraphicsDatabase::registerLight(int owningNodeID, arLight* theLight){
+/// Should only be called from arLightNode::receiveData. This guarantees that
+/// in cases where thread-safety matters (like arGraphicsServer and 
+/// arGraphicsPeer) that _lightContainer will be modified atomically.
+bool arGraphicsDatabase::registerLight(arGraphicsNode* node, 
+                                       arLight* theLight){
   if (!theLight){
     cerr << "arGraphicsDatabase error: light pointer does not exist.\n";
+    return false;
+  }
+  if (!node || !node->active() || node->getOwner() != this){
+    cerr << "arGraphicsDatabase error: node not owned by this database.\n";
     return false;
   }
   if (theLight->lightID < 0 || theLight->lightID > 7){
     cerr << "arGraphicsDatabase error: light has invalid ID.\n";
     return false;
   }
-  if (!getNode(owningNodeID)){
-    cerr << "arGraphicsDatabase error: registerLight(...) failed because "
-	 << "of invalid node ID.\n";
-    return false;
-  }
+  // If the light ID changed, should remove other instances from the
+  // container.
+  (void) removeLight(node);
+  // Go ahead and put the new light in.
   _lightContainer[theLight->lightID] 
-    = pair<int,arLight*>(owningNodeID,theLight);
+    = pair<arGraphicsNode*,arLight*>(node, theLight);
   return true;
 }
 
-void arGraphicsDatabase::activateLights(){
+/// Should only be called from arLightNode::deactivate and 
+/// arGraphicsDatabase::registerLight.
+bool arGraphicsDatabase::removeLight(arGraphicsNode* node){
+  if (!node || !node->active() || node->getOwner() != this){
+    cerr << "arGraphicsDatabase error: node not owned by this database.\n";
+    return false;
+  }
   for (int i=0; i<8; i++){
-    if (_lightContainer[i].second){
-      // a light has been registered for this ID
-      arMatrix4 lightPositionTransform 
-	= accumulateTransform(_lightContainer[i].first);
-      _lightContainer[i].second->activateLight(lightPositionTransform);
+    if (_lightContainer[i].first == node){
+      _lightContainer[i].first = NULL;
+      _lightContainer[i].second = NULL;
     }
   }
+  return true;
 }
 
+/// Thread-safety with respect to light deletion requires that this
+/// call is locked with _databaseLock. Consequently, we must be very careful
+/// to guarantee that no call inside also locks the global lock (thus
+/// creating a deadlock). Note that accumulateTransform(int) does, in fact,
+/// do so, requiring us to use arDatabaseNode::accumulateTransform().
+void arGraphicsDatabase::activateLights(){
+  ar_mutex_lock(&_databaseLock);
+  for (int i=0; i<8; i++){
+    if (_lightContainer[i].first){
+      // A light has been registered for this ID.
+      arMatrix4 lightPositionTransform 
+	= _lightContainer[i].first->accumulateTransform();
+      _lightContainer[i].second->activateLight(lightPositionTransform);
+    }
+    else{
+      // No light in this slot. Better go ahead and disable.
+      const GLenum lights[8] = {
+        GL_LIGHT0, GL_LIGHT1, GL_LIGHT2, GL_LIGHT3,
+        GL_LIGHT4, GL_LIGHT5, GL_LIGHT6, GL_LIGHT7
+      };
+      glDisable(lights[i]);
+    }
+  }
+  ar_mutex_unlock(&_databaseLock);
+}
+
+/// Tells us where the main camera node is located and returns a pointer
+/// to the head matrix it holds (because of the VR camera, which needs
+/// a head matrix, all other cameras have one as well).
+/// Thread-safe.
 arHead* arGraphicsDatabase::getHead() {
-  // This is a bit of a HACK! Somehow, we neeed to know where the head
-  // description for the VR camera is located.
   arViewerNode* viewerNode = NULL;
+  // Thread-safety requires using getNodeRef instead of getNode.
   if (_viewerNodeID != -1){
-    viewerNode = (arViewerNode*) getNode(_viewerNodeID);
+    viewerNode = (arViewerNode*) getNodeRef(_viewerNodeID);
   }
   if (!viewerNode){
-    viewerNode = (arViewerNode*) getNode("szg_viewer");
+    viewerNode = (arViewerNode*) getNodeRef("szg_viewer");
   }
   if (!viewerNode) {
     cerr << "arGraphicsDatabase error: getHead() failed.\n";
-    return 0;
+    return NULL;
   }
-  return viewerNode->getHead();
+  arHead* result = viewerNode->getHead();
+  // There will be a memory leak if we do not unref.
+  viewerNode->unref();
+  return result;
 }
 
-bool arGraphicsDatabase::registerCamera(int owningNodeID,
+/// Should only be called from arPerspectiveCamera::receiveData.
+bool arGraphicsDatabase::registerCamera(arGraphicsNode* node,
 					arPerspectiveCamera* theCamera){
   if (!theCamera){
     cerr << "arGraphicsDatabase error: camera pointer does not exist.\n";
@@ -794,38 +865,42 @@ bool arGraphicsDatabase::registerCamera(int owningNodeID,
     cerr << "arGraphicsDatabase error: camera has invalid ID.\n";
     return false;
   }
-  if (!getNode(owningNodeID)){
+  if (!node || !node->active() || node->getOwner() != this){
     cerr << "arGraphicsDatabase error: registerCamera(...) failed because "
 	 << "of invalid node ID.\n";
     return false;
   }
+  // Just in case the camera ID has changed, must remove it from other slots.
+  removeCamera(node);
   _cameraContainer[theCamera->cameraID]
-    = pair<int,arPerspectiveCamera*>(owningNodeID,theCamera);
+    = pair<arGraphicsNode*,arPerspectiveCamera*>(node,theCamera);
+  return true;
+}
+
+/// Should only be called from arPerspectiveCamera::deactivate and
+/// arGraphicsDatabase::registerCamera.
+bool arGraphicsDatabase::removeCamera(arGraphicsNode* node){
+  if (!node || !node->active() || node->getOwner() != this){
+    cerr << "arGraphicsDatabase error: node not owned by this database.\n";
+    return false;
+  }
+  for (int i=0; i<8; i++){
+    if (_cameraContainer[i].first == node){
+      _cameraContainer[i].first = NULL;
+      _cameraContainer[i].second = NULL;
+    }
+  }
   return true;
 }
 
 arPerspectiveCamera* arGraphicsDatabase::getCamera( unsigned int cameraID ) {
+  // Do not need to check < 0 since the parameter is unsigned int.
   if (cameraID > 7){
     cerr << "arGraphicsDatabase error: invlid camera ID.\n";
-    return 0;
+    return NULL;
   }
   return _cameraContainer[cameraID].second;
 }
-
-//bool arGraphicsDatabase::setCamera(int cameraID){
-//  if (cameraID < -1 || cameraID > 7){
-//    cerr << "arGraphicsDatabase error: invlid camera ID.\n";
-//    return false;
-//  }
-//  _cameraID = cameraID;
-//  return true;
-//}
-
-//void arGraphicsDatabase::setLogetUnitConversion()(float* frustum, float* lookat){
-//  memcpy(_localCameraFrustum,frustum,6*sizeof(float));
-//  memcpy(_localCameraLookat,lookat,9*sizeof(float));
-//  _cameraID = -2;
-//}
 
 arDatabaseNode* arGraphicsDatabase::_makeNode(const string& type){
   arDatabaseNode* outNode = NULL;
@@ -915,7 +990,10 @@ arDatabaseNode* arGraphicsDatabase::_processAdmin(arStructuredData* data){
   else if (action == "camera_node"){
     int nodeID = data->getDataInt("node_ID");
     // If we have a node with this ID, then go ahead and set the camera to it.
-    arDatabaseNode* node = getNode(nodeID);
+    // NOTE: We MUST use _getNodeNoLock instead of getNode here, otherwise 
+    // there will be deadlocks (since _processAdmin is called from within
+    // the global arDatabase lock).
+    arDatabaseNode* node = _getNodeNoLock(nodeID);
     if (node && node->getTypeString() == "viewer"){
       _viewerNodeID = nodeID;
     }

@@ -32,6 +32,13 @@ void arGraphicsNode::initialize(arDatabase* owner){
   _g = &(_owningDatabase->_gfx);
 }
 
+/// Not thread-safe with respect to the owning database (since we aren't using
+/// the global lock). This feature is used, for instance, in
+/// arGraphicsDatabase::activateLights()... because there we depend on the
+/// fact that the global arDatabase lock is not used. If a thread-safe
+/// method is desired, use arGraphicsDatabase::accumulateTransform.
+/// NOTE: This gives the accumulated transform ABOVE the current node, and
+/// so does not include OUR transform if this is an arTransformNode.
 arMatrix4 arGraphicsNode::accumulateTransform(){
   arMatrix4 result;
   arGraphicsNode* g = (arGraphicsNode*) getParent();

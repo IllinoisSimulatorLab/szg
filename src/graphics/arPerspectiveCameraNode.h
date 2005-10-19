@@ -19,6 +19,7 @@ class SZG_CALL arPerspectiveCameraNode:public arGraphicsNode{
   void draw(arGraphicsContext*){}
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
+  void deactivate();
   
   arPerspectiveCamera getCamera(){ return _nodeCamera; }
   void setCamera(const arPerspectiveCamera& camera);

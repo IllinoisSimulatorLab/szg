@@ -94,7 +94,6 @@ void worldInit(arDistSceneGraphFramework* framework){
   // object transform
   worldTransformID[0] = dgTransform("world",navNodeName,worldTransform);
   worldTransformID[1] = dsTransform("world",navNodeName,worldTransform);
-
   string myParent;
 
   // attach torus 1
@@ -204,14 +203,11 @@ int main(int argc, char** argv){
   if (argc > 1 && !strcmp(argv[1],"-b")) {
     bumpMap = true;
   }
-
   // Initialize everything.
   if (!framework->init(argc,argv))
     return 1;
-
   // Where we can put the textures and sounds.
   framework->setDataBundlePath("SZG_DATA", "cosmos");
-
   arInterfaceObject interfaceObject;
   interfaceObject.setInputDevice(framework->getInputDevice());
   // The following is VERY important... otherwise the navigation is
@@ -224,7 +220,6 @@ int main(int argc, char** argv){
   framework->setEyeSpacing( 6/(2.54*12) );
   framework->setClipPlanes( .3, 1000. );
   framework->setUnitConversion( 1. );
-
   // More initializing.
   if (!framework->start() || !interfaceObject.start()){
     return 1;
@@ -236,7 +231,6 @@ int main(int argc, char** argv){
   const arVector3 xyz(0,0,0);
   const int idLoop = dsLoop("ambience", "world", "cosmos.mp3", 1, 1, xyz);
   const int idBeep = dsLoop("beep", "world", "q33beep.wav",  0, 0.0, xyz);
-
   // Main loop.
   while (true) {
     navTransform = interfaceObject.getNavMatrix().inverse();

@@ -76,9 +76,11 @@ class SZG_CALL arDatabaseNode{
   virtual arStructuredData* dumpData();
   virtual bool receiveData(arStructuredData*);
   virtual void initialize(arDatabase* d);
+  // Called by arDatabase upon removing the node.
+  virtual void deactivate(){}
 
   int getID() const;
-  arDatabase* getOwner() const;
+  inline arDatabase* getOwner() const { return _databaseOwner; }
   arDatabaseNode* getParent() const;
   // A version of getParent() that is thread-safe with respect to database
   // manipulations. The arDatabaseNode ptr returned has an extra reference

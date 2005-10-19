@@ -116,7 +116,7 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       int* mapPtr = (int*) data->getDataPtr(l->AR_GRAPHICS_ADMIN_NODE_ID, 
                                             AR_INT);
       int mapDim = data->getDataDimension(l->AR_GRAPHICS_ADMIN_NODE_ID);
-      ar_mutex_lock(&gp->_socketsLock);
+      ar_mutex_lock(&gp->_databaseLock);
       // Important that remember which sockets are receiving info.
       // When we get this message, the remote peer informs us that
       // it will be sending scene graph updates.
@@ -134,12 +134,12 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
             (map<int,int,less<int> >::value_type(mapPtr[3], mapPtr[2]));
 	}
       }
-      ar_mutex_unlock(&gp->_socketsLock);
+      ar_mutex_unlock(&gp->_databaseLock);
     }
     else if (action == "frame_time"){
       // These locks must be CONSISTENTLY nested everywhere!
       ar_mutex_lock(&gp->_databaseLock); 
-      ar_mutex_lock(&gp->_socketsLock);
+      //ar_mutex_lock(&gp->_socketsLock);
       int frameTime = data->getDataInt(l->AR_GRAPHICS_ADMIN_NODE_ID);
       map<int, arGraphicsPeerConnection*, less<int> >::iterator i
         = gp->_connectionContainer.find(socket->getID());
@@ -150,7 +150,7 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       else{
         i->second->remoteFrameTime = frameTime;
       }
-      ar_mutex_unlock(&gp->_socketsLock);
+      //ar_mutex_unlock(&gp->_socketsLock);
       ar_mutex_unlock(&gp->_databaseLock);  
     }
     else if (action == "pull_serial"){
@@ -244,7 +244,7 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       int mappedNodeID = -1;
       int dataFilterInfo[2];
       data->dataOut(l->AR_GRAPHICS_ADMIN_NODE_ID, dataFilterInfo, AR_INT, 2);
-      ar_mutex_lock(&gp->_socketsLock);
+      ar_mutex_lock(&gp->_databaseLock);
       map<int, arGraphicsPeerConnection*, less<int> >::iterator i
         = gp->_connectionContainer.find(socket->getID());
       if (i == gp->_connectionContainer.end()){
@@ -258,7 +258,7 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
           mappedNodeID = mapIter->second;
 	}
       }
-      ar_mutex_unlock(&gp->_socketsLock);
+      ar_mutex_unlock(&gp->_databaseLock);
       if (mappedNodeID != -1){
         gp->_filterDataBelow(mappedNodeID, socket, 
                              ar_convertToNodeLevel(dataFilterInfo[1]));
@@ -269,7 +269,7 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       gp->_dataServer->setSocketLabel(socket, socketLabel);
       // also need to set the name for this connection in the
       // container.
-      ar_mutex_lock(&gp->_socketsLock);
+      ar_mutex_lock(&gp->_databaseLock);
       map<int, arGraphicsPeerConnection*, less<int> >::iterator i
 	= gp->_connectionContainer.find(socket->getID());
       if (i == gp->_connectionContainer.end()){
@@ -279,7 +279,7 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       else{
         i->second->remoteName = socketLabel;
       }
-      ar_mutex_unlock(&gp->_socketsLock);
+      ar_mutex_unlock(&gp->_databaseLock);
     }
     else if (action == "ID-request"){
       // A little bit cheesy. We're only allowing a single round trip
@@ -380,7 +380,7 @@ void ar_graphicsPeerConnectionDeletionFunction(void* deletionInfo){
     (arGraphicsPeerConnectionDeletionInfo*) deletionInfo;
   arGraphicsPeer* gp = d->peer;
   arSocket* socket = d->socket;
-  ar_mutex_lock(&gp->_socketsLock);
+  ar_mutex_lock(&gp->_databaseLock);
   // The arGraphicsPeer maintains a list of connections. The affected
   // connection must be removed from the list and any nodes it is currently
   // locking must be unlocked.
@@ -389,9 +389,8 @@ void ar_graphicsPeerConnectionDeletionFunction(void* deletionInfo){
   if (j != gp->_connectionContainer.end()){
     for (list<int>::iterator k = j->second->nodesLockedLocal.begin();
 	 k != j->second->nodesLockedLocal.end(); k++){
-      // Not necessary to further lock this statement since every
-      // instance of _socketsLock is inside _databaseLockLock. Indeed, using
-      // _databaseLock here would allow a deadlock! (order of locks reversed)
+      // Not necessary to put further locks around this function since
+      // _databaseLock is already held.
       gp->_unlockNodeNoNotification(*k);
     }
     delete j->second;
@@ -401,7 +400,7 @@ void ar_graphicsPeerConnectionDeletionFunction(void* deletionInfo){
     cout << "arGraphicsPeer internal error: deleted connection "
 	 << "without object.\n";
   }
-  ar_mutex_unlock(&gp->_socketsLock);
+  ar_mutex_unlock(&gp->_databaseLock);
   // Don't forget to delete the local storage.
   delete d;
 }
@@ -434,7 +433,7 @@ void ar_graphicsPeerConnectionTask(void* graphicsPeer){
     // must insert new connection object into the table
     // NOTE: we are guaranteed that this key is unique since
     // IDs are not reused.
-    ar_mutex_lock(&gp->_socketsLock);
+    ar_mutex_lock(&gp->_databaseLock);
     arGraphicsPeerConnection* newConnection = new arGraphicsPeerConnection();
     // we do not know the remote name yet. That will be forwarded to
     // us.
@@ -445,14 +444,14 @@ void ar_graphicsPeerConnectionTask(void* graphicsPeer){
       map<int, arGraphicsPeerConnection*, less<int> >::value_type(
 	socket->getID(),
 	newConnection));
-    ar_mutex_unlock(&gp->_socketsLock);
+    ar_mutex_unlock(&gp->_databaseLock);
   }
   cout << "arGraphicsPeer error: connection accept failed.\n";
 }
 
 arGraphicsPeer::arGraphicsPeer(){
   // set a few defaults and initialize the mutexes.
-  ar_mutex_init(&_socketsLock);
+  //ar_mutex_init(&_socketsLock);
   ar_mutex_init(&_queueLock);
   ar_mutex_init(&_IDResponseLock);
   ar_mutex_init(&_dumpLock);
@@ -609,7 +608,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
   // other side.
   filterIDs[0] = -1;
   ar_mutex_lock(&_databaseLock);
-  ar_mutex_lock(&_socketsLock);
+  //ar_mutex_lock(&_socketsLock);
   // NOTE: we exploit the fact that the ID field of the record is an ARRAY
   // of ints. As data comes in, classify it as follows:
   //  1. Does the ID have data dimension 1? If so, this record was LOCALLY
@@ -639,7 +638,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
     if (connectionIter == _connectionContainer.end()){
       // There is no connection with that ID currently used. This is
       // really an error.
-      ar_mutex_unlock(&_socketsLock);
+      //ar_mutex_unlock(&_socketsLock);
       ar_mutex_unlock(&_databaseLock);
       // Return a pointer to the root node.
       return result; 
@@ -673,7 +672,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
       if (j->second != originID){
         // If the node has been locked, go ahead and return.
         // (we return the root node for default success).
-        ar_mutex_unlock(&_socketsLock);
+        //ar_mutex_unlock(&_socketsLock);
         ar_mutex_unlock(&_databaseLock);
         return result;
       }
@@ -806,7 +805,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
       }
     }
   }
-  ar_mutex_unlock(&_socketsLock);
+  //ar_mutex_unlock(&_socketsLock);
   ar_mutex_unlock(&_databaseLock);
   // No matter what happened just above, we return the state from just before.
   return result;
@@ -980,7 +979,7 @@ int arGraphicsPeer::connectToPeer(const string& name){
   // must insert new connection object into the table
   // NOTE: we are guaranteed that this key is unique since
   // IDs are not reused.
-  ar_mutex_lock(&_socketsLock);
+  ar_mutex_lock(&_databaseLock);
   // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
   // There is a race condition whereby a new connection that
   // disappeared *immediately* might not be correctly handled.
@@ -994,7 +993,7 @@ int arGraphicsPeer::connectToPeer(const string& name){
     map<int, arGraphicsPeerConnection*, less<int> >::value_type(
       socket->getID(),
       newConnection));
-  ar_mutex_unlock(&_socketsLock);
+  ar_mutex_unlock(&_databaseLock);
   // set the remote socket with our name
   _setRemoteLabel(socket, _name);
   return socket->getID();
@@ -1294,13 +1293,13 @@ int arGraphicsPeer::remoteNodeID(const string& peer,
 
 string arGraphicsPeer::printConnections(){
   stringstream result;
-  ar_mutex_lock(&_socketsLock);
+  ar_mutex_lock(&_databaseLock);
   map<int, arGraphicsPeerConnection*, less<int> >::iterator i;
   for (i = _connectionContainer.begin();
        i != _connectionContainer.end(); i++){
     result << i->second->print();
   }
-  ar_mutex_unlock(&_socketsLock);
+  ar_mutex_unlock(&_databaseLock);
   return result.str();
 }
 
@@ -1510,7 +1509,7 @@ void arGraphicsPeer::_closeConnection(arSocket* socket){
 
 void arGraphicsPeer::_resetConnectionMap(int connectionID, int nodeID,
                                          arNodeLevel sendLevel){
-  ar_mutex_lock(&_socketsLock);
+  ar_mutex_lock(&_databaseLock);
   map<int, arGraphicsPeerConnection*, less<int> >::iterator i
     = _connectionContainer.find(connectionID);
   if ( i == _connectionContainer.end()){
@@ -1522,7 +1521,9 @@ void arGraphicsPeer::_resetConnectionMap(int connectionID, int nodeID,
     // ON A SINGLE CONNECTION!
     // DO NOT RESET THE inMap HERE! FOR THE SAME REASON
     //i->second->inMap.clear();
-    arDatabaseNode* newRootNode = getNode(nodeID);
+    // NOTE: Cannot use getNode here since we are locked with the
+    // _databaseLock. It is safe to use _getNodeNoLock.
+    arDatabaseNode* newRootNode = _getNodeNoLock(nodeID);
     if (!newRootNode){
       cout << "arGraphicsPeer error: connection map root node not present. "
 	   << "Using default.(ID = " << nodeID << ")\n";
@@ -1533,7 +1534,7 @@ void arGraphicsPeer::_resetConnectionMap(int connectionID, int nodeID,
     }
     i->second->sendLevel = sendLevel;
   }
-  ar_mutex_unlock(&_socketsLock);
+  ar_mutex_unlock(&_databaseLock);
 }
 
 void arGraphicsPeer::_lockNode(int nodeID, arSocket* socket){
@@ -1546,7 +1547,7 @@ void arGraphicsPeer::_lockNode(int nodeID, arSocket* socket){
   }
   _lockContainer.insert(map<int,int,less<int> >::value_type(nodeID,
 							    socket->getID()));
-  ar_mutex_lock(&_socketsLock);
+  //ar_mutex_lock(&_socketsLock);
   map<int, arGraphicsPeerConnection*, less<int> >::iterator j
     = _connectionContainer.find(socket->getID());
   if (j == _connectionContainer.end()){
@@ -1568,7 +1569,7 @@ void arGraphicsPeer::_lockNode(int nodeID, arSocket* socket){
       j->second->nodesLockedLocal.push_back(nodeID);
     }
   }
-  ar_mutex_unlock(&_socketsLock);
+  //ar_mutex_unlock(&_socketsLock);
   ar_mutex_unlock(&_databaseLock);
 }
 
@@ -1595,7 +1596,7 @@ void arGraphicsPeer::_lockNodeBelow(int nodeID, arSocket* socket){
 // Use this when someone else is unlocking the node.
 void arGraphicsPeer::_unlockNode(int nodeID){
   ar_mutex_lock(&_databaseLock);
-  ar_mutex_lock(&_socketsLock);
+  //ar_mutex_lock(&_socketsLock);
   int socketID = _unlockNodeNoNotification(nodeID);
   map<int, arGraphicsPeerConnection*, less<int> >::iterator i
     = _connectionContainer.find(socketID);
@@ -1606,7 +1607,7 @@ void arGraphicsPeer::_unlockNode(int nodeID){
   else{
     i->second->nodesLockedLocal.remove(nodeID);
   }
-  ar_mutex_unlock(&_socketsLock);
+  //ar_mutex_unlock(&_socketsLock);
   ar_mutex_unlock(&_databaseLock);
 }
 
@@ -1649,7 +1650,7 @@ void arGraphicsPeer::_filterDataBelow(int nodeID,
   if (!pNode){
     return;
   }
-  ar_mutex_lock(&_socketsLock);
+  ar_mutex_lock(&_databaseLock);
   map<int, arGraphicsPeerConnection*, less<int> >::iterator i
     = _connectionContainer.find(socket->getID());
   if (i == _connectionContainer.end()){
@@ -1657,9 +1658,10 @@ void arGraphicsPeer::_filterDataBelow(int nodeID,
 	 << "connection.\n";
   }
   else{
+    // This call must be made from within a locked _databaseLock.
     _recDataOnOff(pNode, level, i->second->outFilter);
   }
-  ar_mutex_unlock(&_socketsLock);
+  ar_mutex_unlock(&_databaseLock);
   // To prevent a memory leak, must unref the node.
   pNode->unref();
 }
@@ -1715,6 +1717,7 @@ void arGraphicsPeer::_recSerialize(arDatabaseNode* pNode,
   ar_unrefNodeList(children);
 }
 
+/// NOT THREAD-SAFE. Must be called from within a locked _databaseLock.
 void arGraphicsPeer::_recDataOnOff(arDatabaseNode* pNode,
                                    int value,
                                    map<int, int, less<int> >& filterMap){
@@ -1726,14 +1729,14 @@ void arGraphicsPeer::_recDataOnOff(arDatabaseNode* pNode,
   else{
     iter->second = value;
   }
-  // For thread-safety, must add refs to each of the children.
-  list<arDatabaseNode*> children = pNode->getChildrenRef();
-  list<arDatabaseNode*>::iterator i;
-  for (i=children.begin(); i!=children.end(); i++){
+  // This is only called from _filterNodeBelow. And that call is protected
+  // by _databaseLock. Consequently, getChildrenRef here would cause a 
+  // deadlock. Use getChildren instead.
+  list<arDatabaseNode*> children = pNode->getChildren();
+  for (list<arDatabaseNode*>::iterator i=children.begin(); 
+       i!=children.end(); i++){
     _recDataOnOff(*i, value, filterMap);
   }
-  // To prevent a memory leak, must unref the children.
-  ar_unrefNodeList(children);
 }
 
 /// There is a *hack* whereby data is transfered to the "bridge"

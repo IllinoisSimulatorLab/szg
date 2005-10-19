@@ -181,7 +181,7 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   arSZGClient*    _client;
   arThread        _connectionThread;
 
-  arMutex _socketsLock;
+  //arMutex _socketsLock;
   arMutex _queueLock;
   
   bool    _queueingData;

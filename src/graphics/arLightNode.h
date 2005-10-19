@@ -14,11 +14,12 @@
 class SZG_CALL arLightNode:public arGraphicsNode{
  public:
   arLightNode();
-  virtual ~arLightNode(){}
+  virtual ~arLightNode();
 
   void draw(arGraphicsContext*){}
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
+  void deactivate();
 
   arLight getLight(){ return _nodeLight; }
   void setLight(arLight& light);

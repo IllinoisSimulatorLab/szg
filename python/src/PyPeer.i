@@ -619,10 +619,10 @@ class arGraphicsDatabase: public arDatabase{
   void draw();
   int intersect(const arRay&);
 
-  bool registerLight(int owningNodeID, arLight* theLight);
+  bool registerLight(arGraphicsNode* node, arLight* theLight);
   void activateLights();
 
-  bool registerCamera(int owningNodeID, arPerspectiveCamera* theCamera);
+  bool registerCamera(arGraphicsNode* node, arPerspectiveCamera* theCamera);
 
 %pythoncode{
     def new(self, node, type, name=""):

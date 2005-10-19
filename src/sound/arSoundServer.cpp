@@ -101,9 +101,15 @@ void arSoundServer::_recSerialize(arDatabaseNode* pNode,
     _connectionQueue->forceQueueData(theData);
     delete theData;
   }
+  // Thread-safety does NOT require using getChildrenRef instead of 
+  // getChildren. That would result in frequent deadlocks on connection
+  // attempts. This is called from the connection callback (which is
+  // called from within a locked _queueLock in arSyncDataServer). By examining
+  // arSyncDataServer::receiveMessage one easily sees that any alteration to 
+  // the local database occurs protected by _queueLock. Thus, we are OK!
   list<arDatabaseNode*> children = pNode->getChildren();
-  list<arDatabaseNode*>::iterator i;
-  for (i=children.begin(); i!=children.end(); i++){
+  for (list<arDatabaseNode*>::iterator i=children.begin(); 
+       i!=children.end(); i++){
     _recSerialize(*i, nodeData);
   }
 }

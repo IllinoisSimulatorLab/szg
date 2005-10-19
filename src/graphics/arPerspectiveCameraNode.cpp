@@ -36,8 +36,13 @@ bool arPerspectiveCameraNode::receiveData(arStructuredData* inData){
   inData->dataOut(_g->AR_PERSP_CAMERA_LOOKAT,_nodeCamera.lookat,AR_FLOAT,9);
 
   // register it with the database
-  _owningDatabase->registerCamera(getID(),&_nodeCamera);
+  _owningDatabase->registerCamera(this,&_nodeCamera);
   return true;
+}
+
+void arPerspectiveCameraNode::deactivate(){
+  // There must be an owning database since that's who calls this method.
+  _owningDatabase->removeCamera(this);
 }
 
 void arPerspectiveCameraNode::setCamera(const arPerspectiveCamera& camera){

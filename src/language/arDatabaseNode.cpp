@@ -135,7 +135,9 @@ void arDatabaseNode::setName(const string& name){
     int ID = getID();
     r->dataIn(_dLang->AR_NAME_ID, &ID, AR_INT, 1);
     r->dataInString(_dLang->AR_NAME_NAME, name);
+    ar_mutex_lock(&_nodeLock);
     r->dataInString(_dLang->AR_NAME_INFO, _info);
+    ar_mutex_unlock(&_nodeLock);
     getOwner()->alter(r);
     // Must recycle or there will be a memory leak.
     getOwner()->getDataParser()->recycle(r);
@@ -143,7 +145,7 @@ void arDatabaseNode::setName(const string& name){
   else{
     ar_mutex_lock(&_nodeLock);
     _setName(name);
-    ar_mutex_lock(&_nodeLock);
+    ar_mutex_unlock(&_nodeLock);
   }
 }
 
@@ -165,7 +167,9 @@ void arDatabaseNode::setInfo(const string& info){
       = getOwner()->getDataParser()->getStorage(_dLang->AR_NAME);
     int ID = getID();
     r->dataIn(_dLang->AR_NAME_ID, &ID, AR_INT, 1);
+    ar_mutex_lock(&_nodeLock);
     r->dataInString(_dLang->AR_NAME_NAME, _name);
+    ar_mutex_unlock(&_nodeLock);
     r->dataInString(_dLang->AR_NAME_INFO, info);
     getOwner()->alter(r);
     // Must do this or there will be a memory leak.
@@ -238,7 +242,7 @@ bool arDatabaseNode::receiveData(arStructuredData* data){
     return false;
   } 
   if (_name == "root"){
-    cout << "arDatabaseNode warning: cannot set root name or info.\n";
+    cout << "arDatabaseNode warning: cannot set root name.\n";
   }
   else{
     ar_mutex_lock(&_nodeLock);
@@ -277,10 +281,6 @@ void arDatabaseNode::initialize(arDatabase* d){
 
 int arDatabaseNode::getID() const { 
   return _ID; 
-}
-
-arDatabase* arDatabaseNode::getOwner() const{ 
-  return _databaseOwner; 
 }
 
 arDatabaseNode* arDatabaseNode::getParent() const{ 

@@ -15,6 +15,10 @@ arLightNode::arLightNode(){
   _typeString = "light";
 }
 
+arLightNode::~arLightNode(){
+  
+}
+
 arStructuredData* arLightNode::dumpData(){
   return _dumpData(_nodeLight);
 }
@@ -46,8 +50,13 @@ bool arLightNode::receiveData(arStructuredData* inData){
   _nodeLight.spotExponent = temp[4];
 
   // Register it with the database.
-  _owningDatabase->registerLight(getID(),&_nodeLight);
+  _owningDatabase->registerLight(this,&_nodeLight);
   return true;
+}
+
+void arLightNode::deactivate(){
+  // There must be an owning database since that's who calls this method.
+  _owningDatabase->removeLight(this);
 }
 
 void arLightNode::setLight(arLight& light){

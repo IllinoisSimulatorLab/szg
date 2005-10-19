@@ -78,16 +78,16 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   arGraphicsNode* arGraphicsDatabase::intersectGeometry(const arRay& theRay,
 							int excludeBelow = -1);
 
-  bool registerLight(int owningNodeID, arLight* theLight);
+  bool registerLight(arGraphicsNode* node, arLight* theLight);
+  bool removeLight(arGraphicsNode* node);
   void activateLights();
 
   arHead* getHead();
-  bool registerCamera(int owningNodeID, arPerspectiveCamera* theCamera);
-  // normally we use the default "VR camera"... however, the database can
+  bool registerCamera(arGraphicsNode* node, arPerspectiveCamera* theCamera);
+  bool removeCamera(arGraphicsNode* node);
+  // Normally we use the default "VR camera"... however, the database can
   // also be drawn from the perspective of one of the attached camera
   arPerspectiveCamera* getCamera( unsigned int cameraID );
-//  bool setCamera(int cameraID);
-//  void setLocalCamera(float* frustum, float* lookat);
 
   // Deliberately public, for external data input.
   arStructuredData* transformData;
@@ -127,10 +127,10 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
 
   // information about the lights in the scene
   // there's a bug here... no way is yet coded for deleting a light!
-  pair<int,arLight*>             _lightContainer[8];
+  pair<arGraphicsNode*,arLight*>             _lightContainer[8];
   // information about the auxilliary cameras in the scene...
   // the "VR camera" is still privileged as a default.
-  pair<int,arPerspectiveCamera*> _cameraContainer[8];
+  pair<arGraphicsNode*,arPerspectiveCamera*> _cameraContainer[8];
   // The ID of the node that contains the VR camera information.
   int _viewerNodeID;
 
