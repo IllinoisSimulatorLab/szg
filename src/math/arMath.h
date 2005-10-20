@@ -16,12 +16,23 @@ using namespace std;
 #define M_PI 3.14159265359
 #endif
 
-// Sometimes we need to define a axis order.
+// Sometimes we need to define a axis order (for instance, with Euler angles).
 enum arAxisOrder { AR_XYZ = 1, AR_XZY, AR_YXZ, AR_YZX, AR_ZXY, AR_ZYX };
 
 class arQuaternion;
 
-/// vector of 3 points.  Position or direction in 3-space.
+/// Vector of 2 points. For instance, a 2D texture coordinate.
+
+class SZG_CALL arVector2{
+ public:
+  float v[2];
+  arVector2(){ v[0] = v[1] = v[2] = 0.; }
+  arVector2(float x, float y){ v[0] = x; v[1] = y; }
+  ~arVector2(){}
+  float& operator[] (int i){ return v[i]; }
+};
+
+/// Vector of 3 points.  Position or direction in 3-space.
 
 class SZG_CALL arVector3{
  public:
@@ -70,7 +81,7 @@ class SZG_CALL arVector3{
   }
 };
 
-/// vector of 4 floats. A position in 4-space
+/// Vector of 4 floats. A position in 4-space.
 
 class arMatrix4;
 

@@ -17,8 +17,12 @@ class SZG_CALL arTex2Node:public arGraphicsArrayNode{
 
   virtual void initialize(arDatabase* database);
 
-  float* getTex2(int& number);
-  void   setTex2(int number, float* tex2, int* IDs = NULL);
+  const float* getTex2(int& number);
+  void setTex2(int number, float* tex2, int* IDs = NULL);
+  vector<arVector2> getTex2();
+  void setTex2(vector<arVector2>& tex2);
+  void setTex2(vector<arVector2>& tex2,
+	       vector<int>& IDs);
 };
 
 #endif

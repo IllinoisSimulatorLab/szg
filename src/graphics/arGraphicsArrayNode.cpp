@@ -6,10 +6,17 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arGraphicsArrayNode.h"
+#include "arGraphicsDatabase.h"
 
 arStructuredData* arGraphicsArrayNode::dumpData(){
-  return _dumpData(_commandBuffer.size()/_arrayStride,
-                   _commandBuffer.v);
+  // The call to _dumpData must take place within a locked section.
+  // _commandBuffer.v can change as the result of a buffer resize.
+  ar_mutex_lock(&_nodeLock);
+  // The caller is responsible for deleting this record.
+  arStructuredData* result = _dumpData(_commandBuffer.size()/_arrayStride,
+                                       _commandBuffer.v, NULL, false);
+  ar_mutex_unlock(&_nodeLock);
+  return result;
 }
 
 bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
@@ -28,12 +35,14 @@ bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
   const ARint numberIDs = inData->getDataDimension(_indexField);
   
   if (numberIDs == 0){
-    // must be at least one ID
+    // Must be at least one ID.
     cerr << _typeString << " error: no IDs.\n";
-    // (If this is not really an error, return true instead!)
-    return false;
+    // This isn't really an error... we were able to process the info.
+    return true;
   }
 
+  // Must lock before data modification.
+  ar_mutex_lock(&_nodeLock);
   if (theIDs[0] == -1){
     // Array elements are packed in order.
     _mergeElements(len, theData);
@@ -44,11 +53,14 @@ bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
   
   // Bookkeeping.
   _commandBuffer.setType(_recordType);
-  // DEFUNCT
-  //*_whichBufferToReplace = &_commandBuffer;
+  ar_mutex_unlock(&_nodeLock);
   return true;
 }
 
+/// This function is NOT thread-safe. It is the responsibility of the caller
+/// to lock the node's lock before calling. Already, various methods
+/// (like arPointsNode::setPoints or arGraphicsArrayNode::receiveData) call 
+/// this from a locked section... so changing this will create DEADLOCKS!
 void arGraphicsArrayNode::_mergeElements(int number,
 					 void* elements,
 					 int* IDs){
@@ -76,10 +88,20 @@ void arGraphicsArrayNode::_mergeElements(int number,
   }
 }
 
+/// This method is NOT thread-safe. It is the responsbility of the caller
+/// to lock the node's lock before calling. Already, various methods
+/// (like arGraphicsArrayNode::dumpData) call this from a locked section.
 arStructuredData* arGraphicsArrayNode::_dumpData(int number,
                                                  void* elements,
-						 int* IDs){
-  arStructuredData* result = _g->makeDataRecord(_recordType);
+						 int* IDs,
+                                                 bool owned){
+  arStructuredData* result = NULL;
+  if (owned){
+    result = _owningDatabase->getDataParser()->getStorage(_recordType);
+  }
+  else{
+    result = _g->makeDataRecord(_recordType);
+  }
   if (!result){
     cerr << "arGraphicsArrayNode error: failed to make specified record.\n";
     return NULL;

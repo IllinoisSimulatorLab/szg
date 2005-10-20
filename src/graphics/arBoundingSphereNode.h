@@ -23,12 +23,12 @@ class SZG_CALL arBoundingSphereNode: public arGraphicsNode {
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
-  arBoundingSphere getBoundingSphere(){ return _boundingSphere; }
+  arBoundingSphere getBoundingSphere();
   void setBoundingSphere(const arBoundingSphere& b);
 
  protected:
   arBoundingSphere _boundingSphere;
-  arStructuredData* _dumpData(const arBoundingSphere& b);
+  arStructuredData* _dumpData(const arBoundingSphere& b, bool owned);
 };
 
 #endif

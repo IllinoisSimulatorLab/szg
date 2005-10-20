@@ -13,17 +13,20 @@ arTransformNode::arTransformNode(){
   _name = "transform_node";
   _typeCode = AR_G_TRANSFORM_NODE;
   _typeString = "transform";
-  ar_mutex_init(&_accessLock);
 }
 
 void arTransformNode::draw(arGraphicsContext*){ 
-  ar_mutex_lock(&_accessLock);
+  ar_mutex_lock(&_nodeLock);
   glMultMatrixf(_transform.v);
-  ar_mutex_unlock(&_accessLock);
+  ar_mutex_unlock(&_nodeLock);
 }
 
 arStructuredData* arTransformNode::dumpData(){
-  return _dumpData(_transform);
+  // It is the responsibility of the caller to delete this record.
+  ar_mutex_lock(&_nodeLock);
+  arStructuredData* r = _dumpData(_transform, false);
+  ar_mutex_unlock(&_nodeLock);
+  return r;
 }
 
 bool arTransformNode::receiveData(arStructuredData* inData){
@@ -39,38 +42,46 @@ bool arTransformNode::receiveData(arStructuredData* inData){
          << " (" << _g->_stringFromID(inData->getID()) << ")\n";
     return false;
   }
-  ar_mutex_lock(&_accessLock);
+  ar_mutex_lock(&_nodeLock);
   inData->dataOut(_g->AR_TRANSFORM_MATRIX, _transform.v, AR_FLOAT, 16);
-  ar_mutex_unlock(&_accessLock);
+  ar_mutex_unlock(&_nodeLock);
   return true;
 }
 
 arMatrix4 arTransformNode::getTransform(){
-  ar_mutex_lock(&_accessLock);
+  ar_mutex_lock(&_nodeLock);
   arMatrix4 result = _transform;
-  ar_mutex_unlock(&_accessLock);
+  ar_mutex_unlock(&_nodeLock);
   return result;
 }
 
 void arTransformNode::setTransform(const arMatrix4& transform){
   if (_owningDatabase){
-    arStructuredData* r = _dumpData(transform);
+    ar_mutex_lock(&_nodeLock);
+    arStructuredData* r = _dumpData(transform, true);
+    ar_mutex_unlock(&_nodeLock);
     _owningDatabase->alter(r);
-    delete r;
+    _owningDatabase->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_accessLock);
+    ar_mutex_lock(&_nodeLock);
     _transform = transform;
-    ar_mutex_unlock(&_accessLock);
+    ar_mutex_unlock(&_nodeLock);
   }
 }
 
-arStructuredData* arTransformNode::_dumpData(const arMatrix4& transform){
-  arStructuredData* result = _g->makeDataRecord(_g->AR_TRANSFORM);
+/// This method is NOT thread-safe. Instead, it is the caller's responsbility
+/// to call it from within a locked section.
+arStructuredData* arTransformNode::_dumpData(const arMatrix4& transform,
+                                             bool owned){
+  arStructuredData* result = NULL;
+  if (owned){
+    result = _owningDatabase->getDataParser()->getStorage(_g->AR_TRANSFORM);
+  }
+  else{
+    result = _g->makeDataRecord(_g->AR_TRANSFORM);
+  }
   _dumpGenericNode(result,_g->AR_TRANSFORM_ID);
-  // HMMM.. NOT REALLY SURE IF LOCKING IS NEEDED HERE...
-  ar_mutex_lock(&_accessLock);
   result->dataIn(_g->AR_TRANSFORM_MATRIX,transform.v,AR_FLOAT,16);
-  ar_mutex_unlock(&_accessLock);
   return result;
 }

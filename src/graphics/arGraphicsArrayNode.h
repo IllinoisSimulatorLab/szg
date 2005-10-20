@@ -33,6 +33,6 @@ class SZG_CALL arGraphicsArrayNode:public arGraphicsNode{
   int _dataField;
 
   void _mergeElements(int number, void* elements, int* IDs = NULL);
-  arStructuredData* _dumpData(int number, void* elements, int* IDs = NULL);
+  arStructuredData* _dumpData(int number, void* elements, int* IDs, bool owned);
 };
 #endif

@@ -6,6 +6,7 @@
 #ifndef AR_INDEX_NODE_H
 #define AR_INDEX_NODE_H
 
+#include <vector>
 #include "arGraphicsArrayNode.h"
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
@@ -17,8 +18,12 @@ class SZG_CALL arIndexNode:public arGraphicsArrayNode{
 
   virtual void initialize(arDatabase* database);
 
-  int* getIndices(int& number);
+  const int* getIndices(int& number);
   void setIndices(int number, int* indices, int* IDs = NULL);
+  vector<int> getIndices();
+  void setIndices(vector<int>& indices);
+  void setIndices(vector<int>& indices,
+		  vector<int>& IDs);
 };
 
 #endif

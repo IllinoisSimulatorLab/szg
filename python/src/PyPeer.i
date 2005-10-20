@@ -114,6 +114,8 @@ class arDatabaseNode{
   string getTypeString() const;
   
   arDatabaseNode* newNode(const string& type, const string& name="");
+
+  arDatabase* getOwner();
   arDatabaseNode* getParent();
   list<arDatabaseNode*> getChildren();
 
@@ -128,6 +130,8 @@ class arDatabaseNode{
   void setNodeLevel(arNodeLevel nodeLevel);
 
 %pythoncode{
+  #def __del__(self):
+
   # simply present to provide a uniform interface to the nodes
   # vis-a-vis arGraphicsNode
   def new(self, type, name=""):

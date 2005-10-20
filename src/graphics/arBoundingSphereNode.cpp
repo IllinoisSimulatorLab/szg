@@ -15,31 +15,40 @@ arBoundingSphereNode::arBoundingSphereNode(){
 }
 
 void arBoundingSphereNode::draw(arGraphicsContext*){
-  if (_boundingSphere.visibility){
+  ar_mutex_lock(&_nodeLock);
+  bool vis = _boundingSphere.visibility;
+  arVector3 p = _boundingSphere.position;
+  float r = _boundingSphere.radius;
+  ar_mutex_unlock(&_nodeLock);
+  if (vis){
     glDisable(GL_LIGHTING);
     glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_FALSE);
     glColor3f(1,1,1);
     glPushMatrix();
-    glTranslatef(_boundingSphere.position[0], 
-                 _boundingSphere.position[1], 
-                 _boundingSphere.position[2]);
-    glutWireSphere(_boundingSphere.radius, 15, 15);
+    glTranslatef(p[0], p[1], p[2]);
+    glutWireSphere(r, 15, 15);
     glPopMatrix();
   }
 }
 
 arStructuredData* arBoundingSphereNode::dumpData(){
-  return _dumpData(_boundingSphere);
+  // This record will be deleted by the caller.
+  ar_mutex_lock(&_nodeLock);
+  arStructuredData* r = _dumpData(_boundingSphere, false);
+  ar_mutex_unlock(&_nodeLock);
+  return r;
 }
 
 bool arBoundingSphereNode::receiveData(arStructuredData* inData){
   if (inData->getID() == _g->AR_BOUNDING_SPHERE){
+    ar_mutex_lock(&_nodeLock);
     const ARint vis = inData->getDataInt(_g->AR_BOUNDING_SPHERE_VISIBILITY);
     _boundingSphere.visibility = vis ? true : false;
     inData->dataOut(_g->AR_BOUNDING_SPHERE_RADIUS,
                     &_boundingSphere.radius, AR_FLOAT, 1);
     inData->dataOut(_g->AR_BOUNDING_SPHERE_POSITION,
                     _boundingSphere.position.v, AR_FLOAT, 3);
+    ar_mutex_unlock(&_nodeLock);
     return true;
   }
 
@@ -51,19 +60,40 @@ bool arBoundingSphereNode::receiveData(arStructuredData* inData){
   return false;
 }
 
+
+arBoundingSphere arBoundingSphereNode::getBoundingSphere(){
+  ar_mutex_lock(&_nodeLock);
+  arBoundingSphere result = _boundingSphere;
+  ar_mutex_unlock(&_nodeLock);
+  return result;
+}
+
 void arBoundingSphereNode::setBoundingSphere(const arBoundingSphere& b){
   if (_owningDatabase){
-    arStructuredData* r = _dumpData(b);
+    ar_mutex_lock(&_nodeLock);
+    arStructuredData* r = _dumpData(b, true);
+    ar_mutex_unlock(&_nodeLock);
     _owningDatabase->alter(r);
-    delete r;
+    _owningDatabase->getDataParser()->recycle(r);
   }
   else{
+    ar_mutex_lock(&_nodeLock);
     _boundingSphere = b;
+    ar_mutex_unlock(&_nodeLock);
   }
 }
 
-arStructuredData* arBoundingSphereNode::_dumpData(const arBoundingSphere& b){
-  arStructuredData* result = _g->makeDataRecord(_g->AR_BOUNDING_SPHERE);
+/// Not thread-safe.
+arStructuredData* arBoundingSphereNode::_dumpData(const arBoundingSphere& b,
+                                                  bool owned){
+  arStructuredData* result = NULL;
+  if (owned){
+    result 
+      = _owningDatabase->getDataParser()->getStorage(_g->AR_BOUNDING_SPHERE);
+  }
+  else{
+    result = _g->makeDataRecord(_g->AR_BOUNDING_SPHERE);
+  }
   _dumpGenericNode(result,_g->AR_BOUNDING_SPHERE_ID);
   const ARint visible = b.visibility ? 1 : 0;
   if (!result->dataIn(_g->AR_BOUNDING_SPHERE_VISIBILITY, &visible, AR_INT,1) ||

@@ -29,9 +29,8 @@ class SZG_CALL arTransformNode: public arGraphicsNode{
 
  protected:
   arMatrix4 _transform;
-  arMutex   _accessLock;
 
-  arStructuredData* _dumpData(const arMatrix4& transform);
+  arStructuredData* _dumpData(const arMatrix4& transform, bool owned);
 };
 
 #endif
