@@ -32,8 +32,13 @@ arTextureNode::~arTextureNode(){
 }
 
 arStructuredData* arTextureNode::dumpData(){
-  return _dumpData(_fileName, _alpha, _width, _height, 
-                   _texture ? _texture->getPixels() : NULL);
+  // Caller is responsible for deleting.
+  ar_mutex_lock(&_nodeLock);
+  arStructuredData* r = _dumpData(_fileName, _alpha, _width, _height, 
+                                  _texture ? _texture->getPixels() : NULL,
+                                  false);
+  ar_mutex_unlock(&_nodeLock);
+  return r;
 }
 
 bool arTextureNode::receiveData(arStructuredData* inData){
@@ -47,6 +52,7 @@ bool arTextureNode::receiveData(arStructuredData* inData){
     return false;
   }
 
+  ar_mutex_lock(&_nodeLock);
   _fileName = inData->getDataString(_g->AR_TEXTURE_FILE);
   // NOTE: Here is the flag via which we determine if the texture is
   // based on a resource handle or is based on a bitmap.
@@ -73,6 +79,7 @@ bool arTextureNode::receiveData(arStructuredData* inData){
                   inData->getDataInt(_g->AR_TEXTURE_HEIGHT),
 		  (ARchar*)inData->getDataPtr(_g->AR_TEXTURE_PIXELS, AR_CHAR));
   }
+  ar_mutex_unlock(&_nodeLock);
 
   return true;
 }
@@ -81,12 +88,15 @@ bool arTextureNode::receiveData(arStructuredData* inData){
 /// If alpha is >= 0, then the low order 3 bytes of alpha are interpreted
 /// as R (first 8 bits), G (next 8 bits), and B (next 8 bits).
 void arTextureNode::setFileName(const string& fileName, int alpha){
-  if (_owningDatabase){
-    arStructuredData* r = _dumpData(fileName, alpha, 0, 0, NULL);
+  if (active()){
+    ar_mutex_lock(&_nodeLock);
+    arStructuredData* r = _dumpData(fileName, alpha, 0, 0, NULL, true);
+    ar_mutex_unlock(&_nodeLock);
     _owningDatabase->alter(r);
-    delete r;
+    _owningDatabase->getDataParser()->recycle(r);
   }
   else{
+    ar_mutex_lock(&_nodeLock);
     _fileName = fileName;
     _alpha = alpha;
     if (_texture){
@@ -98,25 +108,39 @@ void arTextureNode::setFileName(const string& fileName, int alpha){
     _texture->readImage(fileName.c_str(), _alpha, true);
     // We must note that the texture is locally held.
     _locallyHeldTexture = true;
+    ar_mutex_unlock(&_nodeLock);
   }
 }
 
 void arTextureNode::setPixels(int width, int height, char* pixels, bool alpha){
-  if (_owningDatabase){
-    arStructuredData* r = _dumpData("", alpha ? 1 : 0, width, height, pixels);
+  if (active()){
+    ar_mutex_lock(&_nodeLock);
+    arStructuredData* r 
+      = _dumpData("", alpha ? 1 : 0, width, height, pixels, true);
+    ar_mutex_unlock(&_nodeLock);
     _owningDatabase->alter(r);
-    delete r;
+    _owningDatabase->getDataParser()->recycle(r);
   }
   else{
+    ar_mutex_lock(&_nodeLock);
     // We're the only object that will actually use this.
     _addLocalTexture(alpha ? 1 : 0, width, height, pixels);
+    ar_mutex_unlock(&_nodeLock);
   }
 }
 
+/// NOT thread-safe.
 arStructuredData* arTextureNode::_dumpData(const string& fileName, int alpha,
 			                   int width, int height, 
-                                           const char* pixels){
-  arStructuredData* result = _g->makeDataRecord(_g->AR_TEXTURE);
+                                           const char* pixels,
+                                           bool owned){
+  arStructuredData* result = NULL;
+  if (owned){
+    result = getOwner()->getDataParser()->getStorage(_g->AR_TEXTURE);
+  }
+  else{
+    result = _g->makeDataRecord(_g->AR_TEXTURE);
+  }
   _dumpGenericNode(result,_g->AR_TEXTURE_ID);
   if (fileName != ""){
     // filename. 

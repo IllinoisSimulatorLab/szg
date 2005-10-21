@@ -11,6 +11,7 @@
 #include "arTextureNode.h"
 #include "arGraphicsStateNode.h"
 #include "arMaterialNode.h"
+#include "arBlendNode.h"
 
 arGraphicsContext::arGraphicsContext(){
 }
@@ -380,7 +381,7 @@ void arGraphicsContext::_setState(float& blendFactor, bool forceBlend){
     // We can get here because forceBlend is true, so make sure that
     // the blendStack isn't empty.
     if (!_blendStack.empty()){
-      blendFactor = (((arGraphicsNode*)_blendStack.front())->getBuffer())[0];
+      blendFactor = ((arBlendNode*)_blendStack.front())->getBlend();
     }
     if (blendFactor < 1.0 || forceBlend){
       glEnable(GL_BLEND);

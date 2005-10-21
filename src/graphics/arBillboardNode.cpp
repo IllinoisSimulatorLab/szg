@@ -24,8 +24,13 @@ void arBillboardNode::draw(arGraphicsContext*){
   glDisable(GL_TEXTURE_2D);
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_FALSE);
   arTexture** alphabet = _owningDatabase->getAlphabet();
-  const int len = _text.length();
-  if (!_visibility)
+  // Copy _text and visibility for thread-safety.
+  ar_mutex_lock(&_nodeLock);
+  string text = _text;
+  bool visibility = _visibility;
+  ar_mutex_unlock(&_nodeLock);
+  const int len = text.length();
+  if (!visibility)
     return; // not visible
 
   // First pass through the command buffer:  count the
@@ -36,13 +41,13 @@ void arBillboardNode::draw(arGraphicsContext*){
   int currentLineSize = 0;
   int i = 0;
   for (i=0; i<len; i++){
-    if (_text[i] == '/' || i == len-1){
+    if (text[i] == '/' || i == len-1){
       ++numberLines;
       if (currentLineSize > maxLineSize)
 	maxLineSize = currentLineSize;
       currentLineSize = 0;
     }
-    else if (_text[i] != '\0'){
+    else if (text[i] != '\0'){
       ++currentLineSize;
     }
   }
@@ -73,14 +78,14 @@ void arBillboardNode::draw(arGraphicsContext*){
   int xPos=0;
   int yPos=0;
   for (i=0; i<len; i++){
-    if ( _text[i] =='/' ){
+    if ( text[i] =='/' ){
       // Start of a new line.
       yPos++;
       xPos=0;
       continue;
     }
 
-    const int diff = _text[i] - 'a';
+    const int diff = text[i] - 'a';
     if (diff>=0 && diff<26 && alphabet[diff]){
       const float upperX =
 	-cornerX+(2.0*cornerX*(maxLineSize-xPos-1))/maxLineSize;
@@ -108,14 +113,20 @@ void arBillboardNode::draw(arGraphicsContext*){
 }
 
 arStructuredData* arBillboardNode::dumpData(){
-  return _dumpData(_text, _visibility);
+  // Caller is responsible for deleting.
+  ar_mutex_lock(&_nodeLock);
+  arStructuredData* r = _dumpData(_text, _visibility, false);
+  ar_mutex_unlock(&_nodeLock);
+  return r;
 }
 
 bool arBillboardNode::receiveData(arStructuredData* inData){
   if (inData->getID() == _g->AR_BILLBOARD){
     int vis = inData->getDataInt(_g->AR_BILLBOARD_VISIBILITY);
+    ar_mutex_lock(&_nodeLock);
     _visibility = vis ? true : false;
     _text = inData->getDataString(_g->AR_BILLBOARD_TEXT);
+    ar_mutex_unlock(&_nodeLock);
     return true;
   }
 
@@ -128,23 +139,38 @@ bool arBillboardNode::receiveData(arStructuredData* inData){
 }
 
 string arBillboardNode::getText(){
-  return _text;
+  ar_mutex_lock(&_nodeLock);
+  string r = _text;
+  ar_mutex_unlock(&_nodeLock);
+  return r;
 }
 
 void arBillboardNode::setText(const string& text){
-  if (_owningDatabase){
-    arStructuredData* r = _dumpData(text, _visibility);
-    _owningDatabase->alter(r);
-    delete r;
+  if (active()){
+    ar_mutex_lock(&_nodeLock);
+    arStructuredData* r = _dumpData(text, _visibility, true);
+    ar_mutex_unlock(&_nodeLock);
+    getOwner()->alter(r);
+    getOwner()->getDataParser()->recycle(r);
   }
   else{
+    ar_mutex_lock(&_nodeLock);
     _text = text;
+    ar_mutex_unlock(&_nodeLock);
   }
 }
 
+// NOT thread-safe.
 arStructuredData* arBillboardNode::_dumpData(const string& text,
-					     bool visibility){
-  arStructuredData* result = _g->makeDataRecord(_g->AR_BILLBOARD);
+					     bool visibility,
+                                             bool owned){
+  arStructuredData* result = NULL;
+  if (owned){
+    result = getOwner()->getDataParser()->getStorage(_g->AR_BILLBOARD);
+  }
+  else{
+    result = _g->makeDataRecord(_g->AR_BILLBOARD);
+  }
   _dumpGenericNode(result,_g->AR_BILLBOARD_ID);
   const ARint vis = visibility ? 1 : 0;
   if ((!result->dataIn(_g->AR_BILLBOARD_VISIBILITY, &vis, AR_INT, 1)

@@ -15,17 +15,17 @@
 class SZG_CALL arBlendNode:public arGraphicsNode{
  public:
   arBlendNode();
-  ~arBlendNode(){}
+  virtual ~arBlendNode(){}
 
   void draw(arGraphicsContext*){}
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
   float getBlend();
-  void setBlend(float blend);
+  void setBlend(float blendFactor);
  protected:
   float _blendFactor;
-  arStructuredData* _dumpData(float blendFactor);
+  arStructuredData* _dumpData(float blendFactor, bool owned);
 };
 
 #endif

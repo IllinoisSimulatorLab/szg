@@ -36,7 +36,7 @@ const float* arColor4Node::getColor4(int& number){
 }
 
 void arColor4Node::setColor4(int number, float* color4, int* IDs){
-  if (_owningDatabase){
+  if (active()){
     ar_mutex_lock(&_nodeLock);
     arStructuredData* r = _dumpData(number, color4, IDs, true);
     ar_mutex_unlock(&_nodeLock);

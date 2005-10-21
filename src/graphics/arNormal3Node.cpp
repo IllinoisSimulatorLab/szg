@@ -36,7 +36,7 @@ const float* arNormal3Node::getNormal3(int& number){
 }
 
 void arNormal3Node::setNormal3(int number, float* normal3, int* IDs){
-  if (_owningDatabase){
+  if (active()){
     ar_mutex_lock(&_nodeLock);
     arStructuredData* r = _dumpData(number, normal3, IDs, true);
     ar_mutex_unlock(&_nodeLock);

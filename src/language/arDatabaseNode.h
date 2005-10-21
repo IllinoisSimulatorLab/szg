@@ -37,6 +37,7 @@ class SZG_CALL arDatabaseNode{
 
   void ref();
   void unref();
+  int getRef();
 
   void lock();
   void unlock();

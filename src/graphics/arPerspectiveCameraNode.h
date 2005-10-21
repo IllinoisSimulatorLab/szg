@@ -21,12 +21,12 @@ class SZG_CALL arPerspectiveCameraNode:public arGraphicsNode{
   bool receiveData(arStructuredData*);
   void deactivate();
   
-  arPerspectiveCamera getCamera(){ return _nodeCamera; }
+  arPerspectiveCamera getCamera();
   void setCamera(const arPerspectiveCamera& camera);
 
  protected:
   arPerspectiveCamera _nodeCamera;
-  arStructuredData* _dumpData(const arPerspectiveCamera& camera);
+  arStructuredData* _dumpData(const arPerspectiveCamera& camera, bool owned);
 };
 
 #endif

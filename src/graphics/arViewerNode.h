@@ -28,7 +28,7 @@ class SZG_CALL arViewerNode: public arGraphicsNode{
 
  protected:
   arHead _head;
-  arStructuredData* _dumpData(const arHead& head);
+  arStructuredData* _dumpData(const arHead& head, bool owned);
 };
 
 #endif

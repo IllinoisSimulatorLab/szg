@@ -16,7 +16,11 @@ arBlendNode::arBlendNode(){
 }
 
 arStructuredData* arBlendNode::dumpData(){
-  return _dumpData(_blendFactor); 
+  // Caller is responsible for deleting.
+  ar_mutex_lock(&_nodeLock);
+  arStructuredData* r = _dumpData(_blendFactor, false); 
+  ar_mutex_unlock(&_nodeLock);
+  return r;
 }
 
 bool arBlendNode::receiveData(arStructuredData* inData){
@@ -29,21 +33,43 @@ bool arBlendNode::receiveData(arStructuredData* inData){
     return false;
   }
 
-  _commandBuffer.grow(2);
-  _commandBuffer.v[0] = inData->getDataFloat(_g->AR_BLEND_FACTOR);
-  // AARGH! annoying duplication of resources with the blend factor.
-  _blendFactor = _commandBuffer.v[0];
-  // DEFUNCT
-  //_blend = &_commandBuffer;
+  ar_mutex_lock(&_nodeLock);
+  _blendFactor = inData->getDataFloat(_g->AR_BLEND_FACTOR);
+  ar_mutex_unlock(&_nodeLock);
   return true;
 }
 
 float arBlendNode::getBlend(){
-  return _blendFactor;
+  ar_mutex_lock(&_nodeLock);
+  float r = _blendFactor;
+  ar_mutex_unlock(&_nodeLock);
+  return r;
 }
 
-arStructuredData* arBlendNode::_dumpData(float blendFactor){
-  arStructuredData* result = _g->makeDataRecord(_g->AR_BLEND);
+void arBlendNode::setBlend(float blendFactor){
+  if (active()){
+    ar_mutex_lock(&_nodeLock);
+    arStructuredData* r = _dumpData(blendFactor, true);
+    ar_mutex_unlock(&_nodeLock);
+    _owningDatabase->alter(r);
+    _owningDatabase->getDataParser()->recycle(r);
+  }
+  else{
+    ar_mutex_lock(&_nodeLock);
+    _blendFactor = blendFactor;
+    ar_mutex_unlock(&_nodeLock);
+  }
+}
+
+/// NOT thread-safe.
+arStructuredData* arBlendNode::_dumpData(float blendFactor, bool owned){
+  arStructuredData* result = NULL;
+  if (owned){
+    result = getOwner()->getDataParser()->getStorage(_g->AR_BLEND);
+  }
+  else{
+    result = _g->makeDataRecord(_g->AR_BLEND);
+  }
   _dumpGenericNode(result,_g->AR_BLEND_ID);
   result->dataIn(_g->AR_BLEND_FACTOR, &blendFactor, AR_FLOAT, 1);
   return result;

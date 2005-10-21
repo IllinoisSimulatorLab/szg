@@ -15,7 +15,11 @@ arMaterialNode::arMaterialNode(){
 }
 
 arStructuredData* arMaterialNode::dumpData(){
-  return _dumpData(_lMaterial);
+  // Caller is responsible for deleting.
+  ar_mutex_lock(&_nodeLock);
+  arStructuredData* r = _dumpData(_lMaterial, false);
+  ar_mutex_unlock(&_nodeLock);
+  return r;
 }
 
 bool arMaterialNode::receiveData(arStructuredData* inData){
@@ -27,30 +31,49 @@ bool arMaterialNode::receiveData(arStructuredData* inData){
     << " (" << _g->_stringFromID(inData->getID()) << ")\n";
     return false;
   }
+  ar_mutex_lock(&_nodeLock);
   inData->dataOut(_g->AR_MATERIAL_DIFFUSE,_lMaterial.diffuse.v,AR_FLOAT,3);
   inData->dataOut(_g->AR_MATERIAL_AMBIENT,_lMaterial.ambient.v,AR_FLOAT,3);
   inData->dataOut(_g->AR_MATERIAL_SPECULAR,_lMaterial.specular.v,AR_FLOAT,3);
   inData->dataOut(_g->AR_MATERIAL_EMISSIVE,_lMaterial.emissive.v,AR_FLOAT,3);
   inData->dataOut(_g->AR_MATERIAL_EXPONENT,&_lMaterial.exponent,AR_FLOAT,1);
   inData->dataOut(_g->AR_MATERIAL_ALPHA,&_lMaterial.alpha,AR_FLOAT,1); 
-  // DEFUNCT
-  //_material = &_lMaterial;
+  ar_mutex_unlock(&_nodeLock);
   return true;
 }
 
+arMaterial arMaterialNode::getMaterial(){
+  ar_mutex_lock(&_nodeLock);
+  arMaterial r = _lMaterial;
+  ar_mutex_unlock(&_nodeLock);
+  return r;
+}
+
 void arMaterialNode::setMaterial(const arMaterial& material){
-  if (_owningDatabase){
-    arStructuredData* r = _dumpData(material);
+  if (active()){
+    ar_mutex_lock(&_nodeLock);
+    arStructuredData* r = _dumpData(material, true);
+    ar_mutex_unlock(&_nodeLock);
     _owningDatabase->alter(r);
-    delete r;
+    _owningDatabase->getDataParser()->recycle(r);
   }
   else{
+    ar_mutex_lock(&_nodeLock);
     _lMaterial = material;
+    ar_mutex_unlock(&_nodeLock);
   }
 }
 
-arStructuredData* arMaterialNode::_dumpData(const arMaterial& material){
-  arStructuredData* result = _g->makeDataRecord(_g->AR_MATERIAL);
+/// NOT thread-safe.
+arStructuredData* arMaterialNode::_dumpData(const arMaterial& material,
+                                            bool owned){
+  arStructuredData* result = NULL;
+  if (owned){
+    result = getOwner()->getDataParser()->getStorage(_g->AR_MATERIAL);
+  }
+  else{
+    result = _g->makeDataRecord(_g->AR_MATERIAL);
+  }
   _dumpGenericNode(result,_g->AR_MATERIAL_ID);
   result->dataIn(_g->AR_MATERIAL_DIFFUSE,material.diffuse.v,AR_FLOAT,3);
   result->dataIn(_g->AR_MATERIAL_AMBIENT,material.ambient.v,AR_FLOAT,3);

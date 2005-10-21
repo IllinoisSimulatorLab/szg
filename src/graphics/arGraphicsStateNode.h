@@ -79,7 +79,8 @@ class SZG_CALL arGraphicsStateNode: public arGraphicsNode{
 
   arStructuredData* _dumpData(const string& stateName,
                               arGraphicsStateValue* stateValueInt,
-                              float stateValueFloat);
+                              float stateValueFloat,
+                              bool owned);
 };
 
 #endif

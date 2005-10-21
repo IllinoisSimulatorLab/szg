@@ -20,7 +20,11 @@ arLightNode::~arLightNode(){
 }
 
 arStructuredData* arLightNode::dumpData(){
-  return _dumpData(_nodeLight);
+  // Caller is responsible for deleting.
+  ar_mutex_lock(&_nodeLock);
+  arStructuredData* r = _dumpData(_nodeLight, false);
+  ar_mutex_unlock(&_nodeLock);
+  return r;
 }
 
 bool arLightNode::receiveData(arStructuredData* inData){
@@ -33,6 +37,7 @@ bool arLightNode::receiveData(arStructuredData* inData){
     return false;
   }
 
+  ar_mutex_lock(&_nodeLock);
   inData->dataOut(_g->AR_LIGHT_LIGHT_ID,&_nodeLight.lightID,AR_INT,1);
   inData->dataOut(_g->AR_LIGHT_POSITION,_nodeLight.position.v,AR_FLOAT,4);
   inData->dataOut(_g->AR_LIGHT_DIFFUSE,_nodeLight.diffuse.v,AR_FLOAT,3);
@@ -51,6 +56,7 @@ bool arLightNode::receiveData(arStructuredData* inData){
 
   // Register it with the database.
   _owningDatabase->registerLight(this,&_nodeLight);
+  ar_mutex_unlock(&_nodeLock);
   return true;
 }
 
@@ -59,19 +65,37 @@ void arLightNode::deactivate(){
   _owningDatabase->removeLight(this);
 }
 
+
+arLight arLightNode::getLight(){
+  ar_mutex_lock(&_nodeLock);
+  arLight r = _nodeLight;
+  ar_mutex_unlock(&_nodeLock);
+  return r;
+}
+
 void arLightNode::setLight(arLight& light){
-  if (_owningDatabase){
-    arStructuredData* r = _dumpData(light);
+  if (active()){
+    ar_mutex_lock(&_nodeLock);
+    arStructuredData* r = _dumpData(light, true);
+    ar_mutex_unlock(&_nodeLock);
     _owningDatabase->alter(r);
-    delete r;
+    _owningDatabase->getDataParser()->recycle(r);
   }
   else{
+    ar_mutex_lock(&_nodeLock);
     _nodeLight = light;
+    ar_mutex_unlock(&_nodeLock);
   }
 }
 
-arStructuredData* arLightNode::_dumpData(arLight& light){
-  arStructuredData* result = _g->makeDataRecord(_g->AR_LIGHT);
+arStructuredData* arLightNode::_dumpData(arLight& light, bool owned){
+  arStructuredData* result = NULL;
+  if (owned){
+    result = getOwner()->getDataParser()->getStorage(_g->AR_LIGHT);
+  }
+  else{
+    result = _g->makeDataRecord(_g->AR_LIGHT);
+  }
   _dumpGenericNode(result,_g->AR_LIGHT_ID); 
   result->dataIn(_g->AR_LIGHT_LIGHT_ID,&light.lightID,AR_INT,1);
   result->dataIn(_g->AR_LIGHT_POSITION,light.position.v,AR_FLOAT,4);

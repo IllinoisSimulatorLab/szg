@@ -69,7 +69,7 @@ arBoundingSphere arBoundingSphereNode::getBoundingSphere(){
 }
 
 void arBoundingSphereNode::setBoundingSphere(const arBoundingSphere& b){
-  if (_owningDatabase){
+  if (active()){
     ar_mutex_lock(&_nodeLock);
     arStructuredData* r = _dumpData(b, true);
     ar_mutex_unlock(&_nodeLock);

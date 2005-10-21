@@ -25,11 +25,6 @@ arDrawableNode::arDrawableNode():
   _typeString = "drawable";
 }
 
-/** @todo We consistently use the float buffer memory
- *  to store data in "int" format for this node.
- *  Instead, handle the types with an internal arStructuredData record.
- */
-
 void arDrawableNode::draw(arGraphicsContext* context){
   // A PROBLEM! Currently, the database node is created with a message to
   // the database. Then, a message initializing it is sent. What if
@@ -39,9 +34,12 @@ void arDrawableNode::draw(arGraphicsContext* context){
     return;
   }
 
+  ar_mutex_lock(&_nodeLock);
   const ARint whatKind = _type;
   // This may change below as we check array bounds.
   ARint howMany = _number;
+  ar_mutex_unlock(&_nodeLock);
+
   int numberPos = 0;
   // We compute maxNumber below. Each vertex sent down the geometry pipeline
   // has various pieces of information associated with it. maxNumber
@@ -220,7 +218,11 @@ void arDrawableNode::draw(arGraphicsContext* context){
 }
 
 arStructuredData* arDrawableNode::dumpData(){
-  return _dumpData(_type, _number);
+  // Caller is responsible for deleting.
+  ar_mutex_lock(&_nodeLock);
+  arStructuredData* r = _dumpData(_type, _number, false);
+  ar_mutex_unlock(&_nodeLock);
+  return r;
 }
 
 bool arDrawableNode::receiveData(arStructuredData* inData){
@@ -237,35 +239,53 @@ bool arDrawableNode::receiveData(arStructuredData* inData){
     return false;
   }
 
-  // NOTE: drawable node type changes must be atomic with respect
-  // to node drawing... hmmm... a potential source of crashes!
+  ar_mutex_lock(&_nodeLock);
   _type = inData->getDataInt(_g->AR_DRAWABLE_TYPE);
   _number = inData->getDataInt(_g->AR_DRAWABLE_NUMBER);
+  ar_mutex_unlock(&_nodeLock);
   return true;
 }
 
 int arDrawableNode::getType(){
-  return _type;
+  ar_mutex_lock(&_nodeLock);
+  int r = _type;
+  ar_mutex_unlock(&_nodeLock);
+  return r;
 }
 
 int arDrawableNode::getNumber(){
-  return _number;
+  ar_mutex_lock(&_nodeLock);
+  int r = _number;
+  ar_mutex_unlock(&_nodeLock);
+  return r;
 }
 
 void arDrawableNode::setDrawable(arDrawableType type, int number){
-  if (_owningDatabase){
-    arStructuredData* r = _dumpData(type, number);
+  if (active()){
+    ar_mutex_lock(&_nodeLock);
+    arStructuredData* r = _dumpData(type, number, true);
+    ar_mutex_unlock(&_nodeLock);
     _owningDatabase->alter(r);
-    delete r;
+    _owningDatabase->getDataParser()->recycle(r);
   }
   else{
+    ar_mutex_lock(&_nodeLock);
     _type = type;
     _number = number;
+    ar_mutex_unlock(&_nodeLock);
   }
 }
 
-arStructuredData* arDrawableNode::_dumpData(int type, int number){
-  arStructuredData* result = _g->makeDataRecord(_g->AR_DRAWABLE);
+/// NOT thread-safe.
+arStructuredData* arDrawableNode::_dumpData(int type, int number,
+                                            bool owned){
+  arStructuredData* result = NULL;
+  if (owned){
+    result = getOwner()->getDataParser()->getStorage(_g->AR_DRAWABLE);
+  }
+  else{
+    result = _g->makeDataRecord(_g->AR_DRAWABLE);
+  }
   _dumpGenericNode(result,_g->AR_DRAWABLE_ID);
   result->dataIn(_g->AR_DRAWABLE_TYPE, &type, AR_INT, 1);
   result->dataIn(_g->AR_DRAWABLE_NUMBER, &number, AR_INT, 1);

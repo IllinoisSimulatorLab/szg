@@ -26,7 +26,7 @@ class SZG_CALL arVisibilityNode: public arGraphicsNode{
 
  protected:
   bool _visibility;
-  arStructuredData* _dumpData(bool visibility);
+  arStructuredData* _dumpData(bool visibility, bool owned);
 };
 
 #endif

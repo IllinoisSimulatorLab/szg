@@ -36,7 +36,7 @@ const int* arIndexNode::getIndices(int& number){
 }
 
 void arIndexNode::setIndices(int number, int* indices, int* IDs){
-  if (_owningDatabase){
+  if (active()){
     ar_mutex_lock(&_nodeLock);
     arStructuredData* r = _dumpData(number, indices, IDs, true);
     ar_mutex_unlock(&_nodeLock);

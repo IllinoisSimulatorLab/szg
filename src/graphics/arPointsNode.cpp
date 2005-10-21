@@ -41,7 +41,7 @@ const float* arPointsNode::getPoints(int& number){
 
 /// Fast way to get data into the node. 
 void arPointsNode::setPoints(int number, float* points, int* IDs){
-  if (_owningDatabase){
+  if (active()){
     ar_mutex_lock(&_nodeLock);
     arStructuredData* r = _dumpData(number, points, IDs, true);
     ar_mutex_unlock(&_nodeLock);

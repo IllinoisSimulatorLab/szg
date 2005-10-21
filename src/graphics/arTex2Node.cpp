@@ -36,7 +36,7 @@ const float* arTex2Node::getTex2(int& number){
 }
 
 void arTex2Node::setTex2(int number, float* tex2, int* IDs){
-  if (_owningDatabase){
+  if (active()){
     ar_mutex_lock(&_nodeLock);
     arStructuredData* r = _dumpData(number, tex2, IDs, true);
     ar_mutex_unlock(&_nodeLock);

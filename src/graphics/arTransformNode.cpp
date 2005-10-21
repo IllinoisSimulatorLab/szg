@@ -56,7 +56,7 @@ arMatrix4 arTransformNode::getTransform(){
 }
 
 void arTransformNode::setTransform(const arMatrix4& transform){
-  if (_owningDatabase){
+  if (active()){
     ar_mutex_lock(&_nodeLock);
     arStructuredData* r = _dumpData(transform, true);
     ar_mutex_unlock(&_nodeLock);

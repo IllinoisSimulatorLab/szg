@@ -41,7 +41,8 @@ class SZG_CALL arTextureNode: public arGraphicsNode{
   bool _locallyHeldTexture;
 
   arStructuredData* _dumpData(const string& fileName, int alpha,
-			      int width, int height, const char* pixels);
+			      int width, int height, const char* pixels,
+                              bool owned);
   void _addLocalTexture(int alpha, int width, int height, char* pixels);
 };
 

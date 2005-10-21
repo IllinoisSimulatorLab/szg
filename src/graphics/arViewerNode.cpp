@@ -15,10 +15,14 @@ arViewerNode::arViewerNode(){
 }
 
 arStructuredData* arViewerNode::dumpData(){
-  return _dumpData(_head);
+  // Caller is responsible for deleting.
+  ar_mutex_lock(&_nodeLock);
+  arStructuredData* r = _dumpData(_head, false);
+  ar_mutex_unlock(&_nodeLock);
+  return r;
 }
 
-// NOTE: arViewerNode is a friend class of arHead
+// NOTE: arViewerNode is a friend class of arHead.
 bool arViewerNode::receiveData(arStructuredData* inData){
   if (inData->getID() != _g->AR_VIEWER){
     cerr << "arViewerNode error: expected "
@@ -28,7 +32,7 @@ bool arViewerNode::receiveData(arStructuredData* inData){
          << " (" << _g->_stringFromID(inData->getID()) << ")\n";
     return false;
   }
-
+  ar_mutex_lock(&_nodeLock);
   inData->dataOut(_g->AR_VIEWER_MATRIX, _head._matrix.v, AR_FLOAT, 16);
   inData->dataOut(_g->AR_VIEWER_MID_EYE_OFFSET, 
                   _head._midEyeOffset.v, AR_FLOAT, 3);
@@ -39,23 +43,36 @@ bool arViewerNode::receiveData(arStructuredData* inData){
   _head._farClip = inData->getDataFloat(_g->AR_VIEWER_FAR_CLIP);
   _head._unitConversion = inData->getDataFloat(_g->AR_VIEWER_UNIT_CONVERSION);
   _head._fixedHeadMode = inData->getDataInt(_g->AR_VIEWER_FIXED_HEAD_MODE);
+  ar_mutex_unlock(&_nodeLock);
   return true;
 }
 
 void arViewerNode::setHead(const arHead& head){
-  if (_owningDatabase){
-    arStructuredData* r = _dumpData(head);
+  if (active()){
+    ar_mutex_lock(&_nodeLock);
+    arStructuredData* r = _dumpData(head, true);
+    ar_mutex_unlock(&_nodeLock);
     _owningDatabase->alter(r);
-    delete r;
+    _owningDatabase->getDataParser()->recycle(r);
   }
   else{
+    ar_mutex_lock(&_nodeLock);
     _head = head;
+    ar_mutex_unlock(&_nodeLock);
   }
 }
 
-// NOTE: arViewerNode is a friend class of arHead
-arStructuredData* arViewerNode::_dumpData(const arHead& head){
-  arStructuredData* result = _g->makeDataRecord(_g->AR_VIEWER);
+/// NOTE: arViewerNode is a friend class of arHead.
+/// NOT thread-safe.
+arStructuredData* arViewerNode::_dumpData(const arHead& head,
+                                          bool owned){
+  arStructuredData* result = NULL;
+  if (owned){
+    result = getOwner()->getDataParser()->getStorage(_g->AR_VIEWER);
+  }
+  else{
+    result = _g->makeDataRecord(_g->AR_VIEWER);
+  }
   _dumpGenericNode(result,_g->AR_VIEWER_ID);
   if (!result->dataIn(_g->AR_VIEWER_MATRIX, head._matrix.v, AR_FLOAT, 16) 
       || !result->dataIn(_g->AR_VIEWER_MID_EYE_OFFSET, 

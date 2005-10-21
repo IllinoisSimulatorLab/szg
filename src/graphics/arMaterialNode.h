@@ -20,17 +20,17 @@ class SZG_CALL arMaterialNode:public arGraphicsNode{
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
-  arMaterial getMaterial(){ return _lMaterial; }
+  arMaterial getMaterial();
   void setMaterial(const arMaterial& material);
 
   // Sometimes it seems like a good idea to allow direct access to the
   // material (for instance, so the database draw can set materials
-  // without copying data out).
+  // without copying data out). BUG BUG BUG. THREAD-SAFETY PROBLEM?
   arMaterial* getMaterialPtr(){ return &_lMaterial; }
 
  protected:
   arMaterial _lMaterial;
-  arStructuredData* _dumpData(const arMaterial& material);
+  arStructuredData* _dumpData(const arMaterial& material, bool owned);
 };
 
 #endif

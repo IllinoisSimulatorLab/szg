@@ -21,12 +21,12 @@ class SZG_CALL arLightNode:public arGraphicsNode{
   bool receiveData(arStructuredData*);
   void deactivate();
 
-  arLight getLight(){ return _nodeLight; }
+  arLight getLight();
   void setLight(arLight& light);
 
  protected:
   arLight _nodeLight;
-  arStructuredData* _dumpData(arLight& light);
+  arStructuredData* _dumpData(arLight& light, bool owned);
 };
 
 #endif

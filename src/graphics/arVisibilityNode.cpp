@@ -17,7 +17,11 @@ arVisibilityNode::arVisibilityNode():
 }
 
 arStructuredData* arVisibilityNode::dumpData(){
-  return _dumpData(_visibility);
+  // Responsibility of the caller to delete this message.
+  ar_mutex_lock(&_nodeLock);
+  arStructuredData* r = _dumpData(_visibility, false);
+  ar_mutex_unlock(&_nodeLock);
+  return r;
 }
 
 bool arVisibilityNode::receiveData(arStructuredData* inData){
@@ -31,27 +35,44 @@ bool arVisibilityNode::receiveData(arStructuredData* inData){
   }
 
   int vis = inData->getDataInt(_g->AR_VISIBILITY_VISIBILITY);
+  ar_mutex_lock(&_nodeLock);
   _visibility = vis ? true : false;
+  ar_mutex_unlock(&_nodeLock);
   return true;
 }
 
 bool arVisibilityNode::getVisibility(){
-  return _visibility;
+  ar_mutex_lock(&_nodeLock);
+  bool r= _visibility;
+  ar_mutex_unlock(&_nodeLock);
+  return r;
 }
 
 void arVisibilityNode::setVisibility(bool visibility){
-  if (_owningDatabase){
-    arStructuredData* r = _dumpData(visibility);
+  if (active()){
+    ar_mutex_lock(&_nodeLock);
+    arStructuredData* r = _dumpData(visibility, true);
+    ar_mutex_unlock(&_nodeLock);
     _owningDatabase->alter(r);
-    delete r;
+    _owningDatabase->getDataParser()->recycle(r);
   }
   else{
+    ar_mutex_lock(&_nodeLock);
     _visibility = visibility;
+    ar_mutex_unlock(&_nodeLock);
   }
 }
 
-arStructuredData* arVisibilityNode::_dumpData(bool visibility){
-  arStructuredData* result = _g->makeDataRecord(_g->AR_VISIBILITY);
+/// NOT thread-safe.
+arStructuredData* arVisibilityNode::_dumpData(bool visibility,
+                                              bool owned){
+  arStructuredData* result = NULL;
+  if (owned){
+    result = getOwner()->getDataParser()->getStorage(_g->AR_VISIBILITY);
+  }
+  else{
+    result = _g->makeDataRecord(_g->AR_VISIBILITY);
+  }
   _dumpGenericNode(result,_g->AR_VISIBILITY_ID);
   int vis = visibility ? 1 : 0;
   if (!result->dataIn(_g->AR_VISIBILITY_VISIBILITY, &vis, AR_INT, 1)) {

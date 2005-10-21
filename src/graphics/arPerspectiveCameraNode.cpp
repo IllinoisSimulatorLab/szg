@@ -17,7 +17,11 @@ arPerspectiveCameraNode::arPerspectiveCameraNode(){
 }
 
 arStructuredData* arPerspectiveCameraNode::dumpData(){
-  return _dumpData(_nodeCamera);
+  // Caller is responsible for deleting.
+  ar_mutex_lock(&_nodeLock);
+  arStructuredData* r = _dumpData(_nodeCamera, false);
+  ar_mutex_unlock(&_nodeLock);
+  return r;
 }
 
 bool arPerspectiveCameraNode::receiveData(arStructuredData* inData){
@@ -29,7 +33,7 @@ bool arPerspectiveCameraNode::receiveData(arStructuredData* inData){
     << " (" << _g->_stringFromID(inData->getID()) << ")\n";
     return false;
   }
-
+  ar_mutex_lock(&_nodeLock);
   inData->dataOut(_g->AR_PERSP_CAMERA_CAMERA_ID,
                   &_nodeCamera.cameraID, AR_INT, 1);
   inData->dataOut(_g->AR_PERSP_CAMERA_FRUSTUM,_nodeCamera.frustum,AR_FLOAT,6);
@@ -37,6 +41,7 @@ bool arPerspectiveCameraNode::receiveData(arStructuredData* inData){
 
   // register it with the database
   _owningDatabase->registerCamera(this,&_nodeCamera);
+  ar_mutex_unlock(&_nodeLock);
   return true;
 }
 
@@ -45,20 +50,38 @@ void arPerspectiveCameraNode::deactivate(){
   _owningDatabase->removeCamera(this);
 }
 
+arPerspectiveCamera arPerspectiveCameraNode::getCamera(){
+  ar_mutex_lock(&_nodeLock);
+  arPerspectiveCamera r = _nodeCamera;
+  ar_mutex_unlock(&_nodeLock);
+  return r;
+}
+
 void arPerspectiveCameraNode::setCamera(const arPerspectiveCamera& camera){
-  if (_owningDatabase){
-    arStructuredData* r = _dumpData(camera);
+  if (active()){
+    ar_mutex_lock(&_nodeLock);
+    arStructuredData* r = _dumpData(camera, true);
+    ar_mutex_unlock(&_nodeLock);
     _owningDatabase->alter(r);
-    delete r;
+    _owningDatabase->getDataParser()->recycle(r);
   }
   else{
+    ar_mutex_lock(&_nodeLock);
     _nodeCamera = camera;
+    ar_mutex_unlock(&_nodeLock);
   }
 }
 
+/// NOT thread-safe.
 arStructuredData* arPerspectiveCameraNode::_dumpData
-  (const arPerspectiveCamera& camera){
-  arStructuredData* result = _g->makeDataRecord(_g->AR_PERSP_CAMERA);
+  (const arPerspectiveCamera& camera, bool owned){
+  arStructuredData* result = NULL;
+  if (owned){
+    result = getOwner()->getDataParser()->getStorage(_g->AR_PERSP_CAMERA);
+  }
+  else{
+    result = _g->makeDataRecord(_g->AR_PERSP_CAMERA);
+  }
   _dumpGenericNode(result,_g->AR_PERSP_CAMERA_ID);
   result->dataIn(_g->AR_PERSP_CAMERA_CAMERA_ID,&camera.cameraID,AR_INT,1);
   result->dataIn(_g->AR_PERSP_CAMERA_FRUSTUM,camera.frustum,AR_FLOAT,6);

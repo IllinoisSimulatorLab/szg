@@ -67,6 +67,13 @@ void arDatabaseNode::unref(){
   }
 }
 
+int arDatabaseNode::getRef(){
+  ar_mutex_lock(&_nodeLock);
+  int r = _refs;
+  ar_mutex_unlock(&_nodeLock);
+  return r;
+}
+
 void arDatabaseNode::lock(){
   ar_mutex_lock(&_nodeLock);
 }

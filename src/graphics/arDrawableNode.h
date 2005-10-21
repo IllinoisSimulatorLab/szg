@@ -35,7 +35,7 @@ class SZG_CALL arDrawableNode:public arGraphicsNode{
   int _type;
   int _number;
 
-  arStructuredData* _dumpData(int type, int number);
+  arStructuredData* _dumpData(int type, int number, bool owned);
 
   bool _0DPreDraw(arGraphicsNode* pointsNode,
 		  arGraphicsContext* context,

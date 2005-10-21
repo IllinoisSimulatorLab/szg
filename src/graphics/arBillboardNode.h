@@ -28,7 +28,8 @@ class SZG_CALL arBillboardNode: public arGraphicsNode{
   bool   _visibility;
   string _text;
 
-  arStructuredData* _dumpData(const string& text, bool visibility);
+  arStructuredData* _dumpData(const string& text, bool visibility,
+                              bool owned);
 };
 
 #endif

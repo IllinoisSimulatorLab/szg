@@ -71,6 +71,7 @@ class NodeListWrapper{
 
   arDatabaseNode* get(){
     if (_iter != _list.end()){
+      (*_iter)->ref();
       return *_iter;
     }
     return NULL;
@@ -104,6 +105,7 @@ class arDatabaseNode{
 
   void ref();
   void unref();
+  int  getRef();
 
   int getID() const;
   string getName() const;
@@ -113,14 +115,14 @@ class arDatabaseNode{
   int getTypeCode() const;
   string getTypeString() const;
   
-  arDatabaseNode* newNode(const string& type, const string& name="");
+  arDatabaseNode* newNodeRef(const string& type, const string& name="");
 
   arDatabase* getOwner();
-  arDatabaseNode* getParent();
-  list<arDatabaseNode*> getChildren();
+  arDatabaseNode* getParentRef();
+  list<arDatabaseNode*> getChildrenRef();
 
-  arDatabaseNode* findNode(const string& name);
-  arDatabaseNode* findNodeByType(const string& nodeType);
+  arDatabaseNode* findNodeRef(const string& name);
+  arDatabaseNode* findNodeByTypeRef(const string& nodeType);
   void printStructure();
   void printStructure(int maxLevel);
   void ps();
@@ -130,23 +132,34 @@ class arDatabaseNode{
   void setNodeLevel(arNodeLevel nodeLevel);
 
 %pythoncode{
-  #def __del__(self):
+  def __del__(self):
+      try:
+          if self.thisown == 0 or self.thisown == 1:
+             if self.getOwner() == None or self.getName() != "root":
+                 self.unref()
+      except: pass
 
   # simply present to provide a uniform interface to the nodes
   # vis-a-vis arGraphicsNode
   def new(self, type, name=""):
-      return self.newNode(type, name)
+      return self.newNodeRef(type, name)
 
   def parent(self):
-      return self.getParent() 
+      return self.getParentRef() 
 
   def children(self):
-      wl = NodeListWrapper(self.getChildren())
+      wl = NodeListWrapper(self.getChildrenRef())
       l = []
       while wl.get() != None:
           l.append(wl.get())
           wl.next()
       return l
+
+  def find(self, name):
+      return self.findNodeRef(name)
+
+  def findByType(self, type):
+      return self.findNodeByTypeRef(type)
 }
 };
 
@@ -234,25 +247,33 @@ class arGraphicsNode: public arDatabaseNode{
   virtual void draw( arGraphicsContext* );
 
 %pythoncode{
-  def find(self, name):
-      return gcast(self.findNode(name))
-
-  def findByType(self, type):
-      return gcast(self.findNodeByType(type))
-
+  def __del__(self):
+      try:
+          if self.thisown == 0 or self.thisown == 1:
+              if self.getOwner() == None or self.getName() != "root":
+                  self.unref()
+      except: pass
+  
   def new(self, type, name=""):
-      return gcast(self.newNode(type, name))
+      return gcast(self.newNodeRef(type, name))
 
   def parent(self):
-      return gcast(self.getParent()) 
+      return gcast(self.getParentRef()) 
 
   def children(self):
-      wl = NodeListWrapper(self.getChildren())
+      wl = NodeListWrapper(self.getChildrenRef())
       l = []
       while wl.get() != None:
           l.append(gcast(wl.get()))
           wl.next()
       return l
+ 
+  def find(self, name):
+      return gcast(self.findNodeRef(name))
+
+  def findByType(self, type):
+      return gcast(self.findNodeByTypeRef(type))
+
 }
 };
 
@@ -481,46 +502,57 @@ class arPerspectiveCamera: public arCamera{
 %{
 
 arGraphicsNode* castToGraphics(arDatabaseNode* n){
+  n->ref();
   return (arGraphicsNode*) n;
 }
 
 arLightNode* castToLight(arDatabaseNode* n){
+  n->ref();
   return (arLightNode*) n;
 }
 
 arMaterialNode* castToMaterial(arDatabaseNode* n){
+  n->ref();
   return (arMaterialNode*) n;
 }
 
 arTransformNode* castToTransform(arDatabaseNode* n){
+  n->ref();
   return (arTransformNode*) n;
 }
 
 arTextureNode* castToTexture(arDatabaseNode* n){
+  n->ref();
   return (arTextureNode*) n;
 }  
 
 arBoundingSphereNode* castToBoundingSphere(arDatabaseNode* n){
+  n->ref();
   return (arBoundingSphereNode*) n;
 }
 
 arBillboardNode* castToBillboard(arDatabaseNode* n){
+  n->ref();
   return (arBillboardNode*) n;
 }
 
 arVisibilityNode* castToVisibility(arDatabaseNode* n){
+  n->ref();
   return (arVisibilityNode*) n;
 }
 
 arPointsNode* castToPoints(arDatabaseNode* n){
+  n->ref();
   return (arPointsNode*) n;
 }
 
 arNormal3Node* castToNormal3(arDatabaseNode* n){
+  n->ref();
   return (arNormal3Node*) n;
 }
 
 arColor4Node* castToColor4(arDatabaseNode* n){
+  n->ref();
   return (arColor4Node*) n;
 }
 
@@ -529,10 +561,12 @@ arTex2Node* castToTex2(arDatabaseNode* n){
 }
 
 arIndexNode* castToIndex(arDatabaseNode* n){
+  n->ref();
   return (arIndexNode*) n;
 }
 
 arDrawableNode* castToDrawable(arDatabaseNode* n){
+  n->ref();
   return (arDrawableNode*) n;
 }
 
@@ -550,16 +584,16 @@ class arDatabase{
                             const string& bundlePath);
 
   int getNodeID(const string& name, bool fWarn=true);
-  arDatabaseNode* getNode(int, bool fWarn=true);
-  arDatabaseNode* getNode(const string&, bool fWarn=true);
-  arDatabaseNode* findNode(const string& name);
+  arDatabaseNode* getNodeRef(int, bool fWarn=true);
+  arDatabaseNode* getNodeRef(const string&, bool fWarn=true);
+  arDatabaseNode* findNodeRef(const string& name);
   arDatabaseNode* getRoot(){ return &_rootNode; }
-  arDatabaseNode* newNode(arDatabaseNode* parent, const string& type,
-                          const string& name="");
-  arDatabaseNode* insertNode(arDatabaseNode* parent,
-			     arDatabaseNode* child,
-			     const string& type,
-			     const string& name = "");
+  arDatabaseNode* newNodeRef(arDatabaseNode* parent, const string& type,
+                             const string& name="");
+  arDatabaseNode* insertNodeRef(arDatabaseNode* parent,
+			        arDatabaseNode* child,
+			        const string& type,
+			        const string& name = "");
   bool cutNode(int ID);
   bool eraseNode(int ID);
   void permuteChildren(arDatabaseNode* parent,
@@ -630,16 +664,16 @@ class arGraphicsDatabase: public arDatabase{
 
 %pythoncode{
     def new(self, node, type, name=""):
-        return gcast(self.newNode(node,type,name))
+        return gcast(self.newNodeRef(node,type,name))
 
     def insert(self, parent, child, type, name=""):
-        return gcast(self.insertNode(parent, child, type, name))
+        return gcast(self.insertNodeRef(parent, child, type, name))
     
     def get(self, name):
-        return gcast(self.getNode(name))
+        return gcast(self.getNodeRef(name))
 
     def find(self, name):
-        return gcast(self.findNode(name))
+        return gcast(self.findNodeRef(name))
 }
 };
 
