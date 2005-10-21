@@ -1,21 +1,98 @@
 <szg_config>
 
 <assign>
-cube6		SZG_EXEC path G:\THE_USER_NAME\bin\win32 
-cavefront	SZG_EXEC path G:\THE_USER_NAME\bin\win32
-caveleft	SZG_EXEC path G:\THE_USER_NAME\bin\win32
-caveright	SZG_EXEC path G:\THE_USER_NAME\bin\win32
-cavefloor	SZG_EXEC path G:\THE_USER_NAME\bin\win32
+cavefront	SZG_EXEC path G:\THE_USER_NAME\bin\win32;G:\Python24
+caveleft	SZG_EXEC path G:\THE_USER_NAME\bin\win32;G:\Python24
+caveright	SZG_EXEC path G:\THE_USER_NAME\bin\win32;G:\Python24
+cavefloor	SZG_EXEC path G:\THE_USER_NAME\bin\win32;G:\Python24
+cube6		SZG_EXEC path G:\THE_USER_NAME\bin\win32
 kam1		SZG_EXEC path G:\THE_USER_NAME\bin\win32
 kam3		SZG_EXEC path /home/public/cube/bin/linux
-cassatt		SZG_EXEC path /afs/ncsa.uiuc.edu/.u6/camilleg/bin
+cassatt		SZG_EXEC path /scratch2/camilleg/szg/bin/mips4
 </assign>
+
+<comment>
+Note the assign and comment blocks below. The assign block is for an ordinary user,
+the comment block the equivalent set for the cube or official demo user.
+</comment>
+
+<assign>
+cavefloor SZG_PYTHON path  G:\THE_USER_NAME\pycube
+cavefront SZG_PYTHON path  G:\THE_USER_NAME\pycube
+caveleft SZG_PYTHON path  G:\THE_USER_NAME\pycube
+caveright SZG_PYTHON path  G:\THE_USER_NAME\pycube
+cube6 SZG_PYTHON path  NULL
+kam1 SZG_PYTHON path  NULL
+</assign>
+
+<comment>
+cavefloor SZG_PYTHON path  G:\THE_USER_NAME\bin-py\win32;G:\THE_USER_NAME\pycube;G:\math198
+cavefront SZG_PYTHON path  G:\THE_USER_NAME\bin-py\win32;G:\THE_USER_NAME\pycube;G:\math198
+caveleft SZG_PYTHON path  G:\THE_USER_NAME\bin-py\win32;G:\THE_USER_NAME\pycube;G:\math198
+caveright SZG_PYTHON path  G:\THE_USER_NAME\bin-py\win32;G:\THE_USER_NAME\pycube;G:\math198
+cube6 SZG_PYTHON path  NULL
+kam1 SZG_PYTHON path  NULL
+</comment>
 
 <param>
 <name> cave_tracker </name>
 <value>
   <szg_device>
     <input_sources> arSharedMemDriver </input_sources>
+    <input_sinks></input_sinks>
+    <input_filters></input_filters>
+    <pforth>
+      /*
+      matrix yRotMatrix
+      matrix xRotMatrix
+      matrix rotMatrix
+      -20. yaxis yRotMatrix rotationMatrix
+      5. xaxis xRotMatrix rotationMatrix
+      yRotMatrix xRotMatrix rotMatrix matrixMultiply
+      matrix inputMatrix
+      define filter_matrix_1
+        inputMatrix getCurrentEventMatrix
+	inputMatrix yRotMatrix inputMatrix matrixMultiply
+	inputMatrix setCurrentEventMatrix
+      enddef
+      */
+      define filter_button_0
+        7 setCurrentEventIndex
+      enddef
+      define filter_button_1
+        3 setCurrentEventIndex
+      enddef
+      define filter_button_2
+        0 setCurrentEventIndex
+      enddef
+      define filter_button_3
+        1 setCurrentEventIndex
+      enddef
+      define filter_button_4
+        2 setCurrentEventIndex
+      enddef
+      define filter_button_5
+        4 setCurrentEventIndex
+      enddef
+      define filter_button_6
+        5 setCurrentEventIndex
+      enddef
+      define filter_button_7
+        6 setCurrentEventIndex
+      enddef
+    </pforth>
+  </szg_device>
+</value>
+</param>
+
+<param>
+<name> usb_tracker </name>
+<value>
+  <szg_device>
+    <input_sources> arUSBDriver </input_sources>
+    <input_sinks></input_sinks>
+    <input_filters></input_filters>
+    <pforth></pforth>
   </szg_device>
 </value>
 </param>
@@ -40,6 +117,28 @@ cave SZG_INPUT0  map            cassatt/cave_tracker
 cave SZG_INPUT0  networks       internet
 cave SZG_SOUND   map            kam1
 cave SZG_SOUND   networks       internet
+</assign>
+
+<comment> copypaste from cave virtual computer, using usb wand </comment>
+
+<assign>
+cave-usb SZG_CONF    location       cave
+cave-usb SZG_CONF    virtual        true
+cave-usb SZG_TRIGGER map            cavefront
+cave-usb SZG_MASTER  map            SZG_DISPLAY0
+cave-usb SZG_DISPLAY  number_screens 4
+cave-usb SZG_DISPLAY0 map            cavefront/SZG_DISPLAY0
+cave-usb SZG_DISPLAY0 networks       cave/internet
+cave-usb SZG_DISPLAY1 map            caveleft/SZG_DISPLAY0
+cave-usb SZG_DISPLAY1 networks       cave/internet
+cave-usb SZG_DISPLAY2 map            caveright/SZG_DISPLAY0
+cave-usb SZG_DISPLAY2 networks       cave/internet
+cave-usb SZG_DISPLAY3 map            cavefloor/SZG_DISPLAY0
+cave-usb SZG_DISPLAY3 networks       cave/internet
+cave-usb SZG_INPUT0  map            kam1/usb_tracker
+cave-usb SZG_INPUT0  networks       internet
+cave-usb SZG_SOUND   map            kam1
+cave-usb SZG_SOUND   networks       internet
 </assign>
 
 <comment> definition of a demo computer, not using tracking </comment>
@@ -95,7 +194,7 @@ cavefront SZG_EXPT method    enumerated
 cavefront SZG_EXPT subject   DEMO
 
 cavefront SZG_EXPT path      G:\Experiments
-caveleft SZG_EXPT path      G:\Experiments
+caveleft  SZG_EXPT path      G:\Experiments
 caveright SZG_EXPT path      G:\Experiments
 cavefloor SZG_EXPT path      G:\Experiments
 </assign>
@@ -285,7 +384,7 @@ cavefront SZG_HEAD fixed_head_mode false
 <comment> graphics configuration </comment>
 <assign>
 cavefront SZG_DISPLAY0 name front_window_stereo
-caveleft SZG_DISPLAY0 name left_window_stereo
+caveleft  SZG_DISPLAY0 name left_window_stereo
 caveright SZG_DISPLAY0 name right_window_stereo
 cavefloor SZG_DISPLAY0 name bottom_window_stereo
 </assign>
