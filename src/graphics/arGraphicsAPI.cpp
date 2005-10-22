@@ -321,6 +321,57 @@ bool dgBlend(int ID, float factor){
   return __currentGraphicsDatabase->alter(data) ? true : false;
 }
 
+int dgStateInt(const string& nodeName, const string& parentName,
+               const string& stateName,
+               arGraphicsStateValue val1,
+               arGraphicsStateValue val2 ) {
+  arDatabaseNode* node = dgMakeNode(nodeName,parentName,"state");
+  return (node && dgStateInt( node->getID(), stateName, val1, val2 )) ?
+    (node->getID()) : (-1);
+}
+bool dgStateInt( int nodeID, const string& stateName, 
+    arGraphicsStateValue val1, arGraphicsStateValue val2 ) {
+  if (nodeID < 0)
+    return false;
+  arGraphicsStateValue tmp[2];
+  tmp[0] = val1;
+  tmp[1] = val2;
+  float ftmp(0.);
+  arStructuredData* data = __currentGraphicsDatabase->graphicsStateData;
+  if (!data->dataIn(__gfx.AR_GRAPHICS_STATE_ID,&nodeID,AR_INT,1) ||
+      !data->dataInString( __gfx.AR_GRAPHICS_STATE_STRING, stateName ) ||
+      !data->dataIn( __gfx.AR_GRAPHICS_STATE_INT, tmp, AR_INT, 2 ) ||
+      !data->dataIn( __gfx.AR_GRAPHICS_STATE_FLOAT, &ftmp, AR_FLOAT, 1)) { 
+    cerr << "dgStateInt error: dataIn failed.\n";
+    return false;
+  }
+  return __currentGraphicsDatabase->alter(data) ? true : false;
+}
+
+int dgStateFloat( const string& nodeName, const string& parentName,
+    const string& stateName, float value ) {
+  arDatabaseNode* node = dgMakeNode(nodeName,parentName,"state");
+  return (node && dgStateFloat( node->getID(), stateName, value )) ?
+    (node->getID()) : (-1);
+}
+bool dgStateFloat( int nodeID, const string& stateName, float value ) {
+  if (nodeID < 0)
+    return false;
+  arGraphicsStateValue tmp[2];
+  tmp[0] = AR_G_FALSE;
+  tmp[1] = AR_G_FALSE;
+  arStructuredData* data = __currentGraphicsDatabase->graphicsStateData;
+  if (!data->dataIn(__gfx.AR_GRAPHICS_STATE_ID,&nodeID,AR_INT,1) ||
+      !data->dataInString( __gfx.AR_GRAPHICS_STATE_STRING, stateName ) ||
+      !data->dataIn( __gfx.AR_GRAPHICS_STATE_INT, tmp, AR_INT, 2 ) ||
+      !data->dataIn( __gfx.AR_GRAPHICS_STATE_FLOAT, &value, AR_FLOAT, 1 )) { 
+    cerr << "dgStateFloat error: dataIn failed.\n";
+    return false;
+  }
+  return __currentGraphicsDatabase->alter(data) ? true : false;
+}
+
+
 int dgNormal3(const string& name, const string& parent, int numNormals,
 	      int* IDs, float* normals){
   arDatabaseNode* node = dgMakeNode(name,parent,"normal3");

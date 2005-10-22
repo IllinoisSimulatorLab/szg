@@ -1,4 +1,4 @@
-// $Id: PyGraphics.i,v 1.5 2005/08/04 21:24:13 schaeffr Exp $
+// $Id: PyGraphics.i,v 1.6 2005/10/21 21:33:49 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -7,6 +7,19 @@
 
 
 // The contents of this file are straight from the corresponding header files.
+
+// ********************** from arGraphicsHeader.h ****************************
+
+enum arGraphicsStateID {
+  AR_G_GARBAGE_STATE = 0,
+  AR_G_POINT_SIZE = 1,
+  AR_G_LINE_WIDTH = 2,
+  AR_G_SHADE_MODEL = 3,
+  AR_G_LIGHTING = 4,
+  AR_G_BLEND = 5,
+  AR_G_DEPTH_TEST = 6,
+  AR_G_BLEND_FUNC = 7
+};
 
 // ********************** from arDrawableNode.h ****************************
 

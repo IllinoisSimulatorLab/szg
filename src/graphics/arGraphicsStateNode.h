@@ -42,14 +42,11 @@ class SZG_CALL arGraphicsStateNode: public arGraphicsNode{
   /// appropriately.
   bool getStateValueFloat(float& value);
 
-  /// Sets the node's graphics state. If the state takes int values, then
-  /// the float parameter will be ignored and if the state takes a float
-  /// value then the int (realy arGraphicsStateValue) parameter will be
-  /// ignored. Returns false if the stateName isn't on our list or
-  /// if appropriate data isn't passed in.
-  bool setGraphicsState(const string& stateName,
-			arGraphicsStateValue* stateValueInt,
-			float stateValueFloat);
+  /// Setters corresponding to above.
+  bool setGraphicsStateInt(const string& stateName,
+      arGraphicsStateValue value1, arGraphicsStateValue value2 = AR_G_FALSE);
+  bool setGraphicsStateFloat(const string& stateName,
+      float stateValueFloat);
 
  protected:
   // Each graphics state node embodies only a single change to graphics
@@ -75,7 +72,8 @@ class SZG_CALL arGraphicsStateNode: public arGraphicsNode{
   float                _stateValueFloat;
 
   arGraphicsStateID _convertStringToStateID(const string& stateName);
-  bool              _isFloatState();
+  bool              _checkFloatState( arGraphicsStateID id );
+  bool              _isFloatState() { return _checkFloatState(_stateID); }
 
   arStructuredData* _dumpData(const string& stateName,
                               arGraphicsStateValue* stateValueInt,

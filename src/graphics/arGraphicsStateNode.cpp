@@ -97,30 +97,56 @@ bool arGraphicsStateNode::getStateValueFloat(float& value){
   return true;
 }
 
-bool arGraphicsStateNode::setGraphicsState(const string& stateName,
-			                   arGraphicsStateValue* stateValueInt,
-			                   float stateValueFloat){
-  if (active()){
+bool arGraphicsStateNode::setGraphicsStateInt( const string& stateName,
+                  arGraphicsStateValue value1, arGraphicsStateValue value2) {
+  arGraphicsStateID id = _convertStringToStateID(stateName);
+  if (_checkFloatState(id)) {
+    cerr << "arGraphicsStateNode error: attempt to setGraphicsStateInt() for float state node type.\n";
+    return false;
+  }
+  if (_owningDatabase) {
+    arGraphicsStateValue stateValueInt[2];
+    stateValueInt[0] = value1;
+    stateValueInt[1] = value2;
     ar_mutex_lock(&_nodeLock);
-    arStructuredData* r 
-      = _dumpData(stateName, stateValueInt, stateValueFloat, true);
+    arStructuredData* r = _dumpData(stateName, stateValueInt, _stateValueFloat, true);
     ar_mutex_unlock(&_nodeLock);
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
-  else{
+  else {
+    ar_mutex_lock(&_nodeLock);
+    _stateValueFloat = -1.;
+    _stateName = stateName;
+    _stateID = id;
+    _stateValueInt[0] = value1;
+    _stateValueInt[1] = value2;
+    ar_mutex_unlock(&_nodeLock);
+  }
+  return true;
+}
+
+bool arGraphicsStateNode::setGraphicsStateFloat(const string& stateName,
+                                                float stateValueFloat) {
+  arGraphicsStateID id = _convertStringToStateID(stateName);
+  if (!_checkFloatState(id)) {
+    cerr << "arGraphicsStateNode error: attempt to setGraphicsStateFloat() for int state node type.\n";
+    return false;
+  }
+  if (_owningDatabase) {
+    ar_mutex_lock(&_nodeLock);
+    arStructuredData* r = _dumpData(stateName, NULL, _stateValueFloat, true);
+    ar_mutex_unlock(&_nodeLock);
+    _owningDatabase->alter(r);
+    delete r;
+  }
+  else {
     ar_mutex_lock(&_nodeLock);
     _stateName = stateName;
-    _stateID = _convertStringToStateID(_stateName);
-    if (stateValueInt){
-      _stateValueInt[0] = stateValueInt[0];
-      _stateValueInt[1] = stateValueInt[1];
-    }
-    else{
-      // Sensible defaults.
-      _stateValueInt[0] = AR_G_FALSE;
-      _stateValueInt[1] = AR_G_FALSE;
-    }
+    _stateID = id;
+    // Sensible defaults.
+    _stateValueInt[0] = AR_G_FALSE;
+    _stateValueInt[1] = AR_G_FALSE;
     _stateValueFloat = stateValueFloat;
     ar_mutex_unlock(&_nodeLock);
   }
@@ -158,8 +184,8 @@ arGraphicsStateID arGraphicsStateNode::_convertStringToStateID(
   return AR_G_GARBAGE_STATE;
 }
 
-bool arGraphicsStateNode::_isFloatState(){
-  switch(_stateID){
+bool arGraphicsStateNode::_checkFloatState( arGraphicsStateID id ) {
+  switch (id) {
   case AR_G_POINT_SIZE:
     return true;
   case AR_G_LINE_WIDTH:
@@ -171,9 +197,9 @@ bool arGraphicsStateNode::_isFloatState(){
 
 /// NOT thread-safe.
 arStructuredData* arGraphicsStateNode::_dumpData(const string& stateName,
-                                           arGraphicsStateValue* stateValueInt,
-					   float stateValueFloat,
-                                           bool owned){
+                                         arGraphicsStateValue* stateValueInt,
+                                         float stateValueFloat,
+                                         bool owned ) {
   arStructuredData* result = NULL;
   if (owned){
     result = getOwner()->getDataParser()->getStorage(_g->AR_GRAPHICS_STATE);

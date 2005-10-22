@@ -935,6 +935,9 @@ arDatabaseNode* arGraphicsDatabase::_makeNode(const string& type){
   else if (type=="blend"){
     outNode = (arDatabaseNode*) new arBlendNode();
   }
+  else if (type=="state"){
+    outNode = (arDatabaseNode*) new arGraphicsStateNode();
+  }
   else if (type == "normal3"){
     outNode = (arDatabaseNode*) new arNormal3Node();
   }

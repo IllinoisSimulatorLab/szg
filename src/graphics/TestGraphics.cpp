@@ -46,7 +46,7 @@ void testDatabase(arGraphicsDatabase& g){
 
   arGraphicsStateNode* s 
     = (arGraphicsStateNode*) g.newNode(globalTrans, "graphics state");
-  s->setGraphicsState("point_size", NULL, 20.0);
+  s->setGraphicsStateFloat("point_size", 20.0);
   float c[12] = {-1, -1, 0, 
                  1, -1, 0,
 		 1, 1, 0,
@@ -62,7 +62,7 @@ void testDatabase(arGraphicsDatabase& g){
   
   arGraphicsStateNode* s2 
     = (arGraphicsStateNode*) g.newNode(p, "graphics state");
-  s2->setGraphicsState("line_width", NULL, 5.0);
+  s2->setGraphicsStateFloat("line_width", 5.0);
   arIndexNode* in = (arIndexNode*) g.newNode(s2, "index");
   int index[8] = {0,1, 1,2, 2,3, 3,0};
   in->setIndices(8, index);
@@ -77,7 +77,7 @@ void testDatabase(arGraphicsDatabase& g){
 
   arGraphicsStateNode* s3 
     = (arGraphicsStateNode*) g.newNode(p, "graphics state");
-  s3->setGraphicsState("line_width", NULL, 2.0);
+  s3->setGraphicsStateFloat("line_width", 2.0);
   in = (arIndexNode*) g.newNode(s3, "index");
   int index2[4] = {0,2, 1,3};
   in->setIndices(4, index2);
@@ -90,7 +90,7 @@ void testDatabase(arGraphicsDatabase& g){
 
   arGraphicsStateNode* s4 
     = (arGraphicsStateNode*) g.newNode(globalTrans, "graphics state");
-  s4->setGraphicsState("point_size", NULL, 10.0);
+  s4->setGraphicsStateFloat("point_size", 10.0);
   float c2[12] = {-0.7, -0.7, 0,
 	          0.7, -0.7, 0,
                   0.7, 0.7, 0,
@@ -134,9 +134,7 @@ void testDatabase(arGraphicsDatabase& g){
   // scene.
   arGraphicsStateNode* ls 
     = (arGraphicsStateNode*) rt->newNode("graphics state", "lighting_off");
-  arGraphicsStateValue stateValue[2];
-  stateValue[0] = AR_G_FALSE;
-  ls->setGraphicsState("lighting", stateValue, 0);
+  ls->setGraphicsStateInt("lighting", AR_G_FALSE );
   arTextureNode* tn = (arTextureNode*) ls->newNode("texture", "rect_texture");
   tn->setPixels(256, 256, makePixels(), true);
   // BUG BUG BUG BUG BUG BUG BUG BUG: Still need to call dgSetGraphicsDatabase
@@ -156,11 +154,11 @@ void testDatabase(arGraphicsDatabase& g){
       if (!insertedState){
         cout << "Insert node failed.\n";
       }
-      insertedState->setGraphicsState("point_size", NULL, 5);
+      insertedState->setGraphicsStateFloat("point_size", 5);
       
       insertedState2 = (arGraphicsStateNode*) g.insertNode(n, NULL,
 							   "graphics state");
-      insertedState2->setGraphicsState("point_size", NULL, 10);
+      insertedState2->setGraphicsStateFloat("point_size", 10);
     }
     if (count == 200){
       cout << "About to cut node.\n";

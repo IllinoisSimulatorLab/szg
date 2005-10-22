@@ -74,6 +74,17 @@ SZG_CALL bool dgVisibility(int, int);
 SZG_CALL int dgBlend(const string&, const string&, float);
 SZG_CALL bool dgBlend(int, float);
 
+SZG_CALL int dgStateInt(const string& nodeName, const string& parentName,
+                        const string& stateName,
+                        arGraphicsStateValue val1,
+                        arGraphicsStateValue val2 = AR_G_FALSE );
+SZG_CALL bool dgStateInt(int nodeID, const string& stateName,
+    arGraphicsStateValue val1, arGraphicsStateValue val2 = AR_G_FALSE);
+
+SZG_CALL int dgStateFloat(const string& nodeName, const string& parentName,
+                          const string& stateName, float value );
+SZG_CALL bool dgStateFloat(int nodeID, const string& stateName, float value);
+
 SZG_CALL int dgNormal3(const string& name, const string& parent, 
                        int numNormals,
 	               int* IDs, float* normals);

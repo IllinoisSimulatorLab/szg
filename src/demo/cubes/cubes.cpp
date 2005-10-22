@@ -17,7 +17,7 @@
 #include "arCallbackInteractable.h"
 #include <list>
 
-#define NUMBER_CUBES 200
+#define NUMBER_OBJECTS 200
 
 // dragWand uses matrix 1, has 6 buttons mapped from input button 2
 // to output button 2. This means that you can access input buttons
@@ -30,9 +30,11 @@ arEffector headEffector( 0, 0, 0, 0, 0, 0, 0 );
 bool jiggleStuffGlobal(true);
 
 std::list<arInteractable*> interactionList;
-arCallbackInteractable interactionArray[NUMBER_CUBES];
-int cubeTextureID[NUMBER_CUBES];
+arCallbackInteractable interactionArray[NUMBER_OBJECTS];
+int objectTextureID[NUMBER_OBJECTS];
 int wandID;
+arGraphicsStateValue lightingOnOff(AR_G_TRUE);
+int lightsOnOffID;
 const float WAND_LENGTH = 2.;
 arMatrix4 cube0Matrix;
 
@@ -76,6 +78,12 @@ bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQue
     dragWand.updateState( event );
     headEffector.updateState( event );
     fw.navUpdate( event );
+    if ((event.getType() == AR_EVENT_BUTTON) && (event.getIndex() == 0)) {
+      if (fw.getOnButton(0)) {
+        lightingOnOff = (lightingOnOff == AR_G_TRUE)?(AR_G_FALSE):(AR_G_TRUE);
+        dgStateInt( lightsOnOffID, "lighting", lightingOnOff );
+      }
+    }
   }
   // Currently, the joystick driver on windows DOES NOT guarantee a stream
   // of input events when the stick is held in a given position. Consequently,
@@ -96,10 +104,10 @@ void matrixCallback( arCallbackInteractable* object, const arMatrix4& matrix ) {
 bool processCallback( arCallbackInteractable* object, arEffector* effector ) {
   if (effector == &headEffector) {
     if (object->grabbed()) {
-      int iCube = object - interactionArray;
-      if ((iCube >= 0)&&(iCube < NUMBER_CUBES)) {
+      int iObject = object - interactionArray;
+      if ((iObject >= 0)&&(iObject < NUMBER_OBJECTS)) {
         ar_mutex_lock(&databaseLock);
-        dgTexture( cubeTextureID[iCube], "ambrosia.ppm" );
+        dgTexture( objectTextureID[iObject], "ambrosia.ppm" );
         ar_mutex_unlock(&databaseLock);
       }
     }
@@ -121,18 +129,18 @@ void worldAlter(void* f){
 
     if (jiggleStuffGlobal) {
       // Jiggle any cube except the zeroth.
-      const int iCube = 1 + rand() % (NUMBER_CUBES-1);
-      const arMatrix4 randMatrix( interactionArray[iCube].getMatrix() *
+      const int iObject = 1 + rand() % (NUMBER_OBJECTS-1);
+      const arMatrix4 randMatrix( interactionArray[iObject].getMatrix() *
                    ar_translationMatrix(randDistance(), randDistance(), randDistance())
                    * ar_rotationMatrix("xyz"[rand()%3], 0.02) );
-      interactionArray[iCube].setMatrix( randMatrix );
+      interactionArray[iObject].setMatrix( randMatrix );
 
       if (count%20 == 0){
         char buffer[32];
         sprintf(buffer,"WallTexture%i.ppm",rand()%4+1);
         const string whichTexture(buffer);
         ar_mutex_lock(&databaseLock);
-        dgTexture(cubeTextureID[iCube], whichTexture);
+        dgTexture(objectTextureID[iObject], whichTexture);
         ar_mutex_unlock(&databaseLock);
       }
     }
@@ -163,7 +171,8 @@ void worldInit(arDistSceneGraphFramework& framework){
   
   arCubeMesh theCube;
   const string navNodeName = framework.getNavNodeName();
-  wandID = dgTransform( "wand_transform", navNodeName, arMatrix4() );
+  lightsOnOffID = dgStateInt( "light_switch", navNodeName, "lighting", AR_G_TRUE );
+  wandID = dgTransform( "wand_transform", "light_switch", arMatrix4() );
   dgTexture( "wand_texture", "wand_transform", "ambrosia.ppm" );
   theCube.setTransform(ar_scaleMatrix(.2,.2,WAND_LENGTH));
   theCube.attachMesh( "wand", "wand_texture" );
@@ -174,11 +183,11 @@ void worldInit(arDistSceneGraphFramework& framework){
   theCylinder.setAttributes(20,1,1);
   theCylinder.toggleEnds(true);
   char buffer[32];
-  for (int i=0; i<NUMBER_CUBES; i++){
+  for (int i=0; i<NUMBER_OBJECTS; i++){
     sprintf(buffer,"%i",i);
-    const string cubeName(baseName + string(buffer));
-    const string cubeTexture(cubeName + " texture");
-    const string cubeParent(cubeName + " transform");
+    const string objectName(baseName + string(buffer));
+    const string objectTexture(objectName + " texture");
+    const string objectParent(objectName + " transform");
     if (i==0)
       strcpy(buffer, "YamahaStar.ppm");
     else
@@ -192,31 +201,31 @@ calcpos:
       goto calcpos;
     }
     arMatrix4 cubeTransform = ar_translationMatrix(randX,randY,randZ);
-    arCallbackInteractable cubeInteractor( dgTransform( cubeParent, navNodeName, arMatrix4() ) );
+    arCallbackInteractable cubeInteractor( dgTransform( objectParent, "light_switch", arMatrix4() ) );
     cubeInteractor.setMatrixCallback( matrixCallback );
     cubeInteractor.setMatrix( cubeTransform );
     cubeInteractor.setProcessCallback( processCallback );
     interactionArray[i] = cubeInteractor;
     interactionList.push_back( (arInteractable*)(interactionArray+i) );
-    cubeTextureID[i] = dgTexture(cubeTexture,cubeParent,whichTexture);
+    objectTextureID[i] = dgTexture(objectTexture,objectParent,whichTexture);
 
     const float radius = (i==0) ? 2.0  :  .28 + .1*(rand()%200)/200.0;
     const float whichShape = (rand()%200)/200.0;
     if (whichShape < 0.1){
       theSphere.setTransform(ar_scaleMatrix(radius));
-      theSphere.attachMesh(cubeName, cubeTexture);
+      theSphere.attachMesh(objectName, objectTexture);
     }
     else if (whichShape < 0.2){
       theCylinder.setTransform(ar_scaleMatrix(radius));
-      theCylinder.attachMesh(cubeName, cubeTexture);
+      theCylinder.attachMesh(objectName, objectTexture);
     }
     else if (whichShape < 0.3){
       thePyramid.setTransform(ar_scaleMatrix(radius));
-      thePyramid.attachMesh(cubeName, cubeTexture);
+      thePyramid.attachMesh(objectName, objectTexture);
     }
     else{
       theCube.setTransform(ar_scaleMatrix(radius));
-      theCube.attachMesh(cubeName, cubeTexture);
+      theCube.attachMesh(objectName, objectTexture);
     }
   }
 }
