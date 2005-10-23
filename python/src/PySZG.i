@@ -1,4 +1,4 @@
-// $Id: PySZG.i,v 1.4 2005/06/09 22:36:04 schaeffr Exp $
+// $Id: PySZG.i,v 1.5 2005/10/23 00:21:37 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -84,7 +84,7 @@ class PySZGException(Exception):
                         // and more
 %include PyMasterSlave.i // Wrappers for framework/arMasterSlaveGraphFramework.h
 %include PySoundAPI.i   // Wrappers for sound/arSoundAPI.h
-%include PyPeer.i       // experimental support for peer-to-peer framework
+%include PyPeer.i       // Support for the Myriad distributed scene graph.
 
 #ifdef AR_SWIG_SZGEXPT
 %include PyExperiment.i

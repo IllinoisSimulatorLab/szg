@@ -1,64 +1,6 @@
-
-
-typedef map<int,arDatabaseNode*,less<int> >::iterator arNodeIDIterator;
-typedef map<string,arDatabaseNode*,less<string> >::iterator arNodeNameIterator;
-
-class arInputSource{
- public:
-  arInputSource();
-  virtual ~arInputSource();
-
-  void setInputNode(arInputSink*);
-
-  virtual bool init(arSZGClient&);
-  virtual bool start();
-  virtual bool stop();
-  virtual bool restart();
-};
-
-class arInputSink{
- public:
-  arInputSink();
-  virtual ~arInputSink();
-
-  virtual bool init(arSZGClient&);
-  virtual bool start();
-  virtual bool stop();
-  virtual bool restart();
-};
-
-class arNetInputSource: public arInputSource{
- public:
-  arNetInputSource();
-  ~arNetInputSource();
-
-  void setSlot(int slot);
-
-  virtual bool init(arSZGClient&);
-  virtual bool start();
-  virtual bool stop();
-  virtual bool restart();
-};
-
-class arInputNode: public arInputSink {
-  // Needs assignment operator and copy constructor, for pointer members.
-  public:
-    arInputNode( bool bufferEvents = false );
-    // if anyone ever derives from this class, make the following virtual:
-    // destructor init start stop restart receiveData sourceReconfig.
-    ~arInputNode();
-  
-    bool init(arSZGClient&);
-    bool start();
-    bool stop();
-    bool restart();
-  
-    void addInputSource( arInputSource* theSource, bool iOwnIt );
-  
-    int getButton(int);
-    float getAxis(int);
-    arMatrix4 getMatrix(int);
-};
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation (http://www.gnu.org/copyleft/gpl.html).
 
 %{
 class NodeListWrapper{
@@ -71,6 +13,7 @@ class NodeListWrapper{
 
   arDatabaseNode* get(){
     if (_iter != _list.end()){
+      // MUST ref here for compatibility with the python memory management.
       (*_iter)->ref();
       return *_iter;
     }
@@ -116,13 +59,12 @@ class arDatabaseNode{
   string getTypeString() const;
   
   arDatabaseNode* newNodeRef(const string& type, const string& name="");
-
   arDatabase* getOwner();
   arDatabaseNode* getParentRef();
   list<arDatabaseNode*> getChildrenRef();
-
   arDatabaseNode* findNodeRef(const string& name);
   arDatabaseNode* findNodeByTypeRef(const string& nodeType);
+
   void printStructure();
   void printStructure(int maxLevel);
   void ps();
@@ -240,12 +182,6 @@ class arGraphicsNode: public arDatabaseNode{
   arGraphicsNode();
   virtual ~arGraphicsNode();
 
-  virtual void initialize(arDatabase*);
-  virtual bool receiveData(arStructuredData*);
-  virtual arStructuredData* dumpData();
-
-  virtual void draw( arGraphicsContext* );
-
 %pythoncode{
   def __del__(self):
       try:
@@ -277,33 +213,82 @@ class arGraphicsNode: public arDatabaseNode{
 }
 };
 
-class arGraphicsArrayNode:public arGraphicsNode{
+class arRay{
  public:
-  arGraphicsArrayNode(){}
-  ~arGraphicsArrayNode(){}
+  arRay();
+  arRay(const arVector3& origin, const arVector3& direction);
+  ~arRay();
 
-  void draw( arGraphicsContext* );
-  arStructuredData* dumpData();
-  bool receiveData(arStructuredData*);
+  void transform(const arMatrix4&);
+  // Intersection with sphere.
+  float intersect(float radius, const arVector3& position);
+  const arVector3& getOrigin() const;
+  const arVector3& getDirection() const;
+
+%extend{
+  string __repr__( void ){
+    ostringstream s;
+    s << "arRay\n";
+    s << "origin: arVector3" << self->getOrigin() << "\n";
+    s << "direction: arVector3" << self->getDirection() << "\n";
+    return s.str();
+  }
+}
+};
+
+class arBoundingSphere{
+ public:
+  arBoundingSphere();
+  arBoundingSphere(const arVector3& position, float radius);
+  ~arBoundingSphere();
+
+  bool intersectViewFrustum(arMatrix4& m);
+
+  arVector3 position;
+  float     radius;
+  bool      visibility;
+%extend{
+  string __repr__( void ){
+    ostringstream s;
+    s << "arBoundingSphere\n";
+    s << "position: arVector3" << self->position << "\n";
+    s << "radius: " << self->radius << "\n";
+    s << "visibility: " << self->visibility << "\n";
+    return s.str();
+  }
+}
 };
 
 class arMaterial{
  public:
   arMaterial();
-  ~arMaterial(){}
+  ~arMaterial();
 
   arVector3 diffuse;
   arVector3 ambient;
   arVector3 specular;
   arVector3 emissive;
-  float exponent;     // i.e. shininess
-  float alpha;        // transparency of the material
+  float exponent; 
+  float alpha; 
+%extend{
+  string __repr__(void){
+    stringstream s;
+    s << "arMaterial\n";
+    s << "diffuse:  arVector3" << self->diffuse << "\n";
+    s << "ambient:  arVector3" << self->ambient << "\n";
+    s << "specular: arVector3" << self->specular << "\n";
+    s << "emissive: arVector3" << self->emissive << "\n";
+    s << "exponent: " << self->exponent << "\n";
+    s << "alpha:    " << self->alpha << "\n";
+    return s.str();
+  }
+}
 };
 
 class arLight{
  public:
   arLight();
-  ~arLight(){};
+  ~arLight();
 
   int lightID;      
   arVector4 position;
@@ -316,190 +301,299 @@ class arLight{
   arVector3 spotDirection;
   float     spotCutoff;
   float     spotExponent;
+
+%extend{
+  string __repr__(void){
+    stringstream s;
+    s << "arLight\n";
+    s << "position: arVector4" << self->position << "\n";
+    s << "diffuse:  arVector3" << self->diffuse << "\n";
+    s << "ambient:  arVector3" << self->ambient << "\n";
+    s << "specular: arVector3" << self->specular << "\n";
+    s << "constant attenuation:  " << self->constantAttenuation << "\n";
+    s << "linear attenuation:    " << self->linearAttenuation << "\n";
+    s << "quadratic attenuation: " << self->quadraticAttenuation << "\n";
+    s << "spot direction: arVector3" << self->spotDirection << "\n";
+    s << "spot cutoff:    " << self->spotCutoff << "\n";
+    s << "spot exponent:  " << self->spotExponent << "\n";
+    return s.str();
+  }
+}
 };
 
 class arLightNode:public arGraphicsNode{
  public:
-  arLightNode(){}
-  ~arLightNode(){}
+  arLightNode();
+  virtual ~arLightNode();
 
-  void draw( arGraphicsContext* ){}
-  arStructuredData* dumpData();
-  bool receiveData(arStructuredData*);
-
-  arLight getLight(){ return _nodeLight; }
+  arLight getLight();
   void setLight(arLight& light);
+
+%pythoncode{
+  def get(self):
+      return self.getLight()
+
+  def set(self, light):
+      self.setLight(light)
+}
 };
 
 class arMaterialNode:public arGraphicsNode{
  public:
   arMaterialNode();
-  ~arMaterialNode();
+  virtual ~arMaterialNode();
 
-  void draw( arGraphicsContext* );
-  arStructuredData* dumpData();
-  bool receiveData(arStructuredData*);
-
-  arMaterial getMaterial(){ return _lMaterial; }
+  arMaterial getMaterial();
   void setMaterial(const arMaterial& material);
+
+%pythoncode{
+  def get(self):
+      return self.getMaterial()
+
+  def set(self, material):
+      self.setMaterial(material)
+}
+};
+
+class arGraphicsArrayNode:public arGraphicsNode{
+ public:
+  arGraphicsArrayNode();
+  virtual ~arGraphicsArrayNode();
 };
 
 class arPointsNode:public arGraphicsArrayNode{
-/// Set of (OpenGL) points.
  public:
   arPointsNode();
-  ~arPointsNode();
+  virtual ~arPointsNode();
 
-  float* getPoints(int& number);
-  void   setPoints(int number, float* points, int* IDs = NULL);
+  vector<arVector3> getPoints();
+  void setPoints(int number, float* points, int* IDs = NULL);
+
+%pythoncode{
+  def set(self, points, IDs=[]):
+      pointList = []
+      for v in points:
+          pointList.append(v[0])
+          pointList.append(v[1])
+          pointList.append(v[2])
+      if len(IDs) == 0:
+          self.setPoints(len(pointList)/3, pointList)
+      else:
+          IDList = []
+          for i in IDs:
+              if len(IDList) <= len(points):
+                  IDList.append(i)
+          self.setPoints(len(IDList), pointList, IDList)
+
+  def get(self):
+      pointList = []
+      f = self.getPoints()
+      for i in range(len(f)):
+        pointList.append(arVector3(f[i][0], f[i][1], f[i][2]))
+      return pointList;
+}
 };
 
 class arIndexNode:public arGraphicsArrayNode{
  public:
   arIndexNode();
-  ~arIndexNode();
+  virtual ~arIndexNode();
 
-  int* getIndices(int& number);
+  vector<int> getIndices();
   void setIndices(int number, int* indices, int* IDs = NULL);
+  
+%pythoncode{
+  def set(self, indices, IDs=[]):
+      indexList = []
+      for v in indices:
+          indexList.append(v)
+      if len(IDs) == 0:
+          self.setIndices(len(indexList), indexList)
+      else:
+          IDList = []
+          for i in IDs:
+              if len(IDList) <= len(indexList):
+                  IDList.append(i)
+          self.setIndices(len(IDList), indexList, IDList)
+
+  def get(self):
+      return self.getIndices()
+}  
 };
 
 class arNormal3Node: public arGraphicsArrayNode{
  public:
   arNormal3Node();
-  ~arNormal3Node();
+  virtual ~arNormal3Node();
 
-  float* getNormal3(int& number);
-  void   setNormal3(int number, float* normal3, int* IDs = NULL);
+  vector<arVector3> getNormal3();
+  void setNormal3(int number, float* normal3, int* IDs = NULL);
+
+%pythoncode{
+  def set(self, normals, IDs=[]):
+      normalList = []
+      for v in normals:
+          normalList.append(v[0])
+          normalList.append(v[1])
+          normalList.append(v[2])
+      if len(IDs) == 0:
+          self.setNormal3(len(normalList)/3, normalList)
+      else:
+          IDList = []
+          for i in IDs:
+              if len(IDList) <= len(normals):
+                  IDList.append(i)
+          self.setNormal3(len(IDList), normalList, IDList)
+
+  def get(self):
+      normalList = []
+      f = self.getNormal3()
+      for i in range(len(f)):
+        normalList.append(arVector3(f[i][0], f[i][1], f[i][2]))
+      return normalList;
+}
 };
 
 class arTex2Node:public arGraphicsArrayNode{
  public:
   arTex2Node();
-  ~arTex2Node();
+  virtual ~arTex2Node();
 
-  float* getTex2(int& number);
-  void   setTex2(int number, float* tex2, int* IDs = NULL);
-};
+  vector<arVector2> getTex2();
+  void setTex2(int number, float* tex2, int* IDs = NULL);
 
-/// Texture map loaded from a file.
-class arTextureNode: public arGraphicsNode{
- public:
-  arTextureNode();
-  ~arTextureNode();
+%pythoncode{
+  def set(self, tex, IDs=[]):
+      texList = []
+      for v in tex:
+          texList.append(v[0])
+          texList.append(v[1])
+      if len(IDs) == 0:
+          self.setTex2(len(texList)/2, texList)
+      else:
+          IDList = []
+          for i in IDs:
+              if len(IDList) <= len(tex):
+                  IDList.append(i)
+          self.setTex2(len(IDList), texList, IDList)
 
-  void draw( arGraphicsContext* ){}
-  arStructuredData* dumpData();
-  bool receiveData(arStructuredData*);
-
-  string getFileName(){ return _fileName; }
-  void setFileName(const string& fileName);
+  def get(self):
+      texList = []
+      f = self.getTex2()
+      for i in range(len(f)):
+        texList.append(arVector2(f[i][0], f[i][1]))
+      return texList;
+}
 };
 
 class arColor4Node:public arGraphicsArrayNode{
  public:
   arColor4Node();
-  ~arColor4Node();
+  virtual ~arColor4Node();
 
-  float* getColor4(int& number);
-  void   setColor4(int number, float* color4, int* IDs = NULL);
+  vector<arVector4> getColor4();
+  void setColor4(int number, float* color4, int* IDs = NULL);
+
+%pythoncode{
+  def set(self, color, IDs=[]):
+      colorList = []
+      for v in color:
+          colorList.append(v[0])
+          colorList.append(v[1])
+          colorList.append(v[2])
+          colorList.append(v[3])
+      if len(IDs) == 0:
+          self.setColor4(len(colorList)/4, colorList)
+      else:
+          IDList = []
+          for i in IDs:
+              if len(IDList) <= len(color):
+                  IDList.append(i)
+          self.setColor4(len(IDList), colorList, IDList)
+
+  def get(self):
+      colorList = []
+      f = self.getColor4()
+      for i in range(len(f)):
+        colorList.append(arVector4(f[i][0], f[i][1], f[i][2], f[i][3]))
+      return colorList;
+}
 };
 
-/// 4x4 matrix transformation (an articulation in the scene graph).
+class arTextureNode: public arGraphicsNode{
+ public:
+  arTextureNode();
+  virtual ~arTextureNode();
+
+  string getFileName();
+  void setFileName(const string& fileName);
+};
+
 class arTransformNode: public arGraphicsNode{
  public:
-  arTransformNode(){}
-  ~arTransformNode(){}
+  arTransformNode();
+  virtual ~arTransformNode();
 
-  void draw( arGraphicsContext* ) { glMultMatrixf(_transform.v); }
-
-  arStructuredData* dumpData();
-  bool receiveData(arStructuredData*);
-
-  /// Data access functions specific to arTransformNode
   arMatrix4 getTransform();
   void setTransform(const arMatrix4& transform);
+
+%pythoncode{
+  def get(self):
+      return self.getTransform()
+
+  def set(self, m):
+      self.setTransform(m);
+}
 };
 
-
-/// Toggle visibility of subtree under this node.
 class arVisibilityNode: public arGraphicsNode{
  public:
   arVisibilityNode();
-  ~arVisibilityNode(){}
-
-  void draw(arGraphicsNode*){}
-  arStructuredData* dumpData();
-  bool receiveData(arStructuredData*);
+  virtual ~arVisibilityNode();
 
   bool getVisibility();
   void setVisibility(bool visibility);
+
+%pythoncode{
+  def get(self):
+      return self.getVisibility()
+
+  def set(self, v):
+      self.setVisibility(v)
+}
 };
 
-/// Billboard display of text.
 class arBillboardNode: public arGraphicsNode{
  public:
   arBillboardNode();
-  ~arBillboardNode(){}
-
-  void draw( arGraphicsContext* );
-  arStructuredData* dumpData();
-  bool receiveData(arStructuredData*);
+  virtual ~arBillboardNode();
 
   string getText();
   void   setText(const string& text);
-};
 
-/// Bump map loaded from a file.
+%pythoncode{
+  def get(self):
+      return self.getText()
 
-class arBumpMapNode: public arGraphicsNode{
- public:
-  arBumpMapNode(){}
-  ~arBumpMapNode(){}
-
-  void draw( arGraphicsContext* ){}
-  arStructuredData* dumpData();
-  bool receiveData(arStructuredData*);
+  def set(self, text):
+      return self.setText(text)
+}
 };
 
 class arDrawableNode:public arGraphicsNode{
  public:
   arDrawableNode();
-  ~arDrawableNode(){}
-
-  void draw( arGraphicsContext* );
-  arStructuredData* dumpData();
-  bool receiveData(arStructuredData*);
+  virtual ~arDrawableNode();
 
   int getType();
   int getNumber();
   void setDrawable(arDrawableType type, int number);
 };
 
-class arCamera{
- public:
-  arCamera();
-  virtual ~arCamera(){}
-  virtual arMatrix4 getProjectionMatrix();
-  virtual arMatrix4 getModelviewMatrix();
-  virtual void loadViewMatrices();
-};
-
-class arPerspectiveCamera: public arCamera{
- public:
-  arPerspectiveCamera();
-  virtual ~arPerspectiveCamera();
-
-  void setSides(float left, float right, float bottom, float top);
-  void setNearFar(float near, float far);
-  void setPosition(float x, float y, float z);
-  void setTarget(float x, float y, float z);
-  void setUp(float x, float y, float z);
-
-  float getFrustumData(int i);
-  float getLookatData(int i);
-};
-
 %{
+
+// Each of these MUST add an extra reference to the node since Python
+// doesn't know they are the same object!
 
 arGraphicsNode* castToGraphics(arDatabaseNode* n){
   n->ref();
@@ -587,7 +681,7 @@ class arDatabase{
   arDatabaseNode* getNodeRef(int, bool fWarn=true);
   arDatabaseNode* getNodeRef(const string&, bool fWarn=true);
   arDatabaseNode* findNodeRef(const string& name);
-  arDatabaseNode* getRoot(){ return &_rootNode; }
+  arDatabaseNode* getRoot();
   arDatabaseNode* newNodeRef(arDatabaseNode* parent, const string& type,
                              const string& name="");
   arDatabaseNode* insertNodeRef(arDatabaseNode* parent,
@@ -598,10 +692,6 @@ class arDatabase{
   bool eraseNode(int ID);
   void permuteChildren(arDatabaseNode* parent,
                        list<int>& childIDs);
-
-  virtual arDatabaseNode* alter(arStructuredData*);
-  arDatabaseNode* alterRaw(ARchar*);
-  bool handleDataQueue(ARchar*);
 
   virtual bool readDatabase(const string& fileName, 
                             const string& path = "");
@@ -640,27 +730,20 @@ class arDatabase{
 };
 
 class arGraphicsDatabase: public arDatabase{
- // Needs assignment operator and copy constructor, for pointer members.
  public:
   arGraphicsDatabase();
   virtual ~arGraphicsDatabase();
 
-  virtual arDatabaseNode* alter(arStructuredData*);
   virtual void reset();
 
-  void loadAlphabet(const char*);
   void setTexturePath(const string& thePath);
-  arTexture* addTexture(const string&, int*);
 
   arMatrix4 accumulateTransform(int nodeID);
 
   void draw();
   int intersect(const arRay&);
 
-  bool registerLight(arGraphicsNode* node, arLight* theLight);
   void activateLights();
-
-  bool registerCamera(arGraphicsNode* node, arPerspectiveCamera* theCamera);
 
 %pythoncode{
     def new(self, node, type, name=""):
@@ -692,8 +775,6 @@ class arGraphicsPeerConnection{
 }
 };
 
-// %rename(PeerList) list<arGraphicsPeerConnection>;
-
 class arGraphicsPeer: public arGraphicsDatabase{
  public:
   arGraphicsPeer();
@@ -705,8 +786,6 @@ class arGraphicsPeer: public arGraphicsDatabase{
   bool init(int&,char**);
   bool start();
   void stop();
-
-  bool alter(arStructuredData*);
 
   virtual bool readDatabase(const string& fileName, 
                             const string& path = "");
@@ -734,10 +813,6 @@ class arGraphicsPeer: public arGraphicsDatabase{
   virtual bool writeRootedXML(arDatabaseNode* parent,
                               const string& fileName,
                               const string& path="");
-
-  void useLocalDatabase(bool);
-  void queueData(bool);
-  int consume();
   
   int connectToPeer(const string& name);
   bool closeConnection(const string& name);
@@ -770,19 +845,63 @@ class arGraphicsPeer: public arGraphicsDatabase{
         return self->printPeer();
     }
 }
-%pythoncode{
-  def pathMap(self, node, fileName):
-      return self.mapXML(node,fileName,'')
+};
 
-  def pathRead(self,fileName):
-      return self.readDatabaseXML(fileName,'')
+class arInputSource{
+ public:
+  arInputSource();
+  virtual ~arInputSource();
 
-  def pathWrite(self,fileName):
-      return self.writeDatabaseXML(fileName,'')
+  void setInputNode(arInputSink*);
 
-  def pathWriteRooted(self,node,fileName):
-      return self.writeRootedXML(node,fileName,'')
-}
+  virtual bool init(arSZGClient&);
+  virtual bool start();
+  virtual bool stop();
+  virtual bool restart();
+};
+
+class arInputSink{
+ public:
+  arInputSink();
+  virtual ~arInputSink();
+
+  virtual bool init(arSZGClient&);
+  virtual bool start();
+  virtual bool stop();
+  virtual bool restart();
+};
+
+class arNetInputSource: public arInputSource{
+ public:
+  arNetInputSource();
+  ~arNetInputSource();
+
+  void setSlot(int slot);
+
+  virtual bool init(arSZGClient&);
+  virtual bool start();
+  virtual bool stop();
+  virtual bool restart();
+};
+
+class arInputNode: public arInputSink {
+  // Needs assignment operator and copy constructor, for pointer members.
+  public:
+    arInputNode( bool bufferEvents = false );
+    // if anyone ever derives from this class, make the following virtual:
+    // destructor init start stop restart receiveData sourceReconfig.
+    ~arInputNode();
+  
+    bool init(arSZGClient&);
+    bool start();
+    bool stop();
+    bool restart();
+  
+    void addInputSource( arInputSource* theSource, bool iOwnIt );
+  
+    int getButton(int);
+    float getAxis(int);
+    arMatrix4 getMatrix(int);
 };
 
 %{
@@ -912,145 +1031,6 @@ void transformManipTask(void* tm){
   m->_running = false;
 }
 
-class AnimationMapper{
-public:
-  AnimationMapper();
-  ~AnimationMapper();
-
-  bool makeMap(int externalNodeID, arGraphicsDatabase* externalDatabase);
-  void setFile(const string& name);
-  bool start();
-  bool stop();
-
-  arThread fileTask;
-  bool stopping;
-  bool stopped;
-  map<int, int, less<int> > nodeMap;
-  arGraphicsDatabase local;
-  arGraphicsDatabase* external;
-  arStructuredDataParser* parser;
-  arFileTextStream textStream;
-  FILE* inputFile;
-  string inputFileName;
-  int numberSegments;
-  arDatabaseNode* _externalNode;
-};
-
-void ar_animationMapperTask(void* mapper){
-  AnimationMapper* am = (AnimationMapper*) mapper;
-  while (!am->stopping){
-    for (int i=0; i<2*am->numberSegments; i++){
-      arStructuredData* record = am->parser->parse(&am->textStream);
-      if (!record){
-        // file must, in fact, be finished.
-        am->textStream.ar_close();
-        am->inputFile = fopen(am->inputFileName.c_str(),"r");
-        am->textStream.setSource(am->inputFile);
-        break;
-      }
-      am->local.filterData(record, am->nodeMap);
-      am->external->alter(record);
-      am->parser->recycle(record);
-    }
-    ar_usleep(16667);
-  }  
-  am->stopped = true;
-}
-
-AnimationMapper::AnimationMapper(){
-  parser = NULL;
-  stopping = false;
-  stopped = true;
-  inputFileName = string("default-motion.xml");
-  // DOH! HARDCODED!
-  numberSegments = 20;
-  _externalNode = NULL;
-  arTransformNode* t[20];
-  arTransformNode* sc[20];
-  arDatabaseNode* root = local.getRoot();
-  t[0] = (arTransformNode*) local.newNode(root, "transform", "LowerTorso");
-  t[1] = (arTransformNode*) local.newNode(t[0], "transform", "UpperTorso");
-  t[2] = (arTransformNode*) local.newNode(t[1], "transform", "Neck");
-  t[3] = (arTransformNode*) local.newNode(t[2], "transform", "Head");
-  t[4] = (arTransformNode*) local.newNode(t[1], "transform", "RCollarBone");
-  t[5] = (arTransformNode*) local.newNode(t[4], "transform", "RUpArm");
-  t[6] = (arTransformNode*) local.newNode(t[5], "transform", "RLowArm");
-  t[7] = (arTransformNode*) local.newNode(t[6], "transform", "RHand");
-  t[8] = (arTransformNode*) local.newNode(t[1], "transform", "LCollarBone");
-  t[9] = (arTransformNode*) local.newNode(t[8], "transform", "LUpArm");
-  t[10] = (arTransformNode*) local.newNode(t[9], "transform", "LLowArm");
-  t[11] = (arTransformNode*) local.newNode(t[10], "transform", "LHand");
-  t[12] = (arTransformNode*) local.newNode(t[0], "transform", "RPelvis");
-  t[13] = (arTransformNode*) local.newNode(t[12], "transform", "RThigh");
-  t[14] = (arTransformNode*) local.newNode(t[13], "transform", "RLowLeg");
-  t[15] = (arTransformNode*) local.newNode(t[14], "transform", "RFoot");
-  t[16] = (arTransformNode*) local.newNode(t[0], "transform", "LPelvis");
-  t[17] = (arTransformNode*) local.newNode(t[16], "transform", "LThigh");
-  t[18] = (arTransformNode*) local.newNode(t[17], "transform", "LLowLeg");
-  t[19] = (arTransformNode*) local.newNode(t[18], "transform", "LFoot");
-  for (int i=0; i<20; i++){
-    sc[i] = (arTransformNode*) local.newNode(t[i], "transform", 
-                                             t[i]->getName() + ".scale");
-  }
-}
-
-AnimationMapper::~AnimationMapper(){
-  stop();
-}
-
-bool AnimationMapper::makeMap(int externalNodeID,
-			      arGraphicsDatabase* externalDatabase){
-  stop();
-  external = externalDatabase;
-  nodeMap.clear();
-  _externalNode = externalDatabase->getNode(externalNodeID);
-  if (!_externalNode){
-    cout << "AnimationMapper error: node does not exist with that ID.\n";
-    return false;
-  }
-  _externalNode->setName(inputFileName);
-  return local.createNodeMap(externalNodeID, externalDatabase, nodeMap);
-}
-
-void AnimationMapper::setFile(const string& name){
-  stop();
-  inputFileName = name;
-  if (_externalNode){
-    _externalNode->setName(inputFileName);
-  }
-}
-
-bool AnimationMapper::start(){
-  if (!stopped){
-    cout << "AnimationMapper error: cannot start again.\n";
-    return false;
-  }
-  inputFile = fopen(inputFileName.c_str(), "r");
-  if (!inputFile){
-    cout << "AnimationMapper error: failed to open file.\n";
-    return false;
-  }
-  textStream.setSource(inputFile);
-  parser = new arStructuredDataParser(local._gfx.getDictionary());
-  stopped = false;
-  fileTask.beginThread(ar_animationMapperTask, this);
-  return true;
-}
-
-bool AnimationMapper::stop(){
-  stopping = true;
-  while (!stopped){
-    ar_usleep(100000);
-  }
-  stopping = false;
-  if (parser){
-    delete parser;
-    parser = NULL;
-    textStream.ar_close();
-  }
-  return true;
-}
-
 %}
 
 class TransformManip{
@@ -1062,15 +1042,4 @@ class TransformManip{
   void setNode(arTransformNode*);
   void start();
   void stop();
-};
-
-class AnimationMapper{
- public:
-  AnimationMapper();
-  ~AnimationMapper();
-
-  bool makeMap(int externalNodeID, arGraphicsDatabase* externalDatabase);
-  void setFile(const string& name);
-  bool start();
-  bool stop();
 };

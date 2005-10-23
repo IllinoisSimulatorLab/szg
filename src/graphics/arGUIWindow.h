@@ -28,6 +28,10 @@
 #include <string>
 #include <queue>
 
+// Forward declaration because, when an arGUIWindowManager creates an
+// arGUIWindow, it stores a pointer to itself therein.
+class arGUIWindowManager;
+
 /**
  * \struct arGUIWindowHandle
  *
@@ -259,7 +263,8 @@ class SZG_CALL arGUIWindowConfig
      *
      * @todo Test windows with XDisplay strings other than the default
      */
-    arGUIWindowConfig( int x = 50, int y = 50, int width = 640, int height = 480,
+    arGUIWindowConfig( int x = 50, int y = 50, 
+                       int width = 640, int height = 480,
                        int bpp = 16, int Hz = 0, bool decorate = true,
                        arZOrder zorder = AR_ZORDER_TOP,
                        bool fullscreen = false, bool stereo = false,
@@ -781,6 +786,10 @@ class SZG_CALL arGUIWindow
      */
     arGUIEventManager* getGUIEventManager( void ) const {  return _GUIEventManager; }
 
+    arGUIWindowManager* getWindowManager( void ) const { return _windowManager; }
+  
+    void setWindowManager( arGUIWindowManager* wm ) { _windowManager = wm; }
+
     //@{
     /** @name arGUIWindow wildcat framelock accessors.
      *
@@ -978,6 +987,7 @@ class SZG_CALL arGUIWindow
     void* _userData;                            ///< User-set data pointer.
 
     arMutex _graphicsWindowMutex;               ///< A lock protecting access to the arGraphicsWindow.
+    arGUIWindowManager* _windowManager;   ///< If we were created by an arGUIWindowManager, then this points back to it. OK since the GUI window manager should outlive us.
     arGraphicsWindow* _graphicsWindow;          ///< An associated arGraphicsWindow (can be NULL). 
 
     /**

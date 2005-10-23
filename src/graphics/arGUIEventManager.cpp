@@ -12,6 +12,8 @@
 #include "arGUIEventManager.h"
 #include "arGUIWindow.h"
 
+// BUG BUG BUG BUG: _userData doesn't do anything anymore and should be
+// removed. The relevant info is stuffed in arGUIWindow::getNextGUIEvent.
 arGUIEventManager::arGUIEventManager( void* userData ) :
   _active( true ),
   _userData( userData )
@@ -29,7 +31,8 @@ arGUIEventManager::arGUIEventManager( void* userData ) :
 
   // ACK, understandably there is no AR_POINTER dataType so we have to make due
   // with AR_INT, not sure if this is entirely un-problematic
-  _GUIInfoTemplate->add( "userData",  AR_INT );
+  // EXPERIMENTING WITH SETTING THIS IN arGraphicsWindow::getNextGUIEvent.
+  //_GUIInfoTemplate->add( "userData",  AR_INT );
 
   // now add the pieces exclusive to each info subtype
   _keyInfoTemplate = new arDataTemplate( *_GUIInfoTemplate );
@@ -412,8 +415,10 @@ int arGUIEventManager::addEvent( arStructuredData& event )
 
   // carry out any pre-processing on the event before it is added
 
-  // all events should get their userData set
-  event.dataIn( "userData", &_userData, AR_INT, 1 );
+  // All events should get their userData set.
+  // THIS IS A BUG. Pointers are NOT guaranteed to have 32 bits.
+  // Experimenting with removing it.
+  //event.dataIn( "userData", &_userData, AR_INT, 1 );
 
   if( arGUIEventType( event.getDataInt( "eventType" ) ) == AR_KEY_EVENT ) {
     int key = event.getDataInt( "key" );

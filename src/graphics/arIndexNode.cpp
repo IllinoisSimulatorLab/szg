@@ -15,7 +15,9 @@ arIndexNode::arIndexNode(){
   _typeString = "index";
   _nodeDataType = AR_INT;
   _arrayStride = 1;
+  // By default, there is a single index entry with index 0.
   _commandBuffer.grow(1);
+  _commandBuffer.v[0] = 0;
 }
 
 void arIndexNode::initialize(arDatabase* database){

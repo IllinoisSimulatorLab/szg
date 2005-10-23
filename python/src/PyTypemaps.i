@@ -1,4 +1,4 @@
-// $Id: PyTypemaps.i,v 1.3 2005/09/26 18:39:55 crowell Exp $
+// $Id: PyTypemaps.i,v 1.4 2005/10/23 00:21:37 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -24,6 +24,34 @@
 // of the conversion from char** to Python strings.
 %typemap(out) string {
     $result=PyString_FromString($1.c_str());
+}
+
+// Convert a python list of ints to a const vector<int>& (input)
+%typemap(in) (const vector<int>&) {
+  if (PyList_Check($input)) {
+    $1 = new vector<int>;
+    if (!$1) {
+      PyErr_SetString(PyExc_MemoryError,"failed to make new vector<long>");
+      return NULL;
+    }
+    int size = PyList_Size($input);
+    for (int i = 0; i < size; i++) {
+      PyObject *o = PyList_GetItem($input,i);
+      if (PyInt_Check(o)) {
+        $1->push_back( PyInt_AsLong(o) );
+      } else {
+        PyErr_SetString(PyExc_TypeError,"list must contain ints");
+        return NULL;
+      }
+    }
+  } else {
+    PyErr_SetString(PyExc_TypeError,"not a list");
+    return NULL;
+  }
+}
+
+%typemap(freearg) (const vector<int>&) {
+   if ($1) delete $1;
 }
 
 // Convert a python list of ints to a const vector<long>& (input)
@@ -76,6 +104,7 @@
     return NULL;
   }
 }
+
 %typemap(freearg) (const vector<double>&) {
    if ($1) delete $1;
 }
@@ -87,6 +116,17 @@
     vector<string>::iterator iter;
     for (iter = $1.begin(); iter != $1.end(); ++iter) {
       PyList_Append( $result, PyString_FromString( iter->c_str() ) );
+    }
+  }
+}
+
+// convert a vector<int> to a python list of ints (output)
+%typemap(out) vector<int> {
+  $result = PyList_New(0);
+  if ($result != NULL) {
+    vector<int>::iterator iter;
+    for (iter = $1.begin(); iter != $1.end(); ++iter) {
+      PyList_Append( $result, PyInt_FromLong( *iter ) );
     }
   }
 }
@@ -112,8 +152,49 @@
     }
   }
 }
-    
 
+%typemap(out) vector<arVector2> {
+  $result = PyList_New(0);
+  if ($result != NULL) {
+    vector<arVector2>::iterator iter;
+    for (iter = $1.begin(); iter != $1.end(); ++iter) {
+      PyObject* tmp = PyTuple_New(2);
+      PyTuple_SetItem(tmp, 0, PyFloat_FromDouble( (*iter)[0] ));
+      PyTuple_SetItem(tmp, 1, PyFloat_FromDouble( (*iter)[1] ));
+      PyList_Append( $result, tmp );
+    }
+  }
+}
+
+%typemap(out) vector<arVector3> {
+  $result = PyList_New(0);
+  if ($result != NULL) {
+    vector<arVector3>::iterator iter;
+    for (iter = $1.begin(); iter != $1.end(); ++iter) {
+      PyObject* tmp = PyTuple_New(3);
+      PyTuple_SetItem(tmp, 0, PyFloat_FromDouble( (*iter)[0] ));
+      PyTuple_SetItem(tmp, 1, PyFloat_FromDouble( (*iter)[1] ));
+      PyTuple_SetItem(tmp, 2, PyFloat_FromDouble( (*iter)[2] ));
+      PyList_Append( $result, tmp );
+    }
+  }
+}
+
+%typemap(out) vector<arVector4> {
+  $result = PyList_New(0);
+  if ($result != NULL) {
+    vector<arVector4>::iterator iter;
+    for (iter = $1.begin(); iter != $1.end(); ++iter) {
+      PyObject* tmp = PyTuple_New(4);
+      PyTuple_SetItem(tmp, 0, PyFloat_FromDouble( (*iter)[0] ));
+      PyTuple_SetItem(tmp, 1, PyFloat_FromDouble( (*iter)[1] ));
+      PyTuple_SetItem(tmp, 2, PyFloat_FromDouble( (*iter)[2] ));
+      PyTuple_SetItem(tmp, 3, PyFloat_FromDouble( (*iter)[3] ));
+      PyList_Append( $result, tmp );
+    }
+  }
+}
+    
 // convert Python lists to int*
 %typemap(in) int * {
     int size = PyList_Size($input);

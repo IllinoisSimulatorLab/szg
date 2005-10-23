@@ -181,6 +181,7 @@ SZG_CALL arVector3 operator-(const arVector3&); // negate
 SZG_CALL arVector3 operator-(const arVector3&, const arVector3&); // subtract
 SZG_CALL float operator%(const arVector3&, const arVector3&); // dot product
 SZG_CALL float operator++(const arVector3&); // magnitude
+SZG_CALL ostream& operator<<(ostream&, const arVector2&);
 SZG_CALL ostream& operator<<(ostream&, const arVector3&);
 SZG_CALL ostream& operator<<(ostream&, const arVector4&);
 

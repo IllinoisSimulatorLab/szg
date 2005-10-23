@@ -1,4 +1,4 @@
-// $Id: PyGraphics.i,v 1.6 2005/10/21 21:33:49 crowell Exp $
+// $Id: PyGraphics.i,v 1.7 2005/10/23 00:21:37 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -422,94 +422,248 @@ public:
 #include "arGraphicsScreen.h"
 %}
 
-class arGraphicsScreen {
+class arGraphicsScreen{
  public:
   arGraphicsScreen();
-  virtual ~arGraphicsScreen() {}
+  virtual ~arGraphicsScreen();
 
   void setCenter(const arVector3& center);
   void setNormal(const arVector3& normal);
   void setUp(const arVector3& up);
   void setDimensions(float width, float height);
-  arVector3 getNormal() const { return _normal; }
-  arVector3 getUp() const { return _up; }
-  arVector3 getCenter() const { return _center; }
-
-  void setWidth( float width ) { setDimensions( width, _height ); }
-  void setHeight( float height ) { setDimensions( _width, height ); }
-  float getWidth() const { return _width; }
-  float getHeight() const { return _height; }
-
-  void setHeadMounted( bool hmd ) { _headMounted = hmd; }
-  bool getHeadMounted() const { return _headMounted; }
-
-  void setTile( arVector4& tile ) { setTile( int( tile[ 0 ] ), int( tile[ 1 ] ),
-                                             int( tile[ 2 ] ), int( tile[ 3 ] ) ); }
-
+  arVector3 getNormal();
+  arVector3 getUp();
+  arVector3 getCenter() const;
+  void setWidth( float width );
+  void setHeight( float height );
+  float getWidth() const;
+  float getHeight() const;
+  void setHeadMounted( bool hmd );
+  bool getHeadMounted() const;
+  void setTile( arVector4& tile );
   void setTile( int tileX, int numberTilesX, int tileY, int numberTilesY );
-
+  arVector4 getTile();
   bool setUseFixedHeadMode( const std::string& usageMode );
-  bool getIgnoreFixedHeadMode() const { return _ignoreFixedHeadMode; }
-  bool getAlwaysFixedHeadMode() const { return _alwaysFixedHeadMode; }
+  bool getIgnoreFixedHeadMode() const;
+  bool getAlwaysFixedHeadMode() const;
+  arVector3 getFixedHeadHeadPosition() const;
+  void setFixedHeadPosition( const arVector3& position );
+  float getFixedHeadHeadUpAngle() const;
+  void setFixedHeadHeadUpAngle( float angle );
+%extend{
+  string __repr__(void){
+    ostringstream s;
+    s << "arGraphicsScreen\n";
+    s << "center: arVector3" << self->getCenter() << "\n";
+    s << "normal: arVector3" << self->getNormal() << "\n";
+    s << "up:     arVector3" << self->getUp() << "\n";
+    s << "size:   (" << self->getWidth() << " " << self->getHeight() << ")\n";
+    s << "tile:   arVector4" << self->getTile() << "\n";
+    return s.str();
+  }
+}
+};
 
-  arVector3 getFixedHeadHeadPosition() const { return _fixedHeadPosition; }
-  void setFixedHeadPosition( const arVector3& position ) { _fixedHeadPosition = position; }
-  float getFixedHeadHeadUpAngle() const { return _fixedHeadUpAngle; }
-  void setFixedHeadHeadUpAngle( float angle ) { _fixedHeadUpAngle = angle; }
+%{
+#include "arHead.h"
+%}
+
+class arHead{
+ public:
+  arHead();
+  virtual ~arHead();
+  void setEyeSpacing( float spacing );
+  float getEyeSpacing() const;
+  void setMidEyeOffset( const arVector3& midEyeOffset );
+  arVector3 getMidEyeOffset() const;
+  void setEyeDirection( const arVector3& eyeDirection );
+  arVector3 getEyeDirection() const;
+  void setMatrix( const arMatrix4& matrix );
+  virtual arMatrix4 getMatrix() const;
+  void setClipPlanes( float nearClip, float farClip );
+  float getNearClip() const;
+  float getFarClip() const;
+  void setUnitConversion( float conv );
+  float getUnitConversion() const;
+  arVector3 getEyePosition( float eyeSign, arMatrix4* useMatrix=0 );
+  arVector3 getMidEyePosition( arMatrix4* useMatrix=0 );
+  arMatrix4 getMidEyeMatrix() const;
+  void setFixedHeadMode( bool onoff );
+  bool getFixedHeadMode() const;
+%extend{
+  string __repr__(void){
+    ostringstream s;
+    s << "arHead\n";
+    s << "eye spacing: " << self->getEyeSpacing() << "\n";
+    s << "mid eye offset: " << self->getMidEyeOffset() << "\n";
+    s << "eye direction: arVector3" << self->getEyeDirection() << "\n";
+    s << "near clip: " << self->getNearClip() << "\n";
+    s << "far clip: " << self->getFarClip() << "\n";
+    s << "unit conversion: " << self->getUnitConversion() << "\n";
+    s << "matrix:\n" << self->getMatrix();
+    return s.str();
+  }
+}
+};
+
+%{
+#include "arCamera.h"
+#include "arPerspectiveCamera.h"
+#include "arOrthoCamera.h"
+#include "arVRCamera.h"
+%}
+
+class arCamera{
+ public:
+  arCamera();
+  virtual ~arCamera(){}
+  void setEyeSign( float eyeSign );
+  float getEyeSign() const;
+  void setScreen( arGraphicsScreen* screen );
+  arGraphicsScreen* getScreen() const;
+  virtual arMatrix4 getProjectionMatrix();
+  virtual arMatrix4 getModelviewMatrix();
+};
+
+class arPerspectiveCamera: public arCamera{
+ public:
+  arPerspectiveCamera();
+  virtual ~arPerspectiveCamera();
+  virtual arMatrix4 getProjectionMatrix();
+  virtual arMatrix4 getModelviewMatrix();
+  void setSides(float left, float right, float bottom, float top);
+  arVector4 getSides();
+  void setNearFar(float near, float far);
+  float getNear();
+  float getFar();
+  void setPosition(float x, float y, float z);
+  arVector3 getPosition();
+  void setTarget(float x, float y, float z);
+  arVector3 getTarget();
+  void setUp(float x, float y, float z);
+  arVector3 getUp();
+  float getFrustumData(int i);
+  float getLookatData(int i);
+
+%extend{
+  string __repr__(void){
+    ostringstream s;
+    s << "arPerspectiveCamera\n";
+    s << "sides: arVector4" << self->getSides() << "\n";
+    s << "near clip: " << self->getNear() << "\n";
+    s << "far clip: " << self->getFar() << "\n";
+    s << "position: arVector3" << self->getPosition() << "\n";
+    s << "target: arVector3" << self->getTarget() << "\n";
+    s << "up: arVector3" << self->getUp() << "\n";
+    return s.str();
+  }
+}
+};
+
+class arOrthoCamera: public arCamera{
+ public:
+  arOrthoCamera();
+  virtual ~arOrthoCamera();
+  virtual arMatrix4 getProjectionMatrix();
+  virtual arMatrix4 getModelviewMatrix();
+  virtual std::string type( void ) const;
+  void setSides( arVector4& sides );
+  void setSides(float left, float right, float bottom, float top);
+  arVector4 getSides();
+  void setNearFar(float nearClip, float farClip);
+  float getNear();
+  float getFar();
+  void setPosition( arVector3& pos );
+  void setPosition(float x, float y, float z);
+  arVector3 getPosition();
+  void setTarget( arVector3& target );
+  void setTarget(float x, float y, float z);
+  arVector3 getTarget();
+  void setUp( arVector3& up );
+  void setUp(float x, float y, float z);
+  arVector3 getUp();
+%extend{
+  string __repr__(void){
+    ostringstream s;
+    s << "arOrthoCamera\n";
+    s << "sides: arVector4" << self->getSides() << "\n";
+    s << "near clip: " << self->getNear() << "\n";
+    s << "far clip: " << self->getFar() << "\n";
+    s << "position: arVector3" << self->getPosition() << "\n";
+    s << "target: arVector3" << self->getTarget() << "\n";
+    s << "up: arVector3" << self->getUp() << "\n";
+    return s.str();
+  }
+}
+};
+
+class arVRCamera : public arCamera {
+  public:
+    arVRCamera( arHead* head=0 );
+    virtual ~arVRCamera();
+    virtual arMatrix4 getProjectionMatrix();
+    virtual arMatrix4 getModelviewMatrix();
+    virtual std::string type( void ) const;
+    void setHead( arHead* head);
+    arHead* getHead() const;
 };
 
 %{
 #include "arViewport.h"
 %}
 
-class arViewport {
+class arViewport{
  public:
-  void setScreen( const arGraphicsScreen& screen ) { _screen = screen; }
-  arGraphicsScreen* getScreen() { return &_screen; }
-  // NOTE: the viewport now owns its camera.
-  // It makes a copy here & returns the address of the copy
-
-  // NOTE also: we need to write a Python-callback-based camera class
-  // before these will be of any use.
-  // arCamera* setCamera( arCamera* camera);
-  // arCamera* getCamera();
-  arVector4 getViewport() const;
+  arViewport();
+  virtual ~arViewport();
+  void setScreen( const arGraphicsScreen& screen );
+  arGraphicsScreen* getScreen();
+  void setViewport( arVector4& viewport );
+  void setViewport( float left, float bottom,
+                    float width, float height );
+  arVector4 getViewport();
+  arCamera* setCamera( arCamera* camera);
+  arCamera* getCamera();
   void setEyeSign(float eyeSign);
   float getEyeSign();
   void setColorMask(GLboolean red, GLboolean green,
 		    GLboolean blue, GLboolean alpha);
   void clearDepthBuffer(bool flag);
-  // e.g. GL_BACK_LEFT
-  void setDrawBuffer( GLenum buf ) { _oglDrawBuffer = buf; }
-  GLenum getDrawBuffer() const { return _oglDrawBuffer; }
+  void setDrawBuffer( GLenum buf );
+  GLenum getDrawBuffer() const;
+  void activate();
+%extend{
+  string __repr__(void){
+    ostringstream s;
+    s << "arViewport\n";
+    s << "viewport: arVector4" << self->getViewport() << "\n";
+    s << "eye sign: " << self->getEyeSign() << "\n";
+    return s.str();
+  }
+}
 };
 
 %{
 #include "arGraphicsWindow.h"
 %}
 
-class arGraphicsWindow {
-  public:
-    // This sets the camera for all viewports as well as future ones
-    // Note that only a pointer is passed in, cameras are externally owned.
-    // arCamera* setCamera( arCamera* cam=0 );
-    // arCamera* getCamera(){ return _defaultCamera; }
-    void setScreen( const arGraphicsScreen& screen ) { _defaultScreen = screen; }
-    arGraphicsScreen* getScreen( void ) { return &_defaultScreen; }
-    // This sets the camera for just a single viewport
-    // arCamera* setViewportCamera( unsigned int vpindex, arCamera* cam );
-    // Sets the camera for two adjacent (in the list) viewports
-    // arCamera* setStereoViewportsCamera( unsigned int startVPIndex, arCamera* cam );
-    // arCamera* getViewportCamera( unsigned int vpindex );
+class arGraphicsWindow{
+ public:
+    arGraphicsWindow( arCamera* cam=0 );
+    virtual ~arGraphicsWindow();
+    void setScreen( const arGraphicsScreen& screen );
+    arGraphicsScreen* getScreen( void );
     bool getUseOGLStereo() const { return _useOGLStereo; }
     void addViewport(const arViewport&);
-    // NOTE: the following two routines invalidate any externally held pointers
-    // to individual viewport cameras (a pointer to the window default camera,
-    // returned by getCamera() or setCamera(), will still be valid).
     bool setViewMode( const std::string& viewModeString );
-    // std::vector<arViewport>* getViewports();
+    void clearViewportList();
+    void lockViewports();
+    void unlockViewports();
     arViewport* getViewport( unsigned int vpindex );
-    float getCurrentEyeSign() const { return _currentEyeSign; }
+    float getCurrentEyeSign() const;
+    void setPixelDimensions( int posX, int posY, int sizeX, int sizeY );
+    void getPixelDimensions( int& posX, int& posY, int& sizeX, int& sizeY );
+    bool draw();
 };
 
 %extend arGraphicsWindow {
@@ -545,6 +699,180 @@ class arGUIWindowInfo {
     int getSizeY( void ) const;
 };
 
+%{
+#include "arGUIWindow.h"
+%}
+
+typedef unsigned int arCursor;
+typedef unsigned int arZOrder;
+#define AR_CURSOR_ARROW    0x0000
+#define AR_CURSOR_HELP     0x0001
+#define AR_CURSOR_WAIT     0x0002
+#define AR_CURSOR_NONE     0x0003
+#define AR_ZORDER_NORMAL   0x0000
+#define AR_ZORDER_TOP      0x0001
+#define AR_ZORDER_TOPMOST  0x0002
+
+class arGUIWindowConfig{
+ public:
+   arGUIWindowConfig( int x = 50, int y = 50, 
+                       int width = 640, int height = 480,
+                       int bpp = 16, int Hz = 0, bool decorate = true,
+                       arZOrder zorder = AR_ZORDER_TOP,
+                       bool fullscreen = false, bool stereo = false,
+                       const std::string& title = "SyzygyWindow",
+                       const std::string& XDisplay = ":0.0",
+                       arCursor cursor = AR_CURSOR_ARROW );
+
+   ~arGUIWindowConfig( void );
+
+   void setPos( int x, int y );
+   void setPosX( int x );
+   void setPosY( int y );
+   void setWidth( int width );
+   void setHeight( int height );
+   void setSize( int width, int height );
+   void setBpp( int bpp );
+   void setHz( int Hz );
+   void setDecorate( bool decorate );
+   void setFullscreen( bool fullscreen );
+   void setZOrder( arZOrder zorder );
+   void setTitle( const std::string& title );
+   void setXDisplay( const std::string& XDisplay );
+   void setCursor( arCursor cursor );
+
+   int getPosX( void ) const;
+   int getPosY( void ) const;
+   int getWidth( void ) const;
+   int getHeight( void ) const;
+   int getBpp( void ) const;
+   int getHz( void ) const;
+   bool getDecorate( void ) const;
+   bool getFullscreen( void ) const;
+   bool getZOrder( void ) const;
+   std::string getTitle( void ) const;
+   std::string getXDisplay( void ) const;
+   arCursor getCursor( void ) const;
+%extend{
+  string __repr__(void){
+    ostringstream s;
+    s << "arGUIWindowconfig\n";
+    s << "position: (" << self->getPosX() << " " << self->getPosY() << ")\n";
+    s << "size:     (" << self->getWidth() << " " 
+      << self->getHeight() << ")\n";
+    s << "bit depth: " << self->getBpp() << "\n";
+    s << "decoration: " << self->getDecorate() << "\n";
+    s << "zorder: " << self->getZOrder() << "\n";
+    s << "title: " << self->getTitle() << "\n";
+    return s.str();
+  }
+}
+};
+
+class arGUIWindow{
+ public:
+  arGUIWindow( int ID, arGUIWindowConfig windowConfig);
+  virtual ~arGUIWindow( void );
+  void registerDrawCallback( arGUIRenderCallback* drawCallback );
+  int beginEventThread( void );
+  int swap( void );
+  int resize( int newWidth, int newHeight );
+  int move( int newX, int newY );
+  int setViewport( int newX, int newY, int newWidth, int newHeight );
+  int fullscreen( void );
+  int makeCurrent( bool release = false );
+  void minimize( void );
+  void restore( void );
+  void decorate( const bool decorate );
+  arCursor setCursor( arCursor cursor );
+  void setVisible( const bool visible );
+  bool getVisible( void ) const;
+  std::string getTitle( void ) const;
+  void setTitle( const std::string& title );
+  int getID( void ) const;
+  int getWidth( void ) const;
+  int getHeight( void ) const;
+  int getPosX( void ) const;
+  int getPosY( void ) const;
+  bool isStereo( void )      const;
+  bool isFullscreen( void )  const;
+  bool isDecorated( void )   const;
+  arZOrder getZOrder( void ) const;
+  bool running( void ) const;
+  bool eventsPending( void ) const;
+  arCursor getCursor( void ) const;
+  int getBpp( void ) const;
+  const arGUIWindowConfig& getWindowConfig( void ) const;
+  arGraphicsWindow* getGraphicsWindow( void );
+  void returnGraphicsWindow( void );
+  void setGraphicsWindow( arGraphicsWindow* graphicsWindow );
+};
+
+%{
+#include "arGUIWindowManager.h"
+%}
+
+class arGUIWindowManager{
+ public:
+  arGUIWindowManager( void (*windowCallback)( arGUIWindowInfo* ) = NULL,
+                      void (*keyboardCallback)( arGUIKeyInfo* ) = NULL,
+                      void (*mouseCallback)( arGUIMouseInfo* ) = NULL,
+                      void (*windowInitGLCallback)( arGUIWindowInfo* ) = NULL,
+                      bool threaded = true );
+  virtual ~arGUIWindowManager( void );
+  int startWithSwap( void );
+  int startWithoutSwap( void );
+  int addWindow( const arGUIWindowConfig& windowConfig,
+                 bool useWindowing = true );
+  int createWindows(const arGUIWindowingConstruct* windowingConstruct=NULL,  
+                    bool useWindowing = true );
+  void registerWindowCallback( void (*windowCallback) ( arGUIWindowInfo* ) );
+  void registerKeyboardCallback( void (*keyboardCallback) ( arGUIKeyInfo* ) );
+  void registerMouseCallback( void (*mouseCallback) ( arGUIMouseInfo* ) );
+  void registerWindowInitGLCallback( void (*windowInitGLCallback)( arGUIWindowInfo* ) );
+  int registerDrawCallback( const int windowID, 
+                            arGUIRenderCallback* drawCallback );
+  int processWindowEvents( void );
+  arGUIInfo* getNextWindowEvent( const int windowID );
+  int drawWindow( const int windowID, bool blocking = false );
+  int drawAllWindows( bool blocking = false );
+  int consumeWindowEvents( const int windowID, bool blocking = false );
+  int consumeAllWindowEvents( bool blocking = false );
+  int swapWindowBuffer( const int windowID, bool blocking = false );
+  int swapAllWindowBuffers( bool blocking = false );
+  int resizeWindow( const int windowID, int width, int height );
+  int moveWindow( const int windowID, int x, int y );
+  int setWindowViewport( const int windowID, int x, int y, int width, int height );
+  int fullscreenWindow( const int windowID );
+  int decorateWindow( const int windowID, bool decorate );
+  int setWindowCursor( const int windowID, arCursor cursor );
+  int raiseWindow( const int windowID, arZOrder zorder );
+  bool windowExists( const int windowID );
+  arVector3 getWindowSize( const int windowID );
+  arVector3 getWindowPos( const int windowID );
+  arVector3 getMousePos( const int windowID );
+  arCursor getWindowCursor( const int windowID );
+  bool isStereo( const int windowID );
+  bool isFullscreen( const int windowID );
+  bool isDecorated( const int windowID );
+  arZOrder getZOrder( const int windowID );
+  int getBpp( const int windowID );
+  std::string getTitle( const int windowID );
+  std::string getXDisplay( const int windowID );
+  void setTitle( const int windowID, const std::string& title );
+  void setAllTitles( const std::string& baseTitle, bool overwrite=true );
+  arGraphicsWindow* getGraphicsWindow( const int windowID );
+  void returnGraphicsWindow( const int windowID );
+  void setGraphicsWindow( const int windowID, arGraphicsWindow* graphicsWindow );
+  int getNumWindows( void ) const;
+  bool hasActiveWindows( void ) const;
+  bool isFirstWindow( const int windowID ) const;
+  int getFirstWindowID( void ) const;
+  bool isThreaded( void ) const;
+  void setThreaded( bool threaded );
+  int deleteWindow( const int windowID );
+  int deleteAllWindows( void );
+};
 
 %{
 

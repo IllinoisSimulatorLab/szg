@@ -15,6 +15,10 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
+// Forward declaration because, when an arGUIWindowManager owns a window,
+// it puts its pointer into all arGUIInfo events.
+class arGUIWindowManager;
+
 /**
  * Information about an OS event.
  *
@@ -73,6 +77,9 @@ class SZG_CALL arGUIInfo
 
     void setUserData( void* userData ) { _userData = userData; }
     void* getUserData( void ) const { return _userData; }
+
+    void setWindowManager( arGUIWindowManager* wm) { _wm = wm; }
+    arGUIWindowManager* getWindowManager( void ) const { return _wm; }
     //@}
 
   private:
@@ -86,6 +93,8 @@ class SZG_CALL arGUIInfo
     int _flag;                    ///< A generic flag, use is defined on a per-function basis.
 
     void* _userData;              ///< A user-defined data pointer, defined on a per window basis.
+
+    arGUIWindowManager* _wm;      ///< Points back to the window manager that generated this event.
 };
 
 /**

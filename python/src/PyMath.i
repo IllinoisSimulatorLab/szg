@@ -1,4 +1,4 @@
-// $Id: PyMath.i,v 1.5 2005/09/22 15:47:46 crowell Exp $
+// $Id: PyMath.i,v 1.6 2005/10/23 00:21:37 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -12,6 +12,112 @@
 // and techniques that go into the generation of wrappers. The remaining
 // classes are very similar and only contain detailed comments when they
 // introduce new concepts.
+
+%rename(__getitem__) arVector2::operator[];
+
+class arVector2{
+ public:
+  float v[2];
+
+  arVector2();
+  arVector2(float x, float y);
+  ~arVector2();
+
+  float operator[] (int i);
+
+%extend{
+  string __repr__(void) {
+        ostringstream s(ostringstream::out);
+        s << "arVector2" << *self;
+        return s.str();
+  }
+
+  arVector2(PyObject* seq) {
+    arVector2* m = (arVector2*)malloc(sizeof(arVector2));
+    if (!PySequence_Check(seq)) {
+      cerr << "arVector2() error: attempt to construct with non-sequence.\n";
+      return NULL;
+    }
+    if (PySequence_Size(seq) != 2) {
+      cerr << "arVector2() error: sequence passed to constructor must"
+           << " contain 2 items.\n";
+      return NULL;
+    }
+    for (int i=0; i<2; ++i) {
+      PyObject* tmp = PySequence_GetItem( seq, i );
+      if (PyFloat_Check(tmp)) {
+        m->v[i] = (float)PyFloat_AsDouble(tmp);
+      }else if (PyInt_Check(tmp)) {
+        m->v[i] = (float)PyInt_AsLong(tmp);
+      }else {
+        cerr << "arVector2() error: sequence items must all be "
+             << "Floats or Ints\n";
+        return NULL;
+      }
+    } 
+    return m;
+  }
+
+  float __setitem__(int i,float rhs) {
+    self->v[i]=rhs;
+    return rhs;
+  }
+
+  PyObject* toList() {
+    PyObject *lst=PyList_New(2);
+    if (!lst) {
+      PyErr_SetString(PyExc_ValueError, 
+                      "arVector2.toList() error: PyList_New() failed");
+      return NULL;
+    }
+    for(int i=0;i<2;i++) {
+        PyList_SetItem(lst,i,PyFloat_FromDouble(self->v[i]));
+    }
+    return lst;
+  }
+
+  PyObject* toTuple() {
+    PyObject *seq=PyTuple_New(2);
+    if (!seq) {
+      cerr << "arVector2.toTuple() error: PyTuple_New() failed.\n";
+      return NULL;
+    }
+    for(int i=0;i<2;i++) {
+        PyTuple_SetItem(seq,i,PyFloat_FromDouble(self->v[i]));
+    }
+    return seq;
+  }
+
+  PyObject* fromSequence( PyObject* seq ) {
+    PyObject *resultobj;
+    if (!PySequence_Check(seq)) {
+      PyErr_SetString(PyExc_ValueError, 
+                      "arVector2.fromSequence() error: arg must be a sequence.");
+      return NULL;
+    }
+    if (PySequence_Size(seq) != 2) {
+      PyErr_SetString(PyExc_ValueError, 
+                      "arVector2.fromSequence() error: passed sequence must contain 2 elements.");
+      return NULL;
+    }
+    for (int i = 0; i < 2; ++i) {
+      PyObject *num = PySequence_GetItem(seq,i);
+      if (PyFloat_Check(num)) {
+        self->v[i] = (float)PyFloat_AsDouble(num);
+      } else if (PyInt_Check(num)) {
+        self->v[i] = (float)PyInt_AsLong(num);
+      } else {
+        cerr << "arVector2() error: sequence items must all be Floats or Ints\n";
+        return NULL;
+      }
+    }
+    Py_INCREF(Py_None); resultobj = Py_None;
+    return resultobj;
+  }
+}
+};
+
+
 
 // Note that there are several ways of wrapping overloaded operators.
 // If the operator in question is a method of a class, then simply
@@ -28,10 +134,10 @@ class arVector3{
   arVector3(float x, float y, float z);
   ~arVector3();
 
-    bool operator==(const arVector3& rhs) const;
-    bool operator!=(const arVector3& rhs) const;
+  bool operator==(const arVector3& rhs) const;
+  bool operator!=(const arVector3& rhs) const;
 
-    float operator[] (int i);
+  float operator[] (int i);
 // Note that the above line looks like 'float& operator[] (int i);' in
 // szg/src/math/arMath.h, but this does not work well in Python. SWIG
 // automatically handles the new output type.
@@ -543,7 +649,7 @@ arMatrix4(PyObject *seq) {
 // ostream& operator<<(ostream&, const arMatrix4&);
     string __repr__(void) {
         ostringstream s(ostringstream::out);
-        s << "arMatrix4" << *self;
+        s << "arMatrix4\n" << *self;
         return s.str();
     }
 
@@ -857,10 +963,21 @@ arMatrix4 ar_transrotMatrix(const arVector3& position, const arQuaternion& orien
 arMatrix4 ar_scaleMatrix(float);
 arMatrix4 ar_scaleMatrix(float,float,float);
 arMatrix4 ar_scaleMatrix(const arVector3& scaleFactors);
+arMatrix4 ar_TM(float x, float y, float z);
+arMatrix4 ar_TM(const arVector3& v);
+arMatrix4 ar_RM(char axis, float angle);
+arMatrix4 ar_RM(const arVector3& axis, float angle);
+arMatrix4 ar_SM(float scale);
+arMatrix4 ar_SM(float a, float b, float c);
+arMatrix4 ar_SM(const arVector3& scaleFactors);
 arMatrix4 ar_extractTranslationMatrix(const arMatrix4&);
 arVector3 ar_extractTranslation(const arMatrix4&);
 arMatrix4 ar_extractRotationMatrix(const arMatrix4&);
 arMatrix4 ar_extractScaleMatrix(const arMatrix4&);
+arMatrix4 ar_ETM(const arMatrix4& matrix);
+arVector3 ar_ET(const arMatrix4& matrix);
+arMatrix4 ar_ERM(const arMatrix4& matrix);
+arMatrix4 ar_ESM(const arMatrix4& matrix);
 float     ar_angleBetween(const arVector3&, const arVector3&);
 arVector3 ar_extractEulerAngles(const arMatrix4&);
 arQuaternion ar_angleVectorToQuaternion(const arVector3&,float);

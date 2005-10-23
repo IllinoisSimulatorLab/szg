@@ -207,6 +207,7 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
   _creationFlag( false ),
   _destructionFlag( false ),
   _userData( userData ),
+  _windowManager( NULL ),
   _graphicsWindow( NULL )
 {
   // construct a unique class name for window registration under Win32
@@ -407,7 +408,11 @@ arGUIInfo* arGUIWindow::getNextGUIEvent( void )
     return NULL;
   }
 
-  return _GUIEventManager->getNextEvent();
+  arGUIInfo* result = _GUIEventManager->getNextEvent();
+  // Must provide these pointers to the callbacks.
+  result->setWindowManager(_windowManager);
+  result->setUserData(_userData);
+  return result;
 }
 
 bool arGUIWindow::eventsPending( void ) const

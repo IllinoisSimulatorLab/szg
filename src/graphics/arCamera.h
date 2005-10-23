@@ -28,7 +28,7 @@ class SZG_CALL arCamera{
   virtual std::string type( void ) const { return "arCamera"; }
  private:
   // NOTE: these parameters should not be copied, they are transient and only exist
-  // so they don't have to be passed to the verious get.. and load... matrix functions
+  // so they don't have to be passed to the various get.. and load... matrix functions
   float _eyeSign;
   arGraphicsScreen* _screen;
 };

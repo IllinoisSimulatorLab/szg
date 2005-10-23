@@ -16,6 +16,40 @@
 #include "arGUIWindow.h"
 #include "arGUIXMLParser.h"
 
+// Helpful to have some default callbacks for window and keyboard events so
+// that even windows created with all default parameters behave with a minimum
+// of sense.
+
+void ar_windowManagerDefaultKeyboardFunction( arGUIKeyInfo* keyInfo){
+  if ( keyInfo->getState() == AR_KEY_DOWN ){
+    switch( keyInfo->getKey() ){
+    case AR_VK_ESC:
+      if (keyInfo->getWindowManager()){
+        keyInfo->getWindowManager()->deleteWindow(keyInfo->getWindowID());
+      }
+      break;
+    }
+  }
+}
+
+void ar_windowManagerDefaultWindowFunction( arGUIWindowInfo* windowInfo ){
+  switch( windowInfo->getState() ){
+  case AR_WINDOW_RESIZE:
+    if ( windowInfo->getWindowManager() ){
+      windowInfo->getWindowManager()
+                ->setWindowViewport(windowInfo->getWindowID(), 0, 0,
+                                    windowInfo->getSizeX(), 
+                                    windowInfo->getSizeY() );
+    }
+    break;
+  case AR_WINDOW_CLOSE:
+    if ( windowInfo->getWindowManager() ){
+      windowInfo->getWindowManager()->deleteWindow(windowInfo->getWindowID());
+    }
+    break;
+  }
+}
+
 arGUIWindowManager::arGUIWindowManager( void (*windowCallback)( arGUIWindowInfo* ) ,
                                         void (*keyboardCallback)( arGUIKeyInfo* ),
                                         void (*mouseCallback)( arGUIMouseInfo* ),
@@ -28,6 +62,14 @@ arGUIWindowManager::arGUIWindowManager( void (*windowCallback)( arGUIWindowInfo*
   _maxWindowID( 0 ),
   _threaded( threaded )
 {
+  // If a callback is not defined, use the following defaults.
+  if (!_keyboardCallback){
+    _keyboardCallback = ar_windowManagerDefaultKeyboardFunction;
+  }
+  if (!_windowCallback){
+    _windowCallback = ar_windowManagerDefaultWindowFunction;
+  }
+
   #if defined( AR_USE_WIN_32 )
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
@@ -137,6 +179,10 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig,
 {
   arGUIWindow* window = new arGUIWindow( _maxWindowID, windowConfig,
                                          _windowInitGLCallback, _userData );
+  // Want to let the window know who owns it... so events will have this info
+  // stuffed inside. Lets the event processing callbacks refer to the
+  // window manager in a natural way.
+  window->setWindowManager( this );
 
   _windows[ _maxWindowID ] = window;
 

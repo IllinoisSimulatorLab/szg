@@ -14,7 +14,8 @@ arGUIInfo::arGUIInfo( arGUIEventType eventType, arGUIState state,
   _state( state ),
   _windowID( windowID ),
   _flag( flag ),
-  _userData( userData )
+  _userData( userData ),
+  _wm(NULL)
 {
 
 }
@@ -34,7 +35,11 @@ arGUIInfo::arGUIInfo( arStructuredData& data )
   _flag = data.getDataInt( "flag" );
 
   // use getDataInt and <reinterpret_cast> instead?
-  data.dataOut( "userData", &_userData, AR_INT, 1 );
+  // Experimenting with getting rid of this. Pointers are not guaranteed to
+  // have 32 bits! Instead, this is stuffed in arGUIWindow::getNextGUIEvent.
+  //data.dataOut( "userData", &_userData, AR_INT, 1 );
+  _userData = NULL;
+  _wm = NULL;
 }
 
 arGUIInfo::~arGUIInfo( void )
