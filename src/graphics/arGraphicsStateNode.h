@@ -33,20 +33,31 @@ class SZG_CALL arGraphicsStateNode: public arGraphicsNode{
   /// Returns the state ID, which is used in updating the arGraphicsContext
   /// during database drawing.
   arGraphicsStateID getStateID();
+  bool isFloatState();
+  bool isFloatState(const string& stateName);
   /// If this particular graphics state DOES NOT have int values, return
   /// false. Otherwise, return true and pack the parameters appropriately.
   bool getStateValuesInt(arGraphicsStateValue& value1,
 			 arGraphicsStateValue& value2);
+  /// A getter that is more compatible with Python.
+  arGraphicsStateValue getStateValueInt(int i);
+  string getStateValueString(int i);
   /// If this particular graphics state DOES NOT have a float value,
   /// return false. Otherwise, return true and pack the parameter
   /// appropriately.
   bool getStateValueFloat(float& value);
+  /// A getter that is more compatible with Python.
+  float getStateValueFloat();
 
   /// Setters corresponding to above.
   bool setGraphicsStateInt(const string& stateName,
-      arGraphicsStateValue value1, arGraphicsStateValue value2 = AR_G_FALSE);
+                           arGraphicsStateValue value1, 
+                           arGraphicsStateValue value2 = AR_G_FALSE);
+  bool setGraphicsStateString(const string& stateName,
+                              const string& value1,
+			      const string& value2 = "false");
   bool setGraphicsStateFloat(const string& stateName,
-      float stateValueFloat);
+                             float stateValueFloat);
 
  protected:
   // Each graphics state node embodies only a single change to graphics
@@ -72,6 +83,9 @@ class SZG_CALL arGraphicsStateNode: public arGraphicsNode{
   float                _stateValueFloat;
 
   arGraphicsStateID _convertStringToStateID(const string& stateName);
+  string _convertStateIDToString(arGraphicsStateID id);
+  arGraphicsStateValue _convertStringToStateValue(const string& stateValue);
+  string _convertStateValueToString(arGraphicsStateValue v);
   bool              _checkFloatState( arGraphicsStateID id );
   bool              _isFloatState() { return _checkFloatState(_stateID); }
 

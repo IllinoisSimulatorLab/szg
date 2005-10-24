@@ -73,6 +73,14 @@ arGraphicsStateID arGraphicsStateNode::getStateID(){
   return r;
 }
 
+bool arGraphicsStateNode::isFloatState(){
+  return _isFloatState();
+}
+
+bool arGraphicsStateNode::isFloatState(const string& stateName){
+  return _checkFloatState(_convertStringToStateID(stateName));
+}
+
 bool arGraphicsStateNode::getStateValuesInt(arGraphicsStateValue& value1,
 		                            arGraphicsStateValue& value2){
   ar_mutex_lock(&_nodeLock);
@@ -86,6 +94,36 @@ bool arGraphicsStateNode::getStateValuesInt(arGraphicsStateValue& value1,
   return true;
 }
 
+arGraphicsStateValue arGraphicsStateNode::getStateValueInt(int i){
+  arGraphicsStateValue v1, v2;
+  bool success = getStateValuesInt(v1, v2);
+  if (success){
+    if (i == 0){
+      return v1;
+    }
+    if (i == 1){
+      return v2;
+    }
+    return AR_G_FALSE;
+  }
+  return AR_G_FALSE;
+}
+
+string arGraphicsStateNode::getStateValueString(int i){
+  arGraphicsStateValue v1, v2;
+  bool success = getStateValuesInt(v1, v2);
+  if (success){
+    if (i == 0){
+      return _convertStateValueToString(v1);
+    }
+    if (i == 1){
+      return _convertStateValueToString(v2);
+    }
+    return "false";
+  }
+  return "false";
+}
+
 bool arGraphicsStateNode::getStateValueFloat(float& value){
   ar_mutex_lock(&_nodeLock);
   if (!_isFloatState()){
@@ -97,8 +135,15 @@ bool arGraphicsStateNode::getStateValueFloat(float& value){
   return true;
 }
 
+float arGraphicsStateNode::getStateValueFloat(){
+  float result = 0;
+  (void) getStateValueFloat(result);
+  return result;
+}
+
 bool arGraphicsStateNode::setGraphicsStateInt( const string& stateName,
-                  arGraphicsStateValue value1, arGraphicsStateValue value2) {
+                                               arGraphicsStateValue value1, 
+                                               arGraphicsStateValue value2) {
   arGraphicsStateID id = _convertStringToStateID(stateName);
   if (_checkFloatState(id)) {
     cerr << "arGraphicsStateNode error: attempt to setGraphicsStateInt() for float state node type.\n";
@@ -124,6 +169,14 @@ bool arGraphicsStateNode::setGraphicsStateInt( const string& stateName,
     ar_mutex_unlock(&_nodeLock);
   }
   return true;
+}
+
+bool arGraphicsStateNode::setGraphicsStateString( const string& stateName,
+						  const string& value1,
+						  const string& value2){
+  arGraphicsStateValue v1 = _convertStringToStateValue(value1);
+  arGraphicsStateValue v2 = _convertStringToStateValue(value2);
+  return setGraphicsStateInt( stateName, v1, v2 );
 }
 
 bool arGraphicsStateNode::setGraphicsStateFloat(const string& stateName,
@@ -182,6 +235,116 @@ arGraphicsStateID arGraphicsStateNode::_convertStringToStateID(
     return AR_G_BLEND_FUNC;
   }
   return AR_G_GARBAGE_STATE;
+}
+
+string arGraphicsStateNode::_convertStateIDToString(arGraphicsStateID id){
+  switch (id){
+  case AR_G_GARBAGE_STATE:
+    return "garbage_state";
+  case AR_G_POINT_SIZE:
+    return "point_size";
+  case AR_G_LINE_WIDTH:
+    return "line_width";
+  case AR_G_SHADE_MODEL:
+    return "shade_model";
+  case AR_G_LIGHTING:
+    return "lighting";
+  case AR_G_BLEND:
+    return "blend";
+  case AR_G_DEPTH_TEST:
+    return "depth_test";
+  case AR_G_BLEND_FUNC:
+    return "blend_func";
+  default:
+    return "garbage_state";
+  }
+}
+
+arGraphicsStateValue arGraphicsStateNode::_convertStringToStateValue(
+						     const string& stateValue){
+  if (stateValue == "false"){
+    return AR_G_FALSE;
+  }
+  else if (stateValue == "true"){
+    return AR_G_TRUE;
+  }
+  else if (stateValue == "smooth"){
+    return AR_G_SMOOTH;
+  }
+  else if (stateValue == "flat"){
+    return AR_G_FLAT;
+  }
+  else if (stateValue == "zero"){
+    return AR_G_ZERO;
+  }
+  else if (stateValue == "one"){
+    return AR_G_ONE;
+  }
+  else if (stateValue == "dst_color"){
+    return AR_G_DST_COLOR;
+  }
+  else if (stateValue == "src_color"){
+    return AR_G_SRC_COLOR;
+  }
+  else if (stateValue == "one_minus_dst_color"){
+    return AR_G_ONE_MINUS_DST_COLOR;
+  }
+  else if (stateValue == "one_minus_src_color"){
+    return AR_G_ONE_MINUS_SRC_COLOR;
+  }
+  else if (stateValue == "src_alpha"){
+    return AR_G_SRC_ALPHA;
+  }
+  else if (stateValue == "one_minus_src_alpha"){
+    return AR_G_ONE_MINUS_SRC_ALPHA;
+  }
+  else if (stateValue == "dst_alpha"){
+    return AR_G_DST_ALPHA;
+  }
+  else if (stateValue == "one_minus_dst_alpha"){
+    return AR_G_ONE_MINUS_DST_ALPHA;
+  }
+  else if (stateValue == "src_alpha_saturate"){
+    return AR_G_SRC_ALPHA_SATURATE;
+  }
+  return AR_G_FALSE;
+}
+
+string arGraphicsStateNode::_convertStateValueToString(arGraphicsStateValue v){
+  switch (v){
+  case AR_G_FALSE:
+    return "false";
+  case AR_G_TRUE:
+    return "true";
+  case AR_G_SMOOTH:
+    return "smooth";
+  case AR_G_FLAT:
+    return "flat";
+  case AR_G_ZERO:
+    return "zero";
+  case AR_G_ONE:
+    return "one";
+  case AR_G_DST_COLOR:
+    return "dst_color";
+  case AR_G_SRC_COLOR:
+    return "src_color";
+  case AR_G_ONE_MINUS_DST_COLOR:
+    return "one_minus_dst_color";
+  case AR_G_ONE_MINUS_SRC_COLOR:
+    return "one_minus_src_color";
+  case AR_G_SRC_ALPHA:
+    return "src_alpha";
+  case AR_G_ONE_MINUS_SRC_ALPHA:
+    return "one_minus_src_alpha";
+  case AR_G_DST_ALPHA:
+    return "dst_alpha";
+  case AR_G_ONE_MINUS_DST_ALPHA:
+    return "one_minus_dst_alpha";
+  case AR_G_SRC_ALPHA_SATURATE:
+    return "src_alpha_saturate";
+  default:
+    return "false";
+  }
 }
 
 bool arGraphicsStateNode::_checkFloatState( arGraphicsStateID id ) {

@@ -253,6 +253,10 @@ int arDrawableNode::getType(){
   return r;
 }
 
+string arDrawableNode::getTypeAsString(){
+  return _convertTypeToString(getType());
+}
+
 int arDrawableNode::getNumber(){
   ar_mutex_lock(&_nodeLock);
   int r = _number;
@@ -274,6 +278,11 @@ void arDrawableNode::setDrawable(arDrawableType type, int number){
     _number = number;
     ar_mutex_unlock(&_nodeLock);
   }
+}
+
+void arDrawableNode::setDrawableViaString(const string& type,
+                                          int number){
+  setDrawable(_convertStringToType(type), number);
 }
 
 /// NOT thread-safe.
@@ -339,4 +348,55 @@ bool arDrawableNode::_2DPreDraw(arGraphicsNode* pointsNode,
     context->setTriangleState(blendFactor);
   }
   return true;
+}
+
+string arDrawableNode::_convertTypeToString(int type){
+  switch(type){
+  case DG_POINTS:
+    return "points";
+  case DG_LINES:
+    return "lines";
+  case DG_LINE_STRIP:
+    return "line_strip";
+  case DG_TRIANGLES:
+    return "triangles";
+  case DG_TRIANGLE_STRIP:
+    return "triangle_strip";
+  case DG_QUADS:
+    return "quads";
+  case DG_QUAD_STRIP:
+    return "quad_strip";
+  case DG_POLYGON:
+    return "polygon";
+  default:
+    return "points";
+  }
+}
+
+arDrawableType arDrawableNode::_convertStringToType(const string& type){
+  if (type == "points"){
+    return DG_POINTS;
+  }
+  else if (type == "lines"){
+    return DG_LINES;
+  }
+  else if (type == "line_strip"){
+    return DG_LINE_STRIP;
+  }
+  else if (type == "triangles"){
+    return DG_TRIANGLES;
+  }
+  else if (type == "triangle_strip"){
+    return DG_TRIANGLE_STRIP;
+  }
+  else if (type == "quads"){
+    return DG_QUADS;
+  }
+  else if (type == "quad_strip"){
+    return DG_QUAD_STRIP;
+  }
+  else if (type == "polygon"){
+    return DG_POLYGON;
+  }
+  return DG_POINTS;
 }

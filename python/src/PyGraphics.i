@@ -1,4 +1,4 @@
-// $Id: PyGraphics.i,v 1.7 2005/10/23 00:21:37 schaeffr Exp $
+// $Id: PyGraphics.i,v 1.8 2005/10/23 21:53:55 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -19,6 +19,24 @@ enum arGraphicsStateID {
   AR_G_BLEND = 5,
   AR_G_DEPTH_TEST = 6,
   AR_G_BLEND_FUNC = 7
+};
+
+enum arGraphicsStateValue{
+  AR_G_FALSE= 0,
+  AR_G_TRUE = 1,
+  AR_G_SMOOTH = 2,
+  AR_G_FLAT = 3,
+  AR_G_ZERO = 4,
+  AR_G_ONE = 5,
+  AR_G_DST_COLOR = 6,
+  AR_G_SRC_COLOR = 7,
+  AR_G_ONE_MINUS_DST_COLOR = 8,
+  AR_G_ONE_MINUS_SRC_COLOR = 9,
+  AR_G_SRC_ALPHA = 10,
+  AR_G_ONE_MINUS_SRC_ALPHA = 11,
+  AR_G_DST_ALPHA = 12,
+  AR_G_ONE_MINUS_DST_ALPHA = 13,
+  AR_G_SRC_ALPHA_SATURATE = 14
 };
 
 // ********************** from arDrawableNode.h ****************************
@@ -767,6 +785,26 @@ class arGUIWindowConfig{
     return s.str();
   }
 }
+};
+
+class arRenderCallback {
+  public:
+    arRenderCallback();
+    virtual ~arRenderCallback();
+    virtual void operator()( arGraphicsWindow& w, arViewport& v) = 0;
+    void enable( bool onoff );
+    bool enabled();
+};
+
+class arGUIRenderCallback : public arRenderCallback{
+  public:
+    arGUIRenderCallback( void );
+    virtual ~arGUIRenderCallback( void );
+    virtual void operator()( arGraphicsWindow&, arViewport& ) = 0;
+    virtual void operator()( arGUIWindowInfo* windowInfo,
+                             arGraphicsWindow* graphicsWindow ) = 0;
+    virtual void operator()( arGUIWindowInfo* windowInfo ) = 0;
+
 };
 
 class arGUIWindow{

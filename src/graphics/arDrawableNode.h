@@ -26,8 +26,10 @@ class SZG_CALL arDrawableNode:public arGraphicsNode{
   bool receiveData(arStructuredData*);
 
   int getType();
+  string getTypeAsString();
   int getNumber();
   void setDrawable(arDrawableType type, int number);
+  void setDrawableViaString(const string& type, int number);
 
  protected:
   // DO NOT DRAW UNTIL WE HAVE BEEN INITIALIZED BY A MESSAGE.
@@ -47,6 +49,8 @@ class SZG_CALL arDrawableNode:public arGraphicsNode{
                   arGraphicsNode* normal3Node,
                   arGraphicsContext* context,
                   float& blendFactor);
+  string _convertTypeToString(int type);
+  arDrawableType _convertStringToType(const string& type);
 };
 
 #endif

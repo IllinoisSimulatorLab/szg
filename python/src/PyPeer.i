@@ -126,6 +126,8 @@ arMaterialNode* castToMaterial(arDatabaseNode* n);
 arTransformNode* castToTransform(arDatabaseNode* n);
 arTextureNode* castToTexture(arDatabaseNode* n);
 arBoundingSphereNode* castToBoundingSphere(arDatabaseNode* n);
+arViewerNode* castToViewer(arDatabaseNode* n);
+arBlendNode* castToBlend(arDatabaseNode* n);
 arBillboardNode* castToBillboard(arDatabaseNode* n);
 arVisibilityNode* castToVisibility(arDatabaseNode* n);
 arPointsNode* castToPoints(arDatabaseNode* n);
@@ -134,6 +136,7 @@ arColor4Node* castToColor4(arDatabaseNode* n);
 arTex2Node* castToTex2(arDatabaseNode* n);
 arIndexNode* castToIndex(arDatabaseNode* n);
 arDrawableNode* castToDrawable(arDatabaseNode* n);
+arGraphicsStateNode* castToGraphicsState(arDatabaseNode* n);
 
 %pythoncode {
 
@@ -151,6 +154,10 @@ def gcast(n):
         return castToTexture(n)
     elif label == 'bounding sphere':
         return castToBoundingSphere(n)
+    elif label == 'viewer':
+        return castToViewer(n)
+    elif lable == 'blend':
+        return castToBlend(n)
     elif label == 'billboard':
         return castToBillboard(n)
     elif label == 'visibility':
@@ -167,6 +174,8 @@ def gcast(n):
         return castToIndex(n)
     elif label == 'drawable':
         return castToDrawable(n)
+    elif label == 'graphics state':
+        return castToGraphicsState(n)
     # DO NOT RAISE AN EXCEPTION HERE!
     # NOT ALL VALID NODES IN A GRAPHICS DATABASE ARE GRAPHICS-Y, such as
     # name nodes and root nodes...
@@ -352,6 +361,99 @@ class arMaterialNode:public arGraphicsNode{
 
   def set(self, material):
       self.setMaterial(material)
+}
+};
+
+class arBoundingSphereNode: public arGraphicsNode {
+ public:
+  arBoundingSphereNode();
+  virtual ~arBoundingSphereNode();
+
+  arBoundingSphere getBoundingSphere();
+  void setBoundingSphere(const arBoundingSphere& b);
+
+%pythoncode{
+  def get(self):
+      return self.getBoundingSphere()
+
+  def set(self, b):
+      self.setBoundingSphere(b)
+}
+};
+
+class arViewerNode: public arGraphicsNode{
+ public:
+  arViewerNode();
+  virtual ~arViewerNode();
+
+  arHead* getHead();
+  void setHead(const arHead& head);
+%pythoncode{
+  def get(self):
+      return self.getHead()
+  
+  def set(self, h):
+      self.setHead(h) 
+}
+};
+
+class arBlendNode:public arGraphicsNode{
+ public:
+  arBlendNode();
+  virtual ~arBlendNode();
+
+  float getBlend();
+  void setBlend(float blendFactor);
+
+%pythoncode{
+  def get(self):
+      return self.getBlend()
+
+  def set(self, b):
+      return self.setBlend(b)
+}
+};
+
+class arGraphicsStateNode: public arGraphicsNode{
+ public:
+  arGraphicsStateNode();
+  virtual ~arGraphicsStateNode();
+
+  string getStateName();
+  arGraphicsStateID getStateID();
+  bool isFloatState();
+  bool isFloatState(const string& stateName);
+  arGraphicsStateValue getStateValueInt(int i);
+  string getStateValueString(int i);
+  float getStateValueFloat();
+  bool setGraphicsStateInt(const string& stateName,
+                           arGraphicsStateValue value1, 
+                           arGraphicsStateValue value2 = AR_G_FALSE);
+  bool setGraphicsStateString(const string& stateName,
+                              const string& value1,
+			      const string& value2 = "false");
+  bool setGraphicsStateFloat(const string& stateName,
+                             float stateValueFloat);
+%pythoncode{
+  def get(self):
+    n = self.getStateName()
+    if self.isFloatState():
+        return (n,self.getStateValueFloat())
+    v1 = self.getStateValueString(0)
+    v2 = self.getStateValueString(1)
+    return (n,v1,v2)
+
+  def set(self, s):
+    if len(s) < 2:
+        print('Error: must have at least 2 elements.')
+        return 0
+    if self.isFloatState(s[0]) and len(s) >= 2:
+        return self.setGraphicsStateFloat(s[0],s[1])
+    if self.isFloatState(s[0]) == 0 and len(s) == 2:
+        return self.setGraphicsStateString(s[0],s[1])
+    if self.isFloatState(s[0]) == 0 and len(s) == 3:
+        return self.setGraphicsStateString(s[0],s[1],s[2])
+    return 0
 }
 };
 
@@ -586,8 +688,18 @@ class arDrawableNode:public arGraphicsNode{
   virtual ~arDrawableNode();
 
   int getType();
+  string getTypeAsString();
   int getNumber();
   void setDrawable(arDrawableType type, int number);
+  void setDrawableViaString(const string& type, int number);
+
+%pythoncode{
+  def get(self):
+    return (self.getTypeAsString(), self.getNumber())
+
+  def set(self, d):
+    self.setDrawableViaString(d[0],d[1])
+}
 };
 
 %{
@@ -623,6 +735,16 @@ arTextureNode* castToTexture(arDatabaseNode* n){
 arBoundingSphereNode* castToBoundingSphere(arDatabaseNode* n){
   n->ref();
   return (arBoundingSphereNode*) n;
+}
+
+arViewerNode* castToViewer(arDatabaseNode* n){
+  n->ref();
+  return (arViewerNode*) n;
+}
+
+arBlendNode* castToBlend(arDatabaseNode* n){
+  n->ref();
+  return (arBlendNode*) n;
 }
 
 arBillboardNode* castToBillboard(arDatabaseNode* n){
@@ -662,6 +784,11 @@ arIndexNode* castToIndex(arDatabaseNode* n){
 arDrawableNode* castToDrawable(arDatabaseNode* n){
   n->ref();
   return (arDrawableNode*) n;
+}
+
+arGraphicsStateNode* castToGraphicsState(arDatabaseNode* n){
+  n->ref();
+  return (arGraphicsStateNode*) n;
 }
 
 %}
@@ -845,6 +972,67 @@ class arGraphicsPeer: public arGraphicsDatabase{
         return self->printPeer();
     }
 }
+};
+
+%{
+class arEditorRenderCallback: public arGUIRenderCallback{
+ public:
+  arEditorRenderCallback(){ database = NULL; camera = NULL; }
+  ~arEditorRenderCallback(){}
+
+  virtual void operator()( arGraphicsWindow&, arViewport& ){
+    glClearColor(0,0,0,0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (camera){
+      camera->loadViewMatrices();
+    }
+    if (database){
+      database->activateLights();
+      database->draw();
+    }
+  }
+
+  virtual void operator()( arGUIWindowInfo* windowInfo,
+                           arGraphicsWindow* graphicsWindow ){
+    glClearColor(0,0,0,0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (camera){
+      camera->loadViewMatrices();
+    }
+    if (database){
+      database->activateLights();
+      database->draw();
+    }
+  }
+
+  virtual void operator()( arGUIWindowInfo* windowInfo ){
+    glClearColor(0,0,0,0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (camera){
+      camera->loadViewMatrices();
+    }
+    if (database){
+      database->activateLights();
+      database->draw();
+    }
+  }
+
+  arGraphicsDatabase* database;
+  arCamera* camera;
+};
+%}
+
+class arEditorRenderCallback: public arGUIRenderCallback{
+ public:
+  arEditorRenderCallback();
+  ~arEditorRenderCallback();
+  virtual void operator()( arGraphicsWindow&, arViewport& );
+  virtual void operator()( arGUIWindowInfo* windowInfo,
+                           arGraphicsWindow* graphicsWindow );
+  virtual void operator()( arGUIWindowInfo* windowInfo );
+
+  arGraphicsDatabase* database;
+  arCamera* camera;
 };
 
 class arInputSource{
