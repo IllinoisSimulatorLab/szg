@@ -75,9 +75,6 @@ previously.
 
 <li>Phleet needs new methods! Specifically, we must be able to release
 services. Also, need to be able to get service info from the command line!
-<li> On Mac OS X, dhunt does not seem to work. If you run an szgserver
-on OS X and type dhunt on that box, the szgserver does not appear. Is the
-problem filtering of the broadcast packets?
 <li>BUG: if someone is looking for a service on network X but the
 service is offered on network Y, the connection won't work, but the
 service will disappear from dpending.
@@ -88,87 +85,23 @@ impairs the system. We should be more robust!
   
 <p><font size=+1>Graphics/Scene Graph/Database</font> <ul>
 
-<li>Alpha value for textures is SERIOUSLY messed up! Alpha channel in 
-textures doesn't quite work anymore. Specifically,
-the drawing code only turns blending on if it thinks that the alpha is less
-than 1 and the texture doesn't contribute to that as currently formulated.
-
-<li>BUG: My switch for determining if a texture is a bit buggy! What if
-someone uses an empty string for the texture name? (temporarily...) This
-can result in a situation where you cannot download a database!
-
-<li>Cannot reorder nodes. Sometimes drawing order needs to be changed 
-like when transparency is used. And drawing order depends on node order.
-Also, the nav node is attached first, so that its children are always
-drawn before the non-navigated objects.
-
-<li>Cameras are not handled very well in the arGraphicsDatabase. There is
-genuinely draw state which currently exists (which camera is active) but
-which does not appear in a dump. Furthermore, it is unclear how (if cameras
-weren't global) how different camera-containing trees would be combined.
-
 <li>Should be posible to draw .obj's without a graphics database.
-
-<li>Need a way, in the scene graph, to turn on/off OpenGL properties.
-
-<li>Should add mesh nodes (for simple shapes) to the database!
-
-<li>Need to consider mutex locking/unlocking of get/set methods and how this
-will work. For instance, it is not currently safe to get a matrix from a
-transform node because someone else might be changing it in place!
-
-<li>Need to support attach/detach for nodes in the database. This will
-enable more natural semantics
-
-<li>Need to use smart pointers for nodes! (our nodes may be deleted out from
-under us)
-
-<li>Thread-safety issues in terms of attaching/detaching a node and 
-invoking methods of that node... when the way the methods are invoked will
-changed based on whether or not it is part of a database!
-
-<li>Need to be able to "insert" a node (not just make a child of a parent).
-
-<li>Need to be able to delete a node, not a subtree (though deleting the
-subtree is important as well).
 
 <li>The node method calls are woefully inefficient for large arrays because 
 they do not use prtIn.
-
-<li>The node method calls should use an arStructuredDataParser to provide
-storage instead or new/delete. This should be benchmarked against using
-global (and NON THREAD-SAFE) storage!
 
 <li>dgSetGraphicsDatabase must be eliminated!
 
 <li>The light direction seems to be wrong! (i.e. direction = (0,0,10,0)
     instead of direction = (0,0,-10,0)
 
-<li>Things like arMesh and arOBJ etc. should have an implicit transform node
-contained within them.
-
 <li>3DS objects cannot have multiple parts! (i.e. only a single mesh 
 element, which means only a single material). Very bad!
 
-<li>obj parser does not show textures!
 
-<li>Erase seems to have infinite erase problems!
+</ul>
+<p><font size=+1>Python</font> <ul>
 
-<li>Cannot erase dgLight nodes.
-
-  </ul>
-  <p><font size=+1>Python</font> <ul>
-
-<li>Need to support more nodes in the python wrappers... i.e. all of them!
-
-<li>Implicit arguments do not seem not be handled well by SWIG (see the way
-createNode crashes on an implicit name)
-
-<li>On the python side, Cannot get the points array from the points node!
-    (i.e. getPoints() does not work!)
-
-<li>On the python side, obj.readOBJ does not work because of the path
-argument!
 
 <li>Must deal with the python examples (i.e. make them fit into the
 pattern...)
@@ -187,7 +120,9 @@ OR, if no arSZGClient, we will go ahead and explicitly do it.
 
 <li>The arDataServer should allow specific-socket-sending via HANDLES only.
 This is because it actively manages the sockets (and there's the possibility
-of a stale pointer).
+of a stale pointer). Another way to deal with this would be to add an
+event processing API, so that socket delete occurs a little less automatically,
+and to add reference counting to the socket class.
 
 <li>A weird bug. In standalone mode, with joystick (as in the standalone
 landspeeder), if the pforth filter is in the old style 
@@ -195,10 +130,10 @@ landspeeder), if the pforth filter is in the old style
 program segfaults with an error message "arSyncDataServer error: start 
 called before init".
 
-<li>Double key presses on master (when standalone). [What does this mean?]
-
 <li>Fix documentation to show how to use meshes (.obj and .3ds files) in
 master/slave framework apps.
+
+<hr>
 
 </ul>
 </body>

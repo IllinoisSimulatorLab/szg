@@ -6,14 +6,41 @@
 <a href="index.html">Documentation Index</a>
 <p><font size=+2>Syzygy Change Log</font>
 <p><font size=+2>Changes Between szg-0.8 and szg-0.7</font>
-<li>Removed Cube-specific code from Motionstar driver and moved it to a PForth filter (see cube.txt in this directory).
-<li>Functionality Change! (That I don’t think will affect anyone). In the PForth filter, the generic filter words
-(e.g. filter_all_matrices) are now executed <em>before</em> the specific ones (e.g. filter_matrix_0).
-<li>Added several new PForth words, e.g. to do element-by-element math ops on arrays.
-<li>Added words that duplicate the functionality of the arTrackCalFilter. These are used in the new cube.txt.
-<li>Added a color filter to the arGraphicsWindow to e.g. simulate how things will appear in the dim Cube on a brighter monitor.
-<li>Made a small tweak to fixed-head mode. Previously, SZG_SCREEN#/fixed_head_pos specified the position of the head sensor; it now specifies the mid-eye position. This improves the appearance of wall-to-wall transitions in the Cube noticeably.
-<li>Numerous additions to the Python bindings. Should all be backwards compatible with existing Python code.
+<ul>
+<li>BUMPED THE SZG MAGIC NUMBER! This is used in all network communications...
+and szg components will refuse to communicate with one another if it does not
+match. This is intended to keep components with incompatible communication
+protocols from intergering with one another.
+<li>The arGraphicsDatabase/arGraphicsPeer code is now much better integrated
+with Python (more classes wrapped plus the implementation of reference
+couting in the C++). Also, a decent thread-safety model has been implemented
+making the operation of arGraphicsServer and arGraphicsPeer thread-safe!
+<li>Graphics configuration is now completely different! It is XML based
+(like the DeviceServer config). Config options are much more complete and
+multiple viewport custom windows are better supported (i.e. easier to create).
+<li>Added the arGUI API for windowing. This allows multi-threaded windowing,
+lets us eliminate some global framework variables, and allows some other neat
+tricks (like making windows from the Python prompt). All because of its thread
+friendliness! It also fixes a bug with standalone mode on the Mac for
+distributed scene graph apps.
+<li>Removed Cube-specific code from Motionstar driver and moved it to a PForth 
+filter (see cube.txt in this directory).
+<li>Functionality Change! (That I don’t think will affect anyone). In the 
+PForth filter, the generic filter words (e.g. filter_all_matrices) are now 
+executed <em>before</em> the specific ones (e.g. filter_matrix_0).
+<li>Added several new PForth words, e.g. to do element-by-element math ops on 
+arrays.
+<li>Added words that duplicate the functionality of the arTrackCalFilter. 
+These are used in the new cube.txt.
+<li>Added a color filter to the arGraphicsWindow to e.g. simulate how things 
+will appear in the dim Cube on a brighter monitor.
+<li>Made a small tweak to fixed-head mode. Previously, 
+SZG_SCREEN#/fixed_head_pos specified the position of the head sensor; it now 
+specifies the mid-eye position. This improves the appearance of wall-to-wall 
+transitions in the Cube noticeably.
+<li>Numerous additions to the Python bindings. Should all be backwards 
+compatible with existing Python code.
+</ul>
 <p><font size=+2>Changes Between szg-0.7 and szg-0.6</font>
 <p><ul>
 <li>Changed the mechanism by which alternative config file and login file
@@ -381,6 +408,7 @@ are some important consequences of the change.
 </pre>
 
    Other calls can be similarly mechanically translated.
+<hr>
 </ol>
 </body>
 </html>

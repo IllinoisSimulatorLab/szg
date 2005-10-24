@@ -74,7 +74,12 @@ arGraphicsStateID arGraphicsStateNode::getStateID(){
 }
 
 bool arGraphicsStateNode::isFloatState(){
-  return _isFloatState();
+  // NOTE: _isFloatState is NOT thread-safe (since it uses the node's current
+  // state).
+  ar_mutex_lock(&_nodeLock);
+  bool r = _isFloatState();
+  ar_mutex_unlock(&_nodeLock);
+  return r;
 }
 
 bool arGraphicsStateNode::isFloatState(const string& stateName){
@@ -146,7 +151,8 @@ bool arGraphicsStateNode::setGraphicsStateInt( const string& stateName,
                                                arGraphicsStateValue value2) {
   arGraphicsStateID id = _convertStringToStateID(stateName);
   if (_checkFloatState(id)) {
-    cerr << "arGraphicsStateNode error: attempt to setGraphicsStateInt() for float state node type.\n";
+    cerr << "arGraphicsStateNode error: attempt to setGraphicsStateInt() "
+	 << "for float state node type.\n";
     return false;
   }
   if (_owningDatabase) {
@@ -154,7 +160,8 @@ bool arGraphicsStateNode::setGraphicsStateInt( const string& stateName,
     stateValueInt[0] = value1;
     stateValueInt[1] = value2;
     ar_mutex_lock(&_nodeLock);
-    arStructuredData* r = _dumpData(stateName, stateValueInt, _stateValueFloat, true);
+    arStructuredData* r = _dumpData(stateName, stateValueInt, 
+                                    _stateValueFloat, true);
     ar_mutex_unlock(&_nodeLock);
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
@@ -183,12 +190,13 @@ bool arGraphicsStateNode::setGraphicsStateFloat(const string& stateName,
                                                 float stateValueFloat) {
   arGraphicsStateID id = _convertStringToStateID(stateName);
   if (!_checkFloatState(id)) {
-    cerr << "arGraphicsStateNode error: attempt to setGraphicsStateFloat() for int state node type.\n";
+    cerr << "arGraphicsStateNode error: attempt to setGraphicsStateFloat() "
+	 << "for int state node type.\n";
     return false;
   }
   if (_owningDatabase) {
     ar_mutex_lock(&_nodeLock);
-    arStructuredData* r = _dumpData(stateName, NULL, _stateValueFloat, true);
+    arStructuredData* r = _dumpData(stateName, NULL, stateValueFloat, true);
     ar_mutex_unlock(&_nodeLock);
     _owningDatabase->alter(r);
     delete r;
@@ -347,6 +355,8 @@ string arGraphicsStateNode::_convertStateValueToString(arGraphicsStateValue v){
   }
 }
 
+/// Thread-safe. DO NOT use the _nodeLock in here (can be called from
+/// inside that lock).
 bool arGraphicsStateNode::_checkFloatState( arGraphicsStateID id ) {
   switch (id) {
   case AR_G_POINT_SIZE:

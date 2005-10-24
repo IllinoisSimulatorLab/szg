@@ -7,7 +7,7 @@ LGPL, many of the demos have different licenses. See the relevant source
 files/ directories for this information. Furthermore, we include source code
 for libjpeg, zlib, and lib3DS, which have their own licenses.
 
-copyright 2000-2005 Benjamin Schaeffer
+copyright 2000-2006 Benjamin Schaeffer
 
 *****************************************************************************
 
@@ -23,6 +23,30 @@ applications, etc.
 Also, while this regards a different project (though related) project,
 thanks to Peter Brinkmann for developing Python bindings for Syzygy (py-szg)
 and to George Francis and students for using them in their classes.
+
+*****************************************************************************
+Contributors (core project), Syzygy-0.8
+
+Release Dec 2005
+
+LICENSE CHANGE! With the unanimous agreement of those you've contributed so
+far, we're moving to a BSD-style license.
+
+Major contributions are listed, giving the name(s) of the responsible
+developers. See the changelog for more info.
+
+Ben- Reworked the arDatabase/arGraphicsDatabase/arGraphicsPeer API. Now there
+is a decent thread-safety model. Reference counting for nodes has been
+implemented. Python bindings are much improved.
+
+Jim- Added good support for head-mounted displays. Now, the default view mode
+uses head-mounting, which makes the inputsimulator rotate-head mode do
+something more like what people expect (i.e. rotate the scene).
+
+Jim- Renamed wandsimserver to inputsimulator and improved its interface,
+most notably in adding better support for two button mice.
+
+Lee- Created the arGUI windowing API. A significant chunk of work.
 
 *****************************************************************************
 Contributors (core project), Syzygy-0.7
