@@ -28,7 +28,9 @@ explained more fully in the documentation.
 <li>SZG_DEVELOPER_STYLE: By default, the build process assumes you are
  compiling the software yourself (DEVELOPER). However, if you are using a
  precompiled library, then you MUST set this variable to EASY.
-<li>SZG_MULTITEX: 
+<li>SZG_MULTITEX: On some platforms, this must be set to false to allow
+the q33 demo to build. Consider running cubecake instead of q33 (another
+Quake3 level builder).
 <li>SZG_STLPORT: Only meaningful on Windows platforms.
  Visual Studio 6's STL implementation is INCOMPATIBLE with 
  dynamically linking the szg libraries. Consequently, to use Visual Studio 6
@@ -48,21 +50,45 @@ explained more fully in the documentation.
 
 <p>Environment variables affecting the operation of Syzygy components:
 <p><ul>
-<li>SZG_CONF
-<li>SZG_LOGIN
-<li>SZGUSER
-<li>SZGCONTEXT
+<li>SZG_PARAM: In application standalone mode, if the parameter file 
+(by default called szg_parameters.txt) cannot be opened, try to open the
+file specified by this environment variable.
+<li>SZG_CONF: The directory where the computer's config file is stored.
+Only set this if the default is unworkable.
+<li>SZG_LOGIN: The directory where user login (to szgservers) information is
+stored. Only set this if the default is unworkable.
+<li>SZGUSER: Allows running-as another szg user. This overrides the results
+of dlogin.
+<li>SZGCONTEXT: The values of various options (like virtual computer identity)
+packed in a single string.
+</ul>
+
+<p>Environment variables that can substitute for Phleet database parameters:
+<ul>
+<li>SZG_RENDER_texture_path: Distributed scene graph applications search for
+textures here.
+<li>SZG_RENDER_text_path: Distributed scene graph applications search for
+their fonts here.
+<li>SZG_SOUND_path: Syzygy applications search for sounds here.
+<li>SZG_DATA_path: Syzygy application data is installed here.
+<li>SZG_PEER_path: Syzygy scene graph files are stored here.
 </ul>
 
 <p>Environment variables altered locally by szgd:
 <p><ul>
-<li>PYTHONPATH
-<li>PATH, LD_LIBRARY_PATH, LD_LIBRARYN32_PATH, DYLD_LIBRARY_PATH
-<li>SZGUSER
-<li>SZGCONTEXT
-<li>SZGPIPEID
-<li>SZGTRADINGNUM
+<li>PYTHONPATH: szgd manipulates this so that a particular user's Python
+modules will be loaded preferentially.
+<li>PATH, LD_LIBRARY_PATH, LD_LIBRARYN32_PATH, DYLD_LIBRARY_PATH: szgd 
+manipulates these so that shared libraries on its executable path will be
+loaded preferentially.
+<li>SZGUSER: Allows running-as another szg user.
+<li>SZGCONTEXT: The values of various options (like virtual computer identity)
+packed in a single string.
+<li>SZGPIPEID: Used to communicate back from the launched process to the szgd.
+<li>SZGTRADINGNUM: Used to communicate back from the launched process to the
+szgd.
 </ul>
+<hr>
 
 </body>
 </html>

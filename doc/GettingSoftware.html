@@ -106,7 +106,8 @@ By setting your dynamic library search path, you enable the runtime linker to
 find the Syzygy shared libaries.
 <li>Win32: Add $SZGHOME/bin to your $PATH variable.
 <li>Mac OS X: Add $SZGHOME/bin to the front of your $DYLD_LIBRARY_PATH and 
-$PATH.
+$PATH. Also, on OS X, X11 (i.e. the X server) must be running for Syzygy
+graphical programs to work.
 <li>Irix: Add $SZGHOME/bin to the front of your $LD_LIBRARYN32_PATH and $PATH.
 </ul>
 
@@ -230,6 +231,12 @@ path and the dynamic linker path, once you:
 <li> cd szg/contrib/dlcompat
 <li> make
 </ul>
+<p>PLEASE NOTE that the Syzygy application frameworks now use their own
+windowing API (as built on X11) in place of GLUT. Consequently, to run
+Syzygy graphical applications you will need X11 installed on your system
+and running (by default it does not start at system start). If X11 is not
+running, the application will fail upon launch with an error message
+prompting you to start X11.
 
 <p>Irix: 
 <p>Either install GLUT on your machine in the normal Unix way or follow the 
@@ -271,8 +278,8 @@ is optional.
 <p><ul>
 <li>SZGHOME: (required) The top-level syzygy directory 
   (for instance, /home/user1/szg).
-<li>SZGBIN: (optional) The directory where the built binaries and shared libraries
-  should be placed. If this is not set it defaults to
+<li>SZGBIN: (optional) The directory where the built binaries and shared 
+  libraries should be placed. If this is not set it defaults to
   szg/bin/$(MACHINE_TYPE), where MACHINE_TYPE is one of linux, win32, darwin,
   mips3, or mips4. The last two possibilities refer to SGI processor families.
 <li>SZGEXTERNAL: (optional) The location of external
@@ -280,28 +287,47 @@ is optional.
   the code will compile but disable support for such features.
   The arrangement of the 
 <li>SZGDEBUG: (optional) If set to "TRUE", a debug build will be produced.
-<li>SZG_DEVELOPER_STYLE: (optional) If set to "EASY", the build assumes that the
-  Syzygy headers and libraries are arranged as in one of the precompiled
+<li>SZG_DEVELOPER_STYLE: (optional) If set to "EASY", the build assumes that 
+  the Syzygy headers and libraries are arranged as in one of the precompiled
   binary distributions, such as szg-0.8-linux.tar.gz. See 
   <a href="Programming.html">this</a> chapter for further information.
   Please note, by default the code assumes that the Syzygy headers and
   libraries are arranged as in the "developer" version (szg-0.8.tar.gz) you
   compile yourself.
-<li>SZG_MULTITEX: (optional) Some platforms (especially recent Linux distributions) 
-  do not support the multitexturing tricks of the q33 demo. Set this to "FALSE" to
-  let q33 compile on those platforms.
+<li>SZG_MULTITEX: (optional) Some platforms (especially recent Linux 
+  distributions) do not support the multitexturing tricks of the q33 demo. 
+  Set this to "FALSE" to let q33 compile on those platforms. NOTE: cubecake
+  (from the szgdemo distribution) is superior to q33, with the same basic
+  functionality. Please consider using that!
+<li>SZG_LINKING: (optional) If this variable is set to STATIC, the build
+  process will create static libraries, and executables will link the
+  resulting libraries statically. This can be useful sometimes for simplifying
+  DLL management. To prevent a name conflict (on Win32 the DLL import/export
+  libraries have the same .lib extension as static libraries), they have
+  different names, such as libarLanguage_static.lib on Win32.
+  <ul>
+  <li>IMPORTANT NOTE: On Win32, there is a problem with static linking.
+  Because DLL's cannot link to a static libc, loadable DLLs (like Syzygy
+  device drivers) will NOT work with this option. Consequently, DeviceServer
+  will not work. Similarly, the Python bindings (on Win32) must be built
+  as a DLL. Still, even with these drawbacks, the static linking option is
+  useful on Win32.
+  <li>The supported Unix-like platforms do not suffer from this problem.
+  </ul>
 </ul>
 
 <p>The following environment variables only have meaning on Windows.
 <p><ul>
-<li>SZG_STLPORT: (optional) Visual Studio 6's STL implementation is insufficent to
-  run Syzygy. In this case, STLport must be dropped in. To do so, set this
+<li>SZG_STLPORT: (optional) Visual Studio 6's STL implementation is 
+  insufficent to run Syzygy. In this case, STLport must be dropped in. To do 
+  so, set this
   environment variable to "TRUE". Please note, the default is NOT to try to
   use STLport. We assume that most users will be on Visual Studio .NET.
-<li>SZG_USE_PCH: (optional) To get the Windows build reasonably fast, precompiled headers
-  must be used (the default). However, these are extremely sensitive 
-  to minor differences in Visual Studio patch level. Consequently, sometimes it is 
-  convenient to be able to turn off precompiled headers by setting this variable to "FALSE".
+<li>SZG_USE_PCH: (optional) To get the Windows build reasonably fast, 
+  precompiled headers must be used (the default). However, these are extremely 
+  sensitive to minor differences in Visual Studio patch level. Consequently, 
+  sometimes it is convenient to be able to turn off precompiled headers by   
+  setting this variable to "FALSE".
 </ul>
 
 <A NAME="CompileSyzygy">
@@ -321,20 +347,25 @@ is optional.
   <li>Remember to set paths appropriately as outlined 
       <a href="#BuildEnvVar">here</a>, specifically like "d:/szg".
   </ol>
+<li>OS X: Since Syzygy depends on X11, you must have the developer version
+    installed on your machine.
 <li>Irix: Be sure to use "gmake" instead of "make", since Syzygy Makefiles
     follow the GNU syntax.
 </ul>
 
+<p>Next, follow these general instructions.
+
 <p><ol>
-<li>Unpack szg.tar.gz.
-<li>You MUST set $SZGHOME appropriately and
-    should optionally set other variables (<a href="#BuildEnvVar">see here</a>).
+<li>Unpack szg-0.8.tar.gz.
+<li>You MUST set $SZGHOME appropriately and should optionally set other 
+    variables (<a href="#BuildEnvVar">see here</a>).
 <li>In szg/build, type "make". Note that "make clean" does the expected thing.
-    On Windows this must be done from a cygwin or MinGW shell since syzygy uses GNU make.
-    On Irix, you MUST use "gmake" instead of "make", since Syzygy uses GNU make syntax.
+    On Windows this must be done from a cygwin or MinGW shell since syzygy 
+    uses GNU make. On Irix, you MUST use "gmake" instead of "make", since 
+    Syzygy uses GNU make syntax.
 <li>If the supporting libraries are not properly installed 
-    (see <a href="SupportingLibraries.html">here</a>), then Syzygy will build, but 
-    certain capabilities, such as sound, will be disabled.
+    (see <a href="SupportingLibraries.html">here</a>), then Syzygy will build, 
+    but certain capabilities, such as sound, will be disabled.
 </ol>
 
 <p>Potential problems:
@@ -355,9 +386,10 @@ is optional.
 <pre>
   link error: too many arguments
 </pre>
-    You should check the which executable you are running as the linker by typing
-    "which link". It is very likely that it will report you are running a cygwin
-    executable, whereas you should be running an executable in a Visual Studio
+    You should check the which executable you are running as the linker by 
+    typing "which link". It is very likely that it will report you are running 
+    a cygwin executable, whereas you should be running an executable in a 
+    Visual Studio
     directory. There are various solutions to this problem. One is to simply
     delete the cygwin executable, another is to change your $PATH environment
     variable (say via the .bashrc in your home directory that cygwin reads
@@ -381,15 +413,35 @@ comprise the Syzygy toolkit (shown here with Linux/Irix extensions):
 <li>libarFramework.so
 </ul>
 
-<p>It will also compile a collection of plugins for the input framework (for instance
-various device drivers), infrastructure programs like szgserver, and utility programs like
-dkillall.
+<p>Alternatively, if you chose the static linking option, the built libraries
+will look like (shown here with Linux/Irix extensions):
 
-<p>You can also build individual shared libraries, which can be very convenient 
-during development. To build the objects derived from src/language, for instance, 
+<p><ul>
+<li>libarLanguage_static.a
+<li>libarPhleet_static.a
+<li>libarBarrier_static.a
+<li>libarMath_static.a
+<li>libarDrivers_static.a
+<li>libarGraphics_static.a
+<li>libarSound_static.a
+<li>libarObject_static.a
+<li>libarInteraction_static.a
+<li>libarFramework_static.a
+</ul>
+
+<p>It will also compile a collection of plugins for the input framework 
+(for instance various device drivers), infrastructure programs like szgserver, 
+and utility programs like dkillall. Remember, in the *special* case of 
+statically building Syzygy on Win32, your plugins will not work with
+DeviceServer. However, static builds have no such drawback on supported
+Unix-like platforms.
+
+<p>You can also build individual shared (or static) libraries, which can be 
+very convenient during development. To build the objects derived from 
+src/language, for instance, 
 run "make" (or "gmake" on
-Irix) in the directory szg/build/$(MACHINE_TYPE)/language, where MACHINE_TYPE is
-one of linux, win32, darwin, mips3, or mips4.
+Irix) in the directory szg/build/$(MACHINE_TYPE)/language, 
+where MACHINE_TYPE is one of linux, win32, darwin, mips3, or mips4.
 
 <A NAME="CompileDemos1">
 <p><font size=+2>Compiling the Sample Applications in szg</font>
@@ -430,8 +482,8 @@ anything additional to build the rest.
    q33, go <a href="SupportingLibraries.html">here</a>.
 </ol>
 
-<p>It is also possible to build the demos individually. For example, to build the "cosmos"
-demo on a Linux machine, go to
+<p>It is also possible to build the demos individually. For example, to build 
+the "cosmos" demo on a Linux machine, go to
 
 <pre>
   szg/build/linux/demo/cosmos
@@ -447,7 +499,8 @@ variables must be set appropriately.
 <p><ol>
 <li>VMAT stands for "virtual materials".
 <li>Unpack vmat-X.X.tar.gz to the directory "vmat".
-<li>The environment variables SZGHOME, SZGBIN, SZGEXTERNAL must be set as before.
+<li>The environment variables SZGHOME, SZGBIN, SZGEXTERNAL must be set as 
+before.
 <li>From the top level directory, "make" and "make clean"
 do the expected thing. This builds the library libvmat.so (Linux/Irix suffix)
 and the testvmat sample application. These are both copied into $SZGBIN, if
@@ -482,7 +535,7 @@ software package as they are developed.
 </ol>
 
 <p><ol>
-<li>Obtain the source distribution szgdemo-X.X.tar.gz and extract
+<li>Obtain the source distribution szgdemo-0.8.tar.gz and extract
 to the directory szgdemo. 
 <li>The build environment variables SZGHOME, SZGBIN, SZGEXTERNAL, etc.
 need to be set as before. To build "performance", VMATHOME will need
