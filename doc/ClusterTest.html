@@ -200,82 +200,122 @@ computers in your <a href="PhleetIntro.html">Phleet</a>.
 <p>For an explanation of how to get the configuration information into the
 Phleet (using dbatch), please see the 
 <a href="ConfigurationExamples.html">configuration</a> chapter. However, simply
-clipping the below text from this documentation, modifying it in a text file,
+copying the XML from this documentation into a text file
 and issuing the command "dbatch the_text_file_name" should work.
 
 <pre>
-# note how dbatch scripts can have comment lines
-slave1 SZG_SCREEN0 size 640/480
-slave1 SZG_SCREEN0 stereo false
-slave1 SZG_SCREEN0 screen_center 0/5/-5
-slave1 SZG_SCREEN0 screen_dim 10/10
-slave1 SZG_SCREEN0 screen_normal 0/0/-1
-slave1 SZG_SCREEN0 screen_up 0/1/0
-slave1 SZG_SCREEN0 tile 0/2/0/1
+&lt;szg_config&gt;
+
+&lt;param&gt;
+&lt;name&gt;left_side&lt;/name&gt;
+&lt;value&gt;
+&lt;szg_display&gt;
+ &lt;szg_window&gt;
+   &lt;size width="600" height="600" /&gt;
+   &lt;position x="50" y="50" /&gt;
+   &lt;szg_viewport_list viewmode="normal"&gt;
+     &lt;szg_camera&gt;
+       &lt;szg_screen&gt;
+         &lt;center x="0" y="0" z="-5" /&gt;
+         &lt;up x="0" y="1" z="0" /&gt;
+         &lt;dim width="20" height="10" /&gt;
+         &lt;normal x="0" y="0" z="-1" /&gt;
+         &lt;headmounted value="true" /&gt;
+         &lt;tile tilex="0" numtilesx="2" tiley="0" numtilesy="1" /&gt;
+       &lt;/szg_screen&gt;
+     &lt;/szg_camera&gt;
+   &lt;/szg_viewport_list&gt;
+ &lt;/szg_window&gt;
+&lt;/szg_display&gt;
+&lt;/value&gt;
+&lt;/param&gt;
+
+&lt;param&gt;
+&lt;name&gt;right_side&lt;/name&gt;
+&lt;value&gt;
+&lt;szg_display&gt;
+ &lt;szg_window&gt;
+   &lt;size width="600" height="600" /&gt;
+   &lt;position x="50" y="50" /&gt;
+   &lt;szg_viewport_list viewmode="normal"&gt;
+     &lt;szg_camera&gt;
+       &lt;szg_screen&gt;
+         &lt;center x="0" y="0" z="-5" /&gt;
+         &lt;up x="0" y="1" z="0" /&gt;
+         &lt;dim width="20" height="10" /&gt;
+         &lt;normal x="0" y="0" z="-1" /&gt;
+         &lt;headmounted value="true" /&gt;
+         &lt;tile tilex="1" numtilesx="2" tiley="0" numtilesy="1" /&gt;
+       &lt;/szg_screen&gt;
+     &lt;/szg_camera&gt;
+   &lt;/szg_viewport_list&gt;
+ &lt;/szg_window&gt;
+&lt;/szg_display&gt;
+&lt;/value&gt;
+&lt;/param&gt;
+
+&lt;param&gt;
+&lt;name&gt;whole_view&lt;/name&gt;
+&lt;value&gt;
+&lt;szg_display&gt;
+ &lt;szg_window&gt;
+   &lt;size width="600" height="600" /&gt;
+   &lt;position x="50" y="50" /&gt;
+   &lt;szg_viewport_list viewmode="normal"&gt;
+     &lt;szg_camera&gt;
+       &lt;szg_screen&gt;
+         &lt;center x="0" y="0" z="-5" /&gt;
+         &lt;up x="0" y="1" z="0" /&gt;
+         &lt;dim width="10" height="10" /&gt;
+         &lt;normal x="0" y="0" z="-1" /&gt;
+         &lt;headmounted value="true" /&gt;
+         &lt;tile tilex="1" numtilesx="1" tiley="0" numtilesy="1" /&gt;
+       &lt;/szg_screen&gt;
+     &lt;/szg_camera&gt;
+   &lt;/szg_viewport_list&gt;
+ &lt;/szg_window&gt;
+&lt;/szg_display&gt;
+&lt;/value&gt;
+&lt;/param&gt;
+
+&lt;assign&gt;
 slave1 SZG_RENDER texture_path /szg/rsc
 slave1 SZG_RENDER text_path /szg/rsc/Text
 slave1 SZG_SOUND path /szg/rsc
 slave1 SZG_EXEC path /szg/bin/linux
 slave1 SZG_DATA path /szg/data
+slave1 SZG_DISPLAY0 name left_side
 
-slave2 SZG_SCREEN0 size 640/480
-slave2 SZG_SCREEN0 stereo false
-slave2 SZG_SCREEN0 screen_center 0/5/-5
-slave2 SZG_SCREEN0 screen_dim 10/10
-slave2 SZG_SCREEN0 screen_normal 0/0/-1
-slave2 SZG_SCREEN0 screen_up 0/1/0
-slave2 SZG_SCREEN0 tile 1/2/0/1
 slave2 SZG_RENDER texture_path /szg/rsc
 slave2 SZG_RENDER text_path /szg/rsc/Text
 slave2 SZG_SOUND path /szg/rsc
 slave2 SZG_EXEC path /szg/bin/linux
 slave2 SZG_DATA path /szg/data
+slave2 SZG_DISPLAY0 name right_side
 
-control SZG_SCREEN0 size 640/480
-control SZG_SCREEN0 stereo false
-control SZG_SCREEN0 screen_center 0/5/-5
-control SZG_SCREEN0 screen_dim 10/10
-control SZG_SCREEN0 screen_normal 0/0/-1
-control SZG_SCREEN0 screen_up 0/1/0
-control SZG_SCREEN0 tile 0/1/0/1
 control SZG_RENDER texture_path /szg/rsc
 control SZG_RENDER text_path /szg/rsc/Text
 control SZG_SOUND path /szg/rsc
 control SZG_EXEC path /szg/bin/linux 
 control SZG_DATA path /szg/data
+control SZG_DISPLAY0 name whole_view
+&lt;/assign&gt;
+
+&lt;/szg_config&gt;
 </pre>
 
 <p>Descriptions of parameters:
 
 <p><ul>
-<li>SZG_SCREEN0/screen_center should give the center of the screen in question.
-Note that units are given in feet. Each computer can have several virtual 
-screens attached to it, SZG_SCREEN0, SZG_SCREEN1, etc. Virtual screen 0 is the 
-default used.
-<li>SZG_SCREEN0/screen_dim gives the dimensions of the screen, horizontal
-dimension followed by vertical dimension.
-<li>SZG_SCREEN0/screen_normal gives a unit normal vector to the screen pointing
-away from the observer.
-<li>SZG_SCREEN0/screen_up gives the up direction (another unit vector).
-<li>SZG_SCREEN0/tile allows you to amalgamate a set of screens into a tiled
-video wall. The format is x/nx/y/ny, where nx and ny specify the number
-of tiles in the horizontal and vertical directions, respectively, and x and y
-are numbers between 0 to n-1 identifying the specific tile position of the 
-current machine's screen within this
-grid. Tile coordinates are calculated from the lower left
-corner of the screen. For instance, 0/2/0/2 denotes the lower left corner
-of a 2x2 video wall. If tiling is used, SZG_SCREEN0/screen_dim, screen_center, 
-screen_normal, and screen_up apply to the entire array, instead of
-an individual tile.
-</ul>
-
-<p><ul>
+<li>The XML global parameters left_side, right_side, and whole_view are
+examples of screen configurations. For more information, see
+<a href="ConfigurationExamples.html">here</a>.
 <li>SZG_RENDER/texture_path and SZG_RENDER/text_path specify base paths to 
 use in locating texture and font data.  For example,
 textures for the cosmos demo are located in szg/rsc/Texture 
 (the donut textures)
 and szg/rsc/Texture/Text (the textured font). Note that these paths are defined
-on a per-computer (SZG_RENDER) instead of a per-screen (SZG_SCREEN(n)) basis.
+on a per-computer basis.
 
 </ul>
 
@@ -309,10 +349,9 @@ Look at the discussion of SZGBIN in the chapter on
 <p>The set-up outlined above assumes that the display computers will
 have monitors side by side. In this example, "slave1" is displaying the
 left half and "slave2" is displaying the right half. You can easily reverse 
-this by swapping the SZG_SCREEN0/tile parameter values. Or you can set up a 
+this by swapping the SZG_DISPLAY0/name parameter values. Or you can set up a 
 completely different type of display
-by changing the screen_center, screen_dim, screen_normal, screen_up, and
-tile values.
+by changing the XML of the global parameters left_side and right_side.
 
 <A NAME="ConfidenceTest">
 <p><font size=+2>Running the Distributed Graphics Confidence Test</font>

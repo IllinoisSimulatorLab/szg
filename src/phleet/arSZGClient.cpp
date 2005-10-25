@@ -264,12 +264,18 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
     }
   }
 
-  // HACK HACK HACK HACK HACK HACK HACK HACK HACK
   // If we have failed to connect to the szgserver, go ahead and parse
   // a local config file.
   if (!_connected){
     cout << _exeName << " remark: parsing local parameter file.\n";
-    parseParameterFile(_parameterFileName);
+    if (!parseParameterFile(_parameterFileName)){
+      // Failed to find the specified parameter file. Go ahead and try to find
+      // a file specified by environment variable SZG_PARAM.
+      string possibleFileName = ar_getenv("SZG_PARAM");
+      if (possibleFileName != "NULL"){
+	parseParameterFile(possibleFileName);
+      }
+    }
   }
 
   return success;
@@ -652,32 +658,42 @@ string arSZGClient::getAttribute(const string& userName,
                                  const string& groupName,
                                  const string& parameterName,
                                  const string& validValues){
+  // Getting an attribute is somewhat complex. 
+  // If not connected, check the local database (for standalone mode).
+  // If connected, go to the szgserver. In either case, upon failure,
+  // check the environment variable groupName_parameterName.
+  string result;
   if (!_connected){
     // In this case, we are using the local parameter file.
-    return _getAttributeLocal(computerName, groupName, parameterName,
-                              validValues);
-  }
-
-  // We are going to the szgserver for information.
-  const string query(
-    ((computerName == "NULL") ? _computerName : computerName) +
-    "/" + groupName + "/" + parameterName);
-  arStructuredData* getRequestData
-    = _dataParser->getStorage(_l.AR_ATTR_GET_REQ);
-  string result;
-  int match = _fillMatchField(getRequestData);
-  if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR,query) ||
-      !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,"value") ||
-      !getRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
-      !_dataClient.sendData(getRequestData)){
-    cerr << _exeName << " warning: failed to send command.\n";
-    result = string("NULL");
+    result = _getAttributeLocal(computerName, groupName, parameterName,
+                                validValues);
   }
   else{
-    result = _changeToValidValue(groupName, parameterName,
-                                 _getAttributeResponse(match), validValues);
+    // We are going to the szgserver for information.
+    const string query(
+      ((computerName == "NULL") ? _computerName : computerName) +
+      "/" + groupName + "/" + parameterName);
+    arStructuredData* getRequestData
+      = _dataParser->getStorage(_l.AR_ATTR_GET_REQ);
+    int match = _fillMatchField(getRequestData);
+    if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR,query) ||
+        !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,"value") ||
+        !getRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
+        !_dataClient.sendData(getRequestData)){
+      cerr << _exeName << " warning: failed to send command.\n";
+      result = string("NULL");
+    }
+    else{
+      result = _changeToValidValue(groupName, parameterName,
+                                   _getAttributeResponse(match), validValues);
+    }
+    _dataParser->recycle(getRequestData);
   }
-  _dataParser->recycle(getRequestData);
+  if (result == "NULL"){
+    // First try failed, go to environment variable.
+    string tmp = ar_getenv(groupName+"_"+parameterName);
+    result = _changeToValidValue(groupName, parameterName, tmp, validValues);
+  }
   return result;
 }
 

@@ -11,6 +11,12 @@
 and szg components will refuse to communicate with one another if it does not
 match. This is intended to keep components with incompatible communication
 protocols from intergering with one another.
+<li>IMPORTANT: It is now possible to set Phleet parameter values using
+environment variables and to set the identity of the standalone parameter
+file using the environment variable SZG_PARAM.
+<li>Added "predetermined harmony" mode to the arMasterSlaveFramework.
+Here, each app instance operates in lock-step and there can be no late
+joiners.
 <li>The arGraphicsDatabase/arGraphicsPeer code is now much better integrated
 with Python (more classes wrapped plus the implementation of reference
 couting in the C++). Also, a decent thread-safety model has been implemented
@@ -18,6 +24,7 @@ making the operation of arGraphicsServer and arGraphicsPeer thread-safe!
 <li>Graphics configuration is now completely different! It is XML based
 (like the DeviceServer config). Config options are much more complete and
 multiple viewport custom windows are better supported (i.e. easier to create).
+SZG_SCREEN has GONE away! To be replaced with SZG_DISPLAY.
 <li>Added the arGUI API for windowing. This allows multi-threaded windowing,
 lets us eliminate some global framework variables, and allows some other neat
 tricks (like making windows from the Python prompt). All because of its thread

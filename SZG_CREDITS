@@ -39,6 +39,8 @@ Ben- Reworked the arDatabase/arGraphicsDatabase/arGraphicsPeer API. Now there
 is a decent thread-safety model. Reference counting for nodes has been
 implemented. Python bindings are much improved.
 
+Jim- Added a "predetermined harmony" mode to arMasterSlaveFramework.
+
 Jim- Added good support for head-mounted displays. Now, the default view mode
 uses head-mounting, which makes the inputsimulator rotate-head mode do
 something more like what people expect (i.e. rotate the scene).
