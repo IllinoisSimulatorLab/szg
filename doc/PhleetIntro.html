@@ -461,7 +461,7 @@ to do this.
   wall SZG_CONF location wall
   wall SZG_CONF relaunch_all false
   wall SZG_TRIGGER map smoke
-  wall SZG_MASTER map SZG_SCREEN0
+  wall SZG_MASTER map SZG_DISPLAY0
   wall SZG_DISPLAY number_screens 6
   wall SZG_DISPLAY0 map wall1/SZG_DISPLAY0
   wall SZG_DISPLAY0 networks wall
@@ -685,13 +685,12 @@ and waiting for them to do so.
 
    If second argument is "true", this sets each render node to use a fixed
    head position rather than that reported by the tracking device. The head 
-   position is read from SZG_DISPLAY(n)/fixed_head_pos on each computer, 
-   and is a 3-number x/y/z string, e.g. 0/5/0. Each rendering node will 
-   assume that the direction of gaze is perpendicular to its screen, and the 
-   up direction of the head will be taken from 
-   SZG_DISPLAY(n)/fixed_head_up_angle (defaults to 0/1/0). This is often 
-   preferable for multi-person demos, particularly for stereoscopic displays. 
-   To set things back to normal mode, use "false" as the second argument.
+   position is read from the screen config XML on each render computer. 
+   Each rendering node will assume that the direction of gaze is perpendicular 
+   to its screen, and the up direction of the head will be screen's up 
+   direction rotated by the angle (in degrees) given by the screen's
+   fixedheadupangle element. To set things back to normal mode, use "false" 
+   as the second argument.
 
   setstereo virtual_computer [true, false]
 

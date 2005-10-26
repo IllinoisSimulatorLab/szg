@@ -421,8 +421,9 @@ addr2 addr3 --
 ) Uses the string at addr1 as the group name and the string at addr2 as
 the parameter name, and
 stores the returned value at add3. For example, if addr1 pointed to
-"SZG_SCREEN0" and addr2 pointed
-to "stereo", then after execution addr3 would point to either "true" or
+"SZG_HEAD" and addr2 pointed
+to "fixed_head_mode", then after execution addr3 would point to either "true" 
+or
 "false" (assuming it
 was set).</p>
 <p><font face="courier" size="+1">getFloatParameters</font> ( addr1
@@ -432,10 +433,10 @@ the parameter name, and n1 as the number of values to expect. addr3
 should
 point to an array of the correct size to hold the parameters For
 example, if addr1 pointed to
-"SZG_SCREEN0" and addr2 pointed
-to "screen_center", then after executing "addr1 addr2 3 addr3
+"SZG_HEAD" and addr2 pointed
+to "eye_direction", then after executing "addr1 addr2 3 addr3
 getFloatParameters", the array at addr3 would contain the 3 elements
-of the screen center position.</p>
+of the eye direction vector.</p>
 <p><font size="+1"><b>Special-purpose Words</b></font></p>
 <p>These words can replace the two C++ filters in arTrackCalFilter.cpp:</p>
 <p><font face="courier" size="+1">initTrackerCalibration</font> ( --
