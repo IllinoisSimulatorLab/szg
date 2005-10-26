@@ -13,21 +13,30 @@
 #include "arIOFilter.h"
 
 void dumpState( arInputState& inp ) {
-  cout << "buttons: " << inp.getNumberButtons() << ", "
-       << "axes: " << inp.getNumberAxes() << ", "
-       << "matrices: " << inp.getNumberMatrices() << "\n"
-       << "buttons: ";
+  const int cb = inp.getNumberButtons();
+  const int ca = inp.getNumberAxes();
+  const int cm = inp.getNumberMatrices();
+  cout << "buttons: " << cb << ", "
+       << "axes: " << ca << ", "
+       << "matrices: " << cm << "\n";
   unsigned int i;
-  for (i=0; i<inp.getNumberButtons(); i++){
-    cout << inp.getButton(i) << " ";
+  if (cb > 0) {
+    cout << "buttons: ";
+    for (i=0; i<inp.getNumberButtons(); i++){
+      cout << inp.getButton(i) << " ";
+    }
   }
-  cout << "\naxes: ";
-  for (i=0; i<inp.getNumberAxes(); i++){
-    cout << inp.getAxis(i) << " ";
+  if (ca > 0) {
+    cout << "\naxes: ";
+    for (i=0; i<inp.getNumberAxes(); i++){
+      cout << inp.getAxis(i) << " ";
+    }
   }
-  cout << "\nmatrices:\n";
-  for (i=0; i<inp.getNumberMatrices(); i++){
-    cout << inp.getMatrix(i) << endl;
+  if (cm > 0) {
+    cout << "\nmatrices:\n";
+    for (i=0; i<inp.getNumberMatrices(); i++){
+      cout << inp.getMatrix(i) << endl;
+    }
   }
   cout << "\n*************************************************\n";
 }
