@@ -462,19 +462,19 @@ to do this.
   wall SZG_CONF relaunch_all false
   wall SZG_TRIGGER map smoke
   wall SZG_MASTER map SZG_SCREEN0
-  wall SZG_SCREEN number_screens 6
-  wall SZG_SCREEN0 map wall1/SZG_SCREEN0
-  wall SZG_SCREEN0 networks wall
-  wall SZG_SCREEN1 map wall2/SZG_SCREEN0
-  wall SZG_SCREEN1 networks wall
-  wall SZG_SCREEN2 map wall3/SZG_SCREEN0
-  wall SZG_SCREEN2 networks wall
-  wall SZG_SCREEN3 map wall4/SZG_SCREEN0
-  wall SZG_SCREEN3 networks wall
-  wall SZG_SCREEN4 map wall5/SZG_SCREEN0
-  wall SZG_SCREEN4 networks wall
-  wall SZG_SCREEN5 map wall6/SZG_SCREEN0
-  wall SZG_SCREEN5 networks wall
+  wall SZG_DISPLAY number_screens 6
+  wall SZG_DISPLAY0 map wall1/SZG_DISPLAY0
+  wall SZG_DISPLAY0 networks wall
+  wall SZG_DISPLAY1 map wall2/SZG_DISPLAY0
+  wall SZG_DISPLAY1 networks wall
+  wall SZG_DISPLAY2 map wall3/SZG_DISPLAY0
+  wall SZG_DISPLAY2 networks wall
+  wall SZG_DISPLAY3 map wall4/SZG_DISPLAY0
+  wall SZG_DISPLAY3 networks wall
+  wall SZG_DISPLAY4 map wall5/SZG_DISPLAY0
+  wall SZG_DISPLAY4 networks wall
+  wall SZG_DISPLAY5 map wall6/SZG_DISPLAY0
+  wall SZG_DISPLAY5 networks wall
   wall SZG_INPUT0 map smoke/inputsimulator
   wall SZG_INPUT0 networks internet
   wall SZG_SOUND map sound
@@ -537,11 +537,11 @@ SZG_MASTER/map) does not. This designates the screen that will run the master
 instance of the application for a master/slave program, which creates and 
 distributes application state to the slave instances. In the example above,
 the master instance will run on wall1 and will be the instance associated with
-SZG_SCREEN0 (on wall1). Note that there may be more than one screen associated
+SZG_DISPLAY0 (on wall1). Note that there may be more than one screen associated
 to a given cluster node.
 
 <p>The virtual computer nees to define several rendering screens. First,
-the value of SZG_SCREEN/number_screens tells how many graphics pipes are part
+the value of SZG_DISPLAY/number_screens tells how many graphics pipes are part
 of the virtual computer. For each screen, two values need to be set. 
 One determines where the component that produces its graphics will run. 
 The second determines the networks the graphics component will use to 
@@ -633,7 +633,7 @@ running on the cluster and incompatible ones are killed.
 <p>First, it checks to see if an incompatible render program is running
 on any of the screens. For virtual computer "wall" and screen 0, this
 is done by checking whether anyone is currently holding the lock
-wall1/SZG_SCREEN0. Note that a render program can
+wall1/SZG_DISPLAY0. Note that a render program can
 remain active on a screen after an application has been killed. For
 instance, szgrender stays up after a distributed scene graph
 application has died since it can just accept a new connection from a
@@ -685,13 +685,13 @@ and waiting for them to do so.
 
    If second argument is "true", this sets each render node to use a fixed
    head position rather than that reported by the tracking device. The head 
-   position is read from SZG_SCREEN(n)/fixed_head_pos on each computer, and is 
-   a 3-number x/y/z string, e.g. 0/5/0. Each rendering node will assume that 
-   the direction of gaze is perpendicular to its screen, and the up direction 
-   of the head will be taken from SZG_SCREEN(n)/fixed_head_up_angle 
-   (defaults to 0/1/0). This is often preferable for multi-person demos, 
-   particularly for stereoscopic displays. To set things back to normal mode, 
-   use "false" as the second argument.
+   position is read from SZG_DISPLAY(n)/fixed_head_pos on each computer, 
+   and is a 3-number x/y/z string, e.g. 0/5/0. Each rendering node will 
+   assume that the direction of gaze is perpendicular to its screen, and the 
+   up direction of the head will be taken from 
+   SZG_DISPLAY(n)/fixed_head_up_angle (defaults to 0/1/0). This is often 
+   preferable for multi-person demos, particularly for stereoscopic displays. 
+   To set things back to normal mode, use "false" as the second argument.
 
   setstereo virtual_computer [true, false]
 
@@ -739,9 +739,9 @@ variable/value pairs of the following:
    take the master role. The "component" value is a default
    and has no effect.
 
-  mode/graphics=SZG_SCREEN(n)
+  mode/graphics=SZG_DISPLAY(n)
 
-   One of SZG_SCREEN0, SZG_SCREEN1, etc. If the component displays
+   One of SZG_DISPLAY0, SZG_DISPLAY1, etc. If the component displays
    a graphics window, this determines the screen configuration
    it will use.
 
@@ -790,7 +790,7 @@ by ';'. You can set this environment variable manually to control the behavior
 of Phleet components you run locally. A sample one might look something like:
 
 <pre>
-  virtual=wall;mode/graphics=SZG_SCREEN0;networks/graphics=wall
+  virtual=wall;mode/graphics=SZG_DISPLAY0;networks/graphics=wall
 </pre>
 
 <p>When launching an application on a virtual computer,
@@ -953,7 +953,7 @@ on its computer by, upon start, trying to grab a computer_name/szgd lock.
 If it fails, another copy must be running and it exits. If it succeeds,
 it holds the lock while running. Other resource reservation locks are
 SoundRender's computer_name/SoundRender lock and szgrender's
-computer_name/SZG_SCREEN(n) lock, which refers to the virtual screen that
+computer_name/SZG_DISPLAY(n) lock, which refers to the virtual screen that
 displays its window. A final resource lock is the virtual
 computer's application lock (virtual_computer_location/SZG_DEMO/app), which
 ensures that only one Syzygy VR framework application is running in a given 
@@ -996,7 +996,7 @@ holds a Phleet lock corresponding to a real world resource during its
 operation. For szgrender, it is a given chunk of screen real estate. For
 SoundRender, it is the sound card. For szgd, it is the computer itself. 
 In the case of szgrender, executing a second copy to display on
-the same virtual screen (SZG_SCREEN0, SZG_SCREEN1, etc.) as an already
+the same virtual screen (SZG_DISPLAY0, SZG_DISPLAY1, etc.) as an already
 running szgrender will result in the second copy quitting with
 the following error message (the component ID will vary):
 

@@ -79,7 +79,7 @@ and 3x2, and the walls of the ISL CUBE.
 <szg_screen>
   <center x="0" y="5" z="-5" />
   <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
+  <dim width="20" height="10" />
   <normal x="0" y="0" z="-1" />
   <headmounted value="false" />
   <tile tilex="0" numtilesx="3" tiley="0" numtilesy="2" />
@@ -96,7 +96,7 @@ and 3x2, and the walls of the ISL CUBE.
 <szg_screen>
   <center x="0" y="5" z="-5" />
   <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
+  <dim width="20" height="10" />
   <normal x="0" y="0" z="-1" />
   <headmounted value="false" />
   <tile tilex="1" numtilesx="3" tiley="0" numtilesy="2" />
@@ -113,7 +113,7 @@ and 3x2, and the walls of the ISL CUBE.
 <szg_screen>
   <center x="0" y="5" z="-5" />
   <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
+  <dim width="20" height="10" />
   <normal x="0" y="0" z="-1" />
   <headmounted value="false" />
   <tile tilex="1" numtilesx="3" tiley="1" numtilesy="2" />
@@ -130,7 +130,7 @@ and 3x2, and the walls of the ISL CUBE.
 <szg_screen>
   <center x="0" y="5" z="-5" />
   <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
+  <dim width="20" height="10" />
   <normal x="0" y="0" z="-1" />
   <headmounted value="false" />
   <tile tilex="0" numtilesx="3" tiley="1" numtilesy="2" />
@@ -147,7 +147,7 @@ and 3x2, and the walls of the ISL CUBE.
 <szg_screen>
   <center x="0" y="5" z="-5" />
   <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
+  <dim width="20" height="10" />
   <normal x="0" y="0" z="-1" />
   <headmounted value="false" />
   <tile tilex="2" numtilesx="3" tiley="1" numtilesy="2" />
@@ -164,7 +164,7 @@ and 3x2, and the walls of the ISL CUBE.
 <szg_screen>
   <center x="0" y="5" z="-5" />
   <up x="0" y="1" z="0" />
-  <dim width="10" height="10" />
+  <dim width="20" height="10" />
   <normal x="0" y="0" z="-1" />
   <headmounted value="false" />
   <tile tilex="2" numtilesx="3" tiley="0" numtilesy="2" />
@@ -303,7 +303,7 @@ Shows how to make a single window with multiple viewports.
 <value>
 <szg_display>
  <szg_window>
-   <size width="640" height="480" />
+   <size width="600" height="600" />
    <position x="50" y="50" />
    <decorate value="true" />
    <fullscreen value="false" />
@@ -453,11 +453,11 @@ more sucinct.
 
        <szg_camera>
          <szg_screen>
-           <center x="0" y="5" z="-5" />
+           <center x="0" y="0" z="-5" />
            <up x="0" y="1" z="0" />
-           <dim width="10" height="10" />
+           <dim width="13.33" height="10" />
            <normal x="0" y="0" z="-1" />
-           <headmounted value="false" />
+           <headmounted value="true" />
            <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
            <usefixedhead value="allow" />
            <fixedheadpos x="0.0" y="5" z="0.0" />
@@ -494,11 +494,11 @@ more sucinct.
        <ogldrawbuf value="GL_BACK_LEFT" />
        <szg_camera>
          <szg_screen>
-           <center x="0" y="5" z="-5" />
+           <center x="0" y="0" z="-5" />
            <up x="0" y="1" z="0" />
-           <dim width="10" height="10" />
+           <dim width="13.33" height="10" />
            <normal x="0" y="0" z="-1" />
-           <headmounted value="false" />
+           <headmounted value="true" />
            <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
            <usefixedhead value="allow" />
            <fixedheadpos x="0.0" y="5" z="0.0" />
@@ -517,7 +517,7 @@ more sucinct.
 <value>
 <szg_display>
  <szg_window>
-   <size width="640" height="480" />
+   <size width="600" height="600" />
    <position x="50" y="50" />
    <decorate value="false" />
    <fullscreen value="true" />
