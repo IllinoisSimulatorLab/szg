@@ -1,4 +1,4 @@
-// $Id: PySceneGraph.i,v 1.2 2005/09/20 19:55:39 crowell Exp $
+// $Id: PySceneGraph.i,v 1.3 2005/10/26 20:32:13 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -134,6 +134,7 @@ class arDistSceneGraphFramework : public arSZGAppFramework {
                                                                                
   void setHeadMatrixID(int);
   const string getNavNodeName() const;
+  arDatabaseNode* getNavNode();
                                                                                
   arInputNode* getInputDevice() const;
 };
