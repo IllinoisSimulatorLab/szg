@@ -56,7 +56,9 @@ class SZG_CALL arCylinderMesh : public arMesh {
   arCylinderMesh();
   arCylinderMesh(const arMatrix4&);
 
-  void setAttributes(int,float,float);
+  void setAttributes(int numberDivisions, 
+                     float bottomRadius,
+                     float topRadius);
   int getNumberDivisions(){ return _numberDivisions; }
   float getBottomRadius(){ return _bottomRadius; }
   float getTopRadius(){ return _topRadius; }
@@ -89,7 +91,7 @@ class SZG_CALL arSphereMesh : public arMesh {
 
   void setAttributes(int);
   int getNumberDivisions(){ return _numberDivisions; }
-  void setSectionSkip(int);
+  void setSectionSkip(int skip);
   int getSectionSkip(){ return _sectionSkip; }
   void attachMesh(const string& name, const string& parentName);
   void draw();
@@ -108,7 +110,10 @@ class SZG_CALL arTorusMesh : public arMesh {
   arTorusMesh(int,int,float,float);
   ~arTorusMesh();
  
-  void reset(int,int,float,float);
+  void reset(int numberBigAroundQuads,
+             int numberSmallAroundQuads,
+             float bigRadius,
+             float smallRadius);
   int getNumberBigAroundQuads(){ return _numberBigAroundQuads; }
   int getNumberSmallAroundQuads(){ return _numberSmallAroundQuads; }
   float getBigRadius(){ return _bigRadius; }

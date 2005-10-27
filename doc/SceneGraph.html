@@ -281,15 +281,34 @@ The framework objects hide this detail.
   dgSetGraphicsDatabase(&graphicsDatabase);
 </pre>
 
-<p>arSphereMesh
+<p>arSphereMesh: Sphere of radius 1 centered at (0,0,0).
 
-<p>arCubeMesh
+<pre>
+  void arSphereMesh::setSectionSkip(int skip);
+</pre>
 
-<p>arCylinderMesh
+<p>arCubeMesh: Cube with side length 1 centered at (0,0,0) and axis-aligned.
 
-<p>arRectangleMesh
+<p>arCylinderMesh: Cylinder of length 1 pointing along the z axis.
 
-<p>arTorusMesh
+<pre>
+  void arCylinderMesh::setAttributes(int numberDivisions, 
+                                     float bottomRadius,
+                                     float topRadius);
+  void arCylinderMesh::toggleEnds(bool useEnds);
+</pre>
+
+<p>arRectangleMesh: Square with sides of length 1 centered at (0,0,0). Normal
+in the positive y direction.
+
+<p>arTorusMesh: Torus in the x-y plane.
+
+<pre>
+  void arTorusMesh::reset(int numberBigAroundQuads, 
+                          int numberSmallAroundQuads,
+                          float bigRadius, 
+                          float smallRadius)
+</pre>
 
 <p>Importing files in .obj format.
 
