@@ -377,8 +377,8 @@ bool arDatabase::eraseNode(int ID){
 }
 
 void arDatabase::permuteChildren(arDatabaseNode* parent,
-		                 list<int>& childIDs){
-  int size = childIDs.size();
+		                 list<arDatabaseNode*>& children){
+  int size = children.size();
   if (size == 0){
     // There's nothing to do. Just return.
     return;
@@ -388,15 +388,38 @@ void arDatabase::permuteChildren(arDatabaseNode* parent,
   data->dataIn(_lang->AR_PERMUTE_PARENT_ID, &parentID, AR_INT, 1);
   int* IDs = new int[size];
   int count = 0;
-  for (list<int>::iterator i = childIDs.begin(); i != childIDs.end(); i++){
-    IDs[count] = *i;
-    count++;
+  for (list<arDatabaseNode*>::iterator i = children.begin(); 
+       i != children.end(); i++){
+    if (*i && (*i)->active() && (*i)->getOwner() == this){
+      IDs[count] = (*i)->getID();
+      count++;
+    }
   }
-  data->dataIn(_lang->AR_PERMUTE_CHILD_IDS, IDs, AR_INT, size);
+  data->dataIn(_lang->AR_PERMUTE_CHILD_IDS, IDs, AR_INT, count);
   delete [] IDs;
-  alter(data);
+  if (count > 0){
+    // Only do this if, in fact, some of the pointers make sense to use.
+    alter(data);
+  }
   // Very important that this gets recycled to prevent a memory leak
   _dataParser->recycle(data);
+}
+
+/// An adapter for the Python wrapping. 
+void arDatabase::permuteChildren(arDatabaseNode* parent,
+				 int number,
+				 int* children){
+  list<arDatabaseNode*> l;
+  for (int i=0; i<number; i++){
+    // For thread-safety, must own a reference to the node.
+    arDatabaseNode* n = getNodeRef(children[i]);
+    if (n){
+      l.push_back(n);
+    }
+  }
+  permuteChildren(parent, l);
+  // Must unref to prevent a memory leak.
+  ar_unrefNodeList(l);
 }
 
 /// When transfering the database state, we often want to dump the structure

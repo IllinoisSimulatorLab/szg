@@ -1,26 +1,42 @@
 <html>
 <head>
-<title>Syzygy Scene Graph</title>
+<title>Myriad Scene Graph</title>
 </head>
 <body bgcolor="#ffffff">
 <a href="index.html">Documentation Index</a>
-<p><font size=+2>Syzygy Scene Graph</font>
+<p><font size=+2>Myriad Scene Graph</font>
 
-<p>
-If you are writing your own custom code instead of using the
-arDistSceneGraphFramework or arMasterSlaveFramework objects
-(all the demos included with this distribution use these frameworks), first call
-dgSetGraphicsDatabase() before issuing any other API calls.
-The framework objects hide this detail.
-<pre>
-  arGraphicsDatabase graphicsDatabase;
-  dgSetGraphicsDatabase(&graphicsDatabase);
-</pre>
+<p>This section gives a general introduction to the Myriad scene graph and
+explains its C++ API. For a description of the (similar) Python API, please
+see this <a href="SceneGraphTutorial.html">tutorial</a>, which also has
+links to several example programs. 
 
-<p>(The prefix "dg" used by all functions in this API stands for
-"distributed graphics".  The distributed sound API uses "ds" by analogy.)
-Before examining the other changes, it'll be helpful to explain a few basic
-facts about the graphics design.
+<p>When reading this section, you'll first want to understand the 
+<a href="#Overview">basic</a>
+design of the Myriad distributed scene graph, including how various kinds
+of state (lighting, texturing, coordinate arrays) are
+<a href="#Drawing">inherited</a> to guide rendering where it actually takes
+place: at the "drawable" nodes. It is also important to understand how to
+<a href="#Constructing">construct</a> a node tree and populate it using
+<a href="#BuiltIn">built-in</a> objects, which is the best way to get 
+something working quickly.
+
+<p><ul>
+<li><a href="#Overview">Overview</a>
+<li><a href="#Drawing">Node Inheritance and Drawing</a>
+<li><a href="#NodeTypes">Node Types</a>
+<li><a href="#Constructing">Constructing a Node Tree</a>
+<li><a href="#HelperClasses">Helper Classes</a>
+<li><a href="#BuiltIn">Using Built-In Objects</a>
+<li><a href="#NodeMethods">Node Methods in C++</a>
+<li><a href="#DrawableNode">Drawable Node Specifics</a>
+<li><a href="#GraphicsState">Graphics State Node</a>
+<li><a href="#ThreadSafety">Notes on Thread Safety</a>
+</ul>
+
+<a name="Overview">
+<p><font size=+2>Overview</font>
+</a>
 
 <p>The arGraphicsDatabase object receives a stream of data records causing
 it to alter its internal contents. These data records are either in
@@ -54,216 +70,366 @@ the remote state. Subsequently, all alter() calls to the arGraphicsDatabase
 managed by the arGraphicsServer are mirrored over the network to those
 managed by the connected arGraphicsClients.
 
-<p>The graphics API wraps this all in something more palatable to the
-programmer.  For instance, the programmer need not manually create the
-arStructuredData messages. Conceptually, the API lets the programmer
-create a tree of named arGraphicsNode objects. The arGraphicsDatabase
-object always has a node called "root". This is where various depth-first
-traversals (like draw) of the node tree begin. Only type of node is drawable
-(a drawable node), but it can display many different primitve types including
-point clouds, lines, triangles, triangle strips, and quads. Other types of
-nodes, like texture nodes, texture coordinate nodes, normals nodes, or color 
-nodes, simply hold information for use by drawable nodes. 
-Various pieces of node information are inherited from parent to child, like
-points, normals, and textures. A drawable node can draw
-its, for instance, textured triangles
-by referring to ancestor points, normals, texture coordinate, and texture nodes.  
-Finally, some calls in the API just send records to the database (dgEraseNode)
-instead of creating or altering nodes.
+<a name="Drawing">
+<p><font size=+2>Node Inheritance and Drawing</font>
+</a>
 
-<p>As a concrete example, suppose we want our scene to have a matrix node 
-"world" which is directly attached to the "root" node of the database.
+<p>Tree traversal, arGraphicsContext.
 
-<pre>
-  arMatrix4 theMatrix;
-  int transformNodeID = dgTransform("world", "root", theMatrix);
-</pre>
-
-<p>The function call returns the numerical ID of the newly created node.
-
-<p>If later we want to rotate the world, we modify this node's matrix:
-
-<pre>
-  theMatrix = ...;
-  dgTransform(transformNodeID, theMatrix);
-</pre>
-
-<p>We now explore the other functions in the API.  For simplicity, we
-only consider calls that alter an existing node. Calls to create nodes
-work analogously to the dgTransform() example above, i.e. to construct
-the version of the call that creates a node replace the node ID with a
-node name and parent node name.
-
-<p>Please note that the "int* IDs" parameter can be implemented in each of the
-following function calls if the intent is to pass-in a data block
-for which the IDs would be 0,1,2,3,4,etc. This is a common occurence.
+<a name="NodeTypes">
+<p><font size=+2>Node Types</font>
+</a>
 
 <p><ul>
-<li><pre>dgPoints(int ID, int numberPoints, int* pointIDs, float* pointPositions)</pre>
-<p>This function creates a record that adds (hereafter, simply "adds") 
-"numberPoints" points to a points node. The array
-"pointIDs" stores each point's ID.  IDs are nonnegative;  this makes
-sure that space is allocated for n+1 points where n is the largest
-ID.  The ID is effectively treated like an array index, although of course
-only explicitly defined points can be used.  The array "pointPositions"
-holds packed (x,y,z) coordinates of each point (i.e. 3 floats per point).
-To modify only a subset of a large point set in a points node, simply
-put into the array "pointIDs" only a subset of the IDs.
-
-<p>
-<li><pre>dgTexture(int ID, string texture)</pre>
-<p>This function changes the texture stored in a texture node.  "texture" is
-the name of the file containing the texture (color PPM format only at present).  The
-SZG_RENDER/texture_path variable list directories in which the database looks
-for that filename.
-Textures are read from (local) disk rather than being sent over Ethernet.
-
-<p>
-<li><pre>dgNormal3(int ID, int numberNormals, int* normalIDs, float* normals)</pre>
-<p>This function alters a normals node. Normals are stored one after another in 
-packed (x,y,z) format. The normalIDs array can be used, as in dgPoints, to
-make partial changes to a large stored set of normals. Note that the number of
-normals times 3 will be the dimension of the passed-in "normals" array.
-
-<p>
-<li><pre>dgColor4(int ID, int numColors, int* IDs, float* colors)</pre>
-<p>This function alters a color4 node, which stores an array of RGBA colors.
-Colors are stored one after another in packed (r,g,b,a) format. The IDs array
-can be used, as in dgPoints, to make partial changes to a large stored set of
-colors. Note that the number of colors times 4 will be the dimension of the
-passed-in "colors" array. So far, this node is only used to specify the diffuse
-color of the vertices.
-
-<p>
-<li><pre>dgTex2(int ID, int numTexCoords, int* IDs, float* coords)</pre>
-<p>This function alters a tex2 node, which stores an array of 2D texture 
-coordinates. The IDs array can be used, as in dgPoints, to make partial
-changes to a large stored set of texture coordinates. Note that the number
-of texture coordinates times 2 will be the dimension of the passed-in
-"coords" array.
-
-<p>
-<li><pre>dgIndex(int ID, int numIndices, int* IDs, int* indices)</pre>
-<p>This function alters an index node, which contains a sequence of
-point IDs used by higher dimensional drawing primitives to place their
-geometry. The IDs array can be used, as in dgPoints, to make partial
-changes to a large stored set of indices. Note that the number of
-indices should equal the dimension of the passed-in "indices" array.
-
-<p>
-<li><pre>dgDrawable(int ID, int drawableType, int numPrimitives)</pre>
-<p>Drawable nodes are only database nodes that trigger drawing on the
-screen. The drawable type corresponds to DG_POINTS, DG_LINES, DG_LINE_STRIP, 
-DG_TRIANGLES, DG_TRIANGLE_STRIP, DG_QUADS, DG_QUAD_STRIP, or DG_POLYGON. Each
-of these has the same meaning as in OpenGL. The parameter numPrimitives
-refers to the number of primitives to be drawn in every case except
-DG_POLYGON, where it refers to the number of vertices in the polygon. When the
-graphics database attempts to draw a drawable node, it operates differently based
-on which of the following nodes are ancestors of the drawable node: points, index,
-tex2, normal3, and color4. 2D primitives require both points and index nodes to be
-ancestors. 1D or 0D primitives simply require a points node ancestor. In either case, if
-there is an ancestor index node, the IDs from the index array are used to select points
-as the primitives require them. If the index node is not present, points are selected in
-order from the points array. If tex2 or color4 nodes are ancestors, each requested point,
-in order, pulls a texture coordinate or color from the arrays managed by those nodes.
-<p>A word about the dimensionality of the subordinate arrays (like normal3, tex2, and
-color4) is required. This depends of the type of drawable node plus the number of
-primitives drawn. For instance, a DG_TRIANGLES node with 100 primitives will require
-300 normals (900 floats), one for each vertex. Note that the normal3 node is created
-using the number 300, reflecting the number of normals instead of the number of floats.
-
-<p>
-<li>
-<pre>
-  dgMaterial(int ID, const arVector3& diffuse,
-             const arVector3& ambient = arVector3(0.2,0.2,0.2), 
-             const arVector3& specular = arVector3(0,0,0), 
-             const arVector3& emissive = arVector3(0,0,0),
-             float exponent = 0., 
-             float alpha = 1.)</pre>
-<p>It is possible to specify a material once for a given chunk of geometry, instead of
-specifying a color for each vertex, using this node. Note that the defaults are the
-OpenGL defaults. All descendants of this node (without an intervening material node) will
-have this as the base material.
-           
-<p>
-<li>
-<pre>
-  dgLight(int ID,
-          int lightID, arVector4 position,
-          const arVector3& diffuse,
-          const arVector3& ambient = arVector3(0,0,0),
-          const arVector3& specular = arVector3(1,1,1),
-          const arVector3& attenuate = arVector3(1,0,0),
-          const arVector3& spotDiection = arVector3(0,0,-1),
-          float spotCutoff = 180.,
-          float spotExponent = 0.)</pre>
-<p>Light nodes allow the programmer to insert OpenGL lights in the scene and have them
-positioned by the matrix stack. lightID corresponds
-to the OpenGL light ID (ranging from 0 to 7). Only one light per scene can have a given ID.
-The defaults correspond to the OpenGL defaults. One important note: as in OpenGL, if the
-fourth coordinate of "position" is 0, the light is assumed to be directional, and if the 
-fourth coordinate of "position" is 1, the light is assumed to be positional.
-
-<p>
-<li>
-<pre>
-  dgCamera(int ID,
-           int cameraID, float leftClip, float rightClip, 
-           float bottomClip, float topClip, float nearClip, float farClip,
-           const arVector3& eyePosition = arVector3(0,0,0),
-           const arVector3& centerPosition = arVector3(0,0,-1),
-           const arVector3& upDirection = arVector3(0,1,0))</pre>
-<p>Camera nodes allow the programmer to incorporate multiple views into the scene. Currently,
-these views are not used as the default (the "VR" camera is used for that... see the dgViewer
-node). However, a user can cause a render program to switch to a non-default camera by
-sending a message. See the Advanced Features section of <a href="ConfigurationExamples.html">
-this</a>. The various parameters have the same meaning as in the GLU gluLookAt(...)
-command.
-
-<p>
-<li><pre>dgBlend(int ID, float blendFactor)</pre>
-<p>Blend nodes allow the programmer to create fade-in/fade-out effects. The alpha component
-of each color/texture in each descendant node will be multiplied by blendFactor.
-
-<p>
-<li>
-<pre>
-  dgViewer(const arMatrix4& headMatrix, const arVector3& midEyeOffset,
-           const arVector3& eyeDirection, float eyeSpacing,
-           float nearClip, float farClip, float unitConversion)</pre>
-<p>The viewer node (there is only one, given the special name "SZG_VIEWER") is the default
-"VR" camera for the database. When drawn, the graphics database combines the information
-in this node with the information stored in an arScreenObject (containing such things
-as the dimensions and location of the display in tracked coordinates) to compute
-the viewing transformation. The parameter midEyeOffset gives the location of the spot
-between the user's eyes relative to the head sensor. The parameter eyeDirection gives the vector
-from this location to the right eye. The parameter unitConversion gives the scale factor from
-tracked coordinates (assumed to be in feet) and the units of the virtual world. Note that
-the arDistSceneGraphFramework automatically generates and manages this node.
-
-<p>
-<li><pre>dgBoundingSphere(int ID, int visibility, float radius, arVector3 position)</pre>
-<p>This function alters the sphere in a (drawable) bounding sphere node.
-The sphere's radius and center are given by "radius" and "position".
-The sphere is drawn exactly when "visibility" is nonzero.
-
-<p>
-<li><pre>dgBillboard(int ID, int visibility, string text)</pre>
-<p>This function alters the visibility (as in dgBoundingSphere) and
-text displayed by a billboard node.  The string "text" should contain
-only lowercase letters and slashes;  a slash acts as a line separator.
-
-<p>
-<li><pre>dgVisibility(int ID, int visibility)</pre>
-<p>This function alters the state of a visibility node.
-Children of this node are drawn iff the node's visibility is true (nonzero).
-
-<p>
-<li><pre>dgErase(string node)</pre>
-<p>This function removes the children of a node from the graphics database.
-
-<p>
+<li>transform: The type name for an arTransformNode.
+<li>texture: The type name for an arTextureNode.
+<li>bounding sphere: The type name for an arBoundingSphereNode.
+<li>billboard: The type name for an arBillboardNode.
+<li>visibility: The type name for an arVisibilityNode.
+<li>blend: The type name for an arBlendNode.
+<li>light: The type name for an arlightNode.
+<li>material: The type name for an arMaterialNode.
+<li>normal3: The type name for an arNormal3Node.
+<li>color4: The type name for an arColor4Node.
+<li>tex2: The type name for an arTex2Node.
+<li>index: The type name for an arIndexNode.
+<li>points: The type name for an arPointsNode.
+<li>drawable: The type name for an arDrawableNode.
+<li>graphics state: The type name for an arGraphicsStateNode.
+<li>persp camera: The type name for an arPerspectiveCameraNode.
+<li>viewer: The type name for an arViewerNode.
 </ul>
+
+<a name="Constructing">
+<p><font size=+2>Constructing a Node Tree</font>
+</a>
+
+<p>arGraphicsDatabase is a subclass of arDatabase, as arGraphicsNode is a
+subclass of arGraphicsNode. A short summary of the kinds of operations
+that are possible.
+
+<p>Node names. The root node has a special name ("root") and ID (0).
+
+<pre>
+  string arDatabaseNode::getName() const;
+  void arDatabaseNode::setName(const string& name);
+</pre>
+
+<p>Node IDs. Cannot set node ID This is done by an arDatabase only in node
+construction. An arDatabase never repeats node IDs for the nodes it creates.
+
+<pre>
+  int arDatabaseNode::getID();
+</pre>
+
+<p>Node info.
+
+<pre>
+  string arDatabaseNode::getInfo() const;
+  void arDatabaseNode::setInfo(const string& info);
+</pre>
+
+<p>Node type.
+
+<pre>
+  string arDatabaseNode::getTypeString() const;
+</pre>
+
+<p>Creating new nodes. This must be done via the arDatabase.
+
+<pre>
+  arDatabaseNode* arDatabase::getRoot();
+  arDatabaseNode* arDatabase::newNode(arDatabaseNode* parent, 
+                                      const string& type,
+                                      const string& name = "", 
+                                      bool refNode = false);
+  arDatabaseNode* arDatabaseNode::newNode(const string& type, 
+                                          const string& name = "",
+                                          bool refNode = false);
+</pre>
+
+<p>Reference counting. Necessary for thread-safety (if another thread is
+deleting).
+
+<pre>
+  void arDatabaseNode::ref();
+  void arDatabaseNode::unref();
+  int arDatabaseNode::getRef();
+  bool arDatabaseNode::active();
+  list&lt;arDatabaseNode*&gt; arDatabaseNode::getChildrenRef();
+</pre>
+
+<p>Deleting nodes, cutting and erasing.
+
+<pre>
+  bool arDatabase::cutNode(arDatabaseNode* node);
+  bool arDatabase::cutNode(int ID);
+  bool arDatabase::eraseNode(arDatabaseNode* node);
+  bool arDatabase::eraseNode(int ID);
+</pre>
+
+<p>Inserting between existing parent and child (or in front of ALL of a 
+parent's children). Must go through arDatabase to avoid deadlocks.
+
+<pre>
+  arDatabaseNode* arDatabase::insertNode(arDatabaseNode* parent,
+			                 arDatabaseNode* child,
+			                 const string& type,
+			                 const string& name = "",
+                                         bool refNode = false);
+</pre>
+
+<p>Permuting children.
+
+<pre>
+  void arDatabase::permuteChildren(arDatabaseNode* parent,
+                                   list<arDatabaseNode*>& children);
+  void arDatabaseNode::permuteChildren(list<arDatabaseNode*>& children);
+</pre>
+
+<p>Inspecting and traversing the node tree.
+
+<pre>
+  arDatabaseNode* arDatabaseNode::getParent() const;
+  list&lt;arDatabaseNode*&gt; arDatabaseNode::getChildren() const;
+  void arDatabaseNode::ps(int maxLevel=10000);
+</pre>
+
+<p>Finding nodes via name or ID.
+
+<pre>
+  arDatabaseNode* arDatabaseNode::findNode(const string& name, 
+                                           bool refNode = false);
+  arDatabaseNode* arDatabaseNode::findNodeByType(const string& type.
+                                                 bool refNode = false);
+  arDatabaseNode* arDatabase::getNode(int ID);
+</pre>
+
+<p>Manipulating node level. Imporant only for peer-to-peer reality.
+
+<p><ul>
+<li>AR_IGNORE_NODE
+<li>AR_STRUCTURE_NODE
+<li>AR_STABLE_NODE
+<li>AR_OPTIONAL_NODE
+<li>AR_TRANSIENT_NODE
+</ul>
+
+<pre>
+  arNodeLevel getNodeLevel();
+  void setNodeLevel(arNodeLevel nodeLevel);
+</pre>
+
+<p><font size=+2>Helper Classes</font>
+
+<p>arMaterial, with the fields having the same meaning and defaults as in
+the OpenGL specification.
+
+<pre>
+  arVector3 diffuse;
+  arVector3 ambient;
+  arVector3 specular;
+  arVector3 emissive;
+  float exponent; 
+  float alpha; 
+</pre>
+
+<p>arLight, with the fields having the same meaning and defaults as in the
+OpenGL specification.
+
+<pre>
+  int lightID;      
+  arVector4 position;
+  arVector3 diffuse;
+  arVector3 ambient;
+  arVector3 specular;
+  float     constantAttenuation;
+  float     linearAttenuation;
+  float     quadraticAttenuation;
+  arVector3 spotDirection;
+  float     spotCutoff;
+  float     spotExponent;
+</pre>
+
+<p>arBoundingSphere
+
+<pre>
+  arVector3 position;
+  float     radius;
+  bool      visibility;
+</pre>
+
+<p>arRay
+
+<pre>
+  arVector3 origin;
+  arVector3 direction;
+</pre>
+
+<a name="BuiltIn">
+<p><font size=+2>Using Built-In Objects</font>
+</a>
+
+<p>If you are writing your own custom code instead of using the
+arDistSceneGraphFramework or arMasterSlaveFramework objects
+(all the demos included with this distribution use these frameworks), first 
+call dgSetGraphicsDatabase() before issuing any other API calls.
+The framework objects hide this detail.
+
+<pre>
+  arGraphicsDatabase graphicsDatabase;
+  dgSetGraphicsDatabase(&graphicsDatabase);
+</pre>
+
+<p>arSphereMesh
+
+<p>arCubeMesh
+
+<p>arCylinderMesh
+
+<p>arRectangleMesh
+
+<p>arTorusMesh
+
+<p>Importing files in .obj format.
+
+<a name="NodeMethods">
+<p><font size=+2>Node Methods in C++</font>
+</a>
+
+<pre>
+void arDatabaseNode::lock();
+void arDatabaseNode::unlock();
+
+arMatrix4 arTransformNode::getTransform();
+void arTransformNode::setTransform(const arMatrix4& transform);
+
+string arTextureNode::getFileName();
+void arTextureNode::setFileName(const string& fileName, int alpha = -1);
+
+string arBillboardNode::getText();
+void arBillboardNode::setText(const string& text);
+
+bool arVisibilityNode::getVisibility();
+void arVisibilityNode::setVisibility(bool visibility);
+
+float arBlendNode::getBlend();
+void arBlendNode::setBlend(float blendFactor);
+
+arLight arLightNode::getLight();
+void arLightNode::setLight(arLight& light);
+
+arMaterial arMaterialNode::getMaterial();
+void arMaterialNode::setMaterial(const arMaterial& material);
+
+const float* arNormal3Node::getNormal3(int& number);
+void arNormal3Node::setNormal3(int number, float* normal3, int* IDs = NULL);
+vector<arVector3> arNormal3Node::getNormal3();
+void arNormal3Node::setNormal3(vector<arVector3>& normal3);
+void arNormal3Node::setNormal3(vector<arVector3>& normal3,
+                               vector<int>& IDs);
+
+const float* arColor4Node::getColor4(int& number);
+void arColor4Node::setColor4(int number, float* color4, int* IDs = NULL);
+vector<arVector4> arColor4Node::getColor4();
+void arColor4Node::setColor4(vector<arVector4>& color4);
+void arColor4Node::setColor4(vector<arVector4>& color4,
+		             vector<int>& IDs);
+
+const float* arTex2Node::getTex2(int& number);
+void arTex2Node::setTex2(int number, float* tex2, int* IDs = NULL);
+vector<arVector2> arTex2Node::getTex2();
+void artex2Node::setTex2(vector<arVector2>& tex2);
+void arTex2Node::setTex2(vector<arVector2>& tex2,
+	                 vector<int>& IDs);
+
+const int* arIndexNode::getIndices(int& number);
+void arIndexNode::setIndices(int number, int* indices, int* IDs = NULL);
+vector<int> arIndexNode::getIndices();
+void arIndexNode::setIndices(vector<int>& indices);
+void arIndexNode::setIndices(vector<int>& indices,
+		             vector<int>& IDs);
+</pre>
+
+<a name="DrawableNode">
+<p><font size=+2>Drawable Node Specifics</font>
+</a>
+
+<p>Relationship between drawable number, the sizes of the various arrays,
+and the number of primitives drawn.
+
+<p><ul>
+<li>DG_POINTS
+<li>DG_LINES 
+<li>DG_LINE_STRIP 
+<li>DG_TRIANGLES
+<li>DG_TRIANGLE_STRIP
+<li>DG_QUADS
+<li>DG_QUAD_STRIP
+<li>DG_POLYGON
+</ul>
+
+<pre>
+int arDrawableNode::getType();
+string arDrawableNode::getTypeAsString();
+int arDrawableNode::getNumber();
+void arDrawableNode::setDrawable(arDrawableType type, int number);
+void arDrawableNode::setDrawableViaString(const string& type, int number);
+</pre>
+
+<a name="GraphicsState">
+<p><font size=+2>Graphics State Node</font>
+</a>
+
+<p><ul>
+<li>point_size
+<li>line_width
+<li>shade_model
+<li>lighting
+<li>blend
+<li>depth_test
+<li>blend_func
+</ul>
+
+<p><ul>
+<li>false
+<li>true
+<li>smooth
+<li>flat
+<li>zero
+<li>one
+<li>dst_color
+<li>src_color
+<li>one_minus_dst_color
+<li>one_minus_src_color
+<li>src_alpha
+<li>one_minus_src_alpha
+<li>dst_alpha
+<li>one_minus_dst_alpha
+<li>src_alpha_saturate
+</ul>
+
+<pre>
+string arGraphicsStateNode::getStateName();
+bool arGraphicsStateNode::isFloatState();
+bool arGraphicsStateNode::isFloatState(const string& stateName);
+string arGraphicsStateNode::getStateValueString(int i);
+float arGraphicsStateNode::getStateValueFloat();
+bool arGraphicsStateNode::setGraphicsStateString(const string& stateName,
+                                                 const string& value1,
+			                         const string& value2 = "false");
+bool arGraphicsStateNode::setGraphicsStateFloat(const string& stateName,
+                                                float stateValueFloat);
+</pre>
+
+
+<a name="ThreadSafety">
+<p><font size=+2>Notes on Thread Safety</font>
+
+<p>The Myriad scene graph is thread-safe, for instance, with respect to
+drawing in multiple threads even with simultaneous deletions and other
+scene graph restructurings occur in still other threads.
+
+<hr>
 </body>
 </html>

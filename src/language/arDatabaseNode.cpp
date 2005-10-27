@@ -278,6 +278,20 @@ void arDatabaseNode::initialize(arDatabase* d){
   _dLang = d->_lang;
 }
 
+/// So far only implemented for OWNED nodes.
+void arDatabaseNode::permuteChildren(list<arDatabaseNode*>& children){
+  if (active()){
+    getOwner()->permuteChildren(this, children);
+  }
+}
+
+/// So far only implemented for OWNED nodes.
+void arDatabaseNode::permuteChildren(int number, int* children){
+  if (active()){
+    getOwner()->permuteChildren(this, number, children);
+  }
+}
+
 //**********************************************************************
 // These accessor functions (combined with the next block of functions)
 // should be the only way(s) that external code touches _databaseOwner,

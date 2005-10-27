@@ -165,24 +165,24 @@ void testDatabase(arGraphicsDatabase& g){
       g.cutNode(insertedState->getID());
       g.cutNode(insertedState2->getID());
     }
-    list<int> IDs;
+    list<arDatabaseNode*> IDs;
     if (count == 300){
       cout << "testgraphics remark: about to permute nodes.\n";
       // s, s4, n, rt are the initial children for the global trans node.
-      IDs.push_back(rt->getID());
-      IDs.push_back(s->getID());
-      IDs.push_back(s4->getID());
-      IDs.push_back(n->getID());
+      IDs.push_back(rt);
+      IDs.push_back(s);
+      IDs.push_back(s4);
+      IDs.push_back(n);
       g.permuteChildren(globalTrans, IDs);
     }
     if (count == 400){
       // s, s4, n, rt are the initial children for the global trans node.
       // Return to the original order.
       cout << "testgraphics remark: about to permute again.\n";
-      IDs.push_back(s->getID());
-      IDs.push_back(s4->getID());
-      IDs.push_back(n->getID());
-      IDs.push_back(rt->getID());
+      IDs.push_back(s);
+      IDs.push_back(s4);
+      IDs.push_back(n);
+      IDs.push_back(rt);
       g.permuteChildren(globalTrans, IDs);
     }
     count++;

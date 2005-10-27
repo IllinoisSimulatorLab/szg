@@ -73,7 +73,9 @@ class SZG_CALL arDatabase{
   bool eraseNode(arDatabaseNode* node);
   bool eraseNode(int ID);
   void permuteChildren(arDatabaseNode* parent,
-                       list<int>& childIDs);
+                       list<arDatabaseNode*>& children);
+  void permuteChildren(arDatabaseNode* parent,
+		       int number, int* children);
   
   bool fillNodeData(arStructuredData* data, arDatabaseNode* node);
 

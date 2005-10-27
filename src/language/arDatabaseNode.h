@@ -80,6 +80,9 @@ class SZG_CALL arDatabaseNode{
   // Called by arDatabase upon removing the node.
   virtual void deactivate(){}
 
+  void permuteChildren(list<arDatabaseNode*>& children);
+  void permuteChildren(int number, int* children);
+
   int getID() const;
   inline arDatabase* getOwner() const { return _databaseOwner; }
   arDatabaseNode* getParent() const;

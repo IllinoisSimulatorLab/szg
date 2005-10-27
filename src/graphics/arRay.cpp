@@ -7,23 +7,23 @@
 #include "arPrecompiled.h"
 #include "arRay.h"
 
-arRay::arRay(const arVector3& source, const arVector3& orientation) :
-  _origin(source),
-  _direction(orientation)
+arRay::arRay(const arVector3& o, const arVector3& d) :
+  origin(o),
+  direction(d)
 {
 }
 
 void arRay::transform(const arMatrix4& matrix){
-  _origin = matrix*_origin;
+  origin = matrix*origin;
   // Directions transform differently than positions.
-  _direction = matrix*_direction - matrix*arVector3(0,0,0);
+  direction = matrix*direction - matrix*arVector3(0,0,0);
 }
 
-// does the ray intersect a particular bounding sphere?
+// Does the ray intersect a particular bounding sphere?
 float arRay::intersect(float radius, const arVector3& position){
-  const float a = _direction%_direction;
-  const float b = 2. * (_origin%_direction - _direction%position);
-  const float c = _origin%_origin + position%position - 2*(_origin%position)
+  const float a = direction%direction;
+  const float b = 2. * (origin%direction - direction%position);
+  const float c = origin%origin + position%position - 2*(origin%position)
             - radius*radius;
 
   const float discriminant = b*b - 4.*a*c;
@@ -40,7 +40,7 @@ float arRay::intersect(float radius, const arVector3& position){
 
   // Return the closest intersection in the positive direction.
   // Note that t2 <= t1.
-  return (t2>0 ? t2 : t1) * ++_direction;
+  return (t2>0 ? t2 : t1) * ++direction;
 }
 
 arBoundingSphere::arBoundingSphere(const arVector3& pos, float rad) :

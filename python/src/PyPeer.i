@@ -70,6 +70,8 @@ class arDatabaseNode{
   void ps();
   void ps(int maxLevel);
 
+  void permuteChildren(int number, int* children);
+
   arNodeLevel getNodeLevel();
   void setNodeLevel(arNodeLevel nodeLevel);
 
@@ -96,6 +98,13 @@ class arDatabaseNode{
           l.append(wl.get())
           wl.next()
       return l
+
+  def permute(self, children):
+      c = []
+      for i in children:
+          c.append(i.getID())
+      if len(c) > 0:
+          self.permuteChildren(len(c), c)
 
   def find(self, name):
       return self.findNodeRef(name)
@@ -156,7 +165,7 @@ def gcast(n):
         return castToBoundingSphere(n)
     elif label == 'viewer':
         return castToViewer(n)
-    elif lable == 'blend':
+    elif label == 'blend':
         return castToBlend(n)
     elif label == 'billboard':
         return castToBillboard(n)
@@ -225,21 +234,25 @@ class arGraphicsNode: public arDatabaseNode{
 class arRay{
  public:
   arRay();
-  arRay(const arVector3& origin, const arVector3& direction);
+  arRay(const arVector3& o, const arVector3& d);
   ~arRay();
 
   void transform(const arMatrix4&);
   // Intersection with sphere.
   float intersect(float radius, const arVector3& position);
+  float intersect(const arBoundingSphere& b);
   const arVector3& getOrigin() const;
   const arVector3& getDirection() const;
+
+  arVector3 origin;
+  arVector3 direction;
 
 %extend{
   string __repr__( void ){
     ostringstream s;
     s << "arRay\n";
-    s << "origin: arVector3" << self->getOrigin() << "\n";
-    s << "direction: arVector3" << self->getDirection() << "\n";
+    s << "origin: arVector3" << self->origin << "\n";
+    s << "direction: arVector3" << self->direction << "\n";
     return s.str();
   }
 }
@@ -250,7 +263,6 @@ class arBoundingSphere{
   arBoundingSphere();
   arBoundingSphere(const arVector3& position, float radius);
   ~arBoundingSphere();
-
   bool intersectViewFrustum(arMatrix4& m);
 
   arVector3 position;
@@ -815,10 +827,13 @@ class arDatabase{
 			        arDatabaseNode* child,
 			        const string& type,
 			        const string& name = "");
+  bool cutNode(arDatabaseNode* node);
   bool cutNode(int ID);
+  bool eraseNode(arDatabaseNode* node);
   bool eraseNode(int ID);
   void permuteChildren(arDatabaseNode* parent,
-                       list<int>& childIDs);
+                       int number, int* children);
+                       
 
   virtual bool readDatabase(const string& fileName, 
                             const string& path = "");
@@ -854,6 +869,14 @@ class arDatabase{
   void printStructure();
   void ps(int maxLevel);
   void ps();
+%pythoncode{
+  def permute(self, parent, children):
+      c = []
+      for i in children:
+          c.append(i.getID())
+      if len(c) > 0:
+          self.permuteChildren(parent, len(c), c)
+}
 };
 
 class arGraphicsDatabase: public arDatabase{
