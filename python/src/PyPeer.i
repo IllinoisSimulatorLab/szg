@@ -1254,3 +1254,34 @@ class TransformManip{
   void start();
   void stop();
 };
+
+%pythoncode{
+class ezview:
+    def __init__(self):
+        self.m = arGUIWindowManager(None, None, None, None, 1)
+        self.c = arGUIWindowConfig()
+        self.c.setSize(400, 400)
+        self.id = self.m.addWindow(self.c)
+        self.e = arEditorRenderCallback()
+        self.e.database = None
+        self.e.camera = None
+        self.m.registerDrawCallback(self.id, self.e)
+        self.m.swapAllWindowBuffers(1)
+
+    def __del__(self):
+        self.m.deleteWindow(self.id)
+
+    def draw(self, database, camera):
+        self.m.processWindowEvents()
+        if self.m.hasActiveWindows() == 0:
+            self.id = self.m.addWindow(self.c)
+        self.e.database = database
+        self.e.camera = camera
+        self.m.drawAllWindows(1)
+        self.m.swapAllWindowBuffers(1)
+        self.e.database = None
+        self.e.camera = None
+  
+}
+
+
