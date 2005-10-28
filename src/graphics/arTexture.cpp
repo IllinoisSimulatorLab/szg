@@ -168,7 +168,7 @@ void arTexture::unref(bool debug){
   }
 }
 
-void arTexture::activate(bool forceRebind) {
+bool arTexture::activate(bool forceRebind) {
   glEnable(GL_TEXTURE_2D);
   _lock.lock();
 #ifdef AR_USE_WIN_32
@@ -184,7 +184,7 @@ void arTexture::activate(bool forceRebind) {
     if (temp == 0) {
       cerr << "arTexture error: glGenTextures() failed in activate().\n";
       _lock.unlock();
-      return;
+      return false;
     }
     _texNameMap.insert(map<ARint64,GLuint,less<ARint64> >::value_type
                        (threadID, temp));
@@ -197,29 +197,29 @@ void arTexture::activate(bool forceRebind) {
   _lock.unlock();
 
   glBindTexture(GL_TEXTURE_2D, temp);
-  // Very odd... if the following statement isn't included, then 
+  // if the following statement isn't included, then 
   // the wrong GL_TEXTURE_ENV_MODE can be used by the scene graph for
-  // drawing textures. I'm very perplexed since I'd thought that the
-  // texture object, as bound above, should deal with this...
+  // drawing textures. Odd, the
+  // texture object, as bound above, should deal with this.
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, _textureFunc );
   if (_fDirty || forceRebind){
     _loadIntoOpenGL();
   }
-  
+  return true;
 }
 
 void arTexture::deactivate() {
  glDisable(GL_TEXTURE_2D);
 }
 
-// Create a special texture map to indicate a missing texture.
-void arTexture::dummy() {
+/// Create a special texture map to indicate a missing texture.
+bool arTexture::dummy() {
   _width = _height = 1; // 1 could be some other power of two.
   _alpha = false;
   _textureFunc = GL_MODULATE;
   if (!_reallocPixels()) {
     cerr << "arTexture error: _reallocPixels() failed in dummy().\n";
-    return;
+    return false;
   }
   for (int i = _height*_width - 1; i>=0; --i) {
     char* pPixel = &_pixels[i * getDepth()];
@@ -228,6 +228,7 @@ void arTexture::dummy() {
     pPixel[1] = 0;
     pPixel[2] = 0xff; // 3f is black, 7f through df dark purple, ef through ff pure blue
   }
+  return true;
 }
 
 /// Copies an externally given array of pixels into internal memory.

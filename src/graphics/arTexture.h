@@ -36,7 +36,7 @@ class SZG_CALL arTexture {
   arTexture* ref();
   void unref(bool debug = false);
 
-  void activate(bool forceRebind = false);
+  bool activate(bool forceRebind = false);
   void deactivate();
 
   int getWidth()  const { return _width; }
@@ -52,7 +52,7 @@ class SZG_CALL arTexture {
   void mipmap(bool fEnable);
   void repeating(bool fEnable);
   void grayscale(bool fEnable);
-  void dummy();
+  bool dummy();
 
   bool readImage(const string& fileName, int alpha = -1, bool complain = true);
   bool readImage(const string& fileName, const string& path, int alpha = -1,
