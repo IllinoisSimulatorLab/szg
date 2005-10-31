@@ -244,6 +244,7 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
   // The default for the arTexture object is to use GL_DECAL mode, but we
   // want LIT textures.
   theTexture->setTextureFunc(GL_MODULATE);
+  std::vector<std::string> triedPaths;
   if (name.length() <= 0) {
     cerr << "arGraphicsDatabase warning: "
 	 << "ignoring empty filename for texture.\n";
@@ -270,6 +271,7 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
 	// bundle names (foo/bar), which can be changed per platform
 	// to the right thing (on Windows, foo\bar)
         ar_scrubPath(potentialFileName);
+        triedPaths.push_back( potentialFileName );
         fDone = theTexture->readImage(potentialFileName.c_str(), *theAlpha,
 				      false);
 	theTexture->mipmap(true);
@@ -287,6 +289,7 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
 	 ++i){
       potentialFileName = *i + name;
       ar_scrubPath(potentialFileName);
+      triedPaths.push_back( potentialFileName );
       // Make sure the texture function does not complain (the final
       // false parameter does this). Otherwise, ugly error messages will
       // pop up. Note: it is natural that there be some complaints! Since
@@ -302,14 +305,17 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
       if (!fComplained){
 	fComplained = true;
 	cerr << "arGraphicsDatabase warning: no graphics file \""
-	     << name << "\" in ";
-	if (_texturePath->size() <= 1)
-	  cerr << "empty ";
-	cerr << "texture path." << endl;
+	     << name << "\" found. Tried the following locations:\n";
+        std::vector<std::string>::iterator iter;
+        for (iter = triedPaths.begin(); iter != triedPaths.end(); ++iter) {
+          cerr << *iter << endl;
+        }
+        cerr << endl;
       }
     }
     ar_mutex_unlock(&_texturePathLock);
   }
+  triedPaths.clear();
   _textureNameContainer.insert(
     map<string,arTexture*,less<string> >::value_type(name,theTexture));
   // NOTE: It is very important to ref this texture again for its return.

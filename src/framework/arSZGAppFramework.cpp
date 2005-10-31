@@ -6,6 +6,7 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arSZGAppFramework.h"
+#include "arSoundAPI.h"
 
 // NOTE: the defaults include an average eye spacing of 6 cm.
 arSZGAppFramework::arSZGAppFramework() :
@@ -18,6 +19,7 @@ arSZGAppFramework::arSZGAppFramework() :
   _defaultUserFilter(),
   _userEventFilter(NULL),
   _unitSoundConversion(1.),
+  _speechNodeID(-1),
   _useExternalThread(false),
   _externalThreadRunning(false),
   _blockUntilDisplayExit(false),
@@ -220,6 +222,13 @@ void arSZGAppFramework::onProcessEventQueue( arInputEventQueue& theQueue ) {
   }
 }
 
+void arSZGAppFramework::speak( const std::string& message ) {
+  if (_speechNodeID == -1) {
+    _speechNodeID = dsSpeak( "framework_messages", "root", message );
+  } else {
+    dsSpeak( _speechNodeID, message );
+  }
+}
 
 static bool ___firstNavLoad = true;
 

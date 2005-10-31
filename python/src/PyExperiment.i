@@ -6,7 +6,7 @@ class arPythonExperiment;
 
 class arPythonTrialGenerator : public arTrialGenerator {
   public:
-    arPythonTrialGenerator();
+    arPythonTrialGenerator( const std::string& comment = "" );
     virtual ~arPythonTrialGenerator();
     bool init( const std::string experiment,
                      std::string configPath,
@@ -23,9 +23,10 @@ class arPythonTrialGenerator : public arTrialGenerator {
     PyObject* _newTrialCallback;
 };
 
-arPythonTrialGenerator::arPythonTrialGenerator() :
+arPythonTrialGenerator::arPythonTrialGenerator( const std::string& comment ) :
   arTrialGenerator(),
   _newTrialCallback(NULL) {
+  _comment = comment;
 }
 
 arPythonTrialGenerator::~arPythonTrialGenerator() {
@@ -689,7 +690,7 @@ class arExperimentDataRecord  {
 
 class arPythonTrialGenerator : public arTrialGenerator {
   public:
-    arPythonTrialGenerator();
+    arPythonTrialGenerator( const string& comment = "" );
     virtual ~arPythonTrialGenerator();
     std::string comment() { return _comment; }
     void setCallback( PyObject* newTrialCallback );
@@ -813,8 +814,8 @@ class arPythonExperiment: public arExperiment {
 %pythoncode %{
 
 class arPyTrialGenerator(arPythonTrialGenerator):
-  def __init__(self):
-    arPythonTrialGenerator.__init__(self)
+  def __init__(self, comment=''):
+    arPythonTrialGenerator.__init__(self, comment)
     self.setCallback( self.onNewTrial )
   def onNewTrial( self, factors ):
     raise PySZGException, 'arPyTrialGenerator: you must override onNewTrial().'

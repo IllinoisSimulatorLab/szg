@@ -1173,6 +1173,7 @@ FILE* ar_fileOpen(const string& name,
     // as required by platform. This is necessary to allow the subdirectory
     // to have multiple levels in a cross-platform sort of way.
     ar_scrubPath(possiblePath);
+//cerr << "Trying to open " << possiblePath << endl;
     result = fopen(possiblePath.c_str(), operation.c_str());
     if (result && ar_isDirectory(possiblePath.c_str())){
       // Reject this directory.
@@ -1186,6 +1187,7 @@ FILE* ar_fileOpen(const string& name,
     possiblePath = name;
     // Do not forget to "scrub" the path.
     ar_scrubPath(possiblePath);
+//cerr << "Trying to open " << possiblePath << endl;
     result = fopen(possiblePath.c_str(), operation.c_str());
     if (result && ar_isDirectory(possiblePath.c_str())){
       // Reject this directory.

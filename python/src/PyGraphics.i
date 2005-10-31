@@ -1,4 +1,4 @@
-// $Id: PyGraphics.i,v 1.8 2005/10/23 21:53:55 schaeffr Exp $
+// $Id: PyGraphics.i,v 1.9 2005/10/31 17:11:01 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -85,6 +85,17 @@ bool dgVisibility(int, int);
 
 int dgBlend(const string&, const string&, float);
 bool dgBlend(int, float);
+
+int dgStateInt(const string& nodeName, const string& parentName,
+                        const string& stateName,
+                        arGraphicsStateValue val1,
+                        arGraphicsStateValue val2 = AR_G_FALSE );
+bool dgStateInt(int nodeID, const string& stateName,
+    arGraphicsStateValue val1, arGraphicsStateValue val2 = AR_G_FALSE);
+
+int dgStateFloat(const string& nodeName, const string& parentName,
+                          const string& stateName, float value );
+bool dgStateFloat(int nodeID, const string& stateName, float value);
 
 int dgNormal3(const string& name, const string& parent, int numNormals,
           int* IDs, float* normals);

@@ -61,6 +61,8 @@ class arSZGAppFramework {
     void navUpdate();
     void navUpdate( arInputEvent& event );
 
+    void speak( const string& message );
+
     arInputState* getInputState()
       { return (arInputState*)_inputState; }
       

@@ -111,6 +111,8 @@ class SZG_CALL arSZGAppFramework {
     void processEventQueue();
     virtual void onProcessEventQueue( arInputEventQueue& theQueue );
 
+    void speak( const std::string& message );
+
     // some applications need to be able to find out information
     // about the virtual computer
     arAppLauncher* getAppLauncher(){ return &_launcher; }
@@ -155,6 +157,8 @@ class SZG_CALL arSZGAppFramework {
 
     // the graphics unitConversion resides in the head now for convenience.
     float _unitSoundConversion;
+
+    int _speechNodeID;
     
     arNavManager _navManager;
     std::set< std::string > _ownedParams;

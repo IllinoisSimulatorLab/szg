@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.17 2005/10/07 18:19:34 crowell Exp $
+// $Id: PyMasterSlave.i,v 1.18 2005/10/31 17:11:01 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -1054,11 +1054,11 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
     self.onExit()
   def onExit( self ):
     pass
-  def speak( self, message ):
-    if self.speechNodeID == -1:
-      self.speechNodeID = dsSpeak( 'messages', 'root', message )
-    else:
-      dsSpeak( self.speechNodeID, message )
+#  def speak( self, message ):
+#    if self.speechNodeID == -1:
+#      self.speechNodeID = dsSpeak( 'messages', 'root', message )
+#    else:
+#      dsSpeak( self.speechNodeID, message )
 
 # Utility classes
 
