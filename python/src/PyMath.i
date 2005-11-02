@@ -1,4 +1,4 @@
-// $Id: PyMath.i,v 1.6 2005/10/23 00:21:37 schaeffr Exp $
+// $Id: PyMath.i,v 1.7 2005/11/01 19:04:59 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -340,7 +340,7 @@ PyObject* fromSequence( PyObject* seq ) {
     # __setstate__ recreates an object from its pickled state
     def __setstate__(self,v):
         _swig_setattr(self, arVector3, 'this',
-            _PySZG.new_arVector3(v[0],v[1],v[2]))
+            getSwigModuleDll().new_arVector3(v[0],v[1],v[2]))
         _swig_setattr(self, arVector3, 'thisown', 1)
 }
 };
@@ -469,7 +469,7 @@ PyObject* fromSequence( PyObject* seq ) {
     # __setstate__ recreates an object from its pickled state
     def __setstate__(self,v):
         _swig_setattr(self, arVector4, 'this',
-            _PySZG.new_arVector4(v[0],v[1],v[2],v[3]))
+            getSwigModuleDll().new_arVector4(v[0],v[1],v[2],v[3]))
         _swig_setattr(self, arVector4, 'thisown', 1)
 }
 };
@@ -747,7 +747,7 @@ PyObject* fromSequence( PyObject* seq ) {
     # __setstate__ recreates an object from its pickled state
     def __setstate__(self,v):
         _swig_setattr(self, arMatrix4, 'this',
-            _PySZG.new_arMatrix4(
+            getSwigModuleDll().new_arMatrix4(
                 v[0],v[1],v[2],v[3],
                 v[4],v[5],v[6],v[7],
                 v[8],v[9],v[10],v[11],
@@ -945,7 +945,7 @@ PyObject* fromSequence( PyObject* seq ) {
     # __setstate__ recreates an object from its pickled state
     def __setstate__(self,v):
         _swig_setattr(self, arQuaternion, 'this',
-            _PySZG.new_arQuaternion(v[0],v[1],v[2],v[3]))
+            getSwigModuleDll().new_arQuaternion(v[0],v[1],v[2],v[3]))
         _swig_setattr(self, arQuaternion, 'thisown', 1)
 }
 };

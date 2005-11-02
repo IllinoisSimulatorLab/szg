@@ -1,4 +1,4 @@
-// $Id: PySZG.i,v 1.6 2005/11/01 19:04:59 crowell Exp $
+// $Id: PySZG.i,v 1.7 2005/11/01 19:07:19 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -19,8 +19,8 @@
 // These bindings are _not_ supposed to be complete, efficient, well-designed,
 // or even correct. There probably are a few memory leaks and other problems.
 
-
-/*%module PySZG*/
+// NOTE: the module name is now passed in by the makefile. DO NOT SET IT HERE!
+//%module PySZG
 
 // Include pertinent C++ headers. (Is this the best place to put the headers?)
 %{

@@ -1,4 +1,4 @@
-// $Id: PyGraphics.i,v 1.9 2005/10/31 17:11:01 crowell Exp $
+// $Id: PyGraphics.i,v 1.10 2005/11/01 19:04:59 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -206,7 +206,7 @@ class arMesh {
     # __setstate__ recreates an object from its pickled state
     def __setstate__(self,t):
         _swig_setattr(self, arMesh, 'this',
-            _PySZG.new_arMesh(t))
+            getSwigModuleDll().new_arMesh(t))
         _swig_setattr(self, arMesh, 'thisown', 1)
 }
 };
@@ -228,7 +228,7 @@ class arCubeMesh : public arMesh {
     # __setstate__ recreates an object from its pickled state
     def __setstate__(self,t):
         _swig_setattr(self, arCubeMesh, 'this',
-            _PySZG.new_arCubeMesh(t))
+            getSwigModuleDll().new_arCubeMesh(t))
         _swig_setattr(self, arCubeMesh, 'thisown', 1)
 }
 };
@@ -250,7 +250,7 @@ class arRectangleMesh : public arMesh {
     # __setstate__ recreates an object from its pickled state
     def __setstate__(self,t):
         _swig_setattr(self, arRectangleMesh, 'this',
-            _PySZG.new_arRectangleMesh(t))
+            getSwigModuleDll().new_arRectangleMesh(t))
         _swig_setattr(self, arRectangleMesh, 'thisown', 1)
 }
 };
@@ -281,7 +281,7 @@ class arCylinderMesh : public arMesh {
     # __setstate__ recreates an object from its pickled state
     def __setstate__(self,L):
         _swig_setattr(self, arCylinderMesh, 'this',
-            _PySZG.new_arCylinderMesh(L[0]))
+            getSwigModuleDll().new_arCylinderMesh(L[0]))
         _swig_setattr(self, arCylinderMesh, 'thisown', 1)
         self.setAttributes(L[1],L[2],L[3])
         self.toggleEnds(L[4])
@@ -304,7 +304,7 @@ class arPyramidMesh : public arMesh {
     # __setstate__ recreates an object from its pickled state
     def __setstate__(self,t):
         _swig_setattr(self, arPyramidMesh, 'this',
-            _PySZG.new_arPyramidMesh())
+            getSwigModuleDll().new_arPyramidMesh())
         _swig_setattr(self, arPyramidMesh, 'thisown', 1)
         self.setTransform(t)
 }
@@ -335,7 +335,7 @@ class arSphereMesh : public arMesh {
     # __setstate__ recreates an object from its pickled state
     def __setstate__(self,L):
         _swig_setattr(self, arSphereMesh, 'this',
-            _PySZG.new_arSphereMesh(L[0],L[1]))
+            getSwigModuleDll().new_arSphereMesh(L[0],L[1]))
         _swig_setattr(self, arSphereMesh, 'thisown', 1)
         self.setSectionSkip(L[2])
 }
@@ -368,7 +368,7 @@ class arTorusMesh : public arMesh {
     # __setstate__ recreates an object from its pickled state
     def __setstate__(self,L):
         _swig_setattr(self, arTorusMesh, 'this',
-            _PySZG.new_arTorusMesh(L[1],L[2],L[3],L[4]))
+            getSwigModuleDll().new_arTorusMesh(L[1],L[2],L[3],L[4]))
         _swig_setattr(self, arTorusMesh, 'thisown', 1)
         self.setTransform(L[0])
         self.setBumpMapName(L[5])
