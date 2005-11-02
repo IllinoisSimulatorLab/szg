@@ -1,4 +1,4 @@
-// $Id: PySZG.i,v 1.5 2005/10/23 00:21:37 schaeffr Exp $
+// $Id: PySZG.i,v 1.6 2005/11/01 19:04:59 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -20,7 +20,7 @@
 // or even correct. There probably are a few memory leaks and other problems.
 
 
-%module PySZG
+/*%module PySZG*/
 
 // Include pertinent C++ headers. (Is this the best place to put the headers?)
 %{
@@ -63,6 +63,13 @@ def launchConsole(loc=globals()):
 
 class PySZGException(Exception):
     pass
+
+def getSwigModuleDll():
+  dllName = '_'+__name__
+  l = [item for item in sys.modules.items() if dllName in item]
+  if len(l) != 1:
+    raise RuntimeError, str(len(l))+' modules named '+dllName
+  return l[0][1] 
 %}
 
 %include exception.i    // SWIG module for handling exceptions
