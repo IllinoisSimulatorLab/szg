@@ -134,6 +134,8 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
   if (_server)
     return NULL;
 
+  std::vector<std::string> triedPaths;
+
   const map<string,arSoundFile*,less<string> >::iterator
     iFind(_filewavNameContainer.find(name));
   if (iFind != _filewavNameContainer.end()){
@@ -161,6 +163,7 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
       // bundle names (foo/bar), which can be changed per platform
       // to the right thing (on Windows, foo\bar)
       ar_scrubPath(potentialFileName);
+      triedPaths.push_back( potentialFileName );
       fDone = theFile->read(potentialFileName.c_str(), fLoop);
       if (fDone){
 	// Don't look anymore. Success!
@@ -176,6 +179,7 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
        ++i){
     potentialFileName = *i + name;
     ar_scrubPath(potentialFileName);
+    triedPaths.push_back( potentialFileName );
     fDone = theFile->read(potentialFileName.c_str(), fLoop);
   }
   static bool fComplained = false;
@@ -186,13 +190,16 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
     if (!fComplained){
       fComplained = true;
       cerr << "arSoundDatabase warning: soundfile \""
-	   << name << "\" not found in ";
-      if (_path->size() <= 1)
-        cerr << "empty ";
-      cerr << "path.\n";
+	   << name << "\" not found. Tried the following locations:\n";
+      std::vector<std::string>::iterator iter;
+      for (iter = triedPaths.begin(); iter != triedPaths.end(); ++iter) {
+        cerr << *iter << endl;
+      }
+      cerr << endl;
     }
   }
   ar_mutex_unlock(&_pathLock);
+  triedPaths.clear();
   _filewavNameContainer.insert(
     map<string,arSoundFile*,less<string> >::value_type(name,theFile));
   return theFile; 
