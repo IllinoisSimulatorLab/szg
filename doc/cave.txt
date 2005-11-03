@@ -14,6 +14,8 @@ cassatt		SZG_EXEC path /scratch2/camilleg/szg/bin/mips4
 <comment>
 Note the assign and comment blocks below. The assign block is for an ordinary user,
 the comment block the equivalent set for the cube or official demo user.
+Note that kam1 (the sound machine) needs the python path set in order
+to find sounds specified using framework.setDataBundlePath("SZG_PYTHON",...)
 </comment>
 
 <assign>
@@ -21,8 +23,8 @@ cavefloor SZG_PYTHON path  G:\THE_USER_NAME\pycube
 cavefront SZG_PYTHON path  G:\THE_USER_NAME\pycube
 caveleft SZG_PYTHON path  G:\THE_USER_NAME\pycube
 caveright SZG_PYTHON path  G:\THE_USER_NAME\pycube
+kam1 SZG_PYTHON path  G:\THE_USER_NAME\pycube
 cube6 SZG_PYTHON path  NULL
-kam1 SZG_PYTHON path  NULL
 </assign>
 
 <comment>
