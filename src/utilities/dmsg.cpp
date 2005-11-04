@@ -7,113 +7,88 @@
 #include "arPrecompiled.h"
 #include "arAppLauncher.h"
 
-// used to strip the flags from the command line
+// strip flags from the command line
 void striparg(int which, int& argc, char** argv){
   for (int i=which; i<argc-1; i++){
     argv[i] = argv[i+1];
   }
-  argc--;
+  --argc;
 }
 
-// the stuff you need to type in to make this work
-void printusage(){
-  cerr << "dmsg usage:\n";
-  cerr << " To send a message to a Phleet component by ID:\n";
-  cerr << "  dmsg [-r] component_ID message_type [message_body]\n";
-  cerr << " To send a message to a Phleet component by name:\n";
-  cerr << "  dmsg [-r] -p computer_name component_name message_type "
-       << "[message_body]\n";
-  cerr << " To send a message to the master component on a virtual "
-       << "computer:\n";
-  cerr << "  dmsg [-r] -m virtual_computer message_type [message_body]\n";
-  cerr << " To send a message to a process holding the screen resource:\n";
-  cerr << "  dmsg [-r] -g virtual_computer screen_number message_type "
-       << "[message_body]\n";
-  cerr << " To send a message to the trigger process of a virtual computer:\n";
-  cerr << "  dmsg [-r] -c location message_type [message_body]\n";
-  cerr << " To send a message to the component hosting a given service:\n";
-  cerr << "  dmsg [-r] -s service_name message_type [message_body]\n";
-  cerr << " To send a message to the component holding a given lock:\n";
-  cerr << "  dmsg [-r] -l lock_name message_type [message_body]\n";
-}
+// Use cout not cerr in main(), so we can build RPC scripts.
 
 int main(int argc, char** argv){
 
   if (argc < 2) {
-    printusage();
+LPrintUsage:
+  cerr << "Usage:\n"
+       << "  To send a message to a Phleet component by ID:\n"
+       << "    dmsg [-r] component_ID message_type [message_body]\n"
+       << "  To send a message to a Phleet component by name:\n"
+       << "    dmsg [-r] -p computer_name component_name message_type "
+       << "[message_body]\n"
+       << "  To send a message to the master component on a virtual "
+       << "computer:\n"
+       << "    dmsg [-r] -m virtual_computer message_type [message_body]\n"
+       << "  To send a message to a process holding the screen resource:\n"
+       << "    dmsg [-r] -g virtual_computer screen_number message_type "
+       << "[message_body]\n"
+       << "  To send a message to the trigger process of a virtual computer:\n"
+       << "    dmsg [-r] -c location message_type [message_body]\n"
+       << "  To send a message to the component hosting a given service:\n"
+       << "    dmsg [-r] -s service_name message_type [message_body]\n"
+       << "  To send a message to the component holding a given lock:\n"
+       << "    dmsg [-r] -l lock_name message_type [message_body]\n";
     return 1;
   }
-  // dmsg can either expect a response or not from the receiver of the
-  // message. The default is to expect no response (for historical reasons,
-  // since messages originally were just kinda thrown out into the blue,
-  // since that was easier to implement). To be able to receive a response,
-  // the first flag must be -r
+
+  // dmsg MAY expect a response from the receiver of the message.
+  // The default is to expect no response.
+  // To be able to receive a response, the first flag must be -r.
 
   bool responseExpected = false;
-
   if (!strcmp(argv[1], "-r")){
-    // we should expect a response
     responseExpected = true;
     striparg(1, argc, argv);
   }
 
-  // there are several modes to dmsg.
-  // If you pass it no flags, it will send a message to the component
-  // with the given ID
-  // Use the flag -p and it will try to find a component matching the
-  // given computer/component_name pair and send the message to it.
-  // Use the flag -m and it will attempt to send the message to the
-  // component operating on the master screen of the given virtual computer.
-  // Use the flag -s and it will attempt to send the message to the
-  // component operating on the given screen of the particular virtual
-  // computer.
-  // Use the flag -c and it will attempt to send the message to the control
-  // component operating on the particular virtual computer (i.e. the
-  // component that holds the "demo" lock
+  // There are several modes to dmsg.
+  // No command-line flags, it sends a message to the component with that ID.
+  // -p sends to the component matching the computer/component_name pair.
+  // -m sends to the component operating on the master screen.
+  // -s sends to the component operating on a screen.
+  // -c sends to the control component (holding the "demo" lock).
+  // If multiple flags are given, only the last one takes effect.
 
-  string mode = "default";
-  // first thing to do is to scan for the args
+  enum { modeDefault, modeProcess, modeMaster, modeScreen, modeControl, modeService, modeLock };
+  int mode = modeDefault;
+  
+  // parse the args
   for (int i=0; i<argc; i++){
     if (!strcmp(argv[i],"-p")){
-      mode = "process";
-      striparg(i,argc, argv);
-      // must decrement to conteract the increment that will occur at
-      // the end of the loop
-      i--;
+      mode = modeProcess;
+      striparg(i--,argc, argv);
+      // i-- counteracts the end-of-loop increment
     }
-    else if(!strcmp(argv[i],"-m")){
-      mode = "master";
-      striparg(i,argc, argv);
-      // must decrement to conteract the increment that will occur at
-      // the end of the loop
-      i--;
+    else if (!strcmp(argv[i],"-m")){
+      mode = modeMaster;
+      striparg(i--,argc, argv);
     }
     else if (!strcmp(argv[i],"-g")){
-      mode = "screen";
-      striparg(i,argc, argv);
-      // must decrement to conteract the increment that will occur at
-      // the end of the loop
-      i--;
+      mode = modeScreen;
+      striparg(i--,argc, argv);
     }
     else if (!strcmp(argv[i],"-c")){
-      mode = "control";
-      striparg(i,argc, argv);
-      // must decrement to conteract the increment that will occur at
-      // the end of the loop
-      i--;
+      mode = modeControl;
+      striparg(i--,argc, argv);
     }
     else if (!strcmp(argv[i],"-s")){
-      mode = "service";
-      striparg(i, argc, argv);
-      // must decrement to conteract the increment that will occur at
-      // the end of the loop
-      i--;
+      mode = modeService;
+      striparg(i--,argc, argv);
     }
     else if (!strcmp(argv[i],"-l")){
-      mode = "lock";
-      striparg(i, argc, argv);
-      // must decrement counter
-      i--;
+      mode = modeLock;
+      striparg(i--,argc, argv);
     }
   }
   
@@ -124,152 +99,128 @@ int main(int argc, char** argv){
 
   string messageType;
   string messageBody;
-  int    componentID;
+  int componentID = -1;
   
-  if (mode == "default"){
-    if (argc != 3 && argc != 4){
-      printusage();
-      return 1;
-    }
+  switch (mode) {
+  default:
+    goto LPrintUsage;
+
+  case modeDefault:
+    if (argc != 3 && argc != 4)
+      goto LPrintUsage;
     componentID = atoi(argv[1]);
     messageType = string(argv[2]);
     messageBody = argc == 4 ? string(argv[3]) : string("NULL");
-  }
-  else if (mode == "process"){
-    if (argc != 4 && argc != 5){
-      printusage();
-      return 1;
-    }
+    break;
 
+  case modeProcess:
+    if (argc != 4 && argc != 5)
+      goto LPrintUsage;
     componentID = szgClient.getProcessID(argv[1], argv[2]);
     if (componentID == -1){
-      // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
-      // This makes it easier to build RPC scripts on top of these calls.
       cout << "dmsg error: no process for that computer/name pair.\n";
       return 1;
     }
-
     messageType = string(argv[3]);
     messageBody = argc == 5 ? string(argv[4]) : string("NULL");
-  }
-  else if (mode == "master"){
-    if (argc != 3 && argc != 4){
-      printusage();
-      return 1;
-    }
+    break;
 
-    // we actually need to do the virtual computer thing
-    arAppLauncher launcher;
-    launcher.setSZGClient(&szgClient);
-    launcher.setVircomp(argv[1]);
-    if (!launcher.setParameters()){
-      // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
-      // This makes it easier to build RPC scripts on top of these calls.
-      cout << "dmsg error: invalid virtual computer definition.\n";
-      return 1;
+  case modeMaster:
+    if (argc != 3 && argc != 4)
+      goto LPrintUsage;
+    {
+      // Do the virtual computer thing.
+      arAppLauncher launcher;
+      launcher.setSZGClient(&szgClient);
+      launcher.setVircomp(argv[1]);
+      if (!launcher.setParameters()){
+	cout << "dmsg error: invalid virtual computer definition.\n";
+	return 1;
+      }
+      const string lockName = launcher.getMasterName();
+      if (!szgClient.getLock(lockName, componentID)){
+	// something is indeed running on the master screen
+	messageType = string(argv[2]);
+	messageBody = argc == 4 ? string(argv[3]) : string("NULL");
+      }
+      else{
+	// nobody was holding the lock
+	szgClient.releaseLock(lockName);
+	cout << "dmsg error: no component running on master screen.\n";
+	return 1;
+      }
     }
-    string lockName = launcher.getMasterName();
-    if (!szgClient.getLock(lockName, componentID)){
-      // something is indeed running on the master screen
-      messageType = string(argv[2]);
-      messageBody = argc == 4 ? string(argv[3]) : string("NULL");
-    }
-    else{
-      // nobody was holding the lock
-      szgClient.releaseLock(lockName);
-      // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
-      // This makes it easier to build RPC scripts on top of these calls.
-      cout << "dmsg error: no component running on master screen.\n";
-      return 1;
-    }
-  }
-  else if (mode == "screen"){
-    if (argc != 4 && argc != 5){
-      printusage();
-      return 1;
-    }
-    // we actually need to do the virtual computer thing
-    arAppLauncher launcher;
-    launcher.setSZGClient(&szgClient);
-    launcher.setVircomp(argv[1]);
-    if (!launcher.setParameters()){
-      // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
-      // This makes it easier to build RPC scripts on top of these calls.
-      cout << "dmsg error: invalid virtual computer definition.\n";
-      return 1;
-    }
-    string lockName = launcher.getScreenName(atoi(argv[2]));
-    if (!szgClient.getLock(lockName, componentID)){
-      // something is indeed running on the screen in question
-      messageType = string(argv[3]);
-      messageBody = argc == 5 ? string(argv[4]) : string("NULL");
-    }
-    else{
-      // nobody else was holding the lock
-      szgClient.releaseLock(lockName);
-      // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
-      // This makes it easier to build RPC scripts on top of these calls.
-      cout << "dmsg error: no component running on specified screen.\n";
-      return 1;
-    }
-  }
-  else if (mode == "control"){
-    if (argc != 3 && argc != 4){
-      printusage();
-      return 1;
-    }
+    break;
 
-    // WE DO NOT NEED TO MESS WITH VIRTUAL COMPUTERS IN THIS CASE!
-    // (WE ARE DIRECTLY TARGETING THE "APPLICATION LOCK")
+  case modeScreen:
+    if (argc != 4 && argc != 5)
+      goto LPrintUsage;
+    {
+      // Do the virtual computer thing.
+      arAppLauncher launcher;
+      launcher.setSZGClient(&szgClient);
+      launcher.setVircomp(argv[1]);
+      if (!launcher.setParameters()){
+	cout << "dmsg error: invalid virtual computer definition.\n";
+	return 1;
+      }
+      const string lockName = launcher.getScreenName(atoi(argv[2]));
+      if (!szgClient.getLock(lockName, componentID)){
+	// something is indeed running on the screen in question
+	messageType = string(argv[3]);
+	messageBody = argc == 5 ? string(argv[4]) : string("NULL");
+      }
+      else{
+	// nobody else was holding the lock
+	szgClient.releaseLock(lockName);
+	cout << "dmsg error: no component running on specified screen.\n";
+	return 1;
+      }
+    }
+    break;
 
-    // NOTE: here we use the location instead of a virtual computer name.
+  case modeControl:
+    if (argc != 3 && argc != 4)
+      goto LPrintUsage;
+    // Directly target the app lock, so don't mess with virtual computers.
+    // Use the location instead of a virtual computer name.
     // Multiple virtual computers can share a location.
-    string lockName = string(argv[1])+"/SZG_DEMO/app";
-    if (!szgClient.getLock(lockName, componentID)){
-      // something is indeed running on the screen in question
-      messageType = string(argv[2]);
-      messageBody = argc == 4 ? string(argv[3]): string("NULL");
+    {
+      const string lockName = string(argv[1])+"/SZG_DEMO/app";
+      if (!szgClient.getLock(lockName, componentID)){
+	// something is indeed running on that screen
+	messageType = string(argv[2]);
+	messageBody = argc == 4 ? string(argv[3]): string("NULL");
+      }
+      else{
+	// nobody else was holding the lock
+	szgClient.releaseLock(lockName);
+	cout << "dmsg error: no trigger component running.\n";
+	return 1;
+      }
     }
-    else{
-      // nobody else was holding the lock
-      szgClient.releaseLock(lockName);
-      // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
-      // This makes it easier to build RPC scripts on top of these calls.
-      cout << "dmsg error: no trigger component running.\n";
-      return 1;
-    }
-  }
-  else if (mode == "service"){
-    if (argc != 3 && argc != 4){
-      printusage();
-      return 1;
-    }
+    break;
 
-    // AARGH! Is this really the right thing to do?
-    // Previously, we used the arSZGClient method createComplexServiceName(..)
-    // to modify the service name given by the command line args.
-    // However, this seems to provide the same functionality in a less
-    // awkward fashion...
+  case modeService:
+    if (argc != 3 && argc != 4)
+      goto LPrintUsage;
+    // Previously, arSZGClient::createComplexServiceName()
+    // modified the service name given by the command line args.
+    // This *seems* to do the same, less awkwardly.
     componentID = szgClient.getServiceComponentID(argv[1]);
     if (componentID < 0){
-      // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
-      // This makes it easier to build RPC scripts on top of these calls.
       cout << "dmsg error: no such service exists (" << argv[1] << ").\n";
       return 1;
     }
     messageType = string(argv[2]);
     messageBody = argc == 4 ? string(argv[3]): string("NULL");
-  }
-  else if (mode == "lock"){
-    if (argc != 3 && argc != 4){
-      printusage();
-      return 1;
-    }
+    break;
 
+  case modeLock:
+    if (argc != 3 && argc != 4)
+      goto LPrintUsage;
     if (szgClient.getLock(argv[1], componentID)){
-      // nobody is holding the lock because we were able to get it
-      // PLEASE DO NOT use the "cerr" output stream. Only use "cout".
-      // This makes it easier to build RPC scripts on top of these calls.
+      // Nobody held the lock because we got it.
       cout << "dmsg error: no such lock is currently held (" 
 	   << argv[1] << ").\n";
       // The lock will be released when we exit.
@@ -277,44 +228,46 @@ int main(int argc, char** argv){
     }
     messageType = string(argv[2]);
     messageBody = argc == 4 ? string(argv[3]) : string("NULL");
+    break;
   } 
 
-  const int match = szgClient.sendMessage(messageType, messageBody, 
-                                    componentID, responseExpected);
+  // Finally we know what to send, and to whom!
+  const int match = szgClient.sendMessage(
+    messageType, messageBody, componentID, responseExpected);
   if ( match < 0 ){
-    // no need to print something here... sendMessage already does.
+    // sendMessage() already cout'ed something.
     return 1;
   }
 
-  if (responseExpected){
-    // with the new szg, we will eventually be able to have a timeout here
+  if (responseExpected) {
+    // we will eventually be able to have a timeout here
     string responseBody;
-    // getMessageResponse returns -1 upon receiving a "continuation",
-    // 1 upon receiving a final response, and 0 upon failure.
     for (;;){
       list<int> tags;
       tags.push_back(match);
       // will be filled-in with the original match, unless there is an error.
       int remoteMatch;
-      const int status = szgClient.getMessageResponse(tags, responseBody, 
-                                                remoteMatch);
+      const int status = szgClient.getMessageResponse(
+        tags, responseBody, remoteMatch);
       if (status == 0){
-	// PLEASE DO NOT use the "cerr" output stream. Only use "cout".
-        // This makes it easier to build RPC scripts on top of these calls.
-        cout << "dmsg error: problem in receiving message response.\n";
+	// failure
+        cout << "dmsg error: failed to get message response.\n";
 	break;
       }
       else if (status == -1){
+	// continuation
 	cout << responseBody << "\n";
       }
       else if (status == 1){
+	// final response
 	cout << responseBody << "\n";
 	break;
       }
       else
-        cout << "dmsg warning: getMessageResponse unexpectedly returned "
+        cout << "dmsg error: unexpected message response status "
 	     << status << ".\n";
     }
   }
+
   return 0;
 }
