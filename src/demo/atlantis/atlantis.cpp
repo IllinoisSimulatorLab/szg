@@ -335,7 +335,7 @@ bool init( arMasterSlaveFramework& fw, arSZGClient& /*SZGClient*/ ) {
     spear.setInteractionSelector( arDistanceInteractionSelector( gSpearRadius ) );
     // Set wand to do a normal drag when you click on button 2 or 6 & 7
     // (the wand triggers)
-    spear.setDrag( arGrabCondition( AR_EVENT_BUTTON, 2, 0.5 ),
+    spear.setDrag( arGrabCondition( AR_EVENT_BUTTON, 0, 0.5 ),
                          arWandRelativeDrag() );
     spear.setDrag( arGrabCondition( AR_EVENT_BUTTON, 6, 0.5 ),
                          arWandRelativeDrag() );
@@ -384,9 +384,6 @@ void preExchange(arMasterSlaveFramework& fw) {
   int i;
   static bool firstAttack(true);
   fw.navUpdate();
-  if (fw.getOnButton(0)) {
-    toggleUseTexture();
-  }
   if (fw.getOnButton(5)) {
     sharkAttack = !sharkAttack;
     if (sharkAttack) {
