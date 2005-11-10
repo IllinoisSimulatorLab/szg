@@ -36,7 +36,7 @@ class SZG_CALL arOrthoCamera: public arCamera{
     frustum[3] = top;
   }
 
-  arVector4 getSides(){ return arVector4(frustum[0], frustum[1],
+  arVector4 getSides() const { return arVector4(frustum[0], frustum[1],
                                          frustum[2], frustum[3]); }
 
   void setNearFar(float nearClip, float farClip){
@@ -44,8 +44,8 @@ class SZG_CALL arOrthoCamera: public arCamera{
     frustum[5] = farClip;
   }
 
-  float getNear(){ return frustum[4]; }
-  float getFar(){ return frustum[5]; }
+  float getNear() const { return frustum[4]; }
+  float getFar() const { return frustum[5]; }
 
   void setPosition( arVector3& pos ) { setPosition( pos[ 0 ], pos[ 1 ], pos[ 2 ] ); }
 
@@ -65,7 +65,7 @@ class SZG_CALL arOrthoCamera: public arCamera{
     lookat[5] = z;
   }
 
-  arVector3 getTarget(){ return arVector3(lookat[3], lookat[4], lookat[5]); }
+  arVector3 getTarget() const { return arVector3(lookat[3], lookat[4], lookat[5]); }
 
   void setUp( arVector3& up ) { setUp( up[ 0 ], up[ 1 ], up[ 2 ] ); }
 
@@ -75,7 +75,7 @@ class SZG_CALL arOrthoCamera: public arCamera{
     lookat[8] = z;
   }
 
-  arVector3 getUp(){ return arVector3(lookat[6], lookat[7], lookat[8]); }
+  arVector3 getUp() const { return arVector3(lookat[6], lookat[7], lookat[8]); }
 
   // the parameters to glOrtho(...)
   float frustum[6];

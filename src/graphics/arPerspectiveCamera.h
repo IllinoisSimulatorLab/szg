@@ -36,7 +36,7 @@ class SZG_CALL arPerspectiveCamera: public arCamera{
     frustum[3] = top;
   }
 
-  arVector4 getSides(){ return arVector4(frustum[0], frustum[1],
+  arVector4 getSides() const { return arVector4(frustum[0], frustum[1],
 					 frustum[2], frustum[3]); }
 
   void setNearFar(float nearClip, float farClip){
@@ -44,8 +44,8 @@ class SZG_CALL arPerspectiveCamera: public arCamera{
     frustum[5] = farClip;
   }
 
-  float getNear(){ return frustum[4]; }
-  float getFar(){ return frustum[5]; }
+  float getNear() const { return frustum[4]; }
+  float getFar() const { return frustum[5]; }
 
   void setPosition( arVector3& pos ) { setPosition( pos[ 0 ], pos[ 1 ], pos[ 2 ] ); }
 
@@ -55,7 +55,7 @@ class SZG_CALL arPerspectiveCamera: public arCamera{
     lookat[2] = z;
   }
 
-  arVector3 getPosition(){ return arVector3(lookat[0], lookat[1], lookat[2]); }
+  arVector3 getPosition() const { return arVector3(lookat[0], lookat[1], lookat[2]); }
 
   void setTarget( arVector3& target ) { setTarget( target[ 0 ], target[ 1 ], target[ 2 ] ); }
 
@@ -75,7 +75,7 @@ class SZG_CALL arPerspectiveCamera: public arCamera{
     lookat[8] = z;
   }
 
-  arVector3 getUp(){ return arVector3(lookat[6], lookat[7], lookat[8]); }
+  arVector3 getUp() const { return arVector3(lookat[6], lookat[7], lookat[8]); }
 
   // something so that we can get the values out in python... probably
   // a less hack-like way to do this
