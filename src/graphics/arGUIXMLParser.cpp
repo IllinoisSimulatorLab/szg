@@ -53,7 +53,6 @@ arGUIWindowingConstruct::~arGUIWindowingConstruct( void )
 arGUIXMLParser::arGUIXMLParser( arSZGClient* SZGClient,
                                 const std::string& config ) :
   _SZGClient( SZGClient ),
-  // _config( config ),
   _mininumConfig( "<szg_display><szg_window /></szg_display>" )
 {
   setConfig( config );
@@ -68,16 +67,15 @@ arGUIXMLParser::~arGUIXMLParser( void )
 
 void arGUIXMLParser::setConfig( const std::string& config )
 {
-  if( _config == config ) {
-    // return;
-  }
+  if( _config == config )
+    return;
 
-  _config = config;
-
-  if( !_config.length() || _config == "NULL" ) {
-    std::cout << "config is NULL or empty, using minimum config" << std::endl;
+  if( !config.length() || config == "NULL" ) {
+    std::cout << "arGUIXML remark: defaulting to minimum config.\n";
     _config = _mininumConfig;
   }
+  else
+    _config = config;
 
   // NOTE: It is very important to clear the document first. Otherwise, this
   // new config string will just be appended to the end of old config strings,
@@ -115,24 +113,22 @@ int arGUIXMLParser::numberOfWindows( void )
 
 TiXmlNode* arGUIXMLParser::_getNamedNode( const char* name )
 {
-  if( !name || !_SZGClient ) {
+  if (!name || !_SZGClient)
     return NULL;
-  }
 
   // caller will own this and should delete it
   TiXmlDocument* nodeDoc = new TiXmlDocument();
-
-  std::string nodeDesc = _SZGClient->getGlobalAttribute( name );
+  const std::string nodeDesc = _SZGClient->getGlobalAttribute( name );
 
   if( !nodeDesc.length() || nodeDesc == "NULL" ) {
-    std::cerr << "node points to non-existent node: " << name << std::endl;
+    std::cerr << "arGUIXML error: node points to non-existent node: " << name << std::endl;
     return NULL;
   }
 
   // create a usable node out of the xml string
   nodeDoc->Parse( nodeDesc.c_str() );
   if( !nodeDoc->FirstChild() ) {
-    std::cerr << "node pointer: " << name << " is invalid" << std::endl;
+    std::cerr << "arGUIXML error: invalid node pointer: " << name << std::endl;
     return NULL;
   }
 
@@ -205,8 +201,7 @@ int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
   if( !screenNode || !screenNode->ToElement() ) {
     // not necessarily an error, <szg_screen> could legitimately not exist and
     // in that case let the caller use the screen as it was passed in
-    std::cerr << "NULL or invalid screen description, "
-	            << "returning passed in arGraphicsScreen" << std::endl;
+    std::cout << "arGUIXML remark: ignoring missing screen description.\n";
     return 0;
   }
 
@@ -290,16 +285,13 @@ int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
 arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
                                             TiXmlNode* cameraNode )
 {
-  // caller owns this and should delete it
-  arCamera* camera = NULL;
+  // caller owns return value and should delete it
 
   if( !cameraNode || !cameraNode->ToElement() ) {
     // not necessarily an error, the camera node could legitimately not exist
     // in which case a default camera should be returned
-    std::cerr << "NULL or invalid cameraNode, creating default arVRCamera "
-              << "(with default screen)" << std::endl;
-    camera = new arVRCamera();
-    return camera;
+    std::cout << "arGUIXML remark: defaulting to arVRCamera for missing cameraNode.\n";
+    return new arVRCamera();
   }
 
   // check if this is a pointer to another camera
@@ -309,7 +301,6 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
   }
 
   TiXmlNode* cameraElement = NULL;
-
   std::string cameraType( "vr" );
 
   if( cameraNode->ToElement()->Attribute( "type" ) ) {
@@ -320,13 +311,15 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
     // print warning, return default camera + screen
   }
 
+  arCamera* camera = NULL;
   if( cameraType == "ortho" || cameraType == "perspective" ) {
-    if( cameraType == "ortho" ) {
-      camera = new arOrthoCamera();
-    }
-    else {
-      camera = new arPerspectiveCamera();
-    }
+    const bool fOrtho = cameraType == "ortho";
+    arOrthoCamera* camO = NULL;
+    arPerspectiveCamera* camP = NULL;
+    if (fOrtho)
+      camO = new arOrthoCamera();
+    else
+      camP = new arPerspectiveCamera();
 
     // <frustum left="float" right="float" bottom="float" top="float" near="float" far="float" />
     if( (cameraElement = cameraNode->FirstChild( "frustum" )) &&
@@ -338,13 +331,10 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
       cameraElement->ToElement()->Attribute( "top",    &ortho[ 3 ] );
       cameraElement->ToElement()->Attribute( "near",   &ortho[ 4 ] );
       cameraElement->ToElement()->Attribute( "far",    &ortho[ 5 ] );
-
-      if( cameraType == "ortho" ) {
-        ((arOrthoCamera*) camera)->setFrustum( ortho );
-      }
-      else {
-        ((arPerspectiveCamera*) camera)->setFrustum( ortho );
-      }
+      if( fOrtho )
+        camO->setFrustum( ortho );
+      else
+        camP->setFrustum( ortho );
     }
 
     // <lookat viewx="float" viewy="float" viewz="float" lookatx="float" lookaty="float" lookatz="float" upx="float" upy="float" upz="float" />
@@ -360,25 +350,19 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
       cameraElement->ToElement()->Attribute( "upx",     &look[ 6 ] );
       cameraElement->ToElement()->Attribute( "upy",     &look[ 7 ] );
       cameraElement->ToElement()->Attribute( "upz",     &look[ 8 ] );
-
-      if( cameraType == "ortho" ) {
-        ((arOrthoCamera*) camera)->setLook( look );
-      }
-      else {
-        ((arPerspectiveCamera*) camera)->setLook( look );
-      }
+      if( fOrtho )
+        camO->setLook( look );
+      else
+        camP->setLook( look );
     }
 
     // <sides left="float" right="float" bottom="float" top="float" />
     if( (cameraElement = cameraNode->FirstChild( "sides" )) ) {
       arVector4 vec = _attributearVector4( cameraElement, "left", "right", "bottom", "top" );
-
-      if( cameraType == "ortho" ) {
-        ((arOrthoCamera*) camera)->setSides( vec );
-      }
-      else {
-        ((arPerspectiveCamera*) camera)->setSides( vec );
-      }
+      if( fOrtho )
+        camO->setSides( vec );
+      else
+        camP->setSides( vec );
     }
 
     // <clipping near="float" far="float />
@@ -387,77 +371,66 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
       float planes[ 2 ] = { 0.0f };
       cameraElement->ToElement()->Attribute( "near", &planes[ 0 ] );
       cameraElement->ToElement()->Attribute( "far",  &planes[ 1 ] );
-
-      if( cameraType == "ortho" ) {
-        ((arOrthoCamera*) camera)->setNearFar( planes[ 0 ], planes[ 1 ] );
-      }
-      else {
-        ((arPerspectiveCamera*) camera)->setNearFar( planes[ 0 ], planes[ 1 ] );
-      }
+      if( fOrtho )
+        camO->setNearFar( planes[ 0 ], planes[ 1 ] );
+      else
+        camP->setNearFar( planes[ 0 ], planes[ 1 ] );
     }
 
     // <position x="float" y="float" z="float />
     if( (cameraElement = cameraNode->FirstChild( "position" )) ) {
       arVector3 vec = _attributearVector3( cameraElement );
-
-      if( cameraType == "ortho" ) {
-        ((arOrthoCamera*) camera)->setPosition( vec );
-      }
-      else {
-        ((arPerspectiveCamera*) camera)->setPosition( vec );
-      }
+      if( fOrtho )
+        camO->setPosition( vec );
+      else
+        camP->setPosition( vec );
     }
 
     // <target x="float" y="float" z="float />
     if( (cameraElement = cameraNode->FirstChild( "target" )) ) {
       arVector3 vec = _attributearVector3( cameraElement );
-
-      if( cameraType == "ortho" ) {
-        ((arOrthoCamera*) camera)->setTarget( vec );
-      }
-      else {
-        ((arPerspectiveCamera*) camera)->setTarget( vec );
-      }
+      if( fOrtho )
+        camO->setTarget( vec );
+      else
+        camP->setTarget( vec );
     }
 
     // <up x="float" y="float" z="float />
     if( (cameraElement = cameraNode->FirstChild( "up" )) ) {
       arVector3 vec = _attributearVector3( cameraElement );
-
-      if( cameraType == "ortho" ) {
-        ((arOrthoCamera*) camera)->setUp( vec );
-      }
-      else {
-        ((arPerspectiveCamera*) camera)->setUp( vec );
-      }
+      if( fOrtho )
+        camO->setUp( vec );
+      else
+        camP->setUp( vec );
     }
+
+    camera = fOrtho ? (arCamera*)camO : (arCamera*)camP;
   }
   else if( cameraType == "vr" ) {
     camera = new arVRCamera();
   }
   else {
-    std::cerr << "unknown camera type, creating default arVRCamera" << std::endl;
+    std::cerr << "arGUIXML warning: defaulting to arVRCamera for unknown camera type \""
+              << cameraType << "\"\n";
     camera = new arVRCamera();
   }
 
-  if( namedNode ) {
+  if (namedNode)
     delete namedNode;
-  }
 
   camera->setScreen( &screen );
-
   return camera;
 }
 
 int arGUIXMLParser::parse( void )
 {
   if( _doc.Error() ) {
-    std::cerr << "error in parsing gui config xml on line: " << _doc.ErrorRow() << std::endl;
+    std::cerr << "arGUIXML error: failed to parse at line " << _doc.ErrorRow() << std::endl;
     return -1;
   }
 
-  std::cout << "parsing gui config xml: " << std::endl;
-  _doc.Print();
+  // std::cout << "arGUIXML remark: parsing gui config xml:\n";
+  // _doc.Print();
 
   // clear out any previous parsing constructs
   // the graphicsWindow's and drawcallback's are externally owned, but this
@@ -469,7 +442,7 @@ int arGUIXMLParser::parse( void )
   TiXmlNode* szgDisplayNode = _doc.FirstChild();
 
   if( !szgDisplayNode || !szgDisplayNode->ToElement() ) {
-    std::cerr << "malformed <szg_display> node" << std::endl;
+    std::cerr << "arGUIXML error: malformed <szg_display> node.\n";
     return -1;
   }
 
@@ -493,14 +466,13 @@ int arGUIXMLParser::parse( void )
     // restored if this windowNode is a 'pointer')
     TiXmlNode* savedWindowNode = windowNode;
 
-    // check if this is a pointer to another window
+    // is this a pointer to another window?
     TiXmlNode* namedWindowNode = _getNamedNode( windowNode->ToElement()->Attribute( "usenamed" ) );
-    if( namedWindowNode ) {
+    if( namedWindowNode )
       windowNode = namedWindowNode;
-    }
 
     if( !windowNode->ToElement() ) {
-      std::cerr << "invalid window element, skipping" << std::endl;
+      std::cerr << "arGUIXML warning: skipping invalid window element.\n";
       continue;
     }
 
@@ -641,7 +613,7 @@ int arGUIXMLParser::parse( void )
       }
 
       if( !viewportListNode->ToElement() ) {
-        std::cerr << "invalid viewportlist element" << std::endl;
+        std::cerr << "arGUIXML error: invalid viewportlist element.\n";
         return -1;
       }
 
@@ -660,8 +632,8 @@ int arGUIXMLParser::parse( void )
       // any <szg_viewport>'s - that is an error! (the only way we can get here
       // is if viewportListNode /does/ exist, no need to check it again)
       if( !(viewportNode = viewportListNode->FirstChild( "szg_viewport" ) ) ) {
-        // malformed!, delete currentwindow, print warning, continue on to next window tage
-        std::cerr << "viewmode == custom, but no <szg_viewport> tags!" << std::endl;
+        // malformed!, delete currentwindow, print warning, continue with next window tag
+        std::cerr << "arGUIXML error: viewmode is custom, but no <szg_viewport> tags.\n";
         return -1;
       }
 
@@ -680,7 +652,7 @@ int arGUIXMLParser::parse( void )
         }
 
         if( !viewportNode->ToElement() ) {
-          std::cerr << "invalid viewport element, skipping" << std::endl;
+          std::cerr << "arGUIXML warning: skipping invalid viewport element.\n";
           continue;
         }
 
@@ -692,7 +664,7 @@ int arGUIXMLParser::parse( void )
 
         if( !(camera = _configureCamera( screen, viewportNode->FirstChild( "szg_camera" ) )) ) {
           // should never happen, configureCamera should always return at least /something/
-          std::cerr << "custom configureCamera failure" << std::endl;
+          std::cerr << "arGUIXML warning: custom configureCamera failed.\n";
         }
 
         arViewport viewport;
@@ -734,7 +706,7 @@ int arGUIXMLParser::parse( void )
             viewportElement->ToElement() ) {
           GLenum ogldrawbuf;
 
-          std::string buf = viewportElement->ToElement()->Attribute( "value" );
+          const std::string buf(viewportElement->ToElement()->Attribute( "value" ));
           if( buf == "GL_NONE" )                ogldrawbuf = GL_NONE;
           else if( buf == "GL_FRONT_LEFT" )     ogldrawbuf = GL_FRONT_LEFT;
           else if( buf == "GL_FRONT_RIGHT" )    ogldrawbuf = GL_FRONT_RIGHT;
@@ -768,13 +740,13 @@ int arGUIXMLParser::parse( void )
     else {
       // even though there's no viewport specified in this case, there could
       // still be a camera+screen tag that needs to be parsed
-      arCamera* camera = NULL;
       arGraphicsScreen screen;
 
-      if( !(camera = _configureCamera( screen,
-                                       viewportListNode ? viewportListNode->FirstChild( "szg_camera" ) : NULL )) ) {
+      arCamera* camera = _configureCamera(
+        screen, viewportListNode ? viewportListNode->FirstChild( "szg_camera" ) : NULL );
+      if (!camera) {
         // should never happen, configureCamera should always return at least /something/
-        std::cerr << "non-custom configureCamera failure" << std::endl;
+        std::cerr << "arGUIXML warning: configureCamera failed.\n";
       }
 
       // viewports added by setViewMode will use this camera and screen
@@ -783,11 +755,11 @@ int arGUIXMLParser::parse( void )
 
       // set up the appropriate viewports
       if( !_parsedWindowConstructs.back()->getGraphicsWindow()->setViewMode( viewMode ) ) {
-        std::cerr << "setViewMode failure!" << std::endl;
+        std::cerr << "arGUIXML warning: setViewMode failed.\n";
       }
 
       if( camera ) {
-        // setCamera made a copy and now 'owns' the camera, safe to delete
+        // setCamera copied and now owns the camera, so safe to delete
         delete camera;
       }
     }
@@ -797,17 +769,13 @@ int arGUIXMLParser::parse( void )
     // <szg_display>
     windowNode = savedWindowNode;
 
-    if( namedWindowNode ) {
+    if (namedWindowNode)
       delete namedWindowNode;
-    }
-    if( namedViewportListNode ) {
+    if (namedViewportListNode)
       delete namedViewportListNode;
-    }
   }
 
-  std::cout << "done parsing." << std::endl;
-
+  // std::cout << "arGUIXML remark: parsed.\n";
   _windowingConstruct->setWindowConstructs( &_parsedWindowConstructs );
-
   return 0;
 }
