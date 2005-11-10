@@ -515,18 +515,11 @@ int arGUIXMLParser::parse( void )
     if( (windowElement = windowNode->FirstChild( "zorder" )) &&
          windowElement->ToElement() &&
          windowElement->ToElement()->Attribute( "value" ) ) {
-      std::string zorder = windowElement->ToElement()->Attribute( "value" );
-
-      arZOrder arzorder;
-      if( zorder == "normal" ) {
-        arzorder = AR_ZORDER_NORMAL;
-      }
-      else if( zorder == "top" ) {
-        arzorder = AR_ZORDER_TOP;
-      }
-      else if( zorder == "topmost" ) {
-        arzorder = AR_ZORDER_TOPMOST;
-      }
+      const std::string zorder(windowElement->ToElement()->Attribute("value"));
+      const arZOrder arzorder =
+	(zorder == "normal") ? AR_ZORDER_NORMAL :
+	(zorder == "topmost") ? AR_ZORDER_TOPMOST :
+	/* default, if( zorder == "top" ) */ AR_ZORDER_TOP;
 
       windowConfig->setZOrder( arzorder );
     }
