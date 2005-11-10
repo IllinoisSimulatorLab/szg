@@ -209,7 +209,7 @@ LPrintUsage:
     // This *seems* to do the same, less awkwardly.
     componentID = szgClient.getServiceComponentID(argv[1]);
     if (componentID < 0){
-      cout << "dmsg error: no such service exists (" << argv[1] << ").\n";
+      cout << "dmsg error: no such service (" << argv[1] << ").\n";
       return 1;
     }
     messageType = string(argv[2]);
