@@ -652,7 +652,11 @@ void ar_intersenseDriverEventTask(void* intersenseDriver){
 
   for (;;) {
 //  I'm not sure if this is necessary...
-//    isense->_waitForData();
+//  Turns out it is. Doesn't seem to matter for an InertiaCube, but down
+//  at the Duke DiVE, where they have an IS-9000, master/slave apps
+//  would slow to a crawl after the tracking started up unless we put
+//  a sleep in here.
+    isense->_waitForData();
     bool bSuccess = isense->_getData();
     if ( false == bSuccess ) {
       // Never get here b/c Intersense driver always 
@@ -717,7 +721,7 @@ bool arIntersenseDriver::init(arSZGClient& client) {
   // Retrieve settings from client
   int sig[2] = {10,0};
   if (!client.getAttributeInts("SZG_INTERSENSE","sleep",sig,2)) {
-    _sleepTime = 10;
+    _sleepTime = 10000;
     cerr << "arIntersenseDriver remark: SZG_INTERSENSE/sleep not set, "
          << "defaulting to ( " << _sleepTime << ")." << std::endl;
   } else {

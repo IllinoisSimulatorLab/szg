@@ -8,10 +8,10 @@ include $(SZGHOME)/build/make/Makefile.vars
 
 # Don't use tabs to indent for OBJS and MYLIBS.  It can upset gmake.
 OBJS = \
+  arInputEventQueue$(OBJ_SUFFIX) \
   arInputState$(OBJ_SUFFIX) \
   arInputNode$(OBJ_SUFFIX) \
   arInputEvent$(OBJ_SUFFIX) \
-  arInputEventQueue$(OBJ_SUFFIX) \
   arEventUtilities$(OBJ_SUFFIX) \
   arInputLanguage$(OBJ_SUFFIX) \
   arInputSource$(OBJ_SUFFIX) \

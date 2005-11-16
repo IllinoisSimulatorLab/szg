@@ -17,6 +17,8 @@ class SZG_CALL arInputEventQueue {
       _matrixSignature(0) {
       }
     ~arInputEventQueue();
+    arInputEventQueue( const arInputEventQueue& q );
+    arInputEventQueue& operator=( const arInputEventQueue& q );
     void appendEvent( const arInputEvent& event );
     void appendQueue( const arInputEventQueue& queue );
     bool empty() const { return _queue.empty(); }

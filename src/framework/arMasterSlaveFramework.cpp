@@ -1049,8 +1049,8 @@ void arMasterSlaveFramework::preDraw( void ) {
   if( getConnected() && !(_harmonyInUse && !_harmonyReady) ) {
     if (_harmonyInUse && !getMaster()) {
       // in pre-determined harmony mode, slaves get to process event queue.
-      arInputEventQueue myQueue( _inputEventQueue );
-      onProcessEventQueue( myQueue );
+      arInputEventQueue myQueue2( _inputEventQueue );
+      onProcessEventQueue( myQueue2 );
     }
     onPostExchange();
   }

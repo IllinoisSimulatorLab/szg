@@ -172,8 +172,11 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
     // Next, retrieve the python path.
     execInfo->pyDirPath = getPythonPath( user, fileName );
     if (execInfo->pyDirPath == "NULL") {
+      string pythonAppPath = SZGClient->getAttribute(user, "NULL", "SZG_PYTHON", 
+                                                  "path", "");
       errStream << "szgd error: Failed to find a python file '" << fileName
-                << "' on user " << user << "'s SZG_PYTHON/path.\n";
+                << "' on user " << user << "'s SZG_PYTHON/path, which is:\n"
+                << "    " << pythonAppPath << endl;
       return errStream.str();
     }
     command = ar_fileFind( fileName, "", execInfo->pyDirPath);

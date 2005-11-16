@@ -6,9 +6,42 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arInputEventQueue.h"
+#include "arSTLalgo.h"
 
 arInputEventQueue::~arInputEventQueue() {
   _queue.clear();
+}
+
+arInputEventQueue::arInputEventQueue( const arInputEventQueue& q ) :
+  _numButtons( 0 ),
+  _numAxes( 0 ),
+  _numMatrices( 0 ),
+  _buttonSignature( q._buttonSignature ),
+  _axisSignature( q._axisSignature ),
+  _matrixSignature( q._matrixSignature ) {
+    //    COPY ALGORITHM LEAKS MEMORY! (at least for dequeue, STLport, VC++6, Win32).
+//    std::copy( q._queue.begin(), q._queue.end(), _queue.begin() );
+  std::deque<arInputEvent>::const_iterator iter;
+  for (iter = q._queue.begin(); iter != q._queue.end(); ++iter)
+    appendEvent( *iter );
+}
+
+arInputEventQueue& arInputEventQueue::operator=( const arInputEventQueue& q ) {
+  if (&q == this)
+    return *this;
+  _numButtons = 0;
+  _numAxes = 0;
+  _numMatrices = 0;
+  _buttonSignature = q._buttonSignature;
+  _axisSignature = q._axisSignature;
+  _matrixSignature = q._matrixSignature;
+  _queue.clear();
+    //    COPY ALGORITHM LEAKS MEMORY! (at least for dequeue, STLport, VC++6, Win32).
+//    std::copy( q._queue.begin(), q._queue.end(), _queue.begin() );
+  std::deque<arInputEvent>::const_iterator iter;
+  for (iter = q._queue.begin(); iter != q._queue.end(); ++iter)
+    appendEvent( *iter );
+  return *this;
 }
 
 void arInputEventQueue::appendEvent( const arInputEvent& inputEvent ) {
@@ -43,7 +76,7 @@ static unsigned int maxuint( const unsigned int a, const unsigned int b ) {
 
 void arInputEventQueue::appendQueue( const arInputEventQueue& eventQueue ) {
   std::deque<arInputEvent>::const_iterator iter;
-  for (iter = eventQueue._queue.begin(); iter != eventQueue._queue.end(); iter++)
+  for (iter = eventQueue._queue.begin(); iter != eventQueue._queue.end(); ++iter)
     appendEvent( *iter );
   setSignature( maxuint( _buttonSignature, eventQueue.getButtonSignature() ),
                 maxuint( _axisSignature, eventQueue.getAxisSignature() ),
@@ -77,7 +110,7 @@ void arInputEventQueue::setSignature( unsigned int numButtons,
   
   if (numButtons < _buttonSignature) {
     int maxIndex = -1;
-    for (iter = _queue.begin(); iter != _queue.end(); iter++) {
+    for (iter = _queue.begin(); iter != _queue.end(); ++iter) {
       if (iter->getType() == AR_EVENT_BUTTON)
         if ((int)iter->getIndex() > maxIndex)
           maxIndex = iter->getIndex();
@@ -95,7 +128,7 @@ void arInputEventQueue::setSignature( unsigned int numButtons,
     
   if (numAxes < _axisSignature) {
     int maxIndex = -1;
-    for (iter = _queue.begin(); iter != _queue.end(); iter++) {
+    for (iter = _queue.begin(); iter != _queue.end(); ++iter) {
       if (iter->getType() == AR_EVENT_AXIS)
         if ((int)iter->getIndex() > maxIndex)
           maxIndex = iter->getIndex();
@@ -113,7 +146,7 @@ void arInputEventQueue::setSignature( unsigned int numButtons,
     
   if (numMatrices < _matrixSignature) {
     int maxIndex = -1;
-    for (iter = _queue.begin(); iter != _queue.end(); iter++) {
+    for (iter = _queue.begin(); iter != _queue.end(); ++iter) {
       if (iter->getType() == AR_EVENT_MATRIX)
         if ((int)iter->getIndex() > maxIndex)
           maxIndex = iter->getIndex();
