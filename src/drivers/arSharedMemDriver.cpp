@@ -176,7 +176,3 @@ void arSharedMemDriver::_dataThread() {
   }
   _eventThreadRunning = false;
 }
-
-bool arSharedMemDriver::restart() {
-  return stop() && start();
-}

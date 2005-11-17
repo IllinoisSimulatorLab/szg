@@ -690,15 +690,11 @@ bool arIntersenseDriver::Open( DWORD port )
   return created;
 }
 
-
-/*! This calls the ar_usleep().
-    */
 bool arIntersenseDriver::WaitForData()
 {
   ar_usleep( m_sleepTime );
   return true;
 }
-
 
 bool arIntersenseDriver::GetData()
 {
@@ -712,8 +708,7 @@ bool arIntersenseDriver::GetData()
   return success;
 }
 
-
-/*! This method should open all trackers which were open previously.
+/*! Open all trackers which were open previously.
     \return False if not all failed trackers could be opened.
     */
 bool arIntersenseDriver::Reacquire()
@@ -722,8 +717,7 @@ bool arIntersenseDriver::Reacquire()
 
   for ( size_t trackIdx = 0; trackIdx < m_trackerCnt; trackIdx++ ) {
     if ( m_trackerFailed[ trackIdx ] ) {
-      bool reopened = m_tracker[ trackIdx ].Reopen();
-      if ( reopened ) {
+      if ( m_tracker[ trackIdx ].Reopen() ) {
         m_trackerFailed[ trackIdx ] = false;
       } else {
         bAllRunning = false;
@@ -738,19 +732,4 @@ bool arIntersenseDriver::Reacquire()
     */
 bool arIntersenseDriver::start(){
   return _eventThread.beginThread(ar_intersenseDriverEventTask,this);
-}
-
-
-/*! Unimplemented.
-    */
-bool arIntersenseDriver::stop(){
-  // not implemented yet!
-  return true;
-}
-
-
-/*! Will fail until stop() works.
-    */
-bool arIntersenseDriver::restart(){
-  return stop() && start();
 }

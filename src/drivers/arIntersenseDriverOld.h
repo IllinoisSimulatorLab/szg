@@ -130,8 +130,6 @@ public:
 
   bool init(arSZGClient&);
   bool start();
-  bool stop();
-  bool restart();
 private:
   arThread _eventThread;
 

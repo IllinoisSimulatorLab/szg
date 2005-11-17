@@ -285,7 +285,3 @@ bool arBirdWinDriver::stop(){
 #endif
   return true;
 }
-
-bool arBirdWinDriver::restart(){
-  return stop() && start();
-}

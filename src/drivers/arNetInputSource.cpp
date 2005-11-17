@@ -133,14 +133,6 @@ bool arNetInputSource::start(){
   return true;
 }
 
-bool arNetInputSource::stop(){
-  return true;
-}
-
-bool arNetInputSource::restart(){
-  return stop() && start();
-}
-
 void arNetInputSource::_closeConnection(){
   // should probably kill some threads here, close sockets, etc.
   _clientConnected = false;

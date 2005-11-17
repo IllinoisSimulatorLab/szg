@@ -879,22 +879,6 @@ bool arIntersenseDriver::start(){
   return _eventThread.beginThread(ar_intersenseDriverEventTask,this);
 }
 
-
-/*! Unimplemented.
-    */
-bool arIntersenseDriver::stop(){
-  // not implemented yet!
-  return true;
-}
-
-
-/*! Will fail until stop() works.
-    */
-bool arIntersenseDriver::restart(){
-  return stop() && start();
-}
-
-
 void arIntersenseDriver::handleMessage( const string& messageType, const string& messageBody ) {
   if (messageType != "arIntersenseDriver") {
     cerr << "arIntersenseDriver warning: ignoring message of type "
@@ -943,4 +927,3 @@ bool arIntersenseDriver::_resetHeading( unsigned int trackerID, unsigned int sta
   }
   return ISD_ResetHeading( _trackers[trackerID].getHandle(), stationID );
 }
-

@@ -46,7 +46,6 @@ class arFOBDriver: public arInputSource {
   bool init(arSZGClient&);
   bool start();
   bool stop();
-  bool restart();
 
  private:
   bool _setHemisphere( const std::string& hemisphere,

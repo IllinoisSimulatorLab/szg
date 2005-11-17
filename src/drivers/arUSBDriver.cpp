@@ -673,6 +673,7 @@ void arUSBDriver::_dataThread() {
   BlinkLED(); // enable all input pull-ups.
   while (!_stopped && _eventThreadRunning) {
     // Throttle.
+    cerr << "arUSBDriver: ar_usleeping " << int(usecPoll)/1000 << " msec.\n";
     ar_usleep(int(usecPoll));
 
     int cb = 2;
@@ -687,7 +688,7 @@ void arUSBDriver::_dataThread() {
     char buf[4];
     cb = 2;
     if (0 != DoGetRS232Buffer(buf, cb)) {
-      cerr << "arUSBDriver warning: joystick failed to respond to poll.\n";
+      cerr << "arUSBDriver warning: no response from joystick.\n";
       continue;
     }
     if (cb != 2) {
@@ -702,6 +703,20 @@ void arUSBDriver::_dataThread() {
     const int x_ =  int(buf[0] & ~0xffffff80);
     const int y_ =  int(buf[1]);
 
+    if (x == 0 && y == 0 && x_ == 0 && y_ == 0) {
+      cerr << "arUSBDriver warning: joystick responded with zeros.\n";
+      continue;
+    }
+
+    // At least one byte should have the high bit set.
+    if (x == 0 && y == 0 && x_ == 0 && y_ == 0) {
+      cerr << "arUSBDriver warning: joystick responded with no high bit set.\n";
+cout << "raw xy: " << x << ", " << y << ";    " << x_ << ", " << y << endl;;;;
+      continue;
+    }
+
+cout << "raw xy: " << x << ", " << y << ";    " << x_ << ", " << y << endl;;;;
+
     // Use the pair with one negative value.
     // Correct, approximately, for the measured sleep duration (not just ar_usleep(usecPoll).
     float xUse = 0., yUse = 0.;
@@ -715,7 +730,8 @@ void arUSBDriver::_dataThread() {
       yUse = y_ * usecPoll / (usecDuration + usecDurationPrev);
     }
     else {
-      cerr << "arUSBDriver error: bogus data from USB chip.\n";
+      // At least one byte should have the high bit set.
+      cerr << "arUSBDriver error: bogus data from USB chip: " << hex << buf[0] << buf[1] << endl;
       break;
     }
 
@@ -734,6 +750,7 @@ void arUSBDriver::_dataThread() {
       cout << "arUSBDriver remark: calibrated.  OK to wiggle joystick now.\n";
       xAvg /= cInit;
       yAvg /= cInit;
+cout << "\txy average = " << xAvg << ", " << yAvg << endl;;;;
       xAvgPrev = xAvg;
       yAvgPrev = yAvg;
       // These offsets avoid divide by zero.
@@ -763,6 +780,7 @@ void arUSBDriver::_dataThread() {
       yMin = yUse;
     if (yUse > yMax)
       yMax = yUse;
+cout << "use xy: " << xUse << ", " << yUse << endl;
 
     // Scale to [-1,1] by lerping xUse w.r.t. xMin xMax xAvg.
     // Though an exponential curve fit would better model the 555 timing circuit.
@@ -775,6 +793,7 @@ void arUSBDriver::_dataThread() {
     const float xxAbs = fabs(xx);
     const float yyAbs = fabs(yy);
 
+cout << "Nrm xy: " << xx << ", " << yy << endl;
     // Update xAvg yAvg, to correct for long-term thermal drift and cpu load.
     // But not when the joystick is likely near an extreme.
     if (xxAbs < .5) {
@@ -792,7 +811,7 @@ void arUSBDriver::_dataThread() {
     if (yyAbs < .25)
       yy = 0.;
 
-    if (xxAbs > .7 || yyAbs > .55) {
+    if (xxAbs > .7*.6 || yyAbs > .55*.6) {
       //printf("xy  %.2f   %4.2f\n", xxAbs, yyAbs);
       BlinkLED();
     }
@@ -801,7 +820,8 @@ void arUSBDriver::_dataThread() {
 //	  xMin,xAvg,xMax, xUse,xx,
 //	  yMin,yAvg,yMax, yUse,yy);
 
-//	printf("\t\t\t\t\t\tmsec: %9.1f %9.1f %9.1f\n", usecDuration/1000., usecDurationPrev/1000., usecDurationPrew/1000.);
+	printf("\t\t\tmsec: %6.1f %6.1f %6.1f\n", usecDuration/1000., usecDurationPrev/1000., usecDurationPrew/1000.);
+	// ar_usleep failing?  Why 4.0 or 13.5 msec, +- .7 ?  Expected 150.
 
     queueAxis(0, -xx);
     queueAxis(1, yy);
@@ -829,8 +849,4 @@ void arUSBDriver::_dataThread() {
     sendQueue();
   }
   _eventThreadRunning = false;
-}
-
-bool arUSBDriver::restart() {
-  return stop() && start();
 }

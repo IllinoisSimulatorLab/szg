@@ -27,7 +27,6 @@ class arLogitechDriver: public arInputSource {
   bool init(arSZGClient&);
   bool start();
   bool stop();
-  bool restart();
 
  private:
   bool _reset();

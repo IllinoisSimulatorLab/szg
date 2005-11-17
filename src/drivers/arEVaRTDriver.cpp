@@ -217,12 +217,3 @@ bool arEVaRTDriver::start(){
   return true;
 #endif
 }
-
-bool arEVaRTDriver::stop(){
-  // does nothing yet
-  return true;
-}
-
-bool arEVaRTDriver::restart(){
-  return stop() && start();
-}

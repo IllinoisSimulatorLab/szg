@@ -45,7 +45,7 @@ void ar_FOBDriverEventTask(void* FOBDriver){
 arFOBDriver::arFOBDriver() :
   _timeoutTenths( 50 ),
   _dataSize( 7 ),
-  _dataBuffer( 0 ),
+  _dataBuffer( NULL ),
   _positionScale( 3./32768.0 ),
   _orientScale( 1./32768.0 ),
   _eventThreadRunning(false),
@@ -53,9 +53,8 @@ arFOBDriver::arFOBDriver() :
 {}
 
 arFOBDriver::~arFOBDriver() {
-  if (_dataBuffer != 0){
+  if (_dataBuffer)
     delete[] _dataBuffer;
-  }
 }
 
 bool arFOBDriver::init(arSZGClient& SZGClient){
@@ -119,6 +118,7 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
   }
   
   int i = 0;
+
   // Determine the baud rate.
   const int baudRates[] = {2400,4800,9600,19200,38400,57600,115200};
   int baudRate = SZGClient.getAttributeInt("SZG_FOB", "baud_rate");
@@ -138,11 +138,13 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
     baudRate = 115200;
     cerr << "\n   Defaulting to " << baudRate << ".\n";
   }
-  // We only support connecting to a flock of birds via a single com port.
+
+  // We only support connecting to a flock of birds via a single serial port.
   _comPortID = static_cast<unsigned int>(SZGClient.getAttributeInt("SZG_FOB", "com_port"));
-  // We need to get the "description" of the flock of birds. This is a
+
+  // Get the FoB's "description", a
   // string of integers with a number of entries equal to the number of
-  // FOB units. The configuration of each unit is as follows:
+  // FOB units. Each unit's configuration is as follows:
   // 0: bird attached
   // 1: transmitter attached
   // 2: transmitter and bird attached
@@ -161,6 +163,7 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
     // Do not stop() since nothing has started!
     return false;
   }
+
   // We now determine the configuration.
   // Sensor map is an array, indexed by flock ID, whose values
   // are -1 for no attached sensor, and otherwise the appropriate Syzygy
@@ -174,12 +177,13 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
   _extendedRange = false;
   // flock addresses start at 1
   for (i=1; i<=_numFlockUnits; i++){
-    if (birdConfiguration[i] == 0){
+    switch (birdConfiguration[i]) {
+    case 0:{
       // Bird, no transmitter
       _sensorMap[i] = _numBirds;
       _numBirds++;
     }
-    else if (birdConfiguration[i] == 1){
+    case 1:{
       // Normal transmitter only
       if (_transmitterID>0){
         // The configuration already included a transmitter. THIS IS BAD!
@@ -189,8 +193,9 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
       }
       _sensorMap[i] = -1;
       _transmitterID = i;
+      break;
     }
-    else if (birdConfiguration[i] == 2){
+    case 2:{
       // Normal transmitter plus bird
       if (_transmitterID>0){
         // The configuration already included a transmitter. THIS IS BAD!
@@ -201,8 +206,9 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
       _transmitterID = i;
       _sensorMap[i] = _numBirds;
       _numBirds++;
+      break;
     }  
-    else if (birdConfiguration[i] ==3){
+    case 3:{
       // Extended range transmitter only
       if (_transmitterID>0){
 	cerr << "arFOBDriver error: multiple transmitters defined.\n";
@@ -212,8 +218,9 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
       _sensorMap[i] = -1;
       _transmitterID = i;
       _extendedRange = true;
+      break;
     }
-    else if (birdConfiguration[i] == 4){
+    case 4:{
       // Extended range trasnmitter plus bird
       if (_transmitterID>0){
 	cerr << "arFOBDriver error: multiple transmitters defined.\n";
@@ -224,22 +231,25 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
       _transmitterID = i;
       _extendedRange = true;
       _numBirds++;
+      break;
     }
-    else{
+    default:{
       cerr << "arFOBDriver error: illegal configuration value.\n";
       return false;
+    }
     }
   }
   if (!_transmitterID){
     cerr << "arFOBDriver error: illegal configuration. No transmitter.\n";
     return false;
   }
-  cout << "arFOBDriver remark: configuration given for " << _numBirds
-       << " birds\n  and a transmitter at unit " << _transmitterID << ".\n";
+  cout << "arFOBDriver remark: " << _numBirds
+       << " birds, transmitter at unit " << _transmitterID << ".\n";
 
   // The number of birds found is the number of matrices we will be reporting.
   _setDeviceElements( 0, 0, _numBirds );
-  // Go ahead and open the serial port
+
+  // Open the serial port.
   if (!_comPort.ar_open(_comPortID,(unsigned long)baudRate,8,1,"none" )){
     cerr << "arFOBDriver error: could not open serial port " << _comPortID
 	 << ".\n";
@@ -250,11 +260,11 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
 	 << ".\n";
     return false;
   }
-  cerr << "arFOBDriver remark: COM ports open.\n";
+  cout << "arFOBDriver remark: COM ports open.\n";
   
-  // We actually configure the flock of birds now.
-  // First, set the data mode for all the birds. This is hard-coded to
-  // be position-quaternion right now.
+  // Configure the FoB.
+
+  // First, set the data mode for all the birds. This is hard-coded to be position-quaternion.
   if (_numBirds > 1){
     for (i=1; i<=_numFlockUnits; i++){
       if (i != _transmitterID){
@@ -325,9 +335,8 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
   int bytesPerBird = 2*_dataSize + ((_numBirds > 1)?(1):(0));
   _dataBuffer = new unsigned char[bytesPerBird*_numBirds];
 
-  // Finally, if we are in "flock" mode (more than one unit), we have
-  // to issue an auto_config command to get the data moving. THIS
-  // COMMAND CANNOT BE ISSUED TO A STANDALONE UNIT.
+  // Finally, iff we are in "flock" mode (more than one unit),
+  // issue an auto_config command to get the data moving.
   if (_numBirds > 1){
     if (!_autoConfig()) {
       cerr << "arFOBDriver error: auto-config command failed.\n";
@@ -335,16 +344,16 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
     }
   }
   else{
-    // The run command seems to do nothing to a flock...
-    // BUT... it is necessary to wake a standalone unit up!
+    // The run command seems to do nothing to a flock,
+    // but it wakes up a standalone unit.
     if (!_run()){
       cerr << "arFOBDriver error: run failed.\n";
       return false;
     }
   }
 
-  // Success. All the lights should be on solidly.
-  cout << "arFOBDriver remark: configured Flock.\n";
+  // Success. All the FoB's lights should be on solidly.
+  cout << "arFOBDriver remark: flock configured.\n";
   return true;
 }
 
@@ -360,10 +369,6 @@ bool arFOBDriver::stop() {
   _sleep();
   _comPort.ar_close();
   return true;
-}
-
-bool arFOBDriver::restart() {
-  return stop() && start();
 }
 
 bool arFOBDriver::_setHemisphere( const std::string& hemisphere,

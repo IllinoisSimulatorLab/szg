@@ -24,7 +24,6 @@ class SZG_CALL arUSBDriver: public arInputSource {
     bool init(arSZGClient& SZGClient);
     bool start();
     bool stop();
-    bool restart();
   
   private:
     void _dataThread();

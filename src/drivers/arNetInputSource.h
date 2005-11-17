@@ -25,8 +25,6 @@ class SZG_CALL arNetInputSource: public arInputSource{
 
   virtual bool init(arSZGClient&);
   virtual bool start();
-  virtual bool stop();
-  virtual bool restart();
 
  private:
   arDataClient  _dataClient;

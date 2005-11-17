@@ -245,12 +245,7 @@ bool arMotionstarDriver::start(){
 }
 
 bool arMotionstarDriver::stop(){
-  // does nothing yet
   return true;
-}
-
-bool arMotionstarDriver::restart(){
-  return stop() && start();
 }
 
 bool arMotionstarDriver::_sendWakeup(){
@@ -427,7 +422,6 @@ void arMotionstarDriver::_generateEvent(int sensorID){
   sendMatrix(sensorID, transMatrix * rotMatrix );
 }
 
-
 // Old hack code, mostly moved to a PForth filter
 //void arMotionstarDriver::_tweak(){
 //  float* p = _receivedData;
@@ -468,4 +462,3 @@ void arMotionstarDriver::_generateEvent(int sensorID){
 //  p[4] = el;
 //  p[5] = roll;
 //}
-

@@ -149,11 +149,10 @@ bool arFaroDriver::start(){
 //    cerr << "arFaroDriver error: write() failed in _getSendData().\n";
 //    return false;
 //  }
-  bool stat = _eventThread.beginThread(ar_FaroDriverEventTask,this);
-  if (stat) {
+  const bool ok = _eventThread.beginThread(ar_FaroDriverEventTask,this);
+  if (ok)
     cerr << "arFaroDriver started.\n";
-  }
-  return stat;
+  return ok;
 }
 
 bool arFaroDriver::stop(){
@@ -164,10 +163,6 @@ bool arFaroDriver::stop(){
   }
   cerr << "arFaroDriver stopped.\n";
   return true;
-}
-
-bool arFaroDriver::restart(){
-  return stop() && start();
 }
 
 bool arFaroDriver::_getSendData() {

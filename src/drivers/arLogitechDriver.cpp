@@ -139,13 +139,9 @@ bool arLogitechDriver::stop(){
   return true;
 }
 
-bool arLogitechDriver::restart(){
-  return stop() && start();
-}
-
 bool arLogitechDriver::_reset() {
   // Activate 6-D mode
-  int stat = _comPort.ar_write( "*R" );
+  const int stat = _comPort.ar_write( "*R" );
   if (stat < 2) {
     cerr << "arLogitechDriver error: wrote " << stat << " bytes instead of 2 in _reset().\n";
     return false;
@@ -157,7 +153,7 @@ bool arLogitechDriver::_reset() {
 }
 
 bool arLogitechDriver::_startStreaming() {
-  int stat = _comPort.ar_write("*S");
+  const int stat = _comPort.ar_write("*S");
   if (stat < 2) {
     cerr << "arLogitechDriver error: wrote " << stat << " bytes instead of 2 in _startStreaming().\n";
     return false;

@@ -196,8 +196,6 @@ public:
 
   bool init(arSZGClient&);
   bool start();
-  bool stop();
-  bool restart();
 
   virtual void handleMessage( const string& messageType, const string& messageBody );
 

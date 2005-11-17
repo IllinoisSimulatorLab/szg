@@ -162,12 +162,6 @@ bool arSpacepadDriver::start(){
 }
 
 bool arSpacepadDriver::stop(){
-  // doesn't do anything yet!
-  return false;
-}
-
-bool arSpacepadDriver::restart(){
-  // doesn't do anything yet!
   return false;
 }
 

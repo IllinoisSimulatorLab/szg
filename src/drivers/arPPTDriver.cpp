@@ -95,10 +95,6 @@ bool arPPTDriver::stop() {
   return true;
 }
 
-bool arPPTDriver::restart() {
-  return stop() && start();
-}
-
 const unsigned int PPT_PACKET_SIZE(27);
 const unsigned int PPT_MAX_LIGHTS(4);
 const float PPT_RANGE(32768.0); 
@@ -178,4 +174,3 @@ const double PPT_TIMEOUT(5);
 void arPPTDriver::_resetStatusTimer() {
   _statusTimer.start( PPT_TIMEOUT*1.e6 );
 }
-

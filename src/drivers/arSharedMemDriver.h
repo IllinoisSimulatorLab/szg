@@ -23,7 +23,6 @@ class SZG_CALL arSharedMemDriver: public arInputSource {
     bool init(arSZGClient& SZGClient);
     bool start();
     bool stop();
-    bool restart();
   
   private:
     void _dataThread();

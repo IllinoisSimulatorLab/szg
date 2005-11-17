@@ -106,14 +106,6 @@ bool arNetInputSink::start(){
   return true;
 }
 
-bool arNetInputSink::stop(){
-  return true;
-}
-
-bool arNetInputSink::restart(){
-  return stop() && start();
-}
-
 void arNetInputSink::receiveData(int,arStructuredData* data){
   if (_fValid){
     _dataServer.sendData(data);

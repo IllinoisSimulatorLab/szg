@@ -19,8 +19,6 @@ class arIntelGamepadDriver: public arInputSource {
  public:
   bool init(arSZGClient& client);
   bool start();
-  bool stop();
-  bool restart();
  private:
   arThread _eventThread;
 #ifdef AR_USE_WIN_32

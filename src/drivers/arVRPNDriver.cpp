@@ -119,7 +119,3 @@ bool arVRPNDriver::stop(){
   // not implemented yet!
   return true;
 }
-
-bool arVRPNDriver::restart(){
-  return stop() && start();
-}

@@ -24,7 +24,6 @@ class arFaroDriver: public arInputSource {
   bool init(arSZGClient& SZGClient);
   bool start();
   bool stop();
-  bool restart();
   
  private:
   bool _getSendData();

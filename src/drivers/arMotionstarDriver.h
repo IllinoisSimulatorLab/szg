@@ -31,7 +31,6 @@ class arMotionstarDriver: public arInputSource {
   bool init(arSZGClient&);
   bool start();
   bool stop();
-  bool restart();
 
  private:
   arThread _eventThread;

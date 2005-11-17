@@ -35,7 +35,6 @@ class SZG_CALL arVRPNDriver: public arInputSource{
   bool init(arSZGClient& client);
   bool start();
   bool stop();
-  bool restart();
  private:
   arThread _eventThread;
   string vrpnDeviceName;

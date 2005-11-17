@@ -98,10 +98,6 @@ bool arReactionTimerDriver::stop() {
   return true;
 }
 
-bool arReactionTimerDriver::restart() {
-  return stop() && start();
-}
-
 bool arReactionTimerDriver::_processInput() {
   const unsigned int numToRead = 3; // Minimum message size ("!\r\n")
   const int numRead = _port.ar_read( _inbuf, numToRead, BUF_SIZE-1 );

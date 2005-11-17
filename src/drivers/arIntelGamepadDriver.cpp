@@ -151,12 +151,3 @@ bool arIntelGamepadDriver::init(arSZGClient& client){
 bool arIntelGamepadDriver::start(){
   return _eventThread.beginThread(ar_intelGamepadDriverEventTask,this);
 }
-
-bool arIntelGamepadDriver::stop(){
-  // not implemented yet!
-  return true;
-}
-
-bool arIntelGamepadDriver::restart(){
-  return stop() && start();
-}
