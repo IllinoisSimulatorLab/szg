@@ -41,14 +41,13 @@ arGraphicsScreen::arGraphicsScreen():
 }
 
 bool arGraphicsScreen::configure(arSZGClient& client) {
-  std::string screenName = client.getMode("graphics");
-  return configure( screenName, client );
+  return configure( client.getMode("graphics"), client );
 }
 
-// Always returns true.  There are sesnsible defaults for all parameters
+// Always returns true.  There are defaults for all parameters
 // the arSZGClient might query.
 bool arGraphicsScreen::configure(const string& screenName, arSZGClient& client) {
-  stringstream& initResponse = client.initResponse();
+  (void)client.initResponse();
   _headMounted = client.getAttribute( screenName,"head_mounted","|true|false|") == "true";
 
   float floatbuf[2];
