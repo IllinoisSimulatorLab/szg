@@ -1,7 +1,7 @@
 SZG_INCLUDE_STYLE = INTERNAL
 SZG_COPY_LIB = TRUE
 
-# VPATH needs to be set BEFORE Makefile.vars (to get SRCDIR defined correctly)
+# Set VPATH before Makefile.vars, to define SRCDIR correctly.
 VPATH = ../../../src/graphics
 
 include $(SZGHOME)/build/make/Makefile.vars
@@ -9,61 +9,62 @@ include $(SZGHOME)/build/make/Makefile.vars
 # DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
 # with this sometimes.
 OBJS = \
-  arLargeImage$(OBJ_SUFFIX) \
-  arHead$(OBJ_SUFFIX) \
-  arGraphicsAPI$(OBJ_SUFFIX) \
-  arGraphicsScreen$(OBJ_SUFFIX) \
-  arVRCamera$(OBJ_SUFFIX) \
-  arPerspectiveCamera$(OBJ_SUFFIX) \
-  arViewport$(OBJ_SUFFIX) \
-  arGraphicsWindow$(OBJ_SUFFIX) \
-  arGraphicsPeer$(OBJ_SUFFIX) \
-  arGraphicsPeerRPC$(OBJ_SUFFIX) \
-  arCamera$(OBJ_SUFFIX) \
-  arOrthoCamera$(OBJ_SUFFIX) \
-  arFrameworkObject$(OBJ_SUFFIX) \
-  arFramerateGraph$(OBJ_SUFFIX) \
   arBillboardNode$(OBJ_SUFFIX) \
+  arBlendNode$(OBJ_SUFFIX) \
   arBoundingSphereNode$(OBJ_SUFFIX) \
+  arBumpMap$(OBJ_SUFFIX) \
+  arBumpMapNode$(OBJ_SUFFIX) \
+  arCamera$(OBJ_SUFFIX) \
+  arColor4Node$(OBJ_SUFFIX) \
   arCubeEnvironment$(OBJ_SUFFIX) \
+  arDrawableNode$(OBJ_SUFFIX) \
+  arFramerateGraph$(OBJ_SUFFIX) \
+  arFrameworkObject$(OBJ_SUFFIX) \
+  arFrustumCamera$(OBJ_SUFFIX) \
+  arGUIEventManager$(OBJ_SUFFIX) \
+  arGUIInfo$(OBJ_SUFFIX) \
+  arGUIWindow$(OBJ_SUFFIX) \
+  arGUIWindowManager$(OBJ_SUFFIX) \
+  arGUIXMLParser$(OBJ_SUFFIX) \
+  arGraphicsAPI$(OBJ_SUFFIX) \
+  arGraphicsArrayNode$(OBJ_SUFFIX) \
   arGraphicsClient$(OBJ_SUFFIX) \
+  arGraphicsContext$(OBJ_SUFFIX) \
   arGraphicsDatabase$(OBJ_SUFFIX) \
   arGraphicsLanguage$(OBJ_SUFFIX) \
   arGraphicsNode$(OBJ_SUFFIX) \
+  arGraphicsPeer$(OBJ_SUFFIX) \
+  arGraphicsPeerRPC$(OBJ_SUFFIX) \
+  arGraphicsScreen$(OBJ_SUFFIX) \
   arGraphicsServer$(OBJ_SUFFIX) \
+  arGraphicsStateNode$(OBJ_SUFFIX) \
+  arGraphicsUtilities$(OBJ_SUFFIX) \
+  arGraphicsWindow$(OBJ_SUFFIX) \
+  arHead$(OBJ_SUFFIX) \
+  arIndexNode$(OBJ_SUFFIX) \
+  arLargeImage$(OBJ_SUFFIX) \
+  arLight$(OBJ_SUFFIX) \
+  arLightNode$(OBJ_SUFFIX) \
+  arMaterial$(OBJ_SUFFIX) \
+  arMaterialNode$(OBJ_SUFFIX) \
   arMesh$(OBJ_SUFFIX) \
+  arNormal3Node$(OBJ_SUFFIX) \
+  arOrthoCamera$(OBJ_SUFFIX) \
+  arPerspectiveCamera$(OBJ_SUFFIX) \
+  arPerspectiveCameraNode$(OBJ_SUFFIX) \
   arPointsNode$(OBJ_SUFFIX) \
   arRay$(OBJ_SUFFIX) \
   arReadymade$(OBJ_SUFFIX) \
-  arTextureNode$(OBJ_SUFFIX) \
-  arTexture$(OBJ_SUFFIX) \
-  arGraphicsContext$(OBJ_SUFFIX) \
-  arTransformNode$(OBJ_SUFFIX) \
-  arVisibilityNode$(OBJ_SUFFIX) \
-  arViewerNode$(OBJ_SUFFIX) \
-  arBlendNode$(OBJ_SUFFIX) \
-  arGraphicsArrayNode$(OBJ_SUFFIX) \
-  arNormal3Node$(OBJ_SUFFIX) \
-  arColor4Node$(OBJ_SUFFIX) \
   arTex2Node$(OBJ_SUFFIX) \
-  arIndexNode$(OBJ_SUFFIX) \
-  arDrawableNode$(OBJ_SUFFIX) \
-  arMaterialNode$(OBJ_SUFFIX) \
-  arLightNode$(OBJ_SUFFIX) \
-  arGraphicsUtilities$(OBJ_SUFFIX) \
-  arLight$(OBJ_SUFFIX) \
-  arPerspectiveCameraNode$(OBJ_SUFFIX) \
-  arMaterial$(OBJ_SUFFIX) \
-  arBumpMapNode$(OBJ_SUFFIX) \
-  arBumpMap$(OBJ_SUFFIX) \
-  arGraphicsStateNode$(OBJ_SUFFIX) \
-  arWildcatUtilities$(OBJ_SUFFIX) \
-  arGUIWindowManager$(OBJ_SUFFIX) \
-  arGUIWindow$(OBJ_SUFFIX) \
-  arGUIEventManager$(OBJ_SUFFIX) \
-  arGUIInfo$(OBJ_SUFFIX) \
   arTexFont$(OBJ_SUFFIX) \
-  arGUIXMLParser$(OBJ_SUFFIX)
+  arTexture$(OBJ_SUFFIX) \
+  arTextureNode$(OBJ_SUFFIX) \
+  arTransformNode$(OBJ_SUFFIX) \
+  arVRCamera$(OBJ_SUFFIX) \
+  arViewerNode$(OBJ_SUFFIX) \
+  arViewport$(OBJ_SUFFIX) \
+  arVisibilityNode$(OBJ_SUFFIX) \
+  arWildcatUtilities$(OBJ_SUFFIX) 
 
 # Local variable definitions for the build.
 # These internal library makefiles ONLY include the external files necessary
@@ -122,4 +123,3 @@ szg-rp$(EXE): szg-rp$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 TestGraphics$(EXE): TestGraphics$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_EXE_FIRST) TestGraphics$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
-
