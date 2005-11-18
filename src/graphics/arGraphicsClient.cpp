@@ -82,14 +82,13 @@ bool ar_graphicsClientConsumptionCallback(void* client,
 bool ar_graphicsClientActionCallback(void* client){
   arGraphicsClient* c = (arGraphicsClient*) client;
 
-  // A HACK for the wildcat cards! Framelock needs to be enabled there.
+  // Hack for the wildcat graphics cards.
   c->getWindowManager()->activateFramelock();
 
   c->updateHead();
   // Draw all windows (simultaneously if threading is turned on),
   // blocking until the draws are completed.
   c->_windowManager->drawAllWindows(true);
-
   return true;
 }
 
@@ -111,7 +110,7 @@ bool ar_graphicsClientNullCallback(void* client){
   // Return to normal drawing mode.
   c->setOverrideColor(arVector3(-1,-1,-1));
 
-  // Don't spin quickly when we're only drawing a blank screen.
+  // Throttle CPU when screen is blank.
   ar_usleep(40000);
   return ar_graphicsClientPostSyncCallback(client);
 }
@@ -131,7 +130,6 @@ class arGraphicsClientWindowInitCallback : public arWindowInitCallback {
     arGraphicsClientWindowInitCallback() {}
     ~arGraphicsClientWindowInitCallback() {}
     void operator()( arGraphicsWindow& );
-  private:
 };
 
 void arGraphicsClientWindowInitCallback::operator()( arGraphicsWindow& ) {
@@ -145,7 +143,7 @@ class arGraphicsClientRenderCallback : public arGUIRenderCallback {
       _client( &cli ) {}
     ~arGraphicsClientRenderCallback() {}
     void operator()(arGraphicsWindow&, arViewport&);
-    void operator()(arGUIWindowInfo* windowInfo) { }
+    void operator()(arGUIWindowInfo*) {}
     void operator()(arGUIWindowInfo* windowInfo,
                     arGraphicsWindow* graphicsWindow);
   private:
@@ -155,10 +153,8 @@ class arGraphicsClientRenderCallback : public arGUIRenderCallback {
 // The callback for the arGraphicsWindow (i.e. for an individual viewport).
 void arGraphicsClientRenderCallback::operator()( arGraphicsWindow&,
                                                  arViewport& v) {
-  if (!_client){
-    return;
-  }
-  ar_graphicsClientDraw( _client, v.getCamera() );
+  if (_client)
+    ar_graphicsClientDraw(_client, v.getCamera());
 }
 
 // The callback for the arGUIWindow.

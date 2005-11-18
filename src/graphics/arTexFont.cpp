@@ -157,7 +157,7 @@ int arTexFont::loadFont( const std::string& font )
     FAILURE_RETURN;
   }
 
-  #define EXPECT( n ) if ( got != ( n ) ) { FAILURE_RETURN; }
+  #define EXPECT( n ) if ( got != (size_t)( n ) ) { FAILURE_RETURN; }
   got = fread( &format, sizeof( int ), 1, file);
   EXPECT( 1 );
   got = fread( &txf->tex_width, sizeof( int ), 1, file );
