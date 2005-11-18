@@ -312,14 +312,11 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
   }
 
   arCamera* camera = NULL;
-  if( cameraType == "ortho" || cameraType == "perspective" ) {
-    const bool fOrtho = cameraType == "ortho";
-    arOrthoCamera* camO = NULL;
-    arPerspectiveCamera* camP = NULL;
-    if (fOrtho)
-      camO = new arOrthoCamera();
-    else
-      camP = new arPerspectiveCamera();
+  if( cameraType == "vr" ) {
+    camera = new arVRCamera();
+  }
+  else if( cameraType == "ortho" || cameraType == "perspective" ) {
+    arFrustumCamera* camF = new arFrustumCamera();
 
     // <frustum left="float" right="float" bottom="float" top="float" near="float" far="float" />
     if( (cameraElement = cameraNode->FirstChild( "frustum" )) &&
@@ -331,10 +328,7 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
       cameraElement->ToElement()->Attribute( "top",    &ortho[ 3 ] );
       cameraElement->ToElement()->Attribute( "near",   &ortho[ 4 ] );
       cameraElement->ToElement()->Attribute( "far",    &ortho[ 5 ] );
-      if( fOrtho )
-        camO->setFrustum( ortho );
-      else
-        camP->setFrustum( ortho );
+      camF->setFrustum( ortho );
     }
 
     // <lookat viewx="float" viewy="float" viewz="float" lookatx="float" lookaty="float" lookatz="float" upx="float" upy="float" upz="float" />
@@ -350,64 +344,35 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
       cameraElement->ToElement()->Attribute( "upx",     &look[ 6 ] );
       cameraElement->ToElement()->Attribute( "upy",     &look[ 7 ] );
       cameraElement->ToElement()->Attribute( "upz",     &look[ 8 ] );
-      if( fOrtho )
-        camO->setLook( look );
-      else
-        camP->setLook( look );
+      camF->setLook( look );
     }
 
     // <sides left="float" right="float" bottom="float" top="float" />
-    if( (cameraElement = cameraNode->FirstChild( "sides" )) ) {
-      arVector4 vec = _attributearVector4( cameraElement, "left", "right", "bottom", "top" );
-      if( fOrtho )
-        camO->setSides( vec );
-      else
-        camP->setSides( vec );
-    }
+    if( (cameraElement = cameraNode->FirstChild( "sides" )))
+      camF->setSides( _attributearVector4( cameraElement, "left", "right", "bottom", "top" ) );
 
-    // <clipping near="float" far="float />
+    // <clipping near="float" far="float" />
     if( (cameraElement = cameraNode->FirstChild( "clipping" )) &&
          cameraElement->ToElement() ) {
       float planes[ 2 ] = { 0.0f };
       cameraElement->ToElement()->Attribute( "near", &planes[ 0 ] );
       cameraElement->ToElement()->Attribute( "far",  &planes[ 1 ] );
-      if( fOrtho )
-        camO->setNearFar( planes[ 0 ], planes[ 1 ] );
-      else
-        camP->setNearFar( planes[ 0 ], planes[ 1 ] );
+      camF->setNearFar( planes[ 0 ], planes[ 1 ] );
     }
 
-    // <position x="float" y="float" z="float />
-    if( (cameraElement = cameraNode->FirstChild( "position" )) ) {
-      arVector3 vec = _attributearVector3( cameraElement );
-      if( fOrtho )
-        camO->setPosition( vec );
-      else
-        camP->setPosition( vec );
-    }
+    // <position x="float" y="float" z="float" />
+    if( (cameraElement = cameraNode->FirstChild( "position" )) )
+      camF->setPosition( _attributearVector3( cameraElement ) );
 
-    // <target x="float" y="float" z="float />
-    if( (cameraElement = cameraNode->FirstChild( "target" )) ) {
-      arVector3 vec = _attributearVector3( cameraElement );
-      if( fOrtho )
-        camO->setTarget( vec );
-      else
-        camP->setTarget( vec );
-    }
+    // <target x="float" y="float" z="float" />
+    if( (cameraElement = cameraNode->FirstChild( "target" )) )
+      camF->setTarget( _attributearVector3( cameraElement ) );
 
-    // <up x="float" y="float" z="float />
-    if( (cameraElement = cameraNode->FirstChild( "up" )) ) {
-      arVector3 vec = _attributearVector3( cameraElement );
-      if( fOrtho )
-        camO->setUp( vec );
-      else
-        camP->setUp( vec );
-    }
+    // <up x="float" y="float" z="float" />
+    if( (cameraElement = cameraNode->FirstChild( "up" )) )
+      camF->setUp( _attributearVector3( cameraElement ) );
 
-    camera = fOrtho ? (arCamera*)camO : (arCamera*)camP;
-  }
-  else if( cameraType == "vr" ) {
-    camera = new arVRCamera();
+    camera = camF;
   }
   else {
     std::cerr << "arGUIXML warning: defaulting to arVRCamera for unknown camera type \""
