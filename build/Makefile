@@ -9,8 +9,8 @@ all:
 	@echo "Makefile failed to guess OS type."
 else
 
-LIBDIRS=language math phleet barrier drivers graphics sound \
-  obj interaction framework
+DRVDIRS=language math phleet barrier drivers
+LIBDIRS=$(DRVDIRS) graphics sound obj interaction framework
 SUBDIRS=$(LIBDIRS) utilities 
 DEMODIRS=ribbons atlantis coaster hspace avn volume \
   cosmos cubes parade timetunnel schprel q33 
@@ -18,6 +18,9 @@ DEMOFAST=cosmos atlantis
 
 all:
 	@for i in $(SUBDIRS) ; do $(MAKE) -C $z/$$i -j $(JOBS) || exit 1 ; done
+
+drivers:
+	@for i in $(DRVDIRS) ; do $(MAKE) -C $z/$$i -j $(JOBS) || exit 1 ; done
 
 clean:
 	@for i in $(SUBDIRS) ; do $(MAKE) -C $z/$$i clean ; done
