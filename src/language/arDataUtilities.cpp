@@ -581,19 +581,22 @@ int ar_parseFloatString(const string& theString, float* outArray, int len){
 }
 
 int ar_parseIntString(const string& theString, int* outArray, int len){
-  // takes a string which is a sequence of ints delimited by /
-  // and fills an array of ints
+  // Takes a string of slash-delimited ints and fills an array of ints.
   // Returns how many ints were found.
 
   if (len <= 0) {
-    cerr << "ar_parseIntString warning: nonpositive length!\n";
+    cerr << "ar_parseIntString warning: nonpositive length.\n";
+    return -1;
+  }
+  if (!outArray) {
+    cerr << "ar_parseIntString error: NULL target.\n";
     return -1;
   }
 
-  string localString = theString; //;;;; copy only if needed.  Use a string* pointing to the original or the copy.
-  int length = localString.length();
+  int length = theString.length();
   if (length < 1)
     return 0;
+  string localString = theString; //;;;; copy only if needed.  Use a string* pointing to the original or the copy.
   if (localString[length-1] != '/')
     localString = localString + "/";    
   std::istringstream inStream( localString );
@@ -601,7 +604,8 @@ int ar_parseIntString(const string& theString, int* outArray, int len){
   string wordString;
   while (numValues < len) {
     getline( inStream, wordString, '/' );
-    if (wordString == "") {
+    // && numValues > 1, that's needed to handle the case of a 1-int string.  I think.
+    if (wordString == "" && numValues > 1) {
       cerr << "ar_parseIntString warning: empty field.\n";
       break;
     }
