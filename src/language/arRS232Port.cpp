@@ -170,11 +170,11 @@ bool arRS232Port::ar_open( const unsigned int port, const unsigned long baud,
       baudRate = CBR_115200;
       break;
     default:
-      cerr << "arRS232Port error: legal baud rates are 9600, 19200, 38400, 57600, and 115200\n";
+      cerr << "arRS232Port error: legal baud rates are 9600, 19200, 38400, 57600, and 115200.\n";
       return false;
   }
-  if ((dBits < 4)||(dBits > 8)) {
-    cerr << "arRS232Port error: Win32 4-8 data bits.\n";
+  if (dBits < 4 || dBits > 8) {
+    cerr << "arRS232Port error: data bits must be one of 4,5,6,7,8.\n";
     return false;
   }
   BYTE byteSize = static_cast<BYTE>( dBits );
@@ -186,7 +186,7 @@ bool arRS232Port::ar_open( const unsigned int port, const unsigned long baud,
   else if (fltcomp( stBits, 2 ))
     stopBits = 2;
   else {
-    cerr << "arRS232Port error: stop bits must be one of: 1, 1.5, 2.\n";
+    cerr << "arRS232Port error: stop bits must be one of 1, 1.5, 2.\n";
     return false;
   }
   BYTE parity = 0;
@@ -205,8 +205,6 @@ bool arRS232Port::ar_open( const unsigned int port, const unsigned long baud,
     return false;
   }
  
-//  cerr << "arRS232Port::ar_open() remark: attempting to open port " << portString << endl;
-
   char portString[8] = "COM";
   // Windows port #s are 1-based..
   sprintf( portString+3, "%d", port );
@@ -447,47 +445,42 @@ int arRS232Port::ar_read( char* buf, const unsigned int numBytes, const unsigned
     return -1;
   }
 #ifdef AR_USE_WIN_32
-  // unsigned
-  DWORD bytesThisTime = 0;
-  
-  unsigned int numBytesAvailable( getNumberBytes() );
-  unsigned int numToRead( numBytes );
+  DWORD bytesThisTime = 0; // unsigned
+  unsigned int numBytesAvailable = getNumberBytes();
+  unsigned int numToRead = numBytes;
   if ((numBytesAvailable <= maxBytes) && (numBytesAvailable > numBytes))
     numToRead = numBytesAvailable; 
 
-  // Windows only do one blocking read (because we can specify a total timeout)
-  BOOL stat = ReadFile( _portHandle, (LPVOID)(buf), (DWORD)(numToRead), (LPDWORD)&bytesThisTime, NULL );
-
-  if (stat) {
+  // Windows only, do one blocking read (because we can specify a total timeout)
+  if (ReadFile(_portHandle, (LPVOID)(buf), (DWORD)(numToRead), (LPDWORD)&bytesThisTime, NULL))
     return static_cast<int>(bytesThisTime);
-  } else {
-    return -1;
-  }
-  
+
+  return -1;
+
 #endif
 #ifdef AR_USE_LINUX
   struct timeval tStruct;
   struct timezone zStruct;
   if (gettimeofday( &tStruct, &zStruct )!=0) {
-    cerr << "arRS232Port error: gettimeofday failed??\n";
+    cerr << "arRS232Port error: gettimeofday failed.\n";
     return -1;
   }
 
-  unsigned int numBytesAvailable( getNumberBytes() );
-  unsigned int numToRead( numBytes );
+  unsigned int numBytesAvailable = getNumberBytes();
+  unsigned int numToRead = numBytes;
   int numRead = 0;
 
   if (_readTimeoutTenths > 0) { // blocking read: wait until you've got at least
-                            // numBytes bytes, but take more if they're
+                            // numBytes bytes, but take more bytes if they're
                             // immediately available (up to maxBytes)
-    long startTimeSecs = tStruct.tv_sec;
-    long startTimeMicSecs = tStruct.tv_usec;
-    if ((numBytesAvailable <= maxBytes) && (numBytesAvailable > numBytes))
+    const long startTimeSecs = tStruct.tv_sec;
+    const long startTimeMicSecs = tStruct.tv_usec;
+    if (numBytesAvailable <= maxBytes && numBytesAvailable > numBytes)
       numToRead = numBytesAvailable; 
     unsigned long timeElapsedTenths = 0;
 
     while (( static_cast<unsigned int>(numRead) < numToRead )&&( timeElapsedTenths < _readTimeoutTenths )) {
-      int stat = read( _fileDescriptor, buf+numRead, numToRead-numRead );
+      const int stat = read( _fileDescriptor, buf+numRead, numToRead-numRead );
       // Note: if we decide we want to get at actual error codes, we'll need to
       // figure out how to do it in a Win32-compatible way.
       if (stat < 0) {
@@ -501,7 +494,7 @@ int arRS232Port::ar_read( char* buf, const unsigned int numBytes, const unsigned
           return -1;
         }      
         timeElapsedTenths = static_cast<unsigned long>( static_cast<unsigned long>(
-                            10*(tStruct.tv_sec-startTimeSecs) +
+                            10 * (tStruct.tv_sec-startTimeSecs) +
                             static_cast<long>(floor((tStruct.tv_usec-startTimeMicSecs)/1.0e5)) ) );
       }
     } 
@@ -527,25 +520,23 @@ int arRS232Port::ar_read( char* buf, const unsigned int numBytes, const unsigned
 
 int arRS232Port::readAll( char**bufAdd, unsigned int& currentBufferSize ) {
   if (!_isOpen) {
-    cerr << "arRS232Port error: so sorry, no reading from a closed port.\n";
+    cerr << "arRS232Port error: can't read from a closed port.\n";
     return -1;
   }
   if (!bufAdd) {
     cerr << "arRS232Port error: NULL buffer address passed to readAll.\n";
     return false;
   }
-  unsigned int numBytes = getNumberBytes();
+  const unsigned numBytes = getNumberBytes();
   if (numBytes == 0)
     return 0;
-  if (numBytes > currentBufferSize) {
-    if (*bufAdd) {
-      delete[] *bufAdd;
-      *bufAdd = 0;
-      currentBufferSize = 0;
-    }
+  if (numBytes > currentBufferSize && *bufAdd) {
+    delete[] *bufAdd;
+    *bufAdd = 0;
+    currentBufferSize = 0;
   }
   if (!*bufAdd) {
-    // NOTE: not \0-terminated!
+    // Not null-terminated!
     *bufAdd = new char[numBytes];
     if (!*bufAdd) {
       cerr << "arRS232Port error: memory allocation failed in readAll().\n";
@@ -558,7 +549,7 @@ int arRS232Port::readAll( char**bufAdd, unsigned int& currentBufferSize ) {
 
 int arRS232Port::ar_write( const char* buf, const unsigned int numBytes ) {
   if (!_isOpen) {
-    cerr << "arRS232Port error: so sorry, no writing to a closed port.\n";
+    cerr << "arRS232Port error: can't write to a closed port.\n";
     return -1;
   }
 #ifdef AR_USE_WIN_32
@@ -591,25 +582,31 @@ int arRS232Port::ar_write( const char* buf ) {
 }
 
 bool arRS232Port::flushInput() {
+#if !defined( AR_USE_WIN_32 ) && !defined( AR_USE_LINUX )
+  cerr << "arRS232Port error: implemented only for Win32 and Linux.\n";
+  return false;
+#endif 
+
   if (!_isOpen) {
-    cerr << "arRS232Port error: port not open.\n";
+    cerr << "arRS232Port error: port closed.\n";
     return false;
   }
 #ifdef AR_USE_WIN_32
-	return PurgeComm( _portHandle, PURGE_RXCLEAR ) == TRUE;
+  return PurgeComm( _portHandle, PURGE_RXCLEAR ) == TRUE;
 #endif
 #ifdef AR_USE_LINUX
   return tcflush( _fileDescriptor, TCIFLUSH ) == 0;
 #endif
-
-// #else
-  cerr << "arRS232Port error: Sorry, only Win32 and Linux so far.\n";
-  return false;
 }
 
 bool arRS232Port::flushOutput() {
+#if !defined( AR_USE_WIN_32 ) && !defined( AR_USE_LINUX )
+  cerr << "arRS232Port error: Sorry, only Win32 and Linux so far.\n";
+  return false;
+#endif 
+
   if (!_isOpen) {
-    cerr << "arRS232Port error: port not open.\n";
+    cerr << "arRS232Port error: port closed.\n";
     return false;
   }
 #ifdef AR_USE_WIN_32
@@ -618,10 +615,6 @@ bool arRS232Port::flushOutput() {
 #ifdef AR_USE_LINUX
   return tcflush( _fileDescriptor, TCOFLUSH ) == 0;
 #endif
-
-// #else
-  cerr << "arRS232Port error: Sorry, only Win32 and Linux so far.\n";
-  return false;
 }
 
 bool arRS232Port::setReadTimeout( const unsigned int timeoutTenths ) {
@@ -633,15 +626,15 @@ bool arRS232Port::setReadTimeout( const unsigned int timeoutTenths ) {
     cerr << "arRS232Port error: port closed\n";
     return false;
   }
-  bool stat(true);
+  bool ok = true;
 #ifdef AR_USE_WIN_32
   if (timeoutTenths != _readTimeoutTenths) {
     _timeoutStruct.ReadTotalTimeoutConstant = 100*timeoutTenths;
-    stat = SetCommTimeouts( _portHandle, &_timeoutStruct );
+    ok = SetCommTimeouts( _portHandle, &_timeoutStruct );
   }
 #endif
   _readTimeoutTenths = timeoutTenths;
-  return stat;
+  return ok;
 }
 
 bool arRS232Port::setReadBufferSize( const unsigned int numBytes ) {
@@ -670,13 +663,8 @@ unsigned int arRS232Port::getNumberBytes() {
 #ifdef AR_USE_WIN_32
   DWORD errorFlags = 0;
   COMSTAT comState;
-  DWORD numBytes = 0;
-
   ClearCommError( _portHandle, &errorFlags, &comState ) ;
-  numBytes = comState.cbInQue;
-
-  return numBytes;
-
+  return static_cast<unsigned int>(comState.cbInQue);
 #endif
 #ifdef AR_USE_LINUX
   int numBytes = 0;
