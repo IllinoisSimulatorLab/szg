@@ -143,50 +143,45 @@ bool arSharedLib::createFactory(const string& sharedLibName,
     cout << "arSharedLib error: library already loaded.\n";
     return false;
   }
+
   // The arSZGClient returns "NULL" for unset parameters. Consequently,
   // if path is "NULL", we set execPath to "" (which is what open(...)
   // expects).
+  const string execPath = (path == "NULL") ? "" : path;
   stringstream message;
-  string execPath;
-  if (path == "NULL"){
-    execPath = "";
-  }
-  else{
-    execPath = path;
-  }
+
   // Attempt to load the shared library.
   if (!arSharedLib::open(sharedLibName,execPath)){
-    message << "arSharedLib error: could not dynamically load object "
-	    << "(name=" << sharedLibName << ") on path=" << execPath << ".\n";
+    message << "arSharedLib error: failed to load \""
+	    << sharedLibName << "\" on path \"" << execPath << "\".\n";
+LAbort:
     error = message.str();
     return false;
   }
   _libraryLoaded = true;
 
-  // First, make sure that we do indeed have the right type.
+  // make sure that we have the right type.
   _objectType = (arSharedLibObjectType) arSharedLib::sym("baseType");
   if (!_objectType){
-    message << "arSharedLib error: could not retrieve type function from object "
-            << sharedLibName << endl;
-    error = message.str();
-    return false;
+    message << "arSharedLib error: no type function in \""
+            << sharedLibName << "\".\n";
+    goto LAbort;
   }
   char typeBuffer[256];
   _objectType(typeBuffer, 256);
   if (strcmp(typeBuffer, type.c_str())){
-    message << "DeviceServer error: dynamically loaded object "
-	    << "(name=" << sharedLibName << ") declares wrong type="
+    message << "arSharedLib error: dynamically loaded object \""
+	    << sharedLibName << "\" declares wrong type="
 	    << typeBuffer << "\n";
-    error = message.str();
-    return false;
+    goto LAbort;
   }
+
   // Get the factory function
   _factory = (arSharedLibFactory) arSharedLib::sym("factory");
   if (!_factory){
-    message << "DeviceServer error: could not retrieve factory function from "
-	    << "object (name=" << sharedLibName << ").\n";
-    error = message.str();
-    return false;
+    message << "arSharedLib error: no factory function in \""
+	    << sharedLibName << "\".\n";
+    goto LAbort;
   }
   _factoryMapped = true;
   return true;
