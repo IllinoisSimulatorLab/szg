@@ -185,11 +185,19 @@ int main(int argc, char** argv){
     nodeConfig.inputSources.push_back(argv[1]);
   }
   else{
-    nodeConfig = parseNodeConfig(SZGClient.getGlobalAttribute(argv[1]));
+    const string& bla = SZGClient.getGlobalAttribute(argv[1]);
+    if (bla == "NULL") {
+      initResponse << "DeviceServer error: undefined node \""
+		   << argv[1] << "\".\n";
+      respond(SZGClient);
+      return 1;
+    }
+    nodeConfig = parseNodeConfig(bla);
     if (!nodeConfig.valid){
       initResponse << "DeviceServer error: invalid node config from "
 		   << "attribute " << argv[1] << "\n";
-    respond(SZGClient);
+      respond(SZGClient);
+      return 1;
     }
   }
 
