@@ -386,14 +386,11 @@ bool arFOBDriver::_setHemisphere( const std::string& hemisphere,
     cerr << "arFOBDriver error: invalid hemisphere #.\n";
     return false;
   }
-  if (addr > 0){
-    if (!_sendBirdAddress(addr)){
-      return false;
-    }
-  }
-  bool state = _sendBirdCommand( cdata, 3 );
+  if (addr > 0 && !_sendBirdAddress(addr))
+    return false;
+  const bool ok = _sendBirdCommand( cdata, 3 );
   ar_usleep(100000);
-  return state;
+  return ok;
 }
 
 // NOTE: _getHemisphere might not be supported on older flock hardware!
@@ -418,19 +415,17 @@ bool arFOBDriver::_getHemisphere( std::string& hemisphere,
     hemisphere = "right";
   } else {
     hemisphere = "unknown";
+    return false;
   }
-  return hemisphere != "unknown";
+  return true;
 }
 
 // Sets position+quaternion data mode
 bool arFOBDriver::_setDataMode(unsigned char addr) {
-  unsigned char posorientcmd = ']';
+  const unsigned char posorientcmd = ']';
   _dataSize = 7;
-  if (addr > 0){
-    if (!_sendBirdAddress(addr)){
-      return false;
-    }
-  }
+  if (addr > 0 && !_sendBirdAddress(addr))
+    return false;
   return _sendBirdCommand( &posorientcmd, 1 );
 }
 
@@ -441,7 +436,7 @@ bool arFOBDriver::_getDataMode( std::string& modeString,
     cerr << "arFOBDriver error: _getFOBParam() failed.\n";
     return false;
   }
-  bool stat(true);
+  bool ok = true;
   unsigned short dataMode = ((*((unsigned short*)buf)) >> 1) & 8;
   switch (dataMode) {
     case 1:
@@ -461,7 +456,7 @@ bool arFOBDriver::_getDataMode( std::string& modeString,
       break;
     case 6:
       modeString = "factory use only";
-      stat = false;
+      ok = false;
       break;
     case 7:
       modeString = "quaternion";
@@ -471,12 +466,12 @@ bool arFOBDriver::_getDataMode( std::string& modeString,
       break;
     default:
       modeString = "invalid";
-      stat = false;
+      ok = false;
       break;
   }
-  if ((modeString == "invalid")||(modeString == "factory use only"))
+  if (!ok)
     cerr << "arFOBDriver error: " << dataMode << " " << modeString << endl;
-  return stat;
+  return ok;
 }
 
 bool arFOBDriver::_setPositionScale( bool longRange,
@@ -486,7 +481,7 @@ bool arFOBDriver::_setPositionScale( bool longRange,
     cerr << "arFOBDriver error: _setFOBParam failed.\n";
     return false;
   }
-  _positionScale = longRange ? 6./32768.0 : 3./32768.0;
+  _positionScale = longRange ? 6./32768. : 3./32768.;
   return true;
 }
 
@@ -498,7 +493,6 @@ bool arFOBDriver::_getPositionScale( bool& longRange,
     return false;
   }
   const unsigned short bigScale = *((unsigned short*)outdata);
-  bool stat = true;
   switch (bigScale) {
     case 0:
       _positionScale = 3./32768.0; // convert to feet.
@@ -511,25 +505,19 @@ bool arFOBDriver::_getPositionScale( bool& longRange,
     default:
       _positionScale = 3./32768.0; // convert to feet.
       longRange = false;
-      stat = false;
+      cerr << "arFOBDriver error: positionScale data = " << bigScale << endl;
+      return false;
   }
-  if (!stat) {
-    cerr << "arFOBDriver error: positionScale data = " << bigScale << endl;
-  }
-  return stat;
+  return true;
 }
 
 int arFOBDriver::_getFOBParam( const unsigned char paramNum,
                                unsigned char* buf, 
                                unsigned int numBytes,
                                unsigned char addr ) {
-  static unsigned char cdata[] = {'O',0 };
-  cdata[1] = paramNum;
-  if (addr > 0){
-    if (!_sendBirdAddress(addr)){
-      return 0;
-    }
-  }
+  static unsigned char cdata[] = {'O', (unsigned char)paramNum };
+  if (addr > 0 && !_sendBirdAddress(addr))
+    return 0;
   if (!_sendBirdCommand( cdata, 2 )) {
     cerr << "arFOBDriver error: failed to send 'get param' command.\n";
     return 0;
@@ -551,11 +539,9 @@ bool arFOBDriver::_setFOBParam( const unsigned char paramNum,
   cdata[1] = paramNum;
   memcpy( cdata+2, buf, numBytes );
   bool stat = true;
-  if (addr > 0){
-    if (!_sendBirdAddress(addr)){
-      delete [] cdata;
-      return false;
-    }
+  if (addr > 0 && !_sendBirdAddress(addr)) {
+    delete [] cdata;
+    return false;
   }
   if (!_sendBirdCommand( cdata, 2+numBytes )) {
     cerr << "arFOBDriver error: failed to send 'set param' command.\n";
