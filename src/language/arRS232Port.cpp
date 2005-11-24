@@ -143,11 +143,12 @@ bool arRS232Port::ar_open( const unsigned int port, const unsigned long baud,
                       const unsigned int dBits, const float stBits,
                       const std::string& par ) {
 #if !defined( AR_USE_WIN_32 ) && !defined( AR_USE_LINUX )
-  cerr << "arRS232Port error: only Win32 and Linux support so far.\n";
+  cerr << "arRS232Port error: only Win32 and Linux are implemented.\n";
   return false;
 #endif
+
   if (port < 1) {
-    cerr << "arRS232Port error: port numbers are 1-based\n";
+    cerr << "arRS232Port error: port numbers are 1-based.\n";
     return false;
   }
 #ifdef AR_USE_WIN_32
@@ -169,7 +170,7 @@ bool arRS232Port::ar_open( const unsigned int port, const unsigned long baud,
       baudRate = CBR_115200;
       break;
     default:
-      cerr << "arRS232Port error: current legal baud rates are 9600, 19200, 38400, 57600, and 115200\n";
+      cerr << "arRS232Port error: legal baud rates are 9600, 19200, 38400, 57600, and 115200\n";
       return false;
   }
   if ((dBits < 4)||(dBits > 8)) {
@@ -185,7 +186,7 @@ bool arRS232Port::ar_open( const unsigned int port, const unsigned long baud,
   else if (fltcomp( stBits, 2 ))
     stopBits = 2;
   else {
-    cerr << "arRS232Port error: Win32 1,1.5, or 2 stop bits.\n";
+    cerr << "arRS232Port error: stop bits must be one of: 1, 1.5, 2.\n";
     return false;
   }
   BYTE parity = 0;
@@ -200,7 +201,7 @@ bool arRS232Port::ar_open( const unsigned int port, const unsigned long baud,
   else if (par == "space")
     parity = 4;
   else {
-    cerr << "arRS232Port error: Win32 parity = none, odd, even, mark, or space.\n";
+    cerr << "arRS232Port error: parity must be one of: none, odd, even, mark, space.\n";
     return false;
   }
  
@@ -216,10 +217,10 @@ bool arRS232Port::ar_open( const unsigned int port, const unsigned long baud,
                             OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
   if (_portHandle == INVALID_HANDLE_VALUE) {
-    cerr << "arRS232Port error: couldn't open " << portString << ".\n";
+    cerr << "arRS232Port error: failed to open " << portString << ".\n";
     return false;
   }  
-  cerr << "arRS232Port remark: opened port " << portString << endl;
+  cout << "arRS232Port remark: opened " << portString << endl;
   
   DCB dcb;
   GetCommState( _portHandle, &dcb );
@@ -260,7 +261,6 @@ bool arRS232Port::ar_open( const unsigned int port, const unsigned long baud,
 //  cerr << "System input buffer size = " << comProp.dwCurrentRxQueue << ", max size = " << comProp.dwMaxRxQueue << endl;
 
   _isOpen = true;
-
   if (!setReadTimeout( _readTimeoutTenths )) {
     return false;
   } 
@@ -302,20 +302,20 @@ bool arRS232Port::ar_open( const unsigned int port, const unsigned long baud,
       baudRate = B115200;
       break;
     default:
-      cerr << "arRS232Port error: current legal baud rates are 9600, 19200, 38400, 57600, and 115200\n";
+      cerr << "arRS232Port error: baud rate must be one of: 9600, 19200, 38400, 57600, 115200\n";
       return false;
   }
   
   // Try to open the port
   _fileDescriptor = open( portString, O_RDWR | O_NOCTTY );
   if (_fileDescriptor < 0) {
-    cerr << "arRS232Port error: couldn't open " << portString << ".\n";
-    cerr << "     Did you give non-root users write privileges?\n";
+    cerr << "arRS232Port error: failed to open " << portString << ".\n"
+         << "     Did you give non-root users write privileges?\n";
     return false;
   }
-  cerr << "arRS232Port remark: opened port " << portString << endl;
+  cout << "arRS232Port remark: opened " << portString << endl;
   
-  tcgetattr( _fileDescriptor, &_oldConfig ); // save current port settings
+  tcgetattr( _fileDescriptor, &_oldConfig ); // save port settings
   memcpy( &_newConfig, &_oldConfig, sizeof(_newConfig) );
 
   // set baud rate.
