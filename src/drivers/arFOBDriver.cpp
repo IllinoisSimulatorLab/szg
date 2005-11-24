@@ -121,8 +121,10 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
 
   // Determine the baud rate.
   const int baudRates[] = {2400,4800,9600,19200,38400,57600,115200};
-  int baudRate = SZGClient.getAttributeInt("SZG_FOB", "baud_rate");
   bool baudRateFound = false;
+  int baudRate = SZGClient.getAttributeInt("SZG_FOB", "baud_rate");
+  if (baudRate == 0)
+    goto LDefaultBaudRate;
   for (i=0; i<_nBaudRates; i++){
     if (baudRate == baudRates[i]) {
       baudRateFound = true;
@@ -130,29 +132,36 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
     }
   }
   if (!baudRateFound) {
-    cerr << "arFOBDriver warning: illegal value for SZG_FOB/baud_rate.\n"
-         << "  Legal values are:";
+    cerr << "arFOBDriver warning: unexpected SZG_FOB/baud_rate value "
+	 << baudRate << ".\n  Expected one of:";
     for (i=0; i<_nBaudRates; i++){
       cerr << " " << baudRates[i];
     }
+    cerr << "\n";
+LDefaultBaudRate:
     baudRate = 115200;
-    cerr << "\n   Defaulting to " << baudRate << ".\n";
+    cerr << "arFOBDriver remark: SZG_FOB/baud_rate defaulting to "
+         << baudRate << ".\n";
   }
 
   // We only support connecting to a flock of birds via a single serial port.
   _comPortID = static_cast<unsigned int>(SZGClient.getAttributeInt("SZG_FOB", "com_port"));
 
-  // Get the FoB's "description", a
-  // string of integers with a number of entries equal to the number of
-  // FOB units. Each unit's configuration is as follows:
-  // 0: bird attached
-  // 1: transmitter attached
-  // 2: transmitter and bird attached
-  // 3: extended range transmitter attached
-  // 4: extended range transmitter and bird attached
+  // Get the FoB's "description", a string of slash-delimited integers
+  // of length equal to the number of FOB units.
+  // Each unit's configuration is as follows:
+  // 0: bird
+  // 1: transmitter
+  // 2: transmitter AND bird
+  // 3: extended range transmitter
+  // 4: extended range transmitter AND bird
   char receivedBuffer[512];
   int birdConfiguration[_FOB_MAX_DEVICES+1];
-  string received = SZGClient.getAttribute("SZG_FOB", "config");
+  const string received(SZGClient.getAttribute("SZG_FOB", "config"));
+  if (received == "NULL") {
+    cerr << "arFOBDriver error: SZG_FOB/config undefined.\n";
+    return false;
+  }
   ar_stringToBuffer( received, receivedBuffer, sizeof(receivedBuffer) );
   _numFlockUnits = ar_parseIntString( receivedBuffer,
                                       birdConfiguration+1,
@@ -246,22 +255,22 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
   cout << "arFOBDriver remark: " << _numBirds
        << " birds, transmitter at unit " << _transmitterID << ".\n";
 
-  // The number of birds found is the number of matrices we will be reporting.
+  // The number of birds found is the number of matrices we will report.
   _setDeviceElements( 0, 0, _numBirds );
 
   // Open the serial port.
   if (!_comPort.ar_open(_comPortID,(unsigned long)baudRate,8,1,"none" )){
-    cerr << "arFOBDriver error: could not open serial port " << _comPortID
+    cerr << "arFOBDriver error: failed to open serial port " << _comPortID
 	 << ".\n";
     return false;
   }
+
   if (!_comPort.setReadTimeout(_timeoutTenths)){
     cerr << "arFOBDriver error: could not set timeout for port " << _comPortID
 	 << ".\n";
     return false;
   }
-  cout << "arFOBDriver remark: COM ports open.\n";
-  
+
   // Configure the FoB.
 
   // First, set the data mode for all the birds. This is hard-coded to be position-quaternion.
@@ -282,8 +291,12 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
     }
   }
 
-  // Next, set the hemisphere for all the birds.
-  string hemisphere = SZGClient.getAttribute("SZG_FOB","hemisphere");
+  // Set the hemisphere for all the birds.
+  const string hemisphere(SZGClient.getAttribute("SZG_FOB","hemisphere"));
+  if (hemisphere == "NULL") {
+    cerr << "arFOBDriver error: SZG_FOB/hemisphere undefined.\n";
+    return false;
+  }
   if (_numBirds > 1){
     for (i=1; i<=_numFlockUnits; i++){
       if (i != _transmitterID){
