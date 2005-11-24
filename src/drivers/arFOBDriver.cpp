@@ -162,14 +162,12 @@ LDefaultBaudRate:
     cerr << "arFOBDriver error: SZG_FOB/config undefined.\n";
     return false;
   }
-  ar_stringToBuffer( received, receivedBuffer, sizeof(receivedBuffer) );
-  _numFlockUnits = ar_parseIntString( receivedBuffer,
-                                      birdConfiguration+1,
-                                      _FOB_MAX_DEVICES );
+  ar_stringToBuffer(received, receivedBuffer, sizeof(receivedBuffer));
+  _numFlockUnits = ar_parseIntString(
+    receivedBuffer, birdConfiguration+1, _FOB_MAX_DEVICES );
   if (_numFlockUnits < 1) {
     cerr << "arFOBDriver error: SZG_FOB/config must contain an "
          << "entry for each bird and ERC.\n";
-    // Do not stop() since nothing has started!
     return false;
   }
 
@@ -187,65 +185,42 @@ LDefaultBaudRate:
   // flock addresses start at 1
   for (i=1; i<=_numFlockUnits; i++){
     switch (birdConfiguration[i]) {
-    case 0:{
-      // Bird, no transmitter
-      _sensorMap[i] = _numBirds;
-      _numBirds++;
-    }
-    case 1:{
-      // Normal transmitter only
+    case 1:
+    case 2:
+    case 3:
+    case 4:
       if (_transmitterID>0){
-        // The configuration already included a transmitter. THIS IS BAD!
+        // The configuration already included a transmitter.
 	cerr << "arFOBDriver error: multiple transmitters defined.\n";
-	// Do not stop() since nothing has been started!
 	return false;
       }
-      _sensorMap[i] = -1;
-      _transmitterID = i;
-      break;
     }
-    case 2:{
-      // Normal transmitter plus bird
-      if (_transmitterID>0){
-        // The configuration already included a transmitter. THIS IS BAD!
-	cerr << "arFOBDriver error: multiple transmitters defined.\n";
-	// Do not stop since nothing has been started!
-	return false;
-      }
-      _transmitterID = i;
-      _sensorMap[i] = _numBirds;
-      _numBirds++;
-      break;
-    }  
-    case 3:{
-      // Extended range transmitter only
-      if (_transmitterID>0){
-	cerr << "arFOBDriver error: multiple transmitters defined.\n";
-	// Do not stop since nothing has started
-	return false;
-      }
-      _sensorMap[i] = -1;
-      _transmitterID = i;
-      _extendedRange = true;
-      break;
-    }
-    case 4:{
-      // Extended range trasnmitter plus bird
-      if (_transmitterID>0){
-	cerr << "arFOBDriver error: multiple transmitters defined.\n";
-	// Do not stop since nothing has started
-	return false;
-      }
-      _sensorMap[i] = _numBirds;
-      _transmitterID = i;
-      _extendedRange = true;
-      _numBirds++;
-      break;
-    }
-    default:{
+    switch (birdConfiguration[i]) {
+    default:
       cerr << "arFOBDriver error: illegal configuration value.\n";
       return false;
-    }
+    case 0: // Bird, no transmitter
+      _sensorMap[i] = _numBirds++;
+      break;
+    case 1: // Normal transmitter only
+      _sensorMap[i] = -1;
+      _transmitterID = i;
+      break;
+    case 2: // Normal transmitter plus bird
+      _transmitterID = i;
+      _sensorMap[i] = _numBirds++;
+      break;
+    case 3: // Extended range transmitter only
+      _sensorMap[i] = -1;
+      _transmitterID = i;
+      _extendedRange = true;
+      break;
+    case 4: // Extended range transmitter plus bird
+      _sensorMap[i] = _numBirds;
+      _transmitterID = i;
+      _extendedRange = true;
+      _numBirds++;
+      break;
     }
   }
   if (!_transmitterID){
@@ -266,7 +241,7 @@ LDefaultBaudRate:
   }
 
   if (!_comPort.setReadTimeout(_timeoutTenths)){
-    cerr << "arFOBDriver error: could not set timeout for port " << _comPortID
+    cerr << "arFOBDriver error: failed to set timeout for port " << _comPortID
 	 << ".\n";
     return false;
   }
