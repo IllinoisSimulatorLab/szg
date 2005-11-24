@@ -93,7 +93,7 @@ bool ar_parsePForthFilterWord( const string& theWord,
 
 bool arPForthFilter::configure(const string& progText ) {
   if (!_pforth) {
-    cerr << "failed to initialize PForth.\n";
+    cerr << "arPForthFilter error: failed to initialize.\n";
     return false;
   }
 
@@ -103,15 +103,14 @@ bool arPForthFilter::configure(const string& progText ) {
   string firstToken;
   parsingStream >> firstToken;
   if (firstToken == ""){
-    cout << "arPForthFilter remark: no filter program set.\n";
+    // cout << "arPForthFilter remark: no filter program set.\n";
     return true;
   }
 
   cout << "arPForthFilter remark: program text = \n" << progText << endl;
   if (!_pforth.compileProgram( progText )) {
-    cerr << "arPForthFilter warning: failed to compile " 
-         << "program with text:\n\n" << progText << endl 
-         << "--------------------" << endl;
+    cerr << "arPForthFilter warning: failed to compile program:\n"
+         << progText << "\n\n";
     return false;
   }
   if (!_pforth.runProgram()) {
