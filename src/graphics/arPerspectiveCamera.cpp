@@ -9,11 +9,19 @@
 #include "arGraphicsHeader.h"
 
 arPerspectiveCamera::arPerspectiveCamera(){
-  // some sensible defaults
+  // Sensible defaults for perspective camera. Frustum values correspond to:
+  // left, right, bottom, top, near, far
+  frustum[0] = -0.1;
+  frustum[1] = 0.1;
+  frustum[2] = -0.1;
+  frustum[3] = 0.1;
   frustum[4] = 0.1;
+  frustum[5] = 100;
 }
 
-arPerspectiveCamera::arPerspectiveCamera( const float* const frust, const float* const look, int ID ) {
+arPerspectiveCamera::arPerspectiveCamera( const float* const frust, 
+                                          const float* const look, 
+                                          int ID ) {
   memcpy( frustum, frust, 6*sizeof(float) );
   memcpy( lookat, look, 9*sizeof(float) );
   cameraID = ID;

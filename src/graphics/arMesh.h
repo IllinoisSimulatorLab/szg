@@ -22,11 +22,14 @@ class SZG_CALL arMesh {
   virtual ~arMesh() {}
   void setTransform(const arMatrix4& matrix){ _matrix = matrix; }
   arMatrix4 getTransform(){ return _matrix; }
-  /// Build the geometry.
-  virtual void attachMesh(const string& name, const string& nameParent) = 0;
-  void attach(const string& name, arGraphicsNode* node){
-    attachMesh(name, node->getName());
-  }
+  /// DEPRECATED. Assumes that nameParent gives a unique node name... and
+  /// just calls the real attachMesh method (which uses an arGraphicsNode*
+  /// parameter).
+  virtual void attachMesh(const string& name, const string& parentName);
+  /// Creates new scene graph nodes below the given one that contain
+  /// the shape's geometry.
+  virtual void attachMesh(arGraphicsNode* node, const string& name) = 0;
+  virtual void attachMesh(arGraphicsNode* node) = 0;
  protected:
   arMatrix4 _matrix;
 };
@@ -37,7 +40,13 @@ class SZG_CALL arCubeMesh : public arMesh {
  public:
   arCubeMesh() {}
   arCubeMesh(const arMatrix4& transform) : arMesh(transform) {}
-  void attachMesh(const string& name, const string& nameParent);
+  void attachMesh(const string& name, const string& parentName){
+    arMesh::attachMesh(name, parentName);
+  }
+  void attachMesh(arGraphicsNode* parent, const string& name);
+  void attachMesh(arGraphicsNode* parent){
+    attachMesh(parent, "cube");
+  }
 };
 
 /// Rectangle (to apply a texture to).
@@ -46,7 +55,13 @@ class SZG_CALL arRectangleMesh : public arMesh {
  public:
   arRectangleMesh() {}
   arRectangleMesh(const arMatrix4& transform) : arMesh(transform) {}
-  void attachMesh(const string& name, const string& nameParent);
+  void attachMesh(const string& name, const string& parentName){
+    arMesh::attachMesh(name, parentName);
+  }
+  void attachMesh(arGraphicsNode* parent, const string& name);
+  void attachMesh(arGraphicsNode* parent){
+    attachMesh(parent, "rectangle");
+  }
 };
 
 /// Cylinder (technically a prism).
@@ -64,7 +79,14 @@ class SZG_CALL arCylinderMesh : public arMesh {
   float getTopRadius(){ return _topRadius; }
   void toggleEnds(bool);
   bool getUseEnds(){ return _useEnds; }
-  void attachMesh(const string&, const string&);
+
+  void attachMesh(const string& name, const string& parentName){
+    arMesh::attachMesh(name, parentName);
+  }
+  void attachMesh(arGraphicsNode* parent, const string& name);
+  void attachMesh(arGraphicsNode* parent){
+    attachMesh(parent, "cylinder");
+  }
 
  private:
   int _numberDivisions; // how many polygons approximate the beast
@@ -78,36 +100,50 @@ class SZG_CALL arCylinderMesh : public arMesh {
 class SZG_CALL arPyramidMesh : public arMesh {
  public:
   arPyramidMesh() {}
-  void attachMesh(const string& name, const string& parentName);
+  void attachMesh(const string& name, const string& parentName){
+    arMesh::attachMesh(name, parentName);
+  }
+  void attachMesh(arGraphicsNode* parent, const string& name);
+  void attachMesh(arGraphicsNode* parent){
+    attachMesh(parent, "pyramid");
+  }
 };
 
 /// Sphere.
-/// \todo Add draw() to other meshes too, to use them without the database.
 
 class SZG_CALL arSphereMesh : public arMesh {
  public:
   arSphereMesh(int numberDivisions=10);
   arSphereMesh(const arMatrix4&, int numberDivisions=10);
 
-  void setAttributes(int);
+  void setAttributes(int numberDivisions);
   int getNumberDivisions(){ return _numberDivisions; }
   void setSectionSkip(int skip);
   int getSectionSkip(){ return _sectionSkip; }
-  void attachMesh(const string& name, const string& parentName);
-  void draw();
 
+  void attachMesh(const string& name, const string& parentName){
+    arMesh::attachMesh(name, parentName);
+  }
+  void attachMesh(arGraphicsNode* parent, const string& name);
+  void attachMesh(arGraphicsNode* parent){
+    attachMesh(parent, "sphere");
+  }
  private:
-  arVector3 _spherePoint(int,int); // helper function for draw()
-  int _numberDivisions; // now many polygons are use to approximate the beast
-  int _sectionSkip; // whether we will draw every vertical section. Default
-                    // of one does this, which 2 draws every other, etc.
+  // How many polygons are use to approximate the object.
+  int _numberDivisions; 
+  // Whether we will draw every vertical section. Default
+  // of one does this, which 2 draws every other, etc.
+  int _sectionSkip; 
 };
 
 /// Torus (donut).
 
 class SZG_CALL arTorusMesh : public arMesh {
  public:
-  arTorusMesh(int,int,float,float);
+  arTorusMesh(int numberBigAroundQuads, 
+              int numberSmallAroundQuads,
+              float bigRadius, 
+              float smallRadiusint);
   ~arTorusMesh();
  
   void reset(int numberBigAroundQuads,
@@ -118,9 +154,14 @@ class SZG_CALL arTorusMesh : public arMesh {
   int getNumberSmallAroundQuads(){ return _numberSmallAroundQuads; }
   float getBigRadius(){ return _bigRadius; }
   float getSmallRadius(){ return _smallRadius; }
-  void attachMesh(const string& name, const string& parentName);
-  void setBumpMapName(const string& name);
-  string getBumpMapName(){ return _bumpMapName; }
+
+  void attachMesh(const string& name, const string& parentName){
+    arMesh::attachMesh(name, parentName);
+  }
+  void attachMesh(arGraphicsNode* parent, const string& name);
+  void attachMesh(arGraphicsNode* parent){
+    attachMesh(parent, "torus");
+  }
 
  private:
   int _numberBigAroundQuads;
@@ -133,10 +174,7 @@ class SZG_CALL arTorusMesh : public arMesh {
   float* _pointPositions;
   int* _triangleVertices;
   float* _surfaceNormals;
-  
   float* _textureCoordinates; 
-
-  string _bumpMapName;
 
   inline int _modAdd(int,int,int);
   void _reset(int,int,float,float);

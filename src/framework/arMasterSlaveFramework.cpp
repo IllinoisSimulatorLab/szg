@@ -2137,7 +2137,7 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
     // This used to be the GLUT main loop....
     // glutMainLoop(); // never returns
 
-    // unrolled event loop
+    // Event loop.
     while( true ) {
       preDraw();
 

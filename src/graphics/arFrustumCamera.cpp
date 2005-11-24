@@ -9,25 +9,30 @@
 #include "arGraphicsHeader.h"
 
 arFrustumCamera::arFrustumCamera(){
-  // sensible defaults
+  // Sensible defaults for ortho camera. Frustum values correspond to:
+  // left, right, bottom, top, near, far
   frustum[0] = -1;
   frustum[1] = 1;
   frustum[2] = -1;
   frustum[3] = 1;
-  frustum[4] = -1;
-  frustum[5] = 1;
+  frustum[4] = 0;
+  frustum[5] = 100;
 
+  // Sensible defaults. lookat values correspond to:
+  // eye(x,y,z) target(x,y,z) up(x,y,z)
   memset(lookat, 0, sizeof(lookat));
   lookat[5] = -1;
   lookat[7] = 1;
 }
 
-arFrustumCamera::arFrustumCamera( const float* const frust, const float* const look ) {
+arFrustumCamera::arFrustumCamera( const float* const frust, 
+                                  const float* const look ) {
   memcpy( frustum, frust, 6*sizeof(float) );
   memcpy( lookat, look, 9*sizeof(float) );
 }
 
 arMatrix4 arFrustumCamera::getProjectionMatrix() const {
+  // NOTE: This is the projection matrix for an orthographic camera.
   const float& l = frustum[0];
   const float& r = frustum[1];
   const float& b = frustum[2];
@@ -46,6 +51,8 @@ arMatrix4 arFrustumCamera::getProjectionMatrix() const {
 }
 
 arMatrix4 arFrustumCamera::getModelviewMatrix() const {
+  // The modelview matrix is independent of the sort of camera 
+  // (ortho or perspective).
   return ar_lookatMatrix(arVector3(lookat),
 			 arVector3(lookat+3),
 			 arVector3(lookat+6));

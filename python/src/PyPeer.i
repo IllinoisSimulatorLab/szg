@@ -641,6 +641,14 @@ class arTextureNode: public arGraphicsNode{
 
   string getFileName();
   void setFileName(const string& fileName);
+
+%pythoncode{
+  def get(self):
+      return self.getFileName()
+
+  def set(self, m):
+      self.setFileName(m);
+}
 };
 
 class arTransformNode: public arGraphicsNode{
@@ -996,6 +1004,212 @@ class arGraphicsPeer: public arGraphicsDatabase{
     }
 }
 };
+
+// ********************** based on arMesh.h ****************************
+
+class arMesh {
+ public:
+  arMesh(const arMatrix4& transform = ar_identityMatrix());
+  virtual ~arMesh();
+  void setTransform(const arMatrix4& matrix);
+  arMatrix4 getTransform();
+  /// DEPRECATED. Assumes that nameParent gives a unique node name... and
+  /// just calls the real attachMesh method (which uses an arGraphicsNode*
+  /// parameter).
+  virtual void attachMesh(const string& name, const string& parentName);
+  /// Creates new scene graph nodes below the given one that contain
+  /// the shape's geometry.
+  virtual void attachMesh(arGraphicsNode* node, const string& name) = 0;
+  virtual void attachMesh(arGraphicsNode* node) = 0;
+
+%pythoncode {
+    # __getstate__ returns the contents of self in a format that can be
+    # pickled, a list of floats in this case
+    def __getstate__(self):
+        return self.getTransform()
+
+    # __setstate__ recreates an object from its pickled state
+    def __setstate__(self,t):
+        _swig_setattr(self, arMesh, 'this',
+            getSwigModuleDll().new_arMesh(t))
+        _swig_setattr(self, arMesh, 'thisown', 1)
+}
+};
+
+/// Cube, made of 12 triangles.
+
+class arCubeMesh : public arMesh {
+ public:
+  arCubeMesh();
+  arCubeMesh(const arMatrix4& transform);
+  void attachMesh(const string& name, const string& parentName);
+  void attachMesh(arGraphicsNode* parent, const string& name);
+  void attachMesh(arGraphicsNode* parent);
+
+%pythoncode {
+    # __getstate__ returns the contents of self in a format that can be
+    # pickled, a list of floats in this case
+    def __getstate__(self):
+        return self.getTransform()
+
+    # __setstate__ recreates an object from its pickled state
+    def __setstate__(self,t):
+        _swig_setattr(self, arCubeMesh, 'this',
+            getSwigModuleDll().new_arCubeMesh(t))
+        _swig_setattr(self, arCubeMesh, 'thisown', 1)
+}
+};
+
+/// Rectangle (to apply a texture to).
+
+class arRectangleMesh : public arMesh {
+ public:
+  arRectangleMesh();
+  arRectangleMesh(const arMatrix4& transform);
+  void attachMesh(const string& name, const string& parentName);
+  void attachMesh(arGraphicsNode* parent, const string& name);
+  void attachMesh(arGraphicsNode* parent);
+
+%pythoncode {
+    # __getstate__ returns the contents of self in a format that can be
+    # pickled, a list of floats in this case
+    def __getstate__(self):
+        return self.getTransform()
+
+    # __setstate__ recreates an object from its pickled state
+    def __setstate__(self,t):
+        _swig_setattr(self, arRectangleMesh, 'this',
+            getSwigModuleDll().new_arRectangleMesh(t))
+        _swig_setattr(self, arRectangleMesh, 'thisown', 1)
+}
+};
+
+/// Cylinder (technically a prism).
+
+class arCylinderMesh : public arMesh {
+ public:
+  arCylinderMesh();
+  arCylinderMesh(const arMatrix4&);
+
+  void setAttributes(int numberDivisions, float bottomRadius, float topRadius);
+  int getNumberDivisions();
+  float getBottomRadius();
+  float getTopRadius();
+  void toggleEnds(bool);
+  bool getUseEnds();
+  void attachMesh(const string& name, const string& parentName);
+  void attachMesh(arGraphicsNode* parent, const string& name);
+  void attachMesh(arGraphicsNode* parent);
+
+%pythoncode {
+    # __getstate__ returns the contents of self in a format that can be
+    # pickled, a list of floats in this case
+    def __getstate__(self):
+        return [self.getTransform(),self.getNumberDivisions(),
+                self.getBottomRadius(),self.getTopRadius(),
+                self.getUseEnds()]
+
+    # __setstate__ recreates an object from its pickled state
+    def __setstate__(self,L):
+        _swig_setattr(self, arCylinderMesh, 'this',
+            getSwigModuleDll().new_arCylinderMesh(L[0]))
+        _swig_setattr(self, arCylinderMesh, 'thisown', 1)
+        self.setAttributes(L[1],L[2],L[3])
+        self.toggleEnds(L[4])
+}
+};
+
+/// Pyramid.
+
+class arPyramidMesh : public arMesh {
+ public:
+  arPyramidMesh();
+  void attachMesh(const string& name, const string& parentName);
+  void attachMesh(arGraphicsNode* parent, const string& name);
+  void attachMesh(arGraphicsNode* parent);
+
+%pythoncode {
+    # __getstate__ returns the contents of self in a format that can be
+    # pickled, a list of floats in this case
+    def __getstate__(self):
+        return self.getTransform()
+
+    # __setstate__ recreates an object from its pickled state
+    def __setstate__(self,t):
+        _swig_setattr(self, arPyramidMesh, 'this',
+            getSwigModuleDll().new_arPyramidMesh())
+        _swig_setattr(self, arPyramidMesh, 'thisown', 1)
+        self.setTransform(t)
+}
+};
+
+/// Sphere.
+
+class arSphereMesh : public arMesh {
+ public:
+  arSphereMesh(int numberDivisions=10);
+  arSphereMesh(const arMatrix4&, int numberDivisions=10);
+
+  void setAttributes(int numberDivisions);
+  int getNumberDivisions();
+  void setSectionSkip(int skip);
+  int getSectionSkip();
+  void attachMesh(const string& name, const string& parentName);
+  void attachMesh(arGraphicsNode* parent, const string& name);
+  void attachMesh(arGraphicsNode* parent);
+
+%pythoncode {
+    # __getstate__ returns the contents of self in a format that can be
+    # pickled, a list of floats in this case
+    def __getstate__(self):
+        return [self.getTransform(),self.getNumberDivisions(),
+                self.getSectionSkip()]
+
+    # __setstate__ recreates an object from its pickled state
+    def __setstate__(self,L):
+        _swig_setattr(self, arSphereMesh, 'this',
+            getSwigModuleDll().new_arSphereMesh(L[0],L[1]))
+        _swig_setattr(self, arSphereMesh, 'thisown', 1)
+        self.setSectionSkip(L[2])
+}
+};
+
+/// Torus (donut).
+
+class arTorusMesh : public arMesh {
+ public:
+  arTorusMesh(int,int,float,float);
+  ~arTorusMesh();
+ 
+  void reset(int,int,float,float);
+  int getNumberBigAroundQuads();
+  int getNumberSmallAroundQuads();
+  float getBigRadius();
+  float getSmallRadius();
+  void attachMesh(const string& name, const string& parentName);
+  void attachMesh(arGraphicsNode* parent, const string& name);
+  void attachMesh(arGraphicsNode* parent);
+
+%pythoncode {
+    # __getstate__ returns the contents of self in a format that can be
+    # pickled, a list of floats in this case
+    def __getstate__(self):
+        return [self.getTransform(),self.getNumberBigAroundQuads(),
+                self.getNumberSmallAroundQuads(),self.getBigRadius(),
+                self.getSmallRadius()]
+
+    # __setstate__ recreates an object from its pickled state
+    def __setstate__(self,L):
+        _swig_setattr(self, arTorusMesh, 'this',
+            getSwigModuleDll().new_arTorusMesh(L[1],L[2],L[3],L[4]))
+        _swig_setattr(self, arTorusMesh, 'thisown', 1)
+        self.setTransform(L[0])
+}
+};
+
+/////////////////////////////////////////////////////////////////////////
+// Some small utility classes follow ////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
 
 %{
 class arEditorRenderCallback: public arGUIRenderCallback{

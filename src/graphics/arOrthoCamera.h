@@ -13,6 +13,9 @@
 
 class SZG_CALL arOrthoCamera: public arFrustumCamera{
  public:
+  // arFrustumCamera constructor already gives reasonable arOrthoCamera 
+  // defaults.
+  arOrthoCamera(){}
   arOrthoCamera(const float* const frust, const float* const look);
   virtual arCamera* clone() const
     { return (arCamera*) new arOrthoCamera( frustum, lookat ); }

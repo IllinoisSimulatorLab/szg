@@ -19,7 +19,7 @@ arStructuredData* linesData = NULL;
 arStructuredData* linePointsData = NULL;
 int linePointsID = -1;
 int visibilityID = -1;
-bool bumpMap = false;
+//bool bumpMap = false;
 
 arMatrix4 worldTransform, navTransform;
 arMatrix4 local1Matrix, local2Matrix, local3Matrix, local4Matrix;
@@ -101,9 +101,10 @@ void worldInit(arDistSceneGraphFramework* framework){
   dgTexture("texture1", "local1", "WallTexture1.ppm");
   dgMaterial("material1", "texture1", arVector3(1,0.6,0.6));
   arTorusMesh theMesh(60,30,4,0.5);
-  if (bumpMap){
-    theMesh.setBumpMapName("normal.ppm");
-  }
+  // Only made sense with the failed CG experiment.
+  //if (bumpMap){
+  //  theMesh.setBumpMapName("normal.ppm");
+  //}
   theMesh.attachMesh("torus1","material1");
 
   // attach torus 2
@@ -200,9 +201,9 @@ int main(int argc, char** argv){
   // We could dispense with the pointer, but it *might* cause that
   // intermittent constructor-hang.  To be tested more.
 
-  if (argc > 1 && !strcmp(argv[1],"-b")) {
-    bumpMap = true;
-  }
+  //if (argc > 1 && !strcmp(argv[1],"-b")) {
+  //  bumpMap = true;
+  //}
   // Initialize everything.
   if (!framework->init(argc,argv))
     return 1;

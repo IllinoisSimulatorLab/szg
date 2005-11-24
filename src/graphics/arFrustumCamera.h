@@ -16,19 +16,26 @@ class SZG_CALL arFrustumCamera: public arCamera{
   arFrustumCamera();
   arFrustumCamera( const float* const frust, const float* const look );
   virtual ~arFrustumCamera(){}
-  virtual arCamera* clone() const { return (arCamera*) new arFrustumCamera( frustum, lookat ); }
+  virtual arCamera* clone() const 
+    { return (arCamera*) new arFrustumCamera( frustum, lookat ); }
 
   virtual arMatrix4 getProjectionMatrix() const;
   virtual arMatrix4 getModelviewMatrix() const;
   virtual void loadViewMatrices();
   virtual std::string type( void ) const { return "arFrustumCamera"; }
 
-  void setFrustum( const float* frust )     { memcpy(frustum, frust, 6*sizeof(float)); }
-  void setLook   ( const float* look )      { memcpy(lookat, look, 9*sizeof(float)); }
-  void setSides  ( const arVector4& sides ) { memcpy(frustum, sides.v, 4*sizeof(float)); }
-  void setPosition( const arVector3& pos )  { memcpy(lookat, pos.v, 3*sizeof(float)); }
-  void setTarget( const arVector3& target ) { memcpy(lookat+3, target.v, 3*sizeof(float)); }
-  void setUp( const arVector3& up )         { memcpy(lookat+6, up.v, 3*sizeof(float)); }
+  void setFrustum( const float* frust )
+    { memcpy(frustum, frust, 6*sizeof(float)); }
+  void setLook   ( const float* look )
+    { memcpy(lookat, look, 9*sizeof(float)); }
+  void setSides  ( const arVector4& sides )
+    { memcpy(frustum, sides.v, 4*sizeof(float)); }
+  void setPosition( const arVector3& pos ) 
+    { memcpy(lookat, pos.v, 3*sizeof(float)); }
+  void setTarget( const arVector3& target )
+    { memcpy(lookat+3, target.v, 3*sizeof(float)); }
+  void setUp( const arVector3& up )
+    { memcpy(lookat+6, up.v, 3*sizeof(float)); }
 
   void setSides(float left, float right, float bottom, float top){
     frustum[0] = left;
@@ -67,9 +74,10 @@ class SZG_CALL arFrustumCamera: public arCamera{
   float getNear() const { return frustum[4]; }
   float getFar() const { return frustum[5]; }
 
-  // the parameters to glOrtho(...)
+  // The parameters to the projection matrix call 
+  // ( glOrtho(...) or glFrustum(...) )
   float frustum[6];
-  // the parameters to gluLookat(...)
+  // The parameters to gluLookat(...)
   float lookat[9];
 };
 
