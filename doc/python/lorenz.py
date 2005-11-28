@@ -59,7 +59,10 @@ def addLights(g):
         light.diffuse = arVector3(0.5, 0.5, 0.5)
 	l.setLight(light)
 	
-
+if len(sys.argv) > 1:
+	number = int(sys.argv[1])
+else:
+	number = 80
 f = arDistSceneGraphFramework()
 f.setAutoBufferSwap(0)
 if f.init(sys.argv) != 1:
@@ -74,7 +77,6 @@ r = f.getNavNode()
 w = gcast(r.new("transform"))
 w.set(ar_TM(0,5,-5)*ar_SM(0.1))
 plist = []
-number = 80
 for i in range(number):
 	p = particle()
 	p.x[2] = p.x[2] + i*0.03
