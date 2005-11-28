@@ -129,6 +129,10 @@ def addLights(g):
         light.diffuse = arVector3(0.5, 0.5, 0.5)
 	l.setLight(light)
 
+if len(sys.argv) > 1:
+	number = int(sys.argv[1])
+else:
+	number = 10
 f = arDistSceneGraphFramework()
 if f.init(sys.argv) != 1:
 	sys.exit()
@@ -141,7 +145,7 @@ r = f.getNavNode()
 
 grav = arVector3(0,-1,0)
 plist = []
-for i in range(10):
+for i in range(number):
 	p = particle()
 	p.parent = r
 	p.reset()
