@@ -24,6 +24,7 @@ class particle:
 		self.drawableNode = None
 		self.parent = None
 		self.root = None
+		self.useTail = 0
 	def attach(self, parent):
 		if self.root:
 			d = self.root.getOwner()
@@ -58,14 +59,15 @@ class particle:
 			sph.setAttributes(20,1,1)
 			sph.toggleEnds(1)
 			sph.attachMesh("sphere_"+str(self),"sphere_scl_"+str(self))
-		points = m.new("points")
-		self.pointsNode = points
-		points.set(p.tail)
-		state = points.new("graphics state")
-		state.set(("line_width",5))
-		draw = state.new("drawable")
-		self.drawableNode = draw
-		draw.set(("line_strip",1000))	
+		if self.useTail:
+			points = m.new("points")
+			self.pointsNode = points
+			points.set(p.tail)
+			state = points.new("graphics state")
+			state.set(("line_width",5))
+			draw = state.new("drawable")
+			self.drawableNode = draw
+			draw.set(("line_strip",1000))	
 	def reset(self):
 		self.x = arVector3(0,self.floor,-5)
 		angle = random.random()*6.283
@@ -79,19 +81,24 @@ class particle:
 			iters = floor(delta/self.maxDelta)
 			rmdr = delta - iters*self.maxDelta
 		if iters < 1:
-			self.x = self.x + arVector3(self.v[0]*delta,self.v[1]*delta,self.v[2]*delta)
-			self.v = self.v + arVector3(self.a[0]*delta,self.a[1]*delta,self.a[2]*delta)
+			self.x = self.x + self.v * delta
+			self.v = self.v + self.a * delta
+			#self.x = self.x + arVector3(self.v[0]*delta,self.v[1]*delta,self.v[2]*delta)
+			#self.v = self.v + arVector3(self.a[0]*delta,self.a[1]*delta,self.a[2]*delta)
 		else:
 			for i in range(iters+1):
 				if i == 1:
 					rmdr = self.maxDelta
-				self.x = self.x + arVector3(self.v[0]*rmdr,self.v[1]*rmdr,self.v[2]*rmdr)
-				self.v = self.v + arVector3(self.a[0]*rmdr,self.a[1]*rmdr,self.a[2]*rmdr)
+				self.x = self.x + self.v * rmdr
+				self.v = self.v + self.a * rmdr
+				#self.x = self.x + arVector3(self.v[0]*rmdr,self.v[1]*rmdr,self.v[2]*rmdr)
+				#self.v = self.v + arVector3(self.a[0]*rmdr,self.a[1]*rmdr,self.a[2]*rmdr)
 		if self.boundary():
 			self.reset()
-		self.tail.append(self.x)
-		if len(self.tail) > self.tailLength:
-			self.tail = self.tail[1:]
+		if self.useTail:
+			self.tail.append(self.x)
+			if len(self.tail) > self.tailLength:
+				self.tail = self.tail[1:]
 		self.post()
 	def boundary(self):
 		if self.x[1] < self.floor:
@@ -134,6 +141,7 @@ if len(sys.argv) > 1:
 else:
 	number = 10
 f = arDistSceneGraphFramework()
+f.setAutoBufferSwap(0)
 if f.init(sys.argv) != 1:
 	sys.exit()
 
@@ -162,7 +170,8 @@ while 1:
         f.loadNavMatrix()
 	for p in plist:
 		p.adv(change)
-	time.sleep(0.02)
+	#time.sleep(0.02)
 	temp = time.clock()
 	change = temp-now
 	now = temp
+	f.swapBuffers()
