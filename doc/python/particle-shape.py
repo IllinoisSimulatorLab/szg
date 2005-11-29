@@ -38,27 +38,27 @@ class particle:
 		mat.emissive = arVector3(0,0,0.1)
 		mat.exponent = 100
 		m.set(mat)
-		t = m.new("transform","sphere_trans")
+		t = m.new("transform")
 		self.transformNode = t
 		r = t.new("transform")
 		self.rotationNode = r
-		s = r.new("transform","sphere_scl_"+str(self))
+		s = r.new("transform")
 		s.set(ar_SM(1))
 		if self.type == 'sphere':
 			sph = arSphereMesh()
 			sph.setAttributes(15)
-			sph.attachMesh("sphere_"+str(self),"sphere_scl_"+str(self))
+			sph.attachMesh(s)
 		elif self.type == 'torus':
 			sph = arTorusMesh(20,20,0.5, 0.1)
-			sph.attachMesh("sphere_"+str(self),"sphere_scl_"+str(self))
+			sph.attachMesh(s)
 		elif self.type == 'cube':
 			sph = arCubeMesh()
-			sph.attachMesh("sphere_"+str(self),"sphere_scl_"+str(self))
+			sph.attachMesh(s)
 		elif self.type == 'cylinder':
 			sph = arCylinderMesh()
 			sph.setAttributes(20,1,1)
 			sph.toggleEnds(1)
-			sph.attachMesh("sphere_"+str(self),"sphere_scl_"+str(self))
+			sph.attachMesh(s)
 		if self.useTail:
 			points = m.new("points")
 			self.pointsNode = points
