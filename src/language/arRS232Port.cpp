@@ -28,93 +28,99 @@ using namespace std;
 #include "arRS232Port.h"
 #include "arDataUtilities.h"
 
-// Read timeouts: our implementation allows you to request a certain number of characters with
-// a timeout for the entire read operation, i.e. ar_read() blocks until either the requested
-// number of characters is received or the timeout interval elapses. This is trivial in Win32,
-// but appears to require a bit of work in Posix.
-//
-// Some reference material:
-//
-// Win32 Timout Info (From MSDN):
-//
-// ReadIntervalTimeout 
-//Specifies the maximum time, in milliseconds, allowed to elapse between the
-//  arrival of two characters on the communications line. During a ReadFile
-//  operation, the time period begins when the first character is received. If
-//  the interval between the arrival of any two characters exceeds this amount,
-//the ReadFile operation is completed and any buffered data is returned. A value
-//  of zero indicates that interval time-outs are not used.  A value of MAXDWORD,
-//combined with zero values for both the ReadTotalTimeoutConstant and
-//  ReadTotalTimeoutMultiplier members, specifies that the read operation is to
-//  return immediately with the characters that have already been received, even
-//  if no characters have been received. 
+/*
+ Read timeouts: ar_read() blocks until either the requested
+ number of characters is received or the timeout interval elapses.
+ This is trivial in Win32, but not in Posix.
 
-//ReadTotalTimeoutMultiplier 
-//Specifies the multiplier, in milliseconds, used to calculate the total time-out
-//period for read operations. For each read operation, this value is multiplied
-//by the requested number of bytes to be read. 
+ Some reference material:
 
-//ReadTotalTimeoutConstant 
-//Specifies the constant, in milliseconds, used to calculate the total time-out
-//period for read operations. For each read operation, this value is added to the
-//product of the ReadTotalTimeoutMultiplier member and the requested number of
-//bytes.  A value of zero for both the ReadTotalTimeoutMultiplier and
-//ReadTotalTimeoutConstant members indicates that total time-outs are not used
-//for read operations. 
+ Win32 Timeout Info (From MSDN):
 
-//WriteTotalTimeoutMultiplier 
-//Specifies the multiplier, in milliseconds, used to calculate the total time-out
-//period for write operations. For each write operation, this value is multiplied
-//by the number of bytes to be written.  WriteTotalTimeoutConstant Specifies the
-//constant, in milliseconds, used to calculate the total time-out period for
-//write operations. For each write operation, this value is added to the product
-//of the WriteTotalTimeoutMultiplier member and the number of bytes to be
-//written.  A value of zero for both the WriteTotalTimeoutMultiplier and
-//WriteTotalTimeoutConstant members indicates that total time-outs are not used
-//for write operations. 
+ ReadIntervalTimeout 
+  Specifies the maximum time, in milliseconds, allowed to elapse between
+  the arrival of two characters on the communications line. During a
+  ReadFile operation, the time period begins when the first character is
+  received. If the interval between the arrival of any two characters
+  exceeds this amount, the ReadFile operation is completed and any
+  buffered data is returned. A value of zero indicates that interval
+  time-outs are not used.  A value of MAXDWORD, combined with zero values
+  for both the ReadTotalTimeoutConstant and ReadTotalTimeoutMultiplier
+  members, specifies that the read operation is to return immediately with
+  the characters that have already been received, even if no characters
+  have been received.
 
-//Remarks
-//If an application sets ReadIntervalTimeout and ReadTotalTimeoutMultiplier to
-//  MAXDWORD and sets ReadTotalTimeoutConstant to a value greater than zero and
-//  less than MAXDWORD, one of the following occurs when the ReadFile function is
-//  called: If there are any characters in the input buffer, ReadFile returns
-//  immediately with the characters in the buffer.  If there are no characters in
-//  the input buffer, ReadFile waits until a character arrives and then returns
-//  immediately.  If no character arrives within the time specified by
-//  ReadTotalTimeoutConstant, ReadFile times out. 
-//    
+ ReadTotalTimeoutMultiplier 
+  Specifies the multiplier, in milliseconds, used to calculate the
+  total time-out period for read operations. For each read operation,
+  this value is multiplied by the requested number of bytes to be read.
 
-// From The Serial Programming Guide for POSIX Operating Systems by Michael R. Sweet
-// 
-//Setting Read Timeouts
-//
-//UNIX serial interface drivers provide the ability to specify character and
-//packet timeouts. Two elements of the c_cc array are used for timeouts: VMIN and
-//VTIME. Timeouts are ignored in canonical input mode or when the NDELAY option
-//is set on the file via open or fcntl.
-//
-//VMIN specifies the minimum number of characters to read. If it is set to 0,
-//  then the VTIME value specifies the time to wait for every character read.
-//  Note that this does not mean that a read call for N bytes will wait for N
-//  characters to come in. Rather, the timeout will apply to the first character
-//  and the read call will return the number of characters immediately available
-//  (up to the number you request).
-//
-//If VMIN is non-zero, VTIME specifies the time to wait for the first character
-//read. If a character is read within the time given, any read will block (wait)
-//  until all VMIN characters are read. That is, once the first character is
-//  read, the serial interface driver expects to receive an entire packet of
-//  characters (VMIN bytes total). If no character is read within the time
-//  allowed, then the call to read returns 0. This method allows you to tell the
-//  serial driver you need exactly N bytes and any read call will return 0 or N
-//  bytes. However, the timeout only applies to the first character read, so if
-//  for some reason the driver misses one character inside the N byte packet then
-//  the read call could block forever waiting for additional input characters.
-//
-//VTIME specifies the amount of time to wait for incoming characters in tenths of
-//seconds. If VTIME is set to 0 (the default), reads will block (wait)
-//  indefinitely unless the NDELAY option is set on the port with open or fcntl.
-//  
+ ReadTotalTimeoutConstant 
+  Specifies the constant, in milliseconds, used to calculate the
+  total time-out period for read operations. For each read operation,
+  this value is added to the product of the ReadTotalTimeoutMultiplier
+  member and the requested number of bytes.  A value of zero for both
+  the ReadTotalTimeoutMultiplier and ReadTotalTimeoutConstant members
+  indicates that total time-outs are not used for read operations.
+
+ WriteTotalTimeoutMultiplier 
+
+  Specifies the multiplier, in milliseconds, used to calculate the
+  total time-out period for write operations. For each write operation,
+  this value is multiplied by the number of bytes to be written.
+  WriteTotalTimeoutConstant Specifies the constant, in milliseconds,
+  used to calculate the total time-out period for write operations. For
+  each write operation, this value is added to the product of the
+  WriteTotalTimeoutMultiplier member and the number of bytes to be
+  written.  A value of zero for both the WriteTotalTimeoutMultiplier
+  and WriteTotalTimeoutConstant members indicates that total time-outs
+  are not used for write operations.
+
+ Remarks
+  If an application sets ReadIntervalTimeout and
+  ReadTotalTimeoutMultiplier to MAXDWORD and sets ReadTotalTimeoutConstant
+  to a value greater than zero and less than MAXDWORD, one of the
+  following occurs when the ReadFile function is called: If there are any
+  characters in the input buffer, ReadFile returns immediately with the
+  characters in the buffer.  If there are no characters in the input
+  buffer, ReadFile waits until a character arrives and then returns
+  immediately.  If no character arrives within the time specified by
+  ReadTotalTimeoutConstant, ReadFile times out.
+
+ From The Serial Programming Guide for POSIX Operating Systems by Michael R. Sweet
+ 
+ Setting Read Timeouts
+
+  UNIX serial interface drivers provide the ability to specify character
+  and packet timeouts. Two elements of the c_cc array are used for
+  timeouts: VMIN and VTIME. Timeouts are ignored in canonical input mode
+  or when the NDELAY option is set on the file via open or fcntl.
+
+  VMIN specifies the minimum number of characters to read. If it is
+  set to 0, then the VTIME value specifies the time to wait for every
+  character read.  Note that this does not mean that a read call for N
+  bytes will wait for N characters to come in. Rather, the timeout will
+  apply to the first character and the read call will return the number
+  of characters immediately available (up to the number you request).
+
+  If VMIN is non-zero, VTIME specifies the time to wait for the first
+  character read. If a character is read within the time given, any read
+  will block (wait) until all VMIN characters are read. That is, once the
+  first character is read, the serial interface driver expects to receive
+  an entire packet of characters (VMIN bytes total). If no character is
+  read within the time allowed, then the call to read returns 0. This
+  method allows you to tell the serial driver you need exactly N bytes
+  and any read call will return 0 or N bytes. However, the timeout only
+  applies to the first character read, so if for some reason the driver
+  misses one character inside the N byte packet then the read call could
+  block forever waiting for additional input characters.
+
+  VTIME specifies the amount of time to wait for incoming characters
+  in tenths of seconds. If VTIME is set to 0 (the default), reads will
+  block indefinitely unless the NDELAY option is set on the port with
+  open or fcntl.
+
+*/
 
 arRS232Port::arRS232Port() :
   _isOpen(false),
@@ -441,7 +447,7 @@ bool arRS232Port::ar_close() {
 
 int arRS232Port::ar_read( char* buf, const unsigned int numBytes, const unsigned int maxBytes ) {
   if (!_isOpen) {
-    cerr << "arRS232Port error: so sorry, no reading from a closed port.\n";
+    cerr << "arRS232Port error: can't read from a closed port.\n";
     return -1;
   }
 #ifdef AR_USE_WIN_32
@@ -456,8 +462,8 @@ int arRS232Port::ar_read( char* buf, const unsigned int numBytes, const unsigned
     return static_cast<int>(bytesThisTime);
 
   return -1;
-
 #endif
+
 #ifdef AR_USE_LINUX
   struct timeval tStruct;
   struct timezone zStruct;
@@ -514,7 +520,7 @@ int arRS232Port::ar_read( char* buf, const unsigned int numBytes, const unsigned
   }
 #endif
 
-  cerr << "arRS232Port error: sorry, only Win32 and Linux so far.\n";
+  cerr << "arRS232Port error: only Win32 and Linux implemented.\n";
   return -1;
 }
 
@@ -573,7 +579,7 @@ int arRS232Port::ar_write( const char* buf, const unsigned int numBytes ) {
 #endif
 
 // #else
-  cerr << "arRS232Port error: Sorry, only Win32 and Linux so far.\n";
+  cerr << "arRS232Port error: implemented only for Win32 and Linux.\n";
   return -1;
 }
 
@@ -601,7 +607,7 @@ bool arRS232Port::flushInput() {
 
 bool arRS232Port::flushOutput() {
 #if !defined( AR_USE_WIN_32 ) && !defined( AR_USE_LINUX )
-  cerr << "arRS232Port error: Sorry, only Win32 and Linux so far.\n";
+  cerr << "arRS232Port error: implemented only for Win32 and Linux.\n";
   return false;
 #endif 
 
@@ -619,7 +625,7 @@ bool arRS232Port::flushOutput() {
 
 bool arRS232Port::setReadTimeout( const unsigned int timeoutTenths ) {
 #if !defined( AR_USE_WIN_32 ) && !defined( AR_USE_LINUX )
-  cerr << "arRS232Port error: Sorry, only Win32 and Linux so far.\n";
+  cerr << "arRS232Port error: implemented only for Win32 and Linux.\n";
   return false;
 #endif 
   if (!_isOpen) {
@@ -656,10 +662,6 @@ bool arRS232Port::setReadBufferSize( const unsigned int numBytes ) {
 }
 
 unsigned int arRS232Port::getNumberBytes() {
-#if !defined( AR_USE_WIN_32 ) && !defined( AR_USE_LINUX )
-  cerr << "arRS232Port error: Sorry, only Win32 and Linux so far.\n";
-  return 0;
-#endif 
 #ifdef AR_USE_WIN_32
   DWORD errorFlags = 0;
   COMSTAT comState;
@@ -671,4 +673,6 @@ unsigned int arRS232Port::getNumberBytes() {
   ioctl( _fileDescriptor, FIONREAD, &numBytes );
   return static_cast<unsigned int>( numBytes );
 #endif
+  cerr << "arRS232Port error: implemented only for Win32 and Linux.\n";
+  return 0;
 }
