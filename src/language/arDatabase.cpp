@@ -11,6 +11,8 @@
 
 arDatabase::arDatabase() :
   _lang(NULL),
+  _typeCode(AR_GENERIC_DATABASE),
+  _typeString("generic"),
   _server(false),
   _bundlePathName("NULL"),
   _bundleName("NULL"),

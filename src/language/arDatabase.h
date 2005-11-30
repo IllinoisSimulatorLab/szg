@@ -22,11 +22,21 @@ typedef map<int,arDatabaseNode*,less<int> >::iterator arNodeIDIterator;
 typedef arDatabaseNode*
     (arDatabase::*arDatabaseProcessingCallback)(arStructuredData*);
 
+/// Codes for different database types.
+enum{ 
+  AR_GENERIC_DATABASE = 0,
+  AR_GRAPHICS_DATABASE = 1,
+  AR_SOUND_DATABASE = 2
+};
+
 /// Generic database distributed across a cluster.
 class SZG_CALL arDatabase{
  public:
   arDatabase();
   virtual ~arDatabase();
+
+  int getTypeCode(){ return _typeCode; }
+  string getTypeString(){ return _typeString; }
 
   void setDataBundlePath(const string& bundlePathName, 
                          const string& bundleSubDirectory);
@@ -146,6 +156,9 @@ class SZG_CALL arDatabase{
   arDatabaseLanguage* _lang;
 
  protected:
+  // What sort of database is this?
+  int    _typeCode;
+  string _typeString;
   // The server flag enables a object that doesn't need to
   // display (i.e. arGraphicsServer in the arDistSceneGraphFramework) do
   // LESS unnecessary work (like load textures into memory, which might fail

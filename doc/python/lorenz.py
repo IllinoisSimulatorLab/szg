@@ -30,6 +30,8 @@ class particle:
 		# The scene graph node that holds the positions used to draw the tail line segments. Undefined
 		# upon object creation (see attach method).
 		self.pointsNode = None
+		# The scene graph node that says how many line segments to draw for the tail.
+		self.drawable = None
 		# Default material for drawing the object.
 		self.mat = arMaterial()
 		# The default color (for diffuse lighting) is pure red.
@@ -64,8 +66,8 @@ class particle:
 			state.set(("line_width", self.lineWidth))
 			# This node is what actually draws the line segments for the tail. It inherits the points from
 			# its pointsNode ancestor and the line width from its state ancestor node.
-			draw = state.new("drawable")
-			draw.set(("lines",self.tailLength))
+			self.drawable = state.new("drawable")
+			self.drawable.set(("lines",self.tailLength))
 		# The transform node is a child of node m and positions the object.
 		self.trans = m.new("transform")
 		# Set the value of the transform node. ar_TM is an abbreviation for ar_translationMatrix and
@@ -123,16 +125,17 @@ class particle:
 		# following odd indexed point being the end of that segment. Consequently, at each stage we just replace
 		# the oldest line segment, giving the effect of a trail of finite length.
 		if self.pointsNode:
+			self.pointsNode.set((self.x, self.oldX), (2*self.tailPosition, 2*self.tailPosition+1))
 			self.tailPosition  += 1
 			if self.tailPosition >= self.tailLength:
 				self.tailPosition = 0
-			self.pointsNode.set((self.x, self.oldX), (2*self.tailPosition, 2*self.tailPosition+1))
 
 # The scene graph needs lights since we are using lighting.
 def addLights(g):
+	# The lights will be attached directly to the unique root node of the database.
 	r = g.getRoot()
 	# Create a new light node for the scene graph.
-	l = gcast(r.new("light"))
+	l = r.new("light")
 	# Create a new light description. This will be used to configure the scene graph node.
 	light = arLight()
 	# It is important to give each light a unique ID (0-7).
@@ -146,7 +149,7 @@ def addLights(g):
         light.diffuse = arVector3(0.5, 0.5, 0.5)
 	# The scene graph node is now configured with the light description.
 	l.setLight(light)
-	l = gcast(r.new("light"))
+	l = r.new("light")
 	light = arLight()
 	# It is important to give each light a unique ID (0-7). If we repeated an ID,
 	# one of the lights with the same ID would be lost.
@@ -234,7 +237,7 @@ r = f.getNavNode()
 # We want to put all our objects in the default Syzygy viewing position (center of front
 # CAVE wall, (0,5,-5)) and scale things so that the lorenz attractor is of reasonable size.
 # Create a new node w as a child of the nav node.
-w = gcast(r.new("transform"))
+w = r.new("transform")
 # ar_TM is an abbreviation for ar_translationMatrix and gives an arMatrix4 with the
 # appropriate translation. ar_SM is an abbreviation for ar_scaleMatrix and gives an 
 # arMatrix4 with the appropriate uniform scaling.
@@ -252,6 +255,7 @@ for i in range(number):
 	# This demonstrated sensitive dependence on initial conditions (one form of chaos).
 	p.x[2] = p.x[2] + i*0.03
 	# It's a better visualization if the particles start out as a rainbow hue.
+	# This is especially good for observing the *mixing* that is another form of chaos.
 	p.mat.diffuse = arVector3(1 - (i+1)/(1.0*(number)), 0, (i+1)/(1.0*(number)))
 	# Add nodes to the scene graph. Recall that the scene graph has a tree structure.
 	# In this case, we are adding the particle under the node w.

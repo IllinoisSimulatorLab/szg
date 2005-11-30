@@ -1,3 +1,9 @@
+# An example of the Myriad scene graph in action.
+# Shows how to do a particle system plus simple physics (trajectory under gravity plus bouncing on a surface).
+# The physics is framerate independent, with time step depending on wall clock time. A good example of using
+# different shapes and materials in the scene graph. Also shows how to erase scene graph nodes (the particles
+# can change shape).
+
 from PySZG import *
 from math import *
 import sys
@@ -5,35 +11,72 @@ import time
 import random
 
 class particle:
+	# The constructor. A number of behaviors can be tweaked by adjusting the parameters below.
 	def __init__(self):
+		# By default, the particle is at the origin.
 		self.x = arVector3(0,0,0)
+		# By default, the particle is not moving.
 		self.v = arVector3(0,0,0)
+		# By default, the particle is not accelerating.
 		self.a = arVector3(0,0,0)
+		# The maximum time step for a single ODE iteration. Used to maintain stability. If the
+		# user gives larger time steps to adv(...), that method will execute multiple steps of
+		# length maxDelta, up to the user's requested time step.
 		self.maxDelta=0.1
+		# The angle around the y-axis that the particle is rotated. Random in order to give a cool effect.
 		self.rotationAngle = 6.283*random.random()
+		# The speed at which the particle will rotate around its y-axis. Again, this varies to prevent
+		# uniformities among the particles (and too much uniformity looks weird).
 		self.rotationSpeed = 1 + 2*random.random()
+		# The fraction of speed the particle retains at each bounce.
 		self.fric = 0.8
+		# If the particle is going slower than this, we'll disappear it at the next bounce and
+		# launch it again.
 		self.speedCutoff = 1
+		# The y coordinate of the floor (surface on which the particles bounce).
 		self.floor = 5
+		# What shape will the particle have?
 		self.type = 'torus'
+		# How many times has this particle bounced since the last reset?
 		self.numberBounces = 0
+		# What is the maximum number of bounces until we reset the particle?
 		self.maxBounces = 3
+		# If the particle has a tail, which segment is next to be replaced?
 		self.tailPosition = 0
+		# If the particle has a tail, what is the maximum number of line segments in it?
 		self.tailLength = 100
+		# Scene graph node that holds the particle's position. Will be initialized in attach(...).
 		self.transformNode = None
+		# Scene graph node that holds the particle's rotation. Will be initialized in attach(...).
 		self.rotationNode = None
+		# Scene graph node that holds the points defining the particle's tail. Only defined if we
+		# are using a tail, and then only in attach(...). 
 		self.pointsNode = None
+		# Scene graph node that draws the particle's tail. Only defined if we are using a tail, and then
+		# only in attach(...).
 		self.drawableNode = None
+		# This is the scene graph node to which all the particle's geometry attaches.
 		self.parent = None
+		# All the particle's geometry is attached to this scene graph node (which is an immediate child
+		# of self.parent). Will be initialized in attach(...).
 		self.root = None
+		# By default, the particle has a tail.
 		self.useTail = 1
+
+	# Used to attach particle geometry to the scene graph below the parent node.
 	def attach(self, parent):
+		# If we've already been attached to something, delete the old geometry in preparation
+		# for creating new geometry.
 		if self.root:
+			# The database itself is the only object empowered to delete nodes.
+			# Every node is owned by a database, which we can retrieve as follows. 
 			d = self.root.getOwner()
+			# Delete the node and all its children like so.
 			d.eraseNode(self.root)
+		# Save the place we were attached, for future use by the reset(...) method.
 		self.parent = parent
 		self.root = parent.new("name")
-		m = gcast(self.root.new("material"))
+		m = self.root.new("material")
 		mat = arMaterial()
 		mat.diffuse = arVector3(random.random(),random.random(),random.random())
 		mat.specular = arVector3(0.2, 0.2, 0.2)
@@ -129,14 +172,14 @@ class particle:
 
 def addLights(g):
 	r = g.getRoot()
-	l = gcast(r.new("light"))
+	l = r.new("light")
 	light = arLight()
 	light.lightID = 0
 	light.position = arVector4(0,0,-1,0)
         light.ambient = arVector3(0,0,0)
         light.diffuse = arVector3(0.5, 0.5, 0.5)
 	l.setLight(light)
-	l = gcast(r.new("light"))
+	l = r.new("light")
 	light = arLight()
 	light.lightID = 1
 	light.position = arVector4(0,0,1,0)

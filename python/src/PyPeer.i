@@ -35,82 +35,93 @@ class NodeListWrapper{
   void next();
 };
 
+/// Codes for different database types.
+enum{ 
+  AR_GENERIC_DATABASE = 0,
+  AR_GRAPHICS_DATABASE = 1,
+  AR_SOUND_DATABASE = 2
+};
+
 enum arNodeLevel{ AR_IGNORE_NODE = -1,
                   AR_STRUCTURE_NODE = 0, 
                   AR_STABLE_NODE = 1,
                   AR_OPTIONAL_NODE = 2,
                   AR_TRANSIENT_NODE = 3 };
 
-class arDatabaseNode{
+/// Generic database distributed across a cluster.
+class arDatabase{
  public:
-  arDatabaseNode();
-  virtual ~arDatabaseNode();
+  arDatabase();
+  virtual ~arDatabase();
 
-  void ref();
-  void unref();
-  int  getRef();
+  int getTypeCode(){ return _typeCode; }
+  string getTypeString(){ return _typeString; }
 
-  int getID() const;
-  string getName() const;
-  void setName(const string&);
-  string getInfo() const;
-  void setInfo(const string&);
-  int getTypeCode() const;
-  string getTypeString() const;
-  
-  arDatabaseNode* newNodeRef(const string& type, const string& name="");
-  arDatabase* getOwner();
-  arDatabaseNode* getParentRef();
-  list<arDatabaseNode*> getChildrenRef();
+  void setDataBundlePath(const string& bundlePathName, 
+                         const string& bundleSubDirectory);
+  void addDataBundlePathMap(const string& bundlePathName, 
+                            const string& bundlePath);
+
+  int getNodeID(const string& name, bool fWarn=true);
+  arDatabaseNode* getNodeRef(int, bool fWarn=true);
+  arDatabaseNode* getNodeRef(const string&, bool fWarn=true);
   arDatabaseNode* findNodeRef(const string& name);
-  arDatabaseNode* findNodeByTypeRef(const string& nodeType);
+  arDatabaseNode* getRoot();
+  arDatabaseNode* newNodeRef(arDatabaseNode* parent, const string& type,
+                             const string& name="");
+  arDatabaseNode* insertNodeRef(arDatabaseNode* parent,
+			        arDatabaseNode* child,
+			        const string& type,
+			        const string& name = "");
+  bool cutNode(arDatabaseNode* node);
+  bool cutNode(int ID);
+  bool eraseNode(arDatabaseNode* node);
+  bool eraseNode(int ID);
+  void permuteChildren(arDatabaseNode* parent,
+                       int number, int* children);
+                       
 
-  void printStructure();
+  virtual bool readDatabase(const string& fileName, 
+                            const string& path = "");
+  virtual bool readDatabaseXML(const string& fileName, 
+                               const string& path = "");
+  virtual bool attach(arDatabaseNode* parent,
+                      const string& fileName,
+                      const string& path = "");
+  virtual bool attachXML(arDatabaseNode* parent,
+                         const string& fileName,
+                         const string& path = "");
+  virtual bool merge(arDatabaseNode* parent,
+                     const string& fileName,
+                     const string& path = "");
+  virtual bool mergeXML(arDatabaseNode* parent,
+                        const string& fileName,
+                        const string& path = "");
+  virtual bool writeDatabase(const string& fileName, 
+                             const string& path = "");
+  virtual bool writeDatabaseXML(const string& fileName, 
+                                const string& path = "");
+  virtual bool writeRooted(arDatabaseNode* parent,
+                           const string& fileName,
+                           const string& path="");
+  virtual bool writeRootedXML(arDatabaseNode* parent,
+                              const string& fileName,
+                              const string& path="");
+  
+
+  bool empty();
+  virtual void reset();
   void printStructure(int maxLevel);
-  void ps();
+  void printStructure();
   void ps(int maxLevel);
-
-  void permuteChildren(int number, int* children);
-
-  arNodeLevel getNodeLevel();
-  void setNodeLevel(arNodeLevel nodeLevel);
-
+  void ps();
 %pythoncode{
-  def __del__(self):
-      try:
-          if self.thisown == 0 or self.thisown == 1:
-             if self.getOwner() == None or self.getName() != "root":
-                 self.unref()
-      except: pass
-
-  # simply present to provide a uniform interface to the nodes
-  # vis-a-vis arGraphicsNode
-  def new(self, type, name=""):
-      return self.newNodeRef(type, name)
-
-  def parent(self):
-      return self.getParentRef() 
-
-  def children(self):
-      wl = NodeListWrapper(self.getChildrenRef())
-      l = []
-      while wl.get() != None:
-          l.append(wl.get())
-          wl.next()
-      return l
-
-  def permute(self, children):
+  def permute(self, parent, children):
       c = []
       for i in children:
           c.append(i.getID())
       if len(c) > 0:
-          self.permuteChildren(len(c), c)
-
-  def find(self, name):
-      return self.findNodeRef(name)
-
-  def findByType(self, type):
-      return self.findNodeByTypeRef(type)
+          self.permuteChildren(parent, len(c), c)
 }
 };
 
@@ -191,7 +202,90 @@ def gcast(n):
     else:
         return n
 
+def nodecast(n):
+    if n == None:
+        return None
+    elif not n.getOwner():
+        return n
+    elif n.getOwner().getTypeCode() == AR_GRAPHICS_DATABASE:
+        return gcast(n)
+    else:
+        return n
+
 }
+
+class arDatabaseNode{
+ public:
+  arDatabaseNode();
+  virtual ~arDatabaseNode();
+
+  void ref();
+  void unref();
+  int  getRef();
+
+  int getID() const;
+  string getName() const;
+  void setName(const string&);
+  string getInfo() const;
+  void setInfo(const string&);
+  int getTypeCode() const;
+  string getTypeString() const;
+  
+  arDatabaseNode* newNodeRef(const string& type, const string& name="");
+  arDatabase* getOwner();
+  arDatabaseNode* getParentRef();
+  list<arDatabaseNode*> getChildrenRef();
+  arDatabaseNode* findNodeRef(const string& name);
+  arDatabaseNode* findNodeByTypeRef(const string& nodeType);
+
+  void printStructure();
+  void printStructure(int maxLevel);
+  void ps();
+  void ps(int maxLevel);
+
+  void permuteChildren(int number, int* children);
+
+  arNodeLevel getNodeLevel();
+  void setNodeLevel(arNodeLevel nodeLevel);
+
+%pythoncode{
+  def __del__(self):
+      try:
+          if self.thisown == 0 or self.thisown == 1:
+             if self.getOwner() == None or self.getName() != "root":
+                 self.unref()
+      except: pass
+
+  # simply present to provide a uniform interface to the nodes
+  # vis-a-vis arGraphicsNode
+  def new(self, type, name=""):
+      return nodecast(self.newNodeRef(type, name))
+
+  def parent(self):
+      return nodecast(self.getParentRef()) 
+
+  def children(self):
+      wl = NodeListWrapper(self.getChildrenRef())
+      l = []
+      while wl.get() != None:
+          l.append(nodecast(wl.get()))
+          wl.next()
+      return l
+
+  def permute(self, children):
+      c = []
+      for i in children:
+          c.append(i.getID())
+      if len(c) > 0:
+          self.permuteChildren(len(c), c)
+
+  def find(self, name):
+      return nodecast(self.findNodeRef(name))
+
+  def findByType(self, type):
+      return nodecast(self.findNodeByTypeRef(type))
+}
+};
 
 /// Node in an arGraphicsDatabase.
 class arGraphicsNode: public arDatabaseNode{
@@ -812,80 +906,6 @@ arGraphicsStateNode* castToGraphicsState(arDatabaseNode* n){
 }
 
 %}
-
-/// Generic database distributed across a cluster.
-class arDatabase{
- public:
-  arDatabase();
-  virtual ~arDatabase();
-
-  void setDataBundlePath(const string& bundlePathName, 
-                         const string& bundleSubDirectory);
-  void addDataBundlePathMap(const string& bundlePathName, 
-                            const string& bundlePath);
-
-  int getNodeID(const string& name, bool fWarn=true);
-  arDatabaseNode* getNodeRef(int, bool fWarn=true);
-  arDatabaseNode* getNodeRef(const string&, bool fWarn=true);
-  arDatabaseNode* findNodeRef(const string& name);
-  arDatabaseNode* getRoot();
-  arDatabaseNode* newNodeRef(arDatabaseNode* parent, const string& type,
-                             const string& name="");
-  arDatabaseNode* insertNodeRef(arDatabaseNode* parent,
-			        arDatabaseNode* child,
-			        const string& type,
-			        const string& name = "");
-  bool cutNode(arDatabaseNode* node);
-  bool cutNode(int ID);
-  bool eraseNode(arDatabaseNode* node);
-  bool eraseNode(int ID);
-  void permuteChildren(arDatabaseNode* parent,
-                       int number, int* children);
-                       
-
-  virtual bool readDatabase(const string& fileName, 
-                            const string& path = "");
-  virtual bool readDatabaseXML(const string& fileName, 
-                               const string& path = "");
-  virtual bool attach(arDatabaseNode* parent,
-                      const string& fileName,
-                      const string& path = "");
-  virtual bool attachXML(arDatabaseNode* parent,
-                         const string& fileName,
-                         const string& path = "");
-  virtual bool merge(arDatabaseNode* parent,
-                     const string& fileName,
-                     const string& path = "");
-  virtual bool mergeXML(arDatabaseNode* parent,
-                        const string& fileName,
-                        const string& path = "");
-  virtual bool writeDatabase(const string& fileName, 
-                             const string& path = "");
-  virtual bool writeDatabaseXML(const string& fileName, 
-                                const string& path = "");
-  virtual bool writeRooted(arDatabaseNode* parent,
-                           const string& fileName,
-                           const string& path="");
-  virtual bool writeRootedXML(arDatabaseNode* parent,
-                              const string& fileName,
-                              const string& path="");
-  
-
-  bool empty();
-  virtual void reset();
-  void printStructure(int maxLevel);
-  void printStructure();
-  void ps(int maxLevel);
-  void ps();
-%pythoncode{
-  def permute(self, parent, children):
-      c = []
-      for i in children:
-          c.append(i.getID())
-      if len(c) > 0:
-          self.permuteChildren(parent, len(c), c)
-}
-};
 
 class arGraphicsDatabase: public arDatabase{
  public:

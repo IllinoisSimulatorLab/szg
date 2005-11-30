@@ -180,6 +180,8 @@ void arInputSimulator::draw(){
   arMatrix4 rotMatrix = ar_rotationMatrix('y',_simulatorRotation);
   glMultMatrixf(rotMatrix.v);
 
+  // Must guard against the embedding program changing the line width.
+  glLineWidth(1.0);
   // wireframe cube
   glColor3f(1,1,1);
   glPushMatrix();

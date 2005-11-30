@@ -12,6 +12,9 @@ arGraphicsDatabase::arGraphicsDatabase() :
   _alphabet(new arTexture*[26]),
   _viewerNodeID(-1)
 {
+  _typeCode = AR_GRAPHICS_DATABASE;
+  _typeString = "graphics";
+
   _lang = (arDatabaseLanguage*)&_gfx;
   if (!_initDatabaseLanguage())
     return;

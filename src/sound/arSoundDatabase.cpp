@@ -9,8 +9,12 @@
 #include "arStreamNode.h"
 
 arSoundDatabase::arSoundDatabase() :
+  
   _path(new list<string>)
 {
+  _typeCode = AR_SOUND_DATABASE;
+  _typeString = "sound";
+  
   _lang = (arDatabaseLanguage*)&_langSound;
   if (!_initDatabaseLanguage())
     return;
