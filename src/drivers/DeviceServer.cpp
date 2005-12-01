@@ -205,11 +205,10 @@ int main(int argc, char** argv){
 
   // Configure the input node.
   arInputNode inputNode;
-  // Need to know from where the shared lilbraries will be loaded.
-  // (The SZG_EXEC path)
+  // From where the shared libraries will be loaded.
   const string execPath = SZGClient.getAttribute("SZG_EXEC","path");
   // Start with the input sources.
-  // Necessary to assign input "slots" to the input sources.
+  // Assign input "slots" to the input sources.
   int nextInputSlot = slotNumber + 1;
   // Configure the input sources.
   list<string>::iterator iter;
@@ -245,8 +244,8 @@ int main(int argc, char** argv){
     }
   }
 
-  // First, see if, via command line arg -netinput, we want to automatically
-  // add a net input source (i.e. not via the config file)
+  // See if, via command line arg -netinput, we want to
+  // add a net input source automatically (i.e. not via the config file)
   if (useNetInput){
     arNetInputSource* commandLineNetInputSource = new arNetInputSource();
     commandLineNetInputSource->setSlot(nextInputSlot);
@@ -343,7 +342,7 @@ int main(int argc, char** argv){
       return 1;
     }
     if (!theFilter->configure( &SZGClient )){
-      initResponse << "DeviceServer remark: could not configure filter.\n";
+      initResponse << "DeviceServer remark: failed to configure filter.\n";
       respond(SZGClient);
       return 1;
     }
@@ -351,10 +350,16 @@ int main(int argc, char** argv){
     inputNode.addFilter(theFilter,true);
   }
 
-  if (!respond(SZGClient, inputNode.init(SZGClient))){
+  const bool ok = inputNode.init(SZGClient);
+  if (!respond(SZGClient, ok)){
     cerr << "DeviceServer warning: ignoring failed init.\n";
     // return 1;
   }
+  if (!ok) {
+    // Bug: in linux, this may hang.  Which other thread still runs?
+    return 1; // init failed
+  }
+
   if (!inputNode.start()){
     if (!SZGClient.sendStartResponse(false))
       cerr << "DeviceServer error: maybe szgserver died.\n";
