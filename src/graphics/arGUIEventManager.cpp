@@ -159,7 +159,6 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
   while( XPending( window->getWindowHandle()._dpy ) ) {
     memset( &event, 0, sizeof( XEvent ) );
     XNextEvent( window->getWindowHandle()._dpy, &event );
-
     switch( event.type ) {
       case ClientMessage:
         if( (Atom) event.xclient.data.l[ 0 ] == window->getWindowHandle()._wDelete ) {
@@ -185,10 +184,9 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
         int sizeY = event.xconfigure.height;
 
         // ConfigureNotify's are passed on both window move's and resize's,
-        // it's up to us to figure out which one it was, if x and y are both
-        // 0 then this is actually a resize event, however it can be both a
-        // resize *and* a move simultaneously if the upper left corner of the
-        // window is dragged (drugged?)
+        // it's up to us to figure out which one it was. If x and y are not both
+		// 0 then it must be a move event (this is a quirk of how the XServer reports 
+		// events). If window sizes change, then it must be a resize event.
         if( ( posX != _windowState.getPosX() || posY != _windowState.getPosY() ) &&
             ( posX != 0 || posY != 0 ) ) {
           if( addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_MOVE, window->getID(), 0, posX, posY, sizeX, sizeY ) ) < 0 ) {
@@ -196,11 +194,9 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
           }
         }
 
-        if( ( sizeX != _windowState.getSizeX() || sizeY != _windowState.getSizeY()  ) &&
-            ( posX == 0 && posY == 0 ) ) {
+        if( sizeX != _windowState.getSizeX() || sizeY != _windowState.getSizeY() ) {
           posX = _windowState.getPosX();
           posY = _windowState.getPosY();
-
           if( addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_RESIZE, window->getID(), 0, posX, posY, sizeX, sizeY ) ) < 0 ) {
             // print an error?
           }
