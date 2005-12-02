@@ -58,7 +58,7 @@ PyObject* ar_inputEventToDict( arInputEvent& event ) {
 %}
 
 enum arInputEventType {AR_EVENT_GARBAGE=-1, AR_EVENT_BUTTON=0, 
-                                AR_EVENT_AXIS=1, AR_EVENT_MATRIX=2};
+                       AR_EVENT_AXIS=1, AR_EVENT_MATRIX=2};
 
 class arInputEvent {
   public:
@@ -77,7 +77,7 @@ class arInputEvent {
     bool setButton( const unsigned int b );
     bool setAxis( const float a );
     // SWIG cant handle having both of these setMatrix() signatures.
-//    bool setMatrix( const float* v );
+    // bool setMatrix( const float* v );
     bool setMatrix( const arMatrix4& m );
     void trash();
     void zero();

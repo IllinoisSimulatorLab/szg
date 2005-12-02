@@ -119,8 +119,19 @@ def worldAlter(elapsedTime):
 	if percentage < 0:
 		percentage = 1
 	lineChange(percentage)
+
+def eventProcessing(f,a):
+	while not a.empty():
+		e = a.popNextEvent()
+		t = e.getType()
+		if t == AR_EVENT_BUTTON and e.getButton():
+			print("BUTTON DOWN")
+		if t == AR_EVENT_BUTTON and not e.getButton():
+			print("BUTTON UP")
+	return 1
 	
 f = arDistSceneGraphFramework()
+f.setEventQueueCallback(eventProcessing)
 if f.init(sys.argv) != 1:
 	sys.exit()
 f.setAutoBufferSwap(0)
@@ -137,6 +148,7 @@ worldInit(worldTrans)
 attachLineSet(worldTrans)
 counter = 0
 while 1:
+	f.processEventQueue()
 	f.setViewer()
 	f.navUpdate()
         f.loadNavMatrix()

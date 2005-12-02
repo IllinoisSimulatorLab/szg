@@ -26,9 +26,9 @@ class arSZGAppFramework {
     
     void setEyeSpacing( float feet );
     void setClipPlanes( float near, float far );
-    virtual void setFixedHeadMode(bool isOn) { _head.setFixedHeadMode(isOn); }
-    virtual arMatrix4 getMidEyeMatrix() { return _head.getMidEyeMatrix(); }
-    virtual arVector3 getMidEyePosition() { return _head.getMidEyePosition(); }
+    virtual void setFixedHeadMode(bool isOn);
+    virtual arMatrix4 getMidEyeMatrix();
+    virtual arVector3 getMidEyePosition();
     virtual void setUnitConversion( float conv );
     virtual void setUnitSoundConversion( float conv );
     virtual float getUnitConversion();
@@ -51,9 +51,6 @@ class arSZGAppFramework {
                              arInputEventType type,
                              unsigned int index,
                              float threshold );
-//    bool setWorldRotGrabCondition( arInputEventType type,
-//                                   unsigned int index,
-//                                   float threshold );
     void setNavTransSpeed( float speed );
     void setNavRotSpeed( float speed );
     void setNavEffector( const arEffector& effector );
@@ -63,8 +60,7 @@ class arSZGAppFramework {
 
     void speak( const string& message );
 
-    arInputState* getInputState()
-      { return (arInputState*)_inputState; }
+    arInputState* getInputState();
       
     // Some applications need a thread running external to the library.
     // For deterministic shutdown, we need to be able to register that
@@ -73,26 +69,28 @@ class arSZGAppFramework {
     /// In the case of a user-defined, external event loop, the external
     /// program may need to know when the "stop" signal has been received.
     /// Returns whether or not the shutdown process has begun.
-    bool stopping(){ return _exitProgram; }
+    bool stopping();
     /// in the case of a user-defined external event loop, we may want the 
     /// exit(0) call to be made by the user code. The following function lets 
     /// the user code know that stop(...) is done. 
     /// Returns whether or not stop(...) has completed.
-    bool stopped(){ return _stopped; }
+    bool stopped();
     // sometimes we want to use an external thread or other event loop that
     // must be shutdown cleanly
-    void useExternalThread(){ _useExternalThread = true; }
+    void useExternalThread();
     // tells stop() that our external thread has started
-    void externalThreadStarted(){ _externalThreadRunning = true; }
+    void externalThreadStarted();
     // tells stop() that our external thread has shut-down cleanly
-    void externalThreadStopped(){ _externalThreadRunning = false; }
+    void externalThreadStopped();
+	
+	void processEventQueue();
     
     // some applications need to be able to find out information
     // about the virtual computer
-    arAppLauncher* getAppLauncher(){ return &_launcher; }
+    arAppLauncher* getAppLauncher();
 
     // some applications want to do nonstandard things with the input node
-    arInputNode* getInputNode(){ return _inputDevice; }
+    arInputNode* getInputNode();
 };
 
 

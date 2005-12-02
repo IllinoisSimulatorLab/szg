@@ -85,8 +85,6 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   int _graphicsNavMatrixID;
   int _soundNavMatrixID;
 
-//  bool _disabled;
-
   int _VRCameraID;
 
   // stuff for standalone mode only

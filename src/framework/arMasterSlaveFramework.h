@@ -173,9 +173,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   void setPlayTransform( void );
 
-  // repurposed for arGUI
-  // void draw( void );  // HEAVILY deprecated; use drawGraphicsDatabase.
-
   void drawGraphicsDatabase( void );
 
   // tiny functions that only appear in the .h
@@ -203,7 +200,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void setRandomSeed( const long newSeed );
   bool randUniformFloat( float& value );
 
-  // is this really a good thing to let the user access???
+  // Allowing the user access to the window manager increases the flexibility
+  // of the framework. Lots of info about the GUI becomes available.
   arGUIWindowManager* getWindowManager( void ) { return _wm; }
 
   // technically, this function isn't necessary, one could just call
@@ -216,8 +214,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   arDataServer*        _stateServer;        // used only by master
   arDataClient         _stateClient;
   arGraphicsDatabase   _graphicsDatabase;
-  // arGraphicsScreen     _defaultScreen;
-  // arVRCamera           _defaultCamera;
   arSpeakerObject      _speakerObject;
 
   // Variables pertaining to the data transfer process.
@@ -228,13 +224,10 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   arTransferFieldData     _internalTransferFieldData;
   arMasterSlaveDataRouter _dataRouter;
 
-  // unsigned int         _glutDisplayMode;
   bool                 _userInitCalled;
   bool                 _parametersLoaded;
 
-  // arGraphicsWindow     _graphicsWindow;
   arGUIWindowManager* _wm;
-  // std::vector<int> _windows;
   arGUIXMLParser* _guiXMLParser;
 
   // need to store the networks on which we'll try to connect to services
@@ -378,7 +371,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool _startInput( void );
   bool _startSlaveObjects( std::stringstream& startResponse );
   bool _startObjects( void );
-  // bool _startStandalone( bool );
   bool _start( bool );
   bool _startrespond( const std::string& s );
 

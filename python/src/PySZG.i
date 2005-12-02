@@ -1,4 +1,4 @@
-// $Id: PySZG.i,v 1.7 2005/11/01 19:07:19 crowell Exp $
+// $Id: PySZG.i,v 1.8 2005/12/01 23:24:39 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -6,8 +6,8 @@
 // the Free Software Foundation (http://www.gnu.org/copyleft/gpl.html).
 
 
-// This file is the main file of a set of tentative Python bindings for
-// szg. These bindings are supposed to serve the following purposes:
+// This is the main file for the szg Python bindings. 
+// These bindings are supposed to serve the following purposes:
 //      - proof of concept: establish that Python bindings for szg work
 //      - introduce and illustrate ideas and issues that come up when
 //        creating Python bindings for C++ code
@@ -15,14 +15,12 @@
 //        a prototype that actually compiles will avoid the initial drudgery
 //        of figuring out compiler options and such and let us get into
 //        conceptual work more quickly.
-//
-// These bindings are _not_ supposed to be complete, efficient, well-designed,
-// or even correct. There probably are a few memory leaks and other problems.
 
 // NOTE: the module name is now passed in by the makefile. DO NOT SET IT HERE!
 //%module PySZG
 
-// Include pertinent C++ headers. (Is this the best place to put the headers?)
+// Include (some) pertinent C++ headers. Others are included as needed in the
+// individual .i files.
 %{
 #include <iostream>
 #include <sstream>
@@ -77,21 +75,20 @@ def getSwigModuleDll():
 %include PyTypemaps.i   // Typemaps for conversions between Python types
                         // and C++ types.
 %include PyArrays.i
-%include PyMath.i       // Wrappers for math/arMath.h
+%include PyMath.i        // Wrappers for math/arMath.h
 %include PyDataUtilities.i
-%include PySZGClient.i  // Wrappers for phleet/arSZGClient.h
-%include PyGraphics.i   // Wrappers for graphics/arGraphicsAPI.h and more
-%include PyObj.i        // Wrappers for obj/arOBJ.h and more
+%include PySZGClient.i   // Wrappers for phleet/arSZGClient.h
+%include PyGraphics.i    // Wrappers for graphics/arGraphicsAPI.h and more
+%include PyObj.i         // Wrappers for obj/arOBJ.h and more
 %include PyInputEvents.i
 %include PyInteraction.i
 %include PyAppLauncher.i
 %include PyEventFilter.i
-%include PySZGApp.i     // Wrappers for framework/arSZGAppFramework.h
-%include PySceneGraph.i // Wrappers for framework/arDistSceneGraphFramework.h
-                        // and more
+%include PySZGApp.i      // Wrappers for framework/arSZGAppFramework.h.
+%include PySceneGraph.i  // Wrappers for framework/arDistSceneGraphFramework.h
 %include PyMasterSlave.i // Wrappers for framework/arMasterSlaveGraphFramework.h
-%include PySoundAPI.i   // Wrappers for sound/arSoundAPI.h
-%include PyPeer.i       // Support for the Myriad distributed scene graph.
+%include PySoundAPI.i    // Wrappers for sound/arSoundAPI.h
+%include PyPeer.i        // Support for the Myriad distributed scene graph.
 
 #ifdef AR_SWIG_SZGEXPT
 %include PyExperiment.i

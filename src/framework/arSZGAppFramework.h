@@ -68,9 +68,6 @@ class SZG_CALL arSZGAppFramework {
                              arInputEventType type,
                              unsigned int index,
                              float threshold );
-//    bool setWorldRotGrabCondition( arInputEventType type,
-//                                   unsigned int index,
-//                                   float threshold );
     void setNavTransSpeed( float speed );
     void setNavRotSpeed( float speed );
     void setNavEffector( const arEffector& effector );

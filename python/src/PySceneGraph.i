@@ -1,4 +1,4 @@
-// $Id: PySceneGraph.i,v 1.3 2005/10/26 20:32:13 schaeffr Exp $
+// $Id: PySceneGraph.i,v 1.4 2005/12/01 23:24:39 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -9,7 +9,6 @@
 // ******************** based on arInterfaceObject.h ********************
 
 class arInterfaceObject{
-  friend void ar_interfaceObjectIOPollTask(void*);
  public:
   arInterfaceObject();
   ~arInterfaceObject();
@@ -48,7 +47,7 @@ class arInterfaceObject{
 %{
 
 //    void setEventCallback( bool (*callback)( arSZGAppFramework& fw, arInputEvent& event,
-//                             arCallbackEventFilter& filter) );
+//                                             arCallbackEventFilter& filter) );
 //
 static PyObject *pySGEventFunc = NULL;
 static bool pySGEventCallback( arSZGAppFramework& fw, arInputEvent& theEvent, arCallbackEventFilter& filter ) {
@@ -78,7 +77,7 @@ static bool pySGEventCallback( arSZGAppFramework& fw, arInputEvent& theEvent, ar
 
 
 //    void setEventQueueCallback( bool (*callback)( arSZGAppFramework& fw,
-//                             arInputEventQueue& theQueue ) );
+//                                                  arInputEventQueue& theQueue ) );
 //
 static PyObject *pySGEventQueueFunc = NULL;
 static bool pySGEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& theQueue ) {
@@ -103,7 +102,24 @@ static bool pySGEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& th
   return res;
 }
 
-
+//  void setUserMessageCallback(void (*userMessageCallback)(arDistributedSceneGraphFramework&, const string&));
+//
+static PyObject *pySGUserMessageFunc = NULL;
+static void pySGUserMessageCallback(arDistSceneGraphFramework& fw,const string & s) {
+    PyObject *fwobj = SWIG_NewPointerObj((void *) &fw,
+                             SWIGTYPE_p_arDistSceneGraphFramework, 0);
+    PyObject *arglist=Py_BuildValue("(O,s)",fwobj,s.c_str());
+    PyObject *result=PyEval_CallObject(pySGUserMessageFunc, arglist);
+    if (result==NULL) {
+        PyErr_Print();
+        string errmsg="A Python exception occurred in UserMessage callback.";
+        cerr << errmsg << "\n";
+        throw  errmsg;
+    }
+    Py_XDECREF(result);
+    Py_DECREF(arglist);
+    Py_DECREF(fwobj);
+}
 
 %}
 
@@ -137,4 +153,28 @@ class arDistSceneGraphFramework : public arSZGAppFramework {
   arDatabaseNode* getNavNode();
                                                                                
   arInputNode* getInputDevice() const;
+  
+  %extend{
+  void setEventCallback(PyObject* PyFunc) {
+    Py_XDECREF(pySGEventFunc); 
+    Py_XINCREF(PyFunc); 
+    pySGEventFunc = PyFunc; 
+    self->setEventCallback(pySGEventCallback);
+  }
+  
+  void setEventQueueCallback(PyObject* PyFunc) {
+    Py_XDECREF(pySGEventQueueFunc); 
+    Py_XINCREF(PyFunc); 
+    pySGEventQueueFunc = PyFunc; 
+    self->setEventQueueCallback(pySGEventQueueCallback);
+  }
+  
+  void setUserMessageCallback(PyObject* PyFunc) {
+    Py_XDECREF(pySGUserMessageFunc); 
+    Py_XINCREF(PyFunc); 
+    pySGUserMessageFunc = PyFunc; 
+    self->setUserMessageCallback(pySGUserMessageCallback);
+  }
+
+  }
 };

@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.18 2005/10/31 17:11:01 crowell Exp $
+// $Id: PyMasterSlave.i,v 1.19 2005/12/01 23:24:39 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -12,11 +12,14 @@
 #include "arGraphicsWindow.h"
 %}
 
-// Callback mechanism based on
-// http://gd.tuwien.ac.at/softeng/SWIG/Examples/python/callback2/,
-// with a number of changes.
-
-// Routines to install the callbacks are defined way below in the %extend section.
+// IMPORTANT: Map of this file!
+// 1. Definitions of adapters that map Python functions to C++ callbacks.
+// 2. arMasterSlaveFramework interface file plus MANY extensions for utilization
+//    of (1) in addition to data marshalling/demarshalling methods more suited to Python
+//    that the native szg C++ metaphor (which is very pointer-centric).
+// 3. arPyMasterSlaveFramework. A base class that can be subclassed in Python to avoid
+//    callbacks altogether (for those who prefer a purely object-oriented style).
+// 4. Even more utility classes for data transfer master->slave(s)!
 
 // Note that if you use the old-style arMasterSlaveFramework (for which you manually
 // install callable objects as callbacks), no callbacks are installed by default &
@@ -25,6 +28,10 @@
 // as the callbacks, all callbacks are installed in its __init__(). Only the new-style
 // draw callback (that takes arGraphicsWindow and arViewport refs as args) is supported
 // with the latter.
+
+// Callback mechanism based on
+// http://gd.tuwien.ac.at/softeng/SWIG/Examples/python/callback2/,
+// with a number of changes.
 
 %{
 // The following macro defines a C++-functions that serve as callbacks
@@ -50,10 +57,22 @@ static void py##cbtype##Callback(arMasterSlaveFramework& fw) { \
     Py_DECREF(arglist); \
     Py_DECREF(fwobj); \
 }
+%}
 
+// Now we create a few callback functions, using the macro defined above.
+// Routines to install the callbacks for the arMasterSlaveFramework are defined way below in 
+// the %extend section.
 
-// Now we create a few callback functions, using the new macro.
+%{
+// Many of the callbacks have the signature void (*func)(arMasterSlaveFramework&). These are converted
+// to Python functions using the MASTERSLAVECALLBACK macro. Callbacks with a different signature
+// require individual treatment.
 
+// PLEASE NOTE: There are TWO potential draw callback signatures, the old one:
+//  void draw(arMasterSlaveFramework&)
+// and the new one:
+//  void draw(arMasterSlaveFramework&, arGraphicsWindow&, arViewport&)
+// The following macro handles the old one.
 //  void setDrawCallback(void (*draw)(arMasterSlaveFramework&));
 MASTERSLAVECALLBACK(Draw)
 //  void setDisconnectDrawCallback(void (*draw)(arMasterSlaveFramework&));
@@ -71,12 +90,12 @@ MASTERSLAVECALLBACK(Overlay)
 //  void setExitCallback(void (*cleanup)(arMasterSlaveFramework&));
 MASTERSLAVECALLBACK(Exit)
 
+// The rest of the callbacks require individual treatment. NOTE: two of them
+// (the event callback and the event queue callback) are defined in arSZGApp.i since
+// they pertain to the distributed scene graph framework also.
 
-// start callback requires special treatment because the signature of
-// its callback function differs from everybody elses.
-//
 //  void setStartCallback(bool (*initCallback)(arMasterSlaveFramework& fw, 
-//                                            arSZGClient&));
+//                                             arSZGClient&));
 static PyObject *pyStartFunc = NULL;
 static bool pyStartCallback(arMasterSlaveFramework& fw,arSZGClient& cl) {
     PyObject *fwobj = SWIG_NewPointerObj((void *) &fw,
@@ -99,12 +118,8 @@ static bool pyStartCallback(arMasterSlaveFramework& fw,arSZGClient& cl) {
     return res;
 }
 
-
-// windowStartGL callback requires special treatment because the signature of
-// its callback function differs from everybody elses.
-//
 //  void setWindowStartGLCallback(bool (*windowStartGLCallback)(arMasterSlaveFramework& fw, 
-//                                            arGUIWindowInfo*));
+//                                                              arGUIWindowInfo*));
 static PyObject *pyWindowStartGLFunc = NULL;
 static void pyWindowStartGLCallback( arMasterSlaveFramework& fw, arGUIWindowInfo* winInfoPtr ) {
     PyObject *fwobj = SWIG_NewPointerObj( (void *) &fw, SWIGTYPE_p_arMasterSlaveFramework, 0 );
@@ -125,7 +140,7 @@ static void pyWindowStartGLCallback( arMasterSlaveFramework& fw, arGUIWindowInfo
 
 
 //    void setEventCallback( bool (*callback)( arSZGAppFramework& fw, arInputEvent& event,
-//                             arCallbackEventFilter& filter) );
+//											   arCallbackEventFilter& filter) );
 //
 static PyObject *pyEventFunc = NULL;
 static bool pyEventCallback( arSZGAppFramework& fw, arInputEvent& theEvent, arCallbackEventFilter& filter ) {
@@ -153,9 +168,8 @@ static bool pyEventCallback( arSZGAppFramework& fw, arInputEvent& theEvent, arCa
     return res;
 }
 
-
 //    void setEventQueueCallback( bool (*callback)( arSZGAppFramework& fw,
-//                             arInputEventQueue& theQueue ) );
+//                                                  arInputEventQueue& theQueue ) );
 //
 static PyObject *pyEventQueueFunc = NULL;
 static bool pyEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& theQueue ) {
@@ -180,11 +194,6 @@ static bool pyEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& theQ
   return res;
 }
 
-
-
-// new-style draw callback requires special treatment because the signature of
-// its callback function differs from everybody elses.
-//
 //  void setDrawCallback(void (*drawCallback)(arMasterSlaveFramework& fw, 
 //                                            arGraphicsWindow&, arViewport& ));
 static PyObject *pyNewDrawFunc = NULL;
@@ -197,7 +206,7 @@ static void pyNewDrawCallback( arMasterSlaveFramework& fw,
     PyObject *result=PyEval_CallObject( pyNewDrawFunc, arglist );
     if (result==NULL) {
         PyErr_Print();
-        string errmsg="A Python exception occurred in arMasterSlaveFramework new-style draw callback.";
+        string errmsg="A Python exception occurred in arMasterSlaveFramework draw callback.";
         cerr << errmsg << "\n";
         throw  errmsg;
     }
@@ -209,8 +218,7 @@ static void pyNewDrawCallback( arMasterSlaveFramework& fw,
 }
 
 
-//  void setUserMessageCallback(
-//    void (*userMessageCallback)(arMasterSlaveFramework&, const string&));
+//  void setUserMessageCallback(void (*userMessageCallback)(arMasterSlaveFramework&, const string&));
 //
 static PyObject *pyUserMessageFunc = NULL;
 static void pyUserMessageCallback(arMasterSlaveFramework& fw,const string & s) {
@@ -230,8 +238,6 @@ static void pyUserMessageCallback(arMasterSlaveFramework& fw,const string & s) {
 }
 
 // Coded By: Brett Witt (brett.witt@gmail.com)
-// Yet another function which requires special treatment because of
-// its unique callback signature.
 // void setKeyboardCallback(void (*keyboard)(arMasterSlaveFramework&,
 //                                           unsigned char, int, int));
 static PyObject *pyKeyboardFunc = NULL;
@@ -257,6 +263,8 @@ static void pyKeyboardCallback(arMasterSlaveFramework &fw,
    Py_DECREF(fwobj);
 }
 
+// A utility function used by the master/slave framework (on the python side) to share
+// data between synchronized program instances. See initSequenceTransfer, setSequence, getSequence.
 bool ar_packSequenceData( PyObject* seq, std::vector<int>& typeData,
                             std::vector<long>& intData, std::vector<double>& floatData,
                             std::vector<char*>& stringData, std::vector<int>& stringSizeData ) {
@@ -271,7 +279,7 @@ bool ar_packSequenceData( PyObject* seq, std::vector<int>& typeData,
          "arMasterSlaveFramework error: invalid sequence type passed to setSequence()." );
     return false;
   }
-/*cerr << "[" << len;*/
+  /*cerr << "[" << len;*/
   // push the size of the sequence
   typeData.push_back(len);
   for (int i=0; i<len; ++i) {
@@ -280,14 +288,14 @@ bool ar_packSequenceData( PyObject* seq, std::vector<int>& typeData,
     // Its an Int
     if (PyInt_Check( item )) {
       intData.push_back( PyInt_AsLong( item ) );
-/*cerr << "L" << PyInt_AsLong(item);*/
+      /*cerr << "L" << PyInt_AsLong(item);*/
       typeData.push_back( AR_LONG );
 
     // Its a Float
     } else if (PyFloat_Check(item)) {
       floatData.push_back( PyFloat_AsDouble( item ) );
       typeData.push_back( AR_DOUBLE );
-/*cerr << "F" << PyFloat_AsDouble(item);*/
+      /*cerr << "F" << PyFloat_AsDouble(item);*/
 
     // Its a String
     } else if (PyString_Check( item )) {
@@ -297,7 +305,7 @@ bool ar_packSequenceData( PyObject* seq, std::vector<int>& typeData,
       stringData.push_back( cdata );
       stringSizeData.push_back( ssize+1 );
       typeData.push_back( AR_CHAR );
-/*cerr << "'" << cdata << "'";*/
+      /*cerr << "'" << cdata << "'";*/
 
     // Its a nested sequence
     } else if (PySequence_Check( item )) {
@@ -317,10 +325,12 @@ bool ar_packSequenceData( PyObject* seq, std::vector<int>& typeData,
     }
     Py_XDECREF(item);
   }
-/*cerr << "]";*/
+  /*cerr << "]";*/
   return true;
 }
 
+// A utility function used by the master/slave framework (on the python side) to share
+// data between synchronized program instances. See initSequenceTransfer, setSequence, getSequence.
 PyObject* ar_unpackSequenceData( int** typePtrPtr, long** intPtrPtr, double** floatPtrPtr, char** charPtrPtr) {
   int* typePtr = *typePtrPtr;
   long* intDataPtr = *intPtrPtr;
@@ -350,8 +360,8 @@ PyObject* ar_unpackSequenceData( int** typePtrPtr, long** intPtrPtr, double** fl
       case -1:  // my arbitrary "seqeuence" type
         nestedSequence = ar_unpackSequenceData( &typePtr, &intDataPtr, &floatDataPtr, &charPtr );
         if (!nestedSequence) {
-cerr << "arMasterSlaveFramework error: failed to unpack nested sequence in ar_unpackSequenceData().\n";
-cerr << "  size = " << size << endl;
+          cerr << "arMasterSlaveFramework error: failed to unpack nested sequence in ar_unpackSequenceData().\n";
+          cerr << "  size = " << size << endl;
           PyErr_SetString(PyExc_TypeError, "arMasterSlaveFramework error: ar_unpackSequenceData() failed.");
           Py_DECREF( seq );
           return NULL;
@@ -359,8 +369,8 @@ cerr << "  size = " << size << endl;
         PyTuple_SetItem( seq, i, nestedSequence );
         break;
       default:
-cerr << "arMasterSlaveFramework error: invalid type in ar_unpackSequenceData().\n";
-cerr << "  size = " << size << endl;
+        cerr << "arMasterSlaveFramework error: invalid type in ar_unpackSequenceData().\n";
+        cerr << "  size = " << size << endl;
         PyErr_SetString(PyExc_TypeError, "arMasterSlaveFramework error: invalid type in getSequenceAsTuple.");
         Py_DECREF( seq );
         return NULL;
@@ -375,7 +385,19 @@ cerr << "  size = " << size << endl;
 
 %}
 
-/// Framework for cluster applications using one master and several slaves.
+// PLEASE NOTE: We have to jump through special hoops to mix Python callbacks with
+// our C++ arMasterSlaveFramework. Consequently, all the callback setters are in the
+// "extend" section.
+//
+// ALSO: The Syzygy C++ method for sharing data (using pointers to memory) simply will
+// not interface with Python. Consequently, a number of new methods have been developed
+// to enable data sharing. There are 3 broad APIs:
+// 1. See the "extend" methods initSequenceTransfer, setSequence, and getSequence.
+// 2. See the "extend" methods initIntTransfer, getIntListSize, setIntListItem, getIntListItem, 
+//    setIntList, getIntList, etc.
+// 3. See the "pythoncode" methods initStructTransfer, setStruct, getStruct.
+// 4. Also, please see the helper classes arMasterSlaveDict and arMasterSlaveListSync after
+//    arPyMasterSlaveFramework for even yet more methods for easy data transfer!
 class arMasterSlaveFramework : public arSZGAppFramework {
  public:
   arMasterSlaveFramework();
@@ -383,9 +405,6 @@ class arMasterSlaveFramework : public arSZGAppFramework {
 
   void usePredeterminedHarmony();
   bool allSlavesReady();
-
-  // The callbacks are commented out because they required special
-  // handling (see extend section and macros)
 
   bool getStandalone(); // Are we running in stand-alone mode?
   // initializes the various pieces but does not start the event loop
@@ -400,61 +419,24 @@ class arMasterSlaveFramework : public arSZGAppFramework {
   void preDraw();
   void postDraw();
 
-  // Various methods of sharing data from the master to the slaves...
-
-  // The simplest way to share data from master to slaves. Global variables
-  // are registered with the framework (the transfer fields). Each frame,
-  // the master dumps its values and sends them to the slaves. Note:
-  // each field must be of a fixed size.
-  //bool addTransferField( string fieldName, void* data, 
-  //                       arDataType dataType, int size );
-  // Another way to share data. Here, the framework manages the memory
-  // blocks. This allows them to be resized.
-  // Add an internally-allocated transfer field. These can be resized on the
-  // master and the slaves will automatically follow suit.
-  //bool addInternalTransferField( string fieldName, 
-  //                               arDataType dataType, 
-  //                               int size );
-  //bool setInternalTransferFieldSize( string fieldName, 
-  //                                   arDataType dataType, 
-  //                                   int newSize );
-  // Get a pointer to either an externally- or an internally-stored 
-  // transfer field. Note that the internally stored fields are resizable.
-  //void* getTransferField( string fieldName, 
-  //                        arDataType dataType,
-  //                        int& size );
-
-  // A final way to share data from the master to the slaves. In this case,
-  // the programmer registers arFrameworkObjects with the frameworks
-  // internal arMasterSlaveDataRouter. An identical set of arFrameworkObjects
-  // is created by each of the master and slave instances. The
-  // arMasterSlaveDataRouter routes messages between them.
-  bool registerFrameworkObject(arFrameworkObject* object){
-    return _dataRouter.registerFrameworkObject(object);
-  }
-
   void setPlayTransform();
-  void draw();  // HEAVILY deprecated, use the following:
   void drawGraphicsDatabase();
 
   void setDataBundlePath(const string& bundlePathName, const string& bundleSubDirectory);
 
-  // tiny functions that only appear in the .h
-
   // If set to true (the default), the framework will swap the graphics
   // buffers itself. Otherwise, the application will do so. This is
   // really a bit of a hack.
-  void internalBufferSwap(bool state){ _internalBufferSwap = state; }
-  void loadNavMatrix() { arMatrix4 temp = ar_getNavInvMatrix();
-                         glMultMatrixf( temp.v ); }
+  void internalBufferSwap(bool state);
+  void loadNavMatrix();
   /// msec since the first I/O poll (not quite start of the program).
-  double getTime() const { return _time; }
+  double getTime() const;
   /// How many msec it took to compute/draw the last frame.
-  double getLastFrameTime() const { return _lastFrameTime; }
-  bool getMaster() const { return _master; }
-  bool getConnected() const { return _master || _stateClientConnected; }
-  bool soundActive() const { return _soundActive; }
-  bool inputActive() const { return _inputActive; }
+  double getLastFrameTime() const;
+  bool getMaster() const;
+  bool getConnected() const;
+  bool soundActive() const;
+  bool inputActive() const;
 
   void setRandomSeed( const long newSeed );
 
@@ -497,12 +479,12 @@ PyObject* setSequence( char* name, PyObject *seq ) {
   std::vector<double> floatData;
   std::vector<char *> stringData;
   std::vector<int> stringSizeData;
-/*cerr << "setSequence: " << name;*/
+  /*cerr << "setSequence: " << name;*/
   if (!ar_packSequenceData( seq, typeData, intData, floatData, stringData, stringSizeData )) {
     cerr << "arMasterSlaveFramework error: setSequence() failed.\n";
     return NULL;
   }
-/*cerr << endl;*/
+  /*cerr << endl;*/
   string nameStr(name);
   string intString = nameStr+string("_INTDATA");
   string floatString = nameStr+string("_FLOATDATA");
@@ -850,7 +832,6 @@ void set##cbtype##Callback(PyObject *PyFunc) {\
     self->set##cbtype##Callback(py##cbtype##Callback);\
 }
 
-
 //  void setStartCallback(bool (*startcb)(arMasterSlaveFramework& fw, arSZGClient&));
     MAKEMASTERSLAVECALLBACKSETTER(Start)
 
@@ -858,19 +839,23 @@ void set##cbtype##Callback(PyObject *PyFunc) {\
     MAKEMASTERSLAVECALLBACKSETTER(WindowStartGL)
 
 //  void setEventCallback(bool (*callback)(arMasterSlaveFramework&, 
-//          arInputEvent& event, arCallbackEventFilter& filter));
+//                                         arInputEvent& event, arCallbackEventFilter& filter));
     MAKEMASTERSLAVECALLBACKSETTER(Event)
 
 //  void setEventCallback(bool (*callback)(arMasterSlaveFramework&, 
-//          arInputEventQueue& theQueue, arCallbackEventFilter& filter));
+//                                         arInputEventQueue& theQueue, arCallbackEventFilter& filter));
     MAKEMASTERSLAVECALLBACKSETTER(EventQueue)
 
+// The draw callback must be handled twice (for the two different signatures).
 //  void setDrawCallback(void (*draw)(arMasterSlaveFramework&));
     MAKEMASTERSLAVECALLBACKSETTER(Draw)
 
 //  void setDisconnectDrawCallback(void (*draw)(arMasterSlaveFramework&));
     MAKEMASTERSLAVECALLBACKSETTER(DisconnectDraw)
 
+// The draw callback must be handled twice (for the two different signatures). Because of
+// the NewDraw vs. Draw name difference, the macro above cannot be used. This
+// must be written out by hand.
 //  void setDrawCallback(void (*draw)(arMasterSlaveFramework&,arGraphicsWindow&,arViewport&));
 void setNewDrawCallback(PyObject *PyFunc) {
     Py_XDECREF(pyNewDrawFunc); 
@@ -898,15 +883,14 @@ void setNewDrawCallback(PyObject *PyFunc) {
 //  void setExitCallback(void (*cleanup)(arMasterSlaveFramework&));
     MAKEMASTERSLAVECALLBACKSETTER(Exit)
 
-//  void setUserMessageCallback(
-//    void (*userMessageCallback)(arMasterSlaveFramework&, const string&));
+//  void setUserMessageCallback(void (*userMessageCallback)(arMasterSlaveFramework&, const string&));
     MAKEMASTERSLAVECALLBACKSETTER(UserMessage)
 
 //  void setPostExchangeCallback(bool (*postExchange)(arMasterSlaveFramework&));
     MAKEMASTERSLAVECALLBACKSETTER(PostExchange)
 }
 
-// Some master->slave data-transfer methods...
+// An additional set of master->slave(s) data transfer methods based on Python's pickle module.
 %pythoncode %{
     # master->slave data-transfer based on cPickle module
     def initObjectTransfer(self,name): self.initStringTransfer(name)
@@ -928,6 +912,7 @@ void setNewDrawCallback(PyObject *PyFunc) {
 %}
 };
 
+// By having these default callbacks, we can avoid making PySZG depend on PyOpenGL.
 void ar_defaultWindowInitCallback();
 void ar_defaultReshapeCallback( PyObject* widthObject, PyObject* heightObject );
 void ar_defaultDisconnectDraw();
@@ -944,7 +929,6 @@ void ar_defaultReshapeCallback( PyObject* widthObject, PyObject* heightObject ) 
   GLsizei height = (GLsizei)PyInt_AsLong( heightObject );
   glViewport( 0, 0, width, height );
 }
-
 
 void ar_defaultDisconnectDraw() {
   glMatrixMode( GL_PROJECTION );
@@ -966,6 +950,8 @@ void ar_defaultDisconnectDraw() {
 
 %}
 
+// The following Python subclass of arMasterSlaveFramework can be subclassed in
+// an object-oriented way in Python!
 %pythoncode %{
 
 # Python master-slave framework subclass that installs its own methods as the
