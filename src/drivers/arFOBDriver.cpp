@@ -27,6 +27,7 @@ extern "C"{
 void ar_FOBDriverEventTask(void* FOBDriver){
   arFOBDriver* driver = (arFOBDriver*) FOBDriver;
   driver->_eventThreadRunning = true;
+
   while (!driver->_stopped) {
     for (int i=1; i<=driver->_numFlockUnits; i++){
       // Only request information from flock units that hold sensors
@@ -43,7 +44,7 @@ void ar_FOBDriverEventTask(void* FOBDriver){
 }
 
 arFOBDriver::arFOBDriver() :
-  _timeoutTenths( 50 ),
+  _timeoutTenths( 10 ),
   _dataSize( 7 ),
   _dataBuffer( NULL ),
   _positionScale( 3./32768.0 ),
@@ -245,10 +246,6 @@ LDefaultBaudRate:
 
   // Configure the FoB.
 
-  // cerr << " should wake the flock here, doofus? ;;;;\n";
-
-
-
   // First, set the data mode for all the birds. This is hard-coded to be position-quaternion.
   if (_numBirds > 1){
     for (i=1; i<=_numFlockUnits; i++){
@@ -265,6 +262,19 @@ LDefaultBaudRate:
       cerr << "arFOBDriver error: failed to set data mode.\n";
       return false;
     }
+
+    ar_usleep(500000); // Linux needs this, at least half a second.
+#if 0
+    unsigned char b[2];
+    if (_getFOBParam(10, b, 1, 0) != 1)
+      cout << "get error code kacked.\n";
+    cout << "error code is " << int(b[0]) << ".\n";
+    if (_getFOBParam(1, b, 2, 0) != 2)
+      cout << "get version number kacked.\n";
+    cout << "bird version number is " << int(b[0]) << "." << int(b[1]) << ".\n";
+    ar_usleep(100000);;;;
+#endif
+
   }
 
   // Set the hemisphere for all the birds.
@@ -288,7 +298,9 @@ LDefaultBaudRate:
       cerr << "arFOBDriver error: failed to set hemisphere.\n";
       return false;
     }
-    // cerr << "zxzxzxzx set hemisphere okay.\n";;;;
+    // Linux needs these 2 lines.  Some kind of timing thing.
+    string foo;
+    (void)_getDataMode(foo, 0);
   }
 
   // Make sure we are using the correct transmitter. If we are not
@@ -316,7 +328,6 @@ LDefaultBaudRate:
   // NOTE: THIS HAS NOT BEEN FULLY SET_UP YET! Specifically, this is
   // probably enough space for "group mode", whereby we make one 
   // request for data and get everything back at once. 
-  // We do not do this yet, though we will eventually do so.
   int bytesPerBird = 2*_dataSize + ((_numBirds > 1)?(1):(0));
   _dataBuffer = new unsigned char[bytesPerBird*_numBirds];
 
@@ -335,10 +346,10 @@ LDefaultBaudRate:
       cerr << "arFOBDriver error: run failed.\n";
       return false;
     }
+    _setDataMode(0); // Linux needs this, one more time.
   }
 
-  // Success. All the FoB's lights should be on solidly.
-  cout << "arFOBDriver remark: flock configured.\n";
+  // Flock configured. All the FoB's lights should be on solid.
   return true;
 }
 
@@ -348,9 +359,8 @@ bool arFOBDriver::start() {
 
 bool arFOBDriver::stop() {
   _stopped = true;
-  while (_eventThreadRunning){
+  while (_eventThreadRunning)
     ar_usleep(20000);
-  }
   _sleep();
   _comPort.ar_close();
   return true;
@@ -417,12 +427,12 @@ bool arFOBDriver::_getHemisphere( std::string& hemisphere,
   return true;
 }
 
-// Sets position+quaternion data mode
+// Set bird's data mode to position+quaternion
 bool arFOBDriver::_setDataMode(unsigned char addr) {
-  const unsigned char posorientcmd = ']';
-  _dataSize = 7;
   if (addr > 0 && !_sendBirdAddress(addr))
     return false;
+  _dataSize = 7;
+  const unsigned char posorientcmd = ']'; // FoB manual p.92
   return _sendBirdCommand( &posorientcmd, 1 );
 }
 
@@ -433,8 +443,38 @@ bool arFOBDriver::_getDataMode( std::string& modeString,
     cerr << "arFOBDriver error: _getFOBParam(datamode) failed.\n";
     return false;
   }
+
+  // FoB manual p.112
+  const unsigned dataMode = (buf[0] >> 1) & 0xf;
+#if 0
+  printf("\t\t\t\t\t2bytes are %x %x\n", (unsigned)buf[0], (unsigned)buf[1]);
+  const unsigned b0  = (buf[0]     ) & 1;
+  const unsigned b5  = (buf[0] >> 5) & 1;
+  const unsigned b6  = (buf[0] >> 6) & 1;
+  const unsigned b7  = (buf[0] >> 7) & 1;
+  const unsigned b8  = (buf[1]     ) & 1;
+  const unsigned b9  = (buf[1] >> 1) & 1;
+  const unsigned b10 = (buf[1] >> 2) & 1;
+  const unsigned b11 = (buf[1] >> 3) & 1;
+  const unsigned b12 = (buf[1] >> 4) & 1;
+  const unsigned b13 = (buf[1] >> 5) & 1;
+  const unsigned b14 = (buf[1] >> 6) & 1;
+  const unsigned b15 = (buf[1] >> 7) & 1;
+  cout << (b0 ? "point mode.\n" : "stream mode.\n");
+  cout << (b5 ? "sleep !run.\n" : "run !sleep.\n");
+  cout << (!b12 ? "sleep !run.\n" : "run !sleep.\n");
+  cout << (b6 ? "xoff\n" : "xon\n");
+  cout << (b7 ? "factory test enabled\n" : "factory test disabled\n");
+  cout << (b8 ? "sync mode disabled\n" : "sync mode enabled\n");
+  cout << (b9 ? "crtsync\n" : "!crtsync\n");
+  cout << (b10 ? "expanded addr\n" : "!expanded addr\n");
+  cout << (b11 ? "host sync\n": "!host sync\n");
+  cout << (b13 ? "error\n" : "!error\n");
+  cout << (b14 ? "inited/autoconfd\n" : "!inited/autoconfd\n");
+  cout << (b15 ? "master\n" : "slave\n");
+#endif
+
   bool ok = true;
-  unsigned short dataMode = ((*((unsigned short*)buf)) >> 1) & 8;
   switch (dataMode) {
     case 1:
       modeString = "position";
@@ -467,7 +507,7 @@ bool arFOBDriver::_getDataMode( std::string& modeString,
       break;
   }
   if (!ok)
-    cerr << "arFOBDriver error: " << dataMode << " " << modeString << endl;
+    cerr << "arFOBDriver error: mode is " << dataMode << " aka " << modeString << ".\n";
   return ok;
 }
 
@@ -513,23 +553,16 @@ int arFOBDriver::_getFOBParam( const unsigned char paramNum,
                                unsigned int numBytes,
                                unsigned char addr ) {
 
-//  if (_getFOBParam( 0, outdata, 2, addr ) != 2) {
-//    cerr << "arFOBDriver error: hack failed.\n";;;;
-//    return 0;
-//  }
-
-  static unsigned char cdata[] = {'O', (unsigned char)paramNum };
+  unsigned char cdata[2] = {'O', (unsigned char)paramNum };
   if (addr > 0 && !_sendBirdAddress(addr)) {
     cerr << "arFOBDriver error: _sendBirdAddress failed.\n";
     return 0;
   }
-  // ar_usleep( 100000 );;;;
   if (!_sendBirdCommand( cdata, 2 )) {
     cerr << "arFOBDriver error: failed to send 'get param' command.\n";
     return 0;
   }
   ar_usleep( 10000 );
-  // cerr << "yoyoyoyoyo\n";;;; printf(" addr=%d < %d >\n", addr, (int)cdata[1]);
   return _getBirdData( buf, numBytes );
 }
 
@@ -559,35 +592,35 @@ bool arFOBDriver::_setFOBParam( const unsigned char paramNum,
 }
 
 bool arFOBDriver::_autoConfig() {
-  static unsigned char cdata[] = {'P', 0x32, 0 };
-  cdata[2] = (unsigned char)_numBirds;   
   ar_usleep( 1000000 );
+  const unsigned char cdata[] = {'P', 0x32, (unsigned char)_numBirds };
   const int numWrit = _comPort.ar_write( (char*)cdata, 3 );
   ar_usleep( 1000000 );  
   return numWrit==3;
 }
 
+//;;;; todo: factor out the next three, and the previous one.
+
 bool arFOBDriver::_nextTransmitter(unsigned char addr){
-  static unsigned char cdata[] = {'0',0 };
   // The address of the transmitter unit goes in the most significant
   // half of the byte. The transmitter number goes in the lower
   // half. We are assuming that this is 0.
-  cdata[1] = (addr << 4);    
-  int numWrit = _comPort.ar_write( (char*)cdata, 2 );
+  const unsigned char cdata[] = {'0', (addr << 4) };
+  const int numWrit = _comPort.ar_write( (char*)cdata, 2 );
   ar_usleep( 1000000 );  
   return numWrit==2;
 }
 
 bool arFOBDriver::_sleep(){
-  static unsigned char cdata[] = {'G'};
-  int numWrit = _comPort.ar_write( (char*)cdata, 1);
+  static const unsigned char cdata[] = {'G'};
+  const int numWrit = _comPort.ar_write( (char*)cdata, 1);
   ar_usleep(1000000);
   return numWrit==1;
 }
 
 bool arFOBDriver::_run(){
-  static unsigned char cdata[] = {'F'};
-  int numWrit = _comPort.ar_write( (char*)cdata, 1);
+  static const unsigned char cdata[] = {'F'};
+  const int numWrit = _comPort.ar_write( (char*)cdata, 1);
   ar_usleep(1000000);
   return numWrit==1;
 }
@@ -612,13 +645,13 @@ int arFOBDriver::_getBirdData( unsigned char* cdata,
 bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
   if (_numBirds > 1)
     _sendBirdAddress(addr);
-  const unsigned char pointCommand[] = {'B'};
+
+  static const unsigned char pointCommand[] = {'B'};
   if (!_sendBirdCommand( pointCommand, 1 )) {
     cerr << "arFOBDriver error: failed to send 'point' command.\n";
     return false;
   }
 
-  // An extra byte is only delivered in group mode.
   const int bytesPerBird = 2*_dataSize;
   const int bytesRead = _comPort.ar_read(
     (char*)_dataBuffer, static_cast<unsigned int>(bytesPerBird));
@@ -638,71 +671,72 @@ bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
      
   // This matrix maps the coordinate system axes in the szg coordinate system
   // to the coordinate axes in the FOB transmitter coordinate system
-  arMatrix4 coordSystemTrans = 
-    ar_rotationMatrix( 'z', ar_convertToRad(90))*
+  static const arMatrix4 coordSystemTrans = 
+    ar_rotationMatrix( 'z', ar_convertToRad(90)) *
     ar_rotationMatrix( 'y', ar_convertToRad(-90)); 
   // The rotation matrix of the bird. PLEASE NOTE: It seems like several
   // Ascension products return the INVERSE (or, equivalently for rotation
   // matrices, the transpose) of the bird's rotation matrix. Certainly,
   // this is also true for the Ascension spacepad!   
   // specific to position+quaternion data mode!!!
-  for (j=3; j<7; j++){
+  for (j=3; j<7; ++j)
     _floatData[j] *= _orientScale;
-  }          
-  arMatrix4 rotMatrix = arMatrix4( arQuaternion( _floatData + 3 ) );
+
+  const arMatrix4 rotMatrix(arQuaternion( _floatData + 3));
   // The bird's translation, scaled appropriately.
-  arMatrix4 translationMatrix = 
-    ar_translationMatrix( _positionScale * arVector3(_floatData[0], 
-                                                     _floatData[1], 
-                                                     _floatData[2]));
-  // The calculation of the matrix to be reported to the input device is
-  // a little involved. HOWEVER, this reasoning holds true for ALL
-  // 6DOF sensors.
-  // In the discussion that follows, the Ascension Flock coordinate frame
-  // will be B2 and the Syzygy coordinate reference frame will be B1.
-  // In the context of virtual reality, the Syzygy reference frame is the
-  // frame of the GRAPHICS.
-  // Our final goal is a transformation matrix in B1.
-  // First of all, note the following linear algebra.
-  // Suppose R2 is a rotation matrix with respect to basis B2.
-  // Suppose M is a rotation taking basis B1 to basis B2.
-  // Note that if P1 gives a point's coordinates with respect to B1
-  // and P2 gives a point's coordinates with respect to B2 then:
-  // P2 = (!M)*P1     (here ! is inverse)
-  //  and
-  // P1 = M*P2
-  // Consequently, M maps coordinates in basis B2 to coordinates in B1.
-  // !M maps coordinates in B1 to coordinates in B2.
-  // Now, suppose that R1 is rotation R2, but with respect to basis B1.
-  // The matrix must then be, according to our reasoning,
-  //  M*R2*(!M)
-  // Note furthermore that the M*T changes a translation T in basis B2
-  // to a translation in B1.
-  // If the transmitter's reference frame is as above (in relation to the
-  // Syzygy reference frame) then the correct matrix is:
-  //  M*T*R2*(!M)
-  // Now, we must consider sensor rotation. The sensor will be attached to
-  // an interaction device of some sort. The sensor has a NEUTRAL physical
-  // orientation relative to the transmitter (in this position the rotation
-  // matrix is the identity). Consider the rotation N (with respect to the
-  // Syzygy reference frame) that takes the sensor from its orientation on 
-  // the interaction device to its NEUTRAL position. Note that the interaction
-  // device should report a rotation of !N when the sensor is in its NEUTRAL
-  // position. Consequently,
-  //  M*T*R2*(!M)*(!N)
-  // gives the orientation and position of the interaction device.
-  // Finally, we must consider transmitter rotation and translation offset.
-  // Suppose that the (0,0,0) of the Flock is translated from Syzygy's (0,0,0)
-  // by T1. Furthermore, 
-  // suppose that the transmitter is rotated by R3 from its neutral position
-  // (related to the neutral position of the sensor) from the Syzygy reference
-  // frame. The orientation of the interaction device is now given by:
-  //   T1*R3*M*T*R2*(!M)*(!N)
-  //
-  // NOTE: HAVE NOT ACCOUNTED YET FOR SENSOR TRANSLATION OFFSET! 
-  // NOTE: the 180 degree rotation about y accounts for the fact that
-  //       the bird's NEUTRAL position is flat surface down and tail forward.
-  //       (whereas we are assuming flat surface down and tail back).
+  const arMatrix4 translationMatrix = 
+    ar_translationMatrix( _positionScale * arVector3(_floatData));
+
+  /*
+  The calculation of the matrix to be reported to the input device is
+  involved. But this reasoning holds true for all 6DOF sensors.  In this
+  discussion, the Flock coordinate frame is B2 and the Syzygy coordinate
+  frame is B1.  In the context of VR, the Syzygy reference frame is the
+  frame of the graphics.  Our final goal is a transformation matrix in B1.
+
+  Suppose R2 is a rotation matrix w.r.t. basis B2.  Let M be a rotation
+  taking B1 to B2.  If P1 gives a point's coordinates with respect to
+  B1 and P2 those w.r.t. B2 then (! is inverse):
+
+  P2 = (!M)*P1
+  P1 = M*P2
+
+  So M maps coordinates in basis B2 to those in B1.  !M does the inverse.
+  Now, let R1 be rotation R2, but w.r.t. B1.
+  Its matrix must then be:
+
+  M*R2*(!M)
+
+  Furthermore, M*T changes a translation T in B2 to one in B1.  If the
+  transmitter's reference frame is as above (in relation to the Syzygy
+  reference frame) then the correct matrix is:
+
+  M*T*R2*(!M)
+
+  Now consider sensor rotation. The sensor is attached to a bird.
+  It has a NEUTRAL physical orientation relative to the transmitter
+  (where the rotation matrix is the identity). Consider the rotation N
+  w.r.t. B1 that takes the sensor from its orientation on the bird to
+  its neutral position. The bird should report a rotation of !N when in
+  its neutral position. So the orientation and position of the bird is:
+
+  M*T*R2*(!M)*(!N)
+
+  Finally, we consider transmitter rotation and translation offset.
+  Suppose that the (0,0,0) of the Flock is translated from Syzygy's
+  (0,0,0) by T1. Furthermore, suppose that the transmitter is rotated
+  by R3 from its neutral position (related to the neutral position of
+  the sensor) from the Syzygy reference frame. The orientation of the
+  interaction device is:
+
+  T1*R3*M*T*R2*(!M)*(!N)
+  
+  This does not account for sensor translation offset.  The 180 degree
+  rotation about y accounts for the fact that the bird's neutral position
+  is flat surface down and tail forward.  (whereas Syzygy assumes flat
+  surface down and tail back).
+  */
+
   arMatrix4 finalMatrix 
     = _transmitterOffset*
       (coordSystemTrans)*translationMatrix*!rotMatrix*(!coordSystemTrans)*

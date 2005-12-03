@@ -253,7 +253,7 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
   return true;
 #else
   // do lots of complicated stuff to wake up the flock.
-  cerr << "arBirdWinDriver error: No linux support yet, sorry\n";
+  cerr << "arBirdWinDriver error: implemented only for win32.\n";
   return false;
 #endif
 
