@@ -513,6 +513,47 @@ more sucinct.
 </param>
 
 <param>
+<name>borderless_window_1024x768</name>
+<value>
+<szg_display>
+ <szg_window>
+   <size width="1024" height="768" />
+   <position x="0" y="0" />
+   <decorate value="false" />
+   <fullscreen value="false" />
+   <title value="szg" />
+   <stereo value="false" />
+   <zorder value="top" />
+   <xdisplay value=":0.0" />
+
+   <szg_viewport_list viewmode="custom">
+     <szg_viewport>
+       <coords left="0.0" bottom="0.0" width="1.0" height="1.0" />
+       <depthclear value="false" />
+       <colormask R="true" G="true" B="true" A="true" />
+       <eyesign value="0.0" />
+       <ogldrawbuf value="GL_BACK_LEFT" />
+       <szg_camera>
+         <szg_screen>
+           <center x="0" y="0" z="-5" />
+           <up x="0" y="1" z="0" />
+           <dim width="13.33" height="10" />
+           <normal x="0" y="0" z="-1" />
+           <headmounted value="true" />
+           <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
+           <usefixedhead value="allow" />
+           <fixedheadpos x="0.0" y="5" z="0.0" />
+           <fixedheadupangle value="0.0" />
+         </szg_screen>
+       </szg_camera>
+     </szg_viewport>
+   </szg_viewport_list>
+ </szg_window>
+</szg_display>
+</value>
+</param>
+
+<param>
 <name>single_window_stereo</name>
 <value>
 <szg_display>
