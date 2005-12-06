@@ -132,13 +132,13 @@ InputNodeConfig parseNodeConfig(const string& nodeConfig){
   // Look for closing pforth tag.
   tagText = ar_getTagText(&configStream);
   if (tagText != "/pforth"){
-    cerr << "DeviceServer parsing error: failed on pforth end tag.\n";
+    cerr << "DeviceServer parsing error: failed on /pforth tag.\n";
     return result;
   }
   // Look for closing /szg_device tag.
   tagText = ar_getTagText(&configStream);
   if (tagText != "/szg_device"){
-    cerr << "DeviceServer parsing error: failed on szg_device end tag.\n";
+    cerr << "DeviceServer parsing error: failed on /szg_device tag.\n";
     return result;
   }
   result.valid = true;
@@ -156,9 +156,8 @@ static bool respond(arSZGClient& cli, bool f = false) {
 int main(int argc, char** argv){
   arSZGClient SZGClient;
   SZGClient.simpleHandshaking(false);
-  // note how we force the name of the component. This is because it is
-  // impossible to get the name automatically on Win98 and we want to run
-  // DeviceServer on Win98 (for instance, to support legacy spacepads...)
+  // Force the component's name because we can't get the name
+  // automatically on Win98.  Ascension Spacepad needs Win98.
   SZGClient.init(argc, argv, "DeviceServer");
   if (!SZGClient)
     return 1;
@@ -407,17 +406,17 @@ int main(int argc, char** argv){
       const std::map< std::string, arInputSource* >::iterator iter =
         driverNameMap.find( messageType );
       if (iter == driverNameMap.end()) {
-        cerr << "DeviceServer warning: unrecognized messageType "
+        cerr << "DeviceServer warning: ignoring unrecognized messageType "
 	     << messageType << ".\n";
-      } else {
+      }
+      else {
         cout << "DeviceServer remark: handling message " << messageType 
              << "/" << messageBody << ".\n";
         arInputSource* driver = iter->second;
-        if (!driver) {
-          cerr << "DeviceServer warning: ignoring NULL pointer from driverNameMap.\n";
-        } else {
+        if (!driver)
+          cerr << "DeviceServer warning: ignoring NULL from driverNameMap.\n";
+	else
           driver->handleMessage( messageType, messageBody );
-        }
       }
     }
   }
