@@ -1,6 +1,16 @@
-# Based on the szglorenz.cpp program of Wayne City High School.
+###################################################################################################
+# Based on the szglorenz.cpp program of Wayne City High School (Illinois). Thanks Stan Blank!
 # This program demonstrates using the Myriad scene graph, including some of the built-in shapes
 # and line strips. It also shows how to use materials and lighting.
+###################################################################################################
+
+###################################################################################################
+# Exercises:
+#  1. Add the ability to grab the attractor and rotate it around in response to the wand.
+#  2. Make it possible to reset the attractor without restarting the application.
+#  3. Make the particles nonuniform! Maybe some will have tails and some not. Maybe they will
+#     have different shapes.
+###################################################################################################
 
 # Import the Syzygy shared libraries.
 from PySZG import *

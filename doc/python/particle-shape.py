@@ -1,8 +1,16 @@
+################################################################################################################
 # An example of the Myriad scene graph in action.
 # Shows how to do a particle system plus simple physics (trajectory under gravity plus bouncing on a surface).
 # The physics is framerate independent, with time step depending on wall clock time. A good example of using
 # different shapes and materials in the scene graph. Also shows how to erase scene graph nodes (the particles
 # can change shape).
+################################################################################################################
+
+################################################################################################################
+# Exercises:
+#  1. Add nodes to the scene graph for a floor.
+#  2. Add nodes to create a fountain (from which the objects will emerge).
+################################################################################################################
 
 from PySZG import *
 from math import *

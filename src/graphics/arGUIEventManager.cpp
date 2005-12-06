@@ -159,6 +159,7 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
   while( XPending( window->getWindowHandle()._dpy ) ) {
     memset( &event, 0, sizeof( XEvent ) );
     XNextEvent( window->getWindowHandle()._dpy, &event );
+
     switch( event.type ) {
       case ClientMessage:
         if( (Atom) event.xclient.data.l[ 0 ] == window->getWindowHandle()._wDelete ) {
@@ -194,7 +195,13 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
           }
         }
 
+#ifdef AR_USE_DARWIN
+        // The Mac OS X xserver is different than the other Unixes with this event. It does not hurt to have
+		// additional resize events (one more for each window move event).
+        if (true){
+#else
         if( sizeX != _windowState.getSizeX() || sizeY != _windowState.getSizeY() ) {
+#endif
           posX = _windowState.getPosX();
           posY = _windowState.getPosY();
           if( addEvent( arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_RESIZE, window->getID(), 0, posX, posY, sizeX, sizeY ) ) < 0 ) {

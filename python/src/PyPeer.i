@@ -357,6 +357,8 @@ class arBoundingSphere{
   arBoundingSphere();
   arBoundingSphere(const arVector3& position, float radius);
   ~arBoundingSphere();
+  void transform(const arMatrix4& m);
+  float intersect(const arBoundingSphere& b);
   bool intersectViewFrustum(arMatrix4& m);
 
   arVector3 position;
@@ -920,6 +922,7 @@ class arGraphicsDatabase: public arDatabase{
 
   void draw();
   int intersect(const arRay&);
+  list<arDatabaseNode*> arGraphicsDatabase::intersectRef(const arBoundingSphere& b);
 
   void activateLights();
 
@@ -935,6 +938,14 @@ class arGraphicsDatabase: public arDatabase{
 
     def find(self, name):
         return gcast(self.findNodeRef(name))
+		
+    def intersectSphere(self, b):
+      wl = NodeListWrapper(self.intersectRef(b))
+      l = []
+      while wl.get() != None:
+          l.append(nodecast(wl.get()))
+          wl.next()
+      return l
 }
 };
 

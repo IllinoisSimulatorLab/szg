@@ -445,9 +445,9 @@ void arGraphicsDatabase::draw(arMatrix4* projectionCullMatrix){
 }
 
 void arGraphicsDatabase::_draw(arGraphicsNode* node, 
-			       stack<arMatrix4>& transformStack,
+                               stack<arMatrix4>& transformStack,
                                arGraphicsContext* context,
-			       arMatrix4* projectionCullMatrix){
+                               arMatrix4* projectionCullMatrix){
 
   // Word of warning: lock/unlock is DEFINITELY costly when done per-node.
   // To make the API really thread-safe, some kind of node-level locking
@@ -538,7 +538,7 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
     arMatrix4 theMatrix = ((arTransformNode*)node)->getTransform();
     arRay currentRay = rayStack.top();
     rayStack.push(arRay((!theMatrix)*currentRay.getOrigin(),
-			(!theMatrix)*currentRay.getDirection()
+	                    (!theMatrix)*currentRay.getDirection()
                         - (!theMatrix)*arVector3(0,0,0)));
   }
   // If it is a bounding sphere, go ahead and intersect.
@@ -547,12 +547,12 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
       = ((arBoundingSphereNode*)node)->getBoundingSphere();
     arRay intRay(rayStack.top());
     float distance = intRay.intersect(sphere.radius, 
-				      sphere.position);
+                                      sphere.position);
     if (distance>0){
       // intersection
       if (bestDistance < 0 || distance < bestDistance){
         bestDistance = distance;
-	bestNodeID = node->getID();
+		bestNodeID = node->getID();
       }
     }
   }
@@ -568,6 +568,86 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
   // On the way out, undo the effects of the transform
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
     rayStack.pop();
+  }
+}
+
+/// Returns a list of bounding sphere nodes that either intersect or contain the
+/// given bounding sphere. The sphere "closest" to the given sphere is
+/// first in the list. If addRef is true, all nodes returned have an extra reference
+/// added to them (and consequently this is thread-safe). 
+/// Otherwise, no extra ref (the default).
+list<arDatabaseNode*> arGraphicsDatabase::intersect(const arBoundingSphere& b, bool addRef){
+  list<arDatabaseNode*> result;
+  stack<arMatrix4> matrixStack;
+  matrixStack.push(ar_identityMatrix());
+  float bestDist = -1;
+  arDatabaseNode* bestNode = NULL;
+  _intersect((arGraphicsNode*)&_rootNode, b, matrixStack, result, bestNode, bestDist, addRef);
+  // The best node is maintained seperately from the intersection list.
+  if (bestNode){
+    result.push_back(bestNode);
+  }
+  return result;
+}
+
+// This function is thread-safe! Since all node pointers it returns have references to them!
+list<arDatabaseNode*> arGraphicsDatabase::intersectRef(const arBoundingSphere& b){
+  return intersect(b, true);
+}
+
+void arGraphicsDatabase::_intersect(arGraphicsNode* node,
+                                    const arBoundingSphere& b,
+                                    stack<arMatrix4>& matrixStack, 
+                                    list<arDatabaseNode*>& nodes,
+									arDatabaseNode*& bestNode,
+                                    float& bestDistance,
+                                    bool useRef){
+  // If this is a transform node, go ahead and transform the ray.
+  if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
+    arMatrix4 theMatrix = matrixStack.top()*((arTransformNode*)node)->getTransform();
+    matrixStack.push(theMatrix);
+  }
+  // If it is a bounding sphere, go ahead and intersect.
+  if (node->getTypeCode() == AR_G_BOUNDING_SPHERE_NODE){
+    arBoundingSphere sphere 
+      = ((arBoundingSphereNode*)node)->getBoundingSphere();
+    arMatrix4 m(matrixStack.top());
+	arBoundingSphere tmp(b);
+	tmp.transform(!m);
+    float distance = sphere.intersect(tmp);
+    if (distance >= 0){
+      // intersection or containment
+      if (bestDistance < 0 || distance < bestDistance){
+        bestDistance = distance;
+		// The best node is kept seperately from the list of intersecting nodes.
+		if (bestNode){
+		  // If there was already a best node, better go ahead and save it.
+		  nodes.push_back(bestNode);
+		}
+		bestNode = node;
+      }
+      else{
+	    // The best node is kept seperately from the list of intersecting nodes.
+	    nodes.push_back(node);
+	  }
+	  // In either case, add an extra ref to our node if the useRef flag is set.
+	  if (useRef){
+	    node->ref();
+	  }
+    }
+  }
+  // Deal with intersections with children. NOTE: we must use getChildrenRef
+  // instead of getChildren for thread-safety.
+  list<arDatabaseNode*> children = node->getChildrenRef();
+  for (list<arDatabaseNode*>::iterator i = children.begin();
+       i != children.end(); i++){
+    _intersect((arGraphicsNode*)(*i), b, matrixStack, nodes, bestNode, bestDistance, useRef);
+  }
+  // Must unref the nodes to prevent a memory leak.
+  ar_unrefNodeList(children);
+  // On the way out, undo the effects of the transform
+  if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
+    matrixStack.pop();
   }
 }
 

@@ -17,6 +17,7 @@
 #    scaling to make the wand translation distance different from the resulting
 #    object translation distance? How about adding the ability to scale the object?
 # 3. Change the objects in the scene, eliminate light, or otherwise mess with the graphics.
+#    Make the billboard appear/disappear.
 #############################################################################################
 
 # Import the Syzygy stub Python module.
@@ -83,9 +84,14 @@ class navigator:
 			self.lastTime = time
 			return
 		# Assumes that the "neutral" position of the wand (which is matrix 1) is pointed straight at 
-		# the front CAVE wall (and that we are using the CAVE coordinate system).
-		# ar_ERM is shorthand for ar_extractRotationMatrix. This is related to some other 
+		# the front CAVE wall (and that we are using the CAVE coordinate system, whereby a front pointing vector would
+		# be (0,0,-1) ).
+		# ar_ERM is shorthand for ar_extractRotationMatrix. This is related to some other calls ar_ETM (ar_extractTranslationMatrix)
+		# and ar_ESM (ar_extractScaleMatrix). If a matrix is assumed to be the product of T*R*S (translation, rotation, and scale 
+		# where the scale matrix is assumed to be uniform), then we can easily compute the decomposition, which is what these
+		# functions do.
 		wandDir = ar_ERM(framework.getMatrix(1))*arVector3(0,0,-1)
+		# In the CAVE coordinate system, (1,0,0) would be to the right. Again, we "extract" the rotation from the wand's transform.
 		wandTransDir = ar_ERM(framework.getMatrix(1))*arVector3(1,0,0)
 		# Figure out the navigation deltas, based on the joystick values. This is another assumption 
 		# about our input device. It should have two axes, each reporting values between -1 and 1. The
@@ -95,6 +101,7 @@ class navigator:
 		# there must be an action threshold.
 		deltaX = framework.getAxis(0)
 		deltaY = framework.getAxis(1)
+		# Note how the joystick response above the threshold value gets scaled to give a full range.
 		if abs(deltaX) < self.threshold:
 			deltaX = 0
 		else:
@@ -106,34 +113,61 @@ class navigator:
 		# t is the egocentric translation vector.
 		t = (wandDir * deltaY + wandTransDir * deltaX) * (time - self.lastTime) * self.speed 
 		# Since we are (in the scene graph context) moving the world instead, we must apply the inverse
-		# transformation (egocentric motion to exocentric motion)
+		# transformation (egocentric motion to exocentric motion). ar_TM is shorthand for ar_TranslationMatrix and
+		# returns an appropriate arMatrix4 from its arVector3 input.
 		self.node.set(ar_TM(-t)*self.node.get())
 		self.lastTime = time
-		
+
+# This class implements a simple means of grabbing, manipulating an object's transform (rotation and translation), 
+# and then releasing the object. It is event based (processes a stream of Syzygy input events), instead of polling based.	
 class manipulator:
+	# The constructor.
 	def __init__(self):
+		# The transform node to be manipulated.
 		self.node = None
+		# The matrix held by the manipulation tool at the grab.
 		self.wandMatrixAtGrab = None
+		# The matrix held by the manipulated transform node at the grab.
+		# This member is used as a flag indicating whether the object is currently grabbed.
 		self.objMatrixAtGrab = None
+
+	# Start grabbing the object.
 	def attemptGrab(self, matrix):
 		if not self.node:
 			return
 		self.objMatrixAtGrab = self.node.get()
 		self.wandMatrixAtGrab = matrix
+
+	# Release a grabbed object (if any is currently grabbed).
 	def attemptRelease(self):
+		# This data member is used as a flag indicating if the object is currently grabbed.
 		self.objMatrixAtGrab = None
+
+	# If an object is grabbed, change its transform in response to user interface events.
 	def attemptDrag(self, matrix):
+		# Check to see if the object is currently grabbed.
 		if self.objMatrixAtGrab:
+			# Recall that ar_ETM is shorthand for ar_extractTranslationMatrix and ar_ERM is shorthand
+			# for ar_extractRotationMatrix. They assume the matrix can be written like T*R*S, where
+			# S is a uniform scaling.
 			tmp = ar_ETM(self.wandMatrixAtGrab)
+			# Note how translation and rotation and treated seperately for our interaction technique.
 			trans = ar_ETM(matrix)*tmp.inverse()*ar_ETM(self.objMatrixAtGrab)
 			rot = ar_ERM(matrix)*ar_ERM(self.wandMatrixAtGrab.inverse())*ar_ERM(self.objMatrixAtGrab)
+			# Don't forget to update the scene graph's transform node!
 			self.node.set(trans*rot)
+
+	# Processes the event stream. We also need access to the framework object (to get current event values).
 	def update(self, framework, event):
+		# Other valid event types are AR_EVENT_AXIS and AR_EVENT_MATRIX, with corresponding getAxis and getMatrix methods.
 		if event.getType() == AR_EVENT_BUTTON and event.getIndex() == 0:
+			# Button 0 (see getIndex above) has been pushed. Grab object.
 			if event.getButton() == 1:
 				self.attemptGrab(framework.getMatrix(1))
+			# Button 0 has been released. Release object.
 			else:
 				self.attemptRelease()
+		# Drag a grabbed object.
 		self.attemptDrag(framework.getMatrix(1))
 		
 
@@ -156,7 +190,7 @@ def addLights(g):
 	# Dim white diffuse lighting.
         light.diffuse = arVector3(0.5, 0.5, 0.5)
 	# Store the light in the scene graph node.
-	l.setLight(light)
+	l.set(light)
 	# Create a new light node.
 	l = r.new("light")
 	# Create a new light.
@@ -167,22 +201,35 @@ def addLights(g):
         light.ambient = arVector3(0,0,0)
         light.diffuse = arVector3(0.5, 0.5, 0.5)
 	# Store the light in the scene graph node.
-	l.setLight(light)
+	l.set(light)
 
+# Add the rays to the scene graph below the node t.
 def attachLineSet(t):
+	# Must declare that we are using the global variable points in this function.
+	# Otherwise, we'll only create a local copy (problematic since other functions
+	# want to use this variable).
 	global points
 	plist = []
+	# Make a list of line segment end points (for 150 line segments).
 	for i in range(150):
+		# A random direction.
 		p = arVector3(-5 + 10 * random.random(),
                               -5 + 10 * random.random(),
                               -5 + 10 * random.random())
 		if p.magnitude() == 0:
 			p = arVector3(0,0,1)
+		# Make sure this is a unit vector!
 		p.normalize()
 		plist.append(p)
+		# The other endpoint of each line segment is the origin.
 		plist.append(arVector3(0,0,0))
+	# Create the points node as a child of t.
 	points = t.new("points")
+	# Put the points data in the node.
 	points.set(plist)
+	# We want to individually color the lines. Here, there is a color listed for each vertex in the points node.
+	# The line segments are non-uniform in color, with the first vertex having a random color and the second 
+	# vertex being black.
 	clist = []
 	for i in range(150):
 		c = arVector4(random.random(),
@@ -191,46 +238,74 @@ def attachLineSet(t):
                               1)
 		clist.append(c)
 		clist.append(arVector4(0,0,0,0))
+	# Create a new color4 node as a child of the points node.
 	colors = points.new("color4")
+	# Import the color data into the node.
 	colors.set(clist)
+	# Make a new "drawable" node as a child of the color4 node. When drawing, this node will use the data from
+	# its ancestor points and color4 nodes.
 	draw = colors.new("drawable")
+	# The drawable node will draw 150 independent line segments.
 	draw.set(("lines",150))
 
+# This function is computationally expense in our Python implementation!
 def lineChange(percentage):
+	# Retrieve a list of arVector3's held by the points node.
 	plist = points.get()
+	# Change the 2nd vertex of each line segment.
 	for i in range(150):
 		plist[2*i+1] = plist[2*i]*percentage
+	# Return the data to our node.
 	points.set(plist)
 
+# Attach geometry to the scene graph below node t.
 def worldInit(t):
+	# These variables must be declared global so they can be used by other functions.
 	global trans1
 	global trans2
 	global trans3
 	global trans4
 	global viz
 	global billboardTrans
+
+	# Attach the first torus. Start with a transform node.
  	trans1 = t.new("transform")
+	# We want to draw our torus using a texture (the geometry of arTorusMesh already has built-in texture coordinates).
  	tex = trans1.new("texture")
+	# The file name where the texture resides.
  	tex.set("WallTexture1.ppm")
+	# It is also possible to give the object an overall coloring (in addition to the texture). You'll notice that
+	# one of the torii is a little red!  Create a new material node to hold the material.
  	m = tex.new("material")
+	# Create a new material object.
  	mat = arMaterial()
+	# Set the diffuse color (there are also the other components of the OpenGL color model...)
  	mat.diffuse = arVector3(1,0.6,0.6)
+	# Store the material in a scene graph node.
  	m.set(mat)
+	# Make a torus object with 60 polygons around its "big radius" (around the hole) and 30 polygons around its "small radius"
+	# (around the tube). This object will have 60*30*2=3600 triangles. The distance from the center of the object to the center
+	# of the tube is 4. The distance from the center of the tube to the tube's edge is 0.5.
   	torus = arTorusMesh(60,30,4,0.5)
+	# Attach the torus geometry below the material node. That way, when the geometry is drawn, it will use its ancestor
+	# material and texture nodes.
 	torus.attachMesh(m)
 
+	# Add another torus to the scene graph.
 	trans2 = t.new("transform")
  	tex = trans2.new("texture")
  	tex.set("WallTexture2.ppm")
   	torus.reset(60,30,2,0.5)
 	torus.attachMesh(tex)
 
+	# Add another torus to the scene graph.
 	trans3 = t.new("transform")
  	tex = trans3.new("texture")
  	tex.set("WallTexture3.ppm")
   	torus.reset(60,30,1,0.5)
 	torus.attachMesh(tex)
 
+	# Add another torus to the scene graph.
 	trans4 = t.new("transform")
  	tex = trans4.new("texture")
  	tex.set("WallTexture4.ppm")
@@ -244,17 +319,25 @@ def worldInit(t):
 	billboard = billboardTrans.new("billboard")
 	billboard.set(" myriad scene graph ")
 
+# Called each frame to update the scene graph.
 def worldAlter(elapsedTime):
+	# We want to access the following global variables.
 	global trans1
 	global trans2
 	global trans3
 	global trans4
 	global percentage
+
+	# Rotate the torii (based on elapsed times) and varying speeds.
+	# ar_RM is shorthand for ar_rotationMatrix. Given an axis and an angle (in radians), it returns the appropriate rotation matrix.
         trans1.set(ar_RM('x', elapsedTime *  1.6))
 	trans2.set(ar_RM('y', elapsedTime *  3.1))
 	trans3.set(ar_RM('z', elapsedTime *  2.1))
 	trans4.set(ar_RM('z', elapsedTime * -5.5))
+
+	# Rotate the billboard around the perimeter of one of the torii.
 	billboardTrans.set(ar_RM('z', elapsedTime*0.02)*billboardTrans.get())
+	# If we are using the rays, change their representation by a little bit.
 	if useRays:
 		percentage -= 0.05
 		if percentage < 0:
@@ -263,6 +346,7 @@ def worldAlter(elapsedTime):
 
 # The event processing callback. All it does is grab the events that have queued
 # since last call and send them to the items on the widget list. A very generic function.
+# NOTE: callbacks of this type must return 0/1 (i.e. bool on the C++ side).
 def eventProcessing(framework, eventQueue):
 	while not eventQueue.empty():
 		e = eventQueue.popNextEvent()
@@ -319,7 +403,7 @@ addLights(g)
 navNode = g.getRoot().new("transform")
 # Attach a new transform node to the navigation node. This node places the scene in a convenient spot.
 # NOTE: a path of transform nodes down the scene graph tree operates much like a sequence of matrices in the OpenGL stack.
-worldTrans = r.new("transform")
+worldTrans = navNode.new("transform")
 # ar_TM is an abbreviation for ar_translationMatrix, which returns an arMatrix4 expresses the expected translation.
 worldTrans.set(ar_TM(0,5,-5))
 # Attach a transform node to worldTrans. This new node will be used to drag the objects around.
@@ -351,9 +435,17 @@ counter = 0
 while 1:
 	# The event processing callback is called from within this method
 	f.processEventQueue()
-	# Wall clock time seems OK for navigation.
+	# Wall clock time seems OK for navigation. Here, we are using our custom navigator class.
 	nav.update(f, time.clock())
+	# Get the user head position/orientation from control device and post to
+	# the framework. By making this step explicit, we allow greater user control.
+	# Without this statement, the scene will not change in response to head
+	# position changes!
 	f.setViewer()
+	# Change the scene graph geometry!
 	worldAlter(counter)
+	# counter stores the (HACK) time.
 	counter += 0.02
+	# We have chosen the manual swap mode of operation for the scene graph framework.
+	# Consequently, we must issue the buffer swap command ourselves.
 	f.swapBuffers()

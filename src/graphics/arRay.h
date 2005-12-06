@@ -19,6 +19,16 @@ class SZG_CALL arBoundingSphere{
   arBoundingSphere(const arVector3&, float);
   ~arBoundingSphere(){}
 
+  // Somewhat inaccurate. Only works if the matrix maps spheres to spheres.
+  void transform(const arMatrix4& m);
+  // There are three possibilities when trying to intersect two spheres.
+  // 1. They do not intersect.
+  // 2. They intersect but do not contain one another.
+  // 3. One sphere contains the other.
+  // The return value are correspondingly:
+  // -1: do not intersect, do not contain one another.
+  // >= 0: intersect or one sphere contains the other. Distance between centers.
+  float intersect(const arBoundingSphere& b);
   bool intersectViewFrustum(arMatrix4& m);
 
   arVector3 position;
