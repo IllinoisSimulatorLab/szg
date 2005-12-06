@@ -72,6 +72,7 @@ class arFOBDriver: public arInputSource {
   bool _sendBirdAddress( unsigned char birdAddess );
   bool _sendBirdCommand( const unsigned char* cdata, 
                          const unsigned int numBytes );
+  bool _sendBirdByte(unsigned char c, bool fSleep = true);
   int _getBirdData( unsigned char* cdata, 
                     const unsigned int numBytes );
   bool _getSendNextFrame(unsigned char addr);

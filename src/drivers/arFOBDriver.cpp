@@ -272,7 +272,7 @@ LDefaultBaudRate:
     if (_getFOBParam(1, b, 2, 0) != 2)
       cout << "get version number kacked.\n";
     cout << "bird version number is " << int(b[0]) << "." << int(b[1]) << ".\n";
-    ar_usleep(100000);;;;
+    ar_usleep(100000);
 #endif
 
   }
@@ -318,7 +318,7 @@ LDefaultBaudRate:
     bool longRange = false;
     if (!_getPositionScale( longRange ))
       return false;
-    cout << "arFOBDriver remark: FOB reports position scale = "
+    cout << "arFOBDriver remark: FOB's scale = "
          << (longRange ? 72 : 36) << " inches.\n";
   }
 
@@ -370,30 +370,30 @@ bool arFOBDriver::_setHemisphere( const std::string& hemisphere,
                                   unsigned char addr) {
   static unsigned char cdata[] = {'L', 0, 0};
   // Setup the Command string to the Bird...
-  // 2 data bytes must be set for HEMI_AXIS and HEMI_SIGN
+  // 2 data bytes are HEMI_AXIS and then HEMI_SIGN
   if (hemisphere == "front") {
-    cdata[1] = 0;       /* set HEMI_AXIS */
-    cdata[2] = 0;       /* set HEMI_SIGN */
+    cdata[1] = 0;
+    cdata[2] = 0;
   } else if (hemisphere == "rear") {
-    cdata[1] = 0;       /* set HEMI_AXIS */
-    cdata[2] = 1;       /* set HEMI_SIGN */
+    cdata[1] = 0;
+    cdata[2] = 1;
   } else if (hemisphere == "upper") {
-    cdata[1] = 0xc;     /* set HEMI_AXIS */
-    cdata[2] = 1;       /* set HEMI_SIGN */
+    cdata[1] = 0xc;
+    cdata[2] = 1;
   } else if (hemisphere == "lower") {
-    cdata[1] = 0xc;     /* set HEMI_AXIS */
-    cdata[2] = 0;       /* set HEMI_SIGN */
+    cdata[1] = 0xc;
+    cdata[2] = 0;
   } else if (hemisphere == "left") {
-    cdata[1] = 6;       /* set HEMI_AXIS */
-    cdata[2] = 1;       /* set HEMI_SIGN */
+    cdata[1] = 6;
+    cdata[2] = 1;
   } else if (hemisphere == "right") {
-    cdata[1] = 6;       /* set HEMI_AXIS */
-    cdata[2] = 0;       /* set HEMI_SIGN */
+    cdata[1] = 6;
+    cdata[2] = 0;
   } else {  
     cerr << "arFOBDriver error: invalid hemisphere #.\n";
     return false;
   }
-  if (addr > 0 && !_sendBirdAddress(addr))
+  if (!_sendBirdAddress(addr))
     return false;
   const bool ok = _sendBirdCommand( cdata, 3 );
   ar_usleep(100000);
@@ -429,11 +429,10 @@ bool arFOBDriver::_getHemisphere( std::string& hemisphere,
 
 // Set bird's data mode to position+quaternion
 bool arFOBDriver::_setDataMode(unsigned char addr) {
-  if (addr > 0 && !_sendBirdAddress(addr))
+  if (!_sendBirdAddress(addr))
     return false;
   _dataSize = 7;
-  const unsigned char posorientcmd = ']'; // FoB manual p.92
-  return _sendBirdCommand( &posorientcmd, 1 );
+  return _sendBirdByte(']'); // FoB manual p.92
 }
 
 bool arFOBDriver::_getDataMode( std::string& modeString,
@@ -553,11 +552,9 @@ int arFOBDriver::_getFOBParam( const unsigned char paramNum,
                                unsigned int numBytes,
                                unsigned char addr ) {
 
-  unsigned char cdata[2] = {'O', (unsigned char)paramNum };
-  if (addr > 0 && !_sendBirdAddress(addr)) {
-    cerr << "arFOBDriver error: _sendBirdAddress failed.\n";
+  if (!_sendBirdAddress(addr))
     return 0;
-  }
+  const unsigned char cdata[2] = {'O', paramNum};
   if (!_sendBirdCommand( cdata, 2 )) {
     cerr << "arFOBDriver error: failed to send 'get param' command.\n";
     return 0;
@@ -570,6 +567,8 @@ bool arFOBDriver::_setFOBParam( const unsigned char paramNum,
                                 const unsigned char* buf,
                                 const unsigned int numBytes,
                                 unsigned char addr ) {
+  if (!_sendBirdAddress(addr))
+    return false;
   unsigned char* cdata = new unsigned char[2+numBytes];
   if (!cdata) {
     cerr << "arFOBDriver error: memory panic.\n";
@@ -578,57 +577,60 @@ bool arFOBDriver::_setFOBParam( const unsigned char paramNum,
   cdata[0] = 'P';
   cdata[1] = paramNum;
   memcpy( cdata+2, buf, numBytes );
-  bool stat = true;
-  if (addr > 0 && !_sendBirdAddress(addr)) {
-    delete [] cdata;
-    return false;
-  }
-  if (!_sendBirdCommand( cdata, 2+numBytes )) {
+  bool ok = _sendBirdCommand(cdata, 2+numBytes);
+  if (!ok)
     cerr << "arFOBDriver error: failed to send 'set param' command.\n";
-    stat = false;
-  }
   delete [] cdata;
-  return stat;
+  return ok;
+}
+
+bool arFOBDriver::_sendBirdByte(unsigned char c, bool fSleep){
+  const bool ok = _sendBirdCommand(&c, 1);
+  if (fSleep)
+    ar_usleep(1000000);
+  return ok;
+}
+
+bool arFOBDriver::_sleep(){
+  return _sendBirdByte('G');
+}
+
+bool arFOBDriver::_run(){
+  return _sendBirdByte('F');
 }
 
 bool arFOBDriver::_autoConfig() {
   ar_usleep( 1000000 );
   const unsigned char cdata[] = {'P', 0x32, (unsigned char)_numBirds };
-  const int numWrit = _comPort.ar_write( (char*)cdata, 3 );
+  const bool ok = _sendBirdCommand(cdata, 3);
   ar_usleep( 1000000 );  
-  return numWrit==3;
+  return ok;
 }
-
-//;;;; todo: factor out the next three, and the previous one.
 
 bool arFOBDriver::_nextTransmitter(unsigned char addr){
   // The address of the transmitter unit goes in the most significant
   // half of the byte. The transmitter number goes in the lower
   // half. We are assuming that this is 0.
   const unsigned char cdata[] = {'0', (addr << 4) };
-  const int numWrit = _comPort.ar_write( (char*)cdata, 2 );
+  const bool ok = _sendBirdCommand(cdata, 2);
   ar_usleep( 1000000 );  
-  return numWrit==2;
+  return ok;
 }
 
-bool arFOBDriver::_sleep(){
-  static const unsigned char cdata[] = {'G'};
-  const int numWrit = _comPort.ar_write( (char*)cdata, 1);
-  ar_usleep(1000000);
-  return numWrit==1;
-}
-
-bool arFOBDriver::_run(){
-  static const unsigned char cdata[] = {'F'};
-  const int numWrit = _comPort.ar_write( (char*)cdata, 1);
-  ar_usleep(1000000);
-  return numWrit==1;
-}
-
-bool arFOBDriver::_sendBirdAddress( unsigned char birdAddress ) {
-  unsigned char cdata[] = { 0xF0 };
-  *cdata += birdAddress;
-  return _comPort.ar_write( (char*) cdata, 1 )==1;
+bool arFOBDriver::_sendBirdAddress( unsigned char addr ) {
+  if (addr <= 1)
+    // 0 means no bird or the unique bird.
+    // 1 means the first (and only) bird, when sent to _getSendNextFrame().
+    return true;
+  if (_numBirds <= 1) {
+    cerr << "arFOBDriver warning: expected more than one bird.\n";
+    return true;
+  }
+  const unsigned char cdata = 0xF0 + addr;
+  const bool ok = _comPort.ar_write((char*)&cdata, 1) == 1;
+  if (!ok)
+    cerr << "arFOBDriver error: _sendBirdAddress failed.\n";
+  return ok;
 }
 
 bool arFOBDriver::_sendBirdCommand( const unsigned char* cdata, 
@@ -643,11 +645,10 @@ int arFOBDriver::_getBirdData( unsigned char* cdata,
 }
 
 bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
-  if (_numBirds > 1)
-    _sendBirdAddress(addr);
+  if (!_sendBirdAddress(addr))
+    return false;
 
-  static const unsigned char pointCommand[] = {'B'};
-  if (!_sendBirdCommand( pointCommand, 1 )) {
+  if (!_sendBirdByte('B', false)) {
     cerr << "arFOBDriver error: failed to send 'point' command.\n";
     return false;
   }
