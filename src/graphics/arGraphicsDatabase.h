@@ -74,11 +74,10 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
 
   void draw(arMatrix4* projectionCullMatrix = NULL);
   int intersect(const arRay&);
-  list<arDatabaseNode*> arGraphicsDatabase::intersect(const arBoundingSphere& b, bool addRef=false);
-  list<arDatabaseNode*> arGraphicsDatabase::intersectRef(const arBoundingSphere& b);
+  list<arDatabaseNode*> intersect(const arBoundingSphere& b, bool addRef=false);
+  list<arDatabaseNode*> intersectRef(const arBoundingSphere& b);
   list<int>* intersectList(const arRay&);
-  arGraphicsNode* arGraphicsDatabase::intersectGeometry(const arRay& theRay,
-                                                        int excludeBelow = -1);
+  arGraphicsNode* intersectGeometry(const arRay& theRay, int excludeBelow = -1);
 
   bool registerLight(arGraphicsNode* node, arLight* theLight);
   bool removeLight(arGraphicsNode* node);
