@@ -34,11 +34,11 @@ class SZG_CALL arInteractableThing : public arInteractable {
     virtual arVector4 getColor() const { return _color; }
     virtual void setVisible( bool vis ) {_visible = vis; }
     virtual bool getVisible() const { return _visible; }
-    virtual void activateColor() { glColor4f( _color[0], _color[1], _color[2], _color[3] ); }
+    virtual void activateColor() const { glColor4fv(_color.v); }
     virtual bool activateTexture() { return _texture && _texture->activate(); }
     virtual void deactivateTexture() { if (_texture) _texture->deactivate(); }
     virtual void draw( arMasterSlaveFramework* fw=0 ) {}
-    virtual void draw( arMasterSlaveFramework& fw, arGraphicsWindow& win, arViewport& vp ) {}
+    virtual void draw( arMasterSlaveFramework&, arGraphicsWindow&, arViewport& ) {}
   private:
     virtual bool _touch( arEffector& effector );
     virtual bool _processInteraction( arEffector& /*effector*/ ) { return true; }

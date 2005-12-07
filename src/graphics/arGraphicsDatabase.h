@@ -138,13 +138,13 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   void _draw(arGraphicsNode*, stack<arMatrix4>&, arGraphicsContext*,
              arMatrix4*);
   void _intersect(arGraphicsNode*, float&, int&, stack<arRay>&);
-  void arGraphicsDatabase::_intersect(arGraphicsNode* node,
-                                    const arBoundingSphere& b,
-                                    stack<arMatrix4>& matrixStack, 
-                                    list<arDatabaseNode*>& nodes,
-									arDatabaseNode*& bestNode,
-                                    float& bestDistance,
-                                    bool useRef);
+  void _intersect(arGraphicsNode* node,
+                  const arBoundingSphere& b,
+                  stack<arMatrix4>& matrixStack, 
+                  list<arDatabaseNode*>& nodes,
+		  arDatabaseNode*& bestNode,
+                  float& bestDistance,
+                  bool useRef);
   void _intersectList(arGraphicsNode*, list<int>*, stack<arRay>&);
   float _intersectSingleGeometry(arGraphicsNode* node,
                                  arGraphicsContext* context,

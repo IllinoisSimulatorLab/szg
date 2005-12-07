@@ -305,7 +305,7 @@ arCamera* arGraphicsWindow::setViewportCamera( unsigned int vpindex, arCamera* c
   if (vpindex >= _viewportVector.size()) {
     cerr << "arGraphicsWindow warning: setViewportCamera(" << vpindex << ") out of range.\n"
          << "   (max = " << _viewportVector.size()-1 << ").\n";
-    return 0;
+    return NULL;
   }
   return _viewportVector[vpindex].setCamera( cam );
 }
@@ -314,13 +314,13 @@ arCamera* arGraphicsWindow::setStereoViewportsCamera( unsigned int startVPIndex,
   if (startVPIndex >= _viewportVector.size()-1) {
     cerr << "arGraphicsWindow warning: setViewportCamera(" << startVPIndex << ") out of range.\n"
          << "   (max = " << _viewportVector.size()-2 << ").\n";
-    return 0;
+    return NULL;
   }
   arCamera* cam1 = _viewportVector[startVPIndex].setCamera( cam );
-  arCamera* cam2 = _viewportVector[startVPIndex+1].setCamera( cam );
+  const arCamera* cam2 = _viewportVector[startVPIndex+1].setCamera( cam );
   if (!cam1 || !cam2) {
     cerr << "arGraphicsWindow error: setStereoViewportsCamera() failed.\n";
-    return 0;
+    return NULL;
   }
   return cam1;
 }
@@ -329,7 +329,7 @@ arCamera* arGraphicsWindow::getViewportCamera( unsigned int vpindex ) {
   if (vpindex >= _viewportVector.size()) {
     cerr << "arGraphicsWindow warning: getViewportCamera(" << vpindex << ") out of range.\n"
          << "   (max = " << _viewportVector.size()-1 << ").\n";
-    return 0;
+    return NULL;
   }
   return _viewportVector[vpindex].getCamera();
 }
@@ -338,21 +338,24 @@ arViewport* arGraphicsWindow::getViewport( unsigned int vpindex ) {
   if (vpindex >= _viewportVector.size()) {
     cerr << "arGraphicsWindow warning: getViewport(" << vpindex << ") out of range.\n"
          << "   (max = " << _viewportVector.size()-1 << ").\n";
-    return 0;
+    return NULL;
   }
   return &_viewportVector[vpindex];
 }
 
+// Not const because _renderPass can't be.
 bool arGraphicsWindow::draw() {
   _renderPass( GL_BACK_LEFT );
-  if (_useOGLStereo) {
+  if (_useOGLStereo)
     _renderPass( GL_BACK_RIGHT );
-  }
   return true;
 }
 
 void arGraphicsWindow::setPixelDimensions( int posX, int posY, int sizeX, int sizeY ) {
-  _posX = posX; _posY = posY; _sizeX = sizeX; _sizeY = sizeY;
+  _posX = posX;
+  _posY = posY;
+  _sizeX = sizeX;
+  _sizeY = sizeY;
 }
 
 void arGraphicsWindow::getPixelDimensions( int& posX, int& posY, int& sizeX, int& sizeY ) {
@@ -380,17 +383,15 @@ void arGraphicsWindow::_renderPass( GLenum oglDrawBuffer ) {
 
   std::vector<arViewport>::iterator i;
   for (i=_viewportVector.begin(); i != _viewportVector.end(); ++i){
-    if (i->getDrawBuffer() != oglDrawBuffer) {
+    if (i->getDrawBuffer() != oglDrawBuffer)
       continue;
-    }
     i->activate();
     _currentEyeSign = i->getEyeSign();
     (*_drawCallback)(*this, *i);
-    if (_useColorFilter) {
+    if (_useColorFilter)
       _applyColorFilter();
-    }
-    // restore the original viewport. if this doesn't occur, the viewports
-    // will get progressively smaller and disappear in modes like walleyed.
+    // Restore the original viewport, lest the viewports shrink
+    // and disappear in modes like walleyed.
     glViewport( (GLint)params[0], (GLint)params[1],
                 (GLsizei)params[2], (GLsizei)params[3] );
   }

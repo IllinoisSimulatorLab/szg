@@ -30,9 +30,8 @@ void arDrawableNode::draw(arGraphicsContext* context){
   // the database. Then, a message initializing it is sent. What if
   // we try to draw between these messages?
   // Well, bad things can happen in this case.
-  if (!_firstMessageReceived){
+  if (!_firstMessageReceived)
     return;
-  }
 
   ar_mutex_lock(&_nodeLock);
   const ARint whatKind = _type;
@@ -41,11 +40,10 @@ void arDrawableNode::draw(arGraphicsContext* context){
   ar_mutex_unlock(&_nodeLock);
 
   int numberPos = 0;
-  // We compute maxNumber below. Each vertex sent down the geometry pipeline
+  // Compute maxNumber. Each vertex sent down the geometry pipeline
   // has various pieces of information associated with it. maxNumber
   // measures the maximum number of vertices that can be drawn (as determined
-  // by looking at the sizes of the other arrays (like normals, tex coords,
-  // etc. )).
+  // by the sizes of the other arrays (like normals and tex coords, etc.)).
   int maxNumber = -1;
   // Get the context.
   arGraphicsNode* pNode = NULL;
@@ -55,22 +53,19 @@ void arDrawableNode::draw(arGraphicsContext* context){
   arGraphicsNode* t2Node = NULL;
   arGraphicsNode* tNode = NULL;
   if (context){
-    // We check inside the draw functions to be certain there are an
+    // Check inside the draw functions to be certain there are an
     // appropriate number of points. To do this, we must pass the SIZE of the
     // points array in.
     pNode = (arGraphicsNode*) context->getNode(AR_G_POINTS_NODE);
-    if (pNode){
+    if (pNode)
       numberPos = pNode->getBufferSize()/3;
-    }
     iNode = (arGraphicsNode*) context->getNode(AR_G_INDEX_NODE);
     // If an index node will be used in drawing, determine amount of data..
-    if (iNode){
+    if (iNode)
       maxNumber = iNode->getBufferSize();
-    }
-    else{
+    else
       // No index node exists. We will be using the points one after another.
       maxNumber = numberPos;
-    }
     nNode = (arGraphicsNode*) context->getNode(AR_G_NORMAL3_NODE);
     // If a normals node will be used in drawing, determine amount of data.
     if (nNode && (maxNumber < 0 || nNode->getBufferSize()/3 < maxNumber)){
@@ -98,10 +93,10 @@ void arDrawableNode::draw(arGraphicsContext* context){
       // Truncate based on array sizes. A point set draws howMany vertices.
       howMany = howMany <= maxNumber ? howMany : maxNumber;
       ar_drawPoints(howMany,
-		    (int*) (iNode ? iNode->getBuffer() : NULL),
+		    (const int*) (iNode ? iNode->getBuffer() : NULL),
 		    numberPos,
-		    (float*) (pNode ? pNode->getBuffer() : NULL),
-		    (float*) (cNode ? cNode->getBuffer(): NULL), blendFactor);
+		    (const float*) (pNode ? pNode->getBuffer() : NULL),
+		    (const float*) (cNode ? cNode->getBuffer(): NULL), blendFactor);
     }
     break;
   case DG_LINES:
@@ -110,10 +105,10 @@ void arDrawableNode::draw(arGraphicsContext* context){
       // howMany = number of lines.
       howMany = howMany <= maxNumber/2 ? howMany : maxNumber/2;
       ar_drawLines(howMany,
-		   (int*) (iNode ? iNode->getBuffer() : NULL),
+		   (const int*) (iNode ? iNode->getBuffer() : NULL),
                    numberPos,
-		   (float*) (pNode ? pNode->getBuffer() : NULL),
-		   (float*) (cNode ? cNode->getBuffer() : NULL), blendFactor);
+		   (const float*) (pNode ? pNode->getBuffer() : NULL),
+		   (const float*) (cNode ? cNode->getBuffer() : NULL), blendFactor);
     }
     break;
   case DG_LINE_STRIP:
@@ -122,10 +117,10 @@ void arDrawableNode::draw(arGraphicsContext* context){
       // howMany = number of lines.
       howMany = howMany <= maxNumber-1 ? howMany : maxNumber-1;
       ar_drawLineStrip(howMany,
-		       (int*) (iNode ? iNode->getBuffer() : NULL),
+		       (const int*) (iNode ? iNode->getBuffer() : NULL),
                        numberPos,
-		       (float*) (pNode ? pNode->getBuffer() : NULL),
-		       (float*) (cNode ? cNode->getBuffer() : NULL), 
+		       (const float*) (pNode ? pNode->getBuffer() : NULL),
+		       (const float*) (cNode ? cNode->getBuffer() : NULL), 
                        blendFactor);
     }
     break;
@@ -137,14 +132,13 @@ void arDrawableNode::draw(arGraphicsContext* context){
       // There used to be CG code in here... but no longer. That turned out
       // to be a failed experiment.
       ar_drawTriangles(howMany, 
-                       (int*) (iNode ? iNode->getBuffer() : NULL), 
+                       (const int*) (iNode ? iNode->getBuffer() : NULL), 
 		       numberPos,
-                       (float*) (pNode ? pNode->getBuffer() : NULL), 
-                       (float*) (nNode ? nNode->getBuffer() : NULL), 
-                       (float*) (cNode ? cNode->getBuffer() : NULL), 
-                       (float*) (tNode && t2Node ? t2Node->getBuffer() : NULL),
-                       blendFactor,
-                       0, NULL, NULL);
+                       (const float*) (pNode ? pNode->getBuffer() : NULL), 
+                       (const float*) (nNode ? nNode->getBuffer() : NULL), 
+                       (const float*) (cNode ? cNode->getBuffer() : NULL), 
+                       (const float*) (tNode && t2Node ? t2Node->getBuffer() : NULL),
+                       blendFactor);
       //(*_bumpMap) ? 3 : 0,
       //(CGparameter*) ((*_bumpMap) ? (*_bumpMap)->cgTBN() : NULL),
       //(float**) ((*_bumpMap) ? (*_bumpMap)->TBN() : NULL)
@@ -157,12 +151,12 @@ void arDrawableNode::draw(arGraphicsContext* context){
       // vertices. howMany = number of triangles.
       howMany = howMany <= maxNumber-2 ? howMany : maxNumber-2;
       ar_drawTriangleStrip(howMany, 
-                           (int*) (iNode ? iNode->getBuffer() : NULL), 
+                           (const int*) (iNode ? iNode->getBuffer() : NULL), 
 			   numberPos,
-                           (float*) (pNode ? pNode->getBuffer(): NULL), 
-                           (float*) (nNode ? nNode->getBuffer() : NULL), 
-                           (float*) (cNode ? cNode->getBuffer() : NULL), 
-                           (float*) (t2Node ? t2Node->getBuffer() : NULL), 
+                           (const float*) (pNode ? pNode->getBuffer(): NULL), 
+                           (const float*) (nNode ? nNode->getBuffer() : NULL), 
+                           (const float*) (cNode ? cNode->getBuffer() : NULL), 
+                           (const float*) (t2Node ? t2Node->getBuffer() : NULL), 
                            blendFactor);
     }
     break;
@@ -172,12 +166,12 @@ void arDrawableNode::draw(arGraphicsContext* context){
       // howMany = number of quads.
       howMany = howMany <= maxNumber/4 ? howMany : maxNumber/4;
       ar_drawQuads(howMany, 
-                   (int*) (iNode ? iNode->getBuffer() : NULL), 
+                   (const int*) (iNode ? iNode->getBuffer() : NULL), 
 		   numberPos,
-                   (float*) (pNode ? pNode->getBuffer() : NULL), 
-                   (float*) (nNode ? nNode->getBuffer() : NULL), 
-                   (float*) (cNode ? cNode->getBuffer() : NULL), 
-                   (float*) (t2Node ? t2Node->getBuffer() : NULL), 
+                   (const float*) (pNode ? pNode->getBuffer() : NULL), 
+                   (const float*) (nNode ? nNode->getBuffer() : NULL), 
+                   (const float*) (cNode ? cNode->getBuffer() : NULL), 
+                   (const float*) (t2Node ? t2Node->getBuffer() : NULL), 
                    blendFactor);
     }
     break;
@@ -187,12 +181,12 @@ void arDrawableNode::draw(arGraphicsContext* context){
       // howMany = number of quads.
       howMany = howMany <= maxNumber/2 - 1 ? howMany : maxNumber/2 - 1;
       ar_drawQuadStrip(howMany, 
-                       (int*) (iNode ? iNode->getBuffer() : NULL), 
+                       (const int*) (iNode ? iNode->getBuffer() : NULL), 
 		       numberPos,
-                       (float*) (pNode ? pNode->getBuffer() : NULL), 
-                       (float*) (nNode ? nNode->getBuffer() : NULL), 
-                       (float*) (cNode ? cNode->getBuffer() : NULL), 
-                       (float*) (t2Node ? t2Node->getBuffer() : NULL), 
+                       (const float*) (pNode ? pNode->getBuffer() : NULL), 
+                       (const float*) (nNode ? nNode->getBuffer() : NULL), 
+                       (const float*) (cNode ? cNode->getBuffer() : NULL), 
+                       (const float*) (t2Node ? t2Node->getBuffer() : NULL), 
                        blendFactor);
     }
     break;
@@ -201,12 +195,12 @@ void arDrawableNode::draw(arGraphicsContext* context){
       // Truncate based on array sizes. A polygon draws howMany vertices.
       howMany = howMany <= maxNumber ? howMany : maxNumber;
       ar_drawPolygon(howMany, 
-                     (int*) (iNode ? iNode->getBuffer() : NULL), 
+                     (const int*) (iNode ? iNode->getBuffer() : NULL), 
 		     numberPos,
-                     (float*) (pNode ? pNode->getBuffer() : NULL), 
-                     (float*) (nNode ? nNode->getBuffer() : NULL), 
-                     (float*) (cNode ? cNode->getBuffer() : NULL), 
-                     (float*) (t2Node ? t2Node->getBuffer() : NULL), 
+                     (const float*) (pNode ? pNode->getBuffer() : NULL), 
+                     (const float*) (nNode ? nNode->getBuffer() : NULL), 
+                     (const float*) (cNode ? cNode->getBuffer() : NULL), 
+                     (const float*) (t2Node ? t2Node->getBuffer() : NULL), 
 		     blendFactor);
     }
     break;

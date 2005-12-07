@@ -36,17 +36,15 @@ void arPerformanceElement::setNumberEntries(int number){
 }
 
 void arPerformanceElement::pushNewValue(float value){
-  for (int i=0; i<_numberEntries-1; i++){
-    _data[i] = _data[i+1];
-  }
+  memmove(_data, _data+1, (_numberEntries-1) * sizeof(_data[0]));
   _data[_numberEntries-1] = value;
 }
 
-void arPerformanceElement::draw(){
-  glColor3f(color[0], color[1], color[2]);
+void arPerformanceElement::draw() const {
+  glColor3fv(color.v);
   glBegin(GL_LINE_STRIP);
   for (int i=0; i<_numberEntries; i++){
-    glVertex3f(-1 + 2.0*(1.0*i)/(_numberEntries-1), 
+    glVertex3f(-1 + 2.0*i/(_numberEntries-1), 
                -1+2.0*_data[i]/scale, 
                0.02);
   }
@@ -60,13 +58,13 @@ arFramerateGraph::~arFramerateGraph(){
   // probably should delete the performance elements...
 }
 
-void arFramerateGraph::draw(){
+void arFramerateGraph::draw() const {
   glMatrixMode(GL_PROJECTION);
   glOrtho(-1,1,-1,1,0,100);
   glMatrixMode(GL_MODELVIEW);
   gluLookAt(0,0,1, 0,0,0, 0,1,0);
 
-  map<string, arPerformanceElement*, less<string> >::iterator i;
+  map<string, arPerformanceElement*, less<string> >::const_iterator i;
   for (i = _valueContainer.begin();
        i != _valueContainer.end(); i++){
     i->second->draw();
@@ -76,16 +74,17 @@ void arFramerateGraph::draw(){
   glBegin(GL_LINES);
   for (int j=0; j<11; j++){
     glColor3f(1,0,0);
-    glVertex3f(-1, -1+2.0*float(j)/10, 0);
-    glVertex3f(1, -1+2.0*float(j)/10, 0);
+    glVertex3f(-1, -1+2.0*j/10, 0);
+    glVertex3f(1, -1+2.0*j/10, 0);
     glColor3f(0,0,1);
-    glVertex3f(-1, -1+2.0*float(j)/10 + 0.01, 0);
-    glVertex3f(1, -1+2.0*float(j)/10 + 0.01, 0);
+    glVertex3f(-1, -1+2.0*j/10 + 0.01, 0);
+    glVertex3f(1, -1+2.0*j/10 + 0.01, 0);
   }
   glEnd();
 }
 
-void arFramerateGraph::drawWithComposition(){
+// Not const, because pre- and postComposition can't be const.
+void arFramerateGraph::drawWithComposition() {
   preComposition(0,0,0.3333,0.3333);
   draw();
   postComposition();
@@ -120,11 +119,8 @@ void arFramerateGraph::addElement(const string& name,
      (name, element));
 }
 
-arPerformanceElement* arFramerateGraph::getElement(const string& name){
-  map<string, arPerformanceElement*, less<string> >::iterator i
-    = _valueContainer.find(name);
-  if (i == _valueContainer.end()){
-    return NULL;
-  }
-  return i->second;
+arPerformanceElement* arFramerateGraph::getElement(const string& name) const {
+  map<string, arPerformanceElement*, less<string> >::const_iterator i =
+    _valueContainer.find(name);
+  return (i == _valueContainer.end()) ? NULL : i->second;
 }

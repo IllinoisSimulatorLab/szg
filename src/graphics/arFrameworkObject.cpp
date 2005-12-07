@@ -29,9 +29,9 @@ void arFrameworkObject::preComposition(float lowerX, float lowerY,
   glPushAttrib( GL_TEXTURE_BIT | GL_COLOR_BUFFER_BIT | GL_ENABLE_BIT);
   glDisable( GL_TEXTURE_1D );
   glDisable( GL_TEXTURE_2D );
-  // Very annoying. I've encountered at least one OpenGL implementation that
-  // barfed on pushing the lighting bit with glPushAttrib. Consequently,
-  // do that by hand
+  // At least one OpenGL implementation 
+  // barfs on pushing the lighting bit with glPushAttrib.
+  // So do that by hand.
   _lightingOn = glIsEnabled(GL_LIGHTING) == GL_TRUE;
   glDisable( GL_LIGHTING );
   glGetIntegerv( GL_VIEWPORT, _viewport);
@@ -63,9 +63,8 @@ void arFrameworkObject::postComposition(){
   // better restore the viewport and other pieces of the state
   glViewport( (GLint)_viewport[0], (GLint)_viewport[1], (GLint)_viewport[2],
               (GLint)_viewport[3]);
-  if (_lightingOn){
+  if (_lightingOn)
     glEnable(GL_LIGHTING);
-  }
   glPopAttrib();
 }
 

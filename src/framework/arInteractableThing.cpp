@@ -37,5 +37,3 @@ bool arInteractableThing::_untouch( arEffector& /*effector*/ ) {
   setHighlight(false);
   return true;
 }
-
-

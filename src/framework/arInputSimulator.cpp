@@ -158,16 +158,15 @@ arInputSimulator::~arInputSimulator(){
   _newButtonEvents.clear();
 }
 
-/// The simulator can connect to an arInputNode so that it is able to
+/// Connect to an arInputNode, to
 /// communicate with other entities in the system.
 void arInputSimulator::registerInputNode(arInputNode* node){
   node->addInputSource(&_driver, false);
 }
 
-/// The simulator can draw it's current state. This can be used as a
-/// stand-alone display, like in inputsimulator, or it can be used as an
-/// overlay.
-void arInputSimulator::draw(){
+/// Draw current state. This can be used as a
+/// stand-alone display, like in inputsimulator, or as an overlay.
+void arInputSimulator::draw() const {
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
@@ -197,13 +196,12 @@ void arInputSimulator::draw(){
 }
 
 /// Draws the display... but with a nice mode of composition, so that it can
-/// be used as an overlay.
-void arInputSimulator::drawWithComposition(){
+/// be used as an overlay.  Not const because pre,postComposition can't be.
+void arInputSimulator::drawWithComposition() {
   // The simulated input device display is drawn in the lower right corner.
   preComposition(0.66, 0, 0.33, 0.33);
   draw();
   postComposition();
-  return;
 }
 
 /// Called from time to time to post the current state of the simulated
@@ -459,8 +457,8 @@ void arInputSimulator::mousePosition(int x, int y){
   }
 }
 
-void arInputSimulator::_wireCube(float size){
-  float offset = size/2;
+void arInputSimulator::_wireCube(float size) const {
+  const float offset = size/2;
   glBegin(GL_LINES);
   glVertex3f(offset,offset,-offset);
   glVertex3f(offset,-offset,-offset);
@@ -500,22 +498,22 @@ void arInputSimulator::_wireCube(float size){
   glEnd();
 }
 
-void arInputSimulator::_drawGamepad(){
+void arInputSimulator::_drawGamepad() const {
   const float GAMEPAD_YOFFSET(-.8);
   const float GAMEPAD_WIDTH(1.);
   const float BUTTON_SPACING(1.1);
   const float BUTTON_YBORDER(.8);
-  unsigned int rowLength = _mouseButtons.size();
+  const unsigned int rowLength = _mouseButtons.size();
   unsigned int numRows = (unsigned int)(_numButtonEvents / rowLength);
-  if (_numButtonEvents % rowLength != 0) {
+  if (_numButtonEvents % rowLength != 0)
     ++numRows;
-  }
-  if ((rowLength == 0)||(numRows == 0)) {
+  if (rowLength == 0 || numRows == 0) {
     cerr << "arInputSimulator error: no buttons in _drawGamepad().\n";
     return;
   }
-  float padWidth = max((float)1.4,rowLength*BUTTON_SPACING);
-  float padHeight =  GAMEPAD_WIDTH+numRows*BUTTON_SPACING;
+
+  const float padWidth = max((float)1.4,rowLength*BUTTON_SPACING);
+  const float padHeight =  GAMEPAD_WIDTH+numRows*BUTTON_SPACING;
   // Always want to surround draws with push/pop
   glPushMatrix();
     arMatrix4 tempMatrix = ar_translationMatrix(4,0,5);
@@ -553,7 +551,7 @@ void arInputSimulator::_drawGamepad(){
       glColor3f(1,1,1);
       glutSolidSphere(0.15,8,8);
     glPopMatrix();
-    std::vector<int>::iterator iter;
+    std::vector<int>::iterator const_iter;
     float xlo((-.5*((float)rowLength) + .5)*BUTTON_SPACING);
     float x(xlo);
     float y(BUTTON_YBORDER);
@@ -606,7 +604,7 @@ void arInputSimulator::_drawGamepad(){
   glPopMatrix();
 }
 
-void arInputSimulator::_drawHead(){
+void arInputSimulator::_drawHead() const {
   // the user's head
   glColor3f(1,1,0);
   glPushMatrix();
@@ -630,7 +628,7 @@ void arInputSimulator::_drawHead(){
   glPopMatrix();
 }
 
-void arInputSimulator::_drawWand(){
+void arInputSimulator::_drawWand() const {
   // wand
   glDisable(GL_LIGHTING);
   glEnable(GL_DEPTH_TEST);
@@ -659,7 +657,7 @@ void arInputSimulator::_drawWand(){
   glPopMatrix();
 }
 
-void arInputSimulator::_drawTextState(){
+void arInputSimulator::_drawTextState() const {
   // text state info
   glDisable(GL_DEPTH_TEST);
   glMatrixMode(GL_PROJECTION);

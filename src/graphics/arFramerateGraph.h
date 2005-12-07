@@ -19,7 +19,7 @@ class SZG_CALL arPerformanceElement{
 
   void setNumberEntries(int number);
   void pushNewValue(float value);
-  void draw();
+  void draw() const;
 
   float     scale;
   arVector3 color;
@@ -33,7 +33,7 @@ class SZG_CALL arFramerateGraph: public arFrameworkObject{
   arFramerateGraph();
   ~arFramerateGraph();
 
-  virtual void draw();
+  virtual void draw() const;
   virtual void drawWithComposition();
   void drawPlaced(float startX, float startY, float widthX, float widthY);
 
@@ -42,7 +42,7 @@ class SZG_CALL arFramerateGraph: public arFrameworkObject{
                    int numberEntries,
                    float scale,
                    const arVector3& color);
-  arPerformanceElement* getElement(const string& name);
+  arPerformanceElement* getElement(const string& name) const;
 
  private:
   map<string, arPerformanceElement*, less<string> > _valueContainer;

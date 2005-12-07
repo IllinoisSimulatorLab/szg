@@ -14,39 +14,32 @@ arNodeLevel ar_convertToNodeLevel(int level){
   switch(level){
   case -1:
     return AR_IGNORE_NODE;
-    break;
   case 0:
     return AR_STRUCTURE_NODE;
-    break;
   case 1:
     return AR_STABLE_NODE;
-    break;
   case 2:
     return AR_OPTIONAL_NODE;
-    break;
   case 3:
     return AR_TRANSIENT_NODE;
-    break;
   default:
-    cout << "arGraphicsPeer error: unexpected integer conversion to "
+    cerr << "arGraphicsPeer error: unexpected integer conversion to "
 	 << "arNodeLevel.\n";
     return AR_IGNORE_NODE;
-    break;
   }
 }
 
 // Ugly preprocessor hack, but at least it shows the structure of ar_drawXXX().
 #define doVertex(i) glVertex3fv(positions+3*(i))
-// This branch doesn't seem to cost us that much. And it needs to be here
-// for drawing safety.
-#define doIndex( i) if(indices[i]<numberPos)glVertex3fv(positions+3*indices[i])
+// This if() doesn't cost much, and increases safety.
+#define doIndex( i) if (indices[i]<numberPos) glVertex3fv(positions+3*indices[i])
 #define doNormal(i) glNormal3fv(normals+3*(i))
 #define doTex(   i) glTexCoord2fv(texCoord+2*(i))
 #define doColor( i) \
-  { float* c = colors+4*(i); glColor4f(c[0], c[1], c[2], c[3]*blendFactor); }
+  { const float* c = colors+4*i; glColor4f(c[0], c[1], c[2], c[3]*blendFactor); }
 
-inline void ar_draw01DRaw(GLenum drawableType, int number, int* indices,
-                          int numberPos, float* positions, float* colors, 
+inline void ar_draw01DRaw(GLenum drawableType, int number, const int* indices,
+                          int numberPos, const float* positions, const float* colors, 
                           float blendFactor){
   unsigned int opType = 0;
   if (indices)
@@ -89,32 +82,34 @@ inline void ar_draw01DRaw(GLenum drawableType, int number, int* indices,
   glEnd();
 }
 
-void ar_drawPoints(int number, int* indices, 
-                   int numberPos, float* positions,
-                   float* colors, float blendFactor){
+void ar_drawPoints(int number, const int* indices, 
+                   int numberPos, const float* positions,
+                   const float* colors, float blendFactor){
   ar_draw01DRaw(GL_POINTS, number, indices, numberPos, positions, 
                 colors, blendFactor);
 }
 
-void ar_drawLines(int number, int* indices, 
-                  int numberPos, float* positions,
-                  float* colors, float blendFactor){
+void ar_drawLines(int number, const int* indices, 
+                  int numberPos, const float* positions,
+                  const float* colors, float blendFactor){
   ar_draw01DRaw(GL_LINES, 2*number, indices, numberPos, positions, 
                 colors, blendFactor);
 }
 
-void ar_drawLineStrip(int number, int* indices, 
-                      int numberPos, float* positions,
-		      float* colors, float blendFactor){
+void ar_drawLineStrip(int number, const int* indices, 
+                      int numberPos, const float* positions,
+		      const float* colors, float blendFactor){
   ar_draw01DRaw(GL_LINE_STRIP, 1+number, indices, numberPos, positions, 
                 colors, blendFactor);
 }
 
 inline void ar_draw2DRaw(GLenum drawableType, int number,
-                         int* indices, int numberPos, float* positions,
-                         float* normals, float* colors, float* texCoord,
-                         float blendFactor, int numCgParams=0,
-			 CGparameter* cgParams=0, float** cgData=0){
+                         const int* indices, int numberPos, const float* positions,
+                         const float* normals, const float* colors, const float* texCoord,
+                         float blendFactor
+			 /* , int numCgParams=0,
+			 const CGparameter* cgParams=0,
+			 const float** cgData=0*/ ){
   // We use the vertex array path with CG and the original code path
   // without CG. Why? seems like the vertex array stuff has problems on some
   // boxen (specifically some Win2K w/ Nvidia cards)
@@ -250,41 +245,40 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
 #endif
 }
 
-void ar_drawTriangles(int number, int* indices, 
-                      int numberPos, float* positions, 
-                      float* normals, float* colors, float* texCoord,
-                      float blendFactor,
-		      int numCgParams, CGparameter* cgParams, float** cgData){
+void ar_drawTriangles(int number, const int* indices, 
+                      int numberPos, const float* positions, 
+                      const float* normals, const float* colors, const float* texCoord,
+                      float blendFactor){
   ar_draw2DRaw(GL_TRIANGLES, 3*number, indices, numberPos, positions, normals,
-	       colors, texCoord, blendFactor, numCgParams, cgParams, cgData);
+	       colors, texCoord, blendFactor);
 }
     
-void ar_drawTriangleStrip(int number, int* indices, 
-                          int numberPos, float* positions,
-                          float* normals, float* colors, float* texCoord,
+void ar_drawTriangleStrip(int number, const int* indices, 
+                          int numberPos, const float* positions,
+                          const float* normals, const float* colors, const float* texCoord,
                           float blendFactor){
   ar_draw2DRaw(GL_TRIANGLE_STRIP, 2+number, indices, numberPos, positions, 
                normals, colors, texCoord, blendFactor);
 }
 
-void ar_drawQuads(int number, int* indices, 
-                  int numberPos, float* positions, float* normals,
-                  float* colors, float* texCoord, float blendFactor){
+void ar_drawQuads(int number, const int* indices, 
+                  int numberPos, const float* positions, const float* normals,
+                  const float* colors, const float* texCoord, float blendFactor){
   ar_draw2DRaw(GL_QUADS, 4*number, indices, numberPos, positions, normals,
 	       colors, texCoord, blendFactor);
 }
 
-void ar_drawQuadStrip(int number, int* indices, 
-                      int numberPos, float* positions,
-                      float* normals, float* colors, float* texCoord,
+void ar_drawQuadStrip(int number, const int* indices, 
+                      int numberPos, const float* positions,
+                      const float* normals, const float* colors, const float* texCoord,
                       float blendFactor){
   ar_draw2DRaw(GL_QUAD_STRIP, 2 + 2*number, indices, numberPos, positions, 
                normals, colors, texCoord, blendFactor);
 }
 
-void ar_drawPolygon(int number, int* indices, 
-                    int numberPos, float* positions,
-                    float* normals, float* colors, float* texCoord,
+void ar_drawPolygon(int number, const int* indices, 
+                    int numberPos, const float* positions,
+                    const float* normals, const float* colors, const float* texCoord,
                     float blendFactor){
   ar_draw2DRaw(GL_POLYGON, number, indices, numberPos, positions, normals,
 	       colors, texCoord, blendFactor);

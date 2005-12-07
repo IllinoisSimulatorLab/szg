@@ -23,8 +23,8 @@ arMasterSlaveDataRouter::~arMasterSlaveDataRouter(){
 /// Draws all the objects connected to the arMasterSlaveDataRouter. Very
 /// simple function, just goes through the draw list, drawing each one in 
 /// turn.
-void arMasterSlaveDataRouter::draw(){
-  map<int,arFrameworkObject*,less<int> >::iterator i;
+void arMasterSlaveDataRouter::draw() const {
+  map<int,arFrameworkObject*,less<int> >::const_iterator i;
   for (i = _objectTable.begin(); i != _objectTable.end(); i++){
     i->second->draw();
   }
@@ -33,7 +33,7 @@ void arMasterSlaveDataRouter::draw(){
 /// Start really doesn't do much. It simply indicates that we are finished
 /// registering new framework objects and should create the language.
 bool arMasterSlaveDataRouter::start(){
-  // IT IS VERY IMPORTANT TO RENUMBER THE TEMPLATES IN THE DICTIONARY
+  // RENUMBER THE TEMPLATES IN THE DICTIONARY
   // BEFORE CREATING THE PARSER. THE TEMPLATES HAVE BEEN ALTERED BY
   // BEING MERGED INTO THE GLOBAL LANGUAGE.
   _dictionary.renumber();

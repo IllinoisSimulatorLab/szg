@@ -445,56 +445,43 @@ int arTexFont::unloadFont( const std::string& font )
 
 int arTexFont::unloadFont( arTexFont::TexFont* txf )
 {
-  if( !txf ) {
+  if( !txf )
     return -1;
-  }
 
-  if( txf == _currentFont ) {
+  if( txf == _currentFont )
     _currentFont = NULL;
-  }
 
-  if( txf->teximage ) {
+  if( txf->teximage )
     free( txf->teximage );
-  }
 
-  if( txf->tgi ) {
+  if( txf->tgi )
     free( txf->tgi );
-  }
 
-  if( txf->tgvi ) {
+  if( txf->tgvi )
     free( txf->tgvi );
-  }
 
-  if( txf->lut ) {
+  if( txf->lut )
     free( txf->lut );
-  }
 
-  if( txf->texobj ) {
+  if( txf->texobj )
     glDeleteTextures( 1, &txf->texobj );
-  }
 
   free( txf );
-
   return 0;
 }
 
 int arTexFont::getStringMetrics( const std::string& text,
                                   int& width, int& max_ascent, int& max_descent)
 {
-  if( !_currentFont ) {
+  if (!_currentFont)
     return -1;
-  }
 
-  int w = 0;
-
-  for( unsigned int i = 0; i < text.length(); i++)  {
+  float w = 0.;
+  for( unsigned int i = 0; i < text.length(); i++)
     w += getTCVI( _currentFont, text[ i ] )->advance;
-  }
-
-  width = w;
+  width = int(w);
   max_ascent = _currentFont->max_ascent;
   max_descent = _currentFont->max_descent;
-
   return 0;
 }
 
@@ -759,11 +746,11 @@ int arTexFont::renderStringCurses( const std::string& text, int row, int col,
 
     arTexFont::TexGlyphVertexInfo* tgvi = getTCVI( _currentFont, int( text[ i ] ) );
 
-    float glyphWidth = float( tgvi->v1[ 0 ] - tgvi->v0[ 0 ] );
+    //unused: float glyphWidth = float( tgvi->v1[ 0 ] - tgvi->v0[ 0 ] );
     float glyphHeight = float( tgvi->v3[ 1 ] - tgvi->v0[ 1 ] );
 
-    float scaleX = cellWidth / tgvi->advance;
-    float scaleY = cellHeight / glyphHeight;
+    const float scaleX = cellWidth / tgvi->advance;
+    const float scaleY = cellHeight / glyphHeight;
 
     glScalef( scaleX, scaleY, 1.0f );
 

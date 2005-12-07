@@ -97,39 +97,38 @@ arTexture* arLargeImage::getTile( unsigned int colNum, unsigned int rowNum ) {
   return &_tiles[index];
 }
 
-void arLargeImage::draw(){
-  unsigned int imageWidth( originalImage.getWidth() );
-  unsigned int imageHeight( originalImage.getHeight() );
-  float xScale = ((float)_tileWidth*_numTilesWide)/((float)imageWidth);
-  float yScale = ((float)_tileHeight*_numTilesHigh)/((float)imageHeight);
+// Not const because of activate().
+void arLargeImage::draw() {
+  const unsigned int imageWidth = originalImage.getWidth();
+  const unsigned int imageHeight = originalImage.getHeight();
+  const float xScale = ((float)_tileWidth*_numTilesWide)/imageWidth;
+  const float yScale = ((float)_tileHeight*_numTilesHigh)/imageHeight;
   
   glPushMatrix();
+  const float xDelta = xScale/((float)_numTilesWide);
+  const float yDelta = yScale/((float)_numTilesHigh);
+  float xlo = -.5;
+  float ylo = -.5 + (_numTilesHigh-1)*yDelta;
+  unsigned int colCount = 0;
+  unsigned int rowCount = 0;
   std::vector< arTexture >::iterator iter;
-  float xDelta( xScale/((float)_numTilesWide) );
-  float yDelta( yScale/((float)_numTilesHigh) );
-  float xlo(-.5);
-  float ylo(-.5 + (_numTilesHigh-1)*yDelta);
-  unsigned int colCount(0);
-  unsigned int rowCount(0);
   for (iter = _tiles.begin(); iter != _tiles.end(); ++iter) {
     iter->activate();
 
-    float xTexHi(1.);
-    float yTexHi(1.);
-    float xhi( xlo + xDelta );
-    float yhi( ylo + yDelta );
+    float xTexHi = 1.;
+    float yTexHi = 1.;
+    float xhi = xlo + xDelta;
+    float yhi = ylo + yDelta;
 
     if (colCount == _numTilesWide-1) {
       xhi = .5;
-      if (imageWidth % _tileWidth != 0) {
+      if (imageWidth % _tileWidth != 0)
         xTexHi = (imageWidth%_tileWidth)/((float)_tileWidth);
-      }
     }
     if (rowCount == 0) {
       yhi = .5;
-      if (imageHeight % _tileHeight != 0) {
+      if (imageHeight % _tileHeight != 0)
         yTexHi = (imageHeight%_tileHeight)/((float)_tileHeight);
-      }
     }
 
     glBegin(GL_QUADS);
@@ -156,5 +155,3 @@ void arLargeImage::draw(){
   iter->deactivate();
   glPopMatrix();
 }
-
-

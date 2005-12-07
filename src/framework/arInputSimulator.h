@@ -34,7 +34,7 @@ class SZG_CALL arInputSimulator: public arFrameworkObject{
   virtual bool configure( arSZGClient& SZGClient );
   void registerInputNode(arInputNode* node);
 
-  virtual void draw();
+  virtual void draw() const;
   virtual void drawWithComposition();
   void advance();
 
@@ -83,13 +83,12 @@ class SZG_CALL arInputSimulator: public arFrameworkObject{
   // Used to communicate with the registered arInputNode
   arGenericDriver _driver;
 
-
   // Used to draw the interface
-  void _wireCube(float size);
-  void _drawGamepad();
-  void _drawHead();
-  void _drawWand();
-  void _drawTextState();
+  void _wireCube(float size) const;
+  void _drawGamepad() const;
+  void _drawHead() const;
+  void _drawWand() const;
+  void _drawTextState() const;
 };
 
 #endif

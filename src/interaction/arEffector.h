@@ -101,4 +101,3 @@ class SZG_CALL arEffector {
 };
 
 #endif        //  #ifndefAREFFECTOR_H
-

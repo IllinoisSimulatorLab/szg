@@ -24,7 +24,7 @@
 // convenience define
 const double USEC = 1000000.0;
 
-// the 'fall-throughs' in these operators /might/ be 'dangerous' (e.g. a
+// the fall-throughs in these operators /might/ be 'dangerous' (e.g. a
 // drawcallback expecting a windowinfo and/or a graphicsWindow gets passed
 // NULL(s)), but they *should* be robust to deal with such a situation.  This
 // allows us a bit more flexibility in how callbacks are registered and used.
@@ -79,12 +79,10 @@ arGUIWindowConfig::arGUIWindowConfig( int x, int y, int width, int height,
   _XDisplay( XDisplay ),
   _cursor( cursor )
 {
-
 }
 
 arGUIWindowConfig::~arGUIWindowConfig( void )
 {
-
 }
 
 arWMEvent::arWMEvent( const arGUIWindowInfo& event ) :
@@ -101,11 +99,11 @@ void arWMEvent::reset( const arGUIWindowInfo& event )
   _event = event;
 
   ar_mutex_lock( &_eventMutex );
-  _conditionFlag = false;
+    _conditionFlag = false;
   ar_mutex_unlock( &_eventMutex );
 
   ar_mutex_lock( &_doneMutex );
-  _done = 0;
+    _done = 0;
   ar_mutex_unlock( &_doneMutex );
 }
 
@@ -124,36 +122,33 @@ void arWMEvent::wait( const bool blocking )
   // even if not blocking, _done still needs to be updated to signal
   // that this event can be re-used if necessary
   ar_mutex_lock( &_doneMutex );
-  _done++;
+    ++_done;
   ar_mutex_unlock( &_doneMutex );
 }
 
 void arWMEvent::signal( void )
 {
   ar_mutex_lock( &_eventMutex );
-  _conditionFlag = true;
-  _eventCond.signal();
+    _conditionFlag = true;
+    _eventCond.signal();
   ar_mutex_unlock( &_eventMutex );
 
   ar_mutex_lock( &_doneMutex );
-  _done++;
+    ++_done;
   ar_mutex_unlock( &_doneMutex );
 }
 
 arWMEvent::~arWMEvent( void )
 {
-
 }
 
 arGUIWindowBuffer::arGUIWindowBuffer( bool dblBuf ) :
   _dblBuf( dblBuf )
 {
-
 }
 
 arGUIWindowBuffer::~arGUIWindowBuffer( void )
 {
-
 }
 
 int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const bool stereo ) const
@@ -163,7 +158,7 @@ int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const 
 
   // call glFlush before we swap buffers?
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   if( stereo ) {
     // according to http://www.stereographics.com/support/developers/pcsdk.htm
@@ -179,13 +174,13 @@ int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const 
     }
   }
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( windowHandle._dpy );
   glXSwapBuffers( windowHandle._dpy, windowHandle._win );
   XUnlockDisplay( windowHandle._dpy );
 
-  #endif
+#endif
 
   return 0;
 }
@@ -338,28 +333,23 @@ int arGUIWindow::beginEventThread( void )
 
   _threaded = true;
 
-  // wait for the window to actually be created to avoid any potential
+  // wait for the window to actually be created to avoid
   // race conditions from window manager calls trying to operate on a
-  // half-baked window.  if it takes longer than 5 seconds then declare
-  // a failure and return
+  // half-baked window.  Give up after 5 seconds.
   ar_mutex_lock( &_creationMutex );
-  while( !_creationFlag ) {
-    if( !_creationCond.wait( &_creationMutex, 5000 ) ) {
-      return -1;
+    while( !_creationFlag ) {
+      if( !_creationCond.wait( &_creationMutex, 5000 ) )
+	return -1;
     }
-  }
   ar_mutex_unlock( &_creationMutex );
-
   return 0;
 }
 
 void arGUIWindow::mainLoop( void* data )
 {
-  arGUIWindow* This = (arGUIWindow*) data;
-
-  if( This ) {
-    This->_mainLoop();
-  }
+  arGUIWindow* w = (arGUIWindow*) data;
+  if (w)
+    w->_mainLoop();
 }
 
 void arGUIWindow::_mainLoop( void )
@@ -378,35 +368,30 @@ void arGUIWindow::_mainLoop( void )
 
 int arGUIWindow::_consumeWindowEvents( void )
 {
-  if( !_running ) {
+  if( !_running )
     return -1;
-  }
 
-  if( _GUIEventManager->consumeEvents( this, false ) < 0 ) {
+  if( _GUIEventManager->consumeEvents( this, false ) < 0 )
     return -1;
-  }
 
   // Only spin a "little bit". Note that there is a time-out on the wait.
   // (which guarantees we won't wait forever). Thus, we can, conceivably,
   // make it to _processWMEvents with nothing in the queue. But that is OK.
   ar_mutex_lock(&_WMEventsMutex);
-  if (_threaded && _WMEvents.empty()){
-    _WMEventsVar.wait(&_WMEventsMutex, 100);
-  }
+    if (_threaded && _WMEvents.empty())
+      _WMEventsVar.wait(&_WMEventsMutex, 100);
   ar_mutex_unlock(&_WMEventsMutex);
 
-  if( _processWMEvents() < 0 ) {
+  if( _processWMEvents() < 0 )
     return -1;
-  }
 
   return 0;
 }
 
 arGUIInfo* arGUIWindow::getNextGUIEvent( void )
 {
-  if( !_running ) {
+  if( !_running )
     return NULL;
-  }
 
   arGUIInfo* result = _GUIEventManager->getNextEvent();
   // Must provide these pointers to the callbacks.
@@ -417,10 +402,8 @@ arGUIInfo* arGUIWindow::getNextGUIEvent( void )
 
 bool arGUIWindow::eventsPending( void ) const
 {
-  if( !_running ) {
+  if( !_running )
     return false;
-  }
-
   return _GUIEventManager->eventsPending();
 }
 
@@ -438,31 +421,26 @@ void arGUIWindow::returnGraphicsWindow( void )
 void arGUIWindow::setGraphicsWindow( arGraphicsWindow* graphicsWindow )
 {
   ar_mutex_lock(&_creationMutex);
-  ar_mutex_lock( &_graphicsWindowMutex );
-
-  if( _graphicsWindow ) {
-    // are we sure we own this graphics window?
-    delete _graphicsWindow;
-  }
-
-  _graphicsWindow = graphicsWindow;
-
-  ar_mutex_unlock( &_graphicsWindowMutex );
+  ar_mutex_lock(&_graphicsWindowMutex);
+    if( _graphicsWindow ) {
+      // are we sure we own this graphics window?
+      delete _graphicsWindow;
+    }
+    _graphicsWindow = graphicsWindow;
+  ar_mutex_unlock(&_graphicsWindowMutex);
   ar_mutex_unlock(&_creationMutex);
 }
 
 arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
 {
-  if( !_running ) {
+  if( !_running )
     return NULL;
-  }
 
   arWMEvent* event = NULL;
 
   // every event's user data should be set
-  if( !wmEvent.getUserData() ) {
+  if( !wmEvent.getUserData() )
     wmEvent.setUserData( _userData );
-  }
 
   EventIterator eitr;
 
@@ -486,11 +464,10 @@ arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
   ar_mutex_unlock( &_usableEventsMutex );
 
   ar_mutex_lock( &_WMEventsMutex );
-  _WMEvents.push( event );
-  // If we are waiting in _consumeWindowEvents, go ahead and release.
-  _WMEventsVar.signal();
+    _WMEvents.push( event );
+    // If we are waiting in _consumeWindowEvents, go ahead and release.
+    _WMEventsVar.signal();
   ar_mutex_unlock( &_WMEventsMutex );
-
   return event;
 }
 
@@ -1569,7 +1546,7 @@ int arGUIWindow::move( int newX, int newY )
   }
   */
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   /*
   RECT rect;
@@ -1588,14 +1565,14 @@ int arGUIWindow::move( int newX, int newY )
   SetWindowPos( _windowHandle._hWnd, HWND_TOP, newX, newY, 0, 0,
                 SWP_NOREPOSITION | SWP_NOZORDER | SWP_NOSIZE );
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
   XMoveWindow( _windowHandle._dpy, _windowHandle._win, newX, newY );
   XFlush( _windowHandle._dpy );
   XUnlockDisplay( _windowHandle._dpy );
 
-  #endif
+#endif
 
   return 0;
 }
@@ -1603,7 +1580,7 @@ int arGUIWindow::move( int newX, int newY )
 arCursor arGUIWindow::setCursor( arCursor cursor )
 {
   if( !_running ) {
-    cout << "arGUIWindow remark: called setCursor when not running.\n";
+    cout << "arGUIWindow remark: ignoring setCursor while not running.\n";
     return _cursor;
   }
 
@@ -1613,16 +1590,15 @@ arCursor arGUIWindow::setCursor( arCursor cursor )
     case AR_CURSOR_WAIT:
     case AR_CURSOR_HELP:
     case AR_CURSOR_NONE:
-    break;
+      break;
 
     default:
       // print error?
       cout << "arGUIWindow remark: given an invalid cursor type.\n";
       return _cursor;
-    break;
   }
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   static LPSTR cursorCache[] = { IDC_ARROW, IDC_HELP, IDC_WAIT };
 
@@ -1643,7 +1619,7 @@ arCursor arGUIWindow::setCursor( arCursor cursor )
 
   _cursor = cursor;
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   // Using the caching code below seems to cause segfaults on Linux when
   // running multiple windows in the master/slave framework.
@@ -1656,7 +1632,7 @@ arCursor arGUIWindow::setCursor( arCursor cursor )
   static Cursor cursorNone = None;
   */
 
-  Cursor XCursor;
+  Cursor XCursor = None;
 
   switch( cursor ) {
     case AR_CURSOR_NONE:
@@ -1700,15 +1676,14 @@ arCursor arGUIWindow::setCursor( arCursor cursor )
   }
 
   if( XCursor == None ) {
-    std::cerr << "Could not create requested X cursor." << std::endl;
+    std::cerr << "arGUIWindow error: failed to create requested X cursor.\n";
     return _cursor;
   }
 
   _cursor = cursor;
-
   XDefineCursor( _windowHandle._dpy, _windowHandle._win, XCursor );
 
-  #endif
+#endif
 
   return _cursor;
 }

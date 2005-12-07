@@ -21,7 +21,7 @@ public:
   unsigned int numTilesWide() const { return _numTilesWide; }
   unsigned int numTilesHigh() const { return _numTilesHigh; }
   virtual void makeTiles();
-  // indices start at lower-left corner...
+  // Indices start at lower left.
   arTexture* getTile( unsigned int colNum, unsigned int rowNum );
   virtual void draw();
 
