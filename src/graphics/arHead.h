@@ -47,12 +47,12 @@ class SZG_CALL arHead {
   void setUnitConversion( float conv ) { _unitConversion = conv; }
   float getUnitConversion() const { return _unitConversion; }
 
-  arVector3 getEyePosition( float eyeSign, arMatrix4* useMatrix=0 );
-  arVector3 getMidEyePosition( arMatrix4* useMatrix=0 );
+  arVector3 getEyePosition( float eyeSign, const arMatrix4* useMatrix=0 ) const;
+  arVector3 getMidEyePosition( const arMatrix4* useMatrix=0 ) const;
   arMatrix4 getMidEyeMatrix() const;
 
-  void setFixedHeadMode( bool onoff ) {_fixedHeadMode = (int)onoff;}
-  bool getFixedHeadMode() const { return (bool)_fixedHeadMode; }
+  void setFixedHeadMode( bool onoff ) { _fixedHeadMode = onoff; }
+  bool getFixedHeadMode() const { return _fixedHeadMode; }
 
  private:
   arMatrix4 _matrix;
@@ -62,7 +62,7 @@ class SZG_CALL arHead {
   float _nearClip;
   float _farClip;
   float _unitConversion;
-  int _fixedHeadMode;
+  bool _fixedHeadMode;
 };
 
 SZG_CALL ostream& operator<<(ostream& s, arHead& h);

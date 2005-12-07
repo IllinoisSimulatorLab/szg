@@ -29,20 +29,19 @@ void arBoundingSphere::transform(const arMatrix4& m){
 // The return value are correspondingly:
 // -1: do not intersect, do not contain one another.
 // >= 0: intersect or one sphere contains the other. Distance between centers.
-float arBoundingSphere::intersect(const arBoundingSphere& b){
-  float dist = ++(b.position - position);
-  if (dist > b.radius + radius){
-    return -1;
-  }
-  return dist;
+float arBoundingSphere::intersect(const arBoundingSphere& b) const {
+  const float dist = ++(b.position - position);
+  return (dist > b.radius + radius) ? -1 : dist;
 }
 
 /// Given a camera viewing matrix, does this bounding sphere intersect?
-bool arBoundingSphere::intersectViewFrustum(arMatrix4& m){
-  arVector3 n1(m[0], m[4], m[8]);
-  arVector3 n2(m[1], m[5], m[9]);
-  arVector3 n3(m[2], m[6], m[10]);
-  arVector3 n4(m[3], m[7], m[11]);
+bool arBoundingSphere::intersectViewFrustum(const arMatrix4& mArg) const {
+  // hack: cast away constness, since arMatrix4.operator[] can't be const
+  arMatrix4& m = (arMatrix4&) mArg;
+  const arVector3 n1(m[0], m[4], m[8]);
+  const arVector3 n2(m[1], m[5], m[9]);
+  const arVector3 n3(m[2], m[6], m[10]);
+  const arVector3 n4(m[3], m[7], m[11]);
   arVector3 temp = n1 - n4;
   // Check the frustum planes in turn. 
   if (temp%position + m[12] - m[15] > radius*temp.magnitude()){

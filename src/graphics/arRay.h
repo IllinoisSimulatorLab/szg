@@ -28,8 +28,8 @@ class SZG_CALL arBoundingSphere{
   // The return value are correspondingly:
   // -1: do not intersect, do not contain one another.
   // >= 0: intersect or one sphere contains the other. Distance between centers.
-  float intersect(const arBoundingSphere& b);
-  bool intersectViewFrustum(arMatrix4& m);
+  float intersect(const arBoundingSphere&) const;
+  bool intersectViewFrustum(const arMatrix4&) const;
 
   arVector3 position;
   float     radius;

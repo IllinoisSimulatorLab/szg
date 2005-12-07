@@ -57,13 +57,3 @@ arMatrix4 arFrustumCamera::getModelviewMatrix() const {
 			 arVector3(lookat+3),
 			 arVector3(lookat+6));
 }
-
-void arFrustumCamera::loadViewMatrices(){
-  glMatrixMode( GL_PROJECTION );
-  glLoadIdentity();
-  glMultMatrixf( getProjectionMatrix().v );
-
-  glMatrixMode( GL_MODELVIEW );
-  glLoadIdentity();
-  glMultMatrixf( getModelviewMatrix().v );
-}

@@ -14,27 +14,25 @@ bool ar_graphicsClientConnectionCallback(void*, arTemplateDictionary*){
 
 // Callback registered with the arSyncDataClient.
 bool ar_graphicsClientDisconnectCallback(void* client){
-  // Note that frame-locking for the wildcat boards cannot be disabled
+  // Frame-locking for the wildcat boards cannot be disabled
   // here, since this is not in the graphics thread but in the connection
   // thread!
   arGraphicsClient* c = (arGraphicsClient*) client;
   // cout << "arGraphicsClient remark: disconnected from server.\n";
-  // We should go ahead and *delete* the bundle path information. This
-  // is really unique to each connection. This information is used to
-  // let an application have its textures in a flexible location (i.e.
-  // NOT on the texture path).
+  // We should *delete* the bundle path information. This
+  // is really unique to each connection. This information
+  // lets an application have its textures elsewhere than 
+  // on the texture path.
   c->setDataBundlePath("NULL","NULL");
   c->reset();
-  // NOTE: DO NOT CALL skipConsumption from here! That is done in the
+  // Do not call skipConsumption here! That is done in the
   // arSyncDataClient proper.
   return true;
 }
 
-// This function draws a particular viewing frustum (not the whole
-// arGraphicsWindow). It is called from the arGraphicsClientRenderCallback
-// callback object.
-//
-// Need to get the camera so we can do view frustum culling.
+// Draw a particular viewing frustum, not the whole arGraphicsWindow.
+// Called from the arGraphicsClientRenderCallback object.
+// (Use the camera for view frustum culling.)
 void ar_graphicsClientDraw( arGraphicsClient* c, arCamera* camera) {
 
   glEnable(GL_DEPTH_TEST);
@@ -42,16 +40,16 @@ void ar_graphicsClientDraw( arGraphicsClient* c, arCamera* camera) {
 
   glColor3f(1.0,1.0,1.0);
   if (c->_overrideColor[0] == -1){
-    // this is where the view transform is set. We use the
+    // Set the view transform. Use the
     // viewer node in the database, if available, to provide
     // the additional info the screen object needs to calculate
     // the view transform
     c->_graphicsDatabase.activateLights();
-    arMatrix4 projectionCullMatrix = camera->getProjectionMatrix();
+    arMatrix4 projectionCullMatrix(camera->getProjectionMatrix());
     c->_graphicsDatabase.draw(&projectionCullMatrix);
   }
   else{
-    // we just want a colored background
+    // colored background
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-1,1,-1,1,0,1);
@@ -69,8 +67,7 @@ void ar_graphicsClientDraw( arGraphicsClient* c, arCamera* camera) {
 }
 
 // Callback registered with the arSyncDataClient.
-bool ar_graphicsClientConsumptionCallback(void* client,
-					  ARchar* buf){
+bool ar_graphicsClientConsumptionCallback(void* client, ARchar* buf){
   if (!((arGraphicsClient*)client)->_graphicsDatabase.handleDataQueue(buf)) {
     cerr << "arGraphicsClient error: failed to consume buffer.\n";
     return false;
@@ -86,8 +83,9 @@ bool ar_graphicsClientActionCallback(void* client){
   c->getWindowManager()->activateFramelock();
 
   c->updateHead();
+
   // Draw all windows (simultaneously if threading is turned on),
-  // blocking until the draws are completed.
+  // blocking until all complete.
   c->_windowManager->drawAllWindows(true);
   return true;
 }
@@ -96,17 +94,19 @@ bool ar_graphicsClientActionCallback(void* client){
 bool ar_graphicsClientNullCallback(void* client){
   arGraphicsClient* c = (arGraphicsClient*) client;
 
-  // We need to disable framelock now, so that it can be appropriately
+  // Disable framelock now, so that it can be appropriately
   // re-enabled upon reconnection to the master. This occurs here
   // because it is called in the same thread as the graphics (critical)
-  // and is called when a disconnect occurs
+  // and is called when a disconnect occurs.
   c->getWindowManager()->deactivateFramelock();
 
   // Have everything drawn black.
   c->setOverrideColor(arVector3(0,0,0));
+
   // Draw all windows (simultaneously if threading is turned on),
-  // blocking until draws are completed.
+  // blocking until all complete.
   c->_windowManager->drawAllWindows(true);
+
   // Return to normal drawing mode.
   c->setOverrideColor(arVector3(-1,-1,-1));
 

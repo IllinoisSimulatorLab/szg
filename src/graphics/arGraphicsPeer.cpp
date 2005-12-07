@@ -1315,17 +1315,15 @@ void arGraphicsPeer::motionCull(arGraphicsPeerCullObject* cull,
 				arCamera* camera){
   stack<arMatrix4> transformStack;
   transformStack.push(camera->getModelviewMatrix());
-  arMatrix4 temp = camera->getProjectionMatrix();
+  arMatrix4 temp(camera->getProjectionMatrix());
   _motionCull((arGraphicsNode*)&_rootNode, 
-              transformStack, 
-	      cull,
-              temp);
+              transformStack, cull, temp);
 }
 
 // Returns the ID of the socket upon which this message originated
 // (if it wasn't local) and -1 (if it was local).
 int arGraphicsPeer::_getOriginSocketID(arStructuredData* data, int fieldID){
-  int dim = data->getDataDimension(fieldID);
+  const int dim = data->getDataDimension(fieldID);
   if (dim < 2){
     // local
     return -1;
@@ -1333,52 +1331,40 @@ int arGraphicsPeer::_getOriginSocketID(arStructuredData* data, int fieldID){
   return ((int*)data->getDataPtr(fieldID, AR_INT))[dim-1];
 }
 
-// DO NOT change the routing field. The code in _sendDataToBridge 
+// DO NOT change the routing field. _sendDataToBridge()
 // depends on this remaining the same. (there we are restoring old values from
 // mappings when sent to the local peer)
 int arGraphicsPeer::_getRoutingFieldID(int dataID){
-  if (!_databaseReceive[dataID]){
+  if (!_databaseReceive[dataID])
     return _routingField[dataID];
-  }
-  else if (dataID == _gfx.AR_MAKE_NODE){
+  if (dataID == _gfx.AR_MAKE_NODE)
     return _gfx.AR_MAKE_NODE_PARENT_ID;
-  }
-  else if (dataID == _gfx.AR_ERASE){
+  if (dataID == _gfx.AR_ERASE)
     return _gfx.AR_ERASE_ID;
-  }
-  else if (dataID == _gfx.AR_INSERT){
+  if (dataID == _gfx.AR_INSERT)
     return _gfx.AR_INSERT_PARENT_ID;
-  }
-  else if (dataID == _gfx.AR_CUT){
+  if (dataID == _gfx.AR_CUT)
     return _gfx.AR_CUT_ID;
-  }
-  else if (dataID == _gfx.AR_PERMUTE){
+  if (dataID == _gfx.AR_PERMUTE)
     return _gfx.AR_PERMUTE_PARENT_ID;
-  }
   cout << "arGraphicsPeer error: invalid data record ID "
        << "(_getRoutingFieldID).\n";
   return -1;
 }
 
 int arGraphicsPeer::_getWorkingFieldID(int dataID){
-  if (!_databaseReceive[dataID]){
+  if (!_databaseReceive[dataID])
     return _routingField[dataID];
-  }
-  else if (dataID == _gfx.AR_MAKE_NODE){
+  if (dataID == _gfx.AR_MAKE_NODE)
     return _gfx.AR_MAKE_NODE_ID;
-  }
-  else if (dataID == _gfx.AR_ERASE){
+  if (dataID == _gfx.AR_ERASE)
     return _gfx.AR_ERASE_ID;
-  }
-  else if (dataID == _gfx.AR_INSERT){
+  if (dataID == _gfx.AR_INSERT)
     return _gfx.AR_INSERT_ID;
-  }
-  else if (dataID == _gfx.AR_CUT){
+  if (dataID == _gfx.AR_CUT)
     return _gfx.AR_CUT_ID;
-  }
-  else if (dataID == _gfx.AR_PERMUTE){
+  if (dataID == _gfx.AR_PERMUTE)
     return _gfx.AR_PERMUTE_PARENT_ID;
-  }
   cout << "arGraphicsPeer error: invalid data record ID "
        << "(_getWorkingFieldID).\n";
   return -1;
@@ -1397,14 +1383,9 @@ void arGraphicsPeer::_motionCull(arGraphicsNode* node,
   }
   // Deal with view frustum culling.
   if (node->getTypeCode() == AR_G_BOUNDING_SPHERE_NODE){
-    arBoundingSphere b = ((arBoundingSphereNode*)node)->getBoundingSphere();
-    arMatrix4 temp = projectionCullMatrix*transformStack.top();
-    if (!b.intersectViewFrustum(temp)){
-      cull->insert(node->getID(),0);
-    }
-    else{
-      cull->insert(node->getID(),1);
-    }
+    const arBoundingSphere b = ((arBoundingSphereNode*)node)->getBoundingSphere();
+    cull->insert(node->getID(),
+      b.intersectViewFrustum(projectionCullMatrix*transformStack.top()) ? 1 : 0);
     // DO NOT DRAW CHILDREN EITHER WAY! THIS IS DEFINITELY A HACK!
     // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
     return;

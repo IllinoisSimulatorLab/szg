@@ -8,23 +8,21 @@
 #include "arCamera.h"
 #include "arGraphicsHeader.h"
 
-arMatrix4 arCamera::getProjectionMatrix() {
+arMatrix4 arCamera::getProjectionMatrix() const {
   return ar_identityMatrix();
 }
 
-arMatrix4 arCamera::getModelviewMatrix() {
+arMatrix4 arCamera::getModelviewMatrix() const {
   return ar_identityMatrix();
 }
 
 void arCamera::loadViewMatrices(){
   glMatrixMode( GL_PROJECTION );
   glLoadIdentity();
-  arMatrix4 temp = getProjectionMatrix();
-  glMultMatrixf( temp.v );
+  glMultMatrixf(getProjectionMatrix().v);
 
   glMatrixMode( GL_MODELVIEW );
   glLoadIdentity();
-  temp = getModelviewMatrix();
-  glMultMatrixf( temp.v );
+  glMultMatrixf(getModelviewMatrix().v);
 }
 

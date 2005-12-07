@@ -434,7 +434,7 @@ void display(){
   glLoadIdentity();
   gluLookAt(0,5,20, 0,5,0, 0,1,0);*/
   globalCamera.loadViewMatrices();
-  arMatrix4 projectionCullMatrix = globalCamera.getProjectionMatrix();
+  arMatrix4 projectionCullMatrix(globalCamera.getProjectionMatrix());
   PeerContainer::iterator i;
   ar_mutex_lock(&peerLock);
   // first pass to draw the peers
@@ -475,7 +475,7 @@ void display(){
           i->second.peer->mappedFilterDataBelow(*offIter, AR_OPTIONAL_NODE);
         }
       }
-      // MUST CLEAR THE LISTS!
+      // Clear the lists.
       cullObject.frame();
     }
   }

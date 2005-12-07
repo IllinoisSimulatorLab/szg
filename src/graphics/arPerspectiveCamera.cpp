@@ -35,7 +35,7 @@ arMatrix4 arPerspectiveCamera::getProjectionMatrix() const {
   const float& n = frustum[4];
   const float& f = frustum[5];
   
-  // Lifted from the OpenGL textbook.
+  // Copied from the OpenGL textbook.
   return arMatrix4( 2*n/(r-l),   0,           (r+l)/(r-l),     0,
                     0,           2*n/(t-b),   (t+b)/(t-b),     0,
                     0,           0,           -(f+n)/(f-n),    -2*f*n/(f-n),

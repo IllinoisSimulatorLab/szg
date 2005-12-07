@@ -21,8 +21,7 @@ class SZG_CALL arFrustumCamera: public arCamera{
 
   virtual arMatrix4 getProjectionMatrix() const;
   virtual arMatrix4 getModelviewMatrix() const;
-  virtual void loadViewMatrices();
-  virtual std::string type( void ) const { return "arFrustumCamera"; }
+  virtual std::string type() const { return "arFrustumCamera"; }
 
   void setFrustum( const float* frust )
     { memcpy(frustum, frust, 6*sizeof(float)); }
