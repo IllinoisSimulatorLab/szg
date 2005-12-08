@@ -686,6 +686,31 @@ class arExperimentDataRecord  {
       return result;
     }    
 } // extend
+
+%pythoncode %{
+def setFieldSequence( self, dataFieldSequence ):
+  for dataFieldTuple in dataFieldSequence:
+    dataFieldName = dataFieldTuple[0]
+    dataFieldType = dataFieldTuple[1]
+    dataFieldValue = dataFieldTuple[2]
+    stat = False
+    if dataFieldType == 'long':
+      stat = self.setLongField( dataFieldName, dataFieldValue )
+    elif dataFieldType == 'double': 
+      stat = self.setDoubleField( dataFieldName, dataFieldValue )
+    elif dataFieldType == 'string': 
+      stat = self.setStringField( dataFieldName, dataFieldValue )
+    else:
+      raise PySZGException, 'arExperimentDataRecord error: setFieldSequence() called with invalid type ' \
+         +str(dataFieldType)+' for dataField '+str(dataFieldName)
+      return False
+    if not stat:
+      raise PySZGException, 'arExperimentDataRecord error: setFieldSequence() failed for dataField ' \
+         +str(dataFieldName)
+      return False
+  return True
+%}
+
 };
 
 class arPythonTrialGenerator : public arTrialGenerator {
@@ -722,6 +747,32 @@ class arPythonExperiment: public arExperiment {
     // Add a string factor that must belong to a set of values (passed in a list of strings) 
     bool addStringFactorSet( const  string& sname, PyObject* defaultList );
 
+%pythoncode %{
+def addFactorSequence( self, factorSequence ):
+  for factorTuple in factorSequence:
+    factorName = factorTuple[0]
+    factorType = factorTuple[1]
+    stat = False
+    if factorType == 'long':
+      stat = self.addLongFactor( factorName )
+    elif factorType == 'double': 
+      stat = self.addDoubleFactor( factorName )
+    elif factorType == 'string': 
+      stat = self.addStringFactor( factorName )
+    elif factorType == 'stringset': 
+      defaultList = factorTuple[2]
+      stat = self.addStringFactorSet( factorName, defaultList )
+    else:
+      raise PySZGException, 'arPythonExperiment error: addFactorSequence() called with invalid type ' \
+         +str(factorType)+' for factor '+str(factorName)
+      return False
+    if not stat:
+      raise PySZGException, 'arPythonExperiment error: addFactorSequence() failed for factor ' \
+         +str(factorName)
+      return False
+  return True
+%}
+
     /// Get a factors value
     PyObject* getLongFactor( const string& sname );
     PyObject* getDoubleFactor( const string& sname );
@@ -732,11 +783,58 @@ class arPythonExperiment: public arExperiment {
     bool addDoubleDataField( const string& sname );
     bool addStringDataField( const string& sname );
 
+%pythoncode %{
+def addDataFieldSequence( self, dataFieldSequence ):
+  for dataFieldTuple in dataFieldSequence:
+    dataFieldName = dataFieldTuple[0]
+    dataFieldType = dataFieldTuple[1]
+    stat = False
+    if dataFieldType == 'long':
+      stat = self.addLongDataField( dataFieldName )
+    elif dataFieldType == 'double': 
+      stat = self.addDoubleDataField( dataFieldName )
+    elif dataFieldType == 'string': 
+      stat = self.addStringDataField( dataFieldName )
+    else:
+      raise PySZGException, 'arPythonExperiment error: addDataFieldSequence() called with invalid type ' \
+         +str(dataFieldType)+' for dataField '+str(dataFieldName)
+      return False
+    if not stat:
+      raise PySZGException, 'arPythonExperiment error: addDataFieldSequence() failed for dataField ' \
+         +str(dataFieldName)
+      return False
+  return True
+%}
+
     /// Set the value of a data field
     bool setLongData( const string& sname, PyObject* intDataList );
     bool setDoubleData( const string& sname, PyObject* floatDataList );
     bool setStringData( const string& sname, string& stringData );
     
+%pythoncode %{
+def setDataFieldSequence( self, dataFieldSequence ):
+  for dataFieldTuple in dataFieldSequence:
+    dataFieldName = dataFieldTuple[0]
+    dataFieldType = dataFieldTuple[1]
+    dataFieldValue = dataFieldTuple[2]
+    stat = False
+    if dataFieldType == 'long':
+      stat = self.setLongData( dataFieldName, dataFieldValue )
+    elif dataFieldType == 'double': 
+      stat = self.setDoubleData( dataFieldName, dataFieldValue )
+    elif dataFieldType == 'string': 
+      stat = self.setStringData( dataFieldName, dataFieldValue )
+    else:
+      raise PySZGException, 'arPythonExperiment error: setDataFieldSequence() called with invalid type ' \
+         +str(dataFieldType)+' for dataField '+str(dataFieldName)
+      return False
+    if not stat:
+      raise PySZGException, 'arPythonExperiment error: setDataFieldSequence() failed for dataField ' \
+         +str(dataFieldName)
+      return False
+  return True
+%}
+
     /// Get the value of a data field
     PyObject* getLongData( const string& sname );
     PyObject* getDoubleData( const string& sname );
@@ -817,6 +915,26 @@ class arPyTrialGenerator(arPythonTrialGenerator):
   def __init__(self, comment=''):
     arPythonTrialGenerator.__init__(self, comment)
     self.setCallback( self.onNewTrial )
+  def setFactorSequence( self, factorRecord, factorSequences ):
+    for factorSequence in factorSequences:
+      factorName = factorSequence[0]
+      factorType = factorSequence[1]
+      factorValue = factorSequence[2]
+      stat = False
+      if factorType == 'double': 
+        stat = factorRecord.setDoubleField( factorName, factorValue )
+      elif factorType == 'long':
+        stat = factorRecord.setLongField( factorName, factorValue )
+      elif factorType == 'string':
+        stat = factorRecord.setStringField( factorName, factorValue )
+      else:
+        raise PySZGException, 'arPyTrialGenerator: setFactorTuples() called with bad type for factor "'+ \
+                str(factorName)+'" with type "'+str(factorType)
+      if not stat:
+        raise PySZGException, 'arPyTrialGenerator: setFactorTuples() failed for factor "'+ \
+                str(factorName)+'" with type "'+str(factorType)+'" and value:\n'+str(factorValue)
+        return False
+    return True
   def onNewTrial( self, factors ):
     raise PySZGException, 'arPyTrialGenerator: you must override onNewTrial().'
     return False

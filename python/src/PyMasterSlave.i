@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.19 2005/12/01 23:24:39 schaeffr Exp $
+// $Id: PyMasterSlave.i,v 1.20 2005/12/07 20:48:17 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -371,7 +371,7 @@ PyObject* ar_unpackSequenceData( int** typePtrPtr, long** intPtrPtr, double** fl
       default:
         cerr << "arMasterSlaveFramework error: invalid type in ar_unpackSequenceData().\n";
         cerr << "  size = " << size << endl;
-        PyErr_SetString(PyExc_TypeError, "arMasterSlaveFramework error: invalid type in getSequenceAsTuple.");
+        PyErr_SetString(PyExc_TypeError, "arMasterSlaveFramework error: invalid type in ar_unpackSequenceData().");
         Py_DECREF( seq );
         return NULL;
     }
@@ -473,7 +473,7 @@ PyObject *initSequenceTransfer(char* name) {
   return Py_None;
 }
 
-PyObject* setSequence( char* name, PyObject *seq ) {
+PyObject* setSequence( const string& nameStr, PyObject *seq ) {
   std::vector<int> typeData;
   std::vector<long> intData;
   std::vector<double> floatData;
@@ -485,7 +485,6 @@ PyObject* setSequence( char* name, PyObject *seq ) {
     return NULL;
   }
   /*cerr << endl;*/
-  string nameStr(name);
   string intString = nameStr+string("_INTDATA");
   string floatString = nameStr+string("_FLOATDATA");
   string charString = nameStr+string("_CHARDATA");
@@ -571,8 +570,7 @@ PyObject* setSequence( char* name, PyObject *seq ) {
   return Py_None;
 }
 
-PyObject* getSequence( char* name ) {
-  string nameStr(name);
+PyObject* getSequence( const string& nameStr ) {
   int typeSize;
   int* typePtr=(int *)self->getTransferField( nameStr+string("_TYPES"), AR_INT, typeSize );
   if (!typePtr) {
@@ -1073,11 +1071,6 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
   processInteraction()
   """
 
-  CONSTRUCT_MESSAGE = 0
-  DESTRUCT_MESSAGE = 1
-  STATE_MESSAGE = 2
-  # DUMMY_MESSAGE to work around a bug in framework.setSequence()--it crashes with empty sequences
-  DUMMY_MESSAGE = 3
   keyTypes = [type(''),type(0),type(0.)]
   def __init__( self, name, classData ):
     """
@@ -1124,25 +1117,28 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
     UserDict.IterableUserDict.__init__(self)
     self._name = name
     self._classFactoryDict = {}
-    self._classDict = {}
     self.addTypes( classData )
-    self._messages = [(arMasterSlaveDict.DUMMY_MESSAGE,0.,'foo')]
     self.pushKey = 0
   def addTypes( self, classData ):
     import types
     if type(classData) != types.TupleType and type(classData) != types.ListType:
       raise TypeError, 'arMasterSlaveDict() error: classData parameter must be a list or tuple.'
     for item in classData:
-      if type(item) != types.TupleType:
-        raise TypeError, 'arMasterSlaveDict() error: each item of classData must be a tuple.'
-      if len(item) < 2 or len(item) > 3:
-        raise TypeError, 'arMasterSlaveDict() error: each item of classData must contain 2 or 3 elements.'
-      className = item[0]
-      classRef = item[1]
-      if len(item) == 3:
-        classFactory = item[2]
+      print type(item), types.ClassType
+      if type(item) != types.TupleType and type(item) != types.ClassType and type(item) != types.TypeType:
+        raise TypeError, 'arMasterSlaveDict() error: each item of classData must be a class or a tuple.'
+      if type(item) == types.TupleType:
+        if len(item) < 1 or len(item) > 2:
+          raise TypeError, 'arMasterSlaveDict() error: each item of classData must contain 1 or 2 elements.'
+        classRef = item[0]
+        if len(item) == 2:
+          classFactory = item[1]
+        else:
+          classFactory = classRef
       else:
+        classRef = item
         classFactory = classRef
+      className = classRef.className
       if type(className) != types.StringType:
         raise TypeError, 'arMasterSlaveDict(): each item of classData must be of the form '+ \
             '( classNameString, class [, class factory] ) (classNameString error)'
@@ -1153,7 +1149,6 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
         raise TypeError, 'arMasterSlaveDict(): each item of classData must be of the form '+ \
             '( classNameString, class [, class factory] ) (class factory error)'
       self._classFactoryDict[className] = classFactory
-      self._classDict[classRef] = className
   def start( self, framework ):  # call in framework onStart() method or start callback
     """ d.start( framework ).
     Should be called in your framework's onStart() (start callback)."""
@@ -1172,14 +1167,14 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
     Needless to say, all classes must provide a getState(). Finally, it calls
     framework.setSequence() to hand its message queue to the framework.
     """
+    messages = []
     if len(self.data) > 0:
       for key in self.data:
         item = self.data[key]
         itemState = item.getState()
-        if itemState:
-          self._messages.append( (arMasterSlaveDict.STATE_MESSAGE, (key, item.getState())) )
-    framework.setSequence( self._name, self._messages )
-    self._messages = [(arMasterSlaveDict.DUMMY_MESSAGE,0.,'foo')]
+        itemClass = item.className
+        messages.append( (key, itemClass, item.getState()) )
+    framework.setSequence( self._name, messages )
   def unpackState( self, framework ):
     """ d.unpackState( framework ).
     Should be called in your framework's onPostExchange(), optionally only in slaves. Calls
@@ -1189,46 +1184,35 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
     with the same structure as that returned by getState(). For example, if your class' getState() method
     returned a 3-element numarray array, then setState() should expect a 3-element tuple.
     """
+    keysToDelete = self.data.keys()
     messages = framework.getSequence( self._name )
     for message in messages:
-      messageType = message[0]
-      messageParam = message[1]
-      if messageType == arMasterSlaveDict.STATE_MESSAGE:
-        key = messageParam[0]
-        newState = messageParam[1]
-        self.data[key].setState( newState )
-      elif messageType == arMasterSlaveDict.CONSTRUCT_MESSAGE:
-        key = messageParam[0]
-        className = messageParam[1]
+      key = message[0]
+      className = message[1]
+      newState = message[2]
+      if not self.data.has_key( key ):
         classFactory = self._classFactoryDict[className]
         self.data[key] = classFactory()
-      elif messageType == arMasterSlaveDict.DESTRUCT_MESSAGE:
-        key = messageParam
+        keysToDelete.append(key)
+      elif self.data[key].className != className:
         del self.data[key]
+        classFactory = self._classFactoryDict[className]
+        self.data[key] = classFactory()
+      self.data[key].setState( newState )
+      keysToDelete.remove( key )
+    for key in keysToDelete:
+      del self.data[key]
     # If someones been adding and deleting stuff on slaves, we need to keep this
     # from growing uncontrollably...
-    self._messages = [(arMasterSlaveDict.DUMMY_MESSAGE,0.,'foo')]
   def __setitem__(self, key, newItem):
     if not type(key) in arMasterSlaveDict.keyTypes:
       raise KeyError, 'arMasterSlaveDict keys must be Ints, Floats, or Strings.'
-    className = None
-    newType = type(newItem)
-    for item in self._classDict.iteritems():
-      if item[0] == newType:
-        className = item[1]
-        break
-    if not className:
+    newType = newItem.className
+    classFactory = self._classFactoryDict.get( newType )
+    if not classFactory:
       raise TypeError, 'arMasterSlaveDict error: non-registered type '+str(newType)+' in __setitem__().'
-    if self.has_key(key):
-      if type(self.data[key]) == newType:
-        self.data[key] = newItem
-        return
-      else:
-        del self[key]
     self.data[key] = newItem
-    self._messages.append( (arMasterSlaveDict.CONSTRUCT_MESSAGE, (key, className))  )
   def __delitem__( self, key ):
-    self._messages.append( (arMasterSlaveDict.DESTRUCT_MESSAGE, key) )
     del self.data[key]
   def delValue( self, value ):
     """ d.delValue( contained object reference ).
@@ -1249,8 +1233,6 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
     self[self.pushKey] = object
     self.pushKey += 1
   def clear(self):
-    for key in self.data.keys():
-      self._messages.append( (arMasterSlaveDict.DESTRUCT_MESSAGE, key) )
     self.data.clear()
   def copy(self):
     raise AttributeError, 'arMasterSlaveDict does not allow copying of itself.'
@@ -1340,6 +1322,7 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
     # Finally, and most importantly, process the action of the effector on
     # the interactable.
     return newTouchedObject.processInteraction( effector )
+
 
 
 

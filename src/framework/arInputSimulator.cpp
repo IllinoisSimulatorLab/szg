@@ -185,6 +185,7 @@ void arInputSimulator::draw() const {
   glColor3f(1,1,1);
   glPushMatrix();
   glTranslatef(0,5,0);
+  glLineWidth(1.);
   _wireCube(10);
   glPopMatrix();
 

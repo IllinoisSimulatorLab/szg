@@ -1,4 +1,4 @@
-// $Id: PyMath.i,v 1.7 2005/11/01 19:04:59 crowell Exp $
+// $Id: PyMath.i,v 1.8 2005/12/07 20:48:17 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -54,6 +54,7 @@ class arVector2{
              << "Floats or Ints\n";
         return NULL;
       }
+      Py_XDECREF( tmp );
     } 
     return m;
   }
@@ -110,6 +111,7 @@ class arVector2{
         cerr << "arVector2() error: sequence items must all be Floats or Ints\n";
         return NULL;
       }
+      Py_XDECREF( num );
     }
     Py_INCREF(Py_None); resultobj = Py_None;
     return resultobj;
@@ -173,6 +175,7 @@ arVector3(PyObject *seq) {
           cerr << "arVector3() error: sequence items must all be Floats or Ints\n";
           return NULL;
         }
+        Py_XDECREF( tmp );
       } 
       return m;
     }
@@ -324,6 +327,7 @@ PyObject* fromSequence( PyObject* seq ) {
       cerr << "arVector3() error: sequence items must all be Floats or Ints\n";
       return NULL;
     }
+    Py_XDECREF( num );
   }
   Py_INCREF(Py_None); resultobj = Py_None;
   return resultobj;
@@ -384,6 +388,7 @@ arVector4(PyObject *seq) {
           PyErr_SetString(PyExc_ValueError, "arVector4() error: sequence items must all be Floats or Ints");
           return NULL;
         }
+        Py_XDECREF( tmp );
       } 
       return m;
     }
@@ -454,6 +459,7 @@ PyObject* fromSequence( PyObject* seq ) {
       cerr << "arVector4() error: sequence items must all be Floats or Ints\n";
       return NULL;
     }
+    Py_XDECREF( num );
   }
   Py_INCREF(Py_None); resultobj = Py_None;
   return resultobj;
@@ -529,6 +535,7 @@ arMatrix4(PyObject *seq) {
   int sequenceLength = PySequence_Size(seq);
   if (sequenceLength == 16) {
     for (i=0; i<16; ++i) {
+      // PySequence_GetItem() returns a NEW REFERENCE! Must DECREF it when done!!!!!
       PyObject* tmp = PySequence_GetItem( seq, i );
       if (PyFloat_Check(tmp)) {
         m->v[i] = (float)PyFloat_AsDouble(tmp);
@@ -538,6 +545,7 @@ arMatrix4(PyObject *seq) {
         PyErr_SetString(PyExc_ValueError, "arMatrix4() error: sequence items must all be Floats or Ints");
         return NULL;
       }
+      Py_XDECREF( tmp );
     } 
   } else if (sequenceLength == 4) {
     for (i=0; i<4; ++i) {
@@ -560,7 +568,9 @@ arMatrix4(PyObject *seq) {
           PyErr_SetString(PyExc_ValueError, "arMatrix4() error: sequence items must all be Floats or Ints");
           return NULL;
         }
+        Py_XDECREF( tmp );
       }
+      Py_XDECREF( row );
     }
   } else {
     PyErr_SetString(PyExc_TypeError, "arMatrix4() error: sequence passed to constructor must contain 4 or 16 items.");
@@ -700,6 +710,7 @@ PyObject* fromSequence( PyObject* seq ) {
         PyErr_SetString(PyExc_ValueError, "arMatrix4() error: sequence items must all be Floats or Ints");
         return NULL;
       }
+      Py_XDECREF( tmp );
     } 
   } else if (sequenceLength == 4) {
     for (i=0; i<4; ++i) {
@@ -722,7 +733,9 @@ PyObject* fromSequence( PyObject* seq ) {
           PyErr_SetString(PyExc_ValueError, "arMatrix4() error: sequence items must all be Floats or Ints");
           return NULL;
         }
+        Py_XDECREF( tmp );
       }
+      Py_XDECREF( row );
     }
   } else {
     PyErr_SetString(PyExc_TypeError, "arMatrix4() error: sequence passed to constructor must contain 4 or 16 items.");
@@ -802,6 +815,7 @@ arQuaternion(PyObject *seq) {
           PyErr_SetString(PyExc_ValueError, "arQuaternion() error: sequence items must all be Floats or Ints");
           return NULL;
         }
+        Py_XDECREF( tmp );
       } 
       return m;
     }
@@ -919,6 +933,7 @@ PyObject* fromSequence( PyObject* seq ) {
     cerr << "arQuaternion() error: sequence items must all be Floats or Ints\n";
     return NULL;
   }
+  Py_XDECREF( num );
   for (i = 1; i < 4; ++i) {
     num = PySequence_GetItem(seq,i);
     if (PyFloat_Check(num)) {
@@ -930,6 +945,7 @@ PyObject* fromSequence( PyObject* seq ) {
       return NULL;
     }
   }
+  Py_XDECREF( num );
   Py_INCREF(Py_None); resultobj = Py_None;
   return resultobj;
 }
