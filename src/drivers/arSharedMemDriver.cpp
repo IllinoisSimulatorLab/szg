@@ -68,7 +68,7 @@ arMatrix4 generateMatrix(const int ID, const void* mRaw){
     else if (m[5] > 180.)
       m[5] -= 360.;
   }
-  return ar_translationMatrix(arVector3(m[0], m[1], m[2])) *
+  return ar_translationMatrix(arVector3(m)) *
     ar_rotationMatrix('y', ar_convertToRad(m[3])) *
     ar_rotationMatrix('x', ar_convertToRad(m[4])) *
     ar_rotationMatrix('z', ar_convertToRad(m[5]));
@@ -101,12 +101,12 @@ bool arSharedMemDriver::start() {
     perror("no shm segment for wand (try ipcs -m;  run a cavelib app first)");
     return false;
   }
-  _shmFoB = shmat(idFoB, (char*)0, 0);
+  _shmFoB = shmat(idFoB, NULL, 0);
   if ((int)_shmFoB == -1){
     perror("shmat failed for Flock of Birds");
     return false;
   }
-  _shmWand = shmat(idWand, (char*)0, 0);
+  _shmWand = shmat(idWand, NULL, 0);
   if ((int)_shmWand == -1){
     perror("shmat failed for wand");
     return false;
