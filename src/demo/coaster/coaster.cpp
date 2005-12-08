@@ -37,7 +37,6 @@ const float FEET_TO_COASTER_UNITS = 12*2.54*UNIT_CONVERSION_FACTOR;
 float eyeSpacing = 6.*UNIT_CONVERSION_FACTOR;
 const float nearClipDistance = 10*UNIT_CONVERSION_FACTOR;
 const float farClipDistance = 55000.*UNIT_CONVERSION_FACTOR;
-const float TRACKER_MAT_GAIN = 1.;
 
 double floor(double o);
 #define ACC 48
@@ -605,7 +604,7 @@ void myinit(void) {
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 }
 
-void initGL( arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo )
+void initGL( arMasterSlaveFramework&, arGUIWindowInfo*)
 {
   glNewList(1, GL_COMPILE);
   do_display();

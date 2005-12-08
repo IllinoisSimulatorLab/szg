@@ -1590,7 +1590,6 @@ inline float drand48() {
 #endif
 
 static float tPrev = 1.; // setup time
-static int iPitchPrev = -1;
 static float zDuration = 0.;
 static bool fRecomputeDuration = false;
 
@@ -1657,7 +1656,7 @@ void doPentatonicSounds(const float zIrreg, const float density){
 
 }
 
-void doSounds(bool fAnimating, int tope){
+void doSounds(bool /*fAnimating*/, int tope){
   static float density = .2;
 
   // 0 <= tope < ntopes == 149

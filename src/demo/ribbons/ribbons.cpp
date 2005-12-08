@@ -217,7 +217,7 @@ LAgain:
   glEnd();
 }
 
-void initGL( arMasterSlaveFramework& fw, arGUIWindowInfo* windowInfo ) {
+void initGL( arMasterSlaveFramework&, arGUIWindowInfo*) {
   const float ambient[] = {0.07, 0.07, 0.07, 1.0};
   const float diffuse[4][4] = {
     { 0.0,  0.4,  0.6, 1.0},
@@ -594,9 +594,8 @@ float parse(GLfloat* buf, GLint size) {
 
   // parse
   GLint c = size;
-  int token;
   while (c) {
-    switch (token = int(buf[size - c--])) {
+    switch (int(buf[size - c--])) {
       case GL_POINT_TOKEN:
       case GL_BITMAP_TOKEN:
       case GL_DRAW_PIXEL_TOKEN:

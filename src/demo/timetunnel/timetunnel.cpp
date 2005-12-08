@@ -34,7 +34,8 @@ int main(int argc, char** argv){
   ar_mutex_init(&navLock);
 
   const string navNodeName = framework.getNavNodeName();
-  int worldTransformID[2], navTransformID[2];
+  int worldTransformID[2];
+//  int navTransformID[2];
 //  navTransformID[0] = dgTransform("nav","root",ar_identityMatrix());
 //  navTransformID[1] = dsTransform("nav","root",ar_identityMatrix());
   worldTransformID[0] = dgTransform("world",navNodeName,ar_identityMatrix());
