@@ -143,17 +143,16 @@
 
 
 <comment>
-PLEASE NOTE: inputsimulator is a HACK so far. And is treated differently than
-everything else. In particular, it has no szg_device record as in the above!
+NOTE: inputsimulator is a hack, treated uniquely.
+In particular, it has no szg_device record as in the above!
 </comment>
 
 <comment>
- The configuration of the cube has two parts, one which varies from user to
- user and only consists of the path upon which the system should search for
- executables... and another part which configures the system. This
- second part is further subdivided into "everything else" and "graphics"
- configuartion that varies per user (really just varies based on linux
- or windows).
+ The cube's configuration has two parts. The user-dependent part is the
+ path wherein executables are searched for.  The other part handles the
+ rest. This second part is further subdivided into "everything else"
+ and "graphics" configuration that varies per user (really just varies
+ based on linux or windows).
 </comment>
 
 <param>
@@ -422,9 +421,9 @@ everything else. In particular, it has no szg_device record as in the above!
 </param>
 
 <comment> 
-Exec paths: replace THE_USER_NAME with your login name. Note also that Python 2.4 is also available for Windows machines, if using it change Python22 to Python24.
-NOTE: The computers that may need to run a python executable must have
-python in the EXEC_PATH!
+Exec paths: replace THE_USER_NAME with your login name.
+If using Python 2.4 in Windows, change Python22 to Python24.
+Hosts running Python exes need python in their EXEC_PATH.
 </comment>
 
 <assign>
@@ -439,10 +438,11 @@ top      SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
 bottom   SZG_EXEC path G:\THE_USER_NAME\bin\win32;g:\Python22
 </assign>
 
-<comment> Path for python applications. Note that
-          picasso only needs the python path for
-          locating bundled data (sounds), it won't
-          be running any python apps. </comment>
+<comment>
+Path for python applications.
+picasso needs it only for locating bundled data (sounds).
+</comment>
+
 <assign>
 air      SZG_PYTHON path /home/public/THE_USER_NAME/pycube
 north    SZG_PYTHON path G:\THE_USER_NAME\pycube
@@ -455,9 +455,9 @@ fire     SZG_PYTHON path G:\THE_USER_NAME\pycube
 picasso  SZG_PYTHON path G:\THE_USER_NAME\pycube
 </assign>
 
-<comment> Path for python modules. Note that the application directory, the
-          SZG_PYTHON/path directory, and the PYTHONPATH on each machine
-          will also be searched.
+<comment>
+Path for python modules. The application directory, SZG_PYTHON/path,
+and each host's PYTHONPATH are also searched.
 </comment>
 <assign>
 air      SZG_PYTHON lib_path NULL
@@ -471,8 +471,7 @@ fire     SZG_PYTHON lib_path NULL
 </assign>
 
 <comment>
- Configuration that is basically the same for all users
- everything besides graphics goes first.
+Configuration that is basically the same for all users.  Graphics comes last.
 </comment>
 
 <comment> definitions of the cube virtual computers </comment>
@@ -528,8 +527,7 @@ wincube SZG_SOUND   networks       internet
 </assign>
 
 <comment> V.C. for many experiments: Windows-only,
-          trigger on north, with a copy also running
-          on fire.
+          trigger on north, with a copy also running on fire.
 </comment>
 <assign>
 expt_cube SZG_CONF    location       cube
@@ -558,8 +556,8 @@ expt_cube SZG_SOUND   networks       internet
 </assign>
 
 <comment> V.C. for reaction-time experiments: Windows-only,
-          trigger on north, with a copy also running
-          on fire, using reaction-timer instead of normal joystick.
+          trigger on north, with a copy also running on fire,
+	  using reaction-timer instead of normal joystick.
 </comment>
 <assign>
 rt_expt_cube SZG_CONF    location       cube
@@ -628,8 +626,8 @@ vfire SZG_SOUND   networks       internet
 </assign>
 
 <comment>
- definitions of the various search paths that are the same from user to user
- (really just varies with OS).
+Definitions of search paths that are the same for all users
+(really just varies with OS).
 </comment>
 
 <assign>
@@ -676,7 +674,7 @@ fire     SZG_RENDER text_path    g:\Texture\Text
 
 </assign>
 
-<comment> definitions of miscellaneous stuff </comment>
+<comment> misc. definitions </comment>
 
 <assign>
 air SZG_FARO       probe_radius             0.23
@@ -731,16 +729,15 @@ air SZG_HEAD fixed_head_mode false
 </assign>
 
 <comment>
-This is the true mid-eye offset...
+This is the true mid-eye offset.
 An incorrect one is used because it makes the tracker error
-& latency less noticeable during head turns.
+and latency less noticeable during head turns.
 north SZG_HEAD mid_eye_offset 0.29/0/-0.21
 </comment>
 
 
 <comment>
-Want the inputsimulator to appear in a reasonable spot on fire (which is the
-psychology experimenter's console).
+Locate the inputsimulator nicely on fire, the psych experimenter's console.
 </comment>
 
 <assign>
@@ -758,5 +755,3 @@ fire SZG_DISPLAY0 name hmd_window_mono
 </assign>
 
 </szg_config>
-
-
