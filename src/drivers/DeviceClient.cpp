@@ -43,17 +43,16 @@ void dumpState( arInputState& inp ) {
 
 class arClientEventFilter : public arIOFilter {
   public:
-    arClientEventFilter() : arIOFilter(), _first(true) {}
+    arClientEventFilter() : arIOFilter() {}
     virtual ~arClientEventFilter() {}
   protected:
     virtual bool _processEvent( arInputEvent& inputEvent );
   private:
-    bool _first;
     arInputState _lastInput;
 };
 
 bool arClientEventFilter::_processEvent( arInputEvent& event ) {
-  bool dump(false);
+  bool dump = false;
   switch (event.getType()) {
     case AR_EVENT_BUTTON:
       if (event.getButton() && !_lastInput.getButton( event.getIndex() )) {
@@ -70,25 +69,20 @@ bool arClientEventFilter::_processEvent( arInputEvent& event ) {
 }
 
 int main(int argc, char** argv){
+  if (argc != 2 && argc != 3) {
+    cerr << "Usage: DeviceClient slot_number [-button]\n";
+    return 1;
+  }
+
   arSZGClient szgClient;
   szgClient.simpleHandshaking(false);
   szgClient.init(argc, argv);
   if (!szgClient)
     return 1;
 
-  if ((argc != 2)&&(argc != 3)) {
-    cerr << "Usage: DeviceClient slot_number [-button]\n";
-    return 1;
-  }
-
-  bool continuousDump(true);
-  if (argc == 3) {
-    if (std::string(argv[2]) == "-button") {
-      continuousDump = false;
-    }
-  }
-
   const int slot = atoi(argv[1]);
+  const bool continuousDump = argc!=3 || strcmp(argv[2], "-button");
+
   arInputNode inputNode;
   arNetInputSource netInputSource;
   inputNode.addInputSource(&netInputSource,false);
@@ -114,9 +108,8 @@ int main(int argc, char** argv){
 
   arThread dummy(ar_messageTask, &szgClient);
   while (true){
-    if (continuousDump) {
-      dumpState( inputNode._inputState );
-    }
+    if (continuousDump)
+      dumpState(inputNode._inputState);
     ar_usleep(500000);
   }
   return 0;
