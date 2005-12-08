@@ -8,14 +8,15 @@ cavefloor	SZG_EXEC path G:\THE_USER_NAME\bin\win32;G:\Python24
 cube6		SZG_EXEC path G:\THE_USER_NAME\bin\win32
 kam1		SZG_EXEC path G:\THE_USER_NAME\bin\win32
 kam3		SZG_EXEC path /home/public/cube/bin/linux
-cassatt		SZG_EXEC path /scratch2/camilleg/szg/bin/mips4
+cassatt		SZG_EXEC path /usr/people/camilleg/bin
 </assign>
 
 <comment>
-Note the assign and comment blocks below. The assign block is for an ordinary user,
-the comment block the equivalent set for the cube or official demo user.
-Note that kam1 (the sound machine) needs the python path set in order
-to find sounds specified using framework.setDataBundlePath("SZG_PYTHON",...)
+The assign block below is for an ordinary user, while
+the comment block is the equivalent set for the cube or official demo user.
+
+kam1 needs SZG_PYTHON/path to find sounds specified using
+framework.setDataBundlePath("SZG_PYTHON",...)
 </comment>
 
 <assign>
