@@ -23,12 +23,12 @@ class SZG_CALL arFilteringPForth : public arPForth {
 
 class SZG_CALL arPForthFilter: public arIOFilter {
   public:
-    arPForthFilter( const unsigned int progNumber = 0 );
+    arPForthFilter(const unsigned int progNumber = 0);
     ~arPForthFilter();
   
-    bool configure( const string& progText);
+    bool loadProgram(const string& progText);
   protected:
-    bool _processEvent( arInputEvent& inputEvent );
+    bool _processEvent(arInputEvent& inputEvent);
   private:
     unsigned int _progNumber;
     string _progName;

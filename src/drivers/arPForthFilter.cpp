@@ -91,18 +91,17 @@ bool ar_parsePForthFilterWord( const string& theWord,
   return true;
 }
 
-bool arPForthFilter::configure(const string& progText ) {
+bool arPForthFilter::loadProgram(const string& progText) {
   if (!_pforth) {
     cerr << "arPForthFilter error: failed to initialize.\n";
     return false;
   }
 
-  // Make sure the program is not empty... If it is, print a message and
-  // return true.
   stringstream parsingStream(progText);
   string firstToken;
   parsingStream >> firstToken;
   if (firstToken == ""){
+    // Empty or missing program.
     // cout << "arPForthFilter remark: no filter program set.\n";
     return true;
   }
@@ -118,7 +117,7 @@ bool arPForthFilter::configure(const string& progText ) {
     return false;
   }
 
-  cout << "arPForthFilter remark: ran program." << endl;
+  // cout << "arPForthFilter remark: ran program." << endl;
   
   vector<string> words = _pforth.getVocabulary();
   vector<string>::const_iterator iter;
@@ -140,13 +139,17 @@ bool arPForthFilter::configure(const string& progText ) {
       }
       if (word == "filter_all_events") {
         _allEventsFilterProgram = prog;
-      } else if (word == "filter_all_buttons") {
+      }
+      else if (word == "filter_all_buttons") {
         _allButtonsFilterProgram = prog;
-      } else if (word == "filter_all_axes") {
+      }
+      else if (word == "filter_all_axes") {
         _allAxesFilterProgram = prog;
-      } else if (word == "filter_all_matrices") {
+      }
+      else if (word == "filter_all_matrices") {
         _allMatricesFilterProgram = prog;
-      } else if (ar_parsePForthFilterWord( word, eventType, eventIndex )) {
+      }
+      else if (ar_parsePForthFilterWord( word, eventType, eventIndex )) {
         switch (eventType) {
           case AR_EVENT_BUTTON:
             if (eventIndex >= _buttonFilterPrograms.size())

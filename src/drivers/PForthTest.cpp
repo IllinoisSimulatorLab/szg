@@ -53,8 +53,8 @@ int main(int argc, char** argv) {
 	 << argv[1] << " not set.\n";
     return 1;
   }
-  if (!filter.configure( programText )) {
-    cerr << "PForthTest error: failed to configure filter.\n";
+  if (!filter.loadProgram(programText)) {
+    cerr << "PForthTest error: failed to load filter program.\n";
     return 1;
   }
 

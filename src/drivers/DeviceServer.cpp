@@ -296,7 +296,7 @@ int main(int argc, char** argv){
   // First add a filter from the config file.
   arPForthFilter firstFilter;
   ar_PForthSetSZGClient( &SZGClient );
-  if (!firstFilter.configure( nodeConfig.pforthProgram )){
+  if (!firstFilter.loadProgram( nodeConfig.pforthProgram )){
     return 1;
   }
   // The PForth filter is owned by the program, since it is declared 
@@ -312,7 +312,7 @@ int main(int argc, char** argv){
     }
     else{
       arPForthFilter* commandLineFilter = new arPForthFilter();
-      if (!commandLineFilter->configure( commandLineProgram )){
+      if (!commandLineFilter->loadProgram( commandLineProgram )){
 	return 1;
       }
       // Node owns the filter.
