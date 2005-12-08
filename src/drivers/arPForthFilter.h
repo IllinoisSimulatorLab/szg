@@ -28,7 +28,7 @@ class SZG_CALL arPForthFilter: public arIOFilter {
   
     bool loadProgram(const string& progText);
   protected:
-    bool _processEvent(arInputEvent& inputEvent);
+    bool _processEvent(arInputEvent&);
   private:
     unsigned int _progNumber;
     string _progName;
@@ -43,4 +43,4 @@ class SZG_CALL arPForthFilter: public arIOFilter {
     std::vector<arPForthProgram*> _matrixFilterPrograms;
 };
 
-#endif        //  #ifndefARPFORTHFILTER_H
+#endif

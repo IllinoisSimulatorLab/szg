@@ -139,6 +139,6 @@ void arNetInputSource::_closeConnection(){
   _clientInitialized = false;
 }
 
-bool arNetInputSource::_checkConnection(){
+bool arNetInputSource::_checkConnection() const {
   return _clientConnected;
 }

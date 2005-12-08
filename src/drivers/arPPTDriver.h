@@ -27,8 +27,8 @@ class SZG_CALL arPPTDriver: public arInputSource {
   
   private:
     bool _processInput();
-    float _unstuffBytes(float max, unsigned char *storage);
-    unsigned char _checksum(unsigned char* buffer, int length);
+    float _unstuffBytes(float max, const unsigned char *storage);
+    unsigned char _checksum(const unsigned char* buffer, int length) const;
     void _resetStatusTimer();
     bool _inited;
     bool _imAlive;
@@ -42,5 +42,3 @@ class SZG_CALL arPPTDriver: public arInputSource {
 };
 
 #endif        //  #ifndefARPPTTIMERDRIVER_H
-
-

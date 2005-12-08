@@ -21,8 +21,8 @@ class SZG_CALL arCamera{
   float getEyeSign() const { return _eyeSign; }
   void setScreen( arGraphicsScreen* screen ) { _screen = screen; }
   arGraphicsScreen* getScreen() const { return _screen; }
-  virtual arMatrix4 getProjectionMatrix() const;
-  virtual arMatrix4 getModelviewMatrix() const;
+  virtual arMatrix4 getProjectionMatrix();
+  virtual arMatrix4 getModelviewMatrix();
   virtual void loadViewMatrices();
   virtual arCamera* clone() const { return new arCamera(); }
   virtual std::string type( void ) const { return "arCamera"; }

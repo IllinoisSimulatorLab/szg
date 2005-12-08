@@ -320,6 +320,7 @@ arGraphicsStateValue arGraphicsStateNode::_convertStringToStateValue(
 
 string arGraphicsStateNode::_convertStateValueToString(arGraphicsStateValue v){
   switch (v){
+  default:
   case AR_G_FALSE:
     return "false";
   case AR_G_TRUE:
@@ -350,17 +351,14 @@ string arGraphicsStateNode::_convertStateValueToString(arGraphicsStateValue v){
     return "one_minus_dst_alpha";
   case AR_G_SRC_ALPHA_SATURATE:
     return "src_alpha_saturate";
-  default:
-    return "false";
   }
 }
 
 /// Thread-safe. DO NOT use the _nodeLock in here (can be called from
 /// inside that lock).
-bool arGraphicsStateNode::_checkFloatState( arGraphicsStateID id ) {
+bool arGraphicsStateNode::_checkFloatState( arGraphicsStateID id ) const {
   switch (id) {
   case AR_G_POINT_SIZE:
-    return true;
   case AR_G_LINE_WIDTH:
     return true;
   default:
@@ -373,18 +371,16 @@ arStructuredData* arGraphicsStateNode::_dumpData(const string& stateName,
                                          arGraphicsStateValue* stateValueInt,
                                          float stateValueFloat,
                                          bool owned ) {
-  arStructuredData* result = NULL;
-  if (owned){
-    result = getOwner()->getDataParser()->getStorage(_g->AR_GRAPHICS_STATE);
-  }
-  else{
-    result = _g->makeDataRecord(_g->AR_GRAPHICS_STATE);
-  }
+  arStructuredData* result = owned ?
+    getOwner()->getDataParser()->getStorage(_g->AR_GRAPHICS_STATE) :
+    _g->makeDataRecord(_g->AR_GRAPHICS_STATE);
   _dumpGenericNode(result, _g->AR_GRAPHICS_STATE_ID);
+
   // Don't use the member variable. Instead, use the function parameter.
   result->dataInString(_g->AR_GRAPHICS_STATE_STRING, stateName);
-  int data[2];
+
   // Don't use the member variable. Instead, use the function parameter.
+  int data[2];
   if (stateValueInt){
     data[0] = stateValueInt[0];
     data[1] = stateValueInt[1];
@@ -395,6 +391,7 @@ arStructuredData* arGraphicsStateNode::_dumpData(const string& stateName,
     data[1] = AR_G_FALSE;
   }
   result->dataIn(_g->AR_GRAPHICS_STATE_INT, data, AR_INT, 2);
+
   // Don't use the member variable. Instead, use the function parameter.
   result->dataIn(_g->AR_GRAPHICS_STATE_FLOAT, &stateValueFloat, AR_FLOAT, 1);
   return result;

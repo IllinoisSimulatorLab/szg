@@ -8,11 +8,13 @@
 #include "arCamera.h"
 #include "arGraphicsHeader.h"
 
-arMatrix4 arCamera::getProjectionMatrix() const {
+// Not const because derived classes aren't.
+arMatrix4 arCamera::getProjectionMatrix() {
   return ar_identityMatrix();
 }
 
-arMatrix4 arCamera::getModelviewMatrix() const {
+// Not const because derived classes aren't.
+arMatrix4 arCamera::getModelviewMatrix() {
   return ar_identityMatrix();
 }
 
@@ -25,4 +27,3 @@ void arCamera::loadViewMatrices(){
   glLoadIdentity();
   glMultMatrixf(getModelviewMatrix().v);
 }
-

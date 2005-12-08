@@ -18,7 +18,7 @@ class SZG_CALL arPerspectiveCamera: public arFrustumCamera{
   virtual arCamera* clone() const
     { return (arCamera*)new arPerspectiveCamera( frustum, lookat, cameraID ); }
 
-  virtual arMatrix4 getProjectionMatrix() const;
+  virtual arMatrix4 getProjectionMatrix();
   virtual std::string type( void ) const { return "arPerspectiveCamera"; }
 
   // hack to export values to python

@@ -27,7 +27,7 @@ arPerspectiveCamera::arPerspectiveCamera( const float* const frust,
   cameraID = ID;
 }
 
-arMatrix4 arPerspectiveCamera::getProjectionMatrix() const {
+arMatrix4 arPerspectiveCamera::getProjectionMatrix() {
   const float& l = frustum[0];
   const float& r = frustum[1];
   const float& b = frustum[2];

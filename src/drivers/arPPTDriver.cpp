@@ -156,12 +156,11 @@ bool arPPTDriver::_processInput() {
 }
 
 // More code lifted from VizPPTStreamingCode.h
-float arPPTDriver::_unstuffBytes(float max, unsigned char *storage) {
-  float convert = (short int)(storage[0] * 256 + storage[1]) / PPT_RANGE * max;
-  return convert;
+float arPPTDriver::_unstuffBytes(float max, const unsigned char *storage) {
+  return (short int)(storage[0] * 256 + storage[1]) / PPT_RANGE * max;
 }
 
-unsigned char arPPTDriver::_checksum(unsigned char* buffer, int length) {
+unsigned char arPPTDriver::_checksum(const unsigned char* buffer, int length) const {
   unsigned char checksum = 0;
   for(int i = 0; i < length; i++)
     checksum += buffer[i];

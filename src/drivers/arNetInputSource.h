@@ -38,7 +38,7 @@ class SZG_CALL arNetInputSource: public arInputSource{
   bool _clientInitialized;
   
   void _closeConnection();
-  bool _checkConnection();
+  bool _checkConnection() const;
   void _dataTask();
 };
 

@@ -86,8 +86,8 @@ class SZG_CALL arGraphicsStateNode: public arGraphicsNode{
   string _convertStateIDToString(arGraphicsStateID id);
   arGraphicsStateValue _convertStringToStateValue(const string& stateValue);
   string _convertStateValueToString(arGraphicsStateValue v);
-  bool              _checkFloatState( arGraphicsStateID id );
-  bool              _isFloatState() { return _checkFloatState(_stateID); }
+  bool _checkFloatState( arGraphicsStateID id ) const;
+  bool _isFloatState() const { return _checkFloatState(_stateID); }
 
   arStructuredData* _dumpData(const string& stateName,
                               arGraphicsStateValue* stateValueInt,

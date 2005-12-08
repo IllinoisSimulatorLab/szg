@@ -19,8 +19,8 @@ class SZG_CALL arFrustumCamera: public arCamera{
   virtual arCamera* clone() const 
     { return (arCamera*) new arFrustumCamera( frustum, lookat ); }
 
-  virtual arMatrix4 getProjectionMatrix() const;
-  virtual arMatrix4 getModelviewMatrix() const;
+  virtual arMatrix4 getProjectionMatrix();
+  virtual arMatrix4 getModelviewMatrix();
   virtual std::string type() const { return "arFrustumCamera"; }
 
   void setFrustum( const float* frust )
