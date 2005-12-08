@@ -219,9 +219,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _stateServer( NULL ),
   _transferTemplate( "data" ),
   _transferData( NULL ),
-  // _glutDisplayMode( GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA ),
   _userInitCalled( false ),
-  _parametersLoaded( false ),
   _wm( NULL ),
   _guiXMLParser( NULL ),
   _serviceName( "NULL" ),
@@ -278,12 +276,8 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _noDrawFillColor( -1.0f, -1.0f, -1.0f ),
   _connectionThreadRunning( false ),
   _useWindowing( false ),
-  _standaloneControlMode( "simulator" ),
-  _showPerformance( false ),
   _soundClient( NULL ),
   _requestReload( false ) {
-
-  _simPtr = &_simulator;
 
   // This is where input events are buffered for transfer to slaves.
   _callbackFilter.saveEventQueue( true );
@@ -377,20 +371,6 @@ void arMasterSlaveFramework::usePredeterminedHarmony() {
        << "   computation in the pre-exchange (because that's only called on the " << endl
        << "   master). Just thought we'd remind you." << endl;
   _harmonyInUse = true;
-}
-
-bool arMasterSlaveFramework::setInputSimulator( arInputSimulator* sim ) {
-  if (_parametersLoaded) {
-    cerr << "arMasterSlaveFramework error: you can't set a new input simulator after "
-         << "the framework init().\n";
-    return false;
-  }
-  if (!sim) {
-    cerr << "arMasterSlaveFramework error: setInputSimulator() called with NULL pointer.\n";
-    return false;
-  }
-  _simPtr = sim;
-  return true;
 }
 
 bool arMasterSlaveFramework::onStart( arSZGClient& SZGClient ) {

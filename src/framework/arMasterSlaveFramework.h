@@ -17,8 +17,6 @@
 #include "arSoundClient.h"
 #include "arSZGAppFramework.h"
 #include "arVRCamera.h"
-#include "arInputSimulator.h"
-#include "arFramerateGraph.h"
 #include "arMasterSlaveDataRouter.h"
 #include "arGUIWindowManager.h"
 #include "arGUIInfo.h"
@@ -59,8 +57,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
  public:
   arMasterSlaveFramework( void );
   virtual ~arMasterSlaveFramework( void );
-
-  bool setInputSimulator( arInputSimulator* sim );
 
   // We've added another layer of indirection. Now, at the point where
   // the callbacks were formerly called, we instead call these virtual
@@ -225,7 +221,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   arMasterSlaveDataRouter _dataRouter;
 
   bool                 _userInitCalled;
-  bool                 _parametersLoaded;
 
   arGUIWindowManager* _wm;
   arGUIXMLParser* _guiXMLParser;
@@ -321,13 +316,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // shared with other frameworks is in arSZGAppFramework.h)
   bool _connectionThreadRunning;
   bool _useWindowing;
-
-  // Used in "standalone" mode
-  std::string      _standaloneControlMode;
-  arInputSimulator  _simulator;
-  arInputSimulator* _simPtr;
-  arFramerateGraph _framerateGraph;
-  bool             _showPerformance;
 
   // Storage for the brokered port on which the master will
   // offer the state data.

@@ -83,7 +83,7 @@ void ar_distSceneGraphFrameworkWindowTask(void* f){
     ar_timeval time1 = ar_time();
     if (fw->_standalone && 
         fw->_standaloneControlMode == "simulator"){
-      fw->_simulator.advance();
+      fw->_simPtr->advance();
     }
     fw->_soundClient._cliSync.consume();
     // Inside here, through callbacks to the arSyncDataClient embedded inside
@@ -120,12 +120,12 @@ void ar_distSceneGraphGUIMouseFunction( arGUIMouseInfo* mouseInfo ) {
                         ( mouseInfo->getButton() == AR_MBUTTON ) ? 1 :
                         ( mouseInfo->getButton() == AR_RBUTTON ) ? 2 : 0;
       int whichState = ( mouseInfo->getState() == AR_MOUSE_DOWN ) ? 1 : 0;
-      fw->_simulator.mouseButton(whichButton, whichState,
-                                 mouseInfo->getPosX(), mouseInfo->getPosY());
+      fw->_simPtr->mouseButton(whichButton, whichState,
+			       mouseInfo->getPosX(), mouseInfo->getPosY());
     }
     else{
-      fw->_simulator.mousePosition(mouseInfo->getPosX(),
-				   mouseInfo->getPosY());
+      fw->_simPtr->mousePosition(mouseInfo->getPosX(),
+				 mouseInfo->getPosY());
     }
   }
 }
@@ -162,7 +162,7 @@ void ar_distSceneGraphGUIKeyboardFunction( arGUIKeyInfo* keyInfo ){
     // in standalone mode, keyboard events should also go to the interface
     if (fw->_standalone &&
       fw->_standaloneControlMode == "simulator"){
-      fw->_simulator.keyboard(keyInfo->getKey(), 1, 0, 0);
+      fw->_simPtr->keyboard(keyInfo->getKey(), 1, 0, 0);
     }
   }
 }
@@ -204,7 +204,6 @@ arDistSceneGraphFramework::arDistSceneGraphFramework() :
   _graphicsNavMatrixID(-1),
   _soundNavMatrixID(-1),
   _VRCameraID(-1),
-  _standaloneControlMode("simulator"),
   _peerName("NULL"),
   _peerMode("source"),
   _peerTarget("NULL"),
@@ -332,6 +331,7 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv){
     cout << _label << " remark: RUNNING IN STANDALONE MODE. "
 	 << "NO DISTRIBUTION.\n";
     _loadParameters();
+    _parametersLoaded = true;
     _initDatabases();
     if (!_initInput()){
       return false;
@@ -345,6 +345,7 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv){
   // we want to send to the init response stream
   stringstream& initResponse = _SZGClient.initResponse();
   _loadParameters();
+  _parametersLoaded = true;
 
   if (!_messageThread.beginThread(ar_distSceneGraphFrameworkMessageTask,
                                   this)) {
@@ -445,7 +446,7 @@ bool arDistSceneGraphFramework::start(){
   // We have two pathways depending upon whether or not we are in standalone
   // mode.
   if (_standalone){
-    _simulator.configure(_SZGClient);
+    _simPtr->configure(_SZGClient);
     // Must configure the window manager here and pass it to the graphicsClient
     // before configure (because, inside graphicsClient configure, it is used
     // with the arGUIXMLParser).
@@ -458,7 +459,7 @@ bool arDistSceneGraphFramework::start(){
     _windowManager->setUserData(this);
     _graphicsClient.setWindowManager(_windowManager);
     _graphicsClient.configure(&_SZGClient);
-    _graphicsClient.setSimulator(&_simulator);
+    _graphicsClient.setSimulator(_simPtr);
     _framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
     _graphicsClient.addFrameworkObject(&_framerateGraph);
     arSpeakerObject* speakerObject = new arSpeakerObject();
@@ -718,7 +719,7 @@ bool arDistSceneGraphFramework::_initInput(){
 						     "control_mode",
 						     "|simulator|joystick|");
     if (_standaloneControlMode == "simulator"){
-      _simulator.registerInputNode(_inputDevice);
+      _simPtr->registerInputNode(_inputDevice);
     }
     else{
       // the joystick is the only other option so far

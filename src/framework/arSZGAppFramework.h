@@ -6,6 +6,8 @@
 #ifndef AR_SZG_APP_FRAMEWORK_H
 #define AR_SZG_APP_FRAMEWORK_H
 
+#include "arInputSimulator.h"
+#include "arFramerateGraph.h"
 #include "arThread.h"
 #include "arSZGClient.h"
 #include "arInputNode.h"
@@ -26,6 +28,8 @@ class SZG_CALL arSZGAppFramework {
     arSZGAppFramework();
     virtual ~arSZGAppFramework();
     
+    bool setInputSimulator( arInputSimulator* sim );
+    
     virtual bool init(int& argc, char** argv ) = 0;
     virtual bool start() = 0;
     virtual void stop(bool blockUntilDisplayExit) = 0;
@@ -35,11 +39,11 @@ class SZG_CALL arSZGAppFramework {
     bool getStandalone() const { return _standalone; }
     void setStandalone( bool onoff ) { _standalone = onoff; }
 
-    virtual void setDataBundlePath(const string& /*bundlePathName*/,
-                                   const string& /*bundleSubDirectory*/){}
+    virtual void setDataBundlePath(const string&, const string&){}
 
     virtual void loadNavMatrix() = 0;
     
+    // Set-up the viewer (i.e. the user's head).
     void setEyeSpacing( float feet );
     void setClipPlanes( float near, float far );
     arHead* getHead(){ return &_head; }
@@ -50,8 +54,11 @@ class SZG_CALL arSZGAppFramework {
     virtual void setUnitSoundConversion( float conv );
     virtual float getUnitConversion();
     virtual float getUnitSoundConversion();
+    
     const string getDataPath()
       { return _dataPath; }
+      
+    // Basic access to the embedded input node.
     int getButton(       const unsigned int index ) const;
     float getAxis(       const unsigned int index ) const;
     arMatrix4 getMatrix( const unsigned int index, bool doUnitConversion=true ) const;
@@ -60,6 +67,8 @@ class SZG_CALL arSZGAppFramework {
     unsigned int getNumberButtons()  const;
     unsigned int getNumberAxes()     const;
     unsigned int getNumberMatrices() const;
+    
+    // Methods pertaining to the built-in navigation.
     bool setNavTransCondition( char axis,
                                arInputEventType type,
                                unsigned int index,
@@ -80,6 +89,7 @@ class SZG_CALL arSZGAppFramework {
     arInputState* getInputState()
       { return (arInputState*)_inputState; }
       
+    // Methods pertaining to event filtering.
     bool setEventFilter( arFrameworkEventFilter* filter );
     void setEventCallback( arFrameworkEventCallback callback );
     virtual void setEventQueueCallback( arFrameworkEventQueueCallback callback );
@@ -140,8 +150,16 @@ class SZG_CALL arSZGAppFramework {
     arThread _messageThread;
     arThread _inputConnectionThread;
     
-    // are we running in standalone mode?
-    bool  _standalone;
+    // Have the parameters been loaded?
+    bool	      _parametersLoaded;
+    
+    // Used in standalone mode.
+    bool              _standalone;
+    std::string       _standaloneControlMode;
+    arInputSimulator  _simulator;
+    arInputSimulator* _simPtr;
+    arFramerateGraph  _framerateGraph;
+    bool              _showPerformance;
 
     arCallbackEventFilter _callbackFilter;
     arFrameworkEventQueueCallback _eventQueueCallback;
@@ -184,5 +202,5 @@ class SZG_CALL arSZGAppFramework {
     bool _stopped;
 };
 
-#endif        //  #ifndefARSZGAPPFRAMEWORK_H
+#endif        //  #ifndefAR_SZG_APP_FRAMEWORK_H
 

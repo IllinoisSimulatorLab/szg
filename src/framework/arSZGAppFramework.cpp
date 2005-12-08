@@ -14,7 +14,10 @@ arSZGAppFramework::arSZGAppFramework() :
   _inputState(0),
   _label(""),
   _vircompExecution(false),
+  _parametersLoaded(false),
   _standalone(false),
+  _standaloneControlMode( "simulator" ),
+  _showPerformance( false ),
   _callbackFilter(this),
   _defaultUserFilter(),
   _userEventFilter(NULL),
@@ -26,12 +29,28 @@ arSZGAppFramework::arSZGAppFramework() :
   _exitProgram(false),
   _displayThreadRunning(false),
   _stopped(false){
+  
+  _simPtr = &_simulator;
   setEventQueueCallback(NULL);
 }
 
 arSZGAppFramework::~arSZGAppFramework() {
   if (_inputDevice != 0)
     delete _inputDevice;
+}
+
+bool arSZGAppFramework::setInputSimulator( arInputSimulator* sim ) {
+  if (_parametersLoaded) {
+    cerr << "arSZGAppFramework error: you can't set a new input simulator after "
+         << "the framework init().\n";
+    return false;
+  }
+  if (!sim) {
+    cerr << "arSZGAppFramework error: setInputSimulator() called with NULL pointer.\n";
+    return false;
+  }
+  _simPtr = sim;
+  return true;
 }
 
 void arSZGAppFramework::setEyeSpacing( float feet) {

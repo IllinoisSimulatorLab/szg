@@ -12,8 +12,6 @@
 #include "arGraphicsWindow.h"
 #include "arSoundClient.h"
 #include "arVRConstants.h"
-#include "arInputSimulator.h"
-#include "arFramerateGraph.h"
 #include "arSZGAppFramework.h"
 #include "arGUIWindowManager.h"
 // THIS MUST BE THE LAST SZG INCLUDE!
@@ -87,14 +85,10 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
 
   int _VRCameraID;
 
-  // stuff for standalone mode only
+  // Objects only used in standalone mode.
   arGraphicsClient    _graphicsClient;
   arSoundClient       _soundClient;
-  string              _standaloneControlMode;
-  arInputSimulator _simulator;
-  arFramerateGraph    _framerateGraph;
-  arGraphicsWindow    _graphicsWindow;
-
+  
   // Are we operating a graphics peer?
   string _peerName;
   // What mode are we operating it in? The special modes are source (default),

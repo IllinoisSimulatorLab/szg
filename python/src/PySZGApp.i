@@ -111,6 +111,8 @@ class arSZGAppFramework {
     arSZGAppFramework();
     virtual ~arSZGAppFramework();
     
+    bool setInputSimulator( arInputSimulator* sim );
+    
     virtual bool init(int& argc, char** argv ) = 0;
     virtual bool start() = 0;
     virtual void stop(bool blockUntilDisplayExit) = 0;
