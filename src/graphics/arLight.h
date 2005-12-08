@@ -17,6 +17,7 @@
 class SZG_CALL arLight{
  public:
   arLight();
+  arLight(const arLight&);
   ~arLight(){};
 
   int lightID;      

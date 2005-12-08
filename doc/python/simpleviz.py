@@ -22,33 +22,96 @@ import random
 widgetList = []
 
 class tool:
+	# Constructor.
 	def __init__(self):
-		self.transform = None
+		self.grabNode = None
+		self.drawNode = None
+		self.grabButton = 0
+		# The matrix held by the manipulation tool at the grab.
+		self.wandMatrixAtGrab = None
+		# The matrix held by the manipulated transform node at the grab.
+		# This member is used as a flag indicating whether the object is currently grabbed.
+		self.objMatrixAtGrab = None
+		
+	def attach(self, transformNode):
+		self.drawNode = transformNode
+				
+	# Start grabbing the object.
+	def attemptGrab(self, matrix):
+		if not self.grabNode:
+			return
+		self.objMatrixAtGrab = self.grabNode.get()
+		self.wandMatrixAtGrab = matrix
+
+	# Release a grabbed object (if any is currently grabbed).
+	def attemptRelease(self):
+		# This data member is used as a flag indicating if the object is currently grabbed.
+		self.objMatrixAtGrab = None
+
+	# If an object is grabbed, change its transform in response to user interface events.
+	def attemptDrag(self, matrix):
+		# Check to see if the object is currently grabbed.
+		if self.objMatrixAtGrab:
+			# Recall that ar_ETM is shorthand for ar_extractTranslationMatrix and ar_ERM is shorthand
+			# for ar_extractRotationMatrix. They assume the matrix can be written like T*R*S, where
+			# S is a uniform scaling.
+			tmp = ar_ETM(self.wandMatrixAtGrab)
+			# Note how translation and rotation and treated seperately for our interaction technique.
+			trans = ar_ETM(matrix)*tmp.inverse()*ar_ETM(self.objMatrixAtGrab)
+			rot = ar_ERM(matrix)*ar_ERM(self.wandMatrixAtGrab.inverse())*ar_ERM(self.objMatrixAtGrab)
+			# Don't forget to update the scene graph's transform node!
+			if self.grabNode:
+				self.grabNode.set(trans*rot)
+
+	def update(self, framework, event):
+		# Other valid event types are AR_EVENT_AXIS and AR_EVENT_MATRIX, with corresponding getAxis and getMatrix methods.
+		if event.getType() == AR_EVENT_BUTTON and event.getIndex() == self.grabButton:
+			# Button 0 (see getIndex above) has been pushed. Grab object.
+			if event.getButton() == 1:
+				self.attemptGrab(framework.getMatrix(1))
+			# Button 0 has been released. Release object.
+			else:
+				self.attemptRelease()
+		# Drag a grabbed object.
+		self.attemptDrag(framework.getMatrix(1))
+			
+class wandTool(tool):
+	# Constructor
+	def __init__(self):
+		tool.__init__(self)
 		self.length = 5
 		self.touching = 0
+		self.touchButton = 1
+		self.lastTouches = []
 	def attach(self, transformNode):
-		self.transform = transformNode
+		tool.attach(self, transformNode)
 		c = arCubeMesh()	
 		c.setTransform(ar_TM(0,0,-self.length/2.0)*ar_SM(0.5, 0.5, self.length))
-		c.attachMesh(self.transform)
+		c.attachMesh(self.drawNode)
 	def showTouched(self, l):
+		for n in self.lastTouches:
+			n[1].set(n[0])
+		self.lastTouches = []
 		for n in l:
 			m = n.findByType("material")
 			if m:
 				mat = m.get()
-				mat.diffuse = arVector3(0,0,1)
-				m.set(mat)
-			
+				self.lastTouches.append( (mat, m) )
+				# Must operate on a copy so that we do not modify the saved value!
+				mat2 = arMaterial(mat)
+				mat2.diffuse = arVector3(0,0,1)
+				m.set(mat2)
 	def update(self, framework, event):
+		tool.update(self, framework, event)
 		if event.getType() == AR_EVENT_MATRIX and event.getIndex() == 1:
-			self.transform.set(event.getMatrix())
+			self.drawNode.set(event.getMatrix())
 			if self.touching:
 				b = arBoundingSphere()
 				b.radius = 0.5
-				b.position = self.transform.get()*arVector3(0,0,-self.length)
+				b.position = self.drawNode.get()*arVector3(0,0,-self.length)
 				l = framework.getDatabase().intersectSphere(b)
 				self.showTouched(l)
-		if event.getType() == AR_EVENT_BUTTON and event.getIndex() == 0:
+		if event.getType() == AR_EVENT_BUTTON and event.getIndex() == self.touchButton:
 			self.touching = event.getButton()
 			
 
@@ -92,14 +155,18 @@ g = f.getDatabase()
 root = g.getRoot()
 addLights(root)
 toolTransform = root.new("transform")
-wand = tool()
+wand = wandTool()
 wand.attach(toolTransform)
 widgetList.append(wand)
 navNode = f.getNavNode()
+world = navNode.new("transform")
+rotator = tool()
+rotator.grabNode = world
+widgetList.append(rotator)
 tlist = []
 for i in range(8):
 	for j in range(8):
-		t = navNode.new("transform")
+		t = world.new("transform")
 		t.set(ar_TM(-3.5+i, -3.5+j + 5, -4))
 		tlist.append(t)
 		scl = t.new("transform")

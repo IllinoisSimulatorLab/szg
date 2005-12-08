@@ -17,6 +17,7 @@ class SZG_CALL arBoundingSphere{
  public:
   arBoundingSphere(){ radius = 0; visibility = false; }
   arBoundingSphere(const arVector3&, float);
+  arBoundingSphere(const arBoundingSphere&);
   ~arBoundingSphere(){}
 
   // Somewhat inaccurate. Only works if the matrix maps spheres to spheres.
@@ -41,6 +42,7 @@ class SZG_CALL arRay{
  public:
   arRay(){}
   arRay(const arVector3& o, const arVector3& d);
+  arRay(const arRay&);
   ~arRay(){}
 
   void transform(const arMatrix4&);

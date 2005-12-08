@@ -23,6 +23,20 @@ arLight::arLight(){
   spotExponent = 0;
 }
 
+arLight::arLight(const arLight& rhs){
+  lightID = rhs.lightID;
+  position = rhs.position;
+  diffuse = rhs.diffuse;
+  ambient = rhs.ambient;
+  specular = rhs.specular;
+  constantAttenuation = rhs.constantAttenuation;
+  linearAttenuation = rhs.linearAttenuation;
+  quadraticAttenuation = rhs.quadraticAttenuation;
+  spotDirection = rhs.spotDirection;
+  spotCutoff = rhs.spotCutoff;
+  spotExponent = rhs.spotExponent;
+}
+
 void arLight::activateLight(arMatrix4 lightPositionTransform){
   // convert the light ID to the OpenGL constant
   const GLenum lights[8] = {

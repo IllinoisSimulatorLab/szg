@@ -9,6 +9,103 @@
 #include "arSZGAppFramework.h"
 %}
 
+enum arHeadWandSimState{
+  AR_SIM_HEAD_TRANSLATE = 0,
+  AR_SIM_HEAD_ROTATE,
+  AR_SIM_WAND_TRANSLATE,
+  AR_SIM_WAND_TRANS_BUTTONS,
+  AR_SIM_WAND_ROTATE_BUTTONS,
+  AR_SIM_USE_JOYSTICK,
+  AR_SIM_SIMULATOR_ROTATE
+};
+
+class arInputSimulator: public arFrameworkObject{
+ public:
+  arInputSimulator();
+  virtual ~arInputSimulator();
+
+  virtual bool configure( arSZGClient& SZGClient );
+  void registerInputNode(arInputNode* node);
+
+  virtual void draw() const;
+  virtual void drawWithComposition();
+  void advance();
+
+  // used to capture and process mouse/keyboard data
+  virtual void keyboard(unsigned char key, int state, int x, int y);
+  virtual void mouseButton(int button, int state, int x, int y);
+  virtual void mousePosition(int x, int y);
+
+  virtual bool setMouseButtons( std::vector<unsigned int>& mouseButtons );
+  std::vector<unsigned int> getMouseButtons();
+  void setNumberButtonEvents( unsigned int numButtonEvents ); 
+  unsigned int getNumberButtonEvents() const;
+};
+
+%{
+class arPythonInputSimulator: public arInputSimulator{
+ public:
+  arPythonInputSimulator(): 
+    _drawCallback(NULL){
+  }
+  virtual ~arPythonInputSimulator();
+  
+  virtual void draw() const;
+  
+  void setDrawCallback(PyObject* drawCallback);
+  
+ private:
+  PyObject* _drawCallback;
+};
+
+arPythonInputSimulator::~arPythonInputSimulator(){
+  if (_drawCallback){
+    Py_XDECREF(_drawCallback);
+  }
+}
+  
+void arPythonInputSimulator::draw() const{
+  if (!_drawCallback){
+    throw "arPythonInputSimulator error: no draw callback.\n";
+  }
+  PyObject* args = Py_BuildValue("[]");
+  PyObject* result = PyEval_CallObject(_drawCallback, args);
+  // No return value is expected.
+  Py_XDECREF(result);
+  Py_DECREF(args);
+}
+
+void arPythonInputSimulator::setDrawCallback( PyObject* drawCallback ) {
+  if (!PyCallable_Check( drawCallback )) {
+    PyErr_SetString(PyExc_TypeError, "arPythonInputSimulator error: drawCallback not callable");
+    return;
+  }
+  Py_XDECREF(_drawCallback);
+  Py_XINCREF(drawCallback);
+  _drawCallback = drawCallback;
+}
+%}
+
+class arPythonInputSimulator: public arInputSimulator{
+ public:
+  arPythonInputSimulator();
+  virtual ~arPythonInputSimulator();
+  virtual void draw() const;
+  void setDrawCallback(PyObject* drawCallback);
+};
+
+%pythoncode{
+
+# Subclass this Python class to make new input simulator modules in Python.
+class arPyInputSimulator(arPythonInputSimulator):
+  def __init__(self):
+    arPyInputSimulator.__init__(self)
+    self.setDrawCallback( self.onDraw )
+  def onDraw( self):
+    pass
+    
+}
+
 class arSZGAppFramework {
   public:
     arSZGAppFramework();

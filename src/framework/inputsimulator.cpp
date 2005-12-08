@@ -140,7 +140,7 @@ int main(int argc, char** argv){
     else{
       arPForthFilter* filter = new arPForthFilter();
       ar_PForthSetSZGClient( szgclient );
-      if (!filter->configure( pforthProgram )){
+      if (!filter->loadProgram( pforthProgram )){
         cout << "inputsimulator remark: failed to configure pforth\n"
 	     << "filter with program =\n "
 	     << pforthProgram << "\n";

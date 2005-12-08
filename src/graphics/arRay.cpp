@@ -13,6 +13,12 @@ arBoundingSphere::arBoundingSphere(const arVector3& pos, float rad) :
 {
 }
 
+arBoundingSphere::arBoundingSphere(const arBoundingSphere& rhs){
+  position = rhs.position;
+  radius = rhs.radius;
+  visibility = rhs.visibility;
+}
+
 // Somewhat inaccurate. Only works if the matrix maps spheres to spheres
 // (for instance, all scaling must be uniform).
 void arBoundingSphere::transform(const arMatrix4& m){
@@ -76,6 +82,11 @@ arRay::arRay(const arVector3& o, const arVector3& d) :
   origin(o),
   direction(d)
 {
+}
+
+arRay::arRay(const arRay& rhs){
+  origin = rhs.origin;
+  direction= rhs.direction;
 }
 
 void arRay::transform(const arMatrix4& matrix){

@@ -65,11 +65,9 @@ void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
           fw->stop( false );
       break;
       case AR_VK_f:
-        // glutFullScreen();
         fw->_wm->fullscreenWindow( keyInfo->getWindowID() );
       break;
       case AR_VK_F:
-        // glutReshapeWindow(600,600);
         fw->_wm->resizeWindow( keyInfo->getWindowID(), 600, 600 );
       break;
       case AR_VK_P:
@@ -1772,7 +1770,7 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
         arPForthFilter* filter = new arPForthFilter();
         ar_PForthSetSZGClient( &_SZGClient );
 
-        if( !filter->configure( pforthProgram ) ) {
+        if( !filter->loadProgram( pforthProgram ) ) {
 	        std::cout << "arMasterSlaveFramework remark: failed to configure pforth\n"
 	                  << "filter with program =\n " << pforthProgram << std::endl;
           return false;

@@ -20,6 +20,7 @@
 class SZG_CALL arMaterial{
  public:
   arMaterial();
+  arMaterial(const arMaterial&);
   ~arMaterial(){}
 
   arVector3 diffuse;

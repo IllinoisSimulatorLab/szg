@@ -329,6 +329,7 @@ class arRay{
  public:
   arRay();
   arRay(const arVector3& o, const arVector3& d);
+  arRay(const arRay&);
   ~arRay();
 
   void transform(const arMatrix4&);
@@ -356,6 +357,7 @@ class arBoundingSphere{
  public:
   arBoundingSphere();
   arBoundingSphere(const arVector3& position, float radius);
+  arBoundingSphere(const arBoundingSphere&);
   ~arBoundingSphere();
   void transform(const arMatrix4& m);
   float intersect(const arBoundingSphere& b);
@@ -379,6 +381,7 @@ class arBoundingSphere{
 class arMaterial{
  public:
   arMaterial();
+  arMaterial(const arMaterial&);
   ~arMaterial();
 
   arVector3 diffuse;
@@ -405,6 +408,7 @@ class arMaterial{
 class arLight{
  public:
   arLight();
+  arLight(const arLight&);
   ~arLight();
 
   int lightID;      

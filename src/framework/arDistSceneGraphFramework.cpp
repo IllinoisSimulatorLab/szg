@@ -147,6 +147,13 @@ void ar_distSceneGraphGUIKeyboardFunction( arGUIKeyInfo* keyInfo ){
       // Do not exit here. Instead, let that happen inside the standalone
       // thread of control.
       break;
+    case AR_VK_f:
+        fw->_graphicsClient.getWindowManager()->fullscreenWindow( keyInfo->getWindowID() );
+      break;
+      case AR_VK_F:
+        fw->_graphicsClient.getWindowManager()->resizeWindow( keyInfo->getWindowID(), 600, 600 );
+      break;
+
     case 'P':
       fw->_graphicsClient.toggleFrameworkObjects();
       break;
@@ -746,7 +753,7 @@ bool arDistSceneGraphFramework::_initInput(){
           arPForthFilter* filter = new arPForthFilter();
           ar_PForthSetSZGClient( &_SZGClient );
       
-          if (!filter->configure( pforthProgram )){
+          if (!filter->loadProgram( pforthProgram )){
 	    cout << "arDistSceneGraphFramework remark: failed to configure "
 		 << "pforth\nfilter with program =\n "
 	         << pforthProgram << "\n";

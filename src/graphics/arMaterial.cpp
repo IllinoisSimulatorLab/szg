@@ -18,6 +18,15 @@ arMaterial::arMaterial(){
   alpha = 1;
 }
 
+arMaterial::arMaterial(const arMaterial& rhs){
+  diffuse = rhs.diffuse;
+  ambient = rhs.ambient;
+  specular = rhs.specular;
+  emissive = rhs.emissive;
+  exponent = rhs.exponent;
+  alpha = rhs.alpha;
+}
+
 void arMaterial::activateMaterial(){
   // Hmmm. This is a touch fishy. I'm not supporting the *full* OpenGL
   // model here. Note that we are always doing GL_FRONT_AND_BACK instead
