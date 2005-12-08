@@ -20,10 +20,6 @@ class SZG_CALL arNavInteractable : public arInteractable {
     arNavInteractable& operator=( const arNavInteractable& ni );
     ~arNavInteractable() {_cleanup();}
     virtual void setMatrix( const arMatrix4& matrix );    
-  protected:
-    virtual bool _processInteraction( arEffector& /*effector*/ ) { return true; }
-    virtual bool _touch( arEffector& /*effector*/ ) { return true; }
-    virtual bool _untouch() { return true; }
 };
 
 class SZG_CALL arNavManager {
@@ -62,4 +58,3 @@ class SZG_CALL arNavManager {
 };
 
 #endif        //  #ifndefARNAVMANAGER_H
-

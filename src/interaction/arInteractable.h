@@ -52,13 +52,13 @@ class SZG_CALL arInteractable {
     /// miscellaneous input.
     /// @param wandTipMatrix Wand tip position & orientation.
     /// @param events A vector of button on/off events.
-    virtual bool _processInteraction( arEffector& /*effector*/ ) { return true; }
+    virtual bool _processInteraction( arEffector& ) { return true; }
     
     /// Sub-class' gain-of-focus handler.    
-    virtual bool _touch( arEffector& /*effector*/ ) { return true; }
+    virtual bool _touch( arEffector& ) { return true; }
     /// Sub-class' loss-of-focus handler.    
     /// Called if _touched is true but this instance didn't get the focus.
-    virtual bool _untouch( arEffector& /*effector*/ ) { return true; }
+    virtual bool _untouch( arEffector& ) { return true; }
     void _ungrab();
     void _clearActiveDrags();
     virtual void _cleanup();
@@ -74,4 +74,3 @@ class SZG_CALL arInteractable {
 };
 
 #endif        //  #ifndefARINTERACTABLE_H
-
