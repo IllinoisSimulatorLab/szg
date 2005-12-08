@@ -84,10 +84,12 @@ void arInputEventQueue::appendQueue( const arInputEventQueue& eventQueue ) {
 }
 
 arInputEvent arInputEventQueue::popNextEvent() {
-  if (_queue.empty())
+  if (_queue.empty()) {
     return arInputEvent();
+  }
   arInputEvent temp = _queue.front();
   _queue.pop_front();
+//  _queue.erase( _queue.begin() );
   switch (temp.getType()) {
     case AR_EVENT_BUTTON:
       _numButtons--;

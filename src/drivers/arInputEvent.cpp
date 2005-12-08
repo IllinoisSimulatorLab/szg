@@ -39,12 +39,16 @@ arInputEvent::arInputEvent( const arInputEvent& e ) :
 }
 
 arInputEvent& arInputEvent::operator=( const arInputEvent& e ) {
-  if (&e == this)
+  if (&e == this) {
     return *this;
+  }
   _type = e._type;
   _index = e._index;
   _button = e._button;
   _axis = e._axis;
+  if (_matrix) {
+    delete _matrix;
+  }
   _matrix = (e._matrix == 0)?(0):(new arMatrix4( e._matrix->v ));
   return *this;
 }
