@@ -13,30 +13,27 @@
 #include "arIOFilter.h"
 
 void dumpState( arInputState& inp ) {
-  const int cb = inp.getNumberButtons();
-  const int ca = inp.getNumberAxes();
-  const int cm = inp.getNumberMatrices();
+  const unsigned cb = inp.getNumberButtons();
+  const unsigned ca = inp.getNumberAxes();
+  const unsigned cm = inp.getNumberMatrices();
   cout << "buttons: " << cb << ", "
        << "axes: " << ca << ", "
        << "matrices: " << cm << "\n";
   unsigned int i;
   if (cb > 0) {
     cout << "buttons: ";
-    for (i=0; i<inp.getNumberButtons(); i++){
+    for (i=0; i<cb; i++)
       cout << inp.getButton(i) << " ";
-    }
   }
   if (ca > 0) {
     cout << "\naxes: ";
-    for (i=0; i<inp.getNumberAxes(); i++){
+    for (i=0; i<ca; i++)
       cout << inp.getAxis(i) << " ";
-    }
   }
   if (cm > 0) {
     cout << "\nmatrices:\n";
-    for (i=0; i<inp.getNumberMatrices(); i++){
+    for (i=0; i<cm; i++)
       cout << inp.getMatrix(i) << endl;
-    }
   }
   cout << "\n*************************************************\n";
 }
