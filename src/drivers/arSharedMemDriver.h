@@ -6,7 +6,6 @@
 #ifndef AR_SHARED_MEM_DRIVER_H
 #define AR_SHARED_MEM_DRIVER_H
 
-#include "arInputSource.h"
 #include "arThread.h"
 #include "arMath.h"
 // THIS MUST BE THE LAST SZG INCLUDE!
@@ -33,7 +32,7 @@ class SZG_CALL arSharedMemDriver: public arInputSource {
     void* _shmFoB;
     void* _shmWand;
     arMutex _lockShm;
-    int _buttonPrev[10];
+    int _buttonPrev[8];
     arThread _eventThread;
 };
 

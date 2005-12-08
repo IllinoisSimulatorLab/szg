@@ -12,6 +12,7 @@
 #include <sys/shm.h>
 #endif
 #include "arDataUtilities.h"
+#include "arInputSource.h"
 #include "arSharedMemDriver.h"
 
 // Methods used by the dynamic library mappers. 
