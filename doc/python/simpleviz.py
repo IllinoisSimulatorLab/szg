@@ -114,6 +114,10 @@ class wandTool(tool):
 		if event.getType() == AR_EVENT_BUTTON and event.getIndex() == self.touchButton:
 			self.touching = event.getButton()
 			
+class simulator(arPyInputSimulator):
+	def onDraw(self):
+		pass
+			
 
 def addLights(r):
 	l = r.new("light")
@@ -142,12 +146,12 @@ def eventProcessing(framework, eventQueue):
 	return 1
 
 f = arDistSceneGraphFramework()
+sim = simulator()
+f.setInputSimulator(sim)
 # We want to do event-based interaction for the tool. See eventProcessing(...) function above.
 f.setEventQueueCallback(eventProcessing)
-
+f.setAutoBufferSwap(0)
 if f.init(sys.argv) != 1:
-	sys.exit()
-if f.start() != 1:
 	sys.exit()
 
 f.setNavTransSpeed(0.2)
@@ -186,10 +190,14 @@ for i in range(8):
 		s = arSphereMesh()
 		s.setAttributes(15)
 		s.attachMesh(m)
-
+		
+if f.start() != 1:
+	sys.exit()
+	
 while 1:
 	f.processEventQueue()
 	f.setViewer()
 	f.navUpdate()
         f.loadNavMatrix()
 	time.sleep(0.02)
+	f.swapBuffers()

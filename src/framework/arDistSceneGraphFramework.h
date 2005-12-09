@@ -53,7 +53,12 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   void setPlayer();
 
   bool restart();
+  
+  virtual bool createWindows();
+  virtual void loopQuantum(bool internalExit = false);
+  virtual void onExit(bool internalExit = false);
 
+  // Which input device matrix is the head matrix? Is it matrix 0? Is it matrix 1?
   void setHeadMatrixID(int);
   const string getNavNodeName() const { return "SZG_NAV_MATRIX"; }
   arDatabaseNode* getNavNode();
@@ -104,6 +109,9 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
 
   // Standalone mode requires a window manager.
   arGUIWindowManager* _windowManager;
+  
+  // Are we using the automatic buffer swap?
+  bool _autoBufferSwap;
 
   bool _loadParameters();
   void _getVector3(arVector3& v, const char* param);

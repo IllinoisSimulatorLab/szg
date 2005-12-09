@@ -75,31 +75,13 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
 // instead of having an szgrender do it.
 void ar_distSceneGraphFrameworkWindowTask(void* f){
   arDistSceneGraphFramework* fw = (arDistSceneGraphFramework*) f;
-  // Start the windowing. If there is only one window, then the window
-  // manager will be in single-threaded mode. Consequently, the windowing
-  // needs to be started in the window thread.
-  fw->_graphicsClient.start(fw->_SZGClient, false);
+  // If there is only one window, then the window manager will be in single-threaded 
+  // mode. Consequently, the windowing needs to be started in the window thread.
+  fw->createWindows();
   while (!fw->stopped()){ 
-    ar_timeval time1 = ar_time();
-    if (fw->_standalone && 
-        fw->_standaloneControlMode == "simulator"){
-      fw->_simPtr->advance();
-    }
-    fw->_soundClient._cliSync.consume();
-    // Inside here, through callbacks to the arSyncDataClient embedded inside
-    // the arGraphicsClient, is where all the scene graph event processing,
-    // drawing, and synchronization happens.
-    fw->_graphicsClient._cliSync.consume();
-    // Events like closing the window and hitting the ESC key that cause the
-    // window to close occur inside processWindowEvents(). Once they happen,
-    // fw-stopped() will return true and this loop will exit.
-    fw->_windowManager->processWindowEvents();
-    arPerformanceElement* framerateElement 
-      = fw->_framerateGraph.getElement("framerate");
-    double frameTime = ar_difftime(ar_time(), time1);
-    framerateElement->pushNewValue(1000000.0/frameTime);
+    fw->loopQuantum();
   }
-  fw->_windowManager->deleteAllWindows();
+  fw->onExit();
   exit(0);
 }
 
@@ -209,7 +191,8 @@ arDistSceneGraphFramework::arDistSceneGraphFramework() :
   _peerTarget("NULL"),
   _remoteRootID(0),
   _externalPeer(NULL),
-  _windowManager(NULL){
+  _windowManager(NULL),
+  _autoBufferSwap(true){
 }
 
 /// Syzygy messages currently consist of two strings, the first being
@@ -234,13 +217,16 @@ arGraphicsDatabase* arDistSceneGraphFramework::getDatabase(){
 }
 
 void arDistSceneGraphFramework::setAutoBufferSwap(bool autoBufferSwap){
-  // Has no meaning if we are a peer. Standalone mode does not support peers.
-  if (_peerName == "NULL" || _standalone){
-    _graphicsServer._syncServer.autoBufferSwap(autoBufferSwap);
-  }
+  // This variable selects between different synchronization styles in _initDatabases.
+  _autoBufferSwap = autoBufferSwap;
 }
 
 void arDistSceneGraphFramework::swapBuffers(){
+  if (_autoBufferSwap){
+    cout <<  "arDistSceneGraphFramework error: attempting to swap buffers "
+         <<  "manually in automatic swap mode.\n";
+    return;
+  }
   // Has no meaning if we are a peer. Peer has no meaning in standalone.
   if (_peerName == "NULL" || _standalone){
     _graphicsServer._syncServer.swapBuffers();
@@ -250,6 +236,9 @@ void arDistSceneGraphFramework::swapBuffers(){
     // rely on the swap timing of the remote display for a throttle.
     // NOTE: we are in peer mode here!
     ar_usleep(10000);
+  }
+  if (_standalone){
+    loopQuantum(true);
   }
 }
 
@@ -270,7 +259,8 @@ void arDistSceneGraphFramework::setPlayer(){
 	   _unitSoundConversion);
 }
 
-// WHAT IN THE HECK DOES THIS METHOD DO?
+// The head matrix ID is the index of the input device's matrix that
+// represents the head.
 void arDistSceneGraphFramework::setHeadMatrixID(int id) {
   _headMatrixID = id;
 }
@@ -471,7 +461,13 @@ bool arDistSceneGraphFramework::start(){
     _inputDevice->start();
     // In standalone mode, we need to start a thread for the display.
     arThread graphicsThread;
-    graphicsThread.beginThread(ar_distSceneGraphFrameworkWindowTask, this);
+    // In standalone mode, only begin an external thread if buffers will be automatically swapped.
+    if (_autoBufferSwap){
+      graphicsThread.beginThread(ar_distSceneGraphFrameworkWindowTask, this);
+    }
+    else{
+      return createWindows();
+    }
     return true;
   }
   
@@ -561,6 +557,43 @@ void arDistSceneGraphFramework::stop(bool){
   _stopped = true;
 }
 
+bool arDistSceneGraphFramework::createWindows(){
+  // Start the windowing. 
+  return _graphicsClient.start(_SZGClient, false);
+}
+
+void arDistSceneGraphFramework::loopQuantum(bool internalExit){
+  ar_timeval time1 = ar_time();
+  if (_standalone && 
+      _standaloneControlMode == "simulator"){
+      _simPtr->advance();
+  }
+  _soundClient._cliSync.consume();
+  // Inside here, through callbacks to the arSyncDataClient embedded inside
+  // the arGraphicsClient, is where all the scene graph event processing,
+  // drawing, and synchronization happens.
+  _graphicsClient._cliSync.consume();
+  // Events like closing the window and hitting the ESC key that cause the
+  // window to close occur inside processWindowEvents(). Once they happen,
+  // stopped() will return true and this loop will exit.
+  _windowManager->processWindowEvents();
+  arPerformanceElement* framerateElement 
+    = _framerateGraph.getElement("framerate");
+  double frameTime = ar_difftime(ar_time(), time1);
+  framerateElement->pushNewValue(1000000.0/frameTime);
+  // Check to see whether exit should occur.
+  if (internalExit && stopped()){
+    onExit(true);
+  }
+}
+
+void arDistSceneGraphFramework::onExit(bool internalExit){
+  _windowManager->deleteAllWindows();
+  if (internalExit){
+    exit(0);
+  }
+}
+
 bool arDistSceneGraphFramework::restart(){
   // Stop the framework and restart (the stop parameter is meaningless so far)
   stop(true);
@@ -568,6 +601,7 @@ bool arDistSceneGraphFramework::restart(){
 }
 
 /// Hmmm. This one seems like a little bit of a hack.
+/// TO BE REMOVED???????????????? Think about how the graphics peer might get used...
 int arDistSceneGraphFramework::getNodeID(const string& name){
   if (_peerName == "NULL"){
     return _graphicsServer.getNodeID(name);
@@ -578,6 +612,7 @@ int arDistSceneGraphFramework::getNodeID(const string& name){
   return _graphicsPeer.remoteNodeID(_peerTarget, name);
 }
 
+/// TO BE REMOVED?????????????????????????????
 arDatabaseNode* arDistSceneGraphFramework::getNode(int ID){
   // only makes sense if we are running normally OR if we are in
   // "feedback" mode and consequently have a database copy.
@@ -672,12 +707,20 @@ void arDistSceneGraphFramework::_initDatabases(){
   // PLEASE NOTE: we cannot be in peer mode on standalone (peer mode
   // only makes sense when we are part of a Phleet).
   if (_standalone){
+    // In standalone mode, with manual buffer swapping, we need to be in "nosync" mode. 
+    // This allows us to do things in only one thread, which is important for Python
+    // code. (Otherwise there would be a deadlock)
+    _graphicsServer._syncServer.setMode(_autoBufferSwap ? AR_SYNC_AUTO_SERVER : AR_NOSYNC_MANUAL_SERVER);
     _graphicsClient._cliSync.registerLocalConnection
       (&_graphicsServer._syncServer);
     _soundClient._cliSync.registerLocalConnection
       (&_soundServer._syncServer);
     // We'll be using the sound client locally to play. Must init it.
     (void)_soundClient.init();
+  }
+  else{
+    // In phleet mode, the _syncServer *always* syncs with its client.
+    _graphicsServer._syncServer.setMode(_autoBufferSwap ? AR_SYNC_AUTO_SERVER : AR_SYNC_MANUAL_SERVER);
   }
   
   // Set up a default viewing position.

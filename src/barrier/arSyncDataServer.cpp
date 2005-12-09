@@ -166,7 +166,6 @@ arSyncDataServer::arSyncDataServer() :
   _mode(AR_SYNC_AUTO_SERVER),
   _dataQueue(NULL),
   _messageBufferFull(false),
-  _autoBufferSwap(true),
   _exitProgram(false),
   _sendThreadRunning(false),
   _channel("NULL"),
@@ -196,13 +195,15 @@ bool arSyncDataServer::setMode(int theMode){
   return true;
 }
 
+// In the case of arGraphicsServer and arSoundServer, we want to pass in
+// the appropriate language (i.e. a graphics dictionary or a sound dictionary
+// respectively). 
 bool arSyncDataServer::setDictionary(arTemplateDictionary* dictionary){
   if (!dictionary) {
     cerr << "arSyncDataServer error: NULL dictionary.\n";
     return false;
   }
   _dictionary = dictionary;
-  // HMMM. MAYBE I DON'T NEED TO PASS IN THE DICTIONARY ANYMORE?
   if (!_dataQueue){
     _dataQueue = new arQueuedData();
   }
@@ -211,13 +212,6 @@ bool arSyncDataServer::setDictionary(arTemplateDictionary* dictionary){
 
 void arSyncDataServer::setBondedObject(void* bondedObject){
   _bondedObject = bondedObject;
-}
-
-void arSyncDataServer::autoBufferSwap(bool state){
-  _autoBufferSwap = state;
-  // let's get some consistency
-  _mode = _autoBufferSwap ?
-    AR_SYNC_AUTO_SERVER : AR_SYNC_MANUAL_SERVER;
 }
 
 void arSyncDataServer::setConnectionCallback

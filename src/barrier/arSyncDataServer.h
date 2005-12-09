@@ -49,7 +49,6 @@ class SZG_CALL arSyncDataServer{
   bool setMode(int);
   bool setDictionary(arTemplateDictionary*);
   void setBondedObject(void*);
-  void autoBufferSwap(bool);
   void setConnectionCallback
     (bool (*connectionCallback)(void*,arQueuedData*,list<arSocket*>*));
   void setMessageCallback
@@ -87,7 +86,6 @@ class SZG_CALL arSyncDataServer{
 
   arTemplateDictionary* _dictionary;
   void* _bondedObject;
-  bool _autoBufferSwap;
 
   arThread _connectionThread;
   arThread _sendThread;

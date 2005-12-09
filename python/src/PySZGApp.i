@@ -68,7 +68,7 @@ void arPythonInputSimulator::draw() const{
   if (!_drawCallback){
     throw "arPythonInputSimulator error: no draw callback.\n";
   }
-  PyObject* args = Py_BuildValue("[]");
+  PyObject* args = Py_BuildValue("()");
   PyObject* result = PyEval_CallObject(_drawCallback, args);
   // No return value is expected.
   Py_XDECREF(result);
@@ -99,7 +99,7 @@ class arPythonInputSimulator: public arInputSimulator{
 # Subclass this Python class to make new input simulator modules in Python.
 class arPyInputSimulator(arPythonInputSimulator):
   def __init__(self):
-    arPyInputSimulator.__init__(self)
+    arPythonInputSimulator.__init__(self)
     self.setDrawCallback( self.onDraw )
   def onDraw( self):
     pass
