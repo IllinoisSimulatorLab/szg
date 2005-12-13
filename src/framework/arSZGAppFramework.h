@@ -19,6 +19,8 @@
 #include "arNavManager.h"
 #include "arNavigationUtilities.h"
 #include "arFrameworkEventFilter.h"
+#include "arGUIWindowManager.h"
+#include "arGUIXMLParser.h"
 #include <set>
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arFrameworkCalling.h"
@@ -131,15 +133,6 @@ class SZG_CALL arSZGAppFramework {
     arSZGClient _SZGClient;
 
   protected:
-    void _installFilters();
-    virtual bool _loadParameters() = 0;
-    void _loadNavParameters();
-    bool _parseNavParamString( const string& theString,
-                               arInputEventType& type,
-                               unsigned int& index,
-                               float& threshold,
-                               stringstream& initStream );
-    bool _paramNotOwned( const std::string& theString );
     arInputNode* _inputDevice;
     arInputState* _inputState;
     string _label;
@@ -149,10 +142,7 @@ class SZG_CALL arSZGAppFramework {
     bool _vircompExecution;
     arThread _messageThread;
     arThread _inputConnectionThread;
-    
-    // Have the parameters been loaded?
-    bool	      _parametersLoaded;
-    
+        
     // Used in standalone mode.
     bool              _standalone;
     std::string       _standaloneControlMode;
@@ -170,15 +160,28 @@ class SZG_CALL arSZGAppFramework {
     
     arHead _head;
 
-    // the graphics unitConversion resides in the head now for convenience.
+    // The graphics unitConversion resides in the head now for convenience.
     float _unitSoundConversion;
 
     int _speechNodeID;
     
     arNavManager _navManager;
     std::set< std::string > _ownedParams;
+    
+    // Standalone mode requires a window manager. Master/slave framework requires
+    // a window manager both in standalone and phleet modes.
+    arGUIWindowManager* _wm;
+    // The scene graph framework does not use this parser, but the m/s framework does.
+    arGUIXMLParser* _guiXMLParser;
+    
+    // Various book-keeping flags.
+    // Keep track of when the init and start methods have been successfully called.
+    bool _initCalled;
+    bool _startCalled;
+    // Have the parameters been loaded?
+    bool _parametersLoaded;
 
-    // variables that have to do with deterministic shutdown
+    // Variables that have to do with deterministic shutdown.
 
     // As a preliminary hack, the frameworks support a single, external
     // user thread, which can be deterministically shut down along with 
@@ -200,6 +203,17 @@ class SZG_CALL arSZGAppFramework {
     // Set to true when stop(...) has completed. Might be needed if the
     // exit(0) is going to occur in an application-defined thread.
     bool _stopped;
+    
+    void _installFilters();
+    virtual bool _loadParameters() = 0;
+    void _loadNavParameters();
+    bool _parseNavParamString( const string& theString,
+                               arInputEventType& type,
+                               unsigned int& index,
+                               float& threshold,
+                               stringstream& initStream );
+    bool _paramNotOwned( const std::string& theString );
+    
 };
 
 #endif        //  #ifndefAR_SZG_APP_FRAMEWORK_H

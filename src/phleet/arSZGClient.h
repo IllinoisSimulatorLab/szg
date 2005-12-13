@@ -123,7 +123,7 @@ class SZG_CALL arSZGClient{
 
   bool parseAssignmentString(const string& text);
   // A way to get parameters in from a file (as in dbatch, for instance)
-  bool parseParameterFile(const string& fileName);
+  bool parseParameterFile(const string& fileName, bool warn = true);
 
   const string& getLabel() const
     { return _exeName; }
@@ -226,6 +226,8 @@ class SZG_CALL arSZGClient{
 
   bool sendReload(const string& computer, const string& processLabel);
 
+  bool getVerbosity() const
+  { return _verbosity; }
   bool connected() const
     { return _connected; }
   operator bool() const
@@ -270,23 +272,26 @@ class SZG_CALL arSZGClient{
   ARchar*       _receiveBuffer;
   int           _receiveBufferSize;
 
-  // members related to the handshaking and information-passing on start-up
+  // Members related to the handshaking and information-passing on start-up
   int           _launchingMessageID;
   bool          _dexHandshaking;
   bool          _simpleHandshaking;
   bool          _parseSpecialPhleetArgs;
   stringstream  _initResponseStream;
   stringstream  _startResponseStream;
-  // member related to service registration/discovery. NOTE: we want to be
+  // Member related to service registration/discovery. NOTE: we want to be
   // able to use the service/registration/discovery functions in multiple
   // threads.
   arMutex       _serviceLock;
   int           _nextMatch;   // used in matching-up async rpc's
-                              // (conceptually, at any rate)
 
   arStructuredDataParser* _dataParser;
   arThread                _clientDataThread;
+  
+  // Should the component which owns us be VERBOSE in printing remarks?
+  bool _verbosity;
 
+  // Internal functions follow.
   bool _dialUpFallThrough();
   arStructuredData* _getDataByID(int recordID);
   arStructuredData* _getTaggedData(int tag,

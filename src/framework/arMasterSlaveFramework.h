@@ -18,7 +18,6 @@
 #include "arSZGAppFramework.h"
 #include "arVRCamera.h"
 #include "arMasterSlaveDataRouter.h"
-#include "arGUIWindowManager.h"
 #include "arGUIInfo.h"
 #include <vector>
 // THIS MUST BE THE LAST SZG INCLUDE!
@@ -220,11 +219,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   arTransferFieldData     _internalTransferFieldData;
   arMasterSlaveDataRouter _dataRouter;
 
-  bool                 _userInitCalled;
-
-  arGUIWindowManager* _wm;
-  arGUIXMLParser* _guiXMLParser;
-
   // need to store the networks on which we'll try to connect to services
   // as well as the name of the service we'll be using
   std::string _serviceName;
@@ -336,7 +330,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool _sync( void );
 
   // graphics utility functions
-  // void _createGLUTWindow( void );
   void _createWindowing( bool useWindowing );
   void _handleScreenshot( bool stereo );
 

@@ -8,7 +8,6 @@
 #include "arMesh.h"
 #include "arInterfaceObject.h"
 #include "arDistSceneGraphFramework.h"
-// put this someplace better.  like arGraphicsAPI.h is included in arMesh.h.
 #include "arSoundAPI.h" 
 
 // stuff that's really specific to this app
@@ -19,7 +18,6 @@ arStructuredData* linesData = NULL;
 arStructuredData* linePointsData = NULL;
 int linePointsID = -1;
 int visibilityID = -1;
-//bool bumpMap = false;
 
 arMatrix4 worldTransform, navTransform;
 arMatrix4 local1Matrix, local2Matrix, local3Matrix, local4Matrix;
@@ -65,31 +63,15 @@ void worldInit(arDistSceneGraphFramework* framework){
   // global transform, as controlled by the input device
   const string navNodeName = framework->getNavNodeName();
 
-//  navTransformID[0] = dgTransform("nav","root",navTransform);
-//  navTransformID[1] = dsTransform("nav","root",navTransform);
-
-  // a light
+  // The lights.
   dgLight("light0","root",0,arVector4(0,0,1,0),arVector3(1,1,1));
   dgLight("light1","root",1,arVector4(0,0,-1,0),arVector3(1,1,1));
   dgLight("light2","root",2,arVector4(0,-1,0,0),arVector3(1,1,1));
   dgLight("light3","root",3,arVector4(0,1,0,0),arVector3(1,1,1));
 
-  //************************************************************************
-  // NOTE: the moving spotlights have been disabled for now...
-  // there seems to be a weirdness about light position, etc.
-  //************************************************************************
   lightTransformID[0] = dgTransform("light trans 0",navNodeName,lightTransform[0]);
-  //dgLight("light0","light trans 0",0,arVector4(0,0,20,1),arVector3(1,1,1),
-  //        arVector3(0,0,0),arVector3(1,1,1),arVector3(1,0,0),
-  //        arVector3(0,0,-1),5,2);
   lightTransformID[1] = dgTransform("light trans 1",navNodeName,lightTransform[1]);
-  //dgLight("light1","light trans 1",1,arVector4(0,20,0,1),arVector3(1,1,1),
-  //        arVector3(0,0,0),arVector3(1,1,1),arVector3(1,0,0),
-  //        arVector3(0,-1,0),5,2);
   lightTransformID[2] = dgTransform("light trans 2",navNodeName,lightTransform[2]);
-  //dgLight("light2","light trans 2",2,arVector4(20,0,0,1),arVector3(1,1,1),
-  //        arVector3(0,0,0),arVector3(1,1,1),arVector3(1,0,0),
-  //        arVector3(-1,0,0),5,2);
 
   // object transform
   worldTransformID[0] = dgTransform("world",navNodeName,worldTransform);
@@ -101,10 +83,6 @@ void worldInit(arDistSceneGraphFramework* framework){
   dgTexture("texture1", "local1", "WallTexture1.ppm");
   dgMaterial("material1", "texture1", arVector3(1,0.6,0.6));
   arTorusMesh theMesh(60,30,4,0.5);
-  // Only made sense with the failed CG experiment.
-  //if (bumpMap){
-  //  theMesh.setBumpMapName("normal.ppm");
-  //}
   theMesh.attachMesh("torus1","material1");
 
   // attach torus 2
@@ -197,24 +175,23 @@ void worldAlter(){
 }
 
 int main(int argc, char** argv){
-  arDistSceneGraphFramework* framework = new arDistSceneGraphFramework;
   // We could dispense with the pointer, but it *might* cause that
   // intermittent constructor-hang.  To be tested more.
-
-  //if (argc > 1 && !strcmp(argv[1],"-b")) {
-  //  bumpMap = true;
-  //}
-  // Initialize everything.
-  if (!framework->init(argc,argv))
+  arDistSceneGraphFramework* framework = new arDistSceneGraphFramework;
+  // MUST set the buffer swap mode BEFORE init!
+  framework->setAutoBufferSwap(false);
+  if (!framework->init(argc,argv)){
     return 1;
+  }
+  
   // Where we can put the textures and sounds.
   framework->setDataBundlePath("SZG_DATA", "cosmos");
   arInterfaceObject interfaceObject;
-  interfaceObject.setInputDevice(framework->getInputDevice());
+  interfaceObject.setInputDevice(framework->getInputNode());
   // The following is VERY important... otherwise the navigation is
   // WAY too fast.
   interfaceObject.setSpeedMultiplier(0.15);
-  framework->setAutoBufferSwap(false);
+  
   worldInit(framework);
 
   // Configure stereo view.
@@ -242,8 +219,6 @@ int main(int argc, char** argv){
     dgTransform(worldTransformID[0], worldTransform);
     dsTransform(worldTransformID[1], worldTransform);
     framework->loadNavMatrix();
-//    dgTransform(navTransformID[0], navTransform);
-//    dsTransform(navTransformID[1], navTransform);
 
     worldAlter();
 

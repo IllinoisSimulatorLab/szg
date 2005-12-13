@@ -24,7 +24,8 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
       // disconnected (i.e. we cannot manipulate the system anymore)
       
       // Important that we stop the framework (the parameter is meaningless
-      // so far)
+      // so far for this framework, though it is important for the master/slave
+      // framework.)
       f->stop(true);
       exit(0);
     }
@@ -77,12 +78,17 @@ void ar_distSceneGraphFrameworkWindowTask(void* f){
   arDistSceneGraphFramework* fw = (arDistSceneGraphFramework*) f;
   // If there is only one window, then the window manager will be in single-threaded 
   // mode. Consequently, the windowing needs to be started in the window thread.
-  fw->createWindows();
-  while (!fw->stopped()){ 
-    fw->loopQuantum();
+  fw->_windowsCreated = fw->createWindows();
+  // Tell the launching thread the result.
+  fw->_windowsCreatedSignal.sendSignal();
+  // Only proceed if, in fact, the launching succeeded.
+  if (fw->_windowsCreated){
+    while (!fw->stopped()){ 
+      fw->loopQuantum();
+    }
+    fw->onExit();
+    exit(0);
   }
-  fw->onExit();
-  exit(0);
 }
 
 void ar_distSceneGraphGUIMouseFunction( arGUIMouseInfo* mouseInfo ) {
@@ -112,6 +118,7 @@ void ar_distSceneGraphGUIMouseFunction( arGUIMouseInfo* mouseInfo ) {
   }
 }
 
+// Keyboard function used by arGUI in standalone mode.
 void ar_distSceneGraphGUIKeyboardFunction( arGUIKeyInfo* keyInfo ){
   if (!keyInfo || !keyInfo->getUserData() ){
     return;
@@ -169,6 +176,7 @@ void ar_distSceneGraphGUIWindowFunction(arGUIWindowInfo* windowInfo){
     break;
   case AR_WINDOW_CLOSE:
     // Stop the framework (parameter is meaningless so far, though it does
+    // have meaning on the arMasterSlaveFramework side.
     fw->stop(true);
     // Do not exit here. Instead, let that happen inside the main thread of
     // control for standalone mode.
@@ -181,9 +189,9 @@ void ar_distSceneGraphGUIWindowFunction(arGUIWindowInfo* windowInfo){
 
 arDistSceneGraphFramework::arDistSceneGraphFramework() :
   arSZGAppFramework(),
+  _usedGraphicsDatabase(NULL),
   _userMessageCallback(NULL),
-  _headMatrixID(AR_VR_HEAD_MATRIX_ID),
-  _graphicsNavMatrixID(-1),
+  _graphicsNavNode(NULL),
   _soundNavMatrixID(-1),
   _VRCameraID(-1),
   _peerName("NULL"),
@@ -191,11 +199,11 @@ arDistSceneGraphFramework::arDistSceneGraphFramework() :
   _peerTarget("NULL"),
   _remoteRootID(0),
   _externalPeer(NULL),
-  _windowManager(NULL),
+  _windowsCreated(false),
   _autoBufferSwap(true){
 }
 
-/// Syzygy messages currently consist of two strings, the first being
+/// Syzygy messages consist of two strings, the first being
 /// a type and the second being a value. The user can send messages
 /// to the arMasterSlaveFramework and the application can trap them
 /// using this callback. A message w/ type "user" and value "foo" will
@@ -205,90 +213,11 @@ void arDistSceneGraphFramework::setUserMessageCallback
   _userMessageCallback = userMessageCallback;
 }
 
-
-arGraphicsDatabase* arDistSceneGraphFramework::getDatabase(){
-  // Standalone mode does not support peers.
-  if (_peerName == "NULL" || _standalone){
-    return &_graphicsServer;
-  }
-  else{
-    return &_graphicsPeer;
-  }
-}
-
-void arDistSceneGraphFramework::setAutoBufferSwap(bool autoBufferSwap){
-  // This variable selects between different synchronization styles in _initDatabases.
-  _autoBufferSwap = autoBufferSwap;
-}
-
-void arDistSceneGraphFramework::swapBuffers(){
-  if (_autoBufferSwap){
-    cout <<  "arDistSceneGraphFramework error: attempting to swap buffers "
-         <<  "manually in automatic swap mode.\n";
-    return;
-  }
-  // Has no meaning if we are a peer. Peer has no meaning in standalone.
-  if (_peerName == "NULL" || _standalone){
-    _graphicsServer._syncServer.swapBuffers();
-  }
-  else{
-    // This is a necessary throttle for applications that would otherwise
-    // rely on the swap timing of the remote display for a throttle.
-    // NOTE: we are in peer mode here!
-    ar_usleep(10000);
-  }
-  if (_standalone){
-    loopQuantum(true);
-  }
-}
-
-void arDistSceneGraphFramework::setViewer(){
-  _head.setMatrix( _inputDevice->getMatrix(_headMatrixID) );
-  // It does not make sense to do this for the peer case.
-  if (_peerName == "NULL"){
-    // An alter(...) on a "graphics admin" record, as occurs in setVRCameraID,
-    // cannot occur in a arGraphicsPeer.
-    _graphicsServer.setVRCameraID(_VRCameraID);
-    dgViewer( _VRCameraID, _head );
-  } 
-}
-
-void arDistSceneGraphFramework::setPlayer(){
-  dsPlayer(_inputDevice->getMatrix(_headMatrixID),
-	   _head.getMidEyeOffset(),
-	   _unitSoundConversion);
-}
-
-// The head matrix ID is the index of the input device's matrix that
-// represents the head.
-void arDistSceneGraphFramework::setHeadMatrixID(int id) {
-  _headMatrixID = id;
-}
-
-arDatabaseNode* arDistSceneGraphFramework::getNavNode(){
-  // Standalone mode does not support peers.
-  if (_peerName == "NULL" || _standalone){
-    return _graphicsServer.getNode(_graphicsNavMatrixID);
-  }
-  else{
-    return _graphicsPeer.getNode(_graphicsNavMatrixID);
-  }
-}
-
-void arDistSceneGraphFramework::loadNavMatrix() {
-  // Navigate whether or not we are in peer mode (in the
-  // case of peer mode, only explicit setNavMatrix calls
-  // will have an effect since the input device is
-  // "disconnected").
-  const arMatrix4 navMatrix( ar_getNavInvMatrix() );
-  if (_graphicsNavMatrixID != -1){
-    dgTransform( _graphicsNavMatrixID, navMatrix );
-  }
-  if (_soundNavMatrixID != -1){
-    dsTransform( _soundNavMatrixID, navMatrix );
-  }
-}
-
+/// Control additional locations where the databases (both sound and graphics)
+/// search for their data (sounds and textures respectively). For instance,
+/// it might be convenient to put these with other application data (SZG_DATA
+/// would be the bundlePathName) instead of in SZG_TEXTURE/path or SZG_SOUND/path.
+/// For python programs, it might be convenient to put the data in SZG_PYTHON.
 void arDistSceneGraphFramework::setDataBundlePath(const string& bundlePathName,
                                                   const string& bundleSubDirectory) {
   _graphicsServer.setDataBundlePath(bundlePathName, bundleSubDirectory);
@@ -304,7 +233,99 @@ void arDistSceneGraphFramework::setDataBundlePath(const string& bundlePathName,
   _soundClient.setDataBundlePath(bundlePathName, bundleSubDirectory);
 }
 
+/// Returns a pointer to the graphics database being used, so that programs
+/// can alter it directly.
+arGraphicsDatabase* arDistSceneGraphFramework::getDatabase(){
+  // Standalone mode does not support peers.
+  if (_peerName == "NULL" || _standalone){
+    return &_graphicsServer;
+  }
+  else{
+    return &_graphicsPeer;
+  }
+}
+
+void arDistSceneGraphFramework::setAutoBufferSwap(bool autoBufferSwap){
+  if (_initCalled){
+    cout << "arDistSceneGraphFramework error: setAutoBufferSwap(...) MUST BE CALLED "
+         << "BEFORE init(...). PLEASE CHANGE YOUR CODE.\n";
+    return;
+  }
+  // This variable selects between different synchronization styles in _initDatabases.
+  _autoBufferSwap = autoBufferSwap;
+}
+
+void arDistSceneGraphFramework::swapBuffers(){
+  if (_autoBufferSwap){
+    cout <<  "arDistSceneGraphFramework error: attempting to swap buffers "
+         <<  "manually in automatic swap mode.\n";
+    return;
+  }
+  if (_standalone){
+    // If we've made it here, then we are *not* in auto buffer swap mode, but
+    // we *are* in standalone mode.
+    
+    // Must swap the (message) buffer.
+    _graphicsServer._syncServer.swapBuffers();
+    // The windowing is occuring in this thread, hence execute the following.
+    loopQuantum(true);
+  }
+  else if (_peerName == "NULL"){
+    // No synchronization occurs in the peer case! (i.e. _peerName != "NULL")
+    _graphicsServer._syncServer.swapBuffers();
+  }
+  else{
+    // We are in "peer mode" and there is no need to swap (message) buffers.
+    // The following sleep is a necessary throttle for applications that would 
+    // otherwise rely on the swap timing of the remote display for a throttle.
+    ar_usleep(10000);
+  }
+}
+
+arDatabaseNode* arDistSceneGraphFramework::getNavNode(){
+  return _graphicsNavNode;
+}
+
+void arDistSceneGraphFramework::loadNavMatrix() {
+  // Navigate whether or not we are in peer mode (in the
+  // case of peer mode, only explicit setNavMatrix calls
+  // will have an effect since the input device is
+  // "disconnected").
+  const arMatrix4 navMatrix( ar_getNavInvMatrix() );
+  _graphicsNavNode->setTransform(navMatrix);
+  if (_soundNavMatrixID != -1){
+    dsTransform( _soundNavMatrixID, navMatrix );
+  }
+}
+
+void arDistSceneGraphFramework::setViewer(){
+  _head.setMatrix( _inputDevice->getMatrix(AR_VR_HEAD_MATRIX_ID) );
+  // It does not make sense to do this for the peer case.
+  if (_peerName == "NULL"){
+    // An alter(...) on a "graphics admin" record, as occurs in setVRCameraID,
+    // cannot occur in a arGraphicsPeer.
+    _graphicsServer.setVRCameraID(_VRCameraID);
+    dgViewer( _VRCameraID, _head );
+  } 
+}
+
+void arDistSceneGraphFramework::setPlayer(){
+  dsPlayer(_inputDevice->getMatrix(AR_VR_HEAD_MATRIX_ID),
+	   _head.getMidEyeOffset(),
+	   _unitSoundConversion);
+}
+
 bool arDistSceneGraphFramework::init(int& argc, char** argv){
+  if (_initCalled){
+    cout << "arDistSceneGraphFramework error: MUST CALL init(...) ONLY ONCE.\n"
+         << "  PLEASE CHANGE YOUR CODE.\n";
+    return false;
+  }
+  if (_startCalled){
+    cout << "arDistSceneGraphFramework error: init(...) MUST BE CALLED BEFORE start().\n"
+         << "  PLEASE CHANGE YOUR CODE.\n";
+    return false;
+  }
   _label = string(argv[0]);
   _label = ar_stripExeName(_label); // remove pathname and .EXE
   // See if there are special -dsg args in the arg list and strip them out.
@@ -312,216 +333,53 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv){
     return false;
   }
 
-  // connect to the szgserver
+  // Connect to the szgserver.
   _SZGClient.simpleHandshaking(false);
-  _SZGClient.init(argc, argv);
+  // If the szgClient cannot be initialized, fail. Do not print anything out
+  // since it already did.
+  if (!_SZGClient.init(argc, argv)){
+    return false; 
+  }
+  
+  bool state = false;
   if (!_SZGClient){
     // We must be in standalone mode.
-    _standalone = true;
-    cout << _label << " remark: RUNNING IN STANDALONE MODE. "
-	 << "NO DISTRIBUTION.\n";
-    _loadParameters();
-    _parametersLoaded = true;
-    _initDatabases();
-    if (!_initInput()){
-      return false;
-    }
-    // we are done because we are in standalone mode
-    return true;
+    state = _initStandaloneMode();
+    _initCalled = true;
+    return state;
   }
 
-  // This is what happens if we are, in fact, connected to an szgserver
-
-  // we want to send to the init response stream
-  stringstream& initResponse = _SZGClient.initResponse();
-  _loadParameters();
-  _parametersLoaded = true;
-
-  if (!_messageThread.beginThread(ar_distSceneGraphFrameworkMessageTask,
-                                  this)) {
-    initResponse << _label << " error: failed to start message thread.\n";
-    if (!_SZGClient.sendInitResponse(false))
-      cerr << _label << " error: maybe szgserver died.\n";
-    return false;
-  }
-
-  // Figure out whether we should launch the other executables.
-  if (_SZGClient.getMode("default") == "trigger"){
-    const string vircomp = _SZGClient.getVirtualComputer();
-    const string defaultMode = _SZGClient.getMode("default");
-    initResponse << _label << " remark: executing on virtual computer "
-	         << vircomp << ",\n    with default mode " 
-                 << defaultMode << ".\n";
-   
-    (void)_launcher.setSZGClient(&_SZGClient);
-    _vircompExecution = true;
-    _launcher.setAppType("distgraphics");
-    _launcher.setRenderProgram("szgrender");
-
-    // Reorganizes the system...
-    if (!_launcher.launchApp()){
-      initResponse << _label 
-                   << " error: failed to launch on virtual computer "
-                   << vircomp << ".\n";
-      if (!_SZGClient.sendInitResponse(false))
-        cerr << _label << " error: maybe szgserver died.\n";
-      return false;
-    }
-  }
-
-  // Gets the sound and graphics database going. These must be initialized
-  // AFTER the virtual computer reshuffle (launchApp). Some OS configurations
-  // may only allow ONE connection to the sound card, meaning that 
-  // _soundClient.init() may block until a previous application goes away.
-  // Thus, if _soundClient.init() occurs before launchApp (which will kill
-  // other running applications, at least if virtual computers are being used
-  // correctly) there can be a deadlock!
-  _initDatabases();
-
-  // Get the input device going
-  if (!_initInput()){
-    return false;
-  }
-
-  // THIS IS A LITTLE AWKWARD! Maybe at some point I'll want to combine
-  // the init and start methods together!
-
-  // NOTE: we choose either graphics server or peer, based on init.
-  if (_peerName == "NULL" || _standalone){
-    if (!_graphicsServer.init(_SZGClient)){
-      initResponse << _label << " error: graphics server failed to init.\n";
-      initResponse << "  (THE LIKELY REASON IS THAT YOU ARE RUNNING ANOTHER "
-		   << "APP).\n";
-      if (!_SZGClient.sendInitResponse(false))
-        cerr << _label << " error: maybe szgserver died.\n";
-      return false;
-    }
-  }
-  else{
-    if (!_graphicsPeer.init(_SZGClient)){
-      initResponse << _label << " error: graphics peer failed to init.\n";
-      if (!_SZGClient.sendInitResponse(false))
-        cerr << _label << " error: maybe szgserver died.\n";
-      return false;
-    }
-  }
-
-  // SOUND SERVER DOES NOT RUN IN THE PEER CASE (OTHERWISE
-  // MULTIPLE PEERS CAN'T USE THE SCENE GRAPH FRAMEWORK)
-  if (_peerName == "NULL" || _standalone){
-    if (!_soundServer.init(_SZGClient)){
-      initResponse << _label << " error: sound server failed to init.\n"
-                   << "  (Is another application running?)\n";
-      if (!_SZGClient.sendInitResponse(false))
-        cerr << _label << " error: maybe szgserver died.\n";
-      return false;
-    }
-  }
-
-  // init succeeded
-  if (!_SZGClient.sendInitResponse(true))
-    cerr << _label << " error: maybe szgserver died.\n";
-  return true;
-}
-
-bool arDistSceneGraphFramework::_startrespond(const string& s, bool f = false){
-  if (!f)
-    _SZGClient.startResponse() << _label << " error: " << s << endl;
-  if (!_SZGClient.sendStartResponse(f))
-    cerr << _label << " error: maybe szgserver died.\n";
-  return f;
+  // Successfully connected to an szgserver.
+  state = _initPhleetMode();
+  _initCalled = true;
+  return state;
 }
 
 bool arDistSceneGraphFramework::start(){
+  if (!_initCalled){
+    cerr << "arDistSceneGraphFramework error: MUST CALL init(...) BEFORE start().\n"
+         << "  PLEASE CHANGE YOUR CODE.\n";
+    return false;
+  }
+  if (_startCalled){
+    cerr << "arDistSceneGraphFramework error: start() MUST ONLY BE CALLED ONCE.\n"
+         << "  PLEASE CHANGE YOUR CODE.\n";
+    return false;
+  }
   // We have two pathways depending upon whether or not we are in standalone
   // mode.
+  bool state = false;
   if (_standalone){
-    _simPtr->configure(_SZGClient);
-    // Must configure the window manager here and pass it to the graphicsClient
-    // before configure (because, inside graphicsClient configure, it is used
-    // with the arGUIXMLParser).
-    // By default, we ask for a non-threaded window manager.
-    _windowManager = new arGUIWindowManager(ar_distSceneGraphGUIWindowFunction,
-					    ar_distSceneGraphGUIKeyboardFunction,
-					    ar_distSceneGraphGUIMouseFunction,
-					    NULL,
-                                            false);
-    _windowManager->setUserData(this);
-    _graphicsClient.setWindowManager(_windowManager);
-    _graphicsClient.configure(&_SZGClient);
-    _graphicsClient.setSimulator(_simPtr);
-    _framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
-    _graphicsClient.addFrameworkObject(&_framerateGraph);
-    arSpeakerObject* speakerObject = new arSpeakerObject();
-    _soundClient.setSpeakerObject(speakerObject);
-    _soundClient.configure(&_SZGClient);
-    _soundServer.start();
-    // NOTE: peer mode is meaningless in standalone.
-    _graphicsServer.start();
-    _inputDevice->start();
-    // In standalone mode, we need to start a thread for the display.
-    arThread graphicsThread;
-    // In standalone mode, only begin an external thread if buffers will be automatically swapped.
-    if (_autoBufferSwap){
-      graphicsThread.beginThread(ar_distSceneGraphFrameworkWindowTask, this);
-    }
-    else{
-      return createWindows();
-    }
-    return true;
-  }
-  
-  // Distributed, i.e. connected to an szgserver and not in standalone.
-
-  // Don't start the input device if we are in peer mode!
-  if (_peerName == "NULL" && !_inputDevice->start())
-    return _startrespond("failed to start input device.");
-
-  if (_peerName == "NULL" || _standalone){
-    // Not in peer mode.
-    if (!_graphicsServer.start())
-      return _startrespond("graphics server failed to listen.");
+    state = _startStandaloneMode();
+    _startCalled = true;
+    return state;
   }
   else{
-    // Peer mode.
-    // Are we using the local database?
-    if (_peerMode == "shell")
-      _graphicsPeer.useLocalDatabase(false);
-    if (!_graphicsPeer.start())
-      return _startrespond("graphics peer failed to start.");
-
-    // Connect to the specified target, if required.
-    if (_peerMode == "shell" || _peerMode == "feedback"){
-      if (_peerTarget == "NULL")
-        return _startrespond("unspecified target.");
-
-      if (_graphicsPeer.connectToPeer(_peerTarget) < 0)
-        return _startrespond(
-	  "error: graphics peer failed to connect to requested target=" +
-	  _peerTarget + ".");
-
-      // The following sets up a FEEDBACK mode!
-      _graphicsPeer.pushSerial(_peerTarget, _remoteRootID, 0, 
-                               AR_TRANSIENT_NODE,
-                               AR_TRANSIENT_NODE,
-                               AR_TRANSIENT_NODE);
-      // BUG BUG BUG BUG BUG BUG BUG: Need better definition of "modes"!
-      // Really just one mode so far...
-      // In the feedback case, we want a dump and relay.
-      //if (_peerMode == "feedback"){
-      //  _graphicsPeer.pullSerial(_peerTarget, true);
-      //}
-    }
-    else if (_peerTarget != "NULL")
-      return _startrespond("target improperly specified for source mode.");
+  // Distributed, i.e. connected to an szgserver and not in standalone.
+  state = _startPhleetMode();
+  _startCalled = true;
+  return state;
   }
-
-  // SOUND SERVER DOES NOT RUN IN THE PEER CASE (OTHERWISE
-  // MULTIPLE PEERS CAN'T USE THE SCENE GRAPH FRAMEWORK)
-  if ((_peerName == "NULL" || _standalone) && !_soundServer.start())
-    return _startrespond("sound server failed to listen.");
-
-  return _startrespond("", true);
 }
 
 /// Does the best it can to shut components down. Don't actually do anything
@@ -530,17 +388,7 @@ bool arDistSceneGraphFramework::start(){
 /// getting a stop message from the message thread (which isn't connected 
 /// to anything in this case).
 void arDistSceneGraphFramework::stop(bool){
-  // important to send an extra buffer swap. otherwise, there
-  // can be a deadlock in the szgrender exiting. THIS IS A HACK!
-  // Actually, I'm a bit unsure about whether this should be in the code...
-  // There could be a simultaneous issue of a swapBuffers() by the
-  // application... Trying to see if it can be left out...
-  // NOTE: I originally DID NOT have this in here. Trying to debug a
-  // weird hardware-realted/frustum-related (!!) system lock-up on windows
-  // systems that seems to occur on cosmos exit (i.e. manual sync app exit)
-  //_graphicsServer._syncServer.swapBuffers();
-
-  // must let the application know that we are stopping
+  // Must let the application know that we are stopping
   _exitProgram = true;
   // Only stop the appropriate database.
   if (_peerName == "NULL" || _standalone){
@@ -557,52 +405,71 @@ void arDistSceneGraphFramework::stop(bool){
   _stopped = true;
 }
 
-bool arDistSceneGraphFramework::createWindows(){
-  // Start the windowing. 
-  return _graphicsClient.start(_SZGClient, false);
-}
-
-void arDistSceneGraphFramework::loopQuantum(bool internalExit){
-  ar_timeval time1 = ar_time();
-  if (_standalone && 
-      _standaloneControlMode == "simulator"){
-      _simPtr->advance();
-  }
-  _soundClient._cliSync.consume();
-  // Inside here, through callbacks to the arSyncDataClient embedded inside
-  // the arGraphicsClient, is where all the scene graph event processing,
-  // drawing, and synchronization happens.
-  _graphicsClient._cliSync.consume();
-  // Events like closing the window and hitting the ESC key that cause the
-  // window to close occur inside processWindowEvents(). Once they happen,
-  // stopped() will return true and this loop will exit.
-  _windowManager->processWindowEvents();
-  arPerformanceElement* framerateElement 
-    = _framerateGraph.getElement("framerate");
-  double frameTime = ar_difftime(ar_time(), time1);
-  framerateElement->pushNewValue(1000000.0/frameTime);
-  // Check to see whether exit should occur.
-  if (internalExit && stopped()){
-    onExit(true);
-  }
-}
-
-void arDistSceneGraphFramework::onExit(bool internalExit){
-  _windowManager->deleteAllWindows();
-  if (internalExit){
-    exit(0);
-  }
-}
-
 bool arDistSceneGraphFramework::restart(){
-  // Stop the framework and restart (the stop parameter is meaningless so far)
+  // Stop the framework and restart (the stop parameter is meaningless so far... at
+  // least for this framework as opposed to the m/s framework)
   stop(true);
   return start();
 }
 
+/// Used in standalone mode only. In that case, our application will display its
+/// own window instead of using szgrender.
+bool arDistSceneGraphFramework::createWindows(){
+  if (_standalone){
+    // Start the windowing. 
+    return _graphicsClient.start(_SZGClient, false);
+  }
+  // This method shouldn't have been called if not in standalone mode.
+  return false;
+}
+
+/// Used in standalone mode. In that case, our application must actually dislay its
+/// own window (as opposed to through a szgrender as in phleet mode).
+/// If system exit should occur internally to this function (if the application
+/// has signalled it is stopped), set internalExit to true (the default is false).
+void arDistSceneGraphFramework::loopQuantum(bool internalExit){
+  if (_standalone){
+    ar_timeval time1 = ar_time();
+    if (_standaloneControlMode == "simulator"){
+      _simPtr->advance();
+    }
+    _soundClient._cliSync.consume();
+    // Inside here, through callbacks to the arSyncDataClient embedded inside
+    // the arGraphicsClient, is where all the scene graph event processing,
+    // drawing, and synchronization happens.
+    _graphicsClient._cliSync.consume();
+    // Events like closing the window and hitting the ESC key that cause the
+    // window to close occur inside processWindowEvents(). Once they happen,
+    // stopped() will return true and this loop will exit.
+    _wm->processWindowEvents();
+    arPerformanceElement* framerateElement 
+      = _framerateGraph.getElement("framerate");
+    double frameTime = ar_difftime(ar_time(), time1);
+    framerateElement->pushNewValue(1000000.0/frameTime);
+    // Check to see whether exit should occur.
+    if (internalExit && stopped()){
+      onExit(true);
+    }
+  }
+}
+
+/// Used in standalone mode only. In that case, our application will display its
+/// own window instead of using szgrender.
+void arDistSceneGraphFramework::onExit(bool internalExit){
+  if (_standalone){
+    _wm->deleteAllWindows();
+    if (internalExit){
+      exit(0);
+    }
+  }
+}
+
+//////////////////////////////////////////////////////////////////////////////////
+// DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED
+//////////////////////////////////////////////////////////////////////////////////
 /// Hmmm. This one seems like a little bit of a hack.
 /// TO BE REMOVED???????????????? Think about how the graphics peer might get used...
-int arDistSceneGraphFramework::getNodeID(const string& name){
+/*int arDistSceneGraphFramework::getNodeID(const string& name){
   if (_peerName == "NULL"){
     return _graphicsServer.getNodeID(name);
   }  
@@ -610,10 +477,10 @@ int arDistSceneGraphFramework::getNodeID(const string& name){
     return _graphicsPeer.getNodeID(name);
   }
   return _graphicsPeer.remoteNodeID(_peerTarget, name);
-}
+}*/
 
 /// TO BE REMOVED?????????????????????????????
-arDatabaseNode* arDistSceneGraphFramework::getNode(int ID){
+/*arDatabaseNode* arDistSceneGraphFramework::getNode(int ID){
   // only makes sense if we are running normally OR if we are in
   // "feedback" mode and consequently have a database copy.
   if (_peerName == "NULL"){
@@ -623,27 +490,27 @@ arDatabaseNode* arDistSceneGraphFramework::getNode(int ID){
     return _graphicsPeer.getNode(ID);
   }
   return NULL;
-}
+}*/
 
 /// Hmmm. Not sure whether this is BOGUS or not...
-bool arDistSceneGraphFramework::lockNode(int ID){
+/*bool arDistSceneGraphFramework::lockNode(int ID){
   if (_peerName == "NULL" || _peerMode == "source"){
     // does it make sense to locally lock a node? Maybe... but this isn't
     // implemented yet.
     return false;
   }
   return _graphicsPeer.remoteLockNode(_peerTarget, ID);
-}
+}*/
 
 /// Hmmm. Not sure whether this is BOGUS or not...
-bool arDistSceneGraphFramework::unlockNode(int ID){
+/*bool arDistSceneGraphFramework::unlockNode(int ID){
   if (_peerName == "NULL" || _peerMode == "source"){
     // does it make sense to locally unlock a node? Maybe... but this isn't
     // implemented yet.
     return false;
   }
   return _graphicsPeer.remoteUnlockNode(_peerTarget, ID);
-}
+}*/
 
 // If the attribute exists, stuff its value into v.
 // Otherwise report v's (unchanged) default value.
@@ -686,6 +553,8 @@ bool arDistSceneGraphFramework::_loadParameters(){
   _head.configure( _SZGClient );
 
   _loadNavParameters();
+  
+  _parametersLoaded = true;
 
   return true;
 }
@@ -695,17 +564,17 @@ void arDistSceneGraphFramework::_initDatabases(){
   // server.
   if (_peerName != "NULL"){
     dgSetGraphicsDatabase(&_graphicsPeer);
+    _usedGraphicsDatabase = &_graphicsPeer;
   }
   else{
     dgSetGraphicsDatabase(&_graphicsServer);
+    _usedGraphicsDatabase = &_graphicsServer;
   }
   dsSetSoundDatabase(&_soundServer);
   // If we are in standalone mode, we must start up the local connections.
   // This must occur before any alterations occur to the local 
   // graphics server since there is NO connection process in the standalone
   // case.
-  // PLEASE NOTE: we cannot be in peer mode on standalone (peer mode
-  // only makes sense when we are part of a Phleet).
   if (_standalone){
     // In standalone mode, with manual buffer swapping, we need to be in "nosync" mode. 
     // This allows us to do things in only one thread, which is important for Python
@@ -718,22 +587,21 @@ void arDistSceneGraphFramework::_initDatabases(){
     // We'll be using the sound client locally to play. Must init it.
     (void)_soundClient.init();
   }
-  else{
-    // In phleet mode, the _syncServer *always* syncs with its client.
+  else if (_peerName == "NULL"){
+    // In phleet mode (but not peer mode), the _syncServer *always* syncs with its client.
     _graphicsServer._syncServer.setMode(_autoBufferSwap ? AR_SYNC_AUTO_SERVER : AR_SYNC_MANUAL_SERVER);
   }
   
   // Set up a default viewing position.
-  
   _VRCameraID = dgViewer( "root", _head );
-
   
   // Set up a default listening position.
   dsPlayer( _head.getMatrix(), _head.getMidEyeOffset(), _unitSoundConversion );
 
-  if (_graphicsNavMatrixID == -1){
-    _graphicsNavMatrixID 
-      = dgTransform(getNavNodeName(),"root",ar_identityMatrix());
+  if (_graphicsNavNode == NULL){
+    _graphicsNavNode 
+      = (arTransformNode*) _usedGraphicsDatabase->getRoot()->newNode("transform", getNavNodeName());
+    _graphicsNavNode->setTransform(ar_identityMatrix());
   }
   if (_soundNavMatrixID == -1){
     _soundNavMatrixID 
@@ -857,9 +725,9 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
         _graphicsPeer.setName(_peerName);
       }
       else if (key == "mode"){
-        if (value != "source" && value != "shell" && value != "feedback"){
+        if (value != "feedback"){
           cout << "arDistSceneGraphFramework error: "
-	       << "value for mode is illegal.\n";
+	       << "value (" << value << ") for mode is illegal.\n";
 	  return false;
 	}
 	_peerMode = value;
@@ -887,3 +755,217 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
   }
   return true;
 }
+
+/// Simplifies the start message processing. With the default parameter
+/// value for f (false), this posts the given message to the start response
+/// string and returns false. Otherwise, it just returns true.
+bool arDistSceneGraphFramework::_startRespond(const string& s, bool f){
+  if (!f){
+    _SZGClient.startResponse() << _label << " error: " << s << endl;
+  }
+  if (!_SZGClient.sendStartResponse(f)){
+    cerr << _label << " error: maybe szgserver died.\n";
+  }
+  return f;
+}
+
+bool arDistSceneGraphFramework::_initStandaloneMode(){
+  _standalone = true;
+  _loadParameters();
+  _initDatabases();
+  if (!_initInput()){
+    return false;
+  }
+  cout << _SZGClient.initResponse().str();
+  return true;
+}
+
+/// Start the various framework objects in the manner demanded by standalone mode.
+bool arDistSceneGraphFramework::_startStandaloneMode(){
+  _simPtr->configure(_SZGClient);
+  // Must configure the window manager here and pass it to the graphicsClient
+  // before configure (because, inside graphicsClient configure, it is used
+  // with the arGUIXMLParser).
+  // By default, we ask for a non-threaded window manager.
+  _wm = new arGUIWindowManager(ar_distSceneGraphGUIWindowFunction,
+			       ar_distSceneGraphGUIKeyboardFunction,
+			       ar_distSceneGraphGUIMouseFunction,
+			       NULL,
+			       false);
+  _wm->setUserData(this);
+  // The arGraphicsClient is the one that actually does the drawing and manages 
+  // the windows.
+  _graphicsClient.setWindowManager(_wm);
+  _graphicsClient.configure(&_SZGClient);
+  _graphicsClient.setSimulator(_simPtr);
+  _framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
+  _graphicsClient.addFrameworkObject(&_framerateGraph);
+  arSpeakerObject* speakerObject = new arSpeakerObject();
+  _soundClient.setSpeakerObject(speakerObject);
+  _soundClient.configure(&_SZGClient);
+  _soundServer.start();
+  // NOTE: peer mode is meaningless in standalone.
+  _graphicsServer.start();
+  _inputDevice->start();
+  // In standalone mode, we need to start a thread for the display.
+  arThread graphicsThread;
+  // In standalone mode, only begin an external thread if buffers will be automatically swapped.
+  if (_autoBufferSwap){
+    graphicsThread.beginThread(ar_distSceneGraphFrameworkWindowTask, this);
+    // Wait until the thread has had a chance to try to create the windows.
+    _windowsCreatedSignal.receiveSignal();
+    // _windowsCreated is set by createWindows() in ar_distSceneGraphFrameworkTask.
+    if (!_windowsCreated){
+      // Important to *stop* the services that have already been started (before exiting).
+      //stop(true);
+      return false;
+    }
+  }
+  else{
+    if (!createWindows()){
+      // Important to *stop* the services that have already been started (before exiting).
+      //stop(true);
+      return false;
+    }
+  }
+  return true;
+}
+
+bool arDistSceneGraphFramework::_initPhleetMode(){
+  // We must write to the init response stream
+  stringstream& initResponse = _SZGClient.initResponse();
+  _loadParameters();
+  
+  if (!_messageThread.beginThread(ar_distSceneGraphFrameworkMessageTask,
+                                  this)) {
+    initResponse << _label << " error: failed to start message thread.\n";
+    if (!_SZGClient.sendInitResponse(false)){
+      cerr << _label << " error: maybe szgserver died.\n";
+    }
+    return false;
+  }
+  
+  // Figure out whether we should launch the other executables.
+  if (_SZGClient.getMode("default") == "trigger"){
+    const string vircomp = _SZGClient.getVirtualComputer();
+    const string defaultMode = _SZGClient.getMode("default");
+    initResponse << _label << " remark: executing on virtual computer "
+      << vircomp << ",\n    with default mode " 
+      << defaultMode << ".\n";
+    
+    (void)_launcher.setSZGClient(&_SZGClient);
+    _vircompExecution = true;
+    _launcher.setAppType("distgraphics");
+    _launcher.setRenderProgram("szgrender");
+    
+    // Reorganizes the system...
+    if (!_launcher.launchApp()){
+      initResponse << _label 
+                   << " error: failed to launch on virtual computer "
+                   << vircomp << ".\n";
+      if (!_SZGClient.sendInitResponse(false)){
+        cerr << _label << " error: maybe szgserver died.\n";
+      }
+      return false;
+    }
+  }
+  
+  // Gets the sound and graphics database going. These must be initialized
+  // AFTER the virtual computer reshuffle (launchApp). Some OS configurations
+  // may only allow ONE connection to the sound card, meaning that 
+  // _soundClient.init() may block until a previous application goes away.
+  // Thus, if _soundClient.init() occurs before launchApp (which will kill
+  // other running applications, at least if virtual computers are being used
+  // correctly) there can be a deadlock!
+  _initDatabases();
+  
+  // Get the input device going
+  if (!_initInput()){
+    return false;
+  }
+    
+  // NOTE: we choose either graphics server or peer, based on init.
+  if (_peerName == "NULL"){
+    if (!_graphicsServer.init(_SZGClient)){
+      initResponse << _label << " error: graphics server failed to init.\n";
+      initResponse << "  (THE LIKELY REASON IS THAT YOU ARE RUNNING ANOTHER "
+	<< "APP).\n";
+      if (!_SZGClient.sendInitResponse(false))
+        cerr << _label << " error: maybe szgserver died.\n";
+      return false;
+    }
+  }
+  else{
+    if (!_graphicsPeer.init(_SZGClient)){
+      initResponse << _label << " error: graphics peer failed to init.\n";
+      if (!_SZGClient.sendInitResponse(false))
+        cerr << _label << " error: maybe szgserver died.\n";
+      return false;
+    }
+  }
+  
+  // The sound server is disabled in the peer case. Otherwise, multiple
+  // apps using this framework cannot run simultaneously.
+  if (_peerName == "NULL"){
+    if (!_soundServer.init(_SZGClient)){
+      initResponse << _label << " error: sound server failed to init.\n"
+                   << "  (Is another application running?)\n";
+      if (!_SZGClient.sendInitResponse(false)){
+        cerr << _label << " error: maybe szgserver died.\n";
+      }
+      return false;
+    }
+  }
+  
+  // init(...) succeeded.
+  if (!_SZGClient.sendInitResponse(true)){
+    cerr << _label << " error: maybe szgserver died.\n";
+  }
+  return true;
+}
+
+bool arDistSceneGraphFramework::_startPhleetMode(){
+  // Start the graphics database.
+  if (_peerName == "NULL" || _standalone){
+    // Not in peer mode.
+    if (!_graphicsServer.start()){
+      return _startRespond("graphics server failed to listen.");
+    }
+  }
+  else{
+    // Peer mode.
+    if (!_graphicsPeer.start()){
+      return _startRespond("graphics peer failed to start.");
+    }
+    
+    // Connect to the specified target, if required.
+    if (_peerTarget == "NULL"){
+      return _startRespond("unspecified target for feedback peer mode.");
+    }
+    if (_graphicsPeer.connectToPeer(_peerTarget) < 0){
+      return _startRespond("graphics peer failed to connect to requested target=" +
+			   _peerTarget + ".");
+    }
+    // The following sets up a feedback relationship between the local and remote peers!
+    _graphicsPeer.pushSerial(_peerTarget, _remoteRootID, 0, 
+			     AR_TRANSIENT_NODE,
+			     AR_TRANSIENT_NODE,
+			     AR_TRANSIENT_NODE);
+  }
+  
+  // Don't start the input device if we are in peer mode!
+  if (_peerName == "NULL" && !_inputDevice->start()){
+    return _startRespond("failed to start input device.");
+  }
+  
+  
+  // Don't start the sound server if we are in peer mode! Otherwise, multiple
+  // peers won't be able to simultaneously run (using this framework).
+  if (_peerName == "NULL" && !_soundServer.start()){
+    return _startRespond("sound server failed to listen.");
+  }
+  
+  // Returns true. (_standRespond is a little cute)
+  return _startRespond("", true);
+}
+

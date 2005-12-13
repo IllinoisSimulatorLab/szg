@@ -13,7 +13,6 @@
 #include "arSoundClient.h"
 #include "arVRConstants.h"
 #include "arSZGAppFramework.h"
-#include "arGUIWindowManager.h"
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arFrameworkCalling.h"
 
@@ -31,70 +30,63 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
  public:
   arDistSceneGraphFramework();
   ~arDistSceneGraphFramework() {}
-
-  arGraphicsDatabase* getDatabase();
-
-  void setUserMessageCallback(
-    void (*userMessageCallback)( arDistSceneGraphFramework&, 
-                                 const string& messageBody ));
-
-  // inherited pure virtual functions
+  
+  // Inherited pure virtual functions
   bool init(int&, char**);
   bool start();
   void stop(bool);
-  void loadNavMatrix();
+  bool restart();
+  
+  void setUserMessageCallback(void (*userMessageCallback)( arDistSceneGraphFramework&, 
+							   const string& messageBody ));
+  arGraphicsDatabase* getDatabase();
+  /// Maybe an external peer should be receiving the peer control messages
+  /// (as in the peerBridge program that maps a peer into a clustered display).
+  void setExternalPeer(arGraphicsPeer* p) {
+    if (p) _externalPeer = p;
+  }
   void setDataBundlePath(const string& bundlePathName, 
                          const string& bundleSubDirectory);
-
   void setAutoBufferSwap(bool);
   void swapBuffers();
+  const string getNavNodeName() const{ return "SZG_NAV_MATRIX"; }
+  arDatabaseNode* getNavNode();
 
+  void loadNavMatrix();
   void setViewer();
   void setPlayer();
-
-  bool restart();
   
   virtual bool createWindows();
   virtual void loopQuantum(bool internalExit = false);
   virtual void onExit(bool internalExit = false);
-
-  // Which input device matrix is the head matrix? Is it matrix 0? Is it matrix 1?
-  void setHeadMatrixID(int);
-  const string getNavNodeName() const { return "SZG_NAV_MATRIX"; }
-  arDatabaseNode* getNavNode();
   
-  arInputNode* getInputDevice() const { return _inputDevice; }
-
   // These calls are really just for use when the object is being used
-  // in graphics peer mode.
-  int getNodeID(const string& name);
+  // in graphics peer mode. DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED
+  // These can all be dealt with directly via the graphics database!
+  /*int getNodeID(const string& name);
   arDatabaseNode* getNode(int ID);
   bool lockNode(int ID);
-  bool unlockNode(int ID);
-
-  // HACK: maybe an external peer should be receiving the peer messages.
-  void setExternalPeer(arGraphicsPeer* p) {
-    if (p)
-      _externalPeer = p;
-  }
+  bool unlockNode(int ID);*/
   
  private:
+  // Used in both standalone mode and phleet mode.
   arGraphicsServer _graphicsServer;
   arGraphicsPeer _graphicsPeer;
-
-  void (*_userMessageCallback)(arDistSceneGraphFramework&, const string&);
-  
-  int _headMatrixID;
-  int _graphicsNavMatrixID;
-  int _soundNavMatrixID;
-
-  int _VRCameraID;
-
+  // Which of the above is actually used?
+  arGraphicsDatabase* _usedGraphicsDatabase;
   // Objects only used in standalone mode.
   arGraphicsClient    _graphicsClient;
   arSoundClient       _soundClient;
+
+  void (*_userMessageCallback)(arDistSceneGraphFramework&, const string&);
   
-  // Are we operating a graphics peer?
+  arTransformNode* _graphicsNavNode;
+  int _soundNavMatrixID;
+
+  int _VRCameraID;
+  
+  // Are we operating a graphics peer? If not, this string will hold the
+  // constructor's default value of "NULL".
   string _peerName;
   // What mode are we operating it in? The special modes are source (default),
   // shell, and feedback.
@@ -104,11 +96,15 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   // To what remote root node should we attach?
   int _remoteRootID;
   // Maybe (as in the case of peerBridge) we should pass on
-  // peer messages to someone external.
+  // peer messages to someone external peer.
   arGraphicsPeer* _externalPeer;
-
-  // Standalone mode requires a window manager.
-  arGUIWindowManager* _windowManager;
+  
+  // In standalone mode, have the windows been successfully created?
+  bool _windowsCreated;
+  // In standalone mode, if running the windowing in a different thread,
+  // this signal allows us to inform the caller whether the window creation
+  // succeeded.
+  arSignalObject _windowsCreatedSignal;
   
   // Are we using the automatic buffer swap?
   bool _autoBufferSwap;
@@ -118,7 +114,11 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   void _initDatabases();
   bool _initInput();
   bool _stripSceneGraphArgs(int& argc, char** argv);
-  bool _startrespond(const string& s, bool f);
+  bool _startRespond(const string& s, bool f=false);
+  bool _initStandaloneMode();
+  bool _startStandaloneMode();
+  bool _initPhleetMode();
+  bool _startPhleetMode();
 };
 
 #endif

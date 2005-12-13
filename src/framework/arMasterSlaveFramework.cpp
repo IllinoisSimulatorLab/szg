@@ -219,9 +219,6 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _stateServer( NULL ),
   _transferTemplate( "data" ),
   _transferData( NULL ),
-  _userInitCalled( false ),
-  _wm( NULL ),
-  _guiXMLParser( NULL ),
   _serviceName( "NULL" ),
   _serviceNameBarrier( "NULL" ),
   _networks( "NULL" ),
@@ -233,7 +230,6 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _oldDrawCallback( NULL ),
   _disconnectDrawCallback( NULL ),
   _playCallback( NULL ),
-  // _reshape(NULL),
   _windowEventCallback( NULL ),
   _windowStartGLCallback( NULL ),
   _cleanup( NULL ),
@@ -242,7 +238,6 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _keyboardCallback( NULL ),
   _arGUIKeyboardCallback( NULL ),
   _mouseCallback( NULL ),
-  // _stereoMode( false ),
   _internalBufferSwap( true ),
   _framerateThrottle( false ),
   _barrierServer( NULL ),
@@ -361,7 +356,7 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
 }
 
 void arMasterSlaveFramework::usePredeterminedHarmony() {
-  if (_userInitCalled) {
+  if (_startCalled) {
     cerr << "arMasterSlaveFramework error: usePredeterminedHarmony() may not be called after "
          << "the start callback.\n";
     return;
@@ -661,14 +656,15 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
 
   // Connect to the szgserver.
   _SZGClient.simpleHandshaking( false );
-  _SZGClient.init( argc, argv );
+  
+  if (!_SZGClient.init( argc, argv )){
+    // The initialization failed!
+    return false;
+  }
 
   if ( !_SZGClient ) {
-    // HACK!!! For right now, if the arSZGClient fails to init, we assume
-    // that we should try to run everything in "standalone" mode....
-    // SO... we don't really want to return false here.
-    std::cout << _label << " remark: RUNNING IN STANDALONE MODE. "
-	      << "NO DISTRIBUTION." << std::endl;
+    // If init failed but the above operator gives false, then we are in standalone
+    // mode.
 
     _standalone = true;
 
@@ -1091,8 +1087,8 @@ bool arMasterSlaveFramework::addTransferField( std::string fieldName,
                                                void* data,
                                                arDataType dataType,
                                                int size ) {
-  if( _userInitCalled ) {
-    std::cerr << _label << " warning: ignoring addTransferField() after init()." << std::endl;
+  if( _startCalled ) {
+    std::cerr << _label << " warning: ignoring addTransferField() after start()." << std::endl;
     return false;
   }
 
@@ -1125,8 +1121,8 @@ bool arMasterSlaveFramework::addTransferField( std::string fieldName,
 
 bool arMasterSlaveFramework::addInternalTransferField( std::string fieldName,
                                                        arDataType dataType, int size ) {
-  if( _userInitCalled ) {
-    std::cerr << _label << " warning: ignoring addTransferField() after init()." << std::endl;
+  if( _startCalled ) {
+    std::cerr << _label << " warning: ignoring addTransferField() after start()." << std::endl;
     return false;
   }
 
@@ -2102,7 +2098,7 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
     }
   }
 
-  _userInitCalled = true;
+  _startCalled = true;
 
   // the start succeeded
   if( _SZGClient && !_SZGClient.sendStartResponse( true ) ) {

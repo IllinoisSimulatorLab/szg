@@ -193,14 +193,21 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig,
       if( window->beginEventThread() < 0 ) {
         delete window;
         _windows.erase( _maxWindowID );
+	std::cerr << "arGUIWindowManager error: addWindow: _performWindowCreation error" << std::endl;
+#ifdef AR_USE_DARWIN
+        std::cerr << "  THIS COULD BE BECAUSE YOU ARE NOT RUNNING X11. PLEASE CHECK.\n";
+#endif
         return -1;
       }
     }
     else {
       if( window->_performWindowCreation() < 0 ) {
-        std::cerr << "arGUIWindowManager warning: addWindow: _performWindowCreation error" << std::endl;
         delete window;
         _windows.erase( _maxWindowID );
+        std::cerr << "arGUIWindowManager error: addWindow: _performWindowCreation error" << std::endl;
+#ifdef AR_USE_DARWIN
+        std::cerr << "  THIS COULD BE BECAUSE YOU ARE NOT RUNNING X11. PLEASE CHECK.\n";
+#endif	
         return -1;
       }
     }
@@ -727,10 +734,9 @@ int arGUIWindowManager::deleteAllWindows( void )
 
 int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingConstruct, bool useWindowing )
 {
-  if( !windowingConstruct )
+  if ( !windowingConstruct ){
     return -1;
-
-  // std::cout << "arGUIWindowManager remark: creating windows.\n";
+  }
 
   const std::vector< arGUIXMLWindowConstruct* >* windowConstructs =
     windowingConstruct->getWindowConstructs();
@@ -799,7 +805,9 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
       deleteWindow( windowID );
 
       // create the new window
-      addWindow( *config, useWindowing );
+      if ( addWindow( *config, useWindowing ) < 0 ){
+        return -1;
+      }
     }
     else {
       // we can just tweak all the window's settings
@@ -807,9 +815,6 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
       // is fullscreen, resize needs to come first or the move and decorate
       // will get ignored.  There may be other order interactions as well
       resizeWindow( windowID, config->getWidth(), config->getHeight() );
-
-      // Ensure that decorate <-> not decorate, there is a new window.
-      //decorateWindow( windowID, config->getDecorate() );
 
       // since the decoration can affect the size of the window, we have to
       // resize /again/ to get our real requested size
@@ -819,11 +824,6 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
       setTitle( windowID, config->getTitle() );
       setWindowCursor( windowID, config->getCursor() );
       raiseWindow( windowID, config->getZOrder() );
-
-      // Ensure that nonfullscreen <-> fullscreen, there is a new window.
-      //if( config->getFullscreen() ) {
-      //  fullscreenWindow( windowID );
-      //}
     }
   }
 
@@ -838,6 +838,7 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
   for( ; cItr != windowConstructs->end(); cItr++ ) {
     if( addWindow( *((*cItr)->getWindowConfig()), useWindowing ) < 0 ) {
       std::cerr << "arGUIWindowManager warning: could not create new gui window" << std::endl;
+      return -1;
     }
   }
 
@@ -851,7 +852,6 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
     setGraphicsWindow( WItr->first, (*cItr)->getGraphicsWindow() );
   }
 
-  // std::cout << "arGUIWindowManager remark: done creating.\n";
   return 0;
 }
 

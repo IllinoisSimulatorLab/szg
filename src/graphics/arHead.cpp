@@ -10,13 +10,13 @@
 
 ostream& operator<<(ostream& s, arHead& h) {
   s << "Head:\n  Matrix:\n" << h.getMatrix()
-    << "  MidEyeOffset  : " << h.getMidEyeOffset() << endl
-    << "  EyeDirection  : " << h.getEyeDirection() << endl
-    << "  EyeSpacing    : " << h.getEyeSpacing() << endl
-    << "  ClipPlanes    : " << h.getNearClip() << ", " 
-                            << h.getFarClip() << endl
-    << "  UnitConversion: " << h.getUnitConversion() << endl
-    << "  FixedHeadMode      : " << h.getFixedHeadMode() << endl;
+    << "  MidEyeOffset    : " << h.getMidEyeOffset() << endl
+    << "  EyeDirection    : " << h.getEyeDirection() << endl
+    << "  EyeSpacing      : " << h.getEyeSpacing() << endl
+    << "  ClipPlanes      : " << h.getNearClip() << ", " 
+                              << h.getFarClip() << endl
+    << "  UnitConversion  : " << h.getUnitConversion() << endl
+    << "  FixedHeadMode   : " << h.getFixedHeadMode() << endl;
   return s;
 }
 
@@ -32,12 +32,10 @@ arHead::arHead() :
 
 bool arHead::configure( arSZGClient& client ) {
   stringstream& initResponse = client.initResponse();
-  //
+  
   // Eye/head parameters, set on master/controller only
-  if (!client.getAttributeFloats( "SZG_HEAD","eye_spacing",&_eyeSpacing )){
-    initResponse << "arScreenObject remark: "
-		 << "SZG_HEAD/eye_spacing "
-		 << "defaulting to " << _eyeSpacing << endl;
+  if (!client.getAttributeFloats( "SZG_HEAD", "eye_spacing", &_eyeSpacing )){
+    _eyeSpacing = 0.2;
   }
   if (!client.getAttributeVector3( "SZG_HEAD", "eye_direction", _eyeDirection )) {
     _eyeDirection = arVector3(1,0,0);
@@ -47,9 +45,12 @@ bool arHead::configure( arSZGClient& client ) {
     _midEyeOffset = arVector3(0,0,0);
   }
 
-  _fixedHeadMode = client.getAttribute("SZG_HEAD","fixed_head_mode","|false|true|") == "true";
+  _fixedHeadMode = client.getAttribute("SZG_HEAD", "fixed_head_mode", "|false|true|") == "true";
 
-  cout << "arHead remark: head configuration: " << *this << endl;
+  // Only print this information if, in fact, the arSZGClient is in *verbose* mode.
+  if (client.getVerbosity()){
+    initResponse << "arHead remark: head configuration: " << *this << endl;
+  }
   return true;
 }
 

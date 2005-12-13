@@ -69,7 +69,7 @@ int main(int argc, char** argv){
   if (!framework.init(argc, argv))
     return 1;
 
-  interfaceObject.setInputDevice(framework.getInputDevice());
+  interfaceObject.setInputDevice(framework.getInputNode());
   worldInit(framework);
   if (!framework.start() || !interfaceObject.start())
     return 1;

@@ -138,7 +138,7 @@ class arSZGClient{
   string getAllAttributes(const string& substring);
 
   // A way to get parameters in from a file (as in dbatch, for instance)
-  bool parseParameterFile(const string& fileName);
+  bool parseParameterFile(const string& fileName, bool warn=true);
 
   const string& getLabel() const;
 

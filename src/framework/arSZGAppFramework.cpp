@@ -23,6 +23,10 @@ arSZGAppFramework::arSZGAppFramework() :
   _userEventFilter(NULL),
   _unitSoundConversion(1.),
   _speechNodeID(-1),
+  _wm(NULL),
+  _guiXMLParser(NULL),
+  _initCalled(false),
+  _startCalled(false),
   _useExternalThread(false),
   _externalThreadRunning(false),
   _blockUntilDisplayExit(false),
@@ -252,51 +256,59 @@ void arSZGAppFramework::speak( const std::string& message ) {
 static bool ___firstNavLoad = true;
 
 void arSZGAppFramework::_loadNavParameters() {
-  // we want to move the error messages to the window where
-  // the command was launched
+  // We want to move the error messages to the window where
+  // the command was launched, consequently used initResponse().
   stringstream& initStream = _SZGClient.initResponse();
-  initStream << "arSZGAppFramework remark: loading SZG_NAV parameters.\n";
+  if (_SZGClient.getVerbosity()){
+    initStream << "arSZGAppFramework remark: loading SZG_NAV parameters.\n";
+  }
   std::string temp;
   if ((___firstNavLoad)||_paramNotOwned( "effector" )) {
     int params[5] = { 1, 1, 0, 2, 0 };
     temp = _SZGClient.getAttribute("SZG_NAV", "effector");
     if (temp != "NULL") {
-      if (ar_parseIntString( temp, params, 5 ) != 0) {
+      if (ar_parseIntString( temp, params, 5 ) != 0 && _SZGClient.getVerbosity()) {
         initStream << "arSZGAppFramework error: "
 		   << "failed to read SZG_NAV/effector.\n";
       }
     }
-    initStream << "arSZGAppFramework remark: setting effector to ";
-    for (unsigned int i=0; i<7; i++) {
-      initStream << params[i] << ((i==6)?("\n"):("/"));
+    if (_SZGClient.getVerbosity()){
+      initStream << "arSZGAppFramework remark: setting effector to ";
+      for (unsigned int i=0; i<7; i++) {
+        initStream << params[i] << ((i==6)?("\n"):("/"));
+      }
     }
     _navManager.setEffector( arEffector( params[0], params[1], params[2], 0,
                                          params[3], params[4], 0 ) );
   }
   float speed(5.);
-  if ((___firstNavLoad)||_paramNotOwned( "translation_speed" )) {
+  if ((___firstNavLoad) || _paramNotOwned( "translation_speed" )) {
     temp = _SZGClient.getAttribute("SZG_NAV", "translation_speed");
     if (temp != "NULL") {
-      if (!ar_stringToFloatValid( temp, speed )) {
+      if (!ar_stringToFloatValid( temp, speed ) && _SZGClient.getVerbosity()) {
         initStream << "arSZGAppFramework error: "
 		   << "unable to convert SZG_NAV/translation_speed.\n";
       }
     }
-    initStream << "arSZGAppFramework remark: "
-	       << "setting translation speed to " << speed << endl;
+    if (_SZGClient.getVerbosity()){
+      initStream << "arSZGAppFramework remark: "
+	         << "setting translation speed to " << speed << endl;
+    }
     setNavTransSpeed( speed*_head.getUnitConversion() );
   }
-  if ((___firstNavLoad)||_paramNotOwned( "rotation_speed" )) {
+  if ((___firstNavLoad) || _paramNotOwned( "rotation_speed" )) {
     speed = 30.;
     temp = _SZGClient.getAttribute("SZG_NAV", "rotation_speed");
     if (temp != "NULL") {
-      if (!ar_stringToFloatValid( temp, speed )) {
+      if (!ar_stringToFloatValid( temp, speed ) && _SZGClient.getVerbosity()) {
         initStream << "arSZGAppFramework error: "
 		   << "unable to convert SZG_NAV/rotation_speed.\n";
       }
     }
-    initStream << "arSZGAppFramework remark: "
-	       << "setting rotation speed to " << speed << endl;
+    if (_SZGClient.getVerbosity()){
+      initStream << "arSZGAppFramework remark: "
+	         << "setting rotation speed to " << speed << endl;
+    }
     setNavRotSpeed( speed );
   }
   arInputEventType theType;
@@ -308,69 +320,89 @@ void arSZGAppFramework::_loadNavParameters() {
       if (_parseNavParamString( temp, theType, index, threshold,
                                 initStream )) {
         setNavTransCondition( 'x', theType, index, threshold );
-        initStream << "arSZGAppFramework remark: "
-		   << "set x_translation condition to "
-                   << temp << endl;
+	if (_SZGClient.getVerbosity()){
+          initStream << "arSZGAppFramework remark: "
+		     << "set x_translation condition to "
+                     << temp << endl;
+	}
       } else {
-        setNavTransCondition( 'x', AR_EVENT_AXIS, 0, 0.2 );      
-        initStream << "arSZGAppFramework error: "
-		   << "failed to read SZG_NAV/x_translation.\n"
-                   << "   defaulting to axis/0/0.2.\n";
+        setNavTransCondition( 'x', AR_EVENT_AXIS, 0, 0.2 );  
+	if (_SZGClient.getVerbosity()){
+          initStream << "arSZGAppFramework error: "
+		     << "failed to read SZG_NAV/x_translation.\n"
+                     << "   defaulting to axis/0/0.2.\n";
+	}
       }
     } else {
-      setNavTransCondition( 'x', AR_EVENT_AXIS, 0, 0.2 );      
-      initStream << "arSZGAppFramework remark: "
-		 << "SZG_NAV/x_translation defaulting to axis/0/0.2.\n";
+      setNavTransCondition( 'x', AR_EVENT_AXIS, 0, 0.2 );  
+      if (_SZGClient.getVerbosity()){
+        initStream << "arSZGAppFramework remark: "
+		   << "SZG_NAV/x_translation defaulting to axis/0/0.2.\n";
+      }
     }
   }
-  if ((___firstNavLoad)||_paramNotOwned( "z_translation" )) {
+  if ((___firstNavLoad) || _paramNotOwned( "z_translation" )) {
     temp = _SZGClient.getAttribute("SZG_NAV", "z_translation");
     if (temp != "NULL") {
       if (_parseNavParamString( temp, theType, index, threshold,
                                 initStream  )) {
         setNavTransCondition( 'z', theType, index, threshold );
-        initStream << "arSZGAppFramework remark: "
-		   << "set z_translation condition to "
-                   << temp << endl;
+	if (_SZGClient.getVerbosity()){
+          initStream << "arSZGAppFramework remark: "
+		     << "set z_translation condition to "
+                     << temp << endl;
+	}
       } else {
-        setNavTransCondition( 'z', AR_EVENT_AXIS, 1, 0.2 );      
-        initStream << "arSZGAppFramework error: "
-		   << "failed to read SZG_NAV/z_translation.\n"
-                   << "   defaulting to axis/1/0.2.\n";
+        setNavTransCondition( 'z', AR_EVENT_AXIS, 1, 0.2 );   
+	if (_SZGClient.getVerbosity()){
+          initStream << "arSZGAppFramework error: "
+		     << "failed to read SZG_NAV/z_translation.\n"
+                     << "   defaulting to axis/1/0.2.\n";
+	}
       }
     } else {
-      setNavTransCondition( 'z', AR_EVENT_AXIS, 1, 0.2 );      
-      initStream << "arSZGAppFramework remark: "
-		 << "SZG_NAV/z_translation defaulting to axis/1/0.2.\n";
+      setNavTransCondition( 'z', AR_EVENT_AXIS, 1, 0.2 );  
+      if (_SZGClient.getVerbosity()){
+        initStream << "arSZGAppFramework remark: "
+		   << "SZG_NAV/z_translation defaulting to axis/1/0.2.\n";
+      }
     }
   }
-  if ((___firstNavLoad)||_paramNotOwned( "y_translation" )) {
+  if ((___firstNavLoad) || _paramNotOwned( "y_translation" )) {
     temp = _SZGClient.getAttribute("SZG_NAV", "y_translation");
     if (temp != "NULL") {
       if (!_parseNavParamString( temp, theType, index, threshold,
                                  initStream  )) {
-        initStream << "arSZGAppFramework error: "
-		   << "failed to read SZG_NAV/y_translation.\n";
+	if (_SZGClient.getVerbosity()){
+          initStream << "arSZGAppFramework error: "
+		     << "failed to read SZG_NAV/y_translation.\n";
+	}
       } else {
         setNavTransCondition( 'y', theType, index, threshold );
-        initStream << "arSZGAppFramework remark: "
-		   << "set y_translation condition to "
-                   << temp << endl;
+	if (_SZGClient.getVerbosity()){
+          initStream << "arSZGAppFramework remark: "
+		     << "set y_translation condition to "
+                     << temp << endl;
+	}
       }
     }
   }
-  if ((___firstNavLoad)||_paramNotOwned( "y_rotation" )) {
+  if ((___firstNavLoad) || _paramNotOwned( "y_rotation" )) {
     temp = _SZGClient.getAttribute("SZG_NAV", "y_rotation");
     if (temp != "NULL") {
       if (!_parseNavParamString( temp, theType, index, threshold,
                                  initStream )) {
-        initStream << "arSZGAppFramework error: "
-		   << "failed to read SZG_NAV/y_rotation.\n";
+	if (_SZGClient.getVerbosity()){
+          initStream << "arSZGAppFramework error: "
+		     << "failed to read SZG_NAV/y_rotation.\n";
+	}
       } else {
         setNavRotCondition( 'y', theType, index, threshold );
-        initStream << "arSZGAppFramework remark: "
-		   << "set y_rotation condition to "
-                   << temp << endl;
+	if (_SZGClient.getVerbosity()){
+          initStream << "arSZGAppFramework remark: "
+		     << "set y_rotation condition to "
+                     << temp << endl;
+	}
       }
     }
   }
@@ -385,13 +417,13 @@ bool arSZGAppFramework::_parseNavParamString( const string& theString,
   std::vector<std::string> params;
   if (!ar_getTokenList( theString, params, '/' )) {
     initStream << "arSZGAppFramework error: failed to parse SZG_NAV string "
-               << theString << endl;
+	       << theString << endl;
     return false;
   }
   if (params.size() != 3) {
     initStream << "arSZGAppFramework error: "
 	       << "SZG_NAV string must contain 3 items,\n"
-               << "    event_type(string)/index(unsigned int)"
+	       << "    event_type(string)/index(unsigned int)"
 	       << "/threshold(float).\n";
     return false;
   }
@@ -400,7 +432,7 @@ bool arSZGAppFramework::_parseNavParamString( const string& theString,
       !ar_stringToFloatValid( params[2], threshold )) {
     initStream << "arSZGAppFramework error: "
 	       << "SZG_NAV string conversion failed\n"
-               << "    (value = " << theString << ").\n";
+	       << "    (value = " << theString << ").\n";
     return false;
   }
   if (params[0] == "axis")
@@ -409,7 +441,7 @@ bool arSZGAppFramework::_parseNavParamString( const string& theString,
     theType = AR_EVENT_BUTTON;
   else {
     initStream << "arSZGAppFramework error: SZG_NAV string invalid event type "
-               << params[0] << endl;
+	       << params[0] << endl;
     return false;
   }
   if (ind < 0) {

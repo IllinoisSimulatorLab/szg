@@ -30,7 +30,7 @@ int main(int argc, char** argv){
   if (!framework.init(argc,argv)){
     return 1;
   }
-  interfaceObject.setInputDevice(framework.getInputDevice());
+  interfaceObject.setInputDevice(framework.getInputNode());
   ar_mutex_init(&navLock);
 
   const string navNodeName = framework.getNavNodeName();

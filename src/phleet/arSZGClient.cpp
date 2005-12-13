@@ -54,7 +54,8 @@ arSZGClient::arSZGClient():
   _requestedName(""),
   _dataRequested(false),
   _keepRunning(true),
-  _justPrinting(false)
+  _justPrinting(false),
+  _verbosity(false)
 {
   // temporary... this will be overwritten in init(...)
   _exeName.assign("Syzygy client");
@@ -117,12 +118,19 @@ void arSZGClient::parseSpecialPhleetArgs(bool state){
 /// is printed if the forced name and the name scraped from the command line
 /// do not match.
 bool arSZGClient::init(int& argc, char** argv, string forcedName){
-  // on the Unix side, we might need to finish a handshake with the
+  // Set the name of the component.
+  // Do this using the command-line args, since some of the component management
+  // occurs via names.
+  _exeName = string(argv[0]);
+  // Remove the .EXE suffix on Win32. On other OS's 
+  _exeName = ar_stripExeName(_exeName);
+  
+  // On the Unix side, we might need to finish a handshake with the
   // szgd, telling it we've been successfully forked
-  // THIS MUST OCCUR BEFORE dialUpFallThrough
+  // THIS MUST OCCUR BEFORE dialUpFallThrough.
 
   // ANOTHER IMPORTANT NOTE: IT IS ASSUMED THAT THIS FUNCTION WILL ALWAYS,
-  // REGARDLESS OF WHETHER OR NOT IT IS SUCCESSFUL FINISH THE HANSHAKE WITH
+  // REGARDLESS OF WHETHER OR NOT IT IS SUCCESSFUL, FINISH THE HANSHAKE WITH
   // DEX!!! Conequently, no return statements, except at the end.
   bool success = true; // assume suceess unless there has been a
                        // specific failure
@@ -132,7 +140,7 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
     // we have, in fact, been successfully spawned on the Unix side
     const int pipeID = atoi(pipeIDString.c_str());
     // Send the success code. Note that on Win32 we set the pipe ID to -1,
-    // which gets us into here (to set _dexHnadshaking to true...
+    // which gets us into here (to set _dexHandshaking to true...
     // but we don't want to try to write to the pipe on Win32 since the
     // function is unimplemented
     if (pipeID >= 0){
@@ -143,9 +151,7 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
     }
   }
 
-  // if we made it here, we managed to successfully parse the phleet
-  // config file, parse the login file, and connect to the szgserver.
-  // the phleet config file contains a list of networks through which
+  // The phleet config file contains a list of networks through which
   // we can communicate. various programs will wish to obtain a list
   // of networks to communicate in a uniform way. The list may need to
   // be altered from the default (all of them) to shape network traffic
@@ -156,30 +162,32 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
   // means. SZGCONTEXT overwrites the command-line args. NOTE: the reason
   // argc is passed by reference is that the special Phleet args that
   // manipulate these values are stripped so as not to confuse programs.
-
+  
   // NOTE: we need to attempt to parse the config file BEFORE parsing the
-  // Phleet args so that the _networks and _addresses can be set.
-  // This is a duplication from dialUpFallThrough...
-  if (!_configParser.parseConfigFile()){
-    // if this fails, just silently accept it. It will be dealt with later
-    // in _dialUpFallThrough
-  }
-  // if the networks and addresses were NOT set via command line args or
+  // Phleet args (and the "context") so that the _networks and _addresses can be set.
+  // If these files cannot be read, it is still possible to recover.
+  (void) _configParser.parseConfigFile();
+  (void) _configParser.parseLoginFile();
+  // If the networks and addresses were NOT set via command line args or
   // environment variables, go ahead and set them now.
   // NOTE: there are different "channels" to allow different types of
   // network traffic to be routed differently (default (which is
   // represented by _networks and _addresses), graphics, sound, and input).
   // The graphics, sound, and input channels have networks/addresses set
   // down in the _parseSpecialPhleetArgs and _parseContext.
-  if (_networks == "NULL"){
-    _networks = _configParser.getNetworks();
-  }
-  if (_addresses == "NULL"){
-    _addresses = _configParser.getAddresses();
-  }
 
-  // The special Phleet args are or are not removed in the _parsePhleetArgs
-  // call.
+  // From the computer-wide config file (if such existed) and the user's login file.
+  _networks = _configParser.getNetworks();           // can override
+  _addresses = _configParser.getAddresses();         // can override
+  _computerName = _configParser.getComputerName();   // *cannot* override
+  // From the per-user login file, if such existed.
+  _serverName   = _configParser.getServerName();     // *cannot* override
+  _IPaddress    = _configParser.getServerIP();       // can override
+  _port         = _configParser.getServerPort();     // can override
+  _userName     = _configParser.getUserName();       // can override
+
+  // Any present special Phleet args are removed in the _parsePhleetArgs
+  // call. These can override some of the member variables set above.
   if (!_parsePhleetArgs(argc, argv)){
     _initResponseStream << _exeName << " error: invalid Phleet args.\n";
     // NOTE: it isn't strictly true that we are not connected.
@@ -189,6 +197,8 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
     success = false; // do not return yet
   }
 
+  // These can override some of the variables set above. Note that the "context"
+  // trumps command line args always.
   if (!_parseContext()){
     _initResponseStream << _exeName << " error: invalid Phleet context.\n";
     // NOTE: it isn't strictly true that we are not connected.
@@ -197,83 +207,110 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
     _connected = false;
     success = false; // do not return yet
   }
-
-  // This needs to go after phleet args parsing, etc. It could be that we
-  // specify where the server is, what the user name is, etc. via command
-  // line args.
-  if (!_dialUpFallThrough()) {
-    // Don't complain here -- dialUpFallThrough() already did.
+  
+  // The special SZGUSER environment variable trumps everything else, if set!
+  // This variable is used by szgd!
+  const string userNameOverride = ar_getenv("SZGUSER");
+  if (userNameOverride != "NULL"){
+    // ar_getenv returns "NULL" if the environment var is not set.
+    _userName = userNameOverride;
+  }
+  
+  if ( _IPaddress == "NULL" || _port == -1 || _userName == "NULL" ){
+    // The information to attempt a login attempt is not available.
+    // We must be operating in standalone mode.
+    cout << _exeName << " remark: RUNNING IN STANDALONE MODE. NO DISTRIBUTION.\n"
+         << "  (to run in Phleet mode, you must dlogin)\n";
     _connected = false;
-    success = false; // do not return yet
-  }
-
-  // set the name of the component. do
-  // this from the command-line args, since some of the component management
-  // occurs via names, so this is a vital consistency guarantee (letting
-  // the programmer set names manually is a good way for things to get out of
-  // sync)
-  _exeName = string(argv[0]);
-  _exeName = ar_stripExeName(_exeName);
-  if (forcedName == "NULL"){
-    // this is the default for the forcedName parameter. We are not trying
-    // to force the name.
-    _setLabel(_exeName); // tell szgserver our name
-  }
-  else{
-    // we are indeed trying to force the name. Go ahead and print out a
-    // warning, though, if there is a difference.
-    if (forcedName != _exeName){
-      cerr << _exeName << " warning: forcing a component name\n"
-	   << "different from the exe name (necessary only in Win98).\n";
-    }
-    _setLabel(forcedName); // tell the szgserver our name
-  }
-
-  // pack the init stream and the start stream with headers
-  _initResponseStream << _generateLaunchInfoHeader();
-  _startResponseStream << _generateLaunchInfoHeader();
-
-  if (_dexHandshaking){
-    // Shake hands with dex.
-    // regardless of whether we are on Unix or Win32, we need to begin
-    // responding to the execute message, if it was passed-through dex
-    // this lets dex know that the executable did, indeed, launch.
-    string tradingKey = getComputerName() + "/"
-                        + ar_getenv("SZGTRADINGNUM") + "/"
-                        + _exeName;
-    _launchingMessageID = requestMessageOwnership(tradingKey);
-    // Important that the object fails here if it can't get the message
-    // ownership trade. Perhaps we were late starting and the szgd has
-    // already decided that we won't actually launch.
-    if (!_launchingMessageID){
-      cerr << _exeName << " error: failed to own message, "
-	   << "despite appearing to have been launched by szgd.\n";
-      return false;
-    }
-    else{
-      // send the message response
-      // NOTE: if we are doing simple handshaking, we send a complete response
-      // if we are not doing simple handshaking, we send a partial response
-      if (!messageResponse(_launchingMessageID,
-                           _generateLaunchInfoHeader() +
-                           _exeName + string(" launched.\n"),
-                           !_simpleHandshaking)){
-        cerr << _exeName
-	     << " warning: response failed during launch.\n";
-      }
-    }
-  }
-
-  // If we have failed to connect to the szgserver, go ahead and parse
-  // a local config file.
-  if (!_connected){
-    cout << _exeName << " remark: parsing local parameter file.\n";
-    if (!parseParameterFile(_parameterFileName)){
+    success = true;
+    
+    // Do not print out a warning if the file cannot be found!
+    if (!parseParameterFile(_parameterFileName, false)){
       // Failed to find the specified parameter file. Go ahead and try to find
       // a file specified by environment variable SZG_PARAM.
       string possibleFileName = ar_getenv("SZG_PARAM");
       if (possibleFileName != "NULL"){
-	parseParameterFile(possibleFileName);
+	// Do not print out a warning if the file cannot be found.
+	parseParameterFile(possibleFileName, false);
+      }
+    }
+  }
+  else{
+    // We are supposed to be operating in Phleet mode. Don't print out a 
+    // message stating that, since this is the *normal* mode of operation.
+    
+    // This needs to go after phleet args parsing, etc. It could be that we
+    // specify where the server is, what the user name is, etc. via command
+    // line args or the "context".
+    if (!_dialUpFallThrough()) {
+      // Could not connect to the specified szgserver. This is a fatal error!
+      // Don't complain here -- dialUpFallThrough() already did.
+      _connected = false;
+      success = false; // do not return yet
+    }
+    else{
+      // Successfully connected to the szgserver. 
+      // 1.Tell it our name.
+      // 2. Put headers onto the init and start response streams.
+      // 3. Handshake back with dex (if this program was launched by szgd).
+      _connected = true;
+      success = true; // do not return yet
+      
+      // The connection was a success. Set our process "label" with the szgserver.
+      if (forcedName == "NULL"){
+	// This is the default for the forcedName parameter. We are not trying
+	// to force the name.
+	// Tell szgserver our name.
+	_setLabel(_exeName); 
+      }
+      else{
+	// we are indeed trying to force the name. Go ahead and print out a
+	// warning, though, if there is a difference.
+	if (forcedName != _exeName){
+	  cerr << _exeName << " warning: forcing a component name\n"
+	       << "different from the exe name (necessary only in Win98).\n";
+	}
+	// This method also changes _exeName internally.
+	// Tell the szgserver our name
+	_setLabel(forcedName); 
+      }
+      
+      // Pack the init stream and the start stream with headers.
+      // These include important configuration information (like the "context").
+      _initResponseStream << _generateLaunchInfoHeader();
+      _startResponseStream << _generateLaunchInfoHeader();
+      
+      if (_dexHandshaking){
+	// Shake hands with dex.
+	// Regardless of whether we are on Unix or Win32, we need to begin
+	// responding to the execute message, if it was passed-through dex
+	// this lets dex know that the executable did, indeed, launch.
+	string tradingKey = getComputerName() + "/"
+	+ ar_getenv("SZGTRADINGNUM") + "/"
+	+ _exeName;
+	// Take control of the right to respond to the launching message.
+	_launchingMessageID = requestMessageOwnership(tradingKey);
+	// Important that the object fails here if it can't get the message
+	// ownership trade. Perhaps we were late starting and the szgd has
+	// already decided that we won't actually launch.
+	if (!_launchingMessageID){
+	  cerr << _exeName << " error: failed to own message, "
+	       << "despite appearing to have been launched by szgd.\n";
+	  return false;
+	}
+	else{
+	  // Send the message response.
+	  // NOTE: if we are doing simple handshaking (the default), we send a complete response
+	  // if we are not doing simple handshaking (for apps that want to send a start
+	  // response, we send a partial response (i.e. there will be more responses).
+	  if (!messageResponse(_launchingMessageID,
+			       _generateLaunchInfoHeader() +
+			       _exeName + string(" launched.\n"),
+			       !_simpleHandshaking)){
+	    cerr << _exeName
+	         << " warning: response failed during launch.\n";
+	  }
+	}
       }
     }
   }
@@ -424,7 +461,7 @@ LFail:
 /// Sometimes we want to be able to read in parameters from a file, as in
 /// dbatch or when starting a program in "standalone" mode (i.e. when it is
 /// not connected to the Phleet).
-bool arSZGClient::parseParameterFile(const string& fileName){
+bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
   const string dataPath(getAttribute("SZG_SCRIPT","path"));
   // There are two parameter file formats.
   // The legacy format consists of a sequence of lines as follows:
@@ -466,14 +503,17 @@ bool arSZGClient::parseParameterFile(const string& fileName){
   // assumed.
 
   // First, try the new and improved XML way!
-  cout << "arSZGClient remark: parsing config file " 
-       << ar_fileFind(fileName, "", dataPath) << ".\n";
   arFileTextStream fileStream;
+  // Only complain if asked via warn.
   if (!fileStream.ar_open(fileName, dataPath)){
-    cerr << _exeName << " error: failed to open batch file "
-	 << fileName << "\n";
+    if (warn){
+      cerr << _exeName << " error: failed to open batch file "
+	   << fileName << "\n";
+    }
     return false;
   }
+  cout << "arSZGClient remark: parsing config file " 
+       << ar_fileFind(fileName, "", dataPath) << ".\n";
   arBuffer<char> buffer(128);
   string tagText = ar_getTagText(&fileStream, &buffer);
   if (tagText == "szg_config"){
@@ -2494,77 +2534,11 @@ bool arSZGClient::_dialUpFallThrough(){
     return false;
   }
 
-  // DO NOT LAUNCH THE DISCOVERY THREADS HERE. WE DO NOT NEED THESE FOR
-  // THE STANDARD CLIENT.
-
-  // In standalone mode, we want to be able to run, even if the computer
-  // has not yet been configured. The szg.conf file only contains
-  // information like the computer name and the networks to which it is
-  // attached, which doesn't really matter if we are in standalone mode.
-  // In the standalone mode case, the computer name is set to NULL and,
-  // consequently, a fixed parameters file can have its info read in using
-  // computer string NULL.
-  // It could be that _IPaddress, _port, and _userName have all been defined
-  // from the command line... In this case, go ahead and over-ride the
-  // login/ other config information.
-
-  // We need the following pieces of information:
-  //   1. server IP/ server port
-  //   2. szg user name
-  // We optionally want:
-  //   1. server name
-  //   2. computer name
-  // If the first 3 have been set already (i.e. via command line args)
-  // then go ahead and don't bother to parse the config files.
-  if (_IPaddress == "NULL" || _port == -1 || _userName == "NULL"){
-    // determine the other configuration information, like the location of the
-    // szgserver and the name of the host computer
-    if (!_configParser.parseConfigFile()){
-      cout << _exeName << " error: failed to open config file.\n";
-      cout << "  For non-standalone operation, you must run dname, etc.\n";
-      return false;
-    }
-
-    // If we are not logged-in (i.e. standalone mode) the next conditional
-    // will FAIL! However, some information from the config file is needed
-    // for operation in standalone mode (like _computerName).
-    // Consequently, set that before returning.
-    _computerName = _configParser.getComputerName();
-
-    if (!_configParser.parseLoginFile()){
-      cout << _exeName << " error: no login file. Please dlogin.\n";
-      return false;
-    }
-
-    // Bug: if we connect to the szgserver
-    // via an explicit IP address and port, the server name is not set.
-    // So, we cannot use configParser's getServerName() to
-    // determine if login was valid!
-    if (_configParser.getServerIP() == "NULL"){
-      cout << _exeName << " error: "
-	   << "user not connected to szgserver. Please dlogin.\n";
-      return false;
-    }
-
-    // Find our syzygy user name.
-    const string userNameOverride = ar_getenv("SZGUSER");
-    // ar_getenv returns "NULL" if the environment var is not set
-    // Otherwise it's set and it overrides what
-    // is in the log-in file. This lets programs like szgd work.
-    _userName = (userNameOverride == "NULL") ?
-      _configParser.getUserName() : userNameOverride;
-
-    // set all the other information
-    _serverName   = _configParser.getServerName();
-    _IPaddress    = _configParser.getServerIP();
-    _port         = _configParser.getServerPort();
-  }
-
-  if (!_dataClient.dialUpFallThrough(_IPaddress.c_str(),_port)){
-    // Look on the LAN for an szgserver.
-    /// \todo say "dlogin first" and leave it at that,
-    /// (if dconfig would report that nobody's logged in)
-    cout << _exeName << " remark: szgserver not found.\n"
+  if (!_dataClient.dialUpFallThrough(_IPaddress.c_str(), _port)){
+    // Connect to the szgserver at the designated location.
+    // If we don't connect, this is an error.
+    cerr << _exeName << " remark: szgserver not found (" << _IPaddress 
+         << ", " << _port << ").\n"
 	 << "\t(first dlogin;  type dhunt to find an szgserver.\n";
     return false;
   }
@@ -2836,6 +2810,14 @@ bool arSZGClient::_parseContextPair(const string& thePair){
   }
   else if (pair1Type == "user"){
     _userName = pair2;
+  }
+  else if (pair1Type == "verbose"){
+    if (pair2 == "true"){
+      _verbosity = true; 
+    }
+    else{
+      _verbosity = false;
+    }
   }
   else{
     cout << _exeName << " error: context pair has unknown type \""
