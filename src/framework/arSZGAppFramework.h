@@ -35,10 +35,13 @@ class SZG_CALL arSZGAppFramework {
     virtual bool init(int& argc, char** argv ) = 0;
     virtual bool start() = 0;
     virtual void stop(bool blockUntilDisplayExit) = 0;
+    virtual bool createWindows(bool useWindowing) = 0;
+    virtual void loopQuantum() = 0;
+    virtual void exitFunction() = 0;
     
-    arSZGClient* getSZGClient() { return &_SZGClient; }
     string  getLabel(){ return _label; }
     bool getStandalone() const { return _standalone; }
+    // TO BE ELIMINATED?????????????????????
     void setStandalone( bool onoff ) { _standalone = onoff; }
 
     virtual void setDataBundlePath(const string&, const string&){}
@@ -57,8 +60,7 @@ class SZG_CALL arSZGAppFramework {
     virtual float getUnitConversion();
     virtual float getUnitSoundConversion();
     
-    const string getDataPath()
-      { return _dataPath; }
+    const string getDataPath(){ return _dataPath; }
       
     // Basic access to the embedded input node.
     int getButton(       const unsigned int index ) const;
@@ -86,10 +88,9 @@ class SZG_CALL arSZGAppFramework {
     void navUpdate();
     void navUpdate( arInputEvent& event );
 
-    // should this return a copy instead? In some cases it points
-    // inside the arInputNode
-    arInputState* getInputState()
-      { return (arInputState*)_inputState; }
+    // Should this return a copy instead? In some cases it points
+    // inside the arInputNode.
+    arInputState* getInputState(){ return (arInputState*)_inputState; }
       
     // Methods pertaining to event filtering.
     bool setEventFilter( arFrameworkEventFilter* filter );
@@ -122,17 +123,23 @@ class SZG_CALL arSZGAppFramework {
 
     void speak( const std::string& message );
 
+    // Accessors for various internal objects/services. Necessary for flexibility.
+    
     // some applications need to be able to find out information
     // about the virtual computer
     arAppLauncher* getAppLauncher(){ return &_launcher; }
 
     // some applications want to do nonstandard things with the input node
     arInputNode* getInputNode(){ return _inputDevice; }
+    
+    // Allowing the user access to the window manager increases the flexibility
+    // of the framework. Lots of info about the GUI becomes available.
+    arGUIWindowManager* getWindowManager( void ) { return _wm; }
+    
+    arSZGClient* getSZGClient() { return &_SZGClient; }
       
-    // hide as soon as possible
-    arSZGClient _SZGClient;
-
   protected:
+    arSZGClient _SZGClient;
     arInputNode* _inputDevice;
     arInputState* _inputState;
     string _label;

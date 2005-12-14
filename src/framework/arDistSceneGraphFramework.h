@@ -31,11 +31,13 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   arDistSceneGraphFramework();
   ~arDistSceneGraphFramework() {}
   
-  // Inherited pure virtual functions
+  // Inherited virtual functions
   bool init(int&, char**);
   bool start();
   void stop(bool);
-  bool restart();
+  bool createWindows(bool useWindowing);
+  void loopQuantum();
+  void exitFunction();
   
   void setUserMessageCallback(void (*userMessageCallback)( arDistSceneGraphFramework&, 
 							   const string& messageBody ));
@@ -55,19 +57,7 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   void loadNavMatrix();
   void setViewer();
   void setPlayer();
-  
-  virtual bool createWindows();
-  virtual void loopQuantum(bool internalExit = false);
-  virtual void onExit(bool internalExit = false);
-  
-  // These calls are really just for use when the object is being used
-  // in graphics peer mode. DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED
-  // These can all be dealt with directly via the graphics database!
-  /*int getNodeID(const string& name);
-  arDatabaseNode* getNode(int ID);
-  bool lockNode(int ID);
-  bool unlockNode(int ID);*/
-  
+    
  private:
   // Used in both standalone mode and phleet mode.
   arGraphicsServer _graphicsServer;
@@ -109,6 +99,7 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   // Are we using the automatic buffer swap?
   bool _autoBufferSwap;
 
+  // Internal functions.
   bool _loadParameters();
   void _getVector3(arVector3& v, const char* param);
   void _initDatabases();

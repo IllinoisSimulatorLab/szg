@@ -116,6 +116,9 @@ class arSZGAppFramework {
     virtual bool init(int& argc, char** argv ) = 0;
     virtual bool start() = 0;
     virtual void stop(bool blockUntilDisplayExit) = 0;
+    virtual bool createWindows(bool useWindowing);
+    virtual void loopQuantum();
+    virtual void exitFunction();
     
     string  getLabel(){ return _label; }
     bool getStandalone() const;
@@ -132,8 +135,7 @@ class arSZGAppFramework {
     virtual void setUnitSoundConversion( float conv );
     virtual float getUnitConversion();
     virtual float getUnitSoundConversion();
-    const string getDataPath()
-      { return _dataPath; }
+    const string getDataPath();
     int getButton(       const unsigned int index ) const;
     float getAxis(       const unsigned int index ) const;
     arMatrix4 getMatrix( const unsigned int index ) const;
@@ -161,34 +163,13 @@ class arSZGAppFramework {
 
     arInputState* getInputState();
       
-    // Some applications need a thread running external to the library.
-    // For deterministic shutdown, we need to be able to register that
-    // thread's existence, know when it is shutting down, etc.
-
-    /// In the case of a user-defined, external event loop, the external
-    /// program may need to know when the "stop" signal has been received.
-    /// Returns whether or not the shutdown process has begun.
     bool stopping();
-    /// in the case of a user-defined external event loop, we may want the 
-    /// exit(0) call to be made by the user code. The following function lets 
-    /// the user code know that stop(...) is done. 
-    /// Returns whether or not stop(...) has completed.
     bool stopped();
-    // sometimes we want to use an external thread or other event loop that
-    // must be shutdown cleanly
     void useExternalThread();
-    // tells stop() that our external thread has started
     void externalThreadStarted();
-    // tells stop() that our external thread has shut-down cleanly
     void externalThreadStopped();
-	
-	void processEventQueue();
-    
-    // some applications need to be able to find out information
-    // about the virtual computer
+    void processEventQueue();
     arAppLauncher* getAppLauncher();
-
-    // some applications want to do nonstandard things with the input node
     arInputNode* getInputNode();
 };
 

@@ -1,4 +1,4 @@
-// $Id: PySceneGraph.i,v 1.6 2005/12/13 01:39:46 schaeffr Exp $
+// $Id: PySceneGraph.i,v 1.7 2005/12/14 00:17:37 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -135,6 +135,10 @@ class arDistSceneGraphFramework : public arSZGAppFramework {
   bool init(int&,char**);
   bool start();
   void stop(bool);
+  bool createWindows(bool useWindowing);
+  void loopQuantum();
+  void exitFunction();
+  
   void loadNavMatrix();
                                                                                
   void setDataBundlePath(const string& bundlePathName, 
@@ -145,13 +149,7 @@ class arDistSceneGraphFramework : public arSZGAppFramework {
                                                                                
   void setViewer();
   void setPlayer();
-                                                                               
-  bool restart();
-  
-  virtual bool createWindows();
-  virtual void loopQuantum(bool internalExit = false);
-  virtual void onExit(bool internalExit = false);
-                      
+                                         
   const string getNavNodeName() const;
   arDatabaseNode* getNavNode();
   

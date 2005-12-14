@@ -20,7 +20,7 @@
 
 
 //***********************************************************************
-// GLUT callbacks
+// arGUI callbacks
 //***********************************************************************
 
 void ar_masterSlaveFrameworkMessageTask( void* p ) {
@@ -217,6 +217,9 @@ void arMasterSlaveRenderCallback::operator()( arGUIWindowInfo* windowInfo,
 arMasterSlaveFramework::arMasterSlaveFramework( void ):
   arSZGAppFramework(),
   _stateServer( NULL ),
+  _barrierServer( NULL ),
+  _barrierClient( NULL ),
+  _soundClient( NULL ),
   _transferTemplate( "data" ),
   _transferData( NULL ),
   _serviceName( "NULL" ),
@@ -238,10 +241,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _keyboardCallback( NULL ),
   _arGUIKeyboardCallback( NULL ),
   _mouseCallback( NULL ),
-  _internalBufferSwap( true ),
   _framerateThrottle( false ),
-  _barrierServer( NULL ),
-  _barrierClient( NULL ),
   _master( true ),
   _stateClientConnected( false ),
   _inputActive( false ),
@@ -271,7 +271,6 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _noDrawFillColor( -1.0f, -1.0f, -1.0f ),
   _connectionThreadRunning( false ),
   _useWindowing( false ),
-  _soundClient( NULL ),
   _requestReload( false ) {
 
   // This is where input events are buffered for transfer to slaves.
@@ -353,6 +352,500 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
 
   delete _wm;
   delete _guiXMLParser;
+}
+
+/// Initializes the syzygy objects, but does not start any threads
+bool arMasterSlaveFramework::init( int& argc, char** argv ) {
+  _label = std::string( argv[ 0 ] );
+  _label = ar_stripExeName( _label );
+  
+  // Connect to the szgserver.
+  _SZGClient.simpleHandshaking( false );
+  
+  if (!_SZGClient.init( argc, argv )){
+    // The initialization failed!
+    return false;
+  }
+  
+  if ( !_SZGClient ) {
+    // If init failed but the above operator gives false, then we are in standalone
+    // mode.
+    
+    _standalone = true;
+    
+    // Furthermore, in standalone mode, this instance MUST be the master!
+    _setMaster( true );
+    
+    // HACK!!!!! There's cutting-and-pasting here...
+    dgSetGraphicsDatabase( &_graphicsDatabase );
+    dsSetSoundDatabase( &_soundServer );
+    
+    // This MUST come before _loadParameters, so that the internal sound
+    // client can be configured for the standalone configuration.
+    // (The internal arSoundClient is created in _initStandaloneObjects).
+    if( !_initStandaloneObjects() ) {
+      // NOTE: It is definitely possible for initialization of the standalone
+      // objects to fail. For instance, what if we are unable to load
+      // the joystick driver (which is a loadable module) or what if
+      // the configuration of the pforth filter fails?
+      return false;
+    }
+    
+    if( !_loadParameters() ) {
+      std::cerr << _label
+      << " remark: COULD NOT LOAD PARAMETERS IN STANDALONE "
+      << "MODE." << std::endl;
+    }
+    
+    _parametersLoaded = true;
+    
+    // We do not start the message-receiving thread yet (because there's no
+    // way yet to operate in a distributed fashion). We also do not
+    // initialize the master's objects... since they will be unused!
+    return true;
+  }
+  
+  // the init responses need to go to the client's initResponse stream
+  std::stringstream& initResponse = _SZGClient.initResponse();
+  
+  // Initialize a few things.
+  dgSetGraphicsDatabase( &_graphicsDatabase );
+  dsSetSoundDatabase( &_soundServer );
+  
+  // Load the parameters before executing any user callbacks
+  // (since this determines if we're master or slave).
+  if( !_loadParameters() ) {
+    goto fail;
+  }
+  
+  // Figure out whether we should launch the other executables.
+  // If so, under certain circumstances, this function may not return.
+  // NOTE: regardless of whether or not we'll be launching from here
+  // in trigger mode, we want to be able to use the arAppLauncher object
+  // to query info about the virtual computer, which requires the arSZGClient
+  // be registered with the arAppLauncher
+  (void)_launcher.setSZGClient( &_SZGClient );
+  
+  if( _SZGClient.getMode( "default" ) == "trigger" ) {
+    // if we are the trigger node, we launch the rest of the application
+    // components... and then WAIT for the exit.
+    string vircomp = _SZGClient.getVirtualComputer();
+    
+    // we are, in fact, executing as part of a virtual computer
+    _vircompExecution = true;
+    
+    const string defaultMode = _SZGClient.getMode( "default" );
+    
+    initResponse << _label << " remark: executing on virtual computer "
+      << vircomp << ",\n    with default mode "
+    << defaultMode << "." << std::endl;
+    
+    _launcher.setAppType( "distapp" );
+    
+    // The render program is the (stripped) EXE name, plus parameters.
+    {
+      char* exeBuf = new char[ _label.length() + 1 ];
+      ar_stringToBuffer( _label, exeBuf, _label.length() + 1 );
+      char* temp = argv[ 0 ];
+      argv[ 0 ] = exeBuf;
+      
+      _launcher.setRenderProgram( ar_packParameters( argc, argv ) );
+      
+      argv[ 0 ] = temp;
+      delete exeBuf;
+    }
+    
+    // Reorganizes the virtual computer.
+    if( !_launcher.launchApp() ) {
+      initResponse << _label << " error: failed to launch on virtual computer "
+      << vircomp << "." << std::endl;
+      goto fail;
+    }
+    
+    // Wait for the message (render nodes do this in the message task).
+    // we've suceeded in initing
+    if( !_SZGClient.sendInitResponse( true ) ) {
+      std::cerr << _label << " error: maybe szgserver died." << std::endl;
+    }
+    
+    // there's no more starting to do... since this application instance
+    // is just used as a launcher for other instances
+    _SZGClient.startResponse() << _label
+      << " trigger launched components." << std::endl;
+    
+    if( !_SZGClient.sendStartResponse( true ) ) {
+      std::cerr << _label << " error: maybe szgserver died." << std::endl;
+    }
+    
+    (void)_launcher.waitForKill();
+    exit( 0 );
+  }
+  
+  // Mode isn't trigger.
+  
+  // NOTE: sometimes user programs need to be able to determine
+  // characteristics of the virtual computer. Hence, that information must be
+  // available (to EVERYONE... and not just the master!)
+  // Consequently, setParameters() should be called. However, it is
+  // desirable to allow the user to set a BOGUS virtual computer via the
+  // -szg command line flags. Consequently, it is merely a warning and
+  // NOT a fatal error if setParameters() fails... i.e.
+  // my_program -szg virtual=foo
+  // should launch
+  if( _SZGClient.getVirtualComputer() != "NULL" &&
+      !_launcher.setParameters() ) {
+    initResponse << _label
+    << " warning: invalid virtual computer definition."
+    << std::endl;
+  }
+  
+  // Launch the message thread here, so dkill still works
+  // even if init() or start() fail.
+  // But launch after the trigger code above, lest we catch messages both
+  // in the waitForKill() AND in the message thread.
+  if(!_messageThread.beginThread( ar_masterSlaveFrameworkMessageTask, this )){
+    initResponse << _label
+    << " error: failed to start message thread."
+    << std::endl;
+    goto fail;
+  }
+  
+  if( !_determineMaster( initResponse ) ) {
+    goto fail;
+  }
+  
+  // init the objects, either master or slave
+  if( getMaster() ) {
+    if( !_initMasterObjects( initResponse ) ) {
+      goto fail;
+    }
+  }
+  else {
+    if( !_initSlaveObjects( initResponse ) ) {
+fail:
+      if( !_SZGClient.sendInitResponse( false ) ) {
+        std::cerr << _label << " error: maybe szgserver died." << std::endl;
+      }
+      
+      return false;
+    }
+  }
+  
+  _parametersLoaded = true;
+  
+  if( !_SZGClient.sendInitResponse( true ) ) {
+    std::cerr << _label << " error: maybe szgserver died." << std::endl;
+  }
+  
+  return true;
+}
+
+/// Starts needed services, windowing, and runs the internal event loop. 
+/// NOTE: this call does return if successful (and if it fails returns false).
+bool arMasterSlaveFramework::start( void ) {
+  // Call _start, telling it that it should start windowing and run the event loop.
+  return _start( true, true );
+}
+
+/// Starts the application, but does not create a window or start the arGUI
+/// event loop.
+bool arMasterSlaveFramework::startWithoutWindowing( void ){
+  // Call _start, telling it not to start windowing or use its own event loop.
+  return _start( false, false );
+}
+
+/// Starts the application, creates the windows, but does not start an event loop.
+bool arMasterSlaveFramework::startWithoutEventLoop( void ){
+  // Call _start, telling it to start windowing but not use its own event loop.
+  return _start( true, false );
+}
+
+/// Begins halting many significant parts of the object and blocks until
+/// they have, indeed, halted. The parameter will be false if we have been
+/// called from the arGUI keyboard function (that way be will not wait for
+/// the display thread to finish, resulting in a deadlock, since the
+/// keyboard function is called from that thread). The parameter will be
+/// true, on the other hand, if we are calling from the message-receiving
+/// thread (which is different from the display thread, and there the
+/// stop(...) should not return until the display thread is done.
+/// THIS DOES NOT HALT EVERYTHING YET! JUST THE
+/// STUFF THAT SEEMS TO CAUSE SEGFAULTS OR OTHER PROBLEMS ON EXIT.
+void arMasterSlaveFramework::stop( bool blockUntilDisplayExit ) {
+  
+  _blockUntilDisplayExit = blockUntilDisplayExit;
+  
+  if( _vircompExecution)  {
+    // arAppLauncher object piggy-backing on a renderer execution
+    _launcher.killApp();
+  }
+  
+  // to avoid an uncommon race condition setting the _exitProgram
+  // flag must go within this lock
+  ar_mutex_lock( &_pauseLock );
+  _exitProgram = true;
+  _pauseFlag   = false;
+  _pauseVar.signal();
+  ar_mutex_unlock( &_pauseLock );
+  
+  // recall that we can be a master AND not have any distribution occuring
+  if( getMaster() ) {
+    // it IS NOT valid to combine this conditional w/ the above because
+    // of the else
+    if( !_standalone ) {
+      _barrierServer->stop();
+      _soundServer.stop();
+    }
+  }
+  else {
+    _barrierClient->stop();
+  }
+  
+  while( _connectionThreadRunning ||
+         ( _useWindowing && _displayThreadRunning && blockUntilDisplayExit ) ||
+         ( _useExternalThread && _externalThreadRunning ) ) {
+    ar_usleep( 100000 );
+  }
+  
+  std::cout << _label << " remark: done." << std::endl;
+  
+  _stopped = true;
+}
+
+bool arMasterSlaveFramework::createWindows( bool useWindowing ) {
+  std::vector< arGUIXMLWindowConstruct* >* windowConstructs = _guiXMLParser->getWindowingConstruct()->getWindowConstructs();
+  
+  if( !windowConstructs ) {
+    // print error?
+    return false;
+  }
+  
+  // populate the callbacks for both the gui and graphics windows and the head
+  // for any vr cameras
+  std::vector< arGUIXMLWindowConstruct*>::iterator itr;
+  for( itr = windowConstructs->begin(); itr != windowConstructs->end(); itr++ ) {
+    (*itr)->getGraphicsWindow()->setInitCallback( new arMasterSlaveWindowInitCallback( this ) );
+    (*itr)->getGraphicsWindow()->setDrawCallback( new arMasterSlaveRenderCallback( this ) );
+    (*itr)->setGUIDrawCallback( new arMasterSlaveRenderCallback( this ) );
+    
+    std::vector<arViewport>* viewports = (*itr)->getGraphicsWindow()->getViewports();
+    std::vector<arViewport>::iterator vItr;
+    for( vItr = viewports->begin(); vItr != viewports->end(); vItr++ ) {
+      if( vItr->getCamera()->type() == "arVRCamera" ) {
+        ((arVRCamera*) vItr->getCamera())->setHead( &_head );
+      }
+    }
+  }
+  
+  // Actually create the windows (if we are "using windowing"). Otherwise, just create placeholder
+  // structures.
+  if( _wm->createWindows( _guiXMLParser->getWindowingConstruct(),
+                          useWindowing ) < 0 ) {
+    cout << "arMasterSlaveFramework error: could not create windows.\n";
+#ifdef AR_USE_DARWIN
+    std::cerr << "  THIS COULD BE BECAUSE YOU ARE NOT RUNNING X11. PLEASE CHECK.\n";
+#endif	
+    return false;
+  }
+  
+  _wm->setAllTitles( _label, false );
+  return true;
+}
+
+void arMasterSlaveFramework::loopQuantum(){
+  // Data exchange occurs in here. Also, connection of slaves to master
+  // and activation of framelock (if such is supported).
+  preDraw();
+  draw();
+  // Synchronization occurs in here.
+  postDraw();
+  swap();
+  // Keyboard events, events from the window manager, etc. are all
+  // processed in here. 
+  _wm->processWindowEvents();
+}
+
+void arMasterSlaveFramework::exitFunction(){
+  // Wildcat framelock is only deactivated if this makes sense...
+  // and if it makes sense, it is important to do so before exiting.
+  // also important that we do this in the display thread.
+  _wm->deactivateFramelock();
+  // Now that framelock is deactivated, go ahead and exit all windows.
+  _wm->deleteAllWindows();
+  // Guaranteed to get here--user-defined cleanup will be called
+  // at the right time
+  onCleanup();
+  // If an exit is going to occur elsewehere (like in the message thread)
+  // it can now happen safely at any time.
+  _displayThreadRunning = false;
+  // If stop(...) is called from the arGUI keyboard function, we
+  // want to exit here. (_blockUntilDisplayExit will be false)
+  // Otherwise, we want to wait here for the exit to occur in the
+  // message thread.
+  while( _blockUntilDisplayExit ){
+    ar_usleep( 100000 );
+  }
+  // When this function has returned, we can exit.
+}
+
+/// The sequence of events that should occur before the window is drawn.
+/// Made available as a public method so that applications can create custom
+/// event loops.
+void arMasterSlaveFramework::preDraw( void ) {
+  // don't even start the function if we are, in fact, in shutdown mode
+  if( stopping() ) {
+    return;
+  }
+  
+  // Please note: the reloading of parameters MUST occur in this thread,
+  // given that the arGUIWindowManager might be single threaded.
+  // AND when the arGUIWindowManager is single-threaded, all calls to it
+  // must occur in that single thread!
+  
+  if (_requestReload){
+    (void) _loadParameters();
+    // Assume that recreating the windows will be OK. A reasonable assumption.
+    (void) createWindows(_useWindowing);
+    _requestReload = false;
+  }
+  
+  // want to time this function...
+  ar_timeval preDrawStart = ar_time();
+  
+  // Catch the pause/ un-pause requests.
+  ar_mutex_lock( &_pauseLock );
+  while( _pauseFlag ) {
+    _pauseVar.wait( &_pauseLock );
+  }
+  ar_mutex_unlock( &_pauseLock );
+  
+  // the pause might have been triggered because shutdown has started
+  if( stopping() ) {
+    return;
+  }
+  
+  // Important that this occurs before the pre-exchange callback.
+  // The user might want to use current input data via
+  // arMasterSlaveFramework::getButton() or some other method in that callback.
+  if( getMaster() ) {
+    if (_harmonyInUse && !_harmonyReady) {
+      _harmonyReady = allSlavesReady();
+      if (_harmonyReady) {
+        // All slaves are connected, so we start accepting input in pre-determined
+        // harmony mode.
+        if (!_startInput()) {
+          // What else should we do here?
+          cerr << "arMasterSlaveFramework error: _startInput() failed.\n";
+        }
+      }
+    }
+    
+    _pollInputData();
+    
+    _inputEventQueue = _callbackFilter.getEventQueue();
+    arInputEventQueue myQueue( _inputEventQueue );
+    onProcessEventQueue( myQueue );
+    
+    if (!(_harmonyInUse && !_harmonyReady)) {
+      onPreExchange();
+    }
+  }
+  
+  // Might not be running in a distributed fashion.
+  if( !_standalone ) {
+    if( !( getMaster() ? _sendData() : _getData() ) ) {
+      _lastComputeTime = ar_difftime( ar_time(), preDrawStart );
+      return;
+    }
+  }
+  
+  onPlay();
+  
+  if( getConnected() && !(_harmonyInUse && !_harmonyReady) ) {
+    if (_harmonyInUse && !getMaster()) {
+      // In pre-determined harmony mode, slaves get to process event queue.
+      arInputEventQueue myQueue2( _inputEventQueue );
+      onProcessEventQueue( myQueue2 );
+    }
+    onPostExchange();
+  }
+  
+  if( _standalone ) {
+    // Play the sounds locally.
+    _soundClient->_cliSync.consume();
+  }
+  
+  // Must let the framerate graph know about the current frametime.
+  // NOTE: this is computed in _pollInputData... hmmm... doesn't make this
+  // very useful for the slaves...
+  arPerformanceElement* framerateElement = _framerateGraph.getElement( "framerate" );
+  framerateElement->pushNewValue( 1000.0 / _lastFrameTime );
+  
+  // Compute time is in microseconds and the graph element is scaled to 100 ms.
+  arPerformanceElement* computeElement   = _framerateGraph.getElement( "compute" );
+  computeElement->pushNewValue( _lastComputeTime / 1000.0 );
+  
+  // Sync time is in microseconds and the graph element is scaled to 100 ms.
+  arPerformanceElement* syncElement = _framerateGraph.getElement( "sync" );
+  syncElement->pushNewValue(_lastSyncTime / 1000.0 );
+  
+  // Must get performance metrics.
+  _lastComputeTime = ar_difftime( ar_time(), preDrawStart );
+}
+
+/// Public method so that applications can make custom event loops.
+void arMasterSlaveFramework::draw( int windowID ){
+  if( stopping() || !_wm ) {
+    return;
+  }
+  if( windowID < 0 ) {
+    _wm->drawAllWindows( true );
+  }
+  else {
+    _wm->drawWindow( windowID, true );
+  }
+}
+
+/// The sequence of events that should occur after the window is drawn,
+/// but before the synchronization is called.
+void arMasterSlaveFramework::postDraw( void ){
+  // if shutdown has been triggered, just return
+  if( stopping() ) {
+    return;
+  }
+  
+  ar_timeval postDrawStart = ar_time();
+  
+  // sometimes, for testing of synchronization, we want to be able to throttle
+  // down the framerate
+  if( _framerateThrottle ) {
+    ar_usleep( 200000 );
+  }
+  else {
+    // NEVER, NEVER, NEVER, NEVER PUT A SLEEP IN THE MAIN LOOP
+    // CAN'T COUNT ON THIS BEING LESS THAN 10 MS ON SOME SYSTEMS!!!!!
+    //ar_usleep(2000);
+  }
+  
+  // the synchronization. NOTE: we DO NOT synchronize if we are standalone.
+  if( !_standalone && !_sync() ) {
+    std::cerr << _label << " warning: sync failed." << std::endl;
+  }
+  
+  _lastSyncTime = ar_difftime( ar_time(), postDrawStart );
+}
+
+/// Public method so that applications can make custom event loops.
+void arMasterSlaveFramework::swap( int windowID ) {
+  if( stopping() || !_wm ) {
+    return;
+  }
+  
+  if( windowID < 0 ) {
+    _wm->swapAllWindowBuffers(true);
+  }
+  else {
+    _wm->swapWindowBuffer( windowID, true );
+  }
 }
 
 void arMasterSlaveFramework::usePredeterminedHarmony() {
@@ -512,14 +1005,14 @@ void arMasterSlaveFramework::onKey( arGUIKeyInfo* keyInfo ) {
     return;
   }
 
-  // if the 'newer' keyboard callback type is registered, use it instead of
-  // the legacy version
+  // If the 'newer' keyboard callback type is registered, use it instead of
+  // the legacy version.
   if( _arGUIKeyboardCallback ) {
     _arGUIKeyboardCallback( *this, keyInfo );
   }
   else if( keyInfo->getState() == AR_KEY_DOWN ) {
-    // for legacy reasons, this call expects only key press
-    // (not release) events
+    // For legacy reasons, this call expects only key press
+    // (not release) events.
     onKey( keyInfo->getKey(), 0, 0 );
   }
 }
@@ -649,259 +1142,6 @@ bool arMasterSlaveFramework::_startrespond( const std::string& s ) {
   return false;
 }
 
-/// Initializes the syzygy objects, but does not start any threads
-bool arMasterSlaveFramework::init( int& argc, char** argv ) {
-  _label = std::string( argv[ 0 ] );
-  _label = ar_stripExeName( _label );
-
-  // Connect to the szgserver.
-  _SZGClient.simpleHandshaking( false );
-  
-  if (!_SZGClient.init( argc, argv )){
-    // The initialization failed!
-    return false;
-  }
-
-  if ( !_SZGClient ) {
-    // If init failed but the above operator gives false, then we are in standalone
-    // mode.
-
-    _standalone = true;
-
-    // Furthermore, in standalone mode, this instance MUST be the master!
-    _setMaster( true );
-
-    // HACK!!!!! There's cutting-and-pasting here...
-    dgSetGraphicsDatabase( &_graphicsDatabase );
-    dsSetSoundDatabase( &_soundServer );
-
-    // This MUST come before _loadParameters, so that the internal sound
-    // client can be configured for the standalone configuration.
-    // (The internal arSoundClient is created in _initStandaloneObjects).
-    if( !_initStandaloneObjects() ) {
-      // NOTE: It is definitely possible for initialization of the standalone
-      // objects to fail. For instance, what if we are unable to load
-      // the joystick driver (which is a loadable module) or what if
-      // the configuration of the pforth filter fails?
-      return false;
-    }
-
-    if( !_loadParameters() ) {
-      std::cerr << _label
-                << " remark: COULD NOT LOAD PARAMETERS IN STANDALONE "
-	        << "MODE." << std::endl;
-    }
-
-    _parametersLoaded = true;
-
-    // We do not start the message-receiving thread yet (because there's no
-    // way yet to operate in a distributed fashion). We also do not
-    // initialize the master's objects... since they will be unused!
-    return true;
-  }
-
-  // the init responses need to go to the client's initResponse stream
-  std::stringstream& initResponse = _SZGClient.initResponse();
-
-  // Initialize a few things.
-  dgSetGraphicsDatabase( &_graphicsDatabase );
-  dsSetSoundDatabase( &_soundServer );
-
-  // Load the parameters before executing any user callbacks
-  // (since this determines if we're master or slave).
-  if( !_loadParameters() ) {
-    goto fail;
-  }
-
-  // Figure out whether we should launch the other executables.
-  // If so, under certain circumstances, this function may not return.
-  // NOTE: regardless of whether or not we'll be launching from here
-  // in trigger mode, we want to be able to use the arAppLauncher object
-  // to query info about the virtual computer, which requires the arSZGClient
-  // be registered with the arAppLauncher
-  (void)_launcher.setSZGClient( &_SZGClient );
-
-  if( _SZGClient.getMode( "default" ) == "trigger" ) {
-    // if we are the trigger node, we launch the rest of the application
-    // components... and then WAIT for the exit.
-    string vircomp = _SZGClient.getVirtualComputer();
-
-    // we are, in fact, executing as part of a virtual computer
-    _vircompExecution = true;
-
-    const string defaultMode = _SZGClient.getMode( "default" );
-
-    initResponse << _label << " remark: executing on virtual computer "
-	               << vircomp << ",\n    with default mode "
-                 << defaultMode << "." << std::endl;
-
-    _launcher.setAppType( "distapp" );
-
-    // The render program is the (stripped) EXE name, plus parameters.
-    {
-      char* exeBuf = new char[ _label.length() + 1 ];
-      ar_stringToBuffer( _label, exeBuf, _label.length() + 1 );
-      char* temp = argv[ 0 ];
-      argv[ 0 ] = exeBuf;
-
-      _launcher.setRenderProgram( ar_packParameters( argc, argv ) );
-
-      argv[ 0 ] = temp;
-      delete exeBuf;
-    }
-
-    // Reorganizes the virtual computer.
-    if( !_launcher.launchApp() ) {
-      initResponse << _label << " error: failed to launch on virtual computer "
-	                 << vircomp << "." << std::endl;
-      goto fail;
-    }
-
-    // Wait for the message (render nodes do this in the message task).
-    // we've suceeded in initing
-    if( !_SZGClient.sendInitResponse( true ) ) {
-      std::cerr << _label << " error: maybe szgserver died." << std::endl;
-    }
-
-    // there's no more starting to do... since this application instance
-    // is just used as a launcher for other instances
-    _SZGClient.startResponse() << _label
-                               << " trigger launched components." << std::endl;
-
-    if( !_SZGClient.sendStartResponse( true ) ) {
-      std::cerr << _label << " error: maybe szgserver died." << std::endl;
-    }
-
-    (void)_launcher.waitForKill();
-    exit( 0 );
-  }
-
-  // Mode isn't trigger.
-
-  // NOTE: sometimes user programs need to be able to determine
-  // characteristics of the virtual computer. Hence, that information must be
-  // available (to EVERYONE... and not just the master!)
-  // Consequently, setParameters() should be called. However, it is
-  // desirable to allow the user to set a BOGUS virtual computer via the
-  // -szg command line flags. Consequently, it is merely a warning and
-  // NOT a fatal error if setParameters() fails... i.e.
-  // my_program -szg virtual=foo
-  // should launch
-  if( _SZGClient.getVirtualComputer() != "NULL" &&
-      !_launcher.setParameters() ) {
-    initResponse << _label
-                 << " warning: invalid virtual computer definition."
-                 << std::endl;
-  }
-
-  // Launch the message thread here, so dkill still works
-  // even if init() or start() fail.
-  // But launch after the trigger code above, lest we catch messages both
-  // in the waitForKill() AND in the message thread.
-  if(!_messageThread.beginThread( ar_masterSlaveFrameworkMessageTask, this )){
-    initResponse << _label
-                 << " error: failed to start message thread."
-                 << std::endl;
-    goto fail;
-  }
-
-  if( !_determineMaster( initResponse ) ) {
-    goto fail;
-  }
-
-  // init the objects, either master or slave
-  if( getMaster() ) {
-    if( !_initMasterObjects( initResponse ) ) {
-      goto fail;
-    }
-  }
-  else {
-    if( !_initSlaveObjects( initResponse ) ) {
-fail:
-      if( !_SZGClient.sendInitResponse( false ) ) {
-        std::cerr << _label << " error: maybe szgserver died." << std::endl;
-      }
-
-      return false;
-    }
-  }
-
-  _parametersLoaded = true;
-
-  if( !_SZGClient.sendInitResponse( true ) ) {
-    std::cerr << _label << " error: maybe szgserver died." << std::endl;
-  }
-
-  return true;
-}
-
-/// Starts the application, using the GLUT event loop. NOTE: this call does
-/// return if successful, since glutMainLoop() does not return.
-bool arMasterSlaveFramework::start( void ) {
-  // call _start and tell it that, yes, we are using GLUT.
-  // AN ANNOYING HACK
-  return _start( true );
-}
-
-/// Starts the application, but does not create a window or start the arGUI
-/// event loop.
-bool arMasterSlaveFramework::startWithoutWindowing( void ){
-  // call _start and tell it that, no, we are not using arGUI
-  // AN ANNOYING HACK
-  return _start( false );
-}
-
-/// Begins halting many significant parts of the object and blocks until
-/// they have, indeed, halted. The parameter will be false if we have been
-/// called from the GLUT keyboard function (that way be will not wait for
-/// the display thread to finish, resulting in a deadlock, since the
-/// keyboard function is called from that thread). The parameter will be
-/// true, on the other hand, if we are calling from the message-receiving
-/// thread (which is different from the display thread, and there the
-/// stop(...) should not return until the display thread is done.
-/// THIS DOES NOT HALT EVERYTHING YET! JUST THE
-/// STUFF THAT SEEMS TO CAUSE SEGFAULTS OR OTHER PROBLEMS ON EXIT.
-void arMasterSlaveFramework::stop( bool blockUntilDisplayExit ) {
-
-  _blockUntilDisplayExit = blockUntilDisplayExit;
-
-  if( _vircompExecution)  {
-    // arAppLauncher object piggy-backing on a renderer execution
-    _launcher.killApp();
-  }
-
-  // to avoid an uncommon race condition setting the _exitProgram
-  // flag must go within this lock
-  ar_mutex_lock( &_pauseLock );
-  _exitProgram = true;
-  _pauseFlag   = false;
-  _pauseVar.signal();
-  ar_mutex_unlock( &_pauseLock );
-
-  // recall that we can be a master AND not have any distribution occuring
-  if( getMaster() ) {
-    // it IS NOT valid to combine this conditional w/ the above because
-    // of the else
-    if( !_standalone ) {
-      _barrierServer->stop();
-      _soundServer.stop();
-    }
-  }
-  else {
-    _barrierClient->stop();
-  }
-
-  while( _connectionThreadRunning ||
-         ( _useWindowing && _displayThreadRunning && blockUntilDisplayExit ) ||
-         ( _useExternalThread && _externalThreadRunning ) ) {
-    ar_usleep( 100000 );
-  }
-
-  std::cout << _label << " remark: done." << std::endl;
-
-  _stopped = true;
-}
-
 /// The sound server should be able to find its files in the application
 /// directory. If this function is called between init(...) and start(...),
 /// the sound render will be able to find clips there. bundlePathName should
@@ -917,171 +1157,6 @@ void arMasterSlaveFramework::setDataBundlePath( const std::string& bundlePathNam
     _soundClient->setDataBundlePath( bundlePathName, bundleSubDirectory );
   }
 }
-
-/// public method so that applications can make custom event loops
-void arMasterSlaveFramework::draw( int windowID ) {
-
-  if( _exitProgram || !_wm ) {
-    return;
-  }
-
-  if( windowID < 0 ) {
-    _wm->drawAllWindows();
-  }
-  else {
-    _wm->drawWindow( windowID );
-  }
-}
-
-/// public method so that applications can make custom event loops
-void arMasterSlaveFramework::swap( int windowID ) {
-
-  if( _exitProgram || !_wm ) {
-    return;
-  }
-
-  if( windowID < 0 ) {
-    _wm->swapAllWindowBuffers();
-  }
-  else {
-    _wm->swapWindowBuffer( windowID );
-  }
-}
-
-/// The sequence of events that should occur before the window is drawn.
-/// Made available as a public method so that applications can create custom
-/// event loops.
-void arMasterSlaveFramework::preDraw( void ) {
-  // don't even start the function if we are, in fact, in shutdown mode
-  if( _exitProgram ) {
-    return;
-  }
-
-  // Please note: the reloading of parameters MUST occur in this thread,
-  // given that the arGUIWindowManager might be single threaded.
-  // AND when the arGUIWindowManager is single-threaded, all calls to it
-  // must occur in that single thread!
-
-  if (_requestReload){
-    (void) _loadParameters();
-    _createWindowing(_useWindowing);
-    _requestReload = false;
-  }
-
-  // want to time this function...
-  ar_timeval preDrawStart = ar_time();
-
-  // Catch the pause/ un-pause requests.
-  ar_mutex_lock( &_pauseLock );
-  while( _pauseFlag ) {
-    _pauseVar.wait( &_pauseLock );
-  }
-  ar_mutex_unlock( &_pauseLock );
-
-  // the pause might have been triggered because shutdown has started
-  if( _exitProgram ) {
-    return;
-  }
-
-  // important that this occurs before the pre-exchange callback
-  // the user might want to use current input data via
-  // arMasterSlaveFramework::getButton() or some other method in that callback
-  if( getMaster() ) {
-    if (_harmonyInUse && !_harmonyReady) {
-      _harmonyReady = allSlavesReady();
-      if (_harmonyReady) {
-        // All slaves are connected, so we start accepting input in pre-determined
-        // harmony mode.
-        if (!_startInput()) {
-          // What else should we do here?
-          cerr << "arMasterSlaveFramework error: _startInput() failed.\n";
-        }
-      }
-    }
-      
-    _pollInputData();
-
-    _inputEventQueue = _callbackFilter.getEventQueue();
-    arInputEventQueue myQueue( _inputEventQueue );
-    onProcessEventQueue( myQueue );
-
-    if (!(_harmonyInUse && !_harmonyReady)) {
-      onPreExchange();
-    }
-  }
-
-  // might not be running in a distributed fashion
-  if( !_standalone ) {
-    if( !( getMaster() ? _sendData() : _getData() ) ) {
-      _lastComputeTime = ar_difftime( ar_time(), preDrawStart );
-      return;
-    }
-  }
-
-  onPlay();
-
-  if( getConnected() && !(_harmonyInUse && !_harmonyReady) ) {
-    if (_harmonyInUse && !getMaster()) {
-      // in pre-determined harmony mode, slaves get to process event queue.
-      arInputEventQueue myQueue2( _inputEventQueue );
-      onProcessEventQueue( myQueue2 );
-    }
-    onPostExchange();
-  }
-
-  if( _standalone ) {
-    // play the sounds locally
-    _soundClient->_cliSync.consume();
-  }
-
-  // must let the framerate graph know about the current frametime.
-  // NOTE: this is computed in _pollInputData... hmmm... doesn't make this
-  // very useful for the slaves...
-  arPerformanceElement* framerateElement = _framerateGraph.getElement( "framerate" );
-  framerateElement->pushNewValue( 1000.0 / _lastFrameTime );
-
-  // compute time is in microseconds and the graph element is scaled to 100 ms.
-  arPerformanceElement* computeElement   = _framerateGraph.getElement( "compute" );
-  computeElement->pushNewValue( _lastComputeTime / 1000.0 );
-
-  // sync time is in microseconds and the graph element is scaled to 100 ms.
-  arPerformanceElement* syncElement = _framerateGraph.getElement( "sync" );
-  syncElement->pushNewValue(_lastSyncTime / 1000.0 );
-
-  // must get performance metrics
-  _lastComputeTime = ar_difftime( ar_time(), preDrawStart );
-}
-
-
-/// The sequence of events that should occur after the window is drawn,
-/// but before the synchronization is called.
-void arMasterSlaveFramework::postDraw( void ){
-  // if shutdown has been triggered, just return
-  if( _exitProgram ) {
-    return;
-  }
-
-  ar_timeval postDrawStart = ar_time();
-
-  // sometimes, for testing of synchronization, we want to be able to throttle
-  // down the framerate
-  if( _framerateThrottle ) {
-    ar_usleep( 200000 );
-  }
-  else {
-    // NEVER, NEVER, NEVER, NEVER PUT A SLEEP IN THE MAIN LOOP
-    // CAN'T COUNT ON THIS BEING LESS THAN 10 MS ON SOME SYSTEMS!!!!!
-    //ar_usleep(2000);
-  }
-
-  // the synchronization. NOTE: we DO NOT synchronize if we are standalone.
-  if( !_standalone && !_sync() ) {
-    std::cerr << _label << " warning: sync failed." << std::endl;
-  }
-
-  _lastSyncTime = ar_difftime( ar_time(), postDrawStart );
-}
-
 
 bool arMasterSlaveFramework::addTransferField( std::string fieldName,
                                                void* data,
@@ -1220,13 +1295,14 @@ void* arMasterSlaveFramework::getTransferField( std::string fieldName,
   return p.data;
 }
 
-arGraphicsWindow* arMasterSlaveFramework::getGraphicsWindow( const int windowID ) {
+// DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED
+/*arGraphicsWindow* arMasterSlaveFramework::getGraphicsWindow( const int windowID ) {
   return _wm->getGraphicsWindow( windowID );
 }
 
 void arMasterSlaveFramework::returnGraphicsWindow( const int windowID ) {
   _wm->returnGraphicsWindow( windowID );
-}
+}*/
 
 void arMasterSlaveFramework::setPlayTransform( void ){
   if( soundActive() ) {
@@ -1238,14 +1314,9 @@ void arMasterSlaveFramework::drawGraphicsDatabase( void ){
   _graphicsDatabase.draw();
 }
 
-/*
-void arMasterSlaveFramework::draw( void ) {
-  std::cout << "arMasterSlaveFramework warning: arMasterSlaveFramework::draw() "
-            << "has been renamed drawGraphicsDatabase()." << std::endl
-            << "    Please modify your code accordingly." << std::endl;
-}
-*/
-
+//********************************************************************************************
+// Random number functions follow. These are useful in predetermined harmony mode.
+//********************************************************************************************
 void arMasterSlaveFramework::setRandomSeed( const long newSeed ) {
   if (!_master) {
     return;
@@ -1734,13 +1805,13 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
     _inputDevice->addInputSource( driver, false );
     if( pforthProgramName == "NULL" ) {
       std::cout << "arMasterSlaveFramework remark: no pforth program for "
-	              << "standalone joystick." << std::endl;
+		<< "standalone joystick." << std::endl;
     }
     else {
       std::string pforthProgram = _SZGClient.getGlobalAttribute( pforthProgramName );
       if( pforthProgram == "NULL" ) {
         std::cout << "arMasterSlaveFramework remark: no pforth program exists for "
-	                << "name = " << pforthProgramName << std::endl;
+		  << "name = " << pforthProgramName << std::endl;
       }
       else {
         arPForthFilter* filter = new arPForthFilter();
@@ -2037,8 +2108,8 @@ bool arMasterSlaveFramework::_startObjects( void ){
   return true;
 }
 
-/// Functionality common to start() and startWithoutWindowing().
-bool arMasterSlaveFramework::_start( bool useWindowing ) {
+/// Functionality common to start(), startWithoutWindowing(), and startWithoutEventLoop().
+bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
   _useWindowing = useWindowing;
 
   if( !_parametersLoaded ) {
@@ -2055,10 +2126,10 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
   }
 
   if( !_standalone ) {
-    // make sure we get the screen resource
-    // this lock should only be grabbed AFTER an application launching.
+    // Make sure we get the screen resource.
+    // This lock should only be grabbed AFTER an application launching.
     // i.e. DO NOT do this in init(), which is called even on the trigger
-    // instance... but do it here (which is only reached on render instances)
+    // instance... but do it here (which is only reached on render instances).
     std::string screenLock = _SZGClient.getComputerName() + "/" +
                              _SZGClient.getMode( "graphics" );
     int graphicsID;
@@ -2071,9 +2142,9 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
     }
   }
 
-  // do the user-defined init
+  // Do the user-defined init.
   // NOTE: so that _startCallback can know if this instance is the master or
-  // a slave, it is important to call this AFTER _startDetermineMaster(...)
+  // a slave, it is important to call this AFTER _startDetermineMaster(...).
   if( !onStart( _SZGClient ) ) {
     if( _SZGClient ) {
       return _startrespond( "arMasterSlaveFramework start callback failed." );
@@ -2083,7 +2154,10 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
     }
   }
 
-  _createWindowing(_useWindowing);
+  // If we can't create the windows (and we were supposed to), then _start(...) fails.
+  if (!createWindows(_useWindowing)){
+    return false; 
+  }
 
   if( _standalone ) {
     // this is from _startObjects... a CUT_AND_PASTE!!
@@ -2108,61 +2182,24 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
   if( !_standalone ) {
     _wm->findFramelock();
   }
-
-  if( _useWindowing ) {
+  
+  if (useEventLoop || _useWindowing){
+    // _displayThreadRunning is used to coordinate shutdown with
+    // program stop via ESC-press (arGUI keyboard callback) or kill message
+    // (received in the message thread).
     _displayThreadRunning = true;
-    // This used to be the GLUT main loop....
-    // glutMainLoop(); // never returns
+  }
 
+  if( useEventLoop ) {
     // Event loop.
-    while( true ) {
-      preDraw();
-
-      _wm->drawAllWindows( true );
-
-      postDraw();
-
-      // Will _internalBufferSwap always be "true"?
-      if( _internalBufferSwap ) {
-        _wm->swapAllWindowBuffers( true );
-      }
-      // Keyboard events, events from the window manager, etc. are all
-      // processed in here. 
-      _wm->processWindowEvents();
-      
-      // If we are in shutdown mode, we want to stop everything and
-      // then go away. NOTE: there are special problems since _drawWindow()
-      // and the keyboard function where the ESC press is caught are in the
-      // same thread
-      if ( _exitProgram ) {
-	// NOTE: stop(...) must have been called at one of the three kill
-	// points ("quit" message, clicking on window close button, pressing
-	// ESC key) to get to here.
-
-        // Wildcat framelock is only deactivated if this makes sense...
-        // and if it makes sense, it is important to do so before exiting.
-        // also important that we do this in the display thread
-        _wm->deactivateFramelock();
-	// Now that framelock is deactivated, go ahead and exit all windows.
-        _wm->deleteAllWindows();
-        // Guaranteed to get here--user-defined cleanup will be called
-        // at the right time
-        onCleanup();
-        // If an exit is going to occur elsewehere (like in the message thread)
-	// it can now happen safely at any time.
-        _displayThreadRunning = false;
-        // If stop(...) is called from the arGUI keyboard function, we
-        // want to exit here. (_blockUntilDisplayExit will be false)
-        // Otherwise, we want to wait here for the exit to occur in the
-        // message thread
-        while( _blockUntilDisplayExit ){
-          ar_usleep( 100000 );
-        }
-	// We only get to this exit if the
-        exit( 0 );
-      }
-
+    // NOTE: stop(...) must have been called at one of the three kill
+    // points ("quit" message, clicking on window close button, pressing
+    // ESC key) to get to here.
+    while( !stopping() ){
+      loopQuantum();
     }
+    exitFunction();
+    exit(0);
   }
 
   return true;
@@ -2171,41 +2208,6 @@ bool arMasterSlaveFramework::_start( bool useWindowing ) {
 //**************************************************************************
 // Other system-level functions
 //**************************************************************************
-
-void arMasterSlaveFramework::_createWindowing( bool useWindowing ) {
-  std::vector< arGUIXMLWindowConstruct* >* windowConstructs = _guiXMLParser->getWindowingConstruct()->getWindowConstructs();
-
-  if( !windowConstructs ) {
-    // print error?
-    return;
-  }
-
-  // populate the callbacks for both the gui and graphics windows and the head
-  // for any vr cameras
-  std::vector< arGUIXMLWindowConstruct*>::iterator itr;
-  for( itr = windowConstructs->begin(); itr != windowConstructs->end(); itr++ ) {
-    (*itr)->getGraphicsWindow()->setInitCallback( new arMasterSlaveWindowInitCallback( this ) );
-    (*itr)->getGraphicsWindow()->setDrawCallback( new arMasterSlaveRenderCallback( this ) );
-    (*itr)->setGUIDrawCallback( new arMasterSlaveRenderCallback( this ) );
-
-    std::vector<arViewport>* viewports = (*itr)->getGraphicsWindow()->getViewports();
-    std::vector<arViewport>::iterator vItr;
-    for( vItr = viewports->begin(); vItr != viewports->end(); vItr++ ) {
-      if( vItr->getCamera()->type() == "arVRCamera" ) {
-        ((arVRCamera*) vItr->getCamera())->setHead( &_head );
-       }
-    }
-  }
-
-  // actually create the windows
-  if( _wm->createWindows( _guiXMLParser->getWindowingConstruct(),
-                          useWindowing ) < 0 ) {
-    std::cout << "could not create windows" << std::endl;
-    // exit( 0 );
-  }
-
-  _wm->setAllTitles( _label, false );
-}
 
 bool arMasterSlaveFramework::_loadParameters( void ) {
 
@@ -2323,7 +2325,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
   // there's no way to shut the arSZGClient down cleanly.
   std::string messageType, messageBody;
 
-  while( !_exitProgram ) {
+  while( !stopping() ) {
     // NOTE: it is possible for receiveMessage to fail, precisely in the
     // case that the szgserver has *hard-shutdown* our client object.
     if( !_SZGClient.receiveMessage( &messageType, &messageBody ) ) {
@@ -2356,13 +2358,6 @@ void arMasterSlaveFramework::_messageTask( void ) {
         exit( 0 );
       }
     }
-//    else if ( messageType == "slaveready" ) {
-//      ++_numSlavesReady;
-//      cout << "arMasterSlaveFramework remark: " << _numSlavesReady << " slaves ready.\n";
-//      if (allSlavesReady()) {
-//        cout << "   (That's all of them).\n";
-//      }
-//    }
     else if ( messageType== "performance" ) {
       if ( messageBody == "on" ) {
 	      _showPerformance = true;
@@ -2435,10 +2430,10 @@ void arMasterSlaveFramework::_messageTask( void ) {
       if ( messageBody == "on" ) {
         ar_mutex_lock( &_pauseLock );
         // do not pause if we are exitting
-        if( !_exitProgram ) {
-	        _pauseFlag = true;
-	      }
-	      ar_mutex_unlock(&_pauseLock);
+        if ( !stopping() ) {
+	  _pauseFlag = true;
+	}
+	ar_mutex_unlock(&_pauseLock);
       }
       else if( messageBody == "off" ) {
         ar_mutex_lock( &_pauseLock );
@@ -2448,7 +2443,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
       }
       else
         std::cerr << _label << " warning: ignoring unexpected pause arg \""
-	                << messageBody << "\"." << std::endl;
+		  << messageBody << "\"." << std::endl;
     }
 
   }
@@ -2460,7 +2455,7 @@ void arMasterSlaveFramework::_connectionTask( void ) {
 
   if( _master ) {
     // THE MASTER'S METHOD OF HANDLING CONNECTIONS
-    while( !_exitProgram ) {
+    while( !stopping() ) {
       // TODO TODO TODO TODO TODO TODO
       // As a hack, since non-blocking connection accept has yet to be
       // implemented, we have to pretend the connection thread isn't running
@@ -2469,34 +2464,34 @@ void arMasterSlaveFramework::_connectionTask( void ) {
       arSocket* theSocket = _stateServer->acceptConnectionNoSend();
       _connectionThreadRunning = true;
 
-      if( _exitProgram ) {
+      if( stopping() ) {
         break;
       }
 
       if( !theSocket || _stateServer->getNumberConnected() <= 0 ) {
         // something bad happened.  Don't keep trying infinitely.
         _exitProgram = true;
-	      break;
+	break;
       }
 
       std::cout << _label << " remark: slave connected to master";
       const int num = _stateServer->getNumberConnected();
 
-      if( num > 1 ) {
-	      std::cout << " (" << num << " in all)";
-	    }
+      if ( num > 1 ) {
+	std::cout << " (" << num << " in all)";
+      }
       std::cout << std::endl;
     }
   }
   else {
     // THE SLAVE'S METHOD OF HANDLING CONNECTIONS
-    while( !_exitProgram ) {
+    while( !stopping() ) {
       // make sure barrier is connected first
-      while( !_barrierClient->checkConnection() && !_exitProgram ) {
+      while( !_barrierClient->checkConnection() && !stopping() ) {
         ar_usleep( 100000 );
       }
 
-      if( _exitProgram ) {
+      if( stopping() ) {
         break;
       }
 
@@ -2509,7 +2504,7 @@ void arMasterSlaveFramework::_connectionTask( void ) {
 
       _connectionThreadRunning = true;
 
-      if( _exitProgram ) {
+      if( stopping() ) {
         break;
       }
 
@@ -2527,11 +2522,11 @@ void arMasterSlaveFramework::_connectionTask( void ) {
       _stateClientConnected = true;
 
       std::cout << _label << " remark: slave connected to master." << std::endl;
-      while( _stateClientConnected && !_exitProgram ) {
+      while( _stateClientConnected && !stopping() ) {
         ar_usleep( 300000 );
       }
 
-      if( _exitProgram ) {
+      if( stopping() ) {
         break;
       }
 
@@ -2573,7 +2568,7 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
                                       windowInfo->getSizeX(),
                                       windowInfo->getSizeY() );
   // draw the window
-  if(!_exitProgram ) {
+  if(!stopping() ) {
     if( _noDrawFillColor[ 0 ] == -1 ) {
       if( getConnected() && !(_harmonyInUse && !_harmonyReady) ) {
         graphicsWindow->draw();

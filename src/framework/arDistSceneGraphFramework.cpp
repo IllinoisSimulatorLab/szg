@@ -78,7 +78,7 @@ void ar_distSceneGraphFrameworkWindowTask(void* f){
   arDistSceneGraphFramework* fw = (arDistSceneGraphFramework*) f;
   // If there is only one window, then the window manager will be in single-threaded 
   // mode. Consequently, the windowing needs to be started in the window thread.
-  fw->_windowsCreated = fw->createWindows();
+  fw->_windowsCreated = fw->createWindows(true);
   // Tell the launching thread the result.
   fw->_windowsCreatedSignal.sendSignal();
   // Only proceed if, in fact, the launching succeeded.
@@ -86,7 +86,7 @@ void ar_distSceneGraphFrameworkWindowTask(void* f){
     while (!fw->stopped()){ 
       fw->loopQuantum();
     }
-    fw->onExit();
+    fw->exitFunction();
     exit(0);
   }
 }
@@ -267,8 +267,14 @@ void arDistSceneGraphFramework::swapBuffers(){
     
     // Must swap the (message) buffer.
     _graphicsServer._syncServer.swapBuffers();
-    // The windowing is occuring in this thread, hence execute the following.
-    loopQuantum(true);
+    // The windowing is occuring in this thread, hence execute the event loop
+    // quantum.
+    loopQuantum();
+    // Should exit if the services have stopped.
+    if (stopped()){
+      exitFunction();
+      exit(0); 
+    }
   }
   else if (_peerName == "NULL"){
     // No synchronization occurs in the peer case! (i.e. _peerName != "NULL")
@@ -405,19 +411,20 @@ void arDistSceneGraphFramework::stop(bool){
   _stopped = true;
 }
 
-bool arDistSceneGraphFramework::restart(){
-  // Stop the framework and restart (the stop parameter is meaningless so far... at
-  // least for this framework as opposed to the m/s framework)
-  stop(true);
-  return start();
-}
-
 /// Used in standalone mode only. In that case, our application will display its
-/// own window instead of using szgrender.
-bool arDistSceneGraphFramework::createWindows(){
+/// own window instead of using szgrender. The "useWindowing" parameter is ignored
+/// by this framework.
+bool arDistSceneGraphFramework::createWindows(bool){
   if (_standalone){
     // Start the windowing. 
-    return _graphicsClient.start(_SZGClient, false);
+    bool state = _graphicsClient.start(_SZGClient, false);
+    if (!state){
+      cout << "arDistSceneGraphFramework error: could not start windowing.\n"; 
+#ifdef AR_USE_DARWIN
+      std::cerr << "  THIS COULD BE BECAUSE YOU ARE NOT RUNNING X11. PLEASE CHECK.\n";
+#endif	
+    }
+    return state;
   }
   // This method shouldn't have been called if not in standalone mode.
   return false;
@@ -425,9 +432,7 @@ bool arDistSceneGraphFramework::createWindows(){
 
 /// Used in standalone mode. In that case, our application must actually dislay its
 /// own window (as opposed to through a szgrender as in phleet mode).
-/// If system exit should occur internally to this function (if the application
-/// has signalled it is stopped), set internalExit to true (the default is false).
-void arDistSceneGraphFramework::loopQuantum(bool internalExit){
+void arDistSceneGraphFramework::loopQuantum(){
   if (_standalone){
     ar_timeval time1 = ar_time();
     if (_standaloneControlMode == "simulator"){
@@ -446,71 +451,16 @@ void arDistSceneGraphFramework::loopQuantum(bool internalExit){
       = _framerateGraph.getElement("framerate");
     double frameTime = ar_difftime(ar_time(), time1);
     framerateElement->pushNewValue(1000000.0/frameTime);
-    // Check to see whether exit should occur.
-    if (internalExit && stopped()){
-      onExit(true);
-    }
   }
 }
 
 /// Used in standalone mode only. In that case, our application will display its
 /// own window instead of using szgrender.
-void arDistSceneGraphFramework::onExit(bool internalExit){
+void arDistSceneGraphFramework::exitFunction(){
   if (_standalone){
     _wm->deleteAllWindows();
-    if (internalExit){
-      exit(0);
-    }
   }
 }
-
-//////////////////////////////////////////////////////////////////////////////////
-// DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED
-//////////////////////////////////////////////////////////////////////////////////
-/// Hmmm. This one seems like a little bit of a hack.
-/// TO BE REMOVED???????????????? Think about how the graphics peer might get used...
-/*int arDistSceneGraphFramework::getNodeID(const string& name){
-  if (_peerName == "NULL"){
-    return _graphicsServer.getNodeID(name);
-  }  
-  if (_peerMode == "source"){
-    return _graphicsPeer.getNodeID(name);
-  }
-  return _graphicsPeer.remoteNodeID(_peerTarget, name);
-}*/
-
-/// TO BE REMOVED?????????????????????????????
-/*arDatabaseNode* arDistSceneGraphFramework::getNode(int ID){
-  // only makes sense if we are running normally OR if we are in
-  // "feedback" mode and consequently have a database copy.
-  if (_peerName == "NULL"){
-    return _graphicsServer.getNode(ID);
-  }
-  else if (_peerMode == "feedback"){
-    return _graphicsPeer.getNode(ID);
-  }
-  return NULL;
-}*/
-
-/// Hmmm. Not sure whether this is BOGUS or not...
-/*bool arDistSceneGraphFramework::lockNode(int ID){
-  if (_peerName == "NULL" || _peerMode == "source"){
-    // does it make sense to locally lock a node? Maybe... but this isn't
-    // implemented yet.
-    return false;
-  }
-  return _graphicsPeer.remoteLockNode(_peerTarget, ID);
-}*/
-
-/// Hmmm. Not sure whether this is BOGUS or not...
-/*bool arDistSceneGraphFramework::unlockNode(int ID){
-  if (_peerName == "NULL" || _peerMode == "source"){
-    // does it make sense to locally unlock a node? Maybe... but this isn't
-    // implemented yet.
-    return false;
-  }
-  return _graphicsPeer.remoteUnlockNode(_peerTarget, ID);
-}*/
 
 // If the attribute exists, stuff its value into v.
 // Otherwise report v's (unchanged) default value.
@@ -822,7 +772,7 @@ bool arDistSceneGraphFramework::_startStandaloneMode(){
     }
   }
   else{
-    if (!createWindows()){
+    if (!createWindows(true)){
       // Important to *stop* the services that have already been started (before exiting).
       //stop(true);
       return false;

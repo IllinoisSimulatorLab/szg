@@ -598,7 +598,7 @@ int arGUIWindow::_performWindowCreation( void )
   }
 
   if( _windowCreation() < 0 ) {
-    std::cerr << "arGUIWindow: _windowCreation failed" << std::endl;
+    // Do not print a complaint here.
     return -1;
   }
 

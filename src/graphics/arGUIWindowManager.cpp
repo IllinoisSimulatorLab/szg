@@ -189,14 +189,11 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig,
   // Only make the OS window if it has been requested.
   if (useWindowing){
     if( _threaded ) {
-      // this should only return once the window is actually up and running
+      // This should only return once the window is actually up and running
       if( window->beginEventThread() < 0 ) {
         delete window;
         _windows.erase( _maxWindowID );
-	std::cerr << "arGUIWindowManager error: addWindow: _performWindowCreation error" << std::endl;
-#ifdef AR_USE_DARWIN
-        std::cerr << "  THIS COULD BE BECAUSE YOU ARE NOT RUNNING X11. PLEASE CHECK.\n";
-#endif
+	// Do not print out a complaint here.
         return -1;
       }
     }
@@ -204,10 +201,7 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig,
       if( window->_performWindowCreation() < 0 ) {
         delete window;
         _windows.erase( _maxWindowID );
-        std::cerr << "arGUIWindowManager error: addWindow: _performWindowCreation error" << std::endl;
-#ifdef AR_USE_DARWIN
-        std::cerr << "  THIS COULD BE BECAUSE YOU ARE NOT RUNNING X11. PLEASE CHECK.\n";
-#endif	
+        // Do not print out a complaint here.
         return -1;
       }
     }
@@ -837,7 +831,7 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
   // If there are more parsed than created windows, then create them.
   for( ; cItr != windowConstructs->end(); cItr++ ) {
     if( addWindow( *((*cItr)->getWindowConfig()), useWindowing ) < 0 ) {
-      std::cerr << "arGUIWindowManager warning: could not create new gui window" << std::endl;
+      // Do not print a complaint here.
       return -1;
     }
   }

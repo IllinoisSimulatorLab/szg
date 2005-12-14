@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.20 2005/12/07 20:48:17 crowell Exp $
+// $Id: PyMasterSlave.i,v 1.21 2005/12/14 00:17:37 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -415,6 +415,9 @@ class arMasterSlaveFramework : public arSZGAppFramework {
   // if the parameter is set to true, we will block until the display thread
   // exits
   void stop(bool blockUntilDisplayExit);
+   bool createWindows(bool useWindowing);
+  void loopQuantum();
+  void exitFunction();
 
   void preDraw();
   void postDraw();
@@ -424,10 +427,6 @@ class arMasterSlaveFramework : public arSZGAppFramework {
 
   void setDataBundlePath(const string& bundlePathName, const string& bundleSubDirectory);
 
-  // If set to true (the default), the framework will swap the graphics
-  // buffers itself. Otherwise, the application will do so. This is
-  // really a bit of a hack.
-  void internalBufferSwap(bool state);
   void loadNavMatrix();
   /// msec since the first I/O poll (not quite start of the program).
   double getTime() const;

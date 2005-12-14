@@ -56,15 +56,39 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
  public:
   arMasterSlaveFramework( void );
   virtual ~arMasterSlaveFramework( void );
+  
+  // Initializes the various objects but does not start the event loop.
+  bool init( int&, char** );
+  // Starts services, windowing, and an internal event loop. On success, does not return.
+  bool start( void );
+  // Starts services but not windowing. Returns and allows the user to control the event loop.
+  bool startWithoutWindowing( void );
+  // Starts services, windowing. Returns and allows the user to control the event loop,
+  // either as a whole (via loopQuantum()) or in a fine-grained way via preDraw(), postDraw(), etc.
+  bool startWithoutEventLoop( void );
+  // Shut-down for much (BUT NOT ALL YET) of the arMasterSlaveFramework services.
+  // if the parameter is set to true, we will block until the display thread
+  // exits
+  void stop( bool blockUntilDisplayExit );
+  bool createWindows(bool useWindowing);
+  void loopQuantum();
+  void exitFunction();  
+  virtual void preDraw( void );
+  // Different than onDraw (and the corresponding draw callbacks). 
+  // Essentially causes the window manager to draw all the windows.
+  void draw( int windowID = -1 );
+  virtual void postDraw( void );
+  void swap( int windowID = -1 );
 
-  // We've added another layer of indirection. Now, at the point where
-  // the callbacks were formerly called, we instead call these virtual
-  // (hence overrideable) methods, which in turn call the callbacks.
+  // Another layer of indirection to promote object-orientedness. 
+  // We MUST have callbacks to subclass this object in Python.
+  // At each point the callbacks were formerly invoked, the code instead calls 
+  // these virtual (hence overrideable) methods, which in turn invoke the callbacks.
   // Now those of us who prefer sub-classing to callbacks can do so.
   // (If you override these, the corresponding callbacks are of course
   // ignored).
 
-  // not really necessary to pass SZGClient, but convenient.
+  // Not really necessary to pass SZGClient, but convenient.
   virtual bool onStart( arSZGClient& SZGClient );
   virtual void onWindowStartGL( arGUIWindowInfo* );
   virtual void onPreExchange( void );
@@ -81,44 +105,28 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   virtual void onKey( arGUIKeyInfo* );
   virtual void onMouse( arGUIMouseInfo* );
 
-  //
-  // set the callbacks
-  void setStartCallback( bool (*startCallback)( arMasterSlaveFramework& fw,
-                                                arSZGClient& ) );
-  void setWindowStartGLCallback( void (*windowStartGL)( arMasterSlaveFramework&,
-                                                      arGUIWindowInfo* ) );
+  // Set the callbacks
+  void setStartCallback( bool (*startCallback)( arMasterSlaveFramework& fw, arSZGClient& ) );
+  void setWindowStartGLCallback( void (*windowStartGL)( arMasterSlaveFramework&, arGUIWindowInfo* ) );
   void setPreExchangeCallback( void (*preExchange)( arMasterSlaveFramework& ) );
   void setPostExchangeCallback( void (*postExchange)( arMasterSlaveFramework& ) );
   void setWindowCallback( void (*windowCallback)( arMasterSlaveFramework& ) );
+  // New-style draw callback.
   void setDrawCallback( void (*draw)( arMasterSlaveFramework&, arGraphicsWindow&, arViewport& ) );
+  // Old-style draw callback.
   void setDrawCallback( void (*draw)( arMasterSlaveFramework& ) );
   void setDisconnectDrawCallback( void (*disConnDraw)( arMasterSlaveFramework& ) );
   void setPlayCallback( void (*play)( arMasterSlaveFramework& ) );
-  void setWindowEventCallback( void (*windowEvent)( arMasterSlaveFramework&,
-                                                    arGUIWindowInfo* ) );
+  void setWindowEventCallback( void (*windowEvent)( arMasterSlaveFramework&, arGUIWindowInfo* ) );
   void setExitCallback( void (*cleanup)( arMasterSlaveFramework& ) );
-  void setUserMessageCallback( void (*userMessageCallback)( arMasterSlaveFramework&,
-                                                            const std::string& messageBody ) );
+  void setUserMessageCallback( void (*userMessageCallback)( arMasterSlaveFramework&, const std::string& messageBody ) );
   void setOverlayCallback( void (*overlay)( arMasterSlaveFramework& ) );
-  void setKeyboardCallback( void (*keyboard)( arMasterSlaveFramework&,
-                                              unsigned char, int, int ) );
+  // Old-style keyboard callback.
+  void setKeyboardCallback( void (*keyboard)( arMasterSlaveFramework&, unsigned char, int, int ) );
+  // New-style keyboard callback.
   void setKeyboardCallback( void (*keyboard)( arMasterSlaveFramework&, arGUIKeyInfo* ) );
   void setMouseCallback( void (*mouse)( arMasterSlaveFramework&, arGUIMouseInfo* ) );
   virtual void setEventQueueCallback( arFrameworkEventQueueCallback callback );
-
-  // initializes the various pieces but does not start the event loop
-  bool init( int&, char** );
-
-  // starts services and the default GLUT-based event loop
-  bool start( void );
-  // lets us work without the GLUT event loop... i.e. it starts the various
-  // services but lets the user control the event loop
-  bool startWithoutWindowing( void );
-
-  // shut-down for much (BUT NOT ALL YET) of the arMasterSlaveFramework
-  // if the parameter is set to true, we will block until the display thread
-  // exits
-  void stop( bool blockUntilDisplayExit );
 
   void usePredeterminedHarmony();
   int getNumberSlavesExpected();
@@ -126,12 +134,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   void setDataBundlePath( const std::string& bundlePathName,
                           const std::string& bundleSubDirectory );
-
-  virtual void preDraw( void );
-  void draw( int windowID = -1 );
-  void postDraw( void );
-
-  void swap( int windowID = -1 );
 
   // Various methods of sharing data from the master to the slaves...
 
@@ -171,11 +173,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void drawGraphicsDatabase( void );
 
   // tiny functions that only appear in the .h
-
-  // If set to true (the default), the framework will swap the graphics
-  // buffers itself. Otherwise, the application will do so. This is
-  // really a bit of a hack.
-  void internalBufferSwap( bool state ){ _internalBufferSwap = state; }
   void loadNavMatrix(void ) { arMatrix4 temp = ar_getNavInvMatrix();
                               glMultMatrixf( temp.v ); }
 
@@ -183,10 +180,15 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   double getTime( void ) const { return _time; }
   /// How many msec it took to compute/draw the last frame.
   double getLastFrameTime( void ) const { return _lastFrameTime; }
+  // Is this instance the master?
   bool getMaster( void ) const { return _master; }
+  // Is this instance connected to the master?
   bool getConnected( void ) const { return _master || _stateClientConnected; }
+  // How many slaves are currently connected?
   int getNumberSlavesConnected( void ) const;
+  // Is sound enabled?
   bool soundActive( void ) const { return _soundActive; }
+  // Is the input device enabled?
   bool inputActive( void ) const { return _inputActive; }
 
   // Shared random numbers.  Set the seed on the master,
@@ -195,21 +197,25 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void setRandomSeed( const long newSeed );
   bool randUniformFloat( float& value );
 
-  // Allowing the user access to the window manager increases the flexibility
-  // of the framework. Lots of info about the GUI becomes available.
-  arGUIWindowManager* getWindowManager( void ) { return _wm; }
-
-  // technically, this function isn't necessary, one could just call
-  // arMasterSlaveFramework::getWindowManager()->getGraphicsWindow() though
-  // this function is a /tad/ more convenient
-  arGraphicsWindow* getGraphicsWindow( const int windowID );
-  void returnGraphicsWindow( const int windowID );
-
  protected:
-  arDataServer*        _stateServer;        // used only by master
+  // Objects that provide the various services.
+  // Used only by master.
+  arDataServer*        _stateServer;    
+  // Used only by slaves.
   arDataClient         _stateClient;
   arGraphicsDatabase   _graphicsDatabase;
+  //< used only by master
+  arBarrierServer*     _barrierServer;  
+  //< used only by slave
+  arBarrierClient*     _barrierClient;  
+  // In standalone mode, we produce sound locally
+  arSoundClient* _soundClient;
+  
+  // Threads launched by the framework.
+  arThread _connectionThread;
+  
   arSpeakerObject      _speakerObject;
+  
 
   // Variables pertaining to the data transfer process.
   arTemplateDictionary    _transferLanguage;
@@ -243,11 +249,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void (*_arGUIKeyboardCallback)( arMasterSlaveFramework&, arGUIKeyInfo* );
   void (*_mouseCallback)( arMasterSlaveFramework&, arGUIMouseInfo* );
 
-  bool  _internalBufferSwap;
   bool  _framerateThrottle;
-
-  arBarrierServer* _barrierServer;  //< used only by master
-  arBarrierClient* _barrierClient;  //< used only by slave
+  
   arSignalObject   _swapSignal;
 
   // While we don't want to modify _master after start(), sometimes we
@@ -274,6 +277,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   double     _lastSyncTime;
   bool       _firstTimePoll;
 
+  // Shared random number functions, as can be used in predetermined harmony mode.
   int   _randSeedSet;
   long  _randomSeed;
   long  _newSeed;
@@ -285,9 +289,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   std::string _texturePath;
   char   _textPath[ 256 ];          //< \todo fixed size buffer
   char   _inputIP[ 256 ];           //< \todo fixed size buffer
-
-  arThread _connectionThread;
-  arThread _soundThread;
 
   bool _screenshotFlag;
   int  _screenshotStartX;
@@ -315,25 +316,22 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // offer the state data.
   int  _masterPort[ 1 ];
 
-  // In standalone mode, we produce sound locally
-  arSoundClient* _soundClient;
-
   // It turns out that reloading parameters must occur in the main event
   // thread. This is because we allow the window manager to be single
   // threaded... and, in this case, all window manager calls should occur
   // in one thread only.
   bool _requestReload;
 
-  // small utility functions
+  // Small utility functions.
   void _setMaster( bool );
   void _stop( void );
   bool _sync( void );
 
-  // graphics utility functions
-  void _createWindowing( bool useWindowing );
+  // Graphics utility functions.
+  bool _createWindowing( bool useWindowing );
   void _handleScreenshot( bool stereo );
 
-  // data transfer functions
+  // Data transfer functions.
   bool _sendData( void );
   bool _getData( void );
   void _pollInputData( void );
@@ -352,7 +350,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool _startInput( void );
   bool _startSlaveObjects( std::stringstream& startResponse );
   bool _startObjects( void );
-  bool _start( bool );
+  bool _start( bool useWindowing, bool useEventLoop );
   bool _startrespond( const std::string& s );
 
   // systems level functions
