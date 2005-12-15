@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.21 2005/12/14 00:17:37 schaeffr Exp $
+// $Id: PyMasterSlave.i,v 1.22 2005/12/14 18:37:48 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -401,36 +401,32 @@ PyObject* ar_unpackSequenceData( int** typePtrPtr, long** intPtrPtr, double** fl
 class arMasterSlaveFramework : public arSZGAppFramework {
  public:
   arMasterSlaveFramework();
-  ~arMasterSlaveFramework();
-
-  void usePredeterminedHarmony();
-  bool allSlavesReady();
-
-  bool getStandalone(); // Are we running in stand-alone mode?
-  // initializes the various pieces but does not start the event loop
-  bool init(int&, char**);
-  // starts services and the default GLUT-based event loop
-  bool start();
-  // shut-down for much (BUT NOT ALL YET) of the arMasterSlaveFramework
-  // if the parameter is set to true, we will block until the display thread
-  // exits
-  void stop(bool blockUntilDisplayExit);
-   bool createWindows(bool useWindowing);
+  virtual ~arMasterSlaveFramework();
+  
+  bool init( int&, char** );
+  bool start( void );
+  bool startWithoutWindowing( void );
+  bool startWithoutEventLoop( void );
+  void stop( bool blockUntilDisplayExit );
+  bool createWindows(bool useWindowing);
   void loopQuantum();
-  void exitFunction();
-
-  void preDraw();
-  void postDraw();
-
-  void setPlayTransform();
-  void drawGraphicsDatabase();
-
-  void setDataBundlePath(const string& bundlePathName, const string& bundleSubDirectory);
-
-  void loadNavMatrix();
-  /// msec since the first I/O poll (not quite start of the program).
+  void exitFunction();  
+  virtual void preDraw( void );
+  void draw( int windowID = -1 );
+  virtual void postDraw( void );
+  void swap( int windowID = -1 );
+  
+  void setDataBundlePath( const std::string& bundlePathName,
+                          const std::string& bundleSubDirectory );
+  void loadNavMatrix(void );
+  void setPlayTransform( void );
+  void drawGraphicsDatabase( void );
+  void usePredeterminedHarmony();
+  int getNumberSlavesExpected();
+  bool allSlavesReady();
+  int getNumberSlavesConnected( void ) const;
+  
   double getTime() const;
-  /// How many msec it took to compute/draw the last frame.
   double getLastFrameTime() const;
   bool getMaster() const;
   bool getConnected() const;

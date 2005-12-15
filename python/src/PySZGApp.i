@@ -111,23 +111,24 @@ class arSZGAppFramework {
     arSZGAppFramework();
     virtual ~arSZGAppFramework();
     
-    bool setInputSimulator( arInputSimulator* sim );
-    
     virtual bool init(int& argc, char** argv ) = 0;
     virtual bool start() = 0;
     virtual void stop(bool blockUntilDisplayExit) = 0;
-    virtual bool createWindows(bool useWindowing);
-    virtual void loopQuantum();
-    virtual void exitFunction();
+    virtual bool createWindows(bool useWindowing) = 0;
+    virtual void loopQuantum() = 0;
+    virtual void exitFunction() = 0;
     
-    string  getLabel(){ return _label; }
+    virtual void setDataBundlePath(const string&, const string&);
+    virtual void loadNavMatrix();
+    void speak( const std::string& message );
+    bool setInputSimulator( arInputSimulator* sim );
+    string getLabel();
     bool getStandalone() const;
-    arSZGClient* getSZGClient();
-
-    virtual void loadNavMatrix() = 0;
+    const string getDataPath();
     
     void setEyeSpacing( float feet );
     void setClipPlanes( float near, float far );
+    arHead* getHead();
     virtual void setFixedHeadMode(bool isOn);
     virtual arMatrix4 getMidEyeMatrix();
     virtual arVector3 getMidEyePosition();
@@ -135,15 +136,16 @@ class arSZGAppFramework {
     virtual void setUnitSoundConversion( float conv );
     virtual float getUnitConversion();
     virtual float getUnitSoundConversion();
-    const string getDataPath();
-    int getButton(       const unsigned int index ) const;
-    float getAxis(       const unsigned int index ) const;
-    arMatrix4 getMatrix( const unsigned int index ) const;
-    bool getOnButton(    const unsigned int index ) const;
-    bool getOffButton(   const unsigned int index ) const;
+    
+    int getButton( const unsigned int index ) const;
+    float getAxis( const unsigned int index ) const;
+    arMatrix4 getMatrix( const unsigned int index, bool doUnitConversion=true ) const;
+    bool getOnButton( const unsigned int index ) const;
+    bool getOffButton( const unsigned int index ) const;
     unsigned int getNumberButtons()  const;
     unsigned int getNumberAxes()     const;
     unsigned int getNumberMatrices() const;
+    
     bool setNavTransCondition( char axis,
                                arInputEventType type,
                                unsigned int index,
@@ -158,19 +160,24 @@ class arSZGAppFramework {
     void ownNavParam( const std::string& paramName );
     void navUpdate();
     void navUpdate( arInputEvent& event );
-
-    void speak( const string& message );
-
+    
+    bool setEventFilter( arFrameworkEventFilter* filter );
+    void setEventCallback( arFrameworkEventCallback callback );
+    virtual void setEventQueueCallback( arFrameworkEventQueueCallback callback );
+    void processEventQueue();
+    virtual void onProcessEventQueue( arInputEventQueue& theQueue );
     arInputState* getInputState();
-      
+    
     bool stopping();
     bool stopped();
     void useExternalThread();
     void externalThreadStarted();
     void externalThreadStopped();
-    void processEventQueue();
+    
     arAppLauncher* getAppLauncher();
     arInputNode* getInputNode();
+    arGUIWindowManager* getWindowManager( void );
+    arSZGClient* getSZGClient();
 };
 
 

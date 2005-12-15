@@ -128,12 +128,18 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void setMouseCallback( void (*mouse)( arMasterSlaveFramework&, arGUIMouseInfo* ) );
   virtual void setEventQueueCallback( arFrameworkEventQueueCallback callback );
 
+  void setDataBundlePath( const std::string& bundlePathName,
+                          const std::string& bundleSubDirectory );
+  void loadNavMatrix(void ) { arMatrix4 temp = ar_getNavInvMatrix();
+			      glMultMatrixf( temp.v ); }
+  void setPlayTransform( void );
+  void drawGraphicsDatabase( void );
   void usePredeterminedHarmony();
   int getNumberSlavesExpected();
   bool allSlavesReady();
-
-  void setDataBundlePath( const std::string& bundlePathName,
-                          const std::string& bundleSubDirectory );
+  // How many slaves are currently connected?
+  int getNumberSlavesConnected( void ) const;
+  
 
   // Various methods of sharing data from the master to the slaves...
 
@@ -168,13 +174,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
     return _dataRouter.registerFrameworkObject( object );
   }
 
-  void setPlayTransform( void );
-
-  void drawGraphicsDatabase( void );
-
-  // tiny functions that only appear in the .h
-  void loadNavMatrix(void ) { arMatrix4 temp = ar_getNavInvMatrix();
-                              glMultMatrixf( temp.v ); }
+  // Tiny functions that only appear in the .h
 
   /// msec since the first I/O poll (not quite start of the program).
   double getTime( void ) const { return _time; }
@@ -184,8 +184,6 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool getMaster( void ) const { return _master; }
   // Is this instance connected to the master?
   bool getConnected( void ) const { return _master || _stateClientConnected; }
-  // How many slaves are currently connected?
-  int getNumberSlavesConnected( void ) const;
   // Is sound enabled?
   bool soundActive( void ) const { return _soundActive; }
   // Is the input device enabled?
@@ -204,9 +202,9 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // Used only by slaves.
   arDataClient         _stateClient;
   arGraphicsDatabase   _graphicsDatabase;
-  //< used only by master
+  // Used only by master.
   arBarrierServer*     _barrierServer;  
-  //< used only by slave
+  // Used only by slave.
   arBarrierClient*     _barrierClient;  
   // In standalone mode, we produce sound locally
   arSoundClient* _soundClient;
@@ -214,8 +212,43 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // Threads launched by the framework.
   arThread _connectionThread;
   
+  // Misc. variables follow.
+  // Holds the head position for the spatialized sound API.
   arSpeakerObject      _speakerObject;
-  
+  // Need to store the networks on which we'll try to connect to services
+  // as well as the name of the service we'll be using.
+  std::string _serviceName;
+  std::string _serviceNameBarrier;
+  std::string _networks;
+  // Used by (for instance) by the arBarrierServer to coordinate with the
+  // arDataServer.
+  arSignalObject _swapSignal;
+  // While we don't want to modify _master after start(), sometimes we
+  // need to set it after the constructor.  So it's not declared const.
+  bool    _master;
+  bool    _stateClientConnected;    // Used only if !_master.
+  bool    _inputActive;	            // Set by master's _start().
+  bool    _soundActive;	            // Set by master's _start().
+  // Storage for the arDataServer/arDataClient's messaging.
+  ARchar* _inBuffer;
+  ARint   _inBufferSize;
+  // Variables pertaining to predetermined harmony mode.
+  int  _numSlavesConnected;      // Updated only once/frame, before preExchange.
+  bool _harmonyInUse;
+  int  _harmonyReady;
+  // For arGraphicsDatabase.
+  std::string _texturePath;
+  char   _textPath[ 256 ];          //< \todo fixed size buffer
+  // For the input connection process.
+  char   _inputIP[ 256 ];           //< \todo fixed size buffer
+  // Information about the various threads that are unique to the
+  // arMasterSlaveFramework (some info about the status of thread types
+  // shared with other frameworks is in arSZGAppFramework.h)
+  bool _connectionThreadRunning;
+  bool _useWindowing;
+  // Storage for the brokered port on which the master will
+  // offer the state data.
+  int  _masterPort[ 1 ];
 
   // Variables pertaining to the data transfer process.
   arTemplateDictionary    _transferLanguage;
@@ -225,13 +258,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   arTransferFieldData     _internalTransferFieldData;
   arMasterSlaveDataRouter _dataRouter;
 
-  // need to store the networks on which we'll try to connect to services
-  // as well as the name of the service we'll be using
-  std::string _serviceName;
-  std::string _serviceNameBarrier;
-  std::string _networks;
-
-  /// Callbacks.
+  // Callbacks.
   bool (*_startCallback)( arMasterSlaveFramework&, arSZGClient& );
   void (*_preExchange)( arMasterSlaveFramework& );
   void (*_postExchange)( arMasterSlaveFramework& );
@@ -249,27 +276,10 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void (*_arGUIKeyboardCallback)( arMasterSlaveFramework&, arGUIKeyInfo* );
   void (*_mouseCallback)( arMasterSlaveFramework&, arGUIMouseInfo* );
 
-  bool  _framerateThrottle;
-  
-  arSignalObject   _swapSignal;
-
-  // While we don't want to modify _master after start(), sometimes we
-  // need to set it after the constructor.  So it's not declared const.
-  bool    _master;
-  bool    _stateClientConnected;	  //< Used only if !_master.
-  bool    _inputActive;	            //< Set by master's _start().
-  bool    _soundActive;	            //< Set by master's _start().
-  ARchar* _inBuffer;
-  ARint   _inBufferSize;
-  int     _numSlavesConnected;      //< updated only once/frame, before preExchange
-
-  bool _harmonyInUse;
-  int _harmonyReady;
-
-  // Input-event stuff
+  // Input-event information.
   arInputEventQueue _inputEventQueue;
 
-  // time variables
+  // Time variables
   ar_timeval _startTime;
   double     _time;
   double     _lastFrameTime;
@@ -277,7 +287,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   double     _lastSyncTime;
   bool       _firstTimePoll;
 
-  // Shared random number functions, as can be used in predetermined harmony mode.
+  // Shared random number functions, as might be used in predetermined harmony mode.
   int   _randSeedSet;
   long  _randomSeed;
   long  _newSeed;
@@ -285,11 +295,12 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   float _lastRandVal;
   int   _randSynchError;
   int   _firstTransfer;
+  
+  // Variable related to the "delay" message. Allows us to artificially slow down
+  // the framerate.
+  bool  _framerateThrottle;
 
-  std::string _texturePath;
-  char   _textPath[ 256 ];          //< \todo fixed size buffer
-  char   _inputIP[ 256 ];           //< \todo fixed size buffer
-
+  // Variables pertaining to the screenshot process. (in response to message)
   bool _screenshotFlag;
   int  _screenshotStartX;
   int  _screenshotStartY;
@@ -297,29 +308,21 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   int  _screenshotHeight;
   int  _whichScreenshot;
 
-  // misc. configuration variables
-  // Pausing the visualization.
+  // Pausing the visualization. (in response to message)
   bool           _pauseFlag;
   arMutex        _pauseLock;
   arConditionVar _pauseVar;
 
-  // Allow a different screen color (for lighting effects).
+  // Allow a different screen color (for lighting effects... i.e. when
+  // taking photographs inside a CAVE-type environment it might
+  // be desirable to have some of the walls that aren't pictured display
+  // another color. (in response to the color message)
   arVector3 _noDrawFillColor;
-
-  // Information about the various threads that are unique to the
-  // arMasterSlaveFramework (some info about the status of thread types
-  // shared with other frameworks is in arSZGAppFramework.h)
-  bool _connectionThreadRunning;
-  bool _useWindowing;
-
-  // Storage for the brokered port on which the master will
-  // offer the state data.
-  int  _masterPort[ 1 ];
-
+  
   // It turns out that reloading parameters must occur in the main event
   // thread. This is because we allow the window manager to be single
   // threaded... and, in this case, all window manager calls should occur
-  // in one thread only.
+  // in one thread only. (in response to the reload message)
   bool _requestReload;
 
   // Small utility functions.
@@ -337,10 +340,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void _pollInputData( void );
   void _packInputData( void );
   void _unpackInputData( void );
-
-  bool _sendSlaveReadyMessage();
   
-  // functions pertaining to initing/starting services
+  // Functions pertaining to initing/starting services.
   bool _determineMaster( std::stringstream& initResponse );
   bool _initStandaloneObjects( void );
   bool _startStandaloneObjects( void );
@@ -353,12 +354,12 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool _start( bool useWindowing, bool useEventLoop );
   bool _startrespond( const std::string& s );
 
-  // systems level functions
+  // Systems level functions.
   bool _loadParameters( void );
   void _messageTask( void );
   void _connectionTask( void );
 
-  // draw-related utility functions
+  // Draw-related utility functions.
   void _drawWindow( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow );
 };
 

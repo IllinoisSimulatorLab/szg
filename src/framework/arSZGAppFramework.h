@@ -30,8 +30,7 @@ class SZG_CALL arSZGAppFramework {
     arSZGAppFramework();
     virtual ~arSZGAppFramework();
     
-    bool setInputSimulator( arInputSimulator* sim );
-    
+    // Event loop management and related methods.
     virtual bool init(int& argc, char** argv ) = 0;
     virtual bool start() = 0;
     virtual void stop(bool blockUntilDisplayExit) = 0;
@@ -39,15 +38,15 @@ class SZG_CALL arSZGAppFramework {
     virtual void loopQuantum() = 0;
     virtual void exitFunction() = 0;
     
-    string  getLabel(){ return _label; }
-    bool getStandalone() const { return _standalone; }
-    // TO BE ELIMINATED?????????????????????
-    void setStandalone( bool onoff ) { _standalone = onoff; }
-
+    // Misc. methods. common to all frameworks.
     virtual void setDataBundlePath(const string&, const string&){}
-
-    virtual void loadNavMatrix() = 0;
-    
+    virtual void loadNavMatrix(){}
+    void speak( const std::string& message );
+    bool setInputSimulator( arInputSimulator* sim );
+    string getLabel(){ return _label; }
+    bool getStandalone() const { return _standalone; }
+    const string getDataPath(){ return _dataPath; }
+        
     // Set-up the viewer (i.e. the user's head).
     void setEyeSpacing( float feet );
     void setClipPlanes( float near, float far );
@@ -59,15 +58,14 @@ class SZG_CALL arSZGAppFramework {
     virtual void setUnitSoundConversion( float conv );
     virtual float getUnitConversion();
     virtual float getUnitSoundConversion();
-    
-    const string getDataPath(){ return _dataPath; }
       
-    // Basic access to the embedded input node.
-    int getButton(       const unsigned int index ) const;
-    float getAxis(       const unsigned int index ) const;
+    // Basic access to the embedded input node. Note: It is also possible to
+    // access the input node directly (see below).
+    int getButton( const unsigned int index ) const;
+    float getAxis( const unsigned int index ) const;
     arMatrix4 getMatrix( const unsigned int index, bool doUnitConversion=true ) const;
-    bool getOnButton(    const unsigned int index ) const;
-    bool getOffButton(   const unsigned int index ) const;
+    bool getOnButton( const unsigned int index ) const;
+    bool getOffButton( const unsigned int index ) const;
     unsigned int getNumberButtons()  const;
     unsigned int getNumberAxes()     const;
     unsigned int getNumberMatrices() const;
@@ -87,15 +85,17 @@ class SZG_CALL arSZGAppFramework {
     void ownNavParam( const std::string& paramName );
     void navUpdate();
     void navUpdate( arInputEvent& event );
-
-    // Should this return a copy instead? In some cases it points
-    // inside the arInputNode.
-    arInputState* getInputState(){ return (arInputState*)_inputState; }
       
-    // Methods pertaining to event filtering.
+    // Methods pertaining to event filtering (and the callbacks that allow
+    // event-based processing instead of polling-based processing).
     bool setEventFilter( arFrameworkEventFilter* filter );
     void setEventCallback( arFrameworkEventCallback callback );
     virtual void setEventQueueCallback( arFrameworkEventQueueCallback callback );
+    void processEventQueue();
+    virtual void onProcessEventQueue( arInputEventQueue& theQueue );
+    // Should this return a copy instead? In some cases it points
+    // inside the arInputNode.
+    arInputState* getInputState(){ return (arInputState*)_inputState; }
 
     // Some applications need a thread running external to the library.
     // For deterministic shutdown, we need to be able to register that
@@ -117,25 +117,18 @@ class SZG_CALL arSZGAppFramework {
     void externalThreadStarted(){ _externalThreadRunning = true; }
     // tells stop() that our external thread has shut-down cleanly
     void externalThreadStopped(){ _externalThreadRunning = false; }
-    
-    void processEventQueue();
-    virtual void onProcessEventQueue( arInputEventQueue& theQueue );
-
-    void speak( const std::string& message );
 
     // Accessors for various internal objects/services. Necessary for flexibility.
     
-    // some applications need to be able to find out information
-    // about the virtual computer
+    // Some applications need to be able to find out information
+    // about the virtual computer.
     arAppLauncher* getAppLauncher(){ return &_launcher; }
-
-    // some applications want to do nonstandard things with the input node
+    // Some applications want to do nonstandard things with the input node.
     arInputNode* getInputNode(){ return _inputDevice; }
-    
     // Allowing the user access to the window manager increases the flexibility
     // of the framework. Lots of info about the GUI becomes available.
     arGUIWindowManager* getWindowManager( void ) { return _wm; }
-    
+    // Some applications want to be able to work with the arSZGClient directly.
     arSZGClient* getSZGClient() { return &_SZGClient; }
       
   protected:
@@ -163,15 +156,12 @@ class SZG_CALL arSZGAppFramework {
     arFrameworkEventFilter _defaultUserFilter;
     arFrameworkEventFilter* _userEventFilter;
   
+    // Misc. member variables.
     string _dataPath;
-    
     arHead _head;
-
     // The graphics unitConversion resides in the head now for convenience.
     float _unitSoundConversion;
-
     int _speechNodeID;
-    
     arNavManager _navManager;
     std::set< std::string > _ownedParams;
     
@@ -183,16 +173,15 @@ class SZG_CALL arSZGAppFramework {
     
     // Various book-keeping flags.
     // Keep track of when the init and start methods have been successfully called.
+    // This lets us tell the user if they are called in the incorrect order.
     bool _initCalled;
     bool _startCalled;
     // Have the parameters been loaded?
     bool _parametersLoaded;
 
     // Variables that have to do with deterministic shutdown.
-
-    // As a preliminary hack, the frameworks support a single, external
-    // user thread, which can be deterministically shut down along with 
-    // everything else.
+    // The frameworks support a single, external user thread, which can be 
+    // deterministically shut down along with everything else.
 
     // Is there an application-defined thread?
     bool _useExternalThread;

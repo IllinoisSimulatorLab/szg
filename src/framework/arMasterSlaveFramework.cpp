@@ -216,15 +216,30 @@ void arMasterSlaveRenderCallback::operator()( arGUIWindowInfo* windowInfo,
 
 arMasterSlaveFramework::arMasterSlaveFramework( void ):
   arSZGAppFramework(),
+  // Services.
   _stateServer( NULL ),
   _barrierServer( NULL ),
   _barrierClient( NULL ),
   _soundClient( NULL ),
-  _transferTemplate( "data" ),
-  _transferData( NULL ),
+  // Misc. member variables.
   _serviceName( "NULL" ),
   _serviceNameBarrier( "NULL" ),
   _networks( "NULL" ),
+  _master( true ),
+  _stateClientConnected( false ),
+  _inputActive( false ),
+  _soundActive( false ),
+  _inBuffer( NULL ),
+  _inBufferSize( -1 ),
+  _numSlavesConnected( 0 ),
+  _harmonyInUse(false),
+  _harmonyReady(0),
+  _connectionThreadRunning( false ),
+  _useWindowing( false ),
+  // Data.
+  _transferTemplate( "data" ),
+  _transferData( NULL ),
+  // Callbacks.
   _startCallback( NULL ),
   _preExchange( NULL ),
   _postExchange( NULL ),
@@ -241,19 +256,11 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _keyboardCallback( NULL ),
   _arGUIKeyboardCallback( NULL ),
   _mouseCallback( NULL ),
-  _framerateThrottle( false ),
-  _master( true ),
-  _stateClientConnected( false ),
-  _inputActive( false ),
-  _soundActive( false ),
-  _inBuffer( NULL ),
-  _inBufferSize( -1 ),
-  _numSlavesConnected( 0 ),
-  _harmonyInUse(false),
-  _harmonyReady(0),
+  // Time.
   _time( 0.0 ),
   _lastFrameTime( 0.1 ),
   _firstTimePoll( true ),
+  // Random numbers.
   _randSeedSet( 1 ),
   _randomSeed( (long) -1 ),
   _newSeed( (long) -1 ),
@@ -261,6 +268,8 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _lastRandVal( 0.0 ),
   _randSynchError( 0 ),
   _firstTransfer( 1 ),
+  // Variables pertaining to user messages.
+  _framerateThrottle( false ),
   _screenshotFlag( false ),
   _screenshotStartX( 0 ),
   _screenshotStartY( 0 ),
@@ -269,8 +278,6 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _whichScreenshot( 0 ),
   _pauseFlag( false ),
   _noDrawFillColor( -1.0f, -1.0f, -1.0f ),
-  _connectionThreadRunning( false ),
-  _useWindowing( false ),
   _requestReload( false ) {
 
   // This is where input events are buffered for transfer to slaves.
@@ -848,19 +855,6 @@ void arMasterSlaveFramework::swap( int windowID ) {
   }
 }
 
-void arMasterSlaveFramework::usePredeterminedHarmony() {
-  if (_startCalled) {
-    cerr << "arMasterSlaveFramework error: usePredeterminedHarmony() may not be called after "
-         << "the start callback.\n";
-    return;
-  }
-  cout << "arMasterSlaveFramework remark: You are using pre-determined harmony." << endl
-       << "   This means that under normal circumstances you should not do any" << endl
-       << "   computation in the pre-exchange (because that's only called on the " << endl
-       << "   master). Just thought we'd remind you." << endl;
-  _harmonyInUse = true;
-}
-
 bool arMasterSlaveFramework::onStart( arSZGClient& SZGClient ) {
   if( _startCallback && !_startCallback( *this, SZGClient ) ) {
     std::cerr << _label << " error: user-defined start callback failed."
@@ -1132,16 +1126,6 @@ void arMasterSlaveFramework::setEventQueueCallback( arFrameworkEventQueueCallbac
   cout << "arMasterSlaveFramework remark: event queue callback set.\n";
 }
 
-bool arMasterSlaveFramework::_startrespond( const std::string& s ) {
-  _SZGClient.startResponse() << _label << " error: " << s << std::endl;
-
-  if( !_SZGClient.sendStartResponse( false ) ) {
-    std::cerr << _label << " error: maybe szgserver died." << std::endl;
-  }
-
-  return false;
-}
-
 /// The sound server should be able to find its files in the application
 /// directory. If this function is called between init(...) and start(...),
 /// the sound render will be able to find clips there. bundlePathName should
@@ -1156,6 +1140,63 @@ void arMasterSlaveFramework::setDataBundlePath( const std::string& bundlePathNam
   if( _soundClient ) {
     _soundClient->setDataBundlePath( bundlePathName, bundleSubDirectory );
   }
+}
+
+void arMasterSlaveFramework::setPlayTransform( void ){
+  if( soundActive() ) {
+    _speakerObject.loadMatrices( _inputState->getMatrix( 0 ) );
+  }
+}
+
+void arMasterSlaveFramework::drawGraphicsDatabase( void ){
+  _graphicsDatabase.draw();
+}
+
+void arMasterSlaveFramework::usePredeterminedHarmony() {
+  if (_startCalled) {
+    cerr << "arMasterSlaveFramework error: usePredeterminedHarmony() may not be called after "
+    << "the start callback.\n";
+    return;
+  }
+  cout << "arMasterSlaveFramework remark: You are using pre-determined harmony." << endl
+  << "   This means that under normal circumstances you should not do any" << endl
+  << "   computation in the pre-exchange (because that's only called on the " << endl
+  << "   master). Just thought we'd remind you." << endl;
+  _harmonyInUse = true;
+}
+
+int arMasterSlaveFramework::getNumberSlavesExpected() {
+  static int totalSlaves(-1);
+  if (getStandalone()) {
+    return 0;
+  }
+  if (!getMaster()) {
+    cerr << "arMasterSlaveFramework error: getNumberSlavesExpected() called on slave.\n";
+    return 0;
+  }
+  if (totalSlaves == -1) {
+    arAppLauncher* al = getAppLauncher();
+    totalSlaves = al->getNumberScreens()-1;
+    cout << "arMasterSlaveFramework remark: " << totalSlaves << " slaves expected.\n";
+  }
+  return totalSlaves;
+}
+
+bool arMasterSlaveFramework::allSlavesReady() {
+  if (_harmonyReady) {
+    return true;
+  }
+  return _numSlavesConnected >= getNumberSlavesExpected();
+}
+
+int arMasterSlaveFramework::getNumberSlavesConnected( void ) const {
+  if( !getMaster() ) {
+    std::cerr << "arMasterSlaveFramework warning: "
+    << "getNumberSlavesConnected() called on slave." << std::endl;
+    return -1;
+  }
+  
+  return _numSlavesConnected;
 }
 
 bool arMasterSlaveFramework::addTransferField( std::string fieldName,
@@ -1293,25 +1334,6 @@ void* arMasterSlaveFramework::getTransferField( std::string fieldName,
 
   size = p.size;
   return p.data;
-}
-
-// DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED
-/*arGraphicsWindow* arMasterSlaveFramework::getGraphicsWindow( const int windowID ) {
-  return _wm->getGraphicsWindow( windowID );
-}
-
-void arMasterSlaveFramework::returnGraphicsWindow( const int windowID ) {
-  _wm->returnGraphicsWindow( windowID );
-}*/
-
-void arMasterSlaveFramework::setPlayTransform( void ){
-  if( soundActive() ) {
-    _speakerObject.loadMatrices( _inputState->getMatrix( 0 ) );
-  }
-}
-
-void arMasterSlaveFramework::drawGraphicsDatabase( void ){
-  _graphicsDatabase.draw();
 }
 
 //********************************************************************************************
@@ -2205,6 +2227,16 @@ bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
   return true;
 }
 
+bool arMasterSlaveFramework::_startrespond( const std::string& s ) {
+  _SZGClient.startResponse() << _label << " error: " << s << std::endl;
+  
+  if( !_SZGClient.sendStartResponse( false ) ) {
+    std::cerr << _label << " error: maybe szgserver died." << std::endl;
+  }
+  
+  return false;
+}
+
 //**************************************************************************
 // Other system-level functions
 //**************************************************************************
@@ -2279,46 +2311,6 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
 
   return true;
 }
-
-
-//bool arMasterSlaveFramework::_sendSlaveReadyMessage() {
-//  if (getMaster()) {
-//    cerr << "arMasterSlaveFramework error: sendConnectedMessage() called on master.\n";
-//    return false;
-//  }
-//  arSZGClient* cl = getSZGClient();
-//  arAppLauncher* al = getAppLauncher();
-//  int masterNum = al->getMasterPipeNumber();
-//  std::string computer, renderName;
-//  if (!al->getRenderProgram( masterNum, computer, renderName )) {
-//    cerr << "arMasterSlaveFramework error: getRenderProgram() failed in sendConnectedMessage().\n";
-//    return false;
-//  }
-//  cout << "arMasterSlaveFramework remark: master render program = '"
-//       << renderName << "' on '" << computer << "'\n.";
-//  int procID = cl->getProcessID( computer, renderName );
-//  cout << "arMasterSlaveFramework remark: master process ID = " << procID << endl;
-//  return cl->sendMessage( "slaveready", "connected", procID, false );
-//}
-
-
-int arMasterSlaveFramework::getNumberSlavesExpected() {
-  static int totalSlaves(-1);
-  if (getStandalone()) {
-    return 0;
-  }
-  if (!getMaster()) {
-    cerr << "arMasterSlaveFramework error: getNumberSlavesExpected() called on slave.\n";
-    return 0;
-  }
-  if (totalSlaves == -1) {
-    arAppLauncher* al = getAppLauncher();
-    totalSlaves = al->getNumberScreens()-1;
-    cout << "arMasterSlaveFramework remark: " << totalSlaves << " slaves expected.\n";
-  }
-  return totalSlaves;
-}
-
 
 void arMasterSlaveFramework::_messageTask( void ) {
   // might be a good idea to shut this down cleanly... BUT currently
@@ -2631,19 +2623,3 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
   }
 }
 
-bool arMasterSlaveFramework::allSlavesReady() {
-  if (_harmonyReady) {
-    return true;
-  }
-  return _numSlavesConnected >= getNumberSlavesExpected();
-}
-
-int arMasterSlaveFramework::getNumberSlavesConnected( void ) const {
-  if( !getMaster() ) {
-    std::cerr << "arMasterSlaveFramework warning: "
-	      << "getNumberSlavesConnected() called on slave." << std::endl;
-    return -1;
-  }
-
-  return _numSlavesConnected;
-}

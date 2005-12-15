@@ -194,13 +194,13 @@ arDistSceneGraphFramework::arDistSceneGraphFramework() :
   _graphicsNavNode(NULL),
   _soundNavMatrixID(-1),
   _VRCameraID(-1),
+  _windowsCreated(false),
+  _autoBufferSwap(true),
   _peerName("NULL"),
   _peerMode("source"),
   _peerTarget("NULL"),
   _remoteRootID(0),
-  _externalPeer(NULL),
-  _windowsCreated(false),
-  _autoBufferSwap(true){
+  _externalPeer(NULL){
 }
 
 /// Syzygy messages consist of two strings, the first being

@@ -1,4 +1,4 @@
-// $Id: PySceneGraph.i,v 1.7 2005/12/14 00:17:37 schaeffr Exp $
+// $Id: PySceneGraph.i,v 1.8 2005/12/14 18:37:48 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -128,10 +128,7 @@ class arDistSceneGraphFramework : public arSZGAppFramework {
  public:
   arDistSceneGraphFramework();
   ~arDistSceneGraphFramework() {}
-
-  arGraphicsDatabase* getDatabase();
-                                                                               
-  // inherited pure virtual functions
+                                       
   bool init(int&,char**);
   bool start();
   void stop(bool);
@@ -139,19 +136,17 @@ class arDistSceneGraphFramework : public arSZGAppFramework {
   void loopQuantum();
   void exitFunction();
   
-  void loadNavMatrix();
-                                                                               
+  arGraphicsDatabase* getDatabase();
   void setDataBundlePath(const string& bundlePathName, 
                          const string& bundleSubDirectory);
-
   void setAutoBufferSwap(bool);
   void swapBuffers();
-                                                                               
-  void setViewer();
-  void setPlayer();
-                                         
   const string getNavNodeName() const;
   arDatabaseNode* getNavNode();
+  
+  void loadNavMatrix();
+  void setViewer();
+  void setPlayer();
   
   %extend{
   void setEventCallback(PyObject* PyFunc) {

@@ -72,8 +72,15 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   
   arTransformNode* _graphicsNavNode;
   int _soundNavMatrixID;
-
   int _VRCameraID;
+  // In standalone mode, have the windows been successfully created?
+  bool _windowsCreated;
+  // In standalone mode, if running the windowing in a different thread,
+  // this signal allows us to inform the caller whether the window creation
+  // succeeded.
+  arSignalObject _windowsCreatedSignal;
+  // Are we using the automatic buffer swap?
+  bool _autoBufferSwap;
   
   // Are we operating a graphics peer? If not, this string will hold the
   // constructor's default value of "NULL".
@@ -88,16 +95,6 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   // Maybe (as in the case of peerBridge) we should pass on
   // peer messages to someone external peer.
   arGraphicsPeer* _externalPeer;
-  
-  // In standalone mode, have the windows been successfully created?
-  bool _windowsCreated;
-  // In standalone mode, if running the windowing in a different thread,
-  // this signal allows us to inform the caller whether the window creation
-  // succeeded.
-  arSignalObject _windowsCreatedSignal;
-  
-  // Are we using the automatic buffer swap?
-  bool _autoBufferSwap;
 
   // Internal functions.
   bool _loadParameters();

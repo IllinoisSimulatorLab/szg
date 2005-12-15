@@ -43,6 +43,14 @@ arSZGAppFramework::~arSZGAppFramework() {
     delete _inputDevice;
 }
 
+void arSZGAppFramework::speak( const std::string& message ) {
+  if (_speechNodeID == -1) {
+    _speechNodeID = dsSpeak( "framework_messages", "root", message );
+  } else {
+    dsSpeak( _speechNodeID, message );
+  }
+}
+
 bool arSZGAppFramework::setInputSimulator( arInputSimulator* sim ) {
   if (_parametersLoaded) {
     cerr << "arSZGAppFramework error: you can't set a new input simulator after "
@@ -98,7 +106,7 @@ float arSZGAppFramework::getAxis( const unsigned int i ) const {
   return _inputState->getAxis( i );
 }
 
-// NOTE: scales translation component by _unitConversion
+// NOTE: scales translation component by _unitConversion.
 arMatrix4 arSZGAppFramework::getMatrix( const unsigned int i, bool doUnitConversion ) const {
   if (!_inputState) {
     cerr << "arSZGAppFramework warning: no input state.\n";
@@ -166,12 +174,6 @@ bool arSZGAppFramework::setNavRotCondition( char axis,
   return _navManager.setRotCondition( axis, type, i, threshold );
 }
 
-//bool arSZGAppFramework::setWorldRotGrabCondition( arInputEventType type,
-//                                                  unsigned int i,
-//                                                  float threshold ) {
-//  return _navManager.setWorldRotGrabCondition( type, i, threshold );
-//}
-
 void arSZGAppFramework::setNavTransSpeed( float speed ) {
   _navManager.setTransSpeed( speed );
 }
@@ -194,11 +196,6 @@ void arSZGAppFramework::navUpdate() {
 
 void arSZGAppFramework::navUpdate( arInputEvent& event ) {
   _navManager.update( event );
-}
-
-void arSZGAppFramework::_installFilters() {
-  setEventFilter( &_defaultUserFilter ); 
-  _inputDevice->addFilter( (arIOFilter*)&_callbackFilter, false );
 }
 
 bool arSZGAppFramework::setEventFilter( arFrameworkEventFilter* filter ) {
@@ -224,13 +221,11 @@ bool arSZGAppFramework::setEventFilter( arFrameworkEventFilter* filter ) {
 
 void arSZGAppFramework::setEventCallback( arFrameworkEventCallback callback ) {
   _callbackFilter.setCallback( callback );
-  cout << "arSZGAppFramework remark: event callback set.\n";
 }
 
 void arSZGAppFramework::setEventQueueCallback( arFrameworkEventQueueCallback callback ) {
   _eventQueueCallback = callback;
   _callbackFilter.saveEventQueue( callback != NULL );
-  cout << "arSZGAppFramework remark: event queue callback set.\n";
 }
 
 void arSZGAppFramework::processEventQueue() {
@@ -245,12 +240,9 @@ void arSZGAppFramework::onProcessEventQueue( arInputEventQueue& theQueue ) {
   }
 }
 
-void arSZGAppFramework::speak( const std::string& message ) {
-  if (_speechNodeID == -1) {
-    _speechNodeID = dsSpeak( "framework_messages", "root", message );
-  } else {
-    dsSpeak( _speechNodeID, message );
-  }
+void arSZGAppFramework::_installFilters() {
+  setEventFilter( &_defaultUserFilter ); 
+  _inputDevice->addFilter( (arIOFilter*)&_callbackFilter, false );
 }
 
 static bool ___firstNavLoad = true;
