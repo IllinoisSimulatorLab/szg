@@ -37,78 +37,91 @@ arLogStream& arLogStream::operator<<(short n){
   _preAppend();
   _buffer << n;
   _postAppend();
+  return *this;
 }
 
 arLogStream& arLogStream::operator<<(int n){
   _preAppend();
   _buffer << n;
   _postAppend();
+  return *this;
 }
 
 arLogStream& arLogStream::operator<<(long n){
   _preAppend();
   _buffer << n;
   _postAppend();
+  return *this;
 }
 
 arLogStream& arLogStream::operator<<(unsigned short n){
   _preAppend();
   _buffer << n;
   _postAppend(); 
+  return *this;
 }
 
 arLogStream& arLogStream::operator<<(unsigned int n){
   _preAppend();
   _buffer << n;
   _postAppend(); 
+  return *this;
 }
 
 arLogStream& arLogStream::operator<<(unsigned long n){
   _preAppend();
   _buffer << n;
-  _postAppend(); 
+  _postAppend();
+  return *this; 
 }
 
 arLogStream& arLogStream::operator<<(float f){
   _preAppend();
   _buffer << f;
   _postAppend(); 
+  return *this;
 }
 
 arLogStream& arLogStream::operator<<(double f){
   _preAppend();
   _buffer << f;
-  _postAppend(); 
+  _postAppend();
+  return *this; 
 }
 
 arLogStream& arLogStream::operator<<(bool n){
   _preAppend();
   _buffer << n;
   _postAppend(); 
+  return *this;
 }
 
 arLogStream& arLogStream::operator<<(const void* p){
   _preAppend();
   _buffer << p;
-  _postAppend();  
+  _postAppend(); 
+  return *this; 
 }
 
 arLogStream& arLogStream::operator<<(char c){
   _preAppend();
   _buffer << c;
-  _postAppend();  
+  _postAppend(); 
+  return *this; 
 }
 
 arLogStream& arLogStream::operator<<(const char* s){
   _preAppend();
   _buffer << s;
-  _postAppend();  
+  _postAppend(); 
+  return *this; 
 }
 
 arLogStream& arLogStream::operator<<(const string& s){
   _preAppend();
   _buffer << s;
-  _postAppend();  
+  _postAppend();
+  return *this;  
 }
 
 void arLogStream::_preAppend(){
@@ -140,9 +153,10 @@ void arLogStream::_flushLogBuffer(bool addReturn){
   _buffer.str(tmp);
 }
 
-arLogStream& endl(arLogStream& logStream){
+arLogStream& ar_endl(arLogStream& logStream){
   logStream._lock.lock();
   logStream._flushLogBuffer(false);
   (*logStream._output) << endl;
   logStream._lock.unlock();
+  return logStream;
 }

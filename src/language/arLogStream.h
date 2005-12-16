@@ -14,8 +14,8 @@
 
 using namespace std;
 
-class arLogStream{
-  friend arLogStream& endl(arLogStream& logStream);
+class SZG_CALL arLogStream{
+  friend SZG_CALL arLogStream& ar_endl(arLogStream& logStream);
  public:
   arLogStream();
   ~arLogStream(){}
@@ -54,8 +54,8 @@ class arLogStream{
 
 // Using the singleton pattern.
 // ALL ACCESSES TO THE LOG MUST USE THIS FUNCTION!
-arLogStream& ar_log();
+SZG_CALL arLogStream& ar_log();
 
-arLogStream& endl(arLogStream& logStream);
+SZG_CALL arLogStream& ar_endl(arLogStream& logStream);
 
 #endif
