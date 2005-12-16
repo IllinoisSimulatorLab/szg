@@ -32,7 +32,8 @@ OBJS = \
   arThread$(OBJ_SUFFIX) \
   arUDPSocket$(OBJ_SUFFIX) \
   arSocketAddress$(OBJ_SUFFIX) \
-  arXMLParser$(OBJ_SUFFIX)
+  arXMLParser$(OBJ_SUFFIX) \
+  arLogStream$(OBJ_SUFFIX)
 
 # Local variable definitions for the build.
 # These internal library makefiles ONLY include the external files necessary

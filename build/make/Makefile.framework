@@ -17,7 +17,7 @@ OBJS = \
   arDistSceneGraphFramework$(OBJ_SUFFIX) \
   arRoutableTemplate$(OBJ_SUFFIX) \
   arMasterSlaveDataRouter$(OBJ_SUFFIX) \
-  arAppLauncher$(OBJ_SUFFIX)
+  arAppLauncher$(OBJ_SUFFIX) 
 
 # Local variable definitions for the build.
 # These internal library makefiles ONLY include the external files necessary

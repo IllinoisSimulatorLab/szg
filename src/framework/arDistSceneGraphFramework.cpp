@@ -11,6 +11,7 @@
 #include "arSoundAPI.h"
 #include "arSharedLib.h"
 #include "arPForthFilter.h"
+#include "arLogStream.h"
 #include "arDistSceneGraphFramework.h"
 
 void ar_distSceneGraphFrameworkMessageTask(void* framework){
@@ -201,6 +202,11 @@ arDistSceneGraphFramework::arDistSceneGraphFramework() :
   _peerTarget("NULL"),
   _remoteRootID(0),
   _externalPeer(NULL){
+    
+  ar_log().setHeader("szg_log_test: ");
+  ar_log() << string("Testing how the logging works.");
+  // NOT QUITE DONE YET!
+  endl(ar_log());
 }
 
 /// Syzygy messages consist of two strings, the first being
