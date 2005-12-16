@@ -206,7 +206,7 @@ arDistSceneGraphFramework::arDistSceneGraphFramework() :
   ar_log().setHeader("szg_log_test: ");
   ar_log() << string("Testing how the logging works.");
   // NOT QUITE DONE YET!
-  endl(ar_log());
+  ar_endl(ar_log());
 }
 
 /// Syzygy messages consist of two strings, the first being
