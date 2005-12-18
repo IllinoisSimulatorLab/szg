@@ -73,6 +73,9 @@ void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
       case AR_VK_P:
         fw->_showPerformance = !fw->_showPerformance;
       break;
+      case AR_VK_S:
+        fw->_showSimulator = !fw->_showSimulator;
+      break;
       case AR_VK_t:
         std::cout << "Frame time = " << fw->_lastFrameTime << std::endl;
       break;
@@ -2566,7 +2569,8 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
         graphicsWindow->draw();
 
         if ( _wm->isFirstWindow( currentWinID ) ) {
-          if( _standalone && _standaloneControlMode == "simulator" ) {
+          if( _standalone && _standaloneControlMode == "simulator" 
+              && _showSimulator) {
             _simPtr->drawWithComposition();
           }
 

@@ -148,6 +148,7 @@ class SZG_CALL arSZGAppFramework {
     std::string       _standaloneControlMode;
     arInputSimulator  _simulator;
     arInputSimulator* _simPtr;
+    bool              _showSimulator;
     arFramerateGraph  _framerateGraph;
     bool              _showPerformance;
 

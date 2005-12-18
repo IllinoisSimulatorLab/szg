@@ -33,16 +33,14 @@
 #include <vector>
 
 arMatrix4 mouseWorldMatrix = arMatrix4();
-arMatrix4 lightTransformMatrix = arMatrix4();
-arVector3 lightDirection = arVector3();
 
 arGraphicsDatabase* theDatabase = NULL;
 
 enum { PAN=0, ROTATE, ZOOM, SLIDER, NONE };
 
-int mouseTransformID, lightTransformID, light0ID;
+int mouseTransformID;
 int mouseManipState = ROTATE, oldState = ROTATE;
-bool isPlaying = false, isModelSpinning = false, isLightSpinning = false;
+bool isPlaying = false, isModelSpinning = false;
 float bgColor = 0.0f, _ratio = 1.0f, frameRate = 0.0f;
 
 int _width = 0, _height = 0;
@@ -234,16 +232,6 @@ void display( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow )
     dgTransform( mouseTransformID, mouseWorldMatrix );
   }
 
-  if( isLightSpinning ) {
-    lightTransformMatrix = ar_rotationMatrix( arVector3( 1.0f, 0.0f, 0.0f ), 0.05f ) *
-    			                 ar_rotationMatrix( arVector3( 0.0f, 1.0f, 0.0f ), 0.07f ) *
-    			                 ar_rotationMatrix( arVector3( 0.0f, 0.0f, 1.0f ), 0.03f ) *
-	    		                 lightTransformMatrix;
-
-    arVector3 tmp( lightTransformMatrix * lightDirection );
-    dgLight( light0ID, 0, arVector4( tmp[ 0 ], tmp[ 1 ], tmp[ 2 ], 0 ), arVector3( 1.0f, 1.0f, 0.95f ) );
-  }
-
   /*
   arPerspectiveCamera camera;
   camera.setSides(-0.03 * double( _ratio ), 0.03 * double( _ratio ),
@@ -325,10 +313,6 @@ void keyboardCB( arGUIKeyInfo* keyInfo )
 
     case AR_VK_3:
       mouseManipState = oldState = ZOOM;
-    break;
-
-    case AR_VK_9:
-      isLightSpinning = !isLightSpinning;
     break;
 
     case AR_VK_APOST:
@@ -564,22 +548,18 @@ int main( int argc, char** argv ){
 
   dgSetGraphicsDatabase( theDatabase );
   dgTransform( "world", "root", worldMatrix );
-  //UNUSED int worldTransformID = theDatabase->getNodeID( "world" );
   dgTransform( "mouse", "world", mouseWorldMatrix );
   mouseTransformID = theDatabase->getNodeID( "mouse" );
 
-  // lightTransformMatrix = ar_translationMatrix( 0.0, 5.0, 0.0 );
-  dgTransform( "lightTransform", "world", lightTransformMatrix );
-  lightTransformID = theDatabase->getNodeID( "lightTransform" );
-
-  lightDirection = arVector3( 0.0f, 5.0f, 0.0f);   // dir of primary light
-  lightDirection /= ++lightDirection;
-
+  // Go ahead and add some lights.
+  //lightDirection = arVector3( 0.0f,-5.0f, 0.0f);   // dir of primary light
+  //lightDirection /= ++lightDirection;
   // use as dir, not pos
-  arVector4 lightDir( lightDirection[ 0 ], lightDirection[ 1 ], lightDirection[ 2 ], 0.0f );
-  light0ID = dgLight( "light0", "lightTransform", 0, lightDir, arVector3( 1.0f, 1.0f, 0.95f ) );
+  //arVector4 lightDir( lightDirection[ 0 ], lightDirection[ 1 ], lightDirection[ 2 ], 0.0f );
+  (void) dgLight( "light0", "root", 0, arVector4(0,1,0,0), arVector3( 1,1,1 ) );
+  (void) dgLight( "light0", "root", 1, arVector4(0,-1,0,0), arVector3( 1,1,1 ) );
+  (void) dgLight( "light0", "root", 2, arVector4(0,0,1,0), arVector3( 1,1,1 ) );
   theObject->normalizeModelSize();    // fits into unit sphere
-  // theObject->setTransform( ar_translationMatrix( 0.0, 5.0, -5.0 ) );
 
   if( theObject->type() == "HTR" ) {
     ((arHTR*) theObject)->basicDataSmoothing();

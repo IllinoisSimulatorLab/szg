@@ -171,7 +171,7 @@ void arGraphicsClientRenderCallback::operator()(arGUIWindowInfo* windowInfo,
   if( _client->getWindowManager()->isFirstWindow( windowInfo->getWindowID() ) ) {
     // A HACK for drawing the simulator interface. This is used in
     // standalone mode on the arDistSceneGraphFramework.
-    if (_client->_simulator){
+    if (_client->_simulator && _client->_showSimulator){
       _client->_simulator->drawWithComposition();
     }
     // Used for the performance display.
@@ -212,6 +212,7 @@ arGraphicsClient::arGraphicsClient() :
   _guiParser(NULL),
   _overrideColor(-1,-1,-1),
   _simulator(NULL),
+  _showSimulator(true),
   _drawFrameworkObjects(false),
   _screenshotPath(""),
   _screenshotX(0),

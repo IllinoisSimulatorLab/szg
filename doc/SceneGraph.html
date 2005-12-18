@@ -6,6 +6,8 @@
 <a href="index.html">Documentation Index</a>
 <p><font size=+2>Myriad Scene Graph</font>
 
+<p><img src="images/SceneGraphIntro.jpg" width=500 height=392>
+
 <p>This section gives a general introduction to the Myriad scene graph and
 explains its C++ API. For a description of the (similar) Python API, please
 see this <a href="SceneGraphTutorial.html">tutorial</a>. There are several
@@ -14,6 +16,12 @@ scene graph examples in Python:
 <p><ul>
 <li><a href="python/particle-shape.py">particle-shape</a>: A particle system
 using some of the built-in shapes.
+<li><a href="python/lorenz.py">lorenz</a>: A visualization of the lorenz attractor.
+<li><a href="python/cosmos.py">cosmos</a>: Translation of the cosmos C++ demo into
+Python.
+<li><a href="python/simpleviz.py">simpleviz</a>: Shows how to manipulate a collection
+of objects using a grasping tool. Also demonstrates a custom standalone mode
+simulator.
 </ul>
 
 <p>When reading this section, you'll first want to understand the 
@@ -78,6 +86,8 @@ managed by the connected arGraphicsClients.
 <a name="Drawing">
 <p><font size=+2>Node Inheritance and Drawing</font>
 </a>
+
+<p><img src="images/SceneGraphInherit.jpg" width=450 height=544>
 
 <p>Tree traversal, arGraphicsContext.
 
@@ -274,6 +284,8 @@ OpenGL specification.
 <a name="BuiltIn">
 <p><font size=+2>Using Built-In Objects</font>
 </a>
+
+<p><img src="images/BuiltInShapes.jpg" width=500 height=396">
 
 <p>If you are writing your own custom code instead of using the
 arDistSceneGraphFramework or arMasterSlaveFramework objects

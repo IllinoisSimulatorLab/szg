@@ -76,23 +76,12 @@ class SZG_CALL arGraphicsClient{
   // copy the head from the arViewerNode to here
   bool updateHead();
 
-  // AARGH!!!! This stuff should be removed!
-  /// the setCamera function can be used to cycle through the cameras attached
-  /// to a database
-  //arCamera* setWindowCamera(int cameraID);
-  //arCamera* setViewportCamera(unsigned int vpid, int cameraID);
-  //arCamera* setStereoViewportsCamera(unsigned int vpid, int cameraID);
-  /// the setLocalCamera function can be used to create an arbitrary camera
-  /// this camera has ID = -2, inelegant for sure
-  //arCamera* setWindowLocalCamera( const float* const frust, const float* const look );
-  //arCamera* setViewportLocalCamera( unsigned int vpid, const float* const frust, const float* const look );
-  //arCamera* setStereoViewportsLocalCamera( unsigned int vpid, const float* const frust, const float* const look );
-
   /// Allows the arDistSceneGraphFramework standalone mode to have a simulator
   /// interface. I'm a little bit annoyed at how the arGraphicsClient is
   /// so greedy to be in charge (though maybe that's necessary given the
   /// way the callbacks have been defined).
   void setSimulator(arFrameworkObject* f){ _simulator = f; }
+  void showSimulator(bool show){ _showSimulator = show; }
   void toggleFrameworkObjects(){
     _drawFrameworkObjects = !_drawFrameworkObjects;
   }
@@ -119,14 +108,9 @@ class SZG_CALL arGraphicsClient{
 
   //bool _fixedHeadMode;
   arHead _defaultHead;
-  // AARGH!!!! Should remove this!
-  //arVRCamera _defaultCamera;
-  // we can over-ride the default draw function with this
-  //void (*_drawFunction)(arGraphicsDatabase*);
-  //bool _showFramerate;
-  //bool _stereoMode;
   arVector3 _overrideColor;
   arFrameworkObject* _simulator;
+  bool _showSimulator;
   bool _drawFrameworkObjects;
   list<arFrameworkObject*> _frameworkObjects;
 

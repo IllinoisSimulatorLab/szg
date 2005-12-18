@@ -17,6 +17,7 @@ arSZGAppFramework::arSZGAppFramework() :
   _parametersLoaded(false),
   _standalone(false),
   _standaloneControlMode( "simulator" ),
+  _showSimulator(true),
   _showPerformance( false ),
   _callbackFilter(this),
   _defaultUserFilter(),

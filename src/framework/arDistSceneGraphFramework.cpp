@@ -143,7 +143,10 @@ void ar_distSceneGraphGUIKeyboardFunction( arGUIKeyInfo* keyInfo ){
       case AR_VK_F:
         fw->_graphicsClient.getWindowManager()->resizeWindow( keyInfo->getWindowID(), 600, 600 );
       break;
-
+    case 'S':
+      fw->_showSimulator = !fw->_showSimulator;
+      fw->_graphicsClient.showSimulator(fw->_showSimulator);
+      break;
     case 'P':
       fw->_graphicsClient.toggleFrameworkObjects();
       break;
