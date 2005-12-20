@@ -5,6 +5,9 @@
 ########################################################################################
 
 from PySZG import *
+from OpenGL.GL import *
+from OpenGL.GLU import *
+from OpenGL.GLUT import *
 import sys
 import time
 import random
@@ -115,9 +118,38 @@ class wandTool(tool):
 			self.touching = event.getButton()
 			
 class simulator(arPyInputSimulator):
+	def __init__(self):
+		arPyInputSimulator.__init__(self)
+		self.fontLoaded = 0
+		self.font = arTexFont()
+		# SHOULD MAKE A DEFAULT CAMERA OBJECT!!!!!
+		self.camera = arOrthoCamera()
+		self.camera.setSides(-1,1,-1,1)
+		self.camera.setNearFar(0,100)
+		self.camera.setPosition(0,0,5)
+		self.camera.setTarget(0,0,0)
+		self.camera.setUp(0,1,0)
 	def onDraw(self):
-		pass
-			
+		if not self.fontLoaded:
+			if self.font.loadFont("/Users/isluser/Texture/Text/courier.txf") < 0:
+				print("Error in loading font.")
+			self.fontLoaded = 1
+		
+		#glMatrixMode(GL_PROJECTION)
+		#glLoadIdentity()
+		#glOrtho(-1,1,-1,1,0,100)
+		#glMatrixMode(GL_MODELVIEW)
+		#glLoadIdentity()
+		#gluLookAt(0,0,5, 0,0,0, 0,1,0)
+		#glPushMatrix()
+		#glColor3f(1,1,1)
+		#glutSolidSphere(1,20,20)
+		self.camera.loadViewMatrices()
+		glColor3f(1,1,1)
+		self.font.renderString2D("Hello World. This is the best!",0,0,1,1,0,0)
+		#glPopMatrix()
+		
+		
 
 def addLights(r):
 	l = r.new("light")
