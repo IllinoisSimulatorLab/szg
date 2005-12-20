@@ -12,44 +12,48 @@
 #include <iostream>
 using namespace std;
 
+// Only need to initialize sockets in the windows case.
 #ifdef AR_USE_WIN_32
+// ar_winSockInit() is contained in here.
+#include "arDataUtilities.h"
 
-#include "arDataUtilities.h" // for ar_winSockInit()
+// A helper class that implements the singleton pattern for
+// winsock init.
+class arWinSockHelper{
+ public:
+  arWinSockHelper(){ _initialized = false; ar_mutex_init(&_lock); }
+  ~arWinSockHelper(){}
 
-static bool fDontDoIt = false;
-arCommunicatorHelper arCommunicatorHelper_dummy;
-
-bool arCommunicator::_init = false;
-arMutex arCommunicator::_lock;
-arCommunicator::arCommunicator()
-{
-  if (!arCommunicatorHelper_dummy._init)
-    {
-    // hey, arCommunicatorHelper_dummy ain't been constructed yet! 
-    // because something else (an arSZGClient szgClient;) was constructed first.
-    // Let's do the ar_mutex_init ourselves, and tell *him* not to do it.
-    ar_mutex_init(&arCommunicator::_lock);
-    fDontDoIt = true;
+  bool init(){
+    ar_mutex_lock(&_lock);
+    // If we do not need to initialize, return true.
+    bool state = true;
+    if (!_initialized){
+      state = ar_winSockInit();
+      if (!state){
+        cerr << "syzygy error: win sock failed to initialize.\n";
+      }
+      _initialized = true;
     }
-  ar_mutex_lock(&_lock);
-  if (!_init)
-    {
-    _init = true;
-    if (!ar_winSockInit()) // this line is the whole reason for this class
-      cerr << "syzygy client error: arCommunicator failed to initialize.\n";
-    }
-  ar_mutex_unlock(&_lock);
-}
+    ar_mutex_unlock(&_lock);
+    return state;
+  }
 
-// This class is merely to init arCommunicator::_lock before main().
-arCommunicatorHelper::arCommunicatorHelper(): _init(1)
-{
-  if (!fDontDoIt)
-    ar_mutex_init(&arCommunicator::_lock);
-}
+  arMutex _lock;
+  bool    _initialized;
+};
 
+bool ar_winSockHelper(){
+  static arWinSockHelper helper;
+  return helper.init();
+}
 #endif
 
+arCommunicator::arCommunicator(){
+#ifdef AR_USE_WIN_32
+  (void) ar_winSockHelper();
+#endif
+}
 
 ///////////// Okay, now the actual arSocket code begins... ///////////
 

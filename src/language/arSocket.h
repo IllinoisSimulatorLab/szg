@@ -35,27 +35,9 @@ class ar_timeval; // forward reference into arDataUtilities.h
 
 /// Helper class:
 /// Ensures that win32 initializes before the first arSocket is constructed.
-
-#ifdef AR_USE_WIN_32
-class arCommunicatorHelper {
-public:
-  int _init;
-  arCommunicatorHelper();
-};
-#endif
-
-/// Helper class:
-/// Ensures that win32 initializes before the first arSocket is constructed.
-
 class SZG_CALL arCommunicator {
-#ifdef AR_USE_WIN_32
-  static arMutex _lock;
-  static bool _init;
 public:
   arCommunicator();
-  friend class arCommunicatorHelper;
-#endif
-public:
   virtual ~arCommunicator() {}
 };
 
