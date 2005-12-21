@@ -14,9 +14,38 @@
 
 #include <iostream>
 #include <fstream>
+#include <list>
 
 #include "arMath.h"
 #include "arTexFont.h"
+
+/// Not very efficient, but we're essentially assuming that it won't be parsing
+/// *very* long amounts of text.
+list<string> ar_parseLineBreaks(const string& text){
+  list<string> result;
+  string currentLine("");
+  char lastChar('\0');
+  int stringHead = 0;
+  for (int i=0; i<text.length(); i++){
+    if (text[i] == '\n'){
+      if (lastChar != '\r'){
+        result.push_back(text.substr(stringHead, i-stringHead));
+      }
+      stringHead = i+1;
+    }
+    else if (text[i] == '\r'){
+      if (lastChar != '\n'){
+        result.push_back(text.substr(stringHead, i-stringHead));
+      }
+      stringHead = i+1;
+    }
+    else if (i == text.length()-1){
+      result.push_back(text.substr(stringHead, i+1-stringHead));
+    }
+    lastChar = text[i];
+  }
+  return result;
+}
 
 static int useLuminanceAlpha = 1;
 
@@ -471,7 +500,7 @@ int arTexFont::unloadFont( arTexFont::TexFont* txf )
 }
 
 int arTexFont::getStringMetrics( const std::string& text,
-                                  int& width, int& max_ascent, int& max_descent)
+                                 int& width, int& max_ascent, int& max_descent)
 {
   if (!_currentFont)
     return -1;
@@ -576,24 +605,64 @@ float arTexFont::renderGlyph( int c, bool advance )
     glVertex2sv(   tgvi->v3 );
   glEnd();
 
-  if( advance ) {
+  if ( advance ) {
     glTranslatef( tgvi->advance, 0.0f, 0.0f );
   }
 
   return tgvi->advance;
 }
 
-int arTexFont::renderString( const std::string& text )
+int arTexFont::renderString( const std::string& text, arTextBox& format )
 {
   if( !_currentFont ) {
     return -1;
   }
 
+  // Breaks our text up into a collection of lines.
+  list<string> parse = ar_parseLineBreaks(text);
+glColor3f(0,1,0);
+  glBegin(GL_QUADS);
+  glVertex3f(-1,-1, 1);
+  glVertex3f(1,-1, 1);
+  glVertex3f(1,1, 1);
+  glVertex3f(-1,1, 1);
+  glEnd();
   setupOpenGL( false );
 
-  for ( unsigned int i = 0; i < text.length(); i++ ) {
-    renderGlyph( text[ i ] );
+  // Determine the various metrics of our text display.
+  // First, what is the size of a glyph?
+  float verticalSize = _currentFont->max_ascent - _currentFont->max_descent;
+  // The horizontal size is a bit of a hack and only good for fixed-width fonts!
+  arTexFont::TexGlyphVertexInfo* tgvi = getTCVI( _currentFont, 'O');
+  float horizSize = tgvi->advance;
+  float height = format.width*(verticalSize*float(format.rows))/(horizSize*float(format.columns));
+  
+  glPushMatrix();
+  glTranslatef(format.center[0]-format.width/2, format.center[1]+height/2, format.center[2]);
+  glColor3f(0,1,0);
+  glBegin(GL_QUADS);
+  glVertex3f(0, 0, 1);
+  glVertex3f(format.width, 0, 1);
+  glVertex3f(format.width, -height, 1);
+  glVertex3f(0, -height, 1);
+  glEnd();
+
+  float scl = format.width/(format.columns*horizSize);
+  glScalef(scl, scl, scl);
+  // This puts the top of the first character at the top of the text box.
+  glTranslatef(0, -_currentFont->max_ascent, 0);
+  for (list<string>::iterator i = parse.begin();
+       i != parse.end(); i++){
+    glPushMatrix();
+    for ( unsigned int j = 0; j < (*i).length(); j++ ) {
+      glColor3f(1,1,1);
+      renderGlyph( (*i)[j] );
+    }
+    glPopMatrix();
+    // Line feed.
+    glTranslatef(0, -format.lineSpacing*verticalSize, 0);
   }
+  glPopMatrix();
 
   tearDownOpenGL( false );
 
@@ -604,6 +673,8 @@ int arTexFont::renderString2D( const std::string& text,
                                 float posX, float posY, float scaleX, float scaleY,
                                 bool scalePerGlyphX, bool scalePerGlyphY )
 {
+  // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
+  glColor3f(1,1,1);
   if( !_currentFont ) {
     return -1;
   }

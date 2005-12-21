@@ -1,4 +1,4 @@
-// $Id: PyGraphics.i,v 1.12 2005/12/20 16:17:40 schaeffr Exp $
+// $Id: PyGraphics.i,v 1.13 2005/12/21 01:31:36 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -259,6 +259,21 @@ public:
 #include "arTexFont.h"
 %}
 
+class arTextBox{
+ public:
+  arTextBox();
+  ~arTextBox();
+
+  int tabWidth;
+  float lineSpacing;
+  int columns;
+  int rows;
+  float width;
+  arVector3 center;
+  arVector3 normal;
+  arVector3 up;
+};
+
 class arTexFont{
  public:
   arTexFont( const string& font = "", int rows = 80, int cols = 80 );
@@ -272,7 +287,7 @@ class arTexFont{
   
   int getStringMetrics( const string& text, int& width, int& max_ascent, int& max_descent );
   
-  int renderString( const string& text );
+  int renderString( const string& text, arTextBox& format );
   
   int renderString2D( const string& text,
 		      float posX, float posY, float scaleX = 1.0f, float scaleY = 1.0f,

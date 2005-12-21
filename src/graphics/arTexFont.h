@@ -8,6 +8,7 @@
 #ifndef _AR_TEX_FONT_H__
 #define _AR_TEX_FONT_H__
 
+#include "arMath.h"
 #include "arGraphicsHeader.h"
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
@@ -20,6 +21,35 @@
 
 #define GLATTRIBS GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT | \
                   GL_LIGHTING_BIT | GL_TEXTURE_BIT | GL_TRANSFORM_BIT
+
+/// Description of a 3D rectangle upon which text can get printed.
+/// Passed in to the arTexFont renderString command. This also
+/// includes some formating info, namely a tab's width.
+class SZG_CALL arTextBox{
+ public:
+  // NOTE: The height of the text box is, essentially, calculated
+  // from the physical width and the proportions of the font.
+  // NOTE: The normal is assumed to point AWAY from the rect's text side.
+  arTextBox():
+    tabWidth(2),
+    lineSpacing(1.2),
+    columns(80),
+    rows(20),
+    width(2.0),
+    center(0,0,0),
+    normal(0,0,1),
+    up(0,1,0){}
+  ~arTextBox(){}
+
+  int tabWidth;
+  float lineSpacing;
+  int columns;
+  int rows;
+  float width;
+  arVector3 center;
+  arVector3 normal;
+  arVector3 up;
+};
 
 class SZG_CALL arTexFont
 {
@@ -76,7 +106,7 @@ class SZG_CALL arTexFont
     int getStringMetrics( const std::string& text,
                           int& width, int& max_ascent, int& max_descent );
 
-    int renderString( const std::string& text );
+    int renderString( const std::string& text, arTextBox& format );
 
     int renderString2D( const std::string& text,
                         float posX, float posY, float scaleX = 1.0f, float scaleY = 1.0f,
