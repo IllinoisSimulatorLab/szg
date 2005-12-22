@@ -36,9 +36,7 @@ class SZG_CALL arTextBox{
     columns(80),
     rows(20),
     width(2.0),
-    center(0,0,0),
-    normal(0,0,1),
-    up(0,1,0){}
+    upperLeft(0,0,0){}
   ~arTextBox(){}
 
   int tabWidth;
@@ -46,9 +44,7 @@ class SZG_CALL arTextBox{
   int columns;
   int rows;
   float width;
-  arVector3 center;
-  arVector3 normal;
-  arVector3 up;
+  arVector3 upperLeft;
 };
 
 class SZG_CALL arTexFont
@@ -105,7 +101,19 @@ class SZG_CALL arTexFont
 
     int getStringMetrics( const std::string& text,
                           int& width, int& max_ascent, int& max_descent );
-
+    
+    float characterWidth();
+    
+    float characterHeight(arTextBox& format);
+    
+    void moveCursor(int column, int row, arTextBox& format);
+    
+    void lineFeed(int& currentColumn, int& currentRow, arTextBox& format);
+    
+    void advanceCursor( int& currentColumn, int& currentRow, arTextBox& format );
+    
+    void renderGlyph( int c, int& currentColumn, int& currentRow, arTextBox& format );
+    
     int renderString( const std::string& text, arTextBox& format );
 
     int renderString2D( const std::string& text,
@@ -151,6 +159,9 @@ class SZG_CALL arTexFont
     arTexFont::TexFont* _currentFont;
 
     int _rows, _cols;
+    
+    int _charWidth;
+    int _charHeight;
 
 };
 

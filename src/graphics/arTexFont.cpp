@@ -369,7 +369,7 @@ int arTexFont::loadFont( const std::string& font )
 
   fclose( file );
 
-  establishTexture( txf, 0, GL_TRUE );
+  establishTexture( txf, 0, true );
 
   _fonts[ font ] = txf;
 
@@ -612,6 +612,67 @@ float arTexFont::renderGlyph( int c, bool advance )
   return tgvi->advance;
 }
 
+float arTexFont::characterWidth(){
+  return _charWidth;
+}
+
+float arTexFont::characterHeight(arTextBox& format){
+  return _charHeight*format.lineSpacing;
+}
+
+void arTexFont::moveCursor(int column, int row, arTextBox& format){
+  // The bottom-left corner of the character is its origin for rendering.
+  // BUG BUG BUG BUG BUG BUG BUG BUG???? Is this precisely right for a line spacing that isn't equal to 1?
+  glTranslatef(column*characterWidth(), 
+	       -(row+1)*characterHeight(format), 
+	       0);
+}
+
+// BUG BUG BUG BUG BUG BUG BUG BUG. Should be possible to eliminate lineHeight, since it is purely a creature of the
+// *font* characteristics.
+void arTexFont::lineFeed(int& currentColumn, int& currentRow, arTextBox& format){
+  // Line feed.
+  glTranslatef( -currentColumn*characterWidth(), -characterHeight(format), 0);
+  currentColumn = 0;
+  currentRow++;
+}
+
+void arTexFont::advanceCursor( int& currentColumn, int& currentRow, arTextBox& format ){
+  glTranslatef( characterWidth(), 0, 0 );
+  currentColumn++;
+  if (currentColumn >= format.columns){
+    lineFeed( currentColumn, currentRow, format );
+  }
+}
+
+void arTexFont::renderGlyph( int c, int& currentColumn, int& currentRow, arTextBox& format ){
+  // Deal with whitespace. Go ahead and wrap lines.
+  if (c == ' ' || c == '\t'){
+    if (c == ' '){
+      advanceCursor(currentColumn, currentRow, format);
+    }
+    else{
+      for (int i=0; i<format.tabWidth; i++){
+	advanceCursor(currentColumn, currentRow, format);
+      }
+    }
+  }
+  else{
+    arTexFont::TexGlyphVertexInfo* tgvi = getTCVI( _currentFont, c );
+    glBegin( GL_QUADS );
+    glTexCoord2fv( tgvi->t0 );
+    glVertex2sv(   tgvi->v0 );
+    glTexCoord2fv( tgvi->t1 );
+    glVertex2sv(   tgvi->v1 );
+    glTexCoord2fv( tgvi->t2 );
+    glVertex2sv(   tgvi->v2 );
+    glTexCoord2fv( tgvi->t3 );
+    glVertex2sv(   tgvi->v3 );
+    glEnd();
+    advanceCursor(currentColumn, currentRow, format);
+  }	
+}
+
 int arTexFont::renderString( const std::string& text, arTextBox& format )
 {
   if( !_currentFont ) {
@@ -620,7 +681,7 @@ int arTexFont::renderString( const std::string& text, arTextBox& format )
 
   // Breaks our text up into a collection of lines.
   list<string> parse = ar_parseLineBreaks(text);
-glColor3f(0,1,0);
+  glColor3f(0,1,0);
   glBegin(GL_QUADS);
   glVertex3f(-1,-1, 1);
   glVertex3f(1,-1, 1);
@@ -631,36 +692,24 @@ glColor3f(0,1,0);
 
   // Determine the various metrics of our text display.
   // First, what is the size of a glyph?
-  float verticalSize = _currentFont->max_ascent - _currentFont->max_descent;
+  _charHeight = _currentFont->max_ascent - _currentFont->max_descent;
   // The horizontal size is a bit of a hack and only good for fixed-width fonts!
   arTexFont::TexGlyphVertexInfo* tgvi = getTCVI( _currentFont, 'O');
-  float horizSize = tgvi->advance;
-  float height = format.width*(verticalSize*float(format.rows))/(horizSize*float(format.columns));
-  
+  _charWidth = tgvi->advance;
   glPushMatrix();
-  glTranslatef(format.center[0]-format.width/2, format.center[1]+height/2, format.center[2]);
-  glColor3f(0,1,0);
-  glBegin(GL_QUADS);
-  glVertex3f(0, 0, 1);
-  glVertex3f(format.width, 0, 1);
-  glVertex3f(format.width, -height, 1);
-  glVertex3f(0, -height, 1);
-  glEnd();
-
-  float scl = format.width/(format.columns*horizSize);
+  glTranslatef(format.upperLeft[0], format.upperLeft[1], format.upperLeft[2]);
+  float scl = format.width/(format.columns*_charWidth);
   glScalef(scl, scl, scl);
-  // This puts the top of the first character at the top of the text box.
-  glTranslatef(0, -_currentFont->max_ascent, 0);
+  int column = 0;
+  int row = 0;
+  moveCursor(column,row,format);
   for (list<string>::iterator i = parse.begin();
        i != parse.end(); i++){
-    glPushMatrix();
     for ( unsigned int j = 0; j < (*i).length(); j++ ) {
       glColor3f(1,1,1);
-      renderGlyph( (*i)[j] );
+      renderGlyph( (*i)[j], column, row, format );
     }
-    glPopMatrix();
-    // Line feed.
-    glTranslatef(0, -format.lineSpacing*verticalSize, 0);
+    lineFeed(column, row, format);
   }
   glPopMatrix();
 

@@ -740,14 +740,14 @@ class arTextureNode: public arGraphicsNode{
   virtual ~arTextureNode();
 
   string getFileName();
-  void setFileName(const string& fileName);
+  void setFileName(const string& fileName, int alpha=-1);
 
 %pythoncode{
   def get(self):
       return self.getFileName()
 
-  def set(self, m):
-      self.setFileName(m);
+  def set(self, m, alpha=-1):
+      self.setFileName(m, alpha);
 }
 };
 

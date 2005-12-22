@@ -1,4 +1,4 @@
-// $Id: PyGraphics.i,v 1.13 2005/12/21 01:31:36 schaeffr Exp $
+// $Id: PyGraphics.i,v 1.14 2005/12/22 00:47:16 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -269,9 +269,7 @@ class arTextBox{
   int columns;
   int rows;
   float width;
-  arVector3 center;
-  arVector3 normal;
-  arVector3 up;
+  arVector3 upperLeft;
 };
 
 class arTexFont{

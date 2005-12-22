@@ -200,6 +200,8 @@ void arGraphicsDatabase::loadAlphabet(const char* path){
     // means that no complaint will be printed if the file fails to be read.
     // We actually want no printed complaints!
     _alphabet[i]->readPPM(buffer, -1, false);
+    // Very important to mip map for when super-small letters are needed.
+    _alphabet[i]->mipmap(true);
   }
 }
 

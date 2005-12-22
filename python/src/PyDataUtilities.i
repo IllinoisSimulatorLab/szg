@@ -28,3 +28,12 @@ class arTimer {
     void setRuntime( double dur ) { _runTime = dur; }
     double duration() { return _duration; }
 };
+
+bool ar_isFile(const char* name);
+bool ar_isDirectory(const char* name);
+string ar_fileFind(const string& name, 
+                   const string& subdirectory,
+                   const string& path);
+string ar_directoryFind(const string& name, 
+		        const string& subdirectory,
+                        const string& path);
