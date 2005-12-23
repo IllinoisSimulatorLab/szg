@@ -134,7 +134,7 @@ class simulator(arPyInputSimulator):
 		format.rows = 20
 		format.width = 2
 		format.lineSpacing = 1
-		font.renderString("WWWWWW\nfoo\nBen Schaeffer rocks!", format)
+		font.renderString("WWWWWW\nfoo\nBen Schaeffer rocks!\nbar\n_____BOOYAH_____", format)
 		
 		
 
@@ -159,18 +159,6 @@ def addBillboard(r):
 	t.set(ar_TM(0,7,-3)*ar_RM('y',ar_convertToRad(180))*ar_SM(0.1,0.1,0.1))
 	b = t.new("billboard")
 	b.set("hello world")
-	t = r.new("transform")
-	t.set(ar_TM(0,5,-3.1)*ar_RM('x',ar_convertToRad(90))*ar_SM(5,5,5))
-	m = t.new("material")
-	# Might want to add a disable lighting node in here?
-	mat = m.get()
-	mat.diffuse = arVector3(0,1,0);
-	m.set(mat)
-	rect = arRectangleMesh()
-	texture = m.new("texture")
-	# Should definitely have alpha channel texture examples!
-	texture.set("courier-bold.ppm",0)
-	rect.attachMesh(texture)
 
 # The event processing callback. All it does is grab the events that have queued
 # since last call and send them to the items on the widget list. A very generic function.
@@ -195,7 +183,7 @@ f.setNavTransSpeed(0.2)
 g = f.getDatabase()
 root = g.getRoot()
 addLights(root)
-addBillboard(root)
+
 toolTransform = root.new("transform")
 wand = wandTool()
 wand.attach(toolTransform)
@@ -228,6 +216,9 @@ for i in range(8):
 		s = arSphereMesh()
 		s.setAttributes(15)
 		s.attachMesh(m)
+
+# Want this to be drawn last so that transparency works.
+addBillboard(root)
 		
 if f.start() != 1:
 	sys.exit()
@@ -235,9 +226,13 @@ if f.start() != 1:
 # Must occur after the window gets created in start().
 # BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG. THIS IS ONLY VALID IN STANDALONE MODE!
 if f.getStandalone():
-	textPath = f.getSZGClient().getAttribute("SZG_RENDER","text_path")
-	fontFile = ar_fileFind("courier-large.txf", "", textPath)
-	if font.loadFont(fontFile) < 0:
+	#textPath = f.getSZGClient().getAttribute("SZG_RENDER","text_path")
+	#fontFile = ar_fileFind("courier-large.txf", "", textPath)
+	#if font.loadFont(fontFile) < 0:
+	#	print("Error in loading font.")
+	textPath = f.getSZGClient().getAttribute("SZG_RENDER","texture_path")
+	fontFile = ar_fileFind("courier-bold.ppm", "", textPath)
+	if font.load(fontFile) < 0:
 		print("Error in loading font.")
 	
 while 1:

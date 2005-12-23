@@ -140,8 +140,14 @@ void drawHUD( int width, int height )
   // menu text
   glColor3f( 1.0f, 0.0f, 0.0f );
   sprintf( displayString, " [1] Translate  [2] Rotate  [3] Scale" );
+  arTextBox box;
+  box.upperLeft = arVector3(0,0,0);
+  box.width = 100;
+  box.color = arVector3(1,1,1);
+  box.rows = 1;
+  box.columns = 30;
   // showRasterString( 0.0f, 100.0f * ( 1.0f - 15.0f / float( height) ), displayString );
-  texFont.renderString2D( displayString, 0.0f, 0.96875f, 0.5625f, 0.041666f );
+  texFont.renderString( displayString, box);
   // texFont.renderString2D( displayString, 0.0f, 0.96875f, 1.0f / 66.0f, 0.041666f, true );
 
   // animation slider
@@ -622,13 +628,13 @@ int main( int argc, char** argv ){
   }
 
   // must be done *after* an opengl context is created!
-  std::string fontLocation = ar_fileFind( "courier_bold.txf", "", textPath );
+  std::string fontLocation = ar_fileFind( "courier-bold.ppm", "", textPath );
   if( fontLocation != "NULL" ) {
     std::cout << "szgview remark: found szg system font.\n";
-    texFont.loadFont( fontLocation );
+    texFont.load( fontLocation );
   }
   else {
-    texFont.loadFont( "courier_bold.txf" );
+    texFont.load( "courier-bold.txf" );
   }
 
   // wm->startWithoutSwap();

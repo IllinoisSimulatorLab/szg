@@ -1,4 +1,4 @@
-// $Id: PyGraphics.i,v 1.14 2005/12/22 00:47:16 schaeffr Exp $
+// $Id: PyGraphics.i,v 1.15 2005/12/23 00:33:53 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -264,6 +264,7 @@ class arTextBox{
   arTextBox();
   ~arTextBox();
 
+  arVector3 color;
   int tabWidth;
   float lineSpacing;
   int columns;
@@ -274,35 +275,11 @@ class arTextBox{
 
 class arTexFont{
  public:
-  arTexFont( const string& font = "", int rows = 80, int cols = 80 );
-  ~arTexFont( void );
+  arTexFont();
+  ~arTexFont();
   
-  int loadFont( const string& font );
-  
-  int unloadFont( const string& font );
-  
-  int setCurrentFont( const string& font );
-  
-  int getStringMetrics( const string& text, int& width, int& max_ascent, int& max_descent );
-  
+  bool load(const string& font);
   int renderString( const string& text, arTextBox& format );
-  
-  int renderString2D( const string& text,
-		      float posX, float posY, float scaleX = 1.0f, float scaleY = 1.0f,
-		      bool scalePerGlyphX = false, bool scalePerGlyphY = false );
-  
-  int renderFile2D( const string& filename,
-		    float posX, float posY, float scaleX = 1.0f, float scaleY = 1.0f,
-		    bool scalePerGlyphX = false, bool scalePerGlyphY = false );
-  
-  int renderStringCurses( const string& text, int row = 0, int col = 0,
-			  bool vertical = false );
-    
-  void setRows( int rows );
-  void setCols( int cols );
-  
-  int getRows( void );
-  int getCols( void );
 };  
 
 %{

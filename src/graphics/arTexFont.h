@@ -9,18 +9,13 @@
 #define _AR_TEX_FONT_H__
 
 #include "arMath.h"
+#include "arTexture.h"
 #include "arGraphicsHeader.h"
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 #include <string>
 #include <map>
-
-#define TXF_FORMAT_BYTE		0
-#define TXF_FORMAT_BITMAP	1
-
-#define GLATTRIBS GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_ENABLE_BIT | \
-                  GL_LIGHTING_BIT | GL_TEXTURE_BIT | GL_TRANSFORM_BIT
 
 /// Description of a 3D rectangle upon which text can get printed.
 /// Passed in to the arTexFont renderString command. This also
@@ -31,6 +26,7 @@ class SZG_CALL arTextBox{
   // from the physical width and the proportions of the font.
   // NOTE: The normal is assumed to point AWAY from the rect's text side.
   arTextBox():
+    color(1,1,1),
     tabWidth(2),
     lineSpacing(1.2),
     columns(80),
@@ -39,6 +35,7 @@ class SZG_CALL arTextBox{
     upperLeft(0,0,0){}
   ~arTextBox(){}
 
+  arVector3 color;
   int tabWidth;
   float lineSpacing;
   int columns;
@@ -50,118 +47,22 @@ class SZG_CALL arTextBox{
 class SZG_CALL arTexFont
 {
   public:
-
-    typedef struct {
-      unsigned short c;       // Potentially support 16-bit glyphs.
-      unsigned char width;
-      unsigned char height;
-      signed char xoffset;
-      signed char yoffset;
-      signed char advance;
-      char dummy;             // Space holder for alignment reasons.
-      short x;
-      short y;
-    } TexGlyphInfo;
-
-    typedef struct {
-      GLfloat t0[ 2 ];
-      GLshort v0[ 2 ];
-      GLfloat t1[ 2 ];
-      GLshort v1[ 2 ];
-      GLfloat t2[ 2 ];
-      GLshort v2[ 2 ];
-      GLfloat t3[ 2 ];
-      GLshort v3[ 2 ];
-      GLfloat advance;
-    } TexGlyphVertexInfo;
-
-    typedef struct {
-      GLuint texobj;
-      int tex_width;
-      int tex_height;
-      int max_ascent;
-      int max_descent;
-      int num_glyphs;
-      int min_glyph;
-      int range;
-      unsigned char *teximage;
-      TexGlyphInfo *tgi;
-      TexGlyphVertexInfo *tgvi;
-      TexGlyphVertexInfo **lut;
-    } TexFont;
-
-    arTexFont( const std::string& font = "", int rows = 80, int cols = 80 );
-    ~arTexFont( void );
-
-    int loadFont( const std::string& font );
-
-    int unloadFont( const std::string& font );
-
-    int setCurrentFont( const std::string& font );
-
-    int getStringMetrics( const std::string& text,
-                          int& width, int& max_ascent, int& max_descent );
+    arTexFont();
+    ~arTexFont();
     
+    bool load( const std::string& font );
     float characterWidth();
-    
     float characterHeight(arTextBox& format);
-    
     void moveCursor(int column, int row, arTextBox& format);
-    
     void lineFeed(int& currentColumn, int& currentRow, arTextBox& format);
-    
     void advanceCursor( int& currentColumn, int& currentRow, arTextBox& format );
-    
     void renderGlyph( int c, int& currentColumn, int& currentRow, arTextBox& format );
-    
     int renderString( const std::string& text, arTextBox& format );
 
-    int renderString2D( const std::string& text,
-                        float posX, float posY, float scaleX = 1.0f, float scaleY = 1.0f,
-                        bool scalePerGlyphX = false, bool scalePerGlyphY = false );
-
-    int renderFile2D( const std::string& filename,
-                      float posX, float posY, float scaleX = 1.0f, float scaleY = 1.0f,
-                      bool scalePerGlyphX = false, bool scalePerGlyphY = false );
-
-    int renderStringCurses( const std::string& text, int row = 0, int col = 0,
-                            bool vertical = false );
-
-    // void txfRenderFancyString( const TexFont * txf, char *string, int len);
-
-    void setRows( int rows )  { _rows = rows; }
-    void setCols( int cols )  { _cols = cols; }
-
-    int getRows( void )  { return _rows; }
-    int getCols( void )  { return _cols; }
-
   private:
-
-    void setupOpenGL( bool setMatrices2D = true, GLbitfield attrib = GLATTRIBS,
-                      GLfloat filter = GL_LINEAR_MIPMAP_LINEAR,
-                      GLint texFunc = GL_MODULATE,
-                      GLenum alphaFunc = GL_GEQUAL,
-                      GLenum srcFunc = GL_SRC_ALPHA,
-                      GLenum destFunc = GL_ONE_MINUS_SRC_ALPHA,
-                      bool alphaTest = true, bool blending = true,
-                      bool lighting = false, bool depthTest = false );
-
-    void tearDownOpenGL( bool popMatrices = true );
-
-    int unloadFont( arTexFont::TexFont* txf );
-
-    GLuint establishTexture( arTexFont::TexFont* txf, GLuint texobj = 0, bool setupMipmaps = true );
-
-    float renderGlyph( int c, bool advance = true );
-
-    std::map<std::string, TexFont* > _fonts;
-
-    arTexFont::TexFont* _currentFont;
-
-    int _rows, _cols;
-    
-    int _charWidth;
-    int _charHeight;
+    arTexture _fontTexture;   
+    float _charWidth;
+    float _charHeight;
 
 };
 
