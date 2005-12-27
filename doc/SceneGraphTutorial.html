@@ -309,6 +309,136 @@ latitudanal divisions (and 20x20x2=800 triangles). The sphere has radius 1
 by default.
 
 <pre>
+>>> from PySZG import *
+>>> e = ezview()
+>>> c = arPerspectiveCamera()
+>>> c.setSides(-0.1,0.1,-0.1,0.1)
+>>> c.setNearFar(0.1,100) 
+>>> c.setPosition(0,5,0)
+>>> c.setTarget(0,0,0)
+>>> c.setUp(0,1,0)
+>>> c.setPosition(0,0,5)
+>>> g = arGraphicsDatabase()
+>>> r = g.getRoot()
+>>> light = arLight()
+>>> light.lightID = 0
+>>> light.position = arVector4(0,0,1,0)
+>>> light.diffuse = arVector3(1,1,1)
+>>> s = arSphereMesh(20)
+>>> m = r.new("material")
+>>> s.attachMesh(m)
+>>> e.draw(g,c)
+>>> l = r.new("light")
+>>> l.setLight(light)
+>>> e.draw(g,c)
+</pre>
+
+<p><img src="images/WhiteSphereCentered.jpg" width=400 height=421>
+
+<pre>
+>>> mat = m.get()      
+>>> mat.diffuse = arVector3(1,0,0)
+>>> m.set(mat)
+>>> e.draw(g,c)
+</pre>
+
+<p><img src="images/RedSphereCentered.jpg" width=398 height=424>
+
+<pre>
+>>> t = g.insertNodeRef(r,m,"transform")
+>>> t.set(ar_TM(0,3,0))
+>>> e.draw(g,c)
+>>> g.ps()
+Database structure: 
+(0, "root", "root")
+ (7, "szg_default_7", "light")
+ (8, "szg_default_8", "transform")
+  (1, "szg_default_1", "material")
+   (2, "sphere.points", "points")
+    (3, "sphere.indices", "index")
+     (4, "sphere.normal3", "normal3")
+      (5, "sphere.tex2", "tex2")
+       (6, "sphere.drawable", "drawable")
+>>> t.set(ar_TM(0,3,0)*ar_SM(3,3,3))
+>>> e.draw(g,c)
+</pre>
+
+<p><img src="images/RedSphereUp.jpg" width=398 height=423>
+<p><img src="images/BigRedSphere.jpg" width=397 height=424>
+
+<pre>
+from PySZG import *
+import time
+c = arPerspectiveCamera()
+c.setSides(-0.1, 0.1, -0.1, 0.1)
+c.setNearFar(0.1, 100)
+c.setPosition(0, 0, 5)
+c.setTarget(0, 0, 0)
+c.setUp(0, 1, 0)
+g = arGraphicsDatabase()
+g.setTexturePath("/Users/schaeffr/Texture")
+r = g.getRoot()
+light = arLight()
+light.lightID = 0
+light.position = arVector4(0,0,1,0)
+light.diffuse = arVector3(1,1,1)
+l = r.new("light")
+l.set(light)
+t = r.new("transform")
+t.set(ar_TM(0,2,0)*ar_RM('y', ar_convertToRad(20))*ar_SM(3,3,3))
+txt = t.new("texture")
+txt.set("WallTexture1.ppm")
+cube = arCubeMesh()
+cube.attachMesh(txt)
+e = ezview()
+e.draw(g,c)
+time.sleep(5)
+</pre>
+
+<p><img src="images/TexturedCube.jpg" width=401 height=425>
+
+<pre>
+from PySZG import *
+import time
+c = arPerspectiveCamera()
+c.setSides(-0.1, 0.1, -0.1, 0.1)
+c.setNearFar(0.1, 100)
+c.setPosition(0, 0, 5)
+c.setTarget(0, 0, 0)
+c.setUp(0, 1, 0)
+g = arGraphicsDatabase()
+dgSetGraphicsDatabase(g)
+g.setTexturePath("/Users/schaeffr/Texture")
+r = g.getRoot()
+light = arLight()
+light.lightID = 0
+light.position = arVector4(0,0,1,0)
+light.diffuse = arVector3(1,1,1)
+l = r.new("light")
+l.set(light)
+t = r.new("transform","transform_node")
+t.set(ar_TM(1,1,0)*ar_RM('y', ar_convertToRad(20))*ar_SM(3,3,3))
+o = arOBJ()
+o.readOBJ("/Users/schaeffr/Data/OBJ/al.obj")
+o.normalizeModelSize()
+o.attachMesh("al", "transform_node")
+e = ezview()
+e.draw(g,c)
+time.sleep(5)
+</pre>
+
+<p><img src="images/NormalAl.jpg" width=400 height=426>
+
+<pre>
+m = g.find("al.default.colors3")
+mat = m.get()
+mat.diffuse = arVector3(1,0,0)
+m.set(mat)
+</pre>
+
+<p><img src="images/RedAl.jpg" width=400 height=425>
+
+<pre>
   s = arSphereMesh(20)
 </pre>
 

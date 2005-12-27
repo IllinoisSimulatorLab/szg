@@ -13,14 +13,15 @@
 bindings for some of the most commonly-used Syzygy classes and functions.
 Syzygy Python bindings are currently available for Linux, Windows, and
 Mac OS X, but not for Irix. Make sure you have Python (version 2.2 or greater)
-installed before proceeding. Most Linux distributions come with Python
-installed. If you are using the cygwin command shell on windows, make sure that it does
-not include its own version of Python or SWIG; remove them if they exist. The
-cygwin Python and Syzygy use incompatible object-file formats (gcc vs. Visual
+installed before proceeding (OS X and most Linux distributions come with Python
+installed) If you are using the cygwin command shell on windows, make sure that it does
+not include its own version of Python or SWIG. You must remove them if they exist, since 
+cygwin's Python and Syzygy use incompatible object-file formats (gcc vs. Visual
 Studio). Install the native Windows version of Python from
 <a href="www.python.org">python.org</a>.
 
-<p>On all platforms, set the SZGHOME, SZGBIN, SZGEXTERNAL, etc.
+<p>If you will be compiling the bindings, as opposed to using a precompiled SDK,
+you must set the SZGHOME, SZGBIN, SZGEXTERNAL, etc.
 environment variables as described in
 <a href="GettingSoftware.html">Getting the Software</a>.
 
@@ -34,10 +35,9 @@ to compile them. Otherwise, read the section on
 After completing these steps, 
 <a href="#FirstPythonTest">test your installation</a>. If you will be running
 Python programs in Phleet mode (via dex, szgd, and virtual computers), you
-should understand the way Python interacts with the Phleet. The py-szg
-repository contains a few simple examples that demonstrate preferred Syzygy
-programming models; additional examples can be found in the pycube software
-distribution provided by George Francis and his students.
+should understand the way Python interacts with the Phleet. The szg
+repository contains several examples that demonstrate preferred Syzygy
+programming models, both in szg/python/demo and in szg/doc/python.
 
 <p><ul>
 <li><a href="#CompilePythonBindings">Compiling the Syzygy Python Bindings</a>
@@ -256,7 +256,7 @@ master/slave applications may run into trouble running on mixed-platform or
 clusters. We've run into a few other cases in which cPickle behaves strangely,
 throwing exceptions for no apparent reason;
 some of these can be avoided by using the slower pickle module instead (pickle is written
-in Python, cPickle in C). See py-szg/demo/skeleton/skeleton2.py for an example.
+in Python, cPickle in C).
 
 <p>On Windows, the Python dynamic library is versioned. Consequently,
 to work with the precompiled SDK, you will need to have Python 2.2 

@@ -9,9 +9,22 @@
 <p><img src="images/SceneGraphIntro.jpg" width=500 height=392>
 
 <p>This section gives a general introduction to the Myriad scene graph and
-explains its C++ API. For a description of the (similar) Python API, please
-see this <a href="SceneGraphTutorial.html">tutorial</a>. There are several
-scene graph examples in Python:
+explains its C++ API. There are several scene graph examples in C++:
+
+<p><ul>
+<li><a href="cplusplus/cosmos.cpp">cosmos</a>: Shows how to use the built-in navigation
+classes, as well as the built-in shapes (with textures) and geometric primitves (lines).
+<li><a href="cpluscplus/cubes.cpp">cubes</a>: Shows how to use the built-in interaction
+code. 300 shapes float in space, their colors and orientations changing rapidly.
+A grasping tool can be used to change their placement.
+</ul>
+
+<p> For a description of the (similar) Python API, please
+see this <a href="SceneGraphTutorial.html">tutorial</a>. Python's internal reference counting
+mechanism is integrated with Myriad's, so that their combined operation is thread-safe (with 
+respect, for instance, to node deletions from an external source, as in the case of a shared
+scene graph in peer-to-peer mode) and transparent to the programmer. There are several scene graph
+examples written in Python.
 
 <p><ul>
 <li><a href="python/particle-shape.py">particle-shape</a>: A particle system
@@ -25,7 +38,7 @@ simulator.
 </ul>
 
 <p>When reading this section, you'll first want to understand the 
-<a href="#Overview">basic</a>
+<a href="#Design">basic</a>
 design of the Myriad distributed scene graph, including how various kinds
 of state (lighting, texturing, coordinate arrays) are
 <a href="#Drawing">inherited</a> to guide rendering where it actually takes
@@ -35,7 +48,8 @@ place: at the "drawable" nodes. It is also important to understand how to
 something working quickly.
 
 <p><ul>
-<li><a href="#Overview">Overview</a>
+<li><a href="#Using">Using the Myriad Scene Graph in Your Programs</a>
+<li><a href="#Design">Description of Myriad's Basic Design</a>
 <li><a href="#Drawing">Node Inheritance and Drawing</a>
 <li><a href="#NodeTypes">Node Types</a>
 <li><a href="#Constructing">Constructing a Node Tree</a>
@@ -47,16 +61,29 @@ something working quickly.
 <li><a href="#ThreadSafety">Notes on Thread Safety</a>
 </ul>
 
-<a name="Overview">
-<p><font size=+2>Overview</font>
+<a name="Using">
+<p><font size=+2>Using the Myriad Scene Graph in Your Programs</font>
 </a>
 
-<p>The arGraphicsDatabase object receives a stream of data records causing
-it to alter its internal contents. These data records are either in
+<p>The easiest way to use Myriad in your programs is via Syzygy's scene graph
+application framework (arDistSceneGraphFramework), which is supported in both
+C++ and Python. You will want direct access to the underlying arGraphicsDatabase, which
+is provided by the framework's getDatabase() method.
+
+<p>It is also possible to use arGraphicsDatabase objects directly in your programs,
+without an application framework.
+
+<a name="Design">
+<p><font size=+2>Using the Myriad Scene Graph in Your Programs</font>
+</a>
+
+<p>The arGraphicsDatabase object is the fundamental tool for working with the
+Myriad scene graph. It receives a stream of messages causing
+it to alter its internal contents. These messages are either in
 the form of arStructuredData or byte blocks which can be parsed into
-arStructuredData records. The alter() method receives arStructuredData,
-while the alterRaw() method receives byte blocks, parses them, and then
-runs the result through alter().
+arStructuredData. The alter() method receives arStructuredData,
+while the alterRaw() method receives byte blocks, parses them, and
+runs the resulting arStructuredData object through alter().
 
 <p>The arGraphicsDatabase object manages a tree of arGraphicsNode objects.
 The base class arGraphicsNode is subclassed to define the various
@@ -65,54 +92,118 @@ etc. These objects have three important methods, receiveData(), draw(),
 and dumpData().  Message streams sent to the arGraphicsDatabase via
 alter()/alterRaw() are either routed to the arGraphicsDatabase itself,
 like the message that requests a new node be created, or to a specific
-node.  For instance, a message might ask that a visibility node turn
-itself on or off. This is the use of the receiveData() method. The 
-draw() method renders graphics via OpenGL. The dumpData() method creates a
-record that reflects the node's state. This record can then be used to
-replicate that state in another linked database.
+node, via that node's receiveData() method.
+For instance, a message might ask that a visibility node turn itself on or off. The 
+draw() method renders graphics via OpenGL, and the dumpData() method serializes
+the node, creating a message that can be used to
+replicate that node in another arGraphicsDatabase.
 
-<p>Graphics state is synchronized across multiple machines by replicating
+<p>In Myriad cluster rendering, graphics state is synchronized across multiple 
+machines by replicating
 arGraphicsDatabase objects on each machine. An arGraphicsServer object
-exists on the master machine and an arGraphicsClient object exists on each
-render box (slave); all of these manage an arGraphicsDatabase.  When an 
+exists embedded in the application on the master machine and an arGraphicsClient object 
+exists embedded in an szgrender on each render box (slave); both arGraphicsServer
+and arGraphicsClient manage an arGraphicsDatabase.  When an 
 arGraphicsClient connects to the arGraphicsServer, the server serializes the
 state of its arGraphicsDatabase (using the dumpData() methods of its nodes)
 and sends it across the network to the newly-connected arGraphicsClient, 
 which then uses the alterRaw() method of its arGraphicsDatabase to recreate
 the remote state. Subsequently, all alter() calls to the arGraphicsDatabase 
 managed by the arGraphicsServer are mirrored over the network to those
-managed by the connected arGraphicsClients.
+managed by the connected arGraphicsClients. This message stream can be coordinated
+with graphics buffer swaps on the render computers to ensure perfect state
+synchronization at each draw.
 
 <a name="Drawing">
 <p><font size=+2>Node Inheritance and Drawing</font>
 </a>
 
+<p>Many operations, like drawing or intersection with a ray or bounding sphere, require traversing
+the arGraphicsDatabase's tree. Tree traversal is generally depth-first, with child nodes visited
+in the order they were added (though the permuteChildren(...) method of arGraphicsDatabase can
+change this). 
+
+<p>Tree traversal is made thread-safe with respect to node removal (from another
+thread as might occur when the scene graph powers a shared world in peer-to-peer mode) via a reference
+counting mechanism. The traversing process increments the reference count of nodes it uses (decrementing
+the reference count when it is through with them). The owning arGraphicsDatabase, upon
+receiving a deletion message, decrements the nodes' reference counts and removes them from its
+internal tree. It does not delete them. Instead, a node deletes itself once its reference count has fallen
+to 0.
+
 <p><img src="images/SceneGraphInherit.jpg" width=450 height=544>
 
-<p>Tree traversal, arGraphicsContext.
+<p>Many properties related to drawing, like the active texture, material, points set, and normals set,
+are inherited down the scene graph tree, from parent to child. As a tree traversal occurs, an arGraphicsContext object
+keeps track, at each visited node, of the ancestor nodes that hold the active properties, and, at an arDrawableNode,
+the active properties are used to actually draw a mesh. As an example, when the traversal passes an arMaterialNode
+(going down into the tree) the active material is changed to the arMaterialNode's. Similarly, as the traversal passes
+the arMaterialNode the other way (going back up the tree after visiting all nodes in the subtree), the active material
+reverts to its previous value. In this way, the graphical characteristics of a drawable node only depend on its
+ancestors, not on nodes to the left or the right in the scene graph. This localization is very important for
+guaranteeing predictable results when node trees are combined.
+
+<p>The following is a complete list of the properties used by the arDrawable node in drawing. If you are using the
+built-in shapes only, the blend, material, and texture properties are the only relevant ones.
+
+<p><ul>
+<li>texture (arTextureNode)
+<li>blend (arBlendNode)
+<li>material (arMaterialNode)
+<li>normal3 (arNormal3Node)
+<li>color4 (arColor4Node)
+<li>tex2 (arTex2Node)
+<li>index (arIndexNode)
+<li>points (arPointsNode)
+<li>graphics state (arGraphicsStateNode)
+</ul>
+
 
 <a name="NodeTypes">
 <p><font size=+2>Node Types</font>
 </a>
 
 <p><ul>
-<li>transform: The type name for an arTransformNode.
-<li>texture: The type name for an arTextureNode.
-<li>bounding sphere: The type name for an arBoundingSphereNode.
-<li>billboard: The type name for an arBillboardNode.
-<li>visibility: The type name for an arVisibilityNode.
-<li>blend: The type name for an arBlendNode.
-<li>light: The type name for an arlightNode.
-<li>material: The type name for an arMaterialNode.
-<li>normal3: The type name for an arNormal3Node.
-<li>color4: The type name for an arColor4Node.
-<li>tex2: The type name for an arTex2Node.
-<li>index: The type name for an arIndexNode.
-<li>points: The type name for an arPointsNode.
-<li>drawable: The type name for an arDrawableNode.
-<li>graphics state: The type name for an arGraphicsStateNode.
-<li>persp camera: The type name for an arPerspectiveCameraNode.
-<li>viewer: The type name for an arViewerNode.
+<li>transform: The type name for an arTransformNode. This node holds an OpenGL transform
+(an arMatrix4 object in Syzygy). If transform node T1 has transform node T2 as a child, which
+in turn has transform node T3 as a child, this is equivalent (in OpenGL) to:
+<pre>
+  glMultMatrixfv(T1.getTransform());
+  glMultMatrixfv(T2.getTransform());
+  glMultMatrixfv(T3.getTransform());
+</pre>
+<li>texture: The type name for an arTextureNode. This holds a reference to a texture object
+managed by the arGraphicsDatabase. Drawable nodes descending from it will use it
+when drawing their meshes.
+<li>bounding sphere: The type name for an arBoundingSphereNode. Contains an arBoundingSphere.
+Drawing uses this node for view frustum culling and picking uses this node for pick space
+culling. These processes assume that any geometry contained in the nodes descendants is 
+within the bounding sphere.
+<li>billboard: The type name for an arBillboardNode. Displays a text string.
+<li>visibility: The type name for an arVisibilityNode. Can turn traversal of the subtree of
+its descendants on or off.
+<li>blend: The type name for an arBlendNode. A little bit of a hack because of the way OpenGL
+handles blending. The node holds a floating point value between 0 and 1. If 1, blending is ignored.
+If less than one, the alpha component of colors is multiplied by the blend factor. When used
+skillfully, this can create nice transition effects. Remember, then using OpenGL blending,
+rendering order matters. Consequently, it may be necessary to reorder nodes in the tree
+(see permuteChildren(...)) to get the desired result.
+<li>light: The type name for an arlightNode. This contains an arLight, which describes an OpenGL 
+light.
+<li>material: The type name for an arMaterialNode. This contains an arMaterial, which describes
+an OpenGL material.
+<li>normal3: The type name for an arNormal3Node. This contains a list of 3D normals.
+<li>color4: The type name for an arColor4Node. This contains a list of RGBA colors (with 32 bit floating
+point components).
+<li>tex2: The type name for an arTex2Node. This contains a list of 2D texture coordinates.
+<li>index: The type name for an arIndexNode. This contains a list of integers. It is intended to
+<li>points: The type name for an arPointsNode. This contains a list of 3D points.
+<li>drawable: The type name for an arDrawableNode. It just stores a primitive type (like triangles, triangle strip,
+quads, quad strip, etc.) and a number of primitives to draw. All the other information needed for drawing
+is contained in the arGraphicsContext, which references state stored in the node's ancestors.
+<li>graphics state: The type name for an arGraphicsStateNode. Turn lighting, depth testing, etc. on and off.
+<li>persp camera: The type name for an arPerspectiveCameraNode. Stores a camera.
+<li>viewer: The type name for an arViewerNode. Stores a user's head position (a VR camera).
 </ul>
 
 <a name="Constructing">
@@ -198,8 +289,8 @@ parent's children). Must go through arDatabase to avoid deadlocks.
 
 <pre>
   void arDatabase::permuteChildren(arDatabaseNode* parent,
-                                   list<arDatabaseNode*>& children);
-  void arDatabaseNode::permuteChildren(list<arDatabaseNode*>& children);
+                                   list&lt;arDatabaseNode*&gt;& children);
+  void arDatabaseNode::permuteChildren(list&lt;arDatabaseNode*&gt;& children);
 </pre>
 
 <p>Inspecting and traversing the node tree.
@@ -287,16 +378,7 @@ OpenGL specification.
 
 <p><img src="images/BuiltInShapes.jpg" width=500 height=396">
 
-<p>If you are writing your own custom code instead of using the
-arDistSceneGraphFramework or arMasterSlaveFramework objects
-(all the demos included with this distribution use these frameworks), first 
-call dgSetGraphicsDatabase() before issuing any other API calls.
-The framework objects hide this detail.
-
-<pre>
-  arGraphicsDatabase graphicsDatabase;
-  dgSetGraphicsDatabase(&graphicsDatabase);
-</pre>
+<p>Mention attachMesh. Mention setTransform.
 
 <p>arSphereMesh: Sphere of radius 1 centered at (0,0,0).
 
@@ -316,7 +398,7 @@ The framework objects hide this detail.
 </pre>
 
 <p>arRectangleMesh: Square with sides of length 1 centered at (0,0,0). Normal
-in the positive y direction.
+in the positive y direction. Explain texture coordinates?
 
 <p>arTorusMesh: Torus in the x-y plane.
 
