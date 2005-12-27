@@ -14,49 +14,21 @@ compiled the <a href="GettingSoftware.html">szg library</a> and the Syzygy
 appropriate for your system.
 
 <p>This tutorial is complimentary to the <a href="SceneGraph.html">chapter</a>
-describing a (deprecated) earlier scene graph API for Syzygy. That one can
-still be used since it is built on the same framework described here.
+describing the C++ scene graph API.
+
+<p>There are several scene graph
+examples written in Python.
 
 <p><ul>
-<li><a href="#Background">Basic Background on Scene Graphs</a>
-<li><a href="#Database">Graphics Peers: Important Phleet Database Parameters</a>
-<li><a href="#Peer">Graphics Peers: Tutorial Set Up</a>
-<li><a href="#Nodes">Scene Graph: Node Types</a>
-<li><a href="#Objects">Loading Objects</a>
-<li><a href="#File">Saving and Reloading Your Work</a>
-<li><a href="#Framework">Displaying Multiple Syzygy Scene Graph Framework Applications</a>
-<li><a href="#Application">Creating an Application</a>
-<li><a href="#Lighting">Scene Graph: Using Lights</a>
-<li><a href="#Points">Fundamental Geometry Manipulations</a>
+<li><a href="python/particle-shape.py">particle-shape</a>: A particle system
+using some of the built-in shapes.
+<li><a href="python/lorenz.py">lorenz</a>: A visualization of the lorenz attractor.
+<li><a href="python/cosmos.py">cosmos</a>: Translation of the cosmos C++ demo into
+Python.
+<li><a href="python/simpleviz.py">simpleviz</a>: Shows how to manipulate a collection
+of objects using a grasping tool. Also demonstrates a custom standalone mode
+simulator.
 </ul>
-
-<a name="Background">
-<p><font size=+2>Basic Background on Scene Graphs</font>
-</a>
-
-<p>A Syzygy scene graph is a tree of nodes, each of which roughly corresponds
-to an OpenGL primitive. A scene graph adds semantics and organization to plain
-OpenGL. Nodes have names, allowing an external program to operate on the
-graph by attaching to nodes with well-known names and manipulating them. The
-hierarchical nature of scene graphs allows operations like saving either the
-whole graph or a subtree, loading scene graphs and attaching them to nodes
-in an existing scene graph, or removing whole graph subtrees.
-
-<p>When drawing a Syzygy scene graph, the code traverses the tree in a depth
-first search, changing the OpenGL state as it hits nodes. When all children
-of a given node have been drawn, the state change it caused is undone. For
-instance, when a transform node is hit, it places a transform matrix on the
-OpenGL stack. Once all the transform node's children are hit, the transform
-matrix is removed. Similarly, a material node changes the default color with
-which triangles are rendered, with the scene graph remembering the previous
-default color. Once all the material node's chidlren have rendered, the
-default color switches back to what it was before the material node was
-traversed.
-
-<p>Most nodes only change the scene graph's state when traversed (or "drawn").
-These include points, color, and index nodes, which correspond to state
-variables in OpenGL vertex arrays. The drawable node is the only one which
-actually produces geometry.
 
 <a name="Database">
 <p><font size=+2>Graphics Peers: Important Phleet Database Parameters</font>
@@ -78,235 +50,6 @@ peer. Files will be automatically loaded and saved to this directory.
 <pre>
   my_computer_name SZG_PEER path /the/peer/files/go/here
 </pre>
-
-<a name="Peer">
-<p><font size=+2>Graphics Peers: Tutorial Set Up</font>
-</a>
-
-<p>This tutorial shows how to use the arGraphicsDatabase and its arGraphicsPeer
-subclass from the Python prompt. If you want to be able to display your
-work, you will want to use the arGraphicsPeer, so we focus on that.
-
-<p>First, note that you must be running in Phleet mode, as explained in the
-<a href="PhleetIntro.html">introductory</a> chapter of Syzygy's distributed
-OS. Next, for connection brokering to work, you will have to be dlogin'ed
-as the same Phleet user in each machine in your test environment.
-
-<p>You will want to use the Python module rp.py (rp = reality peer). This
-will provide you will some functionality needed to manipulate the system, and
-it should be on your PYTHONPATH. It imports the Syzygy python bindings.
-Start a Python prompt and then type:
-
-<pre>
-  from rp import *
-  peer.setName("peer")
-</pre>
-
-The name "peer" must be unique in the Phleet across all graphics peers owned
-by the Phleet user. Next,
-
-<pre>
-  peer.init({"peer_name"])
-</pre>
-
-The "peer_name" is simply a descriptive term used for this peer. If this
-succeeds, you will see a "1" returned. Now type "dps()". You should see, among
-other lines, something like:
-
-<pre>
-  smoke/peer_name/16
-</pre>
-
-Finally, you must do the following at the Python prompt:
-
-<pre>
-  peer.start()
-</pre>
-
-If it succeeds, it will return a "1".
-
-<p>Now, you will start up a graphical "workspace" which can host a number of
-graphics peers. This workspace can be run on any computer in your Phleet, but
-beware that you must be dlogin'ed as the same Phleet user to connect. The
-"workspace" must be given a name via the command line that is different from
-any other workspace name used by that Phleet user.
-
-<pre>
-  szg-rp work1
-</pre>
-
-If all goes well, a graphics window will appear. You now need to create a peer
-within your workspace and connect the two peers together. At the Python
-prompt,
-
-<pre>
-  m = rpManager()
-  work1 = m.getWorkspace("work1")
-  handle = work1.newPeer("target")
-</pre>
-
-Please note that the name ("target") you give to the new peer must be unique
-across all the peers you create as a particular Phleet user. If it isn't, the
-final command will fail and you will see the following error message:
-
-<pre>
-  workspace error: peer failed to be created.
-</pre>
-
-The variable "handle" is a remote manipulation interface for the created
-peer. It is of Python type rpPeer and has several methods that will be useful.
-
-<pre>
-  translate(x, y, z)
-
-    Translates the peer within the workspace. This is useful for getting
-    your content viewable by the workspace camera. This camera has the
-    following characteristics:
-
-    near clip plane, x extent = (-0.1, 0.1)
-    near clip plane, y extent = (-0.1, 0.1)
-    near/far clip plane distance = (0.2, 200)
-    camera position = (0,5,20)
-    pointed at = (0,5,0)
-    up direction = (0,1,0)
-
-  setComment(comment)
-
-    Stores comment text in the remote peer.
-
-  getComment()
-
-    Retrieves comment text from the remote peer.
-
-  reset()
-
-    Clears the remote peer.
-</pre>
-
-Go ahead and put the display peer (in the remote workspace) in an easily
-viewable spot. You will use the remote access handle.
-
-<pre>
-  handle.translate(0,5,-5)
-</pre>
-
-Finally, you will want to connect your peers, local and remote together, and
-set data flowing between them. Use the local peer for this.
-
-<pre>
-  peer.connectToPeer("target")
-</pre>
-
-This returns the connection ID on success and -1 otherwise. Since this is
-your first connection from "peer", you should see "0". By default, no
-information flows on the connection between peers. Lets make the information
-flow both ways.
-
-<pre>
-  peer.sending("target",1)
-  peer.receiving("target",1)
-</pre>
-
-Upon success with each command, you should see a "1". You have just ensured
-that updates to your local peer will be copied to the remote peer in the
-workspace and vice versa. Please note that it is
-possible to turn off sending or receiving of scene graph updates at any time
-as above (passing "0" will turn it off). Please note that the connection is
-referenced by the connected-to peer's name (in this case "target").
-
-<p>The arGraphicsPeer has two other methods of particular importance. These
-are useful when one of the peers that connect already has geometry.
-
-<pre>
-  arGraphicsPeer::pullSerial(remoteName, receive)
-
-    Get the the description of the connected remote peer and put it into
-    the local peer. If the receive flag is "1", continue receiving updates
-    on the connection.
-
-  arGraphicsPeer::pushSerial(remoteName, send)
-
-    Push our own description to the connected remote peer. If the send
-    flag is "1", continue sending updates.
-</pre> 
-
-<p>Now you can manipulate the scene graph contained in "peer" from the 
-Python prompt and have the results appear in your workspace. Please note
-that this section has just scratched the surface of all the fun things you
-can do with reality peers.
-
-<p><ul>
-<li>You can have multiple peers embedded in each workspace. A common workspace
-displayed on a projector might show the work of several users simultaneously.
-<li>Instead of connecting to a peer in a workspace, you can connect to a
-peer at someone else's Python command prompt. In this way, you can collaborate
-it building an object.
-<li>Two users can connect to the same peer in a workspace, collaborating that 
-way.
-</ul>
-
-<a name="Nodes">
-<p><font size=+2>Scene Graph: Node Types</font>
-</a>
-
-<p>This tutorial will teach you how to use the following node types.
-These are all you need to construct a wide variety of visualizations.
-<ol>
-<li>light: A light.
-<li>material: A material, with defaults as defined in the OpenGL
-standard.
-<li>texture: A texture image, as loaded from either .ppm or .jpg formats.
-<li>transform: A 4x4 matrix.
-<li>points: An array of coordinates in 3-space.
-<li>index: An array holding element indices. Useful for making geometry, like
-lines and triangles out of points.
-<li>color4: An array holding colors.
-<li>tex2: Texture coordinates.
-<li>drawable: The actual drawable content, point sets, lines, triangles, etc.
-<li>billboard: A simple means of displaying text.
-</ol>
-
-<a name="Objects">
-<p><font size=+2>Scene Graph: Loading Objects</font>
-</a>
-
-<p>Syzygy has a number of built-in shapes and the ability to load meshes in
-the .obj and .3ds file formats. You can use these facilities to create a 
-world by positioning, changing the colors, and changing the textures of
-pre-made objects. 
-
-<p>We assume that you have completed the basic section on 
-<a href="#Peer">peers</a>, are working at the Python prompt, and that
-"peer" and "handle" are as in that section. You will also need to have some
-Phleet database variables set, as outlined <a href="#Database">here</a>.
-
-<p>First, we will add some lights
-to the scene, using a utility function from the "rp" module.
-
-<pre>
-  attachLights(peer)
-</pre>
-
-<p>THE FOLLOWING IS VERY IMPORTANT. For the Syzygy built-in objects to work,
-you need to tell them the current graphics database (i.e. your arGraphicsPeer
-object).
-
-<pre>
-  dgSetGraphicsDatabase(peer)
-</pre>
-
-If you do not issue this command before using one of the built-in objects,
-you will see an error message like:
-
-<pre>
-  syzygy error: dgSetGraphicsDatabase not yet called.
-</pre>
-
-Now, add a sphere to the scene. This will start out simple, but gradually get
-more complex, eventually encompassing ways to position the sphere and add
-texture and color to it. Here, we make a sphere with 20 longitudinal and
-latitudanal divisions (and 20x20x2=800 triangles). The sphere has radius 1
-by default.
 
 <pre>
 >>> from PySZG import *
@@ -439,147 +182,160 @@ m.set(mat)
 <p><img src="images/RedAl.jpg" width=400 height=425>
 
 <pre>
-  s = arSphereMesh(20)
+from PySZG import *
+import time
+c = arPerspectiveCamera()
+c.setSides(-0.1, 0.1, -0.1, 0.1)
+c.setNearFar(0.1, 100)
+c.setPosition(0, 0, 5)
+c.setTarget(0, 0, 0)
+c.setUp(0, 1, 0)
+g = arGraphicsDatabase()
+r = g.getRoot()
+state = r.new("graphics state")
+state.set(("point_size",20.0))
+p = state.new("points")
+clr = p.new("color4")
+d = clr.new("drawable")
+p.set([arVector3(0,0,0), 
+       arVector3(1,0,0), 
+       arVector3(1,1,0), 
+       arVector3(0,1,0)])
+clr.set([arVector4(1,0,0,1), 
+	arVector4(0,1,0,1), 
+	arVector4(0,0,1,1), 
+	arVector4(1,1,1,1)])
+d.set(("points", 4))
+e = ezview()
+e.draw(g,c)
+time.sleep(5)
 </pre>
 
-It will not appear yet in the scene graph. You have to attach it. The first
-parameter is the sphere's unique name. The second parameter is the name of the
-node we wish to attach it to.
+<img src="images/PointsWindow.jpg">
 
 <pre>
-  s.attachMesh("sphere1","root")
+from PySZG import *
+import time
+c = arPerspectiveCamera()
+c.setSides(-0.1, 0.1, -0.1, 0.1)
+c.setNearFar(0.1, 100)
+c.setPosition(0, 0, 5)
+c.setTarget(0, 0, 0)
+c.setUp(0, 1, 0)
+g = arGraphicsDatabase()
+r = g.getRoot()
+state = r.new("graphics state")
+state.set(("line_width",10.0))
+p = state.new("points")
+clr = p.new("color4")
+i = clr.new("index")
+d = i.new("drawable")
+p.set([arVector3(0,0,0), 
+       arVector3(1,0,0), 
+       arVector3(1,1,0), 
+       arVector3(0,1,0)])
+clr.set([arVector4(1,0,0,1),
+        arVector4(1,0,0,1), 
+	arVector4(0,1,0,1),
+        arVector4(0,1,0,1),
+	arVector4(0,0,1,1),
+        arVector4(0,0,1,1), 
+	arVector4(1,1,1,1),
+        arVector4(1,1,1,1),
+        arVector4(1,1,0,1),
+        arVector4(1,1,0,1),
+        arVector4(1,1,0,1),
+        arVector4(1,1,0,1)])
+i.set([0,1, 1,2, 2,3, 3,0, 0,2, 1,3])
+d.set(("lines", 6))
+e = ezview()
+e.draw(g,c)
+time.sleep(5)
 </pre>
 
-You will see a small white sphere, shaded by the lighting, in the center of
-your screen. Unfortunately, we cannot do much with it. It cannot be moved and
-its color cannot be changed. To do these things, we will have to start over.
-To do this, we have to erase the sphere. This is done by getting the ID of the
-sphere's top node and issuing the eraseNode method of arGraphicsPeer. To find
-the node ID, try:
+<img src="images/LinesWindow.jpg">
 
 <pre>
-  peer.printStructure()
+from PySZG import *
+import time
+c = arPerspectiveCamera()
+c.setSides(-0.1, 0.1, -0.1, 0.1)
+c.setNearFar(0.1, 100)
+c.setPosition(0, 0, 5)
+c.setTarget(0, 0, 0)
+c.setUp(0, 1, 0)
+g = arGraphicsDatabase()
+r = g.getRoot()
+state = r.new("graphics state")
+state.set(("lighting", "false"))
+m = state.new("material")
+mat = arMaterial()
+mat.diffuse = arVector3(0,1,0)
+m.set(mat)
+p = m.new("points")
+i = p.new("index")
+n = i.new("normal3")
+d = n.new("drawable")
+p.set([arVector3(0,0,0), 
+       arVector3(3,0,0), 
+       arVector3(3,3,0), 
+       arVector3(0,3,0)])
+n.set([arVector3(0,0,1),
+       arVector3(0,0,1),
+       arVector3(0,0,1)])
+i.set([0,1,3])
+d.set(("triangles", 1))
+e = ezview()
+e.draw(g,c)
+time.sleep(5)
 </pre>
 
-You see:
+<img src="images/TriangleWindow.jpg">
 
 <pre>
-(0, "root", "root")
- (1, "l0", "light")
- (2, "l1", "light")
- (3, "l2", "light")
- (4, "sphere1 points", "points")
-  (5, "sphere1 indices", "index")
-   (6, "sphere1 normal3", "normal3")
-    (7, "sphere1 tex2", "tex2")
-     (8, "sphere1 drawable", "drawable")
+from PySZG import *
+import time
+c = arPerspectiveCamera()
+c.setSides(-0.1, 0.1, -0.1, 0.1)
+c.setNearFar(0.1, 100)
+c.setPosition(0, 0, 5)
+c.setTarget(0, 0, 0)
+c.setUp(0, 1, 0)
+g = arGraphicsDatabase()
+r = g.getRoot()
+state = r.new("graphics state")
+state.set(("lighting", "false"))
+m = state.new("material")
+mat = arMaterial()
+mat.diffuse = arVector3(0.8,1,0.8)
+m.set(mat)
+texture = m.new("texture")
+texture.set("WallTexture2.ppm")
+p = texture.new("points")
+i = p.new("index")
+n = i.new("normal3")
+t2 = n.new("tex2")
+d = t2.new("drawable")
+p.set([arVector3(0,0,0), 
+       arVector3(3,0,0), 
+       arVector3(3,3,0), 
+       arVector3(0,3,0)])
+n.set([arVector3(0,0,1),
+       arVector3(0,0,1),
+       arVector3(0,0,1),
+       arVector3(0,0,1)])
+t2.set([arVector2(0,0),
+        arVector2(1,0),
+        arVector2(1,1),
+        arVector2(0,1)])
+i.set([0,1,2,3])
+d.set(("quads", 1))
+e = ezview()
+e.draw(g,c)
+time.sleep(5)
 </pre>
 
-And you want to delete all the nodes below "sphere1 points" (with ID 4) like
-so:
-
-<pre>
-  peer.eraseNode(4)
-</pre>
-
-We want to be able to control the position and color of the sphere. To do
-this, we create a transform node (attached to the scene graph root) and
-a material node (attached to the transform node). Note how, in the factory
-function, the parent node comes first, followed by the node type, and then
-the node name. The sphere can be attached to the material node.
-
-<pre>
-  t1 = peer.new(peer.getRoot(), "transform", "transform1")
-  m1 = peer.new(t1, "material", "material1")
-</pre>
-
-Perhaps we want a red sphere.
-
-<pre>
-  mater = m1.getMaterial()
-  mater.diffuse = arVector3(1,0,0)
-  m1.setMaterial(mater)
-</pre>
-
-Attach the sphere.
-
-</pre>
-  s.attachMesh("sphere1","material1")
-</pre>
-
-You can translate the sphere to coordinates (0,5,0) by:
-
-<pre>
-  t1.setTransform(ar_translationMatrix(0,5,0))
-</pre>
-
-You can translate and scale the sphere by:
-
-<pre>
-  t1.setTransform(ar_translationMatrix(0,-5,0)*ar_scaleMatrix(2,2,2))
-</pre>
-
-You can change the sphere color to yellow by:
-
-<pre>
-  mater.diffuse = arVector3(1,1,0)
-  m1.setMaterial(mater)
-</pre>
-
-Instead, we could try a textured cube.
-
-<pre>
-  t2 = peer.new(peer.getRoot(), "transform", "transform2")
-  tex = peer.new(t2, "texture", "texture2")
-  tex.setFileName("wood.ppm")
-</pre>
-
-Attach the cube:
-
-<pre>
-  cube = arCubeMesh()
-  cube.attachMesh("cube2","texture2")
-</pre>
-
-All texture files must live in the directory list given by the Phleet
-parameter SZG_RENDER/texture_path. They must be either .ppm or .jpg in format
-and must be square and have dimension a power of 2. You can turn the cube image
-into a background by making the cube very large:
-
-<pre>
-  t2.setTransform(ar_scaleMatrix(100,100,100))
-</pre>
-
-Now, we will learn how to attach and edit models in .obj format. You are 
-assumed to have unpacked the OBJ.tar distribution of model data to a directory
-on your system, say /usr/local/OBJ. You can certainly put the models somewhere
-else, but you will need to change the examples below accordingly.
-
-<pre>
-  al = arOBJ()
-  t3 = peer.new(peer.getRoot(), "transform", "transform3")
-  al.readOBJ("al.obj","/usr/local/OBJ")
-</pre>
-
-If the file is successfully read, readOBJ will return "1".
-
-<pre>
-  al.attachMesh("al","transform3")
-</pre>
-
-A little man should now appear in your scene. You can edit the figure's colors
-like so:
-
-<pre>
-  mal = peer.find("al.default.colors3")
-  mater = mal.getMaterial()
-  mater.diffuse = arVector3(1,1,0)
-  mal.setMaterial(mater)
-</pre>
-
-You can change other colors in the model as well. Their nodes are given by the
-names: "al.default.colors1", "al.default.colors2", "al.default.colors3",
-and "al.default.colors4".
+<img src="images/TexturedQuadWindow.jpg">
 
 <a name="File">
 <p><font size=+2>Scene Graph: Saving and Reloading Your Work</font>
@@ -604,19 +360,7 @@ and exit from the reality peer workspace that was displaying your work.
 <p>You will now get back to the point where you were before. Restart the
 workspace, as before ("szg-rp work1"). Enter a new Python prompt.
 
-<pre>
-  from rp import *
-  m = rpManager()
-  work1 = m.getWorkspace("work1")
-  handle = work1.newPeer("target")
-  peer = feedbackPeer("peer","target")
-</pre>
-
-<p>The "feedbackPeer" command makes a new peer named "peer" which connects
-to a peer named "target" (which exists in the workspace), downloads the
-currently held scene graph information, and turns on both sending and receiving
-of future scene graph updates. If the command succeeds, it will output "1".
-To load your previously saved scene:
+<p>To load your previously saved scene:
 
 <pre>
   peer.readDatabase("test-al.szg")
@@ -625,348 +369,6 @@ To load your previously saved scene:
 Again, if this suceeds, it will output "1". Note that this does not look
 exactly the same as it did before. The difference is the translation of the
 peer "target" within the workspace "work1". To restore:
-
-<pre>
-  handle.translate(0,5,-5)
-</pre>
-
-<a name="Application">
-<p><font size=+2>Creating an Application</font>
-</a>
-
-<p>You can now retrieve nodes from the created scene graph and manipulate them
-individually. To recall the structure of the scene graph, use the
-printStructure() method of arGraphicsPeer. Note that you can control the
-depth of the tree that gets printed by requesting that the graph be cut off
-after a certain depth.
-
-<pre>
-  peer.printStructure()
-  peer.printStructure(1)
-  peer.printStructure(2)
-</pre>
-
-You can get various nodes by asking for them by name.
-
-<pre>
-  t1 = peer.find("transform1")
-  t2 = peer.find("transform2")
-  t3 = peer.find("transform3")
-</pre>
-
-You can now, for instance, rotate the little man by changing his matrix.
-Rotation matrices can be constructued using ar_rotationMatrix, with the
-rotation axis being either 'x', 'y', or 'z' and the angle being given in
-radians. If you want to specify the angle in degrees, you can use the
-ar_convertToRad utility function, as below.
-
-<pre>
-  t3.setTransform(ar_rotationMatrix('y',ar_convertToRad(60)))
-</pre>
-
-You can also change colors and textures.
-
-<pre>
-  m1 = peer.find("material1")
-  mater = m1.getMaterial()
-  mater.diffuse = arVector3(0,0,1)
-  m1.setMaterial(mater)
-  tex = peer.find("texture2")
-  tex.setFileName("Books.jpg")
-</pre>
-
-Assuming you have a Books.jpg file in your SZG_RENDER/texture_path, the 
-background (which is really just a huge cube face) will show that image.
-
-<p>This all shows a way to develop a Syzygy scene graph application, but
-doing so interactively and with maximum flexibility.
-
-<p><ul>
-<li>Make a base scene, which will be animated by moving objects, changing
-colors, and changing textures. This scene can be constructed by stages, saving
-it after each session, and reloading it to begin work again.
-<li>The actual scene graph application starts by loading the scene file.
-<li>It then gets the nodes it will manipulate via the "find" method, as above.
-<li>The application manipulates the nodes. It could move objects around by
-changing the transforms contained in transform nodes.
-</ul>
-
-Let's explore the possibilities a little bit. First of all, the workspace
-saves the scene graph independently of the peer at the Python prompt.
-Consequently, we can quit the Python prompt, leave the workspace running
-(containing the peer "target"), and run the following script:
-
-<pre>
-from rp import *
-import time
-
-peer = feedbackPeer("peer","target")
-t1 = peer.find("transform1")
-t2 = peer.find("transform2")
-t3 = peer.find("transform3")
-times = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
-for t in times:
-        t1.setTransform(ar_translationMatrix(-7,t/4.0,0))
-        t2.setTransform(ar_translationMatrix(-1,t/4.0,0)*ar_scaleMatrix(100,100,100))
-        t3.setTransform(ar_translationMatrix(2,t/4.0,0))
-        time.sleep(1)
-</pre>
-
-In this case, when the object "peer" is created, it automatically downloads
-the peer "target" and shares its changes with "target". Different scripts
-can modify the displaying peer simultaneously. Try running the
-next one listed while running the first. Remember that the workspace 
-containing target still needs to be up. 
-
-<pre>
-from rp import *
-import time
-
-peer = feedbackPeer("peer1","target")
-m1 = peer.find("material1")
-times = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
-mater = m1.getMaterial()
-for t in times:
-        mater.diffuse = arVector3(t/20.0,1,1)
-        m1.setMaterial(mater)
-        time.sleep(0.1)
-</pre>
-
-IMPORTANT NOTE: Only one peer with a given name
-can exist in the system at a given time. Each of these scripts embed a peer
-with a particular name. Consequently, you cannot run more than one instance
-of each at once in the Phleet. As an exercise, you could modify each to take
-a peer name as a command line argument, then the user, by giving different
-peer names, could run multiple instances of the same script at once.
-
-<p>We now try to get a little more sophisticated. The following program
-checks to see if there is a workspace "work1". If not, it goes ahead and
-starts one on the computer given by the first command line arg to the script.
-Once the workspace exists, the program checks to see if a peer named
-"target" exists. If so, it clears the peer. If not, it creates it.
-Next, it loads our scene into the peer "target". For this script to operate,
-szgd must be running on the computer that will run the workspace.
-
-<pre>
-from rp import *
-import sys
-
-if len(sys.argv) < 2:
-        print('Must give computer name for workspace')
-        sys.exit()
-m = rpManager()
-m.refresh()
-work1 = m.getWorkspace('work1')
-if work1 == None:
-        work1 = m.newWorkspace(sys.argv[1],'work1')
-        if work1 == None:
-                print('Failed to make workspace.')
-                sys.exit()
-handle = work1.getPeer('target')
-if handle == None:
-        handle = work1.newPeer('target')
-        if handle == None:
-                print('Failed to create peer.')
-                sys.exit()
-handle.reset()
-peer = feedbackPeer('peer','target')
-peer.readDatabase('test-al.szg')
-handle.translate(0,5,-5)
-</pre>
-
-<p>Again, only one of these scripts will run at once, since each embeds
-an arGraphicsPeer with name 'peer', and there can be only one such active
-at a give time in the Phleet.
-
-<p>Finally, we show how to load the scene into a Syzygy distributed scene
-graph application. Note that in the below code, we assume that your
-test scene was saved in /usr/local/Peer. Change this as appropriate for
-your installation (this corresponds to SZG_PEER/path).
-
-<pre>
-from PySZG import *
-import time
-
-f = arDistSceneGraphFramework()
-if f.init(["test-app"]) == 0:
-        sys.exit()
-g = f.getDatabase()
-n = g.find(f.getNavNodeName())
-g.attach(n,"test-al.szg","/usr/local/Peer")
-if f.start() == 0:
-        sys.exit()
-while 1:
-        f.navUpdate()
-        f.loadNavMatrix()
-        f.setViewer()
-        f.setPlayer()
-        time.sleep(0.017)
-</pre>
-
-<a name="Framework">
-<p><font size=+2>Displaying Multiple Syzygy Scene Graph Framework Applications
-</font>
-</a>
-
-<p>This section will show you how to display multiple Syzygy scene graph
-framework applications (like cosmos, cubes, timetunnel, danceparty, parade,
-etc.) in a single "workspace". Go ahead and kill any workspaces you have
-been working with so far (either via dkill or typing ESC in their windows).
-Next, make sure szgd is running on the computer upon which you will run
-your workspace. We will suppose the computer's name is "computer1" so
-you will need to adjust the Python code listed below accordingly. From the
-Python prompt:
-
-<pre>
-  from rp import *
-  m = rpManager()
-  work1 = m.newWorkspace("computer1","work1")
-  handle1 = work1.newPeer("target1")
-  handle2 = work2.newPeer("target2")
-</pre>
-
-<p>Two peers (target1 and target2) now exist in the workspace. You can now
-display two copies of any Syzygy distributed scene graph framework application
-in the workspace. For simplicity, we choose to display two copies of
-cosmos. Note the special command line args passed to cosmos.
-
-<pre>
-  cosmos -dsg peer=cosmos1 -dsg target=target1 -dsg mode=feedback
-  cosmos -dsg peer=cosmos2 -dsg target=target2 -dsg mode=feedback
-</pre>
-
-You can move the cosmos displays around in the workspace by:
-
-<pre>
-  handle1.translate(-5,5,-5)
-  handle2.translate(5,5,-5)
-</pre>
-
-Now, we explain the command line args. Each one is prefaced by "-dsg". The
-"peer" arg gives the name of the arGraphicsPeer to be embedded in the
-application. The "target" arg gives the name of the arGraphicsPeer to which
-it will connect. The "mode" arg gives the nature of that connection, with
-"feedback" implying that changes will flow both ways. 
-
-<a name="Lighting">
-<p><font size=+2>Scene Graph: Using Lights</font>
-</a>
-
-<p>You might want to have complete control over the lights in your scene. 
-The scene graph light nodes implement the full OpenGL lighting model. 
-
-<a name="Points">
-<p><font size=+2>Fundamental Geometry Manipulations</font>
-</a>
-
-<p>We can now actually display some graphics. Recall that we used the
-translate method of "handle" to position our remote peer within the
-workspace so that (0,0,0) will be in the center of the display, with the
-XY plane parallel to the screen.
-
-<p>First, we will experiment with displaying some points. To display points,
-we need three nodes: a points node (containing the positions), a colors
-node containing different colors, and a drawable node telling us to draw
-points. The graphics database (or graphics peer in our case) creates the
-nodes. The factory function is passed the node's parent, its type, and finally
-its name. The first node attaches to the graph's root. Since geometry and
-color arrays are inherited state, they must be ancestors of the drawable node,
-which needs them to make its points. Notice especially how each node is
-a child of the one before it.
-
-<pre>
-  rt = peer.getRoot()
-  p = peer.new(rt, "points", "points_node")
-  c = peer.new(p, "color4", "colors_node")
-  d = peer.new(c, "drawable", "drawable_node")
-</pre>
-
-Look at the scene graph structure by typing:
-
-<pre>
-  peer.printStructure()
-</pre>
-
-You'll see something like so:
-
-<pre>
-  Database structure:
-    (0, "root", "root")
-     (1, "points_node", "points")
-      (2, "colors_node", "color4")
-       (3, "drawable_node", "drawable")
-
-</pre>
-
-Now, you can actually get some points to display.
-
-<pre>
-  p.setPoints(4, [0,0,0, 1,0,0, 1,1,0, 0,1,0])
-  c.setColor4(4, [1,1,1,1, 1,1,1,1, 1,1,1,1, 1,1,1,1])
-  d.setDrawable(DG_POINTS, 4)
-</pre>
-
-The points node now contains the geometry for 4 points, listed one after
-another. The color4 node now contains 4 color values (RGBA), listed one
-after another. The drawable node asks that 4 points be drawn. These coordinates
-for these points are taken, one after another, from the array stored in the
-points node, and their colors are taken, in concert, one after another from
-the the colors array stored in the color4 node. This is exactly the way
-OpenGL vertex arrays work.
-
-<p>We can even get fancy and change a only a particular point's coordinate.
-
-<pre>
-  p.setPoints(1, [0,0.5,0], [0])
-</pre>
-
-Here, the first parameter gives the number of points to change, the second
-the coordinates, and the third the point IDs. We changed the first point in
-the array. The same trick can be applied to color.
-
-<pre>
-  c.setColor4(1, [0,1,0,1], [1])
-</pre>
-
-Perhaps you would like to also display some lines between those points. We want
-to share the points node, but not the color4 node.
-
-<pre>
-  cl = peer.new(p, "color4", "line_color")
-  il = peer.new(cl, "index", "line_index")
-  dl = peer.new(il, "drawable", "lines")
-</pre>
-
-You can print out the structure now and see your new nodes. There are two
-branches to the tree, forking at the points node. Note how the children
-of a node all are idented one from their parent.
-
-<pre>
-  (0, "root", "root")
-   (1, "points_node", "points")
-    (2, "colors_node", "color4")
-     (3, "drawable_node", "drawable")
-    (4, "line_color", "color4")
-     (5, "line_index", "index")
-      (6, "lines", "drawable")
-</pre>
-
-You can now define some lines. 2D and 3D drawables use an index node to
-store the geometry they will use. Each such drawable has a stride, namely a
-number of indices needed to define the next primitive. For a line set
-(DG_LINES), this stride is 2. Each pair of indices gives the IDs of the points
-in the line, one after another. The colors in the color4 node apply to
-the points in the lines, one after another. Consequently, there are 12
-colors (12 points in 6 independent lines) and 48 floats in the array (4 floats
-per color).
-
-<pre>
-  cl.setColor4(12, [1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1, 1,0,0,1])
-  il.setIndices(12, [0,1, 1,2, 2,3, 3,0, 0,2, 1,3])
-  dl.setDrawable(DG_LINES, 6)
-</pre>
-
-The four points now define a box, with an "x" going through the middle.
 
 <hr>
 </body>
