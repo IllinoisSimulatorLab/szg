@@ -30,8 +30,24 @@ of objects using a grasping tool. Also demonstrates a custom standalone mode
 simulator.
 </ul>
 
+<p><ul>
+<li><a href="#Database">Myriad Scene Graph: Important Phleet Database Parameters</a>
+<li><a href="#WhiteSphere">A White Sphere</a>
+<li><a href="#RedSphere">A Red Sphere</a>
+<li><a href="#TranslatingSphere">Translating the Sphere</a>
+<li><a href="#ScalingSphere">Making the Sphere Bigger</a>
+<li><a href="#Texture">Using Textures for Objects</a>
+<li><a href="#DisplayOBJ">Displaying .obj Files</a>
+<li><a href="#EditOBJ">Editing .obj Files</a>
+<li><a href="#Points">Geometry: Points</a>
+<li><a href="#Lines">Geometry: Lines</a>
+<li><a href="#Triangle">Geometry: Triangle</a>
+<li><a href="#TexturedSquare">Geometry: Textured Square</a>
+<li><a href="#Saving">Scene Graph: Saving and Reloading Your Work</a>
+</ul>
+
 <a name="Database">
-<p><font size=+2>Graphics Peers: Important Phleet Database Parameters</font>
+<p><font size=+2>Myriad Scene Graph: Important Phleet Database Parameters</font>
 </a>
 
 <p>The graphics database requires a few Phleet parameters to be set for 
@@ -50,65 +66,184 @@ peer. Files will be automatically loaded and saved to this directory.
 <pre>
   my_computer_name SZG_PEER path /the/peer/files/go/here
 </pre>
-
-<pre>
->>> from PySZG import *
->>> e = ezview()
->>> c = arPerspectiveCamera()
->>> c.setSides(-0.1,0.1,-0.1,0.1)
->>> c.setNearFar(0.1,100) 
->>> c.setPosition(0,5,0)
->>> c.setTarget(0,0,0)
->>> c.setUp(0,1,0)
->>> c.setPosition(0,0,5)
->>> g = arGraphicsDatabase()
->>> r = g.getRoot()
->>> light = arLight()
->>> light.lightID = 0
->>> light.position = arVector4(0,0,1,0)
->>> light.diffuse = arVector3(1,1,1)
->>> s = arSphereMesh(20)
->>> m = r.new("material")
->>> s.attachMesh(m)
->>> e.draw(g,c)
->>> l = r.new("light")
->>> l.setLight(light)
->>> e.draw(g,c)
-</pre>
-
+<a name="WhiteSphere">
+<p><font size=+2>A White Sphere</font>
+</a>
 <p><img src="images/WhiteSphereCentered.jpg" width=400 height=421>
-
 <pre>
->>> mat = m.get()      
->>> mat.diffuse = arVector3(1,0,0)
->>> m.set(mat)
->>> e.draw(g,c)
+from PySZG import *
+import time
+# We need to create a camera.
+c = arPerspectiveCamera()
+# The bounds of the near viewing frustum. 
+# (-x,+x,-y,+y)
+c.setSides(-0.1,0.1,-0.1,0.1)
+# The near and far clipping planes. The ratio between
+# these should not be too large.
+c.setNearFar(0.1,100) 
+# The position of the camera in space.
+c.setPosition(0,5,0)
+# The place towards which the camera looks.
+c.setTarget(0,0,0)
+# The up direction for the camera.
+c.setUp(0,1,0)
+# Our scene graph is stored in an arGraphicsDatabase.
+g = arGraphicsDatabase()
+# We will attach new nodes to the database's root.
+r = g.getRoot()
+# We need a light.
+light = arLight()
+# Each light must have a unique ID, 0-7.
+light.lightID = 0
+# If the last coordinate is 0, then this is a directional light.
+light.position = arVector4(0,0,1,0)
+# The light's color.
+light.diffuse = arVector3(1,1,1)
+# This light must be stored in a scene graph node.
+# The node is a child of the root (see above).
+l = r.new("light")
+l.setLight(light)
+# We create a material node (stores a color).
+# Since we don't specify a color, this is just the default (white).
+m = r.new("material")
+# The sphere has 20 longitudinal and latitudinal divisions. 20x20x2=800 triangles.
+s = arSphereMesh(20)
+# Attach our sphere as a child of the material node.
+s.attachMesh(m)
+# Make a window that can display our graphics.
+e = ezview()
+# To draw, specify an arGraphicsDatabase and a camera.
+e.draw(g,c)
+# Wait for 5 seconds before quitting.
+time.sleep(5)
 </pre>
 
+<a name="RedSphere">
+<p><font size=+2>A Red Sphere</font>
+</a>
 <p><img src="images/RedSphereCentered.jpg" width=398 height=424>
-
 <pre>
->>> t = g.insertNodeRef(r,m,"transform")
->>> t.set(ar_TM(0,3,0))
->>> e.draw(g,c)
->>> g.ps()
-Database structure: 
-(0, "root", "root")
- (7, "szg_default_7", "light")
- (8, "szg_default_8", "transform")
-  (1, "szg_default_1", "material")
-   (2, "sphere.points", "points")
-    (3, "sphere.indices", "index")
-     (4, "sphere.normal3", "normal3")
-      (5, "sphere.tex2", "tex2")
-       (6, "sphere.drawable", "drawable")
->>> t.set(ar_TM(0,3,0)*ar_SM(3,3,3))
->>> e.draw(g,c)
+from PySZG import *
+import time
+c = arPerspectiveCamera()
+c.setSides(-0.1,0.1,-0.1,0.1)
+c.setNearFar(0.1,100) 
+c.setPosition(0,5,0)
+c.setTarget(0,0,0)
+c.setUp(0,1,0)
+g = arGraphicsDatabase()
+r = g.getRoot()
+light = arLight()
+light.lightID = 0
+light.position = arVector4(0,0,1,0)
+light.diffuse = arVector3(1,1,1)
+l = r.new("light")
+l.setLight(light)
+m = r.new("material")
+###################
+# Make a color.
+###################
+mat = arMaterial()
+###################
+# It is red.
+###################
+mat.diffuse = arVector3(1,0,0)
+#############################################################
+# Store it in the material node. The sphere will now be red.
+#############################################################
+m.set(mat)
+s = arSphereMesh(20)
+s.attachMesh(m)
+e = ezview()
+e.draw(g,c)
+time.sleep(5)
 </pre>
 
+<a name="TranslatingSphere">
+<p><font size=+2>Translating the Sphere</font>
+</a>
 <p><img src="images/RedSphereUp.jpg" width=398 height=423>
-<p><img src="images/BigRedSphere.jpg" width=397 height=424>
+<pre>
+from PySZG import *
+import time
+c = arPerspectiveCamera()
+c.setSides(-0.1,0.1,-0.1,0.1)
+c.setNearFar(0.1,100) 
+c.setPosition(0,5,0)
+c.setTarget(0,0,0)
+c.setUp(0,1,0)
+c.setPosition(0,0,5)
+g = arGraphicsDatabase()
+r = g.getRoot()
+light = arLight()
+light.lightID = 0
+light.position = arVector4(0,0,1,0)
+light.diffuse = arVector3(1,1,1)
+l = r.new("light")
+l.setLight(light)
+m = r.new("material")
+mat = arMaterial()
+mat.diffuse = arVector3(1,0,0)
+m.set(mat)
+t = m.new("transform")
+###############################################################################
+# ar_TM is an abbreviation for ar_TranslationMatrix. This creates an arMatrix4
+# that encodes the given translation (up 3 units).
+###############################################################################
+t.set(ar_TM(0,3,0))
+s = arSphereMesh(20)
+#################################################################################
+# The sphere attaches to the transform node. This is necessary for the transform
+# to move it.
+#################################################################################
+s.attachMesh(t)
+e = ezview()
+e.draw(g,c)
+time.sleep(5)
+</pre>
 
+<a name="ScalingSphere">
+<p><font size=+2>Making the Sphere Bigger</font>
+</a>
+<p><img src="images/BigRedSphere.jpg" width=397 height=424>
+<pre>
+from PySZG import *
+import time
+c = arPerspectiveCamera()
+c.setSides(-0.1,0.1,-0.1,0.1)
+c.setNearFar(0.1,100) 
+c.setPosition(0,5,0)
+c.setTarget(0,0,0)
+c.setUp(0,1,0)
+g = arGraphicsDatabase()
+r = g.getRoot()
+light = arLight()
+light.lightID = 0
+light.position = arVector4(0,0,1,0)
+light.diffuse = arVector3(1,1,1)
+l = r.new("light")
+l.setLight(light)
+m = r.new("material")
+mat = arMaterial()
+mat.diffuse = arVector3(1,0,0)
+m.set(mat)
+t = m.new("transform")
+#############################################################################
+# ar_SM is an abbreviation for ar_scaleMatrix. This returns an arMatrix4 that
+# encodes the specified scaling (expand by a factor of 3, uniformly).
+#############################################################################
+t.set(ar_TM(0,3,0)*ar_SM(3,3,3))
+s = arSphereMesh(20)
+s.attachMesh(t)
+e = ezview()
+e.draw(g,c)
+time.sleep(5)
+</pre>
+
+<a name="Texture">
+<p><font size=+2>Using Textures for Objects</font>
+</a>
+<p><img src="images/TexturedCube.jpg" width=401 height=425>
 <pre>
 from PySZG import *
 import time
@@ -119,6 +254,9 @@ c.setPosition(0, 0, 5)
 c.setTarget(0, 0, 0)
 c.setUp(0, 1, 0)
 g = arGraphicsDatabase()
+#############################################################
+# Must tell the software where the texture files are stored.
+#############################################################
 g.setTexturePath("/Users/schaeffr/Texture")
 r = g.getRoot()
 light = arLight()
@@ -128,8 +266,20 @@ light.diffuse = arVector3(1,1,1)
 l = r.new("light")
 l.set(light)
 t = r.new("transform")
+####################################################################################
+# ar_RM is an abbreviation for ar_rotationMatrix. This returns an arMatrix4 that
+# encodes the specified rotation (in this case, a rotation by 20 degrees around the
+# y axis).
+####################################################################################
 t.set(ar_TM(0,2,0)*ar_RM('y', ar_convertToRad(20))*ar_SM(3,3,3))
+###################################################################################
+# Create a texture node. For the cube to use the stored image, it must be attached
+# below.
+###################################################################################
 txt = t.new("texture")
+##################
+# Load an image.
+##################
 txt.set("WallTexture1.ppm")
 cube = arCubeMesh()
 cube.attachMesh(txt)
@@ -138,8 +288,10 @@ e.draw(g,c)
 time.sleep(5)
 </pre>
 
-<p><img src="images/TexturedCube.jpg" width=401 height=425>
-
+<a name="DisplayOBJ">
+<p><font size=+2>Displaying .obj Files</font>
+</a>
+<p><img src="images/NormalAl.jpg" width=400 height=426>
 <pre>
 from PySZG import *
 import time
@@ -151,7 +303,48 @@ c.setTarget(0, 0, 0)
 c.setUp(0, 1, 0)
 g = arGraphicsDatabase()
 dgSetGraphicsDatabase(g)
-g.setTexturePath("/Users/schaeffr/Texture")
+r = g.getRoot()
+light = arLight()
+light.lightID = 0
+light.position = arVector4(0,0,1,0)
+light.diffuse = arVector3(1,1,1)
+l = r.new("light")
+l.set(light)
+t = r.new("transform","transform_node")
+t.set(ar_TM(1,1,0)*ar_RM('y', ar_convertToRad(20))*ar_SM(3,3,3))
+#########################################
+# Create an object to load the geometry.
+#########################################
+o = arOBJ()
+o.readOBJ("/Users/schaeffr/Data/OBJ/al.obj")
+#########################################################################
+# Make the model fit inside a sphere of radius 1 centered at the origin.
+#########################################################################
+o.normalizeModelSize()
+###########################################
+# Attach the mesh nodes to the database.
+###########################################
+o.attachMesh("al", "transform_node")
+e = ezview()
+e.draw(g,c)
+time.sleep(5)
+</pre>
+
+<a name="EditOBJ">
+<p><font size=+2>Editing .obj Files</font>
+<a/>
+<p><img src="images/RedAl.jpg" width=400 height=425>
+<pre>
+from PySZG import *
+import time
+c = arPerspectiveCamera()
+c.setSides(-0.1, 0.1, -0.1, 0.1)
+c.setNearFar(0.1, 100)
+c.setPosition(0, 0, 5)
+c.setTarget(0, 0, 0)
+c.setUp(0, 1, 0)
+g = arGraphicsDatabase()
+dgSetGraphicsDatabase(g)
 r = g.getRoot()
 light = arLight()
 light.lightID = 0
@@ -165,22 +358,29 @@ o = arOBJ()
 o.readOBJ("/Users/schaeffr/Data/OBJ/al.obj")
 o.normalizeModelSize()
 o.attachMesh("al", "transform_node")
+########################################################################
+# Find a material node inside the model. These have the standard names
+# al.default.colors1 ... al.default.colors4.
+########################################################################
+m = g.find("al.default.colors3")
+###########################################################
+# Retrieve the stored material, change the diffuse color.
+###########################################################
+mat = m.get()
+mat.diffuse = arVector3(1,0,0)
+###################################################
+# Return the edited material to the material node.
+###################################################
+m.set(mat)
 e = ezview()
 e.draw(g,c)
 time.sleep(5)
 </pre>
 
-<p><img src="images/NormalAl.jpg" width=400 height=426>
-
-<pre>
-m = g.find("al.default.colors3")
-mat = m.get()
-mat.diffuse = arVector3(1,0,0)
-m.set(mat)
-</pre>
-
-<p><img src="images/RedAl.jpg" width=400 height=425>
-
+<a name="Points">
+<p><font size=+2>Geometry: Points</font>
+</a>
+<p><img src="images/PointsWindow.jpg">
 <pre>
 from PySZG import *
 import time
@@ -192,27 +392,54 @@ c.setTarget(0, 0, 0)
 c.setUp(0, 1, 0)
 g = arGraphicsDatabase()
 r = g.getRoot()
+#################################################################################
+# Create a graphics state node. This one sets the point size (for drawable nodes
+# below it) to 20.0 pixels.
+#################################################################################
 state = r.new("graphics state")
 state.set(("point_size",20.0))
+###################################################
+# Make a points node as a child of the state node.
+###################################################
 p = state.new("points")
+####################################################
+# Make a colors node as a child of the points node.
+####################################################
 clr = p.new("color4")
+####################################################################################
+# Make a drawable node as a child of the colors node. This is where the points
+# will actually be drawn. They will have size 20 since this node is a descendant of
+# the graphics state node.
+####################################################################################
 d = clr.new("drawable")
+###########################################################
+# Store the coordinates of the points in the points node.
+###########################################################
 p.set([arVector3(0,0,0), 
        arVector3(1,0,0), 
        arVector3(1,1,0), 
        arVector3(0,1,0)])
+#############################################
+# Store the color values in the colors node.
+#############################################
 clr.set([arVector4(1,0,0,1), 
 	arVector4(0,1,0,1), 
 	arVector4(0,0,1,1), 
 	arVector4(1,1,1,1)])
+###################################################################################
+# Draw 4 points. The coordinates in the ancestor points node and the colors in the
+# ancestor colors3 node are used in order.
+###################################################################################
 d.set(("points", 4))
 e = ezview()
 e.draw(g,c)
 time.sleep(5)
 </pre>
 
-<img src="images/PointsWindow.jpg">
-
+<a name="Lines">
+<p><font size=+2>Geometry: Lines</font>
+</a>
+<p><img src="images/LinesWindow.jpg">
 <pre>
 from PySZG import *
 import time
@@ -225,15 +452,26 @@ c.setUp(0, 1, 0)
 g = arGraphicsDatabase()
 r = g.getRoot()
 state = r.new("graphics state")
+#################################################################
+# The graphics state here is line width instead of point size.
+#################################################################
 state.set(("line_width",10.0))
 p = state.new("points")
 clr = p.new("color4")
+################################################################################
+# Create an index node. This controls which points the drawable node will use.
+# Instead of using them in order, you can skip through the list.
+################################################################################
 i = clr.new("index")
 d = i.new("drawable")
 p.set([arVector3(0,0,0), 
        arVector3(1,0,0), 
        arVector3(1,1,0), 
        arVector3(0,1,0)])
+#################################################################################
+# There is a color for each line endpoint. These are used in order. There are 12
+# colors and 6 line segments.
+#################################################################################
 clr.set([arVector4(1,0,0,1),
         arVector4(1,0,0,1), 
 	arVector4(0,1,0,1),
@@ -246,6 +484,9 @@ clr.set([arVector4(1,0,0,1),
         arVector4(1,1,0,1),
         arVector4(1,1,0,1),
         arVector4(1,1,0,1)])
+###################################################################
+# The indices are used in order, but skip through the points list.
+###################################################################
 i.set([0,1, 1,2, 2,3, 3,0, 0,2, 1,3])
 d.set(("lines", 6))
 e = ezview()
@@ -253,8 +494,10 @@ e.draw(g,c)
 time.sleep(5)
 </pre>
 
-<img src="images/LinesWindow.jpg">
-
+<a name="Triangle">
+<p><font size=+2>Geometry: Triangle</font>
+</a>
+<p><img src="images/TriangleWindow.jpg">
 <pre>
 from PySZG import *
 import time
@@ -267,8 +510,15 @@ c.setUp(0, 1, 0)
 g = arGraphicsDatabase()
 r = g.getRoot()
 state = r.new("graphics state")
+##################################################################################
+# We can use a graphics state node to turn off lighting in all descendant nodes.
+##################################################################################
 state.set(("lighting", "false"))
 m = state.new("material")
+##################################################################################
+# The triangle will be green. This is in contrast to using a colors node to set
+# the color of each vertex.
+##################################################################################
 mat = arMaterial()
 mat.diffuse = arVector3(0,1,0)
 m.set(mat)
@@ -280,9 +530,15 @@ p.set([arVector3(0,0,0),
        arVector3(3,0,0), 
        arVector3(3,3,0), 
        arVector3(0,3,0)])
+###############################################################################
+# Each triangle vertex needs a normal. There will be 3 vertices, so 3 normals.
+###############################################################################
 n.set([arVector3(0,0,1),
        arVector3(0,0,1),
        arVector3(0,0,1)])
+################################################
+# Choose the vertices to be visited, in order.
+################################################
 i.set([0,1,3])
 d.set(("triangles", 1))
 e = ezview()
@@ -290,8 +546,10 @@ e.draw(g,c)
 time.sleep(5)
 </pre>
 
-<img src="images/TriangleWindow.jpg">
-
+<a name="TexturedSquare">
+<p><font size=+2>Geometry: Textured Square</font>
+</a>
+<p><img src="images/TexturedSquare.jpg">
 <pre>
 from PySZG import *
 import time
@@ -314,6 +572,9 @@ texture.set("WallTexture2.ppm")
 p = texture.new("points")
 i = p.new("index")
 n = i.new("normal3")
+##########################################
+# The square needs texture coordinates.
+##########################################
 t2 = n.new("tex2")
 d = t2.new("drawable")
 p.set([arVector3(0,0,0), 
@@ -324,20 +585,22 @@ n.set([arVector3(0,0,1),
        arVector3(0,0,1),
        arVector3(0,0,1),
        arVector3(0,0,1)])
+##############################################################
+# Specify the texture coordinates. These are used in order.
+##############################################################
 t2.set([arVector2(0,0),
         arVector2(1,0),
         arVector2(1,1),
         arVector2(0,1)])
 i.set([0,1,2,3])
+# This is a square.
 d.set(("quads", 1))
 e = ezview()
 e.draw(g,c)
 time.sleep(5)
 </pre>
 
-<img src="images/TexturedQuadWindow.jpg">
-
-<a name="File">
+<a name="Saving">
 <p><font size=+2>Scene Graph: Saving and Reloading Your Work</font>
 </a>
 
