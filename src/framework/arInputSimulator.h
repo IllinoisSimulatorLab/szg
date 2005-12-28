@@ -36,7 +36,7 @@ class SZG_CALL arInputSimulator: public arFrameworkObject{
 
   virtual void draw() const;
   virtual void drawWithComposition();
-  void advance();
+  virtual void advance();
 
   // used to capture and process mouse/keyboard data
   virtual void keyboard(unsigned char key, int state, int x, int y);

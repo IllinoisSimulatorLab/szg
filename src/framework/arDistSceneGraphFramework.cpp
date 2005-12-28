@@ -207,9 +207,8 @@ arDistSceneGraphFramework::arDistSceneGraphFramework() :
   _externalPeer(NULL){
     
   ar_log().setHeader("szg_log_test: ");
-  ar_log() << string("Testing how the logging works.");
-  // NOT QUITE DONE YET!
-  ar_endl(ar_log());
+  ar_log() << string("Testing how the logging works.\nBOOYAH");
+  ar_log() << ar_endl;
 }
 
 /// Syzygy messages consist of two strings, the first being

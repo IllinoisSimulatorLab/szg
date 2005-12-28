@@ -12,7 +12,6 @@ arLogStream& ar_log(){
   return logStream;
 }
 
-
 arLogStream::arLogStream():
   // By default, we log to cout.
   _output(&cout),
@@ -37,6 +36,7 @@ arLogStream& arLogStream::operator<<(short n){
   _preAppend();
   _buffer << n;
   _postAppend();
+  _finish();
   return *this;
 }
 
@@ -44,6 +44,7 @@ arLogStream& arLogStream::operator<<(int n){
   _preAppend();
   _buffer << n;
   _postAppend();
+  _finish();
   return *this;
 }
 
@@ -51,6 +52,7 @@ arLogStream& arLogStream::operator<<(long n){
   _preAppend();
   _buffer << n;
   _postAppend();
+  _finish();
   return *this;
 }
 
@@ -58,6 +60,7 @@ arLogStream& arLogStream::operator<<(unsigned short n){
   _preAppend();
   _buffer << n;
   _postAppend(); 
+  _finish();
   return *this;
 }
 
@@ -65,6 +68,7 @@ arLogStream& arLogStream::operator<<(unsigned int n){
   _preAppend();
   _buffer << n;
   _postAppend(); 
+  _finish();
   return *this;
 }
 
@@ -72,6 +76,7 @@ arLogStream& arLogStream::operator<<(unsigned long n){
   _preAppend();
   _buffer << n;
   _postAppend();
+  _finish();
   return *this; 
 }
 
@@ -79,6 +84,7 @@ arLogStream& arLogStream::operator<<(float f){
   _preAppend();
   _buffer << f;
   _postAppend(); 
+  _finish();
   return *this;
 }
 
@@ -86,13 +92,15 @@ arLogStream& arLogStream::operator<<(double f){
   _preAppend();
   _buffer << f;
   _postAppend();
+  _finish();
   return *this; 
 }
 
 arLogStream& arLogStream::operator<<(bool n){
   _preAppend();
   _buffer << n;
-  _postAppend(); 
+  _postAppend();
+  _finish();
   return *this;
 }
 
@@ -100,6 +108,7 @@ arLogStream& arLogStream::operator<<(const void* p){
   _preAppend();
   _buffer << p;
   _postAppend(); 
+  _finish();
   return *this; 
 }
 
@@ -107,21 +116,51 @@ arLogStream& arLogStream::operator<<(char c){
   _preAppend();
   _buffer << c;
   _postAppend(); 
+  _finish();
   return *this; 
 }
 
 arLogStream& arLogStream::operator<<(const char* s){
   _preAppend();
-  _buffer << s;
+  unsigned int l = strlen(s);
+  unsigned int current = 0;
+  while (current < l){
+    if (s[current] == '\n'){
+      _postAppend(true); 
+    }
+    else{
+      _buffer << s[current];
+    }
+    current++;
+  }
   _postAppend(); 
+  _finish();
   return *this; 
 }
 
 arLogStream& arLogStream::operator<<(const string& s){
   _preAppend();
-  _buffer << s;
-  _postAppend();
+  unsigned int current = 0;
+  while(current < s.length()){
+    unsigned int next = s.find('\n', current);
+    if (next != string::npos){
+      _buffer << s.substr(current, next-current);
+      _postAppend(true);
+      current = next+1;
+    }
+    else{
+      _buffer << s.substr(current, s.length()-current);
+      _postAppend(false);
+      current = s.length();
+    }
+  }
+  _finish();
   return *this;  
+}
+
+// Needed so that ar_endl works like one expects.
+arLogStream& arLogStream::operator<<(arLogStream& (*func)(arLogStream& logStream)){
+  return func(*this); 
 }
 
 void arLogStream::_preAppend(){
@@ -131,16 +170,19 @@ void arLogStream::_preAppend(){
   _wrapFlag = false;
 }
 
-void arLogStream::_postAppend(){
+void arLogStream::_postAppend(bool flush){
   // It is inefficient to do a big string copy each time...
   // BUT we are already making the assumption that this logging
   // class isn't high performance. At most 1000 accesses
   // per second in a "reasonable" app.
   string s = _buffer.str();
-  if (s.length() > _maxLineLength || _wrapFlag){
+  if (s.length() > _maxLineLength || flush){
     _flushLogBuffer(!_wrapFlag);
   }
-  _lock.unlock();
+}
+
+void arLogStream::_finish(){
+  _lock.unlock(); 
 }
 
 void arLogStream::_flushLogBuffer(bool addReturn){

@@ -20,96 +20,55 @@ arBillboardNode::arBillboardNode():
 }
 
 void arBillboardNode::draw(arGraphicsContext*){
-  glDisable(GL_LIGHTING);
-  glDisable(GL_TEXTURE_2D);
-  glLightModeli(GL_LIGHT_MODEL_TWO_SIDE,GL_FALSE);
-  arTexture** alphabet = _owningDatabase->getAlphabet();
+  arTexFont* alphabet = _owningDatabase->getTexFont();
   // Copy _text and visibility for thread-safety.
   ar_mutex_lock(&_nodeLock);
   string text = _text;
   bool visibility = _visibility;
   ar_mutex_unlock(&_nodeLock);
   const int len = text.length();
-  if (!visibility)
-    return; // not visible
-
-  // First pass through the command buffer:  count the
-  // lines of text and the max line-length.
-  // Inefficient but fine for short strings.
-  int numberLines = 0;
-  int maxLineSize = 1;
-  int currentLineSize = 0;
-  int i = 0;
-  for (i=0; i<len; i++){
-    if (text[i] == '/' || i == len-1){
-      ++numberLines;
-      if (currentLineSize > maxLineSize)
-	maxLineSize = currentLineSize;
-      currentLineSize = 0;
-    }
-    else if (text[i] != '\0'){
-      ++currentLineSize;
-    }
+  if (!visibility){
+    // Not visible.
+    return; 
   }
-  // there is at least one line
-  if (numberLines == 0){
-    numberLines = 1;
-  }
-  // not sure why this is needed... a stupid band-aid
-  ++maxLineSize;
-  // draw the background
-  const float cornerY=0.5;
-  const float cornerX=(0.5*maxLineSize);
+  list<string> parse = ar_parseLineBreaks(text);
+  arTextBox format;
+  format.lineSpacing = 1.0;
+  format.color = arVector3(1,1,1);
+  format.width = 1;
+  // Want columns to be essentially infinite at first so there is no wrap around in
+  // the calculation of text size.
+  format.columns = 1000;
+  format.upperLeft = arVector3(-0.5, 0.5, 0);
+  float width = 0;
+  float height = 0;
+  alphabet->getTextMetrics(parse, format, width, height);
+  // For the width we get back, each character has width 0.001. We want the character to
+  // have width 1.
+  width *= 1000;
+  height *= 1000;
+  format.width = width;
+  format.columns = ceil(width);
+  format.upperLeft = arVector3(-format.width/2.0, height/2.0, 0);
+  // Render the background.
+  const float cornerY=height/2.0;
+  const float cornerX=width/2.0;
+  glDisable(GL_LIGHTING);
   glBegin(GL_QUADS);
-  glColor3f(1,1,1);
-  glVertex3f(-cornerX,-cornerY,0.01);
-  glVertex3f(-cornerX,cornerY,0.01);
-  glVertex3f(cornerX,cornerY,0.01);
-  glVertex3f(cornerX,-cornerY,0.01);
+  glColor3f(0,0,0);
+  glVertex3f(-cornerX,-cornerY,-0.01);
+  glVertex3f(-cornerX,cornerY,-0.01);
+  glVertex3f(cornerX,cornerY,-0.01);
+  glVertex3f(cornerX,-cornerY,-0.01);
   glColor3f(1,0,0);
   float cornerDelta = 0.2;
-  glVertex3f(-cornerX-cornerDelta,-cornerY-cornerDelta,0.02);
-  glVertex3f(-cornerX-cornerDelta,cornerY+cornerDelta,0.02);
-  glVertex3f(cornerX+cornerDelta,cornerY+cornerDelta,0.02);
-  glVertex3f(cornerX+cornerDelta,-cornerY-cornerDelta,0.02);
+  glVertex3f(-cornerX-cornerDelta,-cornerY-cornerDelta,-0.02);
+  glVertex3f(-cornerX-cornerDelta,cornerY+cornerDelta,-0.02);
+  glVertex3f(cornerX+cornerDelta,cornerY+cornerDelta,-0.02);
+  glVertex3f(cornerX+cornerDelta,-cornerY-cornerDelta,-0.02);
   glEnd();
-
-  // Render the text.
-  int xPos=0;
-  int yPos=0;
-  for (i=0; i<len; i++){
-    if ( text[i] =='/' ){
-      // Start of a new line.
-      yPos++;
-      xPos=0;
-      continue;
-    }
-
-    const int diff = text[i] - 'a';
-    if (diff>=0 && diff<26 && alphabet[diff]){
-      const float upperX =
-	-cornerX+(2.0*cornerX*(maxLineSize-xPos-1))/maxLineSize;
-      const float upperY =
-	-cornerY+(2.0*cornerY*(numberLines-yPos-1))/numberLines;
-      const float deltaX =
-	2.0*cornerX/maxLineSize;
-      const float deltaY =
-	2.0*cornerY/numberLines;
-      alphabet[diff]->activate();
-      glBegin(GL_QUADS);
-      glTexCoord2f(0,0);
-      glVertex3f(upperX,upperY,0);
-      glTexCoord2f(1,0);
-      glVertex3f(upperX+deltaX,upperY,0);
-      glTexCoord2f(1,1);
-      glVertex3f(upperX+deltaX,upperY+deltaY,0);
-      glTexCoord2f(0,1);
-      glVertex3f(upperX,upperY+deltaY,0);
-      glEnd();
-      alphabet[diff]->deactivate();
-    }
-    xPos++;
-  }
+  // Must render the text second, since it uses transparent.
+  alphabet->renderText(parse, format);
 }
 
 arStructuredData* arBillboardNode::dumpData(){

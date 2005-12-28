@@ -29,9 +29,7 @@ class arInputSimulator: public arFrameworkObject{
 
   virtual void draw() const;
   virtual void drawWithComposition();
-  void advance();
-
-  // used to capture and process mouse/keyboard data
+  virtual void advance();
   virtual void keyboard(unsigned char key, int state, int x, int y);
   virtual void mouseButton(int button, int state, int x, int y);
   virtual void mousePosition(int x, int y);
@@ -40,36 +38,120 @@ class arInputSimulator: public arFrameworkObject{
   std::vector<unsigned int> getMouseButtons();
   void setNumberButtonEvents( unsigned int numButtonEvents ); 
   unsigned int getNumberButtonEvents() const;
+  
+ protected:
+  arGenericDriver _driver;
 };
 
 %{
 class arPythonInputSimulator: public arInputSimulator{
  public:
   arPythonInputSimulator(): 
-    _drawCallback(NULL){
+    _drawCallback(NULL),
+    _advanceCallback(NULL),
+    _keyboardCallback(NULL),
+    _positionCallback(NULL),
+    _buttonCallback(NULL){
   }
   virtual ~arPythonInputSimulator();
   
   virtual void draw() const;
+  virtual void advance();
+  virtual void keyboard(unsigned char key, int state, int x, int y);
+  virtual void mouseButton(int button, int state, int x, int y);
+  virtual void mousePosition(int x, int y);
   
   void setDrawCallback(PyObject* drawCallback);
+  void setAdvanceCallback(PyObject* advanceCallback);
+  void setKeyboardCallback(PyObject* keyboardCallback);
+  void setButtonCallback(PyObject* buttonCallback);
+  void setPositionCallback(PyObject* positionCallback);
+  
+  arInputSource* getDriver(){ return &_driver; }
   
  private:
   PyObject* _drawCallback;
+  PyObject* _advanceCallback;
+  PyObject* _keyboardCallback;
+  PyObject* _buttonCallback;
+  PyObject* _positionCallback;
 };
 
 arPythonInputSimulator::~arPythonInputSimulator(){
   if (_drawCallback){
     Py_XDECREF(_drawCallback);
   }
+  if (_advanceCallback){
+    Py_XDECREF(_advanceCallback); 
+  }
+  if (_keyboardCallback){
+    Py_XDECREF(_keyboardCallback); 
+  }
+  if (_buttonCallback){
+    Py_XDECREF(_buttonCallback); 
+  }
+  if (_positionCallback){
+    Py_XDECREF(_positionCallback); 
+  }
 }
   
 void arPythonInputSimulator::draw() const{
   if (!_drawCallback){
-    throw "arPythonInputSimulator error: no draw callback.\n";
+    arInputSimulator::draw();
+    return;
   }
   PyObject* args = Py_BuildValue("()");
   PyObject* result = PyEval_CallObject(_drawCallback, args);
+  // No return value is expected.
+  Py_XDECREF(result);
+  Py_DECREF(args);
+}
+
+void arPythonInputSimulator::advance(){
+  if (!_advanceCallback){
+    arInputSimulator::advance();
+    return;
+  }
+  PyObject* args = Py_BuildValue("()");
+  PyObject* result = PyEval_CallObject(_advanceCallback, args);
+  // No return value is expected.
+  Py_XDECREF(result);
+  Py_DECREF(args);
+}
+
+void arPythonInputSimulator::keyboard(unsigned char key, int state, int x, int y){
+  if (!_keyboardCallback){
+    arInputSimulator::keyboard(key, state, x, y);
+    return;
+  }
+  string temp;
+  temp += key;
+  PyObject* args = Py_BuildValue("(s,i,i,i)",temp.c_str(), state, x, y);
+  PyObject* result = PyEval_CallObject(_keyboardCallback, args);
+  // No return value is expected.
+  Py_XDECREF(result);
+  Py_DECREF(args);
+}
+
+void arPythonInputSimulator::mouseButton(int button, int state, int x, int y){
+  if (!_buttonCallback){
+    arInputSimulator::mouseButton(button, state, x, y);
+    return;
+  }
+  PyObject* args = Py_BuildValue("(i,i,i,i)",button, state, x, y);
+  PyObject* result = PyEval_CallObject(_buttonCallback, args);
+  // No return value is expected.
+  Py_XDECREF(result);
+  Py_DECREF(args);
+}
+
+void arPythonInputSimulator::mousePosition(int x, int y){
+  if (!_positionCallback){
+    arInputSimulator::mousePosition(x, y);
+    return;
+  }
+  PyObject* args = Py_BuildValue("(i,i)", x, y);
+  PyObject* result = PyEval_CallObject(_positionCallback, args);
   // No return value is expected.
   Py_XDECREF(result);
   Py_DECREF(args);
@@ -84,6 +166,46 @@ void arPythonInputSimulator::setDrawCallback( PyObject* drawCallback ) {
   Py_XINCREF(drawCallback);
   _drawCallback = drawCallback;
 }
+
+void arPythonInputSimulator::setAdvanceCallback( PyObject* advanceCallback ) {
+  if (!PyCallable_Check( advanceCallback )) {
+    PyErr_SetString(PyExc_TypeError, "arPythonInputSimulator error: advanceCallback not callable");
+    return;
+  }
+  Py_XDECREF(_advanceCallback);
+  Py_XINCREF(advanceCallback);
+  _advanceCallback = advanceCallback;
+}
+
+void arPythonInputSimulator::setKeyboardCallback( PyObject* keyboardCallback ){
+  if (!PyCallable_Check( keyboardCallback )){
+    PyErr_SetString(PyExc_TypeError, "arPythonInputSimulator error: keyboardCallback not callable.");
+    return;
+  }
+  Py_XDECREF(_keyboardCallback);
+  Py_XINCREF(keyboardCallback);
+  _keyboardCallback = keyboardCallback;
+}
+
+void arPythonInputSimulator::setButtonCallback( PyObject* buttonCallback ){
+  if (!PyCallable_Check( buttonCallback )){
+    PyErr_SetString(PyExc_TypeError, "arPythonInputSimulator error: buttonCallback not callable.");
+    return;
+  }
+  Py_XDECREF(_buttonCallback);
+  Py_XINCREF(buttonCallback);
+  _buttonCallback = buttonCallback;
+}
+
+void arPythonInputSimulator::setPositionCallback( PyObject* positionCallback ){
+  if (!PyCallable_Check( positionCallback )){
+    PyErr_SetString(PyExc_TypeError, "arPythonInputSimulator error: positionCallback not callable.");
+    return;
+  }
+  Py_XDECREF(_positionCallback);
+  Py_XINCREF(positionCallback);
+  _positionCallback = positionCallback;
+}
 %}
 
 class arPythonInputSimulator: public arInputSimulator{
@@ -92,6 +214,12 @@ class arPythonInputSimulator: public arInputSimulator{
   virtual ~arPythonInputSimulator();
   virtual void draw() const;
   void setDrawCallback(PyObject* drawCallback);
+  void setAdvanceCallback(PyObject* advanceCallback);
+  void setKeyboardCallback(PyObject* keyboardCallback);
+  void setButtonCallback(PyObject* buttonCallback);
+  void setPositionCallback(PyObject* positionCallback);
+  
+  arInputSource* getDriver();
 };
 
 %pythoncode{
@@ -101,7 +229,19 @@ class arPyInputSimulator(arPythonInputSimulator):
   def __init__(self):
     arPythonInputSimulator.__init__(self)
     self.setDrawCallback( self.onDraw )
+    self.setAdvanceCallback( self.onAdvance )
+    self.setKeyboardCallback( self.onKeyboard )
+    self.setButtonCallback( self.onButton )
+    self.setPositionCallback( self.onPosition )
   def onDraw( self):
+    pass
+  def onAdvance( self ):
+    pass
+  def onKeyboard( self, key, state, x, y ):
+    pass
+  def onButton( self, button, state, x, y ):
+    pass
+  def onPosition( self, x, y ):
     pass
     
 }

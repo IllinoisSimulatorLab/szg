@@ -9,7 +9,6 @@
 
 arGraphicsDatabase::arGraphicsDatabase() :
   _texturePath(new list<string>),
-  _alphabet(new arTexture*[26]),
   _viewerNodeID(-1)
 {
   _typeCode = AR_GRAPHICS_DATABASE;
@@ -28,9 +27,6 @@ arGraphicsDatabase::arGraphicsDatabase() :
   _databaseReceive[t->getID()] =
     (arDatabaseProcessingCallback)&arGraphicsDatabase::_processAdmin;
   
-  // Initialize the texture data.
-  memset(_alphabet, 0, 26 * sizeof(arTexture*));
-
   // Initialize the texture path list.
   _texturePath->push_back(string("") /* local directory */ );
 
@@ -184,29 +180,22 @@ void arGraphicsDatabase::reset(){
 // ARRGH! these alphabet-handling functions just flat-out *suck*
 // hopefully, I'll be able to try again later
 
-void arGraphicsDatabase::loadAlphabet(const char* path){
+void arGraphicsDatabase::loadAlphabet(const string& path){
   // If our arDatabase is a server, not a client, then we don't do anything
   // with these files.
   if (_server)
     return;
-
-  char buffer[256];
-  sprintf(buffer, "%s..ppm", path); // first '.' overwritten by letter
-  const int pathLength = strlen(path);
-  for (int i=0; i<26; i++){
-    buffer[pathLength] = 'A' + i;
-    _alphabet[i] = new arTexture;
-    // NOTE: the -1 means that no pixel becomes transparent and the false
-    // means that no complaint will be printed if the file fails to be read.
-    // We actually want no printed complaints!
-    _alphabet[i]->readPPM(buffer, -1, false);
-    // Very important to mip map for when super-small letters are needed.
-    _alphabet[i]->mipmap(true);
+  string fileName = path;
+  // Make sure there is a trailing slash.
+  ar_pathAddSlash(fileName);
+  fileName += "courier-bold.ppm";
+  if (!_texFont.load(fileName)){
+    cout << "arGraphicsDatabase error: could not load texture font.\n"; 
   }
 }
 
-arTexture** arGraphicsDatabase::getAlphabet(){
-  return _alphabet; // Dangerous!  Returns a pointer to a private member.
+arTexFont* arGraphicsDatabase::getTexFont(){
+  return &_texFont; 
 }
 
 void arGraphicsDatabase::setTexturePath(const string& thePath){

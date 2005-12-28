@@ -197,3 +197,77 @@ PyObject* toList() {
 }
 
 };
+
+class arInputSource{
+public:
+  arInputSource();
+  virtual ~arInputSource();
+  
+  void setInputNode(arInputSink*);
+  
+  virtual bool init(arSZGClient&);
+  virtual bool start();
+  virtual bool stop();
+  virtual bool restart();
+  
+  void sendButton(int index, int value);
+  void sendAxis(int index, float value);
+  void sendMatrix(int index, const arMatrix4& value);
+  void queueButton(int index, int value);
+  void queueAxis(int index, float value);
+  void queueMatrix(int index, const arMatrix4& value);
+  void sendQueue();
+};
+
+class arGenericDriver: public arInputSource{
+public:
+  arGenericDriver();
+  ~arGenericDriver();
+  
+  void setSignature(int,int,int);
+};
+
+class arInputSink{
+public:
+  arInputSink();
+  virtual ~arInputSink();
+  
+  virtual bool init(arSZGClient&);
+  virtual bool start();
+  virtual bool stop();
+  virtual bool restart();
+};
+
+class arNetInputSource: public arInputSource{
+public:
+  arNetInputSource();
+  ~arNetInputSource();
+  
+  void setSlot(int slot);
+  
+  virtual bool init(arSZGClient&);
+  virtual bool start();
+  virtual bool stop();
+  virtual bool restart();
+};
+
+class arInputNode: public arInputSink {
+  // Needs assignment operator and copy constructor, for pointer members.
+public:
+  arInputNode( bool bufferEvents = false );
+  // if anyone ever derives from this class, make the following virtual:
+  // destructor init start stop restart receiveData sourceReconfig.
+  ~arInputNode();
+  
+  bool init(arSZGClient&);
+  bool start();
+  bool stop();
+  bool restart();
+  
+  void addInputSource( arInputSource* theSource, bool iOwnIt );
+  
+  int getButton(int);
+  float getAxis(int);
+  arMatrix4 getMatrix(int);
+};
+

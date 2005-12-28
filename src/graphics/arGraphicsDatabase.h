@@ -12,7 +12,7 @@
 #include "arRay.h"
 #include "arGraphicsHeader.h"
 #include "arGraphicsLanguage.h"
-
+#include "arTexFont.h"
 #include "arTransformNode.h"
 #include "arPointsNode.h"
 #include "arTextureNode.h"
@@ -59,8 +59,8 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   virtual arDatabaseNode* alter(arStructuredData*, bool refNode=false);
   virtual void reset();
 
-  void loadAlphabet(const char*);
-  arTexture** getAlphabet();
+  void loadAlphabet(const string& path);
+  arTexFont* getTexFont();
   void setTexturePath(const string& thePath);
   arTexture* addTexture(const string&, int*);
   arBumpMap* addBumpMap(const string& name, int numPts, int numInd,
@@ -124,7 +124,7 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   arMutex                              _texturePathLock;
   list<string>*                        _texturePath;
   map<string,arTexture*,less<string> > _textureNameContainer;
-  arTexture**                          _alphabet;
+  arTexFont _texFont;
 
   // information about the lights in the scene
   // there's a bug here... no way is yet coded for deleting a light!

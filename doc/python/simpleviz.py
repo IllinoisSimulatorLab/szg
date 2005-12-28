@@ -125,16 +125,45 @@ class simulator(arPyInputSimulator):
 		self.camera.setPosition(0,0,5)
 		self.camera.setTarget(0,0,0)
 		self.camera.setUp(0,1,0)
+		self.oldX = 0
+		self.oldY = 0
+		self.headMatrix = ar_TM(0,5,0)
+		self.wandMatrix = ar_TM(2,3,-1)
+		self.state = "nothing"
 	def onDraw(self):
+		#global g
+		#font = g.getTexFont()
 		global font
 		self.camera.loadViewMatrices()
 		format = arTextBox()
 		format.upperLeft = arVector3(-1,1,0)
 		format.columns = 20
-		format.rows = 20
 		format.width = 2
-		format.lineSpacing = 1
+		format.lineSpacing = 1.2
 		font.renderString("WWWWWW\nfoo\nBen Schaeffer rocks!\nbar\n_____BOOYAH_____", format)
+	def onAdvance(self):
+		self.getDriver().queueMatrix(0,self.headMatrix)
+		self.getDriver().queueMatrix(1,self.wandMatrix)
+		self.getDriver().sendQueue()
+	def onKeyboard(self, key, state, x, y):
+		print(key)
+		print(state)
+		if key == '1':
+			print("FOO!\n")
+		if key == '2':
+			print("BAR!\n")
+	def onButton(self, button, state, x, y):
+		self.oldX = x
+		self.oldY = y
+		if state == 0:
+			self.state = "nothing"
+		if button == 0 and state == 1:
+			self.state = "wand_rotate"
+	def onPosition(self, x, y):
+		if self.state == "wand_rotate":
+			self.wandMatrix = ar_TM(2,3,-1)*ar_RM('y', (self.oldX-x)*0.01)*ar_ERM(self.wandMatrix)
+		self.oldX = x
+		self.oldY = y
 		
 		
 
@@ -156,9 +185,9 @@ def addLights(r):
 	
 def addBillboard(r):
 	t = r.new("transform")
-	t.set(ar_TM(0,7,-3)*ar_RM('y',ar_convertToRad(180))*ar_SM(0.1,0.1,0.1))
+	t.set(ar_TM(0,5,-3)*ar_SM(0.2,0.2,0.2))
 	b = t.new("billboard")
-	b.set("hello world")
+	b.set("This app demonstrates how to construct\ncustom manipulation interfaces.\nPress button 1.")
 
 # The event processing callback. All it does is grab the events that have queued
 # since last call and send them to the items on the widget list. A very generic function.
@@ -222,15 +251,9 @@ addBillboard(root)
 		
 if f.start() != 1:
 	sys.exit()
-
-# Must occur after the window gets created in start().
-# BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG. THIS IS ONLY VALID IN STANDALONE MODE!
+#font = g.getTexFont()
 if f.getStandalone():
-	#textPath = f.getSZGClient().getAttribute("SZG_RENDER","text_path")
-	#fontFile = ar_fileFind("courier-large.txf", "", textPath)
-	#if font.loadFont(fontFile) < 0:
-	#	print("Error in loading font.")
-	textPath = f.getSZGClient().getAttribute("SZG_RENDER","texture_path")
+	textPath = f.getSZGClient().getAttribute("SZG_RENDER","text_path")
 	fontFile = ar_fileFind("courier-bold.ppm", "", textPath)
 	if font.load(fontFile) < 0:
 		print("Error in loading font.")

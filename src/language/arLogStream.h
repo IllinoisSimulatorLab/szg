@@ -36,6 +36,7 @@ class SZG_CALL arLogStream{
   arLogStream& operator<<(char c);
   arLogStream& operator<<(const char* s);
   arLogStream& operator<<(const string& s);
+  arLogStream& operator<<(arLogStream& (*func)(arLogStream& logStream));
   
  protected:
   ostream* _output;   
@@ -48,14 +49,14 @@ class SZG_CALL arLogStream{
   bool _wrapFlag;
   
   void _preAppend();
-  void _postAppend();
+  void _postAppend(bool flush=false);
+  void _finish();
   void _flushLogBuffer(bool addReturn);
 };
 
 // Using the singleton pattern.
 // ALL ACCESSES TO THE LOG MUST USE THIS FUNCTION!
 SZG_CALL arLogStream& ar_log();
-
 SZG_CALL arLogStream& ar_endl(arLogStream& logStream);
 
 #endif

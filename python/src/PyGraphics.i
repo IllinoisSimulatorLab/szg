@@ -1,4 +1,4 @@
-// $Id: PyGraphics.i,v 1.15 2005/12/23 00:33:53 schaeffr Exp $
+// $Id: PyGraphics.i,v 1.16 2005/12/28 00:02:29 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -268,7 +268,6 @@ class arTextBox{
   int tabWidth;
   float lineSpacing;
   int columns;
-  int rows;
   float width;
   arVector3 upperLeft;
 };
@@ -279,7 +278,10 @@ class arTexFont{
   ~arTexFont();
   
   bool load(const string& font);
-  int renderString( const string& text, arTextBox& format );
+  float getTextWidth(const string& text, arTextBox& format);
+  float getTextHeight(const string& text, arTextBox& format);
+  void renderString(const string& text, arTextBox& format);
+  bool renderFile(const string& filename, arTextBox& format);
 };  
 
 %{

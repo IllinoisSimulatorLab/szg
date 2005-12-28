@@ -144,7 +144,6 @@ void drawHUD( int width, int height )
   box.upperLeft = arVector3(0,0,0);
   box.width = 100;
   box.color = arVector3(1,1,1);
-  box.rows = 1;
   box.columns = 30;
   // showRasterString( 0.0f, 100.0f * ( 1.0f - 15.0f / float( height) ), displayString );
   texFont.renderString( displayString, box);
