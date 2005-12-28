@@ -7,16 +7,13 @@
 #include "arPrecompiled.h"
 #include "arLogStream.h"
 
-arLogStream& ar_log(){
-  static arLogStream logStream;
-  return logStream;
-}
-
 arLogStream::arLogStream():
   // By default, we log to cout.
   _output(&cout),
-  _header(""),
-  _maxLineLength(100){
+  _header("szg_log_test"),
+  _maxLineLength(100),
+  _logLevel(AR_LOG_ERROR),
+  _currentLevel(AR_LOG_CRITICAL){
 }
 
 void arLogStream::setStream(ostream& externalStream){
@@ -29,6 +26,12 @@ void arLogStream::setStream(ostream& externalStream){
 void arLogStream::setHeader(const string& header){
   _lock.lock();
   _header = header;
+  _lock.unlock();
+}
+
+void arLogStream::setLogLevel(int logLevel){
+  _lock.lock();
+  _logLevel = logLevel; 
   _lock.unlock();
 }
 
@@ -166,8 +169,6 @@ arLogStream& arLogStream::operator<<(arLogStream& (*func)(arLogStream& logStream
 void arLogStream::_preAppend(){
   // Must ensure atomic access.
   _lock.lock();
-  // The appropriate << operator will decide whether a line break has occured.
-  _wrapFlag = false;
 }
 
 void arLogStream::_postAppend(bool flush){
@@ -177,7 +178,7 @@ void arLogStream::_postAppend(bool flush){
   // per second in a "reasonable" app.
   string s = _buffer.str();
   if (s.length() > _maxLineLength || flush){
-    _flushLogBuffer(!_wrapFlag);
+    _flushLogBuffer();
   }
 }
 
@@ -186,19 +187,85 @@ void arLogStream::_finish(){
 }
 
 void arLogStream::_flushLogBuffer(bool addReturn){
-  (*_output) << _header << _buffer.str();
-  if (addReturn){
-    (*_output) << "\n";
+  // Only send to the stream if the level works out.
+  if (_currentLevel <= _logLevel){
+    (*_output) << _header << ":" << _levelToString(_currentLevel) << ":" << _buffer.str();
+    if (addReturn){
+      (*_output) << "\n";
+    }
   }
   string tmp("");
   // Clears internal buffer.
   _buffer.str(tmp);
 }
 
+void arLogStream::_setCurrentLevel(int currentLevel){
+  _lock.lock();
+  _currentLevel = currentLevel;
+  _lock.unlock();
+}
+
+string arLogStream::_levelToString(int level){
+  switch(level){
+  case AR_LOG_SILENT:
+    return string("SILENT");
+  case AR_LOG_CRITICAL:
+    return string("CRITICAL");
+  case AR_LOG_ERROR:
+    return string("ERROR");
+  case AR_LOG_WARNING:
+    return string("WARNING");
+  case AR_LOG_REMARK:
+    return string("REMARK");
+  case AR_LOG_DEBUG:
+    return string("DEBUG");
+  default:
+    return string("GARBAGE");
+  }
+}
+
+arLogStream& ar_log(){
+  static arLogStream logStream;
+  return logStream;
+}
+
+arLogStream& ar_log_critical(){
+  arLogStream& temp(ar_log());
+  temp._setCurrentLevel(AR_LOG_CRITICAL);
+  return temp;
+}
+
+arLogStream& ar_log_error(){
+  arLogStream& temp(ar_log());
+  temp._setCurrentLevel(AR_LOG_ERROR);
+  return temp;
+}
+
+arLogStream& ar_log_warning(){
+  arLogStream& temp(ar_log());
+  temp._setCurrentLevel(AR_LOG_WARNING);
+  return temp;
+}
+
+arLogStream& ar_log_remark(){
+  arLogStream& temp(ar_log());
+  temp._setCurrentLevel(AR_LOG_REMARK);
+  return temp;
+}
+
+arLogStream& ar_log_debug(){
+  arLogStream& temp(ar_log());
+  temp._setCurrentLevel(AR_LOG_DEBUG);
+  return temp;
+}
+
 arLogStream& ar_endl(arLogStream& logStream){
   logStream._lock.lock();
   logStream._flushLogBuffer(false);
-  (*logStream._output) << endl;
+  if (logStream._currentLevel <= logStream._logLevel){
+    (*logStream._output) << endl;
+  }
   logStream._lock.unlock();
   return logStream;
 }
+

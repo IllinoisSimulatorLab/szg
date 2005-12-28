@@ -205,10 +205,6 @@ arDistSceneGraphFramework::arDistSceneGraphFramework() :
   _peerTarget("NULL"),
   _remoteRootID(0),
   _externalPeer(NULL){
-    
-  ar_log().setHeader("szg_log_test: ");
-  ar_log() << string("Testing how the logging works.\nBOOYAH");
-  ar_log() << ar_endl;
 }
 
 /// Syzygy messages consist of two strings, the first being
@@ -255,8 +251,8 @@ arGraphicsDatabase* arDistSceneGraphFramework::getDatabase(){
 
 void arDistSceneGraphFramework::setAutoBufferSwap(bool autoBufferSwap){
   if (_initCalled){
-    cout << "arDistSceneGraphFramework error: setAutoBufferSwap(...) MUST BE CALLED "
-         << "BEFORE init(...). PLEASE CHANGE YOUR CODE.\n";
+    ar_log_critical() << "arDistSceneGraphFramework error: setAutoBufferSwap(...) MUST BE CALLED "
+                      << "BEFORE init(...). PLEASE CHANGE YOUR CODE.\n";
     return;
   }
   // This variable selects between different synchronization styles in _initDatabases.
@@ -265,8 +261,8 @@ void arDistSceneGraphFramework::setAutoBufferSwap(bool autoBufferSwap){
 
 void arDistSceneGraphFramework::swapBuffers(){
   if (_autoBufferSwap){
-    cout <<  "arDistSceneGraphFramework error: attempting to swap buffers "
-         <<  "manually in automatic swap mode.\n";
+    ar_log_critical() <<  "arDistSceneGraphFramework error: attempting to swap buffers "
+                      <<  "manually in automatic swap mode.\n";
     return;
   }
   if (_standalone){
@@ -331,13 +327,13 @@ void arDistSceneGraphFramework::setPlayer(){
 
 bool arDistSceneGraphFramework::init(int& argc, char** argv){
   if (_initCalled){
-    cout << "arDistSceneGraphFramework error: MUST CALL init(...) ONLY ONCE.\n"
-         << "  PLEASE CHANGE YOUR CODE.\n";
+    ar_log_critical() << "arDistSceneGraphFramework error: MUST CALL init(...) ONLY ONCE.\n"
+                      << "  PLEASE CHANGE YOUR CODE.\n";
     return false;
   }
   if (_startCalled){
-    cout << "arDistSceneGraphFramework error: init(...) MUST BE CALLED BEFORE start().\n"
-         << "  PLEASE CHANGE YOUR CODE.\n";
+    ar_log_critical() << "arDistSceneGraphFramework error: init(...) MUST BE CALLED BEFORE start().\n"
+                      << "  PLEASE CHANGE YOUR CODE.\n";
     return false;
   }
   _label = string(argv[0]);
@@ -364,20 +360,22 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv){
   }
 
   // Successfully connected to an szgserver.
+  ar_log().setStream(_SZGClient.initResponse());
   state = _initPhleetMode();
   _initCalled = true;
+  ar_log().setStream(cout);
   return state;
 }
 
 bool arDistSceneGraphFramework::start(){
   if (!_initCalled){
-    cerr << "arDistSceneGraphFramework error: MUST CALL init(...) BEFORE start().\n"
-         << "  PLEASE CHANGE YOUR CODE.\n";
+    ar_log_critical() << "arDistSceneGraphFramework error: MUST CALL init(...) BEFORE start().\n"
+                      << "  PLEASE CHANGE YOUR CODE.\n";
     return false;
   }
   if (_startCalled){
-    cerr << "arDistSceneGraphFramework error: start() MUST ONLY BE CALLED ONCE.\n"
-         << "  PLEASE CHANGE YOUR CODE.\n";
+    ar_log_critical() << "arDistSceneGraphFramework error: start() MUST ONLY BE CALLED ONCE.\n"
+                      << "  PLEASE CHANGE YOUR CODE.\n";
     return false;
   }
   // We have two pathways depending upon whether or not we are in standalone
@@ -389,10 +387,12 @@ bool arDistSceneGraphFramework::start(){
     return state;
   }
   else{
-  // Distributed, i.e. connected to an szgserver and not in standalone.
-  state = _startPhleetMode();
-  _startCalled = true;
-  return state;
+    // Distributed, i.e. connected to an szgserver and not in standalone.
+    ar_log().setStream(_SZGClient.startResponse());
+    state = _startPhleetMode();
+    _startCalled = true;
+    ar_log().setStream(cout);
+    return state;
   }
 }
 
@@ -415,7 +415,7 @@ void arDistSceneGraphFramework::stop(bool){
   while (_useExternalThread && _externalThreadRunning){
     ar_usleep(100000);
   }
-  cout << "arDistSceneGraphFramework remark: threads done.\n";
+  ar_log_remark() << "arDistSceneGraphFramework remark: threads done.\n";
   _stopped = true;
 }
 
@@ -427,9 +427,9 @@ bool arDistSceneGraphFramework::createWindows(bool){
     // Start the windowing. 
     bool state = _graphicsClient.start(_SZGClient, false);
     if (!state){
-      cout << "arDistSceneGraphFramework error: could not start windowing.\n"; 
+      ar_log_critical() << "arDistSceneGraphFramework error: could not start windowing.\n"; 
 #ifdef AR_USE_DARWIN
-      std::cerr << "  THIS COULD BE BECAUSE YOU ARE NOT RUNNING X11. PLEASE CHECK.\n";
+      ar_log_critical() << "  THIS COULD BE BECAUSE YOU ARE NOT RUNNING X11. PLEASE CHECK.\n";
 #endif	
     }
     return state;
@@ -477,20 +477,16 @@ void arDistSceneGraphFramework::_getVector3(arVector3& v, const char* param){
   // use the screen name passed from the distributed system
   const string screenName(_SZGClient.getMode("graphics"));
   if (!_SZGClient.getAttributeFloats(screenName, param, v.v, 3)) {
-    // Less noisy -- this isn't all that informative in practice.
-    //_SZGClient.initResponse() << _label << " remark: " << screenName
-    //             << "/" << param  << " defaulting to " << v << endl;
+    ar_log_remark() << _label << " remark: " << screenName
+                    << "/" << param  << " defaulting to " << v << ar_endl;
   }
 }
 
 bool arDistSceneGraphFramework::_loadParameters(){
-  // we need to send to the init response stream
-  stringstream& initResponse = _SZGClient.initResponse();
-  
   // Configure data access for this box.
   _dataPath = _SZGClient.getAttribute("SZG_DATA", "path");
   if (_dataPath == "NULL"){
-    initResponse << _label << " warning: SZG_DATA/path undefined.\n";
+    ar_log_warning() << _label << " warning: SZG_DATA/path undefined.\n";
   }
   // Must make sure everybody gets the right bundle map,
   // both for standalone and for normal operation.
@@ -568,11 +564,10 @@ void arDistSceneGraphFramework::_initDatabases(){
 }
 
 bool arDistSceneGraphFramework::_initInput(){
-  stringstream& initResponse = _SZGClient.initResponse();
   _inputDevice = new arInputNode;
   if (!_inputDevice) {
-    cerr << "arDistSceneGraphFramework error: failed to create input "
-	 << "device.\n";
+    ar_log_error() << "arDistSceneGraphFramework error: failed to create input "
+		   << "device.\n";
     return false;
   }
   _inputState = &(_inputDevice->_inputState);
@@ -602,31 +597,31 @@ bool arDistSceneGraphFramework::_initInput(){
       string error;
       if (!joystickObject->createFactory("arJoystickDriver", sharedLibLoadPath,
                                          "arInputSource", error)){
-        cout << error;
+        ar_log_error() << error;
         return false;
       }
       arInputSource* driver = (arInputSource*) joystickObject->createObject();
       // The input node is not responsible for clean-up
       _inputDevice->addInputSource(driver, false);
       if (pforthProgramName == "NULL"){
-        cout << "arDistSceneGraphFramework remark: no pforth program for "
-	     << "standalone joystick.\n";
+        ar_log_remark() << "arDistSceneGraphFramework remark: no pforth program for "
+	                << "standalone joystick.\n";
       }
       else{
         string pforthProgram 
           = _SZGClient.getGlobalAttribute(pforthProgramName);
         if (pforthProgram == "NULL"){
-          cout << "arDistSceneGraphFramework remark: no pforth program exists "
-	       << "for name = " << pforthProgramName << "\n";
+          ar_log_remark() << "arDistSceneGraphFramework remark: no pforth program exists "
+	                  << "for name = " << pforthProgramName << "\n";
 	}
         else{
           arPForthFilter* filter = new arPForthFilter();
           ar_PForthSetSZGClient( &_SZGClient );
       
           if (!filter->loadProgram( pforthProgram )){
-	    cout << "arDistSceneGraphFramework remark: failed to configure "
-		 << "pforth\nfilter with program =\n "
-	         << pforthProgram << "\n";
+	    ar_log_remark() << "arDistSceneGraphFramework remark: failed to configure "
+		            << "pforth\nfilter with program =\n "
+	                    << pforthProgram << "\n";
             return false;
 	  }
           // The input node is not responsible for clean-up
@@ -639,9 +634,10 @@ bool arDistSceneGraphFramework::_initInput(){
   _installFilters();
 
   if (!_inputDevice->init(_SZGClient) && !_standalone){
-    initResponse << _label << " warning: failed to init input device.\n";
-    if (!_SZGClient.sendInitResponse(false))
-      cerr << _label << " error: maybe szgserver died.\n";
+    ar_log_warning() << _label << " warning: failed to init input device.\n";
+    if (!_SZGClient.sendInitResponse(false)){
+      ar_log_error() << _label << " error: maybe szgserver died.\n";
+    }
     return false;
   }
   return true;
@@ -652,8 +648,8 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
     if (!strcmp(argv[i],"-dsg")){
       // we have found an arg that might need to be removed.
       if (i+1 >= argc){
-        cout << "arDistSceneGraphFramework error: "
-	     << "-dsg flag is last in arg list. Abort.\n";
+        ar_log_critical() << "arDistSceneGraphFramework error: "
+	                  << "-dsg flag is last in arg list. Abort.\n";
 	return false;
       }
       // we need to figure out which args these are.
@@ -662,13 +658,13 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
       const string thePair(argv[i+1]);
       unsigned int location = thePair.find('=');
       if (location == string::npos){
-        cout << "arDistSceneGraphFramework error: "
-	     << "context pair does not contain =.\n";
+        ar_log_critical() << "arDistSceneGraphFramework error: "
+	                  << "context pair does not contain =.\n";
         return false;
       }
       unsigned int length = thePair.length();
       if (location == length-1){
-        cout << "arDistSceneGraphFramework error: context pair ends with =.\n";
+        ar_log_critical() << "arDistSceneGraphFramework error: context pair ends with =.\n";
         return false;
       }
       // So far, the only special key-value pair is:
@@ -678,14 +674,14 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
       string value(thePair.substr(location+1, thePair.length()-location));
       if (key == "peer"){
         _peerName = value;
-        cout << "arDistSceneGraphFramework remark: setting peer name = "
-	     << _peerName << "\n";
+        ar_log_remark() << "arDistSceneGraphFramework remark: setting peer name = "
+	                << _peerName << "\n";
         _graphicsPeer.setName(_peerName);
       }
       else if (key == "mode"){
         if (value != "feedback"){
-          cout << "arDistSceneGraphFramework error: "
-	       << "value (" << value << ") for mode is illegal.\n";
+          ar_log_critical() << "arDistSceneGraphFramework error: "
+	                    << "value (" << value << ") for mode is illegal.\n";
 	  return false;
 	}
 	_peerMode = value;
@@ -697,7 +693,7 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
 	_remoteRootID = atoi(value.c_str());
       }
       else{
-	cout << "arDistSceneGraphFramework error: key in arg pair is illegal "
+	ar_log_critical() << "arDistSceneGraphFramework error: key in arg pair is illegal "
 	     << "(" << key << ").\n";
 	return false;
       }
@@ -719,10 +715,10 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
 /// string and returns false. Otherwise, it just returns true.
 bool arDistSceneGraphFramework::_startRespond(const string& s, bool f){
   if (!f){
-    _SZGClient.startResponse() << _label << " error: " << s << endl;
+    ar_log_error() << _label << " error: " << s << ar_endl;
   }
   if (!_SZGClient.sendStartResponse(f)){
-    cerr << _label << " error: maybe szgserver died.\n";
+    ar_log_error() << _label << " error: maybe szgserver died.\n";
   }
   return f;
 }
@@ -734,7 +730,6 @@ bool arDistSceneGraphFramework::_initStandaloneMode(){
   if (!_initInput()){
     return false;
   }
-  cout << _SZGClient.initResponse().str();
   return true;
 }
 
@@ -790,15 +785,13 @@ bool arDistSceneGraphFramework::_startStandaloneMode(){
 }
 
 bool arDistSceneGraphFramework::_initPhleetMode(){
-  // We must write to the init response stream
-  stringstream& initResponse = _SZGClient.initResponse();
   _loadParameters();
   
   if (!_messageThread.beginThread(ar_distSceneGraphFrameworkMessageTask,
                                   this)) {
-    initResponse << _label << " error: failed to start message thread.\n";
+    ar_log_error() << _label << " error: failed to start message thread.\n";
     if (!_SZGClient.sendInitResponse(false)){
-      cerr << _label << " error: maybe szgserver died.\n";
+      ar_log_error() << _label << " error: maybe szgserver died.\n";
     }
     return false;
   }
@@ -807,7 +800,7 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
   if (_SZGClient.getMode("default") == "trigger"){
     const string vircomp = _SZGClient.getVirtualComputer();
     const string defaultMode = _SZGClient.getMode("default");
-    initResponse << _label << " remark: executing on virtual computer "
+    ar_log_remark() << _label << " remark: executing on virtual computer "
       << vircomp << ",\n    with default mode " 
       << defaultMode << ".\n";
     
@@ -818,11 +811,11 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
     
     // Reorganizes the system...
     if (!_launcher.launchApp()){
-      initResponse << _label 
-                   << " error: failed to launch on virtual computer "
-                   << vircomp << ".\n";
+      ar_log_error() << _label 
+		     << " error: failed to launch on virtual computer "
+                     << vircomp << ".\n";
       if (!_SZGClient.sendInitResponse(false)){
-        cerr << _label << " error: maybe szgserver died.\n";
+        ar_log_error() << _label << " error: maybe szgserver died.\n";
       }
       return false;
     }
@@ -845,19 +838,21 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
   // NOTE: we choose either graphics server or peer, based on init.
   if (_peerName == "NULL"){
     if (!_graphicsServer.init(_SZGClient)){
-      initResponse << _label << " error: graphics server failed to init.\n";
-      initResponse << "  (THE LIKELY REASON IS THAT YOU ARE RUNNING ANOTHER "
-	<< "APP).\n";
-      if (!_SZGClient.sendInitResponse(false))
-        cerr << _label << " error: maybe szgserver died.\n";
+      ar_log_error() << _label << " error: graphics server failed to init.\n";
+      ar_log_error() << "  (THE LIKELY REASON IS THAT YOU ARE RUNNING ANOTHER "
+	             << "APP).\n";
+      if (!_SZGClient.sendInitResponse(false)){
+        ar_log_error() << _label << " error: maybe szgserver died.\n";
+      }
       return false;
     }
   }
   else{
     if (!_graphicsPeer.init(_SZGClient)){
-      initResponse << _label << " error: graphics peer failed to init.\n";
-      if (!_SZGClient.sendInitResponse(false))
-        cerr << _label << " error: maybe szgserver died.\n";
+      ar_log_error() << _label << " error: graphics peer failed to init.\n";
+      if (!_SZGClient.sendInitResponse(false)){
+        ar_log_error() << _label << " error: maybe szgserver died.\n";
+      }
       return false;
     }
   }
@@ -866,10 +861,10 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
   // apps using this framework cannot run simultaneously.
   if (_peerName == "NULL"){
     if (!_soundServer.init(_SZGClient)){
-      initResponse << _label << " error: sound server failed to init.\n"
-                   << "  (Is another application running?)\n";
+      ar_log_error() << _label << " error: sound server failed to init.\n"
+                     << "  (Is another application running?)\n";
       if (!_SZGClient.sendInitResponse(false)){
-        cerr << _label << " error: maybe szgserver died.\n";
+        ar_log_error() << _label << " error: maybe szgserver died.\n";
       }
       return false;
     }
@@ -877,7 +872,7 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
   
   // init(...) succeeded.
   if (!_SZGClient.sendInitResponse(true)){
-    cerr << _label << " error: maybe szgserver died.\n";
+    ar_log_error() << _label << " error: maybe szgserver died.\n";
   }
   return true;
 }

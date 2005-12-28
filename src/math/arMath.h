@@ -6,6 +6,8 @@
 #ifndef AR_MATH_H
 #define AR_MATH_H
 
+#include "arLogStream.h"
+// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arMathCalling.h"
 #include <iostream>
 #include <math.h>
@@ -184,6 +186,9 @@ SZG_CALL float operator++(const arVector3&); // magnitude
 SZG_CALL ostream& operator<<(ostream&, const arVector2&);
 SZG_CALL ostream& operator<<(ostream&, const arVector3&);
 SZG_CALL ostream& operator<<(ostream&, const arVector4&);
+SZG_CALL arLogStream& operator<<(arLogStream&, const arVector2&);
+SZG_CALL arLogStream& operator<<(arLogStream&, const arVector3&);
+SZG_CALL arLogStream& operator<<(arLogStream&, const arVector4&);
 
 //************ matrix *******************
 // matrix multiply
@@ -194,6 +199,7 @@ SZG_CALL arMatrix4 operator-(const arMatrix4&, const arMatrix4&); //subtraction
 //inverse, return all zeros if singular
 SZG_CALL arMatrix4 operator!(const arMatrix4&); 
 SZG_CALL ostream& operator<<(ostream&, const arMatrix4&);
+SZG_CALL arLogStream& operator<<(arLogStream&, const arMatrix4&);
 
 //************* quaternion ***************
 SZG_CALL arQuaternion operator*(const arQuaternion&, const arQuaternion&);
@@ -209,6 +215,7 @@ SZG_CALL arQuaternion operator-(const arQuaternion&, const arQuaternion&);
 //SZG_CALL arQuaternion operator!(const arQuaternion&);       
 SZG_CALL float operator++(const arQuaternion&);   // magnitude
 SZG_CALL ostream& operator<<(ostream&, const arQuaternion&);
+SZG_CALL arLogStream& operator<<(arLogStream&, const arQuaternion&);
 
 //************* misc **********************
 // vector transform operators

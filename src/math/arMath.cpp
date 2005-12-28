@@ -26,6 +26,22 @@ ostream& operator<<(ostream& os, const arVector4& x){
   return os;
 }
 
+arLogStream& operator<<(arLogStream& os, const arVector2& x){
+  os <<"( "<<x.v[0]<<" "<< x.v[1]<<" )";
+  return os;
+}
+
+arLogStream& operator<<(arLogStream& os, const arVector3& x){
+  os <<"( "<<x.v[0]<<" "<< x.v[1]<<" "<<x.v[2]<<" )";
+  return os;
+}
+
+arLogStream& operator<<(arLogStream& os, const arVector4& x){
+  os <<"( "<<x.v[0]<<" "<< x.v[1]<<" "<<x.v[2]<<" "<<x.v[3]<<" )";
+  return os;
+}
+
+
 arMatrix4 arVector4::outerProduct( const arVector4& rhs ) const {
   arMatrix4 result;
   float* ptr = result.v;
@@ -203,6 +219,14 @@ ostream& operator<<(ostream& os, const arMatrix4& x){
   return os;
 }
 
+arLogStream& operator<<(arLogStream& os, const arMatrix4& x){
+  os <<x.v[0]<<" "<<x.v[4]<<" "<<x.v[8]<<" "<<x.v[12]<<"\n"
+  <<x.v[1]<<" "<<x.v[5]<<" "<<x.v[9]<<" "<<x.v[13]<<"\n"
+  <<x.v[2]<<" "<<x.v[6]<<" "<<x.v[10]<<" "<<x.v[14]<<"\n"
+  <<x.v[3]<<" "<<x.v[7]<<" "<<x.v[11]<<" "<<x.v[15]<<"\n";
+  return os;
+}
+
 //*************************
 // quaternion not-inlined
 //*************************
@@ -250,6 +274,11 @@ arQuaternion::operator arMatrix4() const {
 }
 
 ostream& operator<<(ostream& os, const arQuaternion& x){
+  os<<"("<<x.real<<" "<<x.pure.v[0]<<" "<<x.pure.v[1]<<" "<<x.pure.v[2]<<" )";
+  return os;
+}
+
+arLogStream& operator<<(arLogStream& os, const arQuaternion& x){
   os<<"("<<x.real<<" "<<x.pure.v[0]<<" "<<x.pure.v[1]<<" "<<x.pure.v[2]<<" )";
   return os;
 }
