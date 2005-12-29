@@ -80,7 +80,8 @@ typedef unsigned int arZOrder;
 
 #if defined( AR_USE_WIN_32 )
 
-  #include <windows.h>
+// DO NOT INCLUDE windows.h here. Instead, do as below.
+#include "arPrecompiled.h"
 
   //@{
   /**

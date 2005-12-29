@@ -7,7 +7,8 @@
 #define AR_UDP_SOCKET_H
 
 #ifdef AR_USE_WIN_32
-#include <windows.h>
+// DO NOT INCLUDE windows.h here. Instead, do as below.
+#include "arPrecompiled.h"
 #else
 #include <sys/types.h>
 #include <sys/socket.h>

@@ -9,8 +9,8 @@
 #ifdef AR_USE_WIN_32
 // For some unknown reason, it is necessary to include this here
 // (for some apps). 
-#include <winsock2.h>
-#include <windows.h>
+// DO NOT INCLUDE windows.h here. Instead, do as below.
+#include "arPrecompiled.h"
 #include "arThread.h" // for arMutex in arCommunicator
 #else
 #include <sys/types.h>

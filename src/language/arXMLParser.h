@@ -48,7 +48,8 @@ distribution.
 #endif
 
 #if defined( DEBUG ) && defined( _MSC_VER )
-#include <windows.h>
+// DO NOT INCLUDE windows.h here. Instead, do as below.
+#include "arPrecompiled.h"
 #define TIXML_LOG OutputDebugString
 #else
 #define TIXML_LOG printf

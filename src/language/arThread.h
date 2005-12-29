@@ -10,7 +10,8 @@
 
 #ifdef AR_USE_WIN_32
 #include <process.h>
-#include <windows.h>
+// DO NOT INCLUDE windows.h here. Instead, do as below.
+#include "arPrecompiled.h"
 #else
 #include <pthread.h>
 #endif

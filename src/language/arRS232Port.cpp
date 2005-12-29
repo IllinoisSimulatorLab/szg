@@ -16,7 +16,7 @@ using namespace std;
 #endif
 
 #ifdef AR_USE_WIN_32
-#include <windows.h>
+// DO NOT INCLUDE windows.h here! arPrecompiled.h already does!
 #include <time.h>
 #endif
 

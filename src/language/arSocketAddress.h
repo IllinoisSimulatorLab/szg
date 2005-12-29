@@ -7,7 +7,8 @@
 #define AR_SOCKET_ADDRESS_H
 
 #ifdef AR_USE_WIN_32
-#include <windows.h>
+// DO NOT INCLUDE windows.h here. Instead, do as below.
+#include "arPrecompiled.h"
 #include <iostream>
 #include <string>
 #include <list>

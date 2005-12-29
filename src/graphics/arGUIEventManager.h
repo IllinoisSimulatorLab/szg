@@ -7,7 +7,8 @@
 #define AR_GUI_EVENT_MANAGER_H
 
 #if defined( AR_USE_WIN_32 )
-  #include <windows.h>
+// DO NOT INCLUDE windows.h here. Instead, do as below.
+#include "arPrecompiled.h"
 #elif defined( AR_USE_LINUX )
 
 #elif defined( AR_USE_DARWIN )

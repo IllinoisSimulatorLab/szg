@@ -69,7 +69,7 @@ bool ar_winSockInit(){
 // cross platform clock access functions.
 #ifdef AR_USE_WIN_32
 
-#include <windows.h>
+// DO NOT INCLUDE windows.h HERE! arPrecompiled.h includes it!
 
 //;;;; this doxygen comment fails!
 /// Current time.

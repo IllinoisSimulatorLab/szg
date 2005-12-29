@@ -230,31 +230,31 @@ arLogStream& ar_log(){
 }
 
 arLogStream& ar_log_critical(){
-  arLogStream& temp(ar_log());
+  arLogStream& temp = ar_log();
   temp._setCurrentLevel(AR_LOG_CRITICAL);
   return temp;
 }
 
 arLogStream& ar_log_error(){
-  arLogStream& temp(ar_log());
+  arLogStream& temp = ar_log();
   temp._setCurrentLevel(AR_LOG_ERROR);
   return temp;
 }
 
 arLogStream& ar_log_warning(){
-  arLogStream& temp(ar_log());
+  arLogStream& temp = ar_log();
   temp._setCurrentLevel(AR_LOG_WARNING);
   return temp;
 }
 
 arLogStream& ar_log_remark(){
-  arLogStream& temp(ar_log());
+  arLogStream& temp = ar_log();
   temp._setCurrentLevel(AR_LOG_REMARK);
   return temp;
 }
 
 arLogStream& ar_log_debug(){
-  arLogStream& temp(ar_log());
+  arLogStream& temp = ar_log();
   temp._setCurrentLevel(AR_LOG_DEBUG);
   return temp;
 }

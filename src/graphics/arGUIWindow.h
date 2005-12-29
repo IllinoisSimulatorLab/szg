@@ -21,7 +21,7 @@
 #include "arGraphicsWindow.h"
 #include "arGUIDefines.h"
 #include "arGUIInfo.h"
-
+#include "arGraphicsHeader.h"
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
@@ -42,9 +42,8 @@ class arGUIWindowManager;
  */
 
 #if defined( AR_USE_WIN_32 )
-  #include <windows.h>
-  #include <GL/gl.h>
-  #include <GL/glu.h>
+// DO NOT INCLUDE windows.h here. Instead, do as below.
+#include "arPrecompiled.h"
 
   typedef struct {
       HWND  _hWnd;
