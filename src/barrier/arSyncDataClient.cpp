@@ -7,6 +7,7 @@
 #include "arPrecompiled.h"
 #include "arSyncDataClient.h"
 #include "arDataUtilities.h"
+#include "arLogStream.h"
 #include <math.h>
 
 void ar_syncDataClientConnectionTask(void* client){
@@ -42,28 +43,28 @@ void arSyncDataClient::_connectionTask(){
 
     // we can now go on about our business
     if (!result.valid){
-      cerr << getLabel() << " warning: no valid address on server discovery.\n";
+      ar_log_error() << getLabel() << " error: no valid address on server discovery.\n";
       continue;
     }
     if (!_dataClient.dialUpFallThrough(result.address, result.portIDs[0])){
-      cerr << getLabel() << " warning: failed to connect to brokered "
-	   << result.address << ":" << result.portIDs[0] << ".\n";
+      ar_log_error() << getLabel() << " error: failed to connect to brokered "
+	             << result.address << ":" << result.portIDs[0] << ".\n";
       continue;
     }
     if (_connectionCallback){
       _connectionCallback(_bondedObject, _dataClient.getDictionary());
     }
     else {
-      cerr << getLabel() << " error: undefined connection callback for "
-	   << result.address << ":" << result.portIDs[0] << ".\n";
+      ar_log_error() << getLabel() << " error: undefined connection callback for "
+	             << result.address << ":" << result.portIDs[0] << ".\n";
       _connectionThreadRunning = false;
       return;
     }
     // Bond the data channel to this sync channel.
     _barrierClient.setBondedSocketID(_dataClient.getSocketIDRemote());
     _stateClientConnected = true;
-    cout << getLabel() << " remark: connected to "
-	 << result.address << ":" << result.portIDs[0] << ".\n";
+    ar_log_remark() << getLabel() << " remark: connected to "
+	            << result.address << ":" << result.portIDs[0] << ".\n";
 
     // ugly polling! make sure we cannot block here if stop() was called.
     while (_stateClientConnected && !_exitProgram)
@@ -91,9 +92,7 @@ void arSyncDataClient::_connectionTask(){
     }
     ar_mutex_unlock(&_nullHandshakeLock);
 
-    // Random delay to reduce interleaved cout's from multiple components.
-    ar_usleep((ar_timeval(ar_time()).usec % 20) * 1000);
-    cout << getLabel() << " remark: disconnected.\n";
+    ar_log_remark() << getLabel() << " remark: disconnected.\n";
   }
   _connectionThreadRunning = false;
 }
@@ -135,10 +134,9 @@ void arSyncDataClient::_readTask(){
     if (ok && _firstConsumption){
       // request another buffer right away so our double-buffering will work
       // of course, only do this if we are in synchronized read mode
-      //cout << "arSyncDataClient: first synchronization start!\n";
-      if (syncClient() && !_barrierClient.sync())
-	cerr << getLabel() << " warning: sync failed.\n";
-      //cout << "arSyncDataClient: first synchronization finish!\n";
+      if (syncClient() && !_barrierClient.sync()){
+	ar_log_error() << getLabel() << " error: sync failed.\n";
+      }
       _firstConsumption = false;
     }
     if (ok) {
@@ -267,8 +265,8 @@ void arSyncDataClient::setBondedObject(void* bondedObject){
 
 bool arSyncDataClient::setMode(int mode){
   if (mode != AR_SYNC_CLIENT && mode != AR_NOSYNC_CLIENT){
-    cerr << getLabel() << " warning: ignoring unrecognized mode "
-         << mode << ".\n";
+    ar_log_error() << getLabel() << " error: ignoring unrecognized mode "
+                   << mode << ".\n";
     return false;
   } 
   _mode = mode;
@@ -316,7 +314,7 @@ void arSyncDataClient::setNetworks(string networks){
 bool arSyncDataClient::init(arSZGClient& client){
   // shouldn't make this call if locally connected...
   if (_syncServer){
-    cerr << "arSyncDataClient error: init called when locally connected.\n";
+    ar_log_error() << "arSyncDataClient error: init called when locally connected.\n";
     return false;
   }
   // we are NOT locally connected, so go ahead and do the init.
@@ -324,34 +322,29 @@ bool arSyncDataClient::init(arSZGClient& client){
   _serviceNameBarrier =
     client.createComplexServiceName(_serviceName+"_BARRIER");
   _serviceName = client.createComplexServiceName(_serviceName);
-  _client->initResponse()
-    << getLabel() << " remark: initialized with service name "
-    << _serviceName << ".\n";
+  ar_log_remark() << getLabel() << " remark: initialized with service name "
+                  << _serviceName << ".\n";
   return true;
 }
 
 bool arSyncDataClient::start(){
   // shouldn't make this call if locally connected...
   if (_syncServer){
-    cerr << "arSyncDataClient error: start called when locally connected.\n";
+    ar_log_error() << "arSyncDataClient error: start called when locally connected.\n";
     return false;
   }
-  // we are NOT locally connected, so go ahead and do the start.
-
-  // NOTE: important to use the built-in message forwarding capabilities
-  // of arSZGClient
+  // We are NOT locally connected, so go ahead and do the start.
   if (!_client){
-    cerr << "arSyncDataClient error: start called before init.\n";
+    ar_log_error() << "arSyncDataClient error: start called before init.\n";
     return false;
   }
-  stringstream& startResponse = _client->startResponse();
 
   // connection brokering goes here
   _barrierClient.setServiceName(_serviceNameBarrier);
   _barrierClient.setNetworks(_networks);
   if (!_barrierClient.init(*_client) || !_barrierClient.start()){
-    startResponse << getLabel()
-		  << " error: failed to start barrier client.\n";
+    ar_log_error() << getLabel()
+		   << " error: failed to start barrier client.\n";
     return false;
   }
   
@@ -359,25 +352,25 @@ bool arSyncDataClient::start(){
   _dataClient.smallPacketOptimize(true);
 
   if (!_connectionThread.beginThread(ar_syncDataClientConnectionTask, this)) {
-    startResponse << getLabel()
-		  << " error: failed to start connection thread.\n";
+    ar_log_error() << getLabel()
+		   << " error: failed to start connection thread.\n";
     return false;
   }
 
   if (!_readThread.beginThread(ar_syncDataClientReadTask, this)) {
-    startResponse << getLabel()
-		  << " error: failed to start read thread.\n";
+    ar_log_error() << getLabel()
+		   << " error: failed to start read thread.\n";
     return false;
   }
 
-  startResponse << getLabel() << " remark: started.\n";
+  ar_log_remark() << getLabel() << " remark: started.\n";
   return true;
 }
 
 void arSyncDataClient::stop(){
   // shouldn't make this call if locally connected...
   if (_syncServer){
-    cerr << "arSyncDataClient error: stop called when locally connected.\n";
+    ar_log_error() << "arSyncDataClient error: stop called when locally connected.\n";
     return;
   }
   // we are NOT locally connected, so go ahead and do the stop.
@@ -467,8 +460,8 @@ void arSyncDataClient::consume(){
         _disconnectCallback(_bondedObject);
       }
       else {
-        cerr << "arSyncDataClient warning: undefined disconnection "
-	     << "callback.\n";
+        ar_log_error() << "arSyncDataClient warning: undefined disconnection "
+	               << "callback.\n";
       }
       _nullHandshakeState = 2;
       _nullHandshakeVar.signal();
@@ -529,7 +522,7 @@ void arSyncDataClient::consume(){
       // eliminate sync if we are not in the right mode
       if (_stateClientConnected && _mode == AR_SYNC_CLIENT){
         if (!_barrierClient.sync())
-	  cerr << getLabel() << " warning: sync failed.\n";
+	  ar_log_error() << getLabel() << " error: sync failed.\n";
       }
       _postSyncCallback(_bondedObject);
       // Signal that we are ready to swap buffers.

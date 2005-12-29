@@ -9,6 +9,7 @@
 #include "arPhleetConfigParser.h"
 #include "arXMLUtilities.h"
 #include "arXMLParser.h"
+#include "arLogStream.h"
 
 #include <stdio.h>
 
@@ -146,7 +147,7 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
     if (pipeID >= 0){
       char numberBuffer[8] = "\001";
       if (!ar_safePipeWrite(pipeID, numberBuffer, 1)){
-        cout << _exeName << " remark: unterminated pipe-based handshake.\n";
+        ar_log_error() << _exeName << " error: unterminated pipe-based handshake.\n";
       }
     }
   }
@@ -219,8 +220,8 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
   if ( _IPaddress == "NULL" || _port == -1 || _userName == "NULL" ){
     // The information to attempt a login attempt is not available.
     // We must be operating in standalone mode.
-    cout << _exeName << " remark: RUNNING IN STANDALONE MODE. NO DISTRIBUTION.\n"
-         << "  (to run in Phleet mode, you must dlogin)\n";
+    ar_log_critical() << _exeName << " remark: RUNNING IN STANDALONE MODE. NO DISTRIBUTION.\n"
+                      << "  (to run in Phleet mode, you must dlogin)\n";
     _connected = false;
     success = true;
     
@@ -267,8 +268,8 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
 	// we are indeed trying to force the name. Go ahead and print out a
 	// warning, though, if there is a difference.
 	if (forcedName != _exeName){
-	  cerr << _exeName << " warning: forcing a component name\n"
-	       << "different from the exe name (necessary only in Win98).\n";
+	  ar_log_warning() << _exeName << " warning: forcing a component name\n"
+	                   << "different from the exe name (necessary only in Win98).\n";
 	}
 	// This method also changes _exeName internally.
 	// Tell the szgserver our name
@@ -294,8 +295,8 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
 	// ownership trade. Perhaps we were late starting and the szgd has
 	// already decided that we won't actually launch.
 	if (!_launchingMessageID){
-	  cerr << _exeName << " error: failed to own message, "
-	       << "despite appearing to have been launched by szgd.\n";
+	  ar_log_error() << _exeName << " error: failed to own message, "
+	                 << "despite appearing to have been launched by szgd.\n";
 	  return false;
 	}
 	else{
@@ -307,8 +308,8 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
 			       _generateLaunchInfoHeader() +
 			       _exeName + string(" launched.\n"),
 			       !_simpleHandshaking)){
-	    cerr << _exeName
-	         << " warning: response failed during launch.\n";
+	    ar_log_error() << _exeName
+	                   << " warning: response failed during launch.\n";
 	  }
 	}
       }
@@ -327,14 +328,14 @@ bool arSZGClient::_sendResponse(stringstream& s, const char* sz,
   if (_dexHandshaking && !_simpleHandshaking){
     // Another message to dex.
     if (!messageResponse(_launchingMessageID, s.str(), fNotFinalMessage)){
-      cerr << _exeName
-	   << " warning: response failed during " << sz << ".\n";
+      ar_log_warning() << _exeName
+	               << " warning: response failed during " << sz << ".\n";
       return false;
     }
   }
   else{
     // Nowhere to send the message.
-    cout << s.str();
+    ar_log_remark() << s.str();
   }
   return true;
 }
@@ -365,12 +366,12 @@ void arSZGClient::closeConnection(){
 bool arSZGClient::launchDiscoveryThreads(){
   if (!_keepRunning){
     // Threads would immediately terminate, if we tried to start them.
-    cerr << _exeName
-         << " warning: terminating, so no discovery threads launched.\n";
+    ar_log_warning() << _exeName
+                     << " warning: terminating, so no discovery threads launched.\n";
     return false;
   }
   if (_discoveryThreadsLaunched){
-    cerr << _exeName << " warning: ignoring relaunch of discovery threads.\n";
+    ar_log_warning() << _exeName << " warning: ignoring relaunch of discovery threads.\n";
     return true;
   }
 
@@ -382,7 +383,7 @@ bool arSZGClient::launchDiscoveryThreads(){
   arSocketAddress incomingAddress;
   incomingAddress.setAddress(NULL,4620);
   if (_discoverySocket->ar_bind(&incomingAddress) < 0){
-    cout << "arSZGClient remark: failed to bind discovery response socket.\n";
+    ar_log_error() << "arSZGClient error: failed to bind discovery response socket.\n";
     return false;
   }
 
@@ -412,7 +413,7 @@ string arSZGClient::getAllAttributes(const string& substring){
       !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,type) ||
       !getRequestData->dataInString(_l.AR_PHLEET_USER,_userName) ||
       !_dataClient.sendData(getRequestData)){
-    cerr << _exeName << " warning: failed to send command.\n";
+    ar_log_warning() << _exeName << " warning: failed to send command.\n";
     result = string("NULL");
   }
   else{
@@ -445,14 +446,14 @@ bool arSZGClient::parseAssignmentString(const string& text){
     parsingStream >> param4;
     if (parsingStream.fail()){
 LFail:
-      cout << "arSZGClient error: malformed assignment string:\n";
-      cout << "----------------\n" << text << "----------------" << endl;
+      ar_log_error() << "arSZGClient error: malformed assignment string:\n";
+      ar_log_error() << "----------------\n" << text << "----------------" << ar_endl;
       return false;
     }
     if (param2.substr(0,10) == "SZG_SCREEN"){
-      cout << "arSZGClient warning: are you sure you want to use SZG_SCREEN "
-	   << "parameters?\n";
-      cout << "  THESE ARE OBSOLETE FOR VERSIONS PAST 0.7!\n";
+      ar_log_error() << "arSZGClient warning: are you sure you want to use SZG_SCREEN "
+	             << "parameters?\n";
+      ar_log_error() << "  THESE ARE OBSOLETE FOR VERSIONS PAST 0.7!\n";
     }
     setAttribute(param1, param2, param3, param4);
   }
@@ -507,13 +508,13 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
   // Only complain if asked via warn.
   if (!fileStream.ar_open(fileName, dataPath)){
     if (warn){
-      cerr << _exeName << " error: failed to open batch file "
-	   << fileName << "\n";
+      ar_log_warning() << _exeName << " error: failed to open batch file "
+	               << fileName << "\n";
     }
     return false;
   }
-  cout << "arSZGClient remark: parsing config file " 
-       << ar_fileFind(fileName, "", dataPath) << ".\n";
+  ar_log_remark() << "arSZGClient remark: parsing config file " 
+                  << ar_fileFind(fileName, "", dataPath) << ".\n";
   arBuffer<char> buffer(128);
   string tagText = ar_getTagText(&fileStream, &buffer);
   if (tagText == "szg_config"){
@@ -523,15 +524,15 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
       if (tagText == "comment"){
 	// Go ahead and get the comment text (but discard it).
         if (!ar_getTextBeforeTag(&fileStream, &buffer)){
-	  cout << _exeName << " error: incomplete comment text "
-	       << "in phleet config file.\n";
+	  ar_log_error() << _exeName << " error: incomplete comment text "
+	                 << "in phleet config file.\n";
 	  fileStream.ar_close();
 	  return false;
 	}
         tagText = ar_getTagText(&fileStream, &buffer);
         if (tagText != "/comment"){
-          cout << _exeName << " error: expected /comment, not tag= " << tagText
-	       << " in phleet config file.\n";
+          ar_log_error() << _exeName << " error: expected /comment, not tag= " << tagText
+	                 << " in phleet config file.\n";
 	  fileStream.ar_close();
 	  return false;
 	}
@@ -539,8 +540,8 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
       else if (tagText == "include"){
         // Go ahead and get the comment text (but discard it).
         if (!ar_getTextBeforeTag(&fileStream, &buffer)){
-	  cout << _exeName << " error: incomplete include text "
-	       << "in phleet config file.\n";
+	  ar_log_error() << _exeName << " error: incomplete include text "
+	                 << "in phleet config file.\n";
 	  fileStream.ar_close();
 	  return false;
 	}
@@ -549,14 +550,14 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
 	includeText >> include;
         tagText = ar_getTagText(&fileStream, &buffer);
         if (tagText != "/include"){
-          cout << _exeName << " error: expected /include, not tag= " << tagText
-	       << " in phleet config file.\n";
+          ar_log_error() << _exeName << " error: expected /include, not tag= " << tagText
+	                 << " in phleet config file.\n";
 	  fileStream.ar_close();
 	  return false;
 	}
         if (!parseParameterFile(include)){
-	  cout << _exeName << " error: include directive ("
-	       << include << ") failed in parsing parameter file.\n";
+	  ar_log_error() << _exeName << " error: include directive ("
+	                 << include << ") failed in parsing parameter file.\n";
 	  return false;
 	}
       }
@@ -564,14 +565,14 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
         // First comes the name...
         tagText = ar_getTagText(&fileStream, &buffer);
         if (tagText != "name"){
-          cout << _exeName << " error: expected name, not tag= " << tagText
-	       << " in phleet config file.\n";
+          ar_log_error() << _exeName << " error: expected name, not tag= " << tagText
+	                 << " in phleet config file.\n";
 	  fileStream.ar_close();
           return false;
 	}
         if (!ar_getTextBeforeTag(&fileStream, &buffer)){
-          cout << _exeName << " error: incomplete text of parameter name "
-	       << "in phleet config file.\n";
+          ar_log_error() << _exeName << " error: incomplete text of parameter name "
+	                 << "in phleet config file.\n";
 	  fileStream.ar_close();
 	  return false;
 	}
@@ -579,29 +580,29 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
         string name;
         nameText >> name;
         if (name == ""){
-          cout << _exeName << " error: empty name field "
-	       << "in phleet config file.\n";
+          ar_log_error() << _exeName << " error: empty name field "
+	                 << "in phleet config file.\n";
 	  fileStream.ar_close();
           return false;
 	}
         tagText = ar_getTagText(&fileStream, &buffer);
         if (tagText != "/name"){
-          cout << _exeName << " error: expected /name, not tag= " << tagText
-	       << " in phleet config file.\n";
+          ar_log_error() << _exeName << " error: expected /name, not tag= " << tagText
+	                 << " in phleet config file.\n";
 	  fileStream.ar_close();
           return false;
 	}
 	// Next comes the value...
         tagText = ar_getTagText(&fileStream, &buffer);
         if (tagText != "value"){
-          cout << _exeName << " error: expected value, not tag= " << tagText
-	       << " in phleet config file.\n";
+          ar_log_error() << _exeName << " error: expected value, not tag= " << tagText
+	                 << " in phleet config file.\n";
 	  fileStream.ar_close();
           return false;
 	}
         if (!ar_getTextUntilEndTag(&fileStream, "value", &buffer)){
-          cout << _exeName << " error: incomplete text of parameter value "
-	       << "in phleet config file.\n";
+          ar_log_error() << _exeName << " error: incomplete text of parameter value "
+	                 << "in phleet config file.\n";
 	  fileStream.ar_close();
 	  return false;
 	}
@@ -612,8 +613,8 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
 	// Finally should come the closing tag for the parameter.
         tagText = ar_getTagText(&fileStream, &buffer);
         if (tagText != "/param"){
-          cout << _exeName << " error: expected /param, not tag= " << tagText
-	       << " in phleet config file.\n";
+          ar_log_error() << _exeName << " error: expected /param, not tag= " << tagText
+	                 << " in phleet config file.\n";
 	  fileStream.ar_close();
           return false;
 	}
@@ -621,16 +622,16 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
       else if (tagText == "assign"){
         // Go ahead and parse the assignment info.
         if (!ar_getTextBeforeTag(&fileStream, &buffer)){
-	  cout << _exeName << " error: incomplete assignment text "
-	       << "in phleet config file.\n";
+	  ar_log_error() << _exeName << " error: incomplete assignment text "
+	                 << "in phleet config file.\n";
 	  fileStream.ar_close();
 	  return false;
 	}
         parseAssignmentString(buffer.data);
         tagText = ar_getTagText(&fileStream, &buffer);
         if (tagText != "/assign"){
-          cout << _exeName << " error: expected /assign, not tag= " << tagText
-	       << " in phleet config file.\n";
+          ar_log_error() << _exeName << " error: expected /assign, not tag= " << tagText
+	                 << " in phleet config file.\n";
 	  fileStream.ar_close();
 	  return false;
 	}
@@ -640,8 +641,8 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
         break;
       }
       else{
-        cerr << _exeName << " error: phleet config file has illegal XML tag \""
-	     << tagText << ".\n";
+        ar_log_error() << _exeName << " error: phleet config file has illegal XML tag \""
+	               << tagText << ".\n";
         fileStream.ar_close();
         return false;
       }
@@ -652,11 +653,11 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
   fileStream.ar_close();
 
   // Try the traditional way...
-  cout << "arSZGClient remark: parsing config file using pre-0.7 syntax.\n";
+  ar_log_warning() << "arSZGClient warning: parsing config file using pre-0.7 syntax.\n";
   FILE* theFile = ar_fileOpen(fileName, dataPath, "r");
   if (!theFile){
-    cerr << _exeName << " error: failed to open config file \""
-         << fileName << "\"\n";
+    ar_log_error() << _exeName << " error: failed to open config file \""
+                   << fileName << "\"\n";
     return false;
   }
   // BUG: There are problems below with fixed sized buffers. NOTE: these
@@ -672,8 +673,8 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
       continue;
 
     if (sscanf(buf, "%s %s %s %s", buf1, buf2, buf3, buf4) != 4) {
-      cerr << _exeName << " warning: ignoring incomplete command: "
-           << buf; // buf already has a newline in it.
+      ar_log_warning() << _exeName << " warning: ignoring incomplete command: "
+                       << buf; // buf already has a newline in it.
       continue;
     }
 
@@ -720,7 +721,7 @@ string arSZGClient::getAttribute(const string& userName,
         !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,"value") ||
         !getRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
         !_dataClient.sendData(getRequestData)){
-      cerr << _exeName << " warning: failed to send command.\n";
+      ar_log_warning() << _exeName << " warning: failed to send command.\n";
       result = string("NULL");
     }
     else{
@@ -756,8 +757,8 @@ int arSZGClient::getAttributeInt(const string& computerName,
   if (ar_stringToIntValid(s, x))
     return x;
 
-  cerr << "arSZGClient warning: failed to convert '" << s << "' to an int in "
-       << groupName << "/" << parameterName << endl;
+  ar_log_warning() << "arSZGClient warning: failed to convert '" << s << "' to an int in "
+                   << groupName << "/" << parameterName << ar_endl;
   return 0;
 }
 
@@ -770,17 +771,17 @@ bool arSZGClient::getAttributeFloats(const string& groupName,
     // This warning is usually redundant, because caller notices that
     // we return false and then warns that it's using a default.
 #ifdef UNUSED
-    cerr << _exeName << " warning: "
-         << groupName << "/" << parameterName << " undefined.\n";
+    ar_log_warning() << _exeName << " warning: "
+                     << groupName << "/" << parameterName << " undefined.\n";
 #endif
     return false;
   }
   int num = ar_parseFloatString(s,values,numvalues);
   if (num != numvalues) {
-    cerr << _exeName << " warning: "
-         << groupName << "/" << parameterName << " needed "
-	 << numvalues << " floats, but got only "
-	 << num << " from \"" << s << "\".\n";
+    ar_log_warning() << _exeName << " warning: "
+                     << groupName << "/" << parameterName << " needed "
+	             << numvalues << " floats, but got only "
+	             << num << " from \"" << s << "\".\n";
     return false;
   }
   return true;
@@ -796,10 +797,10 @@ bool arSZGClient::getAttributeInts( const string& groupName,
   }
   const int num = ar_parseIntString(s,values,numvalues);
   if (num != numvalues) {
-    cerr << _exeName << " warning: "
-         << groupName << "/" << parameterName << " needed "
-	 << numvalues << " longs, but got only "
-	 << num << " from \"" << s << "\".\n";
+    ar_log_warning() << _exeName << " warning: "
+                     << groupName << "/" << parameterName << " needed "
+	             << numvalues << " longs, but got only "
+	             << num << " from \"" << s << "\".\n";
     return false;
   }
   return true;
@@ -815,10 +816,10 @@ bool arSZGClient::getAttributeLongs(const string& groupName,
   }
   const int num = ar_parseLongString(s,values,numvalues);
   if (num != numvalues) {
-    cerr << _exeName << " warning: "
-         << groupName << "/" << parameterName << " needed "
-	 << numvalues << " longs, but got only "
-	 << num << " from \"" << s << "\".\n";
+    ar_log_warning() << _exeName << " warning: "
+                     << groupName << "/" << parameterName << " needed "
+	             << numvalues << " longs, but got only "
+	             << num << " from \"" << s << "\".\n";
     return false;
   }
   return true;
@@ -867,10 +868,10 @@ bool arSZGClient::setAttribute(const string& userName,
       !setRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
       !setRequestData->dataIn(_l.AR_ATTR_SET_TYPE,&temp,AR_INT,1) ||
       !_dataClient.sendData(setRequestData)){
-    cerr << _exeName << " warning: failed to set "
-         << groupName << "/" << parameterName << " on host \""
-	 << computerName << "\" to \"" << parameterValue
-         << "\" (send failed).\n";
+    ar_log_warning() << _exeName << " warning: failed to set "
+                     << groupName << "/" << parameterName << " on host \""
+	             << computerName << "\" to \"" << parameterValue
+                     << "\" (send failed).\n";
     status = false;
   }
   // Must recycle this.
@@ -881,10 +882,10 @@ bool arSZGClient::setAttribute(const string& userName,
 
   arStructuredData* ack = _getTaggedData(match, _l.AR_CONNECTION_ACK);
   if (!ack){
-    cerr << _exeName << " warning: failed to set "
-         << groupName << "/" << parameterName << " on host \""
-	 << computerName << "\" to \"" << parameterValue
-         << "\" (ack failed).\n";
+    ar_log_warning() << _exeName << " warning: failed to set "
+                     << groupName << "/" << parameterName << " on host \""
+	             << computerName << "\" to \"" << parameterValue
+                     << "\" (ack failed).\n";
     return false;
   }
   _dataParser->recycle(ack);
@@ -920,7 +921,7 @@ string arSZGClient::getGlobalAttribute(const string& userName,
       !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,"value") ||
       !getRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
       !_dataClient.sendData(getRequestData)){
-    cerr << _exeName << " warning: failed to send command.\n";
+    ar_log_warning() << _exeName << " warning: failed to send command.\n";
     result = string("NULL");
   }
   else{
@@ -958,9 +959,9 @@ bool arSZGClient::setGlobalAttribute(const string& userName,
       !setRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
       !setRequestData->dataIn(_l.AR_ATTR_SET_TYPE,&temp,AR_INT,1) ||
       !_dataClient.sendData(setRequestData)){
-    cerr << _exeName << " warning: failed to set "
-         << attributeName << "to " << attributeValue
-         << " (send failed).\n";
+    ar_log_warning() << _exeName << " warning: failed to set "
+                     << attributeName << "to " << attributeValue
+                     << " (send failed).\n";
     status = false;
   }
   // Must recycle this.
@@ -971,9 +972,9 @@ bool arSZGClient::setGlobalAttribute(const string& userName,
 
   arStructuredData* ack = _getTaggedData(match, _l.AR_CONNECTION_ACK);
   if (!ack){
-    cerr << _exeName << " warning: failed to set "
-         << attributeName << "to " << attributeValue
-         << " (send failed).\n";
+    ar_log_warning() << _exeName << " warning: failed to set "
+                     << attributeName << "to " << attributeValue
+                     << " (send failed).\n";
     return false;
   }
   _dataParser->recycle(ack);
@@ -1074,13 +1075,13 @@ string arSZGClient::getSetGlobalXML(const string& userName,
   doc.Clear();
   doc.Parse(docString.c_str());
   if (doc.Error()){
-    cout << "dget error: in parsing gui config xml on line: " 
-         << doc.ErrorRow() << endl;
+    ar_log_error() << "dget error: in parsing gui config xml on line: " 
+                   << doc.ErrorRow() << ar_endl;
     return string("NULL");
   }
   TiXmlNode* node = doc.FirstChild();
   if (!node || !node->ToElement()){
-    cout << "dget error: malformed XML (global node).\n";
+    ar_log_error() << "dget error: malformed XML (global node).\n";
     return string("NULL");
   }
   TiXmlNode* child = node;
@@ -1111,8 +1112,8 @@ string arSZGClient::getSetGlobalXML(const string& userName,
         = pathList[pathPlace].find_last_of("]");
       if (lastArrayLoc == string::npos){
 	// It seems like we should have a valid array index, but we do not.
-	cout << "dget error: invalid array index in "
-	     << pathList[pathPlace] << ".\n";
+	ar_log_error() << "dget error: invalid array index in "
+	               << pathList[pathPlace] << ".\n";
 	return string("NULL");
       }
       string potentialIndex 
@@ -1122,12 +1123,12 @@ string arSZGClient::getSetGlobalXML(const string& userName,
       indexStream << potentialIndex;
       indexStream >> actualArrayIndex;
       if (indexStream.fail()){
-	cout << "dget error: invalid array index " << potentialIndex
-	     << ".\n";
+	ar_log_error() << "dget error: invalid array index " << potentialIndex
+	               << ".\n";
 	return string("NULL");
       }
       if (actualArrayIndex < 0){
-	cout << "dget error: array index cannot be negative.\n";
+	ar_log_error() << "dget error: array index cannot be negative.\n";
 	return string("NULL");
       }
       // We now strip out the index. We've got the actualArrayIndex already.
@@ -1149,9 +1150,9 @@ string arSZGClient::getSetGlobalXML(const string& userName,
     // array index) or we've got an error (maybe there weren't enough elements
     // of this type in the doc tree to justify the array index).
     if (which < actualArrayIndex){
-      cout << "dget error: could not find elements of type "
-	   << actualElementType << " up to index " 
-	   << actualArrayIndex << ".\n";
+      ar_log_error() << "dget error: could not find elements of type "
+	             << actualElementType << " up to index " 
+	             << actualArrayIndex << ".\n";
       return string("NULL");
     }
      
@@ -1162,8 +1163,8 @@ string arSZGClient::getSetGlobalXML(const string& userName,
       // This might still be OK. It could be an "attribute".
       if (!child->ToElement()->Attribute(pathList[pathPlace])){
 	// Neither an "element" or an "attribute". This is an error.
-	cout << "dget error: " << pathList[pathPlace]
-	     << " is neither an element or an attribute.\n";
+	ar_log_error() << "dget error: " << pathList[pathPlace]
+	               << " is neither an element or an attribute.\n";
 	return string("NULL");
       }
       else{
@@ -1171,8 +1172,8 @@ string arSZGClient::getSetGlobalXML(const string& userName,
 	// value on the path.
         string attribute = child->ToElement()->Attribute(pathList[pathPlace]);
         if (pathPlace != pathList.size() -1){
-	  cout << "dget warning: attribute name ("
-	       << pathList[pathPlace] << ") not last in path list.\n";
+	  ar_log_error() << "dget error: attribute name ("
+	                 << pathList[pathPlace] << ") not last in path list.\n";
 	  return string("NULL");
 	}
         if (attributeValue != "NULL"){
@@ -1195,8 +1196,8 @@ string arSZGClient::getSetGlobalXML(const string& userName,
     else{
       // Check to make sure this is valid XML. 
       if (!newChild->ToElement()){
-	cout << "dget error: malformed XML in " << pathList[pathPlace] 
-             << ".\n";
+	ar_log_error() << "dget error: malformed XML in " << pathList[pathPlace] 
+                       << ".\n";
         return string("NULL");
       }
       // Valid XML. Continue the walk down the tree.
@@ -1219,8 +1220,8 @@ string arSZGClient::getSetGlobalXML(const string& userName,
         doc.Parse(newDocString.c_str());
         newChild = doc.FirstChild();
 	if (!newChild || !newChild->ToElement()){
-          cout << "dget error: malformed XML in pointer ("
-	       << szgDocLocation << ").\n";
+          ar_log_error() << "dget error: malformed XML in pointer ("
+	                 << szgDocLocation << ").\n";
 	  return string("NULL");
 	}
       }
@@ -1282,7 +1283,7 @@ string arSZGClient::testSetAttribute(const string& userName,
       !setRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
       !setRequestData->dataIn(_l.AR_ATTR_SET_TYPE,&temp,AR_INT,1) ||
       !_dataClient.sendData(setRequestData)){
-    cerr << _exeName << " warning: failed to send command.\n";
+    ar_log_warning() << _exeName << " warning: failed to send command.\n";
     result = string("NULL");
   }
   else{
@@ -1306,7 +1307,7 @@ string arSZGClient::getProcessList(){
       !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,"NULL") ||
       !getRequestData->dataInString(_l.AR_PHLEET_USER,_userName) ||
       !_dataClient.sendData(getRequestData)){
-    cerr << _exeName << " warning: failed to send getProcessList command.\n";
+    ar_log_warning() << _exeName << " warning: failed to send getProcessList command.\n";
     result = string("NULL");
   }
   else{
@@ -1329,7 +1330,7 @@ bool arSZGClient::killProcessID(int id){
   (void)_fillMatchField(killIDData);
   if (!killIDData->dataIn(_l.AR_KILL_ID,&id,AR_INT,1) ||
       !_dataClient.sendData(killIDData)){
-    cerr << _exeName << " warning: message send failed\n";
+    ar_log_warning() << _exeName << " warning: message send failed\n";
     ok = false;
   }
   _dataParser->recycle(killIDData); // recycle the storage
@@ -1364,14 +1365,14 @@ string arSZGClient::getProcessLabel(int processID){
   data->dataInString(_l.AR_PROCESS_INFO_TYPE, "label");
   data->dataIn(_l.AR_PROCESS_INFO_ID, &processID, AR_INT, 1);
   if (!_dataClient.sendData(data)){
-    cerr << _exeName << " warning: failed to send process label request.\n";
+    ar_log_warning() << _exeName << " warning: failed to send process label request.\n";
     return string("NULL");
   }
   _dataParser->recycle(data);
   // get the response
   data = _getTaggedData(match, _l.AR_PROCESS_INFO);
   if (!data){
-    cerr << _exeName << " warning: failed to get process label response.\n";
+    ar_log_warning() << _exeName << " warning: failed to get process label response.\n";
     return string("NULL");
   }
   const string theLabel = data->getDataString(_l.AR_PROCESS_INFO_LABEL);
@@ -1401,14 +1402,14 @@ int arSZGClient::getProcessID(const string& computer,
   data->dataIn(_l.AR_PROCESS_INFO_ID, &dummy, AR_INT, 1);
   data->dataInString(_l.AR_PROCESS_INFO_LABEL, realComputer+"/"+processLabel);
   if (!_dataClient.sendData(data)){
-    cerr << _exeName << " warning: failed to send process ID request.\n";
+    ar_log_warning() << _exeName << " warning: failed to send process ID request.\n";
     return -1;
   }
   _dataParser->recycle(data);
   // get the response
   data = _getTaggedData(match, _l.AR_PROCESS_INFO);
   if (!data){
-    cerr << _exeName << " warning: failed to get process ID response.\n";
+    ar_log_warning() << _exeName << " warning: failed to get process ID response.\n";
     return -1;
   }
   const int theID = data->getDataInt(_l.AR_PROCESS_INFO_ID);
@@ -1426,7 +1427,7 @@ int arSZGClient::getProcessID(void){
   const int match = _fillMatchField(data);
   data->dataInString(_l.AR_PROCESS_INFO_TYPE, "self");
   if (!_dataClient.sendData(data)){
-    cerr << _exeName << " warning: getProcessID() send failed\n";
+    ar_log_warning() << _exeName << " warning: getProcessID() send failed\n";
     _dataParser->recycle(data);
     return -1;
   }
@@ -1434,7 +1435,7 @@ int arSZGClient::getProcessID(void){
 
   data = _getTaggedData(match, _l.AR_PROCESS_INFO);
   if (!data){
-    cerr << _exeName << " warning: ignoring illegal response packet\n";
+    ar_log_warning() << _exeName << " warning: ignoring illegal response packet\n";
     return -1;
   }
   const int theID = data->getDataInt(_l.AR_PROCESS_INFO_ID);
@@ -1457,8 +1458,8 @@ bool arSZGClient::sendReload(const string& computer,
   const int pid = getProcessID(computer, processLabel);
   const int ok = pid != -1 && (sendMessage("reload", "NULL", pid) >= 0);
   if (!ok)
-    cerr << _exeName << " warning: failed to reload on host \""
-         << computer << "\".\n";
+    ar_log_warning() << _exeName << " warning: failed to reload on host \""
+                     << computer << "\".\n";
   return ok;
 }
 
@@ -1490,19 +1491,19 @@ int arSZGClient::sendMessage(const string& type, const string& body,
       !messageData->dataInString(_l.AR_PHLEET_USER,_userName) ||
       !messageData->dataInString(_l.AR_PHLEET_CONTEXT,context) ||
       !_dataClient.sendData(messageData)){
-    cerr << _exeName << " warning: message send failed.\n";
+    ar_log_warning() << _exeName << " warning: message send failed.\n";
     match = -1;
   }
   else{
     arStructuredData* ack = _getTaggedData(match, _l.AR_SZG_MESSAGE_ACK);
     if (!ack){
-      cerr << _exeName << " warning: got no message ack.\n";
+      ar_log_warning() << _exeName << " warning: got no message ack.\n";
       match = -1;
     }
     else{
       if (ack->getDataString(_l.AR_SZG_MESSAGE_ACK_STATUS)
             != string("SZG_SUCCESS")){
-        cerr << _exeName << " warning: message send failed.\n";
+        ar_log_warning() << _exeName << " warning: message send failed.\n";
       }
       _dataParser->recycle(ack);
     }
@@ -1528,7 +1529,7 @@ int arSZGClient::receiveMessage(string* userName, string* messageType,
   if (!data){
 #if 0
     // Too low-level for a warning.  Caller should warn, if they care.
-    cerr << _exeName << " warning: failed to receive message.\n";
+    ar_log_warning() << _exeName << " warning: failed to receive message.\n";
 #endif
     return 0;
   }
@@ -1562,11 +1563,11 @@ int arSZGClient::getMessageResponse(list<int> tags,
   arStructuredData* ack = NULL;
   match = _getTaggedData(ack, tags,_l.AR_SZG_MESSAGE_ADMIN, timeout);
   if (match < 0){
-    cerr << _exeName << " warning: no message response.\n";
+    ar_log_warning() << _exeName << " warning: no message response.\n";
     return 0;
   }
   if (ack->getDataString(_l.AR_SZG_MESSAGE_ADMIN_TYPE) != "SZG Response"){
-    cerr << _exeName << " warning: no message response.\n";
+    ar_log_warning() << _exeName << " warning: no message response.\n";
     _dataParser->recycle(ack);
     body = string("arSZGClient internal error: failed to get proper response");
     return 0;
@@ -1622,7 +1623,7 @@ bool arSZGClient::messageResponse(int messageID, const string& body,
       !messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_BODY,
                                       body) ||
       !_dataClient.sendData(messageAdminData)){
-    cerr << _exeName << " warning: failed to send message response.\n";
+    ar_log_warning() << _exeName << " warning: failed to send message response.\n";
   }
   else{
     state = _getMessageAck(match, "message response");
@@ -1653,7 +1654,7 @@ int arSZGClient::startMessageOwnershipTrade(int messageID,
 				      "SZG Trade Message") ||
       !messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_BODY, key) ||
       !_dataClient.sendData(messageAdminData)){
-    cerr << _exeName << "warning: failed to send message ownership trade.\n";
+    ar_log_warning() << _exeName << "warning: failed to send message ownership trade.\n";
     match = -1;
   }
   else{
@@ -1690,7 +1691,7 @@ bool arSZGClient::revokeMessageOwnershipTrade(const string& key){
 				      "SZG Revoke Trade") ||
       !messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_BODY, key) ||
       !_dataClient.sendData(messageAdminData)){
-    cerr << _exeName << "warning: failed to send message trade revocation.\n";
+    ar_log_warning() << _exeName << "warning: failed to send message trade revocation.\n";
   }
   else{
     state = _getMessageAck(match, "message trade revocation");
@@ -1715,8 +1716,8 @@ int arSZGClient::requestMessageOwnership(const string& key){
 				      "SZG Message Request") ||
       !messageAdminData->dataInString(_l.AR_SZG_MESSAGE_ADMIN_BODY, key) ||
       !_dataClient.sendData(messageAdminData)){
-    cerr << _exeName
-         << " warning: failed to send message ownership request.\n";
+    ar_log_warning() << _exeName
+                     << " warning: failed to send message ownership request.\n";
     messageID = 0;
   }
   else{
@@ -1740,8 +1741,8 @@ int arSZGClient::requestKillNotification(int componentID){
   int match = _fillMatchField(data);
   data->dataIn(_l.AR_SZG_KILL_NOTIFICATION_ID, &componentID, AR_INT, 1);
   if (!_dataClient.sendData(data)){
-    cerr << _exeName << " warning: failed to send kill "
-	 << "notification request.\n";
+    ar_log_warning() << _exeName << " warning: failed to send kill "
+	             << "notification request.\n";
     match = -1;
   }
   _dataParser->recycle(data);
@@ -1763,8 +1764,8 @@ int arSZGClient::getKillNotification(list<int> tags,
   int match = _getTaggedData(data, tags,
                              _l.AR_SZG_KILL_NOTIFICATION, timeout);
   if (match < 0){
-    cerr << _exeName << " remark: failed to get kill "
-	 << "notification within timeout period.\n";
+    ar_log_warning() << _exeName << " remark: failed to get kill "
+	             << "notification within timeout period.\n";
   }
   else{
     _dataParser->recycle(data);
@@ -1788,12 +1789,12 @@ bool arSZGClient::getLock(const string& lockName, int& ownerID){
   if (!lockRequestData->dataInString(_l.AR_SZG_LOCK_REQUEST_NAME,
                                      lockName) ||
       !_dataClient.sendData(lockRequestData)){
-    cerr << _exeName << " warning: failed to send lock request.\n";
+    ar_log_warning() << _exeName << " warning: failed to send lock request.\n";
   }
   else{
     arStructuredData* ack = _getTaggedData(match, _l.AR_SZG_LOCK_RESPONSE);
     if (!ack){
-      cerr << _exeName << " warning: no ack for lock.\n";
+      ar_log_warning() << _exeName << " warning: no ack for lock.\n";
     }
     else{
       ownerID = ack->getDataInt(_l.AR_SZG_LOCK_RESPONSE_OWNER);
@@ -1822,12 +1823,12 @@ bool arSZGClient::releaseLock(const string& lockName){
   if (!lockReleaseData->dataInString(_l.AR_SZG_LOCK_RELEASE_NAME,
                                      lockName) ||
       !_dataClient.sendData(lockReleaseData)){
-    cerr << _exeName << " warning: failed to send lock request.\n";
+    ar_log_warning() << _exeName << " warning: failed to send lock request.\n";
   }
   else{
     arStructuredData* ack = _getTaggedData(match, _l.AR_SZG_LOCK_RESPONSE);
     if (!ack){
-      cerr << _exeName << " warning: no ack for lock.\n";
+      ar_log_warning() << _exeName << " warning: no ack for lock.\n";
     }
     else{
       state =
@@ -1853,8 +1854,8 @@ int arSZGClient::requestLockReleaseNotification(const string& lockName){
   int match = _fillMatchField(data);
   data->dataInString(_l.AR_SZG_LOCK_NOTIFICATION_NAME, lockName);
   if (!_dataClient.sendData(data)){
-    cerr << _exeName << " warning: failed to send lock release "
-	 << "notification request.\n";
+    ar_log_warning() << _exeName << " warning: failed to send lock release "
+	             << "notification request.\n";
     match = -1;
   }
   _dataParser->recycle(data);
@@ -1876,8 +1877,8 @@ int arSZGClient::getLockReleaseNotification(list<int> tags,
   int match = _getTaggedData(data, tags,
                              _l.AR_SZG_LOCK_NOTIFICATION, timeout);
   if (match < 0){
-    cerr << _exeName << " error: failed to get lock release "
-	 << "notification.\n";
+    ar_log_warning() << _exeName << " error: failed to get lock release "
+	             << "notification.\n";
   }
   else{
     _dataParser->recycle(data);
@@ -1896,7 +1897,7 @@ void arSZGClient::printLocks(){
   // locks are held in what follows, just the IDs.
   int match = _fillMatchField(data);
   if (!_dataClient.sendData(data)){
-    cerr << _exeName << " warning: failed to send print locks request.\n";
+    ar_log_warning() << _exeName << " warning: failed to send print locks request.\n";
     _dataParser->recycle(data);
     return;
   }
@@ -1905,8 +1906,8 @@ void arSZGClient::printLocks(){
   // get the response
   arStructuredData* ack = _getTaggedData(match, _l.AR_SZG_LOCK_LISTING);
   if (!ack){
-    cerr << _exeName << " warning: did not receive response for lock listing "
-	 << "request.\n";
+    ar_log_warning() << _exeName << " warning: did not receive response for lock listing "
+	             << "request.\n";
     return;
   }
   const string locks(data->getDataString(_l.AR_SZG_LOCK_LISTING_LOCKS));
@@ -1915,6 +1916,7 @@ void arSZGClient::printLocks(){
   // print out the stuff
   int where = 0;
   for (int i=0; i<number; i++){
+    // SHOULD NOT be ar_log_*. This is a rare case where we actually want to print to the terminal.
     cout << ar_pathToken(locks, where) << ";"
          << IDs[i] << "\n";
   }
@@ -1928,9 +1930,9 @@ bool arSZGClient::_getPortsCore1(
        int numberPorts, arStructuredData*& data, int& match, bool fRetry) {
   if (channel != "default" && channel != "graphics" && channel != "sound"
       && channel != "input"){
-    cout << _exeName << " error: "
-         << (fRetry ? "requestNewPorts" : "registerService")
-	 << "() passed invalid channel.\n";
+    ar_log_error() << _exeName << " error: "
+                   << (fRetry ? "requestNewPorts" : "registerService")
+	           << "() passed invalid channel.\n";
     return false;
   }
 
@@ -1964,8 +1966,8 @@ bool arSZGClient::_getPortsCore2(arStructuredData* data, int match,
   }
   // NOTE: the match field is filled-in in _getPortsCore1
   if (!_dataClient.sendData(data)){
-    cerr << _exeName << " warning: failed to send service registration "
-	 << (fRetry ? "retry" : "") << " request.\n";
+    ar_log_warning() << _exeName << " warning: failed to send service registration "
+	             << (fRetry ? "retry" : "") << " request.\n";
     _dataParser->recycle(data);
     return false;
   }
@@ -1974,8 +1976,8 @@ bool arSZGClient::_getPortsCore2(arStructuredData* data, int match,
   // wait for the response
   data = _getTaggedData(match, _l.AR_SZG_BROKER_RESULT);
   if (!data){
-    cerr << _exeName << " warning: no response for service registration "
-	 << (fRetry ? "retry" : "") << "request.\n";
+    ar_log_warning() << _exeName << " warning: no response for service registration "
+	             << (fRetry ? "retry" : "") << "request.\n";
     return false;
   }
   (void)data->getDataInt(_l.AR_PHLEET_MATCH);
@@ -2070,7 +2072,7 @@ bool arSZGClient::confirmPorts(const string& serviceName,
   }
   if (channel != "default" && channel != "graphics" && channel != "sound"
       && channel != "input"){
-    cerr << _exeName << " error: invalid channel for confirmPorts().\n";
+    ar_log_error() << _exeName << " error: invalid channel for confirmPorts().\n";
     return false;
   }
 
@@ -2092,8 +2094,8 @@ bool arSZGClient::confirmPorts(const string& serviceName,
   data->dataIn(_l.AR_SZG_REGISTER_SERVICE_BLOCK, temp, AR_INT, 2);
 
   if (!_dataClient.sendData(data)){
-    cerr << _exeName << " warning: failed to send service registration "
-	 << "retry request.\n";
+    ar_log_warning() << _exeName << " warning: failed to send service registration "
+	             << "retry request.\n";
     _dataParser->recycle(data);
     return false;
   }
@@ -2105,8 +2107,8 @@ bool arSZGClient::confirmPorts(const string& serviceName,
   // processing a message received on that pipe.
   data = _getTaggedData(match, _l.AR_SZG_BROKER_RESULT);
   if (!data){
-    cerr << _exeName << " error: failed to get broker result in response "
-         << "to port confirmation.\n";
+    ar_log_error() << _exeName << " error: failed to get broker result in response "
+                   << "to port confirmation.\n";
     return false;
   }
   (void)data->getDataInt(_l.AR_PHLEET_MATCH);
@@ -2149,8 +2151,8 @@ arPhleetAddress arSZGClient::discoverService(const string& serviceName,
   data->dataInString(_l.AR_SZG_REQUEST_SERVICE_ASYNC,
     async ? "SZG_TRUE" : "SZG_FALSE");
   if (!_dataClient.sendData(data)){
-    cerr << _exeName << " warning: failed to send discover service "
-	 << "request.\n";
+    ar_log_warning() << _exeName << " warning: failed to send discover service "
+	             << "request.\n";
     result.valid = false;
     _dataParser->recycle(data);
     return result;
@@ -2160,8 +2162,8 @@ arPhleetAddress arSZGClient::discoverService(const string& serviceName,
   // receive the response
   data = _getTaggedData(match, _l.AR_SZG_BROKER_RESULT);
   if (!data){
-    cerr << _exeName << " error: failed to get broker result in response "
-	 << "to discover service request.\n";
+    ar_log_error() << _exeName << " error: failed to get broker result in response "
+	           << "to discover service request.\n";
     result.valid = false;
     return result;
   }
@@ -2196,7 +2198,7 @@ void arSZGClient::_printServices(const string& type){
   // szgserver to return all services instead of just a particular one
   data->dataInString(_l.AR_SZG_GET_SERVICES_SERVICES, "NULL");
   if (!_dataClient.sendData(data)){
-    cerr << _exeName << " warning: failed to send service listing request.\n";
+    ar_log_warning() << _exeName << " warning: failed to send service listing request.\n";
     _dataParser->recycle(data);
     return;
   }
@@ -2205,7 +2207,7 @@ void arSZGClient::_printServices(const string& type){
   // get the response
   data = _getTaggedData(match, _l.AR_SZG_GET_SERVICES);
   if (!data){
-    cerr << _exeName << " error: no response to get services request.\n";
+    ar_log_error() << _exeName << " error: no response to get services request.\n";
     return;
   }
   const string services(data->getDataString(_l.AR_SZG_GET_SERVICES_SERVICES));
@@ -2217,6 +2219,8 @@ void arSZGClient::_printServices(const string& type){
   // print out the stuff
   int where = 0;
   for (int i=0; i<number; i++){
+    // SHOULD NOT be one of the ar_log_*. This is a rare case where we are actually printing out to 
+    // the terminal.
     cout << computers[i] << ";"
          << ar_pathToken(services,where) << ";"
          << IDs[i] << "\n";
@@ -2239,8 +2243,8 @@ int arSZGClient::requestServiceReleaseNotification(const string& serviceName){
   const bool ok = _dataClient.sendData(data);
   _dataParser->recycle(data);
   if (!ok){
-    cerr << _exeName
-         << " warning: failed to request service release notification.\n";
+    ar_log_warning() << _exeName
+                     << " warning: failed to request service release notification.\n";
     match = -1;
   }
   // The response will occur in getServiceReleaseNotification.
@@ -2260,8 +2264,8 @@ int arSZGClient::getServiceReleaseNotification(list<int> tags,
   arStructuredData* data;
   int match = _getTaggedData(data, tags, _l.AR_SZG_SERVICE_RELEASE, timeout);
   if (match < 0){
-    cerr << _exeName << " error: failed to get service release "
-	 << "notification.\n";
+    ar_log_error() << _exeName << " error: failed to get service release "
+	           << "notification.\n";
   }
   else{
     _dataParser->recycle(data);
@@ -2283,14 +2287,14 @@ string arSZGClient::getServiceInfo(const string& serviceName){
   const bool ok = _dataClient.sendData(data);
   _dataParser->recycle(data);
   if (!ok){
-    cerr << _exeName
-         << " warning: failed to request service info.\n";
+    ar_log_warning() << _exeName
+                     << " warning: failed to request service info.\n";
     return string("");
   }
   // Now, get the response.
   data = _getTaggedData(match, _l.AR_SZG_SERVICE_INFO);
   if (!data){
-    cerr << _exeName << " error: no response to get service info.\n";
+    ar_log_error() << _exeName << " error: no response to get service info.\n";
     return string("");
   }
   string result = data->getDataString(_l.AR_SZG_SERVICE_INFO_STATUS);
@@ -2312,14 +2316,14 @@ bool arSZGClient::setServiceInfo(const string& serviceName,
   bool ok = _dataClient.sendData(data);
   _dataParser->recycle(data);
   if (!ok){
-    cerr << _exeName
-         << " warning: failed to set service info.\n";
+    ar_log_warning() << _exeName
+                     << " warning: failed to set service info.\n";
     return false;
   }
   // Get the response.
   data = _getTaggedData(match, _l.AR_SZG_SERVICE_INFO);
   if (!data){
-    cerr << _exeName << " error: no response to set service info.\n";
+    ar_log_error() << _exeName << " error: no response to set service info.\n";
     return false;
   }
   ok = data->getDataString(_l.AR_SZG_SERVICE_INFO_STATUS) == "SZG_SUCCESS";
@@ -2363,7 +2367,7 @@ int arSZGClient::getServiceComponentID(const string& serviceName){
   data->dataInString(_l.AR_SZG_GET_SERVICES_TYPE, "active");
   data->dataInString(_l.AR_SZG_GET_SERVICES_SERVICES, serviceName);
   if (!_dataClient.sendData(data)){
-    cerr << _exeName << " warning: failed to send service ID request.\n";
+    ar_log_warning() << _exeName << " warning: failed to send service ID request.\n";
     _dataParser->recycle(data);
     return -1;
   }
@@ -2372,7 +2376,7 @@ int arSZGClient::getServiceComponentID(const string& serviceName){
   // get the response
   data = _getTaggedData(match, _l.AR_SZG_GET_SERVICES);
   if (!data){
-    cerr << _exeName << " error: no response to service ID request.\n";
+    ar_log_error() << _exeName << " error: no response to service ID request.\n";
     return -1;
   }
   int* IDs = (int*) data->getDataPtr(_l.AR_SZG_GET_SERVICES_COMPONENTS,
@@ -2402,7 +2406,7 @@ arSlashString arSZGClient::getNetworks(const string& channel){
   if (channel == "input"){
     return _inputNetworks == "NULL" ? _networks : _inputNetworks;
   }
-  cerr << _exeName << " warning: unknown channel for getNetworks().\n";
+  ar_log_warning() << _exeName << " warning: unknown channel for getNetworks().\n";
   return _networks;
 }
 
@@ -2423,7 +2427,7 @@ arSlashString arSZGClient::getAddresses(const string& channel){
   if (channel == "input"){
     return _inputAddresses == "NULL" ? _addresses : _inputAddresses;
   }
-  cerr << _exeName << " warning: unknown channel for getAddresses().\n";
+  ar_log_warning() << _exeName << " warning: unknown channel for getAddresses().\n";
   return _addresses;
 }
 
@@ -2446,7 +2450,7 @@ const string& arSZGClient::getMode(const string& channel){
   if (channel == "graphics")
     return _graphicsMode;
 
-  cout << _exeName << " warning: unknown channel for getMode().\n";
+  ar_log_warning() << _exeName << " warning: unknown channel for getMode().\n";
   return _mode;
 }
 
@@ -2529,23 +2533,23 @@ string arSZGClient::createContext(const string& virtualComputer,
 /// The actual attempt to connect to the szgserver occurs here.
 bool arSZGClient::_dialUpFallThrough(){
   if (_connected){
-    cerr << _exeName << " warning: already connected to "
-         << _IPaddress << ":" << _port << endl;
+    ar_log_warning() << _exeName << " warning: already connected to "
+                     << _IPaddress << ":" << _port << ar_endl;
     return false;
   }
 
   if (!_dataClient.dialUpFallThrough(_IPaddress.c_str(), _port)){
     // Connect to the szgserver at the designated location.
     // If we don't connect, this is an error.
-    cerr << _exeName << " remark: szgserver not found (" << _IPaddress 
-         << ", " << _port << ").\n"
-	 << "\t(first dlogin;  type dhunt to find an szgserver.\n";
+    ar_log_error() << _exeName << " error: szgserver not found (" << _IPaddress 
+                   << ", " << _port << ").\n"
+	           << "\t(first dlogin;  type dhunt to find an szgserver.\n";
     return false;
   }
 
   _connected = true;
   if (!_clientDataThread.beginThread(arSZGClientDataThread, this)) {
-    cerr << _exeName << " error: failed to start client data thread.\n";
+    ar_log_error() << _exeName << " error: failed to start client data thread.\n";
     return false;
   }
 
@@ -2585,7 +2589,7 @@ bool arSZGClient::_getMessageAck(int match, const char* transaction, int* id,
                                          _l.AR_SZG_MESSAGE_ACK,
                                          timeout);
   if (!ack){
-    cerr << _exeName << " warning: no ack for " << transaction << ".\n";
+    ar_log_warning() << _exeName << " warning: no ack for " << transaction << ".\n";
     return false;
   }
 
@@ -2602,7 +2606,7 @@ bool arSZGClient::_getMessageAck(int match, const char* transaction, int* id,
 string arSZGClient::_getAttributeResponse(int match) {
   arStructuredData* ack = _getTaggedData(match, _l.AR_ATTR_GET_RES);
   if (!ack) {
-    cerr << _exeName << " warning: unexpected response from szgserver.\n";
+    ar_log_warning() << _exeName << " warning: unexpected response from szgserver.\n";
     return string("NULL");
   }
 
@@ -2631,14 +2635,14 @@ bool arSZGClient::_setLabel(const string& label){
   if (!connectionAckData->dataInString(_l.AR_CONNECTION_ACK_LABEL,
                                        fullLabel) ||
       !_dataClient.sendData(connectionAckData)){
-    cerr << _exeName << " warning: failed to set label.\n";
+    ar_log_warning() << _exeName << " warning: failed to set label.\n";
   }
   else{
     _exeName = label;
     _dataClient.setLabel(_exeName);
     arStructuredData* ack = _getTaggedData(match, _l.AR_CONNECTION_ACK);
     if (!ack){
-      cerr << _exeName << " warning: failed to get szgserver name.\n";
+      ar_log_warning() << _exeName << " warning: failed to get szgserver name.\n";
     }
     else{
       _serverName = ack->getDataString(_l.AR_CONNECTION_ACK_LABEL);
@@ -2684,7 +2688,7 @@ bool arSZGClient::_parsePhleetArgs(int& argc, char** argv){
     if (!strcmp(argv[i],"-szg")){
       // we have found an arg that might need to be removed.
       if (i+1 >= argc){
-        cout << _exeName << " error: expected something after -szg flag.\n";
+        ar_log_error() << _exeName << " error: expected something after -szg flag.\n";
 	return false;
       }
       // we need to figure out which args these are.
@@ -2692,12 +2696,12 @@ bool arSZGClient::_parsePhleetArgs(int& argc, char** argv){
       const string thePair(argv[i+1]);
       const unsigned location = thePair.find('=');
       if (location == string::npos){
-        cout << "arSZGClient error: missing '=' in context pair.\n";
+        ar_log_error() << "arSZGClient error: missing '=' in context pair.\n";
         return false;
       }
       unsigned int length = thePair.length();
       if (location == length-1){
-        cout << "arSZGClient error: incomplete context pair.\n";
+        ar_log_error() << "arSZGClient error: incomplete context pair.\n";
         return false;
       }
       // Everything is in the format FOO=BAR, where FOO can be
@@ -2740,12 +2744,12 @@ bool arSZGClient::_parseContextPair(const string& thePair){
   // the context pair should be seperated by a single =
   unsigned int location = thePair.find('=');
   if (location == string::npos){
-    cout << _exeName << " error: missing '=' in context pair.\n";
+    ar_log_error() << _exeName << " error: missing '=' in context pair.\n";
     return false;
   }
   unsigned int length = thePair.length();
   if (location == length-1){
-    cout << "arSZGClient error: missing '=' in context pair.\n";
+    ar_log_error() << "arSZGClient error: missing '=' in context pair.\n";
     return false;
   }
   // Everything is in the format FOO=BAR, where FOO can be
@@ -2764,8 +2768,8 @@ bool arSZGClient::_parseContextPair(const string& thePair){
   }
   else if (pair1Type == "mode"){
     if (pair1.size() != 2){
-      cout << _exeName << " error: parseContextPair() got mode "
-	   << "data without\n specified channel.\n";
+      ar_log_error() << _exeName << " error: parseContextPair() got mode "
+	             << "data without\n specified channel.\n";
       return false;
     }
     const string modeChannel(pair1[1]);
@@ -2776,8 +2780,8 @@ bool arSZGClient::_parseContextPair(const string& thePair){
       _graphicsMode = pair2;
     }
     else{
-      cout << _exeName << " error: parseContextPair() got invalid "
-	   << "mode channel.\n";
+      ar_log_error() << _exeName << " error: parseContextPair() got invalid "
+	             << "mode channel.\n";
       return false;
     }
   }
@@ -2785,8 +2789,8 @@ bool arSZGClient::_parseContextPair(const string& thePair){
     // Return true iff the networks value is valid,
     // and set _networks and _addresses appropriately.
     if (pair1.size() != 2){
-      cerr << _exeName << " error: "
-           << "no channel in parseContextPair()'s networks data.\n";
+      ar_log_error() << _exeName << " error: "
+                     << "no channel in parseContextPair()'s networks data.\n";
       return false;
     }
     return _checkAndSetNetworks(pair1[1], pair2);
@@ -2797,9 +2801,9 @@ bool arSZGClient::_parseContextPair(const string& thePair){
   else if (pair1Type == "server"){
     arSlashString serverLocation(pair2);
     if (serverLocation.size() != 2){
-      cerr << "arSZGClient error: "
-	   << "server command line parameter needs a slash string "
-	   << "of length 2.\n";
+      ar_log_error() << "arSZGClient error: "
+	             << "server command line parameter needs a slash string "
+	             << "of length 2.\n";
       return false;
     }
     _IPaddress = serverLocation[0];
@@ -2820,8 +2824,8 @@ bool arSZGClient::_parseContextPair(const string& thePair){
     }
   }
   else{
-    cout << _exeName << " error: context pair has unknown type \""
-         << pair1Type << "\".\n";
+    ar_log_error() << _exeName << " error: context pair has unknown type \""
+                   << pair1Type << "\".\n";
     return false;
   }
   return true;
@@ -2833,8 +2837,8 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
   // sanity check!
   if (channel != "default" && channel != "graphics" && channel != "input"
       && channel != "sound"){
-    cout << _exeName << " error: _checkAndSetNetworks() got unknown channel \""
-         << channel << "\".\n";
+    ar_log_error() << _exeName << " error: _checkAndSetNetworks() got unknown channel \""
+                   << channel << "\".\n";
     return false;
   }
   const int numberNewNetworks = networks.size();
@@ -2849,8 +2853,8 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
 	match = true;
     }
     if (!match){
-      cerr << _exeName << " error: virtual computer's network \""
-           << networks[i] << "\" is undefined in szg.conf.\n";
+      ar_log_error() << _exeName << " error: virtual computer's network \""
+                     << networks[i] << "\" is undefined in szg.conf.\n";
       return false;
     }
   }
@@ -2979,9 +2983,9 @@ string arSZGClient::_changeToValidValue(const string& groupName,
   if (validValues != "") {
     // String format is "|foo|bar|zip|baz|bletch|".
     if (validValues[0] != '|' || validValues[validValues.length()-1] != '|') {
-      cerr << _exeName
-           << " warning: getAttribute ignoring malformed validValues\n\t\""
-           << validValues << "\".\n";
+      ar_log_warning() << _exeName
+                       << " warning: getAttribute ignoring malformed validValues\n\t\""
+                       << validValues << "\".\n";
       return value;
     }
     else if (validValues.find('|'+value+'|') == string::npos) {
@@ -2990,10 +2994,10 @@ string arSZGClient::_changeToValidValue(const string& groupName,
       // ONLY COMPLAIN IF WE ARE CHANGING A VALUE THAT HAS BEEN EXPLICITLY
       // SET.
       if (value != "NULL") {
-	cerr << _exeName << " warning: "
-	     << groupName+'/'+parameterName << " should be one of "
-	     << validValues << ",\n    but is " << value
-	     << ".  Using default instead (" << valueNew << ").\n";
+	ar_log_warning() << _exeName << " warning: "
+	                 << groupName+'/'+parameterName << " should be one of "
+	                 << validValues << ",\n    but is " << value
+	                 << ".  Using default instead (" << valueNew << ").\n";
       }
       return valueNew;
     }
@@ -3043,6 +3047,8 @@ void arSZGClient::_serverResponseThread() {
 	    }
 	  }
 	  if (!found){
+	    // SHOULD NOT be one of the ar_log_*. This is a rare case where we intend to print to the 
+	    // terminal.
             cout << serverInfo.str() << "\n";
             _foundServers.push_back(serverInfo.str());
 	  }
@@ -3083,7 +3089,7 @@ void arSZGClient::_dataThread() {
     if (!_dataClient.getData(_receiveBuffer, _receiveBufferSize)){
       // Don't complain if the destructor has already been invoked.
       // Should do something here, like maybe disconnect.
-      cout << _exeName << " remark: szgserver disconnected; queues cleared.\n";
+      ar_log_remark() << _exeName << " remark: szgserver disconnected; queues cleared.\n";
       goto LDone;
     }
     int size = -1; // aren't actually going to use this here
@@ -3099,8 +3105,8 @@ void arSZGClient::_dataThread() {
       // Yes, we really do need to GO AWAY at this point.
       // NOTE: the clearQueues() call makes every future call for messages
       // fail! And interrupts any waiting ones as well!
-      cout << _exeName
-           << " remark: szgserver forcibly disconnected; queues cleared.\n";
+      ar_log_remark() << _exeName
+                      << " remark: szgserver forcibly disconnected; queues cleared.\n";
       goto LDone;
     }
     else{
@@ -3145,7 +3151,7 @@ void arSZGClient::_sendDiscoveryPacket(const string& name,
 bool arSZGClient::discoverSZGServer(const string& name,
                                     const string& broadcast){
   if (!_discoveryThreadsLaunched && !launchDiscoveryThreads()){
-    cerr << _exeName << " error: failed to launch discovery threads.\n";
+    ar_log_error() << _exeName << " error: failed to launch discovery threads.\n";
     return false;
   }
 
@@ -3238,7 +3244,7 @@ bool arSZGClient::logout(){
 /// Default message task which handles "quit" and nothing else.
 void ar_messageTask(void* pClient){
   if (!pClient) {
-    cerr << "ar_messageTask warning: no syzygy client, dkill disabled.\n";
+    ar_log_warning() << "ar_messageTask warning: no syzygy client, dkill disabled.\n";
     return;
   }
 

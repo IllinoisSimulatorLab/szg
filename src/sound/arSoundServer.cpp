@@ -8,6 +8,7 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arSoundServer.h"
+#include "arLogStream.h"
 
 bool ar_soundServerConnectionCallback(void* server,
                                          arQueuedData*,
@@ -37,7 +38,7 @@ bool arSoundServer::_connectionCallback(list<arSocket*>* socketList) {
        iSocket != socketList->end();
        ++iSocket){
     if (!dataServer->sendDataQueue(_connectionQueue,*iSocket)){
-      cout << "arSoundServer warning: connection send failed.\n";
+      ar_log_warning() << "arSoundServer warning: connection send failed.\n";
       ok = false;
     }
   }

@@ -7,6 +7,7 @@
 #include "arPrecompiled.h"
 #include "arInputNode.h"
 #include "arEventUtilities.h"
+#include "arLogStream.h"
 
 arInputNode::arInputNode( bool bufferEvents ) :
   _eventCallback(NULL),
@@ -62,7 +63,7 @@ bool arInputNode::init(arSZGClient& szgClient){
        ++i){
     // If one device initialization fails, the whole thing fails.
     if (!(*i)->init(szgClient)) {
-      cerr << szgClient.getLabel() << " error: input source failed to init.\n";
+      ar_log_error() << szgClient.getLabel() << " error: input source failed to init.\n";
       return false;
     }
 
@@ -77,7 +78,7 @@ bool arInputNode::init(arSZGClient& szgClient){
        ++j){
     // If one device initialization fails, the whole thing fails.
     if (!(*j)->init(szgClient)){
-      cerr << szgClient.getLabel() << " error: input sink failed to init.\n";
+      ar_log_error() << szgClient.getLabel() << " error: input sink failed to init.\n";
       return false;
     }
   }
@@ -151,16 +152,15 @@ void arInputNode::receiveData(int channelNumber, arStructuredData* data) {
   _lock();
 
   if (channelNumber < 0) {
-    cerr << "arInputNode error: negative channel number.\n";
+    ar_log_error() << "arInputNode error: negative channel number.\n";
     return;
   }
-  //  cerr << "arInputNode remark: channel # " << channelNumber << endl;
   
   _remapData( (unsigned int) channelNumber, data );
 
   _eventQueue.clear();
   if (!ar_setEventQueueFromStructuredData( &_eventQueue, data )) {
-    cerr << "arInputNode error: failed to convert received data to event queue.\n";
+    ar_log_error() << "arInputNode error: failed to convert received data to event queue.\n";
     return;
   }
   
@@ -173,8 +173,9 @@ void arInputNode::receiveData(int channelNumber, arStructuredData* data) {
   
   _filterEventQueue( _eventQueue );
 
-  if (!ar_saveEventQueueToStructuredData( &_eventQueue, data ))
-    cerr << "arInputNode error: failed to convert event queue to arStructuredData.\n";
+  if (!ar_saveEventQueueToStructuredData( &_eventQueue, data )){
+    ar_log_error() << "arInputNode error: failed to convert event queue to arStructuredData.\n";
+  }
 
   // Update node's arInputState (empties queue)
   _updateState( _eventQueue );
@@ -207,8 +208,8 @@ bool arInputNode::sourceReconfig(int whichChannel){
   _lock();
 
   if (whichChannel < 0 || whichChannel >= (int)_inputSourceList.size()) {
-    cerr << "arInputNode warning: ignoring out-of-range channel "
-         << whichChannel << ".\n";
+    ar_log_error() << "arInputNode error: ignoring out-of-range channel "
+                   << whichChannel << ".\n";
     return false;
   }
 
@@ -235,7 +236,7 @@ bool arInputNode::sourceReconfig(int whichChannel){
 
 void arInputNode::addInputSource( arInputSource* theSource, bool iOwnIt ){
   if (!theSource) {
-    cerr << "arInputNode warning: ignoring NULL source.\n";
+    ar_log_warning() << "arInputNode warning: ignoring NULL source.\n";
     return;
   }
 
@@ -246,12 +247,12 @@ void arInputNode::addInputSource( arInputSource* theSource, bool iOwnIt ){
 
 int arInputNode::addFilter( arIOFilter* theFilter, bool iOwnIt ){
   if (!theFilter) {
-    cerr << "arInputNode warning: ignoring NULL filter.\n";
+    ar_log_warning() << "arInputNode warning: ignoring NULL filter.\n";
     return -1;
   }
 
   int newID = _findUnusedFilterID();
-  cout << "arInputNode remark: generated ID " << newID << endl;
+  ar_log_remark() << "arInputNode remark: generated ID " << newID << ar_endl;
   theFilter->setID( newID );
   _inputFilterList.push_back( theFilter );
   _iOwnFilters.push_back( iOwnIt );
@@ -259,18 +260,18 @@ int arInputNode::addFilter( arIOFilter* theFilter, bool iOwnIt ){
     _filterStates.push_back( _inputState );
   else
     _filterStates.push_back( _filterStates.back() );
-  cout << "arInputNode remark: installed event filter with ID " << newID << endl;
+  ar_log_remark() << "arInputNode remark: installed event filter with ID " << newID << ar_endl;
   return newID;
 }
 
 bool arInputNode::removeFilter( int filterID ) {
-  cout << "arInputNode remark: removing event filter with ID " << filterID << endl;
+  ar_log_remark() << "arInputNode remark: removing event filter with ID " << filterID << ar_endl;
   _lock();
   unsigned int filterNumber = 0;
   arFilterIterator f;
   for (f = _inputFilterList.begin(); f != _inputFilterList.end(); ++f) {
     if ((*f)->getID() == filterID) {
-      cout << "arInputNode remark: found filter with ID " << filterID << endl;
+      ar_log_remark() << "arInputNode remark: found filter with ID " << filterID << ar_endl;
       _inputFilterList.erase(f);
       _iOwnFilters.erase( _iOwnFilters.begin() + filterNumber );
       _filterStates.erase( _filterStates.begin() + filterNumber );
@@ -280,19 +281,19 @@ bool arInputNode::removeFilter( int filterID ) {
     ++filterNumber;
   }
   _unlock();
-  cerr << "arInputNode error: filter ID : " << filterID << " not found.\n";
+  ar_log_error() << "arInputNode error: filter ID : " << filterID << " not found.\n";
   return false;
 }
 
 
 bool arInputNode::replaceFilter( int filterID, arIOFilter* newFilter, bool iOwnIt ) {
-  cout << "arInputNode remark: replacing event filter with ID " << filterID << endl;
+  ar_log_remark() << "arInputNode remark: replacing event filter with ID " << filterID << ar_endl;
   _lock();
   unsigned int filterNumber = 0;
   arFilterIterator f;
   for (f = _inputFilterList.begin(); f != _inputFilterList.end(); ++f) {
     if ((*f)->getID() == filterID) {
-      cout << "arInputNode remark: found filter with ID " << filterID << endl;
+      ar_log_remark() << "arInputNode remark: found filter with ID " << filterID << ar_endl;
       newFilter->setID( filterID );
       *f = newFilter;
       _iOwnFilters[filterNumber] = iOwnIt;
@@ -303,20 +304,20 @@ bool arInputNode::replaceFilter( int filterID, arIOFilter* newFilter, bool iOwnI
     ++filterNumber;
   }
   _unlock();
-  cerr << "arInputNode error: filter ID : " << filterID << " not found.\n";
+  ar_log_error() << "arInputNode error: filter ID : " << filterID << " not found.\n";
   return false;
 }
 
 
 void arInputNode::addInputSink( arInputSink* theSink, bool iOwnIt ){
   if (_bufferInputEvents) {
-    cerr << "arInputNode error: an input node that buffers events may not pass "
+    ar_log_error() << "arInputNode error: an input node that buffers events may not pass "
          << "data on to sinks.\n";
     return;
   }
   
   if (!theSink) {
-    cerr << "arInputNode warning: ignoring NULL sink.\n";
+    ar_log_warning() << "arInputNode warning: ignoring NULL sink.\n";
     return;
   }
 
@@ -348,28 +349,6 @@ int arInputNode::getNumberMatrices() const {
   return (int)_inputState.getNumberMatrices();
 }
 
-//void arInputNode::_logEvent( arInputEvent& inputEvent ) {
-//
-//  switch (inputEvent.getType()) {
-//    case AR_EVENT_BUTTON:
-//      if (_buttonCallback)
-//	      _buttonCallback( inputEvent );
-//      break;
-//    case AR_EVENT_AXIS:
-//      if (_axisCallback)
-//        _axisCallback( inputEvent );
-//      break;
-//    case AR_EVENT_MATRIX:
-//      if (_matrixCallback)
-//        _matrixCallback( inputEvent );
-//      break;
-//    default:
-//      cerr << "ar_ClientDataThread warning:"
-//           << " ignoring invalid event type "
-//	   << inputEvent.getType() << ".\n";
-//  }
-//}
-
 void arInputNode::_lock() {
   ar_mutex_lock( &_dataSerializationLock );
 }
@@ -381,18 +360,18 @@ void arInputNode::_unlock() {
 void arInputNode::_setSignature(int numButtons, int numAxes, int numMatrices){
   // delete old storage if necessary!
   if (numButtons < 0) {
-    cerr << "arInputNode warning: attempt to set button signature < 0." << endl
-         << "   Setting to 0.\n";
+    ar_log_warning() << "arInputNode warning: attempt to set button signature < 0." << ar_endl
+                     << "   Setting to 0.\n";
     numButtons = 0;
   }
   if (numAxes < 0) {
-    cerr << "arInputNode warning: attempt to set axis signature < 0." << endl
-         << "   Setting to 0.\n";
+    ar_log_warning() << "arInputNode warning: attempt to set axis signature < 0." << ar_endl
+                     << "   Setting to 0.\n";
     numAxes = 0;
   }
   if (numMatrices < 0) {
-    cerr << "arInputNode warning: attempt to set matrix signature < 0." << endl
-         << "   Setting to 0.\n";
+    ar_log_warning() << "arInputNode warning: attempt to set matrix signature < 0." << ar_endl
+                     << "   Setting to 0.\n";
     numMatrices = 0;
   }
   _inputState.setSignature( (unsigned int) numButtons,
@@ -408,7 +387,7 @@ void arInputNode::_remapData( unsigned int channelNumber, arStructuredData* data
                        _inputState.getNumberAxes(),
                        _inputState.getNumberMatrices() };
   if (!data->dataIn(_inp._SIGNATURE,sig,AR_INT,3)) {
-    cerr << "arInputNode warning: problem in receiveData.\n";
+    ar_log_error() << "arInputNode error: problem in receiveData.\n";
   }
 
   // loop through events.  For each event, change its index to 
@@ -416,14 +395,14 @@ void arInputNode::_remapData( unsigned int channelNumber, arStructuredData* data
   // don't get collisions.
   unsigned int i, buttonOffset=0, axisOffset=0, matrixOffset=0;
   if (!_inputState.getButtonOffset( channelNumber, buttonOffset ))
-    cerr << "arInputNode warning: failed to get button offset for device"
-         << channelNumber << " from arInputState.\n";
+    ar_log_warning() << "arInputNode warning: failed to get button offset for device"
+                     << channelNumber << " from arInputState.\n";
   if (!_inputState.getAxisOffset( channelNumber, axisOffset ))
-    cerr << "arInputNode warning: failed to get axis offset for device"
-         << channelNumber << " from arInputState.\n";
+    ar_log_warning() << "arInputNode warning: failed to get axis offset for device"
+                     << channelNumber << " from arInputState.\n";
   if (!_inputState.getMatrixOffset( channelNumber, matrixOffset ))
-    cerr << "arInputNode warning: failed to get matrix offset for device"
-         << channelNumber << " from arInputState.\n";
+    ar_log_warning() << "arInputNode warning: failed to get matrix offset for device"
+                     << channelNumber << " from arInputState.\n";
   
   int numEvents = data->getDataDimension(_inp._TYPES);
   for (i=0; (int)i<numEvents; ++i) {
@@ -442,8 +421,8 @@ void arInputNode::_remapData( unsigned int channelNumber, arStructuredData* data
         = eventIndex +matrixOffset;
     }
     else
-      cerr << "arInputNode warning: ignoring unexpected eventType\n"
-           << "  (not button, axis, or matrix).\n";
+      ar_log_error() << "arInputNode error: ignoring unexpected eventType\n"
+                     << "  (not button, axis, or matrix).\n";
   }
 }
 
@@ -454,12 +433,12 @@ void arInputNode::_filterEventQueue( arInputEventQueue& queue ) {
   for (f = _inputFilterList.begin(); f != _inputFilterList.end(); ++f) {
      arInputState* statePtr = NULL;
      if (stateIter == _filterStates.end()) {
-      cerr << "arInputNode error: reading past end of filterStates array.\n";
+      ar_log_error() << "arInputNode error: reading past end of filterStates array.\n";
       statePtr = &_inputState; // do something that may not be too bad? or return?
     } else
       statePtr = (arInputState*)&(*stateIter);
     if (!(*f)->filter( &queue, statePtr ))
-      cerr << "arInputNode warning: filter # " << filterNumber << " failed.\n";
+      ar_log_error() << "arInputNode warning: filter # " << filterNumber << " failed.\n";
     ++filterNumber;
     ++stateIter;
   }

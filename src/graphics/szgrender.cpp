@@ -11,6 +11,7 @@
 #include "arFramerateGraph.h"
 #include "arGUIWindowManager.h"
 #include "arGUIXMLParser.h"
+#include "arLogStream.h"
 
 arGraphicsClient* graphicsClient = NULL;
 arFramerateGraph  framerateGraph;
@@ -52,7 +53,7 @@ bool loadParameters(arSZGClient& cli){
 void shutdownAction(){
   // Do not do this again while an exit is already pending.
   if (!exitFlag){
-    cout << "szgrender remark: shutdown.\n";
+    ar_log_remark() << "szgrender remark: shutdown.\n";
     exitFlag = true;
     // This command guarantees we'll get to the end of _cliSync.consume().
     graphicsClient->_cliSync.skipConsumption();
@@ -86,7 +87,7 @@ void messageTask(void* pClient){
     }
     if (messageType=="screenshot"){
       if (dataPath == "NULL"){
-	cerr << "szgrender warning: empty SZG_DATA/path, screenshot failed.\n";
+	ar_log_warning() << "szgrender warning: empty SZG_DATA/path, screenshot failed.\n";
       }
       else{
         if (messageBody != "NULL"){
@@ -116,20 +117,20 @@ void messageTask(void* pClient){
 	ar_mutex_unlock(&pauseLock);
       }
       else
-        cerr << "szgrender warning: unexpected messageBody \""
-	     << messageBody << "\".\n";
+        ar_log_warning() << "szgrender warning: unexpected messageBody \""
+	                 << messageBody << "\".\n";
     }
     if (messageType=="color"){
       float theColors[3] = {0,0,0};
       if (messageBody == "off"){
-	cout << "szgrender remark: color override off.\n";
+	ar_log_remark() << "szgrender remark: color override off.\n";
         graphicsClient->setOverrideColor(arVector3(-1,-1,-1));
       }
       else{
 	ar_parseFloatString(messageBody, theColors, 3); 
-        cout << "szgrender remark: screen color ("
-	     << theColors[0] << ", " << theColors[1] << ", "
-	     << theColors[2] << ").\n";
+        ar_log_remark() << "szgrender remark: screen color ("
+	                << theColors[0] << ", " << theColors[1] << ", "
+	                << theColors[2] << ").\n";
         graphicsClient->setOverrideColor(arVector3(theColors));
       }
     }
@@ -193,16 +194,19 @@ int main(int argc, char** argv){
     }
   }
 
+  ar_log().setStream(szgClient.initResponse());
+  
   // we expect to be able to get a lock on the computer's screen
   string screenLock = szgClient.getComputerName() + string("/")
                       + szgClient.getMode("graphics");
   int graphicsID;
   if (!szgClient.getLock(screenLock, graphicsID)){
-    cout << "szgrender error: failed to get screen resource held by component "
-	 << graphicsID 
-         << ".\n(Kill that component to proceed.)\n";
-    if (!szgClient.sendInitResponse(false))
-      cerr << "szgrender error: maybe szgserver died.\n";
+    ar_log_error() << "szgrender error: failed to get screen resource held by component "
+	           << graphicsID 
+                   << ".\n(Kill that component to proceed.)\n";
+    if (!szgClient.sendInitResponse(false)){
+      ar_log_error() << "szgrender error: maybe szgserver died.\n";
+    }
     return 1;
   }
 
@@ -211,9 +215,12 @@ int main(int argc, char** argv){
   graphicsClient->addFrameworkObject(&framerateGraph);
 
   // we inited
-  if (!szgClient.sendInitResponse(true))
-    cerr << "szgrender error: maybe szgserver died.\n";
-
+  if (!szgClient.sendInitResponse(true)){
+    ar_log_error() << "szgrender error: maybe szgserver died.\n";
+  }
+  
+  ar_log().setStream(szgClient.startResponse());
+  
   ar_mutex_init(&pauseLock);
   arThread dummy(messageTask, &szgClient);
 
@@ -230,7 +237,7 @@ int main(int argc, char** argv){
   graphicsClient->setWindowManager(windowManager);
 
   if (!loadParameters(szgClient)){
-    cout << "szgrender remark: Parameter loading failed.\n";
+    ar_log_remark() << "szgrender remark: Parameter loading failed.\n";
   }
   
 
@@ -244,9 +251,12 @@ int main(int argc, char** argv){
   windowManager->findFramelock();
 
   // we've started
-  if (!szgClient.sendStartResponse(true))
-    cerr << "szgrender error: maybe szgserver died.\n";
+  if (!szgClient.sendStartResponse(true)){
+    ar_log_error() << "szgrender error: maybe szgserver died.\n";
+  }
 
+  ar_log().setStream(cout);
+  
   while (!exitFlag){ 
     ar_mutex_lock(&pauseLock);
     while (pauseFlag){

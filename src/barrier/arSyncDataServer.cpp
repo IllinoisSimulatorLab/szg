@@ -6,6 +6,7 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arSyncDataServer.h"
+#include "arLogStream.h"
 
 void ar_syncDataServerConnectionTask(void* pv){
   arSyncDataServer* server = (arSyncDataServer*)pv;
@@ -90,7 +91,7 @@ void arSyncDataServer::_sendTask(){
     _localProducerReady = 2;
     _localProducerReadyVar.signal();
     ar_mutex_unlock(&_localProducerReadyLock);
-    cout << "arSyncDataServer remark: send thread done.\n";
+    ar_log_remark() << "arSyncDataServer remark: send thread done.\n";
     _sendThreadRunning = false;
     return;
   }
@@ -154,7 +155,7 @@ void arSyncDataServer::_sendTask(){
       _barrierServer.localSync();
     }
   }
-  cout << "arSyncDataServer remark: send thread done.\n";
+  ar_log_remark() << "arSyncDataServer remark: send thread done.\n";
   _sendThreadRunning = false;
 }
 
@@ -187,8 +188,8 @@ bool arSyncDataServer::setMode(int theMode){
   if (theMode != AR_SYNC_AUTO_SERVER
       && theMode != AR_SYNC_MANUAL_SERVER
       && theMode != AR_NOSYNC_MANUAL_SERVER){
-    cerr << "arDataSyncServer error: invalid operating mode "
-         << theMode << ".\n";
+    ar_log_error() << "arDataSyncServer error: invalid operating mode "
+                   << theMode << ".\n";
     return false;
   }
   _mode = theMode;
@@ -200,7 +201,7 @@ bool arSyncDataServer::setMode(int theMode){
 // respectively). 
 bool arSyncDataServer::setDictionary(arTemplateDictionary* dictionary){
   if (!dictionary) {
-    cerr << "arSyncDataServer error: NULL dictionary.\n";
+    ar_log_error() << "arSyncDataServer error: NULL dictionary.\n";
     return false;
   }
   _dictionary = dictionary;
@@ -235,21 +236,17 @@ void arSyncDataServer::setChannel(string channel){
 /// Sets things up, but does not start the various threads
 bool arSyncDataServer::init(arSZGClient& client){
   if (_locallyConnected){
-    cerr << "arSyncDataServer error: init should not be called if "
-	 << "locally connected.\n";
+    ar_log_error() << "arSyncDataServer error: init should not be called if "
+	           << "locally connected.\n";
     return false;
   }
   // HMMMM! This is a little weird... There is not much consistency between the
   // way calls are broken-up in my various init's and start's. 
   // Should they be combined
   // into one????
-
-  // NOTE: it is important that we attempt to get the messages logged to
-  // the arSZGClient's message logging functionality.
-  stringstream& initStream = client.initResponse();
   if (_channel == "NULL"){
-    initStream << "arSyncDataServer error: "
-	       << "channel not set before init(...).\n";
+    ar_log_error() << "arSyncDataServer error: "
+	           << "channel not set before init(...).\n";
     return false;
   }
   _client = &client;
@@ -261,7 +258,7 @@ bool arSyncDataServer::init(arSZGClient& client){
   _dataServer.smallPacketOptimize(true);
   int port = -1;
   if (!_client->registerService(_serviceName,_channel,1,&port)){
-    initStream << "arSyncDataServer error: failed to register service.\n";
+    ar_log_error() << "arSyncDataServer error: failed to register service.\n";
     return false;
   }
 
@@ -274,19 +271,19 @@ bool arSyncDataServer::init(arSZGClient& client){
       success = true;
       break;
     }
-    initStream << "arSyncDataServer warning: failed to listen on "
-	       << "brokered port, retrying.\n";
+    ar_log_warning() << "arSyncDataServer warning: failed to listen on "
+	             << "brokered port, retrying.\n";
     _client->requestNewPorts(_serviceName,_channel,1,&port);
     _dataServer.setPort(port);
   }
   if (!success){
     // failed to bind to ports
-    initStream << "arSyncDataServer error: failed to listen on "
-               << "brokered port.\n";
+    ar_log_error() << "arSyncDataServer error: failed to listen on "
+                   << "brokered port.\n";
     return false;
   }
   if (!_client->confirmPorts(_serviceName,_channel,1,&port)){
-    initStream << "arSyncDataServer error: failed to confirm ports.\n";
+    ar_log_error() << "arSyncDataServer error: failed to confirm ports.\n";
     return false;
   }
   // end of copy-paste
@@ -294,10 +291,10 @@ bool arSyncDataServer::init(arSZGClient& client){
   _barrierServer.setServiceName(_serviceNameBarrier);
   _barrierServer.setChannel(_channel);
   if (!_barrierServer.init(client)) {
-    initStream << "arSyncDataServer error: barrier server failed to init.\n";
+    ar_log_error() << "arSyncDataServer error: barrier server failed to init.\n";
     return false;
   }
-  initStream << "arSyncDataServer remark: initialized.\n";
+  ar_log_remark() << "arSyncDataServer remark: initialized.\n";
   return true;
 }
 
@@ -306,21 +303,17 @@ bool arSyncDataServer::start(){
     // Note that we don't do much if only locally connected
     // COPY/PASTE from below!
     if (!_sendThread.beginThread(ar_syncDataServerSendTask,this)) {
-      cerr << "arSyncDataServer error: failed to start send thread.\n";
+      ar_log_error() << "arSyncDataServer error: failed to start send thread.\n";
       return false;
     }
     return true;
   }
 
   // This is what we do in the case of network connections (i.e. traditional)
-
-  // NOTE: it is important that we log the start messages to the logging
-  // facility of the arSZGClient
   if (!_client){
-    cout << "arSyncDataServer error: init was not called before start.\n";
+    ar_log_error() << "arSyncDataServer error: init was not called before start.\n";
     return false;
   }
-  stringstream& startResponse = _client->startResponse();
 
   // note that it is very important that we synchronize the local production
   // loop with the loops that are occuring on other machines.
@@ -344,20 +337,20 @@ bool arSyncDataServer::start(){
   _barrierServer.setSignalObject(&_signalObject);
   // Start the various services.
   if (!_barrierServer.start()) {
-    startResponse << "arSyncDataServer error: "
-		  << "failed to start barrier server.\n";
+    ar_log_error() << "arSyncDataServer error: "
+		   << "failed to start barrier server.\n";
     return false;
   }
   if (!_connectionThread.beginThread(ar_syncDataServerConnectionTask,this)) {
-    startResponse << "arSyncDataServer error: "
-	          << "failed to start connection thread.\n";
+    ar_log_error() << "arSyncDataServer error: "
+	           << "failed to start connection thread.\n";
     return false;
   }
   if (!_sendThread.beginThread(ar_syncDataServerSendTask,this)) {
-    startResponse << "arSyncDataServer error: failed to start send thread.\n";
+    ar_log_error() << "arSyncDataServer error: failed to start send thread.\n";
     return false;
   }
-  startResponse << "arSyncDataServer remark: started.\n";
+  ar_log_remark() << "arSyncDataServer remark: started.\n";
   return true;
 }
 
@@ -386,7 +379,7 @@ void arSyncDataServer::stop(){
 void arSyncDataServer::swapBuffers(){
   // this call should not even be made in the following case!
   if (_mode == AR_SYNC_AUTO_SERVER){
-    cout << "arSyncDataServer remark: ignoring swapBuffers() in sync mode.\n";
+    ar_log_remark() << "arSyncDataServer remark: ignoring swapBuffers() in sync mode.\n";
     return;
   }
   _signalObject.sendSignal();

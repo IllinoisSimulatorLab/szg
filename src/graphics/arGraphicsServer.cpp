@@ -8,6 +8,7 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arGraphicsServer.h"
+#include "arLogStream.h"
 
 bool ar_graphicsServerConnectionCallback(void* server,
 					 arQueuedData*,
@@ -41,7 +42,7 @@ bool arGraphicsServer::_connectionCallback(list<arSocket*>* socketList) {
        iSocket != socketList->end();
        ++iSocket){
     if (!dataServer->sendDataQueue(_connectionQueue,*iSocket)){
-      cerr << "arGraphicsServer warning: connection send failed.\n";
+      ar_log_error() << "arGraphicsServer warning: connection send failed.\n";
       ok = false;
     }
   }

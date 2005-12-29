@@ -9,6 +9,7 @@
 #include "arGraphicsHeader.h"
 #include "arSTLalgo.h"
 #include "arSZGClient.h"
+#include "arLogStream.h"
 
 arInputSimulator::arInputSimulator() :
   _numButtonEvents(0),
@@ -21,7 +22,7 @@ arInputSimulator::arInputSimulator() :
   buttons.push_back(0);
   buttons.push_back(2);
   if (!setMouseButtons( buttons )) {
-    cerr << "arInputSimulator warning: setMouseButtons() failed in constructor.\n";
+    ar_log_error() << "arInputSimulator warning: setMouseButtons() failed in constructor.\n";
   }
   setNumberButtonEvents( 8 );
 //  _mouseButton[0] = 0;
@@ -47,32 +48,18 @@ arInputSimulator::arInputSimulator() :
 //  _driver.setSignature(6,2,2);
 }
 
-//  arSlashString mouseButtonString( realMouseButtons );
-//  int numItems = mouseButtonString.size();
-//  int* mouseButtons = new int[numItems];
-//  if (!mouseButtons) {
-//    cerr << "arInputSimulator error: new[] failed.\n";
-//    return false;
-//  }
-//  int numValues = ar_parseIntString( realMouseButtons, mouseButtons, numItems );
-//  if (numValues != numItems) {
-//    cerr << "arInputSimulator error: ar_parseIntString() yielded wrong number of indices.\n";
-//    delete[] mouseButtons;
-//    return false;
-//  }
-
 bool arInputSimulator::configure( arSZGClient& SZGClient ) {
   arSlashString mouseButtonString = SZGClient.getAttribute( "SZG_INPUTSIM", "mouse_buttons" );
   int numItems = mouseButtonString.size();
   int* mouseButtons = new int[numItems];
   if (!mouseButtons) {
-    cerr << "arInputSimulator error: new[] failed.\n";
+    ar_log_error() << "arInputSimulator error: new[] failed.\n";
     return false;
   }
   int numValues = ar_parseIntString( mouseButtonString, mouseButtons, numItems );
   if (numValues != numItems) {
-    cerr << "arInputSimulator warning: can't configure mouse buttons from SZG_INPUTSIM/mouse_buttons.\n"
-         << "   Using default: 0 (left) and 2 (right).\n";
+    ar_log_warning() << "arInputSimulator warning: can't configure mouse buttons from SZG_INPUTSIM/mouse_buttons.\n"
+                     << "   Using default: 0 (left) and 2 (right).\n";
     delete[] mouseButtons;
   } else {
     std::vector<unsigned int> mouseButtonsVector;
@@ -81,14 +68,14 @@ bool arInputSimulator::configure( arSZGClient& SZGClient ) {
     }
     delete[] mouseButtons;
     if (!setMouseButtons( mouseButtonsVector )) {
-      cerr << "arInputSimulator error: setMouseButtons() failed in configure().\n";
+      ar_log_error() << "arInputSimulator error: setMouseButtons() failed in configure().\n";
     }
   }
   int numButtonEvents = SZGClient.getAttributeInt( "SZG_INPUTSIM", "number_button_events" );
   if (numButtonEvents < 2) {
-    cerr << "arInputSimulator error: The number of button events specified (" << numButtonEvents
-         << ")\n   in SZG_INPUTSIM/number_button_events is less than the minimum allowed (2).\n"
-         << "   Using default (8).\n";
+    ar_log_warning() << "arInputSimulator warning: The number of button events specified (" << numButtonEvents
+                     << ")\n   in SZG_INPUTSIM/number_button_events is less than the minimum allowed (2).\n"
+                     << "   Using default (8).\n";
     return false;
   }
   setNumberButtonEvents( (unsigned int)numButtonEvents );
@@ -101,7 +88,7 @@ bool arInputSimulator::setMouseButtons( std::vector<unsigned int>& mouseButtons 
   std::vector<unsigned int>::iterator buttonIter;
   for (buttonIter = mouseButtons.begin(); buttonIter != mouseButtons.end(); ++buttonIter) {
     if (_mouseButtons.find( *buttonIter ) != _mouseButtons.end()) {
-      cerr << "arInputSimulator error: duplicate mouse button indices found in setMouseButtons().\n";
+      ar_log_error() << "arInputSimulator error: duplicate mouse button indices found in setMouseButtons().\n";
       _mouseButtons = oldMouseButtons;
       return false;
     }
@@ -113,8 +100,8 @@ bool arInputSimulator::setMouseButtons( std::vector<unsigned int>& mouseButtons 
     }
   }
   if ((_mouseButtons.find(0) == _mouseButtons.end())||(_mouseButtons.find(2) == _mouseButtons.end())) {
-    cerr << "arInputSimulator error: mouse buttons must include 0 (left button) and 2"
-         << " (right button) in setMouseButtons().\n";
+    ar_log_error() << "arInputSimulator error: mouse buttons must include 0 (left button) and 2"
+                   << " (right button) in setMouseButtons().\n";
     _mouseButtons = oldMouseButtons;
     return false;
   }
@@ -222,7 +209,7 @@ void arInputSimulator::advance(){
   //
   // (following should never happen).
   if (_newButtonEvents.size() != _lastButtonEvents.size()) {
-    cerr << "arInputSimulator error: numbers of new & last button values have gotten out of sync.\n";
+    ar_log_error() << "arInputSimulator error: numbers of new & last button values have gotten out of sync.\n";
     return;
   }
   for (unsigned int i=0; i<_newButtonEvents.size(); ++i) {
@@ -257,7 +244,7 @@ void arInputSimulator::keyboard(unsigned char key, int, int x, int y) {
   switch (key) {
   case ' ':
     if ((rowLength == 0)||(numRows == 0)) {
-      cerr << "arInputSimulator error: no buttons in keyboard().\n";
+      ar_log_error() << "arInputSimulator error: no buttons in keyboard().\n";
       return;
     }
     ++_buttonSelector;
@@ -315,7 +302,7 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
   _mousePosition[1] = y;
 
   if (button < 0) {
-    cerr << "arInputSimulator error: button index < 0 in mouseButton().\n";
+    ar_log_error() << "arInputSimulator error: button index < 0 in mouseButton().\n";
     return;
   }
   unsigned int buttonIndex = (unsigned int)button;
@@ -325,11 +312,11 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
     std::vector<unsigned int> buttons = getMouseButtons();
     buttons.push_back( buttonIndex );
     if (!setMouseButtons( buttons )) {
-      cerr << "arInputSimulator warning: failed to add button index " << buttonIndex
-           << " to index list.\n";
+      ar_log_warning() << "arInputSimulator warning: failed to add button index " << buttonIndex
+                       << " to index list.\n";
     } else {
-      cout << "arInputSimulator remark: added button index " << buttonIndex
-           << " to index list.\n";
+      ar_log_remark() << "arInputSimulator remark: added button index " << buttonIndex
+                      << " to index list.\n";
       return;
     }
   }
@@ -350,7 +337,7 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
       }
       unsigned int eventIndex = _mouseButtons.size()*_buttonSelector + buttonOffset;
       if (eventIndex >= _newButtonEvents.size()) {
-        cerr << "arInputSimulator error: button event index out of range in mouseButton().\n";
+        ar_log_error() << "arInputSimulator error: button event index out of range in mouseButton().\n";
         return;
       }
       _newButtonEvents[eventIndex] = state;
@@ -509,7 +496,7 @@ void arInputSimulator::_drawGamepad() const {
   if (_numButtonEvents % rowLength != 0)
     ++numRows;
   if (rowLength == 0 || numRows == 0) {
-    cerr << "arInputSimulator error: no buttons in _drawGamepad().\n";
+    ar_log_error() << "arInputSimulator error: no buttons in _drawGamepad().\n";
     return;
   }
 
@@ -567,7 +554,7 @@ void arInputSimulator::_drawGamepad() const {
           glColor3f(0,1,0);
         glutSolidSphere(.4*BUTTON_SPACING,8,8);
         if (i >= _buttonLabels.size()) {
-          cerr << "arInputSimulator error: _buttonLabels too short in _drawGamepad().\n";
+          ar_log_error() << "arInputSimulator error: _buttonLabels too short in _drawGamepad().\n";
         } else {
           glDisable(GL_DEPTH_TEST);
           glColor3f( 1, 1, 1 );

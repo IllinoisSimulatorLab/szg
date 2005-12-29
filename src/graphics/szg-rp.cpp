@@ -9,6 +9,7 @@
 #define SZG_DO_NOT_EXPORT
 #include "arGraphicsPeerRPC.h"
 #include "arFramerateGraph.h"
+#include "arLogStream.h"
 
 // NOTE: arSZGClient CANNOT BE GLOBAL ON WINDOWS. THIS IS BECAUSE 
 // OF OUR METHOD OF INITIALIZING WINSOCK (USING GLOBALS).
@@ -58,7 +59,7 @@ arGraphicsPeer* createNewPeer(const string& name){
   graphicsPeer->queueData(true);
   graphicsPeer->init(*szgClient);
   if (!graphicsPeer->start()){
-    cerr << "szg-rp error: init of peer failed.\n";
+    ar_log_error() << "szg-rp error: init of peer failed.\n";
     return NULL;
   }
   graphicsPeer->setTexturePath(peerTexturePath);
@@ -317,7 +318,7 @@ void messageTask(void* pClient){
     int messageID = cli->receiveMessage(&messageType,&messageBody);
     if (!messageID){
       // This should only occur when the szgserver quits.
-      cerr << "szg-rp error: problem in receiving message.\n";
+      ar_log_error() << "szg-rp error: problem in receiving message.\n";
       exit(0);
     }
     if (messageType == "quit"){
@@ -385,7 +386,7 @@ void messageTask(void* pClient){
     }
     // return the message response.
     if (!cli->messageResponse(messageID, responseBody)){
-      cerr << "szg-rp error: message response failed.\n";
+      ar_log_error() << "szg-rp error: message response failed.\n";
     }
   }
 }
@@ -572,7 +573,7 @@ int main(int argc, char** argv){
   if (!(*szgClient)){
     return 1;
   }
-  stringstream& initResponse = szgClient->initResponse();
+  ar_log().setStream(szgClient->initResponse());
   // Check for the flag indicating that "performance" is desired.
   for (int i=0; i<argc; i++){
     if (!strcmp("-p",argv[i])){
@@ -586,34 +587,41 @@ int main(int argc, char** argv){
     }
   }
   if (argc < 2){
-    initResponse << "szg-rp usage: szg-rp <name>\n";
-    if (!szgClient->sendInitResponse(false))
-      cerr << "szg-rp error: maybe szgserver died.\n";
+    ar_log_critical() << "szg-rp usage: szg-rp <name>\n";
+    if (!szgClient->sendInitResponse(false)){
+      ar_log_error() << "szg-rp error: maybe szgserver died.\n";
+    }
     return 1;
   }
-  initResponse << "szg-rp remark: trying to run as peer=" << argv[1] << "\n";
-  if (!szgClient->sendInitResponse(true))
-    cerr << "szg-rp error: maybe szgserver died.\n";
+  ar_log_remark() << "szg-rp remark: trying to run as peer=" << argv[1] << "\n";
+  if (!szgClient->sendInitResponse(true)){
+    ar_log_error() << "szg-rp error: maybe szgserver died.\n";
+  }
   // Use locks to ensure that we have a unique workspace name.
   int componentID;
-  stringstream& startResponse = szgClient->startResponse();
+  ar_log().setStream(szgClient->startResponse());
   if (!szgClient->getLock(string("szg-rp-")+argv[1], componentID)){
-    startResponse << "szg-rp error: non-unique workspace name.\n"
-                  << "  component with ID " << componentID 
-                  << " holds this workspace.\n";
-    if (!szgClient->sendStartResponse(false))
-      cerr << "szg-rp error: maybe szgserver died.\n";
+    ar_log_error() << "szg-rp error: non-unique workspace name.\n"
+		   << "  component with ID " << componentID 
+                   << " holds this workspace.\n";
+    if (!szgClient->sendStartResponse(false)){
+      ar_log_error() << "szg-rp error: maybe szgserver died.\n";
+    }
     return 1;
   }
   if (!loadParameters(*szgClient)){
-    startResponse << "szg-rp error: failed to load parameters.\n";
-    if (!szgClient->sendStartResponse(false))
-      cerr << "szg-rp error: maybe szgserver died.\n";
+    ar_log_error() << "szg-rp error: failed to load parameters.\n";
+    if (!szgClient->sendStartResponse(false)){
+      ar_log_error() << "szg-rp error: maybe szgserver died.\n";
+    }
   }
 
-  startResponse << "szg-rp remark: started.\n";
-  if (!szgClient->sendStartResponse(true))
-    cerr << "szg-rp error: maybe szgserver died.\n";
+  ar_log_remark() << "szg-rp remark: started.\n";
+  if (!szgClient->sendStartResponse(true)){
+    ar_log_error() << "szg-rp error: maybe szgserver died.\n";
+  }
+  
+  ar_log().setStream(cout);
 
   arThread messageThread(messageTask, szgClient);
 

@@ -342,14 +342,14 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void _unpackInputData( void );
   
   // Functions pertaining to initing/starting services.
-  bool _determineMaster( std::stringstream& initResponse );
+  bool _determineMaster( void );
   bool _initStandaloneObjects( void );
   bool _startStandaloneObjects( void );
-  bool _initMasterObjects( std::stringstream& initResponse );
-  bool _initSlaveObjects( std::stringstream& initResponse );
-  bool _startMasterObjects( std::stringstream& startResponse );
+  bool _initMasterObjects( void );
+  bool _initSlaveObjects( void );
+  bool _startMasterObjects( void );
   bool _startInput( void );
-  bool _startSlaveObjects( std::stringstream& startResponse );
+  bool _startSlaveObjects( void );
   bool _startObjects( void );
   bool _start( bool useWindowing, bool useEventLoop );
   bool _startrespond( const std::string& s );

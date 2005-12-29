@@ -10,9 +10,9 @@
 arLogStream::arLogStream():
   // By default, we log to cout.
   _output(&cout),
-  _header("szg_log_test"),
-  _maxLineLength(100),
-  _logLevel(AR_LOG_ERROR),
+  _header("szg_log"),
+  _maxLineLength(200),
+  _logLevel(AR_LOG_DEBUG),
   _currentLevel(AR_LOG_CRITICAL){
 }
 

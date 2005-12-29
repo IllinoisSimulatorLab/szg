@@ -730,6 +730,7 @@ bool arDistSceneGraphFramework::_initStandaloneMode(){
   if (!_initInput()){
     return false;
   }
+  ar_log_remark() << "arDistSceneGraphFramework remark: standalone mode objects successfully initialized.\n";
   return true;
 }
 
@@ -770,6 +771,7 @@ bool arDistSceneGraphFramework::_startStandaloneMode(){
     // _windowsCreated is set by createWindows() in ar_distSceneGraphFrameworkTask.
     if (!_windowsCreated){
       // Important to *stop* the services that have already been started (before exiting).
+      // Hmmm.... maybe this actually makes segfaults...
       //stop(true);
       return false;
     }
@@ -777,10 +779,12 @@ bool arDistSceneGraphFramework::_startStandaloneMode(){
   else{
     if (!createWindows(true)){
       // Important to *stop* the services that have already been started (before exiting).
+      // Hmmm... maybe this actually makes segfaults...
       //stop(true);
       return false;
     }
   }
+  ar_log_remark() << "arDistSceneGraphFramework remark: standalone mode objects successfully started.\n";
   return true;
 }
 

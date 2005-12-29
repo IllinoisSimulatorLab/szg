@@ -207,8 +207,7 @@ class SZG_CALL arSZGAppFramework {
     bool _parseNavParamString( const string& theString,
                                arInputEventType& type,
                                unsigned int& index,
-                               float& threshold,
-                               stringstream& initStream );
+                               float& threshold );
     bool _paramNotOwned( const std::string& theString );
     
 };

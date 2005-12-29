@@ -13,6 +13,7 @@
 #include "arSoundFile.h"
 #include "arThread.h"
 #include "arSZGClient.h"
+#include "arLogStream.h"
 
 arSoundClient* soundClient = NULL;
 
@@ -23,14 +24,13 @@ string textPath;
 arSpeakerObject speakerObject;
 
 bool loadParameters(arSZGClient& cli){
-  stringstream& initResponse = cli.initResponse();
   // using the arSoundClient's configure(...) method now.
   //const string path = cli.getAttribute("SZG_SOUND", "path");
   //soundClient->setPath(path);
   soundClient->configure(&cli);
   if (soundClient->getPath() == "NULL"){
-    initResponse << "SoundRender warning: SZG_SOUND/path "
-                 << soundClient->getPath() << " invalid or undefined.\n";
+    ar_log_warning() << "SoundRender warning: SZG_SOUND/path "
+                     << soundClient->getPath() << " invalid or undefined.\n";
   }
 
   // Must remember to set up the data bundle info.
@@ -83,30 +83,38 @@ int main(int argc, char** argv){
   // impossible to get the name automatically on Win98 and we want to run
   // SoundRender on Win98
   szgClient.init(argc, argv, "SoundRender");
-  if (!szgClient)
+  if (!szgClient){
     return 1;
-
+  }
+  
+  ar_log().setStream(szgClient.initResponse());
+  
   // Only a single sound render should be running on a given computer
   // copy-pasted (more or less) from szgd.cpp
   int ownerID = -1;
   if (!szgClient.getLock(szgClient.getComputerName()+"/SoundRender", ownerID)){
-    szgClient.initResponse()
+    ar_log_error()
       << "SoundRender error: another copy is already running (pid = " 
       << ownerID << ").\n";
-    if (!szgClient.sendInitResponse(false))
-      cerr << "SoundRender error: maybe szgserver died.\n";
+    if (!szgClient.sendInitResponse(false)){
+      ar_log_error() << "SoundRender error: maybe szgserver died.\n";
+    }
     return 1;
   }
   
   // get the initial parameters
   if (!loadParameters(szgClient)){
-    if (!szgClient.sendInitResponse(false))
-      cerr << "SoundRender error: maybe szgserver died.\n";
+    if (!szgClient.sendInitResponse(false)){
+      ar_log_error() << "SoundRender error: maybe szgserver died.\n";
+    }
     return 1;
   }
   // we've succeeded in initialization
-  if (!szgClient.sendInitResponse(true))
-    cerr << "SoundRender error: maybe szgserver died.\n";
+  if (!szgClient.sendInitResponse(true)){
+    ar_log_error() << "SoundRender error: maybe szgserver died.\n";
+  }
+  
+  ar_log().setStream(szgClient.startResponse());
 
   soundClient->setSpeakerObject(&speakerObject);
   soundClient->setNetworks(szgClient.getNetworks("sound"));
@@ -117,8 +125,11 @@ int main(int argc, char** argv){
   soundClient->startDSP();
   (void)soundClient->start(szgClient);
 
-  if (!szgClient.sendStartResponse(true))
-    cerr << "SoundRender error: maybe szgserver died.\n";
+  if (!szgClient.sendStartResponse(true)){
+    ar_log_error() << "SoundRender error: maybe szgserver died.\n";
+  }
+  
+  ar_log().setStream(cout);
 
   arThread dummy(messageTask, &szgClient);
   while (true) {

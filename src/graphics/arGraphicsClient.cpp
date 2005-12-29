@@ -6,6 +6,7 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arGraphicsClient.h"
+#include "arLogStream.h"
 
 // Callback registered with the arSyncDataClient.
 bool ar_graphicsClientConnectionCallback(void*, arTemplateDictionary*){
@@ -18,7 +19,7 @@ bool ar_graphicsClientDisconnectCallback(void* client){
   // here, since this is not in the graphics thread but in the connection
   // thread!
   arGraphicsClient* c = (arGraphicsClient*) client;
-  // cout << "arGraphicsClient remark: disconnected from server.\n";
+  ar_log_remark() << "arGraphicsClient remark: disconnected from server.\n";
   // We should *delete* the bundle path information. This
   // is really unique to each connection. This information
   // lets an application have its textures elsewhere than 
@@ -69,7 +70,7 @@ void ar_graphicsClientDraw( arGraphicsClient* c, arCamera* camera) {
 // Callback registered with the arSyncDataClient.
 bool ar_graphicsClientConsumptionCallback(void* client, ARchar* buf){
   if (!((arGraphicsClient*)client)->_graphicsDatabase.handleDataQueue(buf)) {
-    cerr << "arGraphicsClient error: failed to consume buffer.\n";
+    ar_log_error() << "arGraphicsClient error: failed to consume buffer.\n";
     return false;
   }
   return true;
@@ -249,12 +250,12 @@ bool arGraphicsClient::configure(arSZGClient* client){
   string whichDisplay
     = "SZG_DISPLAY" + screenName.substr( screenName.length() - 1, 1 );
   std::string displayName  = client->getAttribute( whichDisplay, "name" );
-  std::cout << "Using display: " << whichDisplay << " : "
-            << displayName << std::endl;
+  ar_log_remark() << "Using display: " << whichDisplay << " : "
+                  << displayName << ar_endl;
   _guiParser->setConfig( client->getGlobalAttribute(displayName) );
 
   if (_guiParser->parse() < 0){
-    cout << "szgrender remark: failed to parse the XML configuration.\n";
+    ar_log_remark() << "szgrender remark: failed to parse the XML configuration.\n";
   }
 
   setTexturePath(client->getAttribute("SZG_RENDER", "texture_path"));
@@ -268,7 +269,7 @@ bool arGraphicsClient::configure(arSZGClient* client){
 bool arGraphicsClient::updateHead() {
   arHead* head = _graphicsDatabase.getHead();
   if (!head) {
-    cerr << "arGraphicsClient error: failed to update head.\n";
+    ar_log_error() << "arGraphicsClient error: failed to update head.\n";
     return false;
   }
   _defaultHead = *head;
@@ -374,7 +375,7 @@ void arGraphicsClient::takeScreenshot(bool stereo){
   arTexture* texture = new arTexture;
   texture->setPixels(buffer1,_screenshotWidth,_screenshotHeight);
   if (!texture->writeJPEG(screenshotName.c_str(),_screenshotPath)){
-    cerr << "szgrender remark: failed to write screenshot.\n";
+    ar_log_remark() << "szgrender remark: failed to write screenshot.\n";
   }
   delete texture;
   delete buffer1;

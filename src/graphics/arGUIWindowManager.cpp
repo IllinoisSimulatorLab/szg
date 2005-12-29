@@ -10,7 +10,7 @@
 #include "arStructuredData.h"
 #include "arMath.h"
 #include "arDataUtilities.h"
-
+#include "arLogStream.h"
 #include "arGUIWindowManager.h"
 #include "arGUIEventManager.h"
 #include "arGUIWindow.h"
@@ -77,7 +77,7 @@ arGUIWindowManager::arGUIWindowManager( void (*windowCallback)( arGUIWindowInfo*
   // seems to be necessary on OS X, not necessarily under linux, but probably
   // doesn't hurt to just always enable it though
   if( XInitThreads() == 0 ) {
-    std::cerr << "arGUIWindowManager warning: Could not initialize Xlib multi-threading support!" << std::endl;
+    ar_log_error() << "arGUIWindowManager error: Could not initialize Xlib multi-threading support!" << ar_endl;
   }
 
   #endif
@@ -232,7 +232,7 @@ int arGUIWindowManager::processWindowEvents( void )
   // to push any pending gui events onto their stack since they are not doing
   // this in their own thread
   if( !_threaded && ( consumeAllWindowEvents() < 0 ) ) {
-    std::cerr << "arGUIWindowManager warning: processWindowEvents: consumeAllWindowEvents Error" << std::endl;
+    ar_log_warning() << "arGUIWindowManager warning: processWindowEvents: consumeAllWindowEvents Error" << ar_endl;
   }
 
   for( WindowIterator it = _windows.begin(); it != _windows.end(); ++it ) {
@@ -277,7 +277,7 @@ int arGUIWindowManager::processWindowEvents( void )
         break;
 
         default:
-          std::cerr << "arGUIWindowManager warning: processWindowEvents: Unknown Event Type" << std::endl;
+          ar_log_warning() << "arGUIWindowManager warning: processWindowEvents: Unknown Event Type" << ar_endl;
         break;
       }
 
@@ -373,8 +373,8 @@ int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent,
 
   static bool warn = false;
   if( !warn && blocking && !_threaded ) {
-    // std::cerr << "arGUIWindowManager warning: Called addAllWMEvent with blocking == true in single threaded "
-    //           << "mode, are you sure that's what you meant to do?" << std::endl;
+    ar_log_warning() << "arGUIWindowManager warning: Called addAllWMEvent with blocking == true in single threaded "
+                     << "mode, are you sure that's what you meant to do?" << ar_endl;
     warn = true;
   }
 
@@ -824,7 +824,7 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
   // If there are more already existing than parsed windows, then delete them.
   for( ; wItr != windowIDs.end(); wItr++ ) {
     if( deleteWindow( *wItr ) < 0 ) {
-      std::cerr << "arGUIWindowManager warning: could not delete window: " << *wItr << std::endl;
+      ar_log_warning() << "arGUIWindowManager warning: could not delete window: " << *wItr << ar_endl;
     }
   }
 

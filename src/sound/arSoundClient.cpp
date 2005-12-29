@@ -7,6 +7,7 @@
 #include "arPrecompiled.h"
 #include "arSoundClient.h"
 #include "arStreamNode.h"
+#include "arLogStream.h"
 #include "fmodStub.h"
 
 // AARGH! The DSP callback DOES NOT let us pass in an object. Consequently,
@@ -62,7 +63,7 @@ bool ar_soundClientConnectionCallback(void*, arTemplateDictionary*){
  
 bool ar_soundClientDisconnectCallback(void* client){
   arSoundClient* c = (arSoundClient*) client;
-  // cout << getLabel() << " remark: disconnected from server.\n";
+  ar_log_remark() << "arSoundClient remark: disconnected from server.\n";
   // We should go ahead and *delete* the bundle path information. This
   // is really unique to each connection. This information is used to
   // let an application have its sound files in a flexible location (i.e.
@@ -147,7 +148,7 @@ bool ar_soundClientNullCallback(void*){
 bool ar_soundClientConsumptionCallback(void* client, ARchar* buffer){
   arSoundClient* c = (arSoundClient*) client;
   if (!c->_soundDatabase.handleDataQueue(buffer)) {
-    cerr << c->getLabel() << " error: failed to consume buffer.\n";
+    ar_log_error() << c->getLabel() << " error: failed to consume buffer.\n";
     return false;
   }
   return true;
@@ -181,7 +182,7 @@ bool arSoundClient::start(arSZGClient& client){
 	_dataServerRegistered = true;
         break;
       }
-      cout << "arSoundClient remark: failed to listen on brokered port.\n";
+      ar_log_error() << "arSoundClient error: failed to listen on brokered port.\n";
       client.requestNewPorts(serviceName,"input",1,&port);
     }
     // If no success, we'll just go ahead and let this feature go.
@@ -217,7 +218,7 @@ void arSoundClient::startDSP(){
     return;
   _dspStarted = true;
 #ifdef EnableSound
-  cout << "arSoundClient remark: DSP started.\n";
+  ar_log_remark() << "arSoundClient remark: DSP started.\n";
   _DSPunit = FSOUND_DSP_Create(ar_soundClientDSPCallback,
 			       FSOUND_DSP_DEFAULTPRIORITY_USER+20, 0);
   FSOUND_DSP_SetActive(_DSPunit,1);
@@ -240,7 +241,7 @@ void arSoundClient::setDSPTap(void (*callback)(float*)){
 
 bool arSoundClient::_initSound(){
 #ifndef EnableSound
-  cerr << "syzygy warning: FMOD disabled, compiled with stub.\n";
+  ar_log_critical() << "syzygy warning: FMOD disabled, compiled with stub.\n";
   return false;
 
 #else
@@ -257,23 +258,22 @@ bool arSoundClient::_initSound(){
 #ifndef AR_USE_DARWIN
   // actually not needed, according to fmod docs
   if (FSOUND_SetMixer(FSOUND_MIXER_QUALITY_FPU) == 0){
-    cout << "arSoundClient error: Set mixer request failed!\n";
+    ar_log_error() << "arSoundClient error: Set mixer request failed!\n";
     return false;
   }
 #else
   if (FSOUND_SetMixer(FSOUND_MIXER_QUALITY_AUTODETECT) == 0){
-    cout << "arSoundClient error: Set mixer request failed!\n";
+    ar_log_error() << "arSoundClient error: Set mixer request failed!\n";
     return false;
   }
 #endif
-  cout << getLabel() << " remark: FMOD using output " 
-       << FSOUND_GetOutput() << endl;
+  ar_log_remark() << getLabel() << " remark: FMOD using output " 
+                  << FSOUND_GetOutput() << ar_endl;
   // EXPERIMENTING WITH CHANGING THE FMOD INIT IN ARSOUNDCLIENT SO THAT
   // IT IS LIKE THE INIT IN THE LIGHT SHOW...
   //if (!FSOUND_Init(44100, 20, FSOUND_INIT_USEDEFAULTMIDISYNTH))
   if (!FSOUND_Init(44100, 32, 0)){
-    cerr << getLabel() << " error: FMOD audio failed to initialize.\n";
-      // << FMOD_ErrorString(FSOUND_GetError()) << endl;
+    ar_log_error() << getLabel() << " error: FMOD audio failed to initialize.\n";
     return false;
   }
 
@@ -289,7 +289,7 @@ bool arSoundClient::_initSound(){
 string arSoundClient::_processStreamInfo(const string& body){
   int nodeID = -1;
   if (!ar_stringToIntValid(body, nodeID)){
-    cerr << "arSoundClient error: stream_info message had invalid ID.\n";
+    ar_log_error() << "arSoundClient error: stream_info message had invalid ID.\n";
     return string("SZG_ERROR");
   }
 
@@ -299,7 +299,7 @@ string arSoundClient::_processStreamInfo(const string& body){
   arDatabaseNode* node = _soundDatabase.getNode(nodeID);
   if (!node || 
       node->getTypeCode() != AR_S_STREAM_NODE){
-    cerr << "arSoundClient error: stream_info message failed to find node.\n";
+    ar_log_error() << "arSoundClient error: stream_info message failed to find node.\n";
     return string("SZG_ERROR");
   }
 
