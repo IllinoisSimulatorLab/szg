@@ -82,7 +82,7 @@ class SZG_CALL arAppLauncher{
                      const string& value);
   bool _prepareCommand();
   void _setNumberPipes(int);
-  bool _setPipeName(int,stringstream&);
+  bool _setPipeName(int);
   string _screenName(int i);
   void _addService(const string& computer, const string& process,
                    const string& context, const string& tradingTag,
