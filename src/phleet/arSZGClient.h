@@ -226,12 +226,9 @@ class SZG_CALL arSZGClient{
 
   bool sendReload(const string& computer, const string& processLabel);
 
-  bool getVerbosity() const
-  { return _verbosity; }
-  bool connected() const
-    { return _connected; }
-  operator bool() const
-    { return _connected; }
+  int getLogLevel() const { return _logLevel; }
+  bool connected() const { return _connected; }
+  operator bool() const { return _connected; }
 
  private:
   arPhleetConfigParser _configParser;
@@ -278,7 +275,9 @@ class SZG_CALL arSZGClient{
   bool          _simpleHandshaking;
   bool          _parseSpecialPhleetArgs;
   stringstream  _initResponseStream;
+  int           _initialInitLength;
   stringstream  _startResponseStream;
+  int           _initialStartLength;
   // Member related to service registration/discovery. NOTE: we want to be
   // able to use the service/registration/discovery functions in multiple
   // threads.
@@ -288,8 +287,8 @@ class SZG_CALL arSZGClient{
   arStructuredDataParser* _dataParser;
   arThread                _clientDataThread;
   
-  // Should the component which owns us be VERBOSE in printing remarks?
-  bool _verbosity;
+  // How verbose should our owning component be when printing remarks?
+  int _logLevel;
 
   // Internal functions follow.
   bool _dialUpFallThrough();
@@ -309,7 +308,7 @@ class SZG_CALL arSZGClient{
   bool _send(const char* diagnostic);
   bool _setLabel(const string& label);
   string _generateLaunchInfoHeader();
-  bool _sendResponse(stringstream&, const char*, bool, bool);
+  bool _sendResponse(stringstream&, const char*, int, bool, bool);
 
   // functions dealing with the local parameter database (as will only
   // be used in standalone mode)

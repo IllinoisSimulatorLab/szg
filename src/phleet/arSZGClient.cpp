@@ -50,13 +50,15 @@ arSZGClient::arSZGClient():
   _dexHandshaking(false),
   _simpleHandshaking(true),
   _parseSpecialPhleetArgs(true),
+  _initialInitLength(0),
+  _initialStartLength(0),
   _nextMatch(0),
   _beginTimer(false),
   _requestedName(""),
   _dataRequested(false),
   _keepRunning(true),
   _justPrinting(false),
-  _verbosity(false)
+  _logLevel(AR_LOG_ERROR)
 {
   // temporary... this will be overwritten in init(...)
   _exeName.assign("Syzygy client");
@@ -279,7 +281,9 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
       // Pack the init stream and the start stream with headers.
       // These include important configuration information (like the "context").
       _initResponseStream << _generateLaunchInfoHeader();
+      _initialInitLength = _initResponseStream.str().length();
       _startResponseStream << _generateLaunchInfoHeader();
+      _initialStartLength = _startResponseStream.str().length();
       
       if (_dexHandshaking){
 	// Shake hands with dex.
@@ -320,11 +324,16 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
 }
 
 /// Common core of sendInitResponse() and sendStartResponse().
-bool arSZGClient::_sendResponse(stringstream& s, const char* sz,
-                                bool ok, bool fNotFinalMessage) {
+bool arSZGClient::_sendResponse(stringstream& s, 
+				const char* sz,
+				int initialStreamLength,
+                                bool ok, 
+				bool fNotFinalMessage) {
+  // We might output to the terminal below. However, only do this if there has been new
+  // stuff after the header.
+  bool printInfo = s.str().length() > initialStreamLength ? true : false;
   // Append a standard success or failure message to the stream.
   s << _exeName << " component " << sz << (ok ? " ok.\n" : " failed.\n");
-
   if (_dexHandshaking && !_simpleHandshaking){
     // Another message to dex.
     if (!messageResponse(_launchingMessageID, s.str(), fNotFinalMessage)){
@@ -334,8 +343,11 @@ bool arSZGClient::_sendResponse(stringstream& s, const char* sz,
     }
   }
   else{
-    // Nowhere to send the message.
-    ar_log_remark() << s.str();
+    // Nowhere to send the message. Might as well go to the terminal.
+    // This MUST go to cout and not to the logging stream (it'll just disappear in this case).
+    if (printInfo){
+      cout << s.str();
+    }
   }
   return true;
 }
@@ -347,7 +359,7 @@ bool arSZGClient::_sendResponse(stringstream& s, const char* sz,
 /// response). Otherwise, the init failed and we'll
 /// not be sending another response, so this should be the final one.
 bool arSZGClient::sendInitResponse(bool ok){
-  return _sendResponse(_initResponseStream, "initialization", ok, ok);
+  return _sendResponse(_initResponseStream, "initialization", _initialInitLength, ok, ok);
 }
 
 /// If we have launched via szgd/dex, send the start message stream
@@ -355,7 +367,7 @@ bool arSZGClient::sendInitResponse(bool ok){
 /// just print the stream. This is the final response to the launch message
 /// regardless, though the parameter does alter the message sent or printed.
 bool arSZGClient::sendStartResponse(bool ok){
-  return _sendResponse(_startResponseStream, "start", ok, false);
+  return _sendResponse(_startResponseStream, "start", _initialStartLength, ok, false);
 }
 
 void arSZGClient::closeConnection(){
@@ -2497,7 +2509,7 @@ string arSZGClient::createComplexServiceName(const string& serviceName){
 /// Used, for instance, in generating the launch info header.
 string arSZGClient::createContext(){
   string result(string("virtual=")+_virtualComputer+string(";")+
-    string("mode/default=")+_mode);
+    string("mode/default=")+_mode+string(";")+string("log=")+ar_logLevelToString(_logLevel));
 
   // Additional mode stuff.
   if (_graphicsMode != "NULL")
@@ -2815,13 +2827,9 @@ bool arSZGClient::_parseContextPair(const string& thePair){
   else if (pair1Type == "user"){
     _userName = pair2;
   }
-  else if (pair1Type == "verbose"){
-    if (pair2 == "true"){
-      _verbosity = true; 
-    }
-    else{
-      _verbosity = false;
-    }
+  else if (pair1Type == "log"){
+    _logLevel = ar_stringToLogLevel(pair2);
+    ar_log().setLogLevel(_logLevel);
   }
   else{
     ar_log_error() << _exeName << " error: context pair has unknown type \""

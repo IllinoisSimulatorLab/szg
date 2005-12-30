@@ -23,6 +23,9 @@ enum{
   AR_LOG_DEBUG=5
 };
 
+SZG_CALL int ar_stringToLogLevel(const string& logLevel);
+SZG_CALL string ar_logLevelToString(int logLevel);
+
 class SZG_CALL arLogStream{
   friend SZG_CALL arLogStream& ar_log_critical();
   friend SZG_CALL arLogStream& ar_log_error();
@@ -71,7 +74,6 @@ class SZG_CALL arLogStream{
   void _finish();
   void _flushLogBuffer(bool addReturn=true);
   void _setCurrentLevel(int currentLevel);
-  string _levelToString(int level);
 };
 
 // Using the singleton pattern.

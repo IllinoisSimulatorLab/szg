@@ -8,6 +8,7 @@
 
 #include "arMath.h"
 #include "arSZGClient.h"
+#include "arLogStream.h"
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
@@ -66,5 +67,6 @@ class SZG_CALL arHead {
 };
 
 SZG_CALL ostream& operator<<(ostream& s, arHead& h);
+SZG_CALL arLogStream& operator<<(arLogStream& s, arHead& h);
 
 #endif // AR_HEAD_H

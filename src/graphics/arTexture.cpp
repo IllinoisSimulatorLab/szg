@@ -7,6 +7,7 @@
 #include "arPrecompiled.h"
 #include "arDataUtilities.h"
 #include "arTexture.h" 
+#include "arLogStream.h"
 
 #ifdef EnableJPEG
 // it is necessary to have the extern declaration
@@ -67,7 +68,7 @@ arTexture::arTexture( const arTexture& rhs ) :
 
   _pixels = new char[ numbytes() ];
   if (!_pixels) {
-    cerr << "arTexture error: _pixels allocation failed in copy constructor.\n";
+    ar_log_error() << "arTexture error: _pixels allocation failed in copy constructor.\n";
     return;
   }
   memcpy(_pixels, rhs._pixels, numbytes());
@@ -92,9 +93,9 @@ arTexture& arTexture::operator=( const arTexture& rhs ) {
   // inside it. 
   if (_reallocPixels()) {
     memcpy(_pixels, rhs._pixels, numbytes());
-    cout << "arTexture remark: copied " << numbytes() << " bytes.\n";
+    ar_log_remark() << "arTexture remark: copied " << numbytes() << " bytes.\n";
   } else {
-    cerr << "arTexture error: _reallocPixels() failed in operator=().\n";
+    ar_log_remark() << "arTexture error: _reallocPixels() failed in operator=().\n";
   }
   return *this;
 }
@@ -119,8 +120,8 @@ arTexture::arTexture( const arTexture& rhs,
   // A new chunk of memory gets returned.
   _pixels = rhs.getSubImage( left, bottom, width, height );
   if (!_pixels) {
-    cerr << "arTexture error: rhs.getSubImage() failed in sub-image copy "
-	 << "constructor.\n";
+    ar_log_error() << "arTexture error: rhs.getSubImage() failed in sub-image copy "
+	           << "constructor.\n";
     _width = 0;
     _height = 0;
   } else {
@@ -156,10 +157,10 @@ void arTexture::unref(bool debug){
   bool mustDelete = _refs == 0 ? true : false;
   if (debug){
     if (mustDelete){
-      cout << "arTexture will be deleted. Ref count zero.\n";
+      ar_log_remark() << "arTexture will be deleted. Ref count zero.\n";
     }
     else{
-      cout << "arTexture will not be deleted. Ref count nonzero.\n";
+      ar_log_remark() << "arTexture will not be deleted. Ref count nonzero.\n";
     }
   }
   _lock.unlock();
@@ -182,7 +183,7 @@ bool arTexture::activate(bool forceRebind) {
   if (i == _texNameMap.end()){
     glGenTextures(1,&temp);
     if (temp == 0) {
-      cerr << "arTexture error: glGenTextures() failed in activate().\n";
+      ar_log_error() << "arTexture error: glGenTextures() failed in activate().\n";
       _lock.unlock();
       return false;
     }
@@ -218,7 +219,7 @@ bool arTexture::dummy() {
   _alpha = false;
   _textureFunc = GL_MODULATE;
   if (!_reallocPixels()) {
-    cerr << "arTexture error: _reallocPixels() failed in dummy().\n";
+    ar_log_error() << "arTexture error: _reallocPixels() failed in dummy().\n";
     return false;
   }
   for (int i = _height*_width - 1; i>=0; --i) {
@@ -256,7 +257,7 @@ char* arTexture::getSubImage( unsigned int left, unsigned int bottom,
   int depth = getDepth();
   char* newPixels = new char[width*height*depth];
   if (!newPixels) {
-    cerr << "arTexture error: memory allocation failed in getSubImage().\n";
+    ar_log_error() << "arTexture error: memory allocation failed in getSubImage().\n";
     return NULL;
   }
   char *newPtr = newPixels;
@@ -313,8 +314,8 @@ bool arTexture::readImage(const string& fileName,
   }
   
   // if we've made it here, there must have been an unknown extension
-  cerr << "arTexture error: asked to read image with unsupported extension ("
-       << extension << ")\n";
+  ar_log_error() << "arTexture error: asked to read image with unsupported extension ("
+                 << extension << ")\n";
   return false;  
 }
 
@@ -336,8 +337,8 @@ bool arTexture::readPPM(const string& fileName,
   FILE* fd = ar_fileOpen(fileName, subdirectory, path, "rb");
   if (!fd){
     if (complain){
-      cerr << "arTexture error: readPPM(...) could not open file\n  "
-	   << fileName << " for reading.\n";
+      ar_log_error() << "arTexture error: readPPM(...) could not open file\n  "
+	             << fileName << " for reading.\n";
     }
     return false;
   }
@@ -345,9 +346,9 @@ bool arTexture::readPPM(const string& fileName,
   char PPMHeader[3];
   fscanf(fd, "%s ", PPMHeader);
   if (strcmp(PPMHeader, "P3") && strcmp(PPMHeader, "P6")) {
-    cerr << "arTexture error: Unexpected header \""
-	 << PPMHeader << "\" in PPM file \""
-	 << "\" (not in binary format?).\n";
+    ar_log_error() << "arTexture error: Unexpected header \""
+	           << PPMHeader << "\" in PPM file \""
+	           << "\" (not in binary format?).\n";
     return false;
   }
   
@@ -372,7 +373,7 @@ bool arTexture::readPPM(const string& fileName,
   fscanf(fd, "%d", &maxGrey);
   _alpha = (alpha != -1);
   if (!_reallocPixels()){
-    cerr << "arTexture error: _reallocPixels() failed in readPPM().\n";
+    ar_log_error() << "arTexture error: _reallocPixels() failed in readPPM().\n";
     fclose(fd);
     return false;
   }
@@ -389,7 +390,7 @@ bool arTexture::readPPM(const string& fileName,
     // BINARY PPM FILE
     char* localBuffer = new char[ _width*_height*3 ];
     if (!localBuffer) {
-      cerr << "arTexture error: localBuffer allocation failed in readPPM().\n";
+      ar_log_error() << "arTexture error: localBuffer allocation failed in readPPM().\n";
       return false;
     }
     fread(localBuffer, _width*_height*3, 1, fd);
@@ -439,10 +440,10 @@ bool arTexture::writePPM(const string& fileName, const string& subdirectory,
   FILE* fp = ar_fileOpen(fileName, subdirectory, path, "wb");
 
   if (fp == NULL) {
-    cerr << "arTexture error: could not write ppm with\n"
-	 << " file name = " << fileName << "\n"
-	 << " on subdirectory (" << subdirectory << ")\n"
-	 << " of path (" << path << ")\n";
+    ar_log_error() << "arTexture error: could not write ppm with\n"
+	           << " file name = " << fileName << "\n"
+	           << " on subdirectory (" << subdirectory << ")\n"
+	           << " of path (" << path << ")\n";
     return false;
   }
   fprintf(fp,"P6\n");
@@ -452,7 +453,7 @@ bool arTexture::writePPM(const string& fileName, const string& subdirectory,
   // pixel data in RGB format
   char* buffer = _packPixels();
   if (!buffer) {
-    cerr << "arTexture error: _packPixels() failed in writePPM().\n";
+    ar_log_error() << "arTexture error: _packPixels() failed in writePPM().\n";
     return false;
   }
   fwrite(buffer,1,_height*_width*3,fp);
@@ -479,8 +480,8 @@ bool arTexture::readJPEG(const string& fileName,
   FILE* fd = ar_fileOpen(fileName, subdirectory, path, "rb");
   if (!fd) {
     if (complain) {
-      cerr << "arTexture error: readJPEG(...) could not open file\n  "
-  	   << fileName << " for reading.\n";
+      ar_log_error() << "arTexture error: readJPEG(...) could not open file\n  "
+  	             << fileName << " for reading.\n";
     }
     return false;
   }
@@ -503,7 +504,7 @@ bool arTexture::readJPEG(const string& fileName,
   _height = _cinfo.output_height;
   _alpha = (alpha != -1);
   if (!_reallocPixels()){
-    cerr << "arTexture error: _reallocPixels() failed in readJPEG().\n";
+    ar_log_error() << "arTexture error: _reallocPixels() failed in readJPEG().\n";
     fclose(fd);
     return false;
   }
@@ -546,7 +547,7 @@ bool arTexture::readJPEG(const string& fileName,
   
   return true;
 #else
-  cout << "arTexture warning: jpeg library not present. Could not read.\n";
+  ar_log_error() << "arTexture warning: jpeg library not present. Could not read.\n";
   return false;
 #endif
 }
@@ -573,17 +574,17 @@ bool arTexture::writeJPEG(const string& fileName, const string& subdirectory,
   FILE* outFile = ar_fileOpen(fileName, subdirectory, path, "wb");
 
   if (outFile == NULL) {
-    cerr << "arTexture error: could not write jpeg with\n"
-	 << " file name = " << fileName << "\n"
-	 << " on subdirectory (" << subdirectory << ")\n"
-	 << " of path (" << path << ")\n";
+    ar_log_error() << "arTexture error: could not write jpeg with\n"
+	           << " file name = " << fileName << "\n"
+	           << " on subdirectory (" << subdirectory << ")\n"
+	           << " of path (" << path << ")\n";
     return false;
   }
 
   // we might be (internally) in RGBA format
   char* buf1 = _packPixels();
   if (!buf1) {
-    cerr << "arTexture error: _packPixels() failed in writeJPEG().\n";
+    ar_log_error() << "arTexture error: _packPixels() failed in writeJPEG().\n";
     return false;
   }
 
@@ -613,7 +614,7 @@ bool arTexture::writeJPEG(const string& fileName, const string& subdirectory,
   delete [] buf1;
   return true;
 #else
-  cout << "arTexture warning: jpeg library not present. Could not write.\n";
+  ar_log_error() << "arTexture warning: jpeg library not present. Could not write.\n";
   return false;
 #endif
 }
@@ -631,7 +632,7 @@ bool arTexture::fill(int w, int h, bool alpha, const char* pixels) {
     _height = h;
     _alpha = alpha;
     if (!_reallocPixels()) {
-      cerr << "arTexture error: _reallocPixels() failed in fill().\n";
+      ar_log_error() << "arTexture error: _reallocPixels() failed in fill().\n";
       return false;
     }
   }
@@ -647,13 +648,13 @@ bool arTexture::fill(int w, int h, bool alpha, const char* pixels) {
 
 bool arTexture::flipHorizontal() {
   if (!_pixels) {
-    cerr << "arTexture warning: flipHorizontal() called with no pixels.\n";
+    ar_log_error() << "arTexture warning: flipHorizontal() called with no pixels.\n";
     return false;
   }
   char *temp = _pixels;
   _pixels = new char[numbytes()];
   if (!_pixels) {
-    cerr << "arTexture error: memory allocation failed in flipHorizontal().\n";
+    ar_log_error() << "arTexture error: memory allocation failed in flipHorizontal().\n";
     return false;
   }
   const int depth = getDepth();
@@ -710,7 +711,7 @@ void arTexture::_assignAlpha(int alpha){
 char* arTexture::_packPixels(){
   char* buffer = new char[_width*_height*3];
   if (!buffer) {
-    cerr << "arTexture error: buffer allocation failed in _packPixels().\n";
+    ar_log_error() << "arTexture error: buffer allocation failed in _packPixels().\n";
     return NULL;
   }
   const int depth = getDepth();

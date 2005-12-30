@@ -20,6 +20,18 @@ ostream& operator<<(ostream& s, arHead& h) {
   return s;
 }
 
+arLogStream& operator<<(arLogStream& s, arHead& h) {
+  s << "Head:\n  Matrix:\n" << h.getMatrix()
+  << "  MidEyeOffset    : " << h.getMidEyeOffset() << ar_endl
+  << "  EyeDirection    : " << h.getEyeDirection() << ar_endl
+  << "  EyeSpacing      : " << h.getEyeSpacing() << ar_endl
+  << "  ClipPlanes      : " << h.getNearClip() << ", " 
+  << h.getFarClip() << ar_endl
+  << "  UnitConversion  : " << h.getUnitConversion() << ar_endl
+  << "  FixedHeadMode   : " << h.getFixedHeadMode() << ar_endl;
+  return s;
+}
+
 arHead::arHead() :
   _midEyeOffset(0,0,0),
   _eyeDirection(1,0,0),
@@ -31,8 +43,6 @@ arHead::arHead() :
 }
 
 bool arHead::configure( arSZGClient& client ) {
-  stringstream& initResponse = client.initResponse();
-  
   // Eye/head parameters, set on master/controller only
   if (!client.getAttributeFloats( "SZG_HEAD", "eye_spacing", &_eyeSpacing )){
     _eyeSpacing = 0.2;
@@ -47,10 +57,7 @@ bool arHead::configure( arSZGClient& client ) {
 
   _fixedHeadMode = client.getAttribute("SZG_HEAD", "fixed_head_mode", "|false|true|") == "true";
 
-  // Only print this information if, in fact, the arSZGClient is in *verbose* mode.
-  if (client.getVerbosity()){
-    initResponse << "arHead remark: head configuration: " << *this << endl;
-  }
+  ar_log_remark() << "arHead remark: head configuration: " << *this << ar_endl;
   return true;
 }
 

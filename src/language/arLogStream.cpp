@@ -7,18 +7,65 @@
 #include "arPrecompiled.h"
 #include "arLogStream.h"
 
+int ar_stringToLogLevel(const string& logLevel){
+  if (logLevel == "SILENT"){
+    return AR_LOG_SILENT;
+  }
+  else if (logLevel == "CRITICAL"){
+    return AR_LOG_CRITICAL;
+  }
+  else if (logLevel == "ERROR"){
+    return AR_LOG_ERROR;
+  }
+  else if (logLevel == "WARNING"){
+    return AR_LOG_WARNING;
+  }
+  else if (logLevel == "REMARK"){
+    return AR_LOG_REMARK;
+  }
+  else if (logLevel == "DEBUG"){
+    return AR_LOG_DEBUG;
+  }
+  else{
+    // Hmmm. The default should probably be the most verbose.
+    return AR_LOG_DEBUG; 
+  }
+}
+
+string ar_logLevelToString(int logLevel){
+  switch(logLevel){
+    case AR_LOG_SILENT:
+      return string("SILENT");
+    case AR_LOG_CRITICAL:
+      return string("CRITICAL");
+    case AR_LOG_ERROR:
+      return string("ERROR");
+    case AR_LOG_WARNING:
+      return string("WARNING");
+    case AR_LOG_REMARK:
+      return string("REMARK");
+    case AR_LOG_DEBUG:
+      return string("DEBUG");
+    default:
+      return string("GARBAGE");
+  }
+}
+
 arLogStream::arLogStream():
   // By default, we log to cout.
   _output(&cout),
-  _header("szg_log"),
+  _header("szg"),
   _maxLineLength(200),
-  _logLevel(AR_LOG_DEBUG),
+  _logLevel(AR_LOG_ERROR),
   _currentLevel(AR_LOG_CRITICAL){
 }
 
 void arLogStream::setStream(ostream& externalStream){
   _lock.lock();
-  _flushLogBuffer(true);
+  // Only flush the buffer if there is, in fact, something in it.
+  if (_buffer.str().length() > 0){
+    _flushLogBuffer(true);
+  }
   _output = &externalStream;
   _lock.unlock();
 }
@@ -189,7 +236,7 @@ void arLogStream::_finish(){
 void arLogStream::_flushLogBuffer(bool addReturn){
   // Only send to the stream if the level works out.
   if (_currentLevel <= _logLevel){
-    (*_output) << _header << ":" << _levelToString(_currentLevel) << ":" << _buffer.str();
+    (*_output) << _header << ":" << ar_logLevelToString(_currentLevel) << ":" << _buffer.str();
     if (addReturn){
       (*_output) << "\n";
     }
@@ -203,25 +250,6 @@ void arLogStream::_setCurrentLevel(int currentLevel){
   _lock.lock();
   _currentLevel = currentLevel;
   _lock.unlock();
-}
-
-string arLogStream::_levelToString(int level){
-  switch(level){
-  case AR_LOG_SILENT:
-    return string("SILENT");
-  case AR_LOG_CRITICAL:
-    return string("CRITICAL");
-  case AR_LOG_ERROR:
-    return string("ERROR");
-  case AR_LOG_WARNING:
-    return string("WARNING");
-  case AR_LOG_REMARK:
-    return string("REMARK");
-  case AR_LOG_DEBUG:
-    return string("DEBUG");
-  default:
-    return string("GARBAGE");
-  }
 }
 
 arLogStream& ar_log(){

@@ -11,6 +11,7 @@
 #include "arWildcatUtilities.h"
 #include "arDataUtilities.h"
 #include "arThread.h"
+#include "arLogStream.h"
 
 namespace arWildcatNamespace {
   bool __inited = false;
@@ -49,8 +50,8 @@ void ar_useWildcatFramelock( bool isOn ) {
 void ar_findWildcatFramelock() {
 #ifdef AR_USE_WIN_32
   if (!__inited){
-    cerr << "arWildcatUtilities warning: calling ar_findWildcatFramelock "
-	 << "\n  before calling ar_useWildcatFramelock(...). Disabling.\n";
+    ar_log_warning() << "arWildcatUtilities warning: calling ar_findWildcatFramelock "
+	             << "\n  before calling ar_useWildcatFramelock(...). Disabling.\n";
     ar_useWildcatFramelock( false );
   }
   ar_mutex_lock( &__wildcatMutex );
@@ -60,12 +61,12 @@ void ar_findWildcatFramelock() {
         = (WGLENABLEFRAMELOCKI3DFUNCPTR) 
             wglGetProcAddress("wglEnableFrameLockI3D");
       if (__wglEnableFrameLockI3D == 0) {
-        cout << "wglEnableFrameLockI3D not found.\n";
+        ar_log_error() << "wglEnableFrameLockI3D not found.\n";
       }
       __wglDisableFrameLockI3D = (WGLDISABLEFRAMELOCKI3DFUNCPTR)
         wglGetProcAddress("wglDisableFrameLockI3D");
       if (__wglDisableFrameLockI3D == 0) {
-        cout << "wglDisableFrameLockI3D not found.\n";
+        ar_log_error() << "wglDisableFrameLockI3D not found.\n";
       }
   }
   ar_mutex_unlock( &__wildcatMutex );
@@ -75,18 +76,18 @@ void ar_findWildcatFramelock() {
 void ar_activateWildcatFramelock() {
 #ifdef AR_USE_WIN_32
   if (!__inited){
-    cerr << "arWildcatUtilities warning: calling ar_activateWildcatFramelock "
-	 << "\n  before calling ar_useWildcatFramelock(...). Disabling.\n";
+    ar_log_warning() << "arWildcatUtilities warning: calling ar_activateWildcatFramelock "
+	             << "\n  before calling ar_useWildcatFramelock(...). Disabling.\n";
     ar_useWildcatFramelock( false );
   }
   ar_mutex_lock( &__wildcatMutex );
   if (!__frameLockInitted) {
     if (__wglEnableFrameLockI3D != 0 && __useWildcatFramelock) {
       if (__wglEnableFrameLockI3D() == FALSE) {
-	cout << "\nwglEnableFrameLockI3D failed.\n";
+	ar_log_error() << "\nwglEnableFrameLockI3D failed.\n";
       }
       else{
-	cout << "\nwglEnableFrameLockI3D succeeded.\n";
+	ar_log_remark() << "\nwglEnableFrameLockI3D succeeded.\n";
       }
     }
     __frameLockInitted = true;
@@ -98,19 +99,19 @@ void ar_activateWildcatFramelock() {
 void ar_deactivateWildcatFramelock() {
 #ifdef AR_USE_WIN_32
   if (!__inited){
-    cerr << "arWildcatUtilities warning: calling "
-	 << "ar_deactivateWildcatFramelock "
-	 << "\n  before calling ar_useWildcatFramelock(...). Disabling.\n";
+    ar_log_warning() << "arWildcatUtilities warning: calling "
+	             << "ar_deactivateWildcatFramelock "
+	             << "\n  before calling ar_useWildcatFramelock(...). Disabling.\n";
     ar_useWildcatFramelock( false );
   }
   ar_mutex_lock( &__wildcatMutex );
   if (__frameLockInitted){
     if (__wglDisableFrameLockI3D != 0 && __useWildcatFramelock) {
       if (__wglDisableFrameLockI3D() == FALSE) {
-        cout << "\nwglDisableFrameLockI3D() failed.\n";
+        ar_log_error() << "\nwglDisableFrameLockI3D() failed.\n";
       }
       else{
-        cout << "\nwglDisableFrameLockI3D() succeeded.\n";
+        ar_log_remark() << "\nwglDisableFrameLockI3D() succeeded.\n";
       }
       __frameLockInitted = false;
     }

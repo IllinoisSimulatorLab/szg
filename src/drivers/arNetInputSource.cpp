@@ -7,6 +7,7 @@
 #include "arPrecompiled.h"
 #include "arNetInputSource.h"
 #include "arPhleetConfigParser.h"
+#include "arLogStream.h"
 
 void ar_netInputSourceDataTask(void* parameter){
   ((arNetInputSource*)parameter)->_dataTask();
@@ -20,7 +21,7 @@ void arNetInputSource::_dataTask(){
     if (!_clientInitialized){
       _setDeviceElements(sig[0], sig[1], sig[2]);
       if (!_reconfig())
-        cerr << "arNetInputSource warning: failed to reconfigure source (#1).\n";
+        ar_log_error() << "arNetInputSource warning: failed to reconfigure source (#1).\n";
       _clientInitialized = true;
     }
     else{
@@ -32,7 +33,7 @@ void arNetInputSource::_dataTask(){
           sig[2] != _numberMatrices){
         _setDeviceElements(sig[0], sig[1], sig[2]);
         if (!_reconfig())
-	  cerr << "arNetInputSource warning: failed to reconfigure source (#2).\n";
+	  ar_log_warning() << "arNetInputSource warning: failed to reconfigure source (#2).\n";
       }
     }
     // relay the data to the input sink
@@ -41,7 +42,7 @@ void arNetInputSource::_dataTask(){
   _clientConnected = false; // we've lost our connection
   _setDeviceElements(0,0,0);
   if (!_reconfig())
-    cerr << "arNetInputSource warning: failed to reconfigure source (#3).\n";
+    ar_log_warning() << "arNetInputSource warning: failed to reconfigure source (#3).\n";
 }
 
 void ar_netInputSourceConnectionTask(void* inputClient){
@@ -58,22 +59,22 @@ void ar_netInputSourceConnectionTask(void* inputClient){
     arPhleetAddress result =
       i->_client->discoverService(serviceName, networks, true);
     if (!result.valid){
-      cerr << "arNetInputSource warning: no service \""
-	   << serviceName << "\" on network \""
-           << networks << "\".\n";
+      ar_log_warning() << "arNetInputSource warning: no service \""
+	               << serviceName << "\" on network \""
+                       << networks << "\".\n";
       continue;
     }
     // we know there is exactly one port for this service
     if (!i->_dataClient.dialUpFallThrough(result.address, result.portIDs[0])){
-      cerr << "arNetInputSource warning: "
-           << "retrying connection to service "
-	   << serviceName << " at "
-	   << result.address << ":" << result.portIDs[0] << ".\n";
+      ar_log_warning() << "arNetInputSource warning: "
+                       << "retrying connection to service "
+	               << serviceName << " at "
+	               << result.address << ":" << result.portIDs[0] << ".\n";
       continue;
     }
-    cout << "arNetInputSource remark: connected to service "
-         << serviceName << " at "
-	 << result.address << ":" << result.portIDs[0] << ".\n";
+    ar_log_remark() << "arNetInputSource remark: connected to service "
+                    << serviceName << " at "
+	            << result.address << ":" << result.portIDs[0] << ".\n";
     i->_clientConnected = true;
     ar_usleep(100000);
     arThread dummy(ar_netInputSourceDataTask, i);
@@ -104,7 +105,7 @@ arNetInputSource::arNetInputSource(){
 /// @param slot the slot in question
 void arNetInputSource::setSlot(int slot){
   if (slot<0){
-    cerr << "arNetInputSource warning: ignoring negative input device slot.\n";
+    ar_log_warning() << "arNetInputSource warning: ignoring negative input device slot.\n";
     return;
   }
   _slot = slot;
@@ -119,17 +120,17 @@ bool arNetInputSource::init(arSZGClient& SZGClient){
   // annoyingly, the arSZGClient must
   // be saved for future use in connection brokering.
   _client = &SZGClient;
-  _client->initResponse() << "arNetInputSource remark: initialized.\n";
+  ar_log_remark() << "arNetInputSource remark: initialized.\n";
   return true;
 }
 
 bool arNetInputSource::start(){
   if (!_client){
-    cerr << "arNetInputSource error: start called before init.\n";
+    ar_log_warning() << "arNetInputSource error: start called before init.\n";
     return false;
   }
   arThread dummy(ar_netInputSourceConnectionTask, this);
-  _client->startResponse() << "arNetInputSource remark: started.\n";
+  ar_log_remark() << "arNetInputSource remark: started.\n";
   return true;
 }
 
