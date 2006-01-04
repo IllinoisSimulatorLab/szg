@@ -4,6 +4,7 @@ from PySZG import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from OpenGL.GLUT import *
+import random
 
 #### More complex master/slave framework skeleton example. Demonstrates
 #### a method (based on the arMasterSlaveDict class in PySZG) for
@@ -20,7 +21,7 @@ from OpenGL.GLUT import *
 # Unit conversions.  Tracker (and cube screen descriptions) use feet.
 # Atlantis, for example, uses 1/2-millimeters, so the appropriate conversion
 # factor is 12*2.54*10.*2.
-LOCAL_UNITS_PER_FOOT = 1.
+FEET_TO_LOCAL_UNITS = 1.
 
 
 #### Class definitions & implementations. ####
@@ -78,7 +79,7 @@ class ColoredSquare(arPyInteractable):
     glutWireCube(1.03)
     glPopMatrix()
 
-  # These two routines are required by the arMasterSlaveListSync. All
+  # These two routines are required by the arMasterSlaveDict. All
   # state that must be shared between master and slaves has to be packed
   # into a tuple for each object. Note that the __init__ _MUST_ be able
   # to accept the same tuple as an argument.
@@ -117,10 +118,10 @@ class RodEffector( arEffector ):
     glMultMatrixf( self.getCenterMatrix().toTuple() )
     # draw grey rectangular solid 2"x2"x5'
     glScalef( 2./12, 2./12., 5. )
-    glColor3f( .5,.5,.5 )
+    glColor3fv( (.5,.5,.5) )
     glutSolidCube(1.)
     # superimpose slightly larger black wireframe (makes it easier to see shape)
-    glColor3f(0,0,0)
+    glColor3fv( (0.,0.,0.) )
     glutWireCube(1.03)
     glPopMatrix()
 
@@ -144,34 +145,24 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     # See arMasterSlaveDict.__doc__ for more information.
     # Note that you can have multiple arMasterSlaveDicts with different names in one
     # application, if desired.
-    self.dictionary = arMasterSlaveDict( 'objects', [('ColoredSquare',ColoredSquare)] )
-
-    # Create a square
-    theSquare = ColoredSquare( self.dictionary )
-    # set square's initial position
-    theSquare.setMatrix( ar_translationMatrix(0,5,-6) )
-    # Insert it in the dictionary, using an implicit integer key that's incremented after
-    # each push() (if you've manually inserted something using an integer key--e.g
-    # self.dictionary[1] = Foo()--it will skip it and go on until if finds an unused key).
-    # This method is special to arMasterSlaveDict.
-    self.dictionary.push( theSquare )
+    self.dictionary = arMasterSlaveDict( 'objects', [ColoredSquare] )
 
     # Instantiate our effector
     self.theWand = RodEffector()
 
     # Tell the framework what units we're using.
-    self.setUnitConversion( LOCAL_UNITS_PER_FOOT )
+    self.setUnitConversion( FEET_TO_LOCAL_UNITS )
 
     # Near & far clipping planes.
-    nearClipDistance = .1*LOCAL_UNITS_PER_FOOT
-    farClipDistance = 100.*LOCAL_UNITS_PER_FOOT
+    nearClipDistance = .1*FEET_TO_LOCAL_UNITS
+    farClipDistance = 100.*FEET_TO_LOCAL_UNITS
     self.setClipPlanes( nearClipDistance, farClipDistance )
 
 
   #### Framework callbacks -- see szg/src/framework/arMasterSlaveFramework.h ####
 
   # start (formerly init) callback (called in arMasterSlaveFramework::start())
-  # NOTE: now called before window is created, so no OpenGL initialization here.
+  #
   def onStart( self, client ):
 
     # Register the dictionary of objects to be shared between master & slaves
@@ -192,12 +183,24 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     self.setNavTransSpeed( 5. )
     self.setNavRotSpeed( 30. )
     
+    if self.getMaster():
+      # Create a square
+      theSquare = ColoredSquare( self.dictionary )
+      # set square's initial position
+      x = random.uniform(-1.,1.)
+      y = random.uniform(3.,5.)
+      theSquare.setMatrix( ar_translationMatrix(x,y,-6) )
+      # Insert it in the dictionary, using an implicit integer key that's incremented after
+      # each push() (if you've manually inserted something using an integer key--e.g
+      # self.dictionary[1] = Foo()--it will skip it and go on until if finds an unused key).
+      # This method is special to arMasterSlaveDict.
+      self.dictionary.push( theSquare )
+
     return True
 
 
-  # windowStartGL callback. OpenGL initialization goes here.
-  #
   def onWindowStartGL( self, winInfo ):
+    # OpenGL initialization
     glClearColor(0,0,0,0)
 
 

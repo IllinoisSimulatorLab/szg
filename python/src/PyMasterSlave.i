@@ -1,4 +1,4 @@
-// $Id: PyMasterSlave.i,v 1.22 2005/12/14 18:37:48 schaeffr Exp $
+// $Id: PyMasterSlave.i,v 1.23 2006/01/03 21:51:34 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -1073,30 +1073,29 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
     'name' should be a string. This is used by the master/slave framework sequence data transfer
     methods, e.g. framework.initSequenceTransfer (called in the this class' start() method).
 
-    'classData' establishes a mapping between a string, a class, and a class factory. It is
-    used for two functions: First, whenever you try to insert an object into the arMasterSlaveDict,
+    'classData' contains information about the classes of objects that will be inserted into the
+    arMasterSlaveDict: First, whenever you try to insert an object into the arMasterSlaveDict,
     it is checked against the set of classes that you have provided; if not present, TypeError
     is raised. Second, if you insert an object into the dictionary in the master instance of
     your application, it is used to construct an instance of the same class in the slaves.
     You have to provide an entry for each class of object that you intent to insert
-    in this container.  classData can be either a list or a tuple. Each item must be a tuple
-    containing either 2 or 3 items. The first item must be a string; typically, it should be
-    the name of the class in quotes. The second item should be an unambiguous reference to the
-    class object (see below for examples). The third, optional item should be a reference to a
+    in this container.  classData can be either a list or a tuple. Each item must be either
+    (1) an unambiguous reference to the class itself, or (2) a tuple containing two items,
+    the class reference and a callable class factory. The class factory should be a reference to a
     callable object that takes no parameters and returns an object of the specified class
-    (a 'class factory'). If the class factory item is not presented, then the class itself will
+    If the class factory item is not presented, then the class itself will
     be used as the factory; it will be called without arguments (again, see below), so the class
-    must provide a zero-argument constructor. Take three examples:
+    must provide a zero-argument constructor (i.e. __init__(self)). Take three examples:
 
     1) You've defined class Foo, either in the current file or in a module Bar that youve imported
     using 'from Bar import *'. Now  the class object Foo is in the global namespace. So you could call
-    self.dict = arMasterSlaveDict( 'mydict', [('Foo',Foo)] ).
-    In this case, inserted objects are type-checked against the type of Foo and the class itself is
+    self.dict = arMasterSlaveDict( 'mydict', [Foo] ).
+    In this case, inserted objects are type-checked against Foo and the class itself is
     used as the factory, i.e. Foo() is called to generate new instances in the slaves.
 
     2) You've defined class Foo in module Bar and imported it using 'import Bar'. Now Foo is not in the
     global namespace, it's in the Bar namespace. So you would call
-    self.dict = arMasterSlaveDict( 'mydict', [('Foo',Bar.Foo)] ).
+    self.dict = arMasterSlaveDict( 'mydict', [Bar.Foo] ).
     Now, objects you insert are type-checked agains Bar.Foo and Bar.Foo() is called to create new
     instances in the slaves.
 
@@ -1105,9 +1104,9 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
 
     def newFoo(self): return Foo(self)
 
-    and call self.dict = arMasterSlaveDict( 'mydict', [('Foo',Foo,self.newFoo)] ).
+    and call self.dict = arMasterSlaveDict( 'mydict', [(Foo,self.newFoo)] ).
     Now inserted objects are type-checked against Foo and framework.newFoo() is called to generate
-    new instances in slaves.
+    new instances in slaves to match instances inserted in the master.
     """
     UserDict.IterableUserDict.__init__(self)
     self._name = name
@@ -1119,30 +1118,21 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
     if type(classData) != types.TupleType and type(classData) != types.ListType:
       raise TypeError, 'arMasterSlaveDict() error: classData parameter must be a list or tuple.'
     for item in classData:
-      print type(item), types.ClassType
       if type(item) != types.TupleType and type(item) != types.ClassType and type(item) != types.TypeType:
-        raise TypeError, 'arMasterSlaveDict() error: each item of classData must be a class or a tuple.'
+        raise TypeError, 'arMasterSlaveDict() error: each item of classData must be a class or a (class,factory) tuple.'
       if type(item) == types.TupleType:
-        if len(item) < 1 or len(item) > 2:
-          raise TypeError, 'arMasterSlaveDict() error: each item of classData must contain 1 or 2 elements.'
+        if len(item) != 2:
+          raise TypeError, 'arMasterSlaveDict() error: if a tuple, each item of classData must contain 2 elements.'
         classRef = item[0]
-        if len(item) == 2:
-          classFactory = item[1]
-        else:
-          classFactory = classRef
+        classFactory = item[1]
       else:
         classRef = item
         classFactory = classRef
-      className = classRef.className
-      if type(className) != types.StringType:
-        raise TypeError, 'arMasterSlaveDict(): each item of classData must be of the form '+ \
-            '( classNameString, class [, class factory] ) (classNameString error)'
+      className = classRef.__name__
       if type(classRef) != types.ClassType and type(classRef) != types.TypeType:
-        raise TypeError, 'arMasterSlaveDict(): each item of classData must be of the form '+ \
-            '( classNameString, class [, class factory] ) (classRef error)'
+        raise TypeError, 'arMasterSlaveDict(): invalid class reference.'
       if not callable( classFactory ):
-        raise TypeError, 'arMasterSlaveDict(): each item of classData must be of the form '+ \
-            '( classNameString, class [, class factory] ) (class factory error)'
+        raise TypeError, 'arMasterSlaveDict(): invalid class constructor or factory.'
       self._classFactoryDict[className] = classFactory
   def start( self, framework ):  # call in framework onStart() method or start callback
     """ d.start( framework ).
@@ -1150,15 +1140,10 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
     framework.initSequenceTransfer( self._name )
   def packState( self, framework ):
     """ d.packState( framework ).
-    Should be called in your framework's onPreExchange(). It generates a sequence of messages
-    starting with construction and deletion messages to signal insertion or deletion of objects
-    (note that when you replace an item with one of a different type, that generates both a deletion
-    and a construction message). Then it iterates through the dictionary's contents, calls each
+    Should be called in your framework's onPreExchange(). It iterates through the dictionary's contents, calls each
     item's getState() method (which should return a sequence type containing only Ints, Floats, Strings,
-    and nested sequences) and adding a state-change message with each returned tuple to its message
-    queue. You can instead have your class' getState() method return None if an object's state has not changed,
-    in which case no message is queued for that object; you might want to do this if e.g. you had a
-    gazillion objects, only a few of which were changing state on each frame.
+    and nested sequences) and adding a state message with each returned tuple to its message
+    queue. Besides the object's state, this method contains its class and its dictionary key.
     Needless to say, all classes must provide a getState(). Finally, it calls
     framework.setSequence() to hand its message queue to the framework.
     """
@@ -1167,17 +1152,20 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
       for key in self.data:
         item = self.data[key]
         itemState = item.getState()
-        itemClass = item.className
+        itemClass = item.__class__.__name__
         messages.append( (key, itemClass, item.getState()) )
     framework.setSequence( self._name, messages )
   def unpackState( self, framework ):
     """ d.unpackState( framework ).
     Should be called in your framework's onPostExchange(), optionally only in slaves. Calls
     framework.getSequence to get the message queue from the master (see doc string for packState()),
-    applies each message to either construct a new object (using the factories specified in __init__()),
-    delete an object, or set its state using the object's setState() method. This method should expect a tuple
+    For each message in the queue, it checks whether an object with the appropriate key value already exists;
+    if not, it calls the appropriate class constructor or factory to create it. Then it set its state using
+    the objects setState() method. This method should expect a tuple
     with the same structure as that returned by getState(). For example, if your class' getState() method
-    returned a 3-element numarray array, then setState() should expect a 3-element tuple.
+    returned a 3-element numarray array, then setState() should expect a 3-element tuple. Finally, any objects
+    with keys _not_ referenced in the message queue are removed (because they have presumably been deleted
+    from the master).
     """
     keysToDelete = self.data.keys()
     messages = framework.getSequence( self._name )
@@ -1189,7 +1177,7 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
         classFactory = self._classFactoryDict[className]
         self.data[key] = classFactory()
         keysToDelete.append(key)
-      elif self.data[key].className != className:
+      elif self.data[key].__class__.__name__ != className:
         del self.data[key]
         classFactory = self._classFactoryDict[className]
         self.data[key] = classFactory()
@@ -1197,14 +1185,11 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
       keysToDelete.remove( key )
     for key in keysToDelete:
       del self.data[key]
-    # If someones been adding and deleting stuff on slaves, we need to keep this
-    # from growing uncontrollably...
   def __setitem__(self, key, newItem):
     if not type(key) in arMasterSlaveDict.keyTypes:
       raise KeyError, 'arMasterSlaveDict keys must be Ints, Floats, or Strings.'
-    newType = newItem.className
-    classFactory = self._classFactoryDict.get( newType )
-    if not classFactory:
+    newType = newItem.__class__.__name__
+    if not self._classFactoryDict.has_key( newType ):
       raise TypeError, 'arMasterSlaveDict error: non-registered type '+str(newType)+' in __setitem__().'
     self.data[key] = newItem
   def __delitem__( self, key ):
@@ -1271,7 +1256,6 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
       if grabbedObject.enabled():
         # If its grabbed an object in this set, interact only with that object.
         return grabbedObject.processInteraction( effector )
-
     # check to see if effector is already touching an object
     # if so, and it does not belong to this list, then abort
     oldTouchedObject = None
@@ -1288,7 +1272,6 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
       if not oldTouchedObject:
         return False # not an error, just means no interaction occurred
                      # with items in this list
-
     # Figure out the closest interactable to the effector (as determined
     # by their matrices). Go ahead and touch it (while untouching the
     # previously touched object if such are different).
@@ -1305,15 +1288,12 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
     newTouchedAddress = None
     if newTouchedObject:
       newTouchedAddress = ar_getAddressFromSwigPtr(newTouchedObject.this)
-
     if oldTouchedPtr and oldTouchedAddress:
       if (not newTouchedAddress) or (newTouchedAddress != oldTouchedAddress):
         oldTouchedPtr.untouch( effector )
-
     if not newTouchedObject:
       # Not touching any objects.
       return False
-
     # Finally, and most importantly, process the action of the effector on
     # the interactable.
     return newTouchedObject.processInteraction( effector )
