@@ -186,6 +186,10 @@ caveright SZG_RENDER text_path    g:\Texture\Text
 cavefloor SZG_DATA   path         c:\Data;g:\Data
 cavefloor SZG_RENDER texture_path g:\Texture
 cavefloor SZG_RENDER text_path    g:\Texture\Text
+kam3 SZG_FOB baud_rate 115200
+kam3 SZG_FOB com_port 1
+kam3 SZG_FOB config 2
+kam3 SZG_FOB hemisphere lower
 </assign>
 
 <comment> definitions of miscellaneous stuff </comment>
