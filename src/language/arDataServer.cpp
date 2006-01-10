@@ -688,9 +688,10 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
     return -1;
   }
 
-  // Now, set-up communications.
+  // Set up communications.
   arStreamConfig localConfig;
   localConfig.endian = AR_ENDIAN_MODE;
+
   // BUG: This is NOT the socket ID... but the arDataServer doesn't do
   // anything with it anyway (yet). This badly breaks symmetry. Oh well.
   // No code depends on it yet.
@@ -699,18 +700,13 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
   remoteStreamConfig = handshakeReceiveConnection(socket, localConfig);
   if (!remoteStreamConfig.valid){
     if (remoteStreamConfig.refused){
-      cout << "arDataServer remark: remote data point has closed the "
-	   << "connection.\n"
-	   << "  ARE YOU TRYING TO CONNECT FROM A BLOCKED IP?\n"
-	   << "  For instance, is your IP not on the szgserver's "
-	   << "whitelist?\n";
+      cout << "arDataServer remark: remote data point closed connection.\n"
+	   << "  (Maybe this IP address isn't on the szgserver's whitelist.)\n";
       return false;
     }
-    else{
-      cout << "arDataServer error: remote data point has wrong szg protocol "
-	   << "version = " << remoteStreamConfig.version << ".\n";
-      return false;
-    }
+    cout << "arDataServer error: remote data point has wrong szg protocol "
+	 << "version = " << remoteStreamConfig.version << ".\n";
+    return false;
   }
   
   ARchar sizeBuffer[AR_INT_SIZE];

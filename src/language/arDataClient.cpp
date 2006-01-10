@@ -63,8 +63,7 @@ bool arDataClient::getData(ARchar*& dest,int& availableSize){
                    _socket, _remoteStreamConfig)){
     return false;
   }
-  // if fEndianMode is true, then no translation is necessary
-  // else, translation is needed
+  // Iff fEndianMode is true, then no translation is necessary.
   return fEndianMode || _translateID(_translationBuffer, dest, size);
 }
 
@@ -83,12 +82,11 @@ bool arDataClient::getDataQueue(ARchar*& dest,int& availableSize){
 
   ARint destPos = 0;
   ARint srcPos = 0;
-  (void)ar_translateInt(dest,destPos,_translationBuffer,
-		  srcPos,_remoteStreamConfig);
-  const ARint numberRecords = ar_translateInt(dest,destPos,
-					      _translationBuffer,srcPos,
-					      _remoteStreamConfig);
-  for (int i=0; i<numberRecords; ++i) {	
+  (void)ar_translateInt(
+    dest, destPos, _translationBuffer, srcPos, _remoteStreamConfig);
+  const ARint numberRecords = ar_translateInt(
+    dest, destPos, _translationBuffer, srcPos, _remoteStreamConfig);
+  for (int i=0; i<numberRecords; ++i) {
     const ARint recordSize =
       ar_translateInt(_translationBuffer+srcPos, _remoteStreamConfig);
     int transSize = -1;
@@ -101,13 +99,15 @@ bool arDataClient::getDataQueue(ARchar*& dest,int& availableSize){
   return true; 
 }
 
-/// When connection occurs between two peers, they must exchange configuration
-/// information (so that each can translate the other's binary data format)
+/// When two peers connect, they exchange configuration information,
+/// so that each can translate the other's binary data format.
 bool arDataClient::_dialUpActivate(){
   arStreamConfig localConfig;
   localConfig.endian = AR_ENDIAN_MODE;
+
   // We have only one socket in this data point.
   localConfig.ID = 0;
+
   // Now, the handshaking looks like so:
   //   a. server sends config, waits for remote config.
   //   b. client waits for remote config, sends config.
@@ -117,23 +117,19 @@ bool arDataClient::_dialUpActivate(){
   // animals will be able to interoperate with the current ones, with their
   // rigid handshakes (at least to the extent that outmoded clients will not
   // hang). This is due to the buffering and async built into TCP sockets.
+
   _remoteStreamConfig = handshakeReceiveConnection(_socket, localConfig);
   if (!_remoteStreamConfig.valid){
     if (_remoteStreamConfig.refused){
-      cout << _exeName << " remark: remote data point has closed the "
-	   << "connection.\n"
-	   << "  ARE YOU TRYING TO CONNECT FROM A BLOCKED IP?\n"
-	   << "  For instance, is your IP not on the szgserver's "
-	   << "whitelist?\n";
+      cout << _exeName << " remark: remote data point closed connection.\n"
+	   << "  (Maybe this IP address isn't on the szgserver's whitelist.)\n";
       return false;
     }
-    else{
-      cout << _exeName << " error: remote data point has wrong szg protocol "
-	   << "version = " << _remoteStreamConfig.version << ".\n";
-      return false;
-    }
+    cout << _exeName << " error: remote data point has wrong szg protocol "
+	 << "version = " << _remoteStreamConfig.version << ".\n";
+    return false;
   }
-  // Must set the remote socket ID like so:
+  // Set the remote socket ID.
   _socketIDRemote = _remoteStreamConfig.ID;
 
   ARchar sizeBuffer[AR_INT_SIZE];
