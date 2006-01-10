@@ -11,7 +11,6 @@
 #include "arMath.h"
 #include "arMesh.h"
 #include "arSZGClient.h"
-#include "arThread.h"
 #include "arGraphicsAPI.h"
 #include "HypDodecahedron.h"
 #include "H3World.h"

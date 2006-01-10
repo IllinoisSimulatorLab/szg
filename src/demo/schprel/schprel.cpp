@@ -16,7 +16,6 @@
 #include "arGraphicsHeader.h"
 #include <math.h>
 
-#include "arThread.h"
 #include "arMasterSlaveFramework.h"
 #include "arMath.h"
 #include "arInterfaceObject.h"

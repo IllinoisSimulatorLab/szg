@@ -45,7 +45,6 @@
 #include <math.h>
 #include "arGraphicsHeader.h"
 #include "atlantis.h"
-#include "arThread.h"
 #include "arMasterSlaveFramework.h"
 #include "arMath.h"
 #include "arDataUtilities.h"
