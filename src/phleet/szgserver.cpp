@@ -1083,8 +1083,8 @@ void serverDiscoveryFunction(void* pv){
     if (!fromAddress.checkMask(serverAcceptMask)){
       // Do not complain if this might be a "response" packet.
       if (buffer[4] != 1){
-        cout << "szgserver remark: received a suspicious discovery packet.\n";
-        cout << " (IP address = " << fromAddress.getRepresentation() << ")\n";
+        cout << "szgserver remark: rejected discovery packet from "
+             << fromAddress.getRepresentation() << ".\n";
       }
       // Look for the next discovery packet.
       continue;
@@ -1092,8 +1092,8 @@ void serverDiscoveryFunction(void* pv){
     // Check the version number.
     if (!(buffer[0] == 0 && buffer[1] == 0 && 
           buffer[2] == 0 && buffer[3] == SZG_VERSION_NUMBER)){
-      cout << "szgserver remark: received a discovery packet with incorrect "
-	   << "format from " << fromAddress.getRepresentation() << ".\n";
+      cout << "szgserver remark: ignored misformatted discovery packet from "
+	   << fromAddress.getRepresentation() << ".\n";
       continue;
     }
     // Is this a discovery packet or a response packet?
