@@ -1722,14 +1722,12 @@ void arMasterSlaveFramework::_unpackInputData( void ){
 //    cerr << _label << " warning: failed to unpack input state data.\n";
 //  }
   _inputEventQueue.clear();
-  bool stat = ar_setEventQueueFromStructuredData( &_inputEventQueue, _transferData );
-  if (!stat) {
+  if (!ar_setEventQueueFromStructuredData( &_inputEventQueue, _transferData )) {
     ar_log_warning() << _label << " warning: failed to unpack input event queue data.\n";
   } else {
-    arInputEvent nextEvent;
-    nextEvent = _inputEventQueue.popNextEvent();
+    arInputEvent nextEvent(_inputEventQueue.popNextEvent());
     while (nextEvent) {
-      _inputState->update( nextEvent );
+      _inputState->update(nextEvent);
       nextEvent = _inputEventQueue.popNextEvent();
     }
   }

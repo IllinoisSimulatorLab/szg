@@ -436,7 +436,7 @@ void arInputNode::_filterEventQueue( arInputEventQueue& queue ) {
       ar_log_error() << "arInputNode error: reading past end of filterStates array.\n";
       statePtr = &_inputState; // do something that may not be too bad? or return?
     } else
-      statePtr = (arInputState*)&(*stateIter);
+      statePtr = (arInputState*)&*stateIter;
     if (!(*f)->filter( &queue, statePtr ))
       ar_log_error() << "arInputNode warning: filter # " << filterNumber << " failed.\n";
     ++filterNumber;
@@ -446,7 +446,7 @@ void arInputNode::_filterEventQueue( arInputEventQueue& queue ) {
 
 void arInputNode::_updateState( arInputEventQueue& queue ) {
   while (!queue.empty()) {
-    arInputEvent thisEvent = queue.popNextEvent();
+    arInputEvent thisEvent(queue.popNextEvent());
     if (thisEvent){
       _inputState.update( thisEvent );
       if (_eventCallback)
@@ -457,8 +457,8 @@ void arInputNode::_updateState( arInputEventQueue& queue ) {
     
 int arInputNode::_findUnusedFilterID() {
   std::list<arIOFilter*>::iterator iter;
-  int id(1);
-  bool done(false);
+  int id = 1;
+  bool done = false;
   while (!done) {
     done = true;
     for (iter = _inputFilterList.begin(); iter != _inputFilterList.end(); ++iter) {
