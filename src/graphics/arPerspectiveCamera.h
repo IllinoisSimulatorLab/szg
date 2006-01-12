@@ -27,12 +27,6 @@ class SZG_CALL arPerspectiveCamera: public arFrustumCamera{
 
   // each camera has an ID
   int cameraID;
-
-  // arguments to glFrustum(): left, right, bottom, top, near, far
-  float frustum[6];
-
-  // arguments to gluLookAt(): eye x,y,z; center x,y,z; up vector x,y,z
-  float lookat[9];
 };
 
 #endif

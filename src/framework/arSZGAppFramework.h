@@ -125,6 +125,9 @@ class SZG_CALL arSZGAppFramework {
     arAppLauncher* getAppLauncher(){ return &_launcher; }
     // Some applications want to do nonstandard things with the input node.
     arInputNode* getInputNode(){ return _inputDevice; }
+    // Needed for backwards compatibility, even though it does the same thing
+    // as the above.
+    arInputNode* getInputDevice(){ return _inputDevice; }
     // Allowing the user access to the window manager increases the flexibility
     // of the framework. Lots of info about the GUI becomes available.
     arGUIWindowManager* getWindowManager( void ) { return _wm; }

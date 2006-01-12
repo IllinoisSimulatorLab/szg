@@ -896,18 +896,16 @@ bool arDistSceneGraphFramework::_startPhleetMode(){
     }
     
     // Connect to the specified target, if required.
-    if (_peerTarget == "NULL"){
-      return _startRespond("unspecified target for feedback peer mode.");
+    if (_peerTarget != "NULL"){
+      if (_graphicsPeer.connectToPeer(_peerTarget) < 0){
+        return _startRespond("graphics peer failed to connect to requested target=" + _peerTarget + ".");
+      }
+      // The following sets up a feedback relationship between the local and remote peers!
+      _graphicsPeer.pushSerial(_peerTarget, _remoteRootID, 0, 
+			       AR_TRANSIENT_NODE,
+			       AR_TRANSIENT_NODE,
+			       AR_TRANSIENT_NODE);
     }
-    if (_graphicsPeer.connectToPeer(_peerTarget) < 0){
-      return _startRespond("graphics peer failed to connect to requested target=" +
-			   _peerTarget + ".");
-    }
-    // The following sets up a feedback relationship between the local and remote peers!
-    _graphicsPeer.pushSerial(_peerTarget, _remoteRootID, 0, 
-			     AR_TRANSIENT_NODE,
-			     AR_TRANSIENT_NODE,
-			     AR_TRANSIENT_NODE);
   }
   
   // Don't start the input device if we are in peer mode!

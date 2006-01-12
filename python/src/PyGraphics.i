@@ -1,4 +1,4 @@
-// $Id: PyGraphics.i,v 1.16 2005/12/28 00:02:29 schaeffr Exp $
+// $Id: PyGraphics.i,v 1.17 2006/01/11 22:02:05 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -382,7 +382,7 @@ class arHead{
 class arCamera{
  public:
   arCamera();
-  virtual ~arCamera(){}
+  virtual ~arCamera();
   void setEyeSign( float eyeSign );
   float getEyeSign() const;
   void setScreen( arGraphicsScreen* screen );
@@ -392,23 +392,42 @@ class arCamera{
   virtual void loadViewMatrices();
 };
 
-class arPerspectiveCamera: public arCamera{
+class arFrustumCamera: public arCamera{
+ public:
+  arFrustumCamera();
+  arFrustumCamera( const float* const frust, const float* const look );
+  virtual ~arFrustumCamera();
+  virtual arMatrix4 getProjectionMatrix();
+  virtual arMatrix4 getModelviewMatrix();
+  virtual std::string type() const;
+
+  void setFrustum( const float* frust );
+  void setLook   ( const float* look );
+  void setSides  ( const arVector4& sides );
+  void setPosition( const arVector3& pos );
+  void setTarget( const arVector3& target );
+  void setUp( const arVector3& up );
+  void setSides(float left, float right, float bottom, float top);
+  void setPosition(float x, float y, float z);
+  void setTarget(float x, float y, float z);
+  void setUp(float x, float y, float z);
+  void setNearFar(float nearClip, float farClip);
+
+  arVector4 getSides() const;
+  arVector3 getPosition() const;
+  arVector3 getTarget() const;
+  arVector3 getUp() const;
+  float getNear() const;
+  float getFar() const;
+};
+
+class arPerspectiveCamera: public arFrustumCamera{
  public:
   arPerspectiveCamera();
   virtual ~arPerspectiveCamera();
   virtual arMatrix4 getProjectionMatrix();
   virtual arMatrix4 getModelviewMatrix();
-  void setSides(float left, float right, float bottom, float top);
-  arVector4 getSides();
-  void setNearFar(float near, float far);
-  float getNear();
-  float getFar();
-  void setPosition(float x, float y, float z);
-  arVector3 getPosition();
-  void setTarget(float x, float y, float z);
-  arVector3 getTarget();
-  void setUp(float x, float y, float z);
-  arVector3 getUp();
+
   float getFrustumData(int i);
   float getLookatData(int i);
 
@@ -427,28 +446,13 @@ class arPerspectiveCamera: public arCamera{
 }
 };
 
-class arOrthoCamera: public arCamera{
+class arOrthoCamera: public arFrustumCamera{
  public:
   arOrthoCamera();
   virtual ~arOrthoCamera();
   virtual arMatrix4 getProjectionMatrix();
   virtual arMatrix4 getModelviewMatrix();
-  virtual std::string type( void ) const;
-  void setSides( arVector4& sides );
-  void setSides(float left, float right, float bottom, float top);
-  arVector4 getSides();
-  void setNearFar(float nearClip, float farClip);
-  float getNear();
-  float getFar();
-  void setPosition( arVector3& pos );
-  void setPosition(float x, float y, float z);
-  arVector3 getPosition();
-  void setTarget( arVector3& target );
-  void setTarget(float x, float y, float z);
-  arVector3 getTarget();
-  void setUp( arVector3& up );
-  void setUp(float x, float y, float z);
-  arVector3 getUp();
+
 %extend{
   string __repr__(void){
     ostringstream s;

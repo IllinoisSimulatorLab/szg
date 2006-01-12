@@ -316,6 +316,7 @@ class arSZGAppFramework {
     
     arAppLauncher* getAppLauncher();
     arInputNode* getInputNode();
+    arInputNode* getInputDevice();
     arGUIWindowManager* getWindowManager( void );
     arSZGClient* getSZGClient();
 };

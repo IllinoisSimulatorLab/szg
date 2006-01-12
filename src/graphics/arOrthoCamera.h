@@ -21,11 +21,6 @@ class SZG_CALL arOrthoCamera: public arFrustumCamera{
     { return (arCamera*) new arOrthoCamera( frustum, lookat ); }
 
   virtual std::string type( void ) const { return "arOrthoCamera"; }
-
-  // arguments to glOrtho()
-  float frustum[6];
-  // arguments to gluLookat()
-  float lookat[9];
 };
 
 #endif
