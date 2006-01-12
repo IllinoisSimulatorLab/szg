@@ -23,7 +23,7 @@ arMasterSlaveDataRouter::~arMasterSlaveDataRouter(){
 /// Draws all the objects connected to the arMasterSlaveDataRouter. Very
 /// simple function, just goes through the draw list, drawing each one in 
 /// turn.
-void arMasterSlaveDataRouter::draw() const {
+void arMasterSlaveDataRouter::draw(){
   map<int,arFrameworkObject*,less<int> >::const_iterator i;
   for (i = _objectTable.begin(); i != _objectTable.end(); i++){
     i->second->draw();

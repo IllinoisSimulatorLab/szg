@@ -28,7 +28,8 @@ class SZG_CALL arMasterSlaveDataRouter: public arFrameworkObject{
 
   // first, the virtual functions inherited from arFrameworkObject...
   // NOTE: only draw() is redefined.
-  virtual void draw() const;
+  // DO NOT MAKE THIS CONST!
+  virtual void draw();
   // To handle translations (like little-endian to big-endian), we need
   // to know the binary format of the remote data.
   virtual void setRemoteStreamConfig(const arStreamConfig& c);

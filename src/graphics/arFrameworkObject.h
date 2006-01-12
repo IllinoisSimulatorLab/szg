@@ -22,7 +22,8 @@ class SZG_CALL arFrameworkObject{
   // That would force all subclasses to implement them.
 
   // Framework objects like head-wand simulator can draw themselves.
-  virtual void draw() const {}
+  // DO NOT MAKE THIS CONST!
+  virtual void draw(){}
 
   // Inelegant and lacking features?
   virtual void drawWithComposition() {}
