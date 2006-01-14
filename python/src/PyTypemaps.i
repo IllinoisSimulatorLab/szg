@@ -1,4 +1,4 @@
-// $Id: PyTypemaps.i,v 1.4 2005/10/23 00:21:37 schaeffr Exp $
+// $Id: PyTypemaps.i,v 1.5 2006/01/13 21:38:18 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -162,6 +162,8 @@
       PyTuple_SetItem(tmp, 0, PyFloat_FromDouble( (*iter)[0] ));
       PyTuple_SetItem(tmp, 1, PyFloat_FromDouble( (*iter)[1] ));
       PyList_Append( $result, tmp );
+      // Must decrement the reference to tmp. Otherwise there is a HUGE memory leak.
+      Py_DECREF(tmp);
     }
   }
 }
@@ -176,6 +178,8 @@
       PyTuple_SetItem(tmp, 1, PyFloat_FromDouble( (*iter)[1] ));
       PyTuple_SetItem(tmp, 2, PyFloat_FromDouble( (*iter)[2] ));
       PyList_Append( $result, tmp );
+      // Must decrement the reference to tmp. Otherwise there is a HUGE memory leak.
+      Py_DECREF(tmp);
     }
   }
 }
@@ -191,6 +195,8 @@
       PyTuple_SetItem(tmp, 2, PyFloat_FromDouble( (*iter)[2] ));
       PyTuple_SetItem(tmp, 3, PyFloat_FromDouble( (*iter)[3] ));
       PyList_Append( $result, tmp );
+      // Must decrement the reference to tmp. Otherwise there is a HUGE memory leak.
+      Py_DECREF(tmp);
     }
   }
 }
