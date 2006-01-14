@@ -21,6 +21,12 @@ import random
 
 font = arTexFont()
 widgetList = []
+visibility = None
+billboard = None
+
+#########################################
+#              Classes                  #
+#########################################
 
 class tool:
 	# Constructor.
@@ -93,6 +99,17 @@ class wandTool(tool):
 		for n in self.lastTouches:
 			n[1].set(n[0])
 		self.lastTouches = []
+		if len(l) > 0:
+			n = l[0]
+			m = n.findByType("material")
+			if m:
+				mat = m.get()
+				self.lastTouches.append( (mat, m) )
+				# Must operate on a copy so that we do not modify the saved value!
+				mat2 = arMaterial(mat)
+				mat2.diffuse = arVector3(0,0,1)
+				m.set(mat2)
+		return
 		for n in l:
 			m = n.findByType("material")
 			if m:
@@ -129,7 +146,9 @@ class simulator(arPyInputSimulator):
 		self.oldY = 0
 		self.headMatrix = ar_TM(0,5,0)
 		self.wandMatrix = ar_TM(2,3,-1)
-		self.state = "nothing"
+		# The states for the interface are:
+		#    idle, rotating, moving_plane, moving_in_out, grabbing, head
+		self.state = "idle"
 	def onDraw(self):
 		#global g
 		#font = g.getTexFont()
@@ -137,31 +156,82 @@ class simulator(arPyInputSimulator):
 		self.camera.loadViewMatrices()
 		format = arTextBox()
 		format.upperLeft = arVector3(-1,1,0)
-		format.columns = 20
+		format.columns = 25
 		format.width = 2
 		format.lineSpacing = 1.2
-		font.renderString("WWWWWW\nfoo\nBen Schaeffer rocks!\nbar\n_____BOOYAH_____", format)
+		myText = "Interface choice:\n"
+		if self.state == "idle":
+			myText += "** "
+		else:
+			myText += "   "
+		myText += "(1) Idle\n";
+		if self.state == "rotating":
+			myText += "** "
+		else:
+			myText += "   "
+		myText += "(2) Rotate the wand\n";
+		if self.state == "moving_plane":
+			myText += "** "
+		else:
+			myText += "   "
+		myText += "(3) Move wand in plane\n";
+		if self.state == "moving_in_out":
+			myText += "** "
+		else:
+			myText += "   "
+		myText += "(4) Move wand in/out\n";
+		if self.state == "grabbing":
+			myText += "** "
+		else:
+			myText += "   "
+		myText += "(5) Rotate and grab\n";
+		if self.state == "head":
+			myText += "** "
+		else:
+			myText += "   "
+		myText += "(6) Move the head\n";
+		
+		font.renderString(myText, format)
 	def onAdvance(self):
 		self.getDriver().queueMatrix(0,self.headMatrix)
 		self.getDriver().queueMatrix(1,self.wandMatrix)
 		self.getDriver().sendQueue()
 	def onKeyboard(self, key, state, x, y):
-		print(key)
-		print(state)
-		if key == '1':
-			print("FOO!\n")
-		if key == '2':
-			print("BAR!\n")
+		# Note: the current implementation of standalone mode only sends key down events
+		# to the simulator object. HOWEVER, to future-proof our implementation here, we
+		# should make sure that we only register an event on key down (i.e. state is 1)
+		if key == '1' or key == '2' or key == '3' or key == '4' or key == '6':
+			self.getDriver().queueButton(0,0)
+			self.getDriver().sendQueue()
+		if key == '1' and state:
+			self.state = 'idle'
+		if key == '2' and state:
+			self.state = 'rotating'
+		if key == '3' and state:
+			self.state = 'moving_plane'
+		if key == '4' and state:
+			self.state = 'moving_in_out'
+		if key == '5' and state:
+			self.state = 'grabbing'
+			self.getDriver().queueButton(0,1)
+			self.getDriver().sendQueue()
+		if key == '6' and state:
+			self.state = 'head'
 	def onButton(self, button, state, x, y):
+		global visibility
 		self.oldX = x
 		self.oldY = y
-		if state == 0:
-			self.state = "nothing"
 		if button == 0 and state == 1:
-			self.state = "wand_rotate"
+			visibility.set(1 - visibility.get())
 	def onPosition(self, x, y):
-		if self.state == "wand_rotate":
-			self.wandMatrix = ar_TM(2,3,-1)*ar_RM('y', (self.oldX-x)*0.01)*ar_ERM(self.wandMatrix)
+		if self.state == 'head':
+			self.headMatrix = ar_TM(0, 0, (y-self.oldY)*0.03)*self.headMatrix
+		if self.state == "rotating" or self.state == "grabbing":
+			self.wandMatrix = ar_ETM(self.wandMatrix)*ar_RM('y', (self.oldX-x)*0.01)*ar_ERM(self.wandMatrix)
+		if self.state == 'moving_plane':
+			self.wandMatrix = ar_TM((x-self.oldX)*0.03, (self.oldY-y)*0.03, 0)*ar_ETM(self.wandMatrix)*ar_ERM(self.wandMatrix)
+		if self.state == 'moving_in_out':
+			self.wandMatrix = ar_TM(0, 0, (y-self.oldY)*0.03)*ar_ETM(self.wandMatrix)*ar_ERM(self.wandMatrix)
 		self.oldX = x
 		self.oldY = y
 		
@@ -182,12 +252,23 @@ def addLights(r):
         light.ambient = arVector3(0,0,0)
         light.diffuse = arVector3(0.5, 0.5, 0.5)
 	l.set(light)
+	l = r.new("light")
+	light = arLight()
+	light.lightID = 2
+	light.position = arVector4(0,1,0,0)
+        light.ambient = arVector3(0,0,0)
+        light.diffuse = arVector3(0.5, 0.5, 0.5)
+	l.set(light)
 	
 def addBillboard(r):
+	global visibility
+	global billboard
 	t = r.new("transform")
-	t.set(ar_TM(0,5,-3)*ar_SM(0.2,0.2,0.2))
-	b = t.new("billboard")
-	b.set("This app demonstrates how to construct\ncustom manipulation interfaces.\nPress button 1.")
+	t.set(ar_TM(0,7.3,-3)*ar_SM(0.2,0.2,0.2))
+	visibility = t.new("visibility")
+	visibility.set(1)
+	billboard = visibility.new("billboard")
+	billboard.set("This app demonstrates how to construct\ncustom manipulation interfaces.\nPress button 1 to toggle this message.")
 
 # The event processing callback. All it does is grab the events that have queued
 # since last call and send them to the items on the widget list. A very generic function.
@@ -216,6 +297,7 @@ addLights(root)
 toolTransform = root.new("transform")
 wand = wandTool()
 wand.attach(toolTransform)
+wand.touching = 1
 widgetList.append(wand)
 navNode = f.getNavNode()
 world = navNode.new("transform")
@@ -247,6 +329,9 @@ for i in range(8):
 		s.attachMesh(m)
 
 # Want this to be drawn last so that transparency works.
+# The scene graph draws things via a depth first search, with first-added children (of a particular node)
+# drawn before the later-added children. Consequently, since the billboard should be drawn last
+# (transparent things should be drawn last), we want to add it to the scene graph last.
 addBillboard(root)
 		
 if f.start() != 1:
