@@ -60,9 +60,16 @@ if [ -f $TEMP ]; then
     fi
     export SZGHOME=$LOCALDIR
     export SZGBIN=$LOCALDIR/bin
+    # File location vs. path location... darn that Cygwin name mangling!
+    export PATH=$PWD/bin:$PATH
+    # Must make sure to use windows native slashes in the PYTHONPATH
+    export PYTHONPATH=$(echo "$LOCALDIR/bin;$PYTHONPATH" | sed 's/\//\\/g')
   else 
     export SZGHOME=$PWD
     export SZGBIN=$PWD/bin
+    # Must be able to find the executables and Python modules.
+    export PATH=$PWD/bin:$PATH
+    export PYTHONPATH=$PWD/bin:$PYTHONPATH
   fi
   export SZG_DEVELOPER_STYLE=EASY
   # These variables tell Syzygy apps where to look for data (in the default
@@ -76,9 +83,6 @@ if [ -f $TEMP ]; then
   export SZG_DISPLAY1_name=virtual_cube_window
   export SZG_DISPLAY2_name=quad_window
   export SZG_DISPLAY3_name=single_window_fullscreen
-  # Must be able to find the executables and Python modules.
-  export PATH=$PWD/bin:$PATH
-  export PYTHONPATH=$PWD/bin:$PYTHONPATH
   # The OS-dependent environment variables.
   if [ $arch == "Linux" ]; then
     export LD_LIBRARY_PATH=$PWD/bin:$LD_LIBRARY_PATH
@@ -93,7 +97,6 @@ if [ -f $TEMP ]; then
       # The following are good for a standard install of Visual Studio .NET 2003.
       export include="C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\ATLMFC\\INCLUDE;C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\INCLUDE;C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\PlatformSDK\include"
       export lib="C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\ATLMFC\\Lib;C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\PlatformSDK\\Lib;C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\Lib"
-      export PATH=/usr/local/bin:/usr/bin:/bin
       export PATH="/cygdrive/c/Program Files/Microsoft Visual Studio .NET 2003/Common7/IDE:$PATH"
       export PATH="/cygdrive/c/Program Files/Microsoft Visual Studio .NET 2003/Vc7/BIN:$PATH"
       export PATH="/cygdrive/c/Program Files/Microsoft Visual Studio .NET 2003/Common7/Tools:$PATH"
@@ -101,7 +104,6 @@ if [ -f $TEMP ]; then
     elif [ -d "c:/Program Files/Microsoft Visual Studio" ]; then
       # The following are good for Visual Studio 6, a standard install.
       # Note how we need to mangle the PATH for the cygwin environment.
-      export PATH=/usr/local/bin:/usr/bin:/bin
       export PATH="/cygdrive/c/Program Files/Microsoft Visual Studio/Common/Tools/WinNT:$PATH"
       export PATH="/cygdrive/c/Program Files/Microsoft Visual Studio/Common/MSDev98/Bin:$PATH"
       export PATH="/cygdrive/c/Program Files/Microsoft Visual Studio/Common/Tools:$PATH"
