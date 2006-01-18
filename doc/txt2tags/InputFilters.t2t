@@ -1,0 +1,48 @@
+Syzygy Documentation: Input Event Filters
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+Input event filters are all subclasses of the arIOFilter class.
+Filters are attached to an //arInputNode//
+(generally by the DeviceServer program, see the [Input Devices InputDevices.html]
+chapter), which maintains a
+list of them and passes any events it receives through them.
+
+Creating filter subclasses is quite simple. You need only
+override the protected virtual method
+
+```
+virtual bool arIOFilter::processEvent( arInputEvent& inputEvent );
+```
+
+This method will be called by the arInputNode for each event in the
+input stream. Is is passed the current event, and can do the following
+things:
+
+  - Get the current event's type, index, or value using the
+appropriate methods of the arInputEvent class.
+  - Get the most recent value of any other event using the
+arIOFilter's get...() methods.
+
+  - Modify the current event's index or value (<span
+ style="font-style: italic;">not its type) using the
+arInput.set...() methods.
+  - Set the current event's value to the default (0 or the identity
+matrix) using its zero() method.
+
+  - Flag the current event for deletion using its trash() method.
+  - Insert a new event of any type, index, and value into the input
+stream using the arIOFilter's insertNewEvent() method.
+
+
+That is all. For examples of working filters, see
+src/drivers/arTrackCalFilter.cpp (which applies the calibration
+correction for our Ascension MotionStar tracker--note that this is
+specific to our setup) and the[PForth filter PForth.html],
+src/drivers/arPForthFilter.cpp.
+
+

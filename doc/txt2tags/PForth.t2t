@@ -1,0 +1,551 @@
+Syzygy Documentation: PForth Input-filtering Language
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers --toc --toc-level=2
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+Thanks to Jim Crowell for creating the Syzygy PForth support.
+
+
+=PForth Documentation=
+
+The modules arPForth and
+arPForthStandardVocabulary implement the PForth (P for Pseudo)
+language, which is used by the input filter arPForthFilter. Each
+instance of DeviceServer contains an arPForthFilter, and so does
+inputsimulator. The intent is to provide a means of performing simple
+manipulations on input events based on information in a text file.
+PForth is virtually identical in usage to Forth, except it has a very
+limited vocabulary geared towards manipulating input events, and some
+of the less informative word names have been changed (for example, "!"
+and "@" have been renamed "store" and "fetch"). New words can be
+defined from sequences of existing words, as in a Forth
+colon-definition, or entirely new actions can be written in C++; see
+arPForthStandardVocabulary.cpp for examples.
+
+
+=arPForth Object Usage=
+
+If you don't need to install new C++
+actions, there are only a few arPForth methods that you need to know:
+
+``bool arPForth::operator!()`` (as in
+``!pforth``) returns false if initialization of the arPForth object was
+successful.
+
+``bool arPForth::compileProgram( const string sourceCode )`` compiles a
+program and stores it internally.
+
+``arPForthProgram* arPForth::getProgram()`` returns
+a pointer to the current program so that you can re-run it later
+without recompiling. Note that from this point on you own the pointer
+and are responsible for deleting it. The program is cleared from
+internal memory.
+
+``bool arPForth::runProgram()`` runs the internally-stored program.
+
+``bool arPForth::runProgram( arPForthProgram* program )``
+runs the compiled program pointed to by 'program'.
+
+``vector<string> arPForth::getVocabulary()``
+returns the entire vocabulary. This is used in the arPForthFilter. The
+idea is, you define filter words whose names match a particular
+pattern. The filter extracts them from the vocabulary and creates
+compiled programs for each of them, so that it can run the appropriate
+program whenever it comes across a particular input event type.
+
+
+=Language Concepts=
+
+A PForth program is just a series of
+words separated by whitespace. The set of words that PForth understands
+is called the //dictionary//. These words typically operate on
+numbers in a stack. Unlike Forth, the basic data type is a
+floating-point number. There is also a dynamically-allocated
+data space that can be used for storing variables and matrices (matrix
+operations generally take place in the data space). Note that the data
+space starts out with a size of zero, and must be grown using the
+"variable" and "matrix" commands. Attempting to read or write from
+unallocated data space will result in an error.
+
+For most purposes, PForth programs
+are all kept in the user's dbatch file, in a device definition. Here's an
+example of an event-filtering program that swaps matrices 0 and 1:
+
+```
+<pforth>
+  define filter_matrix_0     /* Each time we come across a matrix event with index 0... */
+    1 setCurrentEventIndex   /* ...change its index to 1 */
+  enddef
+  define filter_matrix_1
+    0 setCurrentEventIndex
+  enddef
+</pforth>
+```
+
+For a more complicated example, here is a program that scales axes
+0 and 1 from the range (-32,000, 32,000) to the range (-1, 1), swapping
+the polarity of axis 1. It also maps axis 2 to axis 3, changing its
+range from (0, 64,000) to (-1, 1), with a change in orientation. It
+maps axis 5 to 2, while changing its range from (0, 64,000) to (-1, 1).
+Finally, whenever it gets an event on axis 1, it generates a constant
+4x4 matrix. This filter is used to have a particular 2 analog stick gamepad
+emulate a VR controller (to some degree).
+
+```
+<pforth>
+  matrix temp                         /* Declare a matrix variable */
+  0 5 0 temp translationMatrix        /* ... and store a +5 y-translation matrix in it */
+
+  define filter_axis_0
+    getCurrentEventAxis 0.000031 * setCurrentEventAxis  /* rescale axis value */
+  enddef
+  define filter_axis_1
+    temp 0 insertMatrixEvent          /* Create new matrix event with index 0 and value from temp */
+    getCurrentEventAxis -0.000031 * setCurrentEventAxis  /* ...and rescale this axis event */
+  enddef
+  define filter_axis_2
+    getCurrentEventAxis -32768 + -0.000031 *   /* Get axis value, rescale, leave on stack */
+    deleteCurrentEvent                         /* Delete current event */
+    3 insertAxisEvent                          /* Insert stack value as new axis event #3 */
+  enddef
+  define filter_axis_3
+    4 setCurrentEventIndex                     /* Change event index to 4 */
+  enddef
+  define filter_axis_5
+    getCurrentEventAxis -32768 + 0.000031 *    /* Treat as axis event #2, except insert as new #2 */
+    deleteCurrentEvent
+    2 insertAxisEvent
+  enddef
+</pforth>
+```
+
+
+=Vocabularies=
+
+PForth is extendable in two ways: you can define new words inside a PForth program that
+concatenate existing words, or you can easily add new words at the C++ level if needed.
+There are currently two defined vocabularies at the C++ level, the standard vocabulary defined in
+arPForthStandardVocabulary.cpp and the event-filtering vocabulary in
+arPForthEventVocabulary.cpp.
+
+I'll use the standard Forth notation
+to indicate the effect each vocabulary word has on the stack. The
+format is
+```
+( <stack contents before execution> -- <stack contents after execution> ).
+```
+I'll use ``x#`` to represent a floating-point number, ``n#`` to represent an integer,
+and ``addr`` to represent an address (an index into the
+dataspace). A couple of examples:
+
++ ``( x1 x2 -- x3 )``
+means that the word needs to pop two numbers
+off the stack and will push a single number onto the stack on
+completion.&nbsp; Note that x1 must have been placed on the stack
+before x2, i.e x2 is on top of the stack.
+
++ ``( addr n1 -- )`` means that the word will pop an address (a
+positive integer) and an integer off the stack and not push anything
+onto it.
+
+
+==PForth Standard Vocabulary==
+
+These are basic math,
+memory-management, and flow-control words. The first few words actually
+take effect at compile time. They do not modify the stack or the data
+space, but they may remove succeeding words from the input stream (the
+program). This will be indicated by <word> or <words>. They
+also typically add words to the dictionary. Note that additions to the
+dictionary are permanent (i.e. last until the arPForth object is
+destroyed) and attempting to redefine a word in the dictionary will
+result in an error.
+
+NEW 5/6/05: Added a bunch of words using (3-element) vectors, and several
+array... words for performing element-by-element operations on arrays.
+
+
+**<number>** (a string representing a number, e.g. "123" or "-12.5")
+
+Effect: at compile time, creates a
+nameless action that will push the number onto the stack, and appends
+that action to the current program or word definition. In other words,
+typing a number into your program causes that number to be placed on
+the stack at the appropriate point in program execution.
+
+
+**variable** ``<name>``
+
+Effect: at compile time, allocates
+two cells in the dataspace and places the value 1 in the first one
+(indicating a scalar). Then it adds a word <name> to the
+dictionary that causes the address of the second cell to be pushed onto
+the stack. This new word then acts as a pointer to the data cell.
+Example: "variable x 12 x store" causes the number 12 to be placed in
+the data cell pointed to by "x".
+
+
+**constant** ``<name> <number>``
+
+Effect: at compile time, it adds a word <name> to the
+dictionary that causes the specified number to be pushed onto
+the stack.
+Example: "constant x 12 x" causes the number 12 to be placed on the
+stack.
+
+
+**matrix** ``<name>``
+
+Effect: at compile time, allocates
+17 cells, places the number 16 in the first one, and installs a new
+word <name> in the dictionary that pushes the address of the
+second cell onto the stack.
+
+
+**array**  ``<numItems> <name>``
+
+Effect: at compile time, allocates
+<numItems>+1 cells, places the number <numItems> in the
+first one, and installs a new
+word <name> in the dictionary that pushes the address of the
+second cell onto the stack.
+
+
+**define** ``<name> <words>`` **enddef**
+
+Effect: at compile time, adds a new
+word <name> to the dictionary. All succeeding words in the
+program until "enddef" are compiled into the definition of
+<name>; those words are executed each time after that
+<name> is encountered.
+
+
+**if** ``<words>`` **else** ``<words>`` **endif**  ``( x -- )``
+
+Effect: at compile time, creates a
+nameless action containing two subprograms. Words between "if" and
+"else" are compiled into the first subprogram, words between "else" and
+"endif" are compiled into the second.&nbsp; "else" is optional, if
+omitted there is no second program.&nbsp; At runtime, the top value is
+popped off the stack; if it is >= 1, the first subprogram is
+executed; if < 1, the second. (NOTE: let me know if you can think of
+a reason why the test should work differently, I just took the path of
+least effort there).
+
+
+**string** ``<name> <words>`` **endstring**
+
+Effect: at compile time, allocates a single cell in the
+separate string dataspace (yes, an entire string is an atomic variable
+and they live in their own data space) and
+installs a new
+word <name> in the dictionary that pushes the address of the
+cell onto the stack. This is intended to be used with the database
+vocabulary (which hasn't really gone anywhere yet), e.g. you could get
+the value of a database parameter and compare it to a string constant.
+
+
+**/*** ``<words>`` ***/** (a comment)
+
+Effect: at compile time, discards all words between the /* and */.
+Remember that the delimiters must be surrounded
+by whitespace. No runtime effect.
+
+----------------------------------------------------------------
+The remaining words have no
+compile-time effects.
+
+**not** ``(x1 -- n1 )`` Places a 1 on the stack if x1 < 1.0, a 0 otherwise.
+
+**=**  ``(x1 x2 -- n1 )`` Places 1 on stack if x1 = x2, 0 otherwise.
+
+**>**  ``(x1 x2 -- n1 )`` Places 1 on stack if x1 > x2, 0 otherwise.
+
+**<**  ``(x1 x2 -- n1 )`` Places 1 on stack if x1 < x2, 0 otherwise.
+
+**>=**  ``(x1 x2 -- n1 )`` Places 1 on stack if x1 >= x2, 0 otherwise.
+
+**<=**  ``(x1 x2 -- n1 )`` Places 1 on stack if x1 >= x2, 0 otherwise.
+
+**stringEquals**  ``(addr1 addr2 -- n1 )`` Places
+1on stack if the string at addr1 = string at addr2, 0 otherwise.
+
+**+**  ``( x1 x2 -- x1+x2 )``
+
+**-** ``( x1 x2 -- x1-x2 )``
+
+***** ``( x1 x2 -- x1*x2 )``
+
+**/** ``( x1 x2 -- x1/x2 )``
+
+**dup** ``( x1 -- x1 x1 )`` Duplicates top number on the stack.
+
+**fetch** ``( addr -- x1 )`` Pops an address off the stack, pushes the
+value of the data cell at that address onto it.
+
+**store** ``( x1 addr -- )`` Stores x1 at the address pointed to by addr.
+
+**arrayAdd** ``( addr1 addr2 N addr3 -- )``
+Does elment-by-element addition of the arrays stored at addr1 and addr2 and
+stores the result in the array starting at addr3.
+
+**arraySubtract** ``( addr1 addr2 N addr3 -- )``
+Does elment-by-element subtraction of the arrays stored at addr1 and addr2 and
+stores the result in the array starting at addr3.
+
+**arrayMultiply** ``( addr1 addr2 N addr3 -- )``
+Does elment-by-element multiplication of the arrays stored at addr1 and addr2 and
+stores the result in the array starting at addr3.
+
+**arrayDivide** ``( addr1 addr2 N addr3 -- )``
+Does elment-by-element division of the arrays stored at addr1 and addr2 and
+stores the result in the array starting at addr3.
+
+**vectorStore** ``( x1 x2 x3 addr -- )``
+Stores the three numbers at the address pointed to by addr.
+
+**vectorCopy** ``( addr1 addr2 -- )`` Copies a 3-element vector from addr1 to addr2.
+
+**vectorAdd** ``( addr1 addr2 addr3 -- )``
+Adds 3-element vectors at addr1 and addr2, stores the result at addr3.
+
+**vectorSubtract** ``( addr1 addr2 addr3 -- )``
+Subtracts 3-element vector at addr2 from that at addr1, stores the
+result at addr3.
+
+**vectorScale** ``( x addr1 addr2 -- )``
+Scalar-vector multiplication: multiplies vector at addr1 by x, stores
+the result at addr2.
+
+**vectorTransform** ``( addr1 addr2 addr3 -- )``
+Matrix-vector multiplication: multiplies vector at addr2 by matrix at
+addr1, stores the result at addr3.
+
+**matrixStore** ``( x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 addr -- )``
+Pops 16 numbers and an address off the stack,
+stores the numbers in the data cell pointed to by addr. Note that
+matrix indices go down the columns first.
+
+**matrixStoreTranspose** ``( x1 x2 x3 x4 x5 x6 x7 x8 x9 x10 x11 x12 x13 x14 x15 x16 addr -- )``
+Pops 16 numbers and an address off the stack,
+stores the numbers in the data cell pointed to by addr after transposing
+the resulting matrix. This allows you to enter a 4x4 matrix in a PForth
+program in a nice readable way, i.e. entering the matrix in 4 rows and
+4 columns in a text editor and storing it with matrixStoreTranspose
+will give you the matrix as it looked in the editor.
+
+**matrixCopy** ``( addr1 addr2 -- )`` Copies matrix at addr1 to addr2.
+
+**matrixInverse** ``( addr1 addr2 -- )`` Computes inverse of matrix at addr1 and stores it at addr2.
+
+**matrixMultiply** ``( addr1 addr2 addr3 -- )`` Multiplies matrix at addr1 by matrix at addr2
+and stores the result at addr3.
+
+**concatMatrices** ``( addr1 addr2 ... addrN numInputMatrices addrOut -- )``
+Multiplies several matrices together from left to right, i.e. mOut = m1*m2*...*mN,
+and stores the result at addrOut.
+
+**translationMatrix** ``( x y z addr -- )`` Constructs translation matrix for offsets x,
+y, and z, and stores at addr.
+
+**translationMatrixV** ``( addr1 addr2 -- )``
+Generates a translation matrix for the vector at addr1 and stores it at addr2.
+
+**rotationMatrix** ``( angle axis addr -- )``
+Constructs rotation matrix for rotation by
+angle degrees about axis (0(x)-2(z), use constants below) and stores it
+at addr.
+
+**xaxis** , **yaxis** , **zaxis** ``( -- n1 )`` Constants for use with rotationMatrix.
+
+**rotationMatrixV** ``( x addr1 addr2 -- )``
+Generates a rotation matrix for a rotation through angle x (degrees)
+about the vector at addr1 and stores it at addr2.
+
+**extractTranslation** ``( addr1 addr2 -- )``
+Extracts the translation vector from the matrix at addr1 and stores it
+at addr2.
+
+**extractTranslationMatrix** ``( addr1 addr2 -- )``
+Extracts translational component (matrix) of matrix at addr1 and
+stores it at addr2.
+
+**extractRotationMatrix** ``( addr1 addr2 -- )``
+Extracts rotational component (matrix) of matrix at addr1 and
+stores it at addr2.
+
+**stack** ``( -- )`` Prints the contents of the stack to the standard error.
+
+**clearStack** ``( whatever -- )`` Empties the stack.
+
+**dataspace** ``( -- )`` Prints contents of dataspace.
+
+**printString**  ``( addr -- )`` Prints string at addr.
+
+**printVector**  ``( addr -- )`` Prints vector at addr.
+
+**printMatrix**  ``( addr -- )`` Prints matrix at addr.
+
+**printArray**  ``( addr N -- )`` Prints N-element array starting at addr.
+
+
+==Event-filtering Vocabulary==
+
+These are words for processing
+arInputEvents. They are meant to be used with the arPForthFilter to
+modify an input-event stream. PForth event-filtering code is generally
+embedded in an input-device record in a Syzygy parameter file
+(see [Syzygy Configuration SyzygyConfiguration.html].
+
+Input events can be filtered based on their type and index. There are three
+types of input events containing different types of values:
++ //Button// events contain an integer that is 0 or 1.
++ //Axis// events contain a floating-point number that usually (but
+not always) represents the state of a joystick.
++ //Matrix// events contain a 4x4 matrix floats representing position
+and orientation of a tracking sensor.
+
+The event index is used to distinguish events from different sources, e.g.
+different tracking sensors get mapped to matrix events with different indices.
+
+See [Syzygy Input Framework: Overview InputDevices.html#Overview] for more information.
+
+You define an event filter by writing a PForth program that defines one or more words
+whose names match certain patterns. These words are then called by the filter
+when the event type and index match the pattern of a word you have defined. To wit:
+
++ The word **filter_all_events** will be called for every input event.
+
++ The words **filter_all_buttons**, **filter_all_axes**, and **filter_all_matrices**
+will be called for each incoming event of the appropriate type, regardless of its
+index.
+
++ Words matching the pattern **filter_<event_type>_<event_index>** will be called
+when an event of the appropriate type and index comes in. For example, to apply
+a filter only to the head matrix (matrix event #0), define the word
+**filter_matrix_0**.
+
+If a given matches the pattern for more than one word (e.g. a matrix event #0 comes in and
+you have defined the words **filter_all_matrices** and **filter_matrix_0**),
+then both will be called, with the more general one (**filter_all_matrices**) coming first.
+
+In all of these cases, the word has access to the current event and to the most recent state
+of all other events via the following words:
+
+**getCurrentEventIndex** ``( -- n1 )``
+Places the index of the current event on the
+stack.
+
+**getCurrentEventButton** ``( -- n1 )``
+If the current event is a button event, places
+the button value on the stack. If it's not a button event, it throws an
+exception (which aborts the current PForth program ) and prints an error
+message.
+
+**getCurrentEventAxis** ``( -- x1 )`` If the current event is an axis event, places
+the axis value on the stack. If it's not an axis event, it throws an
+exception and prints an error message.
+
+**getCurrentEventMatrix** ``( addr -- )`` If the current event is a matrix event, it
+pops an address off the stack and attempts to copy the matrix to that
+location in the dataspace. If it's not a matrix event, it throws an
+exception and prints an error message.
+
+**setCurrentEventIndex** ``( n1 -- )``
+Sets the index of the current address to n1 .
+
+**setCurrentEventButton** ``( n1 -- )`` Sets the current event's value to n1 if it's a button event,
+otherwise throws an exception and prints an error message.
+
+**setCurrentEventAxis** ``( x1 -- )``
+Sets the current event's value to x1 if it's an axis event, otherwise
+throws an exception and prints an error message.
+
+**setCurrentEventMatrix** ``( addr -- )`` Sets the current event's value to the matrix
+at location addr in the dataspace if it's a matrix event,
+otherwise throws an exception and prints an error message.
+
+**deleteCurrentEvent** ``( -- )``
+Flags the current event for deletion by the
+filter.
+
+**getbutton** ``( n1 -- n2 )``
+Gets the value of button event # n1 and pushes
+it on the stack. Returns 0 if that button event doesn't exist.
+
+**getaxis** ``( n1 -- x1 )``
+Gets the value of axis event #n1 and pushes
+it onto the stack. Returns 0.0 if it doesn't exist.
+
+**getmatrix** ``( addr n1 -- )`` Stores matrix event n1 in the data cells
+pointed to by addr.&nbsp; Returns identity matrix if event doesn't
+exist.
+
+**insertButtonEvent** ``( n1 n2 -- )``
+Creates a new button event with index n1 and value n2 and inserts it
+into the event stream.
+
+**insertAxisEvent** ``( n1 x1 -- )``
+Creates a new axis event with index n1 and value x1 and inserts it into
+the event stream.
+
+**insertMatrixEvent** ``( n1 addr -- )``
+Creates a new matrix event with index n1 and value taken from the
+dataspace at addr and inserts it into the event stream.
+
+
+==The Syzygy Database Vocabulary==
+
+The following words access the [Syzygy database SyzygyConfiguration.html] either explicitly or
+implicitly:
+
+**getStringParameter** ``( addr1 addr2 addr3 -- )``
+ Uses the string at addr1 as the group name and the string at addr2 as
+the parameter name, and
+stores the returned value at add3. For example, if addr1 pointed to
+"SZG_HEAD" and addr2 pointed
+to "fixed_head_mode", then after execution addr3 would point to either "true"
+or "false" (assuming it was set).
+
+**getFloatParameters** ``( addr1 addr2 n1 addr3 -- )``
+ Uses the string at addr1 as the group name, the string at addr2 as
+the parameter name, and n1 as the number of values to expect. addr3
+should point to an array of the correct size to hold the parameters For
+example, if addr1 pointed to "SZG_HEAD" and addr2 pointed
+to "eye_direction", then after executing "addr1 addr2 3 addr3
+getFloatParameters", the array at addr3 would contain the 3 elements
+of the eye direction vector.
+
+
+==Special-purpose Words==
+
+These words can replace the two C++ filters in arTrackCalFilter.cpp:
+
+**initTrackerCalibration** ``( -- )``
+Loads our position-correction lookup table for the MotionStar
+tracker. It reads the same database parameters as the C++ version
+(see szg/src/drivers/arTrackCalFilter.cpp): It looks for a file
+with the name specified by SZG_MOTIONSTAR/calib_file (on the path
+specified by SZG_DATA/path). The file format is the same also. After
+reading in the lookup table, it adds the following word to the directionary:
+
+**doTrackerCalibration** ``( addr1 addr2 -- )``
+Reads an input matrix from addr1 and uses the lookup table to correct the
+positional components, then stores the result at addr2.
+
+**initIIRFilter** ``( -- )``
+Initializes a positional IIR filter. It reads the same database parameters as the C++ version
+(see szg/src/drivers/arTrackCalFilter.cpp): It reads 3 floats
+specified by SZG_MOTIONSTAR/IIR_filter_weights (filter weights for x, y, and z),
+then adds the following word to the directionary:
+
+**doIIRFilter** ``( addr1 addr2 -- )``
+Reads an input matrix from addr1 and applies an IIR filter the
+positional components, then stores the result at addr2. The filter is
+output[i] = (1-w)*input[i] + w*output[i-1], where
+output[i-1] denotes the output from the previous event.
+
+

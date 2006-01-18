@@ -1,0 +1,149 @@
+Syzygy Documentation: Using 3-D Object Files
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers --toc --toc-level=2
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+
+=Objects?=
+
+Syzygy uses the term Objects to describe external graphics files
+that contain structural information. Syzygy current supports the
+following formats:
+- OBJ - Wavefront .obj
+- 3DS - 3D Studio .3ds (versions 3 and 4)
+- HTR - Motion Analysis' .htr
+
+In addition, Syzygy supports attaching OBJ meshes to HTR animation data.
+The commands arReadObjectFromFile() and attachOBJToHTRToNodeInDatabase()
+are defined in "$SZGHOME/obj/arObjectUtilities.h"
+
+PLEASE NOTE: the Syzygy routines for reading these files are currently
+somewhat dependent on text formatting conventions. Consequently, you will
+have problems reading, on a Unix computer, an htr or obj file created on
+a Windows computer. However, an easy workaround to this problem exists. You
+can use the command line tool "dos2unix" to convert your files to Unix
+text format.
+
+
+=arObjects=
+
+Objects in Syzygy interact directly with the scene graph. To
+use objects in your program, you will need to have a scene graph
+already set up, or use a framework with one provided.
+
+All Syzygy objects derive from the arObject class, which encapsulates the
+functions needed to animate, name, and get various properties from an
+objects (such as number of Triangles, if it supports animation, etc.). In
+most cases, you shouldn't need to deal with any of arObject's subclasses
+directly.
+
+To read in and attach an arObject to your scenegraph, call
+arReadObjectFromFile():
+```
+  arObject* myObject = arReadObjectFromFile("myFile.ext", "");
+```
+This will return a pointer to an instantiated arObject subclass,
+based on the extension of the file given (.3ds, .obj, etc.).,
+or a NULL pointer if Syzygy failed to read in the file (an error
+message with additional information will also be printed). At
+this point, the object is not yet bound to the scenegraph. (A
+scenegraph doesn't even need to exist yet). You can optionally
+normalize the object's size by transforming it to the origin and forcing
+it to fit in a sphere of radius 1 unit:
+```
+  myObject->normalizeModelSize();
+```
+Once the scenegraph is initialized, you can attach the object to it:
+```
+  theObject->attachMesh("MyObjectName", "parentNode");
+```
+The first argument to attachMesh() is an optional name for the object.
+The second argument is the name of the scenegraph node to which you
+want to attach the object. This will add multiple nodes to the scenegraph
+to accomodate the data in the object in an efficient manner.
+
+That's it! The object is now contained in the scenegraph, and will be
+displayed when the database is drawn. The arObject itself still contains
+information about the node, and in some cases can be used to alter
+corresponding nodes in the database (animation, for example).
+
+
+=Supported Object Formats=
+
+
+==Wavefront OBJ==
+
+Syzygy supports most of the official OBJ spec, and tries to fix some of
+the inconsistencies that programs tend to stick into exported files.
+A simple OBJ file looks like this:
+```
+  # myfile.obj
+  o object_name
+  v -1 -1 -1
+  v -1 -1  1
+  v -1  1 -1
+  f 1 2 3
+  f 2 3 4
+  ...
+```
+Syzygy supports shading groups, normals, texture coordinates, material files,
+object names, and convex polygons. It does not support splines or raytracing options.
+
+You can also specify an OBJ Material file, which usually ends in ".mtl". This
+file must be referenced from an .obj file via the "usemap" command. A material
+file will let you specify basic colors or textures for the .obj file. The format
+of an .mtl file is:
+```
+  newmtl shaderName
+    Kd 0.5 0.5 0.5
+    Ka 0.1 0.1 0.1
+    Ks 1.0 1.0 1.0
+    map_Kd texturefilename.ppm
+  newmtl ...
+```
+Where shaderName is the name of the corresponding shading group in the .obj file,
+Kd is the diffuse coeefficient (base color), Ka is the ambient coefficient (background
+or fill light), and Ks is the specular coefficient (color of highlight). Currently
+the Ns, or specular power term, is unused since we are using basic OpenGL for rendering.
+If you specify a map with map_Kd, the texture specified will be used instead of Kd.
+All .mtl file parameters are optional, and have consistent default values.
+
+
+==Motion Analysis HTR==
+
+Used with our Motion Analysis motion capture setup and software, an HTR specifies
+a series of transformations frame by frame to define animations. By calling arHTR's
+attachMesh with an additional boolean true value, the HTR will use randomly colored
+line segments as its "bones":
+```
+  ((arHTR*)myObject)->attachMesh(my_name, my_parent, 1);
+```
+
+
+==3D Studio format==
+
+We use lib3ds to read in 3ds files, so we can only use versions 3 and 4. If your .3ds
+file doesn't display or you see an error message when trying to read in the file, this
+is probably the reason. Simply convert it to version 3 or 4 (there are several free
+utilities out there), and the new .3ds should load into Syzygy. Basic materials and
+normals are supported.
+
+
+=Attaching OBJ meshes to HTR animations=
+
+Syzygy allows you to easily attach an OBJ mesh to an HTR animation with one command:
+```
+  attachOBJToHTRToNodeInDatabase((arOBJ*)myMesh,(arHTR*)myAnim,"myParent");
+```
+Where "myParent" is the parent node in the database. There are two steps for setup:
+Make sure that the HTR's Base Position is aligned and scaled correctly
+with the OBJ's mesh. Define groups in the OBJ to attach to HTR segments, and make sure each
+corresponding segment and group have the same name. (To export an OBJ with groups from Maya,
+use polygon edit mode and define a Set of faces. Maya's built-in OBJ exporter exports Sets
+as OBJ groups.)
+
+
+

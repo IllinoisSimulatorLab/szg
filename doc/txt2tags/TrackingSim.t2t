@@ -1,0 +1,105 @@
+Syzygy Documentation: Tracking and Input Device Simulator
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+The Syzygy VR framework applications tend to work best with a VR style
+interface, namely six-degree-of-freedom (6DOF) head tracking and some kind of joystick type input
+device with another 6DOF sensor attached. However, such external input devices are
+inaccessible when running programs in [Standalone Mode Standalone.html] and may in
+any case be unavailable. As a workaround, Syzygy includes support for a simulator interface
+that can operate the included (and your own) programs from a desktop using mouse and keyboard.
+
+When running in standalone mode the simulator normally appears as an overlay in the lower-right
+corner of the window. In cluster mode it is a separate program, inputsimulator.
+This program can be run either by typing
+```
+inputsimulator
+```
+or
+```
+  dex <computer> inputsimulator
+```
+at the command line, where ``<computer>`` is the name of the computer to run it on.
+By default, inputsimulator places its input events in Syzygy input event slot #0.
+(**Where the heck are slots discussed?**). If desired, however, it can provide them
+on another Syzygy input slot (say 1) if invoked like so:
+```
+  inputsimulator 1
+```
+or
+```
+  dex <computer> inputsimulator 1
+
+```
+
+[images/inputsimulator.png]
+
+The input simulator window shows a view from behind
+into a 10-foot cubical space (reminiscent of the inside of our CUBE).
+A wireframe sphere in the center represents the subject's head (initially
+facing away from us, although the view has been rotated in this figure, see
+mode 7 below).
+
+The blue rectangle to the lower right of the display containing several numbered red circles
+represents a set of virtual buttons on a wand (a tracked, hand-held input device).
+The input simulator sends data to the application specifying the position
+and orientation of the head and the wand and the state of the wand's
+virtual buttons. By default, the blue rectangle contains circles representing eight
+buttons, arranged in two columns of four buttons; the number of virtual buttons can
+be changed by setting the parameter ``SZG_INPUTSIM/number_button_events`` to
+the desired number in the [Syzygy database SyzygyDatabase.html]. The two columns correspond
+to the //actual// buttons on your real mouse, with the left and right real mouse buttons
+corresponding to the left and right columns of virtual buttons.
+One row of buttons (initially the bottom one, indicated by the small right circle
+next to virtual button #0) is active at any time; you change the active row by
+pressing the space key. Pressing a real mouse button (when the simulator is in an
+appropriate mode, see below) presses the corresponding
+virtual wand button in the currently-active row.
+
+[images/inputsimulator2.png]
+
+If a middle mouse button exists and the user
+presses it, the layout of the virtual wand buttons changes to three columns,
+as shown here.  The left, middle, and right real mouse buttons map to
+the columns in the obvious way. You can set the simulator to initially assume a
+three-button mouse by setting the parameter ``SZG_INPUTSIM/mouse_buttons`` in the
+[Syzygy database SyzygyDatabase.html] to the string ``0/1/2``. (The value for this
+parameter must contain 0 and 2, corresponding to the standard left and right buttons;
+if you have an input device with more than three buttons, you can try adding them as
+well. No guarantees that they'll be useable, though).
+
+The green circle inside a white square below the button display represents a joystick.
+The position of the green circle inside the square (initially centered) represents the
+angle at which the joystick is held. In the correct simulator mode (see below), dragging
+the mouse moves the joystick.
+
+The simulator interface has several modes that are selected by the number keys
+1-7 on the main keyboard (i.e. the numeric keypad probably won't work).
+
++ Translate the head. Mousing with the left button held down moves head left/right
+   and up/down. Mouse with the right button down moves head left/right and forwards/backwards.
++ Rotate head. Mousing with the left button down rotates head around the
+   vertical axis. Mouse with the right button down rotates the head around the
+   axis through the ears. PLEASE NOTE: Whether or not head rotation noticeably affects the
+   images displayed by your application depends on how you've configured the
+   viewing camera. In Syzygy, the default VR camera is head-mounted. In this
+   case, rotating the head will rotate the field of view in the virtual world.
+   On the other hand, if a fixed-screen VR camera is used (as would be
+   desirable for a CAVE environment), rotating the head will cause only a
+   small change in the displayed image.
++ Translate wand: Mousing with the left button down translates the wand left/right
+   and up/down. Mousing with the right button down translates the wand left/right
+   and into/out of the screen.
++ Translate wand & use buttons: Mouse movement (with no buttons pressed) translates the wand
+   left/right and forwards/backwards. Pressing mouse buttons activates the device buttons.
++ Rotate the wand & use buttons: Mouse movement (no buttons pressed) causes the wand to rotate.
+   Pressing buttons activates the mouse buttons.
++ Use the joystick: While a mouse button is held down,
+   draggin the mouse moves the joystick.
++ Rotate the world: When a mouse button is held down, the view rotates around
+   the vertical axis.
+

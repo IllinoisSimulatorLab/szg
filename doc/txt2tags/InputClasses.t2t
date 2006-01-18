@@ -1,0 +1,37 @@
+Syzygy Documentation: Input Classes
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+There are three basic types of input classes: sources, nodes, and
+sinks. An arInputSource
+receives events and feeds them to an arInputNode,
+which in turn relays them to one or more //arInputSinks// after optionally
+[filtering InputFilters.html] them. An arInputSink may
+transmit the events to some other location or may perform arbitrary
+operations based on the input stream. The arInputNode maintains a list
+of arInputSources and arInputSinks.
+
+Two important arInputSource subclasses are the //arNetInputSource//, which receives a
+stream of input events from a remote computer and makes it available to
+the local process, and the arFileSource,
+which reads an event stream from a file and feeds it to the local
+process, using the internal event time stamps to control the pace.
+Corresponding arInputSink classes are the //arNetInputSink// and //arFileSink//, which make an input
+stream available over the network or write it to a file, respectively.
+
+An arInputNode processes events using two subsidiary classes, the
+//arInputEventQueue// and the //arInputState//. The arInputNode
+receives an arStructuredData record
+from an input source and unpacks it into an arInputEventQueue. It then
+passes each event in the queue through its list of [arIOFilters InputFilters.html]. For each stage in this
+filtering chain it maintains an arInputState representing the most
+recent values of all received events; this allows the filter to perform
+computations based on the current event and the most recent state of
+all other events. Finally, it packs the filtered event queue into a new
+arStructuredData record and passes it to each of its arInputSinks.
+
+

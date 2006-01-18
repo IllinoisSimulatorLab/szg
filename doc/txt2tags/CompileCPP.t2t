@@ -1,0 +1,249 @@
+Syzygy Documentation: Compiling C++ Programs
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers --toc --toc-level=1
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+%%toc
+
+
+=Notes for Windows Users=[Windows]
+
+Windows users need to take some extra care in compiling their programs.
+
+- If you are using Visual Studio 6 on Windows, you must compile
+with STLport (SZG_STLPORT=TRUE). Using STLport is described
+[here SupportingLibraries.html]. On the other hand, do not use
+STLport with Visual Studio .NET (its native standard template library is OK).
+- Another note for Windows users, you must set up your environment variables
+so that the Visual Studio compiler (cl.exe) and the Visual Studio linker
+(link.exe) are on your path and can find their header files. The proper way
+to set this is via the Windows control panel. Please note that, after setting
+the variables in the control panel, you will have to restart your cygwin or
+MinGW shell in order to access the new values there. The proper values for the
+environment variables are outlined
+[here VisualStudioBuildVars.html].
+- If you are using the precompiled SDK for Windows, you must
+use the same SDK as your compiler (-vc6 for Visual Studio 6 and -vc7 for
+Visual Studio .NET). If you mix versions, your executables either will
+not link or will crash on startup.
+- If you are compiling using cygwin on Windows then there can
+be a problem. The Visual Studio linker is called "link" and some installs of
+cygwin may also install a "link" program. If, during your build, you see
+an error message like:
+
+```
+  link error: too many arguments
+```
+
+You will know you are getting the cygwin "link" program by mistake. You can
+solve this problem by typing "which link", seeing where the cygwin "link"
+resides, and removing it, or you can make sure your PATH environment
+variable has the Visual Studio program in it first.
+
+
+=Environment Variables=[Environment]
+
+There are five environment variables that control the build process.
+If you are using a precompiled SDK, one of them, SZG_DEVELOPER_STYLE, must
+be set. THIS IS VERY IMPORTANT.
+
+- SZGHOME: The top level directory of your distribution. This MUST
+  be defined.
+- SZG_DEVELOPER_STYLE: By default, the system assumes you are using
+  software compiled by you from a szg source distribution. To use a precompiled
+  SDK, this must be set to EASY.
+- SZGBIN:
+  - If $SZGBIN is defined, then this is used as the directory for Syzygy
+    executables and shared libraries that you compile.
+  - If $SZGBIN is not defined, there are two possibilities, depending upon
+    whether or not the developer style is "EASY".
+    - If SZG_DEVELOPER_STYLE=EASY, then your executables and shared libraries
+        will be placed in $(SZGHOME)/bin.
+    - Otherwise, you are assumed to have a "developer" version of Syzygy
+        and your executables will be placed in $(SZGHOME)/bin/$(MACHINE_DIR),
+        where $(MACHINE_DIR) is one of darwin, linux, mips4, or win32.
+
+- SZGEXTERNAL: The location of any external libraries used.
+  This MUST be defined if your system does not have GLUT preinstalled.
+  Otherwise, it is optional.
+  See this [section SupportingLibraries.html]. Please note
+  that a complete "external" directory is provided for each supported
+  platform as part of the SDK.
+- SZGDEBUG: By default, executables and shared libraries are built without
+  debugging information. If you want to debug, set this to TRUE.
+- SZG_STLPORT: This is only used on Windows. If you are using Visual Studio
+  6, you must set this to TRUE. If you are using Visual Studio .NET, then
+  you must set this to FALSE.
+
+
+=Using the Build Template=[Template]
+
+Syzygy has a build system designed for writing cross-platform applications,
+hiding the differences from the programmer. A motivating example of
+its design is: if your build directory is simultaneously mounted on different
+platforms, you can compile both versions of your code at once. The build
+system can be leveraged for your own applications and a template is contained
+in szg_app_template-X.X.tar.gz, which is available with the rest of the
+Syzygy software.
+
+After obtaining the template, unpack it to a directory szg_app_template. If
+desired, you can rename it, though we continue using the generic name below
+for simplicity. If your each file of your source code produces an
+executable, you can create your Syzygy project by simply modifying one
+line (ALL) and then creating a target for each executable, as outlined below.
+It is also simple to, for instance, modify the Makefile template to produce
+executables from multiple .cpp files (using the OBJS line).
+
+Once you have modified szg_app_template to create your project, you can
+build it by typing "make" in the top-level directory or clean it, removing
+built executables and objects, by typing "make clean" in the same location.
+All built executables (defined by ALL below) will be copied into your
+Syzygy executables directory. This is determined like so:
+
+- If SZGBIN is not set, then $(SZGHOME)/bin is used.
+- If SZGBIN is set, then $(SZGBIN) is used.
+
+
+We now examine the contents of szg_app_template,
+explaining each one.
+
+- szg_app_template/Makefile: The overall Makefile for the template project.
+Scans the host to determine the platform and then executes the appropriate
+machine-specific Makefile.
+- szg_app_template/src: Your source code goes here, after removing the
+sample piece of source code, szglorenz.cpp.
+- szg_app_template/build/makefiles/Makefile.my_app: This is the fill you will
+edit to create your project. Its important features are explained below as
+well as via comments in the file itself.
+- szg_app_template/build/darwin: The Mac OS X-specific Makefile is located
+here and OS X objects are built here. The machine-specific Makefile really just
+sets the machine type and then includes Makefile.my_app, the cross-platform
+piece.
+- szg_app_template/build/linux: The Linux objects are built here.
+- szg_app_template/build/mips4: The SGI objects are built here.
+- szg_app_template/build/win32: The Windows objects are built here.
+
+
+By now, you have placed your source code in szg_app_template/src. The
+functional lines in Makefile.my_app, along with how to edit them will now be
+explained.
+
+```
+  VPATH=../../src
+```
+
+This should not be changed. It gives the relative path from each
+machine-specific Makefile, like szg_app_template/build/linux/Makefile,
+to your source directory.
+
+```
+  include $(SZGHOME)/build/make/Makefile.vars
+```
+
+This should not be changed. The Syzygy SDK has a file, Makefile.vars,
+that defines the specific compilation and linking methods for each platform
+in a modular fashion. This line is one reason you must define $SZGHOME to
+use the Syzygy SDK.
+
+```
+  ALL := szglorenz$(EXE)
+```
+
+Here, you should replace szglorenz$(EXE) with a list of executables
+you want built. For cross-platform builds to work, each name must end in
+$(EXE), which accounts for the fact that Windows executables must have the
+postfix .EXE whereas Unix executables do not.
+
+```
+  include $(SZGHOME)/build/make/Makefile.rules
+```
+
+This should not be changed. The Syzygy SDK has a file, Makefile.rules,
+that defines the various standard rules, like "clean" or "create-install",
+which should be in every project. This file is seperated from Makefile.vars
+to create flexibility: make is particular about the order in which rules
+appear.
+
+```
+  OBJS :=
+```
+
+If your executable uses code contained in files my_obj_1.cpp and
+my_obj_2.cpp, you'll need to edit this line. Do not forget the $(OBJ_SUFFIX)
+ending, since this accounts for the different object file endings on Windows
+(.obj) and Unix (.o). There is a make rule in Makefile.rules that governs
+converting .cpp files into object files.
+
+```
+  OBJS := my_obj_1$(OBJ_SUFFIX) my_obj_2$(OBJ_SUFFIX)
+```
+
+If your project needs additional compile flags, you can include them like
+so:
+
+```
+  COMPILE_FLAGS += -DMY_COMPILE_FLAG1 -DMY_COMPILE_FLAG2
+```
+
+If your project needs additional include directories, you can add them like
+so:
+
+```
+  SZG_INCLUDE += -I$(MY_INCLUDE_DIRECTORY1)
+```
+
+If your project needs additional libraries, you can add them like so:
+
+```
+  SZG_OPTIONAL_LIBS += $(MY_NEW_LIBRARY)
+```
+
+Finally, you'll need a target for each of your executables. If your
+executables, as listed above in ALL, have names my_exe_1$(EXE) and
+my_exe_2$(EXE) and they link with the OBJS you've defined above, then the
+targets will look like:
+
+```
+  my_exe_1$(EXE): my_exe_1$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBRARY_DEPS)
+        $(SZG_USR_FIRST) my_exe_1$(OBJ_SUFFIX) $(OBJS) $(SZG_USR_SECOND)
+        $(COPY)
+  my_exe_2$(EXE): my_exe_2$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBRARY_DEPS)
+        $(SZG_USR_FIRST) my_exe_2$(OBJ_SUFFIX) $(OBJS) $(SZG_USR_SECOND)
+        $(COPY)
+
+```
+
+The variable $(SZG_USR_FIRST) contains the linker name, linker options
+and link libraries, if the platform is Windows. If the platform is Unix-based,
+it does not contain the link libraries, which instead appear in
+$(SZG_USR_SECOND), which is blank in the Windows case.
+The $(COPY) line copies the built executable into your $SZGBIN directory
+where all of your Syzygy-related executables are stored.
+
+
+=Common Problems=[Problems]
+
+There are a few tricks to writing portable code using Syzygy.
+
+- In general, do not use the system OpenGL includes. These vary from
+system to system, with the Mac OS X version being especially different.
+Instead, you should:
+```
+  #include "arGraphicsHeader.h"
+```
+- The Windows build process uses precompiled headers to get reasonably
+speedy results. This is an important feature of the Windows build system.
+For this to work, the following include must be the first non-comment line in
+each of your .cpp files:
+```
+  #include "arPrecompiled.h"
+```
+On Unix platforms, this is a stub, doing nothing. On Windows, it includes
+windows.h. If you fail to give this as your first include on Windows
+(even if not using precompiled headers), your compile will fail because
+certain constants are not defined, etc.
+
+

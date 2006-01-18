@@ -1,0 +1,265 @@
+Syzygy Documentation: Supported Input Devices
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers --toc --toc-level=2
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+[Input Device Examples InputDevices.html]
+
+%%toc
+
+
+=Background=
+
+Most input devices get their real-time data served up to other
+Syzygy programs through a single executable, DeviceServer, which can be
+configured to dynamically load various device driver modules at start up,
+as is detailed in the chapter on [input devices InputDevices.html].
+In this chapter, we mention the input devices having drivers built in to the
+core Syzygy software distribution. Please note that Syzygy's input framework
+is extensible: you can write and compile your own loadable device drivers.
+
+Some devices have additional database parameters associated with them for
+configuration. These parameters are stored via
+a service name, corresponding to a
+parameter group (e.g. SZG_JOYSTICK for joystick
+devices), and should be associated with the computer on which DeviceServer
+runs.
+
+
+=Device Drivers Contained in the Base Distribution=
+
+The following are device drivers that interface with a single hardware
+device. IMPORTANT: In general, for examples which require parameters,
+substitute the name of the computer on which you will be running DeviceServer
+for "TRACKER_COMPUTER".
+
+
+==Joystick==
+
+Loadable module: arJoystickDriver
+Platform: Linux and Windows.
+Service: none
+
+Run this on a host with a joystick attached. Linux hosts use the
+joystick device /dev/js0.  Win32 hosts use the default DirectInput
+joystick. JoystickServer's data is in the format of 20 buttons and 20
+axes, accessed through an arJoystickClient object.
+
+
+==Intel Wireless Gamepad==
+
+Loadable module: arIntelGamepadDriver
+Platform: Windows.
+Service: none
+
+Run this on a Win32 host with an Intel Wireless Series Gamepad
+attached. GamepadIntelServer emulates a joystick, so it sends data to an
+arJoystickClient object just like "arJoystickServer". The two axes
+correspond to the D-pad's horizontal and vertical axes; holding the
+D-pad for a few moments increases the value.  The 20 buttons are the
+following, in order:  A, B, C, X, Y, Z, L (left trigger), R (right
+trigger); then the same buttons with the gamepad's shift key held down,
+namely D, E, F, U, V, W, G, H;  then the HOME and END keys for the
+gamepad's start button, unshifted and shifted.  Since Windows sees this
+gamepad as a DirectInput keyboard, a normal keyboard can also be used.
+
+
+==Ascension MotionStar Wireless 6DOF Tracker==
+
+Loadable module: arMotionstarDriver
+Platform: All platforms.
+Service: SZG_TRACKER
+
+Run this on a host connected via Ethernet to the base station PC of
+an Ascension Motionstar motion tracker.
+```
+TRACKER_COMPUTER SZG_TRACKER IPhost XXX.XXX.XXX.XXX
+XXX.XXX.XXX.XXX is the IP address of the Motionstar base station.
+```
+
+
+==FaroArm==
+
+Loadable module: arFaroDriver
+Platform: All platforms.
+Service: none
+
+Run this on a host connected via RS232 to a [FaroArm http://www.faro.com] mechanical motion tracker. It
+reports one transformation matrix which takes into account the probe
+dimensions, as well as two boolean-valued buttons.
+
+
+==Ascension SpacePad==
+
+Loadable module: arSpacepadDriver
+Platform: Windows 98.
+Service: SZG_TRACKER
+
+Run this on a host connected to an Ascension Spacepad motion
+tracker.
+```
+TRACKER_COMPUTER SZG_TRACKER transmitter_offset 0.972229/0.196838/0.123962/0/-0.0494389/0.695801/-0.716003/0/-0.227356/0.69043/0.686707/0/0.0876952/6.71073/-2.72462/1
+Matrix (a sequence of 16 floats, representing an 4x4 matrix, in OpenGL order)
+by which we post-multiply the the matrix returned by the device.
+This compensates for the possibility that the tracker antennae might be rotated
+so that a sensor position that should be the identity matrix is, in fact, not
+reported by the tracker that way.
+TRACKER_COMPUTER SZG_TRACKER sensor0_rot 0/0/1/-90
+A rotation matrix by which we pre-multiply the matrix returned by the
+device. This compensates for the possibility that we might place the
+sensors on the wand or glasses in something other than the default position.
+Here, the head sensor (sensor 0) has been rolled by 90 degrees (i.e. it's
+on the side of the glasses).
+TRACKER_COMPUTER SZG_TRACKER sensor1_rot 0/0/1/180
+Same as above, but for sensor 1 (the wand sensor).
+```
+
+
+==Ascension Flock-of-Birds Tracker (cross-platform)==[FOB]
+
+Loadable module: arFOBDriver
+Platform: Linux/Windows
+Service: SZG_FOB
+
+Run this on a host connected to an Ascension Flock of Birds motion
+tracker. The Ascension Flock-of-Birds is a complicated device since it can
+be configured in many ways. The Syzygy driver supports those configurations
+that are attached via a single serial connection to the host computer. In this
+case, the serial connection goes to one flock unit (the master), which itself
+is connected to the other, slave, units. Each flock unit can have various
+items attached: a transmitter, a transmitter, and a bird, an extended range
+transmitter, or an extended range transmitter and a bird. Calibration-wise,
+the Flock-of-Birds is handled exactly as the Spacepad.
+
+```
+TRACKER_COMPUTER SZG_FOB config 0/3/0/0
+This parameter gives a list of codes (one per unit in the Flock) that gives
+how each is configured. The codes should be listed in order of their internal
+Flock IDs. The example parameter shows a four unit flock, where the first,
+third, and four units only have a bird attached while the second unit has
+an extended range transmitter attached.
+  0: Bird attached
+  1: Transmitter attached
+  2: Transmitter and bird attached.
+  3: Extended range trasnmitter attached.
+  4: Extended range trasnmitter and bird attached.
+TRACKER_COMPUTER SZG_FOB com_port 4
+The serial port to which the Flock-of-Birds is attached. Note that we only
+use numerical IDs for the serial ports (not the OS-specific names). Serial
+ports begin counting with 0 in Linux and 1 in Windows.
+TRACKER_COMPUTER SZG_FOB baud_rate 38400
+The baud rate at which the Flock-of-Birds runs. This must be one of:
+2400, 4800, 9600, 19200, 38400, 57600, 115200.
+TRACKER_COMPUTER SZG_FOB hemisphere lower
+Sets the hemisphere of the transmitter in which our sensors are operating.
+This must be one of: front, rear, upper, lower, left, right.
+TRACKER_COMPUTER SZG_FOB transmitter_offset -0.246783/0.016408/-0.968587/0.000000/0.160796/0.986350/-0.024259/0.000000/0.955287/-0.161785/-0.246135/0.000000/0.677432/7.824321/-1.981552/1.000000
+Matrix (a sequence of 16 floats, representing an 4x4 matrix, in OpenGL order)
+by which we post-multiply the the matrix returned by the device. This
+compensates for the possibility that the tracker antennae might be rotated so
+that a sensor position that should be the identity matrix is, in fact, not
+reported by the tracker that way. Same as with the Spacepad.
+TRACKER_COMPUTER SZG_TRACKER sensor0_rot 0/0/1/90
+A rotation matrix by which we pre-multiply the matrix returned by the
+device. This compensates for the possibility that we might place the sensors
+on the wand or glasses in something other than the default position. Here, the
+head sensor (sensor 0) has been rolled by 90 degrees (i.e. it's on the side of
+the glasses). Same as with the Spacepad.
+TRACKER_COMPUTER SZG_TRACKER sensor1_rot 0/0/1/180
+Same as above, but for sensor 1 (the wand sensor).
+```
+
+
+==Ascension Flock-of-Birds Tracker (using supplied dll)==
+
+Loadable module: arBirdWinDriver
+Platform: Windows. We are working on a [cross-platform FOB driver #FOB].
+Service: none
+
+Run this on a host connected to an Ascension Flock of Birds motion
+tracker.
+
+
+==Motion Analysis EVaRT Real-Time Optical Tracker==
+
+Loadable module: arEVaRTDriver
+Platform: Windows.
+Service: SZG_EVART
+
+Run this to retrieve data from an EVaRT-based optical motion
+tracking system from Motion Analysis.
+```
+TRACKER_COMPUTER SZG_EVART IPhost XXX.XXX.XXX.XXX
+XXX.XXX.XXX.XXX gives the IP address of the EVaRT system.
+```
+
+
+==Intersense Trackers==
+
+Loadable module: arIntersenseDriver
+Platform: Windows/Linux.
+Service: SZG_INTERSENSE
+
+Run this to retrieve data from an Intersense tracker. Due to the unified
+nature of the Intersense tracker drivers, this should work with any of the
+trackers in the Intersense line.
+The Intersense driver is very configurable. You will need to set parameters
+in the Phleet database to use your tracker.
+```
+TRACKER_COMPUTER SZG_INTERSENSE sleep 10/0
+Sleep for 10 msec between polling the tracker.
+TRACKER_COMPUTER SZG_INTERSENSE station0_1 0/0/0
+The 1st sensor associated with the 0th tracker has 0 buttons and 0 axes.
+Perhaps it is a head sensor.
+TRACKER_COMPUTER SZG_INTERSENSE station0_2 4/2/0
+The 2nd sensor associated with the 0th tracker has 4 buttons and 2 axes.
+TRACKER_COMPUTER SZG_INTERSENSE convert0_0 0/0/-1.0/2.0
+TRACKER_COMPUTER SZG_INTERSENSE convert0_1 1.0/0/0/1.0
+TRACKER_COMPUTER SZG_INTERSENSE convert0_2 0/-1.0/0/-2.0
+TRACKER_COMPUTER SZG_INTERSENSE convert0_3 0/0/0/1.0
+A 4x4 conversion matrix used to convert the Intersense coordinate system
+to the Syzygy coordinate system. The 4th column (the translation) will
+vary from installation to installation, but the first should be generally
+applicable. Specifically,
+( 0,  0, -1 )
+( 1,  0,  0 )
+( 0, -1,  0 )
+Converts from Intersense coordinates to Syzygy coordinates.
+```
+
+PLEASE NOTE: You'll need to install the shared library (from Intersense)
+as appropriate for your system to have this driver work.
+
+
+==vrpn Driver==
+
+Loadable module: arVRPNDriver
+Platform: Linux.
+Service: SZG_VRPN.
+
+This creates a bridge between Syzygy programs and input devices as
+managed by a vrpn server.
+```
+TRACKER_COMPUTER SZG_VRPN name
+Here "name" designates the VRPN device to which one will connect.
+```
+
+
+==Motion Capture File==
+
+Loadable module: arFileSource
+Platform: All platforms.
+Service: none
+
+This driver provides playback of previously-captured input data. It
+does so at the same approximate rate as the file's internal time
+stamps. The file read is "inputdump.xml" as located by searching the
+SZG_DATA/path. An input event stream can be recorded by sending a
+DeviceServer instance a "dumpon" message. The logging is ended by
+sending a "dumpoff" message. The event stream will be saved in a file
+"inputdump.xml" in the SZG_DATA/path.
+
+

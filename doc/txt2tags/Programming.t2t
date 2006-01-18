@@ -1,0 +1,439 @@
+Syzygy Documentation: Programming and Application Frameworks
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers --toc --toc-level=3
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+This chapter describes the broad programming styles supported by Syzygy:
+the master/slave framework and the distributed scene graph framework.
+The master/slave style gives the programmer greater flexiblity, like the
+ability to use OpenGL directly in code, but requires care to produce an
+application that displays consistently on all cluster render nodes. On the
+other hand, distributed scene graph applications are guaranteed to display
+consistently across cluster nodes, but require the programmer to utilize the
+Syzygy scene graph [API SceneGraph.html].
+
+We also show how to leverage the existing Syzygy build structure to
+create portable build structures for your own projects, using a provided
+project template.
+
+%%toc
+
+
+=Application Frameworks=
+
+Syzygy VR programming is accomplished by using a framework object
+that manages the many components of the networked VR application. The
+framework object is responsble for application launching and shutdown.
+It also handles communications, synchronization, graphics, sound, and
+input device. Most importantly, these objects isolate the programmer from
+lower levels of the Syzygy library, making it more practical to evolve
+those APIs while leaving the high-level programmer API constant.
+
+Syzygy presents two paradigms for programming VR applications. The
+first is encapsulated in the arMasterSlaveFramework object. This
+framework is suited to coding cluster graphics applications where
+multiple copies of the application will run, one on each render node. We
+refer to such applications as master/slave, since one instance of the
+application, the master, controls the operation of the others, the
+slaves. The second paradigm is contained in the
+arDistSceneGraphFramework. Here, a single copy of the application runs,
+producing graphics by manipulating a scene graph database. This database
+is automatically synchronized with databases present on the cluster's
+render nodes, where a special application, szgrender, handles the
+drawing. Both of these frameworks are subclasses of arSZGAppFramework,
+which contains the common aspects of the two frameworks.
+
+The distributed scene graph framework provides provably synchronized
+graphics on the render nodes, regardless of the nature of the
+application. This comes at a price, however. The application developer
+can only express herself by means of the scene graph API, which contains
+primitives for constructing some simple geometric objects. Applications
+that only require objects supported by the scene graph API may be easier
+to construct using this framework. On the other hand, applications built
+upon the master/slave framework can make use of the standard OpenGL API.
+The master/slave framework thus offers an easy migration path for
+existing applications to cluster-based operation; two of the included [sample applications ExampleCode.html],
+atlantis and coaster,
+were easily ported to Syzygy from the standard GLUT distribution using
+the master/slave framework. But this flexibility means it is possible to
+write unsynchronized applications.
+
+Samples of both programming styles can be found under szg/src/demo.
+Please see the [examples ExampleCode.html] chapter of this
+documentation for more information.
+
+
+=Common Features of Both Frameworks=[CommonFeatures]
+
+Both frameworks have routines for setting the user's interocular
+separation, near and far clipping planes, and the unit conversion
+factors for both rendering and sound production:
+
+```
+void arSZGAppFramework::setEyeSpacing( float feet );
+void arSZGAppFramework::setClipPlanes( float near, float far );
+virtual arSZGAppFramework::void setUnitConversion( float feet_to_program_units );
+virtual arSZGAppFramework::void setUnitSoundConversion( float feet_to_program_units );
+
+```
+
+Note that, if used, the unit conversion factors should be set <span
+ style="font-style: italic;">before the framework's init() method
+is called (because database parameters are read in the init(), and some
+of them may require the unit conversion factors), whereas the eye
+spacing and clipping planes should be set <span
+ style="font-style: italic;">after init() (because otherwise they
+may be overridden).
+
+Both frameworks have a routine for accessing the Syzygy data
+path, stored on each machine in SZG_DATA/path:
+
+```
+  const string arSZGAppFramework::getDataPath()
+```
+
+Input. The frameworks provide methods for polling the current state
+of the various [input events InputDevices.html]:
+```
+int arSZGAppFramework::getButton( unsigned int index );
+  Returns the value (0 or 1) of the named button. Button numbering starts
+  at 0.
+float arSZGAppFramework::getAxis( unsigned int index );
+  Returns the value of the named axis. Axis numbering starts at 0.
+arMatrix4 arSZGAppFramework::getMatrix( unsigned int index );
+  Returns the value of the named matrix. Matrix numbering starts at 0.
+  Note that in our applications the "head matrix" is currently hard-coded as matrix 0
+  and the "wand matrix" is currently hard-coded as matrix 1. Information
+  about the arMatrix4 object can be found by examining szg/src/math/arMath.h.
+```
+
+Many of the included Syzygy sample applications expect a standard CAVE-style input
+device: 3 buttons, 2 axes, 2 matrices (which [inputsimulator InputDevices-Drivers.html] can simulate).
+However, both frameworks are capable of handling unlimited event
+indices, and also have methods for determining the number of event
+indices available:
+
+```
+unsigned int arSZGAppFramework::getNumberButtons();
+unsigned int arSZGAppFramework::getNumberAxes();
+unsigned int arSZGAppFramework::getNumberMatrices();
+```
+
+Both frameworks provide a pointer to the current input state, for
+more efficient access to input events:
+
+```
+const arInputState* getInputState();
+```
+
+Both frameworks support the [Syzygy navigation utilities Navigation.html].
+Although the interface is the same, the way it is used is slightly
+different under the two frameworks, so we'll discuss that below.
+
+
+=Master/Slave Framework=[MasterSlave]
+
+The master/slave framework can be used to construct cluster-based
+applications with a dynamically connecting/ disconnecting set of render
+nodes. Communication across different machine architectures is supported
+so, for instance, the cluster could be composed of both big-endian and
+little-endian machines.
+The assumption is that, at each stage, a master application sends
+enough information to its connected slave applications to enable them to
+reconstruct the rendering state. For a large class of applications, this
+information is minimal in size. Slave applications can connect or
+disconnect from the master at any time. This means that it is possible
+to reconfigure displays on the fly, even to move a running program to an
+entirely new virtual environment. Note that one cannot currently write a
+master/slave application that runs on exactly N nodes and requires each
+node to start in unison.
+
+Please note that, while the arMasterSlaveFramework is currently
+based on GLUT, this dependency will be going away, so it is unwise to
+include GLUT calls in your application code. Furthermore, calls such as
+glutPostRedisplay() are known to cause problems with the synchronization
+methods used.
+
+Now, we briefly explain the master/slave framework API. To use this
+framework, you will need to define several callbacks and define your
+usage of the distributed shared memory. First, let's outline the methods
+used to set the various callbacks. This also outlines the required
+signatures for the callbacks themselves. Note that each callback
+includes an argument for a framework reference, which will be filled on
+call with a reference to the owning framework object. The start
+callback also receives a reference to the framework's arSZGClient,
+allowing the callback to, for instance, query the parameter database.
+
+```
+  void arMasterSlaveFramework::setStartCallback    
+    (bool (*startCallback)(arMasterSlaveFramework& fw,
+                           arSZGClient& client))
+  void arMasterSlaveFramework::setPreExchangeCallback
+    (void (*preExchange)(arMasterSlaveFramework& fw))
+  void arMasterSlaveFramework::setPostExchangeCallback
+    (void (*postExchange)(arMasterSlaveFramework& fw))
+  void arMasterSlaveFramework::setDrawCallback
+    (void (*draw)(arMasterSlaveFramework& fw))
+  void arMasterSlaveFramework::setPlayCallback
+    (void (*play)(arMasterSlaveFramework& fw))
+```
+
+An arMasterSlaveFramework application begins by calling the init
+method, passing in the command line parameters:
+```
+if (!framework.init(argc,argv))
+  return 1;
+```
+
+The application should quit if init fails (returns false).
+Next, the various callbacks are set, including the important start
+callback where shared memory is registered. Other application-specific
+initialization can also occur at this time, and this callback is guaranteed
+to be called after the graphics window has been initialized, allowing various
+OpenGL-related commands to be used.
+
+Finally, the start() method
+sets the application in motion by first executing the user-defined
+startCallback(...). If this callback returns false, the
+start() method returns false. Otherwise, it begins
+running an event loop defined by the other callbacks.  As with
+init(...), if start() returns false then the application should
+terminate.
+```
+if (!framework.start())
+  return 1;
+```
+
+We now detail the event loop:
+
+  + Poll input devices: The master application instance is connected
+to input devices. Here, it copies the current values into memory so they
+can be exported via the getButton(...), getAxis(...), and getMatrix(...)
+methods. The use of these cached values ensures coherency in
+applications that depend on input device state in the event loop stages
+occuring after shared-memory export.
+
+  + Call the user-defined preExchange() callback: Take an
+action before shared memory is exported from the master application
+instance to the slave instances.
+
+  + Shared memory export: Shared memory is exported from the master
+application instance to the slave application instances. This includes
+both user-defined blocks of shared-memory and some system level
+infomation. The system material includes the current time (milliseconds
+elapsed since initialization on the master) and the time needed to
+execute the last event loop. It also includes a navigation matrix and
+the cached input device values.
+
+  + Call the user-defined postExchange() callback: Take
+whatever action the user specified. Note that it is safe to query input
+device values here.
+
+  + Call the user-defined sound (play()) callback: Play
+sounds. See the [Sound API Sound.html] documentation for
+examples of how to make sounds.
+
+  + Call the user-defined draw() callback: Setup the matrix
+stack using the current head position and information about the screen
+configuration attached to this pipe. Then execute the user-defined draw
+callback.
+
+  + Synchronization: All connected application instances pause here
+until each has reached the barrier. A graphics buffer swap then occurs.
+
+
+Now, we examine the API in more depth, starting with the way the
+programmer registers shared memory. In the user-defined initCallback(...),
+the programmer should register shared memory. This is done using the
+following method of the arMasterSlaveFramework object:
+```
+bool arMasterSlaveFramework::addTransferField(string fieldName,
+                                              void* memoryPtr,
+                                              arDataType theType,
+                                              int segmentDimension)
+```
+
+The parameter "fieldName" gives the memory a descriptive name. You
+pass in an already allocated pointer "memoryPtr" to a block of memory of
+type given by "theType" and of dimension "segmentDimension". The data
+type needs to be one of AR_INT, AR_FLOAT, AR_DOUBLE, or AR_CHAR. Note
+that registering memory is done both in the master instance and the
+slave instances of the application. Once memory has been registered, the
+programmer uses the pointer normally, with awareness that the contents
+of the memory block are transfered from the master to the slaves in step
+3 of the event loop.
+
+As an example, the following statement registers a block of 16
+floats:
+```
+framework.addTransferField("manipulation matrix", void* floatPtr,
+                           AR_FLOAT, 16);
+```
+
+The arMasterSlaveFramework objects also maintain consistent time
+across nodes. This can be consistently accessed after the shared-memory
+exchange step of the event loop.
+```
+double arMasterSlaveFramework::getTime()
+  Returns the time in milliseconds that have elapsed on the master since
+  completion of initialization.
+double arMasterSlaveFramework::getLastFrameTime()
+  Returns the time in milliseconds for the last iteration of the event loop.
+  measured from one "poll input devices" step tp the next.
+```
+
+Sometimes it is necessary to determine if one is the master node or
+not. This is done by the following API call:
+```
+bool arMasterSlaveFramework::getMaster()
+  Returns whether or not this is the master application instance.
+```
+
+As mentioned above, this framework supports the [navigation utilities Navigation.html]. Any of the routines
+that modify this navigation may be used, but <span
+ style="font-style: italic;">they should only be called on the master
+in the preExchange() callback. The framework automatically copies
+this matrix from the master to each of the slaves. As mentioned in the
+doc chapter on [navigation Navigation.html], the frameworks
+have two navigation-related methods:
+```
+void arMasterSlaveFramework::navUpdate()
+void arMasterSlaveFramework::loadNavMatrix()
+```
+
+navUpdate(), like other navigation-matrix modifying routines, should
+only be called on the master in preExchange(). &nbsp;loadNavMatrix(),
+which loads the current navigation matrix onto the OpenGL matrix stack,
+should be called on all instances at the beginning of the drawCallback().
+
+Finally, the arMasterSlaveFramework object includes an internal
+graphics database that uses the same API as that used in writing
+distributed scene graph applications. However, in this case, the scene
+graph database is not distributed. Each instance of the application has
+its own independent database. This functionality is included so that
+programmers can make use of arGraphicsDatabase features, like import
+filters for OBJ objects. Manipulation of the database can be done using
+the API outlined in the [scene graph SceneGraph.html]
+documentation chapter. Please note that the "dgSetGraphicsDatabase"
+command is not necessary in this context. This is automatically done by
+the framework object. Finally, we outline the one arMasterSlaveFramework
+method specifically tailored to this:
+```
+void arMasterSlaveFramework:draw()
+  Draw the internal graphics database.
+```
+
+Finally, it should be possible to integrate master/slave
+applications with other libraries that themselves seek to control the
+event loop or on based on graphics system other than OpenGL. To make
+this possible, the programmer needs to issue the following call instead
+of start():
+```
+bool arMasterSlaveFramework::startWithoutGLUT()
+```
+
+As before, the program should abort if this call returns false. The
+programmer now has responsibility for calling (or causing to be called)
+a preDraw() method before each frame is drawn and a postDraw() method
+after each frame is drawn (but before the buffer swap command has been
+issued). Methods for retrieving the framework's computed projection and
+modelview matrices are also provided. This enables the programmer to
+directly manipulate the viewing API with which he is working.
+```
+void arMasterSlaveFramework::preDraw()
+  Executes those parts of the event loop that occur before drawing.
+void arMasterSlaveFramework::postDraw()
+  Executes those parts of the event loop that occur after drawing but
+  before buffer swap (really just synchronization).
+arMatrix4 arMasterSlaveFramework::getProjectionMatrix()
+  Returns the projection matrix calculated by the framework based on
+  screen characteristics, head position, and head orientation.
+arMatrix4 arMasterSlaveFramework::getModelviewMatrix()
+  Returns the modelview matrix calculated by the framework based on
+  screen characteristics, head position, and head orientation.
+```
+
+
+=Distributed Scene Graph Framework=[SceneGraph]
+
+Syzygy facilitates programming VR applications using the distributed
+scene graph paradigm with the arDistSceneGraphFramework object. This
+object manages connections to the render nodes, sound sources, and input
+devices. The programmer manipulates the scene graph using the API
+outlined in the [Scene Graph SceneGraph.html] chapter. Note
+that there is no need to use the "dgSetGraphicsDatabase" method as that
+detail is handled internally by the framework object.
+As with the arMasterSlaveFramework, the first thing a distributed
+scene graph application should do is initialize its
+arDistSceneGraphFramework object, passing it the command line arguments.
+Note that the app should quit if this method returns false.
+```
+if (!framework.init(argc, argv))
+  return 1;
+```
+
+After the program has successfully called init(), it can perform
+application-specific initializations like populating the database with
+an initial scene.
+
+A distributed scene graph program can operate in two ways. In the
+default way, the framework object itself decides when frames will end,
+so the programmer directly alters the scene graph. This way is best
+when, like in the timetunnel or cubes sample applications, many alterations of roughly
+equal importance occur to the database at each frame. In the other way,
+the programmer explicitly declares when a frame ends. This is useful
+when a few large alterations occur per frame or, generally, when the
+programmer wants full control over the contents of successive frames.
+The methods to control this behavior follow:
+```
+void arDistSceneGraphFramework::setAutoBufferSwap(bool state)
+  Sets whether or not buffer swap is automatic. If "true", then buffer
+  swap occurs automatically. If "false", the buffer swap must be
+  manually triggered.
+void arDistSceneGraphFramework::swapBuffers()
+  Tells the framework to swap buffers.
+```
+
+After application-specific initialization is done, start the
+framework. This launches various services like the built-in sound and
+graphics servers and the connection to an input device. The application
+should quit if start() fails.
+```
+if (!framework.start())
+  return 1;
+```
+
+Now, you are free to conduct your application's business.  Since
+arDistSceneGraphFramework has no event loop, you must explicitly tell it
+when to sample and set head position information from the viewer, as is
+necessary for correct calculation of the viewing frustum and sound
+spatialization. Also, if you are using framework-mediated [navigation Navigation.html], you should call the relevant
+routines &nbsp;at this time:
+```
+void arDistSceneGraphFramework::navUpdate();
+  Polls the input device and updates the navigation matrix appropriately.
+
+void arDistSceneGraphFramework::loadNavMatrix();
+  Updates the navigation matrix in the graphics database.
+
+void arDistSceneGraphFramework::setViewer()
+  Polls the input device and sets the viewing transform accordingly.
+
+void arDistSceneGraphFramework::setPlayer()
+  Polls the input device and sets the play transform accordingly (for spatialized sound).
+
+```
+
+A final note about navigation: if you're using framework-mediated
+navigation with this framework, then you must use the following routine
+to get the name of the navigation matrix node in the [scene graph SceneGraph.html] and attach any nodes (objects,
+matrices, whatever) that you create to it:
+
+```
+string arDistSceneGraphFramework::getNavNodeName();
+```
+
+

@@ -1,0 +1,257 @@
+Syzygy Documentation: Python Programming
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers --toc --toc-level=3
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+Thank you to Peter Brinkmann for creating the initial version of the Syzygy Python bindings.
+
+%%toc
+
+
+=Python Bindings Background=
+
+We are using [SWIG http://www.swig.org] to generate Python
+bindings for some of the most commonly-used Syzygy classes and functions.
+Syzygy Python bindings are currently available for Linux, Windows, and
+Mac OS X, but not for Irix. Make sure you have Python (version 2.2 or greater)
+installed before proceeding (OS X and most Linux distributions come with Python
+installed) If you are using the cygwin command shell on windows, make sure that it does
+not include its own version of Python or SWIG. You must remove them if they exist, since
+cygwin's Python and Syzygy use incompatible object-file formats (gcc vs. Visual
+Studio). Install the native Windows version of Python from
+[python.org www.python.org].
+
+If you will be compiling the bindings, as opposed to using a precompiled SDK,
+you must set the SZGHOME, SZGBIN, SZGEXTERNAL, etc.
+environment variables as described in
+[Getting the Software GettingSoftware.html].
+
+This section will show you how to start writing Syzygy programs using
+Python. You should start by understanding how to [ get the Syzygy software GettingSoftware.html] and set up
+your Python environment. If you are using a precompiled Syzygy SDK, the Python
+bindings are included; you do not need
+to compile them. Otherwise, read the section on
+[compiling the Python bindings #CompilePythonBindings].
+After completing these steps,
+[test your installation #FirstPythonTest]. If you will be running
+Python programs in Phleet mode (via dex, szgd, and virtual computers), you
+should understand the way Python interacts with the Phleet. The szg
+repository contains several examples that demonstrate preferred Syzygy
+programming models, both in szg/python/demo and in szg/doc/python.
+
+
+=Compiling the Syzygy Python Bindings=[CompilePythonBindings]
+
+The precompiled Syzygy SDK includes the Python bindings. If you have
+the precompiled SDK, please skip this section.
+
++ Install [SWIG http://www.swig.org].
+
+We can only certify that the bindings work with Version 1.3.21
+(and we know for certain that 1.3.24 does not work on Linux).
+The installation procedure depends on your platform.
+
+  - On Linux or OS X, download a tar.gz from
+  [the SWIG web site www.swig.org]. Install this in the
+  normal Unix way (configure, make, make install).
+
+  - For Windows, download the SWIG installer from the web site.
+  Install the software and add the bin directory to your path.
+
++ Set the SZG_PYINCLUDE environment variable to the directory
+containing the Python.h header.
+
+  - Linux: On Xandros 2.0 (which comes with Python 2.3), this would be
+  /usr/include/python2.3
+
+  - Windows: If you e.g. installed Python 2.2 in c:\Python22 (the default),
+  this would be c:/Python22/include.
+
+  - OS X: On OS X.3 with Python 2.3, this would be
+    /System/Library/Frameworks/Python.framework/Versions/2.3/include/python2.3
+
++ Set the SZG_PYLIB environment variable to the location of the Python
+shared library.
+
+  - Linux: It isn't necessary to set this variable if Python
+    was installed in a standard way. The library
+    will be on the search path.
+
+  - Windows: With Python 2.2 in c:\python22 this would be
+  c:/Python22/libs/python22.lib.
+
+  - OS X: As for Linux, it's not necessary to set this variable if Python was
+    installed normally.
+
++ Unpack py-szg-X.X.tar.gz to the directory py-szg. In the py-szg directory,
+  "make" builds the bindings and "make clean" cleans things up.
+
+
+=Installing Supporting Syzygy Software for Python=[PythonSetup]
+
+The Syzygy Python bindings consist of two SWIG-generated files: a Python module (PySZG.py)
+that makes calls to a shared library (_PySZG.dll on Windows, _PySZG.so on other
+platforms); the shared library makes calls to the Syzygy shared libraries.
+These files are normally kept with the rest of your executables and shared
+libraries, as they are platform-specific.
+In the precompiled SDK, these are in the "bin" subdirectory. If you compiled the
+libraries yourself, they should have been automatically copied to your SZGBIN
+directory.
+
+Python has an internal search path for loadable modules. If the environment
+variable PYTHONPATH exists, its contents are prepended to the module search path.
+You must add the directory containing the two PySZG files to your
+PYTHONPATH variable.
+
+Your PATH and dynamic linker environment variables must be
+set as explained in [Getting the Software GettingSoftware.html]. The directory containing the Syzygy executables and libraries
+must be on your PATH and on the dynamic linker search
+path.
+
+If you simply want to be able to play around with Syzygy objects at the
+Python interpreter, or if you only plan to write programs using the
+[distributed scene graph application framework Programming.html], then
+you do not need to install anything else. Please
+proceed to the next section. However, programs based on the more flexible
+[master/slave application framework Programming.html] require
+the Python OpenGL bindings package,
+[PyOpenGL http://pyopengl.sourceforge.net/], which in turn
+requires the Python numarray module. The
+[ installation procedure http://pyopengl.sourceforge.net/documentation/installation.html] varies by platform.
+
+
+=Testing Your Syzygy Python Installation=[FirstPythonTest]
+
+The first confidence test is simple. Try to load the Python bindings
+from within the interpreter. You should be able to execute the following
+commands:
+
+```
+  python
+  from PySZG import *
+  g = arGraphicsDatabase()
+  g.printStructure()
+```
+
+If this works, try running the included demos in standalone mode.
+Make sure you are in standalone mode by typing the Syzygy command dlogout, then cd to the
+demo/blobby or demo/skeleton directory and type "python .py". If you've
+installed the optional pycube demo package, try some of those. Note that some
+of them depend on modules that are in the top pycube directory. In order for these
+to work in standalone mode, you will need to manually add this directory to
+your PYTHONPATH environment variable (when you run the demos on a Syzygy cluster
+(i.e. in Phleet mode, see below),
+the pycube directory must added to you SZG_PYTHON/path Syzygy database variable,
+and is then automagically added to the PYTHONPATH).
+
+
+=Running Syzygy Python Programs in Phleet Mode=[PythonPhleet]
+
+To understand this section, you should read about the Phleet distributed
+OS [here PhleetIntro.html] and [here Phleet.html].
+
+The distributed execution command dex operates differently
+on Python programs than on native Syzygy executables. We assume that Python
+programs are organized, along with their data, like textures, sounds, and
+input files, in subdirectories of an overall Python programs directory. The
+top level of that Python programs directory might contain library modules
+used by various programs. When you type e.g. "dex blobby.py", the target szgd
+searches through the directories listed in the SZG_PYTHON/path Syzygy
+database variable for a directory containing a file named "blobby.py".
+It then executes Python, passing "blobby.py" as a parameter. To succeed at this,
+the Python executable must be on the SZG_EXEC/path.
+
+Consider the following example:
+
+- The computer's name is the_computer and your login name is the_user.
+- The path to the Python executable is /usr/bin/python.
+- Your Syzygy executables are in /home/the_user/bin.
+- The py-szg package is installed on that computer in /home/the_user/py-szg.
+We want to execute the file py-szg/demo/blobby/blobby.py.
+
+
+In this case, the following lines should appear in your dbatch file:
+
+```
+  the_computer SZG_EXEC path /home/the_user/bin;/usr/bin
+  the_computer SZG_PYTHON path /home/the_user/py-szg/demo
+```
+
+Note that szgd only searches one level of subdirectories for each
+directory in the SZG_PYTHON path variable, so setting it to
+/home/the_user/py-szg wouldn't work (because the blobby directory would
+be two levels down).
+
+When you type
+
+```
+  dex the_computer blobby.py
+```
+
+szgd searches the SZG_EXEC path until it find the Python executable. It
+searches the SZG_PYTHON path until it finds blobby.py. It executes python,
+with the path to blobby.py passed as a command-line argument. It modifies
+the execution environment by prepending the directory containing blobby.py
+and the directory above that to the PYTHONPATH, so that modules contained
+in those directories can be loaded.
+
+PLEASE NOTE. szgd processes dex commands differently depending upon
+whether the program is native or Python and determines which is which
+via the extension (.py). Consequently, it is very important to have this
+extension on your Python program.
+
+Python programs can be executed on virtual computers, much like native
+Syzygy programs. For example, say you've installed a copy of the py-szg
+demo directory on each computer that is part of a virtual computer named
+the_cluster
+(or installed it on a networked drive that is
+mounted on each computer) and that you've set the Syzygy database parameters
+as described above for each computer, then
+
+```
+  dex the_cluster blobby.py
+```
+
+and
+
+```
+  dkill the_cluster blobby.py
+```
+
+should work.
+
+Pitfalls in Syzygy Python Programming
+
+You should be very careful to put the line
+
+```
+  from PySZG import *
+```
+
+BEFORE any imports of PyOpenGL modules in your Python code. This is
+because the PyOpenGL modules go actually try to load the GLUT dynamic library
+themselves from their local installation and this may conflict with the
+Syzygy GLUT.
+
+The Python cPickle module (for persistent storage of Python objects, either
+files or in strings) seems to be less cross-platform than
+advertised. Actually, we're not sure if this is a platform or a version issue;
+a file generated with cPickle on a Windows machine running Python 2.2 can't be
+un-pickled on a Linux machine running Python 2.3. The Python master/slave framework
+uses cPickle in the setObject method, for packing an arbitrary Python object
+into a string for transfer from master to slaves, so this implies that Python
+master/slave applications may run into trouble running on mixed-platform or
+-version
+clusters. We've run into a few other cases in which cPickle behaves strangely,
+throwing exceptions for no apparent reason;
+some of these can be avoided by using the slower pickle module instead (pickle is written
+in Python, cPickle in C).
+
+On Windows, the Python dynamic library is versioned. Consequently,
+to work with the precompiled SDK, you will need to have Python 2.2
+installed.
+
+

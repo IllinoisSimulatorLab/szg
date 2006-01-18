@@ -1,0 +1,355 @@
+Syzygy Documentation: Interaction
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers --toc --toc-level=2
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+Thanks to Jim Crowell for creating the Syzygy interaction code support.
+
+This page documents the
+classes for handling user interaction with virtual objects--more
+generally, conversion of input events to virtual world events. Virtual
+world events are divided into two categories: changes to an object's
+placement matrix (placement = position + orientation) and everything
+else. These classes are designed to provide a reasonably simple yet
+flexible way to handle this conversion, with some common behaviors
+encapsulated in the supplied classes.
+
+%%toc
+
+
+=Concepts & Classes=
+
+An //interactable// is
+an object capable of receiving virtual world events. These are
+instantiated in subclasses of the //arInteractable// abstract class. You can
+either create your own //arInteractable// subclasses or use the
+provided //arCallbackInteractable// class, which allows you to
+install function pointers to implement special behaviors.
+
+An //effector// is a
+representation of a mobile physical input device, such as our wireless
+gamepad with a tracking sensor attached. A given input device can be
+represented by more than one effector if different parts of the device
+are used for different functions. These are represented by the //arEffector// class.
+
+An //interaction selector//
+is an algorithm for determining which (if any) of a set of interactables
+a given effector will interact with. It's basically a distance
+measurement, the idea being that the effector will select the
+interactable that is closest to it by some measure. These are
+represented by subclasses of the abstract //arInteractionSelector// class. Examples are
+//arDistanceInteractionSelector//, which selects based on
+the Euclidean distance between effector and interactable, and //arAlwaysInteractionSelector//,
+ which always allows
+interaction with any object it comes across (for distance-independent
+interaction).
+
+A //drag behavior// is
+a placement-matrix-altering virtual world event. An example would be
+maintaining a fixed relationship with an effector over time as the
+effector is waved around. These are instantiated in subclasses of the
+abstract //arDragBehavior// class. An example of this
+is the //arWandRelativeDrag//, which implements the
+behavior just described.
+
+A //triggering condition//
+or //grab condition// is a condition on the input event stream that
+must be satisfied for a&nbsp;  drag behavior to be activated. These are
+represented by the //arGrabCondition// class.
+The only remaining class
+to mention is the //arDragManager//, which keeps track of
+which triggering conditions activate which drag behavior, and
+determines which drag behaviors should currently be active.
+Interactables and effectors both have drag managers. By default, the
+effector's drag manager is used, but this setting can be overruled on
+an interactable-by-interactable basis.
+
+
+=Usage Example: cubes.cpp=
+
+The following is a fairly
+detailed explanation of some snippets taken from src/demo/cubes.cpp.
+This is a Distributed Scene Graph application in which a cubical space
+around the user is filled with small objects of various shapes that
+rotate and change textures at random. The effect of the interaction
+code is to define a visible virtual wand that the user can wave around
+and use to drag any of the virtual objects with. When an object is
+dragged within two feet of the head, it temporarily takes the texture
+of the wand. We use the arCallbackInteractable class to mediate
+interaction with each of the objects; this is the easiest way to add
+interaction to a program that wasn't designed with interaction in mind.
+
+
+==Declarations==
+
+```
+arCallbackInteractable interactionArray[NUMBER_CUBES];
+std::list<arInteractable*> interactionList;
+```
+
+We define an array of
+arCallbackInteractables, one for each virtual object, and a list to
+hold a pointer to each element of the array.
+
+```
+arEffector dragWand( 1, 6, 2, 2, 0, 0, 0 );
+arEffector headEffector( 0, 0, 0, 0, 0, 0, 0 );
+```
+
+We define two arEffectors
+to drive the interactions. Going through the constructor arguments for
+dragWand: it uses input matrix event #1 to determine its position and
+orientation. It maintains information about 6 button events. These
+start at input button event #2 and can be extracted using indices
+starting with 2; in other words, this effector will receive a copy of
+button events 2-7 which can be extracted from the effector using their
+input indices.
+
+This requires a bit of
+explanation. An arEffector has the capability to remap the indices of
+ranges of input events. Consider the following scenario: The user is
+wearing two data gloves which you desire to function in exactly the
+same way. For example, you might map certain gestures into button
+events, and you want the same gesture to allow you to grab an object
+with either hand. This gesture will probably be mapped onto different
+button events in the input stream, depending on the originating hand.
+You can use the arEffector to remap these different events onto the
+same button event. E.g., if you'd defined 5 distinct gestures for each
+hand, corresponding to button events 0-4 for the right hand and 5-9 for
+the left, and the two hands were assigned placement matrices 1 and 2,
+then you might declare:
+
+```
+arEffector rightHand( 1, 5, 0, 0, 0, 0, 0 );
+arEffector leftHand( 1, 5, 5, 0, 0, 0, 0 );
+```
+
+You would then be able to
+access e.g. button event #0 using rightHand.getButton(0) and button event #5 using
+leftHand.getButton(0) (which is a Good Thing if
+you want them to have the same effect).
+
+The last three numbers are
+the equivalent for axis events, so in all these cases we're specifying
+that we won't be needing any.
+
+The headEffector uses
+input matrix #0 (assumed to be read from a sensor attached to the
+user's head) and has no buttons or axes.
+
+
+==Initialization==
+
+First, in main() we specify some more
+things about the effectors:
+
+```
+dragWand.setInteractionSelector( arDistanceInteractionSelector( 5 ) );
+headEffector.setInteractionSelector( arDistanceInteractionSelector( 2 ) );
+```
+
+This says that we want the
+object to be interacted with to be selected on the basis of the minimum
+Euclidean distance, with a maximum interaction range of 5 feet for the
+dragWand and 2 ft. for the headEffector. Normally we'd use a smaller
+interaction range than 5 ft., but in this instance I wanted it to be
+easy to get this to work with the simulator interface program
+[inputsimulator TrackingSim.html] on a non-stereo-enabled display.
+
+```
+dragWand.setTipOffset( arVector3(0,0,-WAND_LENGTH) );
+```
+
+Here we specify that the
+effector's "hot spot" (the point used in computing the wand-object
+distance by the interaction selector) will not be right at the position
+indicated by the effector's placement matrix, but will instead be
+offset forwards by WAND_LENGTH (2 ft.).
+
+```
+dragWand.setDrawCallback( drawWand );
+```
+
+This is how we make the
+virtual wand visible. I won't put the code in here, but if you look in
+cubes.cpp you'll see that we've defined a textured rod object that
+measures .2 ft x .2 ft x WAND_LENGTH. drawWand is a pointer to a
+function that uses the scene-graph function
+dgTransform()
+to modify this rod's placement matrix such that it always extends
+between the tracked input device and the effector hot spot.
+
+```
+dragWand.setDrag( arGrabCondition( AR_EVENT_BUTTON, 2, 0.5 ),
+                                      arWandRelativeDrag() );
+dragWand.setDrag( arGrabCondition( AR_EVENT_BUTTON, 6, 0.5 ),
+                                      arWandRelativeDrag() );
+dragWand.setDrag( arGrabCondition( AR_EVENT_BUTTON, 7, 0.5 ),
+                                      arWandRelativeDrag() );
+```
+
+Here we specify that we want the
+arWandRelativeDrag behavior to occur whenever
+the value of buttons 2, 6, or 7 exceeds 0.5. This behavior makes the
+dragged object maintain a fixed relationship to the effector hot spot;
+translating the hotspot translates the object, rotating the wand causes
+the object to rotate about the hotspot.
+
+Next, in worldInit(), we hook up each
+interactable to a virtual object (more specifically, to the virtual
+object's placement matrix, since that's what we want to modify via
+interaction):
+
+```
+arCallbackInteractable cubeInteractor(
+                       dgTransform( cubeParent, navNodeName, arMatrix4() )
+                       );
+```
+
+Each arCallbackInteractable has an
+ID field. Here in
+one swell foop we add a matrix node to the scene graph (attached to the
+navigation matrix node, but that's another chapter) and assign its ID
+(returned by dgTransform()
+to the interactable.
+
+```
+cubeInteractor.setMatrixCallback( matrixCallback );
+cubeInteractor.setMatrix( cubeTransform );
+```
+
+Here we set the
+interactable's matrix callback--this is a pointer to a function that
+gets called whenever the interactable's matrix is modified) to a
+function that copies the interactable's matrix into the database node
+with the interactable's ID. Then we go ahead and set the matrix to the
+pre-computed value.
+
+```
+cubeInteractor.setProcessCallback( processCallback );
+```
+
+Then we set the object's
+event-processing callback to a pointer to a function that changes the
+object's texture if it is touched by the headEffector and grabbed by
+the dragWand.
+
+```
+interactionArray[i] = cubeInteractor;
+interactionList.push_back( (arInteractable*)(interactionArray+i) );
+```
+
+Finally, we copy the
+interactable into the array and push its address onto the end of the
+list.
+
+
+==Interaction Loop==
+
+Once cubes starts running,
+things happen in two distinct threads. In the main()
+ thread, we:
+
+```
+headEffector.updateState( framework->getInputState() );
+dragWand.updateState( framework->getInputState() );
+dragWand.draw();
+```
+
+Which copies the current
+state of the relevant input events from the framework into the
+effectors and then calls the drawCallback installed above. In the
+worldAlter() thread, we use the
+interactables in two ways:
+
+```
+interactionArray[iCube].setMatrix( randMatrix );
+```
+
+When not being interacted
+with, the virtual objects rotate randomly. We have to do all placement
+matrix manipulations via the corresponding interactable to ensure that
+the two placement matrices remain in sync with one another, so all
+modifications to the object's placement matrix are accomplished using
+the interactable's setMatrix()
+method.
+
+```
+ar_pollingInteraction( dragWand, interactionList );
+ar_pollingInteraction( headEffector, interactionList );
+```
+
+Finally, we handle user
+interaction with virtual objects by each effector; this is where most
+of the work gets done. The function
+ar_pollingInteraction() is contained in
+arInteractionUtilities.cpp. There are two versions
+of it, the one used here which accepts a list of pointers to
+interactables as its second argument and another which accepts the
+address of a single interactable. It will be worthwhile to explain in
+some detail what this function does. First, a couple more concepts:
+
+An object is //touched//
+when it has been selected for interaction by an effector's interaction
+selector. If it was not touched on the previous frame, then its
+touch() method is called; this in
+turn calls the virtual protected _touch()
+method, which you need to define in an arInteractable subclass. In the
+//arCallbackInteractable// subclass, this calls the
+optional touchCallback that you've installed. If,
+on the other hand, an object was touched on the last frame but isn't
+any longer, then its untouch()
+method is called (which analogously calls your
+_untouch() method or untouchCallback).
+An interactable can be
+touched by multiple effectors simultaneously; it can even be touched by
+one effector while it is grabbed by another (see below).
+
+When an object is touched,
+it determines whether it satisfies a grab condition, either its own or
+the effector's depending on how the useDefaultDrags
+ flag is set. If so, it //requests
+a grab// from the effector; if that succeeds, the object is //grabbed//
+by that effector. That object remains locked to that effector (the
+effector is forced to interact with that object only, and the object
+can't be grabbed by another effector) until any relevant grab
+conditions fail. While the object is grabbed, its placement matrix is
+modified by the drag behaviors associated with any active grab
+conditions. The object remains grabbed even if it gets far enough away
+from the effector that it would ordinarily no longer be touched. In
+fact, this was the initial reason for locking the effector and object
+together during a grab; if the grab were based only on a distance
+computation, then it would be possible to lose hold of an object by
+dragging it too quickly.
+
+Finally, provided the
+object is still touched after all the rest of this occurs, the
+interactable's virtual _processInteraction()
+method is called (which calls the optional processCallback
+if it's an arCallbackInteractable).
+
+Back to ar_pollingInteraction().
+It behaves as follows:
+
+(1) Check to see if this
+effector is grabbing an object. If it is but that object isn't one of
+the ones passed, return; if it is one of the ones passed, select it for
+interaction and interact with it, then return.
+
+(2) Check to see if any
+passed object gets touched. If no object is touched but one was on the
+previous frame, or one is touched but it's not the same object the
+effector was touching on the last frame, call the previously-touched
+object's untouch() method.
+
+(3) If there's a touched object, call its
+processInteraction() method. This first
+determines whether or not it was touched no the previous frame; if not,
+it calls the object's own touch()
+method. It then goes
+through the sequence described just above.
+
+

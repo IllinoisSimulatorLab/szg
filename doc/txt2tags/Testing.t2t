@@ -1,0 +1,163 @@
+Syzygy Documentation: Supported Configurations and Testing Procedures
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers --toc --toc-level=3
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+%%toc
+
+
+=Supported Configurations=
+
+Syzygy uses the following combination of technologies, influencing
+the platforms on which it can compile and run. As of 2004, this requirement
+set has become mainstream, and, because a development goal is not to expand
+it further, building and running Syzygy should require only trailing edge
+features of the one's development environment in the future, a desirable
+characteristic.
+
+- OS with preemptive multitasking and threading.
+- Thread-safe STL and standard C/C++ library.
+- Good support for dynamic libraries and loadable modules, along with
+the ability to pass STL objects across module boundaries.
+- Graphics support depends on OpenGL.
+
+
+Syzygy is portable across a range of modern operating systems,
+Linux, Win32, Mac OS X, and Irix. It is stable on these systems, with the
+stability subjected to rigorous testing, as noted below. Furthermore,
+it is stable and tested across heterogenous combinations of these systems:
+your clusters need not be comprised of one type of machine.
+
+Any new (as of summer 2004) system should compile and run Syzygy.
+Some specific information about a wider range of systems follows.
+
+- Any modern linux should compile and run Syzygy. The developers have
+    successfully run and built Syzygy on RedHat 6.2, 6.3, 8.0, 9.0, the various
+    Fedora releases, along with Xandros 2.0 and 3.0. Currently, the developers
+    are compiling using gcc 3.x, so it could be that earlier versions (as
+    would have shipped with RedHat 6.x) will no longer compile the code base.
+    gcc 2.96 failed the thread-safe STL test mentioned above (it was a flawed
+    release coming after the egcs merge) and, consequently, Redhat 7.1 and
+    7.2 should NOT be used.
+- Windows NT, Windows 2000, Windows XP. Windows 98 will also work
+    in conjunction with cygwin. Visual Studio 6 works in combination with
+    STLport (since the STL shipping with this product does not allow STL
+    objects to cross module boundaries). Visual Studio .NET works.
+- Mac OS X 10.3 is required. A bug in the gcc shipped with Apple's 10.2
+    development tools prevents Syzygy code from being built as dylibs.
+- Irix 6.5 and a recent (summer 2004) version of CC is required. Previous
+    versions of CC would not produce thread-safe STL code.
+
+
+==Special Notes for Windows 98==
+
+The problem with Windows 98 derives from the way in which Syzygy components
+automatically determine their names for connecting to the phleet distributed
+OS. On Windows 98, it is impossible
+for an executable to get its own name (other than in all capital letters)
+from argv[0] when run from cmd.exe (the default Windows shell).
+Since Syzygy uses the command line argv[0] (in most cases) to set the
+component name, this causes problems with automated operation of the
+distributed system, for instance when running an application on a
+"virtual computer", one of whose nodes is Win98.
+As a work-around, three components
+(szgd, DeviceServer, and SoundRender) manually set their component names.
+Thus, Win98 nodes in a virtual computer can host input devices (via
+DeviceServer) and can also emit sounds (via SoundRender). Finally,
+components can retrieve the correct name from the argv[0] when launched via the
+cygwin shell. Consequently, normal operation of the distributed system is
+assured if you only launch components from the cygwin shell when on Win98.
+Running a syzygy program from an incorrectly configured Win98 DOS shell can
+fail. If this happens, try unchecking "Prevent MS-DOS-based programs
+from detecting Windows".
+
+
+==Wildcat Graphics Cards: Specifics==
+
+While the Syzygy network-based framelocking scheme works well
+with most graphics
+cards, the Wildcat series of graphics cards needs to also have its internal
+framelocking feature enabled for top quality results (i.e. anecdotally, 100%
+quality vs. 99% quality). To enable framelocking for
+a given rendering machine (in this case vr1):
+
+```
+  vr1 SZG_RENDER wildcat_framelock true
+```
+
+Note that the default is to have wildcat framelocking (i.e. the internal
+framelocking on the card) disabled.
+
+
+=Testing Procedures=
+
+Syzygy is stable enough that it can now be used to reliably detect bugs
+and misconfigurations in the hardware/OS upon which it is being run. The
+following tests thoroughly exercise the system, though they have yet to be
+automated.
+
+- Some small self-contained unit tests exist. These should run and pass
+on each supported platform.
+  -  TestLanguage: Tests the data marshalling/de-marshalling along with
+       some elementary file and directory operations. Tests binary and XML
+       data reading/writing, both in memory and to and from files.
+       Performance information is returned. It also tests STL thread-safety
+       of the platform.
+  -  TestLanguageServer/ TestLanguageClient: Tests send/receiving of
+       binary and XML data records across a network connection. Can be
+       used to test a network link's speed (10 Mbit vs. 100 Mbit vs. 1 Gbit).
+       Performance information is returned.
+  -  TestMath: Makes sure that the math functions (simple vector and
+       matrix algebra plus some VR-specific projection matrices) do the
+       right thing.
+  -  phleettest: This test hammers a running szgserver from multiple threads
+       with various requests. Running several of these simultaneously is
+       a good test of the szgserver's stability (and immunity to memory leaks).
+  -  BarrierServer/BarrierClient: Tests synchronization performance. One
+       BarrierServer is run along with multiple BarrierClient's, probably on
+       different machines. Performace, in terms of number of synchronizations
+       per second is returned. Performance should be very close to one
+       synchronization per slowest link ping time between pairs of machines
+       running BarrierClient and BarrierServer. These programs should be
+       able to run indefinitely and tolerate the BarrierServer being killed
+       and restared, along with dynamically adding and subtracting
+       BarrierClient nodes.
+
+- Each supported platform runs szgserver and szgd. The szgserver
+communicates with clients on each of the supported platforms. dhunt and
+dlogin also work.
+
+- Successfully run a distributed scene graph application on
+each of the supported platforms. Connected display clients work
+on each supported platform.
+
+- Successfully run a master/slave application on each of the
+supported platforms. Slaves run on each of the supported platforms.
+
+- The following is the "stress test" currently used to validate the
+system (here the phleet distributed OS and its application launching and
+management features are stressed). Given a 3x2 video wall
+with some Windows and some Linux
+components. All of the computers have dual processors and two
+network cards, one connected to the internet and one connected to
+a private gigabit network. A seventh trigger computer also exists,
+a dual processor Linux computer, with similar networking capabilities.
+This seventh computer also runs the szgserver. A script launches
+applications at 3 second intervals. 4000 applications launches are
+required without a problem before the software is said to be
+sufficiently stable.
+
+- A scene graph application should run on a small cluster (say 3
+rendering nodes) for a period of weeks.
+
+- Frame synchronization in a running master/slave application should
+satisfy certain "quality-of-service" guarantees, in terms of speed and
+uniformity over a long period of time. No formal definition here... just
+attempting to eyeball a Gantt chart measuring this in real-time over a
+period of some minutes.
+
+
+

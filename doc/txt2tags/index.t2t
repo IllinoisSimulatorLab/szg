@@ -1,0 +1,84 @@
+Syzygy 0.8 Documentation: Table of Contents
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers
+%!encoding: iso-8859-1
+%@+leo-ver=4-thin
+%@+node:JimCrowell.20060110161328:@thin index.t2t
+%@@first
+%@@first
+%@@first
+%@@first
+%@@first
+
+
+[Syzygy Homepage http://www.isl.uiuc.edu/syzygy.htm]
+
+[Using this Documentation UsingDocs.html]
+
+
+=Getting Started=[GettingStarted]
+
+- [Getting the software GettingSoftware.html], either by downloading
+  pre-compiled libraries and executables or by compiling source code.
+- Installing and using [supporting libraries SupportingLibraries.html] that give Syzygy extra functionality.
+- [Standalone mode Standalone.html]: Running Syzygy programs on a single PC without setting up a cluster.
+- [Example code ExampleCode.html]: How to run the included example programs, where their
+data files should be installed, etc.
+- [Tracking and Input Device Simulator TrackingSim.html]: Using Syzygy's inputsimulator to control
+a program in the absence of a tracked input device (required in standalone mode).
+- Interacting with the [Syzygy Database SyzygyDatabase.html]: How to specify parameters
+of your virtual reality system in both Standalone and Cluster modes.
+
+
+=Setting Up and Testing a Syzygy Cluster=
+
+- [Syzygy Cluster mode ClusterIntro.html]: Concepts and commands for setting up Syzygy
+PC clusters and running programs on them (Look here for an explanation of virtual computers).
+- [Using Phleet Phleet.html]: More information about using Syzygy's distributed operating system.
+- [Basic testing of your Syzyg cluster ClusterTest.html].
+
+
+=Creating Your Own Syzygy Progams=
+
+- [Syzygy in C++ CompileCPP.html]: How to build Syzygy C++ programs.
+- [Programming Programming.html]: Writing a program using Syzygy's programming frameworks.
+- [Scene Graph API SceneGraph.html]: Using the distributed scene graph.
+- [Sound API Sound.html]: Using the distributed sound system.
+- [Objects Objects.html]: Using external meshes and animations in Syzygy.
+- [Navigation Navigation.html]: How to use built-in functions for navigation in your application.
+- [Interaction Interaction.html]: How to use built-in functions for world interaction in your
+application.
+- [Quick Port QuickPort.html]: Porting a Glut application, in a hurry.
+- [Syzygy in Python PySZG.html]: How to write Syzygy Python programs.
+- [Scene Graphs in Python SceneGraphTutorial.html]: Shows how to manipulate Syzygy scene graphs
+from the Python prompt. A good starting point for writing your own applications in the Syzygy
+distributed scene graph framework. See also [here SceneGraph.html].
+- [Shared Worlds in Python SharedWorldTutorial.html]: Shows how to use peer-to-peer reality in
+creating shared world applications.
+
+
+=Advanced Programming Topics=
+
+- [Syzygy Object Viewer szgview.html]: szgview is a viewer for supported file formats.
+- [Input Devices InputDevices.html]: Using the input device infrastructure; examples of specific
+devices supported.
+- [Application features AppFeatures.html]: Built-in methods to manipulate Syzygy Applications
+- [Environment variables SyzygyEnvironmentVariables.html]: A complete listing of environment
+variables either affecting or affected by Syzygy operation.
+- [Architecture Architecture.html]: Overall design of Syzygy.
+- [Portability Layer PortabilityLayer.html]: Classes which hide Win32/Unix differences
+for sockets, serial ports, time, threads, mutexes, etc.
+- [Future Plans Future.html]: Where the software is going; what's likely to get changed.
+
+
+=Background Information=
+
+- [Our goals for Syzygy Goals.html].
+- [Source code change Log ChangeLog.html]: A record of the changes between versions, since the beginning.
+- [Tested Configurations Testing.html]: Testing procedures plus supported OS platforms.
+- [Known Bugs Bugs.html]: Problems and issues with the current version.
+
+
+%@-node:JimCrowell.20060110161328:@thin index.t2t
+%@-leo

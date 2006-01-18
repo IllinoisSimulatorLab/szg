@@ -1,0 +1,208 @@
+Syzygy Documentation: Portability Layer
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers --toc --toc-level=3
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+Syzygy includes a portability layer which strives to make writing
+cross-platform Unix/Win32 applications as simple as possible. We
+examine each of the components in turn. One Syzygy design goal is to
+ensure that all #ifdef's occur in these classes.
+
+%%toc
+
+
+=Sockets=
+
+The arSocket and arUDPSocket classes provide a portable sockets API.
+We make a few brief observations regarding this implementation.
+The arSocket class wraps the native TCP socket implementation, hiding the
+minor differences that exist (mostly in function names or call
+signatures) between Win32, Linux, Darwin, and Irix.
+When you create an arSocket object, you must specify whether it will
+be used to accept connections (AR_LISTENING_SOCKET) or transmit data
+(AR_STANDARD_SOCKET). For instance:
+```
+arSocket* theSocket = new arSocket(AR_LISTENING_SOCKET);
+```
+
+Furthermore, each arSocket object has an associated numerical ID, which
+can be arbitrarily set by the programmer. The intent is that a manager object
+will be able to use these IDs to manipulate a set of sockets. Also, accepting
+a new connection via a socket looks like this:
+```
+acceptSocket.ar_accept(&dataSocket);
+```
+
+Note that here "acceptSocket" is an arSocket object initialized with
+AR_LISTENING_SOCKET and "dataSocket" is an arSocket object initialized with
+AR_STANDARD_SOCKET. Some socket options are also set via class methods:
+```
+bool arSocket::setReceiveBufferSize(int size)
+  Sets the size of the TCP receive buffer.
+bool arSocket::setSendBufferSize(int size)
+  Sets the size of the TCP send buffer.
+bool arSocket::smallPacketOptimize(bool flag)
+  If flag is "true", Nagle's Algorithm is disabled. If flag
+  is set to "false", Nagle's Algorithm is enabled. By default,
+  most TCP implementations will have Nagle's Algorithm enabled,
+  which interferes with the real-time performance of applications
+  that send small packets at a relatively slow rate.  
+bool arSocket::reuseAddress(bool flag)
+  Only makes sense for a listening socket. If set to "true", then the
+  socket can bind to a previously bound address.
+```
+
+
+=Threads=
+
+Threads are slightly different on Win32 and in the various Unix pthreads
+implementations. Syzygy has a common abstraction, arThread, that wraps
+the lowest-common denominator features.
+In the Syzygy case, all threads are detached once launched,
+which is the only possible behavior in Win32 but must be explicitly enabled
+under pthreads. Furthermore, thread functions must have the
+following signature:
+```
+void threadFunction(void*)
+```
+
+Note that this differs from pthreads, where threads are allowed to return
+void*.
+
+
+=Mutexes/Locks=
+
+Locking is handled by the arMutex class, which is used much like
+the corresponding pthread object, except without features not present under
+Win32. Before being used, an arMutex object must be initialized:
+```
+ar_mutex_init(&mutexObject);
+```
+
+Locking and unlocking are done like so:
+```
+ar_mutex_lock(&mutexObject);
+ar_mutex_unlock(&mutexObject);
+```
+
+As of about version 0.8.1 or so, there is also an object-oriented mutex class
+arLock that initializes itself in the constructor. Use it as follows:
+```
+arLock myLock;
+myLock.lock();                  // block until you get ownership.
+bool isMine = myLock.tryLock(); // try to get ownership, but return immediately.
+myLock.unlock();                // release the lock.
+```
+
+
+=Condition Variables/Signals/Events=
+
+Syzygy presents a lowest-common denominator abstraction for condition
+variables and signals. In the case of signals, these are implemented via
+arSignalObject. In this case, the arSignalObject enters a signalled state
+when its sendSignal() method is called. It remains in a signalled state
+until either the reset() method is called or a receiveSignal() method is
+called, at which time it returns to unsignalled. Note that receiveSignal()
+blocks until the signal has been set.
+
+Syzygy condition variables, as implemented by arConditionVar, work
+like pthreads condition variables except that only a single waiting thread
+can be awakened by a signal() call.
+
+There is also an arThreadEvent class, based on the EVENT class of
+Walmsley, "Multi-threaded Programming in C++".
+
+
+=Time=
+
+Syzygy provides a uniform way to query the system time. First of all, it
+defines a time struct:
+
+```
+struct ar_timeval{
+  int sec;
+  int usec;
+};
+```
+
+It also provides a function for querying the time and one for calculating
+the difference of two times:
+
+```
+struct ar_timeval ar_time()
+  Returns the current system time.
+double ar_difftime(struct ar_timeval t2, struct ar_timeval t1)
+  Returns the number of usec elapsed from t1 to t2.
+```
+
+
+=Serial Ports=
+
+Syzygy provides the arRS232Port class for uniform access to serial ports. A
+subset of the possible port parameters is supported. The constructor
+takes no arguments. To open a serial port, call:
+
+```
+bool arRS232Port::ar_open( const int portNumber, const unsigned long baudRate,
+            const unsigned int dataBits, const float stopBits,
+            const string& parity );
+```
+
+Port numbers start with 1 on both platforms, i.e. under Linux /dev/ttyS0 is port 1.
+The function returns a bool indicating success or failure. Currently supported parameter
+values are:
+
+- baudRate: 9600, 19200, 38400, 57600, 115200 (additional values can easily be added).
+- dataBits: 4-8 (Win32); 5-8 (Linux).
+- stopBits: 1,1.5,2 (Win32); 1,2 (Linux.
+- parity  : "none", "even", "odd", "mark", "space" (Win32); "none", "even", "odd", "space" (Linux).
+
+
+To write to a serial port, use:
+
+```
+int arRS232Port::ar_write( const char* buf, const int numBytes );
+```
+
+which attempts to write numBytes bytes, or
+```
+int arRS232Port::ar_write( const char* buf );
+```
+
+which writes until a null character is reached. In either case, the function returns
+the number of bytes actually written. Reading from a serial port is
+accomplished with:
+
+```
+int arRS232Port::ar_read( char* buf, const unsigned int numBytes );
+```
+
+On both platforms, this function will block until either a tenth of a second has passed
+or at least one character has been read.  It repeats this step until either a user-specified
+timeout has been reached or numBytes bytes have been read.  It returns the number
+of characters actually read.  The timeout is set using:
+
+```
+bool arRS232Port::ar_setTimeout( const unsigned int timeout );
+```
+
+which takes a timeout value in tenths of a second and returns a bool indicating success
+or failure.
+
+To flush any characters from the input and output buffers, use:
+
+```
+bool arRS232Port::ar_flushInput();
+bool arRS232Port::ar_flushOutput();
+```
+
+To close the port, use:
+
+```
+bool arRS232Port::ar_close();
+```
+
+

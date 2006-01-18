@@ -1,0 +1,109 @@
+Syzygy Documentation: Quick Start for porting a GLUT application
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+Many GLUT applications can be easily turned into Master/Slave applications.
+A first step is creating a build environment that is compatible with Syzygy.
+The final section of the [programming guide Programming.html]
+addresses this issue.
+
+For some examples of Master/Slave applications see the "Application Peers"
+section of the [Example Code ExampleCode.html] page, many of these
+applications were originally written using GLUT but have been ported to the
+Master/Slave framework.  The source code of these applications is available in
+the src/demo directory of the Syzygy
+source distribution.
+
+Here is a general overview of the steps necessary to do a quick and dirty port:
+
+In the source file containing main(),
+```
+  #include "arMasterSlaveFramework.h"
+```
+
+
+In main(),
+```
+  arMasterSlaveFramework framework;
+  if( !framework.init( argc, argv ) ) {
+    return 1;
+  }
+  framework->setStartCallback( ... );
+  framework->setWindowStartGLCallback( ... );
+  framework->setPreExchangeCallback( ... );
+  framework->setDrawCallback( ... );
+  framework->setKeyboardCallback( ... );
+  ...
+```
+
+Application specific initialization should go into the start callback
+demanded by the framework.  OpenGL state initialization should go into the
+WindowStartGL callback. The user-defined application start callback is called
+once in the body of the framework's start() method (which does not return)
+while the WindowStartGL callback is called once upon each window creation.
+
+Sometimes computations and data exchanges need to occur before
+the scene is drawn. Computations whose results need to propagated from
+master to slave should occur in the framework's preExchangeCallback(...),
+which occurs before the data sharing exchange between master and slaves.
+These computations might, for instance, transform input events into
+navigational information. On the other hand, if each slave bases its
+actions on the next input event, then work might occur in the
+postExchangeCallback(...), which occurs after the data sharing exchange
+between masters and slaves.
+
+Please note that only the master does the preExchange during an event loop,
+while the master and all slaves connected to a master do the postExchange.
+Unconnected slaves do not do the postExchange.
+
+The user-defined display callback should go into the draw callback of the
+framework.  This, and the WindowStartGL callback should be the only two
+places in the application where OpenGL calls are made.
+
+After the framework has been initialized and all necessary callbacks
+registered, the event loop needs to be set in motion:
+```
+  if( !framework.start() ) {
+    return 1;
+  }
+  // not reached, start() does not return
+```
+
+If framework.start() is called from another thread, at the end of main do
+```
+  while( true ) {
+    ar_usleep( 1000000 );
+  }
+```
+so that the application doesn't immediately terminate.
+
+If the application needs to control the event loop (and window creation)
+itself, the framework can be started as follows:
+```
+  if( !framework.startWithoutWindowing() ) {
+    return 1;
+  }
+  // this is reached, startWithoutWindowing **does** return
+```
+
+Thereafter, you need to invoke the framework's preDraw() method before drawing
+and the postDraw() method after drawing but //before// buffer swapping.
+
+General issues with the framework:
+
+- Do not use GLUT commands to manipulate the OpenGL window(s). Let Syzygy handle
+  that itself.  If the application needs to be informed of window events (such
+  as a resize, move, or close) the framework's WindowEvent callback can be used
+  to get access to such events.
+
+- You can have access to keyboard events if you set a keyboard callback.
+  Otherwise, you will not get these events, and, in general, you will not have
+  access to mouse events. Instead you should use Syzygy's event processing (of
+  VR-style events, matrices, joystick-type events, etc.)
+
+
+

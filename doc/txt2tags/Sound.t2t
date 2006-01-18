@@ -1,0 +1,88 @@
+Syzygy Documentation: Sound
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+Thanks to Camille Goudeseune for creating Syzygy sound support.
+
+Sound in Syzygy works much like the [distributed scene graph SceneGraph.html].
+If you already understand that, this document should pose few surprises.
+
+If you are writing your own custom code instead of using the
+arDistSceneGraphFramework or arMasterSlaveFramework objects
+(as all the demos included with this distribution do), first call
+dsSetSoundDatabase() before issuing any other API calls.
+The framework objects hide this detail.
+```
+  arSoundDatabase soundDatabase;
+  dsSetSoundDatabase(&soundDatabase);
+```
+
+(The prefix "ds" used by all functions in this API stands for
+"distributed sound".  The distributed graphics API uses "dg" by analogy.)
+
+An arSoundDatabase object receives a stream of data records
+causing it to alter its internal contents, just like arGraphicsDatabase.
+It similarly manages a tree of objects derived from class arSoundNode.
+Like arGraphicsNode, arSoundNode's three methods receiveData(), render(),
+and dumpData() respectively receive, play via a low-level sound library,
+and send sound data.
+
+Sound state is synchronized across multiple machines by replicating
+arSoundDatabase objects on each machine.  The master machine has an
+arSoundServer, while slaves have arSoundClients.  (Only clients make
+sound API calls, just like only graphics clients make OpenGL calls.)
+The mechanism of synchronization is analogous to that of graphics.
+
+If your syzygy program renders graphics and sound,
+you must build a tree of arSoundNodes
+somewhat in parallel to the tree of arGraphicsNodes.
+This is arguably cumbersome if the trees are "identical", but more
+often the sound tree looks like a subset of the graphics tree
+(not //everything// you see, you can also hear), with a few
+extra leaves near the root for ambient sounds not attached to
+particular visual objects.
+
+Such a tree would start much like the graphics tree:
+
+```
+  int transformNodeID = dsTransform("world", "root", theMatrix);
+```
+
+The ID returned by dsTransform() will differ from that returned by
+dgTransform(), so use a different variable to store it!  The demos
+like src/demo/cubes/cubes.cpp use arrays of size 2 to store IDs
+which are "duplicates".  You are of course free to use your own
+naming convention instead.
+
+To modify the node's matrix,
+dsTransform(int ID, arMatrix4 theMatrix)
+behaves just like dgTransform().  If you want an arSoundNode to stay
+"attached" to a corresponding arGraphicsNode, make sure to call dsTransform()
+and dgTransform() together.
+
+The only other important API call is
+```
+dsLoop(int ID, string filename, int fLoop, float loudness, arVector3 xyz)
+```
+
+Create the loop node as a child of a dsTransform() node;  the parent node's matrix
+defines the loop node's coordinate system, just like a scene graph for graphics.
+dsLoop() plays a sound file "filename" (of format .wav or .mp3).  Loudness is scaled
+by the scalar "loudness", 0 = silent, 1 = unity gain.  The sound's 3D coordinates
+are given by "xyz".  (The listener's position is handled by the arDistSceneGraphFramework and arMasterSlaveFramework objects.)
+
+Having created a loop node, this call modifies the sound "loop" playing at that point.
+"fLoop" can have one of three values.
+-  1: Start looping the sound continuously.
+-  -1: Trigger the sound (play it exactly once).
+-  0: If it was looping, stop looping immediately.
+If it was triggered, reset the trigger.  (A trigger is
+an event, not a state.  The scene graph distributes state, not events.
+So we fake the trigger event by means of a state transition from 0 to -1.)
+
+
+

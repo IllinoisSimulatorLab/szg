@@ -1,0 +1,122 @@
+Syzygy Documentation: Syzgy Known Bugs
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers --toc --toc-level=1
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+%%toc
+
+
+=Documentation Errors=[DocErrors]
+
+- The location of the lib3ds included should be lib3ds/include/lib3ds,
+NOT lib3ds/include.
+- Need to emphasize that shared libs must be copied into the exe directory!
+
+
+=Setup/Building=[Building]
+
+-  Thread-safety issues... The Irix port does, indeed, seem to be working.
+However, it seems sensitive to having an appropriately configured compiler.
+(or maybe a recent enough version). Specifically, if the following test
+program compiles and runs for a minute or two, then syzygy will run and be
+stable.
+
+```
+#include
+#include
+#include
+using namespace std;
+void* task1(void*){
+  cout << "YYYY\n";
+  while (true){
+    string temp("yyy_test_name");
+  }
+  return NULL;
+}
+void* task2(void*){
+  cout << "XXXX\n";
+  while (true){
+    string temp("death_by_xxx");
+  }
+  return NULL;
+}
+int main(int, char**){
+  cout << "#####################################################\n";
+  pthread_t ID1, ID2;
+  pthread_create(&ID1,NULL,task1,NULL);
+  pthread_create(&ID2,NULL,task2,NULL);
+  // wait forever
+  pthread_join(ID1, NULL);
+}
+```
+
+The compile script for Irix is simple. Here, we are assuming that the
+program name is test.cpp.
+
+```
+CC -n32 -LANG:std -c test.cpp
+CC -n32 -LANG:std -o test test.o -lpthread
+```
+
+NOTE: This would probably catch the thread safety problem on RedHat 7.x
+as well (?). Haven't really felt like re-installing something that ancient
+to find out.
+- The very latest fmod is NOT compatible with the headers we had
+previously.
+
+
+=Configuration/Distributed OS=[Configuration]
+
+- Phleet needs new methods! Specifically, we must be able to release
+services. Also, need to be able to get service info from the command line!
+- BUG: if someone is looking for a service on network X but the
+service is offered on network Y, the connection won't work, but the
+service will disappear from dpending.
+-  Same computer name in szg.conf file on multiple computers
+impairs the system. We should be more robust!
+
+
+=Graphics/Scene Graph/Database=[Graphics]
+
+- Should be posible to draw .obj's without a graphics database.
+- The node method calls are woefully inefficient for large arrays because
+they do not use prtIn.
+- dgSetGraphicsDatabase must be eliminated!
+- The light direction seems to be wrong! (i.e. direction = (0,0,10,0)
+    instead of direction = (0,0,-10,0)
+- 3DS objects cannot have multiple parts! (i.e. only a single mesh
+element, which means only a single material). Very bad!
+
+
+=Python=[Python]
+
+- Must deal with the python examples (i.e. make them fit into the
+pattern...)
+
+
+=Miscellaneous=[Miscellaneous]
+
+- It would be helpful to have a string event type for the I/O framework
+(i.e src/drivers).
+- Our global init means that sockets cannot be declared globally!
+(the solution is to eliminate the global init for WinSock, i.e.
+arCommunicatorHelper) and make the arSZGClient do the init in it's init
+OR, if no arSZGClient, we will go ahead and explicitly do it.
+- The arDataServer should allow specific-socket-sending via HANDLES only.
+This is because it actively manages the sockets (and there's the possibility
+of a stale pointer). Another way to deal with this would be to add an
+event processing API, so that socket delete occurs a little less automatically,
+and to add reference counting to the socket class.
+- A weird bug. In standalone mode, with joystick (as in the standalone
+landspeeder), if the pforth filter is in the old style
+(PForth_programs.xml) instead of the new style (*.pf in PForth) then the
+program segfaults with an error message "arSyncDataServer error: start
+called before init".
+- Fix documentation to show how to use meshes (.obj and .3ds files) in
+master/slave framework apps.
+
+
+

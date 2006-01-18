@@ -1,0 +1,70 @@
+Syzygy Documentation: Syzygy Goals
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+
+The first release of Syzygy on the web was in September 2000. Our initial
+goal was to run a wide
+range of VR applications on a PC cluster with equal performance
+to shared-memory SMP computers like the SGI Onyx,
+the preferred platform for high-end VR. We have since worked to
+make the system portable, robust, and easy to use. We have also tried
+to make the Syzygy application model better suited to a variety of environments,
+including single PCs and laptops, wide-area networked systems, and even the
+older shared-memory SMP systems.
+
+Changes in hardware platform drive software changes. In this case,
+PC cluster application development requires explicit
+library support and an updated application model. Monolithic shared
+memory systems allow library writers to ignore a whole range of
+data sharing issues, leaving these to the applications programmer and
+encouraging him to write non-portable code.
+
+Consider the requirements for PC cluster software in more detail.
+Communications between processors consitutes a bottleneck. Tools
+are needed to efficiently manage and develop cluster applications. The
+developer needs an API that supports complex communications between cluster
+machines. These information exchanges must be fault-tolerant
+and conducted in a way that keeps the
+cluster producing frame-by-frame synchronized views of the virtual world.
+During the early stages of application development, the application code may be
+unstable, so the overall distributed system must tolerate the
+failure of individual components. The system needs the ability to portably launch applications
+across a wide
+range of target clusters, both homogeneous and heterogenous in nature.
+It also needs mechanisms for steering running
+applications and monitoring tools
+that allow users to remotely determine its state.
+
+The goal of creating VR applications on a PC cluster is best served by
+increasing the level of abstraction and writing a toolkit with broader
+applicability. Syzygy aims to provide simple software tools for building
+heterogeneous distributed systems. While the system's main focus is PC
+clusters on high performance LANs, it is also applicable to WAN-based
+systems. Syzygy is designed to be a lightweight toolkit that can operate on PC
+clusters, SMP boxes, and laptops, while connecting meaningfully with smaller
+devices. This presents several challenges. Much system infrastructure is
+unnecessary for a standalone laptop being used to provide a
+portable road demo, and, to maintain ease of use,
+the sytem's operation should scale down gracefully. Furthermore,
+we need to deploy communication methods suitable for SMP,
+namely shared memory instead of sockets, and do this while reusing our
+low-level communications infrastructure. Finally,
+performance is very important, as many of the toolkit's functions are OS-level
+and must be efficient.
+
+Syzygy solves several problems: distributed graphics,
+distributed sound, distributed
+systems management, distributed data access, and general I/O device management.
+There are systems out there that do each of these things, but no one system
+addresses them all. However, each problem relies on a similar infrastructure
+for its solution. Syzygy aims to identify that common infrastructure
+and provide an implementation. Thus, each problem can be solved more
+easily, and the resulting code base is well-integrated, maintainable, and
+smaller. In effect, Syzygy is a middleware solution for distributed
+multimedia.
+

@@ -1,0 +1,57 @@
+Syzygy Documentation: Using the Documentation
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers
+%!encoding: iso-8859-1
+%@+leo-ver=4-thin
+%@+node:JimCrowell.20060111113007:@thin Introduction.t2t
+%@@first
+%@@first
+%@@first
+%@@first
+%@@first
+
+
+Back to the Syzygy Documentation [Table of Contents index.html]
+
+NOTICE: This is Syzygy version 0.8.
+If you have been using an earlier version, consult the
+[Change log ChangeLog.html] for information on how to
+modify earlier practices.
+
+Please email
+bug reports, feature requests, and questions to
+[Ben Schaeffer mailto://schaeffr@isl.uiuc.edu].
+Also, check out the [Syzygy website http://www.isl.uiuc.edu/syzygy.htm].
+
+=Where You Should Begin=
+
+In you are new to the Syzygy system, you should walk through the
+documentation's ["Getting Started" index.html#GettingStarted]
+system. There, you'll learn how to build,
+or otherwise obtain, the software, run the sample applications in
+"standalone" mode, how to set-up a Syzygy cluster, and, finally, how to
+run the samples on your cluster. You should gradually work your way up
+to full cluster operation, taking time to understand how Syzygy's
+distributed operating system works. You will also want to pay attention to how the included
+applications are built and their data files are installed. This will make
+it easier for you to get started writing your own portable cluster applications.
+
+After you feel comfortable with the introductory material, you can learn about
+[compiling CompileCPP.html] your C++ Syzygy programs or
+about writing Syzygy programs in [Python PySZG.html], along with
+reading descriptions of some of the available APIs in [Syzygy Programming Programming.html].
+
+Finally, please consider reading the overview at the bottom of this page to
+get an idea of the motivation behind the software.
+
+=What Does "ar" Mean?=
+
+A short look at the source code reveals that Syzygy objects all start
+with the prefix "ar", which stands for "artificial reality". The "vr" prefix,
+which would be another logical choice, is simply too common, and, in any case,
+Syzygy is useful in domains other than VR.
+
+
+%@-node:JimCrowell.20060111113007:@thin Introduction.t2t
+%@-leo
