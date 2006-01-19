@@ -49,6 +49,7 @@ create-sdk: all
 	cp -r $(SZGHOME)/rsc/ $(INSTALLDIR)/rsc
 	find $(INSTALLDIR)/rsc -name 'CVS' -print | xargs rm -rf
 	cp $(SZGHOME)/script/ezszg.sh $(INSTALLDIR)
+	cp $(SZGHOME)/SZG_CREDITS $(INSTALLDIR)
 	@for i in $(LIBDIRS) ; do cp $(SZGHOME)/src/$$i/*.h $(INSTALLDIR)/include ; done
 	@for i in $(SUBDIRS) ; do $(MAKE) -C $z/$$i create-sdk ; done
 	cp $(SZG_SHARED_COPY) $(INSTALLDIR)/bin
