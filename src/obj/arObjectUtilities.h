@@ -2,7 +2,7 @@
 #define __AR_OBJECT_UTILITIES_H
 
 //********************************************************
-// Syzygy source code is licensed under the GNU LGPL
+// Syzygy is licensed under the BSD license v2
 // see the file SZG_CREDITS for details
 //********************************************************
 

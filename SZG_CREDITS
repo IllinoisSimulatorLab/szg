@@ -1,15 +1,33 @@
+****************************************************************************************************
+Copyright (c) 2000-2006, Benjamin Schaeffer
+All rights reserved.
 
-*****************************************************************************
+Redistribution and use in source and binary forms, with or without modification, 
+are permitted provided that the following conditions are met:
 
-The Syzygy software is a project of the Integrated Systems Lab and is 
-released under the LGPL. Please note that, while the core software is
-LGPL, many of the demos have different licenses. See the relevant source
-files/ directories for this information. Furthermore, we include source code
-for libjpeg, zlib, and lib3DS, which have their own licenses.
+    * Redistributions of source code must retain the above copyright notice, this 
+      list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, 
+      this list of conditions and the following disclaimer in the documentation 
+      and/or other materials provided with the distribution.
+    * Neither the name of the University of Illinois nor the names of its contributors 
+      may be used to endorse or promote products derived from this software without 
+      specific prior written permission.
 
-copyright 2000-2006 Benjamin Schaeffer
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
+OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
+AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR 
+CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL 
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER 
+IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
+OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+****************************************************************************************************
 
-*****************************************************************************
+Many of the demos and included libraries have their own licenses. See the 
+relevant source files/ directories for this information.
+
+****************************************************************************************************
 
 A big thanks to everyone who let us port their applications and redistribute
 the code! Thanks to George Francis and crew, who generously shared their
@@ -29,12 +47,25 @@ thanks to Peter Brinkmann for developing Python bindings for Syzygy (py-szg)
 and to George Francis and students for using them in their classes.
 
 *****************************************************************************
-Contributors (core project), Syzygy-0.8
+Contributors (core project), Syzygy-1.0
 
-Release Dec 2005
+Release Jan 2006
 
 LICENSE CHANGE! With the unanimous agreement of those you've contributed so
 far, we're moving to a BSD-style license.
+
+Ben- Added a logging feature, ar_log(), and partially converted the code's
+couts/cerrs/printfs to use it.
+
+Ben- Added more Python examples (doc/python)
+
+Jim- Reworked the Syzygy docs to use a non-html base format.
+
+
+*****************************************************************************
+Contributors (core project), Syzygy-0.8
+
+Release Dec 2005
 
 Major contributions are listed, giving the name(s) of the responsible
 developers. See the changelog for more info.
@@ -298,7 +329,7 @@ schprel: A visualization of the distortions caused by moving near the
 ******************************************************************************
 
 And the license from the GLUT demos requires we display the following license
-information (atlantis and coaster):
+information for some of the included code (atlantis and coaster):
 
 /* Copyright (c) Mark J. Kilgard, 1994. */
 

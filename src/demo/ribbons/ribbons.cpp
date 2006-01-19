@@ -1,7 +1,7 @@
 // scp /s/szg/build/win32/demo/ribbons/ribbons.exe root@concrete:/home/public/cube/bin/win32/ribbons.exe
 
 //********************************************************
-// Syzygy source code is licensed under the GNU LGPL
+// Syzygy is licensed under the BSD license v2
 // see the file SZG_CREDITS for details
 //********************************************************
 #include "arPrecompiled.h"
