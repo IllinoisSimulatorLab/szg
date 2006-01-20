@@ -97,8 +97,8 @@ if [ -f $TEMP ]; then
       # We do NOT use STLport here.
       export SZG_STLPORT=FALSE
       # The following are good for a standard install of Visual Studio .NET 2003.
-      export include="C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\ATLMFC\\INCLUDE;C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\INCLUDE;C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\PlatformSDK\include"
-      export lib="C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\ATLMFC\\Lib;C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\PlatformSDK\\Lib;C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\Lib"
+      export INCLUDE="C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\ATLMFC\\INCLUDE;C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\INCLUDE;C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\PlatformSDK\include"
+      export LIB="C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\ATLMFC\\Lib;C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\PlatformSDK\\Lib;C:\\Program Files\\Microsoft Visual Studio .NET 2003\\Vc7\\Lib"
       export PATH="/cygdrive/c/Program Files/Microsoft Visual Studio .NET 2003/Common7/IDE:$PATH"
       export PATH="/cygdrive/c/Program Files/Microsoft Visual Studio .NET 2003/Vc7/BIN:$PATH"
       export PATH="/cygdrive/c/Program Files/Microsoft Visual Studio .NET 2003/Common7/Tools:$PATH"
@@ -112,9 +112,9 @@ if [ -f $TEMP ]; then
       export PATH="/cygdrive/c/Program Files/Microsoft Visual Studio/Common/MSDev98/Bin:$PATH"
       export PATH="/cygdrive/c/Program Files/Microsoft Visual Studio/Common/Tools:$PATH"
       export PATH="/cygdrive/c/Program Files/Microsoft Visual Studio/VC98/bin:$PATH"
-      export include="C:\\Program Files\\Microsoft Visual Studio\\VC98\\atl\\include;C:\\Program Files\\Microsoft Visual Studio\\VC98\\mfc\\include;C:\\Program Files\\Microsoft Visual Studio\\VC98\\include"
-      export lib="C:\\Program Files\\Microsoft Visual Studio\\VC98\\mfc\\lib;C:\\Program Files\\Microsoft Visual Studio\\VC98\\lib"
-      export MSDevDir="C:\\Program Files\\Microsoft Visual Studio\\Common\\MSDev98"
+      export INCLUDE="C:\\Program Files\\Microsoft Visual Studio\\VC98\\atl\\include;C:\\Program Files\\Microsoft Visual Studio\\VC98\\mfc\\include;C:\\Program Files\\Microsoft Visual Studio\\VC98\\include"
+      export LIB="C:\\Program Files\\Microsoft Visual Studio\\VC98\\mfc\\lib;C:\\Program Files\\Microsoft Visual Studio\\VC98\\lib"
+      export MSDEVDIR="C:\\Program Files\\Microsoft Visual Studio\\Common\\MSDev98"
     else
       echo ERROR: Could not find the Visual Studio installation.
     fi
