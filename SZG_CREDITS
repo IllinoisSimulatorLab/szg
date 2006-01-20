@@ -38,15 +38,15 @@ nice FreeVR library provided examples and inspiration on topics such as
 flock-of-birds interface, shared-memory input device interface for legacy
 applications, etc.
 
-The szg library code incorporates texture font rendering code by Mark Kilgaard
-and the TinyXML library by Lee Thomason (both of which are compatible with
+The szg library code incorporates the TinyXML library by Lee Thomason (which is compatible with
 the szg library license).
 
-Also, while this regards a different project (though related) project,
-thanks to Peter Brinkmann for developing Python bindings for Syzygy (py-szg)
-and to George Francis and students for using them in their classes.
+Thanks to Peter Brinkmann for creating the Python bindings for Syzygy (py-szg)
+and to George Francis and students for using them in their classes. These are
+found in szg/python, are copyright Peter Brinkmann, and are licensed under
+the LGPL (in contrast to the BSD license of the Syzygy C++ library).
 
-*****************************************************************************
+****************************************************************************************************
 Contributors (core project), Syzygy-1.0
 
 Release Jan 2006
