@@ -1,4 +1,3 @@
-// $Id: PyMasterSlave.i,v 1.23 2006/01/03 21:51:34 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify
@@ -416,8 +415,8 @@ class arMasterSlaveFramework : public arSZGAppFramework {
   virtual void postDraw( void );
   void swap( int windowID = -1 );
   
-  void setDataBundlePath( const std::string& bundlePathName,
-                          const std::string& bundleSubDirectory );
+  void setDataBundlePath( const string& bundlePathName,
+                          const string& bundleSubDirectory );
   void loadNavMatrix(void );
   void setPlayTransform( void );
   void drawGraphicsDatabase( void );

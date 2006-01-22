@@ -1,8 +1,8 @@
-// $Id: PySoundAPI.i,v 1.2 2005/10/07 18:19:34 crowell Exp $
-//Swig interface file for arSoundAPI
-//2004, William Baker (wtbaker@uiuc.edu)
-//Adapted from $SZGHOME/src/sound/arSoundAPI.h
-
+// (c) 2004, William Baker (wtbaker@uiuc.edu)
+// 
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation (http://www.gnu.org/copyleft/gpl.html).
 
 arDatabaseNode* dsMakeNode(const string&, const string&, const string&);
 

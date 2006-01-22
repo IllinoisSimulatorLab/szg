@@ -39,6 +39,8 @@ if [ -f $TEMP ]; then
   # NOTE: On the windows side, we actually need to mangle the path names...
   #  (because of the way mingw and cygwin make Unix work with the windows file system)
   if [ $arch == "win32" ]; then
+    # This handles the cygwin name mangling. NOTE: mingw's name mangling is
+    # different and is NOT handled yet!
     echo Checking for cygwin root...
     if [ -d "c:/cygwin" ]; then
       HOMEDRIVE=c
@@ -49,11 +51,21 @@ if [ -f $TEMP ]; then
     else
       echo ERROR: could not find cygwin in one of the expected places.
     fi
+    # The following condition holds if the current working directory does
+    # NOT start with /home.
+    # NOTE: there is definitely a bug here! What if the SDK is installed in
+    # the cygwin directory tree but is NOT in a home directory?
     if [ "$(echo $PWD | sed '/^\/home\//d')" != "" ]; then
-      if [ "$(echo $PWD | sed '/^\/cygdrive/d')" == "" ]; then
-        LOCALDIR=$(echo $PWD | sed "s/^\/cygdrive\/./$HOMEDRIVE:/")
+      # We are NOT in the cygwin file system. Must replace cygdrive with the
+      # right drive letter.
+      if [ "$(echo $PWD | sed '/^\/cygdrive\//d')" = "" ]; then
+        LOCALDIR=$(echo $PWD | sed "s/^\/cygdrive\///")
+        LOCALDIR=$(echo $LOCALDIR | sed "s/\//:\//")
+      else
+        echo ERROR: Not in cygwin filesystem but path does not start with cygdrive.
       fi
     else
+      # The path begins with cygwin's home directory. 
       LOCALDIR=$(echo $PWD | sed "s/^\/home/$CYGSUBST\/home/")
     fi
     export SZGHOME=$LOCALDIR

@@ -1,4 +1,3 @@
-// $Id: PyTypemaps.i,v 1.5 2006/01/13 21:38:18 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify

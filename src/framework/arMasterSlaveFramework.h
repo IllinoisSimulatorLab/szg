@@ -128,8 +128,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   void setMouseCallback( void (*mouse)( arMasterSlaveFramework&, arGUIMouseInfo* ) );
   virtual void setEventQueueCallback( arFrameworkEventQueueCallback callback );
 
-  void setDataBundlePath( const std::string& bundlePathName,
-                          const std::string& bundleSubDirectory );
+  void setDataBundlePath( const string& bundlePathName,
+                          const string& bundleSubDirectory );
   void loadNavMatrix(void ) { arMatrix4 temp = ar_getNavInvMatrix();
 			      glMultMatrixf( temp.v ); }
   void setPlayTransform( void );

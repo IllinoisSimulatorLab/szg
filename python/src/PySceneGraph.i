@@ -1,4 +1,3 @@
-// $Id: PySceneGraph.i,v 1.8 2005/12/14 18:37:48 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify

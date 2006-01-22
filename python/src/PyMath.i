@@ -1,4 +1,3 @@
-// $Id: PyMath.i,v 1.8 2005/12/07 20:48:17 crowell Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify

@@ -1,4 +1,3 @@
-// $Id: PyGraphics.i,v 1.17 2006/01/11 22:02:05 schaeffr Exp $
 // (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 //
 // This program is free software; you can redistribute it and/or modify

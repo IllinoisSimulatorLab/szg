@@ -41,7 +41,7 @@ if [ -f "$SZGHOME/build/make/Makefile.vars" ]; then
   echo Adding python bindings...
   make -s create-sdk
   cd $SZGHOME
-  if [ "$arch" = "darwin" -a -f "/usr/bin/find" ]; then
+  if [ "$arch" = "win32" -a -f "/usr/bin/find" ]; then
     echo Making sure the CVS directories have been stripped from the SDK...
     /usr/bin/find szg-install -name 'CVS' -print | xargs rm -rf
   fi
@@ -60,14 +60,25 @@ if [ -f "$SZGHOME/build/make/Makefile.vars" ]; then
     mkdir external
     cp -r $SZGEXTERNAL/$arch external
     if [ "$arch" = "win32" ]; then
+      if [ -d external/win32/VisualStudio ]; then
+        # The libraries for VisualStudio were included. They should go in bin.
+        cp external/win32/VisualStudio/* bin
+        rm -rf external/win32/VisualStudio
+      else
+        echo WARNING: VisualStudio libraries not installed in SZGEXTERNAL.
+      fi
       # For some unknown reason, I seem to need a different jpeg library with vc6 and vc7.
       if [ -d "external/win32/jpeg" ]; then
         rm -rf external/win32/jpeg
         # If SZG_STLPORT is TRUE, then we must be using VC6, otherwise VC7.
         if [ "$SZG_STLPORT" = "TRUE" ]; then
-          mv external/win32/jpeg-vc6 external/win32/jpeg
+          if [ -d "external/win32/jpeg-vc6" ]; then
+            mv external/win32/jpeg-vc6 external/win32/jpeg
+          fi
         else
-          mv external/win32/jpeg-vc7 external/win32/jpeg
+          if [ -d "external/win32/jpeg-vc7" ]; then
+            mv external/win32/jpeg-vc7 external/win32/jpeg
+          fi
         fi
         rm -rf external/win32/jpeg-vc6
         rm -rf external/win32/jpeg-vc7

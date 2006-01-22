@@ -1,4 +1,3 @@
-//
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation (http://www.gnu.org/copyleft/gpl.html).
@@ -260,7 +259,7 @@ class arSZGAppFramework {
     
     virtual void setDataBundlePath(const string&, const string&);
     virtual void loadNavMatrix();
-    void speak( const std::string& message );
+    void speak( const string& message );
     bool setInputSimulator( arInputSimulator* sim );
     string getLabel();
     bool getStandalone() const;
@@ -297,7 +296,7 @@ class arSZGAppFramework {
     void setNavTransSpeed( float speed );
     void setNavRotSpeed( float speed );
     void setNavEffector( const arEffector& effector );
-    void ownNavParam( const std::string& paramName );
+    void ownNavParam( const string& paramName );
     void navUpdate();
     void navUpdate( arInputEvent& event );
     
