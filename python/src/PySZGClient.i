@@ -1,6 +1,6 @@
 // This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation (http://www.gnu.org/copyleft/gpl.html).
+// it under the terms of the GNU LGPL as published by
+// the Free Software Foundation (http://www.gnu.org/copyleft/lesser.html).
 
 // The arSZGClient is the basic communications object. In a normal,
 // framework-based application, the only method youll probably need

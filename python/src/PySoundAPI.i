@@ -1,8 +1,8 @@
 // (c) 2004, William Baker (wtbaker@uiuc.edu)
 // 
 // This program is free software; you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation (http://www.gnu.org/copyleft/gpl.html).
+// it under the terms of the GNU LGPL as published by
+// the Free Software Foundation (http://www.gnu.org/copyleft/lesser.html).
 
 arDatabaseNode* dsMakeNode(const string&, const string&, const string&);
 
