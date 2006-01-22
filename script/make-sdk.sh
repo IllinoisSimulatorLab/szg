@@ -41,6 +41,10 @@ if [ -f "$SZGHOME/build/make/Makefile.vars" ]; then
   echo Adding python bindings...
   make -s create-sdk
   cd $SZGHOME
+  if [ "$arch" = "darwin" -a -f "/usr/bin/find" ]; then
+    echo Making sure the CVS directories have been stripped from the SDK...
+    /usr/bin/find szg-install -name 'CVS' -print | xargs rm -rf
+  fi
   echo Removing previous SDK constructions.
   mv szg-install szgTEMP
   rm -rf szg-*
