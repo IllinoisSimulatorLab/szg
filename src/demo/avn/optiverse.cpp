@@ -1374,7 +1374,6 @@ int topeof(float rtope, int *lphase)
 
 
 void draw(){ 
-
   glClearColor(0,0,0,0);
   glEnable(GL_DEPTH_TEST);
   glDisable(GL_LIGHTING);
@@ -1382,51 +1381,51 @@ void draw(){
   TOPE* tp = &(topes[currentTope]);
 
   int ii,jj;
-    Point* n = NULL;
-    Point* a = NULL;
-    int trotn = rotn;
-    float dog;
-    //************************************************************
-    // set the phase
-    const int lphase = phase;
-    const int flip = (lphase & 1) ? 1 : 0;
-    float gap = 0.75;
-    Point* eye = NULL;
-    Point* light = NULL;
-     Point llu;
-     float symrotn = 0; 
+  Point* n = NULL;
+  Point* a = NULL;
+  int trotn = rotn;
+  float dog;
+  //************************************************************
+  // set the phase
+  const int lphase = phase;
+  const int flip = (lphase & 1) ? 1 : 0;
+  float gap = 0.75;
+  Point* eye = NULL;
+  Point* light = NULL;
+  Point llu;
+  float symrotn = 0; 
 
-    Matrix1 w2c, c2w;
-    static Point origin = {{0,0,0}};
-    float (*rotcs)[2] = NULL;
-    float (*rotcs2)[2] = NULL;
-    // All the rotcs2 code is added by Camille Goudeseune,
-    // who didn't know what he was doing but this got the lights to
-    // stop flipping a quarter turn when the eversion passed through
-    // the halfway model (tope number zero, "forward" changes state).
-    static int vrottope = -1, vrotn, vrotroom;
-    int ltope = currentTope;
+  Matrix1 w2c, c2w;
+  static Point origin = {{0,0,0}};
+  float (*rotcs)[2] = NULL;
+  float (*rotcs2)[2] = NULL;
+  // All the rotcs2 code is added by Camille Goudeseune,
+  // who didn't know what he was doing but this got the lights to
+  // stop flipping a quarter turn when the eversion passed through
+  // the halfway model (tope number zero, "forward" changes state).
+  static int vrottope = -1, vrotn, vrotroom;
+  int ltope = currentTope;
 
-    static Point *vrot = NULL;
+  static Point *vrot = NULL;
 
-    eye = NewN(Point, trotn, 1);   /* allocates a local variable */
-    light = NewN(Point, trotn, 1);/* so that there are trotn eyes and lights */
+  eye = NewN(Point, trotn, 1);   /* allocates a local variable */
+  light = NewN(Point, trotn, 1);/* so that there are trotn eyes and lights */
 
-    if(flip){
-       if (!(trotn%2)) {  /*trotn is even*/
-         float cs[2] = { cos(M_PI/trotn), -sin(M_PI/trotn) };
-         vrotxy( &llu, &lu, cs );
-         symrotn = 180./trotn;
-         glRotatef(symrotn, 0,0,1);
-       }
-     }
+  if(flip) {
+    if (!(trotn%2)) {  /*trotn is even*/
+      float cs[2] = { cos(M_PI/trotn), -sin(M_PI/trotn) };
+      vrotxy( &llu, &lu, cs );
+      symrotn = 180./trotn;
+      glRotatef(symrotn, 0,0,1);
+    }
+  }
 
- glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *)w2c);
+  glGetFloatv(GL_MODELVIEW_MATRIX, (GLfloat *)w2c);
 /*gkf: I would prefer w2c <- aff here */
 
- for (ii = 0; ii <16; ii++){
-   w2c[ii] = worldMatrix[ii];
- }
+  for (ii = 0; ii <16; ii++){
+    w2c[ii] = worldMatrix[ii];
+  }
 
   eucinv(c2w, w2c); /*overkill, there's no scaling to worry about */
 

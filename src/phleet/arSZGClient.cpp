@@ -134,7 +134,7 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
 
   // ANOTHER IMPORTANT NOTE: IT IS ASSUMED THAT THIS FUNCTION WILL ALWAYS,
   // REGARDLESS OF WHETHER OR NOT IT IS SUCCESSFUL, FINISH THE HANSHAKE WITH
-  // DEX!!! Conequently, no return statements, except at the end.
+  // DEX!!! Consequently, no return statements, except at the end.
   bool success = true; // assume suceess unless there has been a
                        // specific failure
   const string pipeIDString(ar_getenv("SZGPIPEID"));

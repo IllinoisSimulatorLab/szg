@@ -586,7 +586,7 @@ int arGUIXMLParser::parse( void )
            viewportNode = viewportNode->NextSibling( "szg_viewport" ) ) {
         TiXmlNode* savedViewportNode = viewportNode;
 
-        // check if this is a pointer to another window
+        // check if this is a pointer to another viewport
         TiXmlNode* namedViewportNode = _getNamedNode( viewportNode->ToElement()->Attribute( "usenamed" ) );
         if( namedViewportNode ) {
           viewportNode = namedViewportNode;

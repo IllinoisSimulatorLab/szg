@@ -65,7 +65,7 @@ void calculate_rc(void)
     }
 */
 
-    const string dataFile("rc.def");
+    const string dataFile("coaster_rc.def");
     in = ar_fileOpen( dataFile, "coaster", dataPath, "rb" );
     if (!in)
     {

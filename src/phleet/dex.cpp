@@ -99,8 +99,8 @@ int main(int argc, char** argv){
   if (argc <= 1)
     {
     // don't even try connecting to szgserver
-    cerr << "usage: " << argv[0] << " executable_name\n"
-         << "       " << argv[0] << " hostname executable_name [args]\n";
+    cerr << "usage: " << argv[0] << " [-v] [-t timeoutmsec] executable_name\n"
+         << "       " << argv[0] << " [-v] [-t timeoutmsec] hostname executable_name [args]\n";
     return 1;
     }
 
