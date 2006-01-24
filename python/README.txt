@@ -31,7 +31,7 @@ supported by syzygy.
           path.
       iii. That's it!
 
-1. First, build syzygy from source. (the "easy" developer model is not yet
+1. First, build Syzygy from source. (the "easy" developer model is not yet
    supported)
 
 2. Next , make sure the following environment variables are set
@@ -60,43 +60,5 @@ supported by syzygy.
    variable includes $(SZGBIN), which is where your executables will be
    placed.
 
-******************* THE ORIGINAL README FOLLOWS ***********************************
-
-PySZG --- tentative Python bindings for Syzygy's Scene Graph API
-
-
-Requirements:
-
-    - Software
-        - A recent installation of szg (from the CVS repository; the
-          version posted on the ISL website doesn't cut it; if you want
-          szg to work through firewalls, then you'll need my patched
-          version that's installed in the grafixLab)
-        - A recent version of Python (I've got Python 2.3 on my machine;
-          Python 2.2 seems to be okay. I don't make any promises regarding
-          anything that's older)
-        - A recent version of SWIG (I'm using 1.3.21; I don't know which
-          other versions might still work)
-        - For the Master/Slave framework: PyOpenGL
-    - Environment
-        - SZGHOME must point to your szg directory
-        - PYSZGLIB must point to some directory that you can write to,
-          such as ~/lib
-        - PYTHONPATH must include $PYSZGLIB; I accomplish this by saying
-            export PYTHONPATH=$PYTHONPATH:$PYSZGLIB
-
-
-Installation:
-
-In the pyszg/bindings directory, say
-
-    make
-    make test
-    make install
-
-The second step, make test, is optional as well as sort of pointless
-at the moment as the testing suite, test.py, is still _very_ incomplete.
-
-That's it! If nothing went wrong, you can now try the demos in pyzsg/demos.
 
 

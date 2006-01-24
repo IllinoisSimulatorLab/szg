@@ -1,0 +1,173 @@
+<html>
+<head>
+<title>Syzygy</title>
+</head>
+<body bgcolor="#ffffff">
+
+<table>
+<tr>
+<td valign=top>
+<p><font size=+3>Syzygy: A Grid OS for PC Cluster Virtual Reality, 
+Tele-Collaboration, and Multimedia Supercomputing</font>
+<hr>
+<p align=center>Contact: Benjamin Schaeffer
+<br><a href="mailto:schaeffr@uiuc.edu">schaeffr@uiuc.edu</a><br>
+<p><table>
+  <tr>
+    <td>
+    <table width=100% border=1 cellpadding=4>
+    <tr>
+    <td align=center>
+    <a href="szg/doc/index.html">Syzygy documentation</a>
+    </td>
+    <td align=center>
+    <a href="szg/SyzygyDownload.html">
+    Syzygy downloads
+    </a>
+    </td>
+    <td align=center>
+    <a href="http://www.isl.uiuc.edu/Cube%20Projects/CUBE%20projects.htm">
+    Projects using Syzygy</a>
+    </td>
+    <td align=center>
+    <a href="szg/SyzygyPapers.html">Syzygy: Basic Papers</a>
+    </td>
+    </table>
+    </td>
+  <tr>
+    <td>
+    <a href="szg/SyzygyMovies.html">Movies</a>
+    </td>
+</table>
+<hr>
+<p>The first release of Syzygy on the web was in September 2000. An initial
+paper posted to the web at that time generated a little bit of international 
+interest (one citation in a conference paper by Chinese authors and some web 
+links from Europe). In December 2001, Syzygy made Slashdot, which was its first
+real publicity. Subsequently, it was featured in a panel discussion at IPT
+2002 and was an important part of a SIGGRAPH class in PC cluster virtual 
+reality in both 2002 and 2003. There now exist 5 PC cluster CAVEs running
+Syzygy: one at the ISL, one at NCSA, one at UIUC's Krannert Art Museum
+(the CANVAS), one in Berlin, and one in North Carolina. Syzygy has been used
+as the primary visualization tool for 5 classes (as of this writing in March 
+2005), both at the univerity and high school levels. In addition, it has been
+used in 6 art projects: three projects shown in museums, one "tele-dance",
+one UIUC faculty dance show, and one art conference installation.
+
+<p>Syzygy has focused on providing high-performance, dynamic, and 
+fault-tolerant distributed systems for real-time media (in particular 3D
+graphics and sound). As such, it is much like many Grid operating systems
+except for its application domain: multimedia instead of batch job submission
+and control. 
+
+<p>Syzygy's initial
+motivating goal was to run a wide
+range of VR applications on a PC cluster with equal performance
+to shared memory SMP machines like the SGI Onyx, which had, up to then,
+been the preferred platform for high-end VR. Subsequent work has focused on
+making the system portable, robust, and easy to use, as well
+as making the Syzygy application model better suited to new environments:
+single PCs or laptops, wide-area networked systems, and even the shared
+memory SMP systems that were once so important.
+
+<p>Changes in hardware platform drives software changes. In this case,
+fully supporting PC cluster application development requires explicit
+library support and, indeed, an updated application model. Monolithic shared
+memory systems allow library writers to ignore a whole range of
+data sharing issues, leaving these to the applications programmer and
+encouraging him to write non-portable code.
+
+<p>Consider the requirements for PC cluster software in more detail.
+Communications
+between processors now becomes a bottleneck, and tools
+are needed to efficiently manage and develop cluster applications. The
+developer needs an API to facilitate complex communications between cluster
+machines, remembering that these information exchanges must be fault-tolerant
+and conducted in a way that keeps the
+cluster producing synchronized views of the virtual world frame-by-frame.
+During the early stages of application development, the application code may be
+unstable. Consequently, the overall distributed system must tolerate the
+failure of individual components: some of them will be user-produced and of
+uncertain reliability. Finally, the system needs built-in monitoring tools,
+so that users can remotely determine its state, the means for steering running
+applications, and the ability to portably launch application across a wide
+range of target clusters, both homogeneous and heterogenous in nature.
+
+<p>The goal of creating VR applications on a PC cluster is best served by
+increasing the level of abstraction and writing a toolkit with broader
+applicability. Syzygy aims to provide simple software tools for building
+heterogeneous distributed systems. While the system's main focus is PC
+clusters on high performance LANs, it is also applicable to WAN-based
+systems. Syzygy is designed to be a lightweight toolkit that can operate on PC
+clusters, SMP boxes, and laptops, while connecting meaningfully with smaller
+devices. This presents several challenges. Much system infrastructure is
+unnecessary for a standalone laptop being used to provide a
+portable road demo, and, to maintain ease of use,
+the sytem's operation should scale down gracefully. Furthermore,
+we need to deploy communication methods suitable for SMP,
+namely shared memory instead of sockets, and do this while reusing our
+low-level communications infrastructure. Finally,
+performance is very important, as many of the toolkit's functions are OS-level
+and must be efficient.
+
+<p>Syzygy solves several problems: distributed graphics,
+distributed sound, distributed
+systems management, distributed data access, and general I/O device management.
+There are systems out there that do each of these things, but no one system
+addresses them all. However, each problem relies on a similar infrastructure
+for its solution. Syzygy aims to identify that common infrastructure
+and provide an implementation. Thus, each problem can be solved more
+easily, and the resulting code base is well-integrated, maintainable, and
+smaller. In effect, Syzygy is a middleware solution for distributed
+multimedia.
+</td>
+
+<td valign=top>
+<table>
+<tr>
+<td>
+<img src="szg/images/SyzygyLogo.jpg" width=250 height=90>
+</td>
+<tr>
+<td>
+<img src="szg/images/web2.jpg" width=250 height=186>
+</td>
+<tr>
+<td>
+<img src="szg/images/web21.jpg" width=250 height=167>
+</td>
+<tr>
+<td>
+<img src="szg/images/web22.jpg" width=250 height=180>
+</td>
+<tr>
+<td>
+<img src="szg/images/web3.jpg" width=250 height=265>
+</td>
+<tr>
+<td>
+<img src="szg/images/web4.jpg" width=250 height=188>
+</td>
+<tr>
+<td>
+<img src="szg/images/web5.jpg" width=250 height=214>
+</td>
+<tr>
+<td>
+<img src="szg/images/web6.jpg" width=250 height=306>
+</td>
+<tr>
+<td>
+<img src="szg/images/web1.jpg" width=250 height=188>
+</td>
+<tr>
+<td>
+<img src="szg/images/web7.jpg" width=250 height=188>
+</td>
+</table>
+</td>
+
+</table>
+  
+</body>
+</html>
