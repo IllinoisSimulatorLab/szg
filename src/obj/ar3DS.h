@@ -40,13 +40,12 @@ class SZG_CALL ar3DS : public arObject{
   public:
     ar3DS();
     ~ar3DS();
-    bool read3DS(char* fileName);
-    //bool writeToFile(char* fileName);
+    bool read3DS(const string& fileName);
     void normalizeModelSize();
     bool normalizationMatrix(arMatrix4 &theMatrix);
 
-    void attachMesh(const string& baseName, const string& where);
-    void attachMesh(const string& baseName, arGraphicsNode* parent);
+    bool attachMesh(const string& baseName, const string& where);
+    bool attachMesh(arGraphicsNode* parent, const string& baseName="");
 
     // animation
     bool supportsAnimation(void) { return false; }

@@ -48,18 +48,19 @@ class arObject {
   virtual inline int numberOfGroups() {return -1;}
 
   /// returns the name of the arObject (as specified by read/attach function)
-  const string& name() { return _name; }
+  string name() { return _name; }
   /// sets and returns the new name
   /// @param newName the new name
-  const string & setName(const string& newName) { return (_name = newName); }
-
+  string setName(const string& newName) { return (_name = newName); }
+  
+  /// DEPRECATED! INCLUDED ONLY FOR BACKWARDS COMPATIBILITY.
+  /// Annoyingly, this must be repeated in each subclass (because of the
+  /// *other* attachMesh virtual method).
+  virtual bool attachMesh(const string& objectName, const string& parentName);
   /// @param objectName The name of the object
   /// @param parent Where to attach the object in the scenegraph
   /// This takes a valid arObject file and attaches it to the scenegraph
-  virtual void attachMesh(const string& objectName, const string& parent) = 0;
-  virtual void attachMesh(const string& objectName, arGraphicsNode* parent) = 0;
-  /// automagically inserts the object name as baseName
-  virtual inline void attachMesh(const string& parent) { attachMesh(parent, _name); }
+  virtual bool attachMesh(arGraphicsNode* parent, const string& objectName="") = 0;
   
   /// returns what kind of Object this is
   virtual inline string type(void) = 0;

@@ -61,8 +61,8 @@ class SZG_CALL arOBJ : public arObject{
 
   // NOTE: this CANNOT be one call since the second argument should be path
   // a little annoying, but it's this way for historical reasons
-  bool readOBJ(const char* fileName, const string& path="");
-  bool readOBJ(const char* fileName, const string& subdirectory, 
+  bool readOBJ(const string& fileName, const string& path="");
+  bool readOBJ(const string& fileName, const string& subdirectory, 
                const string& path);
   bool readOBJ(FILE* inputFile);
   int readMaterialsFromFile(arOBJMaterial* materialArray, char* theFilename);
@@ -78,26 +78,20 @@ class SZG_CALL arOBJ : public arObject{
   int numberInGroup(int i)	{return _group[i].size();}
   string nameOfGroup(int i)	{return string(_groupName[i]);} // unsafe to return a ref
   int groupID(const string& name);
-  const string& name()		{return _name;}
-  const string& setName(const string& newName) {return (_name = newName);}
+  string name()		{return _name;}
+  string setName(const string& newName) {return (_name = newName);}
   bool supportsAnimation()	{return false;}
 
   void setTransform(const arMatrix4& transform);
-  void attachMesh(const string& baseName, const string& where);
-  void attachMesh(const string& baseName, arGraphicsNode* parent){
-    attachMesh(baseName, parent->getName());
-  }
-  void attachPoints(const string& baseName, const string& where);
-  void attachGroup(int group, const string& base, const string& where);
+  bool attachMesh(const string& objectName, const string& parentName);
+  bool attachMesh(arGraphicsNode* where, const string& baseName="");
+  arGraphicsNode* attachPoints(arGraphicsNode* where, const string& nodeName);
+  bool attachGroup(arGraphicsNode* where, int group, const string& base);
   arBoundingSphere getGroupBoundingSphere(int groupID);
   arAxisAlignedBoundingBox getAxisAlignedBoundingBox(int groupID);
   float intersectGroup(int groupID, const arRay& theRay);
 
   void normalizeModelSize();
-
-  /// automagically inserts the OBJ's object name as baseName
-  inline void attachPoints(const string& p)      {attachPoints(_name, p);}
-  inline void attachGroup(int g, const string& p){attachGroup(g, _name, p);}
 
  protected:
   bool _readMaterialsFromFile(FILE* matFile);

@@ -110,15 +110,15 @@ class SZG_CALL arHTR : public arObject {
     bool readHTR(FILE* htrFileHandle);
     bool writeToFile(char* fileName);
 
-    void attachMesh(const string& objectName,
+    bool attachMesh(const string& objectName,
 		    const string& parent) { 
-      attachMesh(objectName,parent,false); 
+      return attachMesh(objectName,parent,false); 
     }
-    void attachMesh(const string& objectName,
-		    arGraphicsNode* parent){
-      attachMesh(objectName,parent->getName());
+    bool attachMesh(arGraphicsNode* parent, 
+                    const string& objectName=""){
+      return attachMesh(objectName,parent->getName());
     }
-    void attachMesh(const string& baseName, 
+    bool attachMesh(const string& baseName, 
                     const string& where, 
                     bool withLines);
     string type(void) { return "HTR"; }

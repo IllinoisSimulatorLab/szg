@@ -23,11 +23,15 @@ ar3DS::~ar3DS() {
 
 /// Uses lib3ds to read in a .3ds file
 /// @param fileName name of the 3DS file (including extension)
-bool ar3DS::read3DS(char *fileName) {
+bool ar3DS::read3DS(const string& fileName) {
 #ifdef Enable3DS
-  _file = lib3ds_file_load(fileName);
-  if (!_file)
+  char* name = new char[fileName.length()+1];
+  strcpy(name, fileName.c_str());
+  _file = lib3ds_file_load(name);
+  if (!_file){
     _invalidFile = true;
+  }
+  delete [] name;
 #else
     cerr << "ar3DS error: failed to read \""
 	 << fileName
@@ -39,23 +43,25 @@ bool ar3DS::read3DS(char *fileName) {
 /// Attaches mesh geometry to scenegraph
 /// \param baseName The name of the object
 /// \param where The name of the node to attach to in scenegraph
-void ar3DS::attachMesh(const string& baseName, const string& where){
+bool ar3DS::attachMesh(const string& baseName, const string& where){
   arGraphicsNode* parent = dgGetNode(where);
   if (parent){
-    attachMesh(baseName, parent);
+    return attachMesh(parent, baseName);
   }
+  return false;
 }
 
 /// Attaches geometry to the scene graph.
 /// @param baseName: a template name for the node names of the object
 /// @parant parent: the node to which we will attach the object.
-void ar3DS::attachMesh(const string& baseName, arGraphicsNode* parent){
+bool ar3DS::attachMesh(arGraphicsNode* parent, const string& baseName){
 #ifndef Enable3DS
   cerr << "ar3DS error: compiled without 3DS support.\n";
+  return false;
 #else
   if (_invalidFile){
     cerr<<"cannot attach mesh: No valid file!\n";
-    return;
+    return false;
   }
   _numMaterials = 0;
   for (Lib3dsMaterial* p=_file->materials; p!=0; p=p->next){
@@ -84,6 +90,8 @@ void ar3DS::attachMesh(const string& baseName, arGraphicsNode* parent){
     for (ptr=_file->nodes; ptr!=NULL; ptr=ptr->next) {
       attachChildNode(baseName, transformNode, ptr);
     }
+
+  return true;
 #endif
 }
 

@@ -137,10 +137,8 @@ void testDatabase(arGraphicsDatabase& g){
   ls->setGraphicsStateInt("lighting", AR_G_FALSE );
   arTextureNode* tn = (arTextureNode*) ls->newNode("texture", "rect_texture");
   tn->setPixels(256, 256, makePixels(), true);
-  // BUG BUG BUG BUG BUG BUG BUG BUG: Still need to call dgSetGraphicsDatabase
-  dgSetGraphicsDatabase(&g);
   arRectangleMesh rect;
-  rect.attachMesh("the_rect", "rect_texture");
+  rect.attachMesh(tn, "the_rect");
 
   int count = 0;
   arGraphicsStateNode* insertedState = NULL;

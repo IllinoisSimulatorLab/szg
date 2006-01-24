@@ -7,6 +7,7 @@
 #include "arPrecompiled.h"
 #include "arOBJ.h"
 #include "arGraphicsAPI.h"
+#include "arLogStream.h"
 
 arOBJ::arOBJ() :
   _thisMaterial(0),
@@ -31,21 +32,20 @@ bool arOBJ::readOBJ(FILE* inputFile){
   _groupName.push_back("default");
 
   if (!inputFile){
-    cerr << "arOBJ error: NULL input file pointer.";
+    ar_log_error() << "arOBJ error: NULL input file pointer.";
     _invalidFile = true;
     return false;
   }
 
   // parse the entire file
-  while (_parseOneLine(inputFile))
-    ;
+  while (_parseOneLine(inputFile)){}
 
   _generateNormals();
   return true;
 }
 
 /// wrapper for the 3 parameter readOBJ(...)
-bool arOBJ::readOBJ(const char* fileName, const string& path){
+bool arOBJ::readOBJ(const string& fileName, const string& path){
   return readOBJ(fileName, "", path);
 }
 
@@ -56,20 +56,15 @@ bool arOBJ::readOBJ(const char* fileName, const string& path){
 /// data_directory/my_program_name instead of just data_directory.
 /// @param path a search path upon which we look for the file. this is useful
 /// when data files need to be installed in a special directory
-bool arOBJ::readOBJ(const char* fileName, 
+bool arOBJ::readOBJ(const string& fileName, 
                     const string& subdirectory, 
                     const string& path){
-  if (!fileName){
-    cerr << "arOBJ error: NULL filename.\n";
-    _invalidFile = true;
-    return false;
-  }
   _fileName = string(fileName);
   _searchPath = path;
   _subdirectory = subdirectory;
   FILE* theFile = ar_fileOpen(fileName, subdirectory, path, "r");
   if (!theFile){
-    cerr << "arOBJ error: failed to open file \"" << fileName << "\".\n";
+    ar_log_error() << "arOBJ error: failed to open file \"" << fileName << "\".\n";
     _invalidFile = true;
     return false;
   }
@@ -94,34 +89,57 @@ void arOBJ::setTransform(const arMatrix4& transform) {
   _transform = transform;
 }
 
-/// @param baseName The name of the entire object
-/// @param where the scenegraph node to which we attach the OBJ
-/// puts the OBJ into scenegraph w/o hierarchy or transforms
-/// (i.e., the "one fell swoop" approach)
-void arOBJ::attachMesh(const string& baseName, const string& where){
-  if (_invalidFile){
-    cerr << "cannot attach mesh: No valid file!\n";
-    return;
+bool arOBJ::attachMesh(const string& objectName, const string& parentName){
+  arGraphicsNode* g = dgGetNode(parentName);
+  if (g){
+    return attachMesh(g, objectName);
   }
-  const string pointsModifier(".points");
-
-  attachPoints(baseName+pointsModifier, where);
-  for (unsigned int i=0; i<_group.size(); i++)
-    if (_group[i].size() != 0)
-      attachGroup(i, baseName, baseName+pointsModifier);
+  return false;
 }
 
-/// @param baseName The name to give the points node
-/// @param where Which scenegraph node to attach the points to
-/// Just attaches points (vertices) of the OBJ.  No geometry or transforms.
-/// Make sure points are above triangles et al in hierarchy.
-void arOBJ::attachPoints(const string& baseName, const string& where){
+/// @param where the scenegraph node to which we attach the OBJ.
+/// @param baseName The name of the entire object.
+/// Puts the OBJ into scenegraph w/o hierarchy or transforms.
+bool arOBJ::attachMesh(arGraphicsNode* where, const string& baseName){
   if (_invalidFile){
-    cerr << "cannot attach points: No valid file!\n";
-    return;
+    ar_log_error() << "arOBJ cannot attach mesh: No valid file!\n";
+    return false;
+  }
+  arGraphicsNode* pointsNode = attachPoints(where, baseName+".points");
+  if (!pointsNode){
+    return false;
+  }
+  for (unsigned int i=0; i<_group.size(); i++){
+    if (_group[i].size() != 0){
+      if (!attachGroup(pointsNode, i, baseName)){
+	return false;
+      }
+    }
+  }
+  return true;
+}
+
+/// @param where The node to which we will attach the points information.
+/// @param nodeName The name to give the points node.
+/// Just attaches points (vertices) of the OBJ.  No geometry or transforms.
+arGraphicsNode* arOBJ::attachPoints(arGraphicsNode* where, 
+                                    const string& nodeName){
+  if (_invalidFile){
+    ar_log_error() << "arOBJ cannot attach points: No valid file!\n";
+    return NULL;
+  }
+  if (!where){
+    ar_log_error() << "arOBJ cannot attach points: Base node is invalid.\n";
+    return NULL;
   }
 
-  const int numberPoints=_vertex.size();
+  arPointsNode* p = (arPointsNode*) where->newNode("points", nodeName);
+  p->setPoints(_vertex);
+  // Pass the node ID to the superclass.
+  _vertexNodeID = p->getID();
+  return p;
+
+  /*const int numberPoints=_vertex.size();
   float* pointPositions = new float[3*numberPoints];
   int* pointIDs = new int[numberPoints];
   for (int i=0; i<numberPoints; i++){
@@ -130,22 +148,26 @@ void arOBJ::attachPoints(const string& baseName, const string& where){
     pointPositions[3*i+2] = _vertex[i][2];
     pointIDs[i] = i;
   }
-  _vertexNodeID = // pass the ID to the superclass
+  _vertexNodeID =
   dgPoints(baseName, where,
            numberPoints, pointIDs, pointPositions);
   delete [] pointIDs;
   delete [] pointPositions;
+ */
 }
 
+/// @param where The parent node to which we will attach everything.
 /// @param group The OBJ group number to attach
 /// @param base The base name of the group
-/// @param where Which scenegraph node to attach the group to
-/// this attaches geometry, colors, etc. but NOT POINTS to node
-/// also can specify base name (recommended: parent.child.child...)
-void arOBJ::attachGroup(int group, const string& base, const string& where){
+/// This attaches geometry, colors, etc. but NOT POINTS to node.
+bool arOBJ::attachGroup(arGraphicsNode* where, int group, const string& base){
   if (_invalidFile){
-    cerr << "cannot attach group: No valid file!\n";
-    return;
+    ar_log_error() << "arOBJ cannot attach group: No valid file.\n";
+    return false;
+  }
+  if (!where){
+    ar_log_error() << "arOBJ cannot attach group: Parent is invalid.\n";
+    return false;
   }
   const string trianglesModifier(".triangles");
   const string normalsModifier  (".normals");
@@ -165,19 +187,16 @@ void arOBJ::attachGroup(int group, const string& base, const string& where){
     matIDs[_triangle[_group[group][j]].material].push_back(j);
   }
   char temp[32];
-  bool useTexture, useBump;
+  bool useTexture;
   for (j=0; j<_material.size(); j++){
     if (matIDs[j].size() != 0) {
-      if (_material[j].map_Kd == "none")
+      if (_material[j].map_Kd == "none"){
 	useTexture = false;	// there is no texture map
-      else
+      }
+      else{
         useTexture = true;
-      if (_material[j].map_Bump == "none")
-	useBump = false;	// there is no bump map
-      else
-        useBump = true;
+      }
       
-      //printf("map_Kd=\"%s\"\n",_material[j].map_Kd);
       float* normals = new float[9*matIDs[j].size()];
       int* indices = new int[3*matIDs[j].size()];
       float* texCoords = new float[6*matIDs[j].size()];
@@ -205,10 +224,14 @@ void arOBJ::attachGroup(int group, const string& base, const string& where){
 	}
       }
       sprintf(temp, "%i", j);
-      // three colors per triangle
-      dgIndex(baseName+".indices"+temp, where, 3*matIDs[j].size(), indices);
+      // Three colors per triangle.
+      arIndexNode* indexNode = (arIndexNode*) where->newNode("index", baseName+".indices"+temp);
+      indexNode->setIndices(3*matIDs[j].size(), indices);
+      arNormal3Node* normalNode = (arNormal3Node*) indexNode->newNode("normal3", baseName+normalsModifier+temp);
+      normalNode->setNormal3(3*matIDs[j].size(), normals);
+      /*dgIndex(baseName+".indices"+temp, where, 3*matIDs[j].size(), indices);
       dgNormal3(baseName+normalsModifier+temp, baseName+".indices"+temp,
-                3*matIDs[j].size(), normals);
+      3*matIDs[j].size(), normals);*/
       // NOTE: some exporters will attach a "pure black" color to anything
       // with a texture. Since by default we use GL_MODULATE with textures,
       // this will be a problem. Instead, use (1,1,1).
@@ -218,28 +241,42 @@ void arOBJ::attachGroup(int group, const string& base, const string& where){
 	  && correctedDiffuse[2] < 0.001){
 	correctedDiffuse = arVector3(1,1,1);
       }
-      dgMaterial(baseName+colorsModifier+temp, baseName+normalsModifier+temp,
+      arMaterialNode* materialNode 
+        = (arMaterialNode*) normalNode->newNode("material", baseName+colorsModifier+temp);
+      arMaterial tmp;
+      tmp.diffuse = correctedDiffuse;
+      tmp.ambient = _material[j].Ka;
+      tmp.specular = _material[j].Ks;
+      tmp.emissive = arVector3(0,0,0);
+      tmp.exponent = _material[j].Ns;
+      materialNode->setMaterial(tmp);
+      /*dgMaterial(baseName+colorsModifier+temp, baseName+normalsModifier+temp,
 		 correctedDiffuse, _material[j].Ka, _material[j].Ks,
-		 arVector3(0,0,0), _material[j].Ns);
+		 arVector3(0,0,0), _material[j].Ns);*/
       if (useTexture){
-        dgTex2(baseName+texModifier+temp,baseName+colorsModifier+temp,
+        arTex2Node* tex2Node 
+          = (arTex2Node*) materialNode->newNode("tex2", baseName+texModifier+temp);
+        tex2Node->setTex2(3*matIDs[j].size(), texCoords);
+        arTextureNode* textureNode 
+          = (arTextureNode*) tex2Node->newNode("texture", baseName+textureModifier+temp);
+        textureNode->setFileName(_material[j].map_Kd);
+        arDrawableNode* drawableNode 
+          = (arDrawableNode*)textureNode->newNode("drawable", baseName+".geometry"+temp);
+        drawableNode->setDrawable(DG_TRIANGLES, matIDs[j].size());
+        /*dgTex2(baseName+texModifier+temp,baseName+colorsModifier+temp,
                3*matIDs[j].size(), texCoords);
         dgTexture(baseName+textureModifier+temp,baseName+texModifier+temp, 
                   _material[j].map_Kd);
-	if (useBump){
-          dgBumpMap(baseName+".bump"+temp,baseName+textureModifier+temp, 
-                    _material[j].map_Bump);
-          dgDrawable(baseName+".geometry"+temp, baseName+".bump"+temp,
-		     DG_TRIANGLES, matIDs[j].size());
-	} else
-	  dgDrawable(baseName+".geometry"+temp, baseName+textureModifier+temp,
-		     DG_TRIANGLES, matIDs[j].size());
+	dgDrawable(baseName+".geometry"+temp, baseName+textureModifier+temp,
+	DG_TRIANGLES, matIDs[j].size());*/
       }
       else{
-        dgDrawable(baseName+".geometry"+temp, baseName+colorsModifier+temp,
-		   DG_TRIANGLES, matIDs[j].size());
+        arDrawableNode* drawableNode 
+          = (arDrawableNode*) materialNode->newNode("drawable", baseName+".geometry"+temp);
+        drawableNode->setDrawable(DG_TRIANGLES, matIDs[j].size());
+        //dgDrawable(baseName+".geometry"+temp, baseName+colorsModifier+temp,
+	//	   DG_TRIANGLES, matIDs[j].size());
       }
-
 
       delete [] texCoords;
       delete [] normals;
@@ -248,8 +285,7 @@ void arOBJ::attachGroup(int group, const string& base, const string& where){
   }
 
   delete [] matIDs;
-  //printf("Materials: %i\n", _material.size());
-  //printf("Smoothing Groups: %i\n", _smoothingGroup.size());
+  return true;
 }
 
 /// @param groupID The OBJ internal group number

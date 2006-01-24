@@ -54,7 +54,6 @@ OBJS = \
   arPerspectiveCameraNode$(OBJ_SUFFIX) \
   arPointsNode$(OBJ_SUFFIX) \
   arRay$(OBJ_SUFFIX) \
-  arReadymade$(OBJ_SUFFIX) \
   arTex2Node$(OBJ_SUFFIX) \
   arTexFont$(OBJ_SUFFIX) \
   arTexture$(OBJ_SUFFIX) \

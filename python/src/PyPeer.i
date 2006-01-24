@@ -1044,14 +1044,9 @@ class arMesh {
   virtual ~arMesh();
   void setTransform(const arMatrix4& matrix);
   arMatrix4 getTransform();
-  /// DEPRECATED. Assumes that nameParent gives a unique node name... and
-  /// just calls the real attachMesh method (which uses an arGraphicsNode*
-  /// parameter).
-  virtual void attachMesh(const string& name, const string& parentName);
-  /// Creates new scene graph nodes below the given one that contain
-  /// the shape's geometry.
-  virtual void attachMesh(arGraphicsNode* node, const string& name) = 0;
-  virtual void attachMesh(arGraphicsNode* node) = 0;
+  virtual bool attachMesh(const string& name, const string& parentName);
+  virtual bool attachMesh(arGraphicsNode* node, const string& name)=0;
+  virtual bool attachMesh(arGraphicsNode* node)=0;
 
 %pythoncode {
     # __getstate__ returns the contents of self in a format that can be
@@ -1073,9 +1068,9 @@ class arCubeMesh : public arMesh {
  public:
   arCubeMesh();
   arCubeMesh(const arMatrix4& transform);
-  void attachMesh(const string& name, const string& parentName);
-  void attachMesh(arGraphicsNode* parent, const string& name);
-  void attachMesh(arGraphicsNode* parent);
+  bool attachMesh(const string& name, const string& parentName);
+  bool attachMesh(arGraphicsNode* parent, const string& name);
+  bool attachMesh(arGraphicsNode* parent);
 
 %pythoncode {
     # __getstate__ returns the contents of self in a format that can be
@@ -1097,9 +1092,9 @@ class arRectangleMesh : public arMesh {
  public:
   arRectangleMesh();
   arRectangleMesh(const arMatrix4& transform);
-  void attachMesh(const string& name, const string& parentName);
-  void attachMesh(arGraphicsNode* parent, const string& name);
-  void attachMesh(arGraphicsNode* parent);
+  bool attachMesh(const string& name, const string& parentName);
+  bool attachMesh(arGraphicsNode* parent, const string& name);
+  bool attachMesh(arGraphicsNode* parent);
 
 %pythoncode {
     # __getstate__ returns the contents of self in a format that can be
@@ -1128,9 +1123,9 @@ class arCylinderMesh : public arMesh {
   float getTopRadius();
   void toggleEnds(bool);
   bool getUseEnds();
-  void attachMesh(const string& name, const string& parentName);
-  void attachMesh(arGraphicsNode* parent, const string& name);
-  void attachMesh(arGraphicsNode* parent);
+  bool attachMesh(const string& name, const string& parentName);
+  bool attachMesh(arGraphicsNode* parent, const string& name);
+  bool attachMesh(arGraphicsNode* parent);
 
 %pythoncode {
     # __getstate__ returns the contents of self in a format that can be
@@ -1155,9 +1150,9 @@ class arCylinderMesh : public arMesh {
 class arPyramidMesh : public arMesh {
  public:
   arPyramidMesh();
-  void attachMesh(const string& name, const string& parentName);
-  void attachMesh(arGraphicsNode* parent, const string& name);
-  void attachMesh(arGraphicsNode* parent);
+  bool attachMesh(const string& name, const string& parentName);
+  bool attachMesh(arGraphicsNode* parent, const string& name);
+  bool attachMesh(arGraphicsNode* parent);
 
 %pythoncode {
     # __getstate__ returns the contents of self in a format that can be
@@ -1185,9 +1180,9 @@ class arSphereMesh : public arMesh {
   int getNumberDivisions();
   void setSectionSkip(int skip);
   int getSectionSkip();
-  void attachMesh(const string& name, const string& parentName);
-  void attachMesh(arGraphicsNode* parent, const string& name);
-  void attachMesh(arGraphicsNode* parent);
+  bool attachMesh(const string& name, const string& parentName);
+  bool attachMesh(arGraphicsNode* parent, const string& name);
+  bool attachMesh(arGraphicsNode* parent);
 
 %pythoncode {
     # __getstate__ returns the contents of self in a format that can be
@@ -1217,9 +1212,9 @@ class arTorusMesh : public arMesh {
   int getNumberSmallAroundQuads();
   float getBigRadius();
   float getSmallRadius();
-  void attachMesh(const string& name, const string& parentName);
-  void attachMesh(arGraphicsNode* parent, const string& name);
-  void attachMesh(arGraphicsNode* parent);
+  bool attachMesh(const string& name, const string& parentName);
+  bool attachMesh(arGraphicsNode* parent, const string& name);
+  bool attachMesh(arGraphicsNode* parent);
 
 %pythoncode {
     # __getstate__ returns the contents of self in a format that can be

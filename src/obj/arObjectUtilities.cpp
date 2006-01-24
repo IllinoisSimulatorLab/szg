@@ -22,7 +22,7 @@
 ///        will affect external software built on this foundation
 bool attachOBJToHTRToNodeInDatabase(arOBJ* theOBJ, arHTR *theHTR, 
                                     const string &theNode){
-  theOBJ->attachPoints(theNode+"object.points", theNode);
+  theOBJ->attachPoints(dgGetNode(theNode), theNode+"object.points");
   theHTR->attachMesh(theNode+"object", theNode+"object.points");
   for (int i=0; i<theOBJ->numberOfGroups(); i++){
     const string groupName(theOBJ->nameOfGroup(i));
@@ -30,7 +30,7 @@ bool attachOBJToHTRToNodeInDatabase(arOBJ* theOBJ, arHTR *theHTR,
     const int TID = theHTR->inverseIDForSegment(j);
     if (theOBJ->numberInGroup(i)>0 && TID != -1){
       dgTransform(TID, theHTR->inverseTransformForSegment(j));
-      theOBJ->attachGroup(i, theNode+groupName, dgGetNodeName(TID));
+      theOBJ->attachGroup(dgGetNode(dgGetNodeName(TID)), i, theNode+groupName);
       int boundingSphereID = theHTR->boundingSphereIDForSegment(j);
       arBoundingSphere theSphere = theOBJ->getGroupBoundingSphere(i);
       dgBoundingSphere(boundingSphereID, 0, theSphere.radius,

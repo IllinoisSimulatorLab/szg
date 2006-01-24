@@ -87,12 +87,12 @@ arMatrix4 arHTR::HTRTransform(struct htrBasePosition *theBP,
 /// @param where name of the node to which we attach the OBJ
 /// \param withLines (optional) draw lines for bones -- useful if no geometry will be 
 ///		     attached to the transform hierarchy
-void arHTR::attachMesh(const string& baseName, 
+bool arHTR::attachMesh(const string& baseName, 
                        const string& where, 
                        bool withLines){
   if (_invalidFile){
     printf("cannot attach mesh: No valid file!\n");
-    return;
+    return false;
   }
   const string transformModifier(".transform");
   unsigned int i = 0;
@@ -126,6 +126,7 @@ void arHTR::attachMesh(const string& baseName,
     // recurse through children
     attachChildNode(baseName, rootBasePosition, withLines);
   }
+  return true;
 }
 
 /// gets called by attachMesh()
