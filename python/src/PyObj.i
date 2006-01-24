@@ -102,4 +102,47 @@ class ar3DS : public arObject{
     bool attachMesh(arGraphicsNode* parent, const string& baseName="");
 };
 
+%{
+#include "arHTR.h"
+%}
+
+class arHTR : public arObject {
+  public:
+    arHTR();
+    ~arHTR();
+    bool readHTR(const string& fileName, const string& path="");
+    bool readHTR(const string& fileName, const string& subdirectory, const string& path);
+    bool readHTR(FILE* htrFileHandle);
+    bool writeToFile(const string& fileName);
+    bool attachMesh(const string& objectName,
+		    const string& parent);
+    bool attachMesh(arGraphicsNode* parent, 
+                    const string& objectName="");
+    bool attachMesh(const string& baseName, 
+                    const string& where, 
+                    bool withLines);
+    string type(void);
+    void normalizeModelSize(void);
+    void basicDataSmoothing();
+    bool supportsAnimation(void);
+    bool setFrame(int newFrame);
+    bool nextFrame();
+    bool prevFrame();
+    bool setBasePosition();
+    int	numberOfFrames();
+    int currentFrame();
+    int	numberOfSegments();
+    int	version();
+    string nameOfSegment(int i);
+    arTransformNode* transformForSegment(int i){ return segmentData[i]->transformNode; }
+    arTransformNode* preTransformForSegment(int i){ return segmentData[i]->preTransformNode; }
+    arTransformNode* postTransformForSegment(int i){ return segmentData[i]->postTransformNode; }
+    arTransformNode* localTransformForSegment(int i){ return segmentData[i]->localTransformNode; }
+    arTransformNode* inverseForSegment(int i){ return segmentData[i]->invTransformNode; }
+    arBoundingSphereNode* boundingSphereForSegment(int i){ return segmentData[i]->boundingSphereNode; }
+    arMatrix4 segmentBaseTransformRelative(int segmentID);
+    int	numberOfSegment(const string& segmentName);
+    arMatrix4 inverseTransformForSegment(int i);
+};
+
 

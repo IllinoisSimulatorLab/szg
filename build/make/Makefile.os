@@ -68,8 +68,10 @@ endif
 
 # OK, we guessed the OS.  Let's actually do something now.
 
-# The PLATFORM variable is used some places
-#PLATFORM:=$z
+# The variable z used to hold the PLATFORM. For backwards compatibility in
+# the makefiles, let's set it appropriately here. HOWEVER, its use is
+# deprecated!
+z:=$PLATFORM
 
 ifeq "$PLATFORM" "win32"
   JOBS = 1

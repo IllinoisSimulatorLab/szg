@@ -6,35 +6,35 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arObjectUtilities.h"
+#include "arLogStream.h"
 
-/// Animates an OBJ with an HTR
-/** This long-winded function puts an HTR transform hierarchy in
- *   theDatabase (attached to theNode), then attaches the groups
- *   in the OBJ to the corresponding segments in the HTR file
+// DEPRECATED. THIS IS MERELY PRESENT TO PROVIDE BACKWARDS COMPATIBILITY!
+bool ar_mergeOBJandHTR(arOBJ* theOBJ, arHTR* theHTR, const string& where){
+  arGraphicsNode* n = dgGetNode(where);
+  return n ? ar_mergeOBJandHTR(n, theOBJ, theHTR, "") : false;
+}
+
+/**  Attaches an HTR transform hierarchy to parent, then attaches the groups
+ *   in the OBJ to the corresponding segments in the HTR.
  * NOTE: Currently, the OBJ group and HTR segment must have the
  *   same name. A good idea would be an option to do a
  *   "best guess" based on centers of nodes and segments.
  */
-/// NOTE: requires the OBJ to have group names that match those of the HTR segments
-/// \todo change name to arAttach... and propogate
-/// \todo remove the "same name" requirement between OBJ groups and HTR segments
-/// @todo be EXTREMELY careful about doing the above todo's as these changes
-///        will affect external software built on this foundation
-bool attachOBJToHTRToNodeInDatabase(arOBJ* theOBJ, arHTR *theHTR, 
-                                    const string &theNode){
-  theOBJ->attachPoints(dgGetNode(theNode), theNode+"object.points");
-  theHTR->attachMesh(theNode+"object", theNode+"object.points");
+bool ar_mergeOBJandHTR(arGraphicsNode* parent, arOBJ* theOBJ, arHTR* theHTR, const string& objectName){
+  string name = (objectName == "") ? "object" : objectName;
+  arGraphicsNode* n = theOBJ->attachPoints(parent, name+".points");
+  theHTR->attachMesh(n, name);
   for (int i=0; i<theOBJ->numberOfGroups(); i++){
     const string groupName(theOBJ->nameOfGroup(i));
     const int j = theHTR->numberOfSegment(groupName);
-    const int TID = theHTR->inverseIDForSegment(j);
-    if (theOBJ->numberInGroup(i)>0 && TID != -1){
-      dgTransform(TID, theHTR->inverseTransformForSegment(j));
-      theOBJ->attachGroup(dgGetNode(dgGetNodeName(TID)), i, theNode+groupName);
-      int boundingSphereID = theHTR->boundingSphereIDForSegment(j);
-      arBoundingSphere theSphere = theOBJ->getGroupBoundingSphere(i);
-      dgBoundingSphere(boundingSphereID, 0, theSphere.radius,
-		       theSphere.position);
+    arTransformNode* inverseTransformNode = theHTR->inverseForSegment(j);
+    if (theOBJ->numberInGroup(i)>0 && inverseTransformNode){
+      inverseTransformNode->setTransform(theHTR->inverseTransformForSegment(j));
+      theOBJ->attachGroup(inverseTransformNode, i, name+"."+groupName);
+      arBoundingSphereNode* b = theHTR->boundingSphereForSegment(j);
+      arBoundingSphere sphere = theOBJ->getGroupBoundingSphere(i);
+      sphere.visibility = false;
+      b->setBoundingSphere(sphere);
     }
   }
   return true;
@@ -47,67 +47,45 @@ bool attachOBJToHTRToNodeInDatabase(arOBJ* theOBJ, arHTR *theHTR,
 
 /// Reads a file, determines the type, and returns a pointer to a newly-created arObject.
 /** This function can only be used if the file ends with the
- *   appropriate (case-insensitive) file format modifier.
- * "path" shouldn't be a default parameter, since the function will fail then.
+ *  appropriate (case-insensitive) file format modifier.
+ *  "path" shouldn't be a default parameter, since the function will fail then.
  */
-arObject* arReadObjectFromFile(const char* fileName, const string& path) {
-  char* dot = strrchr(fileName, '.');
-  if (!dot) {
-    cerr << "arObjUtil error: invalid file name \"" << fileName << "\".\n";
+arObject* ar_readObjectFromFile(const string& fileName, const string& path) {
+  unsigned int pos = fileName.find('.');
+  if (pos == string::npos) {
+    ar_log_error() << "arObjUtil invalid file name \"" << fileName << "\".\n";
     return NULL;
   }
-  if (strlen(++dot) <= 4) {
-    const string theFileName(fileName);
-    FILE* pFile = ar_fileOpen(theFileName, path, "r");
-    if (!pFile){
-      cerr << "arObjUtil error: failed to open file \""
-	   << fileName << "\".\n";
-      return NULL;
-    }
+  string fullName = ar_fileFind(fileName, "", path);
+  if (fullName == "NULL"){
+    ar_log_error() << "arObjUtil failed to find file \""
+	           << fileName << "\".\n";
+  }
+  string suffix = fileName.substr(pos, fileName.length()-pos);
 
-    // Wavefront OBJ
-    if (!strcasecmp(dot,"OBJ")) {
-      arOBJ *theOBJ = new arOBJ;
-      theOBJ->readOBJ(fileName,path);
-      return theOBJ;
-    }
+  // Wavefront OBJ
+  if (suffix == ".obj" || suffix == ".OBJ") {
+    arOBJ *theOBJ = new arOBJ;
+    theOBJ->readOBJ(fullName);
+    return theOBJ;
+  }
+  // Motion Analysis HTR
+  if (suffix == ".htr" || suffix == ".HTR" || suffix == ".htr2" || suffix == ".HTR2") {
+    arHTR* theHTR = new arHTR;
+    theHTR->readHTR(fullName);
+    return theHTR;
+  }
     
-    // Motion Analysis HTR
-    if (!strcasecmp(dot,"HTR") || !strcasecmp(dot,"HTR2")) {
-      arHTR* theHTR = new arHTR;
-      theHTR->readHTR(pFile);
-      return theHTR;
-    }
-    
-    // 3D Studio
-    if (!strcasecmp(dot,"3DS")) {
-      ar3DS* the3DS = new ar3DS;
-      char* temp = new char[strlen(fileName)];
-      strcpy(temp,fileName);
-      the3DS->read3DS(temp);
-      delete temp;
-      return the3DS;
-    }
-    /*
-    // VRML97 
-    if (!strcasecmp(dot,"wrl")) {
-      arVRML *theVRML = new arVRML;
-      arVRML->readVRML(pFile);
-      return theVRML;
-    } */
-    /*
-    // RenderMan Interface Bytestream
-    if (!strcasecmp(dot,"RIB")) {
-      arRIB *theRIB = new arRIB;
-      theRIB->readRIB(pFile);
-      return theRIB;
-    }
-    */
+  // 3D Studio
+  if (suffix == ".3ds" || suffix == ".3DS") {
+    ar3DS* the3DS = new ar3DS;
+    the3DS->read3DS(fileName);
+    return the3DS;
   }
 
-  cerr << "arObjUtil error: unrecognized filename extension \""
-       << dot << "\" in file name \""
-       << fileName << "\".\n";
+  ar_log_error() << "arObjUtil unrecognized filename extension \""
+                 << suffix << "\" in file name \""
+                 << fileName << "\".\n";
   return NULL;
 }
 

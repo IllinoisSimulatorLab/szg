@@ -1,10 +1,10 @@
-#ifndef __AR_OBJECT_UTILITIES_H
-#define __AR_OBJECT_UTILITIES_H
-
 //********************************************************
 // Syzygy is licensed under the BSD license v2
 // see the file SZG_CREDITS for details
 //********************************************************
+
+#ifndef AR_OBJECT_UTILITIES_H
+#define AR_OBJECT_UTILITIES_H
 
 #include "arObject.h"
 #include "arHTR.h"
@@ -14,12 +14,11 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arObjCalling.h"
 
-SZG_CALL bool attachOBJToHTRToNodeInDatabase(arOBJ* theOBJ,
-                                             arHTR *theHTR,
-				             const string &theNode);
+// DEPRECATED! USE THE 2ND CALL!
+SZG_CALL bool ar_mergeOBJandHTR(arOBJ* theOBJ, arHTR* theHTR, const string& where);
+SZG_CALL bool ar_mergeOBJandHTR(arGraphicsNode* parent, arOBJ* theOBJ, arHTR *theHTR, const string& objectName="");
 
-SZG_CALL arObject* arReadObjectFromFile(const char *fileName, 
-                                        const string& path);
+SZG_CALL arObject* ar_readObjectFromFile(const string& fileName, const string& path);
 /*
 /// \param numVerts Number of vertices
 /// \param vertices Array of vertices as 3 packed floats

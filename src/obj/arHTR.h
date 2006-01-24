@@ -6,7 +6,7 @@
 #ifndef __AR_HTR_H
 #define __AR_HTR_H
 
-// written by Mark Flider
+// Written by Mark Flider.
 
 #include <stdio.h>
 #include <iostream>
@@ -19,8 +19,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arObjCalling.h"
 
-// rotation orders
-// AARGH!!!
+// Rotation orders (there are many possibilities for Euler angles).
 //enum { XYZ = 1, XZY, YXZ, YZX, ZXY, ZYX };
 
 /// Hierarchy pairs
@@ -36,40 +35,43 @@ class SZG_CALL htrSegmentHierarchy {
   }
 };
 
+class htrBasePosition;
+class htrFrame;
+
 /// Segment data
 class SZG_CALL htrSegmentData{
  public:
-  htrSegmentData(): parent(NULL)
-    { scaleID = -1; }
-  ~htrSegmentData()
-    { if (name) delete [] name; }
-  char *name;
-  /// ID of the transform node associated with this segment
-  int transformID;
-  /// the ID of the scale node associated with this segment
-  int scaleID;
-  /// to adjust for different actors animating the same
+  htrSegmentData(): transformNode(NULL), scaleNode(NULL), preTransformNode(NULL), postTransformNode(NULL),
+    localTransformNode(NULL), invTransformNode(NULL), boundingSphereNode(NULL), parent(NULL){}
+  ~htrSegmentData(){}
+
+  string segmentName;
+  /// Transform node associated with this segment
+  arTransformNode* transformNode;
+  /// The scale node associated with this segment
+  arTransformNode* scaleNode;
+  /// To adjust for different actors animating the same
   /// HTR, we need to be able to adjust the position,
   /// size, etc. of each segment from a well-defined
   /// location. This is a pre-multiplication... i.e.
-  /// further down the transform chain
-  int preTransformID;
-  /// another adjustment, a post-multiplication
+  /// further down the transform chain.
+  arTransformNode* preTransformNode;
+  /// Another adjustment, a post-multiplication
   /// i.e. futher up the transform chain
-  int postTransformID;
+  arTransformNode* postTransformNode;
   /// another adjustment, to move the segment without moving its children
-  int localTransformID;
+  arTransformNode* localTransformNode;
   /// transform pushing the geometry bound to the segment back to
   /// a standard position (i.e. starting at the origin
   /// and pointed along the y-axis)
-  int invTransformID;
-  /// each segment has a bounding sphere associated
+  arTransformNode* invTransformNode;
+  /// Each segment has a bounding sphere associated
   /// with it. We need to be able to pick and manipulate the segments
-  int boundingSphereID;
-  struct htrSegmentData* parent;
-  struct htrBasePosition* basePosition;
-  vector<struct htrSegmentData*> children;
-  vector<struct htrFrame*> frame;
+  arBoundingSphereNode* boundingSphereNode;
+  htrSegmentData* parent;
+  htrBasePosition* basePosition;
+  vector<htrSegmentData*> children;
+  vector<htrFrame*> frame;
 };
 
 /// Base position Structure
@@ -80,8 +82,8 @@ class SZG_CALL htrBasePosition {
   ~htrBasePosition()
     { if (name) free(name); }
   char* name;
-  struct htrSegmentData* segment;
-  double Tx, Ty, Tz;    ///< initial values
+  htrSegmentData* segment;
+  double Tx, Ty, Tz;  
   arMatrix4 trans;
   double Rx, Ry, Rz;
   arMatrix4 rot;
@@ -89,12 +91,15 @@ class SZG_CALL htrBasePosition {
 };
 
 /// Frame data
-struct htrFrame{
+class SZG_CALL htrFrame{
+ public:
+  htrFrame(){}
+  ~htrFrame(){}
   int frameNum;
-  arMatrix4 trans;   ///< local transformation
-  double Tx, Ty, Tz; ///< transformations
+  arMatrix4 trans;  
+  double Tx, Ty, Tz; 
   double Rx, Ry, Rz;
-  double scale;      ///< segment scaling factor
+  double scale;    
   double totalScale;
 };
 
@@ -105,58 +110,45 @@ class SZG_CALL arHTR : public arObject {
     ~arHTR();
     // There cannot be one readHTR because the default parameter order
     // for 2 arguments would be wrong 
-    bool readHTR(const char* fileName, string path="");
-    bool readHTR(const char* fileName, string subdirectory, string path);
+    bool readHTR(const string& fileName, const string& path="");
+    bool readHTR(const string& fileName, const string& subdirectory, const string& path);
     bool readHTR(FILE* htrFileHandle);
-    bool writeToFile(char* fileName);
-
-    bool attachMesh(const string& objectName,
-		    const string& parent) { 
-      return attachMesh(objectName,parent,false); 
+    bool writeToFile(const string& fileName);
+    // DEPRECATED! Use the arGraphicsNode* parent version instead!
+    bool attachMesh(const string& objectName, const string& parent);
+    bool attachMesh(arGraphicsNode* parent, const string& objectName=""){
+      return attachMesh(parent, objectName, false);
     }
-    bool attachMesh(arGraphicsNode* parent, 
-                    const string& objectName=""){
-      return attachMesh(objectName,parent->getName());
-    }
-    bool attachMesh(const string& baseName, 
-                    const string& where, 
-                    bool withLines);
+    // DEPRECATED! Use the arGraphicsNode* parent version instead!
+    bool attachMesh(const string& baseName, const string& where, bool withLines);
+    bool attachMesh(arGraphicsNode* parent, const string& objectName, bool withLines);
     string type(void) { return "HTR"; }
 
-    /// @todo implement this function; make it so the base position fits
-    /// in a unit sphere...
     void normalizeModelSize(void);
-
     void basicDataSmoothing();
 
-    // animation functions
+    // Animation functions.
     bool supportsAnimation(void) { return true; }
     bool setFrame(int newFrame);
     bool nextFrame();
     bool prevFrame();
     bool setBasePosition();
 
-    // stats
-    inline int	numberOfFrames()	{ return numFrames; }
-    inline int currentFrame()		{ return _currentFrame; }
-    inline int	numberOfSegments()	{ return numSegments; }
-    inline int	version()		{ return fileVersion; }
-    inline string	nameOfSegment(int i) { return string(segmentData[i]->name); }
-    inline int	transformIDForSegment(int i) 
-                    { return segmentData[i]->transformID; }
-    inline int	preTransformIDForSegment(int i)
-                    { return segmentData[i]->preTransformID; }
-    inline int	postTransformIDForSegment(int i)
-                    { return segmentData[i]->postTransformID; }
-    inline int	localTransformIDForSegment(int i)
-                    { return segmentData[i]->localTransformID;}
-    inline int	inverseIDForSegment(int i)
-                    { return segmentData[i]->invTransformID; }
-    inline int	boundingSphereIDForSegment(int i)
-                    { return segmentData[i]->boundingSphereID; }
-    arMatrix4	segmentBaseTransformRelative(int segmentID);
-    int		numberOfSegment(const string& segmentName);
-    arMatrix4	inverseTransformForSegment(int i);
+    // Stats.
+    inline int numberOfFrames(){ return numFrames; }
+    inline int currentFrame(){ return _currentFrame; }
+    inline int numberOfSegments(){ return numSegments; }
+    inline int version(){ return fileVersion; }
+    inline string nameOfSegment(int i){ return segmentData[i]->segmentName; }
+    inline arTransformNode* transformForSegment(int i){ return segmentData[i]->transformNode; }
+    inline arTransformNode* preTransformForSegment(int i){ return segmentData[i]->preTransformNode; }
+    inline arTransformNode* postTransformForSegment(int i){ return segmentData[i]->postTransformNode; }
+    inline arTransformNode* localTransformForSegment(int i){ return segmentData[i]->localTransformNode; }
+    inline arTransformNode* inverseForSegment(int i){ return segmentData[i]->invTransformNode; }
+    inline arBoundingSphereNode* boundingSphereForSegment(int i){ return segmentData[i]->boundingSphereNode; }
+    arMatrix4 segmentBaseTransformRelative(int segmentID);
+    int	numberOfSegment(const string& segmentName);
+    arMatrix4 inverseTransformForSegment(int i);
 
   protected:
     // Reading in data functions
@@ -172,11 +164,12 @@ class SZG_CALL arHTR : public arObject {
 		    	       arVector3 &maxVec, htrBasePosition *theBP);
     bool frameValid(htrFrame* f);
     void frameInterpolate(htrFrame* f, htrFrame* inetrp1, htrFrame* interp2);
-    arMatrix4 HTRTransform(struct htrBasePosition* theBP, struct htrFrame* theFrame);
+    arMatrix4 HTRTransform(htrBasePosition* theBP, htrFrame* theFrame);
     arMatrix4 HTRRotation(double Rx, double Ry, double Rz);
     
-    void attachChildNode(const string& baseName, 
-                         struct htrBasePosition* node, 
+    void attachChildNode(arGraphicsNode* parent,
+                         const string& baseName, 
+                         htrBasePosition* node, 
                          bool withLines=false);
 
   private:
@@ -186,15 +179,15 @@ class SZG_CALL arHTR : public arObject {
     int dataFrameRate;
     char* fileType;
     char* dataType;
-    arAxisOrder eulerRotationOrder;	//< global order of rotations
-    char* calibrationUnits;	//< units of translation
+    arAxisOrder eulerRotationOrder;    
+    char* calibrationUnits;   
     char* rotationUnits;
     char globalAxisOfGravity;
     char boneLengthAxis;
     double scaleFactor;
-    vector<struct htrSegmentHierarchy*> childParent;	//< hierarchy
-    vector<struct htrBasePosition*> basePosition;
-    vector<struct htrSegmentData*> segmentData;
+    vector<htrSegmentHierarchy*> childParent;  
+    vector<htrBasePosition*> basePosition;
+    vector<htrSegmentData*> segmentData;
 
     int _currentFrame;
     arVector3 _normCenter;	//< middle of the model

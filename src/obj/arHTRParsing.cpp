@@ -6,7 +6,8 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arHTR.h"
-#include <string.h>
+#include "arLogStream.h"
+#include <string>
 using namespace std;
 
 const int MAXLINE  = 600;
@@ -40,7 +41,7 @@ bool arHTR::setInvalid(void){
 }
 
 // Wrapper for the 3 parameter version.
-bool arHTR::readHTR(const char* fileName, string path){
+bool arHTR::readHTR(const string& fileName, const string& path){
   return readHTR(fileName, "", path);
 }
 
@@ -48,12 +49,11 @@ bool arHTR::readHTR(const char* fileName, string path){
 /// @param fileName name of the HTR file, including extension
 /// @param path for some reason, a path string
 /// Actually checks that it exists and calls readHTR(FILE*)
-bool arHTR::readHTR(const char* fileName, string subdirectory, string path){
-  string theFileName(fileName);
-  FILE* htrFileHandle = ar_fileOpen(theFileName, subdirectory, path, "r");
+bool arHTR::readHTR(const string& fileName, const string& subdirectory, const string& path){
+  FILE* htrFileHandle = ar_fileOpen(fileName, subdirectory, path, "r");
   if (!htrFileHandle){
-    cerr << "arHTR error: failed to open file \""
-         << fileName << "\".\n";
+    ar_log_error() << "arHTR error: failed to open file \""
+                   << fileName << "\".\n";
     return setInvalid();
   }
   return readHTR(htrFileHandle);
@@ -63,15 +63,16 @@ bool arHTR::readHTR(const char* fileName, string subdirectory, string path){
 /// @param htrFileHandle HTR file to read in
 bool arHTR::readHTR(FILE* htrFileHandle){
   if (!htrFileHandle){
-    cerr << "arHTR error: received invalid file pointer.\n";
+    ar_log_error() << "arHTR error: received invalid file pointer.\n";
     return setInvalid();
   }
 
   if (!parseHeader(htrFileHandle) ||
       !parseHierarchy(htrFileHandle) ||
       !parseBasePosition(htrFileHandle) ||
-      !parseSegmentData(htrFileHandle))
+      !parseSegmentData(htrFileHandle)){
     return setInvalid();
+  }
   fclose(htrFileHandle);
   return precomputeData() || setInvalid();
 }
@@ -98,7 +99,7 @@ bool parseLine(FILE* theFile, char* theResult[], char* buffer, int desiredTokens
       found = true;
   }
   if (!found){
-    cerr << "arHTR error: premature end of file.\n";
+    ar_log_error() << "arHTR error: premature end of file.\n";
     return false;
   }
 
@@ -109,9 +110,9 @@ bool parseLine(FILE* theFile, char* theResult[], char* buffer, int desiredTokens
     theResult[numTokens++] = strtok(NULL, " \t\n\r");
   }
   if (--numTokens < desiredTokens){
-    cerr << "arHTR error: invalid or missing \"" << errorString << "\" parameter.\n"
-         << "       -Found \"" <<  string(theResult[0])
-	 << "\" in line: " << buffer << endl;
+    ar_log_error() << "arHTR error: invalid or missing \"" << errorString << "\" parameter.\n"
+                   << "       -Found \"" <<  string(theResult[0])
+	           << "\" in line: " << buffer << ar_endl;
     return false;
   }
 
@@ -128,7 +129,7 @@ bool arHTR::parseHeader(FILE* htrFileHandle){
       found = true;
   }
   if (!found){
-    cerr << "arHTR error: 'Header' not found.\n";
+    ar_log_error() << "arHTR error: 'Header' not found.\n";
     return false;
   }
 
@@ -175,7 +176,7 @@ bool arHTR::parseHeader(FILE* htrFileHandle){
   else if (eRO=="ZYX")
     eulerRotationOrder = AR_ZYX;
   else
-    printf("Invalid rotation order: %s\n", token[1]);
+    ar_log_error() << "Invalid rotation order: " << token[1] << "\n";
 
   if (!parseLine(htrFileHandle, token, textLine, 2, "calibrationUnits"))
     return false;
@@ -217,7 +218,7 @@ bool arHTR::parseHierarchy(FILE *htrFileHandle){
       found = true;
   }
   if (!found){
-    cerr << "arHTR error: 'SegmentNames&Hierarchy' not found.\n";
+    ar_log_error() << "arHTR error: 'SegmentNames&Hierarchy' not found.\n";
     return false;
   }
 
@@ -250,7 +251,7 @@ bool arHTR::parseBasePosition(FILE *htrFileHandle){
       found = true;
   }
   if (!found){
-    cerr << "arHTR error: 'BasePosition' not found.\n";
+    ar_log_error() << "arHTR error: 'BasePosition' not found.\n";
     return false;
   }
 
@@ -269,7 +270,6 @@ bool arHTR::parseBasePosition(FILE *htrFileHandle){
     newBasePosition->Rz = atof(token[6]);
     newBasePosition->boneLength = atof(token[7]);
     basePosition.push_back(newBasePosition);
-/**/
   }
   return true;
 }
@@ -282,9 +282,7 @@ bool arHTR::parseSegmentData1(FILE* htrFileHandle){
   htrSegmentData *newSegmentData = NULL;
   htrFrame *newFrame = NULL;
   for (int i=0; i<numSegments; i++){
-    //printf("new Seg Data[%i]:\n", i);
     newSegmentData = new htrSegmentData;
-    //printf("/new seg data\n");
     bool found = false;
     value = (char *)1;
     while (!found && value){
@@ -297,25 +295,21 @@ bool arHTR::parseSegmentData1(FILE* htrFileHandle){
           found = true;
     }
     if (!found){
-      cerr << "arHTR error: premature end of file.\n";
+      ar_log_error() << "arHTR error: premature end of file.\n";
       return false;
     }
 
-    char *genStr = strrchr(textLine, ']');
-    if (genStr)
+    char* genStr = strrchr(textLine, ']');
+    if (genStr){
       genStr[0] = '\0';
-    //newSegmentData->name = (char*)malloc((strlen(textLine)-1)*sizeof(char));
-    newSegmentData->name = new char[strlen(textLine)];
-    strcpy(newSegmentData->name, textLine+1);
+    }
+    newSegmentData->segmentName = string(textLine+1);
     for (int j=0; j<numFrames; j++){
       if (!parseLine(htrFileHandle, token, textLine, 8, "SegmentData"))
         return false;
 
-      //printf("New frame[%i][%i]:\n", i, j);
       newFrame = new htrFrame;
-      //printf("/new frame\n");
       newFrame->frameNum = atoi(token[0]);
-    //printf("numFrames: %i\n", numFrames);
       newFrame->Tx = atof(token[1]);
       newFrame->Ty = atof(token[2]);
       newFrame->Tz = atof(token[3]);
@@ -348,12 +342,10 @@ bool arHTR::parseSegmentData2(FILE* htrFileHandle){
   for (int j=0; j<numSegments; j++){
     newSegmentData = new htrSegmentData();
     htrSegmentHierarchy* segment = childParent[j];
-    newSegmentData->name = new char[strlen(segment->child)+1];
-    strcpy(newSegmentData->name, segment->child);
+    newSegmentData->segmentName = string(segment->child);
     segmentData.push_back(newSegmentData);
   }
   for (int i=0; i<numFrames; i++){
-    //printf("new Seg Data[%i]:\n", i);
     newSegmentData = new htrSegmentData;
     // First, go ahead and skip over comments, blank lines, etc.
     // until we get to the magic "Frame n:".
@@ -370,7 +362,7 @@ bool arHTR::parseSegmentData2(FILE* htrFileHandle){
           found = true;
     }
     if (!found){
-      cerr << "arHTR error: premature end of file.\n";
+      ar_log_error() << "arHTR error: premature end of file.\n";
       return false;
     }
     // Check that we've found the correct marker for the
@@ -378,8 +370,8 @@ bool arHTR::parseSegmentData2(FILE* htrFileHandle){
     stringstream checkStream;
     checkStream << "Frame " << i << ":";
     if (false && strcmp(textLine, checkStream.str().c_str())){
-      cout << "arHTR error: failed to find correct frame marker "
-	   << "for frame=" << i << " (" << textLine << ").\n";
+      ar_log_error() << "arHTR error: failed to find correct frame marker "
+	             << "for frame=" << i << " (" << textLine << ").\n";
       return false;
     }
   
@@ -387,11 +379,8 @@ bool arHTR::parseSegmentData2(FILE* htrFileHandle){
       if (!parseLine(htrFileHandle, token, textLine, 8, "SegmentData"))
         return false;
 
-      //printf("New frame[%i][%i]:\n", i, j);
       newFrame = new htrFrame;
-      //printf("/new frame\n");
       newFrame->frameNum = i;
-    //printf("numFrames: %i\n", numFrames);
       newFrame->Tx = atof(token[1]);
       newFrame->Ty = atof(token[2]);
       newFrame->Tz = atof(token[3]);
@@ -415,8 +404,8 @@ bool arHTR::parseSegmentData(FILE* htrFileHandle){
   if (fileVersion == 2){
     return parseSegmentData2(htrFileHandle);
   }
-  cout << "arHTR error: unhandled HTR file version = "
-       << fileVersion << ".\n";
+  ar_log_error() << "arHTR error: unhandled HTR file version = "
+                 << fileVersion << ".\n";
   return false;
 }
 
@@ -428,9 +417,9 @@ bool arHTR::precomputeData(void){
   // connecting parents and children
   for (k=0; k<childParent.size(); k++)
     for (j=0; j<numSegments; j++)
-      if (!strcmp(childParent[k]->child, segmentData[j]->name))
+      if (!strcmp(childParent[k]->child, segmentData[j]->segmentName.c_str()))
         for (i=0; i<numSegments; i++)
-          if (!strcmp(childParent[k]->parent, segmentData[i]->name)){
+          if (!strcmp(childParent[k]->parent, segmentData[i]->segmentName.c_str())){
             segmentData[j]->parent = segmentData[i];
             segmentData[i]->children.push_back(segmentData[j]);
             break;
@@ -438,7 +427,7 @@ bool arHTR::precomputeData(void){
   // connect segment data and base position
   for (k=0; k<segmentData.size(); k++)
     for (l=0; l<basePosition.size(); l++)
-      if (!strcmp(basePosition[l]->name, segmentData[k]->name)){
+      if (!strcmp(basePosition[l]->name, segmentData[k]->segmentName.c_str())){
         basePosition[l]->segment = segmentData[k];
         segmentData[k]->basePosition = basePosition[l];
       }
@@ -462,11 +451,11 @@ bool arHTR::precomputeData(void){
 
 /// writes out current class data to an HTR file
 /// @param fileName name of new OBJ file (including extension) to write out 
-bool arHTR::writeToFile(char *fileName){
-  FILE *htrFile = fopen(fileName, "w");
+bool arHTR::writeToFile(const string& fileName){
+  FILE *htrFile = fopen(fileName.c_str(), "w");
   if (!htrFile){
-    cerr << "arHTR error: failed to write to file \""
-         << fileName << "\".\n";
+    ar_log_error() << "arHTR error: failed to write to file \""
+                   << fileName << "\".\n";
     return false;
   }
 
@@ -504,7 +493,7 @@ bool arHTR::writeToFile(char *fileName){
 
   fprintf(htrFile, "\n");
   for (int j=0; j<numSegments; j++){
-    fprintf(htrFile, "[%s]\n", segmentData[j]->name);
+    fprintf(htrFile, "[%s]\n", segmentData[j]->segmentName.c_str());
     fprintf(htrFile, "#Fr\tTx\tTy\tTz\tRx\tRy\tRz\tSF\n");
     for (i=0; i<segmentData[j]->frame.size(); i++){
       fprintf(htrFile, "%i\t%f\t%f\t%f\t%f\t%f\t%f\t%f\n",

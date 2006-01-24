@@ -71,40 +71,52 @@ arMatrix4 arHTR::HTRRotation(double Rx, double Ry, double Rz){
 /// (BaseTranslation+FrameTranslation)*(BaseRotation*FrameRotation)
 /// @param theBP baseposition to use for calculation
 /// @param theFrame frame to use for calculation
-arMatrix4 arHTR::HTRTransform(struct htrBasePosition *theBP, 
-                              struct htrFrame *theFrame){
+arMatrix4 arHTR::HTRTransform(htrBasePosition *theBP, 
+                              htrFrame *theFrame){
   return (theFrame == NULL) ?
     theBP->trans * theBP->rot :
-    (theBP->trans +
-     ar_translationMatrix(theFrame->Tx, theFrame->Ty, theFrame->Tz) -
-     arMatrix4()) *
-     (theBP->rot * HTRRotation(theFrame->Rx, theFrame->Ry, theFrame->Rz));
+     theBP->trans
+     *ar_translationMatrix(theFrame->Tx, theFrame->Ty, theFrame->Tz)
+     *theBP->rot * HTRRotation(theFrame->Rx, theFrame->Ry, theFrame->Rz);
 }
 
-/// attaches transform hierarchy to specified node in hierarchy,
-/// optionally drawing lines for bones
-/// @param baseName name of the new OBJ node to insert
-/// @param where name of the node to which we attach the OBJ
-/// \param withLines (optional) draw lines for bones -- useful if no geometry will be 
-///		     attached to the transform hierarchy
+bool arHTR::attachMesh(const string& objectName,
+		       const string& parent) {
+  arGraphicsNode* n = dgGetNode(parent);
+  return n ? attachMesh(n, objectName, false) : false; 
+}
+
 bool arHTR::attachMesh(const string& baseName, 
                        const string& where, 
                        bool withLines){
+  arGraphicsNode* n = dgGetNode(where);
+  return n ? attachMesh(n, where, withLines) : false;
+}
+
+/// Attaches transform hierarchy to specified node in hierarchy,
+/// optionally drawing lines for bones.
+/// @param parent The node to which we will attach the HTR.
+/// @param baseName Name of the new object to insert (affects the node names).
+/// @param withLines (optional) draw lines for bones -- useful if no geometry will be 
+///		     attached to the transform hierarchy
+bool arHTR::attachMesh(arGraphicsNode* parent,
+                       const string& objectName,  
+                       bool withLines){
   if (_invalidFile){
-    printf("cannot attach mesh: No valid file!\n");
+    ar_log_error() << "arHTR cannot attach mesh: No valid file!\n";
     return false;
   }
   const string transformModifier(".transform");
   unsigned int i = 0;
-  arMatrix4 tempTransform;
   htrBasePosition* rootBasePosition = NULL;
   string rootName;
   vector<string> rootNames;
   
-  // create global transform
-  dgTransform(baseName+".GLOBAL"+transformModifier, where, 
-	 ar_scaleMatrix(scaleFactor)*ar_scaleMatrix(_normScaleAmount)
-	 * ar_translationMatrix(-_normCenter) );
+  // Create global transform
+  arTransformNode* transform = (arTransformNode*) parent->newNode("transform", objectName+".GLOBAL"+transformModifier);
+  transform->setTransform(ar_scaleMatrix(scaleFactor)
+                          * ar_scaleMatrix(_normScaleAmount)
+                          * ar_translationMatrix(-_normCenter) );
 
   // find root node(s)
   for (i=0; i<childParent.size(); i++){
@@ -124,92 +136,78 @@ bool arHTR::attachMesh(const string& baseName,
       }
     }
     // recurse through children
-    attachChildNode(baseName, rootBasePosition, withLines);
+    attachChildNode(transform, objectName, rootBasePosition, withLines);
   }
   return true;
 }
 
-/// gets called by attachMesh()
-/** Recursively adds transform nodes, then children of nodes, based on
- *  the structure of the OBJ file.
- */
-/// @param baseName name of the new OBJ node to insert
+/// Gets called by attachMesh(). Recursively adds transform nodes, then children of nodes, 
+/// based on the structure of the OBJ file.
+/// @param objectName name of the new OBJ node to insert
 /// @param node name of the node to attach to the database
 /// @param withLines (optional) draw lines for bones 
-void arHTR::attachChildNode(const string& baseName, 
-                            struct htrBasePosition* node, 
+void arHTR::attachChildNode(arGraphicsNode* parent,
+                            const string& objectName, 
+                            htrBasePosition* node, 
                             bool withLines){
-  if (!node)
+  if (!node){
     return;
+  }
 
-  const string tempName = "."+string(node->name);
-  string tempParent, tempModifier;
-  arMatrix4 tempTransform = HTRTransform(node,NULL);
-  if (node->segment->parent) {
-    tempParent = "."+string(node->segment->parent->name);
-    tempModifier = ".preTransform";
-  }
-  else {
-    tempParent = ".GLOBAL";
-    tempModifier = ".transform";
-    //cout << tempName << ": " << ar_extractScaleMatrix(tempTransform) << endl;
-  }
-  node->segment->postTransformID = 
-    dgTransform(baseName + tempName + ".postTransform",
-                baseName + tempParent + tempModifier,
-                ar_identityMatrix());
-  node->segment->transformID = 
-    dgTransform(baseName + tempName + ".transform",
-		baseName + tempName + ".postTransform",
-		tempTransform);
-  node->segment->preTransformID = 
-    dgTransform(baseName + tempName + ".preTransform",
-		baseName + tempName + ".transform",
-		ar_identityMatrix());
-  node->segment->localTransformID = 
-    dgTransform(baseName + tempName + ".localTransform",
-		baseName + tempName + ".preTransform",
-		ar_identityMatrix());
-  node->segment->invTransformID = 
-    dgTransform(baseName + tempName + ".invTransform",
-		baseName + tempName + ".localTransform",
-		ar_identityMatrix()); 
-  node->segment->boundingSphereID =
-    dgBoundingSphere(baseName + tempName + ".boundingSphere",
-                     baseName + tempName + ".invTransform",
-                     0, 1, arVector3(0,0,0));
+  const string tempName = "." + string(node->name);
+  arMatrix4 tempTransform = HTRTransform(node, NULL);
+ 
+  node->segment->postTransformNode = (arTransformNode*)
+    parent->newNode("transform", objectName + tempName + ".postTransform");
+  node->segment->postTransformNode->setTransform(ar_identityMatrix());
+  node->segment->transformNode = (arTransformNode*)
+    node->segment->postTransformNode->newNode("transform", objectName + tempName + ".transform");
+  node->segment->transformNode->setTransform(tempTransform);
+  node->segment->preTransformNode = (arTransformNode*)
+    node->segment->transformNode->newNode("transform", objectName + tempName + ".preTransform");
+  node->segment->preTransformNode->setTransform(ar_identityMatrix());
+  node->segment->localTransformNode = (arTransformNode*)
+    node->segment->preTransformNode->newNode("transform", objectName + tempName + ".localTransform");
+  node->segment->localTransformNode->setTransform(ar_identityMatrix());
+  node->segment->invTransformNode = (arTransformNode*)
+    node->segment->localTransformNode->newNode("transform", objectName + tempName + ".invTransform");
+  node->segment->invTransformNode->setTransform(ar_identityMatrix()); 
+  node->segment->boundingSphereNode =(arBoundingSphereNode*)
+    node->segment->invTransformNode->newNode("bounding sphere", objectName + tempName + ".boundingSphere");
+  arBoundingSphere b;
+  b.visibility = false;
+  b.radius = 1;
+  b.position = arVector3(0,0,0);
+  node->segment->boundingSphereNode->setBoundingSphere(b);
     
   /// add geom -- adds lines to show bones (placeholder)
   if (withLines) {
-    node->segment->scaleID = dgTransform(baseName + tempName + ".bonescale",
-                                         baseName + tempName + ".transform",
-                                         ar_scaleMatrix(node->boneLength, 
-							node->boneLength,
-							node->boneLength));
+    node->segment->scaleNode = (arTransformNode*)
+      node->segment->transformNode->newNode("transform", objectName + tempName + ".bonescale");
+    node->segment->scaleNode->setTransform(ar_scaleMatrix(node->boneLength, 
+							  node->boneLength,
+							  node->boneLength));
     float pointPositions[6] = {0,0,0,
                                (boneLengthAxis=='X')?1:0,
                                (boneLengthAxis=='Y')?1:0,
                                (boneLengthAxis=='Z')?1:0};
-    dgPoints(baseName + tempName + ".points",
-	     baseName + tempName + ".bonescale",
-	     2, pointPositions);
+    arPointsNode* points = (arPointsNode*) 
+      node->segment->scaleNode->newNode("points", objectName + tempName + ".points");
+    points->setPoints(2, pointPositions);
     arVector3 lineColor((double)rand()/(double)RAND_MAX,
                         (double)rand()/(double)RAND_MAX,
                         (double)rand()/(double)RAND_MAX);
     float colors[8] = {lineColor[0], lineColor[1], lineColor[2], 1,
 		       lineColor[0], lineColor[1], lineColor[2], 1};
-    dgColor4(baseName + tempName + ".colors",
-	     baseName + tempName + ".points",
-             2, colors);
-    dgDrawable(baseName + tempName + ".drawable",
-               baseName + tempName + ".colors",
-               DG_LINES, 1);
+    arColor4Node* color4 = (arColor4Node*) points->newNode("color4", objectName + tempName + ".colors");
+    color4->setColor4(2, colors);
+    arDrawableNode* drawable = (arDrawableNode*) color4->newNode("drawable", objectName + tempName + ".drawable");
+    drawable->setDrawable(DG_LINES, 1);
   }
 
   /// recurse through children
   for (unsigned int i=0; i<node->segment->children.size(); i++)
-    attachChildNode(baseName, node->segment->children[i]->basePosition, 
-                    withLines);
+    attachChildNode(node->segment->preTransformNode, objectName, node->segment->children[i]->basePosition, withLines);
 }
 
 /// Calculates values for normalization matrix
@@ -385,7 +383,7 @@ void arHTR::basicDataSmoothing(){
 /// @param segmentName name of the segment whose index we want
 int arHTR::numberOfSegment(const string& segmentName){
   for(unsigned int i=0; i<segmentData.size(); i++)
-    if (segmentData[i]->name == segmentName)
+    if (segmentData[i]->segmentName == segmentName)
       return i;
   return 0;
 }
@@ -411,13 +409,13 @@ bool arHTR::setFrame(int newFrame){
   if (newFrame >= numFrames || newFrame < 0)
     return false;
 
-  for(unsigned int i=0; i<segmentData.size(); i++){    
-    dgTransform(segmentData[i]->transformID, 
-                segmentData[i]->frame[newFrame]->trans);
+  for(unsigned int i=0; i<segmentData.size(); i++){
+    if (segmentData[i]->transformNode){
+      segmentData[i]->transformNode->setTransform(segmentData[i]->frame[newFrame]->trans);
+    }
     // There is a scale matrix for the bone.
-    if (segmentData[i]->scaleID > 0){
-      dgTransform(segmentData[i]->scaleID,
-                  ar_scaleMatrix(segmentData[i]->frame[newFrame]->totalScale));
+    if (segmentData[i]->scaleNode){
+      segmentData[i]->scaleNode->setTransform(ar_scaleMatrix(segmentData[i]->frame[newFrame]->totalScale));
     }
   }
   
@@ -437,8 +435,10 @@ bool arHTR::prevFrame(){
 
 /// sets transforms to base position (default pose)
 bool arHTR::setBasePosition(){
-  for(unsigned int i=0; i<segmentData.size(); i++)
-    dgTransform(segmentData[i]->transformID,
-                HTRTransform(segmentData[i]->basePosition, NULL));
+  for(unsigned int i=0; i<segmentData.size(); i++){
+    if (segmentData[i]->transformNode){
+      segmentData[i]->transformNode->setTransform(HTRTransform(segmentData[i]->basePosition, NULL));
+    }
+  }
   return true;
 }

@@ -506,14 +506,14 @@ int main( int argc, char** argv ){
   }
    
 
-  theObject = arReadObjectFromFile( fileName.c_str(), "" );
+  theObject = ar_readObjectFromFile( fileName, "" );
 
   if( !theObject ) {
-    std::cerr << "Invalid File: " << fileName.c_str() << std::endl;
+    std::cerr << "Invalid File: " << fileName << std::endl;
     return 1;
   }
 
-  arObject *theMesh = argc == 3 ? arReadObjectFromFile( argv[ 2 ], "" ) : NULL;
+  arObject *theMesh = argc == 3 ? ar_readObjectFromFile( argv[ 2 ], "" ) : NULL;
 
   arSZGClient SZGClient;
   SZGClient.init( argc, argv );
@@ -569,7 +569,7 @@ int main( int argc, char** argv ){
   if( theObject->type() == "HTR" ) {
     ((arHTR*) theObject)->basicDataSmoothing();
     if( argc == 3 ) {
-      attachOBJToHTRToNodeInDatabase( (arOBJ*) theMesh,(arHTR*) theObject, "mouse" );
+      ar_mergeOBJandHTR( (arOBJ*) theMesh, (arHTR*) theObject, "mouse" );
     }
     else {
       ((arHTR*) theObject)->attachMesh( "object", "mouse", true );
