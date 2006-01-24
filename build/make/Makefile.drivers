@@ -87,10 +87,13 @@ endif
 
 ALL =   $(SZG_CURRENT_DLL) \
   DeviceClient$(EXE) \
-  DeviceServer$(EXE) \
   EventTest$(EXE) \
   FaroTest$(EXE) \
   PForthTest$(EXE) \
+  pfconsole$(EXE)
+
+ifneq "$SZG_LINKING" "STATIC"
+  ALL += DeviceServer$(EXE) \
   arIntersenseDriver$(PLUGIN_SUFFIX) \
   arBirdWinDriver$(PLUGIN_SUFFIX) \
   arConstantHeadFilter$(PLUGIN_SUFFIX) \
@@ -108,8 +111,8 @@ ALL =   $(SZG_CURRENT_DLL) \
   arSpacepadDriver$(PLUGIN_SUFFIX) \
   arTrackCalFilter$(PLUGIN_SUFFIX) \
   arUSBDriver$(PLUGIN_SUFFIX) \
-  arVRPNDriver$(PLUGIN_SUFFIX) \
-  pfconsole$(EXE)
+  arVRPNDriver$(PLUGIN_SUFFIX)
+endif
 
 # NOTE: We now include the "magic" Everything target in Makefile.rules
 

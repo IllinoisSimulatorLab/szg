@@ -43,7 +43,7 @@ ALL = \
 
 all: $(ALL)
 
-%.html : %.t2t
-	txt2tags.py -t html $<
+%.html : txt2tags/%.t2t
+	txt2tags.py -t html --outfile $@ $<
 
 

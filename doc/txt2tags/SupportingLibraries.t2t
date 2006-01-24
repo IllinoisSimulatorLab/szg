@@ -287,7 +287,7 @@ STudio .NET, you should use the native STL.
 
 - ascension
   + Download BirdWindowsDriver.zip from the
-  [Ascension website http://www.ascension-tech.com/support/downloads/].
+  [Ascension website http://www.ascension-tech.com/support/downloads.php].
   + Copy Bird.lib and Bird.dll to $(SZGEXTERNAL)/win32/ascension/lib.
   + Copy Bird.h to $(SZGEXTERNAL)/win32/ascension/include.
 

@@ -255,7 +255,7 @@ managing the paramter database (which is used for configuration), for
 sending messages to running Phleet components (and even for receiving
 replies for an RPC capability), and for monitoring the status of the
 system (being able to find out what is running, among other tricks). Please
-see the section on [configuration Configuration.html]
+see the section on [configuration SystemConfiguration.html]
 for information on the dbatch file format.
 
 
@@ -401,7 +401,7 @@ port on which the szgserver will listen for TCP connection requests. All
 components in the Phleet distributed system connect to
 szgserver via this port and maintain that connection throughout their
 operation. The IP address and port number are embedded in a user's login file,
-as explained [here PhleetConfiguration].
+as explained [here #PhleetConfiguration].
 
 While login can involve
 explicitly stating the IP address/ port pair of the desired szgserver,
@@ -441,7 +441,7 @@ server (the IP address and port are contained in the file) and form a
 connection. If the connection attempt fails, the program will attempt to
 operate in standalone mode, failing if it does not support such.
 
-As mentioned in this [section PhleetConfiguration], the dlogin
+As mentioned in this [section #PhleetConfiguration], the dlogin
 command creates the Phleet login file, either via explicitly feeding the
 command an IP address/port pair or by automatic discovery. The discovery
 process is described now. First, the component broadcasts a call to szgservers

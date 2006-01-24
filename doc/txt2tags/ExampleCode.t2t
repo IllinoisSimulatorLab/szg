@@ -37,7 +37,7 @@ the 'data'
 folder from the top level of the DVD to your desired location.
 
 Once the data is installed, set the following parameter in
-the [Syzygy database SyzygyDatabase.html]
+the [Syzygy database SystemConfiguration.html]
 (discussed below) for each computer that will be accessing the data.
 Of course, you will point to the actual location of the 'data'
 directory, instead of

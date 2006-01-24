@@ -213,7 +213,7 @@ Bug Fixed.
 - The Distributed OS protocol has changed greatly, mostly to allow greater
 handshaking (and thus determinism) between components during
 application launch on a cluster. It is not compatible with previous
-versions. See [this Distributed OS.html] for details.
+versions. See [Distributed OS Phleet.html] for details.
 - The graphics database has changed, adding more primitive types
 and now correctly supporting OpenGL lights and materials. The new
 API is incompatible with that found in version szg-0.4.
@@ -249,7 +249,7 @@ in an attempt to make them more keyboard friendly (for instance, changing
 szgConnect to dconnect). Also, some service programs have seen name
 changes, like SZGRender being changed to szgrender. See the rest of the
 documentation, in particular
-[Distributed OS DistributedOS.html], for details.
+[Distributed OS Phleet.html], for details.
 - Instead of many server executables for input device drivers,
 a single one, DeviceServer, runs them all.
 - Endian conversion works. We can communicate again between the

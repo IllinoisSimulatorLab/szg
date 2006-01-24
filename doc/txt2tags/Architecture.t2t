@@ -77,7 +77,7 @@ filters can be added to any data stream.
 =Distributed Operating System=[DistributedOS]
 
 % Note renaming of Phleet.html
-(Described in more detail in the [Distributed OS DistributedOS.html] chapter).
+(Described in more detail in the [Distributed OS Phleet.html] chapter).
 
 A program, szgserver, manages basic services of a distributed operating
 system. One instance of this program runs per Syzygy installation. All

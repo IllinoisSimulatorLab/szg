@@ -11,20 +11,20 @@ This section assumes you have installed the szg software (including the
 sample applications contained in that package), either by unpacking a
 precompiled SDK or by compiling (both "make" and "make demo"). You will
 understand the instructions better if you read the
-[introduction to the Distributed OS DistributedOSIntro.html] first, but, actually,
+[introduction to the Distributed OS PhleetIntro.html] first, but, actually,
 these two sections can be studied in parallel. This section introduces you to
 the fault tolerance and flexibility of a Syzygy set-up. Components can appear,
 disappear, connect, disconnect, and reconnect in any order, which helps
 during the experimentation and debugging phases of application development.
 
 This tutorial specifically avoids
-[virtual computers DistributedOSIntro.html#VirtualComputer] in order
+[virtual computers PhleetIntro.html#VirtualComputer] in order
 to encourage freeform experimentation. However, please consider using them
 in your production environment.
 
 If you run into problems running the tests that cannot be solved by the
 diagnostics listed, please see the Phleet troubleshooting
-[section DistributedOSIntro.html#Troubleshooting], located
+[section PhleetIntro.html#Troubleshooting], located
 in another chapter.
 
 %%toc
@@ -38,7 +38,7 @@ in its simplest form, consists of 3 seperate executable
 components: the application itself, a renderer, and an input program.
 These can can be run in
 arbitrary locations in the Phleet you prepared
-[here DistributedOSIntro.html]. Concretely, on any computer in
+[here PhleetIntro.html]. Concretely, on any computer in
 the distributed system, type:
 
 ```
@@ -50,7 +50,7 @@ if all goes well (to exit you can ctrl-c). If this is not the case,
 the only possibility is that the servers embedded in cosmos could not bind to
 their ports, as determined by the szgserver. Try changing
 the ports block on this computer using dports, as
-[here DistributedOSIntro.html].
+[here PhleetIntro.html].
 
 Next, on any computer in the system, type:
 
@@ -187,12 +187,12 @@ coordinates.
 - The machine running the main program is named "control", while two machines
 running szgrender are named "slave1" and "slave2". These will need to be
 replaced with the names of your computers, as determined when you set up the
-computers in your [cluster DistributedOSIntro.html].
+computers in your [cluster PhleetIntro.html].
 
 
 For an explanation of how to get the configuration information into the
 Phleet (using dbatch), please see the
-[configuration SyzygyDatabase.html] chapter. However, simply
+[configuration SystemConfiguration.html] chapter. However, simply
 copying the XML from this documentation into a text file
 and issuing the command "dbatch the_text_file_name" should work.
 
@@ -294,7 +294,7 @@ Descriptions of parameters:
 
 - The XML global parameters left_side, right_side, and whole_view are
 examples of screen configurations. For more information, see
-[here SyzygyDatabase.html].
+[here SystemConfiguration.html].
 - SZG_RENDER/texture_path and SZG_RENDER/text_path specify base paths to
 use in locating texture and font data.  For example,
 textures for the cosmos demo are located in szg/rsc/Texture
@@ -342,7 +342,7 @@ by changing the XML of the global parameters left_side and right_side.
 
 These are the basic steps:
 
-- Configure your system as described [here DistributedOSIntro.html].
+- Configure your system as described [here PhleetIntro.html].
 - Set the database parameters, either one at at time using dset or
 altogether using dbatch, as in the previous section.
 - Run the main application and the rendering programs as follows (we assume

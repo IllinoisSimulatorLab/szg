@@ -27,7 +27,7 @@ This chapter describes standalone mode. It is an introduction to running
 Syzygy programs, allowing you to get started right away, before setting up
 your Syzygy cluster using Phleet. Information about Syzygy configuration
 is included, but the more advanced user should consult the chapter devoted
-to [configuration examples Configuration.html] for
+to [configuration examples SystemConfiguration.html] for
 further information. We also only outline using two of the sample programs,
 just to keep things simple, allowing the interested user to consult the
 chapter on [example code ExampleCode.html] to find out how to
@@ -200,7 +200,7 @@ NULL SZG_DISPLAY1 name fixed_wall_passive
 The local parameters in the config file given above (look inside the
 assign tag) control where Syzygy
 programs look for data, textures, and sounds, as explained
-[here Configuration.html]. They also specify the
+[here SystemConfiguration.html]. They also specify the
 default screen name, which, in this case is the global parameter
 "head_mounted". You save the config file (as szg_parameters.txt) and
 experiment with modifying "head_mounted" to see how the window changes.

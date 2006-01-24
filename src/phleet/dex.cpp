@@ -88,6 +88,8 @@ int main(int argc, char** argv){
       if (timeout < -1){
 	cout << "dex error: the timeout must be an integer >= -1.\n";
 	return 1;
+      } else {
+        cout << "dex remark: timeout = " << timeout << endl;
       }
       for (j=i; j<argc-2; j++){
         argv[j] = argv[j+2];

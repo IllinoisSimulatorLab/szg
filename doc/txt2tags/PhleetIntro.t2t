@@ -425,7 +425,7 @@ interface (the inputsimulator described [here TrackingSim.html]).
 
 This definition must be entered into the Phleet parameter database via
 dset or dbatch. Please see the chapter on
-[configuration Configuration.html] for details on how
+[configuration SystemConfiguration.html] for details on how
 to do this.
 
 ```

@@ -27,13 +27,13 @@ Integrated Systems Lab
 data files should be installed, etc.
 - [Tracking and Input Device Simulator TrackingSim.html]: Using Syzygy's inputsimulator to control
 a program in the absence of a tracked input device (required in standalone mode).
-- Interacting with the [Syzygy Database SyzygyDatabase.html]: How to specify parameters
+- Interacting with the [Syzygy Database SystemConfiguration.html]: How to specify parameters
 of your virtual reality system in both Standalone and Cluster modes.
 
 
 =Setting Up and Testing a Syzygy Cluster=
 
-- [Syzygy Cluster mode ClusterIntro.html]: Concepts and commands for setting up Syzygy
+- [Syzygy Cluster mode PhleetIntro.html]: Concepts and commands for setting up Syzygy
 PC clusters and running programs on them (Look here for an explanation of virtual computers).
 - [Using Phleet Phleet.html]: More information about using Syzygy's distributed operating system.
 - [Basic testing of your Syzyg cluster ClusterTest.html].

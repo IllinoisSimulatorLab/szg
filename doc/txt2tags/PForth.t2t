@@ -398,7 +398,7 @@ These are words for processing
 arInputEvents. They are meant to be used with the arPForthFilter to
 modify an input-event stream. PForth event-filtering code is generally
 embedded in an input-device record in a Syzygy parameter file
-(see [Syzygy Configuration SyzygyConfiguration.html].
+(see [Syzygy Configuration SystemConfiguration.html].
 
 Input events can be filtered based on their type and index. There are three
 types of input events containing different types of values:
@@ -499,7 +499,7 @@ dataspace at addr and inserts it into the event stream.
 
 ==The Syzygy Database Vocabulary==
 
-The following words access the [Syzygy database SyzygyConfiguration.html] either explicitly or
+The following words access the [Syzygy database SystemConfiguration.html] either explicitly or
 implicitly:
 
 **getStringParameter** ``( addr1 addr2 addr3 -- )``

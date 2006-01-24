@@ -4,7 +4,7 @@
 
 include $(SZGHOME)/build/make/Makefile.os
 
-ifeq "$z" "UNKNOWN_OS"
+ifeq "$PLATFORM" "UNKNOWN_OS"
 
 all:
 	@echo "Makefile failed to guess OS type."
@@ -12,18 +12,18 @@ all:
 else
 
 all:
-	$(MAKE) -C build/$(z) -j $(JOBS) || exit 1; echo "Executables in: build/"$(z) "and" $(SZG_BINDIR)
+	$(MAKE) -C build/$(PLATFORM) -j $(JOBS) || exit 1; echo "Executables in: build/"$(PLATFORM) "and" $(SZG_BINDIR)
 
 clean:
-	$(MAKE) -C build/$(z) clean 
+	$(MAKE) -C build/$(PLATFORM) clean 
 
 create-sdk: all
-	$(MAKE) -C build/$(z) create-sdk
+	$(MAKE) -C build/$(PLATFORM) create-sdk
 
 bin-install: all
-	$(MAKE) -C build/$(z) bin-install
+	$(MAKE) -C build/$(PLATFORM) bin-install
 
 install-shared:
-	$(MAKE) -C build/$(z) install-shared
+	$(MAKE) -C build/$(PLATFORM) install-shared
 
 endif
