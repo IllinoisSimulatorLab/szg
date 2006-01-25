@@ -171,6 +171,16 @@ allowing the callback to, for instance, query the parameter database.
   void arMasterSlaveFramework::setStartCallback    
     (bool (*startCallback)(arMasterSlaveFramework& fw,
                            arSZGClient& client))
+  void setWindowStartGLCallback
+    (void (*windowStartGL)( arMasterSlaveFramework&,
+                            arGUIWindowInfo* ) )
+  void arSZGAppFramework::setEventCallback
+    (bool (*event)( arSZGAppFramework& fw,
+                            arInputEvent& event, 
+                            arCallbackEventFilter& filter ))
+  void arSZGAppFramework::setEventQueueCallback
+    (bool (*eventQueue)( arSZGAppFramework& fw,
+                            arInputEventQueue& theQueue ))
   void arMasterSlaveFramework::setPreExchangeCallback
     (void (*preExchange)(arMasterSlaveFramework& fw))
   void arMasterSlaveFramework::setPostExchangeCallback
@@ -180,6 +190,14 @@ allowing the callback to, for instance, query the parameter database.
   void arMasterSlaveFramework::setPlayCallback
     (void (*play)(arMasterSlaveFramework& fw))
 ```
+
+Note that strictly speaking, only the start callback is necessary.
+In other words, you could write a program that did not install any
+of the other callbacks and it would compile and, provided your start
+callback returned ``true``, it would run. It just wouldn't
+look very interesting, and it might print out a warning on each frame
+to the effect that you hadn't set a draw() callback. It is up to you
+to decide which callbacks your application needs.
 
 An arMasterSlaveFramework application begins by calling the init
 method, passing in the command line parameters:
@@ -191,14 +209,21 @@ if (!framework.init(argc,argv))
 The application should quit if init fails (returns false).
 Next, the various callbacks are set, including the important start
 callback where shared memory is registered. Other application-specific
-initialization can also occur at this time, and this callback is guaranteed
-to be called after the graphics window has been initialized, allowing various
-OpenGL-related commands to be used.
+initialization can also occur at this time, but //as of Syzygy 0.8,
+OpenGL initialization should not be done in the start callback//. OpenGL
+initialization must now be done in the windowStartGL callback. The start
+callback is now called before windows are created, whereas the windowStartGL
+callback comes after window creation. The old start callback was split like
+this because now Syzygy applications can open more than one window. The start
+callback is called once for the entire application and the windowStartGL
+callback is called once for each window.
 
-Finally, the start() method
-sets the application in motion by first executing the user-defined
+Finally, the application should call the start() method
+to set the application in motion. It first executes the user-defined
 startCallback(...). If this callback returns false, the
-start() method returns false. Otherwise, it begins
+start() method returns false. Otherwise, it calls the user-defined
+windowStartGL() callback once for each graphics window (usually just one).
+Finally, it begins
 running an event loop defined by the other callbacks.  As with
 init(...), if start() returns false then the application should
 terminate.
@@ -212,13 +237,24 @@ We now detail the event loop:
   + Poll input devices: The master application instance is connected
 to input devices. Here, it copies the current values into memory so they
 can be exported via the getButton(...), getAxis(...), and getMatrix(...)
-methods. The use of these cached values ensures coherency in
+methods. As it does this, it calls any user-defined event filter or
+single-event callback installed using setEventCallback() on each event and
+caches the result.
+The use of these cached values ensures coherency in
 applications that depend on input device state in the event loop stages
 occuring after shared-memory export.
 
+  + Call the user-defined eventQueue() callback: This is an alternative
+to the preExchange() callback. It provides the complete queue of events that have
+arrived since the last frame; otherwise it is functionally identical
+to preExchange(). Generally speaking, if you need ensure access to
+every single event, it is easier to use the single-event callback in
+conjunction with preExchange(), but this callback is provided for those
+who prefer working with event queues.
+
   + Call the user-defined preExchange() callback: Take an
 action before shared memory is exported from the master application
-instance to the slave instances.
+instance to the slave instances. Called only on the master.
 
   + Shared memory export: Shared memory is exported from the master
 application instance to the slave application instances. This includes
