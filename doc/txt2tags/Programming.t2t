@@ -209,9 +209,9 @@ if (!framework.init(argc,argv))
 The application should quit if init fails (returns false).
 Next, the various callbacks are set, including the important start
 callback where shared memory is registered. Other application-specific
-initialization can also occur at this time, but //as of Syzygy 0.8,
-OpenGL initialization should not be done in the start callback//. OpenGL
-initialization must now be done in the windowStartGL callback. The start
+initialization can also occur at this time, but as of Syzygy 0.8,
+//OpenGL initialization should not be done in the start callback!// OpenGL
+initialization must now be done in the **windowStartGL** callback. The start
 callback is now called before windows are created, whereas the windowStartGL
 callback comes after window creation. The old start callback was split like
 this because now Syzygy applications can open more than one window. The start
