@@ -146,6 +146,12 @@ class SZG_CALL arHTR : public arObject {
     inline arTransformNode* localTransformForSegment(int i){ return segmentData[i]->localTransformNode; }
     inline arTransformNode* inverseForSegment(int i){ return segmentData[i]->invTransformNode; }
     inline arBoundingSphereNode* boundingSphereForSegment(int i){ return segmentData[i]->boundingSphereNode; }
+    int transformIDForSegment(int i){ return segmentData[i]->transformNode ? segmentData[i]->transformNode->getID() : -1; }
+    int preTransformIDForSegment(int i){ return segmentData[i]->preTransformNode ? segmentData[i]->preTransformNode->getID() : -1; }
+    int postTransformIDForSegment(int i){ return segmentData[i]->postTransformNode ? segmentData[i]->postTransformNode->getID() : -1; }
+    int localTransformIDForSegment(int i){ return segmentData[i]->localTransformNode ? segmentData[i]->localTransformNode->getID() : -1; }
+    int inverseIDForSegment(int i){ return segmentData[i]->invTransformNode ? segmentData[i]->invTransformNode->getID() : -1; }
+    int boundingSphereIDForSegment(int i){ return segmentData[i]->boundingSphereNode ? segmentData[i]->boundingSphereNode->getID() : -1; }
     arMatrix4 segmentBaseTransformRelative(int segmentID);
     int	numberOfSegment(const string& segmentName);
     arMatrix4 inverseTransformForSegment(int i);

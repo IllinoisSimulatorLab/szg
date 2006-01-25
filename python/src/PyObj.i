@@ -134,15 +134,27 @@ class arHTR : public arObject {
     int	numberOfSegments();
     int	version();
     string nameOfSegment(int i);
-    arTransformNode* transformForSegment(int i){ return segmentData[i]->transformNode; }
-    arTransformNode* preTransformForSegment(int i){ return segmentData[i]->preTransformNode; }
-    arTransformNode* postTransformForSegment(int i){ return segmentData[i]->postTransformNode; }
-    arTransformNode* localTransformForSegment(int i){ return segmentData[i]->localTransformNode; }
-    arTransformNode* inverseForSegment(int i){ return segmentData[i]->invTransformNode; }
-    arBoundingSphereNode* boundingSphereForSegment(int i){ return segmentData[i]->boundingSphereNode; }
+    arTransformNode* transformForSegment(int i);
+    arTransformNode* preTransformForSegment(int i);
+    arTransformNode* postTransformForSegment(int i);
+    arTransformNode* localTransformForSegment(int i);
+    arTransformNode* inverseForSegment(int i);
+    arBoundingSphereNode* boundingSphereForSegment(int i);
+    int transformIDForSegment(int i);
+    int preTransformIDForSegment(int i);
+    int postTransformIDForSegment(int i);
+    int localTransformIDForSegment(int i);
+    int inverseIDForSegment(int i);
+    int boundingSphereIDForSegment(int i);
     arMatrix4 segmentBaseTransformRelative(int segmentID);
     int	numberOfSegment(const string& segmentName);
     arMatrix4 inverseTransformForSegment(int i);
 };
 
+%{
+#include "arObjectUtilities.h"
+%}
 
+bool ar_mergeOBJandHTR(arOBJ* theOBJ, arHTR* theHTR, const string& where);
+bool ar_mergeOBJandHTR(arGraphicsNode* parent, arOBJ* theOBJ, arHTR *theHTR, const string& objectName="");
+arObject* ar_readObjectFromFile(const string& fileName, const string& path);
