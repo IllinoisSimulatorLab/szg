@@ -49,6 +49,7 @@ arSZGClient::arSZGClient():
   _launchingMessageID(0),
   _dexHandshaking(false),
   _simpleHandshaking(true),
+  _ignoreMessageResponses(false),
   _parseSpecialPhleetArgs(true),
   _initialInitLength(0),
   _initialStartLength(0),
@@ -295,13 +296,15 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
 	+ _exeName;
 	// Take control of the right to respond to the launching message.
 	_launchingMessageID = requestMessageOwnership(tradingKey);
-	// Important that the object fails here if it can't get the message
-	// ownership trade. Perhaps we were late starting and the szgd has
-	// already decided that we won't actually launch.
+	// Important that init DOES NOT fail here if it can't get the message
+	// ownership trade. The main reason this would occur would be if 
+	// the executable took a LONG time to launch and szgd gave up waiting.
+	// THIS IS NOT AN ERROR! However, we should NOT try to send responses
+	// back in this case.
 	if (!_launchingMessageID){
-	  ar_log_error() << _exeName << " error: failed to own message, "
-	                 << "despite appearing to have been launched by szgd.\n";
-	  return false;
+	  ar_log_warning() << _exeName << " error: failed to own message, "
+	                   << "despite appearing to have been launched by szgd.\n";
+          _ignoreMessageResponses = true;
 	}
 	else{
 	  // Send the message response.
@@ -334,7 +337,11 @@ bool arSZGClient::_sendResponse(stringstream& s,
   bool printInfo = s.str().length() > initialStreamLength ? true : false;
   // Append a standard success or failure message to the stream.
   s << _exeName << " component " << sz << (ok ? " ok.\n" : " failed.\n");
-  if (_dexHandshaking && !_simpleHandshaking){
+  // We do not send the message response if:
+  //  a) The message trade failed in init(), likely because it took a LONG time to launch us.
+  //  b) We were NOT launched by szgd.
+  //  c) Our component is using "simple handshaking".
+  if (!_ignoreMessageResponses && _dexHandshaking && !_simpleHandshaking){
     // Another message to dex.
     if (!messageResponse(_launchingMessageID, s.str(), fNotFinalMessage)){
       ar_log_warning() << _exeName

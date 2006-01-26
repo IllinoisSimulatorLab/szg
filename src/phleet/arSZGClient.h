@@ -273,6 +273,7 @@ class SZG_CALL arSZGClient{
   int           _launchingMessageID;
   bool          _dexHandshaking;
   bool          _simpleHandshaking;
+  bool          _ignoreMessageResponses;
   bool          _parseSpecialPhleetArgs;
   stringstream  _initResponseStream;
   int           _initialInitLength;

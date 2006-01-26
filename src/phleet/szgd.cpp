@@ -462,59 +462,71 @@ void execProcess(void* i){
   if (PID > 0){
     // parent process
 
-    // we block here waiting on the child process to send
+    // We block here waiting on the child process to send
     // information regarding whether or not it has successfully launched
     // an executable. If it fails to launch an executable, the
     // szgd part of the child will do so... otherwise the launched
     // executable will do so
     numberBuffer[0]= 0;
-    // Ten second time-out for pipe.
+    // Twenty second time-out for pipe. What if it takes a VERY long time
+    // to start the program (like a Python program on a heavily loaded CPU)?
     if (!ar_safePipeReadNonBlock(pipeDescriptors[0], numberBuffer,
-			         1, 10000)){
-      info << "szgd remark: got no success/failure code via pipe.\n";
+			         1, 20000)){
+      info << "szgd remark: got no success/failure code via pipe.\n"
+	   << "  The launched executable either failed to load a shared library,"
+	   << "crashed before reaching the framework init, or took a VERY long"
+	   << "time to load.\n";
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
       SZGClient->messageResponse(receivedMessageID, info.str());
       return;
     }
     // we read in 0 on failure to launch and 1 on launch success
     if (numberBuffer[0] == 0){
-      // the launch has failed. we will be receiving error messages from
-      // the szgd side of the fork
-      // first, we need to revoke the "message trade" since the
-      // other end of this code would be invoked in the arSZGClient
-      // of the exec'ed process
+      // The launch has failed. we will be receiving error messages from
+      // the szgd side of the fork. First, we need to revoke the 
+      // "message trade" since the other end of this code would be invoked in 
+      // the arSZGClient of the exec'ed process.
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
-      // next, we read in the error information from the pipe
+      // Next, we read in the error information from the pipe. We don't need
+      // a very long time out since the this info should, for sure, be quickly
+      // forthcoming (we aren't depending on lots of dlls being loaded, for
+      // instance, instead it's all in the szg library code).
       if (!ar_safePipeReadNonBlock(pipeDescriptors[0], numberBuffer, 
                                    sizeof(int), 1000)){
-	info << "szgd remark: pipe-based handshake failed.\n";
+	info << "szgd remark: pipe-based handshake failed. Likely an internal library error.\n";
         SZGClient->messageResponse(receivedMessageID, info.str());
         return;
       }
+      // At least one character of text but at most 10000.
       if (*(int*)numberBuffer < 0 || *(int*)numberBuffer > 10000){
 	cout << "szgd warning: ignoring bogus numberBuffer value "
-	     << *(int*)numberBuffer << ".\n";
+	     << *(int*)numberBuffer << ". Likely an internal library error.\n";
       }
       char* textBuffer = new char[*((int*)numberBuffer)+1];
+      // Again, the time out need not be very large. Essentially, we are
+      // reading in the error message from the exec call in the forked process
+      // here.
       if (!ar_safePipeReadNonBlock(pipeDescriptors[0], textBuffer, 
                                    *((int*)numberBuffer), 1000)){
-	info << "szgd remark: pipe-based handshake failed, text phase.\n";
+	info << "szgd remark: pipe-based handshake failed, text phase. Likely an internal library error.\n";
         SZGClient->messageResponse(receivedMessageID, info.str());
 	delete [] textBuffer;
         return;
       }
       textBuffer[*((int*)numberBuffer)] = '\0';
-      // note how we respond to the message ourselves
+      // Note how we respond to the message ourselves.
       SZGClient->messageResponse(receivedMessageID, string(textBuffer));
       delete [] textBuffer;
       return;
     }
 
     // numberBuffer[0] = 1 and the launch worked.
-    // we do not receive the info via the pipe
+    // We do not receive the info via the pipe
     // in this case... instead the launched client
     // sends that to the "dex" directly.
-    // Wait for the "message trade".
+    // Wait for the "message trade". A long time-out should not, in fact,
+    // be necessary here. Since the szg code will be immediately communicating
+    // with the szgserver, telling it that it wants the message ownership.
     if (!SZGClient->finishMessageOwnershipTrade(match,10000)){
       info << "szgd remark: message ownership trade timed out.\n";
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
@@ -617,14 +629,6 @@ void execProcess(void* i){
   // (another solution would be to figure out a way to send the spawned process
   // a message)
   ar_mutex_lock(&processCreationLock);
-//  arEnvMap_t envMap;
-//  ar_getEnvVarMap( envMap );
-//  arEnvMap_t::iterator envIter = envMap.find( "PYTHONPATH" );
-//  if (envIter == envMap.end()) {
-//    cerr << "PYTHONPATH variable not found.\n";
-//  } else {
-//    cerr << "PYTHONPATH = " << envIter->second << endl;
-//  }
   // Set a few env vars for the child process.
   ar_setenv("SZGUSER",userName);
   ar_setenv("SZGCONTEXT",messageContext);
@@ -690,9 +694,16 @@ cout << "szgd remark: dynamic library path =\n  "
       ar_setenv( "PYTHONPATH", oldPythonPath );
     }
     ar_mutex_unlock(&processCreationLock);
-    // the spawned process will be responding
-    if (!SZGClient->finishMessageOwnershipTrade(match, 10000)){
-      info << "szgd warning: ownership trade timed-out.\n";
+    // The spawned process SHOULD be responding! We will probably get here
+    // BEFORE the spawned process gets to its main().
+    // Sometimes it can take a LONG time for a process to start-up (like a
+    // Python program on a heavily loaded CPU). Consequently, we want a long
+    // (20 seconds) time here.
+    if (!SZGClient->finishMessageOwnershipTrade(match, 20000)){
+      info << "szgd warning: ownership trade timed-out.\n"
+	   << "  The launched executable either failed to load a dll,"
+	   << "crashed before reaching the framework init, or took a VERY long"
+	   << "time to load.\n";
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
       SZGClient->messageResponse(receivedMessageID, info.str());
     }
