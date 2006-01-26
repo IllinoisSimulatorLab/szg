@@ -25,9 +25,6 @@ arInputSimulator::arInputSimulator() :
     ar_log_error() << "arInputSimulator warning: setMouseButtons() failed in constructor.\n";
   }
   setNumberButtonEvents( 8 );
-//  _mouseButton[0] = 0;
-//  _mouseButton[1] = 0;
-//  _mouseButton[2] = 0;
   _rotator[0] = 0.;
   _rotator[1] = 0.;
   _simulatorRotation = 0;
@@ -37,15 +34,8 @@ arInputSimulator::arInputSimulator() :
   // set the initial values of the simulated device appropriately
   _matrix[0] = ar_translationMatrix(0,5,0);
   _matrix[1] = ar_translationMatrix(2,3,-1);
-//  for (int i=0; i<6; i++){
-//    _button[i] = 0;
-//    _newButton[i] = 0;
-//  }
   _axis[0] = 0;
   _axis[1] = 0;
-
-  // we have 6 buttons, 2 axes, and 2 matrices
-//  _driver.setSignature(6,2,2);
 }
 
 bool arInputSimulator::configure( arSZGClient& SZGClient ) {
@@ -215,7 +205,8 @@ void arInputSimulator::advance(){
   for (unsigned int i=0; i<_newButtonEvents.size(); ++i) {
     if (_newButtonEvents[i] != _lastButtonEvents[i]){
       _lastButtonEvents[i] = _newButtonEvents[i];
-      _driver.queueButton(i,_newButtonEvents[i]);
+      // It seems to be a better idea to queue the button events where they are received, i.e. in the 
+      // mouseButton method instead of sending the diff here (i.e. polling, which is unreliable for transient events).
     }
   }
   _driver.sendQueue();
@@ -235,12 +226,6 @@ void arInputSimulator::keyboard(unsigned char key, int, int x, int y) {
   if (_numButtonEvents % rowLength != 0) {
     ++numRows;
   }
-//  _button[0] = 0;
-//  _button[1] = 0;
-//  _button[2] = 0;
-//  _button[3] = 0;
-//  _button[4] = 0;
-//  _button[5] = 0;
   switch (key) {
   case ' ':
     if ((rowLength == 0)||(numRows == 0)) {
@@ -341,6 +326,8 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
         return;
       }
       _newButtonEvents[eventIndex] = state;
+      // This is where we queue the button events (instead of advance(...))
+      _driver.queueButton(eventIndex, state);
     }
     break;
   case AR_SIM_USE_JOYSTICK:
