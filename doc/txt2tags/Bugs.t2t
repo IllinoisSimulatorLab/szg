@@ -12,6 +12,9 @@ Integrated Systems Lab
 =Documentation Errors=[DocErrors]
 
 - Need to emphasize that shared libs must be copied into the exe directory!
+- Should explain about "data bundles" and how this is related to good programming practices.
+- Should explain how to use the ar_log() API (and why to use it instead of cout/cerr).
+- Should explain how to use arTexFont (and especially how to make the fonts).
 
 
 =Setup/Building=[Building]
