@@ -8,6 +8,23 @@ Integrated Systems Lab
 
 %%toc
 
+=Changes Between szg-1.0 and szg-0.8=
+
+- LICENSE CHANGE! With the unanimous agreement of those you've contributed so
+far, we're moving to a BSD-style license for the base code and LGPL for the python bindings.
+- Added a logging feature, ar_log(), and partially converted the code's
+couts/cerrs/printfs to use it.
+- Added more Python examples (doc/python).
+- Fixed problems with the OS X version (window resizing issues, for instance).
+- More work on the scene graph, making sure that objects can be attached via node pointers
+instead of node names. This makes constructing scenes much easier.
+- Improved the scene graph documentation.
+- Added new texture font code (for high resolution font bitmaps as produced using Bitmap Font Builder).
+- Improved the code for event processing (the input device framework) on the Python side. Also made it easier
+to create custom input simulators.
+- Added the ezszg.sh script which enables quick set-up of a programming environment from a Syzygy SDK.
+- Reworked the Syzygy docs so that they use a non-html base format (using txt2tags).
+
 
 =Changes Between szg-0.8 and szg-0.7=
 

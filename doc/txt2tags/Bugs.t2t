@@ -11,8 +11,6 @@ Integrated Systems Lab
 
 =Documentation Errors=[DocErrors]
 
-- The location of the lib3ds included should be lib3ds/include/lib3ds,
-NOT lib3ds/include.
 - Need to emphasize that shared libs must be copied into the exe directory!
 
 
@@ -81,10 +79,9 @@ impairs the system. We should be more robust!
 
 =Graphics/Scene Graph/Database=[Graphics]
 
-- Should be posible to draw .obj's without a graphics database.
 - The node method calls are woefully inefficient for large arrays because
 they do not use prtIn.
-- dgSetGraphicsDatabase must be eliminated!
+- dgSetGraphicsDatabase must be eliminated! (getting closer to this goal...)
 - The light direction seems to be wrong! (i.e. direction = (0,0,10,0)
     instead of direction = (0,0,-10,0)
 - 3DS objects cannot have multiple parts! (i.e. only a single mesh
@@ -99,6 +96,18 @@ pattern...)
 
 =Miscellaneous=[Miscellaneous]
 
+- On OS X (at least on 10.3), there is a strange memory leak. Specifically, the statement
+
+```
+  list<arDatabaseNode*> foo = graphics_node.getChildren();
+```
+
+causes a memory leak!
+- q33 does NOT build successfully with Visual Studio 6 on Win32. Visual Studio 7 is needed.
+- cubecake will NOT run on Xandros Linux (complains about glXGetProcAddress not being present).
+- jpeglib gotcha. IMPORTANT. On the Windows side, it seems that the jpeglib MUST be compiled by the
+same version of Visual Studio that you are using to compile your executables. Otherwise, the first
+call to the library will produce a segfault. Why this should be for a C library is unclear.
 - It would be helpful to have a string event type for the I/O framework
 (i.e src/drivers).
 - Our global init means that sockets cannot be declared globally!

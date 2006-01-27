@@ -1,4 +1,4 @@
-Syzygy 0.8 Documentation: Table of Contents
+Syzygy 1.0 Documentation: Table of Contents
 Integrated Systems Lab
 %%mtime(%m/%d/%Y)
 %!options: --headers
@@ -36,7 +36,7 @@ of your virtual reality system in both Standalone and Cluster modes.
 - [Syzygy Cluster mode PhleetIntro.html]: Concepts and commands for setting up Syzygy
 PC clusters and running programs on them (Look here for an explanation of virtual computers).
 - [Using Phleet Phleet.html]: More information about using Syzygy's distributed operating system.
-- [Basic testing of your Syzyg cluster ClusterTest.html].
+- [Basic testing of your Syzygy cluster ClusterTest.html].
 
 
 =Creating Your Own Syzygy Progams=
@@ -75,7 +75,7 @@ for sockets, serial ports, time, threads, mutexes, etc.
 =Background Information=
 
 - [Our goals for Syzygy Goals.html].
-- [Source code change Log ChangeLog.html]: A record of the changes between versions, since the beginning.
+- [Source code changelog ChangeLog.html]: A record of the changes between versions, since the beginning.
 - [Tested Configurations Testing.html]: Testing procedures plus supported OS platforms.
 - [Known Bugs Bugs.html]: Problems and issues with the current version.
 

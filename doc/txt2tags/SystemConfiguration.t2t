@@ -394,6 +394,8 @@ packets, you need to connect by IP/port instead of via server name.
 
 ==Graphics Parameters==[Graphics]
 
+Thanks to Lee Hendrickson for creating the arGUI toolkit that provides Syzygy with a flexible windowing system.
+
 In this section, we first explain the basic way to configure a graphics
 screen. Next, we tackle advanced options like the special Syzygy demo mode
 which sacrifices projection accuracy to

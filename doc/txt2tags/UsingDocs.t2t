@@ -14,15 +14,17 @@ Integrated Systems Lab
 
 Back to the Syzygy Documentation [Table of Contents index.html]
 
-NOTICE: This is Syzygy version 0.8.
+NOTICE: This is Syzygy version 1.0.
 If you have been using an earlier version, consult the
-[Change log ChangeLog.html] for information on how to
+[changelog ChangeLog.html] for information on how to
 modify earlier practices.
 
 Please email
 bug reports, feature requests, and questions to
-[Ben Schaeffer mailto://schaeffr@isl.uiuc.edu].
+[Camille Goudeseune mailto://cog@uiuc.edu] or [Jim Crowell mailto://crowell@isl.uiuc.edu].
 Also, check out the [Syzygy website http://www.isl.uiuc.edu/syzygy.htm].
+
+Syzygy invented by [Benjamin Schaeffer mailto://ben.schaeffer@gmail.com].
 
 =Where You Should Begin=
 

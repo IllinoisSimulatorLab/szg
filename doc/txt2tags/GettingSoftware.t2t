@@ -42,22 +42,20 @@ Syzygy distribution:
 
 ==Source Packages==
 
-  - szg-0.8.tar.gz: Everything necessary to build and test the
+  - szg-1.0.tar.gz: Everything necessary to build and test the
 library. Includes some [example programs ExampleCode.html].
-Also includes everything needed for.
+Also includes everything needed for writing Syzygy programs in Python.
 
-  - vmat-0.8.tar.gz: A real-time physics library. Used in one
+  - vmat-1.0.tar.gz: A real-time physics library. Used in one
 of the szgdemo sample applications and includes an example of its own.
 
-  - szgdemo-0.8.tar.gz: Additional sample applications. These
+  - szgdemo-1.0.tar.gz: Additional sample applications. These
 are described in the [example programs page ExampleCode.html].
-
-  - pycube-0.8.tar.gz: Sample Python Syzygy programs.
 
 
 ==Data Packages==
 
-  - szgdata-0.8.tar.gz: Data necessary for the sample
+  - szgdata-1.0.tar.gz: Data necessary for the sample
 applications, as outlined in the [example programs page ExampleCode.html],
 but excluding some particularly large files, which are available by
 request.
@@ -65,19 +63,19 @@ request.
 
 ==Precompiled Binary Packages==
 
-  - szg-0.8-linux.tar.gz: Precompiled Linux version of the
+  - szg-1.0-linux.tar.gz: Precompiled Linux version of the
 Syzygy SDK.
 
-  - szg-0.8-win32-vc6.tar.gz: Precompiled Win32 version of the
+  - szg-1.0-win32-vc6.tar.gz: Precompiled Win32 version of the
 Syzygy SDK for Visual Studio 6 plus STLport.
 
-  - szg-0.8-win32-vc7.tar.gz: Precompiled Win32 version of the
+  - szg-1.0-win32-vc7.tar.gz: Precompiled Win32 version of the
 Syzygy SDK for Visual Studio 7.
 
-  - szg-0.8-darwin.tar.gz: Precompiled Mac OS X version of the
+  - szg-1.0-darwin.tar.gz: Precompiled Mac OS X version of the
 Syzygy SDK.
 
-  - szg-0.8-sgi.tar.gz: Precompiled SGI version of the Syzygy SDK.
+  - szg-1.0-sgi.tar.gz: Precompiled SGI version of the Syzygy SDK.
 
 (Note that each of these requires the matching external library package below).
 
@@ -87,22 +85,22 @@ Syzygy SDK.
 
 (Note that one of these is required by each of the precompiled packages above).
 
-  - external-0.8-linux.tar.gz: External libraries and headers
-used to produce the executables.
+  - external-1.0-linux.tar.gz: External libraries and headers
+used to produce the executables on Linux.
 
-  - external-0.8-win32.tar.gz: External libraries and headers
-used to produce the executables.
+  - external-1.0-win32.tar.gz: External libraries and headers
+used to produce the executables on Win32.
 
-  - external-0.8-darwin.tar.gz: External libraries and headers
-used to produce the executables.
+  - external-1.0-darwin.tar.gz: External libraries and headers
+used to produce the executables on Mac OS X.
 
-  - external-0.8-sgi.tar.gz: External libraries and headers
-used to produce the executables.
+  - external-1.0-sgi.tar.gz: External libraries and headers
+used to produce the executables on Irix.
 
 
 ==Development Template Packages==
 
-  - szg_app_template.tar.gz: A cross-platform build structure
+  - szg_app_template-1.0.tar.gz: A cross-platform build structure
 for C++ projects.
 
 

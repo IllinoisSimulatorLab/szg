@@ -152,44 +152,44 @@ uses a default name of "NULL".
 
 ```
   dconfig
-  Parses the szg.conf file and prints the information contained therein in
-  compact form.
+    Parses the szg.conf file and prints the information contained therein in
+    compact form.
 ```
 
 ```
   daddinterface name address [netmask]
-  Adds an interface to szg.conf file with the given name, IP address, and
-  (optionally) netmask. The name is descriptive (like "internet") can is
-  meant to uniquely identify a network. IP address alone cannot do this
-  because of private networks like 192.168.0.*. The network's netmask can
-  also be given (the default is 255.255.255.0) so that Syzygy's broadcast
-  system for szgserver discovery will work correctly. If the environment
-  variable SZG_CONF is not set (or is set to "NULL") a default location is
-  used, which depends on the host operating system. Otherwise, SZG_CONF gives
-  the directory where szg.conf will be written.
+    Adds an interface to szg.conf file with the given name, IP address, and
+    (optionally) netmask. The name is descriptive (like "internet") can is
+    meant to uniquely identify a network. IP address alone cannot do this
+    because of private networks like 192.168.0.*. The network's netmask can
+    also be given (the default is 255.255.255.0) so that Syzygy's broadcast
+    system for szgserver discovery will work correctly. If the environment
+    variable SZG_CONF is not set (or is set to "NULL") a default location is
+    used, which depends on the host operating system. Otherwise, SZG_CONF gives
+    the directory where szg.conf will be written.
 ```
 
 ```
   ddelinterface name address
-  Removes the interface with the given name/address pair from the szg.conf
-  file. As before, the environment variable SZG_CONF can change the
-  config file's location.
+    Removes the interface with the given name/address pair from the szg.conf
+    file. As before, the environment variable SZG_CONF can change the
+    config file's location.
 ```
 
 ```
   dports first size
-  Changes the "ports" record in the szg.conf file, with "first" giving the
-  number of the first port to be used and "size" giving the size of the port
-  window. As before, the environment variable SZG_CONF can change the
-  config file's location.
+    Changes the "ports" record in the szg.conf file, with "first" giving the
+    number of the first port to be used and "size" giving the size of the port
+    window. As before, the environment variable SZG_CONF can change the
+    config file's location.
 ```
 
 ```
   dname name
-  Sets the computer's name in the szg.conf file. If no ports information is
-  present, it goes ahead and adds a default ports record, reserving the range
-  4700-4899. As before, the environment variable SZG_CONF can change the
-  config file's location.
+    Sets the computer's name in the szg.conf file. If no ports information is
+    present, it goes ahead and adds a default ports record, reserving the range
+    4700-4899. As before, the environment variable SZG_CONF can change the
+    config file's location.
 ```
 
 The Phleet configuration file just determines the identity of an
@@ -209,40 +209,40 @@ be stored. SZG_LOGIN must NOT have a trailing slash.
 ```
   dlogin szgserver_name user_name
   dlogin IP port user_name
-  In the first case, the dlogin program attempts to discover the szgserver
-  given by szgserver_name by broadcasting a discovery packet on the LAN. If
-  such is found, the Phleet login file is written with user_name giving the
-  Phleet user identity.
-  In the second case, the dlogin program attempts to connect to the szgserver
-  using the IP/port parameters (much as a standard Phleet component would using
-  corresponding parameters from the login file). If successful, the Phleet
-  login file is written, using the given user_name.
-  Note that the second case is necessary since the szgserver might not be
-  reachable via broadcast packets from the dlogin program. A good example of
-  this occurs when running everything on a computer that is not connected to
-  a network. The loopback address 127.0.0.1 may be the only one available in
-  this case and it does not allow broadcast traffic. Another example occurs
-  when wanting to dlogin to an szgserver on another network.
+    In the first case, the dlogin program attempts to discover the szgserver
+    given by szgserver_name by broadcasting a discovery packet on the LAN. If
+	such is found, the Phleet login file is written with user_name giving the
+    Phleet user identity.
+    In the second case, the dlogin program attempts to connect to the szgserver
+    using the IP/port parameters (much as a standard Phleet component would using
+    corresponding parameters from the login file). If successful, the Phleet
+    login file is written, using the given user_name.
+    Note that the second case is necessary since the szgserver might not be
+    reachable via broadcast packets from the dlogin program. A good example of
+    this occurs when running everything on a computer that is not connected to
+    a network. The loopback address 127.0.0.1 may be the only one available in
+    this case and it does not allow broadcast traffic. Another example occurs
+    when wanting to dlogin to an szgserver on another network.
 ```
 
 ```
   dlogout
-  This command resets the Phleet login file for the particular host system user.
+    This command resets the Phleet login file for the particular host system user.
 ```
 
 ```
   dwho
-  Prints the Phleet login file of the particular host system user in a
-  compact form.
+    Prints the Phleet login file of the particular host system user in a
+    compact form.
 ```
 
 ```
   dhunt
-  Display all szgServer's running on the LAN, in the format:
-    server_name/server_IP:server_port
-  This command reads the Phleet configuration file and sends an szgserver
-  discovery packet out on each of the interfaces defined therein. There
-  is a 2 second time-out on the discovery process for each interface.
+    Display all szgServer's running on the LAN, in the format:
+      server_name/server_IP:server_port
+    This command reads the Phleet configuration file and sends an szgserver
+    discovery packet out on each of the interfaces defined therein. There
+    is a 2 second time-out on the discovery process for each interface.
 ```
 
 
@@ -265,22 +265,35 @@ for information on the dbatch file format.
      Take the configuration information contained in the given file and
      transfer it to the szgserver. By default, the command looks in the
      current directory for the file and then on a search path given by
-     computer/SZG_SCRIPT/path
-
+     computer/SZG_SCRIPT/path.
+```
+```
    dget computer parameter_group parameter_name
      Display the value of the parameter computer/group_name/parameter_name.
+```
+
+```
    dget global_parameter_name
      While many Phleet parameters are keyed to particular computers, some
      are global in nature (i.e. concerned with the global system instead
      of one computer). A good example of a global parameter an input
      device definition.
+```
+
+```
    dget -a search_string
      Display all key/value pairs in the parameter database containing
      string search_string. To do more complex searches, pipe the output
      through grep or sed. If search_string is omitted, all database entries
      for the given user will be returned.
+```
+
+```
    dset computer parameter_group parameter_name value
      Assign "value" to the item with key computer/parameter_group/parameter_name.
+```
+
+```
    dset global_parameter_name value
      Assign "value" to the global parameter having key global_parameter_name.
 ```
@@ -308,15 +321,24 @@ for information on the dbatch file format.
      programs on Windows hosts, ".EXE" is appended to executable_name, allowing
      the user to use a portable, canonical name for executables across
      Unix-like systems and Windows.
+```
+
+```
    dkill [-9] [computer_name] executable_label
      Send a "quit" message to the first entry in the Phleet process table
      matching the inputs. Like unix "kill -9", the -9 option forcibly closes
      sgzserver's connection (if a client died without szgserver realizing that
      its connection to the client is gone).
+```
+
+```
    dmsg ID message_type [message_body]
      Send a message to the process with the specified ID. Phleet messages
      have two text strings, the type (e.g., "exec") and the body (e.g.,
      "/home/randomuser/bin/linux"). The body defaults to the empty string.
+```
+
+```
    dmsg [-r] -p computer_name component_name message_type [message_body]
      Find the component, if such exists, with name component_name that is
      running on computer computer_name. Send it a message with tag
@@ -324,34 +346,48 @@ for information on the dbatch file format.
      an empty body is sent. If the -r flag is specified, dmsg requests
      a reply to its message and waits for that reply, printing it upon
      receipt.
+```
+
+```
    dmsg [-r] -m virtual_computer message_type [message_body]
      Find the component, if such exists, running on the master screen of
      the given virtual computer. Send it a message with tag message_type
      and body message_body. If message_body is not present, an empty body
      is sent. The -r flag carries the same meaning as above.
+```
+
+```
    dmsg [-r] -g virtual_computer screen_number message_type [message_body]
      Find the component, if such exists, running on the screen indexed
      by screen_number pertaining to the listed virtual computer. Send it
      a message with tag message_type and body message_body. If message_body
      is not presnt, an empty body is sent. The -r flag carries the same
      meaning as above.
+```
+
+```
    dmsg [-r] -c virtual_computer_location message_type [message_body]
      Find the component, if such exists, which is the trigger for the currently
      running application in the given virtual computer location. Send it
      a message with tag message_type and body message_body. If message_body
      is not present, an empty body is sent. The -r flag carries the same
      meaning as above.
+```
+
+```
    dmsg [-r] -s service_name message_type [message_body]
      Find the component, if such exists, that is providing the service
      indicated by service_name. Send it a message with tag message_type and
      body message_body. If message_body is not presnt, an empty body is sent.
      The -r flag carries the same meaning as above.
+```
+
+```
    dmsg [-r] -l lock_name message_type [message_body]
      Find the component, if such exists, holding the lock indicated by
      lock_name. Send it a message with tag message_type and body message_body.
      If message_body is not presnt, an empty body is sent. The -r flag carries
      the same meaning as above.
-
 ```
 
 
@@ -361,17 +397,29 @@ for information on the dbatch file format.
      List all processes in the format:
        computer_name/process_name/ID
      Including the search_tag parameter lists only those lines containing it.
+```
+
+```
    dtop [d milliseconds] | q | t
      Repeated dps, like Unix "top" with pretty color coding.
      d specifies a delay (default 500). q sets delay to 0 (cpu hog).
      t is for stress-"t"esting szgserver: zero delay and no display.
      Hit "q" to quit (or use dkill).
+```
+
+```
    dlocks
      Prints a list of the locks currently held by Phleet components, along
      with their component IDs.
+```
+
+```
    dservices
      Prints a list of services currently offered by Phleet components.
      Useful in seeing what is running.
+```
+
+```
    dpending
      Prints a list of unfilled service requests that have been posted by
      Phleet components. Useful in understanding why something is failing
@@ -687,65 +735,65 @@ structures mentioned above are suitably updated.
   int arSZGClient::sendMessage(const string& user, const string& type,
                                const string& body, const string& context,
                                int destination, bool responseRequested);
-  Generates an "SZG Message" with the given parameters. Blocks until it receives
-  a reply from the szgserver with the message's ID (or until the szgserver connection
-  goes away). Returns 0 on failure and otherwise the message ID assigned to the
-  message by the szgserver. NOTE: this means that szgserver message IDs must be strictly
-  positive.
+    Generates an "SZG Message" with the given parameters. Blocks until it receives
+    a reply from the szgserver with the message's ID (or until the szgserver connection
+    goes away). Returns 0 on failure and otherwise the message ID assigned to the
+    message by the szgserver. NOTE: this means that szgserver message IDs must be strictly
+    positive.
 ```
 
 ```
   int arSZGClient::getMessageResponse(const string& body, int& messageID);
-  Returns 0 on failure, 1 if we've receive a final response to the message, and
-  -1 if we've received a partial response to the message.  Note that this allows
-  long duration computations or initializations to be gradually streamed back to
-  the original message sender. The parameter "body" is filled-in with the "Body"
-  field of the "SZG Message Admin" record. The parameter "messageID" is filled-in
-  with the ID of the message for which this response is intended.
+    Returns 0 on failure, 1 if we've receive a final response to the message, and
+    -1 if we've received a partial response to the message.  Note that this allows
+    long duration computations or initializations to be gradually streamed back to
+    the original message sender. The parameter "body" is filled-in with the "Body"
+    field of the "SZG Message Admin" record. The parameter "messageID" is filled-in
+    with the ID of the message for which this response is intended.
 ```
 
 ```
   bool arSZGClient::messageResponse(int messageID, const string& body,
                                     bool partialResponse);
-  Attempts to send a message response to the given message ID and with given body.
-  The parameter "partialResponse" is optional (default is false). If it is set to
-  false, this is the only response that can be expected to the message. If it is
-  set to true, more responses will be forthcoming. Returns false if the response is
-  undeliverable. And true otherwise.
+    Attempts to send a message response to the given message ID and with given body.
+    The parameter "partialResponse" is optional (default is false). If it is set to
+    false, this is the only response that can be expected to the message. If it is
+    set to true, more responses will be forthcoming. Returns false if the response is
+    undeliverable. And true otherwise.
 ```
 
 ```
   bool arSZGClient::startMessageOwnershipTrade(int messageID, const string& key);
-  Sends an "SZG Message Admin" record with type "SZG Trade Message"
-  to the szgserver. If the command is issued by a component run by user "XXX" on host
-  "YYY" as a part of virtual computer "cube", the sent key will be [key] (in distinction
-  to requestMessageOwnership(...) below). Returns true if the send succeeds and the
-  component has the right to trade this message. False otherwise (as, for instance,
-  if the given key has already been taken).
+    Sends an "SZG Message Admin" record with type "SZG Trade Message"
+    to the szgserver. If the command is issued by a component run by user "XXX" on host
+    "YYY" as a part of virtual computer "cube", the sent key will be [key] (in distinction
+    to requestMessageOwnership(...) below). Returns true if the send succeeds and the
+    component has the right to trade this message. False otherwise (as, for instance,
+    if the given key has already been taken).
 ```
 
 ```
   bool arSZGClient::finishMessageOwnershipTrade();
-  Waits on notification that a pending message ownership trade has occured.
-  Returns true if the record receive succeeds. Returns false otherwhise.
+    Waits on notification that a pending message ownership trade has occured.
+    Returns true if the record receive succeeds. Returns false otherwhise.
 ```
 
 ```
   bool arSZGClient::revokeMessageOwnershipTrade(const string& key);
-  Attempts to revoke a pending message-ownership trade. Note that we have to give the key
-  in a fully-explicit fashion. Returns true if the revocation
-  was successful and false otherwise. Several conditions might cause a message ownership
-  trade to fail. Specifically, another component might have already completed the
-  trade or our component might not have the right to revoke the trade.
+    Attempts to revoke a pending message-ownership trade. Note that we have to give the key
+    in a fully-explicit fashion. Returns true if the revocation
+    was successful and false otherwise. Several conditions might cause a message ownership
+    trade to fail. Specifically, another component might have already completed the
+    trade or our component might not have the right to revoke the trade.
 ```
 
 ```
   int arSZGClient::requestMessageOwnership(const string& key);
-  Requests ownership of message with key "XXX/YYY//cube" (where "XXX", "YYY",
-  and "cube" are as above). Note how the arSZGClient automatically fills-in the data,
-  based on its internal state, in distinction to startMessageOwnershipTrade(...) above.
-  Returns 0 if this fails and otherwise the ID of the message to which the client now
-  owns the response rights.
+    Requests ownership of message with key "XXX/YYY//cube" (where "XXX", "YYY",
+    and "cube" are as above). Note how the arSZGClient automatically fills-in the data,
+    based on its internal state, in distinction to startMessageOwnershipTrade(...) above.
+    Returns 0 if this fails and otherwise the ID of the message to which the client now
+    owns the response rights.
 ```
 
 
@@ -825,30 +873,30 @@ lock. A kill message can then be sent to that component to free the resource.
 
 ```
   bool arSZGClient::getLock(const string& lockName, int& ownerID);
-  Returns true if the component now holds the lock (and fills ownerID with -1).
-  Otherwise, it returns false and fills ownerID with the ID of the component that does,
-  in fact, own the lock. Note that this allows us to send a "kill" message to the
-  component in question, which will cause the lock to be freed. Note that this is
-  a nonblocking call.
+    Returns true if the component now holds the lock (and fills ownerID with -1).
+    Otherwise, it returns false and fills ownerID with the ID of the component that does,
+    in fact, own the lock. Note that this allows us to send a "kill" message to the
+    component in question, which will cause the lock to be freed. Note that this is
+    a nonblocking call.
 ```
 
 ```
   bool arSZGClient::releaseLock(const string& lockName);
-  If the component does not currently hold the lock, this call returns false.
-  If the component holds the lock, the lock is released and the call returns true.
+    If the component does not currently hold the lock, this call returns false.
+    If the component holds the lock, the lock is released and the call returns true.
 ```
 
 ```
   bool arSZGClient::requestLockReleaseNotification(const string& lockName);
-  Uses a "SZG Lock Notification" record to request that a record of the same
-  type be returned upon release of a given lock. Returns whether the request
-  succeeded.
+    Uses a "SZG Lock Notification" record to request that a record of the same
+    type be returned upon release of a given lock. Returns whether the request
+    succeeded.
 ```
 
 ```
   string arSZGClient::getLockReleaseNotification();
-  Waits for a "SZG Lock Notification" record to be sent to the client. When
-  such is received, it prints out the name of the lock that was released.
+    Waits for a "SZG Lock Notification" record to be sent to the client. When
+    such is received, it prints out the name of the lock that was released.
 ```
 
 
@@ -957,17 +1005,17 @@ all services currently offered.
 
 ```
     dservices
-    Prints a listing of all services currently offered. This command works by sending
-    the szgserver an "SZG Get Services" record with a blank "Services" field, receiving
-    in return an "SZG Get Services" record with a "Services" field filled with a
-    semi-colon delimited list of service names that are currently posted to this
-    szgserver.
+      Prints a listing of all services currently offered. This command works by sending
+      the szgserver an "SZG Get Services" record with a blank "Services" field, receiving
+      in return an "SZG Get Services" record with a "Services" field filled with a
+      semi-colon delimited list of service names that are currently posted to this
+      szgserver.
 ```
 
 ```
     dpending
-    Prints a listing of all service requests that have been posted, but not yet
-    fulfilled.
+      Prints a listing of all service requests that have been posted, but not yet
+      fulfilled.
 ```
 
 A description of the way a component can register its service follows.
@@ -1101,65 +1149,89 @@ pending connections can be removed from the system.
 ```
   bool arSZGClient::registerService(const string& serviceName, const string& channel,
                                     int numberPorts, int* portIDs);
-  Means by which a component starts offering a service for connection brokering. The
-  channel determines the networks upon which the service will be offered. Specifically,
-  this parameter my be one of "default", "graphics", "sound", or "input", and it
-  allows these different services to use different physical networks, if such exist.
-  The number of ports needed by the service is given by the "numberPorts"
-  parameter, and the "portIDs" parameter provides storage into which the assigned
-  ports for the service can be stuffed. This function returns "true" excatly when
-  it is successful.
+    Means by which a component starts offering a service for connection brokering. The
+    channel determines the networks upon which the service will be offered. Specifically,
+    this parameter my be one of "default", "graphics", "sound", or "input", and it
+    allows these different services to use different physical networks, if such exist.
+    The number of ports needed by the service is given by the "numberPorts"
+    parameter, and the "portIDs" parameter provides storage into which the assigned
+    ports for the service can be stuffed. This function returns "true" excatly when
+    it is successful.
+```
+
+```
   bool arSZGClient::requestNewPorts(const string& serviceName, const string& channel,
                                     int numberPorts, int* portIDs);
-  It could be that the service cannot use the ports successfully retrieved from
-  the "registerService" call. In this case, the service can request the
-  assignment of new ports, at the same time telling the szgserver that it was
-  unsuccessful in using the previously assigned ones.The meaning of the parameters
-  is the same as in "registerService", except that, in this case, the caller passes
-  the old, problematic ports in inside the "portIDs" array. This function returns
-  "true" exactly when it successfully communicates with the szgserver and receives
-  a set of new ports (in the "portIDs" array).
+    It could be that the service cannot use the ports successfully retrieved from
+    the "registerService" call. In this case, the service can request the
+    assignment of new ports, at the same time telling the szgserver that it was
+    unsuccessful in using the previously assigned ones.The meaning of the parameters
+    is the same as in "registerService", except that, in this case, the caller passes
+    the old, problematic ports in inside the "portIDs" array. This function returns
+    "true" exactly when it successfully communicates with the szgserver and receives
+    a set of new ports (in the "portIDs" array).
+```
+
+```
   bool arSZGClient::confirmPorts(const string& serviceName, const string& channel,
                                  int numberPorts, int* portIDs);
-  The service must inform the szgserver that it is, in fact, able to use the
-  assigned ports. The meanings of "serviceName", "channel", and "numberPorts"
-  are the same as above. The ports that the service successfully bound are
-  passed in via "portIDs". Returns "true" exactly when it successfully
-  communicates with the szgserver and that program is able to put the
-  mentioned ports on the list of used ones.
+    The service must inform the szgserver that it is, in fact, able to use the
+    assigned ports. The meanings of "serviceName", "channel", and "numberPorts"
+    are the same as above. The ports that the service successfully bound are
+    passed in via "portIDs". Returns "true" exactly when it successfully
+    communicates with the szgserver and that program is able to put the
+    mentioned ports on the list of used ones.
+```
+
+```
   arPhleetAddress arSZGClient::discoverService(const string& serviceName,
                                                const string& networks, bool async);
-  A component wishes to connect to a service running somewhere in the distributed
-  system. The component mentions the name of the service to which it wishes to
-  connect ("serviceName"), gives a slash-delimited list of networks (using symbolic
-  names) upon which it would like to communicate to the service ("networks"),
-  and specifies whether the "discoverService" call itself should be blocking or
-  nonblocking with the final parameter, "async". If "async" is set to "true" and the
-  requested service is not currently registered with the szgserver, the szgserver
-  will immediately make a failure response and "discoverService" will return an
-  invalid arPhleetAddress. If "async" is set to "false" and the requested service is
-  not currently registered with the szgserver, the szgserver will make no response
-  until the service is in fact registered. In this case, the call to "discoverService"
-  will block. Overall, if the call fails, an invalid arPhleetAddress is returned,
-  If the call succeeds, a valid arPhleetAddress is returned, containing an IP
-  address and a sequence of ports to which the component can connect.
+    A component wishes to connect to a service running somewhere in the distributed
+    system. The component mentions the name of the service to which it wishes to
+    connect ("serviceName"), gives a slash-delimited list of networks (using symbolic
+    names) upon which it would like to communicate to the service ("networks"),
+    and specifies whether the "discoverService" call itself should be blocking or
+    nonblocking with the final parameter, "async". If "async" is set to "true" and the
+    requested service is not currently registered with the szgserver, the szgserver
+    will immediately make a failure response and "discoverService" will return an
+    invalid arPhleetAddress. If "async" is set to "false" and the requested service is
+    not currently registered with the szgserver, the szgserver will make no response
+    until the service is in fact registered. In this case, the call to "discoverService"
+    will block. Overall, if the call fails, an invalid arPhleetAddress is returned,
+    If the call succeeds, a valid arPhleetAddress is returned, containing an IP
+    address and a sequence of ports to which the component can connect.
+```
+
+```
   bool arSZGClient::requestServiceReleaseNotification(const string& serviceName);
-  Requests that the szgserver send us a notification when the named service is no
-  longer held by the system. Returns "true" if the szgserver has successfully
-  received the request and false otherwise. This is useful in allowing high
-  availability services. When a service goes away, another component able to offer
-  the service can be notified.
+    Requests that the szgserver send us a notification when the named service is no
+    longer held by the system. Returns "true" if the szgserver has successfully
+    received the request and false otherwise. This is useful in allowing high
+    availability services. When a service goes away, another component able to offer
+    the service can be notified.
+```
+
+```
   string arSZGClient::getServiceReleaseNotification();
-  Block until a service release notification has been received from the szgserver.
-  When one has been received, return the name of the service that has been
-  released.
+    Block until a service release notification has been received from the szgserver.
+    When one has been received, return the name of the service that has been
+    released.
+```
+
+```
   void arSZGClient::printServices();
-  Prints the services which are currently being offered in the distributed system.
+    Prints the services which are currently being offered in the distributed system.
+```
+
+```
   void arSZGClient::printPendingServiceRequests();
-  Prints the service requests that have yet to be met in the distributed system.
+    Prints the service requests that have yet to be met in the distributed system.
+```
+
+```
   int arSZGClient::getServiceComponentID(const string& serviceName);
-  If the named service exists, return the ID of the component offering it. If not,
-  return -1. This is useful when a new component must offer a service, even to the
-  extent of killing off a previous component offering the same service.
+    If the named service exists, return the ID of the component offering it. If not,
+    return -1. This is useful when a new component must offer a service, even to the
+    extent of killing off a previous component offering the same service.
 ```
 

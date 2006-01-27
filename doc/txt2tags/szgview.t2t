@@ -6,6 +6,8 @@ Integrated Systems Lab
 
 [Documentation Table of Contents index.html]
 
+Thanks to Mark Flider for creating the Syzygy object viewing modules.
+
 **szgview** is an application to view [objects that Syzygy supports Objects.html].
 To view a file, simply run
 ```

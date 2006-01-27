@@ -1,12 +1,11 @@
 Syzygy Documentation: Supporting Libraries
 Integrated Systems Lab
 %%mtime(%m/%d/%Y)
-%!options: --headers --toc --toc-level=1
-%!encoding: iso-8859-1
-
-=Syzygy: Supporting Libraries=
 
 [Documentation Table of Contents index.html]
+
+%!options: --headers --toc --toc-level=1
+%!encoding: iso-8859-1
 
 Syzygy's build system is designed to let you compile your software using
 the optional supporting libraries but without installing them in a standard
@@ -226,7 +225,7 @@ as described below.
   "lib3ds", which is simply the latest release of lib3ds, downloaded from the
   [SourceForge lib3ds page http://www.sourceforge.net/projects/lib3ds/]. Follow the instructions
   provided in $SZGHOME/contrib/lib3ds/INSTALL to build the library.
-  + Make a directory $(SZGEXTERNAL)/linux/lib3ds/include and copy all
+  + Make a directory $(SZGEXTERNAL)/linux/lib3ds/include/lib3ds and copy all
   header files there.
   + Make a directory $(SZGEXTERNAL)/linux/lib3ds/lib and copy
   lib3ds.a there.
@@ -357,7 +356,7 @@ STudio .NET, you should use the native STL.
   "lib3ds", which is simply the latest release of lib3ds, downloaded from the
   [SourceForge lib3ds page http://www.sourceforge.net/projects/lib3ds/]. Follow the instructions
   provided in $SZGHOME/contrib/lib3ds/INSTALL to build the library.
-  + Make a directory $(SZGEXTERNAL)/win32/lib3ds/include and copy all
+  + Make a directory $(SZGEXTERNAL)/win32/lib3ds/include/lib3ds and copy all
   header files there.
   + Make a directory $(SZGEXTERNAL)/win32/lib3ds/lib and copy
   lib3ds.lib there.
