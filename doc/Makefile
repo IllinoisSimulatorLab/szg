@@ -44,6 +44,6 @@ ALL = \
 all: $(ALL)
 
 %.html : txt2tags/%.t2t
-	txt2tags.py -t html --outfile $@ $<
+	python txt2tags.py -t html --outfile $@ $<
 
 
