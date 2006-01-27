@@ -71,21 +71,21 @@ endif
 # The variable z used to hold the PLATFORM. For backwards compatibility in
 # the makefiles, let's set it appropriately here. HOWEVER, its use is
 # deprecated!
-z:=$PLATFORM
+z:=$(PLATFORM)
 
-ifeq "$PLATFORM" "win32"
+ifeq "$(PLATFORM)" "win32"
   JOBS = 1
 else
-ifeq "$PLATFORM" "linux"
+ifeq "$(PLATFORM)" "linux"
   JOBS = 2
 else
-ifeq "$PLATFORM" "mips3"
+ifeq "$(PLATFORM)" "mips3"
   JOBS = 4
 else
-ifeq "$PLATFORM" "mips4"
+ifeq "$(PLATFORM)" "mips4"
   JOBS = 8
 else
-ifeq "$PLATFORM" "darwin"
+ifeq "$(PLATFORM)" "darwin"
   JOBS = 2
 else
   JOBS = 1
@@ -108,23 +108,23 @@ endif
 # A good idea to also set MACHINE_DIR, which is used for some top-level
 # makefile operations depending on SZG_BINDIR.
 
-ifeq "$PLATFORM" "win32"
+ifeq "$(PLATFORM)" "win32"
   MACHINE=WIN32
   MACHINE_DIR=win32
 endif
-ifeq "$PLATFORM" "linux"
+ifeq "$(PLATFORM)" "linux"
   MACHINE=LINUX
   MACHINE_DIR=linux
 endif
-ifeq "$PLATFORM" "darwin"
+ifeq "$(PLATFORM)" "darwin"
   MACHINE=DARWIN
   MACHINE_DIR=darwin
 endif
-ifeq "$PLATFORM" "mips3"
+ifeq "$(PLATFORM)" "mips3"
   MACHINE=SGI
   MACHINE_DIR=mips3
 endif
-ifeq "$PLATFORM" "mips4"
+ifeq "$(PLATFORM)" "mips4"
   MACHINE=SGI
   MACHINE_DIR=mips4
 endif
