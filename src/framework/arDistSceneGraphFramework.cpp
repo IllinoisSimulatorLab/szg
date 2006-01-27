@@ -882,6 +882,7 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
 }
 
 bool arDistSceneGraphFramework::_startPhleetMode(){
+  ar_log_critical() << "Application is running in cluster mode. Visuals supplied by szgrender.\n";
   // Start the graphics database.
   if (_peerName == "NULL" || _standalone){
     // Not in peer mode.

@@ -71,7 +71,15 @@ if [ -f $TEMP ]; then
     export SZGHOME=$LOCALDIR
     export SZGBIN=$LOCALDIR/bin
     export SZGEXTERNAL=$LOCALDIR/external
-    # File location vs. path location... darn that Cygwin name mangling!
+    # These variables tell Syzygy apps where to look for data (in the default
+    # install of the sdk). Use native windows slashes for these!
+    export SZG_RENDER_texture_path=$(echo $LOCALDIR/rsc | sed 's/\//\\/g')
+    export SZG_RENDER_text_path=$(echo $LOCALDIR/rsc | sed 's/\//\\/g')
+    export SZG_PEER_path=$(echo $LOCALDIR/rsc | sed 's/\//\\/g')
+    export SZG_SOUND_path=$(echo $LOCALDIR/rsc | sed 's/\//\\/g')
+    export SZG_PARAM=$(echo $LOCALDIR/doc/window_configs.txt | sed 's/\//\\/g')
+    # Can't use the actual windows location here. Instead must use the mangled
+    # Cygwin version, since Cygwin is what handles the launching.
     export PATH=$PWD/bin:$PATH
     # Must make sure to use windows native slashes in the PYTHONPATH
     export PYTHONPATH=$(echo "$LOCALDIR/bin;$PYTHONPATH" | sed 's/\//\\/g')
@@ -79,18 +87,18 @@ if [ -f $TEMP ]; then
     export SZGHOME=$PWD
     export SZGBIN=$PWD/bin
     export SZGEXTERNAL=$PWD/external
+    # These variables tell Syzygy apps where to look for data (in the default
+    # install of the sdk).
+    export SZG_RENDER_texture_path=$PWD/rsc
+    export SZG_RENDER_text_path=$PWD/rsc
+    export SZG_PEER_path=$PWD/rsc
+    export SZG_SOUND_path=$PWD/rsc
+    export SZG_PARAM=$PWD/doc/window_configs.txt
     # Must be able to find the executables and Python modules.
     export PATH=$PWD/bin:$PATH
     export PYTHONPATH=$PWD/bin:$PYTHONPATH
   fi
   export SZG_DEVELOPER_STYLE=EASY
-  # These variables tell Syzygy apps where to look for data (in the default
-  # install of the sdk).
-  export SZG_RENDER_texture_path=$PWD/rsc
-  export SZG_RENDER_text_path=$PWD/rsc
-  export SZG_PEER_path=$PWD/rsc
-  export SZG_SOUND_path=$PWD/rsc
-  export SZG_PARAM=$PWD/doc/window_configs.txt
   export SZG_DISPLAY0_name=single_window
   export SZG_DISPLAY1_name=virtual_cube_window
   export SZG_DISPLAY2_name=quad_window
