@@ -42,7 +42,7 @@ The szg library code incorporates the TinyXML library by Lee Thomason (which is 
 the szg library license).
 
 Thanks to Peter Brinkmann for creating the Python bindings for Syzygy (py-szg)
-and to George Francis and students for using them in their classes. These are
+and to George Francis and students for using them in their classes. They are
 found in szg/python, are copyright Peter Brinkmann, and are licensed under
 the LGPL (in contrast to the BSD license of the Syzygy C++ library).
 
@@ -59,7 +59,7 @@ couts/cerrs/printfs to use it.
 
 Ben- Added more Python examples (doc/python)
 
-Jim- Reworked the Syzygy docs to use a non-html base format.
+Jim- Reworked the Syzygy docs to use a non-html base format (using txt2tags).
 
 
 *****************************************************************************

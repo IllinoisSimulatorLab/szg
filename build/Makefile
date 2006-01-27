@@ -48,7 +48,9 @@ create-sdk: all
            Makefile.libscan Makefile.vars Makefile.globals Makefile.toprule \
            Makefile.rules $(INSTALLDIR)/build/make 
 	cp $(SZGHOME)/build/make/Makefile.easy $(INSTALLDIR)/build/Makefile
+	$(MAKE) docs
 	cp -r $(SZGHOME)/doc/ $(INSTALLDIR)/doc
+	rm -rf $(INSTALLDIR)/doc/txt2tags
 	find $(INSTALLDIR)/doc -name 'CVS' -print | xargs rm -rf
 	cp -r $(SZGHOME)/rsc/ $(INSTALLDIR)/rsc
 	find $(INSTALLDIR)/rsc -name 'CVS' -print | xargs rm -rf
