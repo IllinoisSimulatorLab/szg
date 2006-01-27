@@ -11,16 +11,20 @@ int main(int argc, char** argv){
   // NOTE: arSZGClient::init(...) must come before the argument parsing...
   // otherwise -szg user=... and -szg server=... will not work.
   arSZGClient szgClient;
+  szgClient.simpleHandshaking(false);
   szgClient.init(argc, argv);
   if (!szgClient) {
     cerr << "calibrationdemo error: failed to initialize SZGClient.\n";
+    szgClient.sendInitResponse(false);
     return 1;
   }
 
   if (argc != 1 && argc != 2){
     cerr << "calibrationdemo usage: calibrationdemo [virtual_computer]\n";
+    szgClient.sendInitResponse(false);
     return 1;
   }
+  szgClient.sendInitResponse(true);
 
   arAppLauncher launcher("calibrationdemo");
   launcher.setSZGClient(&szgClient);
@@ -28,10 +32,13 @@ int main(int argc, char** argv){
     launcher.setVircomp(argv[1]);
   }
 
-  return (
-    launcher.setRenderProgram("PictureViewer cubecal.ppm") &&
-    launcher.setAppType("distapp") &&
-    launcher.launchApp() &&
-    launcher.waitForKill()) ?
-    0 : 1;
+  launcher.setRenderProgram("PictureViewer cubecal.ppm");
+  launcher.setAppType("distapp");
+  if (!launcher.launchApp()){
+    szgClient.sendStartResponse(false);
+    return 1;
+  }
+  szgClient.sendStartResponse(true);
+  launcher.waitForKill();
+  return 0;
 }

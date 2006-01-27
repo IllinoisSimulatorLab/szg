@@ -26,6 +26,9 @@ int main(int argc, char** argv) {
   if (argc == 3){
     launcher.setVircomp(argv[1]);
   }
+  else{
+    launcher.setVircomp();
+  }
 
   if (argc != 2 && argc != 3) {
 Usage:    
