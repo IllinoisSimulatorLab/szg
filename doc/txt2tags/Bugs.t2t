@@ -103,11 +103,13 @@ pattern...)
 ```
 
 causes a memory leak!
-- q33 does NOT build successfully with Visual Studio 6 on Win32. Visual Studio 7 is needed.
+- q33 does NOT run successfully when built with Visual Studio 6 on Win32. Visual Studio 7 is needed.
 - cubecake will NOT run on Xandros Linux (complains about glXGetProcAddress not being present).
 - jpeglib gotcha. IMPORTANT. On the Windows side, it seems that the jpeglib MUST be compiled by the
 same version of Visual Studio that you are using to compile your executables. Otherwise, the first
 call to the library will produce a segfault. Why this should be for a C library is unclear.
+- When arMotionstarDriver is run on Win32, it seems to make the Motionstar "stutter". Does not seem to be a
+problem on Linux.
 - It would be helpful to have a string event type for the I/O framework
 (i.e src/drivers).
 - Our global init means that sockets cannot be declared globally!

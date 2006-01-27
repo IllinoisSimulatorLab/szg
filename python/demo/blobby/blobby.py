@@ -1,6 +1,6 @@
 #!/bin/env python
 
-# $Id: blobby.py,v 1.1 2005/03/18 20:13:01 crowell Exp $
+# $Id: blobby.py,v 1.2 2006/01/27 05:45:53 schaeffr Exp $
 # (c) 2004, Peter Brinkmann (brinkman@math.uiuc.edu)
 #
 # This program is free software; you can redistribute it and/or modify
@@ -114,7 +114,7 @@ fw.loadNavMatrix()
 if __name__=='__main__':
     import time
     dgTransform('sign','root',northwall*
-      ar_translationMatrix(3,0,0)*ar_rotationMatrix('y',3.14)*
+      ar_translationMatrix(3,0,0)*
             ar_scaleMatrix(.3))
     signID=dgBillboard('signb','sign',1,'hello')
     while 1:
