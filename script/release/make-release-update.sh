@@ -1,5 +1,7 @@
 #!/bin/sh
 ssh-add $SZG_ROOT/szg-release/szg.private.key
+cd $SZG_ROOT/isl-doc
+cvs update -Pd
 cd $SZG_ROOT/szg
 cvs update -Pd
 cd $SZG_ROOT/vmat
