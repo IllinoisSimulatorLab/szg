@@ -43,7 +43,6 @@ int mouseManipState = ROTATE, oldState = ROTATE;
 bool isPlaying = false, isModelSpinning = false;
 float bgColor = 0.0f, _ratio = 1.0f, frameRate = 0.0f;
 
-int _width = 0, _height = 0;
 int sliderCenterX = -50, sliderCenterY = 10; // slider position in pixels
 
 arObject *theObject = NULL;
@@ -70,17 +69,11 @@ class arSZGViewRenderCallback : public arGUIRenderCallback
 
     virtual void operator()( arGraphicsWindow&, arViewport& ) { }
 
-    virtual void operator()( arGUIWindowInfo* windowInfo ) { }
+    virtual void operator()( arGUIWindowInfo* ) { }
 
     virtual void operator()( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow ) {
       if( graphicsWindow ) {
-        // HACK because the width/height could be different between windows but
-        // because we can't pass anything to the graphicswindow draw the
-        // globals need to be set here
         arVector3 size = wm->getWindowSize( windowInfo->getWindowID() );
-        _width =  int( size[ 0 ] );
-        _height = int( size[ 1 ] );
-
         graphicsWindow->draw();
       }
     }
@@ -92,136 +85,104 @@ class arSZGViewRenderCallback : public arGUIRenderCallback
 
 // Drawing functions
 
-void showRasterString( float x, float y, char* s )
+void drawHUD()
 {
-  glRasterPos2f( x, y );
-  for (char c; (c = *s) != '\0'; ++s)
-    glutBitmapCharacter( GLUT_BITMAP_9_BY_15, c );
-}
-
-void drawHUD( int width, int height )
-{
-  char displayString[ 128 ] = { 0 };
-
-  glColor3f( 0.9f, 0.9f, 0.9f );
-  glBegin( GL_QUADS );  // draw box to hold text
-    glVertex2f( 0.0f, 100.0f );
-    glVertex2f( 0.0f, 100.0f * (1.0f - 20.0f / float( height ) ) );
-    glVertex2f( 100.0f, 100.0f * ( 1.0f - 20.0f / float( height ) ) );
-    glVertex2f( 100.0f, 100.0f );
-  glEnd();
-
-  float startPos = 0, endPos = 0;
-  switch( oldState ) {
-    case PAN:
-     startPos = (         0.0f ) * 100.0f / float( width );
-		 endPos   = ( 15.0f * 9.0f ) * 100.0f / float( width );
-    break;
-
-    case ROTATE:
-     startPos = ( 16.0f * 9.0f ) * 100.0f / float( width );
-		 endPos   = ( 28.0f * 9.0f ) * 100.0f / float( width );
-    break;
-
-    case ZOOM:
-     startPos = ( 29.0f * 9.0f ) * 100.0f / float( width );
-		 endPos   = ( 40.0f * 9.0f ) * 100.0f / float( width );
-    break;
-  };
-
-  glColor3f( 0.75f, 0.75f, 0.80f );
-  glBegin( GL_QUADS );  // draw highlighted box
-    glVertex2f( startPos, 100.0f );
-    glVertex2f( startPos, 100.0f * ( 1.0f - 20.0f / float( height ) ) );
-    glVertex2f( endPos,   100.0f * ( 1.0f - 20.0f / float( height ) ) );
-    glVertex2f( endPos,   100.0f );
-  glEnd();
-
   // menu text
-  glColor3f( 1.0f, 0.0f, 0.0f );
-  sprintf( displayString, " [1] Translate  [2] Rotate  [3] Scale" );
   arTextBox box;
-  box.upperLeft = arVector3(0,0,0);
-  box.width = 100;
-  box.color = arVector3(1,1,1);
-  box.columns = 30;
-  // showRasterString( 0.0f, 100.0f * ( 1.0f - 15.0f / float( height) ), displayString );
-  texFont.renderString( displayString, box);
-  // texFont.renderString2D( displayString, 0.0f, 0.96875f, 1.0f / 66.0f, 0.041666f, true );
+  arVector3 highlight(1,1,1);
+  arVector3 other(0.6,0.6,0.6);
+  box.width = 45;
+  box.color = arVector3(1,0,0);
+  box.columns = 15;
+  if (oldState == PAN){
+    box.color = highlight;
+  }
+  else{
+    box.color = other;
+  }
+  box.upperLeft = arVector3(0,100,-0.1);
+  texFont.renderString( "[1] Translate", box);
+  if (oldState == ROTATE){
+    box.color = highlight;
+  }
+  else{
+    box.color = other;
+  }
+  box.upperLeft = arVector3(0, 95, -0.1);
+  texFont.renderString( "[2] Rotate", box);
+  if (oldState == ZOOM){
+    box.color = highlight;
+  }
+  else{
+    box.color = other;
+  }
+  box.upperLeft = arVector3(0, 90, -0.1);
+  texFont.renderString( "[3] Scale", box);
 
   // animation slider
   if( theObject->supportsAnimation() && ( theObject->numberOfFrames() > 0 ) ) {
     glColor3f( 0.9f, 0.9f, 0.9f );
     glBegin( GL_QUADS );  // draw box for slider et. al.
-      glVertex2f( 100.0f, 0.0f );
-      glVertex2f( 100.0f, 100.0f * (20.0f / float( height ) ) );
-      glVertex2f( 0.0f,   100.0f * (20.0f / float( height ) ) );
-      glVertex2f( 0.0f,   0.0f);
-    glEnd();
-
-    glColor3f( 1.0f, 1.0f, 1.0f );
-    glBegin( GL_QUADS );  // draw box for current frame number
-      glVertex2f( 100.0f - 2.0f * 100.0f / float( width ), 100.0f * 02.0f / float( height ) );
-      glVertex2f( 100.0f - 2.0f * 100.0f / float( width ), 100.0f * 18.0f / float( height ) );
-      glVertex2f( 100.0f - ( 4.0f + 4.0f * 9.0f ) * 100.0f / float( width ), 100.0f * 20.0f / float( height ) );
-      glVertex2f( 100.0f - ( 4.0f + 4.0f * 9.0f ) * 100.0f / float( width ), 100.0f * 02.0f / float( height ) );
+    glVertex2f( 100.0f, 0.0f );
+    glVertex2f( 100.0f, 5.0f );
+    glVertex2f( 0.0f,   5.0f );
+    glVertex2f( 0.0f,   0.0f);
     glEnd();
 
     float numFrames = theObject->numberOfFrames();
-    float sliderStart = 2.0f * 9.0f * 100.0f / float( width );
-    float sliderEnd   = 100.0f - ( 4.0f + 6.0f * 9.0f ) * 100.0f / float( width );
+    float sliderStart = 5.0f;
+    float sliderEnd   = 85.0f;;
     float sliderWidth = sliderEnd - sliderStart;
-    float sliderMaxY  = 100.0f * 15.0f / float( height ), sliderMinY = 100.0f * 5.0f / float( height );
+    float sliderMaxY  = 4.0f;
+    float sliderMinY = 1.0f;
     float sliderSpacing = sliderWidth;
 
     glColor3f( 0.25f, 0.25f, 0.25f);
     glBegin( GL_LINES );  // draw slider bar
-      glVertex2f( sliderStart, ( sliderMinY + sliderMaxY ) / 2.0f );
-      glVertex2f( sliderEnd,   ( sliderMinY + sliderMaxY ) / 2.0f );
-
-      /// \todo Only do this once per window resize isntead of every frame
-      float stepSize = 1.0f;
-      // make each tick mark at least 10 px across onscreen, and geometric series
-      for( ; ; ) {
-        sliderSpacing = ( sliderWidth * float( width ) / 100.0f ) / stepSize;
-
-        if( sliderSpacing <= 10.0f ) // && sliderSpacing <= 20.)
-	        break;
-        else if( int( stepSize ) % 2 == 0 )
-	        stepSize *= 2.5f;
-        else
-	        stepSize *= 2.0f;
-      }
-
-      // draw tick marks
-      for( float j = 0.0f; j <= sliderWidth; j += sliderSpacing ) {
-        glVertex2f( sliderStart + j, sliderMaxY );
-        glVertex2f( sliderStart + j, sliderMinY );
-      }
-
-      glVertex2f( sliderEnd, sliderMaxY );
-      glVertex2f( sliderEnd, sliderMinY );
+    glVertex2f( sliderStart, ( sliderMinY + sliderMaxY ) / 2.0f );
+    glVertex2f( sliderEnd,   ( sliderMinY + sliderMaxY ) / 2.0f );
+    /// \todo Only do this once per window resize isntead of every frame
+    float stepSize = 1.0f;
+    // make each tick mark at least 10 px across onscreen, and geometric series
+    for ( ; ; ) {
+      sliderSpacing = ( sliderWidth ) / stepSize;
+      if ( sliderSpacing <= 10.0f )
+	break;
+      else if( int( stepSize ) % 2 == 0 )
+	stepSize *= 2.5f;
+      else
+	stepSize *= 2.0f;
+    }
+    // draw tick marks
+    for( float j = 0.0f; j <= sliderWidth; j += sliderSpacing ) {
+      glVertex2f( sliderStart + j, sliderMaxY );
+      glVertex2f( sliderStart + j, sliderMinY );
+    }
+    glVertex2f( sliderEnd, sliderMaxY );
+    glVertex2f( sliderEnd, sliderMinY );
     glEnd();
 
-    float sliderCenter = ( sliderStart + float( theObject->currentFrame() ) / numFrames * sliderWidth );
-    sliderCenterX = int( width * sliderCenter / 100.0f ); // for the mouse func
+    float sliderCenterX = ( sliderStart + float( theObject->currentFrame() ) / numFrames * sliderWidth );
 
     glColor3f(0.5f, 0.5f, 0.5f );
     glBegin( GL_QUADS );  // draw slider position
-      glVertex2f( sliderCenter - 5.0f * 100.0f / float( width ), sliderMaxY + 4.0f * 100.0f / float( height ) );
-      glVertex2f( sliderCenter - 5.0f * 100.0f / float( width ), sliderMinY - 4.0f * 100.0f / float( height ) );
-      glVertex2f( sliderCenter + 5.0f * 100.0f / float( width ), sliderMinY - 4.0f * 100.0f / float( height ) );
-      glVertex2f( sliderCenter + 5.0f * 100.0f / float( width ), sliderMaxY + 4.0f * 100.0f / float( height ) );
+    glVertex2f( sliderCenterX - 0.5f, sliderMaxY + 0.5f );
+    glVertex2f( sliderCenterX - 0.5f, sliderMinY - 0.5f );
+    glVertex2f( sliderCenterX + 0.5f, sliderMinY - 0.5f );
+    glVertex2f( sliderCenterX + 0.5f, sliderMaxY + 0.5f );
     glEnd();
 
-    glColor3f( 0.0f, 0.0f, 0.0f );
+    char displayString[10];
     sprintf( displayString, "%4i", theObject->currentFrame() );
-    showRasterString( 100.0f - ( 2.0f + 4.0f * 9.0f ) * 100.0f / float( width ),
-                      100.0f * 2.0f / float( height ), displayString );
+    box.columns = 4;
+    box.width = 15;
+    box.color = arVector3(0,0,0);
+    box.upperLeft = arVector3(85, 5, 0);
+    texFont.renderString( displayString, box);
   }
 }
 
-void display( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow )
+void display( arGUIWindowInfo*, arGraphicsWindow* )
 {
   // loop animation
   if( isPlaying ) {
@@ -232,22 +193,10 @@ void display( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow )
 
   if( isModelSpinning ) {
     mouseWorldMatrix = ar_rotationMatrix( arVector3( 0.0f, 1.0f, 0.0f ), 0.001f ) *
-    			             ar_rotationMatrix( arVector3( 1.0f, 0.0f, 0.0f ), 0.002f ) *
-	    		             mouseWorldMatrix;
+    		       ar_rotationMatrix( arVector3( 1.0f, 0.0f, 0.0f ), 0.002f ) *
+	    	       mouseWorldMatrix;
     dgTransform( mouseTransformID, mouseWorldMatrix );
   }
-
-  /*
-  arPerspectiveCamera camera;
-  camera.setSides(-0.03 * double( _ratio ), 0.03 * double( _ratio ),
-                  -0.03, 0.03);
-  camera.setNearFar(0.1,100);
-  camera.setPosition(0,0,-5);
-  camera.setTarget(0,0,0);
-  camera.setUp(0,1,0);
-  // set up the viewing transformation
-  camera.loadViewMatrices();
-  */
 
   glEnable( GL_DEPTH_TEST );
   glEnable( GL_LIGHTING );
@@ -257,25 +206,15 @@ void display( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow )
   // draw info screen
   glMatrixMode( GL_PROJECTION );
   glLoadIdentity();
-  gluOrtho2D( 0, 100, 0, 100 );
+  glOrtho( 0, 100, 0, 100, 0, 100);
 
   glMatrixMode( GL_MODELVIEW );
   glLoadIdentity();
   glDisable( GL_LIGHTING );
   glDisable( GL_DEPTH_TEST );
   glColor3f( 1.0f, 1.0f, 1.0f );
-  drawHUD( _width, _height );
+  drawHUD();
 
-  /*
-  if( windowInfo ) {
-    wm->swapWindowBuffer( windowInfo->_windowID );
-  }
-  else {
-    // NOTE: this will not have the expected result if there is more than
-    // one window!!!
-    wm->swapAllWindowBuffers();
-  }
-  */
 }
 
 void keyboardCB( arGUIKeyInfo* keyInfo )
@@ -429,7 +368,7 @@ void mouseCB( arGUIMouseInfo* mouseInfo )
    		                       ar_rotationMatrix( arVector3( -1.0f, 0.0f, 0.0f ), float( -deltaY ) / 300.0f ) *
    		                       ar_rotationMatrix( arVector3( 0.0f, 1.0f, 0.0f ), float( deltaX ) / 300.0f ) *
   		                       ar_extractRotationMatrix( mouseWorldMatrix ) *
-  			                     ar_extractScaleMatrix( mouseWorldMatrix );
+  			               ar_extractScaleMatrix( mouseWorldMatrix );
         }
       break;
       }
@@ -520,7 +459,6 @@ int main( int argc, char** argv ){
   if( !SZGClient ) {
     // It is OK if the arSZGClient fails to init.
     std::cout << "RUNNING IN STANDALONE MODE" << std::endl;
-    // return 1;
   }
   string textPath = SZGClient.getAttribute("SZG_RENDER","text_path");
 
@@ -535,20 +473,6 @@ int main( int argc, char** argv ){
 
   theDatabase->setTexturePath( std::string( texPath ) );
 
-  /*
-  _width = 640;  // sensible defaults
-  _height = 480;
-
-  float sizeBuffer[ 2 ] = {0};
-
-  // should use the screen name passed to the arSZGClient
-  string screenName = SZGClient.getMode( "graphics" );
-  if( SZGClient.getAttributeFloats( screenName, "size", sizeBuffer, 2 ) ) {
-    _width = int( sizeBuffer[ 0 ] );
-    _height = int( sizeBuffer[ 1 ] );
-  }
-  */
-
   arMatrix4 worldMatrix( ar_translationMatrix( 0.0, 5.0, -5.0 ) );
 
   dgSetGraphicsDatabase( theDatabase );
@@ -557,10 +481,6 @@ int main( int argc, char** argv ){
   mouseTransformID = theDatabase->getNodeID( "mouse" );
 
   // Go ahead and add some lights.
-  //lightDirection = arVector3( 0.0f,-5.0f, 0.0f);   // dir of primary light
-  //lightDirection /= ++lightDirection;
-  // use as dir, not pos
-  //arVector4 lightDir( lightDirection[ 0 ], lightDirection[ 1 ], lightDirection[ 2 ], 0.0f );
   (void) dgLight( "light0", "root", 0, arVector4(0,1,0,0), arVector3( 1,1,1 ) );
   (void) dgLight( "light0", "root", 1, arVector4(0,-1,0,0), arVector3( 1,1,1 ) );
   (void) dgLight( "light0", "root", 2, arVector4(0,0,1,0), arVector3( 1,1,1 ) );
@@ -636,7 +556,6 @@ int main( int argc, char** argv ){
     texFont.load( "courier-bold.txf" );
   }
 
-  // wm->startWithoutSwap();
   wm->startWithSwap();
 
   return 0;
