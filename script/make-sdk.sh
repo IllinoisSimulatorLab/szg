@@ -59,6 +59,16 @@ if [ -f "$SZGHOME/build/make/Makefile.vars" ]; then
     cd szg-$1
     mkdir external
     cp -r $SZGEXTERNAL/$arch external
+	if [ "$arch" = "darwin" ]; then
+	  for libdir in $(ls external/darwin)
+	  do
+	    for libfile in $(ls external/darwin/$libdir/lib | grep ".a")
+		do
+		  echo Running ranlib on external/darwin/$libdir/lib/$libfile
+		  ranlib external/darwin/$libdir/lib/$libfile
+		done
+	  done
+	fi
     if [ "$arch" = "win32" ]; then
       if [ -d external/win32/VisualStudio ]; then
         # The libraries for VisualStudio were included. They should go in bin.
