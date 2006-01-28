@@ -57,7 +57,6 @@ t.set(ar_TM(-3 + random.random()*6, 5, -5))
 m = t.new("material")
 s = arSphereMesh(50)
 s.attachMesh(m)
-	
 while 1:
 	f.setViewer()
 	f.setPlayer()

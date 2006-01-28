@@ -918,6 +918,7 @@ class arGraphicsDatabase: public arDatabase{
   arGraphicsDatabase();
   virtual ~arGraphicsDatabase();
   virtual void reset();
+  void loadAlphabet(const string& path);
   arTexFont* getTexFont();
   void setTexturePath(const string& thePath);
   arMatrix4 accumulateTransform(int nodeID);
@@ -972,9 +973,13 @@ class arGraphicsPeer: public arGraphicsDatabase{
   string getName();
   void setName(const string&);
 
+  bool init(arSZGClient& client);
   bool init(int&,char**);
   bool start();
   void stop();
+
+  void setBridge(arGraphicsDatabase* database);
+  void setBridgeRootMapNode(arDatabaseNode* node);
 
   virtual bool readDatabase(const string& fileName, 
                             const string& path = "");
@@ -1002,6 +1007,8 @@ class arGraphicsPeer: public arGraphicsDatabase{
   virtual bool writeRootedXML(arDatabaseNode* parent,
                               const string& fileName,
                               const string& path="");
+
+  void queueData(bool);
   
   int connectToPeer(const string& name);
   bool closeConnection(const string& name);

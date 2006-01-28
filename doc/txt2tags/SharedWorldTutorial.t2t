@@ -6,160 +6,107 @@ Integrated Systems Lab
 
 [Documentation Table of Contents index.html]
 
-This tutorial will inreoduce you to the concept of peer-to-peer
+This tutorial will intreoduce you to the concept of peer-to-peer
 reality. To work along with the examples, you'll need to either have
 compiled the [szg library GettingSoftware.html] and the Syzygy
 [Python bindings PySZG.html] or have installed a Syzygy SDK as
 appropriate for your system.
 
-This tutorial shows how to use the arGraphicsDatabase and its arGraphicsPeer
-subclass from the Python prompt. If you want to be able to display your
-work, you will want to use the arGraphicsPeer, so we focus on that.
-
 First, note that you must be running in Phleet mode, as explained in the
-[introductory PhleetIntro.html] chapter of Syzygy's distributed
-OS. Next, for connection brokering to work, you will have to be dlogin'ed
-as the same Phleet user in each machine in your test environment.
+[introductory PhleetIntro.html] chapter about Syzygy's distributed
+OS.
 
-You will want to use the Python module rp.py (rp = reality peer). This
-will provide you will some functionality needed to manipulate the system, and
-it should be on your PYTHONPATH. It imports the Syzygy python bindings.
-Start a Python prompt and then type:
+You will open three fresh terminal windows on your desktop.
 
-```
-  from rp import *
-  peer.setName("peer")
-```
+[images/ppr.0.jpg]
 
-The name "peer" must be unique in the Phleet across all graphics peers owned
-by the Phleet user. Next,
+In the first, run szgd.
+
+In the second, type:
 
 ```
-  peer.init({"peer_name"])
+  dex szgrender -szg virtual=foo -szg mode/graphics=SZG_DISPLAY7
+  dex inputsimulator -szg virtual=foo
 ```
 
-The "peer_name" is simply a descriptive term used for this peer. If this
-succeeds, you will see a "1" returned. Now type "dps()". You should see, among
-other lines, something like:
+The **virtual=foo** parameter corresponds to a virtual computer name, though you
+need not have a virtual computer named **foo** defined for this to work. Syzygy programs
+using the same virtual computer will communicate with one another to the exclusion of
+others.
+
+Note the **mode/graphics=SZG_DISPLAY7** parameter. This tells **szgrender** to configure
+its window and camera according to the XML configuration stored in the global
+parameter whose name is stored in **SZG_DISPLAY7/name**. We picked SZG_DISPLAY7 so that
+we would be very likely to get a default window configuration (i.e. SZG_DISPLAY7/name
+is undefined).
+
+In the third window, type:
 
 ```
-  smoke/peer_name/16
+  dex szgrender -szg virtual=bar -szg mode/graphics=SZG_DISPLAY8
+  dex inputsimulator -szg virtual=bar
 ```
 
-Finally, you must do the following at the Python prompt:
+The second szgrender window and the second inputsimulator windows will likely come
+up on top of their predecessors. Consequently, you might (mistakenly) think that they
+failed to launch. 
+Note that SZG_DISPLAY8 is used here instead of SZG_DISPLAY7. Syzygy only lets one
+program at a time use a particular (virtual) display on a single computer. Hence, these
+**must** be different.
+
+Now, to launch the sample applications (or **peers**). Unfortunately the 
+**-szg virtual=foo** trick will not work with Python programs so we have to get this
+information in some other way. In window 2, type the following:
 
 ```
-  peer.start()
+  export SZGCONTEXT="virtual=foo"
 ```
 
-If it succeeds, it will return a "1".
-
-Now, you will start up a graphical "workspace" which can host a number of
-graphics peers. This workspace can be run on any computer in your Phleet, but
-beware that you must be dlogin'ed as the same Phleet user to connect. The
-"workspace" must be given a name via the command line that is different from
-any other workspace name used by that Phleet user.
+Now, run the example [peer python/peer.py] program like so:
 
 ```
-  szg-rp work1
+  python peer.py world0
 ```
 
-If all goes well, a graphics window will appear. You now need to create a peer
-within your workspace and connect the two peers together. At the Python
-prompt,
+A sphere will appear in one of the szgrender windows and start changing colors rapidly.
+
+Your local geometry (the sphere) is attached to the shared world's **world0** part, 
+which is also the name of your peer. Valid peer names (for this particular example) are
+**world0** through **world99** (see the code).
+
+Now, go to window 3 and type:
 
 ```
-  m = rpManager()
-  work1 = m.getWorkspace("work1")
-  handle = work1.newPeer("target")
+  python peer.py world1 world0
 ```
 
-Please note that the name ("target") you give to the new peer must be unique
-across all the peers you create as a particular Phleet user. If it isn't, the
-final command will fail and you will see the following error message:
+This peer's geometry will attach to shared world's **world1** part. Furthermore, we
+attach to peer **world0** (the one we launched before) to grab its geometry and send
+ours over.
+
+A second sphere will now appear in the first szgrender window (the **foo** window) and 
+two spheres will appear in the **bar** szgrender. The scenes are now the same. The
+**foo** peer is responsible for the **foo** sphere but also displays the **bar** sphere,
+as received from the **bar** peer and vice-versa.
+
+[images/ppr.1.jpg]
+
+It is possible to navigate independently.
+
+[images/ppr.2.jpg]
+
+It is possible to move the observers' heads independently.
+
+[images/ppr.3.jpg]
+
+This very simple example could be easily extended to have a complex shared virtual world
+based on the Myriad scene graph (**peer-to-peer reality**). For instance, if you had two
+CAVEs, CAVE1 and CAVE2, which were controlled by virtual computers **cave1** and 
+**cave2** respectively, you could build an application **shared_world** such that
 
 ```
-  workspace error: peer failed to be created.
+  dex cave1 shared_world
+  dex cave2 shared_world
 ```
 
-The variable "handle" is a remote manipulation interface for the created
-peer. It is of Python type rpPeer and has several methods that will be useful.
-
-```
-  translate(x, y, z)
-    Translates the peer within the workspace. This is useful for getting
-    your content viewable by the workspace camera. This camera has the
-    following characteristics:
-    near clip plane, x extent = (-0.1, 0.1)
-    near clip plane, y extent = (-0.1, 0.1)
-    near/far clip plane distance = (0.2, 200)
-    camera position = (0,5,20)
-    pointed at = (0,5,0)
-    up direction = (0,1,0)
-  setComment(comment)
-    Stores comment text in the remote peer.
-  getComment()
-    Retrieves comment text from the remote peer.
-  reset()
-    Clears the remote peer.
-```
-
-Go ahead and put the display peer (in the remote workspace) in an easily
-viewable spot. You will use the remote access handle.
-
-```
-  handle.translate(0,5,-5)
-```
-
-Finally, you will want to connect your peers, local and remote together, and
-set data flowing between them. Use the local peer for this.
-
-```
-  peer.connectToPeer("target")
-```
-
-This returns the connection ID on success and -1 otherwise. Since this is
-your first connection from "peer", you should see "0". By default, no
-information flows on the connection between peers. Lets make the information
-flow both ways.
-
-```
-  peer.sending("target",1)
-  peer.receiving("target",1)
-```
-
-Upon success with each command, you should see a "1". You have just ensured
-that updates to your local peer will be copied to the remote peer in the
-workspace and vice versa. Please note that it is
-possible to turn off sending or receiving of scene graph updates at any time
-as above (passing "0" will turn it off). Please note that the connection is
-referenced by the connected-to peer's name (in this case "target").
-
-The arGraphicsPeer has two other methods of particular importance. These
-are useful when one of the peers that connect already has geometry.
-
-```
-  arGraphicsPeer::pullSerial(remoteName, receive)
-    Get the the description of the connected remote peer and put it into
-    the local peer. If the receive flag is "1", continue receiving updates
-    on the connection.
-  arGraphicsPeer::pushSerial(remoteName, send)
-    Push our own description to the connected remote peer. If the send
-    flag is "1", continue sending updates.
-```
-
-Now you can manipulate the scene graph contained in "peer" from the
-Python prompt and have the results appear in your workspace. Please note
-that this section has just scratched the surface of all the fun things you
-can do with reality peers.
-
-- You can have multiple peers embedded in each workspace. A common workspace
-displayed on a projector might show the work of several users simultaneously.
-- Instead of connecting to a peer in a workspace, you can connect to a
-peer at someone else's Python command prompt. In this way, you can collaborate
-it building an object.
-- Two users can connect to the same peer in a workspace, collaborating that
-way.
-
-
-
+would bring up a shared virtual environment.

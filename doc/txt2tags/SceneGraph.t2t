@@ -14,14 +14,7 @@ Integrated Systems Lab
 =Background=
 
 This section gives a general introduction to the Myriad scene graph and
-explains its C++ API. There are several scene graph examples in C++:
-
-- [cosmos cplusplus/cosmos.cpp]: Shows how to use the built-in navigation
-classes, as well as the built-in shapes (with textures) and geometric primitves (lines).
-- [cubes cpluscplus/cubes.cpp]: Shows how to use the built-in interaction
-code. 300 shapes float in space, their colors and orientations changing rapidly.
-A grasping tool can be used to change their placement.
-
+explains its C++ API.
 
  For a description of the (similar) Python API, please
 see this [tutorial SceneGraphTutorial.html]. Python's internal reference counting
@@ -35,7 +28,9 @@ using some of the built-in shapes.
 - [lorenz python/lorenz.py]: A visualization of the lorenz attractor.
 - [cosmos python/cosmos.py]: Translation of the cosmos C++ demo into
 Python.
-- [simpleviz python/simpleviz.py]: Shows how to manipulate a collection
+- [simpleviz python/simpleviz.py]: A very simple **Hello World** program that
+displays the minimum possible scene graph program.
+- [interact python/interact.py]:Shows how to manipulate a collection
 of objects using a grasping tool. Also demonstrates a custom standalone mode
 simulator.
 
