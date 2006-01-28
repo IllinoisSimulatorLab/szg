@@ -25,9 +25,10 @@
 */
 
 // WARNING: If a class ONLY exists in the .h, then we SHOULD NOT decorate it
-// with SZG_CALL. In the Win32 case, this will lead to the linker getting
-// confused when trying to import the class.
-class arObject {
+// with SZG_CALL. This USED to be true of arObject, but is no longer true.
+// Thus, decorated with SZG_CALL now (though this note kept for historical
+// reasons).
+class SZG_CALL arObject {
  public:
   arObject() : _name(""), _invalidFile(false), _vertexNodeID(-1) {}
   virtual ~arObject() {}
