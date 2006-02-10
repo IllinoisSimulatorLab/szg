@@ -595,11 +595,6 @@ void drawFishies()
 
 void display(arMasterSlaveFramework& fw)
 {
-  if (!fw.getConnected()) {
-    glClearColor(0,0,0,0);
-    return;
-  }
-
   if (anaglyphMode) {
     glClearColor(0.8, 0.8, 0.8, 1.0);
   } else {

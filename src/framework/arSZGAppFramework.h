@@ -204,6 +204,10 @@ class SZG_CALL arSZGAppFramework {
     // exit(0) is going to occur in an application-defined thread.
     bool _stopped;
     
+    // Installs two filters: _defaultUserFilter (which does nothing, it's a placeholder)
+    // and _callbackFilter (which initially does nothing, as it has no callback).
+    // Any user-installed filter replaces _defaultUserFilter (installing a NULL
+    // filter restores it), and user-installed event callback gets put in _callbackFilter.
     void _installFilters();
     virtual bool _loadParameters() = 0;
     void _loadNavParameters();

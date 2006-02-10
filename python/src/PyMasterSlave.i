@@ -275,7 +275,7 @@ bool ar_packSequenceData( PyObject* seq, std::vector<int>& typeData,
   int len = PySequence_Size( seq );
   if (len == -1) {
     PyErr_SetString( PyExc_TypeError,
-         "arMasterSlaveFramework error: invalid sequence type passed to setSequence()." );
+         "arMasterSlaveFramework error: failed to compute sequence length in setSequence()." );
     return false;
   }
   /*cerr << "[" << len;*/

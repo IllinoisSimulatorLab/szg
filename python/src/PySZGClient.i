@@ -139,11 +139,11 @@ class arSZGClient{
   // A way to get parameters in from a file (as in dbatch, for instance)
   bool parseParameterFile(const string& fileName, bool warn=true);
 
-  const string& getLabel() const;
+  string getLabel() const;
 
-  const string& getComputerName() const;
+  string getComputerName() const;
 
-  const string& getUserName() const;
+  string getUserName() const;
 
   // general administration functions
   string getProcessList();

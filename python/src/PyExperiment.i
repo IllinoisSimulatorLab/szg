@@ -958,3 +958,138 @@ class arPyExperimentTrialPhase(arPythonExperimentTrialPhase):
     
 
 %}
+
+
+%{
+#include "arGluQuadric.h"
+#include "arGluCylinder.h"
+#include "arPatternedBox.h"
+%}
+
+class arGluQuadric : public arInteractableThing {
+  public:
+    arGluQuadric();
+    arGluQuadric( const arGluQuadric& x );
+    arGluQuadric& operator=( const arGluQuadric& x );
+    virtual ~arGluQuadric();
+    void setPointStyle() { _drawStyle = GLU_POINT; }
+    void setLineStyle() { _drawStyle = GLU_LINE; }
+    void setSilhouetteStyle() { _drawStyle = GLU_SILHOUETTE; }
+    void setFillStyle() { _drawStyle = GLU_FILL; }
+    void setNormalsOutside( bool trueFalse ) {
+      _normalDirection = (trueFalse)?(GLU_OUTSIDE):(GLU_INSIDE);
+    }
+    void setNoNormals() { _normalStyle = GLU_NONE; }
+    void setFlatNormals() { _normalStyle = GLU_FLAT; }
+    void setSmoothNormals() { _normalStyle = GLU_SMOOTH; }
+    virtual void draw( arMasterSlaveFramework* fw=0 )  = 0;
+};
+
+class arGluCylinder : public arGluQuadric {
+	public:
+    arGluCylinder( double startRadius, double endRadius, double length, int slices=30, int stacks=5 );
+    arGluCylinder( const arGluCylinder& x );
+    arGluCylinder& operator=( const arGluCylinder& x );
+    virtual ~arGluCylinder() {}
+    virtual void draw( arMasterSlaveFramework* fw=0 );
+
+  // inherited from arInteractable
+    /// Disallow user interaction
+    void disable();
+    /// Allow user interaction
+    void enable( bool flag=true );
+    bool enabled() const { return _enabled; }
+    void useDefaultDrags( bool flag );
+    void setDrag( const arGrabCondition& cond,
+                  const arDragBehavior& behave );
+    void deleteDrag( const arGrabCondition& cond );
+    void setDragManager( const arDragManager& dm ) { _dragManager = dm; }
+    bool touched() const;
+    bool touched( arEffector& effector );
+    const arEffector* grabbed() const;
+    virtual void setMatrix( const arMatrix4& matrix ) { _matrix = matrix; }
+    arMatrix4 getMatrix() const { return _matrix; }
+    virtual void updateMatrix( const arMatrix4& deltaMatrix );
+
+  // inherited from arInteractableThing
+    virtual void setTexture( arTexture* tex ) {_texture = tex; }
+    virtual arTexture* getTexture() { return _texture; }
+    virtual void setHighlight( bool flag ) { _highlighted = flag; }
+    virtual bool getHighlight() const { return _highlighted; }
+    virtual void setColor( float r, float g, float b, float a=1. ) {_color = arVector4(r,g,b,a);}
+    virtual void setColor( const arVector4& col ) {_color = col;}
+    virtual void setColor( const arVector3& col ) {_color = arVector4(col,1);}
+    virtual void setAlpha( float a ) {_color[3] = a;}
+    virtual float getAlpha() { return _color[3]; }
+    virtual arVector4 getColor() const { return _color; }
+    virtual void setVisible( bool vis ) {_visible = vis; }
+    virtual bool getVisible() const { return _visible; }
+    virtual void activateColor() const { glColor4fv(_color.v); }
+    virtual bool activateTexture() { return _texture && _texture->activate(); }
+    virtual void deactivateTexture() { if (_texture) _texture->deactivate(); }
+
+  // inherited from arGluQuadric
+    void setPointStyle() { _drawStyle = GLU_POINT; }
+    void setLineStyle() { _drawStyle = GLU_LINE; }
+    void setSilhouetteStyle() { _drawStyle = GLU_SILHOUETTE; }
+    void setFillStyle() { _drawStyle = GLU_FILL; }
+    void setNormalsOutside( bool trueFalse ) {
+      _normalDirection = (trueFalse)?(GLU_OUTSIDE):(GLU_INSIDE);
+    }
+    void setNoNormals() { _normalStyle = GLU_NONE; }
+    void setFlatNormals() { _normalStyle = GLU_FLAT; }
+    void setSmoothNormals() { _normalStyle = GLU_SMOOTH; }
+
+};
+
+
+class arPatternedBox : public arInteractableThing {
+  public:
+    arPatternedBox();
+    virtual ~arPatternedBox(void);
+    arPatternedBox( const arPatternedBox& b );
+    arPatternedBox& operator=( const arPatternedBox& b );
+    
+    void setUseTexture( bool useTexture ) { _useTexture = useTexture; }
+    bool getUseTexture() const { return _useTexture; }
+
+    void setSize( const float w, const float h, const float d, const float s=0 );
+    virtual void draw( arMasterSlaveFramework* fw=0 );
+	
+    void setTextureScale( float sc ) { _texScale = sc; }
+
+  // inherited from arInteractable
+    /// Disallow user interaction
+    void disable();
+    /// Allow user interaction
+    void enable( bool flag=true );
+    bool enabled() const { return _enabled; }
+    void useDefaultDrags( bool flag );
+    void setDrag( const arGrabCondition& cond,
+                  const arDragBehavior& behave );
+    void deleteDrag( const arGrabCondition& cond );
+    void setDragManager( const arDragManager& dm ) { _dragManager = dm; }
+    bool touched() const;
+    bool touched( arEffector& effector );
+    const arEffector* grabbed() const;
+    virtual void setMatrix( const arMatrix4& matrix ) { _matrix = matrix; }
+    arMatrix4 getMatrix() const { return _matrix; }
+    virtual void updateMatrix( const arMatrix4& deltaMatrix );
+
+  // inherited from arInteractableThing
+    virtual void setTexture( arTexture* tex ) {_texture = tex; }
+    virtual arTexture* getTexture() { return _texture; }
+    virtual void setHighlight( bool flag ) { _highlighted = flag; }
+    virtual bool getHighlight() const { return _highlighted; }
+    virtual void setColor( float r, float g, float b, float a=1. ) {_color = arVector4(r,g,b,a);}
+    virtual void setColor( const arVector4& col ) {_color = col;}
+    virtual void setColor( const arVector3& col ) {_color = arVector4(col,1);}
+    virtual void setAlpha( float a ) {_color[3] = a;}
+    virtual float getAlpha() { return _color[3]; }
+    virtual arVector4 getColor() const { return _color; }
+    virtual void setVisible( bool vis ) {_visible = vis; }
+    virtual bool getVisible() const { return _visible; }
+    virtual void activateColor() const { glColor4fv(_color.v); }
+    virtual bool activateTexture() { return _texture && _texture->activate(); }
+    virtual void deactivateTexture() { if (_texture) _texture->deactivate(); }
+};
