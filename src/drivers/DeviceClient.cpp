@@ -66,16 +66,16 @@ bool arClientEventFilter::_processEvent( arInputEvent& event ) {
 }
 
 int main(int argc, char** argv){
-  if (argc != 2 && argc != 3) {
-    cerr << "Usage: DeviceClient slot_number [-button]\n";
-    return 1;
-  }
-
   arSZGClient szgClient;
   szgClient.simpleHandshaking(false);
   szgClient.init(argc, argv);
   if (!szgClient)
     return 1;
+
+  if (argc != 2 && argc != 3) {
+    cerr << "Usage: DeviceClient slot_number [-button]\n";
+    return 1;
+  }
 
   const int slot = atoi(argv[1]);
   const bool continuousDump = argc!=3 || strcmp(argv[2], "-button");
