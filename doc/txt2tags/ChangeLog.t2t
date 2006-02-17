@@ -8,25 +8,25 @@ Integrated Systems Lab
 
 %%toc
 
-=Changes Between szg-1.0 and szg-0.8=
+=Changes in szg-1.0=
 
 - LICENSE CHANGE! With the unanimous agreement of those you've contributed so
 far, we're moving to a BSD-style license for the base code and LGPL for the python bindings.
 - Added a logging feature, ar_log(), and partially converted the code's
 couts/cerrs/printfs to use it.
 - Added more Python examples (doc/python).
-- Fixed problems with the OS X version (window resizing issues, for instance).
+- Fixed OS X problems like window resizing.
 - More work on the scene graph, making sure that objects can be attached via node pointers
-instead of node names. This makes constructing scenes much easier.
+instead of node names. This simplifies scene construction.
 - Improved the scene graph documentation.
-- Added new texture font code (for high resolution font bitmaps as produced using Bitmap Font Builder).
-- Improved the code for event processing (the input device framework) on the Python side. Also made it easier
+- Added texture font code (for high resolution font bitmaps from Bitmap Font Builder).
+- Improved Python event processing (the input device framework). Also made it easier
 to create custom input simulators.
-- Added the ezszg.sh script which enables quick set-up of a programming environment from a Syzygy SDK.
-- Reworked the Syzygy docs so that they use a non-html base format (using txt2tags).
+- Added the ezszg.sh script for quick set-up of a programming environment from a Syzygy SDK.
+- Ported the Syzygy doc sources from html to txt2tags.
 
 
-=Changes Between szg-0.8 and szg-0.7=
+=Changes in szg-0.8=
 
 - BUMPED THE SZG MAGIC NUMBER! This is used in all network communications...
 and szg components will refuse to communicate with one another if it does not
@@ -55,7 +55,7 @@ friendliness! It also fixes a bug with standalone mode on the Mac for
 distributed scene graph apps.
 - Removed Cube-specific code from Motionstar driver and moved it to a PForth
 filter (see cube.txt in this directory).
-- Functionality Change! (That I don’t think will affect anyone). In the
+- Functionality Change! (That I don't think will affect anyone). In the
 PForth filter, the generic filter words (e.g. filter_all_matrices) are now
 executed before the specific ones (e.g. filter_matrix_0).
 - Added several new PForth words, e.g. to do element-by-element math ops on
@@ -72,7 +72,7 @@ transitions in the Cube noticeably.
 compatible with existing Python code.
 
 
-=Changes Between szg-0.7 and szg-0.6=
+=Changes in szg-0.7=
 
 - Changed the mechanism by which alternative config file and login file
 locations are determined for Distributed OS. There is no longer a -t option for
@@ -163,7 +163,7 @@ based on incoming IP adddress (similar to TCP wrappers). Added because of the in
 frequency of port scanning.
 
 
-=Changes Between szg-0.6 and szg-0.55=
+=Changes in szg-0.6=
 
 - IMPORTANT: The location of the data for the demos has been changed. Make sure that you
     reorganize your data directory for the new method.
@@ -198,7 +198,7 @@ includes the appropriate header.
 - fmod support for Mac OS X has been added.
 
 
-=Changes Between szg-0.55 and szg-0.5=
+=Changes in szg-0.55=
 
 - IMPORTANT: The "name translation" (szgtrans.conf) file format
 has changed! Now it begins with a magic character '#' and has names that
@@ -218,7 +218,7 @@ values (before... the rotation matrix was screwy).
 - Added syzygy support for vrpn. Thanks to Russ Taylor for guidance.
 
 
-=Changes Between szg-0.5 and szg-0.4=
+=Changes in szg-0.5=
 
 - IMPORTANT: it is now necessary to set SZGHOME on Win32
 for the cygwin build to succeed.
@@ -259,7 +259,7 @@ on the forth language. See [this PForth.html] for
 details.
 
 
-=Changes Between szg-0.4 and szg-0.3=
+=Changes in szg-0.4=
 
 - Executable names have been changed. This is true of many Distributed OS commands,
 in an attempt to make them more keyboard friendly (for instance, changing
@@ -294,7 +294,7 @@ anymore.
 SZG_RENDER/lookat deprecated.
 
 
-=Changes Between szg-0.3 and szg-0.2=
+=Changes in szg-0.3=
 
 IMPORTANT NOTE: Endian-conversion is currently broken! The
    arStructuredData::parse call breaks it. The next version of Syzygy will
@@ -363,7 +363,7 @@ IMPORTANT NOTE: Endian-conversion is currently broken! The
    QuickStart.txt.
 
 
-=Changes Between szg-0.2 and szg-0.1=
+=Changes in szg-0.2=
 
 - You no longer need to run the BarrierServer program seperately to
 synchronize rendering. This is handled internally by the arGraphicsServer
