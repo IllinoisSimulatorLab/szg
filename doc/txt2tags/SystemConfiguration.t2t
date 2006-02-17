@@ -969,29 +969,37 @@ color masking, and depth buffer manipulation.
 
 ```
   <coords left="0.3333" bottom="0.3333" width="0.3333" height="0.3333" />
-   The viewport's coordinates are given as window size relative floating
-   point numbers. The lower left corner of the window has coordinates
-   (0,0) and the upper right corner has coordinates (1,1). The width and
-   height of the window are both considered to be 1. The parameter value
+```
+   The viewport's coordinates are relative to the window.
+   The window's lower left corner has coordinates
+   (0,0), the upper right (1,1). So the width and
+   height of the full window are both 1. This parameter
    defaults to 0/0/1/1.
+```
   <colormask R="true" G="true" B="true" A="true" />
-   This determines what OpenGL color mask will be applied to the window,
-   as is necessary for doing anaglyph type stereo. The color mask values
+```
+   The OpenGL color mask to be applied to the window, e.g.
+   for doing anaglyphic stereo. The color mask values
    are given in RGBA order, and must be either "true" or "false". In the
    example here, only the red value of the scene's pixels will be drawn.
    The default is "true/true/true/true", which draws the scene normally.
-  <depthclear value="false" />
-   When mutliple passes of the same scene are drawn on the same piece of
-   screen real estate (as in anaglyph stereo), the second pass must clear
-   the depth buffer before drawing. If this parameter is set to "true",
-   the depth buffer will be cleared before drawing, otherwise it will
-   not. The default is "false".
-  <ogldrawbuf value="GL_BACK_LEFT" />
-   The buffer into which the viewport draws. By default, GL_BACK_LEFT.
-  <eyesign value="0" />
-   The eyesign (i.e. right eye, left eye, or eye midpoint). The default is
-   0, with 1 giving the right eye and -1 giving the left eye.
 ```
+  <depthclear value="false" />
+```
+   When multiple passes of the same scene are drawn on the same part of
+   the screen (as in anaglyphic stereo), the second pass must clear
+   the depth buffer before drawing. Iff this parameter is "true,"
+   the depth buffer will be cleared before drawing.
+   The default is "false".
+```
+  <ogldrawbuf value="GL_BACK_LEFT" />
+```
+   The OpenGL buffer into which the viewport draws, by default GL_BACK_LEFT.
+```
+  <eyesign value="0" />
+```
+   The eyesign (i.e. right eye, left eye, or eye midpoint). The default is
+   0, the midpoint; 1 means the right eye; and -1 means the left eye.
 
 
 ==Passive Stereo==[PassiveStereo]
