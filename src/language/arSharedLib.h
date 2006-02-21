@@ -8,7 +8,11 @@
 
 #ifdef AR_USE_WIN_32
 // DO NOT INCLUDE <windows.h> here! INSTEAD DO AS BELOW...
+#ifdef AR_USE_MINGW
+#include <windows.h>
+#else
 #include "arPrecompiled.h"
+#endif
 typedef HMODULE LibHandle;
 #endif
 

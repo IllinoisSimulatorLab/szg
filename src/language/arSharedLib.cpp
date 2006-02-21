@@ -79,7 +79,7 @@ void* arSharedLib::sym(const string& functionName){
     return NULL;
   }
 #ifdef AR_USE_WIN_32
-  return GetProcAddress(_h, functionName.c_str());
+  return (void*)GetProcAddress(_h, functionName.c_str());
 #else
   const string name =
 #ifdef AR_USE_DARWIN
@@ -96,7 +96,7 @@ void* arSharedLib::sym(const string& functionName){
 string arSharedLib::error(){
 #ifdef AR_USE_WIN_32
   static char buf[80];
-  sprintf(buf, "GetLastError() = %d", GetLastError());
+  sprintf(buf, "GetLastError() = %d", (int)GetLastError());
   return string(buf);
 #else
   return string(dlerror());
