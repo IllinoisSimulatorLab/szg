@@ -338,10 +338,11 @@ void IsenseTracker::_enablePossibleCameraTracking() {
     */
 ostream& operator<<(ostream& s, const IsenseTracker& tc) {
   s << endl;
-  s << "Intersense Tracker on port " << tc._port << endl;
+  s << "Intersense Tracker on port " << tc.getPort() << endl;
   std::vector< IsenseStation >::iterator iter;
   IsenseTracker& t = const_cast<IsenseTracker&>(tc);
-  for (iter = t._stations.begin(); iter != t._stations.end(); ++iter) {
+  std::vector< IsenseStation >& stations = const_cast<IsenseTracker&>(tc).getStations();
+  for (iter = stations.begin(); iter != stations.end(); ++iter) {
     s << *iter;
   }
   s << endl;
@@ -603,14 +604,13 @@ void IsenseStation::queueData( ISD_TRACKER_DATA_TYPE& data,
 
 ostream& operator<<(ostream& s, const IsenseStation& t) {
     if (!t.getStatus()) {
-      // just fail silently
       return s;
     }
     s << endl;
     s << "\tStation ID: " << t.getID() << endl;
-    s << "\tMatrix index: " << t._matrixIndex << endl;
+    s << "\tMatrix index: " << t.getMatrixIndex() << endl;
     s << "\tCompass usage: ";
-    switch (t._stationConfig.Compass) {
+    switch (t.getCompass()) {
       case 0:
         s << "None.\n";
         break;
@@ -625,10 +625,10 @@ ostream& operator<<(ostream& s, const IsenseStation& t) {
     }
     s << "\tOther inputs:\n";
     s << "\t\tbutton\tanalog\taux\n";
-    s << "\tFirst:\t" << t._firstButtonIndex << "\t" << t._firstAnalogIndex
-      << "\t" << t._firstAuxIndex << endl;
-    s << "\tTotal:\t" << t._numButtons << "\t" << t._numAnalogInputs << "\t"
-      << t._numAuxInputs << endl;
+    s << "\tFirst:\t" << t.getFirstButtonIndex() << "\t" << t.getFirstAnalogIndex()
+      << "\t" << t.getFirstAuxIndex() << endl;
+    s << "\tTotal:\t" << t.getNumButtons() << "\t" << t.getNumAnalogInputs() << "\t"
+      << t.getNumAuxInputs() << endl;
   return s;
 }
 

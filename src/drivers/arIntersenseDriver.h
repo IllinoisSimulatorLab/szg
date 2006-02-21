@@ -32,7 +32,6 @@ class IsenseStation;
     buttons, valuators, or AuxInputs on each station.
     */
 class IsenseTracker {
-  friend ostream& operator<<(ostream&, const IsenseTracker&);
 public:
   //! Constructor clears memory of structs.
   IsenseTracker();
@@ -64,6 +63,8 @@ public:
 
   bool getStatus() const { return _imOK; }
 
+  DWORD getPort() const { return _port; }
+
   //! What indices to use when reporting to arInputSource.
   // Note that parameters are all passed as refs & altered
   // in the function.
@@ -77,6 +78,8 @@ public:
 
   //! Send tracker data to an arInputSource.
   bool getData( arInputSource* source );
+
+  std::vector< IsenseStation >& getStations() { return _stations; }
 
 private:
   //! Fill struct with configuration of tracker.
@@ -116,15 +119,24 @@ private:
   std::vector< IsenseStation > _stations;
 };
 
+ostream& operator<<(ostream&, const IsenseTracker& tc);
 
 class IsenseStation {
-  friend ostream& operator<<(ostream&, const IsenseStation&);
   public:
     IsenseStation();
     ~IsenseStation();
 
     bool getStatus() const;
     unsigned int getID() const;
+    unsigned int getMatrixIndex() const { return _matrixIndex; }
+    Bool getCompass() const { return _stationConfig.Compass; }
+    unsigned int getNumButtons() const { return _numButtons; }
+    unsigned int getNumAnalogInputs() const { return _numAnalogInputs; }
+    unsigned int getNumAuxInputs() const { return _numAuxInputs; }
+    unsigned int getFirstButtonIndex() const { return _firstButtonIndex; }
+    unsigned int getFirstAnalogIndex() const { return _firstAnalogIndex; }
+    unsigned int getFirstAuxIndex() const { return _firstAuxIndex; }
+
 
     bool configure( arSZGClient& client, unsigned int trackerID );
 
@@ -160,7 +172,6 @@ class IsenseStation {
 
     unsigned  int _matrixIndex;  //!< Syzygy matrix event index for pos/orient data
                                  // from this sensor.
-
     unsigned  int _numButtons;   //!< Number of buttons set by user
     unsigned  int _numAnalogInputs; //!< Number of valuators set by user.
     unsigned  int _numAuxInputs; //!< Number of aux inputs set by user.
@@ -170,6 +181,7 @@ class IsenseStation {
     unsigned  int _firstAuxIndex;   //!< Index into szg driver's list of axes.
 };
 
+ostream& operator<<(ostream&, const IsenseStation&);
 
 //! Driver for Intersense devices
 /*! This driver can handle the IS-300, IS-600,
