@@ -87,16 +87,13 @@ ar_timeval ar_time(){
   LARGE_INTEGER ticksPerSecond;
   QueryPerformanceCounter(&clockTicks);
   QueryPerformanceFrequency(&ticksPerSecond);
-  static ar_timeval result, prev;
+  // NOT THREAD-SAFE!!!
+  static ar_timeval prev;
+  ar_timeval result;
 
   result.sec = clockTicks.QuadPart/ticksPerSecond.QuadPart;
-  result.usec = ((float)clockTicks.QuadPart/ticksPerSecond.QuadPart*1000*1000)
-                            - (result.sec*1000*1000);
-
-//  result.sec = clockTicks.HighPart * (0xffffffff/ticksPerSecond.LowPart) +
-//               (clockTicks.LowPart/ticksPerSecond.LowPart);
-//  result.usec = (int) (clockTicks.LowPart%ticksPerSecond.LowPart) *
-//                (1e6/ticksPerSecond.LowPart);
+  result.usec = (int)(1.e6*((clockTicks.QuadPart/(double)ticksPerSecond.QuadPart)
+                            - (double)result.sec));
   if (ar_difftime(result, prev) <= 1) {
     // "now" is less than a microsecond since the last time.
     // Time may be going backwards, or at least be stopped.
