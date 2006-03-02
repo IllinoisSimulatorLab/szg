@@ -1637,15 +1637,16 @@ void arMasterSlaveFramework::_pollInputData( void ) {
   }
 
   if( _firstTimePoll ) {
+    _firstTimePoll = false;
     _startTime = ar_time();
     _time = 0;
-    _firstTimePoll = false;
   }
   else {
-    double temp = ar_difftime( ar_time(), _startTime ) / 1000.0;
-    _lastFrameTime = temp - _time;
+    const double temp = ar_difftime( ar_time(), _startTime ) / 1000.0;
+    _lastFrameTime = temp - _time; // in milliseconds
 
-    // Set a lower bound for low-resolution system clocks.
+    // Set a 5 microsecond lower bound for low-resolution system clocks,
+    // to avoid division by zero.
     if( _lastFrameTime < 0.005 ) {
       _lastFrameTime = 0.005;
     }
@@ -1653,7 +1654,7 @@ void arMasterSlaveFramework::_pollInputData( void ) {
     _time = temp;
   }
 
-  // If we are in standalone mode, get the input events now.
+  // If standalone, get the input events now.
   // AARGH!!!! This could be done more generally...
   if( _standalone && _standaloneControlMode == "simulator" ) {
     _simPtr->advance();
@@ -2409,8 +2410,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
       }
     }
     else if( messageType == "demo" ) {
-      bool onoff = ( messageBody == "on" ) ? true : false;
-      setFixedHeadMode( onoff );
+      setFixedHeadMode(messageBody=="on");
     }
 
     //*********************************************************

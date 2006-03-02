@@ -208,13 +208,9 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
   // construct a unique class name for window registration under Win32
   std::stringstream ss; ss << _ID;
   _className = std::string( _windowConfig.getTitle() + ss.str() );
-
   _windowBuffer = new arGUIWindowBuffer( true );
-
   _GUIEventManager = new arGUIEventManager( _userData );
-
   _lastFrameTime = ar_time();
-
   ar_mutex_init( &_WMEventsMutex );
   ar_mutex_init( &_usableEventsMutex );
   ar_mutex_init( &_creationMutex );
@@ -224,11 +220,13 @@ arGUIWindow::arGUIWindow( int ID, arGUIWindowConfig windowConfig,
 
 arGUIWindow::~arGUIWindow( void )
 {
+#if 0
   if( _running ) {
     if( _killWindow() < 0 ) {
       // print error?
     }
   }
+#endif
 
   // delete both event queues (what if the wm is still holding onto a handle?)
   if( _GUIEventManager ) {
@@ -254,7 +252,6 @@ void arGUIWindow::registerDrawCallback( arGUIRenderCallback* drawCallback )
 
   if( !drawCallback ) {
     // print warning that there is now no draw callback?
-    _drawCallback = NULL;
   }
   else {
     _drawCallback = drawCallback;
@@ -487,6 +484,7 @@ int arGUIWindow::_processWMEvents( void )
     switch( wmEvent->getEvent().getState() ) {
       case AR_WINDOW_DRAW:
 
+#if 0
         // NOTE: for now we won't worry about _Hz, it complicates things quite
         // a bit as far as control flow in different modes is concerned and is
         // probably not that important a feature, revisit it when arGUI has
@@ -494,14 +492,16 @@ int arGUIWindow::_processWMEvents( void )
         if( 0 /* _windowConfig._Hz > 0 */ ) {
           ar_timeval currentTime = ar_time();
 
-          // NOTE: assumes the user won't want less than 1 frame per second
+          // assumes at least 1 fps
           int uSec = int( USEC / double( _windowConfig.getHz() ) );
-          ar_timeval nextFrameTime( _lastFrameTime.sec, _lastFrameTime.usec + ( uSec > int( USEC ) ? int( USEC ) : uSec ) );
+          ar_timeval nextFrameTime(
+	    _lastFrameTime.sec,
+	    _lastFrameTime.usec + ( uSec > int(USEC) ? int(USEC) : uSec ) );
 
-          // rollover the microseconds
+          // carry the microseconds
           if( nextFrameTime.usec > 1000000 ) {
+            nextFrameTime.usec -= 1000000;
             nextFrameTime.sec++;
-            nextFrameTime.usec = nextFrameTime.usec - 1000000;
           }
 
           // relinquish the cpu until it's time to draw the next frame
@@ -519,6 +519,7 @@ int arGUIWindow::_processWMEvents( void )
             // currentTime = ar_time();
           }
         }
+#endif
 
         _drawHandler();
 

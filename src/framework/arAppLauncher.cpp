@@ -752,13 +752,13 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch){
     }
   }
   // Relay the responses to the "dex" command or print them to the console.
-  ar_timeval startTime = ar_time();
+  const ar_timeval startTime = ar_time();
   while (!sentMessageMatches.empty()){
-    int elapsedMicroseconds = int(ar_difftime(ar_time(), startTime));
+    const int elapsedMicroseconds = int(ar_difftime(ar_time(), startTime));
     // We assume that, in a well-behaved Syzygy application, the initial
     // start messages will be received within 20 seconds. After that,
-    // we can go ahead and allow the running application to be killed.
-    if (elapsedMicroseconds/1000000 > 20){
+    // let the running application be killed.
+    if (elapsedMicroseconds > 20 * 1000000){
       if (!initialMessageMatches.empty()){
         ar_log_error() << _exeName << " error: have not received initial component "
 	               << "messages after 20 second timeout. Application will fail.\n";

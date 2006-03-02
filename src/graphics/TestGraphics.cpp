@@ -191,13 +191,11 @@ void testDatabase(arGraphicsDatabase& g){
 int main(int argc, char** argv){
   ar_timeval time1 = ar_time();
   int i;
-  int num = 100000;
+  const int num = 100000;
   for (i=0; i<num; i++){
     arGraphicsContext* g = new arGraphicsContext();
     delete g;
   }
-  // It turns out to not be *that* expensive to create and delete a graphics
-  // context. Here we are checking that.
   double t = ar_difftime(ar_time(), time1);
   cout << "Average time to create/delete graphics context = "
        << t/num << " microseconds.\n";

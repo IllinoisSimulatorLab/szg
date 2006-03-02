@@ -160,9 +160,9 @@ void arNavTransDrag::update( const arEffector* const effector,
   const arMatrix4 navTrans = ar_extractTranslationMatrix( navMatrix );
   const arMatrix4 navRot = ar_extractRotationMatrix( navMatrix );
   const arMatrix4 wandMatrix = effector->getMatrix();
-  arVector3 direction = ar_extractRotationMatrix(wandMatrix) * _direction;
-  const struct ar_timeval currentTime = ar_time();
-  const float amount( _speed * axisValue * ar_difftime( currentTime, _lastTime )/1.e6 );
+  const arVector3 direction = ar_extractRotationMatrix(wandMatrix) * _direction;
+  const ar_timeval currentTime = ar_time();
+  const float amount = _speed * axisValue * ar_difftime( currentTime, _lastTime )/1.e6;
   _lastTime = currentTime;
   navigator->setMatrix( navTrans * ar_translationMatrix( direction*amount ) * navRot );
 }
@@ -184,7 +184,7 @@ arNavRotDrag::arNavRotDrag( const char axis, const float degreesPerSec ) :
     case 'z': _axis = arVector3(0,0,1); break;
     default:
       _axis = arVector3(0,0,1);
-      cerr << "arNavTransDrag error: " << axis << " does not represent an axis.\n";
+      cerr << "arNavTransDrag error: unknown axis '" << axis << "'.\n";
       break;
   }
 }
@@ -214,7 +214,7 @@ void arNavRotDrag::update( const arEffector* const /*effector*/,
     axisValue = 1.;
   else if (axisValue < -1.)
     axisValue = -1.;
-  const struct ar_timeval currentTime = ar_time();
+  const ar_timeval currentTime = ar_time();
   const float angle = _angleSpeed * axisValue * ar_difftime( currentTime, _lastTime )/1.e6;
   _lastTime = currentTime;
   navigator->setMatrix( navigator->getMatrix() * ar_rotationMatrix( _axis, -angle ) );

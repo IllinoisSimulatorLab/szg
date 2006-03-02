@@ -280,14 +280,11 @@ string buildWindowsStyleArgList(const string& command, list<string>& args){
   return result;
 }
 
-// random delay before executing reduces load on file server
+// Use this to reduce samba win32 fileserver load when many
+// hosts run one exe at the same time.
 void randomDelay(){
-  // It seems that there can be bad interactions between 
-  // samba and win32 when too many guys try to execute the same
-  // exe at once... we take the low digits of the time...
-  ar_timeval time1 = ar_time();
-  int delay = 100000 * abs(time1.usec%6);
-  ar_usleep(delay);
+  const ar_timeval time1 = ar_time();
+  ar_usleep(100000 * abs(time1.usec % 6));
 }
 
 static void TweakPath(string& path) {

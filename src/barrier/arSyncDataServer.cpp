@@ -106,15 +106,14 @@ void arSyncDataServer::_sendTask(){
   // redress this issue!
   _sendThreadRunning = true;
   while (!_exitProgram){
-    // to start out, we wait for a send action to be requested
+    // wait for a send action to be requested
     _signalObject.receiveSignal();
     // The signal object could have been released because we are supposed
     // to be exiting.
-    if (_exitProgram){
-      // pop out of the while loop
+    if (_exitProgram)
       break;
-    }
-    // next, go ahead and lock the queue and swap it, releasing the
+
+    // lock the queue and swap it, releasing the
     // receiveMessage method if it is blocked
     ar_mutex_lock(&_queueLock);
     _dataQueue->swapBuffers(); // This can crash if app is dkill'ed.
@@ -135,10 +134,10 @@ void arSyncDataServer::_sendTask(){
     }
     else{
       ar_mutex_unlock(&_queueLock);
-      ar_timeval time1, time2;
-      time1 = ar_time();
+      //ar_timeval time1, time2;
+      //time1 = ar_time();
       _dataServer.sendDataQueue(_dataQueue);
-      time2 = ar_time();
+      //time2 = ar_time();
       //      cout << "send time = " << ar_difftime(time2,time1) << "\n";
       // Set tuning data.
       _barrierServer.setServerSendSize(

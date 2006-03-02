@@ -444,13 +444,13 @@ void display(){
   double dataTime = 0;
   int dataAmount = 0;
   for (i = peers.begin(); i != peers.end(); i++){
-    ar_timeval time1 = ar_time();
+    const ar_timeval time1 = ar_time();
     dataAmount += i->second.peer->consume();
     dataTime += ar_difftime(ar_time(), time1)/1000.0;
     glPushMatrix();
-    glMultMatrixf(i->second.transform.v);
-    i->second.peer->activateLights();
-    i->second.peer->draw(&projectionCullMatrix);
+      glMultMatrixf(i->second.transform.v);
+      i->second.peer->activateLights();
+      i->second.peer->draw(&projectionCullMatrix);
     glPopMatrix();
   }
   // BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG BUG
@@ -520,7 +520,7 @@ void display(){
   else{
     ar_timeval temp = time1;
     time1 = ar_time();
-    frametime = int(ar_difftime(time1, temp)) ;
+    frametime = int(ar_difftimeSafe(time1, temp));
   }
 
   ar_mutex_lock(&peerLock);

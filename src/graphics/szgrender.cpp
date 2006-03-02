@@ -278,6 +278,7 @@ int main(int argc, char** argv){
     // drawing, and synchronization happens.
     graphicsClient->_cliSync.consume();
 
+    // Do we need both framerateThrottle AND makeNice?
     if (framerateThrottle){
       ar_usleep(200000);
     }
@@ -286,21 +287,21 @@ int main(int argc, char** argv){
       // the framerate of high framerate displays.
       ar_usleep(2000);
     }
+
     windowManager->processWindowEvents();
-    arPerformanceElement* framerateElement 
-      = framerateGraph.getElement("framerate");
-    double frameTime = ar_difftime(ar_time(), time1);
-    framerateElement->pushNewValue(1000000.0/frameTime);
+    arPerformanceElement* framerateElement =
+      framerateGraph.getElement("framerate");
+    framerateElement->pushNewValue(1000000.0 / ar_difftimeSafe(ar_time(), time1));
   }
-  // Clean-up.
+
+  // Clean up.
   graphicsClient->_cliSync.stop();
   // This should occur in the display thread before exiting.
   // NOTE: we are assuming that framelock is ONLY used in the window
   // manager's single threaded mode.
   windowManager->deactivateFramelock();
-  // Stops all the window threads and deletes the windows.
-  // Definitely a good idea to do this here as it increases the
-  // determinism of the exit.
+  // Stops all the window threads and deletes the windows,
+  // to increase the determinism of the exit.
   windowManager->deleteAllWindows();
   return 0;
 }

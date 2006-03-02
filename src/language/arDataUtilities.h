@@ -55,8 +55,8 @@ class SZG_CALL ar_timeval {
 };
 
 SZG_CALL ar_timeval ar_time();
-SZG_CALL double ar_difftime(const ar_timeval& endTime, 
-                            const ar_timeval& startTime);
+SZG_CALL double ar_difftime(const ar_timeval& end, const ar_timeval& start);
+SZG_CALL double ar_difftimeSafe(const ar_timeval& end, const ar_timeval& start);
 SZG_CALL ar_timeval& ar_addtime(ar_timeval& result, 
                                 const ar_timeval& addend); // returns "result"
 SZG_CALL string ar_currentTimeString();

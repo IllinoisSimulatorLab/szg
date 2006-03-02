@@ -1778,12 +1778,11 @@ void arGraphicsPeer::_sendDataToBridge(arStructuredData* data){
     _bridgeInMap.insert(map<int, int, less<int> >::value_type
       (potentialNewNodeID, result->getID()));
   }
-  // Must put the piece of data back the way it was, if it was altered.
+  // Put the piece of data back the way it was, if it was altered.
   // Do not use dataIn since that will resize the field (and erase 
   // arGraphicsPeer routing information).
-  int* IDptr = (int*)data->getDataPtr(routingFieldID, AR_INT);
   // Guaranteed to have at least 1 element.
-  IDptr[0] = originalID;
+  *(int*)data->getDataPtr(routingFieldID, AR_INT) = originalID;
   if (_databaseReceive[dataID]){
     // The message is one of "make node", "insert", "erase", "cut", or 
     // "permute". We take special action in the case of "make node", "insert",
@@ -1791,16 +1790,13 @@ void arGraphicsPeer::_sendDataToBridge(arStructuredData* data){
     if (dataID == _lang->AR_MAKE_NODE){
       // Do not use dataIn. We are preserving the possibility of extra info
       // being encoded in these fields.
-      IDptr = (int*)data->getDataPtr(_lang->AR_MAKE_NODE_ID, AR_INT);
-      IDptr[0] = secondID;
+      *(int*)data->getDataPtr(_lang->AR_MAKE_NODE_ID, AR_INT) = secondID;
     }
     else if (dataID == _lang->AR_INSERT){
       // Do not use dataIn. We are preserving the possibility of extra info
       // being encoded in these fields.
-      IDptr = (int*)data->getDataPtr(_lang->AR_INSERT_CHILD_ID, AR_INT);
-      IDptr[0] = secondID;
-      IDptr = (int*)data->getDataPtr(_lang->AR_INSERT_ID, AR_INT);
-      IDptr[0] = thirdID;
+      *(int*)data->getDataPtr(_lang->AR_INSERT_CHILD_ID, AR_INT) = secondID;
+      *(int*)data->getDataPtr(_lang->AR_INSERT_ID, AR_INT) = thirdID;
     }
     else if (dataID == _lang->AR_PERMUTE){
       // dataIn is OK here.
@@ -1814,7 +1810,7 @@ void arGraphicsPeer::_sendDataToBridge(arStructuredData* data){
 bool arGraphicsPeer::_updateTransientMap(int nodeID,
 		  map<int, arGraphicsPeerUpdateInfo,less<int> >& transientMap,
                   int remoteFrameTime){
-  ar_timeval currentTime = ar_time();
+  const ar_timeval currentTime = ar_time();
   map<int, arGraphicsPeerUpdateInfo,less<int> >::iterator i 
     = transientMap.find(nodeID);
   if (i == transientMap.end()){
@@ -1824,13 +1820,11 @@ bool arGraphicsPeer::_updateTransientMap(int nodeID,
         (nodeID, temp));
     i = transientMap.find(nodeID);
   }  
-  if (i->second.invalidUpdateTime
-      || ar_difftime(currentTime,i->second.lastUpdate) > remoteFrameTime){
+  if (i->second.invalidUpdateTime ||
+      ar_difftime(currentTime, i->second.lastUpdate) > remoteFrameTime){
     i->second.invalidUpdateTime = false;
     i->second.lastUpdate = currentTime;
     return true;
   }
   return false;
 }
-
-

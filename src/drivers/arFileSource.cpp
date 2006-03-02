@@ -12,15 +12,14 @@ void ar_fileSourceEventTask(void* fileSource){
   ar_timeval latestTime, lastCheckpoint;
   bool establishingCheckpoint = true;
   
-  while (true){
+  for (;;){
     while (establishingCheckpoint 
 	   || ar_difftime(latestTime, lastCheckpoint) < 10000){
       arStructuredData* data = f->_parser->parse(&f->_dataStream);
       if (!data){
-        // we must have reached the end of the file
+        // must have reached eof
         f->_dataStream.ar_close();
-	// wait half a second and then reopen the file! we do looping
-	// behavior by default
+	// wait half a second and then reopen. we loop by default.
         ar_usleep(500000);
 	if (!f->_dataStream.ar_open(f->_dataFileName, "", f->_dataFilePath)){
 	  cerr << "arFileSource error: reopen input file.\n";
@@ -58,24 +57,24 @@ void ar_fileSourceEventTask(void* fileSource){
   }
 }
 
-arFileSource::arFileSource(){
-  _dataFileName = "inputdump.xml";
-  _dataFilePath = "";
-  _parser = new arStructuredDataParser(_lang.getDictionary());
-}
+arFileSource::arFileSource() :
+  _dataFileName("inputdump.xml"),
+  _dataFilePath(""),
+  _parser(new arStructuredDataParser(_lang.getDictionary()))
+{}
 
 arFileSource::~arFileSource(){
   delete _parser;
 }
 
 bool arFileSource::init(arSZGClient& SZGClient){
-  string temp = SZGClient.getAttribute("SZG_DATA","path");
+  const string temp(SZGClient.getAttribute("SZG_DATA","path"));
   if (temp != "NULL"){
     cout << "arFileSource remark: Will write to path " << temp << ".\n";
     _dataFilePath = temp;
   }
   else{
-    cout << "arFileSource warning: path not set.\n";
+    cerr << "arFileSource warning: no path.\n";
   }
   return true;
 }

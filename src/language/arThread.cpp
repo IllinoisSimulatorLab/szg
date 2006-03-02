@@ -138,11 +138,14 @@ bool arConditionVar::wait(arMutex* externalLock, int timeout){
   // however.
   ar_mutex_lock(externalLock);
 #else
-  if (timeout >= 0){
+  if (timeout < 0){
+    pthread_cond_wait(&_conditionVar,externalLock);
+  }
+  else{
     // GRUMBLE... WHY CAN'T PTHREADS JUST USE A WAIT INTERVAL?
     ar_timeval time1 = ar_time();
-    time1.sec = time1.sec + timeout/1000;
-    time1.usec = time1.usec + (timeout%1000)*1000;
+    time1.sec += timeout/1000;
+    time1.usec += (timeout%1000)*1000;
     if (time1.usec >= 1000000){
       time1.sec++;
       time1.usec -= 1000000;
@@ -153,9 +156,6 @@ bool arConditionVar::wait(arMutex* externalLock, int timeout){
     if (pthread_cond_timedwait(&_conditionVar,externalLock,&ts) == ETIMEDOUT){
       state = false;
     }
-  }
-  else{
-    pthread_cond_wait(&_conditionVar,externalLock);
   }
 #endif
   return state;

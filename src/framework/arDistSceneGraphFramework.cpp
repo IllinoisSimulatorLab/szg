@@ -419,46 +419,47 @@ void arDistSceneGraphFramework::stop(bool){
   _stopped = true;
 }
 
-/// Used in standalone mode only. In that case, our application will display its
+/// Used in standalone mode only. our application will display its
 /// own window instead of using szgrender. The "useWindowing" parameter is ignored
 /// by this framework.
 bool arDistSceneGraphFramework::createWindows(bool){
-  if (_standalone){
-    // Start the windowing. 
-    bool state = _graphicsClient.start(_SZGClient, false);
-    if (!state){
-      ar_log_critical() << "arDistSceneGraphFramework error: could not start windowing.\n"; 
+  if (!_standalone)
+    // This method shouldn't have been called.
+    return false;
+
+  // Start the windowing. 
+  const bool ok = _graphicsClient.start(_SZGClient, false);
+  if (!ok){
+    ar_log_critical() << "arDistSceneGraphFramework error: failed to start windowing.\n"; 
 #ifdef AR_USE_DARWIN
-      ar_log_critical() << "  THIS COULD BE BECAUSE YOU ARE NOT RUNNING X11. PLEASE CHECK.\n";
+    ar_log_critical() << "  (Please ensure that X11 is running.)\n";
 #endif	
-    }
-    return state;
   }
-  // This method shouldn't have been called if not in standalone mode.
-  return false;
+  return ok;
 }
 
 /// Used in standalone mode. In that case, our application must actually dislay its
 /// own window (as opposed to through a szgrender as in phleet mode).
 void arDistSceneGraphFramework::loopQuantum(){
   if (_standalone){
-    ar_timeval time1 = ar_time();
-    if (_standaloneControlMode == "simulator"){
+    const ar_timeval time1 = ar_time();
+    if (_standaloneControlMode == "simulator")
       _simPtr->advance();
-    }
-    _soundClient._cliSync.consume();
+
     // Inside here, through callbacks to the arSyncDataClient embedded inside
     // the arGraphicsClient, is where all the scene graph event processing,
     // drawing, and synchronization happens.
+    _soundClient._cliSync.consume();
     _graphicsClient._cliSync.consume();
+
     // Events like closing the window and hitting the ESC key that cause the
     // window to close occur inside processWindowEvents(). Once they happen,
     // stopped() will return true and this loop will exit.
     _wm->processWindowEvents();
-    arPerformanceElement* framerateElement 
-      = _framerateGraph.getElement("framerate");
-    double frameTime = ar_difftime(ar_time(), time1);
-    framerateElement->pushNewValue(1000000.0/frameTime);
+    arPerformanceElement* framerateElement =
+      _framerateGraph.getElement("framerate");
+    framerateElement->pushNewValue(
+      1000000.0/ar_difftimeSafe(ar_time(), time1));
   }
 }
 

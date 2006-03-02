@@ -69,8 +69,6 @@ bool ar_winSockInit(){
 // cross platform clock access functions.
 #ifdef AR_USE_WIN_32
 
-// DO NOT INCLUDE windows.h HERE! arPrecompiled.h includes it!
-
 //;;;; this doxygen comment fails!
 /// Current time.
 
@@ -87,21 +85,10 @@ ar_timeval ar_time(){
   LARGE_INTEGER ticksPerSecond;
   QueryPerformanceCounter(&clockTicks);
   QueryPerformanceFrequency(&ticksPerSecond);
-  // NOT THREAD-SAFE!!!
-  static ar_timeval prev;
   ar_timeval result;
-
   result.sec = clockTicks.QuadPart/ticksPerSecond.QuadPart;
   result.usec = (int)(1.e6*((clockTicks.QuadPart/(double)ticksPerSecond.QuadPart)
                             - (double)result.sec));
-  if (ar_difftime(result, prev) <= 1) {
-    // "now" is less than a microsecond since the last time.
-    // Time may be going backwards, or at least be stopped.
-    // Alert Starfleet Command and pretend that this isn't really happening.
-    const static ar_timeval epsilon(0,1);
-    result = ar_addtime(prev, epsilon);
-  }
-  prev = result;
   return result;
 }
 
@@ -120,6 +107,12 @@ ar_timeval ar_time(){
 
 double ar_difftime(const ar_timeval& a, const ar_timeval& b){
   return 1e6*(a.sec-b.sec) + (a.usec-b.usec);
+}
+
+// Return a nonzero value, safe to divide by for e.g. computing fps.
+double ar_difftimeSafe(const ar_timeval& a, const ar_timeval& b){
+  const double diff = ar_difftime(a, b);
+  return diff > 1. ? diff : 1.;
 }
 
 //;;;; this doxygen comment fails!
@@ -192,10 +185,7 @@ double arTimer::lapTime() {
 }
 
 double arTimer::runningTime() {
-  if (_running)
-    return _runTime + lapTime();
-  else
-    return _runTime;
+  return _runTime + (_running ? lapTime() : 0);
 }
 
 double arTimer::totalTime() {
@@ -203,7 +193,7 @@ double arTimer::totalTime() {
 }
 
 bool arTimer::done() {
-  return (runningTime() >= _duration);
+  return runningTime() >= _duration;
 }
 
 void arTimer::stop() {
@@ -266,8 +256,8 @@ int ar_safePipeReadNonBlock(int pipeID, char* theData, int numBytes,
   struct timeval waitTime;
   int requestedBytes = numBytes;
   while (numBytes>0){
-    double elapsedMicroseconds = ar_difftime(ar_time(), originalTime);
-    int remainingTime = timeout*1000 - int(elapsedMicroseconds);
+    const double elapsedMicroseconds = ar_difftime(ar_time(), originalTime);
+    const int remainingTime = timeout*1000 - int(elapsedMicroseconds);
     if (remainingTime <= 0){
       break;
     }

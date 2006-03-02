@@ -401,7 +401,7 @@ void drawCallback(arMasterSlaveFramework& fw){
   }
   const ar_timeval time2 = ar_time();
   FPSPrev = FPS;
-  FPS = 1000000. / ar_difftime(time2, timePrev);
+  FPS = 1000000. / ar_difftimeSafe(time2, timePrev);
   FPS = .05 * FPS + .95 * FPSPrev;
   timePrev = time2;
 }

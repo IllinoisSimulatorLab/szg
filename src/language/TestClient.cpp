@@ -148,7 +148,7 @@ int main(int argc, char** argv){
   init_time = ar_time();
   comm->ar_safeRead(charSpace,200000);
   done_time = ar_time();
-  float guessMbps = 1600000.0/ar_difftime(done_time,init_time);
+  float guessMbps = 1600000.0/ar_difftimeSafe(done_time,init_time);
   int numberSentChars = -1;
   if (guessMbps < 20){
     cout << " Guessing this is a 10 Mbps link\n";
@@ -173,7 +173,7 @@ int main(int argc, char** argv){
   comm->ar_safeRead(charSpace,numberSentChars);
   done_time = ar_time();
   cout << "  PASSED. TCP Link speed = " 
-       << (8.0*numberSentChars)/ar_difftime(done_time,init_time)
+       << (8.0*numberSentChars)/ar_difftimeSafe(done_time,init_time)
        << " Mbps\n";
 
   // next, we receive 10 structured data packets, unpack them into 
@@ -224,7 +224,7 @@ int main(int argc, char** argv){
   }
   cout << "  PASSED: 10 records received, each of size "
        << testData1.size() << ", with speed " 
-       << (80.0*testData1.size())/ar_difftime(done_time,init_time)
+       << (80.0*testData1.size())/ar_difftimeSafe(done_time,init_time)
        << " Mbps\n";
 
   cout << "Test 3: Determine arStructuredData link speed (small records).\n";
@@ -272,7 +272,7 @@ int main(int argc, char** argv){
   }
   cout << "  PASSED: 10000 records received, each of size "
        << testData1.size() << ", with speed "
-       << (80000.0*testData1.size())/ar_difftime(done_time,init_time)
+       << (80000.0*testData1.size())/ar_difftimeSafe(done_time,init_time)
        << " Mbps\n";
   
   // Next, we receive a single structured data packet. This tests
@@ -362,6 +362,6 @@ int main(int argc, char** argv){
     }
   }
   cout << "  PASSED. XML send rate = " 
-       << 1000000000.0/ar_difftime(ar_time(), time1) << " per second.\n";
+       << 1000000000.0/ar_difftimeSafe(ar_time(), time1) << " per second.\n";
   client.closeConnection();
 }

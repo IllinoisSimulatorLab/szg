@@ -49,7 +49,8 @@ int main(int argc, char** argv){
   while (true){
     cout << "First trying connection speed.\n";
     int i = 0;
-    /*ar_timeval contime = ar_time();
+#if 0
+    ar_timeval contime = ar_time();
   for (i=0; i<numberCon; i++){
     client = new arSZGClient;
     client->init(argc, argv);
@@ -68,7 +69,8 @@ int main(int argc, char** argv){
   client->init(argc, argv);
   if (!(*client)){
     return 1;
-    }*/
+    }
+#endif
   client->setAttribute("foo","bar1","bar1");
   client->setAttribute("foo","bar2","bar2");
     ar_timeval time1 = ar_time();
