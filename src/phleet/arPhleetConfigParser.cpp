@@ -94,9 +94,9 @@ bool arPhleetConfigParser::writeConfigFile(){
   return true;
 }
 
-/// Read in the login-file, szg_<user name>.conf, if it exists. Note that
-/// it is not, necessarily, an error if this file does not exist on a
-/// particular computer(the user might not have logged-in yet).
+/// Try to read in the login-file szg_<user name>.conf.
+/// It may not be an error if this file does not exist on a
+/// particular computer (the user might not have logged in yet).
 bool arPhleetConfigParser::parseLoginFile(){
   if (!_determineFileLocations()){
     return false;
@@ -126,7 +126,7 @@ bool arPhleetConfigParser::writeLoginFile(){
   if (!_determineFileLocations()){
     return false;
   }
-  string fileName = _loginPreamble + ar_getUser() + string(".conf");
+  const string fileName = _loginPreamble + ar_getUser() + string(".conf");
   FILE* login = fopen(fileName.c_str(),"w");
   if (!login){
     return false;
@@ -138,32 +138,31 @@ bool arPhleetConfigParser::writeLoginFile(){
   data->dataIn(_l.AR_LOGIN_SERVER_PORT, &_serverPort, AR_INT, 1);
   data->print(login);
   fclose(login);
-  // NOTE that we DO NOT change permissions on the login file. Other
-  // users should not be able to read it (at least on Unix systems)
+  // Do not change permissions on the login file.
+  // Other (unix) users should not be able to read it.
   return true;
 }
 
 /// Print human-readable config file information
 void arPhleetConfigParser::printConfig(){
-  cout << "Phleet configuration:\n"
+  cout << "Syzygy configuration:\n"
        << "    computer = " << _computerName << "\n";
-  list<pair<string, arInterfaceDescription> >::iterator i 
-    = _networkList.begin();
-  for (; i != _networkList.end(); i++){
+  for (list<pair<string, arInterfaceDescription> >::iterator i = _networkList.begin();
+         i != _networkList.end(); ++i){
     cout << "    network  = " << i->first
-	 << ", address = " << i->second.address 
-	 << ", netmask = " << i->second.mask  << "\n";
+	 << ", " << i->second.address 
+	 << "/" << i->second.mask  << "\n";
   }
-  cout << "    ports    = ";
-  cout << _firstPort << "-" << _firstPort+_blockSize-1 << "\n";
+  cout << "    ports    = " << _firstPort
+       << "-" << _firstPort+_blockSize-1 << "\n";
 }
 
 /// Print human-readable login information
 void arPhleetConfigParser::printLogin(){
-  cout << "Phleet login:\n"
-       << "    system user name = " << ar_getUser() << "\n"
-       << "    phleet user name = " << _userName << "\n"
-       << "    szgserver        = "
+  cout << "Syzygy login:\n"
+       << "    OS user     = " << ar_getUser() << "\n"
+       << "    syzygy user = " << _userName << "\n"
+       << "    szgserver   = "
        << _serverName << ", " << _serverIP << ":" << _serverPort << "\n";
 }
 
