@@ -403,8 +403,8 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     }
     
     if( !_loadParameters() ) {
-      ar_log_error() << _label << " remark: COULD NOT LOAD PARAMETERS IN STANDALONE "
-                     << "MODE." << ar_endl;
+      ar_log_error() << _label <<
+        " remark: failed to load parameters in standalone mode." << ar_endl;
     }
     
     _parametersLoaded = true;
@@ -445,8 +445,8 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     
     const string defaultMode = _SZGClient.getMode( "default" );
     
-    ar_log_remark() << _label << " remark: executing on virtual computer "
-                    << vircomp << ",\n    with default mode "
+    ar_log_remark() << _label << " remark: virtual computer = "
+                    << vircomp << ", default mode = "
                     << defaultMode << "." << ar_endl;
     
     _launcher.setAppType( "distapp" );

@@ -32,8 +32,8 @@ class SZG_CALL arDataClient : public arDataPoint {
 
    bool sendData(arStructuredData*);
 
-   arStreamConfig getRemoteStreamConfig(){ return _remoteStreamConfig; } 
-
+   arStreamConfig getRemoteStreamConfig() const
+     { return _remoteStreamConfig; } 
    arSocket* getSocket() const
      { return _socket; }
    int getSocketIDRemote() const
@@ -51,7 +51,6 @@ class SZG_CALL arDataClient : public arDataPoint {
    arStreamConfig _remoteStreamConfig;
 
    bool _activeConnection;
-   int _numComplaints;
    arMutex _sendLock;
 
    bool _dialUpInit(const char*, int);

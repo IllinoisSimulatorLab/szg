@@ -457,8 +457,8 @@ int main( int argc, char** argv ){
   arSZGClient SZGClient;
   SZGClient.init( argc, argv );
   if( !SZGClient ) {
-    // It is OK if the arSZGClient fails to init.
-    std::cout << "RUNNING IN STANDALONE MODE" << std::endl;
+    // It's ok if init() fails.
+    std::cout << "running standalone.\n";
   }
   string textPath = SZGClient.getAttribute("SZG_RENDER","text_path");
 

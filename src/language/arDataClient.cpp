@@ -13,8 +13,7 @@ arDataClient::arDataClient(const string& exeName) :
   arDataPoint(256),
   _theDictionary(NULL),
   _socket(NULL),
-  _activeConnection(false), // disable closeConnection if there is no active connection
-  _numComplaints(0)
+  _activeConnection(false) // disable closeConnection if there is no active connection
 {
   setLabel(exeName);
   ar_mutex_init(&_sendLock);
@@ -30,10 +29,7 @@ arDataClient::~arDataClient(){
 }
 
 void arDataClient::setLabel(const string& exeName){
-  if (exeName.length() > 0)
-    _exeName = exeName;
-  else
-    _exeName = string("syzygy arDataClient");
+  _exeName = (exeName.length() > 0) ? exeName : string("syzygy arDataClient");
 }
 
 arTemplateDictionary* arDataClient::getDictionary(){
@@ -45,6 +41,7 @@ bool arDataClient::_translateID(ARchar* buf, ARchar* dest, int& size) {
     cerr << _exeName << " error: no dictionary.\n";
     return false;
   }
+
   const ARint recordID =
     ar_translateInt(buf+AR_INT_SIZE, _remoteStreamConfig);
   arDataTemplate* theTemplate = _theDictionary->find(recordID);
@@ -53,6 +50,7 @@ bool arDataClient::_translateID(ARchar* buf, ARchar* dest, int& size) {
     cerr << _exeName << " error: failed to translate data record.\n";
     return false;
   }
+
   return recordID >= 0;
 }
 
@@ -63,6 +61,7 @@ bool arDataClient::getData(ARchar*& dest,int& availableSize){
                    _socket, _remoteStreamConfig)){
     return false;
   }
+
   // Iff fEndianMode is true, then no translation is necessary.
   return fEndianMode || _translateID(_translationBuffer, dest, size);
 }
@@ -75,8 +74,10 @@ bool arDataClient::getData(ARchar*& dest,int& availableSize){
 bool arDataClient::getDataQueue(ARchar*& dest,int& availableSize){
   bool fEndianMode = false;
   if (!getDataCore(dest, availableSize, fEndianMode, 
-                   _socket, _remoteStreamConfig))
+                   _socket, _remoteStreamConfig)) {
     return false;
+  }
+
   if (fEndianMode)
     return true;
 
@@ -105,7 +106,9 @@ bool arDataClient::_dialUpActivate(){
   arStreamConfig localConfig;
   localConfig.endian = AR_ENDIAN_MODE;
 
-  // We have only one socket in this data point.
+  // What is a "data point"?  Is there a friendlier name we can use?
+
+  // Only one socket in this data point.
   localConfig.ID = 0;
 
   // Now, the handshaking looks like so:
@@ -125,9 +128,11 @@ bool arDataClient::_dialUpActivate(){
 	   << "  (Maybe this IP address isn't on the szgserver's whitelist.)\n";
       return false;
     }
-    cout << _exeName << " error: remote data point has wrong szg protocol "
+
+    cerr << _exeName << " error: remote data point has wrong szg protocol "
 	 << "version = " << _remoteStreamConfig.version << ".\n";
     return false;
+
   }
   // Set the remote socket ID.
   _socketIDRemote = _remoteStreamConfig.ID;
@@ -138,12 +143,14 @@ bool arDataClient::_dialUpActivate(){
     cerr << _exeName << " error: dialUp failed to read dictionary size.\n";
     return false;
   }
+
   const ARint totalSize = ar_translateInt(sizeBuffer,_remoteStreamConfig);
   if (totalSize<AR_INT_SIZE){
     cerr << _exeName << " error: dialUp failed to translate dictionary "
 	 << "size.\n";
     return false;
   }
+
   ARchar* dataBuffer = new ARchar[totalSize];
   memcpy(dataBuffer, sizeBuffer, AR_INT_SIZE);
   if (!_socket->ar_safeRead(dataBuffer+AR_INT_SIZE, totalSize-AR_INT_SIZE)){
@@ -151,6 +158,7 @@ bool arDataClient::_dialUpActivate(){
     delete [] dataBuffer;
     return false;
   }
+
   // Initialize the dictionary.
   _theDictionary = new arTemplateDictionary;
   if (!_theDictionary->unpack(dataBuffer,_remoteStreamConfig)){
@@ -159,7 +167,6 @@ bool arDataClient::_dialUpActivate(){
     return false;
   }
 
-  // Success!
   delete [] dataBuffer;
   _activeConnection = true;
   return true;
@@ -172,12 +179,14 @@ bool arDataClient::_dialUpInit(const char* address, int port){
          << port << ".\n";
     return false;
   }
+
   if (strlen(address) < 7 || port < 1000 || port > 65535){
     cerr << _exeName << " error: arDataClient::dialUp(" 
          << address << ":" << port
          << ") got an invalid IP address and/or invalid port.\n";
     return false;
   }
+
   if (!_socket){
     _socket = new arSocket(AR_STANDARD_SOCKET);
   }
@@ -186,29 +195,25 @@ bool arDataClient::_dialUpInit(const char* address, int port){
          << ") failed to create socket.\n";
     return false;
   }
+
   if (!setReceiveBufferSize(_socket))
     return false;
+
   if (!_socket->smallPacketOptimize(_smallPacketOptimize)){
     cerr << _exeName << " error: dialUp(" << address << ":" << port
          << ") failed to smallPacketOptimize.\n";
     return false;
   }
+
   return true;
 }
 
 bool arDataClient::_dialUpConnect(const char* address, int port) {
   if (_socket->ar_connect(address, port) >= 0)
     return true;
-  if (++_numComplaints <= 2){
-    // Is the below message really a good idea? It is NORMAL for many data
-    // sinks (like szgrender or SoundRender) to be running when there is
-    // no associated data server. Consequently this error message pops up,
-    // causing confusion for new users. In the near future, when we move
-    // to connection brokering, this will be obsolete anyway.
 
-    //cout << _exeName << " remark: no data server at "
-    //	 << address << ":" << port << ".\n";
-  }
+  // Don't complain. It's ok for data sinks like szgrender to run
+  // with no associated data server.
   _socket->ar_close();
   return false;
 }
@@ -220,11 +225,11 @@ bool arDataClient::dialUpFallThrough(const char* address, int port){
 }
 
 bool arDataClient::dialUp(const char* address, int port){
-  _numComplaints = 0;
   int usecDelay = 100000;
   while (true) {
     if (!_dialUpInit(address, port))
       return false;
+
     if (_dialUpConnect(address, port))
       return _dialUpActivate();
 
@@ -260,6 +265,7 @@ bool arDataClient::sendData(arStructuredData* theData){
     ar_mutex_unlock(&_sendLock);
     return false;
   }
+
   theData->pack(_dataBuffer);
   bool ok = _socket->ar_safeWrite(_dataBuffer, theSize);
   ar_mutex_unlock(&_sendLock);
