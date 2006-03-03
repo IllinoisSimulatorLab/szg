@@ -26,11 +26,11 @@ int main(int argc, char** argv) {
   arAppLauncher launcher("setdemomode");
   launcher.setSZGClient(&szgClient);
   if (argc == 3){
-    // We must explicitly set the virtual computer.
+    // Explicitly set the virtual computer.
     launcher.setVircomp(argv[1]);
   }
   else{
-    // We will try to get the virtual computer from the "context".
+    // Try to get the virtual computer from the "context".
     launcher.setVircomp();
   }
 
@@ -40,7 +40,7 @@ Usage:
     return 1;
   }
 
-  const string paramVal(argc == 3 ? argv[2] : argv[1]);
+  const string paramVal(argv[argc==3 ? 2 : 1]);
   if (paramVal != "true" && paramVal != "false")
     goto Usage; 
 
