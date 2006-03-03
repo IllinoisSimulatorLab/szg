@@ -54,12 +54,12 @@ arSZGClient::arSZGClient():
   _initialInitLength(0),
   _initialStartLength(0),
   _nextMatch(0),
+  _logLevel(AR_LOG_ERROR),
   _beginTimer(false),
   _requestedName(""),
   _dataRequested(false),
   _keepRunning(true),
-  _justPrinting(false),
-  _logLevel(AR_LOG_ERROR)
+  _justPrinting(false)
 {
   // temporary... this will be overwritten in init(...)
   _exeName.assign("Syzygy client");
@@ -221,27 +221,23 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
   }
   
   if ( _IPaddress == "NULL" || _port == -1 || _userName == "NULL" ){
-    // The information to attempt a login attempt is not available.
-    // We must be operating in standalone mode.
-    ar_log_critical() << _exeName << " remark: RUNNING IN STANDALONE MODE. NO DISTRIBUTION.\n"
-                      << "  (to run in Phleet mode, you must dlogin)\n";
+    // No information to attempt dlogin, so we must be standalone.
+    ar_log_critical() << _exeName << " remark: running standalone.\n";
     _connected = false;
     success = true;
     
-    // Do not print out a warning if the file cannot be found!
+    // Don't complain if the file cannot be found.
     if (!parseParameterFile(_parameterFileName, false)){
       // Failed to find the specified parameter file. Go ahead and try to find
       // a file specified by environment variable SZG_PARAM.
       string possibleFileName = ar_getenv("SZG_PARAM");
       if (possibleFileName != "NULL"){
-	// Do not print out a warning if the file cannot be found.
 	parseParameterFile(possibleFileName, false);
       }
     }
   }
   else{
-    // We are supposed to be operating in Phleet mode. Don't print out a 
-    // message stating that, since this is the *normal* mode of operation.
+    // Should be "in Phleet mode", not standalone. Don't complain.
     
     // This needs to go after phleet args parsing, etc. It could be that we
     // specify where the server is, what the user name is, etc. via command
@@ -254,7 +250,7 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
     }
     else{
       // Successfully connected to the szgserver. 
-      // 1.Tell it our name.
+      // 1. Tell it our name.
       // 2. Put headers onto the init and start response streams.
       // 3. Handshake back with dex (if this program was launched by szgd).
       _connected = true;
@@ -271,8 +267,8 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
 	// we are indeed trying to force the name. Go ahead and print out a
 	// warning, though, if there is a difference.
 	if (forcedName != _exeName){
-	  ar_log_warning() << _exeName << " warning: forcing a component name\n"
-	                   << "different from the exe name (necessary only in Win98).\n";
+	  ar_log_warning() << _exeName <<
+	    " warning: component name overriding exe name (for Win98).\n";
 	}
 	// This method also changes _exeName internally.
 	// Tell the szgserver our name
@@ -329,12 +325,11 @@ bool arSZGClient::init(int& argc, char** argv, string forcedName){
 /// Common core of sendInitResponse() and sendStartResponse().
 bool arSZGClient::_sendResponse(stringstream& s, 
 				const char* sz,
-				int initialStreamLength,
+				unsigned initialStreamLength,
                                 bool ok, 
 				bool fNotFinalMessage) {
-  // We might output to the terminal below. However, only do this if there has been new
-  // stuff after the header.
-  bool printInfo = s.str().length() > initialStreamLength ? true : false;
+  // Output to the terminal below only if there's new stuff after the header.
+  const bool printInfo = s.str().length() > initialStreamLength;
   // Append a standard success or failure message to the stream.
   s << _exeName << " component " << sz << (ok ? " ok.\n" : " failed.\n");
   // We do not send the message response if:
@@ -351,7 +346,7 @@ bool arSZGClient::_sendResponse(stringstream& s,
   }
   else{
     // Nowhere to send the message. Might as well go to the terminal.
-    // This MUST go to cout and not to the logging stream (it'll just disappear in this case).
+    // Send to cout, not the logging stream where it'll disappear.
     if (printInfo){
       cout << s.str();
     }

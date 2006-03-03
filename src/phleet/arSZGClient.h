@@ -309,7 +309,7 @@ class SZG_CALL arSZGClient{
   bool _send(const char* diagnostic);
   bool _setLabel(const string& label);
   string _generateLaunchInfoHeader();
-  bool _sendResponse(stringstream&, const char*, int, bool, bool);
+  bool _sendResponse(stringstream&, const char*, unsigned, bool, bool);
 
   // functions dealing with the local parameter database (as will only
   // be used in standalone mode)
