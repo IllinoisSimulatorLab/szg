@@ -14,6 +14,7 @@
 #endif
 
 #ifdef AR_USE_WIN_32
+#ifndef AR_USE_MINGW
 // DirectInput... note that here we are forcing Direct Input 7.
 // Why? In Direct Input 7, the device type is JOYSTICK_GAMEPAD,
 // while in later Direct Inputs there are seperate JOYSTICK and
@@ -40,6 +41,7 @@ static BOOL CALLBACK DIDevCallback(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef)
   return (lpddi->dwDevType & DIDEVTYPEJOYSTICK_GAMEPAD) ?
     DIENUM_STOP : DIENUM_CONTINUE;
 }
+#endif
 #endif
 
 #endif

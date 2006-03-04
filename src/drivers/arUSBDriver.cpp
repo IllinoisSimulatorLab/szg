@@ -358,7 +358,8 @@ int DoRS232Send(char c) {
 // External function for sending bytes!
 int DoRS232BufferSend(const char* rgb, int& cb) {
   bool ok = true;
-  for (int i=0; i<cb; ++i)
+  int i;
+  for (i=0; i<cb; ++i)
     if (DoRS232Send(rgb[i]) == DEVICE_NOT_PRESENT) {
       ok = false;
       break;
@@ -444,7 +445,8 @@ int DoSetRS232Baud(int BaudRate) {
 // External function for getting the bytes!
 int DoGetRS232Buffer(char* RS232Buffer, int& RS232BufferLength) {
   int BufferLength = 0;
-  for (int i=0; i<RS232BufferLength; ++i) {
+  int i;
+  for (i=0; i<RS232BufferLength; ++i) {
     if (RS232BufferRead == RS232BufferWrite)
       // underflow:  read index caught up with write index
       break;
