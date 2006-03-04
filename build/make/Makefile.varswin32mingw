@@ -1,0 +1,110 @@
+MACHINE_DIR = win32
+# NOTE: The copy-to-bin-directory now occurs either automatically when
+# an executable (or the library) is recompiled (for each such individually).
+# It can also occur upon a manually given copy request (in which case
+# everything is rebuilt (if necessary as determined by make) then copied.
+CP = cp
+
+# suffixes
+OBJ_SUFFIX = .o
+DLL_SUFFIX = .dll
+LIB_SUFFIX = .a
+PLUGIN_SUFFIX = .dll
+STATIC_SUFFIX=.a
+EXE = .exe
+
+# compilation
+COMPILER = g++
+COMPILE_FLAGS_NDEBUG = -DAR_USE_WIN_32 -DAR_USE_MINGW -DGLUT_NO_LIB_PRAGMA \
+	-DGLUT_NO_WARNING_DISABLE -c -O2 -Wall -W  -Wpointer-arith -march=i686 $(SZG_OPT_FLAGS)
+COMPILE_FLAGS_DEBUG = -DAR_USE_LINUX -DAR_USE_MINGW -DGLUT_NO_LIB_PRAGMA \
+	-DGLUT_NO_WARNING_DISABLE -c -g -Wall -W -Wpointer-arith -march=i686 $(SZG_OPT_FLAGS)
+# Do NOT use ":=" in defining COMPILE_FLAGS, since this allows more
+# flexibility in where SZG_OPT_FLAGS is defined.
+ifneq ($(strip $(SZGDEBUG)),TRUE)
+	COMPILE_FLAGS = $(COMPILE_FLAGS_NDEBUG)
+else
+	COMPILE_FLAGS = $(COMPILE_FLAGS_DEBUG)
+endif
+
+COMPILE_FLAGS_SHARED = $(COMPILE_FLAGS)
+
+ifneq ($(strip $(SZGDEBUG)),TRUE)
+	OPTIMIZE_FLAG = -O3
+else
+	OPTIMIZE_FLAG = 
+endif
+
+# This covers up the fact that precompiled headers are not needed on the
+# Unix side.  
+PRECOMPILED_HEADER_LINE := \
+	$(CP) ../../../src/language/arPrecompiled.cpp arPrecompiled$(OBJ_SUFFIX)
+
+COMPILE_FLAGS_SHARED = $(COMPILE_FLAGS)
+
+# General settings regarding linking, such as flags and libraries.
+LINKER = g++
+STATIC_LINKER = ar -r
+LINK_PREFIX = 
+LINK_FLAGS = -o
+LINK_FLAGS_DEBUG = $(LINK_FLAGS)
+LINK_FLAGS_SHARED = -shared -o
+LINK_FLAGS_PLUGIN = -shared -o
+GENERAL_LIBS = -ladvapi32 -lkernel32 -luser32 -lgdi32 -lwsock32
+# NOTE: glut does not appear below but is instead dealt with in
+# Makefile.libscan (we might not want to install a glut, but instead
+# use one from SZGEXTERNAL)
+GRAPHICS_LIBS = -lopengl32 -lglu32
+GAMEPAD_LIBS =
+TRACKER_LIBS = 
+
+# The flags for library search vary based on whether or not our build style
+# is EASY. If so, in addition to changing the compile-time search location,
+# do not add a runtime path. Because the built-in runtime search paths will
+# be unhelpful (libarPhleet.so will search for libarLanguage.so on its
+# location for the developer who compiled the libraries), it is no extra
+# burden to make the user set LD_LIBRARY_PATH.
+PRE_LIB_SEARCH_FLAGS = 
+ifeq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
+	LIB_SEARCH_FLAGS=-L$(SZGHOME)/bin
+else
+	LIB_SEARCH_FLAGS=$(PRE_LIB_SEARCH_FLAGS) -L$(SZG_BINDIR) -Wl,-rpath,$(SZG_BINDIR) -Wl,--enable-stdcall-fixup
+endif
+
+# These link the libs (i.e. libarLanguage$(DLL_SUFFIX), etc.)
+PRE_LINK_LINE_LIB= 
+POST_LINK_LINE_LIB=$(LIB_SEARCH_FLAGS) $(SZG_LIBRARY_LIBS) \
+	$(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
+
+# These link the exe's that only depend on intermediate stages of the build.
+# (for instance szgserver, szgrender, etc.). Since these are built out
+# of an "intermediate" Makefile, then must link with the lib built
+# via that Makefile (given by SZG_CURRENT_LIB_MOD_NAME) AND the
+# cumulative libs that it depends upon.
+PRE_LINK_LINE_EXE= 
+POST_LINK_LINE_EXE= $(LIB_SEARCH_FLAGS) -l$(SZG_CURRENT_LIB_MOD_NAME) \
+	$(SZG_LIBRARY_LIBS) $(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
+
+# These link the exe's that utilize the full range of szg shared libraries.
+# This is the link line that an end user would employ to link his 
+# application, hence "USR"
+PRE_LINK_LINE_USR= 
+POST_LINK_LINE_USR= $(LIB_SEARCH_FLAGS) $(SZG_LIBRARY_LIBS) \
+	$(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
+
+# It turns out that libraries on the Unix and Win32 sides need to be
+# referenced in fundamentally different ways. 
+LANGUAGE_LIB_STRING = -larLanguage$(SZG_STATIC_MOD)
+PHLEET_LIB_STRING = -larPhleet$(SZG_STATIC_MOD)
+BARRIER_LIB_STRING = -larBarrier$(SZG_STATIC_MOD)
+MATH_LIB_STRING = -larMath$(SZG_STATIC_MOD)
+DRIVERS_LIB_STRING = -larDrivers$(SZG_STATIC_MOD)
+GRAPHICS_LIB_STRING = -larGraphics$(SZG_STATIC_MOD)
+SOUND_LIB_STRING = -larSound$(SZG_STATIC_MOD)
+OBJECT_LIB_STRING = -larObject$(SZG_STATIC_MOD)
+INTERACT_LIB_STRING = -larInteraction$(SZG_STATIC_MOD)
+FRAMEWORK_LIB_STRING = -larFramework$(SZG_STATIC_MOD)
+
+
+RANLIB = @echo
+

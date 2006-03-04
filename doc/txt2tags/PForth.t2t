@@ -339,7 +339,8 @@ will give you the matrix as it looked in the editor.
 
 **matrixCopy** ``( addr1 addr2 -- )`` Copies matrix at addr1 to addr2.
 
-**matrixInverse** ``( addr1 addr2 -- )`` Computes inverse of matrix at addr1 and stores it at addr2.
+**inverseMatrix** ``( addr1 addr2 -- )`` Computes inverse of matrix at addr1 and stores it at addr2.
+//Erratum//: The docs used to incorrectly 'matrixInverse' instead of 'inverseMatrix'; corrected 3/3/06.
 
 **matrixMultiply** ``( addr1 addr2 addr3 -- )`` Multiplies matrix at addr1 by matrix at addr2
 and stores the result at addr3.
@@ -485,16 +486,20 @@ pointed to by addr.&nbsp; Returns identity matrix if event doesn't
 exist.
 
 **insertButtonEvent** ``( n1 n2 -- )``
-Creates a new button event with index n1 and value n2 and inserts it
-into the event stream.
+Creates a new button event with value n1 and index n2 and inserts it
+into the event stream. //Erratum//: The arguments for insertButtonEvent
+were previously listed in the wrong order. Fixed 3/3/06.
 
-**insertAxisEvent** ``( n1 x1 -- )``
-Creates a new axis event with index n1 and value x1 and inserts it into
-the event stream.
+**insertAxisEvent** ``( x1 n1 -- )``
+Creates a new axis event with value x1 and index n1 and inserts it into
+the event stream. //Erratum//: The arguments for insertAxisEvent
+were previously listed in the wrong order. Fixed 3/3/06.
 
-**insertMatrixEvent** ``( n1 addr -- )``
-Creates a new matrix event with index n1 and value taken from the
-dataspace at addr and inserts it into the event stream.
+**insertMatrixEvent** ``( addr n1 -- )``
+Creates a new matrix event with value taken from the
+dataspace at addr and index n1 and inserts it into the event stream.
+//Erratum//: The arguments for insertMatrixEvent
+were previously listed in the wrong order. Fixed 3/3/06.
 
 
 ==The Syzygy Database Vocabulary==

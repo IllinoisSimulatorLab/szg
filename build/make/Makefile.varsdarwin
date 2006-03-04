@@ -1,0 +1,97 @@
+MACHINE_DIR = darwin
+CP = cp
+
+# suffixes
+OBJ_SUFFIX = .o
+DLL_SUFFIX=.dylib
+LIB_SUFFIX=.dylib
+PLUGIN_SUFFIX=.so
+STATIC_SUFFIX=.a
+EXE =
+
+# compilation
+COMPILER = c++
+COMPILE_FLAGS_NDEBUG = -DAR_BIG_ENDIAN -DAR_USE_DARWIN $(SZG_OPT_FLAGS) \
+	-fno-common -fPIC -O2 -c
+COMPILE_FLAGS_DEBUG = -DAR_BIG_ENDIAN -DAR_USE_DARWIN $(SZG_OPT_FLAGS) \
+	-fno-common -fPIC -c -g
+ifneq ($(strip $(SZGDEBUG)),TRUE)
+	COMPILE_FLAGS = $(COMPILE_FLAGS_NDEBUG)
+else
+	COMPILE_FLAGS = $(COMPILE_FLAGS_DEBUG)
+endif
+
+COMPILE_FLAGS_SHARED=$(COMPILE_FLAGS)
+
+PRECOMPILED_HEADER_LINE := \
+	$(CP) ../../../src/language/arPrecompiled.cpp arPrecompiled$(OBJ_SUFFIX)
+
+ifneq ($(strip $(SZGDEBUG)),TRUE)
+	OPTIMIZE_FLAG = -O3
+else
+	OPTIMIZE_FLAG = 
+endif
+
+# linking
+LINKER = c++
+STATIC_LINKER = ar -r
+LINK_PREFIX =
+LINK_FLAGS = -o
+LINK_FLAGS_DEBUG = $(LINK_FLAGS)
+LINK_FLAGS_SHARED = -dynamiclib -flat_namespace -undefined suppress -o
+LINK_FLAGS_PLUGIN = -bundle -flat_namespace -undefined suppress -o
+
+GENERAL_LIBS = -lm -lpthread -lcurses -lobjc
+GRAPHICS_LIBS = -L/usr/X11R6/lib -lX11 -lXext -lGL -framework OpenGL -framework GLUT -framework COCOA
+GAMEPAD_LIBS = 
+
+# OS X needs an outside library to support dlopen.
+SZG_DLL_LIB = $(SZGHOME)/contrib/dlcompat/libdl.a
+SZG_DLL_INCLUDE = -I$(SZGHOME)/contrib/dlcompat
+
+# OS X needs to explicitly set the location of glx.h
+# Yes, this IS misnamed... But it fits it with what is already around!
+SZG_INCLUDE_GLUT = -I/usr/X11R6/include
+
+# The flags for library search vary based on whether or not our build style
+# is EASY. Since OS X allows relative runtime paths, things are a little
+# easier than the other Unixes because it won't be strictly necessary to 
+# set DYLD_LIBRARY_PATH (the equivalent of LD_LIBRARY_PATH for Darwin)
+ifeq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
+	LIB_SEARCH_FLAGS=-L$(SZGHOME)/bin
+else
+	LIB_SEARCH_FLAGS=-L$(SZG_BINDIR)
+endif
+
+PRE_LINK_LINE_LIB= 
+POST_LINK_LINE_LIB=$(LIB_SEARCH_FLAGS) $(SZG_LIBRARY_LIBS) \
+	$(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS) -install_name @executable_path/$(SZG_CURRENT_LIB)
+
+PRE_LINK_LINE_EXE= 
+POST_LINK_LINE_EXE= $(LIB_SEARCH_FLAGS) -l$(SZG_CURRENT_LIB_MOD_NAME) \
+	$(SZG_LIBRARY_LIBS) $(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
+
+PRE_LINK_LINE_USR= 
+POST_LINK_LINE_USR= $(LIB_SEARCH_FLAGS) $(SZG_LIBRARY_LIBS) \
+	$(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
+
+# It turns out that libraries on the Unix and Win32 sides need to be
+# referenced in fundamentally different ways. 
+LANGUAGE_LIB_STRING = -larLanguage$(SZG_STATIC_MOD)
+PHLEET_LIB_STRING = -larPhleet$(SZG_STATIC_MOD)
+BARRIER_LIB_STRING = -larBarrier$(SZG_STATIC_MOD)
+MATH_LIB_STRING = -larMath$(SZG_STATIC_MOD)
+DRIVERS_LIB_STRING = -larDrivers$(SZG_STATIC_MOD)
+GRAPHICS_LIB_STRING = -larGraphics$(SZG_STATIC_MOD)
+SOUND_LIB_STRING = -larSound$(SZG_STATIC_MOD)
+OBJECT_LIB_STRING = -larObject$(SZG_STATIC_MOD)
+INTERACT_LIB_STRING = -larInteraction$(SZG_STATIC_MOD)
+FRAMEWORK_LIB_STRING = -larFramework$(SZG_STATIC_MOD)
+
+
+# Creating static libraries. NOTE: on OS X it is necessary to run
+# ranlib on a newly linked .a, but this is redundant on other Unix
+# or Win32 platforms.
+RANLIB = ranlib
+
+

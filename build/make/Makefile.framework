@@ -67,7 +67,9 @@ ifeq ($(strip $(MACHINE)),WIN32)
 endif
 
 ifeq ($(strip $(MACHINE)),WIN32)
+ifneq ($(strip $(SZG_COMPILER)),MINGW)
 LINK_FLAGS += /stack:4000000
+endif
 endif
 
 ALL =   $(SZG_CURRENT_DLL) \

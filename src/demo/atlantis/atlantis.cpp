@@ -102,6 +102,7 @@ fishRec babyWhale;
 fishRec dolph;
 
 int useTexture = 1;
+int drawVerticalBar = 0;
 arTexture seaTexture;
 GLfloat s_plane[] = { 1, 0, 0, 0 };
 GLfloat t_plane[] = { 0, 0, 1, 0 };
@@ -113,10 +114,6 @@ const int SHARK_SPREAD = 20000;  // originally 6000
 // interactable callbacks
 
 static arMatrix4 gSpearBaseMatrix;
-
-void toggleUseTexture() {
-  useTexture = !useTexture;
-}
 
 void drawTransparentSphere( const arVector3& offset, float radius ) {
   glPushMatrix();
@@ -138,14 +135,17 @@ void drawSpear( const arMatrix4& spearBaseMatrix ) {
   glPushMatrix();
     glMultMatrixf(spearMatrix.v);
     glPushMatrix();
-      glScalef( FEET_TO_AU/12, FEET_TO_AU/12., SPEAR_LENGTH );
+      glScalef( FEET_TO_AU/12., FEET_TO_AU/12., SPEAR_LENGTH );
       glColor3f(.4,.4,.4);
       glutSolidCube(1.);
     glPopMatrix();
-    glPushMatrix();
-     glTranslatef( 0, FEET_TO_AU, 0 );
-     glutSolidCube(.2);
-    glPopMatrix();
+    if (drawVerticalBar) {
+      glPushMatrix();
+       glTranslatef( 0, .5*FEET_TO_AU, 0. );
+       glScalef( FEET_TO_AU/12., FEET_TO_AU, FEET_TO_AU/12. );
+       glutSolidCube(1.);
+      glPopMatrix();
+    }
     if (gDrawSpearTip)
       drawTransparentSphere( arVector3(0,0,-0.5*SPEAR_LENGTH), gSpearRadius );
   glPopMatrix();
@@ -366,6 +366,7 @@ bool init( arMasterSlaveFramework& fw, arSZGClient& /*SZGClient*/ ) {
   fw.addTransferField("spearMatrix", gSpearBaseMatrix.v, AR_FLOAT, 16);
   fw.addTransferField("spearRadius", &gSpearRadius, AR_FLOAT, 1);
   fw.addTransferField("drawSpearTip", &gDrawSpearTip, AR_INT, 1);
+  fw.addTransferField("drawVerticalBar", &drawVerticalBar, AR_INT, 1);
   fw.addTransferField("useTexture", &useTexture, AR_INT, 1);
 
   fw.setNavTransSpeed( 20.*FEET_TO_AU );
@@ -383,6 +384,10 @@ void preExchange(arMasterSlaveFramework& fw) {
   int i;
   static bool firstAttack(true);
   fw.navUpdate();
+  if (fw.getOnButton(0)) {
+    drawVerticalBar = !drawVerticalBar;
+  }
+
   if (fw.getOnButton(5)) {
     sharkAttack = !sharkAttack;
     if (sharkAttack) {

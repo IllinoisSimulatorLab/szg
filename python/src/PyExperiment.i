@@ -245,7 +245,7 @@ class arPythonExperiment: public arExperiment {
     /// Set the value of a data field
     bool setLongData( const std::string& sname, PyObject* intDataList );
     bool setDoubleData( const std::string& sname, PyObject* floatDataList );
-    bool setStringData( const std::string& sname, std::string& stringData );
+    bool setStringData( const std::string& sname, const std::string& stringData );
     
     /// Get the value of a data field
     PyObject* getLongData( const std::string& sname );
@@ -465,7 +465,7 @@ bool arPythonExperiment::setDoubleData( const std::string& sname, PyObject* floa
 }
 
 
-bool arPythonExperiment::setStringData( const std::string& sname, std::string& stringData ) {
+bool arPythonExperiment::setStringData( const std::string& sname, const std::string& stringData ) {
   return arExperiment::setDataFieldData( sname, AR_CHAR, (const void* const)stringData.c_str(), (unsigned int)stringData.size() );
 }
 
@@ -809,7 +809,7 @@ def addDataFieldSequence( self, dataFieldSequence ):
     /// Set the value of a data field
     bool setLongData( const string& sname, PyObject* intDataList );
     bool setDoubleData( const string& sname, PyObject* floatDataList );
-    bool setStringData( const string& sname, string& stringData );
+    bool setStringData( const string& sname, const string& stringData );
     
 %pythoncode %{
 def setDataFieldSequence( self, dataFieldSequence ):

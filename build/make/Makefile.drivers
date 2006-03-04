@@ -27,6 +27,30 @@ OBJS = \
   arPForthEventVocabulary$(OBJ_SUFFIX) \
   arPForthFilter$(OBJ_SUFFIX)
 
+ifeq ($(strip $(SZG_LINKING)), STATIC) 
+  OBJS +=  \
+  arIntersenseDriver$(OBJ_SUFFIX) \
+  arBirdWinDriver$(OBJ_SUFFIX) \
+  arEVaRTDriver$(OBJ_SUFFIX) \
+  arFOBDriver$(OBJ_SUFFIX) \
+  arFaroDriver$(OBJ_SUFFIX) \
+  arLogitechDriver$(OBJ_SUFFIX) \
+  arMotionstarDriver$(OBJ_SUFFIX) \
+  arPPTDriver$(OBJ_SUFFIX) \
+  arReactionTimerDriver$(OBJ_SUFFIX) \
+  arSharedMemDriver$(OBJ_SUFFIX) \
+  arUSBDriver$(OBJ_SUFFIX) \
+  arVRPNDriver$(OBJ_SUFFIX)
+
+	ifneq ($(strip $(SZG_COMPILER)),MINGW)
+		OBJS +=  \
+		arSpacepadDriver$(OBJ_SUFFIX) \
+		arJoystickDriver$(OBJ_SUFFIX) \
+		arIntelGamepadDriver$(OBJ_SUFFIX)
+  endif
+
+endif
+
 # Local variable definitions for the build.
 # These internal library makefiles ONLY include the external files necessary
 # to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
@@ -52,7 +76,9 @@ ifeq ($(strip $(MACHINE)),WIN32)
 endif
 
 ifeq ($(strip $(MACHINE)),WIN32)
+ifneq ($(strip $(SZG_COMPILER)),MINGW)
 LINK_FLAGS += /stack:4000000
+endif
 endif
 
 # libs in Win32 and unix need different orders.
@@ -92,7 +118,7 @@ ALL =   $(SZG_CURRENT_DLL) \
   PForthTest$(EXE) \
   pfconsole$(EXE)
 
-ifneq "$SZG_LINKING" "STATIC"
+ifneq ($(strip $(SZG_LINKING)), STATIC) 
   ALL += DeviceServer$(EXE) \
   arIntersenseDriver$(PLUGIN_SUFFIX) \
   arBirdWinDriver$(PLUGIN_SUFFIX) \

@@ -214,7 +214,7 @@ TArray<DATATYPE>& TArray<DATATYPE>::operator =
     TArray<DATATYPE>::TArray(const DATATYPE *data){
       unsigned long i;
       
-      _dim = ( sizeof(D)/sizeof(DATATYPE) );
+      _dim = ( sizeof(data)/sizeof(DATATYPE) );
 
       _data = new DATATYPE[_dim];
   
