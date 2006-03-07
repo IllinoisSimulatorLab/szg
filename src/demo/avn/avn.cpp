@@ -1195,11 +1195,16 @@ const char* filename = "h2d45.mov";
 
 bool dotrans()
 {
-  printf("avn remark: reading %s\n", filename);
   FILE* topefile = ar_fileOpen(string(filename), "avn", dataPath, "rb");
+  if (topefile == NULL) {
+    cerr << "avn error: failed to open " << string(filename) << endl;
+    return false;
+  }
+  printf("avn remark: reading %s\n", filename);
   char* filename2 = (char *)malloc(strlen(filename) + 4);
   sprintf(filename2, "%s.dl", filename);
   FILE* dlfile = ar_fileOpen(string(filename2), "avn", dataPath, "rb");
+
   /*
   if(dlfile==NULL)
      printf("avn remark: Double locus file <%s> not present.\n",filename2);
