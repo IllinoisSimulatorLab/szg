@@ -134,6 +134,8 @@ class TimeTunnelLayout
 
     virtual void animateLayout();
 
+    bool getValid() const { return valid; }
+
    protected:
       // Linked lists of 'from' information for which no matching 'to' events
       // have been seen. These lists are indexed using the 'from' identifier.
@@ -214,6 +216,8 @@ class TimeTunnelLayout
     int  _numberBytesSent;
 
     arMutex _databaseLock;
+
+    bool valid;
 
 
   private:

@@ -214,6 +214,11 @@ TimeTunnelLayout::TimeTunnelLayout(float theRadius, float theTimeLength,
 
   // finally, let's open the data file
   _inputFile = ar_fileOpen("TimeTunnelData","timetunnel",dataPath,"rb");
+  valid = !!_inputFile;
+  if (!valid) {
+    cerr << "timetunnel error: failed to open TimeTunnelData data file.\n";
+    cerr << "\tPerhaps SZG_DATA/path is not set correctly.\n";
+  }
 }
 
 /*********************************************************************/

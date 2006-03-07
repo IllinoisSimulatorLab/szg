@@ -41,6 +41,11 @@ int main(int argc, char** argv){
   worldTransformID[0] = dgTransform("world",navNodeName,ar_identityMatrix());
   worldTransformID[1] = dsTransform("world",navNodeName,ar_identityMatrix());
   theLayout = new TimeTunnelLayout(3,10,32,42,framework.getDataPath());
+  if (!theLayout->getValid()) {
+    cerr << "timetunnel error: construction of TimeTunnelLayout object failed. Exiting.\n";
+    delete theLayout;
+    return 0;
+  }
 
   // Configure stereo view.
   framework.setEyeSpacing( 6/(2.54*12) );
