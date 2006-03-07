@@ -43,7 +43,11 @@ ALL = \
 
 all: $(ALL)
 
+ifeq ($(strip $(PYTHONEXE)),)
+  PYTHONEXE=python
+endif
+
 %.html : txt2tags/%.t2t
-	python txt2tags.py -t html --outfile $@ $<
+	$(PYTHONEXE) txt2tags.py -t html --outfile $@ $<
 
 
