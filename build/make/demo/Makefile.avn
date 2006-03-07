@@ -11,6 +11,6 @@ ALL = avn$(EXE)
 # in it, along with the "magic" Everything rule!
 include $(SZGHOME)/build/make/Makefile.rules
 
-avn$(EXE): optiverse$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
-	$(SZG_USR_FIRST) optiverse$(OBJ_SUFFIX) $(SZG_USR_SECOND)
+avn$(EXE): avn$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) avn$(OBJ_SUFFIX) $(SZG_USR_SECOND)
 	$(COPY)
