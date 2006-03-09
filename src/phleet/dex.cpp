@@ -66,7 +66,10 @@ bool isVirtualComputer(arSZGClient& szgClient, const char* host){
 int main(int argc, char** argv){
   int i=0, j=0;
   // Default is to have no timeout.
-  int timeout = -1;
+  int localtimeout = -1;
+  int remoteTimeout = -1;
+  float tempFloat;
+  bool stat;
   bool verbosity = false;
   // parse and remove the command-line options
   for (i=0; i<argc; i++){
@@ -78,18 +81,48 @@ int main(int argc, char** argv){
       }
       argc--;
     }
-    if (!strcmp(argv[i],"-t")){
-      // The next arg must be a timeout, in ms.
+    if (!strcmp(argv[i],"-lt")){
+      // The next arg must be a timeout, in seconds.
       if (argc <= i+1){
-	cout << "dex error: a timeout in ms must follow the -t option.\n";
+	cerr << "dex error: a timeout in seconds must follow the -lt option.\n";
 	return 1;
       }
-      timeout = atoi(argv[i+1]);
-      if (timeout < -1){
-	cout << "dex error: the timeout must be an integer >= -1.\n";
+      stat = ar_stringToFloatValid( string(argv[i+1]), tempFloat );
+      if (!stat) {
+	cerr << "dex error: the local timeout must be a number.\n";
+        return 1;
+      }
+      if (tempFloat <= 0.){
+	cerr << "dex error: the local timeout must be a number of seconds > 0.\n";
 	return 1;
       } else {
-        cout << "dex remark: timeout = " << timeout << endl;
+        // convert to int, milliseconds.
+        localtimeout = (int)(tempFloat*1000);
+        cout << "dex remark: local timeout = " << localtimeout << " milliseconds.\n";
+      }
+      for (j=i; j<argc-2; j++){
+        argv[j] = argv[j+2];
+      }
+      argc = argc - 2;
+    }
+    if (!strcmp(argv[i],"-t")){
+      // The next arg must be a remote timeout, in seconds.
+      if (argc <= i+1){
+	cerr << "dex error: a timeout in seconds must follow the -t option.\n";
+	return 1;
+      }
+      stat = ar_stringToFloatValid( string(argv[i+1]), tempFloat );
+      if (!stat) {
+	cerr << "dex error: the timeout must be a number.\n";
+        return 1;
+      }
+      if (tempFloat <= 0.){
+	cerr << "dex error: the timeout must be a number of seconds > 0.\n";
+	return 1;
+      } else {
+        // convert to int, milliseconds.
+        remoteTimeout = (int)(tempFloat*1000);
+        cout << "dex remark: remote timeout = " << remoteTimeout << " milliseconds.\n";
       }
       for (j=i; j<argc-2; j++){
         argv[j] = argv[j+2];
@@ -98,11 +131,13 @@ int main(int argc, char** argv){
     }
   }
 
-  if (argc <= 1)
-    {
+  if (argc <= 1) {
     // don't even try connecting to szgserver
-    cerr << "usage: " << argv[0] << " [-v] [-t timeoutmsec] executable_name\n"
-         << "       " << argv[0] << " [-v] [-t timeoutmsec] hostname executable_name [args]\n";
+    cerr << "usage: " << argv[0] << " [-v] [-lt localtimeoutsec] [-t timeoutsec] executable_name\n"
+         << "       " << argv[0] << " [-v] [-lt localtimeoutsec] [-t timeoutsec] hostname executable_name [args]\n"
+         << "       localtimeoutsec is the time for dex to wait for a reply.\n"
+         << "       timeoutsec is the timeout for the actual launch of the application by szgd.\n"
+         << "       If the app hasn't launched in timeoutsec, it will abort.\n";
     return 1;
     }
 
@@ -231,9 +266,16 @@ int main(int argc, char** argv){
     // DO NOT TRY TO REINTERPRET OR RETRY. Just fail.
     return 1;
   }
-  
+
+  string messageBody( exeName );
+  if (remoteTimeout > -1) {
+    ostringstream tempStream;
+    tempStream << remoteTimeout;
+    // Oy vey. Hack. This will get unpacked by szgd.
+    messageBody += "||||"+tempStream.str();
+  } 
   int match = szgClient.sendMessage("exec", 
-                                    exeName, 
+                                    messageBody, 
                                     messageContext, 
                                     szgdID, true);
   if (match < 0){
@@ -247,7 +289,7 @@ int main(int argc, char** argv){
   // We only get a message response with "match" from the tags list.
   // The variable match is filled-in with the "match" we received, which
   // is redundant in this case since there's just one thing in the list.
-  while (szgClient.getMessageResponse(tags,body,match,timeout) < 0){
+  while (szgClient.getMessageResponse(tags,body,match,localtimeout) < 0){
     if (verbosity){
       cout << body << "\n";
     }

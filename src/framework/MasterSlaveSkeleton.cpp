@@ -63,7 +63,7 @@ class RodEffector : public arEffector {
 
       // set to interact with closest object within 1 ft. of tip
       // (see interaction/arInteractionSelector.h for alternative ways to select objects)
-      setInteractionSelector( arDistanceInteractionSelector(1.) );
+      setInteractionSelector( arDistanceInteractionSelector(2.) );
 
       // set to grab an object (that has already been selected for interaction
       // using rule specified on previous line) when button 0 or button 2
@@ -134,7 +134,7 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
   glClearColor(0,0,0,0);
 
   // set square's initial position
-  theSquare.setMatrix( ar_translationMatrix(0,5,-5) );
+  theSquare.setMatrix( ar_translationMatrix(0,5,-6) );
 
   return true;
 }
