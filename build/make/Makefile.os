@@ -74,7 +74,11 @@ endif
 z:=$(PLATFORM)
 
 ifeq "$(PLATFORM)" "win32"
-  JOBS = 1
+	ifeq "$(SZG_COMPILER)" "MINGW"
+		JOBS = 2
+	else
+		JOBS = 1
+	endif
 else
 ifeq "$(PLATFORM)" "linux"
   JOBS = 2
