@@ -880,19 +880,37 @@ bool arMasterSlaveFramework::onStart( arSZGClient& SZGClient ) {
 
 void arMasterSlaveFramework::onPreExchange( void ) {
   if ( _preExchange ) {
-    _preExchange( *this );
+    try {
+      _preExchange( *this );
+    } catch (arMSCallbackException exc) {
+      cerr << "The following error occurred in the arMasterSlaveFramework preExchange callback:\n\t"
+           << exc.message << endl;
+      stop(false);
+    }
   }
 }
 
 void arMasterSlaveFramework::onPostExchange( void ) {
   if( _postExchange ) {
-    _postExchange( *this );
+    try {
+      _postExchange( *this );
+    } catch (arMSCallbackException exc) {
+      cerr << "The following error occurred in the arMasterSlaveFramework postExchange callback:\n\t"
+           << exc.message << endl;
+      stop(false);
+    }
   }
 }
 
 void arMasterSlaveFramework::onWindowInit( void ) {
   if( _windowInitCallback ) {
-    _windowInitCallback( *this );
+    try {
+      _windowInitCallback( *this );
+    } catch (arMSCallbackException exc) {
+      cerr << "The following error occurred in the arMasterSlaveFramework windowInit callback:\n\t"
+           << exc.message << endl;
+      stop(false);
+    }
   }
   else {
     ar_defaultWindowInitCallback();
@@ -903,9 +921,14 @@ void arMasterSlaveFramework::onWindowInit( void ) {
 // here, not for instance events that we post to the window manager ourselves.
 void arMasterSlaveFramework::onWindowEvent( arGUIWindowInfo* windowInfo ) {
   if( windowInfo && _windowEventCallback ) {
-    _windowEventCallback( *this, windowInfo );
-  }
-  else if( windowInfo && windowInfo->getUserData() ) {
+    try {
+      _windowEventCallback( *this, windowInfo );
+    } catch (arMSCallbackException exc) {
+      cerr << "The following error occurred in the arMasterSlaveFramework windowEvent callback:\n\t"
+           << exc.message << endl;
+      stop(false);
+    }
+  } else if( windowInfo && windowInfo->getUserData() ) {
     // default window event handler, at least to handle a resizing event
     // (should we be handling window close events as well?)
     arMasterSlaveFramework* fw = (arMasterSlaveFramework*) windowInfo->getUserData();
@@ -937,7 +960,13 @@ void arMasterSlaveFramework::onWindowEvent( arGUIWindowInfo* windowInfo ) {
 
 void arMasterSlaveFramework::onWindowStartGL( arGUIWindowInfo* windowInfo ) {
   if( windowInfo && _windowStartGLCallback ) {
-    _windowStartGLCallback( *this, windowInfo );
+    try {
+      _windowStartGLCallback( *this, windowInfo );
+    } catch (arMSCallbackException exc) {
+      cerr << "The following error occurred in the arMasterSlaveFramework windowStartGL callback:\n\t"
+           << exc.message << endl;
+      stop(false);
+    }
   }
 }
 
@@ -951,16 +980,34 @@ void arMasterSlaveFramework::onDraw( arGraphicsWindow& win, arViewport& vp ) {
   }
 
   if (_drawCallback) {
-    _drawCallback( *this, win, vp );
+    try {
+      _drawCallback( *this, win, vp );
+    } catch (arMSCallbackException exc) {
+      cerr << "The following error occurred in the arMasterSlaveFramework draw callback:\n\t"
+           << exc.message << endl;
+      stop(false);
+    }
     return;
   }
 
-  _oldDrawCallback( *this );
+  try {
+    _oldDrawCallback( *this );
+  } catch (arMSCallbackException exc) {
+    cerr << "The following error occurred in the arMasterSlaveFramework draw callback:\n\t"
+         << exc.message << endl;
+    stop(false);
+  }
 }
 
 void arMasterSlaveFramework::onDisconnectDraw( void ) {
   if( _disconnectDrawCallback ) {
-    _disconnectDrawCallback( *this );
+    try {
+      _disconnectDrawCallback( *this );
+    } catch (arMSCallbackException exc) {
+      cerr << "The following error occurred in the arMasterSlaveFramework disconnectDraw callback:\n\t"
+           << exc.message << endl;
+      stop(false);
+    }
   }
   else {
     // just draw a black background
@@ -985,25 +1032,49 @@ void arMasterSlaveFramework::onDisconnectDraw( void ) {
 void arMasterSlaveFramework::onPlay( void ) {
   if( _playCallback ) {
     setPlayTransform();
-    _playCallback( *this );
+    try {
+      _playCallback( *this );
+    } catch (arMSCallbackException exc) {
+      cerr << "The following error occurred in the arMasterSlaveFramework play callback:\n\t"
+           << exc.message << endl;
+      stop(false);
+    }
   }
 }
 
 void arMasterSlaveFramework::onCleanup( void ) {
   if( _cleanup ) {
-    _cleanup( *this );
+    try {
+      _cleanup( *this );
+    } catch (arMSCallbackException exc) {
+      cerr << "The following error occurred in the arMasterSlaveFramework cleanup callback:\n\t"
+           << exc.message << endl;
+      stop(false);
+    }
   }
 }
 
 void arMasterSlaveFramework::onUserMessage( const std::string& messageBody ) {
   if( _userMessageCallback ) {
-    _userMessageCallback( *this, messageBody );
+    try {
+      _userMessageCallback( *this, messageBody );
+    } catch (arMSCallbackException exc) {
+      cerr << "The following error occurred in the arMasterSlaveFramework userMessage callback:\n\t"
+           << exc.message << endl;
+      stop(false);
+    }
   }
 }
 
 void arMasterSlaveFramework::onOverlay( void ) {
   if( _overlay ) {
-    _overlay( *this );
+    try {
+      _overlay( *this );
+    } catch (arMSCallbackException exc) {
+      cerr << "The following error occurred in the arMasterSlaveFramework overlay callback:\n\t"
+           << exc.message << endl;
+      stop(false);
+    }
   }
 }
 
@@ -1015,9 +1086,14 @@ void arMasterSlaveFramework::onKey( arGUIKeyInfo* keyInfo ) {
   // If the 'newer' keyboard callback type is registered, use it instead of
   // the legacy version.
   if( _arGUIKeyboardCallback ) {
-    _arGUIKeyboardCallback( *this, keyInfo );
-  }
-  else if( keyInfo->getState() == AR_KEY_DOWN ) {
+    try {
+      _arGUIKeyboardCallback( *this, keyInfo );
+    } catch (arMSCallbackException exc) {
+      cerr << "The following error occurred in the arMasterSlaveFramework keyboard callback:\n\t"
+           << exc.message << endl;
+      stop(false);
+    }
+  } else if( keyInfo->getState() == AR_KEY_DOWN ) {
     // For legacy reasons, this call expects only key press
     // (not release) events.
     onKey( keyInfo->getKey(), 0, 0 );
@@ -1026,13 +1102,25 @@ void arMasterSlaveFramework::onKey( arGUIKeyInfo* keyInfo ) {
 
 void arMasterSlaveFramework::onKey( unsigned char key, int x, int y) {
   if( _keyboardCallback ) {
-    _keyboardCallback( *this, key, x, y );
+    try {
+      _keyboardCallback( *this, key, x, y );
+    } catch (arMSCallbackException exc) {
+      cerr << "The following error occurred in the arMasterSlaveFramework keyboard callback:\n\t"
+           << exc.message << endl;
+      stop(false);
+    }
   }
 }
 
 void arMasterSlaveFramework::onMouse( arGUIMouseInfo* mouseInfo ) {
   if( mouseInfo && _mouseCallback ) {
-    _mouseCallback( *this, mouseInfo );
+    try {
+      _mouseCallback( *this, mouseInfo );
+    } catch (arMSCallbackException exc) {
+      cerr << "The following error occurred in the arMasterSlaveFramework mouse callback:\n\t"
+           << exc.message << endl;
+      stop(false);
+    }
   }
 }
 

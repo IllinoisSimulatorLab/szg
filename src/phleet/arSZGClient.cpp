@@ -2829,7 +2829,9 @@ bool arSZGClient::_parseContextPair(const string& thePair){
   else if (pair1Type == "user"){
     _userName = pair2;
   }
-  else if (pair1Type == "log"){
+  else if (pair1Type == "log") {
+    // legal values are SILENT, CRITICAL, ERROR, WARNING, REMARK,
+    // and DEBUG (in ascending order of verbosity).
     _logLevel = ar_stringToLogLevel(pair2);
     ar_log().setLogLevel(_logLevel);
   }

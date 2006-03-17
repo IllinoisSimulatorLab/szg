@@ -47,10 +47,11 @@ static void py##cbtype##Callback(arMasterSlaveFramework& fw) { \
     PyObject *arglist=Py_BuildValue("(O)",fwobj);   \
     PyObject *result=PyEval_CallObject(py##cbtype##Func, arglist);  \
     if (result==NULL) { \
-        PyErr_Print(); \
-        string errmsg="A Python exception occurred in " #cbtype " callback.";\
-        cerr << errmsg << "\n"; \
-        throw  errmsg; \
+        if (PyErr_Occurred() != NULL) { \
+          PyErr_Print(); \
+        } \
+        string errmsg="A Python exception occurred in the arMasterSlaveFramework " #cbtype " callback.";\
+        throw arMSCallbackException( errmsg ); \
     }\
     Py_XDECREF(result); \
     Py_DECREF(arglist); \
@@ -103,13 +104,18 @@ static bool pyStartCallback(arMasterSlaveFramework& fw,arSZGClient& cl) {
                              SWIGTYPE_p_arSZGClient, 0);
     PyObject *arglist=Py_BuildValue("(O,O)",fwobj,clobj);
     PyObject *result=PyEval_CallObject(pyStartFunc, arglist);
+    bool res;
     if (result==NULL) {
-        PyErr_Print();
-        string errmsg="A Python exception occurred in arMasterSlaveFramework start callback.";
+        if (PyErr_Occurred() != NULL) {
+          PyErr_Print();
+        }
+        string errmsg="A Python exception occurred in the arMasterSlaveFramework Start callback.";
+        PyErr_SetString( PyExc_RuntimeError, errmsg.c_str() );
         cerr << errmsg << "\n";
-        throw  errmsg;
+        res = false;
+    } else {
+        res=(bool) PyInt_AsLong(result);
     }
-    bool res=(bool) PyInt_AsLong(result);
     Py_XDECREF(result);
     Py_DECREF(arglist);
     Py_DECREF(clobj);
@@ -126,10 +132,11 @@ static void pyWindowStartGLCallback( arMasterSlaveFramework& fw, arGUIWindowInfo
     PyObject *arglist=Py_BuildValue( "(O,O)", fwobj, winInfoObj );
     PyObject *result=PyEval_CallObject( pyWindowStartGLFunc, arglist );
     if (result==NULL) {
-        PyErr_Print();
-        string errmsg="A Python exception occurred in arMasterSlaveFramework windowStartGL callback.";
-        cerr << errmsg << "\n";
-        throw  errmsg;
+        if (PyErr_Occurred() != NULL) {
+          PyErr_Print();
+        }
+        string errmsg="A Python exception occurred in the arMasterSlaveFramework windowStartGL callback.";
+        throw arMSCallbackException( errmsg );
     }
     Py_XDECREF(result);
     Py_DECREF(arglist);
@@ -152,13 +159,17 @@ static bool pyEventCallback( arSZGAppFramework& fw, arInputEvent& theEvent, arCa
                              SWIGTYPE_p_arCallbackEventFilter, 0);
     PyObject *arglist=Py_BuildValue( "(O,O,O)", fwobj, eventobj, filterobj );
     PyObject *result=PyEval_CallObject(pyEventFunc, arglist);
+    bool res;
     if (result==NULL) {
-        PyErr_Print();
-        string errmsg="A Python exception occurred in Event callback.";
-        cerr << errmsg << "\n";
-        throw  errmsg;
+        if (PyErr_Occurred() != NULL) {
+          PyErr_Print();
+        }
+        string errmsg="A Python exception occurred in the arMasterSlaveFramework Event callback.";
+        throw arMSCallbackException( errmsg );
+      res = false;
+    } else {
+      res=(bool) PyInt_AsLong(result);
     }
-    bool res=(bool) PyInt_AsLong(result);
     Py_XDECREF(result);
     Py_DECREF(arglist);
     Py_DECREF(filterobj);
@@ -179,13 +190,17 @@ static bool pyEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& theQ
                            SWIGTYPE_p_arInputEventQueue, 0);
   PyObject *arglist=Py_BuildValue( "(O,O)", fwobj, queueobj );
   PyObject *result=PyEval_CallObject(pyEventQueueFunc, arglist);
+  bool res;
   if (result==NULL) {
-    PyErr_Print();
-    string errmsg="A Python exception occurred in EventQueue callback.";
-    cerr << errmsg << "\n";
-    throw  errmsg;
+        if (PyErr_Occurred() != NULL) {
+          PyErr_Print();
+        }
+    string errmsg="A Python exception occurred in the arMasterSlaveFramework EventQueue callback.";
+        throw arMSCallbackException( errmsg );
+    res = false;
+  } else {
+    res=(bool) PyInt_AsLong(result);
   }
-  bool res=(bool) PyInt_AsLong(result);
   Py_XDECREF(result);
   Py_DECREF(arglist);
   Py_DECREF(queueobj);
@@ -204,10 +219,11 @@ static void pyNewDrawCallback( arMasterSlaveFramework& fw,
     PyObject *arglist=Py_BuildValue( "(O,O,O)", fwobj, winobj, vpobj );
     PyObject *result=PyEval_CallObject( pyNewDrawFunc, arglist );
     if (result==NULL) {
-        PyErr_Print();
-        string errmsg="A Python exception occurred in arMasterSlaveFramework draw callback.";
-        cerr << errmsg << "\n";
-        throw  errmsg;
+        if (PyErr_Occurred() != NULL) {
+          PyErr_Print();
+        }
+        string errmsg="A Python exception occurred in the arMasterSlaveFramework Draw callback.";
+        throw arMSCallbackException( errmsg );
     }
     Py_XDECREF(result);
     Py_DECREF(arglist);
@@ -226,10 +242,11 @@ static void pyUserMessageCallback(arMasterSlaveFramework& fw,const string & s) {
     PyObject *arglist=Py_BuildValue("(O,s)",fwobj,s.c_str());
     PyObject *result=PyEval_CallObject(pyUserMessageFunc, arglist);
     if (result==NULL) {
-        PyErr_Print();
-        string errmsg="A Python exception occurred in UserMessage callback.";
-        cerr << errmsg << "\n";
-        throw  errmsg;
+        if (PyErr_Occurred() != NULL) {
+          PyErr_Print();
+        }
+        string errmsg="A Python exception occurred in the arMasterSlaveFramework UserMessage callback.";
+        throw arMSCallbackException( errmsg );
     }
     Py_XDECREF(result);
     Py_DECREF(arglist);
@@ -249,12 +266,12 @@ static void pyKeyboardCallback(arMasterSlaveFramework &fw,
    PyObject* arglist = Py_BuildValue("(O,s#,i,i)", fwobj, &c, 1, x, y);
    PyObject* result = PyEval_CallObject(pyKeyboardFunc, arglist);
 
-   if(result == NULL)
-   {
-      PyErr_Print();
-      string errMsg = "A Python exception occured in Keyboard callback.";
-      cerr << errMsg << "\n";
-      throw errMsg;
+   if(result == NULL) {
+     if (PyErr_Occurred() != NULL) {
+       PyErr_Print();
+     }
+      string errmsg = "A Python exception occured in the arMasterSlaveFramework Keyboard callback.";
+        throw arMSCallbackException( errmsg );
    }
 
    Py_XDECREF(result);

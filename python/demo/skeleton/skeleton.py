@@ -215,7 +215,11 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     global firstFrame
     if firstFrame:
       screen = viewport.getScreen()
-      print screen.getCenter(), screen.getWidth(), screen.getHeight()
+      print 'Screen (camera) parameters:'
+      print '  center:',screen.getCenter()
+      print '  normal:',screen.getNormal()
+      print '      up:',screen.getUp()
+      print '    size:',screen.getWidth(), 'x', screen.getHeight()
       firstFrame = False
     # Load the [inverse of the] navigation matrix onto the OpenGL modelview matrix stack.
     self.loadNavMatrix()

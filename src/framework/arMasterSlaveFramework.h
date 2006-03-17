@@ -41,6 +41,16 @@ class arTransferFieldDescriptor {
 
 typedef map<std::string, arTransferFieldDescriptor > arTransferFieldData;
 
+//***********************************************************************
+// Framework callback exception class (mainly for exception-handling
+// in Python).
+//***********************************************************************
+class arMSCallbackException {
+  public:
+    std::string message;
+    arMSCallbackException( const std::string& msg ): message(msg) {}
+};
+
 /// Framework for cluster applications using one master and several slaves.
 class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // Needs assignment operator and copy constructor, for pointer members.
