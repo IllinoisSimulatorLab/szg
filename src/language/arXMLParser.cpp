@@ -1392,7 +1392,10 @@ const char* TiXmlAttribute::Parse( const char* p, TiXmlParsingData* data, TiXmlE
 				&& !IsWhiteSpace( *p ) && *p != '\n' && *p != '\r'	// whitespace
 				&& *p != '/' && *p != '>' )						// tag end
 		{
-			value += *p;
+      // BUGFIX Jim C. 03/16/06.
+      if ((*p != '\"') && (*p != '\'')) {
+        value += *p;
+      }
 			++p;
 		}
 	}

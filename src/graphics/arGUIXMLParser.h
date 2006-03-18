@@ -212,6 +212,13 @@ class SZG_CALL arGUIXMLParser {
     TiXmlNode* _getNamedNode( const char* name = NULL );
 
     /**
+     * Print out parsing error diagnostics to ar_log_error().
+     *
+     * @see _getNamedNode
+     */
+    void _reportParseError( TiXmlDocument* nodeDoc, const std::string& nodeDesc );
+    
+    /**
      * Construct an arVector3 from an XML element.
      *
      * @param node A pointer to the XML element.

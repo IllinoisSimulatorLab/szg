@@ -83,6 +83,9 @@ void arGUIXMLParser::setConfig( const std::string& config )
   _doc.Clear();
 
   _doc.Parse( _config.c_str() );
+  if (_doc.Error()) {
+    _reportParseError( &_doc, _config );
+  }
 }
 
 /*
@@ -127,12 +130,42 @@ TiXmlNode* arGUIXMLParser::_getNamedNode( const char* name )
 
   // create a usable node out of the xml string
   nodeDoc->Parse( nodeDesc.c_str() );
+  if (nodeDoc->Error()) {
+    _reportParseError( nodeDoc, nodeDesc );
+  }
   if( !nodeDoc->FirstChild() ) {
     ar_log_error() << "arGUIXML error: invalid node pointer: " << name << ar_endl;
     return NULL;
   }
 
   return nodeDoc->FirstChild();
+}
+
+void arGUIXMLParser::_reportParseError( TiXmlDocument* nodeDoc, const std::string& nodeDesc ) {
+  int rowNum = nodeDoc->ErrorRow()-1;
+  int colNum = nodeDoc->ErrorCol()-1;
+  std::string::size_type curPos(0);
+  std::string errLine( nodeDesc );
+  bool stat(false);
+  std::vector< std::string > lines;
+  std::string line;
+  istringstream ist;
+  ist.str( nodeDesc );
+  while (getline( ist, line, '\n' )) {
+    lines.push_back( line );
+  }
+  if (lines.size() > rowNum) {
+    errLine = lines[rowNum];
+    stat = true;
+  }
+  ar_log_error() << "arGUIXMLParser: TiXmlDocument reported the following error:\n\t"
+    << nodeDoc->ErrorDesc() << "\n";
+  if (stat) {
+    ar_log_error() << "In the following line:\n\t" << errLine << "\n";
+  }
+  ar_log_error() << "(Use the arg sequence '-szg log=DEBUG' to see the whole XML chunk).\n";
+  ar_log_debug() << "Somewhere in the following XML:\n\t" << nodeDesc << ar_endl;
+  ar_log_debug() << "(TiXmlDocument isn't always good at localizing errors).\n";
 }
 
 arVector3 arGUIXMLParser::_attributearVector3( TiXmlNode* node,
@@ -208,6 +241,8 @@ int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
   // check if this is a pointer to another screen
   TiXmlNode* namedNode = _getNamedNode( screenNode->ToElement()->Attribute( "usenamed" ) );
   if( namedNode ) {
+    ar_log_debug() << "arGUIXML remark: using named screen "
+                    << screenNode->ToElement()->Attribute( "usenamed" ) << ar_endl;
     screenNode = namedNode;
   }
 
@@ -297,6 +332,8 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
   // check if this is a pointer to another camera
   TiXmlNode* namedNode = _getNamedNode( cameraNode->ToElement()->Attribute( "usenamed" ) );
   if( namedNode ) {
+    ar_log_debug() << "arGUIXML remark: using named camera "
+                    << cameraNode->ToElement()->Attribute( "usenamed" ) << ".\n";
     cameraNode = namedNode;
   }
 
@@ -375,7 +412,7 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
     camera = camF;
   }
   else {
-    ar_log_warning() << "arGUIXML warning: defaulting to arVRCamera for unknown camera type \""
+    ar_log_error() << "arGUIXML warning: defaulting to arVRCamera for unknown camera type \""
                      << cameraType << "\"\n";
     camera = new arVRCamera();
   }
@@ -389,10 +426,11 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
 
 int arGUIXMLParser::parse( void )
 {
-  if( _doc.Error() ) {
-    ar_log_error() << "arGUIXML error: failed to parse at line " << _doc.ErrorRow() << ar_endl;
-    return -1;
-  }
+  //  Should have already complained about any errors.
+//  if( _doc.Error() ) {
+//    ar_log_error() << "arGUIXML error: failed to parse at line " << _doc.ErrorRow() << ar_endl;
+//    return -1;
+//  }
 
   // clear out any previous parsing constructs
   // the graphicsWindow's and drawcallback's are externally owned, but this
@@ -430,8 +468,11 @@ int arGUIXMLParser::parse( void )
 
     // is this a pointer to another window?
     TiXmlNode* namedWindowNode = _getNamedNode( windowNode->ToElement()->Attribute( "usenamed" ) );
-    if( namedWindowNode )
+    if( namedWindowNode ) {
+      ar_log_debug() << "arGUIXML remark: using named window "
+                      << windowNode->ToElement()->Attribute( "usenamed" ) << ".\n";
       windowNode = namedWindowNode;
+    }
 
     if( !windowNode->ToElement() ) {
       ar_log_error() << "arGUIXML warning: skipping invalid window element.\n";
@@ -550,6 +591,8 @@ int arGUIXMLParser::parse( void )
       namedViewportListNode = _getNamedNode( viewportListNode->ToElement()->Attribute( "usenamed" ) );
 
       if( namedViewportListNode ) {
+        ar_log_debug() << "arGUIXML remark: using named viewportList "
+                        << viewportListNode->ToElement()->Attribute( "usenamed" ) << ".\n";
         viewportListNode = namedViewportListNode;
       }
 
@@ -589,6 +632,8 @@ int arGUIXMLParser::parse( void )
         // check if this is a pointer to another viewport
         TiXmlNode* namedViewportNode = _getNamedNode( viewportNode->ToElement()->Attribute( "usenamed" ) );
         if( namedViewportNode ) {
+          ar_log_debug() << "arGUIXML remark: using named viewport "
+                          << viewportNode->ToElement()->Attribute( "usenamed" ) << ".\n";
           viewportNode = namedViewportNode;
         }
 
@@ -687,7 +732,7 @@ int arGUIXMLParser::parse( void )
         screen, viewportListNode ? viewportListNode->FirstChild( "szg_camera" ) : NULL );
       if (!camera) {
         // should never happen, configureCamera should always return at least /something/
-        ar_log_warning() << "arGUIXML warning: configureCamera failed.\n";
+        ar_log_error() << "arGUIXML warning: configureCamera failed.\n";
       }
 
       // viewports added by setViewMode will use this camera and screen
@@ -696,7 +741,7 @@ int arGUIXMLParser::parse( void )
 
       // set up the appropriate viewports
       if( !_parsedWindowConstructs.back()->getGraphicsWindow()->setViewMode( viewMode ) ) {
-        ar_log_warning() << "arGUIXML warning: setViewMode failed.\n";
+        ar_log_error() << "arGUIXML warning: setViewMode failed.\n";
       }
 
       if( camera ) {

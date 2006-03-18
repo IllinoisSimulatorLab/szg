@@ -236,7 +236,7 @@ void arLogStream::_finish(){
 void arLogStream::_flushLogBuffer(bool addReturn){
   // Only send to the stream if the level works out.
   if (_currentLevel <= _logLevel){
-    (*_output) << _header << ":" << ar_logLevelToString(_currentLevel) << ":" << _buffer.str();
+    (*_output) << _header << ":" << ar_logLevelToString(_currentLevel) << ": " << _buffer.str();
     if (addReturn){
       (*_output) << "\n";
     }

@@ -292,6 +292,21 @@ int main(int argc, char** argv){
   while (szgClient.getMessageResponse(tags,body,match,localtimeout) < 0){
     if (verbosity){
       cout << body << "\n";
+    } else {
+      // Find lines beginning with "szg:" and print those.
+      std::vector< std::string > lines;
+      std::string line;
+      istringstream ist;
+      ist.str( body );
+      while (getline( ist, line, '\n' )) {
+        lines.push_back( line );
+      }
+      std::vector< std::string >::const_iterator iter;
+      for (iter = lines.begin(); iter != lines.end(); ++iter) {
+        if (iter->find( "szg:", 0 ) == 0) {
+          cout << *iter << endl;
+        }
+      }
     }
   }
   // output the last (final) response
