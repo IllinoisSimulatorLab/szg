@@ -36,7 +36,7 @@ class SZG_CALL arSZGClient{
 
   void simpleHandshaking(bool state);
   void parseSpecialPhleetArgs(bool state);
-  bool init(int&, char** argv, string forcedName = string("NULL"));
+  bool init(int&, char** const argv, string forcedName = string("NULL"));
   stringstream& initResponse(){ return _initResponseStream; }
   bool sendInitResponse(bool ok);
   stringstream& startResponse(){ return _startResponseStream; }
@@ -325,7 +325,7 @@ class SZG_CALL arSZGClient{
 
   // functions relating to parsing phleet-specific args or the context
   bool _parseContext();
-  bool _parsePhleetArgs(int& argc, char** argv);
+  bool _parsePhleetArgs(int& argc, char** const argv);
   bool _parseContextPair(const string& pair);
   bool _checkAndSetNetworks(const string& channel,
                             const arSlashString& networks);

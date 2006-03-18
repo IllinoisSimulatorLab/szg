@@ -214,18 +214,16 @@ int main(int argc, char** argv){
 	hostName = localhost;
 	for (i=1; i<argc; ++i) {
 	  exeName.append(argv[i]);
-	  // Important that we do not send an extra space to the szgd
+	  // Don't send an extra space to szgd
 	  if (i != argc-1){
 	    exeName.append(" ");
 	  }
 	}
       }
       else {
-	cerr << argv[0] << " error: the dex request has failed because:\n"
-	     << "  no virtual computer " << argv[1] << " and\n"
-	     << "  no szgd running on computer=" << argv[1] << " and\n"
-	     << "  no szgd running on the local computer (" 
-	     << localhost << ").\n";
+	cerr << argv[0] << " error: no virtual computer '" << argv[1]
+	     << "', and no szgd on host '" << argv[1]
+	     << "' or on local host '" << localhost << "'.\n";
 	return 1;
       }
     }
@@ -237,33 +235,30 @@ int main(int argc, char** argv){
   // TRYING TO EXECUTE ON A VIRTUAL COMPUTER.
   string messageContext("NULL");
   if (runningOnVirtual){
-    string virtualComputerTrigger = szgClient.getTrigger(hostName);
+    string virtualComputerTrigger(szgClient.getTrigger(hostName));
     if (virtualComputerTrigger != "NULL"){
       messageContext = szgClient.createContext(hostName,"default","trigger",
                                                "default","NULL");
       hostName = virtualComputerTrigger;
     }
     else{
-      // A virtual computer has been defined without a trigger. THIS IS
-      // A FATAL ERROR.
-      cerr << argv[0] << " error: a virtual computer was specified ("
-	   << hostName << ") but it has no trigger.\n";
+      cerr << argv[0] << " error: virtual computer '" << hostName << "' has no trigger.\n";
+      // Fatal error.
       return 1;
     }
   }
 
-  // By this point, hostName is the name of an actual computer, either that
-  // originally passed-in via the command line OR the trigger of the
-  // virtual computer.
-  int szgdID = szgClient.getProcessID(hostName, "szgd");
+  // By this point, hostName is the name of an actual computer, either from
+  // the command line OR the trigger of the virtual computer.
+  const int szgdID = szgClient.getProcessID(hostName, "szgd");
   if (szgdID == -1) {
-    cerr << argv[0] << " error: could not find szgd on computer=" 
+    cerr << argv[0] << " error: found no szgd on computer=" 
          << hostName << ".\n";
     if (runningOnVirtual){
       cerr << "  (which is the trigger of virtual computer " 
            << argv[1] << ")\n";
     }
-    // DO NOT TRY TO REINTERPRET OR RETRY. Just fail.
+    // Don't reinterpret or retry.  Just fail.
     return 1;
   }
 

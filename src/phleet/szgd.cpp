@@ -21,24 +21,7 @@ using namespace std;
   #include <signal.h>
 #endif
 
-// A throw-away class for passing data to the exec threads
-class ExecutionInfo{
-public:
-  ExecutionInfo(){}
-  ~ExecutionInfo(){}
-
-  string userName;
-  string messageContext;
-  string messageBody;
-  int receivedMessageID;
-  int timeoutmsec;
-
-  string executableType;
-  string pyDirPath;
-};
-
-// We want to make every trading key unique. Consequently, use a 
-// "trading num" that is incremented each time.
+// So every trading key is unique, increment tradingNum each time.
 int tradingNum = 0;
 arMutex tradingNumLock;
 arMutex processCreationLock;
@@ -66,17 +49,15 @@ arSZGClient* SZGClient = NULL;
 // In this case, if pyfile == python_script_2.py, then 
 // python_directory1/my_app_directory_2 will be returned.
 string getPythonPath( const string& userName, string pyfile ) {
-  // Next, retrieve the python application path.
-  string pythonScriptPath = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", 
-                                                  "path", "");
+  const string pythonScriptPath = SZGClient->getAttribute(
+    userName, "NULL", "SZG_PYTHON", "path", "");
   if (pythonScriptPath == "NULL") {
-    cout << "szgd error: SZG_PYTHON/path not set.\n";
+    cerr << "szgd error: SZG_PYTHON/path not set.\n";
     return "NULL";
   }
-  // Go through the pieces of the python data path, in order. In each of these
-  // directories, we step through all subdirectories, looking for the named
-  // file. The first one we find is determined to be the directory of
-  // execution.
+  // Traverse the python data path. In each directory,
+  // step through all subdirectories, looking for the named
+  // file. The first one found is the directory of execution.
   arSemicolonString pythonPath(pythonScriptPath);
   string actualDirectory("NULL");
   for (unsigned int i=0; i<pythonPath.size(); ++i){
@@ -98,6 +79,22 @@ string getPythonPath( const string& userName, string pyfile ) {
   }
   return actualDirectory;
 }
+
+// Little class to pass data to exec threads.
+class ExecutionInfo{
+public:
+  ExecutionInfo(){}
+  ~ExecutionInfo(){}
+
+  string userName;
+  string messageContext;
+  string messageBody;
+  int receivedMessageID;
+  int timeoutmsec;
+
+  string executableType;
+  string pyDirPath;
+};
 
 // Given the specified user and argument string, contact the szgserver and
 // determine the user's execution path. Next, given the arg string sent to 
@@ -142,7 +139,7 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
   command = tmpArgs[0];
   int i;
   for (i=1; i<tmpArgs.size(); ++i) {
-    // DO NOT PUSH EXTRA WHITESPACE
+    // Don't push extra whitespace.
     if (tmpArgs[i].length() > 0) {
       args.push_back(tmpArgs[i]);
     }
@@ -189,25 +186,25 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
   else {
     execInfo->executableType = "native";
 #ifdef AR_USE_WIN_32
-    command = command + ".EXE";
+    command += ".EXE";
 #endif
     fileName = command;
     command = ar_fileFind(fileName, "", execPath);
     if (command == "NULL") {
       errStream << "szgd error: no executable file '" << fileName
-           << "'\n  on exec path " << execPath << ".\n";
+           << "' on path " << execPath << ".\n";
+LAbort:
 #ifdef AR_USE_WIN_32
-      errStream << "  Note: on Windows, you should _not_ append '.exe' to the\n"
-                << "  executable name; szgd does that for you.\n";
+      // todo: don't complain, if it was szgd who appended ".EXE".
+      errStream << "  On Windows, don't append '.exe' -- Windows does that for you.\n";
 #endif
       return errStream.str();
     }
   }
 
-  // If we did find the file, the next step depends on what sort of executable
-  // we have.
+  // Found the file.  What kind of exe is it?
   if (execInfo->executableType == "native") {
-    // Nothing to do here
+    // Nothing to do
   }
   else if (execInfo->executableType == "python") {
     // The command needs to be changed to either:
@@ -233,25 +230,22 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
       }
     }
 #ifdef AR_USE_WIN_32
-    command = command + ".EXE";
+    command += ".EXE";
 #endif
     fileName = command;
     command = ar_fileFind( fileName, "", execPath );
     if (command == "NULL") {
       errStream << "szgd error: no python executable file " << fileName
            << "\n  on exec path " << execPath << ".\n";
-#ifdef AR_USE_WIN_32
-      errStream << "  Note: on Windows, you should _not_ append '.exe' to the\n"
-                << "  executable name; szgd does that for you.\n";
-#endif
-      return errStream.str();
+      goto LAbort;
     }
   }
   else {
-    errStream << "szgd error: unhandled executable type \""
+    errStream << "szgd error: unexpected exe type \""
          << execInfo->executableType << "\".\n";
     return errStream.str();
   }
+
   cout << "szgd remark:\n"
        << "  user name=" << userName << "\n"
        << "  exe name=" << command << "\n"
@@ -328,9 +322,9 @@ static void TweakPath(string& path) {
 
 void execProcess(void* i){
   ExecutionInfo* execInfo = (ExecutionInfo*) i;
-  string userName = execInfo->userName;
-  string messageContext = execInfo->messageContext;
-  string messageBody = execInfo->messageBody;
+  const string userName = execInfo->userName;
+  const string messageContext = execInfo->messageContext;
+  const string messageBody = execInfo->messageBody;
   int receivedMessageID = execInfo->receivedMessageID; 
 
   // Start out with the part of executable launching that is the same
@@ -345,12 +339,14 @@ void execProcess(void* i){
   string symbolicCommand;
   string newCommand;
   list<string> mangledArgList;
-  string statString = buildFunctionArgs( execInfo, execPath, 
+  const string statString = buildFunctionArgs( execInfo, execPath, 
                          symbolicCommand, newCommand, mangledArgList);
   if (statString != "OK") {
     info << statString;
-    // note how we respond to the message ourselves
+    // we respond to the message ourselves
     SZGClient->messageResponse(receivedMessageID, info.str());
+LDone:
+    delete execInfo;
     return;
   }
 
@@ -360,9 +356,8 @@ void execProcess(void* i){
   // request unique. Note that this can be executed simultaneously in
   // different threads. Consequently, must use a lock.
   ar_mutex_lock(&tradingNumLock);
-  ++tradingNum;
-  stringstream tradingNumStream;
-  tradingNumStream << tradingNum;
+    stringstream tradingNumStream;
+    tradingNumStream << ++tradingNum;
   ar_mutex_unlock(&tradingNumLock);
   const string tradingKey(SZGClient->getComputerName() + "/" 
                           + tradingNumStream.str() + "/"
@@ -474,7 +469,7 @@ void execProcess(void* i){
   int pipeDescriptors[2] = {0};
   if (pipe(pipeDescriptors) < 0) {
     cerr << "szgd warning: failed to create pipe.\n";
-    return;
+    goto LDone;
   }
   // Make the read pipe nonblocking, to avoid szgd hanging
   
@@ -485,7 +480,7 @@ void execProcess(void* i){
   const int PID = fork();
   if (PID < 0) {
     cerr << "szgd error: fork failed.\n";
-    return;
+    goto LDone;
   }
 
   if (PID > 0) {
@@ -506,9 +501,8 @@ void execProcess(void* i){
 	   << "time to load.\n";
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
       SZGClient->messageResponse(receivedMessageID, info.str());
-      return;
+      goto LDone;
     }
-    // we read in 0 on failure to launch and 1 on launch success
     if (numberBuffer[0] == 0) {
       // The launch has failed. we will be receiving error messages from
       // the szgd side of the fork. First, we need to revoke the 
@@ -523,7 +517,7 @@ void execProcess(void* i){
                                    numberBuffer, sizeof(int), 1000)) {
 	info << "szgd remark: pipe-based handshake failed. Likely an internal library error.\n";
         SZGClient->messageResponse(receivedMessageID, info.str());
-        return;
+        goto LDone;
       }
       // At least one character of text but at most 10000.
       if (*(int*)numberBuffer < 0 || *(int*)numberBuffer > 10000) {
@@ -539,13 +533,13 @@ void execProcess(void* i){
 	info << "szgd remark: pipe-based handshake failed, text phase. Likely an internal library error.\n";
         SZGClient->messageResponse(receivedMessageID, info.str());
 	delete [] textBuffer;
-        return;
+        goto LDone;
       }
       textBuffer[*((int*)numberBuffer)] = '\0';
       // Note how we respond to the message ourselves.
       SZGClient->messageResponse(receivedMessageID, string(textBuffer));
       delete [] textBuffer;
-      return;
+      goto LDone;
     }
 
     // numberBuffer[0] = 1 and the launch worked.
@@ -570,7 +564,7 @@ void execProcess(void* i){
     // or would that be less secure?
     close(pipeDescriptors[0]);
     close(pipeDescriptors[1]);
-    return;
+    goto LDone;
   }
 
   // Child process
@@ -682,65 +676,44 @@ void execProcess(void* i){
 
   // Stagger launches so the cluster's file server isn't hit so hard.
   randomDelay();
-  string theArgs = buildWindowsStyleArgList(newCommand, mangledArgList);
-  bool fArgs;
-  if (theArgs == "") {
-    fArgs = false;
-  } else {
-    fArgs = true;
-  }
-  // Unfortunately, we actually need to pack these buffers... can't just use
-  // my_string.c_str().
+  const string theArgs = buildWindowsStyleArgList(newCommand, mangledArgList);
+  const bool fArgs = theArgs != "";
+  // We need to pack these buffers... can't just use my_string.c_str().
   char* command = new char[newCommand.length()+1];
   ar_stringToBuffer(newCommand, command, newCommand.length()+1);
   char* argsBuffer = new char[theArgs.length()+1];
   ar_stringToBuffer(theArgs, argsBuffer, theArgs.length()+1);
-  // NOTE: The process might fail to run for various reasons after
-  // successfully being created. For instance, a needed DLL might not exist.
-  if (!CreateProcess(command, fArgs?argsBuffer:NULL, 
-                     NULL, NULL, false,
-                     NORMAL_PRIORITY_CLASS, NULL, NULL, 
-                     &si, &theInfo)) {
-    // The variables must be set back before the mutex is
-    // unlocked.
-    ar_setenv( dynamicLibraryPathVar, oldDynamicLibraryPath);
-    if (execInfo->executableType == "python") {
-      ar_setenv( "PYTHONPATH", oldPythonPath );
-    }
-    ar_mutex_unlock(&processCreationLock);
+  // The process might fail to run after being created, e.g. if a DLL is missing.
+  const bool fCreated = CreateProcess(command, fArgs?argsBuffer:NULL, 
+		     NULL, NULL, false,
+		     NORMAL_PRIORITY_CLASS, NULL, NULL, 
+		     &si, &theInfo);
+
+  // Restore the variables before unlocking the mutex.
+  ar_setenv( dynamicLibraryPathVar, oldDynamicLibraryPath);
+  if (execInfo->executableType == "python")
+    ar_setenv( "PYTHONPATH", oldPythonPath );
+  ar_mutex_unlock(&processCreationLock);
+
+  if (!fCreated) {
     info << "szgd warning: failed to exec \"" << command
-         << " with args " << argsBuffer
-         << "\";\n\twin32 GetLastError() returned " 
-         << GetLastError() << ".\n";
-    // in this case, we will be responding directly, not the spawned
-    // process
+	 << " with args " << argsBuffer
+	 << "\";\n\twin32 GetLastError() returned " 
+	 << GetLastError() << ".\n";
+    // We will be responding directly, not the spawned process.
     SZGClient->revokeMessageOwnershipTrade(tradingKey);
     SZGClient->messageResponse(receivedMessageID, info.str());
-
-  } else { // CreateProcess() succeeded.
-
-    // This must be called before the mutex is unlocked.
-    ar_setenv( dynamicLibraryPathVar, oldDynamicLibraryPath);
-    if (execInfo->executableType == "python") {
-      ar_setenv( "PYTHONPATH", oldPythonPath );
-    }
-    ar_mutex_unlock(&processCreationLock);
-    // The spawned process SHOULD be responding! We will probably get here
-    // BEFORE the spawned process gets to its main().
-    // Sometimes it can take a LONG time for a process to start-up (like a
-    // Python program on a heavily loaded CPU). Consequently, we want a long
-    // (20 seconds) time here.
-    // NOTE: Now you can pass in a timeout cmdline arg to dex that gets used
-    // here (see dex usage message).
-    int timeout = execInfo->timeoutmsec;
-    if (timeout == -1) {
-      timeout = 20000;
-    }
-    if (!SZGClient->finishMessageOwnershipTrade(match, timeout)) {
-      info << "szgd warning: ownership trade timed-out.\n"
+  } else {
+    // Wait for the spawnee to reach its main() and respond.
+    // It could take even 20 seconds (default, unless a dex command-line arg
+    // overrides it).
+    int timeoutMsec = execInfo->timeoutmsec;
+    if (timeoutMsec == -1)
+      timeoutMsec = 20000;
+    if (!SZGClient->finishMessageOwnershipTrade(match, timeoutMsec)) {
+      info << "szgd warning: ownership trade timed out.\n"
 	   << "  The launched executable either failed to load a dll,"
-	   << "crashed before reaching the framework init, or took a VERY long"
-	   << "time to load.\n";
+	   << "crashed before initing the framework, or took too long to load.\n";
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
       SZGClient->messageResponse(receivedMessageID, info.str());
     }
@@ -748,44 +721,64 @@ void execProcess(void* i){
   delete [] command;
   delete [] argsBuffer;
 #endif
+
+  goto LDone;
 }
 
 int main(int argc, char** argv) {
 #ifndef AR_USE_WIN_32
-  // If $DISPLAY is not 0:0, it will throw up a window on a
-  // screen you do NOT expect.  Should we test for this?
+  // If $DISPLAY is not 0:0, szgd will create a window on an
+  // unexpected screen.  Should we test for this?
 
-  // Kill zombie processes in unix.
+  // Kill zombie processes.
   signal(SIGCHLD,SIG_IGN);
 #endif
 
   ar_mutex_init(&tradingNumLock);
   ar_mutex_init(&processCreationLock);
 
+  const int argcOriginal = argc;
+  // We don't need a copy of argv because it doesn't get modified.
+
+LRetry:
+  argc = argcOriginal;
   SZGClient = new arSZGClient;
-  // note how we force the name of the component. This is because it is
-  // impossible to get the name automatically on Win98 and we want to run
-  // szgd on Win98
+  // Force the component's name, because win98 can't provide it.
   SZGClient->init(argc, argv, "szgd");
+  bool fRetry = argc > 1 && !strcmp(argv[1], "-r");
   if (!*SZGClient) {
+    if (fRetry) {
+      delete SZGClient;
+      ar_usleep(5000000);
+      goto LRetry;
+    }
     return 1;
   }
   
-  // only a single szgd should be running on a given computer
+  // Only one szgd per host.
   int ownerID = -1;
   if (!SZGClient->getLock(SZGClient->getComputerName()+"/szgd", ownerID)) {
-    cerr << argv[0] << " error: another copy of szgd is already running (pid = " 
+    cerr << "szgd error: szgserver thinks another copy is already running on host (pid = " 
          << ownerID << ").\n";
+    // todo: if we can't communicate with that pid, then
+    // assume szgserver has obsolete info, "dkill -9" that pid,
+    // and start up anyways.
     return 1;
   }
-  
+
+
   string userName, messageType, messageBody, messageContext;
   while (true) {
-    int receivedMessageID = 
-      SZGClient->receiveMessage(&userName, &messageType, 
-                                &messageBody, &messageContext);
-    if (!receivedMessageID) {
-      // receivedMessageID == 0 exactly when the szgserver has disconnected.
+    const int receivedMessageID = SZGClient->receiveMessage(
+      &userName, &messageType, &messageBody, &messageContext);
+
+    if (receivedMessageID == 0) {
+      // szgserver disconnected
+      if (fRetry) {
+        delete SZGClient;
+	ar_usleep(5000000);
+        goto LRetry;
+      }
       exit(0);
     }
     
@@ -794,11 +787,11 @@ int main(int argc, char** argv) {
       SZGClient->closeConnection();
       // will return(0) be gentler, yet kill the child processes too?
       exit(0);
-    } else if (messageType=="exec") {
-
-      int timeout(-1);
-
-      // Hack - extract timeout from end of body, if it's there.
+    }
+    
+    if (messageType=="exec") {
+      // Hack - extract timeoutMsec from end of body, if it's there.
+      int timeoutMsec = -1;
       string::size_type pos = messageBody.find( "||||" );
       if (pos != string::npos) {
         pos += 4;
@@ -812,24 +805,21 @@ int main(int argc, char** argv) {
         if (!stat) {
           cerr << "szgd warning: failed to convert timeout string.\n";
         } else {
-          timeout = temp;
+          timeoutMsec = temp;
         }
       }
       
-      // BUG BUG BUG BUG BUG
-      // THERE IS A SMALL MEMORY LEAK HERE IN THAT THE EXECUTION INFO IS
-      // NEVER DELETED
       ExecutionInfo* info = new ExecutionInfo();
-      info->userName = userName;
-      info->messageBody = messageBody;
-      info->messageContext = messageContext;
-      info->receivedMessageID = receivedMessageID;
-      info->timeoutmsec = timeout;
-      // The exec call is long-blocking. Consequently, it is handled in its
-      // own thread. For this to be possible, the various arSZGClient
-      // methods must be thread-safe.
-      arThread execThread;
-      execThread.beginThread(execProcess, info);
+      // todo: all this should be args to the constructor
+	info->userName = userName;
+	info->messageBody = messageBody;
+	info->messageContext = messageContext;
+	info->receivedMessageID = receivedMessageID;
+	info->timeoutmsec = timeoutMsec;
+      // The long-blocking exec call gets its own thread.
+      // So the various arSZGClient methods must be thread-safe.
+      arThread dummy;
+      dummy.beginThread(execProcess, info); // execProcess() deletes info.
     }
   }
   return 1;

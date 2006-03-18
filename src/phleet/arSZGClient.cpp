@@ -121,12 +121,12 @@ void arSZGClient::parseSpecialPhleetArgs(bool state){
 /// DeviceServer, and SoundRender) all force their names. Note that a warning
 /// is printed if the forced name and the name scraped from the command line
 /// do not match.
-bool arSZGClient::init(int& argc, char** argv, string forcedName){
+bool arSZGClient::init(int& argc, char** const argv, string forcedName){
   // Set the name of the component.
   // Do this using the command-line args, since some of the component management
   // occurs via names.
   _exeName = string(argv[0]);
-  // Remove the .EXE suffix on Win32. On other OS's 
+  // Remove the .EXE suffix on Win32.
   _exeName = ar_stripExeName(_exeName);
   
   // On the Unix side, we might need to finish a handshake with the
@@ -2494,17 +2494,14 @@ string arSZGClient::getTrigger(const string& virtualComputer){
 string arSZGClient::createComplexServiceName(const string& serviceName){
   // At the blurry boundary between string and arSlashString.
   if (_virtualComputer == "NULL"){
-    return serviceName+string("/")+_userName;
+    return serviceName + string("/") + _userName;
   }
-  // NOTE: the trailing empty string is necessary to avoid using the WRONG
+
+  // The trailing empty string avoids using the WRONG
   // getAttribute(...), i.e. the one that lists default values.
-  string location = getAttribute(_virtualComputer,"SZG_CONF","location","");
-  if (location == "NULL"){
-    return _virtualComputer+string("/")+serviceName;
-  }
-  else{
-    return location+string("/")+serviceName;
-  }
+  const string location(getAttribute(_virtualComputer,"SZG_CONF","location",""));
+  return ((location == "NULL") ? _virtualComputer : location) +
+    string("/") + serviceName;
 }
 
 /// Create a context string form internal storage and returns it.
@@ -2529,22 +2526,22 @@ string arSZGClient::createContext(){
   return result;
 }
 
-/// Creates a context string from the parameters. IMPORTANT NOTE: this
-/// DOES NOT set the related internal variables. This is merely a way
-/// to encapsulate a data format that may change over time.
-/// NOTE: this is a little BOGUS as there is currently no way to specify
+/// Create a context string from the parameters.
+/// Don't set the related internal variables, merely
+/// encapsulate a data format that may change over time.
+/// Bogus: currently no way to specify
 /// the channels upon which multiple services operate!
 string arSZGClient::createContext(const string& virtualComputer,
                                   const string& modeChannel,
                                   const string& mode,
                                   const string& networksChannel,
                                   const arSlashString& networks){
-  return string("virtual=")+virtualComputer+string(";")+
-    string("mode/")+modeChannel+string("=")+mode+string(";")+
-    string("networks/")+networksChannel+string("=")+networks;
+  return string("virtual=") + virtualComputer + string(";") +
+    string("mode/") + modeChannel + string("=") + mode + string(";") +
+    string("networks/") + networksChannel + string("=") + networks;
 }
 
-/// The actual attempt to connect to the szgserver occurs here.
+/// Actually try to connect to the szgserver.
 bool arSZGClient::_dialUpFallThrough(){
   if (_connected){
     ar_log_warning() << _exeName << " warning: already connected to "
@@ -2553,11 +2550,10 @@ bool arSZGClient::_dialUpFallThrough(){
   }
 
   if (!_dataClient.dialUpFallThrough(_IPaddress.c_str(), _port)){
-    // Connect to the szgserver at the designated location.
-    // If we don't connect, this is an error.
+    // Connect to the specified szgserver.
     ar_log_error() << _exeName << " error: szgserver not found (" << _IPaddress 
                    << ", " << _port << ").\n"
-	           << "\t(first dlogin;  type dhunt to find an szgserver.\n";
+	           << "\t(First dlogin;  dhunt finds an szgserver.)\n";
     return false;
   }
 
@@ -2586,7 +2582,6 @@ arStructuredData* arSZGClient::_getTaggedData(int tag,
     // timeout or other error
     return NULL;
   }
-  // We actually got the stuff.
   return message;
 }
 
@@ -2697,7 +2692,7 @@ bool arSZGClient::_parseContext(){
 /// parsing them. However, if _parseSpecialPhleetArgs is false (as is the case
 /// in dex), then only the args user and server (pertaining to login) are
 /// parsed and removed.
-bool arSZGClient::_parsePhleetArgs(int& argc, char** argv){
+bool arSZGClient::_parsePhleetArgs(int& argc, char** const argv){
   for (int i=0; i<argc; i++){
     if (!strcmp(argv[i],"-szg")){
       // we have found an arg that might need to be removed.
