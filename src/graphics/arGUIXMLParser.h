@@ -209,7 +209,7 @@ class SZG_CALL arGUIXMLParser {
      * @see _configureScreen
      * @see _configureCamera
      */
-    TiXmlNode* _getNamedNode( const char* name = NULL );
+    TiXmlNode* _getNamedNode( const char* name = NULL, const std::string& nodeType="NULL" );
 
     /**
      * Print out parsing error diagnostics to ar_log_error().
@@ -230,6 +230,7 @@ class SZG_CALL arGUIXMLParser {
      *         be found).
      */
     arVector3 _attributearVector3( TiXmlNode* node,
+                                   const std::string& name,
                                    const std::string& x = "x",
                                    const std::string& y = "y",
                                    const std::string& z = "z" );
@@ -247,6 +248,7 @@ class SZG_CALL arGUIXMLParser {
      *         be found).
      */
     arVector4 _attributearVector4( TiXmlNode* node,
+                                   const std::string& name,
                                    const std::string& x = "x",
                                    const std::string& y = "y",
                                    const std::string& z = "z",

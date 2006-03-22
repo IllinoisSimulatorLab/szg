@@ -250,8 +250,12 @@ bool arGraphicsClient::configure(arSZGClient* client){
   string whichDisplay
     = "SZG_DISPLAY" + screenName.substr( screenName.length() - 1, 1 );
   std::string displayName  = client->getAttribute( whichDisplay, "name" );
-  ar_log_remark() << "Using display: " << whichDisplay << " : "
-                  << displayName << ar_endl;
+  if (displayName == "NULL") {
+    ar_log_warning() << "Using display " << whichDisplay << " == NULL.\n";
+  } else {
+    ar_log_remark() << "Using display: " << whichDisplay << " : "
+                    << displayName << ar_endl;
+  }
   _guiParser->setConfig( client->getGlobalAttribute(displayName) );
 
   if (_guiParser->parse() < 0){

@@ -2353,8 +2353,12 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
 
   std::string displayName  = _SZGClient.getAttribute( whichDisplay, "name" );
 
-  ar_log_remark() << "Using display: " << whichDisplay << " : "
-                  << displayName << ar_endl;
+  if (displayName == "NULL") {
+    ar_log_warning() << "Using display " << whichDisplay << " == NULL.\n";
+  } else {
+    ar_log_remark() << "Using display: " << whichDisplay << " : "
+                    << displayName << ar_endl;
+  }
 
   _guiXMLParser->setConfig( _SZGClient.getGlobalAttribute( displayName ) );
 
