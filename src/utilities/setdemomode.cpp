@@ -28,10 +28,11 @@ int main(int argc, char** argv) {
   if (argc == 3){
     // Explicitly set the virtual computer.
     launcher.setVircomp(argv[1]);
-  }
-  else{
+    ar_log_debug() << "setdemomode: set virtual computer to " << argv[1] << ar_endl;
+  } else {
     // Try to get the virtual computer from the "context".
     launcher.setVircomp();
+    ar_log_debug() << "setdemomode: virtual computer is " << launcher.getVircomp() << ar_endl;
   }
 
   if (argc != 2 && argc != 3) {
@@ -47,7 +48,7 @@ Usage:
   // send message to trigger (which will relay to master if necessary).
   // copied from dmsg.cpp
   int    componentID;
-  string lockName = launcher.getVircomp()+"/SZG_DEMO/app";
+  const string lockName = launcher.getLocation()+"/SZG_DEMO/app";
   if (szgClient.getLock(lockName, componentID)){
     // nobody else was holding the lock
     szgClient.releaseLock(lockName);

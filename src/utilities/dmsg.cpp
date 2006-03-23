@@ -188,15 +188,14 @@ LPrintUsage:
     {
       const string lockName = string(argv[1])+"/SZG_DEMO/app";
       if (!szgClient.getLock(lockName, componentID)){
-	// something is indeed running on that screen
-	messageType = string(argv[2]);
-	messageBody = argc == 4 ? string(argv[3]): string("NULL");
-      }
-      else{
-	// nobody else was holding the lock
-	szgClient.releaseLock(lockName);
-	cout << "dmsg error: no trigger component running.\n";
-	return 1;
+        // something is indeed running on that screen
+        messageType = string(argv[2]);
+        messageBody = argc == 4 ? string(argv[3]): string("NULL");
+      } else {
+        // nobody else was holding the lock
+        szgClient.releaseLock(lockName);
+        cout << "dmsg error: no trigger component running.\n";
+        return 1;
       }
     }
     break;

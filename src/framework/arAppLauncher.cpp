@@ -57,10 +57,12 @@ bool arAppLauncher::setAppType(const string& theType){
 /// Sets the virtal computer and the location, based on the default information
 /// held by the arSZGClient (i.e. as provided by the CONTEXT).
 bool arAppLauncher::setVircomp(){
-  if (!_client){
+  if (!_client) {
     return false;
   }
   string virtualComputer = _client->getVirtualComputer();
+  ar_log_debug() << "arAppLauncher: arSZGClient says that the virtual computer is "
+                 << virtualComputer << ar_endl;
   return setVircomp(virtualComputer);
 }
 
@@ -529,6 +531,8 @@ string arAppLauncher::getTriggerName(){
     ar_log_warning() << _exeName << " warning: no arSZGClient.\n";
     return "NULL";
   }
+  ar_log_debug() << "arAppLauncher: getting trigger map " << _vircomp << "/"
+                 << "SZG_TRIGGER/map.\n";
   return _client->getAttribute(_vircomp, "SZG_TRIGGER", "map", "");
 }
 

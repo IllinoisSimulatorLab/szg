@@ -36,7 +36,8 @@ class SZG_CALL arAppLauncher{
   bool setAppType(const string&);
   bool setVircomp();
   bool setVircomp(string vircomp); 
-  string getVircomp(){ return _vircomp; }   
+  string getVircomp() { return _vircomp; }   
+  string getLocation() { return _location; }
 
   bool connectSZG(int& argc, char** argv);
   bool setSZGClient(arSZGClient*);
