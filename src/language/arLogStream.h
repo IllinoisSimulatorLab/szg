@@ -16,11 +16,12 @@ using namespace std;
 
 enum{
   AR_LOG_SILENT=0,
-  AR_LOG_CRITICAL=1,
-  AR_LOG_ERROR=2,
-  AR_LOG_WARNING=3,
-  AR_LOG_REMARK=4,
-  AR_LOG_DEBUG=5
+  AR_LOG_CRITICAL,
+  AR_LOG_ERROR,
+  AR_LOG_WARNING,
+  AR_LOG_REMARK,
+  AR_LOG_DEBUG,
+  AR_LOG_NIL // invalid value
 };
 
 SZG_CALL int ar_stringToLogLevel(const string& logLevel);
@@ -63,7 +64,7 @@ class SZG_CALL arLogStream{
   // for good interleaving of messages.
   ostringstream _buffer;
   string _header;
-  int _maxLineLength;
+  unsigned _maxLineLength;
   // DEPRECTAED DEPRECATED DEPRECATED DEPRECATED DEPRECATED
   bool _wrapFlag;
   int _logLevel;

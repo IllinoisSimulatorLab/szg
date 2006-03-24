@@ -54,7 +54,7 @@ arSZGClient::arSZGClient():
   _initialInitLength(0),
   _initialStartLength(0),
   _nextMatch(0),
-  _logLevel(AR_LOG_ERROR),
+  _logLevel(AR_LOG_WARNING),
   _beginTimer(false),
   _requestedName(""),
   _dataRequested(false),
@@ -122,14 +122,11 @@ void arSZGClient::parseSpecialPhleetArgs(bool state){
 /// is printed if the forced name and the name scraped from the command line
 /// do not match.
 bool arSZGClient::init(int& argc, char** const argv, string forcedName){
-  // Set the name of the component.
-  // Do this using the command-line args, since some of the component management
-  // occurs via names.
-  _exeName = string(argv[0]);
-  // Remove the .EXE suffix on Win32.
-  _exeName = ar_stripExeName(_exeName);
+  // Set the name of the component
+  // using the command-line args, since some component management uses names.
+  _exeName = ar_stripExeName(string(argv[0]));
   
-  // On the Unix side, we might need to finish a handshake with the
+  // On Unix, we might need to finish a handshake with the
   // szgd, telling it we've been successfully forked
   // THIS MUST OCCUR BEFORE dialUpFallThrough.
 
@@ -397,7 +394,7 @@ bool arSZGClient::launchDiscoveryThreads(){
   arSocketAddress incomingAddress;
   incomingAddress.setAddress(NULL,4620);
   if (_discoverySocket->ar_bind(&incomingAddress) < 0){
-    ar_log_error() << "arSZGClient error: failed to bind discovery response socket.\n";
+    ar_log_error() << _exeName << " error: failed to bind discovery response socket.\n";
     return false;
   }
 
@@ -460,12 +457,12 @@ bool arSZGClient::parseAssignmentString(const string& text){
     parsingStream >> param4;
     if (parsingStream.fail()){
 LFail:
-      ar_log_error() << "arSZGClient error: malformed assignment string:\n";
+      ar_log_error() << _exeName << " error: malformed assignment string:\n";
       ar_log_error() << "----------------\n" << text << "----------------" << ar_endl;
       return false;
     }
     if (param2.substr(0,10) == "SZG_SCREEN"){
-      ar_log_error() << "arSZGClient warning: are you sure you want to use SZG_SCREEN "
+      ar_log_error() << _exeName << " warning: are you sure you want to use SZG_SCREEN "
 	             << "parameters?\n";
       ar_log_error() << "  THESE ARE OBSOLETE FOR VERSIONS PAST 0.7!\n";
     }
@@ -479,13 +476,12 @@ LFail:
 bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
   const string dataPath(getAttribute("SZG_SCRIPT","path"));
   // There are two parameter file formats.
-  // The legacy format consists of a sequence of lines as follows:
+  // (1) The legacy format is a sequence of lines of the form:
   //
   //   computer parameter_group parameter parameter_value
   //
-  // While this format cannot express some of the more XML-y kinds of
-  // things that the "global" attributes (like an input node description)
-  // require. Consequently,
+  // (2) The XML format handles "global" attributes,
+  // like an input node description:
   //
   // <szg_config>
   //   ... one of more of the following ...
@@ -512,34 +508,29 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
   //   </assign>
   // </szg_config>
   //
-  //
-  // The presence of <szg_config> as the first non-whitespace block of
-  // characters in the file determines the config file format that is
-  // assumed.
+  // Assume XML format, if <szg_config> is the first non-whitespace text.
 
-  // First, try the new and improved XML way!
   arFileTextStream fileStream;
-  // Only complain if asked via warn.
   if (!fileStream.ar_open(fileName, dataPath)){
     if (warn){
-      ar_log_warning() << _exeName << " error: failed to open batch file "
-	               << fileName << "\n";
+      ar_log_error() << _exeName <<
+        " error: failed to open batch file '" << fileName << "'.\n";
     }
     return false;
   }
-  ar_log_remark() << "arSZGClient remark: parsing config file " 
-                  << ar_fileFind(fileName, "", dataPath) << ".\n";
+  // ar_log_remark() << _exeName << " remark: parsing config file " 
+  //                 << ar_fileFind(fileName, "", dataPath) << ".\n";
   arBuffer<char> buffer(128);
-  string tagText = ar_getTagText(&fileStream, &buffer);
+  string tagText(ar_getTagText(&fileStream, &buffer));
   if (tagText == "szg_config"){
-    // Try parsing in the new way.
+    // Try parsing as XML.
     while (true){
       tagText = ar_getTagText(&fileStream, &buffer);
       if (tagText == "comment"){
 	// Go ahead and get the comment text (but discard it).
         if (!ar_getTextBeforeTag(&fileStream, &buffer)){
-	  ar_log_error() << _exeName << " error: incomplete comment text "
-	                 << "in phleet config file.\n";
+	  ar_log_error() << _exeName <<
+	    " error: incomplete comment in phleet config file.\n";
 	  fileStream.ar_close();
 	  return false;
 	}
@@ -664,19 +655,16 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
     fileStream.ar_close();
     return true;
   }
-  fileStream.ar_close();
 
-  // Try the traditional way...
-  ar_log_warning() << "arSZGClient warning: parsing config file using pre-0.7 syntax.\n";
+  fileStream.ar_close();
+  ar_log_warning() << _exeName << " warning: parsing pre-0.7 config file.\n";
   FILE* theFile = ar_fileOpen(fileName, dataPath, "r");
   if (!theFile){
     ar_log_error() << _exeName << " error: failed to open config file \""
                    << fileName << "\"\n";
     return false;
   }
-  // BUG: There are problems below with fixed sized buffers. NOTE: these
-  // problems will go away once we've fully converted over to the XML-based
-  // config files.
+  // Bug: finite buffer lengths.  Goes away after we deprecate pre-0.7 syntax.
   char buf[4096];
   char buf1[4096], buf2[4096], buf3[4096], buf4[4096];
   while (fgets(buf, sizeof(buf)-1, theFile)) {
@@ -694,9 +682,7 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
 
     setAttribute(buf1, buf2, buf3, buf4);
   }
-
   fclose(theFile);
-
   return true;
 }
 
@@ -713,7 +699,6 @@ string arSZGClient::getAttribute(const string& userName,
                                  const string& groupName,
                                  const string& parameterName,
                                  const string& validValues){
-  // Getting an attribute is somewhat complex. 
   // If not connected, check the local database (for standalone mode).
   // If connected, go to the szgserver. In either case, upon failure,
   // check the environment variable groupName_parameterName.
@@ -745,8 +730,8 @@ string arSZGClient::getAttribute(const string& userName,
     _dataParser->recycle(getRequestData);
   }
   if (result == "NULL"){
-    // First try failed, go to environment variable.
-    string tmp = ar_getenv(groupName+"_"+parameterName);
+    // First try failed. Now try environment variable.
+    const string tmp(ar_getenv(groupName+"_"+parameterName));
     result = _changeToValidValue(groupName, parameterName, tmp, validValues);
   }
   return result;
@@ -762,8 +747,7 @@ int arSZGClient::getAttributeInt(const string& computerName,
                                  const string& groupName,
 		                 const string& parameterName,
 				 const string& defaults){
-  const string& s =
-    getAttribute(computerName, groupName, parameterName, defaults);
+  const string& s(getAttribute(computerName, groupName, parameterName, defaults));
   if (s == "NULL")
     return 0;
 
@@ -771,7 +755,7 @@ int arSZGClient::getAttributeInt(const string& computerName,
   if (ar_stringToIntValid(s, x))
     return x;
 
-  ar_log_warning() << "arSZGClient warning: failed to convert '" << s << "' to an int in "
+  ar_log_warning() << _exeName << " warning: failed to convert '" << s << "' to an int in "
                    << groupName << "/" << parameterName << ar_endl;
   return 0;
 }
@@ -2705,12 +2689,12 @@ bool arSZGClient::_parsePhleetArgs(int& argc, char** const argv){
       const string thePair(argv[i+1]);
       const unsigned location = thePair.find('=');
       if (location == string::npos){
-        ar_log_error() << "arSZGClient error: missing '=' in context pair.\n";
+        ar_log_error() << _exeName << " error: missing '=' in context pair.\n";
         return false;
       }
       unsigned int length = thePair.length();
       if (location == length-1){
-        ar_log_error() << "arSZGClient error: incomplete context pair.\n";
+        ar_log_error() << _exeName << " error: incomplete context pair.\n";
         return false;
       }
       // Everything is in the format FOO=BAR, where FOO can be
@@ -2746,9 +2730,8 @@ bool arSZGClient::_parsePhleetArgs(int& argc, char** const argv){
   return true;
 }
 
-/// Helper function for _parseContext that takes the FOO=BAR components
-/// of that string and does the right thing with them. Note that "NULL"
-/// is also allowed as a do-nothing value.
+/// Helper for _parseContext that handles FOO=BAR components
+/// of that string. "NULL" is also allowed as a do-nothing value.
 bool arSZGClient::_parseContextPair(const string& thePair){
   // the context pair should be seperated by a single =
   unsigned int location = thePair.find('=');
@@ -2758,7 +2741,7 @@ bool arSZGClient::_parseContextPair(const string& thePair){
   }
   unsigned int length = thePair.length();
   if (location == length-1){
-    ar_log_error() << "arSZGClient error: missing '=' in context pair.\n";
+    ar_log_error() << _exeName << " error: nothing after '=' in context pair.\n";
     return false;
   }
   // Everything is in the format FOO=BAR, where FOO can be
@@ -2777,8 +2760,8 @@ bool arSZGClient::_parseContextPair(const string& thePair){
   }
   else if (pair1Type == "mode"){
     if (pair1.size() != 2){
-      ar_log_error() << _exeName << " error: parseContextPair() got mode "
-	             << "data without\n specified channel.\n";
+      ar_log_error() << _exeName <<
+        " error: parseContextPair()'s mode data has no specified channel.\n";
       return false;
     }
     const string modeChannel(pair1[1]);
@@ -2789,8 +2772,8 @@ bool arSZGClient::_parseContextPair(const string& thePair){
       _graphicsMode = pair2;
     }
     else{
-      ar_log_error() << _exeName << " error: parseContextPair() got invalid "
-	             << "mode channel.\n";
+      ar_log_error() << _exeName <<
+        " error: parseContextPair() got invalid mode channel.\n";
       return false;
     }
   }
@@ -2810,9 +2793,8 @@ bool arSZGClient::_parseContextPair(const string& thePair){
   else if (pair1Type == "server"){
     arSlashString serverLocation(pair2);
     if (serverLocation.size() != 2){
-      ar_log_error() << "arSZGClient error: "
-	             << "server command line parameter needs a slash string "
-	             << "of length 2.\n";
+      ar_log_error() << _exeName <<
+        " error: server command line parameter needs a slash string of length 2.\n";
       return false;
     }
     _IPaddress = serverLocation[0];

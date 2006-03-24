@@ -8,56 +8,52 @@
 #include "arLogStream.h"
 
 int ar_stringToLogLevel(const string& logLevel){
-  if (logLevel == "SILENT"){
+  if (logLevel == "SILENT")
     return AR_LOG_SILENT;
-  }
-  else if (logLevel == "CRITICAL"){
+  if (logLevel == "CRITICAL")
     return AR_LOG_CRITICAL;
-  }
-  else if (logLevel == "ERROR"){
+  if (logLevel == "ERROR")
     return AR_LOG_ERROR;
-  }
-  else if (logLevel == "WARNING"){
+  if (logLevel == "WARNING")
     return AR_LOG_WARNING;
-  }
-  else if (logLevel == "REMARK"){
+  if (logLevel == "REMARK")
     return AR_LOG_REMARK;
-  }
-  else if (logLevel == "DEBUG"){
+  if (logLevel == "DEBUG")
     return AR_LOG_DEBUG;
-  }
-  else{
-    // Hmmm. The default should probably be the most verbose.
-    return AR_LOG_DEBUG; 
-  }
+  // The default should probably be the most verbose.
+  return AR_LOG_DEBUG; 
 }
 
 string ar_logLevelToString(int logLevel){
+  static const char* s[AR_LOG_NIL+1] = {
+    "SILENT",
+    "CRITICAL",
+    "ERROR",
+    "WARNING",
+    "REMARK",
+    "DEBUG",
+    "INVALID_LOG_LEVEL" };
+
   switch(logLevel){
     case AR_LOG_SILENT:
-      return string("SILENT");
     case AR_LOG_CRITICAL:
-      return string("CRITICAL");
     case AR_LOG_ERROR:
-      return string("ERROR");
     case AR_LOG_WARNING:
-      return string("WARNING");
     case AR_LOG_REMARK:
-      return string("REMARK");
     case AR_LOG_DEBUG:
-      return string("DEBUG");
+      break;
     default:
-      return string("GARBAGE");
+      logLevel = AR_LOG_NIL;
   }
+  return string(s[logLevel]);
 }
 
 arLogStream::arLogStream():
-  // By default, we log to cout.
   _output(&cout),
   _header("szg"),
   _maxLineLength(200),
-  _logLevel(AR_LOG_ERROR),
-  _currentLevel(AR_LOG_CRITICAL){
+  _logLevel(AR_LOG_WARNING),
+  _currentLevel(AR_LOG_WARNING){
 }
 
 void arLogStream::setStream(ostream& externalStream){
@@ -208,25 +204,22 @@ arLogStream& arLogStream::operator<<(const string& s){
   return *this;  
 }
 
-// Needed so that ar_endl works like one expects.
+// For ar_endl.
 arLogStream& arLogStream::operator<<(arLogStream& (*func)(arLogStream& logStream)){
   return func(*this); 
 }
 
 void arLogStream::_preAppend(){
-  // Must ensure atomic access.
+  // Ensure atomic access.
   _lock.lock();
 }
 
 void arLogStream::_postAppend(bool flush){
-  // It is inefficient to do a big string copy each time...
-  // BUT we are already making the assumption that this logging
-  // class isn't high performance. At most 1000 accesses
-  // per second in a "reasonable" app.
-  string s = _buffer.str();
-  if (s.length() > _maxLineLength || flush){
+  // It is inefficient to copy a big string each time...
+  // BUT we already assume that arLogStream
+  // isn't high performance, at most 1000 accesses per second.
+  if (_buffer.str().length() > _maxLineLength || flush)
     _flushLogBuffer();
-  }
 }
 
 void arLogStream::_finish(){
@@ -236,14 +229,14 @@ void arLogStream::_finish(){
 void arLogStream::_flushLogBuffer(bool addReturn){
   // Only send to the stream if the level works out.
   if (_currentLevel <= _logLevel){
-    (*_output) << _header << ":" << ar_logLevelToString(_currentLevel) << ": " << _buffer.str();
+    *_output << _header << ":" << ar_logLevelToString(_currentLevel) << ": " << _buffer.str();
     if (addReturn){
-      (*_output) << "\n";
+      *_output << "\n";
     }
   }
-  string tmp("");
-  // Clears internal buffer.
-  _buffer.str(tmp);
+  // Clear internal buffer.
+  static const string empty;
+  _buffer.str(empty);
 }
 
 void arLogStream::_setCurrentLevel(int currentLevel){
@@ -291,9 +284,8 @@ arLogStream& ar_endl(arLogStream& logStream){
   logStream._lock.lock();
   logStream._flushLogBuffer(false);
   if (logStream._currentLevel <= logStream._logLevel){
-    (*logStream._output) << endl;
+    *logStream._output << endl;
   }
   logStream._lock.unlock();
   return logStream;
 }
-
