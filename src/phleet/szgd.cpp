@@ -125,17 +125,18 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
                        string& symbolicCommand,
                        string& command,
                        list<string>& args){
-  string userName = execInfo->userName;
-  string argString = execInfo->messageBody;
-  // First, clear "args" and tokenize the argString, placing the first token
-  // in command and the other tokens in the args list. 
-  // The first element is our candidate for the execuatble, either
-  // in native format, or python.
+  const string& userName(execInfo->userName);
+  const string& argString(execInfo->messageBody);
+
+  // Tokenize the argString. Place the first token
+  // in "command" and the other tokens in the list "args".
+  // command is our candidate for the exe, either native or python.
   args.clear();
   arDelimitedString tmpArgs(argString, ' ');
   if (tmpArgs.size() < 1) {
-    return "szgd error: execution attempt on empty arg string.\n";
+    return "szgd error: no arguments.\n";
   }
+
   command = tmpArgs[0];
   int i;
   for (i=1; i<tmpArgs.size(); ++i) {
@@ -145,9 +146,10 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
     }
   }
 
+  ostringstream errStream;
   execPath = SZGClient->getAttribute(userName, "NULL", "SZG_EXEC", "path", "");
   if (execPath == "NULL"){
-    cout << "szgd warning: exec path not set.\n";
+    errStream << "szgd warning: SZG_EXEC/path not set.\n";
   }
 
   // Determine if the argString's first token is in the exec path:
@@ -164,7 +166,6 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
 #endif
   symbolicCommand = command;
   string fileName;
-  ostringstream errStream;
   if (command.length() > 3 && command.substr(command.length()-3, 3) == ".py") {
     execInfo->executableType = "python";
     fileName = command;
