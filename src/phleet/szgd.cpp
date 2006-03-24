@@ -60,7 +60,7 @@ string getPythonPath( const string& userName, string pyfile ) {
   // file. The first one found is the directory of execution.
   arSemicolonString pythonPath(pythonScriptPath);
   string actualDirectory("NULL");
-  for (unsigned int i=0; i<pythonPath.size(); ++i){
+  for (int i=0; i<pythonPath.size(); ++i){
     list<string> contents = ar_listDirectory(pythonPath[i]);
     for (list<string>::iterator iter = contents.begin(); iter != contents.end(); ++iter) {
       string potentialFile = *iter;
@@ -139,41 +139,42 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
   command = tmpArgs[0];
   int i;
   for (i=1; i<tmpArgs.size(); ++i) {
-    // Don't push extra whitespace.
+    // Skip extra whitespace.
     if (tmpArgs[i].length() > 0) {
       args.push_back(tmpArgs[i]);
     }
   }
 
-  // Next, retrieve the exec path.
   execPath = SZGClient->getAttribute(userName, "NULL", "SZG_EXEC", "path", "");
   if (execPath == "NULL"){
     cout << "szgd warning: exec path not set.\n";
   }
 
-  // Next, determine if the first token in the argString is located in the
-  // exec path. To do this:
-  //   a. Strip the token (i.e. remove .exe or .EXE, for windows)
+  // Determine if the argString's first token is in the exec path:
+  //   a. Strip the token (remove .EXE)
   //   b. Determine if this a python script (via the extension)
-  //      i. If so, do nothing
-  //      ii. If not, and we are operating on windows, add .EXE to the token.
-  //   c. Go ahead and try to find the file on the path, returning false if
-  //      this fails.
+  //      If not, under win32 append .EXE.
+  //   c. Try to find the file on the path.
+#ifdef AR_USE_WIN_32
+  const string commandRaw(command);
+#endif
   command = ar_stripExeName(command);
+#ifdef AR_USE_WIN_32
+  const bool fHadEXE = command != commandRaw;
+#endif
   symbolicCommand = command;
   string fileName;
   ostringstream errStream;
-  if (command.substr(command.length()-3, 3) == ".py") {
+  if (command.length() > 3 && command.substr(command.length()-3, 3) == ".py") {
     execInfo->executableType = "python";
     fileName = command;
-    // Next, retrieve the python path.
     execInfo->pyDirPath = getPythonPath( userName, fileName );
     if (execInfo->pyDirPath == "NULL") {
-      string pythonScriptPath = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", 
-                                                  "path", "");
-      errStream << "szgd error: Failed to find a python script file '" << fileName
-                << "' on user " << userName << "'s SZG_PYTHON/path, which is:\n"
-                << "    " << pythonScriptPath << endl;
+      const string pythonScriptPath = SZGClient->getAttribute(
+        userName, "NULL", "SZG_PYTHON", "path", "");
+      errStream << "szgd error: no python script '" << fileName
+                << "' on user " << userName << "'s SZG_PYTHON/path '"
+                << "    " << pythonScriptPath << "'\n";
       return errStream.str();
     }
     command = ar_fileFind( fileName, "", execInfo->pyDirPath);
@@ -195,8 +196,8 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
            << "' on path " << execPath << ".\n";
 LAbort:
 #ifdef AR_USE_WIN_32
-      // todo: don't complain, if it was szgd who appended ".EXE".
-      errStream << "  On Windows, don't append '.exe' -- Windows does that for you.\n";
+      if (fHadEXE)
+        errStream << "szgd warning: don't append .exe;  Windows does that for you.\n";
 #endif
       return errStream.str();
     }
@@ -225,7 +226,7 @@ LAbort:
       // allow for /-delimited cmdline args in SZG_PYEXE or SZG_PYTHON/executable
       arSlashString pySpaceString( pyExeString );
       command = pySpaceString[0];
-      for (unsigned int ind=1; ind < pySpaceString.size(); ++ind) {
+      for (int ind=1; ind < pySpaceString.size(); ++ind) {
         args.push_front( pySpaceString[ind] );
       }
     }
