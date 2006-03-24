@@ -665,8 +665,13 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
   if( cameraType == "vr" ) {
     camera = new arVRCamera();
 
-  } else if( cameraType == "ortho" || cameraType == "perspective" ) {
-    arFrustumCamera* camF = new arFrustumCamera();
+  } else if (cameraType == "ortho" || cameraType == "perspective") {
+    arFrustumCamera* camF;
+    if (cameraType == "ortho") {
+      camF = (arFrustumCamera*)new arOrthoCamera();
+    } else {
+      camF = (arFrustumCamera*)new arPerspectiveCamera();
+    }
     cameraValidator.addChildren( "frustum/lookat/sides/clipping/position/target/up" );
 
     // <frustum left="float" right="float" bottom="float" top="float" near="float" far="float" />
