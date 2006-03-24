@@ -818,16 +818,13 @@ string ar_packParameters(int argc, char** argv){
   return result;
 }
 
-/// Takes an executable name and reduces it to a canonical form.
-/// On Win32, the trailing .EXE is removed and on all platforms the
-/// file path info is removed. Needed to convert argv[0] to the
-/// component name in a cross-platform fashion.
+/// Reduce an executable name to a canonical form,
+/// to convert argv[0] into a component name.
+/// Remove the path.  On Win32, remove the trailing .EXE.
 string ar_stripExeName(const string& name){
-  // Find the position of the last '/' or '\' in the input.
-  int position = 0;
-  if (name.find_last_of("/\\") != string::npos){
-    position = name.find_last_of("/\\")+1;
-  }
+  // Find the last '/' or '\'.
+  int position = name.find_last_of("/\\") == string::npos ?
+    0 : name.find_last_of("/\\")+1;
 
   bool extension = false;
 #ifdef AR_USE_WIN_32
@@ -835,10 +832,8 @@ string ar_stripExeName(const string& name){
   // what if the name length is less than 4? Note that some windows
   // shells *will not* append the .exe...
   if (name.length() >= 4){
-    const string& finalChars = name.substr(name.length()-4, 4);
-    if (finalChars == ".EXE" || finalChars == ".exe"){
-      extension = true;
-    }
+    const string& lastFour = name.substr(name.length()-4, 4);
+    extension = lastFour == ".EXE" || lastFour == ".exe";
   }
 #endif
   const int length = name.length()-position - (extension ? 4 : 0);
