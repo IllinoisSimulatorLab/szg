@@ -305,17 +305,14 @@ bool arTexture::readImage(const string& fileName,
                           const string& subdirectory,
                           const string& path,
                           int alpha, bool complain) {
-  string extension = ar_getExtension(fileName);
-  if (extension == "jpg") {
+  const string& extension(ar_getExtension(fileName));
+  if (extension == "jpg")
     return readJPEG(fileName, subdirectory, path, alpha, complain);
-  }
-  else if (extension == "ppm") {
+  if (extension == "ppm")
     return readPPM(fileName, subdirectory, path, alpha, complain);
-  }
   
-  // if we've made it here, there must have been an unknown extension
-  ar_log_error() << "arTexture error: asked to read image with unsupported extension ("
-                 << extension << ")\n";
+  ar_log_error() << "arTexture error: unsupported image-file extension '"
+                 << extension << "'.\n";
   return false;  
 }
 
@@ -333,22 +330,21 @@ bool arTexture::readPPM(const string& fileName,
                         const string& path,
                         int alpha, 
                         bool complain) {
-  // TODO TODO TODO TODO: HOW ABOUT GRAYSCALE PPM????????????
+  // todo: grayscale ppm
   FILE* fd = ar_fileOpen(fileName, subdirectory, path, "rb");
   if (!fd){
     if (complain){
-      ar_log_error() << "arTexture error: readPPM(...) could not open file\n  "
-	             << fileName << " for reading.\n";
+      ar_log_error() << "arTexture error: readPPM() failed to open '" <<
+        fileName << "' read-only.\n";
     }
     return false;
   }
 
-  char PPMHeader[3];
-  fscanf(fd, "%s ", PPMHeader);
+  char PPMHeader[4]; // fscanf's %3c averts danger of buffer overflow
+  fscanf(fd, "%3c ", PPMHeader);
   if (strcmp(PPMHeader, "P3") && strcmp(PPMHeader, "P6")) {
-    ar_log_error() << "arTexture error: Unexpected header \""
-	           << PPMHeader << "\" in PPM file \""
-	           << "\" (not in binary format?).\n";
+    ar_log_error() << "arTexture error: Unexpected (nonbinary?) header '" <<
+      PPMHeader << "' in PPM file '" << fileName << "'.\n";
     return false;
   }
   
