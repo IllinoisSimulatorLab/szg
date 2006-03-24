@@ -10,7 +10,6 @@
 #include "arSZGClient.h"
 
 const int numberGetAttr = 2500;
-const int numberCon = 30;
 bool done1 = false;
 bool done2 = false;
 
@@ -46,20 +45,36 @@ int main(int argc, char** argv){
   if (!*client)
     return 1;
 
-  while (true){
+  while (true) {
     cout << "First trying connection speed.\n";
     int i = 0;
+
 #if 0
     ar_timeval contime = ar_time();
-  for (i=0; i<numberCon; i++){
+    const int numberCon = 30;
+    for (i=0; i<numberCon; i++){
+      client = new arSZGClient;
+      client->init(argc, argv);
+      if (!*client)
+	return 1;
+
+      client->closeConnection();
+      delete client;
+    }
+    double totalCon = ar_difftime(ar_time(), contime);
+    cout << "Time to get attribute is "
+	 << totalCon/(1000.0*numberCon) << " ms.\n"
+	 << "  Requests per second = " 
+	 << (1000000.0*numberCon)/totalCon << "\n";
     client = new arSZGClient;
     client->init(argc, argv);
-    if (!*client)
+    if (!(*client))
       return 1;
 
     client->closeConnection();
     delete client;
   }
+
   double totalCon = ar_difftime(ar_time(), contime);
     cout << "Time to get attribute is "
          << totalCon/(1000.0*numberCon) << " ms.\n";
@@ -71,8 +86,8 @@ int main(int argc, char** argv){
     return 1;
     }
 #endif
-  client->setAttribute("foo","bar1","bar1");
-  client->setAttribute("foo","bar2","bar2");
+    client->setAttribute("foo","bar1","bar1");
+    client->setAttribute("foo","bar2","bar2");
     ar_timeval time1 = ar_time();
     for (i=0; i<numberGetAttr; i++){
       (void)client->getAttribute("foo","bar1"); 
@@ -89,8 +104,10 @@ int main(int argc, char** argv){
     while (!done1 || !done2){
       ar_usleep(100000);
     }
+
     /*client->closeConnection();
       delete client;*/
+
   }
   return 0;
 }
