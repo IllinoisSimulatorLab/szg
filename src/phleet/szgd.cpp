@@ -756,18 +756,17 @@ LRetry:
     }
     return 1;
   }
-  
-  // Only one szgd per host.
+
+  // Only one instance per host.
   int ownerID = -1;
-  if (!SZGClient->getLock(SZGClient->getComputerName()+"/szgd", ownerID)) {
-    cerr << "szgd error: szgserver thinks another copy is already running on host (pid = " 
+  if (!SZGClient->getLock(SZGClient->getComputerName() + "/szgd", ownerID)) {
+    cerr << "szgd error: another copy is already running (pid = " 
          << ownerID << ").\n";
     // todo: if we can't communicate with that pid, then
     // assume szgserver has obsolete info, "dkill -9" that pid,
     // and start up anyways.
     return 1;
   }
-
 
   string userName, messageType, messageBody, messageContext;
   while (true) {

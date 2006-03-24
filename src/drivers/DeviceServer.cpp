@@ -162,6 +162,14 @@ int main(int argc, char** argv){
   if (!SZGClient)
     return 1;
 
+  // Only one instance per host.
+  int ownerID = -1;
+  if (!SZGClient.getLock(SZGClient.getComputerName() + "/DeviceServer", ownerID)) {
+    cerr << "DeviceServer error: another copy is already running (pid = " 
+         << ownerID << ").\n";
+    return 1;
+  }
+
   stringstream& initResponse = SZGClient.initResponse();
 
   // First, check to see if we've got the "simple" flag set (-s)
