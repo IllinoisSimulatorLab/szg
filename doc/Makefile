@@ -10,7 +10,9 @@ ALL = \
   Future.html \
   GettingSoftware.html \
   Goals.html \
+	GraphicsConfiguration.html \
   InputClasses.html \
+	InputDeviceConfiguration.html \
   InputDevices-Drivers.html \
   InputDevices.html \
   InputFilters.html \

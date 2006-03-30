@@ -1,7 +1,7 @@
 Syzygy Documentation: Syzgy System Configuration
 Integrated Systems Lab
 %%mtime(%m/%d/%Y)
-%!options: --headers --toc --toc-level=3
+%!options: --headers --toc
 %!encoding: iso-8859-1
 
 [Documentation Table of Contents index.html]
@@ -9,11 +9,11 @@ Integrated Systems Lab
 This chapter will show you how to configure Syzygy to work with your
 equipment.
 
-% Table of Contents, using any level 1 thru 3 headers
+% Table of Contents
 %%toc
 
 
-==The Syzygy Database==[Database]
+=The Syzygy Database=[Database]
 
 Syzygy maintains a database for storing useful bits of information in a way
 that your program can easily get at. Some of this information is used by the
@@ -37,13 +37,58 @@ so any database commands will access the database for the last user logged
 in to the Syzygy server using the ``dlogin`` command.
 
 
-==Local and Global Parameters==[ParameterTypes]
+=Global and Local Parameters=[ParameterTypes]
 
-There are two types of parameters in the Syzygy database, local (computer-specific)
-and global.
+There are two types of parameters in the Syzygy database, global (i.e. not
+specific to any computer) and local (computer-specific).
 
 
-===Local Parameters===[LocalParameters]
+==Global Parameters==[GlobalParameters]
+
+Global parameters contain information that is not tied to a
+particular computer in the cluster. There are two main types of
+global parameters: graphics configurations and input device descriptions.
+These parameters allow the user to define complex attributes of the system
+--for example, a graphics window corresponding to one eye of a head-mounted
+display, or the configuration of a tracking device--without having to
+consider which computer will perform those functions. This facility
+makes it easier to re-arrange and replace computers in your cluster.
+
+Global parameters are keyed only by name, and their values are
+specified in XML. Their structure can be quite complex, so they are discussed in
+two separate chapters:
+
+
+===Global Graphics Parameters===
+
+Read the [Syzygy Graphics Configuration GraphicsConfiguration.html] chapter.
+
+
+===Global Input Device Parameters===
+
+Read the [Syzygy Input Device Configuration InputDeviceConfiguration.html] chapter.
+
+
+===Getting and Setting Global Parameter Values===
+
+When running a Syzygy cluster, it is possible (although not very practical) to get and set values of
+individual global parameters at the command line.
+
+To set a single global parameter using the ``dset`` command, type:
+```
+  dset parameter_name parameter_value
+```
+However, the value is
+typically a longish XML string; global parameters are generally
+specified in a parameter file.
+
+Similarly, you could set a single parameter value using:
+```
+  dget parameter_name
+```
+
+
+==Local Parameters==[LocalParameters]
 
 Local parameters give information that is particular to a given computer. They
 are specified or keyed within the database by the //computer name//, a
@@ -53,10 +98,14 @@ are typically written as a slash-delimited string, i.e.
   <computer name>/<parameter group>/<parameter name>
 ```
 For example, to tell a computer named 'alice' the standard location for data files,
-you would set the database parameter
+you would set the database parameter represented by:
 ```
   alice/SZG_DATA/path
 ```
+
+
+===Getting and Setting Local Parameters===
+
 When interacting with the database, either via ``dget`` and ``dset`` in Cluster Mode
 or in a parameter file, the key elements are separated by spaces. A parameter file
 entry line for the parameter above might look like this:
@@ -76,178 +125,35 @@ the command would return the value
   G:\Data
 ```
 
-There are three important categories of local parameters. The first group
-describes the viewer's head, i.e. the placement of the eyes with respect to
-a tracking sensor on the head. The second gives
-default values for the display configuration on particular computers. The
-third consists of search paths for various sorts of files (data, textures,
-sounds, executables, python modules) on each computer. If one of these
-parameters is not defined in the parameter database, then Syzygy will query
-an appropriate environment variable for the value (see
-[Standalone Mode Standalone.html] for an explanation). For instance, if
-SZG_HEAD/eye_spacing is undefined then the environment variable
-SZG_HEAD_eye_spacing is queried, and if SZG_DISPLAY0/name is undefined, then
-SZG_DISPLAY0_name is queried.
 
-We now describe the parameters that define the viewer's head. These
-must be defined on each computer where an application will run, assuming you
-are not content with the sensible default values (i.e. you are running
-precise HCI experiments). Specifically, each computer that fulfills a
-"master" or "trigger" role in one of your virtual computers should have these
-defined (again assuming you want something besides the defaults). Please see
-the section on
-[virtual computers PhleetIntro.html#VirtualComputer] for a
-definition of these terms and see [here lab.txt] for a real world
-example.
-
-```
-  SZG_HEAD eye_spacing 0.2
-   Distance between the eyes in feet.
-  SZG_HEAD eye_direction 1/0/0
-   Unit vector to the right eye in the head tracker coordinate system.
-  SZG_HEAD mid_eye_offset 0.29/0/0.25
-   Offset in feet to the middle of the eyes in the tracker coordinate system.
-  SZG_HEAD fixed_head_mode false
-   Should fixed-head mode be used or not.
-```
+===Categories of Local Parameters===
 
 
-The following parameters specify the configuration of default displays.
-See [here lab.txt] for a real world example.
+====Head Parameters====
 
-```
-  SZG_DISPLAY0 name the_display_name
-   By default, when running a Syzygy graphical application on this computer,
-   use the XML config stored in the global parameter "the_display_name".
-  SZG_DISPLAY(n) name the_display_name
-   Specifies the configuration for other, non-default, displays.
-```
+See the relevant section in the [Syzygy Graphics Configuration GraphicsConfiguration.html#Head]
+chapter.
 
 
-The various paths the system uses to find executables, loadable libraries,
-textures, sound clips, and other data are now explained. These values of these
-parameters will often be the main variations in the databases of different
-users. Because Windows file names can use
-colons, we ensure portability by using semi-colon delimited lists to give the
-paths. For simplicity, we omit the computer name from these parameter examples.
-To use them in a dbatch file, you would have to include it.
+====Display Selection====
 
-```
-  SZG_EXEC path directory_1;directory_2
-   Location of the executables for a given user.
-  SZG_NATIVELIB path directory_1
-   Location of dynamic libraries for a given user.
-  SZG_PYTHON path directory_1;directory_2
-   The directories in which the python "application bundles" live.
-  SZG_PYTHON lib_path directory_1;directory_2;directory_3
-   The directories where extra Python loadable modules exist.
-  SZG_DATA path directory_1
-   Location of data.
-  SZG_SOUND path directory_1;directory_2;directory_3
-   Location of sound files loaded by SoundRender.
-  SZG_RENDER texture_path directory_1
-   Location of texture files loaded by szgrender.
-  SZG_RENDER text_path directory_1
-   Location of textured text font used by szgrender billboard.
-```
+See the relevant section in the [Syzygy Graphics Configuration GraphicsConfiguration.html#DisplaySelection]
+chapter.
 
 
-===Global Parameters===[GlobalParameters]
+===Resource Path Specification===
 
-Global parameters contain information that is not tied to a
-particular computer in the cluster. There are two main types of
-global parameters: graphics configurations and input device descriptions.
-These parameters allow the user to define complex attributes of the system
---for example, a graphics window corresponding to one eye of a head-mounted
-display, or the configuration of a tracking device--without having to
-consider which computer will perform those functions. This facility
-makes it easier to re-arrange and replace computers in your cluster.
-
-Global parameters are keyed only by name, and their values are
-specified in XML.
-
-Here are a couple of examples of how global parameter are specified
-in a parameter file. The
-first has the name or key 'single_window'. It is a description of a
-640x480-pixel window that is to be positioned
-50 pixels down and 50 pixels right of the upper-left screen corner. It
-will be decorated (i.e. have a frame with the usual widgets on it), will
-have the title 'A Single Window', and will contain a single, 'normal'
-viewport.
-```
-  <param>
-  <name>single_window</name>
-  <value>
-  <szg_display>
-   <szg_window>
-     <size width="640" height="480" />
-     <position x="50" y="50" />
-     <decorate value="true" />
-     <fullscreen value="false" />
-     <title value="A Single Window" />
-     <szg_viewport_list viewmode="normal" />
-   </szg_window>
-  </szg_display>
-  </value>
-  </param>
-```
-
-The second example is a configuration record for an input device,
-specifically an Ascension MotionStar(tm) tracker. It has the name
-'cube_tracker'. It's input source is a device driver (a shared-
-library module for the DeviceServer program), 'arMotionstarDriver'.
-It uses a C++ filter called 'arTrackCalFilter'. It also
-uses a second filter, written in the [PForth PForth.html]
-programming language, that corrects the orientation data slightly;
-this second filter's code is contained right in the record below.
-
-```
-  <param>
-  <name> cube_tracker </name>
-  <value>
-    <szg_device>
-      <input_sources> arMotionstarDriver </input_sources>
-      <input_sinks></input_sinks>
-      <input_filters> arTrackCalFilter </input_filters>
-      <pforth>
-        matrix inputMatrix
-        matrix outputMatrix
-        matrix correctXRotMatrix
-        matrix correctYRotMatrix
-        matrix correctZRotMatrix
-        matrix correctHeadRotMatrix
-        -30 0 correctXRotMatrix rotationMatrix
-        6 1 correctYRotMatrix rotationMatrix
-        -1 2 correctZRotMatrix rotationMatrix
-        correctYRotMatrix correctZRotMatrix correctHeadRotMatrix matrixMultiply
-        define filter_matrix_0
-          inputMatrix getCurrentEventMatrix
-          inputMatrix correctHeadRotMatrix outputMatrix matrixMultiply
-          outputMatrix setCurrentEventMatrix
-        enddef
-      </pforth>
-    </szg_device>
-  </value>
-  </param>
-```
-
-To set a single global parameter in Cluster Mode using the ``dset`` command, type
-```
-  dset parameter_name parameter_value
-```
-However, this is generally not very practical, as the value is
-typically a longish XML string; global parameters are generally
-specified in a parameter file.
+Read the chapter on [Resource Path Specification PathConfiguration.html].
 
 
-==Parameter File Formats==[FileFormats]
+=Parameter File Formats=[FileFormats]
 
 There are two formats for parameter files: an older, 'simple' format
 and a newer, 'complex' format. The simple format cannot contain
 global parameter definitions.
 
 
-===Simple Parameter File Format===[SimpleFormat]
+==Simple Parameter File Format==[SimpleFormat]
 
 The simple format consists of a sequence of local parameter settings, interspersed
 with comments. This format is useful for quick
@@ -272,27 +178,29 @@ format unsuitable for more global parameter specification. Hence,
 the complex format.
 
 
-===Complex Parameter File Format===[ComplexFormat]
+==Complex Parameter File Format==[ComplexFormat]
 
 As stated above, global parameters are specified using XML, and in fact
 in the complex format the entire file is XML.
-It can contain 3 types of XML records, //comment//,
-//assign//, and //param//. These records cannot be nested. For instance,
-a //comment// block cannot appear within an //assign//. They can
+It can contain 3 types of XML records, **<comment>**,
+**<assign>**, and **<param>**. These records cannot be nested. For instance,
+a **<comment>** block cannot appear within an **<assign>**. They can
 appear in the file in any order, however, and there can be any number
 of them.
 
-A //comment// record contains a comment. These are discarded by the
-parser. An //assign// record contains a list of local parameter definitions
+A **<comment>** record contains a comment. These are discarded by the
+parser. An **<assign>** record contains a list of local parameter definitions
 in the same format as for a simple parameter file, but without any comments. Finally,
-a //param// record contains a global parameter definition.
+a **<param>** record contains a global parameter definition.
 
-Here is an example. Note the required ``<szg_config>``/``</szg_config>`` tags
+Here is an example. Note the //required// **<szg_config>**/**</szg_config>** tags
 that enclose the entire file:
 ```
   <szg_config>
     <comment>
       This is what comments look like in a complex parameter file.
+      The following 'assign' record contains a number of local
+      parameter definitions.
     </comment>
     <assign>
       smoke SZG_DATA path /home/public/Data
@@ -301,6 +209,9 @@ that enclose the entire file:
       smoke SZG_SOUND path /home/public/Sounds
       smoke SZG_DISPLAY0 name head_mounted
     </assign>
+    <comment>
+      The following 'param' record contains a global device definition.
+    </comment>
     <param>
       <name> windows_joystick_filter </name>
       <value>
@@ -312,1304 +223,6 @@ that enclose the entire file:
         enddef
       </value>
     </param>
-  </szg_config>
-```
-
-
-==Example Parameter Files==[Examples]
-
-
-We now bring your attention to several templates for the main parameter
-files in use at the Integrated Systems Lab. For each template, a valid
-configuration file for a particular user is generated by substituting his
-user name for "THE_USER_NAME", so for example:
-```
-  sed 's/THE_USER_NAME/schaeffr/g' cube.txt > cube-schaeffr.txt
-```
-
-
-The file [cube.txt cube.txt] gives a template parameter
-file for a 6-sided fixed screen VR environment (virtual computer=cube).
-It also demonstrates how different virtual computers (cube and wincube) can
-share the same virtual computer location (cube).
-
-The file [lab.txt lab.txt] gives a template parameter
-file for a lab containing a group of workstations, a dual-headed passive stereo
-display (virtual computer=passive), an Immersadesk-style active stereo display
-(virtual computer=idesk), and a 3x2 video wall (virtual computer=wall). This
-template also demonstrates the use of include directives in dbatch files.
-The include locations are given by SZG_SCRIPT local parameters and the
-included files contain [screen configurations window_configs.txt],
-[device configurations device_configs.txt], and
-[virtual computer definitions virtual_computer_configs.txt]
-respectively.
-
-The file [cave.txt cave.txt] gives a template parameter file
-for a 4-sided fixed screen VR environment (virtual computer=cave).
-
-
-
-==Running Syzygy Applications in Cluster Mode When Off the Network==[OffNetwork]
-
-
-Sometimes it is desirable to be able to run Syzygy applications off the
-network. On nice way to do this is
-[Standalone Mode Standalone.html].
-However, sometimes you will want to run in Cluster Mode (as you would on a
-cluster),
-but only on a single computer. Since Cluster Mode requires a network connection
-and your operating system might turn off NICs if they are not connected,
-the solution is to use the loopback address (127.0.0.1).
-
-First, you will need to make sure that the phleet configuration file is
-set up with the loopback address. Use
-the "daddinterface" and "ddelinterface" commands, as outlined in the
-[introduction PhleetIntro.html] to produce a configuration file
-that has "dconfig" produce output like:
-
-```
-  Phleet configuration
-    computer = your_computer_name
-    network = local, address = 127.0.0.1, netmask=255.255.255.0
-    ports = 4700 - 4899
-```
-
-
-Next, run szgserver, as outlined in the
-[introduction PhleetIntro.html].
-An example (the given port number is arbitrary):
-
-```
-  szgserver my_server_name 4999
-```
-
-
-Finally, you need to dlogin. Since the loopback interface filters broadcast
-packets, you need to connect by IP/port instead of via server name.
-
-```
-  dlogin 127.0.0.1 4999 syzygy_user_name
-```
-
-
-==Graphics Parameters==[Graphics]
-
-Thanks to Lee Hendrickson for creating the arGUI toolkit that provides Syzygy with a flexible windowing system.
-
-In this section, we first explain the basic way to configure a graphics
-screen. Next, we tackle advanced options like the special Syzygy demo mode
-which sacrifices projection accuracy to
-accomodate large groups in an immersive virtual environment, how to enable
-framelocking for supported graphics cards, and how to configure multiple
-graphics passes in a single window to produce a variety of effects.
-
-Here is a window configuration with every basic option given.
-
-```
-  <param>
-  <name>single_window</name>
-  <value>
-  <szg_display threaded="false">
-   <szg_window>
-     <size width="640" height="480" />
-     <position x="50" y="50" />
-     <decorate value="true" />
-     <fullscreen value="false" />
-     <cursor value="none" />
-     <title value="szg" />
-     <stereo value="false" />
-     <zorder value="topmost" />
-     <xdisplay value=":0.0" />
-     <szg_viewport_list viewmode="normal">
-       <szg_camera>
-         <szg_screen>
-           <center x="0" y="5" z="-5" />
-           <up x="0" y="1" z="0" />
-           <dim width="13.33" height="10" />
-           <normal x="0" y="0" z="-1" />
-           <headmounted value="false" />
-           <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-           <usefixedhead value="allow" />
-           <fixedheadpos x="0.0" y="5" z="0.0" />
-           <fixedheadupangle value="0.0" />
-         </szg_screen>
-       </szg_camera>
-     </szg_viewport_list>
-   </szg_window>
-  </szg_display>
-  </value>
-  </param>
-```
-
-An explanation of the parameters follows.
-
-```
-  <szg_display threaded="false">
-   By default, the windows are drawn in the same thread as the Syzygy
-   program's main(...). However, if there are mutliple windows (instead
-   of just multiple viewports), it will be more efficient on a
-   multi-processor machine to draw each window in its own thread by setting
-   threaded to "true".
-  <size width="640" height="480" />
-   width and height give the window dimensions in pixels. Default is
-   640 pixels wide by 480 pixels high.
-  <position x="50" y="50" />
-   The (x, y) screen coordinates of the window origin. Default is (50, 50).
-  <decorate value="true" />
-   Does the window have decoration (i.e. a title bar and border)? This should
-   be "false" for fullscreen windows. The default is "true".
-  <fullscreen value="false" />
-   Should the window fill the screen? The default if "false". If "true",
-   then decorate should be set to "false".
-  <cursor value="none" />
-   The shape of the cursor inside the window, with "none" meaning no cursor.
-   By default, an "arrow" cursor is used, but a "wait" or "help" shape is
-   also supported.
-  <title value="szg" />
-   The window's title. Default is "Syzygy Window".
-  <stereo value="false" />
-   Does the window use *active* stereo or not? Default is "false".
-   NOTE: This is different from passive stereo, which gets done using
-   viewport tricks. Active stereo requires LCD stereo shutter goggles and a
-   graphics card that supports OpenGL stereo buffers. The Syzygy application
-   frameworks query the graphics card regarding stereo buffer support; if it
-   is not supported, this parameter is ignored.
-  <zorder value="topmost" />
-   Does the window sit on top of other windows? Default is "normal", which
-   lets the OS decide. If "top", then Syzygy tries to map the window on top
-   of other windows (but special windows on some platforms, like Win32, might
-   still cover it). If "topmost", then Syzygy tries to map the window on top
-   of all others.
-  <xdisplay value=":0.0" />
-   Only meaningful on Unix sytems. Gives the name of the X display where the
-   window should appear. Default is ":0.0".
-```
-
-
-The next parameter requires more explanation.
-
-```
-  <szg_viewport_list viewmode="normal">
-```
-
-
-There are several built-in viewing modes, along with a means
-("custom") of defining your own. We will explore configuring the custom
-mode [here #StandaloneVirtualCube]. The anaglyph, crosseyed,
-walleyed, and overunder viewing modes are all useful for stereo displays.
-However, recall that the Syzygy "stereo" attribute (see above) refers to
-active stereo only and should be set to "false" for these modes.
-
-
-
-  - normal: This is the default. If active stereo is disabled, the scene
-is rendered once for the default view position (see default_eye, above),
-taking up the entire window. If active stereo is enabled, it's rendered into
-the left buffer from the left-eye viewpoint, etc.
-
-  - anaglyph: The left-eye view is rendered into the red channel
-and the right-eye view is rendered into the green and blue
-channels, for viewing with red/green or red/blue glasses. Note that
-this only works well if the scene itself does not contain color
-information, or if large patches of color are restricted to the plane of
-the screen.
-
-  - walleyed: The window is split in half, with the left-eye view
-in the left half and the right-eye view in the right half. This
-arrangement can be viewed with mirrors, or if the window is small,
-by diverging the eyes as for single-image stereograms. With a
-dual-head graphics card, the user can configure the desktop so that
-one output displays the left half and the displays the right half.
-
-  - crosseyed: As above, but the left-eye image is on the right,
-and vice-versa. To be viewed by crossing the eyes.
-
-  - overunder: The left-eye view is in the bottom half and the
-right-eye view is on top. For use with over/under stereo viewers
-like the View Magic (google it).
-
-
-
-We now explain the parameters defining the graphics screen.
-
-```
-  <center x="0" y="5" z="-5" />
-   Screen center in physical coordinates (feet). Default is 0/5/-5.
-  <dim width="13.33" height="10" />
-   Screen dimensions in feet. Default is 10/10.
-  <normal x="0" y="0" z="-1" />
-   Outward pointing screen normal (away from the viewer), expressed in
-   physical coordinates. Default is 0/0/-1.
-  <up x="0" y="1" z="0" />
-   Up direction in physical coordinates. This can be used to correct for
-   projector rotation. Default is 0/1/0.
-  <headmounted value="false" />
-   Should the screen be interpreted as fixed to the user's head. Default is
-   "true".
-  <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-   Used for working with tiled display walls. There are numtilesx horizontal
-   tiles and numtilesy vertical tiles. This particular tile is the (tilex)th
-   horizontal one, with numbering starting at 0 and the display's left. The
-   tile is the (tiley)th vertical one, with numbering starting at 0 and the
-   display's bottom. Default is 0/1/0/1 (i.e. no tiling).
-```
-
-
-Proper projections for fixed screen VR are really just for one person.
-The further away a secondary observer is from the tracked viewpoint, the more
-distorted things look. Furthermore, the eye seperation or drawing order on
-a screen might be very wrong for an observer if his head is oriented
-differently than the tracked viewpoint. Consequently, Syzygy has a "demo mode"
-which sacrifices accuracy of projection (there will be misalignment at
-screen junctions) in exchange for presenting as sensible as possible of a
-stereo view for everyone in a group on people wandering around and looking
-in all different directions simultaneously.
-
-```
-  <usefixedhead value="allow" />
-   Whether or not the screen is using fixed-head mode. In fixed-head mode,
-   the projection is determined based on a fixed head position and orientation.
-   The orientation depends on the screen_normal. Fixed-head mode is better than
-   the correct VR projection for a large group of people inside a
-   projection-based virtual environment. The default is "allow", whereby
-   the application decides whether of not to use fixed-head mode, but valid
-   values include "always" and "ignore", with the obvious meanings. The actual
-   fixed position is taken from the fixedheadposition element.
-  <fixedheadpos x="0.0" y="5" z="0.0" />
-   The fixed head position, in physical coordinates, that will be used if
-   fixed-head mode is enabled. The default is 0/5/0.
-  <fixedheadupangle value="0.0" />
-   In fixed-head mode, the viewing head is oriented so that it is pointing
-   directly towards the screen (as determined by screen_normal). Note that
-   this leaves one degree of rotational ambiguity. This parameter (expressed
-   in degrees) can be used to manipulate this. Default is 0.
-```
-
-
-Syzygy supports the framelocking feature on Wildcat graphics cards. Since
-this should only be enabled for cards set up to framelock together (there
-are special cables to be connected between the cards), its use needs to be
-requested by a parameter.
-
-```
-  <szg_display threaded="false" framelock="wildcat">
-   For framelocking to work, the display cannot be run in threaded mode.
-   Framelocking is turned on by specifying the framelock attribute as
-   above.
-```
-
-
-==Graphics Examples==[SimpleGraphics]
-
-
-The following gives a minimal display configuration. It uses a default
-graphics screen.
-
-```
-  <param>
-  <name>single_window</name>
-  <value>
-  <szg_display>
-   <szg_window>
-     <szg_viewport_list viewmode="normal" />
-   </szg_window>
-  </szg_display>
-  </value>
-  </param>
-```
-
-
-It is possible to use a pointer-like construction in the XML. Please see
-[this window_configs.txt] config file for other examples (search
-for "usenamed").
-
-```
-  <param>
-  <name> front_screen </name>
-  <value>
-  <szg_screen>
-    <center x="0" y="5" z="-5" />
-    <up x="0" y="1" z="0" />
-    <dim width="10" height="10" />
-    <normal x="0" y="0" z="-1" />
-    <headmounted value="false" />
-  </szg_screen>
-  </value>
-  </param>
-  <param>
-  <name>single_window</name>
-  <value>
-  <szg_display>
-   <szg_window>
-     <szg_viewport_list viewmode="normal">
-       <szg_camera>
-         <szg_screen usenamed="front_screen" />
-       </szg_camera>
-     </szg_viewport_list>
-   </szg_window>
-  </szg_display>
-  </value>
-  </param>
-```
-
-
-Here, in the "single_window" XML config, when parsing the szg_screen
-element, the parser loads the "front_screen" global parameter, instead of
-trying to find the element locally. In effect, "usenamed" functions as
-a pointer to an element stored elsewhere. This makes the config files more
-reusable and readable.
-
-
-==Input Device Parameters==[InputDevice]
-
-Many input devices need special configuration, like specifying the serial
-port it uses or the mode in which it should operate. The
-[chapter InputDevices-drivers.html] on supported input
-devices describes any specific parameters that must be configured to operate
-a particular device.
-
-Two general kinds of configuration apply to all input devices. First,
-[PForth PForth.html] programs can operate on input data streams,
-doing tasks like rescaling input event values or rearranging event IDs.
-
-With joysticks and/or gamepads this functionality is critical for providing
-cross platform or even cross device support on a single platform. Joystick axes
-on Linux typically report 0 to 64k, whereas joystick axes of Windows
-might report either [-32k,32k] or [0,64k]. Furthermore,
-a given gamepad may, on different systems,
-have its axes numbered differently, and, more fundamentally, since no standard
-for gamepad design exists, the numbering given by the OS might not agree with
-the numbering we want for our interface. Additionally, the Syzygy VR framework
-applications expect a standard joystick type input, with axis 0 corresponding
-to the horizontal, axis1 corresponding to the vertical, both normalized to the
-range [-1,1], and the value (-1,-1) realized in the lower left corner. As
-a consequence of these constraints, some data filtration is required between
-the raw information reported by the input device and its use in a Syzygy
-application.
-
-While general transformations of the input event stream are handled by
-loadable modules derived from arIOFilter, PForth programs are ideally suited
-to the event processing necessary for joystick/gamepad standardization, as well
-as being able to handle some simple tracker calibration tasks. Below, we give
-an example PForth program as it might appear in a "complex" dbatch file.
-
-```
-<param>
-  <name> joystick_test </name>
-  <value>
-    define filter_axis_0
-      getCurrentEventAxis 0.000031 * setCurrentEventAxis
-    enddef
-    define filter_axis_1
-      getCurrentEventAxis -0.000031 * setCurrentEventAxis
-    enddef
-  </value>
-</param>
-```
-
-
-This program (appropriate for a particular gamepad on Windows) and takes events
-coming from axis 0 and scales them to the [-1,1] range. It also scales events from
-axis 1 into that same range, reversing their sign in the process. After the
-global parameter "joystick_test" giving this PForth program is loaded into the
-parameter database, you can run the following programs in Cluster Mode to see the
-results. Note that your joystick would actually need to be connected to the
-computer on which you run DeviceServer. In contrast, DeviceClient can be run
-anywhere else in the cluster (though on each computer you will have to be dlogin'ed
-as the same Syzygy user).
-
-```
-  DeviceServer -s arJoystickDriver 0 joystick_test
-  DeviceClient 0
-```
-
-
-DeviceClient should begin printing out values from the joystick. You can experiment
-with changing the PForth program to see how that affects the output. For instance, if
-you wanted to offset the values so that they were in the range [0,2], the following
-modified program would work (note that PForth is stack-based, so operation order
-resembles reverse Polish notation):
-
-```
-<param>
-  <name> joystick_test2 </name>
-  <value>
-    define filter_axis_0
-      getCurrentEventAxis 0.000031 * 1 + setCurrentEventAxis
-    enddef
-    define filter_axis_1
-      getCurrentEventAxis -0.000031 * 1 + setCurrentEventAxis
-    enddef
-  </value>
-</param>
-```
-
-
-Sometimes DeviceServer needs special configuration beyond what can be provided
-directly from the command line. In this case, a global parameter will store the
-DeviceServer configuration. This includes information on what input sinks and
-sources will be deployed, what loadable IO filters will be used, along with
-a PForth program that will operate on the events, if any. An example follows,
-as it would appear in a "complex" dbatch file:
-
-```
-<param>
-<name> cube_tracker </name>
-<value>
-  <szg_device>
-    <input_sources> arMotionstarDriver </input_sources>
-    <input_sinks></input_sinks>
-    <input_filters> arTrackCalFilter </input_filters>
-    <pforth>
-	matrix inputMatrix
-	matrix outputMatrix
-	matrix correctXRotMatrix
-	matrix correctYRotMatrix
-	matrix correctZRotMatrix
-	matrix correctHeadRotMatrix
-	-30 0 correctXRotMatrix rotationMatrix
-	6 1 correctYRotMatrix rotationMatrix
-	-1 2 correctZRotMatrix rotationMatrix
-	correctYRotMatrix correctZRotMatrix correctHeadRotMatrix matrixMultiply
-	define filter_matrix_0
-	  inputMatrix getCurrentEventMatrix
-	  inputMatrix correctHeadRotMatrix outputMatrix matrixMultiply
-	  outputMatrix setCurrentEventMatrix
-	enddef
-    </pforth>
-  </szg_device>
-</value>
-</param>
-```
-
-
-This example shows how PForth programs can be used for tracker calibration tasks, and
-it would be activated by:
-
-```
-  DeviceServer cube_tracker 0
-```
-
-
-Please read the chapter on [input devices inputDevices.html] for
-more information on how to use the DeviceServer and DeviceClient programs.
-
-
-==Defining a Virtual Cube (Using Viewports)==[StandaloneVirtualCube]
-
-[images/VirtualCube.jpg]
-
-Sometimes, for debugging purposes, it might be convenient to be able
-to see, in a single window, most of the screens (in this case 5 out of 6) in
-an immersive virtual environment. This lets us make sure that are camera
-projection code is
-doing the right thing with minimal hassle and also gives an interesting
-visual effect. We now explore how to create such a custom graphics
-configuration. In this case, we show the XML config for a "virtual cube",
-where the viewports are the front, top, bottom, left, and right walls of a
-CAVE-style environment. Note how the XML "pointers" are used to refer from
-inside "virtual_cube_window" to appropriate screen configs.
-
-```
-  <param>
-  <name> front_wall </name>
-  <value>
-  <szg_screen>
-    <center x="0" y="4.93" z="-4.93" />
-    <up x="0" y="1" z="0" />
-    <dim width="9.86" height="9.86" />
-    <normal x="0" y="0" z="-1" />
-    <headmounted value="false" />
-    <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-    <usefixedhead value="allow" />
-    <fixedheadpos x="0.0" y="5.5" z="0.0" />
-    <fixedheadupangle value="0.0" />
-  </szg_screen>
-  </value>
-  </param>
-  <param>
-  <name> right_wall </name>
-  <value>
-  <szg_screen>
-    <center x="4.93" y="4.93" z="0" />
-    <up x="0" y="1" z="0" />
-    <dim width="9.86" height="9.86" />
-    <normal x="1" y="0" z="0" />
-    <headmounted value="false" />
-    <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-    <usefixedhead value="allow" />
-    <fixedheadpos x="0.0" y="5.5" z="0.0" />
-    <fixedheadupangle value="0.0" />
-  </szg_screen>
-  </value>
-  </param>
-  <param>
-  <name> left_wall </name>
-  <value>
-  <szg_screen>
-    <center x="-4.93" y="4.93" z="0" />
-    <up x="0" y="1" z="0" />
-    <dim width="9.86" height="9.86" />
-    <normal x="-1" y="0" z="0" />
-    <headmounted value="false" />
-    <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-    <usefixedhead value="allow" />
-    <fixedheadpos x="0.0" y="5.5" z="0.0" />
-    <fixedheadupangle value="0.0" />
-  </szg_screen>
-  </value>
-  </param>
-  <param>
-  <name> top_wall_unrotated </name>
-  <value>
-  <szg_screen>
-    <center x="0" y="9.86" z="0" />
-    <up x="0" y="0" z="1" />
-    <dim width="9.86" height="9.86" />
-    <normal x="0" y="1" z="0" />
-    <headmounted value="false" />
-    <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-    <usefixedhead value="allow" />
-    <fixedheadpos x="0.0" y="5.5" z="0.0" />
-    <fixedheadupangle value="0" />
-  </szg_screen>
-  </value>
-  </param>
-  <param>
-  <name> bottom_wall </name>
-  <value>
-  <szg_screen>
-    <center x="0" y="0" z="0" />
-    <up x="0" y="0" z="-1" />
-    <dim width="9.86" height="9.86" />
-    <normal x="0" y="-1" z="0" />
-    <headmounted value="false" />
-    <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-    <usefixedhead value="allow" />
-    <fixedheadpos x="0.0" y="5.5" z="0.0" />
-    <fixedheadupangle value="0.0" />
-  </szg_screen>
-  </value>
-  </param>
-  <param>
-  <name>virtual_cube_window</name>
-  <value>
-  <szg_display>
-   <szg_window>
-     <size width="600" height="600" />
-     <position x="50" y="50" />
-     <decorate value="true" />
-     <fullscreen value="false" />
-     <title value="szg" />
-     <stereo value="false" />
-     <topmost value="false" />
-     <xdisplay value="" />
-     <szg_viewport_list viewmode="custom">
-       <szg_viewport>
-         <depthclear value="false" />
-         <colormask R="true" G="true" B="true" A="true" />
-         <ogldrawbuf value="GL_BACK_LEFT" />
-         <eyesign value="0" />
-         <coords left="0.3333" bottom="0.3333" width="0.3333" height="0.3333" />
-         <szg_camera>
-           <szg_screen usenamed="front_wall" />
-         </szg_camera>
-       </szg_viewport>
-       <szg_viewport>
-         <eyesign value="0" />
-         <coords left="0.6666" bottom="0.3333" width="0.3333" height="0.3333" />
-         <szg_camera>
-           <szg_screen usenamed="right_wall" />
-         </szg_camera>
-       </szg_viewport>
-       <szg_viewport>
-         <eyesign value="0" />
-         <coords left="0" bottom="0.3333" width="0.3333" height="0.3333" />
-         <szg_camera>
-           <szg_screen usenamed="left_wall" />
-         </szg_camera>
-       </szg_viewport>
-       <szg_viewport>
-         <eyesign value="0" />
-         <coords left="0.3333" bottom="0.6666" width="0.3333" height="0.3333" />
-         <szg_camera>
-           <szg_screen usenamed="top_wall_unrotated" />
-         </szg_camera>
-       </szg_viewport>
-       <szg_viewport>
-         <eyesign value="0" />
-         <coords left="0.3333" bottom="0" width="0.3333" height="0.3333" />
-         <szg_camera>
-           <szg_screen usenamed="bottom_wall" />
-         </szg_camera>
-       </szg_viewport>
-     </szg_viewport_list>
-   </szg_window>
-  </szg_display>
-  </value>
-  </param>
-```
-
-
-Of course, to use the virtual cube window (by default) on a computer, you
-will want the following local parameter in the Syzygy database:
-
-```
-  the_computer_name SZG_DISPLAY0 name virtual_cube_window
-```
-
-
-Inside the "virtual_cube_window" XML, note how the szg_viewport_list
-element has a viewmode attribute with value "custom". This tells Syzygy
-to look for szg_viewport children of the szg_viewport_list element. Each
-describes a viewport of the window into which a view of the scene will be
-drawn. The viewports are drawn in order of their appearance and can overlap.
-For instance, anaglyph stereo can be implemented with overlapping viewports,
-color masking, and depth buffer manipulation.
-
-```
-  <coords left="0.3333" bottom="0.3333" width="0.3333" height="0.3333" />
-```
-   The viewport's coordinates are relative to the window.
-   The window's lower left corner has coordinates
-   (0,0), the upper right (1,1). So the width and
-   height of the full window are both 1. This parameter
-   defaults to 0/0/1/1.
-```
-  <colormask R="true" G="true" B="true" A="true" />
-```
-   The OpenGL color mask to be applied to the window, e.g.
-   for doing anaglyphic stereo. The color mask values
-   are given in RGBA order, and must be either "true" or "false". In the
-   example here, only the red value of the scene's pixels will be drawn.
-   The default is "true/true/true/true", which draws the scene normally.
-```
-  <depthclear value="false" />
-```
-   When multiple passes of the same scene are drawn on the same part of
-   the screen (as in anaglyphic stereo), the second pass must clear
-   the depth buffer before drawing. Iff this parameter is "true,"
-   the depth buffer will be cleared before drawing.
-   The default is "false".
-```
-  <ogldrawbuf value="GL_BACK_LEFT" />
-```
-   The OpenGL buffer into which the viewport draws, by default GL_BACK_LEFT.
-```
-  <eyesign value="0" />
-```
-   The eyesign (i.e. right eye, left eye, or eye midpoint). The default is
-   0, the midpoint; 1 means the right eye; and -1 means the left eye.
-
-
-==Passive Stereo==[PassiveStereo]
-
-Syzygy supports a variety of passive stereo configurations. One of them,
-"walleyed",
-is suited to working with dual-headed graphics cards under Windows.
-Many of these cards can be set up so that the Windows desktop extends across
-both monitors and a single hardware accelerated OpenGL window can cover the
-whole thing. Under this scenario, a full screen window, with a left eye view
-on one half and the right eye view on the other half, can provide passive
-stereo. Simply hook up projectors to each of the card's outputs, put
-polarizing filters on each, and project onto the same screen. You can
-then use cheap stereo glasses (based on polarized light)
-to see the visualization in 3D. The following configuration shows how to do
-this.
-
-```
-  <param>
-  <name>passive_stereo</name>
-  <value>
-  <szg_display threaded="false">
-   <szg_window>
-     <size width="600" height="600" />
-     <position x="0" y="0" />
-     <decorate value="false" />
-     <fullscreen value="true" />
-     <cursor value="none" />
-     <stereo value="false" />
-     <zorder value="topmost" />
-     <szg_viewport_list viewmode="walleyed">
-       <szg_camera>
-         <szg_screen>
-           <center x="0" y="5" z="-5" />
-           <up x="0" y="1" z="0" />
-           <dim width="13.33" height="10" />
-           <normal x="0" y="0" z="-1" />
-           <headmounted value="false" />
-         </szg_screen>
-       </szg_camera>
-     </szg_viewport_list>
-   </szg_window>
-  </szg_display>
-  </value>
-  </param>
-```
-
-
-==Easy Demo Passive Stereo Display in Standalone Mode==[StandalonePassive]
-
-Since passive stereo displays are so easy to set up and so cheap, given how
-common
-dual headed video game graphics cards are, they are ideal for travelling
-demos, like one might bring to a conference or trade show. One consideration
-with demo system design is tracking, since, in the interests of simplicity,
-one would like to avoid it all together. Tracking can be of marginal benefit
-in such situations.
-
-Consequently, a simple demo system might skip tracking altogether in favor
-of gamepad control. Syzygy VR framework applications often assume their input
-device provides them with a matrix giving head position and orientation
-(matrix 0) and a matrix giving wand (manipulation device) position and
-orientation (matrix 1). Navigation in the world is accomplished by a
-combination of wand matrix plus button pushes and axis manipulation. In many
-cases, leaving the wand matrix in a default (identity matrix) position still
-allows for sufficient navigation for a successdul demo. However, the head
-matrix often needs to go into a non-default position (not (0,0,0)) to have
-things appear sensibly on screen.
-
-To fix this problem, we construct a PForth filter that, when processing an
-event from the gamepad, creates an additional (and spurious) head matrix
-event, putting the head in the desired default position.
-
-The following dbatch file ("complex" format) gives a Standalone Mode
-configuration for a demo system as described above. Note that the lone
-global parameter gives a PForth program instead of a full input node
-configuration.
-In Standalone Mode, Syzygy VR framework applications either use an embedded
-inputsimulator to generate input events or rely on joystick input. The value of
-SZG_DEMO/control_mode (either "joystick" or "normal", which is the default)
-determines the control scheme used. Also, SZG_PFORTH/program_names gives the
-name of the global parameter holding the PForth program to be applied, if any.
-
-The "joystick" PForth program listed, of course, pertains to a particular
-gamepad. However, it does illustrate how to switch axes around. For instance,
-it addition to rescaling, axis 2 is mapped to axis 3 and axis 5 is mapped to
-axis 2.
-
-In examining the config file given below, remember that "NULL", when used
-as a computer name, is a wildcard refering to whatever computer one is
-currently executing upon.
-
-```
-  <szg_config>
-  <param>
-    <name> joystick </name>
-    <value>
-      matrix temp
-      0 5 0 temp translationMatrix
-      define filter_axis_0
-        getCurrentEventAxis 0.000031 * setCurrentEventAxis
-      enddef
-      define filter_axis_1
-        temp 0 insertMatrixEvent
-        getCurrentEventAxis -0.000031 * setCurrentEventAxis
-      enddef
-      define filter_axis_2
-        getCurrentEventAxis -32768 + -0.000031 *
-        deleteCurrentEvent
-        3
-        insertAxisEvent
-      enddef
-      define filter_axis_5
-        getCurrentEventAxis -32768 + 0.000031 *
-        deleteCurrentEvent
-        2
-        insertAxisEvent
-      enddef
-    </value>
-  </param>
-  <param>
-  <name>passive_stereo</name>
-  <value>
-  <szg_display threaded="false">
-   <szg_window>
-     <size width="600" height="600" />
-     <position x="0" y="0" />
-     <decorate value="false" />
-     <fullscreen value="true" />
-     <cursor value="none" />
-     <stereo value="false" />
-     <zorder value="topmost" />
-     <szg_viewport_list viewmode="walleyed">
-       <szg_camera>
-         <szg_screen>
-           <center x="0" y="5" z="-5" />
-           <up x="0" y="1" z="0" />
-           <dim width="13.33" height="10" />
-           <normal x="0" y="0" z="-1" />
-           <headmounted value="false" />
-         </szg_screen>
-       </szg_camera>
-     </szg_viewport_list>
-   </szg_window>
-  </szg_display>
-  </value>
-  </param>
-  <assign>
-  NULL SZG_DATA path ./
-  NULL SZG_DEMO control_mode joystick
-  NULL SZG_PFORTH program_names joystick
-  NULL SZG_DISPLAY0 name passive_stereo
-  </assign>
-  </szg_config>
-```
-
-
-==Fixed-Screen Virtual Environments==[Immersive]
-
-An early supported Syzygy configuration was one stereo window per PC, with
-each
-window supporting one wall of an immersive virtual environment. The following
-text shows screen definitions (plus a virtual computer employing them) for
-a six-walled virtual environment. See
-[here PhleetIntro.html#VirtualComputer] for a discussion of
-virtual computers.
-
-```
-  <szg_config>
-  <assign>
-  cube SZG_CONF    location       cube
-  cube SZG_CONF    virtual        true
-  cube SZG_TRIGGER map            air
-  cube SZG_MASTER  map            SZG_DISPLAY2
-  cube SZG_DISPLAY  number_screens 6
-  cube SZG_DISPLAY0 map            top/SZG_DISPLAY0
-  cube SZG_DISPLAY0 networks       internet
-  cube SZG_DISPLAY1 map            bottom/SZG_DISPLAY0
-  cube SZG_DISPLAY1 networks       internet
-  cube SZG_DISPLAY2 map            north/SZG_DISPLAY0
-  cube SZG_DISPLAY2 networks       internet
-  cube SZG_DISPLAY3 map            south/SZG_DISPLAY0
-  cube SZG_DISPLAY3 networks       internet
-  cube SZG_DISPLAY4 map            east/SZG_DISPLAY0
-  cube SZG_DISPLAY4 networks       internet
-  cube SZG_DISPLAY5 map            west/SZG_DISPLAY0
-  cube SZG_DISPLAY5 networks       internet
-  cube SZG_INPUT0  map            air/cube_tracker/joystick/cube_joystick
-  cube SZG_INPUT0  networks       internet
-  top SZG_DISPLAY0 name top_window_stereo
-  bottom SZG_DISPLAY0 name bottom_window_stereo
-  north SZG_DISPLAY0 name north_window_stereo
-  south SZG_DISPLAY0 name south_window_stereo
-  east SZG_DISPLAY0 name east_window_stereo
-  west SZG_DISPLAY0 name west_window_stereo
-  </assign>
-  <param>
-  <name> front_wall </name>
-  <value>
-  <szg_screen>
-    <center x="0" y="4.93" z="-4.93" />
-    <up x="0" y="1" z="0" />
-    <dim width="9.86" height="9.86" />
-    <normal x="0" y="0" z="-1" />
-    <headmounted value="false" />
-    <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-    <usefixedhead value="allow" />
-    <fixedheadpos x="0.0" y="5.5" z="0.0" />
-    <fixedheadupangle value="0.0" />
-  </szg_screen>
-  </value>
-  </param>
-  <param>
-  <name> right_wall </name>
-  <value>
-  <szg_screen>
-    <center x="4.93" y="4.93" z="0" />
-    <up x="0" y="1" z="0" />
-    <dim width="9.86" height="9.86" />
-    <normal x="1" y="0" z="0" />
-    <headmounted value="false" />
-    <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-    <usefixedhead value="allow" />
-    <fixedheadpos x="0.0" y="5.5" z="0.0" />
-    <fixedheadupangle value="0.0" />
-  </szg_screen>
-  </value>
-  </param>
-  <param>
-  <name> left_wall </name>
-  <value>
-  <szg_screen>
-    <center x="-4.93" y="4.93" z="0" />
-    <up x="0" y="1" z="0" />
-    <dim width="9.86" height="9.86" />
-    <normal x="-1" y="0" z="0" />
-    <headmounted value="false" />
-    <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-    <usefixedhead value="allow" />
-    <fixedheadpos x="0.0" y="5.5" z="0.0" />
-    <fixedheadupangle value="0.0" />
-  </szg_screen>
-  </value>
-  </param>
-  <param>
-  <name> rear_wall </name>
-  <value>
-  <szg_screen>
-    <center x="0" y="4.93" z="4.93" />
-    <up x="0" y="1" z="0" />
-    <dim width="9.86" height="9.86" />
-    <normal x="0" y="0" z="1" />
-    <headmounted value="false" />
-    <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-    <usefixedhead value="allow" />
-    <fixedheadpos x="0.0" y="5.5" z="0.0" />
-    <fixedheadupangle value="0.0" />
-  </szg_screen>
-  </value>
-  </param>
-  <param>
-  <name> top_wall </name>
-  <value>
-  <szg_screen>
-    <center x="0" y="9.86" z="0" />
-    <up x="-1" y="0" z="0" />
-    <dim width="9.86" height="9.86" />
-    <normal x="0" y="1" z="0" />
-    <headmounted value="false" />
-    <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-    <usefixedhead value="allow" />
-    <fixedheadpos x="0.0" y="5.5" z="0.0" />
-    <fixedheadupangle value="-90" />
-  </szg_screen>
-  </value>
-  </param>
-  <param>
-  <name> bottom_wall </name>
-  <value>
-  <szg_screen>
-    <center x="0" y="0" z="0" />
-    <up x="0" y="0" z="-1" />
-    <dim width="9.86" height="9.86" />
-    <normal x="0" y="-1" z="0" />
-    <headmounted value="false" />
-    <tile tilex="0" numtilesx="1" tiley="0" numtilesy="1" />
-    <usefixedhead value="allow" />
-    <fixedheadpos x="0.0" y="5.5" z="0.0" />
-    <fixedheadupangle value="0.0" />
-  </szg_screen>
-  </value>
-  </param>
-  <param>
-  <name>front_window_stereo</name>
-  <value>
-  <szg_display framelock="wildcat">
-   <szg_window>
-     <decorate value="false" />
-     <fullscreen value="true" />
-     <stereo value="true" />
-     <zorder value="topmost" />
-     <cursor value="none" />
-     <szg_viewport_list viewmode="normal">
-       <szg_camera>
-         <szg_screen usenamed="front_wall" />
-       </szg_camera>
-     </szg_viewport_list>
-   </szg_window>
-  </szg_display>
-  </value>
-  </param>
-  <param>
-  <name>right_window_stereo</name>
-  <value>
-  <szg_display framelock="wildcat">
-   <szg_window>
-     <decorate value="false" />
-     <fullscreen value="true" />
-     <stereo value="true" />
-     <zorder value="topmost" />
-     <cursor value="none" />
-     <szg_viewport_list viewmode="normal">
-       <szg_camera>
-         <szg_screen usenamed="right_wall" />
-       </szg_camera>
-     </szg_viewport_list>
-   </szg_window>
-  </szg_display>
-  </value>
-  </param>
-  <param>
-  <name>left_window_stereo</name>
-  <value>
-  <szg_display framelock="wildcat">
-   <szg_window>
-     <decorate value="false" />
-     <fullscreen value="true" />
-     <stereo value="true" />
-     <zorder value="topmost" />
-     <cursor value="none" />
-     <szg_viewport_list viewmode="normal">
-       <szg_camera>
-         <szg_screen usenamed="left_wall" />
-       </szg_camera>
-     </szg_viewport_list>
-   </szg_window>
-  </szg_display>
-  </value>
-  </param>
-  <param>
-  <name>rear_window_stereo</name>
-  <value>
-  <szg_display framelock="wildcat">
-   <szg_window>
-     <decorate value="false" />
-     <fullscreen value="true" />
-     <stereo value="true" />
-     <zorder value="topmost" />
-     <cursor value="none" />
-     <szg_viewport_list viewmode="normal">
-       <szg_camera>
-         <szg_screen usenamed="rear_wall" />
-       </szg_camera>
-     </szg_viewport_list>
-   </szg_window>
-  </szg_display>
-  </value>
-  </param>
-  <param>
-  <name>top_window_stereo</name>
-  <value>
-  <szg_display framelock="wildcat">
-   <szg_window>
-     <decorate value="false" />
-     <fullscreen value="true" />
-     <stereo value="true" />
-     <zorder value="topmost" />
-     <cursor value="none" />
-     <szg_viewport_list viewmode="normal">
-       <szg_camera>
-         <szg_screen usenamed="top_wall" />
-       </szg_camera>
-     </szg_viewport_list>
-   </szg_window>
-  </szg_display>
-  </value>
-  </param>
-  <param>
-  <name>bottom_window_stereo</name>
-  <value>
-  <szg_display framelock="wildcat">
-   <szg_window>
-     <decorate value="false" />
-     <fullscreen value="true" />
-     <stereo value="true" />
-     <zorder value="topmost" />
-     <cursor value="none" />
-     <szg_viewport_list viewmode="normal">
-       <szg_camera>
-         <szg_screen usenamed="bottom_wall" />
-       </szg_camera>
-     </szg_viewport_list>
-   </szg_window>
-  </szg_display>
-  </value>
-  </param>
-  </szg_config>
-```
-
-
-==Head-Mounted Displays==[HMD]
-
-Syzygy's first application in Spring 2000 was a cluster-driven HMD, with a
-seperate consumer PC driving each eye. This configuration is still supported,
-along with a single PC set up, where two viewports in a single window give
-left eye and right eye views, respectively. For a head-mounted display,
-simply change the "headmounted" element value to "true" in the config file
-in this [section #StandalonePassive].
-
-
-==Multiple Screens on a Single Computer==[MultiScreen]
-
-Sometimes having multiple seperate graphics screens on a single computer is
-desirable. For instance, in this way, you can run Syzygy applications on an
-SMP computer (like the SGI Onyx series) with mutliple graphics cards. It also
-helps when testing whether a Syzygy master/slave application will work
-properly on a cluster, but without having to have a cluster available.
-
-Note that consumer level graphics cards, as a rule, do not do very well
-having multiple OpenGL windows active simultaneously. Performance degrades
-significantly over the equivalent Standalone Mode case where there are
-multiple viewports in a single window. Indeed, on many common systems, just
-having a inputsimulator window open (which is a small window with very simple
-OpenGL graphics) in addition to an application window severely degrades
-application performance. This is actually why Standalone Mode was originally
-invented: to deal with the limitations of Syzygy application development on
-very low end hardware.
-
-Of course, these performance conisderations DO NOT apply to the high end
-computers with multiple graphics cards and processors that are designed to run
-these types of applications (again like an SGI Onyx or, say, a 4-way Linux box
-with multiple graphics cards).
-
-The following dbatch file defines a
-virtual computer "smoke_test" which has four screens and uses a inputsimulator
-for an input device. These screens give a 2x2 tiled display and are
-automatically placed in the proper arrangement upon launch, through the
-SZG_DISPLAY(n)/position parameter. Similarly, the inputsimulator is
-placed to the right of everything, as given by the SZG_INPUTSIM/position
-parameter. Please note that the desktop in question is 1600x1200. A smaller
-desktop would need positions and window sizes reduced.
-
-```
-  <szg_config>
-  <assign>
-  smoke_test SZG_CONF virtual true
-  smoke_test SZG_TRIGGER map smoke
-  smoke_test SZG_MASTER map SZG_DISPLAY0
-  smoke_test SZG_DISPLAY number_screens 4
-  smoke_test SZG_DISPLAY0 map smoke/SZG_DISPLAY1
-  smoke_test SZG_DISPLAY1 map smoke/SZG_DISPLAY2
-  smoke_test SZG_DISPLAY2 map smoke/SZG_DISPLAY3
-  smoke_test SZG_DISPLAY3 map smoke/SZG_DISPLAY4
-  smoke_test SZG_INPUT0 map smoke/inputsimulator
-  smoke SZG_INPUTSIM position 1305/0
-  smoke SZG_DISPLAY1 name single_window_3x2_00
-  smoke SZG_DISPLAY2 name single_window_3x2_01
-  smoke SZG_DISPLAY3 name single_window_3x2_11
-  smoke SZG_DISPLAY4 name single_window_3x2_10
-  </assign>
-  <param>
-  <name>single_window_3x2_00</name>
-  <value>
-  <szg_display>
-   <szg_window>
-     <size width="400" height="400" />
-     <position x="0" y="400" />
-     <decorate value="false" />
-     <fullscreen value="false" />
-     <cursor value="none" />
-     <szg_viewport_list viewmode="normal">
-       <szg_camera>
-         <szg_screen usenamed="front_tile_3x2_00" />
-       </szg_camera>
-     </szg_viewport_list>
-   </szg_window>
-  </szg_display>
-  </value>
-  </param>
-  <param>
-  <name> front_tile_3x2_00 </name>
-  <value>
-  <szg_screen>
-    <center x="0" y="5" z="-5" />
-    <up x="0" y="1" z="0" />
-    <dim width="20" height="10" />
-    <normal x="0" y="0" z="-1" />
-    <headmounted value="false" />
-    <tile tilex="0" numtilesx="3" tiley="0" numtilesy="2" />
-    <usefixedhead value="allow" />
-    <fixedheadpos x="0.0" y="5.0" z="0.0" />
-    <fixedheadupangle value="0.0" />
-  </szg_screen>
-  </value>
-  </param>
-  <param>
-  <name> front_tile_3x2_10 </name>
-  <value>
-  <szg_screen>
-    <center x="0" y="5" z="-5" />
-    <up x="0" y="1" z="0" />
-    <dim width="20" height="10" />
-    <normal x="0" y="0" z="-1" />
-    <headmounted value="false" />
-    <tile tilex="1" numtilesx="3" tiley="0" numtilesy="2" />
-    <usefixedhead value="allow" />
-    <fixedheadpos x="0.0" y="5.0" z="0.0" />
-    <fixedheadupangle value="0.0" />
-  </szg_screen>
-  </value>
-  </param>
-  <param>
-  <name> front_tile_3x2_11 </name>
-  <value>
-  <szg_screen>
-    <center x="0" y="5" z="-5" />
-    <up x="0" y="1" z="0" />
-    <dim width="20" height="10" />
-    <normal x="0" y="0" z="-1" />
-    <headmounted value="false" />
-    <tile tilex="1" numtilesx="3" tiley="1" numtilesy="2" />
-    <usefixedhead value="allow" />
-    <fixedheadpos x="0.0" y="5.0" z="0.0" />
-    <fixedheadupangle value="0.0" />
-  </szg_screen>
-  </value>
-  </param>
-  <param>
-  <name> front_tile_3x2_01 </name>
-  <value>
-  <szg_screen>
-    <center x="0" y="5" z="-5" />
-    <up x="0" y="1" z="0" />
-    <dim width="20" height="10" />
-    <normal x="0" y="0" z="-1" />
-    <headmounted value="false" />
-    <tile tilex="0" numtilesx="3" tiley="1" numtilesy="2" />
-    <usefixedhead value="allow" />
-    <fixedheadpos x="0.0" y="5.0" z="0.0" />
-    <fixedheadupangle value="0.0" />
-  </szg_screen>
-  </value>
-  </param>
-  <param>
-  <name>single_window_3x2_10</name>
-  <value>
-  <szg_display>
-   <szg_window>
-     <size width="400" height="400" />
-     <position x="400" y="400" />
-     <decorate value="false" />
-     <fullscreen value="false" />
-     <cursor value="none" />
-     <szg_viewport_list viewmode="normal">
-       <szg_camera>
-         <szg_screen usenamed="front_tile_3x2_10" />
-       </szg_camera>
-     </szg_viewport_list>
-   </szg_window>
-  </szg_display>
-  </value>
-  </param>
-  <param>
-  <name>single_window_3x2_11</name>
-  <value>
-  <szg_display>
-   <szg_window>
-     <size width="400" height="400" />
-     <position x="400" y="0" />
-     <decorate value="false" />
-     <fullscreen value="false" />
-     <cursor value="none" />
-     <szg_viewport_list viewmode="normal">
-       <szg_camera>
-         <szg_screen usenamed="front_tile_3x2_11" />
-       </szg_camera>
-     </szg_viewport_list>
-   </szg_window>
-  </szg_display>
-  </value>
-  </param>
-  <param>
-  <name>single_window_3x2_01</name>
-  <value>
-  <szg_display>
-   <szg_window>
-     <size width="400" height="400" />
-     <position x="0" y="0" />
-     <decorate value="false" />
-     <fullscreen value="false" />
-     <cursor value="none" />
-     <szg_viewport_list viewmode="normal">
-       <szg_camera>
-         <szg_screen usenamed="front_tile_3x2_01" />
-       </szg_camera>
-     </szg_viewport_list>
-   </szg_window>
-  </szg_display>
-  </value>
-  </param>
   </szg_config>
 ```
 

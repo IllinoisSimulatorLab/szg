@@ -1,0 +1,246 @@
+Syzygy Documentation: Syzgy Input Device Configuration
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers --toc
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+This chapter will show you how to configure Syzygy to work with your
+input devices.
+
+% Table of Contents
+%%toc
+
+
+=Input Device Parameters=
+
+As discussed in [Szygy System Configuration SystemConfiguration.html],
+a Syzygy parameter or 'dbatch' file contains two types of parameters,
+//local// (computer-specific) and //global//. Specification of input
+devices falls into the [global SystemConfiguration.html#GlobalParameters]
+category; after defining one or more
+input devices, you would add a line to a Syzygy Cluster definition
+specifying which input devices should run on which computers.
+
+
+==Global Input-device Parameters==
+
+With the exception of the [PForth filter PForth.html] field,
+input device records are simpler than those for
+[graphics configuration GraphicsConfiguration.html]. Each contains
+four fields:
+
+
+- Input Sources: These are the names of the device driver modules to be
+  loaded. The input device configuration allows you to concatenate
+  multiple inputs into a single input device. The available module
+  names are given in the 'Loadable module:' field of the
+  [supported input devices InputDevices-Drivers.html] list. The names
+  are separate by spaces in the ``<input_sources>`` field.
+
+
+- Input Sinks: (NOTE: I don't really know what these are for).
+
+
+- Filters: You may specify one or more C++ filter modules
+  to apply to the input data. We have written two of these: the
+  ``arTrackCalFilter`` for correcting tracker position data based on a lookup
+  table, and the ``arConstantHeadFilter`` substitutes a fixed position
+  for the user's tracked head position. They are basically obsolete,
+  replaced by the PForth filter.
+
+
+- PForth Filter: [PForth PForth.html] is a small, stack-based
+  language for performing simple operations on Syzyg input data
+  streams. The name stands for Pseudo-[Forth http://www.forth.org/],
+  as that's what the syntax is based on. You add a PForth filter to
+  an input device by writing the code directly into the ``<pforth>``
+  field of the input device record. Depending on how much tweaking
+  the filter needs to do, the code can get a bit long and hairy.
+
+
+=Input Event Streams=
+
+Input data in Syzygy comes in the form of
+a stream of events.  There are currently three types of events. //Matrix//
+events, which usually represent the position and orientation (referred
+to in combination as the //placement//)
+of a tracking sensor. //Axis// events contain a floating-point
+number representing the state of a continuously-varying input.
+//Button// events contain an integer,
+usually representing a binary on-off input device. Within each class,
+events are identified by a 0-based index; in applications, a particular
+event type and index is generally associated with a particular
+function, for example matrix event #0 is generally assumed to represent
+the position and orientation of the sensor attached to the user's head.
+All three event types have a default value that will be returned
+whenever an application requests an event outside the range of existing
+indices; for matrices this is the identity matrix, for the other two
+types it is 0.
+
+
+=Examples=
+
+As an example of an input device configuration record, here's the device
+definition for the wireless gamepad we use in the
+[Beckman Institute Cube http://www.isl.uiuc.edu/Labs/room_b650.htm].
+This gamepad has a 2-D joystick and 8 buttons. The device configuration
+record specifies the driver module to be loaded ('arJoystickDriver')
+and applies a [PForth PForth.html] filter to re-scale the values returned by the joystick
+to the range [-1,1] (axis event #0 represents the left/right position of the
+joystick, while axis event #1 represents its front/back position):
+```
+<param>
+  <name> cube_joystick </name>
+  <value>
+    <szg_device>
+      <input_sources> arJoystickDriver </input_sources>
+      <input_sinks></input_sinks>
+      <input_filters></input_filters>
+      <pforth>
+        define filter_axis_0
+          getCurrentEventAxis 0.000031 * setCurrentEventAxis
+        enddef
+        define filter_axis_1
+          getCurrentEventAxis -0.000031 * setCurrentEventAxis
+        enddef
+      </pforth>
+    </szg_device>
+  </value>
+</param>
+```
+Note that if you combine two input sources in a single record, and they
+both provide some of the same kinds of events (e.g. both provide button
+events), then the events of the second input source will be indexed
+after those of the first. For example, if we added a second device
+to the record above //after// the arJoystickDriver that provided two
+additional button events, then in our particular setup the original
+gamepad's buttons would have indices 0-7 and the new device's buttons would
+be 8 and 9. Of course, if we put the new device //before// the current
+one in the ``<input_sources>`` list, then the new device would provide buttons
+0 and 1.
+
+Configuration records for tracking devices are generally the most complex.
+Here's the device definition for the MotionStar
+Wireless tracker we use in the Cube. The [PForth PForth.html] filter aligns the
+tracker coordinate system with the Cube's structure, uses a
+lookup-table procedure to correct the distortions in the tracker
+data, compensates for the different ways the two sensors are mounted
+on the LCD goggles and on the gamepad, and applies a simple IIR filter
+to the vertical component of the head position to suppress the rather
+excessive noise:
+```
+<param>
+<name> cube_tracker </name>
+<value>
+  <szg_device>
+    <input_sources> arMotionstarDriver </input_sources>
+    <input_sinks></input_sinks>
+    <input_filters></input_filters>
+    <pforth>
+      initTrackerCalibration
+      initIIRFilter
+
+      /* Define stuff to rotate & remap positional coordinates and rotate orientation by 135 degrees around Y */
+      matrix yTransRotMatrix
+      -45. yaxis yTransRotMatrix rotationMatrix
+
+      vector oldLo
+      vector oldHi
+      vector newLo
+      vector newHi
+      1.2 -5. 1.2  oldLo vectorStore
+      10.4 5. 10.4 oldHi vectorStore
+      -5.  0. -5.  newLo vectorStore
+      5.   10. 5.  newHi vectorStore
+
+      vector oldRange
+      vector newRange
+      oldHi oldLo 3 oldRange arraySubtract
+      newHi newLo 3 newRange arraySubtract
+
+      vector newOldRatio
+      newRange oldRange 3 newOldRatio arrayDivide
+
+      vector position
+
+      define rescale_position
+        position oldLo 3 position arraySubtract
+        position newOldRatio 3 position arrayMultiply
+        position newLo 3 position arrayAdd
+      enddef
+
+      matrix yRotMatrix
+      -135 yaxis yRotMatrix rotationMatrix
+
+      matrix inputMatrix
+      matrix rotMatrix
+      matrix transMatrix
+
+      /* Apply transformations that are common to all sensors */
+      define filter_all_matrices
+        inputMatrix getCurrentEventMatrix
+
+        /* Extract translation, rotate it by 45 degrees about y */
+        inputMatrix position extractTranslation
+        yTransRotMatrix position position vectorTransform
+
+        /* Rescale position coords */
+        rescale_position
+
+        /* Rotate rotation component about Y */
+        inputMatrix rotMatrix extractRotationMatrix
+        yRotMatrix rotMatrix rotMatrix matrixMultiply
+
+        /* Recombine translational and rotational components */
+        position transMatrix translationMatrixV
+        transMatrix rotMatrix inputMatrix matrixMultiply
+
+        /* Apply tracker-calibration lookup table */
+        inputMatrix inputMatrix doTrackerCalibration
+
+        inputMatrix setCurrentEventMatrix
+      enddef
+
+      /* Fix rotational matrix components (depends on how sensors are mounted) */
+      matrix headZRotMatrix
+      matrix wandZRotMatrix
+      matrix wandTweakMatrix
+
+      /* Head sensor is mounted sideways */
+      -90 zaxis headZRotMatrix rotationMatrix
+
+      /* Wand sensor is mounted upside-down */
+      -180 zaxis wandZRotMatrix rotationMatrix
+
+      /* Wand sensor points upwards by about 20 degrees with gamepad held
+         subjectively level (actually tilted up slightly, but it feels right) */
+      -20. xaxis wandTweakMatrix rotationMatrix
+
+      matrix wandRotMatrix
+      wandZRotMatrix wandTweakMatrix wandRotMatrix matrixMultiply
+
+      /* Head-specific filter (applied after generic, above) */
+      define filter_matrix_0
+        inputMatrix getCurrentEventMatrix
+        inputMatrix inputMatrix doIIRFilter
+        inputMatrix headZRotMatrix inputMatrix matrixMultiply
+        inputMatrix setCurrentEventMatrix
+      enddef
+
+      /* Hand-specific filter (applied after generic) */
+      define filter_matrix_1
+        inputMatrix getCurrentEventMatrix
+        inputMatrix wandRotMatrix inputMatrix matrixMultiply
+        inputMatrix setCurrentEventMatrix
+      enddef
+
+    </pforth>
+  </szg_device>
+</value>
+</param>
+```
+
+
+

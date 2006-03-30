@@ -216,7 +216,8 @@ connect to in order to receive input from that device. Here is a list
 of [supported input devices InputDevices-Drivers.html].
 
 Recognizing that many virtual worlds require similar navigational
-functionality, the input framework includes support for standard [navigational methods Navigation.html] that can be easily
+functionality, the input framework includes support for standard
+[navigational methods Navigation.html] that can be easily
 deployed in user programs. These methods are integrated with the two
 Syzygy [application frameworks Programming.html].
 
