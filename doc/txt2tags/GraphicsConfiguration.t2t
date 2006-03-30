@@ -182,7 +182,9 @@ parameters:
   at the beginning of each frame. Setting this is necessary for e.g. anaglyph mode.
 - **colormask** (R/G/B/A, all yes/no): which color channels to draw into.
 - **eyesign** (value=a float): Whether this viewport is a right(1.)- or left(-1.)-eye
-  view, or for monocular viewing (0.).
+  view, or for monocular viewing (0.). This information is used by a Syzygy VR camera
+  (see [Cameras #Cameras] above) to modify its frustum appropriately for stereoscopic
+  viewing. The Perspective and Ortho cameras ignore the eye sign.
 - **ogldrawbuf**: many possible values, find "Selecting Color Buffers for Writing" in
   [Chapter 10 of the OpenGL Programming Guide http://www.rush3d.com/reference/opengl-redbook-1.1/chapter10.html].
   If in doubt, choose 'GL_BACK_LEFT'.
@@ -219,8 +221,8 @@ They can be specified in a couple of different ways:
 + By setting the **viewmode** parameter to 'custom' and defining a viewport list in which
   you enumerate a set of viewports using the parameters described above.
 + By setting the **viewmode** parameter to one of the pre-defined viewing modes. In these
-  viewing modes, you only specify a camera; the software automatically generates one or
-  more viewports. The predefined viewing modes are:
+  viewing modes, you only specify a camera that is shared by the viewports;
+  the software automatically generates one or more viewports. The predefined viewing modes are:
   - **normal**: A single viewport that fills the window.
   - **anaglyph**: As described above, for stereo viewing with red/cyan anaglyph glasses,
     available from [http://www.berezin.com/3D/3dglasses.htm] or [http://www.3dglassesonline.com/].
