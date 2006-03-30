@@ -274,7 +274,9 @@ A window contains a viewport list and the following additional parameters:
   Note that this setting is independent of the stereo viewing modes described above. For normal
   active stereo, you would set **stereo** to 'yes' and **viewmode** to 'normal'.
 - **zorder** (normal/top/topmost). Whether or not your window tries to stay on top of other
-  windows. I don't know what the difference is between 'top' and 'topmost'.
+  windows. 'topmost' is stronger than 'top', in that 'top' only tries to stay above other 'normal'
+  windows, but 'special' windows (particularly on Win32) might cover it. 'topmost' tries to stay
+  on top of everything.
 - **bpp**. Color depth (bits/pixel). MS Windows only, I think.
 - **title**. Appears in window title bar, task bar, etc.
 - **xdisplay**. Only meaningful on Unix sytems (Linux, Mac, Irix). Gives the name of the X display
