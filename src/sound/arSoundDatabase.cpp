@@ -122,7 +122,7 @@ void arSoundDatabase::setPath(const string& thePath){
     _path->push_back(ar_pathAddSlash(result));
   }
   if (cdir <= 0)
-    cerr << "arSoundDatabase warning: empty path (from SZG_SOUND/path).\n";
+    ar_log_warning() << "empty SZG_SOUND/path.\n";
 
   ar_mutex_unlock(&_pathLock);
 }

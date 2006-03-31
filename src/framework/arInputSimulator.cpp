@@ -39,17 +39,16 @@ arInputSimulator::arInputSimulator() :
 }
 
 bool arInputSimulator::configure( arSZGClient& SZGClient ) {
-  arSlashString mouseButtonString = SZGClient.getAttribute( "SZG_INPUTSIM", "mouse_buttons" );
-  int numItems = mouseButtonString.size();
+  arSlashString mouseButtonString(SZGClient.getAttribute( "SZG_INPUTSIM", "mouse_buttons" ));
+  const int numItems = mouseButtonString.size();
   int* mouseButtons = new int[numItems];
   if (!mouseButtons) {
     ar_log_error() << "arInputSimulator error: new[] failed.\n";
     return false;
   }
-  int numValues = ar_parseIntString( mouseButtonString, mouseButtons, numItems );
+  const int numValues = ar_parseIntString( mouseButtonString, mouseButtons, numItems );
   if (numValues != numItems) {
-    ar_log_warning() << "arInputSimulator warning: can't configure mouse buttons from SZG_INPUTSIM/mouse_buttons.\n"
-                     << "   Using default: 0 (left) and 2 (right).\n";
+    ar_log_warning() << "arInputSimulator warning: SZG_INPUTSIM/mouse_buttons defaulting to 0 and 2 for left and right.\n";
     delete[] mouseButtons;
   } else {
     std::vector<unsigned int> mouseButtonsVector;
@@ -61,14 +60,13 @@ bool arInputSimulator::configure( arSZGClient& SZGClient ) {
       ar_log_error() << "arInputSimulator error: setMouseButtons() failed in configure().\n";
     }
   }
-  int numButtonEvents = SZGClient.getAttributeInt( "SZG_INPUTSIM", "number_button_events" );
+  const int numButtonEvents = SZGClient.getAttributeInt( "SZG_INPUTSIM", "number_button_events" );
   if (numButtonEvents < 2) {
-    ar_log_warning() << "arInputSimulator warning: The number of button events specified (" << numButtonEvents
-                     << ")\n   in SZG_INPUTSIM/number_button_events is less than the minimum allowed (2).\n"
-                     << "   Using default (8).\n";
+    ar_log_warning() << "arInputSimulator warning: too few SZG_INPUTSIM/number_button_events (" << numButtonEvents
+                     << ") < 2, so defaulting to 8.\n";
     return false;
   }
-  setNumberButtonEvents( (unsigned int)numButtonEvents );
+  setNumberButtonEvents( unsigned(numButtonEvents) );
   return true;
 }
 

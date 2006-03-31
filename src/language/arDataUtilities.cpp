@@ -464,10 +464,14 @@ void ar_usleep(int microseconds){
 
 // string->number conversions with error checking
 bool ar_stringToLongValid( const string& theString, long& theLong ) {
+  if (theString == "NULL") {
+    // Don't complain.  Let the caller do that: it has more context.
+    return false;
+  }
   char *endPtr = NULL;
   theLong = strtol( theString.c_str(), &endPtr, 10 );
   if ((theString.c_str()+theString.size())!=endPtr) {
-    ar_log_warning() << "arStringToLong warning: conversion failed for " << theString << ar_endl;
+    ar_log_warning() << "arStringToLong warning: conversion failed for '" << theString << "'." << ar_endl;
     return false;
   }
   if ((theLong==LONG_MAX)||(theLong==LONG_MIN)) {
@@ -482,7 +486,7 @@ bool ar_stringToLongValid( const string& theString, long& theLong ) {
 bool ar_longToIntValid( const long theLong, int& theInt ) {
   theInt = (int)theLong;
   if ((theLong > INT_MAX)||(theLong < INT_MIN)) {
-    ar_log_warning() << "arLongToIntValid warning: value " << theLong << " out of range.\n";
+    ar_log_warning() << "arLongToIntValid warning: out-of-range value " << theLong << ".\n";
     return false;
   }
   return true;
@@ -598,8 +602,12 @@ int ar_parseIntString(const string& theString, int* outArray, int len){
       break;
     }
     if (inStream.fail())
-      // Error message?
+      // Warn?
       break;
+    if (wordString == "NULL") {
+      // Don't complain.  Let the caller do that: it has more context.
+      break;
+    }
     int theInt = -1;
     if (!ar_stringToIntValid( wordString, theInt )) {
       ar_log_warning() << "ar_parseIntString warning: invalid field value \"" << wordString << "\".\n";
