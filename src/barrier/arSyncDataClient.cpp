@@ -106,9 +106,8 @@ void arSyncDataClient::_readTask(){
   while (!_exitProgram){
     if (!_stateClientConnected){
       ar_usleep(30000);
-      // note that the continue is important here since it kicks us out
-      // to the test of _exitProgram... it is possible that an exit
-      // request will be issued while we are waiting to connect
+      // Fall down to the test of _exitProgram:
+      // an exit request might be issued while we wait to connect.
       continue;
     }
     // Activate our connection to the barrier server.
@@ -128,7 +127,7 @@ void arSyncDataClient::_readTask(){
     ar_mutex_unlock(&_stackLock);
     //bool ok = _dataClient.getDataQueue(_data[_backBuffer],
     //					 _dataSize[_backBuffer]);
-    bool ok = _dataClient.getDataQueue(dataStorage.first, dataStorage.second);
+    const bool ok = _dataClient.getDataQueue(dataStorage.first, dataStorage.second);
     const float temp = ar_difftime(ar_time(), time1);
     _oldRecvTime = temp>0. ? temp : _oldRecvTime;
     if (ok && _firstConsumption){
@@ -312,12 +311,11 @@ void arSyncDataClient::setNetworks(string networks){
 }
 
 bool arSyncDataClient::init(arSZGClient& client){
-  // shouldn't make this call if locally connected...
   if (_syncServer){
-    ar_log_error() << "arSyncDataClient error: init called when locally connected.\n";
+    ar_log_error() << "arSyncDataClient error: can't init() when locally connected.\n";
     return false;
   }
-  // we are NOT locally connected, so go ahead and do the init.
+
   _client = &client;
   _serviceNameBarrier =
     client.createComplexServiceName(_serviceName+"_BARRIER");
@@ -328,14 +326,13 @@ bool arSyncDataClient::init(arSZGClient& client){
 }
 
 bool arSyncDataClient::start(){
-  // shouldn't make this call if locally connected...
   if (_syncServer){
-    ar_log_error() << "arSyncDataClient error: start called when locally connected.\n";
+    ar_log_error() << "arSyncDataClient error: can't start() when locally connected.\n";
     return false;
   }
-  // We are NOT locally connected, so go ahead and do the start.
+
   if (!_client){
-    ar_log_error() << "arSyncDataClient error: start called before init.\n";
+    ar_log_error() << "arSyncDataClient error: start() before init().\n";
     return false;
   }
 
@@ -368,12 +365,10 @@ bool arSyncDataClient::start(){
 }
 
 void arSyncDataClient::stop(){
-  // shouldn't make this call if locally connected...
   if (_syncServer){
-    ar_log_error() << "arSyncDataClient error: stop called when locally connected.\n";
+    ar_log_error() << "arSyncDataClient error: can't stop() when locally connected.\n";
     return;
   }
-  // we are NOT locally connected, so go ahead and do the stop.
 
   // set _exitProgram to true *before* starting the read thread
   _exitProgram = true;
@@ -448,14 +443,12 @@ void arSyncDataClient::consume(){
     // for certain graphics boards like the wildcats
     ar_mutex_lock(&_nullHandshakeLock);
     if (_nullHandshakeState == 1){
-      // the connection thread registers disconnected and is waiting for
-      // us to say that we've cleared... so that it can go ahead and accept
-      // a new connection...
-      // we call the disconnect callback HERE. This is rather important!
-      // Why? We are guaranteed to hit here on disconnect (unless we are
+      // The connection thread registers disconnected and is waiting for
+      // us to say we've cleared, so it can then accept a new connection.
+      // We call the disconnect callback HERE, because
+      // we are guaranteed to hit here on disconnect (unless we are
       // stopping anyway). AND this is in the same thread as the consumption
-      // which allows us to do things like clear the database 
-      // on the disconnect callback!
+      // which lets us clear the database on the disconnect callback.
       if (_disconnectCallback) {
         _disconnectCallback(_bondedObject);
       }
@@ -478,9 +471,9 @@ void arSyncDataClient::consume(){
       _dataAvailable = 0;
       ar_mutex_unlock(&_swapLock);
       time2 = ar_time();
-      // copy the current receive stack into the consume stack
-      // (if we are synchronized, this will be exactly 1 buffer)
-      // then go ahead and consume everything
+      // Copy the current receive stack into the consume stack
+      // (if we are synchronized, this will be exactly 1 buffer).
+      // Then consume everything.
       _consumeStack.clear();
       ar_mutex_lock(&_stackLock);
       list<pair<char*,int> >::iterator iter;

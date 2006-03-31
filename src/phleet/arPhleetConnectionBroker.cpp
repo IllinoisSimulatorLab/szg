@@ -31,7 +31,7 @@ arPhleetConnectionBroker::arPhleetConnectionBroker(){
 /// @param firstPort the first port in the port pool of the service-hosting
 /// computer
 /// @param blockSize the size of the port pool of the service-hosting 
-/// computer (note that the port pool is contiguous)
+/// computer (the port pool is contiguous)
 arPhleetService arPhleetConnectionBroker::requestPorts(int componentID, 
                                                      const string& serviceName,
                                                      const string& computer, 
@@ -277,11 +277,11 @@ bool arPhleetConnectionBroker::confirmPorts(int componentID,
   return true;
 }
 
-/// Checks to see if a service with the given name exists, either on the
-/// temporary list or on the used list. If so, go ahead and return the
-/// "info" string managed by that service. If not, return the empty string.
-/// NOTE: maybe at some point it would be better to return FAILURE 
-/// (since the empty string is also a valid response!) BUG BUG BUG BUG BUG
+/// If a service with the given name exists, either on the
+/// temporary list or on the used list, return the
+/// "info" string managed by that service. Otherwise return "".
+/// BUG: maybe at some point it would be better to return FAILURE 
+/// (since the empty string is also a valid response!)
 /// @param serviceName The full name of the service.
 string arPhleetConnectionBroker::getServiceInfo(const string& serviceName){
   string result = string("");
@@ -589,7 +589,7 @@ void arPhleetConnectionBroker::registerReleaseNotification(int componentID,
   }
   // get the component's data
   SZGComponentData::iterator i = _componentData.find(componentID);
-  // go ahead and add the serviceName to the list of services upon whose
+  // Add the serviceName to the list of services upon whose
   // release the component expects to be notified.
   i->second.releaseTags.push_back(serviceName);
   // Now, add the notification to the service's list
@@ -666,13 +666,13 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
   // find the component record
   SZGComponentData::iterator i = _componentData.find(componentID);
   if (i == _componentData.end()){
-    // DO NOT GIVE A VERBAL WARNING HERE. This method will be called for
-    // every component that leaves the system... and it is normal for
-    // a component to have no record in the connection broker (think dex)
+    // Do not print a diagnostic.  This will be called for
+    // every component that leaves the system. It is normal for
+    // a component to have no record in the connection broker (think dex).
     ar_mutex_unlock(&_brokerLock);
     return;
   }
-  // go ahead and remove all the owned stuff
+  // Remove all the owned stuff.
   // first, remove all temporary service tags
   list<string>::iterator j;
   for (j = i->second.temporaryTags.begin();
@@ -680,19 +680,18 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
        j++){
     _removeService(*j);
   }
-  // next, remove all used service tags
+  // Remove all used service tags.
   for (j = i->second.usedTags.begin();
        j != i->second.usedTags.end();
        j++){
     _removeService(*j);
   }
-  // go down the list of release tags and remove this component from all of
-  // them
+  // Traverse the list of release tags and remove this component from them.
   for (j = i->second.releaseTags.begin();
        j != i->second.releaseTags.end();
        j++){
-    // remove the componentID from the service's release list
-    // MORE BLATANT INEFFICIENCY!!! TODO TODO TODO TODO TODO TODO
+    // Remove the componentID from the service's release list.
+    // Bug: more blatant inefficiency.
     SZGServiceData::iterator n = _usedServices.find(*j);
     // Go through the list and remove any notifications to this
     // component.

@@ -50,7 +50,7 @@ int main( int /*argc*/, char** /*argv*/ ) {
   cerr << " axis 0 = 1.\n";
   q.appendEvent( arAxisEvent( 0, (float)1 ) );
   cerr << " matrix 3 = ar_translationMatrix( 1, 2, 3 ).\n";
-  cerr << " Note that this requires an increase in the matrix signature.\n";
+  cerr << " This increases the matrix signature.\n";
   q.appendEvent( arMatrixEvent( 3, ar_translationMatrix(1,2,3) ) );
   
   cerr << "Saving queue to arStructuredData.\n";

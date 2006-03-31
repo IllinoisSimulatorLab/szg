@@ -110,12 +110,10 @@ float arRay::intersect(float radius, const arVector3& position){
   const float t1 = (-b + sqrt(discriminant))/(2.*a);
   const float t2 = (-b - sqrt(discriminant))/(2.*a);
   if (t1<0 && t2<0) {
-    // the line intersects the sphere, but not in the positive direction
+    // The line intersects the sphere, but not in the positive direction.
     return -1;
   }
 
-  // Return the closest intersection in the positive direction.
-  // Note that t2 <= t1.
+  // Return the closest intersection in the positive direction.  t2 <= t1.
   return (t2>0 ? t2 : t1) * ++direction;
 }
-

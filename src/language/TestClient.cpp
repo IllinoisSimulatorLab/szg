@@ -293,7 +293,7 @@ int main(int argc, char** argv){
   }
   cout << "  PASSED.\n";
 
-  // Finally, we go ahead and receive a text version of the data record.
+  // Receive a text version of the data record.
   cout << "Test 5: Determine if XML records are received correctly.\n";
   arStructuredDataParser theParser(theDictionary);
   arSocketTextStream socketStream;

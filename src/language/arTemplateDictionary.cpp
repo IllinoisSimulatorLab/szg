@@ -226,7 +226,7 @@ void arTemplateDictionary::pack(ARchar* dest){
     }
   }
 
-  // All sizes need to be 8 byte aligned.
+  // All sizes are 8-byte aligned.
   position += ar_fieldOffset(AR_DOUBLE,position);
 
   // Go back and fill in the first 3 fields.
@@ -242,7 +242,6 @@ static void ar_unpackDataField(
   position += ar_fieldOffset(type,position);
   ar_unpackData(src+position, data, type, length);
   position += ar_fieldSize(type,length);
-  // Note that "position" is modified in the caller!
 }
 
 bool arTemplateDictionary::unpack(ARchar* source,arStreamConfig streamConfig){
@@ -253,8 +252,8 @@ bool arTemplateDictionary::unpack(ARchar* source,arStreamConfig streamConfig){
   int iField = 0;
   while (iField < numFields){
 
-    // the dictionary record is composed of alternating name and type
-    // fields... the names are either template names or field names
+    // The dictionary record alternates name and type fields.
+    // The names are either template names or field names.
 
     // Unpack the name field.
     ARint nameLength = ar_translateInt(source+position,streamConfig);
@@ -267,6 +266,7 @@ bool arTemplateDictionary::unpack(ARchar* source,arStreamConfig streamConfig){
 	   << nameLength << " are illegal\n";
       return false;
     }
+
     ARchar nameBuffer[1024];
     ar_unpackDataField(source, position, nameBuffer, AR_CHAR, nameLength);
     nameBuffer[nameLength]='\0';

@@ -68,14 +68,14 @@ arGraphicsPeer* createNewPeer(const string& name){
 }
 
 bool loadParameters(arSZGClient& cli){
-  // Important that we load the parameters for our particular display.
-  // NOTE: szg-rp is different from the frameworks (szgrender and 
-  // arMasterSlaveFramework) in that it DOES NOT try to set up multiple
-  // windows, cameras, etc. Instead, we just go ahead and query the
-  // config of the first window in the XML and determine the position,
-  // size, and fullscreen/not-fullscreen specified.
-  string screenName = cli.getMode("graphics");
-  string configName = cli.getAttribute(screenName, "name");
+  // Load the parameters for our particular display.
+  // szg-rp differs from the frameworks (szgrender and 
+  // arMasterSlaveFramework): it does not try to set up multiple
+  // windows, cameras, etc. Instead, it justs query the
+  // config of the first window in the XML to determine the position,
+  // size, and fullscreen/not-fullscreen.
+  const string screenName(cli.getMode("graphics"));
+  const string configName(cli.getAttribute(screenName, "name"));
   if (configName != "NULL"){
     // A configuration record has actually been specified.
     string queryName = configName + "/szg_window/size/width";
@@ -578,7 +578,7 @@ int main(int argc, char** argv){
   for (int i=0; i<argc; i++){
     if (!strcmp("-p",argv[i])){
       highPerformance = true;
-      // Go ahead and strip on the arg.
+      // Strip the arg.
       for (int j=i; j<argc-1; j++){
         argv[j] = argv[j+1];
       }

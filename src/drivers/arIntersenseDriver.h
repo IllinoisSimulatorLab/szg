@@ -66,8 +66,7 @@ public:
   DWORD getPort() const { return _port; }
 
   //! What indices to use when reporting to arInputSource.
-  // Note that parameters are all passed as refs & altered
-  // in the function.
+  // Parameters are all passed by ref & altered in the function.
   void setStationIndices( unsigned int& matrixIndex,
                           unsigned int& buttonIndex,
                           unsigned int& axisIndex );

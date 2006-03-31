@@ -30,14 +30,13 @@ const float BIGGEST_FLOAT = MAXFLOAT;
 
 /// The main method via which we interact with objects. The effector 
 /// represents an interaction device that can touch and grab interactables.
-/// First, we see if the effector has grabbed something in the list.
-/// If so, go ahead and manipulate that interactable with this effector
-/// and return. Otherwise, go on and determine the "closest" object
-/// to the effector. This is the "touched" object. If it is different than
+/// If the effector has grabbed something in the list,
+/// manipulate that interactable with this effector
+/// and return. Otherwise, determine the "closest" object
+/// to the effector. This is the "touched" object. If it differs from
 /// the previously touched object (as understood by the effector), untouch
-/// the previous object. In any event, go ahead and call the
-/// interactable's processInteraction method (where state will be updated,
-/// etc.).
+/// the previous object. In any event, call the
+/// interactable's processInteraction() to update state, etc.
 bool ar_pollingInteraction( arEffector& effector,
                             std::list<arInteractable*>& objects ) {
   // Interact with the grabbed object, if any.
@@ -56,8 +55,8 @@ bool ar_pollingInteraction( arEffector& effector,
     } 
   }
   // Figure out the closest interactable to the effector (as determined
-  // by their matrices). Go ahead and touch it (while untouching the
-  // previously touched object if such are different).
+  // by their matrices). Touch it, while untouching the
+  // previously touched object if different.
   std::list<arInteractable*>::iterator touchedIter = objects.end();
   float minDist = BIGGEST_FLOAT;
   for (std::list<arInteractable*>::iterator iter = objects.begin();
@@ -78,10 +77,12 @@ bool ar_pollingInteraction( arEffector& effector,
     // Not touching any objects.
     return false;
   }
+
   if (!*touchedIter) {
     cerr << "ar_pollingInteraction error: found NULL touched pointer.\n";
     return false;
   }
+
   // Finally, and most importantly, process the action of the effector on
   // the interactable.
   return (*touchedIter)->processInteraction( effector );
@@ -90,9 +91,10 @@ bool ar_pollingInteraction( arEffector& effector,
 bool ar_pollingInteraction( arEffector& effector,
                             arInteractable* object ) {
   if (object == 0) {
-    cerr << "ar_pollingInteraction error: NULL object pointer passed.\n";
+    cerr << "ar_pollingInteraction error: got NULL object.\n";
     return false;
   }
+
   const arInteractable* grabbedPtr = effector.getGrabbedObject();
   if (grabbedPtr == object) {
     if (object->enabled())
@@ -106,6 +108,7 @@ bool ar_pollingInteraction( arEffector& effector,
       touchedPtr->untouch( effector );
     return false;
   }
+
   if (touchedPtr && touchedPtr != object)
     touchedPtr->untouch( effector );
   return object->processInteraction( effector );

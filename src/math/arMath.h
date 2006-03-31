@@ -318,7 +318,7 @@ SZG_CALL arVector3 ar_projectPointToLine( const arVector3& linePoint,
 SZG_CALL arMatrix4 ar_mirrorMatrix( const arVector3& planePoint, const arVector3& planeNormal );
 
 // Matrix to project a set of vertices onto a plane (for cast shadows)
-// Note that this matrix should be post-multiplied on the top of the stack.
+// This matrix should be post-multiplied on the top of the stack.
 // How to use: specify all parameters in top-level coordinates (i.e. the
 // coordinates that the object placement matrix objectMatrix are specified in).
 // Render your object normally.

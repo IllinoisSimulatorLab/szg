@@ -360,17 +360,12 @@ int arSocket::ar_safeRead(char* theData, int numBytes){
   ar_mutex_unlock(&_usageLock);
   while (numBytes>0) {
     const int n = ar_read(theData, numBytes);
-    // Note that n<=0 is, in fact, correct below. While negative
-    // numbers indicate an error, 0 indicates that the connection
-    // has been closed, a condition of which we want to be notified
-    // and which does look like an error to us (i.e. couldn't
-    // complete the read)
     if (n<=0) { 
-      // an error in reading from the socket
-      // (or the socket closed on us, possibly because a remote
-      // client went away)
+      // Error reading from the socket (<0),
+      // or the socket closed on us (==0) causing an incomplete ar_read(),
+      // possibly because a remote client went away.
       ar_mutex_lock(&_usageLock);
-      _usageCount--;
+        _usageCount--;
       ar_mutex_unlock(&_usageLock); 
       return false; 
       }

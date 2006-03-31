@@ -89,12 +89,12 @@ class SZG_CALL arPhleetOSLanguage: public arLanguage{
   int AR_ATTR_GET_RES_ATTR;
   int AR_ATTR_GET_RES_VAL;
 
-  /// ATTR_SET: Sets the value of an attribute. Note that the arSZGClient
-  /// function does the job of putting the ATTR field in 
-  /// computer/group/attribute format. NOTE: this is equivalent to having 
-  /// named records with key/value pairs stored on a per-computer basis 
-  /// (the group corresponds to the record name). The type field is there
-  /// so that we can either do a set or and atomic test and set.
+  /// ATTR_SET: Set an attribute's value.
+  /// The arSZGClient function formats the ATTR field as
+  /// computer/group/attribute. This is equivalent to storing
+  /// named records with key/value pairs on a per-host basis 
+  /// (the group corresponds to the record name). The type field lets us
+  /// do either a set or an atomic test-and-set.
   int AR_ATTR_SET;
   int AR_ATTR_SET_TYPE;
   int AR_ATTR_SET_ATTR;
@@ -224,78 +224,67 @@ class SZG_CALL arPhleetOSLanguage: public arLanguage{
   // for "dkill -9"
   arPhleetTemplate _killID;
 
-  // used by the client to retrieve various sorts of process info from the
-  // szgserver
+  // client retrieves process info from the szgserver
   arPhleetTemplate _processInfo;
 
-  // a client requests the value of an attribute in the database...
-  // return value of "NULL" if it isn't present. Note that the client
-  // needs to provide it's connection ID so that the server knows to whom it
-  // should respond
+  // client requests the value of an attribute in the database ("NULL"
+  // if undefined).  Client provides
+  // its connection ID so the server knows to whom it should respond.
   arPhleetTemplate _attributeGetRequest;
 
-  // the response to the above request
+  // response to _attributeGetRequest
   arPhleetTemplate _attributeGetResponse;
 
-  // a client (like a command line program) wants to set an attribute
+  // client (like a command line program) wants to set an attribute
   arPhleetTemplate _attributeSetRequest;
 
-  // clients can send messages to other clients via this record
+  // client send messages to other clients
   arPhleetTemplate _message;
 
-  // clients can send and receive responses, along with trading the right
-  // to respond to a message via this record
+  // clients send and receive responses, along with trading the right
+  // to respond to a message
   arPhleetTemplate _messageAdmin;
 
-  // clients receive notification from the szgserver regarding their
+  // szgserver notifies clients regarding their
   // communications pertaining to messages with this record
   arPhleetTemplate _messageAck;
 
-  // clients receive notification from the szgserver regarding the exit
-  // of a particular component.
+  // szgserver notifies clients regarding the exit of a particular component
   arPhleetTemplate _killNotification;
 
-  // a client uses this to request a named lock
+  // client requests a named lock
   arPhleetTemplate _lockRequest;
 
-  // a client uses this to release a named lock that it is holding
+  // client releases a named lock that it is holding
   arPhleetTemplate _lockRelease;
 
-  // the szgserver replies to a client's request to get or release a named lock
-  // with this record
+  // szgserver replies to _lockRequest or _lockRelease
   arPhleetTemplate _lockResponse;
 
-  // allows us to list all locks currently held with the szgserver
+  // list all locks currently held with the szgserver
   arPhleetTemplate _lockListing;
 
-  // allows the szgserver to notify a client when a particular lock has been
-  // released
+  // let szgserver notify a client when a particular lock gets released
   arPhleetTemplate _lockNotification;
 
-  // a client uses this to register a service with the szgserver
+  // client registers a service with the szgserver
   arPhleetTemplate _registerService;
 
-  // a client uses this to request the address of a service
+  // client requests a service's address
   arPhleetTemplate _requestService;
 
-  // the szgserver uses this to tell the client the location of a requested
-  // service
+  // szgserver tells client the location of a requested service
   arPhleetTemplate _brokerResult;
 
-  // the client uses this to request a list of all available services
+  // client requests a list of all available services
   arPhleetTemplate _getServices;
 
-  // the client uses this to request notification when a service is released
+  // client requests notification when a service is released
   arPhleetTemplate _serviceRelease;
 
-  // the client uses this to request or set the service info for a given
-  // service. the server uses it to reply with the status of the request.
+  // client requests, or set the service info for, a given service.
+  // Also, szgserver replies with the request's status.
   arPhleetTemplate _serviceInfo;
 };
 
 #endif
-
-
-
-
-

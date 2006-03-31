@@ -24,11 +24,10 @@
 //**** dg = distributed graphics
 //**** ds = distributed sound
 
-//**** note that some commands create/modify nodes...
-//**** while some commands only modify nodes
+//**** some commands create/modify nodes, others only modify
 
-//**** node creation commands return -1 on error and otherwise the node ID
-//**** node modification commands return false on error and true otherwise
+//**** node creation commands return -1 on error and otherwise the node ID.
+//**** node modification commands return false on error.
 
 SZG_CALL void dsSetSoundDatabase(arSoundDatabase*);
 

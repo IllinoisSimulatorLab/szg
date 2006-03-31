@@ -104,16 +104,15 @@ bool ar3DS::attachMesh(arGraphicsNode* parent, const string& baseName){
 void ar3DS::attachChildNode(const string &baseName, 
                             arGraphicsNode* parent,
                             Lib3dsNode* node){
-  // 3DS nodes can have the same name. Consequently, we need to go ahead
-  // and add a uniqueness number
-  _uniqueName++;
+  // Since 3DS nodes can share names, add a uniqueness number.
+  ++_uniqueName;
   char uniquenessBuffer[128];
   sprintf(uniquenessBuffer,":%i",_uniqueName);
   const string newName(baseName + "." + string(node->name)+uniquenessBuffer);
-  // POTENTIAL BUG!!! Note that lib3DS does not use a matrix stack....
-  // so that the matrix value at a node is, indeedm the absolute value,
+  // Bug: lib3DS does not use a matrix stack,
+  // so that the matrix value at a node is the absolute value,
   // not the value relative to the branch on which it resides.
-  // Of course, the syzygy scene graph does things differently
+  // Syzygy's scene graph does things differently.
   const arMatrix4 nodeTransform(
     node->matrix[0][0],node->matrix[0][1],
     node->matrix[0][2],node->matrix[0][3],
@@ -129,7 +128,7 @@ void ar3DS::attachChildNode(const string &baseName,
     (arTransformNode*) database->newNode(parent, "transform", newName);
   newParent->setTransform(nodeTransform);
   
-  // recurse through children  
+  // Recurse on children.
   for (Lib3dsNode* p=node->childs; p; p=p->next){
     attachChildNode(newName, newParent, p);
   }

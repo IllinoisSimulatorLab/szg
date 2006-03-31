@@ -561,9 +561,9 @@ class SZG_CALL arGUIWindowManager
      * @return arGUIKeyinfo The state information.
      *
      * @todo Actually implement this function using the appropriate OS calls.
-     *       Note that under certain flavors of windows (namely ME) the
-     *       necessary function need to implement this function (GetKeyState)
-     *       is hard-coded to return nothing.
+     *       On Windows ME, the
+     *       function needed to implement this function, GetKeyState,
+     *       is hardcoded to return nothing.
      */
     static arGUIKeyInfo getKeyState( const arGUIKey key );
 

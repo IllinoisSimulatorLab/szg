@@ -28,7 +28,7 @@ int main(int argc, char** argv){
   if (!client){
     return 1;
   }
-  // go ahead and create the language
+  // Create the language.
   arTemplateDictionary dictionary;
   arDataTemplate record("test");
   int TAG = record.add("tag", AR_CHAR);

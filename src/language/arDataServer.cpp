@@ -65,11 +65,11 @@ void arDataServer::_readDataTask(){
   arStreamConfig remoteConfig = iter->second;
   _threadLaunchSignal.sendSignal();
 
-  // Allocate buffer space for this thread.
+  // Allocate a buffer for this thread.
   int availableSize = _dataBufferSize;
   ARchar* dest = new ARchar[availableSize];
-  // note that we also need a local translation buffer... neither of these
-  // buffers can be shared with the other read threads
+
+  // Local translation buffer.  Neither buffer can be shared with other read threads.
   int transSize = availableSize;
   ARchar* transBuffer = new ARchar[transSize];
 
@@ -612,16 +612,16 @@ void arDataServer::_deleteSocketFromDatabase(arSocket* theSocket){
 
   // MUST FIX
 
-  // delete the socket from the internal databases, if it, in fact, is still there
+  // Delete the socket from the internal databases.
   if (!_delSocketID(theSocket))
-    // Socket wasn't in the ID table.  Must have been deleted already.
+    // Socket wasn't in the ID table, so it was already deleted.
     return;
 
-  // delete the socket from the label table
+  // Delete the socket from the label table.
   if (!_delSocketLabel(theSocket))
     cerr << "arDataServer warning: internal socket databases are inconsistent.\n";
 
-  // finally, go ahead and remove the socket*
+  // Remove the socket*.
   for (list<arSocket*>::iterator removalIterator(_connectionSockets.begin());
        removalIterator != _connectionSockets.end();
        ++removalIterator){
@@ -630,25 +630,18 @@ void arDataServer::_deleteSocketFromDatabase(arSocket* theSocket){
       theSocket->ar_close(); // good idea
       --_numberConnected;
       --_numberConnectedActive;
-      break; // don't look any more
+      break; // Stop looking.
     }
   }
-  // if the user has supplied a disconnect function, go ahead and call it here
   if (_disconnectFunction){
+    // Call the user-supplied disconnect function.
     _disconnectFunction(_disconnectObject, theSocket);
   }
-  // don't forget to delete the socket. obviously important to do this *after*
-  // calling the disconnect function... because the disconnect function uses the
-  // socket pointer
-  // NOTE: I've eliminated the delete of the socket for right now. As it stands, given
-  // the comments above, IT IS UNSAFE, i.e. multiple threads can be working on the 
-  // pointer at once. Note that this is a very small resource leak... about 20 bytes or
-  // so per connection, so an szgserver would have to handle *millions* of connections
-  // before we'd need to care. Obviously important to plug eventually, but not as
-  // critical as stability. Note, that it IS critical we close the socket (which is
-  // a very large scale system resource), which is, indeed, done. 
-  // MEMORY LEAK
-  //delete theSocket;
+
+  // Memory leak, about 20 bytes per connection:
+  // theSocket isn't deleted, because multiple threads might
+  // be using it at once.  If we could delete it, we'd do so here
+  // after _disconnectFunction has used it, of course.
 }
 
 void arDataServer::_setSocketRemoteConfig(arSocket* theSocket, 
@@ -685,6 +678,7 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
   if (socket->ar_connect(s.c_str(), port) < 0){
     cerr << "arDataServer error: dialUp failed.\n";
     socket->ar_close();
+    // delete socket?
     return -1;
   }
 
@@ -704,7 +698,7 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
 	   << "  (Maybe this IP address isn't on the szgserver's whitelist.)\n";
       return false;
     }
-    cout << "arDataServer error: remote data point has wrong szg protocol "
+    cerr << "arDataServer error: remote data point has wrong szg protocol "
 	 << "version = " << remoteStreamConfig.version << ".\n";
     return false;
   }
@@ -737,13 +731,14 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
   // Success!
   delete [] dataBuffer;
   ar_mutex_lock(&_dataTransferMutex);
-  // IMPORTANT TO ADD THIS TO THE ACTIVE CONNECTIONS!
+  // Add this to the list of active connections.
   _connectionSockets.push_back(socket);
   _addSocketToDatabase(socket);
   _setSocketRemoteConfig(socket, remoteStreamConfig);
-  // THIS IS CUT_AND_PASTE FROM ACCEPT CONNECTION IN THIS OBJECT.
+  // Copypaste from accept connection in this object.
   _numberConnected++;
-  // THIS IS ONLY MEANINGFUL IN THE SPECIAL CASE OF THE SYNC SOCKETS
+
+  // Only meaningful for sync sockets
   //if (addToActive)
   //  _numberConnectedActive++;
 

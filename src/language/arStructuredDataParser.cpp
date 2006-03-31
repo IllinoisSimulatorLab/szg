@@ -141,9 +141,8 @@ arBuffer<char>* arStructuredDataParser::getTranslationBuffer(){
   return result;
 }
 
-/// Return one of the translation buffers. Note that the returned buffer
-/// goes to the front of the list. This is to insure that buffers are
-/// reused as much as possible.
+/// Return one of the translation buffers. The returned buffer goes
+/// to the front of the list, to ensure that buffers are reused often.
 void arStructuredDataParser::recycleTranslationBuffer(arBuffer<char>* buffer){
   ar_mutex_lock(&_translationBufferListLock);
   _translationBuffers.push_front(buffer);
@@ -221,8 +220,8 @@ arStructuredData* arStructuredDataParser::parse(arTextStream* textStream){
   return parse(textStream, recordBegin);
 }
 
-/// A typical stream of XML data will contain some "extra" tags which act
-/// as flow control. For instance, consider the below:
+/// A typical stream of XML data contains "extra" tags for
+/// flow control. For instance, consider the below:
 ///
 /// <szg_vtk_world>
 ///   <world_record>
@@ -234,39 +233,35 @@ arStructuredData* arStructuredDataParser::parse(arTextStream* textStream){
 ///   </world_record>
 /// </szg_vtk_world>
 ///
-/// Note that the application reading this stream must first read a tag.
-/// If the tag turns out to be control-related (such as <szg_vtk_world>),
-/// then the application makes a behavior change of some sort. Otherwise,
-/// we want to be able to read in the rest of the record, given the
-/// tag name. 
+/// The app reading this stream first reads a tag.
+/// If that is control-related, such as <szg_vtk_world>,
+/// then the app changes behavior somehow. Otherwise,
+/// read in the rest of the record, based on the tag's name. 
 arStructuredData* arStructuredDataParser::parse(arTextStream* textStream,
                                                 const string& tagText){
-  // Get a resizable buffer to use in reading-in the various text fields.
+  // Get a resizable buffer for reading in text fields.
   arBuffer<char>* workingBuffer = getTranslationBuffer();
   arDataTemplate* theTemplate = _dictionary->find(tagText);
   if (!theTemplate){
-    cerr << "arStructuredDataParser error: the dictionary contains no "
-	 << "type with name " << tagText << ".\n";
+    cerr << "arStructuredDataParser error: dictionary has no type '"
+         << tagText << "'.\n";
     return NULL;
   }
-  // get some storage
-  int ID = theTemplate->getID();
+  // Get some storage.
+  const int ID = theTemplate->getID();
   arStructuredData* theData = getStorage(ID);
   
   int whichAttribute = 0;
   int totalAttributes = theTemplate->getNumberAttributes();
 
-  // NOTE: we want to be able to deal with the case where the record is
-  // INCOMPLETE (i.e. some fields are missing). This is, after all, one
-  // of the big advantages of XML. At one point, this was an important
-  // backwards compatibility thing for szg.conf (netmask was added and
-  // we wanted to be able to continue to use the old config files).
+  // Handle records with missing fields.
+  // This is, after all, a big advantages of XML. This once was a
+  // backwards compatibility issue for szg.conf (netmask was added and
+  // we wanted to continue using pre-0.7 old config files).
 
-  // Zero out the data dimensions of all fields. This way, if a field doesn't
-  // get set, it will have no data!
-  for (int i = 0; i < totalAttributes; i++){
+  // Zero the data dimensions of all fields, so unset fields will have no data.
+  for (int i = 0; i < totalAttributes; i++)
     theData->setDataDimension(i, 0);
-  }
 
   string fieldBegin;
   bool foundEndTag = false;
@@ -680,16 +675,15 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   int tag = syn->tag;
   ar_mutex_unlock(&syn->lock);
 
-  // We don't need the synchronizers anymore. Go ahead and put them on the
-  // recycling list. NOTE: here use the ERROR-CHECKED list of tags 
-  // (which prevents us from putting tags on the list twice).
+  // We don't need the synchronizers anymore. Put them on the
+  // recycling list. Use the ERROR-CHECKED list of tags,
+  // which prevents us from putting tags on the list twice.
   _cleanupSynchronizers(actualUsedTags);
 
   // Suppose we have either (a) timed-out (normalExit is false) or
   // clearQueues() has been issued (which can release the wait(...) above
   // with a value of -1). In this case, there is no data to get and we
-  // should return a failure response. This is a normal occurence (really)
-  // so do not go ahead and print anything.
+  // should fail. This is normal (really), so don't print a diagnostic.
   if (!normalExit || tag == -1){
     return -1;
   }
@@ -704,8 +698,8 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   else{
     potentialData = i->second.front();
     if ( dataID < 0 || potentialData->getID() == dataID ){
-      // Either we don't care about the data type OR we've got the proper
-      // data type. Go ahead and return successfully.
+      // Either we don't care about the data type, or we've got the proper
+      // data type. Return success.
       message = potentialData;
       i->second.pop_front();
       // only erase the entry if the list is empty
@@ -759,16 +753,16 @@ void arStructuredDataParser::clearQueues(){
   ar_mutex_lock(&_activationLock);
   _activated = false;
   ar_mutex_unlock(&_activationLock);
-  // First, find any outstanding message sync requests (i.e. places where
-  // people are waiting on messages). Go ahead and send the release signal.
-  // NOTE: since a sunchronizer may appear in the list multiple times, we
-  // may be sending the release multiple times as well. That is OK. 
+  // Find any outstanding message sync requests (i.e. places where
+  // people are waiting on messages). Send the release signal.
+  // Since a synchronizer may appear in the list multiple times,
+  // we may send the release multiple times as well. That is OK. 
   for (SZGtaggedMessageSync::iterator i = _messageSync.begin();
        i != _messageSync.end(); i++){
     ar_mutex_lock(&i->second->lock);
-    // There is no tag to pass.
+    // No tag to pass.
     i->second->tag = -1;
-    // We set the flag indicating that any woken getNextTagged(...) should
+    // Set the flag indicating that any woken getNextTagged(...) should
     // return an error.
     i->second->exitFlag = true;
     i->second->var.signal();
@@ -787,8 +781,8 @@ void arStructuredDataParser::clearQueues(){
       recycle(*kk);
     }
   }
-  // The map of lists of received tagged messages has been cleared. Go ahead
-  // and get rid of it.
+  // The map of lists of received tagged messages has been cleared.
+  // Delete it.
   _taggedMessages.clear();
 
   // Now, we want to release all of the getNextInternal(...) calls that may
@@ -819,8 +813,7 @@ void arStructuredDataParser::clearQueues(){
 void arStructuredDataParser::activateQueues(){
   ar_mutex_lock(&_activationLock);
   _activated = true;
-  // step through the message-queues-by-ID and go ahead and reset the exit 
-  // flags to false.
+  // Traverse the message-queues-by-ID and reset the exit flags.
   for (SZGmessageQueue::iterator i = _messageQueue.begin();
        i != _messageQueue.end(); i++){
     i->second->exitFlag = false;
@@ -830,8 +823,8 @@ void arStructuredDataParser::activateQueues(){
   ar_mutex_unlock(&_activationLock);
 }
 
-/// here, we go ahead and push the received message onto one of the queues and
-/// signal a potentially blocked getNextInternal(...) that it can proceed
+/// Push the received message onto one of the queues.
+/// Signal a potentially blocked getNextInternal() that it can proceed.
 void arStructuredDataParser::_pushOntoQueue(arStructuredData* theData){
   // we assume the next 3 iterators will find something, because we have a
   // valid piece of arStructuredData passed-in
@@ -842,13 +835,13 @@ void arStructuredDataParser::_pushOntoQueue(arStructuredData* theData){
   ar_mutex_unlock(&i->second->lock);
 }
 
-/// go ahead and pushed the received message onto the tagged queue (a single
+/// Push the received message onto the tagged queue (a single
 /// queue for all message types, but indexed via ID). Signal a potentially
-/// blocked getNextTaggedMessage(...) that it can proceed.
-/// NOTE: because of "message continuations" it is INDEED possible that
-/// multiple messages can be received corresponding to a particular tag.
-/// The only uniqueness here is that we DO NOT allow waiting on a particular
-/// tag by more than one command at a time.
+/// blocked getNextTaggedMessage() that it can proceed.
+/// Because of "message continuations",
+/// multiple messages may be received for a particular tag.
+/// The only uniqueness is that at most one command at a time
+/// may wait on a particular tag.
 void arStructuredDataParser::_pushOntoTaggedQueue(int tag,
                                                   arStructuredData* theData){
   ar_mutex_lock(&_globalLock);

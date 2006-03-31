@@ -47,20 +47,17 @@ bool ar_ignoreWhitespace(arTextStream* textStream,
   return true;
 }
 
-/// Take an arTextStream and record any characters between the current
-/// position and the next occuring '<'. These characters are stuffed
-/// into the resizable buffer passed-in by the caller. The characters get
-/// NULL-terminated before returning. Note that the next character returned
-/// from the text stream will be '<' because of the ar_ungetc(...) called.
-/// If EOF occurs before we've made it to the next '<', go ahead and
-/// return false. Otherwise, return true.
-/// The parsers for various field types all call this first... and then
-/// try to parse the string into their types (for instance, into a sequence
-/// of floats).
+/// Record characters from an arTextStream between the current
+/// position and the next '<'. Stuff these characters
+/// into the resizable buffer passed-in by the caller, null-terminated.
+/// The next character returned
+/// from the text stream will be '<' because of an ar_ungetc().
+/// Return false iff EOF occurs before the next '<'.
+/// The parsers for various field types call this first, and then
+/// parse the string into their types, e.g. a sequence of floats).
 ///
-/// NOTE: By default, we begin recording at the beginning of the buffer.
-/// However, sometimes it is more desirable to concatenate. In this case,
-/// the concatenate parameter must be set to true.
+/// By default, start at the beginning of the buffer.
+/// But sometimes it's better to concatenate: if so, set "concatenate" to true.
 bool ar_getTextBeforeTag(arTextStream* textStream, arBuffer<char>* textBuffer,
                          bool concatenate){
   int ch = ' ';

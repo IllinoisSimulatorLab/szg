@@ -64,9 +64,9 @@ bool ar_soundClientConnectionCallback(void*, arTemplateDictionary*){
 bool ar_soundClientDisconnectCallback(void* client){
   arSoundClient* c = (arSoundClient*) client;
   ar_log_remark() << "arSoundClient remark: disconnected from server.\n";
-  // We should go ahead and *delete* the bundle path information. This
-  // is really unique to each connection. This information is used to
-  // let an application have its sound files in a flexible location (i.e.
+  // Delete the bundle path information. This
+  // is unique to each connection. This information lets
+  // an app have its sound files in a flexible location (i.e.
   // NOT on the sound path).
   c->setDataBundlePath("NULL","NULL");
   c->reset();
@@ -123,7 +123,7 @@ bool ar_soundClientActionCallback(void* client){
 }
 
 bool ar_soundClientPostSyncCallback(void*){
-  // NOTE: the arSoundClient/ arSoundServer communication is not
+  // The arSoundClient/ arSoundServer communication is not
   // naturally throttled by anything other than the ping time over the
   // network (while arGraphicsClient/ arGraphicsServer is throttled by
   // buffer swap). fmod will CRASH if we do not throttle ourselves
@@ -134,10 +134,10 @@ bool ar_soundClientPostSyncCallback(void*){
   // we can throttle sound updates to 50 times per second without
   // impacting graphics updates.
   FSOUND_Update();
-  // OK... it turns out that it in the framework standalone case we want 
-  // to be able to run the sound without this throttle. Consequently,
-  // go ahead and build it in to SoundRender instead and remove it here.
-  //ar_usleep(20000);
+  // In the framework standalone case we want 
+  // to be able to run the sound without this throttle.
+  // So build it in to SoundRender instead and remove it here.
+  //;;;; ar_usleep(20000);
   return true;
 }
 
@@ -185,7 +185,7 @@ bool arSoundClient::start(arSZGClient& client){
       ar_log_error() << "arSoundClient error: failed to listen on brokered port.\n";
       client.requestNewPorts(serviceName,"input",1,&port);
     }
-    // If no success, we'll just go ahead and let this feature go.
+    // If no success, just let this feature go.
   }
   // Start the underlying data transfer from server to client
   _cliSync.setServiceName("SZG_SOUND");

@@ -152,28 +152,22 @@ int* arSocketAddress::getAddressLengthPtr(){
   return &_addressLength; // not const.  recvfrom() modifies it.
 }
 
-/// We want to be able to determine if this socket address meets certain
-/// criteria, which are presented as a list of strings, each of the format:
-///
-///   XXX.XXX.XXX.XXX/YYY.YYY.YYY.YYY
-/// 
+/// Determine if this socket address meets certain criteria,
+/// presented as a list of strings of the form:
+///     XXX.XXX.XXX.XXX/YYY.YYY.YYY.YYY
 /// or
-/// 
-///   XXX.XXX.XXX.XXX
+///     XXX.XXX.XXX.XXX
+/// In the first case, mask XXX.XXX.XXX.XXX by YYY.YYY.YYY.YYY
+/// and also mask our address by YYY.YYY.YYY.YYY. If these match, success.
+/// In the second case, our internal address must match 
+/// XXX.XXX.XXX.XXX. Only one criterion needs to succeed for the call to succeed.
 ///
-/// In the first case, we go ahead and mask XXX.XXX.XXX.XXX by YYY.YYY.YYY.YYY
-/// and also mask our address by YYY.YYY.YYY.YYY. If these are the same, then
-/// success! In the second case, our internal address must match 
-/// XXX.XXX.XXX.XXX to succeed. Only one criteria needs to succeed for the
-/// call to succeed.
-///
-/// NOTE: 255.255.255.255 cannot be used as a mask! Use the single value
-/// instead.
+/// Don't use 255.255.255.255 as a mask! Use the single value instead.
 bool arSocketAddress::checkMask(list<string>& criteria){
-  // If, in fact, the list of criteria is empty, then we pass the test!
   if (criteria.empty()){
     return true;
   }
+
   for (list<string>::iterator i = criteria.begin(); i != criteria.end();
        i++){
     // Is this an IP/mask pair or is this a single IP address?
@@ -194,13 +188,13 @@ bool arSocketAddress::checkMask(list<string>& criteria){
       string maskAddr =(*i).substr(position + 1, (*i).length() - position - 1);
       arSocketAddress tmpAddress;
       if (!tmpAddress.setAddress(IPaddr.c_str(), 0)){
-	cout << "arSocketAddress remark: received invalid address = "
+	cout << "arSocketAddress remark: invalid address = "
 	     << IPaddr << "\n";
 	continue;
       }
       string maskedValue = tmpAddress.mask(maskAddr.c_str());
       if (maskedValue == "NULL"){
-        cout << "arSocketAddress remark: received invalid mask = "
+        cout << "arSocketAddress remark: invalid mask = "
 	     << maskAddr << "\n";
 	continue;
       }

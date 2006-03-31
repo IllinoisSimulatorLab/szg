@@ -75,8 +75,8 @@ class RodEffector : public arEffector {
       setDrag( arGrabCondition( AR_EVENT_BUTTON, 0, 0.5 ), arWandRelativeDrag() );
       setDrag( arGrabCondition( AR_EVENT_BUTTON, 2, 0.5 ), arWandTranslationDrag() );
     }
-    // Draw it. Note that this may require some sharing of data from master->slaves.
-    // The matrix can be gotten by calling updateState() on the slaves in postExchange()
+    // Draw it. Maybe share some data from master to slaves.
+    // The matrix can be gotten from updateState() on the slaves' postExchange().
     void draw() const;
   private:
 };
@@ -157,8 +157,8 @@ void preExchange( arMasterSlaveFramework& fw ) {
     // Any grabbing/dragging happens in here.
     ar_pollingInteraction( theEffector, (arInteractable*)&theSquare );
 
-    // Pack data we have to transfer to slaves into appropriate variables
-    // (note that we can't currently transfer bools as such, must use ints).
+    // Pack data destined for slaves into appropriate variables
+    // (bools transfer as ints).
     squareHighlightedTransfer = (int)theSquare.getHighlight();
     squareMatrixTransfer = theSquare.getMatrix();
   }

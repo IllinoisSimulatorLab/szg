@@ -192,8 +192,8 @@ int main(int argc, char** argv){
     // The over-riding consideration is:
     //  "Are we running on a virtual computer?"
     runningOnVirtual = isVirtualComputer(szgClient, argv[1]);
-    // If argv[1] refers to an actual or virtual computer, go ahead
-    // and pack the args like so... (same either way)
+    // If argv[1] refers to an actual or virtual computer,
+    // pack the args like so... (same either way)
     if (runningOnVirtual || isRunningSzgd(argv[1])) {
       // Run argv[2..] on argv[1].
       hostName = argv[1];

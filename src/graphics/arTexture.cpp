@@ -189,7 +189,7 @@ bool arTexture::activate(bool forceRebind) {
     }
     _texNameMap.insert(map<ARint64,GLuint,less<ARint64> >::value_type
                        (threadID, temp));
-    // Must go ahead and load the bitmap on card regardless.
+    // Load the bitmap on the graphics card, anyways.
     forceRebind = true;
   }
   else{
@@ -667,11 +667,10 @@ bool arTexture::flipHorizontal() {
 }
 
 bool arTexture::_reallocPixels() {
-  if (_pixels) {
+  if (_pixels)
     delete [] _pixels;
-  }
   _pixels = new char[numbytes()];
-  return _pixels ? true : false;
+  return _pixels;
 }
 
 /// Certain pixels can be made transparent in our image. The file
@@ -696,14 +695,13 @@ void arTexture::_assignAlpha(int alpha){
 }
 
 /// Return an RGB array of pixels suitable for writing to a file. 
-/// Note that we may have to overcome the fact that pixels are packed
-/// internally in RGBA.
-/// We also have to account for the fact that pixels are stored internally
-/// in OpenGL format (i.e. as returned form glReadPixels or as in texture
+/// Maybe work around the pixels' internal RGBA packing.
+/// Also account for the pixels' internal storage
+/// in OpenGL format (as returned form glReadPixels or as in texture
 /// memory, which means that the 1st line in memory is the bottom line of
-/// the image. Note that this is the reverse of the way in which an image
+/// the image). This is the reverse of how an image
 /// is stored in a file, where the 1st line in the file is the top line of
-/// the image. Consequently, we reverse that here as well.
+/// the image. So reverse that as well.
 char* arTexture::_packPixels(){
   char* buffer = new char[_width*_height*3];
   if (!buffer) {
@@ -713,7 +711,8 @@ char* arTexture::_packPixels(){
   const int depth = getDepth();
   for (int i = 0; i < _height; i++){
     for (int j=0; j < _width; j++){
-      // reverse the order of the scanlines
+      // Reverse the scanlines' order.
+      // todo: use memcpy instead of the j-loops.
       buffer[3*((_height-i-1)*_width + j)] = _pixels[depth*(i*_width + j)];
       buffer[3*((_height-i-1)*_width + j)+1] = _pixels[depth*(i*_width + j)+1];
       buffer[3*((_height-i-1)*_width + j)+2] = _pixels[depth*(i*_width + j)+2];

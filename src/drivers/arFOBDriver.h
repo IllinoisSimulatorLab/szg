@@ -8,20 +8,20 @@
 // Thanks to Bill Sherman's FreeVR library for providing important
 // insight into the Flock's operation.
 // 
-// A flock-of-birds can be set-up in several ways:
-// standalone: a single unit hosts a bird and a transmitter. This is
+// A Flock can be set up in several ways:
+// - standalone: a single unit hosts a bird and a transmitter. This is
 //   connected directly to the host via RS232.
-// flock, 1 RS232: There are several units, but only one is connected to
+// - flock, 1 RS232: There are several units, but only one is connected to
 //   the host via RS232. The "master" unit is connected to the host
 //   and has flock ID 1. The other units are slaved to the master via
 //   the internal flock FBB interface. A transmitter will be connected to
 //   the flock, but maybe not to the master unit. Also, some units may
 //   not have birds attached (for instance the unit holding the transmitter).
-// flock, mulitple RS232. In this case, the host communicates to multiple
+// - flock, mulitple RS232. In this case, the host communicates to multiple
 //   units directly via mulitple serial connections. THIS IS NOT SUPPORTED!
 // 
-// Note that serial port numbers are 1-based, i.e. under Win32 COM1 is
-// port 1, etc., while under Linux/Unix /dev/ttys0 is port 1, etc.
+// Serial port numbers are 1-based: under Win32 COM1 is port 1,
+// and under Linux /dev/ttys0 is port 1.
 // 
 
 #ifndef AR_FOB_RS232_DRIVER_H
@@ -105,3 +105,5 @@ class arFOBDriver: public arInputSource {
 };
 
 #endif
+
+// this is from kam3:/home/szg/src/drivers

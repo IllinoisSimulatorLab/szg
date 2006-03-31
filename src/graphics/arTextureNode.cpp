@@ -100,13 +100,11 @@ void arTextureNode::setFileName(const string& fileName, int alpha){
     _fileName = fileName;
     _alpha = alpha;
     if (_texture){
-      // This will cause a delete in the case of a purely locally held texture.
+      // Cause a delete in the case of a purely locally held texture.
       _texture->unref();
     }
-    // We are free to create a new texture now. It will be locally held only.
     _texture = new arTexture();
     _texture->readImage(fileName.c_str(), _alpha, true);
-    // We must note that the texture is locally held.
     _locallyHeldTexture = true;
     ar_mutex_unlock(&_nodeLock);
   }
@@ -115,15 +113,15 @@ void arTextureNode::setFileName(const string& fileName, int alpha){
 void arTextureNode::setPixels(int width, int height, char* pixels, bool alpha){
   if (active()){
     ar_mutex_lock(&_nodeLock);
-    arStructuredData* r 
-      = _dumpData("", alpha ? 1 : 0, width, height, pixels, true);
+    arStructuredData* r =
+      _dumpData("", alpha ? 1 : 0, width, height, pixels, true);
     ar_mutex_unlock(&_nodeLock);
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
     ar_mutex_lock(&_nodeLock);
-    // We're the only object that will actually use this.
+    // No other object will use this.
     _addLocalTexture(alpha ? 1 : 0, width, height, pixels);
     ar_mutex_unlock(&_nodeLock);
   }
@@ -143,12 +141,10 @@ arStructuredData* arTextureNode::_dumpData(const string& fileName, int alpha,
   }
   _dumpGenericNode(result,_g->AR_TEXTURE_ID);
   if (fileName != ""){
-    // filename. 
-    // Make sure we have set the data dimension of the _width to 0.
-    // This is the flag the remote node uses to know it is not rendering
-    // pixels.
+    // Set the data dimension of the _width to 0, to tell
+    // the remote node to not render pixels.
     result->setDataDimension(_g->AR_TEXTURE_WIDTH, 0);
-    // Make sure that we do not send unnecessary pixel info!
+    // Don't send unnecessary pixels.
     result->setDataDimension(_g->AR_TEXTURE_PIXELS, 0);
     if (!result->dataIn(_g->AR_TEXTURE_ALPHA, &alpha, AR_INT, 1)
         || !result->dataInString(_g->AR_TEXTURE_FILE, fileName)) {

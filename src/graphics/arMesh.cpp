@@ -18,7 +18,7 @@ const int texcoordsPerTri = 3;
 
 void ar_adjustPoints(const arMatrix4& m, int number, float* data){
   for (int i=0; i<number; i++){
-    arVector3 v = m * arVector3(data[i*3], data[i*3+1], data[i*3+2]);
+    arVector3 v(m * arVector3(data[i*3], data[i*3+1], data[i*3+2]));
     data[i*3  ] = v[0];
     data[i*3+1] = v[1];
     data[i*3+2] = v[2];
@@ -27,9 +27,9 @@ void ar_adjustPoints(const arMatrix4& m, int number, float* data){
 
 void ar_adjustNormals(const arMatrix4& m, int number, float* data){
   for (int i=0; i<number; i++){
-    // Note that normals transform without the translational component.
-    arVector3 v = m * arVector3(data[i*3], data[i*3+1], data[i*3+2])
-      - m * arVector3(0,0,0);
+    // Normals transform without the translational component.
+    arVector3 v(m * arVector3(data[i*3], data[i*3+1], data[i*3+2]) -
+      m * arVector3(0,0,0));
     data[i*3  ] = v[0];
     data[i*3+1] = v[1];
     data[i*3+2] = v[2];
@@ -50,38 +50,36 @@ bool ar_attachMesh(arGraphicsNode* parent, const string& name,
   arDrawableNode* draw = NULL;
 
   points = (arPointsNode*) parent->newNodeRef("points", name+".points");
-  // Must do error checking for thread-safety... nodes can be deleted out
+  // Error checking for thread-safety... nodes can be deleted out
   // from under us at any time.
   if (!points){
-    goto cube_cleanup;
+    goto LDone;
   }
   points->setPoints(numberPoints, pointPositions);
   index = (arIndexNode*) points->newNodeRef("index", name+".indices"); 
   if (!index){
-    goto cube_cleanup;
+    goto LDone;
   }
   index->setIndices(numberVertices, triangleVertices);
   normal3 = (arNormal3Node*) index->newNodeRef("normal3", name+".normal3");
   if (!normal3){
-    goto cube_cleanup;
+    goto LDone;
   }
   normal3->setNormal3(numberNormals, normals);
   tex2 = (arTex2Node*) normal3->newNodeRef("tex2", name+".tex2");
   if (!tex2){
-    goto cube_cleanup;
+    goto LDone;
   }
   tex2->setTex2(numberTexCoord, texCoords);
   draw = (arDrawableNode*) tex2->newNodeRef("drawable", name+".drawable");
   if (!draw){
-    goto cube_cleanup;
+    goto LDone;
   }
   draw->setDrawable(drawableType, numberPrimitives);
-  
   success = true;
 
-  // Must release our references to the nodes! Otherwise there will be a 
-  // memory leak.
-cube_cleanup:
+LDone:
+  // Avoid memory leaks.
   if (points) points->unref();
   if (index) index->unref();
   if (normal3) normal3->unref();
@@ -93,11 +91,11 @@ cube_cleanup:
 bool arMesh::attachMesh(const string& name,
 			const string& parentName){
   arGraphicsNode* g = dgGetNode(parentName);
-  if (g){
-    attachMesh(g, name);
-    return true;
-  }
-  return false;
+  if (!g)
+    return false;
+
+  attachMesh(g, name);
+  return true;
 }
 
 /////////  CUBE  /////////////////////////////////////////////////////
@@ -525,7 +523,7 @@ bool arSphereMesh::attachMesh(arGraphicsNode* parent, const string& name){
     }
   }
 
-  // Go ahead and decimate the sphere triangles, if requested.
+  // Decimate the sphere triangles, if requested.
   int nearVertex = 0;
   int nearNormal = 0;
   int nearCoord = 0;

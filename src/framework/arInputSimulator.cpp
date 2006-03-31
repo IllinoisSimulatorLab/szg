@@ -345,9 +345,9 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
 
 /// Process mouse movement events to drive the simulated interface.
 void arInputSimulator::mousePosition(int x, int y){
-  // ensure that _mousePosition has been initialized before being as the
-  // 'previous' mouse position below.  Note that in the uncommon case
-  // that the previous mouse position /was/ (0,0) this will be incorrect.
+  // Ensure that _mousePosition has been initialized before using it as the
+  // 'previous' mouse position.  This is wrong, in the rare case
+  // that the previous mouse position was in fact (0,0).
   if( _mousePosition[0] == 0 && _mousePosition[1] == 0 ) {
     _mousePosition[0] = x;
     _mousePosition[1] = y;

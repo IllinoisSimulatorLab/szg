@@ -102,9 +102,9 @@ bool arInteractable::touch( arEffector& effector ) {
   return ok;
 }
 
-/// This is the most important method of arInteractable. We allow the 
-/// effector to manipulate the interactable. First of all, if we aren't
-/// already touching the object, go ahead and touch it. If we attempt to
+/// The most important method. Let the
+/// effector manipulate the interactable. If we aren't
+/// already touching the object, touch it. If we try to
 /// touch it, this will call the virtual _touch method (which, for instance
 /// in the arCallbackInteractable subclass, ends up calling the touch
 /// callback).
@@ -114,7 +114,7 @@ bool arInteractable::processInteraction( arEffector& effector ) {
     return false;
   }
 
-  // Attempt to touch the interactable with the effector.
+  // Try to touch the interactable with the effector.
   if (!touched( effector )){ 
     // Not already touching
     if (!touch( effector )){ 

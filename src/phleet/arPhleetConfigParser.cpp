@@ -178,11 +178,10 @@ arSlashString arPhleetConfigParser::getAddresses(){
   return result;
 }
 
-/// Returns the networks to which the computer is connected. Note that
-/// the empty string is returned if the computer (according to the
-/// config file) is not attached to any networks. This is used
-/// in connection brokering. NOTE: non-uniqueness of network names is
-/// possible. This is OK, since, really, networks, addresses, and masks
+/// Return the networks to which the host is connected, or ""
+/// if the config files says the host is not networked.
+/// Connection brokering uses this.  Non-uniqueness of network names is
+/// ok, since, networks, addresses, and masks
 /// form slices of a given "interface" structure.
 arSlashString arPhleetConfigParser::getNetworks(){
   arSlashString result;
@@ -199,7 +198,7 @@ arSlashString arPhleetConfigParser::getNetworks(){
 /// 255.255.255.0). This function returns a slash string, with the
 /// masks given in order of the network names.
 ///
-/// NOTE: This is IP protocol specific and, in some ways, goes against the
+/// This is IP protocol specific and, in some ways, goes against the
 /// idea that some of these interfaces might be of a different sort entirely.
 arSlashString arPhleetConfigParser::getMasks(){
   arSlashString result;
@@ -211,16 +210,15 @@ arSlashString arPhleetConfigParser::getMasks(){
   return result;
 }
 
-/// Sets the computer name internally (you have to invoke writeConfigFile
+/// Set the computer name internally (you have to invoke writeConfigFile
 /// explicitly to write this change out to disk).
 void arPhleetConfigParser::setComputerName(const string& name){
   _computerName = name;
 }
 
-/// Adds a new interface internally (you have to invoke writeConfigFile
-/// explicitly to write this change out to disk). If the interface does
-/// not exist, adds a pair to the list. If the interface does exist,
-/// alters the address
+/// Add a new interface internally (call writeConfigFile()
+/// explicitly to save this change to disk). If the interface does
+/// not exist, add a pair to the list;  otherwise, alter the address.
 void arPhleetConfigParser::addInterface(const string& networkName,
 					const string& address,
                                         const string& netmask){

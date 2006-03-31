@@ -61,14 +61,13 @@ bool arMasterSlaveDataRouter::start(){
 bool arMasterSlaveDataRouter::registerFrameworkObject
                                 (arFrameworkObject* object){
   if (_started){
-    cerr << "arMasterSlaveDataRouter error: cannot register object after "
-	 << "start.\n";
+    cerr << "arMasterSlaveDataRouter error: cannot register object after start.\n";
   }
   if (!object){
-    cerr << "arMasterSlaveDataRouter error: registerFrameworkObject(...) "
-	 << "passed NULL.\n";
+    cerr << "arMasterSlaveDataRouter error: registerFrameworkObject(NULL).\n";
     return false;
   }
+
   // Retrieve the templates from the framework object.
   arTemplateDictionary* templateDictionary = object->getDictionary();
   // Must first check that they all have the magic "szg_router_id" field
@@ -81,7 +80,7 @@ bool arMasterSlaveDataRouter::registerFrameworkObject
       return false;
     }
   }
-  // Now, we go ahead and copy the templates and add them to the language
+  // Copy the templates and add them to the language.
   for (i = templateDictionary->begin(); 
        i != templateDictionary->end(); i++){
     // first, let's see if we can find the template name

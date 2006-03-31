@@ -110,40 +110,37 @@ void arSZGClient::parseSpecialPhleetArgs(bool state){
   _parseSpecialPhleetArgs = state;
 }
 
-/// Sets up the client's connection to the phleet. Should be called very, very
-/// soon after main(...).
+/// Set up the client's connection to the phleet. Should be called very
+/// soon after main().
 /// @param argc Should be passed from main's argc
 /// @param argv Should be passed from main's argv
 /// @param forcedName An optional parameter. Ideally, we'd like to be able to
-/// read the exe name from the command line parameters, but this fails to work
-/// on Windows 98, where one gets, at best, a name in all caps. Consequently,
-/// the few (support) components that might run on Win98 (like szgd,
-/// DeviceServer, and SoundRender) all force their names. Note that a warning
-/// is printed if the forced name and the name scraped from the command line
-/// do not match.
+/// read the exe name from the command line parameters, but this fails
+/// on Win98, which gives at best a name in all caps. So
+/// the few (support) components that might run on Win98 (szgd,
+/// DeviceServer, and SoundRender) all force their names.
+/// Warn if the forced name doesn't match the name scraped from the command line.
 bool arSZGClient::init(int& argc, char** const argv, string forcedName){
   // Set the name of the component
   // using the command-line args, since some component management uses names.
   _exeName = ar_stripExeName(string(argv[0]));
   
-  // On Unix, we might need to finish a handshake with the
-  // szgd, telling it we've been successfully forked
+  // On Unix, we might need to finish a handshake with szgd,
+  // telling it we've been successfully forked.
   // THIS MUST OCCUR BEFORE dialUpFallThrough.
 
-  // ANOTHER IMPORTANT NOTE: IT IS ASSUMED THAT THIS FUNCTION WILL ALWAYS,
-  // REGARDLESS OF WHETHER OR NOT IT IS SUCCESSFUL, FINISH THE HANSHAKE WITH
-  // DEX!!! Consequently, no return statements, except at the end.
-  bool success = true; // assume suceess unless there has been a
-                       // specific failure
+  // Regardless of whether or not init() succeeds, it must finish the
+  // handshake with dex.  So only one return statement, at the end.
+
+  bool success = true;
   const string pipeIDString(ar_getenv("SZGPIPEID"));
   if (pipeIDString != "NULL"){
     _dexHandshaking = true;
     // we have, in fact, been successfully spawned on the Unix side
     const int pipeID = atoi(pipeIDString.c_str());
-    // Send the success code. Note that on Win32 we set the pipe ID to -1,
+    // Send the success code.  On Win32 set the pipe ID to -1,
     // which gets us into here (to set _dexHandshaking to true...
-    // but we don't want to try to write to the pipe on Win32 since the
-    // function is unimplemented
+    // but don't write to the pipe on Win32 since the function is unimplemented
     if (pipeID >= 0){
       char numberBuffer[8] = "\001";
       if (!ar_safePipeWrite(pipeID, numberBuffer, 1)){
@@ -170,9 +167,9 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
   (void) _configParser.parseConfigFile();
   (void) _configParser.parseLoginFile();
   // If the networks and addresses were NOT set via command line args or
-  // environment variables, go ahead and set them now.
-  // NOTE: there are different "channels" to allow different types of
-  // network traffic to be routed differently (default (which is
+  // environment variables, set them.
+  // Different "channels" let different types of
+  // network traffic be routed differently (default (which is
   // represented by _networks and _addresses), graphics, sound, and input).
   // The graphics, sound, and input channels have networks/addresses set
   // down in the _parseSpecialPhleetArgs and _parseContext.
@@ -198,8 +195,8 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
     success = false; // do not return yet
   }
 
-  // These can override some of the variables set above. Note that the "context"
-  // trumps command line args always.
+  // These can override some of the variables set above.
+  // The "context" always trumps command line args.
   if (!_parseContext()){
     _initResponseStream << _exeName << " error: invalid Phleet context.\n";
     // NOTE: it isn't strictly true that we are not connected.
@@ -225,9 +222,9 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
     
     // Don't complain if the file cannot be found.
     if (!parseParameterFile(_parameterFileName, false)){
-      // Failed to find the specified parameter file. Go ahead and try to find
-      // a file specified by environment variable SZG_PARAM.
-      string possibleFileName = ar_getenv("SZG_PARAM");
+      // Failed to find the specified parameter file.
+      // Find a file specified by environment variable SZG_PARAM.
+      const string possibleFileName = ar_getenv("SZG_PARAM");
       if (possibleFileName != "NULL"){
 	parseParameterFile(possibleFileName, false);
       }
@@ -261,8 +258,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
 	_setLabel(_exeName); 
       }
       else{
-	// we are indeed trying to force the name. Go ahead and print out a
-	// warning, though, if there is a difference.
+	// Try to force the name. Warn if there is a difference.
 	if (forcedName != _exeName){
 	  ar_log_warning() << _exeName <<
 	    " warning: component name overriding exe name (for Win98).\n";
@@ -434,7 +430,7 @@ string arSZGClient::getAllAttributes(const string& substring){
   return result;
 }
 
-// This is called only when parsing the assign blocks in the dbatch files.
+// Called only when parsing assign blocks in dbatch files.
 bool arSZGClient::parseAssignmentString(const string& text){
   stringstream parsingStream(text);
   string param1, param2, param3, param4;
@@ -457,15 +453,13 @@ bool arSZGClient::parseAssignmentString(const string& text){
     parsingStream >> param4;
     if (parsingStream.fail()){
 LFail:
-      ar_log_error() << _exeName << " error: malformed assignment string:\n";
-      ar_log_error() << "----------------\n" << text << "----------------" << ar_endl;
+      ar_log_error() << _exeName << " error: malformed assignment string '"
+                     << text << "'." << ar_endl;
       return false;
     }
-    if (param2.substr(0,10) == "SZG_SCREEN"){
-      ar_log_error() << _exeName << " warning: are you sure you want to use SZG_SCREEN "
-	             << "parameters?\n";
-      ar_log_error() << "  THESE ARE OBSOLETE FOR VERSIONS PAST 0.7!\n";
-    }
+
+    if (param2.substr(0,10) == "SZG_SCREEN")
+      ar_log_error() << _exeName << " warning: SZG_SCREEN parameters are deprecated.\n";
     setAttribute(param1, param2, param3, param4);
   }
 }
@@ -527,7 +521,7 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
     while (true){
       tagText = ar_getTagText(&fileStream, &buffer);
       if (tagText == "comment"){
-	// Go ahead and get the comment text (but discard it).
+	// Get and discard the comment text.
         if (!ar_getTextBeforeTag(&fileStream, &buffer)){
 	  ar_log_error() << _exeName <<
 	    " error: incomplete comment in phleet config file.\n";
@@ -543,7 +537,7 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
 	}
       }
       else if (tagText == "include"){
-        // Go ahead and get the comment text (but discard it).
+	// Get and discard the comment text.
         if (!ar_getTextBeforeTag(&fileStream, &buffer)){
 	  ar_log_error() << _exeName << " error: incomplete include text "
 	                 << "in phleet config file.\n";
@@ -625,7 +619,7 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
 	}
       }
       else if (tagText == "assign"){
-        // Go ahead and parse the assignment info.
+        // Parse the assignment info.
         if (!ar_getTextBeforeTag(&fileStream, &buffer)){
 	  ar_log_error() << _exeName << " error: incomplete assignment text "
 	                 << "in phleet config file.\n";
@@ -1101,8 +1095,7 @@ string arSZGClient::getSetGlobalXML(const string& userName,
     // This is the actual type of the element. The default is the current step
     // in the path... but this could change if there is an array index.
     string actualElementType = pathList[pathPlace];
-    // Check to see if there is an array index. If so, we'll go ahead and 
-    // remove it.
+    // If there is an array index, remove it.
     if ( (firstArrayLoc = pathList[pathPlace].find('[')) 
 	  != string::npos ){
       // There might be a valid array index.
@@ -1361,11 +1354,13 @@ string arSZGClient::getProcessLabel(int processID){
   arStructuredData* data = _dataParser->getStorage(_l.AR_PROCESS_INFO);
   const int match = _fillMatchField(data);
   data->dataInString(_l.AR_PROCESS_INFO_TYPE, "label");
+  // copypaste start with below
   data->dataIn(_l.AR_PROCESS_INFO_ID, &processID, AR_INT, 1);
   if (!_dataClient.sendData(data)){
     ar_log_warning() << _exeName << " warning: failed to send process label request.\n";
     return string("NULL");
   }
+
   _dataParser->recycle(data);
   // get the response
   data = _getTaggedData(match, _l.AR_PROCESS_INFO);
@@ -1373,9 +1368,11 @@ string arSZGClient::getProcessLabel(int processID){
     ar_log_warning() << _exeName << " warning: failed to get process label response.\n";
     return string("NULL");
   }
-  const string theLabel = data->getDataString(_l.AR_PROCESS_INFO_LABEL);
-  // note that this is a different data record than above, needs to be recycled
+
+  const string theLabel(data->getDataString(_l.AR_PROCESS_INFO_LABEL));
+  // This is a different data record than above, so recycle it.
   _dataParser->recycle(data);
+  // copypaste end with below
   return theLabel;
 }
 
@@ -1399,10 +1396,12 @@ int arSZGClient::getProcessID(const string& computer,
   int dummy = 0;
   data->dataIn(_l.AR_PROCESS_INFO_ID, &dummy, AR_INT, 1);
   data->dataInString(_l.AR_PROCESS_INFO_LABEL, realComputer+"/"+processLabel);
+  // copypaste start with above
   if (!_dataClient.sendData(data)){
     ar_log_warning() << _exeName << " warning: failed to send process ID request.\n";
     return -1;
   }
+
   _dataParser->recycle(data);
   // get the response
   data = _getTaggedData(match, _l.AR_PROCESS_INFO);
@@ -1410,9 +1409,11 @@ int arSZGClient::getProcessID(const string& computer,
     ar_log_warning() << _exeName << " warning: failed to get process ID response.\n";
     return -1;
   }
+
   const int theID = data->getDataInt(_l.AR_PROCESS_INFO_ID);
-  // note that this is a different data record than above, needs to be recycled
+  // This is a different data record than above, so recycle it.
   _dataParser->recycle(data);
+  // copypaste end with above
   return theID;
 }
 
@@ -1425,7 +1426,7 @@ int arSZGClient::getProcessID(void){
   const int match = _fillMatchField(data);
   data->dataInString(_l.AR_PROCESS_INFO_TYPE, "self");
   if (!_dataClient.sendData(data)){
-    ar_log_warning() << _exeName << " warning: getProcessID() send failed\n";
+    ar_log_warning() << _exeName << " warning: getProcessID() send failed.\n";
     _dataParser->recycle(data);
     return -1;
   }
@@ -1433,11 +1434,12 @@ int arSZGClient::getProcessID(void){
 
   data = _getTaggedData(match, _l.AR_PROCESS_INFO);
   if (!data){
-    ar_log_warning() << _exeName << " warning: ignoring illegal response packet\n";
+    ar_log_warning() << _exeName << " warning: ignoring illegal response packet.\n";
     return -1;
   }
+
   const int theID = data->getDataInt(_l.AR_PROCESS_INFO_ID);
-  // note that this is a new piece of data, so we need to recycle it again
+  // This is a new piece of data, so recycle it.
   _dataParser->recycle(data);
   return theID;
 }
@@ -2114,7 +2116,7 @@ bool arSZGClient::confirmPorts(const string& serviceName,
   return data->getDataString(_l.AR_SZG_BROKER_RESULT_STATUS) == "SZG_SUCCESS";
 }
 
-/// Used to find the internet address for connection to a named service
+/// Find the internet address for connection to a named service
 /// over one of (potentially) several specified networks. An arPhleetAddress
 /// is returned. On success, the valid field is set to true, on failure
 /// it is set to false. The address field contains the IP address. The
@@ -2125,8 +2127,7 @@ bool arSZGClient::confirmPorts(const string& serviceName,
 /// in the phleet. In synchronous mode, the szgserver immediately responds
 /// with a failure message. In asynchronous mode, the szgserver declines
 /// responding and, instead, waits for the service to be registered, at
-/// which time it responds. Note that, in asynchronous mode,
-/// discoverService(...) is, as a result, a blocking call.
+/// which time it responds.  In asynchronous mode, discoverService() thus blocks.
 /// @param serviceName the name of the service to which we want to connect
 /// @param networks a string containing a slash-delimited list of network
 /// names we might use to connect to the service, listed in order of
@@ -2329,30 +2330,28 @@ bool arSZGClient::setServiceInfo(const string& serviceName,
   return ok;
 }
 
-/// Contacts the szgserver and obtains the listing of running services,
-/// including the computers on which they run, and the phleet IDs of
-/// the components hosting them. This information is then printed in
-/// the style of dps.
+/// From the szgserver get the list of running services,
+/// including the hosts on which they run, and the phleet IDs of
+/// the components hosting them. Print this list like dps does.
 void arSZGClient::printServices(){
   _printServices("active");
 }
 
-/// Contacts the szgserver and obtains the list of pending service requests,
-/// including the computers on which they are running and the phleet IDs of
-/// the components making them. This information is then printed in the style
-/// of dps. Note that between this command and the printServices() command,
+/// From the szgserver get the list of pending service requests,
+/// including the hosts on which they are running and the phleet IDs of
+/// the components making them. Print this list like dps does.
+/// With this command and the printServices() command,
 /// one can diagnose connection brokering problems in the distributed system.
 void arSZGClient::printPendingServiceRequests(){
   _printServices("pending");
 }
 
-/// Sometimes it is desirable to be able to directly retrieve the phleet ID
-/// of the component running a service. For instance, open launching an
-/// application on a virtual computer, we may wish to kill a previous
-/// application that has been running and supplying a service that the
-/// new application wishes to supply. The ID of the component is returned
-/// if the service in question does, in fact, exist. Otherwise, -1 is
-/// returned.
+/// Directly get the phleet ID
+/// of the component running a service. For instance, upon launching an
+/// app on a virtual computer, we may wish to kill a previously running
+/// app that supplied a service that the
+/// new application wishes to supply. Return the component's ID
+/// if the service exists, otherwise -1.
 /// @param serviceName the name of the service in question
 int arSZGClient::getServiceComponentID(const string& serviceName){
   if (!_connected){
@@ -2384,47 +2383,39 @@ int arSZGClient::getServiceComponentID(const string& serviceName){
   return result;
 }
 
-/// Returns the networks on which this component should operate. Used
-/// as an arg for discoverService(...). Note that there are three ways
-/// that the networks can be set (in order of increasing precedence):
+/// Return the networks on which this component should operate.
+/// Used as an arg for discoverService().
+/// Networks can be set in 3 ways: by increasing precedence,
 /// the phleet config file, the phleet command line args, and the context.
 /// @param channel Should be either default, graphics, sound, or input.
 /// This lets network traffic be routed independently for various
 /// traffic types.
 arSlashString arSZGClient::getNetworks(const string& channel){
-  if (channel == "default"){
+  if (channel == "default")
     return _networks;
-  }
-  if (channel == "graphics"){
+  if (channel == "graphics")
     return _graphicsNetworks == "NULL" ? _networks : _graphicsNetworks;
-  }
-  if (channel == "sound"){
+  if (channel == "sound")
     return _soundNetworks == "NULL" ? _networks : _soundNetworks;
-  }
-  if (channel == "input"){
+  if (channel == "input")
     return _inputNetworks == "NULL" ? _networks : _inputNetworks;
-  }
   ar_log_warning() << _exeName << " warning: unknown channel for getNetworks().\n";
   return _networks;
 }
 
-/// Returns the network addresses upon which this component will offer
+/// Return the network addresses upon which this component will offer
 /// services. Used when registering a service to determine the
 /// addresses of the interfaces to which other components will try to
 /// connect.
 arSlashString arSZGClient::getAddresses(const string& channel){
-  if (channel == "default"){
+  if (channel == "default")
     return _addresses;
-  }
-  if (channel == "graphics"){
+  if (channel == "graphics")
     return _graphicsAddresses == "NULL" ? _addresses : _graphicsAddresses;
-  }
-  if (channel == "sound"){
+  if (channel == "sound")
     return _soundAddresses == "NULL" ? _addresses : _soundAddresses;
-  }
-  if (channel == "input"){
+  if (channel == "input")
     return _inputAddresses == "NULL" ? _addresses : _inputAddresses;
-  }
   ar_log_warning() << _exeName << " warning: unknown channel for getAddresses().\n";
   return _addresses;
 }
@@ -2610,18 +2601,18 @@ string arSZGClient::_getAttributeResponse(int match) {
 
 /// Set our internal label and set the communicate with the szgserver to set
 /// our label there (which is a little different from the internal one, being
-/// <computer>/<exe_name>). Note that this function should only be called from
-/// init(...) and is consequently private. Finally, this function is
-/// important in that it makes sure that the szgserver name propogates
-/// to the client (in the return connection ack). Without this feature, the
-/// "explicit connection" mode of dlogin will NOT get the szgserver name.
+/// <computer>/<exe_name>). Only call this from
+/// init().
+/// Make sure that the szgserver name propagates
+/// to the client (in the return connection ack), so that dlogin's
+/// "explicit connection" mode gets the szgserver name.
 bool arSZGClient::_setLabel(const string& label){
   if (!_connected)
     return false;
 
-  // Need to get some storage for the message.
-  arStructuredData* connectionAckData
-    = _dataParser->getStorage(_l.AR_CONNECTION_ACK);
+  // Get storage for the message.
+  arStructuredData* connectionAckData =
+    _dataParser->getStorage(_l.AR_CONNECTION_ACK);
   const string fullLabel = _computerName + "/" + label;
   bool state = false;
   int match = _fillMatchField(connectionAckData);
@@ -2668,14 +2659,11 @@ bool arSZGClient::_parseContext(){
   return true;
 }
 
-/// It is important that we pass argc by reference since we are potentially
-/// changing the arg list.
-/// Every time a client is launched, we go ahead and examine the "phleet args",
-/// i.e. those prefaced by a -szg. In most cases, we will delete these args
-/// (if _parseSpecialPhleetArgs is in its default state of true) while
-/// parsing them. However, if _parseSpecialPhleetArgs is false (as is the case
-/// in dex), then only the args user and server (pertaining to login) are
-/// parsed and removed.
+/// argc is passed by reference since we may change the arg list.
+/// When a client is launched, we examine the "phleet args",
+/// i.e. those prefaced by a -szg. We usually delete these args during parsing.
+/// But if _parseSpecialPhleetArgs is false (e.g., in dex),
+/// then only the args user and server (pertaining to login) are parsed and removed.
 bool arSZGClient::_parsePhleetArgs(int& argc, char** const argv){
   for (int i=0; i<argc; i++){
     if (!strcmp(argv[i],"-szg")){
@@ -3174,12 +3162,10 @@ bool arSZGClient::discoverSZGServer(const string& name,
   return true;
 }
 
-/// Tries to find any szgservers out there and print their names. Useful
-/// for seeing who's running what.
+/// Find szgservers and print their names.
 void arSZGClient::printSZGServers(const string& broadcast){
   if (!_discoveryThreadsLaunched && !launchDiscoveryThreads()){
-    // Do not complain here. A complaint will have occured further
-    // down in the stack.
+    // A diagnostic was already printed.  Don't complain here.
     return;
   }
   _justPrinting = true;
@@ -3199,21 +3185,21 @@ void arSZGClient::printSZGServers(const string& broadcast){
   _justPrinting = false;
 }
 
-/// Sets the server location manually. Necessary if we are unable
-/// to reach the szgserver via broadcast packets. Note that the
-/// szgserver name will be set upon actual connection via a handshake
+/// Set the server location manually.
+/// Necessary if broadcasting to the szgserver fails.
+/// The szgserver name is set upon connection via a handshake.
 void arSZGClient::setServerLocation(const string& IPaddress, int port){
   _IPaddress = IPaddress;
   _port = port;
 }
 
-/// Writes a login file using data gathered from, for instance,
-/// discoverSZGServer(...)
+/// Write a login file using data gathered from e.g.
+/// discoverSZGServer()
 bool arSZGClient::writeLoginFile(const string& userName){
-  // NOTE that userName is not necessarily the same as _userName
-  // the internal storage refers to the effective user name of this
-  // component, which can be over-riden by the environment variable
-  // SZGUSER. userName is the phleet login name in the config file
+  // userName may differ from _userName.
+  // The internal storage refers to the effective user name of this
+  // component, which the environment variable SZGUSER can override.
+  // userName is the phleet login name in the config file
   _configParser.setUserName(userName);
   _configParser.setServerName(_serverName);
   _configParser.setServerIP(_IPaddress);
@@ -3221,7 +3207,7 @@ bool arSZGClient::writeLoginFile(const string& userName){
   return _configParser.writeLoginFile();
 }
 
-/// Changes the login file to have the not-logged-in values
+/// Set the login file to not-logged-in state.
 bool arSZGClient::logout(){
   _configParser.setUserName("NULL");
   _configParser.setServerName("NULL");

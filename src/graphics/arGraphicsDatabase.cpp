@@ -250,9 +250,9 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
     ar_mutex_lock(&_texturePathLock);
     bool fDone = false;
     string potentialFileName;
-    // First, go ahead and look at the bundle path, if such as been set.
-    map<string, string, less<string> >::iterator iter 
-        = _bundlePathMap.find(_bundlePathName);
+    // Look at the bundle path, if it's defined.
+    map<string, string, less<string> >::iterator iter =
+        _bundlePathMap.find(_bundlePathName);
     if (_bundlePathName != "NULL" && _bundleName != "NULL"
 	&& iter != _bundlePathMap.end()){
       arSemicolonString bundlePath(iter->second);
@@ -277,8 +277,7 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
       }
     }
 
-    // If nothing can be found there, go ahead and look at the texture
-    // path.
+    // If nothing was found, look at the texture path.
     for (list<string>::iterator i = _texturePath->begin();
 	 !fDone && i != _texturePath->end();
 	 ++i){
@@ -526,7 +525,7 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
                                     float& bestDistance, 
                                     int& bestNodeID,
                                     stack<arRay>& rayStack){
-  // If this is a transform node, go ahead and transform the ray.
+  // If this is a transform node, transform the ray.
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
     arMatrix4 theMatrix = ((arTransformNode*)node)->getTransform();
     arRay currentRay = rayStack.top();
@@ -534,7 +533,7 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
 	                    (!theMatrix)*currentRay.getDirection()
                         - (!theMatrix)*arVector3(0,0,0)));
   }
-  // If it is a bounding sphere, go ahead and intersect.
+  // If this is a bounding sphere, intersect.
   if (node->getTypeCode() == AR_G_BOUNDING_SPHERE_NODE){
     arBoundingSphere sphere 
       = ((arBoundingSphereNode*)node)->getBoundingSphere();
@@ -595,18 +594,18 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
 									arDatabaseNode*& bestNode,
                                     float& bestDistance,
                                     bool useRef){
-  // If this is a transform node, go ahead and transform the ray.
+  // If this is a transform node, transform the ray.
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
     arMatrix4 theMatrix = matrixStack.top()*((arTransformNode*)node)->getTransform();
     matrixStack.push(theMatrix);
   }
-  // If it is a bounding sphere, go ahead and intersect.
+  // If this is a bounding sphere, intersect.
   if (node->getTypeCode() == AR_G_BOUNDING_SPHERE_NODE){
-    arBoundingSphere sphere 
-      = ((arBoundingSphereNode*)node)->getBoundingSphere();
+    arBoundingSphere sphere =
+      ((arBoundingSphereNode*)node)->getBoundingSphere();
     arMatrix4 m(matrixStack.top());
-	arBoundingSphere tmp(b);
-	tmp.transform(!m);
+    arBoundingSphere tmp(b);
+    tmp.transform(!m);
     float distance = sphere.intersect(tmp);
     if (distance >= 0){
       // intersection or containment
@@ -614,7 +613,7 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
         bestDistance = distance;
 		// The best node is kept seperately from the list of intersecting nodes.
 		if (bestNode){
-		  // If there was already a best node, better go ahead and save it.
+		  // If there was already a best node, save it.
 		  nodes.push_back(bestNode);
 		}
 		bestNode = node;
@@ -623,8 +622,8 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
 	    // The best node is kept seperately from the list of intersecting nodes.
 	    nodes.push_back(node);
 	  }
-	  // In either case, add an extra ref to our node if the useRef flag is set.
 	  if (useRef){
+	    // In either case, add an extra ref to our node.
 	    node->ref();
 	  }
     }
@@ -657,7 +656,8 @@ list<int>* arGraphicsDatabase::intersectList(const arRay& theRay){
 void arGraphicsDatabase::_intersectList(arGraphicsNode* node,
                                         list<int>* result,
                                         stack<arRay>& rayStack){
-  // If this is a transform node, go ahead and transform the ray.
+  // Copypaste "transform the ray" with 2 previous instances in this file.
+  // If this is a transform node, transform the ray.
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
     arMatrix4 theMatrix = ((arTransformNode*)node)->getTransform();
     arRay currentRay = rayStack.top();
@@ -665,7 +665,8 @@ void arGraphicsDatabase::_intersectList(arGraphicsNode* node,
 			(!theMatrix)*currentRay.getDirection()
                         - (!theMatrix)*arVector3(0,0,0)));
   }
-  // If it is a bounding sphere, go ahead and intersect.
+  // Copypaste "intersect" with 2 previous instances in this file.
+  // If this is a bounding sphere, intersect.
   if (node->getTypeCode() == AR_G_BOUNDING_SPHERE_NODE){
     arBoundingSphere sphere 
       = ((arBoundingSphereNode*)node)->getBoundingSphere();
@@ -692,13 +693,12 @@ void arGraphicsDatabase::_intersectList(arGraphicsNode* node,
   }
 }
 
-/// Intersects a ray with the database. At bounding sphere nodes, if there
-/// is no intersection, go ahead and skip that subtree. At drawable nodes
+/// Intersect a ray with the database. At bounding sphere nodes, if there
+/// is no intersection, skip that subtree. At drawable nodes
 /// (consisting of triangles or quads... incompletely implemented) 
 /// intersect the ray with the polygons, figuring out the point of closest
-/// intersection. In the end, return a pointer to the geometry node with
-/// the closest intersection point or NULL if there is no intersection at
-/// all.
+/// intersection. Return a pointer to the geometry node with
+/// the closest intersection point, or NULL if none intersect.
 ///
 /// This method is thread-safe.
 arGraphicsNode* arGraphicsDatabase::intersectGeometry(const arRay& theRay,
@@ -779,7 +779,7 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
   if (context){
     context->pushNode(node);
   }
-  // If this is a transform node, go ahead and transform the ray.
+  // If this is a transform node, transform the ray.
   if (node->getTypeCode() == AR_G_TRANSFORM_NODE){
     arMatrix4 theMatrix = ((arTransformNode*)node)->getTransform();
     arRay currentRay = rayStack.top();
@@ -787,7 +787,7 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
 			(!theMatrix)*currentRay.getDirection()
                         - (!theMatrix)*arVector3(0,0,0)));
   }
-  // If it is a bounding sphere, go ahead and intersect.
+  // If this is a bounding sphere, intersect.
   // If we do not intersect, return.
   if (node->getTypeCode() == AR_G_BOUNDING_SPHERE_NODE){
     arBoundingSphere sphere 
@@ -803,7 +803,7 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
       return;
     }
   }
-  // If it is a drawable node, go ahead and intersect.
+  // If this is a drawable node, intersect.
   if (node->getTypeCode() == AR_G_DRAWABLE_NODE){
     arRay localRay = rayStack.top();
     float rawDist = _intersectSingleGeometry(node, context, localRay);
@@ -845,9 +845,9 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
   }
 }
 
-/// Should only be called from arLightNode::receiveData. This guarantees that
-/// in cases where thread-safety matters (like arGraphicsServer and 
-/// arGraphicsPeer) that _lightContainer will be modified atomically.
+/// Only call from arLightNode::receiveData. This guarantees that
+/// _lightContainer is modified atomically when thread-safety matters
+/// (like arGraphicsServer and arGraphicsPeer),
 bool arGraphicsDatabase::registerLight(arGraphicsNode* node, 
                                        arLight* theLight){
   if (!theLight){
@@ -862,22 +862,21 @@ bool arGraphicsDatabase::registerLight(arGraphicsNode* node,
     ar_log_error() << "arGraphicsDatabase error: light has invalid ID.\n";
     return false;
   }
-  // If the light ID changed, should remove other instances from the
-  // container.
+  // If the light ID changed, remove other instances from the container.
   (void) removeLight(node);
-  // Go ahead and put the new light in.
-  _lightContainer[theLight->lightID] 
-    = pair<arGraphicsNode*,arLight*>(node, theLight);
+  // Insert the new light.
+  _lightContainer[theLight->lightID] =
+    pair<arGraphicsNode*,arLight*>(node, theLight);
   return true;
 }
 
-/// Should only be called from arLightNode::deactivate and 
-/// arGraphicsDatabase::registerLight.
+/// Only call from arLightNode::deactivate and arGraphicsDatabase::registerLight.
 bool arGraphicsDatabase::removeLight(arGraphicsNode* node){
   if (!node || !node->active() || node->getOwner() != this){
     ar_log_error() << "arGraphicsDatabase error: node not owned by this database.\n";
     return false;
   }
+
   for (int i=0; i<8; i++){
     if (_lightContainer[i].first == node){
       _lightContainer[i].first = NULL;
@@ -887,22 +886,22 @@ bool arGraphicsDatabase::removeLight(arGraphicsNode* node){
   return true;
 }
 
-/// Thread-safety with respect to light deletion requires that this
-/// call is locked with _databaseLock. Consequently, we must be very careful
-/// to guarantee that no call inside also locks the global lock (thus
-/// creating a deadlock). Note that accumulateTransform(int) does, in fact,
-/// do so, requiring us to use arDatabaseNode::accumulateTransform().
+/// For thread safety w.r.t. light deletion, lock this call with
+/// _databaseLock. Take care that no call inside
+/// also locks the global lock, 
+/// creating a deadlock. Since accumulateTransform(int) does do that,
+/// use arDatabaseNode::accumulateTransform() instead.
 void arGraphicsDatabase::activateLights(){
   ar_mutex_lock(&_databaseLock);
   for (int i=0; i<8; i++){
     if (_lightContainer[i].first){
       // A light has been registered for this ID.
-      arMatrix4 lightPositionTransform 
-	= _lightContainer[i].first->accumulateTransform();
+      const arMatrix4 lightPositionTransform(
+	_lightContainer[i].first->accumulateTransform());
       _lightContainer[i].second->activateLight(lightPositionTransform);
     }
     else{
-      // No light in this slot. Better go ahead and disable.
+      // No light in this slot. Disable.
       const GLenum lights[8] = {
         GL_LIGHT0, GL_LIGHT1, GL_LIGHT2, GL_LIGHT3,
         GL_LIGHT4, GL_LIGHT5, GL_LIGHT6, GL_LIGHT7
@@ -913,26 +912,24 @@ void arGraphicsDatabase::activateLights(){
   ar_mutex_unlock(&_databaseLock);
 }
 
-/// Tells us where the main camera node is located and returns a pointer
+/// Report the main camera node's location.  Return a pointer
 /// to the head matrix it holds (because of the VR camera, which needs
 /// a head matrix, all other cameras have one as well).
 /// Thread-safe.
 arHead* arGraphicsDatabase::getHead() {
   arViewerNode* viewerNode = NULL;
   // Thread-safety requires using getNodeRef instead of getNode.
-  if (_viewerNodeID != -1){
+  if (_viewerNodeID != -1)
     viewerNode = (arViewerNode*) getNodeRef(_viewerNodeID);
-  }
-  if (!viewerNode){
+  if (!viewerNode)
     viewerNode = (arViewerNode*) getNodeRef("szg_viewer");
-  }
   if (!viewerNode) {
     ar_log_error() << "arGraphicsDatabase error: getHead() failed.\n";
     return NULL;
   }
+
   arHead* result = viewerNode->getHead();
-  // There will be a memory leak if we do not unref.
-  viewerNode->unref();
+  viewerNode->unref(); // Avoid memory leak.
   return result;
 }
 
@@ -1074,10 +1071,9 @@ arDatabaseNode* arGraphicsDatabase::_processAdmin(arStructuredData* data){
   }
   else if (action == "camera_node"){
     int nodeID = data->getDataInt("node_ID");
-    // If we have a node with this ID, then go ahead and set the camera to it.
-    // NOTE: We MUST use _getNodeNoLock instead of getNode here, otherwise 
-    // there will be deadlocks (since _processAdmin is called from within
-    // the global arDatabase lock).
+    // If we have a node with this ID, then set the camera to it.
+    // Use _getNodeNoLock instead of getNode, to avoid deadlocks
+    // (since _processAdmin is called from within the global arDatabase lock).
     arDatabaseNode* node = _getNodeNoLock(nodeID);
     if (node && node->getTypeString() == "viewer"){
       _viewerNodeID = nodeID;
@@ -1089,4 +1085,3 @@ arDatabaseNode* arGraphicsDatabase::_processAdmin(arStructuredData* data){
   }
   return &_rootNode;
 }
-

@@ -80,7 +80,7 @@ bool arLogitechDriver::init(arSZGClient& SZGClient) {
   // 0 buttons, 0 axes, 1 matrix
   _setDeviceElements( 0, 0, 1 );
   unsigned int comPortID = static_cast<unsigned int>(SZGClient.getAttributeInt("SZG_LOGITECH", "com_port"));
-  // Go ahead and open the serial port
+  // Open the serial port.
   if (!_comPort.ar_open( comPortID, 19200, 8, 1, "none" )){
     cerr << "arLogitechDriver error: could not open serial port " << comPortID
 	 << ".\n";

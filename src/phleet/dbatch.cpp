@@ -26,6 +26,5 @@ int main(int argc, char** argv){
   }
 
   szgClient.parseParameterFile(argv[1]);
-
   return 0;
 }

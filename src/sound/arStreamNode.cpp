@@ -136,8 +136,6 @@ bool arStreamNode::receiveData(arStructuredData* data){
   // want to be able to detect file name changes in render()
   _oldFileName = _fileName;
   _fileName = data->getDataString(_l.AR_STREAM_FILE);
-  // probably a good idea to go ahead and "scrub" the file name
-  // to convert it from Unix style to Win style or vice-versa
   ar_scrubPath(_fileName);
   data->dataOut(_l.AR_STREAM_PAUSED, &_paused, AR_INT, 1);
   data->dataOut(_l.AR_STREAM_AMPLITUDE, &_amplitude, AR_FLOAT, 1);

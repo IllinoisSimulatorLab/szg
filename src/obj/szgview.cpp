@@ -480,7 +480,7 @@ int main( int argc, char** argv ){
   dgTransform( "mouse", "world", mouseWorldMatrix );
   mouseTransformID = theDatabase->getNodeID( "mouse" );
 
-  // Go ahead and add some lights.
+  // Add some lights.
   (void) dgLight( "light0", "root", 0, arVector4(0,1,0,0), arVector3( 1,1,1 ) );
   (void) dgLight( "light0", "root", 1, arVector4(0,-1,0,0), arVector3( 1,1,1 ) );
   (void) dgLight( "light0", "root", 2, arVector4(0,0,1,0), arVector3( 1,1,1 ) );

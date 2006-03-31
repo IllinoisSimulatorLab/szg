@@ -126,8 +126,8 @@ int main(){
     cout << "FAILED: matrix inverse (3).\n";
   }
 
-  // test transpose. note that the transpose of a 3D rotation matrix is
-  // the inverse of the original matrix
+  // test transpose. the transpose of a 3D rotation matrix is
+  // the inverse of the original matrix.
   if (!identityTest(ar_rotationMatrix('x',ar_convertToRad(-45))
 	            *~ar_rotationMatrix('x',ar_convertToRad(-45)))){
     cout << "FAILED: matrix transpose.\n";

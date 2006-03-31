@@ -35,8 +35,8 @@ arGraphicsWindow::arGraphicsWindow( arCamera* cam ) :
   _sizeX(-1),
   _sizeY(-1) {
 
-  // by default, the graphics window contains a single "normal" viewport
-  // in its list (note that the default viewport corresponds to normal).
+  // By default, the graphics window contains a single "normal" viewport
+  // in its list (the default viewport corresponds to normal).
   _addViewportNoLock( arViewport() );
 
   _setCameraNoLock( cam );
@@ -95,8 +95,8 @@ bool arGraphicsWindow::configure( arSZGClient& client ){
   lockViewports();
 
   // Figure out the viewport configuration
-  string viewMode = client.getAttribute(screenName, "view_mode",
-                    "|normal|anaglyph|walleyed|crosseyed|overunder|custom|");
+  const string viewMode(client.getAttribute(screenName, "view_mode",
+                    "|normal|anaglyph|walleyed|crosseyed|overunder|custom|"));
 
   _useOGLStereo = client.getAttribute( screenName, "stereo", "|false|true|" ) == "true";
 cerr << "Window configuration: viewMode = " << viewMode << ", stereo = " << _useOGLStereo << endl;
@@ -181,16 +181,15 @@ void arGraphicsWindow::setDrawCallback( arRenderCallback* callback ) {
 
 bool arGraphicsWindow::setViewMode( const std::string& viewModeString ) {
   lockViewports();
-  bool stat = _setViewModeNoLock( viewModeString );
+  const bool stat = _setViewModeNoLock( viewModeString );
   unlockViewports();
   return stat;
 }
 
 bool arGraphicsWindow::_setViewModeNoLock( const std::string& viewModeString ) {
-  // NOTE: We use a "default camera" here. The only thing that changes
-  // between views is the eye sign, at most.
+  // Use a "default camera". The only thing that might change
+  // between views is the eye sign.
   if (viewModeString == "normal" || viewModeString == "NULL"){
-    // important to go ahead and clear the list
     _clearViewportListNoLock();
     if (!_useOGLStereo) {
       _addViewportNoLock(
@@ -212,8 +211,7 @@ bool arGraphicsWindow::_setViewModeNoLock( const std::string& viewModeString ) {
     }
   }
   else if (viewModeString == "anaglyph"){
-    // NOTE only uses GL_BACK_LEFT buffer
-    // important to go ahead and clear the list
+    // Only uses GL_BACK_LEFT buffer.
     _clearViewportListNoLock();
     _addViewportNoLock(
       arViewport( 0,0,1,1, _defaultScreen, _defaultCamera, -1.,
@@ -227,7 +225,6 @@ bool arGraphicsWindow::_setViewModeNoLock( const std::string& viewModeString ) {
       );
   }
   else if (viewModeString == "walleyed"){
-    // important to go ahead and clear the list
     _clearViewportListNoLock();
     _addViewportNoLock(
       arViewport( 0,0,.5,1, _defaultScreen, _defaultCamera, -1.,
@@ -241,7 +238,6 @@ bool arGraphicsWindow::_setViewModeNoLock( const std::string& viewModeString ) {
       );
   }
   else if (viewModeString == "crosseyed"){
-    // important to go ahead and clear the list
     _clearViewportListNoLock();
     _addViewportNoLock(
       arViewport( 0,0,.5,1, _defaultScreen, _defaultCamera, 1.,
@@ -255,7 +251,6 @@ bool arGraphicsWindow::_setViewModeNoLock( const std::string& viewModeString ) {
       );
   }
   else if (viewModeString == "overunder"){
-    // important to go ahead and clear the list
     _clearViewportListNoLock();
     _addViewportNoLock(
       arViewport( 0,0,1,.5, _defaultScreen, _defaultCamera, -1.,

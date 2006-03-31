@@ -9,7 +9,7 @@
 #include "arGraphicsHeader.h"
 
 arLight::arLight(){
-  // these are the defaults, as given in OpenGL
+  // OpenGL's defaults.
   lightID = 0;
   position = arVector4(0,0,1,0);
   diffuse = arVector3(1,1,1);
@@ -46,15 +46,15 @@ void arLight::activateLight(arMatrix4 lightPositionTransform){
   const GLenum lightIdentifier =
     (lightID>=0 && lightID<8) ? lights[lightID] : lights[0];
 
-  // note that there is a little weirdness with the way OpenGL interprets
-  // light positions... if the fourth value is nonzero, then it is
-  // a positional light. If the fourth value is zero, then it is a
-  // directional light and the "position" really gives the light direction!
-  // of course, each of these styles transforms differently!
+  // OpenGL interprets light positions weirdly.  If the fourth value
+  // is nonzero, it is a positional light. Otherwise it's directional,
+  // and the "position" really gives the light direction.  These two
+  // styles transform differently.  (See arGraphicsAPI.cpp's dgLight.)
+
   arVector4 transformedPosition;
   arVector3 dir(position[0],position[1],position[2]);
-  const arVector3 transformedSpotDirection =
-    lightPositionTransform * (spotDirection - arVector3(0,0,0));
+  const arVector3 transformedSpotDirection(
+    lightPositionTransform * (spotDirection - arVector3(0,0,0)));
   
   if (position[3] == 0){
     // directional light
@@ -63,9 +63,8 @@ void arLight::activateLight(arMatrix4 lightPositionTransform){
   }
   else{
     // positional light
-    // note that we mangle the OpenGL a little bit here. in the original code
-    // it is possible to specify a w-coordinate != 0 or 1. And this would
-    // change the final on-screen coordinate via a division. Not so here.
+    // Mangle the OpenGL. The original code can specify a w-coordinate != 0 or 1,
+    // which changes the final on-screen coordinate via a division. Not so here.
     dir = lightPositionTransform*dir;
     transformedPosition = arVector4(dir[0],dir[1],dir[2],1);
   }

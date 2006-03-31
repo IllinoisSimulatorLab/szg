@@ -58,14 +58,13 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
     }
     
     if (f->_peerName != "NULL" || f->_externalPeer){
-      // Go ahead and handle the messages to the peer.
-      // We must strip the initial leading peer name.
+      // Handle messages to the peer.
+      // Strip the initial leading peer name.
       (void) ar_graphicsPeerStripName(messageBody);
-      arGraphicsPeer* messagePeer
-        = f->_peerName == "NULL" ? f->_externalPeer : &f->_graphicsPeer;
-      string responseBody = ar_graphicsPeerHandleMessage(messagePeer,
-							 messageType,
-							 messageBody);
+      arGraphicsPeer* messagePeer = f->_peerName == "NULL" ?
+        f->_externalPeer : &f->_graphicsPeer;
+      const string responseBody(ar_graphicsPeerHandleMessage(
+        messagePeer, messageType, messageBody));
       if (!f->_SZGClient.messageResponse(messageID, responseBody)){
         cerr << "szg-rp error: message response failed.\n";
       }

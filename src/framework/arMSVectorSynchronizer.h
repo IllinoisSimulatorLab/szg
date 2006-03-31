@@ -32,10 +32,11 @@
 // 
 // The final parameter indicate the number of elements/object,
 // defaults to 1. For a matrix of course we have 16 floats.
-// Note that the calls to add...Field() _REPLACE_ the corresponding
+// Calls to add...Field() _REPLACE_ the corresponding
 // calls to arMasterSlaveFramework::addTransferField() (they call
 // the newer arMasterSlaveFramework::addInternalTransferField() internally).
-// The Leaf getter and setter functions are declared as follows:
+// Leaf get and set functions are declared as follows:
+// (bug: why Matix not Matrix?)
 // 
 //   bool setMatixFromBuf( const float* const buf );
 //   bool getMatixToBuf( float* const buf );

@@ -303,7 +303,7 @@ arMatrix4 ar_translationMatrix(const arVector3& v){
   return result;
 }
 
-// note that the angles are all in radians
+// angles are all in radians
 
 arMatrix4 ar_rotationMatrix(char axis, float r){
   switch (axis){
@@ -493,7 +493,7 @@ arVector3 ar_extractEulerAngles(const arMatrix4& m, arAxisOrder o){
     rot2 = -rot2;
 
   // Calculcate the axis1 euler angle.
-  // Find the vector v2 mapped to axis3. Note that the vector:
+  // Find the vector v2 mapped to axis3. The vector
   // ar_rotationMatrix(axis2, rot2)*ar_rotationMatrix3,rot3)*v2 
   // will be in the axis2-axis3 plane. The angle with
   // axis3 determines the axis1 euler angle.
@@ -527,7 +527,7 @@ arVector3 ar_reflect(const arVector3& direction, const arVector3& normal){
 }
 
 // QUESTION: it looks like rayDirection is assumed to have been normalized.
-// If so, we should go ahead and normalize it before using it.
+// If so, we should normalize it before using it.
 float ar_intersectRayTriangle(const arVector3& rayOrigin,
 			      const arVector3& rayDirection,
 			      const arVector3& vertex1,
@@ -677,21 +677,22 @@ arMatrix4 ar_planeToRotation(float posX, float posY){
   return ar_rotateVectorToVector( arVector3(0,0,-1), spherePos );
 }
 
-// note that in the screen-related math functions, screen normal is
-// pointing from the observer to the screen (i.e. along the ray of vision)
+// In the screen-related math functions, screen normal points
+// from the observer to the screen (i.e. along the ray of vision)
 
-// Calculates the offset vector from the overall screen center to
+// Calculate the offset vector from the overall screen center to
 // the center of an individual tile.  Tiles are in a rectangular,
-// planar grid covering the screen, tile 0,0 in lower left corner.
+// planar grid covering the screen, tile (0,0) at lower left.
 arVector3 ar_tileScreenOffset(const arVector3& screenNormal,
 			      const arVector3& screenUp,
 			      float width, float height,
 			      float xTile, int nxTiles,
 			      float yTile, int nyTiles) {
-  // These values make no sense.
   if (nxTiles == 0 || nyTiles == 0){
+    // Bogus arguments.
     return arVector3(0,0,0);
   }
+
   /// copypaste start
   float mag = ++screenNormal;
   if (mag <= 0.)

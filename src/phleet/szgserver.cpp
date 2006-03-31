@@ -451,7 +451,7 @@ bool SZGgetLock(const string& lockName, int id, int& ownerID){
     return false;
   }
 
-  // Nobody holds the lock currently. Go ahead and insert it.
+  // Nobody holds the lock currently. Insert it.
   // First in the global list.
   lockOwnershipDatabase.insert(SZGlockOwnershipDatabase::value_type
 			       (lockName, id));
@@ -822,7 +822,7 @@ void SZGsendKillNotification(int observedComponentID, bool serverLock){
 	// goes away)
         k->second.remove(observedComponentID);
 	// If this component has no more (other) components whose potential
-	// demise it is observing, go ahead and remove the list.
+	// demise it is observing, remove the list.
         if (k->second.empty()){
           killNotificationOwnershipDatabase.erase(k);
 	}
@@ -1117,8 +1117,7 @@ void serverDiscoveryFunction(void* pv){
       sprintf(buffer+164,"%i",serverPort);
       // Walk through the server computer's NICs, as defined by the
       // szg.conf file. If one of them has the same broadcast address
-      // as the fromAddress, then go ahead and broadcast to that
-      // broadcast address.
+      // as the fromAddress, then broadcast to that address.
       bool success = false;
       int i;
       for (i=0; i<computerAddresses.size(); i++){
@@ -1464,7 +1463,7 @@ void messageAdminCallback(arStructuredData* theData,
 	  cerr << "szgserver warning: missing response destination.\n";
 	}
 	else{
-	  // Must go ahead and fill in the match.
+	  // Fill in the match.
           int match = SZGgetMessageMatch(messageID);
           theData->dataIn(lang.AR_PHLEET_MATCH, &match, AR_INT, 1);
           if (!dataServer->sendData(theData, responseSocket)){
@@ -1504,7 +1503,7 @@ void messageAdminCallback(arStructuredData* theData,
     // No need to check the return value or complain. If there is an error,
     // SZGmessageRequest will get that itself.
     SZGgetMessageTradeInfo(key, oldInfo);
-    // note that messageData is passed-in via reference in the following call
+    // messageData is passed by reference:
     if (SZGmessageRequest(key, dataSocket->getID(), messageData)){
       // Notify originator of the trade that the trade has occurred.
       (void)SZGack(messageAckData, true);
@@ -2021,7 +2020,7 @@ void dataConsumptionFunction(arStructuredData* theData, void*,
     // We send the component in question a kill message.
     arSocket* killSocket = dataServer->getConnectedSocket(id);
     if (killSocket){
-      // Go ahead and inform the component that it is to be *rudely*
+      // Inform the component that it is to be *rudely*
       // shut down (as opposed to the polite messaging way of shutting
       // it down).
       if (!dataServer->sendData(theData, killSocket)){
@@ -2030,11 +2029,9 @@ void dataConsumptionFunction(arStructuredData* theData, void*,
       }
     }
     // Finally, remove the socket from our table.
-    // BUG BUG BUG BUG BUG BUG BUG BUG BUG
-    // This is really weird. It seems that closing the socket on this
-    // side will go ahead and (potentially) prevent the socket on the other
-    // side from receiving the kill message we sent! WHY IS THIS?
-    // THIS TRULY IS A LITTLE BIT ALARMING!
+    // Bug: closing the socket on this
+    // side may prevent the socket on the other
+    // side from receiving the kill message we sent! Why?
     if (!dataServer->removeConnection(id)){
       cerr << "szgserver warning: failed to \"kill -9\" process id "
            << id << ".\n";

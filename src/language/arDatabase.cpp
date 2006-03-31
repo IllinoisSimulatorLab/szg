@@ -37,16 +37,14 @@ arDatabase::arDatabase() :
 }
 
 arDatabase::~arDatabase(){
-  // Releases our references to the nodes in the database. This is necessary
-  // to prevent a memory leak (nodes delete themselves when their reference
-  // count falls to 0. Note that we CANNOT use an arDatabase method that
-  // makes a message and passes it to alter here.
+  // Release our references to the nodes in the database. This avoids a
+  // memory leak (nodes self-delete when their reference count falls to 0).
+  // Don't use an arDatabase method here that passes a message to alter().
   _eraseNode(&_rootNode);
   delete eraseData;
   delete makeNodeData;
-  if (_dataParser){
+  if (_dataParser)
     delete _dataParser;
-  }
 }
 
 /// Sometimes, we want to store supporting objects like textures or
@@ -469,23 +467,23 @@ arDatabaseNode* arDatabase::alter(arStructuredData* inData, bool refNode){
     }
     return pNode;
   }
-  // Note that we are careful to use _getNodeNoLock instead of getNode here.
+  // Use _getNodeNoLock instead of getNode.
   // This method may be called by subclasses within a locked _databaseLock.
-  // NOTE: there is no real reason to give this node pointer an extra reference
+  // There is no real reason to give this node pointer an extra reference
   // (unlike with the make node or insert cases above, where new nodes can be
   // created).
   pNode = _getNodeNoLock(inData->getDataInt(_routingField[dataID]));
-  if (!pNode){
+  if (!pNode)
     return NULL;
-  }
+
   if (!pNode->receiveData(inData)){
     cerr << "arDatabase warning: receiveData() of child \""
          << pNode->_name << "\" failed.\n";
     return NULL;
   }
-  // Sometimes, we actually want to manipulate the node that just got altered.
-  // For instance, maybe we want to update its time stamp
-  // (if it is "transient").
+
+  // Return it so the caller can manipulate it,
+  // e.g. update its timestamp if it's transient.
   return pNode;
 }
 
@@ -1056,7 +1054,7 @@ bool arDatabase::_initDatabaseLanguage(){
     _routingField[ID] = iter->second->getAttributeID("ID");
   }
 
-  // Go ahead and register the callbacks.
+  // Register the callbacks.
   arDataTemplate* t = _lang->find("erase");
   _databaseReceive[t->getID()] = &arDatabase::_eraseNode;
   t = _lang->find("make node");
@@ -1122,9 +1120,8 @@ arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
     return NULL;
   }
   arDatabaseNode* result = NULL;
-  // See if a node exists with this ID. If so, and it is of the correct type,
-  // we will go ahead and use it. NOTE: ID -1 means "make a new node" since
-  // all nodes have ID >= 0.
+  // If a node exists with this ID, and has the correct type, use it.
+  // ID -1 means "make a new node", since all nodes have ID >= 0.
   if (theID != -1){
     // In this case, we're trying to insert a node with a specific ID.
     // If there is already a node by this ID, we'll just use it.
@@ -1154,9 +1151,9 @@ arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
   }
   // If we succeeded...
   if (result){
-    // We go ahead and modify the record in place with the new ID.
+    // Modify the record in place with the new ID.
     // The arGraphicsServer and arGraphicsClient combo depend on there
-    // being no mapping. Consequently, the client needs to always receive
+    // being no mapping. So the client needs to always receive
     // *commands* about how to structure the IDs.
     theID = result->getID();
     inData->dataIn(_lang->AR_MAKE_NODE_ID, &theID, AR_INT, 1);
@@ -1305,8 +1302,8 @@ arDatabaseNode* arDatabase::_permuteDatabaseNodes(arStructuredData* data){
   return &_rootNode;
 }
 
-// Makes a new child for the given parent. If moveChildren is true,
-// go ahead and attach all the parent's current children to the new node.
+// Make a new child for the given parent. If moveChildren is true,
+// attach all the parent's current children to the new node.
 arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
                                              const string& typeString,
                                              int nodeID,
@@ -1316,7 +1313,7 @@ arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
   arDatabaseNode* node = _makeNode(typeString);
   if (!node){
     // This is an error.
-    cout << "arDatabase error: could not create node with type="
+    cout << "arDatabase error: failed to create node of type="
 	 << typeString << ".\n";
     return NULL;
   }
@@ -1337,8 +1334,7 @@ arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
 
   // Set ID appropriately.
   if (nodeID == -1){
-    // Assign an ID automatically. Note that the postfix operator is used,
-    // meaning that the ID will be _nextAssignedID.
+    // Assign an ID automatically.
     node->_setID(_nextAssignedID++);
   }
   else{
@@ -1370,9 +1366,9 @@ void arDatabase::_eraseNode(arDatabaseNode* node){
     _eraseNode(*i);
   }
   node->_removeAllChildren();
-  // If this is not the root node, go ahead and remove it from the node ID
+  // If this is not the root node, remove it from the node ID
   // container AND release our reference to it. If no one holds an external
-  // reference to it, then it will go ahead and delete itself.
+  // reference to it, then it will delete itself.
   const int nodeID = node->getID();
   if (nodeID != 0){
     _nodeIDContainer.erase(nodeID);
@@ -1573,12 +1569,12 @@ arDatabaseNode* arDatabase::_mapNodeBelow(arDatabaseNode* parent,
   }
 }
 
-/// Alters a "make node" message, according to our mapping algorithm.
-/// 0: Node mapped to an existing node (or there was some error...like a
-///    stale entry in the node map). The message should be discarded.
-/// > 0: Node mapping partially succeeded (we need to create a new node
-///      locally). We'll need to complete the mapping in the caller upon
-///      node creation.
+/// Alter a "make node" message, according to our mapping algorithm.
+/// 0:  Node mapped to an existing node (or there was some error, like a
+///     stale entry in the node map). Discard the message.
+/// >0: Node mapping partially succeeded (we need to create a new node
+///     locally). We'll need to complete the mapping in the caller upon
+///     node creation.
 int arDatabase::_filterIncomingMakeNode(arDatabaseNode* mappingRoot,
                                 arStructuredData* record, 
 	                        map<int, int, less<int> >& nodeMap,
@@ -1594,8 +1590,8 @@ int arDatabase::_filterIncomingMakeNode(arDatabaseNode* mappingRoot,
   string nodeName = record->getDataString(_lang->AR_MAKE_NODE_NAME);
   string nodeType = record->getDataString(_lang->AR_MAKE_NODE_TYPE);
   int originalNodeID = record->getDataInt(_lang->AR_MAKE_NODE_ID);
-  // Please note that we DO NOT map the parent. There are no guarantees
-  // that it will be of a consistent node type, etc.
+  // Don't map the parent. There are no guarantees
+  // that it will have a consistent node type, etc.
   i = nodeMap.find(parentID);
   arDatabaseNode* currentParent;
   if (i == nodeMap.end()){
@@ -1612,10 +1608,10 @@ int arDatabase::_filterIncomingMakeNode(arDatabaseNode* mappingRoot,
   if (!currentParent){
     return 0;
   }
-  // Must alter the message in place.
+  // Alter the message in place.
   newParentID = currentParent->getID();
-  // NOTE: do not use dataIn. That will resize the field. We do not want this
-  // since routing information through the network of arGraphicsPeers can be
+  // Do not use dataIn, which would resize the field and mangle the
+  // routing information through the network of arGraphicsPeers which is
   // stored in here.
   int* IDptr = (int*)record->getDataPtr(_lang->AR_MAKE_NODE_PARENT_ID, AR_INT);
   IDptr[0] = newParentID;
@@ -1623,7 +1619,7 @@ int arDatabase::_filterIncomingMakeNode(arDatabaseNode* mappingRoot,
   arDatabaseNode* target = _mapNodeBelow(currentParent, nodeType, nodeName,
                                          nodeMap);
   if (!allNew && target && target->getTypeString() == nodeType){
-    // go ahead and map to this node.
+    // Map to this node.
     nodeMap.insert(map<int, int, less<int> >::value_type
 	           (originalNodeID, target->getID()));
     // Need to record any node mappings we made.
@@ -1725,31 +1721,26 @@ int arDatabase::_filterIncomingInsert(arDatabaseNode* mappingRoot,
   }
   
   // Check to make sure that childNode is actually a child of parentNode.
-  // Do not forget to deal with the case where childID is -1.
-  if (childID != -1 && childNode->getParent() != parentNode){
+  // Handle the case where childID is -1 (and thus childNode is NULL).
+  
+  if (childID != -1 && childNode->getParent() != parentNode)
     return 0;
-  }
-  // Do not forget to deal with the case where childID is -1 (and consequently
-  // childNode is NULL).
-  int newChildID = childID == -1 ? -1 : childNode->getID();
-  int newParentID = parentNode->getID();
+
+  const int newChildID = childID == -1 ? -1 : childNode->getID();
+  const int newParentID = parentNode->getID();
   // Do not use dataIn in the remapping to avoid resizing fields (we encoded
   // peer routing information in "extra" spaces in arGraphicsPeer)
-  int* IDptr = (int*)data->getDataPtr(_lang->AR_INSERT_CHILD_ID, AR_INT);
-  IDptr[0] = newChildID;
-  IDptr = (int*)data->getDataPtr(_lang->AR_INSERT_PARENT_ID, AR_INT);
-  IDptr[0] = newParentID;
-  // We should go ahead and use the mapped message.
-  // (note that the node ID will NOT be -1 on any code pathway that calls
-  //  filterIncoming... that will only be true for locally produced messages)
-  int originalNodeID = data->getDataInt(_lang->AR_INSERT_ID);
+  *(int*)data->getDataPtr(_lang->AR_INSERT_CHILD_ID, AR_INT) = newChildID;
+  *(int*)data->getDataPtr(_lang->AR_INSERT_PARENT_ID, AR_INT) = newParentID;
+  // Use the mapped message.
+  // The node ID will NOT be -1 on any code pathway that calls
+  // filterIncoming; that's true only for locally produced messages.
+  const int originalNodeID = data->getDataInt(_lang->AR_INSERT_ID);
   int newNodeID = -1;
-  // Do not use dataIn because it will resize the field to 1.
-  IDptr = (int*)data->getDataPtr(_lang->AR_INSERT_ID, AR_INT);
-  IDptr[0] = newNodeID;
-  if (mappedIDs){
-    mappedIDs[0] = originalNodeID;
-  }
+  // Do not use dataIn, because it resizes the field to 1.
+  *(int*)data->getDataPtr(_lang->AR_INSERT_ID, AR_INT) = newNodeID;
+  if (mappedIDs)
+    *mappedIDs = originalNodeID;
   return originalNodeID;
 }
 
@@ -1759,9 +1750,8 @@ int arDatabase::_filterIncomingInsert(arDatabaseNode* mappingRoot,
 int arDatabase::_filterIncomingErase(arDatabaseNode* mappingRoot,
                                      arStructuredData* data,
 				     map<int,int,less<int> >& nodeMap){
-  // If we get here, filterIncoming called us (so we know we're of the proper
-  // type).
-  int nodeID = data->getDataInt(_lang->AR_ERASE_ID);
+  // FilterIncoming called us (so we know we're of the proper type).
+  const int nodeID = data->getDataInt(_lang->AR_ERASE_ID);
   map<int,int,less<int> >::iterator i = nodeMap.find(nodeID);
   // Note the one exception here: if the erase message is directed at the
   // (remote) root node, then it should be directed at the local mapping root.
@@ -1770,6 +1760,7 @@ int arDatabase::_filterIncomingErase(arDatabaseNode* mappingRoot,
     // The node is unmapped. Discard this message.
     return 0;
   }
+
   // Check to see that the entry in the node map is not "stale".
   arDatabaseNode* node = NULL;
   if (nodeID){
@@ -1784,6 +1775,7 @@ int arDatabase::_filterIncomingErase(arDatabaseNode* mappingRoot,
     // Node map entry is "stale". Discard this message.
     return 0;
   }
+
   int newNodeID = node->getID();
   // NOTE: do not use dataIn here. It would set the field dimension to 1 and
   // wipe out any routing info that an arGraphicsPeer might have stored.

@@ -98,10 +98,10 @@ using namespace std;
 
   VMIN specifies the minimum number of characters to read. If it is
   set to 0, then the VTIME value specifies the time to wait for every
-  character read.  Note that this does not mean that a read call for N
-  bytes will wait for N characters to come in. Rather, the timeout will
-  apply to the first character and the read call will return the number
-  of characters immediately available (up to the number you request).
+  character read.  This does not mean that a read call for N bytes will
+  wait for N characters to come in. Rather, the timeout will apply to the
+  first character and the read call will return the number of characters
+  immediately available (up to the number you request).
 
   If VMIN is non-zero, VTIME specifies the time to wait for the first
   character read. If a character is read within the time given, any read

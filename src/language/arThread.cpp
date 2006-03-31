@@ -122,12 +122,12 @@ bool arConditionVar::wait(arMutex* externalLock, int timeout){
     WaitForSingleObject(_theEvent, INFINITE);
   }
 
-  //*************** note that there is a subtle race condition here
-  // what if signal() is called right here and gets the lock
-  // before things can be decremented? the next wait will get woken
+  // Subtle race condition:
+  // What if signal() is called here and gets the lock
+  // before _numberWaiting-- ?  The next wait will get woken
   // spuriously. Does this matter for condition variable semantics?
-  // PROBABLY NOT. THE POSIX STANDARDS SUGGEST THAT CONDITION VARS
-  // CAN BE SPURIOUSLY WOKEN.
+  // Probably not. POSIX standards suggest that condition vars
+  // can be spuriously woken.
 
   ar_mutex_lock(&_countLock);
   _numberWaiting--;
@@ -319,9 +319,9 @@ bool arThread::beginThread(void (*threadFunction)(void*),void* parameter){
 
 arSignalObject::arSignalObject(){
 #ifdef AR_USE_WIN_32
-  // this creates a auto-reset event object (this means that it resets to
-  // unsignaled after a single thread is awakened) with initial state
-  // unsignaled
+  // Create an auto-reset event object, which resets to
+  // unsignaled after a single thread is awakened,
+  // with initial state unsignaled.
   _theEvent = CreateEvent(NULL, false, false, NULL);
 #else
   pthread_mutex_init(&_theMutex,NULL);
@@ -331,19 +331,19 @@ arSignalObject::arSignalObject(){
 }
 
 arSignalObject::~arSignalObject(){
-	// nothing to do yet
 }
 
 void arSignalObject::sendSignal(){
 #ifdef AR_USE_WIN_32 
-  // which is more appropriate here? SetEvent or PulseEvent?
-  // for an auto-reset event, SetEvent causes the event to remain 
+  // Which is more appropriate here? SetEvent or PulseEvent?
+  // For an auto-reset event, SetEvent leaves the event 
   // signaled until someone waits on it, at which time it is reset
-  // for an auto-reset event, PulseEvent releases a single thread and
-  // then unsignals the event. Or immediately puts the event in the
-  // unsignaled state if no thread is waiting.
-  // note that SetEvent has the semantics of the Unix solution using
-  // condition vars... so we better use that
+  // for an auto-reset event. PulseEvent releases a single thread and
+  // then unsignals the event. Or immediately unsignals the event
+  // if no thread is waiting.
+  //
+  // SetEvent has the semantics of the Unix solution using
+  // condition vars, so we use that.
   SetEvent(_theEvent);
 #else
    pthread_mutex_lock(&_theMutex);

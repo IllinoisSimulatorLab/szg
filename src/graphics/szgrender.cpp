@@ -80,9 +80,9 @@ void messageTask(void* pClient){
       }
     }
     if (messageType=="quit"){
-      // note that we exit within the draw loop to avoid crashes on Win32
+      // Exit within the draw loop, to avoid Win32 crashes.
       exitFlag = true;
-      // make sure we actually get to the end of the draw loop
+      // Ensure we reach the end of the draw loop.
       graphicsClient->_cliSync.skipConsumption();
     }
     if (messageType=="screenshot"){

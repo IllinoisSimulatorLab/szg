@@ -175,13 +175,13 @@ LAbort:
   return true;
 }
 
-/// Once the internal factory has been successfully created, go ahead and
-/// create an object. If the factory has not been successfully created, return
-/// NULL.
+/// Once the internal factory has been successfully created, create an object.
+/// If the factory has not been successfully created, return NULL.
 void* arSharedLib::createObject(){
   if (!_factoryMapped){
-    cout << "arSharedLib error: factory has not been mapped.\n";
+    cout << "arSharedLib error: unmapped factory.\n";
     return NULL;
   }
+
   return _factory();
 }

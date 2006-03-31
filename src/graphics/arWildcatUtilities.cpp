@@ -19,8 +19,7 @@ namespace arWildcatNamespace {
   bool __useWildcatFramelock = false;
   bool __frameLockInitted = false;
 #ifdef AR_USE_WIN_32
-  // AARGH! a hack here for the Wildcat cards! note that glFinish does
-  // not work with them, apparently. Framelock needs to be on!
+  // Hack for Wildcat cards' broken glFinish().  Framelock must be on.
   typedef BOOL (APIENTRY *WGLENABLEFRAMELOCKI3DFUNCPTR)(VOID);
   typedef BOOL (APIENTRY *WGLDISABLEFRAMELOCKI3DFUNCPTR)(VOID);
   static BOOL (__stdcall *__wglEnableFrameLockI3D)(void) = 0;

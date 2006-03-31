@@ -94,11 +94,11 @@ void arBarrierServer::_releaseFunction(){
     }
     ar_mutex_unlock(&_waitingLock);
    
-    // if the _signalObjectRelease is activated, we will use that to send the
+    // If the _signalObjectRelease is activated, use that to send the
     // external signal that the buffer swap has been activated.
-    // otherwise, we use the _signalObject.
-    // note that the only other place _signalObject is signalled in the code
-    // is in the pump priming on connection... i.e. to recover from the
+    // Otherwise, use _signalObject.
+    // The only other place _signalObject is signalled
+    // is in the pump priming on connection, i.e. to recover from the
     // deadlock of "the barrier won't fire until the first buffer has been
     // sent but the first buffer won't be sent until the barrier has fired."
     if (_signalObjectRelease)

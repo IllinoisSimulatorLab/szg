@@ -26,9 +26,8 @@
 #include "arLanguageCalling.h"
 
 /// UDP socket (as opposed to TCP socket, arSocket).
-/// Note that this class needs to descend from arCommunicator, just like
-/// arSocket, since we need arCommunicator's implicit WinSock init on the
-/// Win32 side
+/// Like arSocket, derive from arCommunicator
+/// to get arCommunicator's implicit WinSock init.
 
 class SZG_CALL arUDPSocket:public arCommunicator{
 public:

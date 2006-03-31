@@ -87,7 +87,7 @@ void arSoundFileNode::render(){
     _fComplained[1] = false;
   }
 
-  // If sample needs to be inited, go ahead and do so here. As with graphics
+  // If sample needs to be inited, do so. As with graphics
   // (where all OpenGL related calls go into render()), all sound related 
   // calls should go in render.
 
@@ -102,7 +102,7 @@ void arSoundFileNode::render(){
     _localSoundFile = _owningDatabase->addFile(_fileName, _fLoop<=0 ? 0 : 1);
     _arSoundFiles = &_localSoundFile;
     _oldFileName = _fileName;
-    // OK, we can now go ahead and queue up the sound.
+    // Queue up the sound.
     _psamp = _localSoundFile->psamp();
     // Start the sound paused.
     _channel = FSOUND_PlaySoundEx(FSOUND_FREE, _psamp, NULL, 1);
@@ -137,6 +137,9 @@ void arSoundFileNode::render(){
     }
     else if (_action == "trigger"){
       if (_channel == -1){
+	//;;;; when sound finishes, call FSOUND_StopSound(_channel).
+	//;;;; So keep my own timer, and consult it whenever a method's called.
+	//;;;; try this, test it, check it in.
         _channel = FSOUND_PlaySoundEx(FSOUND_FREE, _psamp, NULL, 1);
       }
       else{

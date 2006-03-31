@@ -106,9 +106,9 @@ void testDatabase(arGraphicsDatabase& g){
   d = (arDrawableNode*) g.newNode(color, "drawable");
   d->setDrawable(DG_POINTS, 4); 
 
-  // Want to go ahead and try out the other mode of node insertion, whereby
-  // the node in question makes its parent's children its own. Here we
-  // are trying out the code that lets an arDatabaseNode be a node factory
+  // Try the other mode of node insertion, whereby
+  // the node in question makes its parent's children its own.
+  // This code lets an arDatabaseNode be a node factory
   // (via it's owning database). Two additional points are attached.
   arNameNode* n = (arNameNode*) globalTrans->newNode("name");
   n->setName("foo");
@@ -124,14 +124,12 @@ void testDatabase(arGraphicsDatabase& g){
   additionalDraw = (arDrawableNode*) additionalPoints->newNode("drawable");
   additionalDraw->setDrawable(DG_POINTS, 1);
 
-  // Go ahead and attach a rectangle. We'll use this to test the texture
-  // and transparency functionality. 
-  arTransformNode* rt 
-    = (arTransformNode*) globalTrans->newNode("transform", "rect_rot");
+  // Attach a rectangle. This tests textures and transparency.
+  arTransformNode* rt =
+    (arTransformNode*) globalTrans->newNode("transform", "rect_rot");
   rt->setTransform(ar_translationMatrix(0,0,0.1)
                    *ar_rotationMatrix('x', ar_convertToRad(-90)));
-  // Turn off lighting for our rectangle since there are no lights in the
-  // scene.
+  // Turn off lighting for our rectangle since there are no lights in the scene.
   arGraphicsStateNode* ls 
     = (arGraphicsStateNode*) rt->newNode("graphics state", "lighting_off");
   ls->setGraphicsStateInt("lighting", AR_G_FALSE );

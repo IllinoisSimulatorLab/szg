@@ -33,7 +33,7 @@ int ar_getEventID(int eventType, int eventNumber, arStructuredData* d) {
   return -1;
 }
 
-// note that event IDs start with 0...
+// Event IDs start with 0.
 
 int ar_getEventType(int eventID, arStructuredData* d){
   if (eventID < 0 || eventID >= ar_getNumberEvents(d))

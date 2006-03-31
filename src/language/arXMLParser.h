@@ -380,18 +380,18 @@ public:
 	    */
 	    friend std::istream& operator >> (std::istream& in, TiXmlNode& base);
 
-	    /** An output stream operator, for every class. Note that this outputs
-		    without any newlines or formatting, as opposed to Print(), which
-		    includes tabs and new lines.
+	    /** An output stream operator, for every class. Output
+		    without newlines or formatting, as opposed to Print(), which
+		    includes tabs and newlines.
 
-		    The operator<< and operator>> are not completely symmetric. Writing
+		    Operator<< and operator>> are not completely symmetric. Writing
 		    a node to a stream is very well defined. You'll get a nice stream
 		    of output, without any extra whitespace or newlines.
 
-		    But reading is not as well defined. (As it always is.) If you create
+		    But reading is less well defined, of course. If you create
 		    a TiXmlElement (for example) and read that from an input stream,
-		    the text needs to define an element or junk will result. This is
-		    true of all input streams, but it's worth keeping in mind.
+		    the text needs to define an element or junk results. This is
+		    true of all input streams.
 
 		    A TiXmlDocument will read nodes until it reads a root element, and
 			all the children of that root element.
@@ -717,8 +717,8 @@ public:
 		the call returns TIXML_SUCCESS. If it is not
 		an integer, it returns TIXML_WRONG_TYPE.
 
-		A specialized but useful call. Note that for success it returns 0,
-		which is the opposite of almost all other TinyXml calls.
+		A specialized but useful call. For success it returns 0,
+		the opposite of almost all other TinyXml calls.
 	*/
 	int QueryIntValue( int* value ) const;
 	/// QueryDoubleValue examines the value string. See QueryIntValue().
@@ -1248,7 +1248,7 @@ public:
 		set, the default of 4 is used. The tabsize is set per document. Setting
 		the tabsize to 0 disables row/column tracking.
 
-		Note that row and column tracking is not supported when using operator>>.
+		Row and column tracking is not supported when using operator>>.
 
 		The tab size needs to be enabled before the parse or load. Correct usage:
 		@verbatim
@@ -1302,7 +1302,7 @@ private:
 
 /**
 	A TiXmlHandle is a class that wraps a node pointer with null checks; this is
-	an incredibly useful thing. Note that TiXmlHandle is not part of the TinyXml
+	an incredibly useful thing. TiXmlHandle is not part of the TinyXml
 	DOM structure. It is a separate utility class.
 
 	Take an example:
@@ -1407,12 +1407,12 @@ public:
 	*/
 	TiXmlHandle Child( int index ) const;
 	/** Return a handle to the "index" child element with the given name.
-		The first child element is 0, the second 1, etc. Note that only TiXmlElements
+		The first child element is 0, the second 1, etc. Only TiXmlElements
 		are indexed: other types are not counted.
 	*/
 	TiXmlHandle ChildElement( const char* value, int index ) const;
 	/** Return a handle to the "index" child element.
-		The first child element is 0, the second 1, etc. Note that only TiXmlElements
+		The first child element is 0, the second 1, etc. Only TiXmlElements
 		are indexed: other types are not counted.
 	*/
 	TiXmlHandle ChildElement( int index ) const;

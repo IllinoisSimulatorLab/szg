@@ -118,9 +118,9 @@ struct SZG_CALL arStreamConfig{
   #define AR_ENDIAN_MODE AR_BIG_ENDIAN
 #endif
 
-/// note that the pipe read/write code only works on Unix.
-/// this code is used to establish a connection between szgd and 
-/// the forked process in which the executable runs on the Unix side. 
+/// The pipe read/write code works only on Unix.
+/// This code establishes a connection between szgd and 
+/// the forked process in which the exe runs on the Unix side. 
 /// As such, uses are found in szgd and arSZGClient.cpp
 SZG_CALL bool ar_safePipeRead(int pipeID, char* theData, int numBytes);
 SZG_CALL int ar_safePipeReadNonBlock(int pipeID, char* theData, int numBytes,

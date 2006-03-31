@@ -164,7 +164,7 @@ bool arAppLauncher::setParameters(){
     _renderLaunchInfo[i].context = _getRenderContext(i);
   }
 
-  // go ahead and deal with the input stuff
+  // Deal with input.
   const arSlashString inputDevs(_getAttribute("SZG_INPUT0", "map", ""));
   const int numTokens = inputDevs.size();
   if (numTokens%2){
@@ -189,18 +189,14 @@ bool arAppLauncher::setParameters(){
     char buffer[32];
     sprintf(buffer,"%i",i/2);
     
-    if (device == "inputsimulator"){
-      device = device + " " + string(buffer);
-    } else {
-      device = "DeviceServer " + device + " " + string(buffer);
-    }
-    if (i < numTokens-2) {
-      device = device + " -netinput";
-    }
+    device = (device == "inputsimulator" ? "" : "DeviceServer ") +
+      device + " " + string(buffer);
+    if (i < numTokens-2)
+      device += " -netinput";
     _addService(computer, device, _getInputContext(),
                 "SZG_INPUT"+string(buffer), info);
   }
-  // go ahead and deal with the sound stuff, if configured
+  // Deal with sound, if configured.
   const string soundLocation(_getAttribute("SZG_SOUND","map",""));
   if (soundLocation != "NULL"){
     _addService(soundLocation,"SoundRender",_getSoundContext(),
@@ -211,8 +207,7 @@ bool arAppLauncher::setParameters(){
   return true;
 }  
 
-/// Launches the other components of the application on the virtual
-/// computer.
+/// Launch the other components of the app on the virtual computer.
 bool arAppLauncher::launchApp(){
   // _prepareCommand() includes the lock to match the _unlock()'s below.
   if (!_prepareCommand()){
@@ -235,18 +230,16 @@ bool arAppLauncher::launchApp(){
     return false;
   }
      
-  // This will kill every graphics program, that is still running, and whose
-  // name is different from the new graphics program. NOTE: _demoKill above
-  // actually killed all the render programs for a master/slave application
-  // already.
+  // Kill every graphics program whose
+  // name differs from the new graphics program.  _demoKill above already
+  // killed all the render programs for a master/slave app.
   _graphicsKill(_firstToken(_renderProgram));
 
-  // NOTE: once the demo program and the graphics programs have all been
-  // killed... no services will be provided nor will any of the locks be
-  // held!!!
+  // Once the demo program and the graphics programs have all been
+  // killed, no services will be provided nor will any of the locks be held.
 
-  // make sure szgd's are running everywhere
-  int* renderSzgdID = new int[_numberPipes]; // small memory leak
+  // Ensure all szgd's are running.
+  int* renderSzgdID = new int[_numberPipes]; // memory leak
   int i = 0;
   for (i=0; i<_numberPipes; i++){
     renderSzgdID[i] = _client->getProcessID(_pipeComp[i], "szgd");
@@ -515,7 +508,7 @@ string arAppLauncher::getMasterName(){
     ar_log_warning() << _exeName << " warning: no arSZGClient.\n";
     return "NULL";
   }
-  // note that SZG_MASTER/map gives the screen designation
+  // SZG_MASTER/map designates the screen.
   string screenName = _client->getAttribute(_vircomp, "SZG_MASTER", "map", "");
   if (screenName == "NULL"){
     return string("NULL");
@@ -555,7 +548,7 @@ bool arAppLauncher::getRenderProgram(const int num, string& computer,
   }
   computer = _pipeComp[num];
   int renderProgramID = -1;
-  string renderProgramLock = _pipeComp[num] + ("/") + _pipeScreen[num];
+  const string renderProgramLock(_pipeComp[num] + "/" + _pipeScreen[num]);
   if (!_client->getLock(renderProgramLock, renderProgramID)){
     // someone is, in fact, holding the lock
     const arSlashString renderProgramLabel
@@ -563,16 +556,16 @@ bool arAppLauncher::getRenderProgram(const int num, string& computer,
     if (renderProgramLabel != "NULL"){
       // something with this ID is still running
       renderName = renderProgramLabel[1];
-      // we do not have the lock... return right away
+      // we do not have the lock
       return true;
     }
   }
-  // no program was running... we've got the lock... better release
+  // no program was running. we've got the lock.
   _client->releaseLock(renderProgramLock);
   return false;
 }
 
-// This method allows on-the-fly modification of certain attributes in
+// Allow on-the-fly modification of certain attributes in
 // a XML configuration for a display. The first window specified in the
 // display is the only one modified... and only top-level elements
 // with attributes "value" can be modified (currently decorate, fullscreen,
@@ -591,22 +584,20 @@ void arAppLauncher::updateRenderers(const string& attribute,
     // Even if no render program is running, we want to update the
     // database.
     
-    // First, figure out the where the XML is located. Note that we
-    // explicitly have the empty string as the final parameter, to 
-    // disambiguate a case where "computer" (1st param) is not specified
+    // Find where the XML is located.
+    // The empty string is an explicit final parameter, to 
+    // disambiguate the case where "computer" (1st param) is not specified
     // but "valid values" are.
-    string configName 
-      = _client->getAttribute(_pipeComp[i], _pipeScreen[i], "name", "");
+    string configName(
+      _client->getAttribute(_pipeComp[i], _pipeScreen[i], "name", ""));
     if (configName == "NULL"){
       ar_log_warning() << "arAppLauncher warning: no XML configuration specified for "
 	               << _pipeComp[i] << "/" << _pipeScreen[i] << ".\n";
     }
     else{
-      // We attempt to go into the first window defined in the XML global
-      // parameter given by configName and set the specified attribute.
-      configName += "/szg_window/";
-      configName += attribute;
-      configName += "/value";
+      // Try to go into the first window defined in the XML global
+      // parameter given by configName, and set the specified attribute.
+      configName += "/szg_window/" + attribute + "/value";
       _client->getSetGlobalXML(configName, value);
 
     }
@@ -698,7 +689,7 @@ void arAppLauncher::_addService(const string& computerName,
   // VERY IMPORTANT THAT THIS USES _location and NOT _vircomp!
   // (remember... we trade against LOCATION instead of _vircomp to allow
   // multiple virtual computers in the same stop to share stuff.
-  temp.tradingTag = _location + string("/") + tradingTag;
+  temp.tradingTag = _location + "/" + tradingTag;
   temp.info = info;
   _serviceList.push_back(temp);
 }
@@ -709,7 +700,7 @@ bool arAppLauncher::_trylock(){
     return false;
   }
   int ownerID;
-  if (!_client->getLock(_location+string("/SZG_DEMO/lock"), ownerID)){
+  if (!_client->getLock(_location + "/SZG_DEMO/lock", ownerID)){
     const string label = _client->getProcessLabel(ownerID);
     ar_log_critical() << _exeName << " warning: demo lock held for virtual computer "
 	              << _vircomp
@@ -923,10 +914,8 @@ void arAppLauncher::_graphicsKill(string match){
       }
     }
     else{
-      // we've now got the lock... must go ahead and release it so the
-      // graphics program can start later
-      // IT SURE IS OBNOXIOUS TO HAVE TO DO THIS!!!!!!! MAYBE A checkLock
-      // method for arSZGClient is in order.
+      // We have the lock.  Release it so the graphics program can start.
+      // Ugly.  arSZGClient::checklock() is better?
       _client->releaseLock(screenLock);
     }
   }
@@ -937,7 +926,7 @@ void arAppLauncher::_graphicsKill(string match){
 // something went wrong in the process.
 bool arAppLauncher::_demoKill(){
   int demoID = -1;
-  string demoLockName = _location+string("/SZG_DEMO/app");
+  const string demoLockName(_location+string("/SZG_DEMO/app"));
   if (!_client->getLock(demoLockName,demoID)){
     // a demo is currently running
     _client->sendMessage("quit", "scratch", demoID);
@@ -953,7 +942,7 @@ bool arAppLauncher::_demoKill(){
       // szgserver component table.
       _client->killProcessID(demoID);
       ar_log_warning() << _exeName << " warning: killing slowly exiting demo.\n";
-      // Go ahead and fail. The next demo launch will succeed.
+      // Fail. The next demo launch will succeed.
       return false;
     }
     if (!_client->getLock(demoLockName, demoID)){
@@ -990,8 +979,8 @@ void arAppLauncher::_relaunchIncompatibleServices(
     //      a. If so, check to see whether it is running on the right 
     //         computer and has the right "info" tag.
     //        i. If so, do nothing.
-    //        ii. If not, go ahead and kill and start again.
-    //      b. If not, go ahead and start.
+    //        ii. If not, kill and restart.
+    //      b. If not, start.
     const int serviceID = _client->getServiceComponentID(iter->tradingTag);
     if (serviceID == -1){
       ar_log_remark() << _exeName << " remark: restarting service "
@@ -999,9 +988,8 @@ void arAppLauncher::_relaunchIncompatibleServices(
       appsToLaunch.push_back(*iter);
     }
     else{
-      // Check whether this is running on the right computer and has the
-      // right info tag.
-      arSlashString processLocation(_client->getProcessLabel(serviceID));
+      // Is this running on the right computer, with the right info tag?
+      const arSlashString processLocation(_client->getProcessLabel(serviceID));
       if (processLocation.size() == 2){
         // The process location must, in fact, be computer/name.
 	// NOTE: Only check here if it is running on the right computer!
@@ -1012,11 +1000,11 @@ void arAppLauncher::_relaunchIncompatibleServices(
           // HOWEVER... is it the case that we have the right info?
 	  // (i.e. maybe it is a DeviceServer that is running the wrong
 	  //  driver)
-          const string info = _client->getServiceInfo(iter->tradingTag);
+          const string info(_client->getServiceInfo(iter->tradingTag));
 	  // If info == iter->info then there is nothing to do. The service
 	  // seems to be in the right place and of the right type.
           if (info != iter->info){
-            // Must go ahead and kill.
+            // Kill.
 	    ar_log_remark() << _exeName << " remark: relaunching service "
 		            << iter->tradingTag
 		            << ", because of invalid info " << iter->info << ".\n";

@@ -151,32 +151,31 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   int getNumberSlavesConnected( void ) const;
   
 
-  // Various methods of sharing data from the master to the slaves...
+  // Three ways to share data from the master to the slaves.
 
-  // The simplest way to share data from master to slaves. Global variables
-  // are registered with the framework (the transfer fields). Each frame,
-  // the master dumps its values and sends them to the slaves. Note:
-  // each field must be of a fixed size.
+  // 1: simplest way.  Register global variables
+  // with the framework (the transfer fields). Every frame,
+  // the master dumps its values to the slaves.
+  // Each field has a fixed size.
   bool addTransferField( std::string fieldName, void* data,
                          arDataType dataType, int size );
-  // Another way to share data. Here, the framework manages the memory
-  // blocks. This allows them to be resized.
-  // Add an internally-allocated transfer field. These can be resized on the
-  // master and the slaves will automatically follow suit.
+
+  // 2: the framework manages the memory blocks, so they can resize.
+  // Add an internally-allocated transfer field.
+  // Resize them on the master, and the slaves automatically follow.
   bool addInternalTransferField( std::string fieldName,
                                  arDataType dataType,
                                  int size );
   bool setInternalTransferFieldSize( std::string fieldName,
                                      arDataType dataType,
                                      int newSize );
-  // Get a pointer to either an externally- or an internally-stored
-  // transfer field. Note that the internally stored fields are resizable.
+  // Get a pointer to an externally- or internally-stored
+  // transfer field.  Internally stored fields are resizable.
   void* getTransferField( std::string fieldName,
                           arDataType dataType,
                           int& size );
 
-  // A final way to share data from the master to the slaves. In this case,
-  // the programmer registers arFrameworkObjects with the framework's
+  // 3: register arFrameworkObjects with the framework's
   // internal arMasterSlaveDataRouter. An identical set of arFrameworkObjects
   // is created by each of the master and slave instances. The
   // arMasterSlaveDataRouter routes messages between them.
@@ -188,14 +187,19 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   /// msec since the first I/O poll (not quite start of the program).
   double getTime( void ) const { return _time; }
-  /// How many msec it took to compute/draw the last frame.
+
+  /// msec taken to compute/draw the last frame.
   double getLastFrameTime( void ) const { return _lastFrameTime; }
+
   // Is this instance the master?
   bool getMaster( void ) const { return _master; }
+
   // Is this instance connected to the master?
   bool getConnected( void ) const { return _master || _stateClientConnected; }
+
   // Is sound enabled?
   bool soundActive( void ) const { return _soundActive; }
+
   // Is the input device enabled?
   bool inputActive( void ) const { return _inputActive; }
 

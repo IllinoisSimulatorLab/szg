@@ -347,8 +347,7 @@ bool arHTR::parseSegmentData2(FILE* htrFileHandle){
   }
   for (int i=0; i<numFrames; i++){
     newSegmentData = new htrSegmentData;
-    // First, go ahead and skip over comments, blank lines, etc.
-    // until we get to the magic "Frame n:".
+    // Skip over comments, blank lines, etc. until the magic "Frame n:".
     bool found = false;
     value = (char *)1;
     while (!found && value){

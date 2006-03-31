@@ -193,8 +193,8 @@ arMatrix4 arSpacepadDriver::_getSpacepadMatrix(int sensorID){
     printf("failed to issue the point command request!\n");
     goto LAbort;
   }
-  // note that the 2nd parameter below is 2 times the number of shorts
-  // returned... 2*6=12 for position/angles and 2*12=24 for position/matrix
+  // The 2nd parameter below is twice the number of shorts
+  // returned.  2*6=12 for position/angles and 2*12=24 for position/matrix
   // (i.e. it is the number of bytes requested from the card)
   if (_get_isa_record(dataStorage, 24, ASC_POINT) < 0){
     printf ("There was an error in reading the data\n");

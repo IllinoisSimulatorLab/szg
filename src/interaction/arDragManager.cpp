@@ -99,9 +99,8 @@ void arDragManager::getActiveDrags( arEffector* eff,
       draggers.erase( *delIter );
   }
    
-  // We have an internal list of grab-conditions/drag-behaviors. Check to
-  // see if any one these have been newly activated. If so, go ahead
-  // and and them to the passed list.
+  // We have an internal list of grab-conditions/drag-behaviors.
+  // If any of these are newly activated, add them to the passed list.
   if (!_draggers.empty()) {
     for (arDragMap_t::const_iterator iter = _draggers.begin();
          iter != _draggers.end(); ++iter) {
@@ -111,13 +110,13 @@ void arDragManager::getActiveDrags( arEffector* eff,
         for (arDragMap_t::iterator iter3 = draggers.begin();
 	     iter3 != draggers.end(); ++iter3) {
           if (*(iter3->first) == *gc)
-            goto FoundIt;
+            goto LFound;
         }
         arDragBehavior* db = iter->second->copy();
         db->init( eff, object );
         draggers.insert( std::make_pair( gc->copy(), db ) );
       }
-FoundIt: ;
+LFound: ;
     }
   }
 }
@@ -134,4 +133,3 @@ void arDragManager::_deleteDrags() {
   }
   _draggers.clear();
 }
-

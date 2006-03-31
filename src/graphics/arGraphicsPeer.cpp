@@ -96,7 +96,6 @@ void ar_graphicsPeerSerializeFunction(void* info){
 void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
                                         void* graphicsPeer,
                                         arSocket* socket){
-  // Need to go ahead and translate the void* into something useful.
   arGraphicsPeer* gp = (arGraphicsPeer*)graphicsPeer;
   arGraphicsLanguage* l = &gp->_gfx;
   // Messages from other peers are binned into the internal buffer,
@@ -265,16 +264,14 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       }
     }
     else if (action =="set-name"){
-      string socketLabel = data->getDataString(l->AR_GRAPHICS_ADMIN_NAME);
+      const string socketLabel(data->getDataString(l->AR_GRAPHICS_ADMIN_NAME));
       gp->_dataServer->setSocketLabel(socket, socketLabel);
-      // also need to set the name for this connection in the
-      // container.
+      // Set the name for this connection in the container.
       ar_mutex_lock(&gp->_databaseLock);
-      map<int, arGraphicsPeerConnection*, less<int> >::iterator i
-	= gp->_connectionContainer.find(socket->getID());
+      map<int, arGraphicsPeerConnection*, less<int> >::iterator i =
+	gp->_connectionContainer.find(socket->getID());
       if (i == gp->_connectionContainer.end()){
-	cout << "arGraphicsPeer internal error: could not get requested "
-	     << "object.\n";
+	cerr << "arGraphicsPeer internal error: failed to get requested object.\n";
       }
       else{
         i->second->remoteName = socketLabel;
@@ -282,17 +279,15 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       ar_mutex_unlock(&gp->_databaseLock);
     }
     else if (action == "ID-request"){
-      // A little bit cheesy. We're only allowing a single round trip
-      // at a time.
-      string nodeName = data->getDataString(l->AR_GRAPHICS_ADMIN_NAME);
+      // Cheesy. Only allowing a single round trip at a time.
+      const string nodeName(data->getDataString(l->AR_GRAPHICS_ADMIN_NAME));
       nodeID = gp->getNodeID(nodeName);
       data->dataIn(l->AR_GRAPHICS_ADMIN_NODE_ID, &nodeID, AR_INT, 1);
       data->dataInString(l->AR_GRAPHICS_ADMIN_ACTION, "ID-response");
       gp->_dataServer->sendData(data, socket);
     }
     else if (action == "ID-response"){
-      // A little bit cheesy. We're only allowing a single round trip at a
-      // time.
+      // Cheesy. Only allowing a single round trip at a time.
       nodeID = data->getDataInt(l->AR_GRAPHICS_ADMIN_NODE_ID);
       ar_mutex_lock(&gp->_IDResponseLock);
       gp->_requestedNodeID = nodeID;
@@ -300,7 +295,7 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       ar_mutex_unlock(&gp->_IDResponseLock);
     }
     else if (action == "camera_node"){
-      // Just go ahead and discard.
+      // Discard.
     }
     else{
       cout << "arGraphicsPeer error: received illegal admin message ("
@@ -321,15 +316,15 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
     // If not, we expand the field by one place. The next-to-last place 
     // gets our component ID. The last place gets the incoming socket ID.
     
-    int dataID = data->getID();
+    const int dataID = data->getID();
     int fieldID = gp->_getRoutingFieldID(dataID);
     int fieldSize = data->getDataDimension(fieldID);
     int* IDs = (int*)data->getDataPtr(fieldID, AR_INT);
-    // Checking for component repeat. The first and last item are not
-    // relevant. If we exceed a certain hop limit, also go ahead and 
-    // discard. (here the hop limit is 10... note that there are 2 extra items
-    // beyond routing ID in the field, the node ID and the socket ID).
-    bool cycleFound = fieldSize > 12 ? true : false;
+    // Check for component repeat. The first and last item are
+    // irrelevant. Also discard if we exceed a certain hop limit.
+    // Here the hop limit is 10... note 2 extra items
+    // beyond routing ID in the field, the node ID and the socket ID.
+    bool cycleFound = fieldSize > 12;
     for (int i=1; i<fieldSize-1 && !cycleFound; i++){
       if (IDs[i] == gp->_componentID){
         cycleFound = true;
@@ -346,7 +341,7 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
       }
       // Must reget the ptr since it might have changed.
       IDs = (int*)data->getDataPtr(fieldID, AR_INT);
-      // Go ahead and alter the message's history.
+      // Alter the message's history.
       IDs[fieldSize-2] = gp->_componentID;
       IDs[fieldSize-1] = socket->getID();
       // Process the message as appropriate for our application's style
@@ -655,12 +650,11 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
                                         false);
   }
 
-  // Check to see if the node is locked by a source other than the origin of
-  // this communication. If so, go ahead and return. Note that the
-  // filterIncoming might have changed this ID. 
-  // How do locks influence the "structure messages"... namely 
-  // make node, insert, erase, cut, permute? The identity of their routing
-  // field determines this.
+  // If the node is locked by a source other than the origin of
+  // this communication, return.
+  // filterIncoming() might have changed this ID. 
+  // Locks influence the "structure messages" (make node, insert, erase, cut, permute)
+  // via the identity of their routing field.
   // make node: the parent node ID.
   // insert: the parent node ID.
   // erase: the ID of the node to be erased.
@@ -670,7 +664,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
     map<int, int, less<int> >::iterator j = _lockContainer.find(IDPtr[0]);
     if (j != _lockContainer.end()){
       if (j->second != originID){
-        // If the node has been locked, go ahead and return.
+        // If the node has been locked, return.
         // (we return the root node for default success).
         //ar_mutex_unlock(&_socketsLock);
         ar_mutex_unlock(&_databaseLock);
@@ -687,8 +681,8 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
   // works... (specifically, an ID is assigned to the node, whereby the
   // original message might just have asked for an arbitrary ID).
   if (_localDatabase){
-    // If we are actually going to the local database, go ahead and get the
-    // result from that...
+    // If we are actually going to the local database, get the
+    // result from there.
     // If the message is NOT from a connection, potentialNewNodeID = -1
     // If the message is from a connection and is unmapped, 
     // potentialNewNodeID = 0
@@ -698,14 +692,13 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
       result = arGraphicsDatabase::alter(data, refNode);
       // The "bridge database" is a way to integrate an arGraphicsPeer into
       // a distributed scene graph application.
-      if (_bridgeDatabase){
+      if (_bridgeDatabase)
         _sendDataToBridge(data);
-      } 
     }
-    // If a new node has been created, we need to augment the node
-    // map for this connection. Note that we'll only enter this condition
-    // if the message came from elsewhere (and consequently connectionIter
-    // will actually point to something).
+    // If a new node has been created, augment the node
+    // map for this connection. This only happens
+    // if the message came from elsewhere (and thus connectionIter
+    // actually points to something).
     if (potentialNewNodeID > 0 && result){
       connectionIter->second->inMap.insert
         (map<int, int, less<int> >::value_type
@@ -724,39 +717,36 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
 		       connectionIter->second->sendLevel);
     }
   }
-  // Go ahead and send to the connected peers who desire
-  // updates. NOTE: The peers will either alter their
-  // internal databases immediately (if they are NOT drawers)
-  // or will queue the alterations (if they are drawers)
-  
-  map<int, int, less<int> >::iterator outIter;
-  for (connectionIter = _connectionContainer.begin();
-       connectionIter != _connectionContainer.end(); 
-       connectionIter++){
+  // Send to the connected peers who desire updates. Non-drawer peers
+  // will alter their internal databases immediately; drawers will
+  // queue the alterations.
+
+  map<int, int, less<int> >::iterator outIter; for (connectionIter =
+  _connectionContainer.begin();
+       connectionIter != _connectionContainer.end(); connectionIter++){
     // NOTE: we do not want a feedback loop. So, we should not send back
-    // to the origin, unless the origin made us update our node map,
+    // to the origin, unless the origin made us update our node map, 
     // in which case, we need to send back the *inverse* node map update.
     if (connectionIter->second->connectionID != originID){
-      // Better check whether or not this is a "transient" node. If so,
+      // If this is a "transient" node
       // (and the update time has NOT passed), we might do nothing.
-      bool updateNodeEvenIfTransient = true;
-      if (result && result->getNodeLevel() == AR_TRANSIENT_NODE){
-        currentTime = ar_time();
-        updateNodeEvenIfTransient 
+      bool updateNodeEvenIfTransient = true; if (result &&
+      result->getNodeLevel() == AR_TRANSIENT_NODE){
+        currentTime = ar_time(); updateNodeEvenIfTransient
           = _updateTransientMap(result->getID(),
-                                connectionIter->second->transientMap,
+				connectionIter->second->transientMap,
 				connectionIter->second->remoteFrameTime);
       }
-     
+
       // Still need to check the connection's filter. And augment it
-      // for node creation. We've already augmented the node maps for the
-      // incoming connection... but now we need to alter the node maps for
+      // for node creation. We've already augmented the node maps for
+      // the incoming connection... but now we need to alter the node maps for
       // the outgoing connection(s) as well!
       if (dataID == _gfx.AR_MAKE_NODE || dataID == _gfx.AR_INSERT){
 	// The parentID is stored in the routing field of both message types.
-        int parentID = data->getDataInt(routingFieldID);
-        outIter = connectionIter->second->outFilter.find(parentID);
-	// Note how we only update if our parent is currently mapped.
+	int parentID = data->getDataInt(routingFieldID);
+	outIter = connectionIter->second->outFilter.find(parentID);
+	// We update only if our parent is currently mapped.
 	// (or our parent is the root node, which is never mapped... see how
 	// we always put an outFilter entry for the root node in the
 	// connection constructor).
@@ -1176,7 +1166,7 @@ bool arGraphicsPeer::remoteUnlockNode(const string& name, int nodeID){
   return true;
 }
 
-/// Of course, we want to be able to unlock the node as well.
+/// Unlock the node.
 /// Why is the connection name present? Because we are unlocking the node
 /// on THAT peer (i.e. the one at the other end of the named connection).
 /// This differs from remoteUnlockNode in working recursively downwards.
@@ -1206,13 +1196,12 @@ bool arGraphicsPeer::localLockNode(const string& name, int nodeID){
   return true;
 }
 
-/// We also want to be able to unlock one of our nodes (instead of relying
-/// on another peer to do it for us). Note that it isn't necessary to name
-/// a connection since the model is that we are removing ALL locking on the
-/// node.
+/// Unlock one of our nodes (instead of relying
+/// on another peer to do it for us). A connection can be unnamed,
+/// since we remove ALL locking on the node.
 bool arGraphicsPeer::localUnlockNode(int nodeID){
   _unlockNode(nodeID);
-  // REALLY LAME THAT THIS RETURNS TRUE NO MATTER WHAT!
+  // Can we do error checking here?k
   return true;
 }
 
@@ -1417,7 +1406,7 @@ bool arGraphicsPeer::_setRemoteLabel(arSocket* sock, const string& name){
 /// Serialize the peer and send it out on the given socket. We might also
 /// activate sending on that socket as well. This does NOT notify the
 /// remote peer that the serialization is done.
-/// Note that the node map is constructed from a particular node ID base.
+/// The node map is constructed from a particular node ID base.
 /// This node ID is the *remote* node ID (from the perspective of the
 /// remote scene graph).  
 /// THIS IS REALLY THE *MAP* FUNCTION!
@@ -1545,8 +1534,8 @@ void arGraphicsPeer::_lockNode(int nodeID, arSocket* socket){
       }
     }
     if (!found){
-      // go ahead and add it (this deals with the potentially weird case
-      // of locking the same node multiple times)
+      // Add it.  This deals with the potentially weird case
+      // of locking the same node multiple times.
       j->second->nodesLockedLocal.push_back(nodeID);
     }
   }
@@ -1626,11 +1615,11 @@ int arGraphicsPeer::_unlockNodeNoNotification(int nodeID){
 void arGraphicsPeer::_filterDataBelow(int nodeID,
                                       arSocket* socket,
                                       arNodeLevel level){
-  // For thread-safety, must go ahead and add a ref to this node ptr.
+  // For thread-safety, add a ref to this node ptr.
   arDatabaseNode* pNode = getNodeRef(nodeID);
-  if (!pNode){
+  if (!pNode)
     return;
-  }
+
   ar_mutex_lock(&_databaseLock);
   map<int, arGraphicsPeerConnection*, less<int> >::iterator i
     = _connectionContainer.find(socket->getID());
@@ -1721,7 +1710,7 @@ void arGraphicsPeer::_recDataOnOff(arDatabaseNode* pNode,
 }
 
 /// There is a *hack* whereby data is transfered to the "bridge"
-/// database. Note that we need to filter before putting into the bridge
+/// database. We filter before putting into the bridge
 /// AND restore the record (since filtering can alter the various messages in
 /// place).
 void arGraphicsPeer::_sendDataToBridge(arStructuredData* data){
@@ -1729,13 +1718,13 @@ void arGraphicsPeer::_sendDataToBridge(arStructuredData* data){
   int thirdID = -1;
   int childDim = -1;
   int* childIDs = NULL;
-  // NOTE: We CANNOT use dataIn on the routing fields because that also sets 
-  // the data dimension. Recall that some of the fields do double duty and 
+  // Don't use dataIn() on the routing fields because that also sets 
+  // the data dimension. Some fields 
   // have EXTRA stuff in their routing field that records the path the 
   // messages have taken.
   int dataID = data->getID();
-  // Some fields may be altered by the maps! Consequently, we save the info
-  // the might be altered for reintroduction.
+  // Since some fields may be altered by the maps, save the possibly altered info
+  // for reintroduction.
   int routingFieldID = _getRoutingFieldID(dataID);
   int originalID = data->getDataInt(routingFieldID);
   if (_databaseReceive[dataID]){

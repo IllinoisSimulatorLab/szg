@@ -59,8 +59,7 @@ class SZG_CALL arInputState {
     bool getOffButton( const unsigned int buttonNumber );
   
     /// \todo some classes use getNumberButtons, others getNumButtons (etc).  Be consistent.
-    // Note that for the arInputState the number of buttons and the button
-    // signature are the same.
+    // For arInputState, the number of buttons equals the button signature.
     unsigned int getNumberButtons()  const { return _buttons.size(); }
     unsigned int getNumberAxes()     const { return _axes.size(); }
     unsigned int getNumberMatrices() const { return _matrices.size(); }

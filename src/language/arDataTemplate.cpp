@@ -111,25 +111,16 @@ void arDataTemplate::dump(){
 }
 
 // Return the number of translated bytes written into memory, or -1 on failure.
-//*********************************************************************
-// I'm a little bothered by this function! It does some of the data
-// format functionality... and in a second location vis-a-vis
-// arStructuredData. Bad software engineering!
-//*********************************************************************
+// Ugly: this does some data formatting, and in a second location vis-a-vis arStructuredData.
 
 int arDataTemplate::translate(ARchar* dest, ARchar* src, 
                               arStreamConfig streamConfig){
-  //*******************************************************************
-  // note that this really doesn't use any of the functionality of
-  // arDataTemplate yet... however this is simply because the wire
-  // data format includes *lots* of info about the data... so much so
-  // that the arDataTemplate object is almost unnecessary! This will
-  // change in the future, however
-  //*******************************************************************
-  ARint positionDest; // = 0;
-  ARint positionSrc; // = 0;
-  // would you believe it? But the SGI compiler produces bad code
-  // if these are set like "ARint positionDest = 0"
+  // This doesn't use arDataTemplate yet, because the wire
+  // data format includes so much info about the data
+  // that arDataTemplate is almost redundant.
+
+  ARint positionDest; // = 0; // Irix compiler produces bad code with "= 0" here. 
+  ARint positionSrc;  // = 0; // Irix compiler produces bad code with "= 0" here. 
   positionDest = 0;
   positionSrc = 0;
 
@@ -154,7 +145,7 @@ int arDataTemplate::translate(ARchar* dest, ARchar* src,
   if (iField != numberFields)
     return -1;
 
-  // Records are aligned at 8 byte boundaries.
+  // Records are 8-byte-aligned.
   return positionDest + ar_fieldOffset(AR_DOUBLE, positionDest);
 }
 
@@ -165,21 +156,22 @@ bool ar_addAttributesFromString( arDataTemplate& t,
     cerr << "ar_addAttributesFromString error: failed to parse name string.\n";
     return false;
   }
+
   std::vector<std::string> types;
   if (!ar_getTokenList( typeString, types, '|' )) { // vertical bar, not slash
-    cerr << "ar_addAttributesFromString error: failed to parse name string.\n";
+    cerr << "ar_addAttributesFromString error: failed to parse type string.\n";
     return false;
   }
+
   if (names.size() != types.size()) {
-    cerr << "ar_addAttributesFromString error: name string (" << nameString << ")\n"
-         << "  and type string (" << typeString << ")\n"
-         << "  contain different numbers of fields.\n";
+    cerr << "ar_addAttributesFromString error: different field count in name string '"
+         << nameString << "'\n" << "  and type string '" << typeString << "'.\n";
     return false;
   }
+
   for (unsigned int i=0; i<names.size(); i++) {
     arDataType dataType = arDataNameType( types[i].c_str() );
     t.addAttribute( names[i], dataType );
   }
   return true;
 }
-

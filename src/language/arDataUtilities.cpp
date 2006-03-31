@@ -823,14 +823,12 @@ string ar_packParameters(int argc, char** argv){
 /// Remove the path.  On Win32, remove the trailing .EXE.
 string ar_stripExeName(const string& name){
   // Find the last '/' or '\'.
-  int position = name.find_last_of("/\\") == string::npos ?
+  const int position = name.find_last_of("/\\") == string::npos ?
     0 : name.find_last_of("/\\")+1;
 
   bool extension = false;
 #ifdef AR_USE_WIN_32
-  // if the last 4 characters are ".EXE" or ".exe", eliminate them.
-  // what if the name length is less than 4? Note that some windows
-  // shells *will not* append the .exe...
+  // Some win32 shells append a ".exe".  Truncate such extensions.
   if (name.length() >= 4){
     const string& lastFour = name.substr(name.length()-4, 4);
     extension = lastFour == ".EXE" || lastFour == ".exe";
@@ -859,42 +857,30 @@ string ar_exePath(const string& name){
 /// We want to do this to determine if something is a python script,
 /// for instance.
 string ar_getExtension(const string& name){
-  unsigned int position = name.find_last_of(".");
-  if (position == string::npos
-      || position == name.length()){
+  const unsigned position = name.find_last_of(".");
+  if (position == string::npos || position == name.length())
     return string("");
-  }
   return name.substr(position+1, name.length()-position-1);
 }
 
-/// In place, adds the appropriate shared lib extension for the system,
-/// either .dll or .so.
+/// Append the appropriate shared lib extension for the system.
 void ar_addSharedLibExtension(string& name){
 #ifdef AR_USE_WIN_32
-  name = name + ".dll";
+  name += ".dll";
 #else
-  name = name + ".so";
+  name += ".so";
 #endif
 }
 
 void ar_setenv(const string& variable, const string& value){
 
-  //***************************************************************
-  //                       MEMORY LEAK
-  //***************************************************************
-
-  //***************************************************************
-  // please note that putenv has different semantics on
-  // Linux and Win32. On Win32, the char string is copied
-  // into the environment. On Linux, the char string is
-  // referenced into the environment. Consequently, we need to
-  // create a new char string for each use of arSetenv, resulting
-  // in a small memory leak. This lets us use putenv on each
-  // side
-  //***************************************************************
+  // putenv is OS-dependent.  On Win32, the string is copied
+  // into the environment. On Linux, it is referenced.
+  // So create a new string each time,
+  // a memory leak, so we can use putenv in linux AND win32.
 
   const int totalLength = variable.length()+value.length()+2;
-  char* buf = new char[totalLength];
+  char* buf = new char[totalLength]; // memory leak
   ar_stringToBuffer(variable, buf, totalLength);
   int i = strlen(buf);
   buf[i++] = '=';
@@ -903,6 +889,7 @@ void ar_setenv(const string& variable, const string& value){
 }
 
 void ar_setenv(const string& variableName, int variableValue){
+  // bug: overkill.  Just use sprintf.
   stringstream theValue;
   theValue << variableValue;
   ar_setenv(variableName, theValue.str().c_str());

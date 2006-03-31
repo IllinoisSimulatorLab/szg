@@ -141,7 +141,7 @@ class SZG_CALL arDatabaseNode{
   bool _setParentNotAddingToParentsChildren(arDatabaseNode* parent);
   void _removeParentLeavingInParentsChildren();
   bool _addChild(arDatabaseNode* node);
-  void _removeChild(arDatabaseNode* node);
+  bool _removeChild(arDatabaseNode* node);
   void _removeAllChildren();
   void _stealChildren(arDatabaseNode* node);
   void _permuteChildren(list<arDatabaseNode*> childList);

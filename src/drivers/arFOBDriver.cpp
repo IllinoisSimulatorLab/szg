@@ -72,10 +72,9 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
   // for an offset in position and orientation of the transmitter,
   // letting us report a given bird
   // position/orientation as some arbitrary value.
-  // Note that szg matrices are in OpenGL order
-  // (i.e. down the columns, not along the rows).
+  // Syzygy matrices are in OpenGL order (down the columns, not along the rows).
 
-  // In practice, you place the bird at an identity orientation
+  // In practice, place the bird at an identity orientation
   // (as described above) relative to your physical coordinate system.
   // Furthermore, it will be in a known location. You can then compute
   // the matrix needed to align it.
@@ -842,3 +841,5 @@ bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
   return true;
   }*/
 
+
+// this is from kam3:/home/szg/src/drivers

@@ -34,7 +34,7 @@ arDataPoint::arDataPoint(int dataBufferSize) :
 #ifndef AR_USE_WIN_32
   // crashing clients shouldn't mess with us
   // this seems mainly helpful when a remote server terminates
-  // in the midst of a client's write
+  // during a client's write
   signal(SIGPIPE,SIG_IGN);
 #endif
 }
@@ -44,11 +44,11 @@ arDataPoint::~arDataPoint() {
   delete [] _translationBuffer;
 }
 
-/// getDataCore is used to grow the buffers used to receive data (both
-/// the "local binary format buffer" and the "translation buffer" and
-/// read data into the local binary format buffer. Note that we cannot
-/// necessarily use built in buffers (for instance the built-in 
-/// translation buffer) since objects like the arDataServer have multiple
+/// Grow the buffers used to receive data, both
+/// the "local binary format buffer" and the "translation buffer",
+/// and read data into the local binary format buffer. Don't use
+/// built-in buffers (for instance the built-in 
+/// translation buffer), because objects like the arDataServer have multiple
 /// simultaneous connections in seperate threads. 
 /// @param dest a pointer reference to the "local binary format buffer"
 /// @param availableSize the allocated size of the "local ... buffer"
@@ -243,30 +243,27 @@ string arDataPoint::_constructConfigString(arStreamConfig config){
 map<string, string, less<string> > arDataPoint::_parseKeyValueBlock(
 						   const string& text){
   map<string, string, less<string> > result;
-  // Break the string up into tokens.
+  // Tokenize the string.
   stringstream s;
   s.str(text);
   string myToken;
   while (true) {
     s >> myToken;
     if (!s.fail()){
-      // Got something;
-      unsigned int position = myToken.find("=");
+      const unsigned int position = myToken.find("=");
       if (position == string::npos){
-        // Token is invalid;
-	cout << "arDataPoint error: received invalid token.\n";
+	cerr << "arDataPoint error: invalid token.\n";
 	continue;
       }
-      string key = myToken.substr(0, position);
-      string value = myToken.substr(position+1, myToken.length()-position-1);
+      const string key(myToken.substr(0, position));
+      const string value(myToken.substr(position+1, myToken.length()-position-1));
       result.insert(map<string,string,less<string> >::value_type(key,
 								 value));
     }
-    if (s.eof()){
+    if (s.eof())
       break;
-    }
   }
-  // Go ahead and return the constructed table.
+  // Return the constructed table.
   return result;
 }
 

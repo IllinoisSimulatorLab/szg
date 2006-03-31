@@ -74,8 +74,8 @@ class SZG_CALL arGraphicsWindow {
     bool configure( arSZGClient& client );
     void setInitCallback( arWindowInitCallback* callback );
     void setDrawCallback( arRenderCallback* callback );
-    // This sets the camera for all viewports as well as future ones
-    // Note that only a pointer is passed in, cameras are externally owned.
+    // Set the camera for all viewports as well as future ones.
+    // Only a pointer is passed in: cameras are externally owned.
     arCamera* setCamera( arCamera* cam=0 );
     arCamera* getCamera(){ return _defaultCamera; }
     void setScreen( const arGraphicsScreen& screen ) { _defaultScreen = screen; }

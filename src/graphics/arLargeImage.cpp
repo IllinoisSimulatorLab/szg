@@ -9,7 +9,7 @@ arLargeImage::arLargeImage( const arTexture& x, unsigned int tileWidth, unsigned
   if (_setSizeNoRebuild( tileWidth, tileHeight )) {
     setImage( x );
   } else {
-    // go ahead & install image, don't make tiles.
+    // Install image. Don't make tiles.
     originalImage = x;
   }
 }
@@ -18,7 +18,7 @@ arLargeImage::arLargeImage( const arLargeImage& x ) {
   if (_setSizeNoRebuild( x._tileWidth, x._tileHeight )) {
     setImage( x.originalImage );
   } else {
-    // go ahead & install image, don't make tiles.
+    // Install image. Don't make tiles.
     originalImage = x.originalImage;
   }
 }
@@ -26,10 +26,11 @@ arLargeImage::arLargeImage( const arLargeImage& x ) {
 arLargeImage& arLargeImage::operator=( const arLargeImage& x ) {
   if (this == &x)
     return *this;
+
   if (_setSizeNoRebuild( x._tileWidth, x._tileHeight )) {
     setImage( x.originalImage );
   } else {
-    // go ahead & install image, don't make tiles.
+    // Install image. Don't make tiles.
     _tiles.clear();
     originalImage = x.originalImage;
   }
@@ -53,8 +54,9 @@ bool arLargeImage::_setSizeNoRebuild( unsigned int tileWidth, unsigned int tileH
     cerr << "arLargeImage error: ignoring setTileSize(0).\n";
     return false;
   }
+
   _tileWidth = tileWidth;
-  _tileHeight = (tileHeight == 0)?(_tileWidth):(tileHeight);
+  _tileHeight = tileHeight == 0 ? _tileWidth : tileHeight;
   cout << "arLargeImage remark: set tile size to (" << _tileWidth << "," << _tileHeight << ").\n";
   return true;
 }
@@ -66,16 +68,17 @@ void arLargeImage::setImage( const arTexture& image ) {
 
 void arLargeImage::makeTiles() {
   _tiles.clear();
-  unsigned int imageWidth = (unsigned int)originalImage.getWidth();
-  unsigned int imageHeight = (unsigned int)originalImage.getHeight();
-  _numTilesWide = imageWidth/_tileWidth;
-  if (imageWidth % _tileWidth != 0) {
-    _numTilesWide += 1;
-  }
-  _numTilesHigh = imageHeight/_tileHeight;
-  if (imageHeight % _tileHeight != 0) {
-    _numTilesHigh += 1;
-  }
+
+  const unsigned int imageWidth = (unsigned int)originalImage.getWidth();
+  _numTilesWide = imageWidth / _tileWidth;
+  if (imageWidth % _tileWidth != 0)
+    ++_numTilesWide;
+
+  const unsigned int imageHeight = (unsigned int)originalImage.getHeight();
+  _numTilesHigh = imageHeight / _tileHeight;
+  if (imageHeight % _tileHeight != 0)
+    ++_numTilesHigh;
+
   for (int i=(_numTilesHigh-1); i>=0; --i) {
     unsigned int y = i*_tileHeight;
     for (unsigned int j=0; j<_numTilesWide; ++j) {
@@ -88,12 +91,13 @@ void arLargeImage::makeTiles() {
 }
 
 arTexture* arLargeImage::getTile( unsigned int colNum, unsigned int rowNum ) {
-  unsigned int index( colNum + (_numTilesHigh-rowNum-1)*_numTilesWide );
+  unsigned int index = colNum + (_numTilesHigh-rowNum-1)*_numTilesWide;
   if (index >= _tiles.size()) {
     cerr << "arLargeImage error: operator[" << colNum << "," << rowNum << "] out of bounds, "
          << "max = [" << _numTilesWide-1 << "," << _numTilesHigh-1 << "].\n";
     return NULL;
   }
+
   return &_tiles[index];
 }
 

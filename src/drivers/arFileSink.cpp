@@ -8,9 +8,7 @@
 #include "arFileSink.h"
 
 arFileSink::arFileSink(){
-  // note that we do not want this sink to be automatically started
-  // by the server
-  _autoActivate = false;
+  _autoActivate = false; // The server won't automatically start this sink.
   _dataFileName = "inputdump.xml";
   _dataFilePath = "";
   _dataFile = NULL;
@@ -24,11 +22,11 @@ arFileSink::~arFileSink(){
 bool arFileSink::init(arSZGClient& SZGClient){
   const string& temp = SZGClient.getAttribute("SZG_DATA","path");
   if (temp != "NULL"){
-    cout << "arFileSink remark: writing to path " << temp << ".\n";
+    cout << "arFileSink remark: writing to SZG_DATA/path " << temp << ".\n";
     _dataFilePath = temp;
   }
   else{
-    cerr << "arFileSink warning: no SZG_DATA/path.\n";
+    cout << "arFileSink warning: no SZG_DATA/path.\n";
   }
   return true;
 }

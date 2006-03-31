@@ -15,29 +15,25 @@
 
 #ifdef AR_USE_WIN_32
 #ifndef AR_USE_MINGW
-// DirectInput... note that here we are forcing Direct Input 7.
-// Why? In Direct Input 7, the device type is JOYSTICK_GAMEPAD,
-// while in later Direct Inputs there are seperate JOYSTICK and
-// gamepad types.
+// Force DirectInput 7, so the device type is JOYSTICK_GAMEPAD.
+// Later DirectInputs have seperate JOYSTICK and gamepad types, yuck.
 #define DIRECTINPUT_VERSION 0x700
 #include <dinput.h>
 #include <mmsystem.h>
 static BOOL CALLBACK DIDevCallback(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef)
 {
+  // Return the FIRST joystick to the arJoystickDriver.
   *(DIDEVICEINSTANCE *)pvRef = *lpddi;
-  // PLEASE NOTE THE FOLLOWING IMPORTANT FACT, this code will return the
-  // first joystick to the arJoystickDriver. Unfortunately, in the case
-  // of wireless intel joysticks and the win2k drivers, the first joystick
-  // is basically fixed for all time by the base station... what if we want
-  // to change it? these first few commented lines show how to do so in a
-  // hack-ish way
+  
+  // Unfortunately,
+  // with wireless intel gamepads and the win2k drivers, the first joystick
+  // is set by the base station.  Here's a hack to change it if we need to:
   //if (!strcmp(lpddi->tszInstanceName,
-  //            "Intel(r) Wireless Series Gamepad 2")){
+  //            "Intel(r) Wireless Series Gamepad 2"))
   //  return DIENUM_STOP;
-  //}
-  //else{
+  //else
   //  return DIENUM_CONTINUE;
-  //}
+
   return (lpddi->dwDevType & DIDEVTYPEJOYSTICK_GAMEPAD) ?
     DIENUM_STOP : DIENUM_CONTINUE;
 }

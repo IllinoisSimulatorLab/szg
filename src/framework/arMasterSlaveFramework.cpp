@@ -689,7 +689,7 @@ void arMasterSlaveFramework::exitFunction(){
   // and if it makes sense, it is important to do so before exiting.
   // also important that we do this in the display thread.
   _wm->deactivateFramelock();
-  // Now that framelock is deactivated, go ahead and exit all windows.
+  // Framelock is now deactivated, so exit all windows.
   _wm->deleteAllWindows();
   // Guaranteed to get here--user-defined cleanup will be called
   // at the right time
@@ -2052,7 +2052,7 @@ bool arMasterSlaveFramework::_initMasterObjects() {
 
 /// Starts the objects needed by the master.
 bool arMasterSlaveFramework::_startMasterObjects() {
-  // go ahead and start the master's service
+  // Start the master's service.
   _stateServer = new arDataServer( 1000 );
 
   if( !_stateServer ) {
@@ -2197,12 +2197,12 @@ bool arMasterSlaveFramework::_startObjects( void ){
     return false;
   }
 
-  // Go ahead and start the arMasterSlaveDataRouter (this just creates the
-  // language to be used by that device... using the registered
-  // arFrameworkObjects). Always succeeds as of now.
+  // Start the arMasterSlaveDataRouter (this just creates the
+  // language to be used by that device, using the registered
+  // arFrameworkObjects). Always succeeds.
   (void) _dataRouter.start();
 
-  // By now, we know whether or not we are the master
+  // By now, we know if we are the master
   if( _master ) {
     if( !_startMasterObjects() ) {
       return false;
@@ -2704,23 +2704,17 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
     }
   }
 
-  // it seems like glFlush/glFinish are a little bit unreliable... not
-  // every vendor has done a good job of implementing these.
-  // Consequently, we do a small pixel read to force drawing to complete.
-  // THIS IS EXTREMELY IMPORTANT!
+  // Since some vendors' glFlush/glFinish are unreliable,
+  // read a few pixels to force drawing to complete.
   char buffer[ 32 ];
   glReadPixels( 0, 0, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, buffer );
   // Weirdly, with arGUI, the following seems necessary for "high quality"
   // synchronization. Maybe GLUT was implicitly posting one of these itself?
-  // What makes this strange is that I'd expect the glReadPixels to have
-  // already done this...
+  // I'd expect the glReadPixels to have already done this.
   glFinish();
 
-  // if we are supposed to take a screenshot, go ahead and do so.
-  // only the "first" window (if there are multiple GUI windows) will be
-  // captured.
-  if( _wm->isFirstWindow( currentWinID ) ) {
+  // Take a screenshot if we should.  If there are multiple GUI windows,
+  // only the "first" one is captured.
+  if ( _wm->isFirstWindow( currentWinID ) )
     _handleScreenshot( _wm->isStereo( currentWinID ) );
-  }
 }
-

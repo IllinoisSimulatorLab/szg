@@ -37,7 +37,7 @@ void arSyncDataServer::_sendTask(){
   if (_locallyConnected){
     _sendThreadRunning = true;
     while (!_exitProgram){
-      // We cannot swap buffers until the consumer is ready
+      // Don't swap buffers until the consumer is ready.
       ar_mutex_lock(&_localConsumerReadyLock);
       // _localConsumerReady takes one of 3 values:
       // 0: not ready for new data
@@ -52,15 +52,13 @@ void arSyncDataServer::_sendTask(){
       }
       _localConsumerReady = 0;
       ar_mutex_unlock(&_localConsumerReadyLock);
-      // If the sync mode is manual, then we must also wait for a
-      // buffer swap command to be issued.
+      // If the sync mode is manual, then wait for a buffer swap command.
       if (_mode != AR_SYNC_AUTO_SERVER){
         _signalObject.receiveSignal();
       }
 
-      // go ahead and lock the queue and swap it, releasing the
-      // receiveMessage method if it is locked. THIS IS COPY/PASTE
-      // from below!
+      // Lock the queue and swap it. Release receiveMessage() if it's locked.
+      // Copypasted from below.
       ar_mutex_lock(&_queueLock);
       _dataQueue->swapBuffers();
       _messageBufferFull = false;
@@ -261,7 +259,7 @@ bool arSyncDataServer::init(arSZGClient& client){
     return false;
   }
 
-  /// \todo factor out copy-paste with barrier/arSyncDataServer.cpp:214
+  /// \todo factor out copypaste with barrier/arSyncDataServer.cpp:214
   _dataServer.setPort(port);
   _dataServer.setInterface("INADDR_ANY");
   bool success = false;
@@ -285,7 +283,7 @@ bool arSyncDataServer::init(arSZGClient& client){
     ar_log_error() << "arSyncDataServer error: failed to confirm ports.\n";
     return false;
   }
-  // end of copy-paste
+  // end of copypaste
 
   _barrierServer.setServiceName(_serviceNameBarrier);
   _barrierServer.setChannel(_channel);
@@ -299,8 +297,8 @@ bool arSyncDataServer::init(arSZGClient& client){
 
 bool arSyncDataServer::start(){
   if (_locallyConnected){
-    // Note that we don't do much if only locally connected
-    // COPY/PASTE from below!
+    // Not much happens if locally connected.
+    // Copypaste from below.
     if (!_sendThread.beginThread(ar_syncDataServerSendTask,this)) {
       ar_log_error() << "arSyncDataServer error: failed to start send thread.\n";
       return false;
@@ -314,26 +312,27 @@ bool arSyncDataServer::start(){
     return false;
   }
 
-  // note that it is very important that we synchronize the local production
+  // Synchronize the local production
   // loop with the loops that are occuring on other machines.
-  // if we just synchronize the loops on other machines (i.e. the remote
-  // renderers) then things can easily get out of phase during the
-  // connection process. For instance, one machine might get a frame ahead of
-  // everybody else. The registerLocal() method of barrier server puts the
-  // local production loop in the synchronization group.
+  // If we just synchronize the loops on other machines (i.e. the remote
+  // renderers) then things can easily get out of phase during
+  // connection. For instance, one machine might get a frame ahead.
+  // BarrierServer::registerLocal() adds the
+  // local production loop to the synchronization group.
   _barrierServer.registerLocal();
-  // This is a little bit confusing. In the case of AR_SYNC_AUTO_SERVER,
-  // we are letting the synchronization control the buffer swapping. 
-  // This means that the barrier server will signal _signalObject upon
-  // release (which is being waited upon at the top of the send thread).
+
+  // This is convoluted. In the case of AR_SYNC_AUTO_SERVER,
+  // we let the synchronization control the buffer swapping,
+  // so the barrier server signals _signalObject upon
+  // release (which is being waited on at the top of the send thread).
   // In other cases, the buffer swapping occurs because of the bufferSwap
-  // command and then we use the _signalObjectRelease, which is caught in
-  // swapBuffers(). Note that if we've call setSignalObjectRelease then
-  // setSignalObject(...) is moot (look in the arBarrierServer code).
-  if (_mode != AR_SYNC_AUTO_SERVER){
+  // command;  then we use _signalObjectRelease, which is caught in
+  // swapBuffers().  If we've called setSignalObjectRelease then
+  // setSignalObject() is moot (see arBarrierServer).
+  if (_mode != AR_SYNC_AUTO_SERVER)
     _barrierServer.setSignalObjectRelease(&_signalObjectRelease);
-  }
   _barrierServer.setSignalObject(&_signalObject);
+
   // Start the various services.
   if (!_barrierServer.start()) {
     ar_log_error() << "arSyncDataServer error: "

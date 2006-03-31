@@ -705,18 +705,17 @@ const char* TiXmlDocument::Parse( const char* p, TiXmlParsingData* prevData, TiX
 {
 	ClearError();
 
-	// Parse away, at the document level. Since a document
+	// Parse, at the document level. Since a document
 	// contains nothing but other tags, most of what happens
-	// here is skipping white space.
+	// here is skipping whitespace.
 	if ( !p || !*p )
 	{
 		SetError( TIXML_ERROR_DOCUMENT_EMPTY, 0, 0, TIXML_ENCODING_UNKNOWN );
 		return 0;
 	}
 
-	// Note that, for a document, this needs to come
-	// before the while space skip, so that parsing
-	// starts from the pointer we are given.
+	// For a document, this precedes the whitespace skip,
+	// so parsing starts from the given pointer.
 	location.Clear();
 	if ( prevData )
 	{
@@ -898,8 +897,8 @@ TiXmlNode* TiXmlNode::Identify( const char* p, TiXmlEncoding encoding )
 
 void TiXmlElement::StreamIn (TIXML_ISTREAM * in, TIXML_STRING * tag)
 {
-	// We're called with some amount of pre-parsing. That is, some of "this"
-	// element is in "tag". Go ahead and stream to the closing ">"
+	// We're called with some amount of pre-parsing: some of "this"
+	// element is in "tag". Stream to the closing ">".
 	while( in->good() )
 	{
 		int c = in->get();

@@ -892,9 +892,8 @@ bool CommentCompiler::compile( arPForth* pf,
 // Compiler for words that allocate a single cell 
 // in the dataspace (determined by constructor arg)
 // and initialize it with a value off the stack.
-// Note that unlike a variable, the new word returns
-// the _value_ passed at compilation time, not and
-// address.
+// Unlike a variable, the new word returns
+// the _value_ passed at compilation time, not an address.
 class ConstantCompiler : public arPForthCompiler {
   private:
     unsigned long _size;

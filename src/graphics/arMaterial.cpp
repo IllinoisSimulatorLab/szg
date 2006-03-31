@@ -9,7 +9,7 @@
 #include "arGraphicsHeader.h"
 
 arMaterial::arMaterial(){
-  // we have a default color of white, otherwise it's the OpenGL defaults
+  // Default color is white, other defaults are OpenGL's.
   diffuse = arVector3(1,1,1);
   ambient = arVector3(0.2,0.2,0.2);
   specular = arVector3(0,0,0);
@@ -28,10 +28,9 @@ arMaterial::arMaterial(const arMaterial& rhs){
 }
 
 void arMaterial::activateMaterial(){
-  // Hmmm. This is a touch fishy. I'm not supporting the *full* OpenGL
-  // model here. Note that we are always doing GL_FRONT_AND_BACK instead
-  // of GL_FRONT or GL_BACK
-  arVector4 temp = arVector4(diffuse[0], diffuse[1], diffuse[2], alpha);
+  // Fishy. This doesn't support the *full* OpenGL.
+  // This always does GL_FRONT_AND_BACK instead of GL_FRONT or GL_BACK.
+  arVector4 temp(diffuse[0], diffuse[1], diffuse[2], alpha);
   glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, temp.v);
   temp = arVector4(ambient[0], ambient[1], ambient[2], alpha);
   glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, temp.v);

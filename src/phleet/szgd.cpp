@@ -323,10 +323,10 @@ static void TweakPath(string& path) {
 }
 
 void execProcess(void* i){
-  ExecutionInfo* execInfo = (ExecutionInfo*) i;
-  const string userName = execInfo->userName;
-  const string messageContext = execInfo->messageContext;
-  const string messageBody = execInfo->messageBody;
+  ExecutionInfo* execInfo = (ExecutionInfo*)i;
+  const string userName(execInfo->userName);
+  const string messageContext(execInfo->messageContext);
+  const string messageBody(execInfo->messageBody);
   int receivedMessageID = execInfo->receivedMessageID; 
 
   // Start out with the part of executable launching that is the same
@@ -352,11 +352,10 @@ LDone:
     return;
   }
 
-  // We've got something to try to execute. We'll invoke a message
-  // trade so the executed program can respond.
-  // Don't forget to increment the "trading number" that makes this
-  // request unique. Note that this can be executed simultaneously in
-  // different threads. Consequently, must use a lock.
+  // We've got something to execute.
+  // Invoke a message trade so the executee can respond.
+  // Increment the "trading number" that makes this request unique.
+  // Since many threads can execute this simultaneously, use a lock.
   ar_mutex_lock(&tradingNumLock);
     stringstream tradingNumStream;
     tradingNumStream << ++tradingNum;
@@ -370,7 +369,7 @@ LDone:
   // Two dynamic search paths (as embodied in environment variables) need
   // to be altered before launching the new executable (and in the case of
   // Win32 altered back after launch). The info to do the alterations comes
-  // from szg database variables. We go ahead and get this info here since
+  // from szg database variables. Get this info here since
   // the arSZGClient cannot be used after the Unix fork.
   // Also, a description of the dynamic search paths follows:
 

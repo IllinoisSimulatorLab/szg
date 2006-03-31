@@ -97,18 +97,13 @@ void arTexFont::advanceCursor(int& currentColumn, int& currentRow, arTextBox& fo
 }
 
 void arTexFont::renderGlyph(int c, int& currentColumn, int& currentRow, arTextBox& format){
-  // Deal with whitespace. Go ahead and wrap lines. Note that we don't need to deal with line feeds and
-  // carriage returns since parsing the string into a list of strings (ar_parseLineBreaks) 
-  // already eliminated them.
-  if (c == ' ' || c == '\t'){
-    if (c == ' '){
+  // Handle whitespace. Wrap lines. ar_parseLineBreaks() already eliminated cr/lf's.
+  if (c == ' '){
+    advanceCursor(currentColumn, currentRow, format);
+  }
+  else if (c == '\t') {
+    for (int i=0; i<format.tabWidth; i++)
       advanceCursor(currentColumn, currentRow, format);
-    }
-    else{
-      for (int i=0; i<format.tabWidth; i++){
-	advanceCursor(currentColumn, currentRow, format);
-      }
-    }
   }
   else{
     // Our font is encoded in a single texture. It is divided into a 16x16 grid, with the 0th character in the upper
@@ -158,45 +153,37 @@ void arTexFont::getTextMetrics(list<string>& parse, arTextBox& format, float& wi
   int maxColumns = -1;
   int rows = 0;
   for (list<string>::iterator i = parse.begin(); i != parse.end(); i++){
-    if ((*i).length() >= format.columns){
+    if (i->length() >= format.columns){
       // There is overflow on the line.
-      rows += (*i).length()/format.columns;
-      // Handle the case where the line isn't exactly an even multiple of the column width.
-      if ((*i).length()%format.columns != 0){
-	rows++;
+      rows += i->length() / format.columns;
+      // Handle the case where the line isn't a multiple of the column width.
+      if (i->length()%format.columns != 0){
+	++rows;
       }
     }
     else{
       // No overflow for this line.
-      rows++; 
+      ++rows; 
     }
     // Our text box is taking up all the format columns if any row does.
     if ((*i).length() >= format.columns){
       maxColumns = format.columns; 
     }
     // If the row does not take up the whole width, only increase maxColumns if the line is bigger.
-    else if (maxColumns < 0 || (*i).length() > maxColumns){
-      maxColumns = (*i).length(); 
+    else if (maxColumns < 0 || i->length() > maxColumns){
+      maxColumns = i->length(); 
     }
   }
-  // Now that we know the number of rows and columns, go ahead and compute the floating point size.
-  if (maxColumns <= 0){
-    width = 0; 
-  }
-  else{
-    width = format.width*float(maxColumns)/float(format.columns);
-  }
+  // We know the number of rows and columns. compute the floating point size.
+  width = (maxColumns <= 0) ? 0 :
+    format.width * float(maxColumns) / float(format.columns);
   // How tall is a character in screen units?
-  float actualCharHeight = format.width*characterHeight()/(format.columns*characterWidth());
+  const float actualCharHeight = format.width*characterHeight()/(format.columns*characterWidth());
   // How tall is a line (counting the extra spacing) in screen units?
-  float actualLineHeight = format.width*lineHeight(format)/(format.columns*characterWidth());
-  if (rows == 0){
-    height = 0;
-  }
-  else{
+  const float actualLineHeight = format.width*lineHeight(format)/(format.columns*characterWidth());
+  height = (rows == 0) ? 0 :
     // All rows except the last one have extra spacing, given by format.
-    height = actualCharHeight + (rows-1)*actualLineHeight;
-  }
+    actualCharHeight + (rows-1)*actualLineHeight;
 }
 
 void arTexFont::renderString(const string& text, arTextBox& format ){

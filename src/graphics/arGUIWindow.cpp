@@ -371,18 +371,14 @@ int arGUIWindow::_consumeWindowEvents( void )
   if( _GUIEventManager->consumeEvents( this, false ) < 0 )
     return -1;
 
-  // Only spin a "little bit". Note that there is a time-out on the wait.
-  // (which guarantees we won't wait forever). Thus, we can, conceivably,
-  // make it to _processWMEvents with nothing in the queue. But that is OK.
+  // Spin only a "little bit". The wait has a timeout.
   ar_mutex_lock(&_WMEventsMutex);
     if (_threaded && _WMEvents.empty())
       _WMEventsVar.wait(&_WMEventsMutex, 100);
   ar_mutex_unlock(&_WMEventsMutex);
 
-  if( _processWMEvents() < 0 )
-    return -1;
-
-  return 0;
+  // Queue may be empty, if the timeout was short.  That's OK.
+  return _processWMEvents()<0 ? -1 : 0;
 }
 
 arGUIInfo* arGUIWindow::getNextGUIEvent( void )
@@ -391,7 +387,7 @@ arGUIInfo* arGUIWindow::getNextGUIEvent( void )
     return NULL;
 
   arGUIInfo* result = _GUIEventManager->getNextEvent();
-  // Must provide these pointers to the callbacks.
+  // Provide these pointers to the callbacks.
   result->setWindowManager(_windowManager);
   result->setUserData(_userData);
   return result;
@@ -401,6 +397,7 @@ bool arGUIWindow::eventsPending( void ) const
 {
   if( !_running )
     return false;
+
   return _GUIEventManager->eventsPending();
 }
 
@@ -462,7 +459,7 @@ arWMEvent* arGUIWindow::addWMEvent( arGUIWindowInfo& wmEvent )
 
   ar_mutex_lock( &_WMEventsMutex );
     _WMEvents.push( event );
-    // If we are waiting in _consumeWindowEvents, go ahead and release.
+    // If we are waiting in _consumeWindowEvents, release.
     _WMEventsVar.signal();
   ar_mutex_unlock( &_WMEventsMutex );
   return event;
@@ -1183,15 +1180,13 @@ int arGUIWindow::fullscreen( void )
                 windowRect.bottom - windowRect.top,
                 SWP_NOACTIVATE | SWP_NOSENDCHANGING );
 
-  // raise a resize event so the user can adjust the viewport if necessary
-  // NOTE: seems to only be necessary on windows as the event is 'correctly'
-  // raised on linux (odder still is that the move to 0x0 is raised, just not
-  // the resize...)
-  // NOTE: DO NOT query the window for it's believed x,y,width,height here.
-  // These haven't yet been changed with a resize event.
-  // That is a mistake on ever-finicky Win32. Instead, go ahead and feed
-  // it (again) the information we computed before. This is needed so that
-  // the viewport is resized appropriately at the framework level.
+  // Raise a resize event so the user can adjust the viewport if necessary.
+  // Only win32 needs this, as linux 'correctly' raises the event
+  // (oddly, the move to 0x0 is raised, just not the resize).
+  // Do not query the window for its believed x,y,width,height here:
+  // these haven't yet been changed with a resize event.
+  // That is a mistake on finicky Win32. Instead, re-feed it
+  // the precomputed info. This lets the framework resize the viewport.
   _GUIEventManager->addEvent( arGUIWindowInfo( AR_WINDOW_EVENT,
                                                AR_WINDOW_RESIZE, _ID, 0,
                                                windowRect.left, windowRect.top,

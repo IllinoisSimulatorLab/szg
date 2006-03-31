@@ -151,7 +151,7 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
   
   bool fDone = false;
   string potentialFileName;
-  // First, go ahead and look at the bundle path, if such as been set.
+  // Look at the bundle path, if it's been set.
   map<string, string, less<string> >::iterator iter 
     = _bundlePathMap.find(_bundlePathName);
   if (_bundlePathName != "NULL" && _bundleName != "NULL"

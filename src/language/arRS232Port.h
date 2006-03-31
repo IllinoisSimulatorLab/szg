@@ -57,10 +57,10 @@ class SZG_CALL arRS232Port {
     // in which case it will be new[]ed); (2) have been allocated using
     // new[]; or (3) have been allocated by a previous call to
     // readAll (really same as 2). You are responsible for delete[]ing
-    // it when you're done. Note that if there are no bytes waiting to
+    // it when you're done. If there are no bytes waiting to
     // be read, call returns immediately without doing anything
     // (so if you've passed the address of a NULL pointer, it will still be 
-    // NULL). Note also that you're responsible for removing the contents of 
+    // NULL). Caller must remove the contents of 
     // the buffer between readAll()s, as they will be discarded if the buffer 
     // has to be grown.
     int readAll( char**bufAdd, unsigned int& currentBufferSize );
