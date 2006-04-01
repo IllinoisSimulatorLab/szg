@@ -15,15 +15,15 @@ arInputSimulator::arInputSimulator() :
   _numButtonEvents(0),
   _simulatorRotation(0.),
   _buttonSelector(0) {
-  // set the values of the internal simulator state appropriately
+  // todo: initializers not assignemts
+  // Initialize the internal simulator.
   _mousePosition[0] = 0;
   _mousePosition[1] = 0;
   std::vector<unsigned int> buttons;
   buttons.push_back(0);
   buttons.push_back(2);
-  if (!setMouseButtons( buttons )) {
+  if (!setMouseButtons( buttons ))
     ar_log_error() << "arInputSimulator warning: setMouseButtons() failed in constructor.\n";
-  }
   setNumberButtonEvents( 8 );
   _rotator[0] = 0.;
   _rotator[1] = 0.;
@@ -31,7 +31,7 @@ arInputSimulator::arInputSimulator() :
   _buttonSelector = 0;
   _interfaceState = AR_SIM_HEAD_TRANSLATE;
 
-  // set the initial values of the simulated device appropriately
+  // Initialize the simulated device.
   _matrix[0] = ar_translationMatrix(0,5,0);
   _matrix[1] = ar_translationMatrix(2,3,-1);
   _axis[0] = 0;
@@ -40,10 +40,15 @@ arInputSimulator::arInputSimulator() :
 
 bool arInputSimulator::configure( arSZGClient& SZGClient ) {
   arSlashString mouseButtonString(SZGClient.getAttribute( "SZG_INPUTSIM", "mouse_buttons" ));
+  if (mouseButtonString == "NULL") {
+    ar_log_warning() << "SZG_INPUTSIM/mouse_buttons undefined.  Using defaults.\n";
+    return false;
+  }
+
   const int numItems = mouseButtonString.size();
   int* mouseButtons = new int[numItems];
   if (!mouseButtons) {
-    ar_log_error() << "arInputSimulator error: new[] failed.\n";
+    ar_log_error() << "arInputSimulator error: out of memory.\n";
     return false;
   }
   const int numValues = ar_parseIntString( mouseButtonString, mouseButtons, numItems );
@@ -62,7 +67,7 @@ bool arInputSimulator::configure( arSZGClient& SZGClient ) {
   }
   const int numButtonEvents = SZGClient.getAttributeInt( "SZG_INPUTSIM", "number_button_events" );
   if (numButtonEvents < 2) {
-    ar_log_warning() << "arInputSimulator warning: too few SZG_INPUTSIM/number_button_events (" << numButtonEvents
+    ar_log_warning() << "arInputSimulator warning: SZG_INPUTSIM/number_button_events (" << numButtonEvents
                      << ") < 2, so defaulting to 8.\n";
     return false;
   }
