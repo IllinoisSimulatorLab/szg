@@ -267,12 +267,10 @@ bool arPhleetConnectionBroker::confirmPorts(int componentID,
     k->second.usedTags.push_back(serviceName);
   }
   
-  // IMPORTANT NOTE: we do not notify components with pending service requests
-  // that a compatible service has just been posted. It is the szgserver's
-  // job, each time it calls this method, to also issue a 
-  // getPendingRequests(...) call.
+  // Do not notify components with pending service requests
+  // that a compatible service has just been posted. The szgserver,
+  // each time it calls this method, also calls getPendingRequests().
 
-  // unlock the mutex and return success
   ar_mutex_unlock(&_brokerLock);
   return true;
 }
@@ -567,10 +565,9 @@ int arPhleetConnectionBroker::getServiceComponentID(const string& serviceName){
   return result;
 }
 
-/// When the particular service name has been released, we must notify
-/// the given component. It is important that we pass in the name of the
-/// computer on which the component runs... since a component record
-/// might be created by this call.
+/// When the particular service name has been released, notify
+/// the given component. Pass in the name of the
+/// host on which the component runs, since this call might create a component record.
 void arPhleetConnectionBroker::registerReleaseNotification(int componentID,
 						   int match,
                                                    const string& computer,
@@ -603,8 +600,9 @@ void arPhleetConnectionBroker::registerReleaseNotification(int componentID,
 /// Called whenever a service is removed from the "used" pool OR
 /// removed from the temporary pool and not promoted to "used". Some
 /// clients may wish to be notified when a service suddenly becomes
-/// available. This is important in application launching.
-/// NOTE: the only way a service is currently removed is via the
+/// available, for app launching.
+///
+/// The only way a service is currently removed is via the
 /// removeComponent method, but, in the future, a service might very
 /// well disappear because of an explicit shutdown, without its
 /// component being removed. NOTE: there might be locking problems
@@ -718,9 +716,9 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
          l != i->second.temporaryPorts.end();
          l++){
       k->second.temporaryPorts.remove(*l);
-      // important that we push them onto the end of the list
-      // but only if the port is still valid (the port block
-      // might have changed)
+      // copypaste
+      // Append them to the list, but only if the port is still valid
+      // (the port block might have changed).
       if (_portValid(*l, k->second)){
         k->second.availablePorts.push_back(*l);
       }
@@ -729,9 +727,9 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
 	 l != i->second.usedPorts.end();
 	 l++){
       k->second.usedPorts.remove(*l);
-      // important that we push them onto the end of the list
-      // but only if the port is still valid (the port block
-      // might have changed)
+      // copypaste
+      // Append them to the list, but only if the port is still valid
+      // (the port block might have changed).
       if (_portValid(*l, k->second)){
         k->second.availablePorts.push_back(*l);
       }
@@ -749,7 +747,7 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
   ar_mutex_unlock(&_brokerLock);
 }
 
-/// prints out the entire state of the connection broker. extremely verbose,
+/// print out the entire state of the connection broker. extremely verbose,
 /// especially for larger systems.
 void arPhleetConnectionBroker::print(){
   list<int>::iterator nn;

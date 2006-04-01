@@ -172,10 +172,9 @@ arStructuredData* arStructuredDataParser::parse(ARchar* buffer, int& end){
 /// the lower-level infrastructure. (i.e. it'll no longer be possible to
 /// use the arDataClient to get a raw buffer of data). At that time, this'll
 /// be useful.
-/// ALSO, JUST AS A THOUGHT, it might be better to fold the translation
-/// capabilities into the arStructuredData object... and not need to
-/// double the storage for buffers in the case of translation. Something
-/// for the future.
+/// Also it might be better to fold translation
+/// into arStructuredData, and not need to
+/// double the storage for buffers in the case of translation.
 arStructuredData* arStructuredDataParser::parse
                                     (ARchar* buffer, int& end,
 				     const arStreamConfig& remoteStreamConfig){
@@ -185,10 +184,10 @@ arStructuredData* arStructuredDataParser::parse
   else{
     // we actually need to do translation
     arBuffer<char>* transBuffer = getTranslationBuffer();
-    // buffer gets bigger if necessary. WE ARE ASSUMING HERE THAT
-    // TRANSLATED DATA DOES NOT GET BIGGER!!!!
+    // Buffer grows if necessary.
+    // Translated data should NOT grow.
     int size = ar_translateInt(buffer, remoteStreamConfig); 
-    // important to pass this back
+    // pass this back
     end = size;
     transBuffer->grow(size);
     int recordID = ar_translateInt(buffer+AR_INT_SIZE, remoteStreamConfig);
@@ -202,8 +201,7 @@ arStructuredData* arStructuredDataParser::parse
       recycleTranslationBuffer(transBuffer);
       return NULL;
     }
-    // we use "temp" because we don't care about the size of the data,
-    // that was already taken care of above via "end=size"
+    // The size of the data was handled already via "end=size".
     int temp = -1;
     arStructuredData* result = parse(transBuffer->data, temp);
     recycleTranslationBuffer(transBuffer);
@@ -468,13 +466,13 @@ arStructuredData* arStructuredDataParser::parseBinary(FILE* inputFile){
   return data;
 }
 
-/// Sometimes it is advantageous to read-in incoming data in a seperate thread 
-/// than in which it is actually used. In addition to holding raw "recycled" 
+/// Sometimes it is advantageous to read incoming data in a thread separate
+/// from where it is actually used. In addition to holding raw "recycled" 
 /// storage, the arStructuredDataParser can hold received message lists. There 
 /// is one received message list per record type in the language. New 
-/// messages, as parsed by "parseIntoInternal" are placed at the end of the 
-/// list. This allows demultiplexing via message type, which is important for 
-/// the proper operation of arSZGClient objects, among others. This function 
+/// messages, as parsed by "parseIntoInternal", are appended to
+/// the list. This allows demultiplexing via message type, for
+/// arSZGClient objects etc. This function 
 /// parses data from a char buffer and stores it in one of the received 
 /// message list. If a getNextInternal(...) method is waiting on such data, it 
 /// is woken up.
@@ -612,9 +610,9 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
       }
     }
   }
-  // The data does not yet exist. We must get a synchronizer and associate
-  // it with the list of tags. NOTE: it is important that it be the SAME
-  // synchronizer for ALL of these tags!
+  // No data yet.  Get a synchronizer and associate
+  // it with the list of tags. It must be the same
+  // synchronizer for all these tags!
   arStructuredDataSynchronizer* syn = NULL;
   if (_recycledSync.empty()){
     // must create 
@@ -658,13 +656,11 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   // of normalExit is determined by the wait.
   bool normalExit = true;
   ar_mutex_lock(&syn->lock);
-  // NOTE: it is important to check if the exitFlag has been set (because
-  // in this case the tag will be -1 and we will exit normally from the
-  // wait).
+  // if the exitFlag has been set,
+  // the tag will be -1, so exit normally from the wait.
   while (syn->tag < 0 && !syn->exitFlag){
     // The wait call returns false exactly when we've got a time-out.
-    // It is important to distinguish this case, since we won't actually
-    // have any data.
+    // Distinguish this case, since we won't actually have any data.
     normalExit = syn->var.wait(&syn->lock, timeout);
     if (!normalExit){
       break;

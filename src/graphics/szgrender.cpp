@@ -35,18 +35,17 @@ string         dataPath;  // For storing screenshots.
 string textPath;
 
 bool loadParameters(arSZGClient& cli){
-  // important that we use the parameters for our particular screen
+  // Use our screen's parameters.
   graphicsClient->configure(&cli);
+
+  // Set up the data bundle info.
   dataPath = cli.getAttribute("SZG_DATA", "path"); // For storing screenshots.
-  // Must remember to set up the data bundle info.
-  if (dataPath != "NULL"){
+  if (dataPath != "NULL")
     graphicsClient->addDataBundlePathMap("SZG_DATA", dataPath);
-  }
-  // Must also do this for the other bundle path possibility.
-  string pythonPath = cli.getAttribute("SZG_PYTHON", "path");
-  if (pythonPath != "NULL"){
+  const string pythonPath = cli.getAttribute("SZG_PYTHON", "path");
+  if (pythonPath != "NULL")
     graphicsClient->addDataBundlePathMap("SZG_PYTHON", pythonPath);
-  }
+
   return true;
 }
 

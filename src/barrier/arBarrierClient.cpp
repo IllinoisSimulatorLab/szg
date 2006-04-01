@@ -222,7 +222,7 @@ void arBarrierClient::setNetworks(string networks){
   _networks = networks;
 }
 
-/// Doesn't do much. We need the arSZGClient object for later in the connection thread.
+/// The arSZGClient object is needed later in the connection thread.
 bool arBarrierClient::init(arSZGClient& client){
   _client = &client;
   return true;
@@ -232,36 +232,35 @@ bool arBarrierClient::start(){
   _keepRunningThread = true;
   _dataClient.setLabel("syzygy barrier_thread");
   _dataClient.smallPacketOptimize(true);
-  if (!_connectionThread.beginThread(ar_barrierClientConnection, this))
-    return false;
-  return _dataThread.beginThread(ar_barrierClientData, this); 
+  return _connectionThread.beginThread(ar_barrierClientConnection, this) &&
+         _dataThread.beginThread(ar_barrierClientData, this); 
 }
 
 void arBarrierClient::stop(){
   // make sure we are not blocking on any calls (like requestActivation(...))
   // this really is somewhat cheesy SO FAR
   ar_mutex_lock(&_activationLock);
-  // very important that _exitProgram is set both within the _activationLock
-  // and the _sendLock. In the case of _sendLock, it must be the case that,
-  // after _exitProgram is set, there is exactly ONE final sync send
-  // (this guarantees that the readDataThread will not block)
-  // Note the race condition in sync() if _sendLock is not used here.
+
+  // Set _exitProgram both within the _activationLock and the _sendLock.
+  // In the case of _sendLock,
+  // after _exitProgram is set, there must be exactly one final sync send
+  // so that readDataThread will not block.
+  // _sendLock here avoids a race condition in sync().
   ar_mutex_lock(&_sendLock);
   _exitProgram = true; 
   ar_mutex_unlock(&_sendLock);
+
   _activationResponse = true;
   _activationVar.signal();
   ar_mutex_unlock(&_activationLock);
-  // NOTE: we need to send a ping to the server so that we are not stuck in the
-  // arDataClient's readData call.
+  // Ping the server to avoid getting stuck in arDataClient's readData call.
   const int tuningData[4] = { _drawTime, _rcvTime, _procTime, _frameNum };
   ar_mutex_lock(&_sendLock);
-  // NOTE: it could be the case that we have NEVER connected... in which
-  // case _clientTuningData has not been initialized! And if we have never
-  // connected, we certainly don't need to send this!
+  // If we have never connected,
+  // _clientTuningData is uninitialized and doesn't need to be sent anyway.
   if (_clientTuningData){
     _clientTuningData->dataIn(CLIENT_TUNING_DATA,tuningData,AR_INT,4);
-    // must be careful to only send one final sync packet
+    // Send only one final sync packet.
     if (!_finalSyncSent){
       _dataClient.sendData(_clientTuningData);
       _finalSyncSent = true;
@@ -271,10 +270,11 @@ void arBarrierClient::stop(){
     _finalSyncSent = true;
   }
   ar_mutex_unlock(&_sendLock);
-  // just to be paranoid, make sure that we are not blocking in the sync
-  // call (it's very likely though that sending to the server caused
+  // Paranoid: make sure we are not blocking in the sync
+  // call (it's likely though that sending to the server caused
   // this signal to be called anyway!)
   _releaseSignal.sendSignal();
+
   // Wait for the threads to finish
   while (_dataThreadRunning || _connectionThreadRunning){
     ar_usleep(10000);

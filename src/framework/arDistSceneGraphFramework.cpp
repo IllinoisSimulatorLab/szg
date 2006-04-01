@@ -24,9 +24,9 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
       // now quit. NOTE: we cannot kill the stuff elsewhere since we are
       // disconnected (i.e. we cannot manipulate the system anymore)
       
-      // Important that we stop the framework (the parameter is meaningless
-      // so far for this framework, though it is important for the master/slave
-      // framework.)
+      // Stop the framework (the argument is meaningless for
+      // ar_distSceneGraphFramework, though 
+      // master/slave framework uses it.)
       f->stop(true);
       exit(0);
     }
@@ -488,15 +488,17 @@ bool arDistSceneGraphFramework::_loadParameters(){
   if (_dataPath == "NULL"){
     ar_log_warning() << _label << " warning: SZG_DATA/path undefined.\n";
   }
-  // Must make sure everybody gets the right bundle map,
-  // both for standalone and for normal operation.
-  _graphicsServer.addDataBundlePathMap("SZG_DATA", _dataPath);
-  _graphicsClient.addDataBundlePathMap("SZG_DATA", _dataPath);
-  _soundServer.addDataBundlePathMap("SZG_DATA", _dataPath);
-  _soundClient.addDataBundlePathMap("SZG_DATA", _dataPath);
-  // Some data access might occur along the Python bundle path as well.
-  string pythonPath = _SZGClient.getAttribute("SZG_PYTHON","path");
+  else {
+    // Ensure everybody gets the right bundle map, standalone or not.
+    _graphicsServer.addDataBundlePathMap("SZG_DATA", _dataPath);
+    _graphicsClient.addDataBundlePathMap("SZG_DATA", _dataPath);
+    _soundServer.addDataBundlePathMap("SZG_DATA", _dataPath);
+    _soundClient.addDataBundlePathMap("SZG_DATA", _dataPath);
+  }
+
+  // Data access might occur along the Python bundle path as well.
   // Do not warn if this is undefined.
+  const string pythonPath = _SZGClient.getAttribute("SZG_PYTHON","path");
   if (pythonPath != "NULL"){
     _graphicsServer.addDataBundlePathMap("SZG_PYTHON", pythonPath);
     _graphicsClient.addDataBundlePathMap("SZG_PYTHON", pythonPath);
@@ -505,34 +507,30 @@ bool arDistSceneGraphFramework::_loadParameters(){
   }
 
   _head.configure( _SZGClient );
-
   _loadNavParameters();
-  
   _parametersLoaded = true;
-
   return true;
 }
 
 void arDistSceneGraphFramework::_initDatabases(){
-  // If we are operating as a peer, use that. Otherwise, use the graphics
-  // server.
   if (_peerName != "NULL"){
+    // We're a peer.  Use that.
     dgSetGraphicsDatabase(&_graphicsPeer);
     _usedGraphicsDatabase = &_graphicsPeer;
   }
   else{
+    // Use the graphics server.
     dgSetGraphicsDatabase(&_graphicsServer);
     _usedGraphicsDatabase = &_graphicsServer;
   }
   dsSetSoundDatabase(&_soundServer);
-  // If we are in standalone mode, we must start up the local connections.
-  // This must occur before any alterations occur to the local 
-  // graphics server since there is NO connection process in the standalone
-  // case.
+
   if (_standalone){
-    // In standalone mode, with manual buffer swapping, we need to be in "nosync" mode. 
-    // This allows us to do things in only one thread, which is important for Python
-    // code. (Otherwise there would be a deadlock)
+    // Start up local connections before any alterations occur to the
+    // local graphics server, since no connections occur.
+
+    // With manual buffer swapping, use "nosync" mode so
+    // Python can use only one thread.  This avoids deadlock.
     _graphicsServer._syncServer.setMode(_autoBufferSwap ? AR_SYNC_AUTO_SERVER : AR_NOSYNC_MANUAL_SERVER);
     _graphicsClient._cliSync.registerLocalConnection
       (&_graphicsServer._syncServer);
@@ -737,18 +735,17 @@ bool arDistSceneGraphFramework::_initStandaloneMode(){
 /// Start the various framework objects in the manner demanded by standalone mode.
 bool arDistSceneGraphFramework::_startStandaloneMode(){
   _simPtr->configure(_SZGClient);
-  // Must configure the window manager here and pass it to the graphicsClient
+  // Configure the window manager and pass it to the graphicsClient
   // before configure (because, inside graphicsClient configure, it is used
   // with the arGUIXMLParser).
-  // By default, we ask for a non-threaded window manager.
+  // By default, ask for a non-threaded window manager.
   _wm = new arGUIWindowManager(ar_distSceneGraphGUIWindowFunction,
 			       ar_distSceneGraphGUIKeyboardFunction,
 			       ar_distSceneGraphGUIMouseFunction,
 			       NULL,
 			       false);
   _wm->setUserData(this);
-  // The arGraphicsClient is the one that actually does the drawing and manages 
-  // the windows.
+  // arGraphicsClient is what actually draws and manages the windows.
   _graphicsClient.setWindowManager(_wm);
   _graphicsClient.configure(&_SZGClient);
   _graphicsClient.setSimulator(_simPtr);
@@ -758,33 +755,35 @@ bool arDistSceneGraphFramework::_startStandaloneMode(){
   _soundClient.setSpeakerObject(speakerObject);
   _soundClient.configure(&_SZGClient);
   _soundServer.start();
-  // NOTE: peer mode is meaningless in standalone.
+  // Peer mode is meaningless here.
   _graphicsServer.start();
   _inputDevice->start();
-  // In standalone mode, we need to start a thread for the display.
-  arThread graphicsThread;
-  // In standalone mode, only begin an external thread if buffers will be automatically swapped.
+  arThread graphicsThread; // For display.
   if (_autoBufferSwap){
     graphicsThread.beginThread(ar_distSceneGraphFrameworkWindowTask, this);
-    // Wait until the thread has had a chance to try to create the windows.
+    // Wait until the thread has tried to create the windows.
     _windowsCreatedSignal.receiveSignal();
     // _windowsCreated is set by createWindows() in ar_distSceneGraphFrameworkTask.
     if (!_windowsCreated){
-      // Important to *stop* the services that have already been started (before exiting).
-      // Hmmm.... maybe this actually makes segfaults...
+
+      // Stop the services already started, before exiting.
+      // Does this cause segfaults?
       //stop(true);
+
       return false;
     }
   }
   else{
     if (!createWindows(true)){
-      // Important to *stop* the services that have already been started (before exiting).
-      // Hmmm... maybe this actually makes segfaults...
+
+      // Stop the services already started, before exiting.
+      // Does this cause segfaults?
       //stop(true);
+
       return false;
     }
   }
-  ar_log_remark() << "arDistSceneGraphFramework remark: standalone mode objects successfully started.\n";
+  ar_log_remark() << "arDistSceneGraphFramework remark: standalone objects started.\n";
   return true;
 }
 

@@ -284,13 +284,12 @@ void arInputState::_setSignatureNoLock( const unsigned int numButtons,
 void arInputState::addInputDevice( const unsigned int numButtons,
                                    const unsigned int numAxes,
                                    const unsigned int numMatrices ) {
-  // IMPORTANT NOTE: we cannot chain some methods together because use
-  // of locks would deadlock... For instance, below we must use
-  // setSignatureNoLock instead of setSignature.
+  // Don't chain some methods together because use of locks would deadlock.
+  // Here, we must use setSignatureNoLock instead of setSignature.
   _lock();
-  unsigned int oldButtons = _buttons.size();
-  unsigned int oldAxes = _axes.size();
-  unsigned int oldMatrices = _matrices.size();
+  const unsigned oldButtons = _buttons.size();
+  const unsigned oldAxes = _axes.size();
+  const unsigned oldMatrices = _matrices.size();
   _buttonInputMap.addInputDevice( numButtons, _buttons );
   _axisInputMap.addInputDevice( numAxes, _axes );
   _matrixInputMap.addInputDevice( numMatrices, _matrices );
@@ -308,9 +307,8 @@ void arInputState::remapInputDevice( const unsigned int deviceNum,
                                      const unsigned int numButtons,
                                      const unsigned int numAxes,
                                      const unsigned int numMatrices ) {
-  // IMPORTANT NOTE: we cannot chain some methods together because use
-  // of locks would deadlock... For instance, below we must use
-  // setSignatureNoLock instead of setSignature.
+  // Don't chain some methods together because use of locks would deadlock.
+  // Here, we must use setSignatureNoLock instead of setSignature.
   _lock();
   const int buttonDiff = numButtons -
     _buttonInputMap.getNumberDeviceEvents( deviceNum );

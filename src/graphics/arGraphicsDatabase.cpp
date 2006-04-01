@@ -312,8 +312,9 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
   triedPaths.clear();
   _textureNameContainer.insert(
     map<string,arTexture*,less<string> >::value_type(name,theTexture));
-  // NOTE: It is very important to ref this texture again for its return.
-  // This way, the arTextureNode (which is who called addTexture) can unref it
+
+  // Ref this texture again for its return, so the
+  // arTextureNode, who called addTexture, can unref it
   // on deletion or texture change.
   theTexture->ref();
   return theTexture; 

@@ -22,16 +22,14 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
   float y = -1.;
   float z = -1.;
   unsigned int i = 0;
-  int found = 0;
-  char* value = (char *)1;
   int numTokens = 0;
 
+  int found = 0;
+  char* value = (char *)1;
   while (!found && value){
-    value = fgets(buffer, 1000, inputFile);
-    // skip if comment or newline
-    // NOTE: very important to skip line feeds as well! (for running
-    // win32 produced files on Unix)
-    if (buffer[0] == '\n' || buffer[0] == '#' || buffer[0] == '\r')
+    value = fgets(buffer, sizeof(buffer)-1, inputFile);
+    // Skip comment, newline, and linefeed.
+    if (*buffer == '\n' || *buffer == '#' || *buffer == '\r')
       found = 0;
     else if (value)
       found = 1;
@@ -41,8 +39,6 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
   }
   
   // Parse Line
-  // NOTE: very important to skip line feeds as well! (for running
-  // win32 produced files on Unix)
   token[numTokens++] = strtok(buffer, " \t\r\n");
   while (token[numTokens-1])
     token[numTokens++] = strtok(NULL, " \t\r\n");

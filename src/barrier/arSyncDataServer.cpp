@@ -354,10 +354,9 @@ bool arSyncDataServer::start(){
 
 void arSyncDataServer::stop(){
   _exitProgram = true;
-  // better make sure we are not blocked in the send data thread
+  // Ensure we are not blocked in the send data thread.
   _signalObject.sendSignal();
-  // In local connection mode, it is also necessary to set the queue variables
-  // to finish state.
+  // In local connection mode, set the queue variables to "finished."
   if (_locallyConnected){
     ar_mutex_lock(&_localConsumerReadyLock);
     _localConsumerReady = 2;
@@ -368,18 +367,18 @@ void arSyncDataServer::stop(){
     _localProducerReadyVar.signal();
     ar_mutex_unlock(&_localProducerReadyLock);
   }
-  // wait for that thread to finish
+
   while (_sendThreadRunning){
     ar_usleep(10000);
   }
 }
 
 void arSyncDataServer::swapBuffers(){
-  // this call should not even be made in the following case!
   if (_mode == AR_SYNC_AUTO_SERVER){
     ar_log_remark() << "arSyncDataServer remark: ignoring swapBuffers() in sync mode.\n";
     return;
   }
+
   _signalObject.sendSignal();
   // Wait for the buffer consumption on the other side
   // (but not if in no-sync mode).
@@ -389,7 +388,7 @@ void arSyncDataServer::swapBuffers(){
 }
 
 arDatabaseNode* arSyncDataServer::receiveMessage(arStructuredData* data){
-  // Caller is responsible for ensuring atomicity.
+  // Caller must ensure atomicity.
   ar_mutex_lock(&_queueLock);
   if (_dataQueue->getBackBufferSize() > _sendLimit &&
       _barrierServer.getNumberConnectedActive() > 0 &&
@@ -400,22 +399,24 @@ arDatabaseNode* arSyncDataServer::receiveMessage(arStructuredData* data){
     }
   }
 
-  // Very important that this occurs after the wait on a full buffer
+  // Do this after the wait on a full buffer
   // but before putting the data on the queue!
-  // If it comes before the wait on full before, a connection
-  // happening on a blocked buffer could, in fact, send an initial
+  //
+  // If before the wait on full buffer, a connection
+  // happening on a blocked buffer could send an initial
   // dump that's one record ahead of the buffer sent to the already 
   // connected clients.
-  // If it comes after putting data on the queue, then we can send the
+  //
+  // If after putting data on the queue, then we can send the
   // record to a connected client without crucial info added (like the ID
-  // of a new node, as in newNode or insert), which would be bad!
+  // of a new node, as in newNode or insert).
   arDatabaseNode* node = _messageCallback(_bondedObject,data); 
 
   // Only queue the data if there are currently connected processes...
   // OR if we are purely connected locally (i.e. a arSyncDataClient is
   // in the same process as us).
-  if (_barrierServer.getNumberConnectedActive() > 0
-      || _locallyConnected){
+  if (_barrierServer.getNumberConnectedActive() > 0 ||
+      _locallyConnected){
     _dataQueue->forceQueueData(data);
   }
   

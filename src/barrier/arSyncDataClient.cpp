@@ -78,13 +78,14 @@ void arSyncDataClient::_connectionTask(){
     skipConsumption();
     // the disconnection function is called after the NULL callback!
 
-    // this guarantees that one _nullCallback is called
-    // before a new connection is made. this is important for
+    // bug: some copypaste with below
+    // Guarantee that one _nullCallback is called
+    // before a new connection is made, especially for
     // wildcat graphics cards.
     ar_mutex_lock(&_nullHandshakeLock);
-    // we could, conceivably, be in stop mode now.
+    // We might be in stop mode.
     if (_nullHandshakeState != 2){
-      _nullHandshakeState = 1; // we are requesting that a disconnect callback be issued
+      _nullHandshakeState = 1; // Request that a disconnect callback be issued
       while (_nullHandshakeState != 2){
         _nullHandshakeVar.wait(&_nullHandshakeLock);
       }
@@ -438,9 +439,10 @@ void arSyncDataClient::consume(){
   time1 = ar_time();
   if (!_stateClientConnected){
     _nullCallback(_bondedObject);
-    // this guarantees that one _nullCallback is called
-    // before a new connection is made. this is important
-    // for certain graphics boards like the wildcats
+    // bug: some copypaste with above
+    // Guarantee that one _nullCallback is called
+    // before a new connection is made, especially for
+    // wildcat graphics cards.
     ar_mutex_lock(&_nullHandshakeLock);
     if (_nullHandshakeState == 1){
       // The connection thread registers disconnected and is waiting for

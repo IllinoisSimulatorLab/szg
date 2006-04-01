@@ -249,10 +249,10 @@ void arDataClient::closeConnection(){
   }
 }
 
-/// Sends data on the data client's socket to the connect data server.
-/// NOTE: it is very important to lock this so that different threads
-/// in a program can issue send data commands (as happens in some
-/// program's usage of arSZGClient and its embedded arDataClient).
+/// Send data on the data client's socket to the connect data server.
+/// Lock this so different threads
+/// can issue send-data commands (as happens in some
+/// uses of arSZGClient and its embedded arDataClient).
 bool arDataClient::sendData(arStructuredData* theData){
   if (!theData) {
     cerr << _exeName << " error: sendData(NULL)\n";

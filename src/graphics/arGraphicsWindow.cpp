@@ -102,16 +102,20 @@ bool arGraphicsWindow::configure( arSZGClient& client ){
 cerr << "Window configuration: viewMode = " << viewMode << ", stereo = " << _useOGLStereo << endl;
   _defaultScreen.configure( screenName, client );
 
-  if (viewMode == "custom") {
-    // Very important to clear the viewport list.
+  if (viewMode != "custom") {
+    // One of the pre-defined view modes.
+    _setViewModeNoLock(viewMode);
+  }
+  else {
     _clearViewportListNoLock();
-    // In this case, we are defining an arbitrary sequence of viewports
-    // Add the first viewport. This is the "master" viewport
+    // Define an arbitrary sequence of viewports.
+    // Add the first viewport, the master.
     if (!_configureCustomViewport( screenName, client, true )) {
       unlockViewports();
       return false;
     }
-    // Add the other viewports
+
+    // Add the other viewports.
     arSlashString viewportNameList( client.getAttribute(screenName, "viewport_list") );
     if (viewportNameList != "NULL") {
       for (int i=0; i<viewportNameList.size(); ++i) {
@@ -119,12 +123,8 @@ cerr << "Window configuration: viewMode = " << viewMode << ", stereo = " << _use
           unlockViewports();
           return false;
         }
+      }
     }
-  }
-    }
-  else {
-    // we are using one of the pre-defined view modes
-    _setViewModeNoLock(viewMode);
   }
   unlockViewports();
   return true;
@@ -137,9 +137,8 @@ arCamera* arGraphicsWindow::setCamera( arCamera* cam ) {
   return camout;
 }
 
-// This function MUST clone the passed-in pointer into it's local memory.
-// There are places in szg where a TEMPORARY pointer is used to pass in
-// a camera!
+// Make a local copy of the passed-in pointer.
+// Some places in szg, a TEMPORARY pointer passes in a camera!
 arCamera* arGraphicsWindow::_setCameraNoLock( arCamera* cam ) {
   if (cam) {
     if (_defaultCamera) {

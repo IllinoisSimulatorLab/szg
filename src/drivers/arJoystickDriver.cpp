@@ -122,16 +122,12 @@ arJoystickDriver::arJoystickDriver(){
 }
 
 arJoystickDriver::~arJoystickDriver(){
-  // does nothing yet
 }
 
 bool arJoystickDriver::init(arSZGClient& client){
-  // NOTE: important that we use the arSZGClient's inherent error
-  // forwarding mechanism (i.e. the init response stream)
   stringstream& initResponse = client.initResponse();
 
-  // NOTE: Pretty much any gamepad has 6 axes and 10 buttons these days.
-  // It is better to be over- than under- generous in the default
+  // Most gamepads have 6 axes and 10 buttons in 2006.  Default generously.
   int sig[3] = {10,6,0};
   if (!client.getAttributeInts("SZG_JOYSTICK","signature",sig,3)) {
     initResponse << "arJoystickDriver remark: SZG_JOYSTICK/signature not set, "

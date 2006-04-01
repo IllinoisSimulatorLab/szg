@@ -26,7 +26,7 @@ arDatabase::arDatabase() :
   // arDatabaseNode constructor.
   _nodeIDContainer.insert(map<int,arDatabaseNode*,less<int> >::
 			  value_type (0,&_rootNode));
-  // Important that the root node know who its owner is. Some node
+  // Root node must know its owner. Some node
   // insertion commands use the parent's internally stored database owner.
   _rootNode._setOwner(this);
 
@@ -76,11 +76,10 @@ void arDatabase::setDataBundlePath(const string& bundlePathName,
 /// a file system path my_directory_1;my_directory_2;my_directory_3.
 void arDatabase::addDataBundlePathMap(const string& bundlePathName,
                                       const string& bundlePath){
-  map<string,string,less<string> >::iterator i
-    = _bundlePathMap.find(bundlePathName);
+  map<string,string,less<string> >::iterator i =
+    _bundlePathMap.find(bundlePathName);
   if (i != _bundlePathMap.end()){
-    // If an entry is already present, must erase so that we can insert
-    // something new.
+    // Erase pre-existing entry before replacing it.
     _bundlePathMap.erase(i);
   }
   _bundlePathMap.insert(map<string,string,less<string> >::value_type
@@ -326,8 +325,7 @@ arDatabaseNode* arDatabase::insertNode(arDatabaseNode* parent,
   // this call is thread-safe. If refNode is true, then the node pointer will
   // be returned with an extra reference.
   arDatabaseNode* result = alter(data, refNode);
-  // Very important that this gets recycled to prevent a memory leak.
-  _dataParser->recycle(data);
+  _dataParser->recycle(data); // Avoid memory leak.
   return result;
 }
 
@@ -352,8 +350,7 @@ bool arDatabase::cutNode(int ID){
   arStructuredData* data = _dataParser->getStorage(_lang->AR_CUT);
   data->dataIn(_lang->AR_CUT_ID, &ID, AR_INT, 1);
   arDatabaseNode* result = alter(data);
-  // Very important that this gets recycled to prevent a memory leak.
-  _dataParser->recycle(data);
+  _dataParser->recycle(data); // Avoid memory leak.
   return result ? true : false;
 }
 
@@ -371,8 +368,7 @@ bool arDatabase::eraseNode(int ID){
   arStructuredData* data = _dataParser->getStorage(_lang->AR_ERASE);
   data->dataIn(_lang->AR_ERASE_ID, &ID, AR_INT, 1);
   alter(data);
-  // Very important that this gets recycled in order to prevent a memory leak.
-  _dataParser->recycle(data);
+  _dataParser->recycle(data); // Avoid memory leak.
   return true;
 }
 
@@ -401,8 +397,7 @@ void arDatabase::permuteChildren(arDatabaseNode* parent,
     // Only do this if, in fact, some of the pointers make sense to use.
     alter(data);
   }
-  // Very important that this gets recycled to prevent a memory leak
-  _dataParser->recycle(data);
+  _dataParser->recycle(data); // Avoid memory leak.
 }
 
 /// An adapter for the Python wrapping. 
@@ -1297,8 +1292,7 @@ arDatabaseNode* arDatabase::_permuteDatabaseNodes(arStructuredData* data){
     }
   }
   parent->_permuteChildren(childList);
-  // Important that we return the parent node upon success. The filtering
-  // algorithms in arGraphicsPeer::alter depend on it.
+  // Return the parent node, for the filters in arGraphicsPeer::alter.
   return &_rootNode;
 }
 
@@ -1309,7 +1303,7 @@ arDatabaseNode* arDatabase::_createChildNode(arDatabaseNode* parentNode,
                                              int nodeID,
                                              const string& nodeName,
 					     bool moveChildren){
-  // We will actually be creating a new node.
+  // We will actually create a new node.
   arDatabaseNode* node = _makeNode(typeString);
   if (!node){
     // This is an error.

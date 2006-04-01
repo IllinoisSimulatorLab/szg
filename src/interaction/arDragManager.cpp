@@ -69,14 +69,14 @@ void arDragManager::deleteDrag( const arGrabCondition& cond ) {
   }
 }
 
-/// This is the most important method of arDragManager. It modifies, in
-/// place, a list of activated drags. Remember: the drag manager essentially
-/// stores an association between grab conditions and drag behaviors.
+/// Main method of arDragManager. Modify, in
+/// place, a list of activated drags. Remember: the drag manager associates
+/// grab conditions with drag behaviors.
+/// Grab conditions include button presses and pushing
+/// a joystick axis past a threshold.
 /// As grab conditions are met (according to the effector since the effector
 /// can remap input events), they are added to the list. Similarly, as
-/// grab conditions fail to be met, they are removed from the list.
-/// NOTE: examples of grab conditions include button presses and pushing
-/// a joystick axis above or below a threshold value.
+/// they fail to be met, they are removed.
 void arDragManager::getActiveDrags( arEffector* eff,
                                     const arInteractable* const object,
                                     arDragMap_t& draggers ) const {

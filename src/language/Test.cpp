@@ -367,14 +367,13 @@ int main(){
     cout << "*** Test failed (could not open file).\n";
     exit(0);
   }
+
+  // Stlport may hang when reading back
+  // bogus float data, so initialize speedFloatBuffer.
   float speedFloatBuffer[16];
-  // PLEASE NOTE: IT SEEMS LIKE STLPORT HAS SOME TROUBLE READING BACK
-  // BOGUS FLOAT DATA (SPECIFICALLY, IT SEEMS TO HANG UNDER SOME 
-  // CIRCUMSTANCES). Consequently, it is important to initialize this
-  // array...
-  for (i=0; i<16; i++){
+  for (i=0; i<16; i++)
     speedFloatBuffer[i] = i;
-  }
+
   data1.dataIn(FLOAT_ID, speedFloatBuffer, AR_FLOAT, 16);
   time1 = ar_time();
   int s = 0;
@@ -403,11 +402,8 @@ int main(){
        << " seconds to read 10000 records from a file.\n";
   fclose(testFile);
   cout << "*** PASSED.\n";
-
   exit(0);
   
-  
-
   cout << "Beginning unit test 4: Thread safety of platform's lib c++.\n";
   // THIS ISN'T NEARLY LONG ENOUGH!
   arThread thread1(hammerString1);

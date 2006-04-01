@@ -482,10 +482,9 @@ int arGUIWindow::_processWMEvents( void )
       case AR_WINDOW_DRAW:
 
 #if 0
-        // NOTE: for now we won't worry about _Hz, it complicates things quite
-        // a bit as far as control flow in different modes is concerned and is
-        // probably not that important a feature, revisit it when arGUI has
-        // been successfully integrated into syzygy.
+        // Ignore _Hz. It complicates
+        // control flow in different modes and may be unimportant.
+        // Revisit it when arGUI is successfully integrated into syzygy.
         if( 0 /* _windowConfig._Hz > 0 */ ) {
           ar_timeval currentTime = ar_time();
 
@@ -1340,22 +1339,21 @@ void arGUIWindow::decorate( const bool decorate )
     set = true;
   }
 
-  // Under Xandros 2.0 (a tweaked version of KDE 3.1.4) the window has to be
-  // remapped in order for decoration changes to take.  Unfortunately, this
-  // causes OSX to freak out (the client area of the window blanks to white),
-  // but if the window is /not/ remapped the changes don't take under OSX
-  // either, so for now windows on OSX will not be able to be redecorated
+  // Under Xandros 2.0 (a tweaked KDE 3.1.4) the window has to be
+  // remapped for redecoration to work.  Unfortunately, this
+  // causes OS X to blank out the client area of the window.
+  // But if the window is /not/ remapped, redecoration again fails under OS X,
+  // so for now windows on OS X can't be redecorated
   // (which has implications for going in and out of fullscreen mode as well).
-  // And, of course, Slackware 10.1 (KDE 3.4.0) doesn't need any remapping at
-  // all for this stuff to work...
+  // Slackware 10.1 (KDE 3.4.0) doesn't need any remapping at all.
   if( set ) {
     #if !defined( AR_USE_DARWIN )
-    // While Xandros needs these calls to be able to redecorate a window during
-    // runtime, they also seem to preclude fullscreen mode working properly
-    // (since they window must be un-decorated before going fullscreen) in that
+    // While Xandros needs these calls to redecorate a window at
+    // runtime, they also seem to break fullscreen
+    // (since the window must be undecorated before going fullscreen) in that
     // the fullscreen window does not cover the taskbar.  As above, under
-    // Slackware this is not a problem.  Since working fullscreen is more
-    // important than re-decoration they are commented out for the time being
+    // Slackware this works. Since fullscreen trumps
+    // redecoration, they are commented out.
 
     // XUnmapWindow( _windowHandle._dpy, _windowHandle._win );
     // XMapWindow( _windowHandle._dpy, _windowHandle._win );
@@ -1385,17 +1383,10 @@ void arGUIWindow::raise( arZOrder zorder )
 
   #if defined( AR_USE_WIN_32 )
 
-  HWND flag;
-
-  if( zorder == AR_ZORDER_NORMAL ) {
-    flag = HWND_NOTOPMOST;
-  }
-  else if( zorder == AR_ZORDER_TOP ) {
-    flag = HWND_TOP;
-  }
-  else if( zorder == AR_ZORDER_TOPMOST ) {
-    flag = HWND_TOPMOST;
-  }
+  const HWND flag =
+    zorder == AR_ZORDER_NORMAL ? HWND_NOTOPMOST :
+    zorder == AR_ZORDER_TOP    ? HWND_TOP :
+                                 HWND_TOPMOST; // zorder == AR_ZORDER_TOPMOST
 
   SetWindowPos( _windowHandle._hWnd, flag,
                 0, 0, 0, 0,

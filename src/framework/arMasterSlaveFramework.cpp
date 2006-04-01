@@ -688,10 +688,10 @@ void arMasterSlaveFramework::loopQuantum(){
 }
 
 void arMasterSlaveFramework::exitFunction(){
-  // Wildcat framelock is only deactivated if this makes sense...
-  // and if it makes sense, it is important to do so before exiting.
-  // also important that we do this in the display thread.
+  // Wildcat framelock is only deactivated if this makes sense;
+  // and if so, do so in the display thread and before exiting.
   _wm->deactivateFramelock();
+
   // Framelock is now deactivated, so exit all windows.
   _wm->deleteAllWindows();
   // Guaranteed to get here--user-defined cleanup will be called
@@ -746,7 +746,7 @@ void arMasterSlaveFramework::preDraw( void ) {
     return;
   }
   
-  // Important that this occurs before the pre-exchange callback.
+  // Do this before the pre-exchange callback.
   // The user might want to use current input data via
   // arMasterSlaveFramework::getButton() or some other method in that callback.
   if( getMaster() ) {
@@ -1497,18 +1497,16 @@ void arMasterSlaveFramework::_setMaster( bool master ){
 
 bool arMasterSlaveFramework::_sync( void ){
   if( _master ) {
-    // VERY IMPORTANT THAT WE DO NOT CALL localSync() IF NO ONE IS
-    // CONNECTED. THE localSync() CALL CONTAINS A THROTTLE IN CASE
-    // NO ONE IS CONNECTED. IF WE CALLED IT, WE WOULD CAUSE A
-    // PERFORMANCE HIT IN THE COMMON CASE OF JUST ONE APPLICATION INSTANCE.
-    if( _stateServer->getNumberConnectedActive() > 0 ) {
-      _barrierServer->localSync();
-    }
+    // localSync() has a cpu-throttle in case no one is connected.
+    // So don't call it if nobody's connected: this would throttle
+    // the common case of only one application instance.
 
+    if( _stateServer->getNumberConnectedActive() > 0 )
+      _barrierServer->localSync();
     return true;
   }
 
-  return ( !_stateClientConnected || _barrierClient->sync() );
+  return !_stateClientConnected || _barrierClient->sync();
 }
 
 //************************************************************************
@@ -2244,14 +2242,13 @@ bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
   }
 
   if( !_standalone ) {
-    // Make sure we get the screen resource.
-    // This lock should only be grabbed AFTER an application launching.
-    // i.e. DO NOT do this in init(), which is called even on the trigger
-    // instance... but do it here (which is only reached on render instances).
-    string screenLock = _SZGClient.getComputerName() + "/" +
-                             _SZGClient.getMode( "graphics" );
+    // Get the screen resource.
+    // Grab this lock only AFTER an app launching:
+    // don't do this in init(), which is called even on the trigger
+    // instance, but do it here, which is only reached on render instances.
+    const string screenLock =
+      _SZGClient.getComputerName() + "/" + _SZGClient.getMode( "graphics" );
     int graphicsID;
-
     if( !_SZGClient.getLock( screenLock, graphicsID ) ) {
       char buf[ 20 ];
       sprintf( buf, "%d", graphicsID );
@@ -2261,8 +2258,8 @@ bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
   }
 
   // Do the user-defined init.
-  // NOTE: so that _startCallback can know if this instance is the master or
-  // a slave, it is important to call this AFTER _startDetermineMaster(...).
+  // So _startCallback knows if this instance is the master or
+  // a slave, call this after _startDetermineMaster().
   if( !onStart( _SZGClient ) ) {
     if( _SZGClient ) {
       return _startrespond( "arMasterSlaveFramework start callback failed." );

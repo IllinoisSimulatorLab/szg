@@ -260,29 +260,29 @@ class arGUIXMLAttributeValueValidator {
     std::vector< std::string > _valuesVec;
 };
 arGUIXMLAttributeValueValidator::arGUIXMLAttributeValueValidator( 
-    const std::string& nodeName, const arSlashString& valuesStr ) :
+  const std::string& nodeName,
+  const arSlashString& valuesStr) :
   _nodeName( nodeName ) {
     addValues( valuesStr );
   }
 void arGUIXMLAttributeValueValidator::addValues( const arSlashString& valuesStr ) {
-  unsigned int i;
-  for (i=0; i<valuesStr.size(); ++i) {
+  for (unsigned i=0; i<valuesStr.size(); ++i) {
     _valuesVec.push_back( valuesStr[i] );
   }
 }
 bool arGUIXMLAttributeValueValidator::operator()( const std::string& valueStr ) {
-  if (std::find( _valuesVec.begin(), _valuesVec.end(), valueStr ) == _valuesVec.end()) {
-    ar_log_error() << "arGUIXML error: invalid value '"
-                   << valueStr << "' in " << _nodeName << " attribute.\n"
-                   << "\tLegal values are:";
-    std::vector< std::string >::const_iterator iter;
-    for (iter = _valuesVec.begin(); iter != _valuesVec.end(); ++iter) {
-      ar_log_error() << " " << *iter;
-    }
-    ar_log_error() << ar_endl;
-    return false;
+  if (std::find( _valuesVec.begin(), _valuesVec.end(), valueStr ) != _valuesVec.end())
+    return true;
+
+  ar_log_error() << "arGUIXML error: invalid value '"
+		 << valueStr << "' in " << _nodeName << " attribute.\n"
+		 << "\tLegal values are:";
+  std::vector< std::string >::const_iterator iter;
+  for (iter = _valuesVec.begin(); iter != _valuesVec.end(); ++iter) {
+    ar_log_error() << " " << *iter;
   }
-  return true;
+  ar_log_error() << ar_endl;
+  return false;
 }
 
 
@@ -293,13 +293,12 @@ arGUIXMLWindowConstruct::arGUIXMLWindowConstruct( arGUIWindowConfig* windowConfi
   _graphicsWindow( graphicsWindow ),
   _guiDrawCallback( guiDrawCallback )
 {
-
 }
 
 arGUIXMLWindowConstruct::~arGUIXMLWindowConstruct( void )
 {
-  // depending on how windows have been reloaded and who might have copied
-  // around the graphisWindow pointer, this may or may not be safe...
+  // Depending on how windows have been reloaded and who copied
+  // around _graphisWindow, this may be unsafe.
   delete _graphicsWindow;
   delete _windowConfig;
 }
@@ -310,12 +309,10 @@ arGUIWindowingConstruct::arGUIWindowingConstruct( int threaded, int useFramelock
   _useFramelock( useFramelock ),
   _windowConstructs( windowConstructs )
 {
-
 }
 
 arGUIWindowingConstruct::~arGUIWindowingConstruct( void )
 {
-
 }
 
 arGUIXMLParser::arGUIXMLParser( arSZGClient* SZGClient,
@@ -324,7 +321,6 @@ arGUIXMLParser::arGUIXMLParser( arSZGClient* SZGClient,
   _mininumConfig( "<szg_display><szg_window /></szg_display>" )
 {
   setConfig( config );
-
   _windowingConstruct = new arGUIWindowingConstruct();
 }
 
@@ -345,9 +341,7 @@ void arGUIXMLParser::setConfig( const std::string& config )
   else
     _config = config;
 
-  // NOTE: It is very important to clear the document first. Otherwise, this
-  // new config string will just be appended to the end of old config strings,
-  // which is NOT what is wanted.
+  // Don't just append the new config string to the old config strings.
   _doc.Clear();
 
   _doc.Parse( _config.c_str() );

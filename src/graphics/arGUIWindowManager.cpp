@@ -763,11 +763,10 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
         getXDisplay( windowID ) != config->getXDisplay() ||
         isDecorated( windowID ) != config->getDecorate() ||
         isFullscreen( windowID ) != config->getFullscreen() ) {
-      // Before we delete the current window, it is important to
-      // *deactivate* any framelocking. This is essentially a harmless
-      // call if framelocking is not used. When a new window has been mapped
+      // Before deleting the current window, deactivate any framelocking.
+      // When a new window has been mapped
       // and the first draw occurs, the user application will be responsible
-      // for calling the activateFramelock(). (actually the szg frameworks
+      // for calling activateFramelock(). (actually the szg frameworks
       // do this).
       deactivateFramelock();
       // delete the current window.

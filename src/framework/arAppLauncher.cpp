@@ -686,9 +686,9 @@ void arAppLauncher::_addService(const string& computerName,
   temp.computer = computerName;
   temp.process = serviceName;
   temp.context = context;
-  // VERY IMPORTANT THAT THIS USES _location and NOT _vircomp!
-  // (remember... we trade against LOCATION instead of _vircomp to allow
-  // multiple virtual computers in the same stop to share stuff.
+
+  // Trade with _location, not _vircomp, so multiple virtual computers
+  // in the same location can share stuff.
   temp.tradingTag = _location + "/" + tradingTag;
   temp.info = info;
   _serviceList.push_back(temp);

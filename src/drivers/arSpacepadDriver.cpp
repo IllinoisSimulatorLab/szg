@@ -116,7 +116,6 @@ arSpacepadDriver::~arSpacepadDriver(){
 }
 
 bool arSpacepadDriver::init(arSZGClient& c){
-  // NOTE: important that we use the arSZGClient's inherent message forwarding
   stringstream& initResponse = c.initResponse();
   _setDeviceElements(0,0,2);
   // read in the calibration information
@@ -128,21 +127,21 @@ bool arSpacepadDriver::init(arSZGClient& c){
 	         << _transmitterOffset << "\n";
   }
   float temp[4];
-  string sensor0Rot
-    = c.getAttribute("SZG_SPACEPAD","sensor0_rot");
+  const string sensor0Rot =
+    c.getAttribute("SZG_SPACEPAD","sensor0_rot");
   if (sensor0Rot != "NULL"){
     ar_parseFloatString(sensor0Rot, temp, 4);
-    _sensorRot[0] 
-      = ar_rotationMatrix(arVector3(temp),ar_convertToRad(temp[3]));
+    _sensorRot[0] =
+      ar_rotationMatrix(arVector3(temp),ar_convertToRad(temp[3]));
     initResponse << "Using sensor 0 rotation =\n"
 	         << _sensorRot[0] <<"\n";
   }
-  string sensor1Rot
-    = c.getAttribute("SZG_SPACEPAD","sensor1_rot");
+  const string sensor1Rot =
+    c.getAttribute("SZG_SPACEPAD","sensor1_rot");
   if (sensor1Rot != "NULL"){
     ar_parseFloatString(sensor1Rot, temp, 4);
-    _sensorRot[1] 
-      = ar_rotationMatrix(arVector3(temp),ar_convertToRad(temp[3]));
+    _sensorRot[1] =
+      ar_rotationMatrix(arVector3(temp),ar_convertToRad(temp[3]));
     initResponse << "Using sensor 1 rotation =\n"
 	         << _sensorRot[1] <<"\n";
   }

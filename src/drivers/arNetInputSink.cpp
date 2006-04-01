@@ -9,7 +9,7 @@
 
 void ar_netInputSinkConnectionTask(void* sink){
   arNetInputSink* s = (arNetInputSink*) sink;
-  // Don't keep trying infinitely.
+  // Don't retry infinitely.
   while (s->_dataServer.acceptConnection() != NULL) {
     // cerr << "arInputServer got a connection.\n";
   }
@@ -23,12 +23,11 @@ arNetInputSink::arNetInputSink() :
   _port(0),
   _fValid(false),
   _info(""){
-
   _dataServer.smallPacketOptimize(true);
 }
 
-/// Input devices in phleet offer services based on slots. So... slot 0 corresponds
-/// to service SZG_INPUT0, slot 1 corresponds to service SZG_INPUT1, and so on.
+/// Input devices in phleet offer services based on slots.
+/// Slot x corresponds to service SZG_INPUTx, for nonnegative x.
 /// @param slot the slot in question
 void arNetInputSink::setSlot(int slot){
   if (slot<0){
@@ -48,24 +47,21 @@ bool arNetInputSink::init(arSZGClient& SZGClient){
 
 bool arNetInputSink::start(){
   if (!_client){
-    cerr << "arNetInputSink error: init was not called before start.\n";
+    cerr << "arNetInputSink error: can't start before init.\n";
     return false;
   }
-  // If _fValid has been set, then we have succeeded in start() already.
-  // DO NOT start() again. This is important, since, for instance, stop()
-  // currently does nothing.
+
   if (_fValid){
-    cout << "DeviceServer remark: attempted to start again. Ignore.\n";
-    // Return true, because otherwise arInputNode::restart might fail.
-    // This is to-be-fixed once stop() actually does the expected thing.
+    // start() already succeeded.
+    // Do not start() again, since e.g. stop() does nothing.
+    cout << "DeviceServer remark: ignoring restart.\n";
+    // Return true, lest arInputNode::restart fail.
+    // Fix this once stop() does the expected thing.
     return true;
   }
-  // Important to send output to the component's start stream
-  // (which will be realyed back to the launching dex command)
+
   stringstream& startResponse = _client->startResponse(); 
-  // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-  // this does not really deal with the many service naming issues 
-  // that will exist!
+  // Bug: handle the many service naming issues that will exist.
   char buffer[32];
   sprintf(buffer,"SZG_INPUT%i",_slot);
   const string serviceName(_client->createComplexServiceName(buffer));
@@ -89,9 +85,8 @@ bool arNetInputSink::start(){
       success = true;
     }
   }
-  if (!success){
+  if (!success)
     return false;
-  }
   
   _client->confirmPorts(serviceName,"input",1,&port);
   _fValid = true;

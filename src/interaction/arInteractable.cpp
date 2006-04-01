@@ -102,10 +102,10 @@ bool arInteractable::touch( arEffector& effector ) {
   return ok;
 }
 
-/// The most important method. Let the
-/// effector manipulate the interactable. If we aren't
+/// Main method. Let the
+/// effector manipulate the interactable. If not
 /// already touching the object, touch it. If we try to
-/// touch it, this will call the virtual _touch method (which, for instance
+/// touch it, call the virtual _touch method (which, for instance
 /// in the arCallbackInteractable subclass, ends up calling the touch
 /// callback).
 bool arInteractable::processInteraction( arEffector& effector ) {
@@ -141,7 +141,7 @@ bool arInteractable::processInteraction( arEffector& effector ) {
       return false;
     }
 
-    // The most important method of arDragManager is getActiveDrags.
+    // The main method of arDragManager is getActiveDrags.
     // The drag manager maintains a list of grab-conditions/ drag-behavior
     // pairs. As the grab conditions are met (based on the effector's input
     // state), they get added to the active drag list. As they are no

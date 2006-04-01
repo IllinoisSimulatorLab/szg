@@ -83,8 +83,7 @@ bool ar_pollingInteraction( arEffector& effector,
     return false;
   }
 
-  // Finally, and most importantly, process the action of the effector on
-  // the interactable.
+  // Let the effector act on the interactable.
   return (*touchedIter)->processInteraction( effector );
 }
 

@@ -77,10 +77,9 @@ bool ar_getTextBeforeTag(arTextStream* textStream, arBuffer<char>* textBuffer,
   }
   textStream->ar_ungetc(ch);
   textBuffer->grow(textBuffer->pushPosition+1);
-  // VERY IMPORTANT THAT THE CHARACTER BUFFER BE NULL-TERMINATED.
-  // THIS MAKES FOR EASY CONVERSION TO A C++ STRING!
-  // We do not change the "pushPosition" here (i.e. the terminator will
-  // be overwritten on the next "push").
+  // Null-terminate for easy conversion to std::string.
+  // But don't change "pushPosition", so the null gets
+  // overwritten on the next "push".
   textBuffer->data[textBuffer->pushPosition] = '\0';
   return true;
 } 

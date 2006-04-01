@@ -325,11 +325,10 @@ bool arHTR::parseSegmentData1(FILE* htrFileHandle){
   return true;
 }
 
-/// Parses the segment data for a .htr2 file. This file type has
-/// a significantly different format than the .htr data.
-/// Most importantly, it is streamable (instead of placing all
-/// of one segment's frames together... all of the segments for
-/// a frame are placed together).
+/// Parse the segment data for a .htr2 file. This file type's format
+/// differs from the .htr data:
+/// it is streamable, instead of placing all
+/// of one segment's frames together.
 bool arHTR::parseSegmentData2(FILE* htrFileHandle){
   char* value = NULL;
   char textLine[MAXLINE] = {0};

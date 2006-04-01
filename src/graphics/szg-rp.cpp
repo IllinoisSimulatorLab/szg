@@ -141,10 +141,9 @@ string handleCreate(const string& messageBody){
     else{
       PeerDescription temp;
       temp.peer = peer;
-      // THIS IS IMPORTANT. WE ARE DRAWING (AND USING THIS ITERATOR)
-      // IN ANOTHER THREAD.
       ar_mutex_lock(&peerLock);
-      peers.insert(PeerContainer::value_type(messageBody, temp));
+	// Lock, since another thread draws and uses this iterator.
+	peers.insert(PeerContainer::value_type(messageBody, temp));
       ar_mutex_unlock(&peerLock);
       result << "szg-rp success: inserted peer " << messageBody << ".\n";
     }
@@ -162,13 +161,11 @@ stringstream result;
   else{
     arGraphicsPeer* peer = i->second.peer;
     peer->closeAllAndReset();
-    // THIS IS IMPORTANT. WE ARE DRAWING (AND USING THIS ITERATOR)
-    // IN ANOTHER THREAD.
     ar_mutex_lock(&peerLock);
-    peers.erase(i);
+      // Lock, since another thread draws and uses this iterator.
+      peers.erase(i);
     ar_mutex_unlock(&peerLock);
-    // MIGHT BE UNSAFE TO DELETE THE PEER. THIS IS A BAD MEMORY LEAK.
-    // delete peer;
+    // delete peer; // Memory leak: delete may be unsafe.
     result << "szg-rp success: deleted peer.\n";  
   }
   return result.str();

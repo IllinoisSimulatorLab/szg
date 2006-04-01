@@ -116,11 +116,11 @@ void ar_graphicsPeerConsumptionFunction(arStructuredData* data,
                                             AR_INT);
       int mapDim = data->getDataDimension(l->AR_GRAPHICS_ADMIN_NODE_ID);
       ar_mutex_lock(&gp->_databaseLock);
-      // Important that remember which sockets are receiving info.
-      // When we get this message, the remote peer informs us that
-      // it will be sending scene graph updates.
-      map<int, arGraphicsPeerConnection*, less<int> >::iterator i
-        = gp->_connectionContainer.find(socket->getID());
+      // Remember which sockets are receiving info.
+      // When we get this message, the remote peer says that
+      // it will send scene graph updates.
+      map<int, arGraphicsPeerConnection*, less<int> >::iterator i =
+        gp->_connectionContainer.find(socket->getID());
       if (i == gp->_connectionContainer.end()){
         cout << "arGraphicsPeer internal error: could not find connection "
 	     << "object.\n";
@@ -599,8 +599,7 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
   int filterIDs[4];
   // Needed for filtering on "transient" nodes.
   ar_timeval currentTime;
-  // Important to do this so we don't mistakenly send a map record to the
-  // other side.
+  // Do this so we don't mistakenly send a map record.
   filterIDs[0] = -1;
   ar_mutex_lock(&_databaseLock);
   //ar_mutex_lock(&_socketsLock);
@@ -672,17 +671,18 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
       }
     }
   }
-  // We are not necessarily altering the local database. 
-  // IT IS CRITICALLY IMPORTANT THAT THE ALTERATION OF THE LOCAL DATABASE
-  // OCCUR BEFORE PASSING THE DATA ON TO OTHER PEERS. THE LOCAL PEER
-  // IS ALLOWED TO MODIFY THE RECORD "IN PLACE" (AS IN BEING ABLE TO
-  // ATTACH A NODE TO THE DATABASE THAT WAS CREATED SOME OTHER WAY).
-  // Node creation alters the record in place! See how arDatabase::_makeNode
-  // works... (specifically, an ID is assigned to the node, whereby the
-  // original message might just have asked for an arbitrary ID).
+  // We might not alter the local database. 
+
+  // Alter the local database BEFORE passing on the data.
+  // The local peer may
+  // modify the record "in place" (as in being able to
+  // attach a node to the database that was created some other way).
+  // Node creation alters the record in place! See arDatabase::_makeNode,
+  // specifically, an ID is assigned to the node, whereby the
+  // original message might just have asked for an arbitrary ID.
+
   if (_localDatabase){
-    // If we are actually going to the local database, get the
-    // result from there.
+    // Get the result from the local database.
     // If the message is NOT from a connection, potentialNewNodeID = -1
     // If the message is from a connection and is unmapped, 
     // potentialNewNodeID = 0
@@ -1074,12 +1074,10 @@ bool arGraphicsPeer::closeAllAndReset(){
   _dataServer->sendData(&adminData);
   // wait for everybody to close... THIS IS BAD SINCE IT RELIES ON TRUSTING
   // THE CONNECTED PEERS!
-  while (_dataServer->getNumberConnected() > 0){
+  while (_dataServer->getNumberConnected() > 0)
     ar_usleep(100000);
-  }
-  // Delete the stuff in the database. It is important to do this
-  // AFTER disconnecting from everybody else. Why? Because we don't
-  // want to erase THEIR databases as well!
+  // Delete the stuff in the database AFTER disconnecting,
+  // so we don't erase others' databases too.
   reset();
   return true;
 }
@@ -1445,8 +1443,7 @@ bool arGraphicsPeer::_serializeAndSend(arSocket* socket,
   }
   else{
     int dataSent = 0;
-    // Important that we set the local send level (which will be the default 
-    // way updates are subsequently sent). 
+    // Set the local send level, the default way updates will be sent.
     connectionIter->second->sendLevel = localSendLevel;
     // This actually does the work of sending.
     _recSerialize(pNode, nodeData, socket, connectionIter->second->outFilter,
@@ -1666,16 +1663,18 @@ void arGraphicsPeer::_recSerialize(arDatabaseNode* pNode,
   ar_mutex_lock(&_databaseLock);
   _insertOutFilter(outFilter, pNode->getID(), localSendLevel);
   ar_mutex_unlock(&_databaseLock);
-  // Important to add references to the children so they aren't deleted out
-  // from under us. NOTE: this call locks and unlocks _databaseLock.
+
+  // Add references to the children so they aren't deleted out
+  // from under us.  This call locks and unlocks _databaseLock.
   list<arDatabaseNode*> children = pNode->getChildrenRef();
-  // NOTE: We are CAPPING the serialize rate at about:
-  // 100 x (10000x8) = 8 Mbps here. Hopefully, this allows for
-  // reasonable connect behavior.
+
+  // Cap the serialize rate at about: 100 x (10000x8) = 8 Mbps.
+  // This should allow reasonable connect behavior.
   if (dataSent > 10000){
     ar_usleep(10000);
     dataSent = 0;
   }
+
   for (list<arDatabaseNode*>::iterator i=children.begin(); 
        i!=children.end(); i++){
     if (success){
@@ -1683,7 +1682,6 @@ void arGraphicsPeer::_recSerialize(arDatabaseNode* pNode,
                     sendLevel, dataSent, success);
     }
   }
-  // Must unref the children
   ar_unrefNodeList(children);
 }
 

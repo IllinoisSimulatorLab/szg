@@ -179,8 +179,7 @@ void arTextureNode::_addLocalTexture(int alpha, int width, int height,
   _width = width;
   _height = height;
   _alpha = alpha;
-  // Important to set the file name to the empty string, since this is one way
-  // we know whether or not there is a locally created bitmap.
+  // Clear the file name, one way we know if there is a locally created bitmap.
   _fileName = "";
   // If _texture is NULL, allocate a new texture.
   // If _texture is non-NULL but locally held, reuse it (to avoid reallocating

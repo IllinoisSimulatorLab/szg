@@ -86,15 +86,15 @@ arSZGClient::~arSZGClient(){
   delete [] _receiveBuffer;
 }
 
-/// Lets the programmer control the complexity of a phleet component's
-/// handshaking when it has been invoked by "dex". The default is "true",
-/// under which state the arSZGClient sends a final response during its
+/// Control the complexity of a phleet component's
+/// handshaking when invoked by "dex". The default is "true":
+/// the arSZGClient sends a final response during its
 /// init method. Otherwise, if simple handshaking has been disabled (by
 /// passing in "false" before init), the programmer will need to
 /// send an init response using sendInitResponse and a start response using
-/// sendStartResponse (which is the final response in this case). This allows
-/// the programmer to pass initialization and start logs directly back to
-/// the spawning "dex", which is very important for cluster manageability.
+/// sendStartResponse (which is the final response in this case). This lets
+/// initialization and start logs return to
+/// the spawning "dex", for debugging.
 void arSZGClient::simpleHandshaking(bool state){
   _simpleHandshaking = state;
 }
@@ -268,8 +268,8 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
 	_setLabel(forcedName); 
       }
       
-      // Pack the init stream and the start stream with headers.
-      // These include important configuration information (like the "context").
+      // Pack the init stream and the start stream with headers,
+      // including configuration information like the "context".
       _initResponseStream << _generateLaunchInfoHeader();
       _initialInitLength = _initResponseStream.str().length();
       _startResponseStream << _generateLaunchInfoHeader();
@@ -285,11 +285,10 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
 	+ _exeName;
 	// Take control of the right to respond to the launching message.
 	_launchingMessageID = requestMessageOwnership(tradingKey);
-	// Important that init DOES NOT fail here if it can't get the message
-	// ownership trade. The main reason this would occur would be if 
-	// the executable took a LONG time to launch and szgd gave up waiting.
-	// THIS IS NOT AN ERROR! However, we should NOT try to send responses
-	// back in this case.
+	// init should not fail here if it can't get the message
+	// ownership trade. This might happen if szgd timed out before
+	// the exe finished launching.
+	// This is not an error. But don't try to send responses back then.
 	if (!_launchingMessageID){
 	  ar_log_warning() << _exeName << " error: failed to own message, "
 	                   << "despite appearing to have been launched by szgd.\n";
@@ -1202,11 +1201,11 @@ string arSZGClient::getSetGlobalXML(const string& userName,
       if (newChild->ToElement()->Attribute("usenamed")
           && (pathPlace+1 >= pathList.size() 
               || pathList[pathPlace+1] != "usenamed")){
-	// Important to keep track of which sub-document we are, in fact,
-	// holding as we search down the tree of pointers.
+	// Keep track of which sub-document we are in fact
+	// holding, as we search down the tree of pointers.
 	szgDocLocation = newChild->ToElement()->Attribute("usenamed");
-        string newDocString 
-          = getGlobalAttribute(userName, szgDocLocation);
+        const string newDocString =
+          getGlobalAttribute(userName, szgDocLocation);
         doc.Clear();
         doc.Parse(newDocString.c_str());
         newChild = doc.FirstChild();
