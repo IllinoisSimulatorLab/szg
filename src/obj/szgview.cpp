@@ -220,7 +220,7 @@ void display( arGUIWindowInfo*, arGraphicsWindow* )
 void keyboardCB( arGUIKeyInfo* keyInfo )
 {
   if( !keyInfo ) {
-    std::cerr << "NULL keyInfo in keyboardCB!" << std::endl;
+    cerr << "NULL keyInfo in keyboardCB!" << endl;
     return;
   }
 
@@ -302,7 +302,7 @@ void keyboardCB( arGUIKeyInfo* keyInfo )
 void windowCB( arGUIWindowInfo* windowInfo )
 {
   if( !windowInfo ) {
-    std::cerr << "NULL windowInfo in windowCB!" << std::endl;
+    cerr << "NULL windowInfo in windowCB!" << endl;
     return;
   }
 
@@ -422,13 +422,11 @@ void mouseCB( arGUIMouseInfo* mouseInfo )
 int main( int argc, char** argv ){
   string fileName;
   if (argc == 1){
-    // Attempt to open local config file.
+    // Open local config file.
     FILE* configFile = fopen("szgview.txt", "r");
     if (!configFile){
-      cout << "szgview error: no parameter supplied and no szgview.txt config "
-	   << "file.\n";
-      cout << "usage: " << argv[ 0 ] << " file.{obj|3ds|htr|htr2} "
-	   << "[mesh.obj]\n";
+      cout << "szgview error: no parameter supplied and no szgview.txt config file.\n";
+      cout << "usage: " << argv[ 0 ] << " file.{obj|3ds|htr|htr2} [mesh.obj]\n";
       return 1;
     }
     char buf[1024];
@@ -440,15 +438,12 @@ int main( int argc, char** argv ){
     fileName = string(buf);
   }
   else{
-    // Using the first parameter as the file name.
     fileName = string(argv[1]);
   }
    
-
   theObject = ar_readObjectFromFile( fileName, "" );
-
   if( !theObject ) {
-    std::cerr << "Invalid File: " << fileName << std::endl;
+    cerr << "Invalid File: " << fileName << endl;
     return 1;
   }
 
@@ -457,21 +452,16 @@ int main( int argc, char** argv ){
   arSZGClient SZGClient;
   SZGClient.init( argc, argv );
   if( !SZGClient ) {
-    // It's ok if init() fails.
-    std::cout << "running standalone.\n";
+    // init() may fail.
+    cout << "running standalone.\n";
   }
-  string textPath = SZGClient.getAttribute("SZG_RENDER","text_path");
-
+  const string textPath = SZGClient.getAttribute("SZG_RENDER","text_path");
   theDatabase = new arGraphicsDatabase;
   char texPath[ 256 ] = {0};
-
   #ifndef AR_USE_WIN_32
     getcwd( texPath, 256 );
-  #else
-    texPath[ 0 ] = '\0';
   #endif
-
-  theDatabase->setTexturePath( std::string( texPath ) );
+  theDatabase->setTexturePath( string( texPath ) );
 
   arMatrix4 worldMatrix( ar_translationMatrix( 0.0, 5.0, -5.0 ) );
 
@@ -499,42 +489,38 @@ int main( int argc, char** argv ){
     theObject->attachMesh( "object", "mouse" );
   }
 
-  /* Useful for debugging */
-  // theDatabase->prettyDump();
+  // theDatabase->prettyDump(); // for debugging
 
   // FIXME: The window manager is *always* single threaded here.
-  // This might not really make sense for computers with mutliple graphics
-  // cards.
+  // Bad for a host with multiple graphics cards.
   wm = new arGUIWindowManager( windowCB, keyboardCB, mouseCB, NULL, false );
 
   // set up the head we'll use throughout
   head.setMatrix( ar_translationMatrix( 0.0, 5.0, 0.0 ) );
 
-  std::string whichDisplay = SZGClient.getMode( "graphics" );
-  std::string displayName = SZGClient.getAttribute( whichDisplay, "name" );
+  const string whichDisplay = SZGClient.getMode( "graphics" );
+  const string displayName = SZGClient.getAttribute( whichDisplay, "name" );
+  // cout << "Using display: " << displayName << endl;
 
-  std::cout << "Using display: " << displayName << std::endl;
+  arGUIXMLParser guiXMLParser(
+    &SZGClient, SZGClient.getGlobalAttribute( displayName ) );
 
-  arGUIXMLParser guiXMLParser( &SZGClient,
-                               SZGClient.getGlobalAttribute( displayName ) );
-
-  // first parse the xml
   if( guiXMLParser.parse() < 0 ) {
     return -1;
   }
 
-  const std::vector< arGUIXMLWindowConstruct* >* windowConstructs = guiXMLParser.getWindowingConstruct()->getWindowConstructs();
+  const vector< arGUIXMLWindowConstruct* >* windowConstructs = guiXMLParser.getWindowingConstruct()->getWindowConstructs();
 
-  // populate the callbacks for both the gui and graphics windows and the head
-  // for any vr cameras
-  std::vector< arGUIXMLWindowConstruct*>::const_iterator itr;
-  for( itr = windowConstructs->begin(); itr != windowConstructs->end(); itr++ ) {
+  // Populate callbacks for the gui and graphics windows,
+  // and the head for any vr cameras.
+  vector< arGUIXMLWindowConstruct*>::const_iterator itr;
+  for( itr = windowConstructs->begin(); itr != windowConstructs->end(); ++itr ) {
     (*itr)->getGraphicsWindow()->setInitCallback( new arDefaultWindowInitCallback() );
     (*itr)->getGraphicsWindow()->setDrawCallback( new arDefaultGUIRenderCallback( display ) );
     (*itr)->setGUIDrawCallback( new arSZGViewRenderCallback() );
 
-    std::vector<arViewport>* viewports = (*itr)->getGraphicsWindow()->getViewports();
-    std::vector<arViewport>::iterator vItr;
+    vector<arViewport>* viewports = (*itr)->getGraphicsWindow()->getViewports();
+    vector<arViewport>::iterator vItr;
     for( vItr = viewports->begin(); vItr != viewports->end(); vItr++ ) {
       if( vItr->getCamera()->type() == "arVRCamera" ) {
         ((arVRCamera*) vItr->getCamera())->setHead( &head );
@@ -546,17 +532,15 @@ int main( int argc, char** argv ){
     return -1;
   }
 
-  // must be done *after* an opengl context is created!
-  std::string fontLocation = ar_fileFind( "courier-bold.ppm", "", textPath );
+  string fontLocation = ar_fileFind( "courier-bold.ppm", "", textPath );
   if( fontLocation != "NULL" ) {
-    std::cout << "szgview remark: found szg system font.\n";
-    texFont.load( fontLocation );
+    cout << "szgview remark: found szg system font.\n";
   }
   else {
-    texFont.load( "courier-bold.txf" );
+    fontLocation = "courier-bold.txf";
   }
+  texFont.load( fontLocation ); // After opengl context is created.
 
   wm->startWithSwap();
-
   return 0;
 }

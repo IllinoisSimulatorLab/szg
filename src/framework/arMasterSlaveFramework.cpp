@@ -45,71 +45,67 @@ void ar_masterSlaveFrameworkWindowInitGLFunction( arGUIWindowInfo* windowInfo ) 
 }
 
 void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
-  if( !keyInfo || !keyInfo->getUserData() ) {
+  if( !keyInfo || !keyInfo->getUserData() )
     return;
-  }
 
   arMasterSlaveFramework* fw = (arMasterSlaveFramework*) keyInfo->getUserData();
-
   if( fw->stopping() ) {
-    // do not process key strokes after we have begun shutdown
+    // Shutdown's begun.  Ignore keystrokes.
     return;
   }
 
   if( keyInfo->getState() == AR_KEY_DOWN ) {
     switch( keyInfo->getKey() ) {
       case AR_VK_ESC:
-          // We do not block until the display thread is done... but we do
-          // block on everything else.
-          // NOTE: we do not exit(0) here. Instead, that occurs in the display
-          // thread!
-          fw->stop( false );
-      break;
+	// Don't block until the display thread is done.
+	// Block on everything else.
+	// Call exit() in the display thread rather than here.
+	fw->stop( false );
+	break;
       case AR_VK_f:
         fw->_wm->fullscreenWindow( keyInfo->getWindowID() );
-      break;
+	break;
       case AR_VK_F:
         fw->_wm->resizeWindow( keyInfo->getWindowID(), 600, 600 );
-      break;
+	break;
       case AR_VK_P:
         fw->_showPerformance = !fw->_showPerformance;
-      break;
+	break;
       case AR_VK_S:
         fw->_showSimulator = !fw->_showSimulator;
-      break;
+	break;
       case AR_VK_t:
         ar_log_critical() << "Frame time = " << fw->_lastFrameTime << ar_endl;
-      break;
+	break;
     }
 
-    // in standalone mode, keyboard events should also go to the interface
     if( fw->_standalone &&
         fw->_standaloneControlMode == "simulator" ) {
+      // Forward keyboard events to the interface too.
       fw->_simPtr->keyboard( keyInfo->getKey(), 1, 0, 0 );
     }
   }
 
-  // finally, keyboard events should be forwarded to the keyboard callback
-  // *if* we are the master and *if* the callback has been defined.
   if( fw->getMaster() ) {
+    // Forward keyboard events to the keyboard callback, if it's defined.
     fw->onKey( keyInfo );
   }
 }
 
 void ar_masterSlaveFrameworkMouseFunction( arGUIMouseInfo* mouseInfo ) {
-  if( !mouseInfo || !mouseInfo->getUserData() ) {
+  if( !mouseInfo || !mouseInfo->getUserData() )
     return;
-  }
 
   arMasterSlaveFramework* fw = (arMasterSlaveFramework*) mouseInfo->getUserData();
-
   if( fw->_standalone &&
       fw->_standaloneControlMode == "simulator" ) {
     if( mouseInfo->getState() == AR_MOUSE_DOWN || mouseInfo->getState() == AR_MOUSE_UP ) {
-      int whichButton = ( mouseInfo->getButton() == AR_LBUTTON ) ? 0 :
-                        ( mouseInfo->getButton() == AR_MBUTTON ) ? 1 :
-                        ( mouseInfo->getButton() == AR_RBUTTON ) ? 2 : 0;
-      int whichState = ( mouseInfo->getState() == AR_MOUSE_DOWN ) ? 1 : 0;
+      const int whichButton =
+        ( mouseInfo->getButton() == AR_LBUTTON ) ? 0 :
+        ( mouseInfo->getButton() == AR_MBUTTON ) ? 1 :
+        ( mouseInfo->getButton() == AR_RBUTTON ) ? 2 : 0; // Default to left button.
+      const int whichState =
+        ( mouseInfo->getState() == AR_MOUSE_DOWN ) ? 1 : 0;
 
       fw->_simPtr->mouseButton( whichButton, whichState, mouseInfo->getPosX(), mouseInfo->getPosY() );
     }
@@ -192,7 +188,7 @@ class arMasterSlaveRenderCallback : public arGUIRenderCallback {
     ~arMasterSlaveRenderCallback( void ) {}
 
     void operator()( arGraphicsWindow&, arViewport& );
-    void operator()( arGUIWindowInfo* windowInfo ) { }
+    void operator()( arGUIWindowInfo* ) { }
     void operator()( arGUIWindowInfo* windowInfo,
                      arGraphicsWindow* graphicsWindow );
 
@@ -220,12 +216,14 @@ void arMasterSlaveRenderCallback::operator()( arGUIWindowInfo* windowInfo,
 
 arMasterSlaveFramework::arMasterSlaveFramework( void ):
   arSZGAppFramework(),
+
   // Services.
   _stateServer( NULL ),
   _barrierServer( NULL ),
   _barrierClient( NULL ),
   _soundClient( NULL ),
-  // Misc. member variables.
+
+  // Miscellany.
   _serviceName( "NULL" ),
   _serviceNameBarrier( "NULL" ),
   _networks( "NULL" ),
@@ -240,9 +238,11 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _harmonyReady(0),
   _connectionThreadRunning( false ),
   _useWindowing( false ),
+
   // Data.
   _transferTemplate( "data" ),
   _transferData( NULL ),
+
   // Callbacks.
   _startCallback( NULL ),
   _preExchange( NULL ),
@@ -260,10 +260,12 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _keyboardCallback( NULL ),
   _arGUIKeyboardCallback( NULL ),
   _mouseCallback( NULL ),
+
   // Time.
   _time( 0.0 ),
   _lastFrameTime( 0.1 ),
   _firstTimePoll( true ),
+
   // Random numbers.
   _randSeedSet( 1 ),
   _randomSeed( (long) -1 ),
@@ -272,7 +274,8 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _lastRandVal( 0.0 ),
   _randSynchError( 0 ),
   _firstTransfer( 1 ),
-  // Variables pertaining to user messages.
+
+  // For user messages.
   _framerateThrottle( false ),
   _screenshotFlag( false ),
   _screenshotStartX( 0 ),
@@ -367,7 +370,7 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
 
 /// Initializes the syzygy objects, but does not start any threads
 bool arMasterSlaveFramework::init( int& argc, char** argv ) {
-  _label = std::string( argv[ 0 ] );
+  _label = string( argv[ 0 ] );
   _label = ar_stripExeName( _label );
   
   // Connect to the szgserver.
@@ -639,8 +642,8 @@ bool arMasterSlaveFramework::createWindows( bool useWindowing ) {
     return false;
   }
   
-  // populate the callbacks for both the gui and graphics windows and the head
-  // for any vr cameras
+  // Populate callbacks for the gui and graphics windows,
+  // and the head for any vr cameras.
   std::vector< arGUIXMLWindowConstruct*>::iterator itr;
   for( itr = windowConstructs->begin(); itr != windowConstructs->end(); itr++ ) {
     (*itr)->getGraphicsWindow()->setInitCallback( new arMasterSlaveWindowInitCallback( this ) );
@@ -1054,7 +1057,7 @@ void arMasterSlaveFramework::onCleanup( void ) {
   }
 }
 
-void arMasterSlaveFramework::onUserMessage( const std::string& messageBody ) {
+void arMasterSlaveFramework::onUserMessage( const string& messageBody ) {
   if( _userMessageCallback ) {
     try {
       _userMessageCallback( *this, messageBody );
@@ -1192,7 +1195,7 @@ void arMasterSlaveFramework::setExitCallback
 /// using this callback. A message w/ type "user" and value "foo" will
 /// be passed into this callback, if set, with "foo" going into the string.
 void arMasterSlaveFramework::setUserMessageCallback
-  ( void (*userMessageCallback)(arMasterSlaveFramework&, const std::string& )){
+  ( void (*userMessageCallback)(arMasterSlaveFramework&, const string& )){
   _userMessageCallback = userMessageCallback;
 }
 
@@ -1232,8 +1235,8 @@ void arMasterSlaveFramework::setEventQueueCallback( arFrameworkEventQueueCallbac
 /// the sound render will be able to find clips there. bundlePathName should
 /// be SZG_PYTHON or SZG_DATA and bundleSubDirectory will likely (but not necessarily)
 /// be the name of the app.
-void arMasterSlaveFramework::setDataBundlePath( const std::string& bundlePathName,
-                                                const std::string& bundleSubDirectory ) {
+void arMasterSlaveFramework::setDataBundlePath( const string& bundlePathName,
+                                                const string& bundleSubDirectory ) {
   _soundServer.setDataBundlePath( bundlePathName, bundleSubDirectory );
 
   // For standalone mode, we also need to set-up the internal sound client.
@@ -1300,7 +1303,7 @@ int arMasterSlaveFramework::getNumberSlavesConnected( void ) const {
   return _numSlavesConnected;
 }
 
-bool arMasterSlaveFramework::addTransferField( std::string fieldName,
+bool arMasterSlaveFramework::addTransferField( string fieldName,
                                                void* data,
                                                arDataType dataType,
                                                int size ) {
@@ -1321,7 +1324,7 @@ bool arMasterSlaveFramework::addTransferField( std::string fieldName,
     return false;
   }
 
-  const std::string realName = "USER_" + fieldName;
+  const string realName = "USER_" + fieldName;
   if( _transferTemplate.getAttributeID( realName ) >= 0 ) {
     ar_log_warning() << _label
                      << " warning: ignoring addTransferField() with duplicate name." << ar_endl;
@@ -1336,7 +1339,7 @@ bool arMasterSlaveFramework::addTransferField( std::string fieldName,
   return true;
 }
 
-bool arMasterSlaveFramework::addInternalTransferField( std::string fieldName,
+bool arMasterSlaveFramework::addInternalTransferField( string fieldName,
                                                        arDataType dataType, int size ) {
   if( _startCalled ) {
     ar_log_warning() << _label << " warning: ignoring addTransferField() after start()." << ar_endl;
@@ -1349,7 +1352,7 @@ bool arMasterSlaveFramework::addInternalTransferField( std::string fieldName,
     return false;
   }
 
-  const std::string realName = "USER_" + fieldName;
+  const string realName = "USER_" + fieldName;
   if( _transferTemplate.getAttributeID( realName ) >= 0 ) {
     ar_log_warning() << _label
                      << " warning: ignoring addTransferField() with duplicate name." << ar_endl;
@@ -1370,7 +1373,7 @@ bool arMasterSlaveFramework::addInternalTransferField( std::string fieldName,
   return true;
 }
 
-bool arMasterSlaveFramework::setInternalTransferFieldSize( std::string fieldName,
+bool arMasterSlaveFramework::setInternalTransferFieldSize( string fieldName,
                                                            arDataType dataType, int newSize ) {
   if (!getMaster()) {
     ar_log_warning() << "arMasterSlaveFramework warning: ignoring setInternalTransferFieldSize() "
@@ -1378,7 +1381,7 @@ bool arMasterSlaveFramework::setInternalTransferFieldSize( std::string fieldName
     return false;
   }
 
-  const std::string realName = "USER_" + fieldName;
+  const string realName = "USER_" + fieldName;
 
   arTransferFieldData::iterator iter = _internalTransferFieldData.find( realName );
   if ( iter == _internalTransferFieldData.end() ) {
@@ -1411,7 +1414,7 @@ bool arMasterSlaveFramework::setInternalTransferFieldSize( std::string fieldName
   return true;
 }
 
-void* arMasterSlaveFramework::getTransferField( std::string fieldName,
+void* arMasterSlaveFramework::getTransferField( string fieldName,
                                                 arDataType dataType, int& size ) {
   const string realName = "USER_" + fieldName;
 
@@ -1518,15 +1521,11 @@ bool arMasterSlaveFramework::_sync( void ){
 void arMasterSlaveFramework::_handleScreenshot( bool stereo ) {
   if( _screenshotFlag ) {
     char numberBuffer[ 8 ];
-
     sprintf( numberBuffer,"%i", _whichScreenshot );
-    std::string screenshotName = std::string( "screenshot" ) + numberBuffer +
-                                 std::string( ".jpg" );
-
+    const string screenshotName =
+      string( "screenshot" ) + numberBuffer + string( ".jpg" );
     char* buf1 = new char[ _screenshotWidth * _screenshotHeight * 3 ];
-
     glReadBuffer( stereo ? GL_FRONT_LEFT : GL_FRONT );
-
     glReadPixels( _screenshotStartX, _screenshotStartY,
                   _screenshotWidth, _screenshotHeight,
                   GL_RGB, GL_UNSIGNED_BYTE, buf1 );
@@ -1860,9 +1859,9 @@ void arMasterSlaveFramework::_unpackInputData( void ){
 bool arMasterSlaveFramework::_determineMaster() {
   // each master/slave application has it's own unique service,
   // since each has its own unique protocol
-  _serviceName = _SZGClient.createComplexServiceName( std::string( "SZG_MASTER_" ) + _label );
+  _serviceName = _SZGClient.createComplexServiceName( "SZG_MASTER_" + _label );
 
-  _serviceNameBarrier = _SZGClient.createComplexServiceName( std::string( "SZG_MASTER_" ) + _label + "_BARRIER" );
+  _serviceNameBarrier = _SZGClient.createComplexServiceName( "SZG_MASTER_" + _label + "_BARRIER" );
 
   // if running on a virtual computer, use that info to determine if we are
   // the master or not. otherwise, it's first come-first served in terms of
@@ -1930,7 +1929,7 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
 		      << "standalone joystick." << ar_endl;
     }
     else {
-      std::string pforthProgram = _SZGClient.getGlobalAttribute( pforthProgramName );
+      string pforthProgram = _SZGClient.getGlobalAttribute( pforthProgramName );
       if( pforthProgram == "NULL" ) {
         ar_log_remark() << "arMasterSlaveFramework remark: no pforth program exists for "
 		        << "name = " << pforthProgramName << ar_endl;
@@ -2249,7 +2248,7 @@ bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
     // This lock should only be grabbed AFTER an application launching.
     // i.e. DO NOT do this in init(), which is called even on the trigger
     // instance... but do it here (which is only reached on render instances).
-    std::string screenLock = _SZGClient.getComputerName() + "/" +
+    string screenLock = _SZGClient.getComputerName() + "/" +
                              _SZGClient.getMode( "graphics" );
     int graphicsID;
 
@@ -2257,7 +2256,7 @@ bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
       char buf[ 20 ];
       sprintf( buf, "%d", graphicsID );
       return _startrespond( "failed to get screen resource held by component " +
-			    std::string( buf ) + ".\n(dkill that component to proceed.)" );
+			    string( buf ) + ".\n(dkill that component to proceed.)" );
     }
   }
 
@@ -2324,7 +2323,7 @@ bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
   return true;
 }
 
-bool arMasterSlaveFramework::_startrespond( const std::string& s ) {
+bool arMasterSlaveFramework::_startrespond( const string& s ) {
   ar_log_error() << _label << " error: " << s << ar_endl;
   
   if( !_SZGClient.sendStartResponse( false ) ) {
@@ -2344,27 +2343,25 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
 
   // some things just depend on the SZG_RENDER
   _texturePath = _SZGClient.getAttribute( "SZG_RENDER","texture_path" );
-  std::string received( _SZGClient.getAttribute( "SZG_RENDER","text_path" ) );
+  string received( _SZGClient.getAttribute( "SZG_RENDER","text_path" ) );
   ar_stringToBuffer( ar_pathAddSlash( received ), _textPath, sizeof( _textPath ) );
 
-  // We set a few window-wide attributes based on the display name.
-  // Such as stereo, window size, window position, wildcat framelock, etc.
-  const string whichDisplay( _SZGClient.getMode( "graphics" ) );
-
-  std::string displayName  = _SZGClient.getAttribute( whichDisplay, "name" );
+  // Set window-wide attributes based on the display name, like
+  // stereo, window size, window position, wildcat framelock.
+  const string whichDisplay = _SZGClient.getMode( "graphics" );
+  const string displayName = _SZGClient.getAttribute( whichDisplay, "name" );
 
   if (displayName == "NULL") {
-    ar_log_warning() << "Using display " << whichDisplay << " == NULL.\n";
+    ar_log_warning() << "display " << whichDisplay << " undefined, using default.\n";
   } else {
-    ar_log_remark() << "Using display: " << whichDisplay << " : "
+    ar_log_remark() << "using display " << whichDisplay << " : "
                     << displayName << ar_endl;
   }
 
   _guiXMLParser->setConfig( _SZGClient.getGlobalAttribute( displayName ) );
 
-  // perform the parsing of the xml
   if( _guiXMLParser->parse() < 0 ) {
-    // already complained, just return
+    // already complained
     return false;
   }
 
@@ -2376,13 +2373,11 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
     _simPtr->configure( _SZGClient );
   }
 
-  // Don't think the speaker object configuration actually does anything
-  // yet!!!!
+  // Does nothing?
   if( !_speakerObject.configure( &_SZGClient ) ) {
     return false;
   }
 
-  // Load the other parameters.
   _loadNavParameters();
 
   // Make sure everybody gets the right bundle map, both for standalone
@@ -2390,7 +2385,7 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
   _dataPath = _SZGClient.getAttribute( "SZG_DATA", "path" );
 
   if( _dataPath == "NULL" ) {
-    _dataPath = std::string( "" );
+    _dataPath = "";
   }
   else {
     _soundServer.addDataBundlePathMap( "SZG_DATA", _dataPath );
@@ -2400,7 +2395,7 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
     }
   }
 
-  std::string pythonPath = _SZGClient.getAttribute( "SZG_PYTHON", "path" );
+  string pythonPath = _SZGClient.getAttribute( "SZG_PYTHON", "path" );
 
   if( pythonPath != "NULL" ) {
     _soundServer.addDataBundlePathMap( "SZG_PYTHON", pythonPath );
@@ -2416,7 +2411,7 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
 void arMasterSlaveFramework::_messageTask( void ) {
   // might be a good idea to shut this down cleanly... BUT currently
   // there's no way to shut the arSZGClient down cleanly.
-  std::string messageType, messageBody;
+  string messageType, messageBody;
 
   while( !stopping() ) {
     // NOTE: it is possible for receiveMessage to fail, precisely in the

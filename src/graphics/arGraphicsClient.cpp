@@ -235,8 +235,7 @@ arGraphicsClient::arGraphicsClient() :
 arGraphicsClient::~arGraphicsClient(){
 }
 
-/// Get the configuration parameters from the Syzygy database and set-up the
-/// object.
+/// Get configuration parameters from the Syzygy database.  Setup the object.
 bool arGraphicsClient::configure(arSZGClient* client){
   if (!client){
     return false;
@@ -246,16 +245,18 @@ bool arGraphicsClient::configure(arSZGClient* client){
   if (!_guiParser){
     _guiParser = new arGUIXMLParser(client);
   }
-  const string screenName( client->getMode( "graphics" ) );
-  string whichDisplay
-    = "SZG_DISPLAY" + screenName.substr( screenName.length() - 1, 1 );
-  std::string displayName  = client->getAttribute( whichDisplay, "name" );
+  const string screenName = client->getMode( "graphics" );
+  const string whichDisplay =
+    "SZG_DISPLAY" + screenName.substr( screenName.length() - 1, 1 );
+  const string displayName = client->getAttribute( whichDisplay, "name" );
+
   if (displayName == "NULL") {
-    ar_log_warning() << "Using display " << whichDisplay << " == NULL.\n";
+    ar_log_warning() << "display " << whichDisplay << " undefined, using default.\n";
   } else {
-    ar_log_remark() << "Using display: " << whichDisplay << " : "
+    ar_log_remark() << "using display " << whichDisplay << " : "
                     << displayName << ar_endl;
   }
+
   _guiParser->setConfig( client->getGlobalAttribute(displayName) );
 
   if (_guiParser->parse() < 0){
@@ -298,15 +299,15 @@ void arGraphicsClient::addDataBundlePathMap(const string& bundlePathName,
   _graphicsDatabase.addDataBundlePathMap(bundlePathName, bundlePath);
 }
 
-/// Sets the networks on which this object will try to connect to a server, in
-/// descending order of preference
+/// Define on which networks this object will try to connect to a server,
+/// in descending order of preference.
 void arGraphicsClient::setNetworks(string networks){
   _cliSync.setNetworks(networks);
 }
 
 bool arGraphicsClient::start(arSZGClient& client, bool startSynchronization){
-  // In the case of standalone mode in the arDistSceneGraphFramework, we
-  // do not want the synchronization to begin, only the windowing.
+  // For standalone mode in arDistSceneGraphFramework,
+  // start only windowing, not synchronization.
   if (startSynchronization){
     _cliSync.setServiceName("SZG_GEOMETRY");
     if (!(_cliSync.init(client) && _cliSync.start())){
