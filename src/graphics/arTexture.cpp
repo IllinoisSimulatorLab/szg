@@ -340,8 +340,14 @@ bool arTexture::readPPM(const string& fileName,
     return false;
   }
 
+#ifdef BROKEN
   char PPMHeader[4]; // fscanf's %3c averts danger of buffer overflow
   fscanf(fd, "%3c ", PPMHeader);
+  // This reads in the end-of-line, which it should discard but doesn't.
+#else
+  char PPMHeader[3]; // buffer overflow
+  fscanf(fd, "%s ", PPMHeader);
+#endif
   if (strcmp(PPMHeader, "P3") && strcmp(PPMHeader, "P6")) {
     ar_log_error() << "arTexture error: Unexpected (nonbinary?) header '" <<
       PPMHeader << "' in PPM file '" << fileName << "'.\n";
@@ -508,24 +514,23 @@ bool arTexture::readJPEG(const string& fileName,
     jpeg_read_scanlines(&_cinfo, buffer, 1);
     for (int i=0; i<row_stride; i++){
       if (_cinfo.output_components  == 3) {
-        int x = i/3;
-        int component = i%3;
+        const int x = i/3;
+        const int component = i%3;
         // getDepth() returns the internal depth, which might be 4 because
         // of RGBA
-        // IMPORTANT NOTE: output_scanline increments by 1 after the
-        // jpeg_read_scanlines command. Consequently, one needs to subtract
-        // one below (but this is counterbalanced by another +1 due to the
+        // Output_scanline increments after the
+        // jpeg_read_scanlines command, so decrement
+        // below (counterbalanced by another increment for the
         // line image flip).
-        // ANOTHER IMPORTANT NOTE: OpenGL textures have as their first
-        // line the bottom of the image... but jpeg's have as their first
-        // line the top of the image
+        // OpenGL textures have as their first
+        // line the bottom of the image, jpeg's the top.
         _pixels[(_height-_cinfo.output_scanline)*_width*getDepth() 
                 + x*getDepth() + component] = buffer[0][i];
       } else {
         // 1 component
-        // NOTE: there might be a better way to do this using OpenGL
-        // grayscale textures, which do exist. For now, just going ahead
-        // and expanding the grayscale jpeg into an RGB one.
+        // Might be a better way to do this using OpenGL
+        // grayscale textures. For now, just
+        // expand the grayscale jpeg into an RGB one.
         _pixels[(_height-_cinfo.output_scanline)*_width*getDepth() 
                 + i*getDepth()] = buffer[0][i];
         _pixels[(_height-_cinfo.output_scanline)*_width*getDepth() 
@@ -536,11 +541,8 @@ bool arTexture::readJPEG(const string& fileName,
     }
   }
   jpeg_finish_decompress(&_cinfo);
-
   _assignAlpha(alpha);
-
   fclose(fd);
-  
   return true;
 #else
   ar_log_error() << "arTexture warning: jpeg library not present. Could not read.\n";
@@ -552,13 +554,12 @@ bool arTexture::writeJPEG(const string& fileName) {
   return writeJPEG(fileName, "", "");
 }
 
-/// Attempts to write texture as a jpeg with the given file name on
-/// the given path.
+/// Write texture as a jpeg with the given file name on the given path.
 bool arTexture::writeJPEG(const string& fileName, const string& path) {
   return writeJPEG(fileName, "", path);
 }
 
-/// Attempts to write texture as a jpeg with the given file name on
+/// Write texture as a jpeg with the given file name on
 /// the given subdirectory of the given path
 bool arTexture::writeJPEG(const string& fileName, const string& subdirectory, 
                           const string& path) {
@@ -568,7 +569,6 @@ bool arTexture::writeJPEG(const string& fileName, const string& subdirectory,
   JSAMPROW row_pointer[1];	
 
   FILE* outFile = ar_fileOpen(fileName, subdirectory, path, "wb");
-
   if (outFile == NULL) {
     ar_log_error() << "arTexture error: could not write jpeg with\n"
 	           << " file name = " << fileName << "\n"
