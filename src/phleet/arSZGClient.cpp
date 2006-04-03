@@ -740,7 +740,7 @@ int arSZGClient::getAttributeInt(const string& computerName,
                                  const string& groupName,
 		                 const string& parameterName,
 				 const string& defaults){
-  const string& s(getAttribute(computerName, groupName, parameterName, defaults));
+  const string& s = getAttribute(computerName, groupName, parameterName, defaults);
   if (s == "NULL")
     return 0;
 

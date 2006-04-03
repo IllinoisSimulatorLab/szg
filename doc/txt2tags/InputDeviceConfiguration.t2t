@@ -9,6 +9,12 @@ Integrated Systems Lab
 This chapter will show you how to configure Syzygy to work with your
 input devices.
 
+Note that this section is only relevant to running programs in
+[Cluster Mode PhleetIntro.html]; you can't use input devices in
+[Standalone Mode Standalone.html] (input devices require a network
+connection), just the [inputsimulator TrackingSim.html]
+program.
+
 % Table of Contents
 %%toc
 
@@ -17,14 +23,18 @@ input devices.
 
 As discussed in [Szygy System Configuration SystemConfiguration.html],
 a Syzygy parameter or 'dbatch' file contains two types of parameters,
-//local// (computer-specific) and //global//. Specification of input
-devices falls into the [global SystemConfiguration.html#GlobalParameters]
-category; after defining one or more
-input devices, you would add a line to a Syzygy Cluster definition
-specifying which input devices should run on which computers.
+//local// (computer-specific) and //global//. Input devices typically
+have both. You define a [global input device parameter #GlobalParameters]
+that specifies which device driver module(s) to load and any filtering
+to be performed on the outputs. Then you define
+[local input device parameters #LocalParameters] on the computer that
+the device is hooked up to that contain necessary configuration information
+for each driver module. Finally, you add an input map specification
+(another local parameter) to a [virtual computer definition PhleetIntro.html#VirtualComputer]
+that makes the device definition a part of the virtual computer.
 
 
-==Global Input-device Parameters==
+==Global Input-device Parameters==[GlobalParameters]
 
 With the exception of the [PForth filter PForth.html] field,
 input device records are simpler than those for
@@ -53,11 +63,44 @@ four fields:
 
 - PForth Filter: [PForth PForth.html] is a small, stack-based
   language for performing simple operations on Syzyg input data
-  streams. The name stands for Pseudo-[Forth http://www.forth.org/],
+  streams, such as rescaling event values or rearranging event IDs.
+  The name stands for Pseudo-[Forth http://www.forth.org/],
   as that's what the syntax is based on. You add a PForth filter to
   an input device by writing the code directly into the ``<pforth>``
-  field of the input device record. Depending on how much tweaking
-  the filter needs to do, the code can get a bit long and hairy.
+  field of the input device record.
+
+  As an example, gamepads and joysticks
+  on Linux typically report values between 0 and 64000, whereas on Windows
+  they can report either [-32000,32000] or [0,64000]. Furthermore,
+  the numbering of the buttons and joystick axes may vary between platforms
+  or may simply be inconvenient. Syzygy
+  applications expect a standardized joystick input:
+  - axis 0 is a left/right joystick axis;
+  - axis 1 is forward/backward;
+  - joystick axis values should be between -1 and 1, with (-1,-1) in the lower-left
+    corner.
+
+
+  This sort of standardization is easy to achieve with a PForth filter.
+
+
+==Local Input-device Parameters==[LocalParameters]
+
+Many input devices require additional parameters. For example, devices
+that connect via serial interface may require e.g.:
+- A serial port number (note: serial ports in Syzygy are 1-based on all platforms).
+- A baud rate.
+- A 'parity' setting.
+
+...and more. These are specified as local parameters on the computer that the
+device is hooked up to. The chapter on [Supported Input Devices InputDevices-drivers.html]
+describes the parameters that must be configured to operate any particular device.
+
+
+Finally, you add an input map specification
+to a [virtual computer definition PhleetIntro.html#VirtualComputer].
+This is a local parameter; it says that a particular global input device parameter
+will run on a particular computer in the context of the current virtual computer.
 
 
 =Input Event Streams=
@@ -78,6 +121,23 @@ All three event types have a default value that will be returned
 whenever an application requests an event outside the range of existing
 indices; for matrices this is the identity matrix, for the other two
 types it is 0.
+
+
+=Troubleshooting=
+
+If your program has started successfully but doesn't seem to be getting input, the
+first thing to do is to check that the ``DeviceServer`` program is running on all computers
+that should be loading input device drivers. Typing
+```
+  dps
+```
+will list all of the Syzygy processes currently running on your cluster. If one of your
+input device computers doesn't have ``DeviceServer`` running on it, check the console on
+that computer for error messages.
+
+If the appropriate ``DeviceServer``s are all running but your application isn't receiving
+the inputs, then use the ``DeviceClient`` diagnostic program as described in
+[Syzygy Input Framework: Practical Examples InputDevices.html#Practical].
 
 
 =Examples=
@@ -241,6 +301,3 @@ excessive noise:
 </value>
 </param>
 ```
-
-
-

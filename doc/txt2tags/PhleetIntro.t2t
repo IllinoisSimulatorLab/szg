@@ -404,11 +404,11 @@ current Phleet user.
 - dbatch: Enter an entire parameter file into the user's Phleet database.
 
 
-=Using Virtual Computers=[VirtualComputer]
+=Configuring Virtual Computers=[VirtualComputer]
 
 Syzygy components that need to communicate, like a graphics display
 (szgrender) and a source of graphics information (like a VR application), can
-be launched by hand computers in the Phleet and will find one another
+be launched by hand on computers in the Phleet and will find one another
 automatically via szgserver's connection brokering. You could, for instance,
 launch your cluster application via shell scripts. However, the Syzygy
 application frameworks (distributed scene graph and master/slave) have a

@@ -62,7 +62,9 @@ A screen has a number of other parameters:
   specify them as a single Syzygy screen (having the overall dimensions of the
   wall), in which case this parameter specifies which tile the current screen
   is. (tilex/tiley/numtilesx/numtilesy). **tilex** and **tiley** are
-  zero-based.
+  zero-based. For example, if this screen is in the middle row, 3rd position from
+  the left of 4x3 wall, then
+  tilex=2,numtilesx=4,tiley=1,numtilesy=3.
 - **usefixedhead** (allow, always, or ignore). For multi-person demos in a CAVE,
   it is preferable to specify a fixed rendering position rather than to render
   for the position specified by the single operator's head-tracking sensor.
@@ -484,4 +486,28 @@ A simple example should suffice to demonstrate the selection of two displays
   Machine SZG_DISPLAY0 name display_default
   Machine SZG_DISPLAY1 name display_compact
 ```
+
+
+=TroubleShooting=
+
+The global graphics parameter portions of a Syzygy parameter ('dbatch') file are not parsed when the file is loaded, but when an application is launched and about to open a window. Error messages will typically begin with:
+```
+  szg:ERROR: arGUIXML ...
+```
+...and will __usually__ give a fairly accurate indication of where the error occurred.
+
+Besides XML syntax errors, the parser will catch mis-spelled attribute names. It will also catch illegal attribute values __if the set of legal values is small__ (e.g. if the value must be one of yes/no/true/false). It makes no attempt to check that numerical values are reasonable, so to catch that sort of error you'll have to inspect the virtual scene display itself.
+
+
+=Graphics Configuration Examples=
+
+A number of special [Graphics Configuration Examples GraphicsConfigExamples.html]
+are included in a separate chapter:
+
+- [Defining a Virtual Cube in a Single Window (Using Viewports) GraphicsConfigExamples.html#StandaloneVirtualCube]
+- [Passive Stereo GraphicsConfigExamples.html#PassiveStereo]
+- [Easy Demo Passive Stereo Display in Standalone Mode GraphicsConfigExamples.html#StandalonePassive]
+- [Fixed-Screen Virtual Environments GraphicsConfigExamples.html#Immersive]
+- [Head-Mounted Displays GraphicsConfigExamples.html#HMD]
+- [Multiple Screens on a Single Computer GraphicsConfigExamples.html#MultiScreen]
 

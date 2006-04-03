@@ -305,7 +305,7 @@ bool arTexture::readImage(const string& fileName,
                           const string& subdirectory,
                           const string& path,
                           int alpha, bool complain) {
-  const string& extension(ar_getExtension(fileName));
+  const string& extension = ar_getExtension(fileName);
   if (extension == "jpg")
     return readJPEG(fileName, subdirectory, path, alpha, complain);
   if (extension == "ppm")
@@ -340,9 +340,12 @@ bool arTexture::readPPM(const string& fileName,
     return false;
   }
 
-#ifdef BROKEN
+#ifndef BROKEN
   char PPMHeader[4]; // fscanf's %3c averts danger of buffer overflow
   fscanf(fd, "%3c ", PPMHeader);
+  if (PPMHeader[2] == '\n') {
+    PPMHeader[2] = '\0';
+  }
   // This reads in the end-of-line, which it should discard but doesn't.
 #else
   char PPMHeader[3]; // buffer overflow

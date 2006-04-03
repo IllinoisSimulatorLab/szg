@@ -56,7 +56,9 @@ bool inputEventCallback( arSZGAppFramework& fw, arInputEvent& event, arCallbackE
   ar_mutex_lock(&databaseLock);
   dragWand.updateState( event );
   headEffector.updateState( event );
-  fw.navUpdate( event );
+  if (event.getType() == AR_EVENT_AXIS) {
+    fw.navUpdate( event );
+  }
   // Currently, the joystick driver on windows DOES NOT guarantee a stream
   // of input events when the stick is held in a given position. Consequently,
   // the navigation matrix should be updated every frame.
@@ -77,7 +79,9 @@ bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQue
     arInputEvent event = eventQueue.popNextEvent();
     dragWand.updateState( event );
     headEffector.updateState( event );
-    fw.navUpdate( event );
+    if (event.getType() == AR_EVENT_AXIS) {
+      fw.navUpdate( event );
+    }
     if ((event.getType() == AR_EVENT_BUTTON) && (event.getIndex() == 0)) {
       if (fw.getOnButton(0)) {
         lightingOnOff = (lightingOnOff == AR_G_TRUE)?(AR_G_FALSE):(AR_G_TRUE);
@@ -256,7 +260,7 @@ int main(int argc, char** argv){
   
   // Configure stereo view.
   framework.setEyeSpacing( 6/(2.54*12) );
-  framework.setClipPlanes( .2, 1000. );
+  framework.setClipPlanes( .2, 100. );
 //  framework.setEventCallback( inputEventCallback );
   framework.setEventQueueCallback( inputEventQueueCallback );
   // the worldAlter thread is an application thread that we want the

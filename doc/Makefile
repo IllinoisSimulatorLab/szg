@@ -10,6 +10,7 @@ ALL = \
   Future.html \
   GettingSoftware.html \
   Goals.html \
+	GraphicsConfigExamples.html \
 	GraphicsConfiguration.html \
   InputClasses.html \
 	InputDeviceConfiguration.html \

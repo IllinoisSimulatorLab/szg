@@ -162,7 +162,7 @@ void arNavTransDrag::update( const arEffector* const effector,
   const arMatrix4 wandMatrix = effector->getMatrix();
   const arVector3 direction = ar_extractRotationMatrix(wandMatrix) * _direction;
   const ar_timeval currentTime = ar_time();
-  const float amount = _speed * axisValue * ar_difftime( currentTime, _lastTime )/1.e6;
+  const float amount = _speed * axisValue * ar_difftimeSafe( currentTime, _lastTime )/1.e6;
   _lastTime = currentTime;
   navigator->setMatrix( navTrans * ar_translationMatrix( direction*amount ) * navRot );
 }

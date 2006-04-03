@@ -125,8 +125,8 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
                        string& symbolicCommand,
                        string& command,
                        list<string>& args){
-  const string& userName(execInfo->userName);
-  const string& argString(execInfo->messageBody);
+  const string userName(execInfo->userName);
+  const string argString(execInfo->messageBody);
 
   // Tokenize the argString. Place the first token
   // in "command" and the other tokens in the list "args".
