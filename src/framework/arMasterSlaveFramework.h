@@ -39,7 +39,7 @@ class arTransferFieldDescriptor {
   int size;
 };
 
-typedef map<std::string, arTransferFieldDescriptor > arTransferFieldData;
+typedef map<string, arTransferFieldDescriptor > arTransferFieldData;
 
 //***********************************************************************
 // Framework callback exception class (mainly for exception-handling
@@ -47,8 +47,8 @@ typedef map<std::string, arTransferFieldDescriptor > arTransferFieldData;
 //***********************************************************************
 class arMSCallbackException {
   public:
-    std::string message;
-    arMSCallbackException( const std::string& msg ): message(msg) {}
+    string message;
+    arMSCallbackException( const string& msg ): message(msg) {}
 };
 
 /// Framework for cluster applications using one master and several slaves.
@@ -109,7 +109,7 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   virtual void onPlay( void );
   virtual void onWindowEvent( arGUIWindowInfo* );
   virtual void onCleanup( void );
-  virtual void onUserMessage( const std::string& messageBody );
+  virtual void onUserMessage( const string& messageBody );
   virtual void onOverlay( void );
   virtual void onKey( unsigned char key, int x, int y );
   virtual void onKey( arGUIKeyInfo* );
@@ -210,16 +210,18 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   bool randUniformFloat( float& value );
 
  protected:
-  // Objects that provide the various services.
-  // Used only by master.
-  arDataServer*        _stateServer;    
-  // Used only by slaves.
-  arDataClient         _stateClient;
-  arGraphicsDatabase   _graphicsDatabase;
+  // Objects that provide services.
+  // Must be pointers, so languages can initialize.  Really?
+
   // Used only by master.
   arBarrierServer*     _barrierServer;  
-  // Used only by slave.
+  arDataServer*        _stateServer;    
+
+  // Used only by slaves.
   arBarrierClient*     _barrierClient;  
+  arDataClient         _stateClient;
+  arGraphicsDatabase   _graphicsDatabase;
+
   // In standalone mode, we produce sound locally
   arSoundClient* _soundClient;
   

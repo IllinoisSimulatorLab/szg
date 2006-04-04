@@ -7,7 +7,7 @@
 #include "arPrecompiled.h"
 #include "arDatabase.h"
 #include "arStructuredDataParser.h"
-#include <sstream>
+#include "arLogStream.h"
 
 arDatabase::arDatabase() :
   _lang(NULL),
@@ -72,10 +72,15 @@ void arDatabase::setDataBundlePath(const string& bundlePathName,
   _bundleName = bundleSubDirectory;
 }
 
-/// Used to associated a bundle path name (SZG_DATA, SZG_PYTHON) with
+/// Associate a bundle path name (SZG_DATA, SZG_PYTHON) with
 /// a file system path my_directory_1;my_directory_2;my_directory_3.
 void arDatabase::addDataBundlePathMap(const string& bundlePathName,
                                       const string& bundlePath){
+  if (bundlePath == "NULL") {
+    ar_log_remark() << " addDataBundlePathMap: undefined " << bundlePathName << "/path.\n";
+    return;
+  }
+
   map<string,string,less<string> >::iterator i =
     _bundlePathMap.find(bundlePathName);
   if (i != _bundlePathMap.end()){

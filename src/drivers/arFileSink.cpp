@@ -7,49 +7,51 @@
 #include "arPrecompiled.h"
 #include "arFileSink.h"
 
-arFileSink::arFileSink(){
+arFileSink::arFileSink() :
+  _dataFileName("inputdump.xml"),
+  _dataFilePath("")
+  {
+  // todo: initializers not assignments
   _autoActivate = false; // The server won't automatically start this sink.
-  _dataFileName = "inputdump.xml";
-  _dataFilePath = "";
   _dataFile = NULL;
   _logging = false;
   ar_mutex_init(&_logLock);
 }
 
-arFileSink::~arFileSink(){
-}
+// todo: add set and get functions for _dataFileName
 
 bool arFileSink::init(arSZGClient& SZGClient){
-  const string& temp = SZGClient.getAttribute("SZG_DATA","path");
-  if (temp != "NULL"){
-    cout << "arFileSink remark: writing to SZG_DATA/path " << temp << ".\n";
-    _dataFilePath = temp;
-  }
-  else{
-    cout << "arFileSink warning: no SZG_DATA/path.\n";
-  }
+  _dataFilePath = SZGClient.getDataPath();
   return true;
 }
 
 bool arFileSink::start(){
   if (_logging){
-    cerr << "arFileSink warning: already logging.\n";
+    ar_log_warning() << "already logging to file '" << _dataFilePath <<
+      "/" << _dataFileName << "'.\n";
     return true;
   }
+
+  if (_dataFilePath == "NULL") {
+    // Only complain when it's about to get used.
+    ar_log_warning() << "arFileSink has undefined SZG_DATA/path.\n";
+    return false;
+  }
+
   _dataFile = ar_fileOpen(_dataFileName,_dataFilePath,"w");
   if (!_dataFile){
-    cerr << "arFileSink error: failed to log to data file.\n";
+    ar_log_error() << "arFileSink failed to log to file '" << _dataFilePath <<
+      "/" << _dataFileName << "'.\n";
     return false;
   }
 
   _logging = true;
-  cout << "arFileSink remark: logging.\n";
   return true;
 }
 
 bool arFileSink::stop(){
   if (!_logging){
-    cerr << "arFileSink warning: logging already stopped.\n";
+    ar_log_warning() << "already stopped logging.\n";
     return true;
   }
 
@@ -58,7 +60,6 @@ bool arFileSink::stop(){
   if (_dataFile)
     fclose(_dataFile);
   ar_mutex_unlock(&_logLock);
-  cout << "arFileSink remark: stopped logging.\n";
   return true;
 }
 

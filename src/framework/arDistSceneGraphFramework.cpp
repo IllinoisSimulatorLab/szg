@@ -483,28 +483,19 @@ void arDistSceneGraphFramework::_getVector3(arVector3& v, const char* param){
 }
 
 bool arDistSceneGraphFramework::_loadParameters(){
-  // Configure data access for this box.
-  _dataPath = _SZGClient.getAttribute("SZG_DATA", "path");
-  if (_dataPath == "NULL"){
-    ar_log_warning() << _label << " warning: SZG_DATA/path undefined.\n";
-  }
-  else {
-    // Ensure everybody gets the right bundle map, standalone or not.
-    _graphicsServer.addDataBundlePathMap("SZG_DATA", _dataPath);
-    _graphicsClient.addDataBundlePathMap("SZG_DATA", _dataPath);
-    _soundServer.addDataBundlePathMap("SZG_DATA", _dataPath);
-    _soundClient.addDataBundlePathMap("SZG_DATA", _dataPath);
-  }
+  // Configure data access.
 
-  // Data access might occur along the Python bundle path as well.
-  // Do not warn if this is undefined.
-  const string pythonPath = _SZGClient.getAttribute("SZG_PYTHON","path");
-  if (pythonPath != "NULL"){
-    _graphicsServer.addDataBundlePathMap("SZG_PYTHON", pythonPath);
-    _graphicsClient.addDataBundlePathMap("SZG_PYTHON", pythonPath);
-    _soundServer.addDataBundlePathMap("SZG_PYTHON", pythonPath);
-    _soundClient.addDataBundlePathMap("SZG_PYTHON", pythonPath);
-  }
+  _dataPath = _SZGClient.getDataPath();
+  _graphicsServer.addDataBundlePathMap("SZG_DATA", _dataPath);
+  _graphicsClient.addDataBundlePathMap("SZG_DATA", _dataPath);
+  _soundServer.addDataBundlePathMap("SZG_DATA", _dataPath);
+  _soundClient.addDataBundlePathMap("SZG_DATA", _dataPath);
+
+  const string pythonPath = _SZGClient.getDataPathPython();
+  _graphicsServer.addDataBundlePathMap("SZG_PYTHON", pythonPath);
+  _graphicsClient.addDataBundlePathMap("SZG_PYTHON", pythonPath);
+  _soundServer.addDataBundlePathMap("SZG_PYTHON", pythonPath);
+  _soundClient.addDataBundlePathMap("SZG_PYTHON", pythonPath);
 
   _head.configure( _SZGClient );
   _loadNavParameters();

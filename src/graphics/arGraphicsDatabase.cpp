@@ -182,16 +182,19 @@ void arGraphicsDatabase::reset(){
 // hopefully, I'll be able to try again later
 
 void arGraphicsDatabase::loadAlphabet(const string& path){
-  // If our arDatabase is a server, not a client, then we don't do anything
-  // with these files.
   if (_server)
     return;
+  if (path == "NULL") {
+    ar_log_error() << "arGraphicsDatabase error: undefined path for texture font.\n"; 
+    return;
+  }
+
   string fileName = path;
   // Make sure there is a trailing slash.
   ar_pathAddSlash(fileName);
   fileName += "courier-bold.ppm";
   if (!_texFont.load(fileName)){
-    ar_log_error() << "arGraphicsDatabase error: could not load texture font.\n"; 
+    ar_log_error() << "arGraphicsDatabase error: failed to load texture font.\n"; 
   }
 }
 

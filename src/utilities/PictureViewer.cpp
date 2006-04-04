@@ -90,9 +90,7 @@ void reshape(int width, int height) {
 }
 
 int main(int argc, char** argv){
-  // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-  // it would be a good idea to bring this into the fold of *normal*
-  // syzygy programs... right now, it is a bit of a special case.
+  // This exe is too different from other syzygy exes.
   if ((argc < 2)||(argc > 3)){
     cerr << "usage: PictureViewer filename [synctest]\n";
     return 1;
@@ -105,7 +103,7 @@ int main(int argc, char** argv){
   if (!szgClient)
     return 1;
 
-  // we expect to be able to get a lock on the computer's screen
+  // Lock the computer's screen.
   const string screenLock(szgClient.getComputerName() + string("/")
                       + szgClient.getMode("graphics"));
   int graphicsID = -1;
@@ -120,9 +118,8 @@ int main(int argc, char** argv){
   
   arThread dummy(ar_messageTask, &szgClient);
 
-  // we want to pack the init response stream
   stringstream& initResponse = szgClient.initResponse();
-  const string dataPath = szgClient.getAttribute("SZG_DATA","path");
+  const string dataPath = szgClient.getDataPath();
   if (!bitmap.readPPM(argv[1], dataPath)){
     initResponse << argv[0] << " error: failed to read picture file " 
                  << argv[1] << " from path " << dataPath << ".\n";
@@ -130,9 +127,8 @@ int main(int argc, char** argv){
       cerr << "PictureViewer error: maybe szgserver died.\n";
     return 1;
   }
-  // BUG BUG BUG BUG
-  // Our PPM reader flips the image horizontally, so here's the kludge to
-  // make it right again.
+  // Kluge: undo our PPM reader's horizontal flip.
+  // todo: move that flip command into the PPM reader.
   if (!bitmap.flipHorizontal()) {
     initResponse << "PictureViewer error: failed to flip picture " << argv[1]
                  << endl;

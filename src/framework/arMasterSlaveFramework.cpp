@@ -218,8 +218,8 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   arSZGAppFramework(),
 
   // Services.
-  _stateServer( NULL ),
   _barrierServer( NULL ),
+  _stateServer( NULL ),
   _barrierClient( NULL ),
   _soundClient( NULL ),
 
@@ -1232,9 +1232,8 @@ void arMasterSlaveFramework::setEventQueueCallback( arFrameworkEventQueueCallbac
 
 /// The sound server should be able to find its files in the application
 /// directory. If this function is called between init(...) and start(...),
-/// the sound render will be able to find clips there. bundlePathName should
-/// be SZG_PYTHON or SZG_DATA and bundleSubDirectory will likely (but not necessarily)
-/// be the name of the app.
+/// sound render can find clips there. bundlePathName should
+/// be SZG_PYTHON or SZG_DATA. bundleSubDirectory is usually the app's name.
 void arMasterSlaveFramework::setDataBundlePath( const string& bundlePathName,
                                                 const string& bundleSubDirectory ) {
   _soundServer.setDataBundlePath( bundlePathName, bundleSubDirectory );
@@ -2377,30 +2376,17 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
 
   _loadNavParameters();
 
-  // Make sure everybody gets the right bundle map, both for standalone
-  // and for normal operation.
-  _dataPath = _SZGClient.getAttribute( "SZG_DATA", "path" );
+  // Ensure everybody gets the right bundle map, standalone or not.
+  _dataPath = _SZGClient.getDataPath();
+  _soundServer.addDataBundlePathMap( "SZG_DATA", _dataPath );
+  //;;;; _soundClient not a pointer?  Like the other framework.
+  if (_soundClient )
+    _soundClient->addDataBundlePathMap( "SZG_DATA", _dataPath );
 
-  if( _dataPath == "NULL" ) {
-    _dataPath = "";
-  }
-  else {
-    _soundServer.addDataBundlePathMap( "SZG_DATA", _dataPath );
-
-    if (_soundClient ) {
-      _soundClient->addDataBundlePathMap( "SZG_DATA", _dataPath );
-    }
-  }
-
-  string pythonPath = _SZGClient.getAttribute( "SZG_PYTHON", "path" );
-
-  if( pythonPath != "NULL" ) {
-    _soundServer.addDataBundlePathMap( "SZG_PYTHON", pythonPath );
-
-    if( _soundClient ) {
-      _soundClient->addDataBundlePathMap( "SZG_PYTHON", pythonPath );
-    }
-  }
+  const string pythonPath = _SZGClient.getDataPathPython();
+  _soundServer.addDataBundlePathMap( "SZG_PYTHON", pythonPath );
+  if( _soundClient )
+    _soundClient->addDataBundlePathMap( "SZG_PYTHON", pythonPath );
 
   return true;
 }
@@ -2474,14 +2460,12 @@ void arMasterSlaveFramework::_messageTask( void ) {
       }
     }
     else if( messageType == "screenshot" ) {
+      // copypaste with graphics/szgrender.cpp
       if ( _dataPath == "NULL" ) {
-	ar_log_error() << _label
-                       << " error: screenshot failed, no SZG_DATA/path."
-                       << ar_endl;
+	ar_log_warning() << _label << " screenshot failed: undefined SZG_DATA/path.\n";
       }
       else{
         _screenshotFlag = true;
-
         if( messageBody != "NULL" ) {
           int tmp[ 4 ];
           ar_parseIntString( messageBody, tmp, 4 );
@@ -2503,20 +2487,14 @@ void arMasterSlaveFramework::_messageTask( void ) {
     // reuse messaging functionality?????
     //*********************************************************
     if( messageType == "delay" ) {
-      if( messageBody == "on" ) {
+      _framerateThrottle = messageBody == "on";
         _framerateThrottle = true;
-      }
-      else {
-        _framerateThrottle = false;
-      }
     }
     else if ( messageType == "pause" ) {
       if ( messageBody == "on" ) {
         ar_mutex_lock( &_pauseLock );
-        // do not pause if we are exitting
-        if ( !stopping() ) {
+        if ( !stopping() )
 	  _pauseFlag = true;
-	}
 	ar_mutex_unlock(&_pauseLock);
       }
       else if( messageBody == "off" ) {

@@ -13,13 +13,13 @@ void ar_fileSourceEventTask(void* fileSource){
   bool establishingCheckpoint = true;
   
   for (;;){
-    while (establishingCheckpoint 
-	   || ar_difftime(latestTime, lastCheckpoint) < 10000){
+    while (establishingCheckpoint ||
+	   ar_difftime(latestTime, lastCheckpoint) < 10000){
       arStructuredData* data = f->_parser->parse(&f->_dataStream);
       if (!data){
-        // must have reached eof
+        // reached eof
         f->_dataStream.ar_close();
-	// wait half a second and then reopen. we loop by default.
+	// Wait half a second and then reopen. Loop by default.
         ar_usleep(500000);
 	if (!f->_dataStream.ar_open(f->_dataFileName, "", f->_dataFilePath)){
 	  cerr << "arFileSource error: reopen input file.\n";
@@ -31,10 +31,10 @@ void ar_fileSourceEventTask(void* fileSource){
         // we got some data
         int elements[3];
         data->dataOut("signature",elements,AR_INT,3);
-        if (elements[0] != f->getNumberButtons()
-	    || elements[1] != f->getNumberAxes()
-	    || elements[2] != f->getNumberMatrices()){
-	  cout << "arFileSource remark: the signature has changed.\n";
+        if (elements[0] != f->getNumberButtons() ||
+	    elements[1] != f->getNumberAxes() ||
+	    elements[2] != f->getNumberMatrices()){
+	  ar_log_remark() << "arFileSource signature changed.\n";
 	  f->_setDeviceElements(elements[0], elements[1], elements[2]);
           f->_reconfig();
 	}
@@ -43,11 +43,11 @@ void ar_fileSourceEventTask(void* fileSource){
         latestTime.sec = timeInfo[0];
 	latestTime.usec = timeInfo[1];
 	if (establishingCheckpoint){
+          establishingCheckpoint = false;
           lastCheckpoint.sec = timeInfo[0];
 	  lastCheckpoint.usec = timeInfo[1];
-          establishingCheckpoint = false;
 	}
-	// we can now safely send the data
+	// Safely send the data.
         f->_sendData(data);
         f->_parser->recycle(data);
       }
@@ -68,22 +68,23 @@ arFileSource::~arFileSource(){
 }
 
 bool arFileSource::init(arSZGClient& SZGClient){
-  const string temp(SZGClient.getAttribute("SZG_DATA","path"));
-  if (temp != "NULL"){
-    cout << "arFileSource remark: Will write to path " << temp << ".\n";
-    _dataFilePath = temp;
-  }
-  else{
-    cerr << "arFileSource warning: no path.\n";
-  }
+  _dataFilePath = SZGClient.getDataPath();
   return true;
 }
 
 bool arFileSource::start(){
-  if (!_dataStream.ar_open(_dataFileName,"",_dataFilePath)){
-    cerr << "arFileSource error: Could not open data file.\n";
+  if (_dataFilePath == "NULL") {
+    // Only complain when it's about to get used.
+    ar_log_warning() << "arFileSink has undefined SZG_DATA/path.\n";
     return false;
   }
+
+  if (!_dataStream.ar_open(_dataFileName, "", _dataFilePath)){
+    ar_log_error() << "arFileSource failed to open '" << _dataFilePath <<
+      "/" << _dataFileName << "'.\n";
+    return false;
+  }
+
   _eventThread.beginThread(ar_fileSourceEventTask,this);
   return true;
 }

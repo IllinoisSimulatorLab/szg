@@ -15,7 +15,7 @@
 #include "arSZGClient.h"
 #include "arLogStream.h"
 
-arSoundClient* soundClient = NULL;
+arSoundClient* soundClient = NULL; // Must be pointer, so language can initialize.
 
 // the parameter variables
 char serverIP[1024] = {0}; /// \todo fixed size buffer
@@ -24,26 +24,14 @@ string textPath;
 arSpeakerObject speakerObject;
 
 bool loadParameters(arSZGClient& cli){
-  // using the arSoundClient's configure(...) method now.
-  //const string path = cli.getAttribute("SZG_SOUND", "path");
-  //soundClient->setPath(path);
   soundClient->configure(&cli);
   if (soundClient->getPath() == "NULL"){
-    ar_log_warning() << "SoundRender warning: SZG_SOUND/path "
-                     << soundClient->getPath() << " invalid or undefined.\n";
+    ar_log_warning() << "SoundRender warning: undefined or invalid SZG_SOUND/path '"
+                     << soundClient->getPath() << "'.\n";
   }
 
-  // Must remember to set up the data bundle info.
-  string dataPath = cli.getAttribute("SZG_DATA", "path");
-  if (dataPath != "NULL"){
-    soundClient->addDataBundlePathMap("SZG_DATA", dataPath);
-  }
-  // Must also do this for the other bundle path possibility.
-  string pythonPath = cli.getAttribute("SZG_PYTHON", "path");
-  if (pythonPath != "NULL"){
-    soundClient->addDataBundlePathMap("SZG_PYTHON", pythonPath);
-  }
-
+  soundClient->addDataBundlePathMap("SZG_DATA", cli.getDataPath());
+  soundClient->addDataBundlePathMap("SZG_PYTHON", cli.getDataPathPython());
   return speakerObject.configure(&cli);
 }
 

@@ -15,7 +15,7 @@ int screenWidth = -1, screenHeight = -1;
 bool twoImages = false;
 
 bool init(arMasterSlaveFramework&, arSZGClient& cli) {
-  const string dataPath(cli.getAttribute( "SZG_DATA", "path" ));
+  const string dataPath = cli.getDataPath();
   if (!leftImage.readPPM( leftFile, dataPath )){
     cerr << "StereoViewer error: failed to read picture file \"" << leftFile
            << "\" from path " << dataPath << ".\n";

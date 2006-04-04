@@ -57,7 +57,8 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
          << ", " << _filterWeights[2] << " ).\n";
   }
     
-  const string dataPath(szgClient->getAttribute("SZG_DATA", "path"));
+  // copypasted about 30 lines with drivers/arPForthDatabaseVocabulary.cpp TrackCalAction::configure
+  const string dataPath = szgClient->getDataPath();
   const string calFileName(szgClient->getAttribute("SZG_MOTIONSTAR", "calib_file"));
   FILE *fp = ar_fileOpen( calFileName, dataPath, "r" );
   if (fp == NULL) {

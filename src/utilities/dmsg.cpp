@@ -93,7 +93,7 @@ LPrintUsage:
   }
   
   arSZGClient szgClient;
-  szgClient.init(argc, argv);
+  szgClient.init(argc, argv); // Bug: parsing "-szg" args fails - this should happen BEFORE we argc and argv.
   if (!szgClient)
     return 1;
 

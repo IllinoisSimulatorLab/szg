@@ -8,10 +8,8 @@
 #include "arAppLauncher.h"
 
 int main(int argc, char** argv){
-  // NOTE: arSZGClient::init(...) must come before the argument parsing...
-  // otherwise -szg user=... and -szg server=... will not work.
   arSZGClient szgClient;
-  szgClient.init(argc, argv);
+  szgClient.init(argc, argv); // Parse "-szg" args first.
   if (!szgClient) {
     cerr << "screensaver error: failed to initialize SZGClient.\n";
     return 1;

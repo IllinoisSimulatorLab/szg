@@ -51,9 +51,7 @@ void* SZG_SOUND_CALLBACK ar_soundClientDSPCallback(void*,
 
 void ar_soundClientWaveformConnectionTask(void* soundClient){
   arSoundClient* s = (arSoundClient*) soundClient;
-  // Don't keep trying infinitely
   while (s->_dataServer.acceptConnection() != NULL){
-    // Don't print anything here... it's a little obnoxious
   }
 }
 
@@ -62,16 +60,13 @@ bool ar_soundClientConnectionCallback(void*, arTemplateDictionary*){
 }
  
 bool ar_soundClientDisconnectCallback(void* client){
-  arSoundClient* c = (arSoundClient*) client;
+  arSoundClient* c = (arSoundClient*)client;
   ar_log_remark() << "arSoundClient remark: disconnected from server.\n";
-  // Delete the bundle path information. This
-  // is unique to each connection. This information lets
-  // an app have its sound files in a flexible location (i.e.
-  // NOT on the sound path).
+  // Delete the bundle path, which is unique to each connection so
+  // an app's sound files be other than "on the sound path."
   c->setDataBundlePath("NULL","NULL");
   c->reset();
-  // NOTE: DO NOT CALL skipConsumption from here! That is done in the
-  // arSyncDataClient proper.
+  // Call skipConsumption from arSyncDataClient, not from here.
   return true;
 }
 

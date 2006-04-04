@@ -43,14 +43,14 @@ class SZG_CALL arSZGAppFramework {
     virtual void loadNavMatrix(){}
     void speak( const std::string& message );
     bool setInputSimulator( arInputSimulator* sim );
-    string getLabel(){ return _label; }
+    string getLabel() const { return _label; }
     bool getStandalone() const { return _standalone; }
-    const string getDataPath(){ return _dataPath; }
+    const string getDataPath() const { return _dataPath; }
         
     // Set-up the viewer (i.e. the user's head).
     void setEyeSpacing( float feet );
     void setClipPlanes( float near, float far );
-    arHead* getHead(){ return &_head; }
+    arHead* getHead() { return &_head; }
     virtual void setFixedHeadMode(bool isOn) { _head.setFixedHeadMode(isOn); }
     virtual arMatrix4 getMidEyeMatrix() { return _head.getMidEyeMatrix(); }
     virtual arVector3 getMidEyePosition() { return _head.getMidEyePosition(); }
@@ -95,7 +95,7 @@ class SZG_CALL arSZGAppFramework {
     virtual void onProcessEventQueue( arInputEventQueue& theQueue );
     // Should this return a copy instead? In some cases it points
     // inside the arInputNode.
-    arInputState* getInputState(){ return (arInputState*)_inputState; }
+    arInputState* getInputState() { return (arInputState*)_inputState; }
 
     // Some applications need a thread running external to the library.
     // For deterministic shutdown, we need to be able to register that
@@ -104,33 +104,31 @@ class SZG_CALL arSZGAppFramework {
     /// In the case of a user-defined, external event loop, the external
     /// program may need to know when the "stop" signal has been received.
     /// Returns whether or not the shutdown process has begun.
-    bool stopping(){ return _exitProgram; }
+    bool stopping() const { return _exitProgram; }
     /// in the case of a user-defined external event loop, we may want the 
     /// exit(0) call to be made by the user code. The following function lets 
     /// the user code know that stop(...) is done. 
     /// Returns whether or not stop(...) has completed.
-    bool stopped(){ return _stopped; }
+    bool stopped() const { return _stopped; }
     // sometimes we want to use an external thread or other event loop that
     // must be shutdown cleanly
-    void useExternalThread(){ _useExternalThread = true; }
+    void useExternalThread() { _useExternalThread = true; }
     // tells stop() that our external thread has started
-    void externalThreadStarted(){ _externalThreadRunning = true; }
+    void externalThreadStarted() { _externalThreadRunning = true; }
     // tells stop() that our external thread has shut-down cleanly
-    void externalThreadStopped(){ _externalThreadRunning = false; }
+    void externalThreadStopped() { _externalThreadRunning = false; }
 
     // Accessors for various internal objects/services. Necessary for flexibility.
     
     // Some applications need to be able to find out information
     // about the virtual computer.
-    arAppLauncher* getAppLauncher(){ return &_launcher; }
+    arAppLauncher* getAppLauncher() { return &_launcher; }
     // Some applications want to do nonstandard things with the input node.
-    arInputNode* getInputNode(){ return _inputDevice; }
-    // Needed for backwards compatibility, even though it does the same thing
-    // as the above.
-    arInputNode* getInputDevice(){ return _inputDevice; }
+    arInputNode* getInputNode() { return _inputDevice; }
+    arInputNode* getInputDevice() { return getInputNode(); } // Deprecated version of getInputNode()
     // Allowing the user access to the window manager increases the flexibility
     // of the framework. Lots of info about the GUI becomes available.
-    arGUIWindowManager* getWindowManager( void ) { return _wm; }
+    arGUIWindowManager* getWindowManager( void ) const { return _wm; }
     // Some applications want to be able to work with the arSZGClient directly.
     arSZGClient* getSZGClient() { return &_SZGClient; }
       

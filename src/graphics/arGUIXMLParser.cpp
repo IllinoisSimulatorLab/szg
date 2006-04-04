@@ -56,15 +56,14 @@ bool arGUIXMLValidator::operator()( TiXmlNode* node ) {
   if (!node) {
     ar_log_debug() << "arGUIXML remark: skipping NULL " << _nodeTypeName << " node.\n";
     return false;
-  } else {
-    ar_log_debug() << "arGUIXML remark: validating " << _nodeTypeName << ar_endl;
-    return _validateNodeAttributes( node ) && 
-      _validateNodeChildren( node );
   }
+  ar_log_debug() << "arGUIXML remark: validating " << _nodeTypeName << ar_endl;
+  return _validateNodeAttributes( node ) && 
+    _validateNodeChildren( node );
 }
 
 bool arGUIXMLValidator::_validateNodeAttributes( TiXmlNode* node ) {
-  bool stat(true);
+  bool ok = true;
   for (TiXmlAttribute* att = node->ToElement()->FirstAttribute(); att; att = att->Next() ) {
     std::string name( att->Name() );
     ar_log_debug() << "attribute: " << name << ar_endl;
@@ -77,15 +76,15 @@ bool arGUIXMLValidator::_validateNodeAttributes( TiXmlNode* node ) {
         ar_log_error() << " " << *iter;
       }
       ar_log_error() << ar_endl;
-      stat = false;
+      ok = false;
     }
   }
-  ar_log_debug() << "stat: " << stat << ar_endl;
-  return stat;
+  // ar_log_debug() << "_validateNodeAttributes ok: " << ok << ar_endl;
+  return ok;
 }
 
 bool arGUIXMLValidator::_validateNodeChildren( TiXmlNode* node ) {
-  bool stat(true);
+  bool ok = true;
   for (TiXmlNode* child = node->FirstChild(); child; child = child->NextSibling() ) {
     std::string name( child->Value() );
     ar_log_debug() << "child: " << name << ar_endl;
@@ -98,11 +97,11 @@ bool arGUIXMLValidator::_validateNodeChildren( TiXmlNode* node ) {
         ar_log_error() << " " << *iter;
       }
       ar_log_error() << ar_endl;
-      stat = false;
+      ok = false;
     }
   }
-  ar_log_debug() << "stat: " << stat << ar_endl;
-  return stat;
+  // ar_log_debug() << "_validateNodeChildren ok: " << ok << ar_endl;
+  return ok;
 }
 
 class arGUIXMLDisplayValidator: public arGUIXMLValidator {
@@ -415,7 +414,7 @@ void arGUIXMLParser::_reportParseError( TiXmlDocument* nodeDoc, const std::strin
   int colNum = nodeDoc->ErrorCol()-1;
   std::string::size_type curPos(0);
   std::string errLine( nodeDesc );
-  bool stat(false);
+  bool ok = false;
   std::vector< std::string > lines;
   std::string line;
   istringstream ist;
@@ -425,16 +424,16 @@ void arGUIXMLParser::_reportParseError( TiXmlDocument* nodeDoc, const std::strin
   }
   if (lines.size() > rowNum) {
     errLine = lines[rowNum];
-    stat = true;
+    ok = true;
   }
-  ar_log_error() << "arGUIXMLParser error:\n\t"
+  ar_log_error() << "arGUIXMLParser: "
     << nodeDoc->ErrorDesc() << "\n";
-  if (stat) {
-    ar_log_error() << "In the following line:\n\t" << errLine << "\n";
+  if (ok) {
+    ar_log_error() << "in line:  " << errLine << "\n";
   }
   ar_log_error() << "(Use the arg sequence '-szg log=DEBUG' to see the whole XML chunk).\n";
   ar_log_debug() << "Somewhere in the following XML:\n\t" << nodeDesc << ar_endl;
-  ar_log_debug() << "(the parser isn't always good at localizing errors).\n";
+  // The parser isn't always good at localizing errors.
 }
 
 arVector3 arGUIXMLParser::_attributearVector3( TiXmlNode* node,
@@ -444,17 +443,14 @@ arVector3 arGUIXMLParser::_attributearVector3( TiXmlNode* node,
                                                const std::string& z )
 {
   arVector3 vec;
-
-  if( !node || !node->ToElement() ) {
+  if( !node || !node->ToElement() )
     return vec;
-  }
 
   arGUIXMLVector3Validator validator( name, x, y, z );
   validator( node );
   node->ToElement()->Attribute( x.c_str(), &vec[ 0 ] );
   node->ToElement()->Attribute( y.c_str(), &vec[ 1 ] );
   node->ToElement()->Attribute( z.c_str(), &vec[ 2 ] );
-
   return vec;
 }
 
@@ -466,10 +462,8 @@ arVector4 arGUIXMLParser::_attributearVector4( TiXmlNode* node,
                                                const std::string& w )
 {
   arVector4 vec;
-
-  if( !node || !node->ToElement() ) {
+  if( !node || !node->ToElement() )
     return vec;
-  }
 
   arGUIXMLVector4Validator validator( name, x, y, z, w );
   validator( node );
@@ -477,21 +471,18 @@ arVector4 arGUIXMLParser::_attributearVector4( TiXmlNode* node,
   node->ToElement()->Attribute( y.c_str(), &vec[ 1 ] );
   node->ToElement()->Attribute( z.c_str(), &vec[ 2 ] );
   node->ToElement()->Attribute( w.c_str(), &vec[ 3 ] );
-
   return vec;
 }
 
 bool arGUIXMLParser::_attributeBool( TiXmlNode* node,
                                      const std::string& value )
 {
-  if( !node || !node->ToElement() ) {
+  if( !node || !node->ToElement() )
     return false;
-  }
 
-  // passing NULL to strcmp below is undefined
-  if( !node->ToElement()->Attribute( value.c_str() ) ) {
+  // Don't pass NULL to strcmp.
+  if( !node->ToElement()->Attribute( value.c_str() ) )
     return false;
-  }
 
   std::string attrVal( node->ToElement()->Attribute( value.c_str() ) );
   if ((attrVal != "yes")&&(attrVal != "no")&&(attrVal != "true")&&(attrVal != "false")) {
@@ -500,11 +491,7 @@ bool arGUIXMLParser::_attributeBool( TiXmlNode* node,
     return false;
   }
 
-  if ((attrVal == "true")||(attrVal == "yes")) {
-    return true;
-  }
-
-  return false;
+  return attrVal == "true" || attrVal == "yes";
 }
 
 int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,

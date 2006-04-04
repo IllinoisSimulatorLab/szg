@@ -70,14 +70,14 @@ float arTexFont::characterHeight(){
 
 bool arTexFont::load(const string& font){
   // Black pixels should be transparent.
-  bool state =_fontTexture.readPPM( font, 0);
+  const bool ok =_fontTexture.readPPM( font, 0);
   // ppm images are flipped as read in by the current buggy software.
-  if (state){
+  if (ok){
     _fontTexture.setTextureFunc(GL_MODULATE);
     _fontTexture.flipHorizontal();
     _fontTexture.mipmap(true);
   }
-  return state;
+  return ok;
   
 }
 

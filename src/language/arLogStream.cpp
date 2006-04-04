@@ -20,8 +20,7 @@ int ar_stringToLogLevel(const string& logLevel){
     return AR_LOG_REMARK;
   if (logLevel == "DEBUG")
     return AR_LOG_DEBUG;
-  // The default should probably be the most verbose.
-  return AR_LOG_DEBUG; 
+  return AR_LOG_NIL; 
 }
 
 string ar_logLevelToString(int logLevel){

@@ -44,7 +44,7 @@ class SZG_CALL arSZGClient{
 
   bool launchDiscoveryThreads();
 
-  // Here are the functions for dealing with the parameter database
+  // Parameter database.
   bool setAttribute(const string& computerName,
                     const string& groupName,
                     const string& parameterName,
@@ -54,11 +54,6 @@ class SZG_CALL arSZGClient{
                     const string& groupName,
                     const string& parameterName,
                     const string& parameterValue);
-  // An abbreviation for the common case computerName=="NULL".
-  bool setAttribute(const string& groupName,
-                    const string& parameterName,
-                    const string& parameterValue)
-    { return setAttribute("NULL", groupName, parameterName, parameterValue); }
   string testSetAttribute(const string& computerName,
 			  const string& groupName,
 			  const string& paramterName,
@@ -77,12 +72,16 @@ class SZG_CALL arSZGClient{
                       const string& groupName,
                       const string& parameterName,
 		      const string& validValues /* no default */);
-  // An abbreviation for the common case computerName=="NULL".
+
+  // Parameter database, abbreviations for common cases thereof.
+  bool setAttribute(const string& groupName,
+                    const string& parameterName,
+                    const string& parameterValue)
+    { return setAttribute("NULL", groupName, parameterName, parameterValue); }
   string getAttribute(const string& groupName,
                       const string& parameterName,
 		      const string& validValues = "")
     { return getAttribute("NULL", groupName, parameterName, validValues); }
-  // More abbreviations.
   int getAttributeInt(const string& groupName,
                       const string& parameterName);
   int getAttributeInt(const string&, const string&, const string&,
@@ -103,8 +102,12 @@ class SZG_CALL arSZGClient{
                             const string& parameterName,
                             arVector3& value );
   string getAllAttributes(const string& substring);
+  const string getDataPath()
+    { return getAttribute("SZG_DATA", "path"); }
+  const string getDataPathPython()
+    { return getAttribute("SZG_PYTHON", "path"); }
 
-  // For handling so-called "global" attributes.
+  // "Global" attributes.
   bool setGlobalAttribute(const string& attributeName,
 			  const string& attributeValue);
   bool setGlobalAttribute(const string& userName,

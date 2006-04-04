@@ -61,7 +61,7 @@ arSZGClient::arSZGClient():
   _keepRunning(true),
   _justPrinting(false)
 {
-  // temporary... this will be overwritten in init(...)
+  // temporary... this will be overwritten in init()
   _exeName.assign("Syzygy client");
 
   _dataClient.setLabel(_exeName);
@@ -127,17 +127,19 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
   
   // On Unix, we might need to finish a handshake with szgd,
   // telling it we've been successfully forked.
-  // THIS MUST OCCUR BEFORE dialUpFallThrough.
+  // Before dialUpFallThrough.
 
-  // Regardless of whether or not init() succeeds, it must finish the
-  // handshake with dex.  So only one return statement, at the end.
+  // Whether or not init() succeeds, finish the handshake with dex.
+  // So only one return statement, at the end.
 
   bool success = true;
-  const string pipeIDString(ar_getenv("SZGPIPEID"));
+  const string pipeIDString = ar_getenv("SZGPIPEID");
   if (pipeIDString != "NULL"){
     _dexHandshaking = true;
-    // we have, in fact, been successfully spawned on the Unix side
+
+    // We have been successfully spawned on the Unix side.
     const int pipeID = atoi(pipeIDString.c_str());
+
     // Send the success code.  On Win32 set the pipe ID to -1,
     // which gets us into here (to set _dexHandshaking to true...
     // but don't write to the pipe on Win32 since the function is unimplemented
@@ -188,9 +190,9 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
   // call. These can override some of the member variables set above.
   if (!_parsePhleetArgs(argc, argv)){
     _initResponseStream << _exeName << " error: invalid Phleet args.\n";
-    // NOTE: it isn't strictly true that we are not connected.
-    // However, if this happens, we want the component to quit,
-    // which it will only do if _connected is false.
+
+    // If connected, we want the component to quit,
+    // for which _connected must be false.
     _connected = false;
     success = false; // do not return yet
   }
@@ -206,32 +208,28 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
     success = false; // do not return yet
   }
   
-  // The special SZGUSER environment variable trumps everything else, if set!
-  // This variable is used by szgd!
+  // Environment variable SZGUSER trumps everything else.  szgd uses it.
   const string userNameOverride = ar_getenv("SZGUSER");
   if (userNameOverride != "NULL"){
-    // ar_getenv returns "NULL" if the environment var is not set.
     _userName = userNameOverride;
   }
   
   if ( _IPaddress == "NULL" || _port == -1 || _userName == "NULL" ){
-    // No information to attempt dlogin, so we must be standalone.
-    ar_log_critical() << _exeName << " remark: running standalone.\n";
+    // Can't dlogin.
+    ar_log_critical() << _exeName << " running standalone.\n";
     _connected = false;
     success = true;
     
-    // Don't complain if the file cannot be found.
+    // Don't warn if no param file is found.
     if (!parseParameterFile(_parameterFileName, false)){
-      // Failed to find the specified parameter file.
-      // Find a file specified by environment variable SZG_PARAM.
-      const string possibleFileName = ar_getenv("SZG_PARAM");
-      if (possibleFileName != "NULL"){
-	parseParameterFile(possibleFileName, false);
+      const string fallbackFilename = ar_getenv("SZG_PARAM");
+      if (fallbackFilename != "NULL"){
+	parseParameterFile(fallbackFilename, false);
       }
     }
   }
   else{
-    // Should be "in Phleet mode", not standalone. Don't complain.
+    // Not standalone.
     
     // This needs to go after phleet args parsing, etc. It could be that we
     // specify where the server is, what the user name is, etc. via command
@@ -274,7 +272,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
       _initialInitLength = _initResponseStream.str().length();
       _startResponseStream << _generateLaunchInfoHeader();
       _initialStartLength = _startResponseStream.str().length();
-      
+
       if (_dexHandshaking){
 	// Shake hands with dex.
 	// Regardless of whether we are on Unix or Win32, we need to begin
@@ -337,21 +335,21 @@ bool arSZGClient::_sendResponse(stringstream& s,
     }
   }
   else{
-    // Nowhere to send the message. Might as well go to the terminal.
-    // Send to cout, not the logging stream where it'll disappear.
-    if (printInfo){
+    // Don't forward the message, so use cout.
+    if (printInfo)
       cout << s.str();
-    }
   }
   return true;
 }
 
-/// If we have launched via szgd/dex, send the init message stream
+/// If dex launched us, send the init message stream
 /// back to the launching dex command. If we launched from the command line,
 /// just print the stream. If "ok" is true, the init succeeded
 /// and we'll be sending a start message later (so this will be a partial
 /// response). Otherwise, the init failed and we'll
 /// not be sending another response, so this should be the final one.
+///
+/// Typically main() calls this.  Every return from main should call this.
 bool arSZGClient::sendInitResponse(bool ok){
   return _sendResponse(_initResponseStream, "initialization", _initialInitLength, ok, ok);
 }
@@ -2720,17 +2718,18 @@ bool arSZGClient::_parsePhleetArgs(int& argc, char** const argv){
 /// Helper for _parseContext that handles FOO=BAR components
 /// of that string. "NULL" is also allowed as a do-nothing value.
 bool arSZGClient::_parseContextPair(const string& thePair){
-  // the context pair should be seperated by a single =
-  unsigned int location = thePair.find('=');
+  const unsigned int location = thePair.find('=');
   if (location == string::npos){
     ar_log_error() << _exeName << " error: missing '=' in context pair.\n";
     return false;
   }
-  unsigned int length = thePair.length();
+
+  const unsigned int length = thePair.length();
   if (location == length-1){
     ar_log_error() << _exeName << " error: nothing after '=' in context pair.\n";
     return false;
   }
+
   // Everything is in the format FOO=BAR, where FOO can be
   // "virtual", "mode", "networks/default", "networks/graphics",
   // "networks/sound", "networks/input"...
@@ -2738,17 +2737,20 @@ bool arSZGClient::_parseContextPair(const string& thePair){
   const arSlashString pair1(thePair.substr(0,location));
   const string pair1Type(pair1[0]);
   const string pair2(thePair.substr(location+1, length - location - 1));
-  // if the second value is "NULL", we do nothing
-  if (pair2 == "NULL")
+  if (pair2 == "NULL") {
+    // do nothing
     return true;
+  }
 
   if (pair1Type == "virtual"){
     _virtualComputer = pair2;
+    return true;
   }
-  else if (pair1Type == "mode"){
+
+  if (pair1Type == "mode"){
     if (pair1.size() != 2){
-      ar_log_error() << _exeName <<
-        " error: parseContextPair()'s mode data has no specified channel.\n";
+      ar_log_error() << _exeName
+                     << "no channel in parseContextPair()'s mode data.\n";
       return false;
     }
     const string modeChannel(pair1[1]);
@@ -2760,51 +2762,60 @@ bool arSZGClient::_parseContextPair(const string& thePair){
     }
     else{
       ar_log_error() << _exeName <<
-        " error: parseContextPair() got invalid mode channel.\n";
+        " parseContextPair() got invalid mode channel.\n";
       return false;
     }
+    return true;
   }
-  else if (pair1Type == "networks"){
+
+  if (pair1Type == "networks"){
     // Return true iff the networks value is valid,
     // and set _networks and _addresses appropriately.
     if (pair1.size() != 2){
-      ar_log_error() << _exeName << " error: "
+      ar_log_error() << _exeName
                      << "no channel in parseContextPair()'s networks data.\n";
       return false;
     }
     return _checkAndSetNetworks(pair1[1], pair2);
   }
-  else if (pair1Type == "parameter_file"){
+
+  if (pair1Type == "parameter_file"){
     _parameterFileName = pair2;
+    return true;
   }
-  else if (pair1Type == "server"){
+
+  if (pair1Type == "server"){
     arSlashString serverLocation(pair2);
     if (serverLocation.size() != 2){
-      ar_log_error() << _exeName <<
-        " error: server command line parameter needs a slash string of length 2.\n";
+      ar_log_error() << _exeName << " expected ipaddress/port after 'server'.\n";
       return false;
     }
     _IPaddress = serverLocation[0];
-    // AARGH! fixed size buffer.... very bad!
-    char buffer[1024];
+    char buffer[1024]; // buffer overflow.  Also needs error checking.
     ar_stringToBuffer(serverLocation[1], buffer, 1024);
     _port = atoi(buffer);
+    return true;
   }
-  else if (pair1Type == "user"){
+
+  if (pair1Type == "user"){
     _userName = pair2;
+    return true;
   }
-  else if (pair1Type == "log") {
-    // legal values are SILENT, CRITICAL, ERROR, WARNING, REMARK,
-    // and DEBUG (in ascending order of verbosity).
-    _logLevel = ar_stringToLogLevel(pair2);
+
+  if (pair1Type == "log") {
+    const int temp = ar_stringToLogLevel(pair2);
+    if (temp == AR_LOG_NIL) {
+      ar_log_critical() << _exeName << " ignoring log level '" << pair2 << "'; legal values are SILENT, CRITICAL, ERROR, WARNING, REMARK, DEBUG.\n";
+      return false;
+    }
+    _logLevel = temp;
     ar_log().setLogLevel(_logLevel);
+    return true;
   }
-  else{
-    ar_log_error() << _exeName << " error: context pair has unknown type \""
-                   << pair1Type << "\".\n";
-    return false;
-  }
-  return true;
+
+  ar_log_error() << _exeName << " error: context pair has unknown type \""
+		 << pair1Type << "\".\n  (Expected one of: virtual, mode, networks, parameter_file, server, user, log.)\n";
+  return false;
 }
 
 /// networks contains various network names. channel is one of "default",
@@ -2817,10 +2828,10 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
                    << channel << "\".\n";
     return false;
   }
+
+  // Every new network must be one of the current networks.
   const int numberNewNetworks = networks.size();
   const int numberCurrentNetworks = _networks.size();
-  // Check to see if every one of the new networks is, in fact, one of the
-  // current networks. If not, we have an error.
   int i=0, j=0;
   for (i=0; i<numberNewNetworks; i++){
     bool match = false;
@@ -2834,7 +2845,8 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
       return false;
     }
   }
-  // Each one of the new networks matched.  Get addresses.
+
+  // Get address of each new network.
   // Inefficient, but one host doesn't have many NICs.
   arSlashString newAddresses;
   for (i=0; i<numberNewNetworks; i++){
@@ -2843,34 +2855,40 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
 	newAddresses /= _addresses[j];
     }
   }
+
   if (channel == "default"){
     _networks = networks;
     _addresses = newAddresses;
+    return true;
   }
-  else if (channel == "graphics"){
+  if (channel == "graphics"){
     _graphicsNetworks = networks;
     _graphicsAddresses = newAddresses;
+    return true;
   }
-  else if (channel == "sound"){
+  if (channel == "sound"){
     _soundNetworks = networks;
     _soundAddresses = newAddresses;
+    return true;
   }
-  else if (channel == "input"){
+  if (channel == "input"){
     _inputNetworks = networks;
     _inputAddresses = newAddresses;
+    return true;
   }
-  return true;
+  ar_log_error() << _exeName << " ignoring unknown channel '" << channel <<
+    "', expected one of: default, graphics, sound, input.\n";
+  return false;
 }
 
-/// Generates a standard informational header begins the text of all messages
-/// sent back to dex from a launched executable
+/// Header beginnnig all messages returned to dex from a launched exe.
 string arSZGClient::_generateLaunchInfoHeader(){
-  stringstream resultStream;
-  resultStream << "*user=" << _userName << ", "
-	       << "context=" << createContext() << "\n"
-	       << "*computer=" << _computerName << ", "
-	       << "executable=" << _exeName << "\n";
-  return resultStream.str();
+  stringstream s;
+  s << "*user=" << _userName << ", "
+    << "context=" << createContext() << "\n"
+    << "*computer=" << _computerName << ", "
+    << "executable=" << _exeName << "\n";
+  return s.str();
 }
 
 /// It could be the case that we are relying on a locally parsed config
@@ -2882,16 +2900,10 @@ string arSZGClient::_getAttributeLocal(const string& computerName,
   const string query =
     ((computerName == "NULL") ? _computerName : computerName) + "/"
     + groupName + "/" + parameterName;
-  string result;
-  map<string, string, less<string> >::iterator i =
-    _localParameters.find(query);
-  if (i == _localParameters.end()){
-    result = string("NULL");
-  }
-  else{
-    result = i->second;
-  }
-  return _changeToValidValue(groupName, parameterName, result, validValues);
+  map<string, string, less<string> >::iterator i = _localParameters.find(query);
+  return _changeToValidValue(groupName, parameterName,
+    (i == _localParameters.end()) ? "NULL" : i->second,
+    validValues);
 }
 
 /// It could be the case that we are relying on a locally parsed config
@@ -2905,30 +2917,20 @@ bool arSZGClient::_setAttributeLocal(const string& computerName,
     + groupName + "/" + parameterName;
   map<string, string, less<string> >::iterator i =
     _localParameters.find(query);
-  if (i != _localParameters.end()){
+  if (i != _localParameters.end())
     _localParameters.erase(i);
-  }
   _localParameters.insert(map<string,string,less<string> >::value_type
                           (query,parameterValue));
   return true;
 }
 
-/// It could be the case that we are relying on a locally parsed config
-/// file. (i.e. standalone mode). In this case, we are pulling a so-called
-/// "global" attribute (i.e. one not tied to a computer) out of storage.
-/// Since we are locally getting a "global" attribute this leads to the
-/// following silly function name...
+/// If standalone (aka locally parsed config file),
+/// get a "global" attribute (i.e. one not tied to a computer).
+/// Locally getting a "global" attribute produces the silly name.
 string arSZGClient::_getGlobalAttributeLocal(const string& attributeName){
-  string result;
   map<string, string, less<string> >::iterator i =
     _localParameters.find(attributeName);
-  if (i == _localParameters.end()){
-    result = string("NULL");
-  }
-  else{
-    result = i->second;
-  }
-  return result;
+  return (i == _localParameters.end()) ? "NULL" : i->second;
 }
 
 /// It could be the case that we are relying on a locally parsed config
@@ -2940,9 +2942,8 @@ bool arSZGClient::_setGlobalAttributeLocal(const string& attributeName,
 					   const string& attributeValue){
   map<string, string, less<string> >::iterator i =
     _localParameters.find(attributeName);
-  if (i != _localParameters.end()){
+  if (i != _localParameters.end())
     _localParameters.erase(i);
-  }
   _localParameters.insert(map<string,string,less<string> >::value_type
                           (attributeName,attributeValue));
   return true;
@@ -2964,13 +2965,13 @@ string arSZGClient::_changeToValidValue(const string& groupName,
                        << validValues << "\".\n";
       return value;
     }
-    else if (validValues.find('|'+value+'|') == string::npos) {
+    if (validValues.find('|'+value+'|') == string::npos) {
       const int end = validValues.find('|', 1);
       const string valueNew(validValues.substr(1, end-1));
       // ONLY COMPLAIN IF WE ARE CHANGING A VALUE THAT HAS BEEN EXPLICITLY
       // SET.
       if (value != "NULL") {
-	ar_log_warning() << _exeName << " warning: "
+	ar_log_warning() << _exeName << " : "
 	                 << groupName+'/'+parameterName << " should be one of "
 	                 << validValues << ",\n    but is " << value
 	                 << ".  Using default instead (" << valueNew << ").\n";
@@ -2978,21 +2979,19 @@ string arSZGClient::_changeToValidValue(const string& groupName,
       return valueNew;
     }
   }
-  // If we get here, either the valid values string is undefined or our value
-  // matches one of the valid values.
+  // Either the valid values string is undefined,
+  // or our value matches one of the valid values.
   return value;
 }
 
-/// A somewhat baroque construction that lets us get configuration information
-/// from the szgservers on the network.
+/// Baroquely get configuration information from the szgservers.
 void arSZGClient::_serverResponseThread() {
-  char buffer[200];
+  char buffer[200]; // buffer overflow
   while (_keepRunning) {
     arSocketAddress fromAddress;
     while (_discoverySocket->ar_read(buffer, 200, &fromAddress) < 0) {
       ar_usleep(10000);
-      // Win32 returns -1 if no packet was received
-      // (and therefore the data below would be garbage).
+      // Win32 returns -1 if no packet was received.
     }
 
     // We got a packet.

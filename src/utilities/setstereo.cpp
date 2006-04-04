@@ -9,13 +9,11 @@
 #include "arSZGClient.h"
 #include <string>
 
-// Enable/disable stereo, and send reload message to, all render clients.
+// Enable/disable stereo on, and send reload message to, all render clients.
 
 int main(int argc, char** argv) {
-  // NOTE: arSZGClient::init(...) must come before the argument parsing...
-  // otherwise -szg user=... and -szg server=... will not work.
   arSZGClient szgClient;
-  szgClient.init(argc, argv);
+  szgClient.init(argc, argv); // Parse "-szg" args first.
   if (!szgClient) {
     cerr << "setstereo error: failed to initialize SZGClient.\n";
     return 1;
