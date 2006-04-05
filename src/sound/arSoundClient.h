@@ -59,6 +59,7 @@ class SZG_CALL arSoundClient{
   void startDSP();
   void relayWaveform();
   void setDSPTap(void (*callback)(float*));
+  void microphoneVolume(int volume);
 
   // _soundDatabase interface
   bool empty() { return _soundDatabase.empty(); }
@@ -100,6 +101,10 @@ class SZG_CALL arSoundClient{
 
   arSignalObject  _signalObject;
   arMutex         _bufferSwapLock;
+
+  // Microphone output into the sound player.
+  int             _recordChannel;
+  int             _microphoneVolume;
 
   bool _fSilent; // True iff sound subsystem failed to initialize at runtime.
   bool _initSound();

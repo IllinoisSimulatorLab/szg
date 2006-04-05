@@ -75,7 +75,9 @@ arSoundClient::arSoundClient():
   _dataServerRegistered(false),
   _dataServer(5000),
   _dspStarted(false),
-  _dspTap(NULL){
+  _dspTap(NULL),
+  _recordChannel(-1),
+  _microphoneVolume(0){
   // Set-up the language.
   _waveTemplate.add("data",AR_FLOAT);
   _dspLanguage.add(&_waveTemplate);
@@ -214,6 +216,24 @@ void arSoundClient::startDSP(){
   _dspStarted = true;
 #ifdef EnableSound
   ar_log_remark() << "arSoundClient remark: DSP started.\n";
+  FSOUND_SAMPLE* samp1 = FSOUND_Sample_Alloc(FSOUND_UNMANAGED, 2048,
+  FSOUND_MONO | FSOUND_16BITS, 44100, 255, 128, 255);
+  // the sample mode must be set
+  (void)FSOUND_Sample_SetMode(samp1, FSOUND_LOOP_NORMAL);
+
+  // Add the ability to have the arSoundClient play sounds from the microphone.
+  // BUG BUG BUG. There is a memory leak here (probably unimportant since arSoundClient is
+  // only constructed once).
+  if (!FSOUND_Record_StartSample(samp1, 1)){
+    ar_log_error() << "SongQueue warning: failed to start recording.\n";
+  }
+  // it is necessary to start the sample playing
+  _recordChannel = FSOUND_PlaySound(FSOUND_FREE, samp1);
+  // By default, the volume on a channel is 255. Replace with the _microphoneVolume (whose default
+  // is 0, i.e. mute).
+  FSOUND_SetVolume(_recordChannel, _microphoneVolume);
+
+  // Start the DSP.
   _DSPunit = FSOUND_DSP_Create(ar_soundClientDSPCallback,
 			       FSOUND_DSP_DEFAULTPRIORITY_USER+20, 0);
   FSOUND_DSP_SetActive(_DSPunit,1);
@@ -232,6 +252,30 @@ void arSoundClient::relayWaveform(){
 
 void arSoundClient::setDSPTap(void (*callback)(float*)){
   _dspTap = callback;
+}
+
+void arSoundClient::microphoneVolume(int volume){
+  if (volume < 0){
+    _microphoneVolume = 0;
+  }
+  else if (volume > 255){
+    _microphoneVolume = 255;
+  }
+  else{
+    _microphoneVolume = volume;
+  }
+#ifdef EnableSound
+  if (_recordChannel > 0){
+    FSOUND_SetVolume(_recordChannel, _microphoneVolume);
+    if (_microphoneVolume == 0){
+      // Don't waste resources if the microphone is mute.
+      FSOUND_SetPaused(_recordChannel, 1);
+    }
+    else{
+      FSOUND_SetPaused(_recordChannel, 0);
+    }
+  }
+#endif
 }
 
 bool arSoundClient::_initSound(){
