@@ -1,28 +1,24 @@
-# The standard top-level Makefile for individual projects.
-# Used by projects built on szg, though not in szg itself.
+# Standard top-level Makefile for individual projects built on syzygy.
+# Not used in syzygy itself.
 
 include $(SZGHOME)/build/make/Makefile.os
 
 ifeq "$PLATFORM" "UNKNOWN_OS"
 
 all:
-	@echo "Makefile failed to guess OS type."
+	@echo "Makefile failed to guess operating system."
 
 else
 
 all:
 	$(MAKE) -C build/$(PLATFORM) -j $(JOBS) || exit 1
 	@echo "Executables in build/"$(PLATFORM) "and" $(SZG_BINDIR)
-
 clean:
 	$(MAKE) -C build/$(PLATFORM) clean 
-
 create-sdk: all
 	$(MAKE) -C build/$(PLATFORM) create-sdk
-
 bin-install: all
 	$(MAKE) -C build/$(PLATFORM) bin-install
-
 install-shared:
 	$(MAKE) -C build/$(PLATFORM) install-shared
 
