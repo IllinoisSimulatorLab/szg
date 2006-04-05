@@ -1,6 +1,5 @@
-# This is the standard top-level Makefile for individual projects.
-# It isn't used in szg itself, but is used ubiquitously in projects
-# that depend on szg.
+# The standard top-level Makefile for individual projects.
+# Used by projects built on szg, though not in szg itself.
 
 include $(SZGHOME)/build/make/Makefile.os
 
@@ -12,7 +11,8 @@ all:
 else
 
 all:
-	$(MAKE) -C build/$(PLATFORM) -j $(JOBS) || exit 1; echo "Executables in: build/"$(PLATFORM) "and" $(SZG_BINDIR)
+	$(MAKE) -C build/$(PLATFORM) -j $(JOBS) || exit 1
+	@echo "Executables in build/"$(PLATFORM) "and" $(SZG_BINDIR)
 
 clean:
 	$(MAKE) -C build/$(PLATFORM) clean 
