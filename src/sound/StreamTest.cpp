@@ -91,7 +91,7 @@ arMutex lockPlay;
 #define SZG_CALLBACK
 #endif
 
-void* SZG_CALLBACK DSP_ExampleCallback(void *bufSrc, void *bufDst, int length, int) {
+void* SZG_CALLBACK DSP_ExampleCallback(void *bufSrc, void *bufDst, int length, int/* might need void* instead of int, on Darwin*/) {
 #if 0
   // Might need this for some soundcards.
   const int mixertype = FSOUND_GetMixer();

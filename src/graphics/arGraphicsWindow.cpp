@@ -373,7 +373,7 @@ void arGraphicsWindow::_renderPass( GLenum oglDrawBuffer ) {
   // NOTE: in what follows, we will be changing the viewport. Its current
   // extent must be saved so that it can subsequently be restored.
   int params[4];
-  glGetIntegerv(GL_VIEWPORT, params);
+  glGetIntegerv(GL_VIEWPORT, (GLint*)params);
 
   std::vector<arViewport>::iterator i;
   for (i=_viewportVector.begin(); i != _viewportVector.end(); ++i){
@@ -390,7 +390,7 @@ void arGraphicsWindow::_renderPass( GLenum oglDrawBuffer ) {
                 (GLsizei)params[2], (GLsizei)params[3] );
   }
 
-//  glGetIntegerv( GL_DRAW_BUFFER, &drawBuffer );
+//  glGetIntegerv( GL_DRAW_BUFFER, (GLint*)&drawBuffer );
 //  cerr << "_renderPass end: drawBuffer = " << drawBuffer << endl;
   _currentEyeSign = 0.;
 

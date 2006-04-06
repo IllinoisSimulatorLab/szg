@@ -18,7 +18,7 @@ arSoundClient* __globalSoundClient;
 void* SZG_SOUND_CALLBACK ar_soundClientDSPCallback(void*,
 						   void* currentBuffer,
 						   int bufferLength,
-						   int){
+						   int/* might need void* instead of int, on Darwin*/){
 #ifndef AR_USE_DARWIN
   float* decoded_ptr = (float*) currentBuffer;
 #else

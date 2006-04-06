@@ -175,7 +175,7 @@ bool arTexture::activate(bool forceRebind) {
 #ifdef AR_USE_WIN_32
   ARint64 threadID = GetCurrentThreadId();
 #else
-  ARint64 threadID = pthread_self();
+  ARint64 threadID = (ARint64)pthread_self();
 #endif
   // Has it been used so far?
   map<ARint64,GLuint,less<ARint64> >::iterator i = _texNameMap.find(threadID);

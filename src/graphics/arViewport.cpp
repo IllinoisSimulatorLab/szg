@@ -163,7 +163,7 @@ void arViewport::activate(){
   // get the window size and set the viewport based on that and the
   // proportions stored herein.
   int params[4] = {0};
-  glGetIntegerv( GL_VIEWPORT, params );
+  glGetIntegerv( GL_VIEWPORT, (GLint*)params );
 
   // there's a whole complicated song and dance to ensure that, for instance,
   // viewports of (0,0,0.5,1) and (0.5,0,0.5,1) on a window of size 1024x768

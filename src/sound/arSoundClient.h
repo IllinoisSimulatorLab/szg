@@ -91,7 +91,9 @@ class SZG_CALL arSoundClient{
   arStructuredData*    _waveData;
   arTemplateDictionary _dspLanguage;
   arThread             _connectionThread;
-  float*               _waveDataPtr;
+ public:
+  float*               _waveDataPtr; // Darwin sometimes needs this public not protected
+ protected:
   bool                 _dataServerRegistered;
   arDataServer         _dataServer;
 

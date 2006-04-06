@@ -34,7 +34,7 @@ void arFrameworkObject::preComposition(float lowerX, float lowerY,
   // So do that by hand.
   _lightingOn = glIsEnabled(GL_LIGHTING) == GL_TRUE;
   glDisable( GL_LIGHTING );
-  glGetIntegerv( GL_VIEWPORT, _viewport);
+  glGetIntegerv( GL_VIEWPORT, (GLint*)_viewport);
   const int left = int(_viewport[2]*lowerX);
   const int bottom = int(_viewport[3]*lowerY);
   const int width = int(_viewport[2]*widthX);
