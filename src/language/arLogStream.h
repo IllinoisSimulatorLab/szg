@@ -14,6 +14,12 @@
 
 using namespace std;
 
+// CRITICAL: Essential state and unrecoverable errors (app terminates).
+// ERROR:    Errors that affect appearance.
+// WARNING:  Things that will likely surprise the user.
+// REMARK:   Everything else.
+// DEBUG:    For ISL developers.
+
 enum{
   AR_LOG_SILENT=0,
   AR_LOG_CRITICAL,
