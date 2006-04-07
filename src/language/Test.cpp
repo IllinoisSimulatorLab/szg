@@ -15,6 +15,12 @@
 #include <sstream>
 #include <iostream>
 
+#ifndef AR_USE_WIN_32
+#include <unistd.h>
+#else
+#define unlink(x) ((void)0) // lazy
+#endif
+
 bool keepStringTestRunning = true;
 
 void hammerString1(void*){
@@ -188,7 +194,9 @@ int main(){
   ar_timeval time1;
   arFileTextStream fileStream2;
   arStructuredDataParser theParser2(&dict1);
-  FILE* testFile = fopen("Junk.txt","w");
+  const char* filename = "Junk.txt";
+  (void)unlink(filename);
+  FILE* testFile = fopen(filename,"w");
   if (!testFile){
     cout << "*** Test failed (could not open temp file for writing).\n";
     exit(0);
@@ -196,7 +204,7 @@ int main(){
   data1.print(testFile);
   data2.print(testFile);
   fclose(testFile);
-  testFile = fopen("Junk.txt","r");
+  testFile = fopen(filename,"r");
   if (!testFile){
     cout << "*** Test failed (could not open temp file for reading).\n";
     exit(0);
@@ -362,7 +370,7 @@ int main(){
 
   cout << "Beginning unit test 4: XML file I/O.\n";
   // now, we will test speed of reading and writing..
-  testFile = fopen("Junk.txt","w");
+  testFile = fopen(filename,"w");
   if (!testFile){
     cout << "*** Test failed (could not open file).\n";
     exit(0);
@@ -383,7 +391,7 @@ int main(){
   cout << "^^^^^ It took " << ar_difftime(ar_time(), time1)/1000000.0 
        << " seconds to write 10000 records to a file.\n";
   fclose(testFile);
-  testFile = fopen("Junk.txt","r");
+  testFile = fopen(filename,"r");
   if (!testFile){
     cout << "*** Test failed (could not open file for reading)..\n";
     exit(0);
@@ -401,6 +409,7 @@ int main(){
   cout << "^^^^^ It took " << ar_difftime(ar_time(), time1)/1000000.0 
        << " seconds to read 10000 records from a file.\n";
   fclose(testFile);
+  (void)unlink(filename);
   cout << "*** PASSED.\n";
   exit(0);
   
