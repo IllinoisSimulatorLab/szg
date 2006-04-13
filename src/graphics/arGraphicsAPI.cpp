@@ -9,15 +9,15 @@
 #include "arHead.h"
 
 // global variables!
-static arGraphicsDatabase* __currentGraphicsDatabase = NULL;
+static arGraphicsDatabase* __database = NULL;
 static arGraphicsLanguage  __gfx;
 
 void dgSetGraphicsDatabase(arGraphicsDatabase* database){
-  __currentGraphicsDatabase = database;
+  __database = database;
 }
 
 string dgGetNodeName(int nodeID){
-  const arDatabaseNode* theNode = __currentGraphicsDatabase->getNode(nodeID);
+  const arDatabaseNode* theNode = __database->getNode(nodeID);
   if (!theNode){
     cerr << "dgGetNodeName error: no node with that ID.\n";
     return string("NULL");
@@ -26,27 +26,25 @@ string dgGetNodeName(int nodeID){
 }
 
 arGraphicsNode* dgGetNode(const string& nodeName){
-  return (arGraphicsNode*) __currentGraphicsDatabase->getNode(nodeName);
+  return (arGraphicsNode*) __database->getNode(nodeName);
 }
 
 arDatabaseNode* dgMakeNode(const string& name, 
                            const string& parent, 
                            const string& type){
-  if (!__currentGraphicsDatabase) {
+  if (!__database) {
     cerr << "syzygy error: dgSetGraphicsDatabase not yet called.\n";
     return NULL;
   }
 
-  arStructuredData* data = __currentGraphicsDatabase->makeNodeData;
-  arDatabaseNode* parentNode 
-    = __currentGraphicsDatabase->getNode(parent);
-  if (!parentNode){
-    // error message already printed in getNode(...)
+  arDatabaseNode* parentNode = __database->getNode(parent);
+  if (!parentNode)
     return NULL;
-  }
-  // The -1 signifies that we'll take whatever ID the database assigns us.
+
+  // -1 means accept an ID from the database.
   int ID = -1;
   int parentID = parentNode->getID();
+  arStructuredData* data = __database->makeNodeData;
   if (!data->dataIn(__gfx.AR_MAKE_NODE_PARENT_ID, &parentID, AR_INT, 1) ||
       !data->dataIn(__gfx.AR_MAKE_NODE_ID, &ID, AR_INT,1) ||
       !data->dataInString(__gfx.AR_MAKE_NODE_NAME, name) ||
@@ -54,10 +52,8 @@ arDatabaseNode* dgMakeNode(const string& name,
     cerr << "dgMakeNode error: dataIn failed.\n";
     return NULL;
   }
-  // Use alter not arGraphicsDatabase::alter, to ensure that
-  // the remote node will be created. NOTE: if there is an error,
-  // the functions called by alter(...) will complain for us.
-  return __currentGraphicsDatabase->alter(data);
+  // Use alter not arGraphicsDatabase::alter, so the remote node will be created.
+  return __database->alter(data);
 }
 
 int dgViewer( const string& parent, const arHead& head){
@@ -65,19 +61,18 @@ int dgViewer( const string& parent, const arHead& head){
   return node && dgViewer(node->getID(), head) ? node->getID() : -1;
 }
 
-// This function is a friend of arHead, in order to directly access the data
-// it holds.
+// Friend of arHead, to directly access its data.
 bool dgViewer( int ID, const arHead& head ) {
-  /*arDatabaseNode* node 
-    = __currentGraphicsDatabase->getNode("szg_viewer", false);
+#if 0
+  arDatabaseNode* node = __database->getNode("szg_viewer", false);
   if (!node){
     node = dgMakeNode("szg_viewer","root","viewer");
   }
-  const ARint ID = node->getID();*/
-  if (ID < 0){
+  const ARint ID = node->getID();
+#endif
+  if (ID < 0)
     return false;
-  }
-  arStructuredData* data = __currentGraphicsDatabase->viewerData;
+  arStructuredData* data = __database->viewerData;
   if (!data->dataIn(__gfx.AR_VIEWER_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_VIEWER_MATRIX, head._matrix.v ,AR_FLOAT,AR_FLOATS_PER_MATRIX) ||
       !data->dataIn(__gfx.AR_VIEWER_MID_EYE_OFFSET, head._midEyeOffset.v ,AR_FLOAT,AR_FLOATS_PER_POINT) ||
@@ -90,21 +85,21 @@ bool dgViewer( int ID, const arHead& head ) {
     cerr << "dgViewer error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
-/*bool dgViewer(const arMatrix4& headMatrix, const arVector3& midEyeOffset,
+#if 0
+bool dgViewer(const arMatrix4& headMatrix, const arVector3& midEyeOffset,
 	     const arVector3& eyeDirection, float eyeSpacing,
 	     float nearClip, float farClip, float unitConversion,
              bool fixedHeadMode ){
-  arDatabaseNode* node 
-    = __currentGraphicsDatabase->getNode("szg_viewer", false);
+  arDatabaseNode* node = __database->getNode("szg_viewer", false);
   if (!node){
     node = dgMakeNode("szg_viewer","root","viewer");
   }
   int fixedHeadInt = (int)fixedHeadMode;
   const ARint ID = node->getID();
-  arStructuredData* data = __currentGraphicsDatabase->viewerData;
+  arStructuredData* data = __database->viewerData;
   if (!data->dataIn(__gfx.AR_VIEWER_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_VIEWER_MATRIX,headMatrix.v,AR_FLOAT,AR_FLOATS_PER_MATRIX) ||
       !data->dataIn(__gfx.AR_VIEWER_MID_EYE_OFFSET,midEyeOffset.v,AR_FLOAT,AR_FLOATS_PER_POINT) ||
@@ -117,8 +112,9 @@ bool dgViewer( int ID, const arHead& head ) {
     cerr << "dgViewer error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
-  }*/
+  return __database->alter(data);
+  }
+#endif
 
 int dgTransform(const string& name, const string& parent,
                 const arMatrix4& matrix){
@@ -129,13 +125,13 @@ int dgTransform(const string& name, const string& parent,
 bool dgTransform(int ID, const arMatrix4& matrix){
   if (ID < 0)
     return false;
-  arStructuredData* data = __currentGraphicsDatabase->transformData;
+  arStructuredData* data = __database->transformData;
   if (!data->dataIn(__gfx.AR_TRANSFORM_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_TRANSFORM_MATRIX,matrix.v,AR_FLOAT,AR_FLOATS_PER_MATRIX)) {
     cerr << "dgTransform error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 int  dgPoints(const string& name, const string& parent, 
@@ -148,14 +144,14 @@ int  dgPoints(const string& name, const string& parent,
 bool dgPoints(int ID, int num, int* IDs, float* coords){
   if (ID < 0)
     return false;
-  arStructuredData* data = __currentGraphicsDatabase->pointsData;
+  arStructuredData* data = __database->pointsData;
   if (!data->dataIn(__gfx.AR_POINTS_ID,&ID,AR_INT,1) ||
       !data->ptrIn(__gfx.AR_POINTS_POINT_IDS,IDs,num) ||
       !data->ptrIn(__gfx.AR_POINTS_POSITIONS,coords,AR_FLOATS_PER_POINT*num)) {
     cerr << "dgPoints error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 int dgPoints(const string& name, const string& parent, int numPoints, 
@@ -169,14 +165,14 @@ bool dgPoints(int ID, int numPoints, float* positions){
   if (ID < 0)
     return false;
   int IDs[1] = {-1};
-  arStructuredData* data = __currentGraphicsDatabase->pointsData;
+  arStructuredData* data = __database->pointsData;
   if (!data->dataIn(__gfx.AR_POINTS_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_POINTS_POINT_IDS,IDs,AR_INT,1) || 
       !data->ptrIn(__gfx.AR_POINTS_POSITIONS,positions,AR_FLOATS_PER_POINT*numPoints)){
     cerr << "dgPoints error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 int dgTexture(const string& name, const string& parent, 
@@ -189,7 +185,7 @@ int dgTexture(const string& name, const string& parent,
 bool dgTexture(int ID, const string& filename, int alphaValue){
   if (ID < 0)
     return false;
-  arStructuredData* data = __currentGraphicsDatabase->textureData;
+  arStructuredData* data = __database->textureData;
 
   // Zero width tells the implementation that this is
   // a file, not a bitmap. (This is a little confused.)
@@ -201,7 +197,7 @@ bool dgTexture(int ID, const string& filename, int alphaValue){
     cerr << "dgTexture error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 } 
 
 int dgTexture(const string& name, const string& parent,
@@ -216,7 +212,7 @@ bool dgTexture(int ID, bool alpha, int w, int h, const char* pixels){
     return false;
   const int bytesPerPixel = alpha ? 4 : 3;
   const int cPixels = w * h * bytesPerPixel;
-  arStructuredData* data = __currentGraphicsDatabase->textureData;
+  arStructuredData* data = __database->textureData;
   if (!data->dataIn(__gfx.AR_TEXTURE_ID,&ID,AR_INT,1) ||
       !data->dataInString(__gfx.AR_TEXTURE_FILE, "") ||
       !data->dataIn(__gfx.AR_TEXTURE_ALPHA,&alpha,AR_INT,1) ||
@@ -226,7 +222,7 @@ bool dgTexture(int ID, bool alpha, int w, int h, const char* pixels){
     cerr << "dgTexture error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 } 
 
 int dgBoundingSphere(const string& name, const string& parent, 
@@ -240,7 +236,7 @@ bool dgBoundingSphere(int ID, int visibility, float radius,
                       const arVector3& position){
   if (ID < 0)
     return false;
-  arStructuredData* data = __currentGraphicsDatabase->boundingSphereData;
+  arStructuredData* data = __database->boundingSphereData;
   if (!data->dataIn(__gfx.AR_BOUNDING_SPHERE_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_BOUNDING_SPHERE_VISIBILITY,&visibility,AR_INT,1) ||
       !data->dataIn(__gfx.AR_BOUNDING_SPHERE_RADIUS,&radius,AR_FLOAT,1) ||
@@ -248,12 +244,12 @@ bool dgBoundingSphere(int ID, int visibility, float radius,
     cerr << "dgBoundingSphere error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 bool dgErase(const string& name){
-  arStructuredData* data = __currentGraphicsDatabase->eraseData;
-  arDatabaseNode* node = __currentGraphicsDatabase->getNode(name);
+  arStructuredData* data = __database->eraseData;
+  arDatabaseNode* node = __database->getNode(name);
   if (!node){
     // error message was already printed in the above.
     return false;
@@ -263,7 +259,7 @@ bool dgErase(const string& name){
     cerr << "dgErase error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 int dgBillboard(const string& name, const string& parent,
@@ -276,14 +272,14 @@ int dgBillboard(const string& name, const string& parent,
 bool dgBillboard(int ID, int visibility, const string& text){
   if (ID < 0)
     return false;
-  arStructuredData* data = __currentGraphicsDatabase->billboardData;
+  arStructuredData* data = __database->billboardData;
   if (!data->dataIn(__gfx.AR_BILLBOARD_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_BILLBOARD_VISIBILITY,&visibility,AR_INT,1) ||
       !data->dataInString(__gfx.AR_BILLBOARD_TEXT, text)) {
     cerr << "dgBillboard error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 int dgVisibility(const string& name, const string& parent, int visibility){
@@ -295,13 +291,13 @@ int dgVisibility(const string& name, const string& parent, int visibility){
 bool dgVisibility(int ID, int visibility){
   if (ID < 0)
     return false;
-  arStructuredData* data = __currentGraphicsDatabase->visibilityData;
+  arStructuredData* data = __database->visibilityData;
   if (!data->dataIn(__gfx.AR_VISIBILITY_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_VISIBILITY_VISIBILITY,&visibility,AR_INT,1)) {
     cerr << "dgVisibility error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 int dgBlend(const string& name, const string& parent, float factor){
@@ -313,13 +309,13 @@ int dgBlend(const string& name, const string& parent, float factor){
 bool dgBlend(int ID, float factor){
   if (ID < 0)
     return false;
-  arStructuredData* data = __currentGraphicsDatabase->blendData;
+  arStructuredData* data = __database->blendData;
   if (!data->dataIn(__gfx.AR_BLEND_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_BLEND_FACTOR,&factor,AR_FLOAT,1)){
     cerr << "dgBlend error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 int dgStateInt(const string& nodeName, const string& parentName,
@@ -338,7 +334,7 @@ bool dgStateInt( int nodeID, const string& stateName,
   tmp[0] = val1;
   tmp[1] = val2;
   float ftmp(0.);
-  arStructuredData* data = __currentGraphicsDatabase->graphicsStateData;
+  arStructuredData* data = __database->graphicsStateData;
   if (!data->dataIn(__gfx.AR_GRAPHICS_STATE_ID,&nodeID,AR_INT,1) ||
       !data->dataInString( __gfx.AR_GRAPHICS_STATE_STRING, stateName ) ||
       !data->dataIn( __gfx.AR_GRAPHICS_STATE_INT, tmp, AR_INT, 2 ) ||
@@ -346,7 +342,7 @@ bool dgStateInt( int nodeID, const string& stateName,
     cerr << "dgStateInt error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 int dgStateFloat( const string& nodeName, const string& parentName,
@@ -361,7 +357,7 @@ bool dgStateFloat( int nodeID, const string& stateName, float value ) {
   arGraphicsStateValue tmp[2];
   tmp[0] = AR_G_FALSE;
   tmp[1] = AR_G_FALSE;
-  arStructuredData* data = __currentGraphicsDatabase->graphicsStateData;
+  arStructuredData* data = __database->graphicsStateData;
   if (!data->dataIn(__gfx.AR_GRAPHICS_STATE_ID,&nodeID,AR_INT,1) ||
       !data->dataInString( __gfx.AR_GRAPHICS_STATE_STRING, stateName ) ||
       !data->dataIn( __gfx.AR_GRAPHICS_STATE_INT, tmp, AR_INT, 2 ) ||
@@ -369,7 +365,7 @@ bool dgStateFloat( int nodeID, const string& stateName, float value ) {
     cerr << "dgStateFloat error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 
@@ -383,14 +379,14 @@ int dgNormal3(const string& name, const string& parent, int numNormals,
 bool dgNormal3(int ID, int numNormals, int* IDs, float* normals){
   if (ID < 0)
     return false;
-  arStructuredData* data = __currentGraphicsDatabase->normal3Data;
+  arStructuredData* data = __database->normal3Data;
   if (!data->dataIn(__gfx.AR_NORMAL3_ID,&ID,AR_INT,1) ||
       !data->ptrIn(__gfx.AR_NORMAL3_NORMAL_IDS,IDs,numNormals) ||
       !data->ptrIn(__gfx.AR_NORMAL3_NORMALS,normals,AR_FLOATS_PER_NORMAL*numNormals)) {
     cerr << "dgNormal3 error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 int dgNormal3(const string& name, const string& parent, int numNormals,
@@ -403,7 +399,7 @@ int dgNormal3(const string& name, const string& parent, int numNormals,
 bool dgNormal3(int ID, int numNormals, float* normals){
   if (ID < 0)
     return false;
-  arStructuredData* data = __currentGraphicsDatabase->normal3Data;
+  arStructuredData* data = __database->normal3Data;
   int IDs = -1;
   if (!data->dataIn(__gfx.AR_NORMAL3_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_NORMAL3_NORMAL_IDS,&IDs,AR_INT,1) || 
@@ -411,7 +407,7 @@ bool dgNormal3(int ID, int numNormals, float* normals){
     cerr << "dgNormal3 error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 // there sure is alot of cut-and-pasting with the API commands associated
@@ -428,14 +424,14 @@ int dgColor4(const string& name, const string& parent, int numColors,
 bool dgColor4(int ID, int numColors, int* IDs, float* colors){
   if (ID < 0)
     return false;
-  arStructuredData* data = __currentGraphicsDatabase->color4Data;
+  arStructuredData* data = __database->color4Data;
   if (!data->dataIn(__gfx.AR_COLOR4_ID,&ID,AR_INT,1) ||
       !data->ptrIn(__gfx.AR_COLOR4_COLOR_IDS,IDs,numColors) ||
       !data->ptrIn(__gfx.AR_COLOR4_COLORS,colors,AR_FLOATS_PER_COLOR*numColors)) {
     cerr << "dgColor4 error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 int dgColor4(const string& name, const string& parent, int numColors,
@@ -449,14 +445,14 @@ bool dgColor4(int ID, int numColors, float* colors){
   if (ID < 0)
     return false;
   int IDs[1] = {-1};
-  arStructuredData* data = __currentGraphicsDatabase->color4Data;
+  arStructuredData* data = __database->color4Data;
   if (!data->dataIn(__gfx.AR_COLOR4_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_COLOR4_COLOR_IDS,IDs,AR_INT,1) || 
       !data->ptrIn(__gfx.AR_COLOR4_COLORS,colors,AR_FLOATS_PER_COLOR*numColors)){
     cerr << "dgColor4 error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 int dgTex2(const string& name, const string& parent, int numTexcoords,
@@ -469,14 +465,14 @@ int dgTex2(const string& name, const string& parent, int numTexcoords,
 bool dgTex2(int ID, int numTexcoords, int* IDs, float* coords){
   if (ID < 0)
     return false;
-  arStructuredData* data = __currentGraphicsDatabase->tex2Data;
+  arStructuredData* data = __database->tex2Data;
   if (!data->dataIn(__gfx.AR_TEX2_ID,&ID,AR_INT,1) ||
       !data->ptrIn(__gfx.AR_TEX2_TEX_IDS,IDs,numTexcoords) ||
       !data->ptrIn(__gfx.AR_TEX2_COORDS,coords,AR_FLOATS_PER_TEXCOORD*numTexcoords)) {
     cerr << "dgTex2 error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 int dgTex2(const string& name, const string& parent, int numTexcoords,
@@ -490,14 +486,14 @@ bool dgTex2(int ID, int numTexcoords, float* coords){
   if (ID < 0)
     return false;
   int IDs[1] = {-1};
-  arStructuredData* data = __currentGraphicsDatabase->tex2Data;
+  arStructuredData* data = __database->tex2Data;
   if (!data->dataIn(__gfx.AR_TEX2_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_TEX2_TEX_IDS,IDs,AR_INT,1) || 
       !data->ptrIn(__gfx.AR_TEX2_COORDS,coords,AR_FLOATS_PER_TEXCOORD*numTexcoords)){
     cerr << "dgTex2 error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 int dgIndex(const string& name, const string& parent, int numIndices,
@@ -510,14 +506,14 @@ int dgIndex(const string& name, const string& parent, int numIndices,
 bool dgIndex(int ID, int numIndices, int* IDs, int* indices){
   if (ID < 0)
     return false;
-  arStructuredData* data = __currentGraphicsDatabase->indexData;
+  arStructuredData* data = __database->indexData;
   if (!data->dataIn(__gfx.AR_INDEX_ID,&ID,AR_INT,1) ||
       !data->ptrIn(__gfx.AR_INDEX_INDEX_IDS,IDs,numIndices) ||
       !data->ptrIn(__gfx.AR_INDEX_INDICES,indices,numIndices)) {
     cerr << "dgIndex error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 int dgIndex(const string& name, const string& parent, int numIndices,
@@ -531,14 +527,14 @@ bool dgIndex(int ID, int numIndices, int* indices){
   if (ID < 0)
     return false;
   int IDs[1] = {-1};
-  arStructuredData* data = __currentGraphicsDatabase->indexData;
+  arStructuredData* data = __database->indexData;
   if (!data->dataIn(__gfx.AR_INDEX_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_INDEX_INDEX_IDS,IDs,AR_INT,1) || 
       !data->ptrIn(__gfx.AR_INDEX_INDICES,indices,numIndices)){
     cerr << "dgIndex error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 int dgDrawable(const string& name, const string& parent,
@@ -551,14 +547,14 @@ int dgDrawable(const string& name, const string& parent,
 bool dgDrawable(int ID, int drawableType, int numPrimitives){
   if (ID < 0)
     return false;
-  arStructuredData* data = __currentGraphicsDatabase->drawableData;
+  arStructuredData* data = __database->drawableData;
   if (!data->dataIn(__gfx.AR_DRAWABLE_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_DRAWABLE_TYPE,&drawableType,AR_INT,1) || 
       !data->dataIn(__gfx.AR_DRAWABLE_NUMBER,&numPrimitives,AR_INT,1)){
     cerr << "dgDrawable error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 int dgMaterial(const string& name, 
@@ -584,7 +580,7 @@ bool dgMaterial(int ID,
                 float alpha){
   if (ID < 0)
     return false;
-  arStructuredData* data = __currentGraphicsDatabase->materialData;
+  arStructuredData* data = __database->materialData;
   if (!data->dataIn(__gfx.AR_MATERIAL_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_MATERIAL_DIFFUSE,diffuse.v,AR_FLOAT,3) || 
       !data->dataIn(__gfx.AR_MATERIAL_AMBIENT,ambient.v,AR_FLOAT,3) ||
@@ -595,7 +591,7 @@ bool dgMaterial(int ID,
     cerr << "dgMaterial error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 /// OpenGL interprets light positions weirdly.  If the fourth value
@@ -638,7 +634,7 @@ bool dgLight(int ID,
 		   spotDirection.v[2],
 		   spotCutoff,
 		   spotExponent };
-  arStructuredData* data = __currentGraphicsDatabase->lightData;
+  arStructuredData* data = __database->lightData;
   if (!data->dataIn(__gfx.AR_LIGHT_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_LIGHT_LIGHT_ID,&lightID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_LIGHT_POSITION,position.v,AR_FLOAT,4) ||
@@ -650,7 +646,7 @@ bool dgLight(int ID,
     cerr << "dgLight error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 int dgCamera(const string& name, const string& parent,
 	     int cameraID, float leftClip, float rightClip, 
@@ -679,7 +675,7 @@ bool dgCamera(int ID,
 		    centerPosition.v[0], centerPosition.v[1], 
                     centerPosition.v[2],
                     upDirection.v[0], upDirection.v[1], upDirection.v[2]};
-  arStructuredData* data = __currentGraphicsDatabase->perspCameraData;
+  arStructuredData* data = __database->perspCameraData;
   if (!data->dataIn(__gfx.AR_PERSP_CAMERA_ID,&ID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_PERSP_CAMERA_CAMERA_ID,&cameraID,AR_INT,1) ||
       !data->dataIn(__gfx.AR_PERSP_CAMERA_FRUSTUM,temp1,AR_FLOAT,6) ||
@@ -687,7 +683,7 @@ bool dgCamera(int ID,
     cerr << "dgCamera error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 
@@ -698,16 +694,15 @@ int dgBumpMap(const string& name, const string& parent,
     node->getID() : -1;
 }
 
-int dgBumpMap(int ID, const string& filename, float height) {
+bool dgBumpMap(int ID, const string& filename, float height) {
   if (ID < 0)
     return false;
-  arStructuredData* data = __currentGraphicsDatabase->bumpMapData;
+  arStructuredData* data = __database->bumpMapData;
   if (!data->dataIn(__gfx.AR_BUMPMAP_ID, &ID, AR_INT, 1) ||
       !data->dataInString(__gfx.AR_BUMPMAP_FILE, filename) ||
       !data->dataIn(__gfx.AR_BUMPMAP_HEIGHT, &height, AR_FLOAT, 1)) {
     cerr << "dgBumpMap error: dataIn failed.\n";
     return false;
   }
-  return __currentGraphicsDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
-

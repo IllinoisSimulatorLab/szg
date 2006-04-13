@@ -170,12 +170,11 @@ SZG_CALL bool dgCamera(int ID,
                        const arVector3& centerPosition = arVector3(0,0,-1),
                        const arVector3& upDirection = arVector3(0,1,0));
 
-
 /// Attach a bump map node to the scene graph
 SZG_CALL int dgBumpMap(const string& name, const string& parent,
 	               const string& filename, float height=1.);
 
-SZG_CALL int dgBumpMap(int ID, const string& filename, float height=1.);
+SZG_CALL bool dgBumpMap(int ID, const string& filename, float height=1.);
 
 
 #endif
