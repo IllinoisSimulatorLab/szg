@@ -20,17 +20,15 @@ arBillboardNode::arBillboardNode():
 }
 
 void arBillboardNode::draw(arGraphicsContext*){
-  arTexFont* alphabet = _owningDatabase->getTexFont();
   // Copy _text and visibility for thread-safety.
   ar_mutex_lock(&_nodeLock);
-  string text = _text;
-  bool visibility = _visibility;
+    const string text = _text;
+    const bool visibility = _visibility;
   ar_mutex_unlock(&_nodeLock);
-  const int len = text.length();
-  if (!visibility){
-    // Not visible.
+  if (!visibility)
     return; 
-  }
+
+  arTexFont* alphabet = _owningDatabase->getTexFont();
   list<string> parse = ar_parseLineBreaks(text);
   arTextBox format;
   format.lineSpacing = 1.0;
@@ -48,7 +46,7 @@ void arBillboardNode::draw(arGraphicsContext*){
   width *= 1000;
   height *= 1000;
   format.width = width;
-  format.columns = ceil(width);
+  format.columns = int(ceil(float(width)));
   format.upperLeft = arVector3(-format.width/2.0, height/2.0, 0);
   // Render the background.
   const float cornerY=height/2.0;
