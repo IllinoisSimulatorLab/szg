@@ -37,7 +37,7 @@ class SZG_CALL arInteractableThing : public arInteractable {
     virtual void activateColor() const { glColor4fv(_color.v); }
     virtual bool activateTexture() { return _texture && _texture->activate(); }
     virtual void deactivateTexture() { if (_texture) _texture->deactivate(); }
-    virtual void draw( arMasterSlaveFramework* fw=0 ) {}
+    virtual void draw( arMasterSlaveFramework* =0 ) {}
     virtual void draw( arMasterSlaveFramework&, arGraphicsWindow&, arViewport& ) {}
   private:
     virtual bool _touch( arEffector& effector );

@@ -17,7 +17,7 @@
 #include "arCallbackInteractable.h"
 #include <list>
 
-#define NUMBER_OBJECTS 200
+const int NUMBER_OBJECTS = 200;
 
 // dragWand uses matrix 1, has 6 buttons mapped from input button 2
 // to output button 2. This means that you can access input buttons
@@ -27,12 +27,12 @@ arEffector dragWand( 1, 6, 2, 2, 0, 0, 0 );
 // headEffector urses matrix 0 (the head matrix), has no other input events.
 arEffector headEffector( 0, 0, 0, 0, 0, 0, 0 );
 
-bool jiggleStuffGlobal(true);
+bool fJiggle = true;
 
 std::list<arInteractable*> interactionList;
 arCallbackInteractable interactionArray[NUMBER_OBJECTS];
 int objectTextureID[NUMBER_OBJECTS];
-int wandID;
+int wandID = -1;
 arGraphicsStateValue lightingOnOff(AR_G_TRUE);
 int lightsOnOffID;
 const float WAND_LENGTH = 2.;
@@ -45,24 +45,22 @@ inline float randDistance(){
 }
 
 void drawWand( const arEffector* effector ) {
-  // already called inside a mutex block
-//  ar_mutex_lock(&databaseLock);
+  // Caller must lock databaseLock.
   const arMatrix4 wandOffsetMat( ar_translationMatrix( arVector3( 0,0,-0.5*WAND_LENGTH ) ) );
-    dgTransform( wandID, effector->getBaseMatrix()*wandOffsetMat );
-//  ar_mutex_unlock(&databaseLock);
+  dgTransform( wandID, effector->getBaseMatrix()*wandOffsetMat );
 }
 
-bool inputEventCallback( arSZGAppFramework& fw, arInputEvent& event, arCallbackEventFilter& filter ) {
+bool inputEventCallback( arSZGAppFramework& fw, arInputEvent& event, arCallbackEventFilter& ) {
   ar_mutex_lock(&databaseLock);
   dragWand.updateState( event );
   headEffector.updateState( event );
   if (event.getType() == AR_EVENT_AXIS) {
     fw.navUpdate( event );
   }
-  // Currently, the joystick driver on windows DOES NOT guarantee a stream
-  // of input events when the stick is held in a given position. Consequently,
-  // the navigation matrix should be updated every frame.
-  // NOTE: this callback will generally be called many times/frame.
+  // Since the win32 joystick driver does not guarantee a stream
+  // of input events when the joystick is held steady but nonzero,
+  // update the navigation matrix every frame.
+  // This callback might be called many times per frame, though.
   fw.loadNavMatrix();
   dragWand.draw();
   
@@ -131,7 +129,7 @@ void worldAlter(void* f){
                                        6.*sin(count*.0000177));
     interactionArray[0].setMatrix( cube0Matrix );
 
-    if (jiggleStuffGlobal) {
+    if (fJiggle) {
       // Jiggle any cube except the zeroth.
       const int iObject = 1 + rand() % (NUMBER_OBJECTS-1);
       const arMatrix4 randMatrix( interactionArray[iObject].getMatrix() *
@@ -237,8 +235,8 @@ calcpos:
 int main(int argc, char** argv){
   if (argc > 1) {
     if (!strcmp(argv[1], "-static")){
-      // don't do all the random jiggling.
-      jiggleStuffGlobal = false;
+      // Don't change cubes' position.
+      fJiggle = false;
     }
   }
     
