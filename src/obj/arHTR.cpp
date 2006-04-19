@@ -73,24 +73,23 @@ arMatrix4 arHTR::HTRRotation(double Rx, double Ry, double Rz){
 /// @param theFrame frame to use for calculation
 arMatrix4 arHTR::HTRTransform(htrBasePosition *theBP, 
                               htrFrame *theFrame){
-  return (theFrame == NULL) ?
-    theBP->trans * theBP->rot :
-     theBP->trans
-     *ar_translationMatrix(theFrame->Tx, theFrame->Ty, theFrame->Tz)
-     *theBP->rot * HTRRotation(theFrame->Rx, theFrame->Ry, theFrame->Rz);
+  return (theFrame == NULL) ? theBP->trans * theBP->rot :
+    theBP->trans *
+    ar_translationMatrix(theFrame->Tx, theFrame->Ty, theFrame->Tz) *
+    theBP->rot * HTRRotation(theFrame->Rx, theFrame->Ry, theFrame->Rz);
 }
 
 bool arHTR::attachMesh(const string& objectName,
 		       const string& parent) {
   arGraphicsNode* n = dgGetNode(parent);
-  return n ? attachMesh(n, objectName, false) : false; 
+  return n && attachMesh(n, objectName, false);
 }
 
-bool arHTR::attachMesh(const string& baseName, 
+bool arHTR::attachMesh(const string& /*baseName*/, 
                        const string& where, 
                        bool withLines){
   arGraphicsNode* n = dgGetNode(where);
-  return n ? attachMesh(n, where, withLines) : false;
+  return n && attachMesh(n, where, withLines);
 }
 
 /// Attaches transform hierarchy to specified node in hierarchy,
@@ -283,7 +282,7 @@ bool arHTR::frameValid(htrFrame* f){
 void arHTR::frameInterpolate(htrFrame* f,
 			     htrFrame* interp1,
 			     htrFrame* interp2){
-  // We only try to interpolate if both interp1 and interp2 are valid.
+  // Only interpolate if both interp1 and interp2 are valid.
   if (interp1 && interp2){
     arQuaternion q1 = HTRRotation(interp1->Rx, interp1->Ry, interp1->Rz);
     arQuaternion q2 = HTRRotation(interp2->Rx, interp2->Ry, interp2->Rz);
@@ -342,36 +341,28 @@ void arHTR::frameInterpolate(htrFrame* f,
   }
 }
 
-/// Goes through the HTR data, finds where gaps exist (as indicated by the
-/// MotionAnalysis 9999999 representation of "infinity" and interpolates them
-/// out of existence (just a simple linear interpolation, but that's actually
-/// good enough for most cases).
+/// Find gaps in the HTR data, as indicated by the MotionAnalysis 9999999
+/// representation of "infinity", and linearly interpolate them away.
 void arHTR::basicDataSmoothing(){
   for (unsigned int i=0; i<segmentData.size(); i++){
     for (unsigned int j=0; j<segmentData[i]->frame.size(); j++){
       htrFrame* f = segmentData[i]->frame[j];
       if (!frameValid(f)){
 	// Find the latest previous valid frame, if any.
-	int prev = j;
-	while (prev >= 0 && !frameValid(segmentData[i]->frame[prev])){
-	  prev--;
-	}
-	int next = j;
+	int prev = j; // could go negative
+	while (prev >= 0 && !frameValid(segmentData[i]->frame[prev]))
+	  --prev;
+	unsigned next = j;
 	// Find the next valid frame, if any.
 	while (next < segmentData[i]->frame.size()
-	       && !frameValid(segmentData[i]->frame[next])){
-	  next++;
-	}
-	htrFrame* interp1 = NULL;
-	htrFrame* interp2 = NULL;
-	if (prev >= 0){
-	  interp1 = segmentData[i]->frame[prev];
-	}
-	if (next < segmentData[i]->frame.size()){
-	  interp2 = segmentData[i]->frame[next];
-	}
+	       && !frameValid(segmentData[i]->frame[next]))
+	  ++next;
+	htrFrame* interp1 = (prev >= 0) ?
+	  segmentData[i]->frame[prev] : NULL;
+	htrFrame* interp2 = (next < segmentData[i]->frame.size()) ?
+	  segmentData[i]->frame[next] : NULL;
         frameInterpolate(f, interp1, interp2);
-	// Must update the matrices.
+	// Update the matrices.
         f->trans = HTRTransform(segmentData[i]->basePosition, f);
         f->totalScale = segmentData[i]->basePosition->boneLength * f->scale;
       }

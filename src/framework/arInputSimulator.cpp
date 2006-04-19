@@ -477,43 +477,42 @@ void arInputSimulator::_wireCube(float size) const {
 }
 
 void arInputSimulator::_drawGamepad() const {
-  const float GAMEPAD_YOFFSET(-.8);
-  const float GAMEPAD_WIDTH(1.);
-  const float BUTTON_SPACING(1.1);
-  const float BUTTON_YBORDER(.8);
-  const unsigned int rowLength = _mouseButtons.size();
-  unsigned int numRows = (unsigned int)(_numButtonEvents / rowLength);
+  const float GAMEPAD_YOFFSET = -.8;
+  const float GAMEPAD_WIDTH = 1.;
+  const float BUTTON_SPACING = 1.1;
+  const float BUTTON_YBORDER = .8;
+  const unsigned rowLength = _mouseButtons.size();
+  unsigned numRows = unsigned(_numButtonEvents / rowLength);
   if (_numButtonEvents % rowLength != 0)
     ++numRows;
   if (rowLength == 0 || numRows == 0) {
-    ar_log_error() << "arInputSimulator error: no buttons in _drawGamepad().\n";
+    ar_log_error() << "no buttons in _drawGamepad().\n";
     return;
   }
 
-  const float padWidth = max((float)1.4,rowLength*BUTTON_SPACING);
-  const float padHeight =  GAMEPAD_WIDTH+numRows*BUTTON_SPACING;
-  // Always want to surround draws with push/pop
+  const float padWidth = max(1.4F, rowLength*BUTTON_SPACING);
+  const float padHeight = GAMEPAD_WIDTH + numRows*BUTTON_SPACING;
   glPushMatrix();
     arMatrix4 tempMatrix = ar_translationMatrix(4,0,5);
     glMultMatrixf(tempMatrix.v);
-    // blue background for the wand controller graphics
+    // blue background for the wand controller
     glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
     glColor4f(0,0,1,.5);
     glBegin(GL_QUADS);
-      glVertex3f(-.5*padWidth,GAMEPAD_YOFFSET + padHeight,0.1);
-      glVertex3f(.5*padWidth, GAMEPAD_YOFFSET + padHeight,0.1);
-      glVertex3f(.5*padWidth, GAMEPAD_YOFFSET,0.1);
-      glVertex3f(-.5*padWidth,GAMEPAD_YOFFSET,0.1);
+      glVertex3f(-.5*padWidth, GAMEPAD_YOFFSET + padHeight, 0.1);
+      glVertex3f( .5*padWidth, GAMEPAD_YOFFSET + padHeight, 0.1);
+      glVertex3f( .5*padWidth, GAMEPAD_YOFFSET, 0.1);
+      glVertex3f(-.5*padWidth, GAMEPAD_YOFFSET, 0.1);
     glEnd();
     glDisable( GL_BLEND );
-    // one cube for the pad's joystick
+    // one cube for the gamepad's joystick
     glPushMatrix();
       glTranslatef(0.5*_axis[0], -0.3 + 0.5*_axis[1], 0.1);
       glColor3f(0.3,1,0);
       glutSolidSphere(0.25,8,8);
     glPopMatrix();
-    // a boundary region within which the joystick moves
+    // joystick's boundary
     glBegin(GL_LINE_STRIP);
       glColor3f(1,1,1);
       glVertex3f(-0.5,0.2,0.3);
@@ -529,11 +528,10 @@ void arInputSimulator::_drawGamepad() const {
       glColor3f(1,1,1);
       glutSolidSphere(0.15,8,8);
     glPopMatrix();
-    std::vector<int>::iterator const_iter;
-    float xlo((-.5*((float)rowLength) + .5)*BUTTON_SPACING);
-    float x(xlo);
-    float y(BUTTON_YBORDER);
-    unsigned int rowCount(0);
+    float xlo = (-.5*((float)rowLength) + .5) * BUTTON_SPACING;
+    float x = xlo;
+    float y = BUTTON_YBORDER;
+    unsigned rowCount = 0;
     float labelScale = .004*BUTTON_SPACING;
     for (unsigned int i = 0; i<_newButtonEvents.size(); ++i) {
       glPushMatrix();
@@ -578,7 +576,6 @@ void arInputSimulator::_drawGamepad() const {
   //    glPopMatrix();
   //  }
     glEnable(GL_LIGHTING);
-  // always want to surround draw with push/pop
   glPopMatrix();
 }
 
