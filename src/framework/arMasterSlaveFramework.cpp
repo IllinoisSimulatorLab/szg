@@ -1947,25 +1947,21 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
     }
   }
 
-  // Do not bother checking to see whether or not init(...) succeeds. Since
-  // we are in standalone mode (and thus the arSZGClient is not connected to
-  // an szgserver) it might very well fail. But if we don't init(...) all the
-  // arInputNode components will incessantly complain that they have not been
-  // init'ed.
-  _inputDevice->init( _SZGClient );
+  // Ignore init()'s success.  (Failure might mean just that
+  // no szgserver was found, vacuously true since standalone.)
+  // But init() nevertheless, so arInputNode components also get init'ed.
+  (void)_inputDevice->init( _SZGClient );
   _inputDevice->start();
   _installFilters();
 
-  // the below sound initialization must occur here (and not in
-  // startStandaloneObjects) since this occurs before the user-defined init.
-  // Probably the key thing is that the _soundClient needs to hit its
-  // registerLocalConnection method before any dsLoop, etc. calls are made.
+  // Init sound here (not in
+  // startStandaloneObjects), so it's before the user-defined init.
+  // So that _soundClient calls
+  // registerLocalConnection before any dsLoop etc happens.
   arSpeakerObject* speakerObject = new arSpeakerObject();
 
-  // NOTE: using "new" to create the _soundClient since, otherwise, the
-  // constructor creates a conflict with programs that want to use fmod
-  // themselves. (of course, the conflict is still present in
-  // standalone mode...)
+  // must be a pointer? fmod 3.7 needed it, lest the constructor conflict
+  // with exes that themselves use fmod (or standalone).  fmod 4 maybe no longer so.
   _soundClient = new arSoundClient();
   _soundClient->setSpeakerObject( speakerObject );
   _soundClient->configure( &_SZGClient );
@@ -1992,7 +1988,6 @@ bool arMasterSlaveFramework::_startStandaloneObjects( void ) {
 bool arMasterSlaveFramework::_initMasterObjects() {
   // attempt to initialize the barrier server
   _barrierServer = new arBarrierServer();
-
   if( !_barrierServer ) {
     ar_log_error() << _label
                    << "error: master failed to construct barrier server." << ar_endl;
@@ -2001,7 +1996,6 @@ bool arMasterSlaveFramework::_initMasterObjects() {
 
   _barrierServer->setServiceName( _serviceNameBarrier );
   _barrierServer->setChannel( "graphics" );
-
   if( !_barrierServer->init( _SZGClient ) ) {
     ar_log_error() << _label << " error: failed to initialize barrier "
 		   << "server." << ar_endl;
@@ -2010,7 +2004,7 @@ bool arMasterSlaveFramework::_initMasterObjects() {
   _barrierServer->registerLocal();
   _barrierServer->setSignalObject( &_swapSignal );
 
-  // attempt to initialize the input device
+  // Try to init _inputDevice.
   _inputActive = false;
   _inputDevice = new arInputNode( true );
 
