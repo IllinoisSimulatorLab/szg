@@ -21,7 +21,7 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
   float x = -1.;
   float y = -1.;
   float z = -1.;
-  unsigned int i = 0;
+  unsigned i = 0;
   int numTokens = 0;
 
   int found = 0;
@@ -120,20 +120,18 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
 
   ///// mtllib /////
   else if (lineType == "mtllib"){
-    // There are two possibilities: we are either searching on a path or
-    // we are using an absolute file name.
     string matFileName;
     if (_subdirectory == "" && _searchPath == ""){
       arPathString pathString(_fileName);
       if (pathString.size() <= 1){
-        // no need to search
+        // Absolute filename.
 	matFileName = token[1];
       }
       else{
-        for (i=0; i<pathString.size()-1; i++){
-          matFileName += pathString[i];
-          matFileName += ar_pathDelimiter();
-	}
+	// Search a path.
+	const unsigned iMax = pathString.size() - 1;
+        for (i=0; i<iMax; ++i)
+          matFileName += pathString[i] + ar_pathDelimiter();
         matFileName += token[1];
       }
     }
