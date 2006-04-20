@@ -247,8 +247,8 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
     ar_log_warning() << "arGraphicsDatabase warning: "
 	             << "ignoring empty filename for texture.\n";
   }
-  // Only client, not server, needs the actual bitmap
   else if (!isServer()) {
+    // Client. Get the actual bitmap.
     // Try everything in the path.
     ar_mutex_lock(&_texturePathLock);
     bool fDone = false;
@@ -259,24 +259,17 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
     if (_bundlePathName != "NULL" && _bundleName != "NULL"
 	&& iter != _bundlePathMap.end()){
       arSemicolonString bundlePath(iter->second);
-      for (int n=0; n<bundlePath.size(); n++){
+      for (int n=0; n<bundlePath.size() && !fDone; n++){
         potentialFileName = bundlePath[n];
         ar_pathAddSlash(potentialFileName);
         potentialFileName += _bundleName;
         ar_pathAddSlash(potentialFileName);
         potentialFileName += name;
-        // Scrub path afterwards to allow cross-platform multi-level 
-	// bundle names (foo/bar), which can be changed per platform
-	// to the right thing (on Windows, foo\bar)
         ar_scrubPath(potentialFileName);
         triedPaths.push_back( potentialFileName );
         fDone = theTexture->readImage(potentialFileName.c_str(), *theAlpha,
 				      false);
 	theTexture->mipmap(true);
-        if (fDone){
-	  // Don't look anymore. Success!
-	  break;
-	}
       }
     }
 
@@ -287,13 +280,7 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
       potentialFileName = *i + name;
       ar_scrubPath(potentialFileName);
       triedPaths.push_back( potentialFileName );
-      // Make sure the texture function does not complain (the final
-      // false parameter does this). Otherwise, ugly error messages will
-      // pop up. Note: it is natural that there be some complaints! Since
-      // we are testing for the existence of the file on the texture path,
-      // starting with the current working directory, by doing this.
-      fDone = theTexture->readImage(potentialFileName.c_str(), *theAlpha, 
-                                    false);
+      fDone = theTexture->readImage(potentialFileName.c_str(), *theAlpha, false);
       theTexture->mipmap(true);
     }
     static bool fComplained = false;
@@ -301,13 +288,13 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha){
       theTexture->dummy();
       if (!fComplained){
 	fComplained = true;
-	ar_log_error() << "arGraphicsDatabase warning: no graphics file \""
-			<< name << "\" found. Tried the following locations:\n";
+	ar_log_error() << "arGraphicsDatabase: no image file '"
+		       << name << "'. Tried ";
         std::vector<std::string>::iterator iter;
         for (iter = triedPaths.begin(); iter != triedPaths.end(); ++iter) {
-          ar_log_error() << *iter << ar_endl;
+          ar_log_error() << *iter << " ";
         }
-        ar_log_error() << ar_endl;
+        ar_log_error() << ".\n";
       }
     }
     ar_mutex_unlock(&_texturePathLock);

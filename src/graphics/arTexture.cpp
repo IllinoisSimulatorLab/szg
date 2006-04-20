@@ -334,8 +334,8 @@ bool arTexture::readPPM(const string& fileName,
   FILE* fd = ar_fileOpen(fileName, subdirectory, path, "rb");
   if (!fd){
     if (complain){
-      ar_log_error() << "arTexture error: readPPM() failed to open '" <<
-        fileName << "' read-only.\n";
+      ar_log_error() << "arTexture readPPM() failed to open '" <<
+        fileName << "'.\n";
     }
     return false;
   }
