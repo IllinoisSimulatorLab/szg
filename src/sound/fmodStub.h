@@ -16,8 +16,8 @@ static inline FMOD_VECTOR FmodvectorFromArvector(const arVector3& rhs) {
   return lhs;
 }
 
-extern FMOD::System* ar_fmod();
-extern bool ar_fmodcheck3(const FMOD_RESULT, const char*, int);
+extern SZG_CALL FMOD::System* ar_fmod();
+extern SZG_CALL bool ar_fmodcheck3(const FMOD_RESULT, const char*, int);
 #define ar_fmodcheck(_) ar_fmodcheck3(_, __FILE__, __LINE__)
 
 #else
