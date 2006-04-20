@@ -15,43 +15,71 @@
 // arSoundClient in a process!
 arSoundClient* __globalSoundClient;
 
-void* SZG_SOUND_CALLBACK ar_soundClientDSPCallback(void*,
-						   void* currentBuffer,
-						   int bufferLength,
-						   int/* might need void* instead of int, on Darwin*/){
-#ifndef AR_USE_DARWIN
-  float* decoded_ptr = (float*) currentBuffer;
-#else
-  // DOES THIS MAKE SENSE ?????
-  float decoded_ptr[2048];
-  for (int i=0; i<1024; i++){
-    decoded_ptr[2*i] = ((int*)currentBuffer)[2*i];
-    decoded_ptr[2*i+1] = decoded_ptr[2*i];
+#ifdef EnableSound
+FMOD::System* ar_fmod() {
+  static FMOD::System* s = NULL;
+  static bool fFailed = false;
+  // if fFailed, returning NULL will likely crash this exe.  Oh well,
+  // they can read the diagnostic.
+  if (s || fFailed)
+    return s;
+  const FMOD_RESULT r = FMOD::System_Create(&s);
+  if (r != FMOD_OK) {
+    fFailed = true;
+    ar_log_error() << "failed to create fmod: " << FMOD_ErrorString(r) << ar_endl;
+    s = NULL;
   }
-#endif
-  // conveniently, the default buffer length is 1024
-  // probably not true for every fmod implementation ????
-  
-  // to make things a little less verbose, let's do the following...
-  arSoundClient* g = __globalSoundClient;
-  float* ptr = g->_waveDataPtr;
-  
-  // NOTE: ASSUMING THAT THE BUFFER LENGTH IS 1024
-  for (int i=0; i<bufferLength; i++){
-    // adding the right and left channel; together...
-    // a little bit dubious
-    ptr[i] = decoded_ptr[2*i] + decoded_ptr[2*i+1];
-  }
-  
-  g->relayWaveform();
-
-  // Buffer must go to the next DSP in the chain.
-  return currentBuffer;
+  return s;
 }
+
+bool ar_fmodcheck3(const FMOD_RESULT r, const char* file, const int line) {
+  if (r == FMOD_OK)
+    return true;
+
+  // Skip "../../../" .
+  file += strspn(file, "./");
+
+  // Skip "src/".
+  if (!strncmp(file, "src/", 4))
+    file += 4;
+
+  ar_log_error() << file << ":" << line <<
+    " fmod: " << FMOD_ErrorString(r) << ar_endl;
+  return false;
+}
+#endif
+
+#ifdef AR_USE_WIN_32
+#define SZG_CALLBACK __stdcall
+#else
+#define SZG_CALLBACK
+#endif
+
+#ifdef EnableSound
+FMOD_RESULT SZG_CALLBACK ar_soundClientDSPCallback(
+    FMOD_DSP_STATE* /*pState*/,
+    float *  bufSrc, 
+    float *  bufDst, 
+    unsigned length, 
+    int  /*inchannels*/, 
+  int  /*outchannels*/){
+  
+  for (unsigned i=0; i<length/2; i++){
+    // sum the right and left channel, dubiously
+    // incorrectly assumes inchannels is 2, outchannels is 1
+    bufDst[i] = bufSrc[2*i] + bufSrc[2*i+1];
+  }
+  
+  // abbreviation
+  arSoundClient* g = __globalSoundClient;
+  g->relayWaveform(); // Forward buffer to the next DSP in the chain.
+  return FMOD_OK;
+}
+#endif
 
 void ar_soundClientWaveformConnectionTask(void* soundClient){
   arSoundClient* s = (arSoundClient*) soundClient;
-  while (s->_dataServer.acceptConnection() != NULL){
+  while (s->_dataServer.acceptConnection() != NULL) {
   }
 }
 
@@ -76,7 +104,9 @@ arSoundClient::arSoundClient():
   _dataServer(5000),
   _dspStarted(false),
   _dspTap(NULL),
-  _recordChannel(-1),
+#ifdef EnableSound
+  _recordChannel(NULL),
+#endif
   _microphoneVolume(0){
   // Set-up the language.
   _waveTemplate.add("data",AR_FLOAT);
@@ -98,8 +128,10 @@ arSoundClient::arSoundClient():
 }
 
 void arSoundClient::terminateSound(){
+#ifdef EnableSound
   if (!_fSilent)
-    FSOUND_Close();
+    ar_fmod()->release();
+#endif
 }
 
 arSoundClient::~arSoundClient(){
@@ -115,27 +147,17 @@ bool arSoundClient::configure(arSZGClient* client){
 }
 
 bool ar_soundClientActionCallback(void* client){
-  ((arSoundClient*)client)->_render();
-  return true;
+  return ((arSoundClient*)client)->_render();
 }
 
 bool ar_soundClientPostSyncCallback(void*){
-  // The arSoundClient/ arSoundServer communication is not
-  // naturally throttled by anything other than the ping time over the
-  // network (while arGraphicsClient/ arGraphicsServer is throttled by
-  // buffer swap). fmod will CRASH if we do not throttle ourselves
-  // (ping times can be 0.3 msec on LAN, leading to thousands of
-  // updates per second. 
-  // NOTE: the way things are designed, the sound synchronizations and
-  // graphics synchronizations are completely independent. Consequently,
-  // we can throttle sound updates to 50 times per second without
-  // impacting graphics updates.
-  FSOUND_Update();
-  // In the framework standalone case we want 
-  // to be able to run the sound without this throttle.
-  // So build it in to SoundRender instead and remove it here.
-  //;;;; ar_usleep(20000);
-  return true;
+  // Only the LAN throttles arSoundClient/ arSoundServer communication,
+  // causing thousands of updates per second.  So we need a throttle.
+  // Standalone we want no 50fps throttle, so do it in SoundRender instead.
+  // // ar_usleep(20000);
+
+  // todo: with a local timer, call it no more than every 20 msec.
+  return ar_fmodcheck(ar_fmod()->update());
 }
 
 bool ar_soundClientNullCallback(void*){
@@ -151,9 +173,9 @@ bool ar_soundClientConsumptionCallback(void* client, ARchar* buffer){
   return true;
 }
 
-void arSoundClient::_render() {
+bool arSoundClient::_render() {
   _soundDatabase.setPlayTransform(_speakerObject);
-  _soundDatabase.render();
+  return _soundDatabase.render();
 }
 
 /// Sets the networks on which the arSoundClient will attempt to connect to the
@@ -191,9 +213,8 @@ bool arSoundClient::start(arSZGClient& client){
 
 string arSoundClient::processMessage(const string& type, 
 				     const string& body){
-  if (type == "szg_sound_stream_info"){
+  if (type == "szg_sound_stream_info")
     return _processStreamInfo(body); 
-  }
   
   // We need a way to say that the message type is not
   // supported. There will have to be a general message processing
@@ -210,33 +231,41 @@ const string& arSoundClient::getLabel() const {
   return s == "arSyncDataClient" ? noname : s;
 }
 
-void arSoundClient::startDSP(){
+bool arSoundClient::startDSP(){
   if (_dspStarted)
-    return;
+    return true;
   _dspStarted = true;
-#ifdef EnableSound
-  ar_log_remark() << "arSoundClient remark: DSP started.\n";
-  FSOUND_SAMPLE* samp1 = FSOUND_Sample_Alloc(FSOUND_UNMANAGED, 2048,
-  FSOUND_MONO | FSOUND_16BITS, 44100, 255, 128, 255);
-  // the sample mode must be set
-  (void)FSOUND_Sample_SetMode(samp1, FSOUND_LOOP_NORMAL);
 
-  // Add the ability to have the arSoundClient play sounds from the microphone.
-  // BUG BUG BUG. There is a memory leak here (probably unimportant since arSoundClient is
-  // only constructed once).
-  if (!FSOUND_Record_StartSample(samp1, 1)){
-    ar_log_error() << "SongQueue warning: failed to start recording.\n";
+#ifndef EnableSound
+  return true;
+#else
+
+  ar_log_remark() << "arSoundClient remark: DSP started.\n";
+  FMOD::Sound* samp1 = NULL;
+  // memory leak: should (void)ar_fmodcheck(_stream->release()) in stopDSP() or ~arSoundClient().
+  if (!ar_fmodcheck(ar_fmod()->createStream(NULL, FMOD_3D | FMOD_LOOP_NORMAL, 0, &samp1)))
+    return false;
+
+  // Allow playing from the mic.  (Mic comes from setRecordDriver and windows' audio control panel.)
+  if (!ar_fmodcheck(ar_fmod()->recordStart(samp1, true))) {
+    ar_log_error() << "failed to start recording.\n"; // for the SongQueue, whatever that is.
+    return false;
   }
-  // it is necessary to start the sample playing
-  _recordChannel = FSOUND_PlaySound(FSOUND_FREE, samp1);
-  // By default, the volume on a channel is 255. Replace with the _microphoneVolume (whose default
-  // is 0, i.e. mute).
-  FSOUND_SetVolume(_recordChannel, _microphoneVolume);
+
+  // Start playing the sample paused.  Set its volume.  Unpause it.
+  if (!ar_fmodcheck(ar_fmod()->playSound(FMOD_CHANNEL_FREE, samp1, true, &_recordChannel)) ||
+      !ar_fmodcheck(_recordChannel->setVolume(_microphoneVolume)) ||
+      !ar_fmodcheck(_recordChannel->setPaused(false))) {
+    return false;
+  }
 
   // Start the DSP.
-  _DSPunit = FSOUND_DSP_Create(ar_soundClientDSPCallback,
-			       FSOUND_DSP_DEFAULTPRIORITY_USER+20, 0);
-  FSOUND_DSP_SetActive(_DSPunit,1);
+  FMOD_DSP_DESCRIPTION d = {0};
+    strcpy(d.name, "Ben Schaeffer is testing this");
+    d.read = ar_soundClientDSPCallback;
+  return ar_fmodcheck(ar_fmod()->createDSP(&d, &_DSPunit)) &&
+         ar_fmodcheck(ar_fmod()->addDSP(_DSPunit)) &&
+         ar_fmodcheck(_DSPunit->setActive(true));
 #endif
 }
 
@@ -254,7 +283,7 @@ void arSoundClient::setDSPTap(void (*callback)(float*)){
   _dspTap = callback;
 }
 
-void arSoundClient::microphoneVolume(int volume){
+bool arSoundClient::microphoneVolume(int volume){
   if (volume < 0){
     _microphoneVolume = 0;
   }
@@ -265,87 +294,72 @@ void arSoundClient::microphoneVolume(int volume){
     _microphoneVolume = volume;
   }
 #ifdef EnableSound
-  if (_recordChannel > 0){
-    FSOUND_SetVolume(_recordChannel, _microphoneVolume);
+  if (_recordChannel){
+    if (!ar_fmodcheck(_recordChannel->setVolume(_microphoneVolume / 255)))
+      return false;
+
+    // bug: don't make the same call twice in a row.
     if (_microphoneVolume == 0){
-      // Don't waste resources if the microphone is mute.
-      FSOUND_SetPaused(_recordChannel, 1);
+      // Save CPU, it's silent anyways.
+      if (!ar_fmodcheck(_recordChannel->setPaused(true)))
+        return false;
     }
     else{
-      FSOUND_SetPaused(_recordChannel, 0);
+      if (!ar_fmodcheck(_recordChannel->setPaused(false)))
+        return false;
     }
   }
 #endif
+  return true;
 }
+
+//;;;; mp3 more than 100KB: open as ar_fmod()->createStream not ar_fmod()->createSound.
+//;;;; And maybe nonblocking too.
+//;;;; test with butterfly dance piece.
 
 bool arSoundClient::_initSound(){
 #ifndef EnableSound
-  ar_log_critical() << "syzygy warning: FMOD disabled, compiled with stub.\n";
+  ar_log_critical() << "Silent, compiled with stub FMOD.\n";
   return false;
 
 #else
 
-#ifdef AR_USE_LINUX
-  FSOUND_SetOutput(FSOUND_OUTPUT_OSS);
-#endif
-#ifdef AR_USE_WIN_32
-  FSOUND_SetOutput(FSOUND_OUTPUT_DSOUND);
-#endif
-#ifdef AR_USE_DARWIN
-  FSOUND_SetOutput(FSOUND_OUTPUT_MAC);
-#endif
-#ifndef AR_USE_DARWIN
-  // actually not needed, according to fmod docs
-  if (FSOUND_SetMixer(FSOUND_MIXER_QUALITY_FPU) == 0){
-    ar_log_error() << "arSoundClient error: Set mixer request failed!\n";
-    return false;
-  }
-#else
-  if (FSOUND_SetMixer(FSOUND_MIXER_QUALITY_AUTODETECT) == 0){
-    ar_log_error() << "arSoundClient error: Set mixer request failed!\n";
-    return false;
-  }
-#endif
-  ar_log_remark() << getLabel() << " remark: FMOD using output " 
-                  << FSOUND_GetOutput() << ar_endl;
-  // EXPERIMENTING WITH CHANGING THE FMOD INIT IN ARSOUNDCLIENT SO THAT
-  // IT IS LIKE THE INIT IN THE LIGHT SHOW...
-  //if (!FSOUND_Init(44100, 20, FSOUND_INIT_USEDEFAULTMIDISYNTH))
-  if (!FSOUND_Init(44100, 32, 0)){
-    ar_log_error() << getLabel() << " error: FMOD audio failed to initialize.\n";
+  if (!ar_fmodcheck(ar_fmod()->setSoftwareFormat(44100, FMOD_SOUND_FORMAT_PCM16, 0, 0, FMOD_DSP_RESAMPLER_LINEAR))) {
+    ar_log_error() << "fmod audio failed to init.\n";
     return false;
   }
 
-  FSOUND_3D_SetDistanceFactor(3.28); // arFramework uses feet; FMOD uses meters
-  FSOUND_3D_SetRolloffFactor(.8);
-  // .8 puts sounds very quiet when 70 feet away
-  // .008 is very slight rolloff with distance
+  const float feetNotMeters = 3.28;
+  const float rolloff = 0.8; // .8 is faint, 70 feet away.  .008 is much more gradual.
+  const int numVirtualVoices = 100;
+  return ar_fmodcheck(ar_fmod()->set3DSettings(1.0, feetNotMeters, rolloff)) &&
+         ar_fmodcheck(ar_fmod()->init(
+	   numVirtualVoices, FMOD_INIT_NORMAL | FMOD_INIT_3D_RIGHTHANDED, 0));
 
-  return true;
+  // ar_fmodcheck(ar_fmod()->setOutput(FMOD_OUTPUTTYPE_AUTODETECT));
+  // FMOD_OUTPUTTYPE_ASIO or FMOD_OUTPUTTYPE_DSOUND
+  // linux: FMOD_OUTPUTTYPE_ALSA FMOD_OUTPUTTYPE_OSS
+
 #endif
 }
 
 string arSoundClient::_processStreamInfo(const string& body){
   int nodeID = -1;
   if (!ar_stringToIntValid(body, nodeID)){
-    ar_log_error() << "arSoundClient error: stream_info message had invalid ID.\n";
+    ar_log_error() << "arSoundClient stream_info message had invalid ID.\n";
     return string("SZG_ERROR");
   }
 
-  // AARGH! just thought of something... THIS IS NOT SAFE WITH RESPECT
-  // TO DATABASE NODES BEING DELETED! (MAYBE IT ISN"T EVEN SAFE WITH RESPECT
-  // TO DATBASE NODES BEING ADDED... i.e. is getNode(...) OK?)
+  // getNode() may be unsafe here when database nodes are deleted, or even added.
   arDatabaseNode* node = _soundDatabase.getNode(nodeID);
-  if (!node || 
-      node->getTypeCode() != AR_S_STREAM_NODE){
-    ar_log_error() << "arSoundClient error: stream_info message failed to find node.\n";
+  if (!node || node->getTypeCode() != AR_S_STREAM_NODE){
+    ar_log_error() << "arSoundClient stream_info message found no node.\n";
     return string("SZG_ERROR");
   }
 
-  // After the last check, we know the following cast is valid.
-  arStreamNode* streamNode = (arStreamNode*) node;
+  // node->getTypeCode() confirms that this cast is valid.
+  arStreamNode* tmp = (arStreamNode*)node;
   stringstream result;
-  result << streamNode->getCurrentTime() << "/"
-	 << streamNode->getStreamLength();
+  result << tmp->getCurrentTime() << "/" << tmp->getStreamLength();
   return result.str();
 }

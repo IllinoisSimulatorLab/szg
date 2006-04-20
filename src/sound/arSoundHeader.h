@@ -9,8 +9,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arSoundCalling.h"
 
-// These IDs are used by the arSoundNodes. They identify the node type
-// and allow for efficient casting.
+// IDs: type of an arSoundNode, for efficient casting.
 
 enum{
   AR_S_TRANSFORM_NODE = 0,

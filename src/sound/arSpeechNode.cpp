@@ -58,9 +58,6 @@ void arSpeechNode::_deleteVoice() {
 #endif
 }
 
-void arSpeechNode::render() {
-}
-
 arStructuredData* arSpeechNode::dumpData(){
   arStructuredData* pdata = _l.makeDataRecord(_l.AR_SPEECH);
   _dumpGenericNode(pdata,_l.AR_SPEECH_ID);

@@ -19,18 +19,26 @@ using namespace std; // needed for "string"
 class SZG_CALL arSoundFile {
  // Needs assignment operator and copy constructor, for pointer members.
  public:
-  arSoundFile() : _psamp(NULL), _psampTrigger(NULL) {}
+  arSoundFile()
+#ifdef EnableSound
+    : _psamp(NULL), _psampTrigger(NULL)
+#endif
+    {}
   ~arSoundFile();
 
   bool read(const char* filename, bool fLoop);
   bool dummy();
   const string& name() const { return _name; } // convenient for debugging
-  FSOUND_SAMPLE* psamp() { return _psamp; }
+#ifdef EnableSound
+  FMOD::Sound* psamp() { return _psamp; }
+#endif
 
  private:
   string _name;
-  FSOUND_SAMPLE* _psamp;        // looped
-  FSOUND_SAMPLE* _psampTrigger; // non-looped
+#ifdef EnableSound
+  FMOD::Sound* _psamp;        // looped
+  FMOD::Sound* _psampTrigger; // non-looped
+#endif
 
   // For dummy sound, when a soundfile fails to load.
   static bool _fInit;

@@ -17,7 +17,7 @@ class SZG_CALL arPlayerNode:public arSoundNode{
   arPlayerNode();
   ~arPlayerNode(){}
 
-  void render() {}
+  bool render() { return true; }
 
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);

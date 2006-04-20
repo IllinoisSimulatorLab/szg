@@ -37,7 +37,7 @@ class SZG_CALL arSoundDatabase: public arDatabase{
   arSoundFile* addFile(const string&, bool);
 
   void setPlayTransform(arSpeakerObject*);
-  void render();
+  bool render();
 
   // Deliberately public, for external data input.
   arStructuredData* transformData;
@@ -53,7 +53,7 @@ class SZG_CALL arSoundDatabase: public arDatabase{
   list<string>*  _path;
   map<string,arSoundFile*,less<string> > _filewavNameContainer;
 
-  void _render(arSoundNode*);
+  bool _render(arSoundNode*);
   virtual arDatabaseNode* _makeNode(const string& type);
   arDatabaseNode* _processAdmin(arStructuredData* data);
 };

@@ -17,9 +17,6 @@ arSoundNode::arSoundNode() :
 {
 }
 
-arSoundNode::~arSoundNode(){
-}
-
 void arSoundNode::initialize(arDatabase* owner){
   _owningDatabase = (arSoundDatabase*) owner;
   arSoundNode* parent = (arSoundNode*)_parent;

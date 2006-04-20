@@ -14,9 +14,10 @@ arSoundTransformNode::arSoundTransformNode(){
   _typeString = "transform";
 }
 
-void arSoundTransformNode::render(){
+bool arSoundTransformNode::render(){
   ar_transformStack.top() = ar_transformStack.top() *
     arMatrix4(_commandBuffer.v); // "glMultMatrixf"
+  return true;
 }
 
 const int len = sizeof(arMatrix4) / sizeof(float);

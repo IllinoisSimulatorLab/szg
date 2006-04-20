@@ -34,7 +34,7 @@ SZG_CALL void dsSetSoundDatabase(arSoundDatabase*);
 SZG_CALL arDatabaseNode* dsMakeNode(const string&, const string&, 
                                     const string&);
 
-SZG_CALL int dsPlayer(const arMatrix4&, const arVector3&, float);
+SZG_CALL bool dsPlayer(const arMatrix4&, const arVector3&, float);
 
 SZG_CALL int dsTransform(const string&, const string&, const arMatrix4&);
 SZG_CALL bool dsTransform(int, const arMatrix4&);

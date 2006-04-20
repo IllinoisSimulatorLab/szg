@@ -56,10 +56,10 @@ class SZG_CALL arSoundClient{
   void terminateSound();
   const string& getLabel() const;
 
-  void startDSP();
+  bool startDSP();
   void relayWaveform();
   void setDSPTap(void (*callback)(float*));
-  void microphoneVolume(int volume);
+  bool microphoneVolume(int volume);
 
   // _soundDatabase interface
   bool empty() { return _soundDatabase.empty(); }
@@ -82,7 +82,7 @@ class SZG_CALL arSoundClient{
   bool silent() const { return _fSilent; }
   
  private:
-  void _render();
+  bool _render();
  protected:
   arSpeakerObject*     _speakerObject;
   arSoundDatabase      _soundDatabase;
@@ -97,7 +97,9 @@ class SZG_CALL arSoundClient{
   bool                 _dataServerRegistered;
   arDataServer         _dataServer;
 
-  FSOUND_DSPUNIT* _DSPunit;
+#ifdef EnableSound
+  FMOD::DSP* _DSPunit;
+#endif
   bool            _dspStarted;
   void (*_dspTap)(float*);
 
@@ -105,7 +107,9 @@ class SZG_CALL arSoundClient{
   arMutex         _bufferSwapLock;
 
   // Microphone output into the sound player.
-  int             _recordChannel;
+#ifdef EnableSound
+  FMOD::Channel* _recordChannel;
+#endif
   int             _microphoneVolume;
 
   bool _fSilent; // True iff sound subsystem failed to initialize at runtime.

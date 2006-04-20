@@ -15,9 +15,9 @@
 class SZG_CALL arSoundTransformNode : public arSoundNode{
  public:
   arSoundTransformNode();
-  ~arSoundTransformNode(){}
+  ~arSoundTransformNode() {}
 
-  void render();
+  bool render();
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 };

@@ -1,30 +1,22 @@
-# This Makefile fragment encapsulates library scanning (where we decide
-# which of the optional libraries is present). The file builds up several
-# variables for use in other Makefiles:
+# This Makefile fragment detects which optional libraries are installed.
+# It defines variables used by Makefiles that include it:
 #
-# SZG_OPT_FLAGS: A series of compile flags that enable particular features in
-#   the code.
+# SZG_OPT_FLAGS: Compiler flags that enable particular features.
 # SZG_OPT_INCLUDE_FULL: A complete sequence of include directories for the
-#   additional libraries.
-# SZG_OPT_LIBS_FULL: The addition to the link line needed to use the additional
-#   libraries.
-# SZG_SHARED_COPY: Shared libraries that can be copied into the user's SZGBIN
+#   optional libraries.
+# SZG_OPT_LIBS_FULL: Linker options for SZG_OPT_INCLUDE_FULL.
+# SZG_SHARED_COPY: Shared libraries to be copied into the SZGBIN
 #   directory via a Makefile target.
-# SZG_SHARED_COPY_ACTION: OK, so we want to go ahead and copy the shared
-#   libraries into the user's SZGBIN. However, we now run into the soname
-#   issue on Unix. Consequently, some symbolc links need to be made. Which
-#   leads us to this particular variable.
+# SZG_SHARED_COPY_ACTION: On unix, makes symbolic links for soname's.
 #
-# Each additional library XXX also defines SZG_INCLUDE_XXX and SZG_LINK_XXX.
-# The szg libraries are created incrementally and the optional linking/
-# header search is limited to those portions that need them (like FMOD only
-# for sound and framework).
+# Each optional library XXX also defines SZG_INCLUDE_XXX and SZG_LINK_XXX.
+# The szg libraries are created incrementally.  Options for compiler and linker
+# are applied only as needed (e.g., FMOD only for szg/sound and szg/framework).
 
-# It is important that SZG_SHARED_COPY not be empty for proper Makefile
-# operation (of create-sdk and bin-install). Consequently, we guarantee that
-# at least a standard "placeholder" file will be copied.
+# blessing.txt is a placeholder so that SZG_SHARED_COPY isn't empty,
+# which would break the makefile.
 SZG_SHARED_COPY = $(SZGHOME)/build/make/blessing.txt
-SZG_SHARED_COPY_ACTION =
+SZG_SHARED_COPY_ACTION :=
 
 ifeq ($(strip $(MACHINE)), LINUX)
   GLUT_DIR := $(SZGEXTERNAL)/linux/glut-3.7
@@ -32,10 +24,10 @@ ifeq ($(strip $(MACHINE)), LINUX)
   LINK_GLUT := -lglut
   OBJ_GLUT := $(wildcard $(GLUT_DIR)/lib/libglut.so.3.7)
 
-  FMOD_DIR := $(SZGEXTERNAL)/linux/fmod-3.7
+  FMOD_DIR := $(SZGEXTERNAL)/linux/fmod-4
   INC_FMOD := $(wildcard $(FMOD_DIR)/include)
-  LINK_FMOD := -lfmod-3.70
-  OBJ_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmod-3.70.so)
+  LIB_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmodex.so.4.03.06)
+  LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmodex.so.4.03.06)
   
   JPEG_DIR := $(SZGEXTERNAL)/linux/jpeg
   INC_JPEG := $(wildcard $(JPEG_DIR)/include)
@@ -62,43 +54,35 @@ ifeq ($(strip $(MACHINE)), LINUX)
     SZG_SHARED_COPY += $(OBJ_ISENSE)
   endif
 
-  # NOTE: GLUT is currently REQUIRED for szg operation. Consequently, for
-  # this library only, we go ahead and provide a default link and include
-  # value. (though the include value is blank, since, if you already
-  # have it installed, then the header should be on the default include
-  # path ).
+  # Only GLUT gets a default link and include value.  The latter is blank,
+  # since most GLUT installations put .h files in the default include path.
   ifneq ($(strip $(OBJ_GLUT)),)
     SZG_SHARED_COPY += $(OBJ_GLUT)
-    # NOTE: It is IMPORTANT that the symbolic links are RELATIVE and not
-    # ABSOLUTE!
+    # Relative, not absolute, symlinks.
     SZG_SHARED_COPY_ACTION += \
       rm -f libglut.so.3; rm -f libglut.so; \
       ln -s libglut.so.3.7 libglut.so.3 ; \
       ln -s libglut.so.3 libglut.so ;
     SZG_INCLUDE_GLUT = -I$(INC_GLUT)
     SZG_OPT_INCLUDE_FULL += $(SZG_INCLUDE_GLUT)
-    # NOTE: Sometimes we will want to be able to put shared libs in our *local*
-    # bin directory only and sometimes we want to be able to have the
-    # shared libs in their compiled-in directory only (which is the
-    # purpose of -rpath)
+    # -rpath lets shared libs be only in their compiled-in directories,
+    # or in the local bin directory as well.
     SZG_LINK_GLUT = -L$(GLUT_DIR)/lib -Wl,-rpath,$(GLUT_DIR)/lib $(LINK_GLUT)
     SZG_OPT_LIBS_FULL += $(SZG_LINK_GLUT)
   else
     SZG_LINK_GLUT = -lglut
     SZG_OPT_LIBS_FULL += $(SZG_LINK_GLUT)
   endif
-  
+ 
   ifneq ($(strip $(INC_FMOD)),)
-  ifneq ($(strip $(OBJ_FMOD)),)
+  ifneq ($(strip $(LIB_FMOD)),)
     SZG_OPT_FLAGS += -DEnableSound
     SZG_SHARED_COPY += $(OBJ_FMOD)
     SZG_SHARED_COPY_ACTION += 
     SZG_INCLUDE_FMOD = -I$(INC_FMOD)
     SZG_OPT_INCLUDE_FULL += -I$(INC_FMOD)
-    # NOTE: Sometimes we will want to be able to put shared libs in our *local*
-    # bin directory only and sometimes we want to be able to have the
-    # shared libs in their compiled-in directory only (which is the
-    # purpose of -rpath)
+    # -rpath lets shared libs be only in their compiled-in directories,
+    # or in the local bin directory as well.
     SZG_LINK_FMOD = -L$(FMOD_DIR)/lib -Wl,-rpath,$(FMOD_DIR)/lib $(LINK_FMOD)
     SZG_OPT_LIBS_FULL += $(SZG_LINK_FMOD)
   endif
@@ -190,10 +174,10 @@ ifeq ($(strip $(MACHINE)), WIN32)
   # q33 demo. Allow it to be added in SZGEXTERNAL
   GL_EXT_DIR := $(wildcard $(SZGEXTERNAL)/win32/GL/include)
 
-  FMOD_DIR := $(SZGEXTERNAL)/win32/fmod-3.7
+  FMOD_DIR := $(SZGEXTERNAL)/win32/fmod-4
   INC_FMOD := $(wildcard $(FMOD_DIR)/include)
-  LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/fmodvc.lib)
-  OBJ_FMOD := $(wildcard $(FMOD_DIR)/lib/fmod.dll)
+  LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/fmodex_vc.lib)
+  OBJ_FMOD := $(wildcard $(FMOD_DIR)/lib/fmodex.dll)
 
 	ifeq ($(strip $(SZG_COMPILER)), MINGW)
 		JPEG_DIR := $(SZGEXTERNAL)/win32/jpeg-mingw
@@ -262,51 +246,45 @@ ifeq ($(strip $(MACHINE)), WIN32)
     SZG_SHARED_COPY += $(OBJ1_STLPORT) $(OBJ2_STLPORT)
   endif
 
-  # NOTE: GLUT is currently REQUIRED for szg operation. Consequently, for
-  # this library only, we go ahead and provide a default link and include
-  # value. (though the include value is blank, since, if you already
-  # have it installed, then the header should be on the default include
-  # path ).
-	ifneq ($(strip $(SZG_COMPILER)), MINGW)
-		ifneq ($(strip $(OBJ_GLUT)),)
-			SZG_SHARED_COPY += $(OBJ_GLUT)
-			# Since Windows does not have soname's, we don't need to construct
-			# symbolic links. So no need to add to SZG_SHARED_COPY_ACTION
-			SZG_INCLUDE_GLUT = -I$(INC_GLUT)
-			SZG_OPT_INCLUDE_FULL += $(SZG_INCLUDE_GLUT)
-			# Because of the different design of windows, do not need to set
-			# runtime paths for executables, consequently SZG_LINK_GLUT is simpler
-			# than in the Linux/SGI cases.
-			SZG_LINK_GLUT = $(GLUT_DIR)/lib/$(LINK_GLUT)
-			SZG_OPT_LIBS_FULL += $(SZG_LINK_GLUT)
-		else
-			SZG_LINK_GLUT = $(LINK_GLUT)
-			SZG_OPT_LIBS_FULL += $(SZG_LINK_GLUT)
-		endif
-	else
-		ifneq ($(strip $(OBJ_GLUT)),)
-			SZG_SHARED_COPY += $(OBJ_GLUT)
-			# Since Windows does not have soname's, we don't need to construct
-			# symbolic links. So no need to add to SZG_SHARED_COPY_ACTION
-			SZG_INCLUDE_GLUT = -I$(INC_GLUT)
-			SZG_OPT_INCLUDE_FULL += $(SZG_INCLUDE_GLUT)
-			# Because of the different design of windows, do not need to set
-			# runtime paths for executables, consequently SZG_LINK_GLUT is simpler
-			# than in the Linux/SGI cases.
-			# HOWEVER, with MinGW we have to ensure that the linker finds our
-			# libglut32.a _before_ it finds the glut32.dll in szg/bin/win32, or
-			# it will attempt to link against that and barf at the lack of
-			# @<numbytes> at the end of each function name. So we have to make
-			# sure that the appropriate linker path gets added _early_.
-			PRE_LIB_SEARCH_FLAGS += -L$(GLUT_DIR)/lib
-			SZG_LINK_GLUT = $(LINK_GLUT)
-			SZG_OPT_LIBS_FULL += $(SZG_LINK_GLUT)
-		else
-			PRE_LIB_SEARCH_FLAGS += -L$(GLUT_DIR)/lib
-			SZG_LINK_GLUT = $(LINK_GLUT)
-			SZG_OPT_LIBS_FULL += $(SZG_LINK_GLUT)
-		endif
-	endif
+  # Only GLUT gets a default link and include value.  The latter is blank,
+  # since most GLUT installations put .h files in the default include path.
+
+  ifneq ($(strip $(SZG_COMPILER)), MINGW)
+    ifneq ($(strip $(OBJ_GLUT)),)
+      SZG_SHARED_COPY += $(OBJ_GLUT)
+      SZG_INCLUDE_GLUT = -I$(INC_GLUT)
+      SZG_OPT_INCLUDE_FULL += $(SZG_INCLUDE_GLUT)
+      # Because of the different design of windows, do not need to set
+      # runtime paths for executables, consequently SZG_LINK_GLUT is simpler
+      # than in the Linux/SGI cases.
+      SZG_LINK_GLUT = $(GLUT_DIR)/lib/$(LINK_GLUT)
+      SZG_OPT_LIBS_FULL += $(SZG_LINK_GLUT)
+    else
+      SZG_LINK_GLUT = $(LINK_GLUT)
+      SZG_OPT_LIBS_FULL += $(SZG_LINK_GLUT)
+    endif
+  else
+    ifneq ($(strip $(OBJ_GLUT)),)
+      SZG_SHARED_COPY += $(OBJ_GLUT)
+      SZG_INCLUDE_GLUT = -I$(INC_GLUT)
+      SZG_OPT_INCLUDE_FULL += $(SZG_INCLUDE_GLUT)
+      # Because of the different design of windows, do not need to set
+      # runtime paths for executables, consequently SZG_LINK_GLUT is simpler
+      # than in the Linux/SGI cases.
+      # HOWEVER, with MinGW we have to ensure that the linker finds our
+      # libglut32.a _before_ it finds the glut32.dll in szg/bin/win32, or
+      # it will attempt to link against that and barf at the lack of
+      # @<numbytes> at the end of each function name. So we have to make
+      # sure that the appropriate linker path gets added _early_.
+      PRE_LIB_SEARCH_FLAGS += -L$(GLUT_DIR)/lib
+      SZG_LINK_GLUT = $(LINK_GLUT)
+      SZG_OPT_LIBS_FULL += $(SZG_LINK_GLUT)
+    else
+      PRE_LIB_SEARCH_FLAGS += -L$(GLUT_DIR)/lib
+      SZG_LINK_GLUT = $(LINK_GLUT)
+      SZG_OPT_LIBS_FULL += $(SZG_LINK_GLUT)
+    endif
+  endif
 
   # Inclusion of glext.h for q33
   ifneq ($(strip $(GL_EXT_DIR)),)
@@ -325,22 +303,22 @@ ifeq ($(strip $(MACHINE)), WIN32)
   endif
 
   ifneq ($(strip $(INC_JPEG)),)
-		ifneq ($(strip $(LIB_JPEG)),)
-			ifneq ($(strip $(SZG_COMPILER)), MINGW)
-				SZG_OPT_FLAGS += -D "EnableJPEG"
-				SZG_INCLUDE_JPEG = -I$(INC_JPEG)
-				SZG_OPT_INCLUDE_FULL += -I$(INC_JPEG)
-				SZG_LINK_JPEG = $(LIB_JPEG)
-				SZG_OPT_LIBS_FULL += $(SZG_LINK_JPEG)
-			else 
-				SZG_OPT_FLAGS += -D "EnableJPEG"
-				SZG_INCLUDE_JPEG = -I$(INC_JPEG)
-				SZG_OPT_INCLUDE_FULL += -I$(INC_JPEG)
-				PRE_LIB_SEARCH_FLAGS += -L$(JPEG_DIR)/lib
-				SZG_LINK_JPEG = -ljpeg
-				SZG_OPT_LIBS_FULL += $(SZG_LINK_JPEG)
-			endif
-		endif
+  ifneq ($(strip $(LIB_JPEG)),)
+    ifneq ($(strip $(SZG_COMPILER)), MINGW)
+      SZG_OPT_FLAGS += -D "EnableJPEG"
+      SZG_INCLUDE_JPEG = -I$(INC_JPEG)
+      SZG_OPT_INCLUDE_FULL += -I$(INC_JPEG)
+      SZG_LINK_JPEG = $(LIB_JPEG)
+      SZG_OPT_LIBS_FULL += $(SZG_LINK_JPEG)
+    else 
+      SZG_OPT_FLAGS += -D "EnableJPEG"
+      SZG_INCLUDE_JPEG = -I$(INC_JPEG)
+      SZG_OPT_INCLUDE_FULL += -I$(INC_JPEG)
+      PRE_LIB_SEARCH_FLAGS += -L$(JPEG_DIR)/lib
+      SZG_LINK_JPEG = -ljpeg
+      SZG_OPT_LIBS_FULL += $(SZG_LINK_JPEG)
+    endif
+  endif
   endif
 
   ifneq ($(strip $(INC_3DS)),)
@@ -365,20 +343,20 @@ ifeq ($(strip $(MACHINE)), WIN32)
   endif
 
   ifneq  ($(strip $(INC_ZLIB)),)
-		ifneq  ($(strip $(LIB_ZLIB)),) 
-			ifneq ($(strip $(SZG_COMPILER)), MINGW)
-				# Only used in the Quake3 level viewer demos. Consequently, do not add
-				# to everything.
-				SZG_OPT_FLAGS += -D "EnableZlib"
-				SZG_INCLUDE_ZLIB = -I$(INC_ZLIB)
-				SZG_LINK_ZLIB = $(LIB_ZLIB)
-			else
-				SZG_OPT_FLAGS += -D "EnableZlib"
-				SZG_INCLUDE_ZLIB = -I$(INC_ZLIB)
-				SZG_LINK_ZLIB = -lz
-				PRE_LIB_SEARCH_FLAGS += -L$(ZLIB_DIR)/lib
-			endif
-		endif
+  ifneq  ($(strip $(LIB_ZLIB)),) 
+    ifneq ($(strip $(SZG_COMPILER)), MINGW)
+      # Only used in the Quake3 level viewer demos. Consequently, do not add
+      # to everything.
+      SZG_OPT_FLAGS += -D "EnableZlib"
+      SZG_INCLUDE_ZLIB = -I$(INC_ZLIB)
+      SZG_LINK_ZLIB = $(LIB_ZLIB)
+    else
+      SZG_OPT_FLAGS += -D "EnableZlib"
+      SZG_INCLUDE_ZLIB = -I$(INC_ZLIB)
+      SZG_LINK_ZLIB = -lz
+      PRE_LIB_SEARCH_FLAGS += -L$(ZLIB_DIR)/lib
+    endif
+  endif
   endif
 
 # NOTE: This only applies to one of the dynamically loadable input drivers.
@@ -407,11 +385,11 @@ ifeq ($(strip $(MACHINE)), WIN32)
 #  INCCG := 
 #  LIBCG := 
 #  LIBCGGL :=
-
+#
 #  INCCG := $(wildcard $(SZGEXTERNAL)/include/Cg)
 #  LIBCG := $(wildcard $(SZGEXTERNAL)/lib/Cg/win32/libCg.lib)
 #  LIBCGGL := $(wildcard $(SZGEXTERNAL)/lib/Cg/win32/libCgGL.lib)
-
+#
 #  ifneq ($(strip $(INCCG)),)
 #  ifneq ($(strip $(LIBCG)),)
 #  ifneq ($(strip $(LIBCGGL)),)
@@ -428,14 +406,14 @@ endif
 
 ifeq ($(strip $(MACHINE)), DARWIN)
 
-  FMOD_DIR := $(SZGEXTERNAL)/darwin/fmod-3.7
+  FMOD_DIR := $(SZGEXTERNAL)/darwin/fmod-4
   INC_FMOD := $(wildcard $(FMOD_DIR)/include)
   LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmod.a)
 
   JPEG_DIR := $(SZGEXTERNAL)/darwin/jpeg
   INC_JPEG := $(wildcard $(JPEG_DIR)/include)
   LIB_JPEG := $(wildcard $(JPEG_DIR)/lib/libjpeg.a)
-  
+
   ifneq ($(strip $(INC_FMOD)),)
   ifneq ($(strip $(LINK_FMOD)),)
     SZG_OPT_FLAGS += -DEnableSound
@@ -466,9 +444,9 @@ endif
 
 ifeq ($(strip $(MACHINE)), SGI)
 
-  # NOTE: If we have put the glut files into SZGEXTERNAL, then use those.
-  # Otherwise, we should assume that everything is present in the standard
-  # locations.
+  # If glut is in SZGEXTERNAL, use that.
+  # Otherwise, assume everything is in the standard locations.
+
   GLUT_DIR := $(SZGEXTERNAL)/sgi/glut-3.7
   INC_GLUT := $(wildcard $(GLUT_DIR)/include)
   LIB_GLUT := $(wildcard $(GLUT_DIR)/lib/libglut.a)
@@ -484,4 +462,3 @@ ifeq ($(strip $(MACHINE)), SGI)
   endif
   
 endif
-

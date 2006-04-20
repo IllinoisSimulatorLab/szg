@@ -1247,7 +1247,7 @@ void arMasterSlaveFramework::setDataBundlePath( const string& bundlePathName,
 
 void arMasterSlaveFramework::setPlayTransform( void ){
   if( soundActive() ) {
-    _speakerObject.loadMatrices( _inputState->getMatrix( 0 ) );
+    (void) _speakerObject.loadMatrices( _inputState->getMatrix( 0 ) );
   }
 }
 

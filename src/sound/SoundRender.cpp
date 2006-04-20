@@ -107,11 +107,15 @@ int main(int argc, char** argv){
   soundClient->setSpeakerObject(&speakerObject);
   soundClient->setNetworks(szgClient.getNetworks("sound"));
   (void)soundClient->init();
-  // We want to start the DSP callback, which can be used to relay the
-  // playing waveform elsewhere. This must occur AFTER init (since
-  // that is where the fmod library gets started!)
-  soundClient->startDSP();
-  (void)soundClient->start(szgClient);
+
+  // Now that init() has started FMOD, start the FMOD DSP callback
+  // which can forward playing sounds.
+  if (!soundClient->startDSP() ||
+      !soundClient->start(szgClient)) {
+    if (!szgClient.sendStartResponse(false))
+      ar_log_error() << "SoundRender error: maybe szgserver died.\n";
+    return 1;
+  }
 
   if (!szgClient.sendStartResponse(true)){
     ar_log_error() << "SoundRender error: maybe szgserver died.\n";

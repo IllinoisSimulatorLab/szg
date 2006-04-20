@@ -25,7 +25,7 @@ class SZG_CALL arSpeechNode : public arSoundNode{
     ~arSpeechNode();
     
     void initialize( arDatabase* owner );
-    void render();
+    bool render() { return true; }
     arStructuredData* dumpData();
     bool receiveData(arStructuredData*);
 

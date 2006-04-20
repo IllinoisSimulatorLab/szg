@@ -20,15 +20,16 @@ class SZG_CALL arSoundFileNode : public arSoundNode{
   arSoundFileNode();
   ~arSoundFileNode();
 
-  void render();
+  bool render();
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
  private:
   int _fInit;
-  FSOUND_SAMPLE* _psamp;
-  // The fmod channel upon which the sound is playing.
-  int _channel;
+#ifdef EnableSound
+  FMOD::Sound* _psamp;
+  FMOD::Channel* _channel;
+#endif
   // This _fLoop is a HACK. It variously means
   //  "start the loop", "pause the loop", "trigger the sound", and
   //  "prepare to trigger the sound again"
@@ -40,7 +41,7 @@ class SZG_CALL arSoundFileNode : public arSoundNode{
   float _triggerAmplitude;
   arVector3 _triggerPoint;
 
-  void _adjust(bool useTriggered = false);
+  bool _adjust(bool useTriggered = false);
 };
 
 #endif

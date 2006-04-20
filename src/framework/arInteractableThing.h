@@ -41,7 +41,7 @@ class SZG_CALL arInteractableThing : public arInteractable {
     virtual void draw( arMasterSlaveFramework&, arGraphicsWindow&, arViewport& ) {}
   private:
     virtual bool _touch( arEffector& effector );
-    virtual bool _processInteraction( arEffector& /*effector*/ ) { return true; }
+    virtual bool _processInteraction( arEffector& ) { return true; }
     virtual bool _untouch( arEffector& effector );
     bool _visible;
     arVector4 _color;

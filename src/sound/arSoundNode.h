@@ -23,11 +23,11 @@ class SZG_CALL arSoundNode : public arDatabaseNode {
  public:
   friend class arSoundDatabase;
   arSoundNode();
-  virtual ~arSoundNode();
+  virtual ~arSoundNode() {}
 
   virtual void initialize(arDatabase*);
   virtual bool receiveData(arStructuredData*) = 0;
-  virtual void render() = 0;
+  virtual bool render() = 0;
   virtual arStructuredData* dumpData() = 0;
   bool isServer() const;
   bool isClient() const { return !isServer(); }
@@ -36,7 +36,7 @@ class SZG_CALL arSoundNode : public arDatabaseNode {
   arSoundDatabase* _owningDatabase;
   arSoundLanguage  _l;
   
-  // State of this node.
+  // State.
   arVector3 _point;
   float _amplitude;
   // these 2 are perhaps ignored by some node-kinds.

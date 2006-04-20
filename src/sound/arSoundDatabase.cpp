@@ -157,22 +157,15 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
   if (_bundlePathName != "NULL" && _bundleName != "NULL"
       && iter != _bundlePathMap.end()){
     arSemicolonString bundlePath(iter->second);
-    for (int n=0; n<bundlePath.size(); n++){
+    for (int n=0; n<bundlePath.size() && !fDone; n++){
       potentialFileName = bundlePath[n];
       ar_pathAddSlash(potentialFileName);
       potentialFileName += _bundleName;
       ar_pathAddSlash(potentialFileName);
       potentialFileName += name;
-      // Scrub path afterwards to allow cross-platform multi-level 
-      // bundle names (foo/bar), which can be changed per platform
-      // to the right thing (on Windows, foo\bar)
       ar_scrubPath(potentialFileName);
       triedPaths.push_back( potentialFileName );
       fDone = theFile->read(potentialFileName.c_str(), fLoop);
-      if (fDone){
-	// Don't look anymore. Success!
-	break;
-      }
     }
   }
 
@@ -189,17 +182,17 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
   static bool fComplained = false;
   if (!fDone){
     if (!theFile->dummy()) {
-      cerr << "arSoundDatabase error: failed to create dummy sound.\n";
+      ar_log_error() << "arSoundDatabase: failed to create dummy sound.\n";
     }
     if (!fComplained){
       fComplained = true;
-      cerr << "arSoundDatabase warning: soundfile \""
-	   << name << "\" not found. Tried the following locations:\n";
+      ar_log_error() << "arSoundDatabase: no soundfile '"
+	   << name << "'. Tried ";
       std::vector<std::string>::iterator iter;
       for (iter = triedPaths.begin(); iter != triedPaths.end(); ++iter) {
-        cerr << *iter << endl;
+        ar_log_error() << *iter << " ";
       }
-      cerr << endl;
+      ar_log_error() << ".\n";
     }
   }
   ar_mutex_unlock(&_pathLock);
@@ -210,7 +203,7 @@ arSoundFile* arSoundDatabase::addFile(const string& name, bool fLoop){
 }
 
 void arSoundDatabase::setPlayTransform(arSpeakerObject* s){
-  arMatrix4 headMatrix(ar_identityMatrix());
+  arMatrix4 headMatrix;
   float unitConversion = 1.;
   arDatabaseNode* playerNode = getNode("szg_player", false);
   if (playerNode){
@@ -223,80 +216,68 @@ void arSoundDatabase::setPlayTransform(arSpeakerObject* s){
   }
   s->setUnitConversion(unitConversion);
 
-  // This call to loadMatrices() happens once per audio-frame,
-  // 5x more common than arServerFramework::setPlayTransform 
-  // calls loadMatrices.
-  s->loadMatrices(headMatrix);
+  // This happens once per sound-frame, 5x more often than
+  // arServerFramework::setPlayTransform calls loadMatrices.
+  (void)s->loadMatrices(headMatrix);
 }
 
 // Copy of OpenGL's matrix stack, for sound rendering.
 stack<arMatrix4, deque<arMatrix4> > ar_transformStack;
 
-void arSoundDatabase::render(){
+bool arSoundDatabase::render(){
   ar_transformStack.push(ar_identityMatrix());
-  //ar_mutex_lock(&_eraseLock);
-  _render((arSoundNode*)&_rootNode);
-  //ar_mutex_unlock(&_eraseLock);
+    //ar_mutex_lock(&_eraseLock);
+      const bool ok = _render((arSoundNode*)&_rootNode);
+    //ar_mutex_unlock(&_eraseLock);
   ar_transformStack.pop();
+  return ok;
 }
 
-void arSoundDatabase::_render(arSoundNode* node){
+bool arSoundDatabase::_render(arSoundNode* node){
+  bool ok = true;
   if (node->getTypeCode() == AR_S_TRANSFORM_NODE){
     // Push current onto the matrix stack.
     ar_transformStack.push(ar_transformStack.top());
   }
   if (node->getID() != 0){
     // We are not the root node, so it is OK to render.
-    node->render();
+    ok &= node->render();
   }
   list<arDatabaseNode*> children = node->getChildren();
   for (list<arDatabaseNode*>::iterator i = children.begin();
        i != children.end(); i++){
-    _render((arSoundNode*)*i);
+    ok &= _render((arSoundNode*)*i);
   }
   if (node->getTypeCode() == AR_S_TRANSFORM_NODE){
     // Pop from stack.
     ar_transformStack.pop();
   }
+  return ok;
 }
 
 arDatabaseNode* arSoundDatabase::_makeNode(const string& type){
-  arDatabaseNode* outNode = NULL;
-  if (type=="transform"){
-    outNode = (arDatabaseNode*) new arSoundTransformNode();
-  }
-  else if (type=="fileWav"){
-    outNode = (arDatabaseNode*) new arSoundFileNode();
-  }
-  else if (type=="player"){
-    outNode = (arDatabaseNode*) new arPlayerNode();
-  }
-  else if (type=="speech"){
-    outNode = (arDatabaseNode*) new arSpeechNode();
-  }
-  else if (type=="stream"){
-    outNode = (arDatabaseNode*) new arStreamNode();
-  }
-  else{
-    cerr << "arSoundDatabase error: makeNode factory got unknown type="
-	 << type << ".\n";
-    return NULL;
-  }
-  return outNode;
+  if (type=="transform")
+    return (arDatabaseNode*) new arSoundTransformNode();
+  if (type=="fileWav")
+    return (arDatabaseNode*) new arSoundFileNode();
+  if (type=="player")
+    return (arDatabaseNode*) new arPlayerNode();
+  if (type=="speech")
+    return (arDatabaseNode*) new arSpeechNode();
+  if (type=="stream")
+    return (arDatabaseNode*) new arStreamNode();
+  cerr << "arSoundDatabase error: makeNode factory got unknown type="
+       << type << ".\n";
+  return NULL;
 }
 
 arDatabaseNode* arSoundDatabase::_processAdmin(arStructuredData* data){
-  string name = data->getDataString("name");
+  const string name = data->getDataString("name");
   cout << "arSoundDatabase remark: using sound bundle " << name << "\n";
-  arSlashString bundleInfo(name);
-  if (bundleInfo.size() != 2){
-    cout << "arSoundDatabase error: got garbled sound bundle "
-	 << "identification.\n";
-    return &_rootNode;
-  }
-  setDataBundlePath(bundleInfo[0], bundleInfo[1]);
+  const arSlashString bundleInfo(name);
+  if (bundleInfo.size() == 2)
+    setDataBundlePath(bundleInfo[0], bundleInfo[1]);
+  else
+    cerr << "arSoundDatabase error: garbled sound bundle identification.\n";
   return &_rootNode;
 }
-
-
- 

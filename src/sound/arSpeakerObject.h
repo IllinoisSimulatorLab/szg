@@ -18,7 +18,7 @@ class SZG_CALL arSpeakerObject {
   arSpeakerObject();
   ~arSpeakerObject() {}
   bool configure(arSZGClient*);
-  void loadMatrices(const arMatrix4&);
+  bool loadMatrices(const arMatrix4&);
   void setUnitConversion(float unitConversion)
     { _unitConversion = unitConversion; }
 
@@ -29,7 +29,6 @@ class SZG_CALL arSpeakerObject {
   arVector3 _normal;
   arVector3 _up;
   arVector3 _midEyeOffset; // vector from head tracker to midpoint of eyes, in feet
-
   arVector3 _posPrev, _upPrev, _forwardPrev;
 
   arMatrix4 demoHeadMatrix( const arMatrix4& );

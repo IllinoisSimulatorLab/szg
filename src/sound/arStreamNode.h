@@ -20,42 +20,39 @@ class SZG_CALL arStreamNode: public arSoundNode{
   arStreamNode();
   ~arStreamNode();
 
-  void render();
+  bool render();
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
-  int getCurrentTime(){ return _currentTime; }
-  int getStreamLength(){ return _streamLength; }
+  int getCurrentTime() const
+    { return _msecNow; }
+  int getStreamLength() const
+    { return _msecDuration; }
 
  private:
-  // The FMOD channel upon which sound is playing.
-  int _channel;
-  // The FMOD stream
 #ifdef EnableSound
-  FSOUND_STREAM* _stream;
+  FMOD::Channel* _channel;
+  FMOD::Sound* _stream;
 #else
+  void* _channel;
   void* _stream;
 #endif
-  // The file name of the stream. By using this, we can determine if a
-  // change to this node should open up a new stream or not.
+
+  // Used to determine if a change to this node should open up a new stream.
   string _fileName;
-  // The previous file name. Allows us to detect if the stream source has
-  // changed or not after a receiveData()...
-  string _oldFileName;
-  // Is the sound running or not?
-  int   _paused;
+  // For detecting if the stream source has changed after receiveData().
+  string _fileNamePrev;
+  bool _paused;
+
   // What is the current loundness of the sound?
   // Here, we follow the convention of arSoundFileNode, where amplitude
   // can range between 0 and 100, with 1 giving the sound at its
   // default loudness.
-  float  _amplitude;
-  // This is the requested time of the stream
-  int    _requestedTime;
-  // This is the current in the stream, in milliseconds.
-  int    _currentTime;
-  // This is the length of the stream, in milliseconds.
-  int    _streamLength;
-  bool   _complained;
+  float _amplitude;
+  int _msecRequested;
+  unsigned _msecNow;
+  unsigned _msecDuration;
+  bool _complained;
 };
 
 #endif

@@ -7,24 +7,24 @@
 #include "arPrecompiled.h"
 #include "arSoundAPI.h"
 
-static arSoundDatabase* __currentDatabase = NULL;
+static arSoundDatabase* __database = NULL;
 static arSoundLanguage  __lang;
 
 void dsSetSoundDatabase(arSoundDatabase* database){
-  __currentDatabase = database;
+  __database = database;
 }
 
 arDatabaseNode* dsMakeNode(const string& name, 
                            const string& parent, 
                            const string& type){
-  if (!__currentDatabase) {
+  if (!__database) {
     cerr << "syzygy error: dsSetSoundDatabase not yet called.\n";
     return NULL;
   }
 
   int ID = -1;
-  arStructuredData* data = __currentDatabase->makeNodeData;
-  arDatabaseNode* parentNode = __currentDatabase->getNode(parent);
+  arStructuredData* data = __database->makeNodeData;
+  arDatabaseNode* parentNode = __database->getNode(parent);
   if (!parentNode){
     // error messge already printed in getNode(...)
     return NULL;
@@ -39,13 +39,13 @@ arDatabaseNode* dsMakeNode(const string& name,
   }
   // Use alter not arSoundDatabase::alter, to ensure that
   // the remote node will be created.
-  return __currentDatabase->alter(data);
+  return __database->alter(data);
 }
   
 int dsTransform(const string& name,
                 const string& parent, 
                 const arMatrix4& matrix){
-  arDatabaseNode* node = dsMakeNode(name, parent, "transform");
+  const arDatabaseNode* node = dsMakeNode(name, parent, "transform");
   return node && dsTransform(node->getID(), matrix) ?
     node->getID() : -1;
 }
@@ -53,33 +53,32 @@ int dsTransform(const string& name,
 bool dsTransform(int ID, const arMatrix4& matrix){
   if (ID<0)
     return false;
-  if (!__currentDatabase) {
+  if (!__database) {
     cerr << "syzygy error: dsSetSoundDatabase not yet called.\n";
     return false;
   }
-  arStructuredData* data = __currentDatabase->transformData;
+  arStructuredData* data = __database->transformData;
   if (!data->dataIn(__lang.AR_TRANSFORM_ID, &ID, AR_INT, 1) ||
       !data->dataIn(__lang.AR_TRANSFORM_MATRIX, matrix.v, AR_FLOAT, 16)) {
     cerr << "syzygy arSoundAPI error: dsTransform dataIn failed.\n";
     return false;
   }
-  return __currentDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
-int dsPlayer(const arMatrix4& headMatrix, const arVector3& midEyeOffset,
+bool dsPlayer(const arMatrix4& headMatrix, const arVector3& midEyeOffset,
              float unitConversion){
-  if (!__currentDatabase) {
+  if (!__database) {
     cerr << "syzygy error: dsSetSoundDatabase not yet called.\n";
     return -1;
   }
-  // AARGH! THIS IS NOT GOOD! getNode(nodeName) has become a very, very slow
-  // call!
-  arDatabaseNode* node = __currentDatabase->getNode("szg_player", false);
+  // bug: getNode(nodeName) is slow.
+  arDatabaseNode* node = __database->getNode("szg_player", false);
   if (!node){
     node = dsMakeNode("szg_player","root","player");
   }
   const ARint ID = node->getID();
-  arStructuredData* data = __currentDatabase->playerData;
+  arStructuredData* data = __database->playerData;
   if (!data->dataIn(__lang.AR_PLAYER_ID,&ID,AR_INT,1) ||
       !data->dataIn(__lang.AR_PLAYER_MATRIX,headMatrix.v,AR_FLOAT,16) ||
       !data->dataIn(__lang.AR_PLAYER_MID_EYE_OFFSET,midEyeOffset.v,AR_FLOAT,3) || //;; offset from tracker to point midway between eyes?
@@ -88,7 +87,7 @@ int dsPlayer(const arMatrix4& headMatrix, const arVector3& midEyeOffset,
     cerr << "syzygy arSoundAPI error: dsPlayer dataIn failed.\n";
     return false;
   }
-  return __currentDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 // fLoop: 1 means loop, 0 means don't loop because it will be triggered,
@@ -101,7 +100,7 @@ int dsLoop(const string& name, const string& parent,
 
 int dsLoop(const string& name, const string& parent, 
            const string& filename, int fLoop, float ampl, const float* xyz){
-  arDatabaseNode* node = dsMakeNode(name, parent, "fileWav");
+  const arDatabaseNode* node = dsMakeNode(name, parent, "fileWav");
   return node && dsLoop(node->getID(), filename, fLoop, ampl, xyz) ?
     node->getID() : -1;
 } 
@@ -114,7 +113,7 @@ bool dsLoop(int ID, const string& name, int fLoop, float ampl,
             const float* xyz){
   if (ID<0)
     return false;
-  arStructuredData* data = __currentDatabase->filewavData;
+  arStructuredData* data = __database->filewavData;
   if (!data->dataInString(__lang.AR_FILEWAV_FILE, name) ||
       !data->dataIn(__lang.AR_FILEWAV_ID, &ID, AR_INT, 1) ||
       !data->dataIn(__lang.AR_FILEWAV_LOOP, &fLoop, AR_INT, 1) ||
@@ -123,28 +122,27 @@ bool dsLoop(int ID, const string& name, int fLoop, float ampl,
     cerr << "syzygy arSoundAPI error: dsLoop dataIn failed.\n";
     return false;
   }
-  return __currentDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 } 
 
 int dsSpeak( const string& name, const string& parent, const string& text ){
-  arDatabaseNode* node = dsMakeNode(name, parent, "speech");
+  const arDatabaseNode* node = dsMakeNode(name, parent, "speech");
   return node && dsSpeak( node->getID(), text ) ? node->getID() : -1;
 } 
 
 bool dsSpeak( int ID, const string& text ) {
   if (ID<0)
     return false;
-  arStructuredData* data = __currentDatabase->speechData;
+  arStructuredData* data = __database->speechData;
   if (!data->dataInString(__lang.AR_SPEECH_TEXT, text) ||
       !data->dataIn(__lang.AR_SPEECH_ID, &ID, AR_INT, 1)) {
     cerr << "syzygy arSoundAPI error: dsSpeak dataIn failed.\n";
     return false;
   }
-  return __currentDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 } 
 
-/// This function is used for long streams which must be seekable by the
-/// the calling application. 
+/// For seekable long streams.
 /// name: the name of the node
 /// parent: the name of the node's parent
 /// fileName: the name of the sound file (.mp3 or .wav)
@@ -153,21 +151,19 @@ bool dsSpeak( int ID, const string& text ) {
 /// amplitude: 0 is silent, 1 is normal.
 /// time: If >=0, the time (in ms) that the stream should be playing at.
 ///       Otherwise, a signal that the parameter should be ignored.
-/// NOTE: to avoid sonic glitches, always start new streams paused and
-///       with time = -1.
+/// To avoid audio clicks, start new streams paused and with time = -1.
 int dsStream( const string& name, const string& parent, const string& fileName,
               int paused, float amplitude, int time){
-  arDatabaseNode* node = dsMakeNode(name, parent, "stream");
-  return node && dsStream(node->getID(), fileName, paused, amplitude, time) 
-    ? node->getID() : -1;
+  const arDatabaseNode* node = dsMakeNode(name, parent, "stream");
+  return node && dsStream(node->getID(), fileName, paused, amplitude, time) ?
+    node->getID() : -1;
 }
 
 bool dsStream(int ID, const string& fileName, int paused, float amplitude,
               int time){
-  if (ID<0){
+  if (ID<0)
     return false;
-  }
-  arStructuredData* data = __currentDatabase->streamData;
+  arStructuredData* data = __database->streamData;
   if (!data->dataIn(__lang.AR_STREAM_ID, &ID, AR_INT, 1) ||
       !data->dataInString(__lang.AR_STREAM_FILE, fileName) || 
       !data->dataIn(__lang.AR_STREAM_PAUSED, &paused, AR_INT, 1) ||
@@ -176,24 +172,24 @@ bool dsStream(int ID, const string& fileName, int paused, float amplitude,
     cerr << "syzygy arSoundAPI error: dsStream dataIn failed.\n";
     return false;
   }
-  return __currentDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }
 
 bool dsErase(const string& name){
-  if (!__currentDatabase) {
+  if (!__database) {
     cerr << "syzygy error: dsSetSoundDatabase not yet called.\n";
     return -1;
   }
-  arStructuredData* data = __currentDatabase->eraseData;
-  arDatabaseNode* node = __currentDatabase->getNode(name);
+  arDatabaseNode* node = __database->getNode(name);
   if (!node){
     // error message was already printed in the above.
     return false;
   }
-  int ID = node->getID();
+  const int ID = node->getID();
+  arStructuredData* data = __database->eraseData;
   if (!data->dataIn(__lang.AR_ERASE_ID, &ID, AR_INT, 1)) {
     cerr << "syzygy arSoundAPI error: dsErase dataIn failed.\n";
     return false;
   }
-  return __currentDatabase->alter(data) ? true : false;
+  return __database->alter(data);
 }

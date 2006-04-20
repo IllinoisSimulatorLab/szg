@@ -10,8 +10,10 @@
 
 arSoundFileNode::arSoundFileNode() :
   _fInit(false),
+#ifdef EnableSound
   _psamp(NULL),
-  _channel(-1),
+  _channel(NULL),
+#endif
   _fLoop(0),
   _fileName("NULL"),
   _oldFileName("NULL"),
@@ -28,41 +30,57 @@ arSoundFileNode::arSoundFileNode() :
 }
 
 arSoundFileNode::~arSoundFileNode(){
-  if (_channel >= 0 && isClient()){
-    FSOUND_StopSound(_channel);
-  }
-}
-
-void arSoundFileNode::_adjust(bool useTrigger){
-  if (isClient()){
-    // If fmod failed to get a channel, do nothing.
-    if (_channel < 0){
-      return;
-    }
-
-    // NOTE: doppler has yet to be added!
-    float velocity[3] = {0,0,0};
-    arVector3 point;
-    if (!useTrigger){
-      FSOUND_SetVolume(_channel, int(_amplitude * 255)); 
-      point = ar_transformStack.empty() 
-              ? _point :ar_transformStack.top() * _point;
-    }
-    else{
-      FSOUND_SetVolume(_channel, int(_triggerAmplitude * 255));
-      point = ar_transformStack.empty() 
-              ? _triggerPoint :ar_transformStack.top() * _triggerPoint;
-    }
-    // negate z, to swap handedness of coord systems between Syzygy and FMOD
-    // THIS IS NOT THE CORRECT WAY TO CHANGE COORDINATE SYSTEMS
-    point[2] = -point[2];
-    FSOUND_3D_SetAttributes(_channel, &point[0], velocity);
-  }
-}
-
-void arSoundFileNode::render(){
 #ifdef EnableSound
-  // Output some user warnings.=, just in case bogus values are being inputed.
+  if (_channel && isClient()){
+    (void)ar_fmodcheck(_channel->stop());
+  }
+#endif
+}
+
+bool arSoundFileNode::_adjust(bool useTrigger){
+#ifndef EnableSound
+  return true;
+#else
+  if (!isClient())
+    return true;
+  if (!_channel)
+    return false;
+
+  FMOD_MODE m;
+  if (!ar_fmodcheck(_channel->getMode(&m))) {
+    // _channel was invalid.
+    (void)_channel->stop();
+    _channel = NULL;
+    return false;
+  }
+
+  const float a = useTrigger ? _triggerAmplitude : _amplitude;
+  if (!ar_fmodcheck(_channel->setVolume(a)))
+    return false;
+
+  if (m & FMOD_2D) {
+    // Nothing to do.  This sound is 2D not 3D, perhaps a dummy sound.
+    ar_log_remark() << "2D sound won't be 3D-updated.\n";
+    return true;
+  }
+
+  // Paranoia.  Exactly one of FMOD_2D and FMOD_3D should be true.
+  if (!(m & FMOD_3D)) {
+    // Nothing to do.  This sound is 2D not 3D, perhaps a dummy sound.
+    ar_log_remark() << "2D sound won't be 3D-updated, and I mean it this time.\n";
+    return true;
+  }
+
+  const arVector3& p = useTrigger ? _triggerPoint : _point;
+  const arVector3 point(ar_transformStack.empty() ? p : ar_transformStack.top() * p);
+  const FMOD_VECTOR tmp(FmodvectorFromArvector(point)); // doppler velocity nyi
+  const FMOD_VECTOR velocity(FmodvectorFromArvector(arVector3(0,0,0)));
+  return ar_fmodcheck(_channel->set3DAttributes(&tmp, &velocity));
+#endif
+}
+
+bool arSoundFileNode::render(){
+#ifdef EnableSound
   if (_amplitude < 0.) {
     if (!_fComplained[0]) {
       _fComplained[0] = true;
@@ -79,7 +97,7 @@ void arSoundFileNode::render(){
     if (!_fComplained[1]) {
       _fComplained[1] = true;
       cerr << "arSoundFileNode warning: \""
-	   << _name << "\" has excessively large amplitude "
+	   << _name << "\" has excessive amplitude "
 	   << _amplitude << ".\n";
     }
   }
@@ -87,71 +105,100 @@ void arSoundFileNode::render(){
     _fComplained[1] = false;
   }
 
-  // If sample needs to be inited, do so. As with graphics
-  // (where all OpenGL related calls go into render()), all sound related 
-  // calls should go in render.
+  // If sample needs to be inited, do so.
+  // As with graphics where all OpenGL calls go into render(),
+  // all fmod calls should go in render.
 
-  // We only change the sample once. This is a BUG in the implementation.
+  // Bug: we only change the sample once.
   if (_oldFileName != _fileName && !_fInit){
-    // We only do this once in the lifetime of the node.
+    // Do this only once in the lifetime of the node.
     _fInit = true; 
-    // NOTE: this file either be our file OR a dummy sound.
-    // If _fLoop is 0 or -1, then we want a NON-LOOPING sound, most-likely.
-    // (most-likely said here instead of certainly since, well, we could
-    // be making a non-looping sound.
+
+    // This file is either our file OR a dummy.
+    // If _fLoop is 0 or -1, we likely want a NON-LOOPING sound.
     _localSoundFile = _owningDatabase->addFile(_fileName, _fLoop<=0 ? 0 : 1);
     _arSoundFiles = &_localSoundFile;
     _oldFileName = _fileName;
-    // Queue up the sound.
+
     _psamp = _localSoundFile->psamp();
+    if (!_psamp) {
+      cerr << "arSoundFileNode warning: no sound to play.\n";
+      return false;
+    }
+
     // Start the sound paused.
-    _channel = FSOUND_PlaySoundEx(FSOUND_FREE, _psamp, NULL, 1);
+    if (!ar_fmodcheck(ar_fmod()->playSound(FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
+      return false;
   }
 
   if (_fInit){
-    // The sound is ready to go. Use it.
+    // Use the sound.
 
-    // ONLY ADJUST IF THE LOOP IS PLAYING (fLoop == 1) or if triggered!
-    // Why? since triggering has previously depended upon detecting
+    // Only adjust if the loop is playing (fLoop == 1) or if triggered:
+    // Since triggering has previously depended upon detecting
     // an fLoop diff, there needed to be a fLoop of 0 passed in after the
     // triggering fLoop of -1. NO ADJUSTMENT SHOULD OCCUR on that data!
-    // (i.e. the volume might have been 0). This is a backwards compatibility
-    // HACK!
+    // (i.e. the volume might have been 0). This is a backwards compatibility hack.
     if (_fLoop == 1){
-      _adjust(false);
+      if (!_adjust(false))
+        return false;
     }
 
+
+
     if (_action == "play"){
-      if (_channel == -1){
-        _channel = FSOUND_PlaySoundEx(FSOUND_FREE, _psamp, NULL, 1);
+      if (!_channel){
+        if (!ar_fmodcheck(ar_fmod()->playSound(FMOD_CHANNEL_FREE, _psamp, false, &_channel)))
+	  return false;
       }
-      FSOUND_SetPaused(_channel, 0);
+      if (!ar_fmodcheck(_channel->setPaused(false))) // redundant, from playSound(_,_,false,_) ?
+        return false;
       _action = "none";
     }
     else if (_action == "pause"){
-      if (_channel == -1){
-        _channel = FSOUND_PlaySoundEx(FSOUND_FREE, _psamp, NULL, 1);
+      if (!_channel){
+        if (!ar_fmodcheck(ar_fmod()->playSound(FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
+	  return false;
       }
-      FSOUND_SetPaused(_channel, 1);
+      if (!ar_fmodcheck(_channel->setPaused(true))) // redundant, from playSound(_,_,true,_) ?
+	return false;
       _action = "none";
     }
     else if (_action == "trigger"){
-      if (_channel == -1){
-	//;;;; when sound finishes, call FSOUND_StopSound(_channel).
-	//;;;; So keep my own timer, and consult it whenever a method's called.
-	//;;;; try this, test it, check it in.
-        _channel = FSOUND_PlaySoundEx(FSOUND_FREE, _psamp, NULL, 1);
+      if (!_channel){
+
+#if 0
+;;;;
+When sound finishes, call _channel->stop();
+So keep my own timer, and consult it whenever a method is called.
+Is this still a memory leak?
+maybe useful: { bool playing; _channel->isPlaying(&playing); }
+#endif
+
+        if (!ar_fmodcheck(ar_fmod()->playSound(FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
+	  return false;
       }
       else{
-        FSOUND_StopSound(_channel);
-        _channel = FSOUND_PlaySoundEx(FSOUND_FREE, _psamp, NULL, 1);
+        if (!ar_fmodcheck(_channel->stop())) {
+	  _channel = NULL;
+	  return false;
+	}
+        if (!ar_fmodcheck(ar_fmod()->playSound(FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
+	  return false;
       }
-      _adjust(true);
-      FSOUND_SetPaused(_channel, 0);
+      if (!_adjust(true))
+        return false;
+      if (!ar_fmodcheck(_channel->setPaused(false)))
+        return false;
       _action = "none";
     }
+    else if (_action == "none"){
+    }
+    else
+      ar_log_warning() << "ignoring unexpected sound action " << _action << ar_endl;
   }
 #endif
+  return true;
 }
 
 arStructuredData* arSoundFileNode::dumpData(){
@@ -167,12 +214,14 @@ arStructuredData* arSoundFileNode::dumpData(){
     return NULL;
   }
 
+#if 0
   // The commandBuffer is really going to become obsolete....
-  /*const int len = _commandBuffer.size();
+  const int len = _commandBuffer.size();
   pdata->setDataDimension(_l.AR_FILEWAV_FILE,len);
   ARchar* text = (ARchar*) pdata->getDataPtr(_l.AR_FILEWAV_FILE,AR_CHAR);
   for (int i=0; i<len; i++)
-    text[i] = (ARint) _commandBuffer.v[i];*/
+    text[i] = (ARint) _commandBuffer.v[i];
+#endif
 
   return pdata;
 }
@@ -205,8 +254,7 @@ bool arSoundFileNode::receiveData(arStructuredData* pdata){
   // than graphics, is naturally conceived as a stream of events.
 
   // The action to be taken at the next render frame is determined.
-  // NOTE: by changing things too quickly in the API, actions will be
-  // discarded.
+  // Changing things too quickly in the API will discard actions.
 
   // Here, we RELY on the fact that sound rendering is distinct from the
   // actual modifying of the nodes.
@@ -225,9 +273,8 @@ bool arSoundFileNode::receiveData(arStructuredData* pdata){
     _triggerAmplitude = _amplitude;
     _triggerPoint = _point;
   }
-  // There needs to be some stickiness. Specifically, let the render reset
-  // things. i.e. DO NOT set _action == "none" here
 
+  // Wait for render to reset _action to "none".  Don't do it here.
+  // Bug: _action ought to be an enum, not a string.
   return true;
 }
-

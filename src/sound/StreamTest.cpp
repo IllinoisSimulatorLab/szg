@@ -7,7 +7,7 @@ DSP_ExampleCallback appends stuff to an accumulator-buffer.
 [another thread] periodically calls cb = getBytes(char* pb, int cbMax)
 
 data sink:
-this guy calls getBytes(), and sends the stuff to an fmod-soundplayer.
+calls getBytes(), and sends the stuff to an fmod-soundplayer.
 
 TODO:  change printf's to cout and cerr.
 */
@@ -23,10 +23,9 @@ TODO:  change printf's to cout and cerr.
 bool fQuit = false;
 
 void messageTask(void* pClient){
-  arSZGClient* cli = (arSZGClient*)pClient;
   string messageType, messageBody;
   while (true) {
-    cli->receiveMessage(&messageType,&messageBody);
+    ((arSZGClient*)pClient)->receiveMessage(&messageType, &messageBody);
     if (messageType=="quit"){
       fQuit = true;
       return;
@@ -35,41 +34,40 @@ void messageTask(void* pClient){
 }
 
 const int mySR = 44100;
-const int msecRecord = 5000; // big, so buffer-wrapping is rarer.
+const int msecRecord = 5000; // big, to avoid buffer wraparound
 const int samplesBuf = mySR*msecRecord/1000;
 
-// We can change msecLatency on the fly if we want!
+// msecLatency can change on the fly if we want.
 int msecLatency  = 30; // DSP uses 25-msec buffers, don't go less than that.
 
 int samplesLatency() { return int(msecLatency * mySR / 1000.); }
 
-FSOUND_DSPUNIT* Unit = NULL;
 
-char* bufAcc = NULL;
-const int samplesAcc = mySR * 2;
-const int cbAcc = samplesAcc * 4;
-int ibAcc = 0;
+char* bufRec = NULL;
+const int samplesRec = mySR * 2;
+const int cbRec = samplesRec * 4;
+int ibRec = 0;
 
 void accAppend(const void* pb, int cb) {
   if (cb <= 0)
     return;
 
   // oversimplistic overflow handling
-  if (cb > cbAcc)
-    cb = cbAcc;
-  if (ibAcc + cb > cbAcc)
-    ibAcc = 0;
+  if (cb > cbRec)
+    cb = cbRec;
+  if (ibRec + cb > cbRec)
+    ibRec = 0;
 
-  memcpy(bufAcc + ibAcc, pb, cb);
-  ibAcc += cb;
+  memcpy(bufRec + ibRec, pb, cb);
+  ibRec += cb;
 }
 
 int getBytes(void* pb, int cb) {
-  if (cb > ibAcc)
-    cb = ibAcc; // reduce request size to what's available
-  memcpy(pb, bufAcc, cb);
+  if (cb > ibRec)
+    cb = ibRec; // reduce request size to what's available
+  memcpy(pb, bufRec, cb);
   // shift things over (simpler than a circular buffer)
-  memmove(bufAcc, bufAcc+cb, ibAcc-=cb);
+  memmove(bufRec, bufRec+cb, ibRec-=cb);
   return cb;
 }
 
@@ -77,6 +75,9 @@ const int cbPlayMax = mySR*4*2; // 2 seconds is plenty
 char* bufPlay = NULL;
 int ibPlay = 0;
 arMutex lockPlay;
+#ifdef EnableSound
+FMOD::DSP* Unit = NULL;
+#endif
 
 /*
   'bufSrc'  Pointer to the original mixbuffer, not any buffers passed down
@@ -91,15 +92,28 @@ arMutex lockPlay;
 #define SZG_CALLBACK
 #endif
 
-void* SZG_CALLBACK DSP_ExampleCallback(void *bufSrc, void *bufDst, int length, int/* might need void* instead of int, on Darwin*/) {
-#if 0
-  // Might need this for some soundcards.
-  const int mixertype = FSOUND_GetMixer();
-  if (mixertype==FSOUND_MIXER_BLENDMODE || mixertype==FSOUND_MIXER_QUALITY_FPU)
-    return bufDst;
-#endif
+// This is an FMOD_DSP_READCALLBACK.
+// array of floats, the actual signal (normalized to -1 ... +1)
+// number of samples in the array
+// number of channels of interleaved data (4 would be quadraphonic, e.g.)
+// number of channels of output data
+// array of floats to be filled with the filtered input signal.
 
-  int cb = length*4;      // 4 bytes:  16-bit stereo
+#ifdef EnableSound
+FMOD_RESULT SZG_CALLBACK DSP_ExampleCallback(
+    FMOD_DSP_STATE* /*pState*/,
+    float *  bufSrc, 
+    float *  bufDst, 
+    unsigned int  length, 
+    int  /*inchannels*/, 
+  int  outchannels){
+
+#ifdef UNUSED
+  const FMOD::DSP* pdsp = (const FMOD::DSP*)(pState->instance);
+#endif
+  // pdsp should == Unit.
+  // pState->plugindata for something?
+  const int cb = length*2*outchannels;      // 2 bytes: 16-bit
   accAppend(bufSrc, cb);
 
 #undef SILENT_OUTPUT
@@ -127,19 +141,26 @@ void* SZG_CALLBACK DSP_ExampleCallback(void *bufSrc, void *bufDst, int length, i
 
 #endif
 
-  return bufDst;
+  return FMOD_OK;
 }
 
-void SetupExample() {
-  Unit = FSOUND_DSP_Create(&DSP_ExampleCallback,
-    FSOUND_DSP_DEFAULTPRIORITY_USER+20, 0);
-  FSOUND_DSP_SetActive(Unit, 1);
+bool SetupExample() {
+  struct FMOD_DSP_DESCRIPTION d = {0};
+  strcpy(d.name, "Slartibartfast");
+  d.version = 42;
+  d.channels = 0; // default (use another value to generate a particular number of channels)
+  d.read = DSP_ExampleCallback;
+  return ar_fmodcheck(ar_fmod()->createDSP(&d, &Unit)) &&
+  	 ar_fmodcheck(Unit->setActive(true)) &&
+  	 ar_fmodcheck(ar_fmod()->addDSP(Unit));
 }
 
-void CloseExample() {
-  FSOUND_DSP_Free(Unit);
+bool CloseExample() {
+  const bool ok = ar_fmodcheck(Unit->remove()) && ar_fmodcheck(Unit->release());
   Unit = NULL;
+  return ok;
 }
+#endif
 
 int cbPlayed = 0;
 
@@ -157,125 +178,185 @@ void consumerTask(void*) {
 }
 
 int main(int argc, char** argv) {
-  if (argc > 3) {
+
+  arSZGClient szgClient;
+  szgClient.init(argc, argv);
+  //;;;; if (!szgClient)
+  //;;;;   return 1;
+
+  if (argc > 2) {
     cerr << "usage: " << argv[0] << " [soundcard_number]\n";
     return 1;
   }
 
-  arSZGClient szgClient;
-  szgClient.init(argc, argv);
-  if (!szgClient)
-    return 1;
-
-  if (FSOUND_GetVersion() < FMOD_VERSION) {
-    printf("Error: wrong fmod.dll, expected version %.02f\n", FMOD_VERSION);
-    return 1;
+  {
+    unsigned t;
+    if (!ar_fmodcheck(ar_fmod()->getVersion(&t)))
+      return 1;
+    if (t < FMOD_VERSION) {
+      printf("Error: fmod dll has version %x, expected %x.\n", t, FMOD_VERSION);
+      return 1;
+    }
   }
 
-  FSOUND_SetOutput(FSOUND_OUTPUT_DSOUND);
+  int cDriverPlay;
+  int cDriverRec;
+  if (!ar_fmodcheck(ar_fmod()->getNumDrivers(&cDriverPlay)) ||
+      !ar_fmodcheck(ar_fmod()->getRecordNumDrivers(&cDriverRec)))
+    return 1;
 
-  const int numSoundcards = FSOUND_GetNumDrivers();
-  const int numSoundcardsRecord = FSOUND_Record_GetNumDrivers();
-  int iSoundcard = argc<2 ? 0 : atoi(argv[1]);
-  if (iSoundcard != 0 && numSoundcards == 1) {
-    cerr << argv[0] << " warning: ignoring nondefault soundcard "
-         << iSoundcard << " on 1-card host.\n";
-    iSoundcard = 0;
+  int iDriver = argc<2 ? 0 : atoi(argv[1]);
+  if (iDriver != 0 && cDriverPlay == 1) {
+    cerr << argv[0] << " warning: host has only one sound card.\n";
+    iDriver = 0;
   }
-  if (numSoundcards > 1) {
+  if (iDriver > cDriverPlay || iDriver > cDriverRec) {
+    cerr << argv[0] << " warning: host doesn't have that many sound cards.\n";
+    iDriver = 0;
+  }
+
+  if (cDriverPlay > 1) {
     int i = 0;
-    printf("DirectSound play soundcards found:\n");
-    for (i=0; i < numSoundcards; i++)
-      printf("%s\t%d: %s\n",
-        i==iSoundcard ? "  -->" : "",
-        i, FSOUND_GetDriverName(i));
-
-    // Typically, record and play are the same list.
-    printf("DirectSound record soundcards found:\n");
-    for (i=0; i < numSoundcardsRecord; i++)
-      printf("%s\t%d: %s\n",
-        i==iSoundcard ? "  -->" : "",
-        i, FSOUND_Record_GetDriverName(i));
+    printf("Soundcards:\n");
+    for (i=0; i < cDriverPlay; i++) {
+      char sz[200];
+      if (!ar_fmodcheck(ar_fmod()->getDriverName(i, sz, sizeof(sz)-1)))
+        return 1;
+      printf("%s%d: %s\n",
+        i==iDriver ? "* " : "  ",
+        i, sz);
+    }
   }
 
-  // Select sound card and input sound card (0 = default)
-  if (!FSOUND_SetDriver(iSoundcard) ||
-      !FSOUND_Record_SetDriver(iSoundcard)) {
-    printf("Error 1!\n");
-    //printf("%s\n", FMOD_ErrorString(FSOUND_GetError()));
+  if (cDriverRec > 1) {
+    int i = 0;
+    printf("Recording soundcards:\n");
+    for (i=0; i < cDriverRec; i++) {
+      char sz[200];
+      if (!ar_fmodcheck(ar_fmod()->getRecordDriverName(i, sz, sizeof(sz)-1)))
+        return 1;
+      printf("%c%d: %s\n",
+        i==iDriver ? '*' : ' ',
+        i, sz);
+    }
+  }
+
+  // Select sound cards (0 = default)
+  if (!ar_fmodcheck(ar_fmod()->setDriver(iDriver))) {
+    cerr << "Failed to set driver.\n";
+    return 1;
+  }
+  if (!ar_fmodcheck(ar_fmod()->setRecordDriver(iDriver))) {
+    cerr << "Failed to set record driver.\n";
     return 1;
   }
 
-  (void)FSOUND_SetMixer(FSOUND_MIXER_QUALITY_AUTODETECT);
-  if (!FSOUND_Init(mySR, 64, 0)) {
-    printf("Error 2!\n");
-    //printf("%s\n", FMOD_ErrorString(FSOUND_GetError()));
+  const int numVirtualVoices = 50;
+  if (!ar_fmodcheck(ar_fmod()->setSoftwareFormat(
+           int(mySR), FMOD_SOUND_FORMAT_PCM16, 0, 0, FMOD_DSP_RESAMPLER_LINEAR)) ||
+      !ar_fmodcheck(ar_fmod()->init(
+	   numVirtualVoices, FMOD_INIT_NORMAL | FMOD_INIT_3D_RIGHTHANDED, 0))) {
+    cerr << "Failed to init fmod.\n";
     return 1;
   }
 
-  bufAcc = new char[cbAcc];
+	//;;;; FMOD_3D_HEADRELATIVE is possible.
+
+  bufRec = new char[cbRec*3]; // *3 is chicken factor
   bufPlay = new char[cbPlayMax];
 #ifdef EnableSound
-  FSOUND_SAMPLE *samp1 = FSOUND_Sample_Alloc(FSOUND_UNMANAGED, samplesBuf,
-    FSOUND_MONO | FSOUND_16BITS, mySR, 255, 128, 255);
-
-  (void)FSOUND_Sample_SetMode(samp1, FSOUND_LOOP_NORMAL);
-
-  if (!FSOUND_Record_StartSample(samp1, 1)) {
-    printf("Error 3!\n");
-    //printf("%s\n", FMOD_ErrorString(FSOUND_GetError()));
-    FSOUND_Close();
+  struct FMOD_CREATESOUNDEXINFO x = {0};
+  x.cbsize = sizeof(FMOD_CREATESOUNDEXINFO);
+  x.numchannels = 1;
+  x.format = FMOD_SOUND_FORMAT_PCM16;
+  x.decodebuffersize = cbRec;
+  x.defaultfrequency = mySR;
+  x.length = x.defaultfrequency * sizeof(short) * x.numchannels * 5; // What's the 5 for?
+  FMOD::Sound *samp1 = NULL;
+  if (!ar_fmodcheck(ar_fmod()->createSound(
+    NULL/*bufRec*/,
+    FMOD_2D | FMOD_SOFTWARE | FMOD_OPENUSER | FMOD_LOOP_NORMAL,
+    // FMOD_OPENUSER | FMOD_CREATESTREAM | FMOD_OPENMEMORY | FMOD_LOOP_NORMAL,
+    // FMOD_CREATESTREAM | FMOD_OPENMEMORY | FMOD_LOOP_NORMAL,
+    &x,
+    &samp1))) {
+    ar_log_error() << "FMOD failed to create record stream.\n";
+LAbort:
+    (void)ar_fmodcheck(ar_fmod()->release());
     return 1;
   }
-#endif
 
-  // Let the record cursor move forward a little bit before we try to play
+  if (!ar_fmodcheck(ar_fmod()->recordStart(samp1, true))) {
+    ar_log_error() << "FMOD failed to record.\n";
+    goto LAbort;
+  }
+
+  // Before playing, wait until the record cursor has advanced
   // (the position jumps in blocks, so any nonzero value means
   // 1 block has been recorded).
-  while (FSOUND_Record_GetPosition() == 0)
-    ar_usleep(1000);
+  {
+    unsigned t = 0;
+    do {
+      ar_usleep(1000);
+      if (!ar_fmodcheck(ar_fmod()->getRecordPosition(&t)))
+        goto LAbort;
+    }
+    while (t == 0);
+  }
 
-  SetupExample();
+  if (!SetupExample())
+    return 1;
 
-#ifdef EnableSound
-  const int channel = FSOUND_PlaySound(FSOUND_FREE, samp1);
-  const int originalfreq = FSOUND_GetFrequency(channel);
+  FMOD::Channel* channel = NULL;
+  if (!ar_fmodcheck(ar_fmod()->playSound(FMOD_CHANNEL_FREE, samp1, false, &channel)))
+    return 1;
+  float originalFreq;
+  if (!ar_fmodcheck(channel->getFrequency(&originalFreq)))
+    return 1;
 #endif
 
   ar_mutex_init(&lockPlay);
   arThread dummy1(messageTask, &szgClient);
   arThread dummy2(consumerTask);
 
-  int gap = 0;
-  int recordposPrev = 0, playposPrev = 0;
 #ifdef EnableSound
-  int freq = originalfreq;
-#endif
+  unsigned recordposPrev = 0;
+  unsigned playposPrev = 0;
+  float freq = originalFreq;
   while (!fQuit) {
-    const int playpos = FSOUND_GetCurrentPosition(channel);
-    const int recordpos = FSOUND_Record_GetPosition();
-
+    unsigned playpos;
+    unsigned recordpos;
+    if (!ar_fmodcheck(channel->getPosition(&playpos, FMOD_TIMEUNIT_PCM)) ||
+        !ar_fmodcheck(ar_fmod()->getRecordPosition(&recordpos))) { // in PCM units
+      fQuit = true;
+      goto LAbort;
+    }
 
     // Adjust playback frequency, but not if either cursor just wrapped.
     if (playpos > playposPrev && recordpos > recordposPrev) {
-      if ((gap = recordpos - playpos) < 0)
+      int gap = recordpos - playpos;
+      if (gap < 0)
         gap += samplesBuf;
 
-#ifdef EnableSound
-      int freqnew = originalfreq;
+      float freqnew = originalFreq;
       if (gap < samplesLatency())
         freqnew -= 1000;
       else if (gap > samplesLatency() * 2)
         freqnew += 1000;
-      if (freqnew != freq)
-        FSOUND_SetFrequency(channel, freqnew);
-      freq = freqnew;
-#endif
+      if (freqnew != freq) {
+        channel->setFrequency(freqnew);
+	freq = freqnew;
+      }
     }
     playposPrev = playpos;
     recordposPrev = recordpos;
 
-    // print some info and a VU meter
+#ifdef not_yet_ported
+    // fmod 4 has no VU meter AFAIK.  "levels" are input levels set through API.
+    // We'd need to scan the buffers ourselves to compute the current loudness.
+    // Look at fmod4api/examples, and vss, for code.
+
+    // print info and a VU meter
     {
       static float smoothedvu = 0.;
       const int vuLen = 50;
@@ -297,15 +378,19 @@ int main(int argc, char** argv) {
       if ((smoothedvu -= VUSPEED) < 0.)
         smoothedvu = 0.;
     }
+#endif
 
     ar_usleep(10000);
   }
+#endif
 
-  FSOUND_StopSound(channel);
-  (void)FSOUND_Record_Stop();
-  CloseExample();
-  FSOUND_Close();
-  delete [] bufAcc;
+#ifdef EnableSound
+  (void)ar_fmodcheck(samp1->release());
+  (void)ar_fmodcheck(ar_fmod()->recordStop());
+  (void)CloseExample();
+  (void)ar_fmodcheck(ar_fmod()->release());
+#endif
+  delete [] bufRec;
   delete [] bufPlay;
   return 0;
 }

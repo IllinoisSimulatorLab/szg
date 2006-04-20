@@ -4,7 +4,7 @@
 //********************************************************
 
 // Most of this is copypasted from graphics/arScreenObject.cpp
-// and should be folded back in!
+
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arSpeakerObject.h"
@@ -23,13 +23,14 @@ arSpeakerObject::arSpeakerObject() :
 {}
 
 bool arSpeakerObject::configure(arSZGClient*){
-  // IMPORTANT NOTE: if any configuration ever occurs here, be sure to
-  // push the resulting messages on szgClient's initResponse stream...
-  // see arScreenObject::configure(...)
+  // If any configuration occurs here,
+  // push the resulting messages on arSZGClient's initResponse,
+  // like arScreenObject::configure().
   return true;
 }
 
 // This belongs in arMath.h, not here.
+// And as a member of arVector3, not as a global function.
 static inline void Normalize(float* v) {
   float invlen = sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
   if (invlen < 1e-6)
@@ -43,7 +44,7 @@ static inline void Normalize(arVector3& a) {
   Normalize(a.v);
 }
 
-void arSpeakerObject::loadMatrices(const arMatrix4& headMatrix) {
+bool arSpeakerObject::loadMatrices(const arMatrix4& headMatrix) {
   arMatrix4 locHeadMatrix = _demoMode ? demoHeadMatrix(headMatrix) : headMatrix;
 #ifdef UNUSED
   // these might be more correct than using raw locHeadMatrix
@@ -55,13 +56,9 @@ void arSpeakerObject::loadMatrices(const arMatrix4& headMatrix) {
 
   // Update listener's attributes.
   const arMatrix4 rot(ar_extractRotationMatrix(locHeadMatrix));
-  arVector3 pos(locHeadMatrix[12],locHeadMatrix[13],locHeadMatrix[14]);
+  const arVector3 pos(locHeadMatrix[12],locHeadMatrix[13],locHeadMatrix[14]);
   arVector3 up(rot * arVector3(0,1,0));
   arVector3 forward(rot * arVector3(0,0,-1));
-  // negate z, to swap handedness of coord systems between Syzygy and FMOD
-  pos[2] *= -1.;
-  up[2] *= -1.;
-  forward[2] *= -1.;
   Normalize(up);
   Normalize(forward);
 
@@ -70,17 +67,26 @@ void arSpeakerObject::loadMatrices(const arMatrix4& headMatrix) {
     _upPrev = up;
     _forwardPrev = forward;
     // cout << "listenerpos: " << pos << "\n\t" << forward << "\n\t" << up << endl;;
-    arVector3 temp(0,0,0);
-    FSOUND_3D_Listener_SetAttributes(
-      pos.v,
-      temp.v, // doppler NYI (units per second, not per frame!)
-      forward[0], forward[1], forward[2],
-      up[0], up[1], up[2]);
-    FSOUND_Update();
+    const arVector3 temp(0,0,0);
+#ifdef EnableSound
+    const FMOD_VECTOR fmod_pos(FmodvectorFromArvector(pos));
+    const FMOD_VECTOR fmod_temp(FmodvectorFromArvector(temp));
+    const FMOD_VECTOR fmod_forward(FmodvectorFromArvector(forward));
+    const FMOD_VECTOR fmod_up(FmodvectorFromArvector(up));
+    if (!ar_fmodcheck(ar_fmod()->set3DListenerAttributes(0,
+      &fmod_pos,
+      &fmod_temp, // doppler NYI (units per second, not per frame!)
+      &fmod_forward,
+      &fmod_up)))
+      return false;
+    if (!ar_fmodcheck(ar_fmod()->update()))
+      return false;
+#endif
   }
+  return true;
 }
 
-arMatrix4 arSpeakerObject::demoHeadMatrix( const arMatrix4& headMatrix ) {
+arMatrix4 arSpeakerObject::demoHeadMatrix( const arMatrix4& /*headMatrix*/ ) {
 #ifdef DISABLED_UNTIL_I_UNDERSTAND_THIS
   const arVector3 demoHeadPos( ar_extractTranslation(headMatrix) );
   const arVector3 zHat = _normal/++_normal; // '++' = magnitude

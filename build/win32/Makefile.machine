@@ -1,7 +1,7 @@
 MACHINE := WIN32
 
 #INCFMOD := $(wildcard $(SZGEXTERNAL)/include)
-#LIBFMOD := $(wildcard $(SZGEXTERNAL)/lib/fmodvc.lib)
+#LIBFMOD := $(wildcard $(SZGEXTERNAL)/lib/fmodex.lib)
 
 #INC_WIN_BIRD := $(wildcard $(SZGEXTERNAL)/include)
 #LIB_WIN_BIRD := $(wildcard $(SZGEXTERNAL)/lib/Bird.lib)
