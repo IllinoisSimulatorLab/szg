@@ -346,7 +346,6 @@ bool arPhleetConfigParser::_determineFileLocations(){
     potentialConfigFileLocation = "/etc";
 #endif
   }
-  // If the directory does not exist, attempt to create.
   if (!_createIfDoesNotExist(potentialConfigFileLocation)){
     printf("syzygy error: could not create config file directory %s.",
            potentialConfigFileLocation.c_str());
@@ -358,15 +357,14 @@ bool arPhleetConfigParser::_determineFileLocations(){
 
   string potentialLoginDir = ar_getenv("SZG_LOGIN");
   if (potentialLoginDir == "NULL"){
-    // Use the default.
+    // Fall back to the default.
 #ifdef AR_USE_WIN_32
-    // NOTE: Win32 will NOT WORK if there is a trailing slash.
+    // No trailing slash.
     potentialLoginDir = "c:\\szg";
 #else
     potentialLoginDir = "/tmp";
 #endif
   }
-  // If the directory does not exist, attempt to create.
   if (!_createIfDoesNotExist(potentialLoginDir)){
     printf("syzygy error: could not create login directory %s.",
            potentialLoginDir.c_str());
