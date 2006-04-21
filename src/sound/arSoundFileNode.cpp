@@ -172,14 +172,25 @@ bool arSoundFileNode::render(){
 When sound finishes, call _channel->stop();
 So keep my own timer, and consult it whenever a method is called.
 Is this still a memory leak?
-maybe useful: { bool playing; _channel->isPlaying(&playing); }
 #endif
 
         if (!ar_fmodcheck(ar_fmod()->playSound(FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
 	  return false;
       }
       else{
-        if (!ar_fmodcheck(_channel->stop())) {
+
+//	bool fPlaying;
+//	if (!ar_fmodcheck(_channel->isPlaying(&fPlaying))) {
+//	  _channel = NULL;
+//	  return false;
+//	}
+
+	const FMOD_RESULT ok = _channel->stop();
+	if (ok == FMOD_ERR_INVALID_HANDLE) {
+	  // _channel is invalid, probably because it already stopped playing.
+	  _channel = NULL;
+	}
+	else if (!ar_fmodcheck(ok)) {
 	  _channel = NULL;
 	  return false;
 	}
