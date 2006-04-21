@@ -243,7 +243,14 @@ bool arSoundClient::startDSP(){
   ar_log_remark() << "arSoundClient remark: DSP started.\n";
   FMOD::Sound* samp1 = NULL;
   // memory leak: should (void)ar_fmodcheck(_stream->release()) in stopDSP() or ~arSoundClient().
-  if (!ar_fmodcheck(ar_fmod()->createStream(NULL, FMOD_3D | FMOD_LOOP_NORMAL, 0, &samp1)))
+
+  FMOD_CREATESOUNDEXINFO x = {0};
+  x.cbsize = sizeof(x);
+  x.numchannels = 1;
+  x.format = FMOD_SOUND_FORMAT_PCM16;
+  x.defaultfrequency = 44100;
+  x.length = 44100 * sizeof(short) * x.numchannels * 5;
+  if (!ar_fmodcheck(ar_fmod()->createSound(NULL, FMOD_3D | FMOD_SOFTWARE | FMOD_OPENUSER | FMOD_LOOP_NORMAL, &x, &samp1)))
     return false;
 
   // Allow playing from the mic.  (Mic comes from setRecordDriver and windows' audio control panel.)
