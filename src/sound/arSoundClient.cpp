@@ -61,13 +61,16 @@ FMOD_RESULT SZG_CALLBACK ar_soundClientDSPCallback(
     float *  bufSrc, 
     float *  bufDst, 
     unsigned length, 
-    int  /*inchannels*/, 
-  int  /*outchannels*/){
-  
-  for (unsigned i=0; i<length/2; i++){
-    // sum the right and left channel, dubiously
+    int  inchannels, 
+    int  /*outchannels*/){
+  for (unsigned i=0; i<length; i++){
+    // average the right and left channel
     // incorrectly assumes inchannels is 2, outchannels is 1
-    bufDst[i] = bufSrc[2*i] + bufSrc[2*i+1];
+    __globalSoundClient->_waveDataPtr[i] 
+      = 14000*(bufSrc[inchannels*i] + bufSrc[inchannels*i +1]);
+  }
+  for (unsigned i=0; i<length*inchannels; i++){
+    bufDst[i] = bufSrc[i];
   }
   
   // abbreviation
@@ -255,8 +258,8 @@ bool arSoundClient::startDSP(){
 
   // Allow playing from the mic.  (Mic comes from setRecordDriver and windows' audio control panel.)
   if (!ar_fmodcheck(ar_fmod()->recordStart(samp1, true))) {
-    ar_log_error() << "failed to start recording.\n"; // for the SongQueue, whatever that is.
-    return false;
+    ar_log_error() << "failed to start recording.\n";
+    // Don't return false here. Give the DSP a chance to start.
   }
 
   // Start playing the sample paused.  Set its volume.  Unpause it.
@@ -268,8 +271,7 @@ bool arSoundClient::startDSP(){
 
   // Start the DSP.
   FMOD_DSP_DESCRIPTION d = {0};
-    strcpy(d.name, "Ben Schaeffer is testing this");
-    d.read = ar_soundClientDSPCallback;
+  d.read = ar_soundClientDSPCallback;
   return ar_fmodcheck(ar_fmod()->createDSP(&d, &_DSPunit)) &&
          ar_fmodcheck(ar_fmod()->addDSP(_DSPunit)) &&
          ar_fmodcheck(_DSPunit->setActive(true));

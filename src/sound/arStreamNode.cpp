@@ -45,16 +45,17 @@ bool arStreamNode::render(){
     _complained = false;
 
     // Close the old stream
-    const bool ok = ar_fmodcheck(_stream->release());
-    _stream = NULL;
-    if (!ok)
-      return false;
+    if (_stream){
+      ar_fmodcheck(_stream->release());
+      _stream = NULL;
+    }
 
     // Open the new stream.
     const string fullName = ar_fileFind(_fileName,"", _owningDatabase->getPath());
     if (fullName != "NULL"){
-      if (!ar_fmodcheck(ar_fmod()->createStream(fullName.c_str(), FMOD_3D, 0, &_stream)))
+      if (!ar_fmodcheck(ar_fmod()->createStream(fullName.c_str(), FMOD_3D, 0, &_stream))){
         return false;
+      }
     }
     // Store the length of the new stream.
     if (_stream){
