@@ -505,7 +505,8 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
   if (!fileStream.ar_open(fileName, dataPath)){
     if (warn){
       ar_log_error() << _exeName <<
-        " error: failed to open batch file '" << fileName << "'.\n";
+        " error: failed to open batch file '" << fileName << "' on the following SZG_SCRIPT/path:\n"
+        << dataPath << ar_endl;
     }
     return false;
   }

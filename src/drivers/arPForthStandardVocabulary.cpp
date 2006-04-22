@@ -1037,6 +1037,10 @@ bool ar_PForthAddStandardVocabulary( arPForth* pf ) {
     pf->addSimpleActionWord( ">", new GreaterThan() ) &&
     pf->addSimpleActionWord( "<=", new LessEquals() ) &&
     pf->addSimpleActionWord( ">=", new GreaterEquals() ) &&
+    pf->addSimpleActionWord( "less", new LessThan() ) &&
+    pf->addSimpleActionWord( "greater", new GreaterThan() ) &&
+    pf->addSimpleActionWord( "lessEqual", new LessEquals() ) &&
+    pf->addSimpleActionWord( "greaterEqual", new GreaterEquals() ) &&
     pf->addSimpleActionWord( "stringEquals", new StringEquals() ) &&
     pf->addSimpleActionWord( "not", new Not() ) &&
     pf->addSimpleActionWord( "vectorStore", new VecStore() ) &&

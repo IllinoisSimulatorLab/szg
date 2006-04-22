@@ -262,6 +262,19 @@ compile-time effects.
 
 **=**  ``(x1 x2 -- n1 )`` Places 1 on stack if x1 = x2, 0 otherwise.
 
+**less**  ``(x1 x2 -- n1 )`` Places 1 on stack if x1 > x2, 0 otherwise.
+
+**greater**  ``(x1 x2 -- n1 )`` Places 1 on stack if x1 < x2, 0 otherwise.
+
+**lessEqual**  ``(x1 x2 -- n1 )`` Places 1 on stack if x1 >= x2, 0 otherwise.
+
+**greaterEqual**  ``(x1 x2 -- n1 )`` Places 1 on stack if x1 >= x2, 0 otherwise.
+
+//KnownBug//: Turns out that the version of TinyXML that we use to parse the parameter files
+does not allow you to embed e.g. '<' in an XML record and does not convert e.g. '&lt;' to
+'<'. The full-word equivalents of the arithmetic-comparison words were added to work
+around this problem. Thus, the following four words are currently unusable:
+
 **>**  ``(x1 x2 -- n1 )`` Places 1 on stack if x1 > x2, 0 otherwise.
 
 **<**  ``(x1 x2 -- n1 )`` Places 1 on stack if x1 < x2, 0 otherwise.
@@ -269,6 +282,7 @@ compile-time effects.
 **>=**  ``(x1 x2 -- n1 )`` Places 1 on stack if x1 >= x2, 0 otherwise.
 
 **<=**  ``(x1 x2 -- n1 )`` Places 1 on stack if x1 >= x2, 0 otherwise.
+
 
 **stringEquals**  ``(addr1 addr2 -- n1 )`` Places
 1on stack if the string at addr1 = string at addr2, 0 otherwise.
