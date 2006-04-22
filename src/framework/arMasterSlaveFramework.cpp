@@ -2618,11 +2618,6 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
     return;
   }
 
-  // stuff pixel dimensions into arGraphicsWindow
-  graphicsWindow->setPixelDimensions( windowInfo->getPosX(),
-                                      windowInfo->getPosY(),
-                                      windowInfo->getSizeX(),
-                                      windowInfo->getSizeY() );
   // draw the window
   if(!stopping() ) {
     if( _noDrawFillColor[ 0 ] == -1 ) {

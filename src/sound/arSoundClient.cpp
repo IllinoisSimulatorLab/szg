@@ -63,13 +63,14 @@ FMOD_RESULT SZG_CALLBACK ar_soundClientDSPCallback(
     unsigned length, 
     int  inchannels, 
     int  /*outchannels*/){
-  for (unsigned i=0; i<length; i++){
+  unsigned int i;
+  for (i=0; i<length; i++){
     // average the right and left channel
     // incorrectly assumes inchannels is 2, outchannels is 1
     __globalSoundClient->_waveDataPtr[i] 
       = 14000*(bufSrc[inchannels*i] + bufSrc[inchannels*i +1]);
   }
-  for (unsigned i=0; i<length*inchannels; i++){
+  for (i=0; i<length*inchannels; i++){
     bufDst[i] = bufSrc[i];
   }
   

@@ -289,6 +289,9 @@ void arGUIWindow::_drawHandler( void )
     // always try to pass through the graphicswindow, if the user has
     // registered a callback that does not take it, the callback class will
     // handle letting that fall through
+    if (_graphicsWindow) {
+      _graphicsWindow->setPixelDimensions( getPosX(), getPosY(), getWidth(), getHeight() );
+    }
     (*_drawCallback)( windowInfo, _graphicsWindow );
 
     delete windowInfo;
