@@ -53,7 +53,10 @@ bool arStreamNode::render(){
     // Open the new stream.
     const string fullName = ar_fileFind(_fileName,"", _owningDatabase->getPath());
     if (fullName != "NULL"){
-      if (!ar_fmodcheck(ar_fmod()->createStream(fullName.c_str(), FMOD_3D, 0, &_stream))){
+      // NOTE: If we want to be able to have a custom DSP work (like for arSoundClient's tap), then
+      // we need this to render in software! (FMOD is now advanced enough to send mp3's to hardware
+      // for decoding... bypassing the DSP chains altogether).
+      if (!ar_fmodcheck(ar_fmod()->createStream(fullName.c_str(), FMOD_3D | FMOD_SOFTWARE, 0, &_stream))){
         return false;
       }
     }

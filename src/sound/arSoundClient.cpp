@@ -263,10 +263,11 @@ bool arSoundClient::startDSP(){
     // Don't return false here. Give the DSP a chance to start.
   }
 
-  // Start playing the sample paused.  Set its volume.  Unpause it.
+  // Start playing the sample paused.  Set its volume.  The record channel should definitely start paused!!!!
+  // Otherwise, there could be a delay in sound->animation!
   if (!ar_fmodcheck(ar_fmod()->playSound(FMOD_CHANNEL_FREE, samp1, true, &_recordChannel)) ||
       !ar_fmodcheck(_recordChannel->setVolume(_microphoneVolume)) ||
-      !ar_fmodcheck(_recordChannel->setPaused(false))) {
+      !ar_fmodcheck(_recordChannel->setPaused(true))) {
     return false;
   }
 
