@@ -96,6 +96,8 @@ class SZG_CALL arGraphicsPeer: public arGraphicsDatabase{
   void setName(const string&);
 
   bool init(arSZGClient& client);
+  // Included solely to handle a disambiguation bug in SWIG.
+  bool initSZG(arSZGClient& client){ return init(client); }
   bool init(int& argc, char** argv);
   bool start();
   void stop();

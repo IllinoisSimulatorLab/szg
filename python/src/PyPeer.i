@@ -973,8 +973,15 @@ class arGraphicsPeer: public arGraphicsDatabase{
   string getName();
   void setName(const string&);
 
-  bool init(arSZGClient& client);
+  // IMPORTANT
+  // The init functions are a little problematic. We have an input mapping
+  // (in SWIG) from (int, char**) to (list). Apparrently, SWIG cannot, then,
+  // handle other 1-parameter init functions (like the one for arSZGClient).
+  // Consequently, we need to use the initSZG wrapper only! DO NOT include
+  // the init(arSZGClient&) function in the wrapper!
+  // IMPORTANT
   bool init(int&,char**);
+  bool initSZG(arSZGClient& client);
   bool start();
   void stop();
 
@@ -1037,6 +1044,14 @@ class arGraphicsPeer: public arGraphicsDatabase{
   string printConnections();
   string printPeer();
 %extend{
+    // This is required for disambiguation. Our SWIG input maps change
+    // (int, char**) to a list input. But the interpreter gets confused
+    // when juxtaposing this with the init that takes, as an input,
+    // a single arSZGClient.
+    bool initSZG(arSZGClient& szgClient){
+      return self->init(szgClient);
+    }
+
     string __repr__() {
         return self->printPeer();
     }

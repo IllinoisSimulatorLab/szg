@@ -19,7 +19,7 @@ if f.getStandalone():
 peer = arGraphicsPeer()
 peer.setName(sys.argv[1])
 peer.queueData(0)
-peer.init(f.getSZGClient())
+peer.initSZG(f.getSZGClient())
 peer.setTexturePath(f.getSZGClient().getAttribute("SZG_RENDER","texture_path"))
 peer.loadAlphabet(f.getSZGClient().getAttribute("SZG_RENDER","text_path"))
 peer.setBridge(f.getDatabase())
