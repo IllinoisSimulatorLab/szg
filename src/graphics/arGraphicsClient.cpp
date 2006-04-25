@@ -193,15 +193,12 @@ void arGraphicsClientRenderCallback::operator()(arGUIWindowInfo* windowInfo,
   // Consequently, we do a small pixel read to force drawing to complete
   char buffer[32];
   glReadPixels(0,0,1,1,GL_RGBA,GL_UNSIGNED_BYTE,buffer);
-  // It *also* seems like it's helpful to throw a glFinish() in for good
-  // measure....
-  glFinish();
+  glFinish(); // helpful though not strictly needed
 
   // Deal with a potential screenshot here in the drawing thread.
   // (NOTE: only screenshot the main window)
   if( _client->getWindowManager()->isFirstWindow( windowInfo->getWindowID() ) ) {
-    bool stereo
-      = _client->getWindowManager()->isStereo(windowInfo->getWindowID());
+    bool stereo = _client->getWindowManager()->isStereo(windowInfo->getWindowID());
     if (_client->screenshotRequested()){
       _client->takeScreenshot(stereo);
     }
@@ -237,21 +234,19 @@ arGraphicsClient::~arGraphicsClient(){
 
 /// Get configuration parameters from the Syzygy database.  Setup the object.
 bool arGraphicsClient::configure(arSZGClient* client){
-  if (!client){
+  if (!client)
     return false;
-  }
 
   // Configure the window manager, do the initial window parsing.
-  if (!_guiParser){
+  if (!_guiParser)
     _guiParser = new arGUIXMLParser(client);
-  }
+
   const string screenName = client->getMode( "graphics" );
-  const string whichDisplay =
-    "SZG_DISPLAY" + screenName.substr( screenName.length() - 1, 1 );
+  const string whichDisplay = "SZG_DISPLAY" + screenName.substr( screenName.length() - 1, 1 );
   const string displayName = client->getAttribute( whichDisplay, "name" );
 
   if (displayName == "NULL") {
-    ar_log_warning() << "display " << whichDisplay << " undefined, using default.\n";
+    ar_log_warning() << "display " << whichDisplay << "/name undefined, using default.\n";
   } else {
     ar_log_remark() << "using display " << whichDisplay << " : "
                     << displayName << ar_endl;
@@ -260,7 +255,7 @@ bool arGraphicsClient::configure(arSZGClient* client){
   _guiParser->setConfig( client->getGlobalAttribute(displayName) );
 
   if (_guiParser->parse() < 0){
-    ar_log_remark() << "szgrender remark: failed to parse the XML configuration.\n";
+    ar_log_remark() << "szgrender remark: failed to parse XML configuration.\n";
   }
 
   setTexturePath(client->getAttribute("SZG_RENDER", "texture_path"));
@@ -274,7 +269,7 @@ bool arGraphicsClient::configure(arSZGClient* client){
 bool arGraphicsClient::updateHead() {
   arHead* head = _graphicsDatabase.getHead();
   if (!head) {
-    ar_log_error() << "arGraphicsClient error: failed to update head.\n";
+    ar_log_error() << "arGraphicsClient: no head to update.\n";
     return false;
   }
   _defaultHead = *head;
@@ -318,8 +313,7 @@ bool arGraphicsClient::start(arSZGClient& client, bool startSynchronization){
   std::vector< arGUIXMLWindowConstruct* >* windowConstructs =
     _guiParser->getWindowingConstruct()->getWindowConstructs();
 
-  // populate the callbacks for both the gui and graphics windows and the head
-  // for any vr cameras
+  // Populate callbacks for gui and graphics windows and head for any vr cameras
   std::vector< arGUIXMLWindowConstruct*>::iterator itr;
   for( itr = windowConstructs->begin(); itr != windowConstructs->end(); itr++ ) {
     (*itr)->getGraphicsWindow()->setInitCallback( new arGraphicsClientWindowInitCallback() );
@@ -335,14 +329,8 @@ bool arGraphicsClient::start(arSZGClient& client, bool startSynchronization){
     }
   }
 
-  // Start the various window threads going.
-  if( _windowManager->createWindows( _guiParser->getWindowingConstruct() ) < 0 ) {
-    // An error occured.
-    return false;
-  }
-
-  // Everything is OK.
-  return true;
+  // Start the window threads.
+  return _windowManager->createWindows(_guiParser->getWindowingConstruct()) >= 0;
 }
 
 void arGraphicsClient::setOverrideColor(arVector3 overrideColor){
@@ -380,7 +368,7 @@ void arGraphicsClient::takeScreenshot(bool stereo){
   arTexture* texture = new arTexture;
   texture->setPixels(buffer1,_screenshotWidth,_screenshotHeight);
   if (!texture->writeJPEG(screenshotName.c_str(),_screenshotPath)){
-    ar_log_remark() << "szgrender remark: failed to write screenshot.\n";
+    ar_log_remark() << " failed to write screenshot.\n";
   }
   delete texture;
   delete buffer1;

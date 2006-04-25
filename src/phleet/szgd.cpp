@@ -713,7 +713,7 @@ LDone:
       timeoutMsec = 20000;
     if (!SZGClient->finishMessageOwnershipTrade(match, timeoutMsec)) {
       info << "szgd warning: ownership trade timed out.\n"
-	   << "  The launched executable either failed to load a dll,"
+	   << "  The launched executable either failed to load a dll, "
 	   << "crashed before initing the framework, or took too long to load.\n";
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
       SZGClient->messageResponse(receivedMessageID, info.str());
@@ -797,13 +797,12 @@ LRetry:
         pos += 4;
         string timeoutString = messageBody.substr( pos, messageBody.size()-pos );
         int temp;
-        bool stat = ar_stringToIntValid( timeoutString, temp );
-        cerr << "szgd remark: checking timeout info:\n";
-        cerr << "     Timeout: " << temp << endl;
+        bool ok = ar_stringToIntValid( timeoutString, temp );
         messageBody.replace( pos-4, timeoutString.size()+4, "" );
-        cerr << "     messageBody: " << messageBody << endl;
-        if (!stat) {
-          cerr << "szgd warning: failed to convert timeout string.\n";
+        ar_log_remark() << "timeout is " << temp <<
+	  " msec, msg body is '" << messageBody << "'.\n";
+        if (!ok) {
+          ar_log_warning() << "failed to convert timeout string.\n";
         } else {
           timeoutMsec = temp;
         }

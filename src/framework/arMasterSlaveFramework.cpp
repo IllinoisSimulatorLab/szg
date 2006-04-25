@@ -2314,10 +2314,10 @@ bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
 }
 
 bool arMasterSlaveFramework::_startrespond( const string& s ) {
-  ar_log_error() << _label << " error: " << s << ar_endl;
+  ar_log_error() << _label << ": " << s << ar_endl;
   
   if( !_SZGClient.sendStartResponse( false ) ) {
-    ar_log_error() << _label << " error: maybe szgserver died." << ar_endl;
+    ar_log_error() << _label << ": maybe szgserver died." << ar_endl;
   }
   
   return false;
@@ -2329,9 +2329,9 @@ bool arMasterSlaveFramework::_startrespond( const string& s ) {
 
 bool arMasterSlaveFramework::_loadParameters( void ) {
 
-  ar_log_remark() << "arMasterSlaveFramework remark: reloading parameters." << ar_endl;
+  ar_log_remark() << "arMasterSlaveFramework remark: reloading parameters.\n";
 
-  // some things just depend on the SZG_RENDER
+  // some things depend on the SZG_RENDER
   _texturePath = _SZGClient.getAttribute( "SZG_RENDER","texture_path" );
   string received( _SZGClient.getAttribute( "SZG_RENDER","text_path" ) );
   ar_stringToBuffer( ar_pathAddSlash( received ), _textPath, sizeof( _textPath ) );
@@ -2342,7 +2342,7 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
   const string displayName = _SZGClient.getAttribute( whichDisplay, "name" );
 
   if (displayName == "NULL") {
-    ar_log_warning() << "display " << whichDisplay << " undefined, using default.\n";
+    ar_log_warning() << _label << ": display " << whichDisplay << "/name undefined, using default.\n";
   } else {
     ar_log_remark() << "using display " << whichDisplay << " : "
                     << displayName << ar_endl;
