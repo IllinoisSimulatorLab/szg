@@ -55,72 +55,23 @@ import sys
 import random
 
 
-# Functions copied from teapots.py (could've just imported them, but this
-# seems a bit clearer).
-
-# Initialize depth buffer, projection matrix, light source, and lighting
-# model.  Do not specify a material property here.
-def init():
-    ambient = [0.0, 0.0, 0.0, 1.0]
-    diffuse = [1.0, 1.0, 1.0, 1.0]
-    specular = [1.0, 1.0, 1.0, 1.0]
-    position = [0.0, 3.0, 3.0, 0.0]
-
-    lmodel_ambient = [0.2, 0.2, 0.2, 1.0]
-    local_view = [0.0]
-
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambient)
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse)
-    glLightfv(GL_LIGHT0, GL_POSITION, position)
-    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient)
-    glLightModelfv(GL_LIGHT_MODEL_LOCAL_VIEWER, local_view)
-
-    glFrontFace(GL_CW)
-    glEnable(GL_LIGHTING)
-    glEnable(GL_LIGHT0)
-    glEnable(GL_AUTO_NORMAL)
-    glEnable(GL_NORMALIZE)
-    glEnable(GL_DEPTH_TEST) 
-
-    #  be efficient--make teapot display list 
-    global teapotList
-    teapotList = glGenLists(1)
-    glNewList (teapotList, GL_COMPILE)
-    glutSolidTeapot(1.0)
-    glEndList ()
+# This is one of the great things about Python. teapots.py is a program,
+# but we can also treat it as a module, import it, and call some of its
+# functions (in this case, init() and renderTeapot()).
+import teapots
 
 
-# Move object into position.  Use 3rd through 12th 
-# parameters to specify the material property.  Draw a teapot.
-def renderTeapot(x, y, ambr, ambg, ambb, difr, difg, 
-                      difb, specr, specg, specb, shine):
-    mat = [0, 0, 0, 0]
-
-    glPushMatrix()
-    glTranslatef(x, y, 0.0)
-    mat[0] = ambr; mat[1] = ambg; mat[2] = ambb; mat[3] = 1.0
-    glMaterialfv(GL_FRONT, GL_AMBIENT, mat)
-    mat[0] = difr; mat[1] = difg; mat[2] = difb
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, mat)
-    mat[0] = specr; mat[1] = specg; mat[2] = specb
-    glMaterialfv(GL_FRONT, GL_SPECULAR, mat)
-    glMaterialf(GL_FRONT, GL_SHININESS, shine * 128.0)
-    glCallList(teapotList)
-    glPopMatrix()
-
-
+# In teapots.py the display() function makes a whole bunch of calls
+# to renderTeapot() with different arguments.
 
 #  First column:  emerald, jade, obsidian, pearl, ruby, turquoise
 #  2nd column:  brass, bronze, chrome, copper, gold, silver
 #  3rd column:  black, cyan, green, red, white, yellow plastic
 #  4th column:  black, cyan, green, red, white, yellow rubber
-#def display():
-#   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-# OK, instead of using this dumb function to render all the teapots,
+# OK, instead of using the dumb original display() function to render all the teapots,
 # we're going to put their properties into a list of lists for
-# sharing master->slaves. (A list of dictionaries would be
-# much more Pythonish, but this is the minimal useful change).
+# sharing master->slaves.
 # Each sub-list is just the set of arguments for one call to
 # renderTeapot() from the original program, e.g.:
 #
@@ -179,7 +130,7 @@ teapotDataGlobal = [
       0.7, 0.7, 0.04, .078125]
   ]
 
-# end of code from teapots.py
+# end of data copied from teapots.py
 
 
 # Add a little function to shuffle the teapot positions
@@ -214,7 +165,7 @@ class TeapotApp(arPyMasterSlaveFramework):
 
   # equivalent to windowStartGL callback
   def onWindowStartGL( self, winInfo ):
-    init() # call init() copied from teapot.py
+    teapots.init() # call init() from teapot.py
 
   # equivalent to preExchange callback
   def onPreExchange( self ):
@@ -243,7 +194,9 @@ class TeapotApp(arPyMasterSlaveFramework):
     glMultMatrixf( ar_translationMatrix(-8,-5,-10).toTuple() )
     # draw the teapots
     for t in self.teapotData:
-      renderTeapot( *t ) 
+      # The '*t' means 'take the elements of the list t and distribute
+      # them to the corresponding arguments of renderTeapot()'.
+      teapots.renderTeapot( *t ) 
 
 # End of application class definition
 

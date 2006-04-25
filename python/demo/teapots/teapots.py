@@ -186,14 +186,15 @@ def keyboard(key, x, y):
    if key == chr(27):
       sys.exit(0)
 
-# Main Loop 
-glutInit(sys.argv);
-glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
-glutInitWindowSize(500, 600);
-glutInitWindowPosition(50,50);
-glutCreateWindow(sys.argv[0]);
-init();
-glutReshapeFunc(reshape)
-glutDisplayFunc(display)
-glutKeyboardFunc(keyboard)
-glutMainLoop()
+if __name__ == '__main__':
+   # Main Loop 
+   glutInit(sys.argv);
+   glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
+   glutInitWindowSize(500, 600);
+   glutInitWindowPosition(50,50);
+   glutCreateWindow(sys.argv[0]);
+   init();
+   glutReshapeFunc(reshape)
+   glutDisplayFunc(display)
+   glutKeyboardFunc(keyboard)
+   glutMainLoop()
