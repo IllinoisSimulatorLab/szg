@@ -23,16 +23,20 @@ arSoundFileNode::arSoundFileNode() :
 
   _fComplained[0] = _fComplained[1] = false;
 
-  // redhat 8.0 won't compile this if the below are outside of the constructor
-  // body
+  // redhat 8.0 won't compile if the below are outside the constructor body
   _typeCode = AR_S_FILE_NODE;
   _typeString = "fileWav";
 }
 
 arSoundFileNode::~arSoundFileNode(){
 #ifdef EnableSound
-  if (_channel && isClient()){
-    (void)ar_fmodcheck(_channel->stop());
+  if (_channel && isClient()) {
+    const FMOD_RESULT ok = _channel->stop();
+    if (ok == FMOD_ERR_INVALID_HANDLE) {
+      // _channel is invalid, probably because it already stopped playing.
+      // Don't complain.
+      _channel = NULL;
+    }
   }
 #endif
 }
