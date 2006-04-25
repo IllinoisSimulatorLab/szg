@@ -21,29 +21,27 @@ int main(int argc, char** argv){
  
   arPhleetConfigParser parser;
   if (!parser.parseConfigFile()) {
-    cerr << "dlogin error: failed to parse phleet config file.\n";
+    ar_log_error() << "dlogin failed to parse phleet config file.\n";
     return 1;
   }
+
   arSZGClient client;
-  // The discovery threads should be launched by us now, as opposed to
-  // implicitly by the discoverSZGServer function. Thus, if we get an error,
-  // then we can bail out with a reasonable error message.
-  if (!client.launchDiscoveryThreads()){
-    // Upon error, a complaint has already been logged.
+  // Launch explicitly, not implicitly via discoverSZGServer(),
+  // so client can display diagnostics.
+  if (!client.launchDiscoveryThreads())
     return 1;
-  }
+
   string userName;
-  bool success = false;
   if (argc == 3){
     userName = string(argv[2]);
-    // broadcast on the network to find the szgserver
-
-    // We send out a broadcast packet on each interface in turn
     const arSlashString networkList(parser.getNetworks());
     const arSlashString addressList(parser.getAddresses());
     const arSlashString maskList(parser.getMasks());
     const int numNetworks = networkList.size();
-    for (int i=0; i<numNetworks; ++i){
+    bool found = false;
+
+    // Send a broadcast packet on each interface, to find an szgserver.
+    for (int i=0; i<numNetworks && !found; ++i){
       const string address = addressList[i];
       const string mask = maskList[i];
       // Compute the broadcast address for this network.
@@ -53,31 +51,25 @@ int main(int argc, char** argv){
 	     << ") in szg.conf.\n";
 	continue;
       }
-      string broadcast = tmpAddress.broadcastAddress(mask.c_str());
+      const string broadcast = tmpAddress.broadcastAddress(mask.c_str());
       if (broadcast == "NULL"){
-	cout << "dlogin remark: illegal mask ("
-	     << mask << ") for address (" << address << ").\n";
+	cout << "dlogin remark: illegal mask '"
+	     << mask << "' for address '" << address << "'.\n";
 	continue;
       }
-      if (client.discoverSZGServer(argv[1], broadcast)){
-        // found something on this subnet, stop looking
-        success = true;
-        break;
-      }
+      found = client.discoverSZGServer(argv[1], broadcast);
+    }
+
+    if (!found){
+      ar_log_error() << "dlogin found no szgserver named '" << argv[1] << "'.\n";
+      return 1;
     }
   }
   else{
-    // connect explicitly
+    // Connect explicitly.
     // BUG: the szgserver name is not set! though this doesn't affect it
-    success = true; // we assume success
-    const int port = atoi(argv[2]);
-    client.setServerLocation(argv[1], port);
+    client.setServerLocation(argv[1], atoi(argv[2]));
     userName = string(argv[3]);
-  }
-
-  if (!success){
-    cerr << "dlogin error: failed to find named szgserver.\n";
-    return 1;
   }
 
   // write the *partial* login file, since this is what the 
@@ -85,21 +77,20 @@ int main(int argc, char** argv){
   // after connecting to the szgserver (when the server name will have
   // transfered over)
   if (!client.writeLoginFile(userName)) {
-    cout << "dlogin error: failed to write login file.\n";
+    ar_log_error() << "dlogin error: failed to write login file.\n";
     return 1;
   }
   
-  // make sure we can really connect to the szgserver
+  // connect to the szgserver
   client.init(argc, argv);
   if (!client) {
-    cerr << "dlogin error: failed to login to the szgserver.\n";
+    ar_log_error() << "dlogin failed to login to the szgserver.\n";
     client.logout();
     return 1;
   }
 
-  // Write the login info to disk
   if (!client.writeLoginFile(userName))
-    cout << "dlogin error: failed to write login file.\n";
+    ar_log_error() << "dlogin failed to write login file.\n";
   
   // verfiy we can, in fact, read the file.
   parser.parseLoginFile();
