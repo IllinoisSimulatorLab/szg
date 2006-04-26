@@ -134,28 +134,29 @@ teapotDataGlobal = [
 
 
 # Add a little function to shuffle the teapot positions
-def shufflePositions( teapotList ):
+def shufflePositions( teapotDataList ):
   # construct new list in in which element is [x,y] of a teapot
-  pos = [[i[0],i[1]] for i in teapotList]
+  pos = [[i[0],i[1]] for i in teapotDataList]
   random.shuffle( pos )
   # put shuffled [x,y]s back into original list
   for i in range(len(pos)):
-    teapotList[i][0:2] = pos[i]
+    teapotDataList[i][0:2] = pos[i]
 
 
 
-# Our application class
+# Our application framework class
 
 class TeapotApp(arPyMasterSlaveFramework):
   def __init__(self):
     # Call the base class's constructor
     arPyMasterSlaveFramework.__init__(self)
-    # Not really necessary...
-    # Since it's Python, the new variable is just a
+    # Not really necessary, I'm just prejudiced against global
+    # variables. Since it's Python, the new variable is just a
     # reference to the same data anyway...
     self.teapotData = teapotDataGlobal
 
   # Equivalent to start callback
+  # Called once from inside the application framework's start() method.
   def onStart( self, client ):
     # Tell the app we're going to be transferring a
     # sequence of data (tuple, list, etc.) to the slaves.
@@ -163,11 +164,14 @@ class TeapotApp(arPyMasterSlaveFramework):
     # sequences ONLY.
     self.initSequenceTransfer('teapots')
 
-  # equivalent to windowStartGL callback
+  # Equivalent to windowStartGL callback
+  # Called once right after a graphics window is created,
+  # for OpenGL initialization.
   def onWindowStartGL( self, winInfo ):
     teapots.init() # call init() from teapot.py
 
   # equivalent to preExchange callback
+  # Called on the master only, once/frame, before master->slave data exchange.
   def onPreExchange( self ):
     # Allow driving around with the joystick
     self.navUpdate()
@@ -179,19 +183,21 @@ class TeapotApp(arPyMasterSlaveFramework):
     self.setSequence( 'teapots', self.teapotData )
 
   # equivalent to postExchange callback
+  # Called once/frame on master and slaves after data exchange.
   def onPostExchange( self ):
     # Get the teapot data from the master
     if not self.getMaster():
       self.teapotData = self.getSequence( 'teapots' )
 
-  # equivalent to draw callback
+  # equivalent to draw callback.
+  # Called once/frame after onPostExchange().
   def onDraw( self, win, viewport ):
     # Load the navigation (driving around) matrix.
     self.loadNavMatrix()
     # Center the teapots (we're using a very different
     # projection matrix from the original teapots.py,
     # so without this they're way off-center).
-    glMultMatrixf( ar_translationMatrix(-8,-5,-10).toTuple() )
+    glTranslatef(-8,-5,-10)
     # draw the teapots
     for t in self.teapotData:
       # The '*t' means 'take the elements of the list t and distribute
@@ -202,7 +208,8 @@ class TeapotApp(arPyMasterSlaveFramework):
 
 
 # Python magic meaning, 'only do this if this file is run,
-# not if it's imported as a module'.
+# not if it's imported as a module'. Roughly equivalent to main() in a
+# C++ program.
 if __name__ == '__main__':
   app = TeapotApp()
   if not app.init(sys.argv):
