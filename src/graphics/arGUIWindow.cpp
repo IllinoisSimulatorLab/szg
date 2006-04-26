@@ -766,11 +766,12 @@ int arGUIWindow::_windowCreation( void )
     attrList[ 11 ] = None;
   }
 
-  // if the XDisplay window config parameter has not been set, use the $DISPLAY env variable.
-  _windowHandle._dpy = XOpenDisplay( _windowConfig.getXDisplay().length() ? _windowConfig.getXDisplay().c_str() : NULL );
+  // XOpenDisplay defaults to $DISPLAY, if passed NULL.
+  const string disp = _windowConfig.getXDisplay();
+  _windowHandle._dpy = XOpenDisplay( disp.empty() ? NULL : disp.c_str() );
 
   if( !_windowHandle._dpy ) {
-    ar_log_error() << "_windowCreation: XOpenDisplay failure on: " << _windowConfig.getXDisplay() << ar_endl;
+    ar_log_error() << "failed to open X11 display '" << _windowConfig.getXDisplay() << "'.\n";
     return -1;
   }
 
@@ -782,7 +783,7 @@ int arGUIWindow::_windowCreation( void )
   }
 
   if( !( _windowHandle._vi = glXChooseVisual( _windowHandle._dpy, _windowHandle._screen, attrList ) ) ) {
-    ar_log_error() << "_windowCreation: could not create double-buffered window" << ar_endl;
+    ar_log_error() << "_windowCreation failed to create double-buffered window" << ar_endl;
     // _killWindow();
     return -1;
   }
@@ -790,13 +791,13 @@ int arGUIWindow::_windowCreation( void )
   _windowHandle._root = RootWindow( _windowHandle._dpy, _windowHandle._vi->screen );
 
   if( !( _windowHandle._ctx = glXCreateContext( _windowHandle._dpy, _windowHandle._vi, NULL, GL_TRUE ) ) ) {
-    ar_log_error() << "_windowCreation: could not create rendering context" << ar_endl;
+    ar_log_error() << "_windowCreation failed to create rendering context" << ar_endl;
     // _killWindow();
     return -1;
   }
 
-  _windowHandle._attr.colormap = XCreateColormap( _windowHandle._dpy, _windowHandle._root,
-                                                  _windowHandle._vi->visual, AllocNone );
+  _windowHandle._attr.colormap = XCreateColormap(
+    _windowHandle._dpy, _windowHandle._root, _windowHandle._vi->visual, AllocNone);
   _windowHandle._attr.border_pixel = 0;
   _windowHandle._attr.background_pixel = 0;
   _windowHandle._attr.background_pixmap = None;
