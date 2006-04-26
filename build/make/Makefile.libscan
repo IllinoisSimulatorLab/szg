@@ -408,7 +408,7 @@ ifeq ($(strip $(MACHINE)), DARWIN)
 
   FMOD_DIR := $(SZGEXTERNAL)/darwin/fmod-4
   INC_FMOD := $(wildcard $(FMOD_DIR)/include)
-  LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmod.a)
+  LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmodex.dylib)
 
   JPEG_DIR := $(SZGEXTERNAL)/darwin/jpeg
   INC_JPEG := $(wildcard $(JPEG_DIR)/include)
