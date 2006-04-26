@@ -406,8 +406,8 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     }
     
     if( !_loadParameters() ) {
-      ar_log_error() << _label <<
-        " remark: failed to load parameters in standalone mode." << ar_endl;
+      ar_log_warning() << _label <<
+        " remark: failed to load parameters while standalone.\n";
     }
     
     _parametersLoaded = true;
@@ -448,9 +448,8 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     
     const string defaultMode = _SZGClient.getMode( "default" );
     
-    ar_log_remark() << _label << " remark: virtual computer = "
-                    << vircomp << ", default mode = "
-                    << defaultMode << "." << ar_endl;
+    ar_log_remark() << _label << " virtual computer '" << vircomp <<
+      "', default mode '" << defaultMode << "'.\n";
     
     _launcher.setAppType( "distapp" );
     
@@ -469,25 +468,25 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     
     // Reorganizes the virtual computer.
     if( !_launcher.launchApp() ) {
-      ar_log_error() << _label << " error: failed to launch on virtual computer "
-                     << vircomp << "." << ar_endl;
+      ar_log_warning() << _label << " failed to launch on virtual computer "
+                     << vircomp << ".\n";
       goto fail;
     }
     
     // Wait for the message (render nodes do this in the message task).
     // we've suceeded in initing
     if( !_SZGClient.sendInitResponse( true ) ) {
-      ar_log_error() << _label << " error: maybe szgserver died." << ar_endl;
+      ar_log_warning() << _label << ": maybe szgserver died.\n";
     }
     
     ar_log().setStream(_SZGClient.startResponse());
     
     // there's no more starting to do... since this application instance
-    // is just used as a launcher for other instances
-    ar_log_remark() << _label << " trigger launched components." << ar_endl;
+    // is just used to launch other instances
+    ar_log_remark() << _label << " trigger launched components.\n";
     
     if( !_SZGClient.sendStartResponse( true ) ) {
-      ar_log_error() << _label << " error: maybe szgserver died." << ar_endl;
+      ar_log_warning() << _label << ": maybe szgserver died.\n";
     }
     
     ar_log().setStream(cout);
@@ -509,8 +508,7 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   // should launch
   if( _SZGClient.getVirtualComputer() != "NULL" &&
       !_launcher.setParameters() ) {
-    ar_log_warning() << _label << " warning: invalid virtual computer definition."
-                     << ar_endl;
+    ar_log_warning() << _label << ": invalid virtual computer definition.\n";
   }
   
   // Launch the message thread here, so dkill still works
@@ -518,9 +516,7 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   // But launch after the trigger code above, lest we catch messages both
   // in the waitForKill() AND in the message thread.
   if(!_messageThread.beginThread( ar_masterSlaveFrameworkMessageTask, this )){
-    ar_log_error() << _label
-                   << " error: failed to start message thread."
-                   << ar_endl;
+    ar_log_warning() << _label << " failed to start message thread.\n";
     goto fail;
   }
   
@@ -538,7 +534,7 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     if( !_initSlaveObjects() ) {
 fail:
       if( !_SZGClient.sendInitResponse( false ) ) {
-        ar_log_error() << _label << " error: maybe szgserver died." << ar_endl;
+        ar_log_warning() << _label << ": maybe szgserver died.\n";
       }
       ar_log().setStream(cout);
       return false;
@@ -548,7 +544,7 @@ fail:
   _parametersLoaded = true;
   
   if( !_SZGClient.sendInitResponse( true ) ) {
-    ar_log_error() << _label << " error: maybe szgserver died." << ar_endl;
+    ar_log_warning() << _label << ": maybe szgserver died.\n";
   }
   ar_log().setStream(cout);
   return true;
@@ -629,8 +625,7 @@ void arMasterSlaveFramework::stop( bool blockUntilDisplayExit ) {
     ar_usleep( 100000 );
   }
   
-  ar_log_remark() << _label << " remark: done." << ar_endl;
-  
+  ar_log_remark() << _label << " done.\n";
   _stopped = true;
 }
 
@@ -659,13 +654,12 @@ bool arMasterSlaveFramework::createWindows( bool useWindowing ) {
     }
   }
   
-  // Actually create the windows (if we are "using windowing"). Otherwise, just create placeholder
-  // structures.
+  // Create the windows if "using windowing", else just create placeholders.
   if( _wm->createWindows( _guiXMLParser->getWindowingConstruct(),
                           useWindowing ) < 0 ) {
-    ar_log_error() << "arMasterSlaveFramework error: could not create windows.\n";
+    ar_log_warning() << _label << " failed to create windows.\n";
 #ifdef AR_USE_DARWIN
-    ar_log_error() << "  THIS COULD BE BECAUSE YOU ARE NOT RUNNING X11. PLEASE CHECK.\n";
+    ar_log_warning() << "  (Check that X11 is running.)\n";
 #endif	
     return false;
   }
@@ -715,9 +709,8 @@ void arMasterSlaveFramework::exitFunction(){
 /// event loops.
 void arMasterSlaveFramework::preDraw( void ) {
   // don't even start the function if we are, in fact, in shutdown mode
-  if( stopping() ) {
+  if (stopping())
     return;
-  }
   
   // Please note: the reloading of parameters MUST occur in this thread,
   // given that the arGUIWindowManager might be single threaded.
@@ -742,9 +735,8 @@ void arMasterSlaveFramework::preDraw( void ) {
   ar_mutex_unlock( &_pauseLock );
   
   // the pause might have been triggered because shutdown has started
-  if( stopping() ) {
+  if (stopping())
     return;
-  }
   
   // Do this before the pre-exchange callback.
   // The user might want to use current input data via
@@ -753,11 +745,10 @@ void arMasterSlaveFramework::preDraw( void ) {
     if (_harmonyInUse && !_harmonyReady) {
       _harmonyReady = allSlavesReady();
       if (_harmonyReady) {
-        // All slaves are connected, so we start accepting input in pre-determined
-        // harmony mode.
+        // All slaves are connected, so accept input in predetermined harmony.
         if (!_startInput()) {
           // What else should we do here?
-          ar_log_error() << "arMasterSlaveFramework error: _startInput() failed.\n";
+          ar_log_warning() << _label << " _startInput() failed.\n";
         }
       }
     }
@@ -817,24 +808,21 @@ void arMasterSlaveFramework::preDraw( void ) {
 
 /// Public method so that applications can make custom event loops.
 void arMasterSlaveFramework::draw( int windowID ){
-  if( stopping() || !_wm ) {
+  if( stopping() || !_wm )
     return;
-  }
-  if( windowID < 0 ) {
+
+  if( windowID < 0 )
     _wm->drawAllWindows( true );
-  }
-  else {
+  else
     _wm->drawWindow( windowID, true );
-  }
 }
 
 /// The sequence of events that should occur after the window is drawn,
 /// but before the synchronization is called.
 void arMasterSlaveFramework::postDraw( void ){
   // if shutdown has been triggered, just return
-  if( stopping() ) {
+  if (stopping())
     return;
-  }
   
   ar_timeval postDrawStart = ar_time();
   
@@ -851,7 +839,7 @@ void arMasterSlaveFramework::postDraw( void ){
   
   // the synchronization. NOTE: we DO NOT synchronize if we are standalone.
   if( !_standalone && !_sync() ) {
-    ar_log_warning() << _label << " warning: sync failed." << ar_endl;
+    ar_log_warning() << _label << ": sync failed.\n";
   }
   
   _lastSyncTime = ar_difftime( ar_time(), postDrawStart );
@@ -859,22 +847,18 @@ void arMasterSlaveFramework::postDraw( void ){
 
 /// Public method so that applications can make custom event loops.
 void arMasterSlaveFramework::swap( int windowID ) {
-  if( stopping() || !_wm ) {
+  if (stopping() || !_wm)
     return;
-  }
   
-  if( windowID < 0 ) {
+  if( windowID < 0 )
     _wm->swapAllWindowBuffers(true);
-  }
-  else {
+  else
     _wm->swapWindowBuffer( windowID, true );
-  }
 }
 
 bool arMasterSlaveFramework::onStart( arSZGClient& SZGClient ) {
   if( _startCallback && !_startCallback( *this, SZGClient ) ) {
-    ar_log_error() << _label << " error: user-defined start callback failed."
-                   << ar_endl;
+    ar_log_warning() << _label << " user-defined start callback failed.\n";
     return false;
   }
 
@@ -978,7 +962,7 @@ void arMasterSlaveFramework::onWindowStartGL( arGUIWindowInfo* windowInfo ) {
 /// It is a virtual method that issues the user-defined draw callback.
 void arMasterSlaveFramework::onDraw( arGraphicsWindow& win, arViewport& vp ) {
   if( (!_oldDrawCallback) && (!_drawCallback) ) {
-    ar_log_error() << _label << " warning: forgot to setDrawCallback()." << ar_endl;
+    ar_log_warning() << _label << " warning: forgot to setDrawCallback().\n";
     return;
   }
 
@@ -1166,12 +1150,12 @@ void arMasterSlaveFramework::setWindowStartGLCallback
 
 void arMasterSlaveFramework::setDrawCallback(
               void (*draw)( arMasterSlaveFramework&, arGraphicsWindow&, arViewport& ) ) {
-  ar_log_remark() << "arMasterSlaveFramework remark: installing new-style draw callback.\n";
+  ar_log_remark() << _label << " set draw callback.\n";
   _drawCallback = draw;
 }
 
 void arMasterSlaveFramework::setDrawCallback( void (*draw)( arMasterSlaveFramework& ) ) {
-  ar_log_remark() << "arMasterSlaveFramework remark: installing old-style draw callback.\n";
+  ar_log_remark() << _label << " set old-style draw callback.\n";
   _oldDrawCallback = draw;
 }
 
@@ -1227,7 +1211,7 @@ void arMasterSlaveFramework::setMouseCallback
 
 void arMasterSlaveFramework::setEventQueueCallback( arFrameworkEventQueueCallback callback ) {
   _eventQueueCallback = callback;
-  ar_log_remark() << "arMasterSlaveFramework remark: event queue callback set.\n";
+  ar_log_remark() << _label << " set event queue callback.\n";
 }
 
 /// The sound server should be able to find its files in the application
@@ -1257,45 +1241,38 @@ void arMasterSlaveFramework::drawGraphicsDatabase( void ){
 
 void arMasterSlaveFramework::usePredeterminedHarmony() {
   if (_startCalled) {
-    ar_log_error() << "arMasterSlaveFramework error: usePredeterminedHarmony() may not be called after "
-                   << "the start callback.\n";
+    ar_log_warning() << _label << " ignoring usePredeterminedHarmony() after start callback.\n";
     return;
   }
-  ar_log_remark() << "arMasterSlaveFramework remark: You are using pre-determined harmony." << ar_endl
-                  << "   This means that under normal circumstances you should not do any" << ar_endl
-                  << "   computation in the pre-exchange (because that's only called on the " << ar_endl
-                  << "   master). Just thought we'd remind you." << ar_endl;
+
+  ar_log_remark() << _label << " using predetermined harmony.  Don't compute in pre-exchange, since slaves don't call that.\n";
   _harmonyInUse = true;
 }
 
 int arMasterSlaveFramework::getNumberSlavesExpected() {
-  static int totalSlaves(-1);
-  if (getStandalone()) {
+  static int totalSlaves = -1;
+  if (getStandalone())
     return 0;
-  }
+
   if (!getMaster()) {
-    ar_log_error() << "arMasterSlaveFramework error: getNumberSlavesExpected() called on slave.\n";
+    ar_log_warning() << _label << "slave ignoring getNumberSlavesExpected().\n";
     return 0;
   }
+
   if (totalSlaves == -1) {
-    arAppLauncher* al = getAppLauncher();
-    totalSlaves = al->getNumberScreens()-1;
-    ar_log_remark() << "arMasterSlaveFramework remark: " << totalSlaves << " slaves expected.\n";
+    totalSlaves = getAppLauncher()->getNumberScreens() - 1;
+    ar_log_remark() << _label << " expects " << totalSlaves << " slaves.\n";
   }
   return totalSlaves;
 }
 
 bool arMasterSlaveFramework::allSlavesReady() {
-  if (_harmonyReady) {
-    return true;
-  }
-  return _numSlavesConnected >= getNumberSlavesExpected();
+  return _harmonyReady || (_numSlavesConnected >= getNumberSlavesExpected());
 }
 
 int arMasterSlaveFramework::getNumberSlavesConnected( void ) const {
   if( !getMaster() ) {
-    ar_log_warning() << "arMasterSlaveFramework warning: "
-                     << "getNumberSlavesConnected() called on slave." << ar_endl;
+    ar_log_warning() << _label << " slave ignoring getNumberSlavesConnected().\n";
     return -1;
   }
   
@@ -1307,26 +1284,23 @@ bool arMasterSlaveFramework::addTransferField( string fieldName,
                                                arDataType dataType,
                                                int size ) {
   if( _startCalled ) {
-    ar_log_error() << _label << " error: ignoring addTransferField() after start()." << ar_endl;
+    ar_log_warning() << _label << " ignoring addTransferField() after start().\n";
     return false;
   }
 
   if( size <= 0 ) {
-    ar_log_error() << _label << " error: ignoring addTransferField() with size "
-                   << size << "." << ar_endl;
+    ar_log_warning() << _label << " ignoring addTransferField() with size " << size << ".\n";
     return false;
   }
 
   if( !data ) {
-    ar_log_warning() << _label
-                     << " warning: ignoring addTransferField() with NULL data ptr." << ar_endl;
+    ar_log_warning() << _label << " addTransferField() ignoring NULL data.\n";
     return false;
   }
 
-  const string realName = "USER_" + fieldName;
+  const string realName("USER_" + fieldName);
   if( _transferTemplate.getAttributeID( realName ) >= 0 ) {
-    ar_log_warning() << _label
-                     << " warning: ignoring addTransferField() with duplicate name." << ar_endl;
+    ar_log_warning() << _label << " ignoring duplicate-name addTransferField().\n";
     return false;
   }
 
@@ -1341,26 +1315,25 @@ bool arMasterSlaveFramework::addTransferField( string fieldName,
 bool arMasterSlaveFramework::addInternalTransferField( string fieldName,
                                                        arDataType dataType, int size ) {
   if( _startCalled ) {
-    ar_log_warning() << _label << " warning: ignoring addTransferField() after start()." << ar_endl;
+    ar_log_warning() << _label << " ignoring addTransferField() after start().\n";
     return false;
   }
 
   if( size <= 0 ) {
-    ar_log_warning() << _label << " warning: ignoring addTransferField() with size "
-                     << size << "." << ar_endl;
+    ar_log_warning() << _label << " ignoring addTransferField() with size "
+                     << size << ".\n";
     return false;
   }
 
   const string realName = "USER_" + fieldName;
   if( _transferTemplate.getAttributeID( realName ) >= 0 ) {
-    ar_log_warning() << _label
-                     << " warning: ignoring addTransferField() with duplicate name." << ar_endl;
+    ar_log_warning() << _label << " ignoring addTransferField() with duplicate name.\n";
     return false;
   }
 
   void* data = ar_allocateBuffer( dataType, size );
   if( !data ) {
-    ar_log_error() << "arExperiment error: memory panic." << ar_endl;
+    ar_log_warning() << _label << " addInternalTransferField out of memory.\n";
     return false;
   }
 
@@ -1372,40 +1345,37 @@ bool arMasterSlaveFramework::addInternalTransferField( string fieldName,
   return true;
 }
 
+// todo: decopypaste setInternalTransferFieldSize and getTransferField
+
 bool arMasterSlaveFramework::setInternalTransferFieldSize( string fieldName,
                                                            arDataType dataType, int newSize ) {
   if (!getMaster()) {
-    ar_log_warning() << "arMasterSlaveFramework warning: ignoring setInternalTransferFieldSize() "
-                     << "on slave." << ar_endl;
+    ar_log_warning() << _label << " slave ignoring setInternalTransferFieldSize().\n";
     return false;
   }
 
-  const string realName = "USER_" + fieldName;
-
+  const string realName("USER_" + fieldName);
   arTransferFieldData::iterator iter = _internalTransferFieldData.find( realName );
   if ( iter == _internalTransferFieldData.end() ) {
-     ar_log_error() << "arMasterSlaveFramework error: internal transfer field "
-                    << fieldName << " not found." << ar_endl;
+     ar_log_warning() << _label << ": no internal transfer field '" << fieldName << "'.\n";
     return false;
   }
 
   arTransferFieldDescriptor& p = iter->second;
   if( dataType != p.type ) {
-    ar_log_error() << _label << " error: wrong type "
-                   << arDataTypeName( dataType ) << " specified for transfer field "
-                   << fieldName << "; should be " << arDataTypeName( p.type ) << ar_endl;
+    ar_log_warning() << _label << ": type '"
+                   << arDataTypeName( dataType ) << "' for internal transfer field '"
+                   << fieldName << "' should be '" << arDataTypeName( p.type ) << "'.\n";
     return false;
   }
 
-  int currSize = p.size;
-  if ( newSize == currSize ) {
+  if ( newSize == p.size )
     return true;
-  }
 
   ar_deallocateBuffer( p.data );
   p.data = ar_allocateBuffer(  p.type, newSize );
   if( !p.data ) {
-    ar_log_error() << "arMasterSlaveFramework error: failed to resize " << fieldName << ar_endl;
+    ar_log_warning() << _label << " failed to resize field '" << fieldName << "'.\n";
     return false;
   }
 
@@ -1415,24 +1385,23 @@ bool arMasterSlaveFramework::setInternalTransferFieldSize( string fieldName,
 
 void* arMasterSlaveFramework::getTransferField( string fieldName,
                                                 arDataType dataType, int& size ) {
-  const string realName = "USER_" + fieldName;
+  const string realName("USER_" + fieldName);
 
   arTransferFieldData::iterator iter = _internalTransferFieldData.find( realName );
   if( iter == _internalTransferFieldData.end() ) {
     iter = _transferFieldData.find( realName );
     if( iter == _transferFieldData.end() ) {
-      ar_log_error() << _label << " error: transfer field "
-                     << fieldName << " not found." << ar_endl;
-      return (void*)0;
+      ar_log_warning() << _label << ": no transfer field '" << fieldName << "'.\n";
+      return NULL;
     }
   }
 
   arTransferFieldDescriptor& p = iter->second;
   if( dataType != p.type ) {
-    ar_log_error() << _label << " error: wrong type "
-                   << arDataTypeName( dataType ) << " specified for transfer field "
-                   << fieldName << "; should be " << arDataTypeName( p.type ) << ar_endl;
-    return (void*)0;
+    ar_log_warning() << _label << ": type '"
+                   << arDataTypeName( dataType ) << "' for transfer field '"
+                   << fieldName << "' should be '" << arDataTypeName( p.type ) << "'.\n";
+    return NULL;
   }
 
   size = p.size;
@@ -1440,16 +1409,14 @@ void* arMasterSlaveFramework::getTransferField( string fieldName,
 }
 
 //********************************************************************************************
-// Random number functions follow. These are useful in predetermined harmony mode.
-//********************************************************************************************
+// Random number functions, useful for predetermined harmony.
+
 void arMasterSlaveFramework::setRandomSeed( const long newSeed ) {
-  if (!_master) {
+  if (!_master)
     return;
-  }
 
   if ( newSeed==0 ) {
-    ar_log_warning() << _label
-	             << " warning: illegal random seed value 0 replaced with -1." << ar_endl;
+    ar_log_warning() << _label << " replacing illegal random seed value 0 with -1.\n";
     _newSeed = -1;
   }
   else {
@@ -1465,18 +1432,18 @@ bool arMasterSlaveFramework::randUniformFloat( float& value ) {
   ++_numRandCalls;
 
   if( _randSynchError & 1 ) {
-    ar_log_warning() << _label << " warning: unequal numbers of calls to randUniformFloat() "
-                     << "on different machines." << ar_endl;
+    ar_log_warning() << _label << ": unequal numbers of calls to randUniformFloat() "
+                     << "on different hosts.\n";
   }
 
   if(_randSynchError & 2 ) {
-    ar_log_warning() << _label << " warning: divergence of random number seeds "
-                     << "on different machines." << ar_endl;
+    ar_log_warning() << _label << ": random number seeds diverging "
+                     << "on different hosts.\n";
   }
 
   if( _randSynchError & 4 ) {
-    ar_log_warning() << _label << " warning: divergence of random number values "
-                     << "on different machines." << ar_endl;
+    ar_log_warning() << _label << ": random number values diverging "
+                     << "on different hosts.\n";
   }
 
   bool success = ( _randSynchError == 0 );
@@ -1487,7 +1454,7 @@ bool arMasterSlaveFramework::randUniformFloat( float& value ) {
 
 
 //************************************************************************
-// Various small utility functions
+// utility functions
 //************************************************************************
 
 void arMasterSlaveFramework::_setMaster( bool master ){
@@ -1509,8 +1476,7 @@ bool arMasterSlaveFramework::_sync( void ){
 }
 
 //************************************************************************
-// Slightly more involved, but still miscellaneous, utility functions.
-// These deal with graphics.
+// utility functions for graphics
 //************************************************************************
 
 /// Check and see if we are supposed to take a screenshot. If so, go
@@ -1530,11 +1496,10 @@ void arMasterSlaveFramework::_handleScreenshot( bool stereo ) {
     arTexture texture;
     texture.setPixels( buf1, _screenshotWidth, _screenshotHeight );
     if( !texture.writeJPEG( screenshotName.c_str(),_dataPath ) ) {
-      ar_log_error() << "arMasterSlaveFramework error: screenshot write failed."
-                     << ar_endl;
+      ar_log_warning() << _label << " failed to write screenshot.\n";
     }
 
-    // the pixels are copied into arTexture's memory so we must delete them here.
+    // the pixels are copied into arTexture's memory, so delete them.
     delete[] buf1;
     ++_whichScreenshot;
     _screenshotFlag = false;
@@ -1547,7 +1512,7 @@ void arMasterSlaveFramework::_handleScreenshot( bool stereo ) {
 
 bool arMasterSlaveFramework::_sendData( void ) {
   if( !_master ) {
-    ar_log_warning() << _label << " warning: ignoring slave's _sendData." << ar_endl;
+    ar_log_warning() << _label << " slave ignoring _sendData.\n";
     return false;
   }
 
@@ -1556,13 +1521,13 @@ bool arMasterSlaveFramework::_sendData( void ) {
   for( i = _transferFieldData.begin(); i != _transferFieldData.end(); ++i ) {
     const void* pdata = i->second.data;
     if( !pdata ) {
-      ar_log_warning() << _label << " warning: aborting _sendData with nil data." << ar_endl;
+      ar_log_warning() << _label << " aborting _sendData with nil data.\n";
       return false;
     }
 
     if( !_transferData->dataIn( i->first, pdata,
                                 i->second.type, i->second.size ) ) {
-      ar_log_warning() << _label << " warning: problem in _sendData." << ar_endl;
+      ar_log_warning() << _label << " problem in _sendData.\n";
     }
   }
 
@@ -1571,13 +1536,13 @@ bool arMasterSlaveFramework::_sendData( void ) {
        i != _internalTransferFieldData.end(); ++i ) {
     const void* pdata = i->second.data;
     if( !pdata ) {
-      ar_log_warning() << _label << " warning: aborting _sendData with nil data." << ar_endl;
+      ar_log_warning() << _label << " aborting _sendData with nil data #2.\n";
       return false;
     }
 
     if( !_transferData->dataIn( i->first, pdata,
                                 i->second.type, i->second.size ) ) {
-      ar_log_warning() << _label << " warning: problem in _sendData." << ar_endl;
+      ar_log_warning() << _label << " problem in _sendData #2.\n";
     }
   }
 
@@ -1620,8 +1585,7 @@ bool arMasterSlaveFramework::_sendData( void ) {
   // Send data, if there are any receivers.
   if( _stateServer->getNumberConnectedActive() > 0 &&
       !_stateServer->sendData( _transferData ) ){
-    ar_log_remark() << _label
-                    << " remark: state server failed to send data." << ar_endl;
+    ar_log_remark() << _label << " state server failed to send data.\n";
     return false;
   }
 
@@ -1630,7 +1594,7 @@ bool arMasterSlaveFramework::_sendData( void ) {
 
 bool arMasterSlaveFramework::_getData( void ) {
   if( _master ) {
-    ar_log_warning() << _label << " warning: ignoring master's _getData." << ar_endl;
+    ar_log_warning() << _label << " master ignoring _getData.\n";
     return false;
   }
 
@@ -1651,7 +1615,7 @@ bool arMasterSlaveFramework::_getData( void ) {
 
   // Read data, since we will be receiving data from the master.
   if( !_stateClient.getData( _inBuffer,_inBufferSize ) ) {
-    ar_log_warning() << _label << " warning: state client failed to receive data." << ar_endl;
+    ar_log_warning() << _label << " state client got no data.\n";
     _stateClientConnected = false;
 
     // we need to disable framelock now, so that it can be appropriately
@@ -1685,8 +1649,8 @@ bool arMasterSlaveFramework::_getData( void ) {
       ar_deallocateBuffer( i->second.data );
       i->second.data = ar_allocateBuffer( i->second.type, numItems );
       if ( !i->second.data ) {
-         ar_log_error() << "arMasterSlaveFramework error: failed to allocate memory "
-                        << "for transfer field " <<  i->first << ar_endl;
+         ar_log_warning() << _label << " out of memory "
+                        << "for transfer field '" <<  i->first << "'.\n";
         return false;
       }
 
@@ -1712,13 +1676,12 @@ bool arMasterSlaveFramework::_getData( void ) {
 void arMasterSlaveFramework::_pollInputData( void ) {
   // Should ensure that start() has been called already.
   if( !_master ) {
-    ar_log_error() << _label << " error: slave tried to _pollInputData." << ar_endl;
+    ar_log_warning() << _label << " slave ignoring _pollInputData.\n";
     return;
   }
 
-  if( !_inputActive ) {
+  if( !_inputActive )
     return;
-  }
 
   if( _firstTimePoll ) {
     _firstTimePoll = false;
@@ -1772,14 +1735,14 @@ void arMasterSlaveFramework::_packInputData( void ){
       !_transferData->dataIn( "far_clip",        &_head._farClip,        AR_FLOAT,  1 ) ||
       !_transferData->dataIn( "unit_conversion", &_head._unitConversion, AR_FLOAT,  1 ) ||
       !_transferData->dataIn( "fixed_head_mode", &_head._fixedHeadMode,  AR_INT,    1 ) ) {
-    ar_log_error() << _label << " error: problem in _packInputData." << ar_endl;
+    ar_log_warning() << _label << ": problem in _packInputData.\n";
   }
 
 //  if( !ar_saveInputStateToStructuredData( _inputState, _transferData ) ) {
 //    std::cerr << _label << " warning: failed to pack input state data." << std::endl;
 //  }
   if( !ar_saveEventQueueToStructuredData( &_inputEventQueue, _transferData ) ) {
-    ar_log_error() << _label << " error: failed to pack input event queue." << ar_endl;
+    ar_log_warning() << _label << " failed to pack input event queue.\n";
   }
 
   _numRandCalls = 0;
@@ -1808,7 +1771,7 @@ void arMasterSlaveFramework::_unpackInputData( void ){
 //  }
   _inputEventQueue.clear();
   if (!ar_setEventQueueFromStructuredData( &_inputEventQueue, _transferData )) {
-    ar_log_warning() << _label << " warning: failed to unpack input event queue data.\n";
+    ar_log_warning() << _label << " failed to unpack input event queue.\n";
   } else {
     arInputEvent nextEvent(_inputEventQueue.popNextEvent());
     while (nextEvent) {
@@ -1871,7 +1834,7 @@ bool arMasterSlaveFramework::_determineMaster() {
       _setMaster( true );
 
       if( !_SZGClient.registerService( _serviceName, "graphics", 1, _masterPort ) ) {
-        ar_log_error() << _label << " error: component failed to be master." << ar_endl;
+        ar_log_warning() << _label << " component failed to be master.\n";
         return false;
       }
     }
@@ -1913,7 +1876,7 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
     string error;
     if( !joystickObject->createFactory( "arJoystickDriver", sharedLibLoadPath,
                                         "arInputSource", error ) ) {
-      ar_log_error() << error;
+      ar_log_warning() << error;
       return false;
     }
 
@@ -1922,22 +1885,21 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
     // The input node is not responsible for clean-up
     _inputDevice->addInputSource( driver, false );
     if( pforthProgramName == "NULL" ) {
-      ar_log_remark() << "arMasterSlaveFramework remark: no pforth program for "
-		      << "standalone joystick." << ar_endl;
+      ar_log_remark() << _label << ": no pforth program for standalone joystick.\n";
     }
     else {
       string pforthProgram = _SZGClient.getGlobalAttribute( pforthProgramName );
       if( pforthProgram == "NULL" ) {
-        ar_log_remark() << "arMasterSlaveFramework remark: no pforth program exists for "
-		        << "name = " << pforthProgramName << ar_endl;
+        ar_log_remark() << _label << ": no pforth program for '"
+		        << pforthProgramName << "'.\n";
       }
       else {
         arPForthFilter* filter = new arPForthFilter();
         ar_PForthSetSZGClient( &_SZGClient );
 
         if( !filter->loadProgram( pforthProgram ) ) {
-	        ar_log_remark() << "arMasterSlaveFramework remark: failed to configure pforth\n"
-	                        << "filter with program =\n " << pforthProgram << ar_endl;
+	  ar_log_remark() << _label <<
+	    " failed to configure pforth filter with program '" << pforthProgram << "'.\n";
           return false;
         }
 
@@ -1989,16 +1951,14 @@ bool arMasterSlaveFramework::_initMasterObjects() {
   // attempt to initialize the barrier server
   _barrierServer = new arBarrierServer();
   if( !_barrierServer ) {
-    ar_log_error() << _label
-                   << "error: master failed to construct barrier server." << ar_endl;
+    ar_log_warning() << _label << " master failed to construct barrier server.\n";
     return false;
   }
 
   _barrierServer->setServiceName( _serviceNameBarrier );
   _barrierServer->setChannel( "graphics" );
   if( !_barrierServer->init( _SZGClient ) ) {
-    ar_log_error() << _label << " error: failed to initialize barrier "
-		   << "server." << ar_endl;
+    ar_log_warning() << _label << " failed to init barrier server.\n";
   }
 
   _barrierServer->registerLocal();
@@ -2009,8 +1969,7 @@ bool arMasterSlaveFramework::_initMasterObjects() {
   _inputDevice = new arInputNode( true );
 
   if( !_inputDevice ) {
-    ar_log_error() << _label
-                   << " error: master failed to construct input device." << ar_endl;
+    ar_log_warning() << _label << " master failed to construct input device.\n";
     return false;
   }
 
@@ -2019,7 +1978,7 @@ bool arMasterSlaveFramework::_initMasterObjects() {
   _netInputSource.setSlot( 0 );
 
   if( !_inputDevice->init( _SZGClient ) ) {
-    ar_log_error() << _label << " error: master failed to init input device." << ar_endl;
+    ar_log_warning() << _label << " master failed to init input device.\n";
 
     delete _inputDevice;
     _inputDevice = NULL;
@@ -2027,16 +1986,13 @@ bool arMasterSlaveFramework::_initMasterObjects() {
     return false;
   }
 
-  // attempt to initialize the sound device
   _soundActive = false;
   if( !_soundServer.init( _SZGClient ) ) {
-    ar_log_error() << _label << " error: sound server failed to init." << ar_endl
-                   << "  (Is another application running?)" << ar_endl;
+    ar_log_warning() << _label << " failed to init sound server.\n";
     return false;
   }
 
-  // we've succeeded in initializing the various objects
-  ar_log_remark() << _label << " remark: master's objects initialized." << ar_endl;
+  ar_log_remark() << _label << " initialized master's objects.\n";
   return true;
 }
 
@@ -2046,8 +2002,7 @@ bool arMasterSlaveFramework::_startMasterObjects() {
   _stateServer = new arDataServer( 1000 );
 
   if( !_stateServer ) {
-    ar_log_error() << _label
-                   << " error: master failed to construct state server." << ar_endl;
+    ar_log_warning() << _label << " master failed to construct state server.\n";
     return false;
   }
 
@@ -2064,8 +2019,8 @@ bool arMasterSlaveFramework::_startMasterObjects() {
   // TODO TODO: to the other ones
   int tries = 0;
   while( tries++ < 10 && !_stateServer->beginListening( &_transferLanguage ) ) {
-    ar_log_warning() << _label << " warning: failed to listen on port "
-		               << _masterPort[ 0 ] << "." << ar_endl;
+    ar_log_warning() << _label << " failed to listen on port "
+		               << _masterPort[ 0 ] << ".\n";
 
     _SZGClient.requestNewPorts( _serviceName, "graphics", 1 ,_masterPort );
     _stateServer->setPort( _masterPort[ 0 ] );
@@ -2077,18 +2032,18 @@ bool arMasterSlaveFramework::_startMasterObjects() {
   }
 
   if( !_SZGClient.confirmPorts( _serviceName, "graphics", 1, _masterPort ) ) {
-    ar_log_error() << _label << " error: brokered port unconfirmed." << ar_endl;
+    ar_log_warning() << _label << " failed to confirm brokered port.\n";
     return false;
   }
 
   if( !_barrierServer->start() ) {
-    ar_log_error() << _label << " error: failed to start barrier server." << ar_endl;
+    ar_log_warning() << _label << " failed to start barrier server.\n";
     return false;
   }
 
   if (!_harmonyInUse) {
     if (!_startInput()) {
-      ar_log_error() << _label << " error: failed to start input device." << ar_endl;
+      ar_log_warning() << _label << " failed to start input device.\n";
       return false;
     }
   }
@@ -2097,20 +2052,19 @@ bool arMasterSlaveFramework::_startMasterObjects() {
 
   // start the sound server
   if( !_soundServer.start() ) {
-    ar_log_error() << _label << " error: sound server failed to listen." << ar_endl
-                   << "  (Is another application running?)" << ar_endl;
+    ar_log_warning() << _label << " sound server failed to listen.\n";
     return false;
   }
 
   _soundActive = true;
 
-  ar_log_remark() << _label << " remark: master's objects started.\n";
+  ar_log_remark() << _label << " started master's objects.\n";
   return true;
 }
 
 bool arMasterSlaveFramework::_startInput() {
   if( !_inputDevice->start() ) {
-    ar_log_error() << _label << " error: failed to start input device." << ar_endl;
+    ar_log_warning() << _label << " failed to start input device.\n";
 
     delete _inputDevice;
     _inputDevice = NULL;
@@ -2131,8 +2085,7 @@ bool arMasterSlaveFramework::_initSlaveObjects() {
   _barrierClient = new arBarrierClient;
 
   if ( !_barrierClient ) {
-     ar_log_error() << _label
-                    << "error: slave failed to construct barrier client." << ar_endl;
+     ar_log_warning() << _label << "slave failed to construct barrier client.\n";
     return false;
   }
 
@@ -2140,15 +2093,14 @@ bool arMasterSlaveFramework::_initSlaveObjects() {
   _barrierClient->setServiceName( _serviceNameBarrier );
 
   if( !_barrierClient->init( _SZGClient ) ) {
-    ar_log_error() << _label << " error: barrier client failed to start." << ar_endl;
+    ar_log_warning() << _label << " slave failed to start barrier client.\n";
     return false;
   }
 
   _inputState = new arInputState();
 
   if( !_inputState ) {
-    ar_log_error() << _label
-                   << "error: slave failed to construct input state." << ar_endl;
+    ar_log_warning() << _label << "slave failed to construct input state.\n";
     return false;
   }
   // of course, the state client should not have weird delays on small
@@ -2156,9 +2108,7 @@ bool arMasterSlaveFramework::_initSlaveObjects() {
   // doing the following
   _stateClient.smallPacketOptimize( true );
 
-  // we've succeeded in the init
-  ar_log_remark() << _label << " remark: the initialization of the slave "
-		  << "objects succeeded." << ar_endl;
+  ar_log_remark() << _label << " initialized slaves' objects.\n";
   return true;
 }
 
@@ -2166,11 +2116,11 @@ bool arMasterSlaveFramework::_initSlaveObjects() {
 bool arMasterSlaveFramework::_startSlaveObjects() {
   // the barrier client is the only object to start
   if( !_barrierClient->start() ) {
-    ar_log_error() << _label << " error: barrier client failed to start." << ar_endl;
+    ar_log_warning() << _label << " barrier client failed to start.\n";
     return false;
   }
 
-  ar_log_error() << _label << " remark: slave objects started." << ar_endl;
+  ar_log_remark() << _label << " started slaves' objects.\n";
   return true;
 }
 
@@ -2182,8 +2132,7 @@ bool arMasterSlaveFramework::_startObjects( void ){
   _transferData = new arStructuredData( &_transferTemplate );
 
   if( !_transferData ) {
-    ar_log_error() << _label
-                   << " error: master failed to construct _transferData." << ar_endl;
+    ar_log_warning() << _label << " master failed to construct _transferData.\n";
     return false;
   }
 
@@ -2207,7 +2156,7 @@ bool arMasterSlaveFramework::_startObjects( void ){
   // Both master and slave need a connection thread
   if( !_connectionThread.beginThread( ar_masterSlaveFrameworkConnectionTask,
                                       this ) ) {
-    ar_log_error() << _label << " error: failed to start connection thread." << ar_endl;
+    ar_log_warning() << _label << " failed to start connection thread.\n";
     return false;
   }
 
@@ -2224,10 +2173,9 @@ bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
 
   if ( !_parametersLoaded ) {
     if ( _SZGClient ) {
-      ar_log_error() << _label
-		     << " error: start() method called before init() method." << ar_endl;
+      ar_log_warning() << _label << ": start() called before init().\n";
       if( !_SZGClient.sendInitResponse( false ) ) {
-        ar_log_error() << _label << " error: maybe szgserver died." << ar_endl;
+        ar_log_warning() << _label << ": maybe szgserver died.\n";
       }
     }
     ar_log().setStream(cout);
@@ -2284,7 +2232,7 @@ bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
 
   // the start succeeded
   if( _SZGClient && !_SZGClient.sendStartResponse( true ) ) {
-    ar_log_error() << _label << " error: maybe szgserver died." << ar_endl;
+    ar_log_warning() << _label << ": maybe szgserver died.\n";
   }
 
   if( !_standalone ) {
@@ -2314,10 +2262,10 @@ bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
 }
 
 bool arMasterSlaveFramework::_startrespond( const string& s ) {
-  ar_log_error() << _label << ": " << s << ar_endl;
+  ar_log_warning() << _label << ": " << s << ar_endl;
   
   if( !_SZGClient.sendStartResponse( false ) ) {
-    ar_log_error() << _label << ": maybe szgserver died." << ar_endl;
+    ar_log_warning() << _label << ": maybe szgserver died.\n";
   }
   
   return false;
@@ -2329,7 +2277,7 @@ bool arMasterSlaveFramework::_startrespond( const string& s ) {
 
 bool arMasterSlaveFramework::_loadParameters( void ) {
 
-  ar_log_remark() << "arMasterSlaveFramework remark: reloading parameters.\n";
+  ar_log_remark() << _label << " reloading parameters.\n";
 
   // some things depend on the SZG_RENDER
   _texturePath = _SZGClient.getAttribute( "SZG_RENDER","texture_path" );
@@ -2344,8 +2292,8 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
   if (displayName == "NULL") {
     ar_log_warning() << _label << ": display " << whichDisplay << "/name undefined, using default.\n";
   } else {
-    ar_log_remark() << "using display " << whichDisplay << " : "
-                    << displayName << ar_endl;
+    ar_log_remark() << _label << " using display " << whichDisplay <<
+      ":" << displayName << ar_endl;
   }
 
   _guiXMLParser->setConfig( _SZGClient.getGlobalAttribute( displayName ) );
@@ -2498,31 +2446,29 @@ void arMasterSlaveFramework::_messageTask( void ) {
         ar_mutex_unlock( &_pauseLock );
       }
       else
-        ar_log_warning() << _label << " warning: ignoring unexpected pause arg \""
-		         << messageBody << "\"." << ar_endl;
+        ar_log_warning() << _label <<
+	  " ignoring unexpected pause arg '" << messageBody << "'.\n";
     }
 
   }
 }
 
 void arMasterSlaveFramework::_connectionTask( void ) {
-  // shutdown depends on the value of _connectionThreadRunning
-  _connectionThreadRunning = true;
+  _connectionThreadRunning = true; // for shutdown
 
   if( _master ) {
     // THE MASTER'S METHOD OF HANDLING CONNECTIONS
     while( !stopping() ) {
       // TODO TODO TODO TODO TODO TODO
       // As a hack, since non-blocking connection accept has yet to be
-      // implemented, we have to pretend the connection thread isn't running
+      // implemented, pretend the connection thread isn't running
       // during the blocking call
       _connectionThreadRunning = false;
       arSocket* theSocket = _stateServer->acceptConnectionNoSend();
       _connectionThreadRunning = true;
 
-      if( stopping() ) {
+      if (stopping())
         break;
-      }
 
       if( !theSocket || _stateServer->getNumberConnected() <= 0 ) {
         // something bad happened.  Don't keep trying infinitely.
@@ -2530,13 +2476,13 @@ void arMasterSlaveFramework::_connectionTask( void ) {
 	break;
       }
 
-      ar_log_remark() << _label << " remark: slave connected to master";
+      ar_log_remark() << _label << " slave connected to master";
       const int num = _stateServer->getNumberConnected();
 
       if ( num > 1 ) {
 	ar_log_remark() << " (" << num << " in all)";
       }
-      ar_log_remark() << ar_endl;
+      ar_log_remark() << ".\n";
     }
   }
   else {
@@ -2547,12 +2493,10 @@ void arMasterSlaveFramework::_connectionTask( void ) {
         ar_usleep( 100000 );
       }
 
-      if( stopping() ) {
+      if( stopping() )
         break;
-      }
 
-      // TODO TODO TODO TODO TODO TODO
-      // As a hack, since discoverService is currently a blocking call
+      // hack, since discoverService is currently a blocking call
       // and the arSZGClient does not have a shutdown mechanism in place
       _connectionThreadRunning = false;
       const arPhleetAddress result =
@@ -2560,16 +2504,15 @@ void arMasterSlaveFramework::_connectionTask( void ) {
 
       _connectionThreadRunning = true;
 
-      if( stopping() ) {
+      if (stopping())
         break;
-      }
 
-      ar_log_remark() << _label << " remark: connecting to "
+      ar_log_remark() << _label << " connecting to "
 	              << result.address << ":" << result.portIDs[ 0 ] << ar_endl;
 
       if( !result.valid ||
           !_stateClient.dialUpFallThrough( result.address, result.portIDs[ 0 ] ) ) {
-        ar_log_warning() << _label << " warning: brokering process failed. Will retry." << ar_endl;
+        ar_log_warning() << _label << " failed to broker; retrying.\n";
         continue;
       }
 
@@ -2577,16 +2520,15 @@ void arMasterSlaveFramework::_connectionTask( void ) {
       _barrierClient->setBondedSocketID( _stateClient.getSocketIDRemote() );
       _stateClientConnected = true;
 
-      ar_log_remark() << _label << " remark: slave connected to master." << ar_endl;
+      ar_log_remark() << _label << " slave connected to master.\n";
       while( _stateClientConnected && !stopping() ) {
         ar_usleep( 300000 );
       }
 
-      if( stopping() ) {
+      if (stopping())
         break;
-      }
 
-      ar_log_remark() << _label << " remark: slave disconnected.\n";
+      ar_log_remark() << _label << " slave disconnected.\n";
       _stateClient.closeConnection();
     }
   }
@@ -2604,17 +2546,14 @@ void arMasterSlaveFramework::_connectionTask( void ) {
 void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
                                           arGraphicsWindow* graphicsWindow ) {
   if ( !windowInfo || !graphicsWindow ) {
-    ar_log_error() << "arMasterSlaveFramework error: "
-	           << "NULL arGUIWindowInfo*|arGraphicsWindow* passed to "
-	           << "_drawWindow()." << ar_endl;
+    ar_log_warning() << _label << " _drawWindow got NULL pointer.\n";
     return;
   }
 
   int currentWinID = windowInfo->getWindowID();
   if( !_wm->windowExists( currentWinID ) ) {
-    ar_log_error() << "arMasterSlaveFramework error: "
-	           << "arGraphicsWindow with ID " << currentWinID
-                   << " not found in _drawWindow()." << ar_endl;
+    ar_log_warning() << _label << " _drawWindow: no arGraphicsWindow with ID " <<
+      currentWinID << ".\n";
     return;
   }
 
