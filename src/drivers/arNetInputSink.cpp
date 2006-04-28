@@ -29,13 +29,13 @@ arNetInputSink::arNetInputSink() :
 /// Input devices in phleet offer services based on slots.
 /// Slot x corresponds to service SZG_INPUTx, for nonnegative x.
 /// @param slot the slot in question
-void arNetInputSink::setSlot(int slot){
+bool arNetInputSink::setSlot(int slot){
   if (slot<0){
-    cerr << "arNetInputSource warning: overriding negative input device slot "
-         << slot << ".\n";
-    slot = 0; 
+    ar_log_warning() << "arNetInputSink ignoring negative input device slot.\n";
+    return false;
   }
   _slot = slot;
+  return true;
 }
 
 bool arNetInputSink::init(arSZGClient& SZGClient){

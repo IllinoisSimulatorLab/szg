@@ -20,7 +20,7 @@ class SZG_CALL arNetInputSink: public arInputSink{
   arNetInputSink();
   ~arNetInputSink() {}
 
-  void setSlot(int slot);
+  bool setSlot(int slot);
 
   bool init(arSZGClient&);
   bool start();

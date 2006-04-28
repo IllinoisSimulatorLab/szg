@@ -225,7 +225,9 @@ int main(int argc, char** argv){
     return 1;
   
   // we will connect to the primary input source
-  netSource->setSlot(0);
+  if (!netSource->setSlot(0))
+    return 1;
+
   inputDevice->addInputSource(netSource, false);
   inputDevice->setEventCallback(eventCallback);
   if (!inputDevice->init(*szgClient))

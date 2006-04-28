@@ -1975,15 +1975,17 @@ bool arMasterSlaveFramework::_initMasterObjects() {
 
   _inputState = &_inputDevice->_inputState;
   _inputDevice->addInputSource( &_netInputSource, false );
-  _netInputSource.setSlot( 0 );
+  if (!_netInputSource.setSlot(0)) {
+    ar_log_warning() << _label << " failed to set slot 0.\n";
+LAbort:
+    delete _inputDevice;
+    _inputDevice = NULL;
+    return false;
+  }
 
   if( !_inputDevice->init( _SZGClient ) ) {
     ar_log_warning() << _label << " master failed to init input device.\n";
-
-    delete _inputDevice;
-    _inputDevice = NULL;
-
-    return false;
+    goto LAbort;
   }
 
   _soundActive = false;

@@ -181,6 +181,7 @@ int main(int argc, char** argv){
   if (argc < 3){
     initResponse << "usage: DeviceServer [-s] [-netinput] device_description "
 		 << "driver_slot [pforth_filter_name]" << endl;
+LAbort:
     respond(SZGClient);
     return 1;
   }
@@ -196,15 +197,13 @@ int main(int argc, char** argv){
     if (bla == "NULL") {
       initResponse << "DeviceServer error: undefined node \""
 		   << argv[1] << "\".\n";
-      respond(SZGClient);
-      return 1;
+      goto LAbort;
     }
     nodeConfig = parseNodeConfig(bla);
     if (!nodeConfig.valid){
       initResponse << "DeviceServer error: invalid node config from "
 		   << "attribute " << argv[1] << "\n";
-      respond(SZGClient);
-      return 1;
+      goto LAbort;
     }
   }
 
@@ -225,7 +224,10 @@ int main(int argc, char** argv){
     // Check if the requested library is embedded in the library.
     if (*iter == "arNetInputSource"){
       arNetInputSource* netInputSource = new arNetInputSource();
-      netInputSource->setSlot(nextInputSlot);
+      if (!netInputSource->setSlot(nextInputSlot)) {
+	initResponse << "DeviceServer error: invalid slot " << nextInputSlot << ".\n";
+	goto LAbort;
+      }
       nextInputSlot++;
       inputNode.addInputSource(netInputSource,true);
     } 
@@ -236,15 +238,13 @@ int main(int argc, char** argv){
       if (!inputSourceObject->createFactory(*iter, execPath, 
                                             "arInputSource", error)){
         initResponse << error;
-        respond(SZGClient);
-        return 1;
+        goto LAbort;
       }
       // Can create our object.
       theSource = (arInputSource*) inputSourceObject->createObject();
       if (!theSource) {
         initResponse << "DeviceServer error: failed to create input source.\n";
-        respond(SZGClient);
-        return 1;
+        goto LAbort;
       }
       driverNameMap[*iter] = theSource;
       inputNode.addInputSource(theSource,false);
@@ -255,7 +255,11 @@ int main(int argc, char** argv){
   // add a net input source automatically (i.e. not via the config file)
   if (useNetInput){
     arNetInputSource* commandLineNetInputSource = new arNetInputSource();
-    commandLineNetInputSource->setSlot(nextInputSlot);
+    if (!commandLineNetInputSource->setSlot(nextInputSlot)) {
+      initResponse << "DeviceServer error: invalid slot " << nextInputSlot << ".\n";
+      goto LAbort;
+    }
+      nextInputSlot++;
     nextInputSlot++;
     // The node will "own" this source.
     inputNode.addInputSource(commandLineNetInputSource,true);
@@ -265,9 +269,13 @@ int main(int argc, char** argv){
   // sink (for transmitting data from the DeviceServer) and a "file sink"
   // for logging.
   arNetInputSink netInputSink;
-  netInputSink.setSlot(slotNumber);
-  // We need some way to distinguish between different DeviceServer instances
-  // (which are running different devices). This is one way to do it.
+  if (!netInputSink.setSlot(slotNumber)) {
+    initResponse << "DeviceServer error: invalid slot " << slotNumber << ".\n";
+    goto LAbort;
+  }
+      nextInputSlot++;
+  // Distinguish between different DeviceServer instances
+  // (which are running different devices).
   netInputSink.setInfo(argv[1]);
   // And the sink to the input node.
   inputNode.addInputSink(&netInputSink,false);
@@ -285,15 +293,13 @@ int main(int argc, char** argv){
     if (!inputSinkObject->createFactory(*iter, execPath, 
                                         "arInputSink", error)){
       initResponse << error;
-      respond(SZGClient);
-      return 1;
+      goto LAbort;
     }
     // Can create our object.
     theSink = (arInputSink*) inputSinkObject->createObject();
     if (!theSink) {
       initResponse << "DeviceServer error: failed to create input sink.\n";
-      respond(SZGClient);
-      return 1;
+      goto LAbort;
     }
     inputNode.addInputSink(theSink,true);
   }
@@ -338,20 +344,17 @@ int main(int argc, char** argv){
     if (!inputFilterSharedLib->createFactory(*iter, execPath, 
                                           "arIOFilter", error)){
       initResponse << error;
-      respond(SZGClient);
-      return 1;
+      goto LAbort;
     }
     // Can create our object.
     theFilter = (arIOFilter*) inputFilterSharedLib->createObject();
     if (!theFilter) {
       initResponse << "DeviceServer error: failed to create input filter.\n";
-      respond(SZGClient);
-      return 1;
+      goto LAbort;
     }
     if (!theFilter->configure( &SZGClient )){
       initResponse << "DeviceServer remark: failed to configure filter.\n";
-      respond(SZGClient);
-      return 1;
+      goto LAbort;
     }
     // We do, indeed, own this.
     inputNode.addFilter(theFilter,true);

@@ -555,19 +555,21 @@ void arDistSceneGraphFramework::_initDatabases(){
 bool arDistSceneGraphFramework::_initInput(){
   _inputDevice = new arInputNode;
   if (!_inputDevice) {
-    ar_log_error() << "arDistSceneGraphFramework error: failed to create input "
-		   << "device.\n";
+    ar_log_warning() << "arDistSceneGraphFramework failed to create input device.\n";
     return false;
   }
   _inputState = &(_inputDevice->_inputState);
 
   if (!_standalone){
     _inputDevice->addInputSource(&_netInputSource,false);
-    _netInputSource.setSlot(0);
+    if (!_netInputSource.setSlot(0)) {
+      ar_log_warning() << "arDistSceneGraphFramework failed to set slot 0.\n";
+      return false;
+    }
+    _inputState = &(_inputDevice->_inputState);
   }
   else{
-    // we are in the standalone case and are using either an embedded
-    // inputsimulator or a joystick
+    // standalone, using either an embedded inputsimulator or a joystick
     _standaloneControlMode = _SZGClient.getAttribute("SZG_DEMO",
 						     "control_mode",
 						     "|simulator|joystick|");

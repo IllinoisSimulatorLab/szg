@@ -120,7 +120,10 @@ int main(int argc, char** argv){
     }
   }
   arNetInputSink netInputSink;
-  netInputSink.setSlot(slotNumber);
+  if (!netInputSink.setSlot(slotNumber)) {
+    ar_log_error() << "inputsimulator failed to set slot " << slotNumber << ".\n";
+    return 1;
+  }
   // NOTE: we need to distinguish different kinds of SZG_INPUTn services...
   // and this is how we do it!
   netInputSink.setInfo("inputsimulator");
@@ -158,7 +161,10 @@ int main(int argc, char** argv){
   inp = &inputNode->_inputState;
   if (useNetInput) {
     arNetInputSource* netSource = new arNetInputSource;
-    netSource->setSlot(slotNumber+1);
+    if (!netSource->setSlot(slotNumber+1)) {
+      ar_log_error() << "inputsimulator failed to set slot " << slotNumber+1 << ".\n";
+      return 1;
+    }
     inputNode->addInputSource(netSource,true);
     cerr << "inputsimulator remark: using net input, slot #" 
          << slotNumber+1 << ".\n";

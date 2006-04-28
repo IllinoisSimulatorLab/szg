@@ -21,7 +21,7 @@ class SZG_CALL arNetInputSource: public arInputSource{
   arNetInputSource();
   ~arNetInputSource() {}
 
-  void setSlot(int slot);
+  bool setSlot(int slot);
 
   virtual bool init(arSZGClient&);
   virtual bool start();

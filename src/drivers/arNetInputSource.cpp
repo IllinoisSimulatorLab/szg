@@ -103,12 +103,13 @@ arNetInputSource::arNetInputSource(){
 /// So... slot 0 corresponds
 /// to service SZG_INPUT0, slot 1 corresponds to service SZG_INPUT1, and so on.
 /// @param slot the slot in question
-void arNetInputSource::setSlot(int slot){
+bool arNetInputSource::setSlot(int slot){
   if (slot<0){
-    ar_log_warning() << "arNetInputSource warning: ignoring negative input device slot.\n";
-    return;
+    ar_log_warning() << "arNetInputSource ignoring negative input device slot.\n";
+    return false;
   }
   _slot = slot;
+  return true;
 }
 
 bool arNetInputSource::init(arSZGClient& SZGClient){

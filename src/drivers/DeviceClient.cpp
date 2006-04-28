@@ -83,7 +83,10 @@ int main(int argc, char** argv){
   arInputNode inputNode;
   arNetInputSource netInputSource;
   inputNode.addInputSource(&netInputSource,false);
-  netInputSource.setSlot(slot);
+  if (!netInputSource.setSlot(slot)) {
+    cerr << "DeviceClient error: invalid slot " << slot << ".\n";
+    return 1;
+  }
   arClientEventFilter filter;
   inputNode.addFilter( &filter, false );
   if (!inputNode.init(szgClient)){

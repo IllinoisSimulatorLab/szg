@@ -37,8 +37,7 @@ arFlyingGravisController::~arFlyingGravisController(){
 
 bool arFlyingGravisController::init(arSZGClient& szgClient){
   _joystickClient.addInputSource(&_netInputSource,false);
-  _netInputSource.setSlot(0);
-  return _joystickClient.init(szgClient);
+  return _netInputSource.setSlot(0) && _joystickClient.init(szgClient);
 }
 
 bool arFlyingGravisController::start(){
