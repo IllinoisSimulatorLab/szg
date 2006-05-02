@@ -61,13 +61,14 @@ bool arNetInputSink::start(){
   }
 
   stringstream& startResponse = _client->startResponse(); 
-  // Bug: handle the many service naming issues that will exist.
+  // Bug: handle service naming issues.
   char buffer[32];
-  sprintf(buffer,"SZG_INPUT%i",_slot);
+  sprintf(buffer, "SZG_INPUT%i", _slot);
   const string serviceName(_client->createComplexServiceName(buffer));
   int port = -1;
   if (!_client->registerService(serviceName,"input",1,&port)){
-    startResponse << "arNetInputSink error: failed to register service.\n";
+    startResponse << "arNetInputSink error: failed to register service '" <<
+      serviceName << "'.\n";
     return false;
   }
   _dataServer.setPort(port);

@@ -1914,8 +1914,9 @@ bool arSZGClient::_getPortsCore1(
        int numberPorts, arStructuredData*& data, int& match, bool fRetry) {
   if (channel != "default" && channel != "graphics" && channel != "sound"
       && channel != "input"){
-    ar_log_error() << _exeName << (fRetry ? "requestNewPorts" : "registerService")
-	           << "() passed invalid channel.\n";
+    ar_log_warning() << _exeName << (fRetry ? "requestNewPorts" : "registerService") <<
+      "() ignoring channel '" << channel <<
+      "'; expected one of: default, graphics, sound, input.\n";
     return false;
   }
 
@@ -1944,10 +1945,10 @@ bool arSZGClient::_getPortsCore1(
 /// @param fRetry true iff we're retrying
 bool arSZGClient::_getPortsCore2(arStructuredData* data, int match,
                                  int* portIDs, bool fRetry) {
-  if (!_connected){
+  if (!_connected)
     return false;
-  }
-  // _getPortsCore1 fills in the match field.
+
+  // _getPortsCore1 filled in the match field.
   if (!_dataClient.sendData(data)){
     ar_log_warning() << _exeName << " failed to request service registration "
 	             << (fRetry ? "retry" : "") << ".\n";
@@ -1963,12 +1964,13 @@ bool arSZGClient::_getPortsCore2(arStructuredData* data, int match,
 	             << (fRetry ? "retry" : "") << "request.\n";
     return false;
   }
-  (void)data->getDataInt(_l.AR_PHLEET_MATCH);
 
+  (void)data->getDataInt(_l.AR_PHLEET_MATCH);
   if (data->getDataString(_l.AR_SZG_BROKER_RESULT_STATUS) != "SZG_SUCCESS"){
     return false;
   }
-  int dimension = data->getDataDimension(_l.AR_SZG_BROKER_RESULT_PORT);
+
+  const int dimension = data->getDataDimension(_l.AR_SZG_BROKER_RESULT_PORT);
   data->dataOut(_l.AR_SZG_BROKER_RESULT_PORT, portIDs, AR_INT, dimension);
   return true;
 }
@@ -1980,8 +1982,7 @@ bool arSZGClient::_getPortsCore2(arStructuredData* data, int match,
 /// methods to be called freely from different application threads.
 int arSZGClient::_fillMatchField(arStructuredData* data){
   ar_mutex_lock(&_serviceLock);
-  int match = _nextMatch;
-  _nextMatch++;
+  const int match = _nextMatch++;
   ar_mutex_unlock(&_serviceLock);
   data->dataIn(_l.AR_PHLEET_MATCH,&match,AR_INT,1);
   return match;
@@ -1999,13 +2000,13 @@ int arSZGClient::_fillMatchField(arStructuredData* data){
 bool arSZGClient::registerService(const string& serviceName,
                                   const string& channel,
                                   int numberPorts, int* portIDs){
-  if (!_connected){
+  if (!_connected)
     return false;
-  }
+
   arStructuredData* data = NULL;
   int match = -1;
-  return _getPortsCore1(serviceName, channel, numberPorts, data, match, false)
-         && _getPortsCore2(data, match, portIDs, false);
+  return _getPortsCore1(serviceName, channel, numberPorts, data, match, false) &&
+         _getPortsCore2(data, match, portIDs, false);
 }
 
 /// The ports assigned to us by the szgserver can be unusable for local
