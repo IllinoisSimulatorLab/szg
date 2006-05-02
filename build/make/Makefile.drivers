@@ -111,7 +111,8 @@ else
   POST_LINK_GAMEPAD = $(GAMEPAD_LIBS)
 endif
 
-ALL =   $(SZG_CURRENT_DLL) \
+ALL = \
+  $(SZG_CURRENT_DLL) \
   DeviceClient$(EXE) \
   EventTest$(EXE) \
   FaroTest$(EXE) \
@@ -119,25 +120,26 @@ ALL =   $(SZG_CURRENT_DLL) \
   pfconsole$(EXE)
 
 ifneq ($(strip $(SZG_LINKING)), STATIC) 
-  ALL += DeviceServer$(EXE) \
-  arIntersenseDriver$(PLUGIN_SUFFIX) \
-  arBirdWinDriver$(PLUGIN_SUFFIX) \
-  arConstantHeadFilter$(PLUGIN_SUFFIX) \
-  arEVaRTDriver$(PLUGIN_SUFFIX) \
-  arFOBDriver$(PLUGIN_SUFFIX) \
-  arFaroCalFilter$(PLUGIN_SUFFIX) \
-  arFaroDriver$(PLUGIN_SUFFIX) \
-  arIntelGamepadDriver$(PLUGIN_SUFFIX) \
-  arJoystickDriver$(PLUGIN_SUFFIX) \
-  arLogitechDriver$(PLUGIN_SUFFIX) \
-  arMotionstarDriver$(PLUGIN_SUFFIX) \
-  arPPTDriver$(PLUGIN_SUFFIX) \
-  arReactionTimerDriver$(PLUGIN_SUFFIX) \
-  arSharedMemDriver$(PLUGIN_SUFFIX) \
-  arSpacepadDriver$(PLUGIN_SUFFIX) \
-  arTrackCalFilter$(PLUGIN_SUFFIX) \
-  arUSBDriver$(PLUGIN_SUFFIX) \
-  arVRPNDriver$(PLUGIN_SUFFIX)
+  ALL += \
+    DeviceServer$(EXE) \
+    arIntersenseDriver$(PLUGIN_SUFFIX) \
+    arBirdWinDriver$(PLUGIN_SUFFIX) \
+    arConstantHeadFilter$(PLUGIN_SUFFIX) \
+    arEVaRTDriver$(PLUGIN_SUFFIX) \
+    arFOBDriver$(PLUGIN_SUFFIX) \
+    arFaroCalFilter$(PLUGIN_SUFFIX) \
+    arFaroDriver$(PLUGIN_SUFFIX) \
+    arIntelGamepadDriver$(PLUGIN_SUFFIX) \
+    arJoystickDriver$(PLUGIN_SUFFIX) \
+    arLogitechDriver$(PLUGIN_SUFFIX) \
+    arMotionstarDriver$(PLUGIN_SUFFIX) \
+    arPPTDriver$(PLUGIN_SUFFIX) \
+    arReactionTimerDriver$(PLUGIN_SUFFIX) \
+    arSharedMemDriver$(PLUGIN_SUFFIX) \
+    arSpacepadDriver$(PLUGIN_SUFFIX) \
+    arTrackCalFilter$(PLUGIN_SUFFIX) \
+    arUSBDriver$(PLUGIN_SUFFIX) \
+    arVRPNDriver$(PLUGIN_SUFFIX)
 endif
 
 # NOTE: We now include the "magic" Everything target in Makefile.rules
