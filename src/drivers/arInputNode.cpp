@@ -14,7 +14,8 @@ arInputNode::arInputNode( bool bufferEvents ) :
   _currentChannel(0),
   _bufferInputEvents(bufferEvents),
   _complained(false),
-  _initOK(false)
+  _initOK(false),
+  _label("arInputNode")
 {
   ar_mutex_init(&_dataSerializationLock);
 }
@@ -56,6 +57,7 @@ arInputNode::~arInputNode() {
 
 bool arInputNode::init(arSZGClient& szgClient){
   _initOK = false;
+  _label = szgClient.getLabel();
 
   // Initialize the input sources registered to this node.
   for (arSourceIterator i = _inputSourceList.begin();
@@ -63,7 +65,7 @@ bool arInputNode::init(arSZGClient& szgClient){
        ++i){
     // If one device initialization fails, the whole thing fails.
     if (!(*i)->init(szgClient)) {
-      ar_log_error() << szgClient.getLabel() << " error: input source failed to init.\n";
+      ar_log_warning() << _label << " input source failed to init.\n";
       return false;
     }
 
@@ -78,7 +80,7 @@ bool arInputNode::init(arSZGClient& szgClient){
        ++j){
     // If one device initialization fails, the whole thing fails.
     if (!(*j)->init(szgClient)){
-      ar_log_error() << szgClient.getLabel() << " error: input sink failed to init.\n";
+      ar_log_warning() << _label << " input sink failed to init.\n";
       return false;
     }
   }
@@ -88,7 +90,7 @@ bool arInputNode::init(arSZGClient& szgClient){
 
 bool arInputNode::start(){
   if (!_initOK)
-    // Don't complain -- init() already did so.
+    // init() already complained.
     return false;
 
   _complained = false;
@@ -102,8 +104,7 @@ bool arInputNode::start(){
        j != _inputSinkList.end();
        ++j){
     if ( (*j)->_autoActivate ){
-      // we do not want the file logging input sink, which is
-      // always built into DeviceServer to auto-activate
+      // Skip the file logging input sink, which auto-activates in DeviceServer.
       ok &= (*j)->start();
     }
   }
@@ -112,7 +113,7 @@ bool arInputNode::start(){
 
 bool arInputNode::stop(){
   if (!_initOK)
-    // Don't complain -- init() already did so.
+    // init() already complained.
     return false;
 
   bool ok = true;
@@ -131,7 +132,7 @@ bool arInputNode::stop(){
 
 bool arInputNode::restart(){
   if (!_initOK)
-    // Don't complain -- init() already did so.
+    // init() already complained.
     return false;
 
   bool ok = true;
@@ -149,38 +150,38 @@ bool arInputNode::restart(){
 }
 
 void arInputNode::receiveData(int channelNumber, arStructuredData* data) {
-  _lock();
 
   if (channelNumber < 0) {
-    ar_log_error() << "arInputNode error: negative channel number.\n";
+    ar_log_warning() << _label << ": negative channel number.\n";
     return;
   }
   
+  _lock();
   _remapData( (unsigned int) channelNumber, data );
 
   _eventQueue.clear();
   if (!ar_setEventQueueFromStructuredData( &_eventQueue, data )) {
-    ar_log_error() << "arInputNode error: failed to convert received data to event queue.\n";
+    ar_log_warning() << _label << " arInputNode failed to convert received data to event queue.\n";
+LAbort:
+    _unlock();
     return;
   }
   
   if (_bufferInputEvents) {
     _eventBuffer.appendQueue( _eventQueue );
     _eventQueue.clear();
-    _unlock();
-    return;
+    goto LAbort;
   }
   
   _filterEventQueue( _eventQueue );
-
   if (!ar_saveEventQueueToStructuredData( &_eventQueue, data )){
-    ar_log_error() << "arInputNode error: failed to convert event queue to arStructuredData.\n";
+    ar_log_warning() << _label << " arInputNode failed to convert event queue to arStructuredData.\n";
   }
 
-  // Update node's arInputState (empties queue)
+  // Update node's arInputState, and empty queue.
   _updateState( _eventQueue );
   
-  // finally, send this along to the connected input sinks
+  // Forward this to the input sinks.
   for (arSinkIterator j = _inputSinkList.begin();
        j != _inputSinkList.end();
        ++j){
@@ -208,8 +209,9 @@ bool arInputNode::sourceReconfig(int whichChannel){
   _lock();
 
   if (whichChannel < 0 || whichChannel >= (int)_inputSourceList.size()) {
-    ar_log_error() << "arInputNode error: ignoring out-of-range channel "
+    ar_log_warning() << _label << " arInputNode ignoring out-of-range channel "
                    << whichChannel << ".\n";
+    _unlock();
     return false;
   }
 
@@ -271,7 +273,7 @@ bool arInputNode::removeFilter( int filterID ) {
   arFilterIterator f;
   for (f = _inputFilterList.begin(); f != _inputFilterList.end(); ++f) {
     if ((*f)->getID() == filterID) {
-      ar_log_remark() << "arInputNode remark: found filter with ID " << filterID << ar_endl;
+      ar_log_remark() << _label << " arInputNode found filter with ID '" << filterID << "'.\n";
       _inputFilterList.erase(f);
       _iOwnFilters.erase( _iOwnFilters.begin() + filterNumber );
       _filterStates.erase( _filterStates.begin() + filterNumber );
@@ -281,7 +283,7 @@ bool arInputNode::removeFilter( int filterID ) {
     ++filterNumber;
   }
   _unlock();
-  ar_log_error() << "arInputNode error: filter ID : " << filterID << " not found.\n";
+  ar_log_warning() << _label << " arInputNode: no filter ID '" << filterID << "'.\n";
   return false;
 }
 
@@ -304,14 +306,14 @@ bool arInputNode::replaceFilter( int filterID, arIOFilter* newFilter, bool iOwnI
     ++filterNumber;
   }
   _unlock();
-  ar_log_error() << "arInputNode error: filter ID : " << filterID << " not found.\n";
+  ar_log_warning() << "arInputNode filter ID : " << filterID << " not found.\n";
   return false;
 }
 
 
 void arInputNode::addInputSink( arInputSink* theSink, bool iOwnIt ){
   if (_bufferInputEvents) {
-    ar_log_error() << "arInputNode error: an input node that buffers events may not pass "
+    ar_log_warning() << "arInputNode error: an input node that buffers events may not pass "
          << "data on to sinks.\n";
     return;
   }
@@ -387,7 +389,7 @@ void arInputNode::_remapData( unsigned int channelNumber, arStructuredData* data
                        _inputState.getNumberAxes(),
                        _inputState.getNumberMatrices() };
   if (!data->dataIn(_inp._SIGNATURE,sig,AR_INT,3)) {
-    ar_log_error() << "arInputNode error: problem in receiveData.\n";
+    ar_log_warning() << "arInputNode error: problem in receiveData.\n";
   }
 
   // loop through events.  For each event, change its index to 
@@ -421,7 +423,7 @@ void arInputNode::_remapData( unsigned int channelNumber, arStructuredData* data
         = eventIndex +matrixOffset;
     }
     else
-      ar_log_error() << "arInputNode error: ignoring unexpected eventType\n"
+      ar_log_warning() << "arInputNode error: ignoring unexpected eventType\n"
                      << "  (not button, axis, or matrix).\n";
   }
 }
@@ -433,12 +435,12 @@ void arInputNode::_filterEventQueue( arInputEventQueue& queue ) {
   for (f = _inputFilterList.begin(); f != _inputFilterList.end(); ++f) {
      arInputState* statePtr = NULL;
      if (stateIter == _filterStates.end()) {
-      ar_log_error() << "arInputNode error: reading past end of filterStates array.\n";
+      ar_log_warning() << "arInputNode error: reading past end of filterStates array.\n";
       statePtr = &_inputState; // do something that may not be too bad? or return?
     } else
       statePtr = (arInputState*)&*stateIter;
     if (!(*f)->filter( &queue, statePtr ))
-      ar_log_error() << "arInputNode warning: filter # " << filterNumber << " failed.\n";
+      ar_log_warning() << " arInputNode filter # " << filterNumber << " failed.\n";
     ++filterNumber;
     ++stateIter;
   }

@@ -34,7 +34,7 @@ class SZG_CALL arInputNode: public arInputSink {
     void receiveData(int,arStructuredData*);
     bool sourceReconfig(int);
   
-    // iOwnIt == true => the input node owns it & should delete.
+    // iOwnIt iff the input node owns it & should delete it.
     void addInputSource( arInputSource* theSource, bool iOwnIt );
     int addFilter( arIOFilter* theFilter, bool iOwnIt );
     void addInputSink( arInputSink* theSink, bool iOwnIt );
@@ -91,6 +91,8 @@ class SZG_CALL arInputNode: public arInputSink {
   private:
     bool _complained;
     bool _initOK;
+    string _label;
+
     typedef std::list<arInputSource*>::iterator arSourceIterator;
     typedef std::list<arInputSink*>::iterator arSinkIterator;
     typedef std::list<arIOFilter*>::iterator arFilterIterator;
