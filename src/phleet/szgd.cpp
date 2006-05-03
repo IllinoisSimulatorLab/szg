@@ -487,19 +487,15 @@ LDone:
   if (PID > 0) {
     // parent process
 
-    // We block here waiting on the child process to send
-    // information regarding whether or not it has successfully launched
-    // an executable. If it fails to launch an executable, the
-    // szgd part of the child will do so... otherwise the launched
-    // executable will do so
+    // Block until the child reports if it launched an executable or not.
+    // If launch fails, the szgd part of the child reports.
+    // If launch succeeds, the launchee reports.
     numberBuffer[0] = 0;
-    // Twenty second time-out for pipe. What if it takes a VERY long time
+    // Twenty second timeout for pipe. What if it takes a VERY long time
     // to start the program (like a Python program on a heavily loaded CPU)?
     if (!ar_safePipeReadNonBlock(pipeDescriptors[0], numberBuffer, 1, 20000)) {
       info << "szgd remark: got no success/failure code via pipe.\n"
-	   << "  The launched executable either failed to load a shared library,"
-	   << "crashed before reaching the framework init, or took a VERY long"
-	   << "time to load.\n";
+	   << "  Launchee failed to load a dll, crashed before framework init, or took too long to load.\n";
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
       SZGClient->messageResponse(receivedMessageID, info.str());
       goto LDone;
@@ -551,9 +547,8 @@ LDone:
     // be necessary here. Since the szg code will be immediately communicating
     // with the szgserver, telling it that it wants the message ownership.
     int timeout = execInfo->timeoutmsec;
-    if (timeout == -1) {
+    if (timeout == -1)
       timeout = 20000;
-    }
     if (!SZGClient->finishMessageOwnershipTrade(match,timeout)) {
       info << "szgd remark: message ownership trade timed out.\n";
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
@@ -713,8 +708,7 @@ LDone:
       timeoutMsec = 20000;
     if (!SZGClient->finishMessageOwnershipTrade(match, timeoutMsec)) {
       info << "szgd warning: ownership trade timed out.\n"
-	   << "  The launched executable either failed to load a dll, "
-	   << "crashed before initing the framework, or took too long to load.\n";
+	   << "  Launchee failed to load a dll, crashed before framework init, or took too long to load.\n";
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
       SZGClient->messageResponse(receivedMessageID, info.str());
     }
