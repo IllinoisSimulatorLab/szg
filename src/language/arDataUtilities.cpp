@@ -471,14 +471,13 @@ bool ar_stringToLongValid( const string& theString, long& theLong ) {
   char *endPtr = NULL;
   theLong = strtol( theString.c_str(), &endPtr, 10 );
   if ((theString.c_str()+theString.size())!=endPtr) {
-    ar_log_warning() << "arStringToLong warning: conversion failed for '" << theString << "'." << ar_endl;
+    ar_log_warning() << "arStringToLong failed to convert '" << theString << "'." << ar_endl;
     return false;
   }
-  if ((theLong==LONG_MAX)||(theLong==LONG_MIN)) {
-    if (errno==ERANGE) {
-      ar_log_warning() << "arStringToLong warning: string " << theString << " clipped to " << theLong << ar_endl;
-      return false;
-    }
+
+  if ((theLong==LONG_MAX || theLong==LONG_MIN) && errno==ERANGE) {
+    ar_log_warning() << "arStringToLong clipped out-of-range '" << theString << "' to " << theLong << ar_endl;
+    return false;
   }
   return true;
 }
@@ -486,7 +485,7 @@ bool ar_stringToLongValid( const string& theString, long& theLong ) {
 bool ar_longToIntValid( const long theLong, int& theInt ) {
   theInt = (int)theLong;
   if ((theLong > INT_MAX)||(theLong < INT_MIN)) {
-    ar_log_warning() << "arLongToIntValid warning: out-of-range value " << theLong << ".\n";
+    ar_log_warning() << "arLongToIntValid: out-of-range " << theLong << ".\n";
     return false;
   }
   return true;
@@ -502,24 +501,22 @@ bool ar_stringToDoubleValid( const string& theString, double& theDouble ) {
   char *endPtr = NULL;
   theDouble = strtod( theString.c_str(), &endPtr );
   if ((theString.c_str()+theString.size())!=endPtr) {
-    ar_log_warning() << "arStringToDouble warning: conversion failed for " << theString << ar_endl;
+    ar_log_warning() << "arStringToDouble failed to convert '" << theString << "'\n.";
     return false;
   }
-  if ((theDouble==HUGE_VAL)||(theDouble==-HUGE_VAL)||(theDouble==0.)) {
-    if (errno==ERANGE) {
-      ar_log_warning() << "arStringToDouble warning: string " << theString << " clipped to " << theDouble << ar_endl;
-      return false;
-    }
+
+  if ((theDouble==HUGE_VAL || theDouble==-HUGE_VAL || theDouble==0.) && errno==ERANGE) {
+    ar_log_warning() << "arStringToDouble clipped out-of-range '" << theString << "' to " << theDouble << ar_endl;
+    return false;
   }
   return true;
 }
 
 bool ar_doubleToFloatValid( const double theDouble, float& theFloat ) {
   theFloat = (float)theDouble;
-  // NOTE: We assume that we don't care about loss of precision, only values
-  // out of range.
+  // Ignore loss of precision.
   if ((theDouble > FLT_MAX)||(theDouble < -FLT_MAX)) {
-    ar_log_warning() << "arDoubleToFloatValid warning: value " << theDouble << " out of range.\n";
+    ar_log_warning() << "arDoubleToFloatValid: out-of-range " << theDouble << ".\n";
     return false;
   }
   return true;
@@ -542,7 +539,7 @@ int ar_parseFloatString(const string& theString, float* outArray, int len){
   // input example = 0.998/-0.876/99.87/3.4/5/17
 
   if (len <= 0) {
-    ar_log_warning() << "arParseFloatString warning: nonpositive length!\n";
+    ar_log_warning() << "arParseFloatString: nonpositive length.\n";
     return -1;
   }
 
@@ -551,14 +548,14 @@ int ar_parseFloatString(const string& theString, float* outArray, int len){
   const int length = theString.length();
   if (length < 1 || ((*buf<'0' || *buf>'9') && *buf!='.' && *buf!='-'))
     return 0;
+
   int currentPosition = 0;
   int dimension = 0;
   bool flag = false;
   while (!flag){
     if (dimension >= len){
-      ar_log_warning() << "arParseFloatString warning: truncating \""
-                       << theString << "\" after "
-	               << len << " floats.\n";
+      ar_log_warning() << "arParseFloatString truncating '" <<
+        theString << "' after " << len << " floats.\n";
       return dimension;
     }
     outArray[dimension++] = atof(buf+currentPosition);
@@ -577,17 +574,18 @@ int ar_parseIntString(const string& theString, int* outArray, int len){
   // Returns how many ints were found.
 
   if (len <= 0) {
-    ar_log_warning() << "ar_parseIntString warning: nonpositive length.\n";
+    ar_log_warning() << "ar_parseIntString: nonpositive length.\n";
     return -1;
   }
   if (!outArray) {
-    ar_log_error() << "ar_parseIntString error: NULL target.\n";
+    ar_log_warning() << "ar_parseIntString: NULL target.\n";
     return -1;
   }
 
-  int length = theString.length();
+  const int length = theString.length();
   if (length < 1)
     return 0;
+
   string localString = theString; //;;;; copy only if needed.  Use a string* pointing to the original or the copy.
   if (localString[length-1] != '/')
     localString = localString + "/";    
@@ -598,7 +596,7 @@ int ar_parseIntString(const string& theString, int* outArray, int len){
     getline( inStream, wordString, '/' );
     // && numValues > 1, that's needed to handle the case of a 1-int string.  I think.
     if (wordString == "" && numValues > 1) {
-      ar_log_warning() << "ar_parseIntString warning: empty field.\n";
+      ar_log_warning() << "ar_parseIntString: empty field in '" << theString << "'.\n";
       break;
     }
     if (inStream.fail())
@@ -610,7 +608,7 @@ int ar_parseIntString(const string& theString, int* outArray, int len){
     }
     int theInt = -1;
     if (!ar_stringToIntValid( wordString, theInt )) {
-      ar_log_warning() << "ar_parseIntString warning: invalid field value \"" << wordString << "\".\n";
+      ar_log_warning() << "ar_parseIntString: invalid field '" << wordString << "'.\n";
       break;
     }
     outArray[numValues++] = theInt;
@@ -624,14 +622,19 @@ int ar_parseLongString(const string& theString, long* outArray, int len) {
   // Returns how many longs were found.
 
   if (len <= 0) {
-    ar_log_warning() << "arParseLongString warning: nonpositive length!\n";
+    ar_log_warning() << "ar_parseLongString: nonpositive length.\n";
+    return -1;
+  }
+  if (!outArray) {
+    ar_log_warning() << "ar_parseLongString: NULL target.\n";
     return -1;
   }
 
   string localString = theString; //;;;; copy only if needed.  Use a string* pointing to the original or the copy.
-  int length = localString.length();
+  const int length = localString.length();
   if (length < 1)
     return 0;
+
   if (localString[length-1] != '/')
     localString = localString + "/";    
   std::istringstream inStream( localString );
@@ -640,7 +643,7 @@ int ar_parseLongString(const string& theString, long* outArray, int len) {
   while (numValues < len) {
     getline( inStream, wordString, '/' );
     if (wordString == "") {
-      ar_log_warning() << "ar_parseLongString warning: empty field.\n";
+      ar_log_warning() << "ar_parseLongString: empty field in '" << theString << "'.\n";
       break;
     }
     if (inStream.fail())
@@ -648,7 +651,7 @@ int ar_parseLongString(const string& theString, long* outArray, int len) {
       break;
     long l = -1;
     if (!ar_stringToLongValid( wordString, l )) {
-      ar_log_warning() << "ar_parseLongString warning: invalid field \"" << wordString << "\".\n";
+      ar_log_warning() << "ar_parseLongString: invalid field '" << wordString << "'.\n";
       break;
     }
     outArray[numValues++] = l;
@@ -658,17 +661,17 @@ int ar_parseLongString(const string& theString, long* outArray, int len) {
 
 void ar_stringToBuffer(const string& s, char* buf, int len){
   if (len <= 0) {
-    ar_log_warning() << "ar_stringToBuffer warning: nonpositive length!\n";
+    ar_log_warning() << "ar_stringToBuffer: nonpositive length.\n";
     *buf = '\0';
     return;
   }
+
   if (s.length() < unsigned(len)) {
     strcpy(buf, s.c_str());
   }
   else {
-    ar_log_warning() << "ar_stringToBuffer warning: truncating \""
-                     << s << "\" after "
-		    << len << " characters.\n";
+    ar_log_warning() << "ar_stringToBuffer truncating '" << s << "' after " <<
+      len << " characters.\n";
     strncpy(buf, s.c_str(), len);
     buf[len-1] = '\0';
   }
@@ -680,10 +683,10 @@ int ar_stringToInt(const string& s)
   const unsigned int maxlen = 30;
   char buf[maxlen+2]; // Fixed size buffer is okay here, for a single int.
   if (s.length() > maxlen) {
-    ar_log_warning() << "arStringToInt warning: \""
-                     << s << "\" too long, returning 0.\n";
+    ar_log_warning() << "arStringToInt: '" << s << "' too long, returning 0.\n";
     return 0;
   }
+
   ar_stringToBuffer(s, buf, sizeof(buf));
   return atoi(buf);
 }
@@ -926,9 +929,7 @@ string ar_getUser(){
   // scheme isn't guarenteed OK
   //***************************************************
   const char* res = getenv("USER");
-  if (!res)
-    return string("NULL");
-  return string(res);
+  return string(res ? res : "NULL");
 #endif
 }
 
@@ -954,22 +955,19 @@ bool ar_directoryExists( const string name, bool& exists, bool& isDirectory ) {
   return true;
 }
 
-// return value indicates success or failure, 2nd arg indicates existence
+// return value indicates success, 2nd arg indicates existence
 bool ar_fileItemExists( const string name, bool& exists ) {
   struct stat fileInfo;
-  if (stat(name.c_str(),&fileInfo) != 0) {
-    if (errno == ENOENT) {
-      exists = false;
-      return true;
-    } else {
-      ar_log_error() << "ar_fileItemExists error: "
-	             << "stat() failed for an unknown reason.\n";
-      return false;
-    }
-  } else {
+  if (stat(name.c_str(),&fileInfo) == 0) {
     exists = true;
     return true;
   }
+  if (errno == ENOENT) {
+    exists = false;
+    return true;
+  }
+  ar_log_warning() << "ar_fileItemExists: stat() failed.\n";
+  return false;
 }
 
 bool ar_getWorkingDirectory( string& name ) {
@@ -1270,7 +1268,7 @@ bool ar_growBuffer(ARchar*& buf, int& size, int newSize) {
   delete [] buf;
   buf = new ARchar[size];
   if (!buf) {
-    ar_log_warning() << "syzygy warning: buffer out of memory.\n";
+    ar_log_warning() << "ar_growBuffer out of memory.\n";
     return false;
   }
   return true;
