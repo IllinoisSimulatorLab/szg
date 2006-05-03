@@ -132,13 +132,13 @@ InputNodeConfig parseNodeConfig(const string& nodeConfig){
   // Look for closing pforth tag.
   tagText = ar_getTagText(&configStream);
   if (tagText != "/pforth"){
-    cerr << "DeviceServer parsing error: failed on /pforth tag.\n";
+    cerr << "DeviceServer parsing error: expected /pforth tag.\n";
     return result;
   }
   // Look for closing /szg_device tag.
   tagText = ar_getTagText(&configStream);
   if (tagText != "/szg_device"){
-    cerr << "DeviceServer parsing error: failed on /szg_device tag.\n";
+    cerr << "DeviceServer parsing error: expected /szg_device tag.\n";
     return result;
   }
   result.valid = true;
@@ -156,8 +156,8 @@ static bool respond(arSZGClient& cli, bool f = false) {
 int main(int argc, char** argv){
   arSZGClient SZGClient;
   SZGClient.simpleHandshaking(false);
-  // Force the component's name because we can't get the name
-  // automatically on Win98.  Ascension Spacepad needs Win98.
+  // Force the component's name because Win98 won't give the name
+  // automatically.  Ascension Spacepad needs Win98.
   SZGClient.init(argc, argv, "DeviceServer");
   if (!SZGClient)
     return 1;
@@ -172,9 +172,8 @@ int main(int argc, char** argv){
 
   stringstream& initResponse = SZGClient.initResponse();
 
-  // First, check to see if we've got the "simple" flag set (-s)
-  // If so, we aren't planning on doing any filtering or other such,
-  // just loading in the module and putting its output on the network.
+  // If "simple" flag (-s),
+  // just load the module and publish its output without fancy filtering.
   const bool simpleOperation = testForArgAndRemove("-s", argc, argv);
   const bool useNetInput = testForArgAndRemove("-netinput", argc, argv);
 
@@ -189,20 +188,19 @@ LAbort:
   const int slotNumber = atoi(argv[2]);
   InputNodeConfig nodeConfig;
   if (simpleOperation){
-    // only specify the driver on the command line.
+    // As command-line flats, specify only the driver and slot.
     nodeConfig.inputSources.push_back(argv[1]);
   }
   else{
-    const string& bla = SZGClient.getGlobalAttribute(argv[1]);
-    if (bla == "NULL") {
-      initResponse << "DeviceServer error: undefined node \""
-		   << argv[1] << "\".\n";
+    const string& config = SZGClient.getGlobalAttribute(argv[1]);
+    if (config == "NULL") {
+      initResponse << "DeviceServer error: undefined global node (i.e., <param> in dbatch file) '" << argv[1] << "'.\n";
       goto LAbort;
     }
-    nodeConfig = parseNodeConfig(bla);
+    nodeConfig = parseNodeConfig(config);
     if (!nodeConfig.valid){
-      initResponse << "DeviceServer error: invalid node config from "
-		   << "attribute " << argv[1] << "\n";
+      initResponse << "DeviceServer error: misconfigured global node (i.e., <param> in dbatch file) '"
+	<< argv[1] << "'\n";
       goto LAbort;
     }
   }
@@ -211,8 +209,8 @@ LAbort:
 
   // Configure the input node.
   arInputNode inputNode;
-  // From where the shared libraries will be loaded.
-  const string execPath = SZGClient.getAttribute("SZG_EXEC","path");
+
+  const string execPath = SZGClient.getAttribute("SZG_EXEC","path"); // search for dll's
   // Start with the input sources.
   // Assign input "slots" to the input sources.
   int nextInputSlot = slotNumber + 1;
