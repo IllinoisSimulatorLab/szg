@@ -16,7 +16,7 @@
 class SZG_CALL arInputSink{
   friend class arInputNode;
  public:
-  arInputSink() {_autoActivate = true; }
+  arInputSink(): _autoActivate(true) {}
   virtual ~arInputSink() {}
 
   virtual bool init(arSZGClient&)

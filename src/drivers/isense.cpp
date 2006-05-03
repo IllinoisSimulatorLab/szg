@@ -91,7 +91,7 @@ ISD_AUX_OUTPUT_FN     _ISD_AuxOutput                = NULL;
 //==========================================================================================
 static DLL *ISD_LoadLib( void )
 {
-    if(hLib = dll_load( ISD_LIB_NAME ))
+    if ((hLib = dll_load( ISD_LIB_NAME )) != NULL)
     {
         _ISD_OpenTracker            = ( ISD_OPEN_FN )           dll_entrypoint( hLib, "ISD_OpenTracker" );
         _ISD_OpenAllTrackers        = ( ISD_OPEN_ALL_FN )       dll_entrypoint( hLib, "ISD_OpenAllTrackers" );

@@ -341,7 +341,7 @@ ostream& operator<<(ostream& s, const IsenseTracker& tc) {
   s << "Intersense Tracker on port " << tc.getPort() << endl;
   std::vector< IsenseStation >::iterator iter;
   IsenseTracker& t = const_cast<IsenseTracker&>(tc);
-  std::vector< IsenseStation >& stations = const_cast<IsenseTracker&>(tc).getStations();
+  std::vector< IsenseStation >& stations = t.getStations();
   for (iter = stations.begin(); iter != stations.end(); ++iter) {
     s << *iter;
   }
@@ -364,7 +364,7 @@ IsenseStation::~IsenseStation() {
 }
 
 bool IsenseStation::getStatus() const {
-  return (_stationConfig.State != FALSE);
+  return _stationConfig.State != FALSE;
 }
 
 
