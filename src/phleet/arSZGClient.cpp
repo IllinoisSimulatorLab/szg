@@ -647,7 +647,7 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
   ar_log_warning() << _exeName << " parsing pre-0.7 config file.\n";
   FILE* theFile = ar_fileOpen(fileName, dataPath, "r");
   if (!theFile){
-    ar_log_error() << _exeName << " failed to open config file \"" << fileName << "\"\n";
+    ar_log_error() << _exeName << " failed to open config file '" << fileName << "'\n";
     return false;
   }
   // Bug: finite buffer lengths.  Goes away after we deprecate pre-0.7 syntax.
@@ -765,7 +765,7 @@ bool arSZGClient::getAttributeFloats(const string& groupName,
     ar_log_warning() << _exeName << ": parameter "
                      << groupName << "/" << parameterName << " needed "
 	             << numvalues << " floats, but got only "
-	             << num << " from \"" << s << "\".\n";
+	             << num << " from '" << s << "'.\n";
     return false;
   }
   return true;
@@ -784,7 +784,7 @@ bool arSZGClient::getAttributeInts( const string& groupName,
     ar_log_warning() << _exeName << ": parameter "
                      << groupName << "/" << parameterName << " needed "
 	             << numvalues << " longs, but got only "
-	             << num << " from \"" << s << "\".\n";
+	             << num << " from '" << s << "'.\n";
     return false;
   }
   return true;
@@ -803,7 +803,7 @@ bool arSZGClient::getAttributeLongs(const string& groupName,
     ar_log_warning() << _exeName << ": parameter "
                      << groupName << "/" << parameterName << " needed "
 	             << numvalues << " longs, but got only "
-	             << num << " from \"" << s << "\".\n";
+	             << num << " from '" << s << "'.\n";
     return false;
   }
   return true;
@@ -853,54 +853,50 @@ bool arSZGClient::setAttribute(const string& userName,
       !setRequestData->dataIn(_l.AR_ATTR_SET_TYPE,&temp,AR_INT,1) ||
       !_dataClient.sendData(setRequestData)){
     ar_log_warning() << _exeName << " failed to set "
-                     << groupName << "/" << parameterName << " on host \""
-	             << computerName << "\" to \"" << parameterValue
-                     << "\" (send failed).\n";
+                     << groupName << "/" << parameterName << " on host '"
+	             << computerName << "' to '" << parameterValue
+                     << "' (send failed).\n";
     status = false;
   }
-  // Must recycle this.
   _dataParser->recycle(setRequestData);
-  if (!status){
+  if (!status)
     return false;
-  }
 
   arStructuredData* ack = _getTaggedData(match, _l.AR_CONNECTION_ACK);
   if (!ack){
     ar_log_warning() << _exeName << " failed to set "
-                     << groupName << "/" << parameterName << " on host \""
-	             << computerName << "\" to \"" << parameterValue
-                     << "\" (ack failed).\n";
+                     << groupName << "/" << parameterName << " on host '"
+	             << computerName << "' to '" << parameterValue
+                     << "' (ack failed).\n";
     return false;
   }
   _dataParser->recycle(ack);
   return true;
 }
 
-/// Attributes in the database, from the arSZGClient perspective, have always
-/// been organized (under a given user name) hierarchically by
-/// computer/attribute group/attribute. Internally to the szgserver, this
-/// hierarchy had limited meaning since the paramter database is *really*
-/// given by key/value pairs. It turns out that sometimes we really want
-/// to dispense with the hierarchy altogether. For instance, the
+/// Attributes in the database, from the arSZGClient perspective, are
+/// organized (under a given user name) hierarchically by
+/// host/attribute_group/attribute. Internally to the szgserver, this
+/// hierarchy has limited meaning since the parameter database is *really*
+/// key/value pairs. Sometimes we want
+/// to dispense with the hierarchy. For instance, the
 /// configuration of an input node (the filters to use, whether it should
 /// get input from the network, whether there are any special input sinks,
-/// etc.) really isn't tied to a particular computer.
-/// NOTE: We must use a different function name since there is already a
+/// etc.) isn't tied to a particular host.
+/// NOTE: We use a different function name since there is already a
 /// getAttribute with 2 const string& parameters.
-/// The idea here is that "Global" attributes are different than the
-/// "local" attributes that are tied to a particular computer.
+/// "Global" attributes differ from "local" attributes for a particular host.
 string arSZGClient::getGlobalAttribute(const string& userName,
                                        const string& attributeName){
   if (!_connected){
-    // In this case, we are using the local parameter file.
+    // Use the local parameter file.
     return _getGlobalAttributeLocal(attributeName);
   }
 
-  // We are going to the szgserver for information
-  arStructuredData* getRequestData
-    = _dataParser->getStorage(_l.AR_ATTR_GET_REQ);
+  // Query the szgserver.
   string result;
-  int match = _fillMatchField(getRequestData);
+  arStructuredData* getRequestData = _dataParser->getStorage(_l.AR_ATTR_GET_REQ);
+  const int match = _fillMatchField(getRequestData);
   if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR,attributeName) ||
       !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,"value") ||
       !getRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
@@ -2789,8 +2785,8 @@ bool arSZGClient::_parseContextPair(const string& thePair){
     return true;
   }
 
-  ar_log_error() << _exeName << ": context pair has unknown type \""
-		 << pair1Type << "\".\n  (Expected one of: virtual, mode, networks, parameter_file, server, user, log.)\n";
+  ar_log_error() << _exeName << ": context pair has unknown type '"
+		 << pair1Type << "'.\n  (Expected one of: virtual, mode, networks, parameter_file, server, user, log.)\n";
   return false;
 }
 
@@ -2800,8 +2796,8 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
   // sanity check!
   if (channel != "default" && channel != "graphics" && channel != "input"
       && channel != "sound"){
-    ar_log_error() << _exeName << ": _checkAndSetNetworks() got unknown channel \""
-                   << channel << "\".\n";
+    ar_log_error() << _exeName << ": _checkAndSetNetworks() got unknown channel '"
+                   << channel << "'.\n";
     return false;
   }
 
@@ -2816,8 +2812,8 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
 	match = true;
     }
     if (!match){
-      ar_log_error() << _exeName << ": virtual computer's network \""
-                     << networks[i] << "\" is undefined in szg.conf.\n";
+      ar_log_error() << _exeName << ": virtual computer's network '"
+                     << networks[i] << "' is undefined in szg.conf.\n";
       return false;
     }
   }
@@ -2937,8 +2933,8 @@ string arSZGClient::_changeToValidValue(const string& groupName,
     // String format is "|foo|bar|zip|baz|bletch|".
     if (validValues[0] != '|' || validValues[validValues.length()-1] != '|') {
       ar_log_warning() << _exeName
-                       << ": getAttribute ignoring malformed validValues\n\t\""
-                       << validValues << "\".\n";
+                       << ": getAttribute ignoring malformed validValues\n\t'"
+                       << validValues << "'.\n";
       return value;
     }
     if (validValues.find('|'+value+'|') == string::npos) {

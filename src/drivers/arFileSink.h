@@ -15,7 +15,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-class SZG_CALL arFileSink:public arInputSink{
+class SZG_CALL arFileSink : public arInputSink{
  public:
   arFileSink();
   ~arFileSink() {}
