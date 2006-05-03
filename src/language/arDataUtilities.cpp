@@ -569,9 +569,11 @@ int ar_parseFloatString(const string& theString, float* outArray, int len){
   return dimension;
 }
 
+// todo: refactor massive copypaste ar_parseIntString ar_parseLongString
+
 int ar_parseIntString(const string& theString, int* outArray, int len){
   // Takes a string of slash-delimited ints and fills an array of ints.
-  // Returns how many ints were found.
+  // Returns how many ints were found, possibly fewer than len (which is ok).
 
   if (len <= 0) {
     ar_log_warning() << "ar_parseIntString: nonpositive length.\n";
@@ -588,20 +590,22 @@ int ar_parseIntString(const string& theString, int* outArray, int len){
 
   string localString = theString; //;;;; copy only if needed.  Use a string* pointing to the original or the copy.
   if (localString[length-1] != '/')
-    localString = localString + "/";    
+    localString += "/";    
   std::istringstream inStream( localString );
   int numValues = 0;
   string wordString;
   while (numValues < len) {
     getline( inStream, wordString, '/' );
-    // && numValues > 1, that's needed to handle the case of a 1-int string.  I think.
+    // "&& numValues > 1" handles the case of a 1-int string?
     if (wordString == "" && numValues > 1) {
-      ar_log_warning() << "ar_parseIntString: empty field in '" << theString << "'.\n";
+      // Empty field.  Don't complain.  It just means we're done.
       break;
     }
-    if (inStream.fail())
-      // Warn?
+    if (inStream.fail()) {
+      ar_log_warning() << "ar_parseIntString: stream failed during field " <<
+	numValues+1 << " of " << len << " in '" << theString << "'.\n";
       break;
+    }
     if (wordString == "NULL") {
       // Don't complain.  Let the caller do that: it has more context.
       break;
@@ -636,7 +640,7 @@ int ar_parseLongString(const string& theString, long* outArray, int len) {
     return 0;
 
   if (localString[length-1] != '/')
-    localString = localString + "/";    
+    localString += "/";    
   std::istringstream inStream( localString );
   int numValues = 0;
   string wordString;
