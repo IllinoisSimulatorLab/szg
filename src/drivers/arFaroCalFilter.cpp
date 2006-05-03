@@ -124,26 +124,25 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
   cerr << "arFaroCalFilter remark: loading file " << calFileName << endl;
   fscanf(fp, "%ld %f %f %ld %f %f %ld %f %f", &_nx, &_xmin, &_dx, &_ny, &_ymin, &_dy, &_nz, &_zmin, &_dz );
   if ((_nx<1) || (_ny<1) || (_nz<1)) {
-    cerr << "arFaroCalFilter error: table dimension < 1.\n";
+    cerr << "arFaroCalFilter error: not all table dimensions are positive.\n";
     fclose(fp);
     return false;
   }
   //  cerr << _nx << ", " << _xmin << ", " << _dx << ", " << _ny << ", " << _ymin << ", " << _dy << ", " << _nz << ", " << _zmin << ", " << _dz << endl;
  _n = _nx*_ny*_nz;
   if ( _n<1 ) {
-    cerr << "arFaroCalFilter warning: lookup table size must be >= 1" << endl
-         << " (and should be a great deal bigger than that, you silly bugger).\n";
+    cerr << "arFaroCalFilter warning: lookup table needs FAR more than one element.\n";
     fclose(fp);
     return false;
   }
   
-  // BIG grab
+  // Grab a huge block of memory.
   _xLookupTable = new float[_n];
   _yLookupTable = new float[_n];
   _zLookupTable = new float[_n];
   
   if (!_xLookupTable || !_yLookupTable || !_zLookupTable) {
-    cerr << "arFaroCalFilter error: failed to allocate memory for lookup tables.\n";
+    cerr << "arFaroCalFilter warning: out of memory for lookup tables.\n";
     fclose(fp);
     return false;
   }
@@ -157,7 +156,6 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
       fclose(fp);
       return false;
     }
-    //    cerr << _xLookupTable[i] << endl;
   }
   for (i=0; i<_n; i++) {
     const int stat = fscanf( fp, "%f", _yLookupTable+i );
@@ -211,13 +209,13 @@ bool arFaroCalFilter::_doInterpolation( arMatrix4& theMatrix ) {
   const int xIndex = int(floor(xBase));
   const int yIndex = int(floor(yBase));
   const int zIndex = int(floor(zBase));
-  const float xFrac = xBase - xIndex;
-  const float yFrac = yBase - yIndex;
-  const float zFrac = zBase - zIndex;
   const long lookupIndex = xIndex + _nx*yIndex + _nx*_ny*zIndex;
   if (lookupIndex < 0 || lookupIndex+1+_nx+_nx*_ny >= long(_n))
     return false;
 
+  const float xFrac = xBase - xIndex;
+  const float yFrac = yBase - yIndex;
+  const float zFrac = zBase - zIndex;
   const float weights[8] = {
     (1-xFrac)*(1-yFrac)*(1-zFrac),
     (xFrac)*(1-yFrac)*(1-zFrac),
