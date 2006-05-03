@@ -27,7 +27,6 @@ extern "C"{
 void ar_FOBDriverEventTask(void* FOBDriver){
   arFOBDriver* driver = (arFOBDriver*) FOBDriver;
   driver->_eventThreadRunning = true;
-
   while (!driver->_stopped) {
     for (int i=1; i<=driver->_numFlockUnits; i++){
       // Only request information from flock units that hold sensors
@@ -44,7 +43,7 @@ void ar_FOBDriverEventTask(void* FOBDriver){
 }
 
 arFOBDriver::arFOBDriver() :
-  _timeoutTenths( 10 ),
+  _timeoutTenths( 30 ),
   _dataSize( 7 ),
   _dataBuffer( NULL ),
   _positionScale( 3./32768.0 ),
@@ -243,9 +242,9 @@ LDefaultBaudRate:
     return false;
   }
 
-  // Configure the FoB.
+  // Configure the FoB.  (Does it need waking at this point?)
 
-  // First, set the data mode for all the birds. This is hard-coded to be position-quaternion.
+  // Set all birds' data mode to position-quaternion.
   if (_numBirds > 1){
     for (i=1; i<=_numFlockUnits; i++){
       if (i != _transmitterID){
@@ -262,7 +261,10 @@ LDefaultBaudRate:
       return false;
     }
 
-    ar_usleep(500000); // Linux needs this, at least half a second.
+#ifdef AR_USE_LINUX
+    ar_usleep(500000); // At least half a second.
+#endif
+
 #if 0
     unsigned char b[2];
     if (_getFOBParam(10, b, 1, 0) != 1)
@@ -297,9 +299,13 @@ LDefaultBaudRate:
       cerr << "arFOBDriver error: failed to set hemisphere.\n";
       return false;
     }
-    // Linux needs these 2 lines.  Some kind of timing thing.
-    string foo;
-    (void)_getDataMode(foo, 0);
+#ifdef AR_USE_LINUX
+    {
+      // Timing tweak.
+      string foo;
+      (void)_getDataMode(foo, 0);
+    }
+#endif
   }
 
   // Make sure we are using the correct transmitter. If we are not
@@ -345,7 +351,9 @@ LDefaultBaudRate:
       cerr << "arFOBDriver error: run failed.\n";
       return false;
     }
-    _setDataMode(0); // Linux needs this, one more time.
+#ifdef AR_USE_LINUX
+    _setDataMode(0); // Timing tweak.
+#endif
   }
 
   // Flock configured. All the FoB's lights should be on solid.
@@ -368,7 +376,6 @@ bool arFOBDriver::stop() {
 bool arFOBDriver::_setHemisphere( const std::string& hemisphere,
                                   unsigned char addr) {
   static unsigned char cdata[] = {'L', 0, 0};
-  // Setup the Command string to the Bird...
   // 2 data bytes are HEMI_AXIS and then HEMI_SIGN
   if (hemisphere == "front") {
     cdata[1] = 0;
@@ -617,10 +624,11 @@ bool arFOBDriver::_nextTransmitter(unsigned char addr){
 }
 
 bool arFOBDriver::_sendBirdAddress( unsigned char addr ) {
-  if (addr <= 1)
+  if (addr <= 1) {
     // 0 means no bird or the unique bird.
     // 1 means the first (and only) bird, when sent to _getSendNextFrame().
     return true;
+  }
   if (_numBirds <= 1) {
     cerr << "arFOBDriver warning: expected more than one bird.\n";
     return true;
@@ -748,9 +756,9 @@ bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
   return true;
 }
 
-// KEEP THE BELOW AROUND UNTIL WE FULLY HANDLE GROUP MODE, SINCE THIS CONTAINS
-// EXAMPLE CODE.
-/*bool arFOBDriver::_getSendNextFrame() {
+// KEEP THE BELOW EXAMPLE UNTIL WE FULLY HANDLE GROUP MODE.
+#if 0
+bool arFOBDriver::_getSendNextFrame() {
   if (!_configured) {
     cerr << "arFOBDriver error: attempt to get data before init().\n";
     return false;
@@ -814,32 +822,25 @@ bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
                                          0,  0, 0, 1 );
                                          
     static const arMatrix4 invSwitchMatrix = !switchMatrix;
-                                         
     static const arMatrix4 coordMatrix  = ar_rotationMatrix( 'y', ar_convertToRad( -90 ) );
     
     // translations and rotations need a slightly different switchMatrix,
     // compensate by manually remapping the order of the x,y,z translations
-    arMatrix4 transMatrix = invSwitchMatrix * 
-                            ar_translationMatrix(  _positionScale * arVector3(  _floatData[ 0 ], 
-                                                                               -_floatData[ 2 ], 
-                                                                                _floatData[ 1 ] ) );
-    
-    arMatrix4 rotMatrix = arMatrix4( arQuaternion( _floatData + 3 ) );
-    
-    arMatrix4 finalMatrix = _transmitterOffset * 
-                            transMatrix * 
-                            invSwitchMatrix * 
-                            !rotMatrix * 
-                            switchMatrix * 
-                            coordMatrix * 
-                            _sensorRot[ birdAddress ];
+    const arMatrix4 transMatrix = invSwitchMatrix * ar_translationMatrix(
+      _positionScale * arVector3(_floatData[0], -_floatData[2], _floatData[1]));
+    const arMatrix4 rotMatrix = arMatrix4( arQuaternion( _floatData + 3 ) );
+    const arMatrix4 finalMatrix = _transmitterOffset * 
+      transMatrix * 
+      invSwitchMatrix * 
+      !rotMatrix * 
+      switchMatrix * 
+      coordMatrix * 
+      _sensorRot[ birdAddress ];
           
     // queue the calibrated translation/rotation matrix 
     queueMatrix( birdAddress, finalMatrix );
   }
   sendQueue();
   return true;
-  }*/
-
-
-// this is from kam3:/home/szg/src/drivers
+}
+#endif
