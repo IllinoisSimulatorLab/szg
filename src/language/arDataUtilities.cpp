@@ -498,10 +498,15 @@ bool ar_stringToIntValid( const string& theString, int& theInt ) {
 }
 
 bool ar_stringToDoubleValid( const string& theString, double& theDouble ) {
+  if (theString == "NULL") {
+    ar_log_warning() << "arStringToDouble got 'NULL'.\n";
+    return false;
+  }
+
   char *endPtr = NULL;
   theDouble = strtod( theString.c_str(), &endPtr );
-  if ((theString.c_str()+theString.size())!=endPtr) {
-    ar_log_warning() << "arStringToDouble failed to convert '" << theString << "'\n.";
+  if ((theString.c_str()+theString.size()) != endPtr) {
+    ar_log_warning() << "arStringToDouble failed to convert '" << theString << "'.\n";
     return false;
   }
 
@@ -524,19 +529,18 @@ bool ar_doubleToFloatValid( const double theDouble, float& theFloat ) {
 
 bool ar_stringToFloatValid( const string& theString, float& theFloat ) {
   double theDouble;
-  if (!ar_stringToDoubleValid( theString, theDouble ))
-    return false;
-  return ar_doubleToFloatValid( theDouble, theFloat );
+  return ar_stringToDoubleValid( theString, theDouble ) &&
+         ar_doubleToFloatValid( theDouble, theFloat );
 }
 
 // len is the size of outArray.
 int ar_parseFloatString(const string& theString, float* outArray, int len){
 
-  // Takes a string which is a sequence of floats delimited by /
-  // and fills an array of floats.
+  // Converts a string which is a slash-delimited sequence of floats
+  // into an array of floats.
   // Returns how many floats were found.
   // Returns 0 or sometimes 1 if none are found (atof's error handling sucks).
-  // input example = 0.998/-0.876/99.87/3.4/5/17
+  // input example = "0.998/-0.876/99.87/3.4/5/17"
 
   if (len <= 0) {
     ar_log_warning() << "arParseFloatString: nonpositive length.\n";
