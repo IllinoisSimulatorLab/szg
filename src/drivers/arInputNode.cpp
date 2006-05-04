@@ -63,24 +63,24 @@ bool arInputNode::init(arSZGClient& szgClient){
   for (arSourceIterator i = _inputSourceList.begin();
        i != _inputSourceList.end();
        ++i){
-    // If one device initialization fails, the whole thing fails.
+    // If one fails, the whole thing fails.
     if (!(*i)->init(szgClient)) {
-      ar_log_warning() << _label << " input source failed to init.\n";
+      // todo: add arInputSource::_label (dll's name), to print it here.
+      ar_log_warning() << _label << " failed to init input source.\n";
       return false;
     }
 
-    _inputState.addInputDevice( (*i)->getNumberButtons(),
-                                (*i)->getNumberAxes(),
-                                (*i)->getNumberMatrices() );
+    _inputState.addInputDevice(
+      (*i)->getNumberButtons(), (*i)->getNumberAxes(), (*i)->getNumberMatrices());
   }
 
   // Initialize the input sinks registered to this node.
   for (arSinkIterator j = _inputSinkList.begin();
        j != _inputSinkList.end();
        ++j){
-    // If one device initialization fails, the whole thing fails.
+    // If one fails, the whole thing fails.
     if (!(*j)->init(szgClient)){
-      ar_log_warning() << _label << " input sink failed to init.\n";
+      ar_log_warning() << _label << " failed to init input sink.\n";
       return false;
     }
   }

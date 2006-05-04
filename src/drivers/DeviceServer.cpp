@@ -60,11 +60,11 @@ bool parseTokenList(arStringTextStream& tokenStream,
   string tagText = ar_getTagText(&tokenStream);
   arBuffer<char> buffer(128);
   if (tagText != tagType){
-    cout << "DeviceServer parsing error: expected " << tagType << " tag.\n";
+    ar_log_warning() << "DeviceServer parsing expected " << tagType << " tag.\n";
     return false;
   }
   if (!ar_getTextBeforeTag(&tokenStream, &buffer)){
-    cout << "DeviceServer parsing error: failed on " << tagType << " field.\n";
+    ar_log_warning() << "DeviceServer parsing failed on " << tagType << " field.\n";
     return false;
   }
   stringstream tokens(buffer.data);
@@ -73,13 +73,13 @@ bool parseTokenList(arStringTextStream& tokenStream,
     tokens >> token;
     if (!tokens.fail()){
       tokenList.push_back(token);
-      cout << tagType << " token = " << token << "\n";
+      ar_log_remark() << tagType << " DeviceServer token '" << token << "'\n";
     }
   } while (!tokens.eof());
   // Look for closing input_sources tag.
   tagText = ar_getTagText(&tokenStream);
   if (tagText != "/"+tagType){
-    cout << "DeviceServer parsing error: bad end tag " << tagType << ".\n";
+    ar_log_warning() << "DeviceServer parsing: bad end tag '" << tagType << "'.\n";
     return false;
   }
   return true;
@@ -104,7 +104,7 @@ InputNodeConfig parseNodeConfig(const string& nodeConfig){
 
   string tagText = ar_getTagText(&configStream);
   if (tagText != "szg_device"){
-    cerr << "DeviceServer parsing error: expected starting tag szg_device, not "
+    ar_log_warning() << "DeviceServer parsing expected starting tag szg_device, not "
          << tagText << ".\n";
     return result;
   }
@@ -121,24 +121,24 @@ InputNodeConfig parseNodeConfig(const string& nodeConfig){
   // Should get pforth.
   tagText = ar_getTagText(&configStream);
   if (tagText != "pforth"){
-    cerr << "DeviceServer parsing error: expected pforth tag.\n";
+    ar_log_warning() << "DeviceServer parsing expected pforth tag.\n";
     return result;
   }
   if (! ar_getTextBeforeTag(&configStream, &buffer)){
-    cerr << "DeviceServer parsing error: failed on pforth field.\n";
+    ar_log_warning() << "DeviceServer parsing failed on pforth field.\n";
     return result;
   }
   result.pforthProgram = string(buffer.data);
   // Look for closing pforth tag.
   tagText = ar_getTagText(&configStream);
   if (tagText != "/pforth"){
-    cerr << "DeviceServer parsing error: expected /pforth tag.\n";
+    ar_log_warning() << "DeviceServer parsing expected /pforth tag.\n";
     return result;
   }
   // Look for closing /szg_device tag.
   tagText = ar_getTagText(&configStream);
   if (tagText != "/szg_device"){
-    cerr << "DeviceServer parsing error: expected /szg_device tag.\n";
+    ar_log_warning() << "DeviceServer parsing expected /szg_device tag.\n";
     return result;
   }
   result.valid = true;
@@ -165,7 +165,7 @@ int main(int argc, char** argv){
   // Only one instance per host.
   int ownerID = -1;
   if (!SZGClient.getLock(SZGClient.getComputerName() + "/DeviceServer", ownerID)) {
-    cerr << "DeviceServer error: another copy is already running (pid = " 
+    ar_log_error() << "DeviceServer: another copy is already running (pid = " 
          << ownerID << ").\n";
     return 1;
   }
@@ -194,12 +194,12 @@ LAbort:
   else{
     const string& config = SZGClient.getGlobalAttribute(argv[1]);
     if (config == "NULL") {
-      initResponse << "DeviceServer error: undefined global node (i.e., <param> in dbatch file) '" << argv[1] << "'.\n";
+      initResponse << "DeviceServer: undefined global node (i.e., <param> in dbatch file) '" << argv[1] << "'.\n";
       goto LAbort;
     }
     nodeConfig = parseNodeConfig(config);
     if (!nodeConfig.valid){
-      initResponse << "DeviceServer error: misconfigured global node (i.e., <param> in dbatch file) '"
+      initResponse << "DeviceServer: misconfigured global node (i.e., <param> in dbatch file) '"
 	<< argv[1] << "'\n";
       goto LAbort;
     }
@@ -223,11 +223,11 @@ LAbort:
     if (*iter == "arNetInputSource"){
       arNetInputSource* netInputSource = new arNetInputSource();
       if (!netInputSource->setSlot(nextInputSlot)) {
-	initResponse << "DeviceServer error: invalid slot " << nextInputSlot << ".\n";
+	initResponse << "DeviceServer: invalid slot " << nextInputSlot << ".\n";
 	goto LAbort;
       }
       nextInputSlot++;
-      inputNode.addInputSource(netInputSource,true);
+      inputNode.addInputSource(netInputSource, true);
     } 
     else{
       // A dynamically loaded library
@@ -241,11 +241,12 @@ LAbort:
       // Can create our object.
       theSource = (arInputSource*) inputSourceObject->createObject();
       if (!theSource) {
-        initResponse << "DeviceServer error: failed to create input source.\n";
+        initResponse << "DeviceServer failed to create input source '" <<
+	  *iter << "'.\n";
         goto LAbort;
       }
       driverNameMap[*iter] = theSource;
-      inputNode.addInputSource(theSource,false);
+      inputNode.addInputSource(theSource, false);
     }
   }
 
@@ -254,7 +255,7 @@ LAbort:
   if (useNetInput){
     arNetInputSource* commandLineNetInputSource = new arNetInputSource();
     if (!commandLineNetInputSource->setSlot(nextInputSlot)) {
-      initResponse << "DeviceServer error: invalid slot " << nextInputSlot << ".\n";
+      initResponse << "DeviceServer: invalid slot " << nextInputSlot << ".\n";
       goto LAbort;
     }
       nextInputSlot++;
@@ -268,12 +269,12 @@ LAbort:
   // for logging.
   arNetInputSink netInputSink;
   if (!netInputSink.setSlot(slotNumber)) {
-    initResponse << "DeviceServer error: invalid slot " << slotNumber << ".\n";
+    initResponse << "DeviceServer: invalid slot " << slotNumber << ".\n";
     goto LAbort;
   }
       nextInputSlot++;
   // Distinguish between different DeviceServer instances
-  // (which are running different devices).
+  // (which are running different devices).  (Still needed, since multiple copies per host are forbidden?)
   netInputSink.setInfo(argv[1]);
   // And the sink to the input node.
   inputNode.addInputSink(&netInputSink,false);
@@ -296,7 +297,7 @@ LAbort:
     // Can create our object.
     theSink = (arInputSink*) inputSinkObject->createObject();
     if (!theSink) {
-      initResponse << "DeviceServer error: failed to create input sink.\n";
+      initResponse << "DeviceServer failed to create input sink.\n";
       goto LAbort;
     }
     inputNode.addInputSink(theSink,true);
@@ -320,7 +321,7 @@ LAbort:
     string commandLineProgram = 
       SZGClient.getGlobalAttribute(argv[3]);
     if (commandLineProgram == "NULL"){
-      cout << "DeviceServer remark: no program named " << argv[3] << ".\n";
+      ar_log_remark() << "DeviceServer: no program named " << argv[3] << ".\n";
     }
     else{
       arPForthFilter* commandLineFilter = new arPForthFilter();
@@ -344,23 +345,22 @@ LAbort:
       initResponse << error;
       goto LAbort;
     }
-    // Can create our object.
     theFilter = (arIOFilter*) inputFilterSharedLib->createObject();
     if (!theFilter) {
-      initResponse << "DeviceServer error: failed to create input filter.\n";
+      initResponse << "DeviceServer failed to create input filter.\n";
       goto LAbort;
     }
     if (!theFilter->configure( &SZGClient )){
-      initResponse << "DeviceServer remark: failed to configure filter.\n";
+      initResponse << "DeviceServer failed to configure filter.\n";
       goto LAbort;
     }
-    // We do, indeed, own this.
+    // We own this.
     inputNode.addFilter(theFilter,true);
   }
 
   const bool ok = inputNode.init(SZGClient);
   if (!respond(SZGClient, ok)){
-    cerr << "DeviceServer warning: ignoring failed init.\n";
+    ar_log_warning() << "DeviceServer ignoring failed init.\n";
     // return 1;
   }
   if (!ok) {
@@ -382,28 +382,26 @@ LAbort:
     const int sendID = SZGClient.receiveMessage(&messageType, &messageBody);
     if (!sendID){
       // sendID == 0 exactly when we are "forced" to shutdown.
-      cout << "DeviceServer remark: shutdown.\n";
-      // Cut-and-pasted from below.
+      // Copypaste from below.
       inputNode.stop();
+      ar_log_remark() << "DeviceServer shutdown.\n";
       return 0;
     }
 
     if (messageType=="quit"){
-      cout << "DeviceServer remark: shutdown.\n";
       inputNode.stop();
-      cout << "DeviceServer remark: input node stopped.\n";
       std::map< std::string, arInputSource* >::iterator killIter;
       for (killIter = driverNameMap.begin(); killIter != driverNameMap.end(); ++killIter) {
-        if (killIter->second) {
+        if (killIter->second)
           delete killIter->second;
-        }
       }
       driverNameMap.clear();
+      ar_log_remark() << "DeviceServer shutdown.\n";
       return 0;
     }
 
     else if (messageType=="restart"){
-      cout << "DeviceServer remark: restarting.\n";
+      ar_log_remark() << "DeviceServer restarting.\n";
       inputNode.restart();
     }
     else if (messageType=="dumpon"){
@@ -415,17 +413,17 @@ LAbort:
       const std::map< std::string, arInputSource* >::iterator iter =
         driverNameMap.find( messageType );
       if (iter == driverNameMap.end()) {
-        cerr << "DeviceServer warning: ignoring unrecognized messageType "
-	     << messageType << ".\n";
+        ar_log_warning() << "DeviceServer ignoring unrecognized messageType '"
+	     << messageType << "'.\n";
       }
       else {
-        cout << "DeviceServer remark: handling message " << messageType 
-             << "/" << messageBody << ".\n";
+        ar_log_remark() << "DeviceServer handling message " << messageType 
+	  << "/" << messageBody << ".\n";
         arInputSource* driver = iter->second;
-        if (!driver)
-          cerr << "DeviceServer warning: ignoring NULL from driverNameMap.\n";
-	else
+        if (driver)
           driver->handleMessage( messageType, messageBody );
+	else
+          ar_log_warning() << "DeviceServer ignoring NULL from driverNameMap.\n";
       }
     }
   }

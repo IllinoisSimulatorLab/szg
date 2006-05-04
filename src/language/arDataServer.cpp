@@ -6,9 +6,10 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arDataServer.h"
+#include "arLogStream.h"
 
-// DO NOT ALLOCATE THE LISTENING SOCKET IN THE CONSTRUCTOR. WE WANT TO
-// BE ABLE TO DECLARE arDataServer AS A GLOBAL ON WINDOWS COMPUTERS.
+// Allocating the listening socket in the constructor may prevent
+// arDataServer from being declared as a global in win32.  Sigh.
 arDataServer::arDataServer(int dataBufferSize) :
   arDataPoint(dataBufferSize),
   _interfaceIP(string("INADDR_ANY")), // the default
@@ -31,7 +32,7 @@ arDataServer::arDataServer(int dataBufferSize) :
 arDataServer::~arDataServer(){
   // close all current connections
   if (_numberConnected > 0){
-    cerr << "arDataServer warning: destructor trying to close sockets.\n";
+    ar_log_remark() << "arDataServer destructor closing sockets.\n";
     for (list<arSocket*>::iterator i(_connectionSockets.begin());
          i != (_connectionSockets.end());
          i++){
@@ -42,7 +43,7 @@ arDataServer::~arDataServer(){
     }
   }
   if (_numberConnected > 0)
-    cerr << "arDataServer error: destructor internal logic error.\n";
+    ar_log_warning() << "arDataServer destructor confused.\n";
   delete _listeningSocket;
 }
 
