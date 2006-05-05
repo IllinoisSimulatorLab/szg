@@ -39,14 +39,14 @@ class arGUIXMLValidator {
 };
 
 void arGUIXMLValidator::addAttributes( const arSlashString& attribsStr ) {
-  unsigned int i;
+  int i;
   for (i=0; i<attribsStr.size(); ++i) {
     _attribsVec.push_back( attribsStr[i] );
   }
 }
 
 void arGUIXMLValidator::addChildren( const arSlashString& childrenStr ) {
-  unsigned int i;
+  int i;
   for (i=0; i<childrenStr.size(); ++i) {
     _childrenVec.push_back( childrenStr[i] );
   }
@@ -54,10 +54,10 @@ void arGUIXMLValidator::addChildren( const arSlashString& childrenStr ) {
 
 bool arGUIXMLValidator::operator()( TiXmlNode* node ) {
   if (!node) {
-    ar_log_debug() << "arGUIXML remark: skipping NULL " << _nodeTypeName << " node.\n";
+    ar_log_debug() << "arGUIXML skipping NULL " << _nodeTypeName << " node.\n";
     return false;
   }
-  ar_log_debug() << "arGUIXML remark: validating " << _nodeTypeName << ar_endl;
+  ar_log_debug() << "arGUIXML validating " << _nodeTypeName << ar_endl;
   return _validateNodeAttributes( node ) && 
     _validateNodeChildren( node );
 }
@@ -68,14 +68,14 @@ bool arGUIXMLValidator::_validateNodeAttributes( TiXmlNode* node ) {
     std::string name( att->Name() );
     ar_log_debug() << "attribute: " << name << ar_endl;
     if (std::find( _attribsVec.begin(), _attribsVec.end(), name ) == _attribsVec.end()) {
-      ar_log_error() << "arGUIXML error: unknown attribute '"
+      ar_log_warning() << "arGUIXML: unknown attribute '"
                      << name << "' in " << _nodeTypeName << " node.\n"
                      << "\tLegal attributes are:";
       std::vector< std::string >::const_iterator iter;
       for (iter = _attribsVec.begin(); iter != _attribsVec.end(); ++iter) {
-        ar_log_error() << " " << *iter;
+        ar_log_warning() << " " << *iter;
       }
-      ar_log_error() << ar_endl;
+      ar_log_warning() << ar_endl;
       ok = false;
     }
   }
@@ -89,14 +89,14 @@ bool arGUIXMLValidator::_validateNodeChildren( TiXmlNode* node ) {
     std::string name( child->Value() );
     ar_log_debug() << "child: " << name << ar_endl;
     if (std::find( _childrenVec.begin(), _childrenVec.end(), name ) == _childrenVec.end()) {
-      ar_log_error() << "arGUIXML error: unknown sub-node '"
+      ar_log_warning() << "arGUIXML: unknown sub-node '"
                      << name << "' in " << _nodeTypeName << " node.\n"
                      << "\tLegal sub-nodes are:";
       std::vector< std::string >::const_iterator iter;
       for (iter = _childrenVec.begin(); iter != _childrenVec.end(); ++iter) {
-        ar_log_error() << " " << *iter;
+        ar_log_warning() << " " << *iter;
       }
-      ar_log_error() << ar_endl;
+      ar_log_warning() << ar_endl;
       ok = false;
     }
   }
@@ -265,7 +265,7 @@ arGUIXMLAttributeValueValidator::arGUIXMLAttributeValueValidator(
     addValues( valuesStr );
   }
 void arGUIXMLAttributeValueValidator::addValues( const arSlashString& valuesStr ) {
-  for (unsigned i=0; i<valuesStr.size(); ++i) {
+  for (int i=0; i<valuesStr.size(); ++i) {
     _valuesVec.push_back( valuesStr[i] );
   }
 }
@@ -273,14 +273,14 @@ bool arGUIXMLAttributeValueValidator::operator()( const std::string& valueStr ) 
   if (std::find( _valuesVec.begin(), _valuesVec.end(), valueStr ) != _valuesVec.end())
     return true;
 
-  ar_log_error() << "arGUIXML error: invalid value '"
+  ar_log_warning() << "arGUIXML: invalid value '"
 		 << valueStr << "' in " << _nodeName << " attribute.\n"
 		 << "\tLegal values are:";
   std::vector< std::string >::const_iterator iter;
   for (iter = _valuesVec.begin(); iter != _valuesVec.end(); ++iter) {
-    ar_log_error() << " " << *iter;
+    ar_log_warning() << " " << *iter;
   }
-  ar_log_error() << ar_endl;
+  ar_log_warning() << ar_endl;
   return false;
 }
 
@@ -334,7 +334,7 @@ void arGUIXMLParser::setConfig( const std::string& config )
     return;
 
   if( !config.length() || config == "NULL" ) {
-    ar_log_remark() << "arGUIXML remark: defaulting to minimum config.\n";
+    ar_log_remark() << "arGUIXML defaulting to minimum config.\n";
     _config = _mininumConfig;
   }
   else
@@ -385,7 +385,7 @@ TiXmlNode* arGUIXMLParser::_getNamedNode( const char* name, const std::string& n
   const std::string nodeDesc = _SZGClient->getGlobalAttribute( name );
 
   if( !nodeDesc.length() || nodeDesc == "NULL" ) {
-    ar_log_error() << "arGUIXML error: non-existent 'usenamed' node: " << name << ar_endl;
+    ar_log_warning() << "arGUIXML: non-existent 'usenamed' node: " << name << ar_endl;
     return NULL;
   }
 
@@ -395,12 +395,12 @@ TiXmlNode* arGUIXMLParser::_getNamedNode( const char* name, const std::string& n
     _reportParseError( nodeDoc, nodeDesc );
   }
   if( !nodeDoc->FirstChild() ) {
-    ar_log_error() << "arGUIXML error: invalid node pointer: " << name << ar_endl;
+    ar_log_warning() << "arGUIXML: invalid node pointer: " << name << ar_endl;
     return NULL;
   }
   std::string nodeTypeName( nodeDoc->FirstChild()->Value() );
   if (nodeTypeName != nodeType) {
-    ar_log_error() << "arGUIXML error: " << nodeType << " 'usenamed=" << name << "' "
+    ar_log_warning() << "arGUIXML: " << nodeType << " 'usenamed=" << name << "' "
                    << "\n\trefers to a record of type " << nodeTypeName
                    << ", not " << nodeType << "." << ar_endl;
     return NULL;
@@ -410,11 +410,10 @@ TiXmlNode* arGUIXMLParser::_getNamedNode( const char* name, const std::string& n
 }
 
 void arGUIXMLParser::_reportParseError( TiXmlDocument* nodeDoc, const std::string& nodeDesc ) {
-  int rowNum = nodeDoc->ErrorRow()-1;
-  int colNum = nodeDoc->ErrorCol()-1;
-  std::string::size_type curPos(0);
+  unsigned rowNum = nodeDoc->ErrorRow()-1;
+  //UNUSED int colNum = nodeDoc->ErrorCol()-1;
+  //UNUSED std::string::size_type curPos(0);
   std::string errLine( nodeDesc );
-  bool ok = false;
   std::vector< std::string > lines;
   std::string line;
   istringstream ist;
@@ -422,18 +421,18 @@ void arGUIXMLParser::_reportParseError( TiXmlDocument* nodeDoc, const std::strin
   while (getline( ist, line, '\n' )) {
     lines.push_back( line );
   }
+  bool ok = false;
   if (lines.size() > rowNum) {
     errLine = lines[rowNum];
     ok = true;
   }
-  ar_log_error() << "arGUIXMLParser: "
-    << nodeDoc->ErrorDesc() << "\n";
+  ar_log_warning() << "arGUIXMLParser: " << nodeDoc->ErrorDesc() << "\n";
   if (ok) {
-    ar_log_error() << "in line:  " << errLine << "\n";
+    ar_log_warning() << "in line:  " << errLine << "\n";
   }
-  ar_log_error() << "(Use the arg sequence '-szg log=DEBUG' to see the whole XML chunk).\n";
+  ar_log_warning() << "(Use '-szg log=DEBUG' to see the whole XML chunk).\n";
   ar_log_debug() << "Somewhere in the following XML:\n\t" << nodeDesc << ar_endl;
-  // The parser isn't always good at localizing errors.
+  // The parser poorly localizes errors.
 }
 
 arVector3 arGUIXMLParser::_attributearVector3( TiXmlNode* node,
@@ -486,7 +485,7 @@ bool arGUIXMLParser::_attributeBool( TiXmlNode* node,
 
   std::string attrVal( node->ToElement()->Attribute( value.c_str() ) );
   if ((attrVal != "yes")&&(attrVal != "no")&&(attrVal != "true")&&(attrVal != "false")) {
-    ar_log_error() << "arGUIXML error: attribute '" << value << "' should be one of "
+    ar_log_warning() << "arGUIXML: attribute '" << value << "' should be one of "
                    << "yes/no/true/false, but is instead '" << attrVal << "'.\n";
     return false;
   }
@@ -500,7 +499,7 @@ int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
   if( !screenNode || !screenNode->ToElement() ) {
     // not necessarily an error, <szg_screen> could legitimately not exist and
     // in that case let the caller use the screen as it was passed in
-    ar_log_remark() << "arGUIXML remark: ignoring missing screen description.\n";
+    ar_log_remark() << "arGUIXML ignoring missing screen description.\n";
     return 0;
   }
 
@@ -510,7 +509,7 @@ int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
   TiXmlNode* namedNode = _getNamedNode( screenNode->ToElement()->Attribute( "usenamed" ),
                                         "szg_screen" );
   if( namedNode ) {
-    ar_log_debug() << "arGUIXML remark: using named screen "
+    ar_log_debug() << "arGUIXML using named screen "
                     << screenNode->ToElement()->Attribute( "usenamed" ) << ar_endl;
     screenNode = namedNode;
   }
@@ -593,7 +592,7 @@ int arGUIXMLParser::_configureScreen( arGraphicsScreen& screen,
   }
 
   if (!screenValidator( screenNode )) {
-    ar_log_error() << "arGUIXMLParser error: invalid attribute or field in screen node.\n";
+    ar_log_warning() << "arGUIXMLParser: invalid attribute or field in screen node.\n";
     return 0;
   }
   
@@ -612,7 +611,7 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
   if( !cameraNode || !cameraNode->ToElement() ) {
     // not necessarily an error, the camera node could legitimately not exist
     // in which case a default camera should be returned
-    ar_log_remark() << "arGUIXML remark: defaulting to arVRCamera for missing cameraNode.\n";
+    ar_log_remark() << "arGUIXML defaulting to arVRCamera for missing cameraNode.\n";
     return new arVRCamera();
   }
 
@@ -624,7 +623,7 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
                                         "szg_camera" );
   if( namedNode ) {
     std::string useNamed( cameraNode->ToElement()->Attribute( "usenamed" ) );
-    ar_log_debug() << "arGUIXML remark: using named camera " << useNamed << ".\n";
+    ar_log_debug() << "arGUIXML using named camera " << useNamed << ".\n";
     cameraNode = namedNode;
   }
 
@@ -661,7 +660,7 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
       arGUIXMLFrustumCameraValidator frustumValidator;
       validation = frustumValidator( cameraElement );
       if (!validation) {
-        ar_log_error() << "arGUIXMLParser error: invalid attribute or field in frustum node.\n";
+        ar_log_warning() << "arGUIXMLParser: invalid attribute or field in frustum node.\n";
       }
       float ortho[ 6 ] = { 0.0f };
       cameraElement->ToElement()->Attribute( "left",   &ortho[ 0 ] );
@@ -679,7 +678,7 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
       arGUIXMLLookatCameraValidator lookatValidator;
       validation = lookatValidator( cameraElement );
       if (!validation) {
-        ar_log_error() << "arGUIXMLParser error: invalid attribute or field in lookat node.\n";
+        ar_log_warning() << "arGUIXMLParser: invalid attribute or field in lookat node.\n";
       }
       float look[ 9 ] = { 0.0f };
       cameraElement->ToElement()->Attribute( "viewx",   &look[ 0 ] );
@@ -727,14 +726,14 @@ arCamera* arGUIXMLParser::_configureCamera( arGraphicsScreen& screen,
     
     camera = camF;
   } else {
-    ar_log_error() << "arGUIXMLParser warning: defaulting to arVRCamera for unknown camera type \""
+    ar_log_warning() << "arGUIXMLParser defaulting to arVRCamera for unknown camera type \""
                      << cameraType << "\"\n";
     camera = new arVRCamera();
   }
 
   validation &= cameraValidator( cameraNode );
   if (!validation) {
-    ar_log_error() << "arGUIXMLParser error: invalid attribute or field in camera node.\n";
+    ar_log_warning() << "arGUIXMLParser: invalid attribute or field in camera node.\n";
   }
   
   if (namedNode)
@@ -748,7 +747,7 @@ int arGUIXMLParser::parse( void )
 {
   //  Should have already complained about any errors.
 //  if( _doc.Error() ) {
-//    ar_log_error() << "arGUIXML error: failed to parse at line " << _doc.ErrorRow() << ar_endl;
+//    ar_log_warning() << "arGUIXML: failed to parse at line " << _doc.ErrorRow() << ar_endl;
 //    return -1;
 //  }
 
@@ -762,7 +761,7 @@ int arGUIXMLParser::parse( void )
   TiXmlNode* szgDisplayNode = _doc.FirstChild();
 
   if( !szgDisplayNode || !szgDisplayNode->ToElement() ) {
-    ar_log_error() << "arGUIXML error: malformed <szg_display> node.\n";
+    ar_log_warning() << "arGUIXML: malformed <szg_display> node.\n";
     return -1;
   }
 
@@ -798,12 +797,12 @@ int arGUIXMLParser::parse( void )
                                                 "szg_window" );
     if( namedWindowNode ) {
       std::string namedWindow( windowNode->ToElement()->Attribute( "usenamed" ) );
-      ar_log_debug() << "arGUIXML remark: using named window " << namedWindow << ".\n";
+      ar_log_debug() << "arGUIXML using named window " << namedWindow << ".\n";
       windowNode = namedWindowNode;
     }
 
     if( !windowNode->ToElement() ) {
-      ar_log_error() << "arGUIXML error: skipping invalid window element.\n";
+      ar_log_warning() << "arGUIXML: skipping invalid window element.\n";
       continue;
     }
 
@@ -949,12 +948,12 @@ int arGUIXMLParser::parse( void )
 
       if( namedViewportListNode ) {
         std::string namedViewportList( namedViewportListNode->ToElement()->Attribute( "usenamed" ) );
-        ar_log_debug() << "arGUIXML remark: using named viewportList " << namedViewportList << ".\n";
+        ar_log_debug() << "arGUIXML using named viewportList " << namedViewportList << ".\n";
         viewportListNode = namedViewportListNode;
       }
 
       if( !viewportListNode->ToElement() ) {
-        ar_log_error() << "arGUIXML error: invalid viewportlist element.\n";
+        ar_log_warning() << "arGUIXML: invalid viewportlist element.\n";
         return -1;
       }
 
@@ -980,7 +979,7 @@ int arGUIXMLParser::parse( void )
       // is if viewportListNode /does/ exist, no need to check it again)
       if( !(viewportNode = viewportListNode->FirstChild( "szg_viewport" ) ) ) {
         // malformed!, delete currentwindow, print warning, continue with next window tag
-        ar_log_error() << "arGUIXML error: viewmode is custom, but no <szg_viewport> tags.\n";
+        ar_log_warning() << "arGUIXML: viewmode is custom, but no <szg_viewport> tags.\n";
         return -1;
       }
 
@@ -998,13 +997,13 @@ int arGUIXMLParser::parse( void )
         TiXmlNode* namedViewportNode = _getNamedNode( viewportNode->ToElement()->Attribute( "usenamed" ),
                                                       "szg_viewport" );
         if( namedViewportNode ) {
-          ar_log_debug() << "arGUIXML remark: using named viewport "
+          ar_log_debug() << "arGUIXML using named viewport "
                           << viewportNode->ToElement()->Attribute( "usenamed" ) << ".\n";
           viewportNode = namedViewportNode;
         }
 
         if( !viewportNode->ToElement() ) {
-          ar_log_error() << "arGUIXML warning: skipping invalid viewport element.\n";
+          ar_log_warning() << "arGUIXML skipping invalid viewport element.\n";
           continue;
         }
 
@@ -1016,7 +1015,7 @@ int arGUIXMLParser::parse( void )
 
         if( !(camera = _configureCamera( screen, viewportNode->FirstChild( "szg_camera" ) )) ) {
           // should never happen, configureCamera should always return at least /something/
-          ar_log_error() << "arGUIXML warning: custom configureCamera failed.\n";
+          ar_log_warning() << "arGUIXML custom configureCamera failed.\n";
         }
 
         arViewport viewport;
@@ -1112,7 +1111,7 @@ int arGUIXMLParser::parse( void )
         screen, viewportListNode ? viewportListNode->FirstChild( "szg_camera" ) : NULL );
       if (!camera) {
         // should never happen, configureCamera should always return at least /something/
-        ar_log_error() << "arGUIXML warning: configureCamera failed.\n";
+        ar_log_warning() << "arGUIXML configureCamera failed.\n";
       }
 
       // viewports added by setViewMode will use this camera and screen
@@ -1121,7 +1120,7 @@ int arGUIXMLParser::parse( void )
 
       // set up the appropriate viewports
       if( !_parsedWindowConstructs.back()->getGraphicsWindow()->setViewMode( viewMode ) ) {
-        ar_log_error() << "arGUIXML warning: setViewMode failed.\n";
+        ar_log_warning() << "arGUIXML setViewMode failed.\n";
       }
 
       if( camera ) {
@@ -1144,7 +1143,7 @@ int arGUIXMLParser::parse( void )
       delete namedViewportListNode;
   }
 
-  ar_log_remark() << "arGUIXML remark: parsed.\n";
+  ar_log_debug() << "arGUIXML parsed.\n";
   _windowingConstruct->setWindowConstructs( &_parsedWindowConstructs );
   return 0;
 }
