@@ -70,8 +70,8 @@ import teapots
 #  4th column:  black, cyan, green, red, white, yellow rubber
 
 # OK, instead of using the dumb original display() function to render all the teapots,
-# we're going to put their properties into a list of lists for
-# sharing master->slaves.
+# we're going to put their properties into a list of lists, allowing
+# manipulation and sharing master->slaves.
 # Each sub-list is just the set of arguments for one call to
 # renderTeapot() from the original program, e.g.:
 #
@@ -157,6 +157,7 @@ class TeapotApp(arPyMasterSlaveFramework):
 
   # Equivalent to start callback
   # Called once from inside the application framework's start() method.
+  # Used for application-wide initialization.
   def onStart( self, client ):
     # Tell the app we're going to be transferring a
     # sequence of data (tuple, list, etc.) to the slaves.
@@ -166,9 +167,12 @@ class TeapotApp(arPyMasterSlaveFramework):
 
   # Equivalent to windowStartGL callback
   # Called once right after a graphics window is created,
-  # for OpenGL initialization.
+  # for OpenGL initialization. Note that it is possible for
+  # this method to be called more than once (because
+  # Syzygy applications can have multiple windows, although
+  # it's not common).
   def onWindowStartGL( self, winInfo ):
-    teapots.init() # call init() from teapot.py
+    teapots.init() # call init() from teapots.py
 
   # equivalent to preExchange callback
   # Called on the master only, once/frame, before master->slave data exchange.
@@ -186,6 +190,13 @@ class TeapotApp(arPyMasterSlaveFramework):
   # Called once/frame on master and slaves after data exchange.
   def onPostExchange( self ):
     # Get the teapot data from the master
+    # You might think that pulling the data back out of the
+    # app on the master would help with debugging of data
+    # transmission. However, the data sequences always come
+    # back out as tuples. So we could do that, but then
+    # we'd have to manually convert the tuple of tuples back to a
+    # list of lists or the shufflePositions() function
+    # would bomb (because tuples are immutable).
     if not self.getMaster():
       self.teapotData = self.getSequence( 'teapots' )
 

@@ -2636,9 +2636,9 @@ bool arSZGClient::_parseContext(){
 /// i.e. those prefaced by a -szg. We usually delete these args during parsing.
 /// But if _parseSpecialPhleetArgs is false (e.g., in dex),
 /// then only the args user and server (pertaining to login) are parsed and removed.
-bool arSZGClient::_parsePhleetArgs(int& argc, char** const argv){
-  for (int i=0; i<argc; i++){
-    if (!strcmp(argv[i],"-szg")){
+bool arSZGClient::_parsePhleetArgs(int& argc, char** const argv) {
+  for (int i=0; i<argc; i++) {
+    if (!strcmp(argv[i],"-szg")) {
       // we have found an arg that might need to be removed.
       if (i+1 >= argc){
         ar_log_error() << _exeName << " expected something after -szg flag.\n";
@@ -2666,20 +2666,18 @@ bool arSZGClient::_parsePhleetArgs(int& argc, char** const argv){
 
       // parse the arg exactly if we are parsing all args or if it is one
       // of the special ones (user or server) that are always parsed.
-      if (_parseSpecialPhleetArgs
-	  || pair1Type == "user" || pair1Type == "server"){
-        if (!_parseContextPair(argv[i+1])){
+      if (_parseSpecialPhleetArgs || pair1Type == "user" || pair1Type == "server") {
+        if (!_parseContextPair(argv[i+1])) {
           return false;
         }
         // if they are parsed, then they should also be erased
-        for (int j=i; j<argc-2; j++){
+        for (int j=i; j<argc-2; j++) {
           argv[j] = argv[j+2];
         }
         // reset the arg count and i
         argc = argc-2;
         i--;
-      }
-      else{
+      } else {
 	// we didn't parse these args... move on (without this ++ we will
 	// be at i+1 at the beginning of the next loop and we should be at
 	// i+2

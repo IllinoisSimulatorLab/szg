@@ -9,7 +9,7 @@ MODULE = PySZG
 
 IFILES = PyGraphics.i PyMasterSlave.i PyMath.i PySZG.i PySceneGraph.i \
 PyTypemaps.i PySoundAPI.i PyObj.i PyPeer.i PyInteraction.i \
-PySZGApp.i PySZGClient.i PyAppLauncher.i PyDataUtilities.i PyInputEvents.i \
+PySZGApp.i PyPhleet.i PyAppLauncher.i PyDataUtilities.i PyInputEvents.i \
 PyEventFilter.i
 
 ifeq ($(strip $(MACHINE)),WIN32)

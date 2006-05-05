@@ -3,6 +3,21 @@
 // the Free Software Foundation (http://www.gnu.org/copyleft/lesser.html).
 
 %{
+#include "arSocketAddress.h"
+%}
+
+class arSocketAddress {
+ public:
+  arSocketAddress();
+  ~arSocketAddress() {}
+  bool setAddress(const char* IPaddress, int port);
+  void setPort(int port);
+  string mask(const char* maskAddress);
+  string broadcastAddress(const char* maskAddress);
+  string getRepresentation();
+};
+
+%{
 #include "arDataUtilities.h"
 %}
 
@@ -36,3 +51,6 @@ string ar_fileFind(const string& name,
 string ar_directoryFind(const string& name, 
 		        const string& subdirectory,
                         const string& path);
+
+bool ar_winSockInit();
+

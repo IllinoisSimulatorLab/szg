@@ -76,7 +76,7 @@ def getSwigModuleDll():
 %include PyArrays.i
 %include PyMath.i        // Wrappers for math/arMath.h
 %include PyDataUtilities.i
-%include PySZGClient.i   // Wrappers for phleet/arSZGClient.h
+%include PyPhleet.i   // Wrappers for phleet objects
 %include PyGraphics.i    // Wrappers for graphics/arGraphicsAPI.h and more
 %include PyObj.i         // Wrappers for obj/arOBJ.h and more
 %include PyInputEvents.i

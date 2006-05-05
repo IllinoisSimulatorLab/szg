@@ -734,7 +734,10 @@ int arGUIWindow::_windowCreation( void )
   ShowWindow( _windowHandle._hWnd, SW_SHOW );
 
   if( !SetForegroundWindow( _windowHandle._hWnd ) ) {
-    ar_log_error() << "_windowCreation: SetForegroundWindow failure" << ar_endl;
+    // NOTE: On Windows, this fails _often_. Often enough that those of us
+    // trying to write GUIs based on printed command output can't afford to
+    // deal with it, and it's not fatal to the app. So now it's just a warning.
+    ar_log_warning() << "_windowCreation: SetForegroundWindow failure" << ar_endl;
   }
 
   if( !SetFocus( _windowHandle._hWnd ) ) {
