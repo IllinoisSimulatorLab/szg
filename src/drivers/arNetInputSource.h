@@ -22,6 +22,7 @@ class SZG_CALL arNetInputSource: public arInputSource{
   ~arNetInputSource() {}
 
   bool setSlot(int slot);
+  bool connected() const;
 
   virtual bool init(arSZGClient&);
   virtual bool start();
@@ -38,8 +39,8 @@ class SZG_CALL arNetInputSource: public arInputSource{
   bool _clientInitialized;
   
   void _closeConnection();
-  bool _checkConnection() const;
   void _dataTask();
+  void _connectionTask();
 };
 
 #endif

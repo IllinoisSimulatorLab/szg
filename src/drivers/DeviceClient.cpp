@@ -16,6 +16,9 @@ void dumpState( arInputState& inp ) {
   const unsigned cb = inp.getNumberButtons();
   const unsigned ca = inp.getNumberAxes();
   const unsigned cm = inp.getNumberMatrices();
+  if (cb == 0 && ca == 0 && cm == 0)
+    return;
+
   cout << "buttons: " << cb << ", "
        << "axes: " << ca << ", "
        << "matrices: " << cm << "\n";
@@ -73,7 +76,7 @@ int main(int argc, char** argv){
     return 1;
 
   if (argc != 2 && argc != 3) {
-    cerr << "Usage: DeviceClient slot_number [-button]\n";
+    ar_log_error() << "Usage: DeviceClient slot_number [-button]\n";
     return 1;
   }
 
@@ -82,9 +85,9 @@ int main(int argc, char** argv){
 
   arInputNode inputNode;
   arNetInputSource netInputSource;
-  inputNode.addInputSource(&netInputSource,false);
+  inputNode.addInputSource(&netInputSource, false);
   if (!netInputSource.setSlot(slot)) {
-    cerr << "DeviceClient error: invalid slot " << slot << ".\n";
+    ar_log_error() << "DeviceClient: invalid slot " << slot << ".\n";
     return 1;
   }
   arClientEventFilter filter;
@@ -103,12 +106,15 @@ int main(int argc, char** argv){
     return 1;
   }
 
+  if (!netInputSource.connected())
+    ar_log_warning() << "DeviceClient's input source not connected.\n";
+
   if (!szgClient.sendStartResponse(true))
     cerr << "DeviceClient error: maybe szgserver died.\n";
 
   arThread dummy(ar_messageTask, &szgClient);
   while (true){
-    if (continuousDump)
+    if (continuousDump && netInputSource.connected())
       dumpState(inputNode._inputState);
     ar_usleep(500000);
   }

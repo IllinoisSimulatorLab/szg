@@ -46,42 +46,48 @@ void arNetInputSource::_dataTask(){
 }
 
 void ar_netInputSourceConnectionTask(void* inputClient){
-  arNetInputSource* i = (arNetInputSource*) inputClient;
+  ((arNetInputSource*)inputClient)->_connectionTask();
+}
+
+void arNetInputSource::_connectionTask() {
   // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
   // there are many problems here. how do we designate a particular network for
   // communications... how do we use a virtual computer specific or user-specific
   // service name 
   char buffer[32];
-  sprintf(buffer,"SZG_INPUT%i",i->_slot);
-  const string serviceName(i->_client->createComplexServiceName(buffer));
-  const arSlashString networks(i->_client->getNetworks("input"));
+  sprintf(buffer, "SZG_INPUT%i", _slot);
+  const string serviceName(_client->createComplexServiceName(buffer));
+  const arSlashString networks(_client->getNetworks("input"));
+  ar_log_debug() << "arNetInputSource serviceName '" << serviceName <<
+    "', networks '" << networks << "'\n";
+
   while (true){
+    ar_log_debug() << "arNetInputSource discovering service...\n";
     arPhleetAddress result =
-      i->_client->discoverService(serviceName, networks, true);
+      _client->discoverService(serviceName, networks, true);
     if (!result.valid){
-      ar_log_warning() << "arNetInputSource warning: no service \""
-	               << serviceName << "\" on network \""
-                       << networks << "\".\n";
+      ar_log_warning() << "arNetInputSource warning: no service '" <<
+	serviceName << "' on network '" << networks << "'.\n";
       continue;
     }
-    // we know there is exactly one port for this service
-    if (!i->_dataClient.dialUpFallThrough(result.address, result.portIDs[0])){
-      ar_log_warning() << "arNetInputSource warning: "
-                       << "retrying connection to service "
-	               << serviceName << " at "
+    // This service has exactly one port.
+    ar_log_debug() << "arNetInputSource connecting...\n";
+    if (!_dataClient.dialUpFallThrough(result.address, result.portIDs[0])){
+      ar_log_warning() << "arNetInputSource reconnecting to service '"
+	               << serviceName << "' at "
 	               << result.address << ":" << result.portIDs[0] << ".\n";
       continue;
     }
-    ar_log_remark() << "arNetInputSource remark: connected to service "
-                    << serviceName << " at "
-	            << result.address << ":" << result.portIDs[0] << ".\n";
-    i->_clientConnected = true;
+    ar_log_remark() << "arNetInputSource connected to service " <<
+      serviceName << " at " << result.address << ":" << result.portIDs[0] << ".\n";
+    _clientConnected = true;
     ar_usleep(100000);
-    arThread dummy(ar_netInputSourceDataTask, i);
-    while (i->_checkConnection()){
+    arThread dummy(ar_netInputSourceDataTask, this);
+    while (connected())
       ar_usleep(200000);
-    }
-    i->_closeConnection();
+    ar_log_remark() << "arNetInputSource disconnected from service " <<
+      serviceName << " at " << result.address << ":" << result.portIDs[0] << ".\n";
+    _closeConnection();
   }
 }
 
@@ -99,9 +105,8 @@ arNetInputSource::arNetInputSource(){
   _dataClient.smallPacketOptimize(true);
 }
 
-/// Input devices in phleet offer services based on slots. 
-/// So... slot 0 corresponds
-/// to service SZG_INPUT0, slot 1 corresponds to service SZG_INPUT1, and so on.
+/// Input devices offer services based on slots. 
+/// Slot 0 corresponds to service SZG_INPUT0, slot 1 to SZG_INPUT1, etc.
 /// @param slot the slot in question
 bool arNetInputSource::setSlot(int slot){
   if (slot<0){
@@ -109,29 +114,30 @@ bool arNetInputSource::setSlot(int slot){
     return false;
   }
   _slot = slot;
+  ar_log_debug() << "arNetInputSource slot = " << _slot << ".\n";
   return true;
 }
 
 bool arNetInputSource::init(arSZGClient& SZGClient){
-  // no device elements, since nothing's attached yet
-  _setDeviceElements(0,0,0);
+  _setDeviceElements(0,0,0); // Nothing's attached yet.
+
   // this does not do much now that we are relying on 
   // connection brokering instead of
   // IP/port combos coded in the phleet database... 
   // annoyingly, the arSZGClient must
   // be saved for future use in connection brokering.
   _client = &SZGClient;
-  ar_log_remark() << "arNetInputSource remark: initialized.\n";
+  ar_log_remark() << "arNetInputSource initialized.\n";
   return true;
 }
 
 bool arNetInputSource::start(){
   if (!_client){
-    ar_log_warning() << "arNetInputSource error: start called before init.\n";
+    ar_log_warning() << "arNetInputSource ignoring start before init.\n";
     return false;
   }
   arThread dummy(ar_netInputSourceConnectionTask, this);
-  ar_log_remark() << "arNetInputSource remark: started.\n";
+  ar_log_remark() << "arNetInputSource started.\n";
   return true;
 }
 
@@ -141,6 +147,6 @@ void arNetInputSource::_closeConnection(){
   _clientInitialized = false;
 }
 
-bool arNetInputSource::_checkConnection() const {
+bool arNetInputSource::connected() const {
   return _clientConnected;
 }
