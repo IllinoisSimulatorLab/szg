@@ -64,7 +64,7 @@ bool arSoundFileNode::_adjust(bool useTrigger){
 
   if (m & FMOD_2D) {
     // Nothing to do.  This sound is 2D not 3D, perhaps a dummy sound.
-    ar_log_remark() << "2D sound won't be 3D-updated.\n";
+    ar_log_debug() << "2D sound won't be 3D-updated.\n";
     return true;
   }
 

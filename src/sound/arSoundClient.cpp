@@ -43,7 +43,7 @@ bool ar_fmodcheck3(const FMOD_RESULT r, const char* file, const int line) {
   if (!strncmp(file, "src/", 4))
     file += 4;
 
-  ar_log_error() << file << ":" << line <<
+  ar_log_warning() << file << ":" << line <<
     " fmod: " << FMOD_ErrorString(r) << ar_endl;
   return false;
 }

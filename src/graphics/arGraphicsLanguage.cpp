@@ -26,7 +26,8 @@ arGraphicsLanguage::arGraphicsLanguage():
   _perspCamera("persp camera"),
   _bumpMap("bump map"),
   _graphicsAdmin("graphics admin"),
-  _graphicsState("graphics state"){
+  _graphicsState("graphics state"),
+  _graphicsPlugin("graphics plugin") {
   
   AR_TRANSFORM_ID = _transform.add("ID",AR_INT);
   AR_TRANSFORM_MATRIX = _transform.add("matrix",AR_FLOAT);
@@ -143,6 +144,17 @@ arGraphicsLanguage::arGraphicsLanguage():
   AR_GRAPHICS_STATE_INT = _graphicsState.add("int", AR_INT);
   AR_GRAPHICS_STATE_FLOAT = _graphicsState.add("float", AR_FLOAT);
   AR_GRAPHICS_STATE = _dictionary.add(&_graphicsState);
+
+  AR_GRAPHICS_PLUGIN_ID     = _graphicsPlugin.add("ID", AR_INT);
+  AR_GRAPHICS_PLUGIN_NAME   = _graphicsPlugin.add("name", AR_CHAR);
+  AR_GRAPHICS_PLUGIN_INT    = _graphicsPlugin.add("int", AR_INT);
+  AR_GRAPHICS_PLUGIN_LONG   = _graphicsPlugin.add("long", AR_LONG);
+  AR_GRAPHICS_PLUGIN_FLOAT  = _graphicsPlugin.add("float", AR_FLOAT);
+  AR_GRAPHICS_PLUGIN_DOUBLE = _graphicsPlugin.add("double", AR_DOUBLE);
+  AR_GRAPHICS_PLUGIN_STRING   = _graphicsPlugin.add("string", AR_CHAR);
+  AR_GRAPHICS_PLUGIN_NUMSTRINGS   = _graphicsPlugin.add("numstrings", AR_INT);
+  AR_GRAPHICS_PLUGIN        = _dictionary.add(&_graphicsPlugin);
+  
 }
 
 string arGraphicsLanguage::typeFromID(int ID){
@@ -156,7 +168,7 @@ string arGraphicsLanguage::typeFromID(int ID){
 const char* arGraphicsLanguage::_stringFromID(int id)
 {
   // This is slow, but it's only for debugging printf's.
-  const int cnames = 21;
+  const int cnames = 22;
   static const char* names[cnames+1] = {
     "AR_TRANSFORM",
     "AR_POINTS",
@@ -179,6 +191,7 @@ const char* arGraphicsLanguage::_stringFromID(int id)
     "AR_BUMPMAP",
     "AR_GRAPHICS_ADMIN",
     "AR_GRAPHICS_STATE",
+    "AR_GRAPHICS_PLUGIN",
     "(unknown!)"
     };
   const int ids[cnames] = {
@@ -202,7 +215,8 @@ const char* arGraphicsLanguage::_stringFromID(int id)
     AR_PERSP_CAMERA,
     AR_BUMPMAP,
     AR_GRAPHICS_ADMIN,
-    AR_GRAPHICS_STATE
+    AR_GRAPHICS_STATE,
+    AR_GRAPHICS_PLUGIN
     };
   for (int i=0; i<cnames; ++i)
     if (id == ids[i])

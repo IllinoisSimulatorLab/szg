@@ -459,6 +459,9 @@ arDatabaseNode* arDatabase::alter(arStructuredData* inData, bool refNode){
     // If it fails, it prints its own error message,
     // so we don't need to print another one here.
     pNode = (this->*(_databaseReceive[dataID]))(inData); 
+    if (!pNode) {
+      ar_log_error() << "arDatabaseNode inData() failed.\n";
+    }
     // Only requests for new nodes (i.e. make node and insert) will actually
     // set refNode to true. Consequently, we won't be, for instance, increasing
     // the reference count on the root node.
@@ -473,8 +476,10 @@ arDatabaseNode* arDatabase::alter(arStructuredData* inData, bool refNode){
   // (unlike with the make node or insert cases above, where new nodes can be
   // created).
   pNode = _getNodeNoLock(inData->getDataInt(_routingField[dataID]));
-  if (!pNode)
+  if (!pNode) {
+    ar_log_error() << "arDatabaseNode _getNodeNoLock() failed.\n";
     return NULL;
+  }
 
   if (!pNode->receiveData(inData)){
     cerr << "arDatabase warning: receiveData() of child \""
@@ -504,7 +509,7 @@ bool arDatabase::handleDataQueue(ARchar* theData){
   ARint position = 2*AR_INT_SIZE;
   for (int i=0; i<numberRecords; i++){
     const int theSize = ar_rawDataGetSize(theData+position);
-    if (!alterRaw(theData+position)){
+    if (!alterRaw(theData+position)) {
       cerr << "arDatabase::handleDataQueue error: failure in record "
            << i+1 << " of " << numberRecords << ".\n";
       // It seems better to proces the remaining records than to abort
@@ -1075,7 +1080,7 @@ bool arDatabase::_initDatabaseLanguage(){
 /// a method that uses the _databaseLock.
 arDatabaseNode* arDatabase::_getNodeNoLock(int ID, bool fWarn){
   arNodeIDIterator i(_nodeIDContainer.find(ID));
-  if (i == _nodeIDContainer.end()){
+  if (i == _nodeIDContainer.end()) {
     if (fWarn){
       cerr << "arDatabase warning: no node with ID " << ID <<
 	   (empty() ? " in empty database.\n" : ".\n");

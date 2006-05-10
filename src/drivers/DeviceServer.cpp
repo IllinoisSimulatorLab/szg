@@ -217,10 +217,10 @@ LAbort:
   // Configure the input sources.
   list<string>::iterator iter;
   for (iter = nodeConfig.inputSources.begin();
-       iter != nodeConfig.inputSources.end(); iter++){
+       iter != nodeConfig.inputSources.end(); iter++) {
     arInputSource* theSource = NULL;
     // Check if the requested library is embedded in the library.
-    if (*iter == "arNetInputSource"){
+    if (*iter == "arNetInputSource") {
       arNetInputSource* netInputSource = new arNetInputSource();
       if (!netInputSource->setSlot(nextInputSlot)) {
 	initResponse << "DeviceServer: invalid slot " << nextInputSlot << ".\n";
@@ -228,18 +228,17 @@ LAbort:
       }
       nextInputSlot++;
       inputNode.addInputSource(netInputSource, true);
-    } 
-    else{
+    } else {
       // A dynamically loaded library
-      arSharedLib* inputSourceObject = new arSharedLib();
+      arSharedLib* inputSourceSharedLib = new arSharedLib();
       string error;
-      if (!inputSourceObject->createFactory(*iter, execPath, 
-                                            "arInputSource", error)){
+      if (!inputSourceSharedLib->createFactory(*iter, execPath, 
+                                            "arInputSource", error)) {
         initResponse << error;
         goto LAbort;
       }
       // Can create our object.
-      theSource = (arInputSource*) inputSourceObject->createObject();
+      theSource = (arInputSource*) inputSourceSharedLib->createObject();
       if (!theSource) {
         initResponse << "DeviceServer failed to create input source '" <<
 	  *iter << "'.\n";

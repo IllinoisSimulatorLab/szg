@@ -28,15 +28,20 @@ arEffector dragWand( 1, 6, 2, 2, 0, 0, 0 );
 arEffector headEffector( 0, 0, 0, 0, 0, 0, 0 );
 
 bool fJiggle = true;
+bool fTeapot = false;
 
 std::list<arInteractable*> interactionList;
 arCallbackInteractable interactionArray[NUMBER_OBJECTS];
 int objectTextureID[NUMBER_OBJECTS];
 int wandID = -1;
+int teapotTransformID = -1;
+float teapotAngle = 0.;
+int teapotID = -1;
 arGraphicsStateValue lightingOnOff(AR_G_TRUE);
 int lightsOnOffID;
 const float WAND_LENGTH = 2.;
 arMatrix4 cube0Matrix;
+long randomSeed = 0;
 
 arMutex databaseLock;
 
@@ -117,11 +122,14 @@ bool processCallback( arCallbackInteractable* object, arEffector* effector ) {
   return true;
 }
 
-void worldAlter(void* f){
+
+float teapotColor[] = {.5,.5,.5,1.};
+
+void worldAlter(void* f) {
   arDistSceneGraphFramework* framework = (arDistSceneGraphFramework*) f;
   framework->externalThreadStarted();
   int count = 0;
-  while (!framework->stopping()){
+  while (!framework->stopping()) {
     count++;
     // Change zeroth cube.  (Lissajous motion.)
     cube0Matrix = ar_translationMatrix(6.*sin(count*.00001),
@@ -147,6 +155,19 @@ void worldAlter(void* f){
       }
     }
 
+    if (teapotID != -1) {
+      teapotColor[0] = .5*sin(count*.0001)+.5;
+      teapotColor[1] = .5*cos(count*.000141)+.5;
+      teapotColor[2] = .5*sin(count*.000177)+.5;
+      dgPlugin( teapotID, "arTeapotGraphicsPlugin", NULL, 0, teapotColor, 4, NULL, 0, NULL, 0, NULL );
+      teapotAngle -= .001;
+      if (teapotAngle < 0.) {
+        teapotAngle += 360.;
+      }
+      dgTransform( teapotTransformID, ar_rotationMatrix('y',ar_convertToRad(teapotAngle))
+          *ar_translationMatrix(0,5,-5) );
+    }
+
     // necessary if we're using the inputEventQueueCallback to process buffered
     // events in batches (as opposed to inputEventCallback, which handles each
     // event as it comes in).
@@ -163,7 +184,8 @@ void worldAlter(void* f){
   framework->externalThreadStopped();
 }
 
-void worldInit(arDistSceneGraphFramework& framework){
+
+void worldInit(arDistSceneGraphFramework& framework) {
   const string baseName("cube");
 
   dgLight("light0","root",0,arVector4(0,0,1,0),arVector3(1,1,1));
@@ -185,7 +207,7 @@ void worldInit(arDistSceneGraphFramework& framework){
   theCylinder.setAttributes(20,1,1);
   theCylinder.toggleEnds(true);
   char buffer[32];
-  for (int i=0; i<NUMBER_OBJECTS; i++){
+  for (int i=0; i<NUMBER_OBJECTS; ++i) {
     sprintf(buffer,"%i",i);
     const string objectName(baseName + string(buffer));
     const string objectTexture(objectName + " texture");
@@ -230,13 +252,31 @@ calcpos:
       theCube.attachMesh(objectName, objectTexture);
     }
   }
+  if (fTeapot) {
+    teapotTransformID = dgTransform( "teapot_transform", "light_switch", ar_translationMatrix(0,5.,-5.) );
+    teapotID = dgPlugin( "teapot", "teapot_transform", "arTeapotGraphicsPlugin",
+                          NULL, 0, teapotColor, 4, NULL, 0, NULL, 0, NULL );
+    if (teapotID == -1) {
+      ar_log_error() << "cubes error: failed to create teapot plugin node.\n";
+      fTeapot = false;
+      return;
+    } else {
+      ar_log_remark() << "cubes created teapot plugin node with ID " << teapotID << ar_endl;
+    }
+  }
 }
 
-int main(int argc, char** argv){
+int main(int argc, char** argv) {
   if (argc > 1) {
-    if (!strcmp(argv[1], "-static")){
-      // Don't change cubes' position.
-      fJiggle = false;
+    for (unsigned int i=1; i<argc; ++i) {
+      if (!strcmp(argv[i], "-static")) {
+        // Don't change cubes' position.
+        fJiggle = false;
+      }
+      if (!strcmp(argv[i], "-teapot")) {
+        // Try to load and display the teapot plugin
+        fTeapot = true;
+      }
     }
   }
     
@@ -280,6 +320,7 @@ int main(int argc, char** argv){
   
   headEffector.setInteractionSelector( arDistanceInteractionSelector( 2 ) );
   
+  randomSeed = -long(ar_time().usec);
   worldInit(framework);
 
   if (!framework.start())

@@ -38,7 +38,7 @@
 
 // also want to include the node type IDs enum (as distinct from the
 // record IDs in the graphics language)
-enum{
+enum {
   AR_G_TRANSFORM_NODE = 0,
   AR_G_TEXTURE_NODE = 1,
   AR_G_BOUNDING_SPHERE_NODE = 2,
@@ -56,10 +56,11 @@ enum{
   AR_G_INDEX_NODE = 14,
   AR_G_DRAWABLE_NODE = 15,
   AR_G_BUMP_MAP_NODE = 16,
-  AR_G_GRAPHICS_STATE_NODE = 17
+  AR_G_GRAPHICS_STATE_NODE = 17,
+  AR_G_GRAPHICS_PLUGIN_NODE = 18
 };
 
-enum arGraphicsStateID{
+enum arGraphicsStateID {
   AR_G_GARBAGE_STATE = 0,
   AR_G_POINT_SIZE = 1,
   AR_G_LINE_WIDTH = 2,
@@ -70,7 +71,7 @@ enum arGraphicsStateID{
   AR_G_BLEND_FUNC = 7
 };
 
-enum arGraphicsStateValue{
+enum arGraphicsStateValue {
   AR_G_FALSE= 0,
   AR_G_TRUE = 1,
   AR_G_SMOOTH = 2,

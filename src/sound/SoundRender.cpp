@@ -106,7 +106,10 @@ int main(int argc, char** argv){
 
   soundClient->setSpeakerObject(&speakerObject);
   soundClient->setNetworks(szgClient.getNetworks("sound"));
-  (void)soundClient->init();
+  if (!soundClient->init()) {
+    ar_log_warning() << "SoundRender silent.\n";
+    return 1;
+  }
 
   // Now that init() has started FMOD, start the FMOD DSP callback
   // which can forward playing sounds.

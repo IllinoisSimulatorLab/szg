@@ -9,6 +9,11 @@ include $(SZGHOME)/build/make/Makefile.vars
 # DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
 # with this sometimes.
 OBJS = \
+  arGraphicsPluginNode$(OBJ_SUFFIX) \
+  arGraphicsClient$(OBJ_SUFFIX) \
+  arGraphicsContext$(OBJ_SUFFIX) \
+  arGraphicsDatabase$(OBJ_SUFFIX) \
+  arGraphicsLanguage$(OBJ_SUFFIX) \
   arBillboardNode$(OBJ_SUFFIX) \
   arBlendNode$(OBJ_SUFFIX) \
   arBoundingSphereNode$(OBJ_SUFFIX) \
@@ -28,10 +33,6 @@ OBJS = \
   arGUIXMLParser$(OBJ_SUFFIX) \
   arGraphicsAPI$(OBJ_SUFFIX) \
   arGraphicsArrayNode$(OBJ_SUFFIX) \
-  arGraphicsClient$(OBJ_SUFFIX) \
-  arGraphicsContext$(OBJ_SUFFIX) \
-  arGraphicsDatabase$(OBJ_SUFFIX) \
-  arGraphicsLanguage$(OBJ_SUFFIX) \
   arGraphicsNode$(OBJ_SUFFIX) \
   arGraphicsPeer$(OBJ_SUFFIX) \
   arGraphicsPeerRPC$(OBJ_SUFFIX) \
@@ -64,6 +65,12 @@ OBJS = \
   arViewport$(OBJ_SUFFIX) \
   arVisibilityNode$(OBJ_SUFFIX) \
   arWildcatUtilities$(OBJ_SUFFIX) 
+
+ifeq ($(strip $(SZG_LINKING)), STATIC) 
+  OBJS +=  \
+  arTeapotGraphicsPlugin$(OBJ_SUFFIX)
+endif
+
 
 # Local variable definitions for the build.
 # These internal library makefiles ONLY include the external files necessary
@@ -100,6 +107,12 @@ ALL =   $(SZG_CURRENT_DLL) \
   szg-rp$(EXE) \
   TestGraphics$(EXE)
 
+ifneq ($(strip $(SZG_LINKING)), STATIC) 
+  ALL += \
+    arTeapotGraphicsPlugin$(PLUGIN_SUFFIX)
+endif
+
+
 # NOTE: We now include the "magic" Everything target in Makefile.rules
 
 # This should go BEFORE our FIRST target (because Makefile.rules has rules
@@ -122,3 +135,11 @@ szg-rp$(EXE): szg-rp$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 TestGraphics$(EXE): TestGraphics$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_EXE_FIRST) TestGraphics$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
+
+
+# Plugins (shared libraries)
+
+arTeapotGraphicsPlugin$(PLUGIN_SUFFIX): arTeapotGraphicsPlugin$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arTeapotGraphicsPlugin$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+	$(COPY)
+

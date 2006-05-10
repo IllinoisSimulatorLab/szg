@@ -706,3 +706,97 @@ bool dgBumpMap(int ID, const string& filename, float height) {
   }
   return __database->alter(data);
 }
+
+
+int dgPlugin(const string& name,
+              const string& parent,
+              const string& fileName,
+               int* intData, int numInts,
+               float* floatData, int numFloats,
+               long* longData, int numLongs,
+               double* doubleData, int numDoubles,
+               std::vector< std::string >* stringData ) {
+  arDatabaseNode* node = dgMakeNode(name,parent,"graphics plugin");
+  if (!node) {
+    return -1;
+  }
+  if (!dgPlugin( node->getID(), fileName, intData, numInts, floatData, numFloats,
+        longData, numLongs, doubleData, numDoubles, stringData )) {
+    return -1;
+  }
+  return node->getID();
+}
+
+bool dgPlugin(int ID, const string& fileName,
+              int* intData, int numInts,
+               float* floatData, int numFloats,
+               long* longData, int numLongs,
+               double* doubleData, int numDoubles,
+               std::vector< std::string >* stringData ) {
+
+  if (ID < 0)
+    return false;
+  arStructuredData* data = __database->graphicsPluginData;
+  if (!data->dataIn( __gfx.AR_GRAPHICS_PLUGIN_ID, &ID, AR_INT, 1 )) {
+    ar_log_error() << "dgPlugin error: failed to set ID." << ar_endl;
+    return false;
+  }
+  if (!data->dataInString( __gfx.AR_GRAPHICS_PLUGIN_NAME, fileName )) {
+    ar_log_error() << "dgPlugin error: failed to set fileName." << ar_endl;
+    return false;
+  }
+
+  bool stat(true);
+  if (intData) {
+    stat &= data->dataIn( __gfx.AR_GRAPHICS_PLUGIN_INT, (const void*)intData, AR_INT, numInts );
+  } else {
+    stat &= data->setDataDimension( __gfx.AR_GRAPHICS_PLUGIN_INT, 0 );
+  }
+  if (longData) {
+    stat &= data->dataIn( __gfx.AR_GRAPHICS_PLUGIN_LONG, (const void*)longData, AR_LONG, numLongs );
+  } else {
+    stat &= data->setDataDimension( __gfx.AR_GRAPHICS_PLUGIN_LONG, 0 );
+  }
+  if (floatData) {
+    stat &= data->dataIn( __gfx.AR_GRAPHICS_PLUGIN_FLOAT, (const void*)floatData, AR_FLOAT, numFloats );
+  } else {
+    stat &= data->setDataDimension( __gfx.AR_GRAPHICS_PLUGIN_FLOAT, 0 );
+  }
+  if (doubleData) {
+    stat &= data->dataIn( __gfx.AR_GRAPHICS_PLUGIN_DOUBLE, (const void*)doubleData, AR_DOUBLE, numDoubles );
+  } else {
+    stat &= data->setDataDimension( __gfx.AR_GRAPHICS_PLUGIN_DOUBLE, 0 );
+  }
+  if (!stat) {
+    ar_log_error() << "dgPlugin() failed to pack numerical data." << ar_endl;
+    return false;
+  }
+
+  int numStrings = 0;
+  if (stringData) {
+    numStrings = (int)stringData->size();
+    unsigned int stringSize;
+    char* stringPtr = ar_packStringVector( *stringData, stringSize );
+
+    if (!stringPtr) {
+      ar_log_error() << "dgPlugin() failed to allocate string buffer.\n";
+      return false;
+    }
+  
+    stat = data->dataIn( __gfx.AR_GRAPHICS_PLUGIN_STRING, (const void*)stringPtr, AR_CHAR, stringSize );
+
+    delete[] stringPtr;
+    if (!stat) {
+      ar_log_error() << "dgPlugin() failed to pack string data.\n";
+      return false;
+    }
+  }
+  if (!data->dataIn( __gfx.AR_GRAPHICS_PLUGIN_NUMSTRINGS, (const void*)&numStrings, AR_INT, 1 )) {
+    ar_log_error() << "dgPlugin() failed to pack number of strings.\n";
+    return false;
+  }
+
+
+  return __database->alter(data);
+}
+

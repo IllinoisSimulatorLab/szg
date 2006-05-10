@@ -8,6 +8,8 @@
 
 #include "arDatabaseNode.h"
 #include "arGraphicsHeader.h"
+#include "arGraphicsWindow.h"
+#include "arViewport.h"
 #include <list>
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
@@ -15,9 +17,9 @@
 
 /// Information maintained during the traversal of a scene graph.
 
-class SZG_CALL arGraphicsContext{
+class SZG_CALL arGraphicsContext {
  public:
-  arGraphicsContext();
+  arGraphicsContext( arGraphicsWindow* win=NULL, arViewport* view=NULL );
   virtual ~arGraphicsContext();
 
   void pushNode(arDatabaseNode* node);
@@ -30,7 +32,12 @@ class SZG_CALL arGraphicsContext{
   void setLineState(float& blendFactor);
   void setTriangleState(float& blendFactor);
 
+  arGraphicsWindow* getWindow() { return _graphicsWindow; }
+  arViewport* getViewport() { return _viewport; }
+
  protected:
+  arGraphicsWindow* _graphicsWindow;
+  arViewport*       _viewport;
   list<arDatabaseNode*>   _pointsStack;
   list<arDatabaseNode*>    _blendStack;
   list<arDatabaseNode*>  _normal3Stack;

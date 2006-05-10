@@ -27,7 +27,9 @@ class SZG_CALL arGraphicsClient{
   friend bool
     ar_graphicsClientConnectionCallback(void*, arTemplateDictionary*);
   friend bool ar_graphicsClientDisconnectCallback(void*);
-  friend void ar_graphicsClientDraw(arGraphicsClient* client, arCamera*);
+  friend void ar_graphicsClientDraw( arGraphicsClient* client,
+                                     arGraphicsWindow& win,
+                                     arViewport& view );
   friend bool ar_graphicsClientConsumptionCallback(void*, ARchar*);
   friend bool ar_graphicsClientActionCallback(void*);
   friend bool ar_graphicsClientNullCallback(void*);

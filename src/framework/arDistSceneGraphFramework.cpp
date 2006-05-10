@@ -448,7 +448,8 @@ void arDistSceneGraphFramework::loopQuantum(){
     // Inside here, through callbacks to the arSyncDataClient embedded inside
     // the arGraphicsClient, is where all the scene graph event processing,
     // drawing, and synchronization happens.
-    _soundClient._cliSync.consume();
+    if (!_soundClient.silent())
+      _soundClient._cliSync.consume();
     _graphicsClient._cliSync.consume();
 
     // Events like closing the window and hitting the ESC key that cause the
@@ -499,6 +500,10 @@ bool arDistSceneGraphFramework::_loadParameters(){
 
   _head.configure( _SZGClient );
   _loadNavParameters();
+
+  const string szgExecPath = _SZGClient.getAttribute("SZG_EXEC","path"); // for dll's
+  arGraphicsPluginNode::setSharedLibSearchPath( szgExecPath );
+  
   _parametersLoaded = true;
   return true;
 }
@@ -527,8 +532,8 @@ void arDistSceneGraphFramework::_initDatabases(){
       (&_graphicsServer._syncServer);
     _soundClient._cliSync.registerLocalConnection
       (&_soundServer._syncServer);
-    // We'll be using the sound client locally to play. Must init it.
-    (void)_soundClient.init();
+    if (!_soundClient.init())
+      ar_log_warning() << "silent.\n";
   }
   else if (_peerName == "NULL"){
     // In phleet mode (but not peer mode), the _syncServer *always* syncs with its client.
@@ -745,9 +750,11 @@ bool arDistSceneGraphFramework::_startStandaloneMode(){
   _framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
   _graphicsClient.addFrameworkObject(&_framerateGraph);
   arSpeakerObject* speakerObject = new arSpeakerObject();
-  _soundClient.setSpeakerObject(speakerObject);
-  _soundClient.configure(&_SZGClient);
-  _soundServer.start();
+  if (!_soundClient.silent()) {
+    _soundClient.setSpeakerObject(speakerObject);
+    _soundClient.configure(&_SZGClient);
+    _soundServer.start();
+  }
   // Peer mode is meaningless here.
   _graphicsServer.start();
   _inputDevice->start();

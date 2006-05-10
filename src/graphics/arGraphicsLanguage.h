@@ -145,6 +145,15 @@ class SZG_CALL arGraphicsLanguage:public arDatabaseLanguage{
   int AR_GRAPHICS_STATE_INT;
   int AR_GRAPHICS_STATE_FLOAT;
   
+  int AR_GRAPHICS_PLUGIN;     // A node defined in a dll.
+  int AR_GRAPHICS_PLUGIN_ID;     
+  int AR_GRAPHICS_PLUGIN_NAME;     
+  int AR_GRAPHICS_PLUGIN_INT;     
+  int AR_GRAPHICS_PLUGIN_LONG;     
+  int AR_GRAPHICS_PLUGIN_FLOAT;     
+  int AR_GRAPHICS_PLUGIN_DOUBLE;     
+  int AR_GRAPHICS_PLUGIN_STRING;     
+  int AR_GRAPHICS_PLUGIN_NUMSTRINGS;     
 
  protected:
   arDataTemplate _transform;
@@ -166,6 +175,7 @@ class SZG_CALL arGraphicsLanguage:public arDatabaseLanguage{
   arDataTemplate _bumpMap;
   arDataTemplate _graphicsAdmin;
   arDataTemplate _graphicsState;
+  arDataTemplate _graphicsPlugin;
 public:
   const char* _stringFromID(int id);
 };

@@ -177,4 +177,19 @@ SZG_CALL int dgBumpMap(const string& name, const string& parent,
 SZG_CALL bool dgBumpMap(int ID, const string& filename, float height=1.);
 
 
+SZG_CALL int dgPlugin(const string& name, const string& parent, const string& fileName,
+               int* intData, int numInts,
+               float* floatData, int numFloats,
+               long* longData, int numLongs,
+               double* doubleData, int numDoubles,
+               std::vector< std::string >* stringData );
+    
+
+SZG_CALL bool dgPlugin(int ID, const string& fileName,
+               int* intData, int numInts,
+               float* floatData, int numFloats,
+               long* longData, int numLongs,
+               double* doubleData, int numDoubles,
+               std::vector< std::string >* stringData );
+
 #endif

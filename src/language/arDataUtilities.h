@@ -216,6 +216,11 @@ public:
   arPathString& operator/=(const string&);
 };
 
+// convert between vector<> of strings and '\0'-delimited char buffer.
+SZG_CALL char* ar_packStringVector( std::vector< std::string >& stringVec,
+                                    unsigned int& totalSize );
+SZG_CALL void ar_unpackStringVector( char* inbuf, unsigned int numStrings,
+                                     std::vector< std::string >& stringVec );
 
 SZG_CALL bool ar_getTokenList( const std::string& inString,
                        std::vector<std::string>& outList,

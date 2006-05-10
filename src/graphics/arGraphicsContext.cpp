@@ -13,7 +13,9 @@
 #include "arMaterialNode.h"
 #include "arBlendNode.h"
 
-arGraphicsContext::arGraphicsContext(){
+arGraphicsContext::arGraphicsContext( arGraphicsWindow* win, arViewport* view ) :
+  _graphicsWindow(win),
+  _viewport(view) {
 }
 
 arGraphicsContext::~arGraphicsContext(){

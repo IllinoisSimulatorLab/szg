@@ -1308,3 +1308,37 @@ void ar_unrefNodeList(list<arDatabaseNode*>& nodeList){
     (*i)->unref();
   }
 }
+
+// convert between vector<> of strings and '\0'-delimited char buffer.
+char* ar_packStringVector( std::vector< std::string >& stringVec, unsigned int& totalSize ) {
+  totalSize = 0;
+  std::vector< std::string >::iterator iter;
+  for (iter=stringVec.begin(); iter != stringVec.end(); ++iter) {
+    totalSize += iter->size()+1;
+  }
+  char* outbuf = new char[totalSize];
+  if (!outbuf) {
+    ar_log_error() << "ar_packStringVector() failed to allocate char buffer.\n";
+    return NULL;
+  }
+  char* ptr = outbuf;
+  for (iter=stringVec.begin(); iter != stringVec.end(); ++iter) {
+    unsigned int strSize = iter->size();
+    memcpy( ptr, iter->c_str(), strSize );
+    *(ptr+strSize) = '\0';
+    ptr += strSize+1;
+  }
+  return outbuf;
+}
+
+
+void ar_unpackStringVector( char* inbuf, unsigned int numStrings, std::vector< std::string >& stringVec ) {
+  stringVec.clear();
+  char* ptr = inbuf;
+  for (unsigned int i=0; i<numStrings; ++i) {
+    stringVec.push_back( std::string(ptr) );
+    ptr += strlen(ptr)+1;
+  }
+}
+
+

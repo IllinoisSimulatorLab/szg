@@ -34,7 +34,8 @@ bool ar_graphicsClientDisconnectCallback(void* client){
 // Draw a particular viewing frustum, not the whole arGraphicsWindow.
 // Called from the arGraphicsClientRenderCallback object.
 // (Use the camera for view frustum culling.)
-void ar_graphicsClientDraw( arGraphicsClient* c, arCamera* camera) {
+void ar_graphicsClientDraw( arGraphicsClient* c, arGraphicsWindow& win,
+                                                 arViewport& view ) {
 
   glEnable(GL_DEPTH_TEST);
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
@@ -46,8 +47,7 @@ void ar_graphicsClientDraw( arGraphicsClient* c, arCamera* camera) {
     // the additional info the screen object needs to calculate
     // the view transform
     c->_graphicsDatabase.activateLights();
-    arMatrix4 projectionCullMatrix(camera->getProjectionMatrix());
-    c->_graphicsDatabase.draw(&projectionCullMatrix);
+    c->_graphicsDatabase.draw(win, view);
   }
   else{
     // colored background
@@ -152,10 +152,10 @@ class arGraphicsClientRenderCallback : public arGUIRenderCallback {
 };
 
 // The callback for the arGraphicsWindow (i.e. for an individual viewport).
-void arGraphicsClientRenderCallback::operator()( arGraphicsWindow&,
+void arGraphicsClientRenderCallback::operator()( arGraphicsWindow& w,
                                                  arViewport& v) {
   if (_client)
-    ar_graphicsClientDraw(_client, v.getCamera());
+    ar_graphicsClientDraw(_client, w, v);
 }
 
 // The callback for the arGUIWindow.

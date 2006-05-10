@@ -34,6 +34,7 @@
 #include "arHead.h"
 #include "arBumpMapNode.h"
 #include "arGraphicsStateNode.h"
+#include "arGraphicsPluginNode.h"
 
 #ifdef USE_CG // Marks' Cg stuff
 // Unfortunately, the internal includes in the Cg headers necessitate that
@@ -72,6 +73,7 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
 
   void setVRCameraID(int cameraID);
 
+  void draw( arGraphicsWindow& win, arViewport& view );
   void draw(arMatrix4* projectionCullMatrix = NULL);
   int intersect(const arRay&);
   list<arDatabaseNode*> intersect(const arBoundingSphere& b, bool addRef=false);
@@ -109,6 +111,7 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
   arStructuredData* perspCameraData;
   arStructuredData* bumpMapData;
   arStructuredData* graphicsStateData;
+  arStructuredData* graphicsPluginData;
 
   arGraphicsLanguage _gfx;  
 

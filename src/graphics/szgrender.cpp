@@ -12,6 +12,7 @@
 #include "arGUIWindowManager.h"
 #include "arGUIXMLParser.h"
 #include "arLogStream.h"
+#include "arGraphicsPluginNode.h"
 
 arGraphicsClient graphicsClient;
 arFramerateGraph  framerateGraph;
@@ -41,6 +42,8 @@ bool loadParameters(arSZGClient& cli){
   dataPath = cli.getDataPath();
   graphicsClient.addDataBundlePathMap("SZG_DATA", dataPath);
   graphicsClient.addDataBundlePathMap("SZG_PYTHON", cli.getDataPathPython());
+  const string szgExecPath = cli.getAttribute("SZG_EXEC","path"); // for dll's
+  arGraphicsPluginNode::setSharedLibSearchPath( szgExecPath );
   return true;
 }
 

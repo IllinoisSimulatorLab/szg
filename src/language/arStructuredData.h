@@ -59,7 +59,7 @@ class SZG_CALL arStructuredData {
    arDataType getDataType(const string& fieldName);
    
    /// useful for manipulating data one chunk at a time
-   bool dataIn(int,const void*,arDataType,int); ///< called by xxxServer
+   bool dataIn(int field,const void* data,arDataType type,int dim); ///< called by xxxServer
    bool dataOut(int,void*,arDataType,int);      ///< called by xxxClient
 
    /// some less efficient methods for data manipulation

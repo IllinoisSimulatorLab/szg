@@ -783,7 +783,7 @@ void arMasterSlaveFramework::preDraw( void ) {
     onPostExchange();
   }
   
-  if( _standalone ) {
+  if( _standalone && !_soundClient->silent()) {
     // Play the sounds locally.
     _soundClient->_cliSync.consume();
   }
@@ -1223,7 +1223,7 @@ void arMasterSlaveFramework::setDataBundlePath( const string& bundlePathName,
   _soundServer.setDataBundlePath( bundlePathName, bundleSubDirectory );
 
   // For standalone mode, we also need to set-up the internal sound client.
-  // Only in this case will the _soundClient ptr be non-NULL.
+  // Only in this case will _soundClient != NULL.
   if( _soundClient ) {
     _soundClient->setDataBundlePath( bundlePathName, bundleSubDirectory );
   }
@@ -1922,15 +1922,15 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
   // registerLocalConnection before any dsLoop etc happens.
   arSpeakerObject* speakerObject = new arSpeakerObject();
 
+  //;;;; _soundClient not a pointer?  Like the other framework.
   // must be a pointer? fmod 3.7 needed it, lest the constructor conflict
   // with exes that themselves use fmod (or standalone).  fmod 4 maybe no longer so.
   _soundClient = new arSoundClient();
   _soundClient->setSpeakerObject( speakerObject );
   _soundClient->configure( &_SZGClient );
   _soundClient->_cliSync.registerLocalConnection( &_soundServer._syncServer );
-
-  // The underlying sound engine for the sound client must be initialized.
-  (void)_soundClient->init();
+  if (!_soundClient->init())
+    ar_log_warning() << "silent.\n";
 
   // Sound is inactive for the time being
   _soundActive = false;
@@ -2320,16 +2320,18 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
 
   _loadNavParameters();
 
+  const string szgExecPath = _SZGClient.getAttribute("SZG_EXEC","path"); // for dll's
+  arGraphicsPluginNode::setSharedLibSearchPath( szgExecPath );
+  
   // Ensure everybody gets the right bundle map, standalone or not.
   _dataPath = _SZGClient.getDataPath();
   _soundServer.addDataBundlePathMap( "SZG_DATA", _dataPath );
-  //;;;; _soundClient not a pointer?  Like the other framework.
-  if (_soundClient )
+  if (_soundClient)
     _soundClient->addDataBundlePathMap( "SZG_DATA", _dataPath );
 
   const string pythonPath = _SZGClient.getDataPathPython();
   _soundServer.addDataBundlePathMap( "SZG_PYTHON", pythonPath );
-  if( _soundClient )
+  if (_soundClient)
     _soundClient->addDataBundlePathMap( "SZG_PYTHON", pythonPath );
 
   return true;
