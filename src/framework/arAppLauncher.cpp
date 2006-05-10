@@ -129,26 +129,25 @@ bool arAppLauncher::setParameters(){
   }
 
   if (_vircompDefined){
-    // no need to go through this again.
+    // Done already.
     return true;
   }
   
-  // Set the virtual computer name (and also the "location").
-  // Only do this if the virtaul computer was not explciitly set!
+  // If the virtual computer was not explicitly set,
+  // set the virtual computer name and "location".
   if (_vircomp == "NULL" && !setVircomp()){
-    ar_log_error() << _exeName << " error: undefined virtual computer.\n";
+    ar_log_error() << _exeName << ": no virtual computer '" << _vircomp << "'.\n";
     return false;
   }
+
   // Does this virtual computer think all services should be relaunched always?
-  if (_client->getAttribute(_vircomp, "SZG_CONF", "relaunch_all", "")
-      == "true"){
-    _onlyIncompatibleServices = false;
-  }
+  _onlyIncompatibleServices = 
+    _client->getAttribute(_vircomp, "SZG_CONF", "relaunch_all", "") != "true";
  
+  // todo: stick to either pipe or screen, don't use both terms.
   const int numberPipes = getNumberScreens();
   if (numberPipes <= 0){
-    ar_log_error() << "arAppLauncher error: invalid number of pipes for "
-		   << "virtual computer " << _vircomp << ".\n";
+    ar_log_error() << "arAppLauncher: negative number of screens for virtual computer '" << _vircomp << "'.\n";
     return false;
   }
   _setNumberPipes(numberPipes);
@@ -164,13 +163,13 @@ bool arAppLauncher::setParameters(){
     _renderLaunchInfo[i].context = _getRenderContext(i);
   }
 
-  // Deal with input.
+  // Input.
   const arSlashString inputDevs(_getAttribute("SZG_INPUT0", "map", ""));
   const int numTokens = inputDevs.size();
   if (numTokens%2){
     ar_log_error() << _exeName
-                   << " error: invalid input devices format for " << _vircomp
-	           << ".  Expected computer/inputDevice/.../computer/inputDevice.\n";
+                   << ": invalid input devices format for virtual computer '" << _vircomp
+	           << "'.  Expected computer/inputDevice/.../computer/inputDevice.\n";
     return false;
   }
   _serviceList.clear();
@@ -196,13 +195,14 @@ bool arAppLauncher::setParameters(){
     _addService(computer, device, _getInputContext(),
                 "SZG_INPUT"+string(buffer), info);
   }
-  // Deal with sound, if configured.
+
+  // Sound.
   const string soundLocation(_getAttribute("SZG_SOUND","map",""));
   if (soundLocation != "NULL"){
     _addService(soundLocation,"SoundRender",_getSoundContext(),
                 "SZG_WAVEFORM", "");
   }
-  ar_log_remark() << _exeName << " remark: virtual computer definition ok.\n";
+  ar_log_remark() << _exeName << ": virtual computer defined.\n";
   _vircompDefined = true;
   return true;
 }  
