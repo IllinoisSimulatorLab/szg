@@ -236,10 +236,10 @@ int arSocket::ar_accept(arSocket* communicationSocket){
   // must be called by a listening socket and operate on a standard socket
   if (_type != AR_LISTENING_SOCKET ||
       communicationSocket->_type != AR_STANDARD_SOCKET){
-    cerr << "arSocket error: ar_accept() requires an AR_LISTENING_SOCKET "
-	 << "and an AR_STANDARD_SOCKET.\n";
+    cerr << "arSocket error: ar_accept() requires an AR_LISTENING_SOCKET and an AR_STANDARD_SOCKET.\n";
     return -1;
   }
+
   if (_socketFD < 0){
     cerr << "arSocket error: ar_accept() has a bad _socketFD.\n"
          << "  (Maybe this is a Renderer which is erroneously "
@@ -248,29 +248,27 @@ int arSocket::ar_accept(arSocket* communicationSocket){
   }
 
   arSocketAddress socketAddress;
-  // we keep accepting until we get a connection that is allowed by the
-  // accept mask
-  bool keepTrying = true;
-  while (keepTrying){
-    communicationSocket->_socketFD = accept(_socketFD,
-                                        (sockaddr*) socketAddress.getAddress(),
-                                        socketAddress.getAddressLengthPtr());
+  for (;;) {
+    communicationSocket->_socketFD = accept(
+      _socketFD, (sockaddr*) socketAddress.getAddress(),
+#ifdef AR_USE_DARWIN
+      (socklen_t*)
+#endif
+        socketAddress.getAddressLengthPtr());
     if (communicationSocket->_socketFD < 0){
       cerr << "arSocket error: accept() failed: ";
       perror("");
       return -1;
     }
-    // check to make sure that the address is valid, if the accept mask
-    // has been set
-    if (socketAddress.checkMask(_acceptMask)){
-      keepTrying = false;
-    }
-    else{
-      // close the offending socket... we will try again.
-      cout << "arSocket remark: invalid connection attempt from "
-	   << socketAddress.getRepresentation() << "\n";
-      communicationSocket->ar_close();
-    }
+
+    if (socketAddress.checkMask(_acceptMask))
+      // Accept mask allowed a connection.
+      break;
+
+    // Close the offending socket.  Try again.
+    cout << "arSocket remark: rejected connection from "
+	 << socketAddress.getRepresentation() << "\n";
+    communicationSocket->ar_close();
   }
   return 0;
 }
