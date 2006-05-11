@@ -103,7 +103,7 @@ class SZG_CALL arPhleetConfigParser{
   string                           _serverIP;
   int                              _serverPort;
   string                           _serverName;
-  // this is what actually parses the config/login files
+  // actually parse the config/login files
   arStructuredDataParser*          _fileParser;
 
   void _processComputerRecord(arStructuredData*);
@@ -112,6 +112,7 @@ class SZG_CALL arPhleetConfigParser{
 
   bool _createIfDoesNotExist(const string& directory);
   bool _determineFileLocations();
+  bool _findDir(const char*, const char*, const char*, const string&, string&);
   bool _writeName(FILE*);
   bool _writeInterfaces(FILE*);
   bool _writePorts(FILE*);

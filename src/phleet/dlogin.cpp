@@ -73,24 +73,22 @@ int main(int argc, char** argv){
   }
 
   // write the *partial* login file, since this is what the 
-  // arSZGClient will use to connect. We'll write the login file again
-  // after connecting to the szgserver (when the server name will have
-  // transfered over)
-  if (!client.writeLoginFile(userName)) {
-    ar_log_error() << "dlogin error: failed to write login file.\n";
+  // arSZGClient will use to connect.
+  if (!client.writeLoginFile(userName))
     return 1;
-  }
   
-  // connect to the szgserver
+  // Connect to the szgserver
   client.init(argc, argv);
   if (!client) {
-    ar_log_error() << "dlogin failed to login to the szgserver.\n";
+    ar_log_error() << "dlogin failed to login to szgserver.\n";
     client.logout();
     return 1;
   }
 
+  // Write the login file completely, now that the server name has been transferred.
   if (!client.writeLoginFile(userName))
-    ar_log_error() << "dlogin failed to write login file.\n";
+    return 1;
+  
   
   // verfiy we can, in fact, read the file.
   parser.parseLoginFile();

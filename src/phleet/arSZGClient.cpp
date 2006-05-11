@@ -3160,8 +3160,7 @@ void arSZGClient::setServerLocation(const string& IPaddress, int port){
   _port = port;
 }
 
-/// Write a login file using data gathered from e.g.
-/// discoverSZGServer()
+/// Write a login file using data from e.g. discoverSZGServer()
 bool arSZGClient::writeLoginFile(const string& userName){
   // userName may differ from _userName.
   // The internal storage refers to the effective user name of this
@@ -3174,7 +3173,7 @@ bool arSZGClient::writeLoginFile(const string& userName){
   return _configParser.writeLoginFile();
 }
 
-/// Set the login file to not-logged-in state.
+/// Reset the login file to not-logged-in state.
 bool arSZGClient::logout(){
   _configParser.setUserName("NULL");
   _configParser.setServerName("NULL");
@@ -3186,7 +3185,7 @@ bool arSZGClient::logout(){
 /// Default message task which handles "quit" and nothing else.
 void ar_messageTask(void* pClient){
   if (!pClient) {
-    ar_log_warning() << "ar_messageTask warning: no syzygy client, dkill disabled.\n";
+    ar_log_warning() << "ar_messageTask: no syzygy client, dkill disabled.\n";
     return;
   }
 

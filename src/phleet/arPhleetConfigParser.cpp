@@ -7,6 +7,7 @@
 #include "arPrecompiled.h"
 #include "arPhleetConfigParser.h"
 #include "arDataUtilities.h" // for ar_getUser()
+#include "arLogStream.h"
 #include <sys/types.h>     // for chmod and stat
 #include <sys/stat.h>      // for chmod and stat
 
@@ -19,8 +20,7 @@
 arPhleetConfigParser::arPhleetConfigParser(){
   _computerName = string("NULL");
   _numberInterfaces = 0;
-  // note the defaults for the port block. These are pretty reasonable
-  // for both Linux and Win32
+  // _firstPort and _blockSize are reasonable for Linux and Win32.
   _firstPort = 4700;
   _blockSize = 200;
   _userName = string("NULL");
@@ -34,9 +34,9 @@ arPhleetConfigParser::arPhleetConfigParser(){
 /// Parse the config file into internal storage, returning 
 /// true iff successful. Note the logic about which config file to parse.
 bool arPhleetConfigParser::parseConfigFile(){
-  if (!_determineFileLocations()){
+  if (!_determineFileLocations())
     return false;
-  }
+
   arFileTextStream configStream;
   if (!configStream.ar_open(_configFileLocation.c_str())){
     return false;
@@ -76,8 +76,8 @@ bool arPhleetConfigParser::writeConfigFile(){
 
   FILE* config = fopen(_configFileLocation.c_str(), "w");
   if (!config){
-    cerr << "phleet error: failed to write config file "
-	 << _configFileLocation << ".\n";
+    cerr << "phleet error: failed to write config file '"
+	 << _configFileLocation << "'.\n";
     return false;
   }
   
@@ -98,10 +98,10 @@ bool arPhleetConfigParser::writeConfigFile(){
 /// It may not be an error if this file does not exist on a
 /// particular computer (the user might not have logged in yet).
 bool arPhleetConfigParser::parseLoginFile(){
-  if (!_determineFileLocations()){
+  if (!_determineFileLocations())
     return false;
-  }
-  string fileName = _loginPreamble + ar_getUser() + string(".conf");
+
+  string fileName(_loginPreamble + ar_getUser() + string(".conf"));
   arFileTextStream loginStream;
   if (!loginStream.ar_open(fileName)){
     // no error message here, the caller will have to do the work
@@ -123,14 +123,16 @@ bool arPhleetConfigParser::parseLoginFile(){
 
 /// Write the login file, szg_<user name>.conf.
 bool arPhleetConfigParser::writeLoginFile(){
-  if (!_determineFileLocations()){
+  if (!_determineFileLocations())
     return false;
-  }
+
   const string fileName = _loginPreamble + ar_getUser() + string(".conf");
   FILE* login = fopen(fileName.c_str(),"w");
   if (!login){
+    ar_log_warning() << "failed to write login file '" << fileName << "'.\n";
     return false;
   }
+
   arStructuredData* data = _fileParser->getStorage(_l.AR_LOGIN);
   data->dataInString(_l.AR_LOGIN_USER, _userName);
   data->dataInString(_l.AR_LOGIN_SERVER_NAME, _serverName);
@@ -138,6 +140,7 @@ bool arPhleetConfigParser::writeLoginFile(){
   data->dataIn(_l.AR_LOGIN_SERVER_PORT, &_serverPort, AR_INT, 1);
   data->print(login);
   fclose(login);
+
   // Do not change permissions on the login file.
   // Other (unix) users should not be able to read it.
   return true;
@@ -318,61 +321,44 @@ bool arPhleetConfigParser::_createIfDoesNotExist(const string& directory){
   }
   return true;
 #else
-  // The Unix way.
   struct stat statbuf;
   if (stat(directory.c_str(), &statbuf) < 0){
     // Not found.
     if (mkdir(directory.c_str(), 00777) < 0){
       return false;
     }
-    // Ideally, anybody should be able to modify a file in this
-    // directory.
+    // Anybody should be able to modify a file in this directory.
     chmod(directory.c_str(), 00777);
   }
   return true;
 #endif
 }
 
-/// Determine the location of the config file and the login preamble.
+/// Find the config file and login preamble.
 bool arPhleetConfigParser::_determineFileLocations(){
+  return _findDir("SZG_CONF",  "/etc", "config file", "szg.conf", _configFileLocation)
+      && _findDir("SZG_LOGIN", "/tmp", "login",       "szg_", _loginPreamble);
+}
 
-  string potentialConfigFileLocation = ar_getenv("SZG_CONF");
-  if (potentialConfigFileLocation == "NULL"){
-    // Use the default.
-#ifdef AR_USE_WIN_32
-    // NOTE: Win32 will NOT WORK if there is a trailing slash.
-    potentialConfigFileLocation = "c:\\szg";
-#else
-    potentialConfigFileLocation = "/etc";
-#endif
-  }
-  if (!_createIfDoesNotExist(potentialConfigFileLocation)){
-    printf("syzygy error: could not create config file directory %s.",
-           potentialConfigFileLocation.c_str());
-    return false;
-  }
-  ar_pathAddSlash(potentialConfigFileLocation);
-  ar_scrubPath(potentialConfigFileLocation);
-  _configFileLocation = potentialConfigFileLocation+"szg.conf";
-
-  string potentialLoginDir = ar_getenv("SZG_LOGIN");
-  if (potentialLoginDir == "NULL"){
+bool arPhleetConfigParser::_findDir(const char* envvar, const char* fallback, const char* name, const string& suffix, string& result) {
+  string sz(ar_getenv(envvar));
+  if (sz == "NULL"){
     // Fall back to the default.
 #ifdef AR_USE_WIN_32
     // No trailing slash.
-    potentialLoginDir = "c:\\szg";
-#else
-    potentialLoginDir = "/tmp";
+    fallback = "c:\\szg";
 #endif
+    sz = fallback;
   }
-  if (!_createIfDoesNotExist(potentialLoginDir)){
-    printf("syzygy error: could not create login directory %s.",
-           potentialLoginDir.c_str());
+  if (!_createIfDoesNotExist(sz)){
+    ar_log_warning() << "failed to create " << name << " directory '" <<
+      sz << "'.\n";
     return false;
   }
-  ar_pathAddSlash(potentialLoginDir);
-  ar_scrubPath(potentialLoginDir);
-  _loginPreamble = potentialLoginDir+"szg_";
+
+  ar_pathAddSlash(sz);
+  ar_scrubPath(sz);
+  result = sz + suffix;
   return true;
 }
 
@@ -383,7 +369,7 @@ void arPhleetConfigParser::_processComputerRecord(arStructuredData* data){
 void arPhleetConfigParser::_processInterfaceRecord(arStructuredData* data){
   string netmask = data->getDataString(_l.AR_INTERFACE_MASK);
   if (netmask == ""){
-    // A sensible default if it wasn't set in the config file.
+    // Default, if not in config file.
     netmask = "255.255.255.0";
   }
   addInterface(data->getDataString(_l.AR_INTERFACE_NAME),

@@ -16,14 +16,11 @@ int main(int argc, char** argv){
     return 1;
   }
   
-  // write garbage values to the login file
+  // Reset the login file's contents.
   arPhleetConfigParser parser;
   parser.setUserName("NULL");
   parser.setServerName("NULL");
   parser.setServerIP("NULL");
   parser.setServerPort(0);
-  if (!parser.writeLoginFile()){
-    cout << "dlogout error: failed to write login file.\n";
-  }
-  return 0;
+  return parser.writeLoginFile() ? 0 : 1;
 }
