@@ -61,20 +61,24 @@ Quake3 level builder).
 =Environment variables affecting the operation of Syzygy components=
 
 - SZG_PARAM: In application standalone mode, if the parameter file
-(by default called szg_parameters.txt) cannot be opened, try to open the
-file specified by this environment variable.
+(szg_parameters.txt by default) cannot be opened, try to open this file instead.
 
-- SZG_CONF: The directory where the computer's config file is stored.
+- SZG_CONF: The directory storing the computer's config file.
 Only set this if the default is unworkable.
 
-- SZG_LOGIN: The directory where user login (to szgservers) information is
-stored. Only set this if the default is unworkable.
+- SZG_LOGIN: The directory storing user login (to szgservers) information.
+Only set this if the default is unworkable.
 
-- SZGUSER: Allows running-as another szg user. This overrides the results
-of dlogin.
+- SZGUSER: Run as a different szg user. Overrides dlogin's settings.
 
 - SZGCONTEXT: The values of various options (like virtual computer identity)
 packed in a single string.
+
+- SZG_DEX_TIMEOUT: How many seconds szgd waits for an application to launch.
+"dex -t" overrides it.
+
+- SZG_DEX_LOCALTIMEOUT: How many seconds dex waits for a reply from szgd.
+"dex -lt" overrides it.
 
 
 =Environment variables that can substitute for Phleet database parameters=

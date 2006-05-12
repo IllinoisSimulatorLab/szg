@@ -12,11 +12,12 @@
 
 const int chost = 60;
 const int cchMax = 30;
-static char hosts[chost * cchMax];
+static char hosts[chost * cchMax + 2];
 
 void getHostsRunningSzgd(arSZGClient& szgClient){
   
   const string& lines = szgClient.getProcessList();
+  strcpy(hosts, " ");
 
   /// \todo copypasted from dtop.cpp
   for (unsigned iline=0; iline < lines.length(); ++iline) {
@@ -55,7 +56,7 @@ bool isRunningSzgd(const char* szHost){
     return false;
   char buf[256];
   sprintf(buf, " %s ", szHost);
-  return strstr(hosts, szHost) != NULL;
+  return strstr(hosts, buf) != NULL;
 }
 
 /// \todo make this a member of szgClient, and use it wherever SZG_CONF/virtual is mentioned.
@@ -65,104 +66,101 @@ bool isVirtualComputer(arSZGClient& szgClient, const char* host){
 
 int main(int argc, char** argv){
   int i=0, j=0;
-  // Default is to have no timeout.
-  int localtimeout = -1;
-  int remoteTimeout = -1;
-  float tempFloat;
-  bool stat;
-  bool verbosity = false;
+  // Default is no timeouts.
+  int msecTimeoutLocal = -1;
+  int msecTimeoutRemote = -1;
+
+  float t;
+  string sz = ar_getenv("SZG_DEX_LOCALTIMEOUT");
+  if (sz != "NULL" && ar_stringToFloatValid( sz, t ) && t>0.)
+    msecTimeoutLocal = int(t*1000);
+  sz = ar_getenv("SZG_DEX_TIMEOUT");
+  if (sz != "NULL" && ar_stringToFloatValid( sz, t ) && t>0.)
+    msecTimeoutRemote = int(t*1000);
+
   // parse and remove the command-line options
+  bool verbosity = false;
+
   for (i=0; i<argc; i++){
     if (!strcmp(argv[i],"-v")){
       verbosity = true;
       // remove the arg from the list
-      for (j=i; j<argc-1; j++){
+      for (j=i; j<argc-1; j++)
         argv[j] = argv[j+1];
-      }
       argc--;
     }
+
+    // factor out copypaste from these two blocks.
+
     if (!strcmp(argv[i],"-lt")){
       // The next arg must be a timeout, in seconds.
       if (argc <= i+1){
 	cerr << "dex error: a timeout in seconds must follow the -lt option.\n";
 	return 1;
       }
-      stat = ar_stringToFloatValid( string(argv[i+1]), tempFloat );
-      if (!stat) {
+      if (!ar_stringToFloatValid( string(argv[i+1]), t )) {
 	cerr << "dex error: the local timeout must be a number.\n";
         return 1;
       }
-      if (tempFloat <= 0.){
+      if (t <= 0.){
 	cerr << "dex error: the local timeout must be a number of seconds > 0.\n";
 	return 1;
       } else {
-        // convert to int, milliseconds.
-        localtimeout = (int)(tempFloat*1000);
-        cout << "dex remark: local timeout = " << localtimeout << " milliseconds.\n";
+        msecTimeoutLocal = int(t*1000);
+        cout << "dex remark: local timeout = " << msecTimeoutLocal << " milliseconds.\n";
       }
-      for (j=i; j<argc-2; j++){
+      for (j=i; j<argc-2; j++)
         argv[j] = argv[j+2];
-      }
-      argc = argc - 2;
+      argc -= 2;
     }
+
     if (!strcmp(argv[i],"-t")){
       // The next arg must be a remote timeout, in seconds.
       if (argc <= i+1){
 	cerr << "dex error: a timeout in seconds must follow the -t option.\n";
 	return 1;
       }
-      stat = ar_stringToFloatValid( string(argv[i+1]), tempFloat );
-      if (!stat) {
+      if (!ar_stringToFloatValid( string(argv[i+1]), t )) {
 	cerr << "dex error: the timeout must be a number.\n";
         return 1;
       }
-      if (tempFloat <= 0.){
+      if (t <= 0.){
 	cerr << "dex error: the timeout must be a number of seconds > 0.\n";
 	return 1;
       } else {
-        // convert to int, milliseconds.
-        remoteTimeout = (int)(tempFloat*1000);
-        cout << "dex remark: remote timeout = " << remoteTimeout << " milliseconds.\n";
+        msecTimeoutRemote = int(t*1000);
+        cout << "dex remark: remote timeout = " << msecTimeoutRemote << " milliseconds.\n";
       }
-      for (j=i; j<argc-2; j++){
+      for (j=i; j<argc-2; j++)
         argv[j] = argv[j+2];
-      }
-      argc = argc - 2;
+      argc -= 2;
     }
+
   }
 
   if (argc <= 1) {
-    // don't even try connecting to szgserver
-    cerr << "usage: " << argv[0] << " [-v] [-lt localtimeoutsec] [-t timeoutsec] executable_name\n"
-         << "       " << argv[0] << " [-v] [-lt localtimeoutsec] [-t timeoutsec] hostname executable_name [args]\n"
-         << "       localtimeoutsec is the time for dex to wait for a reply.\n"
-         << "       timeoutsec is the timeout for the actual launch of the application by szgd.\n"
-         << "       If the app hasn't launched in timeoutsec, it will abort.\n";
+    cerr << "usage: dex [-v] [-lt localtimeoutsec] [-t timeoutsec] executable_name\n"
+         << "  dex [-v] [-lt localtimeoutsec] [-t timeoutsec] hostname executable_name [args]\n"
+         << "  localtimeoutsec is how long dex waits for a reply.\n"
+         << "  timeoutsec is how long szgd gives the app to launch before aborting it.\n";
     return 1;
     }
 
   arSZGClient szgClient;
-  // It is very important that dex DOES NOT parse the "specical" phleet args,
-  // but instead passes them along to the remotely executed program
-  // because commands like:
-  // dex smoke szgrender -szg networks/graphics=wall
-  // should work.
-  // NOTE: however, the phleet args that relate to user login MUST be
-  // parsed. This allows commands like:
-  // dex smoke szgrender -szg user=ben -szg server=192.168.0.1:9999
-  // to work. 
+  // dex forwards rather than parses the "specical" phleet args, so this works:
+  //     dex smoke szgrender -szg networks/graphics=wall
+  // But dex DOES parse phleet args that relate to user login, so this works:
+  //     dex smoke szgrender -szg user=ben -szg server=192.168.0.1:9999
   szgClient.parseSpecialPhleetArgs(false);
   szgClient.init(argc, argv);
   if (!szgClient)
     return 1;
-  // This does a "dps" and finds the hosts that are running szgd.
+
   getHostsRunningSzgd(szgClient);
-
-  string hostName;
-  string exeName;
-
   const string localhost(szgClient.getComputerName());
   bool runningOnVirtual = false;
+  string hostName;
+  string exeName;
 
   // There is a somewhat complex dance to dex because it can be used it
   // several ways:
@@ -199,7 +197,7 @@ int main(int argc, char** argv){
       hostName = argv[1];
       for (i=2; i<argc; ++i) {
 	exeName.append(argv[i]);
-	// Important we do not send an extra space to the szgd
+	// Don't send an extra space to szgd
         if (i != argc-1){
 	  exeName.append(" ");
 	}
@@ -231,72 +229,68 @@ int main(int argc, char** argv){
 
   // getTrigger(...) returns the trigger of the virtual computer
   // passed-in as an arg, if such is fact a virtual computer,
-  // and otherwise returns "NULL". THIS IS ONLY MEANINGFUL IF WE ARE
-  // TRYING TO EXECUTE ON A VIRTUAL COMPUTER.
+  // and otherwise returns "NULL".
   string messageContext("NULL");
   if (runningOnVirtual){
     string virtualComputerTrigger(szgClient.getTrigger(hostName));
     if (virtualComputerTrigger != "NULL"){
-      messageContext = szgClient.createContext(hostName,"default","trigger",
-                                               "default","NULL");
+      messageContext = szgClient.createContext(
+        hostName,"default","trigger", "default","NULL");
       hostName = virtualComputerTrigger;
     }
     else{
-      cerr << argv[0] << " error: virtual computer '" << hostName << "' has no trigger.\n";
-      // Fatal error.
+      cerr << argv[0] << " error: no trigger for virtual computer '" << hostName << "'.\n";
       return 1;
     }
   }
 
-  // By this point, hostName is the name of an actual computer, either from
+  // hostName names an actual computer, from either
   // the command line OR the trigger of the virtual computer.
   const int szgdID = szgClient.getProcessID(hostName, "szgd");
   if (szgdID == -1) {
-    cerr << argv[0] << " error: found no szgd on computer=" 
-         << hostName << ".\n";
+    cerr << argv[0] << " error: no szgd on host " << hostName << ".\n";
     if (runningOnVirtual){
-      cerr << "  (which is the trigger of virtual computer " 
-           << argv[1] << ")\n";
+      cerr << "  (which is the trigger of virtual computer '" << argv[1] << "')\n";
     }
     // Don't reinterpret or retry.  Just fail.
     return 1;
   }
 
   string messageBody( exeName );
-  if (remoteTimeout > -1) {
+  if (msecTimeoutRemote > -1) {
     ostringstream tempStream;
-    tempStream << remoteTimeout;
-    // Oy vey. Hack. This will get unpacked by szgd.
+    tempStream << msecTimeoutRemote;
+    // Hack. This will get unpacked by szgd.
     messageBody += "||||"+tempStream.str();
   } 
-  int match = szgClient.sendMessage("exec", 
-                                    messageBody, 
-                                    messageContext, 
-                                    szgdID, true);
+  int match = szgClient.sendMessage(
+    "exec", messageBody, messageContext, szgdID, true);
   if (match < 0){
-    cout << "dex error: an error has occured in sending the message.\n";
+    cerr << "dex error: failed to send message.\n";
     return 1;
   }
   list<int> tags;
   tags.push_back(match);
-  // We need a reasonable default (what if a timeout occurs, for instance).
-  string body("dex error: no response was received.");
+
+  // Default body, e.g. for timeouts.
+  string body("dex error: got no response.");
+
   // We only get a message response with "match" from the tags list.
   // The variable match is filled-in with the "match" we received, which
   // is redundant in this case since there's just one thing in the list.
-  while (szgClient.getMessageResponse(tags,body,match,localtimeout) < 0){
+  while (szgClient.getMessageResponse(tags,body,match,msecTimeoutLocal) < 0){
     if (verbosity){
       cout << body << "\n";
     } else {
-      // Find lines beginning with "szg:" and print those.
-      std::vector< std::string > lines;
-      std::string line;
+      // Print lines beginning with "szg:".
+      vector< string > lines;
+      string line;
       istringstream ist;
       ist.str( body );
       while (getline( ist, line, '\n' )) {
         lines.push_back( line );
       }
-      std::vector< std::string >::const_iterator iter;
+      vector< string >::const_iterator iter;
       for (iter = lines.begin(); iter != lines.end(); ++iter) {
         if (iter->find( "szg:", 0 ) == 0) {
           cout << *iter << endl;
@@ -304,7 +298,7 @@ int main(int argc, char** argv){
       }
     }
   }
-  // output the last (final) response
+  // Print the final response.
   cout << body << "\n";
   return 0;
 }
