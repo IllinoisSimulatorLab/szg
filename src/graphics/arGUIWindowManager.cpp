@@ -366,35 +366,30 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int windowID, arGUIWindowInfo e
 
 int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent,
                                        bool blocking ){
-  WindowIterator witr;
-
-  EventVector eventHandles;
-  EventIterator eitr;
-
   static bool warn = false;
   if( !warn && blocking && !_threaded ) {
-    ar_log_warning() << "arGUIWindowManager warning: addAllWMEvent blocking while singlethreaded." << ar_endl;
+    ar_log_remark() << "arGUIWindowManager: addAllWMEvent blocking while singlethreaded.\n";
     warn = true;
   }
+
+  WindowIterator witr;
+  EventVector eventHandles;
+  EventIterator eitr;
 
   // Pass the event to all windows so they can get started on it
   for( witr = _windows.begin(); witr != _windows.end(); witr++ ) {
     arWMEvent* eventHandle = addWMEvent( witr->second->getID(), wmEvent );
-
     if( eventHandle ) {
       eventHandles.push_back( eventHandle );
     }
     else if( _threaded ) {
-      // in single threaded mode, addWMEvent *will* return NULL's
-      // print warning?
+      // If !_threaded, addWMEvent returns NULL.  Warn?
     }
   }
 
-  // Wait for all the events to complete.
-  for( eitr = eventHandles.begin(); eitr != eventHandles.end(); eitr++ ) {
+  // Wait for the events to complete.
+  for( eitr = eventHandles.begin(); eitr != eventHandles.end(); eitr++ )
     (*eitr)->wait( blocking );
-  }
-
   return 0;
 }
 
@@ -708,7 +703,7 @@ int arGUIWindowManager::deleteAllWindows( void )
 
 int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingConstruct, bool useWindowing )
 {
-  if ( !windowingConstruct )
+  if (!windowingConstruct)
     return -1;
 
   const std::vector< arGUIXMLWindowConstruct* >* windowConstructs =
@@ -721,17 +716,13 @@ int arGUIWindowManager::createWindows( const arGUIWindowingConstruct* windowingC
   setThreaded( windowConstructs->size() > 1 );
 
   // If the XML mentions threading, override the default.
-  if( windowingConstruct->getThreaded() != -1 ) {
-    setThreaded( bool( windowingConstruct->getThreaded() ) );
-  }
+  int t = windowingConstruct->getThreaded(); // -1 means unassigned, otherwise bool.
+  if (t != -1)
+    setThreaded(t);
 
   // By default, no framelocking.
-  if( windowingConstruct->getUseFramelock() != -1 ) {
-    useFramelock( bool( windowingConstruct->getUseFramelock() ) );
-  }
-  else{
-    useFramelock( false );
-  }
+  t = windowingConstruct->getUseFramelock(); // -1 means unassigned, otherwise bool.
+  useFramelock((t != -1) && t);
 
   // Instead of invalidating iterators in the {add|delete}Window calls
   // in the loops below, iterate over a copy of all the window IDs.
