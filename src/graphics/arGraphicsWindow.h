@@ -100,7 +100,7 @@ class SZG_CALL arGraphicsWindow {
     arViewport* getViewport( unsigned int vpindex );
     float getCurrentEyeSign() const { return _currentEyeSign; }
     void setPixelDimensions( int posX, int posY, int sizeX, int sizeY );
-    void getPixelDimensions( int& posX, int& posY, int& sizeX, int& sizeY );
+    void getPixelDimensions( int& posX, int& posY, int& sizeX, int& sizeY ) const;
     bool draw();
   protected:
   private:

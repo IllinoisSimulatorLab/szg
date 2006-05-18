@@ -352,7 +352,7 @@ void arGraphicsWindow::setPixelDimensions( int posX, int posY, int sizeX, int si
   _sizeY = sizeY;
 }
 
-void arGraphicsWindow::getPixelDimensions( int& posX, int& posY, int& sizeX, int& sizeY ) {
+void arGraphicsWindow::getPixelDimensions( int& posX, int& posY, int& sizeX, int& sizeY ) const {
   posX = _posX; posY = _posY; sizeX = _sizeX; sizeY = _sizeY;
 }
 
