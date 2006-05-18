@@ -368,7 +368,8 @@ int arGUIWindowManager::addAllWMEvent( arGUIWindowInfo wmEvent,
                                        bool blocking ){
   static bool warn = false;
   if( !warn && blocking && !_threaded ) {
-    ar_log_remark() << "arGUIWindowManager: addAllWMEvent blocking while singlethreaded.\n";
+    // Bugs in a syzygy framework might cause a deadlock here.
+    ar_log_debug() << "arGUIWindowManager: addAllWMEvent blocking while singlethreaded.\n";
     warn = true;
   }
 
