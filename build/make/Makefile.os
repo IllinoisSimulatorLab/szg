@@ -1,7 +1,7 @@
-# This code guesses the OS we're running in
+# Guess the OS.
 
+# Try "uname".
 PLATFORM=UNKNOWN_OS
-# use uname to guess the OS
 ifeq ($(shell uname), Linux)
   PLATFORM=linux
 endif
@@ -42,7 +42,7 @@ ifeq ($(shell uname), IRIX64)
   PLATFORM=mips4
 endif
 
-#as a backup, try the OSTYPE environment variable
+# fallback: OSTYPE environment variable
 
 ifeq "$(OSTYPE)" "linux"
   PLATFORM=linux
@@ -60,18 +60,16 @@ ifeq "$(OSTYPE)" "cygwin"
   PLATFORM=win32
 endif
 
-#and, as a final back-up, try the OS environment variable
+# fallback: OS environment variable
 
 ifeq "$(OS)" "Windows_NT"
   PLATFORM=win32
 endif
 
-# OK, we guessed the OS.  Let's actually do something now.
-
-# The variable z used to hold the PLATFORM. For backwards compatibility in
-# the makefiles, let's set it appropriately here. HOWEVER, its use is
-# deprecated!
+# $z is a deprecated name for $PLATFORM.
 z:=$(PLATFORM)
+
+# Guess how many CPU's.
 
 ifeq "$(PLATFORM)" "win32"
 	ifeq "$(SZG_COMPILER)" "MINGW"
@@ -99,18 +97,16 @@ endif
 endif
 endif
 
-# Finally, the way the stuff is set up now, a stub Makefile sets the MACHINE
-# variable and then includes the regular Makefile (for the particular 
-# application). However, to be able to do the install-shared target, we need
+# A stub Makefile sets $MACHINE
+# and then includes the regular Makefile (for the particular 
+# application). However, the install-shared target needs
 # that set here. So... do the following. Yes, this is redundant.
 # Beware when thinking about changing the Makefiles so that the 
 # Makefile.machine becomes unecessary. Now, the file structure 
-# (via the Makefile.machine files) encodes the type of build that must occur.
-# A future permutation would have to pass the information down the recursive
-# make.
+# (via the Makefile.machine files) encodes what kind of build occurs.
+# A future permutation would have to pass the information down the recursive make.
 
-# A good idea to also set MACHINE_DIR, which is used for some top-level
-# makefile operations depending on SZG_BINDIR.
+# MACHINE_DIR is used for top-level makefile operations depending on SZG_BINDIR.
 
 ifeq "$(PLATFORM)" "win32"
   MACHINE=WIN32
@@ -133,8 +129,5 @@ ifeq "$(PLATFORM)" "mips4"
   MACHINE_DIR=mips4
 endif
 
-# Want the definitions of SZG_BINDIR and INSTALLDIR to be consistent
-# pretty much everywhere. These definitions are in the following fragment.
+# Try to keep SZG_BINDIR and INSTALLDIR consistent (in Makefile.globals).
 include $(SZGHOME)/build/make/Makefile.globals
-
-
