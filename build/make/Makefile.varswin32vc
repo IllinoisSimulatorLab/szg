@@ -205,4 +205,3 @@ endif
 # ranlib on a newly linked .a, but this is redundant on other Unix
 # or Win32 platforms.
 RANLIB = @echo
-

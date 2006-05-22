@@ -69,7 +69,3 @@ include $(SZGHOME)/build/make/Makefile.rules
 $(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
 	$(LINK_SZG_LIB)
 	$(COPY)
-
-
-
-

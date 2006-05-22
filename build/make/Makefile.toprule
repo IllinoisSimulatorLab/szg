@@ -1,5 +1,5 @@
-# Standard top-level Makefile for individual projects built on syzygy.
-# Not used in syzygy itself.
+# Standard top-level Makefile for individual projects built on Syzygy.
+# Not used by Syzygy itself.
 
 include $(SZGHOME)/build/make/Makefile.os
 

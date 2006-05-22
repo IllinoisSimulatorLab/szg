@@ -14,4 +14,3 @@ include $(SZGHOME)/build/make/Makefile.rules
 ribbons$(EXE): ribbons$(OBJ_SUFFIX) $(SZG_LIBRARY_DEPS)
 	$(SZG_USR_FIRST) ribbons$(OBJ_SUFFIX) $(SZG_USR_SECOND)
 	$(COPY)
-

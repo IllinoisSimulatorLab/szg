@@ -1,4 +1,3 @@
-
 .SUFFIXES : .obj .cpp .c .o .so .lib .dll
 
 .cpp$(OBJ_SUFFIX):
