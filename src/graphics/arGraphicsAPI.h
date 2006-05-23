@@ -192,4 +192,61 @@ SZG_CALL bool dgPlugin(int ID, const string& fileName,
                double* doubleData, int numDoubles,
                std::vector< std::string >* stringData );
 
+SZG_CALL int dgPlugin(const string& name,
+              const string& parent,
+              const string& fileName,
+               std::vector<int>& intData,
+               std::vector<float>& floatData,
+               std::vector<long>& longData,
+               std::vector<double>& doubleData,
+               std::vector< std::string >& stringData );
+
+SZG_CALL bool dgPlugin( int ID, const string& fileName, 
+               std::vector<int>& intData,
+               std::vector<float>& floatData,
+               std::vector<long>& longData,
+               std::vector<double>& doubleData,
+               std::vector< std::string >& stringData );
+
+
+int SZG_CALL dgPython(const string& name,
+              const string& parent,
+              const string& moduleName,
+              const string& factoryName,
+              bool reloadModule,
+               int* intData, int numInts,
+               float* floatData, int numFloats,
+               long* longData, int numLongs,
+               double* doubleData, int numDoubles,
+               std::vector< std::string >* stringData );
+
+bool SZG_CALL dgPython( int ID, const string& moduleName,
+               const string& factoryName,
+               bool reloadModule,
+               int* intData, int numInts,
+               float* floatData, int numFloats,
+               long* longData, int numLongs,
+               double* doubleData, int numDoubles,
+               std::vector< std::string >* stringData );
+
+int SZG_CALL dgPython(const string& name,
+              const string& parent,
+              const string& moduleName,
+              const string& factoryName,
+              bool reloadModule,
+               std::vector<int>& intData,
+               std::vector<float>& floatData,
+               std::vector<long>& longData,
+               std::vector<double>& doubleData,
+               std::vector< std::string >& stringData );
+
+bool SZG_CALL dgPython( int ID, const string& moduleName, 
+               const string& factoryName,
+               bool reloadModule,
+               std::vector<int>& intData,
+               std::vector<float>& floatData,
+               std::vector<long>& longData,
+               std::vector<double>& doubleData,
+               std::vector< std::string >& stringData );
+
 #endif

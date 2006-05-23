@@ -727,8 +727,9 @@ int dgPlugin(const string& name,
   return node->getID();
 }
 
-bool dgPlugin(int ID, const string& fileName,
-              int* intData, int numInts,
+
+bool dgPlugin( int ID, const string& fileName,
+               int* intData, int numInts,
                float* floatData, int numFloats,
                long* longData, int numLongs,
                double* doubleData, int numDoubles,
@@ -798,5 +799,151 @@ bool dgPlugin(int ID, const string& fileName,
 
 
   return __database->alter(data);
+}
+
+
+int dgPlugin(const string& name,
+              const string& parent,
+              const string& fileName,
+               std::vector<int>& intData,
+               std::vector<float>& floatData,
+               std::vector<long>& longData,
+               std::vector<double>& doubleData,
+               std::vector< std::string >& stringData ) {
+  arDatabaseNode* node = dgMakeNode(name,parent,"graphics plugin");
+  if (!node) {
+    return -1;
+  }
+  if (!dgPlugin( node->getID(), fileName, intData, floatData, 
+        longData, doubleData, stringData )) {
+    return -1;
+  }
+  return node->getID();
+}
+
+
+bool dgPlugin( int ID, const string& fileName, 
+               std::vector<int>& intData,
+               std::vector<float>& floatData,
+               std::vector<long>& longData,
+               std::vector<double>& doubleData,
+               std::vector< std::string >& stringData ) {
+  int* intPtr = new int[intData.size()];
+  float* floatPtr = new float[floatData.size()];
+  long* longPtr = new long[longData.size()];
+  double* doublePtr = new double[doubleData.size()];
+  if (!intPtr || !longPtr || !floatPtr || !doublePtr) {
+    ar_log_error() << "dgPlugin() failed to allocate data buffers.\n";
+    return false;
+  }
+  std::copy( intData.begin(), intData.end(), intPtr );
+  std::copy( floatData.begin(), floatData.end(), floatPtr );
+  std::copy( longData.begin(), longData.end(), longPtr );
+  std::copy( doubleData.begin(), doubleData.end(), doublePtr );
+  bool stat = dgPlugin( ID, fileName,
+                        intPtr, (int)intData.size(),
+                        floatPtr, (int)floatData.size(),
+                        longPtr, (int)longData.size(),
+                        doublePtr, (int)doubleData.size(),
+                        &stringData );
+  delete[] intPtr;
+  delete[] floatPtr;
+  delete[] longPtr;
+  delete[] doublePtr;
+  return stat;
+}
+
+
+
+
+int dgPython(const string& name,
+              const string& parent,
+              const string& moduleName,
+              const string& factoryName,
+              bool reloadModule,
+               int* intData, int numInts,
+               float* floatData, int numFloats,
+               long* longData, int numLongs,
+               double* doubleData, int numDoubles,
+               std::vector< std::string >* stringData ) {
+  arDatabaseNode* node = dgMakeNode(name,parent,"graphics plugin");
+  if (!node) {
+    return -1;
+  }
+  if (!dgPython( node->getID(), moduleName, factoryName, reloadModule,
+        intData, numInts, floatData, numFloats,
+        longData, numLongs, doubleData, numDoubles, stringData )) {
+    return -1;
+  }
+  return node->getID();
+}
+
+
+
+bool dgPython( int ID, const string& moduleName,
+               const string& factoryName,
+               bool reloadModule,
+               int* intData, int numInts,
+               float* floatData, int numFloats,
+               long* longData, int numLongs,
+               double* doubleData, int numDoubles,
+               std::vector< std::string >* stringData ) {
+  int* iData = new int[numInts+1];
+  if (!iData) {
+    ar_log_error() << "dgPython() failed to allocate buffer.\n";
+    return false;
+  }
+  std::vector< std::string > sData;
+  if (stringData) {
+    sData = *stringData;
+  }
+  if (intData) {
+    memcpy( iData, intData, numInts*sizeof(int) );
+  }
+  iData[numInts] = (int)reloadModule;
+  sData.push_back( moduleName );
+  sData.push_back( factoryName );
+  bool stat = dgPlugin( ID, "arPythonGraphicsPlugin", iData, numInts+1,
+      floatData, numFloats, longData, numLongs, doubleData, numDoubles, &sData );
+  delete[] iData;
+  return stat;
+}
+
+
+int dgPython(const string& name,
+              const string& parent,
+              const string& moduleName,
+              const string& factoryName,
+              bool reloadModule,
+               std::vector<int>& intData,
+               std::vector<float>& floatData,
+               std::vector<long>& longData,
+               std::vector<double>& doubleData,
+               std::vector< std::string >& stringData ) {
+  std::vector<int> iData = intData;
+  std::vector< std::string > sData = stringData;
+  iData.push_back((int)reloadModule);
+  sData.push_back( moduleName );
+  sData.push_back( factoryName );
+  return dgPlugin( name, parent, "arPythonGraphicsPlugin",
+      intData, floatData, longData, doubleData, stringData );
+}
+
+
+bool dgPython( int ID, const string& moduleName, 
+               const string& factoryName,
+               bool reloadModule,
+               std::vector<int>& intData,
+               std::vector<float>& floatData,
+               std::vector<long>& longData,
+               std::vector<double>& doubleData,
+               std::vector< std::string >& stringData ) {
+  std::vector<int> iData = intData;
+  std::vector< std::string > sData = stringData;
+  iData.push_back((int)reloadModule);
+  sData.push_back( moduleName );
+  sData.push_back( factoryName );
+  return dgPlugin( ID, "arPythonGraphicsPlugin",
+      intData, floatData, longData, doubleData, stringData );
 }
 

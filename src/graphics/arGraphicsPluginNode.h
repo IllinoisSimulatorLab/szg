@@ -16,7 +16,7 @@
 
 class SZG_CALL arGraphicsPluginNode: public arGraphicsNode {
   public:
-    arGraphicsPluginNode();
+    arGraphicsPluginNode( bool isGraphicsServer=false );
     virtual ~arGraphicsPluginNode();
 
     void draw(arGraphicsContext*);
@@ -26,6 +26,7 @@ class SZG_CALL arGraphicsPluginNode: public arGraphicsNode {
 
     /// Data access functions specific to arGraphicsPluginNode.
     static void setSharedLibSearchPath( const std::string& searchPath );
+    static arSharedLib* getSharedLib( const std::string& fileName );
 
 
   protected:
@@ -37,9 +38,9 @@ class SZG_CALL arGraphicsPluginNode: public arGraphicsNode {
                                  std::vector< std::string >& stringData,
                                  bool owned );
     arGraphicsPlugin* _makeObject();
-    static arSharedLib* _getSharedLib( const std::string& fileName );
     static std::map< std::string, arSharedLib* > __sharedLibMap;
     static std::string __sharedLibSearchPath;
+    bool _isGraphicsServer;
     arGraphicsPlugin* _object;
     bool _triedToLoad;
     std::string _fileName;

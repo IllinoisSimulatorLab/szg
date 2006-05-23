@@ -66,11 +66,6 @@ OBJS = \
   arVisibilityNode$(OBJ_SUFFIX) \
   arWildcatUtilities$(OBJ_SUFFIX) 
 
-ifeq ($(strip $(SZG_LINKING)), STATIC) 
-  OBJS +=  \
-  arTeapotGraphicsPlugin$(OBJ_SUFFIX)
-endif
-
 
 # Local variable definitions for the build.
 # These internal library makefiles ONLY include the external files necessary
@@ -110,6 +105,12 @@ ALL =   $(SZG_CURRENT_DLL) \
 ifneq ($(strip $(SZG_LINKING)), STATIC) 
   ALL += \
     arTeapotGraphicsPlugin$(PLUGIN_SUFFIX)
+ifneq ($(strip $(SZG_INCLUDE_PYTHON)),)
+ifneq ($(strip $(SZG_LINK_PYTHON)),)
+#   ALL += \
+#     arPythonGraphicsPlugin$(PLUGIN_SUFFIX)
+endif
+endif
 endif
 
 
@@ -142,4 +143,18 @@ TestGraphics$(EXE): TestGraphics$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_D
 arTeapotGraphicsPlugin$(PLUGIN_SUFFIX): arTeapotGraphicsPlugin$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_PLUGIN_FIRST) arTeapotGraphicsPlugin$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
+
+
+ifneq ($(strip $(SZG_INCLUDE_PYTHON)),)
+ifneq ($(strip $(SZG_LINK_PYTHON)),)
+# Python include file AND library exist.
+SZG_INCLUDE += $(SZG_INCLUDE_PYTHON)
+SZG_OPTIONAL_LIBS += $(SZG_LINK_PYTHON)
+
+arPythonGraphicsPlugin$(PLUGIN_SUFFIX): arPythonGraphicsPlugin$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arPythonGraphicsPlugin$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
+	$(COPY)
+endif
+endif
+
 

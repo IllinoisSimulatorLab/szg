@@ -417,6 +417,7 @@ bool arTexture::readPPM(const string& fileName,
   _assignAlpha(alpha);
   
   fclose(fd);
+  _fDirty = true;
   return true;
 }
 
@@ -543,6 +544,7 @@ bool arTexture::readJPEG(const string& fileName,
   jpeg_finish_decompress(&_cinfo);
   _assignAlpha(alpha);
   fclose(fd);
+  _fDirty = true;
   return true;
 #endif
 }
@@ -663,6 +665,7 @@ bool arTexture::_reallocPixels() {
   if (_pixels)
     delete [] _pixels;
   _pixels = new char[numbytes()];
+  _fDirty = true;
   return _pixels;
 }
 

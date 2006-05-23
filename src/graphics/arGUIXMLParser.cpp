@@ -57,7 +57,6 @@ bool arGUIXMLValidator::operator()( TiXmlNode* node ) {
     ar_log_debug() << "arGUIXML skipping NULL " << _nodeTypeName << " node.\n";
     return false;
   }
-  ar_log_debug() << "arGUIXML validating " << _nodeTypeName << ar_endl;
   return _validateNodeAttributes( node ) && 
     _validateNodeChildren( node );
 }
@@ -66,7 +65,6 @@ bool arGUIXMLValidator::_validateNodeAttributes( TiXmlNode* node ) {
   bool ok = true;
   for (TiXmlAttribute* att = node->ToElement()->FirstAttribute(); att; att = att->Next() ) {
     std::string name( att->Name() );
-    ar_log_debug() << "attribute: " << name << ar_endl;
     if (std::find( _attribsVec.begin(), _attribsVec.end(), name ) == _attribsVec.end()) {
       ar_log_warning() << "arGUIXML: unknown attribute '"
                      << name << "' in " << _nodeTypeName << " node.\n"
@@ -79,7 +77,6 @@ bool arGUIXMLValidator::_validateNodeAttributes( TiXmlNode* node ) {
       ok = false;
     }
   }
-  // ar_log_debug() << "_validateNodeAttributes ok: " << ok << ar_endl;
   return ok;
 }
 
@@ -87,7 +84,6 @@ bool arGUIXMLValidator::_validateNodeChildren( TiXmlNode* node ) {
   bool ok = true;
   for (TiXmlNode* child = node->FirstChild(); child; child = child->NextSibling() ) {
     std::string name( child->Value() );
-    ar_log_debug() << "child: " << name << ar_endl;
     if (std::find( _childrenVec.begin(), _childrenVec.end(), name ) == _childrenVec.end()) {
       ar_log_warning() << "arGUIXML: unknown sub-node '"
                      << name << "' in " << _nodeTypeName << " node.\n"
@@ -100,7 +96,6 @@ bool arGUIXMLValidator::_validateNodeChildren( TiXmlNode* node ) {
       ok = false;
     }
   }
-  // ar_log_debug() << "_validateNodeChildren ok: " << ok << ar_endl;
   return ok;
 }
 
@@ -837,6 +832,8 @@ int arGUIXMLParser::parse( void )
 
     // <decorate value="true|false|yes|no" />
     if( (windowElement = windowNode->FirstChild( "decorate" )) ) {
+      ar_log_debug() << "windowConfig->setDecorate( " << _attributeBool( windowElement )
+                     << " ).\n";
       windowConfig->setDecorate( _attributeBool( windowElement ) );
     }
 
@@ -1143,7 +1140,6 @@ int arGUIXMLParser::parse( void )
       delete namedViewportListNode;
   }
 
-  ar_log_debug() << "arGUIXML parsed.\n";
   _windowingConstruct->setWindowConstructs( &_parsedWindowConstructs );
   return 0;
 }

@@ -34,7 +34,7 @@
       return NULL;
     }
     int size = PyList_Size($input);
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < size; ++i) {
       PyObject *o = PyList_GetItem($input,i);
       if (PyInt_Check(o)) {
         $1->push_back( PyInt_AsLong(o) );
@@ -62,7 +62,7 @@
       return NULL;
     }
     int size = PyList_Size($input);
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < size; ++i) {
       PyObject *o = PyList_GetItem($input,i);
       if (PyInt_Check(o)) {
         $1->push_back( PyInt_AsLong(o) );
@@ -80,6 +80,34 @@
    if ($1) delete $1;
 }
 
+// Convert a python list of floats to a const vector<float>& (input)
+%typemap(in) (const vector<float>&) {
+  if (PyList_Check($input)) {
+    $1 = new vector<float>;
+    if (!$1) {
+      PyErr_SetString(PyExc_MemoryError,"failed to make new vector<float>");
+      return NULL;
+    }
+    int size = PyList_Size($input);
+    for (int i = 0; i < size; ++i) {
+      PyObject *o = PyList_GetItem($input,i);
+      if (PyFloat_Check(o)) {
+        $1->push_back( (float)PyFloat_AsDouble(o) );
+      } else {
+        PyErr_SetString(PyExc_TypeError,"list must contain floats");
+        return NULL;
+      }
+    }
+  } else {
+    PyErr_SetString(PyExc_TypeError,"not a list");
+    return NULL;
+  }
+}
+
+%typemap(freearg) (const vector<float>&) {
+   if ($1) delete $1;
+}
+
 // Convert a python list of floats to a const vector<double>& (input)
 %typemap(in) (const vector<double>&) {
   if (PyList_Check($input)) {
@@ -89,7 +117,7 @@
       return NULL;
     }
     int size = PyList_Size($input);
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < size; ++i) {
       PyObject *o = PyList_GetItem($input,i);
       if (PyFloat_Check(o)) {
         $1->push_back( PyFloat_AsDouble(o) );
@@ -105,6 +133,34 @@
 }
 
 %typemap(freearg) (const vector<double>&) {
+   if ($1) delete $1;
+}
+
+// Convert a python list of strings to a const vector<string>& (input)
+%typemap(in) (const vector<string>&) {
+  if (PyList_Check($input)) {
+    $1 = new vector<string>;
+    if (!$1) {
+      PyErr_SetString(PyExc_MemoryError,"failed to make new vector<string>");
+      return NULL;
+    }
+    int size = PyList_Size($input);
+    for (int i = 0; i < size; ++i) {
+      PyObject *o = PyList_GetItem($input,i);
+      if (PyString_Check(o)) {
+        $1->push_back( string(PyString_AsString(o)) );
+      } else {
+        PyErr_SetString(PyExc_TypeError,"list must contain strings");
+        return NULL;
+      }
+    }
+  } else {
+    PyErr_SetString(PyExc_TypeError,"not a list");
+    return NULL;
+  }
+}
+
+%typemap(freearg) (const vector<string>&) {
    if ($1) delete $1;
 }
 
@@ -125,7 +181,7 @@
   if ($result != NULL) {
     vector<int>::iterator iter;
     for (iter = $1.begin(); iter != $1.end(); ++iter) {
-      PyList_Append( $result, PyInt_FromLong( *iter ) );
+      PyList_Append( $result, PyInt_FromLong( (long)*iter ) );
     }
   }
 }
@@ -141,6 +197,17 @@
   }
 }
     
+// convert a vector<float> to a python list of floats (output)
+%typemap(out) vector<float> {
+  $result = PyList_New(0);
+  if ($result != NULL) {
+    vector<float>::iterator iter;
+    for (iter = $1.begin(); iter != $1.end(); ++iter) {
+      PyList_Append( $result, PyFloat_FromDouble( (double)*iter ) );
+    }
+  }
+}
+
 // convert a vector<double> to a python list of floats (output)
 %typemap(out) vector<double> {
   $result = PyList_New(0);
@@ -205,7 +272,7 @@
     int size = PyList_Size($input);
     int i = 0;
     $1 = new int[size];
-    for (i = 0; i < size; i++)
+    for (i = 0; i < size; ++i)
         $1[i]=PyInt_AsLong(PyList_GetItem($input,i));
 }
 
@@ -243,7 +310,7 @@
     int size = PyList_Size($input);
     int i = 0;
     $1 = new float[size];
-    for (i = 0; i < size; i++) {
+    for (i = 0; i < size; ++i) {
         $1[i]=PyFloat_AsDouble(PyList_GetItem($input,i));
 %#ifdef CHECK_OVERFLOW
         // Check result for floating point exceptions
@@ -274,7 +341,7 @@
     int i = 0;
     $1 = &size;
     $2 = (char **) malloc((size+1)*sizeof(char *));
-    for (i = 0; i < size; i++) {
+    for (i = 0; i < size; ++i) {
       PyObject *o = PyList_GetItem($input,i);
       if (PyString_Check(o))
     $2[i] = PyString_AsString(PyList_GetItem($input,i));

@@ -331,8 +331,7 @@ bool arSZGClient::_sendResponse(stringstream& s,
       ar_log_warning() << _exeName << ": response failed during " << sz << ".\n";
       return false;
     }
-  }
-  else{
+  } else {
     // Don't forward the message, so use cout.
     if (printInfo)
       cout << s.str();

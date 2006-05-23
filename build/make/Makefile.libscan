@@ -155,6 +155,19 @@ endif
 
 ifeq ($(strip $(MACHINE)), WIN32)
 
+  PYTHON_DIR := $(SZGEXTERNAL)/win32/Python24
+  INC_PYTHON := $(wildcard $(PYTHON_DIR)/include)
+  LIB_PYTHON := $(wildcard $(PYTHON_DIR)/lib/python24.lib)
+  OBJ_PYTHON := $(wildcard $(PYTHON_DIR)/lib/Bird.dll)
+
+  ifneq ($(strip $(INC_PYTHON)),)
+  ifneq ($(strip $(LIB_PYTHON)),)
+    # libPYTHON include file AND library exist.
+    SZG_INCLUDE_PYTHON = -I$(INC_PYTHON)
+    SZG_LINK_PYTHON = $(LIB_PYTHON)
+  endif
+  endif
+
   STLPORT_DIR := $(SZGEXTERNAL)/win32/STLport
   LIB_STLPORT := $(wildcard $(STLPORT_DIR)/lib)
   OBJ1_STLPORT := $(wildcard $(STLPORT_DIR)/lib/stlport_vc646.dll)

@@ -52,5 +52,5 @@ string ar_directoryFind(const string& name,
 		        const string& subdirectory,
                         const string& path);
 
-bool ar_winSockInit();
+/*bool ar_winSockInit();*/
 

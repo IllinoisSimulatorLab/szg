@@ -250,11 +250,9 @@ class arDatabaseNode{
 
 %pythoncode{
   def __del__(self):
-      try:
-          if self.thisown == 0 or self.thisown == 1:
-             if self.getOwner() == None or self.getName() != "root":
-                 self.unref()
-      except: pass
+      if hasattr( self, 'thisown' ):
+         if self.getOwner() == None or self.getName() != "root":
+             self.unref()
 
   # simply present to provide a uniform interface to the nodes
   # vis-a-vis arGraphicsNode
@@ -296,11 +294,9 @@ class arGraphicsNode: public arDatabaseNode{
 
 %pythoncode{
   def __del__(self):
-      try:
-          if self.thisown == 0 or self.thisown == 1:
-              if self.getOwner() == None or self.getName() != "root":
-                  self.unref()
-      except: pass
+      if hasattr( self, 'thisown' ):
+          if self.getOwner() == None or self.getName() != "root":
+              self.unref()
   
   def new(self, type, name=""):
       return gcast(self.newNodeRef(type, name))

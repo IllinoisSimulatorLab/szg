@@ -410,8 +410,7 @@ int arGUIEventManager::consumeEvents( arGUIWindow* window, const bool blocking )
   return 0;
 }
 
-int arGUIEventManager::addEvent( arStructuredData& event )
-{
+int arGUIEventManager::addEvent( arStructuredData& event ) {
   if( !_active ) {
     return -1;
   }
@@ -470,6 +469,8 @@ int arGUIEventManager::addEvent( arStructuredData& event )
     _mouseState.setButton( totalButtons );
   }
   else if( arGUIEventType( event.getDataInt( "eventType" ) ) == AR_WINDOW_EVENT ) {
+    if (event.getDataInt( "state" ) == AR_WINDOW_RESIZE) {
+    }
     _windowState = arGUIWindowInfo( event );
   }
   else {

@@ -177,6 +177,138 @@ int dgBumpMap(const string& name, const string& parent,
 
 int dgBumpMap(int ID, const string& filename, float height=1.);
 
+int dgPlugin(const string& name,
+              const string& parent,
+              const string& fileName,
+               vector<int> intData,
+               vector<float> floatData,
+               vector<long> longData,
+               vector<double> doubleData,
+               vector<string> stringData );
+
+bool dgPlugin( int ID, const string& fileName, 
+               vector<int> intData,
+               vector<float> floatData,
+               vector<long> longData,
+               vector<double> doubleData,
+               vector<string> stringData );
+
+
+%{
+#include "arGraphicsPluginNode.h"
+#include "arGraphicsPlugin.h"
+
+class arPythonGraphicsPluginObject: public arGraphicsPlugin {
+  public:
+    arPythonGraphicsPluginObject( const std::string& fileName );
+    virtual ~arPythonGraphicsPluginObject();
+    virtual void draw( arGraphicsWindow& win, arViewport& view );
+    virtual bool setState( const std::vector<int>& intData,
+                           const std::vector<long>& longData,
+                           const std::vector<float>& floatData,
+                           const std::vector<double>& doubleData,
+                           const std::vector< std::string >& stringData );
+  private:
+    arGraphicsPlugin* _makeObject();
+    arGraphicsPlugin* _object;
+    std::string _fileName;
+};
+    
+arPythonGraphicsPluginObject::arPythonGraphicsPluginObject( const std::string& fileName ) :
+  arGraphicsPlugin(),
+  _fileName( fileName ) {
+  _object = _makeObject();
+  if (!_object) {
+    ar_log_error() << "Failed to create object from plugin" << _fileName << ar_endl;
+  }
+}
+
+arPythonGraphicsPluginObject::~arPythonGraphicsPluginObject() {
+  if (_object) {
+    delete _object;
+  }
+}
+
+void arPythonGraphicsPluginObject::draw( arGraphicsWindow& win, arViewport& view ) {
+  if (!_object) {
+    return;
+  }
+  _object->draw( win, view );
+}
+
+bool arPythonGraphicsPluginObject::setState( const std::vector<int>& intData,
+                       const std::vector<long>& longData,
+                       const std::vector<float>& floatData,
+                       const std::vector<double>& doubleData,
+                       const std::vector< std::string >& stringData ) {
+  if (!_object) {
+    return false;
+  }
+  // Explanation: the arGraphicsPlugin wants non-const vectors.
+  // But we only have typemaps defined for const vectors in the
+  // SWIG python bindings.
+  std::vector<int> iData(intData);
+  std::vector<long> lData(longData);
+  std::vector<float> fData(floatData);
+  std::vector<double> dData(doubleData);
+  std::vector< std::string > sData(stringData);
+  return _object->setState( iData, lData, fData, dData, sData );
+}
+
+arGraphicsPlugin* arPythonGraphicsPluginObject::_makeObject() {
+  arSharedLib* lib = arGraphicsPluginNode::getSharedLib( _fileName );
+  if (!lib) {
+    ar_log_error() << "arPythonGraphicsPluginObject failed to load shared library "
+                   << _fileName << ar_endl;
+    return NULL;
+  } 
+  arGraphicsPlugin* obj = (arGraphicsPlugin*)lib->createObject();
+  if (!obj) {
+    ar_log_error() << "arPythonGraphicsPluginObject failed to create object from shared library "
+                   << _fileName << ar_endl;
+    return NULL;
+  }
+  return obj;
+}
+
+%}
+
+class arPythonGraphicsPluginObject: public arGraphicsPlugin {
+  public:
+    arPythonGraphicsPluginObject( const string& fileName );
+    virtual ~arPythonGraphicsPluginObject();
+    virtual void draw( arGraphicsWindow& win, arViewport& view );
+    virtual bool setState( const vector<int>& intData,
+                           const vector<long>& longData,
+                           const vector<float>& floatData,
+                           const vector<double>& doubleData,
+                           const vector<string>& stringData );
+};
+
+
+%pythoncode %{
+class arTeapotGraphicsPlugin( arPythonGraphicsPluginObject ):
+  """Class for loading and drawing the arTeapotGraphicsPlugin
+     shared library in Python master/slave programs."""
+  def __init__(self):
+    arPythonGraphicsPluginObject.__init__(self, "arTeapotGraphicsPlugin")
+    self.color = [.7,.7,.7,1.] # Note color must always be a 3- or 4-element list of _floats_.
+                               # (ints will _not_ work).
+    self._dirty = True
+  def __setattr__(self, attrName, value):
+    if attrName == 'color':
+      self._dirty = True
+    arPythonGraphicsPluginObject.__setattr__( self, attrName, value)
+  def updateState(self):
+    if self._dirty:
+      arPythonGraphicsPluginObject.setState( self, [], [], self.color, [], [] )
+      self._dirty = False
+  def draw( self, graphicsWin, viewport ):
+    self.updateState()
+    arPythonGraphicsPluginObject.draw( self, graphicsWin, viewport )
+%}
+
+
 %{
 #include "arTexture.h"
 %}
@@ -184,6 +316,8 @@ int dgBumpMap(int ID, const string& filename, float height=1.);
 class arTexture {
  public:
   arTexture();
+  arTexture( const arTexture& rhs, unsigned int left, unsigned int bottom, 
+                                   unsigned int width, unsigned int height );
   virtual ~arTexture();
 %extend{
   bool isValid() const {

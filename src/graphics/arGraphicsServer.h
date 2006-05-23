@@ -34,6 +34,7 @@ class SZG_CALL arGraphicsServer: public arGraphicsDatabase {
   arSyncDataServer _syncServer; 
 
  protected:
+  virtual arDatabaseNode* _makeNode(const string& type);
   arQueuedData* _connectionQueue;
 
  private:

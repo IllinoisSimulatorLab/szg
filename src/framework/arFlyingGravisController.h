@@ -11,7 +11,7 @@
 #include "arNetInputSource.h"
 #include "arSZGClient.h"
 // THIS MUST BE THE LAST SZG INCLUDE!
-#include "arInteractionCalling.h"
+#include "arFrameworkCalling.h"
 
 SZG_CALL void ar_connectionFlyingGravisJoystick(void*);
 SZG_CALL void ar_handleFlyingGravisJoystick(void*);

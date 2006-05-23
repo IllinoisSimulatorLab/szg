@@ -125,3 +125,11 @@ void arGraphicsServer::_recSerialize(arDatabaseNode* pNode,
     _recSerialize(*i, nodeData);
   }
 }
+
+arDatabaseNode* arGraphicsServer::_makeNode(const string& type) {
+  if (type == "graphics plugin") {
+    return (arDatabaseNode*) new arGraphicsPluginNode(true);
+  }
+  return arGraphicsDatabase::_makeNode(type);
+}
+

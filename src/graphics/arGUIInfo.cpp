@@ -3,6 +3,7 @@
  * Implementation of the arGUIInfo, arGUIInfo, arGUIMouseInfo and arGUIWindowInfo classes.
  */
 #include "arPrecompiled.h"
+#include "arLogStream.h"
 
 #include <iostream>
 

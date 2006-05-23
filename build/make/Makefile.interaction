@@ -20,8 +20,6 @@ OBJS = \
   arUniqueInteractor$(OBJ_SUFFIX) \
   arInterfaceObject$(OBJ_SUFFIX) \
   arInteractionUtilities$(OBJ_SUFFIX) \
-  arController$(OBJ_SUFFIX) \
-  arFlyingGravisController$(OBJ_SUFFIX)
 
 # Local variable definitions for the build.
 # These internal library makefiles ONLY include the external files necessary

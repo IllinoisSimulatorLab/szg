@@ -731,6 +731,8 @@ int arGUIWindow::_windowCreation( void )
     fullscreen();
   }
 
+  _decorate = _windowConfig.getDecorate();
+
   ShowWindow( _windowHandle._hWnd, SW_SHOW );
 
   if( !SetForegroundWindow( _windowHandle._hWnd ) ) {
@@ -1731,12 +1733,10 @@ int arGUIWindow::getHeight( void ) const
     ar_log_error() << "getHeight: GetWindowRect error" << ar_endl;
     return -1;
   }
-
   if( _decorate ) {
     rect.top    += GetSystemMetrics( SM_CYSIZEFRAME ) + GetSystemMetrics( SM_CYCAPTION );
     rect.bottom -= GetSystemMetrics( SM_CYSIZEFRAME );
   }
-
   return rect.bottom - rect.top;
 
   #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
