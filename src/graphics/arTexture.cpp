@@ -458,6 +458,7 @@ bool arTexture::writePPM(const string& fileName, const string& subdirectory,
   }
   fwrite(buffer,1,_height*_width*3,fp);
   fclose(fp);
+  delete[] buffer;
   return true;
 }
 
@@ -607,7 +608,7 @@ bool arTexture::writeJPEG(const string& fileName, const string& subdirectory,
   jpeg_finish_compress(&cinfo);
   fclose(outFile);
   jpeg_destroy_compress(&cinfo);
-  delete [] buf1;
+  delete[] buf1;
   return true;
 #endif
 }
