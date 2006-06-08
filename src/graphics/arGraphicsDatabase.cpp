@@ -74,7 +74,7 @@ arGraphicsDatabase::arGraphicsDatabase() :
       !bumpMapData        || !*bumpMapData ||
       !graphicsPluginData || !*graphicsPluginData ||
       !graphicsStateData  || !*graphicsStateData) {
-    ar_log_error() << "arGraphicsDatabase error: incomplete dictionary.\n";
+    ar_log_warning() << "arGraphicsDatabase: incomplete dictionary.\n";
   }
 
   // Initialize the light container.
@@ -190,16 +190,15 @@ void arGraphicsDatabase::loadAlphabet(const string& path) {
   if (_server)
     return;
   if (path == "NULL") {
-    ar_log_error() << "arGraphicsDatabase error: undefined path for texture font.\n"; 
+    ar_log_warning() << "arGraphicsDatabase: no path for texture font.\n"; 
     return;
   }
 
-  string fileName = path;
-  // Make sure there is a trailing slash.
+  string fileName(path);
   ar_pathAddSlash(fileName);
   fileName += "courier-bold.ppm";
   if (!_texFont.load(fileName)) {
-    ar_log_error() << "arGraphicsDatabase error: failed to load texture font.\n"; 
+    ar_log_warning() << "arGraphicsDatabase failed to load texture font.\n"; 
   }
 }
 
@@ -293,13 +292,13 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
       theTexture->dummy();
       if (!fComplained) {
 	fComplained = true;
-	ar_log_error() << "arGraphicsDatabase: no image file '"
+	ar_log_warning() << "arGraphicsDatabase: no image file '"
 		       << name << "'. Tried ";
         std::vector<std::string>::iterator iter;
         for (iter = triedPaths.begin(); iter != triedPaths.end(); ++iter) {
-          ar_log_error() << *iter << " ";
+          ar_log_warning() << *iter << " ";
         }
-        ar_log_error() << ".\n";
+        ar_log_warning() << ".\n";
       }
     }
     ar_mutex_unlock(&_texturePathLock);
@@ -359,12 +358,12 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
       theBumpMap->dummy();
       if (!fComplained) {
 	fComplained = true;
-	ar_log_error() << "arGraphicsDatabase warning: no PPM file \""
-	               << buffer << "\" in ";
+	ar_log_warning() << "arGraphicsDatabase: no PPM file '"
+	               << buffer << "' in ";
 	if (_texturePath->size() <= 1) {
-	  ar_log_error() << "empty ";
+	  ar_log_warning() << "empty ";
 	}
-	ar_log_error() << "bump path." << ar_endl;
+	ar_log_warning() << "bump path." << ar_endl;
       }
     }
     ar_mutex_unlock(&_texturePathLock);
@@ -383,8 +382,7 @@ arMatrix4 arGraphicsDatabase::accumulateTransform(int nodeID) {
   arMatrix4 result = ar_identityMatrix();
   arDatabaseNode* thisNode = getNodeRef(nodeID);
   if (!thisNode) {
-    ar_log_error() << "arGraphicsDatabase error: accumulateTransform was passed "
-	           << "an invalid node ID.\n";
+    ar_log_warning() << "arGraphicsDatabase: invalid node ID for accumulateTransform.\n";
     return result;
   }
   arDatabaseNode* temp = thisNode->getParentRef();
@@ -733,13 +731,13 @@ float arGraphicsDatabase::_intersectSingleGeometry(arGraphicsNode* node,
   }
   arDrawableNode* d = (arDrawableNode*) node;
   if (d->getType() != DG_TRIANGLES) {
-    ar_log_error() << "arGraphicsDatabase warning: only able to intersect with triangle "
+    ar_log_warning() << "arGraphicsDatabase only able to intersect with triangle "
 	           << "soups so far.\n";
     return -1;
   }
   arGraphicsNode* p = (arGraphicsNode*) context->getNode(AR_G_POINTS_NODE);
   if (!p) {
-    ar_log_error() << "arGraphicsDatabase error: no points node for drawable.\n";
+    ar_log_warning() << "arGraphicsDatabase: no points node for drawable.\n";
     return -1;
   }
   arGraphicsNode* i = (arGraphicsNode*) context->getNode(AR_G_INDEX_NODE);
@@ -858,15 +856,15 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
 bool arGraphicsDatabase::registerLight(arGraphicsNode* node, 
                                        arLight* theLight) {
   if (!theLight) {
-    ar_log_error() << "arGraphicsDatabase error: light pointer does not exist.\n";
+    ar_log_warning() << "arGraphicsDatabase: no light pointer.\n";
     return false;
   }
   if (!node || !node->active() || node->getOwner() != this) {
-    ar_log_error() << "arGraphicsDatabase error: node not owned by this database.\n";
+    ar_log_warning() << "arGraphicsDatabase: unowned node.\n";
     return false;
   }
   if (theLight->lightID < 0 || theLight->lightID > 7) {
-    ar_log_error() << "arGraphicsDatabase error: light has invalid ID.\n";
+    ar_log_warning() << "arGraphicsDatabase: light has invalid ID.\n";
     return false;
   }
   // If the light ID changed, remove other instances from the container.
@@ -880,7 +878,7 @@ bool arGraphicsDatabase::registerLight(arGraphicsNode* node,
 /// Only call from arLightNode::deactivate and arGraphicsDatabase::registerLight.
 bool arGraphicsDatabase::removeLight(arGraphicsNode* node) {
   if (!node || !node->active() || node->getOwner() != this) {
-    ar_log_error() << "arGraphicsDatabase error: node not owned by this database.\n";
+    ar_log_warning() << "arGraphicsDatabase: unowned node.\n";
     return false;
   }
 
@@ -931,7 +929,7 @@ arHead* arGraphicsDatabase::getHead() {
   if (!viewerNode)
     viewerNode = (arViewerNode*) getNodeRef("szg_viewer");
   if (!viewerNode) {
-    ar_log_error() << "arGraphicsDatabase error: getHead() failed.\n";
+    ar_log_warning() << "arGraphicsDatabase: getHead() failed.\n";
     return NULL;
   }
 
@@ -944,16 +942,15 @@ arHead* arGraphicsDatabase::getHead() {
 bool arGraphicsDatabase::registerCamera(arGraphicsNode* node,
 					arPerspectiveCamera* theCamera) {
   if (!theCamera) {
-    ar_log_error() << "arGraphicsDatabase error: camera pointer does not exist.\n";
+    ar_log_warning() << "arGraphicsDatabase: no camera pointer.\n";
     return false;
   }
   if (theCamera->cameraID < 0 || theCamera->cameraID > 7) {
-    ar_log_error() << "arGraphicsDatabase error: camera has invalid ID.\n";
+    ar_log_warning() << "arGraphicsDatabase: camera has invalid ID.\n";
     return false;
   }
   if (!node || !node->active() || node->getOwner() != this) {
-    ar_log_error() << "arGraphicsDatabase error: registerCamera(...) failed because "
-	           << "of invalid node ID.\n";
+    ar_log_warning() << "arGraphicsDatabase: invalid node ID for registerCamera.\n";
     return false;
   }
   // Just in case the camera ID has changed, must remove it from other slots.
@@ -967,7 +964,7 @@ bool arGraphicsDatabase::registerCamera(arGraphicsNode* node,
 /// arGraphicsDatabase::registerCamera.
 bool arGraphicsDatabase::removeCamera(arGraphicsNode* node) {
   if (!node || !node->active() || node->getOwner() != this) {
-    ar_log_error() << "arGraphicsDatabase error: node not owned by this database.\n";
+    ar_log_warning() << "arGraphicsDatabase: unowned node.\n";
     return false;
   }
   for (int i=0; i<8; ++i) {
@@ -982,7 +979,7 @@ bool arGraphicsDatabase::removeCamera(arGraphicsNode* node) {
 arPerspectiveCamera* arGraphicsDatabase::getCamera( unsigned int cameraID ) {
   // Do not need to check < 0 since the parameter is unsigned int.
   if (cameraID > 7) {
-    ar_log_error() << "arGraphicsDatabase error: invlid camera ID.\n";
+    ar_log_warning() << "arGraphicsDatabase: invlid camera ID.\n";
     return NULL;
   }
   return _cameraContainer[cameraID].second;
@@ -1058,7 +1055,7 @@ arDatabaseNode* arGraphicsDatabase::_makeNode(const string& type) {
     outNode = (arDatabaseNode*) new arGraphicsPluginNode();
   }
   else {
-    ar_log_error() << "arGraphicsDatabase error: makeNode factory got unknown type="
+    ar_log_warning() << "arGraphicsDatabase: makeNode factory got unknown type="
                    << type << ".\n";
     return NULL;
   }
@@ -1067,14 +1064,13 @@ arDatabaseNode* arGraphicsDatabase::_makeNode(const string& type) {
 }
 
 arDatabaseNode* arGraphicsDatabase::_processAdmin(arStructuredData* data) {
-  string name = data->getDataString("name");
-  string action = data->getDataString("action");
+  const string name = data->getDataString("name");
+  const string action = data->getDataString("action");
   if (action == "remote_path") {
     ar_log_remark() << "arGraphicsDatabase remark: using texture bundle " << name << "\n";
     arSlashString bundleInfo(name);
     if (bundleInfo.size() != 2) {
-      ar_log_remark() << "arGraphicsDatabase error: got garbled texture bundle "
-	              << "identification.\n";
+      ar_log_remark() << "arGraphicsDatabase got garbled texture bundle ID.\n";
       return &_rootNode;
     }
     setDataBundlePath(bundleInfo[0], bundleInfo[1]);
@@ -1089,7 +1085,7 @@ arDatabaseNode* arGraphicsDatabase::_processAdmin(arStructuredData* data) {
       _viewerNodeID = nodeID;
     }
     else {
-      ar_log_remark() << "arGraphicsDatabase warning: no viewer node with "
+      ar_log_remark() << "arGraphicsDatabase: no viewer node with "
 	              << "ID=" << nodeID << ".\n";
     }
   }
