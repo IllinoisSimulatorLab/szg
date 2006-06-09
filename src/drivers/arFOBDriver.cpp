@@ -12,8 +12,6 @@
 
 #include "arFOBDriver.h"
 
-// The methods used by the dynamic library mappers. 
-// NOTE: These MUST have "C" linkage!
 extern "C"{
   SZG_CALL void* factory(){
     return new arFOBDriver();
@@ -22,24 +20,6 @@ extern "C"{
   SZG_CALL void baseType(char* buffer, int size){
     ar_stringToBuffer("arInputSource", buffer, size);
   }
-}
-
-void ar_FOBDriverEventTask(void* FOBDriver){
-  arFOBDriver* driver = (arFOBDriver*) FOBDriver;
-  driver->_eventThreadRunning = true;
-  while (!driver->_stopped) {
-    for (int i=1; i<=driver->_numFlockUnits; i++){
-      // Only request information from flock units that hold sensors
-      if (driver->_sensorMap[i] > -1){
-	if (!driver->_getSendNextFrame(i)){
-	  ar_log_warning() << "arFOBDriver get data failed.\n";
-	  driver->_stopped = true;
-	}
-      }
-    }
-    driver->sendQueue();
-  }
-  driver->_eventThreadRunning = false;
 }
 
 arFOBDriver::arFOBDriver() :
@@ -58,31 +38,29 @@ arFOBDriver::~arFOBDriver() {
 }
 
 bool arFOBDriver::init(arSZGClient& SZGClient){
+
+  /*
+  Syzygy's default frame of reference differs from Ascension's.
+  When the bird's flat surface points down and the cable points back,
+  then the rotation matrix should be the identity in Syzygy coords.
+  So the coordinate frame attached to the bird has
+  +z going back along the cable, +x right, and +y up.
+
+  Read in the calibration information. This base transformation corrects
+  for an offset in the transmitter's position and orientation, letting
+  us report a given bird position/orientation as some arbitrary value.
+  Syzygy matrices are in OpenGL order (down the columns, not along the rows).
+
+  In practice, place the bird at a known location and with identity orientation
+  (as described above) relative to your physical coordinate system.
+  You can then compute the matrix needed to align it.
+
+  The base transformation is post-multiplied with the supplied data. 
+
+  This rough calibration should be followed with a finer one.
+  */
+
   stringstream& initResponse = SZGClient.initResponse();
-
-  // Syzygy's default frame of reference differs from Ascension's.
-  // When the bird's flat surface points down and
-  // the cord points back, then the rotation matrix should be
-  // the identity vs. the Syzygy coordinate system. In other words, a
-  // coordinate frame is attached to the bird with positive z going back along
-  // the cord, positive x right, and positive y up.
-
-  // Read in the calibration information. This base transformation corrects
-  // for an offset in position and orientation of the transmitter,
-  // letting us report a given bird
-  // position/orientation as some arbitrary value.
-  // Syzygy matrices are in OpenGL order (down the columns, not along the rows).
-
-  // In practice, place the bird at an identity orientation
-  // (as described above) relative to your physical coordinate system.
-  // Furthermore, it will be in a known location. You can then compute
-  // the matrix needed to align it.
-
-  // The base transformation is post-multiplied with the supplied data. 
-
-  // This calibration information is only rough.  It can be followed
-  // (as we do in ISL) with a more precise grid-based interpolation.
-
   const string transmitterOffset(
     SZGClient.getAttribute("SZG_FOB","transmitter_offset"));
   if (transmitterOffset != "NULL"){
@@ -91,26 +69,24 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
 	         << _transmitterOffset << "\n";
   }
 
-  // The sensor might be rotated in its "neutral" position.
-  // For instance, The bird might be taped upside-down to a wand.
-  // Then we must pre-multiply a matrix, to transform a "neutral" frame
-  // (the physical coordinate frame) into the Syzygy frame that is attached
-  // to the bird.
-
-  // This rotation is described by an axis followed by an angle in degrees.
+  /*
+  If the sensor is rotated in its "neutral" position (e.g., taped sideways
+  to a wand), premultiply a matrix to transform this "neutral" frame (the
+  physical coordinate frame) into the Syzygy frame attached to the sensor.
+  This rotation is described by an axis followed by an angle in degrees.
+  */
 
   float temp[4]; 
   for(int j = 0; j < _FOB_MAX_DEVICES; j++) {
-    stringstream ss; ss << j;
+    stringstream ss;
+    ss << j;
     const string sensorNum( "sensor" + ss.str() + "_rot" );
-    const string sensorRotValue(
-      SZGClient.getAttribute("SZG_FOB",sensorNum));
+    const string sensorRotValue(SZGClient.getAttribute("SZG_FOB",sensorNum));
     if (sensorRotValue != "NULL") {
       ar_parseFloatString(sensorRotValue, temp, 4);
       _sensorRot[ j ] =
         ar_rotationMatrix(arVector3(temp), ar_convertToRad(temp[3]));
-      initResponse << "Using sensor " << j << " rotation =\n"
-  	           << _sensorRot[ j ] <<"\n";
+      initResponse << "Sensor " << j << " rotated: " << _sensorRot[j] << "\n";
     }
   }
   
@@ -129,11 +105,10 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
     }
   }
   if (!baudRateFound) {
-    ar_log_warning() << "arFOBDriver got unexpected SZG_FOB/baud_rate value "
+    ar_log_warning() << "arFOBDriver got unexpected SZG_FOB/baud_rate "
 	 << baudRate << ".\n  Expected one of:";
-    for (i=0; i<_nBaudRates; i++){
+    for (i=0; i<_nBaudRates; i++)
       ar_log_warning() << " " << baudRates[i];
-    }
     ar_log_warning() << "\n";
 LDefaultBaudRate:
     baudRate = 115200;
@@ -141,17 +116,29 @@ LDefaultBaudRate:
          << baudRate << ".\n";
   }
 
-  // We only support connecting to a flock of birds via a single serial port.
+  // Multiple serial ports aren't implemented.
   _comPortID = static_cast<unsigned int>(SZGClient.getAttributeInt("SZG_FOB", "com_port"));
+  if (!_comPort.ar_open(_comPortID,(unsigned long)baudRate,8,1,"none" )){
+    ar_log_warning() << "arFOBDriver failed to open serial port " <<
+      _comPortID << ".\n";
+    return false;
+  }
 
-  // Get the FoB's "description", a string of slash-delimited integers
-  // of length equal to the number of FOB units.
-  // Each unit's configuration is as follows:
-  // 0: bird
-  // 1: transmitter
-  // 2: transmitter AND bird
-  // 3: extended range transmitter
-  // 4: extended range transmitter AND bird
+  if (!_comPort.setReadTimeout(_timeoutTenths)){
+    ar_log_warning() << "arFOBDriver failed to set timeout for serial port " <<
+      _comPortID << ".\n";
+    return false;
+  }
+
+  /*
+  Get the FoB's "description", a string of slash-delimited integers
+  of length equal to the number of FOB units.  Each unit is one of:
+    0: bird
+    1: transmitter
+    2: transmitter AND bird
+    3: extended range transmitter
+    4: extended range transmitter AND bird
+  */
   char receivedBuffer[512];
   int birdConfiguration[_FOB_MAX_DEVICES+1];
   const string received(SZGClient.getAttribute("SZG_FOB", "config"));
@@ -159,6 +146,7 @@ LDefaultBaudRate:
     ar_log_warning() << "arFOBDriver: SZG_FOB/config undefined.\n";
     return false;
   }
+
   ar_stringToBuffer(received, receivedBuffer, sizeof(receivedBuffer));
   _numFlockUnits = ar_parseIntString(
     receivedBuffer, birdConfiguration+1, _FOB_MAX_DEVICES );
@@ -167,14 +155,16 @@ LDefaultBaudRate:
     return false;
   }
 
-  // We now determine the configuration.
-  // Sensor map is an array, indexed by flock ID, whose values
-  // are -1 for no attached sensor, and otherwise the appropriate Syzygy
-  // ID. So, if SZG_FOB/config = 0/1/0/0 then
-  // _sensorMap[0] = 0;
-  // _sensorMap[1] = -1;
-  // _sensorMap[2] = 1;
-  // _sensorMap[3] = 2;
+  /*
+  Determine the configuration.  _sensorMap, indexed by flock ID,
+  indicates syzygy ID (up 20 lines) or -1 for no sensor.
+  Example: SZG_FOB/config = "0/1/0/0" produces
+    _sensorMap[0] = 0;
+    _sensorMap[1] = -1;
+    _sensorMap[2] = 1;
+    _sensorMap[3] = 2;
+  */
+
   _numBirds = 0;
   _transmitterID = 0;
   _extendedRange = false;
@@ -224,35 +214,87 @@ LDefaultBaudRate:
     return false;
   }
 
-  ar_log_remark() << "arFOBDriver: " << _numBirds <<
-    " birds, transmitter at unit " << _transmitterID << ".\n";
+  ar_log_remark() << "arFOBDriver expecting " << _numBirds <<
+    " birds, with " << (_extendedRange ? "extended range " : "") <<
+    "transmitter at unit " << _transmitterID << ".\n";
 
-  // The number of birds found is the number of matrices we will report.
+  // Report one matrix for each bird.
   _setDeviceElements( 0, 0, _numBirds );
 
-  // Open the serial port.
-  if (!_comPort.ar_open(_comPortID,(unsigned long)baudRate,8,1,"none" )){
-    ar_log_warning() << "arFOBDriver failed to open serial port " <<
-      _comPortID << ".\n";
-    return false;
-  }
-
-  if (!_comPort.setReadTimeout(_timeoutTenths)){
-    ar_log_warning() << "arFOBDriver failed to set timeout for serial port " <<
-      _comPortID << ".\n";
-    return false;
-  }
-
   // Configure the FoB.  (Does it need waking at this point?)
+
+  {
+    unsigned char b[2];
+    if (_getFOBParam(1, b, 2, 0) != 2) {
+      ar_log_warning() << "arFOBDriver got no version number.  FoB may be unplugged or unpowered.\n";
+      return false;
+    }
+    ar_log_debug() << "FoB version " << int(b[0]) << "." << int(b[1]) << ".\n";
+    ar_usleep(100000);
+  }
+
+  const bool fInTheCave = true;;;;
+  if (fInTheCave) {
+
+#if 0
+    // 30 20
+    if (!_nextTransmitter(2)) {
+      ar_log_warning() << "arFOBDriver failed to nexttransmitter2.\n";
+      return false;
+    }
+#endif
+
+    unsigned char b = 1;
+
+    // 50 32 04
+    b = _numBirds;
+    if  (!_setFOBParam(0x32, &b, 1, 0)) {
+      ar_log_warning() << "arFOBDriver failed to autoconfig.\n";
+      return false;
+    }
+
+    // 4f 24
+    // See FoB manual p.130.
+    unsigned char c[14];
+    if (_getFOBParam(0x24, c, 14, 0) != 14) {
+      ar_log_warning() << "arFOBDriver failed to examine system status.\n";
+      return false;
+    }
+    // SZG_FOB/config should be 0/3/0/0 since this reports e0 d1 e0 a0 0...
+    for (int i=0; i<14; ++i) {
+      const unsigned t = c[i];
+      if (t == 0)
+	continue;
+      ar_log_debug() << "  FoB unit " << i;
+      if (t & 0x80)
+	ar_log_debug() << ", fly";
+      if (t & 0x40)
+	ar_log_debug() << ", run";
+      if (t & 0x20)
+	ar_log_debug() << ", bird";
+      if (t & 0x10)
+	ar_log_debug() << ", extended range";
+      if (t & 0x08)
+	ar_log_debug() << ", transmitter #3";
+      if (t & 0x04)
+	ar_log_debug() << ", transmitter #2";
+      if (t & 0x02)
+	ar_log_debug() << ", transmitter #1";
+      if (t & 0x01)
+	ar_log_debug() << ", transmitter #0";
+      ar_log_debug() << ar_endl;
+    }
+
+    ar_usleep(100000);
+  }
 
   // Set all birds' data mode to position-quaternion.
   if (_numBirds > 1){
     for (i=1; i<=_numFlockUnits; i++){
-      if (i != _transmitterID){
-        if (!_setDataMode(i)){
-	  ar_log_warning() << "arFOBDriver failed to set data mode.\n";
-	  return false;
-	}
+      // Commenting out the next line makes it work in cave, where transmitter ALSO has a bird.
+      if (_sensorMap[i] != -1 && !_setDataMode(i)) {
+	ar_log_warning() << "arFOBDriver failed to set data mode.\n";
+	return false;
       }
     }
   }
@@ -265,21 +307,20 @@ LDefaultBaudRate:
 #ifdef AR_USE_LINUX
     ar_usleep(500000); // At least half a second.
 #endif
-
-#if 0
-    unsigned char b[2];
-    if (_getFOBParam(10, b, 1, 0) != 1)
-      cout << "get error code kacked.\n";
-    cout << "error code is " << int(b[0]) << ".\n";
-    if (_getFOBParam(1, b, 2, 0) != 2)
-      cout << "get version number kacked.\n";
-    cout << "bird version number is " << int(b[0]) << "." << int(b[1]) << ".\n";
-    ar_usleep(100000);
-#endif
-
   }
 
-  // Set the hemisphere for all the birds.
+#if 0
+  {
+    unsigned char b[2];
+    if (_getFOBParam(10, b, 1, 0) != 1)
+      ar_log_warning() << "arFOBDriver failed to get error code.\n";
+    else
+      ar_log_debug() << "error code is " << int(b[0]) << ".\n";
+    ar_usleep(100000);
+  }
+#endif
+
+  // Set each bird's hemisphere.
   const string hemisphere(SZGClient.getAttribute("SZG_FOB","hemisphere"));
   if (hemisphere == "NULL") {
     ar_log_warning() << "arFOBDriver: SZG_FOB/hemisphere undefined.\n";
@@ -287,7 +328,7 @@ LDefaultBaudRate:
   }
   if (_numBirds > 1){
     for (i=1; i<=_numFlockUnits; i++){
-      if (i != _transmitterID){
+      if (_sensorMap[i] != -1 && !_setHemisphere(hemisphere, i)) {
         if (!_setHemisphere(hemisphere, i)){
 	  ar_log_warning() << "arFOBDriver failed to set hemisphere.\n";
 	  return false;
@@ -309,45 +350,42 @@ LDefaultBaudRate:
 #endif
   }
 
-  // Make sure we are using the correct transmitter. If we are not
-  // using the default transmitter (flock unit 1), change must occur.
+  // If transmitter isn't the default (flock unit 1), change to the correct one.
   if (_transmitterID != 1)
     _nextTransmitter(_transmitterID);
 
-  // The extended range transmitter CANNOT be queried in this way.
-  // It seems to return 36, which is wrong!
-  if (_extendedRange){
+  // ERT _getPositionScale() may return 36 which is wrong.  Hardcode it instead.
+  if (_extendedRange) {
     _positionScale = 12/32768.0; // Convert to feet.
-    ar_log_remark() << "arFOBDriver using extended range transmitter.\n";
+    ar_log_remark() << "arFOBDriver: FOB's scale forced to 12 feet by expected ERT.\n";
   }
-  else{
+  else {
     bool longRange = false;
     if (!_getPositionScale( longRange ))
       return false;
-    ar_log_remark() << "arFOBDriver: FOB's scale = "
+    ar_log_remark() << "arFOBDriver: FOB's scale is "
          << (longRange ? 72 : 36) << " inches.\n";
   }
 
-  // Create a buffer for reading-in data. This must occur AFTER
-  // _setDataMode(...).
-  // Two bytes/number + a bird address if there's more than one bird.
-  // NOTE: THIS HAS NOT BEEN FULLY SET_UP YET! Specifically, this is
-  // probably enough space for "group mode", whereby we make one 
-  // request for data and get everything back at once. 
-  int bytesPerBird = 2*_dataSize + ((_numBirds > 1)?(1):(0));
+  // Create a buffer for reading-in data, after _setDataMode().
+  // Two bytes per number.
+  // (NYI: plus a bird address if there's more than one bird and in group mode).
+  const int bytesPerBird = 2*_dataSize; // + ((_numBirds > 1) ? 1 : 0);
   _dataBuffer = new unsigned char[bytesPerBird*_numBirds];
 
-  // Finally, iff we are in "flock" mode (more than one unit),
-  // issue an auto_config command to get the data moving.
+  // Iff in "flock" mode (more than one unit),
+  // send an auto_config command to get the data moving.
   if (_numBirds > 1){
+    ar_log_debug() << "arFOBDriver autoconfig.\n";
     if (!_autoConfig()) {
       ar_log_warning() << "arFOBDriver failed to auto-config.\n";
       return false;
     }
   }
   else{
-    // The run command seems to do nothing to a flock,
+    // The run command might do nothing to a flock,
     // but it wakes up a standalone unit.
+    ar_log_debug() << "arFOBDriver run.\n";
     if (!_run()){
       ar_log_warning() << "arFOBDriver failed to run.\n";
       return false;
@@ -365,18 +403,41 @@ bool arFOBDriver::start() {
   return _eventThread.beginThread(ar_FOBDriverEventTask,this);
 }
 
+void ar_FOBDriverEventTask(void* FOBDriver){
+  ((arFOBDriver*)FOBDriver)->_eventloop();
+}
+
+void arFOBDriver::_eventloop(){
+  _eventThreadRunning = true;
+  while (!_stopped) {
+    for (int i=1; i<=_numFlockUnits && !_stopped; i++){
+      if (_sensorMap[i] > -1){
+	// This flock unit has a bird.  Query it.
+	if (!_getSendNextFrame(i)){
+	  ar_log_warning() << "arFOBDriver get data failed.\n";
+	  _stopped = true;
+	}
+      }
+    }
+    sendQueue();
+  }
+  _eventThreadRunning = false;
+  stop();
+}
+
 bool arFOBDriver::stop() {
   _stopped = true;
   while (_eventThreadRunning)
     ar_usleep(20000);
-  _sleep();
+  (void)_sleep();
   _comPort.ar_close();
+  ar_log_debug() << "arFOBDriver stopped.\n";
   return true;
 }
 
 bool arFOBDriver::_setHemisphere( const std::string& hemisphere,
                                   unsigned char addr) {
-  static unsigned char cdata[] = {'L', 0, 0};
+  unsigned char cdata[] = {'L', 0, 0};
   // 2 data bytes are HEMI_AXIS and then HEMI_SIGN
   if (hemisphere == "front") {
     cdata[1] = 0;
@@ -407,7 +468,7 @@ bool arFOBDriver::_setHemisphere( const std::string& hemisphere,
   return ok;
 }
 
-// NOTE: _getHemisphere might not be supported on older flock hardware!
+// Older FoBs might not support _getHemisphere.
 bool arFOBDriver::_getHemisphere( std::string& hemisphere,
                                   unsigned char addr ) {
   unsigned char outdata[2];
@@ -452,7 +513,7 @@ bool arFOBDriver::_getDataMode( std::string& modeString,
 
   // FoB manual p.112
   const unsigned dataMode = (buf[0] >> 1) & 0xf;
-#if 0
+#if 1
   printf("\t\t\t\t\t2bytes are %x %x\n", (unsigned)buf[0], (unsigned)buf[1]);
   const unsigned b0  = (buf[0]     ) & 1;
   const unsigned b5  = (buf[0] >> 5) & 1;
@@ -607,10 +668,11 @@ bool arFOBDriver::_run(){
 }
 
 bool arFOBDriver::_autoConfig() {
-  ar_usleep( 1000000 );
+  // FoB manual p.132: wait 600 msec before and after this command.
+  ar_usleep( 700000 );
   const unsigned char cdata[] = {'P', 0x32, (unsigned char)_numBirds };
   const bool ok = _sendBirdCommand(cdata, 3);
-  ar_usleep( 1000000 );  
+  ar_usleep( 700000 );  
   return ok;
 }
 
@@ -630,6 +692,8 @@ bool arFOBDriver::_sendBirdAddress( unsigned char addr ) {
     // 1 means the first (and only) bird, when sent to _getSendNextFrame().
     return true;
   }
+  if (_stopped)
+      return false;
   if (_numBirds <= 1) {
     ar_log_warning() << "arFOBDriver expected more than one bird.\n";
     return true;
@@ -643,13 +707,23 @@ bool arFOBDriver::_sendBirdAddress( unsigned char addr ) {
 
 bool arFOBDriver::_sendBirdCommand( const unsigned char* cdata, 
                                     const unsigned int numBytes ) {
+  if (_stopped)
+    return false;
+#ifdef CGCGCG
+  printf("_sendBirdCommand (%c)   ", *cdata);
+  for (unsigned i=0; i<numBytes; ++i)
+    printf("%02x ", cdata[i]);
+  printf("\n");
+#endif
   return _comPort.ar_write( (char*)cdata, numBytes ) ==
-    static_cast<int>(numBytes);  
+    static_cast<int>(numBytes);
 }
 
 int arFOBDriver::_getBirdData( unsigned char* cdata, 
                                const unsigned int numBytes ) {
-  return _comPort.ar_read( (char *)cdata, numBytes );   
+  if (_stopped)
+      return false;
+  return _comPort.ar_read((char *)cdata, numBytes);
 }
 
 bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
@@ -662,33 +736,92 @@ bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
   }
 
   const int bytesPerBird = 2*_dataSize;
+  if (_stopped)
+    return false;
   const int bytesRead = _comPort.ar_read(
     (char*)_dataBuffer, static_cast<unsigned int>(bytesPerBird));
   if (bytesRead != bytesPerBird) {
     ar_log_warning() << "arFOBDriver read " << bytesRead <<
-      " bytes, but expected " << bytesPerBird << " bytes.\n";
+      " of " << bytesPerBird << " bytes.\n";
     return false;
   }
+
+
+#if 0
+
+_setDataMode sets bird data mode to position+quaternion.
+
+FoB manual p.35: FoBs 14-byte data record, the response to a Point command.
+  Position/orientation data.
+
+#endif
+
+#define CGCGCG
+#ifdef CGCGCG
+
+  unsigned char* pb = (unsigned char*)_dataBuffer;
+  if (*pb & 0x80 == 0)
+    cerr << "FoB phasing error at start of frame.\n";
+  *pb &= 0x7f; // clear phasing bit
+
+#if 0
+  /*if (addr == 1)*/
+    printf("\t\t\t____ xyz %02x%02x %02x%02x %02x%02x    Quat %02x%02x %02x%02x %02x%02x %02x%02x\n",
+	pb[1], pb[0], pb[3], pb[2], pb[5], pb[4], pb[7], pb[6], pb[9], pb[8], pb[11], pb[10], pb[13], pb[12]);
+#endif
+
+  int j;
+  for (j=0; j<_dataSize*2; j+=2) {
+    const unsigned int lsb = pb[j];
+    const unsigned int msb = pb[j+1];
+    // printf("lsb msb:  %02x %02x\n", lsb, msb);
+    if ((lsb & 0x80) != 0) {
+      cerr << "FoB phasing error during byte " << j << ".\n";
+      return true;
+    }
+    if ((msb & 0x80) != 0) {
+      cerr << "FoB phasing error during byte " << j+1 << ".\n";
+      return true;
+    }
+    // convert to signed
+    int s = ((msb << 7) | lsb) << 2;
+    if (s >= 32768)
+      s -= 65536;
+    _floatData[j/2] = float(s);
+  }
+  //printf("____\n");
+
+  // FoB manual p.89: scale xyz (signed int * S) / 32768,
+  //     where S is 36 72 or 144, output is in inches.
+  // FoB manual p.93: scale quaternions +.99996 = 0x7fff, 0=0, -1.0=0x8000.
+
+#else
 
   short* birdData = (short*)_dataBuffer;
   int j;
   for (j=0; j<_dataSize; j++) {
-    // Copied & pasted from Ascension code CMDUTIL.C
+    // from Ascension's CMDUTIL.C
     *birdData = (short)((((short)(*(unsigned char *) birdData) & 0x7F) |
 		(short)(*((unsigned char *) birdData+1)) << 7)) << 2;
     _floatData[j] = (float)*birdData++;
   }
-     
+#endif
+
+#if 0
+  /*if (addr == 1)*/ printf("%d\t\t\t\t\thead %5.2f %5.2f %5.2f\n", addr, _floatData[0]/32768.*72, _floatData[1]/32768.*72, _floatData[2]/32768.*72);
+  // 3=wand?, 1=head, 4=extrahand?
+#endif
+   
   // This matrix maps the coordinate system axes in the szg coordinate system
   // to the coordinate axes in the FOB transmitter coordinate system
   static const arMatrix4 coordSystemTrans = 
     ar_rotationMatrix( 'z', ar_convertToRad(90)) *
     ar_rotationMatrix( 'y', ar_convertToRad(-90)); 
-  // The rotation matrix of the bird. PLEASE NOTE: It seems like several
-  // Ascension products return the INVERSE (or, equivalently for rotation
-  // matrices, the transpose) of the bird's rotation matrix. Certainly,
-  // this is also true for the Ascension spacepad!   
-  // specific to position+quaternion data mode!!!
+
+  // The rotation matrix of the bird. SpacePad, and maybe other Ascension
+  // products, return the INVERSE (= transpose) of the bird's rotation matrix.
+  //
+  // Specific to position+quaternion data mode.
   for (j=3; j<7; ++j)
     _floatData[j] *= _orientScale;
 
@@ -698,30 +831,31 @@ bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
     ar_translationMatrix( _positionScale * arVector3(_floatData));
 
   /*
-  The calculation of the matrix to be reported to the input device is
-  involved. But this reasoning holds true for all 6DOF sensors.  In this
-  discussion, the Flock coordinate frame is B2 and the Syzygy coordinate
-  frame is B1.  In the context of VR, the Syzygy reference frame is the
-  frame of the graphics.  Our final goal is a transformation matrix in B1.
+  Calculating the matrix reported to the input device is involved,
+  but works for all 6DOF sensors.  In this discussion,
+  Syzygy's coordinate frame is B1, the Flock's is B2.
+  In the context of VR, B1 is the frame of the graphics.
+  Our final goal is a transformation matrix in B1.
 
-  Suppose R2 is a rotation matrix w.r.t. basis B2.  Let M be a rotation
-  taking B1 to B2.  If P1 gives a point's coordinates with respect to
-  B1 and P2 those w.r.t. B2 then (! is inverse):
+  Let R2 be a rotation matrix w.r.t. basis B2.
+  Let M be a rotation taking B1 to B2.
+  If P1 gives a point's coordinates w.r.t B1,
+  and P2 those w.r.t. B2, then (! is inverse):
 
-  P2 = (!M)*P1
-  P1 = M*P2
+  P2 = !M * P1
+  P1 =  M * P2
 
   So M maps coordinates in basis B2 to those in B1.  !M does the inverse.
   Now, let R1 be rotation R2, but w.r.t. B1.
   Its matrix must then be:
 
-  M*R2*(!M)
+  M * R2 * !M
 
   Furthermore, M*T changes a translation T in B2 to one in B1.  If the
-  transmitter's reference frame is as above (in relation to the Syzygy
+  transmitter's reference frame is as above (in relation to Syzygy's
   reference frame) then the correct matrix is:
 
-  M*T*R2*(!M)
+  M * T * R2 * !M
 
   Now consider sensor rotation. The sensor is attached to a bird.
   It has a NEUTRAL physical orientation relative to the transmitter
@@ -730,7 +864,7 @@ bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
   its neutral position. The bird should report a rotation of !N when in
   its neutral position. So the orientation and position of the bird is:
 
-  M*T*R2*(!M)*(!N)
+  M * T * R2 * !M * !N
 
   Finally, we consider transmitter rotation and translation offset.
   Suppose that the (0,0,0) of the Flock is translated from Syzygy's
@@ -739,7 +873,7 @@ bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
   the sensor) from the Syzygy reference frame. The orientation of the
   interaction device is:
 
-  T1*R3*M*T*R2*(!M)*(!N)
+  T1 * R3 * M * T * R2 * !M * !N
   
   This does not account for sensor translation offset.  The 180 degree
   rotation about y accounts for the fact that the bird's neutral position
@@ -753,14 +887,14 @@ bool arFOBDriver::_getSendNextFrame(unsigned char addr) {
     _sensorRot[_sensorMap[addr]] *
     ar_rotationMatrix('y', ar_convertToRad(180));
 
-  // Copy the matrix to the driver queue for sending. The actual
-  // sendQueue() command will occur in the event thread.
+  // Copy the matrix to the driver queue for sending.
+  // The actual sendQueue() will occur in the event thread.
   queueMatrix(_sensorMap[addr], finalMatrix);
   return true;
 }
 
-// KEEP THE BELOW EXAMPLE UNTIL WE FULLY HANDLE GROUP MODE.
 #if 0
+// KEEP THIS EXAMPLE UNTIL WE FULLY HANDLE GROUP MODE.
 bool arFOBDriver::_getSendNextFrame() {
   if (!_configured) {
     ar_log_warning() << "arFOBDriver tried to get data before init.\n";
@@ -771,12 +905,14 @@ bool arFOBDriver::_getSendNextFrame() {
   int bytesRead = -1;
   int i = 0;
   int j = 0;
+  if (_stopped)
+    return false;
   if (_numComports == 1) {
     numBytes *= _numBirds;
     bytesRead = _comPorts[0].ar_read( (char*)_dataBuffer, numBytes );
     if (bytesRead != numBytes) {
       ar_log_warning() << "arFOBDriver read " << bytesRead <<
-        " bytes, but expected " << numBytes << " bytes.\n";
+        " of " << numBytes << " bytes.\n";
       stop();
       return false;
     }
@@ -785,7 +921,7 @@ bool arFOBDriver::_getSendNextFrame() {
       bytesRead = _comPorts[i].ar_read( (char*)_dataBuffer+i*numBytes, numBytes );
       if (bytesRead != numBytes) {
 	ar_log_warning() << "arFOBDriver read " << bytesRead <<
-	  " bytes from bird # " << i << ", but expected " << numBytes << " bytes.\n";
+	  " of " << numBytes << " bytes from bird # " << i << ".\n";
         stop();
         return false;
       }

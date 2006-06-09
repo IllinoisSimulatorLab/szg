@@ -76,6 +76,7 @@ class arFOBDriver: public arInputSource {
   int _getBirdData( unsigned char* cdata, 
                     const unsigned int numBytes );
   bool _getSendNextFrame(unsigned char addr);
+  void _eventloop();
   
   arThread _eventThread;
   unsigned int   _timeoutTenths;
