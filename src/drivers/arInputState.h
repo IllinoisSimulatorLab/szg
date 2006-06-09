@@ -105,6 +105,7 @@ class SZG_CALL arInputState {
     void updateLastButton( const unsigned int index );
 
   private:    
+    void _init();
     void _lock();
     void _unlock();
     void _setSignatureNoLock( const unsigned int maxButtons,

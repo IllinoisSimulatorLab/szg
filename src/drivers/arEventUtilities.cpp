@@ -7,9 +7,10 @@
 #include "arPrecompiled.h"
 #include "arEventUtilities.h"
 
-static inline int maxint( const int a, const int b ) {
-  return a>b ? a : b;
-}
+static inline int maxint(const int a, const int b) { return a>b ? a : b; }
+static inline int maxint(const unsigned a, const int b) { return int(a)>b ? int(a) : b; }
+static inline int maxint(const int a, const unsigned b) { return a>int(b) ? a : int(b); }
+static inline int maxint(const unsigned a, const unsigned b) { return int(a>b ? a : b); }
 
 static inline int maxint( const int a, const int b, const int c ) {
   return maxint(a, maxint(b, c));
@@ -88,8 +89,8 @@ bool ar_setEventQueueFromStructuredData( arInputEventQueue* q,
     sigBuf[0] = maxint( sigBuf[0], numButtons );
     sigBuf[1] = maxint( sigBuf[1], numAxes );
     sigBuf[2] = maxint( sigBuf[2], numMatrices );
-    q->setSignature( (unsigned int)sigBuf[0], (unsigned int)sigBuf[1], 
-                     (unsigned int)sigBuf[2] );
+    q->setSignature( (unsigned)sigBuf[0], (unsigned)sigBuf[1], 
+                     (unsigned)sigBuf[2] );
   }
 
   const bool ok = q->setFromBuffers( typeBuf, indexBuf, buttonBuf, numButtons,
@@ -152,16 +153,17 @@ bool ar_saveEventQueueToStructuredData( arInputEventQueue* q,
       return false;
     }
 
-  int sigBuf[] = { q->getButtonSignature(), q->getAxisSignature(), 
-                   q->getMatrixSignature() };
+  const int sigBuf[] = {
+    q->getButtonSignature(),
+    q->getAxisSignature(), 
+    q->getMatrixSignature() };
   int* typeBuf = new int[_numItems];
   int* indexBuf = new int[_numItems];
   int* buttonBuf = new int[_numButtons];
   float* axisBuf = new float[_numAxes];
   float* matrixBuf = new float[16*_numMatrices];
 
-  const bool ok = q->saveToBuffers( typeBuf, indexBuf, buttonBuf, axisBuf, 
-                                    matrixBuf );
+  const bool ok = q->saveToBuffers( typeBuf, indexBuf, buttonBuf, axisBuf, matrixBuf );
   data->dataIn( "signature", sigBuf, AR_INT, 3 );
   data->dataIn( typeField, typeBuf, AR_INT, _numItems );
   data->dataIn( indexField, indexBuf, AR_INT, _numItems );
@@ -219,7 +221,6 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
     return false;
   }
 
-  int sigBuf[3];
   int* typeBuf = new int[numItems];
   int* indexBuf = new int[numItems];
   int* buttonBuf = new int[numButtons];
@@ -237,96 +238,86 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
   data->dataOut( axisField, axisBuf, AR_FLOAT, numAxes );
   data->dataOut( matrixField, matrixBuf, AR_FLOAT, numMatrices*16 );
 
-  unsigned int i;
+  unsigned i;
+  int sigBuf[3];
   if (sigLen == 3) {
     data->dataOut( sigField, sigBuf, AR_INT, sigLen );
-    for (i=0; i<(unsigned int)sigLen; i++) {
+    for (i=0; i<(unsigned)sigLen; i++) {
       if (sigBuf[i] < 0) {
-        cerr << "ar_setEventQueueFromStructuredData warning: "
-	     << "negative signature.\n";
+        cerr << "ar_setEventQueueFromStructuredData warning: overriding negative signature.\n";
         sigBuf[i] = 0;
       }
     }
   }
-  unsigned int buttonSig = 0;
-  unsigned int axisSig = 0;
-  unsigned int matrixSig = 0;
-  for (i=0; i<(unsigned int)numItems; i++) {
-    int eventIndex = indexBuf[i];
-    int eventType = typeBuf[i];
+
+  // Compute signature from max of eventIndex.
+  unsigned buttonSig = 0;
+  unsigned axisSig = 0;
+  unsigned matrixSig = 0;
+  for (i=0; i<(unsigned)numItems; i++) {
+    const unsigned eventIndex = unsigned(indexBuf[i]);
+    const int eventType = typeBuf[i];
     switch (eventType) {
       case AR_EVENT_BUTTON:
-        if (eventIndex >= (int)buttonSig)
+        if (eventIndex >= buttonSig)
           buttonSig = eventIndex + 1;
         break;
       case AR_EVENT_AXIS:
-        if (eventIndex >= (int)axisSig)
+        if (eventIndex >= axisSig)
           axisSig = eventIndex + 1;
         break;
       case AR_EVENT_MATRIX:
-        if (eventIndex >= (int)matrixSig)
+        if (eventIndex >= matrixSig)
           matrixSig = eventIndex + 1;
         break;
     }
   }
 
-  // NOTE: buttonSig, axisSig, and matrixSig SHOULD NOT be maxed with
+  // buttonSig, axisSig, and matrixSig SHOULD NOT be maxed with
   // the current number of buttons, axes, and matrices in the input state.
-  // It must, in fact, be possible to *decrease* the signature, as, for
-  // instance, when an input device disconnects.
-  buttonSig = (unsigned int)maxint( (int)buttonSig, sigBuf[0]);
-  axisSig = (unsigned int)maxint( (int)axisSig, sigBuf[1]);
-  matrixSig = (unsigned int)maxint( (int)matrixSig, sigBuf[2]);
-
+  // It must be possible to *decrease* the signature, e.g.
+  // when an input device disconnects.
+  buttonSig = (unsigned)maxint( buttonSig, sigBuf[0]);
+  axisSig = (unsigned)maxint( axisSig, sigBuf[1]);
+  matrixSig = (unsigned)maxint( matrixSig, sigBuf[2]);
   state->setSignature( buttonSig, axisSig, matrixSig );
 
   bool ok = true;
-  unsigned int iButton = 0;
-  unsigned int iAxis = 0;
-  unsigned int iMatrix = 0;
-  for (i=0; i<(unsigned int)numItems; i++) {
+  unsigned iButton = 0;
+  unsigned iAxis = 0;
+  unsigned iMatrix = 0;
+  for (i=0; i<(unsigned)numItems; i++) {
     int eventIndex = indexBuf[i];
     if (eventIndex < 0) {
-      cerr << "ar_setInputStateFromStructuredData warning: ignoring "
-           << "negative event index.\n";
+      cerr << "ar_setInputStateFromStructuredData warning: ignoring negative event index.\n";
       ok = false;
       continue;
     }
     int eventType = typeBuf[i];
     switch (eventType) {
       case AR_EVENT_BUTTON:
-        if (iButton >= (unsigned int)numButtons) {
-          cerr << "ar_setInputStateFromStructuredData warning: "
-	       << "number of buttons"
-               << " in index field\n"
-               << " exceeds specified input buffer size. Ignoring extras.\n";
+        if (iButton >= (unsigned)numButtons) {
+          cerr << "ar_setInputStateFromStructuredData warning: ignoring extra buttons in index field.\n";
           ok = false;
         } else
-          state->setButton( (unsigned int) eventIndex, buttonBuf[iButton++] );
+          state->setButton( (unsigned) eventIndex, buttonBuf[iButton++] );
         break;
       case AR_EVENT_AXIS:
-        if (iAxis >= (unsigned int)numAxes) {
-          cerr << "ar_setInputStateFromStructuredData warning: number of axes"
-               << " in index field\n"
-               << " exceeds specified input buffer size. Ignoring extras.\n";
+        if (iAxis >= (unsigned)numAxes) {
+          cerr << "ar_setInputStateFromStructuredData warning: ignoring extra axes in index field.\n";
           ok = false;
         } else
-          state->setAxis( (unsigned int) eventIndex, axisBuf[iAxis++] );
+          state->setAxis( (unsigned) eventIndex, axisBuf[iAxis++] );
         break;
       case AR_EVENT_MATRIX:
-        if (iMatrix >= (unsigned int)numMatrices) {
-          cerr << "ar_setInputStateFromStructuredData warning: "
-	       << "number of matrices"
-               << " in index field\n"
-               << " exceeds specified input buffer size. Ignoring extras.\n";
+        if (iMatrix >= (unsigned)numMatrices) {
+          cerr << "ar_setInputStateFromStructuredData warning: ignoring extra matrices in index field.\n";
           ok = false;
         } else
-          state->setMatrix( (unsigned int) eventIndex, 
-                            matrixBuf + 16*iMatrix++ );
+          state->setMatrix( (unsigned) eventIndex, matrixBuf + 16*iMatrix++ );
         break;
       default:
-        cerr << "ar_setInputStateFromStructuredData warning: "
-	     << "ignoring event type "
+        cerr << "ar_setInputStateFromStructuredData warning: ignoring event type "
              << eventType << endl;
         ok = false;
     }
@@ -342,10 +333,10 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
 
 bool ar_saveInputStateToStructuredData( arInputState* state,
                                         arStructuredData* data ) {
-  const int typeField = data->getDataFieldIndex("types");
-  const int indexField = data->getDataFieldIndex("indices");
+  const int typeField   = data->getDataFieldIndex("types");
+  const int indexField  = data->getDataFieldIndex("indices");
   const int buttonField = data->getDataFieldIndex("buttons");
-  const int axisField = data->getDataFieldIndex("axes");
+  const int axisField   = data->getDataFieldIndex("axes");
   const int matrixField = data->getDataFieldIndex("matrices");
 
   const int numItems    = data->getDataDimension(typeField);
@@ -380,34 +371,34 @@ bool ar_saveInputStateToStructuredData( arInputState* state,
   if (numItems != _numItems)
     if (!data->setDataDimension( typeField, _numItems )) {
       cerr << "ar_saveInputStateToStructuredData error: "
-	   << "failed to set button data dimension.\n";
+	   << "failed to set type data dimension.\n";
       return false;
     }
   if (numIndices != _numItems)
     if (!data->setDataDimension( indexField, _numItems )) {
       cerr << "ar_saveInputStateToStructuredData error: "
-	   << "failed to set button data dimension.\n";
+	   << "failed to set index data dimension.\n";
       return false;
     }
 
-  const int sigBuf[] = { _numButtons, _numAxes, _numMatrices };
+  const int sigBuf[3] = { _numButtons, _numAxes, _numMatrices };
   int* typeBuf = new int[_numItems];
   int* indexBuf = new int[_numItems];
   int* buttonBuf = new int[_numButtons];
   float* axisBuf = new float[_numAxes];
   float* matrixBuf = new float[16*_numMatrices];
 
-  unsigned int i;
-  unsigned int iEvent = 0;
-  for (i=0; i<(unsigned int)_numButtons; i++, iEvent++) {
+  unsigned i;
+  unsigned iEvent = 0;
+  for (i=0; i<(unsigned)_numButtons; i++, iEvent++) {
     typeBuf[iEvent] = AR_EVENT_BUTTON;
     indexBuf[iEvent] = (int)i;
   }
-  for (i=0; i<(unsigned int)_numAxes; i++, iEvent++) {
+  for (i=0; i<(unsigned)_numAxes; i++, iEvent++) {
     typeBuf[iEvent] = AR_EVENT_AXIS;
     indexBuf[iEvent] = (int)i;
   }
-  for (i=0; i<(unsigned int)_numMatrices; i++, iEvent++) {
+  for (i=0; i<(unsigned)_numMatrices; i++, iEvent++) {
     typeBuf[iEvent] = AR_EVENT_MATRIX;
     indexBuf[iEvent] = (int)i;
   }
