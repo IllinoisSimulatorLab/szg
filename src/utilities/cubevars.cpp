@@ -12,32 +12,6 @@
 #include <signal.h>
 #endif
 
-int billboardID = -1;
-
-bool callbackStart(arMasterSlaveFramework&, arSZGClient&){
-  arCubeEnvironment bigCube;
-  bigCube.setHeight(20);
-  bigCube.setRadius(14.14);
-  bigCube.setOrigin(0,5,0);
-  bigCube.setNumberWalls(6);
-
-  bigCube.setWallTexture(0,"Nature1.ppm");
-  bigCube.setWallTexture(1,"Nature2.ppm");
-  bigCube.setWallTexture(2,"Nature3.ppm");
-  bigCube.setWallTexture(3,"Nature1.ppm");
-  bigCube.setWallTexture(4,"Nature2.ppm");
-  bigCube.setWallTexture(5,"Nature3.ppm");
-  bigCube.setWallTexture(6,"Satin.ppm");
-  bigCube.setWallTexture(7,"Leopard.ppm");
-  bigCube.attachMesh("room","root");
-
-  // Attach a text display.
-  dgTransform("billboard transform","root",
-              ar_translationMatrix(0,0,-4)*ar_rotationMatrix('y',3.14159));
-  billboardID = dgBillboard("billboard","billboard transform",1, "cubevars");
-  return true;
-}
-
 void drawWand(const arMatrix4& m) {
   // Wand display
   glPushMatrix();
@@ -176,11 +150,7 @@ void callbackDraw(arMasterSlaveFramework& fw){
 
 int main(int argc, char** argv){
   arMasterSlaveFramework framework;
-  if (!framework.init(argc, argv))
-    return 1;
-
-  framework.setStartCallback(callbackStart);
   framework.setDrawCallback(callbackDraw);
-  framework.setClipPlanes( .1, 300. );
-  return framework.start() ? 0 : 1;
+  framework.setClipPlanes( .1, 200. );
+  return framework.init(argc, argv) && framework.start() ? 0 : 1;
 }
