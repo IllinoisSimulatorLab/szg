@@ -2,18 +2,12 @@
 // Syzygy is licensed under the BSD license v2
 // see the file SZG_CREDITS for details
 //********************************************************
-// precompiled header include MUST appear as the first non-comment line
+
 #include "arPrecompiled.h"
 #include "arMasterSlaveFramework.h"
-#include "arCubeEnvironment.h"
 #include "arMath.h"
-#ifndef AR_USE_WIN_32
-#include <sys/types.h>
-#include <signal.h>
-#endif
 
 void drawWand(const arMatrix4& m) {
-  // Wand display
   glPushMatrix();
     glMultMatrixf(m.v);
     glBegin(GL_LINES);
@@ -35,8 +29,37 @@ void drawWand(const arMatrix4& m) {
   glPopMatrix();
 }
 
-void callbackDraw(arMasterSlaveFramework& fw){
-  int i;
+void glutPrintf(float x, float y, float z, const char* sz) {
+  glPushMatrix();
+    glRasterPos3f(x, y, z);
+    for (const char* c = sz; *c; ++c)
+      glutBitmapCharacter(GLUT_BITMAP_9_BY_15, *c);
+  glPopMatrix();
+}
+
+// copied from arInputSimulator::_drawHead()
+void drawHead() {
+  glColor3f(1,1,0);
+  glutWireSphere(1,10,10);
+  // two eyes
+  glColor3f(0,1,1);
+  glPushMatrix();
+    glTranslatef(0.5,0,-0.8);
+    glutSolidSphere(0.4,8,8);
+    glTranslatef(0,0,-0.4);
+    glColor3f(1,0,0);
+    glutSolidSphere(0.1,8,8);
+  glPopMatrix();
+  glTranslatef(-0.5,0,-0.8);
+  glColor3f(0,1,1);
+  glutSolidSphere(0.4,8,8);
+  glTranslatef(0,0,-0.4);
+  glColor3f(1,0,0);
+  glutSolidSphere(0.1,8,8);
+}
+
+void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&){
+  unsigned i;
 
   arMatrix4 rgm[20]; // buffer overflow
   const unsigned cm = fw.getNumberMatrices();
@@ -50,6 +73,8 @@ void callbackDraw(arMasterSlaveFramework& fw){
   const arMatrix4& wandMatrix = rgm[1];
 
   const unsigned ca = fw.getNumberAxes();
+  if (ca != 2)
+    cerr << "warning: expect 2 axes.\n";
   const float caveJoystickX = fw.getAxis(0);
   const float caveJoystickY = fw.getAxis(1);
 
@@ -62,15 +87,109 @@ void callbackDraw(arMasterSlaveFramework& fw){
   for (i=0; i < cb; ++i)
     rgButton[i] = fw.getButton(i);
 
-
-  // Wireframe cubes -- these should not translate, as head translates.
+  // Wireframe around edges of standard 10-foot cube.
   glDisable(GL_LIGHTING);
   glColor3f(1,1,1);
   glPushMatrix();
     glTranslatef(0,5,0);
-    glutWireCube(9.5);
+    glutWireCube( 9.8);
     glutWireCube(10.0);
-    glutWireCube(10.5);
+    glutWireCube(10.2);
+  glPopMatrix();
+
+  // Labels on walls.
+  const int iEye = 1 + int(gw.getCurrentEyeSign());
+  const char* rgszEye[3] = { "Left eye", "Both eyes", "Right eye" };
+  const char* szEye = rgszEye[iEye];
+  glDisable(GL_DEPTH_TEST);
+  glColor3f( 1, 1, 1 );
+    glutPrintf(0,  2, -5, "Front wall");
+    glutPrintf(-5, 5,  0, "Left wall");
+    glutPrintf( 5, 5,  0, "Right wall");
+    glutPrintf(0,  5,  5, "Back wall");
+    glutPrintf(0,  10,  0, "Top wall");
+    glutPrintf(0,  0,  0, "Bottom wall");
+
+    glutPrintf(0,  0.5 + iEye*.5, -5, szEye);
+    glutPrintf(-5, 3.5 + iEye*.5,  0, szEye);
+    glutPrintf( 5, 3.5 + iEye*.5,  0, szEye);
+    glutPrintf(0,  3.5 + iEye*.5,  5, szEye);
+    glutPrintf(0,  10,   1 + iEye*.5, szEye);
+    glutPrintf(0,  0,    1 + iEye*.5, szEye);
+
+  // Maya-style cross sections, pasted to front wall.
+  glutPrintf(-4, 8.2, -5, "xz top");
+  glutPrintf(-1, 8.2, -5, "yz side");
+  glutPrintf( 2, 8.2, -5, "xy back");
+
+  // top view
+  glPushMatrix();
+    glTranslatef(-3, 7, -5);
+    glScalef(1, 1, 0); // flatten onto front screen
+
+    glColor3f(.1,.1,.4);
+    glBegin(GL_POLYGON);
+      glVertex3f( 1,  1, 0);
+      glVertex3f( 1, -1, 0);
+      glVertex3f(-1, -1, 0);
+      glVertex3f(-1,  1, 0);
+    glEnd();
+
+    glColor3f(0.3,.9,0);
+    glPushMatrix();
+      glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
+      glRotatef(90, 1,0,0); // rotate back view to top view: 90 degrees about x axis
+      glTranslatef(0, -5, 0); // correct y coord
+      for (i=1; i<cm; ++i)
+	drawWand(rgm[i]);
+      glMultMatrixf(headMatrix.v);
+      drawHead();
+    glPopMatrix();
+  glPopMatrix();
+
+  // side view
+  glPushMatrix();
+    glTranslatef(0, 7, -5);
+    glScalef(1, 1, 0); // flatten onto front screen
+    glColor3f(.1,.1,.4);
+    glBegin(GL_POLYGON);
+      glVertex3f( 1,  1, 0);
+      glVertex3f( 1, -1, 0);
+      glVertex3f(-1, -1, 0);
+      glVertex3f(-1,  1, 0);
+    glEnd();
+    glColor3f(0.3,.9,0);
+    glPushMatrix();
+      glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
+      glRotatef(-90, 0,1,0); // rotate back view to side view: 90 degrees about y axis
+      glTranslatef(0, -5, 0); // correct y coord
+      for (i=1; i<cm; ++i)
+	drawWand(rgm[i]);
+      glMultMatrixf(headMatrix.v);
+      drawHead();
+    glPopMatrix();
+  glPopMatrix();
+
+  // back view
+  glPushMatrix();
+    glTranslatef(3, 7, -5);
+    glScalef(1, 1, 0); // flatten onto front screen
+    glColor3f(.1,.1,.4);
+    glBegin(GL_POLYGON);
+      glVertex3f( 1,  1, 0);
+      glVertex3f( 1, -1, 0);
+      glVertex3f(-1, -1, 0);
+      glVertex3f(-1,  1, 0);
+    glEnd();
+    glColor3f(0.3,.9,0);
+    glPushMatrix();
+      glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
+      glTranslatef(0, -5, 0); // correct y coord
+      for (i=1; i<cm; ++i)
+	drawWand(rgm[i]);
+      glMultMatrixf(headMatrix.v);
+      drawHead();
+    glPopMatrix();
   glPopMatrix();
 
   glDisable(GL_LIGHTING);
@@ -108,10 +227,25 @@ void callbackDraw(arMasterSlaveFramework& fw){
   const arMatrix4 m(ar_extractTranslationMatrix(wandMatrix));
   glMultMatrixf(m.v);
 
-  // Box for the wand's joystick, in a square.
   glPushMatrix();
-    glTranslatef(0.5 ,-0.6, 0);
-    glScalef(.3, .3, .3);
+    glTranslatef(0.5 ,0.0, -1.5);
+
+    // Box for each wand button
+    for (i=0; i<cb; ++i) {
+      glPushMatrix();
+	const float x = 0.1 + 0.8 * (i / (cb - 1.0));
+	glTranslatef(x, -0.2, 0);
+	if (rgButton[i] == 0)
+	  glColor3f(1,0,0);
+	else
+	  glColor3f(0,1,0);
+	glutSolidCube(0.4 / cb);
+      glPopMatrix();
+    }
+
+    // Box for the wand's joystick, in a square.
+    glTranslatef(0.0 ,0.2, 0.0);
+    glScalef(.2, .2, .2);
     glColor3f(1,1,.3);
     glBegin(GL_LINE_LOOP);
       glVertex3f( 1,  1, 0);
@@ -130,27 +264,15 @@ void callbackDraw(arMasterSlaveFramework& fw){
       glTranslatef(caveJoystickX, caveJoystickY, 0);
       glutSolidCube(0.35);
     glPopMatrix();
-  glPopMatrix();
 
-  // Box for each wand button
-  for (i=0; i<cb; ++i) {
-    glPushMatrix();
-      const float x = 0.1 + 0.8 * (i / (cb - 1.0));
-      glTranslatef(x, -0.2, 0);
-      if (rgButton[i] == 0)
-	glColor3f(1,0,0);
-      else
-	glColor3f(0,1,0);
-      glutSolidCube(0.5 / cb);
-    glPopMatrix();
-  }
+  glPopMatrix();
 
   glEnable(GL_LIGHTING);
 }
 
 int main(int argc, char** argv){
-  arMasterSlaveFramework framework;
-  framework.setDrawCallback(callbackDraw);
-  framework.setClipPlanes( .1, 200. );
-  return framework.init(argc, argv) && framework.start() ? 0 : 1;
+  arMasterSlaveFramework fw;
+  fw.setDrawCallback(callbackDraw);
+  fw.setClipPlanes( .1, 200. );
+  return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }
