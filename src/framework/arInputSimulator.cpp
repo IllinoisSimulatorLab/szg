@@ -14,9 +14,8 @@
 arInputSimulator::arInputSimulator() :
   _numButtonEvents(0),
   _simulatorRotation(0.),
-  _buttonSelector(0) {
-  // todo: initializers not assignemts
-  // Initialize the internal simulator.
+  _buttonSelector(0),
+  _interfaceState(AR_SIM_HEAD_TRANSLATE) {
   _mousePosition[0] = 0;
   _mousePosition[1] = 0;
   std::vector<unsigned> buttons;
@@ -27,9 +26,6 @@ arInputSimulator::arInputSimulator() :
   setNumberButtonEvents( 8 );
   _rotator[0] = 0.;
   _rotator[1] = 0.;
-  _simulatorRotation = 0;
-  _buttonSelector = 0;
-  _interfaceState = AR_SIM_HEAD_TRANSLATE;
 
   // Initialize the simulated device.
   _matrix[0] = ar_translationMatrix(0,5,0);
@@ -196,19 +192,19 @@ void arInputSimulator::advance(){
   _driver.queueMatrix(1,_matrix[1]);
   _driver.queueAxis(0,_axis[0]);
   _driver.queueAxis(1,_axis[1]);
-  // OK... I'm implementing the "only send data that changes" for the
-  // buttons... We'll see how robust this is...
-  //
-  // (following should never happen).
+
+  // Send only changed-button data.
   if (_newButtonEvents.size() != _lastButtonEvents.size()) {
     ar_log_warning() << "arInputSimulator: numbers of new & last button values out of sync.\n";
     return;
   }
+
   for (unsigned i=0; i<_newButtonEvents.size(); ++i) {
     if (_newButtonEvents[i] != _lastButtonEvents[i]){
       _lastButtonEvents[i] = _newButtonEvents[i];
-      // It seems to be a better idea to queue the button events where they are received, i.e. in the 
-      // mouseButton method instead of sending the diff here (i.e. polling, which is unreliable for transient events).
+      // Queue the button events where received, i.e. in the 
+      // mouseButton method instead of sending the diff here
+      // (i.e. polling, which is unreliable for transient events).
     }
   }
   _driver.sendQueue();
@@ -220,14 +216,17 @@ void arInputSimulator::keyboard(unsigned char key, int, int x, int y) {
   _mousePosition[0] = x;
   _mousePosition[1] = y;
   std::vector<int>::iterator iter;
-  for (iter = _lastButtonEvents.begin(); iter != _lastButtonEvents.end(); ++iter) {
+  for (iter = _lastButtonEvents.begin(); iter != _lastButtonEvents.end(); ++iter)
     *iter = 0;
-  }
-  unsigned rowLength = _mouseButtons.size();
-  unsigned numRows = (unsigned)(_numButtonEvents / rowLength);
-  if (_numButtonEvents % rowLength != 0) {
+
+  // Ugly: clicking middle mouse button of a 3-button mouse suddenly
+  // changes rowLength from 2 to 3 (_mouseButtons grew).
+  // Todo: query the OS (platform specific) for number of mouse buttons.
+  const unsigned rowLength = _mouseButtons.size();
+
+  unsigned numRows = unsigned(_numButtonEvents / rowLength);
+  if (_numButtonEvents % rowLength != 0)
     ++numRows;
-  }
   switch (key) {
   case ' ':
     if (rowLength == 0 || numRows == 0) {
@@ -252,6 +251,8 @@ void arInputSimulator::keyboard(unsigned char key, int, int x, int y) {
     goto LResetWand;
   case '5':
     if (_interfaceState == AR_SIM_WAND_ROTATE_BUTTONS) {
+      // Hit 5 twice to reset wand's rotation.
+      // todo: do this "double clicking" on other states too.
 LResetWand:
       _rotator[0] = 0.;
       _rotator[1] = 0.;
@@ -515,8 +516,7 @@ void arInputSimulator::_drawGamepad() const {
       glVertex3f(0.5,0.2,0.3);
       glVertex3f(-0.5,0.2,0.3);
     glEnd();
-    // A button selector sphere that indicates which
-    // set of 3 buttons is controlled by the mouse selector button
+    // Indicates which row of buttons is controlled by the mouse selector button
     glPushMatrix();
       glTranslatef(-.5*padWidth,BUTTON_YBORDER+BUTTON_SPACING*_buttonSelector,0.1);
       glColor3f(1,1,1);
@@ -556,25 +556,11 @@ void arInputSimulator::_drawGamepad() const {
         y += BUTTON_SPACING;
       }
     }
-    // 6 wand buttons
-  //  for (int i=0; i<6; i++){
-  //    glPushMatrix();
-  //    glTranslatef(-0.7 + 0.7*(i%3),
-  //                 0.5 + 0.7*(i/3),
-  //                 0.1);
-  //    if (_button[i] == 0)
-  //      glColor3f(1,0,0);
-  //    else
-  //      glColor3f(0,1,0);
-  //    glutSolidSphere(0.25,8,8);
-  //    glPopMatrix();
-  //  }
     glEnable(GL_LIGHTING);
   glPopMatrix();
 }
 
 void arInputSimulator::_drawHead() const {
-  // the user's head
   glColor3f(1,1,0);
   glPushMatrix();
     glMultMatrixf(_matrix[0].v);
@@ -598,7 +584,6 @@ void arInputSimulator::_drawHead() const {
 }
 
 void arInputSimulator::_drawWand() const {
-  // wand
   glDisable(GL_LIGHTING);
   glEnable(GL_DEPTH_TEST);
   glPushMatrix();
@@ -627,7 +612,7 @@ void arInputSimulator::_drawWand() const {
 }
 
 void arInputSimulator::_drawTextState() const {
-  // text state info
+  // One-line hints.
   glDisable(GL_DEPTH_TEST);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
