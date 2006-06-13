@@ -7,8 +7,10 @@
 #include "arMasterSlaveFramework.h"
 #include "arMath.h"
 
-void drawWand(const arMatrix4& m) {
+void drawWand(const arMatrix4& m, const float large = 1.0) {
   glPushMatrix();
+    if (large != 1.0)
+      glScalef(large, large, large); // larger for visibility
     glMultMatrixf(m.v);
     glBegin(GL_LINES);
       glColor3f(1,1,0);
@@ -29,33 +31,47 @@ void drawWand(const arMatrix4& m) {
   glPopMatrix();
 }
 
-void glutPrintf(float x, float y, float z, const char* sz) {
+void glutPrintf(float x, float y, float z, const char* sz, float rotY=0., float rotX=0.) {
   glPushMatrix();
+#ifdef using_bitmap_fonts
     glRasterPos3f(x, y, z);
     for (const char* c = sz; *c; ++c)
       glutBitmapCharacter(GLUT_BITMAP_9_BY_15, *c);
+#else
+    // Thick huge font, easier to read on dim projector screens.
+    glLineWidth(3);
+    glTranslatef(x, y, z);
+    glScalef(.0042, .0042, .0042);
+    glRotatef(rotY, 0, -1, 0);
+    glRotatef(rotX, 1,  0, 0);
+    for (const char* c = sz; *c; ++c)
+      glutStrokeCharacter(GLUT_STROKE_ROMAN, *c);
+#endif
   glPopMatrix();
 }
 
 // copied from arInputSimulator::_drawHead()
 void drawHead() {
-  glColor3f(1,1,0);
-  glutWireSphere(1,10,10);
-  // two eyes
-  glColor3f(0,1,1);
   glPushMatrix();
-    glTranslatef(0.5,0,-0.8);
+    glScalef(1.5,1.5,1.5); // larger for visibility
+    glColor3f(1,1,0);
+    glutWireSphere(1,10,10);
+    // two eyes
+    glColor3f(0,1,1);
+    glPushMatrix();
+      glTranslatef(0.5,0,-0.8);
+      glutSolidSphere(0.4,8,8);
+      glTranslatef(0,0,-0.4);
+      glColor3f(1,0,0);
+      glutSolidSphere(0.1,8,8);
+    glPopMatrix();
+    glTranslatef(-0.5,0,-0.8);
+    glColor3f(0,1,1);
     glutSolidSphere(0.4,8,8);
     glTranslatef(0,0,-0.4);
     glColor3f(1,0,0);
     glutSolidSphere(0.1,8,8);
   glPopMatrix();
-  glTranslatef(-0.5,0,-0.8);
-  glColor3f(0,1,1);
-  glutSolidSphere(0.4,8,8);
-  glTranslatef(0,0,-0.4);
-  glColor3f(1,0,0);
-  glutSolidSphere(0.1,8,8);
 }
 
 void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&){
@@ -78,7 +94,7 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
   const float caveJoystickX = fw.getAxis(0);
   const float caveJoystickY = fw.getAxis(1);
 
-  const unsigned cb = fw.getNumberButtons();
+  const unsigned cb = fw.getNumberButtons(); // wall-dependent.  Camille doesn't know why, 2006-06-12.
   if (cb < 3)
     cerr << "warning: expect at least 3 buttons.\n";
   if (cb > 250)
@@ -89,11 +105,13 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
 
   // Wireframe around edges of standard 10-foot cube.
   glDisable(GL_LIGHTING);
-  glColor3f(1,1,1);
   glPushMatrix();
     glTranslatef(0,5,0);
+    glColor3f(.9, .9, .9);
     glutWireCube( 9.8);
+    glColor3f(1, 1, 1);
     glutWireCube(10.0);
+    glColor3f(.9, .9, .9);
     glutWireCube(10.2);
   glPopMatrix();
 
@@ -101,26 +119,27 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
   const int iEye = 1 + int(gw.getCurrentEyeSign());
   const char* rgszEye[3] = { "Left eye", "Both eyes", "Right eye" };
   const char* szEye = rgszEye[iEye];
-  glDisable(GL_DEPTH_TEST);
   glColor3f( 1, 1, 1 );
     glutPrintf(0,  2, -5, "Front wall");
-    glutPrintf(-5, 5,  0, "Left wall");
-    glutPrintf( 5, 5,  0, "Right wall");
-    glutPrintf(0,  5,  5, "Back wall");
-    glutPrintf(0,  10,  0, "Top wall");
-    glutPrintf(0,  0,  0, "Bottom wall");
+    glutPrintf(-5, 5,  0, "Left wall",  -90);
+    glutPrintf( 5, 5,  0, "Right wall",  90);
+    glutPrintf(0,  5,  5, "Back wall",  180);
+    glutPrintf(0,  10,  0, "Top wall", 0, 90);
+    glutPrintf(0,  0,  0, "Bottom wall", 0, -90);
 
     glutPrintf(0,  0.5 + iEye*.5, -5, szEye);
-    glutPrintf(-5, 3.5 + iEye*.5,  0, szEye);
-    glutPrintf( 5, 3.5 + iEye*.5,  0, szEye);
-    glutPrintf(0,  3.5 + iEye*.5,  5, szEye);
-    glutPrintf(0,  10,   1 + iEye*.5, szEye);
-    glutPrintf(0,  0,    1 + iEye*.5, szEye);
+    glutPrintf(-5, 3.5 + iEye*.5,  0, szEye, -90);
+    glutPrintf( 5, 3.5 + iEye*.5,  0, szEye,  90);
+    glutPrintf(0,  3.5 + iEye*.5,  5, szEye, 180);
+    glutPrintf(0,  10,   -1 - iEye*.5, szEye, 0, 90);
+    glutPrintf(0,  0,     1 + iEye*.5, szEye, 0, -90);
 
   // Maya-style cross sections, pasted to front wall.
   glutPrintf(-4, 8.2, -5, "xz top");
   glutPrintf(-1, 8.2, -5, "yz side");
   glutPrintf( 2, 8.2, -5, "xy back");
+
+  glDisable(GL_DEPTH_TEST);
 
   // top view
   glPushMatrix();
@@ -135,13 +154,12 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
       glVertex3f(-1,  1, 0);
     glEnd();
 
-    glColor3f(0.3,.9,0);
     glPushMatrix();
       glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
       glRotatef(90, 1,0,0); // rotate back view to top view: 90 degrees about x axis
       glTranslatef(0, -5, 0); // correct y coord
       for (i=1; i<cm; ++i)
-	drawWand(rgm[i]);
+	drawWand(rgm[i], 1.5);
       glMultMatrixf(headMatrix.v);
       drawHead();
     glPopMatrix();
@@ -158,13 +176,12 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
       glVertex3f(-1, -1, 0);
       glVertex3f(-1,  1, 0);
     glEnd();
-    glColor3f(0.3,.9,0);
     glPushMatrix();
       glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
       glRotatef(-90, 0,1,0); // rotate back view to side view: 90 degrees about y axis
       glTranslatef(0, -5, 0); // correct y coord
       for (i=1; i<cm; ++i)
-	drawWand(rgm[i]);
+	drawWand(rgm[i], 1.5);
       glMultMatrixf(headMatrix.v);
       drawHead();
     glPopMatrix();
@@ -181,12 +198,11 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
       glVertex3f(-1, -1, 0);
       glVertex3f(-1,  1, 0);
     glEnd();
-    glColor3f(0.3,.9,0);
     glPushMatrix();
       glScalef(.2, .2, .2); // shrink 10 feet to 2 feet
       glTranslatef(0, -5, 0); // correct y coord
       for (i=1; i<cm; ++i)
-	drawWand(rgm[i]);
+	drawWand(rgm[i], 1.5);
       glMultMatrixf(headMatrix.v);
       drawHead();
     glPopMatrix();
@@ -231,19 +247,24 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
     glTranslatef(0.5 ,0.0, -1.5);
 
     // Box for each wand button
+    // Released, small red.  Pushed, big green.
     for (i=0; i<cb; ++i) {
       glPushMatrix();
-	const float x = 0.1 + 0.8 * (i / (cb - 1.0));
+	const float x = .15 + 1.2 * (i / (cb - 1.0));
 	glTranslatef(x, -0.2, 0);
-	if (rgButton[i] == 0)
-	  glColor3f(1,0,0);
-	else
-	  glColor3f(0,1,0);
-	glutSolidCube(0.4 / cb);
+	if (rgButton[i] == 0) {
+	  glColor3f(1, .3, .2);
+	  glutSolidCube(0.5 / cb);
+	}
+	else {
+	  glColor3f(.3, 1, .6);
+	  glutSolidCube(0.7 / cb);
+	}
       glPopMatrix();
     }
 
     // Box for the wand's joystick, in a square.
+    glLineWidth(3);
     glTranslatef(0.0 ,0.2, 0.0);
     glScalef(.2, .2, .2);
     glColor3f(1,1,.3);
