@@ -1162,6 +1162,7 @@ FILE* ar_fileOpen(const string& name, const string& path,
 list<string> ar_listDirectory(const string& name){
   // We will return a full path to the included file.
   string directoryPrefix = name;
+  string fileNameString;
   ar_scrubPath(directoryPrefix);
   ar_pathAddSlash(directoryPrefix);
   list<string> result;
@@ -1184,7 +1185,10 @@ list<string> ar_listDirectory(const string& name){
   dirent* directoryEntry = NULL;
   while ((directoryEntry = readdir(directory)) != NULL){
     // There is another entry. Push the name.
-    result.push_back(directoryPrefix+string(directoryEntry->d_name));
+    fileNameString = string( directoryEntry->d_name );
+    if (fileNameString != "..") {
+      result.push_back(directoryPrefix+fileNameString);
+    }
   }
   closedir(directory);
 #else
@@ -1208,8 +1212,12 @@ list<string> ar_listDirectory(const string& name){
     return result;
   }
   result.push_back(directoryPrefix+string(fileinfo.name));
-  while (_findnext(fileHandle, &fileinfo) != -1)
-    result.push_back(directoryPrefix+string(fileinfo.name));
+  while (_findnext(fileHandle, &fileinfo) != -1) {
+    fileNameString = string( fileinfo.name );
+    if (fileNameString != "..") {
+      result.push_back(directoryPrefix+fileNameString);
+    }
+  }
   _findclose(fileHandle);
 #endif
   return result;
