@@ -174,8 +174,8 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
       const string pythonScriptPath = SZGClient->getAttribute(
         userName, "NULL", "SZG_PYTHON", "path", "");
       errStream << "szgd error: no python script '" << fileName
-                << "' on user " << userName << "'s SZG_PYTHON/path '"
-                << "    " << pythonScriptPath << "'\n";
+                << "' on user " << userName << "'s SZG_PYTHON/path"
+                << " '" << pythonScriptPath << "'\n";
       return errStream.str();
     }
     command = ar_fileFind( fileName, "", execInfo->pyDirPath);
