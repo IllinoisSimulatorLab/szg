@@ -27,6 +27,7 @@ arTrackCalFilter::arTrackCalFilter() :
   _yLookupTable(NULL),
   _zLookupTable(NULL)
 {
+  _lastPosition[0] = _lastPosition[1] = _lastPosition[2] = -1000;
 }
 
 arTrackCalFilter::~arTrackCalFilter() {
@@ -34,8 +35,8 @@ arTrackCalFilter::~arTrackCalFilter() {
 }
 
 bool arTrackCalFilter::configure(arSZGClient* szgClient) {
-  float floatBuf[3] = {0};
   unsigned long i = 0;
+  float floatBuf[3] = {0};
   
   // This part is still a bit hokey.
   // y_rot_angle_deg is just a correction for the sensor on the goggles
@@ -62,8 +63,8 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
   const string calFileName(szgClient->getAttribute("SZG_MOTIONSTAR", "calib_file"));
   FILE *fp = ar_fileOpen( calFileName, dataPath, "r" );
   if (fp == NULL) {
-    cerr << "arTrackCalFilter warning: failed to open file \""
-         << calFileName << "\" (SZG_MOTIONSTAR/calib_file) in \"" << dataPath << "\" (SZG_CALIB/path).\n";
+    cerr << "arTrackCalFilter warning: failed to open file '"
+         << calFileName << "' (SZG_MOTIONSTAR/calib_file) in '" << dataPath << "' (SZG_CALIB/path).\n";
     return false;
   }
 
@@ -136,7 +137,7 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
   return true;
 }
 
-#define HEAD_MATRIX_NUMBER 0
+const int HEAD_MATRIX_NUMBER = 0;
 
 bool arTrackCalFilter::_processEvent( arInputEvent& inputEvent ) {
   if (inputEvent.getType() != AR_EVENT_MATRIX)
@@ -144,7 +145,7 @@ bool arTrackCalFilter::_processEvent( arInputEvent& inputEvent ) {
 
   arMatrix4 newMatrix(inputEvent.getMatrix());
   if (_useCalibration) {
-    _doInterpolation( newMatrix );
+    _interpolate( newMatrix );
   }
   if (inputEvent.getIndex() == HEAD_MATRIX_NUMBER)  // Apply old filter to head matrix
     _doIIRFilter( newMatrix );
@@ -161,7 +162,7 @@ bool arTrackCalFilter::_processEvent( arInputEvent& inputEvent ) {
 //    if (ar_getEventType(i,d) == AR_EVENT_MATRIX) {
 //      arMatrix4 newMatrix = ar_getEventMatrixValue(i,d);
 //      if (_useCalibration) {
-//        _doInterpolation( newMatrix );
+//        _interpolate( newMatrix );
 //      }
 //      if (ar_getEventIndex(i,d) == 0)
 //        _doIIRFilter( newMatrix );
@@ -171,7 +172,6 @@ bool arTrackCalFilter::_processEvent( arInputEvent& inputEvent ) {
 //  return d;
 //}
 
-static float _lastPosition[] = {-1000,-1000,-1000};
 void arTrackCalFilter::_doIIRFilter( arMatrix4& m ) {
   for (int i=0; i<3; i++) {
     float p = m[12+i];
@@ -184,7 +184,8 @@ void arTrackCalFilter::_doIIRFilter( arMatrix4& m ) {
   }
 }
 
-bool arTrackCalFilter::_doInterpolation( arMatrix4& theMatrix ) {
+bool arTrackCalFilter::_interpolate( arMatrix4& theMatrix ) {
+  // Trilinear interpolation.
   const float x = theMatrix[12];
   const float y = theMatrix[13];
   const float z = theMatrix[14];

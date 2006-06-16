@@ -70,7 +70,7 @@ class TrackCalAction : public arPForthAction {
     bool run( arPForth* pf );
 
   private:
-    bool _doInterpolation( arMatrix4& newMatrix );
+    bool _interpolate( arMatrix4& newMatrix );
     void _cleanup();
     long _nx, _ny, _nz;
     unsigned long _n;
@@ -86,7 +86,7 @@ bool TrackCalAction::run( arPForth* pf ) {
   long outMatrixAddress = (long)pf->stackPop();
   long inMatrixAddress    = (long)pf->stackPop();
   arMatrix4 newMatrix( pf->getDataMatrix( inMatrixAddress ) );
-  _doInterpolation( newMatrix );
+  _interpolate( newMatrix );
   pf->putDataMatrix( outMatrixAddress, newMatrix );
   return true;
 }
@@ -169,7 +169,7 @@ bool TrackCalAction::configure(arSZGClient* szgClient) {
   cout << "TrackCalAction remark: using calibration.\n";
   return true;
 }
-bool TrackCalAction::_doInterpolation( arMatrix4& theMatrix ) {
+bool TrackCalAction::_interpolate( arMatrix4& theMatrix ) {
   const float x = theMatrix[12];
   const float y = theMatrix[13];
   const float z = theMatrix[14];

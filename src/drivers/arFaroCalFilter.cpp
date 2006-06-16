@@ -26,7 +26,8 @@ arFaroCalFilter::arFaroCalFilter() :
   _yFilterWeight(0.),
   _xLookupTable(NULL),
   _yLookupTable(NULL),
-  _zLookupTable(NULL)
+  _zLookupTable(NULL),
+  _yOld(-1000)
 {
 }
 
@@ -41,22 +42,22 @@ enum {
 };
 
 bool arFaroCalFilter::_processEvent( arInputEvent& inputEvent ) {
-  if (inputEvent.getType() == AR_EVENT_MATRIX) {
-    arMatrix4 newMatrix = inputEvent.getMatrix();
-    const unsigned int eventIndex = inputEvent.getIndex();
-    if (eventIndex == FARO_MATRIX_NUMBER) { // Apply faro coordinate transformation to faro tip.
-      newMatrix = _faroCoordMatrix*newMatrix;
-    } else {
-      if (_useCalibration)
-        _doInterpolation( newMatrix );
-      if (eventIndex == HEAD_MATRIX_NUMBER)  // Apply old filter to head matrix
-        _doIIRFilter( newMatrix );
-    }
-    return inputEvent.setMatrix( newMatrix );
+  if (inputEvent.getType() != AR_EVENT_MATRIX)
+    return true;
+
+  arMatrix4 newMatrix = inputEvent.getMatrix();
+  const unsigned eventIndex = inputEvent.getIndex();
+  if (eventIndex == FARO_MATRIX_NUMBER) { // Apply faro coordinate transformation to faro tip.
+    newMatrix = _faroCoordMatrix * newMatrix;
+  } else {
+    if (_useCalibration)
+      _interpolate( newMatrix );
+    if (eventIndex == HEAD_MATRIX_NUMBER)  // Apply old filter to head matrix
+      _doIIRFilter( newMatrix );
   }
-  return true;
+  return inputEvent.setMatrix( newMatrix );
 }
-      
+    
 //arStructuredData* arFaroCalFilter::filter(arStructuredData* d) {
 //  int count = ar_getNumberEvents(d);
 //  for (int i=0; i<count; i++) {
@@ -66,7 +67,7 @@ bool arFaroCalFilter::_processEvent( arInputEvent& inputEvent ) {
 //        newMatrix = _faroCoordMatrix*newMatrix;
 //      } else {
 //        if (_useCalibration)
-//          _doInterpolation( newMatrix );
+//          _interpolate( newMatrix );
 //        if (ar_getEventIndex(i,d)==HEAD_MATRIX_NUMBER)  // Apply old filter to head matrix
 //          _doIIRFilter( newMatrix );
 //      }
@@ -190,16 +191,15 @@ bool arFaroCalFilter::configure(arSZGClient* szgClient) {
   return true;
 }
 
-static float yOld = -1000;
 void arFaroCalFilter::_doIIRFilter( arMatrix4& m ) {
   float y = m[13];
-  if (yOld != -1000)
-    y = (1-_yFilterWeight)*y + _yFilterWeight*yOld;
+  if (_yOld != -1000)
+    y = (1-_yFilterWeight)*y + _yFilterWeight*_yOld;
   m[13] = y;
-  yOld = y;
+  _yOld = y;
 }
 
-bool arFaroCalFilter::_doInterpolation( arMatrix4& theMatrix ) {
+bool arFaroCalFilter::_interpolate( arMatrix4& theMatrix ) {
   const float x = theMatrix[12];
   const float y = theMatrix[13];
   const float z = theMatrix[14];

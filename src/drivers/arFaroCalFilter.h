@@ -23,7 +23,7 @@ class SZG_CALL arFaroCalFilter: public arIOFilter {
   virtual bool _processEvent( arInputEvent& inputEvent );
 
  private:
-  bool _doInterpolation(arMatrix4&);
+  bool _interpolate(arMatrix4&);
   void _doIIRFilter( arMatrix4& m );
   void _cleanup();
   bool _useCalibration;
@@ -37,6 +37,7 @@ class SZG_CALL arFaroCalFilter: public arIOFilter {
   float* _yLookupTable;
   float* _zLookupTable;
   int _indexOffsets[8];
+  float _yOld;
 };
 
 #endif
