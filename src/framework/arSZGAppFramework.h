@@ -61,23 +61,23 @@ class SZG_CALL arSZGAppFramework {
       
     // Basic access to the embedded input node. Note: It is also possible to
     // access the input node directly (see below).
-    int getButton( const unsigned int index ) const;
-    float getAxis( const unsigned int index ) const;
-    arMatrix4 getMatrix( const unsigned int index, bool doUnitConversion=true ) const;
-    bool getOnButton( const unsigned int index ) const;
-    bool getOffButton( const unsigned int index ) const;
-    unsigned int getNumberButtons()  const;
-    unsigned int getNumberAxes()     const;
-    unsigned int getNumberMatrices() const;
+    int getButton( const unsigned index ) const;
+    float getAxis( const unsigned index ) const;
+    arMatrix4 getMatrix( const unsigned index, bool doUnitConversion=true ) const;
+    bool getOnButton( const unsigned index ) const;
+    bool getOffButton( const unsigned index ) const;
+    unsigned getNumberButtons()  const;
+    unsigned getNumberAxes()     const;
+    unsigned getNumberMatrices() const;
     
     // Methods pertaining to the built-in navigation.
     bool setNavTransCondition( char axis,
                                arInputEventType type,
-                               unsigned int index,
+                               unsigned index,
                                float threshold );
     bool setNavRotCondition( char axis,
                              arInputEventType type,
-                             unsigned int index,
+                             unsigned index,
                              float threshold );
     void setNavTransSpeed( float speed );
     void setNavRotSpeed( float speed );
@@ -211,7 +211,7 @@ class SZG_CALL arSZGAppFramework {
     void _loadNavParameters();
     bool _parseNavParamString( const string& theString,
                                arInputEventType& type,
-                               unsigned int& index,
+                               unsigned& index,
                                float& threshold );
     bool _paramNotOwned( const std::string& theString );
     
