@@ -51,6 +51,9 @@ void glutPrintf(float x, float y, float z, const char* sz, float rotY=0., float 
 }
 
 // copied from arInputSimulator::_drawHead()
+// bug: glDisable(GL_DEPTH_TEST) destroys pupil-eyeball-head occlusion
+//      but it's needed for drawing flat on the front wall.
+// ?workaround: glScalef(1,1,.001)  ;;;;
 void drawHead() {
   glPushMatrix();
     glScalef(1.5,1.5,1.5); // larger for visibility
@@ -94,7 +97,10 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
   const float caveJoystickX = fw.getAxis(0);
   const float caveJoystickY = fw.getAxis(1);
 
-  const unsigned cb = fw.getNumberButtons(); // wall-dependent.  Camille doesn't know why, 2006-06-12.
+  const unsigned cb = fw.getNumberButtons();
+  // wall-dependent.  Camille doesn't know why, 2006-06-12.
+  // ?workaround -- only master calls this, in preexchange.
+
   if (cb < 3)
     cerr << "warning: expect at least 3 buttons.\n";
   if (cb > 250)
@@ -135,9 +141,9 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
     glutPrintf(0,  0,     1 + iEye*.5, szEye, 0, -90);
 
   // Maya-style cross sections, pasted to front wall.
-  glutPrintf(-4, 8.2, -5, "xz top");
-  glutPrintf(-1, 8.2, -5, "yz side");
-  glutPrintf( 2, 8.2, -5, "xy back");
+  glutPrintf(-4, 8.2, -5, "top" ); // xz
+  glutPrintf(-1, 8.2, -5, "side"); // yz
+  glutPrintf( 2, 8.2, -5, "back"); // xy
 
   glDisable(GL_DEPTH_TEST);
 
@@ -287,8 +293,6 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
     glPopMatrix();
 
   glPopMatrix();
-
-  glEnable(GL_LIGHTING);
 }
 
 int main(int argc, char** argv){

@@ -239,8 +239,7 @@ void arInputSource::_setDeviceElements(int buttons, int axes, int matrices){
 }
 
 bool arInputSource::_fillCommonData(arStructuredData* d){
-  const ARint signature[3] = { _numberButtons, _numberAxes,
-                               _numberMatrices };
+  const ARint signature[3] = { _numberButtons, _numberAxes, _numberMatrices };
   const ar_timeval t(ar_time());
   const ARint theTime[2] = { t.sec, t.usec };
   return d->dataIn("signature", signature, AR_INT, 3) &&
