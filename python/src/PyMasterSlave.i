@@ -15,7 +15,7 @@
 // 1. Definitions of adapters that map Python functions to C++ callbacks.
 // 2. arMasterSlaveFramework interface file plus MANY extensions for utilization
 //    of (1) in addition to data marshalling/demarshalling methods more suited to Python
-//    that the native szg C++ metaphor (which is very pointer-centric).
+//    than the native szg C++ metaphor (which is very pointer-centric).
 // 3. arPyMasterSlaveFramework. A base class that can be subclassed in Python to avoid
 //    callbacks altogether (for those who prefer a purely object-oriented style).
 // 4. Even more utility classes for data transfer master->slave(s)!
@@ -44,10 +44,24 @@ static PyObject *py##cbtype##Func = NULL; \
 static void py##cbtype##Callback(arMasterSlaveFramework& fw) { \
     PyObject *fwobj = SWIG_NewPointerObj((void *) &fw, \
                              SWIGTYPE_p_arMasterSlaveFramework, 0);\
+    if (!fwobj) { \
+        if (PyErr_Occurred()) { \
+          PyErr_Print(); \
+        } \
+        string errmsg="arMasterSlaveFramework " #cbtype " callback failed to allocate framework object.";\
+        throw arMSCallbackException( errmsg ); \
+    }\
     PyObject *arglist=Py_BuildValue("(O)",fwobj);   \
+    if (!arglist) { \
+        if (PyErr_Occurred()) { \
+          PyErr_Print(); \
+        } \
+        string errmsg="arMasterSlaveFramework " #cbtype " callback failed to allocate arglist object.";\
+        throw arMSCallbackException( errmsg ); \
+    }\
     PyObject *result=PyEval_CallObject(py##cbtype##Func, arglist);  \
-    if (result==NULL) { \
-        if (PyErr_Occurred() != NULL) { \
+    if (!result) { \
+        if (PyErr_Occurred()) { \
           PyErr_Print(); \
         } \
         string errmsg="A Python exception occurred in the arMasterSlaveFramework " #cbtype " callback.";\
@@ -270,8 +284,8 @@ static void pyKeyboardCallback(arMasterSlaveFramework &fw,
      if (PyErr_Occurred() != NULL) {
        PyErr_Print();
      }
-      string errmsg = "A Python exception occured in the arMasterSlaveFramework Keyboard callback.";
-        throw arMSCallbackException( errmsg );
+     string errmsg = "A Python exception occured in the arMasterSlaveFramework Keyboard callback.";
+     throw arMSCallbackException( errmsg );
    }
 
    Py_XDECREF(result);
@@ -959,6 +973,108 @@ void ar_defaultDisconnectDraw() {
 
 %}
 
+%pythoncode %{
+# Simple embedded multiline python interpreter built around raw_input().
+# Interrupts the control flow at any given location with 'exec prompt'
+# and gives control to the user.
+# Allways runs in the current scope and can even be started from the 
+# pdb prompt in debugging mode. Tested with python, jython and stackless.
+# Handy for simple debugging purposes.
+
+import thread
+
+__szg_python_prompt_lock = thread.allocate_lock()
+
+__szg_python_prompt = compile("""
+try:
+    _prompt
+    _recursion = 1
+except:
+    _recursion = 0
+if not _recursion:
+    try:
+      szgPromptLock = __szg_python_prompt_lock
+    except NameError:
+      try:
+        szgPromptLock = szgprompt.__szg_python_prompt_lock
+      except NameError, AttributeError:
+        raise RuntimeError, 'Failed to get a reference to the Syzygy Python prompt lock.'
+    from traceback import print_exc as print_exc
+    from traceback import extract_stack
+    _prompt = {'print_exc':print_exc, 'inp':'','inp2':'','co':''}
+    _a_es, _b_es, _c_es, _d_es = extract_stack()[-2]
+    if _c_es == '?':
+        _c_es = '__main__'
+    else:
+        _c_es += '()' 
+    print '\\nprompt in %s at %s:%s  -  continue with CTRL-D' % (_c_es, _a_es, _b_es)
+    del _a_es, _b_es, _c_es, _d_es, _recursion, extract_stack, print_exc
+    while 1:
+        try:
+            _prompt['inp']=raw_input('>>> ')
+            if not _prompt['inp']:
+                continue
+            if _prompt['inp'][-1] == chr(4): 
+                break
+            szgPromptLock.acquire()
+            exec compile(_prompt['inp'],'<prompt>','single')
+            szgPromptLock.release()
+        except EOFError:
+            print
+            szgPromptLock.release()
+            break
+        except SyntaxError:
+            szgPromptLock.release()
+            while 1:
+                _prompt['inp']+=chr(10)
+                try:
+                    _prompt['inp2']=raw_input('... ')
+                    if _prompt['inp2']:
+                        if _prompt['inp2'][-1] == chr(4): 
+                            print
+                            break
+                        _prompt['inp']=_prompt['inp']+_prompt['inp2']
+                    _prompt['co']=compile(_prompt['inp'],'<prompt>','exec')
+                    if not _prompt['inp2']: 
+                        szgPromptLock.acquire()
+                        exec _prompt['co']
+                        szgPromptLock.release()
+                        break
+                    continue
+                except EOFError:
+                    print
+                    break
+                except:
+                    if _prompt['inp2']: 
+                        continue
+                    _prompt['print_exc']()
+                    break
+        except:
+            _prompt['print_exc']()
+            szgPromptLock.release()
+    print '--- continue ----'
+    # delete the prompts stuff at the end
+    del _prompt
+""", '<prompt>', 'exec')
+
+
+# note 'self' here refers to the framework.
+def __szg_promptThread( self ):
+  exec __szg_python_prompt
+
+
+def ar_initPythonPrompt( framework ):
+  print 'Starting up interactive Python prompt...'
+  thread.start_new_thread( __szg_promptThread, (framework,) )
+  __szg_python_prompt_lock.acquire()
+
+
+def ar_doPythonPrompt():
+  __szg_python_prompt_lock.release()
+  __szg_python_prompt_lock.acquire()
+
+%}
+
 // The following Python subclass of arMasterSlaveFramework can be subclassed in
 // an object-oriented way in Python!
 %pythoncode %{
@@ -990,11 +1106,24 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
     self.setKeyboardCallback( self.keyboardCallback )
     self.setUserMessageCallback( self.userMessageCallback )
     self.setExitCallback( self.exitCallback )
-    self.speechNodeID = -1
-
+    self.__usePrompt = False
+    try:
+      # Note will fail silently if python version < 2.3
+      from optparse import OptionParser
+      parser = OptionParser()
+      parser.add_option( '--prompt', \
+            action='store_true', dest='usePrompt', \
+            help='If supplied, open interactive python prompt in program.' )
+      (options,args) = parser.parse_args() # parses sys.argv[1:] by default
+      if options.usePrompt:
+        self.__usePrompt = True
+    except Exception:
+      pass
   def startCallback( self, framework, client ):
     return self.onStart( client )
   def onStart( self, client ):
+    if self.__usePrompt:
+      ar_initPythonPrompt( self )
     return True
   def windowStartGLCallback( self, framework, winInfo ):
     return self.onWindowStartGL( winInfo )
@@ -1011,7 +1140,8 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
   def preExchangeCallback( self, framework ):
     self.onPreExchange()
   def onPreExchange( self ):
-    pass
+    if self.__usePrompt:
+      ar_doPythonPrompt()
   def postExchangeCallback( self, framework ):
     self.onPostExchange()
   def onPostExchange( self ):
@@ -1049,11 +1179,6 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
     self.onExit()
   def onExit( self ):
     pass
-#  def speak( self, message ):
-#    if self.speechNodeID == -1:
-#      self.speechNodeID = dsSpeak( 'messages', 'root', message )
-#    else:
-#      dsSpeak( self.speechNodeID, message )
 
 # Utility classes
 

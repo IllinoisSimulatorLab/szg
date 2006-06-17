@@ -31,11 +31,13 @@ LOCAL_UNITS_PER_FOOT = 1.
 # (i.e. when the effector tip is within 1 ft.) and can be dragged around.
 # See szg/src/interaction/arInteractable.h.
 class ColoredSquare(arPyInteractable):
-
   def __init__(self):
     # must call superclass init so that on...() methods get called
     # when appropriate.
     arPyInteractable.__init__(self)
+
+  def __del__(self):
+    print 'deleting ColoredSquare.'
 
   # This will get called on each frame in which this object is selected for
   # interaction ('touched')
@@ -128,6 +130,9 @@ class SkeletonFramework(arPyMasterSlaveFramework):
   # start (formerly init) callback (called in arMasterSlaveFramework::start())
   # NOTE: now called before window is created, so no OpenGL initialization here.
   def onStart( self, client ):
+    # Necessary to call base class method for interactive prompt
+    # functionality to work (run this program with '--prompt').
+    arPyMasterSlaveFramework.onStart( self, client )
 
     # Register variables to be shared between master & slaves
     self.initSequenceTransfer('transfer')
@@ -162,6 +167,9 @@ class SkeletonFramework(arPyMasterSlaveFramework):
   # processing user input or random variables should happen. Normally, most
   # of the frame-by-frame work of the program should be done here.
   def onPreExchange( self ):
+    # Necessary to call base class method for interactive prompt
+    # functionality to work (run this program with '--prompt').
+    arPyMasterSlaveFramework.onPreExchange(self)
 
     # handle joystick-based navigation (drive around). The resulting
     # navigation matrix is automagically transferred to the slaves.

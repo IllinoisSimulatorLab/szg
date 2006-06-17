@@ -41,6 +41,9 @@ class ColoredSquare(arPyInteractable):
     arPyInteractable.__init__(self)
     self._container = container
 
+  def __del__(self):
+    print 'ColoredSquare.__del__()'
+
   # This will get called on each frame in which this object is selected for
   # interaction ('touched')
   def onProcessInteraction( self, effector ):
@@ -56,7 +59,7 @@ class ColoredSquare(arPyInteractable):
       # or instance of a sub-class thereof, you must call clearCallbacks() as well as
       # getting rid of any explicit references you may have. Eventually, I'll probably
       # re-write this stuff in Python, at which point this problem will go away.
-      self.clearCallbacks()
+#      self.clearCallbacks()
       self._container.delValue(self)
     # button 3 toggles visibility (actually solid/wireframe)
     if effector.getOnButton(3):
@@ -126,6 +129,25 @@ class RodEffector( arEffector ):
     glPopMatrix()
 
 
+# arMasterSlaveDict is a dictionary of objects to be shared between master
+# and slaves. Dictionary keys MUST be Ints, Floats, or Strings.
+# The second constructor argument contains information about the classes the
+# dictionary can contain, used to construct new objects in the slaves.
+# In this particular instance, the value after the colon is a reference to
+# the ColoredSquare class (remember, in Python a class is just an object that
+# generates instances when called with ()).
+# See arMasterSlaveDict.__doc__ for more information.
+# Note that you can have multiple arMasterSlaveDicts with different names in one
+# application, if desired.
+class SquareDict(arMasterSlaveDict):
+  def __init__( self ):
+    arMasterSlaveDict.__init__( self, 'objects', [ColoredSquare] )
+  def makeSquare( self, matrix ):
+    b = ColoredSquare(self)
+    b.setMatrix( matrix )
+    self.push(b)
+
+
 #####  The application framework ####
 #
 #  The arPyMasterSlaveFramework automatically installs certain of its methods as the
@@ -135,17 +157,7 @@ class SkeletonFramework(arPyMasterSlaveFramework):
   def __init__(self):
     arPyMasterSlaveFramework.__init__(self)
 
-    # arMasterSlaveDict is a dictionary of objects to be shared between master
-    # and slaves. Dictionary keys MUST be Ints, Floats, or Strings.
-    # The second constructor argument contains information about the classes the
-    # dictionary can contain, used to construct new objects in the slaves.
-    # In this particular instance, the value after the colon is a reference to
-    # the ColoredSquare class (remember, in Python a class is just an object that
-    # generates instances when called with ()).
-    # See arMasterSlaveDict.__doc__ for more information.
-    # Note that you can have multiple arMasterSlaveDicts with different names in one
-    # application, if desired.
-    self.dictionary = arMasterSlaveDict( 'objects', [ColoredSquare] )
+    self.dictionary = SquareDict()
 
     # Instantiate our effector
     self.theWand = RodEffector()
@@ -164,6 +176,9 @@ class SkeletonFramework(arPyMasterSlaveFramework):
   # start (formerly init) callback (called in arMasterSlaveFramework::start())
   #
   def onStart( self, client ):
+    # Necessary to call base class method for interactive prompt
+    # functionality to work (run this program with '--prompt').
+    arPyMasterSlaveFramework.onStart( self, client )
 
     # Register the dictionary of objects to be shared between master & slaves
     self.dictionary.start( self )
@@ -184,17 +199,8 @@ class SkeletonFramework(arPyMasterSlaveFramework):
     self.setNavRotSpeed( 30. )
     
     if self.getMaster():
-      # Create a square
-      theSquare = ColoredSquare( self.dictionary )
-      # set square's initial position
-      x = random.uniform(-1.,1.)
-      y = random.uniform(3.,5.)
-      theSquare.setMatrix( ar_translationMatrix(x,y,-6) )
-      # Insert it in the dictionary, using an implicit integer key that's incremented after
-      # each push() (if you've manually inserted something using an integer key--e.g
-      # self.dictionary[1] = Foo()--it will skip it and go on until if finds an unused key).
-      # This method is special to arMasterSlaveDict.
-      self.dictionary.push( theSquare )
+      # Create a square and add it to the dictionary
+      self.dictionary.makeSquare( ar_translationMatrix(0.,5.,-6) )
 
     return True
 
@@ -209,6 +215,9 @@ class SkeletonFramework(arPyMasterSlaveFramework):
   # processing user input or random variables should happen. Normally, most
   # of the frame-by-frame work of the program should be done here.
   def onPreExchange( self ):
+    # Necessary to call base class method for interactive prompt
+    # functionality to work (run this program with '--prompt').
+    arPyMasterSlaveFramework.onPreExchange(self)
 
     # handle joystick-based navigation (drive around). The resulting
     # navigation matrix is automagically transferred to the slaves.
@@ -219,9 +228,7 @@ class SkeletonFramework(arPyMasterSlaveFramework):
 
     # create a new square and add it to the dictionary
     if self.theWand.getOnButton(1):
-      theSquare = ColoredSquare( self.dictionary )
-      theSquare.setMatrix( self.theWand.getMatrix() )
-      self.dictionary.push( theSquare )
+      self.dictionary.makeSquare( self.theWand.getMatrix() )
 
     # Handle any interaction with the squares (see interaction docs).
     # Any grabbing/dragging/deletion of squares happens in here.

@@ -133,16 +133,6 @@ teapotDataGlobal = [
 # end of data copied from teapots.py
 
 
-# Add a little function to shuffle the teapot positions
-def shufflePositions( teapotDataList ):
-  # construct new list in in which element is [x,y] of a teapot
-  pos = [[i[0],i[1]] for i in teapotDataList]
-  random.shuffle( pos )
-  # put shuffled [x,y]s back into original list
-  for i in range(len(pos)):
-    teapotDataList[i][0:2] = pos[i]
-
-
 
 # Our application framework class
 
@@ -159,6 +149,9 @@ class TeapotApp(arPyMasterSlaveFramework):
   # Called once from inside the application framework's start() method.
   # Used for application-wide initialization.
   def onStart( self, client ):
+    # Necessary to call base class method for interactive prompt
+    # functionality to work (run this program with '--prompt').
+    arPyMasterSlaveFramework.onStart( self, client )
     # Tell the app we're going to be transferring a
     # sequence of data (tuple, list, etc.) to the slaves.
     # Can contain ints, floats, strings, and other
@@ -177,11 +170,14 @@ class TeapotApp(arPyMasterSlaveFramework):
   # equivalent to preExchange callback
   # Called on the master only, once/frame, before master->slave data exchange.
   def onPreExchange( self ):
+    # Necessary to call base class method for interactive prompt
+    # functionality to work (run this program with '--prompt').
+    arPyMasterSlaveFramework.onPreExchange(self)
     # Allow driving around with the joystick
     self.navUpdate()
     # If user presses button #0, shuffle the teapots
     if self.getOnButton(0):
-      shufflePositions( self.teapotData )
+      self.shufflePositions()
     # Pack the (possibly shuffled) teapot data into the app
     # for transfer from master to slaves.
     self.setSequence( 'teapots', self.teapotData )
@@ -214,6 +210,17 @@ class TeapotApp(arPyMasterSlaveFramework):
       # The '*t' means 'take the elements of the list t and distribute
       # them to the corresponding arguments of renderTeapot()'.
       teapots.renderTeapot( *t ) 
+
+  # Add a little function to shuffle the teapot positions
+  def shufflePositions( self ):
+    # construct new list in in which element is [x,y] of a teapot
+    pos = [[i[0],i[1]] for i in self.teapotData]
+    random.shuffle( pos )
+    # put shuffled [x,y]s back into original list
+    for i in range(len(pos)):
+      self.teapotData[i][0:2] = pos[i]
+
+
 
 # End of application class definition
 

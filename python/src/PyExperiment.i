@@ -54,8 +54,12 @@ bool arPythonTrialGenerator::newTrial( arExperimentDataRecord& factors ) {
   PyObject *arglist=Py_BuildValue("(O)",facobj);
   PyObject *result=PyEval_CallObject(_newTrialCallback, arglist);  
   if (result==NULL) { 
-    PyErr_Print(); 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
     PyErr_SetString(PyExc_RuntimeError,"A Python exception occurred in the newTrial callback.");
+    Py_DECREF(arglist); 
+    Py_DECREF(facobj); 
     return false;
   }
   bool res=(bool) PyInt_AsLong(result); 
@@ -141,6 +145,9 @@ bool arPythonExperimentTrialPhase::init( arSZGAppFramework* fw, arExperiment* ex
       PyErr_Print(); 
     }
     PyErr_SetString( PyExc_RuntimeError, "A Python exception occurred in the TrialPhaseInit callback." );
+    Py_DECREF(arglist); 
+    Py_DECREF(exptobj); 
+    Py_DECREF(fwobj); 
     return false;
   }
   bool res=(bool) PyInt_AsLong(result); 
@@ -171,6 +178,9 @@ bool arPythonExperimentTrialPhase::update( arSZGAppFramework* fw, arExperiment* 
       PyErr_Print(); 
     }
     PyErr_SetString( PyExc_RuntimeError, "A Python exception occurred in the TrialPhaseUpdate callback." );
+    Py_DECREF(arglist); 
+    Py_DECREF(exptobj); 
+    Py_DECREF(fwobj); 
     return false;
   }
   bool res=(bool) PyInt_AsLong(result); 
@@ -206,6 +216,11 @@ bool arPythonExperimentTrialPhase::update( arSZGAppFramework* fw, arExperiment* 
       PyErr_Print(); 
     }
     PyErr_SetString( PyExc_RuntimeError, "A Python exception occurred in the TrialPhaseUpdateEvent callback." );
+    Py_DECREF(arglist); 
+    Py_DECREF(eventobj); 
+    Py_DECREF(filtobj); 
+    Py_DECREF(exptobj); 
+    Py_DECREF(fwobj); 
     return false;
   }
   bool res=(bool) PyInt_AsLong(result); 
@@ -324,7 +339,6 @@ bool arPythonExperiment::addStringFactorSet( const  std::string& sname, PyObject
     *inc++ = '|';
   }
   *inc = '\0';
-cerr << "arPythonExperiment::addStringFactorSet() string = " << tmp << endl;
   bool result = arExperiment::addCharFactor( sname, tmp );
   delete[] tmp;
   return result;
@@ -347,13 +361,14 @@ PyObject* arPythonExperiment::getLongFactor( const std::string& sname ) {
     PyObject *s = PyInt_FromLong(tmp[i]);
     if (!s) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongFactor() PyInt_FromLong() failed");
-      // Note: memory-leaks tuple and any already-installed values.
+      Py_DECREF( result );
       return NULL;
     }
     // PyTuple_SetItem() steals our reference to s, so we dont need to Py_DECREF() it (if successful).
     if (PyTuple_SetItem( result, i, s ) != 0) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongFactor() PyTuple_SetItem() failed");
-      // Note: memory-leaks tuple and any already-installed values.
+      Py_DECREF( s );
+      Py_DECREF( result );
       return NULL;
     }
   }
@@ -377,12 +392,13 @@ PyObject* arPythonExperiment::getDoubleFactor( const std::string& sname ) {
     PyObject *s = PyFloat_FromDouble(tmp[i]);
     if (!s) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getDoubleFactor() PyFloat_FromDouble() failed");
-      // Note: memory-leaks tuple and any already-installed values.
+      Py_DECREF( result );
       return NULL;
     }
     if (PyTuple_SetItem( result, i, s ) != 0) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getDoubleFactor() PyTuple_SetItem() failed");
-      // Note: memory-leaks tuple and any already-installed values.
+      Py_DECREF( s );
+      Py_DECREF( result );
       return NULL;
     }
   }
@@ -487,12 +503,13 @@ PyObject* arPythonExperiment::getLongData( const std::string& sname ) {
     PyObject *s = PyInt_FromLong(tmp[i]);
     if (!s) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongData() PyInt_FromLong() failed");
-      // Note: memory-leaks tuple and any already-installed values.
+      Py_DECREF( result );
       return NULL;
     }
     if (PyTuple_SetItem( result, i, s ) != 0) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getLongData() PyTuple_SetItem() failed");
-      // Note: memory-leaks tuple and any already-installed values.
+      Py_DECREF( s );
+      Py_DECREF( result );
       return NULL;
     }
   }
@@ -516,12 +533,13 @@ PyObject* arPythonExperiment::getDoubleData( const std::string& sname ) {
     PyObject *s = PyFloat_FromDouble(tmp[i]);
     if (!s) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getDoubleData() PyFloat_FromDouble() failed");
-      // Note: memory-leaks tuple and any already-installed values.
+      Py_DECREF( result );
       return NULL;
     }
     if (PyTuple_SetItem( result, i, s ) != 0) {
       PyErr_SetString(PyExc_ValueError, "arPythonExperiment::getDoubleData() PyTuple_SetItem() failed");
-      // Note: memory-leaks tuple and any already-installed values.
+      Py_DECREF( s );
+      Py_DECREF( result );
       return NULL;
     }
   }

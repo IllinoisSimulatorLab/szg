@@ -10,6 +10,9 @@
 PyObject* ar_inputEventToDict( arInputEvent& event ) {
   PyObject* dict = PyDict_New();
   if (!dict) {
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
     PyErr_SetString( PyExc_TypeError, "arInputEvent error: failed to allocate dictionary." );
     return NULL;
   }
@@ -31,13 +34,33 @@ PyObject* ar_inputEventToDict( arInputEvent& event ) {
       break;
     default:
       return dict;
-   }
+  }
+  if (!value) {
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString( PyExc_TypeError, "arInputEvent error: failed to allocate value." );
+    Py_DECREF( dict );
+    return NULL;
+  }
   PyObject* pIndex = PyInt_FromLong( (long)event.getIndex() );
+  if (!pIndex) {
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString( PyExc_TypeError, "arInputEvent error: failed to allocate index." );
+    Py_DECREF( value );
+    Py_DECREF( dict );
+    return NULL;
+  }
   // Amazingly, some versions of Python *do not* have const char* as the
   // second parameter below & barf when passed typeString.c_str(). Consequently, the copy.
   char* tmp = new char[typeString.length()+1];
   if (!tmp) {
     PyErr_SetString( PyExc_TypeError, "arInputEvent error: failed to allocate temp string buffer." );
+    Py_DECREF( pIndex );
+    Py_DECREF( value );
+    Py_DECREF( dict );
     return NULL;
   }
   strcpy(tmp, typeString.c_str());
@@ -46,6 +69,8 @@ PyObject* ar_inputEventToDict( arInputEvent& event ) {
     PyErr_SetString( PyExc_TypeError, "arInputEvent error: failed to populate dictionary." );
     // Must delete the temporary string buffer.
     delete [] tmp;
+    Py_DECREF( dict );
+    Py_DECREF( pIndex );
     return NULL;
   }
   // Must delete the temporary string buffer.
@@ -172,7 +197,7 @@ class arInputEventQueue {
 PyObject* toList() {
   PyObject *lst=PyList_New(0);
   if (!lst) {
-    PyErr_SetString(PyExc_ValueError, "arInputEventQueue.toList() error: PyList_New() failed");
+    PyErr_SetString(PyExc_RuntimeError, "arInputEventQueue.toList() error: PyList_New() failed");
     return NULL;
   }
   while (true) {
@@ -182,8 +207,10 @@ PyObject* toList() {
     } 
     PyObject* dict = ar_inputEventToDict( event );
     if (!dict) {
-      // already set error string in ar_inputEventToDict(), should not
-      // set it again here.
+      if (PyErr_Occurred()) {
+        PyErr_Print(); 
+      }
+      PyErr_SetString( PyExc_RuntimeError, "arInputEventQueue.toList() error: failed to allocate dictionary." );
       Py_DECREF(lst);
       return NULL;
     }

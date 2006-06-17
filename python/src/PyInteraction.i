@@ -152,29 +152,64 @@ arPythonInteractionSelector::~arPythonInteractionSelector() {
 float arPythonInteractionSelector::calcDistance( const arEffector& effector,
                                                  const arMatrix4& objectMatrix ) const {
   if (_distanceCallback == NULL) {
-    throw "arPythonInteractionSelector error: no distance callback.";
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable NULL distance callback.");
+    return -1.;
   }
-  PyObject *effobj = SWIG_NewPointerObj( (void *) &effector,
-                                         SWIGTYPE_p_arEffector, 0); 
-  PyObject *matObj = SWIG_NewPointerObj( (void *) &objectMatrix,
-                                         SWIGTYPE_p_arMatrix4, 0); 
-  PyObject *arglist = Py_BuildValue( "(O,O)", effobj, matObj ); 
-  PyObject *result = PyEval_CallObject( _distanceCallback, arglist );  
-  if (result==NULL) { 
+  PyObject *effobj = NULL;
+  PyObject *matObj = NULL;
+  PyObject *arglist = NULL;
+  PyObject *result = NULL;
+  float returnVal;
+  effobj = SWIG_NewPointerObj( (void *) &effector, SWIGTYPE_p_arEffector, 0); 
+  if (!effobj) { 
+    if (PyErr_Occurred()) {
       PyErr_Print(); 
-      string errmsg="A Python exception occurred in the distance callback.";
-      cerr << errmsg << "\n";
-      throw  errmsg; 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable.calcDistance() failed to allocate effector.");
+    goto failure;
+  }
+  matObj = SWIG_NewPointerObj( (void *) &objectMatrix,
+                                         SWIGTYPE_p_arMatrix4, 0); 
+  if (!matObj) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable.calcDistance() failed to allocate matrix.");
+    goto failure;
+  }
+  arglist = Py_BuildValue( "(O,O)", effobj, matObj ); 
+  if (!arglist) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable.calcDistance() failed to allocate arglist.");
+    goto failure;
+  }
+  result = PyEval_CallObject( _distanceCallback, arglist );  
+  if (!result) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"A Python exception occurred in the arPythonInteractable distance callback.");
+    goto failure;
   }
   if (!PyFloat_Check( result )) {
-    throw "arPythonInteractionSelector error: distance callback returned non-Float.";
+    Py_DECREF( result );
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable distance callback must return a float.");
+    goto failure;
   }
-  float returnVal = (float)PyFloat_AsDouble( result );
-  Py_XDECREF( result ); 
+  returnVal = (float)PyFloat_AsDouble( result );
+  Py_DECREF( result ); 
   Py_DECREF( arglist ); 
   Py_DECREF( matObj ); 
   Py_DECREF( effobj ); 
   return returnVal;
+failure:
+  Py_XDECREF( result ); 
+  Py_XDECREF( arglist ); 
+  Py_XDECREF( matObj ); 
+  Py_XDECREF( effobj ); 
+  return -1.;
 }
 
 arInteractionSelector* arPythonInteractionSelector::copy() const {
@@ -215,7 +250,12 @@ class arPythonInteractionSelector : public arInteractionSelector {
 class arPyInteractionSelector(arPythonInteractionSelector):
   def __init__(self):
     arPythonInteractionSelector.__init__(self)
-    self.setCallback( self.onCalcDistance )
+    try:
+      self.setCallback( self.onCalcDistance )
+    except TypeError, val:
+      print 'arPyInteractionSelector failed to install callback in __init__.'
+      print val
+      raise TypeError, val
   def onCalcDistance( self, effector, objectMatrix ):
     return 1.
 
@@ -295,12 +335,8 @@ class arPythonDragBehavior : public arDragBehavior {
 };
 
 arPythonDragBehavior::~arPythonDragBehavior() {
-  if (_initCallback != NULL) {
-    Py_XDECREF(_initCallback);
-  } 
-  if (_updateCallback != NULL) {
-    Py_XDECREF(_updateCallback);
-  } 
+  Py_XDECREF(_initCallback);
+  Py_XDECREF(_updateCallback);
 }
 
 void arPythonDragBehavior::init( const arEffector* const effector,
@@ -309,25 +345,51 @@ void arPythonDragBehavior::init( const arEffector* const effector,
     cerr << "arPythonDragBehavior warning: no init callback.\n";
     return;
   }
-  PyObject *effobj = SWIG_NewPointerObj((void *) effector,
+  PyObject* effobj = NULL;
+  PyObject* inter = NULL;
+  PyObject* arglist = NULL;
+  PyObject* result = NULL;
+  effobj = SWIG_NewPointerObj((void *) effector,
                            SWIGTYPE_p_arEffector, 0); 
+  if (!effobj) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonDragBehavior.init() failed to allocate effector.");
+    goto finish;
+  }
   // NOTE TYPECAST FROM arInteractable to arPythonInteractable!
   // (I think this should be OK, as interactables that get this
   // far should only come from Python)
-  PyObject *inter = SWIG_NewPointerObj((void *) object,
+  inter = SWIG_NewPointerObj((void *) object,
                            SWIGTYPE_p_arPythonInteractable, 0); 
-  PyObject *arglist=Py_BuildValue("(O,O)",effobj,inter); 
-  PyObject *result=PyEval_CallObject(_initCallback, arglist);  
-  if (result==NULL) { 
+  if (!inter) { 
+    if (PyErr_Occurred()) {
       PyErr_Print(); 
-      string errmsg="A Python exception occurred in the DragInit callback.";
-      cerr << errmsg << "\n";
-      throw  errmsg; 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonDragBehavior.init() failed to allocate interactable.");
+    goto finish;
   }
-  Py_XDECREF(result); 
-  Py_DECREF(arglist); 
-  Py_DECREF(inter); 
-  Py_DECREF(effobj); 
+  arglist=Py_BuildValue("(O,O)",effobj,inter); 
+  if (!arglist) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonDragBehavior.init() failed to allocate arglist.");
+    goto finish;
+  }
+  result=PyEval_CallObject(_initCallback, arglist);  
+  if (!result) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"A Python exception occurred in arPythonInteractable.init().");
+  }
+finish:
+  Py_XDECREF( result ); 
+  Py_XDECREF( arglist ); 
+  Py_XDECREF( inter ); 
+  Py_XDECREF( effobj ); 
 }
 
 void arPythonDragBehavior::update( const arEffector* const effector,
@@ -337,28 +399,62 @@ void arPythonDragBehavior::update( const arEffector* const effector,
     cerr << "arPythonDragBehavior warning: no update callback.\n";
     return;
   }
-  PyObject *effobj = SWIG_NewPointerObj((void *) effector,
+  PyObject* effobj = NULL;
+  PyObject* inter = NULL;
+  PyObject* grab = NULL;
+  PyObject* arglist = NULL;
+  PyObject* result = NULL;
+  effobj = SWIG_NewPointerObj((void *) effector,
                            SWIGTYPE_p_arEffector, 0); 
+  if (!effobj) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonDragBehavior.update() failed to allocate effector.");
+    goto finish;
+  }
   // NOTE TYPECAST FROM arInteractable to arPythonInteractable!
   // (I think this should be OK, as interactables that get this
   // far should only come from Python)
-  PyObject *inter = SWIG_NewPointerObj((void *) object,
+  inter = SWIG_NewPointerObj((void *) object,
                            SWIGTYPE_p_arPythonInteractable, 0); 
-  PyObject *grab = SWIG_NewPointerObj((void *) grabCondition,
-                           SWIGTYPE_p_arGrabCondition, 0); 
-  PyObject *arglist=Py_BuildValue("(O,O,O)",effobj,inter,grab); 
-  PyObject *result=PyEval_CallObject(_updateCallback, arglist);  
-  if (result==NULL) { 
+  if (!inter) { 
+    if (PyErr_Occurred()) {
       PyErr_Print(); 
-      string errmsg="A Python exception occurred in the DragUpdate callback.";
-      cerr << errmsg << "\n";
-      throw  errmsg; 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonDragBehavior.update() failed to allocate interactable.");
+    goto finish;
   }
+  grab = SWIG_NewPointerObj((void *) grabCondition,
+                           SWIGTYPE_p_arGrabCondition, 0); 
+  if (!grab) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonDragBehavior.update() failed to allocate grabcondition.");
+    goto finish;
+  }
+  arglist=Py_BuildValue("(O,O,O)",effobj,inter,grab); 
+  if (!arglist) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonDragBehavior.update() failed to allocate arglist.");
+    goto finish;
+  }
+  result=PyEval_CallObject(_updateCallback, arglist);  
+  if (!result) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonDragBehavior.update() callback failed.");
+  }
+finish:
   Py_XDECREF(result); 
-  Py_DECREF(arglist); 
-  Py_DECREF(grab); 
-  Py_DECREF(inter); 
-  Py_DECREF(effobj); 
+  Py_XDECREF(arglist); 
+  Py_XDECREF(grab); 
+  Py_XDECREF(inter); 
+  Py_XDECREF(effobj); 
 }
 
 arDragBehavior* arPythonDragBehavior::copy() const {
@@ -426,7 +522,11 @@ class arPythonDragBehavior : public arDragBehavior {
 class arPyDragBehavior(arPythonDragBehavior):
   def __init__(self):
     arPythonDragBehavior.__init__(self)
-    self.setCallbacks( self.onInit, self.onUpdate )
+    try:
+      self.setCallbacks( self.onInit, self.onUpdate )
+    except TypeError, val:
+      print 'setCallbacks failed in arPyDragBehavior __init__().'
+      raise TypeError, val
   def onInit( self, effector, object ):
     pass
   def onUpdate( self, effector, object, grabCondition ):
@@ -533,60 +633,133 @@ bool arPythonInteractable::_processInteraction( arEffector& effector ) {
   if ((_processCallback == NULL)||(_processCallback == Py_None)) {
     return true;
   }
-  PyObject *effobj = SWIG_NewPointerObj((void *) &effector,
+  PyObject *effobj = NULL;
+  PyObject *arglist = NULL;
+  PyObject *result = NULL;
+  bool res;
+  effobj = SWIG_NewPointerObj((void *) &effector,
                            SWIGTYPE_p_arEffector, 0); 
-  PyObject *arglist=Py_BuildValue("(O)",effobj); 
-  PyObject *result=PyEval_CallObject(_processCallback, arglist);  
-  if (result==NULL) { 
+  if (!effobj) { 
+    if (PyErr_Occurred()) {
       PyErr_Print(); 
-      PyErr_SetString( PyExc_RuntimeError, "A Python exception occurred in the Process callback." );
-      return false;
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable._processInteraction() failed to allocate effector.");
+    goto failure;
   }
-  bool res=(bool) PyInt_AsLong(result); 
+  arglist=Py_BuildValue("(O)",effobj); 
+  if (!arglist) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable._processInteraction() failed to allocate arglist.");
+    goto failure;
+  }
+  result=PyEval_CallObject(_processCallback, arglist);  
+  if (!result) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString( PyExc_RuntimeError, "A Python exception occurred in the arPythonInteractable ProcessInteraction callback." );
+    goto failure;
+  }
+  res=(bool) PyInt_AsLong(result); 
   Py_XDECREF(result); 
   Py_DECREF(arglist); 
   Py_DECREF(effobj); 
   return res; 
+failure:
+  Py_XDECREF(result); 
+  Py_DECREF(arglist); 
+  Py_DECREF(effobj); 
+  return false; 
 }
 
 bool arPythonInteractable::_touch( arEffector& effector ) {
   if ((_touchCallback == NULL)||(_touchCallback == Py_None)) {
     return true;
   }
-  PyObject *effobj = SWIG_NewPointerObj((void *) &effector,
-                           SWIGTYPE_p_arEffector, 0); 
-  PyObject *arglist=Py_BuildValue("(O)",effobj); 
-  PyObject *result=PyEval_CallObject(_touchCallback, arglist);  
-  if (result==NULL) { 
+  PyObject *effobj = NULL;
+  PyObject *arglist = NULL;
+  PyObject *result = NULL;
+  bool res;
+  effobj = SWIG_NewPointerObj((void *) &effector, SWIGTYPE_p_arEffector, 0); 
+  if (!effobj) { 
+    if (PyErr_Occurred()) {
       PyErr_Print(); 
-      PyErr_SetString( PyExc_RuntimeError, "A Python exception occurred in the Touch callback." );
-      return false;
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable._touch() failed to allocate effector.");
+    goto failure;
   }
-  bool res=(bool) PyInt_AsLong(result); 
+  arglist=Py_BuildValue("(O)",effobj); 
+  if (!arglist) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable._touch() failed to allocate arglist.");
+    goto failure;
+  }
+  result=PyEval_CallObject(_touchCallback, arglist);  
+  if (!result) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable touch callback failed.");
+    goto failure;
+  }
+  res=(bool) PyInt_AsLong(result); 
   Py_XDECREF(result); 
   Py_DECREF(arglist); 
   Py_DECREF(effobj); 
   return res; 
+failure:
+  Py_XDECREF(result); 
+  Py_XDECREF(arglist); 
+  Py_XDECREF(effobj); 
+  return false;
 }
 
 bool arPythonInteractable::_untouch( arEffector& effector ) {
   if ((_untouchCallback == NULL)||(_untouchCallback == Py_None)) {
     return true;
   }
-  PyObject *effobj = SWIG_NewPointerObj((void *) &effector,
-                           SWIGTYPE_p_arEffector, 0); 
-  PyObject *arglist=Py_BuildValue("(O)",effobj);
-  PyObject *result=PyEval_CallObject(_untouchCallback, arglist);  
-  if (result==NULL) { 
-    PyErr_Print(); 
-    PyErr_SetString( PyExc_RuntimeError, "A Python exception occurred in the Untouch callback." );
-    return false;
+  PyObject *effobj = NULL;
+  PyObject *arglist = NULL;
+  PyObject *result = NULL;
+  bool res;
+  effobj = SWIG_NewPointerObj((void *) &effector, SWIGTYPE_p_arEffector, 0); 
+  if (!effobj) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable._untouch() failed to allocate effector.");
+    goto failure;
   }
-  bool res = (bool) PyInt_AsLong(result);
+  arglist=Py_BuildValue("(O)",effobj); 
+  if (!arglist) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable._untouch() failed to allocate arglist.");
+    goto failure;
+  }
+  result=PyEval_CallObject(_untouchCallback, arglist);  
+  if (!result) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable untouch callback failed.");
+    goto failure;
+  }
+  res=(bool) PyInt_AsLong(result); 
   Py_XDECREF(result); 
   Py_DECREF(arglist); 
   Py_DECREF(effobj); 
-  return res;
+  return res; 
+failure:
+  Py_XDECREF(result); 
+  Py_XDECREF(arglist); 
+  Py_XDECREF(effobj); 
+  return false;
 }
 
 void arPythonInteractable::setMatrix( const arMatrix4& matrix ) {
@@ -594,18 +767,36 @@ void arPythonInteractable::setMatrix( const arMatrix4& matrix ) {
   if ((_matrixCallback == NULL)||(_matrixCallback == Py_None)) {
     return;
   }
-  PyObject *matobj = SWIG_NewPointerObj((void *) &matrix, 
-                           SWIGTYPE_p_arMatrix4, 0);
-  PyObject *arglist=Py_BuildValue("(O)",matobj);
-  PyObject *result=PyEval_CallObject( _matrixCallback, arglist );  
-  if (result==NULL) { 
-    PyErr_Print(); 
-    PyErr_SetString( PyExc_RuntimeError, "A Python exception occurred in the setMatrix callback." );
-    return;
+  PyObject *matobj = NULL;
+  PyObject *arglist = NULL;
+  PyObject *result = NULL;
+  matobj = SWIG_NewPointerObj((void *) &matrix, SWIGTYPE_p_arMatrix4, 0);
+  if (!matobj) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable.setMatrix() failed to allocate matrix.");
+    goto finish;
   }
+  arglist=Py_BuildValue("(O)",matobj); 
+  if (!arglist) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable.setMatrix() failed to allocate arglist.");
+    goto finish;
+  }
+  result=PyEval_CallObject(_matrixCallback, arglist);  
+  if (!result) { 
+    if (PyErr_Occurred()) {
+      PyErr_Print(); 
+    }
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable setMatrix callback failed.");
+  }
+finish:
   Py_XDECREF(result); 
-  Py_DECREF(arglist); 
-  Py_DECREF(matobj); 
+  Py_XDECREF(arglist); 
+  Py_XDECREF(matobj); 
 }
 
 void arPythonInteractable::setCallbacks( PyObject* touchCallback,
@@ -723,10 +914,13 @@ class arPyInteractable(arPythonInteractable):
     self._highlighted = False
     self._color = arVector4(1,1,1,1)
     self._texture = None
-    # NOTE!! The last argument, incRefCounts, defaults to True and should _only_
-    # be set to False this method is used for this particular purpose, i.e. installing
-    # the classes own methods as its callbacks.
-    self.setCallbacks( self.onTouch, self.onProcessInteraction, self.onUntouch, self.onMatrixSet )
+    try:
+      self.setCallbacks( self.onTouch, self.onProcessInteraction, self.onUntouch, self.onMatrixSet )
+    except TypeError, val:
+      print 'setCallbacks() failed in arPyInteractable.__init__().'
+      raise TypeError, val
+  def onMatrixSet( self, matrix ):
+    pass
   def setHighlight( self, flag ):
     self._highlighted = flag
   def getHighlight( self ):
@@ -763,8 +957,6 @@ class arPyInteractable(arPythonInteractable):
     #print self.this, 'untouched.'
     self.setHighlight( False )
     return True
-  def onMatrixSet( self, matrix ):
-    pass
 
 %}
 

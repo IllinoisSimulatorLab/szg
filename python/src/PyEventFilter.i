@@ -40,10 +40,13 @@ bool arPythonEventFilter::_processEvent( arInputEvent& inputEvent ) {
   PyObject *arglist=Py_BuildValue("(O)",eventobj); 
   PyObject *result=PyEval_CallObject(_pycallback, arglist);  
   if (result==NULL) { 
-      PyErr_Print(); 
-      string errmsg="A Python exception occurred in the event callback.";
-      cerr << errmsg << "\n";
-      throw  errmsg; 
+      if (PyErr_Occurred()) {
+        PyErr_Print(); 
+      }
+      PyErr_SetString( PyExc_RuntimeError, "A Python exception occurred in the arPythonEventFilter event callback." );
+      Py_DECREF(arglist); 
+      Py_DECREF(eventobj); 
+      return false;
   }
   bool res=(bool) PyInt_AsLong(result); 
   Py_XDECREF(result); 
