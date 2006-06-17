@@ -1123,7 +1123,8 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
     return self.onStart( client )
   def onStart( self, client ):
     if self.__usePrompt:
-      ar_initPythonPrompt( self )
+      if self.getMaster():
+        ar_initPythonPrompt( self )
     return True
   def windowStartGLCallback( self, framework, winInfo ):
     return self.onWindowStartGL( winInfo )
