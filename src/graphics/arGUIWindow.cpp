@@ -775,16 +775,19 @@ int arGUIWindow::_windowCreation( void )
 
   if( !_windowHandle._dpy ) {
     ar_log_warning() << "_windowCreation failed to open X11 display '" << disp << "'.\n";
-    cerr << "_windowCreation failed to open X11 display '" << disp << "'.\n";;;;
 
     // Sometimes $DISPLAY is :1.0 but getXDisplay still says :0.0.
-    // So fall back to :1.0 .
-    disp = ":1.0";
+    // So fall back to $DISPLAY, and then to :1.0 .
+    disp = ar_getenv("DISPLAY").c_str();
     _windowHandle._dpy = XOpenDisplay(disp);
     if( !_windowHandle._dpy ) {
-      ar_log_warning() << "_windowCreation failed to open X11 display '" << disp << "'.\n";
-      cerr << "_windowCreation failed to open X11 display '" << disp << "'.\n";;;;
-      return -1;
+      const char* dispFallback = ":1.0";
+      // Don't try dispFallback twice.
+      if (!strcmp(disp, dispFallback) ||
+          !(_windowHandle._dpy = XOpenDisplay(disp = dispFallback))) {
+	ar_log_warning() << "_windowCreation failed to open X11 display '" << disp << "'.\n";
+	return -1;
+      }
     }
   }
 
