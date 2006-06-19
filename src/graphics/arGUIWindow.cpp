@@ -165,12 +165,12 @@ int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const 
     // this is the correct function to use in active stereo mode though it's
     // not the one glut/freeglut use...
     if( !wglSwapLayerBuffers( windowHandle._hDC, WGL_SWAP_MAIN_PLANE ) ) {
-      ar_log_error() << "swapBuffer: wglSwapLayerBuffers error" << ar_endl;
+      ar_log_error() << "wglSwapLayerBuffers failed.\n";
     }
   }
   else {
     if( !SwapBuffers( windowHandle._hDC ) ) {
-      ar_log_error() << "swapBuffer: SwapBuffers error" << ar_endl;
+      ar_log_error() << "SwapBuffers failed.\n";
     }
   }
 
@@ -264,10 +264,9 @@ void arGUIWindow::_drawHandler( void )
   ar_mutex_lock(&_creationMutex);
   if( _running && _drawCallback ) {
 
-    // need to ensure (in non-threaded mode) that this window's opengl context
-    // is in fact current
+    // ensure (in non-threaded mode) that this window's opengl context is current
     if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
-      ar_log_error() << "_drawHandler: could not make context current" << ar_endl;
+      ar_log_error() << "_drawHandler failed to make context current.\n";
     }
 
     // locking the display here brings up some issues in single threaded mode,
@@ -279,9 +278,9 @@ void arGUIWindow::_drawHandler( void )
     // resize in the draw callback, just make sure everything else that touches
     // the display properly locks and unlocks
 
-    #if 0 // defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#if 0 // defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
     XLockDisplay( _windowHandle._dpy );
-    #endif
+#endif
 
     arGUIWindowInfo* windowInfo = new arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_DRAW );
     windowInfo->setWindowID( _ID );
@@ -296,9 +295,9 @@ void arGUIWindow::_drawHandler( void )
 
     delete windowInfo;
 
-    #if 0 // defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#if 0 // defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
     XUnlockDisplay( _windowHandle._dpy );
-    #endif
+#endif
   }
   ar_mutex_unlock(&_creationMutex);
 }
@@ -327,7 +326,7 @@ void InitGL( int width, int height )
 int arGUIWindow::beginEventThread( void )
 {
   if( !_windowEventThread.beginThread( arGUIWindow::mainLoop, this ) ) {
-    ar_log_error() << "beginEventThread: beginThread Error" << ar_endl;
+    ar_log_error() << "beginEventThread: beginThread failed.\n";
     return -1;
   }
 
@@ -533,20 +532,20 @@ int arGUIWindow::_processWMEvents( void )
 
       case AR_WINDOW_MOVE:
         if( move( wmEvent->getEvent().getPosX(), wmEvent->getEvent().getPosY() ) < 0 ) {
-          ar_log_error() << "_processWMEvents: move error" << ar_endl;
+          ar_log_error() << "_processWMEvents: move failed.\n";
         }
       break;
 
       case AR_WINDOW_RESIZE:
         if( resize( wmEvent->getEvent().getSizeX(), wmEvent->getEvent().getSizeY() ) < 0 ) {
-          ar_log_error() << "_processWMEvents: resize error" << ar_endl;
+          ar_log_error() << "_processWMEvents: resize failed.\n";
         }
       break;
 
       case AR_WINDOW_VIEWPORT:
         if( setViewport( wmEvent->getEvent().getPosX(), wmEvent->getEvent().getPosY(),
                          wmEvent->getEvent().getSizeX(), wmEvent->getEvent().getSizeY() ) < 0 ) {
-          ar_log_error() << "_processWMEvents: setViewport error" << ar_endl;
+          ar_log_error() << "_processWMEvents: setViewport failed.\n";
         }
       break;
 
@@ -593,25 +592,24 @@ int arGUIWindow::_processWMEvents( void )
 int arGUIWindow::_performWindowCreation( void )
 {
   if( _setupWindowCreation() < 0 ) {
-    ar_log_error() << "arGUIWindow: _setupWindowCreation failed" << ar_endl;
+    ar_log_error() << "arGUIWindow: _setupWindowCreation failed.\n";
     return -1;
   }
 
   if( _windowCreation() < 0 ) {
-    // Do not print a complaint here.
+    // Already printed warning.
     return -1;
   }
 
   if( _tearDownWindowCreation() < 0 ) {
-    ar_log_error() << "arGUIWindow: _tearDownWindowCreation failed" << ar_endl;
+    ar_log_error() << "arGUIWindow: _tearDownWindowCreation failed.\n";
     return -1;
   }
 
-  // taken care of by the windowInitGL callback now
+  // windowInitGL callback does this instead
   // InitGL( getWidth(), getHeight() );
 
-  // tell anyone listening that the window has been successfully created
-  // and initialized
+  // Announce that the window has been created and initialized.
   ar_mutex_lock( &_creationMutex );
   _creationFlag = true;
   _creationCond.signal();
@@ -622,7 +620,7 @@ int arGUIWindow::_performWindowCreation( void )
 
 int arGUIWindow::_windowCreation( void )
 {
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   int dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
   if( _windowConfig.getStereo() ) {
@@ -670,7 +668,7 @@ int arGUIWindow::_windowCreation( void )
   // height as the whole window (including decorations) but we want it to be
   // just the client area
   if( !AdjustWindowRectEx( &windowRect, windowStyle, 0, windowExtendedStyle ) ) {
-    ar_log_error() << "_windowCreation: AdjustWindowRectEx error" << ar_endl;
+    ar_log_error() << "_windowCreation: AdjustWindowRectEx failed.\n";
   }
 
   // create the OpenGL window
@@ -687,26 +685,26 @@ int arGUIWindow::_windowCreation( void )
                                  (HMENU) NULL,
                                  _windowHandle._hInstance,
                                  (void*) this ) ) ) {
-    ar_log_error() << "_windowCreation: CreateWindowEx failed" << ar_endl;
+    ar_log_error() << "_windowCreation: CreateWindowEx failed.\n";
     _killWindow();
     return -1;
   }
 
   if( !( _windowHandle._hDC = GetDC( _windowHandle._hWnd ) ) ) {
-    ar_log_error() << "_windowCreation: GetDC failed" << ar_endl;
+    ar_log_error() << "_windowCreation: GetDC failed.\n";
     _killWindow();
     return -1;
   }
 
   const GLuint PixelFormat = ChoosePixelFormat( _windowHandle._hDC, &pfd );
   if(!PixelFormat) {
-    ar_log_error() << "_windowCreation: ChoosePixelFormat failed" << ar_endl;
+    ar_log_error() << "_windowCreation: ChoosePixelFormat failed.\n";
     _killWindow();
     return -1;
   }
 
   if( !SetPixelFormat( _windowHandle._hDC, PixelFormat, &pfd ) ) {
-    ar_log_error() << "_windowCreation: SetPixelFormat failed" << ar_endl;
+    ar_log_error() << "_windowCreation: SetPixelFormat failed.\n";
     _killWindow();
     return -1;
   }
@@ -714,13 +712,13 @@ int arGUIWindow::_windowCreation( void )
   // should check if setting up stereo succeeded with DescribePixelFormat
 
   if( !( _windowHandle._hRC = wglCreateContext( _windowHandle._hDC ) ) ) {
-    ar_log_error() << "_windowCreation: wglCreateContext failed" << ar_endl;
+    ar_log_error() << "_windowCreation: wglCreateContext failed.\n";
     _killWindow();
     return -1;
   }
 
   if( !wglMakeCurrent( _windowHandle._hDC, _windowHandle._hRC ) ) {
-    ar_log_error() << "_windowCreation: wglMakeCurrent failed" << ar_endl;
+    ar_log_error() << "_windowCreation: wglMakeCurrent failed.\n";
     _killWindow();
     return -1;
   }
@@ -736,23 +734,22 @@ int arGUIWindow::_windowCreation( void )
   ShowWindow( _windowHandle._hWnd, SW_SHOW );
 
   if( !SetForegroundWindow( _windowHandle._hWnd ) ) {
-    // NOTE: On Windows, this fails _often_. Often enough that those of us
+    // This fails often enough that those of us
     // trying to write GUIs based on printed command output can't afford to
-    // deal with it, and it's not fatal to the app. So now it's just a warning.
-    ar_log_warning() << "_windowCreation: SetForegroundWindow failure" << ar_endl;
+    // deal with it, and it's not fatal to the app. So it's just a warning.
+    ar_log_warning() << "_windowCreation: SetForegroundWindow failed.\n";
   }
 
   if( !SetFocus( _windowHandle._hWnd ) ) {
-    ar_log_error() << "_windowCreation: SetFocus failure" << ar_endl;
+    ar_log_error() << "_windowCreation: SetFocus failure.\n";
   }
 
-  // seems to be somewhat superfluous since there are SetForegroundWindow
-  // and SetFocus calls above
+  // Redundant? Already called SetForegroundWindow and SetFocus.
   if( !_windowConfig.getFullscreen() ) {
     raise( _windowConfig.getZOrder() );
   }
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   int attrList[ 32 ] = { GLX_RGBA,
                          GLX_DOUBLEBUFFER,
@@ -762,33 +759,44 @@ int arGUIWindow::_windowCreation( void )
                          GLX_DEPTH_SIZE,   16,
                          None };
 
-  _windowHandle._dpy = NULL;
-  _windowHandle._vi = NULL;
-  _windowHandle._wHints = None;
-
   if( _windowConfig.getStereo() ) {
     attrList[ 10 ] = GLX_STEREO;
     attrList[ 11 ] = None;
   }
 
+  _windowHandle._dpy = NULL;
+  _windowHandle._vi = NULL;
+  _windowHandle._wHints = None;
+
   // XOpenDisplay defaults to $DISPLAY, if passed NULL.
-  const string disp = _windowConfig.getXDisplay();
-  _windowHandle._dpy = XOpenDisplay( disp.empty() ? NULL : disp.c_str() );
+  const string disp_str = _windowConfig.getXDisplay();
+  const char* disp = disp_str.empty() ? NULL : disp_str.c_str();
+  _windowHandle._dpy = XOpenDisplay(disp);
 
   if( !_windowHandle._dpy ) {
-    ar_log_error() << "failed to open X11 display '" << _windowConfig.getXDisplay() << "'.\n";
-    return -1;
+    ar_log_warning() << "_windowCreation failed to open X11 display '" << disp << "'.\n";
+    cerr << "_windowCreation failed to open X11 display '" << disp << "'.\n";;;;
+
+    // Sometimes $DISPLAY is :1.0 but getXDisplay still says :0.0.
+    // So fall back to :1.0 .
+    disp = ":1.0";
+    _windowHandle._dpy = XOpenDisplay(disp);
+    if( !_windowHandle._dpy ) {
+      ar_log_warning() << "_windowCreation failed to open X11 display '" << disp << "'.\n";
+      cerr << "_windowCreation failed to open X11 display '" << disp << "'.\n";;;;
+      return -1;
+    }
   }
 
   _windowHandle._screen = DefaultScreen( _windowHandle._dpy );
 
   if( !glXQueryExtension( _windowHandle._dpy, NULL, NULL ) ) {
-    ar_log_error() << "_windowCreation: OpenGL GLX extensions not supported" << ar_endl;
+    ar_log_error() << "_windowCreation: OpenGL GLX extensions not supported.\n";
     return -1;
   }
 
   if( !( _windowHandle._vi = glXChooseVisual( _windowHandle._dpy, _windowHandle._screen, attrList ) ) ) {
-    ar_log_error() << "_windowCreation failed to create double-buffered window" << ar_endl;
+    ar_log_error() << "_windowCreation failed to create double-buffered window.\n";
     // _killWindow();
     return -1;
   }
@@ -796,7 +804,7 @@ int arGUIWindow::_windowCreation( void )
   _windowHandle._root = RootWindow( _windowHandle._dpy, _windowHandle._vi->screen );
 
   if( !( _windowHandle._ctx = glXCreateContext( _windowHandle._dpy, _windowHandle._vi, NULL, GL_TRUE ) ) ) {
-    ar_log_error() << "_windowCreation failed to create rendering context" << ar_endl;
+    ar_log_error() << "_windowCreation failed to create rendering context.\n";
     // _killWindow();
     return -1;
   }
@@ -824,7 +832,7 @@ int arGUIWindow::_windowCreation( void )
   int trueHeight = 0;
   if( 0 /* _windowConfig._fullscreen */ ) {
 
-    #ifdef HAVE_X11_EXTENSIONS
+#ifdef HAVE_X11_EXTENSIONS
 
     XF86VidModeModeInfo **modes = NULL;
     int modeNum = 0;
@@ -866,7 +874,7 @@ int arGUIWindow::_windowCreation( void )
 
     XFree( modes );
 
-    #else // we dont have X11 extensions, just make the window the size of the desktop
+#else // we dont have X11 extensions, just make the window the size of the desktop
 
     int x = 0, y = 0;
     Window w;
@@ -899,7 +907,7 @@ int arGUIWindow::_windowCreation( void )
       XMoveWindow( _windowHandle._dpy, _windowHandle._win, -x, -y );
     }
 
-    #endif
+#endif
 
     _fullscreen = true;
   }
@@ -976,10 +984,10 @@ int arGUIWindow::_windowCreation( void )
   glXMakeCurrent( _windowHandle._dpy, _windowHandle._win, _windowHandle._ctx );
 
   if( !glXIsDirect( _windowHandle._dpy, _windowHandle._ctx ) ) {
-    ar_log_error() << "No hardware acceleration available." << ar_endl;
+    ar_log_error() << "No hardware acceleration available.\n";
   }
 
-  #endif
+#endif
 
   // this should get properly set in arGUIEventManager, probably shouldn't
   // set it here
@@ -992,7 +1000,7 @@ int arGUIWindow::_windowCreation( void )
 
 int arGUIWindow::_setupWindowCreation( void )
 {
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   // Win32 requires that a window be registered before its creation
   WNDCLASSEX windowClass;
@@ -1013,13 +1021,11 @@ int arGUIWindow::_setupWindowCreation( void )
   windowClass.lpszClassName = _className.c_str();
 
   if( !RegisterClassEx( &windowClass ) ) {
-    ar_log_error() << "_setupWindowCreation: RegisterClassEx Failed" << ar_endl;
+    ar_log_error() << "_setupWindowCreation: RegisterClassEx Failed.\n";
     return -1;
   }
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
-
-  #endif
+#endif
 
   return 0;
 }
@@ -1034,13 +1040,6 @@ int arGUIWindow::_tearDownWindowCreation( void )
     _windowInitGLCallback( windowInfo );
     delete windowInfo;
   }
-
-  #if defined( AR_USE_WIN_32 )
-
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
-
-  #endif
-
   return 0;
 }
 
@@ -1051,7 +1050,7 @@ int arGUIWindow::swap( void )
   }
 
   if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
-    ar_log_error() << "swap: could not make context current" << ar_endl;
+    ar_log_error() << "swap: could not make context current.\n";
   }
 
   return _windowBuffer->swapBuffer( _windowHandle, _windowConfig.getStereo() );
@@ -1068,7 +1067,7 @@ int arGUIWindow::resize( int newWidth, int newHeight )
   /*
   // is this necessary in this function?
   if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
-    ar_log_error() << "resize: could not make context current" << ar_endl;
+    ar_log_error() << "resize: could not make context current.\n";
   }
   */
 
@@ -1077,12 +1076,12 @@ int arGUIWindow::resize( int newWidth, int newHeight )
     newHeight = 1;
   }
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   RECT rect;
 
   if( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
-    ar_log_error() << "resize: GetWindowRect error" << ar_endl;
+    ar_log_error() << "resize: GetWindowRect error.\n";
   }
 
   if( _decorate )
@@ -1098,17 +1097,14 @@ int arGUIWindow::resize( int newWidth, int newHeight )
     // print error?
   }
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
-
   XResizeWindow( _windowHandle._dpy, _windowHandle._win, newWidth, newHeight );
-
   XFlush( _windowHandle._dpy );
-
   XUnlockDisplay( _windowHandle._dpy );
 
-  #endif
+#endif
 
   // glViewport( 0, 0, width, height );
 
@@ -1119,11 +1115,11 @@ int arGUIWindow::resize( int newWidth, int newHeight )
 
     // don't need to do this under win32 as the window didn't get undecorated
     // to go fullscreen
-    #if defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#if defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
     if( _windowConfig.getDecorate() ) {
       decorate( true );
     }
-    #endif
+#endif
 
     // move the window back to its original position
     move( _windowConfig.getPosX(), _windowConfig.getPosY() );
@@ -1132,11 +1128,11 @@ int arGUIWindow::resize( int newWidth, int newHeight )
     // decorate) is keep some prior state (e.g. right before the fullscreen
     // call) and restore the window to that, instead of to the original values
 
-    #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
     // get rid of the HWND_TOPMOST flag, but still keep the window 'on top'
     SetWindowPos( _windowHandle._hWnd, HWND_NOTOPMOST, 0, 0, 0, 0,
                   SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE );
-    #endif
+#endif
 
     // for some reason this resize event doesn't get raised either (see note in
     // fullscreen())
@@ -1156,11 +1152,11 @@ int arGUIWindow::fullscreen( void )
   /*
   // is this necessary in this function?
   if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
-    ar_log_error() << "fullscreen: could not make context current" << ar_endl;
+    ar_log_error() << "fullscreen: could not make context current.\n";
   }
   */
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   RECT windowRect;
 
@@ -1201,7 +1197,7 @@ int arGUIWindow::fullscreen( void )
                                                windowRect.right - windowRect.left,
                                                windowRect.bottom - windowRect.top ) );
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   /*
   int x, y;
@@ -1244,7 +1240,7 @@ int arGUIWindow::fullscreen( void )
   // HWND_TOPMOST flag)
   raise( AR_ZORDER_TOPMOST );
 
-  #endif
+#endif
 
   _fullscreen = true;
 
@@ -1258,7 +1254,7 @@ int arGUIWindow::setViewport( int newX, int newY, int newWidth, int newHeight )
   }
 
   if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
-    ar_log_error() << "setviewport: could not make context current" << ar_endl;
+    ar_log_error() << "setviewport: could not make context current.\n";
   }
 
   glViewport( newX, newY, newWidth, newHeight );
@@ -1274,11 +1270,11 @@ void arGUIWindow::decorate( const bool decorate )
   /*
   // is this necessary in this function?
   if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
-    ar_log_error() << "decorateWindow: could not make context current" << ar_endl;
+    ar_log_error() << "decorateWindow: could not make context current.\n";
   }
   */
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   DWORD windowStyle = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_VISIBLE;
   DWORD windowExtendedStyle = WS_EX_APPWINDOW;
@@ -1298,7 +1294,7 @@ void arGUIWindow::decorate( const bool decorate )
   SetWindowPos( _windowHandle._hWnd, HWND_TOP, 0, 0, 0, 0,
                 SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER );
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   bool set = false;
 
@@ -1356,7 +1352,7 @@ void arGUIWindow::decorate( const bool decorate )
   // (which has implications for going in and out of fullscreen mode as well).
   // Slackware 10.1 (KDE 3.4.0) doesn't need any remapping at all.
   if( set ) {
-    #if !defined( AR_USE_DARWIN )
+#if !defined( AR_USE_DARWIN )
     // While Xandros needs these calls to redecorate a window at
     // runtime, they also seem to break fullscreen
     // (since the window must be undecorated before going fullscreen) in that
@@ -1366,13 +1362,13 @@ void arGUIWindow::decorate( const bool decorate )
 
     // XUnmapWindow( _windowHandle._dpy, _windowHandle._win );
     // XMapWindow( _windowHandle._dpy, _windowHandle._win );
-    #endif
+#endif
   }
 
   XFlush( _windowHandle._dpy );
   XUnlockDisplay( _windowHandle._dpy );
 
-  #endif
+#endif
 
   _decorate = decorate;
 }
@@ -1386,11 +1382,11 @@ void arGUIWindow::raise( arZOrder zorder )
   /*
   // is this necessary in this function?
   if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
-    ar_log_error() << "raise: could not make context current" << ar_endl;
+    ar_log_error() << "raise: could not make context current.\n";
   }
   */
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   const HWND flag =
     zorder == AR_ZORDER_NORMAL ? HWND_NOTOPMOST :
@@ -1403,14 +1399,14 @@ void arGUIWindow::raise( arZOrder zorder )
 
   _zorder = zorder;
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
   XRaiseWindow( _windowHandle._dpy, _windowHandle._win );
   XFlush( _windowHandle._dpy );
   XUnlockDisplay( _windowHandle._dpy );
 
-  #endif
+#endif
 
   _visible = true;
 }
@@ -1424,24 +1420,24 @@ void arGUIWindow::lower( void )
   /*
   // is this necessary in this function?
   if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
-    ar_log_error() << "lowerWindow: could not make context current" << ar_endl;
+    ar_log_error() << "lowerWindow: could not make context current.\n";
   }
   */
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   SetWindowPos( _windowHandle._hWnd, HWND_BOTTOM,
                 0, 0, 0, 0,
                 SWP_NOSIZE | SWP_NOMOVE );
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
   XLowerWindow( _windowHandle._dpy, _windowHandle._win );
   XFlush( _windowHandle._dpy );
   XUnlockDisplay( _windowHandle._dpy );
 
-  #endif
+#endif
 
   _visible = false;
 }
@@ -1455,22 +1451,22 @@ void arGUIWindow::minimize( void )
   /*
   // is this necessary in this function?
   if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
-    ar_log_error() << "minimizeWindow: could not make context current" << ar_endl;
+    ar_log_error() << "minimizeWindow: could not make context current.\n";
   }
   */
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   ShowWindow( _windowHandle._hWnd, SW_MINIMIZE );
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
   XIconifyWindow( _windowHandle._dpy, _windowHandle._win, _windowHandle._screen );
   XFlush( _windowHandle._dpy );
   XUnlockDisplay( _windowHandle._dpy );
 
-  #endif
+#endif
 
   _visible = false;
 }
@@ -1484,22 +1480,22 @@ void arGUIWindow::restore( void )
   /*
   // is this necessary in this function?
   if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
-    ar_log_error() << "restoreWindow: could not make context current" << ar_endl;
+    ar_log_error() << "restoreWindow: could not make context current.\n";
   }
   */
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   ShowWindow( _windowHandle._hWnd, SW_SHOW );
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
   XMapWindow( _windowHandle._dpy, _windowHandle._win );
   XFlush( _windowHandle._dpy );
   XUnlockDisplay( _windowHandle._dpy );
 
-  #endif
+#endif
 
   _visible = true;
 }
@@ -1515,7 +1511,7 @@ int arGUIWindow::move( int newX, int newY )
   /*
   // is this necessary in this function?
   if( !_threaded && ( makeCurrent( false ) < 0 ) ) {
-    ar_log_error() << "move: could not make context current" << ar_endl;
+    ar_log_error() << "move: could not make context current.\n";
   }
   */
 
@@ -1525,7 +1521,7 @@ int arGUIWindow::move( int newX, int newY )
   RECT rect;
 
   if( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
-    ar_log_error() << "move: GetWindowRect error" << ar_endl;
+    ar_log_error() << "move: GetWindowRect error.\n";
     return -1;
   }
 
@@ -1623,7 +1619,7 @@ arCursor arGUIWindow::setCursor( arCursor cursor )
                                                 _windowHandle._root,
                                                 cursorNoneBits, 16, 16 );
       if ( cursorNonePixmap == None ) {
-        ar_log_error() << "Could not create AR_CURSOR_NONE" << ar_endl;
+        ar_log_error() << "Could not create AR_CURSOR_NONE.\n";
         return _cursor;
       }
 
@@ -1667,22 +1663,20 @@ void arGUIWindow::setTitle( const std::string& title )
     return;
   }
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   SetWindowText( _windowHandle._hWnd, title.c_str() );
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XTextProperty text;
-
   text.value = (unsigned char *) title.c_str();
   text.encoding = XA_STRING;
   text.format = 8;
   text.nitems = title.length();
-
   XSetWMName( _windowHandle._dpy, _windowHandle._win, &text );
 
-  #endif
+#endif
 }
 
 int arGUIWindow::getWidth( void ) const
@@ -1691,12 +1685,12 @@ int arGUIWindow::getWidth( void ) const
     return -1;
   }
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   RECT rect;
 
   if( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
-    ar_log_error() << "getWidth: GetWindowRect error" << ar_endl;
+    ar_log_error() << "getWidth: GetWindowRect error.\n";
     return -1;
   }
 
@@ -1707,7 +1701,7 @@ int arGUIWindow::getWidth( void ) const
 
   return rect.right - rect.left;
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XWindowAttributes winAttributes;
 
@@ -1716,7 +1710,7 @@ int arGUIWindow::getWidth( void ) const
   XUnlockDisplay( _windowHandle._dpy );
   return winAttributes.width;
 
-  #endif
+#endif
 }
 
 int arGUIWindow::getHeight( void ) const
@@ -1725,12 +1719,12 @@ int arGUIWindow::getHeight( void ) const
     return -1;
   }
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   RECT rect;
 
   if( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
-    ar_log_error() << "getHeight: GetWindowRect error" << ar_endl;
+    ar_log_error() << "getHeight: GetWindowRect error.\n";
     return -1;
   }
   if( _decorate ) {
@@ -1739,7 +1733,7 @@ int arGUIWindow::getHeight( void ) const
   }
   return rect.bottom - rect.top;
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XWindowAttributes winAttributes;
   XLockDisplay( _windowHandle._dpy );
@@ -1747,7 +1741,7 @@ int arGUIWindow::getHeight( void ) const
   XUnlockDisplay( _windowHandle._dpy );
   return winAttributes.height;
 
-  #endif
+#endif
 }
 
 int arGUIWindow::getPosX( void ) const
@@ -1756,11 +1750,11 @@ int arGUIWindow::getPosX( void ) const
     return -1;
   }
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   RECT rect;
   if( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
-    ar_log_error() << "getPosX: GetWindowRect error" << ar_endl;
+    ar_log_error() << "getPosX: GetWindowRect error.\n";
     return -1;
   }
 
@@ -1769,7 +1763,7 @@ int arGUIWindow::getPosX( void ) const
   }
   return rect.left;
 
-  #elif defined( AR_USE_LINUX )  || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX )  || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
 
@@ -1788,7 +1782,7 @@ int arGUIWindow::getPosX( void ) const
   XUnlockDisplay( _windowHandle._dpy );
   return x;
 
-  #endif
+#endif
 }
 
 int arGUIWindow::getPosY( void ) const
@@ -1797,12 +1791,12 @@ int arGUIWindow::getPosY( void ) const
     return -1;
   }
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   RECT rect;
 
   if( !GetWindowRect( _windowHandle._hWnd, &rect ) ) {
-    ar_log_error() << "getPosY: GetWindowRect error" << ar_endl;
+    ar_log_error() << "getPosY: GetWindowRect error.\n";
     return -1;
   }
 
@@ -1812,7 +1806,7 @@ int arGUIWindow::getPosY( void ) const
 
   return rect.top;
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
 
@@ -1831,7 +1825,7 @@ int arGUIWindow::getPosY( void ) const
   XUnlockDisplay( _windowHandle._dpy );
   return y;
 
-  #endif
+#endif
 }
 
 int arGUIWindow::_changeScreenResolution( void )
@@ -1840,7 +1834,7 @@ int arGUIWindow::_changeScreenResolution( void )
     return -1;
   }
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   DEVMODE dmScreenSettings;
   ZeroMemory( &dmScreenSettings, sizeof( DEVMODE ) );
@@ -1851,13 +1845,11 @@ int arGUIWindow::_changeScreenResolution( void )
   dmScreenSettings.dmFields     = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 
   if( ChangeDisplaySettings( &dmScreenSettings, CDS_FULLSCREEN ) != DISP_CHANGE_SUCCESSFUL ) {
-    ar_log_error() << "_changeScreenResolution: ChangeDisplaySettinges failed" << ar_endl;
+    ar_log_error() << "_changeScreenResolution: ChangeDisplaySettinges failed.\n";
     return -1;
   }
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
-
-  #endif
+#endif
 
   return 0;
 }
@@ -1872,13 +1864,13 @@ int arGUIWindow::_killWindow( void )
   // some way of ensuring we don't execute the rest of this function until
   // everyone else is through with what they were doing
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   // switch back to the desktop
   if( _fullscreen ) {
     /*
     if( ChangeDisplaySettings( NULL, 0 ) != DISP_CHANGE_SUCCESSFUL ) {
-      ar_log_error() << "_killWindow: ChangeDisplaySettings failure" << ar_endl;
+      ar_log_error() << "_killWindow: ChangeDisplaySettings failure.\n";
       return -1;
     }
     */
@@ -1888,36 +1880,36 @@ int arGUIWindow::_killWindow( void )
 
   if( _windowHandle._hRC ){
     if( !wglMakeCurrent( NULL, NULL ) ) {
-      ar_log_error() << "_killWindow: release of DC and RC failed" << ar_endl;
+      ar_log_error() << "_killWindow: release of DC and RC failed.\n";
     }
 
     if( !wglDeleteContext( _windowHandle._hRC ) ) {
-      ar_log_error() << "_killWindow: delete RC failed" << ar_endl;
+      ar_log_error() << "_killWindow: delete RC failed.\n";
     }
 
     _windowHandle._hRC = NULL;
   }
 
   if( _windowHandle._hDC && !ReleaseDC( _windowHandle._hWnd, _windowHandle._hDC ) ) {
-    ar_log_error() << "_killWindow: release DC failed" << ar_endl;
+    ar_log_error() << "_killWindow: release DC failed.\n";
     _windowHandle._hDC = NULL;
   }
 
   if( _windowHandle._hWnd && !DestroyWindow( _windowHandle._hWnd ) ) {
-    ar_log_error() << "_killWindow: could not release hWnd" << ar_endl;
+    ar_log_error() << "_killWindow: could not release hWnd.\n";
     _windowHandle._hWnd = NULL;
   }
 
   if( !UnregisterClass( _className.c_str(), _windowHandle._hInstance ) ) {
-    ar_log_error() << "_killWindow: could not unregister class" << ar_endl;
+    ar_log_error() << "_killWindow: could not unregister class.\n";
     _windowHandle._hInstance = NULL;
   }
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   if( _windowHandle._ctx ) {
     if( !glXMakeCurrent( _windowHandle._dpy, None, NULL ) ) {
-      ar_log_error() << "_killWindow: Error releasing drawing context" << ar_endl;
+      ar_log_error() << "_killWindow: Error releasing drawing context.\n";
     }
 
     glXDestroyContext( _windowHandle._dpy, _windowHandle._ctx );
@@ -1927,17 +1919,17 @@ int arGUIWindow::_killWindow( void )
 
   // switch back to the desktop
   if( _fullscreen ) {
-    #ifdef HAVE_X11_EXTENSIONS
+#ifdef HAVE_X11_EXTENSIONS
       XF86VidModeSwitchToMode( _windowHandle._dpy, _windowHandle._screen, &_windowHandle._dMode );
       XF86VidModeSetViewPort( _windowHandle._dpy, _windowHandle._screen, 0, 0 );
-    #endif
+#endif
   }
 
   if( XCloseDisplay( _windowHandle._dpy ) == BadGC ) {
-    ar_log_error() << "_killWindow: Error closing display" << ar_endl;
+    ar_log_error() << "_killWindow: Error closing display.\n";
   }
 
-  #endif
+#endif
 
   _GUIEventManager->setActive( false );
 
@@ -1958,7 +1950,7 @@ int arGUIWindow::makeCurrent( bool release )
     return -1;
   }
 
-  #if defined( AR_USE_WIN_32 )
+#if defined( AR_USE_WIN_32 )
 
   if( release ) {
     if( !wglMakeCurrent( NULL, NULL ) ) {
@@ -1975,7 +1967,7 @@ int arGUIWindow::makeCurrent( bool release )
     return -1;
   }
 
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
+#elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
   XLockDisplay( _windowHandle._dpy );
 
@@ -1999,7 +1991,7 @@ int arGUIWindow::makeCurrent( bool release )
 
   XUnlockDisplay( _windowHandle._dpy );
 
-  #endif
+#endif
 
   return 0;
 }
