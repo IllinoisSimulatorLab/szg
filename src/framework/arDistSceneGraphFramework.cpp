@@ -326,73 +326,62 @@ void arDistSceneGraphFramework::setPlayer(){
 
 bool arDistSceneGraphFramework::init(int& argc, char** argv){
   if (_initCalled){
-    ar_log_critical() << "arDistSceneGraphFramework error: MUST CALL init(...) ONLY ONCE.\n"
-                      << "  PLEASE CHANGE YOUR CODE.\n";
+    ar_log_error() << "arDistSceneGraphFramework: can't init() more than once.\n";
     return false;
   }
   if (_startCalled){
-    ar_log_critical() << "arDistSceneGraphFramework error: init(...) MUST BE CALLED BEFORE start().\n"
-                      << "  PLEASE CHANGE YOUR CODE.\n";
+    ar_log_error() << "arDistSceneGraphFramework: can't init() after start().\n";
     return false;
   }
-  _label = string(argv[0]);
-  _label = ar_stripExeName(_label); // remove pathname and .EXE
-  // See if there are special -dsg args in the arg list and strip them out.
+  _label = ar_stripExeName(string(argv[0]));
+  // Strip out -dsg args.
   if (!_stripSceneGraphArgs(argc, argv)){
     return false;
   }
 
   // Connect to the szgserver.
   _SZGClient.simpleHandshaking(false);
-  // If the szgClient cannot be initialized, fail. Do not print anything out
-  // since it already did.
   if (!_SZGClient.init(argc, argv)){
+    // Warning was already printed.
     return false; 
   }
   
-  bool state = false;
+  bool ok = false;
   if (!_SZGClient){
-    // We must be in standalone mode.
-    state = _initStandaloneMode();
+    // Standalone.
+    ok = _initStandaloneMode();
     _initCalled = true;
-    return state;
+    return ok;
   }
 
-  // Successfully connected to an szgserver.
+  // Connected to an szgserver.
   ar_log().setStream(_SZGClient.initResponse());
-  state = _initPhleetMode();
+  ok = _initPhleetMode();
   _initCalled = true;
   ar_log().setStream(cout);
-  return state;
+  return ok;
 }
 
 bool arDistSceneGraphFramework::start(){
   if (!_initCalled){
-    ar_log_critical() << "arDistSceneGraphFramework error: MUST CALL init(...) BEFORE start().\n"
-                      << "  PLEASE CHANGE YOUR CODE.\n";
+    ar_log_error() << "arDistSceneGraphFramework: can't start() before init().\n";
     return false;
   }
   if (_startCalled){
-    ar_log_critical() << "arDistSceneGraphFramework error: start() MUST ONLY BE CALLED ONCE.\n"
-                      << "  PLEASE CHANGE YOUR CODE.\n";
+    ar_log_error() << "arDistSceneGraphFramework: can't start() more than once.\n";
     return false;
   }
-  // We have two pathways depending upon whether or not we are in standalone
-  // mode.
-  bool state = false;
+  bool ok = false;
   if (_standalone){
-    state = _startStandaloneMode();
+    ok = _startStandaloneMode();
     _startCalled = true;
-    return state;
+    return ok;
   }
-  else{
-    // Distributed, i.e. connected to an szgserver and not in standalone.
-    ar_log().setStream(_SZGClient.startResponse());
-    state = _startPhleetMode();
-    _startCalled = true;
-    ar_log().setStream(cout);
-    return state;
-  }
+  ar_log().setStream(_SZGClient.startResponse());
+  ok = _startPhleetMode();
+  _startCalled = true;
+  ar_log().setStream(cout);
+  return ok;
 }
 
 /// Does the best it can to shut components down. Don't actually do anything
@@ -401,7 +390,7 @@ bool arDistSceneGraphFramework::start(){
 /// getting a stop message from the message thread (which isn't connected 
 /// to anything in this case).
 void arDistSceneGraphFramework::stop(bool){
-  // Must let the application know that we are stopping
+  // Tell the app we're stopping.
   _exitProgram = true;
   // Only stop the appropriate database.
   if (_peerName == "NULL" || _standalone){
@@ -414,7 +403,7 @@ void arDistSceneGraphFramework::stop(bool){
   while (_useExternalThread && _externalThreadRunning){
     ar_usleep(100000);
   }
-  ar_log_remark() << "arDistSceneGraphFramework remark: threads done.\n";
+  ar_log_remark() << "arDistSceneGraphFramework: threads stopped.\n";
   _stopped = true;
 }
 
@@ -423,10 +412,8 @@ void arDistSceneGraphFramework::stop(bool){
 /// by this framework.
 bool arDistSceneGraphFramework::createWindows(bool){
   if (!_standalone)
-    // This method shouldn't have been called.
     return false;
 
-  // Start the windowing. 
   const bool ok = _graphicsClient.start(_SZGClient, false);
   if (!ok){
     ar_log_critical() << "arDistSceneGraphFramework error: failed to start windowing.\n"; 
@@ -437,30 +424,28 @@ bool arDistSceneGraphFramework::createWindows(bool){
   return ok;
 }
 
-/// Used in standalone mode. In that case, our application must actually dislay its
-/// own window (as opposed to through a szgrender as in phleet mode).
+/// Standalone, display a window (as opposed to through szgrender).
 void arDistSceneGraphFramework::loopQuantum(){
-  if (_standalone){
-    const ar_timeval time1 = ar_time();
-    if (_standaloneControlMode == "simulator")
-      _simPtr->advance();
+  if (!_standalone)
+    return;
 
-    // Inside here, through callbacks to the arSyncDataClient embedded inside
-    // the arGraphicsClient, is where all the scene graph event processing,
-    // drawing, and synchronization happens.
-    if (!_soundClient.silent())
-      _soundClient._cliSync.consume();
-    _graphicsClient._cliSync.consume();
+  const ar_timeval time1 = ar_time();
+  if (_standaloneControlMode == "simulator")
+    _simPtr->advance();
 
-    // Events like closing the window and hitting the ESC key that cause the
-    // window to close occur inside processWindowEvents(). Once they happen,
-    // stopped() will return true and this loop will exit.
-    _wm->processWindowEvents();
-    arPerformanceElement* framerateElement =
-      _framerateGraph.getElement("framerate");
-    framerateElement->pushNewValue(
-      1000000.0/ar_difftimeSafe(ar_time(), time1));
-  }
+  // In here, through callbacks to the arSyncDataClient in
+  // the arGraphicsClient, is where scene graph event processing,
+  // drawing, and synchronization happens.
+  if (!_soundClient.silent())
+    _soundClient._cliSync.consume();
+  _graphicsClient._cliSync.consume();
+
+  // Events like closing the window and hitting the ESC key that cause the
+  // window to close occur inside processWindowEvents(). Once they happen,
+  // stopped() will return true and this loop will exit.
+  _wm->processWindowEvents();
+  arPerformanceElement* el = _framerateGraph.getElement("framerate");
+  el->pushNewValue(1000000.0/ar_difftimeSafe(ar_time(), time1));
 }
 
 /// Used in standalone mode only. In that case, our application will display its
