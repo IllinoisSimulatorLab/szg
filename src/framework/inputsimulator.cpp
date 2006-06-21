@@ -15,16 +15,14 @@
 #include "arGenericDriver.h"
 #include "arPForthFilter.h"
 
-arInputState* inp = NULL;
-arSZGClient* szgclient = NULL;
 arInputNode* inputNode = NULL;
 
 arInputSimulator simulator;
 int xPos = 0, yPos = 0;
 
-void loadParameters(arSZGClient& szgclient){
+void loadParameters(arSZGClient& szgClient){
   int posBuffer[2];
-  string posString = szgclient.getAttribute("SZG_INPUTSIM", "position");
+  const string posString = szgClient.getAttribute("SZG_INPUTSIM", "position");
   if (posString != "NULL"
       && ar_parseIntString(posString,posBuffer,2)){
     xPos = posBuffer[0];
@@ -54,24 +52,19 @@ void idle(){
 //  cerr << *inp << endl;
 //}
   display();
-  // we don't want to spin a CPU with the simulator, so framerate should
-  // be throttled... but don't be too agressive about throttling...
-  // otherwise the controls won't be responsive
-  ar_usleep(20000);
+  ar_usleep(20000); // Mild CPU throttle
 }
 
 void keyboard(unsigned char key, int x, int y){
   simulator.keyboard(key,1,x,y);
-  // there is also some local key processing to do...
   switch(key){
   case 27:
     exit(0);
-    break;
   }
 }
 
 void mouseButton(int button, int state, int x, int y){
-  // translate from GLUT's magic numbers to ours
+  // translate GLUT's magic numbers to ours
   const int whichButton = 
     (button == GLUT_LEFT_BUTTON  ) ? 0:
     (button == GLUT_MIDDLE_BUTTON) ? 1 :
@@ -84,10 +77,11 @@ void mousePosition(int x, int y){
   simulator.mousePosition(x,y);
 }
 
-void messageTask(void* /*pClient*/){
+void messageTask(void* pv){
+  arSZGClient* pszgClient = (arSZGClient*)pv;
   string messageType, messageBody;
   while (true) {
-    if (!szgclient->receiveMessage(&messageType,&messageBody)){
+    if (!pszgClient->receiveMessage(&messageType,&messageBody)){
       cout << "inputsimulator remark: shutdown.\n";
       // Cut-and-pasted from below.
       inputNode->stop();
@@ -101,51 +95,42 @@ void messageTask(void* /*pClient*/){
 }
 
 int main(int argc, char** argv){
-  szgclient = new arSZGClient;
+  arSZGClient szgClient;
   inputNode = new arInputNode;
-  szgclient->simpleHandshaking(false);
-  szgclient->init(argc, argv);  
-  if (!*szgclient)
+  szgClient.simpleHandshaking(false);
+  szgClient.init(argc, argv);  
+  if (!szgClient)
     return 1;
 
-  int slotNumber(0);
-  if (argc > 1) {
-    slotNumber = atoi(argv[1]);
-  }
-  cout << "inputsimulator remark: using slot #" << slotNumber << endl;
-  bool useNetInput(false);
-  if (argc > 2) {
-    if (std::string(argv[2]) == "-netinput") {
-      useNetInput = true;
-    }
-  }
+  const int slotNumber = (argc > 1) ? atoi(argv[1]) : 0;
+  ar_log_remark() << "inputsimulator using slot " << slotNumber << ".\n";
+  const bool useNetInput = (argc > 2) && !strcmp(argv[2], "-netinput");
   arNetInputSink netInputSink;
   if (!netInputSink.setSlot(slotNumber)) {
-    ar_log_error() << "inputsimulator failed to set slot " << slotNumber << ".\n";
+    ar_log_warning() << "inputsimulator failed to set slot " << slotNumber << ".\n";
     return 1;
   }
+
   // Distinguish different kinds of SZG_INPUTn services.
   netInputSink.setInfo("inputsimulator");
 
-  const string pforthProgramName = szgclient->getAttribute("SZG_PFORTH", "program_names");
+  const string pforthProgramName = szgClient.getAttribute("SZG_PFORTH", "program_names");
   if (pforthProgramName == "NULL"){
-    cout << "inputsimulator remark: no pforth program for "
-	 << "standalone joystick.\n";
+    ar_log_remark() << "inputsimulator: no pforth program for standalone joystick.\n";
   }
   else{
-    string pforthProgram = szgclient->getGlobalAttribute(pforthProgramName);
+    string pforthProgram = szgClient.getGlobalAttribute(pforthProgramName);
     if (pforthProgram == "NULL"){
-      cout << "inputsimulator remark: no pforth program exists for "
-	   << "name = " << pforthProgramName << "\n";
+      ar_log_remark() << "inputsimulator: no pforth program exists for name '" <<
+	   pforthProgramName << "'\n";
     }
     else{
       arPForthFilter* filter = new arPForthFilter();
-      ar_PForthSetSZGClient( szgclient );
+      ar_PForthSetSZGClient( &szgClient );
       if (!filter->loadProgram( pforthProgram )){
-        cout << "inputsimulator remark: failed to configure pforth\n"
-	     << "filter with program =\n "
-	     << pforthProgram << "\n";
-        if (!szgclient->sendInitResponse(false))
+        ar_log_warning() << "inputsimulator failed to configure pforth filter with program '"
+	     << pforthProgram << "'.\n";
+        if (!szgClient.sendInitResponse(false))
           cerr << "inputsimulator error: maybe szgserver died.\n";
         return 1;
       }
@@ -154,9 +139,8 @@ int main(int argc, char** argv){
     }
   }
   
-  simulator.configure(*szgclient);
+  simulator.configure(szgClient);
   simulator.registerInputNode(inputNode);
-  inp = &inputNode->_inputState;
   if (useNetInput) {
     arNetInputSource* netSource = new arNetInputSource;
     if (!netSource->setSlot(slotNumber+1)) {
@@ -164,31 +148,35 @@ int main(int argc, char** argv){
       return 1;
     }
     inputNode->addInputSource(netSource,true);
-    cerr << "inputsimulator remark: using net input, slot #" 
+    ar_log_remark() << "inputsimulator using net input, slot " 
          << slotNumber+1 << ".\n";
     // Memory leak.  inputNode won't free its input sources, I think.
   }
   inputNode->addInputSink(&netInputSink,false);
   
-  if (!inputNode->init(*szgclient)) {
-    if (!szgclient->sendInitResponse(false))
+  if (!inputNode->init(szgClient)) {
+    if (!szgClient.sendInitResponse(false))
       cerr << "inputsimulator error: maybe szgserver died.\n";
     return 1;
   }
-  // initialization succeeded
-  if (!szgclient->sendInitResponse(true))
+  // init succeeded
+  if (!szgClient.sendInitResponse(true))
     cerr << "inputsimulator error: maybe szgserver died.\n";
 
   if (!inputNode->start()){
-    if (!szgclient->sendStartResponse(false))
+    if (!szgClient.sendStartResponse(false))
       cerr << "inputsimulator error: maybe szgserver died.\n";
     return 1;
   }
-  
-  arThread messageThread;
-  messageThread.beginThread(messageTask);
 
-  loadParameters(*szgclient);
+  // start succeeded
+  if (!szgClient.sendStartResponse(true))
+    cerr << "inputsimulator error: maybe szgserver died.\n";
+  
+  arThread dummy;
+  dummy.beginThread(messageTask, &szgClient);
+
+  loadParameters(szgClient);
 
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE|GLUT_RGB|GLUT_DEPTH);
@@ -202,9 +190,6 @@ int main(int argc, char** argv){
   glutMotionFunc(mousePosition);
   glutMouseFunc(mouseButton);
 
-  // start succeeded
-  if (!szgclient->sendStartResponse(true))
-    cerr << "inputsimulator error: maybe szgserver died.\n";
   glutMainLoop();
   return 0;
 }
