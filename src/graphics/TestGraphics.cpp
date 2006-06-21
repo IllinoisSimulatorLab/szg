@@ -210,11 +210,10 @@ int main(int argc, char** argv){
   if (!client){
     // Failed to connect to szgserver. That's it since we are testing
     // the distributed graphics as well.
-    cout << "TestGraphics error: szgserver must be running and user must "
-	 << "be dlogin'ed.\n";
+    cout << "TestGraphics error: szgserver must be running and user must be dlogin'ed.\n";
     return 1;
   }
-  g = new arGraphicsServer();
+  g = new arGraphicsServer;
   if (!g->init(client)){
     cout << "TestGraphics error: graphics server failed to init.\n";
     return 1;
@@ -238,19 +237,19 @@ int main(int argc, char** argv){
     return 1;
   }
   if (peer.connectToPeer("target")<0){
-    cout << "TestGraphics error: peer named \"target\" does not exist.\n";
+    cout << "TestGraphics error: peer \"target\" does not exist.\n";
     peer.closeAllAndReset();;
     return 1;
   }
   peer.pullSerial("target",0,0,
                   AR_TRANSIENT_NODE,AR_TRANSIENT_NODE,AR_TRANSIENT_NODE);
   peer.reset();
-  // sleep for 2 seconds.
   ar_usleep(2000000);
   testDatabase(peer);
-  cout << "testgraphics remark: about to stop peer.\n";
+  cout << "testgraphics remark: stopping peer.\n";
   peer.closeAllAndReset();
-  // NOTE: arGraphicsPeer::stop() should not be used here. Really all it does
-  // is closeAllAndReset followed by closing the arSZGClient connection.
-  cout << "testgraphics remark: peer has stopped.\n";
+  // Don't call arGraphicsPeer::stop(). It just calls
+  // closeAllAndReset and then disconnects arSZGClient.
+  cout << "testgraphics remark: peer stopped.\n";
+  return 0;
 }

@@ -5,7 +5,6 @@
 
 #include "arDataServer.h"
 #include "arDataUtilities.h"
-#include "arSZGClient.h"
 #include "arMath.h"
 #include "arInput.h"
 // THIS MUST BE THE LAST SZG INCLUDE!

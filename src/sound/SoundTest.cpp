@@ -22,7 +22,7 @@ inline float drand48(){
 #endif
 
 void loadParameters(arSZGClient&){
-  // does nothing!
+  // Does nothing.
 }
 
 // The database is a tree with one layer beneath the root.

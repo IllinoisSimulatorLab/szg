@@ -101,8 +101,8 @@ void messageTask(void* /*pClient*/){
 }
 
 int main(int argc, char** argv){
-  szgclient = new arSZGClient();
-  inputNode = new arInputNode();
+  szgclient = new arSZGClient;
+  inputNode = new arInputNode;
   szgclient->simpleHandshaking(false);
   szgclient->init(argc, argv);  
   if (!*szgclient)
@@ -124,12 +124,10 @@ int main(int argc, char** argv){
     ar_log_error() << "inputsimulator failed to set slot " << slotNumber << ".\n";
     return 1;
   }
-  // NOTE: we need to distinguish different kinds of SZG_INPUTn services...
-  // and this is how we do it!
+  // Distinguish different kinds of SZG_INPUTn services.
   netInputSink.setInfo("inputsimulator");
 
-  string pforthProgramName = szgclient->getAttribute("SZG_PFORTH",
-                                                     "program_names");
+  const string pforthProgramName = szgclient->getAttribute("SZG_PFORTH", "program_names");
   if (pforthProgramName == "NULL"){
     cout << "inputsimulator remark: no pforth program for "
 	 << "standalone joystick.\n";
@@ -208,4 +206,5 @@ int main(int argc, char** argv){
   if (!szgclient->sendStartResponse(true))
     cerr << "inputsimulator error: maybe szgserver died.\n";
   glutMainLoop();
+  return 0;
 }

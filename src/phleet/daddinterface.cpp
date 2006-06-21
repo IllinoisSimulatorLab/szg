@@ -18,20 +18,11 @@ int main(int argc, char** argv){
     return 1;
   }
   if (!parser.parseConfigFile()) {
-    // THIS IS NOT AN ERROR!
-    // This can occur the first time one of these program is run!
+    // Maybe this is the first time the program has been run.
     cout << "daddinterface remark: writing new config file.\n";
   }
 
-  string netmask;
-  if (argc == 4){
-    netmask = string(argv[3]);
-  }
-  else{
-    // The default.
-    netmask = string("255.255.255.0");
-  }
-
+  const string netmask((argc == 4) ? argv[3] : "255.255.255.0");
   parser.addInterface(argv[1], argv[2], netmask);
   return parser.writeConfigFile() ? 0 : 1;
 }

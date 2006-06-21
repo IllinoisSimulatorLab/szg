@@ -20,6 +20,5 @@ int main(int argc, char** argv){
   if (!szgClient)
     return 1;
 
-  const string hostname(argv[1]);
-  return szgClient.clearPseudoDNS(hostname) ? 0 : 1;
+  return szgClient.clearPseudoDNS(string(argv[1])) ? 0 : 1;
 }

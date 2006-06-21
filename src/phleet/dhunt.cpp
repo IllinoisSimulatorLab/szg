@@ -22,14 +22,15 @@ int main(int argc, char** argv){
   }
 
   // we send out a broadcast packet on each interface in turn
-  arSZGClient client;
-  // The discovery threads should be launched by us now, as opposed to
-  // implicitly by discoverSZGServer(). Thus, if we get an error,
-  // we can bail out with a reasonable error message.
-  if (!client.launchDiscoveryThreads()){
-    // A complaint has already been logged.
+  arSZGClient szgClient;
+  // Launch the discovery threads here, as opposed to
+  // implicitly by discoverSZGServer(), so that on error
+  // we can abort with a reasonable error message.
+  if (!szgClient.launchDiscoveryThreads()){
+    // Already warned.
     return 1;
   }
+
   const arSlashString networkList(parser.getNetworks());
   const arSlashString addressList(parser.getAddresses());
   const arSlashString maskList(parser.getMasks());
@@ -52,7 +53,7 @@ int main(int argc, char** argv){
     }
     //;;;; only say Broadcasting on, if -v flag
     cout << "Broadcasting on " << broadcast << "\n";
-    client.printSZGServers(broadcast);
+    szgClient.printSZGServers(broadcast);
   }
   return 0;
 }

@@ -14,12 +14,12 @@ bool done1 = false;
 bool done2 = false;
 
 // WHY IS THERE A SEGFAULT IF THIS IS DECLARED LIKE SO?
-//arSZGClient client;
-arSZGClient* client = NULL;
+//arSZGClient szgClient;
+arSZGClient* szgClient = NULL;
 
 void getTask1(void*){
   for (int i=0; i<numberGetAttr; i++){
-    const string result(client->getAttribute("foo", "bar1"));
+    const string result(szgClient->getAttribute("foo", "bar1"));
     if (result != "bar1"){
       cout << "Error in get 1 (" << result << ").\n";
     }
@@ -29,7 +29,7 @@ void getTask1(void*){
 
 void getTask2(void*){
   for (int i=0; i<numberGetAttr; i++){
-    const string result(client->getAttribute("foo", "bar2"));
+    const string result(szgClient->getAttribute("foo", "bar2"));
     if (result != "bar2"){
       cout << "Error in get 2 (" << result << ").\n";
     }
@@ -40,9 +40,9 @@ void getTask2(void*){
 int main(int argc, char** argv){
   // DOES NOT SEEM LIKE WE CAN HAVE A SUCCESSION OF arSZGCients 
   // connecting from the same program.
-  client = new arSZGClient;
-  client->init(argc, argv);
-  if (!*client)
+  szgClient = new arSZGClient;
+  szgClient->init(argc, argv);
+  if (!*szgClient)
     return 1;
 
   while (true) {
@@ -53,26 +53,26 @@ int main(int argc, char** argv){
     ar_timeval contime = ar_time();
     const int numberCon = 30;
     for (i=0; i<numberCon; i++){
-      client = new arSZGClient;
-      client->init(argc, argv);
-      if (!*client)
+      szgClient = new arSZGClient;
+      szgClient->init(argc, argv);
+      if (!*szgClient)
 	return 1;
 
-      client->closeConnection();
-      delete client;
+      szgClient->closeConnection();
+      delete szgClient;
     }
-    double totalCon = ar_difftime(ar_time(), contime);
+    const double totalCon = ar_difftime(ar_time(), contime);
     cout << "Time to get attribute is "
 	 << totalCon/(1000.0*numberCon) << " ms.\n"
 	 << "  Requests per second = " 
 	 << (1000000.0*numberCon)/totalCon << "\n";
-    client = new arSZGClient;
-    client->init(argc, argv);
-    if (!(*client))
+    szgClient = new arSZGClient;
+    szgClient->init(argc, argv);
+    if (!*szgClient)
       return 1;
 
-    client->closeConnection();
-    delete client;
+    szgClient->closeConnection();
+    delete szgClient;
   }
 
   double totalCon = ar_difftime(ar_time(), contime);
@@ -80,17 +80,17 @@ int main(int argc, char** argv){
          << totalCon/(1000.0*numberCon) << " ms.\n";
     cout << "  Requests per second = " 
          << (1000000.0*numberCon)/totalCon << "\n";
-  client = new arSZGClient;
-  client->init(argc, argv);
-  if (!(*client)){
+  szgClient = new arSZGClient;
+  szgClient->init(argc, argv);
+  if (!*szgClient){
     return 1;
     }
 #endif
-    client->setAttribute("foo","bar1","bar1");
-    client->setAttribute("foo","bar2","bar2");
+    szgClient->setAttribute("foo","bar1","bar1");
+    szgClient->setAttribute("foo","bar2","bar2");
     ar_timeval time1 = ar_time();
     for (i=0; i<numberGetAttr; i++){
-      (void)client->getAttribute("foo","bar1"); 
+      (void)szgClient->getAttribute("foo","bar1"); 
     }
     const double totalTime = ar_difftime(ar_time(), time1);
     cout << "Time to get attribute is "
@@ -105,8 +105,8 @@ int main(int argc, char** argv){
       ar_usleep(100000);
     }
 
-    /*client->closeConnection();
-      delete client;*/
+    /*szgClient->closeConnection();
+      delete szgClient;*/
 
   }
   return 0;

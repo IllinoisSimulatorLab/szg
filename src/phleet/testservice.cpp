@@ -23,11 +23,13 @@ int main(int argc, char** argv){
     cout << "usage: testservice <service name>\n";
     return 1;
   }
+
   arSZGClient client;
   client.init(argc, argv);
   if (!client){
     return 1;
   }
+
   // Create the language.
   arTemplateDictionary dictionary;
   arDataTemplate record("test");
@@ -51,6 +53,7 @@ int main(int argc, char** argv){
       return 1;
     }
   }
+
   server.setPort(ports[0]);
   server.setInterface("INADDR_ANY");
   int tries = 0;
@@ -60,16 +63,17 @@ int main(int argc, char** argv){
       return 1;
     }
     server.setPort(ports[0]);
-    tries++;
-    if (tries == 10){
+    if (++tries == 10){
       cout << "testservice error: too many port request attempts.\n";
       return 1;
     }
   }
+
   if (!client.confirmPorts(argv[1],"default",1,ports)){
     cout << "testservice error: failed to confirm ports.\n";
     return 1;
   }
+
   cout << "testservice remark: successfully bound to brokered ports.\n";
   arThread connectionThread;
   connectionThread.beginThread(connectionTask, NULL);

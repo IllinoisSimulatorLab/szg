@@ -312,7 +312,7 @@ void messageTask(void* pClient){
   // all of the messages to szg-rp receive responses
   string responseBody;
   while (true) {
-    int messageID = cli->receiveMessage(&messageType,&messageBody);
+    const int messageID = cli->receiveMessage(&messageType,&messageBody);
     if (!messageID){
       // This should only occur when the szgserver quits.
       ar_log_error() << "szg-rp error: problem in receiving message.\n";
@@ -322,12 +322,7 @@ void messageTask(void* pClient){
       exit(0);
     }
     else if (messageType == "performance"){
-      if (messageBody == "on"){
-	showPerformance = true;
-      }
-      if (messageBody == "off"){
-	showPerformance = false;
-      }
+      showPerformance = messageBody == "on";
     }
     else if (messageType == "create"){
       responseBody = handleCreate(messageBody);
@@ -552,7 +547,6 @@ void keyboard(unsigned char key, int /*x*/, int /*y*/){
 }
 
 int main(int argc, char** argv){
-
   framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
   framerateGraph.addElement("consume", 300, 100, arVector3(1,1,0));
   framerateGraph.addElement("bytes", 300, 500000, arVector3(0,1,1));
@@ -567,9 +561,10 @@ int main(int argc, char** argv){
   ar_mutex_init(&peerLock);
   szgClient->simpleHandshaking(false);
   szgClient->init(argc, argv);
-  if (!(*szgClient)){
+  if (!*szgClient){
     return 1;
   }
+
   ar_log().setStream(szgClient->initResponse());
   // Check for the flag indicating that "performance" is desired.
   for (int i=0; i<argc; i++){
@@ -590,6 +585,7 @@ int main(int argc, char** argv){
     }
     return 1;
   }
+
   ar_log_remark() << "szg-rp remark: trying to run as peer=" << argv[1] << "\n";
   if (!szgClient->sendInitResponse(true)){
     ar_log_error() << "szg-rp error: maybe szgserver died.\n";
@@ -606,6 +602,7 @@ int main(int argc, char** argv){
     }
     return 1;
   }
+
   if (!loadParameters(*szgClient)){
     ar_log_error() << "szg-rp error: failed to load parameters.\n";
     if (!szgClient->sendStartResponse(false)){
@@ -635,4 +632,5 @@ int main(int argc, char** argv){
   glutDisplayFunc(display);
   glutIdleFunc(display);
   glutMainLoop();
+  return 0;
 }

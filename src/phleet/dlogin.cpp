@@ -25,10 +25,10 @@ int main(int argc, char** argv){
     return 1;
   }
 
-  arSZGClient client;
+  arSZGClient szgClient;
   // Launch explicitly, not implicitly via discoverSZGServer(),
-  // so client can display diagnostics.
-  if (!client.launchDiscoveryThreads())
+  // so szgClient can display diagnostics.
+  if (!szgClient.launchDiscoveryThreads())
     return 1;
 
   string userName;
@@ -57,7 +57,7 @@ int main(int argc, char** argv){
 	     << mask << "' for address '" << address << "'.\n";
 	continue;
       }
-      found = client.discoverSZGServer(argv[1], broadcast);
+      found = szgClient.discoverSZGServer(argv[1], broadcast);
     }
 
     if (!found){
@@ -68,29 +68,29 @@ int main(int argc, char** argv){
   else{
     // Connect explicitly.
     // BUG: the szgserver name is not set! though this doesn't affect it
-    client.setServerLocation(argv[1], atoi(argv[2]));
+    szgClient.setServerLocation(argv[1], atoi(argv[2]));
     userName = string(argv[3]);
   }
 
-  // write the *partial* login file, since this is what the 
-  // arSZGClient will use to connect.
-  if (!client.writeLoginFile(userName))
+  // Write the partial login file,
+  // which is what the arSZGClient will use to connect.
+  if (!szgClient.writeLoginFile(userName))
     return 1;
-  
+
   // Connect to the szgserver
-  client.init(argc, argv);
-  if (!client) {
+  szgClient.init(argc, argv);
+  if (!szgClient) {
     ar_log_error() << "dlogin failed to login to szgserver.\n";
-    client.logout();
+    szgClient.logout();
     return 1;
   }
 
-  // Write the login file completely, now that the server name has been transferred.
-  if (!client.writeLoginFile(userName))
+  // Write the login file completely,
+  // now that the server name has been transferred.
+  if (!szgClient.writeLoginFile(userName))
     return 1;
-  
-  
-  // verfiy we can, in fact, read the file.
+
+  // Verify that the login file can be read.
   parser.parseLoginFile();
   parser.printLogin();
   return 0;

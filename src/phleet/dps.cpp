@@ -16,7 +16,8 @@ int main(int argc, char** argv){
     cerr << "dps error: failed to initialize SZGClient.\n";
     return 1;
   }
-  const string result(szgClient.getProcessList());
+
+  const string result = szgClient.getProcessList();
   for (unsigned place=0; place < result.length(); ++place) {
     // Build a line.
     int bufferLoc = 0;

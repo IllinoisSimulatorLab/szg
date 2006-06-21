@@ -179,29 +179,28 @@ int arGUIWindowManager::addWindow( const arGUIWindowConfig& windowConfig,
 {
   arGUIWindow* window = new arGUIWindow( _maxWindowID, windowConfig,
                                          _windowInitGLCallback, _userData );
-  // Want to let the window know who owns it... so events will have this info
-  // stuffed inside. Lets the event processing callbacks refer to the
-  // window manager in a natural way.
+  // Tell the window who owns it... so events will include this info.
+  // Let event processing callbacks refer to the window manager.
   window->setWindowManager( this );
 
   _windows[ _maxWindowID ] = window;
 
-  // Only make the OS window if it has been requested.
+  // Make the OS window, if it was requested.
   if (useWindowing){
     if( _threaded ) {
       // This should only return once the window is actually up and running
       if( window->beginEventThread() < 0 ) {
+        // Already printed warning.
         delete window;
         _windows.erase( _maxWindowID );
-	// Do not print out a complaint here.
         return -1;
       }
     }
     else {
       if( window->_performWindowCreation() < 0 ) {
+        // Already printed warning.
         delete window;
         _windows.erase( _maxWindowID );
-        // Do not print out a complaint here.
         return -1;
       }
     }

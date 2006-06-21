@@ -12,22 +12,25 @@
 #include "arSZGClient.h"
 
 int main( int argc, char** argv ) {
-  arSZGClient client;
-  client.init(argc, argv);
-  if (!client) {
-    cerr << "pfconsole error: SZGCLient failed to connect.\n";
+  arSZGClient szgClient;
+  szgClient.init(argc, argv);
+  if (!szgClient) {
+    cerr << "pfconsole error: SZGClient failed to connect.\n";
     return 1;
   }
+
   arPForth pforth;
   if (!pforth) {
     cerr << "failed to initialize PForth.\n";
-    return 0;
+    return 1;
   }
+
   if (!ar_PForthAddDatabaseVocabulary( &pforth )) {
     cerr << "failed to add database vocabulary.\n";
-    return 0;
+    return 1;
   }
-  ar_PForthSetSZGClient( &client );
+
+  ar_PForthSetSZGClient( &szgClient );
   string program;
   cout << "OK ";
   getline( cin, program );

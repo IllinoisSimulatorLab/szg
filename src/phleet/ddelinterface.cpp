@@ -17,8 +17,9 @@ int main(int argc, char** argv){
     cout << "usage: ddelinterface name address\n";
     return 1;
   }
+
   if (!parser.parseConfigFile()) {
-    // THIS IS NOT AN ERROR!
+    // Maybe the first time this program was run.
     cout << "ddelinterface remark: writing new config file.\n";
   }
   return parser.deleteInterface(argv[1], argv[2]) &&

@@ -8,8 +8,6 @@
 #include "arAppLauncher.h"
 
 int main(int argc, char** argv){
-  // NOTE: arSZGClient::init(...) must come before the argument parsing...
-  // otherwise -szg user=... and -szg server=... will not work.
   arSZGClient szgClient;
   szgClient.init(argc, argv);
   if (!szgClient) {
@@ -22,8 +20,7 @@ int main(int argc, char** argv){
   if (argc == 2){
     launcher.setVircomp(argv[1]);
   }
-
-  if (argc > 2){
+  else if (argc > 2){
     cerr << "usage: dkillall [virtual_computer]\n";
     return 1;
   }

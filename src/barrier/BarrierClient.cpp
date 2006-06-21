@@ -25,6 +25,7 @@ int main(int argc, char** argv){
   arPhleetConfigParser parser;
   if (!parser.parseConfigFile())
     return 1;
+
   barrierClient.setNetworks(parser.getNetworks());
   if (!barrierClient.init(szgClient) || !barrierClient.start())
     return 1;
@@ -33,10 +34,10 @@ int main(int argc, char** argv){
   int count = 0;
   ar_timeval time1, time2;
   while (true) {
-    // Wait until we are connected to the server.
     while (!barrierClient.checkConnection()){
       ar_usleep(100000);
     }
+    // Connected to the server.
     if (!barrierClient.checkActivation()){
       barrierClient.requestActivation();
       count = 0;
@@ -52,4 +53,5 @@ int main(int argc, char** argv){
       time1 = ar_time();
     }
   }
+  return 0;
 }

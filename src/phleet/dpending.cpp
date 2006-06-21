@@ -10,10 +10,12 @@
 #include "arSZGClient.h"
 
 int main(int argc, char** argv){
-  arSZGClient client;
-  client.init(argc, argv);
-  if (!client){
+  arSZGClient szgClient;
+  szgClient.init(argc, argv);
+  if (!szgClient){
     return 1;
   }
-  client.printPendingServiceRequests();
+
+  szgClient.printPendingServiceRequests();
+  return 0;
 }

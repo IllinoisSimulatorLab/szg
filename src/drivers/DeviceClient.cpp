@@ -90,6 +90,7 @@ int main(int argc, char** argv){
     ar_log_error() << "DeviceClient: invalid slot " << slot << ".\n";
     return 1;
   }
+
   arClientEventFilter filter;
   inputNode.addFilter( &filter, false );
   if (!inputNode.init(szgClient)){

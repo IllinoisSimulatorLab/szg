@@ -57,31 +57,22 @@ arHead head;
 // forward declaration
 void display( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow );
 
-// To be able to use arGraphicsWindow::draw in the arGUIWindow as the draw
-// callback
+// To use arGraphicsWindow::draw in the arGUIWindow as the draw callback
 class arSZGViewRenderCallback : public arGUIRenderCallback
 {
   public:
-
     arSZGViewRenderCallback( void ) { }
-
     virtual ~arSZGViewRenderCallback( void )  { }
-
     virtual void operator()( arGraphicsWindow&, arViewport& ) { }
-
     virtual void operator()( arGUIWindowInfo* ) { }
-
     virtual void operator()( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow ) {
       if( graphicsWindow ) {
         arVector3 size = wm->getWindowSize( windowInfo->getWindowID() );
         graphicsWindow->draw();
       }
     }
-
   private:
-
 };
-
 
 // Drawing functions
 

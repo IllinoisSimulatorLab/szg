@@ -162,27 +162,24 @@ int main(int argc, char** argv){
   string hostName;
   string exeName;
 
-  // There is a somewhat complex dance to dex because it can be used it
-  // several ways:
+  // dex is complicated because it can be used in several ways:
   //  a. dex virtual_computer arg0 arg1 arg2
   //  b. dex actual_computer arg0 arg1 arg2
   //  c. dex arg0 arg1 arg2
-  // In the final case, we are executing via the szgd on the local computer.
+  // Case (c) executing via the szgd on the local computer.
   // This creates some complications. For instance, if an executable has the
   // same name as a computer or virtual computer then it cannot be executed
   // in this way. However, this is a desirable shorthand for a common case
   // and *does* work in the most cases that arise in practice.
   // NOTE: the fault tree is essentially:
-  //  a. Is argv[1] a virtual computer name? If so, interpret command that
-  //     way.
-  //  b. Is argv[1] a computer running szgd? If so, interpret command that
-  //     way.
+  //  a. Is argv[1] a virtual computer name? If so, interpret command that way.
+  //  b. Is argv[1] a computer running szgd? If so, interpret command that way.
   //  c. Otherwise, interpret command as (c) above.
 
-  // The next block of code determines the manner in which we are executing.
-  // It also packs the args into a string to be sent to szgd.
+  // This block of code determines which of the 3 cases,
+  // and packs the args into a string to be sent to szgd.
   if (argc == 2) {
-    // In this case, we MUST be attempting to execute on the local machine.
+    // Execute on the local machine.
     hostName = localhost;
     exeName = argv[1];
   }
@@ -263,8 +260,7 @@ int main(int argc, char** argv){
     // Hack. This will get unpacked by szgd.
     messageBody += "||||"+tempStream.str();
   } 
-  int match = szgClient.sendMessage(
-    "exec", messageBody, messageContext, szgdID, true);
+  int match = szgClient.sendMessage("exec", messageBody, messageContext, szgdID, true);
   if (match < 0){
     cerr << "dex error: failed to send message.\n";
     return 1;

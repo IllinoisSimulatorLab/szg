@@ -37,6 +37,7 @@ class SZG_CALL arSZGClient{
   void simpleHandshaking(bool state);
   void parseSpecialPhleetArgs(bool state);
   bool init(int&, char** const argv, string forcedName = string("NULL"));
+       // Call init() before parsing argv, so "-szg foo=..." works.
   stringstream& initResponse(){ return _initResponseStream; }
   bool sendInitResponse(bool ok);
   stringstream& startResponse(){ return _startResponseStream; }

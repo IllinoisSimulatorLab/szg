@@ -13,7 +13,7 @@
 /// ( a good way to verify that the server discovery functions of the
 /// arSZGClient are threadsafe
 
-arSZGClient  client;
+arSZGClient  szgClient;
 arDataClient dataClient[2];
 string       serviceName[2];
 arMutex      printLock;
@@ -24,7 +24,7 @@ void readDataTask(void* num){
   int trial = 0;
   while(true){
     cout << "&&&&&& Component ID of service " << serviceName[number]
-	 << " = " << client.getServiceComponentID(serviceName[number]) << "\n";
+	 << " = " << szgClient.getServiceComponentID(serviceName[number]) << "\n";
     trial++;
     const int whichNetwork = rand()% networks.size();
     const string testNetwork = networks[whichNetwork];
@@ -37,7 +37,7 @@ void readDataTask(void* num){
     // the upshot is that discoverService blocks until an appropriate service
     // is registered
     arPhleetAddress result 
-      = client.discoverService(serviceName[number], testNetwork, true);
+      = szgClient.discoverService(serviceName[number], testNetwork, true);
     ar_mutex_lock(&printLock);
     cout << "***** Thread number = " << number << "\n"
          << "  trial = "<< trial << "\n"
@@ -69,7 +69,7 @@ void readDataTask(void* num){
         ar_mutex_lock(&printLock);
         cout << "***** Thread number = " << number << "\n";
         cout << "  trial = " << trial << "\n";
-        cout << "  error: client failed to get data.\n";
+        cout << "  error: szgClient failed to get data.\n";
         ar_mutex_unlock(&printLock);
 	// try to discover a new service
         break;
@@ -89,8 +89,8 @@ int main(int argc, char** argv){
     cout << "usage: testserviceclient <service name 1> <service name 2>\n";
     return 1;
   }
-  client.init(argc, argv);
-  if (!client)
+  szgClient.init(argc, argv);
+  if (!szgClient)
     return 1;
 
   arPhleetConfigParser parser;
@@ -101,14 +101,16 @@ int main(int argc, char** argv){
   serviceName[1] = string(argv[2]);
   
   ar_mutex_init(&printLock);
-  // NOTE: num1 and num2 need to be distinct. Otherwise, each thread will
-  // attach to source 1
+  // num1 and num2 need to be distinct, lest each thread attach to source 1.
+
   int num1 = 0;
   arThread thread1;
   thread1.beginThread(readDataTask, &num1);
+
   int num2 = 1;
   arThread thread2;
   thread2.beginThread(readDataTask, &num2);
+
   while (true){
     ar_usleep(100000);
   }

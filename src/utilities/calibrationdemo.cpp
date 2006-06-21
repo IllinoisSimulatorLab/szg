@@ -8,8 +8,6 @@
 #include "arAppLauncher.h"
 
 int main(int argc, char** argv){
-  // NOTE: arSZGClient::init(...) must come before the argument parsing...
-  // otherwise -szg user=... and -szg server=... will not work.
   arSZGClient szgClient;
   szgClient.simpleHandshaking(false);
   szgClient.init(argc, argv);
@@ -31,13 +29,13 @@ int main(int argc, char** argv){
   if (argc == 2){
     launcher.setVircomp(argv[1]);
   }
-
   launcher.setRenderProgram("PictureViewer cubecal.ppm");
   launcher.setAppType("distapp");
   if (!launcher.launchApp()){
     szgClient.sendStartResponse(false);
     return 1;
   }
+
   szgClient.sendStartResponse(true);
   launcher.waitForKill();
   return 0;

@@ -14,8 +14,6 @@
 //master and trigger computers so that the change persists.
 
 int main(int argc, char** argv) {
-  // NOTE: arSZGClient::init(...) must come before the argument parsing...
-  // otherwise -szg user=... and -szg server=... will not work.
   arSZGClient szgClient;
   szgClient.init(argc, argv);
   if (!szgClient) {
@@ -46,23 +44,22 @@ Usage:
     goto Usage; 
 
   // send message to trigger (which will relay to master if necessary).
-  // copied from dmsg.cpp
-  int    componentID;
+  // copypaste from dmsg.cpp
   const string lockName = launcher.getLocation()+"/SZG_DEMO/app";
+  int componentID;
   if (szgClient.getLock(lockName, componentID)){
     // nobody else was holding the lock
     szgClient.releaseLock(lockName);
     cerr << "setdemomode error: no trigger component running.\n";
     return 1;
   }
-  string messageBody = (paramVal == "true")?("on"):("off");
-  int match = szgClient.sendMessage( "demo", messageBody, 
-                                    componentID, false);
+  const string messageBody = (paramVal == "true")? "on" : "off";
+  const int match = szgClient.sendMessage( "demo", messageBody, componentID, false);
   if ( match < 0 ){
     // no need to print something here... sendMessage already does.
     return 1;
   }
-  // end dmsg block
+  // end of copypaste from dmsg.cpp
 
   // set SZG_HEAD/fixed_head_mode on trigger & master.
   string triggerName = launcher.getTriggerName();

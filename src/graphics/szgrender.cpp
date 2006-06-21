@@ -107,8 +107,8 @@ void messageTask(void* pClient){
 	ar_mutex_unlock(&pauseLock);
       }
       else
-        ar_log_warning() << "szgrender warning: unexpected messageBody \""
-	                 << messageBody << "\".\n";
+        ar_log_warning() << "szgrender warning: unexpected messageBody '"
+	                 << messageBody << "'.\n";
     }
     else if (messageType=="color"){
       float theColors[3] = {0,0,0};
@@ -134,11 +134,10 @@ void messageTask(void* pClient){
   }
 }
 
-// The GUI window callbacks. The "init GL" and "mouse" callbacks are not used
-// here.
+// GUI window callbacks. "Init GL" and "mouse" callbacks are not used.
 
 void ar_guiWindowEvent(arGUIWindowInfo* windowInfo){
-  switch(windowInfo->getState()){
+  switch (windowInfo->getState()){
   case AR_WINDOW_RESIZE:
     windowManager->setWindowViewport(
       windowInfo->getWindowID(), 0, 0, windowInfo->getSizeX(), windowInfo->getSizeY());
@@ -151,7 +150,7 @@ void ar_guiWindowEvent(arGUIWindowInfo* windowInfo){
 
 void ar_guiWindowKeyboard(arGUIKeyInfo* keyInfo){
   if (keyInfo->getState() == AR_KEY_DOWN){
-    switch(keyInfo->getKey()){
+    switch (keyInfo->getKey()){
     case AR_VK_ESC:
       shutdownAction();
       break;
@@ -188,12 +187,12 @@ LAbort:
 
   ar_log().setStream(szgClient.initResponse());
   
-  // we expect to be able to get a lock on the computer's screen
+  // we expect to lock the screen
   const string screenLock =
     szgClient.getComputerName() + "/" + szgClient.getMode("graphics");
   int graphicsID;
   if (!szgClient.getLock(screenLock, graphicsID)){
-    ar_log_error() << "szgrender's screen locked by component " << graphicsID << ".\n";
+    ar_log_error() << "szgrender's screen already locked by component " << graphicsID << ".\n";
     goto LAbort;
   }
 
@@ -265,8 +264,7 @@ LAbort:
       ar_usleep(200000);
     }
     if (makeNice){
-      // Do not have this be a default for szgrender.
-      // It seriously throttles high framerates.
+      // Not a default: it seriously throttles high framerates.
       ar_usleep(2000);
     }
 

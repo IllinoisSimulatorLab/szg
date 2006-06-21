@@ -11,7 +11,7 @@ int main(int argc, char** argv){
   arSZGClient szgClient;
   szgClient.init(argc, argv); // Parse "-szg" args first.
   if (!szgClient) {
-    cerr << "setstereo error: failed to initialize SZGClient.\n";
+    cerr << "restarttracker error: failed to initialize SZGClient.\n";
     return 1;
   }
 
@@ -20,7 +20,6 @@ int main(int argc, char** argv){
   if (argc == 2){
     launcher.setVircomp(argv[1]);
   }
-
   if (argc != 1 && argc != 2){
     cerr << "usage: restarttracker [virtual_computer]\n";
     return 1;
