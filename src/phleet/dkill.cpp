@@ -76,8 +76,9 @@ LUsage:
   if (fForce)
     {
     if (!szgClient.killProcessID(hostName, exeName)){
-      cerr << "dkill -9: no process '" << exeName
-	   << "' on host " << hostName << ".\n";
+LNotFound:
+      cerr << "dkill error: no process '" << exeName
+	   << "' on host '" << hostName << "'.\n";
       return 1;
     }
     return 0;
@@ -85,18 +86,15 @@ LUsage:
 
   const int progID = szgClient.getProcessID(hostName, exeName);
   if (progID == -1){
-    cerr << "dkill: no process '" << exeName
-	 << "' on host " << hostName << ".\n";
-    return 1;
+    goto LNotFound;
   }
 
   szgClient.sendMessage("quit", "0", progID);
-  // 5 second timeout on kill notification receipt.
-  int tag = szgClient.requestKillNotification(progID);
   list<int> tags;
-  tags.push_back(tag);
-  if (szgClient.getKillNotification(tags, 5000) >= 0){
-    cout << "dkill remark: remote process disconnected from szgserver.\n";
+  tags.push_back(szgClient.requestKillNotification(progID));
+  const int msecTimeout = 5000;
+  if (szgClient.getKillNotification(tags, msecTimeout) < 0){
+    cout << "dkill warning: timed out after " << msecTimeout << " msec.\n";
   }
   return 0;
 }
