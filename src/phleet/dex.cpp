@@ -219,6 +219,23 @@ int main(int argc, char** argv){
 	cerr << argv[0] << " error: no virtual computer '" << argv[1]
 	     << "', and no szgd on host '" << argv[1]
 	     << "' or on local host '" << localhost << "'.\n";
+
+	cout << "  Hint: known virtual computers are: ";
+	string hint = szgClient.getAllAttributes("SZG_CONF/virtual");
+	// Skip over "(List):\n"
+	hint = hint.erase(0, hint.find('\n') + 1);
+
+	// For each line, print only up to the first slash.
+	unsigned a=0, b=0;
+	for (;;) {
+	  a = hint.find('/');
+	  b = hint.find('\n');
+	  if (b == string::npos)
+	    break;
+	  cout << hint.substr(0, a) << " ";
+	  hint = hint.erase(0, b+1);
+	}
+	cout << "\n";
 	return 1;
       }
     }
