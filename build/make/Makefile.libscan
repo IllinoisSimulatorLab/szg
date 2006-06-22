@@ -88,7 +88,7 @@ ifeq ($(strip $(MACHINE)), LINUX)
   endif
  
   ifneq ($(strip $(INC_FMOD)),)
-  ifneq ($(strip $(LIB_FMOD)),)
+  ifneq ($(strip $(OBJ_FMOD)),)
     SZG_OPT_FLAGS += -DEnableSound
     SZG_SHARED_COPY += $(OBJ_FMOD)
     SZG_SHARED_COPY_ACTION += 
