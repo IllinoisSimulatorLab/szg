@@ -13,16 +13,17 @@ int main(int argc, char** argv){
   szgClient.init(argc, argv);
   if (!szgClient) {
     cerr << "calibrationdemo error: failed to initialize SZGClient.\n";
-    szgClient.sendInitResponse(false);
     return 1;
   }
+  ar_log().setStream(szgClient.initResponse());
 
   if (argc != 1 && argc != 2){
-    cerr << "calibrationdemo usage: calibrationdemo [virtual_computer]\n";
+    ar_log_error() << "calibrationdemo usage: calibrationdemo [virtual_computer]\n";
     szgClient.sendInitResponse(false);
     return 1;
   }
   szgClient.sendInitResponse(true);
+  ar_log().setStream(szgClient.startResponse());
 
   arAppLauncher launcher("calibrationdemo");
   launcher.setSZGClient(&szgClient);
@@ -37,6 +38,7 @@ int main(int argc, char** argv){
   }
 
   szgClient.sendStartResponse(true);
+  ar_log().setStream(cout);
   launcher.waitForKill();
   return 0;
 }

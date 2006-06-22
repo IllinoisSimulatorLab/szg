@@ -811,8 +811,7 @@ LRetry:
 	info->timeoutmsec = timeoutMsec;
       // The long-blocking exec call gets its own thread.
       // So the various arSZGClient methods must be thread-safe.
-      arThread dummy;
-      dummy.beginThread(execProcess, info); // execProcess() deletes info.
+      arThread dummy(execProcess, info); // execProcess() deletes info.
     }
   }
   return 1;

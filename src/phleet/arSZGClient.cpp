@@ -86,15 +86,12 @@ arSZGClient::~arSZGClient(){
   delete [] _receiveBuffer;
 }
 
-/// Control the complexity of a phleet component's
-/// handshaking when invoked by "dex". The default is "true":
-/// the arSZGClient sends a final response during its
-/// init method. Otherwise, if simple handshaking has been disabled (by
-/// passing in "false" before init), the programmer will need to
-/// send an init response using sendInitResponse and a start response using
-/// sendStartResponse (which is the final response in this case). This lets
-/// initialization and start logs return to
-/// the spawning "dex", for debugging.
+/// Control how to handshake with dex.  By default, "true",
+/// send a final response during init().
+/// Iff simple handshaking has been disabled (by
+/// passing in "false" before init), call sendInitResponse and
+/// sendStartResponse (which is the final response in this case),
+/// to forward init and start diagnostics to the the spawning dex for printing.
 void arSZGClient::simpleHandshaking(bool state){
   _simpleHandshaking = state;
 }
@@ -288,8 +285,8 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
 	// the exe finished launching.
 	// This is not an error. But don't try to send responses back then.
 	if (!_launchingMessageID){
-	  ar_log_warning() << _exeName << " failed to own message, "
-	                   << "despite appearing to have been launched by szgd.\n";
+	  ar_log_warning() << _exeName <<
+	    " failed to own message, despite appearing to have been launched by szgd.\n";
           _ignoreMessageResponses = true;
 	}
 	else{
@@ -319,8 +316,10 @@ bool arSZGClient::_sendResponse(stringstream& s,
 				bool fNotFinalMessage) {
   // Output to the terminal below only if there's new stuff after the header.
   const bool printInfo = s.str().length() > initialStreamLength;
+
   // Append a standard success or failure message to the stream.
   s << _exeName << " component " << sz << (ok ? " ok.\n" : " failed.\n");
+
   // We do not send the message response if:
   //  a) The message trade failed in init(), likely because it took a LONG time to launch us.
   //  b) We were NOT launched by szgd.

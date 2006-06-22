@@ -566,7 +566,6 @@ int main(int argc, char** argv){
   }
 
   ar_log().setStream(szgClient->initResponse());
-  // Check for the flag indicating that "performance" is desired.
   for (int i=0; i<argc; i++){
     if (!strcmp("-p",argv[i])){
       highPerformance = true;
@@ -579,26 +578,26 @@ int main(int argc, char** argv){
     }
   }
   if (argc < 2){
-    ar_log_critical() << "szg-rp usage: szg-rp <name>\n";
+    ar_log_error() << "usage: szg-rp <name>\n";
     if (!szgClient->sendInitResponse(false)){
-      ar_log_error() << "szg-rp error: maybe szgserver died.\n";
+      cerr << "szg-rp error: maybe szgserver died.\n";
     }
     return 1;
   }
 
-  ar_log_remark() << "szg-rp remark: trying to run as peer=" << argv[1] << "\n";
+  ar_log_remark() << "szg-rp trying to run as peer=" << argv[1] << "\n";
   if (!szgClient->sendInitResponse(true)){
-    ar_log_error() << "szg-rp error: maybe szgserver died.\n";
+    cerr << "szg-rp error: maybe szgserver died.\n";
   }
   // Use locks to ensure that we have a unique workspace name.
   int componentID;
   ar_log().setStream(szgClient->startResponse());
   if (!szgClient->getLock(string("szg-rp-")+argv[1], componentID)){
-    ar_log_error() << "szg-rp error: non-unique workspace name.\n"
+    ar_log_error() << "szg-rp: non-unique workspace name.\n"
 		   << "  component with ID " << componentID 
                    << " holds this workspace.\n";
     if (!szgClient->sendStartResponse(false)){
-      ar_log_error() << "szg-rp error: maybe szgserver died.\n";
+      cerr << "szg-rp error: maybe szgserver died.\n";
     }
     return 1;
   }
@@ -606,27 +605,24 @@ int main(int argc, char** argv){
   if (!loadParameters(*szgClient)){
     ar_log_error() << "szg-rp error: failed to load parameters.\n";
     if (!szgClient->sendStartResponse(false)){
-      ar_log_error() << "szg-rp error: maybe szgserver died.\n";
+      cerr << "szg-rp error: maybe szgserver died.\n";
     }
   }
 
   ar_log_remark() << "szg-rp remark: started.\n";
   if (!szgClient->sendStartResponse(true)){
-    ar_log_error() << "szg-rp error: maybe szgserver died.\n";
+    cerr << "szg-rp error: maybe szgserver died.\n";
   }
-  
   ar_log().setStream(cout);
-
-  arThread messageThread(messageTask, szgClient);
+  arThread dummy(messageTask, szgClient);
 
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB);
   glutInitWindowPosition(xPos,yPos);
   glutInitWindowSize(xSize, ySize);
   glutCreateWindow("Syzygy Reality Peer");
-  if (useFullscreen){
+  if (useFullscreen)
     glutFullScreen();
-  }
   glutSetCursor(GLUT_CURSOR_NONE);
   glutKeyboardFunc(keyboard);
   glutDisplayFunc(display);

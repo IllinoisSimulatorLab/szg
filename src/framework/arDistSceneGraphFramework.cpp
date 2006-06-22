@@ -617,7 +617,7 @@ bool arDistSceneGraphFramework::_initInput(){
   if (!_inputDevice->init(_SZGClient) && !_standalone){
     ar_log_warning() << _label << " warning: failed to init input device.\n";
     if (!_SZGClient.sendInitResponse(false)){
-      ar_log_error() << _label << " error: maybe szgserver died.\n";
+      cerr << _label << " error: maybe szgserver died.\n";
     }
     return false;
   }
@@ -699,7 +699,7 @@ bool arDistSceneGraphFramework::_startRespond(const string& s, bool f){
     ar_log_error() << _label << " error: " << s << ar_endl;
   }
   if (!_SZGClient.sendStartResponse(f)){
-    ar_log_error() << _label << " error: maybe szgserver died.\n";
+    cerr << _label << " error: maybe szgserver died.\n";
   }
   return f;
 }
@@ -779,7 +779,7 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
                                   this)) {
     ar_log_error() << _label << " error: failed to start message thread.\n";
     if (!_SZGClient.sendInitResponse(false)){
-      ar_log_error() << _label << " error: maybe szgserver died.\n";
+      cerr << _label << " error: maybe szgserver died.\n";
     }
     return false;
   }
@@ -803,7 +803,7 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
 		     << " error: failed to launch on virtual computer "
                      << vircomp << ".\n";
       if (!_SZGClient.sendInitResponse(false)){
-        ar_log_error() << _label << " error: maybe szgserver died.\n";
+        cerr << _label << " error: maybe szgserver died.\n";
       }
       return false;
     }
@@ -830,7 +830,7 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
       ar_log_error() << "  (THE LIKELY REASON IS THAT YOU ARE RUNNING ANOTHER "
 	             << "APP).\n";
       if (!_SZGClient.sendInitResponse(false)){
-        ar_log_error() << _label << " error: maybe szgserver died.\n";
+        cerr << _label << " error: maybe szgserver died.\n";
       }
       return false;
     }
@@ -839,7 +839,7 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
     if (!_graphicsPeer.init(_SZGClient)){
       ar_log_error() << _label << " error: graphics peer failed to init.\n";
       if (!_SZGClient.sendInitResponse(false)){
-        ar_log_error() << _label << " error: maybe szgserver died.\n";
+        cerr << _label << " error: maybe szgserver died.\n";
       }
       return false;
     }
@@ -852,7 +852,7 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
       ar_log_error() << _label << " error: sound server failed to init.\n"
                      << "  (Is another application running?)\n";
       if (!_SZGClient.sendInitResponse(false)){
-        ar_log_error() << _label << " error: maybe szgserver died.\n";
+        cerr << _label << " error: maybe szgserver died.\n";
       }
       return false;
     }
@@ -860,7 +860,7 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
   
   // init(...) succeeded.
   if (!_SZGClient.sendInitResponse(true)){
-    ar_log_error() << _label << " error: maybe szgserver died.\n";
+    cerr << _label << " error: maybe szgserver died.\n";
   }
   return true;
 }

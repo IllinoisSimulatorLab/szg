@@ -1,5 +1,6 @@
 #include "arPrecompiled.h"
 #include "arLargeImage.h"
+#include "arLogStream.h"
 
 arLargeImage::arLargeImage( unsigned int tileWidth, unsigned int tileHeight ) {
   _setSizeNoRebuild( tileWidth, tileHeight );
@@ -49,15 +50,16 @@ bool arLargeImage::setTileSize( unsigned int tileWidth, unsigned int tileHeight 
   return true;
 }
 
+// if tileHeight==0, it defaults to tileWidth (a square image).
 bool arLargeImage::_setSizeNoRebuild( unsigned int tileWidth, unsigned int tileHeight ) {
   if (tileWidth == 0) {
-    cerr << "arLargeImage error: ignoring setTileSize(0).\n";
+    ar_log_warning() << "arLargeImage ignoring setTileSize(0).\n";
     return false;
   }
 
   _tileWidth = tileWidth;
-  _tileHeight = tileHeight == 0 ? _tileWidth : tileHeight;
-  cout << "arLargeImage remark: set tile size to (" << _tileWidth << "," << _tileHeight << ").\n";
+  _tileHeight = tileHeight==0 ? _tileWidth : tileHeight;
+  ar_log_remark() << "arLargeImage: tile size is (" << _tileWidth << ", " << _tileHeight << ").\n";
   return true;
 }
 
@@ -86,7 +88,7 @@ void arLargeImage::makeTiles() {
       _tiles.push_back( arTexture( originalImage, x, y, _tileWidth, _tileHeight ) );
     }
   }
-  cout << "arLargeImage remark: made " << _tiles.size() << " tiles in a "
+  ar_log_remark() << "arLargeImage made " << _tiles.size() << " tiles in a "
        << _numTilesWide << " X " << _numTilesHigh << " array.\n";
 }
 

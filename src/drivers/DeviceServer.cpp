@@ -154,52 +154,49 @@ static bool respond(arSZGClient& cli, bool f = false) {
 }
 
 int main(int argc, char** argv){
-  arSZGClient SZGClient;
-  SZGClient.simpleHandshaking(false);
+  arSZGClient szgClient;
+  szgClient.simpleHandshaking(false);
   // Force the component's name because Win98 won't give the name
   // automatically.  Ascension Spacepad needs Win98.
-  SZGClient.init(argc, argv, "DeviceServer");
-  if (!SZGClient)
+  szgClient.init(argc, argv, "DeviceServer");
+  if (!szgClient)
     return 1;
 
+  ar_log().setStream(szgClient.initResponse());
   // Only one instance per host.
   int ownerID = -1;
-  if (!SZGClient.getLock(SZGClient.getComputerName() + "/DeviceServer", ownerID)) {
+  if (!szgClient.getLock(szgClient.getComputerName() + "/DeviceServer", ownerID)) {
     ar_log_error() << "DeviceServer: another copy is already running (pid = " 
          << ownerID << ").\n";
     return 1;
   }
 
-  stringstream& initResponse = SZGClient.initResponse();
-
-  // If "simple" flag (-s),
-  // just load the module and publish its output without fancy filtering.
   const bool simpleOperation = testForArgAndRemove("-s", argc, argv);
+    // -s: just load the module and publish its output without fancy filtering.
   const bool useNetInput = testForArgAndRemove("-netinput", argc, argv);
 
   if (argc < 3){
-    initResponse << "usage: DeviceServer [-s] [-netinput] device_description "
-		 << "driver_slot [pforth_filter_name]" << endl;
+    ar_log_error() << "usage: DeviceServer [-s] [-netinput] device_description driver_slot [pforth_filter_name]\n";
 LAbort:
-    respond(SZGClient);
+    respond(szgClient);
     return 1;
   }
 
   const int slotNumber = atoi(argv[2]);
   InputNodeConfig nodeConfig;
   if (simpleOperation){
-    // As command-line flats, specify only the driver and slot.
+    // As command-line flags, specify only the driver and slot.
     nodeConfig.inputSources.push_back(argv[1]);
   }
   else{
-    const string& config = SZGClient.getGlobalAttribute(argv[1]);
+    const string& config = szgClient.getGlobalAttribute(argv[1]);
     if (config == "NULL") {
-      initResponse << "DeviceServer: undefined global node (i.e., <param> in dbatch file) '" << argv[1] << "'.\n";
+      ar_log_error() << "DeviceServer: undefined global node (i.e., <param> in dbatch file) '" << argv[1] << "'.\n";
       goto LAbort;
     }
     nodeConfig = parseNodeConfig(config);
     if (!nodeConfig.valid){
-      initResponse << "DeviceServer: misconfigured global node (i.e., <param> in dbatch file) '"
+      ar_log_error() << "DeviceServer: misconfigured global node (i.e., <param> in dbatch file) '"
 	<< argv[1] << "'\n";
       goto LAbort;
     }
@@ -210,7 +207,7 @@ LAbort:
   // Configure the input node.
   arInputNode inputNode;
 
-  const string execPath = SZGClient.getAttribute("SZG_EXEC","path"); // search for dll's
+  const string execPath = szgClient.getAttribute("SZG_EXEC","path"); // search for dll's
   // Start with the input sources.
   // Assign input "slots" to the input sources.
   int nextInputSlot = slotNumber + 1;
@@ -223,7 +220,7 @@ LAbort:
     if (*iter == "arNetInputSource") {
       arNetInputSource* netInputSource = new arNetInputSource();
       if (!netInputSource->setSlot(nextInputSlot)) {
-	initResponse << "DeviceServer: invalid slot " << nextInputSlot << ".\n";
+	ar_log_error() << "DeviceServer: invalid slot " << nextInputSlot << ".\n";
 	goto LAbort;
       }
       nextInputSlot++;
@@ -232,15 +229,14 @@ LAbort:
       // A dynamically loaded library
       arSharedLib* inputSourceSharedLib = new arSharedLib();
       string error;
-      if (!inputSourceSharedLib->createFactory(*iter, execPath, 
-                                            "arInputSource", error)) {
-        initResponse << error;
+      if (!inputSourceSharedLib->createFactory(*iter, execPath, "arInputSource", error)) {
+        ar_log_error() << error;
         goto LAbort;
       }
       // Can create our object.
       theSource = (arInputSource*) inputSourceSharedLib->createObject();
       if (!theSource) {
-        initResponse << "DeviceServer failed to create input source '" <<
+        ar_log_error() << "DeviceServer failed to create input source '" <<
 	  *iter << "'.\n";
         goto LAbort;
       }
@@ -254,11 +250,11 @@ LAbort:
   if (useNetInput){
     arNetInputSource* commandLineNetInputSource = new arNetInputSource();
     if (!commandLineNetInputSource->setSlot(nextInputSlot)) {
-      initResponse << "DeviceServer: invalid slot " << nextInputSlot << ".\n";
+      ar_log_error() << "DeviceServer: invalid slot " << nextInputSlot << ".\n";
       goto LAbort;
     }
-      nextInputSlot++;
-    nextInputSlot++;
+      ++nextInputSlot;
+    ++nextInputSlot;
     // The node will "own" this source.
     inputNode.addInputSource(commandLineNetInputSource,true);
   }
@@ -268,7 +264,7 @@ LAbort:
   // for logging.
   arNetInputSink netInputSink;
   if (!netInputSink.setSlot(slotNumber)) {
-    initResponse << "DeviceServer: invalid slot " << slotNumber << ".\n";
+    ar_log_error() << "DeviceServer: invalid slot " << slotNumber << ".\n";
     goto LAbort;
   }
       nextInputSlot++;
@@ -288,15 +284,14 @@ LAbort:
     // A dynamically loaded library
     arSharedLib* inputSinkObject = new arSharedLib();
     string error;
-    if (!inputSinkObject->createFactory(*iter, execPath, 
-                                        "arInputSink", error)){
-      initResponse << error;
+    if (!inputSinkObject->createFactory(*iter, execPath, "arInputSink", error)){
+      ar_log_error() << error;
       goto LAbort;
     }
     // Can create our object.
     theSink = (arInputSink*) inputSinkObject->createObject();
     if (!theSink) {
-      initResponse << "DeviceServer failed to create input sink.\n";
+      ar_log_error() << "DeviceServer failed to create input sink.\n";
       goto LAbort;
     }
     inputNode.addInputSink(theSink,true);
@@ -307,7 +302,7 @@ LAbort:
   // Add a PForth filter(s) to beginning of chain, for remapping sensors etc.
   // First add a filter from the config file.
   arPForthFilter firstFilter;
-  ar_PForthSetSZGClient( &SZGClient );
+  ar_PForthSetSZGClient( &szgClient );
   if (!firstFilter.loadProgram( nodeConfig.pforthProgram )){
     return 1;
   }
@@ -318,7 +313,7 @@ LAbort:
   // Next, add a filter from the command line, if such was specified.
   if (argc >= 4){
     string commandLineProgram = 
-      SZGClient.getGlobalAttribute(argv[3]);
+      szgClient.getGlobalAttribute(argv[3]);
     if (commandLineProgram == "NULL"){
       ar_log_remark() << "DeviceServer: no program named " << argv[3] << ".\n";
     }
@@ -339,46 +334,47 @@ LAbort:
     // A dynamically loaded library
     arSharedLib* inputFilterSharedLib = new arSharedLib();
     string error;
-    if (!inputFilterSharedLib->createFactory(*iter, execPath, 
-                                          "arIOFilter", error)){
-      initResponse << error;
+    if (!inputFilterSharedLib->createFactory(*iter, execPath, "arIOFilter", error)){
+      ar_log_error() << error;
       goto LAbort;
     }
     theFilter = (arIOFilter*) inputFilterSharedLib->createObject();
     if (!theFilter) {
-      initResponse << "DeviceServer failed to create input filter.\n";
+      ar_log_error() << "DeviceServer failed to create input filter.\n";
       goto LAbort;
     }
-    if (!theFilter->configure( &SZGClient )){
-      initResponse << "DeviceServer failed to configure filter.\n";
+    if (!theFilter->configure( &szgClient )){
+      ar_log_error() << "DeviceServer failed to configure filter.\n";
       goto LAbort;
     }
     // We own this.
     inputNode.addFilter(theFilter,true);
   }
 
-  const bool ok = inputNode.init(SZGClient);
-  if (!respond(SZGClient, ok)){
-    ar_log_warning() << "DeviceServer ignoring failed init.\n";
+  const bool ok = inputNode.init(szgClient);
+  if (!respond(szgClient, ok)){
+    cerr << "DeviceServer ignoring failed init.\n";
     // return 1;
   }
   if (!ok) {
     // Bug: in linux, this may hang.  Which other thread still runs?
     return 1; // init failed
   }
+  ar_log().setStream(szgClient.startResponse());
 
   if (!inputNode.start()){
-    if (!SZGClient.sendStartResponse(false))
+    if (!szgClient.sendStartResponse(false))
       cerr << "DeviceServer error: maybe szgserver died.\n";
     return 1;
   }
-  if (!SZGClient.sendStartResponse(true))
+  if (!szgClient.sendStartResponse(true))
     cerr << "DeviceServer error: maybe szgserver died.\n";
+  ar_log().setStream(cout);
 
   // Message task.
   string messageType, messageBody;
   while (true) {
-    const int sendID = SZGClient.receiveMessage(&messageType, &messageBody);
+    const int sendID = szgClient.receiveMessage(&messageType, &messageBody);
     if (!sendID){
       // sendID == 0 exactly when we are "forced" to shutdown.
       // Copypaste from below.

@@ -67,9 +67,7 @@ int main(int argc, char** argv){
   soundClient = new arSoundClient;
   arSZGClient szgClient;
   szgClient.simpleHandshaking(false);
-  // note how we force the name of the component. This is because it is
-  // impossible to get the name automatically on Win98 and we want to run
-  // SoundRender on Win98
+  // Force the component's name, because win98 can't provide it.
   szgClient.init(argc, argv, "SoundRender");
   if (!szgClient){
     return 1;
@@ -77,7 +75,7 @@ int main(int argc, char** argv){
   
   ar_log().setStream(szgClient.initResponse());
   
-  // Only a single sound render should be running on a given computer
+  // Only one SoundRender per host.
   // copy-pasted (more or less) from szgd.cpp
   int ownerID = -1;
   if (!szgClient.getLock(szgClient.getComputerName()+"/SoundRender", ownerID)){
@@ -85,7 +83,7 @@ int main(int argc, char** argv){
       << "SoundRender error: another copy is already running (pid = " 
       << ownerID << ").\n";
     if (!szgClient.sendInitResponse(false)){
-      ar_log_error() << "SoundRender error: maybe szgserver died.\n";
+      cerr << "SoundRender error: maybe szgserver died.\n";
     }
     return 1;
   }
@@ -93,15 +91,15 @@ int main(int argc, char** argv){
   // get the initial parameters
   if (!loadParameters(szgClient)){
     if (!szgClient.sendInitResponse(false)){
-      ar_log_error() << "SoundRender error: maybe szgserver died.\n";
+      cerr << "SoundRender error: maybe szgserver died.\n";
     }
     return 1;
   }
-  // we've succeeded in initialization
+
+  // init succeeded
   if (!szgClient.sendInitResponse(true)){
-    ar_log_error() << "SoundRender error: maybe szgserver died.\n";
+    cerr << "SoundRender error: maybe szgserver died.\n";
   }
-  
   ar_log().setStream(szgClient.startResponse());
 
   soundClient->setSpeakerObject(&speakerObject);
@@ -116,24 +114,19 @@ int main(int argc, char** argv){
   if (!soundClient->startDSP() ||
       !soundClient->start(szgClient)) {
     if (!szgClient.sendStartResponse(false))
-      ar_log_error() << "SoundRender error: maybe szgserver died.\n";
+      cerr << "SoundRender error: maybe szgserver died.\n";
     return 1;
   }
 
   if (!szgClient.sendStartResponse(true)){
-    ar_log_error() << "SoundRender error: maybe szgserver died.\n";
+    cerr << "SoundRender error: maybe szgserver died.\n";
   }
-  
   ar_log().setStream(cout);
 
   arThread dummy(messageTask, &szgClient);
   while (true) {
     soundClient->_cliSync.consume();
-    // NOTE, it is VERY IMPORTANT that consume() not be called too often.
-    // Since there is no natural limit to how many times this can be called
-    // (unlike graphics where we at least have the buffer swap), we have
-    // to throttle it. This will CRASH on Win32 without this throttling.
-    ar_usleep(1000000/50); // 50 FPS
+    ar_usleep(1000000/50); // 50 FPS throttle, lest it crash.
   }
   return 0;
 }

@@ -476,7 +476,7 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     // Wait for the message (render nodes do this in the message task).
     // we've suceeded in initing
     if( !_SZGClient.sendInitResponse( true ) ) {
-      ar_log_warning() << _label << ": maybe szgserver died.\n";
+      cerr << _label << ": maybe szgserver died.\n";
     }
     
     ar_log().setStream(_SZGClient.startResponse());
@@ -486,7 +486,7 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     ar_log_remark() << _label << " trigger launched components.\n";
     
     if( !_SZGClient.sendStartResponse( true ) ) {
-      ar_log_warning() << _label << ": maybe szgserver died.\n";
+      cerr << _label << ": maybe szgserver died.\n";
     }
     
     ar_log().setStream(cout);
@@ -534,7 +534,7 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     if( !_initSlaveObjects() ) {
 fail:
       if( !_SZGClient.sendInitResponse( false ) ) {
-        ar_log_warning() << _label << ": maybe szgserver died.\n";
+        cerr << _label << ": maybe szgserver died.\n";
       }
       ar_log().setStream(cout);
       return false;
@@ -544,7 +544,7 @@ fail:
   _parametersLoaded = true;
   
   if( !_SZGClient.sendInitResponse( true ) ) {
-    ar_log_warning() << _label << ": maybe szgserver died.\n";
+    cerr << _label << ": maybe szgserver died.\n";
   }
   ar_log().setStream(cout);
   return true;
@@ -2174,7 +2174,7 @@ bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
     if ( _SZGClient ) {
       ar_log_warning() << _label << ": start() called before init().\n";
       if( !_SZGClient.sendInitResponse( false ) ) {
-        ar_log_warning() << _label << ": maybe szgserver died.\n";
+        cerr << _label << ": maybe szgserver died.\n";
       }
     }
     ar_log().setStream(cout);
@@ -2232,7 +2232,7 @@ bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
   // the start succeeded
   if(_SZGClient) {
     if (!_SZGClient.sendStartResponse( true ) ) {
-      ar_log_warning() << _label << ": maybe szgserver died.\n";
+      cerr << _label << ": maybe szgserver died.\n";
     }
   } else {
     cout << _SZGClient.startResponse().str() << endl;
@@ -2269,7 +2269,7 @@ bool arMasterSlaveFramework::_startrespond( const string& s ) {
   ar_log_warning() << _label << ": " << s << ar_endl;
   
   if( !_SZGClient.sendStartResponse( false ) ) {
-    ar_log_warning() << _label << ": maybe szgserver died.\n";
+    cerr << _label << ": maybe szgserver died.\n";
   }
   
   return false;

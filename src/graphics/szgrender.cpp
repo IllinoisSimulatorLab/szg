@@ -170,23 +170,21 @@ int main(int argc, char** argv){
   if (!szgClient) {
     // maybe init actually worked, but we're standalone and thus !_connected. ;;;;
     // ar_log_error "Please dlogin first."
-    ar_log_error() << "szgrender failed to initialize SZGClient: " <<
+    cerr << "szgrender failed to initialize SZGClient: " <<
       szgClient.initResponse().str() << ar_endl;
 LAbort:
       if (!szgClient.sendInitResponse(false))
-	ar_log_error() << "error: maybe szgserver died.\n";
+	cerr << "error: maybe szgserver died.\n";
     return 1;
   }
+  ar_log().setStream(szgClient.initResponse());
 
-  // Search for the -n arg
   for (int i=0; i<argc; i++){
     if (!strcmp(argv[i], "-n")){
       makeNice = true;
     }
   }
 
-  ar_log().setStream(szgClient.initResponse());
-  
   // we expect to lock the screen
   const string screenLock =
     szgClient.getComputerName() + "/" + szgClient.getMode("graphics");
@@ -200,11 +198,10 @@ LAbort:
   graphicsClient.addFrameworkObject(&framerateGraph);
 
   if (!szgClient.sendInitResponse(true)){
-    ar_log_error() << "error: maybe szgserver died.\n";
+    cerr << "error: maybe szgserver died.\n";
   }
-  
   ar_log().setStream(szgClient.startResponse());
-  
+
   ar_mutex_init(&pauseLock);
   arThread dummy(messageTask, &szgClient);
 
@@ -227,16 +224,15 @@ LAbort:
   // Start the connection threads and window threads.
   graphicsClient.start(szgClient);
 
-  // Framelock assumes we are running in single-threaded mode!
-  // (consequently, this is the display thread). NOTE: whether or not
+  // Framelock assumes single-threaded.
+  // (consequently, this is the display thread). Whether or not
   // we are using framelock should be set by the parsing of the window config
   // itself.
   windowManager->findFramelock();
 
   if (!szgClient.sendStartResponse(true)){
-    ar_log_error() << "error: maybe szgserver died.\n";
+    cerr << "error: maybe szgserver died.\n";
   }
-
   ar_log().setStream(cout);
   
   while (!exitFlag){ 
