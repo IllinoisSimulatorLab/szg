@@ -180,8 +180,8 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
     }
     command = ar_fileFind( fileName, "", execInfo->pyDirPath);
     if (command == "NULL") {
-      errStream << "szgd error: could not find file " << fileName
-           << "\n  on python source path " << execInfo->pyDirPath << ".\n";
+      errStream << "szgd error: no file '" << fileName <<
+        "' on python source path '" << execInfo->pyDirPath << "'.\n";
       return errStream.str();
     }
   }
@@ -193,8 +193,8 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
     fileName = command;
     command = ar_fileFind(fileName, "", execPath);
     if (command == "NULL") {
-      errStream << "szgd error: no executable file '" << fileName
-           << "' on path " << execPath << ".\n";
+      errStream << "szgd error: no executable '" << fileName
+           << "' on path '" << execPath << "'.\n";
 LAbort:
 #ifdef AR_USE_WIN_32
       if (fHadEXE)
