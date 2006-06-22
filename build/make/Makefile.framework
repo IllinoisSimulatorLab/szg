@@ -35,7 +35,7 @@ SZG_INCLUDE = \
   -I$(SZGHOME)/src/barrier \
   -I$(SZGHOME)/src/drivers \
   -I$(SZGHOME)/src/graphics \
-  -I$(SZGHOME)/src/sound \
+  -I$(SZGHOME)/src/$(SOUND_SRC_DIR) \
   -I$(SZGHOME)/src/obj \
   -I$(SZGHOME)/src/interaction \
   $(SZG_DLL_INCLUDE) \
@@ -75,8 +75,7 @@ endif
 endif
 
 ALL =   $(SZG_CURRENT_DLL) \
-  inputsimulator$(EXE) \
-  MasterSlaveSkeleton$(EXE)
+  inputsimulator$(EXE)
 
 # NOTE: We now include the "magic" Everything target in Makefile.rules
 
@@ -92,9 +91,4 @@ $(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
 inputsimulator$(EXE): inputsimulator$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_EXE_FIRST) inputsimulator$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
-
-MasterSlaveSkeleton$(EXE): MasterSlaveSkeleton$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
-	$(SZG_EXE_FIRST) MasterSlaveSkeleton$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
-	$(COPY)
-
 

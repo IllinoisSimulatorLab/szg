@@ -452,8 +452,9 @@ LFail:
       return false;
     }
 
-    if (param2.substr(0,10) == "SZG_SCREEN")
+    if (param2.substr(0,10) == "SZG_SCREEN") {
       ar_log_warning() << _exeName << ": SZG_SCREEN parameters are deprecated.\n";
+    }
     setAttribute(param1, param2, param3, param4);
   }
 }

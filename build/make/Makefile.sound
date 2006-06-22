@@ -2,7 +2,7 @@ SZG_INCLUDE_STYLE = INTERNAL
 SZG_COPY_LIB = TRUE
 
 # VPATH needs to be set BEFORE Makefile.vars (to get SRCDIR defined correctly)
-VPATH = ../../../src/sound
+VPATH = ../../../src/$(SOUND_SRC_DIR)
 
 include $(SZGHOME)/build/make/Makefile.vars
 

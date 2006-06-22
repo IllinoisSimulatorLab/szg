@@ -18,16 +18,29 @@
 SZG_SHARED_COPY = $(SZGHOME)/build/make/blessing.txt
 SZG_SHARED_COPY_ACTION :=
 
+ifeq ($(strip $(SZG_FMOD_VERSION)), 3)
+  SOUND_SRC_DIR=sound_fmod3
+else
+  SOUND_SRC_DIR=sound
+endif
+
 ifeq ($(strip $(MACHINE)), LINUX)
   GLUT_DIR := $(SZGEXTERNAL)/linux/glut-3.7
   INC_GLUT := $(wildcard $(GLUT_DIR)/include)
   LINK_GLUT := -lglut
   OBJ_GLUT := $(wildcard $(GLUT_DIR)/lib/libglut.so.3.7)
 
-  FMOD_DIR := $(SZGEXTERNAL)/linux/fmod-4
-  INC_FMOD := $(wildcard $(FMOD_DIR)/include)
-  LIB_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmodex.so.4.03.06)
-  LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmodex.so.4.03.06)
+  ifeq ($(strip $(SZG_FMOD_VERSION)), 3)
+		FMOD_DIR := $(SZGEXTERNAL)/linux/fmod-3.7
+		INC_FMOD := $(wildcard $(FMOD_DIR)/include)
+		LINK_FMOD := -lfmod-3.70
+		OBJ_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmod-3.70.so)
+  else
+		FMOD_DIR := $(SZGEXTERNAL)/linux/fmod-4
+		INC_FMOD := $(wildcard $(FMOD_DIR)/include)
+		LIB_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmodex.so.4.03.06)
+		LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmodex.so.4.03.06)
+  endif
   
   JPEG_DIR := $(SZGEXTERNAL)/linux/jpeg
   INC_JPEG := $(wildcard $(JPEG_DIR)/include)
@@ -187,11 +200,17 @@ ifeq ($(strip $(MACHINE)), WIN32)
   # q33 demo. Allow it to be added in SZGEXTERNAL
   GL_EXT_DIR := $(wildcard $(SZGEXTERNAL)/win32/GL/include)
 
+  # fmod 4 c++ API incompatible with non-microsoft compilers, so until we
+	# switch we force version to 3.
   ifeq ($(strip $(SZG_COMPILER)), MINGW)
-    FMOD_DIR := 
-    INC_FMOD := 
-    LINK_FMOD := 
-    OBJ_FMOD := 
+	  SZG_FMOD_VERSION=3
+	endif
+
+  ifeq ($(strip $(SZG_FMOD_VERSION)), 3)
+		FMOD_DIR := $(SZGEXTERNAL)/win32/fmod-3.7
+		INC_FMOD := $(wildcard $(FMOD_DIR)/include)
+		LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/fmodvc.lib)
+		OBJ_FMOD := $(wildcard $(FMOD_DIR)/lib/fmod.dll)
   else
     FMOD_DIR := $(SZGEXTERNAL)/win32/fmod-4
     INC_FMOD := $(wildcard $(FMOD_DIR)/include)
@@ -321,13 +340,14 @@ ifeq ($(strip $(MACHINE)), WIN32)
 			SZG_LINK_FMOD = $(LINK_FMOD) 
 			SZG_OPT_LIBS_FULL += $(SZG_LINK_FMOD)
     else 
-		#   CURRENTLY NO SOUND SUPPORT with MINGW
-#       SZG_OPT_FLAGS += -D "EnableSound"
-#       SZG_INCLUDE_FMOD = -I$(INC_FMOD)
-#       SZG_OPT_INCLUDE_FULL += -I$(INC_FMOD)
-#       PRE_LIB_SEARCH_FLAGS += -L$(FMOD_DIR)/lib
-#       SZG_LINK_FMOD = -lfmodex
-#       SZG_OPT_LIBS_FULL += $(SZG_LINK_FMOD)
+			ifeq ($(strip $(SZG_FMOD_VERSION)), 3)
+				SZG_OPT_FLAGS += -D "EnableSound"
+				SZG_SHARED_COPY += $(OBJ_FMOD)
+				SZG_INCLUDE_FMOD = -I$(INC_FMOD)
+				SZG_OPT_INCLUDE_FULL += -I$(INC_FMOD)
+				SZG_LINK_FMOD = $(LINK_FMOD) 
+				SZG_OPT_LIBS_FULL += $(SZG_LINK_FMOD)
+			endif
 		endif
   endif
   endif
@@ -436,9 +456,15 @@ endif
 
 ifeq ($(strip $(MACHINE)), DARWIN)
 
-  FMOD_DIR := $(SZGEXTERNAL)/darwin/fmod-4
-  INC_FMOD := $(wildcard $(FMOD_DIR)/include)
-  LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmodex.dylib)
+  ifeq ($(strip $(SZG_FMOD_VERSION)), 3)
+		FMOD_DIR := $(SZGEXTERNAL)/darwin/fmod-3.7
+		INC_FMOD := $(wildcard $(FMOD_DIR)/include)
+		LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmod.a)
+  else
+		FMOD_DIR := $(SZGEXTERNAL)/darwin/fmod-4
+		INC_FMOD := $(wildcard $(FMOD_DIR)/include)
+		LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/libfmodex.dylib)
+  endif
 
   JPEG_DIR := $(SZGEXTERNAL)/darwin/jpeg
   INC_JPEG := $(wildcard $(JPEG_DIR)/include)
