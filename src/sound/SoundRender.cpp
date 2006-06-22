@@ -68,10 +68,9 @@ int main(int argc, char** argv){
   arSZGClient szgClient;
   szgClient.simpleHandshaking(false);
   // Force the component's name, because win98 can't provide it.
-  szgClient.init(argc, argv, "SoundRender");
-  if (!szgClient){
-    return 1;
-  }
+  const bool fInit = szgClient.init(argc, argv, "SoundRender");
+  if (!szgClient)
+    return szgClient.failStandalone(fInit);
   
   ar_log().setStream(szgClient.initResponse());
   

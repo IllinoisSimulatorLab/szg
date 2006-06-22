@@ -69,9 +69,9 @@ bool arClientEventFilter::_processEvent( arInputEvent& event ) {
 int main(int argc, char** argv){
   arSZGClient szgClient;
   szgClient.simpleHandshaking(false);
-  szgClient.init(argc, argv);
+  const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
-    return 1;
+    return szgClient.failStandalone(fInit);
 
   ar_log().setStream(szgClient.initResponse());
   if (argc != 2 && argc != 3) {

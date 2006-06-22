@@ -96,11 +96,10 @@ void messageTask(void* pv){
 
 int main(int argc, char** argv){
   arSZGClient szgClient;
-  inputNode = new arInputNode;
   szgClient.simpleHandshaking(false);
-  szgClient.init(argc, argv);  
+  const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
-    return 1;
+    return szgClient.failStandalone(fInit);
 
   ar_log().setStream(szgClient.initResponse());
   const int slotNumber = (argc > 1) ? atoi(argv[1]) : 0;
@@ -115,14 +114,15 @@ int main(int argc, char** argv){
   // Distinguish different kinds of SZG_INPUTn services.
   netInputSink.setInfo("inputsimulator");
 
+  inputNode = new arInputNode;
   const string pforthProgramName = szgClient.getAttribute("SZG_PFORTH", "program_names");
   if (pforthProgramName == "NULL"){
     ar_log_remark() << "inputsimulator: no pforth program for standalone joystick.\n";
   }
   else{
-    string pforthProgram = szgClient.getGlobalAttribute(pforthProgramName);
+    const string pforthProgram = szgClient.getGlobalAttribute(pforthProgramName);
     if (pforthProgram == "NULL"){
-      ar_log_remark() << "inputsimulator: no pforth program exists for name '" <<
+      ar_log_remark() << "inputsimulator: no pforth program for '" <<
 	   pforthProgramName << "'\n";
     }
     else{

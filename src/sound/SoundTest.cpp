@@ -72,24 +72,24 @@ void changeDatabase(){
 
 int main(int argc, char** argv){
   arSZGClient szgClient;
-  szgClient.init(argc, argv);
+  const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
-    return 1;
+    return szgClient.failStandalone(fInit);
 
   loadParameters(szgClient);
   arSoundServer soundServer;
   dsSetSoundDatabase(&soundServer);
 
-  arThread dummy(ar_messageTask, &szgClient);
-
   if (!soundServer.init(szgClient)){
-    cout << "SoundServer failed to init.\n";
+    ar_log_error() << "SoundServer failed to init.\n";
     return 1;
   }
   if (!soundServer.start()){
-    cout << "SoundServer failed to start.\n";
+    ar_log_error() << "SoundServer failed to start.\n";
     return 1;
   }
+
+  arThread dummy(ar_messageTask, &szgClient);
 
   initDatabase();
 

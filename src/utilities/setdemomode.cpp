@@ -15,11 +15,9 @@
 
 int main(int argc, char** argv) {
   arSZGClient szgClient;
-  szgClient.init(argc, argv);
-  if (!szgClient) {
-    cerr << "setdemomode error: failed to initialize SZGClient.\n";
-    return 1;
-  }
+  const bool fInit = szgClient.init(argc, argv);
+  if (!szgClient)
+    return szgClient.failStandalone(fInit);
 
   arAppLauncher launcher("setdemomode");
   launcher.setSZGClient(&szgClient);

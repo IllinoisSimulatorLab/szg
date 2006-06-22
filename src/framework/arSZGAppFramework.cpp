@@ -69,7 +69,7 @@ bool arSZGAppFramework::setInputSimulator( arInputSimulator* sim ) {
 
 void arSZGAppFramework::setEyeSpacing( float feet) {
   _head.setEyeSpacing( feet );
-  ar_log_remark() << "arSZGAppFramework remark: eyeSpacing set to " << feet << " feet.\n";
+  ar_log_remark() << "arSZGAppFramework: eyeSpacing " << feet << " feet.\n";
 }
 
 void arSZGAppFramework::setClipPlanes( float nearClip, float farClip ) {
@@ -249,7 +249,7 @@ void arSZGAppFramework::_installFilters() {
 static bool ___firstNavLoad = true;
 
 void arSZGAppFramework::_loadNavParameters() {
-  ar_log_remark() << "arSZGAppFramework remark: loading SZG_NAV parameters.\n";
+  ar_log_remark() << "arSZGAppFramework: loading SZG_NAV parameters.\n";
   std::string temp;
   if ((___firstNavLoad)||_paramNotOwned( "effector" )) {
     int params[5] = { 1, 1, 0, 2, 0 };
@@ -259,7 +259,7 @@ void arSZGAppFramework::_loadNavParameters() {
         ar_log_warning() << "arSZGAppFramework failed to read SZG_NAV/effector.\n";
       }
     }
-    ar_log_remark() << "arSZGAppFramework remark: setting effector to ";
+    ar_log_remark() << "arSZGAppFramework: setting effector to ";
     for (unsigned i=0; i<7; i++) {
       ar_log_remark() << params[i] << ((i==6)?("\n"):("/"));
     }
@@ -274,8 +274,7 @@ void arSZGAppFramework::_loadNavParameters() {
         ar_log_warning() << "arSZGAppFramework failed to convert SZG_NAV/translation_speed.\n";
       }
     }
-    ar_log_remark() << "arSZGAppFramework remark: "
-	            << "setting translation speed to " << speed << ar_endl;
+    ar_log_remark() << "arSZGAppFramework: translation speed is " << speed << ".\n";
     setNavTransSpeed( speed*_head.getUnitConversion() );
   }
   if ((___firstNavLoad) || _paramNotOwned( "rotation_speed" )) {
@@ -286,8 +285,7 @@ void arSZGAppFramework::_loadNavParameters() {
         ar_log_warning() << "arSZGAppFramework failed to convert SZG_NAV/rotation_speed.\n";
       }
     }
-    ar_log_remark() << "arSZGAppFramework remark: "
-	            << "setting rotation speed to " << speed << ar_endl;
+    ar_log_remark() << "arSZGAppFramework: rotation speed is " << speed << ".\n";
     setNavRotSpeed( speed );
   }
   arInputEventType theType;
@@ -299,8 +297,7 @@ void arSZGAppFramework::_loadNavParameters() {
     if (temp != "NULL") {
       if (_parseNavParamString( temp, theType, index, threshold )) {
         setNavTransCondition( 'x', theType, index, threshold );
-	ar_log_remark() << "arSZGAppFramework remark: "
-		        << "set x_translation condition to "
+	ar_log_remark() << "arSZGAppFramework: x_translation condition is "
 			<< temp << ar_endl;
       } else {
         setNavTransCondition( 'x', AR_EVENT_AXIS, 0, 0.2 );  
@@ -309,7 +306,7 @@ void arSZGAppFramework::_loadNavParameters() {
       }
     } else {
       setNavTransCondition( 'x', AR_EVENT_AXIS, 0, 0.2 );  
-      ar_log_remark() << "arSZGAppFramework remark: "
+      ar_log_remark() << "arSZGAppFramework: "
 		      << "SZG_NAV/x_translation defaulting to axis/0/0.2.\n";
     }
   }
@@ -319,8 +316,7 @@ void arSZGAppFramework::_loadNavParameters() {
     if (temp != "NULL") {
       if (_parseNavParamString( temp, theType, index, threshold )) {
         setNavTransCondition( 'z', theType, index, threshold );
-	ar_log_remark() << "arSZGAppFramework remark: "
-		        << "set z_translation condition to "
+	ar_log_remark() << "arSZGAppFramework: z_translation condition is "
                         << temp << ar_endl;
       } else {
         setNavTransCondition( 'z', AR_EVENT_AXIS, 1, 0.2 );
@@ -329,7 +325,7 @@ void arSZGAppFramework::_loadNavParameters() {
       }
     } else {
       setNavTransCondition( 'z', AR_EVENT_AXIS, 1, 0.2 );  
-      ar_log_remark() << "arSZGAppFramework remark: "
+      ar_log_remark() << "arSZGAppFramework: "
 		      << "SZG_NAV/z_translation defaulting to axis/1/0.2.\n";
     }
   }
@@ -340,8 +336,7 @@ void arSZGAppFramework::_loadNavParameters() {
 	ar_log_warning() << "arSZGAppFramework failed to read SZG_NAV/y_translation.\n";
       } else {
         setNavTransCondition( 'y', theType, index, threshold );
-	ar_log_remark() << "arSZGAppFramework remark: "
-		        << "set y_translation condition to "
+	ar_log_remark() << "arSZGAppFramework: y_translation condition is "
 			<< temp << ar_endl;
       }
     }
@@ -353,8 +348,7 @@ void arSZGAppFramework::_loadNavParameters() {
 	ar_log_warning() << "arSZGAppFramework failed to read SZG_NAV/y_rotation.\n";
       } else {
         setNavRotCondition( 'y', theType, index, threshold );
-	ar_log_remark() << "arSZGAppFramework remark: "
-		        << "set y_rotation condition to "
+	ar_log_remark() << "arSZGAppFramework: y_rotation condition is "
                         << temp << ar_endl;
       }
     }

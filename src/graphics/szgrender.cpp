@@ -166,17 +166,9 @@ void ar_guiWindowKeyboard(arGUIKeyInfo* keyInfo){
 int main(int argc, char** argv){
   arSZGClient szgClient;
   szgClient.simpleHandshaking(false);
-  szgClient.init(argc, argv); // ;;;; test return value, here and elsewhere.
-  if (!szgClient) {
-    // maybe init actually worked, but we're standalone and thus !_connected. ;;;;
-    // ar_log_error "Please dlogin first."
-    cerr << "szgrender failed to initialize SZGClient: " <<
-      szgClient.initResponse().str() << ar_endl;
-LAbort:
-      if (!szgClient.sendInitResponse(false))
-	cerr << "error: maybe szgserver died.\n";
-    return 1;
-  }
+  const bool fInit = szgClient.init(argc, argv);
+  if (!szgClient)
+    return szgClient.failStandalone(fInit);
   ar_log().setStream(szgClient.initResponse());
 
   for (int i=0; i<argc; i++){
@@ -185,13 +177,14 @@ LAbort:
     }
   }
 
-  // we expect to lock the screen
   const string screenLock =
     szgClient.getComputerName() + "/" + szgClient.getMode("graphics");
   int graphicsID;
   if (!szgClient.getLock(screenLock, graphicsID)){
     ar_log_error() << "szgrender's screen already locked by component " << graphicsID << ".\n";
-    goto LAbort;
+    if (!szgClient.sendInitResponse(false))
+      cerr << "error: maybe szgserver died.\n";
+    return 1;
   }
 
   framerateGraph.addElement("framerate", 300, 100, arVector3(1,1,1));
@@ -211,8 +204,8 @@ LAbort:
 					 NULL,
 					 NULL,
                                          false);
-  // The graphics client actually does all of the window configuration, etc.
-  // internally. The window threads also get started inside it.
+  // The graphics client does all of the window configuration, etc.
+  // The window threads also get started inside it.
   // However, we control the event loop out here.
   graphicsClient.setWindowManager(windowManager);
 

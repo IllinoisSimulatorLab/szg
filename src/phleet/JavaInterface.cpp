@@ -172,9 +172,9 @@ int main(int argc, char** argv){
     return 1;
   }
   SZGClient = new arSZGClient;
-  SZGClient->init(argc, argv);
+  const bool fInit = SZGClient->init(argc, argv);
   if (!*SZGClient)
-    return 1;
+    return SZGClient->failStandalone(fInit);
 
   arThread dummy1(messageTask);
   listeningSocket.ar_create();

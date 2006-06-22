@@ -152,9 +152,9 @@ int main(int argc, char** argv){
   // But dex DOES parse phleet args that relate to user login, so this works:
   //     dex smoke szgrender -szg user=ben -szg server=192.168.0.1:9999
   szgClient.parseSpecialPhleetArgs(false);
-  szgClient.init(argc, argv);
+  const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
-    return 1;
+    return szgClient.failStandalone(fInit);
 
   getHostsRunningSzgd(szgClient);
   const string localhost(szgClient.getComputerName());

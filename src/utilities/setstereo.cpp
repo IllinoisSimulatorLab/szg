@@ -13,9 +13,13 @@
 
 int main(int argc, char** argv) {
   arSZGClient szgClient;
-  szgClient.init(argc, argv); // Parse "-szg" args first.
-  if (!szgClient) {
-    cerr << "setstereo error: failed to initialize SZGClient.\n";
+  const bool fInit = szgClient.init(argc, argv);
+  if (!szgClient)
+    return szgClient.failStandalone(fInit);
+
+  if (argc != 2 && argc != 3) {
+Usage:    
+    cerr << "usage: setstereo [virtual_computer] true|false\n";
     return 1;
   }
 
@@ -26,12 +30,6 @@ int main(int argc, char** argv) {
   }
   else{
     launcher.setVircomp();
-  }
-
-  if (argc != 2 && argc != 3) {
-Usage:    
-    cerr << "usage: setstereo [virtual_computer] true|false\n";
-    return 1;
   }
 
   const string paramVal(argc == 3 ? argv[2] : argv[1]);

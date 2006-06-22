@@ -80,7 +80,7 @@ int main(int argc, char** argv){
   // Connect to the szgserver
   szgClient.init(argc, argv);
   if (!szgClient) {
-    ar_log_error() << "dlogin failed to login to szgserver.\n";
+    ar_log_error() << "dlogin failed to connect to szgserver.\n";
     szgClient.logout();
     return 1;
   }

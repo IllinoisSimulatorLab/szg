@@ -93,7 +93,6 @@ bool arNetInputSink::start(){
   _fValid = true;
   arThread dummy(ar_netInputSinkConnectionTask, this);
 
-  // Must set the service's "info" attribute.
   if (!_client->setServiceInfo(serviceName, _info)){
     cout << "arNetInputFilter remark: failed to set info type for service.\n";
   }

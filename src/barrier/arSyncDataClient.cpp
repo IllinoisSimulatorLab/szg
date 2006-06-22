@@ -328,12 +328,12 @@ bool arSyncDataClient::init(arSZGClient& client){
 
 bool arSyncDataClient::start(){
   if (_syncServer){
-    ar_log_error() << "arSyncDataClient error: can't start() when locally connected.\n";
+    ar_log_error() << getLabel() << " can't start() when locally connected.\n";
     return false;
   }
 
   if (!_client){
-    ar_log_error() << "arSyncDataClient error: start() before init().\n";
+    ar_log_error() << getLabel() << " can't start() before init().\n";
     return false;
   }
 
@@ -341,8 +341,7 @@ bool arSyncDataClient::start(){
   _barrierClient.setServiceName(_serviceNameBarrier);
   _barrierClient.setNetworks(_networks);
   if (!_barrierClient.init(*_client) || !_barrierClient.start()){
-    ar_log_error() << getLabel()
-		   << " error: failed to start barrier client.\n";
+    ar_log_error() << getLabel() << " failed to start barrier client.\n";
     return false;
   }
   
@@ -350,24 +349,22 @@ bool arSyncDataClient::start(){
   _dataClient.smallPacketOptimize(true);
 
   if (!_connectionThread.beginThread(ar_syncDataClientConnectionTask, this)) {
-    ar_log_error() << getLabel()
-		   << " error: failed to start connection thread.\n";
+    ar_log_error() << getLabel() << " failed to start connection thread.\n";
     return false;
   }
 
   if (!_readThread.beginThread(ar_syncDataClientReadTask, this)) {
-    ar_log_error() << getLabel()
-		   << " error: failed to start read thread.\n";
+    ar_log_error() << getLabel() << " failed to start read thread.\n";
     return false;
   }
 
-  ar_log_remark() << getLabel() << " remark: started.\n";
+  ar_log_remark() << getLabel() << " started.\n";
   return true;
 }
 
 void arSyncDataClient::stop(){
   if (_syncServer){
-    ar_log_error() << "arSyncDataClient error: can't stop() when locally connected.\n";
+    ar_log_error() << getLabel() << " can't stop() when locally connected.\n";
     return;
   }
 

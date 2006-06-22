@@ -10,11 +10,10 @@
 int main(int argc, char** argv){
   arSZGClient szgClient;
   szgClient.simpleHandshaking(false);
-  szgClient.init(argc, argv);
-  if (!szgClient) {
-    cerr << "calibrationdemo error: failed to initialize SZGClient.\n";
-    return 1;
-  }
+  const bool fInit = szgClient.init(argc, argv);
+  if (!szgClient)
+    return szgClient.failStandalone(fInit);
+
   ar_log().setStream(szgClient.initResponse());
 
   if (argc != 1 && argc != 2){

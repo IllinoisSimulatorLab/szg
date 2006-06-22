@@ -13,20 +13,18 @@
 
 int main( int argc, char** argv ) {
   arSZGClient szgClient;
-  szgClient.init(argc, argv);
-  if (!szgClient) {
-    cerr << "pfconsole error: SZGClient failed to connect.\n";
-    return 1;
-  }
+  const bool fInit = szgClient.init(argc, argv);
+  if (!szgClient)
+    return szgClient.failStandalone(fInit);
 
   arPForth pforth;
   if (!pforth) {
-    cerr << "failed to initialize PForth.\n";
+    ar_log_error() << "pfconsole failed to initialize PForth.\n";
     return 1;
   }
 
   if (!ar_PForthAddDatabaseVocabulary( &pforth )) {
-    cerr << "failed to add database vocabulary.\n";
+    ar_log_error() << "pfconsole failed to add database vocabulary.\n";
     return 1;
   }
 

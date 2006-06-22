@@ -11,11 +11,9 @@
 
 int main(int argc, char** argv){
   arSZGClient szgClient;
-  szgClient.init(argc, argv);
-  if (!szgClient) {
-    cerr << "dps error: failed to initialize SZGClient.\n";
-    return 1;
-  }
+  const bool fInit = szgClient.init(argc, argv);
+  if (!szgClient)
+    return szgClient.failStandalone(fInit);
 
   const string result = szgClient.getProcessList();
   for (unsigned place=0; place < result.length(); ++place) {

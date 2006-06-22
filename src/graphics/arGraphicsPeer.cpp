@@ -509,10 +509,10 @@ bool arGraphicsPeer::init(arSZGClient& client){
 bool arGraphicsPeer::init(int& argc, char** argv){
   _client = new arSZGClient();
   _client->simpleHandshaking(true);
-  _client->init(argc, argv);
-  if (!(*_client)){
-    return false;
-  }
+  const bool fInit = _client->init(argc, argv);
+  if (!*_client)
+    return _client->failStandalone(fInit);
+
   string result = _client->getAttribute("SZG_PEER","path");
   if (result != "NULL"){
     _readWritePath = result;

@@ -180,9 +180,7 @@ void consumerTask(void*) {
 int main(int argc, char** argv) {
 
   arSZGClient szgClient;
-  szgClient.init(argc, argv);
-  //;;;; if (!szgClient)
-  //;;;;   return 1;
+  (void)szgClient.init(argc, argv); // standalone is ok
 
   if (argc > 2) {
     cerr << "usage: " << argv[0] << " [soundcard_number]\n";

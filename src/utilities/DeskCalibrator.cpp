@@ -220,11 +220,11 @@ int main(int argc, char** argv){
   // INSTEAD OF DECLARED AS GLOBALS. WHAT'S WRONG????
   inputDevice = new arInputNode();
   netSource = new arNetInputSource();
-  szgClient->init(argc, argv);
+  const bool fInit = szgClient->init(argc, argv);
   if (!*szgClient)
-    return 1;
+    return szgClient->failStandalone(fInit);
   
-  // we will connect to the primary input source
+  // Connect to the primary input source.
   if (!netSource->setSlot(0))
     return 1;
 
@@ -246,4 +246,5 @@ int main(int argc, char** argv){
   glutDisplayFunc(display);
   glutIdleFunc(display);
   glutMainLoop();
+  return 0;
 }

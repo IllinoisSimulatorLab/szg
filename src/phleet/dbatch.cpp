@@ -8,18 +8,15 @@
 // MUST come before other szg includes. See arCallingConventions.h for details.
 #define SZG_DO_NOT_EXPORT
 #include "arSZGClient.h"
-#include <stdio.h>
 
 int main(int argc, char** argv){
   arSZGClient szgClient;
-  szgClient.init(argc, argv);
-  if (!szgClient) {
-    cerr << "dbatch error: failed to initialize SZGClient.\n";
-    return 1;
-  }
+  const bool fInit = szgClient.init(argc, argv);
+  if (!szgClient)
+    return szgClient.failStandalone(fInit);
   
-  if (argc<2){
-    cerr << "usage: " << argv[0] << " batch_file\n";
+  if (argc < 2){
+    cerr << "usage: dbatch filename.txt\n";
     return 1;
   }
 

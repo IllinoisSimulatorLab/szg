@@ -31,6 +31,7 @@ arSZGClient::arSZGClient():
   _serverName("NULL"),
   _computerName("NULL"),
   _userName("NULL"),
+  _exeName("Syzygy client"),
   _networks("NULL"),
   _addresses("NULL"),
   _graphicsNetworks("NULL"),
@@ -44,7 +45,7 @@ arSZGClient::arSZGClient():
   _parameterFileName("szg_parameters.txt"),
   _virtualComputer("NULL"),
   _connected(false),
-  _receiveBuffer(NULL),
+  _receiveBuffer(new ARchar[15000]),
   _receiveBufferSize(15000),
   _launchingMessageID(0),
   _dexHandshaking(false),
@@ -55,23 +56,17 @@ arSZGClient::arSZGClient():
   _initialStartLength(0),
   _nextMatch(0),
   _logLevel(AR_LOG_WARNING),
+  _discoveryThreadsLaunched(false),
   _beginTimer(false),
   _requestedName(""),
   _dataRequested(false),
   _keepRunning(true),
   _justPrinting(false)
 {
-  // temporary... this will be overwritten in init()
-  _exeName.assign("Syzygy client");
-
   _dataClient.setLabel(_exeName);
   _dataClient.smallPacketOptimize(true);
   _dataClient.setBufferSize(_receiveBufferSize);
-  _receiveBuffer = new ARchar[_receiveBufferSize];
-
   ar_mutex_init(&_queueLock);
-  _discoveryThreadsLaunched = false;
-
   ar_mutex_init(&_serviceLock);
 }
 
@@ -86,39 +81,36 @@ arSZGClient::~arSZGClient(){
   delete [] _receiveBuffer;
 }
 
-/// Control how to handshake with dex.  By default, "true",
-/// send a final response during init().
-/// Iff simple handshaking has been disabled (by
-/// passing in "false" before init), call sendInitResponse and
-/// sendStartResponse (which is the final response in this case),
+/// Control how to handshake with dex.
+/// By default, "true", send a final response during init().
+/// Iff simple handshaking has been disabled (by passing "false" before init),
+/// call sendInitResponse and sendStartResponse (the final response in this case),
 /// to forward init and start diagnostics to the the spawning dex for printing.
 void arSZGClient::simpleHandshaking(bool state){
   _simpleHandshaking = state;
 }
 
-/// For the most part, Phleet components SHOULD NOT be able to see the
-/// "special" phleet args (like -szg virtual=cube). These args are used
-/// to shape the way phleet components behave (like acting as part of
-/// a particular virtual computer or in a particular mode). However,
-/// certain components, like dex, MUST be able to see the args, so
-/// that they can be passed-on. With dex, _parseSpecialPhleetArgs must
-/// be set to "false" (the default is true).
+/// Most components should not see the
+/// "special" phleet args (like "-szg virtual=vccube"). These
+/// shape how phleet components behave (like acting as part of
+/// a particular virtual computer or in a particular mode).
+/// But components like dex must see them to pass them on: use "false" then.
 void arSZGClient::parseSpecialPhleetArgs(bool state){
   _parseSpecialPhleetArgs = state;
 }
 
-/// Set up the client's connection to the phleet. Should be called very
-/// soon after main().
-/// @param argc Should be passed from main's argc
-/// @param argv Should be passed from main's argv
-/// @param forcedName An optional parameter. Ideally, we'd like to be able to
+/// Connect client to the phleet. Call early in main().
+/// @param argc main()'s argc
+/// @param argv main()'s argv
+/// @param forcedName Optional. Ideally, we'd like to be able to
 /// read the exe name from the command line parameters, but this fails
 /// on Win98, which gives at best a name in all caps. So
 /// the few (support) components that might run on Win98 (szgd,
 /// DeviceServer, and SoundRender) all force their names.
 /// Warn if the forced name doesn't match the name scraped from the command line.
+
 bool arSZGClient::init(int& argc, char** const argv, string forcedName){
-  // Set the name of the component
+  // Set the component's name
   // using the command-line args, since some component management uses names.
   _exeName = ar_stripExeName(string(argv[0]));
   
@@ -148,23 +140,25 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
     }
   }
 
-  // The phleet config file contains a list of networks through which
+  // The phleet config file lists networks through which
   // we can communicate. various programs will wish to obtain a list
   // of networks to communicate in a uniform way. The list may need to
   // be altered from the default (all of them) to shape network traffic
   // patterns (for instance, graphics info should go exclusively through
-  // a high-speed private network). The "context", as stored in SZGCONTEXT
+  // a fast private network). The "context", as stored in SZGCONTEXT
   // can be used to do this, as can command-line args. Other properties,
   // like virtual computer and mode, can also be manipulated through these
-  // means. SZGCONTEXT overwrites the command-line args. NOTE: the reason
-  // argc is passed by reference is that the special Phleet args that
-  // manipulate these values are stripped so as not to confuse programs.
+  // means. SZGCONTEXT overwrites the command-line args.
+  //
+  // argc is passed by reference (and modified) because the special args that
+  // manipulate these values are stripped after use.
   
-  // NOTE: we need to attempt to parse the config file BEFORE parsing the
-  // Phleet args (and the "context") so that the _networks and _addresses can be set.
+  // Parse the config file BEFORE parsing the Phleet args (and the "context"),
+  // to set the _networks and _addresses.
   // If these files cannot be read, it is still possible to recover.
   (void) _configParser.parseConfigFile();
   (void) _configParser.parseLoginFile();
+
   // If the networks and addresses were NOT set via command line args or
   // environment variables, set them.
   // Different "channels" let different types of
@@ -191,7 +185,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
     // If connected, we want the component to quit,
     // for which _connected must be false.
     _connected = false;
-    success = false; // do not return yet
+    success = false;
   }
 
   // These can override some of the variables set above.
@@ -202,7 +196,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
     // However, if this happens, we want the component to quit,
     // which it will only do if _connected is false.
     _connected = false;
-    success = false; // do not return yet
+    success = false;
   }
   
   // Environment variable SZGUSER trumps everything else.  szgd uses it.
@@ -212,7 +206,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
   }
   
   if ( _IPaddress == "NULL" || _port == -1 || _userName == "NULL" ){
-    // Can't dlogin.
+    // Not enough info to find an szgserver.  Fallback to standalone.
     ar_log_critical() << _exeName << " running standalone.\n";
     _connected = false;
     success = true;
@@ -224,88 +218,96 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
 	parseParameterFile(fallbackFilename, false);
       }
     }
+    return success;
+  }
+
+  // Not standalone.  Try to connect to the szgserver.
+  
+  // This needs to go after phleet args parsing, etc. It could be that we
+  // specify where the server is, what the user name is, etc. via command
+  // line args or the "context".
+  if (!_dialUpFallThrough()) {
+    // Could not connect to the specified szgserver. This is a fatal error!
+    // Don't complain here -- dialUpFallThrough() already did.
+    _connected = false;
+    success = false;
   }
   else{
-    // Not standalone.
+    // Successfully connected to the szgserver. 
+    // 1. Tell it our name.
+    // 2. Put headers onto the init and start response streams.
+    // 3. Handshake back with dex (if this program was launched by szgd).
+    _connected = true;
+    success = true;
     
-    // This needs to go after phleet args parsing, etc. It could be that we
-    // specify where the server is, what the user name is, etc. via command
-    // line args or the "context".
-    if (!_dialUpFallThrough()) {
-      // Could not connect to the specified szgserver. This is a fatal error!
-      // Don't complain here -- dialUpFallThrough() already did.
-      _connected = false;
-      success = false; // do not return yet
+    // Connected. Set our process "label" with the szgserver.
+    if (forcedName == "NULL"){
+      // Default for the forcedName parameter. We are not forcing the name.
+      // Tell szgserver our name.
+      _setLabel(_exeName); 
     }
     else{
-      // Successfully connected to the szgserver. 
-      // 1. Tell it our name.
-      // 2. Put headers onto the init and start response streams.
-      // 3. Handshake back with dex (if this program was launched by szgd).
-      _connected = true;
-      success = true; // do not return yet
-      
-      // The connection was a success. Set our process "label" with the szgserver.
-      if (forcedName == "NULL"){
-	// This is the default for the forcedName parameter. We are not trying
-	// to force the name.
-	// Tell szgserver our name.
-	_setLabel(_exeName); 
+      // Force the name.
+      if (forcedName != _exeName){
+	ar_log_warning() << _exeName <<
+	  ": component name overriding exe name (for Win98).\n";
+      }
+      // This method also changes _exeName internally.
+      // Tell the szgserver our name.
+      _setLabel(forcedName); 
+    }
+    
+    // Pack the init stream and the start stream with headers,
+    // including configuration information like the "context".
+    _initResponseStream << _generateLaunchInfoHeader();
+    _initialInitLength = _initResponseStream.str().length();
+    _startResponseStream << _generateLaunchInfoHeader();
+    _initialStartLength = _startResponseStream.str().length();
+
+    if (_dexHandshaking){
+      // Shake hands with dex.
+      // Regardless of whether we are on Unix or Win32, we need to begin
+      // responding to the execute message, if it was passed-through dex
+      // this lets dex know that the executable did, indeed, launch.
+      string tradingKey = getComputerName() + "/"
+      + ar_getenv("SZGTRADINGNUM") + "/"
+      + _exeName;
+      // Take control of the right to respond to the launching message.
+      _launchingMessageID = requestMessageOwnership(tradingKey);
+      // init should not fail here if it can't get the message
+      // ownership trade. This might happen if szgd timed out before
+      // the exe finished launching.
+      // This is not an error. But don't try to send responses back then.
+      if (!_launchingMessageID){
+	ar_log_warning() << _exeName <<
+	  " failed to own message, despite appearing to have been launched by szgd.\n";
+	_ignoreMessageResponses = true;
       }
       else{
-	// Try to force the name. Warn if there is a difference.
-	if (forcedName != _exeName){
-	  ar_log_warning() << _exeName <<
-	    " warning: component name overriding exe name (for Win98).\n";
-	}
-	// This method also changes _exeName internally.
-	// Tell the szgserver our name
-	_setLabel(forcedName); 
-      }
-      
-      // Pack the init stream and the start stream with headers,
-      // including configuration information like the "context".
-      _initResponseStream << _generateLaunchInfoHeader();
-      _initialInitLength = _initResponseStream.str().length();
-      _startResponseStream << _generateLaunchInfoHeader();
-      _initialStartLength = _startResponseStream.str().length();
-
-      if (_dexHandshaking){
-	// Shake hands with dex.
-	// Regardless of whether we are on Unix or Win32, we need to begin
-	// responding to the execute message, if it was passed-through dex
-	// this lets dex know that the executable did, indeed, launch.
-	string tradingKey = getComputerName() + "/"
-	+ ar_getenv("SZGTRADINGNUM") + "/"
-	+ _exeName;
-	// Take control of the right to respond to the launching message.
-	_launchingMessageID = requestMessageOwnership(tradingKey);
-	// init should not fail here if it can't get the message
-	// ownership trade. This might happen if szgd timed out before
-	// the exe finished launching.
-	// This is not an error. But don't try to send responses back then.
-	if (!_launchingMessageID){
-	  ar_log_warning() << _exeName <<
-	    " failed to own message, despite appearing to have been launched by szgd.\n";
-          _ignoreMessageResponses = true;
-	}
-	else{
-	  // Send the message response.
-	  // NOTE: if we are doing simple handshaking (the default), we send a complete response
-	  // if we are not doing simple handshaking (for apps that want to send a start
-	  // response, we send a partial response (i.e. there will be more responses).
-	  if (!messageResponse(_launchingMessageID,
-			       _generateLaunchInfoHeader() +
-			       _exeName + string(" launched.\n"),
-			       !_simpleHandshaking)){
-	    ar_log_error() << _exeName << ": response failed during launch.\n";
-	  }
+	// Send the message response.
+	// NOTE: if we are doing simple handshaking (the default), we send a complete response
+	// if we are not doing simple handshaking (for apps that want to send a start
+	// response, we send a partial response (i.e. there will be more responses).
+	if (!messageResponse(_launchingMessageID,
+			     _generateLaunchInfoHeader() +
+			     _exeName + string(" launched.\n"),
+			     !_simpleHandshaking)){
+	  ar_log_error() << _exeName << ": response failed during launch.\n";
 	}
       }
     }
   }
 
   return success;
+}
+
+int arSZGClient::failStandalone(bool fInited) const {
+  if (!*this) {
+    ar_log_error() << _exeName << (fInited ?
+      ": standalone unsupported. First dlogin.\n" :
+      " failed to init arSZGClient.\n");
+  }
+  return 1; // for convenience
 }
 
 /// Common core of sendInitResponse() and sendStartResponse().

@@ -11,21 +11,17 @@
 
 int main(int argc, char** argv){
   arSZGClient szgClient; 
-  szgClient.init(argc, argv);
-  if (!szgClient) {
-    cerr << "dget error: failed to initialize SZGClient.\n";
-    return 1;
-  }
-  bool fAll = false;
-  if (argc >= 2 && !strcmp(argv[1],"-a")){
-    fAll = true;
-  }
+  const bool fInit = szgClient.init(argc, argv);
+  if (!szgClient)
+    return szgClient.failStandalone(fInit);
+
+  const bool fAll = argc >= 2 && !strcmp(argv[1],"-a");
   if ((fAll && argc > 3) || (!fAll && (argc==1 || argc==3 || argc>4))){
-    cerr << "usage:\n  "
-         << argv[0] << " computer parameter_group parameter_name\n  "
-	 << argv[0] << " global_parameter_name\n  "
-	 << argv[0] << " -a             (Produce a dbatch-file.)\n  "
-	 << argv[0] << " -a substring\n  ";
+    ar_log_error() << "usage:\n  " <<
+      "dget computer parameter_group parameter_name\n  " <<
+      "dget global_parameter_name\n  " <<
+      "dget -a             (Produce a dbatch-file.)\n  " <<
+      "dget -a substring\n  ";
     return 1;
   }
 

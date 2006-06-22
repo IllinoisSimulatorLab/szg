@@ -739,7 +739,7 @@ LRetry:
   argc = argcOriginal;
   SZGClient = new arSZGClient;
   // Force the component's name, because win98 can't provide it.
-  SZGClient->init(argc, argv, "szgd");
+  const bool fInit = SZGClient->init(argc, argv, "szgd");
   bool fRetry = argc > 1 && !strcmp(argv[1], "-r");
   if (!*SZGClient) {
     if (fRetry) {
@@ -747,7 +747,7 @@ LRetry:
       ar_usleep(5000000);
       goto LRetry;
     }
-    return 1;
+    return SZGClient->failStandalone(fInit);
   }
 
   // Only one instance per host.

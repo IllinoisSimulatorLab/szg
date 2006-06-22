@@ -85,8 +85,7 @@ bool arAppLauncher::setVircomp(string vircomp){
   //    it can be killed.
   const string locationCandidate =
     _client->getAttribute(vircomp, "SZG_CONF", "location", "");
-  _location =
-    (locationCandidate == "NULL") ? _vircomp : locationCandidate;
+  _location = (locationCandidate == "NULL") ? _vircomp : locationCandidate;
   return true;
 }
 
@@ -95,9 +94,10 @@ bool arAppLauncher::setVircomp(string vircomp){
 /// encapsulate the arSZGClient connection process.
 bool arAppLauncher::connectSZG(int& argc, char** argv){
   _client = new arSZGClient;
-  _client->init(argc, argv);
+  const bool fInit = _client->init(argc, argv);
   if (!*_client)
-    return false;
+    return _client->failStandalone(fInit);
+
   _clientIsMine = true;
   return true;
 }
@@ -133,8 +133,7 @@ bool arAppLauncher::setParameters(){
     return true;
   }
   
-  // If the virtual computer was not explicitly set,
-  // set the virtual computer name and "location".
+  // If the virtual computer was not explicitly set, set its name and "location".
   if (_vircomp == "NULL" && !setVircomp()){
     ar_log_error() << _exeName << ": no virtual computer '" << _vircomp << "'.\n";
     return false;
@@ -172,6 +171,7 @@ bool arAppLauncher::setParameters(){
 	           << "'.  Expected computer/inputDevice/.../computer/inputDevice.\n";
     return false;
   }
+  ar_log_debug() << _exeName << "found virtual computer '" << _vircomp << "'.\n";
   _serviceList.clear();
   // step through list of computer/device token pairs 
   for (i=0; i<numTokens; i+=2){
@@ -202,7 +202,6 @@ bool arAppLauncher::setParameters(){
     _addService(soundLocation,"SoundRender",_getSoundContext(),
                 "SZG_WAVEFORM", "");
   }
-  ar_log_remark() << _exeName << ": virtual computer defined.\n";
   _vircompDefined = true;
   return true;
 }  

@@ -206,9 +206,9 @@ LBreak:
 
 int main(int argc, char** argv){
   arSZGClient szgClient;
-  szgClient.init(argc, argv);
+  const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
-    return 1;  
+    return szgClient.failStandalone(fInit);
 
   if (argc > 3) {
 LUsage:

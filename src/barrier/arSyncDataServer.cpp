@@ -348,7 +348,7 @@ bool arSyncDataServer::start(){
     ar_log_error() << "arSyncDataServer error: failed to start send thread.\n";
     return false;
   }
-  ar_log_remark() << "arSyncDataServer remark: started.\n";
+  ar_log_remark() << "arSyncDataServer started.\n";
   return true;
 }
 

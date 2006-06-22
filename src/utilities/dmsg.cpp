@@ -19,6 +19,11 @@ void striparg(int which, int& argc, char** argv){
 
 int main(int argc, char** argv){
 
+  arSZGClient szgClient;
+  const bool fInit = szgClient.init(argc, argv);
+  if (!szgClient)
+    return szgClient.failStandalone(fInit);
+
   if (argc < 2) {
 LPrintUsage:
   cerr << "Usage:\n"
@@ -91,11 +96,6 @@ LPrintUsage:
       striparg(i--,argc, argv);
     }
   }
-  
-  arSZGClient szgClient;
-  szgClient.init(argc, argv); // Bug: parsing "-szg" args fails - this should happen BEFORE we argc and argv.
-  if (!szgClient)
-    return 1;
 
   string messageType;
   string messageBody;

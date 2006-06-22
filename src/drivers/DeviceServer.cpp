@@ -158,11 +158,12 @@ int main(int argc, char** argv){
   szgClient.simpleHandshaking(false);
   // Force the component's name because Win98 won't give the name
   // automatically.  Ascension Spacepad needs Win98.
-  szgClient.init(argc, argv, "DeviceServer");
+  const bool fInit = szgClient.init(argc, argv, "DeviceServer");
   if (!szgClient)
-    return 1;
+    return szgClient.failStandalone(fInit);
 
   ar_log().setStream(szgClient.initResponse());
+
   // Only one instance per host.
   int ownerID = -1;
   if (!szgClient.getLock(szgClient.getComputerName() + "/DeviceServer", ownerID)) {

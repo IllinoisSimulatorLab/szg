@@ -89,9 +89,9 @@ int main(int argc, char** argv){
     cout << "usage: testserviceclient <service name 1> <service name 2>\n";
     return 1;
   }
-  szgClient.init(argc, argv);
+  const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
-    return 1;
+    return szgClient.failStandalone(fInit);
 
   arPhleetConfigParser parser;
   if (!parser.parseConfigFile())

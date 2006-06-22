@@ -38,6 +38,7 @@ class SZG_CALL arSZGClient{
   void parseSpecialPhleetArgs(bool state);
   bool init(int&, char** const argv, string forcedName = string("NULL"));
        // Call init() before parsing argv, so "-szg foo=..." works.
+  int failStandalone(bool fInited) const;
   stringstream& initResponse(){ return _initResponseStream; }
   bool sendInitResponse(bool ok);
   stringstream& startResponse(){ return _startResponseStream; }
@@ -256,16 +257,15 @@ class SZG_CALL arSZGClient{
   arSlashString       _inputAddresses;
   // the overall mode: master, trigger, component
   string               _mode;
-  // the graphics mode: SZG_DISPLAY0, etc.
+  // SZG_DISPLAY0, etc.
   string               _graphicsMode;
-  // the file name from which parameters will be read in standalone mode
+  // file from which parameters are read in standalone mode
   string               _parameterFileName;
   string               _virtualComputer;
 
-  // We cannot have sockets (currently) initialized in the global name space.
-  // Why? Simply because of the "global" construction that lets
-  // winsock init occur automatically. The best thing to do would be to
-  // eliminate that!
+  // Don't init sockets in the global name space,
+  // because of the "global" construction that inits winsock automatically.
+  // todo: could we eliminate that?
   arUDPSocket*  _discoverySocket;
 
   bool          _connected;
@@ -287,15 +287,15 @@ class SZG_CALL arSZGClient{
   // able to use the service/registration/discovery functions in multiple
   // threads.
   arMutex       _serviceLock;
-  int           _nextMatch;   // used in matching-up async rpc's
+  int           _nextMatch;   // to match up async rpc's
 
   arStructuredDataParser* _dataParser;
   arThread                _clientDataThread;
   
-  // How verbose should our owning component be when printing remarks?
+  // Verbosity of printed remarks.
   int _logLevel;
 
-  // Internal functions follow.
+  // Internal functions.
   bool _dialUpFallThrough();
   arStructuredData* _getDataByID(int recordID);
   arStructuredData* _getTaggedData(int tag,

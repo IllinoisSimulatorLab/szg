@@ -560,9 +560,9 @@ int main(int argc, char** argv){
   szgClient = new arSZGClient();
   ar_mutex_init(&peerLock);
   szgClient->simpleHandshaking(false);
-  szgClient->init(argc, argv);
+  const bool fInit = szgClient->init(argc, argv);
   if (!*szgClient){
-    return 1;
+    return szgClient->failStandalone(fInit);
   }
 
   ar_log().setStream(szgClient->initResponse());
@@ -609,7 +609,7 @@ int main(int argc, char** argv){
     }
   }
 
-  ar_log_remark() << "szg-rp remark: started.\n";
+  ar_log_remark() << "szg-rp started.\n";
   if (!szgClient->sendStartResponse(true)){
     cerr << "szg-rp error: maybe szgserver died.\n";
   }

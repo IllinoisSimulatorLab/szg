@@ -11,11 +11,9 @@
 
 int main(int argc, char** argv){
   arSZGClient szgClient;
-  szgClient.init(argc, argv);
-  if (!szgClient) {
-    cerr << "dset error: failed to initialize SZGClient.\n";
-    return 1;
-  }
+  const bool fInit = szgClient.init(argc, argv);
+  if (!szgClient)
+    return szgClient.failStandalone(fInit);
 
   if (argc != 5 && argc != 3){
     cerr << "usage: " << argv[0]

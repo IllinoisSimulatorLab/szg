@@ -12,10 +12,9 @@
 int main(int argc, char** argv){
   /// \todo add -q "quiet" option
   arSZGClient szgClient;
-  szgClient.init(argc, argv);
-  if (!szgClient){
-    return 1;
-  }
+  const bool fInit = szgClient.init(argc, argv);
+  if (!szgClient)
+    return szgClient.failStandalone(fInit);
 
   if (argc < 2 || argc > 4){
 LUsage:

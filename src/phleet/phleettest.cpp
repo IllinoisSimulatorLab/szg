@@ -41,9 +41,9 @@ int main(int argc, char** argv){
   // DOES NOT SEEM LIKE WE CAN HAVE A SUCCESSION OF arSZGCients 
   // connecting from the same program.
   szgClient = new arSZGClient;
-  szgClient->init(argc, argv);
+  const bool fInit = szgClient->init(argc, argv);
   if (!*szgClient)
-    return 1;
+    return szgClient->failStandalone(fInit);
 
   while (true) {
     cout << "First trying connection speed.\n";
@@ -56,7 +56,7 @@ int main(int argc, char** argv){
       szgClient = new arSZGClient;
       szgClient->init(argc, argv);
       if (!*szgClient)
-	return 1;
+	return szgClient->failStandalone(fInit);
 
       szgClient->closeConnection();
       delete szgClient;
@@ -69,7 +69,7 @@ int main(int argc, char** argv){
     szgClient = new arSZGClient;
     szgClient->init(argc, argv);
     if (!*szgClient)
-      return 1;
+      return szgClient->failStandalone(fInit);
 
     szgClient->closeConnection();
     delete szgClient;
@@ -83,7 +83,7 @@ int main(int argc, char** argv){
   szgClient = new arSZGClient;
   szgClient->init(argc, argv);
   if (!*szgClient){
-    return 1;
+    return szgClient->failStandalone(fInit);
     }
 #endif
     szgClient->setAttribute("foo","bar1","bar1");

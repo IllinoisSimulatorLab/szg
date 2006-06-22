@@ -77,7 +77,7 @@ void arDatabase::setDataBundlePath(const string& bundlePathName,
 void arDatabase::addDataBundlePathMap(const string& bundlePathName,
                                       const string& bundlePath){
   if (bundlePath == "NULL") {
-    ar_log_remark() << " addDataBundlePathMap: undefined " << bundlePathName << "/path.\n";
+    ar_log_remark() << "addDataBundlePathMap: undefined " << bundlePathName << "/path.\n";
     return;
   }
 
