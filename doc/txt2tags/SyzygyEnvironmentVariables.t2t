@@ -8,25 +8,23 @@ Integrated Systems Lab
 
 %%toc
 
-The Syzygy build process uses a number of environment variables, the
-setting of some other environment variables can alter Syzygy's operation,
+Syzygy's makefiles use a number of environment variables.
+Other environment variables can alter Syzygy's operation,
 and szgd will even alter, though not globally, some variables that are
-used by the system in general. It seems useful to list them all in one
-place, provide simple explanations, and links back to where they are
-explained more fully in the documentation.
+used by the system in general. This document briefly describes them all,
+and links to fuller explanations.
 
 
 =Environment variables affecting the Syzygy build process=
 
-- SZGHOME: The top-level directory of your Syzygy installation, whether
+- SZGHOME: Top-level directory of your Syzygy installation, whether
  DEVELOPER (you are compiling the library yourself) or EASY (you are using
  a prepackaged version). This must be set.
 
-- SZGBIN: The directory into which executables and DLLs should be placed.
- If this is not set, the system assumes it is $(SZGHOME)/bin/$(MACHINE_DIR).
+- SZGBIN: Where executables and DLLs go.
+ Defaults to $(SZGHOME)/bin/$(MACHINE_DIR).
 
-- SZGEXTERNAL: The top-level directory of the external libraries
- installation.
+- SZGEXTERNAL: Top-level directory for external libraries.
 
 - SZGDEBUG: By default, software is not built with debugging information.
  By setting this to TRUE, debugging symbols will be built in.
@@ -39,10 +37,10 @@ explained more fully in the documentation.
 the q33 demo to build. Consider running cubecake instead of q33 (another
 Quake3 level builder).
 
-- SZG_STLPORT: Only meaningful on Windows platforms.
- Visual Studio 6's STL implementation is INCOMPATIBLE with
- dynamically linking the szg libraries. Consequently, to use Visual Studio 6
- (on Windows), you must use STLport as your STL implementation. (Set this
+- SZG_STLPORT: For Windows.
+ Visual Studio 6's STL implementation is incompatible with
+ dynamically linking the szg libraries. To use Visual Studio 6
+ (on Windows), use the STLport implementation of STL. (Set this
  to TRUE). By default, the native STL implementation will be used. This is
  fine for Visual Studio .NET and above.
 
@@ -54,9 +52,10 @@ Quake3 level builder).
 
 - SZG_LINKING: By default, all the szg libraries are built as shared objects
  (dlls). However, by setting this variable to STATIC, you can have them
- built as static objects and linked that way with your executables. This
- is advantageous for archiving code.
+ built and linked as static objects. This is good for archiving code.
 
+- SZG_FMOD_VERSION: if set to 3, for audio use the external library
+"sound_fmod3" instead of the default, "sound".
 
 =Environment variables affecting the operation of Syzygy components=
 
@@ -81,7 +80,7 @@ packed in a single string.
 "dex -lt" overrides it.
 
 
-=Environment variables that can substitute for Phleet database parameters=
+=Environment variables that substitute for Phleet database parameters=
 
 - SZG_RENDER_texture_path: Distributed scene graph applications search for
 textures here.
