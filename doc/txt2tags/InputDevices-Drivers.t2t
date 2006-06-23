@@ -147,9 +147,9 @@ an extended range transmitter attached.
   3: Extended range trasnmitter attached.
   4: Extended range trasnmitter and bird attached.
 TRACKER_COMPUTER SZG_FOB com_port 4
-The serial port to which the Flock-of-Birds is attached. Note that we only
+The serial port to which the Flock-of-Birds is attached. We only
 use numerical IDs for the serial ports (not the OS-specific names). Serial
-ports begin counting with 0 in Linux and 1 in Windows.
+ports start at 1 in Windows and 0 in Linux (so /dev/xxxxx0 is Syzygy port 1).
 TRACKER_COMPUTER SZG_FOB baud_rate 38400
 The baud rate at which the Flock-of-Birds runs. This must be one of:
 2400, 4800, 9600, 19200, 38400, 57600, 115200.
