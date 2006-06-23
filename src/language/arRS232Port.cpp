@@ -144,20 +144,28 @@ static inline bool fltcomp(float a, float b) {
   return fabs(a-b) < 1.0e-6;
 }
 
-bool arRS232Port::ar_open( const unsigned int port, const unsigned long baud,
-                      const unsigned int dBits, const float stBits,
+bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
+                      const unsigned dBits, const float stBits,
                       const std::string& par ) {
-#if !defined( AR_USE_WIN_32 ) && !defined( AR_USE_LINUX )
+#if defined( AR_USE_WIN_32 )
+  const unsigned portMin = 1;
+#elif defined( AR_USE_LINUX )
+  //unused const unsigned portMin = 0;
+#else
   cerr << "arRS232Port error: only Win32 and Linux are implemented.\n";
   return false;
 #endif
 
-  if (port < 1) {
+#if defined( AR_USE_WIN_32 )
+  // This check is meaningful only when portMin>0, since portMin is unsigned.
+  if (port < portMin) {
     cerr << "arRS232Port error: port numbers are 1-based.\n";
     return false;
   }
+#endif
+
   if (_isOpen) {
-    cerr << "arRS232Port error: this arRS232Port is already in use.\n";
+    cerr << "arRS232Port error: port already in use.\n";
     return false;
   }
 
