@@ -15,4 +15,3 @@ SZG_CALL void ar_activateWildcatFramelock();
 SZG_CALL void ar_deactivateWildcatFramelock();
 
 #endif        //  #ifndefARWILDCATUTILTIES_H
-

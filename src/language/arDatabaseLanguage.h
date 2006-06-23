@@ -16,7 +16,7 @@ enum{
   AR_D_NAME_NODE = 100
 };
 
-/// Generic language for an arDatabase.
+// Generic language for an arDatabase.
 
 class SZG_CALL arDatabaseLanguage: public arLanguage{
  public:

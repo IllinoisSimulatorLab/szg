@@ -137,7 +137,7 @@ class SZG_CALL arPForthProgram {
     std::vector<arPForthSpace::arPForthAction*> _transientActions;
 };
 
-/// FORTH interpreter for input-device filters.
+// FORTH interpreter for input-device filters.
 
 class SZG_CALL arPForth {
   public:

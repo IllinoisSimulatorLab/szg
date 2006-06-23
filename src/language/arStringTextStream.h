@@ -13,13 +13,12 @@
 
 using namespace std;
 
-/// A base class that provides a very simple stream interface.
-/// This is mostly used for XML-style data parsing. Via subclasses, one
-/// can use FILE*, a socket, or a string as the stream source.
+// Simple stream interface for XML-style data parsing.
+// Subclasses can provide FILE*, a socket, or a string as the stream source.
 
-// WARNING: If a class ONLY exists in the .h, then we SHOULD NOT decorate it
-// with SZG_CALL. In the Win32 case, this will lead to the linker getting
-// confused when trying to import the class.
+// If a class exists only in the .h, do not decorate it with SZG_CALL. 
+// In Win32, this confuses the linker when importing the class.
+
 class arStringTextStream: public arTextStream{
  public:
   arStringTextStream(){}
@@ -27,7 +26,7 @@ class arStringTextStream: public arTextStream{
   virtual ~arStringTextStream(){}
 
   virtual int ar_getc(){ return _stream.get(); }
-  // Since stringstream has a perfectly good unget, no need to get fancy.
+  // Stringstream has a perfectly good unget.  Don't get fancy.
   virtual void ar_ungetc(int){ _stream.unget(); }
 
   void setString(const string& newString){ _stream.str(newString); }

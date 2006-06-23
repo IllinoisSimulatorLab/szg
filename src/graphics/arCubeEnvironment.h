@@ -10,7 +10,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-/// Texture-mapped prism: n walls (often 4), a floor, and a ceiling.
+// Texture-mapped prism: n walls (often 4), a floor, and a ceiling.
 
 class SZG_CALL arCubeEnvironment{
  public:

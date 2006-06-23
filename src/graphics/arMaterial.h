@@ -10,12 +10,9 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-/// A simple class describing an OpenGL material...
-/// Later, this should expand to manage everything about the surface
-/// coloration of an object... for instance, managing multi-texturing,
-/// pixel shaders, etc.
-/// NOTE: right now, this does NOTHING in the actual code. So, a 
-/// placeholder for now.
+// OpenGL material.
+// Should eventually manage full surface coloration: multi-texturing, pixel shaders, etc.
+// Placeholder for now.
 
 class SZG_CALL arMaterial{
  public:

@@ -17,14 +17,11 @@
 #include <string>
 using namespace std;
 
-/// The arSyncDataClient/arSyncDataServer pair can be run in a
-/// synchronized or a non-syncronized fashion. It may be desirable to
-/// run unsynchronized over a high-latency network, for instance.
-/// These constants must be declared publicly so that user applications
-/// can access them.
+// arSyncDataClient/arSyncDataServer pairs may be unsynchronized for slow networks.
+// These constants are public, for user apps.
 SZG_CALL enum { AR_SYNC_CLIENT = 0, AR_NOSYNC_CLIENT };
 
-/// Client for arSyncDataServer.
+// Client for arSyncDataServer.
 class SZG_CALL arSyncDataClient{
   // Needs assignment operator and copy constructor, for pointer members.
   friend void ar_syncDataClientReadTask(void*);
@@ -40,25 +37,24 @@ class SZG_CALL arSyncDataClient{
 
   // Callbacks.
 
+  // Called after connected to server.
   void setConnectionCallback
     (bool (*connectionCallback)(void*, arTemplateDictionary*));
-    ///< called after connection to server is made.
+  // Called after disconnected from server.
   void setDisconnectCallback
     (bool (*disconnectCallback)(void*));
-    ///< called after connection to server is broken.
+  // Called when a buffer needs consuming.
   void setConsumptionCallback
     (bool (*consumptionCallback)(void*, ARchar*));
-    ///< called when a buffer needs consuming.
+  // Called when action needs doing (while connected).
   void setActionCallback
     (bool (*actionCallback)(void*));
-    ///< called when action needs doing (while connected).
+  // Called after sync at the barrier (after all clients have ActionCallback'ed).
   void setPostSyncCallback
     (bool (*postSyncCallback)(void*));
-    ///< called after sync at the barrier 
-    ///(after all clients have ActionCallback'ed).
+  // Called while disconnected.
   void setNullCallback
     (bool (*nullCallback)(void*));
-    ///< called while disconnected.
 
   void setServiceName(string serviceName);
   void setNetworks(string networks);
@@ -85,8 +81,7 @@ class SZG_CALL arSyncDataClient{
   string       _serviceName;
   string       _serviceNameBarrier;
   string       _networks;
-  int _mode;
-    ///< sync buffer consumption with server, or not.
+  int _mode; // sync buffer consumption with server, or not.
   int  _dataAvailable;
   bool _bufferSwapReady;
   list<pair<char*,int> > _receiveStack;

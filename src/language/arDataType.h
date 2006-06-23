@@ -26,8 +26,8 @@ typedef long long ARint64;
 ////////// Platform-INDEPENDENT ///////////////////////
 
 // Sizes of the standard data types.
-/// \bug The Syzygy core silently assumes sizeof(float) == sizeof(ARfloat).
-/// \bug The Syzygy core silently assumes sizeof(int) == sizeof(ARint).
+// bug: The Syzygy core silently assumes sizeof(float) == sizeof(ARfloat).
+// bug: The Syzygy core silently assumes sizeof(int) == sizeof(ARint).
 const int AR_GARBAGE_SIZE = 0;
 const int AR_CHAR_SIZE = 1;
 const int AR_INT_SIZE = 4;

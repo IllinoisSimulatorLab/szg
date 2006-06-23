@@ -14,13 +14,14 @@
 #include "arFrameworkCalling.h"
 using namespace std;
 
-/// The arMasterSlaveDataRouter manages a collection of arFrameworkObjects,
-/// especially with respect to:
-///   1. Creating a shared language that can transfer data over the wire.
-///   2. Collecting buffers of messages (from the master to the slaves)
-///   3. Dumping state and transfering that.
-///   4. Routing messages from itself to the individual arFrameworkObjects
-///      under its care.
+/*
+Manage a collection of arFrameworkObjects:
+  Create a shared language that can transfer data.
+  Collect buffers of messages from the master to the slaves.
+  Dump and transfer state.
+  Route messages from itself to its individual arFrameworkObjects.
+*/
+
 class SZG_CALL arMasterSlaveDataRouter: public arFrameworkObject{
  public:
   arMasterSlaveDataRouter();

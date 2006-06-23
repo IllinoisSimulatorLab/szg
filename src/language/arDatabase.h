@@ -22,14 +22,14 @@ typedef map<int,arDatabaseNode*,less<int> >::iterator arNodeIDIterator;
 typedef arDatabaseNode*
     (arDatabase::*arDatabaseProcessingCallback)(arStructuredData*);
 
-/// Codes for different database types.
+// Codes for different database types.
 enum{ 
   AR_GENERIC_DATABASE = 0,
   AR_GRAPHICS_DATABASE = 1,
   AR_SOUND_DATABASE = 2
 };
 
-/// Generic database distributed across a cluster.
+// Generic database distributed across a cluster.
 class SZG_CALL arDatabase{
  public:
   arDatabase();

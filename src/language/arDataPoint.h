@@ -11,10 +11,9 @@
 #include <map>
 using namespace std;
 
-/// Infrastructure for arDataClient and arDataServer.
+// Infrastructure for arDataClient and arDataServer.
 
-// Used to make sure that incompatible communications protocols do not
-// attempt to speak to one another.
+// Block incompatible communications protocols.
 enum {SZG_VERSION_NUMBER = 2};
 
 class SZG_CALL arDataPoint {
@@ -32,7 +31,7 @@ class SZG_CALL arDataPoint {
   arDataPoint(int dataBufferSize);
   ~arDataPoint();
   void smallPacketOptimize(bool flag)
-    { _smallPacketOptimize = flag; } ///< faster for small packets
+    { _smallPacketOptimize = flag; } // faster for small packets
   bool getDataCore(ARchar*& dest, int& availableSize, bool& fEndianMode,
     arSocket* fd, const arStreamConfig& remoteConfig);
   bool getDataCore(ARchar*& dest, int& availableSize, ARint& theSize, 
@@ -42,11 +41,11 @@ class SZG_CALL arDataPoint {
 		   ARchar*& trans, int& transSize,
 		   ARint& theSize, bool& fEndianMode, arSocket* fd,
 		   const arStreamConfig& remoteConfig);
-  void setBufferSize(int numBytes); ///< Set size of socket buffer.
-  // The functions we need to do the initial socket handshake.
-  arStreamConfig handshakeConnectTo(arSocket* fd, arStreamConfig localConfig);
-  arStreamConfig handshakeReceiveConnection(arSocket* fd,
-                                            arStreamConfig localConfig);
+  void setBufferSize(int numBytes); // Set size of socket buffer.
+
+  // Initial socket handshake.
+  arStreamConfig handshakeConnectTo(arSocket*, arStreamConfig);
+  arStreamConfig handshakeReceiveConnection(arSocket*, arStreamConfig);
   string _remoteConfigString(arSocket* fd);
   string _constructConfigString(arStreamConfig config);
   map<string, string, less<string> > _parseKeyValueBlock(const string& text);

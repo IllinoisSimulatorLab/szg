@@ -66,4 +66,3 @@ class arAlwaysGrabCondition : public arGrabCondition {
 };
 
 #endif        //  #ifndefARGRABCONDITION_H
-

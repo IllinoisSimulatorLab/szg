@@ -18,9 +18,8 @@
 #include "arGraphicsCalling.h"
 #include <string>
 
-/// Something that renders graphics data
-/// using the SZG_GEOMETRY service
-/// and draws OpenGL scenes from an arGraphicsDatabase.
+// Render graphics data using the SZG_GEOMETRY service
+// and draw OpenGL scenes from an arGraphicsDatabase.
 
 class SZG_CALL arGraphicsClient{
   // Needs assignment operator and copy constructor, for pointer members.
@@ -59,13 +58,12 @@ class SZG_CALL arGraphicsClient{
   void setDataBundlePath(const string& bundlePathName, const string& bundleSubDirectory);
   void addDataBundlePathMap(const string& bundlePathName, const string& bundlePath);
   //void setStereoMode(bool);
-  // void setViewMode( const std::string& );
+  //void setViewMode( const std::string& );
   //void setFixedHeadMode(bool);
   //void showFramerate(bool);
 
-  // Sometimes, we want to be able to over-ride the super-controlled
-  // defaults... this is a rough hack so far and the interface is
-  // likely to change
+  // To over-ride the super-controlled
+  // defaults... this is a rough hack and the interface is likely to change
   //void setDrawFunction(void (*drawFunction)(arGraphicsDatabase*));
 
   void setNetworks(string networks);
@@ -78,10 +76,10 @@ class SZG_CALL arGraphicsClient{
   // copy the head from the arViewerNode to here
   bool updateHead();
 
-  /// Allows the arDistSceneGraphFramework standalone mode to have a simulator
-  /// interface. I'm a little bit annoyed at how the arGraphicsClient is
-  /// so greedy to be in charge (though maybe that's necessary given the
-  /// way the callbacks have been defined).
+  // Give the arDistSceneGraphFramework standalone mode a simulator
+  // interface. I'm a little bit annoyed at how the arGraphicsClient is
+  // so greedy to be in charge (though maybe that's necessary given the
+  // way the callbacks have been defined).
   void setSimulator(arFrameworkObject* f){ _simulator = f; }
   void showSimulator(bool show){ _showSimulator = show; }
   void toggleFrameworkObjects(){

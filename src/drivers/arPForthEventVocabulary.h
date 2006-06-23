@@ -18,5 +18,4 @@ SZG_CALL void ar_PForthSetFilter( arPForthFilter* filter );
 SZG_CALL arInputEvent* ar_PForthGetCurrentEvent();
 SZG_CALL arPForthFilter* ar_PForthGetFilter();
 
-#endif        //  #ifndefARPFORTHEVENTVOCABULARY_H
-
+#endif

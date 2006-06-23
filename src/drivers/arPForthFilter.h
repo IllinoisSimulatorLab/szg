@@ -19,7 +19,7 @@ class SZG_CALL arFilteringPForth : public arPForth {
   ~arFilteringPForth();
 };
 
-/// Filter that uses the arPForth FORTH interpreter.
+// Filter that uses the arPForth FORTH interpreter.
 
 class SZG_CALL arPForthFilter: public arIOFilter {
   public:

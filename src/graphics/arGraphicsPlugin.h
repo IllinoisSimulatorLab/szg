@@ -11,17 +11,18 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-
 class SZG_CALL arGraphicsPlugin {
   public:
     arGraphicsPlugin() {}
     virtual ~arGraphicsPlugin() {}
     virtual void draw( arGraphicsWindow& /*win*/, arViewport& /*view*/ ) {}
-    virtual bool setState( std::vector<int>& /*intData*/,
-                           std::vector<long>& /*longData*/,
-                           std::vector<float>& /*floatData*/,
-                           std::vector<double>& /*doubleData*/,
-                           std::vector< std::string >& /*stringData*/ ) { return false; }
+    virtual bool setState(
+      vector<int>& /*intData*/,
+      vector<long>& /*longData*/,
+      vector<float>& /*floatData*/,
+      vector<double>& /*doubleData*/,
+      vector< string >& /*stringData*/ )
+        { return false; }
 };
 
 #endif

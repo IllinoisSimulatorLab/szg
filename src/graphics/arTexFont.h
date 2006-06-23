@@ -19,9 +19,10 @@
 
 SZG_CALL list<string> ar_parseLineBreaks(const string& text);
 
-/// Description of a 3D rectangle upon which text can get printed.
-/// Passed in to the arTexFont renderString command. This also
-/// includes some formating info, namely a tab's width.
+// Description of a 3D rectangle upon which text can get printed.
+// Passed in to the arTexFont renderString command.
+// Also includes tab-width info.
+
 class SZG_CALL arTextBox{
  public:
   // NOTE: The height of the text box is, essentially, calculated

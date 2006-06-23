@@ -23,7 +23,7 @@ enum arAxisOrder { AR_XYZ = 1, AR_XZY, AR_YXZ, AR_YZX, AR_ZXY, AR_ZYX };
 
 class arQuaternion;
 
-/// Vector of 2 points. For instance, a 2D texture coordinate.
+// Vector of 2 points. For instance, a 2D texture coordinate.
 
 class SZG_CALL arVector2{
  public:
@@ -34,7 +34,7 @@ class SZG_CALL arVector2{
   float& operator[] (int i){ return v[i]; }
 };
 
-/// Vector of 3 points.  Position or direction in 3-space.
+// Vector of 3 points.  Position or direction in 3-space.
 
 class SZG_CALL arVector3{
  public:
@@ -83,7 +83,7 @@ class SZG_CALL arVector3{
   }
 };
 
-/// Vector of 4 floats. A position in 4-space.
+// Vector of 4 floats. A position in 4-space.
 
 class arMatrix4;
 
@@ -120,7 +120,7 @@ class SZG_CALL arVector4{
   arMatrix4 outerProduct( const arVector4& rhs ) const;
 };
 
-/// 4x4 matrix.  Typically an OpenGL transformation.
+// 4x4 matrix.  Typically an OpenGL transformation.
 
 class SZG_CALL arMatrix4{
  public:
@@ -147,7 +147,7 @@ class SZG_CALL arMatrix4{
   float v[16];
 };
 
-/// For representing rotations.
+// Rotations.
 
 class SZG_CALL arQuaternion{
  public:

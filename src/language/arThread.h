@@ -52,11 +52,11 @@ class SZG_CALL arLock {
 // signals
 //*****************************************
 
-/// Signal.
-/// Our signals are "sticky" (like Win32 manual-reset events).
-/// Once signalled, the object remains so until a
-/// receiveSignal() call is issued.
-/// However, sometimes we want to de-signal the object.
+// Signal.
+// Our signals are "sticky" (like Win32 manual-reset events).
+// Once signalled, the object remains so until a
+// receiveSignal() call is issued.
+// However, sometimes we want to de-signal the object.
 
 class SZG_CALL arSignalObject{
 public:
@@ -78,16 +78,16 @@ private:
 
 };
 
-///**************************************
-/// simple condition variables 
-///**************************************
+//**************************************
+// simple condition variables 
+//**************************************
 
 class SZG_CALL arConditionVar{
  public:
   arConditionVar();
   ~arConditionVar();
   bool wait(arMutex* externalLock, int timeout = -1);
-  void signal();       ///< semantics of pthread_cond_signal
+  void signal();       // semantics of pthread_cond_signal
  private:
 #ifdef AR_USE_WIN_32
   arMutex _countLock;
@@ -98,9 +98,9 @@ class SZG_CALL arConditionVar{
 #endif
 };
   
-///**************************************
-/// event - condition variable with a memory
-///**************************************
+//**************************************
+// event - condition variable with a memory
+//**************************************
 
 //Implementation lifted from EVENT class of
 // Walmsley, "Multi-threaded Programming in C++"
@@ -135,7 +135,7 @@ class SZG_CALL arThreadEvent {
   typedef void* arWrapperType;
 #endif
 
-/// Thread.
+// Thread.
 
 class SZG_CALL arThread{
   // Needs assignment operator and copy constructor, for pointer members.

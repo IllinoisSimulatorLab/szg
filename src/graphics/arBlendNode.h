@@ -10,7 +10,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-/// Blending.
+// Blending.
 
 class SZG_CALL arBlendNode:public arGraphicsNode{
  public:

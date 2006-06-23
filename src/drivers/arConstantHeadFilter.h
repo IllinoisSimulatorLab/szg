@@ -10,7 +10,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-/// Fixed head position (for multi-person demos in a headtracked setup).
+// Fixed head position, for multi-person nonheadtracked demos.
 
 class SZG_CALL arConstantHeadFilter: public arIOFilter{
   public:
@@ -22,4 +22,3 @@ class SZG_CALL arConstantHeadFilter: public arIOFilter{
 };
 
 #endif
-

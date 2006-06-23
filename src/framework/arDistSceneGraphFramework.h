@@ -16,7 +16,8 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arFrameworkCalling.h"
 
-/// Framework for cluster applications using a distributed scene graph.
+// Framework for cluster applications using a distributed scene graph.
+
 class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   friend void ar_distSceneGraphFrameworkMessageTask(void*);
   friend void ar_distSceneGraphFrameworkWindowTask(void*);
@@ -42,16 +43,16 @@ class SZG_CALL arDistSceneGraphFramework : public arSZGAppFramework {
   void setUserMessageCallback(void (*userMessageCallback)( arDistSceneGraphFramework&, 
 							   const string& messageBody ));
   arGraphicsDatabase* getDatabase();
-  /// Maybe an external peer should be receiving the peer control messages
-  /// (as in the peerBridge program that maps a peer into a clustered display).
-  void setExternalPeer(arGraphicsPeer* p) {
-    if (p) _externalPeer = p;
-  }
+
+  // An external peer might get peer control messages,
+  // e.g. the peerBridge that maps a peer into a clustered display.
+  void setExternalPeer(arGraphicsPeer* p) { if (p) _externalPeer = p; }
+  
   void setDataBundlePath(const string& bundlePathName, 
                          const string& bundleSubDirectory);
   void setAutoBufferSwap(bool);
   void swapBuffers();
-  const string getNavNodeName() const{ return "SZG_NAV_MATRIX"; }
+  const string getNavNodeName() const { return "SZG_NAV_MATRIX"; }
   arDatabaseNode* getNavNode();
 
   void loadNavMatrix();

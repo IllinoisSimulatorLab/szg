@@ -17,7 +17,7 @@
 
 class arInputNode;
 
-/// Something which emits input-device messages.
+// Produce input-device messages.
 
 class SZG_CALL arInputSource{
   // Needs assignment operator and copy constructor, for pointer members.
@@ -45,33 +45,24 @@ class SZG_CALL arInputSource{
   int getNumberAxes() const;
   int getNumberMatrices() const;
 
-  /// \todo how do you do groups in doxygen???
-  /// \name Send a single item.
-  //@(
+  // Send a single item.
   void sendButton(int index, int value);
   void sendAxis(int index, float value);
-  void sendMatrix(const arMatrix4& value)
-    { sendMatrix(0, value); }
   void sendMatrix(int index, const arMatrix4& value);
-  //@)
+  void sendMatrix(const arMatrix4& value) { sendMatrix(0, value); }
 
-  /// \name Send several items as a single packet.
-  //@(
+  // Send several items as a single packet.
   void sendButtonsAxesMatrices(
     int numButtons, const int* rgiButtons, const int* rgvalueButtons,
     int numAxes, const int* rgiAxes, const float* rgvalueAxes,
     int numMatrices, const int* rgiMatrices, const arMatrix4* rgvalueMatrices);
-  //@)
 
-  /// \name Accumulate several values and then send them as a single packet.
-  //@(
+  // Accumulate several values and then send them as a single packet.
   void queueButton(int index, int value);
   void queueAxis(int index, float value);
-  void queueMatrix(const arMatrix4& value)
-    { queueMatrix(0, value); }
   void queueMatrix(int index, const arMatrix4& value);
+  void queueMatrix(const arMatrix4& value) { queueMatrix(0, value); }
   void sendQueue();
-  //@)
 
   virtual void handleMessage( const string& /*messageType*/, const string& /*messageBody*/ ) {}
 

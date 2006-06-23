@@ -10,7 +10,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-/// Example to copy-paste from, for writing drivers for input devices.
+// Example to copy-paste from, for writing drivers for input devices.
 
 class SZG_CALL arGenericDriver: public arInputSource{
  public:

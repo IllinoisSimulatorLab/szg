@@ -16,7 +16,7 @@
 #include <list>
 using namespace std;
 
-/// Driver for Motion Analysis EVaRT system
+// Driver for Motion Analysis's EVaRT optical mocap.
 
 class arEVaRTDriver: public arInputSource {
   friend int ar_evartDataHandler(int,void*);

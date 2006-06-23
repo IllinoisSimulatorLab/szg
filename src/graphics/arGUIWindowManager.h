@@ -330,9 +330,9 @@ class SZG_CALL arGUIWindowManager
      */
     int consumeAllWindowEvents( bool blocking = false );
 
-    /// NOTE: if this wm is managing multiple windows with different _Hz's, then
-    /// blocking must be false otherwise both windows will run at whatever the
-    /// lowest rate is
+    // If this wm is managing multiple windows with different _Hz's, then
+    // blocking must be false otherwise both windows will run at whatever the
+    // lowest rate is.
 
     /**
      * Issue a swap request to a single window.
@@ -567,9 +567,8 @@ class SZG_CALL arGUIWindowManager
      */
     static arGUIKeyInfo getKeyState( const arGUIKey key );
 
-    /// Getting the mouse state outside of the context of a window doesn't make
-    /// sense.
-    /// static arMouseInfo getMouseState( void );
+    // Getting mouse state outside of a window context makes no sense.
+    // static arMouseInfo getMouseState( void );
 
     //@{
     /** @name Window manager state accessors
@@ -705,20 +704,15 @@ class SZG_CALL arGUIWindowManager
     virtual void _windowHandler( arGUIWindowInfo* windowInfo );
     //@}
 
-    void (*_keyboardCallback)( arGUIKeyInfo* keyInfo );              ///< The keyboard event callback
-    void (*_mouseCallback)( arGUIMouseInfo* mouseInfo );             ///< The mouse event callback
-    void (*_windowCallback)( arGUIWindowInfo* windowInfo );          ///< The window event callback
-    void (*_windowInitGLCallback)( arGUIWindowInfo* windowInfo );    ///< The window opengl initialization callback
+    void (*_keyboardCallback)( arGUIKeyInfo* keyInfo );              // The keyboard event callback
+    void (*_mouseCallback)( arGUIMouseInfo* mouseInfo );             // The mouse event callback
+    void (*_windowCallback)( arGUIWindowInfo* windowInfo );          // The window event callback
+    void (*_windowInitGLCallback)( arGUIWindowInfo* windowInfo );    // The window opengl initialization callback
 
-    WindowMap _windows;       ///< A map of all the managed windows and their id's.
-
-    int _maxWindowID;         ///< The maximum window ID, used in creating new windows.
-
-    bool _threaded;           ///< The mode of operation for the window manager.
-
-    void* _userData;          ///< Default user defined data pointer passed to created windows.
-
+    WindowMap _windows;       // A map of all the managed windows and their id's.
+    int _maxWindowID;         // The maximum window ID, used in creating new windows.
+    bool _threaded;           // The mode of operation for the window manager.
+    void* _userData;          // Default user defined data pointer passed to created windows.
 };
 
 #endif  // header guard
-

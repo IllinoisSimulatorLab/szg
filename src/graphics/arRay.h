@@ -12,7 +12,8 @@
 
 // The classes in this file are related to geometric processing.
 
-/// Bounding sphere.
+// Bounding sphere.
+
 class SZG_CALL arBoundingSphere{
  public:
   arBoundingSphere(){ radius = 0; visibility = false; }
@@ -37,7 +38,8 @@ class SZG_CALL arBoundingSphere{
   bool      visibility;
 };
 
-/// Ray, for intersection testing.
+// Ray, for intersection testing.
+
 class SZG_CALL arRay{
  public:
   arRay(){}

@@ -48,4 +48,3 @@ class SZG_CALL arCallbackInteractable : public arInteractable {
 };
 
 #endif        //  #ifndefARCALLBACKINTERACTABLE_H
-

@@ -15,7 +15,7 @@
 #include <iostream>
 using namespace std;
 
-/// Server for arBarrierClient objects.
+// Server for arBarrierClient objects.
 class SZG_CALL arBarrierServer{
   // Needs assignment operator and copy constructor, for pointer members.
 
@@ -30,28 +30,26 @@ class SZG_CALL arBarrierServer{
   void setServiceName(string serviceName);
   bool init(arSZGClient& client);
   void setChannel(const string& channel)
-    { _channel = channel; } ///< Set route for network traffic.
+    { _channel = channel; } // Set route for network traffic.
   bool start();
   void stop();
-  int getDrawTime() const
-    { return _drawTime; }
-  int getRcvTime() const
-    { return _rcvTime; }
-  int getProcTime() const
-    { return _procTime; }
+  int getDrawTime() const { return _drawTime; }
+  int getRcvTime()  const { return _rcvTime;  }
+  int getProcTime() const { return _procTime; }
   bool setServerSendSize(int);
 
   void setSignalObject(arSignalObject* signalObject);
   void setSignalObjectRelease(arSignalObject*);
 
+  // Release activationQueue lock, if lockActivationQueue() set it.
   bool activatePassiveSockets(arDataServer*);
-    ///< Releases activationQueue lock, if lockActivationQueue() set it.
+
   bool checkWaitingSockets();
   void lockActivationQueue();
   void unlockActivationQueue();
   list<arSocket*>* getWaitingBondedSockets(arDataServer*);
 
-  void registerLocal(); ///< Register local connection.
+  void registerLocal(); // Register local connection.
   void localSync();
 
   int getNumberConnectedActive();

@@ -12,8 +12,8 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-/// ID's shared between an arGraphicsServer and its arGraphicsClient objects
-/// when rendering an arGraphicsDatabase.
+// ID's shared between an arGraphicsServer and its arGraphicsClient objects
+// when rendering an arGraphicsDatabase.
 
 class SZG_CALL arGraphicsLanguage:public arDatabaseLanguage{
  public:

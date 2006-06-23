@@ -15,9 +15,7 @@ class arSZGAppFramework;
 class SZG_CALL arFrameworkEventFilter : public arIOFilter {
   public:
     arFrameworkEventFilter( arSZGAppFramework* fw = 0 );
-    virtual ~arFrameworkEventFilter() {
-      _queue.clear();
-    }
+    virtual ~arFrameworkEventFilter() { _queue.clear(); }
     void saveEventQueue( bool onoff ) { _saveEventQueue = onoff; }
     void setFramework( arSZGAppFramework* fw ) { _framework = fw; }
     arSZGAppFramework* getFramework() const { return _framework; }
@@ -25,10 +23,9 @@ class SZG_CALL arFrameworkEventFilter : public arIOFilter {
     arInputEventQueue getEventQueue();
     void flushEventQueue();
   protected:
-    // NOTE: if you want to buffer events & process them all e.g. once/frame,
-    // then override this & add a call to queueEvent(). The master/slave
-    // framework will call processEventQueue() automatically;
-    // in other types of apps, you'll need to do it manually.
+    // To buffer events & process them once per frame,
+    // override this and call queueEvent(). The master/slave
+    // framework will call processEventQueue() for you.
     virtual bool _processEvent( arInputEvent& inputEvent );
     arSZGAppFramework* _framework;
     bool _saveEventQueue;
@@ -38,13 +35,11 @@ class SZG_CALL arFrameworkEventFilter : public arIOFilter {
 
 class arCallbackEventFilter;
 
-typedef bool (*arFrameworkEventCallback)( arSZGAppFramework& fw,
-                                          arInputEvent& event, 
-                                          arCallbackEventFilter& filter );
+typedef bool (*arFrameworkEventCallback)(
+  arSZGAppFramework&, arInputEvent&, arCallbackEventFilter& );
 
-// Visual Studio 6 complains if "theQueue" is replaced by "queue".
-typedef bool (*arFrameworkEventQueueCallback)( arSZGAppFramework& fw,
-                                               arInputEventQueue& theQueue );
+typedef bool (*arFrameworkEventQueueCallback)(
+  arSZGAppFramework&, arInputEventQueue& );
 
 class SZG_CALL arCallbackEventFilter : public arFrameworkEventFilter {
   public:
@@ -58,5 +53,4 @@ class SZG_CALL arCallbackEventFilter : public arFrameworkEventFilter {
     arFrameworkEventCallback _callback;
 };
 
-#endif        //  #ifndefARFRAMEWORKEVENTFILTER_H
-
+#endif

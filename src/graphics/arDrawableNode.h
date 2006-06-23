@@ -11,10 +11,16 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-enum arDrawableType {DG_POINTS = 0, DG_LINES = 1, DG_LINE_STRIP = 2, 
-                     DG_TRIANGLES = 3, DG_TRIANGLE_STRIP = 4,
-                     DG_QUADS = 5, DG_QUAD_STRIP = 6,
-                     DG_POLYGON = 7};
+enum arDrawableType {
+  DG_POINTS = 0,
+  DG_LINES,
+  DG_LINE_STRIP,
+  DG_TRIANGLES,
+  DG_TRIANGLE_STRIP,
+  DG_QUADS,
+  DG_QUAD_STRIP,
+  DG_POLYGON
+  };
 
 class SZG_CALL arDrawableNode:public arGraphicsNode{
  public:

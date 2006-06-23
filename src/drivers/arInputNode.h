@@ -16,13 +16,13 @@
 #include <list>
 #include <vector>
 
-/// You can chain these together.
+// You can chain arInputNodes.
 
 class SZG_CALL arInputNode: public arInputSink {
   // Needs assignment operator and copy constructor, for pointer members.
   public:
     arInputNode( bool bufferEvents = false );
-    // if anyone ever derives from this class, make the following virtual:
+    // If anyone ever derives from this class, make the following virtual:
     // destructor init start stop restart receiveData sourceReconfig.
     ~arInputNode();
   
@@ -50,7 +50,6 @@ class SZG_CALL arInputNode: public arInputSink {
     float getAxis(int);
     arMatrix4 getMatrix(int);
   
-    /// \todo some classes use getNumberButtons, others getNumButtons (etc).  Be consistent.
     int getNumberButtons() const;
     int getNumberAxes() const;
     int getNumberMatrices() const;

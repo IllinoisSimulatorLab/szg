@@ -3,26 +3,27 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// Cross-platform Flock-of-Birds driver. Jim Crowell, 10/02.
-// Further modifications by Lee Hendrickson and Ben Schaeffer.
-// Thanks to Bill Sherman's FreeVR library for providing important
-// insight into the Flock's operation.
-// 
-// A Flock can be set up in several ways:
-// - standalone: a single unit hosts a bird and a transmitter. This is
-//   connected directly to the host via RS232.
-// - flock, 1 RS232: There are several units, but only one is connected to
-//   the host via RS232. The "master" unit is connected to the host
-//   and has flock ID 1. The other units are slaved to the master via
-//   the internal flock FBB interface. A transmitter will be connected to
-//   the flock, but maybe not to the master unit. Also, some units may
-//   not have birds attached (for instance the unit holding the transmitter).
-// - flock, mulitple RS232. In this case, the host communicates to multiple
-//   units directly via mulitple serial connections. THIS IS NOT SUPPORTED!
-// 
-// Serial port numbers are 1-based: under Win32 COM1 is port 1,
-// and under Linux /dev/ttys0 is port 1.
-// 
+/*
+Cross-platform Flock-of-Birds driver. Jim Crowell, 10/02.
+Further modifications by Lee Hendrickson and Ben Schaeffer.
+Thanks to Bill Sherman's FreeVR library for providing important
+insight into the Flock's operation.
+
+A Flock can be set up in several ways:
+  - Standalone: a single unit hosts a bird and a transmitter via RS232.
+  - Flock, 1 RS232: several units, but only one is connected to
+    the host via RS232. The "master" unit connects to the host,
+    and has flock ID 1. Other units slave to the master via
+    the flock's own FBB interface. A transmitter will be connected to
+    the flock, but maybe not to the master unit. Also, some units may
+    have no birds, e.g. the unit with the transmitter.
+  - Flock, multiple RS232. The host communicates to multiple
+    units directly via mulitple serial connections. Unimplemented.
+
+Within Syzygy, serial port numbers are 1-based:
+port 1 in Win32 is COM1, in Linux is /dev/ttys0.
+Not true?  InputDevices-Drivers.t2t and drivers/RS232Server.cpp disagree.
+*/
 
 #ifndef AR_FOB_RS232_DRIVER_H
 #define AR_FOB_RS232_DRIVER_H
@@ -35,7 +36,7 @@
 #include "arDriversCalling.h"
 #include <string>
 
-/// Driver for Ascension Flock of Birds.
+// Driver for Ascension's Flock of Birds magnetic motion tracker.
 
 class arFOBDriver: public arInputSource {
   friend void ar_FOBDriverEventTask(void*);

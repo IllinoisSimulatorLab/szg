@@ -12,7 +12,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arInteractionCalling.h"
 
-/// Input device (gamepad, motion tracker, keyboard, etc.).
+// Input device (gamepad, motion tracker, keyboard, etc.).
 
 class SZG_CALL arInterfaceObject{
   // Needs assignment operator and copy constructor, for pointer members.

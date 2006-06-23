@@ -13,7 +13,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-/// Driver for the accurate Reaction Timer system.
+// Driver for PPT, whatever that is.
 
 class SZG_CALL arPPTDriver: public arInputSource {
     friend void ar_PPTDriverEventTask(void*);

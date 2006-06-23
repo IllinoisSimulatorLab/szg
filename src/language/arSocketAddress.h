@@ -28,7 +28,7 @@
 #include "arLanguageCalling.h"
 using namespace std;
 
-/// Abstracts the concept of a socket address.
+// Abstract socket address.
 
 class SZG_CALL arSocketAddress{
  public:

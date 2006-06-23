@@ -14,7 +14,7 @@
 #include <sstream>
 using namespace std;
 
-/// XML parsing
+// XML parsing
 SZG_CALL bool ar_ignoreWhitespace(arTextStream* textStream,
                                   arBuffer<char>* optionalBuffer = NULL);
 SZG_CALL bool ar_getTextBeforeTag(arTextStream* textStream, 

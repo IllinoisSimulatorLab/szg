@@ -12,9 +12,7 @@
 
 SZG_CALL string ar_graphicsPeerStripName(string& messageBody);
 
-SZG_CALL string ar_graphicsPeerHandleMessage(arGraphicsPeer* peer,
-                                             const string& messageType,
-				             const string& messageBody);
+SZG_CALL string ar_graphicsPeerHandleMessage(
+  arGraphicsPeer* peer, const string& messageType, const string& messageBody);
 
 #endif
-

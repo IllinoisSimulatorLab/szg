@@ -11,7 +11,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-/// Something which absorbs input-device messages and does something with them.
+// Consume and do something with input-device messages.
 
 class SZG_CALL arInputSink{
   friend class arInputNode;

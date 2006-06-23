@@ -13,19 +13,19 @@
 #include "arLanguageCalling.h"
 using namespace std;
 
-// This forward declaration is necessary since an arDatabaseNode can be
-// owned by an arDatabase.
+// Forward declaration, since an arDatabaseNode can be owned by an arDatabase.
 class arDatabase;
 
-/// The nodes are of various types.
+// The nodes are of various types.
 
-enum arNodeLevel{ AR_IGNORE_NODE = -1,
-                  AR_STRUCTURE_NODE = 0, 
-                  AR_STABLE_NODE = 1,
-                  AR_OPTIONAL_NODE = 2,
-                  AR_TRANSIENT_NODE = 3 };
+enum arNodeLevel{
+  AR_IGNORE_NODE = -1,
+  AR_STRUCTURE_NODE,
+  AR_STABLE_NODE,
+  AR_OPTIONAL_NODE,
+  AR_TRANSIENT_NODE };
 
-/// Node in an arDatabase.
+// Node in an arDatabase.
 
 class SZG_CALL arDatabaseNode{
   friend class arDatabase;

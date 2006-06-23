@@ -30,22 +30,22 @@ typedef void* LibHandle;
 
 #ifdef AR_USE_DARWIN
 typedef void* LibHandle;
-// NOTE: This is the dlcompat wrapper over Mac OS X's native dylib API
+// dlcompat wrapper over Mac OS X's native dylib API
 #include <dlfcn.h>
 #endif
 
 #include <string>
 using namespace std;
 
-/// A wrapper class that allows portable use of shared libraries.
-/// It handles the different naming conventions and behaviors for
-/// different platforms as automatically as is possible. It also 
-/// offers syzygy-aware functions for dll-loading, as is needed, for
-/// instance, in managing load paths across different architectures.
-/// A case in point: linux and irix require, essentially, that dll's
-/// loaded without absolute path names either be on the LD_LIBRARY_PATH
-/// or in a standard directory, whereas Win32 will look first for dll's
-/// in the executable's directory.
+// A wrapper class that allows portable use of shared libraries.
+// It handles the different naming conventions and behaviors for
+// different platforms as automatically as is possible. It also 
+// offers syzygy-aware functions for dll-loading, as is needed, for
+// instance, in managing load paths across different architectures.
+// A case in point: linux and irix require, essentially, that dll's
+// loaded without absolute path names either be on the LD_LIBRARY_PATH
+// or in a standard directory, whereas Win32 will look first for dll's
+// in the executable's directory.
 
 typedef void* (*arSharedLibFactory)();
 typedef void (*arSharedLibObjectType)(char*, int);

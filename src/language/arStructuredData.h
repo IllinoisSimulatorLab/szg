@@ -23,7 +23,7 @@ class arLanguage;
 #include <vector>
 using namespace std;
 
-/// Data format which gets passed around the cluster.
+// Data format which gets passed around the cluster.
 
 class SZG_CALL arStructuredData {
 
@@ -45,10 +45,10 @@ class SZG_CALL arStructuredData {
    int numberDataItems() const
      { return _numberDataItems; }
    
-   /// useful for manipulating data in a fine-grained way
+   // for manipulating data in a fine-grained way
    void* getDataPtr(int,arDataType);
-   int getDataDimension(int);      ///< called by xxxClient
-   bool setDataDimension(int,int); ///< called by xxxServer
+   int getDataDimension(int);      // called by xxxClient
+   bool setDataDimension(int,int); // called by xxxServer
    int getStorageDimension(int);
    bool setStorageDimension(int,int);
    arDataType getDataType(int fieldIndex) const;
@@ -58,11 +58,11 @@ class SZG_CALL arStructuredData {
    bool setDataDimension(const string&, int); 
    arDataType getDataType(const string& fieldName);
    
-   /// useful for manipulating data one chunk at a time
-   bool dataIn(int field,const void* data,arDataType type,int dim); ///< called by xxxServer
-   bool dataOut(int,void*,arDataType,int);      ///< called by xxxClient
+   // useful for manipulating data one chunk at a time
+   bool dataIn(int field,const void* data,arDataType type,int dim); // called by xxxServer
+   bool dataOut(int,void*,arDataType,int);      // called by xxxClient
 
-   /// some less efficient methods for data manipulation
+   // some less efficient methods for data manipulation
    bool dataIn(const string&, const void*, 
                arDataType theType=AR_GARBAGE, int dimension=0);
    bool dataOut(const string&, void*, arDataType, int);
@@ -71,7 +71,7 @@ class SZG_CALL arStructuredData {
    bool getDataFieldName( int index, string& fieldName );
    void getFieldNames( std::vector< std::string >& names ) const;
 
-   /// common abbreviations
+   // common abbreviations
    bool dataInString(int id, const string& s)
      { return dataIn(id, s.data(), AR_CHAR, s.length()); }
    bool dataInString(const string& fieldName, const string& s)
@@ -91,16 +91,16 @@ class SZG_CALL arStructuredData {
    float getDataFloat(const string& fieldName)
      { float x; return dataOut(fieldName, &x, AR_FLOAT, 1) ? x : 0.; }
 
-   /// Useful for manipulating big chunks of data with fewer mem copies.
-   /// Experimenting here with not requiring data type.
-   /// Called only by xxxClient, I think.
+   // Useful for manipulating big chunks of data with fewer mem copies.
+   // Experimenting here with not requiring data type.
+   // Called only by xxxClient, I think.
    bool ptrIn(int,void*,int);
    
    // byte stream representation
-   int size() const;     ///< how many bytes will this data be when packed
-   void pack(ARchar*);   ///< from internal representation to byte stream
-   bool unpack(ARchar*); ///< from byte stream to internal representation
-   bool parse(ARchar*);  ///< set pointers into char buffer... do not own data
+   int size() const;     // how many bytes will this data be when packed
+   void pack(ARchar*);   // from internal representation to byte stream
+   bool unpack(ARchar*); // from byte stream to internal representation
+   bool parse(ARchar*);  // set pointers into char buffer... do not own data
 
    // debugging info
    const string& getName() const

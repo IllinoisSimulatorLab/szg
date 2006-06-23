@@ -5,12 +5,9 @@
 
 // This can be included multiple times.
 
-// Recall that SZG_IMPORT_LIBRARY is defined or undefined by each of the
-// sublibraries that make up SZG.Consequently, we have to manually undefine
-// it here.
-
+// Each sublibrary of Syzygy defines or undefines SZG_IMPORT_LIBRARY.
+// So undefine it here.
 #undef SZG_IMPORT_LIBRARY
-
 #ifndef SZG_COMPILING_INTERACTION
 #define SZG_IMPORT_LIBRARY
 #endif

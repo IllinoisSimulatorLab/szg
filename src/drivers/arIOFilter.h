@@ -12,7 +12,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-/// Abstract base class for filtering messages.
+// Abstract base class for filtering messages.
 
 class SZG_CALL arIOFilter {
   public:

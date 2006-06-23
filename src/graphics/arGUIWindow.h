@@ -96,8 +96,8 @@ class arGUIWindowManager;
   #endif
 
   typedef struct {
-    unsigned int cursorShape;    ///< an XC_{cursor} value
-    Cursor cachedCursor;         ///< 'None' if the corresponding cursor has not been created yet
+    unsigned int cursorShape;    // an XC_{cursor} value
+    Cursor cachedCursor;         // 'None' if the corresponding cursor has not been created yet
   } cursorCacheEntry;
 
   typedef struct {
@@ -222,9 +222,9 @@ class SZG_CALL arDefaultGUIRenderCallback : public arGUIRenderCallback
 
     /// @todo clean up the naming scheme
 
-    void (*_drawCallback0)( arGUIWindowInfo*, arGraphicsWindow* );    ///< type 1 draw callback
-    void (*_drawCallback1)( arGUIWindowInfo* );                       ///< type 2 draw callback
-    void (*_drawCallback2)( arGraphicsWindow&, arViewport& );         ///< type 3 draw callback
+    void (*_drawCallback0)( arGUIWindowInfo*, arGraphicsWindow* ); // type 1
+    void (*_drawCallback1)( arGUIWindowInfo* );                    // type 2
+    void (*_drawCallback2)( arGraphicsWindow&, arViewport& );      // type 3
 
 };
 
@@ -396,13 +396,13 @@ class SZG_CALL arWMEvent
 
   private:
 
-    arGUIWindowInfo _event;             ///< The current message information.
-    bool _conditionFlag;                ///< Condition flag for use in conjunction with _eventCond.
+    arGUIWindowInfo _event;             // The current message information.
+    bool _conditionFlag;                // Condition flag for use in conjunction with _eventCond.
 
-    int _done;                          ///< 0 if new/reset event, 1 if signaled, 2 if waited, allows 'done' events to be reused by arGUIWindow.
+    int _done;                          // 0 if new/reset event, 1 if signaled, 2 if waited, allows 'done' events to be reused by arGUIWindow.
 
-    arConditionVar _eventCond;          ///< Condition variable for use in blocking.
-    arMutex _eventMutex, _doneMutex;    ///< Mutexes to ensure thread safety.
+    arConditionVar _eventCond;          // Condition variable for use in blocking.
+    arMutex _eventMutex, _doneMutex;    // Mutexes to ensure thread safety.
 
 };
 
@@ -441,7 +441,7 @@ class arGUIWindowBuffer
 
   private:
 
-    bool _dblBuf;     ///< if the window is double buffered enable (currently unused).
+    bool _dblBuf;     // if the window is double buffered enable (currently unused).
 
 };
 
@@ -948,46 +948,46 @@ class SZG_CALL arGUIWindow
      */
     virtual void _drawHandler( void );
 
-    int _ID;                                    ///< A unique identifier for this window.
-    std::string _className;                     ///< Registered class for this window (Win32 only)
+    int _ID;                                    // A unique identifier for this window.
+    std::string _className;                     // Registered class for this window (Win32 only)
 
-    arGUIWindowConfig _windowConfig;            ///< The initial window configuration object, should never be changed.
+    arGUIWindowConfig _windowConfig;            // The initial window configuration object, should never be changed.
 
-    arGUIWindowHandle _windowHandle;            ///< The OS-specific window components
+    arGUIWindowHandle _windowHandle;            // The OS-specific window components
 
-    arThread _windowEventThread;                ///< Thread in which the window exists in multi-threaded mode
+    arThread _windowEventThread;                // Thread in which the window exists in multi-threaded mode
 
-    arGUIRenderCallback* _drawCallback;         ///< The user-defined draw callback.
-    void (*_windowInitGLCallback)( arGUIWindowInfo* );      ///< The user-defined window opengl initialization callback.
+    arGUIRenderCallback* _drawCallback;         // The user-defined draw callback.
+    void (*_windowInitGLCallback)( arGUIWindowInfo* );      // The user-defined window opengl initialization callback.
 
-    bool _visible;                              ///< Is the window currently visible?
-    bool _running;                              ///< Is the window currently running?
-    bool _threaded;                             ///< Is the window in threaded or non-threaded mode?
-    bool _fullscreen;                           ///< Is the window currently in fullscreen mode?
-    bool _decorate;                             ///< Is the window currently decorated?
+    bool _visible;                              // Is the window currently visible?
+    bool _running;                              // Is the window currently running?
+    bool _threaded;                             // Is the window in threaded or non-threaded mode?
+    bool _fullscreen;                           // Is the window currently in fullscreen mode?
+    bool _decorate;                             // Is the window currently decorated?
 
-    arZOrder _zorder;                           ///< The current window z-ordering.
+    arZOrder _zorder;                           // The current window z-ordering.
 
-    arCursor _cursor;                           ///< The current window cursor.
+    arCursor _cursor;                           // The current window cursor.
 
-    ar_timeval _lastFrameTime;                  ///< For framerate throttling
+    ar_timeval _lastFrameTime;                  // For framerate throttling
 
-    arGUIEventManager* _GUIEventManager;        ///< The window's arGUIEventManager.
-    arGUIWindowBuffer* _windowBuffer;           ///< The window's arGUIWindowBuffer.
+    arGUIEventManager* _GUIEventManager;        // The window's arGUIEventManager.
+    arGUIWindowBuffer* _windowBuffer;           // The window's arGUIWindowBuffer.
 
-    arConditionVar _creationCond;               ///< Signaled when the window has been created.
-    arConditionVar _destructionCond;            ///< Signaled when the window has been destroyed.
-    arMutex _creationMutex, _destructionMutex;  ///< Mutexes for the condition variables.
-    bool _creationFlag, _destructionFlag;       ///< Flags for the condition variables.
+    arConditionVar _creationCond;               // Signaled when the window has been created.
+    arConditionVar _destructionCond;            // Signaled when the window has been destroyed.
+    arMutex _creationMutex, _destructionMutex;  // Mutexes for the condition variables.
+    bool _creationFlag, _destructionFlag;       // Flags for the condition variables.
 
-    EventQueue _WMEvents;                       ///< Queue of to-be-processed events received from the window manager.
-    arMutex _WMEventsMutex;                     ///< Mutex protecting the window manager event queue.
+    EventQueue _WMEvents;                       // Queue of to-be-processed events received from the window manager.
+    arMutex _WMEventsMutex;                     // Mutex protecting the window manager event queue.
 
-    void* _userData;                            ///< User-set data pointer.
+    void* _userData;                            // User-set data pointer.
 
-    arMutex _graphicsWindowMutex;               ///< A lock protecting access to the arGraphicsWindow.
-    arGUIWindowManager* _windowManager;   ///< If we were created by an arGUIWindowManager, then this points back to it. OK since the GUI window manager should outlive us.
-    arGraphicsWindow* _graphicsWindow;          ///< An associated arGraphicsWindow (can be NULL). 
+    arMutex _graphicsWindowMutex;               // A lock protecting access to the arGraphicsWindow.
+    arGUIWindowManager* _windowManager;   // If we were created by an arGUIWindowManager, then this points back to it. OK since the GUI window manager should outlive us.
+    arGraphicsWindow* _graphicsWindow;          // An associated arGraphicsWindow (can be NULL). 
 
     /**
      * A queue of usable (and possibly in-use) arWMEvents.
@@ -1000,11 +1000,10 @@ class SZG_CALL arGUIWindow
      * neatly sidestepped.
      */
     EventVector _usableEvents;
-    arMutex _usableEventsMutex;  ///< Mutex protecting the usable events queue.
+    arMutex _usableEventsMutex;  // Mutex protecting the usable events queue.
 
     arConditionVar _WMEventsVar;
 
 };
 
 #endif
-

@@ -35,4 +35,3 @@ class SZG_CALL arDragManager {
 };
 
 #endif        //  #ifndefARDRAGMANAGER_H
-

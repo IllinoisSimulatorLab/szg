@@ -18,4 +18,3 @@ SZG_CALL bool ar_pollingInteraction( arEffector& effector,
                                      arInteractable* object );
 
 #endif        //  #ifndefARINTERACTIONUTILITIES_H
-

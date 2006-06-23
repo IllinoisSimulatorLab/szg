@@ -47,16 +47,15 @@ typedef map<int,list<arStructuredData*>,less<int> > SZGtaggedMessageQueue;
 typedef map<int,arStructuredDataSynchronizer*,less<int> > SZGtaggedMessageSync;
 typedef list<arStructuredDataSynchronizer*> SZGunusedMessageSync;
 
-/// This class converts a byte-stream or text-stream into a sequence of 
-/// arStructuredData objects. It encapsulates some of the commonly used 
-/// functions in a parser. For instance, one can read data from a source in a 
-/// dedicated thread, which goes into internal storage. A response handler in 
-/// another thread can then block until a record of a certain type is read 
-/// (and receive that record). Furthermore, records can be stored internally 
-/// via an application-defined tag (instead of via record type). This 
-/// facilitates building asynchronous rpc type calls, for instance. Memory 
-/// management is also added, which created arStructuredData records being 
-/// re-used.
+// This class converts a byte-stream or text-stream into a sequence of 
+// arStructuredData objects. It encapsulates some of the commonly used 
+// functions in a parser. For instance, one can read data from a source in a 
+// dedicated thread, which goes into internal storage. A response handler in 
+// another thread can then block until a record of a certain type is read 
+// (and receive that record). Furthermore, records can be stored internally 
+// via an application-defined tag (instead of via record type). This 
+// facilitates building asynchronous rpc type calls, for instance. Memory 
+// management is also added, which created arStructuredData records being re-used.
 
 class SZG_CALL arStructuredDataParser{
  // Needs assignment operator and copy constructor,
@@ -97,15 +96,15 @@ class SZG_CALL arStructuredDataParser{
   arTemplateDictionary* _dictionary;
   list<arBuffer<char>*> _translationBuffers;
 
-  /// Serialize access to the complex message storage structures
+  // Serialize access to the complex message storage structures
   arMutex _globalLock; 
-  /// Serialize access to the store of unused message storage
+  // Serialize access to the store of unused message storage
   arMutex _recycleLock;
-  /// Deals with the clearQueues/activateQueues calls
+  // Deals with the clearQueues/activateQueues calls
   arMutex _activationLock;
   // Should we be allowing "clients" to grab data from the various queues?
   bool _activated;
-  /// Serialize access to the list of translation buffers
+  // Serialize access to the list of translation buffers
   arMutex _translationBufferListLock; 
 
   void _pushOntoQueue(arStructuredData* theData);

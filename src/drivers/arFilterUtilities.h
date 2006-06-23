@@ -12,9 +12,6 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-//enum {AR_EVENT_GARBAGE=-1, AR_EVENT_BUTTON=0, 
-//      AR_EVENT_AXIS=1, AR_EVENT_MATRIX=2};
-
 SZG_CALL int ar_getNumberEvents(arStructuredData*);
 SZG_CALL int ar_getNumberEventsType(int eventType, arStructuredData*);
 SZG_CALL int ar_getEventID(int eventType, int eventNumber, arStructuredData*);

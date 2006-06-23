@@ -13,7 +13,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-/// Driver for the Faro Arm.
+// Driver for the Faro Arm.
 
 class arFaroDriver: public arInputSource {
   friend void ar_FaroDriverEventTask(void*);

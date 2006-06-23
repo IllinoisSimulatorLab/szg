@@ -19,7 +19,7 @@
 #include "vrpn_Button.h"
 #endif
 
-/// Driver for connecting to an external VRPN server
+// Driver for connecting to a VRPN server
 
 class SZG_CALL arVRPNDriver: public arInputSource{
   friend void ar_VRPNDriverEventTask(void*);

@@ -11,7 +11,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-/// 4x4 matrix transformation (an articulation in the scene graph).
+// 4x4 matrix transformation (an articulation in the scene graph).
 
 class SZG_CALL arTransformNode: public arGraphicsNode{
  public:
@@ -23,7 +23,7 @@ class SZG_CALL arTransformNode: public arGraphicsNode{
   arStructuredData* dumpData();
   bool receiveData(arStructuredData*);
 
-  /// Data access functions specific to arTransformNode
+  // Data access functions specific to arTransformNode
   arMatrix4 getTransform();
   void setTransform(const arMatrix4& transform);
 

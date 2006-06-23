@@ -58,4 +58,3 @@ class SZG_CALL arAngleInteractionSelector: public arInteractionSelector {
 };
 
 #endif        //  #ifndefARINTERACTIONSELECTOR_H
-

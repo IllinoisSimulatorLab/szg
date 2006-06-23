@@ -12,7 +12,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-/// Driver for (USB) joysticks or gamepads.
+// Driver for (USB) joysticks or gamepads.
 
 class SZG_CALL arJoystickDriver: public arInputSource{
   friend void ar_joystickDriverEventTask(void*);

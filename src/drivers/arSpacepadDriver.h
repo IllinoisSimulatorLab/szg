@@ -29,7 +29,7 @@ class SZG_CALL arSpacepadDriver: public arInputSource{
   float positionScaling;
   float angleScaling;
 
-  // the calibration stuff
+  // calibration
   arMatrix4 _transmitterOffset;
   arMatrix4 _sensorRot[2];
 

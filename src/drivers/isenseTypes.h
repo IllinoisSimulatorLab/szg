@@ -28,6 +28,3 @@ typedef long                Hwnd;
 
 #endif
 #endif
-
-
-

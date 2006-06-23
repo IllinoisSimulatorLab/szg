@@ -24,7 +24,7 @@ class SZG_CALL arGraphicsPluginNode: public arGraphicsNode {
     arStructuredData* dumpData();
     bool receiveData(arStructuredData*);
 
-    /// Data access functions specific to arGraphicsPluginNode.
+    // Data access functions specific to arGraphicsPluginNode.
     static void setSharedLibSearchPath( const std::string& searchPath );
     static arSharedLib* getSharedLib( const std::string& fileName );
 

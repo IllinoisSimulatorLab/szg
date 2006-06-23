@@ -17,10 +17,10 @@
 
 struct BN_PACKET {
   BN_HEADER header;
-  unsigned char data[2048]; /* undifferentiated packet data */
+  unsigned char data[2048]; // undifferentiated packet data
 };
 
-/// Driver for Ascension MotionStar motion tracker.
+// Driver for Ascension MotionStar motion tracker.
 
 class arMotionstarDriver: public arInputSource {
   friend void ar_motionstarDriverEventTask(void*);

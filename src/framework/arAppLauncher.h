@@ -12,7 +12,7 @@
 #include "arFrameworkCalling.h"
 using namespace std;
 
-/// Launch and kill applications running on multiple nodes of a cluster.
+// Launch and kill apps on multiple nodes of a cluster.
 
 class SZG_CALL arLaunchInfo{
  public:

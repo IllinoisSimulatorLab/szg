@@ -69,8 +69,8 @@ class SZG_CALL arGUIXMLWindowConstruct {
     void setGraphicsWindow( arGraphicsWindow* graphicsWindow ) { _graphicsWindow = graphicsWindow; }
     void setGUIDrawCallback( arGUIRenderCallback* guiDrawCallback ) { _guiDrawCallback = guiDrawCallback; }
 
-    /// conceptually both of these pointers should /probably/ be returned const,
-    /// but there's places they're used where it's not currently possible to do so
+    // Both of these pointers should probably be returned const,
+    // but there's places they're used where it's not currently possible to do so
     arGUIWindowConfig* getWindowConfig( void ) const { return _windowConfig; }
     arGraphicsWindow* getGraphicsWindow( void ) const { return _graphicsWindow; }
 
@@ -79,10 +79,10 @@ class SZG_CALL arGUIXMLWindowConstruct {
 
   private:
 
-    arGUIWindowConfig* _windowConfig;       ///< A window configuration object.
-    arGraphicsWindow* _graphicsWindow;      ///< An associated arGraphicsWindow.
+    arGUIWindowConfig* _windowConfig;       // A window configuration object.
+    arGraphicsWindow* _graphicsWindow;      // An associated arGraphicsWindow.
 
-    arGUIRenderCallback* _guiDrawCallback;  ///< A arGUIWindow draw callback.
+    arGUIRenderCallback* _guiDrawCallback;  // A arGUIWindow draw callback.
 
 };
 
@@ -132,10 +132,10 @@ class SZG_CALL arGUIWindowingConstruct {
 
   private:
 
-    int _threaded;        ///< Whether or not to use threading, -1 if not explicitly set from the XML.
-    int _useFramelock;    ///< Whether or not to use framelocking, -1 if not explicitly set from the XML.
+    int _threaded;        // Whether or not to use threading, -1 if not explicitly set from the XML.
+    int _useFramelock;    // Whether or not to use framelocking, -1 if not explicitly set from the XML.
 
-    std::vector< arGUIXMLWindowConstruct* >* _windowConstructs;   ///< A collection of windows to be created.
+    std::vector< arGUIXMLWindowConstruct* >* _windowConstructs;   // A collection of windows to be created.
 };
 
 /**
@@ -293,17 +293,12 @@ class SZG_CALL arGUIXMLParser {
     arCamera* _configureCamera( arGraphicsScreen& screen,
                                 TiXmlNode* cameraNode = NULL );
 
-    arSZGClient* _SZGClient;                          ///< A reference to an arSZGClient
-
-    arGUIWindowingConstruct* _windowingConstruct;     ///< The windowing construct set up by parse()
-
-    std::vector< arGUIXMLWindowConstruct* > _parsedWindowConstructs;      ///< The collection of parsed window constructs.
-
-    std::string _config, _mininumConfig;              ///< The XML configuration strings.
-
-    TiXmlDocument _doc;                               ///< The XML document.
+    arSZGClient* _SZGClient;
+    arGUIWindowingConstruct* _windowingConstruct;     // The windowing construct set up by parse()
+    std::vector< arGUIXMLWindowConstruct* > _parsedWindowConstructs;      // The collection of parsed window constructs.
+    std::string _config, _mininumConfig;              // The XML configuration strings.
+    TiXmlDocument _doc;                               // The XML document.
 
 };
 
 #endif
-

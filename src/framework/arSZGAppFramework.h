@@ -93,28 +93,33 @@ class SZG_CALL arSZGAppFramework {
     virtual void setEventQueueCallback( arFrameworkEventQueueCallback callback );
     void processEventQueue();
     virtual void onProcessEventQueue( arInputEventQueue& theQueue );
+
     // Should this return a copy instead? In some cases it points
     // inside the arInputNode.
     arInputState* getInputState() { return (arInputState*)_inputState; }
 
-    // Some applications need a thread running external to the library.
-    // For deterministic shutdown, we need to be able to register that
+    // Some apps need a thread running external to the library.
+    // For deterministic shutdown, we need to register that
     // thread's existence, know when it is shutting down, etc.
 
-    /// In the case of a user-defined, external event loop, the external
-    /// program may need to know when the "stop" signal has been received.
-    /// Returns whether or not the shutdown process has begun.
+    // In the case of a user-defined, external event loop, the external
+    // program may need to know when the "stop" signal has been received.
+    // Returns whether or not the shutdown process has begun.
     bool stopping() const { return _exitProgram; }
-    /// in the case of a user-defined external event loop, we may want the 
-    /// exit(0) call to be made by the user code. The following function lets 
-    /// the user code know that stop(...) is done. 
-    /// Returns whether or not stop(...) has completed.
+
+    // in the case of a user-defined external event loop, we may want the 
+    // exit(0) call to be made by the user code. The following function lets 
+    // the user code know that stop() is done. 
+    // Returns whether or not stop() has completed.
     bool stopped() const { return _stopped; }
+
     // sometimes we want to use an external thread or other event loop that
     // must be shutdown cleanly
     void useExternalThread() { _useExternalThread = true; }
+
     // tells stop() that our external thread has started
     void externalThreadStarted() { _externalThreadRunning = true; }
+
     // tells stop() that our external thread has shut-down cleanly
     void externalThreadStopped() { _externalThreadRunning = false; }
 
@@ -218,4 +223,3 @@ class SZG_CALL arSZGAppFramework {
 };
 
 #endif        //  #ifndefAR_SZG_APP_FRAMEWORK_H
-

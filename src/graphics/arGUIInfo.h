@@ -83,18 +83,18 @@ class SZG_CALL arGUIInfo
     //@}
 
   private:
-    /// variables common to all events
+    // variables common to all events
 
-    arGUIEventType _eventType;    ///< The type of event.
-    arGUIState _state;            ///< The state of the event.
+    arGUIEventType _eventType;    // The type of event.
+    arGUIState _state;            // The state of the event.
 
-    int _windowID;                ///< Identifier for the window this event took place in.
+    int _windowID;                // Identifier for the window this event took place in.
 
-    int _flag;                    ///< A generic flag, use is defined on a per-function basis.
+    int _flag;                    // A generic flag, use is defined on a per-function basis.
 
-    void* _userData;              ///< A user-defined data pointer, defined on a per window basis.
+    void* _userData;              // A user-defined data pointer, defined on a per window basis.
 
-    arGUIWindowManager* _wm;      ///< Points back to the window manager that generated this event.
+    arGUIWindowManager* _wm;      // Points back to the window manager that generated this event.
 };
 
 /**
@@ -155,13 +155,13 @@ class SZG_CALL arGUIKeyInfo : public arGUIInfo
 
   private:
 
-    arGUIKey _key;      ///< The key involved in this event.
+    arGUIKey _key;      // The key involved in this event.
 
-    int _ctrl;          ///< The ctrl key modifier.
-    int _alt;           ///< The alt key modifier.
+    int _ctrl;          // The ctrl key modifier.
+    int _alt;           // The alt key modifier.
 
-    /// By design shift is not considered a modifier, all ascii
-    /// keypresses are translated to their shift'ed variants.
+    // Shift is not considered a modifier. All ascii
+    // keypresses are translated to their shifted variants.
 };
 
 /**
@@ -233,12 +233,11 @@ class SZG_CALL arGUIMouseInfo : public arGUIInfo
 
   private:
 
-    arGUIButton _button;    ///< The mouse button involved in this event.
-
-    int _posX;              ///< The current x position of the mouse.
-    int _posY;              ///< The current y position of the mouse.
-    int _prevPosX;          ///< The previous x position of the mouse.
-    int _prevPosY;          ///< The previous y position of the mouse.
+    arGUIButton _button;    // Mouse button involved in this event.
+    int _posX;              // Current x position of the mouse.
+    int _posY;              // Current y position of the mouse.
+    int _prevPosX;          // Previous x position of the mouse.
+    int _prevPosY;          // Previous y position of the mouse.
 };
 
 /**
@@ -293,8 +292,7 @@ class SZG_CALL arGUIWindowInfo : public arGUIInfo
 
     void setSizeX( int sizeX ) { _sizeX = sizeX; }
     void setSizeY( int sizeY ) { _sizeY = sizeY; }
-    void setSize( int sizeX, int sizeY ) { _sizeX = sizeX;
-                                           _sizeY = sizeY; }
+    void setSize( int sizeX, int sizeY ) { _sizeX = sizeX; _sizeY = sizeY; }
 
     int getPosX( void ) const { return _posX; }
     int getPosY( void ) const { return _posY; }
@@ -304,12 +302,10 @@ class SZG_CALL arGUIWindowInfo : public arGUIInfo
     //@}
 
   private:
-    int _posX;      ///< The x position of the window.
-    int _posY;      ///< The y position of the window.
-    int _sizeX;     ///< The width of the window.
-    int _sizeY;     ///< The height of the window.
+    int _posX;      // Window's x position.
+    int _posY;      // Window's y position.
+    int _sizeX;     // Window's width.
+    int _sizeY;     // Window's height.
 };
 
-
 #endif
-

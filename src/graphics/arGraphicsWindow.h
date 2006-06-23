@@ -128,12 +128,11 @@ class SZG_CALL arGraphicsWindow {
     // This is the 'master' camera, used by viewports by default
     arCamera* _defaultCamera;
     float _currentEyeSign;
-    int _posX;      ///< The x position of the window.
-    int _posY;      ///< The y position of the window.
-    int _sizeX;     ///< The width of the window.
-    int _sizeY;     ///< The height of the window.
+    // todo: decopypaste from arGUIInfo.h
+    int _posX;      // The x position of the window.
+    int _posY;      // The y position of the window.
+    int _sizeX;     // The width of the window.
+    int _sizeY;     // The height of the window.
 };
 
-
 #endif        //  #ifndefARGRAPHICSWINDOW_H
-

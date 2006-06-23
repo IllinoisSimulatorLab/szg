@@ -10,19 +10,19 @@
 #include "arGraphicsCalling.h"
 
 /**
- * The different types of OS events that can occur.
+ * OS events.
  */
 SZG_CALL enum arGUIEventType
 {
-  AR_GENERIC_EVENT,         ///< Placeholder event (for default constructors).
-  AR_KEY_EVENT,             ///< A keyboard event.
-  AR_MOUSE_EVENT,           ///< A mouse event.
-  AR_WINDOW_EVENT,          ///< A window event.
-  AR_NUM_GUI_EVENTS         ///< The number of different OS events.
+  AR_GENERIC_EVENT,         // Placeholder event (for default constructors).
+  AR_KEY_EVENT,             // A keyboard event.
+  AR_MOUSE_EVENT,           // A mouse event.
+  AR_WINDOW_EVENT,          // A window event.
+  AR_NUM_GUI_EVENTS         // The number of different OS events.
 };
 
 /**
- * The different states that an OS event can be in.
+ * States that an OS event can be in.
  *
  * Also used as the 'to-do' message detail in passing requests from
  * arGUIWindowManager to arGUIWindow (i.e., in this case AR_WINDOW_MOVE means
@@ -30,26 +30,26 @@ SZG_CALL enum arGUIEventType
  */
 SZG_CALL enum arGUIState
 {
-  AR_GENERIC_STATE,         ///< Placeholder state (for default constructors).
-  AR_KEY_DOWN,              ///< A key has been pressed.
-  AR_KEY_UP,                ///< A key has been released.
-  AR_KEY_REPEAT,            ///< A key was pressed and is continuing to be pressed.
-  AR_MOUSE_DOWN,            ///< A mouse button was pressed.
-  AR_MOUSE_UP,              ///< A mouse button was released.
-  AR_MOUSE_MOVE,            ///< The mouse has moved.
-  AR_MOUSE_DRAG,            ///< A mouse button is held down and the mouse is being moved.
-  AR_WINDOW_MOVE,           ///< The window has been moved.
-  AR_WINDOW_RESIZE,         ///< The window has been resized.
-  AR_WINDOW_CLOSE,          ///< The window has been closed.
-  AR_WINDOW_FULLSCREEN,     ///< Change the window to fullscreen.
-  AR_WINDOW_DECORATE,       ///< Change the window's decoration state.
-  AR_WINDOW_RAISE,          ///< Change the window's z order.
-  AR_WINDOW_CURSOR,         ///< Change the window's cursor.
-  AR_WINDOW_DRAW,           ///< Draw the window.
-  AR_WINDOW_SWAP,           ///< Swap the window's buffers.
-  AR_WINDOW_VIEWPORT,       ///< Set the window's viewport.
-  AR_WINDOW_INITGL,         ///< Initialize the window's opengl context.
-  AR_NUM_GUI_STATES         ///< The number of different event states.
+  AR_GENERIC_STATE,         // Placeholder state (for default constructors).
+  AR_KEY_DOWN,              // A key has been pressed.
+  AR_KEY_UP,                // A key has been released.
+  AR_KEY_REPEAT,            // A key was pressed and is continuing to be pressed.
+  AR_MOUSE_DOWN,            // A mouse button was pressed.
+  AR_MOUSE_UP,              // A mouse button was released.
+  AR_MOUSE_MOVE,            // The mouse has moved.
+  AR_MOUSE_DRAG,            // A mouse button is held down and the mouse is being moved.
+  AR_WINDOW_MOVE,           // The window has been moved.
+  AR_WINDOW_RESIZE,         // The window has been resized.
+  AR_WINDOW_CLOSE,          // The window has been closed.
+  AR_WINDOW_FULLSCREEN,     // Change the window to fullscreen.
+  AR_WINDOW_DECORATE,       // Change the window's decoration state.
+  AR_WINDOW_RAISE,          // Change the window's z order.
+  AR_WINDOW_CURSOR,         // Change the window's cursor.
+  AR_WINDOW_DRAW,           // Draw the window.
+  AR_WINDOW_SWAP,           // Swap the window's buffers.
+  AR_WINDOW_VIEWPORT,       // Set the window's viewport.
+  AR_WINDOW_INITGL,         // Initialize the window's opengl context.
+  AR_NUM_GUI_STATES         // The number of different event states.
 };
 
 /**
@@ -478,6 +478,4 @@ typedef unsigned int arZOrder;
   //@}
 
 #endif
-
 #endif
-

@@ -12,8 +12,6 @@
 #include <iostream>
 using namespace std;
 
-/// Encapsulation of an RS-232 port.
-
 typedef struct {
   const char* port; // "COM1"
   int timeout;      // 20 msec
@@ -22,8 +20,16 @@ typedef struct {
   // Implicit:  8 bits, no parity, one stop bit, RTS_CONTROL_DISABLE
 } RS232Port;
 
-extern int ar_RS232main(int argc, char** argv,
-  const char* label, const char* dictName,
-  const char* fieldName, int usecSleep, arMatrix4 getMatrix(void),
-  void simTask(void*), void rs232Task(void*), const RS232Port& rs232,
-  int numAxes = 0, const float* getAxes(void) = NULL);
+extern int ar_RS232main(
+  int argc,
+  char** argv,
+  const char* label,
+  const char* dictName,
+  const char* fieldName,
+  int usecSleep,
+  arMatrix4 getMatrix(void),
+  void simTask(void*),
+  void rs232Task(void*),
+  const RS232Port& rs232,
+  int numAxes = 0,
+  const float* getAxes(void) = NULL);

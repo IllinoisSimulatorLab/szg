@@ -25,7 +25,8 @@
 
 class arGUIXMLParser;
 
-/// Helper for arMasterSlaveFramework.
+// Helper for arMasterSlaveFramework.
+
 class arTransferFieldDescriptor {
  public:
   arTransferFieldDescriptor( arDataType t = AR_GARBAGE, void* d = NULL, int s = -1 ):
@@ -51,7 +52,8 @@ class arMSCallbackException {
     arMSCallbackException( const string& msg ): message(msg) {}
 };
 
-/// Framework for cluster applications using one master and several slaves.
+// Framework for cluster applications using one master and several slaves.
+
 class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // Needs assignment operator and copy constructor, for pointer members.
   friend void ar_masterSlaveFrameworkConnectionTask( void* );
@@ -185,10 +187,10 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
 
   // Tiny functions that only appear in the .h
 
-  /// msec since the first I/O poll (not quite start of the program).
+  // msec since the first I/O poll (not quite start of the program).
   double getTime( void ) const { return _time; }
 
-  /// msec taken to compute/draw the last frame.
+  // msec taken to compute/draw the last frame.
   double getLastFrameTime( void ) const { return _lastFrameTime; }
 
   // Is this instance the master?
@@ -254,9 +256,9 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   int  _harmonyReady;
   // For arGraphicsDatabase.
   std::string _texturePath;
-  char   _textPath[ 256 ];          //< \todo fixed size buffer
+  char   _textPath[ 256 ];          // bug: buffer overflow
   // For the input connection process.
-  char   _inputIP[ 256 ];           //< \todo fixed size buffer
+  char   _inputIP[ 256 ];           // bug: buffer overflow
   // Information about the various threads that are unique to the
   // arMasterSlaveFramework (some info about the status of thread types
   // shared with other frameworks is in arSZGAppFramework.h)

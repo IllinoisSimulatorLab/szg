@@ -11,7 +11,7 @@ class arStructuredData;
 #include "arStructuredData.h"
 #include "arLanguageCalling.h"
 
-/// Generic language.
+// Generic language.
 
 class SZG_CALL arLanguage{
  public:

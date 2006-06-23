@@ -18,7 +18,7 @@ typedef int CGparameter;
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-/// Bump map loaded from a file, or loaded from a block of memory.
+// Bump map loaded from a file, or loaded from a block of memory.
 
 class SZG_CALL arBumpMap : public arTexture {
  public:
@@ -27,13 +27,13 @@ class SZG_CALL arBumpMap : public arTexture {
   arBumpMap( const arBumpMap& rhs );
   arBumpMap& operator=( const arBumpMap& rhs );
   bool operator!();
-  void activate();	//< initializes bump map in OpenGL (called once at start)
-  void reactivate();	//< enables in OpenGL -- NOTE: Unused; deprecated???
-  void deactivate();	//< disables in OpenGL
+  void activate();	// initializes bump map in OpenGL (called once at start)
+  void reactivate();	// enables in OpenGL -- NOTE: Unused; deprecated???
+  void deactivate();	// disables in OpenGL
 
-  void generateFrames(int numTBN);	//< force-generates TBNs
+  void generateFrames(int numTBN);	// force-generates TBNs
 
-  /// sets how deep the bump map should be (default is 1)
+  // sets how deep the bump map should be (default is 1)
   void setHeight(float newHeight);
   // these should be sorted by (possibly indexed) vertex number
   const float* tangents() { return _tangents; }
@@ -46,12 +46,12 @@ class SZG_CALL arBumpMap : public arTexture {
   void setPIT(int numPts, int numInd, float* points, int* index, float* tex2);
   void setDecalTexture(arTexture* newTexture) { _decalTexture = newTexture; }
 
-  /// returns how many packed double3's are in each (T,B,N) array
+  // returns how many packed double3's are in each (T,B,N) array
   const int & numberOfTBN(void) { return _numTBN; }
 
-  /// TBN float* array or NULL if invalid
+  // TBN float* array or NULL if invalid
   float** TBN();
-  /// CGparameter array or NULL if invalid
+  // CGparameter array or NULL if invalid
   CGparameter* cgTBN();
 
  private:
@@ -62,26 +62,26 @@ class SZG_CALL arBumpMap : public arTexture {
   void          _initMainCg();
 
   // data
-  int		_numTBN;	//< size of TBN arrays
-  float		_bumpHeight;	//< how deep the bump map is (default: 1)
-  float*	_tangents;	//< bump map tangents (along u/s)
-  float*	_binormals;	//< bump map binormals (along v/t)
-  float*	_normals;	//< bump map normals (TxB; roughly OpenGL normal)
-  float*	_TBN[3];	//< pointers to the TBN data (for TBN() )
-  unsigned int	_decalName;	//< GL texture ID to pass to Cg
-  arTexture*	_decalTexture;	//< underlying color for bump map
+  int		_numTBN;	// size of TBN arrays
+  float		_bumpHeight;	// how deep the bump map is (default: 1)
+  float*	_tangents;	// bump map tangents (along u/s)
+  float*	_binormals;	// bump map binormals (along v/t)
+  float*	_normals;	// bump map normals (TxB; roughly OpenGL normal)
+  float*	_TBN[3];	// pointers to the TBN data (for TBN() )
+  unsigned int	_decalName;	// GL texture ID to pass to Cg
+  arTexture*	_decalTexture;	// underlying color for bump map
 
   // outside data pointers -- NOTE: these could become invalid at any time...
-  int		_numPts;	//< size of _points array (& tex2 if no indices)
-  int		_numInd;	//< size of _indices array (& tex2 if indices)
+  int		_numPts;	// size of _points array (& tex2 if no indices)
+  int		_numInd;	// size of _indices array (& tex2 if indices)
   float*	_points;
   int*		_indices;
   float*	_tex2;
 
   // flags
-  bool		_fDirtyTex;	//< Does texture need to be re-init'ed?
-  bool		_fDirtyCg;	//< Does Cg need to be re-init'ed?
-  bool		_fDirtyTBN;	//< Does TBN (bases) need to be re-init'ed?
+  bool		_fDirtyTex;	// Does texture need to be re-init'ed?
+  bool		_fDirtyCg;	// Does Cg need to be re-init'ed?
+  bool		_fDirtyTBN;	// Does TBN (bases) need to be re-init'ed?
   bool          _isMainCgInited;
   bool          _isTexParamSet;
   
@@ -96,7 +96,7 @@ class SZG_CALL arBumpMap : public arTexture {
   CGprogram     _cg_vertexProgram, _cg_fragmentProgram;
   CGcontext     _cg_context;
   CGprofile     _cg_vertexProfile, _cg_fragmentProfile;
-  CGparameter	_cgTBN[3];		//< pointers to cg TBN variables, or NULL if invalid
+  CGparameter	_cgTBN[3];		// pointers to cg TBN variables, or NULL if invalid
 #endif
 };
 

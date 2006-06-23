@@ -13,7 +13,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-/// Driver for the accurate Reaction Timer system.
+// Driver for the accurate Reaction Timer system.
 
 class SZG_CALL arReactionTimerDriver: public arInputSource {
     friend void ar_RTDriverEventTask(void*);

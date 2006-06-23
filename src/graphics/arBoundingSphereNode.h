@@ -12,7 +12,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-/// Bounding sphere.
+// Bounding sphere.
 
 class SZG_CALL arBoundingSphereNode: public arGraphicsNode {
  public:

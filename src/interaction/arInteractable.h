@@ -27,11 +27,10 @@ class SZG_CALL arInteractable {
     virtual bool untouch( arEffector& effector );
     virtual bool untouchAll();
     
-    /// Disallow user interaction
-    void disable();
-    /// Allow user interaction
-    void enable( bool flag=true );
+    void disable();                // Disallow user interaction
+    void enable( bool flag=true ); // Allow user interaction
     bool enabled() const { return _enabled; }
+
     void useDefaultDrags( bool flag );
     void setDrag( const arGrabCondition& cond,
                   const arDragBehavior& behave );
@@ -45,27 +44,26 @@ class SZG_CALL arInteractable {
     virtual void updateMatrix( const arMatrix4& deltaMatrix );
     
   protected:
-    /// Sub-class' event (got-focus) handler.    
-    /// Called only for the particular instance that satisfies the criteria
-    /// implemented in the static method processAllTouches() (if any).
-    /// @param interface An arInterfaceObject pointer, for getting
-    /// miscellaneous input.
-    /// @param wandTipMatrix Wand tip position & orientation.
-    /// @param events A vector of button on/off events.
+    // Subclass's event (got-focus) handler.    
+    // Called only for the particular instance that satisfies the criteria
+    // implemented in the static method processAllTouches() (if any).
+    // @param interface An arInterfaceObject pointer, for getting miscellaneous input.
+    // @param wandTipMatrix Wand tip position & orientation.
+    // @param events A vector of button on/off events.
     virtual bool _processInteraction( arEffector& ) { return true; }
     
-    /// Sub-class' gain-of-focus handler.    
+    // Subclass's gain-of-focus handler.    
     virtual bool _touch( arEffector& ) { return true; }
-    /// Sub-class' loss-of-focus handler.    
-    /// Called if _touched is true but this instance didn't get the focus.
+
+    // Subclass's loss-of-focus handler.    
+    // Called if _touched is true but this instance didn't get the focus.
     virtual bool _untouch( arEffector& ) { return true; }
+
     void _ungrab();
     void _clearActiveDrags();
     virtual void _cleanup();
-    /// Represents position and orientation of object.
-    arMatrix4 _matrix;
-    /// accepting interaction?
-    bool _enabled;
+    arMatrix4 _matrix; // position and orientation of object.
+    bool _enabled; // accepting interaction?
     arEffector* _grabEffector;
     std::vector< arEffector* > _touchEffectors;
     bool _useDefaultDrags;

@@ -12,15 +12,14 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-SZG_CALL bool ar_setEventQueueFromStructuredData( arInputEventQueue* q, 
-                                                  arStructuredData* data );
-SZG_CALL bool ar_saveEventQueueToStructuredData( arInputEventQueue* q, 
-                                                 arStructuredData* data );
+SZG_CALL bool ar_setEventQueueFromStructuredData(
+  arInputEventQueue*, arStructuredData*);
+SZG_CALL bool ar_saveEventQueueToStructuredData(
+  arInputEventQueue*, arStructuredData*);
 
-SZG_CALL bool ar_setInputStateFromStructuredData( arInputState* state, 
-                                                  arStructuredData* data );
-SZG_CALL bool ar_saveInputStateToStructuredData( arInputState* state, 
-                                                 arStructuredData* data );
+SZG_CALL bool ar_setInputStateFromStructuredData(
+  arInputState*, arStructuredData*);
+SZG_CALL bool ar_saveInputStateToStructuredData(
+  arInputState*, arStructuredData*);
 
-#endif        //  #ifndefAREVENTUTILITIES_H
-
+#endif

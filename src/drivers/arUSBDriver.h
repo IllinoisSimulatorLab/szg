@@ -12,8 +12,8 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-/// Driver for USB cave-wand,
-/// and possibly other USB "igorplug" Atmel-AVR devices.
+// Driver for USB cave-wand,
+// and possibly other USB "igorplug" Atmel-AVR devices.
 
 class SZG_CALL arUSBDriver: public arInputSource {
     friend void ar_USBDriverDataTask(void*);

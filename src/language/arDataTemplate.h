@@ -16,20 +16,18 @@ using namespace std;
 
 class arTemplateDictionary;
 
-//;;;; doxygen fails
-/// This map is from string to arDataPair, not merely to arDataType,
-/// so that add()'s return value (which is arDataPair.second)
-/// does not change as a result of future add()'s.
+// This map is from string to arDataPair, not merely to arDataType,
+// so that add()'s return value (which is arDataPair.second)
+// does not change as a result of future add()'s.
 
 typedef pair< arDataType, int > arDataPair;
 
-//;;;; doxygen fails
-/// Something stored by the szgserver.
+// Something stored by the szgserver.
 
 typedef map< string,arDataPair,less<string> > arAttribute;
 typedef arAttribute::iterator arAttributeIterator;
 
-/// Contains a list of arAttribute objects (string and arDataType).
+// Contains a list of arAttribute objects (string and arDataType).
 
 class SZG_CALL arDataTemplate{
  public:

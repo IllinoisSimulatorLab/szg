@@ -33,8 +33,7 @@ using namespace std;
 
 class ar_timeval; // forward reference into arDataUtilities.h
 
-/// Helper class:
-/// Ensures that win32 initializes before the first arSocket is constructed.
+// Helper: ensure that win32 initializes before the first arSocket is constructed.
 class SZG_CALL arCommunicator {
 public:
   arCommunicator();
@@ -43,7 +42,7 @@ public:
 
 SZG_CALL enum arSocketType{AR_LISTENING_SOCKET=1, AR_STANDARD_SOCKET=2};
 
-/// TCP socket.
+// TCP socket.
 
 class SZG_CALL arSocket: public arCommunicator {
 public:
@@ -69,16 +68,15 @@ public:
   bool writable();
   int ar_read(char* theData, int howMuch);
   int ar_write(const char* theData, int howMuch);
-  /// the "safe" versions of read and write keep usage counts and
-  /// are guaranteed to return the number of bytes requested 
-  /// or an error
+  // the "safe" versions of read and write keep usage counts and
+  // are guaranteed to return the number of bytes requested or an error
   int ar_safeRead(char* theData, int howMuch);
   int ar_safeWrite(const char* theData, int howMuch);
   int getUsageCount();
   void ar_close();
-  /// This is a tcp-wrappers-esque feature. As explained below, the mask
-  /// allows ar_accept to automatically drop attempted connections, based
-  /// on IP address.
+  // This is a tcp-wrappers-esque feature. As explained below, the mask
+  // allows ar_accept to automatically drop attempted connections,
+  // based on IP address.
   void setAcceptMask(list<string>& mask){ _acceptMask = mask; }
 
 private:
@@ -87,8 +85,7 @@ private:
   // since objects like arDataServer use sockets full duplex
   // with reads and writes occuring in different threads
   // clean-up requires that we can keep track of the number of
-  // active operations (ar_read or ar_write) on a given socket
-  // at a given time.
+  // active operations (ar_read or ar_write) on a given socket at a given time.
   int     _usageCount;
   arMutex _usageLock;
 #ifdef AR_USE_WIN_32

@@ -12,15 +12,14 @@
 #ifdef AR_USE_WIN_32
 #include <wtypes.h>
 #ifdef EnableBirdWinDriver
-// Ascension header file.  We also need to link with Bird.lib
-#include "Bird.h"       
+#include "Bird.h" // Ascension's header file.  Link with Ascension's Bird.lib.
 #endif
 #endif
 
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-/// Windows driver for Ascension Flock of Birds.
+// Windows driver for Ascension Flock of Birds.
 
 class arBirdWinDriver: public arInputSource {
   friend void ar_WinBirdDriverEventTask(void*);
@@ -42,6 +41,7 @@ class arBirdWinDriver: public arInputSource {
     _nBaudRates = 7,
     _nHemi = 6
   };
+
 #ifdef EnableBirdWinDriver
   int _groupID;
   BOOL _standAlone;

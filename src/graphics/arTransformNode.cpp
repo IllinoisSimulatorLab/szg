@@ -50,7 +50,7 @@ bool arTransformNode::receiveData(arStructuredData* inData){
 
 arMatrix4 arTransformNode::getTransform(){
   ar_mutex_lock(&_nodeLock);
-  arMatrix4 result = _transform;
+  const arMatrix4 result(_transform);
   ar_mutex_unlock(&_nodeLock);
   return result;
 }
@@ -74,13 +74,9 @@ void arTransformNode::setTransform(const arMatrix4& transform){
 /// to call it from within a locked section.
 arStructuredData* arTransformNode::_dumpData(const arMatrix4& transform,
                                              bool owned){
-  arStructuredData* result = NULL;
-  if (owned){
-    result = _owningDatabase->getDataParser()->getStorage(_g->AR_TRANSFORM);
-  }
-  else{
-    result = _g->makeDataRecord(_g->AR_TRANSFORM);
-  }
+  arStructuredData* result = owned ?
+    _owningDatabase->getDataParser()->getStorage(_g->AR_TRANSFORM) :
+    _g->makeDataRecord(_g->AR_TRANSFORM);
   _dumpGenericNode(result,_g->AR_TRANSFORM_ID);
   result->dataIn(_g->AR_TRANSFORM_MATRIX,transform.v,AR_FLOAT,16);
   return result;

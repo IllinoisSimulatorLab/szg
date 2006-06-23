@@ -12,7 +12,7 @@
 #include "arGraphicsCalling.h"
 
 class SZG_CALL arPointsNode:public arGraphicsArrayNode{
-/// Set of (OpenGL) points.
+// Set of OpenGL points.
  public:
   arPointsNode();
   virtual ~arPointsNode(){}

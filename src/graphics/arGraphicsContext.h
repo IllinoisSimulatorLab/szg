@@ -14,8 +14,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-
-/// Information maintained during the traversal of a scene graph.
+// Information maintained during the traversal of a scene graph.
 
 class SZG_CALL arGraphicsContext {
  public:

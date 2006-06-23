@@ -19,8 +19,8 @@
 
 class IsenseStation;
 
-//! Responsible for an individual Intersense Tracker and its stations.
-/*! The tracker is the external box connected to the PC,
+//  Responsible for an individual Intersense Tracker and its stations.
+/*  The tracker is the external box connected to the PC,
     and the stations are the various devices (wand, glasses) attached to
     the tracker.
     
@@ -33,27 +33,27 @@ class IsenseStation;
     */
 class IsenseTracker {
 public:
-  //! Constructor clears memory of structs.
+  // Constructor clears memory of structs.
   IsenseTracker();
   
-  //! Destructor closes tracker handle.
+  // Destructor closes tracker handle.
   ~IsenseTracker();
 
-  //! Ask Intersense dll to open a tracker on this port.
+  // Ask Intersense dll to open a tracker on this port.
   bool ar_open( DWORD port );
 
-  //! Open a tracker on the same port the one where it was found before.
+  // Open a tracker on the same port the one where it was found before.
   bool ar_reopen();
 
-  //! Ask Intersense dll to close a tracker and maybe unload.
+  // Ask Intersense dll to close a tracker and maybe unload.
   bool ar_close();
 
-  //! Assign this object to an already opened tracker.
+  // Assign this object to an already opened tracker.
   void setHandle( ISD_TRACKER_HANDLE handle );
   // Return handle assigned to tracker.
   ISD_TRACKER_HANDLE getHandle() const { return _handle; }
 
-  //! Initialize a tracker after it has been opened.
+  // Initialize a tracker after it has been opened.
   bool init();
 
   bool configure( arSZGClient& client );
@@ -65,55 +65,47 @@ public:
 
   DWORD getPort() const { return _port; }
 
-  //! What indices to use when reporting to arInputSource.
+  // What indices to use when reporting to arInputSource.
   // Parameters are all passed by ref & altered in the function.
   void setStationIndices( unsigned int& matrixIndex,
                           unsigned int& buttonIndex,
                           unsigned int& axisIndex );
   
-  //! Set the 4x4 matrix to translate and rotate coordinates
-  // NOTE: Obsolete (removed), use PForth filter instead.
-//  bool setConversionMatrix( arMatrix4& convert );
-
-  //! Send tracker data to an arInputSource.
+  // Send tracker data to an arInputSource.
   bool getData( arInputSource* source );
 
   std::vector< IsenseStation >& getStations() { return _stations; }
 
 private:
-  //! Fill struct with configuration of tracker.
+  // Fill struct with configuration of tracker.
   bool _getTrackerConfig();
 
-  //! Query tracker for configuration information on all stations.
+  // Query tracker for configuration information on all stations.
   void _loadAllStationInfo();
 
-  //! Tell the tracker to use native axes.
+  // Tell the tracker to use native axes.
   bool _resetAllAlignmentReferenceFrames();
 
-  //! Enable possible use of stations with camera tracking.
+  // Enable possible use of stations with camera tracking.
   void _enablePossibleCameraTracking();
 
-  //! Determine whether this tracker's handle is good.
+  // Determine whether this tracker's handle is good.
   bool _isValidHandle( ISD_TRACKER_HANDLE handle ) const { return handle>0; }
 
   unsigned int _id;
-
   bool _imOK;
 
-  //! Handle to the tracker.
-  ISD_TRACKER_HANDLE _handle;
-
-  ISD_TRACKER_INFO_TYPE _trackerInfo; //!< Configuration of the tracker.
-
-  ISD_TRACKER_DATA_TYPE _data;  //!< Single data block for all stations.
+  ISD_TRACKER_HANDLE _handle; // Handle to the tracker.
+  ISD_TRACKER_INFO_TYPE _trackerInfo; // Tracker's configuration.
+  ISD_TRACKER_DATA_TYPE _data;  // Single data block for all stations.
 
   // NOTE: unused
-  ISD_CAMERA_DATA_TYPE _cameraData; //!< Single data block for all cameras.
+  ISD_CAMERA_DATA_TYPE _cameraData; // Single data block for all cameras.
 
-  DWORD _port; //!< Actual port where tracker was found.
+  DWORD _port; // Actual port where tracker was found.
 
-  bool _bSupportsPositionMeasurement; //!< Whether tracker yields positions.
-  bool _bSupportsCameraData; //!< Whether tracker supports new camera devices.
+  bool _bSupportsPositionMeasurement; // Does tracker yields positions?
+  bool _bSupportsCameraData; // Does tracker supports new camera devices?
 
   std::vector< IsenseStation > _stations;
 };
@@ -141,7 +133,7 @@ class IsenseStation {
 
     void setTrackerHandle( ISD_TRACKER_HANDLE handle ) { _trackerHandle = handle; }
 
-    //! Query tracker for configuration information on this station.
+    // Query tracker for configuration information on this station.
     void loadStationInfo( unsigned int stationID );
 
     bool resetAlignmentReferenceFrame();
@@ -169,21 +161,20 @@ class IsenseStation {
 
     ISD_TRACKER_HANDLE _trackerHandle; // handle for the tracker that owns this station.
 
-    unsigned  int _matrixIndex;  //!< Syzygy matrix event index for pos/orient data
-                                 // from this sensor.
-    unsigned  int _numButtons;   //!< Number of buttons set by user
-    unsigned  int _numAnalogInputs; //!< Number of valuators set by user.
-    unsigned  int _numAuxInputs; //!< Number of aux inputs set by user.
+    unsigned  int _matrixIndex; // szg matrix event index for pos/orient data from this sensor.
+    unsigned  int _numButtons;      // Number of buttons set by user
+    unsigned  int _numAnalogInputs; // Number of valuators set by user.
+    unsigned  int _numAuxInputs;    // Number of aux inputs set by user.
     
-    unsigned  int _firstButtonIndex;//!< Index into szg driver's list of buttons.
-    unsigned  int _firstAnalogIndex;//!< Index into szg driver's list of axes.
-    unsigned  int _firstAuxIndex;   //!< Index into szg driver's list of axes.
+    unsigned  int _firstButtonIndex; // Index into szg driver's list of buttons.
+    unsigned  int _firstAnalogIndex; // Index into szg driver's list of axes.
+    unsigned  int _firstAuxIndex;    // Index into szg driver's list of axes.
 };
 
 ostream& operator<<(ostream&, const IsenseStation&);
 
-//! Driver for Intersense devices
-/*! This driver can handle the IS-300, IS-600,
+//  Driver for Intersense devices
+/*  This driver can handle the IS-300, IS-600,
     IS-900, InertiaCube2, and all InterTrax.
     It has been tested only on the IS-900 VWT under Windows.
 
@@ -197,12 +188,13 @@ ostream& operator<<(ostream&, const IsenseStation&);
     \author Drew Dolgert ajd27@cornell.edu
     \date 23 April 2003
     */
+
 class arIntersenseDriver : public arInputSource {
   friend void ar_intersenseDriverEventTask(void*);
 public:
-  //! Constructor does nothing.
+  // Constructor does nothing.
   arIntersenseDriver();
-  //! Destructor closes trackers.
+  // Destructor closes trackers.
   ~arIntersenseDriver();
 
   bool init(arSZGClient&);
@@ -213,29 +205,24 @@ public:
 private:
   arThread _eventThread;
 
-  //! Called by driver's ar_intersenseDriverEventTask to send input event.
+  // Called by driver's ar_intersenseDriverEventTask to send input event.
   bool _getData();
 
-  //! Called by driver's ar_intersenseDriverEventTask to wait for more data.
+  // Called by driver's ar_intersenseDriverEventTask to wait for more data.
   bool _waitForData();
 
-  //! Re-open failed trackers.
-  bool _reacquire();
+  bool _reacquire(); // Re-open failed trackers.
+  bool _open( DWORD port=0 ); // Open all Intersense trackers.
 
-  //! Open all Intersense trackers.
-  bool _open( DWORD port=0 );
-
-  //! Makes all calls to retrieve client's group attributes.
+  // Makes all calls to retrieve client's group attributes.
   bool getStationSettings( arSZGClient& client );
 
   bool _resetHeading( unsigned  int trackerID, unsigned  int stationID );
 
   std::vector< IsenseTracker > _trackers;
 
-  int _sleepTime; //!< How many ticks to pause at each polling of trackers.
-
-  Bool _isVerbose; //!< Whether the tracker should print.
+  int _sleepTime; // How many ticks to pause at each polling of trackers.
+  Bool _isVerbose; // Should the tracker print?
 };
-
 
 #endif // AR_INTERSENSE_DRIVER_H

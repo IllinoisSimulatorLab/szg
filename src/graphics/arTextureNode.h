@@ -10,7 +10,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-/// Texture map loaded from a file.
+// Texture map loaded from a file.
 
 class SZG_CALL arTextureNode: public arGraphicsNode{
  public:

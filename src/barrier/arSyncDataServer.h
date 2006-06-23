@@ -10,9 +10,7 @@
 #include "arQueuedData.h"
 #include "arDataUtilities.h"
 #include "arTemplateDictionary.h"
-// VERY OBNOXIOUS THAT I HAVE TO EXPLICITLY REFERENCE arDatabaseNode HERE!
-// THIS JUST SIGNALS THE BAD DESIGN THAT GOT ROLLED INTO THE arSyncDataServer!
-#include "arDatabaseNode.h"
+#include "arDatabaseNode.h" // poor design, that this needs #including
 #include "arDataServer.h"
 #include "arBarrierServer.h"
 #include "arSZGClient.h"
@@ -21,11 +19,7 @@
 #include <list>
 using namespace std;
 
-//******************************************************
-// These constants need to be public! Applications need
-// to be able to use them in the setMode() call.
-//******************************************************
-// Synchronization modes (for _mode).
+// Synchronization modes (for _mode).  Public, for setMode().
 SZG_CALL enum {
   AR_SYNC_AUTO_SERVER = 0,
   AR_SYNC_MANUAL_SERVER,
@@ -34,7 +28,7 @@ SZG_CALL enum {
 
 class arSyncDataClient;
 
-/// Server for arSyncDataClient objects.
+// Server for arSyncDataClient.
 class SZG_CALL arSyncDataServer{
   // Needs assignment operator and copy constructor, for pointer members.
   friend void ar_syncDataServerConnectionTask(void*);

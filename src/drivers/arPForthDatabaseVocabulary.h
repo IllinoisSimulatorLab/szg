@@ -15,5 +15,4 @@ SZG_CALL bool ar_PForthAddDatabaseVocabulary( arPForth* pf );
 SZG_CALL void ar_PForthSetSZGClient( arSZGClient* client );
 SZG_CALL arSZGClient* ar_PForthGetSZGClient();
 
-#endif        //  #ifndefARPFORTHDATABASEVOCABULARY_H
-
+#endif

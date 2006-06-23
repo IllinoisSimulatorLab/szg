@@ -10,7 +10,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-/// Bump map loaded from a file.
+// Bump map loaded from a file.
 
 class SZG_CALL arBumpMapNode: public arGraphicsNode{
  public:

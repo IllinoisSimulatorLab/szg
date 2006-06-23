@@ -46,8 +46,8 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-/// Contains a scene graph created by an arGraphicsServer
-/// and rendered by one or more arGraphicsClient objects.
+// Contain a scene graph created by an arGraphicsServer
+// and rendered by one or more arGraphicsClient objects.
 
 class SZG_CALL arGraphicsDatabase: public arDatabase{
  // Needs assignment operator and copy constructor, for pointer members.

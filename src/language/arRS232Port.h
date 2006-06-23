@@ -15,7 +15,7 @@
 
 #include "arLanguageCalling.h"
 
-/// An RS-232 port.
+// An RS-232 port.
 
 class SZG_CALL arRS232Port {
   public:

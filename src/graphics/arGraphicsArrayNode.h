@@ -25,7 +25,7 @@ class SZG_CALL arGraphicsArrayNode:public arGraphicsNode{
   // to e.g. distinguish between a color3 and a color4 array
   // when we only inherit a color pointer.
 
-  /// For arStructuredData records.
+  // For arStructuredData records.
   int _arrayStride;
   int _recordType;
   int _IDField;

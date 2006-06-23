@@ -16,21 +16,21 @@ using namespace std;
 
 typedef map<string,arDataTemplate*,less<string> > arTemplateType;  
 
-/// Collection of arDataTemplate objects.
+// Collection of arDataTemplate objects.
 
 class SZG_CALL arTemplateDictionary{
  public:
    arTemplateDictionary();
-   /// for the common case of adding a single template
+   // for the common case of adding a single template
    arTemplateDictionary(arDataTemplate*);
    ~arTemplateDictionary();
 
-   int add(arDataTemplate*); ///< Returns the ID which gets assigned to it.
+   int add(arDataTemplate*); // Returns the ID which gets assigned to it.
    arDataTemplate* find(const string&);
    arDataTemplate* find(int);
    void renumber();
 
-   /// Functions for reading the template list.
+   // Read the template list.
    int numberTemplates() const
      { return _templateContainer.size(); }
    arTemplateType::iterator begin()
@@ -38,7 +38,7 @@ class SZG_CALL arTemplateDictionary{
    arTemplateType::iterator end()
      { return _templateContainer.end(); }
 
-   /// Byte-stream representation.
+   // Byte-stream representation.
    // AARGH! THESE ARE BROKEN WITH RESPECT TO RENUMBERING!
    // FORTUNATELY, THAT ONLY OCCURS IN arMasterSlaveDataRouter...
    int size();

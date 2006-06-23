@@ -21,9 +21,9 @@ using namespace std;
 bool SZG_CALL ar_winSockInit();
 #endif
 
-// small utility classes... for instance the STL does not have triples
+// Small utility classes.
 
-/// Wrapper for 3 ints.
+// Wrapper for 3 ints.
 class SZG_CALL arIntTriple{
  public:
   arIntTriple() { first=0; second=0; third=0; }
@@ -44,7 +44,7 @@ class SZG_CALL arIntTriple{
 
 // functions for messing with time conveniently
 
-/// Internal representation of time.
+// Internal representation of time.
 
 class SZG_CALL ar_timeval {
  public:
@@ -93,7 +93,7 @@ class SZG_CALL arTimer {
 
 // utilities for manipulating the records
 
-/// Configuration of a data stream.
+// Configuration of a data stream.
 struct SZG_CALL arStreamConfig{
   ARchar endian;
   int  version;
@@ -118,10 +118,10 @@ struct SZG_CALL arStreamConfig{
   #define AR_ENDIAN_MODE AR_BIG_ENDIAN
 #endif
 
-/// The pipe read/write code works only on Unix.
-/// This code establishes a connection between szgd and 
-/// the forked process in which the exe runs on the Unix side. 
-/// As such, uses are found in szgd and arSZGClient.cpp
+// The pipe read/write code works only on Unix.
+// This code establishes a connection between szgd and 
+// the forked process in which the exe runs on the Unix side. 
+// As such, uses are found in szgd and arSZGClient.cpp
 SZG_CALL bool ar_safePipeRead(int pipeID, char* theData, int numBytes);
 SZG_CALL int ar_safePipeReadNonBlock(int pipeID, char* theData, int numBytes,
 			             int timeout);
@@ -141,7 +141,7 @@ SZG_CALL ARint ar_translateInt(ARchar*,ARint&,ARchar*,ARint&,arStreamConfig);
 SZG_CALL void ar_translateField(ARchar*,ARint&,ARchar*,ARint&,arDataType,
                                 ARint,arStreamConfig);
 
-/// type conversions with error checking
+// type conversions with error checking
 SZG_CALL bool ar_stringToLongValid( const string& theString, long& theLong );
 SZG_CALL bool ar_longToIntValid( const long theLong, int& theInt );
 SZG_CALL bool ar_stringToIntValid( const string& theString, int& theIntg );
@@ -152,7 +152,7 @@ SZG_CALL bool ar_doubleToFloatValid( const double theDouble,
 SZG_CALL bool ar_stringToFloatValid( const string& theString, 
                                      float& theFloat );
 
-/// string manipulation
+// string manipulation
 SZG_CALL int ar_parseFloatString(const string& theString, 
                                  float* outArray, int len);
 SZG_CALL int ar_parseIntString(const string& theString, 
@@ -162,27 +162,27 @@ SZG_CALL int ar_parseLongString(const string& theString,
 SZG_CALL void ar_stringToBuffer(const string& theString, 
                                 char* theBuffer, int len);
 SZG_CALL int ar_stringToInt(const string& theString);
-/// parse semicolon-delimited paths
+// parse semicolon-delimited paths
 SZG_CALL string ar_pathToken(const string& theString, int& start);
-/// Deal with the idiosyncracies of paths across Unix and Win32
+// Deal with the idiosyncracies of paths across Unix and Win32
 SZG_CALL char ar_pathDelimiter();
 SZG_CALL char ar_oppositePathDelimiter();
 SZG_CALL string& ar_scrubPath(string& s);
 SZG_CALL string& ar_pathAddSlash(string& s); // append a / or a \ if necessary
 
-/// for slash-delimited string lists, "string1/string2/.../stringn"
+// for slash-delimited string lists, "string1/string2/.../stringn"
 class SZG_CALL arDelimitedString : public string {
 public:
   arDelimitedString(const char delim = '/') : string(), _delimiter(delim) {}
   arDelimitedString(const char* sz, const char delim) : string(sz), _delimiter(delim) {}
   arDelimitedString(const string& s, const char delim) : string(s), _delimiter(delim) {}
-  /// Return number of substrings.
+  // Return number of substrings.
   int size() const;
   bool empty() const { return size() == 0; }
-  /// Return i'th substring, NOT i'th char.
+  // Return i'th substring, NOT i'th char.
   string operator[](int i) const;
   void appendDelimiter();
-  /// Append another substring, inserting _delimiter if needed.  (Bad pun.)
+  // Append another substring, inserting _delimiter if needed.  (Bad pun.)
   arDelimitedString& operator/=(const string&);
 private:
   char _delimiter;  
@@ -193,17 +193,17 @@ public:
   arSlashString() : arDelimitedString('/') {}
   arSlashString(const char* sz) : arDelimitedString(sz,'/') {}
   arSlashString(const string& s) : arDelimitedString(s,'/') {}
-  /// Return number of substrings.
+  // Return number of substrings.
   arSlashString& operator/=(const string&);
 };
 
-/// for semicolon-delimited string lists, "string1;string2;...;stringn"
+// for semicolon-delimited string lists, "string1;string2;...;stringn"
 class SZG_CALL arSemicolonString : public arDelimitedString {
 public:
   arSemicolonString() : arDelimitedString(';') {}
   arSemicolonString(const char* sz) : arDelimitedString(sz,';') {}
   arSemicolonString(const string& s) : arDelimitedString(s,';') {}
-  /// Append another substring, inserting ';' if needed.
+  // Append another substring, inserting ';' if needed.
   arSemicolonString& operator/=(const string&);
 };
 
@@ -212,7 +212,7 @@ public:
   arPathString() : arDelimitedString(ar_pathDelimiter()) {}
   arPathString(const char* sz) : arDelimitedString(sz,ar_pathDelimiter()) {}
   arPathString(const string& s) : arDelimitedString(s,ar_pathDelimiter()) {}
-  /// Append another substring, inserting appropriate delimiter if needed.
+  // Append another substring, inserting appropriate delimiter if needed.
   arPathString& operator/=(const string&);
 };
 
@@ -225,25 +225,25 @@ SZG_CALL void ar_unpackStringVector( char* inbuf, unsigned int numStrings,
 SZG_CALL bool ar_getTokenList( const std::string& inString,
                        std::vector<std::string>& outList,
                        const char delim = ' ' );
-/// pack a string with the parameters
+// pack a string with the parameters
 SZG_CALL string ar_packParameters(int,char**);
 
-/// strip pathname and .EXE from win32 exe's
+// strip pathname and .EXE from win32 exe's
 SZG_CALL string ar_stripExeName(const string&);
-/// get the path only from a fully qualified exectuable name.
+// get the path only from a fully qualified exectuable name.
 SZG_CALL string ar_exePath(const string&);
-/// find the extension of a particular file name (i.e. jpg or ppm or obj)
+// find the extension of a particular file name (i.e. jpg or ppm or obj)
 SZG_CALL string ar_getExtension(const string&);
-/// add the right shared library extension for the system (.dll or .so)
+// add the right shared library extension for the system (.dll or .so)
 SZG_CALL void ar_addSharedLibExtension(string& name);
 
-/// manipulating system characteristics
+// manipulating system characteristics
 SZG_CALL string ar_getenv(const string&);
 SZG_CALL void   ar_setenv(const string&, const string&);
 SZG_CALL void   ar_setenv(const string& variableName, int variableValue);
 SZG_CALL string ar_getUser();
 
-/// file access
+// file access
 SZG_CALL bool ar_fileExists( const string name, bool& exists, bool& isFile );
 SZG_CALL bool ar_directoryExists( const string name, bool& exists, 
                                   bool& isDirectory );
@@ -260,21 +260,21 @@ SZG_CALL FILE* ar_fileOpen(const string& name,
                            const string& path,
                            const string& operation);
 
-/// Looks for the named file in the given subdirectory of the path
+// Looks for the named file in the given subdirectory of the path
 SZG_CALL string ar_fileFind(const string& name, 
 		            const string& subdirectory,
 		            const string& path);
-/// Looks for the named directory in the given subdirectory of the path
+// Looks for the named directory in the given subdirectory of the path
 SZG_CALL string ar_directoryFind(const string& name, 
 		                 const string& subdirectory,
 		                 const string& path);
 SZG_CALL list<string> ar_listDirectory(const string& name);
 SZG_CALL int ar_fileClose(FILE* pf);
 
-/// ARchar buffer management
+// ARchar buffer management
 SZG_CALL bool ar_growBuffer(ARchar*& buf, int& size, int newSize);
 
-/// wrapper for usleep (compatibility with Win32)
+// wrapper for usleep (compatibility with Win32)
 SZG_CALL void ar_usleep(int);
 
 SZG_CALL void* ar_allocateBuffer( arDataType theType, unsigned int size );
@@ -283,7 +283,7 @@ SZG_CALL void ar_deallocateBuffer( void* ptr );
 SZG_CALL void ar_copyBuffer( void* const outBuf, const void* const inBuf,
                              arDataType theType, unsigned int size );
 
-/// Some global database node manipulation functions.
+// Some global database node manipulation functions.
 class arDatabaseNode;
 SZG_CALL void ar_refNodeList(list<arDatabaseNode*>& nodeList);
 SZG_CALL void ar_unrefNodeList(list<arDatabaseNode*>& nodeList);

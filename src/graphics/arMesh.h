@@ -13,33 +13,36 @@
 #include "arGraphicsCalling.h"
 #include <string>
 
-/// Common behavior for meshes in arMesh.cpp/arMesh.h.
+// Common behavior for meshes in arMesh.cpp and arMesh.h.
 
 class SZG_CALL arMesh {
  public:
   arMesh(const arMatrix4& transform = ar_identityMatrix()) :
     _matrix(transform) {}
   virtual ~arMesh() {}
+
   void setTransform(const arMatrix4& matrix){ _matrix = matrix; }
-  arMatrix4 getTransform(){ return _matrix; }
-  /// DEPRECATED. Assumes that nameParent gives a unique node name... and
-  /// just calls the real attachMesh method (which uses an arGraphicsNode*
-  /// parameter). 
-  /// IMPORTANT NOTE: It is annoying that we have to make this virtual
-  /// and repeat it for each subclass (otherwise the compiler gets confused
-  /// because of the other attachMesh methods).
+  arMatrix4 getTransform() const { return _matrix; }
+
+  // DEPRECATED. Assumes that nameParent gives a unique node name... and
+  // just calls the real attachMesh method (which uses an arGraphicsNode*
+  // parameter). 
+  // It is annoying that we have to make this virtual
+  // and repeat it for each subclass (otherwise the compiler gets confused
+  // because of the other attachMesh methods).
   virtual bool attachMesh(const string& name, const string& parentName);
-  /// Creates new scene graph nodes below the given one that contain
-  /// the shape's geometry.
+
+  // Creates new scene graph nodes below the given one that contain the shape's geometry.
   virtual bool attachMesh(arGraphicsNode* node, const string& name) = 0;
-  /// This is a seperate virtual function so that each subclass can have a seperate
-  /// default name.
+
+  // Seperate virtual function so each subclass can have a seperate default name.
   virtual bool attachMesh(arGraphicsNode* node) = 0;
+
  protected:
   arMatrix4 _matrix;
 };
 
-/// Cube, made of 12 triangles.
+// Cube, made of 12 triangles.
 
 class SZG_CALL arCubeMesh : public arMesh {
  public:
@@ -54,7 +57,7 @@ class SZG_CALL arCubeMesh : public arMesh {
   }
 };
 
-/// Rectangle (to apply a texture to).
+// Rectangle (to apply a texture to).
 
 class SZG_CALL arRectangleMesh : public arMesh {
  public:
@@ -69,7 +72,7 @@ class SZG_CALL arRectangleMesh : public arMesh {
   }
 };
 
-/// Cylinder (technically a prism).
+// Cylinder (technically a prism).
 
 class SZG_CALL arCylinderMesh : public arMesh {
  public:
@@ -99,7 +102,7 @@ class SZG_CALL arCylinderMesh : public arMesh {
   bool _useEnds;
 };
 
-/// Pyramid.
+// Pyramid.
 
 class SZG_CALL arPyramidMesh : public arMesh {
  public:
@@ -113,7 +116,7 @@ class SZG_CALL arPyramidMesh : public arMesh {
   }
 };
 
-/// Sphere.
+// Sphere.
 
 class SZG_CALL arSphereMesh : public arMesh {
  public:
@@ -139,7 +142,7 @@ class SZG_CALL arSphereMesh : public arMesh {
   int _sectionSkip; 
 };
 
-/// Torus (donut).
+// Torus (donut).
 
 class SZG_CALL arTorusMesh : public arMesh {
  public:

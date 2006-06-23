@@ -167,7 +167,7 @@ public:
 	*/
 	static void SetCondenseWhiteSpace( bool condense )		{ condenseWhiteSpace = condense; }
 
-	/// Return the current white space setting.
+	// Return the current white space setting.
 	static bool IsWhiteSpaceCondensed()						{ return condenseWhiteSpace; }
 
 	/** Return the position, in the original source file, of this node or attribute.
@@ -189,7 +189,7 @@ public:
 		@sa TiXmlDocument::SetTabSize()
 	*/
 	int Row() const			{ return location.row + 1; }
-	int Column() const		{ return location.col + 1; }	///< See Row()
+	int Column() const		{ return location.col + 1; }	// See Row()
 
 	void  SetUserData( void* user )			{ userData = user; }
 	void* GetUserData()						{ return userData; }
@@ -319,7 +319,7 @@ protected:
 
 	TiXmlCursor location;
 
-    /// Field containing a generic user pointer
+    // Field containing a generic user pointer
 	void*			userData;
 
 	// None of these methods are reliable for any language except English.
@@ -398,7 +398,7 @@ public:
 	    */
 	    friend std::ostream& operator<< (std::ostream& out, const TiXmlNode& base);
 
-		/// Appends the XML node or attribute to a std::string.
+		// Appends the XML node or attribute to a std::string.
 		friend std::string& operator<< (std::string& out, const TiXmlNode& base );
 
 	#else
@@ -448,7 +448,7 @@ public:
 	void SetValue(const char * _value) { value = _value;}
 
     #ifdef TIXML_USE_STL
-	/// STL std::string form.
+	// STL std::string form.
 	void SetValue( const std::string& _value )
 	{
 		StringToBuffer buf( _value );
@@ -456,28 +456,28 @@ public:
 	}
 	#endif
 
-	/// Delete all the children of this node. Does not affect 'this'.
+	// Delete all the children of this node. Does not affect 'this'.
 	void Clear();
 
-	/// One step up the DOM.
+	// One step up the DOM.
 	TiXmlNode* Parent()							{ return parent; }
 	const TiXmlNode* Parent() const				{ return parent; }
 
-	const TiXmlNode* FirstChild()	const	{ return firstChild; }		///< The first child of this node. Will be null if there are no children.
+	const TiXmlNode* FirstChild()	const	{ return firstChild; }		// The first child of this node. Will be null if there are no children.
 	TiXmlNode* FirstChild()					{ return firstChild; }
-	const TiXmlNode* FirstChild( const char * value ) const;			///< The first child of this node with the matching 'value'. Will be null if none found.
-	TiXmlNode* FirstChild( const char * value );						///< The first child of this node with the matching 'value'. Will be null if none found.
+	const TiXmlNode* FirstChild( const char * value ) const;			// The first child of this node with the matching 'value'. Will be null if none found.
+	TiXmlNode* FirstChild( const char * value );						// The first child of this node with the matching 'value'. Will be null if none found.
 
-	const TiXmlNode* LastChild() const	{ return lastChild; }		/// The last child of this node. Will be null if there are no children.
+	const TiXmlNode* LastChild() const	{ return lastChild; }		// The last child of this node. Will be null if there are no children.
 	TiXmlNode* LastChild()	{ return lastChild; }
-	const TiXmlNode* LastChild( const char * value ) const;			/// The last child of this node matching 'value'. Will be null if there are no children.
+	const TiXmlNode* LastChild( const char * value ) const;			// The last child of this node matching 'value'. Will be null if there are no children.
 	TiXmlNode* LastChild( const char * value );
 
     #ifdef TIXML_USE_STL
-	const TiXmlNode* FirstChild( const std::string& _value ) const	{	return FirstChild (_value.c_str ());	}	///< STL std::string form.
-	TiXmlNode* FirstChild( const std::string& _value )				{	return FirstChild (_value.c_str ());	}	///< STL std::string form.
-	const TiXmlNode* LastChild( const std::string& _value ) const	{	return LastChild (_value.c_str ());	}	///< STL std::string form.
-	TiXmlNode* LastChild( const std::string& _value )				{	return LastChild (_value.c_str ());	}	///< STL std::string form.
+	const TiXmlNode* FirstChild( const std::string& _value ) const	{	return FirstChild (_value.c_str ());	}	// STL std::string form.
+	TiXmlNode* FirstChild( const std::string& _value )				{	return FirstChild (_value.c_str ());	}	// STL std::string form.
+	const TiXmlNode* LastChild( const std::string& _value ) const	{	return LastChild (_value.c_str ());	}	// STL std::string form.
+	TiXmlNode* LastChild( const std::string& _value )				{	return LastChild (_value.c_str ());	}	// STL std::string form.
 	#endif
 
 	/** An alternate way to walk the children of a node.
@@ -499,13 +499,13 @@ public:
 	const TiXmlNode* IterateChildren( const TiXmlNode* previous ) const;
 	TiXmlNode* IterateChildren( TiXmlNode* previous );
 
-	/// This flavor of IterateChildren searches for children with a particular 'value'
+	// This flavor of IterateChildren searches for children with a particular 'value'
 	const TiXmlNode* IterateChildren( const char * value, const TiXmlNode* previous ) const;
 	TiXmlNode* IterateChildren( const char * value, TiXmlNode* previous );
 
     #ifdef TIXML_USE_STL
-	const TiXmlNode* IterateChildren( const std::string& _value, const TiXmlNode* previous ) const	{	return IterateChildren (_value.c_str (), previous);	}	///< STL std::string form.
-	TiXmlNode* IterateChildren( const std::string& _value, TiXmlNode* previous ) {	return IterateChildren (_value.c_str (), previous);	}	///< STL std::string form.
+	const TiXmlNode* IterateChildren( const std::string& _value, const TiXmlNode* previous ) const	{	return IterateChildren (_value.c_str (), previous);	}	// STL std::string form.
+	TiXmlNode* IterateChildren( const std::string& _value, TiXmlNode* previous ) {	return IterateChildren (_value.c_str (), previous);	}	// STL std::string form.
 	#endif
 
 	/** Add a new node related to this. Adds a child past the LastChild.
@@ -540,29 +540,29 @@ public:
 	*/
 	TiXmlNode* ReplaceChild( TiXmlNode* replaceThis, const TiXmlNode& withThis );
 
-	/// Delete a child of this node.
+	// Delete a child of this node.
 	bool RemoveChild( TiXmlNode* removeThis );
 
-	/// Navigate to a sibling node.
+	// Navigate to a sibling node.
 	const TiXmlNode* PreviousSibling() const			{ return prev; }
 	TiXmlNode* PreviousSibling()						{ return prev; }
 
-	/// Navigate to a sibling node.
+	// Navigate to a sibling node.
 	const TiXmlNode* PreviousSibling( const char * ) const;
 	TiXmlNode* PreviousSibling( const char * );
 
     #ifdef TIXML_USE_STL
-	const TiXmlNode* PreviousSibling( const std::string& _value ) const	{	return PreviousSibling (_value.c_str ());	}	///< STL std::string form.
-	TiXmlNode* PreviousSibling( const std::string& _value ) 			{	return PreviousSibling (_value.c_str ());	}	///< STL std::string form.
-	const TiXmlNode* NextSibling( const std::string& _value) const		{	return NextSibling (_value.c_str ());	}	///< STL std::string form.
-	TiXmlNode* NextSibling( const std::string& _value) 					{	return NextSibling (_value.c_str ());	}	///< STL std::string form.
+	const TiXmlNode* PreviousSibling( const std::string& _value ) const	{	return PreviousSibling (_value.c_str ());	}	// STL std::string form.
+	TiXmlNode* PreviousSibling( const std::string& _value ) 			{	return PreviousSibling (_value.c_str ());	}	// STL std::string form.
+	const TiXmlNode* NextSibling( const std::string& _value) const		{	return NextSibling (_value.c_str ());	}	// STL std::string form.
+	TiXmlNode* NextSibling( const std::string& _value) 					{	return NextSibling (_value.c_str ());	}	// STL std::string form.
 	#endif
 
-	/// Navigate to a sibling node.
+	// Navigate to a sibling node.
 	const TiXmlNode* NextSibling() const				{ return next; }
 	TiXmlNode* NextSibling()							{ return next; }
 
-	/// Navigate to a sibling node with the given 'value'.
+	// Navigate to a sibling node with the given 'value'.
 	const TiXmlNode* NextSibling( const char * ) const;
 	TiXmlNode* NextSibling( const char * );
 
@@ -581,21 +581,21 @@ public:
 	TiXmlElement* NextSiblingElement( const char * );
 
     #ifdef TIXML_USE_STL
-	const TiXmlElement* NextSiblingElement( const std::string& _value) const	{	return NextSiblingElement (_value.c_str ());	}	///< STL std::string form.
-	TiXmlElement* NextSiblingElement( const std::string& _value)				{	return NextSiblingElement (_value.c_str ());	}	///< STL std::string form.
+	const TiXmlElement* NextSiblingElement( const std::string& _value) const	{	return NextSiblingElement (_value.c_str ());	}	// STL std::string form.
+	TiXmlElement* NextSiblingElement( const std::string& _value)				{	return NextSiblingElement (_value.c_str ());	}	// STL std::string form.
 	#endif
 
-	/// Convenience function to get through elements.
+	// Convenience function to get through elements.
 	const TiXmlElement* FirstChildElement()	const;
 	TiXmlElement* FirstChildElement();
 
-	/// Convenience function to get through elements.
+	// Convenience function to get through elements.
 	const TiXmlElement* FirstChildElement( const char * value ) const;
 	TiXmlElement* FirstChildElement( const char * value );
 
     #ifdef TIXML_USE_STL
-	const TiXmlElement* FirstChildElement( const std::string& _value ) const	{	return FirstChildElement (_value.c_str ());	}	///< STL std::string form.
-	TiXmlElement* FirstChildElement( const std::string& _value )				{	return FirstChildElement (_value.c_str ());	}	///< STL std::string form.
+	const TiXmlElement* FirstChildElement( const std::string& _value ) const	{	return FirstChildElement (_value.c_str ());	}	// STL std::string form.
+	TiXmlElement* FirstChildElement( const std::string& _value )				{	return FirstChildElement (_value.c_str ());	}	// STL std::string form.
 	#endif
 
 	/** Query the type (as an enumerated value, above) of this node.
@@ -610,22 +610,22 @@ public:
 	const TiXmlDocument* GetDocument() const;
 	TiXmlDocument* GetDocument();
 
-	/// Returns true if this node has no children.
+	// Returns true if this node has no children.
 	bool NoChildren() const						{ return !firstChild; }
 
-	const TiXmlDocument* ToDocument()	const		{ return ( this && type == DOCUMENT ) ? (const TiXmlDocument*) this : 0; } ///< Cast to a more defined type. Will return null not of the requested type.
-	const TiXmlElement*  ToElement() const			{ return ( this && type == ELEMENT  ) ? (const TiXmlElement*)  this : 0; } ///< Cast to a more defined type. Will return null not of the requested type.
-	const TiXmlComment*  ToComment() const			{ return ( this && type == COMMENT  ) ? (const TiXmlComment*)  this : 0; } ///< Cast to a more defined type. Will return null not of the requested type.
-	const TiXmlUnknown*  ToUnknown() const			{ return ( this && type == UNKNOWN  ) ? (const TiXmlUnknown*)  this : 0; } ///< Cast to a more defined type. Will return null not of the requested type.
-	const TiXmlText*	   ToText()    const		{ return ( this && type == TEXT     ) ? (const TiXmlText*)     this : 0; } ///< Cast to a more defined type. Will return null not of the requested type.
-	const TiXmlDeclaration* ToDeclaration() const	{ return ( this && type == DECLARATION ) ? (const TiXmlDeclaration*) this : 0; } ///< Cast to a more defined type. Will return null not of the requested type.
+	const TiXmlDocument* ToDocument()	const		{ return ( this && type == DOCUMENT ) ? (const TiXmlDocument*) this : 0; } // Cast to a more defined type. Will return null not of the requested type.
+	const TiXmlElement*  ToElement() const			{ return ( this && type == ELEMENT  ) ? (const TiXmlElement*)  this : 0; } // Cast to a more defined type. Will return null not of the requested type.
+	const TiXmlComment*  ToComment() const			{ return ( this && type == COMMENT  ) ? (const TiXmlComment*)  this : 0; } // Cast to a more defined type. Will return null not of the requested type.
+	const TiXmlUnknown*  ToUnknown() const			{ return ( this && type == UNKNOWN  ) ? (const TiXmlUnknown*)  this : 0; } // Cast to a more defined type. Will return null not of the requested type.
+	const TiXmlText*	   ToText()    const		{ return ( this && type == TEXT     ) ? (const TiXmlText*)     this : 0; } // Cast to a more defined type. Will return null not of the requested type.
+	const TiXmlDeclaration* ToDeclaration() const	{ return ( this && type == DECLARATION ) ? (const TiXmlDeclaration*) this : 0; } // Cast to a more defined type. Will return null not of the requested type.
 
-	TiXmlDocument* ToDocument()			{ return ( this && type == DOCUMENT ) ? (TiXmlDocument*) this : 0; } ///< Cast to a more defined type. Will return null not of the requested type.
-	TiXmlElement*  ToElement()			{ return ( this && type == ELEMENT  ) ? (TiXmlElement*)  this : 0; } ///< Cast to a more defined type. Will return null not of the requested type.
-	TiXmlComment*  ToComment()			{ return ( this && type == COMMENT  ) ? (TiXmlComment*)  this : 0; } ///< Cast to a more defined type. Will return null not of the requested type.
-	TiXmlUnknown*  ToUnknown()			{ return ( this && type == UNKNOWN  ) ? (TiXmlUnknown*)  this : 0; } ///< Cast to a more defined type. Will return null not of the requested type.
-	TiXmlText*	   ToText()   			{ return ( this && type == TEXT     ) ? (TiXmlText*)     this : 0; } ///< Cast to a more defined type. Will return null not of the requested type.
-	TiXmlDeclaration* ToDeclaration()	{ return ( this && type == DECLARATION ) ? (TiXmlDeclaration*) this : 0; } ///< Cast to a more defined type. Will return null not of the requested type.
+	TiXmlDocument* ToDocument()			{ return ( this && type == DOCUMENT ) ? (TiXmlDocument*) this : 0; } // Cast to a more defined type. Will return null not of the requested type.
+	TiXmlElement*  ToElement()			{ return ( this && type == ELEMENT  ) ? (TiXmlElement*)  this : 0; } // Cast to a more defined type. Will return null not of the requested type.
+	TiXmlComment*  ToComment()			{ return ( this && type == COMMENT  ) ? (TiXmlComment*)  this : 0; } // Cast to a more defined type. Will return null not of the requested type.
+	TiXmlUnknown*  ToUnknown()			{ return ( this && type == UNKNOWN  ) ? (TiXmlUnknown*)  this : 0; } // Cast to a more defined type. Will return null not of the requested type.
+	TiXmlText*	   ToText()   			{ return ( this && type == TEXT     ) ? (TiXmlText*)     this : 0; } // Cast to a more defined type. Will return null not of the requested type.
+	TiXmlDeclaration* ToDeclaration()	{ return ( this && type == DECLARATION ) ? (TiXmlDeclaration*) this : 0; } // Cast to a more defined type. Will return null not of the requested type.
 
 	/** Create an exact duplicate of this node and return it. The memory must be deleted
 		by the caller.
@@ -679,7 +679,7 @@ class SZG_CALL TiXmlAttribute : public TiXmlBase
 	friend class TiXmlAttributeSet;
 
 public:
-	/// Construct an empty attribute.
+	// Construct an empty attribute.
 	TiXmlAttribute() : TiXmlBase()
 	{
 		document = 0;
@@ -687,7 +687,7 @@ public:
 	}
 
 	#ifdef TIXML_USE_STL
-	/// std::string constructor.
+	// std::string constructor.
 	TiXmlAttribute( const std::string& _name, const std::string& _value )
 	{
 		name = _name;
@@ -697,7 +697,7 @@ public:
 	}
 	#endif
 
-	/// Construct an attribute with a name and value.
+	// Construct an attribute with a name and value.
 	TiXmlAttribute( const char * _name, const char * _value )
 	{
 		name = _name;
@@ -706,10 +706,10 @@ public:
 		prev = next = 0;
 	}
 
-	const char*		Name()  const		{ return name.c_str (); }		///< Return the name of this attribute.
-	const char*		Value() const		{ return value.c_str (); }		///< Return the value of this attribute.
-	int       IntValue() const;									///< Return the value of this attribute, converted to an integer.
-	double	DoubleValue() const;								///< Return the value of this attribute, converted to a double.
+	const char*		Name()  const		{ return name.c_str (); }		// Return the name of this attribute.
+	const char*		Value() const		{ return value.c_str (); }		// Return the value of this attribute.
+	int       IntValue() const;									// Return the value of this attribute, converted to an integer.
+	double	DoubleValue() const;								// Return the value of this attribute, converted to a double.
 
 	/** QueryIntValue examines the value string. It is an alternative to the
 		IntValue() method with richer error checking.
@@ -721,23 +721,23 @@ public:
 		the opposite of almost all other TinyXml calls.
 	*/
 	int QueryIntValue( int* value ) const;
-	/// QueryDoubleValue examines the value string. See QueryIntValue().
+	// QueryDoubleValue examines the value string. See QueryIntValue().
 	int QueryDoubleValue( double* value ) const;
 
-	void SetName( const char* _name )	{ name = _name; }				///< Set the name of this attribute.
-	void SetValue( const char* _value )	{ value = _value; }				///< Set the value.
+	void SetName( const char* _name )	{ name = _name; }				// Set the name of this attribute.
+	void SetValue( const char* _value )	{ value = _value; }				// Set the value.
 
-	void SetIntValue( int value );										///< Set the value from an integer.
-	void SetDoubleValue( double value );								///< Set the value from a double.
+	void SetIntValue( int value );										// Set the value from an integer.
+	void SetDoubleValue( double value );								// Set the value from a double.
 
     #ifdef TIXML_USE_STL
-	/// STL std::string form.
+	// STL std::string form.
 	void SetName( const std::string& _name )
 	{
 		StringToBuffer buf( _name );
 		SetName ( buf.buffer ? buf.buffer : "error" );
 	}
-	/// STL std::string form.
+	// STL std::string form.
 	void SetValue( const std::string& _value )
 	{
 		StringToBuffer buf( _value );
@@ -745,10 +745,10 @@ public:
 	}
 	#endif
 
-	/// Get the next sibling attribute in the DOM. Returns null at end.
+	// Get the next sibling attribute in the DOM. Returns null at end.
 	const TiXmlAttribute* Next() const;
 	TiXmlAttribute* Next();
-	/// Get the previous sibling attribute in the DOM. Returns null at beginning.
+	// Get the previous sibling attribute in the DOM. Returns null at beginning.
 	const TiXmlAttribute* Previous() const;
 	TiXmlAttribute* Previous();
 
@@ -827,11 +827,11 @@ private:
 class SZG_CALL TiXmlElement : public TiXmlNode
 {
 public:
-	/// Construct an element.
+	// Construct an element.
 	TiXmlElement (const char * in_value);
 
 	#ifdef TIXML_USE_STL
-	/// std::string constructor.
+	// std::string constructor.
 	TiXmlElement( const std::string& _value );
 	#endif
 
@@ -877,9 +877,9 @@ public:
 		does not exist, then TIXML_NO_ATTRIBUTE is returned.
 	*/
 	int QueryIntAttribute( const char* name, int* value ) const;
-	/// QueryDoubleAttribute examines the attribute - see QueryIntAttribute().
+	// QueryDoubleAttribute examines the attribute - see QueryIntAttribute().
 	int QueryDoubleAttribute( const char* name, double* value ) const;
-	/// QueryFloatAttribute examines the attribute - see QueryIntAttribute().
+	// QueryFloatAttribute examines the attribute - see QueryIntAttribute().
 	int QueryDoubleAttribute( const char* name, float* value ) const {
 		double d;
 		int result = QueryDoubleAttribute( name, &d );
@@ -899,7 +899,7 @@ public:
 	int QueryIntAttribute( const std::string& name, int* value ) const	{ return QueryIntAttribute( name.c_str(), value ); }
 	int QueryDoubleAttribute( const std::string& name, double* value ) const { return QueryDoubleAttribute( name.c_str(), value ); }
 
-	/// STL std::string form.
+	// STL std::string form.
 	void SetAttribute( const std::string& name, const std::string& _value )
 	{
 		StringToBuffer n( name );
@@ -907,7 +907,7 @@ public:
 		if ( n.buffer && v.buffer )
 			SetAttribute (n.buffer, v.buffer );
 	}
-	///< STL std::string form.
+	// STL std::string form.
 	void SetAttribute( const std::string& name, int _value )
 	{
 		StringToBuffer n( name );
@@ -930,15 +930,15 @@ public:
 	*/
 	void RemoveAttribute( const char * name );
     #ifdef TIXML_USE_STL
-	void RemoveAttribute( const std::string& name )	{	RemoveAttribute (name.c_str ());	}	///< STL std::string form.
+	void RemoveAttribute( const std::string& name )	{	RemoveAttribute (name.c_str ());	}	// STL std::string form.
 	#endif
 
-	const TiXmlAttribute* FirstAttribute() const	{ return attributeSet.First(); }		///< Access the first attribute in this element.
+	const TiXmlAttribute* FirstAttribute() const	{ return attributeSet.First(); }		// Access the first attribute in this element.
 	TiXmlAttribute* FirstAttribute() 				{ return attributeSet.First(); }
-	const TiXmlAttribute* LastAttribute()	const 	{ return attributeSet.Last(); }		///< Access the last attribute in this element.
+	const TiXmlAttribute* LastAttribute()	const 	{ return attributeSet.Last(); }		// Access the last attribute in this element.
 	TiXmlAttribute* LastAttribute()					{ return attributeSet.Last(); }
 
-	/// Creates a new Element and returns it - the returned element is a copy.
+	// Creates a new Element and returns it - the returned element is a copy.
 	virtual TiXmlNode* Clone() const;
 	// Print the Element to a FILE stream.
 	virtual void Print( FILE* cfile, int depth ) const;
@@ -976,16 +976,16 @@ private:
 class SZG_CALL TiXmlComment : public TiXmlNode
 {
 public:
-	/// Constructs an empty comment.
+	// Constructs an empty comment.
 	TiXmlComment() : TiXmlNode( TiXmlNode::COMMENT ) {}
 	TiXmlComment( const TiXmlComment& );
 	void operator=( const TiXmlComment& base );
 
 	virtual ~TiXmlComment()	{}
 
-	/// Returns a copy of this Comment.
+	// Returns a copy of this Comment.
 	virtual TiXmlNode* Clone() const;
-	/// Write this Comment to a FILE stream.
+	// Write this Comment to a FILE stream.
 	virtual void Print( FILE* cfile, int depth ) const;
 
 	/*	Attribtue parsing starts: at the ! of the !--
@@ -1013,7 +1013,7 @@ class SZG_CALL TiXmlText : public TiXmlNode
 {
 	friend class TiXmlElement;
 public:
-	/// Constructor.
+	// Constructor.
 	TiXmlText (const char * initValue) : TiXmlNode (TiXmlNode::TEXT)
 	{
 		SetValue( initValue );
@@ -1021,7 +1021,7 @@ public:
 	virtual ~TiXmlText() {}
 
 	#ifdef TIXML_USE_STL
-	/// Constructor.
+	// Constructor.
 	TiXmlText( const std::string& initValue ) : TiXmlNode (TiXmlNode::TEXT)
 	{
 		SetValue( initValue );
@@ -1031,13 +1031,13 @@ public:
 	TiXmlText( const TiXmlText& copy ) : TiXmlNode( TiXmlNode::TEXT )	{ copy.CopyTo( this ); }
 	void operator=( const TiXmlText& base )							 	{ base.CopyTo( this ); }
 
-	/// Write this text object to a FILE stream.
+	// Write this text object to a FILE stream.
 	virtual void Print( FILE* cfile, int depth ) const;
 
 	virtual const char* Parse( const char* p, TiXmlParsingData* data, TiXmlEncoding encoding );
 
 protected :
-	///  [internal use] Creates a new Element and returns it.
+	//  [internal use] Creates a new Element and returns it.
 	virtual TiXmlNode* Clone() const;
 	void CopyTo( TiXmlText* target ) const;
 
@@ -1068,17 +1068,17 @@ private:
 class SZG_CALL TiXmlDeclaration : public TiXmlNode
 {
 public:
-	/// Construct an empty declaration.
+	// Construct an empty declaration.
 	TiXmlDeclaration()   : TiXmlNode( TiXmlNode::DECLARATION ) {}
 
 #ifdef TIXML_USE_STL
-	/// Constructor.
+	// Constructor.
 	TiXmlDeclaration(	const std::string& _version,
 						const std::string& _encoding,
 						const std::string& _standalone );
 #endif
 
-	/// Construct.
+	// Construct.
 	TiXmlDeclaration(	const char* _version,
 						const char* _encoding,
 						const char* _standalone );
@@ -1088,16 +1088,16 @@ public:
 
 	virtual ~TiXmlDeclaration()	{}
 
-	/// Version. Will return an empty string if none was found.
+	// Version. Will return an empty string if none was found.
 	const char *Version() const			{ return version.c_str (); }
-	/// Encoding. Will return an empty string if none was found.
+	// Encoding. Will return an empty string if none was found.
 	const char *Encoding() const		{ return encoding.c_str (); }
-	/// Is this a standalone document?
+	// Is this a standalone document?
 	const char *Standalone() const		{ return standalone.c_str (); }
 
-	/// Creates a copy of this Declaration and returns it.
+	// Creates a copy of this Declaration and returns it.
 	virtual TiXmlNode* Clone() const;
-	/// Print this declaration to a FILE stream.
+	// Print this declaration to a FILE stream.
 	virtual void Print( FILE* cfile, int depth ) const;
 
 	virtual const char* Parse( const char* p, TiXmlParsingData* data, TiXmlEncoding encoding );
@@ -1134,9 +1134,9 @@ public:
 	TiXmlUnknown( const TiXmlUnknown& copy ) : TiXmlNode( TiXmlNode::UNKNOWN )		{ copy.CopyTo( this ); }
 	void operator=( const TiXmlUnknown& copy )										{ copy.CopyTo( this ); }
 
-	/// Creates a copy of this Unknown and returns it.
+	// Creates a copy of this Unknown and returns it.
 	virtual TiXmlNode* Clone() const;
-	/// Print this Unknown to a FILE stream.
+	// Print this Unknown to a FILE stream.
 	virtual void Print( FILE* cfile, int depth ) const;
 
 	virtual const char* Parse( const char* p, TiXmlParsingData* data, TiXmlEncoding encoding );
@@ -1161,13 +1161,13 @@ private:
 class SZG_CALL TiXmlDocument : public TiXmlNode
 {
 public:
-	/// Create an empty document, that has no name.
+	// Create an empty document, that has no name.
 	TiXmlDocument();
-	/// Create a document with a name. The name of the document is also the filename of the xml.
+	// Create a document with a name. The name of the document is also the filename of the xml.
 	TiXmlDocument( const char * documentName );
 
 	#ifdef TIXML_USE_STL
-	/// Constructor.
+	// Constructor.
 	TiXmlDocument( const std::string& documentName );
 	#endif
 
@@ -1181,20 +1181,20 @@ public:
 		document data before loading.
 	*/
 	bool LoadFile( TiXmlEncoding encoding = TIXML_DEFAULT_ENCODING );
-	/// Save a file using the current document value. Returns true if successful.
+	// Save a file using the current document value. Returns true if successful.
 	bool SaveFile() const;
-	/// Load a file using the given filename. Returns true if successful.
+	// Load a file using the given filename. Returns true if successful.
 	bool LoadFile( const char * filename, TiXmlEncoding encoding = TIXML_DEFAULT_ENCODING );
-	/// Save a file using the given filename. Returns true if successful.
+	// Save a file using the given filename. Returns true if successful.
 	bool SaveFile( const char * filename ) const;
 
 	#ifdef TIXML_USE_STL
-	bool LoadFile( const std::string& filename, TiXmlEncoding encoding = TIXML_DEFAULT_ENCODING )			///< STL std::string version.
+	bool LoadFile( const std::string& filename, TiXmlEncoding encoding = TIXML_DEFAULT_ENCODING )			// STL std::string version.
 	{
 		StringToBuffer f( filename );
 		return ( f.buffer && LoadFile( f.buffer, encoding ));
 	}
-	bool SaveFile( const std::string& filename ) const		///< STL std::string version.
+	bool SaveFile( const std::string& filename ) const		// STL std::string version.
 	{
 		StringToBuffer f( filename );
 		return ( f.buffer && SaveFile( f.buffer ));
@@ -1221,7 +1221,7 @@ public:
 	*/
 	bool Error() const						{ return error; }
 
-	/// Contains a textual (english) description of the error if one occurs.
+	// Contains a textual (english) description of the error if one occurs.
 	const char * ErrorDesc() const	{ return errorDesc.c_str (); }
 
 	/** Generally, you probably want the error string ( ErrorDesc() ). But if you
@@ -1237,7 +1237,7 @@ public:
 		@sa SetTabSize, Row, Column
 	*/
 	int ErrorRow()	{ return errorLocation.row+1; }
-	int ErrorCol()	{ return errorLocation.col+1; }	///< The column where the error occured. See ErrorRow()
+	int ErrorCol()	{ return errorLocation.col+1; }	// The column where the error occured. See ErrorRow()
 
 	/** By calling this method, with a tab size
 		greater than 0, the row and column of each node and attribute is stored
@@ -1276,7 +1276,7 @@ public:
 	/** Dump the document to standard out. */
 	void Print() const						{ Print( stdout, 0 ); }
 
-	/// Print this Document to a FILE stream.
+	// Print this Document to a FILE stream.
 	virtual void Print( FILE* cfile, int depth = 0 ) const;
 	// [internal use]
 	void SetError( int err, const char* errorLocation, TiXmlParsingData* prevData, TiXmlEncoding encoding );
@@ -1383,19 +1383,19 @@ private:
 class SZG_CALL TiXmlHandle
 {
 public:
-	/// Create a handle from any node (at any depth of the tree.) This can be a null pointer.
+	// Create a handle from any node (at any depth of the tree.) This can be a null pointer.
 	TiXmlHandle( TiXmlNode* node )					{ this->node = node; }
-	/// Copy constructor
+	// Copy constructor
 	TiXmlHandle( const TiXmlHandle& ref )			{ this->node = ref.node; }
 	TiXmlHandle operator=( const TiXmlHandle& ref ) { this->node = ref.node; return *this; }
 
-	/// Return a handle to the first child node.
+	// Return a handle to the first child node.
 	TiXmlHandle FirstChild() const;
-	/// Return a handle to the first child node with the given name.
+	// Return a handle to the first child node with the given name.
 	TiXmlHandle FirstChild( const char * value ) const;
-	/// Return a handle to the first child element.
+	// Return a handle to the first child element.
 	TiXmlHandle FirstChildElement() const;
-	/// Return a handle to the first child element with the given name.
+	// Return a handle to the first child element with the given name.
 	TiXmlHandle FirstChildElement( const char * value ) const;
 
 	/** Return a handle to the "index" child with the given name.
@@ -1425,13 +1425,13 @@ public:
 	TiXmlHandle ChildElement( const std::string& _value, int index ) const	{ return ChildElement( _value.c_str(), index ); }
 	#endif
 
-	/// Return the handle as a TiXmlNode. This may return null.
+	// Return the handle as a TiXmlNode. This may return null.
 	TiXmlNode* Node() const			{ return node; }
-	/// Return the handle as a TiXmlElement. This may return null.
+	// Return the handle as a TiXmlElement. This may return null.
 	TiXmlElement* Element() const	{ return ( ( node && node->ToElement() ) ? node->ToElement() : 0 ); }
-	/// Return the handle as a TiXmlText. This may return null.
+	// Return the handle as a TiXmlText. This may return null.
 	TiXmlText* Text() const			{ return ( ( node && node->ToText() ) ? node->ToText() : 0 ); }
-	/// Return the handle as a TiXmlUnknown. This may return null;
+	// Return the handle as a TiXmlUnknown. This may return null;
 	TiXmlUnknown* Unknown() const			{ return ( ( node && node->ToUnknown() ) ? node->ToUnknown() : 0 ); }
 
 private:

@@ -18,7 +18,7 @@
 #include "arGraphicsCalling.h"
 using namespace std;
 
-/// Texture map loaded from a file, or loaded from a block of memory.
+// Texture map loaded from a file or from memory.
 
 class SZG_CALL arTexture {
  public:
@@ -41,9 +41,9 @@ class SZG_CALL arTexture {
 
   int getWidth()  const { return _width; }
   int getHeight() const { return _height; }
-  int getDepth()  const { return _alpha ? 4 : 3; }   ///< bytes per pixel
+  int getDepth()  const { return _alpha ? 4 : 3; }   // bytes per pixel
   int numbytes() const
-    { return _width * _height * getDepth(); } ///< size of _pixels
+    { return _width * _height * getDepth(); } // size of _pixels
   const char* getPixels() const { return _pixels; }
   void setPixels(char* pixels, int width, int height);
   char* getSubImage( unsigned int left, unsigned int bottom,
@@ -88,13 +88,13 @@ class SZG_CALL arTexture {
   bool flipHorizontal();
 
  protected:
-  bool _fDirty; ///< New _pixels need to be _loadIntoOpenGL()'d.
+  bool _fDirty; // New _pixels need to be _loadIntoOpenGL()'d.
   int _width;
   int _height;
-  bool _alpha; ///< true iff alpha channel exists
+  bool _alpha; // true iff alpha channel exists
   bool _grayScale;
-  bool _repeating; ///< Is texture periodic for coords outside [0,1]?
-  bool _mipmap; ///< use GL_LINEAR_MIPMAP_LINEAR or GL_LINEAR
+  bool _repeating; // Is texture periodic for coords outside [0,1]?
+  bool _mipmap; // use GL_LINEAR_MIPMAP_LINEAR or GL_LINEAR
   int _textureFunc;
   char* _pixels;
 

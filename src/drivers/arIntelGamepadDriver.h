@@ -12,7 +12,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-/// Driver for RF-wireless gamepad (no longer) manufactured by Intel.
+// Driver for RF-wireless gamepad, (no longer) manufactured by Intel.
 
 class arIntelGamepadDriver: public arInputSource {
   friend void ar_intelGamepadDriverEventTask(void*);

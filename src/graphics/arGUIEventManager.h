@@ -192,14 +192,13 @@ class SZG_CALL arGUIEventManager
 
   private:
 
-    bool _active;                             ///< Is the event manager active?
+    bool _active;                             // Is the event manager active?
 
-    /// this is a lot of data to be copying around, any way to do this without
-    /// passing-by-value?
-    std::queue<arStructuredData > _events;    ///< Queue of consumed os events waiting to be processed by the window manager.
-    arMutex _eventsMutex;                     ///< Mutex protecting the event queue.
+    // bug: this is a lot of data to be copying around, any way to do this without passing-by-value?
+    std::queue<arStructuredData > _events;    // Queue of consumed os events waiting to be processed by the window manager.
+    arMutex _eventsMutex;                     // Mutex protecting the event queue.
 
-    void* _userData;                          ///< Data pointer defined by associated window.
+    void* _userData;                          // Data pointer defined by associated window.
 
     //@{
     /**
@@ -233,7 +232,7 @@ class SZG_CALL arGUIEventManager
     arDataTemplate*       _windowInfoTemplate;
     //@}
 
-    int                   _eventIDs[ AR_NUM_GUI_EVENTS ];   ///< deprecated.
+    int                   _eventIDs[ AR_NUM_GUI_EVENTS ];   // deprecated.
 
 };
 

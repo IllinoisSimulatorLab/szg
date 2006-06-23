@@ -10,8 +10,12 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-SZG_CALL enum arInputEventType {AR_EVENT_GARBAGE=-1, AR_EVENT_BUTTON=0, 
-                                AR_EVENT_AXIS=1, AR_EVENT_MATRIX=2};
+SZG_CALL enum arInputEventType {
+  AR_EVENT_GARBAGE=-1,
+  AR_EVENT_BUTTON,
+  AR_EVENT_AXIS,
+  AR_EVENT_MATRIX
+  };
 
 class SZG_CALL arInputEvent {
   public:
@@ -20,7 +24,7 @@ class SZG_CALL arInputEvent {
     virtual ~arInputEvent();
     arInputEvent( const arInputEvent& e );
     arInputEvent& operator=( const arInputEvent& e );
-    operator bool() { return (_type != AR_EVENT_GARBAGE); }
+    operator bool() const { return (_type != AR_EVENT_GARBAGE); }
     
     arInputEventType getType() const { return _type; }
     unsigned int getIndex() const { return _index; }
@@ -85,4 +89,3 @@ class SZG_CALL arGarbageEvent : public arInputEvent {
 SZG_CALL ostream& operator<<(ostream&, const arInputEvent&);
 
 #endif        //  #ifndef AR_INPUT_EVENT_H
-

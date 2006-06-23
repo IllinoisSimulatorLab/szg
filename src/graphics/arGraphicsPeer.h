@@ -13,7 +13,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-// Yes, this is a HACK!
+// Hack.
 class SZG_CALL arGraphicsPeerCullObject{
  public:
   arGraphicsPeerCullObject(){}

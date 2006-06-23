@@ -2,10 +2,9 @@
 #define ARSTLALGO_H
 
 #if (defined(__GNUC__)&&(__GNUC__<3))
-#include <algo.h>
+  #include <algo.h>
 #else
-#include <algorithm>
+  #include <algorithm>
 #endif
 
-#endif        //  #ifndefARSTLALGO_H
-
+#endif

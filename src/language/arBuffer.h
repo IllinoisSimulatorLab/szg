@@ -9,12 +9,9 @@
 #include <iostream>
 using namespace std;
 
-/// Utility class. Useful for the many times one wants a simple,
-/// resizeable array of elements (i.e. when dealing with moving buffers of
-/// network data).
-
-// IMPORTANT NOTE: DO NOT USE THE arBuffer template class in USER CODE!
-// THIS BREAKS THE ABILITY TO REDEFINE THE SHARED LIBRARY!
+// Utility template. A simple, resizeable array of elements,
+// e.g., for moving buffers of network data.
+// Do not use in user code: the shared library can't be redefined then.
 
 template<class T> class arBuffer{
  // Needs assignment operator and copy constructor, for pointer member.

@@ -74,4 +74,3 @@ class SZG_CALL arViewport {
 };
 
 #endif        //  #ifndefARVIEWPORT_H
-

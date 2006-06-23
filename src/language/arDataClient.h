@@ -11,7 +11,7 @@
 #include "arTemplateDictionary.h"
 #include "arLanguageCalling.h"
 
-/// Get data from an arDataServer.
+// Get data from an arDataServer.
 
 class SZG_CALL arDataClient : public arDataPoint {
  // Needs assignment operator and copy constructor, for pointer members.
@@ -19,15 +19,15 @@ class SZG_CALL arDataClient : public arDataPoint {
    arDataClient(const string& exeName="");
    ~arDataClient();
 
-   bool dialUp(const char*, int);   ///< connect to IP address / port
+   bool dialUp(const char*, int);   // connect to IP address / port
    bool dialUpFallThrough(const char*, int);
    bool dialUp(const string& s, int i)
      { return dialUp(s.c_str(), i); }
    bool dialUpFallThrough(const string& s, int i)
      { return dialUpFallThrough(s.c_str(), i); }
    void closeConnection();
-   bool getData(ARchar*&, int&); ///< 1st arg will be grown to fit, if needed.
-   bool getDataQueue(ARchar*&, int&); ///< 1st arg grown to fit, if needed.
+   bool getData(ARchar*&, int&); // 1st arg will be grown to fit, if needed.
+   bool getDataQueue(ARchar*&, int&); // 1st arg grown to fit, if needed.
    arTemplateDictionary* getDictionary();
 
    bool sendData(arStructuredData*);

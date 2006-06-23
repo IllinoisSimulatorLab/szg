@@ -10,7 +10,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-/// Billboard display of text.
+// Billboard display of text.
 
 class SZG_CALL arBillboardNode: public arGraphicsNode{
  public:
@@ -28,8 +28,7 @@ class SZG_CALL arBillboardNode: public arGraphicsNode{
   bool   _visibility;
   string _text;
 
-  arStructuredData* _dumpData(const string& text, bool visibility,
-                              bool owned);
+  arStructuredData* _dumpData(const string& text, bool visibility, bool owned);
 };
 
 #endif

@@ -12,7 +12,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-/// Something that absorbs input-device messages over ethernet.
+// Absorb input-device messages.
 
 class SZG_CALL arNetInputSink: public arInputSink{
   friend void ar_netInputSinkConnectionTask(void*);

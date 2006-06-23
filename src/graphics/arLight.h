@@ -10,9 +10,9 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-/// This very simple class encapsulates the parameters for lights in OpenGL.
-/// It also includes code for activating the light. The class is used
-/// by arGraphicsDatabase in implementing the OpenGL lighting model
+// Encapsulate the parameters for OpenGL lights.
+// Includes code for activating the light.
+// Used by arGraphicsDatabase to implement the OpenGL lighting model.
 
 class SZG_CALL arLight{
  public:

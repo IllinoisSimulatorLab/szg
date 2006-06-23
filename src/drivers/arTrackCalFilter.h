@@ -11,7 +11,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-/// Calibration table for an input device.
+// Calibration table for an input device.
 
 class SZG_CALL arTrackCalFilter: public arIOFilter {
  public:

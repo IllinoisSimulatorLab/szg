@@ -10,7 +10,7 @@
 // THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-/// Toggle visibility of subtree under this node.
+// Toggle visibility of subtree under this node.
 
 class SZG_CALL arVisibilityNode: public arGraphicsNode{
  public:
