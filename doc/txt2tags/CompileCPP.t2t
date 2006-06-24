@@ -46,9 +46,9 @@ variable has the Visual Studio program in it first.
 
 =Environment Variables=[Environment]
 
-There are five environment variables that control the build process.
+Five environment variables control the build process.
 If you are using a precompiled SDK, one of them, SZG_DEVELOPER_STYLE, must
-be set. THIS IS VERY IMPORTANT.
+be set.
 
 - SZGHOME: The top level directory of your distribution. This MUST
   be defined.
@@ -67,11 +67,9 @@ be set. THIS IS VERY IMPORTANT.
         where $(MACHINE_DIR) is one of darwin, linux, mips4, or win32.
 
 - SZGEXTERNAL: The location of any external libraries used.
-  This MUST be defined if your system does not have GLUT preinstalled.
-  Otherwise, it is optional.
-  See this [section SupportingLibraries.html]. Please note
-  that a complete "external" directory is provided for each supported
-  platform as part of the SDK.
+  Optional if GLUT is preinstalled.
+  See this [section SupportingLibraries.html].
+  The SDK includes a complete "external" directory for each platform.
 - SZGDEBUG: By default, executables and shared libraries are built without
   debugging information. If you want to debug, set this to TRUE.
 - SZG_STLPORT: This is only used on Windows. If you are using Visual Studio
@@ -118,13 +116,12 @@ sample piece of source code, szglorenz.cpp.
 - szg_app_template/build/makefiles/Makefile.my_app: This is the fill you will
 edit to create your project. Its important features are explained below as
 well as via comments in the file itself.
-- szg_app_template/build/darwin: The Mac OS X-specific Makefile is located
-here and OS X objects are built here. The machine-specific Makefile really just
-sets the machine type and then includes Makefile.my_app, the cross-platform
-piece.
-- szg_app_template/build/linux: The Linux objects are built here.
-- szg_app_template/build/mips4: The SGI objects are built here.
-- szg_app_template/build/win32: The Windows objects are built here.
+- szg_app_template/build/darwin: Contains the Mac OS X Makefile
+and OS X objects. The machine-specific Makefile just
+sets the machine type and then includes the cross-platform Makefile.my_app.
+- szg_app_template/build/linux: Linux objects.
+- szg_app_template/build/mips4: Irix objects.
+- szg_app_template/build/win32: Windows objects.
 
 
 By now, you have placed your source code in szg_app_template/src. The
@@ -152,8 +149,8 @@ use the Syzygy SDK.
   ALL := szglorenz$(EXE)
 ```
 
-Here, you should replace szglorenz$(EXE) with a list of executables
-you want built. For cross-platform builds to work, each name must end in
+Here, replace szglorenz$(EXE) with the list of executables
+you want built. For cross-platform builds, each name must end in
 $(EXE), which accounts for the fact that Windows executables must have the
 postfix .EXE whereas Unix executables do not.
 
@@ -161,50 +158,43 @@ postfix .EXE whereas Unix executables do not.
   include $(SZGHOME)/build/make/Makefile.rules
 ```
 
-This should not be changed. The Syzygy SDK has a file, Makefile.rules,
-that defines the various standard rules, like "clean" or "create-install",
-which should be in every project. This file is seperated from Makefile.vars
-to create flexibility: make is particular about the order in which rules
-appear.
+Don't change this.  Makefile.rules defines standard rules like "clean"
+or "create-install".  This file is seperated from Makefile.vars because
+make is fussy about rules' order.
 
 ```
   OBJS :=
 ```
 
-If your executable uses code contained in files my_obj_1.cpp and
-my_obj_2.cpp, you'll need to edit this line. Do not forget the $(OBJ_SUFFIX)
-ending, since this accounts for the different object file endings on Windows
-(.obj) and Unix (.o). There is a make rule in Makefile.rules that governs
-converting .cpp files into object files.
+Edit this line if your executable uses code in files my_obj_1.cpp and
+my_obj_2.cpp. Use $(OBJ_SUFFIX) so it works in Windows (.obj) and Unix (.o).
+Makefile.rules has the rule for turning .cpp's into object files.
 
 ```
   OBJS := my_obj_1$(OBJ_SUFFIX) my_obj_2$(OBJ_SUFFIX)
 ```
 
-If your project needs additional compile flags, you can include them like
-so:
+TO add compile flags:
 
 ```
   COMPILE_FLAGS += -DMY_COMPILE_FLAG1 -DMY_COMPILE_FLAG2
 ```
 
-If your project needs additional include directories, you can add them like
-so:
+To add include directories:
 
 ```
   SZG_INCLUDE += -I$(MY_INCLUDE_DIRECTORY1)
 ```
 
-If your project needs additional libraries, you can add them like so:
+To add libraries:
 
 ```
   SZG_OPTIONAL_LIBS += $(MY_NEW_LIBRARY)
 ```
 
-Finally, you'll need a target for each of your executables. If your
-executables, as listed above in ALL, have names my_exe_1$(EXE) and
-my_exe_2$(EXE) and they link with the OBJS you've defined above, then the
-targets will look like:
+Finally, define a target for each executable as listed in ALL. 
+If they're called my_exe_1$(EXE) and my_exe_2$(EXE) and
+they link with the OBJS you've defined above, then the targets are:
 
 ```
   my_exe_1$(EXE): my_exe_1$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBRARY_DEPS)
@@ -224,26 +214,22 @@ The $(COPY) line copies the built executable into your $SZGBIN directory
 where all of your Syzygy-related executables are stored.
 
 
-=Common Problems=[Problems]
+=Include-file hints=[Hints]
 
-There are a few tricks to writing portable code using Syzygy.
-
-- In general, do not use the system OpenGL includes. These vary from
-system to system, with the Mac OS X version being especially different.
-Instead, you should:
-```
-  #include "arGraphicsHeader.h"
-```
-- The Windows build process uses precompiled headers to get reasonably
-speedy results. This is an important feature of the Windows build system.
-For this to work, the following include must be the first non-comment line in
-each of your .cpp files:
+- Because Windows uses precompiled headers for speed,
+the **first** non-comment line in every .cpp file must be:
 ```
   #include "arPrecompiled.h"
 ```
-On Unix platforms, this is a stub, doing nothing. On Windows, it includes
-windows.h. If you fail to give this as your first include on Windows
-(even if not using precompiled headers), your compile will fail because
-certain constants are not defined, etc.
+On Unix this does nothing.  On Windows, omitting this causes compile errors.
 
+- Within the Syzygy core, the **last** Syzygy include file in, say, drivers/*.cpp 
+must be:
+```
+  #include "arDriversCalling.h"
+```
 
+- Instead of platform-dependent OpenGL includes, do:
+```
+  #include "arGraphicsHeader.h"
+```
