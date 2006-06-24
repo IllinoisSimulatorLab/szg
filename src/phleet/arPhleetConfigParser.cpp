@@ -147,25 +147,21 @@ bool arPhleetConfigParser::writeLoginFile(){
 
 /// Print human-readable config file information
 void arPhleetConfigParser::printConfig(){
-  cout << "Syzygy configuration:\n"
-       << "    computer = " << _computerName << "\n";
+  cout << "computer = " << _computerName << "\n";
   for (list<pair<string, arInterfaceDescription> >::iterator i = _networkList.begin();
          i != _networkList.end(); ++i){
-    cout << "    network  = " << i->first
-	 << ", " << i->second.address 
+    cout << "network  = " << i->first << ", " << i->second.address 
 	 << "/" << i->second.mask  << "\n";
   }
-  cout << "    ports    = " << _firstPort
+  cout << "ports    = " << _firstPort
        << "-" << _firstPort+_blockSize-1 << "\n";
 }
 
 /// Print human-readable login information
 void arPhleetConfigParser::printLogin(){
-  cout << "Syzygy login:\n"
-       << "    OS user     = " << ar_getUser() << "\n"
-       << "    syzygy user = " << _userName << "\n"
-       << "    szgserver   = "
-       << _serverName << ", " << _serverIP << ":" << _serverPort << "\n";
+  cout << "OS user     = " << ar_getUser() << "\n"
+       << "syzygy user = " << _userName << "\n"
+       << "szgserver   = " << _serverName << ", " << _serverIP << ":" << _serverPort << "\n";
 }
 
 /// Returns slash-delimited addresses (as defined in the config file) of
