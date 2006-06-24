@@ -9,13 +9,14 @@
 //
 //                    
 //==========================================================================================
-// precompiled header include MUST appear as the first non-comment line
+
 #include "arPrecompiled.h"
+#include "isense.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h> 
 
-#include "isense.h"
 
 //==========================================================================================
 // Library file name

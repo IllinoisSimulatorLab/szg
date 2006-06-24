@@ -7,14 +7,13 @@
 #define AR_SPEECH_NODE_H
 
 #include "arSoundNode.h"
-#ifdef EnableSpeech
-#ifdef AR_USE_WIN_32
-#include <sapi.h>
-#endif
-#endif
-
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arSoundCalling.h"
+
+#ifdef EnableSpeech
+  #ifdef AR_USE_WIN_32
+    #include <sapi.h>
+  #endif
+#endif
 
 /// Utterance in the scene graph.
 
@@ -40,5 +39,4 @@ class SZG_CALL arSpeechNode : public arSoundNode{
 #endif
 };
 
-#endif        //  #ifndefARSPEECHNODE_H
-
+#endif

@@ -3,12 +3,12 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arSZGClient.h"
 #include "arTexture.h"
 #include "arLargeImage.h"
 #include "arDataUtilities.h"
+
 #include <math.h>
 
 arTexture bitmap;

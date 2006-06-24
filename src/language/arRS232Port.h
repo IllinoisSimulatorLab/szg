@@ -12,6 +12,8 @@
 #ifdef AR_USE_LINUX
 #include <termios.h>
 #endif
+#include <string>
+using namespace std;
 
 #include "arLanguageCalling.h"
 

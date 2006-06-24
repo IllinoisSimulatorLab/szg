@@ -3,14 +3,14 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arDataPoint.h"
+
 #ifdef AR_USE_WIN_32
-#include <iostream>
+  #include <iostream>
 #else
-#include <signal.h>
-#include <netinet/tcp.h>
+  #include <signal.h>
+  #include <netinet/tcp.h>
 #endif
 
 // The includes for the handshake.

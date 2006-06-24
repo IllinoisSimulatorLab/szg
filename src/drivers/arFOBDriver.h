@@ -32,8 +32,8 @@ Not true?  InputDevices-Drivers.t2t and drivers/RS232Server.cpp disagree.
 #include "arThread.h"
 #include "arRS232Port.h"
 #include "arMath.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
+
 #include <string>
 
 // Driver for Ascension's Flock of Birds magnetic motion tracker.

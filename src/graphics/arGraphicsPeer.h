@@ -10,7 +10,6 @@
 #include "arDataServer.h"
 #include "arGraphicsDatabase.h"
 #include "arQueuedData.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 // Hack.

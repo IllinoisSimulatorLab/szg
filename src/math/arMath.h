@@ -7,8 +7,8 @@
 #define AR_MATH_H
 
 #include "arLogStream.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arMathCalling.h"
+
 #include <iostream>
 #include <math.h>
 #include <string>

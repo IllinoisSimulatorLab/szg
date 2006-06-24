@@ -11,7 +11,6 @@
 #include "arOBJ.h"
 #include "ar3DS.h"
 #include "arGraphicsAPI.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arObjCalling.h"
 
 // DEPRECATED! USE THE 2ND CALL!

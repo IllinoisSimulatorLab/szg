@@ -7,9 +7,9 @@
 #define AR_APP_LAUNCHER_H
 
 #include "arSZGClient.h"
-#include <list>
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arFrameworkCalling.h"
+
+#include <list>
 using namespace std;
 
 // Launch and kill apps on multiple nodes of a cluster.

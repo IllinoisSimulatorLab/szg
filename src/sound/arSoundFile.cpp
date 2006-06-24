@@ -3,17 +3,16 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arSoundFile.h"
+
 #include <fcntl.h>
 #include <math.h>
-
 #ifdef AR_USE_WIN_32
-#include <io.h>
-#include <iostream>
+  #include <io.h>
+  #include <iostream>
 #else
-#include <unistd.h>
+  #include <unistd.h>
 #endif
 
 bool arSoundFile::read(const char* filename, bool fLoop) {

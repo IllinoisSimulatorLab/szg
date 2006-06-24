@@ -10,7 +10,6 @@
 #include "arInputLanguage.h"
 #include "arStructuredDataParser.h"
 #include "arFileTextStream.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 class SZG_CALL arFileSource:public arInputSource{

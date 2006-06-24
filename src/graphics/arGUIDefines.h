@@ -6,7 +6,6 @@
 #ifndef _AR_GUI_DEFINES_H
 #define _AR_GUI_DEFINES_H
 
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 /**

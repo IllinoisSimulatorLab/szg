@@ -3,11 +3,11 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arGraphicsPlugin.h"
 #include "arSTLalgo.h"
 #include "Python.h"
+
 #include <map>
 
 

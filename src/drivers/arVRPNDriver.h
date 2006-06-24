@@ -9,7 +9,6 @@
 #include "arInputSource.h"
 #include "arThread.h"
 #include "arInputHeaders.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 #ifdef Enable_VRPN

@@ -8,13 +8,11 @@
 
 #include "arEffector.h"
 #include "arInteractable.h"
-#include <list>
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arInteractionCalling.h"
 
-SZG_CALL bool ar_pollingInteraction( arEffector& effector,
-                                     std::list<arInteractable*>& objects );
-SZG_CALL bool ar_pollingInteraction( arEffector& effector,
-                                     arInteractable* object );
+#include <list>
 
-#endif        //  #ifndefARINTERACTIONUTILITIES_H
+SZG_CALL bool ar_pollingInteraction( arEffector&, list<arInteractable*>& );
+SZG_CALL bool ar_pollingInteraction( arEffector&, arInteractable* );
+
+#endif

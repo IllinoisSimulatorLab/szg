@@ -9,7 +9,6 @@
 #include "arInputEventQueue.h"
 #include "arInputState.h"
 #include "arStructuredData.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 SZG_CALL bool ar_setEventQueueFromStructuredData(

@@ -3,16 +3,16 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-// MUST come before other szg includes. See arCallingConventions.h for details.
 #define SZG_DO_NOT_EXPORT
+
 #include "arSZGClient.h"
 #include "arDataUtilities.h"
+
 #include <stdio.h>
 #include <list>
 #include <sstream>
-using namespace std;
+
 #ifdef AR_USE_WIN_32
   #include <windows.h>
 #else

@@ -8,7 +8,6 @@
 
 #include <vector>
 #include "arGraphicsArrayNode.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 class SZG_CALL arIndexNode:public arGraphicsArrayNode{

@@ -7,7 +7,6 @@
 #define AR_SOUND_API_H
 
 #include "arSoundDatabase.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arSoundCalling.h"
 
 //**** one thing that'd be very nice.... don't force the user

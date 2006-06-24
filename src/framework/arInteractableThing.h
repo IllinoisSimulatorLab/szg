@@ -9,7 +9,6 @@
 #include "arMath.h"
 #include "arTexture.h"
 #include "arInteractable.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arFrameworkCalling.h"
 
 class arMasterSlaveFramework;

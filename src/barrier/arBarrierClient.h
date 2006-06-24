@@ -10,9 +10,8 @@
 #include "arDataUtilities.h"
 #include "arDataClient.h"
 #include "arSZGClient.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arBarrierCalling.h"
-#include <iostream>
+
 using namespace std;
 
 /// Client for arBarrierServer.

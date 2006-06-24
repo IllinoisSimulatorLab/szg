@@ -3,7 +3,6 @@
 // see the file SZG_CREDITS for detils
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arViewport.h"
 

@@ -8,12 +8,12 @@
 
 #include "arMath.h"
 #include "arInputState.h"
-#include <list>
-#include <vector>
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arInteractionCalling.h"
 
-enum buttonevent_t { NO_EVENT=0, ON_EVENT=1, OFF_EVENT=2 };
+#include <list>
+#include <vector>
+
+enum buttonevent_t { NO_EVENT=0, ON_EVENT, OFF_EVENT };
 
 // A press, release, or no-op of a button.
 

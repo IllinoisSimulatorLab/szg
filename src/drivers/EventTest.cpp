@@ -3,10 +3,9 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-// MUST come before other szg includes. See arCallingConventions.h for details.
 #define SZG_DO_NOT_EXPORT
+
 #include "arEventUtilities.h"
 #include "arStructuredData.h"
 
@@ -23,10 +22,9 @@ void PrintState( arInputState& s ) {
   cerr << "-----\n";
 }
 
-int main( int /*argc*/, char** /*argv*/ ) {
+int main( int, char** ) {
   arInputEventQueue q;
   arInputState s;
-
   arTemplateDictionary dict;
   arDataTemplate t1("Simulated_Input_Event");
 

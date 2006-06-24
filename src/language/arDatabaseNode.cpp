@@ -3,7 +3,6 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arDatabaseNode.h"
 #include "arDatabase.h"
@@ -40,33 +39,29 @@ arDatabaseNode::~arDatabaseNode(){
 /// stream OR through the local memory).
 bool arDatabaseNode::active(){
   // The root node is the unique node with ID = 0
-  if (getOwner() && (getParent() || getID() == 0)){
-    return true;
-  }
-  return false;
+  return getOwner() && (getParent() || getID() == 0);
 }
 
 void arDatabaseNode::ref(){
-  ar_mutex_lock(&_nodeLock);
-  _refs++;
-  ar_mutex_unlock(&_nodeLock);
+  lock();
+    _refs++;
+  unlock();
 }
 
 void arDatabaseNode::unref(){
-  ar_mutex_lock(&_nodeLock);
-  _refs--;
-  bool state = _refs == 0 ? true : false;
-  ar_mutex_unlock(&_nodeLock);
-  // If the reference count has gone down to zero, delete the object.
-  if (state){
+  lock();
+    const bool fDeletable = --_refs == 0;
+  unlock();
+  if (fDeletable){
+    // The reference count has gone down to zero.
     delete this;
   }
 }
 
 int arDatabaseNode::getRef(){
-  ar_mutex_lock(&_nodeLock);
-  int r = _refs;
-  ar_mutex_unlock(&_nodeLock);
+  lock();
+    const int r = _refs;
+  unlock();
   return r;
 }
 
@@ -114,10 +109,10 @@ bool arDatabaseNode::removeChild(arDatabaseNode* child){
   return _removeChild(child);
 }
 
-string arDatabaseNode::getName() const{
-  ar_mutex_lock(&_nodeLock);
-  string result = _name;
-  ar_mutex_unlock(&_nodeLock);
+string arDatabaseNode::getName() {
+  lock();
+    const string result(_name);
+  unlock();
   return result;
 }
 
@@ -136,16 +131,16 @@ void arDatabaseNode::setName(const string& name){
     getOwner()->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_nodeLock);
-    _setName(name);
-    ar_mutex_unlock(&_nodeLock);
+    lock();
+      _setName(name);
+    unlock();
   }
 }
 
-string arDatabaseNode::getInfo() const{
-  ar_mutex_lock(&_nodeLock);
-  string result = _info;
-  ar_mutex_unlock(&_nodeLock);
+string arDatabaseNode::getInfo() {
+  lock();
+    const string result = _info;
+  unlock();
   return result;
   
 }
@@ -156,8 +151,7 @@ void arDatabaseNode::setInfo(const string& info){
     return;
   }
   if (active()){
-    arStructuredData* r 
-      = getOwner()->getDataParser()->getStorage(_dLang->AR_NAME);
+    arStructuredData* r = getOwner()->getDataParser()->getStorage(_dLang->AR_NAME);
     int ID = getID();
     r->dataIn(_dLang->AR_NAME_ID, &ID, AR_INT, 1);
     ar_mutex_lock(&_nodeLock);
@@ -169,9 +163,9 @@ void arDatabaseNode::setInfo(const string& info){
     getOwner()->getDataParser()->recycle(r);
   }
   else{
-    ar_mutex_lock(&_nodeLock);
-    _info = info;
-    ar_mutex_unlock(&_nodeLock);
+    lock();
+      _info = info;
+    unlock();
   }
 }
 
@@ -238,23 +232,23 @@ bool arDatabaseNode::receiveData(arStructuredData* data){
     cout << "arDatabaseNode warning: cannot set root name.\n";
   }
   else{
-    ar_mutex_lock(&_nodeLock);
-    _name = data->getDataString(_dLang->AR_NAME_NAME);
-    ar_mutex_unlock(&_nodeLock);
+    lock();
+      _name = data->getDataString(_dLang->AR_NAME_NAME);
+    unlock();
   }
-  ar_mutex_lock(&_nodeLock);
-  _info = data->getDataString(_dLang->AR_NAME_INFO);
-  ar_mutex_unlock(&_nodeLock);
+  lock();
+    _info = data->getDataString(_dLang->AR_NAME_INFO);
+  unlock();
   return true;
 }
 
 arStructuredData* arDatabaseNode::dumpData(){
   arStructuredData* result = _dLang->makeDataRecord(_dLang->AR_NAME);
   _dumpGenericNode(result,_dLang->AR_NAME_ID);
-  ar_mutex_lock(&_nodeLock);
-  result->dataInString(_dLang->AR_NAME_NAME, _name);
-  result->dataInString(_dLang->AR_NAME_INFO, _info);
-  ar_mutex_unlock(&_nodeLock);
+  lock();
+    result->dataInString(_dLang->AR_NAME_NAME, _name);
+    result->dataInString(_dLang->AR_NAME_INFO, _info);
+  unlock();
   return result;
 }
 

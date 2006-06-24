@@ -3,14 +3,12 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-// MUST come before other szg includes. See arCallingConventions.h for details.
 #define SZG_DO_NOT_EXPORT
-#include <iostream>
-#include <string>
-using namespace std;
+
 #include "arRS232Port.h"
+
+#include <iostream>
 
 int main(int, char**) {
   arRS232Port myPort;

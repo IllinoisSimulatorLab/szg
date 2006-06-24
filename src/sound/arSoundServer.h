@@ -8,7 +8,6 @@
 
 #include "arSoundDatabase.h"
 #include "arSyncDataServer.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arSoundCalling.h"
 
 /// Provides data on SZG_SOUND/{IP,port} for arSoundClients to render.

@@ -7,7 +7,6 @@
 #define AR_PFORTH_EVENT_VOCABULARY_H
 
 #include "arPForth.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 class arPForthFilter;

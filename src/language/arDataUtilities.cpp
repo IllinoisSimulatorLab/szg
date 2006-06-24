@@ -3,12 +3,11 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arDataUtilities.h"
-// Needed for the ar_refNodeList, etc.
-#include "arDatabaseNode.h"
+#include "arDatabaseNode.h" // for ar_refNodeList, etc.
 #include "arLogStream.h"
+
 #include <string>
 #include <sys/stat.h>
 #include <stdlib.h>
@@ -27,7 +26,7 @@ using namespace std;
 #endif
 
 #ifdef AR_USE_WIN_32
-#include <io.h>     // needed for directory listing
+#include <io.h>     // for directory listing
 #include <direct.h>
 #include <time.h>
 #include <iostream>
@@ -41,24 +40,20 @@ bool ar_winSockInit(){
   case 0:
     return true;
   case WSASYSNOTREADY:
-    ar_log_error() << "syzygy client error initializing network: network not ready.\n";
+    ar_log_error() << "initializing network: network not ready.\n";
     break;
   case WSAVERNOTSUPPORTED:
-    ar_log_error() << "syzygy client error initializing network: wrong winsock "
-	           << "version, expected 2.0.\n";
+    ar_log_error() << "initializing network: wrong winsock version, expected 2.0.\n";
     break;
   case WSAEINPROGRESS:
-    ar_log_error() << "syzygy client error initializing network: blocking winsock "
-	           << "operation in progress.\n";
+    ar_log_error() << "initializing network: blocking winsock operation in progress.\n";
     break;
   case WSAEPROCLIM:
-    ar_log_error() << "syzygy client error initializing network: winsock startup "
-	           << "failed:  too many tasks.\n";
+    ar_log_error() << "initializing network: winsock startup failed: too many tasks.\n";
     break;
   case WSAEFAULT:
   default:
-    ar_log_error() << "syzygy client error initializing network: ar_winSockInit "
-	           << "internal error.\n";
+    ar_log_error() << "initializing network: ar_winSockInit internal error.\n";
     break;
     }
   return false;
@@ -69,8 +64,7 @@ bool ar_winSockInit(){
 // cross platform clock access functions.
 #ifdef AR_USE_WIN_32
 
-//;;;; this doxygen comment fails!
-/// Current time.
+// Current time.
 
 /// \todo assumes that ticks/second fits in a single int, not true in a few years.
 ar_timeval ar_time(){

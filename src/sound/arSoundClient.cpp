@@ -3,7 +3,6 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arSoundClient.h"
 #include "arStreamNode.h"
@@ -13,7 +12,7 @@
 // AARGH! The DSP callback DOES NOT let us pass in an object. Consequently,
 // we need this global... and, consequently, we cannot have more than ONE
 // arSoundClient in a process!
-arSoundClient* __globalSoundClient;
+arSoundClient* __globalSoundClient = NULL;
 
 #ifdef EnableSound
 FMOD::System* ar_fmod() {

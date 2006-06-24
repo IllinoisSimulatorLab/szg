@@ -10,12 +10,11 @@
 using namespace std;
 
 #ifdef USE_CG
-#include <Cg/cgGL.h>
+  #include <Cg/cgGL.h>
 #else
-typedef int CGparameter;
+  typedef int CGparameter;
 #endif
 
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 // Bump map loaded from a file, or loaded from a block of memory.

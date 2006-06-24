@@ -2,8 +2,8 @@
 #define LARGE_IMAGE_H
 
 #include "arTexture.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
+
 #include <vector>
 
 class SZG_CALL arLargeImage {

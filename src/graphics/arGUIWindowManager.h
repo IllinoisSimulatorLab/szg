@@ -16,7 +16,6 @@
 
 #include "arThread.h"
 #include "arGUIDefines.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 class arWMEvent;
@@ -32,8 +31,7 @@ class arGUIWindowConfig;
 class arVector3;
 
 //@{
-/** @name Convenience typedef's for use in arGUIWindowManager functions.
- *
+/** @name Convenience typedef's for arGUIWindowManager functions.
  * @todo Move these to a common location with other typedefs.
  */
 typedef std::map<int, arGUIWindow* > WindowMap;

@@ -3,22 +3,20 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arSocket.h"
 #include "arSocketAddress.h"
 #include <stdio.h>
 #include <errno.h>
 #include <iostream>
+
 using namespace std;
 
 // Only need to initialize sockets in the windows case.
 #ifdef AR_USE_WIN_32
-// ar_winSockInit() is contained in here.
-#include "arDataUtilities.h"
+#include "arDataUtilities.h" // for ar_winSockInit()
 
-// A helper class that implements the singleton pattern for
-// winsock init.
+// Helper class that implements the singleton pattern for winsock init.
 class arWinSockHelper{
  public:
   arWinSockHelper(){ _initialized = false; ar_mutex_init(&_lock); }

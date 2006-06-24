@@ -3,10 +3,9 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-// MUST come before other szg includes. See arCallingConventions.h for details.
 #define SZG_DO_NOT_EXPORT
+
 #include "arObjectUtilities.h"
 #include "arGraphicsServer.h"
 #include "arSZGClient.h"
@@ -32,27 +31,20 @@
 #include <string>
 #include <vector>
 
-arMatrix4 mouseWorldMatrix = arMatrix4();
-
+arMatrix4 mouseWorldMatrix;
 arGraphicsDatabase* theDatabase = NULL;
 
 enum { PAN=0, ROTATE, ZOOM, SLIDER, NONE };
 
-int mouseTransformID;
+int mouseTransformID = -1;
 int mouseManipState = ROTATE, oldState = ROTATE;
 bool isPlaying = false, isModelSpinning = false;
 float bgColor = 0.0f, _ratio = 1.0f, frameRate = 0.0f;
-
 int sliderCenterX = -50, sliderCenterY = 10; // slider position in pixels
-
 arObject *theObject = NULL;
-
 arTexFont texFont;
-
 arGUIWindowManager* wm = NULL;
-
-// since we don't get this from a tracker just make a sensible default one
-arHead head;
+arHead head; // we don't get this from a tracker
 
 // forward declaration
 void display( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow );
@@ -71,7 +63,6 @@ class arSZGViewRenderCallback : public arGUIRenderCallback
         graphicsWindow->draw();
       }
     }
-  private:
 };
 
 // Drawing functions
@@ -85,28 +76,13 @@ void drawHUD()
   box.width = 45;
   box.color = arVector3(1,0,0);
   box.columns = 15;
-  if (oldState == PAN){
-    box.color = highlight;
-  }
-  else{
-    box.color = other;
-  }
+  box.color = (oldState == PAN) ?  highlight : other;
   box.upperLeft = arVector3(0,100,-0.1);
   texFont.renderString( "[1] Translate", box);
-  if (oldState == ROTATE){
-    box.color = highlight;
-  }
-  else{
-    box.color = other;
-  }
+  box.color = (oldState == ROTATE) ?  highlight : other;
   box.upperLeft = arVector3(0, 95, -0.1);
   texFont.renderString( "[2] Rotate", box);
-  if (oldState == ZOOM){
-    box.color = highlight;
-  }
-  else{
-    box.color = other;
-  }
+  box.color = (oldState == ZOOM) ?  highlight : other;
   box.upperLeft = arVector3(0, 90, -0.1);
   texFont.renderString( "[3] Scale", box);
 

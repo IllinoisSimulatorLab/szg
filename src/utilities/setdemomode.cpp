@@ -3,10 +3,10 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arAppLauncher.h"
 #include "arSZGClient.h"
+
 #include <string>
 
 //Send a message to the master/controller to turn on demo mode immediately,

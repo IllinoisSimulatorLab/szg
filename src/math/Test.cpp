@@ -3,14 +3,13 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-// MUST come before other szg includes. See arCallingConventions.h for details.
 #define SZG_DO_NOT_EXPORT
+
 #include "arMath.h"
 #include "arDataUtilities.h"
 
-float epsilon = 0.0004;
+const float epsilon = 0.0004;
 
 bool identityTest(arMatrix4 m){
   bool result = true;

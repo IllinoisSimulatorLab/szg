@@ -8,7 +8,6 @@
 
 #include "arGraphicsDatabase.h"
 #include "arSyncDataServer.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 // Create a scene graph for rendering by arGraphicsClient objects.

@@ -3,15 +3,14 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arSoundDatabase.h"
 #include "arStreamNode.h"
 
 arSoundDatabase::arSoundDatabase() :
-  
   _path(new list<string>)
 {
+  // todo: initializers.
   _typeCode = AR_SOUND_DATABASE;
   _typeString = "sound";
   

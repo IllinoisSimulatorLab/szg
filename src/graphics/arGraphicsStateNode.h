@@ -8,7 +8,6 @@
 
 #include "arGraphicsNode.h"
 #include "arMath.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 // Let the programmer control some OpenGL state:

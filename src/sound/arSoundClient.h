@@ -12,7 +12,6 @@
 #include "arSyncDataClient.h"
 #include <string>
 #include "arThread.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arSoundCalling.h"
 
 #ifdef AR_USE_WIN_32

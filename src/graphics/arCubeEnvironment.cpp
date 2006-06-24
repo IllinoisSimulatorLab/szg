@@ -3,10 +3,10 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include <math.h>
 #include "arCubeEnvironment.h"
+
+#include <math.h>
 
 arCubeEnvironment::arCubeEnvironment(){
   _numberWalls = 4;

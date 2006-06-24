@@ -3,32 +3,31 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arHead.h"
 #include "arGraphicsScreen.h"
 
 ostream& operator<<(ostream& s, arHead& h) {
-  s << "Head:\n  Matrix:\n" << h.getMatrix()
-    << "  MidEyeOffset    : " << h.getMidEyeOffset() << endl
-    << "  EyeDirection    : " << h.getEyeDirection() << endl
-    << "  EyeSpacing      : " << h.getEyeSpacing() << endl
-    << "  ClipPlanes      : " << h.getNearClip() << ", " 
+  s << "Matrix:\n" << h.getMatrix()
+    << "  MidEyeOffset   " << h.getMidEyeOffset() << endl
+    << "  EyeDirection   " << h.getEyeDirection() << endl
+    << "  EyeSpacing     " << h.getEyeSpacing() << endl
+    << "  ClipPlanes     " << h.getNearClip() << ", " 
                               << h.getFarClip() << endl
-    << "  UnitConversion  : " << h.getUnitConversion() << endl
-    << "  FixedHeadMode   : " << h.getFixedHeadMode() << endl;
+    << "  UnitConversion " << h.getUnitConversion() << endl
+    << "  FixedHeadMode  " << h.getFixedHeadMode() << endl;
   return s;
 }
 
 arLogStream& operator<<(arLogStream& s, arHead& h) {
-  s << "Head:\n  Matrix:\n" << h.getMatrix()
-  << "  MidEyeOffset    : " << h.getMidEyeOffset() << ar_endl
-  << "  EyeDirection    : " << h.getEyeDirection() << ar_endl
-  << "  EyeSpacing      : " << h.getEyeSpacing() << ar_endl
-  << "  ClipPlanes      : " << h.getNearClip() << ", " 
+  s << "Matrix:\n" << h.getMatrix()
+  << "  MidEyeOffset   " << h.getMidEyeOffset() << ar_endl
+  << "  EyeDirection   " << h.getEyeDirection() << ar_endl
+  << "  EyeSpacing     " << h.getEyeSpacing() << ar_endl
+  << "  ClipPlanes     " << h.getNearClip() << ", " 
   << h.getFarClip() << ar_endl
-  << "  UnitConversion  : " << h.getUnitConversion() << ar_endl
-  << "  FixedHeadMode   : " << h.getFixedHeadMode() << ar_endl;
+  << "  UnitConversion " << h.getUnitConversion() << ar_endl
+  << "  FixedHeadMode  " << h.getFixedHeadMode() << ar_endl;
   return s;
 }
 
@@ -57,14 +56,14 @@ bool arHead::configure( arSZGClient& client ) {
 
   _fixedHeadMode = client.getAttribute("SZG_HEAD", "fixed_head_mode", "|false|true|") == "true";
 
-  ar_log_remark() << "arHead remark: head configuration: " << *this << ar_endl;
+  ar_log_remark() << "Head: " << *this;
   return true;
 }
 
 arVector3 arHead::getEyePosition( float eyeSign, const arMatrix4* useMatrix ) const {
   const arMatrix4* matPtr = useMatrix ? useMatrix : &_matrix;
-  const arVector3 eyeOffsetVector = _midEyeOffset +
-    0.5 *eyeSign * _eyeSpacing * _eyeDirection.normalize();
+  const arVector3 eyeOffsetVector(_midEyeOffset +
+    0.5 *eyeSign * _eyeSpacing * _eyeDirection.normalize());
   // The eye position is a quantity we need computed.
   return _unitConversion * (*matPtr * eyeOffsetVector);
 }

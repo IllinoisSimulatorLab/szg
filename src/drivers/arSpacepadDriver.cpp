@@ -27,7 +27,6 @@
 *****************************************************************************
 ****************************************************************************/
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 
 // Ascension Technology constants

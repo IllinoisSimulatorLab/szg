@@ -8,7 +8,6 @@
 
 #include "arLanguage.h"
 #include "arDataType.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 // Formalism for input devices.

@@ -13,7 +13,6 @@
 #include "arSoundClient.h"
 #include "arVRConstants.h"
 #include "arSZGAppFramework.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arFrameworkCalling.h"
 
 // Framework for cluster applications using a distributed scene graph.

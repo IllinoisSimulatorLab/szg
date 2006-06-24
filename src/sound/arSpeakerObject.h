@@ -8,7 +8,6 @@
 
 #include "arMath.h"
 #include "arSZGClient.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arSoundCalling.h"
 
 /// "Point of view" of who is listening to the sounds in the scene graph.

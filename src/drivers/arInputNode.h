@@ -11,7 +11,6 @@
 #include "arIOFilter.h"
 #include "arInputState.h"
 #include "arInputEventQueue.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 #include <list>
 #include <vector>

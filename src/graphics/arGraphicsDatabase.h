@@ -36,14 +36,10 @@
 #include "arGraphicsStateNode.h"
 #include "arGraphicsPluginNode.h"
 
-#ifdef USE_CG // Marks' Cg stuff
-// Unfortunately, the internal includes in the Cg headers necessitate that
-// the Cg directory is what is on the include path, not the header files
-// themselves.
-#include <Cg/cgGL.h>
+#ifdef USE_CG // Mark's Cg stuff
+  #include <Cg/cgGL.h>
 #endif
 
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 // Contain a scene graph created by an arGraphicsServer

@@ -3,29 +3,25 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arInteractionUtilities.h"
+
 #if (defined(__GNUC__)&&(__GNUC__<3))
-#include <algo.h>
+  #include <algo.h>
 #else
-#include <algorithm>
+  #include <algorithm>
 #endif
 #ifdef AR_USE_WIN_32
-#include <float.h>
-const float BIGGEST_FLOAT = FLT_MAX;
+  #include <float.h>
+  const float BIGGEST_FLOAT = FLT_MAX;
 #endif
 #ifdef AR_USE_DARWIN
-#define MAXFLOAT ((float)3.40282346638528860e+38)
-const float BIGGEST_FLOAT = MAXFLOAT; 
+  #define MAXFLOAT ((float)3.40282346638528860e+38)
+  const float BIGGEST_FLOAT = MAXFLOAT; 
 #endif
-#ifdef AR_USE_LINUX
-#include <values.h> // for MAXFLOAT
-const float BIGGEST_FLOAT = MAXFLOAT;
-#endif
-#ifdef AR_USE_SGI
-#include <values.h> // for MAXFLOAT         
-const float BIGGEST_FLOAT = MAXFLOAT;
+#if defined(AR_USE_SGI) || defined(AR_USE_LINUX)
+  #include <values.h> // for MAXFLOAT         
+  const float BIGGEST_FLOAT = MAXFLOAT;
 #endif
 
 /// The main method via which we interact with objects. The effector 

@@ -6,10 +6,10 @@
 #ifndef AR_NORMAL3_NODE
 #define AR_NORMAL3_NODE
 
-#include <vector>
 #include "arGraphicsArrayNode.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
+
+#include <vector>
 
 class SZG_CALL arNormal3Node: public arGraphicsArrayNode{
  public:

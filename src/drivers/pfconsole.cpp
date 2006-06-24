@@ -3,10 +3,9 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-// MUST come before other szg includes. See arCallingConventions.h for details.
 #define SZG_DO_NOT_EXPORT
+
 #include "arPForth.h"
 #include "arPForthDatabaseVocabulary.h"
 #include "arSZGClient.h"

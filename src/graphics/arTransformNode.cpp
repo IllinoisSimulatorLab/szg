@@ -3,10 +3,8 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-// It is really OBNOXIOUS that we have to define the graphics database here.
-#include "arGraphicsDatabase.h"
+#include "arGraphicsDatabase.h" // too bad this must be included
 
 arTransformNode::arTransformNode(){
   // A sensible default name.

@@ -7,7 +7,6 @@
 #define AR_INTERACTION_SELECTOR_H
 
 #include "arMath.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arInteractionCalling.h"
 
 class arEffector;

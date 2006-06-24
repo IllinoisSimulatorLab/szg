@@ -11,8 +11,8 @@
 #include "arDataUtilities.h"
 #include "arSZGClient.h"
 #include "arSyncDataServer.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arBarrierCalling.h"
+
 #include <list>
 #include <string>
 using namespace std;

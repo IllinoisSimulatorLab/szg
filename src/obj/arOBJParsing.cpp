@@ -3,15 +3,15 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include <stdio.h>
-#include <iostream>
 #include "arMath.h"
 #include "arGraphicsDatabase.h"
 #include "arDataUtilities.h"
-#include <string>
 #include "arOBJ.h"
+
+#include <string>
+#include <stdio.h>
+#include <iostream>
 
 /// Parses one line of an ASCII OBJ file
 /// @param inputFile file pointer to next line to be read in

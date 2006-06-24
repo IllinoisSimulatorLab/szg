@@ -9,7 +9,6 @@
 #include "arEffector.h"
 #include "arInteractable.h"
 #include "arGrabCondition.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arInteractionCalling.h"
 
 class SZG_CALL arNavInteractable : public arInteractable {

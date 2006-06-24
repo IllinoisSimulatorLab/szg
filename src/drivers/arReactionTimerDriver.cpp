@@ -4,13 +4,12 @@
 //********************************************************
 
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include <string>
-#include <iostream>
-#include <sstream>
 #include "arDataUtilities.h"
 #include "arReactionTimerDriver.h"
+
+#include <string>
+#include <sstream>
 
 #define RTDEBUG
 

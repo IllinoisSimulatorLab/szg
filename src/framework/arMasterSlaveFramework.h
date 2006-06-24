@@ -19,9 +19,9 @@
 #include "arVRCamera.h"
 #include "arMasterSlaveDataRouter.h"
 #include "arGUIInfo.h"
-#include <vector>
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arFrameworkCalling.h"
+
+#include <vector>
 
 class arGUIXMLParser;
 

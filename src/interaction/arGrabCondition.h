@@ -7,7 +7,6 @@
 #define AR_GRAB_CONDITION_H
 
 #include "arInputEvent.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arInteractionCalling.h"
 
 class arEffector;

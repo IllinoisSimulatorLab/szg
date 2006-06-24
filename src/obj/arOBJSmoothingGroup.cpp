@@ -3,7 +3,6 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arOBJ.h"
 #include "arGraphicsAPI.h"
@@ -14,4 +13,3 @@ void arOBJSmoothingGroup::add(int newTriangle)
 {
   _triangles.push_back(newTriangle);
 }
-

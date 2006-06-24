@@ -8,7 +8,6 @@
 
 #include "arGraphicsNode.h"
 #include "arMath.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 // 4x4 matrix transformation (an articulation in the scene graph).

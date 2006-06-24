@@ -7,7 +7,6 @@
 #define AR_INPUT_EVENT_H
 
 #include "arMath.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 SZG_CALL enum arInputEventType {

@@ -3,12 +3,10 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #ifdef EnableEVaRT
-#include "EVaRT.h"
+  #include "EVaRT.h"
 #endif
-
 #include "arEVaRTDriver.h"
 
 // The methods used by the dynamic library mappers. 

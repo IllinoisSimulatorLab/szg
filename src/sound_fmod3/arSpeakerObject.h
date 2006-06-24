@@ -8,10 +8,9 @@
 
 #include "arMath.h"
 #include "arSZGClient.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arSoundCalling.h"
 
-/// "Point of view" of who is listening to the sounds in the scene graph.
+// "Point of view" of who is listening to the sounds in the scene graph.
 
 class SZG_CALL arSpeakerObject {
  public:
@@ -29,6 +28,7 @@ class SZG_CALL arSpeakerObject {
   arVector3 _normal;
   arVector3 _up;
   arVector3 _midEyeOffset; // vector from head tracker to midpoint of eyes, in feet
+  			   // (todo: to ears, not eyes)
 
   arVector3 _posPrev, _upPrev, _forwardPrev;
 

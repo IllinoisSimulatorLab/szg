@@ -8,7 +8,6 @@
 
 #include "arMath.h"
 #include "arGraphicsDatabase.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arFrameworkCalling.h"
 
 // Manipulate a 4x4 matrix transformation in an arGraphicsDatabase.

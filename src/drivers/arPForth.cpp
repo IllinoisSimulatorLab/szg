@@ -3,11 +3,9 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arPForth.h"
 #include "arStructuredData.h"
-#include <string>
 #include <sstream>
 
 using std::vector;

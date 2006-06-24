@@ -16,9 +16,6 @@ using namespace std;
 // Simple stream interface for XML-style data parsing.
 // Subclasses can provide FILE*, a socket, or a string as the stream source.
 
-// If a class exists only in the .h, do not decorate it with SZG_CALL. 
-// In Win32, this confuses the linker when importing the class.
-
 class arStringTextStream: public arTextStream{
  public:
   arStringTextStream(){}

@@ -12,7 +12,6 @@
 #include <vector>
 #include <ostream>
 #include "arSTLalgo.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 template <class eventDataType> class arInputDeviceMap {

@@ -28,7 +28,6 @@ distribution.
 
 #define TIXML_USE_STL
 
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arLanguageCalling.h"
 
 #ifdef _MSC_VER

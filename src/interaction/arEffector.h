@@ -9,9 +9,9 @@
 #include "arInputState.h"
 #include "arDragManager.h"
 #include "arInteractionSelector.h"
-#include <map>
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arInteractionCalling.h"
+
+#include <map>
 
 class arInteractable;
 class arSZGAppFramework;

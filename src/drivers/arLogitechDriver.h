@@ -9,7 +9,6 @@
 #include "arInputSource.h"
 #include "arThread.h"
 #include "arRS232Port.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 namespace arLogitechDriverSpace {

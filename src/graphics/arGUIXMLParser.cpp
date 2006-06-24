@@ -3,7 +3,6 @@
 // see the file SZG_CREDITS for detils
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arGUIXMLParser.h"
 #include "arGUIWindowManager.h"
@@ -16,8 +15,6 @@
 #include "arPerspectiveCamera.h"
 #include "arOrthoCamera.h"
 #include "arLogStream.h"
-#include <iostream>
-
 
 class arGUIXMLValidator {
   public:

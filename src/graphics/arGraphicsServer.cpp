@@ -5,7 +5,6 @@
 
 // This file is massively duplicated with arSoundServer.cpp.
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arGraphicsServer.h"
 #include "arLogStream.h"

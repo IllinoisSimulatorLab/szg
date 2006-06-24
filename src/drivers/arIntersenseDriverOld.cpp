@@ -6,7 +6,6 @@
 // Drew Dolgert ajd27@cornell.edu
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arIntersenseDriver.h"
 

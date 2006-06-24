@@ -7,7 +7,6 @@
 #define AR_LIGHT_H
 
 #include "arMath.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 // Encapsulate the parameters for OpenGL lights.

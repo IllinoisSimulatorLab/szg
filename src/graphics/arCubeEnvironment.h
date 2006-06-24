@@ -7,7 +7,6 @@
 #define AR_CUBE_ENVIRONMENT_H
 
 #include "arMesh.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 // Texture-mapped prism: n walls (often 4), a floor, and a ceiling.

@@ -3,10 +3,9 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-// MUST come before other szg includes. See arCallingConventions.h for details.
 #define SZG_DO_NOT_EXPORT
+
 #include "arSZGClient.h"
 #include "arDataTemplate.h"
 #include "arTemplateDictionary.h"
@@ -16,8 +15,8 @@
 #include "arInputEventQueue.h"
 #include "arInputState.h"
 #include "arEventUtilities.h"
+
 #include <string>
-#include <iostream>
 
 void PrintState( arInputState& s ) {
   unsigned int i;
@@ -31,7 +30,6 @@ void PrintState( arInputState& s ) {
     cout << i << endl << s.getMatrix( i ) << endl;
   cout << "-----\n";
 }
-
 
 int main(int argc, char** argv) {
   arSZGClient client;

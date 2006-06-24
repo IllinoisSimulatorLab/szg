@@ -11,12 +11,11 @@
 #include "arSoundLanguage.h"
 #include "arDatabaseNode.h"
 #include "arMath.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arSoundCalling.h"
 
 class arSoundDatabase;
 
-/// Node in the scene graph for sound.
+// Node in the scene graph for sound.
 
 class SZG_CALL arSoundNode : public arDatabaseNode {
  // Needs assignment operator and copy constructor, for pointer members.

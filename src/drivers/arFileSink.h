@@ -7,7 +7,6 @@
 #define AR_FILE_SINK_H
 
 #include "arInputSink.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 // Record I/O device data to a file, for later playback.  Has timing issues.

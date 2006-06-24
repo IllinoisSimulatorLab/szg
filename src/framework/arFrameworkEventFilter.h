@@ -7,7 +7,6 @@
 #define AR_FRAMEWORK_EVENT_FILTER_H
 
 #include "arIOFilter.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arFrameworkCalling.h"
 
 class arSZGAppFramework;

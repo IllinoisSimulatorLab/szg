@@ -8,8 +8,8 @@
 
 #include "arPhleetConfigLanguage.h"
 #include "arStructuredDataParser.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arPhleetCalling.h"
+
 #include <stdio.h>
 #include <list>
 #include <string>

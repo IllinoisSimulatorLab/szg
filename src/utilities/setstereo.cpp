@@ -3,10 +3,10 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arAppLauncher.h"
 #include "arSZGClient.h"
+
 #include <string>
 
 // Enable/disable stereo on, and send reload message to, all render clients.

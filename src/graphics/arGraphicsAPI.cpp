@@ -3,12 +3,11 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arGraphicsAPI.h"
 #include "arHead.h"
 
-// global variables!
+// global variables
 static arGraphicsDatabase* __database = NULL;
 static arGraphicsLanguage  __gfx;
 
@@ -17,7 +16,7 @@ void dgSetGraphicsDatabase(arGraphicsDatabase* database){
 }
 
 string dgGetNodeName(int nodeID){
-  const arDatabaseNode* theNode = __database->getNode(nodeID);
+  arDatabaseNode* theNode = __database->getNode(nodeID);
   if (!theNode){
     cerr << "dgGetNodeName error: no node with that ID.\n";
     return string("NULL");

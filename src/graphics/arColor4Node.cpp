@@ -3,12 +3,12 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arColor4Node.h"
 #include "arGraphicsDatabase.h"
 
 arColor4Node::arColor4Node(){
+  // todo: initializers
   _name = "color4_node";
   _typeCode = AR_G_COLOR4_NODE;
   _typeString = "color4";

@@ -6,10 +6,10 @@
 #ifndef AR_COLOR4_NODE_H
 #define AR_COLOR4_NODE_H
 
-#include <vector>
 #include "arGraphicsArrayNode.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
+
+#include <vector>
 
 class SZG_CALL arColor4Node:public arGraphicsArrayNode{
  public:

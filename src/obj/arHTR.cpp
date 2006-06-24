@@ -5,7 +5,6 @@
 
 /// \todo: avoid arHTR.cpp's many implicit string(foo->name) temporaries.
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arHTR.h"
 #include "arGraphicsAPI.h"

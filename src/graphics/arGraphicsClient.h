@@ -14,8 +14,8 @@
 #include "arGUIWindow.h"
 #include "arGUIWindowManager.h"
 #include "arGUIXMLParser.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
+
 #include <string>
 
 // Render graphics data using the SZG_GEOMETRY service

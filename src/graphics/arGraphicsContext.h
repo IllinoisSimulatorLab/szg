@@ -10,9 +10,9 @@
 #include "arGraphicsHeader.h"
 #include "arGraphicsWindow.h"
 #include "arViewport.h"
-#include <list>
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
+
+#include <list>
 
 // Information maintained during the traversal of a scene graph.
 

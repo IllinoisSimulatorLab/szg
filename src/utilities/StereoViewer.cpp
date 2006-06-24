@@ -3,11 +3,11 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
+#include "arMasterSlaveFramework.h"
+
 #include <stdio.h>
 #include <stdlib.h>
-#include "arMasterSlaveFramework.h"
 
 string leftFile, rightFile;
 arTexture leftImage, rightImage;

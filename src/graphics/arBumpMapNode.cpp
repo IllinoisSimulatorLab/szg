@@ -3,13 +3,12 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arBumpMapNode.h"
 #include "arGraphicsDatabase.h"
 
 arBumpMapNode::arBumpMapNode(){
-  // A sensible default name.
+  // todo: initializers
   _name = "bump_map_node";
   _typeCode = AR_G_BUMP_MAP_NODE;
   _typeString = "bump map";

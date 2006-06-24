@@ -3,9 +3,9 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arGraphicsContext.h"
+
 // The following includes cannot be in arGraphicsContext.h because of problems
 // with recursive definition.
 #include "arTextureNode.h"
@@ -52,8 +52,7 @@ void arGraphicsContext::pushNode(arDatabaseNode* node){
     _bumpMapStack.push_front(node);
     break;
   case AR_G_GRAPHICS_STATE_NODE:
-    // There is quite a variation in what pushing graphics
-    // state does.
+    // There is quite a variation in what pushing graphics state does.
     _pushGraphicsState(node);
     break;
   default:

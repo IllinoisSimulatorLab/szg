@@ -9,9 +9,9 @@
 #include "arFrameworkObject.h"
 #include "arBuffer.h"
 #include "arStructuredDataParser.h"
-#include <map>
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arFrameworkCalling.h"
+
+#include <map>
 using namespace std;
 
 /*

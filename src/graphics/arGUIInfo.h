@@ -12,7 +12,6 @@
 
 #include "arStructuredData.h"
 #include "arGUIDefines.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 // Forward declaration because, when an arGUIWindowManager owns a window,

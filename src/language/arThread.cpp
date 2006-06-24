@@ -3,12 +3,12 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include <iostream>
-#include <errno.h>
 #include "arThread.h"
 #include "arDataUtilities.h"
+
+#include <iostream>
+#include <errno.h>
 using namespace std;
 
 void ar_mutex_init(arMutex* theMutex){

@@ -7,37 +7,26 @@
 #define AR_GRAPHICS_HEADER_H
 
 #ifdef AR_USE_WIN_32
-
-// this includes both widows.h *and* the right winsock2.h
-#include "arPrecompiled.h"
-#include <GL\gl.h>
-#include <GL\glu.h>
-#include <GL\glut.h>
-
+  #include "arPrecompiled.h"
+  #include <GL\gl.h>
+  #include <GL\glu.h>
+  #include <GL\glut.h>
 #else
-  
-#ifdef AR_USE_DARWIN
-
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#include <GLUT/glut.h>
-
-#else
-
-// THE LINUX/SGI CASE
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
-
+  #ifdef AR_USE_DARWIN
+    #include <OpenGL/gl.h>
+    #include <OpenGL/glu.h>
+    #include <GLUT/glut.h>
+  #else
+    // Linux/SGI
+    #include <GL/gl.h>
+    #include <GL/glu.h>
+    #include <GL/glut.h>
+  #endif
 #endif
 
-#endif
-
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
-// also want to include the node type IDs enum (as distinct from the
-// record IDs in the graphics language)
+// node type IDs enum (as distinct from record IDs in the graphics language)
 enum {
   AR_G_TRANSFORM_NODE = 0,
   AR_G_TEXTURE_NODE = 1,

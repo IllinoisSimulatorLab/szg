@@ -3,9 +3,7 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include <iostream>
 #include "arGraphicsNode.h"
 #include "arGraphicsDatabase.h"
 

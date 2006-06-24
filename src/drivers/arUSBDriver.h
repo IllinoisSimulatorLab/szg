@@ -9,7 +9,6 @@
 #include "arInputSource.h"
 #include "arThread.h"
 #include "arMath.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 // Driver for USB cave-wand,

@@ -3,14 +3,13 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arPhleetConfigParser.h"
 #include "arDataUtilities.h" // for ar_getUser()
 #include "arLogStream.h"
+
 #include <sys/types.h>     // for chmod and stat
 #include <sys/stat.h>      // for chmod and stat
-
 #ifdef AR_USE_WIN_32
 #include <io.h>            // for chmod
 #include <direct.h>        // for mkdir

@@ -3,11 +3,10 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arSoundTransformNode.h"
 #include "arMath.h"
-#include "arSoundDatabase.h" // to get ar_transformStack
+#include "arSoundDatabase.h" // for ar_transformStack
 
 arSoundTransformNode::arSoundTransformNode(){
   _typeCode = AR_S_TRANSFORM_NODE;

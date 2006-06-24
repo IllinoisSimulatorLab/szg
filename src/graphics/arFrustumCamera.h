@@ -7,8 +7,8 @@
 #define AR_FRUSTUM_CAMERA_H
 
 #include "arCamera.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
+
 #include <string>
 
 class SZG_CALL arFrustumCamera: public arCamera{

@@ -7,8 +7,8 @@
 #define AR_NET_INPUT_SOURCE_H
 
 #include "arInputSource.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
+
 #include <string>
 using namespace std;
 

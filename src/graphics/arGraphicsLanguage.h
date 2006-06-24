@@ -9,7 +9,6 @@
 #include "arTemplateDictionary.h"
 #include "arStructuredData.h"
 #include "arDatabaseLanguage.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 // ID's shared between an arGraphicsServer and its arGraphicsClient objects

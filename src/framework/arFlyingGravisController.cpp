@@ -5,7 +5,6 @@
 
 // This is used only by obj/viewOBJ.cpp, and should be retired.  (4/8/2002)
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arFlyingGravisController.h"
 #include "arDataUtilities.h"
@@ -28,7 +27,6 @@ void ar_handleFlyingGravisJoystick(void* input){
 }
 
 arFlyingGravisController::arFlyingGravisController(){
-  // does nothing so far!
 }
 
 arFlyingGravisController::~arFlyingGravisController(){

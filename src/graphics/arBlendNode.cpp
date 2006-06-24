@@ -3,13 +3,12 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arGraphicsDatabase.h"
 
 arBlendNode::arBlendNode(){
-  // A sensible default name.
-  _name = "blend_node";
+  // todo: initializers
+  _name = "blend_node"; // default
   _typeCode = AR_G_BLEND_NODE;
   _typeString = "blend"; 
   _blendFactor = 1.0; 
@@ -41,7 +40,7 @@ bool arBlendNode::receiveData(arStructuredData* inData){
 
 float arBlendNode::getBlend(){
   ar_mutex_lock(&_nodeLock);
-  float r = _blendFactor;
+    const float r = _blendFactor;
   ar_mutex_unlock(&_nodeLock);
   return r;
 }
@@ -49,27 +48,23 @@ float arBlendNode::getBlend(){
 void arBlendNode::setBlend(float blendFactor){
   if (active()){
     ar_mutex_lock(&_nodeLock);
-    arStructuredData* r = _dumpData(blendFactor, true);
+      arStructuredData* r = _dumpData(blendFactor, true);
     ar_mutex_unlock(&_nodeLock);
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
   }
   else{
     ar_mutex_lock(&_nodeLock);
-    _blendFactor = blendFactor;
+      _blendFactor = blendFactor;
     ar_mutex_unlock(&_nodeLock);
   }
 }
 
 /// NOT thread-safe.
 arStructuredData* arBlendNode::_dumpData(float blendFactor, bool owned){
-  arStructuredData* result = NULL;
-  if (owned){
-    result = getOwner()->getDataParser()->getStorage(_g->AR_BLEND);
-  }
-  else{
-    result = _g->makeDataRecord(_g->AR_BLEND);
-  }
+  arStructuredData* result = owned ?
+    getOwner()->getDataParser()->getStorage(_g->AR_BLEND) :
+    _g->makeDataRecord(_g->AR_BLEND);
   _dumpGenericNode(result,_g->AR_BLEND_ID);
   result->dataIn(_g->AR_BLEND_FACTOR, &blendFactor, AR_FLOAT, 1);
   return result;

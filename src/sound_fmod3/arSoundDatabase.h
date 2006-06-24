@@ -8,20 +8,16 @@
 
 #include "arDatabase.h"
 #include "arSoundHeader.h"
-
 #include "arMath.h"
 #include "arSoundLanguage.h"
-
 #include "arSoundTransformNode.h"
 #include "arSoundFileNode.h"
 #include "arSpeakerObject.h"
 #include "arPlayerNode.h"
 #include "arSpeechNode.h"
-
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arSoundCalling.h"
 
-/// Scene graph for sound.
+// Scene graph for sound.
 
 class SZG_CALL arSoundDatabase: public arDatabase{
  // Needs assignment operator and copy constructor, for pointer members.

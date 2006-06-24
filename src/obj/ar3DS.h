@@ -30,7 +30,6 @@
   #include <lib3ds/node.h>
 #endif
 
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arObjCalling.h"
 
 /// .3DS wrapper class

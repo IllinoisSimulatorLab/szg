@@ -2,7 +2,7 @@
 // Syzygy is licensed under the BSD license v2
 // see the file SZG_CREDITS for details
 //********************************************************
-// precompiled header include MUST appear as the first non-comment line
+
 #include "arPrecompiled.h"
 #include "arInputNode.h"
 #include "arNetInputSource.h"

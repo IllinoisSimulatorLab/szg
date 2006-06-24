@@ -9,7 +9,6 @@
 #include "arGraphicsNode.h"
 #include "arGraphicsPlugin.h"
 #include "arSharedLib.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 #include <vector>

@@ -3,7 +3,6 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arDrawableNode.h"
 #include "arMath.h"
@@ -17,7 +16,6 @@ arDrawableNode::arDrawableNode():
   _firstMessageReceived(false),
   _type(DG_POINTS),
   _number(0){
-  // A sensible default name.
   _name = "drawable_node";
   // does not compile on RedHat 8 if these statements appear outside the
   // constructor body.
@@ -26,10 +24,9 @@ arDrawableNode::arDrawableNode():
 }
 
 void arDrawableNode::draw(arGraphicsContext* context){
-  // A PROBLEM! Currently, the database node is created with a message to
-  // the database. Then, a message initializing it is sent. What if
-  // we try to draw between these messages?
-  // Well, bad things can happen in this case.
+  // Bug: the database node is created with a message to
+  // the database. Then, a message initializing it is sent.
+  // if we try to draw between these messages, bad things can happen.
   if (!_firstMessageReceived)
     return;
 

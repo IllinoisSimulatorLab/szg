@@ -10,10 +10,9 @@
 #include "arThread.h"
 #include "arMath.h"
 #include "arRS232Port.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
-// Driver for PPT, whatever that is.
+// Driver for WorldViz PPT position tracker.
 
 class SZG_CALL arPPTDriver: public arInputSource {
     friend void ar_PPTDriverEventTask(void*);
@@ -41,4 +40,4 @@ class SZG_CALL arPPTDriver: public arInputSource {
     arTimer _statusTimer;
 };
 
-#endif        //  #ifndefARPPTTIMERDRIVER_H
+#endif

@@ -10,7 +10,6 @@
 #include "arStructuredData.h"
 #include "arLanguage.h"
 #include "arPhleetTemplate.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arPhleetCalling.h"
 
 class SZG_CALL arPhleetOSLanguage: public arLanguage{

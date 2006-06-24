@@ -8,7 +8,6 @@
 
 #include "arMath.h"
 #include "arDataUtilities.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arInteractionCalling.h"
 
 class arGrabCondition;

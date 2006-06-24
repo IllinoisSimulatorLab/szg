@@ -10,10 +10,10 @@
 #include "arDataClient.h"
 #include "arDataType.h"
 #include "arSyncDataClient.h"
-#include <string>
 #include "arThread.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arSoundCalling.h"
+
+#include <string>
 
 #ifdef AR_USE_WIN_32
 #define SZG_SOUND_CALLBACK __stdcall

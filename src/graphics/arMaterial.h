@@ -7,7 +7,6 @@
 #define AR_MATERIAL_H
 
 #include "arMath.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 // OpenGL material.

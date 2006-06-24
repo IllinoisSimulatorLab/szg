@@ -9,7 +9,6 @@
 #include "arTemplateDictionary.h"
 #include "arStructuredData.h"
 #include "arDatabaseLanguage.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arPhleetCalling.h"
 
 /// The language used in the szg.conf file.

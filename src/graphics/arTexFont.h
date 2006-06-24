@@ -11,7 +11,6 @@
 #include "arMath.h"
 #include "arTexture.h"
 #include "arGraphicsHeader.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 #include <string>

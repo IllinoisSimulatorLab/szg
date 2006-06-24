@@ -14,8 +14,8 @@
 #include <iostream>
 #include <string>
 #include <map>
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
+
 using namespace std;
 
 // Texture map loaded from a file or from memory.

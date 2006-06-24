@@ -3,17 +3,16 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include <string>
-#include <iostream>
-#include <sstream>
-#ifndef AR_USE_WIN_32
-#include <sys/shm.h>
-#endif
 #include "arDataUtilities.h"
 #include "arInputSource.h"
 #include "arSharedMemDriver.h"
+
+#ifndef AR_USE_WIN_32
+#include <sys/shm.h>
+#endif
+#include <string>
+#include <sstream>
 
 // Methods used by the dynamic library mappers. 
 extern "C"{

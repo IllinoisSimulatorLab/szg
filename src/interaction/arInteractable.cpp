@@ -3,13 +3,13 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arInteractable.h"
+
 #if (defined(__GNUC__)&&(__GNUC__<3))
-#include <algo.h>
+  #include <algo.h>
 #else
-#include <algorithm>
+  #include <algorithm>
 #endif
 
 arInteractable::arInteractable() :

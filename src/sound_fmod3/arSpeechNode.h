@@ -6,17 +6,16 @@
 #ifndef AR_SPEECH_NODE_H
 #define AR_SPEECH_NODE_H
 
-#include "arSoundNode.h"
 #ifdef EnableSpeech
-#ifdef AR_USE_WIN_32
-#include <sapi.h>
-#endif
+  #ifdef AR_USE_WIN_32
+    #include <sapi.h>
+  #endif
 #endif
 
-// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arSoundNode.h"
 #include "arSoundCalling.h"
 
-/// Utterance in the scene graph.
+// Utterance in the scene graph.
 
 class SZG_CALL arSpeechNode : public arSoundNode{
   public:
@@ -34,9 +33,9 @@ class SZG_CALL arSpeechNode : public arSoundNode{
     void _deleteVoice();
     void _speak( const std::string& text );
 #ifdef AR_USE_WIN_32
-#ifdef EnableSpeech
+  #ifdef EnableSpeech
     ISpVoice* _voice;
-#endif
+  #endif
 #endif
 };
 

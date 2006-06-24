@@ -7,7 +7,6 @@
 #define AR_VISIBILITY_NODE_H
 
 #include "arGraphicsNode.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 // Toggle visibility of subtree under this node.

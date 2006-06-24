@@ -6,7 +6,6 @@
 #define AR_GRAPHICS_ARRAY_NODE_H
 
 #include "arGraphicsNode.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 class SZG_CALL arGraphicsArrayNode:public arGraphicsNode{

@@ -10,8 +10,8 @@
 #include "arStructuredData.h"
 #include "arInputEvent.h"
 #include "arInputState.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
+
 #include <vector>
 #include <string>
 #include <list>

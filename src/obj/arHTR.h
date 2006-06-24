@@ -8,16 +8,16 @@
 
 // Written by Mark Flider.
 
-#include <stdio.h>
-#include <iostream>
 #include "arMath.h"
 #include "arGraphicsDatabase.h"
-#include <string>
-#include <vector>
 #include "arOBJSmoothingGroup.h"
 #include "arObject.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arObjCalling.h"
+
+#include <stdio.h>
+#include <iostream>
+#include <string>
+#include <vector>
 
 // Rotation orders (there are many possibilities for Euler angles).
 //enum { XYZ = 1, XZY, YXZ, YZX, ZXY, ZYX };

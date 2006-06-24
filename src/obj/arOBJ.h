@@ -6,19 +6,19 @@
 #ifndef AR_OBJ_TRANSLATOR
 #define AR_OBJ_TRANSLATOR
 
-#include <stdio.h>
-#include <iostream>
 #include "arMath.h"
 #include "arDataUtilities.h"
 #include "arGraphicsDatabase.h"
-#include <string>
-#include <vector>
 #include "arObject.h"
 #include "arOBJSmoothingGroup.h"
 #include "arRay.h"
 #include "arAxisAlignedBoundingBox.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arObjCalling.h"
+
+#include <stdio.h>
+#include <iostream>
+#include <string>
+#include <vector>
 
 /// Wrapper for OpenGL material.
 class SZG_CALL arOBJMaterial {

@@ -11,10 +11,10 @@ this guy calls getBytes(), and sends the stuff to an fmod-soundplayer.
 
 TODO:  change printf's to cout and cerr.
 */
-// precompiled header include MUST appear as the first non-comment line
+
 #include "arPrecompiled.h"
-// MUST come before other szg includes. See arCallingConventions.h for details.
 #define SZG_DO_NOT_EXPORT
+
 #include "arThread.h"
 #include "arSZGClient.h"
 #include "fmodStub.h"

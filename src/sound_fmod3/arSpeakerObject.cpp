@@ -5,7 +5,6 @@
 
 // Most of this is copypasted from graphics/arScreenObject.cpp
 // and should be folded back in!
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arSpeakerObject.h"
 #include "fmodStub.h"

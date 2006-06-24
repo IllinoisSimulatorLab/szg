@@ -7,17 +7,12 @@
 #define AR_GRAPHICS_UTILITIES_H
 
 #ifdef USE_CG
-  // Internal includes in the Cg headers necessitate that
-  // the Cg directory is what is on the include path,
-  // not the header files themselves.
   #include <Cg/cgGL.h>
 #else
   typedef int CGparameter;
 #endif
 
-// For arNodeLevel...
-#include "arDatabaseNode.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
+#include "arDatabaseNode.h"     // For arNodeLevel
 #include "arGraphicsCalling.h"
 
 arNodeLevel ar_convertToNodeLevel(int level);

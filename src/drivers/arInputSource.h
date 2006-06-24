@@ -12,7 +12,6 @@
 #include "arIOFilter.h"
 #include "arInputLanguage.h"
 #include "arInputEvent.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 class arInputNode;

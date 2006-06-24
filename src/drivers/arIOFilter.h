@@ -9,7 +9,6 @@
 #include "arSZGClient.h"
 #include "arInputEventQueue.h"
 #include "arInputState.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 // Abstract base class for filtering messages.

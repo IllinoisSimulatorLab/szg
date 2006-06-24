@@ -7,10 +7,9 @@
 #define AR_PLAYER_NODE_H
 
 #include "arSoundNode.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arSoundCalling.h"
 
-/// "Point of view" for a sound renderer (3D position, etc.)
+// "Point of view" for a sound renderer (3D position, etc.)
 
 class SZG_CALL arPlayerNode:public arSoundNode{
  public:

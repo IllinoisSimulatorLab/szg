@@ -6,11 +6,11 @@
 #ifndef AR_LOG_STREAM_H
 #define AR_LOG_STREAM_H
 
+#include "arThread.h"
+#include "arLanguageCalling.h"
+
 #include <iostream>
 #include <sstream>
-#include "arThread.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
-#include "arLanguageCalling.h"
 
 using namespace std;
 

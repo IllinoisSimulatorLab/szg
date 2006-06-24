@@ -8,7 +8,6 @@
 
 #include "arThread.h"
 #include "arMath.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 // Driver for shared-memory segments holding mocap data from VRCO trackd.

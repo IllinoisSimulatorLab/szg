@@ -3,7 +3,6 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arConstantHeadFilter.h"
 #include "arVRConstants.h"
@@ -33,7 +32,6 @@ bool arConstantHeadFilter::_processEvent( arInputEvent& inputEvent ) {
   return true;
 }  
 
-
 //arStructuredData* arConstantHeadFilter::filter(arStructuredData* d) {
 //  int count = ar_getNumberEvents(d);
 //  int* indexPtr = (int*) d->getDataPtr("indices",AR_INT);
@@ -51,4 +49,3 @@ bool arConstantHeadFilter::_processEvent( arInputEvent& inputEvent ) {
 //  }
 //  return d;
 //}
-    

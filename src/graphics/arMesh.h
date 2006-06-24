@@ -9,8 +9,8 @@
 #include "arGraphicsDatabase.h"
 #include "arMath.h"
 #include "arGraphicsAPI.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
+
 #include <string>
 
 // Common behavior for meshes in arMesh.cpp and arMesh.h.

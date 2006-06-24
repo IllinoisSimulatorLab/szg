@@ -6,14 +6,13 @@
 #ifndef AR_STREAM_NODE_H
 #define AR_STREAM_NODE_H
 
+#include "arSoundNode.h"
+#include "arSoundDatabase.h"
+#include "arSoundCalling.h"
+
 /// Streams a file from disk. This is good for long pieces of music,
 /// whereby arSoundFileNode is better for short clips that are either
 /// triggered or are looped.
-
-#include "arSoundNode.h"
-#include "arSoundDatabase.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
-#include "arSoundCalling.h"
 
 class SZG_CALL arStreamNode: public arSoundNode{
  public:

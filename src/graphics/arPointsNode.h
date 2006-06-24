@@ -6,10 +6,10 @@
 #ifndef AR_POINTS_NODE_H
 #define AR_POINTS_NODE_H
 
-#include <vector>
 #include "arGraphicsArrayNode.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
+
+#include <vector>
 
 class SZG_CALL arPointsNode:public arGraphicsArrayNode{
 // Set of OpenGL points.

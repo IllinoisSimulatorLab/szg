@@ -3,11 +3,11 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arSyncDataClient.h"
 #include "arDataUtilities.h"
 #include "arLogStream.h"
+
 #include <math.h>
 
 void ar_syncDataClientConnectionTask(void* client){
@@ -24,7 +24,7 @@ void arSyncDataClient::_connectionTask(){
     if (_exitProgram)
       break;
 
-    // the connection brokering goes here
+    // connection brokering
 
     // the following is THE ONLY blocking call in this thread. 
     // It would be a good idea to figure out a way to get the szgserver to shut this

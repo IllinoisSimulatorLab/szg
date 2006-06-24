@@ -3,7 +3,6 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #ifdef AR_USE_LINUX
 #include <unistd.h>
@@ -12,11 +11,9 @@
 #include <sys/time.h>
 #include <fcntl.h>
 #include <sys/signal.h>
-using namespace std;
 #endif
 
 #ifdef AR_USE_WIN_32
-// DO NOT INCLUDE windows.h here! arPrecompiled.h already does!
 #include <time.h>
 #endif
 

@@ -12,8 +12,6 @@
 #define AR_GUI_XML_PARSER
 
 #include "arXMLParser.h"
-
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 #include <string>

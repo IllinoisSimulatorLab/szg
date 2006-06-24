@@ -3,13 +3,8 @@
 // see the file SZG_CREDITS for detils
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arMasterSlaveFramework.h"
-#ifndef AR_USE_WIN_32
-  #include <sys/types.h>
-  #include <signal.h>
-#endif
 #include "arSharedLib.h"
 #include "arEventUtilities.h"
 #include "arPForthFilter.h"
@@ -18,6 +13,10 @@
 #include "arGUIWindowManager.h"
 #include "arGUIXMLParser.h"
 #include "arLogStream.h"
+#ifndef AR_USE_WIN_32
+  #include <sys/types.h>
+  #include <signal.h>
+#endif
 
 
 //***********************************************************************

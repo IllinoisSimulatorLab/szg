@@ -8,7 +8,6 @@
 
 #include "arIOFilter.h"
 #include "arMath.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 // Calibration table for an input device.

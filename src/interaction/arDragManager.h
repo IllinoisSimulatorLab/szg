@@ -8,9 +8,9 @@
 
 #include "arGrabCondition.h"
 #include "arDragBehavior.h"
-#include <map>
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arInteractionCalling.h"
+
+#include <map>
 
 class arEffector;
 class arInteractable;

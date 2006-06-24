@@ -3,17 +3,17 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arDatabaseLanguage.h"
 
 arDatabaseLanguage::arDatabaseLanguage():
-_erase("erase"),
-_makeNode("make node"),
-_nameNode("name_node"),
-_insertNode("insert_node"),
-_cut("cut"),
-_permute("permute"){
+    _erase("erase"),
+    _makeNode("make node"),
+    _nameNode("name_node"),
+    _insertNode("insert_node"),
+    _cut("cut"),
+    _permute("permute"){
+
   AR_ERASE_ID = _erase.add("ID", AR_INT);
   AR_ERASE = _dictionary.add(&_erase);
 

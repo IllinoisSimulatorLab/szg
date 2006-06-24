@@ -3,11 +3,7 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <iostream>
 #include "arWildcatUtilities.h"
 #include "arDataUtilities.h"
 #include "arThread.h"

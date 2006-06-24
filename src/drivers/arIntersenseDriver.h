@@ -13,9 +13,9 @@
 #include "arThread.h"
 #include "arInputHeaders.h"
 #include "isense.h"
-#include <vector>
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
+
+#include <vector>
 
 class IsenseStation;
 

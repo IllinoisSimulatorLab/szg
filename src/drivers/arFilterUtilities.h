@@ -9,7 +9,6 @@
 #include "arStructuredData.h"
 #include "arMath.h"
 #include "arInputEvent.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 SZG_CALL int ar_getNumberEvents(arStructuredData*);

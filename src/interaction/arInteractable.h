@@ -11,9 +11,9 @@
 #include "arGrabCondition.h"
 #include "arDragBehavior.h"
 #include "arDragManager.h"
-#include <vector>
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arInteractionCalling.h"
+
+#include <vector>
 
 class SZG_CALL arInteractable {
   public:

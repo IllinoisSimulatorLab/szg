@@ -10,13 +10,12 @@
 #include "arThread.h"
 
 #ifdef AR_USE_WIN_32
-#include <wtypes.h>
-#ifdef EnableBirdWinDriver
-#include "Bird.h" // Ascension's header file.  Link with Ascension's Bird.lib.
-#endif
+  #include <wtypes.h>
+  #ifdef EnableBirdWinDriver
+    #include "Bird.h" // Ascension's header file.  Link with Ascension's Bird.lib.
+  #endif
 #endif
 
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 // Windows driver for Ascension Flock of Birds.

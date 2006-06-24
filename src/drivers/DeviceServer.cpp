@@ -3,9 +3,7 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-// MUST come before other szg includes. See arCallingConventions.h for details.
 #define SZG_DO_NOT_EXPORT
 
 #include "arStringTextStream.h"
@@ -17,7 +15,7 @@
 #include "arFileSink.h"
 #include "arSharedLib.h"
 
-// Various device driver headers.
+// Device drivers.
 #include "arFileSource.h"
 #include "arPForthFilter.h"
 

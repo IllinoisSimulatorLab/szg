@@ -29,13 +29,10 @@
 // (i.e. give us roughly constant tip position independent of orientation when we keep
 // the tip fixed & move the rest of the arm around) are in fact (4,-2,57).
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include <string>
-#include <iostream>
-#include <sstream>
 #include "arDataUtilities.h"
 #include "arFaroDriver.h"
+#include <string>
 
 using namespace std;
 

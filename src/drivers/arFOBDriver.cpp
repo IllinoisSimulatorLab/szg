@@ -3,13 +3,7 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#ifdef AR_USE_WIN_32
-#include <windows.h>
-#include <stdio.h>
-#endif
-
 #include "arFOBDriver.h"
 
 extern "C"{

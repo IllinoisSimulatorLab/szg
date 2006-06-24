@@ -9,7 +9,6 @@
 #include "arMath.h"
 #include "arSZGClient.h"
 #include "arLogStream.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 #include <iostream>

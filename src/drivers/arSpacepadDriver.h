@@ -7,7 +7,6 @@
 #define AR_SPACEPAD_DRIVER
 
 #include "arInputSource.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 class SZG_CALL arSpacepadDriver: public arInputSource{

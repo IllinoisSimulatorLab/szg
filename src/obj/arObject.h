@@ -24,10 +24,6 @@
  * \todo perhaps make (virtual) arGeometryObject, arAnimationObject, deriving from arObject
 */
 
-// WARNING: If a class ONLY exists in the .h, then we SHOULD NOT decorate it
-// with SZG_CALL. This USED to be true of arObject, but is no longer true.
-// Thus, decorated with SZG_CALL now (though this note kept for historical
-// reasons).
 class SZG_CALL arObject {
  public:
   arObject() : _name(""), _invalidFile(false), _vertexNodeID(-1) {}

@@ -8,7 +8,6 @@
 
 #include "arGraphicsWindow.h"
 #include "arViewport.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
 
 class SZG_CALL arGraphicsPlugin {

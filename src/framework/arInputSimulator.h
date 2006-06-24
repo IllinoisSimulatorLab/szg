@@ -10,10 +10,10 @@
 #include "arGenericDriver.h"
 #include "arInputNode.h"
 #include "arFrameworkObject.h"
+#include "arFrameworkCalling.h"
+
 #include <vector>
 #include <map>
-// THIS MUST BE THE LAST SZG INCLUDE!
-#include "arFrameworkCalling.h"
 
 // The simulated interface is modal. The states follow.
 enum arHeadWandSimState{

@@ -7,36 +7,27 @@
 #define AR_GUI_EVENT_MANAGER_H
 
 #if defined( AR_USE_WIN_32 )
-// DO NOT INCLUDE windows.h here. Instead, do as below.
-#include "arPrecompiled.h"
+  #include "arPrecompiled.h"
 #elif defined( AR_USE_LINUX )
-
 #elif defined( AR_USE_DARWIN )
-
 #elif defined( AR_USE_SGI )
-
 #endif
 
-#include <queue>
-
 #include "arThread.h"
-
 #include "arGUIDefines.h"
 #include "arGUIInfo.h"
-
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arGraphicsCalling.h"
+
+#include <queue>
 
 class arStructuredData;
 class arTemplateDictionary;
 class arDataTemplate;
-
 class arGUIWindow;
 
 //@{
 /**
- * @name Convenience typedef's for use in arGUIEventManager functions.
- *
+ * @name Convenience typedef's for arGUIEventManager functions.
  * @todo Move these to a common location with other typedefs.
  */
 typedef std::map<arGUIKey, arGUIKeyInfo > KeyboardMap;

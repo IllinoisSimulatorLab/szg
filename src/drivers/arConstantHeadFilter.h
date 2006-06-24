@@ -7,7 +7,6 @@
 #define AR_CONSTHEAD_FILTER
 
 #include "arIOFilter.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arDriversCalling.h"
 
 // Fixed head position, for multi-person nonheadtracked demos.

@@ -31,7 +31,6 @@
 //  outputMatrix setCurrentEventMatrix
 //enddef
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arLogitechDriver.h"
 

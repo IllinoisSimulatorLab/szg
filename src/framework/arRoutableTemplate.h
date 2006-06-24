@@ -7,7 +7,6 @@
 #define AR_ROUTABLE_TEMPLATE
 
 #include "arDataTemplate.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arFrameworkCalling.h"
 
 class SZG_CALL arRoutableTemplate: public arDataTemplate{

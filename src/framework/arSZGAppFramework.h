@@ -21,9 +21,9 @@
 #include "arFrameworkEventFilter.h"
 #include "arGUIWindowManager.h"
 #include "arGUIXMLParser.h"
-#include <set>
-// THIS MUST BE THE LAST SZG INCLUDE!
 #include "arFrameworkCalling.h"
+
+#include <set>
 
 class SZG_CALL arSZGAppFramework {
   public:

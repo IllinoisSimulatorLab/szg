@@ -3,11 +3,9 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "arMesh.h"
 #include "arDrawableNode.h"
-#include <iostream>
 
 // (Private constants don't need heavy naming conventions.)
 const int indicesPerTri = 3;
