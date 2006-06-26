@@ -224,9 +224,9 @@ class arDatabaseNode{
   int  getRef();
 
   int getID() const;
-  string getName() const;
+  string getName();
   void setName(const string&);
-  string getInfo() const;
+  string getInfo();
   void setInfo(const string&);
   int getTypeCode() const;
   string getTypeString() const;
