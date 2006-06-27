@@ -7,9 +7,6 @@
 #include "arDrawableNode.h"
 #include "arMath.h"
 #include "arGraphicsDatabase.h"
-//#ifdef USE_CG //Mark's Cg stuff
-//#include <Cg/cgGL.h>
-//#endif
 
 arDrawableNode::arDrawableNode():
   _firstMessageReceived(false),
@@ -135,10 +132,6 @@ void arDrawableNode::draw(arGraphicsContext* context){
                        (const float*) (cNode ? cNode->getBuffer() : NULL), 
                        (const float*) (tNode && t2Node ? t2Node->getBuffer() : NULL),
                        blendFactor);
-      //(*_bumpMap) ? 3 : 0,
-      //(CGparameter*) ((*_bumpMap) ? (*_bumpMap)->cgTBN() : NULL),
-      //(float**) ((*_bumpMap) ? (*_bumpMap)->TBN() : NULL)
-      //);
     }
     break;
   case DG_TRIANGLE_STRIP:
@@ -314,11 +307,6 @@ bool arDrawableNode::_1DPreDraw(arGraphicsNode* pointsNode,
   }
   return true;
 }
-
-//#ifdef USE_CG
-//extern CGcontext myContext;
-//extern void cgErrorCallback(void);
-//#endif
 
 bool arDrawableNode::_2DPreDraw(arGraphicsNode* pointsNode,
                                 arGraphicsNode* normal3Node,

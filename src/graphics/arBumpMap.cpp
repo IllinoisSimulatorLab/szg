@@ -73,124 +73,20 @@ arBumpMap::arBumpMap( const arBumpMap& rhs ) : arTexture(rhs) {
 }*/
 
 void arBumpMap::activate() {
-#ifdef USE_CG
-  //printf("arBumpMap::activate() starting...\n");
-  if (_texName == 0)
-    _loadIntoOpenGL();
-  else {
-    if (_fDirtyTex)
-      _loadIntoOpenGL();
-    if (_fDirtyCg)
-      _cgInit();
-    if (_fDirtyTBN)
-      _computeFrame();
-
-    // Bind the programs
-    cgGLBindProgram(_cg_vertexProgram);
-    cgGLBindProgram(_cg_fragmentProgram);
-    // Enable the profiles
-    cgGLEnableProfile(_cg_vertexProfile);
-    cgGLEnableProfile(_cg_fragmentProfile);
-
-    // Set the uniform parameters that don't change every vertex
-    cgGLSetStateMatrixParameter(_cg_modelViewProj,
-		    		CG_GL_MODELVIEW_PROJECTION_MATRIX,
-				CG_GL_MATRIX_IDENTITY);
-    if (!_isTexParamSet) {
-      cgGLSetTextureParameter(_cg_decalMap, _decalName);
-      cgGLSetTextureParameter(_cg_normalMap, _texName);
-      _isTexParamSet = true;
-      //printf("cgGLSetTextureParameter called: %i, %i\n", _texName, _decalName);
-    }
-
-    cgGLEnableTextureParameter(_cg_normalMap);
-    cgGLEnableTextureParameter(_cg_decalMap);
-
-  }
-#endif
 }
 
 void arBumpMap::reactivate(){
-  //printf("arBumpMap::reactivate() starting...\n");
 }
 
 void arBumpMap::_loadIntoOpenGL() {
-#ifdef USE_CG
-  //printf("arBumpMap::_loadIntoOpenGL() starting...\n");
-  
-  //glActiveTexture(GL_TEXTURE1);
-
-  glGenTextures(1,&_texName);
-  glBindTexture(GL_TEXTURE_2D, _texName);
-  glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
-                  _repeating ? GL_REPEAT : GL_CLAMP);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
-                  _repeating ? GL_REPEAT : GL_CLAMP);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                  _mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                  _mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-  // _width and _height must both be a power of two.
-  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,
-            _alpha ? GL_MODULATE : GL_DECAL);
-  if (_mipmap)
-    gluBuild2DMipmaps(GL_TEXTURE_2D, _alpha ? GL_RGBA : GL_RGB,
-		      _width, _height, _alpha ? GL_RGBA : GL_RGB,
-		      GL_UNSIGNED_BYTE, (GLubyte*)_pixels);
-  else
-    glTexImage2D(GL_TEXTURE_2D, 0, _alpha ? GL_RGBA : GL_RGB,
-		 _width, _height, 0, _alpha ? GL_RGBA : GL_RGB,
-		 GL_UNSIGNED_BYTE, (GLubyte*)_pixels);
-
-  // Has the decal texture been init'ed?
-  // Is there a valid decalTexture? -- if not, we're gonna see black
-  if (_decalName == 0 && _decalTexture) {
-    cout << _decalTexture->glName() << endl;
-    _decalTexture->activate();		// load texture into Graphics memory
-    _decalTexture->deactivate();
-    cout << _decalTexture->glName() << endl;
-    _decalName = _decalTexture->glName();	// GL Name to pass to Cg
-  }
-#endif
   _fDirtyTex = false;
 }
 
 void arBumpMap::_cgInit() {
-#ifdef USE_CG
-  //printf("arBumpMap::_cgInit() starting...\n");
-  _initMainCg();
-
-  _cg_position      = cgGetNamedParameter(_cg_vertexProgram, "IN.Position");
-  _cg_tangent       = cgGetNamedParameter(_cg_vertexProgram, "IN.Tangent");
-  _cg_binormal      = cgGetNamedParameter(_cg_vertexProgram, "IN.Binormal");
-  _cg_normal        = cgGetNamedParameter(_cg_vertexProgram, "IN.Normal");
-  _cg_modelViewProj = cgGetNamedParameter(_cg_vertexProgram, "modelViewProj");
-  if (!_cg_position || !_cg_tangent || !_cg_binormal || !_cg_normal || !_cg_modelViewProj)
-    cerr << "Cg Error: Error getting vertex program values!\n";
-
-  //_cg_lookupTable = cgGetNamedParameter(_cg_fragmentProgram, "lookupTable");
-  _cg_decalMap   = cgGetNamedParameter(_cg_fragmentProgram, "decalMap");
-  _cg_normalMap   = cgGetNamedParameter(_cg_fragmentProgram, "normalMap");
-  if (!_cg_decalMap || !_cg_normalMap )
-    cerr << "Cg Error: Error getting fragment program values!\n";
-
-  _cgTBN[0] = _cg_tangent;
-  _cgTBN[1] = _cg_binormal;
-  _cgTBN[2] = _cg_normal;
-#endif
   _fDirtyCg = false;
 }
 
 void arBumpMap::deactivate() {
-#ifdef USE_CG
- //printf("arBumpMap::deactivate() starting...\n");
- cgGLDisableTextureParameter(_cg_decalMap);
- cgGLDisableTextureParameter(_cg_normalMap);
- // Disable the profiles
- cgGLDisableProfile(_cg_vertexProfile);
- cgGLDisableProfile(_cg_fragmentProfile);
-#endif
 }
 
 void arBumpMap::setHeight(float newHeight) {
@@ -248,18 +144,6 @@ float** arBumpMap::TBN() {
   if (_fDirtyTBN)
     _computeFrame();
   return _TBN;
-}
-
-CGparameter* arBumpMap::cgTBN() {
-#ifdef USE_CG
-  if (!_cg_tangent || !_cg_binormal || !_cg_normal)
-    return NULL;
-  if (_fDirtyCg)
-    _cgInit();
-  return _cgTBN;
-#else
-  return NULL;
-#endif
 }
 
 void arBumpMap::generateFrames(int numTBN) {
@@ -390,56 +274,5 @@ void arBumpMap::_computeFrame() {
   _fDirtyTBN = false;
 }
 
-//===============================================================//
-//================ MAIN Cg init (only once) =====================//
-
-#ifdef USE_CG
-CGcontext myContext;
-// used to print out any Cg errors that may occur
-void cgErrorCallback(void) {
-  CGerror LastError = cgGetError();
-  if(LastError) {
-    const char *Listing = cgGetLastListing(myContext);
-    printf("\n---------------------------------------------------\n");
-    printf("%s\n\n", cgGetErrorString(LastError));
-    printf("%s\n", Listing);
-    printf("---------------------------------------------------\n");
-    printf("Cg error, exiting...\n");
-    exit(0);
-  }
-}
-#endif
-
 void arBumpMap::_initMainCg() {
-#ifdef USE_CG
-  if (_isMainCgInited)
-    return;
-  //printf("arBumpMap::_initMainCg() starting...\n");
-
-  // Create context
-  _cg_context = cgCreateContext();
-  // Error checking
-  myContext = _cg_context;
-  cgSetErrorCallback(cgErrorCallback);
-  // Initialize profiles and compiler options
-  _cg_vertexProfile = cgGLGetLatestProfile(CG_GL_VERTEX);
-  cgGLSetOptimalOptions(_cg_vertexProfile);
-  _cg_fragmentProfile = cgGLGetLatestProfile(CG_GL_FRAGMENT);
-  cgGLSetOptimalOptions(_cg_fragmentProfile);
-  //printf("Cg Vert Profile: %s\n", cgGetProfileString(_cg_vertexProfile));
-  //printf("Cg Frag Profile: %s\n", cgGetProfileString(_cg_fragmentProfile));
-  // Create and load the vertex & fragment programs
-  _cg_vertexProgram = cgCreateProgramFromFile(_cg_context, CG_SOURCE,
-		  "/home/public/Data/cg_bump_mapping_vertex.cg",
-		  _cg_vertexProfile, NULL, NULL);
-  _cg_fragmentProgram = cgCreateProgramFromFile(_cg_context, CG_SOURCE,
-		  "/home/public/Data/cg_bump_mapping_fragment.cg",
-		  _cg_fragmentProfile, NULL, NULL);
-  cgGLLoadProgram(_cg_vertexProgram);
-  cgGLLoadProgram(_cg_fragmentProgram);
-  _isMainCgInited = true;   // Only do this function once
-  //printf("arBumpMap::_initMainCg() finished.\n");
-#endif
 }
-
-

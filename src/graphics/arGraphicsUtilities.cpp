@@ -108,59 +108,12 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
 			 /* , int numCgParams=0,
 			 const CGparameter* cgParams=0,
 			 const float** cgData=0*/ ){
-  // We use the vertex array path with CG and the original code path
-  // without CG. Why? seems like the vertex array stuff has problems on some
+  // Vertex array stuff has problems on some
   // boxen (specifically some Win2K w/ Nvidia cards)
 
   // UNFORTUNATELY... THIS STUFF DOES NOT WORK WITH BLENDING! (at least with
   // my blend factor hack). BUT... it could be that the blend factor hack is
   // a bad idea anyway
-#ifdef USE_CG
-  // Vertex Arrays
-  if (normals) {
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glNormalPointer(GL_FLOAT, 0, normals);
-  }
-  if (colors) {
-    glEnableClientState(GL_COLOR_ARRAY);
-    glColorPointer(4, GL_FLOAT, 0, colors);
-  }
-  if (texCoord) {
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glTexCoordPointer(2, GL_FLOAT, 0, texCoord);
-  }
-  if (numCgParams && cgParams && cgData) {
-    for (int i=0; i<numCgParams; ++i) {
-      cgGLEnableClientState(cgParams[i]);
-      cgGLSetParameterPointer(cgParams[i], 3, GL_FLOAT, 0, cgData[i]);
-    }
-  }
-
-  if (indices) {
-    glBegin(drawableType);
-    for (i=0; i<number; ++i) {
-      glArrayElement(i);
-      glVertex3fv(positions + 3*indices[i]);
-    }
-    glEnd();
-  }
-  else {
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_FLOAT, 0, positions);
-    glDrawArrays(drawableType, 0, number);
-  }
-
-  if (numCgParams && cgParams && cgData) {
-    for (int i=0; i<numCgParams; ++i)
-      cgGLDisableClientState(cgParams[i]);
-  }
-  // clean up
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_NORMAL_ARRAY);
-  glDisableClientState(GL_COLOR_ARRAY);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-#else
   unsigned int opType = 0;
   if (indices)
     opType |= 1;
@@ -240,7 +193,6 @@ inline void ar_draw2DRaw(GLenum drawableType, int number,
     break;
   }
   glEnd();
-#endif
 }
 
 void ar_drawTriangles(int number, const int* indices, 

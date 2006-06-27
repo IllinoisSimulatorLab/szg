@@ -36,10 +36,6 @@
 #include "arGraphicsStateNode.h"
 #include "arGraphicsPluginNode.h"
 
-#ifdef USE_CG // Mark's Cg stuff
-  #include <Cg/cgGL.h>
-#endif
-
 #include "arGraphicsCalling.h"
 
 // Contain a scene graph created by an arGraphicsServer
@@ -111,13 +107,7 @@ class SZG_CALL arGraphicsDatabase: public arDatabase{
 
   arGraphicsLanguage _gfx;  
 
-#ifdef USE_CG // Mark's Cg Stuff
-  //CGcontext     _cg_context;
-  //CGprofile     _cg_vertexProfile, _cg_fragmentProfile;
-#endif
-  //bool          _isCgInited;
-  //GLuint	_normLookupTexture;
-  //void          initCg();
+  //GLuint	_normLookupTexture; //deprecated? ;;;;
 
  protected:
   arMutex                              _texturePathLock;

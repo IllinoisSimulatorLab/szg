@@ -9,12 +9,6 @@
 #include "arTexture.h"
 using namespace std;
 
-#ifdef USE_CG
-  #include <Cg/cgGL.h>
-#else
-  typedef int CGparameter;
-#endif
-
 #include "arGraphicsCalling.h"
 
 // Bump map loaded from a file, or loaded from a block of memory.
@@ -50,8 +44,6 @@ class SZG_CALL arBumpMap : public arTexture {
 
   // TBN float* array or NULL if invalid
   float** TBN();
-  // CGparameter array or NULL if invalid
-  CGparameter* cgTBN();
 
  private:
   // private functions
@@ -83,20 +75,6 @@ class SZG_CALL arBumpMap : public arTexture {
   bool		_fDirtyTBN;	// Does TBN (bases) need to be re-init'ed?
   bool          _isMainCgInited;
   bool          _isTexParamSet;
-  
-  // cg stuff
-#ifdef USE_CG
-  CGparameter   _cg_position;
-  CGparameter   _cg_tangent, _cg_binormal;
-  CGparameter   _cg_normal;
-  CGparameter   _cg_light;
-  CGparameter   _cg_modelViewProj, _cg_modelViewIT;	// matrices
-  CGparameter   _cg_decalMap, _cg_normalMap;		// textures
-  CGprogram     _cg_vertexProgram, _cg_fragmentProgram;
-  CGcontext     _cg_context;
-  CGprofile     _cg_vertexProfile, _cg_fragmentProfile;
-  CGparameter	_cgTBN[3];		// pointers to cg TBN variables, or NULL if invalid
-#endif
 };
 
 #endif

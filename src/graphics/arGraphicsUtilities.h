@@ -6,12 +6,6 @@
 #ifndef AR_GRAPHICS_UTILITIES_H
 #define AR_GRAPHICS_UTILITIES_H
 
-#ifdef USE_CG
-  #include <Cg/cgGL.h>
-#else
-  typedef int CGparameter;
-#endif
-
 #include "arDatabaseNode.h"     // For arNodeLevel
 #include "arGraphicsCalling.h"
 
