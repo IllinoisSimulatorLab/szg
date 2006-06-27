@@ -160,8 +160,6 @@ int main(int argc, char** argv){
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 
-  ar_log().setStream(szgClient.initResponse());
-
   // Only one instance per host.
   int ownerID = -1;
   if (!szgClient.getLock(szgClient.getComputerName() + "/DeviceServer", ownerID)) {
@@ -359,7 +357,6 @@ LAbort:
     // Bug: in linux, this may hang.  Which other thread still runs?
     return 1; // init failed
   }
-  ar_log().setStream(szgClient.startResponse());
 
   if (!inputNode.start()){
     if (!szgClient.sendStartResponse(false))
@@ -368,7 +365,6 @@ LAbort:
   }
   if (!szgClient.sendStartResponse(true))
     cerr << "DeviceServer error: maybe szgserver died.\n";
-  ar_log().setStream(cout);
 
   // Message task.
   string messageType, messageBody;

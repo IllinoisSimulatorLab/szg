@@ -564,7 +564,6 @@ int main(int argc, char** argv){
     return szgClient->failStandalone(fInit);
   }
 
-  ar_log().setStream(szgClient->initResponse());
   for (int i=0; i<argc; i++){
     if (!strcmp("-p",argv[i])){
       highPerformance = true;
@@ -590,7 +589,6 @@ int main(int argc, char** argv){
   }
   // Use locks to ensure that we have a unique workspace name.
   int componentID;
-  ar_log().setStream(szgClient->startResponse());
   if (!szgClient->getLock(string("szg-rp-")+argv[1], componentID)){
     ar_log_error() << "szg-rp: non-unique workspace name.\n"
 		   << "  component with ID " << componentID 
@@ -612,7 +610,6 @@ int main(int argc, char** argv){
   if (!szgClient->sendStartResponse(true)){
     cerr << "szg-rp error: maybe szgserver died.\n";
   }
-  ar_log().setStream(cout);
   arThread dummy(messageTask, szgClient);
 
   glutInit(&argc,argv);

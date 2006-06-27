@@ -71,7 +71,6 @@ int main(int argc, char** argv){
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 
-  ar_log().setStream(szgClient.initResponse());
   if (argc != 2 && argc != 3) {
     ar_log_error() << "usage: DeviceClient slot_number [-button]\n";
     return 1;
@@ -98,7 +97,6 @@ int main(int argc, char** argv){
 
   if (!szgClient.sendInitResponse(true))
     cerr << "DeviceClient error: maybe szgserver died.\n";
-  ar_log().setStream(szgClient.startResponse());
   if (!inputNode.start()){
     if (!szgClient.sendStartResponse(false))
       cerr << "DeviceClient error: maybe szgserver died.\n";
@@ -110,7 +108,6 @@ int main(int argc, char** argv){
 
   if (!szgClient.sendStartResponse(true))
     cerr << "DeviceClient error: maybe szgserver died.\n";
-  ar_log().setStream(cout);
 
   arThread dummy(ar_messageTask, &szgClient);
   while (true){

@@ -71,8 +71,6 @@ int main(int argc, char** argv){
   if (!szgClient)
     return szgClient.failStandalone(fInit);
   
-  ar_log().setStream(szgClient.initResponse());
-  
   // Only one SoundRender per host.
   // copy-pasted (more or less) from szgd.cpp
   int ownerID = -1;
@@ -98,7 +96,6 @@ int main(int argc, char** argv){
   if (!szgClient.sendInitResponse(true)){
     cerr << "SoundRender error: maybe szgserver died.\n";
   }
-  ar_log().setStream(szgClient.startResponse());
 
   soundClient->setSpeakerObject(&speakerObject);
   soundClient->setNetworks(szgClient.getNetworks("sound"));
@@ -119,7 +116,6 @@ int main(int argc, char** argv){
   if (!szgClient.sendStartResponse(true)){
     cerr << "SoundRender error: maybe szgserver died.\n";
   }
-  ar_log().setStream(cout);
 
   arThread dummy(messageTask, &szgClient);
   while (true) {

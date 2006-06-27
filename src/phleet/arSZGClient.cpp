@@ -86,6 +86,9 @@ arSZGClient::~arSZGClient(){
 /// call sendInitResponse and sendStartResponse (the final response in this case),
 /// to forward init and start diagnostics to the the spawning dex for printing.
 void arSZGClient::simpleHandshaking(bool state){
+  if (!state) {
+    ar_log().setStream(initResponse());
+  }
   _simpleHandshaking = state;
 }
 
@@ -206,6 +209,9 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
   
   if ( _IPaddress == "NULL" || _port == -1 || _userName == "NULL" ){
     // Not enough info to find an szgserver.  Fallback to standalone.
+    // No dex, so redirect pending and future output to cout.
+    cout << _initResponseStream.str();
+    ar_log().setStream(cout);
     ar_log_critical() << _exeName << " running standalone.\n";
     _connected = false;
     success = true;
@@ -348,15 +354,28 @@ bool arSZGClient::_sendResponse(stringstream& s,
 ///
 /// Typically main() calls this.  Every return from main should call this.
 bool arSZGClient::sendInitResponse(bool ok){
-  return _sendResponse(_initResponseStream, "initialization", _initialInitLength, ok, ok);
+  const bool f = _sendResponse(_initResponseStream, "init", _initialInitLength, ok, ok);
+  //;;;; need to echo to stdout?    cout << _initResponseStream.str();
+
+  // Visual studio 7 compiler bug.  Do it the long way.
+  if (f) {
+    ar_log().setStream(_startResponseStream);
+  }
+  else {
+    ar_log().setStream(cout);
+  }
+  return f;
 }
 
-/// If we have launched via szgd/dex, send the start message stream
-/// back to the launching dex command. If we launched from the command line,
-/// just print the stream. This is the final response to the launch message
-/// regardless, though the parameter does alter the message sent or printed.
+// If launched via szgd/dex, return the start message stream to dex.
+// If launched from the command line, just print it.
+// In either case this is the final response to the launch message,
+// though the parameter does alter the message sent or printed.
 bool arSZGClient::sendStartResponse(bool ok){
-  return _sendResponse(_startResponseStream, "start", _initialStartLength, ok, false);
+  const bool f = _sendResponse(_startResponseStream, "start", _initialStartLength, ok, false);
+  //;;;; need to echo to stdout?    cout << _startResponseStream.str();
+  ar_log().setStream(cout);
+  return f;
 }
 
 void arSZGClient::closeConnection(){
@@ -367,7 +386,7 @@ void arSZGClient::closeConnection(){
 bool arSZGClient::launchDiscoveryThreads(){
   if (!_keepRunning){
     // Threads would immediately terminate, if we tried to start them.
-    ar_log_warning() << _exeName << " terminating, so no discovery threads launched.\n";
+    ar_log_remark() << _exeName << " terminating, so no discovery threads launched.\n";
     return false;
   }
   if (_discoveryThreadsLaunched){
@@ -383,7 +402,7 @@ bool arSZGClient::launchDiscoveryThreads(){
   arSocketAddress incomingAddress;
   incomingAddress.setAddress(NULL,4620);
   if (_discoverySocket->ar_bind(&incomingAddress) < 0){
-    ar_log_error() << _exeName << " failed to bind discovery response socket.\n";
+    ar_log_warning() << _exeName << " failed to bind discovery response socket.\n";
     return false;
   }
 

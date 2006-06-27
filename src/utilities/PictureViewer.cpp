@@ -98,7 +98,6 @@ int main(int argc, char** argv){
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 
-  ar_log().setStream(szgClient.initResponse());
   if ((argc < 2)||(argc > 3)){
     ar_log_error() << "usage: PictureViewer filename [synctest]\n";
     if (!szgClient.sendInitResponse(false))
@@ -142,7 +141,6 @@ int main(int argc, char** argv){
   ar_log_remark() << "PictureViewer loaded picture.\n";
   if (!szgClient.sendInitResponse(true))
     cerr << "PictureViewer error: maybe szgserver died.\n";
-  ar_log().setStream(szgClient.startResponse());
 
   glutInit(&argc,argv);
   glutInitDisplayMode(GLUT_DOUBLE);
@@ -158,7 +156,6 @@ int main(int argc, char** argv){
   ar_log_remark() << "Picture window visible.\n";
   if (!szgClient.sendStartResponse(true))
     cerr << "PictureViewer error: maybe szgserver died.\n";
-  ar_log().setStream(cout);
   arThread dummy(ar_messageTask, &szgClient);
   timer.start( FLIP_SECONDS * 1e6 );
   glutMainLoop(); 

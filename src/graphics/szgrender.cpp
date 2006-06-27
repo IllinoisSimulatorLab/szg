@@ -168,7 +168,6 @@ int main(int argc, char** argv){
   const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)
     return szgClient.failStandalone(fInit);
-  ar_log().setStream(szgClient.initResponse());
 
   for (int i=0; i<argc; i++){
     if (!strcmp(argv[i], "-n")){
@@ -192,7 +191,6 @@ int main(int argc, char** argv){
   if (!szgClient.sendInitResponse(true)){
     cerr << "error: maybe szgserver died.\n";
   }
-  ar_log().setStream(szgClient.startResponse());
 
   ar_mutex_init(&pauseLock);
   arThread dummy(messageTask, &szgClient);
@@ -225,8 +223,7 @@ int main(int argc, char** argv){
   if (!szgClient.sendStartResponse(true)){
     cerr << "error: maybe szgserver died.\n";
   }
-  ar_log().setStream(cout);
-  
+
   while (!exitFlag){ 
     ar_mutex_lock(&pauseLock);
     while (pauseFlag){

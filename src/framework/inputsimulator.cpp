@@ -100,7 +100,6 @@ int main(int argc, char** argv){
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 
-  ar_log().setStream(szgClient.initResponse());
   const int slotNumber = (argc > 1) ? atoi(argv[1]) : 0;
   ar_log_remark() << "inputsimulator using slot " << slotNumber << ".\n";
   const bool useNetInput = (argc > 2) && !strcmp(argv[2], "-netinput");
@@ -163,7 +162,6 @@ int main(int argc, char** argv){
   if (!szgClient.sendInitResponse(true))
     cerr << "inputsimulator error: maybe szgserver died.\n";
 
-  ar_log().setStream(szgClient.startResponse());
   if (!inputNode->start()){
     if (!szgClient.sendStartResponse(false))
       cerr << "inputsimulator error: maybe szgserver died.\n";
@@ -173,7 +171,6 @@ int main(int argc, char** argv){
   // start succeeded
   if (!szgClient.sendStartResponse(true))
     cerr << "inputsimulator error: maybe szgserver died.\n";
-  ar_log().setStream(cout);
   
   arThread dummy(messageTask, &szgClient);
   loadParameters(szgClient);

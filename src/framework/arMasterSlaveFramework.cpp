@@ -369,55 +369,41 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
 
 /// Initializes the syzygy objects, but does not start any threads
 bool arMasterSlaveFramework::init( int& argc, char** argv ) {
-  _label = string( argv[ 0 ] );
-  _label = ar_stripExeName( _label );
+  _label = ar_stripExeName( string( argv[ 0 ] ) );
   
   // Connect to the szgserver.
   _SZGClient.simpleHandshaking( false );
-  
   if (!_SZGClient.init( argc, argv )){
-    // The initialization failed!
     return false;
   }
   
   if ( !_SZGClient ) {
-    // If init failed but the above operator gives false, then we are in standalone
-    // mode.
-    
-    _standalone = true;
-    
-    // Furthermore, in standalone mode, this instance MUST be the master!
-    _setMaster( true );
+    _standalone = true; // init() succeeded, but !_SZGClient says it's disconnected.
+    _setMaster( true ); // Because standalone.
     
     // HACK!!!!! There's cutting-and-pasting here...
     dgSetGraphicsDatabase( &_graphicsDatabase );
     dsSetSoundDatabase( &_soundServer );
     
-    // This MUST come before _loadParameters, so that the internal sound
-    // client can be configured for the standalone configuration.
-    // (The internal arSoundClient is created in _initStandaloneObjects).
+    // Before _loadParameters, so the internal sound client,
+    // created in _initStandaloneObjects, can be configured for standalone.
     if( !_initStandaloneObjects() ) {
-      // NOTE: It is definitely possible for initialization of the standalone
-      // objects to fail. For instance, what if we are unable to load
-      // the joystick driver (which is a loadable module) or what if
-      // the configuration of the pforth filter fails?
+      // Standalone objects can fail to init,
+      // e.g a missing joystick driver or a pforth syntax error.
       return false;
     }
     
     if( !_loadParameters() ) {
-      ar_log_warning() << _label <<
-        " remark: failed to load parameters while standalone.\n";
+      ar_log_warning() << _label << " failed to load parameters while standalone.\n";
     }
     
     _parametersLoaded = true;
     
-    // We do not start the message-receiving thread yet (because there's no
-    // way yet to operate in a distributed fashion). We also do not
-    // initialize the master's objects... since they will be unused!
+    // Don't start the message-receiving thread yet (because there's no
+    // way yet to operate in a distributed fashion).
+    // Don't initialize the master's objects, since they'll be unused.
     return true;
   }
-  
-  ar_log().setStream(_SZGClient.initResponse());
   
   // Initialize a few things.
   dgSetGraphicsDatabase( &_graphicsDatabase );
@@ -465,7 +451,7 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
       delete exeBuf;
     }
     
-    // Reorganizes the virtual computer.
+    // Reorganize the virtual computer.
     if( !_launcher.launchApp() ) {
       ar_log_warning() << _label << " failed to launch on virtual computer "
                      << vircomp << ".\n";
@@ -473,12 +459,9 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     }
     
     // Wait for the message (render nodes do this in the message task).
-    // we've suceeded in initing
     if( !_SZGClient.sendInitResponse( true ) ) {
       cerr << _label << ": maybe szgserver died.\n";
     }
-    
-    ar_log().setStream(_SZGClient.startResponse());
     
     // there's no more starting to do... since this application instance
     // is just used to launch other instances
@@ -487,9 +470,6 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     if( !_SZGClient.sendStartResponse( true ) ) {
       cerr << _label << ": maybe szgserver died.\n";
     }
-    
-    ar_log().setStream(cout);
-    
     (void)_launcher.waitForKill();
     exit( 0 );
   }
@@ -510,10 +490,9 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     ar_log_warning() << _label << ": invalid virtual computer definition.\n";
   }
   
-  // Launch the message thread here, so dkill still works
-  // even if init() or start() fail.
+  // Launch the message thread, so dkill works even if init() or start() fail.
   // But launch after the trigger code above, lest we catch messages both
-  // in the waitForKill() AND in the message thread.
+  // in waitForKill() AND in the message thread.
   if(!_messageThread.beginThread( ar_masterSlaveFrameworkMessageTask, this )){
     ar_log_warning() << _label << " failed to start message thread.\n";
     goto fail;
@@ -535,7 +514,6 @@ fail:
       if( !_SZGClient.sendInitResponse( false ) ) {
         cerr << _label << ": maybe szgserver died.\n";
       }
-      ar_log().setStream(cout);
       return false;
     }
   }
@@ -545,37 +523,7 @@ fail:
   if( !_SZGClient.sendInitResponse( true ) ) {
     cerr << _label << ": maybe szgserver died.\n";
   }
-  ar_log().setStream(cout);
   return true;
-}
-
-/// Starts needed services, windowing, and runs the internal event loop. 
-/// NOTE: this call does return if successful (and if it fails returns false).
-bool arMasterSlaveFramework::start( void ) {
-  ar_log().setStream(_SZGClient.startResponse());
-  // Call _start, telling it that it should start windowing and run the event loop.
-  bool state = _start( true, true );
-  ar_log().setStream(cout);
-  return state;
-}
-
-/// Starts the application, but does not create a window or start the arGUI
-/// event loop.
-bool arMasterSlaveFramework::startWithoutWindowing( void ){
-  ar_log().setStream(_SZGClient.startResponse());
-  // Call _start, telling it not to start windowing or use its own event loop.
-  bool state = _start( false, false );
-  ar_log().setStream(cout);
-  return state;
-}
-
-/// Starts the application, creates the windows, but does not start an event loop.
-bool arMasterSlaveFramework::startWithoutEventLoop( void ){
-  ar_log().setStream(_SZGClient.startResponse());
-  // Call _start, telling it to start windowing but not use its own event loop.
-  bool state = _start( true, false );
-  ar_log().setStream(cout);
-  return state;
 }
 
 /// Begins halting many significant parts of the object and blocks until
@@ -2164,19 +2112,33 @@ bool arMasterSlaveFramework::_startObjects( void ){
   return true;
 }
 
-/// Functionality common to start(), startWithoutWindowing(), and startWithoutEventLoop().
+// todo: collapse these three into one function?
+
+// Start app, create a window, and run the arGUI internal event loop. 
+bool arMasterSlaveFramework::start( void ) {
+  return _start( true, true );
+}
+
+// Start app, don't create a window, don't run the arGUI internal event loop. 
+bool arMasterSlaveFramework::startWithoutWindowing( void ){
+  return _start( false, false );
+}
+
+// Start app, create a window, don't run the arGUI internal event loop. 
+bool arMasterSlaveFramework::startWithoutEventLoop( void ){
+  return _start( true, false );
+}
+
+// Core of start(), startWithoutWindowing(), and startWithoutEventLoop().
 bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
-
   _useWindowing = useWindowing;
-
   if ( !_parametersLoaded ) {
     if ( _SZGClient ) {
-      ar_log_warning() << _label << ": start() called before init().\n";
+      ar_log_warning() << _label << ": can't start() before init().\n";
       if( !_SZGClient.sendInitResponse( false ) ) {
         cerr << _label << ": maybe szgserver died.\n";
       }
     }
-    ar_log().setStream(cout);
     return false;
   }
 
@@ -2196,19 +2158,15 @@ bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
     }
   }
 
-  // Do the user-defined init.
-  // So _startCallback knows if this instance is the master or
-  // a slave, call this after _startDetermineMaster().
+  // Do user-defined init.  After _startDetermineMaster(),
+  // so _startCallback knows if this instance is master or slave.
   if( !onStart( _SZGClient ) ) {
     if( _SZGClient ) {
       return _startrespond( "arMasterSlaveFramework start callback failed." );
     }
-    else {
-      return false;
-    }
+    return false;
   }
 
-  // If we can't create the windows (and we were supposed to), then _start(...) fails.
   if (!createWindows(_useWindowing)){
     return false; 
   }
@@ -2228,14 +2186,12 @@ bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
 
   _startCalled = true;
 
-  // the start succeeded
   if(_SZGClient) {
     if (!_SZGClient.sendStartResponse( true ) ) {
       cerr << _label << ": maybe szgserver died.\n";
     }
   } else {
     cout << _SZGClient.startResponse().str() << endl;
-    ar_log().setStream( cout );
   }
 
   if( !_standalone ) {

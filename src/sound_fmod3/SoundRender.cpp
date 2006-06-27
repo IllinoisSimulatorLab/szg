@@ -86,8 +86,6 @@ int main(int argc, char** argv){
     return 1;
   }
   
-  ar_log().setStream(szgClient.initResponse());
-  
   // Only a single sound render should be running on a given computer
   // copy-pasted (more or less) from szgd.cpp
   int ownerID = -1;
@@ -113,8 +111,6 @@ int main(int argc, char** argv){
     ar_log_error() << "SoundRender error: maybe szgserver died.\n";
   }
   
-  ar_log().setStream(szgClient.startResponse());
-
   soundClient->setSpeakerObject(&speakerObject);
   soundClient->setNetworks(szgClient.getNetworks("sound"));
   (void)soundClient->init();
@@ -128,8 +124,6 @@ int main(int argc, char** argv){
     ar_log_error() << "SoundRender error: maybe szgserver died.\n";
   }
   
-  ar_log().setStream(cout);
-
   arThread dummy(messageTask, &szgClient);
   while (true) {
     soundClient->_cliSync.consume();
