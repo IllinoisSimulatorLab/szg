@@ -8,8 +8,6 @@
 #include "arSocketAddress.h"
 #include <stdio.h>
 #include <errno.h>
-#include <iostream>
-
 using namespace std;
 
 // Only need to initialize sockets in the windows case.

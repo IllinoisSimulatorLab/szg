@@ -231,7 +231,7 @@ arGraphicsClient::arGraphicsClient() :
 arGraphicsClient::~arGraphicsClient(){
 }
 
-/// Get configuration parameters from the Syzygy database.  Setup the object.
+// Get configuration parameters from the Syzygy database.  Setup the object.
 bool arGraphicsClient::configure(arSZGClient* client){
   if (!client)
     return false;
@@ -293,8 +293,8 @@ void arGraphicsClient::addDataBundlePathMap(const string& bundlePathName,
   _graphicsDatabase.addDataBundlePathMap(bundlePathName, bundlePath);
 }
 
-/// Define on which networks this object will try to connect to a server,
-/// in descending order of preference.
+// Define on which networks this object will try to connect to a server,
+// in descending order of preference.
 void arGraphicsClient::setNetworks(string networks){
   _cliSync.setNetworks(networks);
 }

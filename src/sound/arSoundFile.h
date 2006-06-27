@@ -14,7 +14,7 @@
 
 using namespace std; // for "string"
 
-/// Soundfile to play (in the scene graph).
+// Soundfile to play (in the scene graph).
 
 class SZG_CALL arSoundFile {
  // Needs assignment operator and copy constructor, for pointer members.

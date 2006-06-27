@@ -176,14 +176,14 @@ arBarrierServer::arBarrierServer():
 
 arBarrierServer::~arBarrierServer(){
   _runThreads = false;
-  /// \bug memory leaks (but we need a shutdown procedure first)
+  // \bug memory leaks (but we need a shutdown procedure first)
 }
 
 void arBarrierServer::setServiceName(string serviceName){
   _serviceName = serviceName;
 }
 
-/// Does not do much. Just stores a pointer to the arSZGClient
+// Store a pointer to the arSZGClient.
 bool arBarrierServer::init(arSZGClient& client){
   _client = &client;
   return true;
@@ -206,7 +206,7 @@ bool arBarrierServer::start(){
     return false;
   }
 
-  /// \todo factor out copy-paste with barrier/arSyncDataServer.cpp:189
+  // todo: factor out copy-paste with barrier/arSyncDataServer.cpp:189
   _dataServer.setPort(port);
   _dataServer.setInterface("INADDR_ANY");
   bool success = false;
@@ -257,18 +257,18 @@ void arBarrierServer::stop(){
   _localSignal.sendSignal();
 }
 
-/// \todo needs error handling
+// todo: needs error handling
 bool arBarrierServer::setServerSendSize(int serverSize){
   _serverSendSize = serverSize;
   return true;
 }
 
-/// \todo needs error handling
+// todo: needs error handling
 void arBarrierServer::setSignalObject(arSignalObject* signalObject){
   _signalObject = signalObject;
 }
 
-/// \todo needs error handling
+// todo: needs error handling
 void arBarrierServer::setSignalObjectRelease(arSignalObject* signalObject){
   _signalObjectRelease = signalObject;
 }

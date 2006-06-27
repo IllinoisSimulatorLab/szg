@@ -33,7 +33,7 @@ arHTR::~arHTR(){
     free(rotationUnits);
 }
 
-/// marks this HTR file as invalid
+// marks this HTR file as invalid
 bool arHTR::setInvalid(void){
   _invalidFile = true;
   return false;
@@ -44,10 +44,10 @@ bool arHTR::readHTR(const string& fileName, const string& path){
   return readHTR(fileName, "", path);
 }
 
-/// Reads HTR file specified
-/// @param fileName name of the HTR file, including extension
-/// @param path for some reason, a path string
-/// Actually checks that it exists and calls readHTR(FILE*)
+// Reads HTR file specified
+// @param fileName name of the HTR file, including extension
+// @param path for some reason, a path string
+// Actually checks that it exists and calls readHTR(FILE*)
 bool arHTR::readHTR(const string& fileName, const string& subdirectory, const string& path){
   FILE* htrFileHandle = ar_fileOpen(fileName, subdirectory, path, "r");
   if (!htrFileHandle){
@@ -58,8 +58,8 @@ bool arHTR::readHTR(const string& fileName, const string& subdirectory, const st
   return readHTR(htrFileHandle);
 }
 
-/// reads HTR file specified
-/// @param htrFileHandle HTR file to read in
+// reads HTR file specified
+// @param htrFileHandle HTR file to read in
 bool arHTR::readHTR(FILE* htrFileHandle){
   if (!htrFileHandle){
     ar_log_error() << "arHTR error: received invalid file pointer.\n";
@@ -76,14 +76,14 @@ bool arHTR::readHTR(FILE* htrFileHandle){
   return precomputeData() || setInvalid();
 }
 
-/// parses one line of the file, returning false if error/incorrect data on line
-/// @param theFile the file we're reading
-/// @param theResult pointers to c-strings containing the data
-/// @param buffer holds the current line to read from
-/// @param desiredTokens how many arguments we're expecting on this line -- 
-///	determines whether we pass back true or false
-/// @param errorString the argument to write out in case of an error -- 
-///	very useful for finding syntax errors in files
+// parses one line of the file, returning false if error/incorrect data on line
+// @param theFile the file we're reading
+// @param theResult pointers to c-strings containing the data
+// @param buffer holds the current line to read from
+// @param desiredTokens how many arguments we're expecting on this line -- 
+//	determines whether we pass back true or false
+// @param errorString the argument to write out in case of an error -- 
+//	very useful for finding syntax errors in files
 bool parseLine(FILE* theFile, char* theResult[], char* buffer, int desiredTokens, string errorString){
   bool found = false;
   char* value = (char *)1;
@@ -204,10 +204,10 @@ bool arHTR::parseHeader(FILE* htrFileHandle){
   return true;
 }
 
-/// parses [SegmentNames&Hierarchy] section of .htr file
-/// @param htrFileHandle the HTR file
-/// Will read from pointer to end of file until it finds
-/// "[SegmentNames&Hierarchy]"... or doesn't
+// parses [SegmentNames&Hierarchy] section of .htr file
+// @param htrFileHandle the HTR file
+// Will read from pointer to end of file until it finds
+// "[SegmentNames&Hierarchy]"... or doesn't
 bool arHTR::parseHierarchy(FILE *htrFileHandle){
   bool found = false;
   char textLine[MAXLINE];
@@ -236,10 +236,10 @@ bool arHTR::parseHierarchy(FILE *htrFileHandle){
   return true;
 }
 
-/// parses [BasePosition] section of .htr file
-/// @param htrFileHandle the HTR file
-/// Will read from pointer to end of file until it finds
-/// "[BasePosition]"... or doesn't
+// parses [BasePosition] section of .htr file
+// @param htrFileHandle the HTR file
+// Will read from pointer to end of file until it finds
+// "[BasePosition]"... or doesn't
 bool arHTR::parseBasePosition(FILE *htrFileHandle){
   bool found = false;
   char textLine[MAXLINE];
@@ -273,7 +273,7 @@ bool arHTR::parseBasePosition(FILE *htrFileHandle){
   return true;
 }
 
-/// Parses the segment data for a .htr file.
+// Parses the segment data for a .htr file.
 bool arHTR::parseSegmentData1(FILE* htrFileHandle){
   char* value = NULL;
   char textLine[MAXLINE] = {0};
@@ -324,10 +324,10 @@ bool arHTR::parseSegmentData1(FILE* htrFileHandle){
   return true;
 }
 
-/// Parse the segment data for a .htr2 file. This file type's format
-/// differs from the .htr data:
-/// it is streamable, instead of placing all
-/// of one segment's frames together.
+// Parse the segment data for a .htr2 file. This file type's format
+// differs from the .htr data:
+// it is streamable, instead of placing all
+// of one segment's frames together.
 bool arHTR::parseSegmentData2(FILE* htrFileHandle){
   char* value = NULL;
   char textLine[MAXLINE] = {0};
@@ -392,8 +392,8 @@ bool arHTR::parseSegmentData2(FILE* htrFileHandle){
   return true;
 }
 
-/// parses the frame data of .htr file
-/// @param htrFileHandle the HTR file
+// parses the frame data of .htr file
+// @param htrFileHandle the HTR file
 bool arHTR::parseSegmentData(FILE* htrFileHandle){
   if (fileVersion == 1){
     return parseSegmentData1(htrFileHandle);
@@ -406,7 +406,7 @@ bool arHTR::parseSegmentData(FILE* htrFileHandle){
   return false;
 }
 
-/// fills in the data structures for easy, efficient access
+// fills in the data structures for easy, efficient access
 bool arHTR::precomputeData(void){
   unsigned int k=0, l=0;
   int i=0, j=0;
@@ -446,8 +446,8 @@ bool arHTR::precomputeData(void){
   return true;
 }
 
-/// writes out current class data to an HTR file
-/// @param fileName name of new OBJ file (including extension) to write out 
+// writes out current class data to an HTR file
+// @param fileName name of new OBJ file (including extension) to write out 
 bool arHTR::writeToFile(const string& fileName){
   FILE *htrFile = fopen(fileName.c_str(), "w");
   if (!htrFile){

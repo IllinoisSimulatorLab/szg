@@ -39,7 +39,7 @@ float arBoundingSphere::intersect(const arBoundingSphere& b) const {
   return (dist > b.radius + radius) ? -1 : dist;
 }
 
-/// Given a camera viewing matrix, does this bounding sphere intersect?
+// Given a camera viewing matrix, does this bounding sphere intersect?
 bool arBoundingSphere::intersectViewFrustum(const arMatrix4& mArg) const {
   // hack: cast away constness, since arMatrix4.operator[] can't be const
   arMatrix4& m = (arMatrix4&) mArg;

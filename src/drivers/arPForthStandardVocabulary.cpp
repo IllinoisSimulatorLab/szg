@@ -8,8 +8,6 @@
 #include "arDataUtilities.h"
 #include "arDriversCalling.h"
 
-#include <sstream>
-
 using std::vector;
 using std::string;
 using std::istringstream;
@@ -921,7 +919,7 @@ bool ConstantCompiler::compile( arPForth* pf,
   if (!ar_doubleToFloatValid( theDouble, theFloat ))
     throw arPForthException("string->float conversion failed.");
 
-  /// \todo uncopypaste this block of code
+  // todo: uncopypaste this block of code
   arPForthAction* action = new FetchNumber( theFloat );
   pf->addAction( action );
   if (!action)
@@ -931,7 +929,7 @@ bool ConstantCompiler::compile( arPForth* pf,
     throw arPForthException("failed to allocate compiler object.");    
   pf->addCompiler( compiler );
   return pf->addDictionaryEntry( arPForthDictionaryEntry( theName, compiler ));
-  /// \todo uncopypaste this block of code
+  // todo: uncopypaste this block of code
 }
 
 

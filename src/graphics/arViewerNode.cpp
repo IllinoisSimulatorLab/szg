@@ -7,7 +7,6 @@
 #include "arGraphicsDatabase.h"
 
 arViewerNode::arViewerNode(){
-  // A sensible default name.
   _name = "viewer_node";
   _typeCode = AR_G_VIEWER_NODE;
   _typeString = "viewer";
@@ -61,8 +60,8 @@ void arViewerNode::setHead(const arHead& head){
   }
 }
 
-/// NOTE: arViewerNode is a friend class of arHead.
-/// NOT thread-safe.
+// NOTE: arViewerNode is a friend class of arHead.
+// NOT thread-safe.
 arStructuredData* arViewerNode::_dumpData(const arHead& head,
                                           bool owned){
   arStructuredData* result = NULL;

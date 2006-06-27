@@ -9,20 +9,14 @@
 #include "arPPTDriver.h"
 
 #include <string>
-#include <sstream>
 
 //#define DEBUG
 
-// The methods used by the dynamic library mappers. 
-// NOTE: These MUST have "C" linkage!
 extern "C"{
-  SZG_CALL void* factory(){
-    return new arPPTDriver();
-  }
-
-  SZG_CALL void baseType(char* buffer, int size){
-    ar_stringToBuffer("arInputSource", buffer, size);
-  }
+  SZG_CALL void* factory()
+    { return new arPPTDriver(); }
+  SZG_CALL void baseType(char* buffer, int size)
+    { ar_stringToBuffer("arInputSource", buffer, size); }
 }
 
 const unsigned int BUF_SIZE = 4096;

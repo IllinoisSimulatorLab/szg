@@ -158,7 +158,7 @@ bool arGraphicsPluginNode::receiveData(arStructuredData* data) {
   return stat;
 }
 
-/// NOT thread-safe.
+// NOT thread-safe.
 arStructuredData* arGraphicsPluginNode::_dumpData( const string& fileName,
                                                      std::vector<int>& intData,
                                                      std::vector<long>& longData,

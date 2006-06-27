@@ -10,7 +10,7 @@
 #include "arSZGClient.h"
 #include "arSoundCalling.h"
 
-/// "Point of view" of who is listening to the sounds in the scene graph.
+// "Point of view" of who is listening to the sounds in the scene graph.
 
 class SZG_CALL arSpeakerObject {
  public:

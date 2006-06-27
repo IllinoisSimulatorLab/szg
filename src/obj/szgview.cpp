@@ -27,8 +27,6 @@
 #include "arXMLParser.h"
 #include "arGUIXMLParser.h"
 
-#include <iostream>
-#include <string>
 #include <vector>
 
 arMatrix4 mouseWorldMatrix;
@@ -108,7 +106,7 @@ void drawHUD()
     glBegin( GL_LINES );  // draw slider bar
     glVertex2f( sliderStart, ( sliderMinY + sliderMaxY ) / 2.0f );
     glVertex2f( sliderEnd,   ( sliderMinY + sliderMaxY ) / 2.0f );
-    /// \todo Only do this once per window resize isntead of every frame
+    // todo: Only do this once per window resize isntead of every frame
     float stepSize = 1.0f;
     // make each tick mark at least 10 px across onscreen, and geometric series
     for ( ; ; ) {

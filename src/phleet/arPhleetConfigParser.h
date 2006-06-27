@@ -24,8 +24,8 @@ class arInterfaceDescription{
   string mask;
 };
 
-/// Used for parsing/storing/writing the szg.conf config file and
-/// the szg_<username>.conf login files
+// Used for parsing/storing/writing the szg.conf config file and
+// the szg_<username>.conf login files
 class SZG_CALL arPhleetConfigParser{
  public:
   arPhleetConfigParser();
@@ -44,16 +44,16 @@ class SZG_CALL arPhleetConfigParser{
   void printLogin();
 
   // get global config info
-  /// computer name, as parsed from the config file
+  // computer name, as parsed from the config file
   string getComputerName() const
     { return _computerName; }
-  /// first port in block used for connection brokering, default 4700.
+  // first port in block used for connection brokering, default 4700.
   int getFirstPort() const
     { return _firstPort; }
-  /// size of block of ports, default 200.
+  // size of block of ports, default 200.
   int getPortBlockSize() const
     { return _blockSize; }
-  /// number of interfaces in the config.
+  // number of interfaces in the config.
   int getNumberInterfaces() const
     { return _numberInterfaces; }
   arSlashString getAddresses();
@@ -61,13 +61,13 @@ class SZG_CALL arPhleetConfigParser{
   arSlashString getMasks();
 
   // get login info
-  string getUserName() const ///< syzygy username
+  string getUserName() const // syzygy username
     { return _userName; }
-  string getServerName() const ///< hostname of szgserver
+  string getServerName() const // hostname of szgserver
     { return _serverName; }
-  string getServerIP() const ///< IP address of szgserver
+  string getServerIP() const // IP address of szgserver
     { return _serverIP; }
-  int getServerPort() const ///< port of szgserver
+  int getServerPort() const // port of szgserver
     { return _serverPort; }
   
 

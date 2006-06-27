@@ -15,7 +15,7 @@
   #endif
 #endif
 
-/// Utterance in the scene graph.
+// Utterance in the scene graph.
 
 class SZG_CALL arSpeechNode : public arSoundNode{
   public:

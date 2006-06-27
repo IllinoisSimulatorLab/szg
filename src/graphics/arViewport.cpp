@@ -139,7 +139,7 @@ float arViewport::getEyeSign(){
   return _eyeSign;
 }
 
-/// The viewport sets the color mask upon drawing (used for anaglyph stereo).
+// The viewport sets the color mask upon drawing (used for anaglyph stereo).
 void arViewport::setColorMask(GLboolean red, GLboolean green,
 		              GLboolean blue, GLboolean alpha){
   _red = red;
@@ -148,8 +148,8 @@ void arViewport::setColorMask(GLboolean red, GLboolean green,
   _alpha = alpha;
 }
 
-/// The viewport might clear the depth buffer upon drawing (used for
-/// anaplyph stereo).
+// The viewport might clear the depth buffer upon drawing (used for
+// anaplyph stereo).
 void arViewport::clearDepthBuffer(bool flag){
   _clearDepthBuffer = flag;
 }

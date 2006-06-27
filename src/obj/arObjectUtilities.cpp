@@ -44,7 +44,7 @@ bool ar_mergeOBJandHTR(arGraphicsNode* parent, arOBJ* theOBJ, arHTR* theHTR, con
 #define strcasecmp(a,b) _stricmp(a,b)
 #endif
 
-/// Reads a file, determines the type, and returns a pointer to a newly-created arObject.
+// Reads a file, determines the type, and returns a pointer to a newly-created arObject.
 /** This function can only be used if the file ends with the
  *  appropriate (case-insensitive) file format modifier.
  *  "path" shouldn't be a default parameter, since the function will fail then.
@@ -89,22 +89,22 @@ arObject* ar_readObjectFromFile(const string& fileName, const string& path) {
 }
 
 
-/// Generates local frame for each vertex of object
+// Generates local frame for each vertex of object
 /** Given a set of vertices, connectivity information, and texture coords,
  *  we can construct binormal and tangent vectors by taking a tangent
  *  along the "u" direction and binormal around the "v" direction of
  *  a surface.
  */
-/// \param numVerts Number of vertices
-/// \param vertices Array of vertices as 3 packed floats
-/// \param normals Normals per vertex as 3 packed floats
-/// \param texCoords Texture coordinates per vertex as 2 packed floats
-/// @param numFaces How many faces in index list (or zero if vertices et. al.
-///                 are in consecutive order)
-/// @param index Array of indices into other arrays, every 3 ints representing
-///              exactly one triangle, or NULL if in consecutive order
-/// \param tangent3 (output) Pointer to array populated with per-vertex tangents
-/// \param binormal3 (output) Pointer to array populated with per-vertex binormals
+// \param numVerts Number of vertices
+// \param vertices Array of vertices as 3 packed floats
+// \param normals Normals per vertex as 3 packed floats
+// \param texCoords Texture coordinates per vertex as 2 packed floats
+// @param numFaces How many faces in index list (or zero if vertices et. al.
+//                 are in consecutive order)
+// @param index Array of indices into other arrays, every 3 ints representing
+//              exactly one triangle, or NULL if in consecutive order
+// \param tangent3 (output) Pointer to array populated with per-vertex tangents
+// \param binormal3 (output) Pointer to array populated with per-vertex binormals
 /*bool arGenerateLocalFrame(int numVerts, float* vertices, // input
 			  float *normals, float *texCoords,
 			  int numFaces, int *indices,

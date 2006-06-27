@@ -8,7 +8,6 @@
 #include "arGraphicsDatabase.h"
 
 arNormal3Node::arNormal3Node(){
-  // A sensible default name.
   _name = "normal3_node";
   _typeCode = AR_G_NORMAL3_NODE;
   _typeString = "normal3";
@@ -27,8 +26,8 @@ void arNormal3Node::initialize(arDatabase* database){
   _commandBuffer.setType(_g->AR_NORMAL3);
 }
 
-/// Included for speedy access. This is NOT thread-safe and instead must
-/// be called from within a locked section. 
+// Included for speedy access. This is NOT thread-safe and instead must
+// be called from within a locked section. 
 const float* arNormal3Node::getNormal3(int& number){
   number = _commandBuffer.size()/_arrayStride;
   return _commandBuffer.v;
@@ -49,9 +48,9 @@ void arNormal3Node::setNormal3(int number, float* normal3, int* IDs){
   }
 }
 
-/// Slower way to get the normals data (there are several extra copy 
-/// operations). However, this is more convenient for calling from Python.
-/// Thread-safe.
+// Slower way to get the normals data (there are several extra copy 
+// operations). However, this is more convenient for calling from Python.
+// Thread-safe.
 vector<arVector3> arNormal3Node::getNormal3(){
   vector<arVector3> result;
   // Must be thread-safe.
@@ -67,9 +66,9 @@ vector<arVector3> arNormal3Node::getNormal3(){
   return result;
 }
 
-/// Adds an additional copy plus dynamic memory allocation. 
-/// But this is more convenient for calling from Python.
-/// Thread-safe.
+// Adds an additional copy plus dynamic memory allocation. 
+// But this is more convenient for calling from Python.
+// Thread-safe.
 void arNormal3Node::setNormal3(vector<arVector3>& normal3){
   float* ptr = new float[normal3.size()*3];
   for (unsigned int i = 0; i < normal3.size(); i++){
@@ -81,9 +80,9 @@ void arNormal3Node::setNormal3(vector<arVector3>& normal3){
   delete [] ptr;
 }
 
-/// Adds an additional copy plus dynamic memory allocation.
-/// But this is more convenient for calling from Python.
-/// Thread-safe.
+// Adds an additional copy plus dynamic memory allocation.
+// But this is more convenient for calling from Python.
+// Thread-safe.
 void arNormal3Node::setNormal3(vector<arVector3>& normal3,
 			       vector<int>& IDs){
   unsigned int num = IDs.size();

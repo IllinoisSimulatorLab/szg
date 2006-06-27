@@ -8,7 +8,6 @@
 
 arVisibilityNode::arVisibilityNode():
   _visibility(false){
-  // A sensible default node.
   _name = "visibility_node";
   // doesn't compile on RedHat 8 if these are not in the constructor body
   _typeCode = AR_G_VISIBILITY_NODE;
@@ -62,7 +61,7 @@ void arVisibilityNode::setVisibility(bool visibility){
   }
 }
 
-/// NOT thread-safe.
+// NOT thread-safe.
 arStructuredData* arVisibilityNode::_dumpData(bool visibility,
                                               bool owned){
   arStructuredData* result = NULL;

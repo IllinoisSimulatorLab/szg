@@ -9,10 +9,10 @@
 #include "arHead.h"
 #include "arVRCamera.h"
 
-/// Get the projection matrix as computed by this screen object,
-/// without putting it directly on the OpenGL matrix stack. This is useful
-/// for applications that don't use OpenGL.
-/// Not const: sets _complained.
+// Get the projection matrix as computed by this screen object,
+// without putting it directly on the OpenGL matrix stack. This is useful
+// for applications that don't use OpenGL.
+// Not const: sets _complained.
 arMatrix4 arVRCamera::getProjectionMatrix() {
   const arGraphicsScreen* screen = getScreen();
   if (!_head || !screen) {
@@ -60,10 +60,10 @@ arMatrix4 arVRCamera::getProjectionMatrix() {
                            eyePosition );
 }
 
-/// Allows us to get the modelview matrix as computed by this screen object,
-/// without putting it directly on the OpenGL matrix stack. This is useful
-/// for authoring applications that use a different engine than OpenGL.
-/// Not const: sets _complained.
+// Allows us to get the modelview matrix as computed by this screen object,
+// without putting it directly on the OpenGL matrix stack. This is useful
+// for authoring applications that use a different engine than OpenGL.
+// Not const: sets _complained.
 arMatrix4 arVRCamera::getModelviewMatrix(){
   arGraphicsScreen* screen = getScreen();
   if ((!_head)||(!screen)) {
@@ -93,7 +93,7 @@ arMatrix4 arVRCamera::getModelviewMatrix(){
   return ar_lookatMatrix( eyePosition, eyePosition+normal, up);
 }
 
-/// Puts the viewing matrices on the OpenGL stack.
+// Puts the viewing matrices on the OpenGL stack.
 void arVRCamera::loadViewMatrices(){
 //  GLint drawBuffers = -1;
 //  glGetIntegerv( GL_DRAW_BUFFER, &drawBuffers );

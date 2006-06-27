@@ -449,7 +449,7 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
   float dim[4];
   if (!client.getAttributeFloats(  screenName, "viewport_dim", dim, 4 )) {
     if (!masterViewport) {
-      cerr << "arGraphicsWindow error: " << screenName << "/viewport_dim MUST be defined when view_mode==custom.\n";
+      cerr << "arGraphicsWindow error: " << screenName << "/viewport_dim undefined when view_mode is custom.\n";
       return false;
     }
     // use defaults and do not fail.

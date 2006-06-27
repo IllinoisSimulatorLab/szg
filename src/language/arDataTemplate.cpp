@@ -6,7 +6,6 @@
 #include "arPrecompiled.h"
 #include "arDataTemplate.h"
 
-#include <iostream>
 #include <vector>
 using namespace std;
 
@@ -23,7 +22,7 @@ arDataTemplate::arDataTemplate(const string& name, int templateID):
 {
 }
 
-/// Sometimes we need to be able to make copies of a data template.
+// Sometimes we need to be able to make copies of a data template.
 arDataTemplate::arDataTemplate(const arDataTemplate& dataTemplate){
   _templateName = dataTemplate._templateName;
   _templateID = dataTemplate._templateID;

@@ -27,7 +27,7 @@ void arController::setDatabase(arGraphicsDatabase* theDatabase){
   _theDatabase = theDatabase;
 }
 
-/// \todo kludge! Need an interface class that returns an appropriate arStructuredData record without going through arGraphicsDatabase.
+// todo: kludge! Need an interface class that returns an appropriate arStructuredData record without going through arGraphicsDatabase.
 void arController::setTransform(const arMatrix4& transform){
   _transform = transform;
   if (_transformID>=0 && _theDatabase != NULL){

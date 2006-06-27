@@ -56,10 +56,10 @@ bool arGraphicsArrayNode::receiveData(arStructuredData* inData){
   return true;
 }
 
-/// This function is NOT thread-safe. It is the responsibility of the caller
-/// to lock the node's lock before calling. Already, various methods
-/// (like arPointsNode::setPoints or arGraphicsArrayNode::receiveData) call 
-/// this from a locked section... so changing this will create DEADLOCKS!
+// This function is NOT thread-safe. It is the responsibility of the caller
+// to lock the node's lock before calling. Already, various methods
+// (like arPointsNode::setPoints or arGraphicsArrayNode::receiveData) call 
+// this from a locked section... so changing this will create DEADLOCKS!
 void arGraphicsArrayNode::_mergeElements(int number,
 					 void* elements,
 					 int* IDs){
@@ -87,9 +87,9 @@ void arGraphicsArrayNode::_mergeElements(int number,
   }
 }
 
-/// This method is NOT thread-safe. It is the responsbility of the caller
-/// to lock the node's lock before calling. Already, various methods
-/// (like arGraphicsArrayNode::dumpData) call this from a locked section.
+// This method is NOT thread-safe. It is the responsbility of the caller
+// to lock the node's lock before calling. Already, various methods
+// (like arGraphicsArrayNode::dumpData) call this from a locked section.
 arStructuredData* arGraphicsArrayNode::_dumpData(int number,
                                                  void* elements,
 						 int* IDs,

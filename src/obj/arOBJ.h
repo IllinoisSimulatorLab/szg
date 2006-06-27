@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-/// Wrapper for OpenGL material.
+// Wrapper for OpenGL material.
 class SZG_CALL arOBJMaterial {
  public:
   arOBJMaterial() :
@@ -31,17 +31,17 @@ class SZG_CALL arOBJMaterial {
     map_Kd("none"),
     map_Bump("none")
   { }
-  float     illum;	///< 0: no lighting || 1: ambient&diffuse || 2: all on
-  float     Ns;		///< specular power
-  arVector3 Kd;		///< diffuse color
-  arVector3 Ks;		///< specular color
-  arVector3 Ka;		///< ambient color
-  char	    name[32];	///< name
-  string    map_Kd;	///< texture map for base color
-  string    map_Bump;	///< texture map for base color
+  float     illum;	// 0: no lighting || 1: ambient&diffuse || 2: all on
+  float     Ns;		// specular power
+  arVector3 Kd;		// diffuse color
+  arVector3 Ks;		// specular color
+  arVector3 Ka;		// ambient color
+  char	    name[32];	// name
+  string    map_Kd;	// texture map for base color
+  string    map_Bump;	// texture map for base color
 };
 
-/// Wrapper for a single triangle.
+// Wrapper for a single triangle.
 class SZG_CALL arOBJTriangle {
  public:
   int smoothingGroup;
@@ -52,7 +52,7 @@ class SZG_CALL arOBJTriangle {
   int texCoords[3];
 };
 
-/// Representation of a .OBJ file.
+// Representation of a .OBJ file.
 class SZG_CALL arOBJ : public arObject{
  public:
 
@@ -101,19 +101,19 @@ class SZG_CALL arOBJ : public arObject{
 
  private:
   // status/condition variables
-  int  _thisMaterial;  //< the material being used
-  int  _thisSG;        //< the smoothing group in use now
-  int  _thisGroup;     //< current group
+  int  _thisMaterial;  // the material being used
+  int  _thisSG;        // the smoothing group in use now
+  int  _thisGroup;     // current group
   
   // data
-  vector<arVector3>	_vertex;	//< Vertices
-  vector<arVector3>	_normal;	//< Normals
-  vector<arVector3>	_texCoord;	//< Texture Coordinates
-  vector<arOBJTriangle>	_triangle;	//< Triangles (polys)
-  vector<arOBJMaterial> _material;	//< Materials
+  vector<arVector3>	_vertex;	// Vertices
+  vector<arVector3>	_normal;	// Normals
+  vector<arVector3>	_texCoord;	// Texture Coordinates
+  vector<arOBJTriangle>	_triangle;	// Triangles (polys)
+  vector<arOBJMaterial> _material;	// Materials
   vector<arOBJSmoothingGroup> _smoothingGroup;	//< Smoothing Groups
-  vector<vector<int> >	_group;		//< Groups (face indices)
-  vector<string>	_groupName;	//< names of groups
+  vector<vector<int> >	_group;		// Groups (face indices)
+  vector<string>	_groupName;	// names of groups
   arMatrix4		_transform;
 
   // search path and subdirectory  needed for finding .mtl files

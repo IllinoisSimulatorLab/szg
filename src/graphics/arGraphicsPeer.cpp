@@ -486,13 +486,13 @@ arGraphicsPeer::~arGraphicsPeer(){
  
 }
 
-/// The graphics peer uses the "phleet" to offer its services to the
-/// world, based on the "name" key.
+// The graphics peer uses the "phleet" to offer its services to the
+// world, based on the "name" key.
 void arGraphicsPeer::setName(const string& name){
   _name = name;
 }
 
-/// We are initialized as part of a larger entity.
+// We are initialized as part of a larger entity.
 bool arGraphicsPeer::init(arSZGClient& client){
   // All this does is set the arSZGClient...
   _client = &client;
@@ -504,7 +504,7 @@ bool arGraphicsPeer::init(arSZGClient& client){
   return true;
 }
 
-/// We have our own arSZGClient
+// We have our own arSZGClient
 bool arGraphicsPeer::init(int& argc, char** argv){
   _client = new arSZGClient();
   _client->simpleHandshaking(true);
@@ -800,9 +800,9 @@ arDatabaseNode* arGraphicsPeer::alter(arStructuredData* data,
   return result;
 }
 
-/// The read/write methods are redefined so that we IMPLICITLY use a path
-/// as might be specified by the arSZGClient through init unless one is
-/// explicitly specified.
+// The read/write methods are redefined so that we IMPLICITLY use a path
+// as might be specified by the arSZGClient through init unless one is
+// explicitly specified.
 bool arGraphicsPeer::readDatabase(const string& fileName, 
                                   const string& path){
   if (_readWritePath != "" && path == ""){
@@ -893,24 +893,24 @@ bool arGraphicsPeer::writeRootedXML(arDatabaseNode* parent,
   return arGraphicsDatabase::writeRootedXML(parent, fileName, path);
 }
 
-/// It is not always desirable to have a local database. For instance,
-/// what if we have a simple, throwaway program that just wants to send
-/// messages to nodes with known IDs. The default is to use a local
-/// database.
+// It is not always desirable to have a local database. For instance,
+// what if we have a simple, throwaway program that just wants to send
+// messages to nodes with known IDs. The default is to use a local
+// database.
 void arGraphicsPeer::useLocalDatabase(bool state){
   _localDatabase = state;
 }
 
-/// By default, the peer alters its local database immediately upon
-/// receiving messages. However, this is not desirable if it is also
-/// being drawn, for instance. In that case, we manually choose when to
-/// draw the peer. The default is false.
+// By default, the peer alters its local database immediately upon
+// receiving messages. However, this is not desirable if it is also
+// being drawn, for instance. In that case, we manually choose when to
+// draw the peer. The default is false.
 void arGraphicsPeer::queueData(bool state){
   _queueingData = state;
 }
 
-/// If our peer is displaying graphics, it is desirable to only alter
-/// its database between draws, not during draws.
+// If our peer is displaying graphics, it is desirable to only alter
+// its database between draws, not during draws.
 int arGraphicsPeer::consume(){
   // We must release a pending ping reply. The _queueConsumeLock goes
   // first to ensure that pings are registered atomically with buffer swap
@@ -929,13 +929,13 @@ int arGraphicsPeer::consume(){
   return bufferSize;
 }
 
-/// Attempt to connect to the named graphics peer (with service name
-/// szg-rp-<given name>. Upon failure, return -1. For instance, no service
-/// might exist with that name. On success, return the ID of the socket
-/// which has the connection. Locally, we can just refer to the connection
-/// by name. BUT some of the RPC text wrappers actually need to be able to
-/// return the ID for the proxy objects.
-/// THIS IS A NON-BLOCKING CALL.
+// Attempt to connect to the named graphics peer (with service name
+// szg-rp-<given name>. Upon failure, return -1. For instance, no service
+// might exist with that name. On success, return the ID of the socket
+// which has the connection. Locally, we can just refer to the connection
+// by name. BUT some of the RPC text wrappers actually need to be able to
+// return the ID for the proxy objects.
+// THIS IS A NON-BLOCKING CALL.
 int arGraphicsPeer::connectToPeer(const string& name){
   // First, make sure that we haven't already connected to a peer of the same
   // name.
@@ -988,13 +988,13 @@ int arGraphicsPeer::connectToPeer(const string& name){
   return socket->getID();
 }
 
-/// Close the connection to the named graphics peer. This will have had
-/// service name szg-rp-<name>. NOTE: THIS CALL IS BADLY DESIGNED. We send
-/// a close message and then return before the connection has even
-/// necessarily been closed. THIS REFLECTS OVERALL PROBLEMS WITH THE
-/// WAY THE SYZYGY NETWORKING HAS BEEN IMPLEMENTED. Really, we need a way
-/// to handle opening/closing connections that is much less automatic and
-/// a bit more MANUAL.
+// Close the connection to the named graphics peer. This will have had
+// service name szg-rp-<name>. NOTE: THIS CALL IS BADLY DESIGNED. We send
+// a close message and then return before the connection has even
+// necessarily been closed. THIS REFLECTS OVERALL PROBLEMS WITH THE
+// WAY THE SYZYGY NETWORKING HAS BEEN IMPLEMENTED. Really, we need a way
+// to handle opening/closing connections that is much less automatic and
+// a bit more MANUAL.
 bool arGraphicsPeer::closeConnection(const string& name){
   int socketID = _dataServer->getFirstIDWithLabel(name);
   arSocket* socket = _dataServer->getConnectedSocket(socketID);
@@ -1006,8 +1006,8 @@ bool arGraphicsPeer::closeConnection(const string& name){
   return _dataServer->sendData(&adminData, socket);
 }
 
-/// By default, nothing happens when we connect a graphics peer to another.
-/// The graphics peers must request actions.
+// By default, nothing happens when we connect a graphics peer to another.
+// The graphics peers must request actions.
 bool arGraphicsPeer::pullSerial(const string& name,
                                 int remoteRootID,
 				int localRootID,
@@ -1043,8 +1043,8 @@ bool arGraphicsPeer::pullSerial(const string& name,
   return true;
 }
 
-/// By default, nothing happens when we connect one graphics peer to another.
-/// The following call allows us to push our serialization to a connected peer.
+// By default, nothing happens when we connect one graphics peer to another.
+// The following call allows us to push our serialization to a connected peer.
 bool arGraphicsPeer::pushSerial(const string& name, 
                                 int remoteRootID,
                                 int localRootID,
@@ -1062,11 +1062,11 @@ bool arGraphicsPeer::pushSerial(const string& name,
                            remoteSendLevel, localSendLevel);
 }
 
-/// Closes all connected sockets and resets the database. This is 
-/// accomplished via sending all connected peers a "close" message.
-/// They close the sockets on their side, which causes all our
-/// reading threads to go away and close the relevant sockets on
-/// our side. 
+// Closes all connected sockets and resets the database. This is 
+// accomplished via sending all connected peers a "close" message.
+// They close the sockets on their side, which causes all our
+// reading threads to go away and close the relevant sockets on
+// our side. 
 bool arGraphicsPeer::closeAllAndReset(){
   arStructuredData adminData(_gfx.find("graphics admin"));
   adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "close");
@@ -1081,11 +1081,11 @@ bool arGraphicsPeer::closeAllAndReset(){
   return true;
 }
 
-/// Sends a ping message to the connected peer specified by name. Waits
-/// until that peer responds. This can be used to ensure that previously
-/// sent messages have been processed. BUG: Because of limitations in the
-/// way pings are handled, there can be only one in flight at any given
-/// time.
+// Sends a ping message to the connected peer specified by name. Waits
+// until that peer responds. This can be used to ensure that previously
+// sent messages have been processed. BUG: Because of limitations in the
+// way pings are handled, there can be only one in flight at any given
+// time.
 bool arGraphicsPeer::pingPeer(const string& name){
   arStructuredData adminData(_gfx.find("graphics admin"));
   adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "ping");
@@ -1113,9 +1113,9 @@ bool arGraphicsPeer::broadcastFrameTime(int frameTime){
   return true;
 }
 
-/// Sometimes, we want a node on a remote peer to only change according to
-/// our actions. (this is useful if several peers are connected to a single
-/// remote peer and are changing the same things).
+// Sometimes, we want a node on a remote peer to only change according to
+// our actions. (this is useful if several peers are connected to a single
+// remote peer and are changing the same things).
 bool arGraphicsPeer::remoteLockNode(const string& name, int nodeID){
   arStructuredData adminData(_gfx.find("graphics admin"));
   adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "lock");
@@ -1129,11 +1129,11 @@ bool arGraphicsPeer::remoteLockNode(const string& name, int nodeID){
   return true;
 }
 
-/// Sometimes, we want a node on a remote peer to only change according to
-/// our actions. (this is useful if several peers are connected to a single
-/// remote peer and are changing the same things). This differs from 
-/// remoteLockNode in that every node (at and including the given node)
-/// is locked to us on the remote peer.
+// Sometimes, we want a node on a remote peer to only change according to
+// our actions. (this is useful if several peers are connected to a single
+// remote peer and are changing the same things). This differs from 
+// remoteLockNode in that every node (at and including the given node)
+// is locked to us on the remote peer.
 bool arGraphicsPeer::remoteLockNodeBelow(const string& name, int nodeID){
   arStructuredData adminData(_gfx.find("graphics admin"));
   adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "lock_below");
@@ -1147,9 +1147,9 @@ bool arGraphicsPeer::remoteLockNodeBelow(const string& name, int nodeID){
   return true;
 }
 
-/// Of course, we want to be able to unlock the node as well.
-/// Why is the connection name present? Because we are unlocking the node
-/// on THAT peer (i.e. the one at the other end of the named connection)
+// Of course, we want to be able to unlock the node as well.
+// Why is the connection name present? Because we are unlocking the node
+// on THAT peer (i.e. the one at the other end of the named connection)
 bool arGraphicsPeer::remoteUnlockNode(const string& name, int nodeID){
   arStructuredData adminData(_gfx.find("graphics admin"));
   adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "unlock");
@@ -1163,10 +1163,10 @@ bool arGraphicsPeer::remoteUnlockNode(const string& name, int nodeID){
   return true;
 }
 
-/// Unlock the node.
-/// Why is the connection name present? Because we are unlocking the node
-/// on THAT peer (i.e. the one at the other end of the named connection).
-/// This differs from remoteUnlockNode in working recursively downwards.
+// Unlock the node.
+// Why is the connection name present? Because we are unlocking the node
+// on THAT peer (i.e. the one at the other end of the named connection).
+// This differs from remoteUnlockNode in working recursively downwards.
 bool arGraphicsPeer::remoteUnlockNodeBelow(const string& name, int nodeID){
   arStructuredData adminData(_gfx.find("graphics admin"));
   adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "unlock_below");
@@ -1180,8 +1180,8 @@ bool arGraphicsPeer::remoteUnlockNodeBelow(const string& name, int nodeID){
   return true;
 }
 
-/// To preserve symmetry of operations, it would be nice to be able to
-/// lock a node to the updates from a particular connection.
+// To preserve symmetry of operations, it would be nice to be able to
+// lock a node to the updates from a particular connection.
 bool arGraphicsPeer::localLockNode(const string& name, int nodeID){
   int ID = _dataServer->getFirstIDWithLabel(name);
   arSocket* socket = _dataServer->getConnectedSocket(ID);
@@ -1193,17 +1193,17 @@ bool arGraphicsPeer::localLockNode(const string& name, int nodeID){
   return true;
 }
 
-/// Unlock one of our nodes (instead of relying
-/// on another peer to do it for us). A connection can be unnamed,
-/// since we remove ALL locking on the node.
+// Unlock one of our nodes (instead of relying
+// on another peer to do it for us). A connection can be unnamed,
+// since we remove ALL locking on the node.
 bool arGraphicsPeer::localUnlockNode(int nodeID){
   _unlockNode(nodeID);
   // Can we do error checking here?k
   return true;
 }
 
-/// We want to be able to prevent a remote peer from sending us data (or
-/// turn sending back on once we have turned it off).
+// We want to be able to prevent a remote peer from sending us data (or
+// turn sending back on once we have turned it off).
 bool arGraphicsPeer::remoteFilterDataBelow(const string& peer,
                                            int remoteNodeID,
                                            arNodeLevel level){
@@ -1222,8 +1222,8 @@ bool arGraphicsPeer::remoteFilterDataBelow(const string& peer,
   return true;
 }
 
-/// We want to change how people are sending data to us on a particular
-/// subtree.
+// We want to change how people are sending data to us on a particular
+// subtree.
 bool arGraphicsPeer::mappedFilterDataBelow(int localNodeID,
                                            arNodeLevel level){
   arStructuredData adminData(_gfx.find("graphics admin"));
@@ -1237,8 +1237,8 @@ bool arGraphicsPeer::mappedFilterDataBelow(int localNodeID,
   return true;
 }
 
-/// Keep data from being relayed to a remote peer (or start relaying the
-/// data again).
+// Keep data from being relayed to a remote peer (or start relaying the
+// data again).
 bool arGraphicsPeer::localFilterDataBelow(const string& peer,
                                           int localNodeID,
                                           arNodeLevel level){
@@ -1253,8 +1253,8 @@ bool arGraphicsPeer::localFilterDataBelow(const string& peer,
   return true;
 }
 
-/// Sometimes, we want to be able to find the ID of the node on a remotely
-/// connected peer.
+// Sometimes, we want to be able to find the ID of the node on a remotely
+// connected peer.
 int arGraphicsPeer::remoteNodeID(const string& peer,
 				 const string& nodeName){
   arStructuredData adminData(_gfx.find("graphics admin"));
@@ -1296,7 +1296,7 @@ string arGraphicsPeer::printPeer(){
   return result.str();
 }
 
-/// THIS IS A TEMPORARY HACK... eventually will do something more general!
+// THIS IS A TEMPORARY HACK... eventually will do something more general!
 void arGraphicsPeer::motionCull(arGraphicsPeerCullObject* cull,
 				arCamera* camera){
   stack<arMatrix4> transformStack;
@@ -1391,8 +1391,8 @@ void arGraphicsPeer::_motionCull(arGraphicsNode* node,
   }
 }
 
-/// Sets the remote name for this connection (allows the mirroring graphics
-/// peer to know who connected to it.
+// Sets the remote name for this connection (allows the mirroring graphics
+// peer to know who connected to it.
 bool arGraphicsPeer::_setRemoteLabel(arSocket* sock, const string& name){
   arStructuredData adminData(_gfx.find("graphics admin"));
   adminData.dataInString(_gfx.AR_GRAPHICS_ADMIN_ACTION, "set-name");
@@ -1400,13 +1400,13 @@ bool arGraphicsPeer::_setRemoteLabel(arSocket* sock, const string& name){
   return _dataServer->sendData(&adminData, sock);
 }
 
-/// Serialize the peer and send it out on the given socket. We might also
-/// activate sending on that socket as well. This does NOT notify the
-/// remote peer that the serialization is done.
-/// The node map is constructed from a particular node ID base.
-/// This node ID is the *remote* node ID (from the perspective of the
-/// remote scene graph).  
-/// THIS IS REALLY THE *MAP* FUNCTION!
+// Serialize the peer and send it out on the given socket. We might also
+// activate sending on that socket as well. This does NOT notify the
+// remote peer that the serialization is done.
+// The node map is constructed from a particular node ID base.
+// This node ID is the *remote* node ID (from the perspective of the
+// remote scene graph).  
+// THIS IS REALLY THE *MAP* FUNCTION!
 bool arGraphicsPeer::_serializeAndSend(arSocket* socket, 
                                        int remoteRootID,
                                        int localRootID,
@@ -1455,8 +1455,8 @@ bool arGraphicsPeer::_serializeAndSend(arSocket* socket,
   return success;
 }
 
-/// When a remote peer requests out serialization, we must send a "done"
-/// message (because it will block in pullSerial(...) until this is received.
+// When a remote peer requests out serialization, we must send a "done"
+// message (because it will block in pullSerial(...) until this is received.
 void arGraphicsPeer::_serializeDoneNotify(arSocket* socket){
   // Must send serialization-completion-repsonse
   arStructuredData adminData(_gfx.find("graphics admin"));
@@ -1684,7 +1684,7 @@ void arGraphicsPeer::_recSerialize(arDatabaseNode* pNode,
   ar_unrefNodeList(children);
 }
 
-/// NOT THREAD-SAFE. Must be called from within a locked _databaseLock.
+// NOT THREAD-SAFE. Must be called from within a locked _databaseLock.
 void arGraphicsPeer::_recDataOnOff(arDatabaseNode* pNode,
                                    int value,
                                    map<int, int, less<int> >& filterMap){
@@ -1706,10 +1706,10 @@ void arGraphicsPeer::_recDataOnOff(arDatabaseNode* pNode,
   }
 }
 
-/// There is a *hack* whereby data is transfered to the "bridge"
-/// database. We filter before putting into the bridge
-/// AND restore the record (since filtering can alter the various messages in
-/// place).
+// There is a *hack* whereby data is transfered to the "bridge"
+// database. We filter before putting into the bridge
+// AND restore the record (since filtering can alter the various messages in
+// place).
 void arGraphicsPeer::_sendDataToBridge(arStructuredData* data){
   int secondID = -1;
   int thirdID = -1;

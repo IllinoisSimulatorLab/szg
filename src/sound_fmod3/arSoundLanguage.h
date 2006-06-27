@@ -11,7 +11,7 @@
 #include "arDatabaseLanguage.h"
 #include "arSoundCalling.h"
 
-/// Language for the sound scene graph.
+// Language for the sound scene graph.
 
 class SZG_CALL arSoundLanguage:public arDatabaseLanguage{
  public:

@@ -10,8 +10,6 @@
 #include "arPhleetConfigParser.h"
 #include "arDataUtilities.h"
 
-#include <iostream>
-
 int main(int argc, char** argv){
   if (argc != 3 && argc != 4){
     cerr << "usage: " << argv[0] << " szgserver_name user_name\n"

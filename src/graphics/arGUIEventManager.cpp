@@ -3,16 +3,13 @@
  * Implementation of the arGUIEventManager class.
  */
 #include "arPrecompiled.h"
-
-#include <iostream>
-#include <vector>
-
 #include "arStructuredData.h"
-
 #include "arGUIEventManager.h"
 #include "arGUIWindow.h"
 
-// BUG BUG BUG BUG: _userData doesn't do anything anymore and should be
+#include <vector>
+
+// BUG: _userData doesn't do anything anymore and should be
 // removed. The relevant info is stuffed in arGUIWindow::getNextGUIEvent.
 arGUIEventManager::arGUIEventManager( void* userData ) :
   _active( true ),

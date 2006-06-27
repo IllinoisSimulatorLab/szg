@@ -17,16 +17,20 @@ ostream& operator<<(ostream& s, arGraphicsScreen& g) {
   return s;
 }
 
-// PLEASE NOTE: SINCE OUR DEFAULT WINDOW IS 640x480, WE MUST USE A WALL
-// SIZE THAT IS DIFFERENT FROM THE CUBE FRONT WALL, i.e. 13.333 x 10.
+// Since the default window is 640x480, use a wall size different
+// from the cube's front wall.  These are for the syzygy "front wall",
+// on which all apps should show something sensible on startup.
+const float defaultWidth = 13.333;
+const float defaultHeight = 10.;
+
 arGraphicsScreen::arGraphicsScreen():
   _setCenter( 0,5,-5 ),
   _setHeight(10),
-  _setWidth(13.333),
+  _setWidth(defaultWidth),
   _center( 0,0,-5 ),
   _normal( 0,0,-1 ),
   _up( 0,1,0 ),
-  _height( 10 ),
+  _height( defaultHeight ),
   _width( 13.333 ),
   _tileX( 0 ),
   _numberTilesX( 1 ),
@@ -43,8 +47,7 @@ bool arGraphicsScreen::configure(arSZGClient& client) {
   return configure( client.getMode("graphics"), client );
 }
 
-// Always returns true.  There are defaults for all parameters
-// the arSZGClient might query.
+// Return true.  Defaults for all parameters the arSZGClient might query.
 bool arGraphicsScreen::configure(const string& screenName, arSZGClient& client) {
   (void)client.initResponse();
   _headMounted = client.getAttribute( screenName,"head_mounted","|true|false|") == "true";
@@ -54,14 +57,8 @@ bool arGraphicsScreen::configure(const string& screenName, arSZGClient& client) 
     _width = floatbuf[0];
     _height = floatbuf[1];
   } else {
-    // we must have reasonable defaults, 
-    // these are for the syzygy "front wall", on
-    // which all demos show something sensible upon start up
-
-    // PLEASE NOTE: SINCE OUR DEFAULT WINDOW IS 640x480, WE MUST USE A WALL
-    // SIZE THAT IS DIFFERENT FROM THE CUBE FRONT WALL, i.e. 13.333 x 10.
-    _width = 13.333;
-    _height = 10;
+    _width = defaultWidth;
+    _height = defaultHeight;
   }
   _setHeight = _height;
   _setWidth = _width;
@@ -126,36 +123,36 @@ bool arGraphicsScreen::setUseFixedHeadMode( const std::string& usageMode ) {
   return true;
 }
 
-/// Manually set the screen center. This can be nice to do if you are
-/// using the arGraphicsScreen directly instead of through one of the frameworks.
+// Manually set the screen center. This can be nice to do if you are
+// using the arGraphicsScreen directly instead of through one of the frameworks.
 void arGraphicsScreen::setCenter(const arVector3& center){
   _setCenter = center;
   _updateTileCenter();
 }
 
-/// Manually set the screen normal. By convention, this points away from the
-/// viewer.
+// Manually set the screen normal. By convention, this points away from the
+// viewer.
 void arGraphicsScreen::setNormal(const arVector3& normal){
   _normal = normal;
 }
 
-/// Manually set the screen's up direction.
+// Manually set the screen's up direction.
 void arGraphicsScreen::setUp(const arVector3& up){
   _up = up;
 }
 
-/// Manually set the screen's dimensions, width followed by height.
+// Manually set the screen's dimensions, width followed by height.
 void arGraphicsScreen::setDimensions(float width, float height){
   _setWidth = width;
   _setHeight = height;
   _updateTileCenter();
 }
 
-/// Manually set the screen's tile. Default is a single tile.
-/// @param tileX The number of the tile in the X direction, starting with 0.
-/// @param numberTilesX The total number of tiles in the X direction.
-/// @param tileY The number of the tile in the Y direction, starting with 0.
-/// @param numberTilesY The total number of tiles in the Y direction.
+// Manually set the screen's tile. Default is a single tile.
+// @param tileX The number of the tile in the X direction, starting with 0.
+// @param numberTilesX The total number of tiles in the X direction.
+// @param tileY The number of the tile in the Y direction, starting with 0.
+// @param numberTilesY The total number of tiles in the Y direction.
 void arGraphicsScreen::setTile(int tileX, int numberTilesX,
 			     int tileY, int numberTilesY){
   _tileX = tileX;

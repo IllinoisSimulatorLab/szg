@@ -142,8 +142,8 @@ arSoundClient::~arSoundClient(){
   delete _waveData;
 }
 
-/// Configure the sound rendering object (i.e. the arSoundClient) using
-/// the Syzygy parameter database
+// Configure the sound rendering object (i.e. the arSoundClient) using
+// the Syzygy parameter database
 bool arSoundClient::configure(arSZGClient* client){
   setPath(client->getAttribute("SZG_SOUND", "path"));
   return true;
@@ -181,8 +181,8 @@ bool arSoundClient::_render() {
   return _soundDatabase.render();
 }
 
-/// Sets the networks on which the arSoundClient will attempt to connect to the
-/// server, in order of descending preference
+// Sets the networks on which the arSoundClient will attempt to connect to the
+// server, in order of descending preference
 void arSoundClient::setNetworks(string networks){
   _cliSync.setNetworks(networks);
 }

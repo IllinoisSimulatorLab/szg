@@ -4,49 +4,47 @@
 //********************************************************
 
 // Logitech head-tracker driver
-// Below is the PForth code for the arPForthFilter to do the coordinate
-// transformation (assuming the frame is mounted directly above head
-// with cable on the front)
-//
-///* Coordinate transformation for Logitech tracker.
-//   We want to change the axes such that X->X, Y->Z, and Z->-Y
-//   (essentially a 90-deg rotation about X).
-//   Except we're applying it to a matrix, so we have to do the
-//   t1*M*inv(t1) thing */
-//matrix inputMatrix
-//matrix rotMat1
-//matrix rotMat2
-//matrix transMatrix
-//matrix outputMatrix
-//-90 xaxis rotMat1 rotationMatrix
-//90 xaxis rotMat2 rotationMatrix
-///* Also raise the head position 4.5 ft, because all the demos assume
-//   the head will be at +several feet */
-//0 4.5 0 transMatrix translationMatrix
-//define filter_matrix_0
-//  inputMatrix getCurrentEventMatrix
-//  inputMatrix rotMat1 outputMatrix matrixMultiply
-//  rotMat2 outputMatrix outputMatrix matrixMultiply
-//  transMatrix outputMatrix outputMatrix matrixMultiply
-//  outputMatrix setCurrentEventMatrix
-//enddef
 
 #include "arPrecompiled.h"
 #include "arLogitechDriver.h"
 
 #include <string>
-#include <sstream>
 
-// The methods used by the dynamic library mappers. 
-// NOTE: These MUST have "C" linkage!
+#if 0
+
+Here is PForth code for the arPForthFilter to transform coords
+(assuming the frame is mounted directly above head with cable on the front)
+
+  /* Coordinate transformation for Logitech tracker.
+     We want to change the axes such that X->X, Y->Z, and Z->-Y
+     (essentially a 90-deg rotation about X).
+     Except we're applying it to a matrix, so we have to do the
+     t1*M*inv(t1) thing */
+  matrix inputMatrix
+  matrix rotMat1
+  matrix rotMat2
+  matrix transMatrix
+  matrix outputMatrix
+  -90 xaxis rotMat1 rotationMatrix
+  90 xaxis rotMat2 rotationMatrix
+  /* Also raise the head position 4.5 ft, because all the demos assume
+     the head will be at +several feet */
+  0 4.5 0 transMatrix translationMatrix
+  define filter_matrix_0
+    inputMatrix getCurrentEventMatrix
+    inputMatrix rotMat1 outputMatrix matrixMultiply
+    rotMat2 outputMatrix outputMatrix matrixMultiply
+    transMatrix outputMatrix outputMatrix matrixMultiply
+    outputMatrix setCurrentEventMatrix
+  enddef
+
+#endif
+
 extern "C"{
-  SZG_CALL void* factory(){
-    return new arLogitechDriver();
-  }
-
-  SZG_CALL void baseType(char* buffer, int size){
-    ar_stringToBuffer("arInputSource", buffer, size);
-  }
+  SZG_CALL void* factory()
+    { return new arLogitechDriver(); } 
+  SZG_CALL void baseType(char* buffer, int size)
+    { ar_stringToBuffer("arInputSource", buffer, size); }
 }
 
 void ar_LogitechDriverEventTask(void* driver) {

@@ -15,7 +15,7 @@
 #include <direct.h>        // for mkdir
 #endif
 
-/// \todo use initializers
+// todo: use initializers
 arPhleetConfigParser::arPhleetConfigParser(){
   _computerName = string("NULL");
   _numberInterfaces = 0;
@@ -29,9 +29,9 @@ arPhleetConfigParser::arPhleetConfigParser(){
   _fileParser = new arStructuredDataParser(_l.getDictionary());
 }
 
-/// \todo Unify the callers' error messages, they differ wildly at the moment.
-/// Parse the config file into internal storage, returning 
-/// true iff successful. Note the logic about which config file to parse.
+// \todo Unify the callers' error messages, they differ wildly at the moment.
+// Parse the config file into internal storage, returning 
+// true iff successful. Note the logic about which config file to parse.
 bool arPhleetConfigParser::parseConfigFile(){
   if (!_determineFileLocations())
     return false;
@@ -65,8 +65,8 @@ bool arPhleetConfigParser::parseConfigFile(){
   return true;
 }
 
-/// Write the config file information we are holding to the appropriate config
-/// file location (depending on the alternative config vs. actual config)
+// Write the config file information we are holding to the appropriate config
+// file location (depending on the alternative config vs. actual config)
 bool arPhleetConfigParser::writeConfigFile(){
   if (!_determineFileLocations()) {
     cerr << "phleet error: failed to write config file.\n";
@@ -93,9 +93,9 @@ bool arPhleetConfigParser::writeConfigFile(){
   return true;
 }
 
-/// Try to read in the login-file szg_<user name>.conf.
-/// It may not be an error if this file does not exist on a
-/// particular computer (the user might not have logged in yet).
+// Try to read in the login-file szg_<user name>.conf.
+// It may not be an error if this file does not exist on a
+// particular computer (the user might not have logged in yet).
 bool arPhleetConfigParser::parseLoginFile(){
   if (!_determineFileLocations())
     return false;
@@ -120,7 +120,7 @@ bool arPhleetConfigParser::parseLoginFile(){
   return true;
 }
 
-/// Write the login file, szg_<user name>.conf.
+// Write the login file, szg_<user name>.conf.
 bool arPhleetConfigParser::writeLoginFile(){
   if (!_determineFileLocations())
     return false;
@@ -145,7 +145,7 @@ bool arPhleetConfigParser::writeLoginFile(){
   return true;
 }
 
-/// Print human-readable config file information
+// Print human-readable config file information
 void arPhleetConfigParser::printConfig(){
   cout << "computer = " << _computerName << "\n";
   for (list<pair<string, arInterfaceDescription> >::iterator i = _networkList.begin();
@@ -157,15 +157,15 @@ void arPhleetConfigParser::printConfig(){
        << "-" << _firstPort+_blockSize-1 << "\n";
 }
 
-/// Print human-readable login information
+// Print human-readable login information
 void arPhleetConfigParser::printLogin(){
   cout << "OS user     = " << ar_getUser() << "\n"
        << "syzygy user = " << _userName << "\n"
        << "szgserver   = " << _serverName << ", " << _serverIP << ":" << _serverPort << "\n";
 }
 
-/// Returns slash-delimited addresses (as defined in the config file) of
-/// interfaces used by this computer, or empty string if there are none.
+// Returns slash-delimited addresses (as defined in the config file) of
+// interfaces used by this computer, or empty string if there are none.
 arSlashString arPhleetConfigParser::getAddresses(){
   arSlashString result;
   for (list<pair<string, arInterfaceDescription> >::iterator i
@@ -176,11 +176,11 @@ arSlashString arPhleetConfigParser::getAddresses(){
   return result;
 }
 
-/// Return the networks to which the host is connected, or ""
-/// if the config files says the host is not networked.
-/// Connection brokering uses this.  Non-uniqueness of network names is
-/// ok, since, networks, addresses, and masks
-/// form slices of a given "interface" structure.
+// Return the networks to which the host is connected, or ""
+// if the config files says the host is not networked.
+// Connection brokering uses this.  Non-uniqueness of network names is
+// ok, since, networks, addresses, and masks
+// form slices of a given "interface" structure.
 arSlashString arPhleetConfigParser::getNetworks(){
   arSlashString result;
   for (list<pair<string, arInterfaceDescription> >::iterator i
@@ -191,13 +191,13 @@ arSlashString arPhleetConfigParser::getNetworks(){
   return result;
 }
 
-/// Each interface has a netmask associated with it. This need not be
-/// specified in the configuration (it is given a default value of
-/// 255.255.255.0). This function returns a slash string, with the
-/// masks given in order of the network names.
-///
-/// This is IP protocol specific and, in some ways, goes against the
-/// idea that some of these interfaces might be of a different sort entirely.
+// Each interface has a netmask associated with it. This need not be
+// specified in the configuration (it is given a default value of
+// 255.255.255.0). This function returns a slash string, with the
+// masks given in order of the network names.
+//
+// This is IP protocol specific and, in some ways, goes against the
+// idea that some of these interfaces might be of a different sort entirely.
 arSlashString arPhleetConfigParser::getMasks(){
   arSlashString result;
   for (list<pair<string, arInterfaceDescription> >::iterator i
@@ -208,15 +208,15 @@ arSlashString arPhleetConfigParser::getMasks(){
   return result;
 }
 
-/// Set the computer name internally (you have to invoke writeConfigFile
-/// explicitly to write this change out to disk).
+// Set the computer name internally (you have to invoke writeConfigFile
+// explicitly to write this change out to disk).
 void arPhleetConfigParser::setComputerName(const string& name){
   _computerName = name;
 }
 
-/// Add a new interface internally (call writeConfigFile()
-/// explicitly to save this change to disk). If the interface does
-/// not exist, add a pair to the list;  otherwise, alter the address.
+// Add a new interface internally (call writeConfigFile()
+// explicitly to save this change to disk). If the interface does
+// not exist, add a pair to the list;  otherwise, alter the address.
 void arPhleetConfigParser::addInterface(const string& networkName,
 					const string& address,
                                         const string& netmask){
@@ -241,10 +241,10 @@ void arPhleetConfigParser::addInterface(const string& networkName,
   }
 }
 
-/// Removes an interface internally (you have to invoke writeConfigFile
-/// explicitly to write this change out to disk). Returns false if the
-/// network name/ address does not describe an existing interface and
-/// returns true otherwise.
+// Removes an interface internally (you have to invoke writeConfigFile
+// explicitly to write this change out to disk). Returns false if the
+// network name/ address does not describe an existing interface and
+// returns true otherwise.
 bool arPhleetConfigParser::deleteInterface(const string& networkName,
 					   const string& address){
   for (list<pair<string, arInterfaceDescription> >::iterator i 
@@ -260,10 +260,10 @@ bool arPhleetConfigParser::deleteInterface(const string& networkName,
   return false;
 }
 
-/// Sets the internal port block (you have to invoke writeConfigFile
-/// explicitly to write this change out to disk). Returns false if
-/// the port block description is nonsensical somehow (for instance
-/// the block size is less than 1) and returns true otherwise.
+// Sets the internal port block (you have to invoke writeConfigFile
+// explicitly to write this change out to disk). Returns false if
+// the port block description is nonsensical somehow (for instance
+// the block size is less than 1) and returns true otherwise.
 bool arPhleetConfigParser::setPortBlock(int firstPort, int blockSize){
   // a little sanity check
   if (firstPort < 1024 || blockSize < 1){
@@ -275,28 +275,28 @@ bool arPhleetConfigParser::setPortBlock(int firstPort, int blockSize){
   return true;
 }
 
-/// Sets the internal user name
+// Sets the internal user name
 void arPhleetConfigParser::setUserName(string name){
   _userName = name;
 }
 
-/// Sets the internal szgserver name
+// Sets the internal szgserver name
 void arPhleetConfigParser::setServerName(string name){
   _serverName = name;
 }
 
-/// Sets the internal szgserver IP
+// Sets the internal szgserver IP
 void arPhleetConfigParser::setServerIP(string IP){
   _serverIP = IP;
 }
 
-/// Sets the internal szgserver port
+// Sets the internal szgserver port
 void arPhleetConfigParser::setServerPort(int port){
   _serverPort = port;
 }
 
-/// If the directory exists, return true. If it does not exist, try to
-/// create it, returning true on success and false on failure.
+// If the directory exists, return true. If it does not exist, try to
+// create it, returning true on success and false on failure.
 bool arPhleetConfigParser::_createIfDoesNotExist(const string& directory){
 #ifdef AR_USE_WIN_32
   struct _stat statbuf;
@@ -329,7 +329,7 @@ bool arPhleetConfigParser::_createIfDoesNotExist(const string& directory){
 #endif
 }
 
-/// Find the config file and login preamble.
+// Find the config file and login preamble.
 bool arPhleetConfigParser::_determineFileLocations(){
   return _findDir("SZG_CONF",  "/etc", "config file", "szg.conf", _configFileLocation)
       && _findDir("SZG_LOGIN", "/tmp", "login",       "szg_", _loginPreamble);

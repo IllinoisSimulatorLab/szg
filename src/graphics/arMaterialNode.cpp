@@ -7,7 +7,6 @@
 #include "arGraphicsDatabase.h"
 
 arMaterialNode::arMaterialNode(){
-  // A sensible default name.
   _name = "material_node";
   _typeCode = AR_G_MATERIAL_NODE;
   _typeString = "material";
@@ -63,7 +62,7 @@ void arMaterialNode::setMaterial(const arMaterial& material){
   }
 }
 
-/// NOT thread-safe.
+// NOT thread-safe.
 arStructuredData* arMaterialNode::_dumpData(const arMaterial& material,
                                             bool owned){
   arStructuredData* result = NULL;

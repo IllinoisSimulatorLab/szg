@@ -8,7 +8,6 @@
 #include "arUSBDriver.h"
 
 #include <string>
-#include <sstream>
 
 // Methods used by the dynamic library mappers. 
 extern "C"{

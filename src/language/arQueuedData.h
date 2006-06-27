@@ -11,7 +11,7 @@
 #include "arDataUtilities.h"
 #include "arLanguageCalling.h"
 
-/// A way to group several arStructuredData objects into a single such object.
+// Group several arStructuredData objects into one.
 
 class SZG_CALL arQueuedData{
  // Needs assignment operator and copy constructor, for pointer members.

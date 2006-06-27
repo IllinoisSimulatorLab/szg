@@ -70,7 +70,7 @@
 #endif
 
 
-/// \todo explicitly define outpw and inpw properly for debug build.
+// todo: explicitly define outpw and inpw properly for debug build.
 
 #ifdef _DEBUG
 // avoid a link error (but do nothing, as a result!)
@@ -78,16 +78,11 @@
 #define inpw(a) (0)
 #endif
 
-// The methods used by the dynamic library mappers. 
-// NOTE: These MUST have "C" linkage!
 extern "C"{
-  SZG_CALL void* factory(){
-    return new arSpacepadDriver();
-  }
-
-  SZG_CALL void baseType(char* buffer, int size){
-    ar_stringToBuffer("arInputSource", buffer, size);
-  }
+  SZG_CALL void* factory()
+    { return new arSpacepadDriver(); } 
+  SZG_CALL void baseType(char* buffer, int size)
+    { ar_stringToBuffer("arInputSource", buffer, size); }
 }
 
 void ar_spacepadDriverEventTask(void* driver){

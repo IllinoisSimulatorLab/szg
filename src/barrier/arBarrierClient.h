@@ -14,7 +14,7 @@
 
 using namespace std;
 
-/// Client for arBarrierServer.
+// Client for arBarrierServer.
 class SZG_CALL arBarrierClient{
   // Needs assignment operator and copy constructor, for pointer members.
   friend void ar_barrierClientConnection(void*);
@@ -23,7 +23,7 @@ class SZG_CALL arBarrierClient{
   arBarrierClient();
   ~arBarrierClient();
 
-  bool requestActivation(); ///< Call this to join the server's barrier group.
+  bool requestActivation(); // Call this to join the server's barrier group.
   bool checkActivation();
   bool setBondedSocketID(int);
 

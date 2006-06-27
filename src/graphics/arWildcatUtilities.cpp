@@ -40,8 +40,8 @@ void ar_useWildcatFramelock( bool isOn ) {
   }
 }
 
-/// It is really annoying to have Wildcat-specific code in this file.
-/// A little bit of a design to-do, I suppose.
+// It is really annoying to have Wildcat-specific code in this file.
+// A little bit of a design to-do, I suppose.
 void ar_findWildcatFramelock() {
 #ifdef AR_USE_WIN_32
   if (!__inited){

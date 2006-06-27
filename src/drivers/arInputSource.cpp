@@ -52,8 +52,8 @@ void arInputSource::sendButton(int i, int value){
   if (!_data)
     return;
   if (i<0 || i>=_numberButtons){
-    //cerr << "arInputSource warning: ignoring out-of-range index to "
-    //<< "sendButton(" << i << ").\n";
+    // cerr << "arInputSource warning: ignoring out-of-range index to "
+    // << "sendButton(" << i << ").\n";
     return;
   }
 
@@ -115,7 +115,7 @@ void arInputSource::sendMatrix(int i, const arMatrix4& value){
   _sendData();
 }
 
-/// \todo actually call this function from somewhere.
+// todo: actually call this function from somewhere.
 
 void arInputSource::sendButtonsAxesMatrices(
   int numButtons, const int* rgiButtons, const int* rgvalueButtons,

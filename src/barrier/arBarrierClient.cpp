@@ -215,13 +215,13 @@ void arBarrierClient::setServiceName(string serviceName){
   _serviceName = serviceName;
 }
 
-/// A slash-delimited string containing the networks, in order of descending preference,
-/// that the object will use to connect to a service
+// A slash-delimited string containing the networks, in order of descending preference,
+// that the object will use to connect to a service
 void arBarrierClient::setNetworks(string networks){
   _networks = networks;
 }
 
-/// The arSZGClient object is needed later in the connection thread.
+// The arSZGClient object is needed later in the connection thread.
 bool arBarrierClient::init(arSZGClient& client){
   _client = &client;
   return true;

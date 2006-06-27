@@ -200,7 +200,7 @@ void arInputNode::processBufferedEvents() {
   _unlock();
 }
 
-/// \bug This is called too many times, resetting the signature n times instead of just once.
+// \bug This is called too many times, resetting the signature n times instead of just once.
 
 bool arInputNode::sourceReconfig(int whichChannel){
   // this gets called when one of the connected devices has changed

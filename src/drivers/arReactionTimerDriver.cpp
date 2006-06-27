@@ -9,20 +9,14 @@
 #include "arReactionTimerDriver.h"
 
 #include <string>
-#include <sstream>
 
 #define RTDEBUG
 
-// The methods used by the dynamic library mappers. 
-// NOTE: These MUST have "C" linkage!
 extern "C"{
-  SZG_CALL void* factory(){
-    return new arReactionTimerDriver();
-  }
-
-  SZG_CALL void baseType(char* buffer, int size){
-    ar_stringToBuffer("arInputSource", buffer, size);
-  }
+  SZG_CALL void* factory()
+    { return new arReactionTimerDriver(); } 
+  SZG_CALL void baseType(char* buffer, int size)
+    { ar_stringToBuffer("arInputSource", buffer, size); }
 }
 
 //const std::string RT_AWAKE = "!";

@@ -10,9 +10,9 @@
 #include "arSoundDatabase.h"
 #include "arSoundCalling.h"
 
-/// Streams a file from disk. This is good for long pieces of music,
-/// whereby arSoundFileNode is better for short clips that are either
-/// triggered or are looped.
+// Streams a file from disk. This is good for long pieces of music,
+// whereby arSoundFileNode is better for short clips that are either
+// triggered or are looped.
 
 class SZG_CALL arStreamNode: public arSoundNode{
  public:

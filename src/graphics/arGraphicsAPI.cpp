@@ -593,10 +593,10 @@ bool dgMaterial(int ID,
   return __database->alter(data);
 }
 
-/// OpenGL interprets light positions weirdly.  If the fourth value
-/// is nonzero, it is a positional light. Otherwise it's directional,
-/// and the "position" really gives the light direction.  These two
-/// styles transform differently.  (See arLight::activateLight().)
+// OpenGL interprets light positions weirdly.  If the fourth value
+// is nonzero, it is a positional light. Otherwise it's directional,
+// and the "position" really gives the light direction.  These two
+// styles transform differently.  (See arLight::activateLight().)
 
 int dgLight(const string& name, 
             const string& parent,

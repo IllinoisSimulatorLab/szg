@@ -11,7 +11,7 @@
 // Definition of our drawable object.
 class arTeapotGraphicsPlugin: public arGraphicsPlugin {
   public:
-    //  Object MUST provide a default (0-argument) constructor.
+    //  Object must provide a default (0-argument) constructor.
     arTeapotGraphicsPlugin() {}
     virtual ~arTeapotGraphicsPlugin() {}
 

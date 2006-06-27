@@ -8,7 +8,7 @@
 #include "arGraphicsHeader.h"
 
 arPerspectiveCamera::arPerspectiveCamera(){
-  // Sensible defaults for perspective camera. Frustum values correspond to:
+  // Defaults for perspective camera. Frustum values correspond to:
   // left, right, bottom, top, near, far
   frustum[0] = -0.1;
   frustum[1] = 0.1;

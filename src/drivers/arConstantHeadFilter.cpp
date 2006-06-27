@@ -7,16 +7,11 @@
 #include "arConstantHeadFilter.h"
 #include "arVRConstants.h"
 
-// The methods used by the dynamic library mappers. 
-// NOTE: These MUST have "C" linkage!
 extern "C"{
-  SZG_CALL void* factory(){
-    return new arConstantHeadFilter();
-  }
-
-  SZG_CALL void baseType(char* buffer, int size){
-    ar_stringToBuffer("arIOFilter", buffer, size);
-  }
+  SZG_CALL void* factory()
+    { return new arConstantHeadFilter(); }
+  SZG_CALL void baseType(char* buffer, int size)
+    { ar_stringToBuffer("arIOFilter", buffer, size); }
 }
 
 bool arConstantHeadFilter::_processEvent( arInputEvent& inputEvent ) {

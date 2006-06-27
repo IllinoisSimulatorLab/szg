@@ -7,8 +7,6 @@
 #include "arPForthFilter.h"
 #include "arFileTextStream.h"
 
-#include <sstream>
-
 arFilteringPForth::arFilteringPForth(){
   _valid = _valid && ar_PForthAddEventVocabulary(this)
                   && ar_PForthAddDatabaseVocabulary(this);

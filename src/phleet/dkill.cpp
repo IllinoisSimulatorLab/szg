@@ -9,7 +9,7 @@
 #include "arSZGClient.h"
 
 int main(int argc, char** argv){
-  /// \todo add -q "quiet" option
+  // todo: add -q "quiet" option
   arSZGClient szgClient;
   const bool fInit = szgClient.init(argc, argv);
   if (!szgClient)

@@ -1,4 +1,3 @@
-
 /* Copyright (c) Mark J. Kilgard, 1997. */
 
 /* This program is freely distributable without licensing fees  and is
@@ -6,27 +5,21 @@
    program is -not- in the public domain. */
 
 #include "arPrecompiled.h"
+#include "arTexFont.h"
 
 #include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
-
-#include <iostream>
 #include <fstream>
-#include <list>
 
-#include "arMath.h"
-#include "arTexFont.h"
-
-/// Not very efficient, but we're essentially assuming that it won't be parsing
-/// *very* long amounts of text.
+// Inefficient, but it won't be parsing long strings.
 list<string> ar_parseLineBreaks(const string& text){
   list<string> result;
   string currentLine("");
   char lastChar('\0');
   int stringHead = 0;
-  for (int i=0; i<text.length(); i++){
+  for (unsigned i=0; i<text.length(); i++){
     if (text[i] == '\n'){
       if (lastChar != '\r'){
         result.push_back(text.substr(stringHead, i-stringHead));
@@ -78,7 +71,6 @@ bool arTexFont::load(const string& font){
     _fontTexture.mipmap(true);
   }
   return ok;
-  
 }
 
 void arTexFont::lineFeed(int& currentColumn, int& currentRow, arTextBox& format){
@@ -153,7 +145,7 @@ void arTexFont::getTextMetrics(list<string>& parse, arTextBox& format, float& wi
   int maxColumns = -1;
   int rows = 0;
   for (list<string>::iterator i = parse.begin(); i != parse.end(); i++){
-    if (i->length() >= format.columns){
+    if (i->length() >= unsigned(format.columns)){
       // There is overflow on the line.
       rows += i->length() / format.columns;
       // Handle the case where the line isn't a multiple of the column width.
@@ -166,11 +158,11 @@ void arTexFont::getTextMetrics(list<string>& parse, arTextBox& format, float& wi
       ++rows; 
     }
     // Our text box is taking up all the format columns if any row does.
-    if ((*i).length() >= format.columns){
+    if (i->length() >= unsigned(format.columns)){
       maxColumns = format.columns; 
     }
     // If the row does not take up the whole width, only increase maxColumns if the line is bigger.
-    else if (maxColumns < 0 || i->length() > maxColumns){
+    else if (maxColumns < 0 || i->length() > unsigned(maxColumns)){
       maxColumns = i->length(); 
     }
   }

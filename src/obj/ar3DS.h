@@ -32,7 +32,7 @@
 
 #include "arObjCalling.h"
 
-/// .3DS wrapper class
+// .3DS wrapper class
 /** Needs lib3DS */
 class SZG_CALL ar3DS : public arObject{
 
@@ -53,9 +53,9 @@ class SZG_CALL ar3DS : public arObject{
     bool prevFrame();
 
     // stats
-    /// returns "3DS" as arObject type
+    // returns "3DS" as arObject type
     inline string  type() { return "3DS"; }
-    /// returns number of frames in .3DS file
+    // returns number of frames in .3DS file
 #ifdef Enable3DS
     int    numberOfFrames() { return _file?_file->frames:-1; }
 #else
@@ -68,25 +68,24 @@ class SZG_CALL ar3DS : public arObject{
                          arGraphicsNode* parent,
                          Lib3dsNode* node);
 #endif
-    arVector3 _minVec;	//< vector of minimum x, y, and z values in mesh
-    arVector3 _maxVec;	//< vector of maximum x, y, and z values in mesh
-    arVector3 _center;	//< center of bounding box for mesh
-    bool    _normalize;	//< tells attachMesh() whether or not to add a normalization matrix
+    arVector3 _minVec;	// vector of minimum x, y, and z values in mesh
+    arVector3 _maxVec;	// vector of maximum x, y, and z values in mesh
+    arVector3 _center;	// center of bounding box for mesh
+    bool    _normalize;	// tells attachMesh() whether or not to add a normalization matrix
 
   private:
 #ifdef Enable3DS
-    Lib3dsFile	*_file;	//< The Lib3ds-read File
+    Lib3dsFile	*_file;	// The Lib3ds-read File
 #else
     void	*_file;
 #endif
     int _uniqueName;
-    int _currentFrame;	//< Currently displayed frame
-    int _numMaterials;	//< Number of materials in the file
+    int _currentFrame;	// Currently displayed frame
+    int _numMaterials;	// Number of materials in the file
 #ifdef Enable3DS
-    /// helper function for normalizationMatrix; allows easy recursing
+    // helper function for normalizationMatrix; allows easy recursing
     void subNormalizationMatrix(Lib3dsNode* node, arVector3& _minVec, arVector3& _maxVec);
 #endif
 };
-
 
 #endif // __AR_3DS_H

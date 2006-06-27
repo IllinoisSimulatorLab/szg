@@ -15,10 +15,10 @@ arFrameworkObject::arFrameworkObject(){
   _changed = false;
 }
 
-/// We set up a viewport upon which to compose our object. This is useful
-/// for little widgets that will appear on top of the main visualization,
-/// sort of like in sub windows. The coordinates are window-relative (i.e.
-/// positive numbers between 0 and 1).
+// We set up a viewport upon which to compose our object. This is useful
+// for little widgets that will appear on top of the main visualization,
+// sort of like in sub windows. The coordinates are window-relative (i.e.
+// positive numbers between 0 and 1).
 void arFrameworkObject::preComposition(float lowerX, float lowerY,
 	  			       float widthX, float widthY){
   // In order to be able to both see the application and the widget,
@@ -67,13 +67,13 @@ void arFrameworkObject::postComposition(){
   glPopAttrib();
 }
 
-/// The arFrameworkObject method should be invoked by all classes that over-ride it.
-/// It keeps track of whether or not the object needs to transfer its state.
+// The arFrameworkObject method should be invoked by all classes that over-ride it.
+// It keeps track of whether or not the object needs to transfer its state.
 void arFrameworkObject::update(){
   _changed = true;
 }
 
-/// If we've dumped data, don't need to do so again until update has been called again.
+// If we've dumped data, don't need to do so again until update has been called again.
 arStructuredData* arFrameworkObject::dumpData(){
   _changed = false;
   return NULL;

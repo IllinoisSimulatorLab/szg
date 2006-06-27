@@ -141,16 +141,16 @@ bool dsSpeak( int ID, const string& text ) {
   return __database->alter(data);
 } 
 
-/// For seekable long streams.
-/// name: the name of the node
-/// parent: the name of the node's parent
-/// fileName: the name of the sound file (.mp3 or .wav)
-/// paused: 1 if the stream is to be paused
-///         0 if the stream is not to be paused
-/// amplitude: 0 is silent, 1 is normal.
-/// time: If >=0, the time (in ms) that the stream should be playing at.
-///       Otherwise, a signal that the parameter should be ignored.
-/// To avoid audio clicks, start new streams paused and with time = -1.
+// For seekable long streams.
+// name: the name of the node
+// parent: the name of the node's parent
+// fileName: the name of the sound file (.mp3 or .wav)
+// paused: 1 if the stream is to be paused
+//         0 if the stream is not to be paused
+// amplitude: 0 is silent, 1 is normal.
+// time: If >=0, the time (in ms) that the stream should be playing at.
+//       Otherwise, a signal that the parameter should be ignored.
+// To avoid audio clicks, start new streams paused and with time = -1.
 int dsStream( const string& name, const string& parent, const string& fileName,
               int paused, float amplitude, int time){
   const arDatabaseNode* node = dsMakeNode(name, parent, "stream");

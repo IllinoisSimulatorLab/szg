@@ -72,19 +72,19 @@ arSZGClient::arSZGClient():
 arSZGClient::~arSZGClient(){
   _keepRunning = false;
 
-  /// \todo add handshaking to tell the server to quit the read and
-  /// close the socket at its end, so we can close without blocking on
-  /// our data thread's blocking read (e.g. IRIX).
+  // todo: add handshaking to tell the server to quit the read and
+  // close the socket at its end, so we can close without blocking on
+  // our data thread's blocking read (e.g. IRIX).
   //_dataClient.closeConnection();
 
   delete [] _receiveBuffer;
 }
 
-/// Control how to handshake with dex.
-/// By default, "true", send a final response during init().
-/// Iff simple handshaking has been disabled (by passing "false" before init),
-/// call sendInitResponse and sendStartResponse (the final response in this case),
-/// to forward init and start diagnostics to the the spawning dex for printing.
+// Control how to handshake with dex.
+// By default, "true", send a final response during init().
+// Iff simple handshaking has been disabled (by passing "false" before init),
+// call sendInitResponse and sendStartResponse (the final response in this case),
+// to forward init and start diagnostics to the the spawning dex for printing.
 void arSZGClient::simpleHandshaking(bool state){
   if (!state) {
     ar_log().setStream(initResponse());
@@ -92,24 +92,24 @@ void arSZGClient::simpleHandshaking(bool state){
   _simpleHandshaking = state;
 }
 
-/// Most components should not see the
-/// "special" phleet args (like "-szg virtual=vccube"). These
-/// shape how phleet components behave (like acting as part of
-/// a particular virtual computer or in a particular mode).
-/// But components like dex must see them to pass them on: use "false" then.
+// Most components should not see the
+// "special" phleet args (like "-szg virtual=vccube"). These
+// shape how phleet components behave (like acting as part of
+// a particular virtual computer or in a particular mode).
+// But components like dex must see them to pass them on: use "false" then.
 void arSZGClient::parseSpecialPhleetArgs(bool state){
   _parseSpecialPhleetArgs = state;
 }
 
-/// Connect client to the phleet. Call early in main().
-/// @param argc main()'s argc
-/// @param argv main()'s argv
-/// @param forcedName Optional. Ideally, we'd like to be able to
-/// read the exe name from the command line parameters, but this fails
-/// on Win98, which gives at best a name in all caps. So
-/// the few (support) components that might run on Win98 (szgd,
-/// DeviceServer, and SoundRender) all force their names.
-/// Warn if the forced name doesn't match the name scraped from the command line.
+// Connect client to the phleet. Call early in main().
+// @param argc main()'s argc
+// @param argv main()'s argv
+// @param forcedName Optional. Ideally, we'd like to be able to
+// read the exe name from the command line parameters, but this fails
+// on Win98, which gives at best a name in all caps. So
+// the few (support) components that might run on Win98 (szgd,
+// DeviceServer, and SoundRender) all force their names.
+// Warn if the forced name doesn't match the name scraped from the command line.
 
 bool arSZGClient::init(int& argc, char** const argv, string forcedName){
   // Set the component's name
@@ -315,7 +315,7 @@ int arSZGClient::failStandalone(bool fInited) const {
   return 1; // for convenience
 }
 
-/// Common core of sendInitResponse() and sendStartResponse().
+// Common core of sendInitResponse() and sendStartResponse().
 bool arSZGClient::_sendResponse(stringstream& s, 
 				const char* sz,
 				unsigned initialStreamLength,
@@ -345,14 +345,14 @@ bool arSZGClient::_sendResponse(stringstream& s,
   return true;
 }
 
-/// If dex launched us, send the init message stream
-/// back to the launching dex command. If we launched from the command line,
-/// just print the stream. If "ok" is true, the init succeeded
-/// and we'll be sending a start message later (so this will be a partial
-/// response). Otherwise, the init failed and we'll
-/// not be sending another response, so this should be the final one.
-///
-/// Typically main() calls this.  Every return from main should call this.
+// If dex launched us, send the init message stream
+// back to the launching dex command. If we launched from the command line,
+// just print the stream. If "ok" is true, the init succeeded
+// and we'll be sending a start message later (so this will be a partial
+// response). Otherwise, the init failed and we'll
+// not be sending another response, so this should be the final one.
+//
+// Typically main() calls this.  Every return from main should call this.
 bool arSZGClient::sendInitResponse(bool ok){
   const bool f = _sendResponse(_initResponseStream, "init", _initialInitLength, ok, ok);
   //;;;; need to echo to stdout?    cout << _initResponseStream.str();
@@ -477,9 +477,9 @@ LFail:
   }
 }
 
-/// Sometimes we want to be able to read in parameters from a file, as in
-/// dbatch or when starting a program in "standalone" mode (i.e. when it is
-/// not connected to the Phleet).
+// Sometimes we want to be able to read in parameters from a file, as in
+// dbatch or when starting a program in "standalone" mode (i.e. when it is
+// not connected to the Phleet).
 bool arSZGClient::parseParameterFile(const string& fileName, bool warn){
   const string dataPath(getAttribute("SZG_SCRIPT","path"));
   // There are two parameter file formats.
@@ -893,18 +893,18 @@ bool arSZGClient::setAttribute(const string& userName,
   return true;
 }
 
-/// Attributes in the database, from the arSZGClient perspective, are
-/// organized (under a given user name) hierarchically by
-/// host/attribute_group/attribute. Internally to the szgserver, this
-/// hierarchy has limited meaning since the parameter database is *really*
-/// key/value pairs. Sometimes we want
-/// to dispense with the hierarchy. For instance, the
-/// configuration of an input node (the filters to use, whether it should
-/// get input from the network, whether there are any special input sinks,
-/// etc.) isn't tied to a particular host.
-/// NOTE: We use a different function name since there is already a
-/// getAttribute with 2 const string& parameters.
-/// "Global" attributes differ from "local" attributes for a particular host.
+// Attributes in the database, from the arSZGClient perspective, are
+// organized (under a given user name) hierarchically by
+// host/attribute_group/attribute. Internally to the szgserver, this
+// hierarchy has limited meaning since the parameter database is *really*
+// key/value pairs. Sometimes we want
+// to dispense with the hierarchy. For instance, the
+// configuration of an input node (the filters to use, whether it should
+// get input from the network, whether there are any special input sinks,
+// etc.) isn't tied to a particular host.
+// NOTE: We use a different function name since there is already a
+// getAttribute with 2 const string& parameters.
+// "Global" attributes differ from "local" attributes for a particular host.
 string arSZGClient::getGlobalAttribute(const string& userName,
                                        const string& attributeName){
   if (!_connected){
@@ -930,13 +930,13 @@ string arSZGClient::getGlobalAttribute(const string& userName,
   return result;
 }
 
-/// The userName is implicit in this one (i.e. it is the name of the
-/// phleet user executing the program)
+// The userName is implicit in this one (i.e. it is the name of the
+// phleet user executing the program)
 string arSZGClient::getGlobalAttribute(const string& attributeName){
   return getGlobalAttribute(_userName, attributeName);
 }
 
-/// It is also necessary to set the global attributes...
+// It is also necessary to set the global attributes...
 bool arSZGClient::setGlobalAttribute(const string& userName,
 				     const string& attributeName,
 				     const string& attributeValue){
@@ -980,86 +980,90 @@ bool arSZGClient::setGlobalAttribute(const string& userName,
   return true;
 }
 
-/// The phleet user name is implicit in this one.
+// The phleet user name is implicit in this one.
 bool arSZGClient::setGlobalAttribute(const string& attributeName,
 				     const string& attributeValue){
   return setGlobalAttribute(_userName, attributeName, attributeValue);
 }
 
-/// Using XML records in the szg parameter database has upsides and downsides.
-/// Upside: easy to manipulate whole display descriptions.
-/// Downside: hard to make little changes to a (possibly quite complex)
-/// display description.
-/// This method attempts to mitigate this downside. It accesses XML stored
-/// in the Phleet parameter database, exploiting the hierarchical nature of
-/// XML to access individual attributes in the doc tree.
-/// The pathList variable stores the path via which we search into the XML.
-/// 
-/// 1. The first member of the path gives the name of the Phleet global
-/// parameter where we will start.
-///
-/// 2. Subsequent members define child XML "elements". They are element names
-/// and can be given array indices (so that the 2nd element can be specified).
-///
-/// global parameter name = foo
-/// global parameter value =
-/// <szg_display>
-///  <szg_window>
-///  ...
-///  </szg_window>
-///  <szg_window>
-///  +++
-///  </szg_window>
-/// </szg_display>
-///
-/// In this case, the path foo/szg_window refers to:
-///
-/// <szg_window>
-/// ...
-/// </szg_window>
-/// 
-/// while foo/szg_window[1] refers to:
-///
-/// <szg_window>
-/// +++
-/// </szg_window>
-/// 
-/// 3. The final member of the path can refer to an XML "attribute". All of
-/// the configuration data for arGUI is stored in "attributes". They look like
-/// this in the XML:
-///
-/// <szg_viewport_list viewmode="custom" />
-///
-/// Here, viewmode is an attribute of the szg_viewport_list element. If a path
-/// parses down to an attribute BEFORE getting to its final member, an error
-/// occurs (return "NULL").
-///
-/// 4. Phleet allows the XML documents to be stored in multiple global
-/// parameters, which facilitates reuse of individual pieces of complex configs.
-/// This feat is accomplished via "pointers" embedded in the XML in a standard
-/// way. For instance,
-///
-/// <szg_window usenamed="foo" />
-///
-/// In this case, if we encounter this element while parsing the path, we
-/// replace the current element with that contained in the global parameter
-/// "foo" and continue parsing from there. Any alteration to an attribute value
-/// from this point forward will occur inside the XML document inside the
-/// global parameter "foo".
-///
-/// NOTE: There is an exception to the aforementioned pointer parsing rule. We
-/// need to be able to change the usenamed attribute instead of just following
-/// the pointer. Consequently, if the *next* member of the path is "usenamed"
-/// we won't actually follow the pointer, but will instead stop at the
-/// attribute in question.
-///
-/// pathList gives the path, which is parsed and interpreted as above.
-/// attributeValue is set to something besides "NULL" if we will be altering
-///  an attribute value. If the path does not parse to an attribute, then this
-///  is an error (returning "NULL") but otherwise returning "SZG_SUCCESS".
-///  On the other hand, if attributeValue is "NULL" (the default) then the 
-///  method just returns the value indicated by the parsed path (or "NULL"
-///  if there is an error in the parsing).
+/*
+
+Using XML records in the szg parameter database has upsides and downsides.
+Upside: easy to manipulate whole display descriptions.
+Downside: hard to make little changes to a (possibly quite complex)
+display description.
+This method attempts to mitigate this downside. It accesses XML stored
+in the Phleet parameter database, exploiting the hierarchical nature of
+XML to access individual attributes in the doc tree.
+The pathList variable stores the path via which we search into the XML.
+
+1. The first member of the path gives the name of the Phleet global
+parameter where we will start.
+
+2. Subsequent members define child XML "elements". They are element names
+and can be given array indices (so that the 2nd element can be specified).
+
+global parameter name = foo
+global parameter value =
+<szg_display>
+<szg_window>
+...
+</szg_window>
+<szg_window>
++++
+</szg_window>
+</szg_display>
+
+In this case, the path foo/szg_window refers to:
+
+<szg_window>
+...
+</szg_window>
+
+while foo/szg_window[1] refers to:
+
+<szg_window>
++++
+</szg_window>
+
+3. The final member of the path can refer to an XML "attribute". All of
+the configuration data for arGUI is stored in "attributes". They look like
+this in the XML:
+
+<szg_viewport_list viewmode="custom" />
+
+Here, viewmode is an attribute of the szg_viewport_list element. If a path
+parses down to an attribute BEFORE getting to its final member, an error
+occurs (return "NULL").
+
+4. Phleet allows the XML documents to be stored in multiple global
+parameters, which facilitates reuse of individual pieces of complex configs.
+This feat is accomplished via "pointers" embedded in the XML in a standard
+way. For instance,
+
+<szg_window usenamed="foo" />
+
+In this case, if we encounter this element while parsing the path, we
+replace the current element with that contained in the global parameter
+"foo" and continue parsing from there. Any alteration to an attribute value
+from this point forward will occur inside the XML document inside the
+global parameter "foo".
+
+NOTE: There is an exception to the aforementioned pointer parsing rule. We
+need to be able to change the usenamed attribute instead of just following
+the pointer. Consequently, if the *next* member of the path is "usenamed"
+we won't actually follow the pointer, but will instead stop at the
+attribute in question.
+
+pathList gives the path, which is parsed and interpreted as above.
+attributeValue is set to something besides "NULL" if we will be altering
+an attribute value. If the path does not parse to an attribute, then this
+is an error (returning "NULL") but otherwise returning "SZG_SUCCESS".
+On the other hand, if attributeValue is "NULL" (the default) then the 
+method just returns the value indicated by the parsed path (or "NULL"
+if there is an error in the parsing).
+
+*/
 
 string arSZGClient::getSetGlobalXML(const string& userName,
                                     const arSlashString& pathList,
@@ -1316,7 +1320,7 @@ string arSZGClient::getProcessList(){
   return result;
 }
 
-/// Kill (or remove from the szgserver table, really) by component ID.
+// Kill (or remove from the szgserver table, really) by component ID.
 bool arSZGClient::killProcessID(int id){
   if (!_connected)
     return false;
@@ -1335,9 +1339,9 @@ bool arSZGClient::killProcessID(int id){
   return ok;
 }
 
-/// Kill the ID of the first process in the process list
-/// running on the given computer with the given label
-/// Return false if no process was found.
+// Kill the ID of the first process in the process list
+// running on the given computer with the given label
+// Return false if no process was found.
 bool arSZGClient::killProcessID(const string& computer,
                                 const string& processLabel){
   if (!_connected)
@@ -1352,7 +1356,7 @@ bool arSZGClient::killProcessID(const string& computer,
   return id >= 0 && killProcessID(id);
 }
 
-/// Given the process ID, return the process label
+// Given the process ID, return the process label
 string arSZGClient::getProcessLabel(int processID){
   // massive copypaste between getProcessLabel and getProcessID
   if (!_connected)
@@ -1383,8 +1387,8 @@ string arSZGClient::getProcessLabel(int processID){
   return theLabel;
 }
 
-/// Return the ID of the first process in the process list
-/// running on the given computer with the given label.
+// Return the ID of the first process in the process list
+// running on the given computer with the given label.
 int arSZGClient::getProcessID(const string& computer,
                               const string& processLabel){
   // massive copypaste between getProcessLabel and getProcessID
@@ -1475,9 +1479,9 @@ int arSZGClient::sendMessage(const string& type, const string& body,
   return sendMessage(type,body,"NULL",destination, responseRequested);
 }
 
-/// Sends a message and returns the "match" for use with getMessageResponse.
-/// This "match" links responses to the original messages. On an error, this
-/// function returns -1.
+// Sends a message and returns the "match" for use with getMessageResponse.
+// This "match" links responses to the original messages. On an error, this
+// function returns -1.
 int arSZGClient::sendMessage(const string& type, const string& body,
                              const string& context, int destination,
                              bool responseRequested){
@@ -1520,12 +1524,12 @@ int arSZGClient::sendMessage(const string& type, const string& body,
   return match;
 }
 
-/// Receive a message routed through the szgserver.
-/// Returns the ID of the received message, or 0 on error (client should exit).
-/// @param userName Set to the username associated with the message
-/// @param messageType Set to the type of the message
-/// @param messageBody Set to the body of the message
-/// @param context Set to the context of the message (the virtual computer)
+// Receive a message routed through the szgserver.
+// Returns the ID of the received message, or 0 on error (client should exit).
+// @param userName Set to the username associated with the message
+// @param messageType Set to the type of the message
+// @param messageBody Set to the body of the message
+// @param context Set to the context of the message (the virtual computer)
 int arSZGClient::receiveMessage(string* userName, string* messageType,
                                 string* messageBody, string* context){
   if (!_connected){
@@ -1553,13 +1557,13 @@ int arSZGClient::receiveMessage(string* userName, string* messageType,
   return messageID;
 }
 
-/// Get a response to the client's messages.  Returns 1 if a final response has
-/// been received, -1 if a partial response has been received, and 0 if failure
-/// (as might happen, for instance, if a component dies before having a
-/// chance to respond to a message).
-/// @param body is filled-in with the body of the message response
-/// @param match is filled-in with the "match" of this response (which is
-///   the same as the "match" of the original message that generated it.
+// Get a response to the client's messages.  Returns 1 if a final response has
+// been received, -1 if a partial response has been received, and 0 if failure
+// (as might happen, for instance, if a component dies before having a
+// chance to respond to a message).
+// @param body is filled-in with the body of the message response
+// @param match is filled-in with the "match" of this response (which is
+//   the same as the "match" of the original message that generated it.
 int arSZGClient::getMessageResponse(list<int> tags,
                                     string& body,
                                     int& match,
@@ -1600,12 +1604,12 @@ int arSZGClient::getMessageResponse(list<int> tags,
   return 0;
 }
 
-/// Respond to a message. Return
-/// true iff the response was successfully dispatched.
-/// @param messageID ID of the message to which we are trying to respond
-/// @param body Body we wish to send
-/// @param partialResponse False iff we won't send further responses
-/// (the default)
+// Respond to a message. Return
+// true iff the response was successfully dispatched.
+// @param messageID ID of the message to which we are trying to respond
+// @param body Body we wish to send
+// @param partialResponse False iff we won't send further responses
+// (the default)
 bool arSZGClient::messageResponse(int messageID, const string& body,
                                   bool partialResponse){
   if (!_connected){
@@ -1639,13 +1643,13 @@ bool arSZGClient::messageResponse(int messageID, const string& body,
   return state;
 }
 
-/// Start a "message ownership trade".
-/// Useful when the executable launched by szgd wants to respond to "dex".
-/// Returns -1 on failure and otherwise the "match" associated with this
-/// request.
-/// @param messageID ID of the message we want to trade.  We need to
-/// own the right to respond to this message for the call to succeed.
-/// @param key Value of which a future ownership trade can occur
+// Start a "message ownership trade".
+// Useful when the executable launched by szgd wants to respond to "dex".
+// Returns -1 on failure and otherwise the "match" associated with this
+// request.
+// @param messageID ID of the message we want to trade.  We need to
+// own the right to respond to this message for the call to succeed.
+// @param key Value of which a future ownership trade can occur
 int arSZGClient::startMessageOwnershipTrade(int messageID,
                                             const string& key){
   if (!_connected){
@@ -1671,9 +1675,9 @@ int arSZGClient::startMessageOwnershipTrade(int messageID,
   return match;
 }
 
-/// Wait until the message ownership trade completes (or until the optional
-/// timeout argument has elapsed). Returns false on timeout or other error
-/// and true otherwise.
+// Wait until the message ownership trade completes (or until the optional
+// timeout argument has elapsed). Returns false on timeout or other error
+// and true otherwise.
 bool arSZGClient::finishMessageOwnershipTrade(int match, int timeout){
   if (!_connected){
     return false;
@@ -1681,10 +1685,10 @@ bool arSZGClient::finishMessageOwnershipTrade(int match, int timeout){
   return _getMessageAck(match, "message ownership trade", NULL, timeout);
 }
 
-/// Revoke the possibility of a previously-made message ownership
-/// trade.  Return false on error: if the trade has already been
-/// taken, does not exist, or if we are not authorized to revoke it.
-/// @param key Fully expanded string on which the ownership trade rests
+// Revoke the possibility of a previously-made message ownership
+// trade.  Return false on error: if the trade has already been
+// taken, does not exist, or if we are not authorized to revoke it.
+// @param key Fully expanded string on which the ownership trade rests
 bool arSZGClient::revokeMessageOwnershipTrade(const string& key){
   if (!_connected){
     return false;
@@ -1707,9 +1711,9 @@ bool arSZGClient::revokeMessageOwnershipTrade(const string& key){
   return state;
 }
 
-/// Request ownership of a message that is currently posted with a given key.
-/// Returns the ID of the message if successful, and 0 otherwise
-/// NOTE: messages never have ID 0!
+// Request ownership of a message that is currently posted with a given key.
+// Returns the ID of the message if successful, and 0 otherwise
+// NOTE: messages never have ID 0!
 int arSZGClient::requestMessageOwnership(const string& key){
   if (!_connected){
     return 0;
@@ -1735,9 +1739,9 @@ int arSZGClient::requestMessageOwnership(const string& key){
   return messageID;
 }
 
-/// Requests that the client be notified when the component with the given ID
-/// exits (notification will occur immedicately if that ID is not currently
-/// held).
+// Requests that the client be notified when the component with the given ID
+// exits (notification will occur immedicately if that ID is not currently
+// held).
 int arSZGClient::requestKillNotification(int componentID){
   if (!_connected){
     return -1;
@@ -1756,9 +1760,9 @@ int arSZGClient::requestKillNotification(int componentID){
   return match;
 }
 
-/// Receives a notification, as requested by the previous method, that a
-/// component has exited. Return the match if we have succeeded. Return
-/// -1 on failure.
+// Receives a notification, as requested by the previous method, that a
+// component has exited. Return the match if we have succeeded. Return
+// -1 on failure.
 int arSZGClient::getKillNotification(list<int> tags,
                                      int timeout){
   if (!_connected){
@@ -1776,10 +1780,10 @@ int arSZGClient::getKillNotification(list<int> tags,
   return match;
 }
 
-/// Acquire a lock. Check with szgserver to see
-/// if the lock is available. If so, acquire the lock for this component
-/// (and set ownerID to -1). Otherwise, set ownerID to the lock-holding
-/// component's ID.  Return true iff the lock is acquired.
+// Acquire a lock. Check with szgserver to see
+// if the lock is available. If so, acquire the lock for this component
+// (and set ownerID to -1). Otherwise, set ownerID to the lock-holding
+// component's ID.  Return true iff the lock is acquired.
 bool arSZGClient::getLock(const string& lockName, int& ownerID){
   if (!_connected){
     return false;
@@ -1812,8 +1816,8 @@ bool arSZGClient::getLock(const string& lockName, int& ownerID){
   return state;
 }
 
-/// Release a lock.  Return false on error,
-/// if the lock does not exist or if another component is holding it.
+// Release a lock.  Return false on error,
+// if the lock does not exist or if another component is holding it.
 bool arSZGClient::releaseLock(const string& lockName){
   if (!_connected){
     return false;
@@ -1845,9 +1849,9 @@ bool arSZGClient::releaseLock(const string& lockName){
   return state;
 }
 
-/// Requests that the client be notified when the lock in question is
-/// not held by the server. NOTE: we return the function match on success
-/// (which is always nonnegative) or -1 on failure.
+// Requests that the client be notified when the lock in question is
+// not held by the server. NOTE: we return the function match on success
+// (which is always nonnegative) or -1 on failure.
 int arSZGClient::requestLockReleaseNotification(const string& lockName){
   if (!_connected){
     return -1;
@@ -1866,9 +1870,9 @@ int arSZGClient::requestLockReleaseNotification(const string& lockName){
   return match;
 }
 
-/// Receives a notification, as requested by the previous method, that a
-/// lock is no longer held. Return the match if we have succeeded. Return
-/// -1 on failure.
+// Receives a notification, as requested by the previous method, that a
+// lock is no longer held. Return the match if we have succeeded. Return
+// -1 on failure.
 int arSZGClient::getLockReleaseNotification(list<int> tags,
                                             int timeout){
   if (!_connected){
@@ -1886,7 +1890,7 @@ int arSZGClient::getLockReleaseNotification(list<int> tags,
   return match;
 }
 
-/// Prints all locks currently held inside the szgserver.
+// Prints all locks currently held inside the szgserver.
 void arSZGClient::printLocks(){
   if (!_connected){
     return;
@@ -1922,8 +1926,8 @@ void arSZGClient::printLocks(){
   _dataParser->recycle(data);
 }
 
-/// Helper for registerService() and requestNewPorts().
-/// @param fRetry true iff we're retrying
+// Helper for registerService() and requestNewPorts().
+// @param fRetry true iff we're retrying
 bool arSZGClient::_getPortsCore1(
        const string& serviceName, const string& channel,
        int numberPorts, arStructuredData*& data, int& match, bool fRetry) {
@@ -1954,10 +1958,10 @@ bool arSZGClient::_getPortsCore1(
   return true;
 }
 
-/// Helper for registerService() and requestNewPorts().
-/// @param match from AR_PHLEET_MATCH
-/// @param portIDs stuffed with the good port values
-/// @param fRetry true iff we're retrying
+// Helper for registerService() and requestNewPorts().
+// @param match from AR_PHLEET_MATCH
+// @param portIDs stuffed with the good port values
+// @param fRetry true iff we're retrying
 bool arSZGClient::_getPortsCore2(arStructuredData* data, int match,
                                  int* portIDs, bool fRetry) {
   if (!_connected)
@@ -1990,11 +1994,11 @@ bool arSZGClient::_getPortsCore2(arStructuredData* data, int match,
   return true;
 }
 
-/// Helper function that puts the next "match" value into the given
-/// piece of structured data. This value is not
-/// repeated over the lifetime of the arSZGClient and is used to match
-/// responses of the szgserver to sent messages. This allows arSZGClient
-/// methods to be called freely from different application threads.
+// Helper function that puts the next "match" value into the given
+// piece of structured data. This value is not
+// repeated over the lifetime of the arSZGClient and is used to match
+// responses of the szgserver to sent messages. This allows arSZGClient
+// methods to be called freely from different application threads.
 int arSZGClient::_fillMatchField(arStructuredData* data){
   ar_mutex_lock(&_serviceLock);
   const int match = _nextMatch++;
@@ -2003,15 +2007,15 @@ int arSZGClient::_fillMatchField(arStructuredData* data){
   return match;
 }
 
-/// Attempt to register a service to be offered by this component with the
-/// szgserver. Returns true iff the registration was successful (i.e.
-/// no other service shares the same name).
-/// @param serviceName name of the offered service
-/// @param channel routing channel upon which the service is offered
-/// (must be one of "default", "graphics", "sound", "input")
-/// @param numberPorts number of ports the service requires (up to 10)
-/// @param portIDs on success, stuffed with the ports on which
-/// the service should be offered
+// Attempt to register a service to be offered by this component with the
+// szgserver. Returns true iff the registration was successful (i.e.
+// no other service shares the same name).
+// @param serviceName name of the offered service
+// @param channel routing channel upon which the service is offered
+// (must be one of "default", "graphics", "sound", "input")
+// @param numberPorts number of ports the service requires (up to 10)
+// @param portIDs on success, stuffed with the ports on which
+// the service should be offered
 bool arSZGClient::registerService(const string& serviceName,
                                   const string& channel,
                                   int numberPorts, int* portIDs){
@@ -2024,17 +2028,17 @@ bool arSZGClient::registerService(const string& serviceName,
          _getPortsCore2(data, match, portIDs, false);
 }
 
-/// The ports assigned to us by the szgserver can be unusable for local
-/// reasons unknowable to the szgserver, so we may need to ask
-/// for them to be reassigned. Otherwise, this method is similar to
-/// registerService(...).
-/// @param serviceName name of the service that was previously registered
-/// and which needs a new set of ports.
-/// @param channel the routing channel upon which we are offering the service
-/// (must be one of "default", "graphics", "sound", "input")
-/// @param numberPorts the number of ports required.
-/// @param portIDs passes in the old, problematic ports, and will be filled
-/// with new ports on success.
+// The ports assigned to us by the szgserver can be unusable for local
+// reasons unknowable to the szgserver, so we may need to ask
+// for them to be reassigned. Otherwise, this method is similar to
+// registerService(...).
+// @param serviceName name of the service that was previously registered
+// and which needs a new set of ports.
+// @param channel the routing channel upon which we are offering the service
+// (must be one of "default", "graphics", "sound", "input")
+// @param numberPorts the number of ports required.
+// @param portIDs passes in the old, problematic ports, and will be filled
+// with new ports on success.
 bool arSZGClient::requestNewPorts(const string& serviceName,
                                   const string& channel,
                                   int numberPorts, int* portIDs){
@@ -2050,19 +2054,19 @@ bool arSZGClient::requestNewPorts(const string& serviceName,
     _getPortsCore2(data, match, portIDs, true);
 }
 
-/// The szgserver assigns us ports, but cannot know if
-/// we'll be able to bind to them (see requestNewPorts() above).
-/// Furthermore, it cannot fully register the service until
-/// the component on this end confirms that it is accepting connections,
-/// lest we get a race condition. Consequently, this function lets a component
-/// confirm to the szgserver that it was able to bind.  It returns true iff
-/// the send to the szgserver succeeded. The szgserver sends no response.
-/// @param serviceName the name of the service
-/// @param channel the routing channel upon which we are offering the service
-/// (must be one of "default", "graphics", "sound", "input")
-/// @param numberPorts the number of ports used by the service
-/// @param portIDs an array containing the port IDs (all of which were
-/// successfully bound).
+// The szgserver assigns us ports, but cannot know if
+// we'll be able to bind to them (see requestNewPorts() above).
+// Furthermore, it cannot fully register the service until
+// the component on this end confirms that it is accepting connections,
+// lest we get a race condition. Consequently, this function lets a component
+// confirm to the szgserver that it was able to bind.  It returns true iff
+// the send to the szgserver succeeded. The szgserver sends no response.
+// @param serviceName the name of the service
+// @param channel the routing channel upon which we are offering the service
+// (must be one of "default", "graphics", "sound", "input")
+// @param numberPorts the number of ports used by the service
+// @param portIDs an array containing the port IDs (all of which were
+// successfully bound).
 bool arSZGClient::confirmPorts(const string& serviceName,
                                const string& channel,
                                int numberPorts, int* portIDs){
@@ -2114,22 +2118,22 @@ bool arSZGClient::confirmPorts(const string& serviceName,
   return data->getDataString(_l.AR_SZG_BROKER_RESULT_STATUS) == "SZG_SUCCESS";
 }
 
-/// Find the internet address for connection to a named service
-/// over one of (potentially) several specified networks. An arPhleetAddress
-/// is returned. On success, the valid field is set to true, on failure
-/// it is set to false. The address field contains the IP address. The
-/// nuberPorts field contains the number of ports. And portIDs is an array
-/// (up to 10) containing the port IDs. NOTE: this call can be made in either
-/// synchronous or asynchronous mode. The difference between the two modes
-/// shows up only if the requested service is not currently registered
-/// in the phleet. In synchronous mode, the szgserver immediately responds
-/// with a failure message. In asynchronous mode, the szgserver declines
-/// responding and, instead, waits for the service to be registered, at
-/// which time it responds.  In asynchronous mode, discoverService() thus blocks.
-/// @param serviceName the name of the service to which we want to connect
-/// @param networks a string containing a slash-delimited list of network
-/// names we might use to connect to the service, listed in order of
-/// descending preference. IS MY TERMINOLOGY BOGUS HERE?
+// Find the internet address for connection to a named service
+// over one of (potentially) several specified networks. An arPhleetAddress
+// is returned. On success, the valid field is set to true, on failure
+// it is set to false. The address field contains the IP address. The
+// nuberPorts field contains the number of ports. And portIDs is an array
+// (up to 10) containing the port IDs. NOTE: this call can be made in either
+// synchronous or asynchronous mode. The difference between the two modes
+// shows up only if the requested service is not currently registered
+// in the phleet. In synchronous mode, the szgserver immediately responds
+// with a failure message. In asynchronous mode, the szgserver declines
+// responding and, instead, waits for the service to be registered, at
+// which time it responds.  In asynchronous mode, discoverService() thus blocks.
+// @param serviceName the name of the service to which we want to connect
+// @param networks a string containing a slash-delimited list of network
+// names we might use to connect to the service, listed in order of
+// descending preference. IS MY TERMINOLOGY BOGUS HERE?
 arPhleetAddress arSZGClient::discoverService(const string& serviceName,
                                              const string& networks,
                                              bool   async){
@@ -2181,7 +2185,7 @@ arPhleetAddress arSZGClient::discoverService(const string& serviceName,
   return result;
 }
 
-/// The code to print either pending service requests or active services
+// The code to print either pending service requests or active services
 void arSZGClient::_printServices(const string& type){
   if (!_connected){
     return;
@@ -2224,10 +2228,10 @@ void arSZGClient::_printServices(const string& type){
   _dataParser->recycle(data);
 }
 
-/// Request that the szgserver send us a notification when the named
-/// service is no longer actively held by a component in the system.
-/// Returns the match to be used with the other side of this call on
-/// success or -1 on failure.
+// Request that the szgserver send us a notification when the named
+// service is no longer actively held by a component in the system.
+// Returns the match to be used with the other side of this call on
+// success or -1 on failure.
 int arSZGClient::requestServiceReleaseNotification(const string& serviceName){
   if (!_connected){
     return -1;
@@ -2246,10 +2250,10 @@ int arSZGClient::requestServiceReleaseNotification(const string& serviceName){
   return match;
 }
 
-/// Receive the service release notification triggered in the szgserver
-/// by the previous method. For thread-safety, we only try to get data from
-/// a list of tags. There is also an optional timeout argument. If we
-/// succeed, we simply return the match upon which we were successful.
+// Receive the service release notification triggered in the szgserver
+// by the previous method. For thread-safety, we only try to get data from
+// a list of tags. There is also an optional timeout argument. If we
+// succeed, we simply return the match upon which we were successful.
 int arSZGClient::getServiceReleaseNotification(list<int> tags,
                                                int timeout){
   if (!_connected){
@@ -2267,9 +2271,9 @@ int arSZGClient::getServiceReleaseNotification(list<int> tags,
   return match;
 }
 
-/// Tries to get the "info" associated with the given (full) service name.
-/// Confusingly, at present, this returns the empty string both if the service
-/// fails to exist AND if the service has the empty string as its info!
+// Tries to get the "info" associated with the given (full) service name.
+// Confusingly, at present, this returns the empty string both if the service
+// fails to exist AND if the service has the empty string as its info!
 string arSZGClient::getServiceInfo(const string& serviceName){
   if (!_connected){
     return string("");
@@ -2295,7 +2299,7 @@ string arSZGClient::getServiceInfo(const string& serviceName){
   return result;
 }
 
-/// Attempts to set the "info" string associated with the particular service.
+// Attempts to set the "info" string associated with the particular service.
 bool arSZGClient::setServiceInfo(const string& serviceName,
                                  const string& info){
   if (!_connected){
@@ -2323,29 +2327,29 @@ bool arSZGClient::setServiceInfo(const string& serviceName,
   return ok;
 }
 
-/// From the szgserver get the list of running services,
-/// including the hosts on which they run, and the phleet IDs of
-/// the components hosting them. Print this list like dps does.
+// From the szgserver get the list of running services,
+// including the hosts on which they run, and the phleet IDs of
+// the components hosting them. Print this list like dps does.
 void arSZGClient::printServices(){
   _printServices("active");
 }
 
-/// From the szgserver get the list of pending service requests,
-/// including the hosts on which they are running and the phleet IDs of
-/// the components making them. Print this list like dps does.
-/// With this command and the printServices() command,
-/// one can diagnose connection brokering problems in the distributed system.
+// From the szgserver get the list of pending service requests,
+// including the hosts on which they are running and the phleet IDs of
+// the components making them. Print this list like dps does.
+// With this command and the printServices() command,
+// one can diagnose connection brokering problems in the distributed system.
 void arSZGClient::printPendingServiceRequests(){
   _printServices("pending");
 }
 
-/// Directly get the phleet ID
-/// of the component running a service. For instance, upon launching an
-/// app on a virtual computer, we may wish to kill a previously running
-/// app that supplied a service that the
-/// new application wishes to supply. Return the component's ID
-/// if the service exists, otherwise -1.
-/// @param serviceName the name of the service in question
+// Directly get the phleet ID
+// of the component running a service. For instance, upon launching an
+// app on a virtual computer, we may wish to kill a previously running
+// app that supplied a service that the
+// new application wishes to supply. Return the component's ID
+// if the service exists, otherwise -1.
+// @param serviceName the name of the service in question
 int arSZGClient::getServiceComponentID(const string& serviceName){
   if (!_connected){
     return -1;
@@ -2375,13 +2379,13 @@ int arSZGClient::getServiceComponentID(const string& serviceName){
   return result;
 }
 
-/// Return the networks on which this component should operate.
-/// Used as an arg for discoverService().
-/// Networks can be set in 3 ways: by increasing precedence,
-/// the phleet config file, the phleet command line args, and the context.
-/// @param channel Should be either default, graphics, sound, or input.
-/// This lets network traffic be routed independently for various
-/// traffic types.
+// Return the networks on which this component should operate.
+// Used as an arg for discoverService().
+// Networks can be set in 3 ways: by increasing precedence,
+// the phleet config file, the phleet command line args, and the context.
+// @param channel Should be either default, graphics, sound, or input.
+// This lets network traffic be routed independently for various
+// traffic types.
 arSlashString arSZGClient::getNetworks(const string& channel){
   if (channel == "default")
     return _networks;
@@ -2395,10 +2399,10 @@ arSlashString arSZGClient::getNetworks(const string& channel){
   return _networks;
 }
 
-/// Return the network addresses upon which this component will offer
-/// services. Used when registering a service to determine the
-/// addresses of the interfaces to which other components will try to
-/// connect.
+// Return the network addresses upon which this component will offer
+// services. Used when registering a service to determine the
+// addresses of the interfaces to which other components will try to
+// connect.
 arSlashString arSZGClient::getAddresses(const string& channel){
   if (channel == "default")
     return _addresses;
@@ -2412,19 +2416,19 @@ arSlashString arSZGClient::getAddresses(const string& channel){
   return _addresses;
 }
 
-/// If this component is operating as part of a virtual computer, return
-/// its name. Otherwise, return "NULL". As with networks, the
-/// virtual computer is set via a combination of the phleet command line
-/// args, and the context.
+// If this component is operating as part of a virtual computer, return
+// its name. Otherwise, return "NULL". As with networks, the
+// virtual computer is set via a combination of the phleet command line
+// args, and the context.
 const string& arSZGClient::getVirtualComputer(){
   return _virtualComputer;
 }
 
-/// Returns the mode under which this component is operating (with respect
-/// to a particular channel). For instance, the "default" channel mode is
-/// one of "trigger", "master" or "component". This refers to the global
-/// character of what this piece of the system does. The "graphics" channel
-/// mode is one of "screen0", "screen1", "screen2", etc.
+// Returns the mode under which this component is operating (with respect
+// to a particular channel). For instance, the "default" channel mode is
+// one of "trigger", "master" or "component". This refers to the global
+// character of what this piece of the system does. The "graphics" channel
+// mode is one of "screen0", "screen1", "screen2", etc.
 const string& arSZGClient::getMode(const string& channel){
   if (channel == "default")
     return _mode;
@@ -2435,9 +2439,9 @@ const string& arSZGClient::getMode(const string& channel){
   return _mode;
 }
 
-/// Queries the szgserver to determine the computer designated as the
-/// trigger for a given virtual computer. Returns "NULL" if the virtual
-/// computer is invalid or if it does not have a trigger defined.
+// Queries the szgserver to determine the computer designated as the
+// trigger for a given virtual computer. Returns "NULL" if the virtual
+// computer is invalid or if it does not have a trigger defined.
 string arSZGClient::getTrigger(const string& virtualComputer){
   if (getAttribute(virtualComputer, "SZG_CONF", "virtual", "") != "true"){
     // not a virtual computer
@@ -2446,18 +2450,18 @@ string arSZGClient::getTrigger(const string& virtualComputer){
   return getAttribute(virtualComputer, "SZG_TRIGGER", "map", "");
 }
 
-/// Phleet components should use service names that are compartmentalized
-/// so as to allow users to control sharing of services. There are 3 cases:
-/// 1. Application component was NOT launched as part of a virtual computer:
-///    In this case, the phleet user name provides the compartmenting:
-///    (for example, SZG_BARRIER/ben)
-/// 2. Application component launched as part of virtual computer FOO, which
-///    has no "location" defined. In this case, the virtual computer
-///    name compartments the service. (FOO/SZG_BARRIER)
-/// 3. Application component launched as part of a virtual computer FOO,
-///    has a "location" component BAR. In this case, the "location" name
-///    compartments the service (BAR/SZG_BARRIER).
-/// This described the complex service name.
+// Phleet components should use service names that are compartmentalized
+// so as to allow users to control sharing of services. There are 3 cases:
+// 1. Application component was NOT launched as part of a virtual computer:
+//    In this case, the phleet user name provides the compartmenting:
+//    (for example, SZG_BARRIER/ben)
+// 2. Application component launched as part of virtual computer FOO, which
+//    has no "location" defined. In this case, the virtual computer
+//    name compartments the service. (FOO/SZG_BARRIER)
+// 3. Application component launched as part of a virtual computer FOO,
+//    has a "location" component BAR. In this case, the "location" name
+//    compartments the service (BAR/SZG_BARRIER).
+// This described the complex service name.
 string arSZGClient::createComplexServiceName(const string& serviceName){
   // At the blurry boundary between string and arSlashString.
   if (_virtualComputer == "NULL"){
@@ -2471,8 +2475,8 @@ string arSZGClient::createComplexServiceName(const string& serviceName){
     string("/") + serviceName;
 }
 
-/// Create a context string form internal storage and returns it.
-/// Used, for instance, in generating the launch info header.
+// Create a context string form internal storage and returns it.
+// Used, for instance, in generating the launch info header.
 string arSZGClient::createContext(){
   string result(string("virtual=")+_virtualComputer+string(";")+
     string("mode/default=")+_mode+string(";")+string("log=")+ar_logLevelToString(_logLevel));
@@ -2493,11 +2497,11 @@ string arSZGClient::createContext(){
   return result;
 }
 
-/// Create a context string from the parameters.
-/// Don't set the related internal variables, merely
-/// encapsulate a data format that may change over time.
-/// Bogus: currently no way to specify
-/// the channels upon which multiple services operate!
+// Create a context string from the parameters.
+// Don't set the related internal variables, merely
+// encapsulate a data format that may change over time.
+// Bogus: currently no way to specify
+// the channels upon which multiple services operate!
 string arSZGClient::createContext(const string& virtualComputer,
                                   const string& modeChannel,
                                   const string& mode,
@@ -2508,7 +2512,7 @@ string arSZGClient::createContext(const string& virtualComputer,
     string("networks/") + networksChannel + string("=") + networks;
 }
 
-/// Actually try to connect to the szgserver.
+// Actually try to connect to the szgserver.
 bool arSZGClient::_dialUpFallThrough(){
   if (_connected){
     ar_log_warning() << _exeName << ": already connected to "
@@ -2590,13 +2594,13 @@ string arSZGClient::_getAttributeResponse(int match) {
   return result;
 }
 
-/// Set our internal label and set the communicate with the szgserver to set
-/// our label there (which is a little different from the internal one, being
-/// <computer>/<exe_name>). Only call this from
-/// init().
-/// Make sure that the szgserver name propagates
-/// to the client (in the return connection ack), so that dlogin's
-/// "explicit connection" mode gets the szgserver name.
+// Set our internal label and set the communicate with the szgserver to set
+// our label there (which is a little different from the internal one, being
+// <computer>/<exe_name>). Only call this from
+// init().
+// Make sure that the szgserver name propagates
+// to the client (in the return connection ack), so that dlogin's
+// "explicit connection" mode gets the szgserver name.
 bool arSZGClient::_setLabel(const string& label){
   if (!_connected)
     return false;
@@ -2630,8 +2634,8 @@ bool arSZGClient::_setLabel(const string& label){
   return state;
 }
 
-/// Parses the string in the environment variable SZGCONTEXT, to determine
-/// over-ride settings for virtual computer, mode, and networks
+// Parses the string in the environment variable SZGCONTEXT, to determine
+// over-ride settings for virtual computer, mode, and networks
 bool arSZGClient::_parseContext(){
   const string context(ar_getenv("SZGCONTEXT"));
   if (context == "NULL"){
@@ -2650,11 +2654,11 @@ bool arSZGClient::_parseContext(){
   return true;
 }
 
-/// argc is passed by reference since we may change the arg list.
-/// When a client is launched, we examine the "phleet args",
-/// i.e. those prefaced by a -szg. We usually delete these args during parsing.
-/// But if _parseSpecialPhleetArgs is false (e.g., in dex),
-/// then only the args user and server (pertaining to login) are parsed and removed.
+// argc is passed by reference since we may change the arg list.
+// When a client is launched, we examine the "phleet args",
+// i.e. those prefaced by a -szg. We usually delete these args during parsing.
+// But if _parseSpecialPhleetArgs is false (e.g., in dex),
+// then only the args user and server (pertaining to login) are parsed and removed.
 bool arSZGClient::_parsePhleetArgs(int& argc, char** const argv) {
   for (int i=0; i<argc; i++) {
     if (!strcmp(argv[i],"-szg")) {
@@ -2707,8 +2711,8 @@ bool arSZGClient::_parsePhleetArgs(int& argc, char** const argv) {
   return true;
 }
 
-/// Helper for _parseContext that handles FOO=BAR components
-/// of that string. "NULL" is also allowed as a do-nothing value.
+// Helper for _parseContext that handles FOO=BAR components
+// of that string. "NULL" is also allowed as a do-nothing value.
 bool arSZGClient::_parseContextPair(const string& thePair){
   const unsigned int location = thePair.find('=');
   if (location == string::npos){
@@ -2807,8 +2811,8 @@ bool arSZGClient::_parseContextPair(const string& thePair){
   return false;
 }
 
-/// networks contains various network names. channel is one of "default",
-/// "graphics", "input", or "sound". This allows for traffic shaping.
+// networks contains various network names. channel is one of "default",
+// "graphics", "input", or "sound". This allows for traffic shaping.
 bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashString& networks){
   // sanity check!
   if (channel != "default" && channel != "graphics" && channel != "input"
@@ -2870,7 +2874,7 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
   return false;
 }
 
-/// Header beginnnig all messages returned to dex from a launched exe.
+// Header beginnnig all messages returned to dex from a launched exe.
 string arSZGClient::_generateLaunchInfoHeader(){
   stringstream s;
   s << "*user=" << _userName << ", "
@@ -2880,8 +2884,8 @@ string arSZGClient::_generateLaunchInfoHeader(){
   return s.str();
 }
 
-/// It could be the case that we are relying on a locally parsed config
-/// file. (i.e. standalone mode)
+// It could be the case that we are relying on a locally parsed config
+// file. (i.e. standalone mode)
 string arSZGClient::_getAttributeLocal(const string& computerName,
 				       const string& groupName,
 				       const string& parameterName,
@@ -2895,8 +2899,8 @@ string arSZGClient::_getAttributeLocal(const string& computerName,
     validValues);
 }
 
-/// It could be the case that we are relying on a locally parsed config
-/// file. (i.e. standalone mode)
+// It could be the case that we are relying on a locally parsed config
+// file. (i.e. standalone mode)
 bool arSZGClient::_setAttributeLocal(const string& computerName,
 				     const string& groupName,
 				     const string& parameterName,
@@ -2913,20 +2917,20 @@ bool arSZGClient::_setAttributeLocal(const string& computerName,
   return true;
 }
 
-/// If standalone (aka locally parsed config file),
-/// get a "global" attribute (i.e. one not tied to a computer).
-/// Locally getting a "global" attribute produces the silly name.
+// If standalone (aka locally parsed config file),
+// get a "global" attribute (i.e. one not tied to a computer).
+// Locally getting a "global" attribute produces the silly name.
 string arSZGClient::_getGlobalAttributeLocal(const string& attributeName){
   map<string, string, less<string> >::iterator i =
     _localParameters.find(attributeName);
   return (i == _localParameters.end()) ? "NULL" : i->second;
 }
 
-/// It could be the case that we are relying on a locally parsed config
-/// file. (i.e. standalone mode). In this case, we are putting a so-called
-/// "global" attribute (i.e. one not tied to a computer) into storage.
-/// Since we are locally setting a "global" attribute this leads to the
-/// following silly function name...
+// It could be the case that we are relying on a locally parsed config
+// file. (i.e. standalone mode). In this case, we are putting a so-called
+// "global" attribute (i.e. one not tied to a computer) into storage.
+// Since we are locally setting a "global" attribute this leads to the
+// following silly function name...
 bool arSZGClient::_setGlobalAttributeLocal(const string& attributeName,
 					   const string& attributeValue){
   map<string, string, less<string> >::iterator i =
@@ -2938,10 +2942,10 @@ bool arSZGClient::_setGlobalAttributeLocal(const string& attributeName,
   return true;
 }
 
-/// For string constants in the parameter database, the arSZGClient
-/// can check the value against a list of valid values. If the string
-/// constant is not in the list, the first item of the list is returned
-/// and a warning is printed.
+// For string constants in the parameter database, the arSZGClient
+// can check the value against a list of valid values. If the string
+// constant is not in the list, the first item of the list is returned
+// and a warning is printed.
 string arSZGClient::_changeToValidValue(const string& groupName,
                                         const string& parameterName,
                                         const string& value,
@@ -2973,7 +2977,7 @@ string arSZGClient::_changeToValidValue(const string& groupName,
   return value;
 }
 
-/// Baroquely get configuration information from the szgservers.
+// Baroquely get configuration information from the szgservers.
 void arSZGClient::_serverResponseThread() {
   char buffer[200]; // buffer overflow
   while (_keepRunning) {
@@ -3109,8 +3113,8 @@ void arSZGClient::_sendDiscoveryPacket(const string& name,
   _discoverySocket->ar_write(buf, sizeof(buf), &broadcastAddress);
 }
 
-/// Sends a broadcast packet on a specified subnet to find the szgserver
-/// with the specified name.
+// Sends a broadcast packet on a specified subnet to find the szgserver
+// with the specified name.
 bool arSZGClient::discoverSZGServer(const string& name,
                                     const string& broadcast){
   if (!_discoveryThreadsLaunched && !launchDiscoveryThreads()){
@@ -3148,7 +3152,7 @@ bool arSZGClient::discoverSZGServer(const string& name,
   return true;
 }
 
-/// Find szgservers and print their names.
+// Find szgservers and print their names.
 void arSZGClient::printSZGServers(const string& broadcast){
   if (!_discoveryThreadsLaunched && !launchDiscoveryThreads()){
     // A diagnostic was already printed.  Don't complain here.
@@ -3171,15 +3175,15 @@ void arSZGClient::printSZGServers(const string& broadcast){
   _justPrinting = false;
 }
 
-/// Set the server location manually.
-/// Necessary if broadcasting to the szgserver fails.
-/// The szgserver name is set upon connection via a handshake.
+// Set the server location manually.
+// Necessary if broadcasting to the szgserver fails.
+// The szgserver name is set upon connection via a handshake.
 void arSZGClient::setServerLocation(const string& IPaddress, int port){
   _IPaddress = IPaddress;
   _port = port;
 }
 
-/// Write a login file using data from e.g. discoverSZGServer()
+// Write a login file using data from e.g. discoverSZGServer()
 bool arSZGClient::writeLoginFile(const string& userName){
   // userName may differ from _userName.
   // The internal storage refers to the effective user name of this
@@ -3192,7 +3196,7 @@ bool arSZGClient::writeLoginFile(const string& userName){
   return _configParser.writeLoginFile();
 }
 
-/// Reset the login file to not-logged-in state.
+// Reset the login file to not-logged-in state.
 bool arSZGClient::logout(){
   _configParser.setUserName("NULL");
   _configParser.setServerName("NULL");
@@ -3201,7 +3205,7 @@ bool arSZGClient::logout(){
   return _configParser.writeLoginFile();
 }
 
-/// Default message task which handles "quit" and nothing else.
+// Default message task which handles "quit" and nothing else.
 void ar_messageTask(void* pClient){
   if (!pClient) {
     ar_log_warning() << "ar_messageTask: no syzygy client, dkill disabled.\n";

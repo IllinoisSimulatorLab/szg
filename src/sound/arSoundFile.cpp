@@ -10,7 +10,6 @@
 #include <math.h>
 #ifdef AR_USE_WIN_32
   #include <io.h>
-  #include <iostream>
 #else
   #include <unistd.h>
 #endif

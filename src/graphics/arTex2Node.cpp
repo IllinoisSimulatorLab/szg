@@ -8,7 +8,6 @@
 #include "arGraphicsDatabase.h"
 
 arTex2Node::arTex2Node(){
-  // A sensible default name.
   _name = "tex2_node";
   _typeCode = AR_G_TEX2_NODE;
   _typeString = "tex2";
@@ -27,8 +26,8 @@ void arTex2Node::initialize(arDatabase* database){
   _commandBuffer.setType(_g->AR_TEX2);
 }
 
-/// Included for speedy access. This is NOT thread-safe and instead must
-/// be called from within a locked section. 
+// Included for speedy access. This is NOT thread-safe and instead must
+// be called from within a locked section. 
 const float* arTex2Node::getTex2(int& number){
   number = _commandBuffer.size()/_arrayStride;
   return _commandBuffer.v;
@@ -50,9 +49,9 @@ void arTex2Node::setTex2(int number, float* tex2, int* IDs){
 }
 
 
-/// Slower way to get the tex coord data (there are several extra copy 
-/// operations). However, this is more convenient for calling from Python.
-/// Thread-safe.
+// Slower way to get the tex coord data (there are several extra copy 
+// operations). However, this is more convenient for calling from Python.
+// Thread-safe.
 vector<arVector2> arTex2Node::getTex2(){
   vector<arVector2> result;
   // Must be thread-safe.
@@ -67,9 +66,9 @@ vector<arVector2> arTex2Node::getTex2(){
   return result;
 }
 
-/// Adds an additional copy plus dynamic memory allocation. 
-/// But this is more convenient for calling from Python.
-/// Thread-safe.
+// Adds an additional copy plus dynamic memory allocation. 
+// But this is more convenient for calling from Python.
+// Thread-safe.
 void arTex2Node::setTex2(vector<arVector2>& tex2){
   float* ptr = new float[tex2.size()*2];
   for (unsigned int i = 0; i < tex2.size(); i++){
@@ -80,9 +79,9 @@ void arTex2Node::setTex2(vector<arVector2>& tex2){
   delete [] ptr;
 }
 
-/// Adds an additional copy plus dynamic memory allocation.
-/// But this is more convenient for calling from Python.
-/// Thread-safe.
+// Adds an additional copy plus dynamic memory allocation.
+// But this is more convenient for calling from Python.
+// Thread-safe.
 void arTex2Node::setTex2(vector<arVector2>& tex2,
 			 vector<int>& IDs){
   unsigned int num = IDs.size();

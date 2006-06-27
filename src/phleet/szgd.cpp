@@ -11,7 +11,6 @@
 
 #include <stdio.h>
 #include <list>
-#include <sstream>
 
 #ifdef AR_USE_WIN_32
   #include <windows.h>

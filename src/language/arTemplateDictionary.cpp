@@ -114,17 +114,14 @@ arDataTemplate* arTemplateDictionary::find(int ID){
     iter->second;
 }
 
-/// Needed to allow dictionaries to be merged. 
-/// Please ses arMasterSlaveDataRouter.
+// For merging dictionaries (see arMasterSlaveDataRouter.)
 void arTemplateDictionary::renumber(){
   _templateIDContainer.clear();
   arTemplateType::iterator i;
-  for (i=_templateContainer.begin(); 
-       i != _templateContainer.end(); i++){
-		   _templateIDContainer.insert
-			 (arTemplat2Type::value_type(i->second->_templateID,
-			                             i->second));
-	   }
+  for (i=_templateContainer.begin(); i != _templateContainer.end(); i++){
+    _templateIDContainer.insert(
+      arTemplat2Type::value_type(i->second->_templateID, i->second));
+  }
 }
 
 int arTemplateDictionary::size(){
@@ -151,8 +148,8 @@ int arTemplateDictionary::size(){
   return total; 
 }
 
-/// Helper function for pack().
-/// @param position is modified in the caller.
+// Helper function for pack().
+// @param position is modified in the caller.
 static void ar_packDataField(
   ARchar* dest, ARint& position,
   arDataType type, ARint length,

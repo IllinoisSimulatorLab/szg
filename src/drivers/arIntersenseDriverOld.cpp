@@ -9,16 +9,11 @@
 #include "arPrecompiled.h"
 #include "arIntersenseDriver.h"
 
-// The methods used by the dynamic library mappers. 
-// NOTE: These MUST have "C" linkage!
 extern "C"{
-  SZG_CALL void* factory(){
-    return new arIntersenseDriver();
-  }
-
-  SZG_CALL void baseType(char* buffer, int size){
-    ar_stringToBuffer("arInputSource", buffer, size);
-  }
+  SZG_CALL void* factory()
+    { return new arIntersenseDriver(); } 
+  SZG_CALL void baseType(char* buffer, int size)
+    { ar_stringToBuffer("arInputSource", buffer, size); }
 }
 
 #define ISENSE_GROUP_NAME "SZG_INTERSENSE"

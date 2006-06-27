@@ -3,7 +3,7 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-/// \todo: avoid arHTR.cpp's many implicit string(foo->name) temporaries.
+// todo: avoid arHTR.cpp's many implicit string(foo->name) temporaries.
 
 #include "arPrecompiled.h"
 #include "arHTR.h"
@@ -16,14 +16,14 @@
 #define MAXLINE 500
 #define MAXTOKENS 50
 
-/// converts degrees to radians
-/// @param angle degrees
+// converts degrees to radians
+// @param angle degrees
 inline double deg2rad(const double &angle){
   return (M_PI/180.) * angle;
 }
 
-/// returns rotation matrix of 3 euler angles, multiplied in
-/// the order specified within the HTR file
+// returns rotation matrix of 3 euler angles, multiplied in
+// the order specified within the HTR file
 arMatrix4 arHTR::HTRRotation(double Rx, double Ry, double Rz){
   arMatrix4 rotMatrix;
   arVector3 xVec(1,0,0), yVec(0,1,0), zVec(0,0,1);
@@ -66,10 +66,10 @@ arMatrix4 arHTR::HTRRotation(double Rx, double Ry, double Rz){
   return rotMatrix;
 }
 
-/// returns a special HTR matrix, of the form
-/// (BaseTranslation+FrameTranslation)*(BaseRotation*FrameRotation)
-/// @param theBP baseposition to use for calculation
-/// @param theFrame frame to use for calculation
+// returns a special HTR matrix, of the form
+// (BaseTranslation+FrameTranslation)*(BaseRotation*FrameRotation)
+// @param theBP baseposition to use for calculation
+// @param theFrame frame to use for calculation
 arMatrix4 arHTR::HTRTransform(htrBasePosition *theBP, 
                               htrFrame *theFrame){
   return (theFrame == NULL) ? theBP->trans * theBP->rot :
@@ -91,12 +91,12 @@ bool arHTR::attachMesh(const string& /*baseName*/,
   return n && attachMesh(n, where, withLines);
 }
 
-/// Attaches transform hierarchy to specified node in hierarchy,
-/// optionally drawing lines for bones.
-/// @param parent The node to which we will attach the HTR.
-/// @param baseName Name of the new object to insert (affects the node names).
-/// @param withLines (optional) draw lines for bones -- useful if no geometry will be 
-///		     attached to the transform hierarchy
+// Attaches transform hierarchy to specified node in hierarchy,
+// optionally drawing lines for bones.
+// @param parent The node to which we will attach the HTR.
+// @param baseName Name of the new object to insert (affects the node names).
+// @param withLines (optional) draw lines for bones -- useful if no geometry will be 
+//		     attached to the transform hierarchy
 bool arHTR::attachMesh(arGraphicsNode* parent,
                        const string& objectName,  
                        bool withLines){
@@ -139,11 +139,11 @@ bool arHTR::attachMesh(arGraphicsNode* parent,
   return true;
 }
 
-/// Gets called by attachMesh(). Recursively adds transform nodes, then children of nodes, 
-/// based on the structure of the OBJ file.
-/// @param objectName name of the new OBJ node to insert
-/// @param node name of the node to attach to the database
-/// @param withLines (optional) draw lines for bones 
+// Gets called by attachMesh(). Recursively adds transform nodes, then children of nodes, 
+// based on the structure of the OBJ file.
+// @param objectName name of the new OBJ node to insert
+// @param node name of the node to attach to the database
+// @param withLines (optional) draw lines for bones 
 void arHTR::attachChildNode(arGraphicsNode* parent,
                             const string& objectName, 
                             htrBasePosition* node, 
@@ -178,7 +178,7 @@ void arHTR::attachChildNode(arGraphicsNode* parent,
   b.position = arVector3(0,0,0);
   node->segment->boundingSphereNode->setBoundingSphere(b);
     
-  /// add geom -- adds lines to show bones (placeholder)
+  // add geom -- adds lines to show bones (placeholder)
   if (withLines) {
     node->segment->scaleNode = (arTransformNode*)
       node->segment->transformNode->newNode("transform", objectName + tempName + ".bonescale");
@@ -203,13 +203,13 @@ void arHTR::attachChildNode(arGraphicsNode* parent,
     drawable->setDrawable(DG_LINES, 1);
   }
 
-  /// recurse through children
+  // recurse through children
   for (unsigned int i=0; i<node->segment->children.size(); i++)
     attachChildNode(node->segment->preTransformNode, objectName, node->segment->children[i]->basePosition, withLines);
 }
 
-/// Calculates values for normalization matrix
-/// to translate + scales all frames to fit within unit sphere
+// Calculates values for normalization matrix
+// to translate + scales all frames to fit within unit sphere
 void arHTR::normalizeModelSize(void) {
   arVector3 minVec(10000,10000,10000), maxVec(-10000,-10000,-10000);
   htrBasePosition* rootBasePosition = NULL;
@@ -242,7 +242,7 @@ void arHTR::normalizeModelSize(void) {
   _normScaleAmount = 1./(scaleFactor*sqrt( (maxVec-_normCenter)%(maxVec-_normCenter) ));
 }
 
-/// Helper function for normalizeModelSize recursion
+// Helper function for normalizeModelSize recursion
 void arHTR::subNormalizeModelSize(arVector3 thePoint, arVector3& minVec,
 				  arVector3& maxVec, htrBasePosition* theBP) {
   unsigned int i = 0;
@@ -340,8 +340,8 @@ void arHTR::frameInterpolate(htrFrame* f,
   }
 }
 
-/// Find gaps in the HTR data, as indicated by the MotionAnalysis 9999999
-/// representation of "infinity", and linearly interpolate them away.
+// Find gaps in the HTR data, as indicated by the MotionAnalysis 9999999
+// representation of "infinity", and linearly interpolate them away.
 void arHTR::basicDataSmoothing(){
   for (unsigned int i=0; i<segmentData.size(); i++){
     for (unsigned int j=0; j<segmentData[i]->frame.size(); j++){
@@ -369,8 +369,8 @@ void arHTR::basicDataSmoothing(){
   }
 }
 
-/// returns internal index of specified segment
-/// @param segmentName name of the segment whose index we want
+// returns internal index of specified segment
+// @param segmentName name of the segment whose index we want
 int arHTR::numberOfSegment(const string& segmentName){
   for(unsigned int i=0; i<segmentData.size(); i++)
     if (segmentData[i]->segmentName == segmentName)
@@ -378,8 +378,8 @@ int arHTR::numberOfSegment(const string& segmentName){
   return 0;
 }
 
-/// returns matrix that negates all prev. transforms up hierarchy
-/// @param i HTR internal index number of segment
+// returns matrix that negates all prev. transforms up hierarchy
+// @param i HTR internal index number of segment
 arMatrix4 arHTR::inverseTransformForSegment(int i){
   htrSegmentData* theSegment = segmentData[i];
   arMatrix4 theTransform = HTRTransform(theSegment->basePosition, NULL);
@@ -393,8 +393,8 @@ arMatrix4 arHTR::inverseTransformForSegment(int i){
 
 // // Animation functions // //
 
-/// sets the frame of the .htr animation
-/// @param newFrame the frame to go to
+// sets the frame of the .htr animation
+// @param newFrame the frame to go to
 bool arHTR::setFrame(int newFrame){
   if (newFrame >= numFrames || newFrame < 0)
     return false;
@@ -413,17 +413,17 @@ bool arHTR::setFrame(int newFrame){
   return true;
 }
 
-/// goes to next frame, or returns false if at last frame
+// goes to next frame, or returns false if at last frame
 bool arHTR::nextFrame(){
   return setFrame(_currentFrame+1);
 }
 
-/// goes to previous frame, or returns false if at first frame
+// goes to previous frame, or returns false if at first frame
 bool arHTR::prevFrame(){
   return setFrame(_currentFrame-1);
 }
 
-/// sets transforms to base position (default pose)
+// sets transforms to base position (default pose)
 bool arHTR::setBasePosition(){
   for(unsigned int i=0; i<segmentData.size(); i++){
     if (segmentData[i]->transformNode){

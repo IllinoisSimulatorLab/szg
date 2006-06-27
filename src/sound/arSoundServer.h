@@ -10,7 +10,7 @@
 #include "arSyncDataServer.h"
 #include "arSoundCalling.h"
 
-/// Provides data on SZG_SOUND/{IP,port} for arSoundClients to render.
+// Provides data on SZG_SOUND/{IP,port} for arSoundClients to render.
 
 class SZG_CALL arSoundServer: public arSoundDatabase {
   // Needs assignment operator and copy constructor, for pointer members.

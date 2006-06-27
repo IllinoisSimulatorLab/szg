@@ -9,7 +9,7 @@
 #include "arSoundNode.h"
 #include "arSoundCalling.h"
 
-/// "Point of view" for a sound renderer (3D position, etc.)
+// "Point of view" for a sound renderer (3D position, etc.)
 
 class SZG_CALL arPlayerNode:public arSoundNode{
  public:

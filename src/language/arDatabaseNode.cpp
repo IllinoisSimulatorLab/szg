@@ -32,11 +32,11 @@ arDatabaseNode::~arDatabaseNode(){
   _removeAllChildren();
 }
 
-/// The node is owned by a database and has a parent (consequently it has not
-/// been deleted from the node container) OR it is owned by a database and
-/// is the root node. This call is thread-safe (indeed, it is how we determine
-/// whether or not to route our function calls through the arDatabase message
-/// stream OR through the local memory).
+// The node is owned by a database and has a parent (consequently it has not
+// been deleted from the node container) OR it is owned by a database and
+// is the root node. This call is thread-safe (indeed, it is how we determine
+// whether or not to route our function calls through the arDatabase message
+// stream OR through the local memory).
 bool arDatabaseNode::active(){
   // The root node is the unique node with ID = 0
   return getOwner() && (getParent() || getID() == 0);
@@ -73,23 +73,23 @@ void arDatabaseNode::unlock(){
   ar_mutex_unlock(&_nodeLock);
 }
 
-/// If this node has an owning database, use that as a node factory.
+// If this node has an owning database, use that as a node factory.
 arDatabaseNode* arDatabaseNode::newNode(const string& type,
 					const string& name,
                                         bool refNode){
   return active() ? getOwner()->newNode(this, type, name, refNode) : NULL;
 }
 
-/// Wrapper for newNode.  Return a ref'ed node pointer always.
+// Wrapper for newNode.  Return a ref'ed node pointer always.
 arDatabaseNode* arDatabaseNode::newNodeRef(const string& type,
 					   const string& name){
   return newNode(type, name, true);
 }
 
 
-/// Make an existing node a child of this node.
-/// Neither node can be owned by an arDatabase. 
-/// Detecting cycles is the caller's responsibility.
+// Make an existing node a child of this node.
+// Neither node can be owned by an arDatabase. 
+// Detecting cycles is the caller's responsibility.
 bool arDatabaseNode::addChild(arDatabaseNode* child){
   // Bug: should test that the new child has the right type,
   // e.g. arGraphicsNode doesn't match arSoundNode.
@@ -99,9 +99,9 @@ bool arDatabaseNode::addChild(arDatabaseNode* child){
   return _addChild(child);
 }
 
-/// Remove an existing node from the child list of this node.
-/// Return false on failure, e.g. if one of the nodes
-/// is owned by an arDatabase.
+// Remove an existing node from the child list of this node.
+// Return false on failure, e.g. if one of the nodes
+// is owned by an arDatabase.
 bool arDatabaseNode::removeChild(arDatabaseNode* child){
   if (!child || getOwner() || child->getOwner())
     return false;
@@ -169,11 +169,11 @@ void arDatabaseNode::setInfo(const string& info){
   }
 }
 
-/// We do not worry about thread-safety if the caller does not request that
-/// the returned node ptr be ref'ed. If, on the other hand, the caller does
-/// so request, thread safety gets handled by forwarding the request to
-/// the owning database (if one exists) which then calls back to us (but from 
-/// within a locked _databaseLock).
+// We do not worry about thread-safety if the caller does not request that
+// the returned node ptr be ref'ed. If, on the other hand, the caller does
+// so request, thread safety gets handled by forwarding the request to
+// the owning database (if one exists) which then calls back to us (but from 
+// within a locked _databaseLock).
 arDatabaseNode* arDatabaseNode::findNode(const string& name,
                                          bool refNode){
   if (refNode && getOwner()){
@@ -193,11 +193,11 @@ arDatabaseNode* arDatabaseNode::findNodeRef(const string& name){
   return findNode(name, true);
 }
 
-/// We do not worry about thread-safety if the caller does not request that
-/// the returned node ptr be ref'ed. If, on the other hand, the caller does
-/// so request, thread safety gets handled by forwarding the request to
-/// the owning database (if one exists) which then calls back to us (but from 
-/// within a locked _databaseLock).
+// We do not worry about thread-safety if the caller does not request that
+// the returned node ptr be ref'ed. If, on the other hand, the caller does
+// so request, thread safety gets handled by forwarding the request to
+// the owning database (if one exists) which then calls back to us (but from 
+// within a locked _databaseLock).
 arDatabaseNode* arDatabaseNode::findNodeByType(const string& nodeType,
                                                bool refNode){
   if (refNode && getOwner()){
@@ -258,14 +258,14 @@ void arDatabaseNode::initialize(arDatabase* d){
   _dLang = d->_lang;
 }
 
-/// So far only implemented for OWNED nodes.
+// So far only implemented for OWNED nodes.
 void arDatabaseNode::permuteChildren(list<arDatabaseNode*>& children){
   if (active()){
     getOwner()->permuteChildren(this, children);
   }
 }
 
-/// So far only implemented for OWNED nodes.
+// So far only implemented for OWNED nodes.
 void arDatabaseNode::permuteChildren(int number, int* children){
   if (active()){
     getOwner()->permuteChildren(this, number, children);
@@ -288,10 +288,10 @@ arDatabaseNode* arDatabaseNode::getParent() const{
   return _parent; 
 }
 
-/// A little bit unusual. To achieve thread-safety with respect to the
-/// owning database, we must have the owning database (if such exists)
-/// execute the function. If there is no owning database, just ref the
-/// parent and return it. 
+// A little bit unusual. To achieve thread-safety with respect to the
+// owning database, we must have the owning database (if such exists)
+// execute the function. If there is no owning database, just ref the
+// parent and return it. 
 arDatabaseNode* arDatabaseNode::getParentRef(){
   if (getOwner()){
     return getOwner()->getParentRef(this);
@@ -306,10 +306,10 @@ list<arDatabaseNode*> arDatabaseNode::getChildren() const{
   return _children; 
 }
 
-/// A little bit unusual. To achieve thread-safety with respect to the
-/// owning database, we must have the owning database (if such exists)
-/// execute the function. If there is no owning database, just ref the
-/// list and return it.
+// A little bit unusual. To achieve thread-safety with respect to the
+// owning database, we must have the owning database (if such exists)
+// execute the function. If there is no owning database, just ref the
+// list and return it.
 list<arDatabaseNode*> arDatabaseNode::getChildrenRef(){
   if (getOwner()){
     return getOwner()->getChildrenRef(this);
@@ -484,9 +484,9 @@ void arDatabaseNode::_dumpGenericNode(arStructuredData* theData,int IDField){
   (void)theData->dataIn(IDField,&ID,AR_INT,1);
 }
 
-/// Have not tried to make this call thread-safe (it uses getChildren instead
-/// of getChildrenRef). However, if thread-safety is desired, it will always
-/// be called (for instance) from within an arDatabase's _databaseLock.
+// Have not tried to make this call thread-safe (it uses getChildren instead
+// of getChildrenRef). However, if thread-safety is desired, it will always
+// be called (for instance) from within an arDatabase's _databaseLock.
 void arDatabaseNode::_findNode(arDatabaseNode*& result,
                                const string& name,
                                bool& success,
@@ -522,7 +522,7 @@ void arDatabaseNode::_findNode(arDatabaseNode*& result,
   }
 }
 
-/// See comments re: thread-safety above findNode.
+// See comments re: thread-safety above findNode.
 void arDatabaseNode::_findNodeByType(arDatabaseNode*& result,
                                      const string& nodeType,
                                      bool& success,
@@ -558,10 +558,10 @@ void arDatabaseNode::_findNodeByType(arDatabaseNode*& result,
   }
 }
 
-/// helps printStructure() recurse through database
-/// @param currentNodeID ID of node to print out and recurse down through
-/// @param level How far down the tree hierarchy we are
-/// @param maxLevel how far down the tree hierarchy we will go
+// helps printStructure() recurse through database
+// @param currentNodeID ID of node to print out and recurse down through
+// @param level How far down the tree hierarchy we are
+// @param maxLevel how far down the tree hierarchy we will go
 void arDatabaseNode::_printStructureOneLine(int level, int maxLevel, 
                                             ostream& s) {
 

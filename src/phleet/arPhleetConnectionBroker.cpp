@@ -11,26 +11,26 @@ arPhleetConnectionBroker::arPhleetConnectionBroker(){
   _releaseNotificationCallback = NULL;
 }
 
-/// Requests allocation of a block of ports on a given computer for use
-/// by a service. Returns an arPhleetService w/ valid field marked true
-/// and with the allocated port numbers if successful. Otherwise returns
-/// arPhleetAddress with the valid field marked false. This can fail
-/// if the named service is already being offered or if ports are not
-/// available. 
-/// @param componentID the phleet ID of the component requesting the ports
-/// @param serviceName the name of the to-be-offered service
-/// @param computer the name of the computer on which the service will
-/// be offered
-/// @param networks a slash-delimited list giving the names of the networks
-/// to which the service-hosting computer is attached
-/// @param address a slash-delimited list giving the addresses of the NICs
-/// (in the same order as the descriptive network names) the service-hosting
-/// computer has
-/// @param size the number of ports needed for the service
-/// @param firstPort the first port in the port pool of the service-hosting
-/// computer
-/// @param blockSize the size of the port pool of the service-hosting 
-/// computer (the port pool is contiguous)
+// Requests allocation of a block of ports on a given computer for use
+// by a service. Returns an arPhleetService w/ valid field marked true
+// and with the allocated port numbers if successful. Otherwise returns
+// arPhleetAddress with the valid field marked false. This can fail
+// if the named service is already being offered or if ports are not
+// available. 
+// @param componentID the phleet ID of the component requesting the ports
+// @param serviceName the name of the to-be-offered service
+// @param computer the name of the computer on which the service will
+// be offered
+// @param networks a slash-delimited list giving the names of the networks
+// to which the service-hosting computer is attached
+// @param address a slash-delimited list giving the addresses of the NICs
+// (in the same order as the descriptive network names) the service-hosting
+// computer has
+// @param size the number of ports needed for the service
+// @param firstPort the first port in the port pool of the service-hosting
+// computer
+// @param blockSize the size of the port pool of the service-hosting 
+// computer (the port pool is contiguous)
 arPhleetService arPhleetConnectionBroker::requestPorts(int componentID, 
                                                      const string& serviceName,
                                                      const string& computer, 
@@ -124,16 +124,16 @@ arPhleetService arPhleetConnectionBroker::requestPorts(int componentID,
   return tempService;
 }
 
-/// The szgserver has no way of knowing if the service will be able to
-/// bind to allocated ports (since that depends on activity on a remote
-/// computer, which activity might be unconnected to Syzygy). 
-/// Consequently, the service may fail to bind to the ports given in
-/// requestPorts(...). In that case, the service will try to bind to
-/// different ports. The ports it was previously given are returned
-/// to be released into the available pool (might just have been a temporary
-/// binding problem). And new ports are returned, as above.
-/// @param componentID the phleet ID of the component requesting the ports
-/// @param serviceName the name of the to-be-offered service
+// The szgserver has no way of knowing if the service will be able to
+// bind to allocated ports (since that depends on activity on a remote
+// computer, which activity might be unconnected to Syzygy). 
+// Consequently, the service may fail to bind to the ports given in
+// requestPorts(...). In that case, the service will try to bind to
+// different ports. The ports it was previously given are returned
+// to be released into the available pool (might just have been a temporary
+// binding problem). And new ports are returned, as above.
+// @param componentID the phleet ID of the component requesting the ports
+// @param serviceName the name of the to-be-offered service
 arPhleetService arPhleetConnectionBroker::retryPorts(
     int componentID, const string& serviceName){
   ar_mutex_lock(&_brokerLock);
@@ -206,16 +206,16 @@ LAbort:
   return i->second;
 }
 
-/// The szgserver does not know that the service has successfully bound to
-/// the enumerated ports until this method has been executed. When this
-/// method is invoked, the service is registered as live with the szgserver.
-/// NOTE: this handshake prevents a race condition whereby the szgserver
-/// might assign a service some ports and then direct a client to that
-/// location BEFORE the service has bound to the ports. Returns true if
-/// this process succeeds and false otherwise.
-/// @param componentID the phleet ID of the component confirming it has bound
-/// to the ports.
-/// @param serviceName the name of the offered service
+// The szgserver does not know that the service has successfully bound to
+// the enumerated ports until this method has been executed. When this
+// method is invoked, the service is registered as live with the szgserver.
+// NOTE: this handshake prevents a race condition whereby the szgserver
+// might assign a service some ports and then direct a client to that
+// location BEFORE the service has bound to the ports. Returns true if
+// this process succeeds and false otherwise.
+// @param componentID the phleet ID of the component confirming it has bound
+// to the ports.
+// @param serviceName the name of the offered service
 bool arPhleetConnectionBroker::confirmPorts(int componentID, 
                                             const string& serviceName){
   ar_mutex_lock(&_brokerLock);
@@ -274,12 +274,12 @@ bool arPhleetConnectionBroker::confirmPorts(int componentID,
   return true;
 }
 
-/// If a service with the given name exists, either on the
-/// temporary list or on the used list, return the
-/// "info" string managed by that service. Otherwise return "".
-/// BUG: maybe at some point it would be better to return FAILURE 
-/// (since the empty string is also a valid response!)
-/// @param serviceName The full name of the service.
+// If a service with the given name exists, either on the
+// temporary list or on the used list, return the
+// "info" string managed by that service. Otherwise return "".
+// BUG: maybe at some point it would be better to return FAILURE 
+// (since the empty string is also a valid response!)
+// @param serviceName The full name of the service.
 string arPhleetConnectionBroker::getServiceInfo(const string& serviceName){
   string result = string("");
   // Must lock the data structure.
@@ -303,15 +303,15 @@ string arPhleetConnectionBroker::getServiceInfo(const string& serviceName){
   return result;
 }
 
-/// Attempt to set the "info" for a service, as specified by the given
-/// (full) service name. This will fail if the service in question does not
-/// exist (either on the temporary or used lists) or if the service is not
-/// owned by the component with the given ID. It succeeds otherwise and
-/// sets the "info" field for the service, returning true.
-/// @param componentID The ID of the component requesting the change.
-/// @param serviceName The full name of the service.
-/// @param info The new info string to be associated with the service in the
-///  event of success.
+// Attempt to set the "info" for a service, as specified by the given
+// (full) service name. This will fail if the service in question does not
+// exist (either on the temporary or used lists) or if the service is not
+// owned by the component with the given ID. It succeeds otherwise and
+// sets the "info" field for the service, returning true.
+// @param componentID The ID of the component requesting the change.
+// @param serviceName The full name of the service.
+// @param info The new info string to be associated with the service in the
+//  event of success.
 bool arPhleetConnectionBroker::setServiceInfo(int componentID, 
                                               const string& serviceName,
                                               const string& info){
@@ -350,9 +350,9 @@ bool arPhleetConnectionBroker::setServiceInfo(int componentID,
   return false;
 }
 
-/// Used to determine if a service is, at this moment, either on the
-/// temporary list or the used list. If so, return true. Otherwise, false. 
-/// @param serviceName Name of the service to be checked
+// Used to determine if a service is, at this moment, either on the
+// temporary list or the used list. If so, return true. Otherwise, false. 
+// @param serviceName Name of the service to be checked
 bool arPhleetConnectionBroker::checkService(const string& serviceName){
   bool result = false;
   ar_mutex_lock(&_brokerLock);
@@ -370,26 +370,26 @@ bool arPhleetConnectionBroker::checkService(const string& serviceName){
   return result;
 }
 
-/// Used when a component requests a service. First, check to see if a service
-/// with that name has been offered. Second, see if one of the networks
-/// on which the component can communicate is compatible with one on which
-/// the service can communicate. If so, generate an arPhleetAddress w/ valid
-/// field marked true containing this information. If not, return an
-/// arPhleetAddress with valid field marked false. NOTE: in the case of
-/// failure, the connection broker actually remembers the request! The
-/// service might, for instance, be offered again.
-/// @param componentID the phleet ID of the component requesting the service
-/// @param computer the name of the computer on which the component runs
-/// @param match the "async rpc" message tag... we need to save this in
-/// the service request area so that we can make responses with matching
-/// tags
-/// @param serviceName the name of the service
-/// @param networks a slash-delimited list containing the names of the 
-/// networks (in order of descending preference) on which the component would
-/// like to communicate.
-/// @param async if set to true and we can't find the service, then
-/// the request is registered on the pending connection queue for later
-/// use by the szgserver via the getPendingRequests(...) method
+// Used when a component requests a service. First, check to see if a service
+// with that name has been offered. Second, see if one of the networks
+// on which the component can communicate is compatible with one on which
+// the service can communicate. If so, generate an arPhleetAddress w/ valid
+// field marked true containing this information. If not, return an
+// arPhleetAddress with valid field marked false. NOTE: in the case of
+// failure, the connection broker actually remembers the request! The
+// service might, for instance, be offered again.
+// @param componentID the phleet ID of the component requesting the service
+// @param computer the name of the computer on which the component runs
+// @param match the "async rpc" message tag... we need to save this in
+// the service request area so that we can make responses with matching
+// tags
+// @param serviceName the name of the service
+// @param networks a slash-delimited list containing the names of the 
+// networks (in order of descending preference) on which the component would
+// like to communicate.
+// @param async if set to true and we can't find the service, then
+// the request is registered on the pending connection queue for later
+// use by the szgserver via the getPendingRequests(...) method
 arPhleetAddress arPhleetConnectionBroker::requestService(int    componentID,
 						 const string& computer,
                                                  int    match,
@@ -457,13 +457,13 @@ LFound:
   return result;
 }
 
-/// When a client makes a request for a service's address but no service of
-/// that name is currently offered, the request is put on a pending queue.
-/// When a service is offered, the szgserver must be able to get a list
-/// of component IDs that are have requested this service, so that they can
-/// be notified of its location. This method provides that list and removes
-/// the record of the pending requests from the broker's lists.
-/// @param serviceName the name of the service whose pending requests we want
+// When a client makes a request for a service's address but no service of
+// that name is currently offered, the request is put on a pending queue.
+// When a service is offered, the szgserver must be able to get a list
+// of component IDs that are have requested this service, so that they can
+// be notified of its location. This method provides that list and removes
+// the record of the pending requests from the broker's lists.
+// @param serviceName the name of the service whose pending requests we want
 SZGRequestList arPhleetConnectionBroker::getPendingRequests
                                            (const string& serviceName){
   SZGRequestList result;
@@ -486,7 +486,7 @@ SZGRequestList arPhleetConnectionBroker::getPendingRequests
   return result;
 }
 
-/// Sometimes we actually want all pending service requests
+// Sometimes we actually want all pending service requests
 SZGRequestList arPhleetConnectionBroker::getPendingRequests(){
   // TODO TODO TODO TODO TODO TODO TODO TODO
   // Boy, there sure is ALOT of unnecessary copying here
@@ -501,9 +501,9 @@ SZGRequestList arPhleetConnectionBroker::getPendingRequests(){
   return result;
 }
 
-/// Returns a ;-delimited list containing all service names
-/// (because service names may contain '/'). 
-/// In other words, arSlashString's can't nest!
+// Returns a ;-delimited list containing all service names
+// (because service names may contain '/'). 
+// In other words, arSlashString's can't nest!
 string arPhleetConnectionBroker::getServiceNames(){
   arSemicolonString result;
   ar_mutex_lock(&_brokerLock);
@@ -515,9 +515,9 @@ string arPhleetConnectionBroker::getServiceNames(){
   return result;
 }
 
-/// Returns a slash-delimited list containing all computers on which
-/// services are running, in the same order as the service names returned in 
-/// getServiceNames(...)
+// Returns a slash-delimited list containing all computers on which
+// services are running, in the same order as the service names returned in 
+// getServiceNames(...)
 arSlashString arPhleetConnectionBroker::getServiceComputers(){
   arSlashString result;
   ar_mutex_lock(&_brokerLock);
@@ -529,16 +529,16 @@ arSlashString arPhleetConnectionBroker::getServiceComputers(){
   return result;
 }
 
-/// Returns the number of services running.
-/// @param IDs a pointer reference. This is overwritten by internally
-/// allocated memory, containing the component IDs of the various services,
-/// arranged in the same order as getServiceNames(...)
+// Returns the number of services running.
+// @param IDs a pointer reference. This is overwritten by internally
+// allocated memory, containing the component IDs of the various services,
+// arranged in the same order as getServiceNames(...)
 int arPhleetConnectionBroker::getServiceComponents(int*& IDs){
   int result = 0;
   ar_mutex_lock(&_brokerLock);
   SZGServiceData::iterator i;
   // lame 2 pass algorithm
-  /// \todo STL length method here!
+  // todo: STL length method here!
   for (i=_usedServices.begin(); i!=_usedServices.end(); i++)
     result++;
   IDs = new int[result];
@@ -550,9 +550,9 @@ int arPhleetConnectionBroker::getServiceComponents(int*& IDs){
   return result;
 }
 
-/// Given a particular service name, this returns the owning component ID,
-/// if such exists, and otherwise -1
-/// @param serviceName the name of the service in which we are interested
+// Given a particular service name, this returns the owning component ID,
+// if such exists, and otherwise -1
+// @param serviceName the name of the service in which we are interested
 int arPhleetConnectionBroker::getServiceComponentID(const string& serviceName){
   int result = -1;
   ar_mutex_lock(&_brokerLock);
@@ -564,9 +564,9 @@ int arPhleetConnectionBroker::getServiceComponentID(const string& serviceName){
   return result;
 }
 
-/// When the particular service name has been released, notify
-/// the given component. Pass in the name of the
-/// host on which the component runs, since this call might create a component record.
+// When the particular service name has been released, notify
+// the given component. Pass in the name of the
+// host on which the component runs, since this call might create a component record.
 void arPhleetConnectionBroker::registerReleaseNotification(int componentID,
 						   int match,
                                                    const string& computer,
@@ -596,22 +596,21 @@ void arPhleetConnectionBroker::registerReleaseNotification(int componentID,
   ar_mutex_unlock(&_brokerLock);
 }
 
-/// Called whenever a service is removed from the "used" pool OR
-/// removed from the temporary pool and not promoted to "used". Some
-/// clients may wish to be notified when a service suddenly becomes
-/// available, for app launching.
-///
-/// The only way a service is currently removed is via the
-/// removeComponent method, but, in the future, a service might very
-/// well disappear because of an explicit shutdown, without its
-/// component being removed. NOTE: there might be locking problems
-/// in the szgserver in this case. Currently, a special lock situation
-/// protects our callback _releaseNotificationCallback because it is only
-/// called when a client is removed from the database.
-/// TODO TODO TODO TODO TODO TODO
+// Called whenever a service is removed from the "used" pool OR
+// removed from the temporary pool and not promoted to "used". Some
+// clients may wish to be notified when a service suddenly becomes
+// available, for app launching.
+//
+// The only way a service is currently removed is via the
+// removeComponent method, but, in the future, a service might very
+// well disappear because of an explicit shutdown, without its
+// component being removed. NOTE: there might be locking problems
+// in the szgserver in this case. Currently, a special lock situation
+// protects our callback _releaseNotificationCallback because it is only
+// called when a client is removed from the database.
+// TODO TODO TODO TODO TODO TODO
 void arPhleetConnectionBroker::_removeService(const string& serviceName){
-  // NOTE: this method MUST be called from within the scope of
-  // a _brokerLock
+  // Must be called from within the scope of a _brokerLock
   SZGServiceData::iterator i = _usedServices.find(serviceName);
   if (i == _usedServices.end()){
     // perhaps this is on the list of temporary services?
@@ -644,9 +643,9 @@ void arPhleetConnectionBroker::_removeService(const string& serviceName){
   _usedServices.erase(serviceName);
 }
 
-/// Used when a component exits the system, for clean-up. Necessary since,
-/// for instance, that component might have been offering a service, which
-/// now needs to be removed from the internal table of active services.
+// Used when a component exits the system, for clean-up. Necessary since,
+// for instance, that component might have been offering a service, which
+// now needs to be removed from the internal table of active services.
 void arPhleetConnectionBroker::removeComponent(int componentID){
   ar_mutex_lock(&_brokerLock);
   // remove any service requests with this component ID
@@ -746,8 +745,8 @@ void arPhleetConnectionBroker::removeComponent(int componentID){
   ar_mutex_unlock(&_brokerLock);
 }
 
-/// print out the entire state of the connection broker. extremely verbose,
-/// especially for larger systems.
+// print out the entire state of the connection broker. extremely verbose,
+// especially for larger systems.
 void arPhleetConnectionBroker::print(){
   list<int>::iterator nn;
   list<string>::iterator mm;

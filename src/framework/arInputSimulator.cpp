@@ -133,14 +133,14 @@ arInputSimulator::~arInputSimulator(){
   _newButtonEvents.clear();
 }
 
-/// Connect to an arInputNode, to
-/// communicate with other entities in the system.
+// Connect to an arInputNode, to
+// communicate with other entities in the system.
 void arInputSimulator::registerInputNode(arInputNode* node){
   node->addInputSource(&_driver, false);
 }
 
-/// Draw current state. This can be used as a
-/// stand-alone display, like in inputsimulator, or as an overlay.
+// Draw current state. This can be used as a
+// stand-alone display, like in inputsimulator, or as an overlay.
 void arInputSimulator::draw() const {
 
   glMatrixMode(GL_PROJECTION);
@@ -171,8 +171,8 @@ void arInputSimulator::draw() const {
   _drawTextState();
 }
 
-/// Draws the display... but with a nice mode of composition, so that it can
-/// be used as an overlay.  Not const because pre,postComposition can't be.
+// Draws the display... but with a nice mode of composition, so that it can
+// be used as an overlay.  Not const because pre,postComposition can't be.
 void arInputSimulator::drawWithComposition() {
   // The simulated input device display is drawn in the lower right corner.
   preComposition(0.66, 0, 0.33, 0.33);
@@ -180,8 +180,8 @@ void arInputSimulator::drawWithComposition() {
   postComposition();
 }
 
-/// Called from time to time to post the current state of the simulated
-/// device to any arInputNode that has been connected.
+// Called from time to time to post the current state of the simulated
+// device to any arInputNode that has been connected.
 void arInputSimulator::advance(){
   // We should send only data that changed,
   // but with an exception to send everything every few seconds for
@@ -210,7 +210,7 @@ void arInputSimulator::advance(){
   _driver.sendQueue();
 }
 
-/// Process keyboard events to drive the simulated interface.
+// Process keyboard events to drive the simulated interface.
 void arInputSimulator::keyboard(unsigned char key, int, int x, int y) {
   // change the control state
   _mousePosition[0] = x;
@@ -283,7 +283,7 @@ LResetWand:
   }
 }
 
-/// Process mouse button events.
+// Process mouse button events.
 void arInputSimulator::mouseButton(int button, int state, int x, int y){
   _mousePosition[0] = x;
   _mousePosition[1] = y;
@@ -343,7 +343,7 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
   }
 }
 
-/// Process mouse movement events to drive the simulated interface.
+// Process mouse movement events to drive the simulated interface.
 void arInputSimulator::mousePosition(int x, int y){
   // Ensure that _mousePosition has been initialized before using it as the
   // 'previous' mouse position.  This is wrong, in the rare case

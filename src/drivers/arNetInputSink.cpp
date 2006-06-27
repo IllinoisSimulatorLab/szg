@@ -25,9 +25,9 @@ arNetInputSink::arNetInputSink() :
   _dataServer.smallPacketOptimize(true);
 }
 
-/// Input devices in phleet offer services based on slots.
-/// Slot x corresponds to service SZG_INPUTx, for nonnegative x.
-/// @param slot the slot in question
+// Input devices in phleet offer services based on slots.
+// Slot x corresponds to service SZG_INPUTx, for nonnegative x.
+// @param slot the slot in question
 bool arNetInputSink::setSlot(int slot){
   if (slot<0){
     ar_log_warning() << "arNetInputSink ignoring negative input device slot.\n";
@@ -72,7 +72,7 @@ bool arNetInputSink::start(){
   }
   _dataServer.setPort(port);
   _dataServer.setInterface("INADDR_ANY");
-  //// \todo use better "< 10" code copypasted already elsewhere
+  // todo: use better "< 10" code copypasted already elsewhere
   int trials = 0;
   bool success = false;
   while (trials < 10 && !success){

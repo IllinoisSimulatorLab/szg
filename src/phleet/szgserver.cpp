@@ -157,10 +157,10 @@ void SZGactivateUser(const string& userName){
 // functions dealing with manipulating the message databases
 //********************************************************************
 
-/// A helper function for the larger message database manipulators.
-/// This inserts a given message ID into the list maintained for a given
-/// component (which is the list of message IDs to which the component is
-/// expected to respond).
+// A helper function for the larger message database manipulators.
+// This inserts a given message ID into the list maintained for a given
+// component (which is the list of message IDs to which the component is
+// expected to respond).
 void SZGinsertMessageIDIntoComponentsList(int componentID, int messageID){
   SZGcomponentMessageOwnershipDatabase::iterator
     i(componentMessageOwnershipDatabase.find(componentID));
@@ -177,10 +177,10 @@ void SZGinsertMessageIDIntoComponentsList(int componentID, int messageID){
   }
 }
 
-/// A helper function for the larger message database manipulators.
-/// Removes the given message ID from the list maintained for the
-/// given component (which is the list of message IDs to which the component
-/// is expected to respond).
+// A helper function for the larger message database manipulators.
+// Removes the given message ID from the list maintained for the
+// given component (which is the list of message IDs to which the component
+// is expected to respond).
 void SZGremoveMessageIDFromComponentsList(int componentID, int messageID){
   SZGcomponentMessageOwnershipDatabase::iterator
     i(componentMessageOwnershipDatabase.find(componentID));
@@ -193,9 +193,9 @@ void SZGremoveMessageIDFromComponentsList(int componentID, int messageID){
   }
 }
 
-/// A helper function for the larger message database manipulators.
-/// Adds the given key to the list maintained for the given component
-/// (which is the list of keys on which the component has initiated trades)
+// A helper function for the larger message database manipulators.
+// Adds the given key to the list maintained for the given component
+// (which is the list of keys on which the component has initiated trades)
 void SZGinsertKeyIntoComponentsList(int componentID, const string& key){
   SZGcomponentTradingOwnershipDatabase::iterator
     i(componentTradingOwnershipDatabase.find(componentID));
@@ -212,9 +212,9 @@ void SZGinsertKeyIntoComponentsList(int componentID, const string& key){
   }
 }
 
-/// Helper function for the message database manipulators.
-/// @param componentID A component
-/// @param key Key to be removed from the list of keys on which the component has initiated trades
+// Helper function for the message database manipulators.
+// @param componentID A component
+// @param key Key to be removed from the list of keys on which the component has initiated trades
 void SZGremoveKeyFromComponentsList(int componentID, const string& key){
   SZGcomponentTradingOwnershipDatabase::iterator
     i(componentTradingOwnershipDatabase.find(componentID));
@@ -226,12 +226,12 @@ void SZGremoveKeyFromComponentsList(int componentID, const string& key){
   }
 }
 
-/// Add a message to the internal database storage.
-/// @param messageID ID of the message
-/// @param componentOwnerID ID of the component which has the right
-/// to respond to this message
-/// @param componentOriginatorID ID of the component which sent the
-/// message
+// Add a message to the internal database storage.
+// @param messageID ID of the message
+// @param componentOwnerID ID of the component which has the right
+// to respond to this message
+// @param componentOriginatorID ID of the component which sent the
+// message
 void SZGaddMessageToDatabase(int messageID, 
                              int componentOwnerID,
                              int componentOriginatorID,
@@ -247,27 +247,27 @@ void SZGaddMessageToDatabase(int messageID,
   SZGinsertMessageIDIntoComponentsList(componentOwnerID, messageID);
 }
 
-/// Return the ID of the component that owns this message
-/// @param messageID ID of the message
+// Return the ID of the component that owns this message
+// @param messageID ID of the message
 int SZGgetMessageOwnerID(int messageID){
   SZGmessageOwnershipDatabase::iterator
     i(messageOwnershipDatabase.find(messageID));
   return (i == messageOwnershipDatabase.end()) ? -1 : i->second.messageOwner;
 }
 
-/// Return the match corresponding to the original message. Helpful when
-/// we are going to send a response back to the originator. It that case,
-/// we need to fill in the original match so that the async stuff on the
-/// arSZGClient side can route the messages correctly.
+// Return the match corresponding to the original message. Helpful when
+// we are going to send a response back to the originator. It that case,
+// we need to fill in the original match so that the async stuff on the
+// arSZGClient side can route the messages correctly.
 int SZGgetMessageMatch(int messageID){
   SZGmessageOwnershipDatabase::iterator
     i(messageOwnershipDatabase.find(messageID));
   return (i == messageOwnershipDatabase.end()) ? -1 : i->second.match;
 } 
 
-/// Return the ID of the component that originated this message
-/// (and to which the response needs to be sent).
-/// @param messageID ID of the message
+// Return the ID of the component that originated this message
+// (and to which the response needs to be sent).
+// @param messageID ID of the message
 int SZGgetMessageOriginatorID(int messageID){
   SZGmessageOwnershipDatabase::iterator
     i(messageOwnershipDatabase.find(messageID));
@@ -275,11 +275,11 @@ int SZGgetMessageOriginatorID(int messageID){
          ? -1 : i->second.responseDestination ;
 }
 
-/// Remove the message with the given ID from the database.
-/// Since a message is entered in the database only when the sender requests
-/// a response, this function is used when
-/// a response to a message is received at the szgserver.
-/// @param messageID ID of the message
+// Remove the message with the given ID from the database.
+// Since a message is entered in the database only when the sender requests
+// a response, this function is used when
+// a response to a message is received at the szgserver.
+// @param messageID ID of the message
 bool SZGremoveMessageFromDatabase(int messageID){
   SZGmessageOwnershipDatabase::iterator
     i(messageOwnershipDatabase.find(messageID));
@@ -296,15 +296,15 @@ bool SZGremoveMessageFromDatabase(int messageID){
   return true;
 }
 
-/// Initiate an "ownership trade", e.g.
-/// when szgd wants to let the launched executable respond to
-/// the "dex" command that launched it.
-/// @param key Value by which the trade is indexed
-/// @param messageID ID of the message
-/// @param requestingComponentID ID of the component requesting that
-/// the trade be posted
-/// @param tradingMatch this is used to respond to the component that
-/// initiated the trade when said trade has been completed.
+// Initiate an "ownership trade", e.g.
+// when szgd wants to let the launched executable respond to
+// the "dex" command that launched it.
+// @param key Value by which the trade is indexed
+// @param messageID ID of the message
+// @param requestingComponentID ID of the component requesting that
+// the trade be posted
+// @param tradingMatch this is used to respond to the component that
+// initiated the trade when said trade has been completed.
 bool SZGaddMessageTradeToDatabase(string key, 
                                   int messageID,
 				  int requestingComponentID,
@@ -345,11 +345,11 @@ bool SZGaddMessageTradeToDatabase(string key,
   return true;
 }
 
-/// Complete a message ownership trade.  Return false on error.
-/// @param key Value on which the trade was posted
-/// @param newOwnerID ID of the component which will henceforth own
-/// the right to respond to the message
-/// @param message Gives the various attributes of the phleet message
+// Complete a message ownership trade.  Return false on error.
+// @param key Value on which the trade was posted
+// @param newOwnerID ID of the component which will henceforth own
+// the right to respond to the message
+// @param message Gives the various attributes of the phleet message
 bool SZGmessageRequest(const string& key, int newOwnerID,
                        arPhleetMessage& message){
   SZGmessageTradingDatabase::iterator j(messageTradingDatabase.find(key));
@@ -382,12 +382,12 @@ bool SZGmessageRequest(const string& key, int newOwnerID,
   return true;
 }
 
-/// Revoke a message trade that has yet to be completed, e.g.
-/// when szgd fails to launch an executable, in which
-/// case szgd wants to respond directly to the "dex" command.
-/// @param key Value on which the message trade was posted
-/// @param revokerID ID of the component that is requesting the trade
-/// revocation
+// Revoke a message trade that has yet to be completed, e.g.
+// when szgd fails to launch an executable, in which
+// case szgd wants to respond directly to the "dex" command.
+// @param key Value on which the message trade was posted
+// @param revokerID ID of the component that is requesting the trade
+// revocation
 bool SZGrevokeMessageTrade(const string& key, int revokerID){
   SZGmessageTradingDatabase::iterator j(messageTradingDatabase.find(key));
   // is there a message with this key?
@@ -417,9 +417,9 @@ bool SZGrevokeMessageTrade(const string& key, int revokerID){
   return true;
 }
 
-/// Get the message info, if such exists, from the trading database.
-/// Return whether or not a trade exists on that key. If so, fill in the
-/// passed message object with the data.
+// Get the message info, if such exists, from the trading database.
+// Return whether or not a trade exists on that key. If so, fill in the
+// passed message object with the data.
 bool SZGgetMessageTradeInfo(const string& key, arPhleetMessage& message){
   SZGmessageTradingDatabase::iterator j(messageTradingDatabase.find(key));
   // is there a message with this key?
@@ -434,12 +434,12 @@ bool SZGgetMessageTradeInfo(const string& key, arPhleetMessage& message){
 // funtions dealing with the locks
 //********************************************************************
 
-/// Request a named lock.
-/// Returns true iff no errors occur (the lock is granted).
-/// @param lockName Name of the lock.
-/// @param id ID of component requesting the lock
-/// @param ownerID Set to -1 if the lock was not previously held,
-/// otherwise set to the ID of the holding component.
+// Request a named lock.
+// Returns true iff no errors occur (the lock is granted).
+// @param lockName Name of the lock.
+// @param id ID of component requesting the lock
+// @param ownerID Set to -1 if the lock was not previously held,
+// otherwise set to the ID of the holding component.
 bool SZGgetLock(const string& lockName, int id, int& ownerID){
   SZGlockOwnershipDatabase::iterator
     i(lockOwnershipDatabase.find(lockName));
@@ -473,7 +473,7 @@ bool SZGgetLock(const string& lockName, int id, int& ownerID){
   return true;
 }
 
-/// Returns true if the lock is currently held and false otherwise
+// Returns true if the lock is currently held and false otherwise
 bool SZGcheckLock(const string& lockName){
   SZGlockOwnershipDatabase::iterator i(lockOwnershipDatabase.find(lockName));
   if (i == lockOwnershipDatabase.end()){
@@ -482,11 +482,11 @@ bool SZGcheckLock(const string& lockName){
   return true;
 }
 
-/// Enters a request for notification when a given lock, currently held,
-/// is released.
-/// BUG BUG BUG BUG BUG BUG BUG: If a given component asks for multiple
-///  notifications on the same lock name, then it will receive only the
-///  first!
+// Enters a request for notification when a given lock, currently held,
+// is released.
+// BUG BUG BUG BUG BUG BUG BUG: If a given component asks for multiple
+//  notifications on the same lock name, then it will receive only the
+//  first!
 void SZGrequestLockNotification(int componentID, string lockName,
                                 int match){
   arPhleetNotification notification;
@@ -522,11 +522,11 @@ void SZGrequestLockNotification(int componentID, string lockName,
   }
 }
 
-/// Sends the lock release notifications, if any. NOTE: this is ALWAYS called
-/// upon lock release. Because of some technicalities about the way we use
-/// call, we need to be able to use the data server's regular methods 
-/// (in the case of serverLock = false) or data server's "no lock" methods
-/// (in the case of serverLock = true).
+// Sends the lock release notifications, if any. NOTE: this is ALWAYS called
+// upon lock release. Because of some technicalities about the way we use
+// call, we need to be able to use the data server's regular methods 
+// (in the case of serverLock = false) or data server's "no lock" methods
+// (in the case of serverLock = true).
 void SZGsendLockNotification(string lockName, bool serverLock){
   SZGlockNotificationDatabase::iterator i
     = lockNotificationDatabase.find(lockName);
@@ -590,8 +590,8 @@ void SZGsendLockNotification(string lockName, bool serverLock){
   }
 }
 
-/// A component is going away. Remove any outstanding lock notification
-/// requests from internal storage.
+// A component is going away. Remove any outstanding lock notification
+// requests from internal storage.
 void SZGremoveComponentLockNotifications(int componentID){
   SZGlockNotificationOwnershipDatabase::iterator i
     = lockNotificationOwnershipDatabase.find(componentID);
@@ -629,14 +629,14 @@ void SZGremoveComponentLockNotifications(int componentID){
   }
 }
 
-/// Release a named lock.
-/// Returns false on error (component doesn't own the lock).
-/// NOTE: this is only called when a component explcitly requests
-/// a lock be released. Consequently, we call a version of
-/// SZGsendLockNotification(...) that uses the normal methods of arDataServer
-/// (i.e. NOT the "no lock" methods).
-/// @param lockName Name of the lock.
-/// @param id ID of component releasing the lock
+// Release a named lock.
+// Returns false on error (component doesn't own the lock).
+// NOTE: this is only called when a component explcitly requests
+// a lock be released. Consequently, we call a version of
+// SZGsendLockNotification(...) that uses the normal methods of arDataServer
+// (i.e. NOT the "no lock" methods).
+// @param lockName Name of the lock.
+// @param id ID of component releasing the lock
 bool SZGreleaseLock(const string& lockName, int id){
   SZGlockOwnershipDatabase::iterator
     i(lockOwnershipDatabase.find(lockName));
@@ -676,11 +676,11 @@ bool SZGreleaseLock(const string& lockName, int id){
   return true;
 }
 
-/// Release all locks held by one component. NOTE: this method is ONLY
-/// called when a component is removed from the database. Hence, we
-/// call a version of SZGsendLockNotification(...) that uses the data
-/// server's "no lock" methods.
-/// @param id ID of component releasing the locks
+// Release all locks held by one component. NOTE: this method is ONLY
+// called when a component is removed from the database. Hence, we
+// call a version of SZGsendLockNotification(...) that uses the data
+// server's "no lock" methods.
+// @param id ID of component releasing the locks
 void SZGreleaseLocksOwnedByComponent(int id){
   // (Too late to call dataServer->getSocketLabel(id).)
   // Get the lockList.
@@ -712,8 +712,8 @@ void SZGreleaseLocksOwnedByComponent(int id){
 // NOTIFICATIONS!
 //********************************************************************
 
-/// Enters a request for notification when a particular component goes
-/// away. This is useful for efficient notification of a kill's success.
+// Enters a request for notification when a particular component goes
+// away. This is useful for efficient notification of a kill's success.
 void SZGrequestKillNotification(int requestingComponentID, 
                                 int observedComponentID,
                                 int match){
@@ -759,11 +759,11 @@ void SZGrequestKillNotification(int requestingComponentID,
   }
 }
 
-/// Sends the kill release notifications, if any. This is ALWAYS called when
-/// the component exits. Because of some technicalities about the way we use
-/// call, we need to be able to use the data server's regular methods 
-/// (in the case of serverLock = false) or data server's "no lock" methods
-/// (in the case of serverLock = true).
+// Sends the kill release notifications, if any. This is ALWAYS called when
+// the component exits. Because of some technicalities about the way we use
+// call, we need to be able to use the data server's regular methods 
+// (in the case of serverLock = false) or data server's "no lock" methods
+// (in the case of serverLock = true).
 void SZGsendKillNotification(int observedComponentID, bool serverLock){
   SZGkillNotificationDatabase::iterator i
     = killNotificationDatabase.find(observedComponentID);
@@ -838,8 +838,8 @@ void SZGsendKillNotification(int observedComponentID, bool serverLock){
   }
 }
 
-/// A component is going away. Remove any outstanding kill notification
-/// requests that it owns from internal storage.
+// A component is going away. Remove any outstanding kill notification
+// requests that it owns from internal storage.
 void SZGremoveComponentKillNotifications(int requestingComponentID){
   SZGkillNotificationOwnershipDatabase::iterator i
     = killNotificationOwnershipDatabase.find(requestingComponentID);
@@ -888,12 +888,12 @@ void SZGremoveComponentKillNotifications(int requestingComponentID){
 // functions dealing with component management
 //********************************************************************
 
-/// The connection broker uses this callback to send the notifications of
-/// service release to clients that have requested such. NOTE: this is OK
-/// ONLY because it is called (indirectly) from SZGremoveComponentFromDatabase
-/// (THIS IS RELATED TO THE CONNECTION BROKER... AND EXISTS IN CALLBACK
-///  FORM BECAUSE THE CONNECTION BROKER CANNOT ITSELF DO EVERYTHING THAT IS
-///  NECESSARY TO RELEASE A COMPONENT WHEN IT GOES AWAY)
+// The connection broker uses this callback to send the notifications of
+// service release to clients that have requested such. NOTE: this is OK
+// ONLY because it is called (indirectly) from SZGremoveComponentFromDatabase
+// (THIS IS RELATED TO THE CONNECTION BROKER... AND EXISTS IN CALLBACK
+//  FORM BECAUSE THE CONNECTION BROKER CANNOT ITSELF DO EVERYTHING THAT IS
+//  NECESSARY TO RELEASE A COMPONENT WHEN IT GOES AWAY)
 void SZGreleaseNotificationCallback(int componentID,
 				    int match,
                                     const string& serviceName){
@@ -914,10 +914,10 @@ void SZGreleaseNotificationCallback(int componentID,
   }
 }
 
-/// Clean up when a socket is removed from the database.  If a component dies
-/// before replying to a message, szgserver itself must reply (with
-/// SZG_FAILURE).  Also clean up message trades, locks, and services offered.
-/// @param componentID ID of component which should have sent replies
+// Clean up when a socket is removed from the database.  If a component dies
+// before replying to a message, szgserver itself must reply (with
+// SZG_FAILURE).  Also clean up message trades, locks, and services offered.
+// @param componentID ID of component which should have sent replies
 void SZGremoveComponentFromDatabase(int componentID){
   // FOR THE CURIOUS: WHY ARE THERE sendDataNoLock's in here? Because this
   // is called from the automatic remove socket from data server call,
@@ -1035,29 +1035,31 @@ void SZGremoveComponentFromDatabase(int componentID){
 // Misc functions
 //********************************************************************
 
-/// This thread listens on port 4620 for discovery requests (as via dhunt
-/// or dconnect) and responds with a broadcast "I am here" packet on
-/// port 4620. A positive feedback loop is avoided by including having
-/// a flag that indicates whether this is a discovery request or a response.
-///
-/// What do these packets look like?
-///
-/// discovery packet (size 200 bytes)
-/// bytes 0-3: A version number. Allows us to reject incompatible packets.
-/// byte 4: Is this discovery or response? 0 for discovery, 1 for response.
-/// bytes 4-131: The requested server name, NULL-terminated string.
-/// bytes 132-199: All 0's
-/// 
-/// response packet (size 200 bytes)
-/// bytes 0-3: A version number. Allows us to reject incompatible packets.
-/// byte 4: Is this discovery or response? 0 for discovery 1 for response.
-/// bytes 5-131: Our name, NULL-terminated string.
-/// bytes 132-163: The interface upon which the remote whatnot should
-///   connect, NULL-terminated string.
-/// bytes 164-199: The port upon which the remote whatnot should connect,
-///   NULL-terminated string. (yes, this is way more space than necessary).
-///   (in fact, all trailing zeros)
-/// @param pv Pointer to a bool that, when set to false, aborts szgserver.
+/*
+This thread listens on port 4620 for discovery requests (as via dhunt
+or dconnect) and responds with a broadcast "I am here" packet on
+port 4620. A positive feedback loop is avoided by including having
+a flag that indicates whether this is a discovery request or a response.
+
+What do these packets look like?
+
+discovery packet (size 200 bytes)
+bytes 0-3: A version number. Allows us to reject incompatible packets.
+byte 4: Is this discovery or response? 0 for discovery, 1 for response.
+bytes 4-131: The requested server name, NULL-terminated string.
+bytes 132-199: All 0's
+
+response packet (size 200 bytes)
+bytes 0-3: A version number. Allows us to reject incompatible packets.
+byte 4: Is this discovery or response? 0 for discovery 1 for response.
+bytes 5-131: Our name, NULL-terminated string.
+bytes 132-163: The interface upon which the remote whatnot should
+  connect, NULL-terminated string.
+bytes 164-199: The port upon which the remote whatnot should connect,
+  NULL-terminated string. (yes, this is way more space than necessary).
+  (in fact, all trailing zeros)
+@param pv Pointer to a bool that, when set to false, aborts szgserver.
+*/
 void serverDiscoveryFunction(void* pv){
   char buffer[200];
   ar_stringToBuffer(serverInterface, buffer, sizeof(buffer));
@@ -1150,10 +1152,10 @@ void serverDiscoveryFunction(void* pv){
   }
 }
 
-/// Callback for accessing a database parameter
-/// (or the process table, or a collection of database parameters)
-/// @param theData Data record from the client
-/// @param dataSocket Socket upon which the request travels
+// Callback for accessing a database parameter
+// (or the process table, or a collection of database parameters)
+// @param theData Data record from the client
+// @param dataSocket Socket upon which the request travels
 void attributeGetRequestCallback(arStructuredData* theData,
                                  arSocket* dataSocket){
   string value, attribute;
@@ -1239,9 +1241,9 @@ void attributeGetRequestCallback(arStructuredData* theData,
   dataParser->recycle(attrGetResponseData);
 }
 
-/// Callback for setting a parameter in the database.
-/// @param theData Record containing the client request
-/// @param dataSocket Socket upon which the communication occurred
+// Callback for setting a parameter in the database.
+// @param theData Record containing the client request
+// @param dataSocket Socket upon which the communication occurred
 void attributeSetCallback(arStructuredData* theData,
                           arSocket* dataSocket){
   // Print user data.
@@ -1347,9 +1349,9 @@ void processInfoCallback(arStructuredData* theData, arSocket* dataSocket){
   }
 }
 
-/// Callback for forwarding an incoming message to its final destination.
-/// @param theData Incoming record
-/// @param dataSocket Connection upon which we received the data
+// Callback for forwarding an incoming message to its final destination.
+// @param theData Incoming record
+// @param dataSocket Connection upon which we received the data
 void messageProcessingCallback(arStructuredData* theData,
                                arSocket* dataSocket){
   // Print user data.
@@ -1419,9 +1421,9 @@ void messageProcessingCallback(arStructuredData* theData,
   dataParser->recycle(messageAckData);
 }
 
-/// Callback for processing the message admin data, which includes responses
-/// @param theData Incoming data record
-/// @param dataSocket Connection upon which we received the data
+// Callback for processing the message admin data, which includes responses
+// @param theData Incoming data record
+// @param dataSocket Connection upon which we received the data
 void messageAdminCallback(arStructuredData* theData,
 			  arSocket* dataSocket){
   const string messageAdminType 
@@ -1552,7 +1554,7 @@ void messageAdminCallback(arStructuredData* theData,
   dataParser->recycle(messageAckData);
 }
 
-/// Let a component request notification when another component exits.
+// Let a component request notification when another component exits.
 void killNotificationCallback(arStructuredData* data,
 			      arSocket* dataSocket){
   int componentID = data->getDataInt(lang.AR_SZG_KILL_NOTIFICATION_ID);
@@ -1572,7 +1574,7 @@ void killNotificationCallback(arStructuredData* data,
                              data->getDataInt(lang.AR_PHLEET_MATCH));
 }
 
-/// Helper functions for lockRequestCallback, lockReleaseCallback.
+// Helper functions for lockRequestCallback, lockReleaseCallback.
 
 string lockRequestInit(arStructuredData* lockResponseData,
                        arStructuredData* theData){
@@ -1594,9 +1596,9 @@ void lockRequestFinish(arStructuredData* lockResponseData,
   }
 }
 
-/// Callback to process a lock request.
-/// @param theData Incoming data record (lock request)
-/// @param dataSocket Connection upon which we received the data
+// Callback to process a lock request.
+// @param theData Incoming data record (lock request)
+// @param dataSocket Connection upon which we received the data
 void lockRequestCallback(arStructuredData* theData,
 			 arSocket* dataSocket){
   arStructuredData* lockResponseData
@@ -1613,9 +1615,9 @@ void lockRequestCallback(arStructuredData* theData,
   dataParser->recycle(lockResponseData);
 }
 
-/// Process a request to release a lock.
-/// @param theData Incoming data record (lock release)
-/// @param dataSocket Connection upon which we received the data
+// Process a request to release a lock.
+// @param theData Incoming data record (lock release)
+// @param dataSocket Connection upon which we received the data
 void lockReleaseCallback(arStructuredData* theData,
 			 arSocket* dataSocket){
   const int ownerID = -1;
@@ -1630,9 +1632,9 @@ void lockReleaseCallback(arStructuredData* theData,
   dataParser->recycle(lockResponseData);
 }
 
-/// Process a request to print all currently held locks
-/// @param theData Incoming data record (lock release)
-/// @param dataSocket Connection upon which we received the data
+// Process a request to print all currently held locks
+// @param theData Incoming data record (lock release)
+// @param dataSocket Connection upon which we received the data
 void lockListingCallback(arStructuredData* theData,
 			 arSocket* dataSocket){
   const int listSize = lockOwnershipDatabase.size();
@@ -1651,7 +1653,7 @@ void lockListingCallback(arStructuredData* theData,
   delete [] IDs;
 }
 
-/// Let a component request notification when a lock is released.
+// Let a component request notification when a lock is released.
 void lockNotificationCallback(arStructuredData* data,
 			      arSocket* dataSocket){
   const string 
@@ -1674,10 +1676,10 @@ void lockNotificationCallback(arStructuredData* data,
                              data->getDataInt(lang.AR_PHLEET_MATCH));
 }
 
-/// Callback to process a request to register a service
-/// @param theData Incoming data record (contains info about the service to
-/// be registered)
-/// @param dataSocket Connection upon which we received the data
+// Callback to process a request to register a service
+// @param theData Incoming data record (contains info about the service to
+// be registered)
+// @param dataSocket Connection upon which we received the data
 void registerServiceCallback(arStructuredData* theData,
                              arSocket* dataSocket){
   // Check the status field first. This indicates whether we are receiving
@@ -1782,10 +1784,10 @@ LAgain:
 }
 
 
-/// Handles requests for service locations. In the simplest case, the client
-/// requests a named service which is currently registered with the szgserver.
-/// The server then determines the appropriate network path, returning that
-/// to the client.
+// Handles requests for service locations. In the simplest case, the client
+// requests a named service which is currently registered with the szgserver.
+// The server then determines the appropriate network path, returning that
+// to the client.
 void requestServiceCallback(arStructuredData* theData,
 			    arSocket* dataSocket){
   const string computer 
@@ -1836,10 +1838,10 @@ void requestServiceCallback(arStructuredData* theData,
   dataParser->recycle(data);
 }
 
-/// Handles requests for total lists of services (a dps analogy)
-/// (or for the component IDs of specific ones, as is required when one
-/// wants to kill a component offering a particular service so that a new
-/// one can start up)
+// Handles requests for total lists of services (a dps analogy)
+// (or for the component IDs of specific ones, as is required when one
+// wants to kill a component offering a particular service so that a new
+// one can start up)
 void getServicesCallback(arStructuredData* theData,
 			arSocket* dataSocket){
   // WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
@@ -1962,12 +1964,12 @@ void serviceInfoCallback(arStructuredData* theData,
   }
 }
 
-/// Handle receipt of data records from connected arSZGClients.
-/// (szgserver processes client requests serially, which may
-/// be bad but is hard to change:  see arDataServer.cpp for
-/// how locking enforces serialization.)
-/// @param theData Parsed record from the client
-/// @param dataSocket Connection on which the record was received
+// Handle receipt of data records from connected arSZGClients.
+// (szgserver processes client requests serially, which may
+// be bad but is hard to change:  see arDataServer.cpp for
+// how locking enforces serialization.)
+// @param theData Parsed record from the client
+// @param dataSocket Connection on which the record was received
 void dataConsumptionFunction(arStructuredData* theData, void*,
                              arSocket* dataSocket){
   // Ensure that arDataServer's read thread serializes calls to this function.
@@ -2101,9 +2103,9 @@ void dataConsumptionFunction(arStructuredData* theData, void*,
   fInside = false;
 }
 
-/// arDataServer calls this when a connection goes away
-/// (when a read or write call on the socket returns false).
-/// @param theSocket Socket whose connection died
+// arDataServer calls this when a connection goes away
+// (when a read or write call on the socket returns false).
+// @param theSocket Socket whose connection died
 void SZGdisconnectFunction(void*, arSocket* theSocket){
   SZGremoveComponentFromDatabase(theSocket->getID());
 }
@@ -2127,7 +2129,7 @@ int main(int argc, char** argv){
     SZGreleaseNotificationCallback);
 
   serverName = string(argv[1]);
-  /// \todo errorcheck serverPort, so it's outside the block of ports for connection brokering
+  // todo: errorcheck serverPort, so it's outside the block of ports for connection brokering
   serverPort = atoi(argv[2]);
   // Determine serverInterface, so we can tell client where to connect
   // while we bind to INADDR_ANY.

@@ -20,8 +20,8 @@ ar3DS::~ar3DS() {
 #endif
 }
 
-/// Uses lib3ds to read in a .3ds file
-/// @param fileName name of the 3DS file (including extension)
+// Uses lib3ds to read in a .3ds file
+// @param fileName name of the 3DS file (including extension)
 bool ar3DS::read3DS(const string& fileName) {
 #ifdef Enable3DS
   char* name = new char[fileName.length()+1];
@@ -39,9 +39,9 @@ bool ar3DS::read3DS(const string& fileName) {
   return !_invalidFile;
 }
 
-/// Attaches mesh geometry to scenegraph
-/// \param baseName The name of the object
-/// \param where The name of the node to attach to in scenegraph
+// Attaches mesh geometry to scenegraph
+// \param baseName The name of the object
+// \param where The name of the node to attach to in scenegraph
 bool ar3DS::attachMesh(const string& baseName, const string& where){
   arGraphicsNode* parent = dgGetNode(where);
   if (parent){
@@ -50,9 +50,9 @@ bool ar3DS::attachMesh(const string& baseName, const string& where){
   return false;
 }
 
-/// Attaches geometry to the scene graph.
-/// @param baseName: a template name for the node names of the object
-/// @parant parent: the node to which we will attach the object.
+// Attaches geometry to the scene graph.
+// @param baseName: a template name for the node names of the object
+// @parant parent: the node to which we will attach the object.
 bool ar3DS::attachMesh(arGraphicsNode* parent, const string& baseName){
 #ifndef Enable3DS
   cerr << "ar3DS error: compiled without 3DS support.\n";
@@ -95,7 +95,7 @@ bool ar3DS::attachMesh(arGraphicsNode* parent, const string& baseName){
 }
 
 #ifdef Enable3DS
-/// Attaches a lib3ds node
+// Attaches a lib3ds node
 /** Called by attachMesh(); used for easy recursion
  *  @param baseName Prefix for this node
  *  @param node The lib3ds node to attach
@@ -148,17 +148,17 @@ void ar3DS::attachChildNode(const string &baseName,
   const string geometryModifier (".geometry.");
 
   unsigned int j=0, i=0;
-  ///< faces with indexed material
+  // faces with indexed material
   // once again, the default material causes us to want to have plus one here
   vector<int>*	materialFaces = new vector<int>[_numMaterials+1]; 	
-  ///< names of the materials
+  // names of the materials
   // don't forget that we have the default material, hence the plus one
-  Lib3dsMatrix	invMeshMatrix;		///< matrix for the mesh from Lib3DS
+  Lib3dsMatrix	invMeshMatrix;		// matrix for the mesh from Lib3DS
   lib3ds_matrix_copy(invMeshMatrix, mesh->matrix);
   lib3ds_matrix_inv(invMeshMatrix);
 
-  /// Put a default material on the front of the material stack
-  vector<Lib3dsMaterial*> materials; 	///< pointers to actual materials
+  // Put a default material on the front of the material stack
+  vector<Lib3dsMaterial*> materials; 	// pointers to actual materials
   materials.push_back(new Lib3dsMaterial);
   materials.back()->ambient[0] = 0.2; materials.back()->ambient[1] = 0.2;
   materials.back()->ambient[2] = 0.2; materials.back()->ambient[3] = 1.0;
@@ -170,7 +170,7 @@ void ar3DS::attachChildNode(const string &baseName,
   string* materialNames = new string[_numMaterials+1]; 	
   materialNames[0] = "(default)";	// no name on default material
   
-  /// Calculate normals
+  // Calculate normals
   Lib3dsVector *normalL = new Lib3dsVector[3*mesh->faces];
   lib3ds_mesh_calculate_normals(mesh, normalL);
   float *norms = new float[mesh->faces*9];
@@ -181,7 +181,7 @@ void ar3DS::attachChildNode(const string &baseName,
   Lib3dsVector vPoint;
   for (j=0; j<mesh->faces; ++j) {
     Lib3dsFace &f=mesh->faceL[j];
-    /// Handle material
+    // Handle material
     if (f.material[0]) {
       // see if the material exists already
       for (i=1; i<materials.size(); i++) {
@@ -200,7 +200,7 @@ void ar3DS::attachChildNode(const string &baseName,
     else	// no material specified, so add it to the default list
       materialFaces[0].push_back(j);
      
-    /// Add the point and normals to respective temp. storage 
+    // Add the point and normals to respective temp. storage 
     for (i=0; i<3; ++i) {
       lib3ds_vector_transform(vPoint, invMeshMatrix, 
                               mesh->pointL[f.points[i]].pos);
@@ -214,7 +214,7 @@ void ar3DS::attachChildNode(const string &baseName,
   }
   delete [] normalL;
   
-  /// Point Positions
+  // Point Positions
   //_vertexNodeID =
   // dgPoints(newName + pointsModifier,
   //         newName,
@@ -227,7 +227,7 @@ void ar3DS::attachChildNode(const string &baseName,
   _vertexNodeID = pointsNode->getID();
   delete [] points;
   
-  /// (per-face) Normals into array
+  // (per-face) Normals into array
   //dgNormal3(newName + normalsModifier,
   //          newName + pointsModifier,
   //          mesh->faces*3, norms);
@@ -243,8 +243,8 @@ void ar3DS::attachChildNode(const string &baseName,
                  DG_TRIANGLES, mesh->faces/3);
 #endif
 #if 1
-  /// Put all triangles with same material into one group
-  ///   and attach to single material
+  // Put all triangles with same material into one group
+  //   and attach to single material
   arVector3 diffuse, specular, ambient, emmissive(0,0,0);
   int *drawIndices = NULL;
   for (i=0; i<materials.size(); i++) {
@@ -298,8 +298,8 @@ void ar3DS::attachChildNode(const string &baseName,
 }
 #endif
 
-/// Is used to put a 3DS object inside a sphere of radius 1
-/// @param theMatrix the matrix to be returned (by reference)
+// Is used to put a 3DS object inside a sphere of radius 1
+// @param theMatrix the matrix to be returned (by reference)
 bool ar3DS::normalizationMatrix(arMatrix4 &theMatrix) {
 #ifndef Enable3DS
   cerr << "ar3DS error: compiled without 3DS support.\n";
@@ -331,10 +331,10 @@ bool ar3DS::normalizationMatrix(arMatrix4 &theMatrix) {
 }
 
 #ifdef Enable3DS
-/// helper function for normalizationMatrix() recursion
-/// @param node Lib3dsNode to start from
-/// @param _minVec smallest (x,y,z) position of all points in entire file
-/// @param _maxVec largest (x,y,z) position of all points in entire file
+// helper function for normalizationMatrix() recursion
+// @param node Lib3dsNode to start from
+// @param _minVec smallest (x,y,z) position of all points in entire file
+// @param _maxVec largest (x,y,z) position of all points in entire file
 void ar3DS::subNormalizationMatrix(Lib3dsNode* node,
                                    arVector3 &_minVec, arVector3 &_maxVec) {
   // recurse through children
@@ -372,7 +372,7 @@ void ar3DS::subNormalizationMatrix(Lib3dsNode* node,
 }
 #endif
 
-/// Puts object inside a sphere of radius 1
+// Puts object inside a sphere of radius 1
 /** Sets a flag for attachMesh() to use a normalized matrix as the root
  *  node in the scenegraph representation of the mesh
  */
@@ -384,9 +384,9 @@ void ar3DS::normalizeModelSize() {
 
 ///// Animation functions /////
 
-/// Sets the current frame of animation
-/// @param newFrame The frame to jump to in the animation
-/// \todo check bounds on newFrame
+// Sets the current frame of animation
+// @param newFrame The frame to jump to in the animation
+// todo: check bounds on newFrame
 bool ar3DS::setFrame(int newFrame){
 /*  if (newFrame >= numFrames || newFrame < 0) return false;
 
@@ -399,12 +399,12 @@ bool ar3DS::setFrame(int newFrame){
   
 }
 
-/// Goes to next frame in animation; returns false if already at the end
+// Goes to next frame in animation; returns false if already at the end
 bool ar3DS::nextFrame(){
   return setFrame(_currentFrame+1);
 }
 
-/// Goes to previous frame in animation; returns false if already at the beginning
+// Goes to previous frame in animation; returns false if already at the beginning
 bool ar3DS::prevFrame(){
   return setFrame(_currentFrame-1);
 }

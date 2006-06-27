@@ -15,7 +15,7 @@ static inline int maxint( const int a, const int b, const int c ) {
   return maxint(a, maxint(b, c));
 }
 
-/// \todo remove 60-line copypaste with ar_setInputStateFromStructuredData
+// todo: remove 60-line copypaste with ar_setInputStateFromStructuredData
 
 bool ar_setEventQueueFromStructuredData( arInputEventQueue* q,
                                          arStructuredData* data ) {
@@ -177,7 +177,7 @@ bool ar_saveEventQueueToStructuredData( arInputEventQueue* q,
   return ok;
 }
 
-/// \todo remove 60-line copypaste with ar_setEventQueueFromStructuredData
+// todo: remove 60-line copypaste with ar_setEventQueueFromStructuredData
 
 bool ar_setInputStateFromStructuredData( arInputState* state,
                                          arStructuredData* data ) {

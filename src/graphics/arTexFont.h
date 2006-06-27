@@ -1,4 +1,3 @@
-
 /* Copyright (c) Mark J. Kilgard, 1997. */
 
 /* This program is freely distributable without licensing fees  and is
@@ -15,6 +14,7 @@
 
 #include <string>
 #include <map>
+#include <list>
 
 SZG_CALL list<string> ar_parseLineBreaks(const string& text);
 

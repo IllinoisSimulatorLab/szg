@@ -7,7 +7,6 @@
 #include "arGraphicsDatabase.h"
 
 arGraphicsStateNode::arGraphicsStateNode(){
-  // A sensible default name.
   _name = "graphics_state";
   _typeCode = AR_G_GRAPHICS_STATE_NODE;
   _typeString = "graphics state";
@@ -353,8 +352,8 @@ string arGraphicsStateNode::_convertStateValueToString(arGraphicsStateValue v){
   }
 }
 
-/// Thread-safe. DO NOT use the _nodeLock in here (can be called from
-/// inside that lock).
+// Thread-safe. DO NOT use the _nodeLock in here (can be called from
+// inside that lock).
 bool arGraphicsStateNode::_checkFloatState( arGraphicsStateID id ) const {
   switch (id) {
   case AR_G_POINT_SIZE:
@@ -365,7 +364,7 @@ bool arGraphicsStateNode::_checkFloatState( arGraphicsStateID id ) const {
   }
 }
 
-/// NOT thread-safe.
+// NOT thread-safe.
 arStructuredData* arGraphicsStateNode::_dumpData(const string& stateName,
                                          arGraphicsStateValue* stateValueInt,
                                          float stateValueFloat,

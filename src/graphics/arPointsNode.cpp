@@ -8,7 +8,6 @@
 #include "arGraphicsDatabase.h"
 
 arPointsNode::arPointsNode(){
-  // A sensible default name.
   _name = "points_node";
   _typeCode = AR_G_POINTS_NODE;
   _typeString = "points";
@@ -27,10 +26,10 @@ void arPointsNode::initialize(arDatabase* database){
   _commandBuffer.setType(_g->AR_POINTS);
 }
 
-/// Fast access to points node contents.
-/// Cannot *change* the point values using this pointer (that would break
-/// sharing). Also, since the pointer can get invalidated if the array
-/// gets expanded, this must be called within node->lock()/node->unlock().
+// Fast access to points node contents.
+// Cannot *change* the point values using this pointer (that would break
+// sharing). Also, since the pointer can get invalidated if the array
+// gets expanded, this must be called within node->lock()/node->unlock().
 const float* arPointsNode::getPoints(int& number){
   // DO NOT lock the node here. We are assuming this method is called from
   // within a locked node lock.
@@ -38,7 +37,7 @@ const float* arPointsNode::getPoints(int& number){
   return _commandBuffer.v;
 }
 
-/// Fast way to get data into the node. 
+// Fast way to get data into the node. 
 void arPointsNode::setPoints(int number, float* points, int* IDs){
   if (active()){
     ar_mutex_lock(&_nodeLock);
@@ -54,9 +53,9 @@ void arPointsNode::setPoints(int number, float* points, int* IDs){
   }
 }
 
-/// Slower way to get the points data (there are several extra copy 
-/// operations). However, this is more convenient for calling from Python.
-/// Thread-safe.
+// Slower way to get the points data (there are several extra copy 
+// operations). However, this is more convenient for calling from Python.
+// Thread-safe.
 vector<arVector3> arPointsNode::getPoints(){
   vector<arVector3> result;
   // Must be thread-safe.
@@ -72,9 +71,9 @@ vector<arVector3> arPointsNode::getPoints(){
   return result;
 }
 
-/// Adds an additional copy plus dynamic memory allocation. 
-/// But this is more convenient for calling from Python.
-/// Thread-safe.
+// Adds an additional copy plus dynamic memory allocation. 
+// But this is more convenient for calling from Python.
+// Thread-safe.
 void arPointsNode::setPoints(vector<arVector3>& points){
   float* ptr = new float[points.size()*3];
   for (unsigned int i = 0; i < points.size(); i++){
@@ -86,9 +85,9 @@ void arPointsNode::setPoints(vector<arVector3>& points){
   delete [] ptr;
 }
 
-/// Adds an additional copy plus dynamic memory allocation.
-/// But this is more convenient for calling from Python.
-/// Thread-safe.
+// Adds an additional copy plus dynamic memory allocation.
+// But this is more convenient for calling from Python.
+// Thread-safe.
 void arPointsNode::setPoints(vector<arVector3>& points,
 			     vector<int>& IDs){
   unsigned int num = IDs.size();

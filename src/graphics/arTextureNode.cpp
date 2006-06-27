@@ -14,7 +14,6 @@ arTextureNode::arTextureNode():
   _height(0),
   _texture(NULL),
   _locallyHeldTexture(true){
-  // A sensible default name.
   _name = "texture_node";
   // Does not compile on RedHat 8 if these are not in the constructor's body.
   _typeCode = AR_G_TEXTURE_NODE;
@@ -83,9 +82,9 @@ bool arTextureNode::receiveData(arStructuredData* inData){
   return true;
 }
 
-/// If alpha is < 0, then no alpha blending. This is the default.
-/// If alpha is >= 0, then the low order 3 bytes of alpha are interpreted
-/// as R (first 8 bits), G (next 8 bits), and B (next 8 bits).
+// If alpha is < 0, then no alpha blending. This is the default.
+// If alpha is >= 0, then the low order 3 bytes of alpha are interpreted
+// as R (first 8 bits), G (next 8 bits), and B (next 8 bits).
 void arTextureNode::setFileName(const string& fileName, int alpha){
   if (active()){
     ar_mutex_lock(&_nodeLock);
@@ -126,7 +125,7 @@ void arTextureNode::setPixels(int width, int height, char* pixels, bool alpha){
   }
 }
 
-/// NOT thread-safe.
+// NOT thread-safe.
 arStructuredData* arTextureNode::_dumpData(const string& fileName, int alpha,
 			                   int width, int height, 
                                            const char* pixels,
@@ -164,9 +163,8 @@ arStructuredData* arTextureNode::_dumpData(const string& fileName, int alpha,
     const int cPixels = width * height * bytesPerPixel;
     result->setDataDimension(_g->AR_TEXTURE_PIXELS, cPixels);
     if (cPixels > 0){
-      ARchar* outPixels 
-        = (ARchar*)result->getDataPtr(_g->AR_TEXTURE_PIXELS, AR_CHAR);
-      // If cPixels > 0, then it MUST be the case that there is a _texture.
+      ARchar* outPixels = (ARchar*)result->getDataPtr(_g->AR_TEXTURE_PIXELS, AR_CHAR);
+      // There must be a _texture.
       memcpy(outPixels, pixels, cPixels);
     }
   }
@@ -183,8 +181,7 @@ void arTextureNode::_addLocalTexture(int alpha, int width, int height,
   // If _texture is NULL, allocate a new texture.
   // If _texture is non-NULL but locally held, reuse it (to avoid reallocating
   // a potentially large block of memory).
-  // If _texture is non-NULL but not locally held, unref it and allocate a new
-  // texture.
+  // If _texture is non-NULL but not locally held, unref it and allocate a new texture.
   if (!_texture) {
     _texture = new arTexture();
   }

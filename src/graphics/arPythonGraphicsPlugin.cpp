@@ -14,7 +14,7 @@
 // Definition of our drawable object.
 class arPythonGraphicsPlugin: public arGraphicsPlugin {
   public:
-    //  Object MUST provide a default (0-argument) constructor.
+    //  Object must provide a default (0-argument) constructor.
     arPythonGraphicsPlugin();
     virtual ~arPythonGraphicsPlugin();
 
@@ -55,7 +55,7 @@ class arPythonGraphicsPlugin: public arGraphicsPlugin {
 // to get an instance of the object that this plugin defines, and
 // any further calls are made to methods of that instance.
 
-extern "C" { // NOTE: These MUST have "C" linkage!
+extern "C" {
   SZG_CALL void baseType(char* buffer, int size) {
     ar_stringToBuffer("arGraphicsPlugin", buffer, size);
   }

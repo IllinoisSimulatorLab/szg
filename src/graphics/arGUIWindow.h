@@ -219,7 +219,7 @@ class SZG_CALL arDefaultGUIRenderCallback : public arGUIRenderCallback
 
   private:
 
-    /// @todo clean up the naming scheme
+    // @todo clean up the naming scheme
 
     void (*_drawCallback0)( arGUIWindowInfo*, arGraphicsWindow* ); // type 1
     void (*_drawCallback1)( arGUIWindowInfo* );                    // type 2

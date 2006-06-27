@@ -7,8 +7,10 @@
 #include "arThread.h"
 #include "arDataUtilities.h"
 
-#include <iostream>
 #include <errno.h>
+#ifdef AR_USE_WIN_32
+  #include <iostream>
+#endif
 using namespace std;
 
 void ar_mutex_init(arMutex* theMutex){
@@ -100,11 +102,11 @@ arConditionVar::~arConditionVar(){
 #endif
 }
 
-/// Wait for the condition variable to be signaled. By default, timeout is
-/// not used, but, if specified, wait for that number of milliseconds.
-/// (the default value passed for timeout is -1). If we have returned because
-/// we were signaled, return true. If we have returned because of timeout,
-/// return false.
+// Wait for the condition variable to be signaled. By default, timeout is
+// not used, but, if specified, wait for that number of milliseconds.
+// (the default value passed for timeout is -1). If we have returned because
+// we were signaled, return true. If we have returned because of timeout,
+// return false.
 bool arConditionVar::wait(arMutex* externalLock, int timeout){
   bool state = true;
 #ifdef AR_USE_WIN_32

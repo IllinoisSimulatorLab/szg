@@ -147,7 +147,7 @@ arMatrix4 arMatrix4::transpose() const {
 }
 
 // matrix multiply
-/// \todo define operator*= as well!
+// todo: define operator*= as well!
 arMatrix4 operator*(const arMatrix4& A, const arMatrix4& B){
   arMatrix4 C;
   for (int i=0; i<4; i++)
@@ -403,8 +403,8 @@ arMatrix4 ar_extractScaleMatrix(const arMatrix4& original){
   return result;
 }
 
-/// Returns the nonnegative angle, in radians, from first to second
-/// (counterclockwise) around the vector first*second (cross product).
+// Returns the nonnegative angle, in radians, from first to second
+// (counterclockwise) around the vector first*second (cross product).
 float ar_angleBetween(const arVector3& first, const arVector3& second){
   if (first.magnitude() <=0. || second.magnitude() <= 0.)
     return 0.;
@@ -422,15 +422,15 @@ float ar_angleBetween(const arVector3& first, const arVector3& second){
   return (float)acos(dotProd);
 }
 
-/// Returns euler angles calculated from fixed rotation axes. By default,
-/// the axis order is ZYX (as denoted AR_ZYX.. but other possibilities are
-/// AR_XYZ, AR_XZY, etc.) which means axis1 = (0,0,1), axis2 = (0,1,0),
-/// and axis3 = (1,0,0). We assume that the given matrix is, in fact, a
-/// pure rotation (and attempt to extract the rotation in order to ensure
-/// this). Under this assumption, the original matrix will be:
-/// ar_rotationMatrix(axis1, v[2])
-/// * ar_rotationMatrix(axis2, v[1])
-/// * ar_rotationMatrix(axis3, v[0])
+// Returns euler angles calculated from fixed rotation axes. By default,
+// the axis order is ZYX (as denoted AR_ZYX.. but other possibilities are
+// AR_XYZ, AR_XZY, etc.) which means axis1 = (0,0,1), axis2 = (0,1,0),
+// and axis3 = (1,0,0). We assume that the given matrix is, in fact, a
+// pure rotation (and attempt to extract the rotation in order to ensure
+// this). Under this assumption, the original matrix will be:
+// ar_rotationMatrix(axis1, v[2])
+// * ar_rotationMatrix(axis2, v[1])
+// * ar_rotationMatrix(axis3, v[0])
 arVector3 ar_extractEulerAngles(const arMatrix4& m, arAxisOrder o){
   arVector3 axis1, axis2, axis3;
   switch(o){
@@ -516,7 +516,7 @@ arQuaternion ar_angleVectorToQuaternion(const arVector3& a, float radians) {
   return arQuaternion(cos(radians/2), (sin(radians/2)/(++axis))*axis);
 }
 
-/// Returns the reflection of direction across the given normal vector
+// Returns the reflection of direction across the given normal vector
 arVector3 ar_reflect(const arVector3& direction, const arVector3& normal){
   float mag = ++normal;
   return direction - (2 * direction % normal / (mag*mag)) * normal;
@@ -692,7 +692,7 @@ arVector3 ar_tileScreenOffset(const arVector3& screenNormal,
     return arVector3(0,0,0);
   }
 
-  /// copypaste start
+  // copypaste start
   float mag = ++screenNormal;
   if (mag <= 0.)
     return arVector3(0,0,0);
@@ -702,7 +702,7 @@ arVector3 ar_tileScreenOffset(const arVector3& screenNormal,
     return arVector3(0,0,0);
   const arVector3 xHat = zHat * screenUp/mag;  // '*' = cross product
   const arVector3 yHat = xHat * zHat;
-  /// copypaste end
+  // copypaste end
   float tileWidth = width/nxTiles;
   float tileHeight = height/nyTiles;
   return (-0.5*width + 0.5*tileWidth + xTile*tileWidth)*xHat 
@@ -715,14 +715,14 @@ arMatrix4 ar_frustumMatrix( const arVector3& screenCenter,
                             const float halfWidth, const float halfHeight,
                             const float nearClip, const float farClip,
                             const arVector3& eyePosition ) {
-  /// copypaste start
+  // copypaste start
   float mag = screenNormal.magnitude();
   if (mag <= 0.)
     return ar_identityMatrix(); // error
   const arVector3 zHat = screenNormal/mag;
   const arVector3 xHat = zHat * screenUp/mag;  // '*' = cross product
   const arVector3 yHat = xHat * zHat;
-  /// copypaste end
+  // copypaste end
 
   const arVector3 rightEdge = screenCenter + halfWidth * xHat;
   const arVector3 leftEdge = screenCenter - halfWidth * xHat;
@@ -786,13 +786,13 @@ arMatrix4 ar_frustumMatrix( const float screenDist,
   return result;
 }
 
-/// ar_lookatMatrix is equivalent to gluLookAt(...).
-/// It transforms the frame (a,b,c):
-///   c = unit vector pointing from lookatPosition to viewPosition
-///   b = unit vector along the portion of up orthogonal to c
-///   a = b cross c
-/// to the frame (x,y,z).
-/// NOTE: In OpenGL, the eye is looking in the negative z direction.
+// ar_lookatMatrix is equivalent to gluLookAt(...).
+// It transforms the frame (a,b,c):
+//   c = unit vector pointing from lookatPosition to viewPosition
+//   b = unit vector along the portion of up orthogonal to c
+//   a = b cross c
+// to the frame (x,y,z).
+// NOTE: In OpenGL, the eye is looking in the negative z direction.
 arMatrix4 ar_lookatMatrix( const arVector3& viewPosition,
                            const arVector3& lookatPosition,
                            const arVector3& up ) {

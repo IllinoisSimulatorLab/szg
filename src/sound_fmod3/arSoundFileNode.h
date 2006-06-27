@@ -11,7 +11,7 @@
 #include "arSoundNode.h"
 #include "arSoundCalling.h"
 
-/// Single sound in the scene graph.
+// Single sound in the scene graph.
 
 class SZG_CALL arSoundFileNode : public arSoundNode{
  public:

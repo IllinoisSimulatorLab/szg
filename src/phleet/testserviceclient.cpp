@@ -8,9 +8,9 @@
 
 #include "arSZGClient.h"
 
-/// This program tests receiving data from 2 different servers simultaneously
-/// ( a good way to verify that the server discovery functions of the
-/// arSZGClient are threadsafe
+// This program tests receiving data from 2 different servers simultaneously
+// ( a good way to verify that the server discovery functions of the
+// arSZGClient are threadsafe
 
 arSZGClient  szgClient;
 arDataClient dataClient[2];

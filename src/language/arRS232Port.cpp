@@ -4,6 +4,9 @@
 //********************************************************
 
 #include "arPrecompiled.h"
+#include "arRS232Port.h"
+#include "arDataUtilities.h"
+
 #ifdef AR_USE_LINUX
 #include <unistd.h>
 #include <sys/ioctl.h>
@@ -22,8 +25,6 @@
 #include <math.h>
 #include <iostream>
 #include <string>
-#include "arRS232Port.h"
-#include "arDataUtilities.h"
 
 /*
  Read timeouts: ar_read() blocks until either the requested

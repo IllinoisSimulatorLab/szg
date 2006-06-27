@@ -6,13 +6,12 @@
 #include "arPrecompiled.h"
 #include "arPForth.h"
 #include "arStructuredData.h"
-#include <sstream>
 
 using std::vector;
 using std::string;
 using std::istringstream;
 
-/// Behaviors declared in arPForth.h
+// Behaviors declared in arPForth.h
 
 namespace arPForthSpace {
 

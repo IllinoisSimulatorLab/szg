@@ -19,7 +19,7 @@ void getHostsRunningSzgd(arSZGClient& szgClient){
   const string& lines = szgClient.getProcessList();
   strcpy(hosts, " ");
 
-  /// \todo copypasted from dtop.cpp
+  // todo: copypasted from dtop.cpp
   for (unsigned iline=0; iline < lines.length(); ++iline) {
     // Stuff buf[] with the next line.
     int ich = 0;
@@ -35,7 +35,7 @@ void getHostsRunningSzgd(arSZGClient& szgClient){
     sscanf(buf, "%[^/]/%[^/]/%s", host+1, task, id);
 
     // strip domain name from host
-    /// \todo include both stripped and unstripped ones in list?
+    // todo: include both stripped and unstripped ones in list?
     char* pch = strchr(host, '.');
     if (pch)
       *pch = '\0';
@@ -59,7 +59,7 @@ bool isRunningSzgd(const char* szHost){
   return strstr(hosts, buf) != NULL;
 }
 
-/// \todo make this a member of szgClient, and use it wherever SZG_CONF/virtual is mentioned.
+// todo: make this a member of szgClient, and use it wherever SZG_CONF/virtual is mentioned.
 bool isVirtualComputer(arSZGClient& szgClient, const char* host){
   return szgClient.getAttribute(host, "SZG_CONF", "virtual", "") == "true";
 }

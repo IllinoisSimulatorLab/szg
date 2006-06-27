@@ -11,8 +11,6 @@
   // #include <Xm/MwmUtil.h>
 #endif
 
-#include <iostream>
-
 #include "arStructuredData.h"
 #include "arDataUtilities.h"
 #include "arWildcatUtilities.h"

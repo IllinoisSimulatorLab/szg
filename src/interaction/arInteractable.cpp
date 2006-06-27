@@ -102,12 +102,12 @@ bool arInteractable::touch( arEffector& effector ) {
   return ok;
 }
 
-/// Main method. Let the
-/// effector manipulate the interactable. If not
-/// already touching the object, touch it. If we try to
-/// touch it, call the virtual _touch method (which, for instance
-/// in the arCallbackInteractable subclass, ends up calling the touch
-/// callback).
+// Main method. Let the
+// effector manipulate the interactable. If not
+// already touching the object, touch it. If we try to
+// touch it, call the virtual _touch method (which, for instance
+// in the arCallbackInteractable subclass, ends up calling the touch
+// callback).
 bool arInteractable::processInteraction( arEffector& effector ) {
   // The interactable cannot be manipulated if it hasn't been enabled.
   if (!_enabled){
@@ -197,7 +197,7 @@ bool arInteractable::untouchAll() {
   return ok;
 }    
 
-/// Is this effector currently touching this object?
+// Is this effector currently touching this object?
 bool arInteractable::touched( arEffector& effector ) {
   return std::find(_touchEffectors.begin(), _touchEffectors.end(), &effector)
     != _touchEffectors.end();

@@ -229,24 +229,26 @@ void arSyncDataServer::setChannel(string channel){
   _channel = channel;
 }
 
-/// Sets things up, but does not start the various threads
+// Setup, but do not start, various threads
 bool arSyncDataServer::init(arSZGClient& client){
   if (_locallyConnected){
     ar_log_error() << "arSyncDataServer error: init should not be called if "
 	           << "locally connected.\n";
     return false;
   }
-  // HMMMM! This is a little weird... There is not much consistency between the
+
+  // There is not much consistency between the
   // way calls are broken-up in my various init's and start's. 
-  // Should they be combined
-  // into one????
+  // Should they be combined into one????
   if (_channel == "NULL"){
     ar_log_error() << "arSyncDataServer error: "
 	           << "channel not set before init(...).\n";
     return false;
   }
+
   _client = &client;
-  // we really want to use the "complex" service name
+
+  // Use the "complex" service name
   _serviceNameBarrier = _client->createComplexServiceName(
     _serviceName+"_BARRIER");
   _serviceName = _client->createComplexServiceName(_serviceName);
@@ -258,7 +260,7 @@ bool arSyncDataServer::init(arSZGClient& client){
     return false;
   }
 
-  /// \todo factor out copypaste with barrier/arSyncDataServer.cpp:214
+  // todo: factor out copypaste with barrier/arSyncDataServer.cpp:214
   _dataServer.setPort(port);
   _dataServer.setInterface("INADDR_ANY");
   bool success = false;

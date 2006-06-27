@@ -15,23 +15,17 @@
 #include <math.h>
 #include <float.h>
 #include <limits.h> // for CLK_TCK and error-checking conversions
-#include <sstream>
 #include "arSTLalgo.h"
 using namespace std;
 
-#ifndef AR_USE_WIN_32
-#include <dirent.h>
-#include <sys/types.h>
-#include <unistd.h>
-#endif
-
 #ifdef AR_USE_WIN_32
+
 #include <io.h>     // for directory listing
 #include <direct.h>
 #include <time.h>
 #include <iostream>
 
-/// \todo call WSACleanup somewhere!
+// todo: call WSACleanup somewhere!
 
 bool ar_winSockInit(){
   WSADATA wsaData;
@@ -59,14 +53,21 @@ bool ar_winSockInit(){
   return false;
 
 }
+
+#else
+
+#include <dirent.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #endif
 
-// cross platform clock access functions.
+// Cross-platform clock.
 #ifdef AR_USE_WIN_32
 
 // Current time.
 
-/// \todo assumes that ticks/second fits in a single int, not true in a few years.
+// todo: assumes that ticks/second fits in a single int, not true in a few years.
 ar_timeval ar_time(){
 #if 0
   // an earlier implementation
@@ -96,8 +97,7 @@ ar_timeval ar_time(){
 
 #endif
 
-//;;;; this doxygen comment fails!
-/// Take two times closer than 4000000000 usec and report their diff in usec.
+// Take two times closer than 4000000000 usec and report their diff in usec.
 
 double ar_difftime(const ar_timeval& a, const ar_timeval& b){
   return 1e6*(a.sec-b.sec) + (a.usec-b.usec);
@@ -109,9 +109,8 @@ double ar_difftimeSafe(const ar_timeval& a, const ar_timeval& b){
   return diff > 1. ? diff : 1.;
 }
 
-//;;;; this doxygen comment fails!
-/// Add two ar_timeval's together.
-/// Returning a reference is safe since it's one of the arguments.
+// Add two ar_timeval's together.
+// Returning a reference is safe since it's one of the arguments.
 
 ar_timeval& ar_addtime(ar_timeval& result, const ar_timeval& addend){
   result.sec += addend.sec;
@@ -122,9 +121,8 @@ ar_timeval& ar_addtime(ar_timeval& result, const ar_timeval& addend){
   return result;
 }
 
-//;;;; this doxygen comment fails!
-/// Returns current date & time in following format:
-/// year:day of year:second of day/pretty human-readable string
+// Returns current date & time in following format:
+// year:day of year:second of day/pretty human-readable string
 
 string ar_currentTimeString() {
   time_t timeVal;
@@ -209,10 +207,10 @@ bool arTimer::running() {
   return _running;
 }
 
-/// Safely read from a (unix) pipe.
-/// @param pipeID Pipe's file descriptor
-/// @param theData Buffer into which the data gets packed
-/// @param numBytes Number of data bytes requested
+// Safely read from a (unix) pipe.
+// @param pipeID Pipe's file descriptor
+// @param theData Buffer into which the data gets packed
+// @param numBytes Number of data bytes requested
 bool ar_safePipeRead(int pipeID, char* theData, int numBytes){
 #ifdef AR_USE_WIN_32
   return false;
@@ -229,12 +227,12 @@ bool ar_safePipeRead(int pipeID, char* theData, int numBytes){
 #endif
 }
 
-/// Safely read from a Unix pipe with timeout.
-/// @param piepID Pipe's file descriptor
-/// @param theData Buffer into which the data gets packed
-/// @param numBytes Number of data bytes requested
-/// @param timeout Maximum number of milliseconds we will block
-/// Returns number of bytes read.
+// Safely read from a Unix pipe with timeout.
+// @param piepID Pipe's file descriptor
+// @param theData Buffer into which the data gets packed
+// @param numBytes Number of data bytes requested
+// @param timeout Maximum number of milliseconds we will block
+// Returns number of bytes read.
 int ar_safePipeReadNonBlock(int pipeID, char* theData, int numBytes,
 		            int timeout){
 #ifdef AR_USE_WIN_32
@@ -277,10 +275,10 @@ int ar_safePipeReadNonBlock(int pipeID, char* theData, int numBytes,
 void stupid_compiler_placeholder(){
 }
 
-/// Safely write to a (unix) pipe.
-/// @param pipeID Pipe's file descriptor
-/// @param theData Buffer from which data is read
-/// @param numBytes number of data bytes written
+// Safely write to a (unix) pipe.
+// @param pipeID Pipe's file descriptor
+// @param theData Buffer from which data is read
+// @param numBytes number of data bytes written
 bool ar_safePipeWrite(int pipeID, const char* theData, int numBytes){
 #ifdef AR_USE_WIN_32
   return false;
@@ -541,7 +539,7 @@ int ar_parseFloatString(const string& theString, float* outArray, int len){
     return -1;
   }
 
-  char buf[1024]; /// \todo fixed size buffer
+  char buf[1024]; // todo: fixed size buffer
   ar_stringToBuffer(theString, buf, sizeof(buf));
   const int length = theString.length();
   if (length < 1 || ((*buf<'0' || *buf>'9') && *buf!='.' && *buf!='-'))
@@ -693,7 +691,7 @@ int ar_stringToInt(const string& s)
   return atoi(buf);
 }
 
-/// \todo unify arPathToken with ar_semicolonstring; use an iterator pattern.
+// todo: unify arPathToken with ar_semicolonstring; use an iterator pattern.
 
 string ar_pathToken(const string& theString, int& start){
   // starts scanning theString at location start until the first ';'
@@ -710,7 +708,7 @@ string ar_pathToken(const string& theString, int& start){
   return result;
 }
 
-/// Returns the path delimiter for the particular operating system.
+// Returns the path delimiter for the particular operating system.
 char ar_pathDelimiter() {
 #ifdef AR_USE_WIN_32
   return '\\';
@@ -719,9 +717,9 @@ char ar_pathDelimiter() {
 #endif
 }
 
-/// Returns the other delimiter. This is used, for instance, to automatically
-/// convert Win32 paths to Unix paths. This can be useful for software
-/// that must store is data in portable way across various systems.
+// Returns the other delimiter. This is used, for instance, to automatically
+// convert Win32 paths to Unix paths. This can be useful for software
+// that must store is data in portable way across various systems.
 char ar_oppositePathDelimiter(){
 #ifdef AR_USE_WIN_32
   return '/';
@@ -730,8 +728,8 @@ char ar_oppositePathDelimiter(){
 #endif
 }
 
-/// Makes sure a given path string has the right delimiter character for
-/// our OS (i.e / or \)
+// Makes sure a given path string has the right delimiter character for
+// our OS (i.e / or \)
 string& ar_scrubPath(string& s){
   for (unsigned int i=0; i<s.length(); i++){
     if (s[i] == ar_oppositePathDelimiter()){
@@ -741,7 +739,7 @@ string& ar_scrubPath(string& s){
   return s;
 }
 
-/// Append a path-separator to arg; return arg.
+// Append a path-separator to arg; return arg.
 string& ar_pathAddSlash(string& s){
   if (s[s.length()-1] != ar_pathDelimiter())
     s += ar_pathDelimiter();
@@ -831,9 +829,9 @@ string ar_packParameters(int argc, char** argv){
   return result;
 }
 
-/// Reduce an executable name to a canonical form,
-/// to convert argv[0] into a component name.
-/// Remove the path.  On Win32, remove the trailing .EXE.
+// Reduce an executable name to a canonical form,
+// to convert argv[0] into a component name.
+// Remove the path.  On Win32, remove the trailing .EXE.
 string ar_stripExeName(const string& name){
   // Find the last '/' or '\'.
   const int position = name.find_last_of("/\\") == string::npos ?
@@ -851,12 +849,12 @@ string ar_stripExeName(const string& name){
   return name.substr(position, length);
 }
 
-/// Given a full path executable name, return just the path. For example,
-/// if the executable is:
-///   /home/public/schaeffr/bin/linux/atlantis
-/// return:
-///   /home/public/schaeffr/bin/linux
-/// This is used in szgd when setting the DLL library path.
+// Given a full path executable name, return just the path. For example,
+// if the executable is:
+//   /home/public/schaeffr/bin/linux/atlantis
+// return:
+//   /home/public/schaeffr/bin/linux
+// This is used in szgd when setting the DLL library path.
 string ar_exePath(const string& name){
   unsigned int position = 0;
   if (name.find_last_of("/\\") != string::npos){
@@ -865,10 +863,10 @@ string ar_exePath(const string& name){
   return name.substr(0, position);
 }
 
-/// Takes a file name, finds the last period in the name, and returns
-/// a string filled with the characters to the right of the period.
-/// We want to do this to determine if something is a python script,
-/// for instance.
+// Takes a file name, finds the last period in the name, and returns
+// a string filled with the characters to the right of the period.
+// We want to do this to determine if something is a python script,
+// for instance.
 string ar_getExtension(const string& name){
   const unsigned position = name.find_last_of(".");
   if (position == string::npos || position == name.length())
@@ -876,7 +874,7 @@ string ar_getExtension(const string& name){
   return name.substr(position+1, name.length()-position-1);
 }
 
-/// Append the appropriate shared lib extension for the system.
+// Append the appropriate shared lib extension for the system.
 void ar_addSharedLibExtension(string& name){
 #ifdef AR_USE_WIN_32
   name += ".dll";
@@ -909,7 +907,7 @@ void ar_setenv(const string& variableName, int variableValue){
 }
 
 string ar_getenv(const string& variable){
-  char buf[1024]; /// \todo fixed size buffer
+  char buf[1024]; // todo: fixed size buffer
   ar_stringToBuffer(variable, buf, sizeof(buf));
   const char* res = getenv(buf);
   if (!res)
@@ -919,7 +917,7 @@ string ar_getenv(const string& variable){
 
 string ar_getUser(){
 #ifdef AR_USE_WIN_32
-  const unsigned long size = 1024; /// \todo fixed size buffer
+  const unsigned long size = 1024; // todo: fixed size buffer
   char buf[size];
   unsigned long sizeNew = size;
   GetUserName(buf, &sizeNew);
@@ -996,9 +994,9 @@ bool ar_isDirectory(const char* name){
   return (infoBuffer.st_mode & S_IFMT) == S_IFDIR;
 }
 
-/// \todo copy-paste from ar_fileOpen
-/// Returns the first file name of a file that can be opened on 
-/// <path component>/<subdirectory>/<name>
+// todo: copy-paste from ar_fileOpen
+// Returns the first file name of a file that can be opened on 
+// <path component>/<subdirectory>/<name>
 string ar_fileFind(const string& name, 
 		   const string& subdirectory,
 		   const string& path){
@@ -1051,9 +1049,9 @@ string ar_fileFind(const string& name,
   }
 }
 
-/// \todo copy-paste from ar_fileOpen and ar_fileFind
-/// Returns the first directory name determined like so:
-/// <path component>/<subdirectory>/<name>
+// todo: copy-paste from ar_fileOpen and ar_fileFind
+// Returns the first directory name determined like so:
+// <path component>/<subdirectory>/<name>
 string ar_directoryFind(const string& name, 
 		        const string& subdirectory,
 		        const string& path){
@@ -1094,7 +1092,7 @@ string ar_directoryFind(const string& name,
   return result ? possiblePath : string("NULL");
 }
 
-/// \todo cut-and-paste with ar_directoryOpen and ar_fileFind
+// todo: cut-and-paste with ar_directoryOpen and ar_fileFind
 FILE* ar_fileOpen(const string& name,
                   const string& subdirectory, 
                   const string& path,
@@ -1147,12 +1145,12 @@ FILE* ar_fileOpen(const string& name, const string& path,
   return ar_fileOpen(name, "", path, operation);
 }
 
-/// If the file system entity referenced by "name" is not a directory,
-/// return the empty list. If it is, return a list containing the full
-/// paths to each of its contents (since this is what is needed
-/// for further recursive operations on those contents).
-/// NOTE: we do NOT filter out the standard "." and ".."
-/// entries.
+// If the file system entity referenced by "name" is not a directory,
+// return the empty list. If it is, return a list containing the full
+// paths to each of its contents (since this is what is needed
+// for further recursive operations on those contents).
+// NOTE: we do NOT filter out the standard "." and ".."
+// entries.
 list<string> ar_listDirectory(const string& name){
   // We will return a full path to the included file.
   string directoryPrefix = name;
@@ -1227,7 +1225,7 @@ ifstream ar_istreamOpen(const string& name,
                   const string& path,
                   int mode ){
   // First, search the explicitly given path
-  char bName[1024]; /// \todo fixed size buffer
+  char bName[1024]; // todo: fixed size buffer
   ar_stringToBuffer(name, bName, sizeof(bName));
   int location = 0;
   string partialPath("junk");

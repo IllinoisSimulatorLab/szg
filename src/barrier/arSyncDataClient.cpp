@@ -205,7 +205,7 @@ arSyncDataClient::arSyncDataClient():
   _networks("NULL"),
   _syncServer(NULL){
 
-  /// \todo turn these assignments into initializers.
+  // todo: turn these assignments into initializers.
   _mode = AR_SYNC_CLIENT;
   _dataAvailable = 0;
   _bufferSwapReady = true;
@@ -560,13 +560,12 @@ inline void arSyncDataClient::_update(float& value, float newValue, float filter
   value = filter * newValue  +  (1.0 - filter) * value;
 }
 
-/// Allows us, on shutdown, to make sure that consume() exits, where otherwise
-/// it might be blocked waiting for the next piece of data from the read
-/// data thread
+// On shutdown, make sure that consume() exits, where otherwise
+// it might be blocked waiting for data from the read data thread
 void arSyncDataClient::skipConsumption(){
   ar_mutex_lock(&_swapLock);
-  _dataAvailable = 2;
-  _dataWaitCondVar.signal();
+    _dataAvailable = 2;
+    _dataWaitCondVar.signal();
   ar_mutex_unlock(&_swapLock);
 }
 

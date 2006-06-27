@@ -83,8 +83,7 @@ class SZG_CALL arLogStream{
   void _setCurrentLevel(int currentLevel);
 };
 
-// Using the singleton pattern.
-// ALL ACCESSES TO THE LOG MUST USE THESE FUNCTIONS!
+// Accessors (singleton).
 SZG_CALL arLogStream& ar_log();
 SZG_CALL arLogStream& ar_log_critical();
 SZG_CALL arLogStream& ar_log_error();

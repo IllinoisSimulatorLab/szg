@@ -17,7 +17,7 @@
 arSoundClient* soundClient = NULL;
 
 // the parameter variables
-char serverIP[1024] = {0}; /// \todo fixed size buffer
+char serverIP[1024] = {0}; // todo: fixed size buffer
 int serverPort = -1;
 string textPath;
 arSpeakerObject speakerObject;

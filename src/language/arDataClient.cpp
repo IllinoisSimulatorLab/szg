@@ -65,11 +65,11 @@ bool arDataClient::getData(ARchar*& dest,int& availableSize){
   return fEndianMode || _translateID(_translationBuffer, dest, size);
 }
 
-/// This function loads a data queue from the server, translating between
-/// machine formats if necessary. A data queue is two ints (total size,
-/// number of records) followed by a sequence of serialized data records
-/// @param dest Where the data will go, a buffer that grows if needed
-/// @param availableSize Size of "dest"
+// This function loads a data queue from the server, translating between
+// machine formats if necessary. A data queue is two ints (total size,
+// number of records) followed by a sequence of serialized data records
+// @param dest Where the data will go, a buffer that grows if needed
+// @param availableSize Size of "dest"
 bool arDataClient::getDataQueue(ARchar*& dest,int& availableSize){
   bool fEndianMode = false;
   if (!getDataCore(dest, availableSize, fEndianMode, 
@@ -99,8 +99,8 @@ bool arDataClient::getDataQueue(ARchar*& dest,int& availableSize){
   return true; 
 }
 
-/// When two peers connect, they exchange configuration information,
-/// so that each can translate the other's binary data format.
+// When two peers connect, they exchange configuration information,
+// so that each can translate the other's binary data format.
 bool arDataClient::_dialUpActivate(){
   arStreamConfig localConfig;
   localConfig.endian = AR_ENDIAN_MODE;
@@ -248,10 +248,10 @@ void arDataClient::closeConnection(){
   }
 }
 
-/// Send data on the data client's socket to the connect data server.
-/// Lock this so different threads
-/// can issue send-data commands (as happens in some
-/// uses of arSZGClient and its embedded arDataClient).
+// Send data on the data client's socket to the connect data server.
+// Lock this so different threads
+// can issue send-data commands (as happens in some
+// uses of arSZGClient and its embedded arDataClient).
 bool arDataClient::sendData(arStructuredData* theData){
   if (!theData) {
     cerr << _exeName << " error: sendData(NULL)\n";

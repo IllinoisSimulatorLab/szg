@@ -54,7 +54,7 @@ void update(const string& lines)
 {
   int y = 0;
 
-  /// \todo use STL for all this
+  // todo: use STL for all this
   const int chost = 60;
   const int cchMax = 30;
   const int ctask = 15;

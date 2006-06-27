@@ -7,7 +7,6 @@
 #include "arGraphicsDatabase.h"
 
 arBoundingSphereNode::arBoundingSphereNode(){
-  // A sensible default name.
   _name = "bounding_sphere_node";
   _typeCode = AR_G_BOUNDING_SPHERE_NODE;
   _typeString = "bounding sphere";
@@ -82,7 +81,7 @@ void arBoundingSphereNode::setBoundingSphere(const arBoundingSphere& b){
   }
 }
 
-/// Not thread-safe.
+// Not thread-safe.
 arStructuredData* arBoundingSphereNode::_dumpData(const arBoundingSphere& b,
                                                   bool owned){
   arStructuredData* result = NULL;

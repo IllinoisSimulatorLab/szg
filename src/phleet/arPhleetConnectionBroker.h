@@ -16,10 +16,10 @@
 #include <iostream>
 using namespace std;
 
-/// All the information required to notify a component that a specified
-/// event has occured: the ID of the component along with the "match"
-/// tag that the arSZGClient will use to determine which notifivation
-/// requests this answers.
+// All the information required to notify a component that a specified
+// event has occured: the ID of the component along with the "match"
+// tag that the arSZGClient will use to determine which notifivation
+// requests this answers.
 class SZG_CALL arPhleetNotification{
  public:
   arPhleetNotification(){}
@@ -29,9 +29,9 @@ class SZG_CALL arPhleetNotification{
   int match;       // This is the tag of the original request.
 };
 
-/// A description of a service, including where it exists, what networks
-/// it can communicate upon, the ports it uses, the components that must
-/// be notified when it is deleted, etc.
+// A description of a service, including where it exists, what networks
+// it can communicate upon, the ports it uses, the components that must
+// be notified when it is deleted, etc.
 class SZG_CALL arPhleetService{
  public:
   arPhleetService(){}
@@ -51,8 +51,8 @@ class SZG_CALL arPhleetService{
   list<arPhleetNotification> notifications;
 };
 
-/// A specific way a client can connect to a service. The result of when
-/// a client asks the broker about a service
+// A specific way a client can connect to a service. The result of when
+// a client asks the broker about a service
 class SZG_CALL arPhleetAddress{
  public:
   arPhleetAddress(){}
@@ -66,7 +66,7 @@ class SZG_CALL arPhleetAddress{
   int    portIDs[10]; // the actual port IDs
 };
 
-/// A request for connection to a phleet service that has yet to be fulfilled
+// A request for connection to a phleet service that has yet to be fulfilled
 class SZG_CALL arPhleetServiceRequest{
  public:
   arPhleetServiceRequest(){}
@@ -83,8 +83,8 @@ class SZG_CALL arPhleetServiceRequest{
                        // can communicate, slash-delimited list 
 };
 
-/// the connection broker must keep track of which ports have what status on
-/// each computer being managed by the szgserver
+// the connection broker must keep track of which ports have what status on
+// each computer being managed by the szgserver
 class SZG_CALL arBrokerComputerData{
  public:
   arBrokerComputerData(){}
@@ -99,10 +99,10 @@ class SZG_CALL arBrokerComputerData{
   int       blockSize; // the size of the current reserved block
 };
 
-/// for each active component which has come to the attention of the connection
-/// broker, we need to store some info. This is especially important when
-/// a component exits somehow and we need to adjust the various global
-/// lists.
+// for each active component which has come to the attention of the connection
+// broker, we need to store some info. This is especially important when
+// a component exits somehow and we need to adjust the various global
+// lists.
 class SZG_CALL arBrokerComponentData{
  public:
   arBrokerComponentData(){}
@@ -127,11 +127,11 @@ typedef map<int,arBrokerComponentData,less<int> >      SZGComponentData;
 typedef map<string,arPhleetService,less<string> >      SZGServiceData;
 typedef list<arPhleetServiceRequest>                   SZGRequestList;
 
-/// Manages connection brokering services for the szgserver. This code
-/// could actually go in szgserver.cpp, but that file is getting too 
-/// complicated. An important long term strategy would be to create more
-/// managers like this one (for instance for messages, locks, and the
-/// database)
+// Manages connection brokering services for the szgserver. This code
+// could actually go in szgserver.cpp, but that file is getting too 
+// complicated. An important long term strategy would be to create more
+// managers like this one (for instance for messages, locks, and the
+// database)
 class SZG_CALL arPhleetConnectionBroker{
  public:
   arPhleetConnectionBroker();

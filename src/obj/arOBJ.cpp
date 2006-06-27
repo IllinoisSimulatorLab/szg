@@ -15,9 +15,9 @@ arOBJ::arOBJ() :
   _searchPath(string("")) {
 }
 
-/// Reads in a .OBJ file, prints out an error if invalid
-/// @param inputFile file pointer to read in data
-/// \bug calling this twice on the same object has undefined behaviour
+// Reads in a .OBJ file, prints out an error if invalid
+// @param inputFile file pointer to read in data
+// \bug calling this twice on the same object has undefined behaviour
 bool arOBJ::readOBJ(FILE* inputFile){
   arOBJMaterial tempMaterial;
   _material.push_back(arOBJMaterial());
@@ -43,18 +43,18 @@ bool arOBJ::readOBJ(FILE* inputFile){
   return true;
 }
 
-/// wrapper for the 3 parameter readOBJ(...)
+// wrapper for the 3 parameter readOBJ(...)
 bool arOBJ::readOBJ(const string& fileName, const string& path){
   return readOBJ(fileName, "", path);
 }
 
-/// opens a File and calls readOBJ(FILE*)
-/// @param fileName name of OBJ file (including extension) to read from
-/// @param subdirectory is the subdirectory of the search path in which
-/// we look for the files, which allows us to store stuff for a program in
-/// data_directory/my_program_name instead of just data_directory.
-/// @param path a search path upon which we look for the file. this is useful
-/// when data files need to be installed in a special directory
+// opens a File and calls readOBJ(FILE*)
+// @param fileName name of OBJ file (including extension) to read from
+// @param subdirectory is the subdirectory of the search path in which
+// we look for the files, which allows us to store stuff for a program in
+// data_directory/my_program_name instead of just data_directory.
+// @param path a search path upon which we look for the file. this is useful
+// when data files need to be installed in a special directory
 bool arOBJ::readOBJ(const string& fileName, 
                     const string& subdirectory, 
                     const string& path){
@@ -72,8 +72,8 @@ bool arOBJ::readOBJ(const string& fileName,
   return state;
 }
 
-///@param name The name of the group of which you want the ID
-///Gets the numerical ID of a geometry group, given the name
+//@param name The name of the group of which you want the ID
+//Gets the numerical ID of a geometry group, given the name
 int arOBJ::groupID(const string& name){
   for (unsigned int i=0; i<_groupName.size(); i++){
     if (name == _groupName[i])
@@ -82,8 +82,8 @@ int arOBJ::groupID(const string& name){
   return -1;
 }
 
-///@param transform The new root transformation matrix
-/// Sets the global transform matrix for the OBJ
+//@param transform The new root transformation matrix
+// Sets the global transform matrix for the OBJ
 void arOBJ::setTransform(const arMatrix4& transform) {
   _transform = transform;
 }
@@ -96,9 +96,9 @@ bool arOBJ::attachMesh(const string& objectName, const string& parentName){
   return false;
 }
 
-/// @param where the scenegraph node to which we attach the OBJ.
-/// @param baseName The name of the entire object.
-/// Puts the OBJ into scenegraph w/o hierarchy or transforms.
+// @param where the scenegraph node to which we attach the OBJ.
+// @param baseName The name of the entire object.
+// Puts the OBJ into scenegraph w/o hierarchy or transforms.
 bool arOBJ::attachMesh(arGraphicsNode* where, const string& baseName){
   if (_invalidFile){
     ar_log_error() << "arOBJ cannot attach mesh: No valid file!\n";
@@ -118,9 +118,9 @@ bool arOBJ::attachMesh(arGraphicsNode* where, const string& baseName){
   return true;
 }
 
-/// @param where The node to which we will attach the points information.
-/// @param nodeName The name to give the points node.
-/// Just attaches points (vertices) of the OBJ.  No geometry or transforms.
+// @param where The node to which we will attach the points information.
+// @param nodeName The name to give the points node.
+// Just attaches points (vertices) of the OBJ.  No geometry or transforms.
 arGraphicsNode* arOBJ::attachPoints(arGraphicsNode* where, 
                                     const string& nodeName){
   if (_invalidFile){
@@ -155,10 +155,10 @@ arGraphicsNode* arOBJ::attachPoints(arGraphicsNode* where,
  */
 }
 
-/// @param where The parent node to which we will attach everything.
-/// @param group The OBJ group number to attach
-/// @param base The base name of the group
-/// This attaches geometry, colors, etc. but NOT POINTS to node.
+// @param where The parent node to which we will attach everything.
+// @param group The OBJ group number to attach
+// @param base The base name of the group
+// This attaches geometry, colors, etc. but NOT POINTS to node.
 bool arOBJ::attachGroup(arGraphicsNode* where, int group, const string& base){
   if (_invalidFile){
     ar_log_error() << "arOBJ cannot attach group: No valid file.\n";
@@ -287,9 +287,9 @@ bool arOBJ::attachGroup(arGraphicsNode* where, int group, const string& base){
   return true;
 }
 
-/// @param groupID The OBJ internal group number
-/// returns a sphere centered at the average of all the triangles in the group
-/// with a radius that includes all the geometry
+// @param groupID The OBJ internal group number
+// returns a sphere centered at the average of all the triangles in the group
+// with a radius that includes all the geometry
 arBoundingSphere arOBJ::getGroupBoundingSphere(int groupID){
   int i=0,j=0;
   // first, walk through the triangle list and accumulate the average position
@@ -381,9 +381,9 @@ float arOBJ::intersectGroup(int groupID, const arRay& theRay){
   return intersectionDistance;
 }
 
-/// Inputs data on "face" line specified in OBJ file
-/// @param numTokens how many vertices in this face
-/// @param token the actual data on this line, separated nicely
+// Inputs data on "face" line specified in OBJ file
+// @param numTokens how many vertices in this face
+// @param token the actual data on this line, separated nicely
 void arOBJ::_parseFace(int numTokens, char *token[]){
   const int howManyVertices = numTokens-1;
   int* vertexID = new int[numTokens-1];
@@ -470,8 +470,8 @@ void arOBJ::_parseFace(int numTokens, char *token[]){
   delete texCoordID;
 }
 
-/// Adds normals if there are none, smoothes normals in smoothing group, and
-/// adjust backwards-facing normals
+// Adds normals if there are none, smoothes normals in smoothing group, and
+// adjust backwards-facing normals
 void arOBJ::_generateNormals(){
   unsigned int i=0, j=0, k=0;
   _normal.erase(_normal.begin(),_normal.begin()+1);
@@ -544,7 +544,7 @@ void arOBJ::_generateNormals(){
   }
 }
 
-/// Make the object fit in a sphere of radius 1
+// Make the object fit in a sphere of radius 1
 /** This actually adjust the vertex positions,
  *  not just add a normalization matrix
  */

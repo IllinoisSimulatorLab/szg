@@ -88,7 +88,7 @@ arGraphicsDatabase::arGraphicsDatabase() :
   }
 }
 
-/// \todo Lots more deleting should really be done here, e.g. the font.
+// todo: Lots more deleting should really be done here, e.g. the font.
 arGraphicsDatabase::~arGraphicsDatabase() {
   if (transformData) {
     delete transformData;
@@ -235,8 +235,7 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
   const map<string,arTexture*,less<string> >::iterator
     iFind(_textureNameContainer.find(name));
   if (iFind != _textureNameContainer.end()) {
-    // MUST ref the texture!
-    iFind->second->ref();
+    iFind->second->ref(); // Ref the texture.
     return iFind->second;
   }
 
@@ -316,10 +315,10 @@ arTexture* arGraphicsDatabase::addTexture(const string& name, int* theAlpha) {
 arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
 		int numPts, int numInd, float* points,
 		int* index, float* tex2, float height, arTexture* decalTexture) {
-/// @todo Let textureNameContainer hold either glNames or both arBumpMap
-///       and arTexture nodes, so we are not re-using the same texture
-///       memory for bump and texture maps...
-///       (Actually, a separate bumpNameContainer should be enough...)
+// @todo Let textureNameContainer hold either glNames or both arBumpMap
+//       and arTexture nodes, so we are not re-using the same texture
+//       memory for bump and texture maps...
+//       (Actually, a separate bumpNameContainer should be enough...)
   // A new bump map.
   const int numTBN = index ? numInd : numPts;
   //printf("arGraphicsDatabase: Create new bump map\n");
@@ -339,7 +338,7 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
   }
   // Only client, not server, needs the actual bitmap.
   else if (!isServer()) {
-    /// \todo factor out copypasting between this and texture map code
+    // todo: factor out copypasting between this and texture map code
     // Try everything in the path.
     ar_mutex_lock(&_texturePathLock);
     char fileNameBuffer[512];
@@ -373,10 +372,10 @@ arBumpMap* arGraphicsDatabase::addBumpMap(const string& name,
   return theBumpMap; 
 }
 
-/// Figure out the total transformation matrix from ABOVE the current node
-/// to the database's root. This call is thread-safe with respect to 
-/// database operations (it uses hidden global database locks). Consequently,
-/// this cannot be called from any message handling code.
+// Figure out the total transformation matrix from ABOVE the current node
+// to the database's root. This call is thread-safe with respect to 
+// database operations (it uses hidden global database locks). Consequently,
+// this cannot be called from any message handling code.
 arMatrix4 arGraphicsDatabase::accumulateTransform(int nodeID) {
   arMatrix4 result = ar_identityMatrix();
   arDatabaseNode* thisNode = getNodeRef(nodeID);
@@ -512,10 +511,10 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
   }
 }
 
-/// Finds the bounding sphere node (if any) with the closest point of
-/// intersection to the given ray and returns its ID. If no bounding sphere
-/// intersects, return -1 (which is the ID of no node). This method is
-/// thread-safe.
+// Finds the bounding sphere node (if any) with the closest point of
+// intersection to the given ray and returns its ID. If no bounding sphere
+// intersects, return -1 (which is the ID of no node). This method is
+// thread-safe.
 int arGraphicsDatabase::intersect(const arRay& theRay) {
   float bestDistance = -1;
   int bestNodeID = -1;
@@ -567,11 +566,11 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
   }
 }
 
-/// Returns a list of bounding sphere nodes that either intersect or contain the
-/// given bounding sphere. The sphere "closest" to the given sphere is
-/// first in the list. If addRef is true, all nodes returned have an extra reference
-/// added to them (and consequently this is thread-safe). 
-/// Otherwise, no extra ref (the default).
+// Returns a list of bounding sphere nodes that either intersect or contain the
+// given bounding sphere. The sphere "closest" to the given sphere is
+// first in the list. If addRef is true, all nodes returned have an extra reference
+// added to them (and consequently this is thread-safe). 
+// Otherwise, no extra ref (the default).
 list<arDatabaseNode*> arGraphicsDatabase::intersect(const arBoundingSphere& b, bool addRef) {
   list<arDatabaseNode*> result;
   stack<arMatrix4> matrixStack;
@@ -647,8 +646,8 @@ void arGraphicsDatabase::_intersect(arGraphicsNode* node,
   }
 }
 
-/// Returns the IDs of all bounding sphere nodes that intersect the given
-/// ray. Caller is responsible for deleting the list. Thread-safe.
+// Returns the IDs of all bounding sphere nodes that intersect the given
+// ray. Caller is responsible for deleting the list. Thread-safe.
 list<int>* arGraphicsDatabase::intersectList(const arRay& theRay) {
   list<int>* result = new list<int>;
   stack<arRay> rayStack;
@@ -697,14 +696,14 @@ void arGraphicsDatabase::_intersectList(arGraphicsNode* node,
   }
 }
 
-/// Intersect a ray with the database. At bounding sphere nodes, if there
-/// is no intersection, skip that subtree. At drawable nodes
-/// (consisting of triangles or quads... incompletely implemented) 
-/// intersect the ray with the polygons, figuring out the point of closest
-/// intersection. Return a pointer to the geometry node with
-/// the closest intersection point, or NULL if none intersect.
-///
-/// This method is thread-safe.
+// Intersect a ray with the database. At bounding sphere nodes, if there
+// is no intersection, skip that subtree. At drawable nodes
+// (consisting of triangles or quads... incompletely implemented) 
+// intersect the ray with the polygons, figuring out the point of closest
+// intersection. Return a pointer to the geometry node with
+// the closest intersection point, or NULL if none intersect.
+//
+// This method is thread-safe.
 arGraphicsNode* arGraphicsDatabase::intersectGeometry(const arRay& theRay,
                                                       int excludeBelow) {
   stack<arRay> rayStack;
@@ -717,8 +716,8 @@ arGraphicsNode* arGraphicsDatabase::intersectGeometry(const arRay& theRay,
   return bestNode;
 }
 
-/// A helper function for _intersectGeometry, which is, in turn, a helper
-/// function for intersectGeometry. 
+// A helper function for _intersectGeometry, which is, in turn, a helper
+// function for intersectGeometry. 
 float arGraphicsDatabase::_intersectSingleGeometry(arGraphicsNode* node,
                                                    arGraphicsContext* context,
                                                    const arRay& theRay) {
@@ -849,9 +848,9 @@ void arGraphicsDatabase::_intersectGeometry(arGraphicsNode* node,
   }
 }
 
-/// Only call from arLightNode::receiveData. This guarantees that
-/// _lightContainer is modified atomically when thread-safety matters
-/// (like arGraphicsServer and arGraphicsPeer),
+// Only call from arLightNode::receiveData. This guarantees that
+// _lightContainer is modified atomically when thread-safety matters
+// (like arGraphicsServer and arGraphicsPeer),
 bool arGraphicsDatabase::registerLight(arGraphicsNode* node, 
                                        arLight* theLight) {
   if (!theLight) {
@@ -874,7 +873,7 @@ bool arGraphicsDatabase::registerLight(arGraphicsNode* node,
   return true;
 }
 
-/// Only call from arLightNode::deactivate and arGraphicsDatabase::registerLight.
+// Only call from arLightNode::deactivate and arGraphicsDatabase::registerLight.
 bool arGraphicsDatabase::removeLight(arGraphicsNode* node) {
   if (!node || !node->active() || node->getOwner() != this) {
     ar_log_warning() << "arGraphicsDatabase: unowned node.\n";
@@ -890,11 +889,11 @@ bool arGraphicsDatabase::removeLight(arGraphicsNode* node) {
   return true;
 }
 
-/// For thread safety w.r.t. light deletion, lock this call with
-/// _databaseLock. Take care that no call inside
-/// also locks the global lock, 
-/// creating a deadlock. Since accumulateTransform(int) does do that,
-/// use arDatabaseNode::accumulateTransform() instead.
+// For thread safety w.r.t. light deletion, lock this call with
+// _databaseLock. Take care that no call inside
+// also locks the global lock, 
+// creating a deadlock. Since accumulateTransform(int) does do that,
+// use arDatabaseNode::accumulateTransform() instead.
 void arGraphicsDatabase::activateLights() {
   ar_mutex_lock(&_databaseLock);
   for (int i=0; i<8; ++i) {
@@ -916,10 +915,10 @@ void arGraphicsDatabase::activateLights() {
   ar_mutex_unlock(&_databaseLock);
 }
 
-/// Report the main camera node's location.  Return a pointer
-/// to the head matrix it holds (because of the VR camera, which needs
-/// a head matrix, all other cameras have one as well).
-/// Thread-safe.
+// Report the main camera node's location.  Return a pointer
+// to the head matrix it holds (because of the VR camera, which needs
+// a head matrix, all other cameras have one as well).
+// Thread-safe.
 arHead* arGraphicsDatabase::getHead() {
   arViewerNode* viewerNode = NULL;
   // Thread-safety requires using getNodeRef instead of getNode.
@@ -937,7 +936,7 @@ arHead* arGraphicsDatabase::getHead() {
   return result;
 }
 
-/// Should only be called from arPerspectiveCamera::receiveData.
+// Should only be called from arPerspectiveCamera::receiveData.
 bool arGraphicsDatabase::registerCamera(arGraphicsNode* node,
 					arPerspectiveCamera* theCamera) {
   if (!theCamera) {
@@ -959,8 +958,8 @@ bool arGraphicsDatabase::registerCamera(arGraphicsNode* node,
   return true;
 }
 
-/// Should only be called from arPerspectiveCamera::deactivate and
-/// arGraphicsDatabase::registerCamera.
+// Should only be called from arPerspectiveCamera::deactivate and
+// arGraphicsDatabase::registerCamera.
 bool arGraphicsDatabase::removeCamera(arGraphicsNode* node) {
   if (!node || !node->active() || node->getOwner() != this) {
     ar_log_warning() << "arGraphicsDatabase: unowned node.\n";

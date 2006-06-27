@@ -16,7 +16,6 @@
 #include "arXMLUtilities.h"
 
 #include <math.h>
-#include <iostream>
 
 int CHAR_DATA_ID;
 int INT_DATA_ID;

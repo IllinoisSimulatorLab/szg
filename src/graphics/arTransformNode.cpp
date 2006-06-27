@@ -7,7 +7,6 @@
 #include "arGraphicsDatabase.h" // too bad this must be included
 
 arTransformNode::arTransformNode(){
-  // A sensible default name.
   _name = "transform_node";
   _typeCode = AR_G_TRANSFORM_NODE;
   _typeString = "transform";
@@ -68,8 +67,8 @@ void arTransformNode::setTransform(const arMatrix4& transform){
   }
 }
 
-/// This method is NOT thread-safe. Instead, it is the caller's responsbility
-/// to call it from within a locked section.
+// This method is NOT thread-safe. Instead, it is the caller's responsbility
+// to call it from within a locked section.
 arStructuredData* arTransformNode::_dumpData(const arMatrix4& transform,
                                              bool owned){
   arStructuredData* result = owned ?

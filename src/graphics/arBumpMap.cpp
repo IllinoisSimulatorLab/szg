@@ -65,7 +65,7 @@ arBumpMap::arBumpMap( const arBumpMap& rhs ) : arTexture(rhs) {
     _tangents = _binormals = _normals = NULL;
 }
 
-/// @todo Verify this copy constructor; I don't remember exactly how they work
+// @todo Verify this copy constructor; I don't remember exactly how they work
 //  with derived classes...
 /*arBumpMap::arBumpMap& operator=( const arBumpMap& rhs ) {
   Texture t = rhs;
@@ -267,7 +267,7 @@ void arBumpMap::generateFrames(int numTBN) {
   _computeFrame();
 }
 
-/// Generates local frame for each vertex of object
+// Generates local frame for each vertex of object
 /** Given a set of vertices, connectivity information, and texture coords,
  *  we can construct binormal and tangent vectors by taking a tangent
  *  along the "u" direction and binormal around the "v" direction of
@@ -286,8 +286,8 @@ void arBumpMap::_computeFrame() {
   // storage for new values
   arVector3 *dsList = new arVector3[numFaces];
   arVector3 *dtList = new arVector3[numFaces];
-  /// run through all the faces, finding gradients of u and v along surface
-  /// This code modified from NVIDIA's NVMeshMender.cpp
+  // Traverse the faces, finding gradients of u and v along surface
+  // This code modified from NVIDIA's NVMeshMender.cpp
   for (i=0; i<numFaces; ++i) { // for every face
     // Create an edge out of x, s and t
     if (_indices) {

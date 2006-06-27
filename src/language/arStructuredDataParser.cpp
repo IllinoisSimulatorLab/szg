@@ -84,9 +84,9 @@ arStructuredDataParser::~arStructuredDataParser(){
   }
 }
 
-/// Try to liberate a data record from the internal recycling list,
-/// creating a new one if none-such exists.
-/// @param ID type of record we want
+// Try to liberate a data record from the internal recycling list,
+// creating a new one if none-such exists.
+// @param ID type of record we want
 arStructuredData* arStructuredDataParser::getStorage(int ID){
   arStructuredData* result = NULL;
   ar_mutex_lock(&_recycleLock);
@@ -124,8 +124,8 @@ LDone:
   return result;
 }
 
-/// Get one of the translation buffers. If none yet exist, create one and
-/// return that.
+// Get one of the translation buffers. If none yet exist, create one and
+// return that.
 arBuffer<char>* arStructuredDataParser::getTranslationBuffer(){
   arBuffer<char>* result = NULL;
   ar_mutex_lock(&_translationBufferListLock);
@@ -140,16 +140,16 @@ arBuffer<char>* arStructuredDataParser::getTranslationBuffer(){
   return result;
 }
 
-/// Return one of the translation buffers. The returned buffer goes
-/// to the front of the list, to ensure that buffers are reused often.
+// Return one of the translation buffers. The returned buffer goes
+// to the front of the list, to ensure that buffers are reused often.
 void arStructuredDataParser::recycleTranslationBuffer(arBuffer<char>* buffer){
   ar_mutex_lock(&_translationBufferListLock);
   _translationBuffers.push_front(buffer);
   ar_mutex_unlock(&_translationBufferListLock);
 }
 
-/// Parse the a binary stream into an arStructuredData record
-/// (using internal recycling if possible).
+// Parse the a binary stream into an arStructuredData record
+// (using internal recycling if possible).
 arStructuredData* arStructuredDataParser::parse(ARchar* buffer, int& end){
   const int ID = ar_rawDataGetID(buffer);
   end = ar_rawDataGetSize(buffer);
@@ -162,18 +162,18 @@ arStructuredData* arStructuredDataParser::parse(ARchar* buffer, int& end){
   return result;
 }
 
-/// NOTE: historically, the arStructuredDataParser has been used *after*
-/// the arDataClient (or whatever else) has grabbed a buffer of data (either
-/// a single record or a queue of records) and translated them from remote
-/// into local format. SO... there was no need to include a "translation"
-/// feature. However, it seems that a translation feature is, indeed,
-/// important. Eventually, we'll fold the arStructuredDataParser into
-/// the lower-level infrastructure. (i.e. it'll no longer be possible to
-/// use the arDataClient to get a raw buffer of data). At that time, this'll
-/// be useful.
-/// Also it might be better to fold translation
-/// into arStructuredData, and not need to
-/// double the storage for buffers in the case of translation.
+// NOTE: historically, the arStructuredDataParser has been used *after*
+// the arDataClient (or whatever else) has grabbed a buffer of data (either
+// a single record or a queue of records) and translated them from remote
+// into local format. SO... there was no need to include a "translation"
+// feature. However, it seems that a translation feature is, indeed,
+// important. Eventually, we'll fold the arStructuredDataParser into
+// the lower-level infrastructure. (i.e. it'll no longer be possible to
+// use the arDataClient to get a raw buffer of data). At that time, this'll
+// be useful.
+// Also it might be better to fold translation
+// into arStructuredData, and not need to
+// double the storage for buffers in the case of translation.
 arStructuredData* arStructuredDataParser::parse
                                     (ARchar* buffer, int& end,
 				     const arStreamConfig& remoteStreamConfig){
@@ -208,7 +208,7 @@ arStructuredData* arStructuredDataParser::parse
   }
 }
 
-/// Parse an XML text stream (using internal recycling if possible).
+// Parse an XML text stream (using internal recycling if possible).
 arStructuredData* arStructuredDataParser::parse(arTextStream* textStream){
   string recordBegin = ar_getTagText(textStream);
   if (recordBegin == "NULL" || ar_isEndTag(recordBegin)){
@@ -217,23 +217,23 @@ arStructuredData* arStructuredDataParser::parse(arTextStream* textStream){
   return parse(textStream, recordBegin);
 }
 
-/// A typical stream of XML data contains "extra" tags for
-/// flow control. For instance, consider the below:
-///
-/// <szg_vtk_world>
-///   <world_record>
-///    ...
-///   </world_record>
-///
-///   <world_record>
-///    ...
-///   </world_record>
-/// </szg_vtk_world>
-///
-/// The app reading this stream first reads a tag.
-/// If that is control-related, such as <szg_vtk_world>,
-/// then the app changes behavior somehow. Otherwise,
-/// read in the rest of the record, based on the tag's name. 
+// A typical stream of XML data contains "extra" tags for
+// flow control. For instance, consider the below:
+//
+// <szg_vtk_world>
+//   <world_record>
+//    ...
+//   </world_record>
+//
+//   <world_record>
+//    ...
+//   </world_record>
+// </szg_vtk_world>
+//
+// The app reading this stream first reads a tag.
+// If that is control-related, such as <szg_vtk_world>,
+// then the app changes behavior somehow. Otherwise,
+// read in the rest of the record, based on the tag's name. 
 arStructuredData* arStructuredDataParser::parse(arTextStream* textStream,
                                                 const string& tagText){
   // Get a resizable buffer for reading in text fields.
@@ -303,7 +303,7 @@ arStructuredData* arStructuredDataParser::parse(arTextStream* textStream,
     }
     switch (fieldType) {
     case AR_CHAR:
-      // THIS NOT MUST SKIP WHITESPACE! ALL OF THE OTHERS SHOULD DO SO!
+      // Don't skip whitespace.  All other cases should, though.
       size = ar_parseXMLData<ARchar>(workingBuffer, charData, false);
       if (!charData){
         cerr << "arStructuredDataParser error: XML char data expected but "
@@ -465,16 +465,16 @@ arStructuredData* arStructuredDataParser::parseBinary(FILE* inputFile){
   return data;
 }
 
-/// Sometimes it is advantageous to read incoming data in a thread separate
-/// from where it is actually used. In addition to holding raw "recycled" 
-/// storage, the arStructuredDataParser can hold received message lists. There 
-/// is one received message list per record type in the language. New 
-/// messages, as parsed by "parseIntoInternal", are appended to
-/// the list. This allows demultiplexing via message type, for
-/// arSZGClient objects etc. This function 
-/// parses data from a char buffer and stores it in one of the received 
-/// message list. If a getNextInternal(...) method is waiting on such data, it 
-/// is woken up.
+// Sometimes it is advantageous to read incoming data in a thread separate
+// from where it is actually used. In addition to holding raw "recycled" 
+// storage, the arStructuredDataParser can hold received message lists. There 
+// is one received message list per record type in the language. New 
+// messages, as parsed by "parseIntoInternal", are appended to
+// the list. This allows demultiplexing via message type, for
+// arSZGClient objects etc. This function 
+// parses data from a char buffer and stores it in one of the received 
+// message list. If a getNextInternal(...) method is waiting on such data, it 
+// is woken up.
 bool arStructuredDataParser::parseIntoInternal(ARchar* buffer, int& end){
   arStructuredData* theData = parse(buffer,end);
   if (!theData){
@@ -486,8 +486,8 @@ bool arStructuredDataParser::parseIntoInternal(ARchar* buffer, int& end){
   return true;
 }
 
-/// Same as parseIntoInternal(ARchar*, int) except that here the source is a 
-/// text file, with XML structure
+// Same as parseIntoInternal(ARchar*, int) except that here the source is a 
+// text file, with XML structure
 bool arStructuredDataParser::parseIntoInternal(arTextStream* textStream){
   arStructuredData* theData = parse(textStream);
   if (!theData){
@@ -498,15 +498,15 @@ bool arStructuredDataParser::parseIntoInternal(arTextStream* textStream){
   return true;
 }
 
-/// The arStructuredDataParser can hold received messages in two ways.
-/// The first, as typified by parseIntoInternal(...) is useful for storing
-/// and later retrieving message based on message type. This method, in
-/// contrast, stores the message internally based on a user-defined tag.
-/// Records are retrieved (possibly in a different thread) via a blocking
-/// getNextTaggedMessage(...), which uses the tag as a retrieval key. The
-/// idea is that this can be used to implement async rpc.
-/// NOTE: multiple records can be stored with a particular tag. This is
-/// useful when, for instance, a syzygy message can get several responses.
+// The arStructuredDataParser can hold received messages in two ways.
+// The first, as typified by parseIntoInternal(...) is useful for storing
+// and later retrieving message based on message type. This method, in
+// contrast, stores the message internally based on a user-defined tag.
+// Records are retrieved (possibly in a different thread) via a blocking
+// getNextTaggedMessage(...), which uses the tag as a retrieval key. The
+// idea is that this can be used to implement async rpc.
+// NOTE: multiple records can be stored with a particular tag. This is
+// useful when, for instance, a syzygy message can get several responses.
 bool arStructuredDataParser::pushIntoInternalTagged(arStructuredData* data,
                                                     int tag){
   if (!data){
@@ -518,11 +518,11 @@ bool arStructuredDataParser::pushIntoInternalTagged(arStructuredData* data,
   return true;
 }
 
-/// Either returns the top piece of arStructuredData on the appropriate queue 
-/// or blocks until such is available.
-/// NOTE: This can be interrupted, both by the time-out OR by the clearQueues()
-/// method, which flushes all queues, releases any outstanding waits inside
-/// getNextInternal or getNextTaggedMessage, etc.
+// Either returns the top piece of arStructuredData on the appropriate queue 
+// or blocks until such is available.
+// NOTE: This can be interrupted, both by the time-out OR by the clearQueues()
+// method, which flushes all queues, releases any outstanding waits inside
+// getNextInternal or getNextTaggedMessage, etc.
 arStructuredData* arStructuredDataParser::getNextInternal(int ID){
   SZGmessageQueue::iterator i(_messageQueue.find(ID));
   if (i == _messageQueue.end()){
@@ -561,14 +561,14 @@ arStructuredData* arStructuredDataParser::getNextInternal(int ID){
   return result;
 }
 
-/// If a piece of data is in internal storage with one of the list of passed
-/// tags and matches the requested dataID, fill-in the first parameter with 
-/// it. If not, wait until the specified time-out period (the default is to
-/// have no time-out, as given by a default parameter for timeout of -1).
-/// The function returns the tag of the message actually retrieved (or -1 on
-/// timeout or other failure). The dataID is also an optional parameter,
-/// given a value of -1 by default. If it is positive, we check that the
-/// retrieved message has the proper ID also.
+// If a piece of data is in internal storage with one of the list of passed
+// tags and matches the requested dataID, fill-in the first parameter with 
+// it. If not, wait until the specified time-out period (the default is to
+// have no time-out, as given by a default parameter for timeout of -1).
+// The function returns the tag of the message actually retrieved (or -1 on
+// timeout or other failure). The dataID is also an optional parameter,
+// given a value of -1 by default. If it is positive, we check that the
+// retrieved message has the proper ID also.
 int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
                                                  list<int> tags,
                                                  int dataID,
@@ -713,8 +713,8 @@ int arStructuredDataParser::getNextTaggedMessage(arStructuredData*& message,
   return tag;
 }
 
-/// Avoid memory leaks by providing a way to return data storage into the
-/// internal store
+// Avoid memory leaks by providing a way to return data storage into the
+// internal store
 void arStructuredDataParser::recycle(arStructuredData* trash){
   ar_mutex_lock(&_recycleLock);
   const int ID = trash->getID();
@@ -732,14 +732,14 @@ void arStructuredDataParser::recycle(arStructuredData* trash){
   ar_mutex_unlock(&_recycleLock);
 }
 
-/// This function is intended to "release" every pending request for
-/// getNextTaggedMessage(...) or getNextInternal(...). It, furthermore,
-/// removes all already parsed messages from the internal queues for 
-/// particular message IDs AND from all the tagged queues. Why? Well,
-/// this is useful for allowing us to DISCONNECT a (for instance) arSZGClient
-/// from an szgserver, have all the current calls fall through, and then
-/// be able to reconnect to a DIFFERENT szgserver later, no matter what calls
-/// we are blocking on where!
+// This function is intended to "release" every pending request for
+// getNextTaggedMessage(...) or getNextInternal(...). It, furthermore,
+// removes all already parsed messages from the internal queues for 
+// particular message IDs AND from all the tagged queues. Why? Well,
+// this is useful for allowing us to DISCONNECT a (for instance) arSZGClient
+// from an szgserver, have all the current calls fall through, and then
+// be able to reconnect to a DIFFERENT szgserver later, no matter what calls
+// we are blocking on where!
 void arStructuredDataParser::clearQueues(){
   ar_mutex_lock(&_globalLock);
   // We should be "deactivated". This means that getNextInternal(...)
@@ -803,8 +803,8 @@ void arStructuredDataParser::clearQueues(){
   ar_mutex_unlock(&_globalLock);
 }
 
-/// Lets the flow of data from getNextInternal(...) and getNextTagged(...)
-/// start again.
+// Lets the flow of data from getNextInternal(...) and getNextTagged(...)
+// start again.
 void arStructuredDataParser::activateQueues(){
   ar_mutex_lock(&_activationLock);
   _activated = true;
@@ -818,8 +818,8 @@ void arStructuredDataParser::activateQueues(){
   ar_mutex_unlock(&_activationLock);
 }
 
-/// Push the received message onto one of the queues.
-/// Signal a potentially blocked getNextInternal() that it can proceed.
+// Push the received message onto one of the queues.
+// Signal a potentially blocked getNextInternal() that it can proceed.
 void arStructuredDataParser::_pushOntoQueue(arStructuredData* theData){
   // we assume the next 3 iterators will find something, because we have a
   // valid piece of arStructuredData passed-in
@@ -830,13 +830,13 @@ void arStructuredDataParser::_pushOntoQueue(arStructuredData* theData){
   ar_mutex_unlock(&i->second->lock);
 }
 
-/// Push the received message onto the tagged queue (a single
-/// queue for all message types, but indexed via ID). Signal a potentially
-/// blocked getNextTaggedMessage() that it can proceed.
-/// Because of "message continuations",
-/// multiple messages may be received for a particular tag.
-/// The only uniqueness is that at most one command at a time
-/// may wait on a particular tag.
+// Push the received message onto the tagged queue (a single
+// queue for all message types, but indexed via ID). Signal a potentially
+// blocked getNextTaggedMessage() that it can proceed.
+// Because of "message continuations",
+// multiple messages may be received for a particular tag.
+// The only uniqueness is that at most one command at a time
+// may wait on a particular tag.
 void arStructuredDataParser::_pushOntoTaggedQueue(int tag,
                                                   arStructuredData* theData){
   ar_mutex_lock(&_globalLock);
@@ -868,9 +868,9 @@ void arStructuredDataParser::_pushOntoTaggedQueue(int tag,
   ar_mutex_unlock(&_globalLock);
 }
 
-/// This function is called to clean-up the synchronizer associated with a
-/// list of tags. All of the tags in the list are associated with the
-/// SAME synchronizer!
+// This function is called to clean-up the synchronizer associated with a
+// list of tags. All of the tags in the list are associated with the
+// SAME synchronizer!
 void arStructuredDataParser::_cleanupSynchronizers(list<int> tags){
   list<int>::iterator i;
   SZGtaggedMessageSync::iterator j;

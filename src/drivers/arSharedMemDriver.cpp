@@ -12,7 +12,6 @@
 #include <sys/shm.h>
 #endif
 #include <string>
-#include <sstream>
 
 // Methods used by the dynamic library mappers. 
 extern "C"{

@@ -22,7 +22,7 @@
 // Rotation orders (there are many possibilities for Euler angles).
 //enum { XYZ = 1, XZY, YXZ, YZX, ZXY, ZYX };
 
-/// Hierarchy pairs
+// Hierarchy pairs
 class SZG_CALL htrSegmentHierarchy {
  public:
   char* child;
@@ -38,7 +38,7 @@ class SZG_CALL htrSegmentHierarchy {
 class htrBasePosition;
 class htrFrame;
 
-/// Segment data
+// Segment data
 class SZG_CALL htrSegmentData{
  public:
   htrSegmentData(): transformNode(NULL), scaleNode(NULL), preTransformNode(NULL), postTransformNode(NULL),
@@ -46,27 +46,27 @@ class SZG_CALL htrSegmentData{
   ~htrSegmentData(){}
 
   string segmentName;
-  /// Transform node associated with this segment
+  // Transform node associated with this segment
   arTransformNode* transformNode;
-  /// The scale node associated with this segment
+  // The scale node associated with this segment
   arTransformNode* scaleNode;
-  /// To adjust for different actors animating the same
-  /// HTR, we need to be able to adjust the position,
-  /// size, etc. of each segment from a well-defined
-  /// location. This is a pre-multiplication... i.e.
-  /// further down the transform chain.
+  // To adjust for different actors animating the same
+  // HTR, we need to be able to adjust the position,
+  // size, etc. of each segment from a well-defined
+  // location. This is a pre-multiplication... i.e.
+  // further down the transform chain.
   arTransformNode* preTransformNode;
-  /// Another adjustment, a post-multiplication
-  /// i.e. futher up the transform chain
+  // Another adjustment, a post-multiplication
+  // i.e. futher up the transform chain
   arTransformNode* postTransformNode;
-  /// another adjustment, to move the segment without moving its children
+  // another adjustment, to move the segment without moving its children
   arTransformNode* localTransformNode;
-  /// transform pushing the geometry bound to the segment back to
-  /// a standard position (i.e. starting at the origin
-  /// and pointed along the y-axis)
+  // transform pushing the geometry bound to the segment back to
+  // a standard position (i.e. starting at the origin
+  // and pointed along the y-axis)
   arTransformNode* invTransformNode;
-  /// Each segment has a bounding sphere associated
-  /// with it. We need to be able to pick and manipulate the segments
+  // Each segment has a bounding sphere associated
+  // with it. We need to be able to pick and manipulate the segments
   arBoundingSphereNode* boundingSphereNode;
   htrSegmentData* parent;
   htrBasePosition* basePosition;
@@ -74,7 +74,7 @@ class SZG_CALL htrSegmentData{
   vector<htrFrame*> frame;
 };
 
-/// Base position Structure
+// Base position Structure
 class SZG_CALL htrBasePosition {
  public:
   htrBasePosition() : name(NULL), segment(NULL)
@@ -90,7 +90,7 @@ class SZG_CALL htrBasePosition {
   double boneLength;
 };
 
-/// Frame data
+// Frame data
 class SZG_CALL htrFrame{
  public:
   htrFrame(){}
@@ -103,7 +103,7 @@ class SZG_CALL htrFrame{
   double totalScale;
 };
 
-/// Wrapper for .htr format
+// Wrapper for .htr format
 class SZG_CALL arHTR : public arObject {
   public:
     arHTR();
@@ -196,8 +196,8 @@ class SZG_CALL arHTR : public arObject {
     vector<htrSegmentData*> segmentData;
 
     int _currentFrame;
-    arVector3 _normCenter;	//< middle of the model
-    double _normScaleAmount;	//< how much to scale model by to fit in unit sphere
+    arVector3 _normCenter;	// middle of the model
+    double _normScaleAmount;	// how much to scale model by to fit in unit sphere
 };
 
 #endif // __AR_HTR_H

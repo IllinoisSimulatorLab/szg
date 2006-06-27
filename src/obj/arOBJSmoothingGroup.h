@@ -15,8 +15,8 @@
 #include <string>
 #include <vector>
 
-/// Helper class for arOBJ objects
-/// \todo get rid of this, or put it in arOBJ's files
+// Helper class for arOBJ objects
+// todo: get rid of this, or put it in arOBJ's files
 class SZG_CALL arOBJSmoothingGroup
 {
   private:
@@ -25,7 +25,7 @@ class SZG_CALL arOBJSmoothingGroup
     int    _name;
     inline unsigned int  total() {return _triangles.size()-1;}
     void        add(int newTriangle);
-    inline int& operator[] (int i) { return _triangles[i]; } ///< returning a reference is unsafe!
+    inline int& operator[] (int i) { return _triangles[i]; } // returning a reference is unsafe!
     inline int  operator[] (int i) const {return _triangles[i];}
 };
 

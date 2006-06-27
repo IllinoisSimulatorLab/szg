@@ -8,7 +8,7 @@
 #include "arGraphicsHeader.h"
 
 arFrustumCamera::arFrustumCamera(){
-  // Sensible defaults for ortho camera. Frustum values correspond to:
+  // Defaults for ortho camera. Frustum values correspond to:
   // left, right, bottom, top, near, far
   frustum[0] = -1.;
   frustum[1] = 1.;

@@ -95,24 +95,24 @@ void arUniqueInteractor::activateInteractionGroup( const unsigned int group ) {
   _activeInteractionGroup = group;
 }
 
-/// Should generally be called once/frame.
-/// Does the following:
-/// (1) loop through all instances, find out if one has a lock.  If so, call its
-///     processTouch() and return. (an instance might want to set a lock if e.g.
-///     it's been grabbed).
-/// (2) loop through all instances, find out if any was already being touched.
-/// (3) loop through all instances that are currently accepting interaction
-///     to find out which is (a) in the currently-active interaction group (b) closest
-///     (or has the highest priority score, if that method's been overridden) and
-///     (c) exceeds the minimum priority score.
-/// (4) if no such instance is found, or it is but it's not the same as the
-///     currently-touched instance (if any exists), unTouch() the currently-touched one.
-/// (5) call processTouch() for the instance found in (3), if any.
-///
-/// @param interfaceObject An arInterfaceObject pointer, for getting input data.
-/// @param wandTipMatrix Position and orientation of wand tip.
-/// @param touchDistanceLimit How close does the wand have to be for interaction
-/// to occur?
+// Should generally be called once/frame.
+// Does the following:
+// (1) loop through all instances, find out if one has a lock.  If so, call its
+//     processTouch() and return. (an instance might want to set a lock if e.g.
+//     it's been grabbed).
+// (2) loop through all instances, find out if any was already being touched.
+// (3) loop through all instances that are currently accepting interaction
+//     to find out which is (a) in the currently-active interaction group (b) closest
+//     (or has the highest priority score, if that method's been overridden) and
+//     (c) exceeds the minimum priority score.
+// (4) if no such instance is found, or it is but it's not the same as the
+//     currently-touched instance (if any exists), unTouch() the currently-touched one.
+// (5) call processTouch() for the instance found in (3), if any.
+//
+// @param interfaceObject An arInterfaceObject pointer, for getting input data.
+// @param wandTipMatrix Position and orientation of wand tip.
+// @param touchDistanceLimit How close does the wand have to be for interaction
+// to occur?
 
 bool arUniqueInteractor::processAllTouches(  arInputState* inputState,
                                              const arMatrix4& wandTipMatrix,
@@ -189,22 +189,22 @@ bool arUniqueInteractor::processAllTouches(  arInputState* inputState,
   return ok;
 }
 
-/// Partial determinant of which object gets interacted with.
-/// First _interactionGroup is checked, then this.  priorityScore()
-/// must exceed minimum specified in arUniqueInteractor::processAllTouches().
-/// This default priorityScore() returns inverse of Euclidean distance from
-/// wand tip; to specify a maximum interaction distance, pass the inverse of
-/// it as the minimum acceptable priority score in processAllTouches().
+// Partial determinant of which object gets interacted with.
+// First _interactionGroup is checked, then this.  priorityScore()
+// must exceed minimum specified in arUniqueInteractor::processAllTouches().
+// This default priorityScore() returns inverse of Euclidean distance from
+// wand tip; to specify a maximum interaction distance, pass the inverse of
+// it as the minimum acceptable priority score in processAllTouches().
 float arUniqueInteractor::priorityScore( const arMatrix4& wandTipMatrix ) {
   return 1./((
        ar_extractTranslation( wandTipMatrix ) - ar_extractTranslation( _matrix )
        ).magnitude());
 }
 
-/// This is what an object does if e.g. it's been clicked on and wants to be
-/// dragged. Ensures that only this instance's processTouch() will be called
-/// until it unlocks itself. Should always succeed if called from instance's
-/// processTouch().
+// This is what an object does if e.g. it's been clicked on and wants to be
+// dragged. Ensures that only this instance's processTouch() will be called
+// until it unlocks itself. Should always succeed if called from instance's
+// processTouch().
 bool arUniqueInteractor::lockMe() {
   if (_lockedPtr == this)
     return true;
@@ -214,7 +214,7 @@ bool arUniqueInteractor::lockMe() {
   return true;
 }
 
-/// E.g. when the user lets go of the button at the end of a drag.
+// E.g. when the user lets go of the button at the end of a drag.
 bool arUniqueInteractor::unlockMe() {
   if (!_lockedPtr)
     return true;

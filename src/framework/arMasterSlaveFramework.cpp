@@ -345,7 +345,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _guiXMLParser = new arGUIXMLParser( &_SZGClient );
 }
 
-/// \bug memory leak for several pointer members
+// \bug memory leak for several pointer members
 arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
   // DO NOT DELETE _screenObject in here. WE MIGHT NOT OWN IT.
 
@@ -367,7 +367,7 @@ arMasterSlaveFramework::~arMasterSlaveFramework( void ) {
   delete _guiXMLParser;
 }
 
-/// Initializes the syzygy objects, but does not start any threads
+// Initializes the syzygy objects, but does not start any threads
 bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   _label = ar_stripExeName( string( argv[ 0 ] ) );
   
@@ -526,16 +526,16 @@ fail:
   return true;
 }
 
-/// Begins halting many significant parts of the object and blocks until
-/// they have, indeed, halted. The parameter will be false if we have been
-/// called from the arGUI keyboard function (that way be will not wait for
-/// the display thread to finish, resulting in a deadlock, since the
-/// keyboard function is called from that thread). The parameter will be
-/// true, on the other hand, if we are calling from the message-receiving
-/// thread (which is different from the display thread, and there the
-/// stop(...) should not return until the display thread is done.
-/// THIS DOES NOT HALT EVERYTHING YET! JUST THE
-/// STUFF THAT SEEMS TO CAUSE SEGFAULTS OR OTHER PROBLEMS ON EXIT.
+// Begins halting many significant parts of the object and blocks until
+// they have, indeed, halted. The parameter will be false if we have been
+// called from the arGUI keyboard function (that way be will not wait for
+// the display thread to finish, resulting in a deadlock, since the
+// keyboard function is called from that thread). The parameter will be
+// true, on the other hand, if we are calling from the message-receiving
+// thread (which is different from the display thread, and there the
+// stop(...) should not return until the display thread is done.
+// THIS DOES NOT HALT EVERYTHING YET! JUST THE
+// STUFF THAT SEEMS TO CAUSE SEGFAULTS OR OTHER PROBLEMS ON EXIT.
 void arMasterSlaveFramework::stop( bool blockUntilDisplayExit ) {
   
   _blockUntilDisplayExit = blockUntilDisplayExit;
@@ -651,18 +651,16 @@ void arMasterSlaveFramework::exitFunction(){
   // When this function has returned, we can exit.
 }
 
-/// The sequence of events that should occur before the window is drawn.
-/// Made available as a public method so that applications can create custom
-/// event loops.
+// The sequence of events that should occur before the window is drawn.
+// Made available as a public method so that applications can create custom
+// event loops.
 void arMasterSlaveFramework::preDraw( void ) {
-  // don't even start the function if we are, in fact, in shutdown mode
   if (stopping())
     return;
   
-  // Please note: the reloading of parameters MUST occur in this thread,
-  // given that the arGUIWindowManager might be single threaded.
-  // AND when the arGUIWindowManager is single-threaded, all calls to it
-  // must occur in that single thread!
+  // Reload parameters in this thread,
+  // since the arGUIWindowManager might be single threaded,
+  // in which case all calls to it must be in that single thread.
   
   if (_requestReload){
     (void) _loadParameters();
@@ -753,7 +751,7 @@ void arMasterSlaveFramework::preDraw( void ) {
   _lastComputeTime = ar_difftime( ar_time(), preDrawStart );
 }
 
-/// Public method so that applications can make custom event loops.
+// Public method so that applications can make custom event loops.
 void arMasterSlaveFramework::draw( int windowID ){
   if( stopping() || !_wm )
     return;
@@ -764,8 +762,8 @@ void arMasterSlaveFramework::draw( int windowID ){
     _wm->drawWindow( windowID, true );
 }
 
-/// The sequence of events that should occur after the window is drawn,
-/// but before the synchronization is called.
+// The sequence of events that should occur after the window is drawn,
+// but before the synchronization is called.
 void arMasterSlaveFramework::postDraw( void ){
   // if shutdown has been triggered, just return
   if (stopping())
@@ -792,7 +790,7 @@ void arMasterSlaveFramework::postDraw( void ){
   _lastSyncTime = ar_difftime( ar_time(), postDrawStart );
 }
 
-/// Public method so that applications can make custom event loops.
+// Public method so that applications can make custom event loops.
 void arMasterSlaveFramework::swap( int windowID ) {
   if (stopping() || !_wm)
     return;
@@ -906,9 +904,9 @@ void arMasterSlaveFramework::onWindowStartGL( arGUIWindowInfo* windowInfo ) {
   }
 }
 
-/// Yes, this is really the application-provided draw function. It is
-/// called once per viewport of each arGraphicsWindow (arGUIWindow).
-/// It is a virtual method that issues the user-defined draw callback.
+// Yes, this is really the application-provided draw function. It is
+// called once per viewport of each arGraphicsWindow (arGUIWindow).
+// It is a virtual method that issues the user-defined draw callback.
 void arMasterSlaveFramework::onDraw( arGraphicsWindow& win, arViewport& vp ) {
   if( (!_oldDrawCallback) && (!_drawCallback) ) {
     ar_log_warning() << _label << " warning: forgot to setDrawCallback().\n";
@@ -1075,13 +1073,13 @@ void arMasterSlaveFramework::setPostExchangeCallback
   _postExchange = postExchange;
 }
 
-/// The window callback is called once per window, per frame, if set.
-/// If it is not set, the _drawSetUp method is called instead. This callback
-/// is needed since we may want several different views in a single window,
-/// with a draw callback filling each. This is especially useful for passive
-/// stereo from a single box, but will not work if the draw callback includes
-/// code that clears the entire buffer. Hence such code needs to moved
-/// into this sort of callback.
+// The window callback is called once per window, per frame, if set.
+// If it is not set, the _drawSetUp method is called instead. This callback
+// is needed since we may want several different views in a single window,
+// with a draw callback filling each. This is especially useful for passive
+// stereo from a single box, but will not work if the draw callback includes
+// code that clears the entire buffer. Hence such code needs to moved
+// into this sort of callback.
 void arMasterSlaveFramework::setWindowCallback
   ( void (*windowCallback)( arMasterSlaveFramework& ) ) {
   _windowInitCallback = windowCallback;
@@ -1122,27 +1120,27 @@ void arMasterSlaveFramework::setExitCallback
   _cleanup = cleanup;
 }
 
-/// Syzygy messages currently consist of two strings, the first being
-/// a type and the second being a value. The user can send messages
-/// to the arMasterSlaveFramework and the application can trap them
-/// using this callback. A message w/ type "user" and value "foo" will
-/// be passed into this callback, if set, with "foo" going into the string.
+// Syzygy messages currently consist of two strings, the first being
+// a type and the second being a value. The user can send messages
+// to the arMasterSlaveFramework and the application can trap them
+// using this callback. A message w/ type "user" and value "foo" will
+// be passed into this callback, if set, with "foo" going into the string.
 void arMasterSlaveFramework::setUserMessageCallback
   ( void (*userMessageCallback)(arMasterSlaveFramework&, const string& )){
   _userMessageCallback = userMessageCallback;
 }
 
-/// In general, the graphics window can be a complicated sequence of
-/// viewports (as is necessary for simulating a CAVE or Cube). Sometimes
-/// the application just wants to draw something once, which is the
-/// purpose of this callback.
+// In general, the graphics window can be a complicated sequence of
+// viewports (as is necessary for simulating a CAVE or Cube). Sometimes
+// the application just wants to draw something once, which is the
+// purpose of this callback.
 void arMasterSlaveFramework::setOverlayCallback
   ( void (*overlay)( arMasterSlaveFramework& ) ) {
   _overlay = overlay;
 }
 
-/// A master instance will also take keyboard input via this callback,
-/// if defined.
+// A master instance will also take keyboard input via this callback,
+// if defined.
 void arMasterSlaveFramework::setKeyboardCallback
   ( void (*keyboard)( arMasterSlaveFramework&, unsigned char, int, int ) ) {
   _keyboardCallback = keyboard;
@@ -1163,10 +1161,10 @@ void arMasterSlaveFramework::setEventQueueCallback( arFrameworkEventQueueCallbac
   ar_log_remark() << _label << " set event queue callback.\n";
 }
 
-/// The sound server should be able to find its files in the application
-/// directory. If this function is called between init(...) and start(...),
-/// sound render can find clips there. bundlePathName should
-/// be SZG_PYTHON or SZG_DATA. bundleSubDirectory is usually the app's name.
+// The sound server should be able to find its files in the application
+// directory. If this function is called between init(...) and start(...),
+// sound render can find clips there. bundlePathName should
+// be SZG_PYTHON or SZG_DATA. bundleSubDirectory is usually the app's name.
 void arMasterSlaveFramework::setDataBundlePath( const string& bundlePathName,
                                                 const string& bundleSubDirectory ) {
   _soundServer.setDataBundlePath( bundlePathName, bundleSubDirectory );
@@ -1428,8 +1426,8 @@ bool arMasterSlaveFramework::_sync( void ){
 // utility functions for graphics
 //************************************************************************
 
-/// Check and see if we are supposed to take a screenshot. If so, go
-/// ahead and take it!
+// Check and see if we are supposed to take a screenshot. If so, go
+// ahead and take it!
 void arMasterSlaveFramework::_handleScreenshot( bool stereo ) {
   if( _screenshotFlag ) {
     char numberBuffer[ 8 ];
@@ -1759,7 +1757,7 @@ void arMasterSlaveFramework::_unpackInputData( void ){
 // functions pertaining to starting the application
 //************************************************************************
 
-/// Determines whether or not we are the master instance
+// Determines whether or not we are the master instance
 bool arMasterSlaveFramework::_determineMaster() {
   // each master/slave application has it's own unique service,
   // since each has its own unique protocol
@@ -1795,8 +1793,8 @@ bool arMasterSlaveFramework::_determineMaster() {
   return true;
 }
 
-/// Sometimes we may want to run the program by itself, without connecting
-/// to the distributed system.
+// Sometimes we may want to run the program by itself, without connecting
+// to the distributed system.
 bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
   // Create the input node. NOTE: there are, so far, two different ways
   // to control a standalone master/slave application. An embedded
@@ -1883,8 +1881,8 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
   return true;
 }
 
-/// This is lousy factoring. I think it would be a good idea to eventually
-/// fold init and start in together.
+// This is lousy factoring. I think it would be a good idea to eventually
+// fold init and start in together.
 bool arMasterSlaveFramework::_startStandaloneObjects( void ) {
   _soundServer.start();
   _soundActive = true;
@@ -1942,7 +1940,7 @@ LAbort:
   return true;
 }
 
-/// Starts the objects needed by the master.
+// Starts the objects needed by the master.
 bool arMasterSlaveFramework::_startMasterObjects() {
   // Start the master's service.
   _stateServer = new arDataServer( 1000 );
@@ -2058,7 +2056,7 @@ bool arMasterSlaveFramework::_initSlaveObjects() {
   return true;
 }
 
-/// Starts the objects needed by the slaves
+// Starts the objects needed by the slaves
 bool arMasterSlaveFramework::_startSlaveObjects() {
   // the barrier client is the only object to start
   if( !_barrierClient->start() ) {
@@ -2358,7 +2356,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
       else {
 	float tmp[ 3 ];
 	ar_parseFloatString( messageBody, tmp, 3 );
-	/// \todo error checking
+	// todo: error checking
         memcpy( _noDrawFillColor.v, tmp, 3 * sizeof( AR_FLOAT ) );
       }
     }
@@ -2372,7 +2370,7 @@ void arMasterSlaveFramework::_messageTask( void ) {
         if( messageBody != "NULL" ) {
           int tmp[ 4 ];
           ar_parseIntString( messageBody, tmp, 4 );
-	        /// \todo error checking
+	        // todo: error checking
           _screenshotStartX = tmp[ 0 ];
       	  _screenshotStartY = tmp[ 1 ];
       	  _screenshotWidth  = tmp[ 2 ];
@@ -2501,9 +2499,9 @@ void arMasterSlaveFramework::_connectionTask( void ) {
 // Functions directly pertaining to drawing
 //**************************************************************************
 
-/// This function is responsible for displaying a whole arGUIWindow.
-/// Look at the definition of arMasterSlaveRenderCallback to understand
-/// how it is called from arGUIWindow.
+// This function is responsible for displaying a whole arGUIWindow.
+// Look at the definition of arMasterSlaveRenderCallback to understand
+// how it is called from arGUIWindow.
 void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
                                           arGraphicsWindow* graphicsWindow ) {
   if ( !windowInfo || !graphicsWindow ) {

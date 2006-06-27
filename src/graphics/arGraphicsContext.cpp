@@ -171,46 +171,28 @@ void arGraphicsContext::clear(){
 
 void arGraphicsContext::setPointState(float& blendFactor){
   // Lighting: always disabled for points.
-  // Shade model: irrelevant for points. (Set to a sensible default).
+  // Shade model: irrelevant for points.
   // Texture mapping: always disabled for points.
   // Point size: Use value from stack.
 
-  // Lighting.
   glDisable(GL_LIGHTING);
-  // Shade model
   glShadeModel(GL_SMOOTH);
-  // Texture.
   glDisable(GL_TEXTURE_2D);
-  // Point size.
-  if (_pointSizeStateStack.empty()){
-    glPointSize(1.0);
-  }
-  else{
-    glPointSize(_pointSizeStateStack.front());
-  }
+  glPointSize(_pointSizeStateStack.empty() ? 1.0 : _pointSizeStateStack.front());
   // Set the common state (over the various types of primitives).
   _setState(blendFactor);
 }
 
 void arGraphicsContext::setLineState(float& blendFactor){
   // Lighting: always disabled for lines.
-  // Shade model: irrelevant for lines. (Set to a sensible default).
+  // Shade model: irrelevant for lines.
   // Texture mapping: always disabled for lines.
   // Line width: Use value from stack.
 
-  // Lighting.
   glDisable(GL_LIGHTING);
-  // Shade model
   glShadeModel(GL_SMOOTH);
-  // Texture.
   glDisable(GL_TEXTURE_2D);
-  // Line width.
-  if (_lineWidthStateStack.empty()){
-    glLineWidth(1.0);
-  }
-  else{
-    glLineWidth(_lineWidthStateStack.front());
-  }
+  glLineWidth(_lineWidthStateStack.empty() ? 1.0 : _lineWidthStateStack.front());
   // Set the common state (over the various types of primitives).
   _setState(blendFactor);
 }

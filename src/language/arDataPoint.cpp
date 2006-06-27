@@ -6,9 +6,7 @@
 #include "arPrecompiled.h"
 #include "arDataPoint.h"
 
-#ifdef AR_USE_WIN_32
-  #include <iostream>
-#else
+#ifndef AR_USE_WIN_32
   #include <signal.h>
   #include <netinet/tcp.h>
 #endif
@@ -44,21 +42,21 @@ arDataPoint::~arDataPoint() {
   delete [] _translationBuffer;
 }
 
-/// Grow the buffers used to receive data, both
-/// the "local binary format buffer" and the "translation buffer",
-/// and read data into the local binary format buffer. Don't use
-/// built-in buffers (for instance the built-in 
-/// translation buffer), because objects like the arDataServer have multiple
-/// simultaneous connections in seperate threads. 
-/// @param dest a pointer reference to the "local binary format buffer"
-/// @param availableSize the allocated size of the "local ... buffer"
-/// @param trans a pointer reference to the "translation buffer"
-/// @param transSize the allocated size of the "translation buffer"
-/// @param theSize the size of the data read from the connection
-/// @param fEndianMode a flag showing whether machine-specific translation
-/// is required
-/// @param fd the socket from which we are reading data
-/// @param remoteConfig the binary format of the remote peer
+// Grow the buffers used to receive data, both
+// the "local binary format buffer" and the "translation buffer",
+// and read data into the local binary format buffer. Don't use
+// built-in buffers (for instance the built-in 
+// translation buffer), because objects like the arDataServer have multiple
+// simultaneous connections in seperate threads. 
+// @param dest a pointer reference to the "local binary format buffer"
+// @param availableSize the allocated size of the "local ... buffer"
+// @param trans a pointer reference to the "translation buffer"
+// @param transSize the allocated size of the "translation buffer"
+// @param theSize the size of the data read from the connection
+// @param fEndianMode a flag showing whether machine-specific translation
+// is required
+// @param fd the socket from which we are reading data
+// @param remoteConfig the binary format of the remote peer
 bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize, 
                               ARchar*& trans, int& transSize,
                               ARint& theSize, bool& fEndianMode, arSocket* fd, 
@@ -88,9 +86,9 @@ bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize,
   return fd->ar_safeRead(pch + AR_INT_SIZE, theSize - AR_INT_SIZE);
 }
 
-/// This function is a simplified version of getDataCore for when one is
-/// using the single internal _translationBuffer. NOTE: THIS IS NOT
-/// THREAD-SAFE!
+// This function is a simplified version of getDataCore for when one is
+// using the single internal _translationBuffer. NOTE: THIS IS NOT
+// THREAD-SAFE!
 bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize,
                               ARint& theSize, bool& fEndianMode, arSocket* fd, 
                               const arStreamConfig& remoteConfig){
@@ -99,10 +97,10 @@ bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize,
                      remoteConfig);
 }
 
-/// This function is a simplified version of getDataCore for when one is
-/// unconcerned about the size of the downloaded data (and also when one
-/// is using the single internal _translationBuffer). NOTE: THIS IS NOT
-/// THREAD-SAFE!
+// This function is a simplified version of getDataCore for when one is
+// unconcerned about the size of the downloaded data (and also when one
+// is using the single internal _translationBuffer). NOTE: THIS IS NOT
+// THREAD-SAFE!
 bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize, 
                               bool& fEndianMode, arSocket* fd, 
                               const arStreamConfig& remoteConfig){

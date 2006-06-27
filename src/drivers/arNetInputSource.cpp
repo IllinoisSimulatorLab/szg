@@ -90,7 +90,7 @@ void arNetInputSource::_connectionTask() {
   }
 }
 
-/// \todo initializers not assignments.
+// todo: initializers not assignments.
 arNetInputSource::arNetInputSource(){
   _dataBufferSize = 500;
   _slot = 0;
@@ -104,9 +104,9 @@ arNetInputSource::arNetInputSource(){
   _dataClient.smallPacketOptimize(true);
 }
 
-/// Input devices offer services based on slots. 
-/// Slot 0 corresponds to service SZG_INPUT0, slot 1 to SZG_INPUT1, etc.
-/// @param slot the slot in question
+// Input devices offer services based on slots. 
+// Slot 0 corresponds to service SZG_INPUT0, slot 1 to SZG_INPUT1, etc.
+// @param slot the slot in question
 bool arNetInputSource::setSlot(int slot){
   if (slot<0){
     ar_log_warning() << "arNetInputSource ignoring negative input device slot.\n";

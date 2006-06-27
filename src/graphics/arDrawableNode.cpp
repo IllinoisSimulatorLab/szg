@@ -7,7 +7,6 @@
 #include "arDrawableNode.h"
 #include "arMath.h"
 #include "arGraphicsDatabase.h"
-// Consigning CG to the dustbin of history.
 //#ifdef USE_CG //Mark's Cg stuff
 //#include <Cg/cgGL.h>
 //#endif
@@ -276,7 +275,7 @@ void arDrawableNode::setDrawableViaString(const string& type,
   setDrawable(_convertStringToType(type), number);
 }
 
-/// NOT thread-safe.
+// NOT thread-safe.
 arStructuredData* arDrawableNode::_dumpData(int type, int number,
                                             bool owned){
   arStructuredData* result = NULL;
@@ -316,7 +315,6 @@ bool arDrawableNode::_1DPreDraw(arGraphicsNode* pointsNode,
   return true;
 }
 
-// Consigning CG to the dustbin of history.
 //#ifdef USE_CG
 //extern CGcontext myContext;
 //extern void cgErrorCallback(void);

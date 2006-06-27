@@ -60,7 +60,7 @@ void arBlendNode::setBlend(float blendFactor){
   }
 }
 
-/// NOT thread-safe.
+// NOT thread-safe.
 arStructuredData* arBlendNode::_dumpData(float blendFactor, bool owned){
   arStructuredData* result = owned ?
     getOwner()->getDataParser()->getStorage(_g->AR_BLEND) :

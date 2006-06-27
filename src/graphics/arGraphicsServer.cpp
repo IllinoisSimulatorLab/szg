@@ -71,21 +71,21 @@ arGraphicsServer::~arGraphicsServer(){
     delete _connectionQueue;
 }
 
-/// No threads are started.
+// No threads are started.
 bool arGraphicsServer::init(arSZGClient& client){
   _syncServer.setServiceName("SZG_GEOMETRY");
   _syncServer.setChannel("graphics");
   return _syncServer.init(client);
 }
 
-/// This method starts the various threads going and must be made before any other
-/// work is done by a calling application.
+// This method starts the various threads going and must be made before any other
+// work is done by a calling application.
 bool arGraphicsServer::start(){
   return _syncServer.start();
 }
 
-/// It is necessary to be able to make the arGraphicsServer stop in a
-/// more-or-less deterministic fashion
+// It is necessary to be able to make the arGraphicsServer stop in a
+// more-or-less deterministic fashion
 void arGraphicsServer::stop(){
   _syncServer.stop();
 }

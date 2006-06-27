@@ -4,9 +4,6 @@
  */
 #include "arPrecompiled.h"
 #include "arLogStream.h"
-
-#include <iostream>
-
 #include "arGUIInfo.h"
 
 arGUIInfo::arGUIInfo( arGUIEventType eventType, arGUIState state,
@@ -18,7 +15,6 @@ arGUIInfo::arGUIInfo( arGUIEventType eventType, arGUIState state,
   _userData( userData ),
   _wm(NULL)
 {
-
 }
 
 // in this, and all the constructors below, the return value of
@@ -45,7 +41,6 @@ arGUIInfo::arGUIInfo( arStructuredData& data )
 
 arGUIInfo::~arGUIInfo( void )
 {
-
 }
 
 arGUIKeyInfo::arGUIKeyInfo( arGUIEventType eventType, arGUIState state,
@@ -56,7 +51,6 @@ arGUIKeyInfo::arGUIKeyInfo( arGUIEventType eventType, arGUIState state,
   _ctrl( ctrl ),
   _alt( alt )
 {
-
 }
 
 arGUIKeyInfo::arGUIKeyInfo( arStructuredData& data ) :
@@ -75,7 +69,6 @@ arGUIKeyInfo::arGUIKeyInfo( arStructuredData& data ) :
 
 arGUIKeyInfo::~arGUIKeyInfo( void )
 {
-
 }
 
 arGUIMouseInfo::arGUIMouseInfo( arGUIEventType eventType, arGUIState state,
@@ -88,7 +81,6 @@ arGUIMouseInfo::arGUIMouseInfo( arGUIEventType eventType, arGUIState state,
   _prevPosX( prevPosX ),
   _prevPosY( prevPosY )
 {
-
 }
 
 arGUIMouseInfo::arGUIMouseInfo( arStructuredData& data ) :
@@ -111,7 +103,6 @@ arGUIMouseInfo::arGUIMouseInfo( arStructuredData& data ) :
 
 arGUIMouseInfo::~arGUIMouseInfo( void )
 {
-
 }
 
 arGUIWindowInfo::arGUIWindowInfo( arGUIEventType eventType, arGUIState state,
@@ -123,7 +114,6 @@ arGUIWindowInfo::arGUIWindowInfo( arGUIEventType eventType, arGUIState state,
   _sizeX( sizeX ),
   _sizeY( sizeY )
 {
-
 }
 
 arGUIWindowInfo::arGUIWindowInfo( arStructuredData& data ) :
@@ -143,6 +133,4 @@ arGUIWindowInfo::arGUIWindowInfo( arStructuredData& data ) :
 
 arGUIWindowInfo::~arGUIWindowInfo( void )
 {
-
 }
-

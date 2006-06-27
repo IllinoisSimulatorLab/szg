@@ -205,21 +205,21 @@ arDistSceneGraphFramework::arDistSceneGraphFramework() :
   _externalPeer(NULL){
 }
 
-/// Syzygy messages consist of two strings, the first being
-/// a type and the second being a value. The user can send messages
-/// to the arMasterSlaveFramework and the application can trap them
-/// using this callback. A message w/ type "user" and value "foo" will
-/// be passed into this callback, if set, with "foo" going into the string.
+// Syzygy messages consist of two strings, the first being
+// a type and the second being a value. The user can send messages
+// to the arMasterSlaveFramework and the application can trap them
+// using this callback. A message w/ type "user" and value "foo" will
+// be passed into this callback, if set, with "foo" going into the string.
 void arDistSceneGraphFramework::setUserMessageCallback
   (void (*userMessageCallback)(arDistSceneGraphFramework&, const string&)){
   _userMessageCallback = userMessageCallback;
 }
 
-/// Control additional locations where the databases (both sound and graphics)
-/// search for their data (sounds and textures respectively). For instance,
-/// it might be convenient to put these with other application data (SZG_DATA
-/// would be the bundlePathName) instead of in SZG_TEXTURE/path or SZG_SOUND/path.
-/// For python programs, it might be convenient to put the data in SZG_PYTHON.
+// Control additional locations where the databases (both sound and graphics)
+// search for their data (sounds and textures respectively). For instance,
+// it might be convenient to put these with other application data (SZG_DATA
+// would be the bundlePathName) instead of in SZG_TEXTURE/path or SZG_SOUND/path.
+// For python programs, it might be convenient to put the data in SZG_PYTHON.
 void arDistSceneGraphFramework::setDataBundlePath(const string& bundlePathName,
                                                   const string& bundleSubDirectory) {
   _graphicsServer.setDataBundlePath(bundlePathName, bundleSubDirectory);
@@ -235,8 +235,8 @@ void arDistSceneGraphFramework::setDataBundlePath(const string& bundlePathName,
   _soundClient.setDataBundlePath(bundlePathName, bundleSubDirectory);
 }
 
-/// Returns a pointer to the graphics database being used, so that programs
-/// can alter it directly.
+// Returns a pointer to the graphics database being used, so that programs
+// can alter it directly.
 arGraphicsDatabase* arDistSceneGraphFramework::getDatabase(){
   // Standalone mode does not support peers.
   if (_peerName == "NULL" || _standalone){
@@ -381,11 +381,11 @@ bool arDistSceneGraphFramework::start(){
   return ok;
 }
 
-/// Does the best it can to shut components down. Don't actually do anything
-/// with the parameter (blockUntilDisplayExit) because we only run a 
-/// local display in standalone mode and hence do not need to worry about
-/// getting a stop message from the message thread (which isn't connected 
-/// to anything in this case).
+// Does the best it can to shut components down. Don't actually do anything
+// with the parameter (blockUntilDisplayExit) because we only run a 
+// local display in standalone mode and hence do not need to worry about
+// getting a stop message from the message thread (which isn't connected 
+// to anything in this case).
 void arDistSceneGraphFramework::stop(bool){
   // Tell the app we're stopping.
   _exitProgram = true;
@@ -404,9 +404,9 @@ void arDistSceneGraphFramework::stop(bool){
   _stopped = true;
 }
 
-/// Used in standalone mode only. our application will display its
-/// own window instead of using szgrender. The "useWindowing" parameter is ignored
-/// by this framework.
+// Used in standalone mode only. our application will display its
+// own window instead of using szgrender. The "useWindowing" parameter is ignored
+// by this framework.
 bool arDistSceneGraphFramework::createWindows(bool){
   if (!_standalone)
     return false;
@@ -421,7 +421,7 @@ bool arDistSceneGraphFramework::createWindows(bool){
   return ok;
 }
 
-/// Standalone, display a window (as opposed to through szgrender).
+// Standalone, display a window (as opposed to through szgrender).
 void arDistSceneGraphFramework::loopQuantum(){
   if (!_standalone)
     return;
@@ -445,8 +445,8 @@ void arDistSceneGraphFramework::loopQuantum(){
   el->pushNewValue(1000000.0/ar_difftimeSafe(ar_time(), time1));
 }
 
-/// Used in standalone mode only. In that case, our application will display its
-/// own window instead of using szgrender.
+// Used in standalone mode only. In that case, our application will display its
+// own window instead of using szgrender.
 void arDistSceneGraphFramework::exitFunction(){
   if (_standalone){
     _wm->deleteAllWindows();
@@ -682,9 +682,9 @@ bool arDistSceneGraphFramework::_stripSceneGraphArgs(int& argc, char** argv){
   return true;
 }
 
-/// Simplifies the start message processing. With the default parameter
-/// value for f (false), this posts the given message to the start response
-/// string and returns false. Otherwise, it just returns true.
+// Simplifies the start message processing. With the default parameter
+// value for f (false), this posts the given message to the start response
+// string and returns false. Otherwise, it just returns true.
 bool arDistSceneGraphFramework::_startRespond(const string& s, bool f){
   if (!f){
     ar_log_error() << _label << " error: " << s << ar_endl;
@@ -706,7 +706,7 @@ bool arDistSceneGraphFramework::_initStandaloneMode(){
   return true;
 }
 
-/// Start the various framework objects in the manner demanded by standalone mode.
+// Start the various framework objects in the manner demanded by standalone mode.
 bool arDistSceneGraphFramework::_startStandaloneMode(){
   _simPtr->configure(_SZGClient);
   // Configure the window manager and pass it to the graphicsClient

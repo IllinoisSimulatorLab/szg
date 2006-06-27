@@ -12,8 +12,6 @@
 #include "arStructuredDataParser.h"
 
 #include <math.h>
-#include <sstream>
-#include <iostream>
 
 #ifndef AR_USE_WIN_32
   #include <unistd.h>

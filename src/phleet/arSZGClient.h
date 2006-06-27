@@ -22,7 +22,7 @@
 #include <vector>
 using namespace std;
 
-/// How an application connects to the rest of the syzygy cluster.
+// How an application connects to the rest of the syzygy cluster.
 
 class SZG_CALL arSZGClient{
   // Needs assignment operator and copy constructor, for pointer members.
@@ -168,24 +168,23 @@ class SZG_CALL arSZGClient{
   bool finishMessageOwnershipTrade(int match, int timeout = -1);
   bool revokeMessageOwnershipTrade(const string& key);
   int  requestMessageOwnership(const string& key);
-  /// If a phleet component is launched via dex, it is our responsibility
-  /// to respond in some fashion to the launching message. We can do so
-  /// by getting the ID of the launching message like so.
+  // If a phleet component is launched via dex, it is our responsibility
+  // to respond in some fashion to the launching message. We can do so
+  // by getting the ID of the launching message like so.
   int getLaunchingMessageID(){ return _launchingMessageID; }
 
-  // It is very convenient to be able to get a notification when a component
-  // exits.
+  // Get a notification when a component exits.
   int requestKillNotification(int componentID);
   int getKillNotification(list<int> tags, int timeout = -1);
 
-  // Functions dealing with locks.
+  // Locks.
   bool getLock(const string& lockName, int& ownerID);
   bool releaseLock(const string& lockName);
   int requestLockReleaseNotification(const string& lockName);
   int getLockReleaseNotification(list<int> tags, int timeout = -1);
   void printLocks();
 
-  // connection brokering functions
+  // Connection brokering.
   bool registerService(const string& serviceName, const string& channel,
                        int numberPorts, int* portIDs);
   bool requestNewPorts(const string& serviceName, const string& channel,

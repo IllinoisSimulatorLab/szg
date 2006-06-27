@@ -10,7 +10,7 @@ void ar_interfaceObjectIOPollTask(void* object){
    ((arInterfaceObject*)object)->_ioPollTask();
 }
 
-/// Dead zone for joystick axes.
+// Dead zone for joystick axes.
 static inline float joystickScale(float j) {
   return (j>-.5 && j<.5) ? 0. : -2.*j;
 }

@@ -8,7 +8,6 @@
 #include "arGraphicsDatabase.h"
 
 arIndexNode::arIndexNode(){
-  // A sensible default name.
   _name = "index_node";
   _typeCode = AR_G_INDEX_NODE;
   _typeString = "index";
@@ -29,8 +28,8 @@ void arIndexNode::initialize(arDatabase* database){
   _commandBuffer.setType(_g->AR_INDEX);
 }
 
-/// Included for speedy access. This is NOT thread-safe and instead must
-/// be called from within a locked section. 
+// Included for speedy access. This is NOT thread-safe and instead must
+// be called from within a locked section. 
 const int* arIndexNode::getIndices(int& number){
   number = _commandBuffer.size()/_arrayStride;
   return (int*)_commandBuffer.v;
@@ -51,9 +50,9 @@ void arIndexNode::setIndices(int number, int* indices, int* IDs){
   }
 }
 
-/// Slower way to get the index data (there are several extra copy 
-/// operations). However, this is more convenient for calling from Python.
-/// Thread-safe.
+// Slower way to get the index data (there are several extra copy 
+// operations). However, this is more convenient for calling from Python.
+// Thread-safe.
 vector<int> arIndexNode::getIndices(){
   vector<int> result;
   // Must be thread-safe.
@@ -69,9 +68,9 @@ vector<int> arIndexNode::getIndices(){
   return result;
 }
 
-/// Adds an additional copy plus dynamic memory allocation. 
-/// But this is more convenient for calling from Python.
-/// Thread-safe.
+// Adds an additional copy plus dynamic memory allocation. 
+// But this is more convenient for calling from Python.
+// Thread-safe.
 void arIndexNode::setIndices(vector<int>& indices){
   int* ptr = new int[indices.size()];
   for (unsigned int i = 0; i < indices.size(); i++){
@@ -81,9 +80,9 @@ void arIndexNode::setIndices(vector<int>& indices){
   delete [] ptr;
 }
 
-/// Adds an additional copy plus dynamic memory allocation.
-/// But this is more convenient for calling from Python.
-/// Thread-safe.
+// Adds an additional copy plus dynamic memory allocation.
+// But this is more convenient for calling from Python.
+// Thread-safe.
 void arIndexNode::setIndices(vector<int>& indices,
 			     vector<int>& IDs){
   unsigned int num = IDs.size();

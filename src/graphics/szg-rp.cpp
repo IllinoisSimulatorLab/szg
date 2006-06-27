@@ -500,10 +500,9 @@ void display(){
   }
   glutSwapBuffers();
 
-  // It seems more advantageous to send the frame time back every
-  // frame instead of more occasionally. This leads to a tighter
-  // feedback loop. Still experimenting, though.
-  int frametime = 50000; // a sensible default.
+  // Return the frame time every frame instead of more occasionally,
+  // for a tighter feedback loop? Still experimenting.
+  int frametime = 50000; // default
   if (!timeInit){
     timeInit = true;
     time1 = ar_time();

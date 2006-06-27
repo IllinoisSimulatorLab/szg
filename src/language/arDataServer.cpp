@@ -308,7 +308,7 @@ arSocket* arDataServer::_acceptConnection(bool addToActive){
   if (_consumerFunction){
     // A consumer is registered, so start a read thread for the new connection.
     _nextConsumer = newSocketFD;
-    arThread* dummy = new arThread; /// \bug memory leak?
+    arThread* dummy = new arThread; // \bug memory leak?
     if (!dummy->beginThread(ar_readDataThread, this)){
       cerr << "arDataServer error: failed to start read thread.\n";
       return NULL;
@@ -657,9 +657,9 @@ void arDataServer::_setSocketRemoteConfig(arSocket* theSocket,
       (theSocket->getID(), config));
 }
 
-/// -1 is returned on error. Otherwise the ID of the new socket.
-/// THIS IS VERY BAD COPY-PASTE FROM arDataClient. PLEASE LEAVE IT
-/// UNTIL IT GETS CLEANED-UP.
+// -1 is returned on error. Otherwise the ID of the new socket.
+// THIS IS VERY BAD COPY-PASTE FROM arDataClient. PLEASE LEAVE IT
+// UNTIL IT GETS CLEANED-UP.
 int arDataServer::dialUpFallThrough(const string& s, int port){
   arSocket* socket = new arSocket(AR_STANDARD_SOCKET);
   if (socket->ar_create() < 0) {
@@ -745,7 +745,7 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
   if (_consumerFunction){
     // A consumer is registered, so start a read thread for the new connection.
     _nextConsumer = socket;
-    arThread* dummy = new arThread; /// \bug memory leak?
+    arThread* dummy = new arThread; // \bug memory leak?
     if (!dummy->beginThread(ar_readDataThread, this)){
       cerr << "arDataServer error: failed to start read thread.\n";
       ar_mutex_unlock(&_dataTransferMutex);

@@ -7,8 +7,6 @@
 #include "arAppLauncher.h"
 #include "arLogStream.h"
 
-#include <sstream>
-
 arAppLauncher::arAppLauncher(const char* exeName) :
   _client(NULL),
   _clientIsMine(false),
@@ -54,8 +52,8 @@ bool arAppLauncher::setAppType(const string& theType){
   return true;
 }
 
-/// Sets the virtal computer and the location, based on the default information
-/// held by the arSZGClient (i.e. as provided by the CONTEXT).
+// Set the virtal computer and the location, based on the default information
+// held by the arSZGClient (i.e. as provided by the CONTEXT).
 bool arAppLauncher::setVircomp(){
   if (!_client) {
     return false;
@@ -66,8 +64,7 @@ bool arAppLauncher::setVircomp(){
   return setVircomp(virtualComputer);
 }
 
-/// Allows us to set the virtaul computer explicitly (as desired for 
-/// killalldemo, for instance), without starting up a whole application.
+// Set the virtual computer (e.g. for killalldemo), without starting a whole app.
 bool arAppLauncher::setVircomp(string vircomp){
   if (!_client){
     // invalid virtual computer
@@ -89,9 +86,7 @@ bool arAppLauncher::setVircomp(string vircomp){
   return true;
 }
 
-/// Some programs (like the screensaver activator) are very short
-/// wrappers around arAppLauncher methods. This is with those, to
-/// encapsulate the arSZGClient connection process.
+// Encapsulate arSZGClient connection for tiny arAppLauncher-wrapper apps.
 bool arAppLauncher::connectSZG(int& argc, char** argv){
   _client = new arSZGClient;
   const bool fInit = _client->init(argc, argv);
@@ -102,10 +97,10 @@ bool arAppLauncher::connectSZG(int& argc, char** argv){
   return true;
 }
 
-/// Often, the program holding the arAppLauncher object will want to have
-/// its own arSZGClient. Of course, the arAppLauncher needs access to that
-/// object as well, which access is provided by this method. Must be
-/// called before any other method.
+// Often, the program holding the arAppLauncher object will want to have
+// its own arSZGClient. Of course, the arAppLauncher needs access to that
+// object as well, which access is provided by this method. Must be
+// called before any other method.
 bool arAppLauncher::setSZGClient(arSZGClient* SZGClient){
   if (!SZGClient) {
     ar_log_warning() << _exeName << " warning: ignoring setSZGClient(NULL).\n";
@@ -116,12 +111,12 @@ bool arAppLauncher::setSZGClient(arSZGClient* SZGClient){
   return true;
 }
 
-/// Queries the szgserver's database to find out the characteristics of the
-/// virtual computer and parses them, performing some elementary error 
-/// checking. PLEASE NOTE: pretty much everybody calls this who needs to
-/// the characteristics of the virtaul computer (like killaldemo).
-/// Consequently, we need to take into account the fact that the virtual
-/// computer might have already been set explicitly. 
+// Queries the szgserver's database to find out the characteristics of the
+// virtual computer and parses them, performing some elementary error 
+// checking. PLEASE NOTE: pretty much everybody calls this who needs to
+// the characteristics of the virtaul computer (like killaldemo).
+// Consequently, we need to take into account the fact that the virtual
+// computer might have already been set explicitly. 
 bool arAppLauncher::setParameters(){
   if (!_client){
     ar_log_error() << _exeName << " error: no arSZGClient.\n";
@@ -179,7 +174,7 @@ bool arAppLauncher::setParameters(){
     string device(inputDevs[i+1]);
     string info = device; // NOTE: device will be modified below.
 
-    /// \todo hack, copypasted into demo/buttonfly/setinputfilter.cpp
+    // todo: hack, copypasted into demo/buttonfly/setinputfilter.cpp
     //
     // NOTE: the input device in slot 0 is the one that actually
     // connects to the application. Consequently, it must come FIRST
@@ -206,7 +201,7 @@ bool arAppLauncher::setParameters(){
   return true;
 }  
 
-/// Launch the other components of the app on the virtual computer.
+// Launch the other components of the app on the virtual computer.
 bool arAppLauncher::launchApp(){
   // _prepareCommand() includes the lock to match the _unlock()'s below.
   if (!_prepareCommand()){
@@ -288,8 +283,7 @@ bool arAppLauncher::launchApp(){
   return ok;
 }
 
-/// Kills the various "transient" components of the application on the
-/// virtual computer.
+// Kills "transient" components of the application.
 void arAppLauncher::killApp(){
   if (!_client){
     ar_log_warning() << _exeName << " warning: no arSZGClient.\n";
@@ -445,7 +439,7 @@ bool arAppLauncher::isMaster(){
   return false;
 }
 
-/// Returns the number of screens in the virtual computer.
+// Return the number of screens in the virtual computer.
 int arAppLauncher::getNumberScreens() {
   if (!_client){
     ar_log_warning() << _exeName << " warning: no arSZGClient.\n";
@@ -460,8 +454,7 @@ int arAppLauncher::getNumberScreens() {
   return num;
 }
 
-/// Returns the pipe ID for the screen upon which this component runs.
-/// Returns -1 if such does not exist.
+// Return the pipe ID for this component's screen, or -1 if none.
 int arAppLauncher::getPipeNumber(){
   if (!_client){
     ar_log_warning() << _exeName << " warning: no arSZGClient.\n";
@@ -479,9 +472,9 @@ int arAppLauncher::getPipeNumber(){
   return -1;
 }
 
-/// Sometimes, we might want to do something for each pipe, BUT NOT ON
-/// THE MASTER (which can be any pipe). Consequently, we'll need to know
-/// the master's pipe ID. Returns -1 on failure.
+// Sometimes, we might want to do something for each pipe, BUT NOT ON
+// THE MASTER (which can be any pipe). Consequently, we'll need to know
+// the master's pipe ID. Returns -1 on failure.
 int arAppLauncher::getMasterPipeNumber(){
   if (!_client){
     ar_log_warning() << _exeName << " warning: no arSZGClient.\n";
@@ -499,9 +492,9 @@ int arAppLauncher::getMasterPipeNumber(){
   return -1;
 }
 
-/// Returns the computer/screen pair where the master instance of the
-/// application is running. CAN ONLY BE CALLED AFTER ONE OF THE INITIALIZATION
-/// FUNCTIONS (either setVircomp or setParameters).
+// Returns the computer/screen pair where the master instance of the
+// application is running. CAN ONLY BE CALLED AFTER ONE OF THE INITIALIZATION
+// FUNCTIONS (either setVircomp or setParameters).
 string arAppLauncher::getMasterName(){
   if (!_client){
     ar_log_warning() << _exeName << " warning: no arSZGClient.\n";
@@ -515,9 +508,9 @@ string arAppLauncher::getMasterName(){
   return _client->getAttribute(_vircomp, screenName, "map", "");
 }
 
-/// Returns the name of the computer where the trigger instance of the
-/// application is running. CAN ONLY BE CALLED AFTER ONE OF THE INITIALIZATION
-/// FUNCTIONS (either setVircomp or setParameters).
+// Returns the name of the computer where the trigger instance of the
+// application is running. CAN ONLY BE CALLED AFTER ONE OF THE INITIALIZATION
+// FUNCTIONS (either setVircomp or setParameters).
 string arAppLauncher::getTriggerName(){
   if (!_client){
     ar_log_warning() << _exeName << " warning: no arSZGClient.\n";
@@ -528,7 +521,7 @@ string arAppLauncher::getTriggerName(){
   return _client->getAttribute(_vircomp, "SZG_TRIGGER", "map", "");
 }
 
-/// returns the screen name of the nth screen in the current virtual computer
+// returns the screen name of the nth screen in the current virtual computer
 string arAppLauncher::getScreenName(int num){
   if ((num < 0)||(num >= getNumberScreens())) {
     ar_log_warning() << _exeName << " warning: screen " << num << " out of bounds [0,"
@@ -611,7 +604,7 @@ void arAppLauncher::updateRenderers(const string& attribute,
 // The private functions follow
 //**************************************************************************
 
-/// Seperate executable names from parameter lists.
+// Seperate executable names from parameter lists.
 string arAppLauncher::_firstToken(const string& s){
   const int first  = s.find_first_not_of(" ");
   const int second = s.find_first_of(" ", first);
@@ -709,7 +702,7 @@ bool arAppLauncher::_trylock(){
   return true;
 }
 
-/// \todo more cheating delays
+// todo: more cheating delays
 void arAppLauncher::_unlock(){
   if (!_client){
     ar_log_warning() << _exeName << " warning: no arSZGClient.\n";
@@ -823,8 +816,8 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch){
   return true;
 }
 
-/// Since the below kills via ID, it is much better suited to killing the
-/// graphics programs.
+// Since the below kills via ID, it is much better suited to killing the
+// graphics programs.
 void arAppLauncher::_blockingKillByID(list<int>* IDList){
 if (!_client){
     ar_log_warning() << _exeName << " warning: no arSZGClient.\n";
@@ -891,8 +884,8 @@ if (!_client){
   }
 }
 
-/// kills every render program that does NOT match the specified
-/// name. Blocks until this has been accomplished.
+// kills every render program that does NOT match the specified
+// name. Blocks.
 void arAppLauncher::_graphicsKill(string match){
   // Determine what graphics program is running on each display;
   // if it isn't correct, deactivate it. 

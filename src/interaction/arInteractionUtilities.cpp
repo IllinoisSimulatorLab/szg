@@ -24,15 +24,15 @@
   const float BIGGEST_FLOAT = MAXFLOAT;
 #endif
 
-/// The main method via which we interact with objects. The effector 
-/// represents an interaction device that can touch and grab interactables.
-/// If the effector has grabbed something in the list,
-/// manipulate that interactable with this effector
-/// and return. Otherwise, determine the "closest" object
-/// to the effector. This is the "touched" object. If it differs from
-/// the previously touched object (as understood by the effector), untouch
-/// the previous object. In any event, call the
-/// interactable's processInteraction() to update state, etc.
+// The main method via which we interact with objects. The effector 
+// represents an interaction device that can touch and grab interactables.
+// If the effector has grabbed something in the list,
+// manipulate that interactable with this effector
+// and return. Otherwise, determine the "closest" object
+// to the effector. This is the "touched" object. If it differs from
+// the previously touched object (as understood by the effector), untouch
+// the previous object. In any event, call the
+// interactable's processInteraction() to update state, etc.
 bool ar_pollingInteraction( arEffector& effector,
                             std::list<arInteractable*>& objects ) {
   // Interact with the grabbed object, if any.

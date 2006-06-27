@@ -7,17 +7,14 @@
 #include "arXMLUtilities.h"
 #include "arBuffer.h"
 
-#include <iostream>
-using namespace std;
-
-/// Take an arTextStream and skip through any whitespace at the beginning.
-/// If we hit EOF before the whitespace ends, return false. Otherwise,
-/// use ar_ungetc so that the next character in the stream will be the
-/// first non-whotespace character and return true.
-///
-/// We can, optionally, pass a second parameter to this function so that
-/// the ignored characters will be recorded at the end of the given
-/// text buffer.
+// Take an arTextStream and skip through any whitespace at the beginning.
+// If we hit EOF before the whitespace ends, return false. Otherwise,
+// use ar_ungetc so that the next character in the stream will be the
+// first non-whotespace character and return true.
+//
+// We can, optionally, pass a second parameter to this function so that
+// the ignored characters will be recorded at the end of the given
+// text buffer.
 bool ar_ignoreWhitespace(arTextStream* textStream, 
                          arBuffer<char>* optionalBuffer){
   // IGNORE WHITESPACE! OK... so we've got:
@@ -47,17 +44,17 @@ bool ar_ignoreWhitespace(arTextStream* textStream,
   return true;
 }
 
-/// Record characters from an arTextStream between the current
-/// position and the next '<'. Stuff these characters
-/// into the resizable buffer passed-in by the caller, null-terminated.
-/// The next character returned
-/// from the text stream will be '<' because of an ar_ungetc().
-/// Return false iff EOF occurs before the next '<'.
-/// The parsers for various field types call this first, and then
-/// parse the string into their types, e.g. a sequence of floats).
-///
-/// By default, start at the beginning of the buffer.
-/// But sometimes it's better to concatenate: if so, set "concatenate" to true.
+// Record characters from an arTextStream between the current
+// position and the next '<'. Stuff these characters
+// into the resizable buffer passed-in by the caller, null-terminated.
+// The next character returned
+// from the text stream will be '<' because of an ar_ungetc().
+// Return false iff EOF occurs before the next '<'.
+// The parsers for various field types call this first, and then
+// parse the string into their types, e.g. a sequence of floats).
+//
+// By default, start at the beginning of the buffer.
+// But sometimes it's better to concatenate: if so, set "concatenate" to true.
 bool ar_getTextBeforeTag(arTextStream* textStream, arBuffer<char>* textBuffer,
                          bool concatenate){
   int ch = ' ';
@@ -84,11 +81,11 @@ bool ar_getTextBeforeTag(arTextStream* textStream, arBuffer<char>* textBuffer,
   return true;
 } 
 
-/// Take an arTextStream and record any characters between the current position
-/// and the next occuring </end_tag>. The arTextStream is left at the first
-/// character after </end_tag>. The textBuffer contains a NULL-terminated
-/// string with the characters up to the beginning of the final tag (but
-/// not including it).
+// Take an arTextStream and record any characters between the current position
+// and the next occuring </end_tag>. The arTextStream is left at the first
+// character after </end_tag>. The textBuffer contains a NULL-terminated
+// string with the characters up to the beginning of the final tag (but
+// not including it).
 bool ar_getTextUntilEndTag(arTextStream* textStream,
                            const string& endTag,
 			   arBuffer<char>* textBuffer){
@@ -120,18 +117,18 @@ bool ar_getTextUntilEndTag(arTextStream* textStream,
   return true;
 }
 
-/// Gets the text of the next tag, leaving the arTextStream at the character
-/// after the closing '>'. For instance "<foo>" returns "foo" and 
-/// "</foo>" returns "/foo". The caller passes in a resizable work buffer
-/// to use in parsing the variable length string.
-/// NOTE: returns "NULL" on error. And ignores initial whitespace.
-/// NOTE: THIS IS NOT QUITE CORRECT!!! SPECIFICALLY, WE SHOULD IGNORE
-///   INITIAL AND TRAILING WHITESPACE AND ONLY SUPPORT TAG NAMES WITH
-///   NO WHITESPACE!
-/// 
-/// Sometimes we want to be able to record the entire text stream in
-/// our buffer. The default is NOT to do so, because the concatenate 
-/// parameter is false unless explicitly set.
+// Gets the text of the next tag, leaving the arTextStream at the character
+// after the closing '>'. For instance "<foo>" returns "foo" and 
+// "</foo>" returns "/foo". The caller passes in a resizable work buffer
+// to use in parsing the variable length string.
+// NOTE: returns "NULL" on error. And ignores initial whitespace.
+// NOTE: THIS IS NOT QUITE CORRECT!!! SPECIFICALLY, WE SHOULD IGNORE
+//   INITIAL AND TRAILING WHITESPACE AND ONLY SUPPORT TAG NAMES WITH
+//   NO WHITESPACE!
+// 
+// Sometimes we want to be able to record the entire text stream in
+// our buffer. The default is NOT to do so, because the concatenate 
+// parameter is false unless explicitly set.
 string ar_getTagText(arTextStream* textStream, arBuffer<char>* buffer,
                      bool concatenate){
   if (concatenate){
@@ -192,8 +189,8 @@ string ar_getTagText(arTextStream* textStream){
   return ar_getTagText(textStream, &buffer);
 }
 
-/// Should ususally operate on the return value from ar_getTagText(...).
-/// Returns true if the first character is '/'.
+// Should ususally operate on the return value from ar_getTagText(...).
+// Returns true if the first character is '/'.
 bool ar_isEndTag(const string& tagText){
   if (tagText.length() >= 1 && tagText[0] == '/'){
     return true;
@@ -201,16 +198,9 @@ bool ar_isEndTag(const string& tagText){
   return false;
 }
 
-/// Returns the tag type, irrespective of whether it is a beginning or
-/// an ending tag. Specifically, "foo" and "/foo" both return "foo".
+// Returns the tag type, irrespective of whether it is a beginning or
+// an ending tag. So "foo" and "/foo" both return "foo".
 string ar_getTagType(const string& tagText){
-  string result;
-  if (tagText.length() >= 1 && tagText[0] == '/'){
-    result = tagText.substr(1,tagText.length()-1);
-  }
-  else{
-    result = tagText;
-  }
-  return result;
+  return (tagText.length() >= 1 && tagText[0] == '/') ?
+    tagText.substr(1,tagText.length()-1) : tagText;
 }
-

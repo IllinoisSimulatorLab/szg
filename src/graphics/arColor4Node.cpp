@@ -28,8 +28,8 @@ void arColor4Node::initialize(arDatabase* database){
   _commandBuffer.setType(_g->AR_COLOR4);
 }
 
-/// Included for speedy access. This is NOT thread-safe and instead must
-/// be called from within a locked section. 
+// Included for speedy access. This is NOT thread-safe and instead must
+// be called from within a locked section. 
 const float* arColor4Node::getColor4(int& number){
   number = _commandBuffer.size()/_arrayStride;
   return _commandBuffer.v;
@@ -50,9 +50,9 @@ void arColor4Node::setColor4(int number, float* color4, int* IDs){
   }
 }
 
-/// Slower way to get the color data (there are several extra copy 
-/// operations). However, this is more convenient for calling from Python.
-/// Thread-safe.
+// Slower way to get the color data (there are several extra copy 
+// operations). However, this is more convenient for calling from Python.
+// Thread-safe.
 vector<arVector4> arColor4Node::getColor4(){
   vector<arVector4> result;
   // Must be thread-safe.
@@ -69,9 +69,9 @@ vector<arVector4> arColor4Node::getColor4(){
   return result;
 }
 
-/// Adds an additional copy plus dynamic memory allocation. 
-/// But this is more convenient for calling from Python.
-/// Thread-safe.
+// Adds an additional copy plus dynamic memory allocation. 
+// But this is more convenient for calling from Python.
+// Thread-safe.
 void arColor4Node::setColor4(vector<arVector4>& color4){
   float* ptr = new float[color4.size()*4];
   for (unsigned int i = 0; i < color4.size(); i++){
@@ -84,9 +84,9 @@ void arColor4Node::setColor4(vector<arVector4>& color4){
   delete [] ptr;
 }
 
-/// Adds an additional copy plus dynamic memory allocation.
-/// But this is more convenient for calling from Python.
-/// Thread-safe.
+// Adds an additional copy plus dynamic memory allocation.
+// But this is more convenient for calling from Python.
+// Thread-safe.
 void arColor4Node::setColor4(vector<arVector4>& color4,
 			     vector<int>& IDs){
   unsigned int num = IDs.size();

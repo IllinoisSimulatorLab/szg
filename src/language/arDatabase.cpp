@@ -46,33 +46,33 @@ arDatabase::~arDatabase(){
     delete _dataParser;
 }
 
-/// Sometimes, we want to store supporting objects like textures or
-/// sound clips in an application directory,
-/// much like standard application data files. In many ways, this is
-/// superior to storing them all in the same directory (which is
-/// really unmaintainable). Conceptually, each application has its
-/// own directory where it can store supporting objects, as installed on one
-/// of the Syzygy system directory paths (like SZG_DATA or SZG_PYTHON).
-/// When the arDatabase subclass (like arGraphicsDatabase or
-/// arSoundDatabase) is initialized, its owning
-/// program creates a "bundle path map" (by talking to the Phleet or by 
-/// reading a local config file, depending upon mode of operation).
-/// This associates a bundlePathName (SZG_DATA, SZG_PYTHON) with a
-/// file system path like my_directory_1;my_directory_2;my_directory3.
-/// If bundlePathName maps to a path like so, is not "NULL", and bundleSubDirectory
-/// is not "NULL", then addTexture (for arGraphicsDatabase) or
-/// addFile (arSoundDatabase)  will look for the supporting object
-/// (texture or sound file) on the path
-/// my_directory_1/bundleSubDirectory;my_directory_2/bundleSubDirectory;
-/// my_directory_3/bundleSubDirectory, in addition to the texture path.
+// Sometimes, we want to store supporting objects like textures or
+// sound clips in an application directory,
+// much like standard application data files. In many ways, this is
+// superior to storing them all in the same directory (which is
+// really unmaintainable). Conceptually, each application has its
+// own directory where it can store supporting objects, as installed on one
+// of the Syzygy system directory paths (like SZG_DATA or SZG_PYTHON).
+// When the arDatabase subclass (like arGraphicsDatabase or
+// arSoundDatabase) is initialized, its owning
+// program creates a "bundle path map" (by talking to the Phleet or by 
+// reading a local config file, depending upon mode of operation).
+// This associates a bundlePathName (SZG_DATA, SZG_PYTHON) with a
+// file system path like my_directory_1;my_directory_2;my_directory3.
+// If bundlePathName maps to a path like so, is not "NULL", and bundleSubDirectory
+// is not "NULL", then addTexture (for arGraphicsDatabase) or
+// addFile (arSoundDatabase)  will look for the supporting object
+// (texture or sound file) on the path
+// my_directory_1/bundleSubDirectory;my_directory_2/bundleSubDirectory;
+// my_directory_3/bundleSubDirectory, in addition to the texture path.
 void arDatabase::setDataBundlePath(const string& bundlePathName,
 			           const string& bundleSubDirectory){
   _bundlePathName = bundlePathName;
   _bundleName = bundleSubDirectory;
 }
 
-/// Associate a bundle path name (SZG_DATA, SZG_PYTHON) with
-/// a file system path my_directory_1;my_directory_2;my_directory_3.
+// Associate a bundle path name (SZG_DATA, SZG_PYTHON) with
+// a file system path my_directory_1;my_directory_2;my_directory_3.
 void arDatabase::addDataBundlePathMap(const string& bundlePathName,
                                       const string& bundlePath){
   if (bundlePath == "NULL") {
@@ -90,16 +90,16 @@ void arDatabase::addDataBundlePathMap(const string& bundlePathName,
                         (bundlePathName, bundlePath));
 }
 
-/// An abbreiviation for depth-first search for the node via its name,
-/// returning the ID of the first such node found (and -1 if none is found).
+// An abbreiviation for depth-first search for the node via its name,
+// returning the ID of the first such node found (and -1 if none is found).
 int arDatabase::getNodeID(const string& name, bool fWarn) {
   const arDatabaseNode* pNode = getNode(name,fWarn);
   return pNode ? pNode->getID() : -1;
 }
 
-/// Note how this call is thread-safe using the global arDatabase lock.
-/// Consequently, it cannot be called internally in any of the arDatabase
-/// (or subclass) code for message processing in order to avoid deadlocks.
+// Note how this call is thread-safe using the global arDatabase lock.
+// Consequently, it cannot be called internally in any of the arDatabase
+// (or subclass) code for message processing in order to avoid deadlocks.
 arDatabaseNode* arDatabase::getNode(int ID, bool fWarn, bool refNode){
   ar_mutex_lock(&_databaseLock);
   arDatabaseNode* result = _getNodeNoLock(ID, fWarn);
@@ -140,8 +140,8 @@ arDatabaseNode* arDatabase::getNodeRef(const string& name, bool fWarn){
   return getNode(name, fWarn, true);
 }
 
-/// Does a depth-first search for a node with the given name, starting at the
-/// arDatabase's root node.
+// Does a depth-first search for a node with the given name, starting at the
+// arDatabase's root node.
 arDatabaseNode* arDatabase::findNode(const string& name, bool refNode){
   ar_mutex_lock(&_databaseLock);
   arDatabaseNode* result = NULL;
@@ -208,11 +208,11 @@ arDatabaseNode* arDatabase::findNodeByTypeRef(arDatabaseNode* node,
   return findNodeByType(node, nodeType, true);
 }
 
-/// Just a way to make getting a node's parent thread-safe with respect to
-/// the other database operations. The idea is that the alter method
-/// (within which all database operations occur) will be guarded by
-/// _databaseLock. This is called when an owned node's getParentRef()
-/// method is invoked.
+// Just a way to make getting a node's parent thread-safe with respect to
+// the other database operations. The idea is that the alter method
+// (within which all database operations occur) will be guarded by
+// _databaseLock. This is called when an owned node's getParentRef()
+// method is invoked.
 arDatabaseNode* arDatabase::getParentRef(arDatabaseNode* node){
   ar_mutex_lock(&_databaseLock);
   arDatabaseNode* result = NULL;
@@ -285,7 +285,7 @@ arDatabaseNode* arDatabase::newNodeRef(arDatabaseNode* parent,
   return newNode(parent, type, name);
 }
 
-// The parent node MUST be given. If no child node is given (i.e. the 
+// The parent node must be given. If no child node is given (i.e. the 
 // parameter is NULL) then the new node should go between the parent and
 // its current children. If a child node is given, then put the new node
 // between the two specified nodes (assuming they are truly parent and 
@@ -404,7 +404,7 @@ void arDatabase::permuteChildren(arDatabaseNode* parent,
   _dataParser->recycle(data); // Avoid memory leak.
 }
 
-/// An adapter for the Python wrapping. 
+// An adapter for the Python wrapping. 
 void arDatabase::permuteChildren(arDatabaseNode* parent,
 				 int number,
 				 int* children){
@@ -421,12 +421,12 @@ void arDatabase::permuteChildren(arDatabaseNode* parent,
   ar_unrefNodeList(l);
 }
 
-/// When transfering the database state, we often want to dump the structure
-/// before dumping the data of the individual nodes.
-/// NOTE: This call is thread-safe and need not involve _databaseLock
-/// (hence we do not need a "no lock" version) under the assumption that node
-/// is ref'ed outside the arDatabase (or is the root). This means the parent
-/// is also ref'ed since the node refs its parent.
+// When transfering the database state, we often want to dump the structure
+// before dumping the data of the individual nodes.
+// NOTE: This call is thread-safe and need not involve _databaseLock
+// (hence we do not need a "no lock" version) under the assumption that node
+// is ref'ed outside the arDatabase (or is the root). This means the parent
+// is also ref'ed since the node refs its parent.
 bool arDatabase::fillNodeData(arStructuredData* data, arDatabaseNode* node){
   if (!data || !node){
     return false;
@@ -525,7 +525,7 @@ bool arDatabase::handleDataQueue(ARchar* theData){
   return true;
 }
 
-/// Reads in the database in binary format.
+// Reads in the database in binary format.
 bool arDatabase::readDatabase(const string& fileName, 
                               const string& path){
   FILE* sourceFile = sourceFile = ar_fileOpen(fileName,path,"rb");
@@ -589,9 +589,9 @@ bool arDatabase::readDatabaseXML(const string& fileName,
   return true;
 }
 
-/// Attaching means to create a copy of the file in the database,
-/// with the file's root node mapped to parent. All other nodes in the
-/// file will be associated with new nodes in the database.
+// Attaching means to create a copy of the file in the database,
+// with the file's root node mapped to parent. All other nodes in the
+// file will be associated with new nodes in the database.
 // DOH! CUT_AND_PASTE IS REARING ITS UGLY HEAD!
 bool arDatabase::attach(arDatabaseNode* parent,
 			const string& fileName,
@@ -634,11 +634,11 @@ bool arDatabase::attach(arDatabaseNode* parent,
   return true;
 }
 
-/// Attaching means to create a copy of the file in the database,
-/// with the file's root node mapped to parent. All other nodes in the
-/// file will be associated with new nodes in the database.
+// Attaching means to create a copy of the file in the database,
+// with the file's root node mapped to parent. All other nodes in the
+// file will be associated with new nodes in the database.
 // DOH! CUT_AND_PASTE IS REARING ITS UGLY HEAD!
-/// \todo clean up like arDatabase::attach() above was cleaned up
+// todo: clean up like arDatabase::attach() above was cleaned up
 bool arDatabase::attachXML(arDatabaseNode* parent,
 			   const string& fileName,
 			   const string& path){
@@ -687,11 +687,11 @@ bool arDatabase::attachXML(arDatabaseNode* parent,
   return true;
 }
 
-/// Mapping tries to merge a copy of the file into the database,
-/// with the file's root node mapped to parent. All other nodes in the
-/// file will be associated with new nodes in the database.
+// Mapping tries to merge a copy of the file into the database,
+// with the file's root node mapped to parent. All other nodes in the
+// file will be associated with new nodes in the database.
 // DOH! CUT_AND_PASTE IS REARING ITS UGLY HEAD!
-/// \todo clean up like arDatabase::attach() above was cleaned up
+// \todo clean up like arDatabase::attach() above was cleaned up
 bool arDatabase::merge(arDatabaseNode* parent,
 		       const string& fileName,
 		       const string& path){
@@ -738,15 +738,15 @@ bool arDatabase::merge(arDatabaseNode* parent,
   return true;
 }
 
-/// Mapping means attempting to merge the file into the existing database
-/// in a reasonable way, starting with the root node of the file being
-/// mapped to parent. When a new node is defined in the file, the
-/// function looks at the database node to which its file-parent maps.
-/// It then searches below this database node to find a node with the
-/// same name and type. If such can be found, it creates an association 
-/// between that database node and the file node. If none such can be found,
-/// it creates a new node in the database and associates that with the file
-/// node.
+// Mapping means attempting to merge the file into the existing database
+// in a reasonable way, starting with the root node of the file being
+// mapped to parent. When a new node is defined in the file, the
+// function looks at the database node to which its file-parent maps.
+// It then searches below this database node to find a node with the
+// same name and type. If such can be found, it creates an association 
+// between that database node and the file node. If none such can be found,
+// it creates a new node in the database and associates that with the file
+// node.
 bool arDatabase::mergeXML(arDatabaseNode* parent,
                           const string& fileName,
                           const string& path){
@@ -795,7 +795,7 @@ bool arDatabase::mergeXML(arDatabaseNode* parent,
   return true;
 }
 
-/// Writes the database to a file using a binary format.
+// Writes the database to a file using a binary format.
 bool arDatabase::writeDatabase(const string& fileName,
                                const string& path){
   FILE* destFile = ar_fileOpen(fileName, path, "wb");
@@ -813,14 +813,14 @@ bool arDatabase::writeDatabase(const string& fileName,
   return true;
 }
 
-/// Writes the database to a file using an XML format.
+// Writes the database to a file using an XML format.
 bool arDatabase::writeDatabaseXML(const string& fileName,
                                   const string& path){
   return writeRootedXML(&_rootNode, fileName, path); 
 }
 
-/// Writes a subtree of the database to a file, in binary format. DOES
-/// NOT INCLUDE THE ROOT NODE!
+// Writes a subtree of the database to a file, in binary format. DOES
+// NOT INCLUDE THE ROOT NODE!
 bool arDatabase::writeRooted(arDatabaseNode* parent,
                              const string& fileName,
                              const string& path){
@@ -844,8 +844,8 @@ bool arDatabase::writeRooted(arDatabaseNode* parent,
   return true;
 }
 
-/// Writes a subtree of the database to a file, in XML format. DOES NOT
-/// INCLUDE THE ROOT NODE!
+// Writes a subtree of the database to a file, in XML format. DOES NOT
+// INCLUDE THE ROOT NODE!
 bool arDatabase::writeRootedXML(arDatabaseNode* parent,
                                 const string& fileName,
                                 const string& path){
@@ -891,37 +891,37 @@ bool arDatabase::filterData(arStructuredData* record,
   return true;
 }
 
-/// Helper function for filtering incoming messages (needed for mapping
-/// one database to another as in attachXML and mapXML). The record is
-/// changed in place, as is the nodeMap. allNew should be set to true
-/// if every node should be a new one. And set to false if we will 
-/// attempt to associate nodes with existing ones (as in mapXML, instead of
-/// attachXML.
-///
-/// NOTE: This function has been modified so that the "alter" no longer
-/// occurs inside it. It is the responsibility of the caller to put the
-/// record into the database. Sometimes (as in the case of a node creation
-/// record being mapped to an already existing node), the record should
-/// just be discarded. This is also true if the map fails somehow.
-///
-/// NOTE: Sometimes, we'll want to do something with the node map value
-/// (it is possible, in the case of a mapping to an existing node, that
-/// the map will be determined in here). For instance, two peer database
-/// may map IDs of their nodes to one another. In this case, the database
-/// that is the mapping target should respond to the mapped database.
-///
-/// The return value is an integer. 
-///  * -1: the record was successfully mapped. If any augmentation to the
-///    node map occured, it was internally to this function. No new node
-///    needs to be created and the caller should use the record.
-///  * 0: the record failed to be successfully mapped. It should be discarded.
-///  * > 0: the record is "half-mapped". The result of the external *alter*
-///         message to the database will finish the other "half" (it produces
-///         the ID of the new node).
-///
-/// If information about the alterations to the nodeMap parameter is desired,
-/// a pointer to a 4 int array should be passed in via mappedIDs. If no
-/// information is desired, then NULL should be passed in.
+// Helper function for filtering incoming messages (needed for mapping
+// one database to another as in attachXML and mapXML). The record is
+// changed in place, as is the nodeMap. allNew should be set to true
+// if every node should be a new one. And set to false if we will 
+// attempt to associate nodes with existing ones (as in mapXML, instead of
+// attachXML.
+//
+// NOTE: This function has been modified so that the "alter" no longer
+// occurs inside it. It is the responsibility of the caller to put the
+// record into the database. Sometimes (as in the case of a node creation
+// record being mapped to an already existing node), the record should
+// just be discarded. This is also true if the map fails somehow.
+//
+// NOTE: Sometimes, we'll want to do something with the node map value
+// (it is possible, in the case of a mapping to an existing node, that
+// the map will be determined in here). For instance, two peer database
+// may map IDs of their nodes to one another. In this case, the database
+// that is the mapping target should respond to the mapped database.
+//
+// The return value is an integer. 
+//  * -1: the record was successfully mapped. If any augmentation to the
+//    node map occured, it was internally to this function. No new node
+//    needs to be created and the caller should use the record.
+//  * 0: the record failed to be successfully mapped. It should be discarded.
+//  * > 0: the record is "half-mapped". The result of the external *alter*
+//         message to the database will finish the other "half" (it produces
+//         the ID of the new node).
+//
+// If information about the alterations to the nodeMap parameter is desired,
+// a pointer to a 4 int array should be passed in via mappedIDs. If no
+// information is desired, then NULL should be passed in.
 
 //
 // In here, we have to consider the fact that the mapped source might
@@ -1021,10 +1021,10 @@ void arDatabase::printStructure(int maxLevel){
   printStructure(maxLevel, cout);
 }
 
-/// Prints the structure of the database tree, including node IDs, node names,
-/// and node types. The information needed to reflect on the database.
-/// @param maxLevel (optional) how far down the tree hierarchy we will go
-/// (default is 10,000)
+// Prints the structure of the database tree, including node IDs, node names,
+// and node types. The information needed to reflect on the database.
+// @param maxLevel (optional) how far down the tree hierarchy we will go
+// (default is 10,000)
 void arDatabase::printStructure(int maxLevel, ostream& s){
   s << "Database structure: \n";
   _rootNode._printStructureOneLine(0, maxLevel,s);
@@ -1075,8 +1075,12 @@ bool arDatabase::_initDatabaseLanguage(){
   return true;
 }
 
-/// We often want to be able to convert an ID into a node pointer from within
-/// a method that uses the _databaseLock.
+// In many functions in this source file, _getNodeNoLock is called
+// instead of getNode, in case that function's called from
+// within a locked _databaseLock.
+
+// We often want to be able to convert an ID into a node pointer from within
+// a method that uses the _databaseLock.
 arDatabaseNode* arDatabase::_getNodeNoLock(int ID, bool fWarn){
   arNodeIDIterator i(_nodeIDContainer.find(ID));
   if (i == _nodeIDContainer.end()) {
@@ -1097,14 +1101,14 @@ string arDatabase::_getDefaultName(){
   return def.str();
 }
 
-/// When the database receives a message demanding creation of a node,
-/// it is handled here. If we cannot succeed for some reason, return
-/// NULL, otherwise, return a pointer to the node in question.
-/// PLEASE NOTE: This function does double duty: both as a creator of new
-/// database nodes AND as a "mapper" of existing database nodes
-/// (consequently, we allow an existing node to get returned). Also,
-/// when we "attach" a node (really a whole subtree), the mapping feature 
-/// gets used.
+// When the database receives a message demanding creation of a node,
+// it is handled here. If we cannot succeed for some reason, return
+// NULL, otherwise, return a pointer to the node in question.
+// PLEASE NOTE: This function does double duty: both as a creator of new
+// database nodes AND as a "mapper" of existing database nodes
+// (consequently, we allow an existing node to get returned). Also,
+// when we "attach" a node (really a whole subtree), the mapping feature 
+// gets used.
 arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
   // NOTE: inData is guaranteed to have the right type because alter(...)
   // distributes messages to handlers based on type.
@@ -1114,34 +1118,27 @@ arDatabaseNode* arDatabase::_makeDatabaseNode(arStructuredData* inData){
   const string type(inData->getDataString(_lang->AR_MAKE_NODE_TYPE));
   
   // If no parent node exists, then there is nothing to do.
-  // We MUST use _getNodeNoLock here since this will likely be called from
-  // within a locked _databaseLock.
   arDatabaseNode* parentNode = _getNodeNoLock(parentID, false);
   if (!parentNode){
-    // This is an error.
-    cout << "arDatabase warning: parent (ID=" << parentID << ") "
-	 << "does not exist.\n";
+    cout << "arDatabase warning: no parent (ID=" << parentID << ").\n";
     return NULL;
   }
   arDatabaseNode* result = NULL;
   // If a node exists with this ID, and has the correct type, use it.
   // ID -1 means "make a new node", since all nodes have ID >= 0.
   if (theID != -1){
-    // In this case, we're trying to insert a node with a specific ID.
-    // If there is already a node by this ID, we'll just use it.
-    // MUST use _getNodeNoLock here.
+    // Insert a node with a specific ID.
+    // If there is already a node by this ID, just use it.
     arDatabaseNode* pNode = _getNodeNoLock(theID, false);
     if (pNode){
       // Determine if the existing node is suitable for "mapping".
       if (pNode->getTypeString() == type){
         // Such a node already exists and has the right type. Use it.
-        // This is not an error. Do not print a warning since this is a
-        // normal occurence during "mapping".
+        // Do not print a warning since this is normal during "mapping".
         result = pNode;
       }
       else{
-	// A node already exists with that ID but the wrong type. This is
-	// an error!
+	// A node already exists with that ID but the wrong type.
         cout << "arDatabase error: tried to map node type " 
 	     << type << " to node with ID=" 
 	     << theID << " and name=" << pNode->getName() << ".\n";
@@ -1179,8 +1176,6 @@ arDatabaseNode* arDatabase::_insertDatabaseNode(arStructuredData* data){
   // exist. If not, return an error.
   // DO NOT print warnings if the node is not found (the meaning of the
   // second "false" parameter).
-  // MUST use _getNodeNoLock in this function (instead of getNode) because
-  // this will likely be called from within a locked _databaseLock.
   arDatabaseNode* parentNode = _getNodeNoLock(parentID, false);
   arDatabaseNode* childNode = _getNodeNoLock(childID, false);
   // Only the parentNode is assumed to exist. If childID is -1, then we
@@ -1232,15 +1227,13 @@ arDatabaseNode* arDatabase::_insertDatabaseNode(arStructuredData* data){
   return result;
 }
 
-/// When we cut a node, we remove the node and make all its children
-/// become children of its parent. This stands in contrast to the erasing,
-/// whereby the whole subtree gets blown away.
+// When we cut a node, we remove the node and make all its children
+// become children of its parent. This stands in contrast to the erasing,
+// whereby the whole subtree gets blown away.
 arDatabaseNode* arDatabase::_cutDatabaseNode(arStructuredData* data){
   // NOTE: data is guaranteed to be the right type because alter(...)
   // sends messages to handlers (like this one) based on type information.
   int ID = data->getDataInt(_lang->AR_CUT_ID);
-  // MUST use _getNodeNoLock instead of getNode here since this function will
-  // likely be called inside a locked _databaseLock.
   arDatabaseNode* node = _getNodeNoLock(ID);
   if (!node){
     cout << "arDatabase remark: _cutNode failed. No such node.\n";
@@ -1250,14 +1243,12 @@ arDatabaseNode* arDatabase::_cutDatabaseNode(arStructuredData* data){
   return &_rootNode;
 }
 
-/// When the database receives a message demanding erasure of a node,
-/// it is handled here. On failure, return NULL. On success, return a
-/// pointer to the root node. NOTE: this works will the old semantics 
-/// when this returned bool.
+// When the database receives a message demanding erasure of a node,
+// it is handled here. On failure, return NULL. On success, return a
+// pointer to the root node. NOTE: this works will the old semantics 
+// when this returned bool.
 arDatabaseNode* arDatabase::_eraseNode(arStructuredData* inData){
   int ID = inData->getDataInt(_lang->AR_ERASE_ID);
-  // MUST use _getNodeNoLock instead of getNode here since this function will
-  // likely be called inside a locked _databaseLock.
   arDatabaseNode* startNode = _getNodeNoLock(ID);
   if (!startNode){
     cerr << "arDatabase::_eraseNode failed: no such node.\n";
@@ -1280,8 +1271,6 @@ arDatabaseNode* arDatabase::_permuteDatabaseNodes(arStructuredData* data){
   // NOTE: data is guaranteed to be the right type because alter(...)
   // sends messages to handlers (like this one) based on type information.
   int ID = data->getDataInt(_lang->AR_PERMUTE_PARENT_ID);
-  // MUST use _getNodeNoLock instead of getNode here since this function will
-  // likely be called inside a locked _databaseLock.
   arDatabaseNode* parent = _getNodeNoLock(ID);
   if (!parent){
     cout << "arDatabase:: _permuteDatabaseNodes failed: no such parent.\n";
@@ -1292,8 +1281,6 @@ arDatabaseNode* arDatabase::_permuteDatabaseNodes(arStructuredData* data){
   // Create the list of arDatabaseNodes.
   list<arDatabaseNode*> childList;
   for (int i=0; i<numIDs; i++){
-    // MUST use _getNodeNoLock instead of getNode here since this function will
-    // likely be called inside a locked _databaseLock.
     arDatabaseNode* node = _getNodeNoLock(IDs[i]);
     // Only the node if it is, in fact, a child of ours.
     if (node && node->getParent() == parent){
@@ -1467,8 +1454,8 @@ void arDatabase::_writeDatabaseXML(arDatabaseNode* pNode,
   ar_unrefNodeList(children);
 }
 
-/// Recursive helper function for createNodeMap.
-/// NOTE: THIS FUNCTION IS NOT THREAD-SAFE.
+// Recursive helper function for createNodeMap.
+// NOTE: THIS FUNCTION IS NOT THREAD-SAFE.
 void arDatabase::_createNodeMap(arDatabaseNode* localNode, 
                                 int externalNodeID, 
                                 arDatabase* externalDatabase, 
@@ -1572,12 +1559,12 @@ arDatabaseNode* arDatabase::_mapNodeBelow(arDatabaseNode* parent,
   }
 }
 
-/// Alter a "make node" message, according to our mapping algorithm.
-/// 0:  Node mapped to an existing node (or there was some error, like a
-///     stale entry in the node map). Discard the message.
-/// >0: Node mapping partially succeeded (we need to create a new node
-///     locally). We'll need to complete the mapping in the caller upon
-///     node creation.
+// Alter a "make node" message, according to our mapping algorithm.
+// 0:  Node mapped to an existing node (or there was some error, like a
+//     stale entry in the node map). Discard the message.
+// >0: Node mapping partially succeeded (we need to create a new node
+//     locally). We'll need to complete the mapping in the caller upon
+//     node creation.
 int arDatabase::_filterIncomingMakeNode(arDatabaseNode* mappingRoot,
                                 arStructuredData* record, 
 	                        map<int, int, less<int> >& nodeMap,
@@ -1596,15 +1583,8 @@ int arDatabase::_filterIncomingMakeNode(arDatabaseNode* mappingRoot,
   // Don't map the parent. There are no guarantees
   // that it will have a consistent node type, etc.
   i = nodeMap.find(parentID);
-  arDatabaseNode* currentParent;
-  if (i == nodeMap.end()){
-    currentParent = mappingRoot;
-  }
-  else{
-    // MUST use _getNodeNoLock instead of getNode here since this function will
-    // likely be called inside a locked _databaseLock.
-    currentParent = _getNodeNoLock(i->second);
-  }
+  arDatabaseNode* currentParent = (i == nodeMap.end()) ?
+    mappingRoot : _getNodeNoLock(i->second);
   // Make sure that the parent actually exists (maybe there was a stale entry
   // in the node map). Or maybe mappingRoot was NULL as passed in from the
   // caller.
@@ -1666,13 +1646,13 @@ int arDatabase::_filterIncomingMakeNode(arDatabaseNode* mappingRoot,
   }
 }
 
-/// The insert is mapped exactly when both the parent and the child are already
-/// mapped. Also, if the mapped nodes are not parent/child, then nothing 
-/// happend. In contrast to the "make node", the insert never tries to use
-/// an existing node. ("make node" does so because it does double duty as
-/// a mapper). Return values:
-///  0: Discard message.
-///  > 0: Keep message and augment node map (in caller).
+// The insert is mapped exactly when both the parent and the child are already
+// mapped. Also, if the mapped nodes are not parent/child, then nothing 
+// happend. In contrast to the "make node", the insert never tries to use
+// an existing node. ("make node" does so because it does double duty as
+// a mapper). Return values:
+//  0: Discard message.
+//  > 0: Keep message and augment node map (in caller).
 int arDatabase::_filterIncomingInsert(arDatabaseNode* mappingRoot,
                                       arStructuredData* data,
 				      map<int,int,less<int> >& nodeMap,
@@ -1683,7 +1663,6 @@ int arDatabase::_filterIncomingInsert(arDatabaseNode* mappingRoot,
   // a new node between the specified parent and all of its current children.
   int childID = data->getDataInt(_lang->AR_INSERT_CHILD_ID);
   int parentID = data->getDataInt(_lang->AR_INSERT_PARENT_ID);
-  arDatabaseNode* parentNode;
   map<int,int,less<int> >::iterator i = nodeMap.find(parentID);
   // See _filterIncomingMakeNode to understand that the mapping root node is
   // not actually mapped (because it is allowed to be of a different type
@@ -1692,32 +1671,18 @@ int arDatabase::_filterIncomingInsert(arDatabaseNode* mappingRoot,
   // insert between the mapping root and one of its children. 
   // (the code checks later to make sure that childNode is actually a child
   // of parentNode)
-  if (i == nodeMap.end()){
-    parentNode = mappingRoot;
-  }
-  else{
-    // MUST use _getNodeNoLock instead of getNode here since this function will
-    // likely be called inside a locked _databaseLock.
-    parentNode = _getNodeNoLock(i->second);
-  }
-  // Check to make sure that the node still exists. (It could be that it was
+  arDatabaseNode* parentNode = (i == nodeMap.end()) ?
+    mappingRoot : _getNodeNoLock(i->second);
+  // Check that the node still exists. (It may have been
   // erased on our side but not on the other side).
   if (!parentNode){
     return 0;
   }
+  // childID can legitimately equal -1, when there is no corresponding child node.
   arDatabaseNode* childNode = NULL;
-  // Recall that childID can legitimately equal -1. In this case, there is
-  // no corresponding child node.
   if (childID != -1){
     i = nodeMap.find(childID);
-    if (i == nodeMap.end()){
-      childNode = mappingRoot;
-    }
-    else{
-      // MUST use _getNodeNoLock instead of getNode here since this function 
-      // will likely be called inside a locked _databaseLock.
-      childNode = _getNodeNoLock(i->second);
-    }
+    childNode = (i == nodeMap.end()) ? mappingRoot : _getNodeNoLock(i->second);
     if (!childNode){
       return 0;
     }
@@ -1747,9 +1712,9 @@ int arDatabase::_filterIncomingInsert(arDatabaseNode* mappingRoot,
   return originalNodeID;
 }
 
-/// Return values:
-/// 0: Discard message
-/// -1: Use (mapped) message.
+// Return values:
+// 0: Discard message
+// -1: Use (mapped) message.
 int arDatabase::_filterIncomingErase(arDatabaseNode* mappingRoot,
                                      arStructuredData* data,
 				     map<int,int,less<int> >& nodeMap){
@@ -1765,15 +1730,7 @@ int arDatabase::_filterIncomingErase(arDatabaseNode* mappingRoot,
   }
 
   // Check to see that the entry in the node map is not "stale".
-  arDatabaseNode* node = NULL;
-  if (nodeID){
-    // MUST use _getNodeNoLock instead of getNode here since this function will
-    // likely be called inside a locked _databaseLock.
-    node = _getNodeNoLock(i->second);
-  }
-  else{
-    node = mappingRoot;
-  }
+  arDatabaseNode* node = nodeID ?  _getNodeNoLock(i->second) : mappingRoot;
   if (!node){
     // Node map entry is "stale". Discard this message.
     return 0;
@@ -1788,9 +1745,9 @@ int arDatabase::_filterIncomingErase(arDatabaseNode* mappingRoot,
   return -1;
 }
 
-/// Return values:
-/// 0: Discard message
-/// -1: Use (mapped) message.
+// Return values:
+// 0: Discard message
+// -1: Use (mapped) message.
 int arDatabase::_filterIncomingCut(arStructuredData* data,
 				   map<int,int,less<int> >& nodeMap){
   // If we get here, filterIncoming called us (so we know we're of the proper
@@ -1802,8 +1759,6 @@ int arDatabase::_filterIncomingCut(arStructuredData* data,
     return 0;
   }
   // Check to see that the entry in the node map is not "stale".
-  // MUST use _getNodeNoLock instead of getNode here since this function will
-  // likely be called inside a locked _databaseLock.
   arDatabaseNode* node = _getNodeNoLock(i->second);
   if (!node){
     // Node map entry is "stale". Discard this message.
@@ -1818,9 +1773,9 @@ int arDatabase::_filterIncomingCut(arStructuredData* data,
   return -1;
 }
 
-/// Return values:
-/// 0: Discard message
-/// -1: Use (mapped) message
+// Return values:
+// 0: Discard message
+// -1: Use (mapped) message
 int arDatabase::_filterIncomingPermute(arStructuredData* data,
 				       map<int,int,less<int> >& nodeMap){
   // If we get here, filterIncoming called us (so we know we're of the
@@ -1832,8 +1787,6 @@ int arDatabase::_filterIncomingPermute(arStructuredData* data,
     return 0;
   }
   // Check to see that the entry in the node map is not "stale".
-  // MUST use _getNodeNoLock instead of getNode here since this function will
-  // likely be called inside a locked _databaseLock.
   arDatabaseNode* parentNode = _getNodeNoLock(i->second);
   if (!parentNode){
     // Node map entry is "stale". Discard this message.
@@ -1859,8 +1812,6 @@ int arDatabase::_filterIncomingPermute(arStructuredData* data,
     i = nodeMap.find(childIDs[j]);
     if (i != nodeMap.end()){
       // Check to see that the entry in the node map is not stale.
-      // MUST use _getNodeNoLock instead of getNode here since this function 
-      // will likely be called inside a locked _databaseLock.
       arDatabaseNode* childNode = _getNodeNoLock(i->second);
       if (childNode){
 	// Yes, we can map now.
@@ -1878,14 +1829,9 @@ int arDatabase::_filterIncomingPermute(arStructuredData* data,
 }
 
 
-// Here, we construct the nodes that are unqiue to the arDatabase (as opposed
-// to subclasses).
+// Construct the nodes that are unqiue to the arDatabase
+// (as opposed to subclasses).
 arDatabaseNode* arDatabase::_makeNode(const string& type){
-  // DO NOT COMPLAIN IN THIS FUNCTION. This will be handled in the 
-  // subclassed versions.
-  arDatabaseNode* outNode = NULL;
-  if (type == "name"){
-    outNode = new arNameNode();
-  }
-  return outNode;
+  // Subclassed versions will print warnings, not this one.
+  return (type == "name") ? new arNameNode() : NULL;
 }

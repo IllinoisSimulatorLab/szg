@@ -11,10 +11,9 @@
 
 #include <string>
 #include <stdio.h>
-#include <iostream>
 
-/// Parses one line of an ASCII OBJ file
-/// @param inputFile file pointer to next line to be read in
+// Parses one line of an ASCII OBJ file
+// @param inputFile file pointer to next line to be read in
 bool arOBJ::_parseOneLine(FILE* inputFile){
   char buffer[1000] = {0};
   char* token[50] = {0};
@@ -174,9 +173,9 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
   return true;
 }
 
-/// Reads in .mtl file conforming to OBJ spec
-/// @param matFile the .mtl file to read in
-/// Hides colors and textures of OBJ files in the difficult .mtl file format.
+// Reads in .mtl file conforming to OBJ spec
+// @param matFile the .mtl file to read in
+// Hides colors and textures of OBJ files in the difficult .mtl file format.
 bool arOBJ::_readMaterialsFromFile(FILE* matFile){ 
   char buffer[1000] = {0};
   int typeChar = fgetc(matFile);

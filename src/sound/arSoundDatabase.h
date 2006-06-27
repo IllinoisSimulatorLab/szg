@@ -18,7 +18,7 @@
 
 #include "arSoundCalling.h"
 
-/// Scene graph for sound.
+// Scene graph for sound.
 
 class SZG_CALL arSoundDatabase: public arDatabase{
  // Needs assignment operator and copy constructor, for pointer members.

@@ -209,7 +209,7 @@ void arTexture::deactivate() {
  glDisable(GL_TEXTURE_2D);
 }
 
-/// Create a special texture map to indicate a missing texture.
+// Create a special texture map to indicate a missing texture.
 bool arTexture::dummy() {
   _width = _height = 1; // 1 could be some other power of two.
   _alpha = false;
@@ -228,10 +228,10 @@ bool arTexture::dummy() {
   return true;
 }
 
-/// Copies an externally given array of pixels into internal memory.
-/// DO NOT change this so that only the pointer is copied in.
-/// Please note: the fill(...) method actually deals with transparency.
-/// This deals with RGB textures only.
+// Copies an externally given array of pixels into internal memory.
+// DO NOT change this so that only the pointer is copied in.
+// Please note: the fill(...) method actually deals with transparency.
+// This deals with RGB textures only.
 void arTexture::setPixels(char* pixels, int width, int height){
   // AARGH! This does not deal with different pixel formats!!!
   if (_pixels){
@@ -246,8 +246,8 @@ void arTexture::setPixels(char* pixels, int width, int height){
 }
 
 
-/// Returns a pointer to a buffer containing a sub-image of the original.
-/// Caller owns the new pointer.
+// Returns a pointer to a buffer containing a sub-image of the original.
+// Caller owns the new pointer.
 char* arTexture::getSubImage( unsigned int left, unsigned int bottom, 
     unsigned int width, unsigned int height ) const {
   int depth = getDepth();
@@ -420,20 +420,20 @@ bool arTexture::readPPM(const string& fileName,
   return true;
 }
 
-/// Attempts to write the texture as a jpeg with the given file name in
-/// the current working directory.
+// Attempts to write the texture as a jpeg with the given file name in
+// the current working directory.
 bool arTexture::writePPM(const string& fileName) {
   return writePPM(fileName, "", "");
 }
 
-/// Attempts to write texture as a jpeg with the given file name on
-/// the given path.
+// Attempts to write texture as a jpeg with the given file name on
+// the given path.
 bool arTexture::writePPM(const string& fileName, const string& path) {
   return writePPM(fileName, "", path);
 }
 
-/// Attempts to write texture as a jpeg with the given file name on
-/// the given subdirectory of the given path
+// Attempts to write texture as a jpeg with the given file name on
+// the given subdirectory of the given path
 bool arTexture::writePPM(const string& fileName, const string& subdirectory, 
                          const string& path) {
   
@@ -470,7 +470,7 @@ bool arTexture::readJPEG(const string& fileName, const string& path,
   return readJPEG(fileName, "", path, alpha, complain);
 }
 
-/// Read a jpeg file. 
+// Read a jpeg file. 
 bool arTexture::readJPEG(const string& fileName, 
                          const string& subdirectory,
                          const string& path,
@@ -491,8 +491,8 @@ bool arTexture::readJPEG(const string& fileName,
   
   struct jpeg_decompress_struct _cinfo;
   struct arTexture_error_mgr _jerr;
-  // We set up the normal JPEG error routines, then override error_exit.
-  // THIS MUST OCCUR BEFORE jpeg_create_decompress!
+  // Set up the normal JPEG error routines, then override error_exit.
+  // Before jpeg_create_decompress!
   _cinfo.err = jpeg_std_error(&_jerr.pub);
   jpeg_create_decompress(&_cinfo);
   
@@ -553,13 +553,13 @@ bool arTexture::writeJPEG(const string& fileName) {
   return writeJPEG(fileName, "", "");
 }
 
-/// Write texture as a jpeg with the given file name on the given path.
+// Write texture as a jpeg with the given file name on the given path.
 bool arTexture::writeJPEG(const string& fileName, const string& path) {
   return writeJPEG(fileName, "", path);
 }
 
-/// Write texture as a jpeg with the given file name on
-/// the given subdirectory of the given path
+// Write texture as a jpeg with the given file name on
+// the given subdirectory of the given path
 bool arTexture::writeJPEG(const string& fileName, const string& subdirectory, 
                           const string& path) {
 #ifndef EnableJPEG
@@ -669,9 +669,9 @@ bool arTexture::_reallocPixels() {
   return _pixels;
 }
 
-/// Certain pixels can be made transparent in our image. The file
-/// reading routine packs pixels in an RGB fashion... and then this routine
-/// goes ahead and does the alpha channel, if such has been requested.
+// Certain pixels can be made transparent in our image. The file
+// reading routine packs pixels in an RGB fashion... and then this routine
+// goes ahead and does the alpha channel, if such has been requested.
 void arTexture::_assignAlpha(int alpha){
   if (_alpha) {
     // Parse all the pixels and turn them into an alpha channel.
@@ -690,14 +690,14 @@ void arTexture::_assignAlpha(int alpha){
   }
 }
 
-/// Return an RGB array of pixels suitable for writing to a file. 
-/// Maybe work around the pixels' internal RGBA packing.
-/// Also account for the pixels' internal storage
-/// in OpenGL format (as returned form glReadPixels or as in texture
-/// memory, which means that the 1st line in memory is the bottom line of
-/// the image). This is the reverse of how an image
-/// is stored in a file, where the 1st line in the file is the top line of
-/// the image. So reverse that as well.
+// Return an RGB array of pixels suitable for writing to a file. 
+// Maybe work around the pixels' internal RGBA packing.
+// Also account for the pixels' internal storage
+// in OpenGL format (as returned form glReadPixels or as in texture
+// memory, which means that the 1st line in memory is the bottom line of
+// the image). This is the reverse of how an image
+// is stored in a file, where the 1st line in the file is the top line of
+// the image. So reverse that as well.
 char* arTexture::_packPixels(){
   char* buffer = new char[_width*_height*3];
   if (!buffer) {

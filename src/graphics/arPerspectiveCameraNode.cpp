@@ -10,7 +10,6 @@
 using namespace std;
 
 arPerspectiveCameraNode::arPerspectiveCameraNode(){
-  // A sensible default name.
   _name = "persp_camera_node";
   _typeCode = AR_G_PERSP_CAMERA_NODE;
   _typeString = "persp camera";
@@ -72,7 +71,7 @@ void arPerspectiveCameraNode::setCamera(const arPerspectiveCamera& camera){
   }
 }
 
-/// NOT thread-safe.
+// NOT thread-safe.
 arStructuredData* arPerspectiveCameraNode::_dumpData
   (const arPerspectiveCamera& camera, bool owned){
   arStructuredData* result = NULL;

@@ -11,16 +11,11 @@
 #include "arPrecompiled.h"
 #include "arMotionstarDriver.h"
 
-// The methods used by the dynamic library mappers. 
-// NOTE: These MUST have "C" linkage!
 extern "C"{
-  SZG_CALL void* factory(){
-    return new arMotionstarDriver();
-  }
-
-  SZG_CALL void baseType(char* buffer, int size){
-    ar_stringToBuffer("arInputSource", buffer, size);
-  }
+  SZG_CALL void* factory()
+    { return new arMotionstarDriver(); } 
+  SZG_CALL void baseType(char* buffer, int size)
+    { ar_stringToBuffer("arInputSource", buffer, size); }
 }
 
 void ar_motionstarDriverEventTask(void* motionstarDriver){
@@ -388,7 +383,7 @@ void arMotionstarDriver::_parseData(BN_PACKET *packet){
 
 void arMotionstarDriver::_generateButtonEvent(int value){
   static int prev = -1; // Guaranteed to mismatch, first time through.
-    /// \todo Nonreentrant.  make "prev" a private member.
+    // todo: Nonreentrant.  make "prev" a private member.
   if (value != prev) {
     sendButton(0, value);
     prev = value;

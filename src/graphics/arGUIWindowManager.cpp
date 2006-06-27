@@ -3,10 +3,6 @@
  * Implementation of the arGUIWindowManager class.
  */
 #include "arPrecompiled.h"
-
-#include <iostream>
-#include <sstream>
-
 #include "arStructuredData.h"
 #include "arMath.h"
 #include "arDataUtilities.h"
@@ -16,9 +12,7 @@
 #include "arGUIWindow.h"
 #include "arGUIXMLParser.h"
 
-// Helpful to have some default callbacks for window and keyboard events so
-// that even windows created with all default parameters behave with a minimum
-// of sense.
+// Default callbacks for window and keyboard events.
 
 void ar_windowManagerDefaultKeyboardFunction( arGUIKeyInfo* keyInfo){
   if ( keyInfo->getState() == AR_KEY_DOWN ){

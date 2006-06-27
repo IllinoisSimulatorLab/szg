@@ -20,9 +20,9 @@
 #define SZG_SOUND_CALLBACK
 #endif
 
-/// Gets data from an arSoundServer at SZG_SOUND/{IP,port},
-/// looks for soundfiles in SZG_SOUND/path, and
-/// renders the arSoundDatabase which arSoundServer and arSoundClients share.
+// Gets data from an arSoundServer at SZG_SOUND/{IP,port},
+// looks for soundfiles in SZG_SOUND/path, and
+// renders the arSoundDatabase which arSoundServer and arSoundClients share.
 
 class SZG_CALL arSoundClient{
   // Needs assignment operator and copy constructor, for pointer members.
