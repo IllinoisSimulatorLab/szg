@@ -5,7 +5,7 @@
     copyright            : (C) 2002 by mflider
     email                : mflider@uiuc
  ** *************************************************************************/
-// precompiled header include MUST appear as the first non-comment line
+
 #include "arPrecompiled.h"
 #include "arMesh.h"
 #include "arGraphicsAPI.h"
@@ -158,9 +158,7 @@ float temp = 0.;
   }
 }
 
-//***********************************************************************
-// here are the arServerFramework callbacks
-//***********************************************************************
+// arServerFramework callbacks
 
 bool init(arMasterSlaveFramework& fw, arSZGClient&){
   ar_navTranslate(arVector3(0., -5., 0.));
