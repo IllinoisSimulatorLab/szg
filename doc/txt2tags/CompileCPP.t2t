@@ -233,3 +233,7 @@ must be:
 ```
   #include "arGraphicsHeader.h"
 ```
+
+- Each syzygy core class must be declared SZG_CALL. The exception is
+classes entirely contained within a .h file: no SZG_CALL for them,
+because that confuses Windows' linker.
