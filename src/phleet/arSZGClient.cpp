@@ -2424,6 +2424,27 @@ const string& arSZGClient::getVirtualComputer(){
   return _virtualComputer;
 }
 
+// List virtual computers known by the szgserver.
+string arSZGClient::getVirtualComputers(){
+  string hint = getAllAttributes("SZG_CONF/virtual");
+  // Skip over "(List):\n"
+  hint = hint.erase(0, hint.find('\n') + 1);
+  string r;
+
+  // From each line, extract up to the first slash.
+  unsigned a=0, b=0;
+  for (;;) {
+    a = hint.find('/');
+    b = hint.find('\n');
+    if (b == string::npos)
+      break;
+    r += hint.substr(0, a) + " ";
+    hint = hint.erase(0, b+1);
+  }
+  // Remove the trailing space.
+  return r.erase(r.size()-1, 1);
+}
+
 // Returns the mode under which this component is operating (with respect
 // to a particular channel). For instance, the "default" channel mode is
 // one of "trigger", "master" or "component". This refers to the global

@@ -208,6 +208,7 @@ class SZG_CALL arSZGClient{
   arSlashString getNetworks(const string& channel);
   arSlashString getAddresses(const string& channel);
   const string& getVirtualComputer();
+  string getVirtualComputers();
   const string& getMode(const string& channel);
   string getTrigger(const string& virtualComputer);
   string createComplexServiceName(const string& serviceName);

@@ -130,7 +130,8 @@ bool arAppLauncher::setParameters(){
   
   // If the virtual computer was not explicitly set, set its name and "location".
   if (_vircomp == "NULL" && !setVircomp()){
-    ar_log_error() << _exeName << ": no virtual computer '" << _vircomp << "'.\n";
+    ar_log_warning() << _exeName << ": no virtual computer '" << _vircomp <<
+      "'.\n  (Known virtual computers are: " << _client->getVirtualComputers() << ".)\n";
     return false;
   }
 
