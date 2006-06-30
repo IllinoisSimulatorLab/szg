@@ -141,7 +141,7 @@ void arInputSimulator::registerInputNode(arInputNode* node){
 
 // Draw current state. This can be used as a
 // stand-alone display, like in inputsimulator, or as an overlay.
-void arInputSimulator::draw() const {
+void arInputSimulator::draw() {
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();

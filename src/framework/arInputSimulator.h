@@ -34,7 +34,7 @@ class SZG_CALL arInputSimulator: public arFrameworkObject{
   virtual bool configure( arSZGClient& SZGClient );
   void registerInputNode(arInputNode* node);
 
-  virtual void draw() const;
+  virtual void draw();
   virtual void drawWithComposition();
   virtual void advance();
 

@@ -19,7 +19,7 @@ class SZG_CALL arPerformanceElement{
 
   void setNumberEntries(int number);
   void pushNewValue(float value);
-  void draw() const;
+  void draw();
 
   float     scale;
   arVector3 color;

@@ -38,7 +38,7 @@ void arPerformanceElement::pushNewValue(float value){
   _data[_numberEntries-1] = value;
 }
 
-void arPerformanceElement::draw() const {
+void arPerformanceElement::draw() {
   glColor3fv(color.v);
   glBegin(GL_LINE_STRIP);
   for (int i=0; i<_numberEntries; i++){
