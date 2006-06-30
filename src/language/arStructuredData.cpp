@@ -14,7 +14,8 @@ static const char* debugTypename(int i){
   if (i>=0 && i<7)
     return internalTypeNames[i];
 
-  static int j = 0; // feeble attempt to support multiple calls from one printf
+  // feeble attempt to support multiple calls from one printf
+  static int j = 0;
   const int jMax = 10;
   static char buf[jMax][20];
   ++j %= jMax;
@@ -40,21 +41,23 @@ void arStructuredData::_construct(arDataTemplate* theTemplate){
     return;
     }
   
+  _fValid = true;
+  if (!_fInitdumpLock) {
+    _fInitdumpLock = true;
+    ar_mutex_init(&_dumpLock); // class-wide mutex
+  }
   _dataID = theTemplate->getID();
-  _numberDataItems = theTemplate->getNumberAttributes();
-  
   _name = theTemplate->getName();
-  
+  _numberDataItems = theTemplate->getNumberAttributes();
   if (_numberDataItems < 0 || _numberDataItems > 100000){
-    cerr << "arStructuredData error: constructor's template \""
-      << _name << "\" has "
+    cerr << "arStructuredData error: constructor's template '"
+      << _name << "' has "
       << _numberDataItems << " _numberDataItems;  truncating to 1.\n";
     _numberDataItems = 1;
   }
-
-  _fValid = true;
   if (_numberDataItems == 0)
     return;
+
   _dataPtr = new void*[_numberDataItems];
   _owned = new bool[_numberDataItems];
   _dataDimension = new ARint[_numberDataItems];
@@ -124,10 +127,13 @@ int arDataTypeSize(arDataType theType){
   return sizes[t];
 }
 
+bool arStructuredData::_fInitdumpLock = false;
+arMutex arStructuredData::_dumpLock;
+
 void arStructuredData::dump(bool verbosity)
 {
-  // This really needs a class-variable mutex so multiple threads' dump-output
-  // don't interleave.
+  // Lock, so multiple threads' dump-output won't interleave.
+  ar_mutex_lock(&_dumpLock);
 
   cout << "----arStructuredData----------------------------\n"
        << "dataID = " << _dataID << endl
@@ -165,13 +171,17 @@ void arStructuredData::dump(bool verbosity)
 	case AR_INT64:
 	  cout << ((ARint64*)_dataPtr[i])[j] << " ";
 	  break;
+	case AR_GARBAGE:
+	  cout << "[AR_GARBAGE] ";
+	  break;
 	}
       }
       cout << "\n";
     }
   }
 
-  cout << "------------------------------------------------\n";
+  cout << "----\n";
+  ar_mutex_unlock(&_dumpLock);
 }
 
 void arStructuredData::copy(arStructuredData const& rhs){
@@ -856,12 +866,10 @@ bool arStructuredData::parse(ARchar* source){
   return true;
 }
 
-void arStructuredData::print(){
-  print(stdout);
-}
-
 void arStructuredData::print(ostream& s){
   const int numbersInRow = 8;
+  // Lock, so multiple threads' output won't interleave.
+  ar_mutex_lock(&_dumpLock);
   s << "<" << _name << ">\n";
   for (int i=0; i<_numberDataItems; i++){
     s << "  <" << _dataName[i] << ">";
@@ -874,6 +882,9 @@ void arStructuredData::print(ostream& s){
       s << "\n    ";
       for (int j=0; j<_dataDimension[i]; j++){
         switch (_dataType[i]) {
+	case AR_CHAR:
+	  s << ((ARchar*)_dataPtr[i])[j] << " ";
+	  break;
 	case AR_INT:
 	  s << ((ARint*)_dataPtr[i])[j] << " ";
 	  break;
@@ -889,6 +900,9 @@ void arStructuredData::print(ostream& s){
 	case AR_INT64:
 	  s << ((ARint64*)_dataPtr[i])[j] << " ";
 	  break;
+	case AR_GARBAGE:
+	  s << "[AR_GARBAGE] ";
+	  break;
 	}
 	if (j%numbersInRow == numbersInRow-1)
 	  s << "\n    ";
@@ -900,15 +914,21 @@ void arStructuredData::print(ostream& s){
     s << "</" << _dataName[i] << ">\n";
   }
   s << "</" << _name << ">\n";
+  ar_mutex_unlock(&_dumpLock);
+}
+
+void arStructuredData::print(){
+  print(stdout);
 }
 
 void arStructuredData::print(FILE* theFile){
-  // some *very* rudimentary error checking
   if (!theFile){
     cerr << "arStructuredData error: print to file failed.\n";
     return;
   }
   const int numbersInRow = 8;
+  // Lock, so multiple threads' output won't interleave.
+  ar_mutex_lock(&_dumpLock);
   fprintf(theFile, "<%s>\n", _name.c_str());
   for (int i=0; i<_numberDataItems; i++){
     int j;
@@ -921,14 +941,15 @@ void arStructuredData::print(FILE* theFile){
     else{
       fprintf(theFile, "\n    ");
       for (j=0; j<_dataDimension[i]; j++){
-	// the following format choices are almost certainly not good
-	// enough! fix them as problems arise!
         switch (_dataType[i]) {
+	case AR_CHAR:
+	  fprintf(theFile, "%c ", ((ARchar*)_dataPtr[i])[j]);
+	  break;
 	case AR_INT:
-	  fprintf(theFile, "%i ", ((ARint*)_dataPtr[i])[j]);
+	  fprintf(theFile, "%d ", ((ARint*)_dataPtr[i])[j]);
 	  break;
 	case AR_LONG:
-	  fprintf(theFile, "%i ", ((ARlong*)_dataPtr[i])[j]);
+	  fprintf(theFile, "%ld ", ((ARlong*)_dataPtr[i])[j]);
 	  break;
 	case AR_FLOAT:
 	  fprintf(theFile, "%f ", ((ARfloat*)_dataPtr[i])[j]);
@@ -937,7 +958,10 @@ void arStructuredData::print(FILE* theFile){
 	  fprintf(theFile, "%lg ", ((ARdouble*)_dataPtr[i])[j]);
 	  break;
 	case AR_INT64:
-	  fprintf(theFile, "%ld ", ((ARint64*)_dataPtr[i])[j]);
+	  fprintf(theFile, "%Ld ", ((ARint64*)_dataPtr[i])[j]);
+	  break;
+	case AR_GARBAGE:
+	  fprintf(theFile, "[AR_GARBAGE] ");
 	  break;
 	}
 	if (j%numbersInRow == numbersInRow-1)
@@ -950,21 +974,20 @@ void arStructuredData::print(FILE* theFile){
     fprintf(theFile, "</%s>\n", _dataName[i].c_str());
   }
   fprintf(theFile, "</%s>\n\n", _name.c_str());
+  ar_mutex_unlock(&_dumpLock);
 }
 
-
-bool ar_getStructuredDataStringField( arStructuredData* dataPtr,
-                        const string& name,
-                        string& value ) {
+bool ar_getStructuredDataStringField(
+  arStructuredData* dataPtr, const string& name, string& value ) {
   const char* charPtr = (char*)dataPtr->getDataPtr(name,AR_CHAR);
   if (!charPtr) {
-    cerr << "ar_getStringField error: no pointer to field " << name << endl;
+    cerr << "ar_getStringField error: no pointer to field '" << name << "'.\n";
     return false;
   }
   const int dataSize = dataPtr->getDataDimension(name);
   if (dataSize==0) {
-    cerr << "ar_getStringField error: empty field " << name << endl;
-    return false; // we'll take an empty field as a failure here
+    cerr << "ar_getStringField error: empty field '" << name << "'.\n";
+    return false;
   }
   char *stringPtr = new char[dataSize+1];
   if (!stringPtr) {
@@ -979,5 +1002,6 @@ bool ar_getStructuredDataStringField( arStructuredData* dataPtr,
 }
 
 ostream& operator<<(ostream&s, const arStructuredData& d ) { 
-  const_cast<arStructuredData&>(d).print(s); return s; 
+  const_cast<arStructuredData&>(d).print(s);
+  return s; 
 }

@@ -126,6 +126,9 @@ class SZG_CALL arStructuredData {
    typedef map< string,int,less<string> > arNameMap;
    arNameMap _dataNameMap;
    string _name; // name of arDataTemplate this was derived from
+
+   static bool _fInitdumpLock;
+   static arMutex _dumpLock;
 };
 
 ostream& operator<<(ostream& s, const arStructuredData& d);

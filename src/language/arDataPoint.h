@@ -13,7 +13,7 @@ using namespace std;
 
 // Infrastructure for arDataClient and arDataServer.
 
-// Block incompatible communications protocols.
+// Block connections to incompatible protocols.
 enum {SZG_VERSION_NUMBER = 2};
 
 class SZG_CALL arDataPoint {
@@ -47,9 +47,10 @@ class SZG_CALL arDataPoint {
   arStreamConfig handshakeConnectTo(arSocket*, arStreamConfig);
   arStreamConfig handshakeReceiveConnection(arSocket*, arStreamConfig);
   string _remoteConfigString(arSocket* fd);
-  string _constructConfigString(arStreamConfig config);
+  string _constructConfigString(const arStreamConfig&);
   map<string, string, less<string> > _parseKeyValueBlock(const string& text);
-  void _fillConfig(arStreamConfig& config, const string& text);
+  arStreamConfig& _handshakeReceive(arStreamConfig&, arSocket*);
+  void _fillConfig(arStreamConfig&, const string&);
 };
 
 #endif

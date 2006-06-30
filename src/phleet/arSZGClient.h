@@ -29,6 +29,7 @@ class SZG_CALL arSZGClient{
   friend void arSZGClientServerResponseThread(void*);
   friend void arSZGClientTimerThread(void*);
   friend void arSZGClientDataThread(void*);
+  friend class arPhleetConfigParser; // its parseLoginFile() calls _dialUpFallThrough()
  public:
   arSZGClient();
   ~arSZGClient();
@@ -233,6 +234,7 @@ class SZG_CALL arSZGClient{
   int getLogLevel() const { return _logLevel; }
   bool connected() const { return _connected; }
   operator bool() const { return _connected; }
+  const string& getServerName();
 
  private:
   arPhleetConfigParser _configParser;

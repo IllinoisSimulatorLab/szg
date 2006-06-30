@@ -7,10 +7,10 @@
 #include "arObjectUtilities.h"
 #include "arLogStream.h"
 
-// DEPRECATED. THIS IS MERELY PRESENT TO PROVIDE BACKWARDS COMPATIBILITY!
+// Deprecated.
 bool ar_mergeOBJandHTR(arOBJ* theOBJ, arHTR* theHTR, const string& where){
   arGraphicsNode* n = dgGetNode(where);
-  return n ? ar_mergeOBJandHTR(n, theOBJ, theHTR, "") : false;
+  return n && ar_mergeOBJandHTR(n, theOBJ, theHTR, "");
 }
 
 /**  Attaches an HTR transform hierarchy to parent, then attaches the groups
@@ -30,37 +30,38 @@ bool ar_mergeOBJandHTR(arGraphicsNode* parent, arOBJ* theOBJ, arHTR* theHTR, con
     if (theOBJ->numberInGroup(i)>0 && inverseTransformNode){
       inverseTransformNode->setTransform(theHTR->inverseTransformForSegment(j));
       theOBJ->attachGroup(inverseTransformNode, i, name+"."+groupName);
-      arBoundingSphereNode* b = theHTR->boundingSphereForSegment(j);
       arBoundingSphere sphere = theOBJ->getGroupBoundingSphere(i);
       sphere.visibility = false;
-      b->setBoundingSphere(sphere);
+      theHTR->boundingSphereForSegment(j)->setBoundingSphere(sphere);
     }
   }
   return true;
 }
 
 #ifdef AR_USE_WIN_32
-// this is a hack, it should really go into szg/language
+// todo: move to szg/language
 #define strcasecmp(a,b) _stricmp(a,b)
 #endif
 
 // Reads a file, determines the type, and returns a pointer to a newly-created arObject.
+// Caller's responsible for freeing the returned object,
+// though in practice this would happen at the end of main() and is thus omitted.
 /** This function can only be used if the file ends with the
  *  appropriate (case-insensitive) file format modifier.
  *  "path" shouldn't be a default parameter, since the function will fail then.
  */
 arObject* ar_readObjectFromFile(const string& fileName, const string& path) {
-  unsigned int pos = fileName.find('.');
+  const unsigned pos = fileName.find('.');
   if (pos == string::npos) {
-    ar_log_error() << "arObjUtil invalid file name \"" << fileName << "\".\n";
+    ar_log_error() << "arObjUtil invalid filename '" << fileName << "'.\n";
     return NULL;
   }
-  string fullName = ar_fileFind(fileName, "", path);
+
+  string fullName(ar_fileFind(fileName, "", path));
   if (fullName == "NULL"){
-    ar_log_error() << "arObjUtil failed to find file \""
-	           << fileName << "\".\n";
+    ar_log_error() << "arObjUtil: no file '" << fileName << "'.\n";
   }
-  string suffix = fileName.substr(pos, fileName.length()-pos);
+  string suffix(fileName.substr(pos, fileName.length()-pos));
 
   // Wavefront OBJ
   if (suffix == ".obj" || suffix == ".OBJ") {
@@ -75,16 +76,15 @@ arObject* ar_readObjectFromFile(const string& fileName, const string& path) {
     return theHTR;
   }
     
-  // 3D Studio
+  // 3D Studio Max
   if (suffix == ".3ds" || suffix == ".3DS") {
     ar3DS* the3DS = new ar3DS;
-    the3DS->read3DS(fileName);
+    the3DS->read3DS(fullName); // was "fileName" not "fullName" -- suspicious
     return the3DS;
   }
 
-  ar_log_error() << "arObjUtil unrecognized filename extension \""
-                 << suffix << "\" in file name \""
-                 << fileName << "\".\n";
+  ar_log_error() << "arObjUtil unrecognized filename extension '"
+                 << suffix << "' in filename '" << fileName << "'.\n";
   return NULL;
 }
 

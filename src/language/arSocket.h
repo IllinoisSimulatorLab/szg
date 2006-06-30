@@ -12,7 +12,13 @@
 // DO NOT INCLUDE windows.h here. Instead, do as below.
 #include "arPrecompiled.h"
 #include "arThread.h" // for arMutex in arCommunicator
-#else
+#endif
+
+#include "arSocketAddress.h"
+#include "arThread.h"
+#include "arLanguageCalling.h"
+
+#ifndef AR_USE_WIN_32
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -23,12 +29,9 @@
 #include <unistd.h>
 #include <netinet/tcp.h>
 #endif
-
-#include "arThread.h"
 #include <string>
 #include <list>
 
-#include "arLanguageCalling.h"
 using namespace std;
 
 class ar_timeval; // forward reference into arDataUtilities.h
@@ -61,7 +64,7 @@ public:
   bool reuseAddress(bool flag);
   int ar_bind(const char* IPaddress, int port);
   int ar_listen(int queueSize);
-  int ar_accept(arSocket* communicationSocket);
+  int ar_accept(arSocket*, arSocketAddress* addr = NULL);
   bool readable(const ar_timeval& timeout);
   bool writable(const ar_timeval& timeout);
   bool readable(); // poll with no timeout

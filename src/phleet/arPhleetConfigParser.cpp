@@ -6,6 +6,7 @@
 #include "arPrecompiled.h"
 #include "arPhleetConfigParser.h"
 #include "arDataUtilities.h" // for ar_getUser()
+#include "arSZGClient.h"
 #include "arLogStream.h"
 
 #include <sys/types.h>     // for chmod and stat
@@ -41,13 +42,11 @@ bool arPhleetConfigParser::parseConfigFile(){
     return false;
   }
 
-  // clear the internal storage first
+  // clear internal storage
   _networkList.clear();
 
   // sadly, this is actually normal... 
-  // BUG in arStructuredDataParser: it would be a good idea to distinguish
-  // between end-of-file and error (but arStructuredDataParser does not do
-  // that).
+  // Bug: arStructuredDataParser should distinguish between end-of-file and error.
   arStructuredData* data = NULL;
   while ((data = _fileParser->parse(&configStream)) != NULL){
     const int ID = data->getID();
@@ -58,24 +57,24 @@ bool arPhleetConfigParser::parseConfigFile(){
     else if (ID == _l.AR_PORTS)
       _processPortsRecord(data);
     else
-      cerr << "phleet warning: config file contains unexpected ID "
-           << ID << ".\n";
+      cerr << "phleet warning: ignoring unexpected ID in config file (" << ID << ").\n";
   }
   configStream.ar_close();
+
   return true;
 }
 
-// Write the config file information we are holding to the appropriate config
+// Write info to the appropriate config
 // file location (depending on the alternative config vs. actual config)
 bool arPhleetConfigParser::writeConfigFile(){
   if (!_determineFileLocations()) {
-    cerr << "phleet error: failed to write config file.\n";
+    ar_log_warning() << "failed to write config file.\n";
     return false;
   }
 
   FILE* config = fopen(_configFileLocation.c_str(), "w");
   if (!config){
-    cerr << "phleet error: failed to write config file '"
+    ar_log_warning() << "failed to write config file '"
 	 << _configFileLocation << "'.\n";
     return false;
   }
@@ -84,6 +83,7 @@ bool arPhleetConfigParser::writeConfigFile(){
   _writeInterfaces(config);
   _writePorts(config);
 
+  // Unlike writeLoginFile(), make the config file world-readwriteable.
 #ifdef AR_USE_WIN_32
   _chmod(_configFileLocation.c_str(), 00666);
 #else
@@ -96,14 +96,14 @@ bool arPhleetConfigParser::writeConfigFile(){
 // Try to read in the login-file szg_<user name>.conf.
 // It may not be an error if this file does not exist on a
 // particular computer (the user might not have logged in yet).
-bool arPhleetConfigParser::parseLoginFile(){
+bool arPhleetConfigParser::parseLoginFile(bool fFromInit){
   if (!_determineFileLocations())
     return false;
 
   string fileName(_loginPreamble + ar_getUser() + string(".conf"));
   arFileTextStream loginStream;
   if (!loginStream.ar_open(fileName)){
-    // no error message here, the caller will have to do the work
+    // Caller's responsible for printing warnings.
     return false;
   }
   arStructuredData* data = _fileParser->parse(&loginStream);
@@ -117,6 +117,23 @@ bool arPhleetConfigParser::parseLoginFile(){
   _serverPort = data->getDataInt(_l.AR_LOGIN_SERVER_PORT);
   _fileParser->recycle(data);
   loginStream.ar_close();
+
+  if (fFromInit)
+    return true;
+
+  // We're not called from arSZGClient::init, not already connecting to the szgserver.
+  // Temporarily connect to _serverIP:_serverPort, to verify the szgserver's name.
+  arSZGClient szgClient;
+  szgClient.setServerLocation(_serverIP, _serverPort);
+  if (szgClient._dialUpFallThrough()) {
+    const string n = szgClient.getServerName();
+    if (n != _serverName) {
+      ar_log_critical() << "expected szgserver named '" << _serverName <<
+	"', not '" << n << "', at " << _serverIP << ":" << _serverPort << ".\n";
+    }
+  }
+  // szgClient disconnects (ungracefully) in its destructor.
+
   return true;
 }
 
@@ -140,8 +157,7 @@ bool arPhleetConfigParser::writeLoginFile(){
   data->print(login);
   fclose(login);
 
-  // Do not change permissions on the login file.
-  // Other (unix) users should not be able to read it.
+  // Unlike writeConfigFile(), don't make the login file world-readable.
   return true;
 }
 
@@ -153,8 +169,7 @@ void arPhleetConfigParser::printConfig(){
     cout << "network  = " << i->first << ", " << i->second.address 
 	 << "/" << i->second.mask  << "\n";
   }
-  cout << "ports    = " << _firstPort
-       << "-" << _firstPort+_blockSize-1 << "\n";
+  cout << "ports    = " << _firstPort << "-" << _firstPort+_blockSize-1 << "\n";
 }
 
 // Print human-readable login information

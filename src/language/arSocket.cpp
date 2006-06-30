@@ -5,7 +5,6 @@
 
 #include "arPrecompiled.h"
 #include "arSocket.h"
-#include "arSocketAddress.h"
 #include <stdio.h>
 #include <errno.h>
 using namespace std;
@@ -159,7 +158,6 @@ static void arSocket_watchdog(void* pv)
 
 int arSocket::ar_connect(const char* IPaddress, int port){
   if (_type != AR_STANDARD_SOCKET){
-    // Only call this for standard sockets.
     return -1;
   }
   sockaddr_in servAddr;
@@ -168,6 +166,7 @@ int arSocket::ar_connect(const char* IPaddress, int port){
   servAddr.sin_port = htons(port);
 #ifdef AR_USE_WIN_32
   servAddr.sin_addr.S_un.S_addr = inet_addr(IPaddress);
+
 #ifdef DISABLED
   bool warning = true;
   // The watchdog will print a warning, if connect() takes too long to return.
@@ -176,14 +175,17 @@ int arSocket::ar_connect(const char* IPaddress, int port){
     // Warn the user only a finite number of times.
     arThread(arSocket_watchdog, &warning);
 #endif
+
 #else
   inet_pton(AF_INET,IPaddress,&(servAddr.sin_addr)); 
 #endif
-  int ok = connect(_socketFD, (sockaddr*)&servAddr, sizeof(servAddr));
+  const int ok = connect(_socketFD, (sockaddr*)&servAddr, sizeof(servAddr));
 #ifdef AR_USE_WIN_32
+
 #ifdef DISABLED
   warning = false;
 #endif
+
 #endif
   return ok;
 }
@@ -207,7 +209,7 @@ int arSocket::ar_bind(const char* IPaddress, int port){
   else
     inet_pton(AF_INET, IPaddress, &servAddr.sin_addr);
 #endif
-  int err = bind(_socketFD, (sockaddr*)&servAddr, sizeof(servAddr));
+  const int err = bind(_socketFD, (sockaddr*)&servAddr, sizeof(servAddr));
   if (err < 0)
     {
     cerr << "arSocket error: bind to "
@@ -226,7 +228,9 @@ int arSocket::ar_listen(int queueSize){
   return listen(_socketFD, queueSize);
 }
 
-int arSocket::ar_accept(arSocket* communicationSocket){
+// If addr != NULL, stuff it with who we accepted a connection from.
+
+int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr){
   communicationSocket->_socketFD = -1;
 
   // must be called by a listening socket and operate on a standard socket
@@ -238,19 +242,18 @@ int arSocket::ar_accept(arSocket* communicationSocket){
 
   if (_socketFD < 0){
     cerr << "arSocket error: ar_accept() has a bad _socketFD.\n"
-         << "  (Maybe this is a Renderer which is erroneously "
-         << "Accepting or Listening?)\n";
-         return -1;
+         << "  (Is this a Renderer which is erroneously Accepting or Listening?)\n";
+    return -1;
   }
 
   arSocketAddress socketAddress;
   for (;;) {
-    communicationSocket->_socketFD = accept(
-      _socketFD, (sockaddr*) socketAddress.getAddress(),
+    communicationSocket->_socketFD =
+      accept( _socketFD, (sockaddr*)socketAddress.getAddress(),
 #ifdef AR_USE_DARWIN
-      (socklen_t*)
+        (socklen_t*)
 #endif
-        socketAddress.getAddressLengthPtr());
+            socketAddress.getAddressLengthPtr());
     if (communicationSocket->_socketFD < 0){
       cerr << "arSocket error: accept() failed: ";
       perror("");
@@ -261,11 +264,14 @@ int arSocket::ar_accept(arSocket* communicationSocket){
       // Accept mask allowed a connection.
       break;
 
-    // Close the offending socket.  Try again.
-    cout << "arSocket remark: rejected connection from "
+    cout << "arSocket remark: refused connection from "
 	 << socketAddress.getRepresentation() << "\n";
     communicationSocket->ar_close();
+    // Try again.
   }
+
+  if (addr)
+    *addr = socketAddress;
   return 0;
 }
 

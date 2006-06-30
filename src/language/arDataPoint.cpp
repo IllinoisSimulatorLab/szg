@@ -112,8 +112,7 @@ bool arDataPoint::getDataCore(ARchar*& dest, int& availableSize,
 
 void arDataPoint::setBufferSize(int numBytes){
   if (numBytes < 256) {
-    cout << "syzygy remark: rounding buffer size "
-         << numBytes << " up to 256.\n";
+    cout << "syzygy remark: rounding buffer size " << numBytes << " up to 256.\n";
     numBytes = 300;
   }
   else if (numBytes > 1000000) {
@@ -129,65 +128,58 @@ bool arDataPoint::setReceiveBufferSize(arSocket* socket) {
   if (_bufferSize > 0 && 
       (!socket->setSendBufferSize(_bufferSize)
        || !socket->setReceiveBufferSize(_bufferSize))) {
-    cerr << "syzygy error: failed to set buffer size to " 
-         << _bufferSize << ".\n";
+    cerr << "syzygy error: failed to set buffer size to " << _bufferSize << ".\n";
     return false;
   }
   return true;
 }
 
-arStreamConfig arDataPoint::handshakeConnectTo(arSocket* fd, 
-                                               arStreamConfig localConfig){
-  arStreamConfig result;
-  // Give some sensible values.
-  result.endian = AR_LITTLE_ENDIAN;
-  result.version = -1;
-  result.ID = -1;
-  string configString = _constructConfigString(localConfig);
-  // As the connector-to, we send first!
-  if (!fd->ar_safeWrite(configString.c_str(),configString.length())){
-    // Do not complain here.
-    result.valid = false;
-    return result;
-  }
-  // Now, receive the stuff from the other side.
-  string keys = _remoteConfigString(fd);
+arStreamConfig& arDataPoint::_handshakeReceive(arStreamConfig& config, arSocket* fd) {
+  // Receive stuff from the other side.
+  const string keys = _remoteConfigString(fd);
   if (keys == "NULL"){
-    // Do not complain here.
-    result.valid = false;
-    // The connection attempt was refused.
-    result.refused = true;
-    return result;
+    config.valid = false;
+    config.refused = true; // The connection attempt was refused.
+    return config;
   }
-  // We've got a parseable header for the stream. _fillConfig can mark "result"
-  // as invalid if the header does not contain valid info.
-  _fillConfig(result, keys);
-  return result;
+  // Got a parseable header for the stream.
+  // _fillConfig may invalidate config.
+  _fillConfig(config, keys);
+  return config;
+}
+
+arStreamConfig arDataPoint::handshakeConnectTo(
+    arSocket* fd, arStreamConfig localConfig){
+  // Caller is responsible for printing warnings.
+  arStreamConfig config;
+
+  // Defaults.
+  config.endian = AR_LITTLE_ENDIAN;
+  config.version = -1;
+  config.ID = -1;
+
+  // As the connector-to, send first.
+  const string configString = _constructConfigString(localConfig);
+  if (!fd->ar_safeWrite(configString.c_str(), configString.length())){
+    config.valid = false;
+    return config;
+  }
+
+  return _handshakeReceive(config, fd);
 }
 
 arStreamConfig arDataPoint::handshakeReceiveConnection(arSocket* fd,
 						   arStreamConfig localConfig){
-  arStreamConfig result;
-  // Receive the stuff from the other side.
-  string keys = _remoteConfigString(fd);
-  if (keys == "NULL"){
-    // Do not complain here.
-    result.valid = false;
-    // The connection attempt was refused.
-    result.refused = true;
-    return result;
-  }
-  // We've got a parseable header for the stream. _fillConfig can mark "result"
-  // as invalid if the header does not contain valid info.
-  _fillConfig(result, keys);
+  arStreamConfig config;
+  // Bug: why does config get default values in handshakeConnectTo but not here?
+  (void)_handshakeReceive(config, fd);
+
+  // As the one receiving the connection, send second.
   string configString = _constructConfigString(localConfig);
-  // As the one receiving the connection, we send second!
   if (!fd->ar_safeWrite(configString.c_str(),configString.length())){
-    // Do not complain here.
-    result.valid = false;
-    return result;
+    config.valid = false;
   }
-  return result;
+  return config;
 }
 
 string arDataPoint::_remoteConfigString(arSocket* fd){
@@ -217,30 +209,23 @@ string arDataPoint::_remoteConfigString(arSocket* fd){
   return result;
 }
 
-string arDataPoint::_constructConfigString(arStreamConfig config){
-  stringstream sendStream;
-  // We manually build up the string to send out, instead of relying on
-  // the arStructuredData infrastructure.
-  // Note the use of the MAGIC version number!
-  sendStream << "<config>"
-	     << " "
-	     << "<keys>"
-	     << " " 
-             << "endian=" 
-             << (config.endian == AR_LITTLE_ENDIAN ? "little" : "big")
-	     << " "
-	     << "version=" << SZG_VERSION_NUMBER
-	     << " "
-	     << "ID=" << config.ID
-	     << "</keys>"
-	     << " "
-	     << "</config>";
-  return sendStream.str();
+string arDataPoint::_constructConfigString(const arStreamConfig& config){
+  stringstream s;
+  // Manually build up the string to send out,
+  // instead of relying on the arStructuredData infrastructure.
+  // Note the MAGIC version number.
+  s << "<config> <keys> "
+    << "endian=" 
+    << (config.endian == AR_LITTLE_ENDIAN ? "little" : "big")
+    << " version=" << SZG_VERSION_NUMBER
+    << " ID=" << config.ID
+    << "</keys> </config>";
+  return s.str();
 }
 
 map<string, string, less<string> > arDataPoint::_parseKeyValueBlock(
 						   const string& text){
-  map<string, string, less<string> > result;
+  map<string, string, less<string> > tokens;
   // Tokenize the string.
   stringstream s;
   s.str(text);
@@ -248,33 +233,31 @@ map<string, string, less<string> > arDataPoint::_parseKeyValueBlock(
   while (true) {
     s >> myToken;
     if (!s.fail()){
-      const unsigned int position = myToken.find("=");
+      const unsigned position = myToken.find("=");
       if (position == string::npos){
 	cerr << "arDataPoint error: invalid token.\n";
 	continue;
       }
       const string key(myToken.substr(0, position));
       const string value(myToken.substr(position+1, myToken.length()-position-1));
-      result.insert(map<string,string,less<string> >::value_type(key,
-								 value));
+      tokens.insert(map<string,string,less<string> >::value_type(key, value));
     }
     if (s.eof())
       break;
   }
-  // Return the constructed table.
-  return result;
+  return tokens;
 }
 
 void arDataPoint::_fillConfig(arStreamConfig& config, const string& text){
-  // If we've gotten here, the connection has not been refused.
   config.refused = false;
 
   map<string,string,less<string> > table = _parseKeyValueBlock(text);
   map<string,string,less<string> >::iterator iter;
-  // First, check to see that version numbers match.
+
   iter = table.find("version");
   if (iter == table.end()){
-    // There is no version key.
+    // No version key.
+    config.version = -2;
     config.valid = false;
     return;
   }
@@ -282,17 +265,21 @@ void arDataPoint::_fillConfig(arStreamConfig& config, const string& text){
   versionParser.str(iter->second);
   versionParser >> config.version;
   if (versionParser.fail()){
+    // Unparseable version key.
+    config.version = -3;
     config.valid = false;
     return;
   }
   if (config.version != SZG_VERSION_NUMBER){
+    // Version mismatch.
     config.valid = false;
     return;
   }
   // Next, extract the endian-ness of the remote connection.
   iter = table.find("endian");
   if (iter == table.end()){
-    // There is no endian key.
+    // No endian key.
+    config.endian = AR_UNDEFINED_ENDIAN;
     config.valid = false;
     return;
   }
@@ -303,17 +290,19 @@ void arDataPoint::_fillConfig(arStreamConfig& config, const string& text){
     config.endian = AR_BIG_ENDIAN;
   }
   else{
-    // Not one of the allowed values.
+    config.endian = AR_GARBAGE_ENDIAN;
     config.valid = false;
     return;
   }
-  // Finally, extract the ID of the remote connection.
+
+  // Extract the ID of the remote connection.
   iter = table.find("ID");
   if (iter == table.end()){
     // There is no ID tag.
     config.valid = false;
     return;
   }
+
   stringstream IDparser;
   IDparser.str(iter->second);
   IDparser >> config.ID;

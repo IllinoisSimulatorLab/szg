@@ -511,6 +511,7 @@ bool arTexture::readJPEG(const string& fileName,
     fclose(fd);
     return false;
   }
+
   while (_cinfo.output_scanline < _cinfo.output_height) {
     jpeg_read_scanlines(&_cinfo, buffer, 1);
     for (int i=0; i<row_stride; i++){

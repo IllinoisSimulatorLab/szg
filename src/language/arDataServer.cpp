@@ -233,48 +233,64 @@ arSocket* arDataServer::_acceptConnection(bool addToActive){
   // we need to be able to accept connections in a different thread
   // than where we send data
   arSocket* newSocketFD = new arSocket(AR_STANDARD_SOCKET);
+  arSocketAddress addr;
   if (!newSocketFD){
     cerr << "arDataServer error: no socket in _acceptConnection.\n";
     return NULL;
   }
-  if (_listeningSocket->ar_accept(newSocketFD) < 0) {
-    cerr << "arDataServer error: failed to _acceptConnection.\n";
+  if (_listeningSocket->ar_accept(newSocketFD, &addr) < 0) {
+    ar_log_warning() << "arDataServer failed to _acceptConnection.\n";
     return NULL;
   }
-  
+ 
   ar_mutex_lock(&_dataTransferMutex);
   _addSocketToDatabase(newSocketFD);
   if (!newSocketFD->smallPacketOptimize(_smallPacketOptimize)) {
-    cerr << "arDataServer error: failed to smallPacketOptimize.\n";
+    ar_log_warning() << "arDataServer failed to smallPacketOptimize.\n";
+LAbort:
     ar_mutex_unlock(&_dataTransferMutex);
     return NULL;
   }
 
-  // Based on the connection-acceptance state, we either add the new
-  // socket to the active list or the passive list
+  // Based on the connection-acceptance state,
+  // add the new socket to either the active or the passive list
   (addToActive ? _connectionSockets : _passiveSockets).push_back(newSocketFD);
 
-  // If there is no dictionary, abort! (we expect to SEND the dictionary to
-  // the connected data point)
   if (!_theDictionary){
+    // We expected to SEND the dictionary to the connected data point.
     cout << "arDataServer error: no dictionary.\n";
     _deleteSocketFromDatabase(newSocketFD);
-    ar_mutex_unlock(&_dataTransferMutex);
-    return NULL;
+    goto LAbort;
   }
 
-  // Configuration handshake exchange.
-  arStreamConfig remoteStreamConfig;
+  // Configuration handshake.
   arStreamConfig localConfig;
-  localConfig.endian = AR_ENDIAN_MODE;
+  localConfig.endian = AR_ENDIAN_MODE; // todo: do this line in arStreamConfig's constructor.
   localConfig.ID = newSocketFD->getID();
-  remoteStreamConfig = handshakeConnectTo(newSocketFD, localConfig);
+  arStreamConfig remoteStreamConfig = handshakeConnectTo(newSocketFD, localConfig);
   if (!remoteStreamConfig.valid){
-    cout << "arDataServer error: remote data point has wrong szg protocol "
-	 << "version = " << remoteStreamConfig.version << ".\n";
+    const int ver = remoteStreamConfig.version;
+    // todo: unify magic numbers -X with arDataPoint::_fillConfig
+    switch (ver) {
+    case -1:
+      ar_log_warning() << "arDataServer: rejected non-syzygy connection from " << addr.getRepresentation() << ".\n";
+      break;
+
+    case -2:
+      ar_log_warning() << "arDataServer: rejected connection from " << addr.getRepresentation() << ": no szg version key.\n";
+      break;
+
+    case -3:
+      ar_log_warning() << "arDataServer: rejected connection from " << addr.getRepresentation() << ": unparseable szg version key.\n";
+      break;
+
+    default:
+      ar_log_warning() << "arDataServer: rejected connection from " << addr.getRepresentation() << ": wrong szg version "
+         << remoteStreamConfig.version << ".\n";
+      break;
+    }
     _deleteSocketFromDatabase(newSocketFD);
-    ar_mutex_unlock(&_dataTransferMutex);
-    return NULL;
+    goto LAbort;
   }
   // We need to know the remote stream config for this socket, since we
   // might be sending data (i.e. szgserver or arBarrierServer).
@@ -283,24 +299,22 @@ arSocket* arDataServer::_acceptConnection(bool addToActive){
   // Send the dictionary.
   const int theSize = _theDictionary->size();
   if (theSize<=0){
-    cout << "arDataServer error: could not pack dictionary.\n";
+    cout << "arDataServer error: failed to pack dictionary.\n";
     _deleteSocketFromDatabase(newSocketFD);
-    ar_mutex_unlock(&_dataTransferMutex);
-    return NULL;
+    goto LAbort;
   }
-  ARchar* buffer = new ARchar[theSize];
+
+  ARchar* buffer = new ARchar[theSize]; // Storage for the dictionary.
   _theDictionary->pack(buffer);
   if (!newSocketFD->ar_safeWrite(buffer,theSize)){
     cerr << "arDataServer error: failed to send dictionary.\n";
     _deleteSocketFromDatabase(newSocketFD);
-    ar_mutex_unlock(&_dataTransferMutex);
-    return NULL;
+    goto LAbort;
   }
-  // We can delete the storage for the dictionary.
   delete [] buffer;
 
-  // Based on the connection-acceptance state, we might or might
-  // not need to increment the number of active connections.
+  // Based on the connection-acceptance state,
+  // maybe increment the number of active connections.
   _numberConnected++;
   if (addToActive)
     _numberConnectedActive++;
@@ -308,7 +322,7 @@ arSocket* arDataServer::_acceptConnection(bool addToActive){
   if (_consumerFunction){
     // A consumer is registered, so start a read thread for the new connection.
     _nextConsumer = newSocketFD;
-    arThread* dummy = new arThread; // \bug memory leak?
+    arThread* dummy = new arThread; // memory leak?
     if (!dummy->beginThread(ar_readDataThread, this)){
       cerr << "arDataServer error: failed to start read thread.\n";
       return NULL;
@@ -675,6 +689,7 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
          << ") failed to smallPacketOptimize.\n";
     return -1;
   }
+  arSocketAddress addr;
   if (socket->ar_connect(s.c_str(), port) < 0){
     cerr << "arDataServer error: dialUp failed.\n";
     socket->ar_close();
@@ -685,36 +700,31 @@ int arDataServer::dialUpFallThrough(const string& s, int port){
   // Set up communications.
   arStreamConfig localConfig;
   localConfig.endian = AR_ENDIAN_MODE;
-
-  // BUG: This is NOT the socket ID... but the arDataServer doesn't do
-  // anything with it anyway (yet). This badly breaks symmetry. Oh well.
-  // No code depends on it yet.
+  // BUG: localConfig.ID here is NOT the socket ID... but the arDataServer doesn't
+  // use it yet.  This breaks symmetry, but no code depends on it yet.
   localConfig.ID = 0;
-  arStreamConfig remoteStreamConfig;
-  remoteStreamConfig = handshakeReceiveConnection(socket, localConfig);
+  arStreamConfig remoteStreamConfig = handshakeReceiveConnection(socket, localConfig);
   if (!remoteStreamConfig.valid){
     if (remoteStreamConfig.refused){
       cout << "arDataServer remark: remote data point closed connection.\n"
 	   << "  (Maybe this IP address isn't on the szgserver's whitelist.)\n";
       return false;
     }
-    cerr << "arDataServer error: remote data point has wrong szg protocol "
-	 << "version = " << remoteStreamConfig.version << ".\n";
+    ar_log_warning() << "arDataServer: remote data point has wrong szg protocol version "
+         << remoteStreamConfig.version << ".\n";
     return false;
   }
   
   ARchar sizeBuffer[AR_INT_SIZE];
-  // NOTE: We DO NOT actually use that in the arDataServer (as opposed
-  // to the arDataClient.
-  // in arDataClient, a statement would go hear storing the remote socket
-  // ID.
+  // arDataServer doesn't actually use sizeBuffer (as opposed to arDataClient).
+  // In arDataClient, a statement would go here storing the remote socket ID.
   if (!socket->ar_safeRead(sizeBuffer,AR_INT_SIZE)){
     cerr << "arDataServer error: dialUp failed to get dictionary size.\n";
     socket->ar_close();
     return -1;
   }
   const ARint totalSize = ar_translateInt(sizeBuffer,remoteStreamConfig);
-  if (totalSize<AR_INT_SIZE){
+  if (totalSize < AR_INT_SIZE){
     cerr << "arDataServer error: dialUp failed to translate dictionary.\n";
     socket->ar_close();
     return -1;

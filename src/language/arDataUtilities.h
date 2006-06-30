@@ -98,24 +98,22 @@ struct SZG_CALL arStreamConfig{
   ARchar endian;
   int  version;
   int  ID;
-  bool valid; // Allows us to use this as a success/failure return value.
-  bool refused; // Tells us that the other end of the connection has rejected
-                // our connection attempt.
+  bool valid; // For a success/failure return value.
+  bool refused; // If true, the other end rejected our connection attempt.
 };
 
-#define AR_LITTLE_ENDIAN 0
-#define AR_BIG_ENDIAN 1
-#ifdef AR_USE_LINUX
+enum { AR_LITTLE_ENDIAN=0, AR_BIG_ENDIAN, AR_UNDEFINED_ENDIAN, AR_GARBAGE_ENDIAN };
+#if defined( AR_USE_LINUX )
   #define AR_ENDIAN_MODE AR_LITTLE_ENDIAN
-#endif
-#ifdef AR_USE_WIN_32
+#elif defined( AR_USE_WIN_32 )
   #define AR_ENDIAN_MODE AR_LITTLE_ENDIAN
-#endif
-#ifdef AR_USE_SGI
+#elif defined( AR_USE_SGI )
   #define AR_ENDIAN_MODE AR_BIG_ENDIAN
-#endif
-#ifdef AR_USE_DARWIN
+#elif defined( AR_USE_DARWIN )
+  // Bug: what about intel macs?
   #define AR_ENDIAN_MODE AR_BIG_ENDIAN
+#else
+  #define AR_ENDIAN_MODE AR_UNDEFINED_ENDIAN
 #endif
 
 // The pipe read/write code works only on Unix.

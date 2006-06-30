@@ -31,12 +31,12 @@ class SZG_CALL arPhleetConfigParser{
   arPhleetConfigParser();
   ~arPhleetConfigParser() {}
 
-  // bulk manipulation of the config file
+  // manipulate the config file
   bool parseConfigFile();
   bool writeConfigFile();
 
-  // bulk manipulation of user's login file
-  bool parseLoginFile();
+  // manipulate user's login file
+  bool parseLoginFile(bool fFromInit = false);
   bool writeLoginFile();
 
   // output configuration
