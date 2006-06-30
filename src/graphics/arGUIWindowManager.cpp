@@ -1,6 +1,6 @@
 /**
  * @file arGUIWindowManager.cpp
- * Implementation of the arGUIWindowManager class.
+ * Implementation of class arGUIWindowManager.
  */
 #include "arPrecompiled.h"
 #include "arStructuredData.h"
@@ -26,56 +26,42 @@ void ar_windowManagerDefaultKeyboardFunction( arGUIKeyInfo* keyInfo){
   }
 }
 
-void ar_windowManagerDefaultWindowFunction( arGUIWindowInfo* windowInfo ){
-  switch( windowInfo->getState() ){
+void ar_windowManagerDefaultWindowFunction( arGUIWindowInfo* wi ){
+  arGUIWindowManager* wm = wi->getWindowManager();
+  switch( wi->getState() ){
   case AR_WINDOW_RESIZE:
-    if ( windowInfo->getWindowManager() ){
-      windowInfo->getWindowManager()
-                ->setWindowViewport(windowInfo->getWindowID(), 0, 0,
-                                    windowInfo->getSizeX(), 
-                                    windowInfo->getSizeY() );
+    if ( wm ){
+      wm->setWindowViewport(
+        wi->getWindowID(), 0, 0, wi->getSizeX(), wi->getSizeY() );
     }
     break;
   case AR_WINDOW_CLOSE:
-    if ( windowInfo->getWindowManager() ){
-      windowInfo->getWindowManager()->deleteWindow(windowInfo->getWindowID());
+    if ( wm ){
+      wm->deleteWindow(wi->getWindowID());
     }
     break;
   }
 }
 
-arGUIWindowManager::arGUIWindowManager( void (*windowCallback)( arGUIWindowInfo* ) ,
-                                        void (*keyboardCallback)( arGUIKeyInfo* ),
-                                        void (*mouseCallback)( arGUIMouseInfo* ),
-                                        void (*windowInitGLCallback)( arGUIWindowInfo* ),
+arGUIWindowManager::arGUIWindowManager( void (*windowCB)( arGUIWindowInfo* ) ,
+                                        void (*keyboardCB)( arGUIKeyInfo* ),
+                                        void (*mouseCB)( arGUIMouseInfo* ),
+                                        void (*windowInitGLCB)( arGUIWindowInfo* ),
                                         bool threaded ) :
-  _keyboardCallback( keyboardCallback ),
-  _mouseCallback( mouseCallback ),
-  _windowCallback( windowCallback ),
-  _windowInitGLCallback( windowInitGLCallback ),
+  _keyboardCallback( keyboardCB ? keyboardCB : ar_windowManagerDefaultKeyboardFunction),
+  _mouseCallback( mouseCB ),
+  _windowCallback( windowCB ? windowCB : ar_windowManagerDefaultWindowFunction),
+  _windowInitGLCallback( windowInitGLCB ),
   _maxWindowID( 0 ),
   _threaded( threaded )
 {
-  // If a callback is not defined, use the following defaults.
-  if (!_keyboardCallback){
-    _keyboardCallback = ar_windowManagerDefaultKeyboardFunction;
-  }
-  if (!_windowCallback){
-    _windowCallback = ar_windowManagerDefaultWindowFunction;
-  }
-
-  #if defined( AR_USE_WIN_32 )
-
-  #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
-
+#if defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
   // seems to be necessary on OS X, not necessarily under linux, but probably
   // doesn't hurt to just always enable it though
   if( XInitThreads() == 0 ) {
-    ar_log_error() << "arGUIWindowManager error: Could not initialize Xlib multi-threading support!" << ar_endl;
+    ar_log_error() << "arGUIWindowManager failed to init Xlib multi-threading.\n";
   }
-
-  #endif
-
+#endif
 }
 
 arGUIWindowManager::~arGUIWindowManager( void )
@@ -148,12 +134,9 @@ int arGUIWindowManager::startWithSwap( void )
 {
   while( true ) {
     drawAllWindows( false );
-
     swapAllWindowBuffers( true );
-
     processWindowEvents();
   }
-
   return 0;
 }
 
@@ -161,10 +144,8 @@ int arGUIWindowManager::startWithoutSwap( void )
 {
   while( true ) {
     drawAllWindows( false );
-
     processWindowEvents();
   }
-
   return 0;
 }
 
