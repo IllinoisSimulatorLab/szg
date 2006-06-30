@@ -165,8 +165,7 @@ bool arEVaRTDriver::init(arSZGClient& SZGClient){
   
   _deviceIP = SZGClient.getAttribute("SZG_EVART", "IPhost");
   if (_deviceIP == "NULL"){
-    SZGClient.initResponse() << "arEVaRTDriver error: IP address for "
-			     << "EVaRT was not set.\n";
+    ar_log_warning() << "arEVaRTDriver: no IP address for EVaRT.\n";
     return false;
   }
   return true;
