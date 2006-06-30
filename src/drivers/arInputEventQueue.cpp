@@ -83,10 +83,12 @@ void arInputEventQueue::appendQueue( const arInputEventQueue& eventQueue ) {
 }
 
 arInputEvent arInputEventQueue::popNextEvent() {
+LAgain:
   if (_queue.empty()) {
     return arInputEvent();
   }
-  arInputEvent temp = _queue.front();
+
+  arInputEvent temp(_queue.front());
   _queue.pop_front();
 //  _queue.erase( _queue.begin() );
   switch (temp.getType()) {
@@ -99,6 +101,9 @@ arInputEvent arInputEventQueue::popNextEvent() {
     case AR_EVENT_MATRIX:
       _numMatrices--;
       break;
+    default:
+      ar_log_warning() << "skipping queued event with unexpected type.\n";
+      goto LAgain;
   }
   return temp;
 }
@@ -106,7 +111,6 @@ arInputEvent arInputEventQueue::popNextEvent() {
 void arInputEventQueue::setSignature( unsigned int numButtons,
                                       unsigned int numAxes,
                                       unsigned int numMatrices ) {
-  bool changed(false);
   std::deque<arInputEvent>::iterator iter;
   
   if (numButtons < _buttonSignature) {
@@ -123,8 +127,7 @@ void arInputEventQueue::setSignature( unsigned int numButtons,
       numButtons = maxIndex+1;
     }
   }
-  if (_buttonSignature != numButtons)
-    changed = true;
+  bool changed = (_buttonSignature != numButtons);
   _buttonSignature = numButtons;
     
   if (numAxes < _axisSignature) {
@@ -141,8 +144,7 @@ void arInputEventQueue::setSignature( unsigned int numButtons,
       numAxes = maxIndex+1;
     }
   }
-  if (_axisSignature != numAxes)
-    changed = true;
+  changed |= (_axisSignature != numAxes);
   _axisSignature = numAxes;
     
   if (numMatrices < _matrixSignature) {
@@ -159,14 +161,14 @@ void arInputEventQueue::setSignature( unsigned int numButtons,
       numMatrices = maxIndex+1;
     }
   }
-  if (_matrixSignature != numMatrices)
-    changed = true;
+  changed |= (_matrixSignature != numMatrices);
   _matrixSignature = numMatrices;
   
   if (changed){
-    //cerr << "arInputEventQueue remark: signature set to ( "
-    //     << _buttonSignature << ", " << _axisSignature << ", " 
-    //     << _matrixSignature << " ).\n";
+    ar_log_debug() << "arInputEventQueue signature is ("
+      << _buttonSignature << ", "
+      << _axisSignature << ", " 
+      << _matrixSignature << ").\n";
   }
 }
 
@@ -282,6 +284,9 @@ bool arInputEventQueue::saveToBuffers( int* const typeBuf,
           memcpy( matrixBuf + 16*iMatrix++, m.v, 16*sizeof(float) );
         }
         break;
+      default:
+	ar_log_warning() << "ignoring unexpected event type while saving.\n";
+	break;
     }
   }
   return status;
