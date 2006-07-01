@@ -239,7 +239,7 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
     ar_log_warning() << "arRS232Port failed to open " << portString << ".\n";
     return false;
   }  
-  ar_log_remark() << "arRS232Port opened " << portString << endl;
+  ar_log_remark() << "arRS232Port opened " << portString << ".\n";
   
   DCB dcb;
   GetCommState( _portHandle, &dcb );
