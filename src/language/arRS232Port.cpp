@@ -6,6 +6,7 @@
 #include "arPrecompiled.h"
 #include "arRS232Port.h"
 #include "arDataUtilities.h"
+#include "arLogStream.h"
 
 #ifdef AR_USE_LINUX
 #include <unistd.h>
@@ -120,6 +121,10 @@
 
 */
 
+static void nyi() {
+  ar_log_warning() << "arRS232Port: implemented only for Win32 and Linux.\n";
+}
+
 arRS232Port::arRS232Port() :
   _isOpen(false),
   _readTimeoutTenths(10)
@@ -150,20 +155,20 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
 #elif defined( AR_USE_LINUX )
   //unused const unsigned portMin = 0;
 #else
-  cerr << "arRS232Port error: only Win32 and Linux are implemented.\n";
+  ar_log_warning() << "arRS232Port: only Win32 and Linux are implemented.\n";
   return false;
 #endif
 
 #if defined( AR_USE_WIN_32 )
   // This check is meaningful only when portMin>0, since portMin is unsigned.
   if (port < portMin) {
-    cerr << "arRS232Port error: port numbers are 1-based.\n";
+    ar_log_warning() << "arRS232Port: port numbers are 1-based.\n";
     return false;
   }
 #endif
 
   if (_isOpen) {
-    cerr << "arRS232Port error: port already in use.\n";
+    ar_log_warning() << "arRS232Port: port already in use.\n";
     return false;
   }
 
@@ -186,11 +191,11 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
       baudRate = CBR_115200;
       break;
     default:
-      cerr << "arRS232Port error: baud rate must be one of 9600, 19200, 38400, 57600, 115200.\n";
+      ar_log_warning() << "arRS232Port: baud rate must be one of 9600, 19200, 38400, 57600, 115200.\n";
       return false;
   }
   if (dBits < 4 || dBits > 8) {
-    cerr << "arRS232Port error: data bits must be one of 4,5,6,7,8.\n";
+    ar_log_warning() << "arRS232Port: data bits must be one of 4,5,6,7,8.\n";
     return false;
   }
   const BYTE byteSize = static_cast<BYTE>( dBits );
@@ -202,7 +207,7 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
   else if (fltcomp( stBits, 2 ))
     stopBits = 2;
   else {
-    cerr << "arRS232Port error: stop bits must be one of 1, 1.5, 2.\n";
+    ar_log_warning() << "arRS232Port: stop bits must be one of 1, 1.5, 2.\n";
     return false;
   }
   BYTE parity = 0;
@@ -217,7 +222,7 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
   else if (par == "space")
     parity = 4;
   else {
-    cerr << "arRS232Port error: parity must be one of none, odd, even, mark, space.\n";
+    ar_log_warning() << "arRS232Port: parity must be one of none, odd, even, mark, space.\n";
     return false;
   }
 
@@ -231,10 +236,10 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
                             OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
   if (_portHandle == INVALID_HANDLE_VALUE) {
-    cerr << "arRS232Port error: failed to open " << portString << ".\n";
+    ar_log_warning() << "arRS232Port failed to open " << portString << ".\n";
     return false;
   }  
-  cout << "arRS232Port remark: opened " << portString << endl;
+  ar_log_remark() << "arRS232Port opened " << portString << endl;
   
   DCB dcb;
   GetCommState( _portHandle, &dcb );
@@ -261,21 +266,21 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
 #endif
 
   if (SetCommState( _portHandle, &dcb ) != TRUE) {
-    cerr << "arRS232Port error: failed to set communication parameters\n";
+    ar_log_warning() << "arRS232Port failed to set communication parameters\n";
     return false;
   }
 #if 0
   else
-    cerr << "arRS232Port remark: set baud rate to " << baudRate << endl;
+    ar_log_remark() << "arRS232Port baud rate is " << baudRate << endl;
 #endif
 
 #if 0
   COMMPROP comProp;
   if (GetCommProperties( _portHandle, &comProp ) != TRUE) {
-    cerr << "arRS232Port error: failed to get com-port properties.\n";
+    ar_log_warning() << "arRS232Port failed to get com-port properties.\n";
     return false;
   }
-  cerr << "System input buffer size = " << comProp.dwCurrentRxQueue << ", max " << comProp.dwMaxRxQueue << endl;
+  ar_log_debug() << "System input buffer size = " << comProp.dwCurrentRxQueue << ", max " << comProp.dwMaxRxQueue << ar_endl;
 #endif
 
   if (!setReadTimeout( _readTimeoutTenths )) {
@@ -284,9 +289,9 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
   _isOpen = true;
 
   if (!flushInput())
-    cerr << "arRS232Port warning: flushInput() failed.\n";
+    ar_log_warning() << "arRS232Port: flushInput() failed.\n";
   if (!flushOutput())
-    cerr << "arRS232Port warning: flushOutput() failed.\n";
+    ar_log_warning() << "arRS232Port: flushOutput() failed.\n";
   return true;
 #endif
 
@@ -309,7 +314,7 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
       baudRate = B115200;
       break;
     default:
-      cerr << "arRS232Port error: baud rate must be one of 9600, 19200, 38400, 57600, 115200.\n";
+      ar_log_warning() << "arRS232Port: baud rate must be one of 9600, 19200, 38400, 57600, 115200.\n";
       return false;
   }
   char portString[64];
@@ -318,11 +323,11 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
   // Open the port.
   _fileDescriptor = open( portString, O_RDWR | O_NOCTTY );
   if (_fileDescriptor < 0) {
-    cerr << "arRS232Port error: failed to open " << portString << ".\n"
+    ar_log_warning() << "arRS232Port failed to open " << portString << ".\n"
          << "     (Did you give non-root users write permission?)\n";
     return false;
   }
-  cout << "arRS232Port remark: opened " << portString << endl;
+  ar_log_remark() << "arRS232Port opened '" << portString << "'.\n";
   
   if (tcgetattr( _fileDescriptor, &_oldConfig ) < 0) // save port settings
     perror("arRS232Port error");
@@ -347,7 +352,7 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
       _newConfig.c_cflag |= CS8;
       break;
     default:
-      cerr << "arRS232Port error: data bits must be one of 5,6,7,8.\n";
+      ar_log_warning() << "arRS232Port: data bits must be one of 5,6,7,8.\n";
       return false;
   }
   if (fltcomp( stBits, 1 )) {
@@ -356,7 +361,7 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
   else if (fltcomp( stBits, 2 ))
     _newConfig.c_cflag |= CSTOPB;
   else {
-    cerr << "arRS232Port error: stop bits must be one of 1 or 2.\n";
+    ar_log_warning() << "arRS232Port: stop bits must be one of 1 or 2.\n";
     return false;
   }
   if ((par == "none")||(par == "space")) {
@@ -369,7 +374,7 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
     _newConfig.c_cflag &= ~PARODD;
   }
   else {
-    cerr << "arRS232Port error: parity must be one of none, odd, even, or space.\n";
+    ar_log_warning() << "arRS232Port: parity must be one of none, odd, even, or space.\n";
     return false;
   }
 
@@ -408,9 +413,9 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
   _newConfig.c_cc[VMIN]     = 0;   // blocking read until XX characters received
   _isOpen = true;
   if (!flushInput())
-    cerr << "arRS232Port warning: flushInput() failed.\n";
+    ar_log_warning() << "arRS232Port: flushInput() failed.\n";
   if (!flushOutput())
-    cerr << "arRS232Port warning: flushOutput() failed.\n";
+    ar_log_warning() << "arRS232Port: flushOutput() failed.\n";
     
   // Reconfigure port.
   if (tcsetattr( _fileDescriptor, TCSANOW, &_newConfig ) < 0)
@@ -436,23 +441,23 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
   status = 0xffffffff;
   ioctl(_fileDescriptor, TIOCMGET, &status);
   if ((status & TIOCM_LE))
-    cerr << "arRS232Port warning: argh LE-DSR alarm.\n";
+    ar_log_warning() << "arRS232Port: argh LE-DSR alarm.\n";
   if ((status & TIOCM_DSR))
-    cerr << "arRS232Port warning: argh DSR.\n";
+    ar_log_warning() << "arRS232Port: argh DSR.\n";
   if ((status & TIOCM_CTS))
-    cerr << "arRS232Port warning: argh CTS.\n";
+    ar_log_warning() << "arRS232Port: argh CTS.\n";
   if (!(status & TIOCM_DTR))
-    cerr << "arRS232Port warning: failed to set DTR.\n";
+    ar_log_warning() << "arRS232Port failed to set DTR.\n";
   if (status & TIOCM_RTS)
-    cerr << "arRS232Port warning: failed to clear RTS.\n";
+    ar_log_warning() << "arRS232Port failed to clear RTS.\n";
 
   {
   struct termios tmp;
   tcgetattr(_fileDescriptor, &tmp);
   if (cfgetispeed(&tmp)!=B115200 || cfgetospeed(&tmp)!=B115200)
-    cerr << "arRS232Port FoB warning: actual baud rates aren't 115200.\n";
+    ar_log_warning() << "arRS232Port FoB: actual baud rates aren't 115200.\n";
   }
-  cout << "\tFoB works in winXP: parity 0, cts 0, dsr 0, dtr 1, rts 0, baud 115200, buffer 4k.\n";
+  ar_log_debug() << "\tFoB works in winXP: parity 0, cts 0, dsr 0, dtr 1, rts 0, baud 115200, buffer 4k.\n";
 #endif
 
   return setReadTimeout( _readTimeoutTenths );
@@ -464,9 +469,9 @@ bool arRS232Port::ar_close() {
     return true;
   
   if (!flushInput())
-    cerr << "arRS232Port warning: flushInput() failed.\n";
+    ar_log_warning() << "arRS232Port: flushInput() failed.\n";
   if (!flushOutput())
-    cerr << "arRS232Port warning: flushOutput() failed.\n";
+    ar_log_warning() << "arRS232Port: flushOutput() failed.\n";
   _isOpen = false;
 
 #ifdef AR_USE_WIN_32
@@ -483,15 +488,15 @@ bool arRS232Port::ar_close() {
   return true;
 }
 
-int arRS232Port::ar_read(char* buf, const unsigned int numBytes, const unsigned int maxBytes) {
+int arRS232Port::ar_read(char* buf, const unsigned numBytes, const unsigned maxBytes) {
   if (!_isOpen) {
-    cerr << "arRS232Port error: can't read from a closed port.\n";
+    ar_log_warning() << "arRS232Port can't read from a closed port.\n";
     return -1;
   }
 #ifdef AR_USE_WIN_32
   DWORD bytesThisTime = 0; // unsigned
-  unsigned int numBytesAvailable = getNumberBytes();
-  unsigned int numToRead = numBytes;
+  unsigned numBytesAvailable = getNumberBytes();
+  unsigned numToRead = numBytes;
   if ((numBytesAvailable <= maxBytes) && (numBytesAvailable > numBytes))
     numToRead = numBytesAvailable; 
 
@@ -516,7 +521,7 @@ int arRS232Port::ar_read(char* buf, const unsigned int numBytes, const unsigned 
   struct timeval tStruct;
   struct timezone zStruct;
   if (gettimeofday(&tStruct, &zStruct)) {
-    cerr << "arRS232Port error: gettimeofday failed.\n";
+    ar_log_warning() << "arRS232Port: gettimeofday failed.\n";
     return -1;
   }
 
@@ -535,19 +540,19 @@ int arRS232Port::ar_read(char* buf, const unsigned int numBytes, const unsigned 
       numToRead = numBytesAvailable; 
     unsigned long timeElapsedTenths = 0;
 
-    while (static_cast<unsigned int>(numRead) < numToRead &&
+    while (static_cast<unsigned>(numRead) < numToRead &&
            timeElapsedTenths < _readTimeoutTenths ) {
       const int stat = read( _fileDescriptor, buf+numRead, numToRead-numRead );
       // Note: if we decide we want to get at actual error codes, we'll need to
       // figure out how to do it in a Win32-compatible way.
       if (stat < 0) {
-        cerr << "arRS232Port error: read() failed.\n";
+        ar_log_warning() << "arRS232Port: read() failed.\n";
         return -1;
       }
       numRead += stat;
-      if (static_cast<unsigned int>(numRead) < numToRead) {
+      if (static_cast<unsigned>(numRead) < numToRead) {
         if (gettimeofday( &tStruct, &zStruct )!=0) {
-          cerr << "arRS232Port error: gettimeofday failed during read.\n";
+          ar_log_warning() << "arRS232Port: gettimeofday failed during read.\n";
           return -1;
         }      
         timeElapsedTenths = static_cast<unsigned long>( static_cast<unsigned long>(
@@ -576,24 +581,24 @@ int arRS232Port::ar_read(char* buf, const unsigned int numBytes, const unsigned 
       numToRead = numBytesAvailable; 
     numRead = read( _fileDescriptor, buf, numToRead );
     if (numRead < 0) {
-      cerr << "arRS232Port error: read() failed.\n";
+      ar_log_warning() << "arRS232Port: read() failed.\n";
       return -1;
     }
   }
   return numRead;
 #endif
 
-  cerr << "arRS232Port error: only Win32 and Linux implemented.\n";
+  ar_log_warning() << "arRS232Port: only Win32 and Linux implemented.\n";
   return -1;
 }
 
-int arRS232Port::readAll( char**bufAdd, unsigned int& currentBufferSize ) {
+int arRS232Port::readAll( char**bufAdd, unsigned& currentBufferSize ) {
   if (!_isOpen) {
-    cerr << "arRS232Port error: can't read from a closed port.\n";
+    ar_log_warning() << "arRS232Port: can't read from a closed port.\n";
     return -1;
   }
   if (!bufAdd) {
-    cerr << "arRS232Port error: NULL buffer address passed to readAll.\n";
+    ar_log_warning() << "arRS232Port: readAll got NULL buffer.\n";
     return false;
   }
   const unsigned numBytes = getNumberBytes();
@@ -608,7 +613,7 @@ int arRS232Port::readAll( char**bufAdd, unsigned int& currentBufferSize ) {
     // Not null-terminated!
     *bufAdd = new char[numBytes];
     if (!*bufAdd) {
-      cerr << "arRS232Port error: memory allocation failed in readAll().\n";
+      ar_log_warning() << "arRS232Port: readAll() out of memory.\n";
       return 0; 
     }
     currentBufferSize = numBytes;
@@ -616,9 +621,9 @@ int arRS232Port::readAll( char**bufAdd, unsigned int& currentBufferSize ) {
   return ar_read( *bufAdd, numBytes );
 }
 
-int arRS232Port::ar_write( const char* buf, const unsigned int numBytes ) {
+int arRS232Port::ar_write( const char* buf, const unsigned numBytes ) {
   if (!_isOpen) {
-    cerr << "arRS232Port error: can't write to a closed port.\n";
+    ar_log_warning() << "arRS232Port: can't write to a closed port.\n";
     return -1;
   }
 
@@ -635,11 +640,11 @@ int arRS232Port::ar_write( const char* buf, const unsigned int numBytes ) {
 #ifdef AR_USE_WIN_32
   DWORD numWrit = 0; // unsigned
   if (!WriteFile( _portHandle, buf, numBytes, &numWrit, NULL )) {
-    cerr << "arRS232Port error: WriteFile() failed.\n";
+    ar_log_warning() << "arRS232Port: WriteFile() failed.\n";
     return -1;
   }
   if (numWrit != numBytes)
-    cerr << "arRS232Port warning: only " << numWrit << " bytes written.\n";
+    ar_log_warning() << "arRS232Port: only " << numWrit << " bytes written.\n";
 
   return static_cast<int>(numWrit);
 #endif
@@ -647,14 +652,14 @@ int arRS232Port::ar_write( const char* buf, const unsigned int numBytes ) {
 #ifdef AR_USE_LINUX
   int numWrit = write( _fileDescriptor, buf, numBytes );
   if (numWrit < 0) {
-    cerr << "arRS232Port error: write() failed.\n";
+    ar_log_warning() << "arRS232Port: write() failed.\n";
     return -1;
-  } else if (static_cast<unsigned int>(numWrit) != numBytes)
-    cerr << "arRS232Port warning: only " << numWrit << " bytes written.\n";
+  } else if (static_cast<unsigned>(numWrit) != numBytes)
+    ar_log_warning() << "arRS232Port: only " << numWrit << " bytes written.\n";
   return numWrit;
 #endif
 
-  cerr << "arRS232Port error: implemented only for Win32 and Linux.\n";
+  nyi();
   return -1;
 }
 
@@ -664,12 +669,12 @@ int arRS232Port::ar_write( const char* buf ) {
 
 bool arRS232Port::flushInput() {
 #if !defined( AR_USE_WIN_32 ) && !defined( AR_USE_LINUX )
-  cerr << "arRS232Port error: implemented only for Win32 and Linux.\n";
+  nyi();
   return false;
 #endif 
 
   if (!_isOpen) {
-    cerr << "arRS232Port error: port closed.\n";
+    ar_log_warning() << "arRS232Port: can't flush a closed port.\n";
     return false;
   }
 #ifdef AR_USE_WIN_32
@@ -682,12 +687,12 @@ bool arRS232Port::flushInput() {
 
 bool arRS232Port::flushOutput() {
 #if !defined( AR_USE_WIN_32 ) && !defined( AR_USE_LINUX )
-  cerr << "arRS232Port error: implemented only for Win32 and Linux.\n";
+  nyi();
   return false;
 #endif 
 
   if (!_isOpen) {
-    cerr << "arRS232Port error: port closed.\n";
+    ar_log_warning() << "arRS232Port: can't flush a closed port.\n";
     return false;
   }
 #ifdef AR_USE_WIN_32
@@ -698,13 +703,13 @@ bool arRS232Port::flushOutput() {
 #endif
 }
 
-bool arRS232Port::setReadTimeout( const unsigned int timeoutTenths ) {
+bool arRS232Port::setReadTimeout( const unsigned timeoutTenths ) {
 #if !defined( AR_USE_WIN_32 ) && !defined( AR_USE_LINUX )
-  cerr << "arRS232Port error: implemented only for Win32 and Linux.\n";
+  nyi();
   return false;
 #endif 
   if (!_isOpen) {
-    cerr << "arRS232Port error: port closed\n";
+    ar_log_warning() << "arRS232Port: port closed\n";
     return false;
   }
   bool ok = true;
@@ -718,36 +723,36 @@ bool arRS232Port::setReadTimeout( const unsigned int timeoutTenths ) {
   return ok;
 }
 
-bool arRS232Port::setReadBufferSize( const unsigned int numBytes ) {
-#ifndef AR_USE_WIN_32
-  (void)numBytes;
-  return true;
-#else
+bool arRS232Port::setReadBufferSize( const unsigned numBytes ) {
+#ifdef AR_USE_WIN_32
   if (!_isOpen) {
-    cerr << "arRS232Port error: port closed\n";
+    ar_log_warning() << "arRS232Port: port closed\n";
     return false;
   }
   COMMPROP comProp;
   if (GetCommProperties( _portHandle, &comProp ) != TRUE) {
-    cerr << "arRS232Port error: failed to get com-port properties in setReadBufferSize().\n";
+    ar_log_warning() << "arRS232Port: failed to get com-port properties in setReadBufferSize().\n";
     return false;
   }
   return SetupComm( _portHandle, static_cast<DWORD>(numBytes), comProp.dwCurrentTxQueue );
+#else
+  (void)numBytes; // avoid compiler warning
+  return true;
 #endif
 }
 
-unsigned int arRS232Port::getNumberBytes() {
+unsigned arRS232Port::getNumberBytes() {
 #ifdef AR_USE_WIN_32
   DWORD errorFlags = 0;
   COMSTAT comState;
   ClearCommError( _portHandle, &errorFlags, &comState ) ;
-  return static_cast<unsigned int>(comState.cbInQue);
+  return static_cast<unsigned>(comState.cbInQue);
 #endif
 #ifdef AR_USE_LINUX
   int numBytes = 0;
   ioctl( _fileDescriptor, FIONREAD, &numBytes );
-  return static_cast<unsigned int>( numBytes );
+  return static_cast<unsigned>( numBytes );
 #endif
-  cerr << "arRS232Port error: implemented only for Win32 and Linux.\n";
+  nyi();
   return 0;
 }

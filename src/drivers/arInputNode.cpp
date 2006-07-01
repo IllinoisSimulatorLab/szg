@@ -258,7 +258,7 @@ int arInputNode::addFilter( arIOFilter* theFilter, bool iOwnIt ){
   _iOwnFilters.push_back( iOwnIt );
   _filterStates.push_back(
     _filterStates.empty() ? _inputState : _filterStates.back());
-  ar_log_remark() << "arInputNode installed event filter with new ID " << newID << ".\n";
+  ar_log_debug() << "arInputNode: new filter with ID " << newID << ar_endl;
   return newID;
 }
 
@@ -355,28 +355,25 @@ void arInputNode::_unlock() {
 }
 
 void arInputNode::_setSignature(int numButtons, int numAxes, int numMatrices){
-  // delete old storage if necessary!
   if (numButtons < 0) {
-    ar_log_warning() << "arInputNode overriding negative button signature.\n";
     numButtons = 0;
+    ar_log_warning() << "arInputNode overriding negative button signature, to 0.\n";
   }
   if (numAxes < 0) {
-    ar_log_warning() << "arInputNode overriding negative axis signature.\n";
     numAxes = 0;
+    ar_log_warning() << "arInputNode overriding negative axis signature, to 0.\n";
   }
   if (numMatrices < 0) {
-    ar_log_warning() << "arInputNode overriding negative matrix signature.\n";
     numMatrices = 0;
+    ar_log_warning() << "arInputNode overriding negative matrix signature, to 0.\n";
   }
-  _inputState.setSignature( (unsigned int) numButtons,
-                            (unsigned int) numAxes,
-                            (unsigned int) numMatrices );
+  // todo: delete old storage if necessary!
+  _inputState.setSignature( unsigned(numButtons), unsigned(numAxes), unsigned(numMatrices) );
 }
 
 
 void arInputNode::_remapData( unsigned int channelNumber, arStructuredData* data ) {
-  // first, we massage the data a little bit... this will become MUCH
-  // more elaborate over time
+  // massage the data... this will become MUCH more elaborate
   const int sig[3] = { _inputState.getNumberButtons(),
                        _inputState.getNumberAxes(),
                        _inputState.getNumberMatrices() };
@@ -388,19 +385,19 @@ void arInputNode::_remapData( unsigned int channelNumber, arStructuredData* data
   // don't get collisions.
   unsigned int i, buttonOffset=0, axisOffset=0, matrixOffset=0;
   if (!_inputState.getButtonOffset( channelNumber, buttonOffset ))
-    ar_log_warning() << "arInputNode failed to get button offset for device"
+    ar_log_warning() << "arInputNode got no button offset for device"
                      << channelNumber << " from arInputState.\n";
   if (!_inputState.getAxisOffset( channelNumber, axisOffset ))
-    ar_log_warning() << "arInputNode failed to get axis offset for device"
+    ar_log_warning() << "arInputNode got no axis offset for device"
                      << channelNumber << " from arInputState.\n";
   if (!_inputState.getMatrixOffset( channelNumber, matrixOffset ))
-    ar_log_warning() << "arInputNode failed to get matrix offset for device"
+    ar_log_warning() << "arInputNode got no matrix offset for device"
                      << channelNumber << " from arInputState.\n";
   
   const int numEvents = data->getDataDimension(_inp._TYPES);
   for (i=0; (int)i<numEvents; ++i) {
-    int eventIndex = ((int*)data->getDataPtr(_inp._INDICES,AR_INT))[i];
-    int eventType = ((int*)data->getDataPtr(_inp._TYPES,AR_INT))[i];
+    const int eventIndex = ((int*)data->getDataPtr(_inp._INDICES,AR_INT))[i];
+    const int eventType = ((int*)data->getDataPtr(_inp._TYPES,AR_INT))[i];
     if (eventType==AR_EVENT_BUTTON){
       ((int*)data->getDataPtr(_inp._INDICES,AR_INT))[i] = eventIndex + buttonOffset;
     }
