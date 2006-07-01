@@ -2243,22 +2243,24 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
 
   // Set window-wide attributes based on the display name, like
   // stereo, window size, window position, wildcat framelock.
+
+  // copypaste with graphics/arGraphicsClient.cpp, start
   const string whichDisplay = _SZGClient.getMode( "graphics" );
   const string displayName = _SZGClient.getAttribute( whichDisplay, "name" );
 
   if (displayName == "NULL") {
     ar_log_warning() << _label << ": display " << whichDisplay << "/name undefined, using default.\n";
   } else {
-    ar_log_remark() << _label << " using display " << whichDisplay <<
-      ":" << displayName << ar_endl;
+    ar_log_remark() << _label << " displaying on " << whichDisplay <<
+      " : " << displayName << ".\n";
   }
 
   _guiXMLParser->setConfig( _SZGClient.getGlobalAttribute( displayName ) );
-
   if( _guiXMLParser->parse() < 0 ) {
     // already complained
     return false;
   }
+  // copypaste with graphics/arGraphicsClient.cpp, end
 
   if( getMaster() ) {
     _head.configure( _SZGClient );

@@ -241,21 +241,23 @@ bool arGraphicsClient::configure(arSZGClient* client){
     _guiParser = new arGUIXMLParser(client);
 
   const string screenName = client->getMode( "graphics" );
+
+  // copypaste with framework/arMasterSlaveFramework.cpp, start
   const string whichDisplay = "SZG_DISPLAY" + screenName.substr( screenName.length() - 1, 1 );
   const string displayName = client->getAttribute( whichDisplay, "name" );
 
   if (displayName == "NULL") {
     ar_log_warning() << "display " << whichDisplay << "/name undefined, using default.\n";
   } else {
-    ar_log_remark() << "using display " << whichDisplay << " : "
-                    << displayName << ar_endl;
+    ar_log_remark() << "displaying on " << whichDisplay << " : "
+                    << displayName << ".\n";
   }
 
   _guiParser->setConfig( client->getGlobalAttribute(displayName) );
-
   if (_guiParser->parse() < 0){
     ar_log_remark() << "szgrender remark: failed to parse XML configuration.\n";
   }
+  // copypaste with framework/arMasterSlaveFramework.cpp, end
 
   setTexturePath(client->getAttribute("SZG_RENDER", "texture_path"));
   // where to look for text textures
