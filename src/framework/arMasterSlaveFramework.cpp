@@ -2098,8 +2098,7 @@ bool arMasterSlaveFramework::_startObjects( void ){
   }
 
   // Both master and slave need a connection thread
-  if( !_connectionThread.beginThread( ar_masterSlaveFrameworkConnectionTask,
-                                      this ) ) {
+  if(!_connectionThread.beginThread(ar_masterSlaveFrameworkConnectionTask, this)) {
     ar_log_warning() << _label << " failed to start connection thread.\n";
     return false;
   }

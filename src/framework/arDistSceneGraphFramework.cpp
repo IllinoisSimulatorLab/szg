@@ -766,8 +766,7 @@ bool arDistSceneGraphFramework::_startStandaloneMode(){
 bool arDistSceneGraphFramework::_initPhleetMode(){
   _loadParameters();
   
-  if (!_messageThread.beginThread(ar_distSceneGraphFrameworkMessageTask,
-                                  this)) {
+  if (!_messageThread.beginThread(ar_distSceneGraphFrameworkMessageTask, this)) {
     ar_log_error() << _label << " error: failed to start message thread.\n";
     if (!_SZGClient.sendInitResponse(false)){
       cerr << _label << " error: maybe szgserver died.\n";
