@@ -100,12 +100,12 @@ int main(int argc, char** argv){
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 
-  const int slotNumber = (argc > 1) ? atoi(argv[1]) : 0;
-  ar_log_remark() << "inputsimulator using slot " << slotNumber << ".\n";
+  const unsigned slot = (argc > 1) ? atoi(argv[1]) : 0;
+  ar_log_remark() << "inputsimulator using slot " << slot << ".\n";
   const bool useNetInput = (argc > 2) && !strcmp(argv[2], "-netinput");
   arNetInputSink netInputSink;
-  if (!netInputSink.setSlot(slotNumber)) {
-    ar_log_warning() << "inputsimulator failed to set slot " << slotNumber << ".\n";
+  if (!netInputSink.setSlot(slot)) {
+    ar_log_warning() << "inputsimulator failed to set slot " << slot << ".\n";
     return 1;
   }
 
@@ -142,13 +142,12 @@ int main(int argc, char** argv){
   simulator.registerInputNode(inputNode);
   if (useNetInput) {
     arNetInputSource* netSource = new arNetInputSource;
-    if (!netSource->setSlot(slotNumber+1)) {
-      ar_log_error() << "inputsimulator failed to set slot " << slotNumber+1 << ".\n";
+    if (!netSource->setSlot(slot+1)) {
+      ar_log_error() << "inputsimulator failed to set slot " << slot+1 << ".\n";
       return 1;
     }
     inputNode->addInputSource(netSource,true);
-    ar_log_remark() << "inputsimulator using net input, slot " 
-         << slotNumber+1 << ".\n";
+    ar_log_remark() << "inputsimulator using net input, slot " << slot+1 << ".\n";
     // Memory leak.  inputNode won't free its input sources, I think.
   }
   inputNode->addInputSink(&netInputSink,false);
