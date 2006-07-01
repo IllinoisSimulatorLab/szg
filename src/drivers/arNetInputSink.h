@@ -19,18 +19,15 @@ class SZG_CALL arNetInputSink: public arInputSink{
   arNetInputSink();
   ~arNetInputSink() {}
 
-  bool setSlot(int slot);
-
+  bool setSlot(unsigned slot);
   bool init(arSZGClient&);
   bool start();
-
-  virtual void receiveData(int,arStructuredData*);
-
   void setInfo(const string& info);
+  virtual void receiveData(int,arStructuredData*);
  private:
   arSZGClient* _client;
   arDataServer _dataServer;
-  int _slot;
+  unsigned _slot;
   string _interface;
   int _port;
   arInputLanguage _inp;

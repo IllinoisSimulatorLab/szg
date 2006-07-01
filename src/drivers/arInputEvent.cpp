@@ -9,7 +9,7 @@
 arInputEvent::arInputEvent() :
   _type( AR_EVENT_GARBAGE ),
   _index( 0 ),
-  _matrix( 0 ) {
+  _matrix( NULL ) {
 }
 
 arInputEvent::arInputEvent( const arInputEventType type, const unsigned int index ) :
@@ -17,13 +17,13 @@ arInputEvent::arInputEvent( const arInputEventType type, const unsigned int inde
   _index( index ),
   _button( 0 ),
   _axis( 0. ),
-  _matrix( 0 ) {
+  _matrix( NULL ) {
     if (_type == AR_EVENT_MATRIX)
       _matrix = new arMatrix4( ar_identityMatrix() );
 }
 
 arInputEvent::~arInputEvent() {
-  if (_matrix != 0)
+  if (_matrix)
     delete _matrix;
 }
 
@@ -32,8 +32,8 @@ arInputEvent::arInputEvent( const arInputEvent& e ) :
   _index( e._index ),
   _button( e._button ),
   _axis( e._axis ),
-  _matrix( 0 ) {
-    if ( e._matrix != 0 )
+  _matrix( NULL ) {
+    if ( e._matrix )
       _matrix = new arMatrix4( e._matrix->v );
 }
 
@@ -48,23 +48,23 @@ arInputEvent& arInputEvent::operator=( const arInputEvent& e ) {
   if (_matrix) {
     delete _matrix;
   }
-  _matrix = (e._matrix == 0)?(0):(new arMatrix4( e._matrix->v ));
+  _matrix = e._matrix ? (new arMatrix4( e._matrix->v )) : NULL;
   return *this;
 }
 
 int arInputEvent::getButton() const {
   if (_type != AR_EVENT_BUTTON)
-    cerr << "arInputEvent warning: getting button value from non-button event.\n";
+    ar_log_warning() << "arInputEvent getting button value from non-button event.\n";
   return _button;
 }
 float arInputEvent::getAxis() const {
   if (_type != AR_EVENT_AXIS)
-    cerr << "arInputEvent warning: getting axis value from non-axis event.\n";
+    ar_log_warning() << "arInputEvent getting axis value from non-axis event.\n";
   return _axis;
 }
 arMatrix4 arInputEvent::getMatrix() const {
   if (_type != AR_EVENT_MATRIX)
-    cerr << "arInputEvent warning: getting matrix value from non-matrix event.\n";
+    ar_log_warning() << "arInputEvent getting matrix value from non-matrix event.\n";
   return *_matrix;
 }
 
@@ -85,28 +85,28 @@ bool arInputEvent::setAxis( const float a ) {
 bool arInputEvent::setMatrix( const float* v ) {
   if (_type != AR_EVENT_MATRIX)
     return false;
-  if (_matrix == 0)
-    _matrix = new arMatrix4( v );
-  else
+  if (_matrix)
     memcpy( _matrix->v, v, 16*sizeof(float) );
+  else
+    _matrix = new arMatrix4( v );
   return true;
 }
 
 bool arInputEvent::setMatrix( const arMatrix4& m ) {
   if (_type != AR_EVENT_MATRIX)
     return false;
-  if (_matrix == 0)
-    _matrix = new arMatrix4( m.v );
-  else
+  if (_matrix)
     memcpy( _matrix->v, m.v, 16*sizeof(float) );
+  else
+    _matrix = new arMatrix4( m.v );
   return true;
 }
 
 void arInputEvent::trash() {
   _type = AR_EVENT_GARBAGE;
-  if (_matrix != 0) {
+  if (_matrix) {
     delete _matrix;
-    _matrix = 0;
+    _matrix = NULL;
   }
 }
 
@@ -120,6 +120,9 @@ void arInputEvent::zero() {
       break;
     case AR_EVENT_MATRIX:
       setMatrix(ar_identityMatrix());
+      break;
+    default:
+      ar_log_warning() << "arInputEvent can't zero while trashed.\n";
       break;
   }
 }
