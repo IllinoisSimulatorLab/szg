@@ -70,10 +70,6 @@ void arInputState::_unlock() {
   ar_mutex_unlock( &_accessLock );
 }
 
-int arInputState::_getButtonNoLock( const unsigned int buttonNumber ) const {
-  return buttonNumber >= _buttons.size() ? 0 : _buttons[buttonNumber];
-}
-
 int arInputState::getButton( const unsigned int buttonNumber ){
   _lock();
     const int result = _getButtonNoLock(buttonNumber);
@@ -81,8 +77,8 @@ int arInputState::getButton( const unsigned int buttonNumber ){
   return result;
 }
 
-float arInputState::_getAxisNoLock( const unsigned int axisNumber ) const {
-  return axisNumber >= _axes.size() ? 0. : _axes[axisNumber];
+int arInputState::_getButtonNoLock( const unsigned int buttonNumber ) const {
+  return buttonNumber >= _buttons.size() ? 0 : _buttons[buttonNumber];
 }
 
 float arInputState::getAxis( const unsigned int axisNumber ){
@@ -92,14 +88,25 @@ float arInputState::getAxis( const unsigned int axisNumber ){
   return result;
 }
 
-arMatrix4 arInputState::_getMatrixNoLock( const unsigned int matrixNumber ) const {
-  return matrixNumber >= _matrices.size() ?
-    ar_identityMatrix() : _matrices[matrixNumber];
+float arInputState::_getAxisNoLock( const unsigned int axisNumber ) const {
+  return axisNumber >= _axes.size() ? 0. : _axes[axisNumber];
 }
 
 arMatrix4 arInputState::getMatrix( const unsigned int matrixNumber ){
   _lock();
     const arMatrix4 result = _getMatrixNoLock(matrixNumber);
+  _unlock();
+  return result;
+}
+
+arMatrix4 arInputState::_getMatrixNoLock( const unsigned int matrixNumber ) const {
+  return matrixNumber >= _matrices.size() ?
+    ar_identityMatrix() : _matrices[matrixNumber];
+}
+
+bool arInputState::getOnButton( const unsigned int buttonNumber ){
+  _lock();
+    const bool result = _getOnButtonNoLock(buttonNumber);
   _unlock();
   return result;
 }
@@ -110,9 +117,9 @@ bool arInputState::_getOnButtonNoLock( const unsigned int buttonNumber ) const {
   return _buttons[buttonNumber] && !_lastButtons[buttonNumber];
 }
 
-bool arInputState::getOnButton( const unsigned int buttonNumber ){
+bool arInputState::getOffButton( const unsigned int buttonNumber ){
   _lock();
-    const bool result = _getOnButtonNoLock(buttonNumber);
+    const bool result = _getOffButtonNoLock(buttonNumber);
   _unlock();
   return result;
 }
@@ -123,13 +130,14 @@ bool arInputState::_getOffButtonNoLock( const unsigned int buttonNumber ) const 
   return _lastButtons[buttonNumber] && !_buttons[buttonNumber];
 }
 
-bool arInputState::getOffButton( const unsigned int buttonNumber ){
+bool arInputState::setButton( const unsigned int buttonNumber, 
+                              const int value ) {
   _lock();
-    const bool result = _getOffButtonNoLock(buttonNumber);
+    const bool result = _setButtonNoLock(buttonNumber, value);
   _unlock();
   return result;
 }
-  
+
 bool arInputState::_setButtonNoLock( const unsigned int buttonNumber, 
                                      const int value ) {
   if (buttonNumber >= _buttons.size()) {
@@ -143,10 +151,10 @@ bool arInputState::_setButtonNoLock( const unsigned int buttonNumber,
   return true;
 }
 
-bool arInputState::setButton( const unsigned int buttonNumber, 
-                              const int value ) {
+bool arInputState::setAxis( const unsigned int axisNumber, 
+                            const float value ) {
   _lock();
-    const bool result = _setButtonNoLock(buttonNumber, value);
+    const bool result = _setAxisNoLock(axisNumber, value);
   _unlock();
   return result;
 }
@@ -161,10 +169,10 @@ bool arInputState::_setAxisNoLock( const unsigned int axisNumber,
   return true;
 }
 
-bool arInputState::setAxis( const unsigned int axisNumber, 
-                            const float value ) {
+bool arInputState::setMatrix( const unsigned int matrixNumber,
+			      const arMatrix4& value){
   _lock();
-    const bool result = _setAxisNoLock(axisNumber, value);
+    const bool result = _setMatrixNoLock(matrixNumber, value);
   _unlock();
   return result;
 }
@@ -178,14 +186,6 @@ bool arInputState::_setMatrixNoLock( const unsigned int matrixNumber,
   }
   _matrices[matrixNumber] = value;
   return true;
-}
-
-bool arInputState::setMatrix( const unsigned int matrixNumber,
-			      const arMatrix4& value){
-  _lock();
-    const bool result = _setMatrixNoLock(matrixNumber, value);
-  _unlock();
-  return result;
 }
 
 bool arInputState::update( const arInputEvent& event ) {
@@ -205,15 +205,14 @@ bool arInputState::update( const arInputEvent& event ) {
 }
 
 // Mac OS X segfaults when constructors for global vars print to cout.
-// The arEffector constructor (if including
-// info about the signature) actually prints something via this statement.
-// So printing the warning messages is optional.
+// The arEffector constructor does so, if including
+// info about the signature.  So printing warnings is optional.
 void arInputState::setSignature( const unsigned int numButtons,
 				 const unsigned int numAxes,
 				 const unsigned int numMatrices,
                                  bool printWarnings){
   _lock();
-  _setSignatureNoLock(numButtons, numAxes, numMatrices, printWarnings);
+    _setSignatureNoLock(numButtons, numAxes, numMatrices, printWarnings);
   _unlock();
 }
 

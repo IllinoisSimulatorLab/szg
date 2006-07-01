@@ -9,21 +9,18 @@
 arIOFilter::arIOFilter() :
   _id(-1),
   _inputState(0) {
-  // does nothing so far
 }
 
 arIOFilter::~arIOFilter(){
-  // does nothing so far
 }
 
 bool arIOFilter::configure(arSZGClient*){
-  // does nothing so far
   return true;
 }
 
 bool arIOFilter::filter( arInputEventQueue* inputQueue, arInputState* inputState ) {
-  if ((!inputQueue)||(!inputState)) {
-    cerr << "arIOFilter error: null queue or state pointer.\n";
+  if (!inputQueue || !inputState) {
+    ar_log_warning() << "arIOFilter: NULL queue or state.\n";
     return false;
   }
   _outputQueue.clear();
@@ -32,11 +29,11 @@ bool arIOFilter::filter( arInputEventQueue* inputQueue, arInputState* inputState
   while (!inputQueue->empty()) {
     arInputEvent event = inputQueue->popNextEvent();
     if (event) {
-     const arInputEventType eventType = event.getType();
-      const unsigned int eventIndex = event.getIndex();
-       _tempQueue.clear();
-//      inputState->update( event );
-      ok = _processEvent( event );
+      const arInputEventType eventType = event.getType();
+      const unsigned eventIndex = event.getIndex();
+      _tempQueue.clear();
+//    inputState->update( event );
+      ok = _processEvent( event ); // may modify "event"
       if (event) {
         _outputQueue.appendEvent( event );
         inputState->update( event ); // value may have changed
@@ -60,7 +57,7 @@ bool arIOFilter::filter( arInputEventQueue* inputQueue, arInputState* inputState
 
 int arIOFilter::getButton( const unsigned int index ) const {
   if (!_inputState) {
-    cerr << "arIOFilter error: null inputState pointer.\n";
+    ar_log_warning() << "arIOFilter: NULL _inputState.\n";
     return 0;
   }
   return _inputState->getButton( index );
@@ -68,7 +65,7 @@ int arIOFilter::getButton( const unsigned int index ) const {
 
 bool arIOFilter::getOnButton( const unsigned int index ) {
   if (!_inputState) {
-    cerr << "arIOFilter error: null inputState pointer.\n";
+    ar_log_warning() << "arIOFilter: NULL _inputState.\n";
     return 0;
   }
   return _inputState->getOnButton( index );
@@ -76,7 +73,7 @@ bool arIOFilter::getOnButton( const unsigned int index ) {
 
 bool arIOFilter::getOffButton( const unsigned int index ) {
   if (!_inputState) {
-    cerr << "arIOFilter error: null inputState pointer.\n";
+    ar_log_warning() << "arIOFilter: NULL _inputState.\n";
     return 0;
   }
   return _inputState->getOffButton( index );
@@ -84,7 +81,7 @@ bool arIOFilter::getOffButton( const unsigned int index ) {
 
 float arIOFilter::getAxis( const unsigned int index ) const {
   if (!_inputState) {
-    cerr << "arIOFilter error: null inputState pointer.\n";
+    ar_log_warning() << "arIOFilter: NULL _inputState.\n";
     return 0.;
   }
   return _inputState->getAxis( index );
@@ -92,7 +89,7 @@ float arIOFilter::getAxis( const unsigned int index ) const {
 
 arMatrix4 arIOFilter::getMatrix( const unsigned int index ) const {
   if (!_inputState) {
-    cerr << "arIOFilter error: null inputState pointer.\n";
+    ar_log_warning() << "arIOFilter: NULL _inputState.\n";
     return ar_identityMatrix();
   }
   return _inputState->getMatrix( index );
