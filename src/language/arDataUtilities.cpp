@@ -160,13 +160,16 @@ void arTimer::start( double dur ) {
   else if (_running) // calling start while running resets lap timer
     stop();
   _lastStart = ar_time();
-//  _runTime = 0.;
-//  _lapTime = 0;
   _duration = dur;
   _running = true;
 }
 
+double arTimer::totalTime() const {
+  return ar_difftime( ar_time(), _startTime );
+}
+
 double arTimer::elapsed() {
+  ar_log_warning() << "arTimer::elapsed() deprecated. Use arTimer::totalTime().\n";
   return totalTime();
 }
 
@@ -178,10 +181,6 @@ double arTimer::lapTime() {
 
 double arTimer::runningTime() {
   return _runTime + (_running ? lapTime() : 0);
-}
-
-double arTimer::totalTime() {
-  return ar_difftime( ar_time(), _startTime );
 }
 
 bool arTimer::done() {
@@ -203,7 +202,7 @@ void arTimer::reset() {
   _running = false;
 }
 
-bool arTimer::running() {
+bool arTimer::running() const {
   return _running;
 }
 

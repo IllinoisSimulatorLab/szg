@@ -34,15 +34,13 @@ class SZG_CALL arIntTriple{
   int third;
 };
 
-// cross-platform time-reporting structure, and appropriate headers
+// Timing.
 
 #ifdef AR_USE_WIN_32
 #include <sys/timeb.h>
 #else
 #include <sys/time.h>
 #endif
-
-// functions for messing with time conveniently
 
 // Internal representation of time.
 
@@ -66,21 +64,19 @@ class SZG_CALL arTimer {
     arTimer( double dur = 0. );
     virtual ~arTimer() {}
     void start( double dur = 0. );
-    bool running();
-    // total time since construction or start() 
-    // (deprecated, calls totalTime())
-    double elapsed();
+    bool running() const;
     // time since last restart() (or construction or start(), if none)
     double lapTime();
     // time running since construction or start()
     double runningTime();
-    // total time since construction or start()
-    double totalTime(); 
+    // time, running or not, since construction or start()
+    double totalTime() const;
+    double elapsed(); // deprecated: use totalTime()
     bool done();
     void stop();
     void reset();
     void setRuntime( double dur ) { _runTime = dur; }
-    double duration() { return _duration; }
+    double duration() const { return _duration; }
   private:
     bool _firstStart;
     ar_timeval _startTime;
@@ -91,7 +87,7 @@ class SZG_CALL arTimer {
     bool _running;
 };
 
-// utilities for manipulating the records
+// Manipulating records.
 
 // Configuration of a data stream.
 struct SZG_CALL arStreamConfig{
@@ -102,7 +98,17 @@ struct SZG_CALL arStreamConfig{
   bool refused; // If true, the other end rejected our connection attempt.
 };
 
-enum { AR_LITTLE_ENDIAN=0, AR_BIG_ENDIAN, AR_UNDEFINED_ENDIAN, AR_GARBAGE_ENDIAN };
+#if defined(AR_BIG_ENDIAN)
+// paranoia for Darwin
+#undef AR_BIG_ENDIAN
+#endif
+SZG_CALL enum {
+  AR_LITTLE_ENDIAN = 0,
+  AR_BIG_ENDIAN,
+  AR_UNDEFINED_ENDIAN,
+  AR_GARBAGE_ENDIAN
+};
+
 #if defined( AR_USE_LINUX )
   #define AR_ENDIAN_MODE AR_LITTLE_ENDIAN
 #elif defined( AR_USE_WIN_32 )
