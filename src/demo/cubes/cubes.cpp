@@ -232,14 +232,14 @@ void worldInit(arDistSceneGraphFramework& framework) {
     else
       sprintf(buffer, "WallTexture%i.ppm", rand()%4+1);
     const string whichTexture(buffer);
-calcpos:
+recalcpos:
     const float randX = -5. + (10.*(rand()%200))/200.0;
     const float randY = (10.*(rand()%200))/200.0;
     const float randZ = -5. + (10.*(rand()%200))/200.0;
     if (arVector3(randX,randY-5,randZ).magnitude() < 1.5) {
-      goto calcpos;
+      goto recalcpos;
     }
-    arMatrix4 cubeTransform = ar_translationMatrix(randX,randY,randZ);
+    const arMatrix4 cubeTransform(ar_translationMatrix(randX,randY,randZ));
     arCallbackInteractable cubeInteractor( dgTransform( objectParent, "light_switch", arMatrix4() ) );
     cubeInteractor.setMatrixCallback( matrixCallback );
     cubeInteractor.setMatrix( cubeTransform );
@@ -295,26 +295,23 @@ calcpos:
 
 int main(int argc, char** argv) {
   if (argc > 1) {
-    unsigned int i = 0;
-    while (i < argc) {
+    for (int i = 0; i < argc; ++i) {
       if (!strcmp(argv[i], "-static")) {
         // Don't change cubes' position.
         fJiggle = false;
       }
       if (!strcmp(argv[i], "-teapot")) {
-        // Try to load and display the teapot plugin
+        // Load and display the teapot plugin
         fTeapot = true;
       }
       if (!strcmp(argv[i], "-pyteapot")) {
-        // Try to load and display a python module plugin.
+        // Load and display a python module plugin.
         fPython = true;
       }
-      ++i;
     }
   }
     
   arDistSceneGraphFramework framework;
-
   ar_mutex_init(&databaseLock);
   
   // As a general rule, this should be done before the init() if
@@ -334,8 +331,7 @@ int main(int argc, char** argv) {
   framework.setClipPlanes( .2, 100. );
 //  framework.setEventCallback( inputEventCallback );
   framework.setEventQueueCallback( inputEventQueueCallback );
-  // the worldAlter thread is an application thread that we want the
-  // framework to halt
+  // Framework should halt the worldAlter thread.
   framework.useExternalThread();
 
   // set max interaction distance at 5 ft.
@@ -365,14 +361,10 @@ int main(int argc, char** argv) {
   arThread dummy(worldAlter, &framework);
 
   const arVector3 xyz(cube0Matrix * arVector3(0,0,0));
-  /*int idSound = */dsLoop("foo", framework.getNavNodeName(), "cubes.mp3", 1, 0.9, xyz);
+  (void)dsLoop("foo", framework.getNavNodeName(), "cubes.mp3", 1, 0.9, xyz);
 
   // Main loop.
   while (true) {
-    // Adjust attributes of the sound:  its loudness and position.
-    static float ramp = 0.;
-    ramp += .025;
-    //unused const float loudness = .42 + .4 * sin(ramp);
     // cube0Matrix is being updated by worldAlter().
     const arVector3 xyz(cube0Matrix * arVector3(0,5,0));
 
