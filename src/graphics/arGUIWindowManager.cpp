@@ -14,31 +14,39 @@
 
 // Default callbacks for window and keyboard events.
 
-void ar_windowManagerDefaultKeyboardFunction( arGUIKeyInfo* keyInfo){
-  if ( keyInfo->getState() == AR_KEY_DOWN ){
-    switch( keyInfo->getKey() ){
+void ar_windowManagerDefaultKeyboardFunction( arGUIKeyInfo* ki){
+  if (!ki)
+    return;
+  if ( ki->getState() == AR_KEY_DOWN ){
+    switch( ki->getKey() ){
     case AR_VK_ESC:
-      if (keyInfo->getWindowManager()){
-        keyInfo->getWindowManager()->deleteWindow(keyInfo->getWindowID());
+      if (ki->getWindowManager()){
+        ki->getWindowManager()->deleteWindow(ki->getWindowID());
       }
       break;
+  default:
+    // avoid compiler warning
+    break;
     }
   }
 }
 
 void ar_windowManagerDefaultWindowFunction( arGUIWindowInfo* wi ){
+  if (!wi)
+    return;
   arGUIWindowManager* wm = wi->getWindowManager();
+  if (!wm)
+    return;
   switch( wi->getState() ){
   case AR_WINDOW_RESIZE:
-    if ( wm ){
-      wm->setWindowViewport(
-        wi->getWindowID(), 0, 0, wi->getSizeX(), wi->getSizeY() );
-    }
+    wm->setWindowViewport(
+      wi->getWindowID(), 0, 0, wi->getSizeX(), wi->getSizeY() );
     break;
   case AR_WINDOW_CLOSE:
-    if ( wm ){
-      wm->deleteWindow(wi->getWindowID());
-    }
+    wm->deleteWindow(wi->getWindowID());
+    break;
+  default:
+    // avoid compiler warning
     break;
   }
 }
@@ -67,7 +75,6 @@ arGUIWindowManager::arGUIWindowManager( void (*windowCB)( arGUIWindowInfo* ) ,
 arGUIWindowManager::~arGUIWindowManager( void )
 {
   WindowIterator witr;
-
   for( witr = _windows.begin(); witr != _windows.end(); witr++ ) {
     delete witr->second;
   }
@@ -97,38 +104,36 @@ void arGUIWindowManager::_windowHandler( arGUIWindowInfo* windowInfo )
 void arGUIWindowManager::registerWindowCallback( void (*windowCallback) ( arGUIWindowInfo* ) )
 {
   if( _windowCallback ) {
-    // print warning that previous callback is being overwritten?
+    ar_log_debug() << "arGUIWindowManager installing new window callback.\n";
   }
-
   _windowCallback = windowCallback;
 }
 
 void arGUIWindowManager::registerKeyboardCallback( void (*keyboardCallback) ( arGUIKeyInfo* ) )
 {
   if( _keyboardCallback ) {
-    // print warning that previous callback is being overwritten?
+    ar_log_debug() << "arGUIWindowManager installing new keyboard callback.\n";
   }
-
   _keyboardCallback = keyboardCallback;
 }
 
 void arGUIWindowManager::registerMouseCallback( void (*mouseCallback) ( arGUIMouseInfo* ) )
 {
   if( _mouseCallback ) {
-    // print warning that previous callback is being overwritten?
+    ar_log_debug() << "arGUIWindowManager installing new mouse callback.\n";
   }
-
   _mouseCallback = mouseCallback;
 }
 
 void arGUIWindowManager::registerWindowInitGLCallback( void (*windowInitGLCallback)( arGUIWindowInfo* ) )
 {
   if( _windowInitGLCallback ) {
-    // print warning that previous callback is being overwritten?
+    ar_log_debug() << "arGUIWindowManager installing new window init GL callback.\n";
   }
-
   _windowInitGLCallback = windowInitGLCallback;
 }
+
+// todo: merge these two.
 
 int arGUIWindowManager::startWithSwap( void )
 {

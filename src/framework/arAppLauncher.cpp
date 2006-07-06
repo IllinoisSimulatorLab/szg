@@ -37,15 +37,14 @@ arAppLauncher::~arAppLauncher(){
 
 bool arAppLauncher::setRenderProgram(const string& name){
   _renderProgram = name;
-  ar_log_remark() << _exeName << " remark: render program is " << _renderProgram << ".\n";
+  ar_log_debug() << _exeName << " remark: renderer is " << _renderProgram << ".\n";
   return true;
 }
 
 bool arAppLauncher::setAppType(const string& theType){
   if (theType != "distgraphics" && theType != "distapp"){
-    ar_log_error() << _exeName << " warning: unexpected type \""
-	           << theType 
-	           << "\".\n\tExpected \"distapp\" or \"distgraphics\".\n";
+    ar_log_error() << _exeName << " warning: unexpected type '"
+	           << theType << "', expected 'distapp' or 'distgraphics'.\n";
     return false;
   }
   _appType = theType;
@@ -58,10 +57,9 @@ bool arAppLauncher::setVircomp(){
   if (!_client) {
     return false;
   }
-  string virtualComputer = _client->getVirtualComputer();
-  ar_log_debug() << "arAppLauncher: arSZGClient says that the virtual computer is "
-                 << virtualComputer << ar_endl;
-  return setVircomp(virtualComputer);
+  const string vc = _client->getVirtualComputer();
+  ar_log_debug() << "arAppLauncher: arSZGClient's virtual computer is '" << vc << "'.\n";
+  return setVircomp(vc);
 }
 
 // Set the virtual computer (e.g. for killalldemo), without starting a whole app.
@@ -71,7 +69,7 @@ bool arAppLauncher::setVircomp(string vircomp){
     return false;
   }
   if (_client->getAttribute(vircomp,"SZG_CONF","virtual","") != "true"){
-    // user hasn't declared this is a valid virtual computer name.
+    // Not a virtual computer name.
     return false;
   }
   _vircomp = vircomp;
@@ -246,20 +244,18 @@ bool arAppLauncher::launchApp(){
     }
   }
 
-  // This is the list of things we will launch.
+  // Things to launch.
   list<arLaunchInfo> appsToLaunch;
-  // Some things might need to be killed first (like incompatible services)
+  // Things that need to be killed first (like incompatible services)
   list<int> serviceKillList;
 
-  // There are, indeed, different ways in which an application can be
-  // launched. For instance, the underlying "virtual computer" can require
-  // that ALL services be killed and then restarted... or it can require
-  // only those deemed INCOMPATIBLE be killed and then restarted.
-  if (!_onlyIncompatibleServices){
-    _relaunchAllServices(appsToLaunch, serviceKillList);
+  // The "virtual computer" decides if all services are restarted,
+  // or just incompatible ones.
+  if (_onlyIncompatibleServices){
+    _relaunchIncompatibleServices(appsToLaunch, serviceKillList);
   }
   else{
-    _relaunchIncompatibleServices(appsToLaunch, serviceKillList);
+    _relaunchAllServices(appsToLaunch, serviceKillList);
   }
 
   for (i=0; i<_numberPipes; i++){
@@ -588,14 +584,14 @@ void arAppLauncher::updateRenderers(const string& attribute,
 	               << _pipeComp[i] << "/" << _pipeScreen[i] << ".\n";
     }
     else{
-      // Try to go into the first window defined in the XML global
+      // Go into the first window defined in the XML global
       // parameter given by configName, and set the specified attribute.
       configName += "/szg_window/" + attribute + "/value";
       _client->getSetGlobalXML(configName, value);
 
     }
     if (getRenderProgram(i, host, program)) {
-      // Keep going if we hit any errors along the way.
+      // Keep going if errors occur.
       (void)_client->sendReload(host, program);
     }
   } 
@@ -725,31 +721,29 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch){
   for (iter = appsToLaunch->begin(); iter != appsToLaunch->end(); ++iter){
     const int szgdID = _client->getProcessID(iter->computer, "szgd");
     if (szgdID == -1){
-      ar_log_error() << _exeName << " warning: no szgd on node "
-	             << iter->computer << ".\n";
+      ar_log_warning() << _exeName << ": no szgd on host " << iter->computer << ".\n";
       continue;
     }
-    match = _client->sendMessage("exec", iter->process, iter->context, 
-                                 szgdID, true);
+    match = _client->sendMessage("exec", iter->process, iter->context, szgdID, true);
     if (match < 0){
-      ar_log_error() << _exeName << " error: failed to send exec message.\n";
+      ar_log_warning() << _exeName << " failed to send exec message.\n";
     }
     else{
       sentMessageMatches.push_back(match);
       initialMessageMatches.push_back(match);
     }
   }
-  // Relay the responses to the "dex" command or print them to the console.
+  // Return responses to the "dex" command, or print them to the console.
   const ar_timeval startTime = ar_time();
   while (!sentMessageMatches.empty()){
     const int elapsedMicroseconds = int(ar_difftime(ar_time(), startTime));
-    // We assume that, in a well-behaved Syzygy application, the initial
+    // We assume that, in a well-behaved Syzygy app, the initial
     // start messages will be received within 20 seconds. After that,
     // let the running application be killed.
+    // bug: SZG_DEX_TIMEOUT and SZG_DEX_LOCALTIMEOUT env vars should affect this hardcoded 20 seconds?
     if (elapsedMicroseconds > 20 * 1000000){
       if (!initialMessageMatches.empty()){
-        ar_log_error() << _exeName << " error: have not received initial component "
-	               << "messages after 20 second timeout. Application will fail.\n";
+        ar_log_error() << _exeName << " timed out before getting component messages.  Aborting.\n";
         return false;
       }
       else{
@@ -761,8 +755,7 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch){
 				   result.str(), true);
 	}
 	else{
-	  ar_log_remark() << _exeName << " remark: ignored launch messages "
-	                  << "after 20-second timeout.\n";
+	  ar_log_remark() << _exeName << " ignored launch messages after 20-second timeout.\n";
 	}
         return true;
       }
@@ -780,48 +773,43 @@ bool arAppLauncher::_execList(list<arLaunchInfo>* appsToLaunch){
     //      "partial responses". In this case, we probably have to cut
     //      things off somewhere, as a defense against programs that
     //      want to drag this out indefinitely.
-    int successCode = _client->getMessageResponse(sentMessageMatches,
-                                                  responseBody, 
-                                                  match,
-                                                  10000);
+    const int successCode = _client->getMessageResponse(
+      sentMessageMatches, responseBody, match, 10000);
+    // successCode==0 exactly when there is a time-out.  
     if (successCode != 0){
-      // successCode will be 0 exactly when there is a time-out.  
-      // we have received a response
+      // got a response
       if (_client->getLaunchingMessageID()){
         // We've been launched by "dex", via the message ID outlined.
-        // NOTE: this is a partial response. AND this does tend to indicate
-        // why partial responses are a good idea, the aggregation that occurs
-        // here.
+        // This is a partial response. AND this pile of code indicates
+        // why partial responses are a good idea.
         _client->messageResponse(_client->getLaunchingMessageID(),
                                  responseBody, true);
       }
       else{
-        // we haven't been launched by "dex"
+        // not launched by "dex"
         ar_log_remark() << responseBody << "\n";
       }
       if (successCode > 0){
-        // We got the final response for this message. NOTE: remember that
-        // some messages may be CONTINUATIONS, and hence not the final ones.
+        // Got the final response for this message.
         sentMessageMatches.remove(match);
         initialMessageMatches.remove(match);
       }
       else if (successCode == -1){
-        // This is a message continuation.
+        // Got a continuation of this message.
 	initialMessageMatches.remove(match);
       }
       else{
-	ar_log_error() << _exeName << " error: got an invalid success code.\n";
+	ar_log_warning() << _exeName << " got an invalid success code.\n";
       }
     }
   }
   return true;
 }
 
-// Since the below kills via ID, it is much better suited to killing the
-// graphics programs.
+// Since this kills via ID, it is better suited to killing the graphics programs.
 void arAppLauncher::_blockingKillByID(list<int>* IDList){
 if (!_client){
-    ar_log_warning() << _exeName << " warning: no arSZGClient.\n";
+    ar_log_warning() << _exeName << ": no arSZGClient.\n";
     return;
   }
 
@@ -967,21 +955,16 @@ void arAppLauncher::_relaunchIncompatibleServices(
   for (list<arLaunchInfo>::iterator iter = _serviceList.begin();
        iter != _serviceList.end();
        ++iter){
-    // Here is the procedure:
-    //   1. See if there is a component offering the well-known service.
-    //      a. If so, check to see whether it is running on the right 
-    //         computer and has the right "info" tag.
-    //        i. If so, do nothing.
-    //        ii. If not, kill and restart.
-    //      b. If not, start.
     const int serviceID = _client->getServiceComponentID(iter->tradingTag);
     if (serviceID == -1){
-      ar_log_remark() << _exeName << " remark: restarting service "
+      // No component is offering this service.
+      ar_log_remark() << _exeName << " restarting service "
 	              << iter->tradingTag << ".\n";
       appsToLaunch.push_back(*iter);
     }
     else{
-      // Is this running on the right computer, with the right info tag?
+      // Found the service.  But is it
+      // running on the right computer, with the right info tag?
       const arSlashString processLocation(_client->getProcessLabel(serviceID));
       if (processLocation.size() == 2){
         // The process location must, in fact, be computer/name.
@@ -998,7 +981,7 @@ void arAppLauncher::_relaunchIncompatibleServices(
 	  // seems to be in the right place and of the right type.
           if (info != iter->info){
             // Kill.
-	    ar_log_remark() << _exeName << " remark: relaunching service "
+	    ar_log_remark() << _exeName << " remark: restarting service "
 		            << iter->tradingTag
 		            << ", because of invalid info " << iter->info << ".\n";
             serviceKillList.push_back(serviceID);

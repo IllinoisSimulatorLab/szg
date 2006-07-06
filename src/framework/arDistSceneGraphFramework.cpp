@@ -19,13 +19,11 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
   while (true) {
     int messageID = f->_SZGClient.receiveMessage(&messageType, &messageBody);
     if (!messageID){
-      // We have somehow been disconnected from the szgserver. We should
-      // now quit. NOTE: we cannot kill the stuff elsewhere since we are
+      // We have been disconnected from the szgserver.
+      // Quit. We cannot kill the stuff elsewhere since we are
       // disconnected (i.e. we cannot manipulate the system anymore)
       
-      // Stop the framework (the argument is meaningless for
-      // ar_distSceneGraphFramework, though 
-      // master/slave framework uses it.)
+      // Stop the framework (only master/slave framework uses the arg.)
       f->stop(true);
       exit(0);
     }
@@ -49,7 +47,7 @@ void ar_distSceneGraphFrameworkMessageTask(void* framework){
       if (f->_userMessageCallback){
         f->_userMessageCallback(*f, messageBody);
       }
-      // The message processing loop must *continue* here, not *return*!
+      // Don't return.
       continue;
     }
     else if (messageType=="print"){
@@ -460,7 +458,7 @@ void arDistSceneGraphFramework::_getVector3(arVector3& v, const char* param){
   // use the screen name passed from the distributed system
   const string screenName(_SZGClient.getMode("graphics"));
   if (!_SZGClient.getAttributeFloats(screenName, param, v.v, 3)) {
-    ar_log_remark() << _label << " remark: " << screenName
+    ar_log_remark() << _label << ": screen " << screenName
                     << "/" << param  << " defaulting to " << v << ar_endl;
   }
 }
@@ -702,7 +700,7 @@ bool arDistSceneGraphFramework::_initStandaloneMode(){
   if (!_initInput()){
     return false;
   }
-  ar_log_remark() << _label << ": remark: standalone mode objects initialized.\n";
+  ar_log_remark() << _label << ": standalone objects initialized.\n";
   return true;
 }
 
@@ -752,14 +750,13 @@ bool arDistSceneGraphFramework::_startStandaloneMode(){
   else{
     if (!createWindows(true)){
 
-      // Stop the services already started, before exiting.
-      // Does this cause segfaults?
+      // Stop started services, before exiting.  Does this segfault?
       //stop(true);
 
       return false;
     }
   }
-  ar_log_remark() << _label << ": remark: standalone objects started.\n";
+  ar_log_remark() << _label << ": standalone objects started.\n";
   return true;
 }
 
@@ -774,13 +771,13 @@ bool arDistSceneGraphFramework::_initPhleetMode(){
     return false;
   }
   
-  // Figure out whether we should launch the other executables.
+  // Should we launch the other executables?
   if (_SZGClient.getMode("default") == "trigger"){
     const string vircomp = _SZGClient.getVirtualComputer();
     const string defaultMode = _SZGClient.getMode("default");
-    ar_log_remark() << _label << " remark: executing on virtual computer "
-      << vircomp << ",\n    with default mode " 
-      << defaultMode << ".\n";
+    ar_log_remark() << _label << " executing on virtual computer '"
+      << vircomp << "' with default mode '"
+      << defaultMode << "'.\n";
     
     (void)_launcher.setSZGClient(&_SZGClient);
     _vircompExecution = true;

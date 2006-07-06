@@ -135,27 +135,40 @@ void messageTask(void* pClient){
 
 // GUI window callbacks. "Init GL" and "mouse" callbacks are not used.
 
-void ar_guiWindowEvent(arGUIWindowInfo* windowInfo){
-  switch (windowInfo->getState()){
+void ar_guiWindowEvent(arGUIWindowInfo* wi){
+  if (!wi)
+    return;
+  arGUIWindowManager* wm = wi->getWindowManager();
+  if (!wm)
+    return;
+  switch (wi->getState()){
   case AR_WINDOW_RESIZE:
-    windowManager->setWindowViewport(
-      windowInfo->getWindowID(), 0, 0, windowInfo->getSizeX(), windowInfo->getSizeY());
+    wm->setWindowViewport(
+      wi->getWindowID(), 0, 0, wi->getSizeX(), wi->getSizeY());
     break;
   case AR_WINDOW_CLOSE:
     shutdownAction();
     break;
+  default:
+    // avoid compiler warning
+    break;
   }
 }
 
-void ar_guiWindowKeyboard(arGUIKeyInfo* keyInfo){
-  if (keyInfo->getState() == AR_KEY_DOWN){
-    switch (keyInfo->getKey()){
+void ar_guiWindowKeyboard(arGUIKeyInfo* ki){
+  if (!ki)
+    return;
+  if (ki->getState() == AR_KEY_DOWN){
+    switch (ki->getKey()){
     case AR_VK_ESC:
       shutdownAction();
       break;
     case AR_VK_P:
       drawPerformanceDisplay = !drawPerformanceDisplay;
       graphicsClient.drawFrameworkObjects(drawPerformanceDisplay);
+      break;
+    default:
+      // avoid compiler warning
       break;
     }
   }
