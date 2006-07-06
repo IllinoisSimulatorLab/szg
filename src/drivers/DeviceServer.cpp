@@ -179,7 +179,7 @@ LAbort:
     return 1;
   }
 
-  const int slotNumber = atoi(argv[2]);
+  const unsigned slotNumber = atoi(argv[2]);
   InputNodeConfig nodeConfig;
   if (simpleOperation){
     // As command-line flags, specify only the driver and slot.
@@ -206,8 +206,8 @@ LAbort:
 
   const string execPath = szgClient.getAttribute("SZG_EXEC","path"); // search for dll's
   // Start with the input sources.
-  // Assign input "slots" to the input sources.
-  int nextInputSlot = slotNumber + 1;
+  // Assign input slots to the input sources.
+  unsigned nextInputSlot = slotNumber + 1;
   // Configure the input sources.
   list<string>::iterator iter;
   for (iter = nodeConfig.inputSources.begin();
@@ -254,6 +254,7 @@ LAbort:
     }
       ++nextInputSlot;
     ++nextInputSlot;
+    // bug? typo? why increment twice?
     // The node will "own" this source.
     inputNode.addInputSource(commandLineNetInputSource,true);
   }
