@@ -230,13 +230,15 @@ LAbort:
         ar_log_error() << error;
         goto LAbort;
       }
-      // Can create our object.
+
       theSource = (arInputSource*) inputSourceSharedLib->createObject();
       if (!theSource) {
         ar_log_error() << "DeviceServer failed to create input source '" <<
 	  *iter << "'.\n";
         goto LAbort;
       }
+      ar_log_debug() << "DeviceServer created input source '" <<
+	  *iter << "' from config file, in slot " << nextInputSlot << ".\n";
       driverNameMap[*iter] = theSource;
       inputNode.addInputSource(theSource, false);
     }
@@ -291,7 +293,9 @@ LAbort:
       ar_log_error() << "DeviceServer failed to create input sink.\n";
       goto LAbort;
     }
-    inputNode.addInputSink(theSink,true);
+    ar_log_debug() << "DeviceServer created input sink '" <<
+      *iter << ".\n";
+    inputNode.addInputSink(theSink, true);
   }
 
   // Load the filters.

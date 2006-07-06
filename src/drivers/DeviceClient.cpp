@@ -36,7 +36,7 @@ void dumpState( arInputState& inp ) {
     for (i=0; i<cm; i++)
       cout << inp.getMatrix(i) << endl;
   }
-  cout << "\n*************************************************\n";
+  cout << "****\n";
 }
 
 class arClientEventFilter : public arIOFilter {
@@ -54,6 +54,12 @@ bool arClientEventFilter::_processEvent( arInputEvent& event ) {
   switch (event.getType()) {
     case AR_EVENT_BUTTON:
       dump |= event.getButton() && !_lastInput.getButton( event.getIndex() );
+      break;
+    case AR_EVENT_GARBAGE:
+      ar_log_warning() << "arClientEventFilter ignoring garbage.\n";
+      break;
+    default:
+      // avoid compiler warning
       break;
   }
   _lastInput = *getInputState();
@@ -104,7 +110,7 @@ int main(int argc, char** argv){
   }
 
   if (!netInputSource.connected())
-    ar_log_warning() << "DeviceClient's input source not connected.\n";
+    ar_log_warning() << "DeviceClient's input source not connected, on slot " << slot << ".\n";
 
   if (!szgClient.sendStartResponse(true))
     cerr << "DeviceClient error: maybe szgserver died.\n";
