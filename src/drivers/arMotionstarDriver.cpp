@@ -43,16 +43,12 @@ arMotionstarDriver::arMotionstarDriver():
 }
 
 bool arMotionstarDriver::init(arSZGClient& SZGClient){
-  // Use the arSZGClient's message forwarding facility.
-  stringstream& initResponse = SZGClient.initResponse();
   _birdnetIP = SZGClient.getAttribute("SZG_MOTIONSTAR", "IPhost");
-  initResponse << "arMotionstarDriver remark: tracker host is " 
-               << _birdnetIP << ".\n";
+  ar_log_debug() << "arMotionstarDriver: tracker host is " << _birdnetIP << ".\n";
 
   // this test could be better
   if (_birdnetIP.length()<7){
-    initResponse << "arMotionstarDriver error: "
-	         << "SZG_MOTIONSTAR/IPhost undefined or invalid.\n";
+    ar_log_warning() << "arMotionstarDriver: SZG_MOTIONSTAR/IPhost undefined or invalid.\n";
     return false;
   }
 
@@ -105,25 +101,22 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
   const float birdRate = 93.3;
   const int reportRate = 1;
 
-  // must create the socket first!
   _commandSocket.ar_create();
   if (_commandSocket.ar_connect(_birdnetIP.c_str(), _TCP_PORT)<0){
-    initResponse <<
-      "arMotionstarDriver error: failed to open command socket.\n";
+    ar_log_warning() << "arMotionstarDriver failed to open command socket.\n";
     return false;
   }
 
   // start the system working
   if (!_sendWakeup()){
-    initResponse << "arMotionstarDriver error: system failed to wake up.\n";
+    ar_log_warning() << "arMotionstarDriver failed to wake up.\n";
     return false;
   }
 
   // get the system status
   BN_SYSTEM_STATUS* sys = NULL;
   if (!_getStatusAll(&sys)){
-    initResponse <<
-      "arMotionstarDriver error: failed to set system status.\n";
+    ar_log_warning() << "arMotionstarDriver failed to get status.\n";
     return false;
   }
    
@@ -153,17 +146,15 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
       _setDeviceElements(0,0,nDevices-1);
     }
   } else {
-    initResponse << "arMotionstarDriver remark: "
-	 << "SZG_MOTIONSTAR/signature set to "
-         << " ( " << sig[0] << ", " << sig[1] << ", " << sig[2] << " );\n"
-         << "    overriding device signature.\n";
+    ar_log_warning() << "arMotionstarDriver: SZG_MOTIONSTAR/signature overriding device signature with ("
+         << sig[0] << ", " << sig[1] << ", " << sig[2] << ").\n";
     _setDeviceElements(sig[0],sig[1],sig[2]);
   }
 
   //cout << "arMotionstarDriver remark: found " << nDevices << " devices.\n";
   // send the system setup
   if (!_setStatusAll(sys)){
-    initResponse << "arMotionstarDriver error: failed to set system status.\n";
+    ar_log_warning() << "arMotionstarDriver failed to set system status.\n";
     return(-1);
   }
 
@@ -172,8 +163,7 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
   for (i=2; i<=nDevices; i++){
     // get the status of an individual bird
     if (!_getStatusBird(i,&bird)){
-      initResponse << "arMotionstarDriver error: no status from bird "
-	           << i-1 << "\n";
+      ar_log_warning() << "arMotionstarDriver: no status from bird " << i-1 << "\n";
       return false;
     }
 
@@ -223,14 +213,12 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 //        bird->Vm.entry[j] = htons(_Vm[j]);
 //    }
     
-    /* set the status of an individual bird */
     if (!_setStatusBird(i,bird)){
-      initResponse << "arMotionstarDriver error: failed to set status of bird "
-	           << i-1 << "\n";
+      ar_log_warning() << "arMotionstarDriver failed to set status of bird " << i-1 << "\n";
       return false;
     }
   }
-  initResponse << "arMotionstarDriver remark: initialized.\n";
+  ar_log_debug() << "arMotionstarDriver initialized.\n";
   return true; 
 }
 

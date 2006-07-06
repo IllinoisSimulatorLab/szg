@@ -98,11 +98,10 @@ void ar_spacepadDriverEventTask(void* driver){
 arSpacepadDriver::arSpacepadDriver(){
   isa_base_addr = 772;   // 0x304, this is the default card address
   isa_status_addr = 774;
-  recaddr = 0;           // this says which bird we are sampling
-                         // 0 or 1 = bird 1
-                         // 2 = bird 2
+  recaddr = 0;           // which bird we are sampling
+                         // 0 or 1 = bird 1, 2 = bird 2
   phaseerror_count = 0;
-  positionScaling = 12.0/32768.0; // want our position info in feet
+  positionScaling = 12.0/32768.0; // position info in feet
   angleScaling = 180.0/32768.0;
 }
 
@@ -110,15 +109,16 @@ arSpacepadDriver::~arSpacepadDriver(){
 }
 
 bool arSpacepadDriver::init(arSZGClient& c){
-  stringstream& initResponse = c.initResponse();
+#ifndef AR_USE_WIN_32
+  ar_log_warning() << "arSpacepadDriver implemented only in Windows.\n";
+  return false;
+#endif
   _setDeviceElements(0,0,2);
   // read in the calibration information
-  string transmitterOffset 
-    = c.getAttribute("SZG_SPACEPAD","transmitter_offset");
+  const string transmitterOffset = c.getAttribute("SZG_SPACEPAD","transmitter_offset");
   if (transmitterOffset != "NULL"){
     ar_parseFloatString(transmitterOffset, _transmitterOffset.v, 16);
-    initResponse << "Using transmitter offset =\n"
-	         << _transmitterOffset << "\n";
+    ar_log_debug() << "arSpacepadDriver: transmitter offset is " << _transmitterOffset << ".\n";
   }
   float temp[4];
   const string sensor0Rot =
@@ -127,8 +127,7 @@ bool arSpacepadDriver::init(arSZGClient& c){
     ar_parseFloatString(sensor0Rot, temp, 4);
     _sensorRot[0] =
       ar_rotationMatrix(arVector3(temp),ar_convertToRad(temp[3]));
-    initResponse << "Using sensor 0 rotation =\n"
-	         << _sensorRot[0] <<"\n";
+    ar_log_debug() << "arSpacepadDriver: sensor 0 rotation = " << _sensorRot[0] <<".\n";
   }
   const string sensor1Rot =
     c.getAttribute("SZG_SPACEPAD","sensor1_rot");
@@ -136,20 +135,18 @@ bool arSpacepadDriver::init(arSZGClient& c){
     ar_parseFloatString(sensor1Rot, temp, 4);
     _sensorRot[1] =
       ar_rotationMatrix(arVector3(temp),ar_convertToRad(temp[3]));
-    initResponse << "Using sensor 1 rotation =\n"
-	         << _sensorRot[1] <<"\n";
+    ar_log_debug() << "arSpacepadDriver: sensor 1 rotation = " << _sensorRot[1] <<".\n";
   }
-#ifdef AR_USE_WIN_32
   _reset_through_isa();
-  initResponse << "arSpacepadDriver remark: initialized.\n";
+  ar_log_debug() << "arSpacepadDriver initialized.\n";
   return true;
-#else
-  initResponse << "arSpacepadDriver error: supported only in Windows.\n";
-  return false;
-#endif
 }
 
 bool arSpacepadDriver::start(){
+#ifndef AR_USE_WIN_32
+  ar_log_warning() << "arSpacepadDriver implemented only in Windows.\n";
+  return false;
+#endif
   _eventThread.beginThread(ar_spacepadDriverEventTask,this);
   return true;
 }
@@ -160,37 +157,37 @@ bool arSpacepadDriver::stop(){
 
 arMatrix4 arSpacepadDriver::_getSpacepadMatrix(int sensorID){
   if (sensorID > 2 || sensorID < 1){
-    cout << "arSpacepadDriver warning: only sensors 1 and 2 are supported.\n";
+    ar_log_warning() << "arSpacepadDriver: only sensors 1 and 2 are supported.\n";
     return ar_identityMatrix();
   }
-  // note how we (confusingly) use the global recaddr!!!
+  // we (confusingly) use the global recaddr!!!
   recaddr = sensorID;
   short dataStorage[20];
   float values[12];
-  // note: we need to set the hemisphere for every sensor (I think)
+  // we need to set the hemisphere for every sensor (I think)
   // This is a hack! And will work for, at most, 4 sensors
   static int initted = 0;
   // make sure the hemisphere of the spacepad is set correctly.
   if (initted<4){
     if (!_hemisphere_cmd(0)){
-      printf("failed to set hemisphere.\n");
+      ar_log_warning() << "arSpacepadDriver failed to set hemisphere.\n";
     }
-    // the recaddr must be returned to its correct state
+    // restore recaddr to its correct state
     initted++;
   }
   if (_position_matrix_cmd() != TRUE){
-    printf("failed to request data\n");
+    ar_log_warning() << "arSpacepadDriver failed to request data\n";
     goto LAbort;
   }
   if (_point_cmd() != TRUE){
-    printf("failed to issue the point command request!\n");
+    ar_log_warning() << "arSpacepadDriver failed to issue the point command request.\n";
     goto LAbort;
   }
   // The 2nd parameter below is twice the number of shorts
   // returned.  2*6=12 for position/angles and 2*12=24 for position/matrix
   // (i.e. it is the number of bytes requested from the card)
   if (_get_isa_record(dataStorage, 24, ASC_POINT) < 0){
-    printf ("There was an error in reading the data\n");
+    ar_log_warning() <<  ("There was an error in reading the data\n");
 LAbort:
     _reset_through_isa();
     return ar_identityMatrix();
