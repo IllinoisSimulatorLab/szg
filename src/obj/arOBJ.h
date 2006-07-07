@@ -59,15 +59,13 @@ class SZG_CALL arOBJ : public arObject{
   arOBJ();
   ~arOBJ() {}
 
-  // NOTE: this CANNOT be one call since the second argument should be path
-  // a little annoying, but it's this way for historical reasons
   bool readOBJ(const string& fileName, const string& path="");
-  bool readOBJ(const string& fileName, const string& subdirectory, 
-               const string& path);
+  bool readOBJ(const string& fileName, const string& subdirectory, const string& path);
   bool readOBJ(FILE* inputFile);
   int readMaterialsFromFile(arOBJMaterial* materialArray, char* theFilename);
 
-  string type()			{return "OBJ";}
+  inline string type() const {return "OBJ";}
+
   int numberOfTriangles()	{return _triangle.size();}
   int numberOfNormals()		{return _normal.size();}
   int numberOfVertices()	{return _vertex.size();}

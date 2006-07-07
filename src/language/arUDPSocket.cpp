@@ -9,18 +9,9 @@
 #include <stdio.h>
 #include <errno.h>
 
-void arUDPSocket::setID(int theID){
-  _ID = theID;
-}
-
-int arUDPSocket::getID(){
-  return _ID;
-}
-
-void arUDPSocket::setBroadcast(bool state){
-  const int on = state ? 1 : 0;
-  setsockopt(_socketFD, SOL_SOCKET, SO_BROADCAST,
-    (const char*)&on, sizeof(int));
+void arUDPSocket::setBroadcast(bool fOn) const {
+  const int on = fOn ? 1 : 0;
+  setsockopt(_socketFD, SOL_SOCKET, SO_BROADCAST, (const char*)&on, sizeof(int));
 }
 
 int arUDPSocket::ar_create(){
@@ -32,67 +23,49 @@ int arUDPSocket::ar_create(){
   return 0;
 }
 
-void arUDPSocket::setReceiveBufferSize(int size){
-  // turns out that the Win32 and UNIX code is the same here
+void arUDPSocket::setReceiveBufferSize(int size) const {
   setsockopt(_socketFD, SOL_SOCKET, SO_RCVBUF, (char*)&size, sizeof(int));
 }
 
-void arUDPSocket::setSendBufferSize(int size){
-  // turns out that Win32 and UNIX code is the same
+void arUDPSocket::setSendBufferSize(int size) const {
   setsockopt(_socketFD,SOL_SOCKET,SO_SNDBUF,(char*)&size,sizeof(int));
 }
 
-void arUDPSocket::reuseAddress(bool flag){
-  // turns out Win32 and UNIX code is the same
-  const int parameter = flag ? 1 : 0;
-  setsockopt(_socketFD, SOL_SOCKET, SO_REUSEADDR, 
-             (const char*)&parameter, sizeof(int));
-  // The SO_REUSEPORT socket option seems to exist and be necessary for
-  // OS X and SGI only (they have more BSD heritage than linux).
-#ifdef AR_USE_SGI
-  setsockopt(_socketFD, SOL_SOCKET, SO_REUSEPORT,
-             (const char*)&parameter, sizeof(int));
-#endif
-#ifdef AR_USE_DARWIN
-  setsockopt(_socketFD, SOL_SOCKET, SO_REUSEPORT,
-             (const char*)&parameter, sizeof(int));
+void arUDPSocket::reuseAddress(bool fReuse) const {
+  const int parameter = fReuse ? 1 : 0;
+  setsockopt(_socketFD, SOL_SOCKET, SO_REUSEADDR, (const char*)&parameter, sizeof(int));
+#if defined(AR_USE_SGI) || defined(AR_USE_DARWIN)
+  setsockopt(_socketFD, SOL_SOCKET, SO_REUSEPORT, (const char*)&parameter, sizeof(int));
 #endif
 }
 
-int arUDPSocket::ar_bind(arSocketAddress* theAddress){
-  int err = bind(_socketFD, (sockaddr*)theAddress->getAddress(), 
-                 theAddress->getAddressLength());
+int arUDPSocket::ar_bind(arSocketAddress* addr) const {
+  const int err = bind(_socketFD, (sockaddr*)addr->getAddress(), 
+                 addr->getAddressLength());
   if (err < 0)
     perror("arUDPSocket bind failed");
   return err;
 }
 
-int arUDPSocket::ar_read(char* theData, int howMuch, 
-                         arSocketAddress* theAddress){
-  if (theAddress == NULL){
+int arUDPSocket::ar_read(char* theData, int howMuch, arSocketAddress* addr) const {
+  if (!addr)
     return recvfrom(_socketFD,theData,howMuch,0,NULL,NULL);
-  }
-  else{
-    return recvfrom(_socketFD,theData,howMuch,0,
-                    (sockaddr*)theAddress->getAddress(),
-                    theAddress->getAddressLengthPtr());
-  }
+
+  return recvfrom(_socketFD,theData,howMuch,0,
+		  (sockaddr*)addr->getAddress(),
+		  (socklen_t*)addr->getAddressLengthPtr());
 }
 
-int arUDPSocket::ar_write(const char* theData, int howMuch,
-                          arSocketAddress* theAddress){
+int arUDPSocket::ar_write(const char* theData, int howMuch, arSocketAddress* addr) const {
   return sendto(_socketFD,theData,howMuch,0,
-                (sockaddr*)theAddress->getAddress(),
-                theAddress->getAddressLength());
+                (sockaddr*)addr->getAddress(),
+                addr->getAddressLength());
 }
 
-void arUDPSocket::ar_close(){
+void arUDPSocket::ar_close() const {
 #ifdef AR_USE_WIN_32
    closesocket(_socketFD);
 #else
    close(_socketFD);
 #endif
 }
-
-
-

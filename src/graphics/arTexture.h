@@ -28,16 +28,15 @@ class SZG_CALL arTexture {
   arTexture& operator=( const arTexture& rhs );
   arTexture( const arTexture& rhs, unsigned int left, unsigned int bottom, 
                                    unsigned int width, unsigned int height );
-  bool operator!();
+  bool operator!() const;
 
-  // Textures need to be reference counted because of the way we share them
-  // in the arGraphicsDatabase.
+  // Reference-counted because of how textures are shared in arGraphicsDatabase.
   int getRef();
   arTexture* ref();
   void unref(bool debug = false);
 
   bool activate(bool forceRebind = false);
-  void deactivate();
+  void deactivate() const;
 
   int getWidth()  const { return _width; }
   int getHeight() const { return _height; }

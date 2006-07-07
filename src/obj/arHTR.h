@@ -108,12 +108,11 @@ class SZG_CALL arHTR : public arObject {
   public:
     arHTR();
     ~arHTR();
-    // There cannot be one readHTR because the default parameter order
-    // for 2 arguments would be wrong 
     bool readHTR(const string& fileName, const string& path="");
     bool readHTR(const string& fileName, const string& subdirectory, const string& path);
     bool readHTR(FILE* htrFileHandle);
     bool writeToFile(const string& fileName);
+
     // DEPRECATED! Use the arGraphicsNode* parent version instead!
     bool attachMesh(const string& objectName, const string& parent);
     bool attachMesh(arGraphicsNode* parent, const string& objectName=""){
@@ -122,12 +121,13 @@ class SZG_CALL arHTR : public arObject {
     // DEPRECATED! Use the arGraphicsNode* parent version instead!
     bool attachMesh(const string& baseName, const string& where, bool withLines);
     bool attachMesh(arGraphicsNode* parent, const string& objectName, bool withLines);
-    string type(void) { return "HTR"; }
+
+    inline string type(void) const { return "HTR"; }
 
     void normalizeModelSize(void);
     void basicDataSmoothing();
 
-    // Animation functions.
+    // Animation.
     bool supportsAnimation(void) { return true; }
     bool setFrame(int newFrame);
     bool nextFrame();

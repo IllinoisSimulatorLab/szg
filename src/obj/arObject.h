@@ -50,17 +50,18 @@ class SZG_CALL arObject {
   // @param newName the new name
   string setName(const string& newName) { return (_name = newName); }
   
-  // DEPRECATED! INCLUDED ONLY FOR BACKWARDS COMPATIBILITY.
+  // Deprecated.
   // Annoyingly, this must be repeated in each subclass (because of the
   // *other* attachMesh virtual method).
   virtual bool attachMesh(const string& objectName, const string& parentName);
   // @param objectName The name of the object
   // @param parent Where to attach the object in the scenegraph
+
   // This takes a valid arObject file and attaches it to the scenegraph
   virtual bool attachMesh(arGraphicsNode* parent, const string& objectName="") = 0;
   
   // returns what kind of Object this is
-  virtual inline string type(void) = 0;
+  virtual inline string type(void) const = 0;
 
   // does this object support the basic animation commands?
   virtual bool supportsAnimation(void) = 0;

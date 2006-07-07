@@ -126,14 +126,13 @@ arTexture::arTexture( const arTexture& rhs,
   }
 }
 
-bool arTexture::operator!() {
+bool arTexture::operator!() const {
   return _pixels==0 || numbytes()==0;
 }
 
 int arTexture::getRef(){
-  int result;
   _lock.lock();
-  result = _refs;
+    const int result = _refs;
   _lock.unlock();
   return result;
 }
@@ -142,25 +141,18 @@ arTexture* arTexture::ref(){
   // Returning the pointer allows us to atomically create
   // a reference to the object.
   _lock.lock();
-  _refs++;
+    _refs++;
   _lock.unlock();
   return this;
 }
 
-void arTexture::unref(bool debug){
+void arTexture::unref(bool fDebug){
   _lock.lock();
-  _refs--;
-  bool mustDelete = _refs == 0 ? true : false;
-  if (debug){
-    if (mustDelete){
-      ar_log_remark() << "arTexture will be deleted. Ref count zero.\n";
-    }
-    else{
-      ar_log_remark() << "arTexture will not be deleted. Ref count nonzero.\n";
-    }
-  }
+    const bool fDelete = --_refs == 0;
   _lock.unlock();
-  if (mustDelete){
+  if (fDelete){
+    if (fDebug)
+      ar_log_debug() << "arTexture: deleting.\n";
     delete this;
   }
 }
@@ -168,13 +160,14 @@ void arTexture::unref(bool debug){
 bool arTexture::activate(bool forceRebind) {
   glEnable(GL_TEXTURE_2D);
   _lock.lock();
+  const ARint64 threadID =
 #ifdef AR_USE_WIN_32
-  ARint64 threadID = GetCurrentThreadId();
+    GetCurrentThreadId();
 #else
-  ARint64 threadID = (ARint64)pthread_self();
+    ARint64(pthread_self());
 #endif
   // Has it been used so far?
-  map<ARint64,GLuint,less<ARint64> >::iterator i = _texNameMap.find(threadID);
+  map<ARint64,GLuint,less<ARint64> >::const_iterator i = _texNameMap.find(threadID);
   GLuint temp;
   if (i == _texNameMap.end()){
     glGenTextures(1,&temp);
@@ -194,10 +187,8 @@ bool arTexture::activate(bool forceRebind) {
   _lock.unlock();
 
   glBindTexture(GL_TEXTURE_2D, temp);
-  // if the following statement isn't included, then 
-  // the wrong GL_TEXTURE_ENV_MODE can be used by the scene graph for
-  // drawing textures. Odd, the
-  // texture object, as bound above, should deal with this.
+  // Make the scene graph use the right GL_TEXTURE_ENV_MODE to draw textures.
+  // Weird, glBindTexture() should handle this.
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, _textureFunc );
   if (_fDirty || forceRebind){
     _loadIntoOpenGL();
@@ -205,7 +196,7 @@ bool arTexture::activate(bool forceRebind) {
   return true;
 }
 
-void arTexture::deactivate() {
+void arTexture::deactivate() const {
  glDisable(GL_TEXTURE_2D);
 }
 

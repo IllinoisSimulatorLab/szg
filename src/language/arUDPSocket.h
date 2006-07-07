@@ -7,7 +7,6 @@
 #define AR_UDP_SOCKET_H
 
 #ifdef AR_USE_WIN_32
-// DO NOT INCLUDE windows.h here. Instead, do as below.
 #include "arPrecompiled.h"
 #else
 #include <sys/types.h>
@@ -34,19 +33,19 @@ public:
   arUDPSocket(): _ID(-1) {}
   ~arUDPSocket() {}
 
-  void setID(int theID);
-  int getID();
+  void setID(int theID) { _ID = theID; }
+  int getID() const { return _ID; }
 
-  void setBroadcast(bool);
+  void setBroadcast(bool) const;
 
   int ar_create();
-  void setReceiveBufferSize(int size);
-  void setSendBufferSize(int size);
-  void reuseAddress(bool flag);
-  int ar_bind(arSocketAddress*);
-  int ar_read(char* theData, int howMuch, arSocketAddress*);
-  int ar_write(const char* theData, int howMuch, arSocketAddress*);
-  void ar_close();
+  void setReceiveBufferSize(int size) const;
+  void setSendBufferSize(int size) const;
+  void reuseAddress(bool flag) const;
+  int ar_bind(arSocketAddress*) const;
+  int ar_read(char* theData, int howMuch, arSocketAddress*) const;
+  int ar_write(const char* theData, int howMuch, arSocketAddress*) const;
+  void ar_close() const;
 
 private:
   int _type;

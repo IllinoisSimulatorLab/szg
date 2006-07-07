@@ -54,8 +54,7 @@ class SZG_CALL ar3DS : public arObject{
 
     // stats
     // returns "3DS" as arObject type
-    inline string  type() { return "3DS"; }
-    // returns number of frames in .3DS file
+    inline string type() const { return "3DS"; }
 #ifdef Enable3DS
     int    numberOfFrames() { return _file?_file->frames:-1; }
 #else
