@@ -213,21 +213,21 @@ LAbort:
   for (iter = nodeConfig.inputSources.begin();
        iter != nodeConfig.inputSources.end(); iter++) {
     arInputSource* theSource = NULL;
-    // Check if the requested library is embedded in the library.
+    // Is the requested library embedded in the library?
     if (*iter == "arNetInputSource") {
       arNetInputSource* netInputSource = new arNetInputSource();
       if (!netInputSource->setSlot(nextInputSlot)) {
-	ar_log_error() << "DeviceServer: invalid slot " << nextInputSlot << ".\n";
+	ar_log_warning() << "DeviceServer: invalid slot " << nextInputSlot << ".\n";
 	goto LAbort;
       }
       nextInputSlot++;
       inputNode.addInputSource(netInputSource, true);
     } else {
-      // A dynamically loaded library
+      // A dynamically loaded library.
       arSharedLib* inputSourceSharedLib = new arSharedLib();
       string error;
       if (!inputSourceSharedLib->createFactory(*iter, execPath, "arInputSource", error)) {
-        ar_log_error() << error;
+        ar_log_warning() << error;
         goto LAbort;
       }
 
@@ -238,7 +238,7 @@ LAbort:
         goto LAbort;
       }
       ar_log_debug() << "DeviceServer created input source '" <<
-	  *iter << "' from config file, in slot " << nextInputSlot << ".\n";
+	  *iter << "' from config file, in slot " << nextInputSlot-1 << ".\n";
       driverNameMap[*iter] = theSource;
       inputNode.addInputSource(theSource, false);
     }

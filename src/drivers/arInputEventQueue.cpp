@@ -102,7 +102,7 @@ LAgain:
       _numMatrices--;
       break;
     default:
-      ar_log_warning() << "skipping queued event with unexpected type.\n";
+      ar_log_warning() << "ignoring queued input event with unexpected type.\n";
       goto LAgain;
   }
   return temp;
@@ -112,6 +112,13 @@ void arInputEventQueue::setSignature( unsigned int numButtons,
                                       unsigned int numAxes,
                                       unsigned int numMatrices ) {
   std::deque<arInputEvent>::iterator iter;
+
+  /*
+    ar_log_debug() << "arInputEventQueue signature ;;;;was ("
+      << _buttonSignature << ","
+      << _axisSignature << ","
+      << _matrixSignature << ").\n";
+  */
   
   if (numButtons < _buttonSignature) {
     int maxIndex = -1;
@@ -163,13 +170,14 @@ void arInputEventQueue::setSignature( unsigned int numButtons,
   }
   changed |= (_matrixSignature != numMatrices);
   _matrixSignature = numMatrices;
-  
+
   if (changed){
     ar_log_debug() << "arInputEventQueue signature is ("
-      << _buttonSignature << ", "
-      << _axisSignature << ", " 
+      << _buttonSignature << ","
+      << _axisSignature << ","
       << _matrixSignature << ").\n";
   }
+
 }
 
 bool arInputEventQueue::setFromBuffers( const int* const typeData,
@@ -184,19 +192,20 @@ bool arInputEventQueue::setFromBuffers( const int* const typeData,
     cerr << "arInputEventQueue error: invalid buffer.\n";
     return false;
   }
-  const unsigned int numItems( numButtons + numAxes + numMatrices );
-  bool status(true);
-  unsigned int iButton = 0;
-  unsigned int iAxis = 0;
-  unsigned int iMatrix = 0;
-  for (unsigned int i=0; i<numItems; i++) {
-    int eventIndex = indexData[i];
+
+  const unsigned numItems = numButtons + numAxes + numMatrices;
+  bool status = true;
+  unsigned iButton = 0;
+  unsigned iAxis = 0;
+  unsigned iMatrix = 0;
+  for (unsigned i=0; i<numItems; i++) {
+    const int eventIndex = indexData[i];
     if (eventIndex < 0) {
       cerr << "arInputEventQueue warning: ignoring negative event index.\n";
       status = false;
       continue;
     }
-    int eventType = typeData[i];
+    const int eventType = typeData[i];
 //cerr << i << " " << eventType << " " << eventType << "  "
 //     << iButton << " " << iAxis << " " << iMatrix << "  "
 //     << _numButtons << " " << _numAxes << " " << _numMatrices << endl;

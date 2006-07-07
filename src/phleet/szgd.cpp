@@ -9,7 +9,6 @@
 #include "arSZGClient.h"
 #include "arDataUtilities.h"
 
-#include <stdio.h>
 #include <list>
 
 #ifdef AR_USE_WIN_32
@@ -242,12 +241,12 @@ LAbort:
     }
   }
   else {
-    errStream << "szgd error: unexpected exe type \""
-         << execInfo->executableType << "\".\n";
+    errStream << "szgd error: unexpected exe type '"
+      << execInfo->executableType << "'.\n";
     return errStream.str();
   }
 
-  cout << "szgd remark:\n"
+  ar_log_remark() << "szgd:\n"
        << "  user name=" << userName << "\n"
        << "  exe name=" << command << "\n"
        << "  exe type=" << execInfo->executableType << "\n"
@@ -255,11 +254,11 @@ LAbort:
   for (list<string>::iterator iter = args.begin();
        iter != args.end(); ++iter){
     if (iter != args.begin()){
-      cout << ", ";
+      ar_log_remark() << ", ";
     }
-    cout << *iter;
+    ar_log_remark() << *iter;
   }
-  cout << ")\n";
+  ar_log_remark() << ")\n";
   return string("OK");
 }
 
@@ -493,14 +492,14 @@ LDone:
     // Twenty second timeout for pipe. What if it takes a VERY long time
     // to start the program (like a Python program on a heavily loaded CPU)?
     if (!ar_safePipeReadNonBlock(pipeDescriptors[0], numberBuffer, 1, 20000)) {
-      info << "szgd remark: got no success/failure code via pipe.\n"
-	   << "  Launchee failed to load a dll, crashed before framework init, or took too long to load.\n";
+      info << "szgd remark: launchee returned no success/failure code\n"
+	   << "  (it failed to load a dll, crashed before framework init, or took too long to load).\n";
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
       SZGClient->messageResponse(receivedMessageID, info.str());
       goto LDone;
     }
     if (numberBuffer[0] == 0) {
-      // The launch has failed. we will be receiving error messages from
+      // The launch failed. we will be receiving error messages from
       // the szgd side of the fork. First, we need to revoke the 
       // "message trade" since the other end of this code would be invoked in 
       // the arSZGClient of the exec'ed process.
@@ -521,27 +520,26 @@ LDone:
 	     << *(int*)numberBuffer << ". Likely an internal library error.\n";
       }
       char* textBuffer = new char[*((int*)numberBuffer)+1];
-      // Again, the time out need not be very large. Essentially, we are
-      // reading in the error message from the exec call in the forked process
-      // here.
-      if (!ar_safePipeReadNonBlock(pipeDescriptors[0],
-                                   textBuffer, *((int*)numberBuffer), 1000)) {
+      // The timeout can be small.
+      // Read the error message from the exec call in the forked process.
+      if (!ar_safePipeReadNonBlock(pipeDescriptors[0], textBuffer,
+	    *((int*)numberBuffer), 1000)) {
 	info << "szgd remark: pipe-based handshake failed, text phase. Likely an internal library error.\n";
         SZGClient->messageResponse(receivedMessageID, info.str());
 	delete [] textBuffer;
         goto LDone;
       }
+
       textBuffer[*((int*)numberBuffer)] = '\0';
-      // Note how we respond to the message ourselves.
+      // Respond to the message ourselves.
       SZGClient->messageResponse(receivedMessageID, string(textBuffer));
       delete [] textBuffer;
       goto LDone;
     }
 
     // numberBuffer[0] = 1 and the launch worked.
-    // We do not receive the info via the pipe
-    // in this case... instead the launched client
-    // sends that to the "dex" directly.
+    // We do not receive the info via the pipe;
+    // the launched client sends that to the "dex" directly.
     // Wait for the "message trade". A long time-out should not, in fact,
     // be necessary here. Since the szg code will be immediately communicating
     // with the szgserver, telling it that it wants the message ownership.
@@ -590,8 +588,7 @@ LDone:
   }
   deleteUnixStyleArgList(theArgs);
 
-  info << "szgd error: failed to exec \"" 
-       << symbolicCommand << "\":\n\treason:  ";
+  info << "szgd error: failed to exec '" << symbolicCommand << "': ";
   switch (errno) {
   case E2BIG: info << "args + env too large\n";
     break;
@@ -605,7 +602,7 @@ LDone:
     break;
   case EFAULT: info << "invalid command or argv pointer:\n";
     break;
-  default: info << "errno is " << errno << endl;
+  default: info << "errno = " << errno << endl;
     break;
   }
 	
@@ -730,6 +727,8 @@ int main(int argc, char** argv) {
 
   ar_mutex_init(&tradingNumLock);
   ar_mutex_init(&processCreationLock);
+  // dex didn't spawn an szgd - that's pointless(?).
+  ar_log().setStream(cout);
 
   const int argcOriginal = argc;
   // We don't need a copy of argv because it doesn't get modified.
@@ -790,14 +789,15 @@ LRetry:
         pos += 4;
         string timeoutString = messageBody.substr( pos, messageBody.size()-pos );
         int temp;
-        bool ok = ar_stringToIntValid( timeoutString, temp );
+        const bool ok = ar_stringToIntValid( timeoutString, temp );
         messageBody.replace( pos-4, timeoutString.size()+4, "" );
-        ar_log_remark() << "timeout is " << temp <<
-	  " msec, msg body is '" << messageBody << "'.\n";
-        if (!ok) {
-          ar_log_warning() << "failed to convert timeout string.\n";
-        } else {
+        if (ok) {
+	  ar_log_debug() << "szgd timeout is " << temp <<
+	    " msec, msg body is '" << messageBody << "'.\n";
           timeoutMsec = temp;
+        } else {
+          ar_log_warning() << "szgd ignoring invalid timeout string '"
+	    << timeoutString << "'.\n";
         }
       }
       

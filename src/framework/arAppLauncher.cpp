@@ -37,7 +37,7 @@ arAppLauncher::~arAppLauncher(){
 
 bool arAppLauncher::setRenderProgram(const string& name){
   _renderProgram = name;
-  ar_log_debug() << _exeName << " remark: renderer is " << _renderProgram << ".\n";
+  ar_log_debug() << _exeName << ": renderer is " << _renderProgram << ".\n";
   return true;
 }
 
@@ -137,7 +137,7 @@ bool arAppLauncher::setParameters(){
   _onlyIncompatibleServices = 
     _client->getAttribute(_vircomp, "SZG_CONF", "relaunch_all", "") != "true";
  
-  // todo: stick to either pipe or screen, don't use both terms.
+  // todo: stick to either pipe or screen or host, don't use both terms.  Probably host.
   const int numberPipes = getNumberScreens();
   if (numberPipes <= 0){
     ar_log_error() << "arAppLauncher: negative number of screens for virtual computer '" << _vircomp << "'.\n";
@@ -171,7 +171,7 @@ bool arAppLauncher::setParameters(){
   for (i=0; i<numTokens; i+=2){
     const string computer(inputDevs[i]);
     string device(inputDevs[i+1]);
-    string info = device; // NOTE: device will be modified below.
+    string info(device);
 
     // todo: hack, copypasted into demo/buttonfly/setinputfilter.cpp
     //
@@ -249,7 +249,7 @@ bool arAppLauncher::launchApp(){
   // Things that need to be killed first (like incompatible services)
   list<int> serviceKillList;
 
-  // The "virtual computer" decides if all services are restarted,
+  // The virtual computer decides if all services are restarted,
   // or just incompatible ones.
   if (_onlyIncompatibleServices){
     _relaunchIncompatibleServices(appsToLaunch, serviceKillList);
@@ -259,22 +259,19 @@ bool arAppLauncher::launchApp(){
   }
 
   for (i=0; i<_numberPipes; i++){
-    // if the is a "distapp" application, then we launch on every pipe
-    // (the old notion of allowing an instance of the application to
-    // both be the controller and a renderer no longer exists
-    if (_appType == "distapp"
-        || _client->getProcessID(_pipeComp[i],
-                                 _firstToken(_renderProgram)) == -1){
+    // if a "distributed app", launch on every host.
+    if (_appType == "distapp" || _client->getProcessID(
+	  _pipeComp[i], _firstToken(_renderProgram)) == -1){
       appsToLaunch.push_back(_renderLaunchInfo[i]);
     }
   }
 
-  // Kill any incompatible services here.
+  // Kill any incompatible services.
   _blockingKillByID(&serviceKillList);
 
   const bool ok = _execList(&appsToLaunch);
   if (!ok){
-    ar_log_error() << _exeName << " error: failed to execute full component list.\n";
+    ar_log_warning() << _exeName << ": not all components launched.\n";
   }
   _unlock(); 
   return ok;
@@ -681,6 +678,7 @@ void arAppLauncher::_addService(const string& computerName,
   temp.tradingTag = _location + "/" + tradingTag;
   temp.info = info;
   _serviceList.push_back(temp);
+  ar_log_debug() << "heyu dump arLaunchInfo entry here, dude.\n";;;;
 }
 
 bool arAppLauncher::_trylock(){
@@ -958,56 +956,48 @@ void arAppLauncher::_relaunchIncompatibleServices(
     const int serviceID = _client->getServiceComponentID(iter->tradingTag);
     if (serviceID == -1){
       // No component is offering this service.
-      ar_log_remark() << _exeName << " restarting service "
+      ar_log_remark() << _exeName << " starting service "
 	              << iter->tradingTag << ".\n";
       appsToLaunch.push_back(*iter);
+      continue;
     }
-    else{
-      // Found the service.  But is it
-      // running on the right computer, with the right info tag?
-      const arSlashString processLocation(_client->getProcessLabel(serviceID));
-      if (processLocation.size() == 2){
-        // The process location must, in fact, be computer/name.
-	// NOTE: Only check here if it is running on the right computer!
-	// (do not, for instance, check the process name)
-        if (processLocation[0] == iter->computer){
-	  // There is something running, offering the service, with the
-	  // right process name and on the right computer.
-          // HOWEVER... is it the case that we have the right info?
-	  // (i.e. maybe it is a DeviceServer that is running the wrong
-	  //  driver)
-          const string info(_client->getServiceInfo(iter->tradingTag));
-	  // If info == iter->info then there is nothing to do. The service
-	  // seems to be in the right place and of the right type.
-          if (info != iter->info){
-            // Kill.
-	    ar_log_remark() << _exeName << " remark: restarting service "
-		            << iter->tradingTag
-		            << ", because of invalid info " << iter->info << ".\n";
-            serviceKillList.push_back(serviceID);
-            appsToLaunch.push_back(*iter);
-	  }
-#if 0
-	  else{
-            ar_log_remark() << _exeName << " remark: compatible service "
-	                    << iter->tradingTag << ".\n";
-	  }
-#endif
+
+    // Found the service.  Is it running on the right computer, with the right info tag?
+    const arSlashString processLocation(_client->getProcessLabel(serviceID));
+    if (processLocation.size() == 2){
+      // The process location must, in fact, be computer/name.
+      // NOTE: Only check here if it is running on the right computer!
+      // (do not, for instance, check the process name)
+      if (processLocation[0] == iter->computer){
+	// Service is running with the right process name and on the right computer.
+	// Does it have the right info (is it a DeviceServer running the wrong driver)?
+	const string info(_client->getServiceInfo(iter->tradingTag));
+	// If info == iter->info then there is nothing to do. The service
+	// seems to be in the right place and of the right type.
+	if (info != iter->info){
+	  ar_log_remark() << _exeName << " restarting service "
+			  << iter->tradingTag
+			  << ", because of invalid info '" << iter->info << "'.\n";
+	  serviceKillList.push_back(serviceID);
+	  appsToLaunch.push_back(*iter);
 	}
 	else{
-          // There is something running, offering the service, but not on
-	  // the right computer.
-          ar_log_remark() << _exeName << " remark: relaunching service "
-	                  << iter->tradingTag << " on correct host.\n";
-          serviceKillList.push_back(serviceID);
-          appsToLaunch.push_back(*iter);
+          ar_log_debug() << _exeName << " found service " << iter->tradingTag << ".\n";
 	}
       }
       else{
-        ar_log_remark() << _exeName << " remark: relaunching disappeared service "
-	                << iter->tradingTag << ".\n";
-        appsToLaunch.push_back(*iter);
+	// Service is running, but on the wrong host.
+	ar_log_remark() << _exeName << " restarting service "
+	  << iter->tradingTag << " on host '" << processLocation[0]
+	  << "' instead of '" << iter->computer << "'.\n";
+	serviceKillList.push_back(serviceID);
+	appsToLaunch.push_back(*iter);
       }
+    }
+    else{
+      ar_log_remark() << _exeName << " remark: relaunching disappeared service "
+		      << iter->tradingTag << ".\n";
+      appsToLaunch.push_back(*iter);
     }
   }
 }
