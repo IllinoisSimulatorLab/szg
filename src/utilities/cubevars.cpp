@@ -83,9 +83,9 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
   arMatrix4 rgm[20]; // buffer overflow
   const unsigned cm = fw.getNumberMatrices();
   if (cm < 2)
-    cerr << "warning: expect at least a head and wand matrix.\n";
+    cerr << "cubevars warning: expect at least a head and wand matrix.\n";
   if (cm > 20)
-    cerr << "warning: too many matrices.\n";
+    cerr << "cubevars warning: too many matrices.\n";
   for (i=0; i<cm; ++i)
     rgm[i] = fw.getMatrix(i);
   const arMatrix4& headMatrix = rgm[0];
@@ -93,7 +93,7 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
 
   const unsigned ca = fw.getNumberAxes();
   if (ca != 2)
-    cerr << "warning: expect 2 axes.\n";
+    cerr << "cubevars warning: expect 2 axes.\n";
   const float caveJoystickX = fw.getAxis(0);
   const float caveJoystickY = fw.getAxis(1);
 
@@ -102,9 +102,9 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
   // ?workaround -- only master calls this, in preexchange.
 
   if (cb < 3)
-    cerr << "warning: expect at least 3 buttons.\n";
+    cerr << "cubevars warning: expect at least 3 buttons.\n";
   if (cb > 250)
-    cerr << "warning: too many buttons.\n";
+    cerr << "cubevars warning: too many buttons.\n";
   int rgButton[257];
   for (i=0; i < cb; ++i)
     rgButton[i] = fw.getButton(i);
