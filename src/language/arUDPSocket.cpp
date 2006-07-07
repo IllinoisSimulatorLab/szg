@@ -53,7 +53,10 @@ int arUDPSocket::ar_read(char* theData, int howMuch, arSocketAddress* addr) cons
 
   return recvfrom(_socketFD,theData,howMuch,0,
 		  (sockaddr*)addr->getAddress(),
-		  (socklen_t*)addr->getAddressLengthPtr());
+#ifndef AR_USE_WIN_32
+		  (socklen_t*)
+#endif
+		              addr->getAddressLengthPtr());
 }
 
 int arUDPSocket::ar_write(const char* theData, int howMuch, arSocketAddress* addr) const {
