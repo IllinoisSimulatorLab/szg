@@ -135,9 +135,7 @@ void arInputSource::sendButtonsAxesMatrices(
     _theTypes = new ARint[numThings];
   }
 
-  // Gotta send all the stuff in *some* order, so might as well
-  // do the obvious thing and pack the arrays with first buttons,
-  // then axes, then matrices.
+  // Pack the arrays with first buttons, then axes, then matrices.
   int iAll = 0;
   int i =0 ;
   for (i=0; i<numButtons; i++){

@@ -78,7 +78,7 @@ class SZG_CALL arInputSource{
   int _numberMatrices;
 
   // buffers for accumulating queueXXX() data
-  enum { _maxSize = 256 }; // oh no! fixed size!!!
+  enum { _maxSize = 256 }; // bug: several fixed length buffers
   ARint _types[3*_maxSize];
   ARint _indices[3*_maxSize];
   ARint _buttons[_maxSize];
@@ -91,7 +91,6 @@ class SZG_CALL arInputSource{
 
   // init() calls this to set the device signature.
   void _setDeviceElements(int buttons, int axes, int matrices);
-  // a utility function
   bool _fillCommonData(arStructuredData*);
   // the filtration function
 //  arStructuredData* _filterData(arStructuredData*);
