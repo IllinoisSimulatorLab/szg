@@ -23,7 +23,10 @@ ar3DS::~ar3DS() {
 // Uses lib3ds to read in a .3ds file
 // @param fileName name of the 3DS file (including extension)
 bool ar3DS::read3DS(const string& fileName) {
-#ifdef Enable3DS
+#ifndef Enable3DS
+  cerr << "ar3DS error: compiled without 3DS support.\n";
+  return false;
+#else
   char* name = new char[fileName.length()+1];
   strcpy(name, fileName.c_str());
   _file = lib3ds_file_load(name);
@@ -31,10 +34,6 @@ bool ar3DS::read3DS(const string& fileName) {
     _invalidFile = true;
   }
   delete [] name;
-#else
-    cerr << "ar3DS error: failed to read \""
-	 << fileName
-	 << "\", since compiled without 3DS support.\n";
 #endif
   return !_invalidFile;
 }
@@ -81,13 +80,13 @@ bool ar3DS::attachMesh(arGraphicsNode* parent, const string& baseName){
   transformNode->setTransform(topMatrix);
   //dgTransform(baseName, where, topMatrix);
   Lib3dsNode* ptr = _file->nodes;
-  if (ptr == NULL)
-    cerr << "ar3DS error: File contains no data!\n"
-	 << "(are you using a supported version of 3D Studio Max "
-	 << "to save data?)\n";
-  else
-    for (ptr=_file->nodes; ptr!=NULL; ptr=ptr->next) {
+  if (ptr) {
+    for (ptr=_file->nodes; ptr; ptr=ptr->next) {
       attachChildNode(baseName, transformNode, ptr);
+  }
+  else {
+    cerr << "ar3DS error: empty file. (Was the data saved with a supported version of 3D Studio Max?)\n";
+  }
     }
 
   return true;
