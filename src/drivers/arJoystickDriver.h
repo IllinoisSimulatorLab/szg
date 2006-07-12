@@ -24,6 +24,7 @@ class SZG_CALL arJoystickDriver: public arInputSource{
   bool stop();
  private:
   arThread _eventThread;
+  void _eventTask();
   bool _pollingDone;
   bool _shutdown;
   arMutex _shutdownLock;
