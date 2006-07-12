@@ -70,7 +70,6 @@ class SZG_CALL arInputNode: public arInputSink {
     arInputEventQueue _eventQueue;
     std::vector< arInputState > _filterStates;
     
-    // event callback pointer
     void (*_eventCallback)( arInputEvent& inputEvent );
     
     arMutex _dataSerializationLock;

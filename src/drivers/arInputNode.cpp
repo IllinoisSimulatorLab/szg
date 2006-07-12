@@ -20,30 +20,34 @@ arInputNode::arInputNode( bool bufferEvents ) :
 }
 
 arInputNode::~arInputNode() {
-//  arSourceIterator sourceIter;
-//  arSinkIterator sinkIter;
-//  arFilterIterator filterIter;
-//  std::vector<bool>::iterator iter;
+
+#if 0
+// Bug: bad things happen.
+  arSourceIterator sourceIter;
+  arSinkIterator sinkIter;
+  arFilterIterator filterIter;
+  std::vector<bool>::iterator iter;
   
-// This stuff makes bad things happen, have to add it more carefully
-//  for (sourceIter = _inputSourceList.begin(), iter = _iOwnSources.begin();
-//         sourceIter != _inputSourceList.end() && iter != _iOwnSources.end();
-//         sourceIter++, iter++) {
-//    if (*iter)
-//      delete *sourceIter;
-//  }
-//  for (sinkIter = _inputSinkList.begin(), iter = _iOwnSinks.begin();
-//         sinkIter != _inputSinkList.end() && iter != _iOwnSinks.end();
-//         sinkIter++, iter++) {
-//    if (*iter)
-//      delete *sinkIter;
-//  }
-//  for (filterIter = _inputFilterList.begin(), iter = _iOwnFilters.begin();
-//         filterIter != _inputFilterList.end() && iter != _iOwnFilters.end();
-//         filterIter++, iter++) {
-//    if (*iter)
-//      delete *filterIter;
-//  }
+  for (sourceIter = _inputSourceList.begin(), iter = _iOwnSources.begin();
+         sourceIter != _inputSourceList.end() && iter != _iOwnSources.end();
+         sourceIter++, iter++) {
+    if (*iter)
+      delete *sourceIter;
+  }
+  for (sinkIter = _inputSinkList.begin(), iter = _iOwnSinks.begin();
+         sinkIter != _inputSinkList.end() && iter != _iOwnSinks.end();
+         sinkIter++, iter++) {
+    if (*iter)
+      delete *sinkIter;
+  }
+  for (filterIter = _inputFilterList.begin(), iter = _iOwnFilters.begin();
+         filterIter != _inputFilterList.end() && iter != _iOwnFilters.end();
+         filterIter++, iter++) {
+    if (*iter)
+      delete *filterIter;
+  }
+#endif
+
   _inputFilterList.clear();
   _inputSinkList.clear();
   _inputSourceList.clear();
