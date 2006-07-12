@@ -29,7 +29,7 @@ arDataServer::arDataServer(int dataBufferSize) :
 }
 
 arDataServer::~arDataServer(){
-  // close all current connections
+  // Close all connections.
   if (_numberConnected > 0){
     ar_log_remark() << "arDataServer destructor closing sockets.\n";
     for (list<arSocket*>::iterator i(_connectionSockets.begin());
@@ -168,7 +168,6 @@ bool arDataServer::beginListening(arTemplateDictionary* theDictionary){
     return false;
   }
   _theDictionary = theDictionary;
-  // it is possible that beginListening will be called again and again
   if (!_dataParser){
     _dataParser = new arStructuredDataParser(_theDictionary);
   }
@@ -183,17 +182,17 @@ bool arDataServer::beginListening(arTemplateDictionary* theDictionary){
     return false;
   }
 
-  // don't forget to pass down the accept mask that let's us do 
+  // Pass down the accept mask that implements
   // TCP-wrappers style filtering on clients that try to connect
   _listeningSocket->setAcceptMask(_acceptMask);
 
-  // ar_bind needs null-terminated C-style string instead of C++ string
+  // ar_bind needs C string, not std::string
   char addressBuffer[256];
   ar_stringToBuffer(_interfaceIP, addressBuffer, sizeof(addressBuffer));
   if (_listeningSocket->ar_bind(_interfaceIP == "INADDR_ANY" 
                                    ? NULL : addressBuffer,
                                 _portNumber) < 0){
-    cerr << "arDataServer error: failed to bind to "
+    cerr << "arDataServer warning: failed to bind to "
          << _interfaceIP << ":" << _portNumber
          << "\n\t(maybe " << _interfaceIP
          << " is not this host's address,\n\tor port "
@@ -214,10 +213,10 @@ bool arDataServer::beginListening(arTemplateDictionary* theDictionary){
 
 bool arDataServer::removeConnection(int id){
   ar_mutex_lock(&_dataTransferMutex);
-  const map<int,arSocket*,less<int> >::iterator i(_connectionIDs.find(id));
-  const bool found = (i != _connectionIDs.end());
-  if (found)
-    _deleteSocketFromDatabase(i->second);
+    const map<int,arSocket*,less<int> >::iterator i(_connectionIDs.find(id));
+    const bool found = (i != _connectionIDs.end());
+    if (found)
+      _deleteSocketFromDatabase(i->second);
   ar_mutex_unlock(&_dataTransferMutex);
   return found;
 }
@@ -230,8 +229,7 @@ arSocket* arDataServer::_acceptConnection(bool addToActive){
   // It would be a good idea to experiment with removing this at some point.
   ar_usleep(30000);
 
-  // we need to be able to accept connections in a different thread
-  // than where we send data
+  // Accept connections in a different thread from the one sending data.
   arSocket* newSocketFD = new arSocket(AR_STANDARD_SOCKET);
   arSocketAddress addr;
   if (!newSocketFD){
@@ -337,7 +335,7 @@ LAbort:
 
 void arDataServer::activatePassiveSockets(){
   ar_mutex_lock(&_dataTransferMutex);
-  for (list<arSocket*>::iterator i(_passiveSockets.begin());
+  for (list<arSocket*>::const_iterator i(_passiveSockets.begin());
        i != _passiveSockets.end();
        ++i){
     _connectionSockets.push_back(*i);
@@ -357,7 +355,7 @@ bool arDataServer::checkPassiveSockets(){
 list<arSocket*>* arDataServer::getActiveSockets(){
   list<arSocket*>* result = new list<arSocket*>;
   ar_mutex_lock(&_dataTransferMutex);
-    for (list<arSocket*>::iterator i=_connectionSockets.begin();
+    for (list<arSocket*>::const_iterator i=_connectionSockets.begin();
 	 i != _connectionSockets.end();
 	 ++i){
       result->push_back(*i);
@@ -451,21 +449,20 @@ bool arDataServer::sendDataNoLock(arStructuredData* pData, arSocket* fd){
 }
 
 bool arDataServer::sendDataQueue(arQueuedData* pData, arSocket* fd){
-  // we need to check that the arSocket pointer is not NULL
   if (!fd){
     cerr << "arDataServer warning: ignoring data-queue-send to NULL socket.\n";
     return false;
   }
   ar_mutex_lock(&_dataTransferMutex);
-  const bool ok =
-    _sendDataCore(pData->getFrontBufferRaw(), pData->getFrontBufferSize(), fd);
+    const bool ok =
+      _sendDataCore(pData->getFrontBufferRaw(), pData->getFrontBufferSize(), fd);
   ar_mutex_unlock(&_dataTransferMutex);
   return ok;
 }
 
 // Call this only inside _dataTransferMutex.
 bool arDataServer::_sendDataCore(ARchar* theBuffer, const int theSize, arSocket* fd){
-  // Checks in caller already ensure that fd is not NULL.
+  // Caller ensures that fd != NULL.
   if (fd->ar_safeWrite(theBuffer,theSize))
     return true;
   cerr << "arDataServer warning: failed to send data to specific socket.\n";
@@ -477,22 +474,22 @@ bool arDataServer::sendDataQueue(arQueuedData* theData,
 				 list<arSocket*>* socketList){
   const int theSize = theData->getFrontBufferSize();
   ar_mutex_lock(&_dataTransferMutex);
-  list<arSocket*> removalList;
-  bool anyConnections = false;
-  ARchar* theBuffer = theData->getFrontBufferRaw();
-  list<arSocket*>::iterator i;
-  for (i = socketList->begin(); i != socketList->end(); ++i){
-    if ((*i)->ar_safeWrite(theBuffer, theSize)){
-      anyConnections = true;
+    list<arSocket*> removalList;
+    bool anyConnections = false;
+    ARchar* theBuffer = theData->getFrontBufferRaw();
+    list<arSocket*>::iterator i;
+    for (i = socketList->begin(); i != socketList->end(); ++i){
+      if ((*i)->ar_safeWrite(theBuffer, theSize)){
+	anyConnections = true;
+      }
+      else{
+	cerr << "arDataServer warning: failed to send data.\n";
+	removalList.push_back(*i);
+      }
     }
-    else{
-      cerr << "arDataServer warning: failed to send data.\n";
-      removalList.push_back(*i);
+    for (i = removalList.begin(); i != removalList.end(); i++){
+      _deleteSocketFromDatabase(*i);
     }
-  }
-  for (i = removalList.begin(); i != removalList.end(); i++){
-    _deleteSocketFromDatabase(*i);
-  }
   ar_mutex_unlock(&_dataTransferMutex);
   return anyConnections;
 }
@@ -519,7 +516,7 @@ string arDataServer::dumpConnectionLabels(){
   string result;
   char buffer[16];
   ar_mutex_lock(&_dataTransferMutex);
-    for (map<int,string,less<int> >::iterator iLabel(_connectionLabels.begin());
+    for (map<int,string,less<int> >::const_iterator iLabel(_connectionLabels.begin());
 	 iLabel != _connectionLabels.end();
 	 ++iLabel){
       sprintf(buffer,"%i",iLabel->first);
@@ -529,15 +526,15 @@ string arDataServer::dumpConnectionLabels(){
   return result;
 }
 
-arSocket* arDataServer::getConnectedSocket(int theSocketID){
+arSocket* arDataServer::getConnectedSocket(int id){
   ar_mutex_lock(&_dataTransferMutex);
-    arSocket* result = getConnectedSocketNoLock(theSocketID);
+    arSocket* result = getConnectedSocketNoLock(id);
   ar_mutex_unlock(&_dataTransferMutex);
   return result;
 }
 
-arSocket* arDataServer::getConnectedSocketNoLock(int theSocketID){
-  map<int,arSocket*,less<int> >::iterator i(_connectionIDs.find(theSocketID));
+arSocket* arDataServer::getConnectedSocketNoLock(int id){
+  map<int,arSocket*,less<int> >::iterator i(_connectionIDs.find(id));
   return i==_connectionIDs.end() ? NULL : i->second;
 }
 
@@ -549,7 +546,7 @@ void arDataServer::setSocketLabel(arSocket* theSocket, const string& theLabel){
 
 string arDataServer::getSocketLabel(int theSocketID){
   ar_mutex_lock(&_dataTransferMutex);
-  map<int,string,less<int> >::iterator i(_connectionLabels.find(theSocketID));
+  map<int,string,less<int> >::const_iterator i(_connectionLabels.find(theSocketID));
   const string s(i==_connectionLabels.end() ? string("NULL") : i->second);
   ar_mutex_unlock(&_dataTransferMutex);
   return s;
@@ -558,7 +555,7 @@ string arDataServer::getSocketLabel(int theSocketID){
 int arDataServer::getFirstIDWithLabel(const string& theSocketLabel){
   int result = -1;
   ar_mutex_lock(&_dataTransferMutex);
-  for (map<int,string,less<int> >::iterator i = _connectionLabels.begin();
+  for (map<int,string,less<int> >::const_iterator i = _connectionLabels.begin();
       i != _connectionLabels.end();
       ++i){
     if (theSocketLabel == i->second){
