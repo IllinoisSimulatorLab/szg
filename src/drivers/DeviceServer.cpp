@@ -54,13 +54,13 @@ bool testForArgAndRemove(const string& theArg, int& argc, char** argv){
 bool parseTokenList(arStringTextStream& tokenStream,
                     const string& tagType,
                     list<string>& tokenList){
-  // Should get input_sources.
-  string tagText = ar_getTagText(&tokenStream);
-  arBuffer<char> buffer(128);
+  // Get input_sources.
+  string tagText(ar_getTagText(&tokenStream));
   if (tagText != tagType){
     ar_log_warning() << "DeviceServer parsing expected " << tagType << " tag.\n";
     return false;
   }
+  arBuffer<char> buffer(128);
   if (!ar_getTextBeforeTag(&tokenStream, &buffer)){
     ar_log_warning() << "DeviceServer parsing failed on " << tagType << " field.\n";
     return false;
@@ -74,10 +74,12 @@ bool parseTokenList(arStringTextStream& tokenStream,
       ar_log_remark() << tagType << " DeviceServer token '" << token << "'\n";
     }
   } while (!tokens.eof());
-  // Look for closing input_sources tag.
+
+  // Closing input_sources tag.
   tagText = ar_getTagText(&tokenStream);
   if (tagText != "/"+tagType){
-    ar_log_warning() << "DeviceServer parsing: bad end tag '" << tagType << "'.\n";
+    ar_log_warning() << "DeviceServer parsing: expected end tag '/" << tagType << "', not '"
+      << tagText << "'.\n";
     return false;
   }
   return true;
@@ -85,14 +87,14 @@ bool parseTokenList(arStringTextStream& tokenStream,
 
 class InputNodeConfig{
  public:
-  InputNodeConfig(): pforthProgram(""), valid(false) {}
+  InputNodeConfig(): valid(false), pforthProgram("") {}
   ~InputNodeConfig() {}
 
+  bool         valid;
   list<string> inputSources;
   list<string> inputSinks;
   list<string> inputFilters; 
   string       pforthProgram;
-  bool         valid;
 };
 
 InputNodeConfig parseNodeConfig(const string& nodeConfig){
@@ -100,10 +102,10 @@ InputNodeConfig parseNodeConfig(const string& nodeConfig){
   arStringTextStream configStream(nodeConfig);
   arBuffer<char> buffer(128); 
 
-  string tagText = ar_getTagText(&configStream);
+  string tagText(ar_getTagText(&configStream));
   if (tagText != "szg_device"){
-    ar_log_warning() << "DeviceServer parsing expected starting tag szg_device, not "
-         << tagText << ".\n";
+    ar_log_warning() << "DeviceServer parsing expected starting tag szg_device, not '"
+         << tagText << "'.\n";
     return result;
   }
   if (!parseTokenList(configStream, "input_sources", result.inputSources)){
@@ -116,24 +118,21 @@ InputNodeConfig parseNodeConfig(const string& nodeConfig){
     return result;
   }
   
-  // Should get pforth.
   tagText = ar_getTagText(&configStream);
   if (tagText != "pforth"){
     ar_log_warning() << "DeviceServer parsing expected pforth tag.\n";
     return result;
   }
   if (! ar_getTextBeforeTag(&configStream, &buffer)){
-    ar_log_warning() << "DeviceServer parsing failed on pforth field.\n";
+    ar_log_warning() << "DeviceServer parsing failed in pforth field.\n";
     return result;
   }
   result.pforthProgram = string(buffer.data);
-  // Look for closing pforth tag.
   tagText = ar_getTagText(&configStream);
   if (tagText != "/pforth"){
     ar_log_warning() << "DeviceServer parsing expected /pforth tag.\n";
     return result;
   }
-  // Look for closing /szg_device tag.
   tagText = ar_getTagText(&configStream);
   if (tagText != "/szg_device"){
     ar_log_warning() << "DeviceServer parsing expected /szg_device tag.\n";
@@ -188,28 +187,24 @@ LAbort:
   else{
     const string& config = szgClient.getGlobalAttribute(argv[1]);
     if (config == "NULL") {
-      ar_log_error() << "DeviceServer: undefined global node (i.e., <param> in dbatch file) '" << argv[1] << "'.\n";
+      ar_log_error() << "DeviceServer: undefined global node (<param> in dbatch file) '" << argv[1] << "'.\n";
       goto LAbort;
     }
     nodeConfig = parseNodeConfig(config);
     if (!nodeConfig.valid){
-      ar_log_error() << "DeviceServer: misconfigured global node (i.e., <param> in dbatch file) '"
+      ar_log_error() << "DeviceServer: misconfigured global node (<param> in dbatch file) '"
 	<< argv[1] << "'\n";
       goto LAbort;
     }
   }
 
-  std::map< std::string, arInputSource* > driverNameMap;
-
-  // Configure the input node.
-  arInputNode inputNode;
-
-  const string execPath = szgClient.getAttribute("SZG_EXEC","path"); // search for dll's
-  // Start with the input sources.
-  // Assign input slots to the input sources.
-  unsigned nextInputSlot = slotNumber + 1;
-  // Configure the input sources.
   list<string>::iterator iter;
+
+  // Configure the input sources.
+  arInputNode inputNode;
+  const string execPath = szgClient.getAttribute("SZG_EXEC","path"); // search for dll's
+  std::map< std::string, arInputSource* > driverNameMap;
+  unsigned nextInputSlot = slotNumber + 1;
   for (iter = nodeConfig.inputSources.begin();
        iter != nodeConfig.inputSources.end(); iter++) {
     arInputSource* theSource = NULL;
@@ -238,7 +233,7 @@ LAbort:
         goto LAbort;
       }
       ar_log_debug() << "DeviceServer created input source '" <<
-	  *iter << "' from config file, in slot " << nextInputSlot-1 << ".\n";
+	  *iter << "' in slot " << nextInputSlot-1 << ".\n";
       driverNameMap[*iter] = theSource;
       inputNode.addInputSource(theSource, false);
     }
@@ -255,7 +250,6 @@ LAbort:
       ++nextInputSlot;
     ++nextInputSlot;
     // bug? typo? why increment twice?
-    // The node will "own" this source.
     inputNode.addInputSource(commandLineNetInputSource,true);
   }
 
