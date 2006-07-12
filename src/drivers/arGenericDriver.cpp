@@ -12,6 +12,6 @@ arGenericDriver::arGenericDriver(){
 arGenericDriver::~arGenericDriver(){
 }
 
-void arGenericDriver::setSignature(int buttons, int axes, int matrices){
+void arGenericDriver::setSignature(unsigned buttons, unsigned axes, unsigned matrices){
   _setDeviceElements(buttons,axes,matrices);
 }
