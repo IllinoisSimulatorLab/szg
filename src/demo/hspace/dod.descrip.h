@@ -17,7 +17,7 @@
 
 // These arrays are used in only some of the files which include this.
 
-static float ddvert[N_VERTS][4] ={ 
+static const float ddvert[N_VERTS][4] ={ 
 { 0.353553, 0.000000, 0.135045, 0.925615 }, 
 { 0.218508, -0.218508, 0.218508, 0.925615 }, 
 { 0.218508, 0.218508, 0.218508, 0.925615 }, 
@@ -40,7 +40,7 @@ static float ddvert[N_VERTS][4] ={
 { -0.218508, 0.218508, -0.218508, 0.925615 } 
   };
 
-static int ddface[N_FACES][FACE_VERTS] ={ 
+static const int ddface[N_FACES][FACE_VERTS] ={ 
 { 16, 15, 17, 18 ,19 }, 
 { 14, 13, 12, 15 ,16 }, 
 { 12, 11, 10, 17 ,15 }, 
@@ -55,14 +55,14 @@ static int ddface[N_FACES][FACE_VERTS] ={
 { 4, 3, 1, 0 ,2 }, 
   };
 
-static int ddwire[] = {
+static const int ddwire[] = {
   18,17,15,16,19,18,5,6,10,11,12,13,14,9,8,7,4,3,1,0,2,4,STOPSTRIP,
   10,17,STOPSTRIP, 12,15,STOPSTRIP, 14,16,STOPSTRIP, 8,19,STOPSTRIP,
   3,6,STOPSTRIP, 1,11,STOPSTRIP, 0,13,STOPSTRIP, 2,9,STOPSTRIP,
   7,5,ENDARRAY
   };
 
-static float sddcolr[N_FACES][4] ={ 
+static const float sddcolr[N_FACES][4] ={ 
 { 0.800000, 0.100000, 0.100000, 0.750000 }, 
 { 0.100000, 0.650000, 0.400000, 0.750000 }, 
 { 0.100000, 0.100000, 0.800000, 0.750000 }, 
@@ -77,7 +77,7 @@ static float sddcolr[N_FACES][4] ={
 { 0.800000, 0.100000, 0.100000, 0.750000 } 
   };
 
-static float hddcolr[N_FACES][4] ={
+static const float hddcolr[N_FACES][4] ={
 { 0.800000, 0.100000, 0.100000, 0.750000 },
 { 0.800000, 0.100000, 0.100000, 0.750000 },
 { 0.100000, 0.650000, 0.400000, 0.750000 },
