@@ -16,7 +16,7 @@ class SZG_CALL arGenericDriver: public arInputSource{
   arGenericDriver();
   ~arGenericDriver();
   
-  void setSignature(int,int,int);
+  void setSignature(unsigned, unsigned, unsigned);
 };
 
 #endif
