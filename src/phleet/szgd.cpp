@@ -9,8 +9,6 @@
 #include "arSZGClient.h"
 #include "arDataUtilities.h"
 
-#include <list>
-
 #ifdef AR_USE_WIN_32
   #include <windows.h>
 #else
@@ -84,11 +82,11 @@ public:
   ExecutionInfo(){}
   ~ExecutionInfo(){}
 
+  int receivedMessageID;
+  int timeoutmsec;
   string userName;
   string messageContext;
   string messageBody;
-  int receivedMessageID;
-  int timeoutmsec;
 
   string executableType;
   string pyDirPath;
@@ -126,8 +124,8 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
   const string userName(execInfo->userName);
   const string argString(execInfo->messageBody);
 
-  // Tokenize the argString. Place the first token
-  // in "command" and the other tokens in the list "args".
+  // Tokenize the argString.
+  // "command" gets the first token, the list "args" gets the rest.
   // command is our candidate for the exe, either native or python.
   args.clear();
   arDelimitedString tmpArgs(argString, ' ');
@@ -151,10 +149,9 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
   }
 
   // Determine if the argString's first token is in the exec path:
-  //   a. Strip the token (remove .EXE)
-  //   b. Determine if this a python script (via the extension)
-  //      If not, under win32 append .EXE.
-  //   c. Try to find the file on the path.
+  //   a. Strip the token (remove .EXE).
+  //   b. If this not a .py python script, under win32 append .EXE.
+  //   c. Find the file on the path.
 #ifdef AR_USE_WIN_32
   const string commandRaw(command);
 #endif
@@ -179,7 +176,7 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
     command = ar_fileFind( fileName, "", execInfo->pyDirPath);
     if (command == "NULL") {
       errStream << "szgd error: no file '" << fileName <<
-        "' on python source path '" << execInfo->pyDirPath << "'.\n";
+        "' on SZG_PYTHON/path '" << execInfo->pyDirPath << "'.\n";
       return errStream.str();
     }
   }
@@ -191,8 +188,8 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
     fileName = command;
     command = ar_fileFind(fileName, "", execPath);
     if (command == "NULL") {
-      errStream << "szgd error: no executable '" << fileName
-           << "' on path '" << execPath << "'.\n";
+      errStream << "szgd error: no file '" << fileName
+           << "' on SZG_EXEC/path '" << execPath << "'.\n";
 LAbort:
 #ifdef AR_USE_WIN_32
       if (fHadEXE)
@@ -207,36 +204,34 @@ LAbort:
     // Nothing to do
   }
   else if (execInfo->executableType == "python") {
-    // The command needs to be changed to either:
-    // (1) The value of the Syzygy database variable SZG_PYTHON/executable; or if not set,
-    // (2) the value of the environment variable SZG_PYEXE; or if not set,
-    // (3) "python",
-    // and the former command // (i.e. the script name) needs to be pushed
-    // onto the front of the args list.
+    // Prepend the original command (the script name) to the args list.
     args.push_front(command);
-    string pyExeString = ar_getenv("SZG_PYEXE");
-    string szgPyExe = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "executable", "");
-    if (szgPyExe != "NULL") {
-      pyExeString = szgPyExe;
-    }
-    if ((pyExeString == "NULL")||(pyExeString == "")) {
+
+    // Change the command to:
+    //   the Syzygy database variable SZG_PYTHON/executable; or if not set,
+    //   the environment variable SZG_PYEXE; or if not set,
+    //   "python".
+    const string szgPyExe = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "executable", "");
+    const string pyExeString = (szgPyExe!="NULL") ? szgPyExe : ar_getenv("SZG_PYEXE");
+    if (pyExeString == "NULL" || pyExeString == "") {
       command = "python";
     } else {
-      // allow for /-delimited cmdline args in SZG_PYEXE or SZG_PYTHON/executable
+      // Handle slash-delimited cmdline args in SZG_PYEXE or SZG_PYTHON/executable
       arSlashString pySpaceString( pyExeString );
       command = pySpaceString[0];
       for (int ind=1; ind < pySpaceString.size(); ++ind) {
         args.push_front( pySpaceString[ind] );
       }
     }
+
 #ifdef AR_USE_WIN_32
     command += ".EXE";
 #endif
     fileName = command;
     command = ar_fileFind( fileName, "", execPath );
     if (command == "NULL") {
-      errStream << "szgd error: no python executable file " << fileName
-           << "\n  on exec path " << execPath << ".\n";
+      errStream << "szgd error: no python exe '" << fileName
+           << "' on SZG_EXEC/path " << execPath << ".\n";
       goto LAbort;
     }
   }
@@ -327,10 +322,8 @@ void execProcess(void* i){
   const string messageBody(execInfo->messageBody);
   int receivedMessageID = execInfo->receivedMessageID; 
 
-  // Start out with the part of executable launching that is the same
-  // between Windows and Unix (not much)
   stringstream info;
-  // We might have to respond ourselves if the executable won't launch.
+  // Respond to the message ourselves if the exe doesn't launch.
   info << "*user=" << userName
        << ", context=" << messageContext
        << ", *computer=" << SZGClient->getComputerName() << endl;
@@ -339,11 +332,10 @@ void execProcess(void* i){
   string symbolicCommand;
   string newCommand;
   list<string> mangledArgList;
-  const string statString = buildFunctionArgs( execInfo, execPath, 
-                         symbolicCommand, newCommand, mangledArgList);
-  if (statString != "OK") {
-    info << statString;
-    // we respond to the message ourselves
+  const string stats = buildFunctionArgs(
+    execInfo, execPath, symbolicCommand, newCommand, mangledArgList);
+  if (stats != "OK") {
+    info << stats;
     SZGClient->messageResponse(receivedMessageID, info.str());
 LDone:
     delete execInfo;
@@ -606,9 +598,9 @@ LDone:
     break;
   }
 	
-  // handshake back to the parent
+  // Handshake back to the parent.
   const string terminalOutput = info.str();
-  // we failed to launch the exe
+  // Exe failed to launch.
   numberBuffer[0] = 0;
   if (!ar_safePipeWrite(pipeDescriptors[1], numberBuffer, 1)) {
     cout << "szgd remark: failed to send failure code over pipe.\n";
@@ -718,8 +710,8 @@ LDone:
 
 int main(int argc, char** argv) {
 #ifndef AR_USE_WIN_32
-  // If $DISPLAY is not 0:0, szgd will create a window on an
-  // unexpected screen.  Should we test for this?
+  // If $DISPLAY is not 0:0, szgd creates a window on an unexpected screen.
+  // Should we test for this?
 
   // Kill zombie processes.
   signal(SIGCHLD,SIG_IGN);
@@ -731,7 +723,7 @@ int main(int argc, char** argv) {
   ar_log().setStream(cout);
 
   const int argcOriginal = argc;
-  // We don't need a copy of argv because it doesn't get modified.
+  // We don't need an original copy of argv, because it doesn't get modified.
 
 LRetry:
   argc = argcOriginal;
@@ -751,8 +743,7 @@ LRetry:
   // Only one instance per host.
   int ownerID = -1;
   if (!SZGClient->getLock(SZGClient->getComputerName() + "/szgd", ownerID)) {
-    cerr << "szgd error: another copy is already running (pid = " 
-         << ownerID << ").\n";
+    cerr << "szgd error: another copy is already running (pid = " << ownerID << ").\n";
     // todo: if we can't communicate with that pid, then
     // assume szgserver has obsolete info, "dkill -9" that pid,
     // and start up anyways.
@@ -773,14 +764,14 @@ LRetry:
       }
       exit(0);
     }
-    
+
     if (messageType=="quit") {
       // Just in case exit() misses SZGClient's destructor.
       SZGClient->closeConnection();
       // will return(0) be gentler, yet kill the child processes too?
       exit(0);
     }
-    
+
     if (messageType=="exec") {
       // Hack - extract timeoutMsec from end of body, if it's there.
       int timeoutMsec = -1;
@@ -800,7 +791,7 @@ LRetry:
 	    << timeoutString << "'.\n";
         }
       }
-      
+
       ExecutionInfo* info = new ExecutionInfo();
       // todo: all this should be args to the constructor
 	info->userName = userName;

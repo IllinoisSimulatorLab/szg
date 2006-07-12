@@ -24,16 +24,16 @@ class SZG_CALL arInputEventQueue {
     bool size() const { return _queue.size(); }
     arInputEvent popNextEvent();
     
-    unsigned int getNumberButtons() const { return _numButtons; }
-    unsigned int getNumberAxes() const { return _numAxes; }
-    unsigned int getNumberMatrices() const { return _numMatrices; }
+    unsigned getNumberButtons()  const { return _numButtons; }
+    unsigned getNumberAxes()     const { return _numAxes; }
+    unsigned getNumberMatrices() const { return _numMatrices; }
 
-    void setSignature( unsigned int numButtons,
-                       unsigned int numAxes,
-                       unsigned int numMatrices );
-    unsigned int getButtonSignature() const { return _buttonSignature; }
-    unsigned int getAxisSignature() const { return _axisSignature; }
-    unsigned int getMatrixSignature() const { return _matrixSignature; }
+    void setSignature( unsigned numButtons,
+                       unsigned numAxes,
+                       unsigned numMatrices );
+    unsigned getButtonSignature() const { return _buttonSignature; }
+    unsigned getAxisSignature() const { return _axisSignature; }
+    unsigned getMatrixSignature() const { return _matrixSignature; }
                          
     bool setFromBuffers( const int* const typeData,
                          const int* const indexData,
@@ -53,20 +53,19 @@ class SZG_CALL arInputEventQueue {
     
   private:
     std::deque<arInputEvent> _queue;
-    unsigned int _numButtons;
-    unsigned int _numAxes;
-    unsigned int _numMatrices;
+    unsigned _numButtons;
+    unsigned _numAxes;
+    unsigned _numMatrices;
     
     // These are meant to be set from an arStructuredData
     // cf ar_setInputQueueFromStructuredData() in arEventUtilities
     // will be increased if a higher event index comes along
     // then will be used to set outgoing arStructuredData signature
     // in ar_saveInputQueueToStructuredData().
-    // The arInputEventQueue will never reject events because of the
-    // signature.
-    unsigned int _buttonSignature;
-    unsigned int _axisSignature;
-    unsigned int _matrixSignature;
+    // The arInputEventQueue will never reject events because of the signature.
+    unsigned _buttonSignature;
+    unsigned _axisSignature;
+    unsigned _matrixSignature;
 };    
 
-#endif        //  #ifndefARINPUTEVENTQUEUE_H
+#endif
