@@ -22,53 +22,50 @@ arStructuredDataParser*  dataParser = NULL;
 arDataServer*            dataServer = NULL;
 arPhleetConnectionBroker connectionBroker;
 
-// We might want to do TCP-wrappers style filtering on the incoming IPs.
+// TCP-wrappers style filtering on the incoming IPs.
 list<string> serverAcceptMask;
 
-// Need to keep a record of the addresses of the NICs in this computer.
-// This pertains to the "discovery" process.
+// Addresses of this host's NICs, for the "discovery" process.
 arSlashString computerAddresses;
 arSlashString computerMasks;
 
 string serverName;
 int    serverPort = -1;
-string serverInterface;
+string serverIP;
 
 //*******************************************
 // global data storage used by the szgserver
 //*******************************************
 
+typedef map<string,string,less<string> > SZGparamDatabase;
+typedef SZGparamDatabase::iterator iterParam;
+typedef SZGparamDatabase::const_iterator const_iterParam;
+
 // One container stores database values particular to szgserver itself.
 // This basically includes only the pseudoDNS at this stage.
-typedef map<string,string,less<string> > SZGparamDatabase;
 SZGparamDatabase rootContainer;
 
-// One parameter database for each user who has logged-on
+// One parameter database per dlogin'd user.
 typedef map<string,SZGparamDatabase*,less<string> > SZGuserDatabase;
 SZGuserDatabase userDatabase;
 
 // The current parameter database
-map<string,string,less<string> >* valueContainer = NULL;
+SZGparamDatabase* valueContainer = NULL;
 
 arMutex receiveDataMutex;
 
 // message IDs start at 1
 int nextMessageID = 1;
 
-class arPhleetMessage{
- public:
-  arPhleetMessage(){}
-  ~arPhleetMessage(){}
-
-  int messageID;           // the ID of this message
-  int messageOwner;        // the ID of the message's owner
-                           // (i.e. the component to which it was
-                           //  originally directed or possibly someone else
+struct arPhleetMessage{
+  int messageID;           // ID of this message
+  int messageOwner;        // ID of message's owner
+                           // (the component to which it was
+                           // originally directed or possibly someone else
                            // if there was a message trade) 
-  int responseDestination; // the response's destination
-  int match;               // the "match" for the response
-  int tradingMatch;        // the "match" for the trade, if one is currently
-                           // occuring
+  int responseDestination; // (ID of) the response's destination
+  int match;               // (ID of) the "match" for the response
+  int tradingMatch;        // (ID of) the "match" for a trade in progress
 };
 
 // DOH!!! The next section of STL shows VERY BAD DATA STRUCTURE DESIGN!!
@@ -126,12 +123,12 @@ typedef map<int,list<int>,less<int> > SZGkillNotificationOwnershipDatabase;
 SZGkillNotificationOwnershipDatabase killNotificationOwnershipDatabase;
 
 //**************************************************
-// end of global data storage used by the szgserver
+// end of szgserver's global data storage
 //**************************************************
 
 
 //**************************************************
-// Misc. utility functions
+// utility functions
 //**************************************************
 
 void _transferMatchFromTo(arStructuredData* from, arStructuredData* to){
@@ -146,7 +143,7 @@ void SZGactivateUser(const string& userName){
     valueContainer = i->second;
   }
   else{
-    // better insert a new parameter database for this user
+    // add a new parameter database for this user
     SZGparamDatabase* newDatabase = new SZGparamDatabase;
     userDatabase.insert(SZGuserDatabase::value_type(userName,newDatabase));
     valueContainer = newDatabase;
@@ -260,7 +257,7 @@ int SZGgetMessageOwnerID(int messageID){
 // we need to fill in the original match so that the async stuff on the
 // arSZGClient side can route the messages correctly.
 int SZGgetMessageMatch(int messageID){
-  SZGmessageOwnershipDatabase::iterator
+  SZGmessageOwnershipDatabase::const_iterator
     i(messageOwnershipDatabase.find(messageID));
   return (i == messageOwnershipDatabase.end()) ? -1 : i->second.match;
 } 
@@ -269,10 +266,9 @@ int SZGgetMessageMatch(int messageID){
 // (and to which the response needs to be sent).
 // @param messageID ID of the message
 int SZGgetMessageOriginatorID(int messageID){
-  SZGmessageOwnershipDatabase::iterator
+  SZGmessageOwnershipDatabase::const_iterator
     i(messageOwnershipDatabase.find(messageID));
-  return (i == messageOwnershipDatabase.end()) 
-         ? -1 : i->second.responseDestination ;
+  return (i == messageOwnershipDatabase.end()) ? -1 : i->second.responseDestination;
 }
 
 // Remove the message with the given ID from the database.
@@ -281,11 +277,9 @@ int SZGgetMessageOriginatorID(int messageID){
 // a response to a message is received at the szgserver.
 // @param messageID ID of the message
 bool SZGremoveMessageFromDatabase(int messageID){
-  SZGmessageOwnershipDatabase::iterator
-    i(messageOwnershipDatabase.find(messageID));
+  SZGmessageOwnershipDatabase::iterator i(messageOwnershipDatabase.find(messageID));
   if (i == messageOwnershipDatabase.end()){
-    cerr << "szgserver warning: ignoring request to remove nonexistant "
-	 << "message.\n";
+    cerr << "szgserver warning: ignoring request to remove nonexistant message.\n";
     return false;
   }
 
@@ -305,41 +299,40 @@ bool SZGremoveMessageFromDatabase(int messageID){
 // the trade be posted
 // @param tradingMatch this is used to respond to the component that
 // initiated the trade when said trade has been completed.
-bool SZGaddMessageTradeToDatabase(string key, 
+bool SZGaddMessageTradeToDatabase(const string& key, 
                                   int messageID,
 				  int requestingComponentID,
                                   int tradingMatch){
   SZGmessageOwnershipDatabase::iterator
     i(messageOwnershipDatabase.find(messageID));
   if (i == messageOwnershipDatabase.end()){
-    cerr << "szgserver warning: trade cannot be started since no message "
-	 << "with that ID exists.\n";
+    cerr << "szgserver warning: can't start trade on messageless ID.\n";
     return false;
   }
   const int responseOwner = i->second.messageOwner;
   if (responseOwner != requestingComponentID){
-    cerr << "szgserver warning: trade cannot be started since the message "
-	 << "is not owned by the component asking to start the trade.\n";
+    cerr << "szgserver warning: can't start trade on message "
+	 << "not owned by the component asking to start the trade.\n";
     return false;
   }
   SZGmessageTradingDatabase::iterator j(messageTradingDatabase.find(key));
   if (j != messageTradingDatabase.end()){
     // a trade has already been posted with this key... failure
-    cerr << "szgserver warning: trade cannot be started since an "
-	 << "identical key already exists.\n";
+    cerr << "szgserver warning: can't start trade on already existing key.\n";
     return false;
   }
-  // yes, we can, in fact, start to do the trade.
+
+  // Start the trade.
   i->second.tradingMatch = tradingMatch;
-  messageTradingDatabase.insert(SZGmessageTradingDatabase::value_type
-				(key, i->second));
+  messageTradingDatabase.insert(SZGmessageTradingDatabase::value_type(key, i->second));
+
   // Remove the corresponding data from the message ownership database.
   messageOwnershipDatabase.erase(i);
 
-  // remove the corresponding data from the component's list
+  // Remove the corresponding data from the component's list.
   SZGremoveMessageIDFromComponentsList(responseOwner, messageID);
 
-  // add the trading key to the component's list of such things
+  // Add the trading key to the component's list.
   SZGinsertKeyIntoComponentsList(responseOwner, key);
 
   return true;
@@ -378,7 +371,6 @@ bool SZGmessageRequest(const string& key, int newOwnerID,
 
   // add the messageID to the list associated with the new owner
   SZGinsertMessageIDIntoComponentsList(newOwnerID,message.messageID);
-
   return true;
 }
 
@@ -386,32 +378,28 @@ bool SZGmessageRequest(const string& key, int newOwnerID,
 // when szgd fails to launch an executable, in which
 // case szgd wants to respond directly to the "dex" command.
 // @param key Value on which the message trade was posted
-// @param revokerID ID of the component that is requesting the trade
-// revocation
+// @param revokerID ID of the component that is requesting the trade revocation
 bool SZGrevokeMessageTrade(const string& key, int revokerID){
   SZGmessageTradingDatabase::iterator j(messageTradingDatabase.find(key));
   // is there a message with this key?
   if (j == messageTradingDatabase.end()){
-    cerr << "szgserver warning: attempted to revoke a message trade on a "
-	 << "nonexistant key=" << key <<".\n";
+    cerr << "szgserver warning: can't revoke message trade on nonexistant key '" << key <<"'.\n";
     return false;
   }
-  // A message with this key exists, but are we allowed to revoke?
+
   arPhleetMessage message = j->second;
   if (message.messageOwner != revokerID){
-    cerr << "szgserver warning: "
-	 << "component unauthorized to revoke a message trade.\n";
+    cerr << "szgserver warning: component unauthorized to revoke a message trade.\n";
     return false;
   }
 
   // remove the trade from the database
   messageTradingDatabase.erase(j);
   // restore the original message owenership
-  messageOwnershipDatabase.insert(SZGmessageOwnershipDatabase::value_type
-				  (message.messageID,message));
+  messageOwnershipDatabase.insert(
+    SZGmessageOwnershipDatabase::value_type(message.messageID,message));
   // enter the message ID back into the ownership list of the component
-  SZGinsertMessageIDIntoComponentsList(message.messageOwner,
-				       message.messageID);
+  SZGinsertMessageIDIntoComponentsList(message.messageOwner, message.messageID);
   // remove the key from the trading list associated with this component
   SZGremoveKeyFromComponentsList(message.messageOwner, key);
   return true;
@@ -473,13 +461,9 @@ bool SZGgetLock(const string& lockName, int id, int& ownerID){
   return true;
 }
 
-// Returns true if the lock is currently held and false otherwise
+// Return true iff the lock is held.
 bool SZGcheckLock(const string& lockName){
-  SZGlockOwnershipDatabase::iterator i(lockOwnershipDatabase.find(lockName));
-  if (i == lockOwnershipDatabase.end()){
-    return false;
-  }
-  return true;
+  return lockOwnershipDatabase.find(lockName) != lockOwnershipDatabase.end();
 }
 
 // Enters a request for notification when a given lock, currently held,
@@ -827,55 +811,50 @@ void SZGsendKillNotification(int observedComponentID, bool serverLock){
 	}
       }
       else{
-	cerr << "szgserver error: "
-	     << "found no expected kill notification owner.\n";
+	cerr << "szgserver error: no expected kill notification owner.\n";
       }
     }
-    // Must recycle the storage!
     dataParser->recycle(data);
     // finally, we've sent all the kill notifications, so remove the entry.
     killNotificationDatabase.erase(i);
   }
 }
 
-// A component is going away. Remove any outstanding kill notification
-// requests that it owns from internal storage.
+// A component is going away. Remove from internal storage any outstanding kill notification
+// requests that it owns.
 void SZGremoveComponentKillNotifications(int requestingComponentID){
-  SZGkillNotificationOwnershipDatabase::iterator i
-    = killNotificationOwnershipDatabase.find(requestingComponentID);
+  SZGkillNotificationOwnershipDatabase::iterator i =
+    killNotificationOwnershipDatabase.find(requestingComponentID);
   if (i != killNotificationOwnershipDatabase.end()){
-    // this component has some kill notifications... what we do is go
-    // through the it's list (which contains the IDs of the components it is
-    // OBSERVING).
+    // this component has some kill notifications.
+    // traverse its list (which contains the IDs of the components it is OBSERVING).
     for (list<int>::iterator j = i->second.begin();
 	 j != i->second.end(); j++){
       // WOEFULLY INEFFICIENT... TODO TODO TODO TODO TODO TODO
-      // NOTE: we find the observed component and look at its list of
+      // Find the observed component and look at its list of
       // registered kill notification requests.
-      SZGkillNotificationDatabase::iterator k
-	= killNotificationDatabase.find(*j);
+      SZGkillNotificationDatabase::iterator k = killNotificationDatabase.find(*j);
       if (k != killNotificationDatabase.end()){
 	// Remove every notification from the list which is related to the
 	// requestingComponentID.
         list<arPhleetNotification>::iterator l = k->second.begin();
 	while (l != k->second.end()){
-	  // NOTE: the arPhleetNotification's componentID is the 
+	  // arPhleetNotification's componentID is the 
 	  // ID of the component REQUESTING the notification!
           if (l->componentID == requestingComponentID){
             l = k->second.erase(l);
 	  }
 	  else{
-	    l++;
+	    ++l;
 	  }
 	}
-	// if the list is empty, better remove it!
 	if (k->second.empty()){
+	  // Remove the empty list.
 	  killNotificationDatabase.erase(k);
 	}
       }
       else{
-	cerr << "szgserver error: found no kill notification, "
-	     << "needed by component list.\n";
+	cerr << "szgserver error: no kill notification, needed by component list.\n";
       }
     }
     // finally, the component has gone away... so remove its info
@@ -919,22 +898,19 @@ void SZGreleaseNotificationCallback(int componentID,
 // SZG_FAILURE).  Also clean up message trades, locks, and services offered.
 // @param componentID ID of component which should have sent replies
 void SZGremoveComponentFromDatabase(int componentID){
-  // FOR THE CURIOUS: WHY ARE THERE sendDataNoLock's in here? Because this
-  // is called from the automatic remove socket from data server call,
-  // which occurs inside the mutex already.
+  // Don't sendDataNoLock, because we're called from 
+  // the automatic remove socket from data server call, already in the mutex.
+
   // Construct the failure message.
   int messageID = -1;
   int responseDest = -1;
-  arStructuredData* messageAdminData = 
-    dataParser->getStorage(lang.AR_SZG_MESSAGE_ADMIN);
-  (void)messageAdminData->dataIn(lang.AR_SZG_MESSAGE_ADMIN_ID, &messageID,
-				 AR_INT, 1);
-  (void)messageAdminData->dataInString(lang.AR_SZG_MESSAGE_ADMIN_STATUS,
-                                       "SZG_FAILURE");
-  (void)messageAdminData->dataInString(lang.AR_SZG_MESSAGE_ADMIN_TYPE,
-				       "SZG Response");
+  arStructuredData* messageAdminData = dataParser->getStorage(lang.AR_SZG_MESSAGE_ADMIN);
+  (void)messageAdminData->dataIn(lang.AR_SZG_MESSAGE_ADMIN_ID, &messageID, AR_INT, 1);
+  (void)messageAdminData->dataInString(lang.AR_SZG_MESSAGE_ADMIN_STATUS, "SZG_FAILURE");
+  (void)messageAdminData->dataInString(lang.AR_SZG_MESSAGE_ADMIN_TYPE, "SZG Response");
   (void)messageAdminData->dataInString(lang.AR_SZG_MESSAGE_ADMIN_BODY, "");
-  // first, we need to send "failure" messages to all components expecting
+
+  // send "failure" messages to all components expecting
   // a message response from this component
   const SZGcomponentMessageOwnershipDatabase::iterator i =
     componentMessageOwnershipDatabase.find(componentID);
@@ -942,9 +918,9 @@ void SZGremoveComponentFromDatabase(int componentID){
   // a particular component.
   if (i != componentMessageOwnershipDatabase.end()){
     for (list<int>::iterator k=i->second.begin(); k!=i->second.end(); k++){
-      // go through the list, sending failure messages as we go.
+      // go through the list, sending failure messages.
       messageID = *k;
-      // we now need to find the component that originated the message
+      // find the component that originated the message
       const SZGmessageOwnershipDatabase::iterator j =
         messageOwnershipDatabase.find(messageID);
       if (j == messageOwnershipDatabase.end()){
@@ -958,11 +934,10 @@ void SZGremoveComponentFromDatabase(int componentID){
         messageAdminData->dataIn(lang.AR_PHLEET_MATCH, &(j->second.match),
                                  AR_INT, 1);
 	// the first element of the pair is the owner of the response
-	// the second element of the pair is the destination
-	// to which we should send the message
+	// the second element of the pair is the destination of our message
         responseDest = j->second.responseDestination;
         messageOwnershipDatabase.erase(j);
-        // NOTE: we cannot assume that the response destination still exists!
+        // The response destination may have vanished.
         arSocket* destinationSocket =
           dataServer->getConnectedSocketNoLock(responseDest);
         if (!destinationSocket){
@@ -1062,7 +1037,7 @@ bytes 164-199: The port upon which the remote whatnot should connect,
 */
 void serverDiscoveryFunction(void* pv){
   char buffer[200];
-  ar_stringToBuffer(serverInterface, buffer, sizeof(buffer));
+  ar_stringToBuffer(serverIP, buffer, sizeof(buffer));
   arSocketAddress incomingAddress;
   incomingAddress.setAddress(NULL, 4620);
   arUDPSocket _socket;
@@ -1113,7 +1088,7 @@ void serverDiscoveryFunction(void* pv){
       // Put in the szgserver name.
       ar_stringToBuffer(serverName, buffer+5, 127);
       // Put in the szgserver interface.
-      ar_stringToBuffer(serverInterface, buffer+132, 32);
+      ar_stringToBuffer(serverIP, buffer+132, 32);
       // Put in the szgserver port.
       sprintf(buffer+164,"%i",serverPort);
       // Walk through the server computer's NICs, as defined by the
@@ -1154,91 +1129,86 @@ void serverDiscoveryFunction(void* pv){
 
 // Callback for accessing a database parameter
 // (or the process table, or a collection of database parameters)
-// @param theData Data record from the client
+// @param dataRequest Data record from the client
 // @param dataSocket Socket upon which the request travels
-void attributeGetRequestCallback(arStructuredData* theData,
+void attributeGetRequestCallback(arStructuredData* dataRequest,
                                  arSocket* dataSocket){
-  string value, attribute;
-  map<string,string,less<string> >::iterator i;
-  // Choose the user database.
-  SZGactivateUser(theData->getDataString(lang.AR_PHLEET_USER));
-  // The attribute name before it has been manipulated, etc.
-  const string attrRaw(theData->getDataString(lang.AR_ATTR_GET_REQ_ATTR));
 
-  // Fill in the data from storage, first getting some place to put it.
-  arStructuredData* attrGetResponseData =
-    dataParser->getStorage(lang.AR_ATTR_GET_RES);
-  // Also, transfer the "match" value from the request to the response.
-  _transferMatchFromTo(theData, attrGetResponseData);
-  const string type(theData->getDataString(lang.AR_ATTR_GET_REQ_TYPE));
+  // Choose the user database.
+  SZGactivateUser(dataRequest->getDataString(lang.AR_PHLEET_USER));
+
+  // The attribute name.
+  string attribute(dataRequest->getDataString(lang.AR_ATTR_GET_REQ_ATTR));
+  string value;
+
+  // Fill in the data from storage.
+  arStructuredData* dataResponse = dataParser->getStorage(lang.AR_ATTR_GET_RES);
+
+  _transferMatchFromTo(dataRequest, dataResponse);
+  const string type(dataRequest->getDataString(lang.AR_ATTR_GET_REQ_TYPE));
+
   if (type=="NULL"){
     // Send the process table.
-    (void)attrGetResponseData->dataInString(
-      lang.AR_ATTR_GET_RES_ATTR, attrRaw);
-    (void)attrGetResponseData->dataInString(
+    (void)dataResponse->dataInString(
+      lang.AR_ATTR_GET_RES_ATTR, attribute);
+    (void)dataResponse->dataInString(
       lang.AR_ATTR_GET_RES_VAL, dataServer->dumpConnectionLabels());
   }
 
   else if (type=="ALL"){
     // Concatenate all members of valueContainer into a return value.
-    (void)attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_ATTR, 
-                                            attrRaw);
-    // BUG BUG BUG BUG BUG BUG BUG
-    // This does not (yet) generate a new-style szg dbatch script!
-    for (i = valueContainer->begin(); i != valueContainer->end(); ++i){
-      // more useful:  output it in dbatch-style format.
+    (void)dataResponse->dataInString(lang.AR_ATTR_GET_RES_ATTR, attribute);
+    // todo: generate a 1.0-style szg dbatch script.
+    for (const_iterParam i = valueContainer->begin();
+      i != valueContainer->end(); ++i){
+      // Output in dbatch format.
       string first = i->first;
-      // Replace both slashes with spaces,
-      // to make it compatible with the syntax of dbatch.
-      unsigned int slash = first.find("/");
-      // IMPORTANT NOTE: The attribute might be GLOBAL (in which case it
-      // has no slashes!) So... only replace the slashes if they exist!
-      if (slash != string::npos){
+      unsigned slash = first.find("/");
+      if (slash == string::npos){
+	// Global attr.
+        value += (first + "  " + i->second + "\n");
+      }
+      else{
+	// Local attr.  It has slashes.
+        // Replace both slashes with spaces, to make it compatible with the syntax of dbatch.
         first.replace(slash, 1, " ");
         slash = first.find("/");
         first.replace(slash, 1, " ");
         const string& s = first + "   " + i->second + "\n";
         value += s;
       }
-      else{
-        value += (first + "  " + i->second + "\n");
-      }
     }
-    (void)attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_VAL, 
-                                            value);
+    (void)dataResponse->dataInString(lang.AR_ATTR_GET_RES_VAL, value);
   }
+
   else if (type=="substring"){
-    // Send an attribute or a list of attributes passing a substring test.
-    attribute = attrRaw;
+    // Send an attribute, or a list of attributes, passing a substring test.
     value = string("(List):\n");
-    for (i = valueContainer->begin(); i != valueContainer->end(); ++i){
+    for (const_iterParam i = valueContainer->begin();
+      i != valueContainer->end(); ++i){
       const string s(i->first + "  =  " + i->second + "\n");
       if (s.find(attribute) != string::npos){
 	value += s;
       }
     }
-    (void)attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_ATTR, 
-                                            attribute);
-    (void)attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_VAL, value);
+    (void)dataResponse->dataInString(lang.AR_ATTR_GET_RES_ATTR, attribute);
+    (void)dataResponse->dataInString(lang.AR_ATTR_GET_RES_VAL, value);
   }
+
   else if (type=="value"){
-    attribute = attrRaw; // AARGH! a layer of indirection that is no
-                         // longer needed since no more name resolution
-    i = valueContainer->find(attribute);
+    const_iterParam i(valueContainer->find(attribute));
     value = (i == valueContainer->end()) ? string("NULL") : i->second;
-    (void)attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_ATTR, 
-                                            attribute);
-    (void)attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_VAL, value);
+    (void)dataResponse->dataInString(lang.AR_ATTR_GET_RES_ATTR, attribute);
+    (void)dataResponse->dataInString(lang.AR_ATTR_GET_RES_VAL, value);
   }
+
   else{
-    cout << "szgserver internal error: got incorrect type for attribute "
-	 << "get request.\n";
+    cout << "szgserver internal error: unrecognized type for attribute get request.\n";
   }
 
   // Send the record.
-  dataServer->sendData(attrGetResponseData, dataSocket);
-  // recycle the storage
-  dataParser->recycle(attrGetResponseData);
+  dataServer->sendData(dataResponse, dataSocket);
+  dataParser->recycle(dataResponse);
 }
 
 // Callback for setting a parameter in the database.
@@ -1248,65 +1218,58 @@ void attributeSetCallback(arStructuredData* theData,
                           arSocket* dataSocket){
   // Print user data.
   SZGactivateUser(theData->getDataString(lang.AR_PHLEET_USER));
-  const string attrRaw(theData->getDataString(lang.AR_ATTR_SET_ATTR));
-  const string attribute = attrRaw; // AARGH! unnecessary since no more name
-                                    // resolution
+  const string attribute(theData->getDataString(lang.AR_ATTR_SET_ATTR));
   const string value(theData->getDataString(lang.AR_ATTR_SET_VAL));
   const ARint requestType = theData->getDataInt(lang.AR_ATTR_SET_TYPE);
 
   // Insert the data into the table.
-  map<string,string,less<string> >::iterator i
-    (valueContainer->find(attribute));
+  iterParam i(valueContainer->find(attribute));
   if (requestType == 0){
     // Remove from the table any data already with this key.
     if (i != valueContainer->end())
       valueContainer->erase(i);
-    valueContainer->insert
-      (map<string,string,less<string> >::value_type (attribute, value));
+    // Don't insert NULL values.
+    if (value != "NULL")
+      valueContainer->insert(SZGparamDatabase::value_type(attribute, value));
 
-    // Acknowledge that all is well. NOTE: all we have to do with the data
-    // is fill in the match.
-    arStructuredData* connectionAckData 
-      = dataParser->getStorage(lang.AR_CONNECTION_ACK);
+    // Ack by filling in the match.
+    arStructuredData* connectionAckData = dataParser->getStorage(lang.AR_CONNECTION_ACK);
     _transferMatchFromTo(theData, connectionAckData);
     if (!dataServer->sendData(connectionAckData,dataSocket)){
       cerr << "szgserver warning: AR_ATTR_SET send failed.\n";
     }
     dataParser->recycle(connectionAckData);
+    return;
   }
-  else{
-    // Test-and-set.
-    string returnString;
-    if (i != valueContainer->end()){
-      if (i->second == "NULL"){
-	// Set the attr's value.
-        valueContainer->erase(i);
-        valueContainer->insert(
-          map<string,string,less<string> >::value_type (attribute, value));
-	returnString = value;
-      }
-      else{
-	returnString = string("NULL");
-      }
-    }
-    else{
-      valueContainer->insert(
-        map<string,string,less<string> >::value_type (attribute, value));
+
+  // Test-and-set.
+  string returnString("NULL");
+  if (i != valueContainer->end()){
+    if (i->second == "NULL"){
+      // Set the attr's value.
+      valueContainer->erase(i);
+      // Don't insert NULL values.
+      if (value != "NULL")
+	valueContainer->insert(SZGparamDatabase::value_type(attribute, value));
       returnString = value;
     }
-    // Return the info, first getting some space to put it in.
-    arStructuredData* attrGetResponseData =
-      dataParser->getStorage(lang.AR_ATTR_GET_RES);
-    _transferMatchFromTo(theData, attrGetResponseData);
-    if (!attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_ATTR, 
-                                           attribute) ||
-        !attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_VAL, 
-                                           returnString) ||
-        !dataServer->sendData(attrGetResponseData, dataSocket)){
-      cerr << "szgserver warning: AR_ATTR_GET_RES send failed.\n";
-    }
-    dataParser->recycle(attrGetResponseData);
   }
+  else{
+    // Don't insert NULL values.
+    if (value != "NULL")
+      valueContainer->insert(SZGparamDatabase::value_type(attribute, value));
+    returnString = value;
+  }
+
+  // Return the info, first getting some space to put it in.
+  arStructuredData* attrGetResponseData = dataParser->getStorage(lang.AR_ATTR_GET_RES);
+  _transferMatchFromTo(theData, attrGetResponseData);
+  if (!attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_ATTR, attribute) ||
+      !attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_VAL, returnString) ||
+      !dataServer->sendData(attrGetResponseData, dataSocket)){
+    cerr << "szgserver warning: AR_ATTR_GET_RES send failed.\n";
+  }
+  dataParser->recycle(attrGetResponseData);
 }
 
 inline const char* szgSuccess(bool ok)
@@ -1323,8 +1286,7 @@ bool SZGack(arStructuredData* messageAckData, bool ok) {
 
 void processInfoCallback(arStructuredData* theData, arSocket* dataSocket){
  
-  const string requestType =
-    theData->getDataString(lang.AR_PROCESS_INFO_TYPE);
+  const string requestType = theData->getDataString(lang.AR_PROCESS_INFO_TYPE);
   int theID = -1;
   string theLabel;
   if (requestType == "self"){
@@ -1510,31 +1472,23 @@ void messageAdminCallback(arStructuredData* theData,
       (void)SZGack(messageAckData, true);
       messageID = -1;
       // Put in the match from the original trade.
-      messageAckData->dataIn(lang.AR_PHLEET_MATCH, &(messageData.tradingMatch),
-                             AR_INT, 1);
-      messageAckData->dataIn(lang.AR_SZG_MESSAGE_ACK_ID, &messageID, 
-                             AR_INT, 1);
-      // We must, of course, send back to the originator of the message trade,
-      // not the new owner.
-      responseSocket 
-        = dataServer->getConnectedSocket(oldInfo.messageOwner);
+      messageAckData->dataIn(lang.AR_PHLEET_MATCH, &(messageData.tradingMatch), AR_INT, 1);
+      messageAckData->dataIn(lang.AR_SZG_MESSAGE_ACK_ID, &messageID, AR_INT, 1);
+      // Send back to the originator of the message trade, not the new owner.
+      responseSocket = dataServer->getConnectedSocket(oldInfo.messageOwner);
       if (!responseSocket){
 	cerr << "szgserver warning: missing originator of message trade.\n";
       }
       else if (!dataServer->sendData(messageAckData,responseSocket)){
-	cerr << "szgserver warning: failed to notify originator about "
-	     << "message trade.  Originator may have failed.\n";
+	cerr << "szgserver warning: failed to notify originator about message trade.  Originator may have failed.\n";
       }
       // Fill in the ID field of the record to be sent back to the component
       // requesting the trade with the message's ID.
       // Reuse the messageAck storage.
       messageID = messageData.messageID;
-      // Don't forget to put the normal match back in. (THIS WILL BE SENT
-      // LATER)
+      // Put the normal match back in. (THIS WILL BE SENT LATER)
       _transferMatchFromTo(theData, messageAckData);
-      messageAckData->dataIn(lang.AR_SZG_MESSAGE_ACK_ID, &messageID, 
-                             AR_INT, 1);
-      // we succeeded
+      messageAckData->dataIn(lang.AR_SZG_MESSAGE_ACK_ID, &messageID, AR_INT, 1);
       status = true;
     }
   }
@@ -1550,7 +1504,6 @@ void messageAdminCallback(arStructuredData* theData,
       !dataServer->sendData(messageAckData, dataSocket)){
     cerr << "szgserver warning: failed to send message ack.\n";
   }
-  // Must recycle the data.
   dataParser->recycle(messageAckData);
 }
 
@@ -2124,14 +2077,13 @@ int main(int argc, char** argv){
 
   // If another szgserver on the network has the same name, abort.
   // We can discover this like dhunt's arSZGClientServerResponseThread(),
-  // but we (not dhunt's cout) need the result.
-  connectionBroker.setReleaseNotificationCallback(
-    SZGreleaseNotificationCallback);
+  // but we, not dhunt's cout, need the result.
+  connectionBroker.setReleaseNotificationCallback(SZGreleaseNotificationCallback);
 
   serverName = string(argv[1]);
   // todo: errorcheck serverPort, so it's outside the block of ports for connection brokering
   serverPort = atoi(argv[2]);
-  // Determine serverInterface, so we can tell client where to connect
+  // Determine serverIP, so we can tell client where to connect
   // while we bind to INADDR_ANY.
   arPhleetConfigParser parser;
   if (!parser.parseConfigFile()){
@@ -2139,15 +2091,15 @@ int main(int argc, char** argv){
     return 1;
   }
 
-  // Find the first address interface in the list. This is the address
-  // returned to dhunt and dlogin.
+  // Find the first address interface in the list,
+  // the one reported to dhunt and dlogin.
   computerAddresses = parser.getAddresses();
   computerMasks = parser.getMasks();
   if (computerAddresses.empty()){
     cerr << "szgserver error: config file defines no networks.\n";
     return 1;
   }
-  serverInterface = computerAddresses[0];
+  serverIP = computerAddresses[0];
 
   bool fAbort = false;
   arThread dummy(serverDiscoveryFunction, &fAbort);
@@ -2165,16 +2117,12 @@ int main(int argc, char** argv){
   dataServer->setAcceptMask(serverAcceptMask);
   dataServer->setDisconnectFunction(SZGdisconnectFunction);
 
-  // get the data parser going
+  // Start the data parser.
   dataParser = new arStructuredDataParser(lang.getDictionary());
-
-  // set the various characteristics of the data server
-  // we want to bind to INADDR_ANY
   if (!dataServer->setInterface("INADDR_ANY") ||
       !dataServer->setPort(serverPort)){
-    cerr << "szgserver error: invalid IP:port "
-         << serverInterface  << ":" << serverPort
-	 << " for data server.\n";
+    cerr << "szgserver error: data server has invalid IP:port "
+         << serverIP  << ":" << serverPort << ".\n";
     return 1;
   }
 
@@ -2184,7 +2132,7 @@ int main(int argc, char** argv){
   if (!dataServer->beginListening(lang.getDictionary()))
     return 1;
 
-  // Give any other threads a chance to fail (they will set fAbort).
+  // Give other threads a chance to fail (they will set fAbort).
   ar_usleep(100000);
 
   while (!fAbort) {

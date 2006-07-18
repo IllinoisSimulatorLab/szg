@@ -845,21 +845,18 @@ bool arSZGClient::setAttribute(const string& userName,
 			       const string& parameterName,
 			       const string& parameterValue){
   if (!_connected){
-    // we set attributes in the local database (parseParameterFile
-    // uses this method when reading in the local config file in
-    // standalone mode.
-    return _setAttributeLocal(computerName, groupName, parameterName,
-                              parameterValue);
+    // Set attributes in the local database.  parseParameterFile
+    // calls this when reading the local config file, when standalone.
+    return _setAttributeLocal(computerName, groupName, parameterName, parameterValue);
   }
 
   const string query(
     (computerName=="NULL" ? _computerName : computerName) +
-    "/"+groupName+"/"+parameterName);
+    "/" + groupName + "/" + parameterName);
 
   // Get storage for the message.
-  arStructuredData* setRequestData
-    = _dataParser->getStorage(_l.AR_ATTR_SET);
-  bool status = true;
+  arStructuredData* setRequestData = _dataParser->getStorage(_l.AR_ATTR_SET);
+  bool ok = true;
   const ARint temp = 0; // don't test-and-set.
   int match = _fillMatchField(setRequestData);
   if (!setRequestData->dataInString(_l.AR_ATTR_SET_ATTR,query) ||
@@ -871,10 +868,10 @@ bool arSZGClient::setAttribute(const string& userName,
                      << groupName << "/" << parameterName << " on host '"
 	             << computerName << "' to '" << parameterValue
                      << "' (send failed).\n";
-    status = false;
+    ok = false;
   }
   _dataParser->recycle(setRequestData);
-  if (!status)
+  if (!ok)
     return false;
 
   arStructuredData* ack = _getTaggedData(match, _l.AR_CONNECTION_ACK);
@@ -2896,7 +2893,7 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
   return false;
 }
 
-// Header beginnnig all messages returned to dex from a launched exe.
+// Header of messages returned to dex from a launched exe.
 string arSZGClient::_generateLaunchInfoHeader(){
   stringstream s;
   s << "*user=" << _userName << ", "
@@ -2906,8 +2903,7 @@ string arSZGClient::_generateLaunchInfoHeader(){
   return s.str();
 }
 
-// It could be the case that we are relying on a locally parsed config
-// file. (i.e. standalone mode)
+// When standalone, use a locally parsed config file.
 string arSZGClient::_getAttributeLocal(const string& computerName,
 				       const string& groupName,
 				       const string& parameterName,
@@ -2921,8 +2917,7 @@ string arSZGClient::_getAttributeLocal(const string& computerName,
     validValues);
 }
 
-// It could be the case that we are relying on a locally parsed config
-// file. (i.e. standalone mode)
+// When standalone, use a locally parsed config file.
 bool arSZGClient::_setAttributeLocal(const string& computerName,
 				     const string& groupName,
 				     const string& parameterName,
@@ -2930,29 +2925,25 @@ bool arSZGClient::_setAttributeLocal(const string& computerName,
   const string query =
     ((computerName == "NULL") ? _computerName : computerName) + "/"
     + groupName + "/" + parameterName;
-  map<string, string, less<string> >::iterator i =
-    _localParameters.find(query);
+  map<string, string, less<string> >::iterator i = _localParameters.find(query);
   if (i != _localParameters.end())
     _localParameters.erase(i);
-  _localParameters.insert(map<string,string,less<string> >::value_type
-                          (query,parameterValue));
+  if (parameterValue != "NULL") {
+    // Effectively "unset" the previous value.
+    _localParameters.insert(map<string,string,less<string> >::value_type
+      (query, parameterValue));
+  }
   return true;
 }
 
-// If standalone (aka locally parsed config file),
-// get a "global" attribute (i.e. one not tied to a computer).
-// Locally getting a "global" attribute produces the silly name.
+// When standalone ("local"), get a "global" attribute (i.e. one not tied to a computer).
 string arSZGClient::_getGlobalAttributeLocal(const string& attributeName){
   map<string, string, less<string> >::iterator i =
     _localParameters.find(attributeName);
   return (i == _localParameters.end()) ? "NULL" : i->second;
 }
 
-// It could be the case that we are relying on a locally parsed config
-// file. (i.e. standalone mode). In this case, we are putting a so-called
-// "global" attribute (i.e. one not tied to a computer) into storage.
-// Since we are locally setting a "global" attribute this leads to the
-// following silly function name...
+// When standalong ("local"), set a "global" attribute.
 bool arSZGClient::_setGlobalAttributeLocal(const string& attributeName,
 					   const string& attributeValue){
   map<string, string, less<string> >::iterator i =
@@ -2964,10 +2955,9 @@ bool arSZGClient::_setGlobalAttributeLocal(const string& attributeName,
   return true;
 }
 
-// For string constants in the parameter database, the arSZGClient
-// can check the value against a list of valid values. If the string
-// constant is not in the list, the first item of the list is returned
-// and a warning is printed.
+// For a string constant in the parameter database,
+// check if it's in a list of valid values.
+// If not, return the first item and print a warning.
 string arSZGClient::_changeToValidValue(const string& groupName,
                                         const string& parameterName,
                                         const string& value,
@@ -2983,9 +2973,8 @@ string arSZGClient::_changeToValidValue(const string& groupName,
     if (validValues.find('|'+value+'|') == string::npos) {
       const int end = validValues.find('|', 1);
       const string valueNew(validValues.substr(1, end-1));
-      // ONLY COMPLAIN IF WE ARE CHANGING A VALUE THAT HAS BEEN EXPLICITLY
-      // SET.
       if (value != "NULL") {
+	// Value was explicitly set to something invalid.
 	ar_log_warning() << _exeName << ": "
 	                 << groupName+'/'+parameterName << " should be one of "
 	                 << validValues << ",\n    but is " << value
