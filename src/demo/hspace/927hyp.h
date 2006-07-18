@@ -13,7 +13,7 @@
 
 // This array is used in only some of the files which include this.
 
-static float hgrp[HN_TRANS][4][4] =  {
+static const float hgrp[HN_TRANS][4][4] =  {
 { 
 { 1.000000, 0.000000, 0.000000, 0.000000 }, 
 { 0.000000, 1.000000, 0.000000, 0.000000 }, 
