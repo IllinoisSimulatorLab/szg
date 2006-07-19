@@ -6,12 +6,7 @@
 #include "arPrecompiled.h"
 #include "arJoystickDriver.h"
 
-extern "C"{
-  SZG_CALL void* factory()
-    { return new arJoystickDriver(); } 
-  SZG_CALL void baseType(char* buffer, int size) 
-    { ar_stringToBuffer("arInputSource", buffer, size); }
-}
+DriverFactory(arJoystickDriver, "arInputSource")
 
 void ar_joystickDriverEventTask(void* joystickDriver){
   ((arJoystickDriver*)joystickDriver)->_eventTask();
@@ -50,8 +45,8 @@ void arJoystickDriver::_eventTask() {
       cerr << "DirectInput poll failed.\n";
       break;
     }
-    static DIJOYSTATE2 jsPrev = {0};
-    static bool fFirst = true;
+    memset(&_jsPrev, 0, sizeof(_jsPrev));
+    _fFirst = true;
     DIJOYSTATE2	js;
     int rc = _pStick->GetDeviceState(sizeof(js), &js);
     if (FAILED(rc)){
@@ -68,40 +63,40 @@ void arJoystickDriver::_eventTask() {
     // js.rgbButtons[0..9] are the switches, 0==off, 128==on.  
     // (We convert to 0 or 1.)
 
-    if (!fFirst && memcmp(&js, &jsPrev, sizeof(js)) == 0)
+    if (!_fFirst && memcmp(&js, &_jsPrev, sizeof(js)) == 0)
       continue;
 
-    if (fFirst || js.lX != jsPrev.lX)
+    if (_fFirst || js.lX != _jsPrev.lX)
       queueAxis(0, js.lX);
-    if (fFirst || js.lY != jsPrev.lY)
+    if (_fFirst || js.lY != _jsPrev.lY)
       queueAxis(1, js.lY);
-    if (fFirst || js.lZ != jsPrev.lZ)
+    if (_fFirst || js.lZ != _jsPrev.lZ)
       queueAxis(2, js.lZ);
 
-    if (fFirst || js.lRx != jsPrev.lRx)
+    if (_fFirst || js.lRx != _jsPrev.lRx)
       queueAxis(3, js.lRx);
-    if (fFirst || js.lRy != jsPrev.lRy)
+    if (_fFirst || js.lRy != _jsPrev.lRy)
       queueAxis(4, js.lRy);
-    if (fFirst || js.lRz != jsPrev.lRz)
+    if (_fFirst || js.lRz != _jsPrev.lRz)
       queueAxis(5, js.lRz);
 
-    if (fFirst || js.rglSlider[0] != jsPrev.rglSlider[0])
+    if (_fFirst || js.rglSlider[0] != _jsPrev.rglSlider[0])
       queueAxis(6, js.rglSlider[0]);
-    if (fFirst || js.rglSlider[1] != jsPrev.rglSlider[1])
+    if (_fFirst || js.rglSlider[1] != _jsPrev.rglSlider[1])
       queueAxis(7, js.rglSlider[1]);
 
     for (int j=0; j<128; j++)
-      if (fFirst || js.rgbButtons[j] != jsPrev.rgbButtons[j])
+      if (_fFirst || js.rgbButtons[j] != _jsPrev.rgbButtons[j])
 	queueButton(j, (js.rgbButtons[j] == 0) ? 0 : 1);
 
-    fFirst = false;
+    _fFirst = false;
 
     // rgdwPOV[4] is four 8-way hat switches.  What does Linux do with them?
 
     // Send all this accumulated data.
     sendQueue();
 
-    jsPrev = js;
+    _jsPrev = js;
   }
   // Clean up.
   _pStick->Unacquire();

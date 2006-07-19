@@ -35,6 +35,8 @@ class SZG_CALL arJoystickDriver: public arInputSource{
   
 #ifdef AR_USE_WIN_32
   IDirectInputDevice2* _pStick;
+  DIJOYSTATE2 _jsPrev;
+  bool _fFirst;
 #endif
 };
 
