@@ -6,10 +6,9 @@
  * 	contains utility functions for SchpRel
  */
 
-#include "arGraphicsHeader.h"
 #include "arGraphicsAPI.h"
 
-/// contains all relevant information to perform special relativistic calculations
+// info to calculate special relativity
 struct s_updateValues {
   double	velocity;
   double	lightspeed;
@@ -21,7 +20,6 @@ struct s_updateValues {
   arVector3	selfOffset;
 };
 
-// descriptions are in .cpp file
 double dist2(double x1, double y1, double z1);
 double dist(const arVector3 &vec1);
 
@@ -31,10 +29,6 @@ double thetime (const double &x1, const double &y1, const double &z1, const doub
 
 double updateVertex (double x1, double y1, double z1, double c1, double v1, double thegamma);
 
-void relativisticTransform(ARfloat *vert, ARfloat *drawVert, 
-                           s_updateValues &updateValues);
-
-
-
+void relativisticTransform(ARfloat *vert, ARfloat *drawVert, s_updateValues &updateValues);
 
 #endif

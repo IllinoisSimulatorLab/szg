@@ -1,9 +1,5 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include "arGraphicsHeader.h"
 #include "arMasterSlaveFramework.h"
 #include "arMath.h"
 

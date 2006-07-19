@@ -34,12 +34,11 @@
  *
  * OpenGL(TM) is a trademark of Silicon Graphics, Inc.
  */
+
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include <math.h>
-#include <stdlib.h>  /* For rand(). */
-#include "arGraphicsHeader.h"
 #include "atlantis.h"
+#include <stdlib.h>  /* For rand(). */
 
 void
 FishTransform(fishRec * fish)

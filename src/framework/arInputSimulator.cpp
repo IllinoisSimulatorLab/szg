@@ -10,6 +10,7 @@
 #include "arSTLalgo.h"
 #include "arSZGClient.h"
 #include "arLogStream.h"
+#include "arGlut.h"
 
 arInputSimulator::arInputSimulator() :
   _numButtonEvents(0),

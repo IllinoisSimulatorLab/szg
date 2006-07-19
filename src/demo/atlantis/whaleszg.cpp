@@ -36,9 +36,8 @@
  */
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include "arGraphicsHeader.h"
-#include <math.h>
 #include "atlantis.h"
+
 /* *INDENT-OFF* */
 static float N001[3] = {0.019249 ,0.011340 ,-0.999750};
 static float N002[3] = {-0.132579 ,0.954547 ,0.266952};
@@ -1669,38 +1668,28 @@ Whale016(void)
     glEnd();
 }
 
-
 void
 UpdateWhale( fishRec * fish )
 {
     fish->htail = float(int(fish->htail - 5.0 * fish->v) % 360);
 }
 
-
 void
 DrawWhale(fishRec * fish)
 {
-    float seg0, seg1, seg2, seg3, seg4, seg5, seg6, seg7;
-    float pitch, thrash, chomp;
+    const float thrash = 350.0 * fish->v;
+    const float pitch = fish->v * sin((fish->htail - 160.0) * RRAD);
+    const float chomp = (fish->v > 2.0) ? -(fish->v - 2.0) * 200.0 : 0.0;
 
-    //    thrash = 70.0 * fish->v;
-    thrash = 350.0 * fish->v;
+    const float seg0 = 1.5 * thrash * sin((fish->htail) * RRAD);
+    const float seg1 = 2.5 * thrash * sin((fish->htail + 10.0) * RRAD);
+    const float seg2 = 3.7 * thrash * sin((fish->htail + 15.0) * RRAD);
+    const float seg3 = 4.8 * thrash * sin((fish->htail + 23.0) * RRAD);
+    const float seg4 = 6.0 * thrash * sin((fish->htail + 28.0) * RRAD);
+    const float seg5 = 6.5 * thrash * sin((fish->htail + 35.0) * RRAD);
+    const float seg6 = 6.5 * thrash * sin((fish->htail + 40.0) * RRAD);
+    const float seg7 = 6.5 * thrash * sin((fish->htail + 55.0) * RRAD);
 
-    seg0 = 1.5 * thrash * sin((fish->htail) * RRAD);
-    seg1 = 2.5 * thrash * sin((fish->htail + 10.0) * RRAD);
-    seg2 = 3.7 * thrash * sin((fish->htail + 15.0) * RRAD);
-    seg3 = 4.8 * thrash * sin((fish->htail + 23.0) * RRAD);
-    seg4 = 6.0 * thrash * sin((fish->htail + 28.0) * RRAD);
-    seg5 = 6.5 * thrash * sin((fish->htail + 35.0) * RRAD);
-    seg6 = 6.5 * thrash * sin((fish->htail + 40.0) * RRAD);
-    seg7 = 6.5 * thrash * sin((fish->htail + 55.0) * RRAD);
-
-    pitch = fish->v * sin((fish->htail - 160.0) * RRAD);
-
-    chomp = 0.0;
-    if (fish->v > 2.0) {
-        chomp = -(fish->v - 2.0) * 200.0;
-    }
     P012[1] = iP012[1] + seg5;
     P013[1] = iP013[1] + seg5;
     P014[1] = iP014[1] + seg5;
@@ -1773,15 +1762,10 @@ DrawWhale(fishRec * fish)
     P096[1] = iP096[1] + chomp;
 
     glPushMatrix();
-
     glRotatef(pitch, 1.0, 0.0, 0.0);
-
     glTranslatef(0.0, 0.0, 8000.0);
-
     glRotatef(180.0, 0.0, 1.0, 0.0);
-
     glScalef(3.0, 3.0, 3.0);
-
     glEnable(GL_CULL_FACE);
 
     Whale001();
@@ -1802,6 +1786,5 @@ DrawWhale(fishRec * fish)
     Whale016();
 
     glDisable(GL_CULL_FACE);
-
     glPopMatrix();
 }

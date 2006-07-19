@@ -9,6 +9,7 @@
 #include "arGraphicsPeerRPC.h"
 #include "arFramerateGraph.h"
 #include "arLogStream.h"
+#include "arGlut.h"
 
 // NOTE: arSZGClient CANNOT BE GLOBAL ON WINDOWS. THIS IS BECAUSE 
 // OF OUR METHOD OF INITIALIZING WINSOCK (USING GLOBALS).
@@ -23,11 +24,8 @@ bool showPerformance = false;
 
 bool drawLabels = false;
 
-class PeerDescription{
+struct PeerDescription{
 public:
-  PeerDescription(){}
-  ~PeerDescription(){}
-
   arGraphicsPeer* peer;
   arMatrix4       transform;
   arMatrix4       labelTransform;

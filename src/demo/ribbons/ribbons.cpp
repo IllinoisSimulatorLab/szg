@@ -1,5 +1,3 @@
-// scp /s/szg/build/win32/demo/ribbons/ribbons.exe root@concrete:/home/public/cube/bin/win32/ribbons.exe
-
 //********************************************************
 // Syzygy is licensed under the BSD license v2
 // see the file SZG_CREDITS for details
@@ -7,6 +5,7 @@
 #include "arPrecompiled.h"
 #include "arMasterSlaveFramework.h"
 #include "arMath.h"
+#include "arGlut.h"
 #ifndef AR_USE_WIN_32
 #include <sys/types.h>
 #include <signal.h>

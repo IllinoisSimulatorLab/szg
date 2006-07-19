@@ -6,7 +6,6 @@
  */
 
 #include "SpecialRelativityMath.h"
-#include "arGraphicsHeader.h"
 #include "arGraphicsAPI.h"
 
 /** basic scene file object for schprel

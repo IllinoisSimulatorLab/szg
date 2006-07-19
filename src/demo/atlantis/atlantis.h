@@ -36,6 +36,7 @@
  */
  
 #include "arMath.h"
+#include "arGlut.h"
 
 // Unit conversions.  Tracker (and cube screen descriptions) use feet.
 // Atlantis uses 1/2-millimeters (that's what ended up looking best in

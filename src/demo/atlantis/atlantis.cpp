@@ -39,21 +39,12 @@
 
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include "arGraphicsHeader.h"
-#include "atlantis.h"
 #include "arMasterSlaveFramework.h"
-#include "arMath.h"
 #include "arDataUtilities.h"
 #include "arNavigationUtilities.h"
 #include "arInteractionUtilities.h"
 #include "arCallbackInteractable.h"
-#include <list>
-#include <iostream>
-using namespace std;
+#include "atlantis.h"
 
 // Syzygy conversion-specific parameters (give or take a string constant).
 

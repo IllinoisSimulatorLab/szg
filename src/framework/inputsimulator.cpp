@@ -6,24 +6,25 @@
 #include "arPrecompiled.h"
 #define SZG_DO_NOT_EXPORT
 
-#include "arGraphicsHeader.h"
-#include "arInputSimulator.h"
-#include "arInputNode.h"
-#include "arNetInputSource.h"
-#include "arNetInputSink.h"
 #include "arGenericDriver.h"
+#include "arGlut.h"
+#include "arGraphicsHeader.h"
+#include "arInputNode.h"
+#include "arInputSimulator.h"
+#include "arNetInputSink.h"
+#include "arNetInputSource.h"
 #include "arPForthFilter.h"
 
 arInputNode* inputNode = NULL;
 
 arInputSimulator simulator;
-int xPos = 0, yPos = 0;
+int xPos = 0;
+int yPos = 0;
 
 void loadParameters(arSZGClient& szgClient){
   int posBuffer[2];
   const string posString = szgClient.getAttribute("SZG_INPUTSIM", "position");
-  if (posString != "NULL"
-      && ar_parseIntString(posString,posBuffer,2)){
+  if (posString != "NULL" && ar_parseIntString(posString,posBuffer,2)){
     xPos = posBuffer[0];
     yPos = posBuffer[1];
   }
@@ -42,14 +43,14 @@ void display(){
 
 void idle(){
   simulator.advance();
-//bool dump(false);
-//for (unsigned int i=0; i<inp->getNumberButtons();++i) {
-//  if (inp->getOnButton(i))
-//    dump = true;
-//}
-//if (dump) {
-//  cerr << *inp << endl;
-//}
+#if 0
+  bool dump = false;
+  for (unsigned i=0; i<inp->getNumberButtons(); ++i) {
+    dump |= inp->getOnButton(i);
+  if (dump) {
+    cerr << *inp << endl;
+  }
+#endif
   display();
   ar_usleep(20000); // Mild CPU throttle
 }

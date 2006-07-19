@@ -10,23 +10,20 @@
   #include "arPrecompiled.h"
   #include <GL\gl.h>
   #include <GL\glu.h>
-  #include <GL\glut.h>
 #else
   #ifdef AR_USE_DARWIN
     #include <OpenGL/gl.h>
     #include <OpenGL/glu.h>
-    #include <GLUT/glut.h>
   #else
     // Linux/SGI
     #include <GL/gl.h>
     #include <GL/glu.h>
-    #include <GL/glut.h>
   #endif
 #endif
 
 #include "arGraphicsCalling.h"
 
-// node type IDs enum (as distinct from record IDs in the graphics language)
+// node type IDs (as distinct from record IDs in the graphics language)
 enum {
   AR_G_TRANSFORM_NODE = 0,
   AR_G_TEXTURE_NODE = 1,

@@ -9,9 +9,6 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 #include "SpaceJunk.h"
-
-#include "arGraphicsHeader.h"
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -21,8 +18,7 @@ static int wVert, aa, bb, dd;
 static float vex, vey, vez;
 const bool highquality=true;
 
-/// Default Constructor
-/** Initializes vertex positions for all objects in Scene */
+/* Initialize vertex positions for all objects in Scene */
 SpaceJunk::SpaceJunk()
 {
    wVert=0;
@@ -349,8 +345,11 @@ void SpaceJunk::drawbeams(void){
 
 /// Draw everything in the scene
 void SpaceJunk::drawAll() {
-  drawbeams(); drawtris(); drawpillars();
-  drawfloor(); drawceiling();
+  drawbeams();
+  drawtris();
+  drawpillars();
+  drawfloor();
+  drawceiling();
 }
 
 /// Update everything in the scene

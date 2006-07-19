@@ -4,6 +4,7 @@
 //********************************************************
 
 #include "arPrecompiled.h"
+#include "arGlut.h"
 #include "arMasterSlaveFramework.h"
 #include "arMath.h"
 

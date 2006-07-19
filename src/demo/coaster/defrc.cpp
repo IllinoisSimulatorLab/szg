@@ -1,13 +1,15 @@
-// precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <math.h>
-#include "arGraphicsHeader.h"
+
 #include "matrix.h"
+
 #include "arDataUtilities.h"
-#include <string.h>
+#include "arGlut.h"
+
 #include <iostream>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 extern string dataPath;
 

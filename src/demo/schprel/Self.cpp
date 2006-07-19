@@ -5,8 +5,6 @@
 #include "Self.h"
 #include "SpecialRelativityMath.h"
 
-#include "arGraphicsHeader.h"
-
 #define highquality 0
 
 Self::Self(void)
@@ -152,7 +150,6 @@ Self::Self(void)
     self[i][1] -= 5.;
 }
 
-/// Draws everything
 void Self::drawAll(void){
   //float transp = .5;
   glColor3f(1,.1,1);/*glColor4f(1,.1,.1,transp);*/
@@ -182,7 +179,7 @@ void Self::drawAll(void){
   }
 }
 
-/// Applies relativistic transforms to vertices of Self
+// Relativistically transform vertices of Self
 void Self::updateAll(s_updateValues &updateValues)
 {
   for (int aa=0; aa<120; aa++) {
@@ -192,5 +189,3 @@ void Self::updateAll(s_updateValues &updateValues)
     selfdraw[aa][2] = 2.*self[aa][2]-selfdraw[aa][2];
   }
 }
-
-

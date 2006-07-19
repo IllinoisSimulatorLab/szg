@@ -34,11 +34,11 @@
  *
  * OpenGL(TM) is a trademark of Silicon Graphics, Inc.
  */
+
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
-#include "arGraphicsHeader.h"
-#include <math.h>
 #include "atlantis.h"
+
 /* *INDENT-OFF* */
 static float N002[3] = {0.000077 ,-0.020611 ,0.999788};
 static float N003[3] = {0.961425 ,0.258729 ,-0.093390};

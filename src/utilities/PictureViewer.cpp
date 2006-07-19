@@ -4,10 +4,12 @@
 //********************************************************
 
 #include "arPrecompiled.h"
+
+#include "arDataUtilities.h"
+#include "arGlut.h"
+#include "arLargeImage.h"
 #include "arSZGClient.h"
 #include "arTexture.h"
-#include "arLargeImage.h"
-#include "arDataUtilities.h"
 
 #include <math.h>
 
@@ -27,17 +29,17 @@ void drawSyncTest() {
   glColorMask( GL_TRUE, GL_FALSE, GL_FALSE, GL_FALSE );
   glColor3f(flipped ? TEST_RED : 0, 0, 0);
   glBegin( GL_QUADS );
-  glVertex2f( 0, 0 );
-  glVertex2f( screenWidth, 0 );
-  glVertex2f( screenWidth, STRIP_HEIGHT );
-  glVertex2f( 0, STRIP_HEIGHT );
+    glVertex2f( 0, 0 );
+    glVertex2f( screenWidth, 0 );
+    glVertex2f( screenWidth, STRIP_HEIGHT );
+    glVertex2f( 0, STRIP_HEIGHT );
   glEnd();
   glColor3f(flipped ? 0 : TEST_RED, 0, 0);
   glBegin( GL_QUADS );
-  glVertex2f( 0, STRIP_HEIGHT );
-  glVertex2f( screenWidth, STRIP_HEIGHT );
-  glVertex2f( screenWidth, 2*STRIP_HEIGHT );
-  glVertex2f( 0, 2*STRIP_HEIGHT );
+    glVertex2f( 0, STRIP_HEIGHT );
+    glVertex2f( screenWidth, STRIP_HEIGHT );
+    glVertex2f( screenWidth, 2*STRIP_HEIGHT );
+    glVertex2f( 0, 2*STRIP_HEIGHT );
   glEnd();
   glColorMask( GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE );  
 }

@@ -9,12 +9,11 @@
 #include "arPrecompiled.h"
 #include "arMesh.h"
 #include "arGraphicsAPI.h"
+#include "arGlut.h"
 #ifndef AR_USE_WIN_32
   #include <sys/types.h>
   #include <signal.h>
 #endif
-#include "arGraphicsHeader.h"
-#include <math.h>
 
 #include "arMasterSlaveFramework.h"
 #include "arMath.h"

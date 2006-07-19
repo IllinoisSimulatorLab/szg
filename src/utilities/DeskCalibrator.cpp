@@ -4,10 +4,12 @@
 //********************************************************
 
 #include "arPrecompiled.h"
+
+#include "arGlut.h"
+#include "arGraphicsHeader.h"
+#include "arInputEvent.h"
 #include "arInputNode.h"
 #include "arNetInputSource.h"
-#include "arInputEvent.h"
-#include "arGraphicsHeader.h"
 
 arInputNode* inputDevice = NULL;
 arNetInputSource* netSource = NULL;
