@@ -4,7 +4,7 @@
 //********************************************************
 
 #include "arPrecompiled.h"
-#include "arGraphicsHeader.h"
+#include "arGlut.h"
 #include "arGraphicsPlugin.h"
 #include "arSTLalgo.h"
 
