@@ -24,7 +24,7 @@ class SZG_CALL arInputLanguage: public arLanguage{
   int _SIGNATURE; // how many buttons, axes, matrices
   int _TIMESTAMP;
   int _TYPES;
-  int _INDICES;   // useful for subsets
+  int _INDICES;   // for subsets
   int _BUTTONS;   // bool
   int _AXES;      // double
   int _MATRICES;  // 4x4 matrix transformation

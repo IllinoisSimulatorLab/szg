@@ -7,7 +7,6 @@
 #define AR_INPUT_SOURCE_H
 
 #include "arSZGClient.h"
-// NOTE: These items can be shared objects
 #include "arInputSink.h"
 #include "arIOFilter.h"
 #include "arInputLanguage.h"
