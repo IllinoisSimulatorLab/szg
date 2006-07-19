@@ -40,12 +40,7 @@ Here is PForth code for the arPForthFilter to transform coords
 
 #endif
 
-extern "C"{
-  SZG_CALL void* factory()
-    { return new arLogitechDriver(); } 
-  SZG_CALL void baseType(char* buffer, int size)
-    { ar_stringToBuffer("arInputSource", buffer, size); }
-}
+DriverFactory(arLogitechDriver, "arInputSource")
 
 void ar_LogitechDriverEventTask(void* driver) {
   arLogitechDriver* logDriver = (arLogitechDriver*) driver;

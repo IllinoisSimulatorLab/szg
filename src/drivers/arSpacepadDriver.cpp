@@ -78,12 +78,7 @@
 #define inpw(a) (0)
 #endif
 
-extern "C"{
-  SZG_CALL void* factory()
-    { return new arSpacepadDriver(); } 
-  SZG_CALL void baseType(char* buffer, int size)
-    { ar_stringToBuffer("arInputSource", buffer, size); }
-}
+DriverFactory(arSpacepadDriver, "arInputSource")
 
 void ar_spacepadDriverEventTask(void* driver){
   arSpacepadDriver* d = (arSpacepadDriver*) driver;

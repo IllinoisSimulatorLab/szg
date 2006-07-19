@@ -28,7 +28,9 @@ OBJS = \
   arPForthFilter$(OBJ_SUFFIX)
 
 ifeq ($(strip $(SZG_LINKING)), STATIC) 
-  OBJS +=  \
+  COMPILE_FLAGS += -D "NOFACTORY"
+
+  OBJS += \
   arIntersenseDriver$(OBJ_SUFFIX) \
   arBirdWinDriver$(OBJ_SUFFIX) \
   arEVaRTDriver$(OBJ_SUFFIX) \
@@ -42,12 +44,12 @@ ifeq ($(strip $(SZG_LINKING)), STATIC)
   arUSBDriver$(OBJ_SUFFIX) \
   arVRPNDriver$(OBJ_SUFFIX)
 
-	ifneq ($(strip $(SZG_COMPILER)),MINGW)
-		OBJS +=  \
-		arSpacepadDriver$(OBJ_SUFFIX) \
-		arJoystickDriver$(OBJ_SUFFIX) \
-		arIntelGamepadDriver$(OBJ_SUFFIX)
-  endif
+ifneq ($(strip $(SZG_COMPILER)),MINGW)
+  OBJS += \
+  arSpacepadDriver$(OBJ_SUFFIX) \
+  arJoystickDriver$(OBJ_SUFFIX) \
+  arIntelGamepadDriver$(OBJ_SUFFIX)
+endif
 
 endif
 

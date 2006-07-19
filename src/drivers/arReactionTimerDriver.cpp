@@ -12,12 +12,7 @@
 
 #define RTDEBUG
 
-extern "C"{
-  SZG_CALL void* factory()
-    { return new arReactionTimerDriver(); } 
-  SZG_CALL void baseType(char* buffer, int size)
-    { ar_stringToBuffer("arInputSource", buffer, size); }
-}
+DriverFactory(arReactionTimerDriver, "arInputSource")
 
 //const std::string RT_AWAKE = "!";
 const char RT_AWAKE = '!';

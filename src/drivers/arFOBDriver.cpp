@@ -6,15 +6,7 @@
 #include "arPrecompiled.h"
 #include "arFOBDriver.h"
 
-extern "C"{
-  SZG_CALL void* factory(){
-    return new arFOBDriver();
-  }
-
-  SZG_CALL void baseType(char* buffer, int size){
-    ar_stringToBuffer("arInputSource", buffer, size);
-  }
-}
+DriverFactory(arFOBDriver, "arInputSource")
 
 arFOBDriver::arFOBDriver() :
   _timeoutTenths( 30 ),

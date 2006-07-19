@@ -34,17 +34,10 @@
 #include "arFaroDriver.h"
 #include <string>
 
-using namespace std;
+DriverFactory(arFaroDriver, "arInputSource")
 
-extern "C"{
-  SZG_CALL void* factory()
-    { return new arFaroDriver(); } 
-  SZG_CALL void baseType(char* buffer, int size)
-    { ar_stringToBuffer("arInputSource", buffer, size); }
-}
-
-const float INCHES_TO_FEET(1./12.);
-const float DEGREES_TO_RADIANS(M_PI/180.);
+const float INCHES_TO_FEET = 1./12.;
+const float DEGREES_TO_RADIANS = M_PI/180.;
 
 void ar_FaroDriverEventTask(void* theDriver){
   arFaroDriver* faroDriver = (arFaroDriver*) theDriver;

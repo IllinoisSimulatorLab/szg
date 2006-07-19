@@ -6,12 +6,7 @@
 #include "arPrecompiled.h"
 #include "arBirdWinDriver.h"
 
-extern "C"{
-  SZG_CALL void* factory()
-    { return new arBirdWinDriver(); }
-  SZG_CALL void baseType(char* buffer, int size)
-    { ar_stringToBuffer("arInputSource", buffer, size); }
-}
+DriverFactory(arBirdWinDriver, "arInputSource")
 
 #ifdef EnableBirdWinDriver
 void ar_WinBirdDriverEventTask(void* FOBDriver) {

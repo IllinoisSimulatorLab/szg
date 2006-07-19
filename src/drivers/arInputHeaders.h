@@ -24,15 +24,15 @@ static BOOL CALLBACK DIDevCallback(LPCDIDEVICEINSTANCE lpddi, LPVOID pvRef)
 {
   // Return the FIRST joystick to the arJoystickDriver.
   *(DIDEVICEINSTANCE *)pvRef = *lpddi;
-  
-  // Unfortunately,
-  // with wireless intel gamepads and the win2k drivers, the first joystick
+
+#if 0
+  // With wireless intel gamepads and the win2k drivers, the first joystick
   // is set by the base station.  Here's a hack to change it if we need to:
-  //if (!strcmp(lpddi->tszInstanceName,
-  //            "Intel(r) Wireless Series Gamepad 2"))
-  //  return DIENUM_STOP;
-  //else
-  //  return DIENUM_CONTINUE;
+  if (!strcmp(lpddi->tszInstanceName, "Intel(r) Wireless Series Gamepad 2"))
+    return DIENUM_STOP;
+  else
+    return DIENUM_CONTINUE;
+#endif
 
   return (lpddi->dwDevType & DIDEVTYPEJOYSTICK_GAMEPAD) ?
     DIENUM_STOP : DIENUM_CONTINUE;

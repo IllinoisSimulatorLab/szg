@@ -9,12 +9,7 @@
 #include "arPrecompiled.h"
 #include "arIntersenseDriver.h"
 
-extern "C"{
-  SZG_CALL void* factory()
-    { return new arIntersenseDriver(); } 
-  SZG_CALL void baseType(char* buffer, int size)
-    { ar_stringToBuffer("arInputSource", buffer, size); }
-}
+DriverFactory(arIntersenseDriver, "arInputSource")
 
 #define ISENSE_GROUP_NAME "SZG_INTERSENSE"
 

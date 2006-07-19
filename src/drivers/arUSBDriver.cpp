@@ -9,16 +9,7 @@
 
 #include <string>
 
-// Methods used by the dynamic library mappers. 
-extern "C"{
-  SZG_CALL void* factory(){
-    return new arUSBDriver();
-  }
-
-  SZG_CALL void baseType(char* buffer, int size){
-    ar_stringToBuffer("arInputSource", buffer, size);
-  }
-}
+DriverFactory(arUSBDriver, "arInputSource")
 
 // From AVR309 application note
 

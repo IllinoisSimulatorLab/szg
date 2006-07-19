@@ -9,12 +9,7 @@
 #include "arPrecompiled.h"
 #include "arIntersenseDriver.h"
 
-extern "C"{
-  SZG_CALL void* factory()
-    { return new arIntersenseDriver(); } 
-  SZG_CALL void baseType(char* buffer, int size)
-    { ar_stringToBuffer("arInputSource", buffer, size); }
-}
+DriverFactory(arIntersenseDriver, "arInputSource")
 
 const float METER_TO_FOOT = 3.280839895;
 const Bool USE_VERBOSE = TRUE;

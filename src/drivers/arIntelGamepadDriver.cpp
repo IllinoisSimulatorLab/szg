@@ -6,12 +6,7 @@
 #include "arPrecompiled.h"
 #include "arIntelGamepadDriver.h"
 
-extern "C"{
-  SZG_CALL void* factory()
-    { return new arIntelGamepadDriver(); } 
-  SZG_CALL void baseType(char* buffer, int size)
-    { ar_stringToBuffer("arInputSource", buffer, size); }
-}
+DriverFactory(arIntelGamepadDriver, "arInputSource")
 
 void ar_intelGamepadDriverEventTask(void* gamepadDriver){
 #ifdef AR_USE_WIN_32

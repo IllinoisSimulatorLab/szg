@@ -6,12 +6,7 @@
 #include "arPrecompiled.h"
 #include "arVRPNDriver.h"
 
-extern "C"{
-  SZG_CALL void* factory()
-    { return new arVRPNDriver(); } 
-  SZG_CALL void baseType(char* buffer, int size)
-    { ar_stringToBuffer("arInputSource", buffer, size); }
-}
+DriverFactory(arVRPNDriver, "arInputSource")
 
 #ifdef Enable_VRPN
 void ar_VRPNHandleTracker(void* data, const vrpn_TRACKERCB event){

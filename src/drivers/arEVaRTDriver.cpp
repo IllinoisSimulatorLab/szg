@@ -9,12 +9,7 @@
 #endif
 #include "arEVaRTDriver.h"
 
-extern "C"{
-  SZG_CALL void* factory()
-    { return new arEVaRTDriver(); }
-  SZG_CALL void baseType(char* buffer, int size)
-    { ar_stringToBuffer("arInputSource", buffer, size); }
-}
+DriverFactory(arEVaRTDriver, "arInputSource")
 
 arEVaRTDriver* __globalEVaRTDriver = NULL;
 
@@ -90,7 +85,8 @@ int ar_evartDataHandler(int iType, void* data){
     __globalEVaRTDriver->sendQueue();
   }
   else if (iType == HTR_DATA){
-    /*sHtrFrame* HtrFrame = (sHtrFrame*) data;
+#if 0
+    sHtrFrame* HtrFrame = (sHtrFrame*) data;
     float tempRoot[3];
     tempRoot[0] = HtrFrame->RootPosition[0];
     tempRoot[1] = HtrFrame->RootPosition[1];
@@ -131,7 +127,8 @@ int ar_evartDataHandler(int iType, void* data){
       __globalEVaRTDriver->queueAxis(3*i+1, ar_convertToRad(angleY));
       __globalEVaRTDriver->queueAxis(3*i+2, ar_convertToRad(angleZ));
     }
-    __globalEVaRTDriver->sendQueue();*/
+    __globalEVaRTDriver->sendQueue();
+#endif
   }
   return 0;
 }

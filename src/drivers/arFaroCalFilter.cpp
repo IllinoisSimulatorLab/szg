@@ -7,12 +7,7 @@
 #include "arFaroCalFilter.h"
 #include "arVRConstants.h"
 
-extern "C"{
-  SZG_CALL void* factory()
-    { return new arFaroCalFilter(); }
-  SZG_CALL void baseType(char* buffer, int size)
-    { ar_stringToBuffer("arIOFilter", buffer, size); }
-}
+DriverFactory(arFaroCalFilter, "arIOFilter")
 
 arFaroCalFilter::arFaroCalFilter() :
   _useCalibration(false),

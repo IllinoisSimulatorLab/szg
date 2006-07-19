@@ -11,12 +11,7 @@
 #include "arPrecompiled.h"
 #include "arMotionstarDriver.h"
 
-extern "C"{
-  SZG_CALL void* factory()
-    { return new arMotionstarDriver(); } 
-  SZG_CALL void baseType(char* buffer, int size)
-    { ar_stringToBuffer("arInputSource", buffer, size); }
-}
+DriverFactory(arMotionstarDriver, "arInputSource")
 
 void ar_motionstarDriverEventTask(void* motionstarDriver){
   arMotionstarDriver* d = (arMotionstarDriver*) motionstarDriver;

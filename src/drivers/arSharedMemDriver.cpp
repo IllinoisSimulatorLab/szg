@@ -13,16 +13,7 @@
 #endif
 #include <string>
 
-// Methods used by the dynamic library mappers. 
-extern "C"{
-  SZG_CALL void* factory(){
-    return new arSharedMemDriver();
-  }
-
-  SZG_CALL void baseType(char* buffer, int size){
-    ar_stringToBuffer("arInputSource", buffer, size);
-  }
-}
+DriverFactory(arSharedMemDriver, "arInputSource")
 
 arSharedMemDriver::arSharedMemDriver() :
   _inited( false ),

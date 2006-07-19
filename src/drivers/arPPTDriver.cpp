@@ -12,12 +12,7 @@
 
 //#define DEBUG
 
-extern "C"{
-  SZG_CALL void* factory()
-    { return new arPPTDriver(); }
-  SZG_CALL void baseType(char* buffer, int size)
-    { ar_stringToBuffer("arInputSource", buffer, size); }
-}
+DriverFactory(arPPTDriver, "arInputSource")
 
 const unsigned int BUF_SIZE = 4096;
 

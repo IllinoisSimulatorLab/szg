@@ -12,4 +12,18 @@
 #define SZG_IMPORT_LIBRARY
 #endif
 
+#ifndef DriverFactory
+#ifdef NOFACTORY
+#define DriverFactory(theClass, theName)
+#else
+#define DriverFactory(theClass, theName) \
+  extern "C" { \
+    SZG_CALL void* factory() \
+      { return new theClass(); } \
+    SZG_CALL void baseType(char* buffer, int size) \
+      { ar_stringToBuffer(theName, buffer, size); } \
+  }
+#endif
+#endif
+
 #include "arCallingConventions.h"
