@@ -32,7 +32,7 @@ bool arSoundFile::read(const char* filename, bool fLoop) {
 #endif
 
 #ifdef EnableSound
-  if (!ar_fmodcheck(ar_fmod()->createSound(filename,
+  if (!ar_fmodcheck( FMOD_System_CreateSound( ar_fmod(), filename,
     FMOD_3D | (fLoop ? FMOD_LOOP_NORMAL : FMOD_LOOP_OFF),
     0, &_psamp)) || !_psamp) {
     cerr << "arSoundFile error: failed to load file '" << filename << "'.\n";
@@ -68,7 +68,7 @@ bool arSoundFile::dummy(){
   ex.numchannels = 1;
   ex.defaultfrequency = 44100;
   ex.format = FMOD_SOUND_FORMAT_PCM16; // PCMFLOAT and float-not-short oughta work?
-  return ar_fmodcheck(ar_fmod()->createSound(
+  return ar_fmodcheck( FMOD_System_CreateSound( ar_fmod(), 
       (const char*)_buf, FMOD_2D | FMOD_OPENUSER | FMOD_LOOP_NORMAL, &ex, &_psamp)) &&
     _psamp != NULL;
 #else
@@ -79,6 +79,6 @@ bool arSoundFile::dummy(){
 arSoundFile::~arSoundFile(){
 #ifdef EnableSound
   if (_psamp)
-    (void)ar_fmodcheck(_psamp->release());
+    (void)ar_fmodcheck( FMOD_Sound_Release( _psamp ));
 #endif
 }

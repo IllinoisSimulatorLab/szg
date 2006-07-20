@@ -30,14 +30,14 @@ class SZG_CALL arSoundFile {
   bool dummy();
   const string& name() const { return _name; } // convenient for debugging
 #ifdef EnableSound
-  FMOD::Sound* psamp() { return _psamp; }
+  FMOD_SOUND* psamp() { return _psamp; }
 #endif
 
  private:
   string _name;
 #ifdef EnableSound
-  FMOD::Sound* _psamp;        // looped
-  FMOD::Sound* _psampTrigger; // non-looped
+  FMOD_SOUND* _psamp;        // looped
+  FMOD_SOUND* _psampTrigger; // non-looped
 #endif
 
   // For dummy sound, when a soundfile fails to load.

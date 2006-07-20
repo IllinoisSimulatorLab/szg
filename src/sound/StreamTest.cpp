@@ -76,7 +76,7 @@ char* bufPlay = NULL;
 int ibPlay = 0;
 arMutex lockPlay;
 #ifdef EnableSound
-FMOD::DSP* Unit = NULL;
+FMOD_DSP* Unit = NULL;
 #endif
 
 /*
@@ -150,13 +150,13 @@ bool SetupExample() {
   d.version = 42;
   d.channels = 0; // default (use another value to generate a particular number of channels)
   d.read = DSP_ExampleCallback;
-  return ar_fmodcheck(ar_fmod()->createDSP(&d, &Unit)) &&
-  	 ar_fmodcheck(Unit->setActive(true)) &&
-  	 ar_fmodcheck(ar_fmod()->addDSP(Unit));
+  return ar_fmodcheck( FMOD_System_CreateDSP( ar_fmod(), &d, &Unit )) &&
+  	 ar_fmodcheck( FMOD_DSP_SetActive( Unit, true ) ) &&
+  	 ar_fmodcheck( FMOD_System_AddDSP( ar_fmod(), Unit ));
 }
 
 bool CloseExample() {
-  const bool ok = ar_fmodcheck(Unit->remove()) && ar_fmodcheck(Unit->release());
+  const bool ok = ar_fmodcheck( FMOD_DSP_Remove(Unit)) && ar_fmodcheck( FMOD_DSP_Release(Unit));
   Unit = NULL;
   return ok;
 }
@@ -189,7 +189,7 @@ int main(int argc, char** argv) {
 
   {
     unsigned t;
-    if (!ar_fmodcheck(ar_fmod()->getVersion(&t)))
+    if (!ar_fmodcheck( FMOD_System_GetVersion( ar_fmod(), &t )))
       return 1;
     if (t < FMOD_VERSION) {
       printf("Error: fmod dll has version %x, expected %x.\n", t, FMOD_VERSION);
@@ -199,8 +199,8 @@ int main(int argc, char** argv) {
 
   int cDriverPlay;
   int cDriverRec;
-  if (!ar_fmodcheck(ar_fmod()->getNumDrivers(&cDriverPlay)) ||
-      !ar_fmodcheck(ar_fmod()->getRecordNumDrivers(&cDriverRec)))
+  if (!ar_fmodcheck( FMOD_System_GetNumDrivers( ar_fmod(), &cDriverPlay )) ||
+      !ar_fmodcheck( FMOD_System_GetRecordNumDrivers( ar_fmod(), &cDriverRec )))
     return 1;
 
   int iDriver = argc<2 ? 0 : atoi(argv[1]);
@@ -218,7 +218,7 @@ int main(int argc, char** argv) {
     printf("Soundcards:\n");
     for (i=0; i < cDriverPlay; i++) {
       char sz[200];
-      if (!ar_fmodcheck(ar_fmod()->getDriverName(i, sz, sizeof(sz)-1)))
+      if (!ar_fmodcheck( FMOD_System_GetDriverName( ar_fmod(), i, sz, sizeof(sz)-1) ))
         return 1;
       printf("%s%d: %s\n",
         i==iDriver ? "* " : "  ",
@@ -231,7 +231,8 @@ int main(int argc, char** argv) {
     printf("Recording soundcards:\n");
     for (i=0; i < cDriverRec; i++) {
       char sz[200];
-      if (!ar_fmodcheck(ar_fmod()->getRecordDriverName(i, sz, sizeof(sz)-1)))
+      if (!ar_fmodcheck( FMOD_System_GetRecordDriverName( ar_fmod(),
+              i, sz, sizeof(sz)-1 )))
         return 1;
       printf("%c%d: %s\n",
         i==iDriver ? '*' : ' ',
@@ -240,19 +241,19 @@ int main(int argc, char** argv) {
   }
 
   // Select sound cards (0 = default)
-  if (!ar_fmodcheck(ar_fmod()->setDriver(iDriver))) {
+  if (!ar_fmodcheck( FMOD_System_SetDriver( ar_fmod(), iDriver ))) {
     cerr << "Failed to set driver.\n";
     return 1;
   }
-  if (!ar_fmodcheck(ar_fmod()->setRecordDriver(iDriver))) {
+  if (!ar_fmodcheck( FMOD_System_SetRecordDriver( ar_fmod(), iDriver ))) {
     cerr << "Failed to set record driver.\n";
     return 1;
   }
 
   const int numVirtualVoices = 50;
-  if (!ar_fmodcheck(ar_fmod()->setSoftwareFormat(
+  if (!ar_fmodcheck( FMOD_System_SetSoftwareFormat( ar_fmod(), 
            int(mySR), FMOD_SOUND_FORMAT_PCM16, 0, 0, FMOD_DSP_RESAMPLER_LINEAR)) ||
-      !ar_fmodcheck(ar_fmod()->init(
+      !ar_fmodcheck( FMOD_System_Init( ar_fmod(), 
 	   numVirtualVoices, FMOD_INIT_NORMAL | FMOD_INIT_3D_RIGHTHANDED, 0))) {
     cerr << "Failed to init fmod.\n";
     return 1;
@@ -270,21 +271,21 @@ int main(int argc, char** argv) {
   x.decodebuffersize = cbRec;
   x.defaultfrequency = mySR;
   x.length = x.defaultfrequency * sizeof(short) * x.numchannels * 5; // What's the 5 for?
-  FMOD::Sound *samp1 = NULL;
-  if (!ar_fmodcheck(ar_fmod()->createSound(
+  FMOD_SOUND *samp1 = NULL;
+  if (!ar_fmodcheck( FMOD_System_CreateSound( ar_fmod(), 
     NULL/*bufRec*/,
     FMOD_2D | FMOD_SOFTWARE | FMOD_OPENUSER | FMOD_LOOP_NORMAL,
     // FMOD_OPENUSER | FMOD_CREATESTREAM | FMOD_OPENMEMORY | FMOD_LOOP_NORMAL,
     // FMOD_CREATESTREAM | FMOD_OPENMEMORY | FMOD_LOOP_NORMAL,
     &x,
-    &samp1))) {
+    &samp1 ))) {
     ar_log_error() << "FMOD failed to create record stream.\n";
 LAbort:
-    (void)ar_fmodcheck(ar_fmod()->release());
+    (void)ar_fmodcheck( FMOD_System_Release( ar_fmod() ));
     return 1;
   }
 
-  if (!ar_fmodcheck(ar_fmod()->recordStart(samp1, true))) {
+  if (!ar_fmodcheck( FMOD_System_RecordStart( ar_fmod(), samp1, true ))) {
     ar_log_error() << "FMOD failed to record.\n";
     goto LAbort;
   }
@@ -296,7 +297,7 @@ LAbort:
     unsigned t = 0;
     do {
       ar_usleep(1000);
-      if (!ar_fmodcheck(ar_fmod()->getRecordPosition(&t)))
+      if (!ar_fmodcheck( FMOD_System_GetRecordPosition( ar_fmod(), &t )))
         goto LAbort;
     }
     while (t == 0);
@@ -305,11 +306,11 @@ LAbort:
   if (!SetupExample())
     return 1;
 
-  FMOD::Channel* channel = NULL;
-  if (!ar_fmodcheck(ar_fmod()->playSound(FMOD_CHANNEL_FREE, samp1, false, &channel)))
+  FMOD_CHANNEL* channel = NULL;
+  if (!ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(), FMOD_CHANNEL_FREE, samp1, false, &channel )))
     return 1;
   float originalFreq;
-  if (!ar_fmodcheck(channel->getFrequency(&originalFreq)))
+  if (!ar_fmodcheck( FMOD_Channel_GetFrequency( channel, &originalFreq )))
     return 1;
 #endif
 
@@ -324,8 +325,8 @@ LAbort:
   while (!fQuit) {
     unsigned playpos;
     unsigned recordpos;
-    if (!ar_fmodcheck(channel->getPosition(&playpos, FMOD_TIMEUNIT_PCM)) ||
-        !ar_fmodcheck(ar_fmod()->getRecordPosition(&recordpos))) { // in PCM units
+    if (!ar_fmodcheck( FMOD_Channel_GetPosition( channel, &playpos, FMOD_TIMEUNIT_PCM )) ||
+        !ar_fmodcheck( FMOD_System_GetRecordPosition( ar_fmod(), &recordpos ))) { // in PCM units
       fQuit = true;
       goto LAbort;
     }
@@ -342,7 +343,7 @@ LAbort:
       else if (gap > samplesLatency() * 2)
         freqnew += 1000;
       if (freqnew != freq) {
-        channel->setFrequency(freqnew);
+        FMOD_Channel_SetFrequency( channel, freqnew );
 	freq = freqnew;
       }
     }
@@ -383,10 +384,10 @@ LAbort:
 #endif
 
 #ifdef EnableSound
-  (void)ar_fmodcheck(samp1->release());
-  (void)ar_fmodcheck(ar_fmod()->recordStop());
+  (void)ar_fmodcheck( FMOD_Sound_Release( samp1 ));
+  (void)ar_fmodcheck( FMOD_System_RecordStop( ar_fmod() ));
   (void)CloseExample();
-  (void)ar_fmodcheck(ar_fmod()->release());
+  (void)ar_fmodcheck( FMOD_System_Release( ar_fmod() ));
 #endif
   delete [] bufRec;
   delete [] bufPlay;

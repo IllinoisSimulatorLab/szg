@@ -30,7 +30,7 @@ arSoundFileNode::arSoundFileNode() :
 arSoundFileNode::~arSoundFileNode(){
 #ifdef EnableSound
   if (_channel && isClient()) {
-    const FMOD_RESULT ok = _channel->stop();
+    const FMOD_RESULT ok = FMOD_Channel_Stop( _channel );
     if (ok == FMOD_ERR_INVALID_HANDLE) {
       // _channel is invalid, probably because it already stopped playing.
       // Don't complain.
@@ -50,15 +50,15 @@ bool arSoundFileNode::_adjust(bool useTrigger){
     return false;
 
   FMOD_MODE m;
-  if (!ar_fmodcheck(_channel->getMode(&m))) {
+  if (!ar_fmodcheck( FMOD_Channel_GetMode( _channel, &m ))) {
     // _channel was invalid.
-    (void)_channel->stop();
+    (void) FMOD_Channel_Stop( _channel );
     _channel = NULL;
     return false;
   }
 
   const float a = useTrigger ? _triggerAmplitude : _amplitude;
-  if (!ar_fmodcheck(_channel->setVolume(a)))
+  if (!ar_fmodcheck( FMOD_Channel_SetVolume( _channel, a )))
     return false;
 
   if (m & FMOD_2D) {
@@ -78,7 +78,7 @@ bool arSoundFileNode::_adjust(bool useTrigger){
   const arVector3 point(ar_transformStack.empty() ? p : ar_transformStack.top() * p);
   const FMOD_VECTOR tmp(FmodvectorFromArvector(point)); // doppler velocity nyi
   const FMOD_VECTOR velocity(FmodvectorFromArvector(arVector3(0,0,0)));
-  return ar_fmodcheck(_channel->set3DAttributes(&tmp, &velocity));
+  return ar_fmodcheck( FMOD_Channel_Set3DAttributes( _channel, &tmp, &velocity ));
 #endif
 }
 
@@ -130,7 +130,7 @@ bool arSoundFileNode::render(){
     }
 
     // Start the sound paused.
-    if (!ar_fmodcheck(ar_fmod()->playSound(FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
+    if (!ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(), FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
       return false;
   }
 
@@ -151,19 +151,19 @@ bool arSoundFileNode::render(){
 
     if (_action == "play"){
       if (!_channel){
-        if (!ar_fmodcheck(ar_fmod()->playSound(FMOD_CHANNEL_FREE, _psamp, false, &_channel)))
+        if (!ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(), FMOD_CHANNEL_FREE, _psamp, false, &_channel)))
 	  return false;
       }
-      if (!ar_fmodcheck(_channel->setPaused(false))) // redundant, from playSound(_,_,false,_) ?
+      if (!ar_fmodcheck( FMOD_Channel_SetPaused( _channel, false ))) // redundant, from playSound(_,_,false,_) ?
         return false;
       _action = "none";
     }
     else if (_action == "pause"){
       if (!_channel){
-        if (!ar_fmodcheck(ar_fmod()->playSound(FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
+        if (!ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(), FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
 	  return false;
       }
-      if (!ar_fmodcheck(_channel->setPaused(true))) // redundant, from playSound(_,_,true,_) ?
+      if (!ar_fmodcheck( FMOD_Channel_SetPaused( _channel, true ))) // redundant, from playSound(_,_,true,_) ?
 	return false;
       _action = "none";
     }
@@ -177,7 +177,7 @@ So keep my own timer, and consult it whenever a method is called.
 Is this still a memory leak?
 #endif
 
-        if (!ar_fmodcheck(ar_fmod()->playSound(FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
+        if (!ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(), FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
 	  return false;
       }
       else{
@@ -188,7 +188,7 @@ Is this still a memory leak?
 //	  return false;
 //	}
 
-	const FMOD_RESULT ok = _channel->stop();
+	const FMOD_RESULT ok = FMOD_Channel_Stop( _channel );
 	if (ok == FMOD_ERR_INVALID_HANDLE) {
 	  // _channel is invalid, probably because it already stopped playing.
 	  _channel = NULL;
@@ -197,12 +197,12 @@ Is this still a memory leak?
 	  _channel = NULL;
 	  return false;
 	}
-        if (!ar_fmodcheck(ar_fmod()->playSound(FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
+        if (!ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(), FMOD_CHANNEL_FREE, _psamp, true, &_channel)))
 	  return false;
       }
       if (!_adjust(true))
         return false;
-      if (!ar_fmodcheck(_channel->setPaused(false)))
+      if (!ar_fmodcheck( FMOD_Channel_SetPaused( _channel, false )))
         return false;
       _action = "none";
     }

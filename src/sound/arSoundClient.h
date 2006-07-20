@@ -101,7 +101,7 @@ class SZG_CALL arSoundClient{
   arDataServer         _dataServer;
 
 #ifdef EnableSound
-  FMOD::DSP* _DSPunit;
+  FMOD_DSP* _DSPunit;
 #endif
   bool            _dspStarted;
   void (*_dspTap)(float*);
@@ -111,7 +111,7 @@ class SZG_CALL arSoundClient{
 
   // Microphone output into the sound player.
 #ifdef EnableSound
-  FMOD::Channel* _recordChannel;
+  FMOD_CHANNEL* _recordChannel;
 #endif
   int             _microphoneVolume;
 

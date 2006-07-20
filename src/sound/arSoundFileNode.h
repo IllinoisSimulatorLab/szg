@@ -26,8 +26,8 @@ class SZG_CALL arSoundFileNode : public arSoundNode{
  private:
   int _fInit;
 #ifdef EnableSound
-  FMOD::Sound* _psamp;
-  FMOD::Channel* _channel;
+  FMOD_SOUND* _psamp;
+  FMOD_CHANNEL* _channel;
 #endif
   // This _fLoop is a HACK. It variously means
   //  "start the loop", "pause the loop", "trigger the sound", and

@@ -72,13 +72,13 @@ bool arSpeakerObject::loadMatrices(const arMatrix4& headMatrix) {
     const FMOD_VECTOR fmod_temp(FmodvectorFromArvector(temp));
     const FMOD_VECTOR fmod_forward(FmodvectorFromArvector(forward));
     const FMOD_VECTOR fmod_up(FmodvectorFromArvector(up));
-    if (!ar_fmodcheck(ar_fmod()->set3DListenerAttributes(0,
+    if (!ar_fmodcheck( FMOD_System_Set3DListenerAttributes( ar_fmod(), 0,
       &fmod_pos,
       &fmod_temp, // doppler NYI (units per second, not per frame!)
       &fmod_forward,
       &fmod_up)))
       return false;
-    if (!ar_fmodcheck(ar_fmod()->update()))
+    if (!ar_fmodcheck( FMOD_System_Update( ar_fmod() )))
       return false;
 #endif
   }

@@ -30,8 +30,8 @@ class SZG_CALL arStreamNode: public arSoundNode{
 
  private:
 #ifdef EnableSound
-  FMOD::Channel* _channel;
-  FMOD::Sound* _stream;
+  FMOD_CHANNEL* _channel;
+  FMOD_SOUND* _stream;
 #else
   void* _channel;
   void* _stream;

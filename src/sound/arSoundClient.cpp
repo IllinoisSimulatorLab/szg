@@ -15,14 +15,14 @@
 arSoundClient* __globalSoundClient = NULL;
 
 #ifdef EnableSound
-FMOD::System* ar_fmod() {
-  static FMOD::System* s = NULL;
+FMOD_SYSTEM* ar_fmod() {
+  static FMOD_SYSTEM* s = NULL;
   static bool fFailed = false;
   // if fFailed, returning NULL will likely crash this exe.  Oh well,
   // they can read the diagnostic.
   if (s || fFailed)
     return s;
-  const FMOD_RESULT r = FMOD::System_Create(&s);
+  const FMOD_RESULT r = FMOD_System_Create(&s);
   if (r != FMOD_OK) {
     fFailed = true;
     ar_log_error() << "failed to create fmod: " << FMOD_ErrorString(r) << ar_endl;
@@ -132,8 +132,9 @@ arSoundClient::arSoundClient():
 
 void arSoundClient::terminateSound(){
 #ifdef EnableSound
-  if (!_fSilent)
-    ar_fmod()->release();
+  if (!_fSilent) {
+    FMOD_System_Release( ar_fmod() );
+  }
 #endif
 }
 
@@ -160,7 +161,7 @@ bool ar_soundClientPostSyncCallback(void*){
   // // ar_usleep(20000);
 
   // todo: with a local timer, call it no more than every 20 msec.
-  return ar_fmodcheck(ar_fmod()->update());
+  return ar_fmodcheck( FMOD_System_Update( ar_fmod() ) );
 }
 
 bool ar_soundClientNullCallback(void*){
@@ -244,7 +245,7 @@ bool arSoundClient::startDSP(){
 #else
 
   ar_log_remark() << "arSoundClient remark: DSP started.\n";
-  FMOD::Sound* samp1 = NULL;
+  FMOD_SOUND* samp1 = NULL;
   // memory leak: should (void)ar_fmodcheck(_stream->release()) in stopDSP() or ~arSoundClient().
 
   FMOD_CREATESOUNDEXINFO x = {0};
@@ -253,29 +254,31 @@ bool arSoundClient::startDSP(){
   x.format = FMOD_SOUND_FORMAT_PCM16;
   x.defaultfrequency = 44100;
   x.length = 44100 * sizeof(short) * x.numchannels * 5;
-  if (!ar_fmodcheck(ar_fmod()->createSound(NULL, FMOD_3D | FMOD_SOFTWARE | FMOD_OPENUSER | FMOD_LOOP_NORMAL, &x, &samp1)))
+  if (!ar_fmodcheck( FMOD_System_CreateSound( ar_fmod(), NULL,
+          FMOD_3D | FMOD_SOFTWARE | FMOD_OPENUSER | FMOD_LOOP_NORMAL, &x, &samp1 ))) {
     return false;
-
+  }
   // Allow playing from the mic.  (Mic comes from setRecordDriver and windows' audio control panel.)
-  if (!ar_fmodcheck(ar_fmod()->recordStart(samp1, true))) {
+  if (!ar_fmodcheck( FMOD_System_RecordStart( ar_fmod(), samp1, true ))) {
     ar_log_error() << "failed to start recording.\n";
     // Don't return false here. Give the DSP a chance to start.
   }
 
   // Start playing the sample paused.  Set its volume.  The record channel should definitely start paused!!!!
   // Otherwise, there could be a delay in sound->animation!
-  if (!ar_fmodcheck(ar_fmod()->playSound(FMOD_CHANNEL_FREE, samp1, true, &_recordChannel)) ||
-      !ar_fmodcheck(_recordChannel->setVolume(_microphoneVolume)) ||
-      !ar_fmodcheck(_recordChannel->setPaused(true))) {
+  if (!ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(),
+          FMOD_CHANNEL_FREE, samp1, true, &_recordChannel )) ||
+      !ar_fmodcheck( FMOD_Channel_SetVolume( _recordChannel, _microphoneVolume )) ||
+      !ar_fmodcheck( FMOD_Channel_SetPaused( _recordChannel, true ))) {
     return false;
   }
 
   // Start the DSP.
   FMOD_DSP_DESCRIPTION d = {0};
   d.read = ar_soundClientDSPCallback;
-  return ar_fmodcheck(ar_fmod()->createDSP(&d, &_DSPunit)) &&
-         ar_fmodcheck(ar_fmod()->addDSP(_DSPunit)) &&
-         ar_fmodcheck(_DSPunit->setActive(true));
+  return ar_fmodcheck( FMOD_System_CreateDSP( ar_fmod(), &d, &_DSPunit )) &&
+         ar_fmodcheck( FMOD_System_AddDSP( ar_fmod(), _DSPunit )) &&
+         ar_fmodcheck( FMOD_DSP_SetActive( _DSPunit, true ));
 #endif
 }
 
@@ -305,17 +308,17 @@ bool arSoundClient::microphoneVolume(int volume){
   }
 #ifdef EnableSound
   if (_recordChannel){
-    if (!ar_fmodcheck(_recordChannel->setVolume(_microphoneVolume / 255)))
+    if (!ar_fmodcheck( FMOD_Channel_SetVolume( _recordChannel, _microphoneVolume / 255 )))
       return false;
 
     // bug: don't make the same call twice in a row.
     if (_microphoneVolume == 0){
       // Save CPU, it's silent anyways.
-      if (!ar_fmodcheck(_recordChannel->setPaused(true)))
+      if (!ar_fmodcheck( FMOD_Channel_SetPaused( _recordChannel, true )))
         return false;
     }
     else{
-      if (!ar_fmodcheck(_recordChannel->setPaused(false)))
+      if (!ar_fmodcheck( FMOD_Channel_SetPaused( _recordChannel, false )))
         return false;
     }
   }
@@ -334,7 +337,8 @@ bool arSoundClient::_initSound(){
 
 #else
 
-  if (!ar_fmodcheck(ar_fmod()->setSoftwareFormat(44100, FMOD_SOUND_FORMAT_PCM16, 0, 0, FMOD_DSP_RESAMPLER_LINEAR))) {
+  if (!ar_fmodcheck( FMOD_System_SetSoftwareFormat( ar_fmod(),
+          44100, FMOD_SOUND_FORMAT_PCM16, 0, 0, FMOD_DSP_RESAMPLER_LINEAR ))) {
     ar_log_error() << "fmod audio failed to init.\n";
     return false;
   }
@@ -342,9 +346,9 @@ bool arSoundClient::_initSound(){
   const float feetNotMeters = 3.28;
   const float rolloff = 0.8; // .8 is faint, 70 feet away.  .008 is much more gradual.
   const int numVirtualVoices = 100;
-  return ar_fmodcheck(ar_fmod()->set3DSettings(1.0, feetNotMeters, rolloff)) &&
-         ar_fmodcheck(ar_fmod()->init(
-	   numVirtualVoices, FMOD_INIT_NORMAL | FMOD_INIT_3D_RIGHTHANDED, 0));
+  return ar_fmodcheck( FMOD_System_Set3DSettings( ar_fmod(), 1.0, feetNotMeters, rolloff )) &&
+         ar_fmodcheck( FMOD_System_Init( ar_fmod(), 
+             numVirtualVoices, FMOD_INIT_NORMAL | FMOD_INIT_3D_RIGHTHANDED, 0 ));
 
   // ar_fmodcheck(ar_fmod()->setOutput(FMOD_OUTPUTTYPE_AUTODETECT));
   // FMOD_OUTPUTTYPE_ASIO or FMOD_OUTPUTTYPE_DSOUND

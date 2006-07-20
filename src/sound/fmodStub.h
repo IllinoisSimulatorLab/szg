@@ -3,7 +3,7 @@
 
 #ifdef EnableSound
 
-#include "fmod.hpp"
+#include "fmod.h"
 #include "fmod_errors.h"
 
 #include "arMath.h"
@@ -16,7 +16,7 @@ static inline FMOD_VECTOR FmodvectorFromArvector(const arVector3& rhs) {
   return lhs;
 }
 
-extern SZG_CALL FMOD::System* ar_fmod();
+extern SZG_CALL FMOD_SYSTEM* ar_fmod();
 extern SZG_CALL bool ar_fmodcheck3(const FMOD_RESULT, const char*, int);
 #define ar_fmodcheck(_) ar_fmodcheck3(_, __FILE__, __LINE__)
 

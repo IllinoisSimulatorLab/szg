@@ -28,7 +28,7 @@ arStreamNode::~arStreamNode(){
     return;
 #ifdef EnableSound
   if (_stream){
-    (void)ar_fmodcheck(_stream->release());
+    (void)ar_fmodcheck( FMOD_Sound_Release( _stream ));
   }
 #endif
 }
@@ -45,7 +45,7 @@ bool arStreamNode::render(){
 
     // Close the old stream
     if (_stream){
-      ar_fmodcheck(_stream->release());
+      ar_fmodcheck( FMOD_Sound_Release( _stream ));
       _stream = NULL;
     }
 
@@ -55,15 +55,16 @@ bool arStreamNode::render(){
       // NOTE: If we want to be able to have a custom DSP work (like for arSoundClient's tap), then
       // we need this to render in software! (FMOD is now advanced enough to send mp3's to hardware
       // for decoding... bypassing the DSP chains altogether).
-      if (!ar_fmodcheck(ar_fmod()->createStream(fullName.c_str(), FMOD_3D | FMOD_SOFTWARE, 0, &_stream))){
+      if (!ar_fmodcheck( FMOD_System_CreateStream( ar_fmod(),
+              fullName.c_str(), FMOD_3D | FMOD_SOFTWARE, 0, &_stream))){
         return false;
       }
     }
     // Store the length of the new stream.
     if (_stream){
-      if (!ar_fmodcheck(_stream->getLength(
+      if (!ar_fmodcheck( FMOD_Sound_GetLength( _stream, 
              &_msecDuration, FMOD_TIMEUNIT_MS)) ||
-          !ar_fmodcheck(ar_fmod()->playSound(
+          !ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(), 
 	     FMOD_CHANNEL_FREE, _stream, false, &_channel))) {
 	return false;
       }
@@ -72,14 +73,14 @@ bool arStreamNode::render(){
   }
 
   if (_stream){
-    if (!ar_fmodcheck(_channel->setVolume(_amplitude)))
+    if (!ar_fmodcheck( FMOD_Channel_SetVolume( _channel, _amplitude )))
       return false;
 
     // Set the current time of the stream, so it's seekable.
     // Ignore negative _msecRequested, to "go with the flow."
     // Don't seek if paused -- this can be expensive.
     if (_msecRequested >= 0 && !_paused){
-      if (!ar_fmodcheck(_channel->setPosition(_msecRequested, FMOD_TIMEUNIT_MS)))
+      if (!ar_fmodcheck( FMOD_Channel_SetPosition( _channel, _msecRequested, FMOD_TIMEUNIT_MS )))
         return false;
 
       // NOTE: THIS IS BUGGY BECAUSE....
@@ -90,8 +91,8 @@ bool arStreamNode::render(){
       //   ALWAYS SEEK BACK TO THIS SPOT)
       _msecRequested = -1;
     }
-    if (!ar_fmodcheck(_channel->setPaused(_paused)) ||
-        !ar_fmodcheck(_channel->getPosition(&_msecNow, FMOD_TIMEUNIT_MS))) {
+    if (!ar_fmodcheck(FMOD_Channel_SetPaused( _channel, _paused )) ||
+        !ar_fmodcheck( FMOD_Channel_SetPosition( _channel, _msecNow, FMOD_TIMEUNIT_MS ))) {
       return false;
     }
   }
