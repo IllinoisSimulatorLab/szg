@@ -1715,6 +1715,7 @@ void arMasterSlaveFramework::_unpackInputData( void ){
   if (!ar_setEventQueueFromStructuredData( &_inputEventQueue, _transferData )) {
     ar_log_warning() << _label << " failed to unpack input event queue.\n";
   } else {
+    _inputState->updateLastButtons();
     arInputEvent nextEvent(_inputEventQueue.popNextEvent());
     while (nextEvent) {
       _inputState->update(nextEvent);

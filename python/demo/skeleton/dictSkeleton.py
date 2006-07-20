@@ -59,7 +59,7 @@ class ColoredSquare(arPyInteractable):
       # or instance of a sub-class thereof, you must call clearCallbacks() as well as
       # getting rid of any explicit references you may have. Eventually, I'll probably
       # re-write this stuff in Python, at which point this problem will go away.
-#      self.clearCallbacks()
+      self.clearCallbacks()
       self._container.delValue(self)
     # button 3 toggles visibility (actually solid/wireframe)
     if effector.getOnButton(3):

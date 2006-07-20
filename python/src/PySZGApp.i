@@ -26,7 +26,7 @@ class arInputSimulator: public arFrameworkObject{
   virtual bool configure( arSZGClient& SZGClient );
   void registerInputNode(arInputNode* node);
 
-  virtual void draw() const;
+  virtual void draw();
   virtual void drawWithComposition();
   virtual void advance();
   virtual void keyboard(unsigned char key, int state, int x, int y);
@@ -54,7 +54,7 @@ class arPythonInputSimulator: public arInputSimulator{
   }
   virtual ~arPythonInputSimulator();
   
-  virtual void draw() const;
+  virtual void draw();
   virtual void advance();
   virtual void keyboard(unsigned char key, int state, int x, int y);
   virtual void mouseButton(int button, int state, int x, int y);
@@ -94,7 +94,7 @@ arPythonInputSimulator::~arPythonInputSimulator(){
   }
 }
   
-void arPythonInputSimulator::draw() const{
+void arPythonInputSimulator::draw() {
   if (!_drawCallback){
     arInputSimulator::draw();
     return;
@@ -211,7 +211,7 @@ class arPythonInputSimulator: public arInputSimulator{
  public:
   arPythonInputSimulator();
   virtual ~arPythonInputSimulator();
-  virtual void draw() const;
+  virtual void draw();
   void setDrawCallback(PyObject* drawCallback);
   void setAdvanceCallback(PyObject* advanceCallback);
   void setKeyboardCallback(PyObject* keyboardCallback);

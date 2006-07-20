@@ -52,7 +52,7 @@ bool ar3DS::attachMesh(const string& baseName, const string& where){
 // Attaches geometry to the scene graph.
 // @param baseName: a template name for the node names of the object
 // @parant parent: the node to which we will attach the object.
-bool ar3DS::attachMesh(arGraphicsNode* parent, const string& baseName){
+bool ar3DS::attachMesh(arGraphicsNode* parent, const string& baseName) {
 #ifndef Enable3DS
   cerr << "ar3DS error: compiled without 3DS support.\n";
   return false;
@@ -69,8 +69,9 @@ bool ar3DS::attachMesh(arGraphicsNode* parent, const string& baseName){
   _numMaterials = _numMaterials>2?_numMaterials:2;
 
   arMatrix4 topMatrix;
-  if (_normalize)
+  if (_normalize) {
     normalizationMatrix(topMatrix);
+  }
 
   // NOTE HOW KLUGEY THIS CODE SEEMS. IT WOULD BE BETTER TO HAVE THE
   // NODES BE IN CHARGE OF THE NEW NODE CREATION.
@@ -83,11 +84,10 @@ bool ar3DS::attachMesh(arGraphicsNode* parent, const string& baseName){
   if (ptr) {
     for (ptr=_file->nodes; ptr; ptr=ptr->next) {
       attachChildNode(baseName, transformNode, ptr);
-  }
-  else {
+    }
+  } else {
     cerr << "ar3DS error: empty file. (Was the data saved with a supported version of 3D Studio Max?)\n";
   }
-    }
 
   return true;
 #endif
