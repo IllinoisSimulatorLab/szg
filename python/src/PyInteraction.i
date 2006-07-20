@@ -152,7 +152,7 @@ arPythonInteractionSelector::~arPythonInteractionSelector() {
 float arPythonInteractionSelector::calcDistance( const arEffector& effector,
                                                  const arMatrix4& objectMatrix ) const {
   if (_distanceCallback == NULL) {
-    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable NULL distance callback.");
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractionSelector NULL distance callback.");
     return -1.;
   }
   PyObject *effobj = NULL;
@@ -165,7 +165,7 @@ float arPythonInteractionSelector::calcDistance( const arEffector& effector,
     if (PyErr_Occurred()) {
       PyErr_Print(); 
     }
-    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable.calcDistance() failed to allocate effector.");
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractionSelector.calcDistance() failed to allocate effector.");
     goto failure;
   }
   matObj = SWIG_NewPointerObj( (void *) &objectMatrix,
@@ -174,7 +174,7 @@ float arPythonInteractionSelector::calcDistance( const arEffector& effector,
     if (PyErr_Occurred()) {
       PyErr_Print(); 
     }
-    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable.calcDistance() failed to allocate matrix.");
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractionSelector.calcDistance() failed to allocate matrix.");
     goto failure;
   }
   arglist = Py_BuildValue( "(O,O)", effobj, matObj ); 
@@ -182,7 +182,7 @@ float arPythonInteractionSelector::calcDistance( const arEffector& effector,
     if (PyErr_Occurred()) {
       PyErr_Print(); 
     }
-    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable.calcDistance() failed to allocate arglist.");
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractionSelector.calcDistance() failed to allocate arglist.");
     goto failure;
   }
   result = PyEval_CallObject( _distanceCallback, arglist );  
@@ -190,12 +190,12 @@ float arPythonInteractionSelector::calcDistance( const arEffector& effector,
     if (PyErr_Occurred()) {
       PyErr_Print(); 
     }
-    PyErr_SetString(PyExc_RuntimeError,"A Python exception occurred in the arPythonInteractable distance callback.");
+    PyErr_SetString(PyExc_RuntimeError,"A Python exception occurred in the arPythonInteractionSelector distance callback.");
     goto failure;
   }
   if (!PyFloat_Check( result )) {
     Py_DECREF( result );
-    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractable distance callback must return a float.");
+    PyErr_SetString(PyExc_RuntimeError,"arPythonInteractionSelector distance callback must return a float.");
     goto failure;
   }
   returnVal = (float)PyFloat_AsDouble( result );
@@ -621,7 +621,7 @@ arPythonInteractable::arPythonInteractable() :
 }
 
 arPythonInteractable::~arPythonInteractable() {
-/*  cout << "arPythonInteractable remark: destructor called.\n";*/
+/*  cerr << "arPythonInteractable remark: destructor called.\n";*/
   _cleanup();
   Py_XDECREF(_touchCallback);
   Py_XDECREF(_processCallback);

@@ -42,7 +42,9 @@ class ColoredSquare(arPyInteractable):
     self._container = container
 
   def __del__(self):
-    print 'ColoredSquare.__del__()'
+    print 'ColoredSquare.__del__()',self
+    # VERY important to call superclass destructor!!!
+    arPyInteractable.__del__(self)
 
   # This will get called on each frame in which this object is selected for
   # interaction ('touched')
