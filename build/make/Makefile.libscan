@@ -202,9 +202,9 @@ ifeq ($(strip $(MACHINE)), WIN32)
 
   # fmod 4 c++ API incompatible with non-microsoft compilers, so until we
 	# switch we force version to 3.
-  ifeq ($(strip $(SZG_COMPILER)), MINGW)
-	  SZG_FMOD_VERSION=3
-	endif
+#   ifeq ($(strip $(SZG_COMPILER)), MINGW)
+#     SZG_FMOD_VERSION=3
+#   endif
 
   ifeq ($(strip $(SZG_FMOD_VERSION)), 3)
 		FMOD_DIR := $(SZGEXTERNAL)/win32/fmod-3.7
