@@ -193,8 +193,8 @@ ifeq ($(strip $(MACHINE)), WIN32)
     GLUT_DIR := $(SZGEXTERNAL)/win32/glut-3.7-vc
     LINK_GLUT := glut32.lib
   endif
-    INC_GLUT := $(wildcard $(GLUT_DIR)/include)
-    OBJ_GLUT := $(wildcard $(GLUT_DIR)/lib/glut32.dll)
+	INC_GLUT := $(wildcard $(GLUT_DIR)/include)
+	OBJ_GLUT := $(wildcard $(GLUT_DIR)/lib/glut32.dll)
 	
   # Some windows installations lack glext.h, which is needed for the
   # q33 demo. Allow it to be added in SZGEXTERNAL
@@ -214,7 +214,11 @@ ifeq ($(strip $(MACHINE)), WIN32)
   else
     FMOD_DIR := $(SZGEXTERNAL)/win32/fmod-4
     INC_FMOD := $(wildcard $(FMOD_DIR)/include)
-    LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/fmodex_vc.lib)
+		ifeq ($(strip $(SZG_COMPILER)), MINGW)
+			LINK_FMOD := -lfmodex
+		else
+			LINK_FMOD := $(wildcard $(FMOD_DIR)/lib/fmodex_vc.lib)
+		endif
     OBJ_FMOD := $(wildcard $(FMOD_DIR)/lib/fmodex.dll)
   endif
 
@@ -332,23 +336,15 @@ ifeq ($(strip $(MACHINE)), WIN32)
 	
   ifneq ($(strip $(INC_FMOD)),)
   ifneq ($(strip $(LINK_FMOD)),)
-    ifneq ($(strip $(SZG_COMPILER)), MINGW)
 			SZG_OPT_FLAGS += -D "EnableSound"
 			SZG_SHARED_COPY += $(OBJ_FMOD)
 			SZG_INCLUDE_FMOD = -I$(INC_FMOD)
 			SZG_OPT_INCLUDE_FULL += -I$(INC_FMOD)
 			SZG_LINK_FMOD = $(LINK_FMOD) 
 			SZG_OPT_LIBS_FULL += $(SZG_LINK_FMOD)
-    else 
-			ifeq ($(strip $(SZG_FMOD_VERSION)), 3)
-				SZG_OPT_FLAGS += -D "EnableSound"
-				SZG_SHARED_COPY += $(OBJ_FMOD)
-				SZG_INCLUDE_FMOD = -I$(INC_FMOD)
-				SZG_OPT_INCLUDE_FULL += -I$(INC_FMOD)
-				SZG_LINK_FMOD = $(LINK_FMOD) 
-				SZG_OPT_LIBS_FULL += $(SZG_LINK_FMOD)
+			ifeq ($(strip $(SZG_COMPILER)), MINGW)
+				PRE_LIB_SEARCH_FLAGS += -L$(FMOD_DIR)/lib
 			endif
-		endif
   endif
   endif
 
