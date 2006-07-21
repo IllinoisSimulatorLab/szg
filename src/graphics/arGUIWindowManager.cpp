@@ -326,7 +326,10 @@ arWMEvent* arGUIWindowManager::addWMEvent( const int windowID, arGUIWindowInfo e
       break;
 
       case AR_WINDOW_CLOSE:
+        // Does not seem to work in some situations on OS X. BUG BUG BUG BUG BUG BUG.
+#ifndef AR_USE_DARWIN
         _windows[ windowID ]->_killWindow();
+#endif
       break;
 
       default:

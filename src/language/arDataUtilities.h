@@ -116,8 +116,11 @@ SZG_CALL enum {
 #elif defined( AR_USE_SGI )
   #define AR_ENDIAN_MODE AR_BIG_ENDIAN
 #elif defined( AR_USE_DARWIN )
-  // Bug: what about intel macs?
-  #define AR_ENDIAN_MODE AR_BIG_ENDIAN
+  #if defined( AR_USE_INTEL_MAC )
+    #define AR_ENDIAN_MODE AR_LITTLE_ENDIAN
+  #else
+    #define AR_ENDIAN_MODE AR_BIG_ENDIAN
+  #endif
 #else
   #define AR_ENDIAN_MODE AR_UNDEFINED_ENDIAN
 #endif
