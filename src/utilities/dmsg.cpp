@@ -26,48 +26,42 @@ int main(int argc, char** argv){
   if (argc < 2) {
 LPrintUsage:
   cerr << "Usage:\n"
-       << "  To send a message to a Phleet component by ID:\n"
+       << "  Send to a Phleet component by ID:\n"
        << "    dmsg [-r] component_ID message_type [message_body]\n"
-       << "  To send a message to a Phleet component by name:\n"
-       << "    dmsg [-r] -p computer_name component_name message_type "
-       << "[message_body]\n"
-       << "  To send a message to the master component on a virtual "
-       << "computer:\n"
+       << "  Send to a Phleet component by name:\n"
+       << "    dmsg [-r] -p computer_name component_name message_type [message_body]\n"
+       << "  Send to the master component on a virtual computer:\n"
        << "    dmsg [-r] -m virtual_computer message_type [message_body]\n"
-       << "  To send a message to a process holding the screen resource:\n"
+       << "  Send to the process holding the screen resource:\n"
        << "    dmsg [-r] -g virtual_computer screen_number message_type "
        << "[message_body]\n"
-       << "  To send a message to the trigger process of a virtual computer:\n"
+       << "  Send to the trigger process of a virtual computer:\n"
        << "    dmsg [-r] -c location message_type [message_body]\n"
-       << "  To send a message to the component hosting a given service:\n"
+       << "  Send to the component hosting a service:\n"
        << "    dmsg [-r] -s service_name message_type [message_body]\n"
-       << "  To send a message to the component holding a given lock:\n"
+       << "  Send to the component holding a lock:\n"
        << "    dmsg [-r] -l lock_name message_type [message_body]\n";
     return 1;
   }
 
-  // dmsg MAY expect a response from the receiver of the message.
-  // The default is to expect no response.
-  // To be able to receive a response, the first flag must be -r.
-
+  // For dmsg to receive a response, the first flag must be -r.
   bool responseExpected = false;
   if (!strcmp(argv[1], "-r")){
     responseExpected = true;
     striparg(1, argc, argv);
   }
 
-  // There are several modes to dmsg.
-  // No command-line flags, it sends a message to the component with that ID.
-  // -p sends to the component matching the computer/component_name pair.
-  // -m sends to the component operating on the master screen.
-  // -s sends to the component operating on a screen.
-  // -c sends to the control component (holding the "demo" lock).
+  // Modes:
+  // default: send a message to the component with that ID.
+  // -p: send to the component matching the computer/component_name Pair.
+  // -m: send to the component operating on the Master screen.
+  // -s: send to the component operating on a Screen.
+  // -c: send to the Control component (holding the "demo" lock).
   // If multiple flags are given, only the last one takes effect.
 
+  // Parse the args.
   enum { modeDefault, modeProcess, modeMaster, modeScreen, modeControl, modeService, modeLock };
   int mode = modeDefault;
-  
-  // parse the args
   for (int i=0; i<argc; i++){
     if (!strcmp(argv[i],"-p")){
       mode = modeProcess;
@@ -229,11 +223,11 @@ LPrintUsage:
     break;
   } 
 
-  // Finally we know what to send, and to whom!
+  // We know what to send, and to whom.
   const int match = szgClient.sendMessage(
     messageType, messageBody, componentID, responseExpected);
   if ( match < 0 ){
-    // sendMessage() already cout'ed something.
+    // sendMessage() already complained.
     return 1;
   }
 
@@ -245,11 +239,10 @@ LPrintUsage:
       tags.push_back(match);
       // will be filled-in with the original match, unless there is an error.
       int remoteMatch;
-      const int status = szgClient.getMessageResponse(
-        tags, responseBody, remoteMatch);
+      const int status = szgClient.getMessageResponse(tags, responseBody, remoteMatch);
       if (status == 0){
 	// failure
-        cout << "dmsg error: failed to get message response.\n";
+        cout << "dmsg error: no message response.\n";
 	break;
       }
       else if (status == -1){
@@ -262,8 +255,7 @@ LPrintUsage:
 	break;
       }
       else
-        cout << "dmsg error: unexpected message response status "
-	     << status << ".\n";
+        cout << "dmsg error: unexpected message response status " << status << ".\n";
     }
   }
 

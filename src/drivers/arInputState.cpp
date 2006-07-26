@@ -231,9 +231,7 @@ void arInputState::_setSignatureNoLock( const unsigned int numButtons,
     changed = true;
   } else if (numButtons > _buttons.size()) {
     _buttons.insert( _buttons.end(), numButtons-_buttons.size(), 0 );
-    _lastButtons.insert( _lastButtons.end(), 
-                         numButtons-_lastButtons.size(), 
-                         0 );
+    _lastButtons.insert( _lastButtons.end(), numButtons-_lastButtons.size(), 0 );
     changed = true;
   }
     
@@ -296,12 +294,9 @@ void arInputState::remapInputDevice( const unsigned int deviceNum,
   // Don't chain some methods together because use of locks would deadlock.
   // Here, we must use setSignatureNoLock instead of setSignature.
   _lock();
-  const int buttonDiff = numButtons -
-    _buttonInputMap.getNumberDeviceEvents( deviceNum );
-  const int axisDiff = numAxes -
-    _axisInputMap.getNumberDeviceEvents( deviceNum );
-  const int matrixDiff = numMatrices -
-    _matrixInputMap.getNumberDeviceEvents( deviceNum );
+  const int buttonDiff = numButtons - _buttonInputMap.getNumberDeviceEvents( deviceNum );
+  const int axisDiff = numAxes - _axisInputMap.getNumberDeviceEvents( deviceNum );
+  const int matrixDiff = numMatrices - _matrixInputMap.getNumberDeviceEvents( deviceNum );
   if ((buttonDiff != 0)||(axisDiff != 0)||(matrixDiff != 0)) {
     if (buttonDiff < 0)
       ar_log_warning() << "arInputState decreasing maximum button event for device " << deviceNum << ar_endl;
@@ -309,9 +304,9 @@ void arInputState::remapInputDevice( const unsigned int deviceNum,
       ar_log_warning() << "arInputState decreasing maximum axis event for device " << deviceNum << ar_endl;
     if (matrixDiff < 0)
       ar_log_warning() << "arInputState decreasing maximum matrix event for device " << deviceNum << ar_endl;
-    unsigned oldButtons = _buttons.size();
-    unsigned oldAxes = _axes.size();
-    unsigned oldMatrices = _matrices.size();
+    const unsigned oldButtons = _buttons.size();
+    const unsigned oldAxes = _axes.size();
+    const unsigned oldMatrices = _matrices.size();
     _buttonInputMap.remapInputEvents( deviceNum, numButtons, _buttons );
     _axisInputMap.remapInputEvents( deviceNum, numAxes, _axes );
     _matrixInputMap.remapInputEvents( deviceNum, numMatrices, _matrices );
@@ -333,8 +328,8 @@ bool arInputState::setFromBuffers( const int* const buttonData,
                                    const unsigned int numMatrices ) {
   _lock();
   if (!buttonData || !axisData || !matrixData) {
-    ar_log_error() << "arInputState error: invalid buffer.\n";
     _unlock();
+    ar_log_warning() << "arInputState: null buffer.\n";
     return false;
   }
 
@@ -354,8 +349,8 @@ bool arInputState::saveToBuffers( int* const buttonBuf,
                                   float* const matrixBuf ){
   _lock();
   if (!buttonBuf || !axisBuf || !matrixBuf) {
-    ar_log_error() << "arInputState error: invalid buffer.\n";
     _unlock();
+    ar_log_warning() << "arInputState: null buffer.\n";
     return false;
   }
 
@@ -376,15 +371,14 @@ void arInputState::updateLastButtons() {
   _unlock();
 }
 
-void arInputState::updateLastButton( const unsigned int index ) {
+void arInputState::updateLastButton( const unsigned i ) {
   _lock();
-  if (index >= _buttons.size()) {
+  if (i >= _buttons.size()) {
     _unlock();
-    ar_log_warning() << "arInputState updateButton's index out of range (" << index
-                   << ".\n";
+    ar_log_warning() << "arInputState updateLastButton's index out of range (" << i << ").\n";
     return;
   }
-  _lastButtons[index] = _buttons[index];
+  _lastButtons[i] = _buttons[i];
   _unlock();
 }
 

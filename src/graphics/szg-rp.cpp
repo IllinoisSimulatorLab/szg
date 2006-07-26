@@ -152,14 +152,13 @@ string handleDelete(const string& messageBody){
 stringstream result;
   PeerContainer::iterator i = peers.find(messageBody);
   if (i == peers.end()){
-    result << "szg-rp error: "
-	   << "cannot delete a peer that does not exist.\n";
+    result << "szg-rp error: cannot delete nonexistent peer.\n";
   }
   else{
     arGraphicsPeer* peer = i->second.peer;
     peer->closeAllAndReset();
+    // Lock, since another thread draws and uses this iterator.
     ar_mutex_lock(&peerLock);
-      // Lock, since another thread draws and uses this iterator.
       peers.erase(i);
     ar_mutex_unlock(&peerLock);
     // delete peer; // Memory leak: delete may be unsafe.
@@ -172,8 +171,7 @@ string handleTranslation(const string& messageBody){
   stringstream result;
   arSlashString bodyList(messageBody);
   if (bodyList.length() < 4){
-    result << "szg-rp error: body format must be local peer followed by "
-	   << "translation.\n";
+    result << "szg-rp error: body format must be local peer followed by translation.\n";
     return result.str();
   }
   PeerContainer::iterator i = peers.find(bodyList[0]);
@@ -182,9 +180,8 @@ string handleTranslation(const string& messageBody){
 	   << "  (" << bodyList[0] << ")\n";
     return result.str();
   }
-  string tail = getTail(bodyList);
   float trans[3];
-  ar_parseFloatString(tail, trans, 3);
+  ar_parseFloatString(getTail(bodyList), trans, 3);
   result << "szg-rp success: translation = " << trans[0] << " "
          << trans[1] << " " 
          << trans[2] << "\n";
@@ -196,14 +193,12 @@ string handleLabelTranslate(const string& messageBody){
   stringstream result;
   arSlashString bodyList(messageBody);
   if (bodyList.length() < 4){
-    result << "szg-rp error: body format must be local peer followed by "
-	   << "translation.\n";
+    result << "szg-rp error: body format must be local peer followed by translation.\n";
     return result.str();
   }
   PeerContainer::iterator i = peers.find(bodyList[0]);
   if (i == peers.end()){
-    result << "szg-rp error: no such named local peer.\n"
-	   << "  (" << bodyList[0] << ")\n";
+    result << "szg-rp error: no local peer named '" << bodyList[0] << "'\n";
     return result.str();
   }
   string tail = getTail(bodyList);
@@ -361,16 +356,13 @@ void messageTask(void* pClient){
       PeerContainer::iterator i = peers.find(peerName);
       if (i == peers.end()){
         responseBody = string("szg-rp error: failed to find specified local ")
-                       + string("peer.\n  (") + peerName
-                       + string(")\n");
+                       + string("peer.\n  (") + peerName + string(")\n");
         ar_mutex_unlock(&peerLock);
       }
       else{
         arGraphicsPeer* temp = i->second.peer;
         ar_mutex_unlock(&peerLock);
-        responseBody = ar_graphicsPeerHandleMessage(temp, 
-                                                    messageType, 
-                                                    messageBody);
+        responseBody = ar_graphicsPeerHandleMessage(temp, messageType, messageBody);
       }
     }
     // return the message response.
@@ -398,6 +390,7 @@ void renderLabel(const string& name){
 list<int> lastFrameTimes;
 
 int averageFrameTime(int thisTime){
+  // Low-pass filter: average last 20 frame times.
   if (lastFrameTimes.size() >= 20){
     lastFrameTimes.pop_front();
   }
@@ -428,8 +421,7 @@ void display(){
   PeerContainer::iterator i;
   ar_mutex_lock(&peerLock);
   // first pass to draw the peers
-  // We keep track of the time it takes to read in the data
-  // and draw that as well.
+  // Track how long it takes to read in the data, and draw that as well.
   double dataTime = 0;
   int dataAmount = 0;
   for (i = peers.begin(); i != peers.end(); i++){
@@ -584,7 +576,7 @@ int main(int argc, char** argv){
   if (!szgClient->sendInitResponse(true)){
     cerr << "szg-rp error: maybe szgserver died.\n";
   }
-  // Use locks to ensure that we have a unique workspace name.
+  // Lock to ensure a unique workspace name.
   int componentID;
   if (!szgClient->getLock(string("szg-rp-")+argv[1], componentID)){
     ar_log_error() << "szg-rp: non-unique workspace name.\n"

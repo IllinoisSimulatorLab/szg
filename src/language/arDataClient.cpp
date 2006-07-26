@@ -5,6 +5,7 @@
 
 #include "arPrecompiled.h"
 #include "arDataClient.h"
+#include "arLogStream.h"
 
 // DO NOT ALLOCATE THE SOCKET IN THE CONSTRUCTOR. WE WANT TO
 // BE ABLE TO DECLARE arDataServer AS A GLOBAL ON WINDOWS COMPUTERS.
@@ -37,7 +38,7 @@ arTemplateDictionary* arDataClient::getDictionary(){
 
 bool arDataClient::_translateID(ARchar* buf, ARchar* dest, int& size) {
   if (!_theDictionary) {
-    cerr << _exeName << " error: no dictionary.\n";
+    ar_log_warning() << _exeName << ": no dictionary.\n";
     return false;
   }
 
@@ -46,7 +47,7 @@ bool arDataClient::_translateID(ARchar* buf, ARchar* dest, int& size) {
   arDataTemplate* theTemplate = _theDictionary->find(recordID);
   if (!theTemplate ||
       (size = theTemplate->translate(dest, buf, _remoteStreamConfig)) < 0) {
-    cerr << _exeName << " error: failed to translate data record.\n";
+    ar_log_warning() << _exeName << " failed to translate data record.\n";
     return false;
   }
 
@@ -123,13 +124,13 @@ bool arDataClient::_dialUpActivate(){
   _remoteStreamConfig = handshakeReceiveConnection(_socket, localConfig);
   if (!_remoteStreamConfig.valid){
     if (_remoteStreamConfig.refused){
-      cout << _exeName << " remark: remote data point closed connection.\n"
+      ar_log_remark() << _exeName << ": connection got closed.\n"
 	   << "  (Maybe this IP address isn't on the szgserver's whitelist.)\n";
       return false;
     }
 
-    cerr << _exeName << " error: remote data point has wrong szg protocol "
-	 << "version = " << _remoteStreamConfig.version << ".\n";
+    ar_log_warning() << _exeName << ": remote data point has wrong szg protocol version, "
+      << _remoteStreamConfig.version << ".\n";
     return false;
 
   }
@@ -139,13 +140,13 @@ bool arDataClient::_dialUpActivate(){
   ARchar sizeBuffer[AR_INT_SIZE];
   // Read in the dictionary from the server.
   if (!_socket->ar_safeRead(sizeBuffer,AR_INT_SIZE)){
-    cerr << _exeName << " error: dialUp failed to read dictionary size.\n";
+    ar_log_warning() << _exeName << ": dialUp failed to read dictionary size.\n";
     return false;
   }
 
   const ARint totalSize = ar_translateInt(sizeBuffer,_remoteStreamConfig);
   if (totalSize<AR_INT_SIZE){
-    cerr << _exeName << " error: dialUp failed to translate dictionary "
+    ar_log_warning() << _exeName << ": dialUp failed to translate dictionary "
 	 << "size.\n";
     return false;
   }
@@ -153,7 +154,7 @@ bool arDataClient::_dialUpActivate(){
   ARchar* dataBuffer = new ARchar[totalSize];
   memcpy(dataBuffer, sizeBuffer, AR_INT_SIZE);
   if (!_socket->ar_safeRead(dataBuffer+AR_INT_SIZE, totalSize-AR_INT_SIZE)){
-    cerr << _exeName << " error: dialUp failed to get dictionary.\n";
+    ar_log_warning() << _exeName << ": dialUp failed to get dictionary.\n";
     delete [] dataBuffer;
     return false;
   }
@@ -161,7 +162,7 @@ bool arDataClient::_dialUpActivate(){
   // Initialize the dictionary.
   _theDictionary = new arTemplateDictionary;
   if (!_theDictionary->unpack(dataBuffer,_remoteStreamConfig)){
-    cerr << _exeName << " error: dialUp failed to unpack dictionary.\n";
+    ar_log_warning() << _exeName << ": dialUp failed to unpack dictionary.\n";
     delete [] dataBuffer;
     return false;
   }
@@ -173,16 +174,22 @@ bool arDataClient::_dialUpActivate(){
 
 bool arDataClient::_dialUpInit(const char* address, int port){
   if (!strcmp(address, "NULL")){
-    cerr << _exeName 
-         << " error: arDataClient::dialUp got NULL address for port "
-         << port << ".\n";
+    if (port == 0)
+      ar_log_warning() << _exeName << ": dialUp: no IP address or port.\n";
+    else
+      ar_log_warning() << _exeName << ": dialUp: NULL address for port " << port << ".\n";
     return false;
   }
 
-  if (strlen(address) < 7 || port < 1000 || port > 65535){
-    cerr << _exeName << " error: arDataClient::dialUp(" 
-         << address << ":" << port
-         << ") got an invalid IP address and/or invalid port.\n";
+  if (strlen(address) < 7){
+    ar_log_warning() << _exeName << ": dialUp(" << address << ":" << port
+         << ") got an invalid IP address.\n";
+    return false;
+  }
+
+  if (port < 1000 || port > 65535){
+    ar_log_warning() << _exeName << ": dialUp(" << address << ":" << port
+         << ") got an invalid port.\n";
     return false;
   }
 
@@ -190,7 +197,7 @@ bool arDataClient::_dialUpInit(const char* address, int port){
     _socket = new arSocket(AR_STANDARD_SOCKET);
   }
   if (_socket->ar_create() < 0) {
-    cerr << _exeName << " error: dialUp(" << address << ":" << port
+    ar_log_warning() << _exeName << ": dialUp(" << address << ":" << port
          << ") failed to create socket.\n";
     return false;
   }
@@ -199,7 +206,7 @@ bool arDataClient::_dialUpInit(const char* address, int port){
     return false;
 
   if (!_socket->smallPacketOptimize(_smallPacketOptimize)){
-    cerr << _exeName << " error: dialUp(" << address << ":" << port
+    ar_log_warning() << _exeName << ": dialUp(" << address << ":" << port
          << ") failed to smallPacketOptimize.\n";
     return false;
   }
@@ -211,8 +218,7 @@ bool arDataClient::_dialUpConnect(const char* address, int port) {
   if (_socket->ar_connect(address, port) >= 0)
     return true;
 
-  // Don't complain. It's ok for data sinks like szgrender to run
-  // with no associated data server.
+  // Don't complain. Data sinks like szgrender don't need a data server.
   _socket->ar_close();
   return false;
 }
@@ -254,7 +260,7 @@ void arDataClient::closeConnection(){
 // uses of arSZGClient and its embedded arDataClient).
 bool arDataClient::sendData(arStructuredData* theData){
   if (!theData) {
-    cerr << _exeName << " error: sendData(NULL)\n";
+    ar_log_warning() << _exeName << " ignoring sendData(NULL)\n";
     return false;
   }
 
