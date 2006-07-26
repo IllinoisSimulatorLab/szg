@@ -439,14 +439,29 @@ LDone:
                  SZGClient->getAttribute(userName, "NULL", "SZG_NATIVELIB","path", "");
   // Construct the new dynamic library path.
   string dynamicLibraryPath;
+  string appPath = ar_exePath(newCommand);
   if (ar_exePath(newCommand) != "") {
-    dynamicLibraryPath += ar_exePath(newCommand);
+    dynamicLibraryPath += appPath;
+  }
+  // If parent directory is in SZG_EXEC/path, append it.
+  if (szgExecPath != "NULL") {
+    int j;
+    arPathString appPathString( appPath );
+    arPathString parDirString;
+    for (j=0; j<(appPathString.size()-1); ++j) {
+      parDirString /= appPathString[j];
+    }
+    arSemicolonString szgExecPathString( szgExecPath );
+    for (j=0; j<szgExecPathString.size(); ++j) {
+      if (parDirString == szgExecPathString[j]) {
+        dynamicLibraryPath += ";" + parDirString;
+        break;
+      }
+    }
+//    dynamicLibraryPath += ";" + szgExecPath;
   }
   if (nativeLibPath != "NULL") {
     dynamicLibraryPath += ";" + nativeLibPath;
-  }
-  if (szgExecPath != "NULL") {
-    dynamicLibraryPath += ";" + szgExecPath;
   }
   if (oldDynamicLibraryPath != "" && oldDynamicLibraryPath != "NULL") {
     dynamicLibraryPath += ";" + oldDynamicLibraryPath;

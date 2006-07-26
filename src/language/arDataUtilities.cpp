@@ -1177,7 +1177,7 @@ list<string> ar_listDirectory(const string& name){
   while ((directoryEntry = readdir(directory)) != NULL){
     // There is another entry. Push the name.
     fileNameString = string( directoryEntry->d_name );
-    if (fileNameString != "..") {
+    if ((fileNameString != "..")&&(fileNameString != ".")) {
       result.push_back(directoryPrefix+fileNameString);
     }
   }
