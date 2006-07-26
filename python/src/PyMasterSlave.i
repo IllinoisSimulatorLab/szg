@@ -435,8 +435,7 @@ class arMasterSlaveFramework : public arSZGAppFramework {
   
   bool init( int&, char** );
   bool start( void );
-  bool startWithoutWindowing( void );
-  bool startWithoutEventLoop( void );
+  bool start(bool useWindowing, bool useEventLoop);
   void stop( bool blockUntilDisplayExit );
   bool createWindows(bool useWindowing);
   void loopQuantum();

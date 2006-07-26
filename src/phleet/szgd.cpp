@@ -448,17 +448,18 @@ LDone:
     int j;
     arPathString appPathString( appPath );
     arPathString parDirString;
-    for (j=0; j<(appPathString.size()-1); ++j) {
-      parDirString /= appPathString[j];
-    }
-    arSemicolonString szgExecPathString( szgExecPath );
-    for (j=0; j<szgExecPathString.size(); ++j) {
-      if (parDirString == szgExecPathString[j]) {
-        dynamicLibraryPath += ";" + parDirString;
-        break;
+    if (appPathString.size() > 1) {
+      for (j=0; j<(appPathString.size()-1); ++j) {
+        parDirString /= appPathString[j];
+      }
+      arSemicolonString szgExecPathString( szgExecPath );
+      for (j=0; j<szgExecPathString.size(); ++j) {
+        if (parDirString == szgExecPathString[j]) {
+          dynamicLibraryPath += ";" + parDirString;
+          break;
+        }
       }
     }
-//    dynamicLibraryPath += ";" + szgExecPath;
   }
   if (nativeLibPath != "NULL") {
     dynamicLibraryPath += ";" + nativeLibPath;

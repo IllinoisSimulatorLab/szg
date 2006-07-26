@@ -57,6 +57,7 @@ Quake3 level builder).
 - SZG_FMOD_VERSION: if set to 3, for audio use the external library
 "sound_fmod3" instead of the default, "sound".
 
+
 =Environment variables affecting the operation of Syzygy components=
 
 - SZG_PARAM: In application standalone mode, if the parameter file

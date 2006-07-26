@@ -19,65 +19,99 @@ Integrated Systems Lab
 
 =Getting Started=[GettingStarted]
 
-- [Getting the software GettingSoftware.html], either by downloading
-  pre-compiled libraries and executables or by compiling source code.
-- Installing and using [supporting libraries SupportingLibraries.html] that give Syzygy extra functionality.
-- [Standalone mode Standalone.html]: Running Syzygy programs on a single PC without setting up a cluster.
-- [Example code ExampleCode.html]: How to run the included example programs, where their
-data files should be installed, etc.
-- [Tracking and Input Device Simulator TrackingSim.html]: Using Syzygy's inputsimulator to control
-a program in the absence of a tracked input device (required in standalone mode).
-- Interacting with the [Syzygy Database SystemConfiguration.html]: How to specify parameters
-of your virtual reality system in both Standalone and Cluster modes.
-
-
-=Setting Up and Testing a Syzygy Cluster=
-
-- [Syzygy Cluster mode PhleetIntro.html]: Concepts and commands for setting up Syzygy
-PC clusters and running programs on them (Look here for an explanation of virtual computers).
-- [Using Phleet Phleet.html]: More information about using Syzygy's distributed operating system.
-- [Basic testing of your Syzygy cluster ClusterTest.html].
+- [GettingSoftware.html GettingSoftware.html] explains how to download and compile the source code.
+  If you're on Windows and using Microsoft Visual C++, you'll also need to look at
+  [VisualStudioBuildVars.html VisualStudioBuildVars.html]. Note that most of Syzygy can now be compiled
+  on Windows using the [MinGW http://www.mingw.org/] GNU compiler, although this is still a bit
+  experimental.
+- [SupportingLibraries.html SupportingLibraries.html] covers installing and using supporting
+  libraries that give Syzygy extra functionality.
+- [Standalone.html Standalone.html] Standalone mode: Running Syzygy programs on a single PC
+  without setting up a cluster.
+- [ExampleCode.html ExampleCode.html]: How to run the included example programs, where their
+  data files should be installed, etc.
+- [TrackingSim.html TrackingSim.html]: Using Syzygy's tracking and input device simulator
+  (//inputsimulator//) to control a program in the absence of a tracked input device
+  (this is currently required in standalone mode).
+- [SystemConfiguration.html SystemConfiguration.html] describes interacting with the Syzygy Database
+  to specify parameters of your virtual reality system in both Standalone and Cluster modes. This
+  includes the following further topics:
+  - [GraphicsConfiguration.html GraphicsConfiguration.html]: How to specify the arrangement of your
+    display devices. Some examples are contained in
+    [GraphicsConfigExamples.html GraphicsConfigExamples.html].
+  - [PathConfiguration.html PathConfiguration.html] shows how to set up search paths for sound files,
+    texture images, and so on.
+  - When running in [cluster mode #ClusterSetup], the information on configuring input devices is also
+    relevant, see [Setting Up, Testing, and Managing a Syzygy Cluster #ClusterSetup].
 
 
 =Creating Your Own Syzygy Progams=
 
-- [Syzygy in C++ CompileCPP.html]: How to build Syzygy C++ programs.
-- [Programming Programming.html]: Writing a program using Syzygy's programming frameworks.
-- [Scene Graph API SceneGraph.html]: Using the distributed scene graph.
-- [Sound API Sound.html]: Using the distributed sound system.
-- [Objects Objects.html]: Using external meshes and animations in Syzygy.
-- [Navigation Navigation.html]: How to use built-in functions for navigation in your application.
-- [Interaction Interaction.html]: How to use built-in functions for world interaction in your
-application.
-- [Quick Port QuickPort.html]: Porting a Glut application, in a hurry.
-- [Syzygy in Python PySZG.html]: How to write Syzygy Python programs.
-- [Scene Graphs in Python SceneGraphTutorial.html]: Shows how to manipulate Syzygy scene graphs
-from the Python prompt. A good starting point for writing your own applications in the Syzygy
-distributed scene graph framework. See also [here SceneGraph.html].
-- [Shared Worlds in Python SharedWorldTutorial.html]: Shows how to use peer-to-peer reality in
-creating shared world applications.
+- [Programming.html Programming.html]: Writing a program using Syzygy's application frameworks.
+- [QuickPort.html QuickPort.html]: Porting an OpenGL/GLUT-based application, in a hurry.
+- [CompileCPP.html CompileCPP.html]: How to build Syzygy C++ programs.
+- [PySZG.html PySZG.html]: How to write Syzygy Python programs.
+- [SceneGraph.html SceneGraph.html]: Using the distributed scene graph API.
+- [Sound.html Sound.html]: Using the sound system to produce spatially-localized sound.
+- [Objects.html Objects.html]: Using external meshes (.obj or .3ds) and animations in Syzygy.
+- [Navigation.html Navigation.html]: How to use built-in functions for navigation in your application.
+- [Interaction.html Interaction.html]: How to use built-in classes and functions for picking,
+  grabbing, and otherwise interacting with virtual objects.
+- [PortabilityLayer.html PortabilityLayer.html]: The portability layer consists of classes and
+  functions that wrap platform-specific implementations of sockets, serial ports, time, threads,
+  mutexes, etc.
+- [SceneGraphTutorial.html SceneGraphTutorial.html]: Shows how to manipulate Syzygy scene graphs
+  from a Python prompt. A good starting point for writing Python programs based on the
+  distributed scene graph framework. See also [SceneGraph.html SceneGraph.html].
+- [RandomNumbers.html RandomNumbers.html] describes facilities of the master/slave application
+  framework (described in [Programming.html Programming.html]) for generating shared sequences
+  of pseudo-random numbers in all running instances of an application. Not tested much.
 
 
-=Advanced Programming Topics=
+=Setting Up, Testing, and Managing a Syzygy Cluster=[ClusterSetup]
 
-- [Syzygy Object Viewer szgview.html]: szgview is a viewer for supported file formats.
-- [Input Devices InputDevices.html]: Using the input device infrastructure; examples of specific
-devices supported.
-- [Application features AppFeatures.html]: Built-in methods to manipulate Syzygy Applications
-- [Environment variables SyzygyEnvironmentVariables.html]: A complete listing of environment
-variables either affecting or affected by Syzygy operation.
-- [Architecture Architecture.html]: Overall design of Syzygy.
-- [Portability Layer PortabilityLayer.html]: Classes which hide Win32/Unix differences
-for sockets, serial ports, time, threads, mutexes, etc.
-- [Future Plans Future.html]: Where the software is going; what's likely to get changed.
+- [PhleetIntro.html PhleetIntro.html]: Concepts and commands for setting up Syzygy
+  PC clusters and running programs on them (Look here for an explanation of virtual computers).
+- [Phleet.html Phleet.html]: More information about using Syzygy's distributed operating system.
+- [ClusterTest.html ClusterTest.html]: Basic testing of your Syzygy cluster.
+- [InputDevices.html InputDevices.html] describes the use of  the input device infrastructure in
+  Cluster Mode.
+- [InputDevices-Drivers.html InputDevices-Drivers.html] lists the supported input devices.
+- [InputDeviceConfiguration.html InputDeviceConfiguration.html] explains how to configure input
+  devices.
+- [PForth.html PForth.html] introduces the PForth ("Pseudo-FORTH") input-filtering language.
+  It's a stack-based language very similar to FORTH; it's designed for applying simple
+  transformations to streams of input events (e.g. re-mapping input device button indices).
+- [AppFeatures.html AppFeatures.html]: A few pet tricks for managing Cluster Mode applications
+  using the 'dmsg' command.
+
+
+=Miscellaneous=
+
+- [szgview.html szgview.html]: szgview is a viewer for supported file formats.
+- [SyzygyEnvironmentVariables.html SyzygyEnvironmentVariables.html]: A complete listing of environment
+  variables either affecting or affected by Syzygy operation.
+
+
+=Advanced Topics=
+
+- [SharedWorldTutorial.html SharedWorldTutorial.html] shows how to use the //experimental// extensions
+  to the Syzygy distributed scene graph that allow peer-to-peer sharing of scene graphs between
+  clusters.
+- [InputClasses.html InputClasses.html] contains some esoteric information about the code
+  objects that handle input data.
+- [InputFilters.html InputFilters.html] briefly describes how to write an input-event filter in C++.
+  For most purposes it's more convenient to write such filters in the [PForth PForth.html] language.
 
 
 =Background Information=
 
-- [Our goals for Syzygy Goals.html].
-- [Source code changelog ChangeLog.html]: A record of the changes between versions, since the beginning.
-- [Tested Configurations Testing.html]: Testing procedures plus supported OS platforms.
-- [Known Bugs Bugs.html]: Problems and issues with the current version.
+- [Architecture.html Architecture.html]: Overall design of Syzygy.
+- [Goals.html Goals.html]: Our goals for Syzygy.
+- [Future.html Future.html]: Where the software is going; what's likely to get changed.
+- [ChangeLog.html ChangeLog.html]: A record of the changes between versions, since the beginning.
+- [Testing.html Testing.html]: Tested configurations and testing procedures.
+- [Bugs.html Bugs.html]: Known bugs, problems, and issues with the current version.
 
 
 %@-node:JimCrowell.20060110161328:@thin index.t2t

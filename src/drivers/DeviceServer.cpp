@@ -212,8 +212,8 @@ LAbort:
     if (*iter == "arNetInputSource") {
       arNetInputSource* netInputSource = new arNetInputSource();
       if (!netInputSource->setSlot(nextInputSlot)) {
-	ar_log_warning() << "DeviceServer: invalid slot " << nextInputSlot << ".\n";
-	goto LAbort;
+        ar_log_warning() << "DeviceServer: invalid slot " << nextInputSlot << ".\n";
+        goto LAbort;
       }
       nextInputSlot++;
       inputNode.addInputSource(netInputSource, true);

@@ -36,7 +36,7 @@ SZG_INCLUDE = \
   -I$(SZGHOME)/src/barrier \
   -I$(SZGHOME)/src/drivers \
   -I$(SZGHOME)/src/graphics \
-  -I$(SZGHOME)/src/$(SOUND_SRC_DIR) \
+  -I$(SZGHOME)/src/sound \
   -I$(SZGHOME)/src/obj \
   -I$(SZGHOME)/src/interaction \
   $(SZG_DLL_INCLUDE) \
