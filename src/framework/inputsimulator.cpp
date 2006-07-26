@@ -11,13 +11,15 @@
 #include "arGraphicsHeader.h"
 #include "arInputNode.h"
 #include "arInputSimulator.h"
+#include "arInputSimulatorFactory.h"
 #include "arNetInputSink.h"
 #include "arNetInputSource.h"
 #include "arPForthFilter.h"
 
 arInputNode* inputNode = NULL;
 
-arInputSimulator simulator;
+arInputSimulator defaultSimulator;
+arInputSimulator* simPtr;
 int xPos = 0;
 int yPos = 0;
 
@@ -37,12 +39,12 @@ void loadParameters(arSZGClient& szgClient){
 void display(){
   glClearColor(0,0,0,0);
   glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
-  simulator.draw();
+  simPtr->draw();
   glutSwapBuffers();
 }
 
 void idle(){
-  simulator.advance();
+  simPtr->advance();
 #if 0
   bool dump = false;
   for (unsigned i=0; i<inp->getNumberButtons(); ++i) {
@@ -56,7 +58,7 @@ void idle(){
 }
 
 void keyboard(unsigned char key, int x, int y){
-  simulator.keyboard(key,1,x,y);
+  simPtr->keyboard(key,1,x,y);
   switch(key){
   case 27:
     exit(0);
@@ -70,11 +72,11 @@ void mouseButton(int button, int state, int x, int y){
     (button == GLUT_MIDDLE_BUTTON) ? 1 :
     (button == GLUT_RIGHT_BUTTON ) ? 2 : 0;
   const int whichState = (state == GLUT_DOWN) ? 1 : 0;
-  simulator.mouseButton(whichButton, whichState, x, y);
+  simPtr->mouseButton(whichButton, whichState, x, y);
 }
 
 void mousePosition(int x, int y){
-  simulator.mousePosition(x,y);
+  simPtr->mousePosition(x,y);
 }
 
 void messageTask(void* pv){
@@ -139,8 +141,15 @@ int main(int argc, char** argv){
     }
   }
   
-  simulator.configure(szgClient);
-  simulator.registerInputNode(inputNode);
+  // simPtr defaults to &simulator, a vanilla arInputSimulator instance.
+  simPtr = &defaultSimulator;
+  arInputSimulatorFactory simFactory;
+  arInputSimulator* simTemp = simFactory.createSimulator( szgClient );
+  if (simTemp) {
+    simPtr = simTemp;
+  }
+  simPtr->configure(szgClient);
+  simPtr->registerInputNode(inputNode);
   if (useNetInput) {
     arNetInputSource* netSource = new arNetInputSource;
     if (!netSource->setSlot(slot+1)) {

@@ -13,6 +13,7 @@
 #include "arGUIWindowManager.h"
 #include "arGUIXMLParser.h"
 #include "arLogStream.h"
+#include "arInputSimulatorFactory.h"
 #ifndef AR_USE_WIN_32
   #include <sys/types.h>
   #include <signal.h>
@@ -1807,6 +1808,15 @@ bool arMasterSlaveFramework::_initStandaloneObjects( void ) {
   // Which mode are we using? The simulator mode is the default.
   _standaloneControlMode = _SZGClient.getAttribute( "SZG_DEMO", "control_mode",
                                                     "|simulator|joystick|");
+  // _simPtr defaults to &_simulator, a vanilla arInputSimulator instance.
+  // If it has been set to something else in code, then we don't mess with it here.
+  if (_simPtr == &_simulator) {
+    arInputSimulatorFactory simFactory;
+    arInputSimulator* simTemp = simFactory.createSimulator( _SZGClient );
+    if (simTemp) {
+      _simPtr = simTemp;
+    }
+  }
   if (_standaloneControlMode == "simulator") {
     _simPtr->registerInputNode( _inputDevice );
   }

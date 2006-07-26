@@ -58,8 +58,9 @@ bool arSZGAppFramework::setInputSimulator( arInputSimulator* sim ) {
   }
 
   if (!sim) {
-    ar_log_error() << "arSZGAppFramework: setInputSimulator(NULL).\n";
-    return false;
+    ar_log_remark() << "arSZGAppFramework setting input simulator to default.\n";
+    _simPtr = &_simulator;
+    return true;
   }
 
   _simPtr = sim;
