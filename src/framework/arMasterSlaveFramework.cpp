@@ -1163,8 +1163,8 @@ void arMasterSlaveFramework::setEventQueueCallback( arFrameworkEventQueueCallbac
 }
 
 // The sound server should be able to find its files in the application
-// directory. If this function is called between init(...) and start(...),
-// sound render can find clips there. bundlePathName should
+// directory. If this function is called between init() and start(),
+// soundrender can find clips there. bundlePathName should
 // be SZG_PYTHON or SZG_DATA. bundleSubDirectory is usually the app's name.
 void arMasterSlaveFramework::setDataBundlePath( const string& bundlePathName,
                                                 const string& bundleSubDirectory ) {
@@ -1622,7 +1622,11 @@ bool arMasterSlaveFramework::_getData( void ) {
 }
 
 void arMasterSlaveFramework::_pollInputData( void ) {
-  // Should ensure that start() has been called already.
+  if( !_startCalled ) {
+    ar_log_warning() << _label << " ignoring _pollInputData() before start().\n";
+    return;
+  }
+
   if( !_master ) {
     ar_log_warning() << _label << " slave ignoring _pollInputData.\n";
     return;
@@ -2007,7 +2011,7 @@ bool arMasterSlaveFramework::_startMasterObjects() {
 
   // start the sound server
   if( !_soundServer.start() ) {
-    ar_log_warning() << _label << " sound server failed to listen.\n";
+    ar_log_warning() << _label << " failed to start sound server.\n";
     return false;
   }
 
@@ -2120,25 +2124,11 @@ bool arMasterSlaveFramework::_startObjects( void ){
   return true;
 }
 
-// todo: collapse these three into one function?
-
-// Start app, create a window, and run the arGUI internal event loop. 
-bool arMasterSlaveFramework::start( void ) {
-  return _start( true, true );
+bool arMasterSlaveFramework::start() {
+  return start(true, true);
 }
 
-// Start app, don't create a window, don't run the arGUI internal event loop. 
-bool arMasterSlaveFramework::startWithoutWindowing( void ){
-  return _start( false, false );
-}
-
-// Start app, create a window, don't run the arGUI internal event loop. 
-bool arMasterSlaveFramework::startWithoutEventLoop( void ){
-  return _start( true, false );
-}
-
-// Core of start(), startWithoutWindowing(), and startWithoutEventLoop().
-bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
+bool arMasterSlaveFramework::start( bool useWindowing, bool useEventLoop ) {
   _useWindowing = useWindowing;
   if ( !_parametersLoaded ) {
     if ( _SZGClient ) {
@@ -2180,13 +2170,12 @@ bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
   }
 
   if( _standalone ) {
-    // this is from _startObjects... a CUT_AND_PASTE!!
+    // copypaste from _startObjects
     _graphicsDatabase.loadAlphabet( _textPath );
     _graphicsDatabase.setTexturePath( _texturePath );
     _startStandaloneObjects();
   }
   else {
-    // set-up the various objects and start services
     if( !_startObjects() ) {
       return _startrespond( "Objects failed to start." );
     }
@@ -2214,7 +2203,7 @@ bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
   }
 
   if( useEventLoop ) {
-    // Event loop.
+    // Internal event loop.
     // NOTE: stop(...) must have been called at one of the three kill
     // points ("quit" message, clicking on window close button, pressing
     // ESC key) to get to here.
@@ -2225,6 +2214,7 @@ bool arMasterSlaveFramework::_start( bool useWindowing, bool useEventLoop ) {
     exit(0);
   }
 
+  // External event loop.  Caller should now repeatedly call e.g. loopQuantum().
   return true;
 }
 

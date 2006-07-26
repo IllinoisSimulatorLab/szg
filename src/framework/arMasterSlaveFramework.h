@@ -71,17 +71,19 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   
   // Initializes the various objects but does not start the event loop.
   bool init( int&, char** );
-  // Starts services, windowing, and an internal event loop. On success, does not return.
-  bool start( void );
-  // Starts services but not windowing. Returns and allows the user to control the event loop.
-  bool startWithoutWindowing( void );
-  // Starts services, windowing. Returns and allows the user to control the event loop,
-  // either as a whole (via loopQuantum()) or in a fine-grained way via preDraw(), postDraw(), etc.
-  bool startWithoutEventLoop( void );
-  // Shut-down for much (BUT NOT ALL YET) of the arMasterSlaveFramework services.
-  // if the parameter is set to true, we will block until the display thread
-  // exits
+
+  // Start services, maybe windowing, and maybe an internal event loop.
+  // Returns only if useEventLoop is false, or on error.
+  // If useEventLoop is false, caller should run the event loop either
+  // coarsely via loopQuantum() or finely via preDraw(), postDraw(), etc.
+  // Two functions, because default args don't jive with virtual arSZGAppFramework::start(void).
+  bool start();
+  bool start(bool useWindowing, bool useEventLoop);
+
+  // Shutdown for much (BUT NOT ALL YET) of the arMasterSlaveFramework services.
+  // if the parameter is set to true, block until the display thread exits
   void stop( bool blockUntilDisplayExit );
+
   bool createWindows(bool useWindowing);
   void loopQuantum();
   void exitFunction();  
@@ -96,11 +98,10 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // We MUST have callbacks to subclass this object in Python.
   // At each point the callbacks were formerly invoked, the code instead calls 
   // these virtual (hence overrideable) methods, which in turn invoke the callbacks.
-  // Now those of us who prefer sub-classing to callbacks can do so.
-  // (If you override these, the corresponding callbacks are of course
-  // ignored).
+  // This allows subclassing instead of callbacks.
+  // (If you override these, the corresponding callbacks are of course ignored).
 
-  // Not really necessary to pass SZGClient, but convenient.
+  // Convenient options for arSZGClient.
   virtual bool onStart( arSZGClient& SZGClient );
   virtual void onWindowStartGL( arGUIWindowInfo* );
   virtual void onPreExchange( void );
@@ -245,8 +246,8 @@ class SZG_CALL arMasterSlaveFramework : public arSZGAppFramework {
   // need to set it after the constructor.  So it's not declared const.
   bool    _master;
   bool    _stateClientConnected;    // Used only if !_master.
-  bool    _inputActive;	            // Set by master's _start().
-  bool    _soundActive;	            // Set by master's _start().
+  bool    _inputActive;	            // Set by master's start().
+  bool    _soundActive;	            // Set by master's start().
   // Storage for the arDataServer/arDataClient's messaging.
   ARchar* _inBuffer;
   ARint   _inBufferSize;
