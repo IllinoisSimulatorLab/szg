@@ -366,7 +366,7 @@ public:
   arLargeImage( unsigned int tileWidth=256, unsigned int tileHeight=0 );
   arLargeImage( const arTexture& x, unsigned int tileWidth=256, unsigned int tileHeight=0 );
   arLargeImage( const arLargeImage& x );
-  arLargeImage& operator=( const arLargeImage& x );
+/*  arLargeImage& operator=( const arLargeImage& x );*/
   virtual ~arLargeImage();
 
   bool setTileSize( unsigned int tileWidth, unsigned int tileHeight=0 );

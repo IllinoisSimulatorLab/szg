@@ -101,8 +101,6 @@ class arSZGClient{
   
   bool launchDiscoveryThreads();
 
-  int  getServiceComponentID(const string& serviceName);
-
   // functions that aid operation on a virtual computer
   string getNetworks(const string& channel);
   string getVirtualComputer();
@@ -305,6 +303,7 @@ class arSZGClient{
   bool discoverSZGServer(const string& name,
                          const string& broadcast);
   void printSZGServers(const string& broadcast);
+  vector<string> findSZGServers(const string& broadcast);
   void setServerLocation(const string& IPaddress, int port);
   bool writeLoginFile(const string& userName);
   bool logout();

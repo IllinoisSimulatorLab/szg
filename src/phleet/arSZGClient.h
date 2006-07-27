@@ -224,6 +224,7 @@ class SZG_CALL arSZGClient{
   bool discoverSZGServer(const string& name,
                          const string& broadcast);
   void printSZGServers(const string& broadcast);
+  vector<string> findSZGServers(const string& broadcast);
   void setServerLocation(const string& IPaddress, int port);
   bool writeLoginFile(const string& userName);
   bool logout();
@@ -351,9 +352,10 @@ class SZG_CALL arSZGClient{
   bool    _keepRunning;
   arConditionVar _dataCondVar;
   arConditionVar _timerCondVar;
+  bool    _bufferResponse;
   bool    _justPrinting;
   char    _responseBuffer[512];
-  list<string> _foundServers; // prevents repeats being printed.
+  vector<string> _foundServers; // prevents repeats being printed.
 
   void _serverResponseThread();
   void _timerThread();

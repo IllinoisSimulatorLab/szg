@@ -140,7 +140,7 @@ class arInputState {
   public:
     arInputState();
     arInputState( const arInputState& x );
-    arInputState& operator=( const arInputState& x );
+/*    arInputState& operator=( const arInputState& x );*/
     ~arInputState();
 
     // the "get" functions cannot be const since they involve 

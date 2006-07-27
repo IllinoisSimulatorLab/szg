@@ -988,7 +988,7 @@ class arGluQuadric : public arInteractableThing {
   public:
     arGluQuadric();
     arGluQuadric( const arGluQuadric& x );
-    arGluQuadric& operator=( const arGluQuadric& x );
+/*    arGluQuadric& operator=( const arGluQuadric& x );*/
     virtual ~arGluQuadric();
     void setPointStyle() { _drawStyle = GLU_POINT; }
     void setLineStyle() { _drawStyle = GLU_LINE; }
@@ -1007,7 +1007,7 @@ class arGluCylinder : public arGluQuadric {
 	public:
     arGluCylinder( double startRadius, double endRadius, double length, int slices=30, int stacks=5 );
     arGluCylinder( const arGluCylinder& x );
-    arGluCylinder& operator=( const arGluCylinder& x );
+/*    arGluCylinder& operator=( const arGluCylinder& x );*/
     virtual ~arGluCylinder() {}
     virtual void draw( arMasterSlaveFramework* fw=0 );
 
@@ -1066,7 +1066,7 @@ class arPatternedBox : public arInteractableThing {
     arPatternedBox();
     virtual ~arPatternedBox(void);
     arPatternedBox( const arPatternedBox& b );
-    arPatternedBox& operator=( const arPatternedBox& b );
+/*    arPatternedBox& operator=( const arPatternedBox& b );*/
     
     void setUseTexture( bool useTexture ) { _useTexture = useTexture; }
     bool getUseTexture() const { return _useTexture; }

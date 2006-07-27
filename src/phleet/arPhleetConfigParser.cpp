@@ -121,19 +121,20 @@ bool arPhleetConfigParser::parseLoginFile(bool fFromInit){
   if (fFromInit)
     return true;
 
-  // We're not called from arSZGClient::init, not already connecting to the szgserver.
-  // Temporarily connect to _serverIP:_serverPort, to verify the szgserver's name.
-  arSZGClient szgClient;
-  szgClient.setServerLocation(_serverIP, _serverPort);
-  if (szgClient._dialUpFallThrough()) {
-    const string n = szgClient.getServerName();
-    if (n != _serverName) {
-      ar_log_critical() << "expected szgserver named '" << _serverName <<
-	"', not '" << n << "', at " << _serverIP << ":" << _serverPort << ".\n";
+  if ((_serverIP != "NULL")&&(_serverPort != 0)) {
+    // We're not called from arSZGClient::init, not already connecting to the szgserver.
+    // Temporarily connect to _serverIP:_serverPort, to verify the szgserver's name.
+    arSZGClient szgClient;
+    szgClient.setServerLocation(_serverIP, _serverPort);
+    if (szgClient._dialUpFallThrough()) {
+      const string n = szgClient.getServerName();
+      if (n != _serverName) {
+        ar_log_critical() << "expected szgserver named '" << _serverName <<
+    "', not '" << n << "', at " << _serverIP << ":" << _serverPort << ".\n";
+      }
     }
+    // szgClient disconnects (ungracefully) in its destructor.
   }
-  // szgClient disconnects (ungracefully) in its destructor.
-
   return true;
 }
 

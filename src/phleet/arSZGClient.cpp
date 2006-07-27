@@ -60,6 +60,7 @@ arSZGClient::arSZGClient():
   _requestedName(""),
   _dataRequested(false),
   _keepRunning(true),
+  _bufferResponse(false),
   _justPrinting(false)
 {
   _dataClient.setLabel(_exeName);
@@ -3001,44 +3002,44 @@ void arSZGClient::_serverResponseThread() {
     // We got a packet.
     ar_usleep(10000); // avoid busy-waiting on Win32
     ar_mutex_lock(&_queueLock);
-    if (_dataRequested){
+    if (_dataRequested) {
       // Make sure it is the right format. Both version number (first four
       // bytes) and that it is a response (5th byte = 1).
       if (buffer[0] == 0 && buffer[1] == 0 &&
-          buffer[2] == 0 && buffer[3] == SZG_VERSION_NUMBER && buffer[4] == 1){
+          buffer[2] == 0 && buffer[3] == SZG_VERSION_NUMBER && buffer[4] == 1) {
         memcpy(_responseBuffer,buffer,200);
-        if (_justPrinting){
-	  // Print out the contents of this packet.
+        if (_bufferResponse) {
+          // Print out the contents of this packet.
           stringstream serverInfo;
           serverInfo << _responseBuffer+5  << "/"
-	             << _responseBuffer+132 << ":"
-	             << _responseBuffer+164;
+                     << _responseBuffer+132 << ":"
+                     << _responseBuffer+164;
           // Check to see that we haven't found it already.
-	  // This is possible since response packets are broadcast
-	  // and someone else on the network could be generating them.
-	  bool found = false;
-          for (list<string>::iterator i = _foundServers.begin();
-	       i != _foundServers.end(); i++){
-            if (*i == serverInfo.str()){
-	      // It's a duplicate to something we've already found.
-	      found = true;
-	      break;
-	    }
-	  }
-	  if (!found){
-	    // SHOULD NOT be one of the ar_log_*. This is a rare case where we intend to print to the 
-	    // terminal.
-            cout << serverInfo.str() << "\n";
+          // This is possible since response packets are broadcast
+          // and someone else on the network could be generating them.
+          bool found = false;
+          for (vector<string>::iterator i = _foundServers.begin(); i != _foundServers.end(); ++i) {
+            if (*i == serverInfo.str()) {
+              // It's a duplicate to something we've already found.
+              found = true;
+              break;
+            }
+          }
+          if (!found) {
+            // SHOULD NOT be one of the ar_log_*. This is a rare case where we intend to print to the 
+            // terminal.
+            if (_justPrinting) {
+              cout << serverInfo.str() << "\n";
+            }
             _foundServers.push_back(serverInfo.str());
-	  }
-        }
-        else {
+          }
+        } else {
           // If this matches the requested name, stop, discarding
-	  // subsequent packets.
-	  if (_requestedName == string(_responseBuffer+5)){
+          // subsequent packets.
+          if (_requestedName == string(_responseBuffer+5)) {
             _dataRequested = false;
             _dataCondVar.signal();
-	  }
+          }
         }
       }
     }
@@ -3169,9 +3170,11 @@ void arSZGClient::printSZGServers(const string& broadcast){
     // A diagnostic was already printed.  Don't complain here.
     return;
   }
+  _bufferResponse = true;
   _justPrinting = true;
 
   ar_mutex_lock(&_queueLock);
+  _foundServers.clear();
   _dataRequested = true;
   _beginTimer = true;
   _requestedName = "";
@@ -3181,9 +3184,33 @@ void arSZGClient::printSZGServers(const string& broadcast){
     _dataCondVar.wait(&_queueLock);
   }
   ar_mutex_unlock(&_queueLock);
-
   _dataRequested = false;
   _justPrinting = false;
+  _bufferResponse = false;
+}
+
+// Find szgservers and return their names.
+vector<string> arSZGClient::findSZGServers(const string& broadcast) {
+  if (!_discoveryThreadsLaunched && !launchDiscoveryThreads()){
+    // A diagnostic was already printed.  Don't complain here.
+    vector<string> tmp;
+    return tmp;
+  }
+  _bufferResponse = true;
+  ar_mutex_lock(&_queueLock);
+  _foundServers.clear();
+  _dataRequested = true;
+  _beginTimer = true;
+  _requestedName = "";
+  _sendDiscoveryPacket("*",broadcast);
+  _timerCondVar.signal();
+  while (_beginTimer){
+    _dataCondVar.wait(&_queueLock);
+  }
+  ar_mutex_unlock(&_queueLock);
+  _dataRequested = false;
+  _bufferResponse = false;
+  return _foundServers;
 }
 
 // Set the server location manually.

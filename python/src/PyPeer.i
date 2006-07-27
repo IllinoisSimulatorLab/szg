@@ -977,7 +977,6 @@ class arGraphicsPeer: public arGraphicsDatabase{
   // the init(arSZGClient&) function in the wrapper!
   // IMPORTANT
   bool init(int&,char**);
-  bool initSZG(arSZGClient& client);
   bool start();
   void stop();
 
