@@ -43,7 +43,7 @@ void arPerformanceElement::draw() {
   glBegin(GL_LINE_STRIP);
   for (int i=0; i<_numberEntries; i++){
     glVertex3f(-1 + 2.0*i/(_numberEntries-1), 
-               -1+2.0*_data[i]/scale, 
+               -1+2.0*_data[i]/scale,
                0.02);
   }
   glEnd();
@@ -56,7 +56,8 @@ arFramerateGraph::~arFramerateGraph(){
   // probably should delete the performance elements...
 }
 
-void arFramerateGraph::draw() const {
+// Not const, because some sibling classes' draw() can't be const.
+void arFramerateGraph::draw() {
   glMatrixMode(GL_PROJECTION);
   glOrtho(-1,1,-1,1,0,100);
   glMatrixMode(GL_MODELVIEW);

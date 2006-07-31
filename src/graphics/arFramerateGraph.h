@@ -33,7 +33,7 @@ class SZG_CALL arFramerateGraph: public arFrameworkObject{
   arFramerateGraph();
   ~arFramerateGraph();
 
-  virtual void draw() const;
+  virtual void draw();
   virtual void drawWithComposition();
   void drawPlaced(float startX, float startY, float widthX, float widthY);
 
