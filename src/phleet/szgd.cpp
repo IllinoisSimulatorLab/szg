@@ -60,11 +60,19 @@ arSZGClient* SZGClient = NULL;
   same for C++ apps.
 */
 
-string getAppPath( const string& userName, const string& groupName, const string& appFile ) {
+// print error messages to console _and_ try to return them to dex.
+void doublePrintError( ostringstream& errStream, const string& msg ) {
+  cerr << "szgd error: " << msg << endl;
+  errStream << "szgd error (" << SZGClient->getComputerName() << "): "
+            << msg << endl;
+}
+
+string getAppPath( const string& userName, const string& groupName, const string& appFile, 
+    ostringstream& errStream ) {
   const string appPath = SZGClient->getAttribute(
     userName, "NULL", groupName, "path", "");
   if (appPath == "NULL") {
-    cerr << "szgd error: " << groupName << "/path not set.\n";
+    doublePrintError( errStream, groupName+"/path not set." );
     return "NULL";
   }
 
@@ -73,29 +81,91 @@ string getAppPath( const string& userName, const string& groupName, const string
 
   arSemicolonString appSearchPath(appPath);
   string actualDirectory("NULL");
-  for (int i=0; i<appSearchPath.size(); ++i){
-    list<string> contents = ar_listDirectory(appSearchPath[i]);
-    for (list<string>::iterator iter = contents.begin(); iter != contents.end(); ++iter) {
-      string potentialFile(*iter);
-      // todo: skip if !ar_isDirectory(potentialFile)
-      ar_pathAddSlash(potentialFile);
-      potentialFile += appFile;
-      FILE* filePtr = ar_fileOpen(potentialFile, "", "", "r");
-      if (filePtr){
-        ar_fileClose(filePtr);
-        actualDirectory = *iter;
+  list<string> dirsToSearch;
+  list<string>::iterator dirIter;
+  string errMsg;
+  // Construct a list of directories to search, in depth-first order.
+  for (int i=0; i<appSearchPath.size(); ++i) {
+    string currPathElement = appSearchPath[i];
+    bool dirExists;
+    bool isDirectory;
+    // If return value is false, 2nd & 3rd args are invalid.
+    // If item does not exist (2nd arg == false), 3rd is invalid
+    // If item exists, 3rd arg indicates whether or not it is a directory
+    if (!ar_directoryExists( currPathElement, dirExists, isDirectory )) {
+      errMsg = "error composing "+groupName+"/path:\n"
+                + "ar_directoryExists() failed for directory "+currPathElement
+                + ".\n  This does not mean that the directory "
+                + "does not exist;\n  it means that a system error occurred while "
+                + "checking its existence.\n";
+      doublePrintError( errStream, errMsg );
+      return "NULL";
+    } else if (!dirExists) {
+      errMsg = "error composing "+groupName+"/path:\n"
+                 + "  directory " +currPathElement+" does not exist.";
+      doublePrintError( errStream, errMsg );
+      return "NULL";
+    } else if (!dirExists) {
+      errMsg = "error composing "+groupName+"/path:\n"
+                 + "  "+currPathElement+" exists, but is not a directory.";
+      doublePrintError( errStream, errMsg );
+      return "NULL";
+    } else {
+      dirsToSearch.push_back( currPathElement );
+      list<string> contents = ar_listDirectory( currPathElement );
+      for (list<string>::iterator dirIter = contents.begin(); dirIter != contents.end(); ++dirIter) {
+        string itemPath = *dirIter;
+        if (ar_isDirectory( itemPath.c_str() )) {
+          dirsToSearch.push_back( itemPath );
+        }
+      }
+    }
+  }
+  cerr << "szgd remark: scanning directories for " << appFile << ":\n";
+  for (dirIter=dirsToSearch.begin(); dirIter != dirsToSearch.end(); ++dirIter) {
+    cerr << *dirIter << endl;
+    string potentialFile(*dirIter);
+    ar_pathAddSlash(potentialFile);
+    potentialFile += appFile;
+    // If return value is false, 2nd & 3rd args are invalid.
+    // If item does not exist (2nd arg == false), 3rd is invalid
+    // If item exists, 3rd arg indicates whether or not it is a regular file
+    bool fileExists;
+    bool isFile;
+    if (!ar_fileExists( potentialFile, fileExists, isFile )) {
+      errMsg = "error scanning "+groupName+"/path:\n"
+                + "ar_FileExists() failed for file "+potentialFile
+                + ".\n  This does not mean that the file "
+                + "does not exist;\n  it means that a system error occurred while "
+                + "checking its existence.\n";
+      doublePrintError( errStream, errMsg );
+      return "NULL";
+    } else {
+      if (fileExists && isFile) {
+        cerr << "szgd remark: found file at " << potentialFile << endl;
+        actualDirectory = *dirIter;
         break;
       }
     }
-    if (actualDirectory != "NULL")
+//    FILE* filePtr = ar_fileOpen(potentialFile, "", "", "r");
+//    if (filePtr) {
+//      ar_fileClose(filePtr);
+//      actualDirectory = *iter;
+//      break;
+//    }
+//    }
+    if (actualDirectory != "NULL") {
       break;
+    }
   }
 
-  if (actualDirectory == "NULL")
+  if (actualDirectory == "NULL") {
     cerr << "szgd warning: NULL app directory for " << userName << "/" << groupName
 	 << "/path = '" << appPath << "', app '" << appFile << "'.\n";
-  else
-    cout << "szgd remark: app directory for " << userName << "/" << groupName << "/path is '" << actualDirectory << "'.\n";
+  } else {
+    cerr << "szgd remark: app directory for " << userName << "/" << groupName
+         << "/path is '" << actualDirectory << "'.\n";
+  }
   return actualDirectory;
 }
 
@@ -188,7 +258,7 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
   if (command.length() > 3 && command.substr(command.length()-3, 3) == ".py") {
     execInfo->executableType = "python";
     fileName = command;
-    execInfo->appDirPath = getAppPath( userName, "SZG_PYTHON", fileName );
+    execInfo->appDirPath = getAppPath( userName, "SZG_PYTHON", fileName, errStream );
     if (execInfo->appDirPath == "NULL") {
       failedAppPath = SZGClient->getAttribute(
         userName, "NULL", "SZG_PYTHON", "path", "");
@@ -212,7 +282,7 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
     command += ".EXE";
 #endif
     fileName = command;
-    execInfo->appDirPath = getAppPath( userName, "SZG_EXEC", fileName );
+    execInfo->appDirPath = getAppPath( userName, "SZG_EXEC", fileName, errStream );
     if (execInfo->appDirPath == "NULL") {
       failedAppPath = SZGClient->getAttribute(
         userName, "NULL", "SZG_EXEC", "path", "");
@@ -376,10 +446,10 @@ void execProcess(void* i){
 LDone:
     delete execInfo;
     if (ar_setWorkingDirectory( originalWorkingDirectory )) {
-      cout << "szgd remark: current directory is '"
-	   << originalWorkingDirectory << "'.\n";
+      cerr << "szgd remark: post-launch current directory is '"
+           << originalWorkingDirectory << "'.\n";
     } else {
-      cerr << "szgd error: failed to set current directory to "
+      cerr << "szgd error: post-launch failed to set current directory to "
            << originalWorkingDirectory << ".\n";
     }
     return;
@@ -513,11 +583,11 @@ LDone:
 
   // Set the current directory to that containing the app
   if (!ar_setWorkingDirectory( execInfo->appDirPath )) {
-    cerr << "szgd error: failed to set current directory to '"
+    cerr << "szgd error: pre-launch failed to set current directory to '"
          << execInfo->appDirPath << "'.\n";
   } else {
-    cout << "szgd remark: current directory is '"
-	 << execInfo->appDirPath << "'.\n";
+    cerr << "szgd remark: pre-launch current directory is '"
+         << execInfo->appDirPath << "'.\n";
   }
 
 #ifndef AR_USE_WIN_32
@@ -639,6 +709,8 @@ LDone:
 
   char** theArgs = buildUnixStyleArgList(newCommand, mangledArgList);
   // Stagger launches so the cluster's file server isn't hit so hard.
+  cerr << "szgd remark: command = " << newCommand << endl
+       << "             args    = " << theArgs << endl;
   randomDelay();
   if (execv(newCommand.c_str(), theArgs) >= 0) {
     // The child spawned okay, so remove parent's side of the fork().
@@ -735,6 +807,8 @@ LDone:
   ar_stringToBuffer(newCommand, command, newCommand.length()+1);
   char* argsBuffer = new char[theArgs.length()+1];
   ar_stringToBuffer(theArgs, argsBuffer, theArgs.length()+1);
+  cerr << "szgd remark: command = " << command << endl
+       << "             args    = " << argsBuffer << endl;
   // The process might fail to run after being created, e.g. if a DLL is missing.
   const bool fCreated = CreateProcess(command, fArgs?argsBuffer:NULL, 
 		     NULL, NULL, false,

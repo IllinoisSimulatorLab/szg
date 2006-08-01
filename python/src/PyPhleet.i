@@ -77,9 +77,10 @@ class arPhleetConfigParser {
   // manipulating the individual login. using these methods,
   // command-line wrappers can be used to manipulate the users
   // login file
-  void   setUserName(string name);
-  void   setServerName(string name);
-  void   setServerIP(string IP);
+  // These signatures are deliberately incorrect to match typemaps
+  void   setUserName(const string& name);
+  void   setServerName(const string& name);
+  void   setServerIP(const string& IP);
   void   setServerPort(int port);
 };
 

@@ -52,5 +52,7 @@ string ar_directoryFind(const string& name,
 		        const string& subdirectory,
                         const string& path);
 
+string ar_getUser();
+
 /*bool ar_winSockInit();*/
 
