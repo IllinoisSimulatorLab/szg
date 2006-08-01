@@ -1148,8 +1148,7 @@ FILE* ar_fileOpen(const string& name, const string& path,
 // return the empty list. If it is, return a list containing the full
 // paths to each of its contents (since this is what is needed
 // for further recursive operations on those contents).
-// NOTE: we do NOT filter out the standard "." and ".."
-// entries.
+// We filter out the standard ".." entries, but not ".".
 list<string> ar_listDirectory(const string& name){
   // We will return a full path to the included file.
   string directoryPrefix = name;
@@ -1167,7 +1166,6 @@ list<string> ar_listDirectory(const string& name){
     return result;
   }
 
-  // Determining contents of a directory is VERY different in Unix and Win32.
 #ifndef AR_USE_WIN_32
   DIR* directory = opendir(name.c_str());
   if (!directory){
@@ -1177,7 +1175,7 @@ list<string> ar_listDirectory(const string& name){
   while ((directoryEntry = readdir(directory)) != NULL){
     // There is another entry. Push the name.
     fileNameString = string( directoryEntry->d_name );
-    if ((fileNameString != "..")&&(fileNameString != ".")) {
+    if (fileNameString != "..") {
       result.push_back(directoryPrefix+fileNameString);
     }
   }

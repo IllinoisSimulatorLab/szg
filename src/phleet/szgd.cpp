@@ -17,6 +17,10 @@
   #include <signal.h>
 #endif
 
+// ar_log_remark() etc. seem to fail silently in szgd.
+// Despite calling ar_log().setStream(cerr) .
+// Use cerr instead, for now.
+
 // So every trading key is unique, increment tradingNum each time.
 int tradingNum = 0;
 arMutex tradingNumLock;
@@ -25,65 +29,73 @@ string originalWorkingDirectory;
 
 arSZGClient* SZGClient = NULL;
 
-// By convention, we assume that python applications are installed as
-// "bundles" in sub-directories on a directory on SZG_PYTHON/path.
-// The application bundles can have arbitrary names. This function
-// searches the path, piece by piece. In each piece, it examines
-// subdirectories, looking for one containing the python script. The
-// first such found is returned.
-//
-// python_directory1
-//     my_app_directory_1
-//          python_script_1.py
-//     my_app_directory_2
-//          python_script_2.py
-// python_directory2
-//     my_app_directory_3
-//          python_script_2.py
-//
-// where SZG_PYTHON/path = python_directory1;python_directory2.
-//
-// In this case, if pyfile == python_script_2.py, then 
-// python_directory1/my_app_directory_2 will be returned.
-//
-// Syzygy 1.1 adds a similar launching strategy for c++ apps.
-// We search sub-directories of SZG_EXEC/path for the app.
-// Also, because Python sets the current working directory
-// to the directory containing the script to be executed
-// (and this makes life much simpler, as you can read data
-// files using application-relative paths), szgd does the same
-// for c++ apps.
-//
-string getAppPath( const string& userName, const string& groupName, string appFile ) {
+/*
+  By convention, we assume that python apps are installed as
+  "bundles" in sub-directories on a directory on SZG_PYTHON/path.
+  App bundles can have arbitrary names. This function
+  searches the path, piece by piece. In each piece, it examines
+  subdirectories, looking for one containing the python script.
+  It returns the first such found.
+
+  python_directory1
+      my_app_directory_1
+	   python_script_1.py
+      my_app_directory_2
+	   python_script_2.py
+  python_directory2
+      my_app_directory_3
+	   python_script_2.py
+
+  where SZG_PYTHON/path = python_directory1;python_directory2.
+
+  In this case, if pyfile == python_script_2.py, then 
+  python_directory1/my_app_directory_2 will be returned.
+
+  Syzygy 1.1 adds a similar launching strategy for C++ apps.
+  We search sub-directories of SZG_EXEC/path for the app.
+  Also, because Python sets the current working directory
+  to the directory containing the script to be executed
+  (and because this lets apps read data files using paths
+  relative to the application's directory), szgd does the
+  same for C++ apps.
+*/
+
+string getAppPath( const string& userName, const string& groupName, const string& appFile ) {
   const string appPath = SZGClient->getAttribute(
     userName, "NULL", groupName, "path", "");
   if (appPath == "NULL") {
     cerr << "szgd error: " << groupName << "/path not set.\n";
     return "NULL";
   }
-  // Traverse the specified path. In each directory,
-  // step through all subdirectories, looking for the named
-  // file. The first one found is the directory of execution.
+
+  // Traverse the path. In each directory, step through all subdirectories,
+  // looking for the named file. Choose the first one found.
+
   arSemicolonString appSearchPath(appPath);
   string actualDirectory("NULL");
   for (int i=0; i<appSearchPath.size(); ++i){
     list<string> contents = ar_listDirectory(appSearchPath[i]);
     for (list<string>::iterator iter = contents.begin(); iter != contents.end(); ++iter) {
-      string potentialFile = *iter;
+      string potentialFile(*iter);
+      // todo: skip if !ar_isDirectory(potentialFile)
       ar_pathAddSlash(potentialFile);
       potentialFile += appFile;
-      FILE* filePtr = ar_fileOpen(potentialFile,"","","r");
+      FILE* filePtr = ar_fileOpen(potentialFile, "", "", "r");
       if (filePtr){
         ar_fileClose(filePtr);
         actualDirectory = *iter;
         break;
       }
     }
-    if (actualDirectory != "NULL"){
+    if (actualDirectory != "NULL")
       break;
-    }
   }
-  cerr << "szgd remark: app directory = " << actualDirectory << endl;
+
+  if (actualDirectory == "NULL")
+    cerr << "szgd warning: NULL app directory for " << userName << "/" << groupName
+	 << "/path = '" << appPath << "', app '" << appFile << "'.\n";
+  else
+    cout << "szgd remark: app directory for " << userName << "/" << groupName << "/path is '" << actualDirectory << "'.\n";
   return actualDirectory;
 }
 
@@ -183,12 +195,14 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
       errStream << "szgd error: no python script '" << fileName
                 << "' on user " << userName << "'s SZG_PYTHON/path"
                 << " '" << failedAppPath << "'\n";
+      cerr << errStream.str();
       return errStream.str();
     }
     command = ar_fileFind( fileName, "", execInfo->appDirPath);
     if (command == "NULL") {
       errStream << "szgd error: no file '" << fileName <<
         "' on SZG_PYTHON/path '" << execInfo->appDirPath << "'.\n";
+      cerr << errStream.str();
       return errStream.str();
     }
   }
@@ -205,6 +219,7 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
       errStream << "szgd error: no executable '" << fileName
                 << "' on user " << userName << "'s SZG_EXEC/path"
                 << " '" << failedAppPath << "'\n";
+      cerr << errStream.str();
       return errStream.str();
     }
     command = ar_fileFind( fileName, "", execInfo->appDirPath);
@@ -216,6 +231,7 @@ LAbort:
       if (fHadEXE)
         errStream << "szgd warning: don't append .exe;  Windows does that for you.\n";
 #endif
+      cerr << errStream.str();
       return errStream.str();
     }
   }
@@ -257,12 +273,11 @@ LAbort:
     }
   }
   else {
-    errStream << "szgd error: unexpected exe type '"
-      << execInfo->executableType << "'.\n";
+    errStream << "szgd error: unexpected exe type '" << execInfo->executableType << "'.\n";
     return errStream.str();
   }
 
-  ar_log_remark() << "szgd:\n"
+  cout << "szgd remark:\n"
        << "  user name=" << userName << "\n"
        << "  exe name=" << command << "\n"
        << "  exe type=" << execInfo->executableType << "\n"
@@ -270,11 +285,11 @@ LAbort:
   for (list<string>::iterator iter = args.begin();
        iter != args.end(); ++iter){
     if (iter != args.begin()){
-      ar_log_remark() << ", ";
+      cout << ", ";
     }
-    ar_log_remark() << *iter;
+    cout << *iter;
   }
-  ar_log_remark() << ")\n";
+  cout << ")\n";
   return string("OK");
 }
 
@@ -360,11 +375,12 @@ void execProcess(void* i){
     SZGClient->messageResponse(receivedMessageID, info.str());
 LDone:
     delete execInfo;
-    ar_log_remark() << "szgd remark: attempting to set current directory to "
-                    << originalWorkingDirectory << ar_endl;
-    if (!ar_setWorkingDirectory( originalWorkingDirectory )) {
-      ar_log_error() << "szgd error: failed to set current directory to "
-                     << originalWorkingDirectory << ar_endl;
+    if (ar_setWorkingDirectory( originalWorkingDirectory )) {
+      cout << "szgd remark: current directory is '"
+	   << originalWorkingDirectory << "'.\n";
+    } else {
+      cerr << "szgd error: failed to set current directory to "
+           << originalWorkingDirectory << ".\n";
     }
     return;
   }
@@ -496,11 +512,12 @@ LDone:
   }
 
   // Set the current directory to that containing the app
-  ar_log_remark() << "szgd remark: attempting to set current directory to "
-                  << execInfo->appDirPath << ar_endl;
   if (!ar_setWorkingDirectory( execInfo->appDirPath )) {
-    ar_log_error() << "szgd error: failed to set current directory to "
-                   << execInfo->appDirPath << ar_endl;
+    cerr << "szgd error: failed to set current directory to '"
+         << execInfo->appDirPath << "'.\n";
+  } else {
+    cout << "szgd remark: current directory is '"
+	 << execInfo->appDirPath << "'.\n";
   }
 
 #ifndef AR_USE_WIN_32
@@ -770,8 +787,10 @@ int main(int argc, char** argv) {
 
   ar_mutex_init(&tradingNumLock);
   ar_mutex_init(&processCreationLock);
+#ifdef UNUSED
   // dex didn't spawn an szgd - that's pointless(?).
   ar_log().setStream(cerr);
+#endif
 
   const int argcOriginal = argc;
   // We don't need an original copy of argv, because it doesn't get modified.
@@ -836,12 +855,11 @@ LRetry:
         const bool ok = ar_stringToIntValid( timeoutString, temp );
         messageBody.replace( pos-4, timeoutString.size()+4, "" );
         if (ok) {
-	  ar_log_debug() << "szgd timeout is " << temp <<
+	  cout << "szgd remark: timeout is " << temp <<
 	    " msec, msg body is '" << messageBody << "'.\n";
           timeoutMsec = temp;
         } else {
-          ar_log_warning() << "szgd ignoring invalid timeout string '"
-	    << timeoutString << "'.\n";
+          cerr << "szgd warning: ignoring invalid timeout string '" << timeoutString << "'.\n";
         }
       }
 
