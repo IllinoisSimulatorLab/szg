@@ -105,7 +105,7 @@ string getAppPath( const string& userName, const string& groupName, const string
                  + "  directory " +currPathElement+" does not exist.";
       doublePrintError( errStream, errMsg );
       return "NULL";
-    } else if (!dirExists) {
+    } else if (!isDirectory) {
       errMsg = "error composing "+groupName+"/path:\n"
                  + "  "+currPathElement+" exists, but is not a directory.";
       doublePrintError( errStream, errMsg );
