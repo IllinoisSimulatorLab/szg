@@ -84,7 +84,7 @@ string getAppPath( const string& userName, const string& groupName, const string
   list<string> dirsToSearch;
   list<string>::iterator dirIter;
   string errMsg;
-  // Construct a list of directories to search, in depth-first order.
+  // Construct a list of directories to search depth-first.
   for (int i=0; i<appSearchPath.size(); ++i) {
     string currPathElement = appSearchPath[i];
     bool dirExists;
@@ -93,31 +93,31 @@ string getAppPath( const string& userName, const string& groupName, const string
     // If item does not exist (2nd arg == false), 3rd is invalid
     // If item exists, 3rd arg indicates whether or not it is a directory
     if (!ar_directoryExists( currPathElement, dirExists, isDirectory )) {
-      errMsg = "error composing "+groupName+"/path:\n"
-                + "ar_directoryExists() failed for directory "+currPathElement
-                + ".\n  This does not mean that the directory "
-                + "does not exist;\n  it means that a system error occurred while "
-                + "checking its existence.\n";
+      errMsg = "error composing " + groupName + "/path: ar_directoryExists() internal error for directory "+currPathElement + ".\n";
       doublePrintError( errStream, errMsg );
       return "NULL";
-    } else if (!dirExists) {
+    }
+
+    if (!dirExists) {
       errMsg = "error composing "+groupName+"/path:\n"
                  + "  directory " +currPathElement+" does not exist.";
       doublePrintError( errStream, errMsg );
       return "NULL";
-    } else if (!isDirectory) {
+    }
+
+    if (!isDirectory) {
       errMsg = "error composing "+groupName+"/path:\n"
                  + "  "+currPathElement+" exists, but is not a directory.";
       doublePrintError( errStream, errMsg );
       return "NULL";
-    } else {
-      dirsToSearch.push_back( currPathElement );
-      list<string> contents = ar_listDirectory( currPathElement );
-      for (list<string>::iterator dirIter = contents.begin(); dirIter != contents.end(); ++dirIter) {
-        string itemPath = *dirIter;
-        if (ar_isDirectory( itemPath.c_str() )) {
-          dirsToSearch.push_back( itemPath );
-        }
+    }
+
+    dirsToSearch.push_back( currPathElement );
+    list<string> contents = ar_listDirectory( currPathElement );
+    for (list<string>::iterator dirIter = contents.begin(); dirIter != contents.end(); ++dirIter) {
+      string itemPath = *dirIter;
+      if (ar_isDirectory( itemPath.c_str() )) {
+	dirsToSearch.push_back( itemPath );
       }
     }
   }
