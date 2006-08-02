@@ -676,7 +676,7 @@ void arAppLauncher::_addService(const string& computerName,
   temp.tradingTag = _location + "/" + tradingTag;
   temp.info = info;
   _serviceList.push_back(temp);
-  ar_log_debug() << "heyu dump arLaunchInfo entry here, dude.\n";;;;
+  // TODO: Dump arLaunchInfo entry here.
 }
 
 bool arAppLauncher::_trylock(){

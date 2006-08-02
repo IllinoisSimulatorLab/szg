@@ -63,7 +63,7 @@ arSZGClient* SZGClient = NULL;
 // print error messages to console _and_ try to return them to dex.
 void doublePrintError( ostringstream& errStream, const string& msg ) {
   cerr << "szgd error: " << msg << endl;
-  errStream << "szgd error (" << SZGClient->getComputerName() << "): "
+  errStream << "szgd error (computer=" << SZGClient->getComputerName() << "): "
             << msg << endl;
 }
 
@@ -160,8 +160,9 @@ string getAppPath( const string& userName, const string& groupName, const string
   }
 
   if (actualDirectory == "NULL") {
-    cerr << "szgd warning: NULL app directory for " << userName << "/" << groupName
-	 << "/path = '" << appPath << "', app '" << appFile << "'.\n";
+    errMsg = "Failed to find the file '"+appFile+"' on user "+userName+"'s "+groupName
+           +"/path, which is:\n   '"+appPath+"'.\n";
+    doublePrintError( errStream, errMsg );
   } else {
     cerr << "szgd remark: app directory for " << userName << "/" << groupName
          << "/path is '" << actualDirectory << "'.\n";
@@ -260,12 +261,6 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
     fileName = command;
     execInfo->appDirPath = getAppPath( userName, "SZG_PYTHON", fileName, errStream );
     if (execInfo->appDirPath == "NULL") {
-      failedAppPath = SZGClient->getAttribute(
-        userName, "NULL", "SZG_PYTHON", "path", "");
-      errStream << "szgd error: no python script '" << fileName
-                << "' on user " << userName << "'s SZG_PYTHON/path"
-                << " '" << failedAppPath << "'\n";
-      cerr << errStream.str();
       return errStream.str();
     }
     command = ar_fileFind( fileName, "", execInfo->appDirPath);
@@ -284,12 +279,6 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
     fileName = command;
     execInfo->appDirPath = getAppPath( userName, "SZG_EXEC", fileName, errStream );
     if (execInfo->appDirPath == "NULL") {
-      failedAppPath = SZGClient->getAttribute(
-        userName, "NULL", "SZG_EXEC", "path", "");
-      errStream << "szgd error: no executable '" << fileName
-                << "' on user " << userName << "'s SZG_EXEC/path"
-                << " '" << failedAppPath << "'\n";
-      cerr << errStream.str();
       return errStream.str();
     }
     command = ar_fileFind( fileName, "", execInfo->appDirPath);
@@ -429,10 +418,11 @@ void execProcess(void* i){
   int receivedMessageID = execInfo->receivedMessageID; 
 
   stringstream info;
+  info << endl << "The program failed to launch!" << endl;
   // Respond to the message ourselves if the exe doesn't launch.
-  info << "*user=" << userName
+  info << "user=" << userName
        << ", context=" << messageContext
-       << ", *computer=" << SZGClient->getComputerName() << endl;
+       << ", computer=" << SZGClient->getComputerName() << endl << endl;
 
   string execPath;
   string symbolicCommand;
