@@ -516,8 +516,8 @@ LDone:
   // Construct the new dynamic library path.
   string dynamicLibraryPath;
   string appPath = ar_exePath(newCommand);
-  if (ar_exePath(newCommand) != "") {
-    dynamicLibraryPath += appPath;
+  if (appPath != "") {
+    dynamicLibraryPath = appPath;
   }
   // If parent directory is in SZG_EXEC/path, append it.
   if (szgExecPath != "NULL") {

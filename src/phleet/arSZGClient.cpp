@@ -249,7 +249,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
     else{
       if (forcedName != _exeName){
 	ar_log_warning() << _exeName <<
-	  ": component name overriding exe name (for Win98).\n";
+	  ": component name overriding exe name.\n";
       }
       // This also updates _exeName.
       _setLabel(forcedName); 

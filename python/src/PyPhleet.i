@@ -95,6 +95,7 @@ class arSZGClient{
   void simpleHandshaking(bool state);
   void parseSpecialPhleetArgs(bool state);
   bool init(int&, char** argv, const string& forcedName = string("NULL"));
+  int failStandalone(bool fInited);
   stringstream& initResponse(){ return _initResponseStream; }
   bool sendInitResponse(bool state);
   stringstream& startResponse(){ return _startResponseStream; }
@@ -219,7 +220,7 @@ class arSZGClient{
 
 %extend {
   PyObject* receiveMessage(void) {
-    std::string messageType, messageBody;
+    std::string userName, messageType, messageBody, messageContext;
 /* We need to store the current thread state and release the Python
    global interpreter lock before calling receiveMessage() here;
    otherwise, all of Python will lock up until receiveMessage()
@@ -230,17 +231,21 @@ class arSZGClient{
     PyThreadState *_save;
     _save = PyThreadState_Swap(NULL);
     PyEval_ReleaseLock();
-    int messageID = self->receiveMessage( &messageType, &messageBody );
+    int messageID = self->receiveMessage( &userName, &messageType, &messageBody, &messageContext );
     PyEval_AcquireLock();
     PyThreadState_Swap(_save);
-    PyObject* retTuple = PyTuple_New(3);
+    PyObject* retTuple = PyTuple_New(5);
     PyTuple_SetItem( retTuple, 0, PyInt_FromLong( (long)messageID ) );
     if (messageID != 0) {
       PyTuple_SetItem( retTuple, 1, PyString_FromString( messageType.c_str() ) );
       PyTuple_SetItem( retTuple, 2, PyString_FromString( messageBody.c_str() ) );
+      PyTuple_SetItem( retTuple, 3, PyString_FromString( userName.c_str() ) );
+      PyTuple_SetItem( retTuple, 4, PyString_FromString( messageContext.c_str() ) );
     } else {
       PyTuple_SetItem( retTuple, 1, Py_None );
       PyTuple_SetItem( retTuple, 2, Py_None );
+      PyTuple_SetItem( retTuple, 3, Py_None );
+      PyTuple_SetItem( retTuple, 4, Py_None );
     }
     return retTuple;
   }
@@ -265,7 +270,16 @@ class arSZGClient{
   int getKillNotification(list<int> tags, int timeout = -1);
 
   // Functions dealing with locks.
-  bool getLock(const string& lockName, int& ownerID);
+%extend {
+  PyObject* getLock( const string& lockName ) {
+    int ownerID;
+    bool stat = self->getLock( lockName, ownerID );
+    PyObject* retTuple = PyTuple_New(2);
+    PyTuple_SetItem( retTuple, 0, PyInt_FromLong( (long)stat ) );
+    PyTuple_SetItem( retTuple, 1, PyInt_FromLong( (long)ownerID ) );
+    return retTuple;
+  }
+}
   bool releaseLock(const string& lockName);
   int requestLockReleaseNotification(const string& lockName);
   int getLockReleaseNotification(list<int> tags, int timeout = -1);

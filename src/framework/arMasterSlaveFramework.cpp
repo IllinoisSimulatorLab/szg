@@ -1177,9 +1177,13 @@ void arMasterSlaveFramework::setDataBundlePath( const string& bundlePathName,
   }
 }
 
-void arMasterSlaveFramework::setPlayTransform( void ){
+void arMasterSlaveFramework::setPlayTransform( void ) {
   if( soundActive() ) {
-    (void) _speakerObject.loadMatrices( _inputState->getMatrix( 0 ) );
+    if (getStandalone()) {
+      (void) _speakerObject.loadMatrices( _inputState->getMatrix(0) );
+    } else {
+      dsPlayer( _inputState->getMatrix(0), getHead()->getMidEyeOffset(), getUnitConversion() );
+    }
   }
 }
 
