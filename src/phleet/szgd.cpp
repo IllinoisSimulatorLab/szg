@@ -311,27 +311,40 @@ LAbort:
     const string pyExeString = (szgPyExe!="NULL") ? szgPyExe : ar_getenv("SZG_PYEXE");
     if (pyExeString == "NULL" || pyExeString == "") {
       command = "python";
+#ifdef AR_USE_WIN_32
+      command += ".EXE";
+#endif
+      fileName = command;
+      command = ar_fileFind( fileName, "", execPath );
+      if (command == "NULL") {
+        errStream << "szgd error: no python exe '" << fileName
+             << "' on SZG_EXEC/path " << execPath << ".\n";
+        goto LAbort;
+      }
     } else {
       // Handle bar-delimited cmdline args in SZG_PYEXE or SZG_PYTHON/executable
-      arDelimitedString pySpaceString( pyExeString, '|' );
-      command = pySpaceString[0];
-      for (int ind=1; ind < pySpaceString.size(); ++ind) {
-        args.push_front( pySpaceString[ind] );
+      arDelimitedString pyArgsString( pyExeString, '|' );
+      command = pyArgsString[0];
+#ifdef AR_USE_WIN_32
+      command += ".EXE";
+#endif
+      for (int ind=1; ind < pyArgsString.size(); ++ind) {
+        args.push_front( pyArgsString[ind] );
+      }
+      arPathString pyExePathString( command );
+      if (pyExePathString.size() != 1) {  // absolute path has not been specified.
+        fileName = command;
+        command = ar_fileFind( fileName, "", execPath );
+        if (command == "NULL") {
+          errStream << "szgd error: no python exe '" << fileName
+               << "' on SZG_EXEC/path " << execPath << ".\n";
+          goto LAbort;
+        }
       }
     }
+    cerr << "Python command: " << command << endl;
 
-#ifdef AR_USE_WIN_32
-    command += ".EXE";
-#endif
-    fileName = command;
-    command = ar_fileFind( fileName, "", execPath );
-    if (command == "NULL") {
-      errStream << "szgd error: no python exe '" << fileName
-           << "' on SZG_EXEC/path " << execPath << ".\n";
-      goto LAbort;
-    }
-  }
-  else {
+  } else {
     errStream << "szgd error: unexpected exe type '" << execInfo->executableType << "'.\n";
     return errStream.str();
   }
