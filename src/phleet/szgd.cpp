@@ -312,8 +312,8 @@ LAbort:
     if (pyExeString == "NULL" || pyExeString == "") {
       command = "python";
     } else {
-      // Handle slash-delimited cmdline args in SZG_PYEXE or SZG_PYTHON/executable
-      arSlashString pySpaceString( pyExeString );
+      // Handle bar-delimited cmdline args in SZG_PYEXE or SZG_PYTHON/executable
+      arDelimitedString pySpaceString( pyExeString, '|' );
       command = pySpaceString[0];
       for (int ind=1; ind < pySpaceString.size(); ++ind) {
         args.push_front( pySpaceString[ind] );
