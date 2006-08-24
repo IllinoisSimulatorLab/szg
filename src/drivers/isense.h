@@ -55,14 +55,19 @@
 //
 //////////////////////////////////////////////////////////////////////////////
 
-#ifdef _LIB // static library
+#if defined _LIB || defined XILINK // static library
     #define	DLLEXPORT 
     #define	DLLENTRY __cdecl
     typedef void (* DLL_EP)(void);
     #define	DLL_EP_PTR __cdecl *
 #else
 
-#if defined(_WIN32) || defined(WIN32) || defined(__WIN32__)
+#if defined UNDER_RTSS
+    #define	DLLEXPORT __declspec(dllexport)
+    #define	DLLENTRY _stdcall
+    typedef void (* DLL_EP)(void);
+    #define	DLL_EP_PTR _stdcall *
+#elif defined(_WIN32) || defined(WIN32) || defined(__WIN32__)
     #define	DLLEXPORT __declspec(dllexport)
     #define	DLLENTRY __cdecl
     typedef void (* DLL_EP)(void);
@@ -108,7 +113,9 @@ typedef enum
     ISD_ICUBE2,         // InertiaCube2 
     ISD_ICUBE2_PRO,     // InertiaCube2 Pro 
     ISD_IS1200,         // 6DOF system   
-    ISD_ICUBE3          // InertiaCube3 
+    ISD_ICUBE3,         // InertiaCube3 
+    ISD_ICUBE4,          // InertiaCube4
+    ISD_INTERTRAX_3    // InterTrax3 
 }
 ISD_SYSTEM_MODEL;
 
@@ -121,15 +128,19 @@ typedef enum
     ISD_INTERFACE_ETHERNET_UDP,
     ISD_INTERFACE_ETHERNET_TCP,
     ISD_INTERFACE_IOCARD,
-    ISD_INTERFACE_PCMCIA
+    ISD_INTERFACE_PCMCIA,
+    ISD_INTERFACE_FILE
 }
 ISD_INTERFACE_TYPE;
 
 
-// for now limited to 8 
+#if defined ISENSE_LIMITED
+#define ISD_MAX_TRACKERS        2 
+#define ISD_MAX_STATIONS        4
+#else
+#define ISD_MAX_TRACKERS        32 
 #define ISD_MAX_STATIONS        8
-
-#define ISD_MAX_TRACKERS        8 
+#endif
 
 // orientation format 
 #define ISD_EULER               1
@@ -247,7 +258,7 @@ typedef struct
 
     // AccelSensitivity is used for 3-DOF tracking with InertiaCube2 only. It controls how fast 
     // tilt correction, using accelerometers, is applied. Valid values are 1 to 4, with 2 as default. 
-    // Default is best for head tracking in static environment, with user sited. 
+    // Default is best for head tracking in static environment, with user seated. 
     // Level 1 reduces the amount of tilt correction during movement. While it will prevent any effect  
     // linear accelerations may have on pitch and roll, it will also reduce stability and dynamic accuracy. 
     // It should only be used in situations when sensor is not expected to experience a lot of movement.
@@ -270,7 +281,7 @@ typedef struct
 
     Bool    GetCameraData;  // TRUE to get computed FOV, aperture, etc  
     Bool    GetAuxInputs;     
-    Bool    bReserved3;
+    Bool    GetCovarianceData;
     Bool    bReserved4;
 }
 ISD_STATION_INFO_TYPE;
@@ -337,15 +348,11 @@ typedef struct
     float   FOV;                // Computed vertical FOV value (degrees) 
     float   NodalPoint;         // Nodal point offset due to zoom and focus (mm) 
 
-    LONG    lReserved1;
-    LONG    lReserved2;
-    LONG    lReserved3;
-    LONG    lReserved4;
+    float   CovarianceOrientation[3];     // Available only for IS-1200
+    float   CovariancePosition[3];
 
     DWORD   dwReserved1;
     DWORD   dwReserved2;
-    DWORD   dwReserved3;
-    DWORD   dwReserved4;
 
     float   fReserved1;
     float   fReserved2;
@@ -369,13 +376,173 @@ typedef struct
 ISD_CAMERA_DATA_TYPE;
 
 
+typedef enum
+{
+    ISD_AUX_SYSTEM_NONE = 0,
+    ISD_AUX_SYSTEM_ULTRASONIC,
+    ISD_AUX_SYSTEM_OPTICAL,
+    ISD_AUX_SYSTEM_MAGNETIC,
+    ISD_AUX_SYSTEM_RF,
+    ISD_AUX_SYSTEM_GPS
+}
+ISD_AUX_SYSTEM_TYPE;
+
+
+typedef struct
+{
+    Bool    Valid;            // set to TRUE if ISD_GetSystemHardwareInfo succeeded
+
+    DWORD   TrackerType;      // see ISD_SYSTEM_TYPE
+    DWORD   TrackerModel;     // see ISD_SYSTEM_MODEL
+    DWORD   Port;             // hardware port number (Com1, etc.)
+    DWORD   Interface;        // hardware interface (RS232, USB, etc.)
+    Bool    OnHost;           // tracking algorithms are executed in the dll
+    DWORD   AuxSystem;        // position tracking hardware, see ISD_AUX_SYSTEM_TYPE
+    float   FirmwareRev;      // Firmware revision 
+    
+    char    ModelName[128];
+
+    struct
+    {
+        Bool    Position;     // can tracker position
+        Bool    Orientation;  // can tracker orientation
+        Bool    Encoders;     // can support lens encoders
+        Bool    Prediction;   // predictive algorithms are available
+        Bool    Enhancement;  // enhancement level can be changed
+        Bool    Compass;      // compass setting can be changed
+        Bool    SelfTest;     // has the self-test capability
+        Bool    ErrorLog;     // can keep error log
+
+        Bool    UltVolume;    // can ultrasonic volume be software controled
+        Bool    UltGain;      // can microphone sensitivity be software controled
+        Bool    UltTimeout;   // can ultrasonic sampling frequency be changed
+        Bool    PhotoDiode;   // SoniDiscs support photodiode
+
+        DWORD   MaxStations;  // number of supported stations
+        DWORD   MaxImus;      // number of supported IMUs
+        DWORD   MaxFPses;     // maximum number of Fixed Position Sensing Elements (constellation)
+        DWORD   MaxChannels;  // maximum number of analog channels supported per station
+        DWORD   MaxButtons;   // maximum number of digital button inputs per station
+
+        Bool    MeasData;     // can provide measurement data
+        Bool    DiagData;     // can provide diag data
+        Bool    PseConfig;    // supports PSE configuration/reporting tools
+        Bool    ConfigLock;   // supports configuration locking     
+        
+        float   UltMaxRange;  // maximum ultrasonic range  
+        float   fReserved2;
+        float   fReserved3;
+        float   fReserved4;
+        
+        Bool    CompassCal;   // supports dynamic compass calibration     
+        Bool    bReserved2;
+        Bool    bReserved3;     
+        Bool    bReserved4;
+
+        DWORD   dwReserved1;        
+        DWORD   dwReserved2;       
+        DWORD   dwReserved3;     
+        DWORD   dwReserved4;
+    }
+    Capability;
+        
+    Bool    bReserved1;
+    Bool    bReserved2;
+    Bool    bReserved3;     
+    Bool    bReserved4;
+
+    DWORD   BaudRate;           // Serial port baud rate      
+    DWORD   NumTestLevels;      // Number of self test levels       
+    DWORD   dwReserved3;     
+    DWORD   dwReserved4;
+
+    float   fReserved1;  
+    float   fReserved2;
+    float   fReserved3;
+    float   fReserved4;
+
+    char    cReserved1[128];    
+    char    cReserved2[128];    
+    char    cReserved3[128];    
+    char    cReserved4[128];    
+}
+ISD_HARDWARE_INFO_TYPE;
+
+
+///////////////////////////////////////////////////////////////////////////////
+
+// Station hardware information.
+// This structure provides detailed information on station hardware and
+// it's capabilities.
+
+typedef struct
+{
+    Bool    Valid;             // set to TRUE if ISD_GetStationHardwareInfo succeeded
+
+    DWORD   ID;                // unique number identifying a station. It is the same as that 
+                               // passed to the ISD_SetStationConfig and ISD_GetStationConfig   
+                               // functions and can be 1 to ISD_MAX_STATIONS 
+
+    char    DescVersion[20];   // Station Descriptor version 
+
+    float   FirmwareRev;       // Station firmware revision.
+    DWORD   SerialNum;         // Serial number 
+    char    CalDate[20];       // Cal date (mm/dd/yyyy)
+    DWORD   Port;              // Hardware port number 
+    
+    struct
+    {
+        Bool    Position;      // TRUE if station can track position
+        Bool    Orientation;   // TRUE if station can track orientation
+        DWORD   Encoders;      // number lens encoders, is 0 then none are available
+        DWORD   NumChannels;   // number of analog channels supported by this station, wand has 2 (joystick)
+        DWORD   NumButtons;    // number of digital button inputs supported by this station
+        DWORD   AuxInputs;     // number of auxiliary input channels (OEM products)
+        DWORD   AuxOutputs;    // number of auxiliary output channels (OEM products)
+        Bool    Compass;       // TRUE is station has compass
+
+        Bool    bReserved1;     
+        Bool    bReserved2;
+        Bool    bReserved3;     
+        Bool    bReserved4;
+
+        DWORD   dwReserved1;        
+        DWORD   dwReserved2;       
+        DWORD   dwReserved3;     
+        DWORD   dwReserved4;
+    }
+    Capability;
+
+    Bool    bReserved1;
+    Bool    bReserved2;
+    Bool    bReserved3;     
+    Bool    bReserved4;
+
+    DWORD   Type;           // station type        
+    DWORD   dwReserved2;       
+    DWORD   dwReserved3;     
+    DWORD   dwReserved4;
+
+    float   fReserved1;  
+    float   fReserved2;
+    float   fReserved3;
+    float   fReserved4;
+
+    char    cReserved1[128];    
+    char    cReserved2[128];    
+    char    cReserved3[128];    
+    char    cReserved4[128];    
+}
+ISD_STATION_HARDWARE_INFO_TYPE;
+
+
 // Returns -1 on failure. To detect tracker automatically specify 0 for commPort.
 // hParent parameter to ISD_OpenTracker is optional and should only be used if 
 // information screen or tracker configuration tools are to be used when available 
 // in the future releases. If you would like a tracker initialization window to be 
 // displayed, specify TRUE value for the infoScreen parameter (not implemented in
 // this release). 
-
+// ----------------------------------------------------------------------------
 DLLEXPORT ISD_TRACKER_HANDLE DLLENTRY ISD_OpenTracker( 
                                                       Hwnd hParent, 
                                                       DWORD commPort, 
@@ -393,14 +560,14 @@ DLLEXPORT DWORD DLLENTRY ISD_OpenAllTrackers(
 // This function call deinitializes the tracker, closes communications port and 
 // frees the resources associated with this tracker. If 0 is passed, all currently
 // open trackers are closed. When last tracker is closed, program frees the DLL. 
-
+// ----------------------------------------------------------------------------
 DLLEXPORT Bool DLLENTRY ISD_CloseTracker( ISD_TRACKER_HANDLE handle );
 
 
 // Get general tracker information, such as type, model, port, etc.
 // Also retrieves genlock synchronization configuration, if available. 
 // See ISD_TRACKER_INFO_TYPE structure definition above for complete list of items 
-
+// ----------------------------------------------------------------------------
 DLLEXPORT Bool DLLENTRY ISD_GetTrackerConfig( 
                                              ISD_TRACKER_HANDLE handle, 
                                              ISD_TRACKER_INFO_TYPE *Tracker, 
@@ -411,7 +578,7 @@ DLLEXPORT Bool DLLENTRY ISD_GetTrackerConfig(
 // When used with IS Precision Series (IS-300, IS-600, IS-900, IS-1200) tracking devices 
 // this function call will set genlock synchronization  parameters, all other fields 
 // in the ISD_TRACKER_INFO_TYPE structure are for information purposes only 
-
+// ----------------------------------------------------------------------------
 DLLEXPORT Bool DLLENTRY ISD_SetTrackerConfig(
                                              ISD_TRACKER_HANDLE handle, 
                                              ISD_TRACKER_INFO_TYPE *Tracker, 
@@ -422,7 +589,7 @@ DLLEXPORT Bool DLLENTRY ISD_SetTrackerConfig(
 // Get RecordsPerSec and KBitsPerSec without requesting genlock settings from the tracker.
 // Use this instead of ISD_GetTrackerConfig to prevent your program from stalling while
 // waiting for the tracker response. 
-
+// ----------------------------------------------------------------------------
 DLLEXPORT Bool DLLENTRY ISD_GetCommInfo( 
                                         ISD_TRACKER_HANDLE handle, 
                                         ISD_TRACKER_INFO_TYPE *Tracker
@@ -433,7 +600,7 @@ DLLEXPORT Bool DLLENTRY ISD_GetCommInfo(
 // this function is called, all elements of the structure must be assigned a value. 
 // stationID is a number from 1 to ISD_MAX_STATIONS. Should only be used with
 // IS Precision Series tracking devices, not valid for InterTrax.  
-
+// ----------------------------------------------------------------------------
 DLLEXPORT Bool DLLENTRY ISD_SetStationConfig( 
                                              ISD_TRACKER_HANDLE handle, 
                                              ISD_STATION_INFO_TYPE *Station, 
@@ -448,7 +615,7 @@ DLLEXPORT Bool DLLENTRY ISD_SetStationConfig(
 // attempting to recover the settings. Should only be used with IS Precision Series 
 // tracking devices, not valid for InterTrax.
 // stationID is a number from 1 to ISD_MAX_STATIONS 
-
+// ----------------------------------------------------------------------------
 DLLEXPORT Bool DLLENTRY ISD_GetStationConfig(
                                              ISD_TRACKER_HANDLE handle, 
                                              ISD_STATION_INFO_TYPE *Station,
@@ -462,7 +629,7 @@ DLLEXPORT Bool DLLENTRY ISD_GetStationConfig(
 // isenseX.ini where X is a number, starting at 1, identifying one tracking 
 // system in the order of initialization. This function provides for a way to
 // manually configure the tracker using a different configuration file.
-
+// ----------------------------------------------------------------------------
 DLLEXPORT Bool ISD_ConfigureFromFile(
                                      ISD_TRACKER_HANDLE handle, 
                                      char *path, 
@@ -474,24 +641,77 @@ DLLEXPORT Bool ISD_ConfigureFromFile(
 // structure. Orientation array may contain Euler angles or Quaternions, depending
 // on the settings of the AngleFormat field of the ISD_STATION_INFO_TYPE structure.
 // TimeStamp is only available if requested by setting TimeStamped field to TRUE. 
-
+// ----------------------------------------------------------------------------
 DLLEXPORT Bool DLLENTRY ISD_GetData( 
                                     ISD_TRACKER_HANDLE handle, 
                                     ISD_TRACKER_DATA_TYPE *Data 
                                     );
 
 
-// Get camera encode and other data for all configured stations. Data is places in 
-// the ISD_CAMERA_DATA_TYPE structure. This function does not service serial port, so
-// ISD_GetData must be called prior to this. 
-
+// Get camera encode and other data for all configured stations. Data is places 
+// in the ISD_CAMERA_DATA_TYPE structure. This function does not service serial 
+// port, so ISD_GetData must be called prior to this. 
+// ----------------------------------------------------------------------------
 DLLEXPORT Bool DLLENTRY ISD_GetCameraData( 
                                           ISD_TRACKER_HANDLE handle, 
                                           ISD_CAMERA_DATA_TYPE *Data 
                                           );
 
-// Reset heading to zero 
 
+// By default, ISD_GetData processes all the records available from the tracker
+// and only returns the latest data. As the result, data samples can be lost.
+// If all the data samples are required, you can use a ring buffer to store them.
+// ISD_SetupRingBuffer accepts the pointer to the ring buffer, and it's size.
+// Once activated, all processed data samples are stored in the buffer for use
+// by the application. 
+//
+// ISD_GetData can still be used to read the data, but it would return the
+// oldest saved data sample, then remove it from the buffer (first in - first out). 
+// By repeatedly calling ISD_GetData all samples are retrieved, the latest
+// coming last. All consecutive calls to ISD_GetData will return the last
+// sample, but the NewData flag will be FALSE to indicate that buffer has
+// been emptied.
+// ----------------------------------------------------------------------------
+DLLEXPORT Bool ISD_SetupRingBuffer( 
+                                   ISD_TRACKER_HANDLE handle, 
+                                   WORD stationID, 
+                                   ISD_STATION_STATE_TYPE *dataBuffer, 
+                                   DWORD samples 
+                                   );
+
+// Activate the ring buffer. While active, all data samples are stored in the 
+// buffer. Because this is a ring buffer, it will only store the number of samples
+// specified in the call to ISD_SetupRingBuffer, so the oldest samples can be 
+// overwritten.
+// ----------------------------------------------------------------------------
+DLLEXPORT Bool ISD_StartRingBuffer(
+                                   ISD_TRACKER_HANDLE handle,
+                                   WORD stationID
+                                   );
+
+// Stop collection. The data will continue to be processed, but the contents of
+// the ring buffer will not be altered.
+// ----------------------------------------------------------------------------
+DLLEXPORT Bool ISD_StopRingBuffer(
+                                  ISD_TRACKER_HANDLE handle,
+                                  WORD stationID
+                                  );
+
+
+// Queries the DLL for the latest data without removing it from the buffer or 
+// affecting the NewData flag. It also returns the indexes of the newest and the
+// oldest samples in the buffer. User program can use these to parse the buffer.
+// ----------------------------------------------------------------------------
+DLLEXPORT Bool ISD_QueryRingBuffer( 
+                                   ISD_TRACKER_HANDLE handle, 
+                                   WORD stationID,
+                                   ISD_STATION_STATE_TYPE *currentData,
+                                   DWORD *head,
+                                   DWORD *tail
+                                   );
+
+// Reset heading to zero 
+// ----------------------------------------------------------------------------
 DLLEXPORT Bool DLLENTRY ISD_ResetHeading( 
                                          ISD_TRACKER_HANDLE handle, 
                                          WORD stationID 
@@ -504,7 +724,7 @@ DLLEXPORT Bool DLLENTRY ISD_ResetHeading(
 // you need to apply a specific offset to system output. For example, if
 // a sensor is mounted at 40 degrees relative to the HMD, you can 
 // enter 0, 40, 0 to get the system to output zero when HMD is horizontal.
-
+// ----------------------------------------------------------------------------
 DLLEXPORT Bool DLLENTRY ISD_BoresightReferenced( 
                                                 ISD_TRACKER_HANDLE handle, 
                                                 WORD stationID, 
@@ -518,7 +738,7 @@ DLLEXPORT Bool DLLENTRY ISD_BoresightReferenced(
 // Boresight, or unboresight a station. If 'set' is TRUE, all angles
 // are reset to zero. Otherwise, all boresight settings are cleared,
 // including those set by ISD_ResetHeading and ISD_BoresightReferenced
-
+// ----------------------------------------------------------------------------
 DLLEXPORT Bool DLLENTRY ISD_Boresight( 
                                       ISD_TRACKER_HANDLE handle, 
                                       WORD stationID,
@@ -531,7 +751,7 @@ DLLEXPORT Bool DLLENTRY ISD_Boresight(
 // commands as described in the interface protocol. Commands in the script 
 // should be terminated by the New Line character '\n'. Line Feed character '\r' 
 // is added by the function and is not required. 
-
+// ----------------------------------------------------------------------------
 DLLEXPORT Bool DLLENTRY ISD_SendScript( 
                                        ISD_TRACKER_HANDLE handle, 
                                        char *script 
@@ -542,7 +762,7 @@ DLLEXPORT Bool DLLENTRY ISD_SendScript(
 // specified. The number of bytes should match the number the auxiliary outputs
 // interface is set up to expect. If too many are specified, the extra bytes 
 // are ignored. 
-
+// ----------------------------------------------------------------------------
 DLLEXPORT Bool DLLENTRY ISD_AuxOutput( 
                                        ISD_TRACKER_HANDLE handle, 
                                        WORD stationID,
@@ -552,16 +772,44 @@ DLLEXPORT Bool DLLENTRY ISD_AuxOutput(
 
 // Number of currently opened trackers is stored in the parameter passed to this
 // functions 
-
+// ----------------------------------------------------------------------------
 DLLEXPORT Bool DLLENTRY ISD_NumOpenTrackers( WORD *num );
 
 
-// Platform independent time
+// Broadcast tracker data over the network
+// ----------------------------------------------------------------------------
+DLLEXPORT Bool DLLENTRY ISD_UdpBroadcastData( 
+                                             ISD_TRACKER_HANDLE handle, 
+                                             DWORD port,
+                                             ISD_TRACKER_DATA_TYPE *trackerData,
+                                             ISD_CAMERA_DATA_TYPE *cameraData
+                                             );
 
+// Platform independent time
+// ----------------------------------------------------------------------------
 DLLEXPORT float DLLENTRY ISD_GetTime( void );
+
+
+// System hardware information.
+// ----------------------------------------------------------------------------
+DLLEXPORT Bool DLLENTRY ISD_GetSystemHardwareInfo( 
+                                                  ISD_TRACKER_HANDLE handle, 
+                                                  ISD_HARDWARE_INFO_TYPE *hwInfo
+                                                  );
+
+
+// Station hardware information.
+// ----------------------------------------------------------------------------
+DLLEXPORT Bool DLLENTRY ISD_GetStationHardwareInfo( 
+                                                   ISD_TRACKER_HANDLE handle, 
+                                                   ISD_STATION_HARDWARE_INFO_TYPE *info, 
+                                                   WORD stationID 
+                                                   );
+
 
 #ifdef __cplusplus
 }
 #endif
 
 #endif
+

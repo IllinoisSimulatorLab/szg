@@ -22,15 +22,16 @@
 // Library file name
 
 #if defined(_WIN32) || defined(WIN32) || defined(__WIN32__)
-#define ISD_LIB_NAME "isense.dll"
-#else
-#ifdef MACOSX
+#define ISD_LIB_NAME "isense"
+#elif defined MACOSX
 #include "dlcompat.h"
-#define ISD_LIB_NAME "libisense.dylib"
+#define ISD_LIB_NAME "libisense"
+#elif defined HP || defined HPUX
+#include <dl.h>
+#define ISD_LIB_NAME "libisense"
 #else
 #include <dlfcn.h>
-#define ISD_LIB_NAME "libisense.so"
-#endif
+#define ISD_LIB_NAME "libisense"
 #endif
 
 
@@ -64,6 +65,9 @@ typedef Bool               (*ISD_BORESIGHT_REF_FN)  ( ISD_TRACKER_HANDLE, WORD, 
 typedef float              (*ISD_GET_TIME)          ( void );
 typedef Bool               (*ISD_CONFIG_FILE_FN)    ( ISD_TRACKER_HANDLE, char *, Bool );
 typedef Bool               (*ISD_AUX_OUTPUT_FN)     ( ISD_TRACKER_HANDLE, WORD, BYTE *, WORD );
+typedef Bool               (*ISD_UDP_BROADCAST_FN)  ( ISD_TRACKER_HANDLE, DWORD, ISD_TRACKER_DATA_TYPE *, ISD_CAMERA_DATA_TYPE * );
+typedef Bool               (*ISD_SYS_INFO_FN)       ( ISD_TRACKER_HANDLE, ISD_HARDWARE_INFO_TYPE * );
+typedef Bool               (*ISD_GET_HARDW_INFO_FN) ( ISD_TRACKER_HANDLE, ISD_STATION_HARDWARE_INFO_TYPE *, WORD );
 
 
 //==========================================================================================
@@ -87,12 +91,15 @@ ISD_BORESIGHT_REF_FN  _ISD_BoresightReferenced      = NULL;
 ISD_GET_TIME          _ISD_GetTime                  = NULL;
 ISD_CONFIG_FILE_FN    _ISD_ConfigureFromFile        = NULL;
 ISD_AUX_OUTPUT_FN     _ISD_AuxOutput                = NULL;
+ISD_UDP_BROADCAST_FN  _ISD_UdpBroadcastData         = NULL;
+ISD_SYS_INFO_FN       _ISD_GetSystemHardwareInfo    = NULL;
+ISD_GET_HARDW_INFO_FN _ISD_GetStationHardwareInfo   = NULL;
 
 
 //==========================================================================================
 static DLL *ISD_LoadLib( void )
 {
-    if ((hLib = dll_load( ISD_LIB_NAME )) != NULL)
+    if(hLib = dll_load( ISD_LIB_NAME ))
     {
         _ISD_OpenTracker            = ( ISD_OPEN_FN )           dll_entrypoint( hLib, "ISD_OpenTracker" );
         _ISD_OpenAllTrackers        = ( ISD_OPEN_ALL_FN )       dll_entrypoint( hLib, "ISD_OpenAllTrackers" );
@@ -112,6 +119,9 @@ static DLL *ISD_LoadLib( void )
         _ISD_GetTime                = ( ISD_GET_TIME )          dll_entrypoint( hLib, "ISD_GetTime" );
         _ISD_ConfigureFromFile      = ( ISD_CONFIG_FILE_FN)     dll_entrypoint( hLib, "ISD_ConfigureFromFile" );
         _ISD_AuxOutput              = ( ISD_AUX_OUTPUT_FN )     dll_entrypoint( hLib, "ISD_AuxOutput" );
+        _ISD_UdpBroadcastData       = ( ISD_UDP_BROADCAST_FN )  dll_entrypoint( hLib, "ISD_UdpBroadcastData" );
+        _ISD_GetSystemHardwareInfo  = ( ISD_SYS_INFO_FN )       dll_entrypoint( hLib, "ISD_GetSystemHardwareInfo" );
+        _ISD_GetStationHardwareInfo = ( ISD_GET_HARDW_INFO_FN ) dll_entrypoint( hLib, "ISD_GetStationHardwareInfo" );
     }
     
     if( hLib == NULL )
@@ -143,6 +153,9 @@ static void ISD_FreeLib( void )
     _ISD_GetTime                = NULL;
     _ISD_ConfigureFromFile      = NULL;
     _ISD_AuxOutput              = NULL;
+    _ISD_UdpBroadcastData       = NULL;
+    _ISD_GetSystemHardwareInfo  = NULL;
+    _ISD_GetStationHardwareInfo = NULL;
     
     if( hLib )
     {
@@ -208,15 +221,24 @@ ISD_OpenAllTrackers(
 DLLEXPORT Bool DLLENTRY 
 ISD_CloseTracker( ISD_TRACKER_HANDLE handle )
 {
-  if( _ISD_CloseTracker )
+    Bool ret;
+    WORD num;
+    
+    if( _ISD_CloseTracker )
+    {
+        ret = (*_ISD_CloseTracker)( handle );
+        
+        // if all trackers are closed the dll can be freed 
+        if( ISD_NumOpenTrackers( &num ) )
+        {
+            if( num == 0 )
+            {
+                ISD_FreeLib();
+            }
+        }
+        return ret;
+    }
     return FALSE;
-
-  const Bool ret = (*_ISD_CloseTracker)( handle );
-  // if all trackers are closed the dll can be freed 
-  WORD num = 0;
-  if( ISD_NumOpenTrackers( &num ) && num == 0)
-    ISD_FreeLib();
-  return ret;
 }
 
 
@@ -224,9 +246,8 @@ ISD_CloseTracker( ISD_TRACKER_HANDLE handle )
 DLLEXPORT Bool DLLENTRY 
 ISD_NumOpenTrackers( WORD *num )
 {
-  if( !_ISD_NumOpenTrackers )
-    return FALSE;
-  return (*_ISD_NumOpenTrackers)( num );
+    if( !_ISD_NumOpenTrackers ) return FALSE;
+    return (*_ISD_NumOpenTrackers)( num );
 }
 
 
@@ -408,13 +429,51 @@ ISD_AuxOutput(
 }
 
 
+//==========================================================================================
+DLLEXPORT Bool DLLENTRY 
+ISD_UdpBroadcastData( 
+                     ISD_TRACKER_HANDLE handle, 
+                     DWORD port,
+                     ISD_TRACKER_DATA_TYPE *trackerData,
+                     ISD_CAMERA_DATA_TYPE *cameraData
+                     )
+{
+    if( !_ISD_UdpBroadcastData ) return FALSE;
+    return (*_ISD_UdpBroadcastData)( handle, port, trackerData, cameraData );
+}
+
+
+//==========================================================================================
+DLLEXPORT Bool DLLENTRY 
+ISD_GetSystemHardwareInfo( 
+                          ISD_TRACKER_HANDLE handle, 
+                          ISD_HARDWARE_INFO_TYPE *hwInfo
+                          )
+{
+    if( !_ISD_GetSystemHardwareInfo ) return FALSE;
+    return (*_ISD_GetSystemHardwareInfo)( handle, hwInfo );
+}
+
+
+//==========================================================================================
+DLLEXPORT Bool DLLENTRY 
+ISD_GetStationHardwareInfo( ISD_TRACKER_HANDLE handle, 
+                            ISD_STATION_HARDWARE_INFO_TYPE *info, 
+                            WORD stationNum ) 
+{
+    if( !_ISD_GetStationHardwareInfo ) return FALSE;
+    return (*_ISD_GetStationHardwareInfo)( handle, info, stationNum );
+}
+
 
 //==========================================================================================
 static DLL_EP dll_entrypoint( DLL *dll, const char *name )
 {
 #if defined(_WIN32) || defined(WIN32) || defined(__WIN32__)
     
-    FARPROC proc = GetProcAddress( (HMODULE) dll, (LPCSTR) name );
+    FARPROC proc;
+    
+    proc = GetProcAddress( (HMODULE) dll, (LPCSTR) name );
     if( proc == NULL )
     {
         printf( "Failed to load %s. Error code %d\n", name, GetLastError() );
@@ -422,11 +481,22 @@ static DLL_EP dll_entrypoint( DLL *dll, const char *name )
     return (DLL_EP) proc;
     
 #else // UNIX
-    
-    void *handle = (void *) dll;
-    DLL_EP ep = (DLL_EP) dlsym( handle, name );
-    return ( dlerror() == 0 ) ? ep : (DLL_EP) NULL;
-    
+
+#if defined LINUX  || defined SUN || defined MACOSX
+	void *handle = (void *) dll;
+	DLL_EP ep;
+	ep = (DLL_EP) dlsym(handle, name);
+	return ( dlerror() == 0 ) ? ep : (DLL_EP) NULL;
+
+#elif defined HP || defined HPUX
+	shl_t handle = (shl_t) dll;
+	DLL_EP ep;
+	return shl_findsym(&handle, name, TYPE_PROCEDURE, &ep) == -1 ?
+		(DLL_EP) NULL : ep;
+#else
+	name=name; // Suppress warnings
+	return (DLL_EP) NULL;
+#endif
 #endif
 }	
 
@@ -439,11 +509,25 @@ static DLL *dll_load( const char *name )
     return (DLL *) LoadLibrary( name );
     
 #else // UNIX
+    char dllname[512];
+    strcpy(dllname, name);
     
-    DLL *dll = dlopen( name, RTLD_NOW );
-    if (!dll) printf( "%s\n", (char *) dlerror() );
-    return dll;
-    
+#if defined MACOSX
+    strcat(dllname, ".dylib");
+    return (DLL *) dlopen(dllname, RTLD_NOW);
+
+#elif defined LINUX || defined SUN
+    strcat( dllname, ".so" );
+    return (DLL *) dlopen(dllname, RTLD_NOW);
+
+#elif defined HP || defined HPUX
+    strcat(dllname, ".sl");
+    return shl_load(dllname, BIND_DEFERRED|DYNAMIC_PATH, 0L);
+#else
+    /* This type of UNIX has no DLL support yet */
+    name=name; /* Suppress warning */
+    return (DLL *) NULL;
+#endif
 #endif
 }
 
@@ -453,11 +537,20 @@ static void dll_unload( DLL *dll )
 {
 #if defined(_WIN32) || defined(WIN32) || defined(__WIN32__)
     
-    FreeLibrary( (HINSTANCE) dll );
+    HINSTANCE hInst = (HINSTANCE) dll;
+    FreeLibrary( hInst );
     
 #else // UNIX
-    
-    dlclose((void *) dll);
-    
+        
+#if defined(LINUX) || defined(MACOSX)
+    void *handle = (void *) dll;
+    dlclose( handle );
+#elif defined(HP) || defined(HPUX)
+    shl_t handle = (shl_t) dll;
+    shl_unload( handle );
+#else
+    dll = dll; // Suppress warning
+#endif
 #endif
 }
+
