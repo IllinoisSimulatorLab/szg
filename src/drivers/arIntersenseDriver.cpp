@@ -566,8 +566,11 @@ void IsenseStation::queueData( ISD_TRACKER_DATA_TYPE& data,
   if ( TRUE == _stationConfig.GetInputs ) {
     // Get buttons
     for ( unsigned int buttonIndex=0; buttonIndex < _numButtons; ++buttonIndex ) {
-      inputSource->queueButton( _firstButtonIndex+buttonIndex, 
-                                myData.ButtonState[buttonIndex] );
+      Bool currState = myData.ButtonState[buttonIndex];
+      if (currState != _lastButtonState[buttonIndex]) {
+        inputSource->queueButton( _firstButtonIndex+buttonIndex, currState );
+        _lastButtonState[buttonIndex] = currState;
+      }
     }
     // Get analogs
     for ( unsigned int analogIndex=0; analogIndex < _numAnalogInputs; ++analogIndex ) {

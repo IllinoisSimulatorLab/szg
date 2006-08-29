@@ -169,6 +169,9 @@ class IsenseStation {
     unsigned  int _firstButtonIndex; // Index into szg driver's list of buttons.
     unsigned  int _firstAnalogIndex; // Index into szg driver's list of axes.
     unsigned  int _firstAuxIndex;    // Index into szg driver's list of axes.
+
+    // We only send button events when button state CHANGES!!!!!
+    Bool _lastButtonState[ISD_MAX_BUTTONS];
 };
 
 ostream& operator<<(ostream&, const IsenseStation&);

@@ -10,6 +10,12 @@
 #include "arNetInputSource.h"
 #include "arIOFilter.h"
 
+int CONTINUOUS_DUMP = 0;
+int ON_BUTTON_DUMP = 1;
+int EVENT_STREAM = 2;
+int BUTTON_STREAM = 3;
+
+
 void dumpState( arInputState& inp ) {
   const unsigned cb = inp.getNumberButtons();
   const unsigned ca = inp.getNumberAxes();
@@ -39,24 +45,24 @@ void dumpState( arInputState& inp ) {
   cout << "****\n";
 }
 
-class arClientEventFilter : public arIOFilter {
+class onButtonEventFilter : public arIOFilter {
   public:
-    arClientEventFilter() : arIOFilter() {}
-    virtual ~arClientEventFilter() {}
+    onButtonEventFilter() : arIOFilter() {}
+    virtual ~onButtonEventFilter() {}
   protected:
     virtual bool _processEvent( arInputEvent& inputEvent );
   private:
     arInputState _lastInput;
 };
 
-bool arClientEventFilter::_processEvent( arInputEvent& event ) {
+bool onButtonEventFilter::_processEvent( arInputEvent& event ) {
   bool dump = false;
   switch (event.getType()) {
     case AR_EVENT_BUTTON:
       dump |= event.getButton() && !_lastInput.getButton( event.getIndex() );
       break;
     case AR_EVENT_GARBAGE:
-      ar_log_warning() << "arClientEventFilter ignoring garbage.\n";
+      ar_log_warning() << "onButtonEventFilter ignoring garbage.\n";
       break;
     default:
       // avoid compiler warning
@@ -70,6 +76,26 @@ bool arClientEventFilter::_processEvent( arInputEvent& event ) {
   return true;
 }
 
+class EventStreamEventFilter : public arIOFilter {
+  public:
+    EventStreamEventFilter( arInputEventType eventType=AR_EVENT_GARBAGE ) :
+      arIOFilter(),
+      _printEventType(eventType) {
+      }
+    virtual ~EventStreamEventFilter() {}
+  protected:
+    virtual bool _processEvent( arInputEvent& inputEvent );
+  private:
+    int _printEventType;
+};
+bool EventStreamEventFilter::_processEvent( arInputEvent& event ) {
+  if ((_printEventType==AR_EVENT_GARBAGE) || (_printEventType==event.getType())) {
+    cout << event << endl;
+  }
+  return true;
+}
+
+
 int main(int argc, char** argv){
   arSZGClient szgClient;
   szgClient.simpleHandshaking(false);
@@ -78,12 +104,26 @@ int main(int argc, char** argv){
     return szgClient.failStandalone(fInit);
 
   if (argc != 2 && argc != 3) {
-    ar_log_error() << "usage: DeviceClient slot_number [-button]\n";
+    ar_log_error() << "usage: DeviceClient slot_number [-onbutton/-stream/-buttonstream]\n";
     return 1;
   }
 
   const int slot = atoi(argv[1]);
-  const bool continuousDump = argc!=3 || strcmp(argv[2], "-button");
+  cout << "Slot = " << slot << endl;
+
+  int operationMode = CONTINUOUS_DUMP;
+  if (argc == 3) {
+    if (strcmp(argv[2],"-onbutton")==0) {
+      operationMode = ON_BUTTON_DUMP;
+      cout << "Operation mode = ON_BUTTON_DUMP.\n";
+    } else if (strcmp(argv[2],"-stream")==0) {
+      operationMode = EVENT_STREAM;
+      cout << "Operation mode = EVENT_STREAM.\n";
+    } else if (strcmp(argv[2],"-buttonstream")==0) {
+      operationMode = BUTTON_STREAM;
+      cout << "Operation mode = BUTTON_STREAM.\n";
+    }
+  }
 
   arInputNode inputNode;
   arNetInputSource netInputSource;
@@ -93,31 +133,44 @@ int main(int argc, char** argv){
     return 1;
   }
 
-  arClientEventFilter filter;
-  inputNode.addFilter( &filter, false );
-  if (!inputNode.init(szgClient)){
+  onButtonEventFilter onButtonFilter;
+  EventStreamEventFilter eventStreamFilter;
+  EventStreamEventFilter buttonStreamFilter( AR_EVENT_BUTTON );
+  if (operationMode == ON_BUTTON_DUMP) {
+    inputNode.addFilter( &onButtonFilter, false );
+  } else if (operationMode == EVENT_STREAM) {
+    inputNode.addFilter( &eventStreamFilter, false );
+  } else if (operationMode == BUTTON_STREAM) {
+    inputNode.addFilter( &buttonStreamFilter, false );
+  }
+
+  if (!inputNode.init(szgClient)) {
     if (!szgClient.sendInitResponse(false))
       cerr << "DeviceClient error: maybe szgserver died.\n";
     return 1;
   }
 
-  if (!szgClient.sendInitResponse(true))
+  if (!szgClient.sendInitResponse(true)) {
     cerr << "DeviceClient error: maybe szgserver died.\n";
-  if (!inputNode.start()){
-    if (!szgClient.sendStartResponse(false))
+  }
+  if (!inputNode.start()) {
+    if (!szgClient.sendStartResponse(false)) {
       cerr << "DeviceClient error: maybe szgserver died.\n";
+    }
     return 1;
   }
 
-  if (!netInputSource.connected())
+  if (!netInputSource.connected()) {
     ar_log_warning() << "DeviceClient's input source not connected, on slot " << slot << ".\n";
+  }
 
-  if (!szgClient.sendStartResponse(true))
+  if (!szgClient.sendStartResponse(true)) {
     cerr << "DeviceClient error: maybe szgserver died.\n";
+  }
 
   arThread dummy(ar_messageTask, &szgClient);
   while (true){
-    if (continuousDump && netInputSource.connected())
+    if ((operationMode==CONTINUOUS_DUMP) && netInputSource.connected())
       dumpState(inputNode._inputState);
     ar_usleep(500000);
   }
