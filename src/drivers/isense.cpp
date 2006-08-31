@@ -37,7 +37,7 @@
 #if defined(_WIN32) || defined(WIN32) || defined(__WIN32__)
 #define ISD_LIB_NAME "isense"
 #elif defined MACOSX
-#include "dlcompat.h"
+// todo: use syzygy's arSharedLib instead    #include "dlcompat.h"
 #define ISD_LIB_NAME "libisense"
 #elif defined HP || defined HPUX
 #include <dl.h>
@@ -496,21 +496,28 @@ static DLL_EP dll_entrypoint( DLL *dll, const char *name )
     
 #else // UNIX
 
-#if defined LINUX  || defined SUN || defined MACOSX
-	void *handle = (void *) dll;
-	DLL_EP ep;
-	ep = (DLL_EP) dlsym(handle, name);
-	return ( dlerror() == 0 ) ? ep : (DLL_EP) NULL;
+#if defined LINUX  || defined SUN
+    void *handle = (void *) dll;
+    DLL_EP ep;
+    ep = (DLL_EP) dlsym(handle, name);
+    return ( dlerror() == 0 ) ? ep : (DLL_EP) NULL;
+
+#elif defined MACOSX
+    printf("syzygy internal error: isense.cpp darwin needs to use arSharedLib.\n");
+    // void *handle = (void *) dll;
+    // DLL_EP ep;
+    // ep = (DLL_EP) dlsym(handle, name);
+    // return ( dlerror() == 0 ) ? ep : (DLL_EP) NULL;
 
 #elif defined HP || defined HPUX
-	shl_t handle = (shl_t) dll;
-	DLL_EP ep;
-	return shl_findsym(&handle, name, TYPE_PROCEDURE, &ep) == -1 ?
-		(DLL_EP) NULL : ep;
+    shl_t handle = (shl_t) dll;
+    DLL_EP ep;
+    return shl_findsym(&handle, name, TYPE_PROCEDURE, &ep) == -1 ?
+	    (DLL_EP) NULL : ep;
 #else
-	dll = dll;
-	name=name; // Suppress warnings
-	return (DLL_EP) NULL;
+    dll = dll;
+    name=name; // Suppress warnings
+    return (DLL_EP) NULL;
 #endif
 #endif
 }	
@@ -528,8 +535,9 @@ static DLL *dll_load( const char *name )
     strcpy(dllname, name);
     
 #if defined MACOSX
-    strcat(dllname, ".dylib");
-    return (DLL *) dlopen(dllname, RTLD_NOW);
+    printf("syzygy internal error: isense.cpp darwin needs to use arSharedLib.\n");
+    // strcat(dllname, ".dylib");
+    // return (DLL *) dlopen(dllname, RTLD_NOW);
 
 #elif defined LINUX || defined SUN
     strcat( dllname, ".so" );
@@ -557,9 +565,13 @@ static void dll_unload( DLL *dll )
     
 #else // UNIX
         
-#if defined(LINUX) || defined(MACOSX)
+#if defined(LINUX)
     void *handle = (void *) dll;
     dlclose( handle );
+#elif defined(MACOSX)
+    printf("syzygy internal error: isense.cpp darwin needs to use arSharedLib.\n");
+    // void *handle = (void *) dll;
+    // dlclose( handle );
 #elif defined(HP) || defined(HPUX)
     shl_t handle = (shl_t) dll;
     shl_unload( handle );
