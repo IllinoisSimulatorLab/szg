@@ -99,7 +99,8 @@ ISD_GET_HARDW_INFO_FN _ISD_GetStationHardwareInfo   = NULL;
 //==========================================================================================
 static DLL *ISD_LoadLib( void )
 {
-    if(hLib = dll_load( ISD_LIB_NAME ))
+    hLib = dll_load( ISD_LIB_NAME );
+    if (hLib)
     {
         _ISD_OpenTracker            = ( ISD_OPEN_FN )           dll_entrypoint( hLib, "ISD_OpenTracker" );
         _ISD_OpenAllTrackers        = ( ISD_OPEN_ALL_FN )       dll_entrypoint( hLib, "ISD_OpenAllTrackers" );
@@ -494,6 +495,7 @@ static DLL_EP dll_entrypoint( DLL *dll, const char *name )
 	return shl_findsym(&handle, name, TYPE_PROCEDURE, &ep) == -1 ?
 		(DLL_EP) NULL : ep;
 #else
+	dll = dll;
 	name=name; // Suppress warnings
 	return (DLL_EP) NULL;
 #endif
