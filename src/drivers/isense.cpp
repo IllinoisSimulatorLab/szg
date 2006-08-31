@@ -13,6 +13,19 @@
 #include "arPrecompiled.h"
 #include "isense.h"
 
+#ifdef AR_USE_WIN_32
+#define WIN32
+#endif
+#ifdef AR_USE_LINUX
+#define LINUX
+#endif
+#ifdef AR_USE_SGI
+#define HPUX /* closer to IRIX than SUN? */
+#endif
+#ifdef AR_USE_DARWIN
+#define MACOSX
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h> 
