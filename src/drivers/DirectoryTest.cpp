@@ -1,12 +1,5 @@
 #include "arDirectory.h"
 
-#ifdef AR_USE_WIN_32
-
-#endif
-#ifdef AR_USE_DARWIN
-
-#endif
-
 using namespace std;
 
 int main() {
@@ -21,13 +14,13 @@ int main() {
   unsigned int i;
   
   std::vector<std::string> fileList = here.files();
-  cout << "List of " << fileList.size() << " files:\n--------------\n";
+  cout << "List of " << fileList.size() << " files:\n\n";
   for (i=0; i<fileList.size(); i++)
     cout << fileList[i].c_str() << endl;
   cout << endl;
   
   std::vector<std::string> dirList = here.subDirectories();
-  cout << "\nList of " << dirList.size() << " subdirectories:\n--------------------\n";
+  cout << "\nList of " << dirList.size() << " subdirectories:\n\n";
   for (i=0; i<dirList.size(); i++)
     cout << dirList[i].c_str() << endl;
   cout << endl;
