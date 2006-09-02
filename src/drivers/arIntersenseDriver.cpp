@@ -642,16 +642,12 @@ void ar_intersenseDriverEventTask(void* intersenseDriver){
     (arIntersenseDriver*) intersenseDriver;
 
   for (;;) {
-//  I'm not sure if this is necessary...
-//  Turns out it is. Doesn't seem to matter for an InertiaCube, but down
-//  at the Duke DiVE, where they have an IS-9000, master/slave apps
-//  would slow to a crawl after the tracking started up unless we put
-//  a sleep in here.
+    // Doesn't matter for an InertiaCube, but on the Duke DiVE's IS-9000,
+    // master/slave apps crawl after tracking starts without this sleep.
     isense->_waitForData();
     bool bSuccess = isense->_getData();
     if ( false == bSuccess ) {
-      // Never get here b/c Intersense driver always 
-      // returns a cheery success.
+      // Unreachable because Intersense driver always returns a cheery success.
       while ( false == isense->_reacquire() )
         ar_usleep( 15*1000 );
     }
@@ -779,10 +775,9 @@ bool arIntersenseDriver::_open( DWORD port ) {
   } else { // check for a single tracker on specified port
     Bool isVerbose = TRUE;
     trackerHandle[0] = ISD_OpenTracker( (Hwnd) NULL, port, FALSE, isVerbose );
-    bool success = trackerHandle[0] > 0;
-    if ( !success ) {
+    if ( trackerHandle[0] <= 0 ) {
       std::cerr << "arIntersenseDriver error: failed to open tracker on port "
-      << port << ".  " << std::endl;
+      << port << " (first stop ISDemo if that's running).\n";
       return false;
     }
     numTrackers = 1;
@@ -795,14 +790,11 @@ bool arIntersenseDriver::_open( DWORD port ) {
 
   // Execute initialization code for each tracker.
   bool created = true;
-  unsigned int count(0);
+  unsigned count = 0;
   for (iter = _trackers.begin(); iter != _trackers.end(); ++iter) {
     iter->setID( count );
     iter->setHandle( trackerHandle[ count++ ] );
-    bool didInit = iter->init();
-    if ( !didInit ) {
-      created = false;
-    }
+    created &= iter->init();
   }
   // Close down if we cannot start.
   if ( !created ) {
@@ -834,14 +826,12 @@ bool arIntersenseDriver::_waitForData() {
 
 
 bool arIntersenseDriver::_getData() {
-  bool success = true;
+  bool ok = true;
   std::vector< IsenseTracker >::iterator iter;
   for (iter = _trackers.begin(); iter != _trackers.end(); ++iter) {
-    if ( !iter->getData( this ) ) {
-      success = false;
-    }
+    ok &= iter->getData( this );
   }
-  return success;
+  return ok;
 }
 
 
