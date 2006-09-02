@@ -85,7 +85,9 @@ bool inputEventQueueCallback( arSZGAppFramework& fw, arInputEventQueue& eventQue
     arInputEvent event = eventQueue.popNextEvent();
     dragWand.updateState( event );
     headEffector.updateState( event );
-    if (event.getType() == AR_EVENT_AXIS) {
+    // navUpdate with axis events for forward/backward/speed and with
+    // matrix events so we know which way the user is pointing.
+    if ((event.getType() == AR_EVENT_MATRIX)||(event.getType() == AR_EVENT_AXIS)) {
       fw.navUpdate( event );
     }
     if ((event.getType() == AR_EVENT_BUTTON) && (event.getIndex() == 0)) {
