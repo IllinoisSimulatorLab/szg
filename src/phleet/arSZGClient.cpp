@@ -30,7 +30,7 @@ arSZGClient::arSZGClient():
   _serverName("NULL"),
   _computerName("NULL"),
   _userName("NULL"),
-  _exeName("Syzygy client"),
+  _exeName("Syzygy Client"),
   _networks("NULL"),
   _addresses("NULL"),
   _graphicsNetworks("NULL"),
