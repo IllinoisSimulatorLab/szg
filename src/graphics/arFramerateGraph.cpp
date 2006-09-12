@@ -50,10 +50,11 @@ void arPerformanceElement::draw() {
 }
 
 arFramerateGraph::arFramerateGraph(){
+  _valueContainer.clear(); // windows compiler needs this
 }
 
 arFramerateGraph::~arFramerateGraph(){
-  // probably should delete the performance elements...
+  // bug: memory leak: should delete the performance elements.
 }
 
 // Not const, because some sibling classes' draw() can't be const.
@@ -102,14 +103,15 @@ void arFramerateGraph::addElement(const string& name,
                                   int numberEntries,
                                   float scale,
                                   const arVector3& color){
-  map<string, arPerformanceElement*, less<string> >::iterator i
-    = _valueContainer.find(name);
+  map<string, arPerformanceElement*, less<string> >::const_iterator i =
+    _valueContainer.find(name);
   if (i != _valueContainer.end()){
-    cout << "arFramerateGraph remark: cannot add duplicate value type "
-	 << "(" << name << ").\n";
+    ar_log_warning() << "arFramerateGraph ignoring duplicate value type '"
+	 << name << "'.\n";
     return;
   }
-  arPerformanceElement* element = new arPerformanceElement();
+
+  arPerformanceElement* element = new arPerformanceElement;
   element->setNumberEntries(numberEntries);
   element->scale = scale;
   element->color = color;
