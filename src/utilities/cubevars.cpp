@@ -300,7 +300,6 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
 }
 
 int main(int argc, char** argv){
-  ar_log().setStream(cerr);
   arMasterSlaveFramework fw;
   fw.setDrawCallback(callbackDraw);
   fw.setClipPlanes( .1, 200. );
