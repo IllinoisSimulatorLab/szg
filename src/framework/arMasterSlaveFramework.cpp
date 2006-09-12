@@ -287,7 +287,7 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   _noDrawFillColor( -1.0f, -1.0f, -1.0f ),
   _requestReload( false ) {
 
-  // This is where input events are buffered for transfer to slaves.
+  // Where input events are buffered for transfer to slaves.
   _callbackFilter.saveEventQueue( true );
 
   // also need to add fields for our default-shared data
@@ -321,26 +321,26 @@ arMasterSlaveFramework::arMasterSlaveFramework( void ):
   // instead of a default color
   _masterPort[ 0 ] = -1;
 
-  // Also, let's initialize the performance graph.
-  _framerateGraph.addElement( "framerate",
-                              300, 100, arVector3( 1.0f, 1.0f, 1.0f ) );
-  _framerateGraph.addElement( "compute",
-                              300, 100, arVector3( 1.0f, 1.0f, 0.0f ) );
-  _framerateGraph.addElement( "sync",
-                              300, 100, arVector3( 0.0f, 1.0f, 1.0f ) );
+  // Initialize the performance graph.
+  const arVector3 white  (1,1,1);
+  const arVector3 yellow (1,1,0);
+  const arVector3 cyan   (0,1,1);
+  _framerateGraph.addElement( "framerate", 300, 100, white );
+  _framerateGraph.addElement( "compute", 300, 100, yellow );
+  _framerateGraph.addElement( "sync", 300, 100, cyan );
   _showPerformance = false;
 
   // _defaultCamera.setHead( &_head );
   // _graphicsWindow.setInitCallback( new arMasterSlaveWindowInitCallback( *this ) );
-  // By default, the window manager will operate in single-threaded mode.
+  // By default, the window manager is single-threaded.
   _wm = new arGUIWindowManager( ar_masterSlaveFrameworkWindowEventFunction,
                                 ar_masterSlaveFrameworkKeyboardFunction,
                                 ar_masterSlaveFrameworkMouseFunction,
                                 ar_masterSlaveFrameworkWindowInitGLFunction,
                                 false );
 
-  // as a replacement for the global __globalFramework pointer, each window
-  // will have a user data pointer set.
+  // as a replacement for the __globalFramework pointer,
+  // each window has a user data pointer set.
   _wm->setUserData( this );
 
   _guiXMLParser = new arGUIXMLParser( &_SZGClient );
