@@ -80,21 +80,22 @@ void drawHead() {
 
 void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&){
   unsigned i;
+  static bool fComplained = false;
 
   arMatrix4 rgm[20]; // buffer overflow
   const unsigned cm = fw.getNumberMatrices();
-  if (cm < 2)
-    cerr << "cubevars warning: expect at least a head and wand matrix.\n";
-  if (cm > 20)
-    cerr << "cubevars warning: too many matrices.\n";
+  if (!fComplained && cm < 2)
+    ar_log_warning() << "cubevars: expect at least a head and wand matrix.\n";
+  if (!fComplained && cm > 20)
+    ar_log_warning() << "cubevars: too many matrices.\n";
   for (i=0; i<cm; ++i)
     rgm[i] = fw.getMatrix(i);
   const arMatrix4& headMatrix = rgm[0];
   const arMatrix4& wandMatrix = rgm[1];
 
   const unsigned ca = fw.getNumberAxes();
-  if (ca != 2)
-    cerr << "cubevars warning: expect 2 axes.\n";
+  if (!fComplained && ca != 2)
+    ar_log_warning() << "cubevars: expect 2 axes.\n";
   const float caveJoystickX = fw.getAxis(0);
   const float caveJoystickY = fw.getAxis(1);
 
@@ -102,13 +103,15 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
   // wall-dependent.  Camille doesn't know why, 2006-06-12.
   // ?workaround -- only master calls this, in preexchange.
 
-  if (cb < 3)
-    cerr << "cubevars warning: expect at least 3 buttons.\n";
-  if (cb > 250)
-    cerr << "cubevars warning: too many buttons.\n";
+  if (!fComplained && cb < 3)
+    ar_log_warning() << "cubevars: expect at least 3 buttons.\n";
+  if (!fComplained && cb > 250)
+    ar_log_warning() << "cubevars: too many buttons.\n";
   int rgButton[257];
   for (i=0; i < cb; ++i)
     rgButton[i] = fw.getButton(i);
+
+  fComplained = true;
 
   // Wireframe around edges of standard 10-foot cube.
   glDisable(GL_LIGHTING);
@@ -297,6 +300,7 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
 }
 
 int main(int argc, char** argv){
+  ar_log().setStream(cerr);
   arMasterSlaveFramework fw;
   fw.setDrawCallback(callbackDraw);
   fw.setClipPlanes( .1, 200. );

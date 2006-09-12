@@ -58,7 +58,7 @@ bool arSZGAppFramework::setInputSimulator( arInputSimulator* sim ) {
   }
 
   if (!sim) {
-    ar_log_remark() << "arSZGAppFramework setting input simulator to default.\n";
+    ar_log_remark() << "arSZGAppFramework: default input simulator.\n";
     _simPtr = &_simulator;
     return true;
   }
@@ -94,7 +94,7 @@ float arSZGAppFramework::getUnitSoundConversion() {
 
 int arSZGAppFramework::getButton( const unsigned i ) const {
   if (!_inputState) {
-    ar_log_warning() << "arSZGAppFramework: NULL input state ptr.\n";
+    ar_log_warning() << "arSZGAppFramework: no input state.\n";
     return 0;
   }
   return _inputState->getButton( i );
@@ -208,12 +208,9 @@ bool arSZGAppFramework::setEventFilter( arFrameworkEventFilter* filter ) {
   if (!filter) {
     filter = &_defaultUserFilter;
   }
-  bool stat;
-  if (_userEventFilter != 0) {
-    stat = _inputDevice->replaceFilter( _userEventFilter->getID(), (arIOFilter*)filter, false );
-  } else {
-    stat = (_inputDevice->addFilter( (arIOFilter*)filter, false ) != -1);
-  }
+  const bool stat = _userEventFilter ?
+    _inputDevice->replaceFilter( _userEventFilter->getID(), (arIOFilter*)filter, false ) :
+    (_inputDevice->addFilter( (arIOFilter*)filter, false ) != -1);
   if (stat) {
     _userEventFilter = filter;
   }
@@ -230,7 +227,7 @@ void arSZGAppFramework::setEventQueueCallback( arFrameworkEventQueueCallback cal
 }
 
 void arSZGAppFramework::processEventQueue() {
-  // Note both gets and clears buffered events.
+  // Get AND clear buffered events.
   arInputEventQueue theQueue = _callbackFilter.getEventQueue();
   onProcessEventQueue( theQueue );
 }
