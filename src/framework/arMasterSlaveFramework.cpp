@@ -14,11 +14,11 @@
 #include "arGUIXMLParser.h"
 #include "arLogStream.h"
 #include "arInputSimulatorFactory.h"
-#ifndef AR_USE_WIN_32
-  #include <sys/types.h>
-  #include <signal.h>
-#endif
 
+#ifndef AR_USE_WIN_32
+#include <sys/types.h>
+#include <signal.h>
+#endif
 
 //***********************************************************************
 // arGUI callbacks
@@ -50,7 +50,7 @@ void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
 
   arMasterSlaveFramework* fw = (arMasterSlaveFramework*) keyInfo->getUserData();
   if( fw->stopping() ) {
-    // Shutdown's begun.  Ignore keystrokes.
+    // Shutting down.  Ignore keystrokes.
     return;
   }
 
@@ -75,7 +75,7 @@ void ar_masterSlaveFrameworkKeyboardFunction( arGUIKeyInfo* keyInfo ) {
         fw->_showSimulator = !fw->_showSimulator;
 	break;
       case AR_VK_t:
-        ar_log_critical() << "Frame time = " << fw->_lastFrameTime << ar_endl;
+        ar_log_critical() << "arMasterSlaveFramework frame time = " << fw->_lastFrameTime << " msec\n";
 	break;
     }
 
@@ -127,9 +127,7 @@ class arMasterSlaveWindowInitCallback : public arWindowInitCallback {
     arMasterSlaveWindowInitCallback( arMasterSlaveFramework* fw ) :
        _framework( fw ) {}
     ~arMasterSlaveWindowInitCallback( void ) {}
-
     void operator()( arGraphicsWindow& );
-
   private:
     arMasterSlaveFramework* _framework;
 };
@@ -181,6 +179,7 @@ void arMasterSlaveWindowInitCallback::operator()( arGraphicsWindow& ) {
 // 6. If the onDraw method hasn't been over-ridden, then the application's
 //    installed draw callback function is used.
 //****************************************************************************
+
 class arMasterSlaveRenderCallback : public arGUIRenderCallback {
   public:
     arMasterSlaveRenderCallback( arMasterSlaveFramework* fw ) :
@@ -208,7 +207,6 @@ void arMasterSlaveRenderCallback::operator()( arGUIWindowInfo* windowInfo,
     _framework->_drawWindow( windowInfo, graphicsWindow );
   }
 }
-
 
 //***********************************************************************
 // arMasterSlaveFramework public methods
@@ -477,15 +475,12 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   
   // Mode isn't trigger.
   
-  // NOTE: sometimes user programs need to be able to determine
-  // characteristics of the virtual computer. Hence, that information must be
-  // available (to EVERYONE... and not just the master!)
-  // Consequently, setParameters() should be called. However, it is
-  // desirable to allow the user to set a BOGUS virtual computer via the
-  // -szg command line flags. Consequently, it is merely a warning and
-  // NOT a fatal error if setParameters() fails... i.e.
-  // my_program -szg virtual=foo
-  // should launch
+  // So apps can query the virtual computer's attributes, 
+  // those attributes are not restricted to the master.
+  // So setParameters() is called. 
+  // But we allow setting a bogus virtual computer via "-szg".
+  // So it's not fatal if setParamters() fails, i.e. this should launch:
+  //   my_program -szg virtual=bogus
   if( _SZGClient.getVirtualComputer() != "NULL" &&
       !_launcher.setParameters() ) {
     ar_log_warning() << _label << ": invalid virtual computer definition.\n";
@@ -518,9 +513,7 @@ fail:
       return false;
     }
   }
-  
   _parametersLoaded = true;
-  
   if( !_SZGClient.sendInitResponse( true ) ) {
     cerr << _label << ": maybe szgserver died.\n";
   }
@@ -538,26 +531,21 @@ fail:
 // THIS DOES NOT HALT EVERYTHING YET! JUST THE
 // STUFF THAT SEEMS TO CAUSE SEGFAULTS OR OTHER PROBLEMS ON EXIT.
 void arMasterSlaveFramework::stop( bool blockUntilDisplayExit ) {
-  
   _blockUntilDisplayExit = blockUntilDisplayExit;
-  
   if( _vircompExecution)  {
     // arAppLauncher object piggy-backing on a renderer execution
     _launcher.killApp();
   }
-  
-  // to avoid an uncommon race condition setting the _exitProgram
-  // flag must go within this lock
+
+  // To avoid a race condition, set _exitProgram within this lock.
   ar_mutex_lock( &_pauseLock );
   _exitProgram = true;
   _pauseFlag   = false;
   _pauseVar.signal();
   ar_mutex_unlock( &_pauseLock );
   
-  // recall that we can be a master AND not have any distribution occuring
+  // We can be a master with no distribution.
   if( getMaster() ) {
-    // it IS NOT valid to combine this conditional w/ the above because
-    // of the else
     if( !_standalone ) {
       _barrierServer->stop();
       _soundServer.stop();
