@@ -103,25 +103,28 @@ int main(int argc, char** argv){
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 
+  // Without this, ar_log_xxx() are mute.
+  ar_log().setStream(cout);
+
   if (argc != 2 && argc != 3) {
-    ar_log_error() << "usage: DeviceClient slot_number [-onbutton/-stream/-buttonstream]\n";
+    ar_log_error() << "usage: DeviceClient slot_number [-onbutton | -stream | -buttonstream]\n";
     return 1;
   }
 
   const int slot = atoi(argv[1]);
-  cout << "Slot = " << slot << endl;
+  ar_log_remark() << "DeviceClient slot = " << slot << ".\n";
 
   int operationMode = CONTINUOUS_DUMP;
   if (argc == 3) {
-    if (strcmp(argv[2],"-onbutton")==0) {
+    if (!strcmp(argv[2], "-onbutton")) {
       operationMode = ON_BUTTON_DUMP;
-      cout << "Operation mode = ON_BUTTON_DUMP.\n";
-    } else if (strcmp(argv[2],"-stream")==0) {
+      ar_log_remark() << "DeviceClient Operation mode = ON_BUTTON_DUMP.\n";
+    } else if (!strcmp(argv[2], "-stream")) {
       operationMode = EVENT_STREAM;
-      cout << "Operation mode = EVENT_STREAM.\n";
-    } else if (strcmp(argv[2],"-buttonstream")==0) {
+      ar_log_remark() << "DeviceClient Operation mode = EVENT_STREAM.\n";
+    } else if (!strcmp(argv[2], "-buttonstream")) {
       operationMode = BUTTON_STREAM;
-      cout << "Operation mode = BUTTON_STREAM.\n";
+      ar_log_remark() << "DeviceClient Operation mode = BUTTON_STREAM.\n";
     }
   }
 
@@ -146,7 +149,7 @@ int main(int argc, char** argv){
 
   if (!inputNode.init(szgClient)) {
     if (!szgClient.sendInitResponse(false))
-      cerr << "DeviceClient error: maybe szgserver died.\n";
+     cerr << "DeviceClient error: maybe szgserver died.\n";
     return 1;
   }
 
@@ -154,9 +157,8 @@ int main(int argc, char** argv){
     cerr << "DeviceClient error: maybe szgserver died.\n";
   }
   if (!inputNode.start()) {
-    if (!szgClient.sendStartResponse(false)) {
+    if (!szgClient.sendStartResponse(false))
       cerr << "DeviceClient error: maybe szgserver died.\n";
-    }
     return 1;
   }
 
