@@ -69,7 +69,8 @@ class SZG_CALL arVector3{
     { return v[i]; }
   void set(float x, float y, float z)
     { v[0]=x; v[1]=y; v[2]=z; }
-  float magnitude() const { return sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]); }
+  float magnitude2() const { return v[0]*v[0]+v[1]*v[1]+v[2]*v[2]; }
+  float magnitude() const { return sqrt(magnitude2()); }
   arVector3 normalize() const {
     const float mag = magnitude();
     if (mag <= 0.) {
