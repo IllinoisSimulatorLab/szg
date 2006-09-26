@@ -209,14 +209,11 @@ int main(int argc, char** argv){
   arThread dummy(messageTask, &szgClient);
 
   // Default to a non-threaded window manager.
-  windowManager = new arGUIWindowManager(ar_guiWindowEvent,
-					 ar_guiWindowKeyboard,
-					 NULL,
-					 NULL,
-                                         false);
-  // The graphics client does all of the window configuration, etc.
-  // The window threads also get started inside it.
-  // However, we control the event loop out here.
+  windowManager = new arGUIWindowManager(
+    ar_guiWindowEvent, ar_guiWindowKeyboard, NULL, NULL, false);
+
+  // graphicsClient configures windows and starts window threads,
+  // but szgRender's main() itself controls the event loop.
   graphicsClient.setWindowManager(windowManager);
 
   if (!loadParameters(szgClient))

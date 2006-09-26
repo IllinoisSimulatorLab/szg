@@ -11,12 +11,14 @@ void ar_interfaceObjectIOPollTask(void* object){
 }
 
 // Dead zone for joystick axes.
+// bug: this is a tad large for 2006.
+// bug: edge of dead zone is discontinuous.
 static inline float joystickScale(float j) {
   return (j>-.5 && j<.5) ? 0. : -2.*j;
 }
 
-// As joystick is pushed, translate _navMatrix (POV) in plane of gamepad.
-// Also, if button 1 is held down, rotate _objectMatrix as wand rotates.
+// As joystick is moved, translate _navMatrix (POV) in plane of gamepad.
+// Also, if button 1 is held, rotate _objectMatrix with wand.
 
 void arInterfaceObject::_ioPollTask(){
   while (true) {
@@ -52,8 +54,7 @@ void arInterfaceObject::_ioPollTask(){
     wandDirection *= joystickScale(j1) * speed;
     wandDirectionLateral *= joystickScale(j0) * speed;
 
-    _navMatrix = ar_translationMatrix(wandDirectionLateral + wandDirection) *
-      _navMatrix;
+    _navMatrix = ar_translationMatrix(wandDirectionLateral + wandDirection) * _navMatrix;
 
     static bool grabState = false;
     static arMatrix4 grabMatrix(ar_identityMatrix());
@@ -63,13 +64,14 @@ void arInterfaceObject::_ioPollTask(){
       grabMatrix = !ar_extractRotationMatrix(wandMatrix) * _objectMatrix;
     }
     else if (b1 && grabState){
-      // Continued grabbing.
+      // Continue grabbing.
       _objectMatrix = ar_extractRotationMatrix(wandMatrix) * grabMatrix;
     }
     else if (!b1 && grabState){
       // End grabbing.
       grabState = false;
     }
+
     ar_mutex_unlock(&_infoLock);
     ar_usleep(10000);
   }
@@ -97,6 +99,7 @@ bool arInterfaceObject::start(){
     cerr << "arInterfaceObject error: input device undefined.\n";
     return false;
   }
+
   if (!_IOPollThread.beginThread(ar_interfaceObjectIOPollTask, this)) {
     cerr << "arInterfaceObject error: failed to start IOPoll thread.\n";
     return false;
@@ -107,13 +110,13 @@ bool arInterfaceObject::start(){
 
 void arInterfaceObject::setNavMatrix(const arMatrix4& arg){
   ar_mutex_lock(&_infoLock);
-  _navMatrix = arg;
+    _navMatrix = arg;
   ar_mutex_unlock(&_infoLock);
 }
 
 arMatrix4 arInterfaceObject::getNavMatrix(){
   ar_mutex_lock(&_infoLock);
-  arMatrix4 result = _navMatrix;
+    const arMatrix4 result(_navMatrix);
   ar_mutex_unlock(&_infoLock);
   return result;
 }
