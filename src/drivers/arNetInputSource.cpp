@@ -20,7 +20,7 @@ void arNetInputSource::_dataTask(){
     if (!_clientInitialized){
       _setDeviceElements(sig[0], sig[1], sig[2]);
       if (!_reconfig())
-        ar_log_error() << "arNetInputSource warning: failed to reconfigure source (#1).\n";
+        ar_log_warning() << "arNetInputSource failed to reconfigure source (#1).\n";
       _clientInitialized = true;
     }
     else{
@@ -32,7 +32,7 @@ void arNetInputSource::_dataTask(){
           sig[2] != _numberMatrices){
         _setDeviceElements(sig[0], sig[1], sig[2]);
         if (!_reconfig())
-	  ar_log_warning() << "arNetInputSource warning: failed to reconfigure source (#2).\n";
+	  ar_log_warning() << "arNetInputSource failed to reconfigure source (#2).\n";
       }
     }
     // relay the data to the input sink
@@ -41,7 +41,7 @@ void arNetInputSource::_dataTask(){
   _clientConnected = false; // we've lost our connection
   _setDeviceElements(0,0,0);
   if (!_reconfig())
-    ar_log_warning() << "arNetInputSource warning: failed to reconfigure source (#3).\n";
+    ar_log_warning() << "arNetInputSource failed to reconfigure source (#3).\n";
 }
 
 void ar_netInputSourceConnectionTask(void* inputClient){
@@ -65,7 +65,7 @@ void arNetInputSource::_connectionTask() {
     arPhleetAddress result =
       _client->discoverService(serviceName, networks, true);
     if (!result.valid){
-      ar_log_warning() << "arNetInputSource warning: no service '" <<
+      ar_log_warning() << "arNetInputSource: no service '" <<
 	serviceName << "' on network '" << networks << "'.\n";
       continue;
     }
