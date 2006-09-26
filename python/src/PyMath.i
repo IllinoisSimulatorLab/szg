@@ -145,6 +145,7 @@ class arVector3{
 
   void set(float x, float y, float z);
   float magnitude() const;
+  float magnitude2() const;
   float dot( const arVector3& y ) const;
 
 // The %extend directive below adds methods to the class arVector3. Note
