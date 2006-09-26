@@ -1037,6 +1037,8 @@ int arGUIWindow::_tearDownWindowCreation( void )
   // initialization.
   if( _windowInitGLCallback ) {
     arGUIWindowInfo* windowInfo = new arGUIWindowInfo( AR_WINDOW_EVENT, AR_WINDOW_INITGL, _ID );
+    windowInfo->setPos( getPosX(), getPosY() );
+    windowInfo->setSize( getWidth(), getHeight() );
     windowInfo->setUserData( _userData );
     _windowInitGLCallback( windowInfo );
     delete windowInfo;

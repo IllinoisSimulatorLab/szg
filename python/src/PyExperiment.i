@@ -981,7 +981,9 @@ class arPyExperimentTrialPhase(arPythonExperimentTrialPhase):
 %{
 #include "arGluQuadric.h"
 #include "arGluCylinder.h"
+#include "arGluDisk.h"
 #include "arPatternedBox.h"
+#include "arGluTessObject.h"
 %}
 
 class arGluQuadric : public arInteractableThing {
@@ -1010,6 +1012,69 @@ class arGluCylinder : public arGluQuadric {
 /*    arGluCylinder& operator=( const arGluCylinder& x );*/
     virtual ~arGluCylinder() {}
     virtual void draw( arMasterSlaveFramework* fw=0 );
+    void setRadii( double startRadius, double endRadius );
+    void setLength( double length );
+    void setSlicesStacks( int slices, int stacks );
+
+  // inherited from arInteractable
+    /// Disallow user interaction
+    void disable();
+    /// Allow user interaction
+    void enable( bool flag=true );
+    bool enabled() const { return _enabled; }
+    void useDefaultDrags( bool flag );
+    void setDrag( const arGrabCondition& cond,
+                  const arDragBehavior& behave );
+    void deleteDrag( const arGrabCondition& cond );
+    void setDragManager( const arDragManager& dm ) { _dragManager = dm; }
+    bool touched() const;
+    bool touched( arEffector& effector );
+    const arEffector* grabbed() const;
+    virtual void setMatrix( const arMatrix4& matrix ) { _matrix = matrix; }
+    arMatrix4 getMatrix() const { return _matrix; }
+    virtual void updateMatrix( const arMatrix4& deltaMatrix );
+
+  // inherited from arInteractableThing
+    virtual void setTexture( arTexture* tex ) {_texture = tex; }
+    virtual arTexture* getTexture() { return _texture; }
+    virtual void setHighlight( bool flag ) { _highlighted = flag; }
+    virtual bool getHighlight() const { return _highlighted; }
+    virtual void setColor( float r, float g, float b, float a=1. ) {_color = arVector4(r,g,b,a);}
+    virtual void setColor( const arVector4& col ) {_color = col;}
+    virtual void setColor( const arVector3& col ) {_color = arVector4(col,1);}
+    virtual void setAlpha( float a ) {_color[3] = a;}
+    virtual float getAlpha() { return _color[3]; }
+    virtual arVector4 getColor() const { return _color; }
+    virtual void setVisible( bool vis ) {_visible = vis; }
+    virtual bool getVisible() const { return _visible; }
+    virtual void activateColor() const { glColor4fv(_color.v); }
+    virtual bool activateTexture() { return _texture && _texture->activate(); }
+    virtual void deactivateTexture() { if (_texture) _texture->deactivate(); }
+
+  // inherited from arGluQuadric
+    void setPointStyle() { _drawStyle = GLU_POINT; }
+    void setLineStyle() { _drawStyle = GLU_LINE; }
+    void setSilhouetteStyle() { _drawStyle = GLU_SILHOUETTE; }
+    void setFillStyle() { _drawStyle = GLU_FILL; }
+    void setNormalsOutside( bool trueFalse ) {
+      _normalDirection = (trueFalse)?(GLU_OUTSIDE):(GLU_INSIDE);
+    }
+    void setNoNormals() { _normalStyle = GLU_NONE; }
+    void setFlatNormals() { _normalStyle = GLU_FLAT; }
+    void setSmoothNormals() { _normalStyle = GLU_SMOOTH; }
+
+};
+
+
+class arGluDisk : public arGluQuadric {
+	public:
+    arGluDisk( double innerRadius, double outerRadius, int slices=30, int rings=5 );
+    arGluDisk( const arGluDisk& x );
+/*    arGluDisk& operator=( const arGluDisk& x );*/
+    virtual ~arGluDisk() {}
+    virtual void draw( arMasterSlaveFramework* fw=0 );
+    void setRadii( double innerRadius, double outerRadius );
+    void setSlicesRings( int slices, int rings );
 
   // inherited from arInteractable
     /// Disallow user interaction
@@ -1110,4 +1175,98 @@ class arPatternedBox : public arInteractableThing {
     virtual void activateColor() const { glColor4fv(_color.v); }
     virtual bool activateTexture() { return _texture && _texture->activate(); }
     virtual void deactivateTexture() { if (_texture) _texture->deactivate(); }
+};
+
+
+class arGluTessObject : public arInteractableThing {
+  public:
+    arGluTessObject( bool useDisplayList = false );
+    arGluTessObject( const arGluTessObject& x );
+    arGluTessObject& operator=( const arGluTessObject& x );
+    virtual ~arGluTessObject();
+    void setScaleFactors( const arVector3& scales );
+    void setScaleFactors( float x, float y, float z );
+    arVector3 getScaleFactors();
+    void setTextureScale( float texScale );
+    void useDisplayList( bool use );
+    bool buildDisplayList();
+    virtual void draw();
+
+  // inherited from arInteractable
+    /// Disallow user interaction
+    void disable();
+    /// Allow user interaction
+    void enable( bool flag=true );
+    bool enabled() const { return _enabled; }
+    void useDefaultDrags( bool flag );
+    void setDrag( const arGrabCondition& cond,
+                  const arDragBehavior& behave );
+    void deleteDrag( const arGrabCondition& cond );
+    void setDragManager( const arDragManager& dm ) { _dragManager = dm; }
+    bool touched() const;
+    bool touched( arEffector& effector );
+    const arEffector* grabbed() const;
+    virtual void setMatrix( const arMatrix4& matrix ) { _matrix = matrix; }
+    arMatrix4 getMatrix() const { return _matrix; }
+    virtual void updateMatrix( const arMatrix4& deltaMatrix );
+
+  // inherited from arInteractableThing
+    virtual void setTexture( arTexture* tex ) {_texture = tex; }
+    virtual arTexture* getTexture() { return _texture; }
+    virtual void setHighlight( bool flag ) { _highlighted = flag; }
+    virtual bool getHighlight() const { return _highlighted; }
+    virtual void setColor( float r, float g, float b, float a=1. ) {_color = arVector4(r,g,b,a);}
+    virtual void setColor( const arVector4& col ) {_color = col;}
+    virtual void setColor( const arVector3& col ) {_color = arVector4(col,1);}
+    virtual void setAlpha( float a ) {_color[3] = a;}
+    virtual float getAlpha() { return _color[3]; }
+    virtual arVector4 getColor() const { return _color; }
+    virtual void setVisible( bool vis ) {_visible = vis; }
+    virtual bool getVisible() const { return _visible; }
+    virtual void activateColor() const { glColor4fv(_color.v); }
+    virtual bool activateTexture() { return _texture && _texture->activate(); }
+    virtual void deactivateTexture() { if (_texture) _texture->deactivate(); }
+
+%extend{
+PyObject* addContour( PyObject* vertexSequence  ) {
+  if (!PySequence_Check( vertexSequence )) {
+    PyErr_SetString(PyExc_TypeError,
+        "arGluTessObject.addContour() error: vertexSequence argument must be a sequence.");
+    return NULL;
+  }
+  std::vector< arVector3 > contVec;
+  int numItems = PySequence_Size( vertexSequence );
+  for (int i=0; i<numItems; ++i) {
+    PyObject* vecSeq = PySequence_GetItem( vertexSequence, i );
+    if (!PySequence_Check( vecSeq )) {
+      PyErr_SetString(PyExc_TypeError,
+         "arGluTessObject.addContour() error: each item in vertexSequence must be a sequence.");
+      return NULL;
+    }
+    if (PySequence_Size( vecSeq ) != 3) {
+      PyErr_SetString(PyExc_ValueError, 
+         "arGluTessObject.addContour() error: each sequence in vertexSequence must have length 3.");
+      return NULL;
+    }
+    arVector3 tmpVec;
+    for (unsigned int j=0; j<3; ++j) {
+      PyObject* tmpNum = PySequence_GetItem( vecSeq, j );
+      if (PyFloat_Check( tmpNum )) {
+        tmpVec.v[i] = (float)PyFloat_AsDouble( tmpNum );
+      } else if (PyInt_Check( tmpNum )) {
+        tmpVec.v[i] = (float)PyInt_AsLong( tmpNum );
+      } else {
+        PyErr_SetString(PyExc_ValueError, 
+           "arGluTessObject.addContour() error: each sequence in vertexSequence must contain 3 numbers.");
+        return NULL;
+      }
+      Py_XDECREF( tmpNum );
+    }
+    Py_XDECREF( vecSeq );
+    contVec.push_back( tmpVec );
+  }
+  self->addContour( contVec );
+}
+} // extend
+
 };

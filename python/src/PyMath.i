@@ -145,7 +145,6 @@ class arVector3{
 
   void set(float x, float y, float z);
   float magnitude() const;
-  arVector3 normalize() const;
   float dot( const arVector3& y ) const;
 
 // The %extend directive below adds methods to the class arVector3. Note
@@ -182,6 +181,30 @@ arVector3(PyObject *seq) {
    void setFromPtr( const float* const ptr ) {
      memcpy( self->v, ptr, 3*sizeof(float) );
    }
+
+// _Extremely_ annoying. The exceptions dont seem to get caught immediately.
+// Instead, the NULLs just get converted to Python Nones. Ill have to write
+// a python wrapper function to check for this. Same problem plagues all
+// functions in extend blocks...
+%new arVector3* donormalization() const {
+  const float mag = self->magnitude();
+  if (mag <= 0.) {
+    cerr << "arVector3 error: can't normalize zero-length vector.\n";
+    PyErr_SetString( PyExc_ValueError, "arVector3 error: can't normalize zero-length vector." );
+    return NULL;
+  }
+  arVector3* ret = (arVector3*)malloc(sizeof(arVector3));
+  if (!ret) {
+    cerr << "arVector3 error: memory allocation failed in normalize().\n";
+    PyErr_SetString( PyExc_RuntimeError, "arVector3 error: memory allocation failed in normalize()." );
+    return NULL;
+  }
+  for (unsigned int i=0; i<3; ++i) {
+    ret->v[i] = self->v[i]/mag;
+  }
+  return ret;
+}
+
 
 //  const arVector3& operator+=(const arVector3&);
     arVector3 __iadd__(const arVector3& rhs) {
@@ -335,6 +358,18 @@ PyObject* fromSequence( PyObject* seq ) {
 }
 
 %pythoncode {
+    def normalize(self):
+        ret = self.donormalization()
+        try:
+            if ret is None:
+                print self
+                raise ValueError, "arVector3 failed to normalize (probably zero-length: 1)."
+        except TypeError, msg:
+            print self
+            print msg
+            raise ValueError, "arVector3 failed to normalize (probably zero-length: 2)."
+        return ret
+
     # __getstate__ returns the contents of self in a format that can be
     # pickled, a list of floats in this case
     def __getstate__(self):
@@ -361,7 +396,6 @@ class arVector4{
         // see corresponding comment in arVector3
   void set(float x, float y, float z, float w);
   float magnitude() const;
-  arVector4 normalize() const;
   float dot( const arVector4& y ) const;
   arMatrix4 outerProduct( const arVector4& rhs ) const;
 
@@ -391,6 +425,27 @@ arVector4(PyObject *seq) {
       } 
       return m;
     }
+
+// _Extremely_ annoying. The exceptions dont seem to get caught immediately.
+// Instead, the NULLs just get converted to Python Nones. Ill have to write
+// a python wrapper function to check for this. Same problem plagues all
+// functions in extend blocks...
+%new arVector4* donormalization() const {
+  const float mag = self->magnitude();
+  if (mag <= 0.) {
+    PyErr_SetString( PyExc_ValueError, "arVector4 error: can't normalize zero-length vector." );
+    return NULL;
+  }
+  arVector4* ret = (arVector4*)malloc(sizeof(arVector4));
+  if (!ret) {
+    PyErr_SetString( PyExc_RuntimeError, "arVector4 error: memory allocation failed in normalize()." );
+    return NULL;
+  }
+  for (unsigned int i=0; i<4; ++i) {
+    ret->v[i] = self->v[i]/mag;
+  }
+  return ret;
+}
 
    void setFromPtr( const float* const ptr ) {
      memcpy( self->v, ptr, 4*sizeof(float) );
@@ -466,6 +521,17 @@ PyObject* fromSequence( PyObject* seq ) {
 }
 
 %pythoncode {
+    def normalize(self):
+        ret = self.donormalization()
+        try:
+            if ret is None:
+                print self
+                raise ValueError, "arVector4 failed to normalize (probably zero-length)."
+        except TypeError:
+            print self
+            raise ValueError, "arVector4 failed to normalize (probably zero-length)."
+        return ret
+
     # __getstate__ returns the contents of self in a format that can be
     # pickled, a tuple of floats in this case
     def __getstate__(self):

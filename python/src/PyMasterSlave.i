@@ -159,6 +159,28 @@ static void pyWindowStartGLCallback( arMasterSlaveFramework& fw, arGUIWindowInfo
 }
 
 
+//  void setWindowEventCallback(bool (*windowEventCallback)(arMasterSlaveFramework& fw, 
+//                                                              arGUIWindowInfo*));
+static PyObject *pyWindowEventFunc = NULL;
+static void pyWindowEventCallback( arMasterSlaveFramework& fw, arGUIWindowInfo* winInfoPtr ) {
+    PyObject *fwobj = SWIG_NewPointerObj( (void *) &fw, SWIGTYPE_p_arMasterSlaveFramework, 0 );
+    PyObject *winInfoObj = SWIG_NewPointerObj( (void *) winInfoPtr, SWIGTYPE_p_arGUIWindowInfo, 0 );
+    PyObject *arglist=Py_BuildValue( "(O,O)", fwobj, winInfoObj );
+    PyObject *result=PyEval_CallObject( pyWindowEventFunc, arglist );
+    if (result==NULL) {
+        if (PyErr_Occurred() != NULL) {
+          PyErr_Print();
+        }
+        string errmsg="A Python exception occurred in the arMasterSlaveFramework windowEvent callback.";
+        throw arMSCallbackException( errmsg );
+    }
+    Py_XDECREF(result);
+    Py_DECREF(arglist);
+    Py_DECREF(winInfoObj);
+    Py_DECREF(fwobj);
+}
+
+
 //    void setEventCallback( bool (*callback)( arSZGAppFramework& fw, arInputEvent& event,
 //											   arCallbackEventFilter& filter) );
 //
@@ -860,6 +882,9 @@ void set##cbtype##Callback(PyObject *PyFunc) {\
 //  void setWindowStartGLCallback(bool (*windowStartGL)(arMasterSlaveFramework& fw, arGUIWindowInfo*));
     MAKEMASTERSLAVECALLBACKSETTER(WindowStartGL)
 
+//  void setWindowEventCallback(bool (*windowEvent)(arMasterSlaveFramework& fw, arGUIWindowInfo*));
+    MAKEMASTERSLAVECALLBACKSETTER(WindowEvent)
+
 //  void setEventCallback(bool (*callback)(arMasterSlaveFramework&, 
 //                                         arInputEvent& event, arCallbackEventFilter& filter));
     MAKEMASTERSLAVECALLBACKSETTER(Event)
@@ -1093,6 +1118,7 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
     arMasterSlaveFramework.__init__(self)
     self.setStartCallback( self.startCallback )
     self.setWindowStartGLCallback( self.windowStartGLCallback )
+    self.setWindowEventCallback( self.windowEventCallback )
     self.setEventCallback( self.eventCallback );
     self.setEventQueueCallback( self.eventQueueCallback );
     self.setPreExchangeCallback( self.preExchangeCallback )
@@ -1129,6 +1155,17 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
     return self.onWindowStartGL( winInfo )
   def onWindowStartGL( self, winInfo ):
     pass
+  def windowEventCallback( self, framework, winInfo ):
+    return self.onWindowEvent( winInfo )
+  def onWindowEvent( self, winInfo ):
+    state = winInfo.getState()
+    if state == AR_WINDOW_RESIZE:
+      winInfo.getWindowManager().setWindowViewport( winInfo.getWindowID(), \
+        0, 0, winInfo.getSizeX(), winInfo.getSizeY() )
+    elif state == AR_WINDOW_CLOSE:
+    # We will only get here if someone clicks the window close decoration.
+    # This is NOT reached if we use the arGUIWindowManagers delete  method.
+      self.stop( False )
   def eventCallback( self, framework, theEvent, filter ):
     self.onInputEvent( theEvent, filter )
   def onInputEvent( self, theEvent, filter ):
