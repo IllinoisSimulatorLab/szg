@@ -295,6 +295,7 @@ bool arTexture::readImage(const string& fileName,
   const string& extension = ar_getExtension(fileName);
   if (extension == "jpg")
     return readJPEG(fileName, subdirectory, path, alpha, complain);
+
   if (extension == "ppm")
     return readPPM(fileName, subdirectory, path, alpha, complain);
   
@@ -411,19 +412,18 @@ bool arTexture::readPPM(const string& fileName,
   return true;
 }
 
-// Attempts to write the texture as a jpeg with the given file name in
+// Write the texture as a jpeg with the given file name in
 // the current working directory.
 bool arTexture::writePPM(const string& fileName) {
   return writePPM(fileName, "", "");
 }
 
-// Attempts to write texture as a jpeg with the given file name on
-// the given path.
+// Write texture as a jpeg with the given file name on the given path.
 bool arTexture::writePPM(const string& fileName, const string& path) {
   return writePPM(fileName, "", path);
 }
 
-// Attempts to write texture as a jpeg with the given file name on
+// Write texture as a jpeg with the given file name on
 // the given subdirectory of the given path
 bool arTexture::writePPM(const string& fileName, const string& subdirectory, 
                          const string& path) {
@@ -558,9 +558,6 @@ bool arTexture::writeJPEG(const string& fileName, const string& subdirectory,
   ar_log_warning() << "compiled without jpeg support.  No textures.\n";
   return false;
 #else
-  struct jpeg_compress_struct cinfo;
-  struct jpeg_error_mgr jerr;
-  JSAMPROW row_pointer[1];	
 
   FILE* outFile = ar_fileOpen(fileName, subdirectory, path, "wb");
   if (outFile == NULL) {
@@ -578,6 +575,8 @@ bool arTexture::writeJPEG(const string& fileName, const string& subdirectory,
   }
 
   JSAMPLE* image_buffer = (JSAMPLE*) buf1;
+  struct jpeg_compress_struct cinfo;
+  struct jpeg_error_mgr jerr;
   cinfo.err = jpeg_std_error(&jerr);
   jpeg_create_compress(&cinfo);
   jpeg_stdio_dest(&cinfo, outFile);
@@ -592,8 +591,8 @@ bool arTexture::writeJPEG(const string& fileName, const string& subdirectory,
   int row_stride = _width * 3;
 
   while (cinfo.next_scanline < cinfo.image_height) {
-    row_pointer[0] = &image_buffer[cinfo.next_scanline * row_stride];
-    (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
+    const JSAMPROW row_pointer = &image_buffer[cinfo.next_scanline * row_stride];
+    (void) jpeg_write_scanlines(&cinfo, &row_pointer, 1);
   }
 
   jpeg_finish_compress(&cinfo);
