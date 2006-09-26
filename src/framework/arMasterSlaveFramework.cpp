@@ -605,15 +605,15 @@ bool arMasterSlaveFramework::createWindows( bool useWindowing ) {
 }
 
 void arMasterSlaveFramework::loopQuantum(){
-  // Data exchange occurs in here. Also, connection of slaves to master
-  // and activation of framelock (if such is supported).
+  // Exchange data. Connect slaves to master and activate framelock.
   preDraw();
   draw();
-  // Synchronization occurs in here.
   postDraw();
+
+  // Synchronize.
   swap();
-  // Keyboard events, events from the window manager, etc. are all
-  // processed in here. 
+
+  // Process keyboard events, events from the window manager, etc.
   _wm->processWindowEvents();
 }
 
@@ -658,17 +658,16 @@ void arMasterSlaveFramework::preDraw( void ) {
     _requestReload = false;
   }
   
-  // want to time this function...
-  ar_timeval preDrawStart = ar_time();
+  const ar_timeval preDrawStart = ar_time();
   
-  // Catch the pause/ un-pause requests.
+  // Catch pause/ un-pause requests.
   ar_mutex_lock( &_pauseLock );
   while( _pauseFlag ) {
     _pauseVar.wait( &_pauseLock );
   }
   ar_mutex_unlock( &_pauseLock );
   
-  // the pause might have been triggered because shutdown has started
+  // the pause might have been triggered by shutdown
   if (stopping())
     return;
   
@@ -698,7 +697,6 @@ void arMasterSlaveFramework::preDraw( void ) {
     }
   }
   
-  // Might not be running in a distributed fashion.
   if( !_standalone ) {
     if( !( getMaster() ? _sendData() : _getData() ) ) {
       _lastComputeTime = ar_difftime( ar_time(), preDrawStart );
@@ -722,9 +720,8 @@ void arMasterSlaveFramework::preDraw( void ) {
     _soundClient->_cliSync.consume();
   }
   
-  // Must let the framerate graph know about the current frametime.
-  // NOTE: this is computed in _pollInputData... hmmm... doesn't make this
-  // very useful for the slaves...
+  // Report current frametime to the framerate graph.
+  // Bug: computed in _pollInputData, useless for slaves.
   arPerformanceElement* framerateElement = _framerateGraph.getElement( "framerate" );
   framerateElement->pushNewValue( 1000.0 / _lastFrameTime );
   
@@ -736,7 +733,7 @@ void arMasterSlaveFramework::preDraw( void ) {
   arPerformanceElement* syncElement = _framerateGraph.getElement( "sync" );
   syncElement->pushNewValue(_lastSyncTime / 1000.0 );
   
-  // Must get performance metrics.
+  // Get performance metrics.
   _lastComputeTime = ar_difftime( ar_time(), preDrawStart );
 }
 
@@ -765,13 +762,8 @@ void arMasterSlaveFramework::postDraw( void ){
   if( _framerateThrottle ) {
     ar_usleep( 200000 );
   }
-  else {
-    // NEVER, NEVER, NEVER, NEVER PUT A SLEEP IN THE MAIN LOOP
-    // CAN'T COUNT ON THIS BEING LESS THAN 10 MS ON SOME SYSTEMS!!!!!
-    //ar_usleep(2000);
-  }
-  
-  // the synchronization. NOTE: we DO NOT synchronize if we are standalone.
+
+  // Synchronize.
   if( !_standalone && !_sync() ) {
     ar_log_warning() << _label << ": sync failed.\n";
   }
@@ -1157,10 +1149,8 @@ void arMasterSlaveFramework::setEventQueueCallback( arFrameworkEventQueueCallbac
 void arMasterSlaveFramework::setDataBundlePath( const string& bundlePathName,
                                                 const string& bundleSubDirectory ) {
   _soundServer.setDataBundlePath( bundlePathName, bundleSubDirectory );
-
-  // For standalone mode, we also need to set-up the internal sound client.
-  // Only in this case will _soundClient != NULL.
   if( _soundClient ) {
+    // Standalone, so set up the internal sound client.
     _soundClient->setDataBundlePath( bundlePathName, bundleSubDirectory );
   }
 }
@@ -1176,6 +1166,7 @@ void arMasterSlaveFramework::setPlayTransform( void ) {
 }
 
 void arMasterSlaveFramework::drawGraphicsDatabase( void ){
+  cout << "yoyoyo arMasterSlaveFramework::drawGraphicsDatabase;;;;\n";
   _graphicsDatabase.draw();
 }
 
@@ -1635,13 +1626,11 @@ void arMasterSlaveFramework::_pollInputData( void ) {
   else {
     const double temp = ar_difftime( ar_time(), _startTime ) / 1000.0;
     _lastFrameTime = temp - _time; // in milliseconds
-
     // Set a 5 microsecond lower bound for low-resolution system clocks,
     // to avoid division by zero.
     if( _lastFrameTime < 0.005 ) {
       _lastFrameTime = 0.005;
     }
-
     _time = temp;
   }
 
@@ -2406,11 +2395,11 @@ void arMasterSlaveFramework::_messageTask( void ) {
   }
 }
 
+// Handle connections.
 void arMasterSlaveFramework::_connectionTask( void ) {
   _connectionThreadRunning = true; // for shutdown
 
   if( _master ) {
-    // THE MASTER'S METHOD OF HANDLING CONNECTIONS
     while( !stopping() ) {
       // TODO TODO TODO TODO TODO TODO
       // As a hack, since non-blocking connection accept has yet to be
@@ -2439,9 +2428,9 @@ void arMasterSlaveFramework::_connectionTask( void ) {
     }
   }
   else {
-    // THE SLAVE'S METHOD OF HANDLING CONNECTIONS
+    // slave
     while( !stopping() ) {
-      // make sure barrier is connected first
+      // make sure barrier is connected
       while( !_barrierClient->checkConnection() && !stopping() ) {
         ar_usleep( 100000 );
       }
@@ -2454,7 +2443,6 @@ void arMasterSlaveFramework::_connectionTask( void ) {
       _connectionThreadRunning = false;
       const arPhleetAddress result =
         _SZGClient.discoverService( _serviceName, _networks, true );
-
       _connectionThreadRunning = true;
 
       if (stopping())
@@ -2493,9 +2481,8 @@ void arMasterSlaveFramework::_connectionTask( void ) {
 // Functions directly pertaining to drawing
 //**************************************************************************
 
-// This function is responsible for displaying a whole arGUIWindow.
-// Look at the definition of arMasterSlaveRenderCallback to understand
-// how it is called from arGUIWindow.
+// Display a whole arGUIWindow.
+// The definition of arMasterSlaveRenderCallback explains how arGUIWindow calls this.
 void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
                                           arGraphicsWindow* graphicsWindow ) {
   if ( !windowInfo || !graphicsWindow ) {
@@ -2536,7 +2523,7 @@ void arMasterSlaveFramework::_drawWindow( arGUIWindowInfo* windowInfo,
         onDisconnectDraw();
       }
     } else {
-      // we just want a colored background
+      // only a colored background
       glMatrixMode( GL_PROJECTION );
       glLoadIdentity();
       glOrtho( -1.0, 1.0, -1.0, 1.0, 0.0, 1.0 );

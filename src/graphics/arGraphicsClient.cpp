@@ -33,18 +33,13 @@ bool ar_graphicsClientDisconnectCallback(void* client){
 // Draw a particular viewing frustum, not the whole arGraphicsWindow.
 // Called from the arGraphicsClientRenderCallback object.
 // (Use the camera for view frustum culling.)
-void ar_graphicsClientDraw( arGraphicsClient* c, arGraphicsWindow& win,
-                                                 arViewport& view ) {
-
+void ar_graphicsClientDraw( arGraphicsClient* c, arGraphicsWindow& win, arViewport& view ) {
   glEnable(GL_DEPTH_TEST);
   glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
   glColor3f(1.0,1.0,1.0);
   if (c->_overrideColor[0] == -1){
-    // Set the view transform. Use the
-    // viewer node in the database, if available, to provide
-    // the additional info the screen object needs to calculate
-    // the view transform
+    // Compute the view transform, from info in the database's viewer node.
     c->_graphicsDatabase.activateLights();
     c->_graphicsDatabase.draw(win, view);
   }
@@ -107,7 +102,7 @@ bool ar_graphicsClientNullCallback(void* client){
   // blocking until all complete.
   c->_windowManager->drawAllWindows(true);
 
-  // Return to normal drawing mode.
+  // Revert to normal drawing mode.
   c->setOverrideColor(arVector3(-1,-1,-1));
 
   // Throttle CPU when screen is blank.
@@ -160,14 +155,13 @@ void arGraphicsClientRenderCallback::operator()( arGraphicsWindow& w,
 // The callback for the arGUIWindow.
 void arGraphicsClientRenderCallback::operator()(arGUIWindowInfo* windowInfo,
                                                 arGraphicsWindow* graphicsWindow){
-  if (!_client){
+  if (!_client)
     return;
-  }
-  // Draws all the stuff in the window.
+
+  // Draw window's contents.
   graphicsWindow->draw();
 
-  // Some additional graphical widgets might need to be drawn, but only
-  // do this for the "main" window.
+  // Draw "main" window's additional graphical widgets.
   if( _client->getWindowManager()->isFirstWindow( windowInfo->getWindowID() ) ) {
     // A HACK for drawing the simulator interface. This is used in
     // standalone mode on the arDistSceneGraphFramework.
@@ -184,20 +178,15 @@ void arGraphicsClientRenderCallback::operator()(arGUIWindowInfo* windowInfo,
     }
   }
 
-  // All draw commands for this window have now been issued. Make sure that
-  // these commands have written to the frame buffer before proceeding.
-
-  // It seems like glFlush/glFinish are a little bit unreliable... not
-  // every vendor has done a good job of implementing these.
-  // Consequently, we do a small pixel read to force drawing to complete
+  // Wait for drawing to complete to the frame buffer.
+  // Force this by reading a few pixels (some vendors' glFlush/glFinish are flaky).
   char buffer[32];
   glReadPixels(0,0,1,1,GL_RGBA,GL_UNSIGNED_BYTE,buffer);
-  glFinish(); // helpful though not strictly needed
+  glFinish(); // paranoid
 
-  // Deal with a potential screenshot here in the drawing thread.
-  // (NOTE: only screenshot the main window)
+  // Drawing thread handles screenshots (of main window).
   if( _client->getWindowManager()->isFirstWindow( windowInfo->getWindowID() ) ) {
-    bool stereo = _client->getWindowManager()->isStereo(windowInfo->getWindowID());
+    const bool stereo = _client->getWindowManager()->isStereo(windowInfo->getWindowID());
     if (_client->screenshotRequested()){
       _client->takeScreenshot(stereo);
     }
