@@ -117,8 +117,7 @@ void arWMEvent::wait( const bool blocking )
     ar_mutex_unlock( &_eventMutex );
   }
 
-  // even if not blocking, _done still needs to be updated to signal
-  // that this event can be re-used if necessary
+  // even if not blocking, update _done so this event may be reused.
   ar_mutex_lock( &_doneMutex );
     ++_done;
   ar_mutex_unlock( &_doneMutex );
@@ -151,10 +150,10 @@ arGUIWindowBuffer::~arGUIWindowBuffer( void )
 
 int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const bool stereo ) const
 {
-  // NOTE: since this should only be called from arGUIWindow, we've already
-  // ensured that the correct gl context is on deck in arGUIWindow::swap
+  // Since only arGUIWindow calls this,
+  // arGUIWindow::swap ensures that the gl context is correct.
 
-  // call glFlush before we swap buffers?
+  // Call glFlush first?
 
 #if defined( AR_USE_WIN_32 )
 
@@ -168,7 +167,8 @@ int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const 
   }
   else {
     if( !SwapBuffers( windowHandle._hDC ) ) {
-      ar_log_error() << "SwapBuffers failed.\n";
+      // Window might be minimized.
+      ar_log_debug() << "swapBuffer failed.\n";
     }
   }
 
@@ -482,8 +482,7 @@ int arGUIWindow::_processWMEvents( void )
       case AR_WINDOW_DRAW:
 
 #if 0
-        // Ignore _Hz. It complicates
-        // control flow in different modes and may be unimportant.
+        // Ignore _Hz. It complicates control flow in different modes and may be unimportant.
         // Revisit it when arGUI is successfully integrated into syzygy.
         if( 0 /* _windowConfig._Hz > 0 */ ) {
           ar_timeval currentTime = ar_time();
