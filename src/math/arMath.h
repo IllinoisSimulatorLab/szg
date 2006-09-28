@@ -18,7 +18,7 @@ using namespace std;
 #define M_PI 3.14159265359
 #endif
 
-// Sometimes we need to define a axis order (for instance, with Euler angles).
+// For Euler angles.
 enum arAxisOrder { AR_XYZ = 1, AR_XZY, AR_YXZ, AR_YZX, AR_ZXY, AR_ZYX };
 
 class arQuaternion;
@@ -40,7 +40,7 @@ class SZG_CALL arVector3{
  public:
   float v[3];
 
-  arVector3() { v[0] = v[1] = v[2] = 0.; }
+  arVector3() { memset(v, 0, 3*sizeof(float)); }
   arVector3(const float* p)
     { set(p[0], p[1], p[2]); }
   arVector3(float x, float y, float z)
@@ -60,13 +60,13 @@ class SZG_CALL arVector3{
     { return memcmp(v, rhs.v, 3*sizeof(float)) == 0; }
   bool operator!=(const arVector3& rhs) const
     { return memcmp(v, rhs.v, 3*sizeof(float)) != 0; }
-  // DO NOT add an operator conversion to float*
-  // DO NOT add an operator that returns const float& from []
-  // these cause VC++ 6.0 to fail. Note how they make myVector3[1] ambiguous
-  //operator float* () { return v; }
-  //const float& operator[] (int i) const { return v[i]; }
+
+  // Do not define an operator cast to float*.
+  // Do not define an operator that returns const float& from [].
+  // These create ambiguity.
   float& operator[] (int i)
     { return v[i]; }
+
   void set(float x, float y, float z)
     { v[0]=x; v[1]=y; v[2]=z; }
   float magnitude2() const { return v[0]*v[0]+v[1]*v[1]+v[2]*v[2]; }
@@ -77,10 +77,10 @@ class SZG_CALL arVector3{
       cerr << "arVector3 error: cannot normalize zero vector.\n";
       return arVector3(0,0,0);
     }
-    return arVector3(v[0]/mag,v[1]/mag,v[2]/mag);
+    return arVector3(v[0]/mag, v[1]/mag, v[2]/mag);
   }
-  float dot( const arVector3& y ) const {
-    return v[0]*y.v[0]+v[1]*y.v[1]+v[2]*y.v[2];
+  float dot( const arVector3& rhs ) const {
+    return v[0]*rhs.v[0]+v[1]*rhs.v[1]+v[2]*rhs.v[2];
   }
 };
 
@@ -92,31 +92,36 @@ class SZG_CALL arVector4{
  public:
   float v[4];
 
-  arVector4(){ v[0] = v[1] = v[2] = v[3] = 0; }
+  arVector4() { memset(v, 0, 4*sizeof(float)); }
   arVector4(const float* p){ set(p[0], p[1], p[2], p[3]); }
   arVector4(float x, float y, float z, float w){ set(x,y,z,w); }
   arVector4(const arVector3& vec, float w) { set(vec.v[0],vec.v[1],vec.v[2],w); }
-  // DO NOT add an operator conversion to float*
-  // DO NOT add an operator that returns const float& from []
-  // these cause VC++ 6.0 to fail. Note how they make myVector4[1] ambiguous
-  //operator float* () { return v; }
-  //const float& operator[] (int i) const { return v[i]; }
+  bool operator==(const arVector3& rhs) const
+    { return memcmp(v, rhs.v, 4*sizeof(float)) == 0; }
+  bool operator!=(const arVector3& rhs) const
+    { return memcmp(v, rhs.v, 4*sizeof(float)) != 0; }
+
+  // Do not define an operator cast to float*.
+  // Do not define an operator that returns const float& from [].
+  // These create ambiguity.
   float& operator[] (int i)
     { return v[i]; }
+
   void set(float x, float y, float z, float w)
     { v[0]=x; v[1]=y; v[2]=z; v[3] = w;}
-  float magnitude() const 
-    { return sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2]+v[3]*v[3]); }
+  float magnitude2() const 
+    { return v[0]*v[0]+v[1]*v[1]+v[2]*v[2]+v[3]*v[3]; }
+  float magnitude() const { return sqrt(magnitude2()); }
   float dot( const arVector4& y ) const {
     return v[0]*y.v[0]+v[1]*y.v[1]+v[2]*y.v[2]+v[3]*y.v[3];
   }
   arVector4 normalize() const {
     const float mag = magnitude();
     if (mag <= 0.) {
-      cerr << "arVector4 error: attempt to normalize 0-length vector.\n";      
+      cerr << "arVector4 error: cannot normalize zero vector.\n";      
       return arVector4(0,0,0,0);
     }
-    return arVector4(v[0]/mag,v[1]/mag,v[2]/mag,v[3]/mag);
+    return arVector4(v[0]/mag, v[1]/mag, v[2]/mag, v[3]/mag);
   }
   arMatrix4 outerProduct( const arVector4& rhs ) const;
 };

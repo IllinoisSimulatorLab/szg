@@ -367,25 +367,25 @@ arMatrix4 ar_scaleMatrix(const arVector3& scaleFactors){
   return result;
 }
 
-arMatrix4 ar_extractTranslationMatrix(const arMatrix4& original){
+arMatrix4 ar_extractTranslationMatrix(const arMatrix4& rhs){
   arMatrix4 result;
-  memcpy(&result.v[12], &original.v[12], 3 * sizeof(float));
+  memcpy(&result.v[12], &rhs.v[12], 3 * sizeof(float));
   return result;
 }
 
-arVector3 ar_extractTranslation(const arMatrix4& original){
-  return arVector3(original.v[12], original.v[13], original.v[14]);
+arVector3 ar_extractTranslation(const arMatrix4& rhs){
+  return arVector3(rhs.v + 12);
 }
 
-arMatrix4 ar_extractRotationMatrix(const arMatrix4& original){
+arMatrix4 ar_extractRotationMatrix(const arMatrix4& rhs){
   arMatrix4 result;
   for (int i=0; i<3; i++){
-    const arVector3 column(&original.v[4*i]);
+    const arVector3 column(&rhs.v[4*i]);
     const float magnitude = ++column;
     if (magnitude > 0.){
-      result.v[4*i  ] = original.v[4*i  ] / magnitude;
-      result.v[4*i+1] = original.v[4*i+1] / magnitude;
-      result.v[4*i+2] = original.v[4*i+2] / magnitude;
+      result.v[4*i  ] = rhs.v[4*i  ] / magnitude;
+      result.v[4*i+1] = rhs.v[4*i+1] / magnitude;
+      result.v[4*i+2] = rhs.v[4*i+2] / magnitude;
     }
     else{
       result.v[5*i] = 0.;
@@ -394,10 +394,10 @@ arMatrix4 ar_extractRotationMatrix(const arMatrix4& original){
   return result;
 }
 
-arMatrix4 ar_extractScaleMatrix(const arMatrix4& original){
+arMatrix4 ar_extractScaleMatrix(const arMatrix4& rhs){
   arMatrix4 result;
   for (int i=0; i<3; i++){
-    const arVector3 column(&original.v[4*i]);
+    const arVector3 column(&rhs.v[4*i]);
     result.v[5*i] = ++column;
   }
   return result;
