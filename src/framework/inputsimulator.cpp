@@ -17,9 +17,8 @@
 #include "arPForthFilter.h"
 
 arInputNode* inputNode = NULL;
-
 arInputSimulator defaultSimulator;
-arInputSimulator* simPtr;
+arInputSimulator* simPtr = NULL;
 int xPos = 0;
 int yPos = 0;
 
@@ -66,9 +65,9 @@ void keyboard(unsigned char key, int x, int y){
 }
 
 void mouseButton(int button, int state, int x, int y){
-  // translate GLUT's magic numbers to ours
+  // Translate GLUT numbers to Syzygy.
   const int whichButton = 
-    (button == GLUT_LEFT_BUTTON  ) ? 0:
+  //(button == GLUT_LEFT_BUTTON  ) ? 0:
     (button == GLUT_MIDDLE_BUTTON) ? 1 :
     (button == GLUT_RIGHT_BUTTON ) ? 2 : 0;
   const int whichState = (state == GLUT_DOWN) ? 1 : 0;
@@ -141,13 +140,9 @@ int main(int argc, char** argv){
     }
   }
   
-  // simPtr defaults to &simulator, a vanilla arInputSimulator instance.
-  simPtr = &defaultSimulator;
   arInputSimulatorFactory simFactory;
   arInputSimulator* simTemp = simFactory.createSimulator( szgClient );
-  if (simTemp) {
-    simPtr = simTemp;
-  }
+  simPtr = simTemp ? simTemp : &defaultSimulator;
   simPtr->configure(szgClient);
   simPtr->registerInputNode(inputNode);
   if (useNetInput) {
@@ -167,7 +162,7 @@ int main(int argc, char** argv){
       cerr << "inputsimulator error: maybe szgserver died.\n";
     return 1;
   }
-  // init succeeded
+
   if (!szgClient.sendInitResponse(true))
     cerr << "inputsimulator error: maybe szgserver died.\n";
 
@@ -177,7 +172,6 @@ int main(int argc, char** argv){
     return 1;
   }
 
-  // start succeeded
   if (!szgClient.sendStartResponse(true))
     cerr << "inputsimulator error: maybe szgserver died.\n";
   
@@ -195,7 +189,6 @@ int main(int argc, char** argv){
   glutPassiveMotionFunc(mousePosition);
   glutMotionFunc(mousePosition);
   glutMouseFunc(mouseButton);
-
   glutMainLoop();
   return 0;
 }
