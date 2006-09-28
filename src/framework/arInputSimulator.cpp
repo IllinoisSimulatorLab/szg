@@ -489,12 +489,11 @@ void arInputSimulator::_drawGamepad() const {
   const float padWidth = max(1.4F, rowLength*BUTTON_SPACING);
   const float padHeight = GAMEPAD_WIDTH + numRows*BUTTON_SPACING;
   glPushMatrix();
-    arMatrix4 tempMatrix = ar_translationMatrix(4,0,5);
-    glMultMatrixf(tempMatrix.v);
+    glMultMatrixf(ar_translationMatrix(4,0,5).v);
     // blue background for the wand controller
     glEnable( GL_BLEND );
     glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-    glColor4f(0,0,1,.5);
+    glColor4f(0,0,1,.25);
     glBegin(GL_QUADS);
       glVertex3f(-.5*padWidth, GAMEPAD_YOFFSET + padHeight, 0.1);
       glVertex3f( .5*padWidth, GAMEPAD_YOFFSET + padHeight, 0.1);
@@ -502,7 +501,7 @@ void arInputSimulator::_drawGamepad() const {
       glVertex3f(-.5*padWidth, GAMEPAD_YOFFSET, 0.1);
     glEnd();
     glDisable( GL_BLEND );
-    // one cube for the gamepad's joystick
+    // cube for the gamepad's joystick
     glPushMatrix();
       glTranslatef(0.5*_axis[0], -0.3 + 0.5*_axis[1], 0.1);
       glColor3f(0.3,1,0);
@@ -527,14 +526,14 @@ void arInputSimulator::_drawGamepad() const {
     float x = xlo;
     float y = BUTTON_YBORDER;
     unsigned rowCount = 0;
-    float labelScale = .004*BUTTON_SPACING;
+    const float labelScale = .004*BUTTON_SPACING;
     for (unsigned i = 0; i<_newButtonEvents.size(); ++i) {
       glPushMatrix();
         glTranslatef(x,y,0.1);
         if (_newButtonEvents[i] == 0)
-          glColor3f(1,0,0);
+          glColor3f(0.8,0,0);
         else
-          glColor3f(0,1,0);
+          glColor3f(0,0.6,0);
         glutSolidSphere(.4*BUTTON_SPACING,8,8);
         if (i >= _buttonLabels.size()) {
           ar_log_warning() << "arInputSimulator: _buttonLabels too short in _drawGamepad().\n";
