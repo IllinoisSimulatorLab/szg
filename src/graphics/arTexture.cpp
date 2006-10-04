@@ -592,7 +592,7 @@ bool arTexture::writeJPEG(const string& fileName, const string& subdirectory,
 
   while (cinfo.next_scanline < cinfo.image_height) {
     const JSAMPROW row_pointer = &image_buffer[cinfo.next_scanline * row_stride];
-    (void) jpeg_write_scanlines(&cinfo, &row_pointer, 1);
+    (void) jpeg_write_scanlines(&cinfo, (JSAMPLE**)&row_pointer, 1);
   }
 
   jpeg_finish_compress(&cinfo);
