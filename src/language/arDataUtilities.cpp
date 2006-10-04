@@ -970,15 +970,15 @@ bool ar_fileItemExists( const string name, bool& exists ) {
 }
 
 bool ar_getWorkingDirectory( string& name ) {
-  char dirBuf[1000];
-  if (getcwd( dirBuf, 999 )==NULL)
+  char dirBuf[1000]; // bug: fixed size buffer (but no overflow)
+  if (getcwd( dirBuf, sizeof(dirBuf)-2 )==NULL)
     return false;
   name = string( dirBuf );
   return true;
 }
 
 bool ar_setWorkingDirectory( const string name ) {
-  return (chdir( name.c_str() ) == 0);
+  return chdir(name.c_str()) == 0;
 }
 
 bool ar_isFile(const char* name){
@@ -1007,13 +1007,9 @@ string ar_fileFind(const string& name,
     possiblePath = ar_pathToken(path, location);
     if (possiblePath == "")
       continue;
-    if (subdirectory == ""){
-      possiblePath = ar_pathAddSlash(possiblePath)+name;
-    }
-    else{
+    if (subdirectory != "")
       possiblePath = ar_pathAddSlash(possiblePath)+subdirectory;
-      possiblePath = ar_pathAddSlash(possiblePath)+name;
-    }
+    possiblePath = ar_pathAddSlash(possiblePath)+name;
     // Make sure to "scrub" the path (i.e. replace '/' by '\' or vice-versa,
     // as required by platform. This is necessary to allow the subdirectory
     // to have multiple levels in a cross-platform sort of way.
@@ -1039,13 +1035,12 @@ string ar_fileFind(const string& name,
     }
   }
 
-  if (result){
-    fclose(result);
-    return possiblePath;
-  }
-  else{
+  if (!result){
     return string("NULL");
   }
+
+  fclose(result);
+  return possiblePath;
 }
 
 // todo: copy-paste from ar_fileOpen and ar_fileFind
@@ -1064,13 +1059,9 @@ string ar_directoryFind(const string& name,
     possiblePath = ar_pathToken(path, location);
     if (possiblePath == "")
       continue;
-    if (subdirectory == ""){
-      possiblePath = ar_pathAddSlash(possiblePath)+name;
-    }
-    else{
+    if (subdirectory != "")
       possiblePath = ar_pathAddSlash(possiblePath)+subdirectory;
-      possiblePath = ar_pathAddSlash(possiblePath)+name;
-    }
+    possiblePath = ar_pathAddSlash(possiblePath)+name;
     ar_scrubPath(possiblePath);
     if (ar_directoryExists(possiblePath, fileExists, isDirectory) &&
         isDirectory){
@@ -1096,7 +1087,7 @@ FILE* ar_fileOpen(const string& name,
                   const string& subdirectory, 
                   const string& path,
                   const string& operation){
-  // First, search the explicitly given path
+  // Search the path
   FILE* result = NULL;
   int location = 0;
   string possiblePath("junk");
@@ -1104,43 +1095,39 @@ FILE* ar_fileOpen(const string& name,
     possiblePath = ar_pathToken(path, location);
     if (possiblePath == "")
       continue;
-    if (subdirectory == ""){
-      possiblePath = ar_pathAddSlash(possiblePath)+name;
-    }
-    else{
+    if (subdirectory != "")
       possiblePath = ar_pathAddSlash(possiblePath)+subdirectory;
-      possiblePath = ar_pathAddSlash(possiblePath)+name;
-    }
-    // Make sure to "scrub" the path (i.e. replace '/' by '\' or vice-versa,
-    // as required by platform. This is necessary to allow the subdirectory
-    // to have multiple levels in a cross-platform sort of way.
+    possiblePath = ar_pathAddSlash(possiblePath)+name;
+    // "Scrub" the path (i.e. replace '/' by '\' or vice versa),
+    // for OS-independent subsubdirectories.
     ar_scrubPath(possiblePath);
     result = fopen(possiblePath.c_str(), operation.c_str());
     if (result && ar_isDirectory(possiblePath.c_str())){
-      // Reject this directory.
       fclose(result);
       result = NULL;
     }
   }
+
+  if (result)
+    ar_log_remark() << "ar_fileOpen opened '" << possiblePath << "' as '" << operation << "'.\n";
   
-  // Next, try to find the file locally
+  // Find the file locally
   if (!result){
     possiblePath = name;
-    // Do not forget to "scrub" the path.
     ar_scrubPath(possiblePath);
     result = fopen(possiblePath.c_str(), operation.c_str());
     if (result && ar_isDirectory(possiblePath.c_str())){
-      // Reject this directory.
       fclose(result);
       result = NULL;
     }
+    if (result)
+      ar_log_remark() << "ar_fileOpen opened '" << possiblePath << "' as '" << operation << "'.\n";
   }
 
   return result;
 }
 
-FILE* ar_fileOpen(const string& name, const string& path,
-                  const string& operation){
+FILE* ar_fileOpen(const string& name, const string& path, const string& operation){
   return ar_fileOpen(name, "", path, operation);
 }
 
@@ -1213,7 +1200,7 @@ list<string> ar_listDirectory(const string& name){
 }
 
 int ar_fileClose(FILE* pf){
-  return !pf ? 0 : fclose(pf);
+  return pf ? fclose(pf) : 0;
 }
 
 /*
