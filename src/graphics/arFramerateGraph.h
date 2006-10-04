@@ -35,13 +35,10 @@ class SZG_CALL arFramerateGraph: public arFrameworkObject{
 
   virtual void draw();
   virtual void drawWithComposition();
-  void drawPlaced(float startX, float startY, float widthX, float widthY);
+  void drawPlaced(const float startX, const float startY, const float widthX, const float widthY);
 
-  // The functions that specifically pertain to the graph
-  void addElement(const string& name,
-                   int numberEntries,
-                   float scale,
-                   const arVector3& color);
+  // Functions specific to the graph
+  void addElement(const string& name, int numberEntries, float scale, const arVector3& color);
   arPerformanceElement* getElement(const string& name) const;
 
  private:

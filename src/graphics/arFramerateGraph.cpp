@@ -35,6 +35,10 @@ void arPerformanceElement::setNumberEntries(int number){
 
 void arPerformanceElement::pushNewValue(float value){
   memmove(_data, _data+1, (_numberEntries-1) * sizeof(_data[0]));
+
+  // Slightly smooth away noise due to redrawing locked to graphics card's vertical retrace.
+  value = (value + _data[_numberEntries-2] + _data[_numberEntries-3] + _data[_numberEntries-4]) * .25;
+
   _data[_numberEntries-1] = value;
 }
 
@@ -64,23 +68,24 @@ void arFramerateGraph::draw() {
   glMatrixMode(GL_MODELVIEW);
   gluLookAt(0,0,1, 0,0,0, 0,1,0);
 
+  // Draw the graph ruler, a scale from 0 to 10.
+  // For readability, the line halfway up is white not magenta.
+  glBegin(GL_LINES);
+  for (int j=0; j<11; j++){
+    glColor3f(1, j==5 ? 1 : 0, 1);
+    const float z = 42.; // Force ruler behind data.
+    const float y = j*.2 - 1.;
+    glVertex3f(-1, y, z);
+    glVertex3f( 1, y, z);
+  }
+  glEnd();
+
   map<string, arPerformanceElement*, less<string> >::const_iterator i;
   for (i = _valueContainer.begin();
        i != _valueContainer.end(); i++){
     i->second->draw();
   }
 
-  // Draw the graph ruler. This is a scale from 0 to 10.
-  glBegin(GL_LINES);
-  for (int j=0; j<11; j++){
-    glColor3f(1,0,0);
-    glVertex3f(-1, -1+2.0*j/10, 0);
-    glVertex3f(1, -1+2.0*j/10, 0);
-    glColor3f(0,0,1);
-    glVertex3f(-1, -1+2.0*j/10 + 0.01, 0);
-    glVertex3f(1, -1+2.0*j/10 + 0.01, 0);
-  }
-  glEnd();
 }
 
 // Not const, because pre- and postComposition can't be const.
@@ -90,10 +95,10 @@ void arFramerateGraph::drawWithComposition() {
   postComposition();
 }
 
-void arFramerateGraph::drawPlaced(float startX,
-				  float startY,
-				  float widthX,
-				  float widthY){
+void arFramerateGraph::drawPlaced(const float startX,
+				  const float startY,
+				  const float widthX,
+				  const float widthY){
   preComposition(startX, startY, widthX, widthY);
   draw();
   postComposition();
@@ -106,8 +111,7 @@ void arFramerateGraph::addElement(const string& name,
   map<string, arPerformanceElement*, less<string> >::const_iterator i =
     _valueContainer.find(name);
   if (i != _valueContainer.end()){
-    ar_log_warning() << "arFramerateGraph ignoring duplicate value type '"
-	 << name << "'.\n";
+    ar_log_warning() << "arFramerateGraph ignoring duplicate type '" << name << "'.\n";
     return;
   }
 
