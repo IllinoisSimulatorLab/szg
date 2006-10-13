@@ -10,66 +10,59 @@ void ar_interfaceObjectIOPollTask(void* object){
    ((arInterfaceObject*)object)->_ioPollTask();
 }
 
-// Dead zone for joystick axes.
-// bug: this is a tad large for 2006.
-// bug: edge of dead zone is discontinuous.
 static inline float joystickScale(float j) {
-  return (j>-.5 && j<.5) ? 0. : -2.*j;
+  // Input: [-1,1] joystick deflection.
+  // Output: 0 ("dead zone") when input is in [-.2,.2];
+  //   outside that, expand back to [-1,1], as square of input.
+
+  const float dead = 0.15;
+  const float expand = 1. - dead;
+  const float sign = j<0. ? -1. : 1.;
+  j *= sign;
+  const float undead = j<dead ? 0. : (j - dead) / expand;
+  return undead * undead * sign;
 }
 
-// As joystick is moved, translate _navMatrix (POV) in plane of gamepad.
-// Also, if button 1 is held, rotate _objectMatrix with wand.
+// As joystick is moved, translate _mNav (POV) in plane of gamepad.
+// Also, if button 1 is held, rotate _mObj with wand.
 
 void arInterfaceObject::_ioPollTask(){
   while (true) {
-    const int b1 = _inputDevice->getButton(0);
-    const int b2 = _inputDevice->getButton(1);
-    const int b3 = _inputDevice->getButton(2);
-    const float j0 = _inputDevice->getAxis(0);
-    const float j1 = _inputDevice->getAxis(1);
-    const arMatrix4 wandMatrix = _inputDevice->getMatrix(1);
+    const float speedLateral = -joystickScale(_inputDevice->getAxis(0));
+    const float speedForward = -joystickScale(_inputDevice->getAxis(1));
+    const arMatrix4 mWand(_inputDevice->getMatrix(1));
+    const arMatrix4 mWandRot(ar_extractRotationMatrix(mWand));
 
-    // note: the CAVE coordinate system and normal wand set-up has
-    // the wand pointed in the negative z-direction when the bird's
-    // rotation is the identity matrix
+    // In CAVE coords, normal wand setup points wand along -z axis
+    // when the bird's rotation is the identity matrix.
 
-    arVector3 wandDirection = 
-      !ar_extractRotationMatrix(_navMatrix)
-      * ar_extractRotationMatrix(wandMatrix)
-      * arVector3(0,0,-1);
-
-    arVector3 wandDirectionLateral =
-      !ar_extractRotationMatrix(_navMatrix)
-      * ar_extractRotationMatrix(wandMatrix)
-      * arVector3(1,0,0);
+    const arMatrix4 m(!ar_extractRotationMatrix(_mNav) * mWandRot);
+    const arVector3 vWandForward(m * arVector3(0,0,-1) * speedForward);
+    const arVector3 vWandLateral(m * arVector3(1,0,0)  * speedLateral);
 
     ar_mutex_lock(&_infoLock);
 
-    float speed = _speedMultiplier * .1;
-    if (b2)
-      speed /= 4.;     // slower for fine work
-    if (b3)
-      speed *= 8.;     // turbo-switch for flying around in a hurry
+    const float inertia = 0.98; // Between 0.01 and 0.99.  Should be database parameter.
+    arVector3 vMove((vWandLateral + vWandForward) * _speedMultiplier * .2);
+    vMove = (1. - inertia) * vMove + inertia * _vMovePrev;
+    _vMovePrev = vMove;
+    _mNav = ar_translationMatrix(vMove) * _mNav;
 
-    wandDirection *= joystickScale(j1) * speed;
-    wandDirectionLateral *= joystickScale(j0) * speed;
+    // Grabbing.
 
-    _navMatrix = ar_translationMatrix(wandDirectionLateral + wandDirection) * _navMatrix;
-
-    static bool grabState = false;
-    static arMatrix4 grabMatrix(ar_identityMatrix());
-    if (b1 && !grabState){
+    const int b1 = _inputDevice->getButton(0);
+    if (b1 && !_grabbed){
       // Begin grabbing.
-      grabState = true;
-      grabMatrix = !ar_extractRotationMatrix(wandMatrix) * _objectMatrix;
+      _grabbed = true;
+      _mGrab = !mWandRot * _mObj;
     }
-    else if (b1 && grabState){
+    else if (b1 && _grabbed){
       // Continue grabbing.
-      _objectMatrix = ar_extractRotationMatrix(wandMatrix) * grabMatrix;
+      _mObj = mWandRot * _mGrab;
     }
-    else if (!b1 && grabState){
+    else if (!b1 && _grabbed){
       // End grabbing.
-      grabState = false;
+      _grabbed = false;
     }
 
     ar_mutex_unlock(&_infoLock);
@@ -79,9 +72,14 @@ void arInterfaceObject::_ioPollTask(){
       
 arInterfaceObject::arInterfaceObject() :
   _inputDevice(NULL),
-  _speedMultiplier(1.)
+  _speedMultiplier(1.),
+  _vMovePrev(0,0,0),
+  _grabbed(false)
 {
   ar_mutex_init(&_infoLock);
+  _matrices.clear();
+  _buttons.clear();
+  _axes.clear();
 }
 
 arInterfaceObject::~arInterfaceObject() {
@@ -110,26 +108,26 @@ bool arInterfaceObject::start(){
 
 void arInterfaceObject::setNavMatrix(const arMatrix4& arg){
   ar_mutex_lock(&_infoLock);
-    _navMatrix = arg;
+    _mNav = arg;
   ar_mutex_unlock(&_infoLock);
 }
 
 arMatrix4 arInterfaceObject::getNavMatrix(){
   ar_mutex_lock(&_infoLock);
-    const arMatrix4 result(_navMatrix);
+    const arMatrix4 result(_mNav);
   ar_mutex_unlock(&_infoLock);
   return result;
 }
 
 void arInterfaceObject::setObjectMatrix(const arMatrix4& arg){
   ar_mutex_lock(&_infoLock);
-  _objectMatrix = arg;
+  _mObj = arg;
   ar_mutex_unlock(&_infoLock);
 }
 
 arMatrix4 arInterfaceObject::getObjectMatrix(){
   ar_mutex_lock(&_infoLock);
-  arMatrix4 result = _objectMatrix;
+    const arMatrix4 result(_mObj);
   ar_mutex_unlock(&_infoLock);
   return result;
 }

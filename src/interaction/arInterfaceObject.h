@@ -54,11 +54,15 @@ class SZG_CALL arInterfaceObject{
   arThread     _IOPollThread;
 
   float _speedMultiplier;
+  arVector3 _vMovePrev;
+
+  bool _grabbed;
+  arMatrix4 _mGrab;
   
   arMutex _infoLock;
 
-  arMatrix4 _navMatrix;
-  arMatrix4 _objectMatrix;
+  arMatrix4 _mNav;
+  arMatrix4 _mObj;
   
   std::vector<arMatrix4> _matrices;
   std::vector<int> _buttons;
