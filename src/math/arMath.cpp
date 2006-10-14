@@ -305,32 +305,34 @@ arMatrix4 ar_translationMatrix(const arVector3& v){
 // angles are all in radians
 
 arMatrix4 ar_rotationMatrix(char axis, float r){
+  const float sr = sin(r);
+  const float cr = cos(r);
   switch (axis){
   case 'x':
     return arMatrix4(
-      1, 0, 0, 0,
-      0, cos(r), -sin(r), 0,
-      0, sin(r), cos(r), 0,
-      0, 0, 0, 1);
+      1,  0,   0, 0,
+      0, cr, -sr, 0,
+      0, sr,  cr, 0,
+      0,  0,   0, 1);
   case 'y':
     return arMatrix4(
-      cos(r), 0, sin(r), 0,
-      0, 1, 0, 0,
-      -sin(r), 0, cos(r), 0,
-      0, 0, 0, 1);
+       cr, 0, sr, 0,
+        0, 1,  0, 0,
+      -sr, 0, cr, 0,
+        0, 0,  0, 1);
   case 'z':
     return arMatrix4(
-      cos(r), -sin(r), 0, 0,
-      sin(r), cos(r), 0, 0,
-      0, 0, 1, 0,
-      0, 0, 0, 1);
+      cr, -sr, 0, 0,
+      sr,  cr, 0, 0,
+       0,   0, 1, 0,
+       0,   0, 0, 1);
   }
-  cerr << "syzygy ar_rotationMatrix error: unknown axis " << axis << endl;
+  cerr << "syzygy ar_rotationMatrix error: unknown axis '" << axis << "'.\n";
   return ar_identityMatrix();
 }
 
 arMatrix4 ar_rotationMatrix(const arVector3& a, float radians){
-  const arVector3 axis = (++a) == 0 ? arVector3(1,0,0) : a;
+  const arVector3 axis = a.magnitude2()==0 ? arVector3(1,0,0) : a;
   const arQuaternion
     quaternion(cos(radians/2.), (sin(radians/2.)/(axis.magnitude()))*axis);
   const arVector3 rotX(quaternion*arVector3(1,0,0));
@@ -344,7 +346,7 @@ arMatrix4 ar_rotationMatrix(const arVector3& a, float radians){
 }
 
 arMatrix4 ar_transrotMatrix(const arVector3& position, const arQuaternion& orientation) {
-  return ar_translationMatrix( position )*arMatrix4( orientation );
+  return ar_translationMatrix( position ) * arMatrix4( orientation );
 }
 
 arMatrix4 ar_scaleMatrix(float s){
@@ -397,8 +399,7 @@ arMatrix4 ar_extractRotationMatrix(const arMatrix4& rhs){
 arMatrix4 ar_extractScaleMatrix(const arMatrix4& rhs){
   arMatrix4 result;
   for (int i=0; i<3; i++){
-    const arVector3 column(&rhs.v[4*i]);
-    result.v[5*i] = ++column;
+    result.v[5*i] = arVector3(&rhs.v[4*i]).magnitude();
   }
   return result;
 }
@@ -512,17 +513,15 @@ arVector3 ar_extractEulerAngles(const arMatrix4& m, arAxisOrder o){
 }
 
 arQuaternion ar_angleVectorToQuaternion(const arVector3& a, float radians) {
-  const arVector3 axis = (++a) == 0 ? arVector3(1,0,0) : a;
-  return arQuaternion(cos(radians/2), (sin(radians/2)/(++axis))*axis);
+  const arVector3 axis = a.magnitude2()==0 ? arVector3(1,0,0) : a;
+  radians *= .5;
+  return arQuaternion(cos(radians), (sin(radians) / (++axis)) * axis);
 }
 
-// Returns the reflection of direction across the given normal vector
+// reflection of direction across the given normal vector
 arVector3 ar_reflect(const arVector3& direction, const arVector3& normal){
-  float mag = ++normal;
-  return direction - (2 * direction % normal / (mag*mag)) * normal;
-  //return(sub(incoming,
-  //           scale(2*dot(incoming, normDIR)/(mag*mag), normDIR)));
-  
+  float mag2 = normal.magnitude2();
+  return direction - (2 * direction % normal / mag2) * normal;
 }
 
 // QUESTION: it looks like rayDirection is assumed to have been normalized.
@@ -535,10 +534,10 @@ float ar_intersectRayTriangle(const arVector3& rayOrigin,
 
   // this algorithm is from geometrysurfer.com by Dan Sunday
   const arVector3 rayDir( rayDirection.normalize() );
-  const arVector3 u = vertex2 - vertex1;
-  const arVector3 v = vertex3 - vertex1;
-  const arVector3 n = u*v; // cross product
-  if (++n == 0){
+  const arVector3 u(vertex2 - vertex1);
+  const arVector3 v(vertex3 - vertex1);
+  const arVector3 n(u*v);
+  if (n.magnitude2() == 0){
     // degenerate triangle
     return -1;
   }
@@ -688,7 +687,7 @@ arVector3 ar_tileScreenOffset(const arVector3& screenNormal,
 			      float xTile, int nxTiles,
 			      float yTile, int nyTiles) {
   if (nxTiles == 0 || nyTiles == 0){
-    // Bogus arguments.
+    // Invalid arguments.
     return arVector3(0,0,0);
   }
 
@@ -696,15 +695,16 @@ arVector3 ar_tileScreenOffset(const arVector3& screenNormal,
   float mag = ++screenNormal;
   if (mag <= 0.)
     return arVector3(0,0,0);
-  const arVector3 zHat = screenNormal/mag;
+  const arVector3 zHat(screenNormal/mag);
   mag = ++screenUp;
   if (mag <= 0.)
     return arVector3(0,0,0);
-  const arVector3 xHat = zHat * screenUp/mag;  // '*' = cross product
-  const arVector3 yHat = xHat * zHat;
+  const arVector3 xHat(zHat * screenUp/mag);
+  const arVector3 yHat(xHat * zHat);
   // copypaste end
-  float tileWidth = width/nxTiles;
-  float tileHeight = height/nyTiles;
+
+  const float tileWidth = width/nxTiles;
+  const float tileHeight = height/nyTiles;
   return (-0.5*width + 0.5*tileWidth + xTile*tileWidth)*xHat 
     + (-0.5*height + 0.5*tileHeight + yTile*tileHeight)*yHat;
 }
@@ -720,7 +720,7 @@ arMatrix4 ar_frustumMatrix( const arVector3& screenCenter,
   if (mag <= 0.)
     return ar_identityMatrix(); // error
   const arVector3 zHat = screenNormal/mag;
-  const arVector3 xHat = zHat * screenUp/mag;  // '*' = cross product
+  const arVector3 xHat = zHat * screenUp/mag;
   const arVector3 yHat = xHat * zHat;
   // copypaste end
 
@@ -729,7 +729,7 @@ arMatrix4 ar_frustumMatrix( const arVector3& screenCenter,
   const arVector3 topEdge = screenCenter + halfHeight * yHat;
   const arVector3 botEdge = screenCenter - halfHeight * yHat;
 
-  // float zEye = (eyePosition - headPosition) % zHat; // '%' = dot product
+  // float zEye = (eyePosition - headPosition) % zHat;
   float screenDistance = ( screenCenter - eyePosition ) % zHat;
   if (screenDistance == 0.)
     return ar_identityMatrix(); // error
