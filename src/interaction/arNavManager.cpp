@@ -29,7 +29,7 @@ void arNavInteractable::setMatrix( const arMatrix4& matrix ) {
 arNavManager::arNavManager() :
   _effector(1,0,0,0,0,0,0),
   _navObject() {
-  for (unsigned int i=0; i<3; i++) {
+  for (unsigned i=0; i<3; i++) {
     _transSpeeds[i] = 5.;
     _rotSpeeds[i] = 0.;
   }
@@ -40,7 +40,7 @@ arNavManager::arNavManager() :
 arNavManager::arNavManager( const arNavManager& nm ) :
   _effector( nm._effector ),
   _navObject( nm._navObject ) {
-  for (unsigned int i=0; i<3; i++) {
+  for (unsigned i=0; i<3; i++) {
     _transConditions[i] = nm._transConditions[i];
     _rotConditions[i] = nm._rotConditions[i];
     _transSpeeds[i] = nm._transSpeeds[i];
@@ -54,7 +54,7 @@ arNavManager& arNavManager::operator=( const arNavManager& nm ) {
     return *this;
   _effector = nm._effector;
   _navObject = nm._navObject;
-  for (unsigned int i=0; i<3; i++) {
+  for (unsigned i=0; i<3; i++) {
     _transConditions[i] = nm._transConditions[i];
     _rotConditions[i] = nm._rotConditions[i];
     _transSpeeds[i] = nm._transSpeeds[i];
@@ -67,17 +67,18 @@ arNavManager& arNavManager::operator=( const arNavManager& nm ) {
 arNavManager::~arNavManager() {
 }
 
-
 bool arNavManager::setTransCondition( char axis,
                                       arInputEventType type,
-                                      unsigned int index,
-                                      float threshold ) {
-  int axisNumber = axis - 'x';
-  if ((axisNumber < 0)||(axisNumber > 2)) {
-    cerr << "arNavManager error: invalid axis label.\n";
+                                      unsigned index,
+                                      float threshold
+				      ) {
+
+  const int axisNumber = axis - 'x';
+  if (axisNumber < 0 || axisNumber > 2) {
+    cerr << "arNavManager error: invalid axis label '" << axis << "', expected x y or z.\n";
     return false;
   }
-  arGrabCondition newCondition( type, index, threshold );
+  const arGrabCondition newCondition( type, index, threshold );
   _clearCondition( newCondition );
   if (_transConditions[axisNumber].type() != AR_EVENT_GARBAGE)
     _navObject.deleteDrag( _transConditions[axisNumber] );
@@ -88,14 +89,14 @@ bool arNavManager::setTransCondition( char axis,
 
 bool arNavManager::setRotCondition( char axis,
                                     arInputEventType type,
-                                    unsigned int index,
+                                    unsigned index,
                                     float threshold ) {
-  int axisNumber = axis - 'x';
-  if ((axisNumber < 0)||(axisNumber > 2)) {
-    cerr << "arNavManager error: invalid axis label.\n";
+  const int axisNumber = axis - 'x';
+  if (axisNumber < 0 || axisNumber > 2) {
+    cerr << "arNavManager error: invalid axis label '" << axis << "', expected x y or z.\n";
     return false;
   }
-  arGrabCondition newCondition( type, index, threshold );
+  const arGrabCondition newCondition( type, index, threshold );
   _clearCondition( newCondition );
   if (_rotConditions[axisNumber].type() != AR_EVENT_GARBAGE)
     _navObject.deleteDrag( _rotConditions[axisNumber] );
@@ -105,7 +106,7 @@ bool arNavManager::setRotCondition( char axis,
 }
 
 //bool arNavManager::setWorldRotGrabCondition( arInputEventType type,
-//                                             unsigned int index,
+//                                             unsigned index,
 //                                             float threshold ) {
 //  arGrabCondition newCondition( type, index, threshold );
 //  _clearCondition( newCondition );
@@ -117,17 +118,17 @@ bool arNavManager::setRotCondition( char axis,
 //}
 
 void arNavManager::setTransSpeed( float speed ) {
-  for (unsigned int i = 0; i<3; i++) {
+  for (unsigned i = 0; i<3; i++) {
     _transSpeeds[i] = speed;
     if (_transConditions[i].type() != AR_EVENT_GARBAGE) {
-      _navObject.setDrag( _transConditions[i],
-                          arNavTransDrag( (char)(i+'x'), speed ) );
+      _navObject.setDrag(
+        _transConditions[i], arNavTransDrag( (char)(i+'x'), speed ) );
     }
   }   
 }
 
 void arNavManager::setRotSpeed( float degPerSec ) {
-  for (unsigned int i = 0; i<3; i++) {
+  for (unsigned i = 0; i<3; i++) {
     _rotSpeeds[i] = degPerSec;
     if (_rotConditions[i].type() != AR_EVENT_GARBAGE) {
       _navObject.setDrag( _rotConditions[i],
@@ -153,7 +154,7 @@ void arNavManager::update( arInputEvent& event ) {
 }
 
 void arNavManager::_clearCondition( const arGrabCondition& condition ) {
-  for (unsigned int i = 0; i<3; i++) {
+  for (unsigned i = 0; i<3; i++) {
     if (_transConditions[i] == condition) {
       _navObject.deleteDrag( _transConditions[i] );
       _transConditions[i] = arGrabCondition();
@@ -168,4 +169,3 @@ void arNavManager::_clearCondition( const arGrabCondition& condition ) {
     _worldGrabCondition = arGrabCondition();
   }
 }
-

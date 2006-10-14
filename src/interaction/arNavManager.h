@@ -30,14 +30,14 @@ class SZG_CALL arNavManager {
     
     bool setTransCondition( char axis,
                             arInputEventType type,
-                            unsigned int index,
+                            unsigned index,
                             float threshold );
     bool setRotCondition( char axis,
                           arInputEventType type,
-                          unsigned int index,
+                          unsigned index,
                           float threshold );
 //    bool setWorldRotGrabCondition( arInputEventType type,
-//                                   unsigned int index,
+//                                   unsigned index,
 //                                   float threshold );
     void setTransSpeed( float speed );
     void setRotSpeed( float speed );
