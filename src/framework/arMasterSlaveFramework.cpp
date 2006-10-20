@@ -784,7 +784,7 @@ void arMasterSlaveFramework::swap( int windowID ) {
 
 bool arMasterSlaveFramework::onStart( arSZGClient& SZGClient ) {
   if( _startCallback && !_startCallback( *this, SZGClient ) ) {
-    ar_log_warning() << _label << " user-defined start callback failed.\n";
+    ar_log_error() << _label << " user-defined start callback failed.\n";
     return false;
   }
 

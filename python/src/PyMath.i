@@ -1073,16 +1073,24 @@ float ar_intersectRayTriangle(const arVector3& rayOrigin,
                   const arVector3& vertex2,
                   const arVector3& veretx3);
 
-bool ar_intersectLinePlane( const arVector3& linePoint,
+%{
+PyObject* ar_intersectLinePlane( const arVector3& linePoint,
                             const arVector3& lineDirection,
                             const arVector3& planePoint,
-                            const arVector3& planeNormal,
-                            float& range );
+                            const arVector3& planeNormal ) {
+  float range;
+  if (!ar_intersectLinePlane( linePoint, lineDirection, planePoint, planeNormal, range )) {
+    Py_INCREF( Py_None );
+    return Py_None;
+  }
+  return PyFloat_FromDouble( (double)range );
+}
+%}
 
-arVector3 ar_projectPointToLine( const arVector3& linePoint,
-                                 const arVector3& lineDirection,
-                                 const arVector3& otherPoint,
-                                 const float threshold = 1e-6 );
+PyObject* ar_intersectLinePlane( const arVector3& linePoint,
+                            const arVector3& lineDirection,
+                            const arVector3& planePoint,
+                            const arVector3& planeNormal );
 
 // Matrix for doing reflections in a plane. This matrix should pre-multiply
 // the object matrix on the stack (i.e. load this one on first, then multiply

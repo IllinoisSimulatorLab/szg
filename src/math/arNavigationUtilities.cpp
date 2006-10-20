@@ -138,11 +138,19 @@ arVector3 ar_pointToNavCoords( const arVector3& vec ){
 }
 
 // "vector" is just a "point" relative to the origin.  Same thing.
-
+//
+// Wrong. Or rather, what these routines do is _not_ the same
+// as e.g. ar_pointFromNavCoords(). Restored original functionality.
+// JAC 10/20/06.
+//
 arVector3 ar_vectorFromNavCoords( const arVector3& vec ) {
-  return ar_pointFromNavCoords(vec);
+  arVector3 result( ar_pointFromNavCoords(vec) 
+                    - ar_pointFromNavCoords(arVector3(0,0,0)) );
+  return result;
 }
 
 arVector3 ar_vectorToNavCoords( const arVector3& vec ){
-  return ar_pointToNavCoords(vec);
+  arVector3 result( ar_pointToNavCoords(vec) 
+                    - ar_pointToNavCoords(arVector3(0,0,0)) );
+  return result;
 }
