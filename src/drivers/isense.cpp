@@ -19,9 +19,11 @@
 #ifdef AR_USE_LINUX
 #define LINUX
 #endif
-#ifdef AR_USE_SGI
-#define HPUX /* closer to IRIX than SUN? */
-#endif
+
+// #ifdef AR_USE_SGI
+// #define HPUX /* closer to IRIX than SUN? -- not quite, compile still fails */
+// #endif
+
 #ifdef AR_USE_DARWIN
 #define MACOSX
 #endif
@@ -569,7 +571,7 @@ static void dll_unload( DLL *dll )
     void *handle = (void *) dll;
     dlclose( handle );
 #elif defined(MACOSX)
-    printf("syzygy internal error: isense.cpp darwin needs to use arSharedLib.\n");
+    printf("syzygy internal error: isense.cpp darwin needs arSharedLib.\n");
     // void *handle = (void *) dll;
     // dlclose( handle );
 #elif defined(HP) || defined(HPUX)
