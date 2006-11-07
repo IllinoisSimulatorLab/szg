@@ -129,7 +129,12 @@ bool arAppLauncher::setParameters(){
   // If the virtual computer was not explicitly set, set its name and "location".
   if (_vircomp == "NULL" && !setVircomp()){
     ar_log_warning() << _exeName << ": no virtual computer '" << _vircomp <<
-      "'.\n  (Known virtual computers are: " << _client->getVirtualComputers() << ".)\n";
+      "'.\n";
+    const string s = _client->getVirtualComputers();
+    if (s.empty())
+      ar_log_warning() << "  (No virtual computers are defined.  Have you run dbatch?)\n";
+    else
+      ar_log_warning() << "  (Known virtual computers are: " << s << ".)\n";
     return false;
   }
 

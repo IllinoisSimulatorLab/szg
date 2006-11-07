@@ -147,7 +147,7 @@ int main(int argc, char** argv){
     }
 
   arSZGClient szgClient;
-  // dex forwards rather than parses the "specical" phleet args, so this works:
+  // dex forwards rather than parses the "special" phleet args, so this works:
   //     dex smoke szgrender -szg networks/graphics=wall
   // But dex DOES parse phleet args that relate to user login, so this works:
   //     dex smoke szgrender -szg user=ben -szg server=192.168.0.1:9999
@@ -219,8 +219,11 @@ int main(int argc, char** argv){
 	cerr << argv[0] << " error: no virtual computer '" << argv[1]
 	     << "', and no szgd on host '" << argv[1]
 	     << "' or on local host '" << localhost << "'.\n";
-	cout << "  (Known virtual computers are: " <<
-	  szgClient.getVirtualComputers() << ".)\n";
+	const string s = szgClient.getVirtualComputers();
+	if (s.empty())
+	  cout << "  (No virtual computers are defined.  Have you run dbatch?)\n";
+	else
+	  cout << "  (Known virtual computers are: " << s << ".)\n";
 	return 1;
       }
     }

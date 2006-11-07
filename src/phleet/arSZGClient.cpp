@@ -2418,14 +2418,18 @@ const string& arSZGClient::getVirtualComputer(){
   return _virtualComputer;
 }
 
-// List virtual computers known by the szgserver.
+// List virtual computers known by the szgserver, space-delimited.
+// If none are known, return the empty string.
 string arSZGClient::getVirtualComputers(){
   string hint = getAllAttributes("SZG_CONF/virtual");
   // Skip over "(List):\n"
   hint = hint.erase(0, hint.find('\n') + 1);
-  string r;
+  if (hint.empty()) {
+    return "";
+  }
 
   // From each line, extract up to the first slash.
+  string r;
   unsigned a=0, b=0;
   for (;;) {
     a = hint.find('/');
