@@ -85,7 +85,7 @@ ifeq "$(PLATFORM)" "mips3"
   JOBS = 4
 else
 ifeq "$(PLATFORM)" "mips4"
-  JOBS = 8
+  JOBS = 16
 else
 ifeq "$(PLATFORM)" "darwin"
   JOBS = 2
