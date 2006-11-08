@@ -95,16 +95,16 @@ int main(int argc, char** argv){
     if (!strcmp(argv[i],"-lt")){
       // The next arg must be a timeout, in seconds.
       if (argc <= i+1){
-	cerr << "dex error: a timeout in seconds must follow the -lt option.\n";
-	return 1;
+        cerr << "dex error: a timeout in seconds must follow the -lt option.\n";
+        return 1;
       }
       if (!ar_stringToFloatValid( string(argv[i+1]), t )) {
-	cerr << "dex error: the local timeout must be a number.\n";
+        cerr << "dex error: the local timeout must be a number.\n";
         return 1;
       }
       if (t <= 0.){
-	cerr << "dex error: the local timeout must be a number of seconds > 0.\n";
-	return 1;
+        cerr << "dex error: the local timeout must be a number of seconds > 0.\n";
+        return 1;
       } else {
         msecTimeoutLocal = int(t*1000);
         cout << "dex remark: local timeout = " << msecTimeoutLocal << " milliseconds.\n";
@@ -117,16 +117,16 @@ int main(int argc, char** argv){
     if (!strcmp(argv[i],"-t")){
       // The next arg must be a remote timeout, in seconds.
       if (argc <= i+1){
-	cerr << "dex error: a timeout in seconds must follow the -t option.\n";
-	return 1;
+        cerr << "dex error: a timeout in seconds must follow the -t option.\n";
+        return 1;
       }
       if (!ar_stringToFloatValid( string(argv[i+1]), t )) {
-	cerr << "dex error: the timeout must be a number.\n";
+        cerr << "dex error: the timeout must be a number.\n";
         return 1;
       }
       if (t <= 0.){
-	cerr << "dex error: the timeout must be a number of seconds > 0.\n";
-	return 1;
+        cerr << "dex error: the timeout must be a number of seconds > 0.\n";
+        return 1;
       } else {
         msecTimeoutRemote = int(t*1000);
         cout << "dex remark: remote timeout = " << msecTimeoutRemote << " milliseconds.\n";
@@ -182,8 +182,7 @@ int main(int argc, char** argv){
     // Execute on the local machine.
     hostName = localhost;
     exeName = argv[1];
-  }
-  else {
+  } else {
     // The over-riding consideration is:
     //  "Are we running on a virtual computer?"
     runningOnVirtual = isVirtualComputer(szgClient, argv[1]);
@@ -200,30 +199,14 @@ int main(int argc, char** argv){
         }
       }
     } else {
-      // Otherwise, pack the args like so...
-      if (isRunningSzgd(localhost.c_str())) {
-        cout << argv[0] << " remark: interpreting " << argv[1]
-             << " as executable name.\n";
-              // Run argv[1..] on localhost.
-        hostName = localhost;
-        for (i=1; i<argc; ++i) {
-          exeName.append(argv[i]);
-          // Don't send an extra space to szgd
-          if (i != argc-1) {
-            exeName.append(" ");
-          }
-        }
-      } else {
-        cerr << argv[0] << " error: no virtual computer '" << argv[1]
-             << "', and no szgd on host '" << argv[1]
-             << "' or on local host '" << localhost << "'.\n";
-        const string s = szgClient.getVirtualComputers();
-        if (s.empty())
-          cout << "  (No virtual computers are defined.  Have you run dbatch?)\n";
-        else
-          cout << "  (Known virtual computers are: " << s << ".)\n";
-        return 1;
-      }
+      cerr << argv[0] << " error: no virtual computer '" << argv[1]
+           << "', and no szgd on host '" << argv[1] << "'.\n";
+      const string s = szgClient.getVirtualComputers();
+      if (s.empty())
+        cout << "  (No virtual computers are defined.  Have you run dbatch?)\n";
+      else
+        cout << "  (Known virtual computers are: " << s << ".)\n";
+      return 1;
     }
   }
 

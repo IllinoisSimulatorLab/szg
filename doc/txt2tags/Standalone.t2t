@@ -14,7 +14,7 @@ programs to work.
 In this chapter, you'll learn about Syzygy configuration and running Syzygy
 programs without a cluster ("standalone" mode). You should pay particular
 attention to how environment variables and a configuration file (by default
-called szg_parameters.txt) provide configuration information.
+named either szg_parameters.xml or szg_parameters.txt) provide configuration information.
 
 Sometimes convenience dictates that Syzygy should scale down its operations.
 Cluster software operation has more overhead, from an administrative and user
@@ -84,7 +84,8 @@ for configuring a graphics display.
 When a Syzygy program runs in standalone
 mode (but not in Phleet mode), it tries to load a local parameter database
 (which can, confusingly, contain both local and global parameters) from a file.
-By default, the program tries to load the file szg_parameters.txt in its
+By default, the program tries to load the file szg_parameters.xml or 
+szg_parameters.txt in its
 current working directory. However, the file name can be overriden by a
 special command line arg (assuming the program has been correctly written
 to give the undelying framework first shot at manipulating the command-line):
@@ -102,7 +103,7 @@ If the program cannot open the specified config file and the environment
 variable SZG_PARAM is set, it will use SZG_PARAM's value as a file name and
 try to load that file.
 
-Local parameters are stored (in a config file such as szg_parameters.txt)
+Local parameters are stored (in a config file such as szg_parameters.xml)
 like this:
 
 ```
@@ -202,10 +203,10 @@ assign tag) control where Syzygy
 programs look for data, textures, and sounds, as explained
 [here SystemConfiguration.html]. They also specify the
 default screen name, which, in this case is the global parameter
-"head_mounted". You save the config file (as szg_parameters.txt) and
+"head_mounted". You save the config file (as szg_parameters.xml) and
 experiment with modifying "head_mounted" to see how the window changes.
 
-If you are in the directory with your szg_parameters.txt file, try running:
+If you are in the directory with your szg_parameters.xml file, try running:
 
 ```
 parade

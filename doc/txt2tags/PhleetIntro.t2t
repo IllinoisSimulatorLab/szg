@@ -714,7 +714,8 @@ variable/value pairs of the following:
   parameter_file=parameter_file_name
    If the application is running in standalone mode (i.e. no distribution),
    it reads its parameter database from a file in its current working
-   directory. The default file name is szg_parameters.txt, but this can
+   directory. By default it looks for szg_parameters.xml and then
+   szg_parameters.txt, but this can
    be changed by passing this special parameter.
   user=syzygy_user_name
     The user under whose auspices the syzygy application will run.

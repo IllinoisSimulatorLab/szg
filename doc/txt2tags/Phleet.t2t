@@ -301,10 +301,8 @@ for information on the dbatch file format.
 
 ==Interprocess Communications==
 ```
-   dex [-v] executable_name [args]
    dex [-v] execution_location executable_name [args]
-     If no location for executing the program is specified, the local host
-     is assumed. Otherwise, dex determines if the execution_location names
+     dex determines if the execution_location names
      a specific host or a virtual computer. If a virtual computer has been
      named, the executable is run through the szgd on the virtual computer's
      "trigger" computer and, from there, launches other processes it might
@@ -318,9 +316,14 @@ for information on the dbatch file format.
      on its start up. By default, only the contents of the final message are
      printed, but -v option makes all messages print.
      Phleet supports launching both native and Python programs. For native
-     programs on Windows hosts, ".EXE" is appended to executable_name, allowing
-     the user to use a portable, canonical name for executables across
-     Unix-like systems and Windows.
+     programs on Windows hosts, ".EXE" is automatically appended to executable_name
+     (so don't add it yourself). If executable_name ends in ".py" then it is assumed
+     to be a Python progarm.
+
+   dex [-v] executable_name
+     A special case, this launches executable_name on the local computer. No additional
+     arguments may be passed to the program.
+
 ```
 
 ```

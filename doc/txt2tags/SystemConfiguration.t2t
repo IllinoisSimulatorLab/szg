@@ -21,7 +21,7 @@ Syzygy libraries to configure your application; you can also use it for storing
 your own application parameters.
 
 In Standalone Mode, the information is read
-in from a parameter file (by default, named "szg_parameters.txt) in the
+in from a parameter file (by default, named either szg_parameters.xml or szg_parameters.txt) in the
 current directory. You make changes to the configuration by editing this
 text file before launching the application.
 

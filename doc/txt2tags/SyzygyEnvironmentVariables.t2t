@@ -61,7 +61,8 @@ Quake3 level builder).
 =Environment variables affecting the operation of Syzygy components=
 
 - SZG_PARAM: In application standalone mode, if the parameter file
-(szg_parameters.txt by default) cannot be opened, try to open this file instead.
+(szg_parameters.xml or szg_parameters.txt by default) cannot be opened,
+try to open this file instead.
 
 - SZG_CONF: The directory storing the computer's config file.
 Only set this if the default is unworkable.

@@ -12,9 +12,7 @@ compiled the [szg library GettingSoftware.html] and the Syzygy
 [Python bindings PySZG.html] or have installed a Syzygy SDK as
 appropriate for your system.
 
-First, note that you must be running in Phleet mode, as explained in the
-[introductory PhleetIntro.html] chapter about Syzygy's distributed
-OS.
+First, note that you must be running in [Cluster Mode PhleetIntro.html].
 
 You will open three fresh terminal windows on your desktop.
 
@@ -25,9 +23,11 @@ In the first, run szgd.
 In the second, type:
 
 ```
-  dex szgrender -szg virtual=foo -szg mode/graphics=SZG_DISPLAY7
-  dex inputsimulator -szg virtual=foo
+  dex <computer> szgrender -szg virtual=foo -szg mode/graphics=SZG_DISPLAY7
+  dex <computer> inputsimulator -szg virtual=foo
 ```
+
+Substitute the name of your computer as printed by ``dconfig`` for <computer>.
 
 The **virtual=foo** parameter corresponds to a virtual computer name, though you
 need not have a virtual computer named **foo** defined for this to work. Syzygy programs
@@ -43,8 +43,8 @@ is undefined).
 In the third window, type:
 
 ```
-  dex szgrender -szg virtual=bar -szg mode/graphics=SZG_DISPLAY8
-  dex inputsimulator -szg virtual=bar
+  dex <computer> szgrender -szg virtual=bar -szg mode/graphics=SZG_DISPLAY8
+  dex <computer> inputsimulator -szg virtual=bar
 ```
 
 The second szgrender window and the second inputsimulator windows will likely come
