@@ -193,38 +193,36 @@ int main(int argc, char** argv){
       // Run argv[2..] on argv[1].
       hostName = argv[1];
       for (i=2; i<argc; ++i) {
-	exeName.append(argv[i]);
-	// Don't send an extra space to szgd
-        if (i != argc-1){
-	  exeName.append(" ");
-	}
+        exeName.append(argv[i]);
+        // Don't send an extra space to szgd
+        if (i != argc-1) {
+          exeName.append(" ");
+        }
       }
-    }
-    else {
+    } else {
       // Otherwise, pack the args like so...
       if (isRunningSzgd(localhost.c_str())) {
-	cout << argv[0] << " remark: interpreting " << argv[1]
-	     << " as executable name.\n";
-        // Run argv[1..] on localhost.
-	hostName = localhost;
-	for (i=1; i<argc; ++i) {
-	  exeName.append(argv[i]);
-	  // Don't send an extra space to szgd
-	  if (i != argc-1){
-	    exeName.append(" ");
-	  }
-	}
-      }
-      else {
-	cerr << argv[0] << " error: no virtual computer '" << argv[1]
-	     << "', and no szgd on host '" << argv[1]
-	     << "' or on local host '" << localhost << "'.\n";
-	const string s = szgClient.getVirtualComputers();
-	if (s.empty())
-	  cout << "  (No virtual computers are defined.  Have you run dbatch?)\n";
-	else
-	  cout << "  (Known virtual computers are: " << s << ".)\n";
-	return 1;
+        cout << argv[0] << " remark: interpreting " << argv[1]
+             << " as executable name.\n";
+              // Run argv[1..] on localhost.
+        hostName = localhost;
+        for (i=1; i<argc; ++i) {
+          exeName.append(argv[i]);
+          // Don't send an extra space to szgd
+          if (i != argc-1) {
+            exeName.append(" ");
+          }
+        }
+      } else {
+        cerr << argv[0] << " error: no virtual computer '" << argv[1]
+             << "', and no szgd on host '" << argv[1]
+             << "' or on local host '" << localhost << "'.\n";
+        const string s = szgClient.getVirtualComputers();
+        if (s.empty())
+          cout << "  (No virtual computers are defined.  Have you run dbatch?)\n";
+        else
+          cout << "  (Known virtual computers are: " << s << ".)\n";
+        return 1;
       }
     }
   }
@@ -233,14 +231,13 @@ int main(int argc, char** argv){
   // passed-in as an arg, if such is fact a virtual computer,
   // and otherwise returns "NULL".
   string messageContext("NULL");
-  if (runningOnVirtual){
+  if (runningOnVirtual) {
     string virtualComputerTrigger(szgClient.getTrigger(hostName));
-    if (virtualComputerTrigger != "NULL"){
+    if (virtualComputerTrigger != "NULL") {
       messageContext = szgClient.createContext(
-        hostName,"default","trigger", "default","NULL");
+                        hostName,"default","trigger", "default","NULL");
       hostName = virtualComputerTrigger;
-    }
-    else{
+    } else {
       cerr << argv[0] << " error: no trigger for virtual computer '" << hostName << "'.\n";
       return 1;
     }
@@ -266,7 +263,7 @@ int main(int argc, char** argv){
     messageBody += "||||"+tempStream.str();
   } 
   int match = szgClient.sendMessage("exec", messageBody, messageContext, szgdID, true);
-  if (match < 0){
+  if (match < 0) {
     cerr << "dex error: failed to send message.\n";
     return 1;
   }
@@ -279,7 +276,7 @@ int main(int argc, char** argv){
   // We only get a message response with "match" from the tags list.
   // The variable match is filled-in with the "match" we received, which
   // is redundant in this case since there's just one thing in the list.
-  while (szgClient.getMessageResponse(tags,body,match,msecTimeoutLocal) < 0){
+  while (szgClient.getMessageResponse(tags,body,match,msecTimeoutLocal) < 0) {
     if (verbosity){
       cout << body << "\n";
     } else {

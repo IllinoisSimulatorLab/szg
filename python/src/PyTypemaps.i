@@ -30,7 +30,7 @@
   if (PyList_Check($input)) {
     $1 = new vector<int>;
     if (!$1) {
-      PyErr_SetString(PyExc_MemoryError,"failed to make new vector<long>");
+      PyErr_SetString(PyExc_MemoryError,"failed to make new vector<int>");
       return NULL;
     }
     int size = PyList_Size($input);
@@ -48,7 +48,6 @@
     return NULL;
   }
 }
-
 %typemap(freearg) (const vector<int>&) {
    if ($1) delete $1;
 }

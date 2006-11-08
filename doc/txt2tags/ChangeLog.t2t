@@ -8,9 +8,44 @@ Integrated Systems Lab
 
 %%toc
 
+=Changes in version 1.1=
+
+Syzygy 1.1. is __primarily__ a bug-fix release (and yea, there were of them a multitude).
+The most important changes:
+
+
+===Sound===
+
+Syzgy 1.1 uses FMOD 4 (ex) instead of FMOD 3. This change is transparent to the application
+programmer.
+
+
+===Configuration===
+
+The code that parses XML config files now reports errors instead of failing silently as
+it did in 1.0 (we hang our heads in shame).
+
+
+===Scene Graph===
+
+Is now extensible via new node types defined in shared library plugins
+(see szg/src/graphics/arTeapotGraphicsPlugin.cpp, called from szg/src/demo/cubes/cubes.cpp).
+No build template for creating these plugins yet, alas.
+
+
+===Documentation===
+
+Has been partially re-written for clarity.
+
+
+===Precompiled SDKs===
+
+Are no longer available; we're too under-staffed to support them. Weren't too useful anyway.
+
+
 =Changes in szg-1.0=
 
-- LICENSE CHANGE! With the unanimous agreement of those you've contributed so
+- LICENSE CHANGE! With the unanimous agreement of those who've contributed so
 far, we're moving to a BSD-style license for the base code and LGPL for the python bindings.
 - Added a logging feature, ar_log(), and partially converted the code's
 couts/cerrs/printfs to use it.

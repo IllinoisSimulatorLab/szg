@@ -61,16 +61,19 @@ float arTexFont::characterHeight(){
   return _charHeight; 
 }
 
-bool arTexFont::load(const string& font){
-  // Black pixels should be transparent.
-  const bool ok =_fontTexture.readPPM( font, 0);
+bool arTexFont::load( const string& fontFilePath, int transparentColor ) {
+  const bool ok =_fontTexture.readImage( fontFilePath, transparentColor );
   // ppm images are flipped as read in by the current buggy software.
-  if (ok){
+  if (ok) {
     _fontTexture.setTextureFunc(GL_MODULATE);
     _fontTexture.flipHorizontal();
     _fontTexture.mipmap(true);
   }
   return ok;
+}
+
+void arTexFont::setFontTexture( const arTexture& newFont ) {
+  _fontTexture = newFont;
 }
 
 void arTexFont::lineFeed(int& currentColumn, int& currentRow, arTextBox& format){
@@ -90,14 +93,13 @@ void arTexFont::advanceCursor(int& currentColumn, int& currentRow, arTextBox& fo
 
 void arTexFont::renderGlyph(int c, int& currentColumn, int& currentRow, arTextBox& format){
   // Handle whitespace. Wrap lines. ar_parseLineBreaks() already eliminated cr/lf's.
-  if (c == ' '){
+  if (c == ' ') {
     advanceCursor(currentColumn, currentRow, format);
   }
   else if (c == '\t') {
     for (int i=0; i<format.tabWidth; i++)
       advanceCursor(currentColumn, currentRow, format);
-  }
-  else{
+  } else {
     // Our font is encoded in a single texture. It is divided into a 16x16 grid, with the 0th character in the upper
     // left corner, the 1st character one to the right, the 16th character 1 below the 0th, etc.
     float texX = (c%16)/16.0;

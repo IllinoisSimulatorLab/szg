@@ -22,25 +22,28 @@ SZG_CALL list<string> ar_parseLineBreaks(const string& text);
 // Passed in to the arTexFont renderString command.
 // Also includes tab-width info.
 
-class SZG_CALL arTextBox{
+class SZG_CALL arTextBox {
  public:
   // NOTE: The height of the text box is, essentially, calculated
   // from the physical width and the proportions of the font.
-  arTextBox():
-    color(1,1,1),
-    tabWidth(2),
-    lineSpacing(1.2),
-    columns(80),
-    width(2.0),
-    upperLeft(0,0,0){}
+  arTextBox( float w=2.0, int cols=80, float spacing=1.2,
+             arVector3 upLeft=arVector3(0,0,0), arVector3 col=arVector3(1,1,1),
+             int tabW=2 ) :
+    width( w ),
+    columns( cols ),
+    lineSpacing( spacing ),
+    upperLeft( upLeft ),
+    color( col ),
+    tabWidth( tabW ) {
+    }
   ~arTextBox(){}
 
+  float width;
+  int columns;
+  float lineSpacing;
+  arVector3 upperLeft;
   arVector3 color;
   int tabWidth;
-  float lineSpacing;
-  int columns;
-  float width;
-  arVector3 upperLeft;
 };
 
 class SZG_CALL arTexFont
@@ -49,11 +52,12 @@ class SZG_CALL arTexFont
     arTexFont();
     ~arTexFont();
     
-    bool load(const string& font);
+    bool load( const string& fontFilePath,
+               int transparentColor=0 );
+    void setFontTexture( const arTexture& newFont );
     float characterWidth();
     float lineHeight(arTextBox& format);
     float characterHeight();
-    void moveCursor(int column, int row, arTextBox& format);
     void lineFeed(int& currentColumn, int& currentRow, arTextBox& format);
     void advanceCursor(int& currentColumn, int& currentRow, arTextBox& format);
     void renderGlyph(int c, int& currentColumn, int& currentRow, arTextBox& format);

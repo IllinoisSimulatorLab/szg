@@ -41,7 +41,7 @@ arSZGClient::arSZGClient():
   _inputAddresses("NULL"),
   _mode("component"),
   _graphicsMode("SZG_DISPLAY0"),
-  _parameterFileName("szg_parameters.txt"),
+  _parameterFileName("USE_DEFAULT"),
   _virtualComputer("NULL"),
   _connected(false),
   _receiveBuffer(new ARchar[15000]),
@@ -218,10 +218,20 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName){
     success = true;
     
     // Don't warn if no param file is found.
-    if (!parseParameterFile(_parameterFileName, false)){
+    bool didParams = true;
+    if (_parameterFileName == "USE_DEFAULT") {
+      if (!parseParameterFile("szg_parameters.xml", false)) {
+        if (!parseParameterFile("szg_parameters.txt", false)) {
+          didParams = false;
+        }
+      }
+    } else if (!parseParameterFile(_parameterFileName, false)) {
+      didParams = false;
+    }
+    if (!didParams) {
       const string fallbackFilename = ar_getenv("SZG_PARAM");
       if (fallbackFilename != "NULL"){
-	parseParameterFile(fallbackFilename, false);
+        parseParameterFile(fallbackFilename, false);
       }
     }
     return success;
@@ -700,17 +710,17 @@ string arSZGClient::getAttribute(const string& userName,
                                  const string& computerName,
                                  const string& groupName,
                                  const string& parameterName,
-                                 const string& validValues){
+                                 const string& validValues) {
   // If not connected, check the local database (for standalone mode).
   // If connected, go to the szgserver. In either case, upon failure,
   // check the environment variable groupName_parameterName.
   string result;
+  string tmp;
   if (!_connected){
     // In this case, we are using the local parameter file.
     result = _getAttributeLocal(computerName, groupName, parameterName,
                                 validValues);
-  }
-  else{
+  } else {
     // We are going to the szgserver for information.
     const string query(
       ((computerName == "NULL") ? _computerName : computerName) +
@@ -721,23 +731,24 @@ string arSZGClient::getAttribute(const string& userName,
     if (!getRequestData->dataInString(_l.AR_ATTR_GET_REQ_ATTR,query) ||
         !getRequestData->dataInString(_l.AR_ATTR_GET_REQ_TYPE,"value") ||
         !getRequestData->dataInString(_l.AR_PHLEET_USER,userName) ||
-        !_dataClient.sendData(getRequestData)){
+        !_dataClient.sendData(getRequestData)) {
       ar_log_warning() << _exeName << " failed to send command.\n";
-      result = string("NULL");
-    }
-    else{
+      tmp = ar_getenv(groupName+"_"+parameterName);
+      result = _changeToValidValue(groupName, parameterName, tmp, validValues);
+    } else {
+      tmp = _getAttributeResponse(match);
+      if (tmp == "NULL") {
+        tmp = ar_getenv(groupName+"_"+parameterName);
+      }
       result = _changeToValidValue(groupName, parameterName,
-                                   _getAttributeResponse(match), validValues);
+                                   tmp, validValues);
     }
     _dataParser->recycle(getRequestData);
   }
-  if (result == "NULL"){
-    // First try failed. Now try environment variable.
-    const string tmp(ar_getenv(groupName+"_"+parameterName));
-    result = _changeToValidValue(groupName, parameterName, tmp, validValues);
-  }
   return result;
 }
+
+
 
 // Returns 0 on error.
 int arSZGClient::getAttributeInt(const string& groupName,
@@ -1498,14 +1509,12 @@ int arSZGClient::sendMessage(const string& type, const string& body,
       !_dataClient.sendData(messageData)){
     ar_log_warning() << _exeName << ": message send failed.\n";
     match = -1;
-  }
-  else{
+  } else {
     arStructuredData* ack = _getTaggedData(match, _l.AR_SZG_MESSAGE_ACK);
     if (!ack){
       ar_log_warning() << _exeName << " got no message ack.\n";
       match = -1;
-    }
-    else{
+    } else {
       if (ack->getDataString(_l.AR_SZG_MESSAGE_ACK_STATUS)
             != string("SZG_SUCCESS")){
         ar_log_warning() << _exeName << ": message send failed.\n";
@@ -2916,10 +2925,18 @@ string arSZGClient::_getAttributeLocal(const string& computerName,
   const string query =
     ((computerName == "NULL") ? _computerName : computerName) + "/"
     + groupName + "/" + parameterName;
+  string tmp("NULL");
   map<string, string, less<string> >::iterator i = _localParameters.find(query);
+  if (i!=_localParameters.end()) {
+    tmp = i->second;
+  } else {
+    tmp = ar_getenv(groupName+"_"+parameterName);
+  }    
   return _changeToValidValue(groupName, parameterName,
-    (i == _localParameters.end()) ? "NULL" : i->second,
-    validValues);
+    tmp, validValues);
+//  return _changeToValidValue(groupName, parameterName,
+//    (i == _localParameters.end()) ? "NULL" : i->second,
+//    validValues);
 }
 
 // When standalone, use a locally parsed config file.

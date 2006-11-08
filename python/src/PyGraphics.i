@@ -386,7 +386,7 @@ public:
 #include "arTexFont.h"
 %}
 
-class arTextBox{
+class arTextBox {
  public:
   arTextBox();
   ~arTextBox();
@@ -399,17 +399,66 @@ class arTextBox{
   arVector3 upperLeft;
 };
 
-class arTexFont{
+class arTexFont {
  public:
   arTexFont();
   ~arTexFont();
   
-  bool load(const string& font);
+  bool load( const string& fontFilePath,
+             int transparentColor=0 );
+  void setFontTexture( const arTexture& newFont );
+  float characterWidth();
+  float characterHeight();
+  float lineHeight(arTextBox& format);
   float getTextWidth(const string& text, arTextBox& format);
   float getTextHeight(const string& text, arTextBox& format);
   void renderString(const string& text, arTextBox& format);
   bool renderFile(const string& filename, arTextBox& format);
+%extend{
+PyObject* lineFeed( int& currentColumn, int& currentRow, arTextBox& format ) {
+  int cc = currentColumn;
+  int cr = currentRow;
+  self->lineFeed( cc, cr, format );
+  PyObject* val = PyTuple_New( 2 );
+  if (!val) {
+    PyErr_SetString( PyExc_MemoryError, "unable to allocate new tuple for arTexFont.lineFeed return values." );
+    return NULL;
+  }
+  PyTuple_SetItem( val, 0, PyInt_FromLong((long)cc) );
+  PyTuple_SetItem( val, 1, PyInt_FromLong((long)cr) );
+  return val;
+}
+PyObject* advanceCursor( int& currentColumn, int& currentRow, arTextBox& format ) {
+  int cc = currentColumn;
+  int cr = currentRow;
+  self->advanceCursor( cc, cr, format );
+  PyObject* val = PyTuple_New( 2 );
+  if (!val) {
+    PyErr_SetString( PyExc_MemoryError, "unable to allocate new tuple for arTexFont.advanceCursor return values." );
+    return NULL;
+  }
+  PyTuple_SetItem( val, 0, PyInt_FromLong((long)cc) );
+  PyTuple_SetItem( val, 1, PyInt_FromLong((long)cr) );
+  return val;
+}
+PyObject* renderGlyph( int c, int& currentColumn, int& currentRow, arTextBox& format ) {
+  int cc = currentColumn;
+  int cr = currentRow;
+  self->renderGlyph( c, cc, cr, format );
+  PyObject* val = PyTuple_New( 2 );
+  if (!val) {
+    PyErr_SetString( PyExc_MemoryError, "unable to allocate new tuple for arTexFont.renderGlyph return values." );
+    return NULL;
+  }
+  PyTuple_SetItem( val, 0, PyInt_FromLong((long)cc) );
+  PyTuple_SetItem( val, 1, PyInt_FromLong((long)cr) );
+  return val;
+}
+}
+
 };  
+
+
 
 %{
 #include "arGraphicsScreen.h"

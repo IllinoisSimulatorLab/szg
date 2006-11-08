@@ -249,6 +249,34 @@ class arSZGClient{
     }
     return retTuple;
   }
+PyObject* getMessageResponse( PyObject* tags, int timeout ) {
+  int result;
+  string body;
+  int match;
+  list<int> tagList;
+  if (PyList_Check(tags)) {
+    int size = PyList_Size(tags);
+    for (int i = 0; i < size; ++i) {
+      PyObject *o = PyList_GetItem(tags,i);
+      if (PyInt_Check(o)) {
+        tagList.push_back( PyInt_AsLong(o) );
+      } else {
+        PyErr_SetString(PyExc_TypeError,"list must contain ints");
+        return NULL;
+      }
+    }
+  } else {
+    PyErr_SetString(PyExc_TypeError,"not a list");
+    return NULL;
+  }
+  result = self->getMessageResponse( tagList, body, match, timeout );
+  tagList.clear();
+  PyObject* retTuple = PyTuple_New(5);
+  PyTuple_SetItem( retTuple, 0, PyInt_FromLong( (long)result ) );
+  PyTuple_SetItem( retTuple, 1, PyInt_FromLong( (long)match ) );
+  PyTuple_SetItem( retTuple, 2, PyString_FromString( body.c_str() ) );
+  return retTuple;
+}
 }
 
   bool messageResponse(int messageID, const string& body,
