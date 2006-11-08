@@ -14,6 +14,19 @@ Syzygy 1.1. is __primarily__ a bug-fix release (and yea, there were of them a mu
 The most important changes:
 
 
+===Commands===
+
+One variant of the ``dex`` command has been eliminated (to clarify error messages).
+You may no longer run an application on the local computer by typing:
+```
+dex <app> <args>
+```
+Instead, you must type:
+```
+dex <computer> <app> <args>
+```
+
+
 ===Sound===
 
 Syzgy 1.1 uses FMOD 4 (ex) instead of FMOD 3. This change is transparent to the application
