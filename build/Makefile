@@ -21,7 +21,6 @@ ifneq ($(wildcard $(SZGHOME)/build/win32/language/arPrecompiled.pch),)
 JOBS=$(NUMBER_OF_PROCESSORS)
 endif
 endif
-SUBDIRS=$(DRVDIRS)
 
 
 all:
