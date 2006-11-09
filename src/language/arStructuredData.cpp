@@ -130,6 +130,17 @@ int arDataTypeSize(arDataType theType){
 bool arStructuredData::_fInitdumpLock = false;
 arMutex arStructuredData::_dumpLock;
 
+#ifdef AR_USE_WIN_32
+// For WinXP 64bit with 32-bit C++ compiler v12.00.8168.
+
+std::ostream& operator<<(std::ostream& os, __int64 i ) {
+  char buf[40];
+  sprintf(buf,"%I64d", i);
+  os << buf;
+  return os;
+}
+#endif
+
 void arStructuredData::dump(bool verbosity)
 {
   // Lock, so multiple threads' dump-output won't interleave.

@@ -217,6 +217,39 @@ arStructuredData* arStructuredDataParser::parse(arTextStream* textStream){
   return parse(textStream, recordBegin);
 }
 
+#ifdef AR_USE_WIN_32
+// For WinXP 64bit with 32-bit C++ compiler v12.00.8168.
+
+std::istream& operator>>(std::istream& is, __int64 &i ) {
+  while (isspace(is.peek()))
+    (void)is.get();
+  bool neg = false;
+  int c;
+  if ((c = is.get()) == '-' && isdigit(is.peek()))
+    neg = true;
+  else if (!isdigit(c)) {
+    is.setf(ios::failbit);
+    is.putback(c);
+    return is;
+  }
+  is.putback(c);
+
+  i = 0;
+  for (int k = 0; k < 19; k++) {
+    if (!isdigit((c = is.get()))) {
+      is.putback(c);
+      break;
+    }
+    if (unsigned __int64(i*10 + c-'0') < 0x7fffffffffffffff) {
+      i = i*10 + c-'0';
+    }
+  }
+  if (neg)
+    i *= -1;
+  return is;
+}
+#endif
+
 // A typical stream of XML data contains "extra" tags for
 // flow control. For instance, consider the below:
 //
