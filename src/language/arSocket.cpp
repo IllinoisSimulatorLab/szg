@@ -229,8 +229,11 @@ int arSocket::ar_listen(int queueSize){
 }
 
 // If addr != NULL, stuff it with who we accepted a connection from.
-
 int arSocket::ar_accept(arSocket* communicationSocket, arSocketAddress* addr){
+  if (!communicationSocket) {
+    cerr << "arSocket warning: can't accept on null socket.\n";
+    return -1;
+  }
   communicationSocket->_socketFD = -1;
 
   // must be called by a listening socket and operate on a standard socket

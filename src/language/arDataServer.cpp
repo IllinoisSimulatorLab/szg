@@ -222,6 +222,10 @@ bool arDataServer::removeConnection(int id){
 }
 
 arSocket* arDataServer::_acceptConnection(bool addToActive){
+  if (!_listeningSocket) {
+    ar_log_warning() << "arDataServer can't acceptConnection before beginListening.\n";
+    return NULL;
+  }
   // At one time, I thought that stability would be improved if the
   // rate at which a server could accept connections was throttled.
   // HOWEVER, the instability I was battling at the time was NOT due to
@@ -236,6 +240,7 @@ arSocket* arDataServer::_acceptConnection(bool addToActive){
     cerr << "arDataServer error: no socket in _acceptConnection.\n";
     return NULL;
   }
+
   if (_listeningSocket->ar_accept(newSocketFD, &addr) < 0) {
     ar_log_warning() << "arDataServer failed to _acceptConnection.\n";
     return NULL;
