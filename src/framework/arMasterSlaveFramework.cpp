@@ -1166,7 +1166,6 @@ void arMasterSlaveFramework::setPlayTransform( void ) {
 }
 
 void arMasterSlaveFramework::drawGraphicsDatabase( void ){
-  cout << "yoyoyo arMasterSlaveFramework::drawGraphicsDatabase;;;;\n";
   _graphicsDatabase.draw();
 }
 
