@@ -15,7 +15,7 @@ static inline float joystickScale(float j) {
   // Output: 0 ("dead zone") when input is in [-.2,.2];
   //   outside that, expand back to [-1,1], as square of input.
 
-  const float dead = 0.15;
+  const float dead = 0.07; // Casino Royale premieres in two days
   const float expand = 1. - dead;
   const float sign = j<0. ? -1. : 1.;
   j *= sign;
