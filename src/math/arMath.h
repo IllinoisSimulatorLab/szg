@@ -204,6 +204,7 @@ SZG_CALL arMatrix4 operator-(const arMatrix4&); //negation
 SZG_CALL arMatrix4 operator-(const arMatrix4&, const arMatrix4&); //subtraction
 //inverse, return all zeros if singular
 SZG_CALL arMatrix4 operator!(const arMatrix4&); 
+SZG_CALL istream& operator>>(istream&, arMatrix4&);
 SZG_CALL ostream& operator<<(ostream&, const arMatrix4&);
 SZG_CALL arLogStream& operator<<(arLogStream&, const arMatrix4&);
 

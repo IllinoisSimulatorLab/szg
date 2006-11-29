@@ -207,7 +207,14 @@ arMatrix4::operator arQuaternion() const {
                        (v[8]+v[2])*scale, 
                        (v[6]+v[9])*scale, 
                        0.25/scale );
+}
 
+istream& operator>>(istream& is, arMatrix4& x){
+  is >>x.v[0]     >>x.v[4]     >>x.v[8]     >>x.v[12]
+     >>x.v[1]     >>x.v[5]     >>x.v[9]     >>x.v[13]
+     >>x.v[2]     >>x.v[6]     >>x.v[10]    >>x.v[14]
+     >>x.v[3]     >>x.v[7]     >>x.v[11]    >>x.v[15];
+  return is;
 }
 
 ostream& operator<<(ostream& os, const arMatrix4& x){
