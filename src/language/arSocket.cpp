@@ -405,7 +405,7 @@ int arSocket::ar_safeWrite(const char* theData, int numBytes){
 
 int arSocket::getUsageCount(){
   ar_mutex_lock(&_usageLock);
-  int count = _usageCount;
+  const int count = _usageCount;
   ar_mutex_unlock(&_usageLock);
   return count;
 }
@@ -421,4 +421,3 @@ void arSocket::ar_close(){
   }
 #endif
 }
-
