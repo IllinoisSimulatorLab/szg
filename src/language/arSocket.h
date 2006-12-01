@@ -7,16 +7,13 @@
 #define AR_SOCKET_H
 
 #ifdef AR_USE_WIN_32
-// For some unknown reason, it is necessary to include this here
-// (for some apps). 
-// DO NOT INCLUDE windows.h here. Instead, do as below.
 #include "arPrecompiled.h"
-#include "arThread.h" // for arMutex in arCommunicator
 #endif
 
-#include "arSocketAddress.h"
-#include "arThread.h"
+#include "arDataUtilities.h" // for ar_timeval
 #include "arLanguageCalling.h"
+#include "arSocketAddress.h"
+#include "arThread.h" // for arMutex in arCommunicator
 
 #ifndef AR_USE_WIN_32
 #include <sys/types.h>
@@ -100,5 +97,4 @@ private:
   list<string> _acceptMask;
 };
 
-#include "arDataUtilities.h" // for ar_timeval
 #endif
