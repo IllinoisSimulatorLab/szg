@@ -130,8 +130,7 @@ int arDataTypeSize(arDataType theType){
 bool arStructuredData::_fInitdumpLock = false;
 arMutex arStructuredData::_dumpLock;
 
-#ifdef AR_USE_WIN_32
-// For WinXP 64bit with 32-bit C++ compiler v12.00.8168.
+#ifdef AR_USE_WIN_64
 
 std::ostream& operator<<(std::ostream& os, __int64 i ) {
   char buf[40];
@@ -139,6 +138,7 @@ std::ostream& operator<<(std::ostream& os, __int64 i ) {
   os << buf;
   return os;
 }
+
 #endif
 
 void arStructuredData::dump(bool verbosity)

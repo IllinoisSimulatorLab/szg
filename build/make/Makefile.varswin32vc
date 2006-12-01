@@ -17,11 +17,14 @@ EXE = .exe
 COMPILER = cl
 COMMON_COMPILE_FLAGS = -nologo -c -w -W0 -G6 -GX -D "_MBCS" \
  -D "AR_USE_WIN_32" $(SZG_OPT_FLAGS)
-# If we are using STLport (to overcome the inadequate standard c++ lib 
-# that ships with Visual Studio 6), we have to let the library know we're
-# using multiple threads.
+# If using STLport (to improve Visual Studio 6's STL), make it support multithreading.
 ifeq ($(strip $(SZG_STLPORT)),TRUE)
 	COMMON_COMPILE_FLAGS+= -D "_REENTRANT"
+endif
+ifneq ($(strip $(PROGRAMW6432)),)
+	# For WinXP 64bit with 32-bit C++ compiler v12.00.8168.
+	# Testing PROGRAMW6432's existence is a kluge.
+	COMMON_COMPILE_FLAGS+= -D "AR_USE_WIN_64"
 endif
 
 # The location of the precompiled header. Using this speeds up windows builds

@@ -180,32 +180,31 @@ arStructuredData* arStructuredDataParser::parse
   if (remoteStreamConfig.endian == AR_ENDIAN_MODE){
     return parse(buffer, end);
   }
-  else{
-    // we actually need to do translation
-    arBuffer<char>* transBuffer = getTranslationBuffer();
-    // Buffer grows if necessary.
-    // Translated data should NOT grow.
-    int size = ar_translateInt(buffer, remoteStreamConfig); 
-    // pass this back
-    end = size;
-    transBuffer->grow(size);
-    int recordID = ar_translateInt(buffer+AR_INT_SIZE, remoteStreamConfig);
-    arDataTemplate* theTemplate = _dictionary->find(recordID);
-    if (!theTemplate ||
-        theTemplate->translate(transBuffer->data, 
-                               buffer, 
-                               remoteStreamConfig) < 0) {
-      cerr << "arStructuredDataParser error: failed to translate data "
-	   << "record.\n";
-      recycleTranslationBuffer(transBuffer);
-      return NULL;
-    }
-    // The size of the data was handled already via "end=size".
-    int temp = -1;
-    arStructuredData* result = parse(transBuffer->data, temp);
+
+  // Translate.
+  arBuffer<char>* transBuffer = getTranslationBuffer();
+  // Buffer grows if necessary.
+  // Translated data should NOT grow.
+  int size = ar_translateInt(buffer, remoteStreamConfig); 
+  // pass this back
+  end = size;
+  transBuffer->grow(size);
+  int recordID = ar_translateInt(buffer+AR_INT_SIZE, remoteStreamConfig);
+  arDataTemplate* theTemplate = _dictionary->find(recordID);
+  if (!theTemplate ||
+      theTemplate->translate(transBuffer->data, 
+			     buffer, 
+			     remoteStreamConfig) < 0) {
+    cerr << "arStructuredDataParser error: failed to translate data record.\n";
     recycleTranslationBuffer(transBuffer);
-    return result;
+    return NULL;
   }
+
+  // The size of the data was handled already via "end=size".
+  int temp = -1;
+  arStructuredData* result = parse(transBuffer->data, temp);
+  recycleTranslationBuffer(transBuffer);
+  return result;
 }
 
 // Parse an XML text stream (using internal recycling if possible).
@@ -217,8 +216,7 @@ arStructuredData* arStructuredDataParser::parse(arTextStream* textStream){
   return parse(textStream, recordBegin);
 }
 
-#ifdef AR_USE_WIN_32
-// For WinXP 64bit with 32-bit C++ compiler v12.00.8168.
+#ifdef AR_USE_WIN_64
 
 std::istream& operator>>(std::istream& is, __int64 &i ) {
   while (isspace(is.peek()))
@@ -248,6 +246,7 @@ std::istream& operator>>(std::istream& is, __int64 &i ) {
     i *= -1;
   return is;
 }
+
 #endif
 
 // A typical stream of XML data contains "extra" tags for
