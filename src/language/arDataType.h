@@ -38,8 +38,9 @@ const int AR_INT64_SIZE = 8;
 
 // IDs of data types.
 
-// These type codes are encoded in binary records and must NEVER change!
-// ALWAYS ADD NEW DATA TYPES TO THE REAR (i.e. USING NEW CODES)!
+// Since these type codes are encoded in binary records,
+// for backwards compatibility only *append* new data types.
+// Never change these existing types.
 enum arDataType {
   AR_GARBAGE=0, AR_CHAR=1, AR_INT=2, AR_LONG=3, AR_FLOAT=4, AR_DOUBLE=5, AR_INT64=6
 };
