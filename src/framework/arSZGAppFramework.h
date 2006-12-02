@@ -39,8 +39,9 @@ class SZG_CALL arSZGAppFramework {
     virtual void exitFunction() = 0;
     
     // Misc. methods. common to all frameworks.
-    virtual void setDataBundlePath(const string&, const string&){}
-    virtual void loadNavMatrix(){}
+    virtual void setDataBundlePath( const string& bundlePathName,
+                          const string& bundleSubDirectory ) {}
+    virtual void loadNavMatrix() {}
     void speak( const std::string& message );
     bool setInputSimulator( arInputSimulator* sim );
     string getLabel() const { return _label; }

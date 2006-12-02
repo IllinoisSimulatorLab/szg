@@ -161,8 +161,10 @@ top level of that Python programs directory might contain library modules
 used by various programs. When you type e.g. "dex blobby.py", the target szgd
 searches through the directories listed in the SZG_PYTHON/path Syzygy
 database variable for a directory containing a file named "blobby.py".
-It then executes Python, passing "blobby.py" as a parameter. To succeed at this,
-the Python executable must be on the SZG_EXEC/path.
+It then executes Python, passing "blobby.py" as a parameter. In order for
+szgd to find Python, you must set the variable SZG_PYTHON/executable
+to the full path to the Python executable (note that on Windows you
+should omit the '.exe' suffix).
 
 Consider the following example:
 
@@ -176,7 +178,8 @@ We want to execute the file py-szg/demo/blobby/blobby.py.
 In this case, the following lines should appear in your dbatch file:
 
 ```
-  the_computer SZG_EXEC path /home/the_user/bin;/usr/bin
+  the_computer SZG_EXEC path /home/the_user/bin
+  the_computer SZG_PYTHON executable /usr/bin/python
   the_computer SZG_PYTHON path /home/the_user/py-szg/demo
 ```
 
@@ -191,8 +194,7 @@ When you type
   dex the_computer blobby.py
 ```
 
-szgd searches the SZG_EXEC path until it find the Python executable. It
-searches the SZG_PYTHON path until it finds blobby.py. It executes python,
+szgd searches the SZG_PYTHON path until it finds blobby.py. It executes python,
 with the path to blobby.py passed as a command-line argument. It modifies
 the execution environment by prepending the directory containing blobby.py
 and the directory above that to the PYTHONPATH, so that modules contained
@@ -234,7 +236,8 @@ You should be very careful to put the line
 BEFORE any imports of PyOpenGL modules in your Python code. This is
 because the PyOpenGL modules go actually try to load the GLUT dynamic library
 themselves from their local installation and this may conflict with the
-Syzygy GLUT.
+Syzygy GLUT. [ERRATUM: this may not be true anymore, since the Syzygy libraries
+no longer depend on GLUT].
 
 The Python cPickle module (for persistent storage of Python objects, either
 files or in strings) seems to be less cross-platform than
@@ -248,7 +251,10 @@ master/slave applications may run into trouble running on mixed-platform or
 clusters. We've run into a few other cases in which cPickle behaves strangely,
 throwing exceptions for no apparent reason;
 some of these can be avoided by using the slower pickle module instead (pickle is written
-in Python, cPickle in C).
+in Python, cPickle in C). Or if security is a concern, you could used twisted.spread.banana
+and twisted.spread.jelly from the [Twisted http://twistedmatrix.com/] package. Pickle is a
+security risk, because an attacker could insert arbitrary commands in a string that would
+be executed on un-pickling; only use pickle if you control both ends of a transaction.
 
 On Windows, the Python dynamic library is versioned. Consequently,
 to work with the precompiled SDK, you will need to have Python 2.2

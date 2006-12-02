@@ -545,7 +545,14 @@ name of the computer on which it runs. If it fails, it quits immediately.
 If user XXX attempts to execute a program on
 a computer YYY running szgd, the szgd instance finds the value of
 YYY/SZG_EXEC/path in the parameter database of user XXX and uses that as a
-search path for the requested executable. By convention, dynamic libraries
+search path for the requested executable. It is assumed to be a semicolon-delimited
+list of directory paths. NEW in Syzygy 1.1: szgd will also look for executables
+in subdirectories of directories on SZG_EXEC/path, and when it finds an executable
+it sets the current working directory to that directory. This allows applications
+and their data to be placed together in their own directory and allows applications to use
+the normal file commands to read files (e.g. textures) in that directory.
+
+By convention, dynamic libraries
 are assumed to live in the same directory as the executables that load them.
 Consequently, when executing a program, szgd prepends the directory in which
 the program lives to the front of environment variable giving the dynamic

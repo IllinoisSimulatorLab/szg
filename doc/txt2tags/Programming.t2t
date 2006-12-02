@@ -32,6 +32,11 @@ input device. Most importantly, these objects isolate the programmer from
 lower levels of the Syzygy library, making it more practical to evolve
 those APIs while leaving the high-level programmer API constant.
 
+Note that both frameworks support communication across different computer
+architectures and operating systems, so you can mix and match computers
+at will in your cluster. For example, the cluster could be composed of both big-endian and
+little-endian machines.
+
 Syzygy presents two paradigms for programming VR applications. The
 first is encapsulated in the arMasterSlaveFramework object. This
 framework is suited to coding cluster graphics applications where
@@ -59,7 +64,7 @@ existing applications to cluster-based operation; two of the included [sample ap
 atlantis and coaster,
 were easily ported to Syzygy from the standard GLUT distribution using
 the master/slave framework. But this flexibility means it is possible to
-write unsynchronized applications.
+write unsynchronized applications if you're not careful.
 
 Samples of both programming styles can be found under szg/src/demo.
 Please see the [examples ExampleCode.html] chapter of this
@@ -80,13 +85,12 @@ virtual arSZGAppFramework::void setUnitSoundConversion( float feet_to_program_un
 
 ```
 
-Note that, if used, the unit conversion factors should be set <span
- style="font-style: italic;">before the framework's init() method
+Note that, if used, the unit conversion factors should be set
+//before// the framework's init() method
 is called (because database parameters are read in the init(), and some
 of them may require the unit conversion factors), whereas the eye
-spacing and clipping planes should be set <span
- style="font-style: italic;">after init() (because otherwise they
-may be overridden).
+spacing and clipping planes should be set //after// init()
+(because otherwise they may be overridden).
 
 Both frameworks have a routine for accessing the Syzygy data
 path, stored on each machine in SZG_DATA/path:
@@ -136,26 +140,26 @@ different under the two frameworks, so we'll discuss that below.
 
 =Master/Slave Framework=[MasterSlave]
 
-The master/slave framework can be used to construct cluster-based
-applications with a dynamically connecting/ disconnecting set of render
-nodes. Communication across different machine architectures is supported
-so, for instance, the cluster could be composed of both big-endian and
-little-endian machines.
-The assumption is that, at each stage, a master application sends
-enough information to its connected slave applications to enable them to
-reconstruct the rendering state. For a large class of applications, this
-information is minimal in size. Slave applications can connect or
-disconnect from the master at any time. This means that it is possible
-to reconfigure displays on the fly, even to move a running program to an
-entirely new virtual environment. Note that one cannot currently write a
-master/slave application that runs on exactly N nodes and requires each
-node to start in unison.
+The master/slave framework is the more flexible of the two. Writing a
+master/slave program is conceptually similar to writing an OpenGL/GLUT
+program: Rendering is done by OpenGL calls that you write, and the
+application framework controls an event loop that calls callback functions
+that you define. The similarities are not accidental, as this framework was
+initially based on GLUT. It isn't any more, however.
 
-Please note that, while the arMasterSlaveFramework is currently
-based on GLUT, this dependency will be going away, so it is unwise to
-include GLUT calls in your application code. Furthermore, calls such as
-glutPostRedisplay() are known to cause problems with the synchronization
-methods used.
+NOTE: Starting with Syzygy 1.1, the GLUT headers are no longer automatically
+included in master/slave programs. You can still use a few of the GLUT
+rendering functions (the ones for drawing objects), but calling any
+of the other functions, such as those for window creation/manipulation,
+//will// crash your program.
+You will need to include the GLUT header if you want to use e.g. glutSolidCube()
+and similar functions. This is done differently on different platforms, so we
+have provided the new header file arGlut.h to handle this for you.
+
+The master/slave event loop consists of a number of events that occur in
+strict sequence once per 'frame'. a master application sends
+enough information to its connected slave applications to enable them to
+render the virtual scene.
 
 Now, we briefly explain the master/slave framework API. To use this
 framework, you will need to define several callbacks and define your

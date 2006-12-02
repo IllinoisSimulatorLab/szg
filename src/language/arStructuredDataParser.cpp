@@ -218,7 +218,7 @@ arStructuredData* arStructuredDataParser::parse(arTextStream* textStream){
 
 #ifdef AR_USE_WIN_64
 
-std::istream& operator>>(std::istream& is, __int64 &i ) {
+std::istream& operator>>(std::istream& is, ARint64 &i ) {
   while (isspace(is.peek()))
     (void)is.get();
   bool neg = false;

@@ -491,10 +491,8 @@ void arGraphicsDatabase::_draw(arGraphicsNode* node,
     // We are not a visibility node in an invisible state. It is OK to draw
     // the children.
     list<arDatabaseNode*> children = node->getChildren();
-    for (list<arDatabaseNode*>::iterator i = children.begin();
-	 i != children.end(); ++i) {
-      _draw((arGraphicsNode*)(*i), transformStack, context, 
-            projectionCullMatrix);
+    for (list<arDatabaseNode*>::iterator i = children.begin(); i != children.end(); ++i) {
+      _draw((arGraphicsNode*)(*i), transformStack, context, projectionCullMatrix);
     }
   }
 

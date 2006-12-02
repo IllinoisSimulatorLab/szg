@@ -383,11 +383,13 @@ bool ar_packSequenceData( PyObject* seq, std::vector<int>& typeData,
 
 // A utility function used by the master/slave framework (on the python side) to share
 // data between synchronized program instances. See initSequenceTransfer, setSequence, getSequence.
-PyObject* ar_unpackSequenceData( int** typePtrPtr, long** intPtrPtr, double** floatPtrPtr, char** charPtrPtr) {
+PyObject* ar_unpackSequenceData( int** typePtrPtr, long** intPtrPtr, double** floatPtrPtr, 
+                                 char** charPtrPtr, int** charSizePtrPtr ) {
   int* typePtr = *typePtrPtr;
   long* intDataPtr = *intPtrPtr;
   double* floatDataPtr = *floatPtrPtr;
   char* charPtr = *charPtrPtr;
+  int* charSizePtr = *charSizePtrPtr;
   int size = *typePtr++;
   PyObject* seq = PyTuple_New( size );
   if (!seq) {
@@ -405,12 +407,12 @@ PyObject* ar_unpackSequenceData( int** typePtrPtr, long** intPtrPtr, double** fl
         PyTuple_SetItem( seq, i, PyFloat_FromDouble(*floatDataPtr++) );
         break;
       case AR_CHAR:
-        stringLength = strlen( charPtr );
+        stringLength = *charSizePtr++ -1;
         PyTuple_SetItem( seq, i, PyString_FromStringAndSize( charPtr, stringLength ) );
         charPtr += stringLength+1;
         break;
       case -1:  // my arbitrary "seqeuence" type
-        nestedSequence = ar_unpackSequenceData( &typePtr, &intDataPtr, &floatDataPtr, &charPtr );
+        nestedSequence = ar_unpackSequenceData( &typePtr, &intDataPtr, &floatDataPtr, &charPtr, &charSizePtr );
         if (!nestedSequence) {
           cerr << "arMasterSlaveFramework error: failed to unpack nested sequence in ar_unpackSequenceData().\n";
           cerr << "  size = " << size << endl;
@@ -511,6 +513,10 @@ PyObject *initSequenceTransfer(char* name) {
       PyErr_SetString(PyExc_MemoryError,"unable to create transfer field");
       return NULL;
   }
+  if (!self->addInternalTransferField(nameStr+string("_CHARSIZEDATA"),AR_INT,1)) {
+      PyErr_SetString(PyExc_MemoryError,"unable to create transfer field");
+      return NULL;
+  }
   if (!self->addInternalTransferField(nameStr+string("_TYPES"),AR_INT,1)) {
       PyErr_SetString(PyExc_MemoryError,"unable to create transfer field");
       return NULL;
@@ -534,6 +540,7 @@ PyObject* setSequence( const string& nameStr, PyObject *seq ) {
   string intString = nameStr+string("_INTDATA");
   string floatString = nameStr+string("_FLOATDATA");
   string charString = nameStr+string("_CHARDATA");
+  string charSizeString = nameStr+string("_CHARSIZEDATA");
   string typeString = nameStr+string("_TYPES");
 
   int totalStringSize(0);
@@ -564,10 +571,16 @@ PyObject* setSequence( const string& nameStr, PyObject *seq ) {
     }
   }
   if (totalStringSize > 0) {
+    if (!self->setInternalTransferFieldSize( charSizeString, AR_INT, (int)stringSizeData.size() )) {
+      cerr << "arMasterSlaveFramework error: unable to resize 'stringSize' transfer field to "
+           << stringSizeData.size() << endl;
+      PyErr_SetString(PyExc_RuntimeError, "setInternalTransferFieldSize() 4 failed.");
+      return NULL;
+    }
     if (!self->setInternalTransferFieldSize( charString, AR_CHAR, totalStringSize )) {
       cerr << "arMasterSlaveFramework error: unable to resize 'stringData' transfer field to "
            << totalStringSize << endl;
-      PyErr_SetString(PyExc_RuntimeError, "setInternalTransferFieldSize() 4 failed.");
+      PyErr_SetString(PyExc_RuntimeError, "setInternalTransferFieldSize() 5 failed.");
       return NULL;
     }
   }
@@ -602,6 +615,14 @@ PyObject* setSequence( const string& nameStr, PyObject *seq ) {
     }
   }
   if (totalStringSize > 0) {
+    int* stringSizePtr=(int *)self->getTransferField( charSizeString, AR_INT, osize );
+    if (!stringSizePtr) {
+      PyErr_SetString(PyExc_MemoryError, "unable to get transfer field pointer");
+      return NULL;
+    }
+    for(i=0; i<(int)stringSizeData.size(); ++i) {
+        stringSizePtr[i] = stringSizeData[i];
+    }
     char* charPtr=(char *)self->getTransferField( charString, AR_CHAR, osize );
     if (!charPtr) {
       PyErr_SetString(PyExc_MemoryError, "unable to get transfer field pointer");
@@ -641,7 +662,14 @@ PyObject* getSequence( const string& nameStr ) {
     PyErr_SetString(PyExc_MemoryError, "unable to get transfer field pointer");
     return NULL;
   }
-  PyObject* result = ar_unpackSequenceData( &typePtr, &intDataPtr, &floatDataPtr, &charPtr );
+  int charSizeSize;
+  int* charSizePtr=(int *)self->getTransferField( nameStr+string("_CHARSIZEDATA"), AR_INT, charSizeSize );
+  if (!charSizePtr) {
+/*cerr << nameStr+string("_CHARSIZEDATA") << endl;*/
+    PyErr_SetString(PyExc_MemoryError, "unable to get charSize transfer field pointer");
+    return NULL;
+  }
+  PyObject* result = ar_unpackSequenceData( &typePtr, &intDataPtr, &floatDataPtr, &charPtr, &charSizePtr );
   if (!result) {
     cerr << "unpack sizes: " << typeSize << ", " << longSize << ", " << doubleSize << ", " << charSize << endl;
   }
