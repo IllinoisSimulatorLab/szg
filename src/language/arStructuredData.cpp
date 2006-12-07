@@ -558,8 +558,9 @@ bool arStructuredData::dataIn(int field, const void* data,
     _owned[field] = true;
   }
   _dataDimension[field] = dim;
-  if (cb != 0)
+  if (cb != 0) {
     memcpy(_dataPtr[field], data, cb);
+  }
   return true;
 }
 

@@ -293,6 +293,11 @@ arLogStream& operator<<(arLogStream& os, const arQuaternion& x){
 // general use
 //*************************
 
+
+bool ar_isPowerOfTwo( int i ) {
+  return i > 0 && (i & (i - 1)) == 0;
+}
+
 arMatrix4 ar_identityMatrix(){
   return arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
 }

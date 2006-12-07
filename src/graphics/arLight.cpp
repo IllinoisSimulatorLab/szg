@@ -7,7 +7,7 @@
 #include "arLight.h"
 #include "arGraphicsHeader.h"
 
-arLight::arLight(){
+arLight::arLight() {
   // OpenGL's defaults.
   lightID = 0;
   position = arVector4(0,0,1,0);
@@ -22,7 +22,7 @@ arLight::arLight(){
   spotExponent = 0;
 }
 
-arLight::arLight(const arLight& rhs){
+arLight::arLight(const arLight& rhs) {
   lightID = rhs.lightID;
   position = rhs.position;
   diffuse = rhs.diffuse;
@@ -36,7 +36,7 @@ arLight::arLight(const arLight& rhs){
   spotExponent = rhs.spotExponent;
 }
 
-void arLight::activateLight(arMatrix4 lightPositionTransform){
+void arLight::activateLight(arMatrix4 lightPositionTransform) {
   // convert the light ID to the OpenGL constant
   const GLenum lights[8] = {
     GL_LIGHT0, GL_LIGHT1, GL_LIGHT2, GL_LIGHT3,
@@ -55,12 +55,11 @@ void arLight::activateLight(arMatrix4 lightPositionTransform){
   const arVector3 transformedSpotDirection(
     lightPositionTransform * (spotDirection - arVector3(0,0,0)));
   
-  if (position[3] == 0){
+  if (position[3] == 0) {
     // directional light
     dir = lightPositionTransform*dir - lightPositionTransform*arVector3(0,0,0);
     transformedPosition = arVector4(dir[0],dir[1],dir[2],0);
-  }
-  else{
+  } else {
     // positional light
     // Mangle the OpenGL. The original code can specify a w-coordinate != 0 or 1,
     // which changes the final on-screen coordinate via a division. Not so here.

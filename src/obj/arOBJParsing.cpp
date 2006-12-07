@@ -14,7 +14,7 @@
 
 // Parses one line of an ASCII OBJ file
 // @param inputFile file pointer to next line to be read in
-bool arOBJ::_parseOneLine(FILE* inputFile){
+bool arOBJ::_parseOneLine(FILE* inputFile) {
   char buffer[1000] = {0};
   char* token[50] = {0};
   float x = -1.;
@@ -25,7 +25,7 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
 
   int found = 0;
   char* value = (char *)1;
-  while (!found && value){
+  while (!found && value) {
     value = fgets(buffer, sizeof(buffer)-1, inputFile);
     // Skip comment, newline, and linefeed.
     if (*buffer == '\n' || *buffer == '#' || *buffer == '\r')
@@ -33,7 +33,7 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
     else if (value)
       found = 1;
   }
-  if (!found){ // End of file
+  if (!found) { // End of file
     return false;
   }
   
@@ -50,7 +50,7 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
     return true;
 
   ///// vn: vertex normal /////
-  else if (lineType == "vn"){
+  else if (lineType == "vn") {
     x = atof(token[1]);
     y = atof(token[2]);
     z = atof(token[3]);
@@ -58,17 +58,17 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
   }
   
   ///// vt: vertex texture coord /////
-  else if (lineType == "vt"){
+  else if (lineType == "vt") {
     x = atof(token[1]);
     y = atof(token[2]); 
     _texCoord.push_back(arVector3(x,y,0));
   }
   
   ///// vp: parametric vertex /////
-  //else if (lineType == "vp"){
+  //else if (lineType == "vp") {
   
   ///// v: regular 3D vertex /////
-  else if (lineType == "v"){
+  else if (lineType == "v") {
     x = atof(token[1]);
     y = atof(token[2]);
     z = atof(token[3]);
@@ -76,21 +76,21 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
   }
 
   ///// f/fo: face /////
-  else if (lineType == "f" || lineType == "fo"){
+  else if (lineType == "f" || lineType == "fo") {
     _parseFace(numTokens, token);
   }
 
   ///// s: smoothing group /////
-  else if (lineType == "s"){
+  else if (lineType == "s") {
     const int tempName = (!strcmp(token[1], "off")) ? 0 : atoi(token[1]);
     // "off" is equivalent to zero
     unsigned int iii;
     for (iii=0; iii<_smoothingGroup.size(); iii++) // sg exists?
-      if (tempName == _smoothingGroup[iii]._name){
+      if (tempName == _smoothingGroup[iii]._name) {
         _thisSG = iii;
         break;
       }
-    if (iii == _smoothingGroup.size()){ // new smoothing group
+    if (iii == _smoothingGroup.size()) { // new smoothing group
       _smoothingGroup.push_back(arOBJSmoothingGroup());
       _thisSG = _smoothingGroup.size()-1;
       _smoothingGroup[_thisSG]._name = tempName;
@@ -98,16 +98,16 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
   }
 
   ///// usemtl /////
-  else if (lineType == "usemtl"){
+  else if (lineType == "usemtl") {
     for (i=0; i<_material.size(); i++)
-      if (!strcmp(token[1], _material[i].name)){
+      if (!strcmp(token[1], _material[i].name)) {
         _thisMaterial = i;
         break;
       }
     if (i == _material.size()) // didn't find material
       _thisMaterial = 0;
-    else if (_thisGroup){
-      for (i=0; i<_group[_thisGroup].size(); i++){
+    else if (_thisGroup) {
+      for (i=0; i<_group[_thisGroup].size(); i++) {
         if (_triangle[_group[_thisGroup][i]].material == 0)
           _triangle[_group[_thisGroup][i]].material = _thisMaterial;
       }
@@ -115,22 +115,22 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
   }
 
   ///// usemap /////
-  //else if (lineType == "usemap"){
+  //else if (lineType == "usemap") {
 
   ///// mtllib /////
-  else if (lineType == "mtllib"){
+  else if (lineType == "mtllib") {
     string matFileName;
-    if (_subdirectory == "" && _searchPath == ""){
+    if (_subdirectory == "" && _searchPath == "") {
       arPathString pathString(_fileName);
-      if (pathString.size() <= 1){
+      if (pathString.size() <= 1) {
         // Absolute filename.
-	matFileName = token[1];
-      }
-      else{
-	// Search a path.
-	const unsigned iMax = pathString.size() - 1;
-        for (i=0; i<iMax; ++i)
+        matFileName = token[1];
+      } else {
+        // Search a path.
+        const unsigned iMax = pathString.size() - 1;
+        for (i=0; i<iMax; ++i) {
           matFileName += pathString[i] + ar_pathDelimiter();
+        }
         matFileName += token[1];
       }
     }
@@ -150,14 +150,14 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
   }
 
   ///// g: group /////
-  else if (lineType == "g"){
-    for (i=0; i<_group.size(); i++){
-      if (_groupName[i] == string(token[1])){
+  else if (lineType == "g") {
+    for (i=0; i<_group.size(); i++) {
+      if (_groupName[i] == string(token[1])) {
         _thisGroup = i;
         break;
       }
     }
-    if (i == _group.size()){
+    if (i == _group.size()) {
       _groupName.push_back(string(token[1]));
       _group.push_back(vector<int>());
       _thisGroup = i;
@@ -165,7 +165,7 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
   }
 
   ///// o: object name /////
-  else if (lineType == "o"){
+  else if (lineType == "o") {
     _name = string(token[1]);
   }
 
@@ -176,11 +176,11 @@ bool arOBJ::_parseOneLine(FILE* inputFile){
 // Reads in .mtl file conforming to OBJ spec
 // @param matFile the .mtl file to read in
 // Hides colors and textures of OBJ files in the difficult .mtl file format.
-bool arOBJ::_readMaterialsFromFile(FILE* matFile){ 
+bool arOBJ::_readMaterialsFromFile(FILE* matFile) { 
   char buffer[1000] = {0};
   int typeChar = fgetc(matFile);
 
-  switch (typeChar){
+  switch (typeChar) {
   case EOF: // last line, and empty
     return false;
 
@@ -189,7 +189,7 @@ bool arOBJ::_readMaterialsFromFile(FILE* matFile){
     fseek(matFile,-1,SEEK_CUR);
     char mtlName[256] = {0};
     fscanf(matFile,"%s %s",buffer,mtlName);
-    if (!strcmp(buffer, "newmtl")){
+    if (!strcmp(buffer, "newmtl")) {
       unsigned int i;
       for (i=0; i<_material.size(); i++)
         if (strcmp(buffer, _material[i].name) == 0) {
@@ -207,7 +207,7 @@ bool arOBJ::_readMaterialsFromFile(FILE* matFile){
 
   case 'K':
     typeChar=fgetc(matFile);
-    switch (typeChar){
+    switch (typeChar) {
       float x1, y1, z1;
       case 'a':      // ambient coeff
         fscanf(matFile,"%f %f %f",&x1, &y1, &z1);
@@ -233,9 +233,9 @@ bool arOBJ::_readMaterialsFromFile(FILE* matFile){
     char mapName[256];
     fscanf(matFile,"%s %s",buffer,mapName);
     if (!strcmp(buffer,"ap_Kd"))
-      cerr << (_material[_thisMaterial].map_Kd = string(mapName)) << endl;
+      cerr << "OBJ texture image: " << (_material[_thisMaterial].map_Kd = string(mapName)) << endl;
     else if (!strcmp(buffer,"ap_Bump"))
-      cerr << (_material[_thisMaterial].map_Bump = string(mapName)) << endl;
+      cerr << "OBJ texture image: " << (_material[_thisMaterial].map_Bump = string(mapName)) << endl;
     break;
 
   case '^':       // other platform linebreaks

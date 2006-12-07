@@ -42,8 +42,7 @@ void ar_graphicsClientDraw( arGraphicsClient* c, arGraphicsWindow& win, arViewpo
     // Compute the view transform, from info in the database's viewer node.
     c->_graphicsDatabase.activateLights();
     c->_graphicsDatabase.draw(win, view);
-  }
-  else{
+  } else {
     // colored background
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();

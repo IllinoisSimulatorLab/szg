@@ -12,7 +12,6 @@
 // The classes in this file are related to geometric processing.
 
 // Bounding sphere.
-
 class SZG_CALL arBoundingSphere{
  public:
   arBoundingSphere(){ radius = 0; visibility = false; }

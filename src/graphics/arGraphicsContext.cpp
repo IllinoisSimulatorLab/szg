@@ -389,10 +389,10 @@ void arGraphicsContext::_setState(float& blendFactor, bool forceBlend){
   // Color.
   glEnable(GL_COLOR_MATERIAL);
   glColorMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE);
-  if (_materialStack.empty()){
+  if (_materialStack.empty()) {
     glColor4f(1,1,1,1);
   }
-  else{
+  else {
     arMaterialNode* mn = (arMaterialNode*) _materialStack.front();
     arMaterial* m = mn->getMaterialPtr();
     arVector4 temp(m->diffuse[0], m->diffuse[1], 

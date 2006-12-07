@@ -7,6 +7,7 @@
 #include "arDataUtilities.h"
 #include "arTexture.h" 
 #include "arLogStream.h"
+#include "arMath.h"
 
 #ifdef EnableJPEG
 extern "C"{
@@ -22,6 +23,7 @@ struct arTexture_error_mgr {
 
 arTexture::arTexture() :
   _fDirty(false),
+  _blockLoadNotPowOf2(true),
   _width(0),
   _height(0),
   _alpha(false),
@@ -48,6 +50,7 @@ arTexture::~arTexture(){
 }
 
 arTexture::arTexture( const arTexture& rhs ) :
+  _blockLoadNotPowOf2( rhs._blockLoadNotPowOf2 ),
   _width( rhs._width ),
   _height( rhs._height ),
   _alpha( rhs._alpha ),
@@ -77,6 +80,7 @@ arTexture& arTexture::operator=( const arTexture& rhs ) {
   // We must set the "dirty" flag so that this texture will be loaded into
   // OpenGL on the next try. (because we are changing the pixels)
   _fDirty = true;
+  _blockLoadNotPowOf2 = rhs._blockLoadNotPowOf2;
   _width = rhs._width;
   _height = rhs._height;
   _alpha = rhs._alpha;
@@ -100,6 +104,7 @@ arTexture& arTexture::operator=( const arTexture& rhs ) {
 arTexture::arTexture( const arTexture& rhs, 
                       unsigned int left, unsigned int bottom,
                       unsigned int width, unsigned int height ) :
+  _blockLoadNotPowOf2( rhs._blockLoadNotPowOf2 ),
   _alpha( rhs._alpha ),
   _grayScale( rhs._grayScale ),
   _repeating( rhs._repeating ),
@@ -191,7 +196,9 @@ bool arTexture::activate(bool forceRebind) {
   // Weird, glBindTexture() should handle this.
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, _textureFunc );
   if (_fDirty || forceRebind){
-    _loadIntoOpenGL();
+    if (!_loadIntoOpenGL()) {
+      return false;
+    }
   }
   return true;
 }
@@ -199,6 +206,17 @@ bool arTexture::activate(bool forceRebind) {
 void arTexture::deactivate() const {
  glDisable(GL_TEXTURE_2D);
 }
+
+
+bool arTexture::getBlockNotPowerOfTwo() const { 
+  return _blockLoadNotPowOf2;
+}
+
+void arTexture::setBlockNotPowerOfTwo( bool onoff ) {
+  _blockLoadNotPowOf2 = onoff;
+  _fDirty = true;
+}
+
 
 // Create a special texture map to indicate a missing texture.
 bool arTexture::dummy() {
@@ -321,8 +339,9 @@ bool arTexture::readPPM(const string& fileName,
   FILE* fd = ar_fileOpen(fileName, subdirectory, path, "rb");
   if (!fd){
     if (complain){
-      ar_log_warning() << "arTexture readPPM failed to open '" <<
-        fileName << "'.\n";
+      ar_log_error() << "arTexture readPPM failed to open '"
+        << fileName << "' in subdirectory '" << subdirectory
+        << "' on search path '" << path << "'.\n";
     }
     return false;
   }
@@ -708,9 +727,16 @@ char* arTexture::_packPixels(){
   return buffer;
 }
 
-void arTexture::_loadIntoOpenGL() {
+bool arTexture::_loadIntoOpenGL() {
   if (!_pixels) {
-    return;
+    return false;
+  }
+  if (_blockLoadNotPowOf2) {
+    if (!ar_isPowerOfTwo( getWidth() ) || !ar_isPowerOfTwo( getHeight() )) {
+      ar_log_error() << "arTexture::_loadIntoOpenGL() image width or height not power of two.\n";
+      _fDirty = false; // So we only get one error message.
+      return false;
+    }
   }
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
@@ -745,4 +771,5 @@ void arTexture::_loadIntoOpenGL() {
                   GL_UNSIGNED_BYTE, (GLubyte*) _pixels);
   }
   _fDirty = false;
+  return true;
 }

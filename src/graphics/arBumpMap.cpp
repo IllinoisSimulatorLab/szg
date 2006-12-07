@@ -78,8 +78,9 @@ void arBumpMap::activate() {
 void arBumpMap::reactivate(){
 }
 
-void arBumpMap::_loadIntoOpenGL() {
+bool arBumpMap::_loadIntoOpenGL() {
   _fDirtyTex = false;
+  return true;
 }
 
 void arBumpMap::_cgInit() {

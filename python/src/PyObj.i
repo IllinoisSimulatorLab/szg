@@ -44,7 +44,7 @@ class arOBJMaterial {
   arVector3 Ka;	
   char	    name[32];
   string    map_Kd;
-  string    map_Bump;	
+  string    map_Bump;
 };
 
 class arOBJTriangle {
@@ -57,7 +57,93 @@ class arOBJTriangle {
   int texCoords[3];
 };
 
-class arOBJ : public arObject{
+// Bounding sphere.
+class arBoundingSphere {
+ public:
+  arBoundingSphere();
+  arBoundingSphere(const arVector3& position, float radius);
+  arBoundingSphere(const arBoundingSphere&);
+  ~arBoundingSphere();
+
+  // Somewhat inaccurate. Only works if the matrix maps spheres to spheres.
+  void transform(const arMatrix4& m);
+  // There are three possibilities when trying to intersect two spheres.
+  // 1. They do not intersect.
+  // 2. They intersect but do not contain one another.
+  // 3. One sphere contains the other.
+  // The return value are correspondingly:
+  // -1: do not intersect, do not contain one another.
+  // >= 0: intersect or one sphere contains the other. Distance between centers.
+  float intersect(const arBoundingSphere&) const;
+  bool intersectViewFrustum(const arMatrix4&) const;
+
+%extend{
+  arVector3 getPosition(void) {
+    return self->position;
+  }
+  float getRadiu(void) {
+    return self->radius;
+  }
+}
+};
+
+// Ray, for intersection testing.
+class arRay {
+ public:
+  arRay();
+  arRay(const arVector3& origin, const arVector3& direction);
+  arRay(const arRay&);
+  ~arRay();
+
+  void transform(const arMatrix4&);
+  // Compute intersection with sphere.
+  // Return -1 if no intersection, otherwise return distance
+  float intersect(float radius, const arVector3& position);
+  float intersect(const arBoundingSphere& b);
+  const arVector3& getOrigin() const;
+  const arVector3& getDirection() const;
+};
+
+// Class for rendering in master/slave apps.
+class arOBJGroupRenderer {
+  public:
+    arOBJGroupRenderer();
+    virtual ~arOBJGroupRenderer();
+/*    bool build( arOBJRenderer* renderer,*/
+/*              const string& groupName,*/
+/*              vector<int>& thisGroup,*/
+/*              vector<arVector3>& texCoords,*/
+/*              vector<arVector3>& normals,*/
+/*              vector<arOBJTriangle>& triangles );*/
+    string getName() const { return _name; }
+    void draw();
+    void clear();
+    arBoundingSphere getBoundingSphere();
+    arAxisAlignedBoundingBox getAxisAlignedBoundingBox();
+    float getIntersection( const arRay& theRay );
+};
+
+class arOBJRenderer {
+  public:
+    arOBJRenderer();
+    virtual ~arOBJRenderer();
+    bool readOBJ(const string& fileName, const string& path="");
+    bool readOBJ(const string& fileName, const string& subdirectory, const string& path);
+    bool readOBJ(FILE* inputFile);
+    string getName() const;
+    int getNumberGroups() const;
+    arOBJGroupRenderer* getGroup( unsigned int i );
+    arOBJGroupRenderer* getGroup( const string& name );
+    void draw();
+    void clear();
+    void normalizeModelSize();
+    arBoundingSphere getBoundingSphere();
+    arAxisAlignedBoundingBox getAxisAlignedBoundingBox();
+    float getIntersection( const arRay& theRay );
+};
+
+
+class arOBJ : public arObject {
  public:
 
   arOBJ();
@@ -88,7 +174,7 @@ class arOBJ : public arObject{
   void normalizeModelSize();
 };
 
-class ar3DS : public arObject{
+class ar3DS : public arObject {
   public:
 
     ar3DS();

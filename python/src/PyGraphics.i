@@ -326,6 +326,8 @@ class arTexture {
 }
   void activate(bool forceRebind = false);
   void deactivate();
+  bool getBlockNotPowerOfTwo() const;
+  void setBlockNotPowerOfTwo( bool onoff );
 
   int getWidth()  const;
   int getHeight() const;

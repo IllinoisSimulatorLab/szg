@@ -898,10 +898,9 @@ void arGraphicsDatabase::activateLights() {
     if (_lightContainer[i].first) {
       // A light has been registered for this ID.
       const arMatrix4 lightPositionTransform(
-	_lightContainer[i].first->accumulateTransform());
+      _lightContainer[i].first->accumulateTransform());
       _lightContainer[i].second->activateLight(lightPositionTransform);
-    }
-    else {
+    } else {
       // No light in this slot. Disable.
       const GLenum lights[8] = {
         GL_LIGHT0, GL_LIGHT1, GL_LIGHT2, GL_LIGHT3,

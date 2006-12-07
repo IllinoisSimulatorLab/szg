@@ -309,6 +309,7 @@ void initGL( arMasterSlaveFramework& fw, arGUIWindowInfo* /*windowInfo*/ ) {
   }
 }
 
+
 bool init( arMasterSlaveFramework& fw, arSZGClient& /*SZGClient*/ ) {
   //  setAnaglyphMode(fw, anaglyphMode);
   initFishs();
@@ -468,6 +469,7 @@ void postExchange(arMasterSlaveFramework& fw){
   // to increase z-buffer precision.
   const arMatrix4 vt = ar_getNavInvMatrix();
   fw.setClipPlanes(nearClipDistance, farClipDistance-vt.v[14]);
+  // Ack! No longer legal to have OpenGL commands in postExchange!!!!
   if (useTexture)
     glEnable( GL_TEXTURE_2D );
   else

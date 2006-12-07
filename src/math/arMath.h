@@ -233,6 +233,8 @@ SZG_CALL arVector3 operator*(const arQuaternion&, const arVector3&);
 
 //********* utility functions ******
 
+SZG_CALL bool ar_isPowerOfTwo( int x );
+
 // Matrix creation.
 SZG_CALL arMatrix4 ar_identityMatrix();
 SZG_CALL arMatrix4 ar_translationMatrix(float,float,float);

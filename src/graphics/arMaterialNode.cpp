@@ -6,13 +6,13 @@
 #include "arPrecompiled.h"
 #include "arGraphicsDatabase.h"
 
-arMaterialNode::arMaterialNode(){
+arMaterialNode::arMaterialNode() {
   _name = "material_node";
   _typeCode = AR_G_MATERIAL_NODE;
   _typeString = "material";
 }
 
-arStructuredData* arMaterialNode::dumpData(){
+arStructuredData* arMaterialNode::dumpData() {
   // Caller is responsible for deleting.
   ar_mutex_lock(&_nodeLock);
   arStructuredData* r = _dumpData(_lMaterial, false);
@@ -20,8 +20,8 @@ arStructuredData* arMaterialNode::dumpData(){
   return r;
 }
 
-bool arMaterialNode::receiveData(arStructuredData* inData){
-  if (inData->getID() != _g->AR_MATERIAL){
+bool arMaterialNode::receiveData(arStructuredData* inData) {
+  if (inData->getID() != _g->AR_MATERIAL) {
     cerr << "arMaterialNode error: expected "
     << _g->AR_MATERIAL
     << " (" << _g->_stringFromID(_g->AR_MATERIAL) << "), not "
@@ -40,22 +40,21 @@ bool arMaterialNode::receiveData(arStructuredData* inData){
   return true;
 }
 
-arMaterial arMaterialNode::getMaterial(){
+arMaterial arMaterialNode::getMaterial() {
   ar_mutex_lock(&_nodeLock);
   arMaterial r = _lMaterial;
   ar_mutex_unlock(&_nodeLock);
   return r;
 }
 
-void arMaterialNode::setMaterial(const arMaterial& material){
-  if (active()){
+void arMaterialNode::setMaterial(const arMaterial& material) {
+  if (active()) {
     ar_mutex_lock(&_nodeLock);
     arStructuredData* r = _dumpData(material, true);
     ar_mutex_unlock(&_nodeLock);
     _owningDatabase->alter(r);
     _owningDatabase->getDataParser()->recycle(r);
-  }
-  else{
+  } else {
     ar_mutex_lock(&_nodeLock);
     _lMaterial = material;
     ar_mutex_unlock(&_nodeLock);
@@ -64,9 +63,9 @@ void arMaterialNode::setMaterial(const arMaterial& material){
 
 // NOT thread-safe.
 arStructuredData* arMaterialNode::_dumpData(const arMaterial& material,
-                                            bool owned){
+                                            bool owned) {
   arStructuredData* result = NULL;
-  if (owned){
+  if (owned) {
     result = getOwner()->getDataParser()->getStorage(_g->AR_MATERIAL);
   }
   else{

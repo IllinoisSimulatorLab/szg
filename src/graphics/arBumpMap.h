@@ -47,7 +47,7 @@ class SZG_CALL arBumpMap : public arTexture {
 
  private:
   // private functions
-  void		_loadIntoOpenGL();
+  bool		_loadIntoOpenGL();
   void		_cgInit();
   void		_computeFrame();
   void          _initMainCg();

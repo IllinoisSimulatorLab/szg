@@ -37,6 +37,8 @@ class SZG_CALL arTexture {
 
   bool activate(bool forceRebind = false);
   void deactivate() const;
+  bool getBlockNotPowerOfTwo() const;
+  void setBlockNotPowerOfTwo( bool onoff );
 
   int getWidth()  const { return _width; }
   int getHeight() const { return _height; }
@@ -88,6 +90,7 @@ class SZG_CALL arTexture {
 
  protected:
   bool _fDirty; // New _pixels need to be _loadIntoOpenGL()'d.
+  bool _blockLoadNotPowOf2;
   int _width;
   int _height;
   bool _alpha; // true iff alpha channel exists
@@ -108,7 +111,7 @@ class SZG_CALL arTexture {
   bool _reallocPixels();
   void _assignAlpha(int);
   char* _packPixels();
-  virtual void _loadIntoOpenGL();
+  virtual bool _loadIntoOpenGL();
 };
 
 #endif
