@@ -855,7 +855,9 @@ bool arOBJRenderer::readOBJ(const string& fileName,
     ar_log_error() << "arOBJRenderer::readOBJ() failed to open file \"" << fileName << "\".\n";
     return false;
   }
+  ar_log_debug() << "arOBJRenderer::readOBJ('" << fileName << "') beginning.\n";
   bool state = readOBJ(theFile);
+  ar_log_debug() << "arOBJRenderer::readOBJ('" << fileName << "') finished.\n";
   ar_fileClose(theFile);
   return state;
 }
@@ -870,10 +872,12 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
   arOBJ theFile;
   theFile._subdirectory = _subdirectory;
   theFile._searchPath = _searchPath;
+  ar_log_debug() << "arOBJRenderer::readOBJ() beginning to parse file.\n";
   if (!theFile.readOBJ( inputFile )) {
     ar_log_error() << "arOBJRenderer::readOBJ() failed to parse file.\n";
     return false;
   }
+  ar_log_debug() << "arOBJRenderer::readOBJ() done parsing file.\n";
   clear();
   
   // Copy out the name
@@ -881,12 +885,14 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
 
   // Copy out the vertices.
   _vertices.insert( _vertices.begin(), theFile._vertex.begin(), theFile._vertex.end() );
+  ar_log_debug() << "arOBJRenderer::readOBJ() done extracting vertices.\n";
 
   // Copy out the materials
   unsigned int numMaterials = theFile._material.size();
   _textures.insert( _textures.begin(), numMaterials, NULL );
   arTexture* tex;
   for (unsigned int matID=0; matID<numMaterials; ++matID) {
+    ar_log_debug() << "arOBJRenderer::readOBJ() preparing material #" << matID << ar_endl;
     arOBJMaterial& thisMaterial = theFile._material[matID];
     // NOTE: some exporters will attach a "pure black" color to anything
     // with a texture. Since by default we use GL_MODULATE with textures,
@@ -919,6 +925,7 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
       _textures[matID] = tex;
       ar_log_remark() << "arOBJRenderer::readOBJ() read texture image " << thisMaterial.map_Kd << ar_endl;
     }
+    ar_log_debug() << "arOBJRenderer::readOBJ() done preparing material #" << matID << ar_endl;
   }
 
   // Build the vertex groups

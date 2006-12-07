@@ -99,6 +99,7 @@ bool arOBJ::_parseOneLine(FILE* inputFile) {
 
   ///// usemtl /////
   else if (lineType == "usemtl") {
+    ar_log_debug() << "Found usemtl token '" << string(token[1]) << "'.\n";
     for (i=0; i<_material.size(); i++)
       if (!strcmp(token[1], _material[i].name)) {
         _thisMaterial = i;
@@ -119,6 +120,7 @@ bool arOBJ::_parseOneLine(FILE* inputFile) {
 
   ///// mtllib /////
   else if (lineType == "mtllib") {
+    ar_log_debug() << "Found mtllib tag.\n";
     string matFileName;
     if (_subdirectory == "" && _searchPath == "") {
       arPathString pathString(_fileName);
@@ -138,14 +140,14 @@ bool arOBJ::_parseOneLine(FILE* inputFile) {
       matFileName = token[1];
     }
     FILE* matFile = ar_fileOpen(matFileName,_subdirectory,_searchPath,"rb");
-    if (!matFile)
+    if (!matFile) {
       cerr << "arOBJParsing error: failed to open mtllib " << token[1] << endl
            << "  in path " << _searchPath << endl;
-    else{
-      //printf("Opened mtllib %s for reading.\n",buffer);
+    } else {
+      ar_log_debug() << "Parsing mtl file '" << matFileName << "'.\n";
       while (_readMaterialsFromFile(matFile));
       _thisMaterial = 0;
-      //printf("Closed mtllib %s.\n",buffer);
+      ar_log_debug() << "Parsed mtl file '" << matFileName << "'.\n";
     }
   }
 
@@ -162,11 +164,13 @@ bool arOBJ::_parseOneLine(FILE* inputFile) {
       _group.push_back(vector<int>());
       _thisGroup = i;
     }
+    ar_log_debug() << "Found group token '" << string(token[1]) << "'.\n";
   }
 
   ///// o: object name /////
   else if (lineType == "o") {
     _name = string(token[1]);
+    ar_log_debug() << "Found object name token '" << string(token[1]) << "'.\n";
   }
 
   ///// otherwise, ignore line /////
@@ -187,20 +191,31 @@ bool arOBJ::_readMaterialsFromFile(FILE* matFile) {
   case 'n':                   // newmtl
     {
     fseek(matFile,-1,SEEK_CUR);
-    char mtlName[256] = {0};
-    fscanf(matFile,"%s %s",buffer,mtlName);
+    char mtlNameBuf[256] = {0};
+    fscanf(matFile,"%s %s",buffer,mtlNameBuf);
+    string mtlName(mtlNameBuf);
     if (!strcmp(buffer, "newmtl")) {
+      ar_log_debug() << "Found newmtl token '" << mtlName << "'.\n";      
+      if (mtlName.size() > 64) {
+        ar_log_error() << "Material name '" << mtlName << "' is too long.\n";
+        ar_log_error() << "arOBJ cannot handle material names longer than 64 characters.\n";
+        return false;
+      }
       unsigned int i;
       for (i=0; i<_material.size(); i++)
         if (strcmp(buffer, _material[i].name) == 0) {
           _thisMaterial = i;
+          ar_log_debug() << "Material '" << mtlName << "' already exists.\n";      
           break;
         }
       if (i == _material.size()) {
+        ar_log_debug() << "Adding new material '" << mtlName << "'.\n";      
         _material.push_back(arOBJMaterial());
         _thisMaterial = _material.size()-1;
-        sprintf((_material[_thisMaterial]).name, "%s", mtlName);
+        memcpy( _material[_thisMaterial].name, mtlName.c_str(), mtlName.size()+1 );
+//        sprintf((_material[_thisMaterial]).name, "%s", mtlName);
       }
+      ar_log_debug() << "Done handling newmtl token '" << string(mtlName) << "'.\n";      
     }
     break;
     }
@@ -232,10 +247,11 @@ bool arOBJ::_readMaterialsFromFile(FILE* matFile) {
     //fseek(matFile,-1,SEEK_CUR);
     char mapName[256];
     fscanf(matFile,"%s %s",buffer,mapName);
-    if (!strcmp(buffer,"ap_Kd"))
-      cerr << "OBJ texture image: " << (_material[_thisMaterial].map_Kd = string(mapName)) << endl;
-    else if (!strcmp(buffer,"ap_Bump"))
-      cerr << "OBJ texture image: " << (_material[_thisMaterial].map_Bump = string(mapName)) << endl;
+    if (!strcmp(buffer,"ap_Kd")) {
+      ar_log_debug() << "OBJ texture image: " << (_material[_thisMaterial].map_Kd = string(mapName)) << ar_endl;
+    } else if (!strcmp(buffer,"ap_Bump")) {
+      ar_log_debug() << "OBJ texture image: " << (_material[_thisMaterial].map_Bump = string(mapName)) << ar_endl;
+    }
     break;
 
   case '^':       // other platform linebreaks

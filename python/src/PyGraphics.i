@@ -384,6 +384,35 @@ public:
   arTexture originalImage;
 };
 
+
+class arMaterial {
+ public:
+  arMaterial();
+  arMaterial(const arMaterial&);
+  ~arMaterial();
+
+  arVector3 diffuse;
+  arVector3 ambient;
+  arVector3 specular;
+  arVector3 emissive;
+  float exponent; 
+  float alpha; 
+%extend{
+  string __str__(void){
+    stringstream s;
+    s << "arMaterial\n";
+    s << "diffuse:  arVector3" << self->diffuse << "\n";
+    s << "ambient:  arVector3" << self->ambient << "\n";
+    s << "specular: arVector3" << self->specular << "\n";
+    s << "emissive: arVector3" << self->emissive << "\n";
+    s << "exponent: " << self->exponent << "\n";
+    s << "alpha:    " << self->alpha << "\n";
+    return s.str();
+  }
+}
+};
+
+
 %{
 #include "arTexFont.h"
 %}

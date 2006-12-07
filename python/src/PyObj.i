@@ -57,6 +57,36 @@ class arOBJTriangle {
   int texCoords[3];
 };
 
+// Ray, for intersection testing.
+class arRay {
+ public:
+  arRay();
+  arRay(const arVector3& origin, const arVector3& direction);
+  arRay(const arRay&);
+  ~arRay();
+
+  void transform(const arMatrix4&);
+  // Compute intersection with sphere.
+  // Return -1 if no intersection, otherwise return distance
+  float intersect(float radius, const arVector3& position);
+  float intersect(const arBoundingSphere& b);
+  const arVector3& getOrigin() const;
+  const arVector3& getDirection() const;
+  arVector3 origin;
+  arVector3 direction;
+
+%extend{
+  string __str__( void ){
+    ostringstream s;
+    s << "arRay\n";
+    s << "origin: arVector3" << self->origin << "\n";
+    s << "direction: arVector3" << self->direction << "\n";
+    return s.str();
+  }
+}
+};
+
+
 // Bounding sphere.
 class arBoundingSphere {
  public:
@@ -77,6 +107,10 @@ class arBoundingSphere {
   float intersect(const arBoundingSphere&) const;
   bool intersectViewFrustum(const arMatrix4&) const;
 
+  arVector3 position;
+  float     radius;
+  bool      visibility;
+
 %extend{
   arVector3 getPosition(void) {
     return self->position;
@@ -84,25 +118,17 @@ class arBoundingSphere {
   float getRadiu(void) {
     return self->radius;
   }
+  string __str__( void ){
+    ostringstream s;
+    s << "arBoundingSphere\n";
+    s << "position: arVector3" << self->position << "\n";
+    s << "radius: " << self->radius << "\n";
+    s << "visibility: " << self->visibility << "\n";
+    return s.str();
+  }
 }
 };
 
-// Ray, for intersection testing.
-class arRay {
- public:
-  arRay();
-  arRay(const arVector3& origin, const arVector3& direction);
-  arRay(const arRay&);
-  ~arRay();
-
-  void transform(const arMatrix4&);
-  // Compute intersection with sphere.
-  // Return -1 if no intersection, otherwise return distance
-  float intersect(float radius, const arVector3& position);
-  float intersect(const arBoundingSphere& b);
-  const arVector3& getOrigin() const;
-  const arVector3& getDirection() const;
-};
 
 // Class for rendering in master/slave apps.
 class arOBJGroupRenderer {

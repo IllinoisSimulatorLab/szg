@@ -36,7 +36,7 @@ class SZG_CALL arOBJMaterial {
   arVector3 Kd;		// diffuse color
   arVector3 Ks;		// specular color
   arVector3 Ka;		// ambient color
-  char	    name[32];	// name
+  char	    name[65];	// name
   string    map_Kd;	// texture map for base color
   string    map_Bump;	// texture map for base color
 };
