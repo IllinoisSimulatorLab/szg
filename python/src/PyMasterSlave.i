@@ -1159,19 +1159,7 @@ class arPyMasterSlaveFramework( arMasterSlaveFramework ):
     self.setKeyboardCallback( self.keyboardCallback )
     self.setUserMessageCallback( self.userMessageCallback )
     self.setExitCallback( self.exitCallback )
-    self.__usePrompt = False
-    try:
-      # Note will fail silently if python version < 2.3
-      from optparse import OptionParser
-      parser = OptionParser()
-      parser.add_option( '--prompt', \
-            action='store_true', dest='usePrompt', \
-            help='If supplied, open interactive python prompt in program.' )
-      (options,args) = parser.parse_args() # parses sys.argv[1:] by default
-      if options.usePrompt:
-        self.__usePrompt = True
-    except Exception:
-      pass
+    self.__usePrompt = '--prompt' in sys.argv
   def startCallback( self, framework, client ):
     return self.onStart( client )
   def onStart( self, client ):
