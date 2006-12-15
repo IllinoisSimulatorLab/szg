@@ -220,19 +220,19 @@ arGraphicsClient::~arGraphicsClient(){
 }
 
 // Get configuration parameters from the Syzygy database.  Setup the object.
-bool arGraphicsClient::configure(arSZGClient* client){
-  if (!client)
+bool arGraphicsClient::configure(arSZGClient* szgClient){
+  if (!szgClient)
     return false;
 
   // Configure the window manager, do the initial window parsing.
   if (!_guiParser)
-    _guiParser = new arGUIXMLParser(client);
+    _guiParser = new arGUIXMLParser(szgClient);
 
-  const string screenName = client->getMode( "graphics" );
+  const string screenName = szgClient->getMode( "graphics" );
 
   // copypaste with framework/arMasterSlaveFramework.cpp, start
   const string whichDisplay = "SZG_DISPLAY" + screenName.substr( screenName.length() - 1, 1 );
-  const string displayName = client->getAttribute( whichDisplay, "name" );
+  const string displayName = szgClient->getAttribute( whichDisplay, "name" );
 
   if (displayName == "NULL") {
     ar_log_warning() << "display " << whichDisplay << "/name undefined, using default.\n";
@@ -241,15 +241,21 @@ bool arGraphicsClient::configure(arSZGClient* client){
                     << displayName << ".\n";
   }
 
-  _guiParser->setConfig( client->getGlobalAttribute(displayName) );
+  // By default, arTexture::_loadIntoOpenGL() will abort and print an error message
+  // if you attempt to load a texture whose dimensions are not powers of two. You
+  // can override this behavior by setting this variable
+  bool textureBlockNotPowOf2 = szgClient->getAttribute( "SZG_RENDER", "block_texture_not_pow2" )!=string("false");
+  ar_setTextureBlockNotPowOf2( textureBlockNotPowOf2 );
+
+  _guiParser->setConfig( szgClient->getGlobalAttribute(displayName) );
   if (_guiParser->parse() < 0){
     ar_log_remark() << "szgrender remark: failed to parse XML configuration.\n";
   }
   // copypaste with framework/arMasterSlaveFramework.cpp, end
 
-  setTexturePath(client->getAttribute("SZG_RENDER", "texture_path"));
+  setTexturePath(szgClient->getAttribute("SZG_RENDER", "texture_path"));
   // where to look for text textures
-  string textPath = client->getAttribute("SZG_RENDER","text_path");
+  string textPath = szgClient->getAttribute("SZG_RENDER","text_path");
   ar_pathAddSlash(textPath);
   loadAlphabet(textPath.c_str());
   return true;

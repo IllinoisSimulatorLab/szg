@@ -21,9 +21,20 @@ struct arTexture_error_mgr {
 };
 #endif
 
+namespace arTextureNamespace {
+  bool blockLoadNotPowOf2(true);
+}
+
+void ar_setTextureBlockNotPowOf2( bool onoff ) {
+  arTextureNamespace::blockLoadNotPowOf2 = onoff;
+}
+
+bool ar_getTextureBlockNotPowOf2() {
+  return arTextureNamespace::blockLoadNotPowOf2;
+}
+
 arTexture::arTexture() :
   _fDirty(false),
-  _blockLoadNotPowOf2(true),
   _width(0),
   _height(0),
   _alpha(false),
@@ -50,7 +61,6 @@ arTexture::~arTexture(){
 }
 
 arTexture::arTexture( const arTexture& rhs ) :
-  _blockLoadNotPowOf2( rhs._blockLoadNotPowOf2 ),
   _width( rhs._width ),
   _height( rhs._height ),
   _alpha( rhs._alpha ),
@@ -80,7 +90,6 @@ arTexture& arTexture::operator=( const arTexture& rhs ) {
   // We must set the "dirty" flag so that this texture will be loaded into
   // OpenGL on the next try. (because we are changing the pixels)
   _fDirty = true;
-  _blockLoadNotPowOf2 = rhs._blockLoadNotPowOf2;
   _width = rhs._width;
   _height = rhs._height;
   _alpha = rhs._alpha;
@@ -104,7 +113,6 @@ arTexture& arTexture::operator=( const arTexture& rhs ) {
 arTexture::arTexture( const arTexture& rhs, 
                       unsigned int left, unsigned int bottom,
                       unsigned int width, unsigned int height ) :
-  _blockLoadNotPowOf2( rhs._blockLoadNotPowOf2 ),
   _alpha( rhs._alpha ),
   _grayScale( rhs._grayScale ),
   _repeating( rhs._repeating ),
@@ -162,7 +170,7 @@ void arTexture::unref(bool fDebug){
   }
 }
 
-bool arTexture::activate(bool forceRebind) {
+bool arTexture::activate(bool forceReload) {
   glEnable(GL_TEXTURE_2D);
   _lock.lock();
   const ARint64 threadID =
@@ -184,9 +192,8 @@ bool arTexture::activate(bool forceRebind) {
     _texNameMap.insert(map<ARint64,GLuint,less<ARint64> >::value_type
                        (threadID, temp));
     // Load the bitmap on the graphics card, anyways.
-    forceRebind = true;
-  }
-  else{
+    forceReload = true;
+  } else {
     temp = i->second;
   }
   _lock.unlock();
@@ -195,7 +202,7 @@ bool arTexture::activate(bool forceRebind) {
   // Make the scene graph use the right GL_TEXTURE_ENV_MODE to draw textures.
   // Weird, glBindTexture() should handle this.
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, _textureFunc );
-  if (_fDirty || forceRebind){
+  if (_fDirty || forceReload){
     if (!_loadIntoOpenGL()) {
       return false;
     }
@@ -205,16 +212,6 @@ bool arTexture::activate(bool forceRebind) {
 
 void arTexture::deactivate() const {
  glDisable(GL_TEXTURE_2D);
-}
-
-
-bool arTexture::getBlockNotPowerOfTwo() const { 
-  return _blockLoadNotPowOf2;
-}
-
-void arTexture::setBlockNotPowerOfTwo( bool onoff ) {
-  _blockLoadNotPowOf2 = onoff;
-  _fDirty = true;
 }
 
 
@@ -731,9 +728,9 @@ bool arTexture::_loadIntoOpenGL() {
   if (!_pixels) {
     return false;
   }
-  if (_blockLoadNotPowOf2) {
+  if (ar_getTextureBlockNotPowOf2()) {
     if (!ar_isPowerOfTwo( getWidth() ) || !ar_isPowerOfTwo( getHeight() )) {
-      ar_log_error() << "arTexture::_loadIntoOpenGL() image width or height not power of two.\n";
+      ar_log_error() << "arTexture::_loadIntoOpenGL() image width or height not power of two; aborting.\n";
       _fDirty = false; // So we only get one error message.
       return false;
     }

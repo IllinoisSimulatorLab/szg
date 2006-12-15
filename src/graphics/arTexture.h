@@ -18,6 +18,14 @@
 
 using namespace std;
 
+// What should arTexture::_loadIntoOpenGL() do if texture
+// dimensions are not powers of 2? Default is to print
+// an error message and return. To get it to try anyway
+// (will crash on some systems), call
+// ar_setTextureBlockNotPowOf2(false);
+void SZG_CALL ar_setTextureBlockNotPowOf2( bool onoff );
+bool SZG_CALL ar_getTextureBlockNotPowOf2();
+
 // Texture map loaded from a file or from memory.
 
 class SZG_CALL arTexture {
@@ -35,10 +43,8 @@ class SZG_CALL arTexture {
   arTexture* ref();
   void unref(bool debug = false);
 
-  bool activate(bool forceRebind = false);
+  bool activate(bool forceReload = false);
   void deactivate() const;
-  bool getBlockNotPowerOfTwo() const;
-  void setBlockNotPowerOfTwo( bool onoff );
 
   int getWidth()  const { return _width; }
   int getHeight() const { return _height; }
@@ -90,7 +96,6 @@ class SZG_CALL arTexture {
 
  protected:
   bool _fDirty; // New _pixels need to be _loadIntoOpenGL()'d.
-  bool _blockLoadNotPowOf2;
   int _width;
   int _height;
   bool _alpha; // true iff alpha channel exists
