@@ -227,12 +227,20 @@ bool arOBJ::attachGroup(arGraphicsNode* where, int groupID, const string& base) 
       normals[9*i+7] = _normal[currentTriangle.normals[2]][1];
       normals[9*i+8] = _normal[currentTriangle.normals[2]][2];
       if (useTexture) {
-        texCoords[6*i  ] = 1.-_texCoord[currentTriangle.texCoords[0]][0];
-        texCoords[6*i+1] =    _texCoord[currentTriangle.texCoords[0]][1];
-        texCoords[6*i+2] = 1.-_texCoord[currentTriangle.texCoords[1]][0];
-        texCoords[6*i+3] =    _texCoord[currentTriangle.texCoords[1]][1];
-        texCoords[6*i+4] = 1.-_texCoord[currentTriangle.texCoords[2]][0];
-        texCoords[6*i+5] =    _texCoord[currentTriangle.texCoords[2]][1];
+        //  This was originally being flipped. I have _no_ idea why. Some
+        //  simple test cases were clearly wrong. -JAC 121506.
+//        texCoords[6*i  ] = 1.-_texCoord[currentTriangle.texCoords[0]][0];
+//        texCoords[6*i+1] =    _texCoord[currentTriangle.texCoords[0]][1];
+//        texCoords[6*i+2] = 1.-_texCoord[currentTriangle.texCoords[1]][0];
+//        texCoords[6*i+3] =    _texCoord[currentTriangle.texCoords[1]][1];
+//        texCoords[6*i+4] = 1.-_texCoord[currentTriangle.texCoords[2]][0];
+//        texCoords[6*i+5] =    _texCoord[currentTriangle.texCoords[2]][1];
+        texCoords[6*i  ] = _texCoord[currentTriangle.texCoords[0]][0];
+        texCoords[6*i+1] = _texCoord[currentTriangle.texCoords[0]][1];
+        texCoords[6*i+2] = _texCoord[currentTriangle.texCoords[1]][0];
+        texCoords[6*i+3] = _texCoord[currentTriangle.texCoords[1]][1];
+        texCoords[6*i+4] = _texCoord[currentTriangle.texCoords[2]][0];
+        texCoords[6*i+5] = _texCoord[currentTriangle.texCoords[2]][1];
       }
     }
 
@@ -681,7 +689,10 @@ bool arOBJGroupRenderer::build( arOBJRenderer* renderer,
         if (matHasTexture) {
           for (i=0; i<3; ++i) {
             arVector3& thisTexCoord = texCoords[currentTriangle.texCoords[i]];
-            *texCoordsThisMat++ = 1.-thisTexCoord[0];
+            //  This was originally being flipped. I have _no_ idea why. Some
+            //  simple test cases were clearly wrong. -JAC 121506.
+//            *texCoordsThisMat++ = 1.-thisTexCoord[0];
+            *texCoordsThisMat++ = thisTexCoord[0];
             *texCoordsThisMat++ = thisTexCoord[1];
           }
         }

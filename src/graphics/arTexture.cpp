@@ -22,15 +22,15 @@ struct arTexture_error_mgr {
 #endif
 
 namespace arTextureNamespace {
-  bool blockLoadNotPowOf2(true);
+  bool allowLoadNotPowOf2(false);
 }
 
-void ar_setTextureBlockNotPowOf2( bool onoff ) {
-  arTextureNamespace::blockLoadNotPowOf2 = onoff;
+void ar_setTextureAllowNotPowOf2( bool onoff ) {
+  arTextureNamespace::allowLoadNotPowOf2 = onoff;
 }
 
-bool ar_getTextureBlockNotPowOf2() {
-  return arTextureNamespace::blockLoadNotPowOf2;
+bool ar_getTextureAllowNotPowOf2() {
+  return arTextureNamespace::allowLoadNotPowOf2;
 }
 
 arTexture::arTexture() :
@@ -728,10 +728,13 @@ bool arTexture::_loadIntoOpenGL() {
   if (!_pixels) {
     return false;
   }
-  if (ar_getTextureBlockNotPowOf2()) {
+  if (!ar_getTextureAllowNotPowOf2()) {
     if (!ar_isPowerOfTwo( getWidth() ) || !ar_isPowerOfTwo( getHeight() )) {
-      ar_log_error() << "arTexture::_loadIntoOpenGL() image width or height not power of two; aborting.\n";
-      _fDirty = false; // So we only get one error message.
+      ar_log_error() << "arTexture::_loadIntoOpenGL() image width or height not power of two; aborting.\n"
+                     << "      You can allow these dimensions in master/slave and distributed scene graph\n"
+                     << "      programs by setting the database variable SZG_RENDER/allow_texture_not_pow2\n"
+                     << "      to 'true' for each rendering computer--but your program may crash).\n";
+      _fDirty = false; // So we hopefully only get one error message.
       return false;
     }
   }

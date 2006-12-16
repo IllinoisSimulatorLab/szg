@@ -2787,8 +2787,7 @@ bool arSZGClient::_parseContextPair(const string& thePair){
     }
     else if (modeChannel == "graphics"){
       _graphicsMode = pair2;
-    }
-    else{
+    } else {
       ar_log_warning() << _exeName << ": parseContextPair() got invalid mode channel.\n";
       return false;
     }

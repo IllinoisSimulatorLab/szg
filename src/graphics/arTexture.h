@@ -22,9 +22,9 @@ using namespace std;
 // dimensions are not powers of 2? Default is to print
 // an error message and return. To get it to try anyway
 // (will crash on some systems), call
-// ar_setTextureBlockNotPowOf2(false);
-void SZG_CALL ar_setTextureBlockNotPowOf2( bool onoff );
-bool SZG_CALL ar_getTextureBlockNotPowOf2();
+// ar_setTextureAllowNotPowOf2(true);
+void SZG_CALL ar_setTextureAllowNotPowOf2( bool onoff );
+bool SZG_CALL ar_getTextureAllowNotPowOf2();
 
 // Texture map loaded from a file or from memory.
 
