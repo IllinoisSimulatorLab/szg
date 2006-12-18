@@ -11,6 +11,8 @@
 
 #ifdef AR_USE_WIN_32
   #include <windows.h>
+  #include <cctype>
+  #include "arSTLalgo.h"
 #else
   #include <unistd.h>
   #include <errno.h>
@@ -28,6 +30,8 @@ arMutex processCreationLock;
 string originalWorkingDirectory;
 
 arSZGClient* SZGClient = NULL;
+
+std::vector< std::string > basePathsGlobal;
 
 /*
   By convention, we assume that python apps are installed as
@@ -67,10 +71,75 @@ void doublePrintError( ostringstream& errStream, const string& msg ) {
             << msg << endl;
 }
 
+
+bool comparePathToBases( const std::string& path,
+                         const std::string& groupNameString,
+                         ostringstream& errStream ) {
+  std::vector< std::string >::const_iterator iter;
+  std::string::size_type i;
+  for (iter = basePathsGlobal.begin(); iter != basePathsGlobal.end(); ++iter) {
+    if (path.find( *iter ) == 0) {
+      return true;
+    }
+  }
+  string errMsg = "Illegal "+groupNameString+" element '"+path+"'\n"
+         + "All SZG_EXEC and SZG_PYTHON path elements and SZG_PYTHON/executable must begin\n"
+         + "     with one of the following base paths:\n"
+         + "-----------------------------------------------------\n";
+  for (iter = basePathsGlobal.begin(); iter != basePathsGlobal.end(); ++iter) {
+    errMsg += *iter + "\n";
+  }
+  errMsg += "-----------------------------------------------------\n";
+  doublePrintError( errStream, errMsg );
+  return false;
+}
+
+
+bool getBasePaths( const char* const arg ) {
+  arSemicolonString pathsString( arg );
+  for (int i=0; i<pathsString.size(); ++i) {
+    std::string pathTmp = pathsString[i];
+    bool exists;
+    bool isDirectory;
+    if (!ar_directoryExists( pathTmp, exists, isDirectory )) {
+      cerr << "szgd error: ar_directoryExists() failed (system error).\n";
+      return false;
+    }
+    if (!exists) {
+#ifdef AR_USE_WIN_32
+      bool isFile;
+      if (!ar_fileExists( pathTmp+".exe", exists, isFile )) {
+        if (!exists ) {
+          cerr << "szgd error: directory '" << pathTmp << "'\n"
+               << "            or executable '" << pathTmp+".exe\n"
+               << "            does not exist.\n";
+          return false;
+        }
+        if (!isFile ) {
+          cerr << "szgd error: executable '" << pathTmp+".exe" << "'\n"
+               << "            exists, but is not a file.\n";
+          return false;
+        }
+      }
+#else
+      cerr << "szgd error: directory '" << pathTmp << "' does not exist.\n";
+      return false;
+#endif
+    }
+#ifdef AR_USE_WIN_32
+    // convert to lowercase, for case-insensitive comparison
+    std::transform( pathTmp.begin(), pathTmp.end(), pathTmp.begin(), (int(*)(int)) tolower );
+#endif
+    basePathsGlobal.push_back( pathTmp );
+  }
+  return true;
+}
+
+
 string getAppPath( const string& userName, const string& groupName, const string& appFile, 
     ostringstream& errStream ) {
-  const string appPath = SZGClient->getAttribute(
-    userName, "NULL", groupName, "path", "");
+  const string appPath = SZGClient->getAttribute( userName, "NULL", groupName, "path", "");
+  string errMsg;
   if (appPath == "NULL") {
     doublePrintError( errStream, groupName+"/path not set." );
     return "NULL";
@@ -83,10 +152,16 @@ string getAppPath( const string& userName, const string& groupName, const string
   string actualDirectory("NULL");
   list<string> dirsToSearch;
   list<string>::iterator dirIter;
-  string errMsg;
   // Construct a list of directories to search depth-first.
   for (int i=0; i<appSearchPath.size(); ++i) {
     string currPathElement = appSearchPath[i];
+#ifdef AR_USE_WIN_32
+    // convert to lowercase, for case-insensitive comparison
+    std::transform( currPathElement.begin(), currPathElement.end(), currPathElement.begin(), (int(*)(int)) tolower );
+#endif
+    if (!comparePathToBases( currPathElement, groupName+"/path", errStream )) {
+      return "NULL";
+    }
     bool dirExists;
     bool isDirectory;
     // If return value is false, 2nd & 3rd args are invalid.
@@ -208,7 +283,7 @@ public:
 //       the executable.
 // "args" is a string list of the args.... but there may be MANGLING.
 //    1. if we are executing a native program, this will be the arglist after
-//       the exename (i.e. on unix argv[1]... argv[argc-1])
+//       the exename (i.e. on unix argv[2]... argv[argc-1])
 //    2. for python, this will be the full exename plus the args.
 string buildFunctionArgs(ExecutionInfo* execInfo,
                        string& execPath,
@@ -308,20 +383,11 @@ LAbort:
     //   the environment variable SZG_PYEXE; or if not set,
     //   "python".
     const string szgPyExe = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "executable", "");
-    const string pyExeString = (szgPyExe!="NULL") ? szgPyExe : ar_getenv("SZG_PYEXE");
-    if (pyExeString == "NULL" || pyExeString == "") {
-      command = "python";
-#ifdef AR_USE_WIN_32
-      command += ".EXE";
-#endif
-      fileName = command;
-      command = ar_fileFind( fileName, "", execPath );
-      if (command == "NULL") {
-        errStream << "szgd error: no python exe '" << fileName
-             << "' on SZG_EXEC/path " << execPath << ".\n";
+    const string pyExeString = (szgPyExe!="NULL") ? szgPyExe : ar_getenv("SZG_PYTHON_executable");
+    if (pyExeString != "NULL" && pyExeString != "") {
+      if (!comparePathToBases( szgPyExe, "SZG_PYTHON/executable", errStream )) {
         goto LAbort;
       }
-    } else {
       // Handle bar-delimited cmdline args in SZG_PYEXE or SZG_PYTHON/executable
       arDelimitedString pyArgsString( pyExeString, '|' );
       command = pyArgsString[0];
@@ -340,6 +406,21 @@ LAbort:
                << "' on SZG_EXEC/path " << execPath << ".\n";
           goto LAbort;
         }
+      }
+    } else {
+      command = "python";
+#ifdef AR_USE_WIN_32
+      command += ".EXE";
+#endif
+      fileName = command;
+      command = ar_fileFind( fileName, "", execPath );
+      if (command == "NULL") {
+        errStream << "szgd error: no python exe '" << fileName
+             << "' on SZG_EXEC/path " << execPath << ".\n";
+        goto LAbort;
+      }
+      if (!comparePathToBases( command, "SZG_EXEC/path for Python", errStream )) {
+        goto LAbort;
       }
     }
     cerr << "Python command: " << command << endl;
@@ -853,6 +934,18 @@ LDone:
   goto LDone;
 }
 
+
+void printUsage() {
+  cerr << "Usage: szgd <basePaths> [-r]\n"
+       << "       'basePaths' should be a semicolon-delimited list of paths\n"
+       << "       that all legal SZG_EXEC and SZG_PYTHON path elements and SZG_PYTHON/executable\n"
+       << "       must be equal to or beneath in the directory tree.\n"
+       << "       These paths can be either directories or executables (if executables,\n"
+       << "       OMIT '.exe' on Windows).\n"
+       << "       If the optional '-r' argument is provided, szgd will repeatedly\n"
+       << "       attempt to reconnect to the Syzygy server on failure.\n";
+}
+
 int main(int argc, char** argv) {
 #ifndef AR_USE_WIN_32
   // If $DISPLAY is not 0:0, szgd creates a window on an unexpected screen.
@@ -869,6 +962,16 @@ int main(int argc, char** argv) {
   ar_log().setStream(cerr);
 #endif
 
+  if (argc < 2) {
+    printUsage();
+    return 1;
+  }
+  
+  if (!getBasePaths( argv[1] )) {
+    printUsage();
+    return 1;
+  }
+
   const int argcOriginal = argc;
   // We don't need an original copy of argv, because it doesn't get modified.
 
@@ -877,7 +980,7 @@ LRetry:
   SZGClient = new arSZGClient;
   // Force the component's name, because win98 can't provide it.
   const bool fInit = SZGClient->init(argc, argv, "szgd");
-  bool fRetry = argc > 1 && !strcmp(argv[1], "-r");
+  bool fRetry = argc > 2 && !strcmp(argv[2], "-r");
   if (!*SZGClient) {
     if (fRetry) {
       delete SZGClient;
