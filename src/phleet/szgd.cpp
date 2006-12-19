@@ -75,14 +75,19 @@ void doublePrintError( ostringstream& errStream, const string& msg ) {
 bool comparePathToBases( const std::string& path,
                          const std::string& groupNameString,
                          ostringstream& errStream ) {
+  std::string localPath( path );
+#ifdef AR_USE_WIN_32
+    // convert to lowercase, for case-insensitive comparison
+    std::transform( localPath.begin(), localPath.end(), localPath.begin(), (int(*)(int)) tolower );
+#endif
   std::vector< std::string >::const_iterator iter;
   std::string::size_type i;
   for (iter = basePathsGlobal.begin(); iter != basePathsGlobal.end(); ++iter) {
-    if (path.find( *iter ) == 0) {
+    if (localPath.find( *iter ) == 0) {
       return true;
     }
   }
-  string errMsg = "Illegal "+groupNameString+" element '"+path+"'\n"
+  string errMsg = "Illegal "+groupNameString+" element '"+localPath+"'\n"
          + "All SZG_EXEC and SZG_PYTHON path elements and SZG_PYTHON/executable must begin\n"
          + "     with one of the following base paths:\n"
          + "-----------------------------------------------------\n";
@@ -155,10 +160,6 @@ string getAppPath( const string& userName, const string& groupName, const string
   // Construct a list of directories to search depth-first.
   for (int i=0; i<appSearchPath.size(); ++i) {
     string currPathElement = appSearchPath[i];
-#ifdef AR_USE_WIN_32
-    // convert to lowercase, for case-insensitive comparison
-    std::transform( currPathElement.begin(), currPathElement.end(), currPathElement.begin(), (int(*)(int)) tolower );
-#endif
     if (!comparePathToBases( currPathElement, groupName+"/path", errStream )) {
       return "NULL";
     }
@@ -424,6 +425,16 @@ LAbort:
       }
     }
     cerr << "Python command: " << command << endl;
+    const string szgPythonLibPath =
+               SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "lib_path", "");
+    if (szgPythonLibPath != "NULL") {
+      arSemicolonString pyLibs( szgPythonLibPath );
+      for (int q=0; q<pyLibs.size(); ++q) {
+        if (!comparePathToBases( pyLibs[q], "SZG_PYTHON/lib_path", errStream )) {
+          goto LAbort;
+        }
+      }
+    }
 
   } else {
     errStream << "szgd error: unexpected exe type '" << execInfo->executableType << "'.\n";
@@ -511,7 +522,7 @@ void execProcess(void* i){
   const string messageBody(execInfo->messageBody);
   int receivedMessageID = execInfo->receivedMessageID; 
 
-  stringstream info;
+  ostringstream info;
   info << endl << "The program failed to launch!" << endl;
   // Respond to the message ourselves if the exe doesn't launch.
   info << "user=" << userName
