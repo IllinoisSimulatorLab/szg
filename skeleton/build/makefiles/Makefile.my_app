@@ -1,0 +1,57 @@
+
+# Source files are located relative to the final Makefile location
+# this line needs to come *before* the Makefile.defines inclusion.
+# The ../../src is correct for the standard portable application
+# development directory tree (which lets you develop for all supported
+# szg platforms simultaneously).
+VPATH=../../src
+
+# this includes all the definitions
+include $(SZGHOME)/build/make/Makefile.vars
+
+# Every executable file should be listed below, seperated by spaces.
+# NOTE: you must use the $(EXE) for compatibility between Unix and Win32.
+ALL := skeleton$(EXE) oopskel$(EXE)
+
+# After defining the "magic" variable "ALL", go ahead and define the targets
+# in the following include.
+include $(SZGHOME)/build/make/Makefile.rules
+
+# Here should go any object files you need compiled to link with your
+# executable, in the format foo$(OBJ_SUFFIX) to ensure portability.
+# If you have no intermediate objects, it is OK for this to be blank, i.e.
+#
+# OBJS := 
+#
+# or
+#
+# OBJS := my_obj_1$(OBJ_SUFFIX) my_obj_2$(OBJ_SUFFIX_2) my_obj_3$(OBJ_SUFFIX)
+#
+OBJS := 
+
+# It is possible to add flags to the compile line like so. All executables
+# and objects will be compiled with this flag.
+# COMPILE_FLAGS += -DMY_COMPILE_FLAG
+
+# Include directories can be added like so:
+# SZG_INCLUDE += \
+#	-I$(MY_INCLUDE_DIRECTORY_1)
+#	-I$(MY_INCLUDE_DIRECTORY_2)
+#
+
+# Additional libraries can be added like so:
+# SZG_OPTIONAL_LIBS += $(MY_NEW_LIBRARY_1) $(MY_NEW_LIBRARY_2)
+
+# A similar link line should appear for all of your generated exe's:
+# my_app$(EXE): my_app$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBRARY_DEPS)
+#	$(SZG_USR_FIRST) my_app$(OBJ_SUFFIX) $(OBJS) $(SZG_USR_SECOND)
+#	$(COPY)
+
+skeleton$(EXE): skeleton$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) skeleton$(OBJ_SUFFIX) $(OBJS) $(SZG_USR_SECOND)
+	$(COPY)
+
+oopskel$(EXE): oopskel$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBRARY_DEPS)
+	$(SZG_USR_FIRST) oopskel$(OBJ_SUFFIX) $(OBJS) $(SZG_USR_SECOND)
+	$(COPY)
+
