@@ -7,13 +7,12 @@ Integrated Systems Lab
 %!options: --headers --toc --toc-level=1
 %!encoding: iso-8859-1
 
+
 Syzygy's build system is designed to let you compile your software using
 the optional supporting libraries but without installing them in a standard
 system location. This allows non-root users to compile Syzygy with supporting
 libraries. The build system expects the "external" libraries to be installed
-in a directory given by the SZGEXTERNAL environment variable. You will either
-create this directory structure by hand or download an external directory
-as part of the SDK.
+in a directory given by the SZGEXTERNAL environment variable.
 
 The Syzygy makefiles (via szg/build/make/Makefile.libscan) will
 automatically detect the presence of the libraries, given that they are copied
@@ -21,13 +20,38 @@ to the places outlined below. See Makefile.libscan for details. This is the
 file you should change if you need to use different library versions or
 otherwise tweak this process for your local installation.
 
-- [Directory Structure of SZGEXTERNAL #SZGEXTERNAL]
-- [Use of Specific Libraries #Use]
-- [General Comments on External Libraries #General]
-- [Installing Libraries for Mac OS X (darwin) #Darwin]
-- [Installing Libraries for Linux #Linux]
-- [Installing Libraries for SGI #SGI]
-- [Installing Libraries for Windows #Windows]
+
+=General Comments on External Libraries=[General]
+
+With the possible exception of the GLUT libraries, if you do not
+properly install an optional library in SZGEXTERNAL, Syzygy programs will
+still build and run, but with certain features (such as sound) disabled.
+When an external library requires a shared library, the runtime linker must be
+able to find it. A Makefile target exists to install shared libries in
+$SZGBIN.
+```
+  cd $SZGHOME/build
+  make install-shared
+```
+
+If you have compiled your executables from scratch on a Unix system, they
+have a runtime linker path including $SZGBIN. Consequently, installing the
+shared libraries with the Syzygy executables will let the runtime linker
+find them. If you are on a Windows system, the runtime linker automatically
+searches the directory in which the executable it runs resides.
+
+If you are using a precompiled SDK on a Unix-like system, you will need
+to add the $SZGBIN to the dynamic linker's path.
+
+A note about GLUT. Syzygy compilation requires it (although
+hopefully it won't in version 1.2). Some
+systems will have in installed by default (Mac OS X). Some systems might
+or might not have it installed (Linux, SGI), and some will probably not have
+it installed (Windows). If it is installed so that the compiler will
+automatically find the header and library and the runtime linker will find the
+shared library, then you need do nothing else. Otherwise, you can either
+install GLUT like that yourself, or install it for Syzygy only in SZGEXTERNAL,
+as described below.
 
 
 =Directory Structure of SZGEXTERNAL=[SZGEXTERNAL]
@@ -36,7 +60,6 @@ The top level of the SZGEXTERNAL directory has subdirectories for each
 system (Linux, Windows, Mac OS X, SGI) that it supports. When creating
 your own SZGEXTERNAL, you do not need all of these subdirectories, since you
 might support only one or two system types.
-
 ```
   SZGEXTERNAL
     darwin
@@ -46,22 +69,21 @@ might support only one or two system types.
 
 ```
 
-We now outline the subdirectories of each system-specific directory.
-These vary, based on the supporting libraries for a particular platform.
+The subdirectories of each system-specific directory
+vary depending on the supporting libraries required on that platform.
 As a general rule, each subdirectory will contain in turn "include" and "lib"
-subdirectories.
+subdirectories for headers and libraries, respectively. Here is a list of
+libraries required for full functionality:
 
 ```
   darwin
-    fmod-3.7
+    fmod-4
     jpeg
 
 ```
 ```
   linux
-    Coin-2.3
-    VTK-4.2
-    fmod-3.7
+    fmod-4
     glut-3.7
     jpeg
     lib3ds
@@ -76,42 +98,31 @@ subdirectories.
 ```
 ```
   win32
-    Coin-2.3
-    GL
     STLport
-    VTK-4.2
     ascension
-    evart
-    fmod-3.7
+    fmod-4
     glut-3.7
     isense
     jpeg
     lib3ds
     sapi-5.1
     zlib
+    evart
 
 ```
 
 
 =Use of Specific Libraries=[Use]
 
-- Coin-2.3: A library for reading OpenInventor/ VRML models. Needed for
-VRMLView in szgdemo.
-
-- GL: q33 (a Quake3 level viewer) needs glext.h to compile. This header
-will likely not exist on a Windows installation, so it is provided here.
-
 - STLport: Visual Studio 6 (Windows) needs a replacement STL, which
 this provides.
-
-- VTK-4.2: A data visualization library needed for vtkfile in szgdemo.
 
 - ascension: Contains a Windows-only driver for the Flock-of-Birds.
 
 - evart: Contains a driver for the Motion Analysis optical motion capture
 system.
 
-- fmod-3.7: A cross-platform sound library.
+- fmod-4: A cross-platform sound library.
 
 - glut-3.7: A cross-platform OpenGL windowing library.
 
@@ -130,147 +141,12 @@ q33 and cubecake demos.
 q33 and cubecake demos.
 
 
-=General Comments on External Libraries=[General]
-
-With the possible exception of the GLUT libraries, if you do not
-properly install an optional library in SZGEXTERNAL, Syzygy programs will
-still build and run, but with certain features (such as sound) disabled.
-When an external library requires a shared library, the runtime linker must be
-able to find it. A Makefile target exists to install shared libries in
-$SZGBIN.
-
-```
-  cd $SZGHOME/build
-  make install-shared
-```
-
-If you have compiled your executables from scratch on a Unix system, they
-have a runtime linker path including $SZGBIN. Consequently, installing the
-shared libraries with the Syzygy executables will let the runtime linker
-find them. If you are on a Windows system, the runtime linker automatically
-searches the directory in which the executable it runs resides.
-
-If you are using a precompiled SDK on a Unix-like system, you will need
-to add the $SZGBIN to the dynamic linker's path.
-
-A word is required regarding GLUT. Syzygy compilation requires it. Some
-systems will have in installed by default (Mac OS X). Some systems might
-or might not have it installed (Linux, SGI), and some will probably not have
-it installed (Windows). If it is installed so that the compiler will
-automatically find the header and library and the runtime linker will find the
-shared library, then you need do nothing else. Otherwise, you can either
-install GLUT like that yourself, or install it for Syzygy only in SZGEXTERNAL,
-as described below.
-
-
-=Installing Libraries for Mac OS X (darwin)=[Darwin]
-
-- fmod-3.7
-  + For sound support, install
-  [fmod http://www.fmod.org/] version 3.7.
-  + Copy libfmod.a into $(SZGEXTERNAL)/darwin/fmod-3.7/lib.
-  + Copy these include files into $(SZGEXTERNAL)/darwin/fmod-3.7/include:
-      fmoddyn.h, fmod.h, fmod_errors.h, wincompat.h.
-  + If you don't copy these files, Syzygy will still build and run but
-      sound support will be disabled.
-
-- jpeg
-  + Either download, configure, and compile libjpeg or simply copy
-      the files that are already installed on your system
-      (try 'locate libjpeg').
-  + Make a directory $(SZGEXTERNAL)/darwin/jpeg/lib and copy
-      libjpeg.a there.
-  + Make a directory $(SZGEXTERNAL)/darwin/jpeg/include and copy
-      jconfig.h, jmorecfg.h, and jpeglib.h there.
-
-
-=Installing Libraries for Linux=[Linux]
-
-- Coin-2.3
-
-- VTK-4.2
-
-- fmod-3.7
-  + For sound support, install
-  [fmod http://www.fmod.org/] version 3.7.
-  + Copy libfmod-3.7.so into $(SZGEXTERNAL)/linux/fmod-3.7/lib.
-  + Copy these include files into $(SZGEXTERNAL)/linux/fmod-3.7/include:
-      fmoddyn.h, fmod.h, fmod_errors.h, wincompat.h.
-  + If you don't copy these files, Syzygy will still build and run but
-      sound support will be disabled.
-
-- glut-3.7
-  + Download and compile GLUT-3.7.
-  + Make a directory $(SZGEXTERNAL)/linux/glut-3.7/include/GL and
-      put glut.h there.
-  + Make a directory $(SZGEXTERNAL)/linux/glut-3.7/lib and put libglut.so.3.7
-      there. You will also need to make symbolic links like so:
-```
-      ln -s libglut.so.3.7 libglut.so.3
-      ln -s libglut.so.3 libglut.so
-```
-
-- jpeg
-  + Either download, configure, and compile libjpeg or simply copy
-      the files that are already installed on your system
-      (try 'locate libjpeg.a').
-  + Make a directory $(SZGEXTERNAL)/linux/jpeg/lib and copy
-      libjpeg.a there.
-  + Make a directory $(SZGEXTERNAL)/linux/jpeg/include and copy
-      jconfig.h, jmorecfg.h, and jpeglib.h there.
-
-- lib3ds
-  + In order to import .3ds files (Autodesk 3D Studio format), you will need
-  to build and install lib3ds. Included in $SZGHOME/contrib/ is a folder named
-  "lib3ds", which is simply the latest release of lib3ds, downloaded from the
-  [SourceForge lib3ds page http://www.sourceforge.net/projects/lib3ds/]. Follow the instructions
-  provided in $SZGHOME/contrib/lib3ds/INSTALL to build the library.
-  + Make a directory $(SZGEXTERNAL)/linux/lib3ds/include/lib3ds and copy all
-  header files there.
-  + Make a directory $(SZGEXTERNAL)/linux/lib3ds/lib and copy
-  lib3ds.a there.
-
-- vrpn
-  + Download and compile vrpn.
-  + Copy libvrpn.a to $(SZGEXTERNAL)/linux/vrpn/lib.
-  + Make a directory $(SZGEXTERNAL)/linux/vrpn/include and copy the vrpn
-      header files there. Note that only vrpn_Shared.h, vrpn_Tracker.h,
-      vrpn_Analog.h, and vrpn_Button.h are needed.
-
-- zlib
-  + Either download, configure, and compile zlib or simply copy
-      the files that are already installed on your system
-      (try "locate libz.a").
-  + Make a directory $(SZGEXTERNAL)/linux/zlib/lib and copy
-      libz.a there.
-  + Make a directory $(SZGEXTERNAL)/linux/zlib/include and copy
-      zconf.h and zlib.h there.
-
-
-=Installing Libraries for SGI=[SGI]
-
-- glut-3.7
-  + Download and compile GLUT-3.7. You will want to compile "n32" format
-      objects since this is what Syzygy uses.
-  + Make a directory $(SZGEXTERNAL)/sgi/glut-3.7/include/GL and
-      put glut.h there.
-  + Make a directory $(SZGEXTERNAL)/sgi/glut-3.7/lib and put libglut.a
-      there.
-
-
 =Installing Libraries for Windows=[Windows]
 
 Of special note is the STLport library. If you are using Visual Studio
 6 to compile Syzygy, you CANNOT use the native STL. In this case, you MUST
 use STLport (the software will crash otherwise). If you are using Visual
 STudio .NET, you should use the native STL.
-
-- Coin-2.3
-
-- GL
-  + This is only used to provide glext.h to certain demos (q33 and cubecake).
-  + Make a directory $(SZGEXTERNAL)/win32/GL/include. Copy glext.h there.
-  + Make a directory $(SZGEXTERNAL)/win32/GL/include/GL. Copy glext.h there.
 
 - STLport
   + You should only compile against STLport if you have Visual Studio 6.
@@ -282,14 +158,11 @@ STudio .NET, you should use the native STL.
   + From the native STLport directory, copy the lib and stlport
       subdirectories to the Syzygy STLport directory.
 
-- VTK-4.2
-
 - ascension
   + Download BirdWindowsDriver.zip from the
   [Ascension website http://www.ascension-tech.com/support/downloads.php].
   + Copy Bird.lib and Bird.dll to $(SZGEXTERNAL)/win32/ascension/lib.
   + Copy Bird.h to $(SZGEXTERNAL)/win32/ascension/include.
-
 
 - evart
   + You should have received files EvaRT.h, macrtcom.lib, and macrtcom.dll
@@ -297,11 +170,11 @@ STudio .NET, you should use the native STL.
   + Copy EvaRT.h into $(SZGEXTERNAL)/win32/evart/include.
   + Copy macrtcom.lib and macrtcom.dll into $(SZGEXTERNAL)/win32/evart/lib.
 
-- fmod-3.7
+- fmod-4
   + For sound support, install
-  [fmod http://www.fmod.org/] version 3.7.
-  + Copy fmod.dll and fmodvc.lib  into $(SZGEXTERNAL)/win32/fmod-3.7/lib.
-  + Copy these include files into $(SZGEXTERNAL)/win32/fmod-3.7/include:
+  [fmod http://www.fmod.org/] version 4.
+  + Copy fmod.dll and fmodvc.lib  into $(SZGEXTERNAL)/win32/fmod-4/lib.
+  + Copy these include files into $(SZGEXTERNAL)/win32/fmod-4/include:
       fmoddyn.h, fmod.h, fmod_errors.h, wincompat.h.
   + If you don't copy these files, Syzygy will still build and run but
       sound support will be disabled.
@@ -371,4 +244,101 @@ STudio .NET, you should use the native STL.
       libz.lib there.
   + Make a directory $(SZGEXTERNAL)/linux/zlib/include and copy
       zconf.h and zlib.h there.
+
+- GL
+  + This is only used to provide glext.h to certain demos (q33 and cubecake).
+  + Make a directory $(SZGEXTERNAL)/win32/GL/include. Copy glext.h there.
+  + Make a directory $(SZGEXTERNAL)/win32/GL/include/GL. Copy glext.h there.
+
+
+=Installing Libraries for Mac OS X (darwin)=[Darwin]
+
+- fmod-4
+  + For sound support, install
+  [fmod http://www.fmod.org/] version 4.
+  + Copy libfmod.a into $(SZGEXTERNAL)/darwin/fmod-4/lib.
+  + Copy these include files into $(SZGEXTERNAL)/darwin/fmod-4/include:
+      fmoddyn.h, fmod.h, fmod_errors.h, wincompat.h.
+  + If you don't copy these files, Syzygy will still build and run but
+      sound support will be disabled.
+
+- jpeg
+  + Either download, configure, and compile libjpeg or simply copy
+      the files that are already installed on your system
+      (try 'locate libjpeg').
+  + Make a directory $(SZGEXTERNAL)/darwin/jpeg/lib and copy
+      libjpeg.a there.
+  + Make a directory $(SZGEXTERNAL)/darwin/jpeg/include and copy
+      jconfig.h, jmorecfg.h, and jpeglib.h there.
+
+
+=Installing Libraries for Linux=[Linux]
+
+- fmod-4
+  + For sound support, install
+  [fmod http://www.fmod.org/] version 4.
+  + Copy libfmod-4.so into $(SZGEXTERNAL)/linux/fmod-4/lib.
+  + Copy these include files into $(SZGEXTERNAL)/linux/fmod-4/include:
+      fmoddyn.h, fmod.h, fmod_errors.h, wincompat.h.
+  + If you don't copy these files, Syzygy will still build and run but
+      sound support will be disabled.
+
+- glut-3.7
+  + Download and compile GLUT-3.7.
+  + Make a directory $(SZGEXTERNAL)/linux/glut-3.7/include/GL and
+      put glut.h there.
+  + Make a directory $(SZGEXTERNAL)/linux/glut-3.7/lib and put libglut.so.3.7
+      there. You will also need to make symbolic links like so:
+```
+      ln -s libglut.so.3.7 libglut.so.3
+      ln -s libglut.so.3 libglut.so
+```
+
+- jpeg
+  + Either download, configure, and compile libjpeg or simply copy
+      the files that are already installed on your system
+      (try 'locate libjpeg.a').
+  + Make a directory $(SZGEXTERNAL)/linux/jpeg/lib and copy
+      libjpeg.a there.
+  + Make a directory $(SZGEXTERNAL)/linux/jpeg/include and copy
+      jconfig.h, jmorecfg.h, and jpeglib.h there.
+
+- lib3ds
+  + In order to import .3ds files (Autodesk 3D Studio format), you will need
+  to build and install lib3ds. Included in $SZGHOME/contrib/ is a folder named
+  "lib3ds", which is simply the latest release of lib3ds, downloaded from the
+  [SourceForge lib3ds page http://www.sourceforge.net/projects/lib3ds/]. Follow the instructions
+  provided in $SZGHOME/contrib/lib3ds/INSTALL to build the library.
+  + Make a directory $(SZGEXTERNAL)/linux/lib3ds/include/lib3ds and copy all
+  header files there.
+  + Make a directory $(SZGEXTERNAL)/linux/lib3ds/lib and copy
+  lib3ds.a there.
+
+- vrpn
+  + Download and compile vrpn.
+  + Copy libvrpn.a to $(SZGEXTERNAL)/linux/vrpn/lib.
+  + Make a directory $(SZGEXTERNAL)/linux/vrpn/include and copy the vrpn
+      header files there. Note that only vrpn_Shared.h, vrpn_Tracker.h,
+      vrpn_Analog.h, and vrpn_Button.h are needed.
+
+- zlib
+  + Either download, configure, and compile zlib or simply copy
+      the files that are already installed on your system
+      (try "locate libz.a").
+  + Make a directory $(SZGEXTERNAL)/linux/zlib/lib and copy
+      libz.a there.
+  + Make a directory $(SZGEXTERNAL)/linux/zlib/include and copy
+      zconf.h and zlib.h there.
+
+
+=Installing Libraries for SGI=[SGI]
+
+- glut-3.7
+  + Download and compile GLUT-3.7. You will want to compile "n32" format
+      objects since this is what Syzygy uses.
+  + Make a directory $(SZGEXTERNAL)/sgi/glut-3.7/include/GL and
+      put glut.h there.
+  + Make a directory $(SZGEXTERNAL)/sgi/glut-3.7/lib and put libglut.a
+      there.
+
 

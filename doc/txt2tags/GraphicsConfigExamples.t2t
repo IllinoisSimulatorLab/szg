@@ -307,71 +307,86 @@ as a computer name, is a wildcard refering to whatever computer one is
 currently executing upon.
 
 ```
-  <szg_config>
+<szg_config>
   <param>
     <name> joystick </name>
     <value>
-      matrix temp
-      0 5 0 temp translationMatrix
+
+      /* Declare a 4x4 matrix variable named 'temp' */
+      matrix fixHeadMatrix
+      /* Store a y += 5 translation in temp */
+      0 5 0 fixHeadMatrix translationMatrix
+
+      /* Define a number of 'filter' words. For each incoming input
+         event, it checks to see whether a filter word with the
+         appropriate event type and index in its name exists
+         and calls it (e.g. filter_axis_0) is called whenever
+         an axis event #0 comes in) */
       define filter_axis_0
+        /* Rescale the axis event (presumably to map it to [-1,1]) */
         getCurrentEventAxis 0.000031 * setCurrentEventAxis
       enddef
+
       define filter_axis_1
-        temp 0 insertMatrixEvent
+        /* Create a new matrix #0 (i.e. head) event placing the
+           head at y = 5. */
+        fixHeadMatrix 0 insertMatrixEvent
         getCurrentEventAxis -0.000031 * setCurrentEventAxis
       enddef
+
       define filter_axis_2
-        getCurrentEventAxis -32768 + -0.000031 *
-        deleteCurrentEvent
-        3
-        insertAxisEvent
+        getCurrentEventAxis -32768 + -0.000031 * setCurrentEventAxis
+        /* Change the current event's index from 2 to 3 */
+        3 setCurrentEventIndex
       enddef
+
       define filter_axis_5
-        getCurrentEventAxis -32768 + 0.000031 *
-        deleteCurrentEvent
-        2
-        insertAxisEvent
+        getCurrentEventAxis -32768 + 0.000031 * setCurrentEventAxis
+        2 setCurrentEventIndex
       enddef
+
     </value>
   </param>
+
   <param>
-  <name>passive_stereo</name>
-  <value>
-  <szg_display threaded="false">
-   <szg_window>
-     <size width="600" height="600" />
-     <position x="0" y="0" />
-     <decorate value="false" />
-     <fullscreen value="true" />
-     <cursor value="none" />
-     <stereo value="false" />
-     <zorder value="topmost" />
-     <szg_viewport_list viewmode="walleyed">
-       <szg_camera>
-         <szg_screen>
-           <center x="0" y="5" z="-5" />
-           <up x="0" y="1" z="0" />
-           <dim width="13.33" height="10" />
-           <normal x="0" y="0" z="-1" />
-           <headmounted value="false" />
-         </szg_screen>
-       </szg_camera>
-     </szg_viewport_list>
-   </szg_window>
-  </szg_display>
-  </value>
+    <name>passive_stereo</name>
+    <value>
+      <szg_display threaded="false">
+       <szg_window>
+         <size width="600" height="600" />
+         <position x="0" y="0" />
+         <decorate value="false" />
+         <fullscreen value="true" />
+         <cursor value="none" />
+         <stereo value="false" />
+         <zorder value="topmost" />
+         <szg_viewport_list viewmode="walleyed">
+           <szg_camera>
+             <szg_screen>
+               <center x="0" y="5" z="-5" />
+               <up x="0" y="1" z="0" />
+               <dim width="13.33" height="10" />
+               <normal x="0" y="0" z="-1" />
+               <headmounted value="false" />
+             </szg_screen>
+           </szg_camera>
+         </szg_viewport_list>
+       </szg_window>
+      </szg_display>
+    </value>
   </param>
+
   <assign>
-  NULL SZG_DATA path ./
-  NULL SZG_DEMO control_mode joystick
-  NULL SZG_PFORTH program_names joystick
-  NULL SZG_DISPLAY0 name passive_stereo
+    NULL SZG_DATA path ./
+    NULL SZG_DEMO control_mode joystick
+    NULL SZG_PFORTH program_names joystick
+    NULL SZG_DISPLAY0 name passive_stereo
   </assign>
-  </szg_config>
+</szg_config>
 ```
 
 
-=Fixed-Screen Virtual Environments=[Immersive]
+=Fixed-Display Virtual Environments=[Immersive]
 
 An early supported Syzygy configuration was one stereo window per PC, with
 each
@@ -631,10 +646,10 @@ seperate consumer PC driving each eye. This configuration is still supported,
 along with a single PC set up, where two viewports in a single window give
 left eye and right eye views, respectively. For a head-mounted display,
 simply change the "headmounted" element value to "true" in the config file
-in this [section #StandalonePassive].
+in the [Easy Demo Passive Stereo Display in Standalone Mode #StandalonePassive] section.
 
 
-=Multiple Screens on a Single Computer=[MultiScreen]
+=Multiple Displays on a Single Computer=[MultiScreen]
 
 Sometimes having multiple seperate graphics screens on a single computer is
 desirable. For instance, in this way, you can run Syzygy applications on an

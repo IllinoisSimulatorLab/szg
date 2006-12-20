@@ -8,15 +8,16 @@ Integrated Systems Lab
 
 Many GLUT applications can be easily turned into Master/Slave applications.
 A first step is creating a build environment that is compatible with Syzygy.
-The final section of the [programming guide Programming.html]
-addresses this issue.
+The build template contained in szg/skeleton is discussed in the final section
+of the [Compiling C++ Programs CompileCPP.html] chapter.
 
-For some examples of Master/Slave applications see the "Application Peers"
-section of the [Example Code ExampleCode.html] page, many of these
-applications were originally written using GLUT but have been ported to the
-Master/Slave framework.  The source code of these applications is available in
-the src/demo directory of the Syzygy
-source distribution.
+szg/skeleton/src contains two simple master/slave programs. For some other examples,
+see the following demos in szg/src/demo:
+- atlantis
+- coaster
+- hspace
+- schprel
+
 
 Here is a general overview of the steps necessary to do a quick and dirty port:
 
@@ -24,6 +25,13 @@ In the source file containing main(),
 ```
   #include "arMasterSlaveFramework.h"
 ```
+If you use any of the glut rendering functions (e.g. glutSolidTeapot()), also:
+```
+  #include "arGlut.h"
+```
+Please note that these are the //only// legal GLUT functions in a Syzygy program.
+Use any of the window/event-related GLUT functions and your program will go down
+in flames.
 
 
 In main(),
@@ -40,9 +48,12 @@ In main(),
   ...
 ```
 
-Application specific initialization should go into the start callback
-demanded by the framework.  OpenGL state initialization should go into the
-WindowStartGL callback. The user-defined application start callback is called
+Generally speaking, the init() function of your GLUT program should be
+split between the first two callbacks.
+Application-global initialization should go into the start callback
+(which should return true).
+OpenGL state initialization should go into the
+WindowStartGL callback. The start callback is called
 once in the body of the framework's start() method (which does not return)
 while the WindowStartGL callback is called once upon each window creation.
 
@@ -64,13 +75,19 @@ The user-defined display callback should go into the draw callback of the
 framework.  This, and the WindowStartGL callback should be the only two
 places in the application where OpenGL calls are made.
 
+The keyboard callback is only available when running in
+[Standalone Mode Standalone.html]; for running in a cluster, you'll
+want to convert your program to change state based on button events
+polled using e.g. the framework's getOnButton() method (see
+[Programming Programming.html]) in the pre-exchange.
+
 After the framework has been initialized and all necessary callbacks
 registered, the event loop needs to be set in motion:
 ```
   if( !framework.start() ) {
     return 1;
   }
-  // not reached, start() does not return
+  // not reached, start() does not return unless an error occurred
 ```
 
 If framework.start() is called from another thread, at the end of main do
@@ -84,10 +101,10 @@ so that the application doesn't immediately terminate.
 If the application needs to control the event loop (and window creation)
 itself, the framework can be started as follows:
 ```
-  if( !framework.startWithoutWindowing() ) {
+  if( !framework.start( false, false ) ) {
     return 1;
   }
-  // this is reached, startWithoutWindowing **does** return
+  // this is reached, this version of start() **does** return
 ```
 
 Thereafter, you need to invoke the framework's preDraw() method before drawing

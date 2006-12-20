@@ -49,27 +49,22 @@ This sets the "path" parameter of the SZG_DATA parameter group
 on the machine named <computer> to /szg/data. Now, the
 programs will be able to find their data.
 
-To install
-the q33 demo, for example, you'll need to install pak0.pk3 (available
-from the Quake3 CD or
-ID software demo download) into the data path. Either copy it into
-the data directory you've already created, or copy it to an
-/arbitrary/location
-and append to the data path:
-```
- <computer> SZG_DATA path /szg/data;/arbitrary/location
-```
-
-Several demos are included with the Syzygy toolkit. The hope
-is that this
-will make it easy to go from simply having a collection of networked
-computers to running cluster-based virtual reality applications in very
-little
-time! The demos are of two basic types: distributed scene graph and
-master/slave.
-
 
 =Demo Tables=[DemoTables]
+
+==Master/Slave==
+
+An easy way to construct
+an application that runs synchronizedly across multiple computers.
+Multiple copies of the application run on the cluster, one per
+rendering computer. One copy is the master and the others are slaves.
+
+|| Name | Source Code Location | Description | Data distribution required |
+| atlantis [images/atlantis.gif] | src/demo/atlantis | A port of the GLUT demo to our system. A school of dolphins, sharks, and whales swims around in a clustered formation. | Base |
+| coaster [images/coaster.gif] | src/demo/coaster | A port of the GLUT demo. Ride a roller coaster. | Base |
+| hspace [images/hspace.gif] | src/demo/hspace | A visualization of hyperbolic geometry, non-Euclidean three-space tiled with dodecahedra. The projection into Euclidean space is controlled by the joystick (backwards/fowards plus what looks like a rotate). | Base |
+| schprel [images/schprel.gif] | src/demo/schprel | A visualization of the warping effects caused by travelling near the speed of light. | Base |
+
 
 ==Distributed Scene Graph==
 
@@ -84,66 +79,14 @@ server. The following demos use this method:
 | cosmos [images/cosmos.gif]           | src/demo/cosmos          | Four nested tori spinning about different axes. | Base |
 | parade [images/parade.gif]           | src/demo/parade          | Icosahedral marching "blobbymen". Reference: Jim Blinn, "Nested Transformations and Blobby Man", IEEE Trans. Graphics Oct. 1987, 59-65. | Base |
 | cubes [images/cubes.gif]             | src/demo/cubes           | 300 cubes hang in space. They drift slowly, spin furiously, and change textures. A good stress test for your network. | Base |
-| timetunnel [images/timetunnel.gif]   | src/demo/timetunnel      | Visualization of timing and inter-node communication in a parallel MPI code. (The animation finishes after a few minutes.) | Optional |
 | danceparty [images/danceparty.gif]   | szgdemo/danceparty/src   | A stage floating in space hosts five motion-captured dancers who move in short looping motions. | Optional |
-| info-forest [images/info-forest.gif] | szgdemo/info-forest/src  | An information visualization using a forest metaphor. | Optional |
-| performance [images/performance.gif] | szgdemo/internet2-02/src | Replays motion capture data from a 7 minute long dance performance. | Data only on release CD due to size. |
-| salamiman [images/salamiman.gif]     | szgdemo/salamiman/src    | Visualization of the Visible Human data set. A cut-plane interactively slices through the data volume. | [Getting the data #GettingSalamiData] |
-
-
-===Getting the Salamiman Data===[GettingSalamiData]
-
-           To get the raw data, fill out a request at the
-[National Library of Medicine http://www.nlm.nih.gov/research/visible/visible_human.html].
-The data volume shown here comes from
-the male head dataset head/a_vm1001.raw - head/a_vm1377.raw (377
-images, 2048x1216, 24-bit RGB). This is cropped to 750x750 and then
-decimated by a factor of two, yielding a data cube 375 voxels on a
-side. Non-body bluish voxels (empirically, b>r*3/2
-&& b>g*4/3) are forced to pure blue (r=0;
-g=0; b=255) for simple culling at runtime.
- For fun, generate any 375x375x375 24-bit RGB data
-volume called rgbbrain3Deci.dat. Sinusoids and sawtooth functions of
-x/y/z / r/g/b are psychedelic.
-
-
-
-
-==Master/Slave==
-
-An easy way to construct
-an application that runs synchronizedly across multiple computers.
-Multiple copies of the application run on the cluster, one per
-rendering computer. One copy is the master and the others are slaves.
-The SZG_RENDER/master_IP parameter specifies the location of the
-master, so that the slaves can find it.
-
-|| Name | Source Code Location | Description | Data distribution required |
-| atlantis [images/atlantis.gif] | src/demo/atlantis | A port of the GLUT demo to our system. A school of dolphins, sharks, and whales swims around in a clustered formation. | Base |
-| coaster [images/coaster.gif] | src/demo/coaster | A port of the GLUT demo. Ride a roller coaster. | Base |
-| hspace [images/hspace.gif] | src/demo/hspace | A visualization of hyperbolic geometry, non-Euclidean three-space tiled with dodecahedra. The projection into Euclidean space is controlled by the joystick (backwards/fowards plus what looks like a rotate). | Base |
-| schprel [images/schprel.gif] | src/demo/schprel | A visualization of the warping effects caused by travelling near the speed of light. | Base |
-| szglorenz [images/szglorenz.gif] | szgdemo/szglorenz/src | An exploration of the lorenz attractor in virtual reality. | Base |
-| volume [images/volume.gif] | src/demo | Texture-slice based volume visualization. It loads 10 files on start-up: cavebrain.(0-9).img. Each file is approximately a 100x100x100 voxel model with a single byte intensity per voxel. The user can grab the model and rotate it, cycle through the models, and navigate around the virtual space. | Optional |
-| avn [images/avn.gif] | src/demo/avn | The [Optiverse http://new.math.uiuc.edu/optiverse/] eversion (turning inside-out) of a sphere. | Optional |
-| skyfly [images/skyfly.gif] | szgdemo/skyfly/src | A port of the GLUT demo. Fly over mountains as paper airplanes flock around your head. | Optional |
-| vtkfile [images/vtkfile.gif] | szgdemo/vtkfile/src | Part of the MAEViz earthquake visualization application. Shows how to use VTK with Syzygy. | Optional |
-| VRMLView [images/VRMLView.gif] | szgdemo/VRMLView/src | A viewer for VRML files based on the Coin3D library. | Optional |
-| q33 [images/q33.gif] | src/demo/q33 | A viewer for levels of the game [Quake III http://www.idsoftware.com]. | To use this, get the file pak0.pk3 and place it in the q33 subdirectory of the Syzygy data directory. This file is available from a Quake III CD (/Quake3/baseq3/pak0.pk3); downloading it is tricky since it's almost half a gigabyte.  Optional plus buying the game. |
-| landspeeder [images/landspeeder.gif] | szgdemo/landspeeder/src | An urban planning visualization. | Data on the CD. |
-
 
 
 =Running Example Programs=
 
-As the tables above show, many of the demos require you to
-first install
-the optional data distribution.
-
-There are two basic ways to interact with the demos: a VR
-interface (6DOF tracking)
-and a desktop simulator of the
-VR interface (explained in the [Input Devices ./InputDevices.html] chapter).
+There are two basic ways to interact with the demos: in Cluster Mode using
+a [6DOF-tracked input device InputDevices.html] with buttons and joysticks, or in
+[Standalone Mode Standalone.html] using the [tracking simulator TrackingSim.html].
 
 cosmos, parade, timetunnel, cubes:
 Push forward on the joystick to move in the direction pointed
@@ -178,28 +121,12 @@ See szgdemo/szglorenz/README for an explanation of the controls.
 
 Performance Tuning
 
-Automatic performance tuning code has not yet been integrated
-into the codebase. Many of the demos, especially the master/slave
-(otherwise known
-as application distribution), do not require high performance. However,
-some of the distributed scene graph demos, notably timetunnel and
-cubes,
+Many of the demos, especially the master/slave programs,
+do not require high performance. However,
+some of the distributed scene graph demos (e.g. cubes)
 can move more data on high-end hardware. To get the most performance
-out of
-these:
-
-  - In szg/src/barrier/arSyncDataServer.cpp, in the
-constructor, change the initial value of _sendLimit to 200000. This
-adjusts how much information the server will accumulate before sending
+out of such programs, try the following: In szg/src/barrier/arSyncDataServer.cpp, in the
+constructor, change the initial value of _sendLimit to 200000 and recompile. This
+value determines how much information the server will accumulate before sending
 a frame. It can be increased for better networks.
-
-  - In szg/src/demo/cubes/cubes.cpp, in the worldAlter()
-function, remove the ar_usleep(...) call. Also, feel free to adjust
-NUMBER_CUBES upward, say to 1000.
-
-  - In szg/src/demo/timetunnel/timetunnel.cpp, in the
-dataReader() function, remove the ar_usleep(...) call.
-
-
-
 

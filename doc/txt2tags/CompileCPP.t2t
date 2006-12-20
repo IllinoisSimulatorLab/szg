@@ -14,25 +14,27 @@ Integrated Systems Lab
 Windows users need to take some extra care in compiling their programs.
 
 - If you are using Visual Studio 6 on Windows, you must compile
-with STLport (SZG_STLPORT=TRUE). Using STLport is described
-[here SupportingLibraries.html]. On the other hand, do not use
-STLport with Visual Studio .NET (its native standard template library is OK).
+  with STLport (SZG_STLPORT=TRUE). Using STLport is described
+  in [Supporting Libraries SupportingLibraries.html]. On the other hand, do not use
+  STLport with Visual Studio .NET (its native standard template library is OK).
 - Another note for Windows users, you must set up your environment variables
-so that the Visual Studio compiler (cl.exe) and the Visual Studio linker
-(link.exe) are on your path and can find their header files. The proper way
-to set this is via the Windows control panel. Please note that, after setting
-the variables in the control panel, you will have to restart your cygwin or
-MinGW shell in order to access the new values there. The proper values for the
-environment variables are outlined
-[here VisualStudioBuildVars.html].
+  so that the Visual Studio compiler (cl.exe) and the Visual Studio linker
+  (link.exe) are on your path and can find their header files.
+  There's an option to set these environment variables when you install Visual
+  Studio. If it's too late for that, the proper way
+  to set this is via the Windows control panel. Please note that, after setting
+  the variables in the control panel, you will have to restart your cygwin or
+  MinGW shell in order to access the new values there. The proper values for the
+  environment variables are outlined in the
+  [Visual Studio Environment Variables VisualStudioBuildVars.html] section.
 - If you are using the precompiled SDK for Windows, you must
-use the same SDK as your compiler (-vc6 for Visual Studio 6 and -vc7 for
-Visual Studio .NET). If you mix versions, your executables either will
-not link or will crash on startup.
+  use the same SDK as your compiler (-vc6 for Visual Studio 6 and -vc7 for
+  Visual Studio .NET). If you mix versions, your executables either will
+  not link or will crash on startup. **No longer supported**
 - If you are compiling using cygwin on Windows then there can
-be a problem. The Visual Studio linker is called "link" and some installs of
-cygwin may also install a "link" program. If, during your build, you see
-an error message like:
+  be a problem. The Visual Studio linker is called "link" and some installs of
+  cygwin may also install a "link" program. If, during your build, you see
+  an error message like:
 
 ```
   link error: too many arguments
@@ -54,14 +56,14 @@ be set.
   be defined.
 - SZG_DEVELOPER_STYLE: By default, the system assumes you are using
   software compiled by you from a szg source distribution. To use a precompiled
-  SDK, this must be set to EASY.
+  SDK, this must be set to EASY. **No longer supported**
 - SZGBIN:
   - If $SZGBIN is defined, then this is used as the directory for Syzygy
     executables and shared libraries that you compile.
   - If $SZGBIN is not defined, there are two possibilities, depending upon
     whether or not the developer style is "EASY".
     - If SZG_DEVELOPER_STYLE=EASY, then your executables and shared libraries
-        will be placed in $(SZGHOME)/bin.
+        will be placed in $(SZGHOME)/bin. **No longer supported**
     - Otherwise, you are assumed to have a "developer" version of Syzygy
         and your executables will be placed in $(SZGHOME)/bin/$(MACHINE_DIR),
         where $(MACHINE_DIR) is one of darwin, linux, mips4, or win32.
@@ -69,7 +71,6 @@ be set.
 - SZGEXTERNAL: The location of any external libraries used.
   Optional if GLUT is preinstalled.
   See this [section SupportingLibraries.html].
-  The SDK includes a complete "external" directory for each platform.
 - SZGDEBUG: By default, executables and shared libraries are built without
   debugging information. If you want to debug, set this to TRUE.
 - SZG_STLPORT: This is only used on Windows. If you are using Visual Studio
@@ -80,138 +81,42 @@ be set.
 =Using the Build Template=[Template]
 
 Syzygy has a build system designed for writing cross-platform applications,
-hiding the differences from the programmer. A motivating example of
-its design is: if your build directory is simultaneously mounted on different
-platforms, you can compile both versions of your code at once. The build
-system can be leveraged for your own applications and a template is contained
-in szg_app_template-X.X.tar.gz, which is available with the rest of the
-Syzygy software.
+hiding the differences from the programmer. If your build directory is
+simultaneously mounted on different
+platforms, you can compile both versions of your code at once.
 
-After obtaining the template, unpack it to a directory szg_app_template. If
-desired, you can rename it, though we continue using the generic name below
-for simplicity. If your each file of your source code produces an
-executable, you can create your Syzygy project by simply modifying one
-line (ALL) and then creating a target for each executable, as outlined below.
-It is also simple to, for instance, modify the Makefile template to produce
-executables from multiple .cpp files (using the OBJS line).
+The directory szg/skeleton represents a build template for your applications.
+Copy and re-name that entire directory as you like.
+The source files go in skeleton/src. Modify
+skeleton/build/makefiles/Makefile.my_app to specify what gets built.
+After you've set things up, typing 'make' in the top-level directory
+will build your application (assuming you've compiled the Syzygy libraries
+first, of course). Typing 'make clean' in the same place will remove
+built executables and object files.
+The compiled executable will end up in skeleton/build/<platform>
+(e.g. skeleton/build/win32 on Windows) and in the directory pointed to by
+the SZGBIN environment variable. If SZGBIN is not set, $SZGHOME/bin/<platform>
+will be used.
 
-Once you have modified szg_app_template to create your project, you can
-build it by typing "make" in the top-level directory or clean it, removing
-built executables and objects, by typing "make clean" in the same location.
-All built executables (defined by ALL below) will be copied into your
-Syzygy executables directory. This is determined like so:
+The contents of szg/skeleton:
 
-- If SZGBIN is not set, then $(SZGHOME)/bin is used.
-- If SZGBIN is set, then $(SZGBIN) is used.
-
-
-We now examine the contents of szg_app_template,
-explaining each one.
-
-- szg_app_template/Makefile: The overall Makefile for the template project.
-Scans the host to determine the platform and then executes the appropriate
-machine-specific Makefile.
-- szg_app_template/src: Your source code goes here, after removing the
-sample piece of source code, szglorenz.cpp.
-- szg_app_template/build/makefiles/Makefile.my_app: This is the fill you will
-edit to create your project. Its important features are explained below as
-well as via comments in the file itself.
-- szg_app_template/build/darwin: Contains the Mac OS X Makefile
-and OS X objects. The machine-specific Makefile just
-sets the machine type and then includes the cross-platform Makefile.my_app.
-- szg_app_template/build/linux: Linux objects.
-- szg_app_template/build/mips4: Irix objects.
-- szg_app_template/build/win32: Windows objects.
-
-
-By now, you have placed your source code in szg_app_template/src. The
-functional lines in Makefile.my_app, along with how to edit them will now be
-explained.
-
-```
-  VPATH=../../src
-```
-
-This should not be changed. It gives the relative path from each
-machine-specific Makefile, like szg_app_template/build/linux/Makefile,
-to your source directory.
-
-```
-  include $(SZGHOME)/build/make/Makefile.vars
-```
-
-This should not be changed. The Syzygy SDK has a file, Makefile.vars,
-that defines the specific compilation and linking methods for each platform
-in a modular fashion. This line is one reason you must define $SZGHOME to
-use the Syzygy SDK.
-
-```
-  ALL := szglorenz$(EXE)
-```
-
-Here, replace szglorenz$(EXE) with the list of executables
-you want built. For cross-platform builds, each name must end in
-$(EXE), which accounts for the fact that Windows executables must have the
-postfix .EXE whereas Unix executables do not.
-
-```
-  include $(SZGHOME)/build/make/Makefile.rules
-```
-
-Don't change this.  Makefile.rules defines standard rules like "clean"
-or "create-install".  This file is seperated from Makefile.vars because
-make is fussy about rules' order.
-
-```
-  OBJS :=
-```
-
-Edit this line if your executable uses code in files my_obj_1.cpp and
-my_obj_2.cpp. Use $(OBJ_SUFFIX) so it works in Windows (.obj) and Unix (.o).
-Makefile.rules has the rule for turning .cpp's into object files.
-
-```
-  OBJS := my_obj_1$(OBJ_SUFFIX) my_obj_2$(OBJ_SUFFIX)
-```
-
-TO add compile flags:
-
-```
-  COMPILE_FLAGS += -DMY_COMPILE_FLAG1 -DMY_COMPILE_FLAG2
-```
-
-To add include directories:
-
-```
-  SZG_INCLUDE += -I$(MY_INCLUDE_DIRECTORY1)
-```
-
-To add libraries:
-
-```
-  SZG_OPTIONAL_LIBS += $(MY_NEW_LIBRARY)
-```
-
-Finally, define a target for each executable as listed in ALL. 
-If they're called my_exe_1$(EXE) and my_exe_2$(EXE) and
-they link with the OBJS you've defined above, then the targets are:
-
-```
-  my_exe_1$(EXE): my_exe_1$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBRARY_DEPS)
-        $(SZG_USR_FIRST) my_exe_1$(OBJ_SUFFIX) $(OBJS) $(SZG_USR_SECOND)
-        $(COPY)
-  my_exe_2$(EXE): my_exe_2$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBRARY_DEPS)
-        $(SZG_USR_FIRST) my_exe_2$(OBJ_SUFFIX) $(OBJS) $(SZG_USR_SECOND)
-        $(COPY)
-
-```
-
-The variable $(SZG_USR_FIRST) contains the linker name, linker options
-and link libraries, if the platform is Windows. If the platform is Unix-based,
-it does not contain the link libraries, which instead appear in
-$(SZG_USR_SECOND), which is blank in the Windows case.
-The $(COPY) line copies the built executable into your $SZGBIN directory
-where all of your Syzygy-related executables are stored.
+- szg/skeleton/Makefile: The overall Makefile for the template project.
+  Scans the host to determine the platform and then executes the appropriate
+  machine-specific Makefile.
+- szg/skeleton/src: Your source code goes here. It contains two versions of a
+  simple master/slave program (see the [Programming Programming.html] chapter):
+  skeleton.cpp uses the old method of installing event callback functions,
+  oopskel.cpp achieves exactly the same behavior by sub-classing the
+  arMasterSlaveFramework class and overriding callback methods.
+- szg/skeleton/build/makefiles/Makefile.my_app: This is the fill you will
+  edit to create your project. It's heavily commented, so in most cases
+  it shouldn't be too hard to figure out how you need to modify it.
+- szg/skeleton/build/darwin: Contains the Mac OS X Makefile
+  and OS X objects. The machine-specific Makefile just
+  sets the machine type and then includes the cross-platform Makefile.my_app.
+- szg/skeleton/build/linux: Linux objects.
+- szg/skeleton/build/mips4: Irix objects.
+- szg/skeleton/build/win32: Windows objects.
 
 
 =Include-file hints=[Hints]
@@ -232,6 +137,10 @@ must be:
 - Instead of platform-dependent OpenGL includes, do:
 ```
   #include "arGraphicsHeader.h"
+```
+  and if you want to use the GLUT rendering functions (e.g. glutSolidCube()):
+```
+  #include "arGlut.h"
 ```
 
 - Each syzygy core class must be declared SZG_CALL. The exception is

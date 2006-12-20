@@ -155,43 +155,10 @@ separate instances of the program and any supporting services are then launched 
 See the Section on [Configuring Virtual Computers PhleetIntro.html#VirtualComputer] for more information.
 
 
-=Parameter File Formats=[FileFormats]
+=Parameter File Format=[ComplexFormat]
 
-There are two formats for parameter files: an older, 'simple' format
-and a newer, 'complex' format. The simple format cannot contain
-global parameter definitions.
-
-
-==Simple Parameter File Format==[SimpleFormat]
-
-The simple format consists of a sequence of local parameter settings, interspersed
-with comments. This format is useful for quick
-experimentation and is less verbose than the complex style described
-later.
-
-The format for each line of the file is:
-```
-  <computer name> <parameter group> <parameter name> <parameter value>
-```
-For example:
-```
-  # This line is a comment. The following lines are local parameter definitions.
-  smoke SZG_DATA path /home/public/Data
-  smoke SZG_RENDER texture_path /home/public/Texture
-  smoke SZG_RENDER text_path /home/public/Texture/Text
-  smoke SZG_SOUND path /home/public/Sounds
-```
-
-Note that each line must contain exactly 4 tokens, making this
-format unsuitable for more global parameter specification. Hence,
-the complex format.
-
-
-==Complex Parameter File Format==[ComplexFormat]
-
-As stated above, global parameters are specified using XML, and in fact
-in the complex format the entire file is XML.
-It can contain 3 types of XML records, **<comment>**,
+Syzygy parameter files are written in XML.
+A parameter file can contain 3 types of XML records, **<comment>**,
 **<assign>**, and **<param>**. These records cannot be nested. For instance,
 a **<comment>** block cannot appear within an **<assign>**. They can
 appear in the file in any order, however, and there can be any number

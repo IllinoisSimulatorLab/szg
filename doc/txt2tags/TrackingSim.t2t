@@ -14,27 +14,9 @@ any case be unavailable. As a workaround, Syzygy includes support for a simulato
 that can operate the included (and your own) programs from a desktop using mouse and keyboard.
 
 When running in standalone mode the simulator normally appears as an overlay in the lower-right
-corner of the window. In cluster mode it is a separate program, inputsimulator.
-This program can be run either by typing
-```
-inputsimulator
-```
-or
-```
-  dex <computer> inputsimulator
-```
-at the command line, where ``<computer>`` is the name of the computer to run it on.
-By default, inputsimulator places its input events in Syzygy input event slot #0.
-(**Where the heck are slots discussed?**). If desired, however, it can provide them
-on another Syzygy input slot (say 1) if invoked like so:
-```
-  inputsimulator 1
-```
-or
-```
-  dex <computer> inputsimulator 1
-
-```
+corner of the window. In cluster mode it is a separate program, inputsimulator; you would
+normally use it in cluster mode by specifying it as the primary input for a
+[virtual computer PhleetIntro.html#VirtualComputer] (see the first example in that section).
 
 [images/inputsimulator.png]
 

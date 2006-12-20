@@ -11,46 +11,42 @@ programs to work.
 
 [images/Standalone.jpg]
 
-In this chapter, you'll learn about Syzygy configuration and running Syzygy
-programs without a cluster ("standalone" mode). You should pay particular
-attention to how environment variables and a configuration file (by default
-named either szg_parameters.xml or szg_parameters.txt) provide configuration information.
+For complete functionality, Syzygy programs have to be run in Cluster Mode.
+However, it's often more convenient to run a single instance of a program in
+Standalone Mode. The advantage of Standalone Mode is that no Syzygy server
+or supporting programs are required; the main disadvantage is that standalone
+programs can't load input device drivers, but must instead use the
+[tracking simulator interface TrackingSim.html] (although we plan to fix this
+in version 1.2).
 
-Sometimes convenience dictates that Syzygy should scale down its operations.
-Cluster software operation has more overhead, from an administrative and user
-perspective, than running a self-contained program. Consequently, if the user
-wants run Syzygy programs on a single device, possibly for testing purposes or
-because a single computer is all that is available, Syzygy programs support
-standalone mode: running as self-contained executables on a single device.
 
-This chapter describes standalone mode. It is an introduction to running
-Syzygy programs, allowing you to get started right away, before setting up
-your Syzygy cluster using Phleet. Information about Syzygy configuration
-is included, but the more advanced user should consult the chapter devoted
-to [configuration examples SystemConfiguration.html] for
-further information. We also only outline using two of the sample programs,
-just to keep things simple, allowing the interested user to consult the
-chapter on [example code ExampleCode.html] to find out how to
-set things up further.
+=How a Program Determines Whether to Run in Standalone Mode=
 
-We outline how a Syzygy program starts up and makes the decision about
-whether or not it is operating in standalone mode or connected to a Phleet
-(Syzygy cluster).
+When a Syzygy program is run, it goes through the following decision process
+to determine whether or not it is running in Standalone mode:
 
-+ Check the current user's system name (as reported
-by the native operating system) and check the Syzygy login file. If this
-file exists and contains information about a szgserver (the program's gateway
-to the Phleet), attempt to connect to the szgserver. If this all succeeds,
-the program is running in Phleet mode.
++ It determines the current user's system name (as reported
+by the native operating system).
+
++ It looks for a corresponding Syzygy login file (described in
+[Creating a Phleet: Running szgserver and szgd PhleetIntro.html#RunningSzgserver].
+
++ If this
+file exists and specifies that the user is logged into a Syzygy server,
+then the program attempts to connect to the server.
+
++ If it connects successfully, the program is running in Cluster Mode.
+
 + Otherwise, the program is running in standalone mode.
 
-You can force programs to run in standalone mode by running the "dlogout"
-command. This marks your Syzygy login file as disconnected from any szgserver.
-When you are running in standalone mode, your program will print, in the
-midst of many other lines of start-up information, the following line:
+You can force programs to run in standalone mode by issuing the "dlogout"
+command. This modifies your Syzygy login file to specify that you are not
+logged into a server.
 
+If it is running in standalone mode, your program will print
+(among many other lines of start-up information) the following line:
 ```
-my_program_name remark: RUNNING IN STANDALONE MODE. NO DISTRIBUTION.
+szg:CRITICAL: my_program_name running standalone.
 ```
 
 [images/StandaloneHspace.jpg]
@@ -58,9 +54,9 @@ my_program_name remark: RUNNING IN STANDALONE MODE. NO DISTRIBUTION.
 Test standalone mode by running "hspace", a master/slave sample application,
 and "parade", a distributed scene graph sample application. These are both
 contained in the base Syzygy distribution and can be downloaded or compiled as
-described [here GettingSoftware.html]. For more information on the
-different types of Syzygy applications, please consult the
-[introduction Programming.html] to Syzygy programming.
+described in [Getting the Software GettingSoftware.html]. For more information on the
+different styles of Syzygy programs, please consult the
+[Introduction to Syzygy programming Programming.html].
 
 When running "hspace" in standalone mode, something looking like a
 green spiderweb should fill the window. There will also be a small overlay
@@ -69,156 +65,49 @@ operation is described in this [chapter TrackingSim.html]. When
 running "parade", you will see a collection of collection of virtual humans
 marching across the screen, again with the tracker simulator in the lower left
 corner. More information about these and other sample applications is
-included in the examples [chapter ExampleCode.html].
+included in [Example Programs ExampleCode.html].
+
+
+=Configuration Information in Standalone Mode=
 
 When a Syzygy program starts, it needs to be configured with information
 regarding where it should find data files, where it should place its
 graphics screen on the desktop, and where sound and texture files exist,
-among other things. The parameter values in the database are of two sorts:
-local parameters, which pertain to the configuration of particular computers,
-and global parameters, which store information pertaining to the system as
-a whole. Global parameters are often (somewhat) complex pieces of XML, such
-as is used for configuring the DeviceServer (which generates input events) or
-for configuring a graphics display.
-
-When a Syzygy program runs in standalone
-mode (but not in Phleet mode), it tries to load a local parameter database
-(which can, confusingly, contain both local and global parameters) from a file.
-By default, the program tries to load the file szg_parameters.xml or 
-szg_parameters.txt in its
-current working directory. However, the file name can be overriden by a
-special command line arg (assuming the program has been correctly written
-to give the undelying framework first shot at manipulating the command-line):
-
+among other things. In Standalone Mode this information is read from an
+XML file. By default, the program looks for a file in the current working
+directory named either szg_parameters.xml or szg_parameters.txt, in that
+order. However, the file name can be overriden by passing a
+special command line argument to the program, for example:
 ```
 my_program_name arg1 arg2 -szg parameter_file=szg_anaglyph.txt
 my_program_name arg1 arg2 -szg parameter_file-szg_virtualcave.txt
 ```
+Note that any arguments prefaced by ``-szg`` are interepreted as special
+Syzygy arguments and are removed from the argument array and processed
+by the Szygyy libraries before the array is handed to the application code.
 
-Syzygy library code will strip its "special" args, which in the above
-lines are the -szg and what follows, from argc/argv before giving those to the
-program itself.
+If the program cannot open the specified config file it will check to see if
+the environment variable SZG_PARAM is set; if so, it will use SZG_PARAM's value
+as a file name and try to load that file.
 
-If the program cannot open the specified config file and the environment
-variable SZG_PARAM is set, it will use SZG_PARAM's value as a file name and
-try to load that file.
-
-Local parameters are stored (in a config file such as szg_parameters.xml)
-like this:
-
+For a discussion of the format of the information in this file, see the
+[System Configuration SystemConfiguration.html] chapter. The only aspect
+of this format that is specific to Standalone Mode regards the specification
+of the computer name. In Cluster Mode, each computer-specific or //local//
+parameter must be defined using the name of the computer, e.g.
 ```
-  computer_name parameter_group parameter_name parameter_value
+my_computer SZG_DATA path C:\Data
 ```
-
-Global parameters are stored (in a config file) like this:
-
+In Standalone Mode, on the other hand, the value NULL can be substituted for
+the computer name (since there's only one computer under consideration):
 ```
-  <param>
-  <name> parameter_name </name>
-  <value> parameter_value </value>
-  </param>
+NULL SZG_DATA path C:\Data
 ```
 
-When the program wants to find out a configuration parameter value,
-it follows this procedure:
-
-+ Am I connected to an szgserver?
-+ If so, I am running in Phleet mode. Query the szgserver for the parameter
-value.
-+ If not, I am running in standalone mode. Query the local parameter
-database for the value.
-+ In either case, if the parameter in question is a local parameter, query
-the environment variable given by parameter_group_parameter_name. For
-instance, if the local parameter's group is SZG_RENDER and its name is
-texture_path, the environment variable SZG_RENDER_texture_path will get
-queried.
-
-We now show a sample standalone config file. Note that the first
-"NULL" replaces the computer name in a standard Syzygy parameter file
-assignment line and is interpreted as a wildcard indicating the computer on
-which the program runs. Qualifying parameters with a computer name does
-not make much sense in standalone mode: it is really just for Phleet mode.
-
-In the standalone config file, local parameters go inside an assign tag.
-
-```
-<szg_config>
-<param>
-<name>head_mounted</name>
-<value>
-<szg_display>
- <szg_window>
-   <size width="600" height="600" />
-   <position x="50" y="50" />
-   <szg_viewport_list viewmode="normal">
-     <szg_camera>
-       <szg_screen>
-         <center x="0" y="0" z="-5" />
-         <up x="0" y="1" z="0" />
-         <dim width="10" height="10" />
-         <normal x="0" y="0" z="-1" />
-         <headmounted value="true" />
-       </szg_screen>
-     </szg_camera>
-   </szg_viewport_list>
- </szg_window>
-</szg_display>
-</value>
-</param>
-<param>
-<name>fixed_wall_passive</name>
-<value>
-<szg_display>
- <szg_window>
-   <size width="600" height="600" />
-   <position x="50" y="50" />
-   <szg_viewport_list viewmode="walleyed">
-     <szg_camera>
-       <szg_screen>
-         <center x="0" y="5" z="-5" />
-         <up x="0" y="1" z="0" />
-         <dim width="10" height="10" />
-         <normal x="0" y="0" z="-1" />
-         <headmounted value="false" />
-       </szg_screen>
-     </szg_camera>
-   </szg_viewport_list>
- </szg_window>
-</szg_display>
-</value>
-</param>
-<assign>
-NULL SZG_DATA path /home/public/Data
-NULL SZG_RENDER texture_path /home/public/Texture
-NULL SZG_RENDER text_path /home/public/Texture/Text
-NULL SZG_SOUND path /home/public/Sounds
-NULL SZG_DISPLAY0 name head_mounted
-NULL SZG_DISPLAY1 name fixed_wall_passive
-</assign>
-</szg_config>
-```
-
-The local parameters in the config file given above (look inside the
-assign tag) control where Syzygy
-programs look for data, textures, and sounds, as explained
-[here SystemConfiguration.html]. They also specify the
-default screen name, which, in this case is the global parameter
-"head_mounted". You save the config file (as szg_parameters.xml) and
-experiment with modifying "head_mounted" to see how the window changes.
-
-If you are in the directory with your szg_parameters.xml file, try running:
-
-```
-parade
-```
-
-You can quit by pressing ESC. Now, try:
-
-```
-parade -szg mode/graphics=SZG_DISPLAY1
-```
-
-The option overrides the default display value. This gives a window suitable
-for a passive stereo display, where, if the window were fullscreen,
-each window half could be displayed by a different projector.
+If a program requests the value of a
+configuration parameter and it is not present in the file, the program
+will try to get it from an environment variable whose name consists of the
+parameter's group and name. For example, if the program wants the value
+of the parameter SZG_DATA/path, it will look for an environment variable
+named SZG_DATA_path containing the value.
 

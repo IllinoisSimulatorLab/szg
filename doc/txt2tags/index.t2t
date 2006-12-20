@@ -22,8 +22,9 @@ Integrated Systems Lab
 - [GettingSoftware.html GettingSoftware.html] explains how to download and compile the source code.
   If you're on Windows and using Microsoft Visual C++, you'll also need to look at
   [VisualStudioBuildVars.html VisualStudioBuildVars.html]. Note that most of Syzygy can now be compiled
-  on Windows using the [MinGW http://www.mingw.org/] GNU compiler, although this is still a bit
-  experimental.
+  on Windows using the [MinGW http://www.mingw.org/] GNU compiler; the exceptions are the input device
+  driver plugins and the Python bindings, which still require a Microsoft compiler. Hopefully you'll
+  be able to download precompiled copies of these from the same place where you got this archive...
 - [SupportingLibraries.html SupportingLibraries.html] covers installing and using supporting
   libraries that give Syzygy extra functionality.
 - [Standalone.html Standalone.html] Standalone mode: Running Syzygy programs on a single PC
