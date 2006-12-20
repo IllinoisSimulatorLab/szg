@@ -28,7 +28,59 @@ can use the command line tool "dos2unix" to convert your files to Unix
 text format.
 
 
-=arObjects=
+=Objects in Master/slave Programs=
+
+The Syzygy object-importing code was originally written to work only using
+the scene graph. This means that while you can use most of these objects in
+master/slave applications via the scene graph owned by each master/slave
+framework, it is a pain in the behind.
+
+We are gradually factoring the code to allow it to be used more simply
+without using the scene graph. So far only the OBJ-format objects have
+been liberated.
+
+
+==arOBJRenderer==
+
+The arOBJRenderer allows you to easily read and render an OBJ file in a
+master/slave program. See the [Wavefront OBJ #OBJ] section for information
+about the format. Simply:
+
++ Instantiate it:
+```
+arOBJRenderer myObj;
+```
++ Read in the file:
+```
+if (!myObj.readOBJ( const string& fileName,
+                    const string& subdirectory,
+                    const string& dataPath ))
+  oops;
+```
+  The dataPath argument can be a semicolon-delimited list of directory paths. You should
+  read the file in both master and slaves.
+
++ Draw it:
+```
+myObj.draw();
+```
+
+
+Other optional methods:
+```
+string arOBJRenderer::getName();
+int    arOBJRenderer::getNumberGroups();
+void   arOBJRenderer::clear();
+void   arOBJRenderer::normalizeModelSize();
+float  arOBJRenderer::getIntersection( const arRay& theRay );
+arBoundingSphere         arOBJRenderer::getBoundingSphere();
+arAxisAlignedBoundingBox arOBJRenderer::getAxisAlignedBoundingBox();
+arOBJGroupRenderer*      arOBJRenderer::getGroup( unsigned int i );
+arOBJGroupRenderer*      arOBJRenderer::getGroup( const string& name );
+```
+
+
+=Scene Graph arObjects=
 
 Objects in Syzygy interact directly with the scene graph. To
 use objects in your program, you will need to have a scene graph
@@ -74,7 +126,7 @@ corresponding nodes in the database (animation, for example).
 =Supported Object Formats=
 
 
-==Wavefront OBJ==
+==Wavefront OBJ==[OBJ]
 
 Syzygy supports most of the official OBJ spec, and tries to fix some of
 the inconsistencies that programs tend to stick into exported files.

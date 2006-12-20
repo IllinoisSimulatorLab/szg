@@ -10,8 +10,7 @@ This chapter starts with practical examples of setting up Syzygy's
 input event processing software, and follows with an overview of the
 internals of Syzygy's input framework.
 
-For specific information about supported input devices, please read
-this [chapter InputDevices-Drivers.html].
+See also [Supported Input Devices InputDevices-Drivers.html].
 
 %%toc
 
@@ -29,39 +28,39 @@ the data it has received. We now explain how to set up a DeviceServer and
 test its behavior using DeviceClient.
 
 ```
-  DeviceServer -s [-netinput] driver_name input_slot [pforth_program_name]
-    The "-s" flag causes the program to run in "simple" mode. Instead of
-    trying to load an entire input node configuration, it just loads
-    the device driver given by driver_name. If pforth_program_name is
-    specified, this program will try to load the text stored in
-    the global parameter of that name as a PForth program and apply
-    it to the input events from the driver. The input slot (integer) on
-    which this program transmits events is specified by input_slot, and,
-    if the -netinput flag is specified, it tries to connect to input_slot+1
-    to receive events from the network.
-  DeviceServer [-netinput] node_config_name input_slot [pforth_program_name]
-    The same operation as above, except that the program configures
-    itself according to the input node configuration in the global
-    parameter node_config_name.
+DeviceServer -s [-netinput] driver_name input_slot [pforth_program_name]
 ```
+  The "-s" flag causes the program to run in "simple" mode. Instead of
+  trying to load an entire input node configuration, it just loads
+  the device driver given by driver_name. If pforth_program_name is
+  specified, this program will try to load the text stored in
+  the global parameter of that name as a PForth program and apply
+  it to the input events from the driver. The input slot (integer) on
+  which this program transmits events is specified by input_slot, and,
+  if the -netinput flag is specified, it tries to connect to input_slot+1
+  to receive events from the network.
+
+```
+DeviceServer [-netinput] node_config_name input_slot [pforth_program_name]
+```
+  The same operation as above, except that the program configures
+  itself according to the input node configuration in the global
+  parameter node_config_name.
+
 
 We now describe how to send joystick events from
 one computer to another. First, plug a joystick into a computer in your Phleet,
 dlogin on that computer, and type:
-
 ```
   DeviceServer -s arJoystickDriver 0
 ```
-
 If you (in your Phleet user identity) are not already transmitting on input
 slot 0 elsewhere in the Phleet and your joystick is supported, DeviceServer will
 start running and not return. Subsequently, open a new shell on that computer
 and type:
-
 ```
   DeviceClient 0
 ```
-
 The raw event data from the joystick should now be printed at 10 second
 intervals. Try pressing some buttons and wriggling some axes. You should see
 the numbers change. If not, see the
@@ -72,7 +71,7 @@ input information from the DeviceServer.
 Once this is working, you can experiment with using
 [PForth PForth.html] programs to
 filter the data. The following global parameter can be entered in a
-"complex" dbatch file.
+dbatch file (see [Syzgy Input Device Configuration InputDeviceConfiguration.html]).
 
 ```
 <param>
