@@ -1,0 +1,223 @@
+Syzygy Documentation: Virtual Computer Configuration
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers --toc
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+This file tells you how to define virtual computers. For information about
+//using// them, see [Introduction to the Distributed OS PhleetIntro.html#VirtualComputer].
+
+
+%%toc
+
+
+=What is a Virtual Computer?=
+
+Every Syzygy application consists of a number of distinct components that
+may be running on different computers:
+- Administrative components that manage the rest.
+- Rendering components that actually display the virtual world.
+- Input device drivers.
+- Sound output.
+
+
+A //virtual computer// is the easiest way to specify which of these
+components will run on which machines in your cluster.
+Multiple different virtual computers can be defined on the same cluster.
+There is some support for automatically cleaning up components belonging
+to a different virtual computer when an application is launched on a new
+one, but some care is still required to ensure that things work properly
+when multiple virtual computers are defined.
+
+In the context of a parameter or //dbatch// file, virtual computer
+definitions strongly resemble [local parameter SystemConfiguration.html#LocalParameters]
+definitions, i.e. parameter definitions that are specific to a single machine.
+
+
+=A Simple Example=
+
+The following is a simple virtual computer definition.
+This definition must be entered into the Syzygy parameter database via
+dset or dbatch, see [System Configuration SystemConfiguration.html].
+If it is part of a dbatch file, enclose the following in
+``<assign>`` and ``</assign>`` tags:
+
+```
+  vc SZG_CONF virtual true
+  vc SZG_CONF location my_room
+  vc SZG_CONF relaunch_all false
+  vc SZG_TRIGGER map main_computer
+  vc SZG_DISPLAY number_screens 2
+  vc SZG_DISPLAY0 map render1/SZG_DISPLAY0
+  vc SZG_DISPLAY0 networks internet
+  vc SZG_DISPLAY1 map render2/SZG_DISPLAY0
+  vc SZG_DISPLAY1 networks internet
+  vc SZG_MASTER map SZG_DISPLAY0
+  vc SZG_INPUT0 map input_computer/inputsimulator
+  vc SZG_INPUT0 networks internet
+  vc SZG_SOUND map sound_computer
+  vc SZG_SOUND networks internet
+```
+
+
+=Explication of the Example=
+
+The virtual computer is named "vc"; Syzygy knows that it is a virtual
+rather than a real computer from the first line setting SZG_CONF/virtual to true.
+
+The "SZG_CONF/location" parameter is important when multiple
+virtual computers are defined. Basically, virtual computers with the same
+location are assumed to overlap, i.e. they both require components to run
+on some of the same real computers.
+When an application is launched on a virtual computer, it
+uses its location to determine if there are running components it can reuse or
+that are incompatible and must be terminated. The location is used as a
+key to make sure components running on that virtual computer only connect
+among themselves and not, for instance, with components running on another
+virtual computer with a different location parameter in the same cluster.
+This means that two different virtual computers can share the same set of
+computers happily with respect to application launching and component reuse if
+they specify the same location.
+
+Note that if it is not explicitly defined, the location parameter defaults to the
+name of the virtual computer, in this case "vc".
+
+//Known Issue//: a drawback to this
+system is that all users must specify the same location value for it to
+work properly the first time a new user starts an application, which in turn
+means that they must learn the correct location
+value when setting up their parameter files.
+
+"SZG_CONF/relaunch_all" specifies whether each new application should relaunch
+all of the components that are not actually part of the application itself
+(e.g. input drivers, sound output, scene graph renderers) or whether it
+should attempt to use compatible ones that are already running. Usually
+the default ("false") is fine. However, if for example you're developing
+a new version of a device driver you might set this to "true" to ensure
+that your new version always gets launched.
+
+The "SZG_TRIGGER/map" parameter specifies where the administrative component
+should run. This component is actually built into each Syzygy
+application that uses the provided application frameworks. When
+an application is launched on a virtual computer, the first instance
+starts up in "trigger mode". This "trigger instance" scans the cluster and determines which
+running services are incompatible with the new application. These are
+terminated. Next, the trigger
+instance launches needed application components. If it is a distributed
+scene graph application (see [Programming Programming.html]),
+it also acts as the controller program; if a master/slave application,
+it launches the master and slave instances. In either case, the trigger
+stays running until it gets a "quit" message, at which point it
+shuts down some or all of its components.
+
+The "SZG_DISPLAY" parameters are used to specify rendering displays. First,
+the value of "SZG_DISPLAY/number_screens" tells how many displays there are
+in the virtual computer. For each display, two values need to be set.
+"SZG_DISPLAY#/map" indicates a display on a particular machine. For example,
+SZG_DISPLAY0/map is set above to render1/SZG_DISPLAY0. This means that
+virtual computer "vc"'s display #0 gets mapped to display #0 on //real//
+computer "render1". Naturally, there must be a machine render1 and it
+must have an SZG_DISPLAY0 defined (see [Graphics Configuration GraphicsConfiguration.html]).
+Second, "SZG_DISPLAY#/networks" specifies which network(s) that
+display component will use to communicate. In the above example, all
+components use the public network "internet". Note that there may be more than one display associated
+with each render machine, in which case multiple rendering components
+can run on that machine simultaneously if a virtual computer uses
+more than one of those displays.
+
+"SZG_MASTER/map" designates the display that will run the master
+instance of the application for a master/slave program, which creates and
+distributes application state to the slave instances. In the example above,
+the master instance will run on SZG_DISPLAY0 of machine render1.
+
+"SZG_INPUT#/map" specifies one or more input device drivers to combine
+into input service # (usually only one, SZG_INPUT0, is used).
+The user also needs to map an input device to run applications on the
+virtual computer. The value of SZG_INPUT0/map is of the format:
+```
+  computer1/device1/computer2/device2...
+```
+If the device name is "inputsimulator" an instance of the
+[Tracking Simulator TrackingSim.html] will be
+launched. Otherwise, an instance of DeviceServer will be launched and
+the device name will be taken to be the name of a global device definition
+parameter (see [Syzgy Input Device Configuration InputDeviceConfiguration.html]).
+These devices all get daisy-chained together from right to left, i.e. the last
+device sends its output to the next to last and so on, with the first device
+actually communicating with the application. The event indices (see the relevant
+part of the [Programming Programming.html#InputEvents] chapter) get stacked,
+e.g. if the first and second device both supply three buttons the first
+device's will have indices 0-2 and the second will have 3-5 when used in the
+application.
+
+The value of "SZG_INPUT0/networks" determines the network interface(s) the
+input devices will use.
+
+"SZG_SOUND/map" specifies the the computer upon which the sound output program
+//SoundRender// will run (there's only one sound output program, so the name isn't
+explicitly specified).
+
+Finally, "SZG_SOUND/networks" gives the network interface(s) that SoundRender will use.
+
+
+=Sequence of Events During Launch on a Virtual Computer=[LaunchSequence]
+
+Now we'll examine more closely what happens when an application launches
+on a virtual computer, paying particular attention to the how it interacts with a previously
+running application. Again, consider the command:
+```
+  dex vc atlantis
+```
+
++ The dex command first checks to see if "vc" is the definition of
+  a virtual computer by seeing if vc/SZG_CONF/virtual is set to "true".
+  If so, dex determines the trigger machine of the virtual computer via
+  vc/SZG_TRIGGER/map and executes atlantis on that machine, passing the executable a
+  special parameter indicating that it is being used as a trigger to launch the
+  full cluster application.
+
++ When the application is being used as a launcher, it first makes
+  sure that a previous application isn't already running, by checking, in this
+  case, if the named lock (see [Locks PhleetIntro.html#Locks])
+  "my_room/SZG_DEMO/app" is held. Here, the "my_room"
+  appearing in the lock name is the virtual computer location. If the
+  lock is held, the trigger sends a kill message to the lock's owner and waits
+  for it to clean up its components and exit. Once the old application has exited, the new application
+  enters a clean-up phase which makes sure appropriate services are
+  running on the cluster and incompatible ones are killed.
+
+  + First, it checks to see if an incompatible render program is running
+    on any of the screens. For virtual computer "vc" and screen 0, this
+    is done by checking whether anyone is currently holding the lock
+    vc1/SZG_DISPLAY0. Note that a render program can
+    remain active on a screen after an application has been killed. For
+    instance, szgrender stays up after a distributed scene graph
+    application has died since it can just accept a new connection from a
+    new distributed scene graph application. If there is a render program
+    currently registered and it is incompatible with the operation of the
+    new render program (szgrender, for instance, cannot display the graphics for
+    a master/slave program or vice-versa), the old one is killed.
+
+  + Next, the application launcher makes sure other required services
+    are running on the cluster, including input devices and sound drivers.
+    In the case of virtual computer "vc", this means making sure
+    inputsimulator is running on computer "smoke" and that SoundRender is
+    running on computer "sound". In each case, if the component is running
+    already, leave it alone. If it isn't running, go ahead and launch it.
+
++ Now that its environment has been conditioned, the trigger goes ahead and
+  starts the application itself. In the
+  master/slave application case, it launches an application instance for each
+  graphics screen. In the case of a distributed scene graph
+  application, it goes ahead and makes sure szgrender is running on each
+  render node and begins executing the application code locally.
+
++ Finally, the trigger waits for a kill signal, as might come from a new
+  application, and performs a shutdown procedure upon receiving it. In the
+  distributed scene graph case, this simply means shutting down itself, while,
+  in the master/slave case, this means telling the connected slaves to shut down
+  and waiting for them to do so.
+
+
