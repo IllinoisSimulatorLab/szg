@@ -207,7 +207,7 @@ Run this to retrieve data from an Intersense tracker. Due to the unified
 nature of the Intersense tracker drivers, this should work with any of the
 trackers in the Intersense line.
 The Intersense driver is very configurable. You will need to set parameters
-in the Phleet database to use your tracker.
+in the Syzygy database to use your tracker.
 ```
 TRACKER_COMPUTER SZG_INTERSENSE sleep 10/0
 Sleep for 10 msec between polling the tracker.

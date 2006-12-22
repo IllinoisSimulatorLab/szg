@@ -313,6 +313,10 @@ class arTeapotGraphicsPlugin( arPythonGraphicsPluginObject ):
 #include "arTexture.h"
 %}
 
+void ar_setTextureAllowNotPowOf2( bool onoff );
+bool ar_getTextureAllowNotPowOf2();
+
+
 class arTexture {
  public:
   arTexture();
@@ -326,8 +330,6 @@ class arTexture {
 }
   void activate(bool forceRebind = false);
   void deactivate();
-  bool getBlockNotPowerOfTwo() const;
-  void setBlockNotPowerOfTwo( bool onoff );
 
   int getWidth()  const;
   int getHeight() const;

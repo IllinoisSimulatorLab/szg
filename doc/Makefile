@@ -20,6 +20,7 @@ ALL = \
   Interaction.html \
   Navigation.html \
 	Objects.html \
+	PathConfiguration.html \
 	PForth.html \
 	Phleet.html \
 	PhleetIntro.html \
@@ -37,6 +38,7 @@ ALL = \
 	SyzygyEnvironmentVariables.html \
 	szgview.html \
 	Testing.html \
+	VirtCompConfiguration.html \
 	VisualStudioBuildVars.html \
   Standalone.html \
   SupportingLibraries.html \

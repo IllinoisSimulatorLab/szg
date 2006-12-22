@@ -100,7 +100,9 @@ code, do it //after// the framework's init(), because otherwise it will be
 overridden by the value from the database.
 
 
-__Accessing data in Cluster Mode__: Previously, program data
+==Accessing data in Cluster Mode==
+
+Previously, program data
 had to be located in a subdirectory of a directory on the
 Syzygy data path (specified by the database variable
 SZG_DATA/path, see [Syzgy Resource Path Configuration PathConfiguration.html]).
@@ -148,7 +150,9 @@ Two examples:
   framework.setDataBundlePath( "SZG_PYTHON", "my_app" )
 ```
 
-__Input__. The frameworks provide methods for polling the current state
+==Input Events==[InputEvents]
+
+The frameworks provide methods for polling the current state
 of the various [input events InputDevices.html]. Input events are distinguished
 by //type// (``button``,``axis``, or ``matrix``) and //index// (a non-negative
 or unsigned integer). By convention,

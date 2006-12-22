@@ -34,9 +34,9 @@ of objects using a grasping tool. Also demonstrates a custom standalone mode
 simulator.
 
 
-=Myriad Scene Graph: Important Phleet Database Parameters=
+=Myriad Scene Graph: Important Syzygy Database Parameters=
 
-The graphics database requires a few Phleet parameters to be set for
+The graphics database requires a few Syzygy parameters to be set for
 proper operation. For every computer upon which you want to run a display,
 you should have
 
@@ -590,7 +590,7 @@ time.sleep(5)
 
 =Scene Graph: Saving and Reloading Your Work=
 
-You should be certain that your Phleet parameters are set as in
+You should be certain that your Syzygy parameters are set as in
 [this #Database] section, especially the SZG_PEER/path. We
 assume you have worked through the section on [loading #Objects]
 objects.

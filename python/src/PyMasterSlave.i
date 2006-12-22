@@ -1322,12 +1322,12 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
       else:
         classRef = item
         classFactory = classRef
-      className = classRef.__name__
+      classKey = self.composeKey( classRef )
       if type(classRef) != types.ClassType and type(classRef) != types.TypeType:
         raise TypeError, 'arMasterSlaveDict(): invalid class reference.'
       if not callable( classFactory ):
         raise TypeError, 'arMasterSlaveDict(): invalid class constructor or factory.'
-      self._classFactoryDict[className] = classFactory
+      self._classFactoryDict[classKey] = classFactory
   def start( self, framework ):  # call in framework onStart() method or start callback
     """ d.start( framework ).
     Should be called in your framework's onStart() (start callback)."""
@@ -1346,7 +1346,7 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
       for key in self.data:
         item = self.data[key]
         itemState = item.getState()
-        itemClass = item.__class__.__name__
+        itemClass = self.composeKey( item.__class__ )
         messages.append( (key, itemClass, item.getState()) )
     framework.setSequence( self._name, messages )
   def unpackState( self, framework ):
@@ -1365,26 +1365,28 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
     messages = framework.getSequence( self._name )
     for message in messages:
       key = message[0]
-      className = message[1]
+      classKey = message[1]
       newState = message[2]
       if not self.data.has_key( key ):
-        classFactory = self._classFactoryDict[className]
+        classFactory = self._classFactoryDict[classKey]
         self.data[key] = classFactory()
         keysToDelete.append(key)
-      elif self.data[key].__class__.__name__ != className:
+      elif self.composeKey( self.data[key].__class__ ) != classKey:
         del self.data[key]
-        classFactory = self._classFactoryDict[className]
+        classFactory = self._classFactoryDict[classKey]
         self.data[key] = classFactory()
       self.data[key].setState( newState )
       keysToDelete.remove( key )
     for key in keysToDelete:
       del self.data[key]
+  def composeKey( self, cls ):
+    return cls.__module__+'.'+cls.__name__
   def __setitem__(self, key, newItem):
     if not type(key) in arMasterSlaveDict.keyTypes:
       raise KeyError, 'arMasterSlaveDict keys must be Ints, Floats, or Strings.'
-    newType = newItem.__class__.__name__
-    if not self._classFactoryDict.has_key( newType ):
-      raise TypeError, 'arMasterSlaveDict error: non-registered type '+str(newType)+' in __setitem__().'
+    newKey = self.composeKey( newItem.__class__ )
+    if not self._classFactoryDict.has_key( newKey ):
+      raise TypeError, 'arMasterSlaveDict error: non-registered type '+str(newKey)+' in __setitem__().'
     self.data[key] = newItem
   def __delitem__( self, key ):
     del self.data[key]
@@ -1420,6 +1422,8 @@ class arMasterSlaveDict(UserDict.IterableUserDict):
       if not hasattr( item, 'draw' ):
         continue
       drawMethod = getattr( item, 'draw' )
+      if not callable( drawMethod ):
+        continue
       if framework:
         item.draw( framework )
       else:

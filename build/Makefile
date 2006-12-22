@@ -16,11 +16,11 @@ DEMODIRS=ribbons atlantis coaster hspace cosmos cubes parade schprel
 DEMOFAST=cosmos atlantis
 
 # For 8-cpu salami.isl.uiuc.edu and other multicore multi-cpu hyperthreaded.
-ifneq "$NUMBER_OF_PROCESSORS" ""
-ifneq ($(wildcard $(SZGHOME)/build/win32/language/arPrecompiled.pch),)
-JOBS=$(NUMBER_OF_PROCESSORS)
-endif
-endif
+# ifneq "$NUMBER_OF_PROCESSORS" ""
+# ifneq ($(wildcard $(SZGHOME)/build/win32/language/arPrecompiled.pch),)
+# JOBS=$(NUMBER_OF_PROCESSORS)
+# endif
+# endif
 
 
 all:

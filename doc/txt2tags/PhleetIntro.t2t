@@ -6,25 +6,21 @@ Integrated Systems Lab
 
 [Documentation Table of Contents index.html]
 
-This chapter explains Phleet's basic operations and is the first you
-should read when beginning to set up a Syzygy cluster. Make sure you read
-the section on [firewalls #Firewalls] with particular care. If
-this is your first time using Syzygy, the sections on "Creating a Phleet" will
-walk you through, step by step, the basic process of setting up your
-distributed system. Also,
-while you can run Syzygy applications without using "virtual computers",
-it is recommended that you read and understand the
-[section #VirtualComputer] describing virtual computers.
-In addition, special command line
-arguments and environment variables can be used to affect the operation
-of your Syzygy programs, as is explained [here #Context]. These
-"contexts" are especially important when making your own tools (like via
-a web interface) to control the Phleet. To understand how Phleet
-components cooperate (both connect to one another and avoid stepping on one
-another's toes), you should read the [section #ServiceLocks]
-dealing with connection brokering, service names, and locks. Finally, the
-[troubleshooting #Troubleshooting] section includes
-explanations of commonly encountered problems.
+This chapter explains basic operations of Syzygy's distributed operating
+system and is the first you
+should read when beginning to set up a Syzygy cluster.
+
++ If your computers are running firewalls, you should definitely read
+  [A Note on Firewalls #Firewalls].
++ If this is your first time using Syzygy, [Creating a Cluster #CreatingPhleetOverview] will
+  walk you through the basic process of setting up your distributed system.
++ [Virtual Computers #VirtualComputer] make it much easier to manage applications on clusters.
++ [Component Contexts #Context] explaines how to use special command line arguments to
+  modify the operation of Syzygy components.
++ To understand how cluster components cooperate, read
+  [Connection Brokering and Service Names #Services] and [Locks #Locks].
++ [Troubleshooting #Troubleshooting] explains commonly-encountered problems.
+
 
 %%toc
 
@@ -33,298 +29,283 @@ explanations of commonly encountered problems.
 
 IMPORTANT: Many operating systems today will install a firewall.
 The default configuration of this software might very well keep Syzygy from
-functioning. After all, as a networked system, Syzygy expects to be able to
+functioning. As a networked system, Syzygy expects to be able to
 communicate on particular ports. The easiest option is to simply not have a
-firewall at all. However, this will be unacceptable in some environments.
+firewall at all. However, this may not be acceptable.
 
-We now outline the ports that must be allowed through the firewall.
+These ports must be allowed through a firewall:
 
 - For Syzygy to operate in a distributed fashion, you will need to create a
-Phleet. This involves running an szgserver, which involves specifying a
-port for incoming TCP connections. The computer on which
-szgserver runs must allow connections to this port.
+  cluster. This involves running an szgserver, which requires specifying a
+  port for incoming TCP connections. The computer on which
+  szgserver runs must allow connections to this port.
 
 - The "dhunt" and "dlogin" commands rely on UDP packets reaching port
-4620 to operate properly.
+  4620 to operate properly.
 
-- Finally, every computer that is part of the Phleet will have a block of
-ports used by Syzygy components to connect to one another. This
-block is set by the "dports" command, defaulting to 4700-4899. This block,
-however you choose to define it, must be let through your firewall (TCP).
+- Each computer that is part of the cluster will require a block of
+  ports for Syzygy components to connect to one another. This
+  block is defaults to port number 4700-48999, but it can be set
+  manually using the ``dports`` command. TCP connections to this block of ports
+  must be let through your firewall.
 
 
-=Creating a Phleet: Overview=[CreatingPhleetOverview]
+=Creating a Cluster: Overview=[CreatingPhleetOverview]
 
-Please make sure you read the previous section on
-[firewalls #Firewalls].
+Syzygy's distributed operating system performs the following tasks:
++ It helps programs share data with one another.
++ Stores configuration information for users.
++ Provides an interface for managing a cluster's software components.
 
-Syzygy depends on distributed operating system, Phleet, that helps
-programs share data with one another, stores
-configuration information for users, and provides an interface for
-managing the cluster software components. A single instance of the Phleet
-kernel, szgserver, runs for each distributed operating system instance.
-Different users on different computers can be connected to different
-distributed operating system instances, or Phleets, dynamically changing
-their associations over time. However, the most common configuration will
-be a group of related computers, with a szgserver running on one of them
+
+The central component of a cluster is the Syzygy server, ``szgserver``.
+The most common configuration will
+be a group of related computers, with a single szgserver running on one of them
 and providing the distributed operating system for all the users of the
-cluster. We focus on setting up such a system. In what follows, we assume
+cluster. We will focus on setting up such a system. However,
+different users on different computers can be connected to different
+Syzygy servers if desired, easily changing their associations over time.
+
+In what follows, we assume
 that broadcast packets can travel between any computers that will be in your
-Phleet.
+cluster.
 
 NOTE: szgserver is meant to run in the background for a long
-time (like a linux daemon or windows service). In general, you'll only
-need to run one copy of szgserver to manage your cluster.
+time (like a linux daemon or windows service).
 Here are some common misunderstandings:
-
 - Do not run a new copy of szgserver for each application.
 - Do not run a copy of szgserver on every computer in your cluster.
 
 
-The sections that follow will show you how to set up and test your Phleet
-at a basic level. The most complex one deals with using the command line tools
-to create the szg.conf file for each computer in the cluster. Next, you will
-be walked through running szgserver and szgd's. Finally, you will see how to
-automatically connect running applications, test your Phleet, and have a
-fault tree with which to diagnose problems.
-
-
-=Creating a Phleet: Configuring Computers=[ComputerConfig]
+=Creating a Cluster: Configuring Computers=[ComputerConfig]
 
 This section shows you how to configure each computer in your
-cluster using Syzygy's command-line tools, in this case dname, daddinterface,
-ddelinterface, and dports. This produces an szg.conf file whose location is
-determined as follows:
+cluster using some of Syzygy's command-line tools: ``dname``, ``daddinterface``,
+``ddelinterface``, and ``dports``.
 
-+ If the environment variable SZG_CONF is set and has a value different
-    from "NULL", it gives the DIRECTORY in which the config file is located.
-    When giving this directory, DO NOT use a trailing slash.
-+ If the environment variable SZG_CONF is unset or has the value "NULL",
-    the location of the config file varies depending on operating system.
-    - On Unix-like operating systems (Linux, Mac OS X, Irix), the
-    default location is in /etc and the config file is
-    /etc/szg.conf.
-    - On Windows, the default location is in c:\szg and the config file
-    is c:\szg\szg.conf.
 
-Please note: All Phleet users MUST be able to change into the directory
-containing the szg.conf file.
+==szg.conf Configuration File Location==
 
-Every Syzygy program will try to read the szg.conf config file. It must
-exist for programs to work in Phleet (i.e. clustered) mode but it is not
-necessary for programs to work in [standalone Standalone.html]
-mode. An important design goal of Syzygy is to enable ordinary users to
-try it in Phleet mode, Since a non-root user cannot write to /etc,
-this necessitates letting an environment variable optionally define the
-config file's location. Also, a Windows installation is not guaranteed to
-have a c: drive, even though this is uncommon, once again requiring
-flexibility in determining szg.conf's location.
+Network interface data are stored in a file named //szg.conf//. The default location
+of this file varies by platform:
+- On Unix-like operating systems (Linux, Mac OS X, Irix), the
+  default location is in /etc/. Note that non-root users cannot write to /etc, so
+  initial network configuration must be done as root if the default location is
+  used.
+- On Windows, the default location is in c:\szg\.
+
+
+If desired you can set the environment variable SZG_CONF to the path to a directory
+where this file should be created. Note that all Syzygy users MUST be able to change
+into the directory containing the szg.conf file.
+
+Every Syzygy program will try to //read// the szg.conf file, but they generally do
+not try to //write// to it. It must
+exist for programs to work in Cluster Mode but it is not
+necessary for programs to work in [Standalone Mode Standalone.html].
+
+
+==Creating szg.conf==
+
+To create szg.conf, perform the following steps (to perform these steps you must have
+write access to the directory where szg.conf will be created):
 
 + Login to the computer to be configured.
-
-+ You will use the command line to alter szg.conf, whose location is
-    either a default or defined via $SZG_CONF, as described at the start of
-    this section.
-
-+ Name the computer. This must be unique across all the computers in your
-    system. A good choice is the short version of your computer's DNS name
-    (i.e. XXX.YYY.YYY.edu becomes XXX) but other names are possible. We assume
-    that you can write to the file's location.
++ Assign the computer a Syzygy name. This name must be unique across all the computers in your
+  system. A good choice is the short version of your computer's DNS name
+  (e.g. foobar.isl.uiuc.edu becomes foobar) but other names are possible. We assume
+  that you can write to the file's location. For example, type:
 ```
-  dname computer_name
+  dname foobar
 ```
-
-+ The syzygy config file contains information about the network interfaces
-    in the computer. This information is used, for instance, in automatically
-    connecting various components to one another. To add an interface to the
-    config file:
++ szg.conf must contain information about the network interfaces
+  in the computer, specifically the IP address and netmask.
+  In addition, each interface must be assigned to a Syzygy network.
+  To add an interface to the config file:
 ```
   daddinterface network_name address [netmask]
 ```
+  "network_name" assigns the interface to a particular Syzygy network. Internet
+  addresses should use the name "internet". Private networks can use an arbitrary
+  name, but this should be consistent across the private network and
+  different from that assigned to other private networks in the distributed
+  system. For example, the distributed system might contain 2 clusters,
+  each connected internally by a distinct 192.168.0.XXX private network. In
+  this case, the network_name associated with each should be different. This
+  lets Syzygy operate properly with respect to connection brokering.
 
-  The network_name gives a descriptive name for the network. Internet
-    addresses should use "internet". Private networks can use an arbitrary
-    name, but this should be consistent across the private network and
-    different from that assigned to other private networks in the distributed
-    system. For instance, the distributed system might contain 2 clusters,
-    each connected internally by a distinct 192.168.0.XXX private network. In
-    this case, the network_name associated with each should be different. This
-    lets Phleet operate properly with respect to connection brokering.
-
-  The primary or default network for each computer should be added *first*.
-    This network should be one to which all computers in the distributed system
-    are connected. Components will expect to connect to the szgserver on this
-    network. Furthermore, if components have a choice about how to connect to
-    one another (i.e. they are connected by several networks), they will
-    default to using the first network.
+  The primary or default network for each computer should be added //first//.
+  This network should be one to which all computers in the distributed system
+  are connected. Components will expect to connect to the szgserver on this
+  network. Furthermore, if components have a choice about how to connect to
+  one another (i.e. they are connected by several networks), they will
+  default to using the first network.
 
   You can optionally specify a netmask for the interface. By default,
-    a netmask of 255.255.255.0 is used.
+  a netmask of 255.255.255.0 is used.
 
-  One can remove networks from the config file.
+  You can remove networks from the config file using the following command:
 ```
   ddelinterface network_name address
 ```
 
-  Syzygy operates using connection brokering. You will not explicitly assign
-    the ports on which servers will listen for connections. Instead, Phleet
-    will assign the servers ports based on an available pool it maintains
-    (on a per-computer basis). By default, the block 4700-4799 is used, which
-    is likely to be OK on both Unix and Windows machines. However, you can
-    change this using the following command:
+  Syzygy operates using connection brokering. This means that you will not explicitly assign
+  the ports on which servers will listen for connections. Instead, Syzygy
+  will assign the servers' ports based on a pool it maintains
+  on a per-computer basis. By default, the block of ports numbers 4700-4799 is used, which
+  is likely to be OK on both Unix and Windows machines. However, you can
+  change this block using the following command:
 ```
-  dports first size
+  dports first_port num_ports
 ```
-  This command allocates a block of ports beginning at "first" and
-    containing "size" many ports. IMPORTANT: you'll want every port in this
-    block to be free and for user services to be able to bind to them.
-    Furthermore, the block should be of reasonable size, in order to
-    accomodate all the services that might run on the computer. All in all, it
-    is best to be generous when assigning the size, consequently the default
-    value. NOTE: some Windows versions do not like user services to bind to
-    ports 5000 and above.
+  This command allocates a block of ports beginning at "first_port" and
+  containing "num_ports" ports. IMPORTANT: you'll want every port in this
+  block to be free and user services to be able to bind to them.
+  The block should be of reasonable size in order to
+  accomodate all the services that might run on the computer. It
+  is best to be generous when assigning the size.
+  NOTE: some Windows versions do not like user services to bind to
+  ports 5000 and above.
 
-+ After having issued these commands, you should check the stored config
-    file.
++ After issuing these commands, you can check the stored config
+  file by typing:
 ```
   dconfig
 ```
-  The output might look something like this:
+  The output might look something like this for a computer with two network
+  interface cards:
 ```
-  Phleet Configuration:
-    computer = MY_COMPUTER
-    network = internet, address = XXX.XXX.XXX.XXX, netmask=255.255.255.0
-    network = wall, Address = 192.168.0.1, netmask=255.255.255.0
-    ports = 4700 - 4899
+  computer = foobar
+  network = internet, address = 999.999.999.999, netmask=255.255.255.0
+  network = private_net, address = 192.168.0.1, netmask=255.255.255.0
+  ports = 4700 - 4899
 ```
-  The dconfig command will display the information in the config file Phleet
-    components running on the computer will use, given a particular value of
-    $SZG_CONF.
 
 
-=Creating a Phleet: Running szgserver and szgd=[RunningSzgserver]
+=Creating a Cluster: Running szgserver and szgd=[RunningSzgserver]
 
-In this section, we show you how to run an szgserver, the program that
-controls the Phleet distributed OS, and szgd's, the Syzygy remote
-execution daemons. These programs will form the backbone of your Phleet,
-enabling you to control your cluster from an arbitrary location on your
+In this section we show you how to run //szgserver//, the program that
+controls the Syzygy distributed OS, and //szgd//, the Syzygy remote
+execution daemon. These programs will form the backbone of your cluster,
+enabling you to control it from an arbitrary location on your
 network.
 
-+ Choose a computer that will act as the server for the Phleet
-    distributed OS. This is where the szgserver program will run. Do not
-    run szgserver on more than one computer. The syntax for the szgserver
-    command is as follows:
++ Choose a computer that will act as the server machine for the
+  distributed OS. This is where the szgserver program will run. Do not
+  run szgserver on more than one computer. The syntax for the szgserver
+  command is as follows:
 ```
-  szgserver server_name server_port [condition_1] ... [condition_n]
+  szgserver server_name server_port [network_1] ... [network_n]
 ```
-    You need to give the szgserver program a name, server_name, which
-    can be anything. You also give it a server_port at which it listens
-    for connections and the IP address of the server machine. DO NOT
-    choose a port within the ports block that will be used for
-    connection brokering on the computer running szgserver. If you
-    do not specify any option "conditions", the szgserver will accept
-    connections from anywhere. However, if you do specify
-    conditions, the szgserver will only accept conditions from IP
-    addresses that meet one of the conditions.
-
-  The following condition:
+  You need to give the szgserver program a name, server_name, which
+  can be anything. You must also give it a server_port at which it listens
+  for connections and the IP address of the server machine. DO NOT
+  choose a port within the ports block printed by ``dconfig``;
+  that block must be free for connection brokering. The optional
+  "network" arguments allow you to specify a whitelist: a set of
+  IP address ranges from which your server will accept connections.
+  If you do not specify any network ranges, the szgserver will accept
+  connections from anywhere. The whitelist is specified as a list
+  of address/netmask pairs, for example:
 ```
   192.168.0.0/255.255.255.0
 ```
-    will only be matched by IP addresses that, when masked by 255.255.255.0,
-    equal 192.168.0.0.
+  will only be matched by IP addresses that, when masked by 255.255.255.0,
+  equal 192.168.0.0.
 
-  The following szgserver will, for instance, accept a connection on
-port 4343 from 192.168.0.224 but not 10.0.0.2.
+  The following szgserver will accept a connection on
+  port 4343 from IP address 192.168.0.224 but not from address 10.0.0.2.
 ```
   szgserver generic 4343 192.168.0.0/255.255.255.0
 ```
 
-   A reminder about firewalls:  if running one on the computer running
-szgserver, poke holes for ports 4620/UDP and 4343/TCP
-(where "4343" is the port specified on the example command line above).
+  A reminder about firewalls:  if one is running on the computer running
+  szgserver, poke holes for UDP port 4620 and whatever TCP port you
+  specified as the "server_port" argument to szgserver.
 
-+ To interact with the system, you'll need to login to the Phleet, which
-    is done on a per-machine basis.
-    To run Syzygy commands on a particular machine, first login on that machine
-    by typing (and making sure that the szgserver_name is the same as used above):
++ To interact with the system, you'll need to login to the szgserver, which
+  is done on a per-OS-user-per-computer basis. Type:
 ```
-  dlogin szgserver_name syzygy_user_name
+  dlogin server_name syzygy_user_name
 ```
-   Conceptually, this command logs you in to the Phleet managed by the
-   szgserver with szgserver_name
-   using Syzygy user name syzygy_user_name. Syzygy login associates
-   a user name (in the context of the computer's native OS) with a Syzygy user name.
-   Subsequently (until dlogout), any Syzygy command issued on that computer by the
-   given user (as that identity is understood by the OS)
-   will be sent to the Phleet and executed using the given Syzygy user's identity.
+  "server_name" should be the parameter of the same name used to start the
+  szgserver; "syzygy_user_name" will be your Syzygy user name.
+  This command associates a Syzygy user name with the current operating system
+  (Windows, Unix) user name. Any subsequent commands issued on that computer
+  while logged in as that operating system user will be interpreted by Syzygy
+  as being issued by the specified Syzygy user. To change Syzygy users for a
+  given OS user you can either (a) dlogin as a different Syzygy user, or
+  (b) dlogout, which disconnects you from any szgserver.
 
-+ Make sure that you have issued the dlogin command, as above, on each computer
-    that will be part of your Phleet. Upon success, a login file will
-    be written, with its location depending on the value of $SZG_LOGIN and
-    its name depending on the native OS's idea of the user name XXX.
+  As you can see, there is currently //no authentication// of Syzygy users.
 
-    - If $SZG_LOGIN is unset or is "NULL", then, on Unix, the
-    login file will be /tmp/szg_XXX.conf while on Windows the login file
-    will be C:\szg\szg_XXX.conf.
+  The ``dlogin`` commands creats a login file named "szg_<OS_user_name>.conf.
+  Its default location varies by platform:
+  - Unix: /tmp/
+  - Windows: c:\szg\
 
-    - Otherwise, the file's location will be given by $SZG_LOGIN, with its
-    filename as above.
+  As with szg.conf, you can specify a directory for login files by setting
+  the environment variable SZG_LOGIN to the path to a directory.
 
   Upon successful dlogin, the information in the login file will be printed,
-    looking something like:
+  looking something like:
 ```
-  Phleet Login:
-      system user name = schaeffr
-      phleet user name = ben
-      szgserver        = "generic", XXX.XXX.XXX.XXX:4343
+  OS user     = schaeffr
+  syzygy user = ben
+  szgserver   = "generic", 999.999.999.999:4343
 ```
 
-  Whenever you run a Syzygy program, it uses this above procedure to
-find a login file directing it to a particular szgserver. Please
-recall that the login file location depends on $SZG_LOGIN.
+  You can access this information at any time by typing:
+```
+  dwho
+```
 
-  We now outline the operation of dlogin. When connecting to the szgserver
-    via name, it works by first reading the Phleet config file on the local
-    machine (whose location can be altered by $SZG_CONF). The program then
-    sends broadcast packets on each of the networks listed there
-    (i.e. if 192.168.0.1 is an address with netmask 255.255.255.0, a packet
-    is sent to 192.168.0.255). The szgserver continually listens for such packets,
-    and, if it receives one tagged with its own name, returns information about
-    how to connect.
+  dlogin works as follow: When connecting to the szgserver
+  via name, it reads the szg.conf file. It then
+  sends broadcast packets on each of the network interfaces listed there
+  The szgserver continually listens for such packets.
+  If it receives one tagged with its own name it returns information about
+  how to connect.
 
-  This can fail in several ways. The failure possibilities and remedies are:
+  This process can fail in several ways. The failure possibilities and remedies are:
 
-    - Broadcast packets are filtered by the network between dlogin and the szgserver.
-        For instance, note that the loopback interface (127.0.0.1) filters broadcast
-        packets on several systems supported by Syzygy (like Mac OS X).
-        You can work around this by connecting explicitly to the szgserver (see below).
-
-    - The networks in the Phleet config file on the machine on which dlogin was issued
-        are incorrect. Check them again using dconfig.
-
-    - The szgserver name given in dlogin and the name of the running szgserver are
-         different. Make sure they are the same.
-
-    - The szgserver tells dlogin to connect using the first address in the phleet config
-        file located on the MACHINE RUNNING SZGSERVER. The machine running dlogin must
-        be able to reach this IP address. If not, reorder the addresses in the phleet
-        config file on the szgserver machine using ddelinterface and daddinterface
-        ON THAT MACHINE.
-
-  If broadcast packets will not travel from dlogin to szgserver, you can issue an explicit
-    version of dlogin.
+  - Broadcast packets may be filtered by the network between dlogin and the szgserver.
+    For example, the loopback interface (127.0.0.1) filters broadcast
+    packets on several systems supported by Syzygy (e.g. Mac OS X).
+    You can work around this by explicitly specifying the szgserver address and port:
 ```
   dlogin szgserver_IP_address szgserver_port syzygy_user_name
 ```
 
-+ Now, on each machine in the distributed system, run szgd, the phleet remote execution
-    daemon.
+  - The networks in the Syzygy config file on the machine on which dlogin was issued
+    may be incorrect. Check them again using dconfig.
+
+  - The szgserver name given in dlogin and the name of the running szgserver may be
+     different. Make sure they are the same.
+
+  - The szgserver tells dlogin to connect using the //first// address in the szg.conf
+    file on the szgserver machine. The machine from which you are trying to dlogin must
+    be able to reach this IP address. If not, use ``ddelinterface`` and ``daddinterface``
+    to reorder the addresses in the szg.conf file on the szgserver machine.
+
+
++ Now run the remote execution daemon //szgd// on each machine in the cluster.
 ```
-  szgd
+  szgd <base_paths> [-r]
 ```
-    When you run szgd on a machine, make sure that you are logged-in (OS-wise)
-    to that machine as you were when you issued the dlogin command.
+  The required base_paths argument is intended as a security measure. It should
+  be a semicolon-delimited list of paths to directories or executables, and paths
+  to executables should not include the '.exe' suffix on Windows. ``szgd`` is in
+  charge of launching programs on each machine in your cluster in response to a
+  remote command. It will //only// launch programs whose full path begins with
+  one of the paths in the base_paths list. For example, on Windows you probably
+  do //not// want it to include c:\Windows\. You might type:
+```
+  szgd c:\myapps
+```
+  ``szgd`` immediately attempts to connect to the szgserver that you are currently
+  dlogged into. By default, it exits on failure to connect. If the optional ``-r``
+  argument is passed it will instead repeatedly attempt to reconnect on failure.
 
 + Now, on any machine in the distributed system, type "dps". You'll see something like:
 ```
@@ -335,30 +316,482 @@ recall that the login file location depends on $SZG_LOGIN.
   computer5/szgd/4
   computer6/szgd/5
 ```
-
-    There should be a line for each computer on which you have run szgd.
-
-  PLEASE NOTE: the szgd's are not necessary for many Phleet functions, like messaging
-or connection brokering, though they are required to operate a
-[virtual computer #VirtualComputer].
+  i.e. "computer name"/"process name"/"process ID".
+  There should be a line for each computer on which you have run szgd.
 
 
-=Basic Testing of Your Phleet=[TestingPhleet]
+=Using a Virtual Computer=[VirtualComputer]
 
-We can now verify that basic connection brokering works between computers in
-your Phleet. The BarrierServer test program synchronizes the operation of a
-collection of BarrierClient test programs operating anywhere in the Phleet. The
-BarrierClient programs can appear and disappear, as can the BarrierServer.
-When computers are added or removed, the other components dynamically adjust.
-For instance, if BarrierServer is halted, any BarrierClients will wait for a
-BarrierServer to start up and register with the szgserver, at which point they
-will connect to it. If a new BarrierClient starts up, it will be dynamically
-added to the BarrierServer's synchronization group, with its internal loop
-falling into lockstep with that of the other BarrierClients.
+For information on //defining// virtual computers, see
+[Virtual Computer Configuration VirtCompConfiguration.html].
 
-+ Start BarrierServer on one of your Phleet nodes.
+To launch an application on a virtual computer, you will need a copy of
+szgd running on every "mapped" machine, i.e. any real computer whose name appears as
+the value of a "<something>/map" parameter value in the virtual computer definition.
+Once this is done, to launch atlantis
+(a sample application included with the szg source) on
+virtual computer ``vc``, use the command:
+```
+  dex vc atlantis
+```
 
-+ Start BarrierClient on another node. If all is well, the BarrierClient will
+There are two ways to kill an application running on the virtual computer.
+You can directly kill the trigger instance. For that you need to know the
+//location// parameter of the virtual computer. For the example virtual
+computer defined in
+[Virtual Computer Configuration VirtCompConfiguration.html], that would
+be "my_room", so you would type:
+```
+  dmsg -c my_room quit
+```
+
+Or you can type:
+```
+  dkillall vc
+```
+
+Here are several useful commands for managing a virtual computer:
+
+```
+  dkillall virtual_computer
+```
+   Kill any application currently running on the given virtual computer,
+   along with any associated services such as szgrender, SoundRender, or
+   DeviceServer.
+
+```
+  dmsg -c virtual_computer_location quit
+```
+   Kills the application, if any, currently running in the given virtual
+   computer //location//, but leaves services alone.
+
+```
+  restarttracker virtual_computer
+```
+   Restart services associated with virtual_computer (e.g.
+   input devices and sound).
+
+```
+  setdemomode virtual_computer [true, false]
+```
+   If second argument is "true", this sets each render machine to use a fixed
+   head position rather than that reported by the tracking device. The head
+   position is read from the active screen definition (see
+   [Graphics Configuration GraphicsConfiguration.html]) on each render computer.
+   Each rendering machine will assume that the direction of gaze is perpendicular
+   to its display, and the up direction of the head will be the screen's up
+   direction rotated by the angle (in degrees) given by the screen's
+   fixedheadupangle element. To set things back to normal mode, use "false"
+   as the second argument.
+
+```
+  setstereo virtual_computer [true, false]
+```
+   Turns active stereo rendering on and off for each rendering machine of the
+   cluster.
+
+```
+  screensaver virtual_computer
+```
+   Start szgrender programs on each render machine in the cluster. Since
+   szgrender is black when no application is connected, this is effectively a
+   screensaver.
+
+```
+  calibrationdemo virtual_computer
+```
+   Display a calibration screen useful for alignment and color matching,
+   looking for the calibration picture cubecal.ppm in the SZG_DATA/path of
+   each render machine.
+
+
+=Component Contexts=[Context]
+
+
+==What is the Component Context?==
+
+Every component in Syzygy is executed in a "context". The context
+determines the overall behavior of the component, whether the component
+is executing as part of a virtual computer, and what networks it will use
+for various sorts of communication. It consists of a list of
+variable/value pairs, as listed below:
+```
+  virtual=virtual_computer_name
+```
+   The name of the virtual computer on which this component is
+   executing. Set to the value "NULL" if it is not executing
+   on a virtual computer (the default).
+
+```
+  mode/default=[trigger, master, component]
+```
+   The overall behavior of the component. The "trigger" value
+   causes a syzygy application to run as a trigger instance,
+   launching other necessary components on a virtual computer.
+   The "master" value causes a master/slave component to
+   take the master role. The "component" value is a default
+   and has no effect.
+
+```
+  mode/graphics=SZG_DISPLAY(n)
+```
+   One of SZG_DISPLAY0, SZG_DISPLAY1, etc. If the component opens
+   a graphics window, this determines the screen configuration
+   it will use from among those defined for the computer it is
+   running on. If you specify a display that isn't defined,
+   a default display configuration will be used.
+
+```
+  networks/default=network_list
+```
+   The value network_list is a slash-delimited list of network names,
+   like internet/my_private_net. It indicates, in descending order of preference,
+   the network across which service connections should occur,
+   assuming that the service type (input, graphics, sound) has
+   not already specified this.
+
+```
+  networks/input=network_list
+```
+   Defines the network across which input service connections
+   should occur.
+
+```
+  networks/graphics=network_list
+```
+   Defines the network across which graphics service (szgrender)
+   connections should occur.
+
+```
+  networks/sound=network_list
+```
+   Defines the network path upon which sound service connections
+   should occur.
+
+```
+  parameter_file=parameter_file_name
+```
+   If the application is running in [Standalone Mode Standalone.html]
+   it reads its parameter database from a file in its current working
+   directory. By default it looks for szg_parameters.xml and then
+   szg_parameters.txt, but this can be changed by passing this special parameter.
+
+```
+  user=syzygy_user_name
+```
+    The Syzygy user under whose auspices the application will run.
+
+```
+  server=IPaddress/port
+```
+    Identifies the location of the szgserver to which the component should
+    attempt to connect.
+
+
+Note those last two items in particular: By manipulating them you could run a component
+as a different user and connecting to a different Syzygy server from the one
+you are currently dlogged into.
+
+
+==Manipulating Component Contexts==
+
+Normally when you launch an application on a virtual computer
+the application launching process sets up the context appropriately for
+each launched component. However, sometimes you will want or need to set
+the context manually; for example, you may need to restart an individual
+component of an application running on a virtual computer. This can be
+done in two ways: (1) By setting the SZGCONTEXT environment variable, or
+(2) by passing special arguments on the command line.
+
+
+===Setting SZGCONTEXT===
+
+The value of SZGCONTEXT should consist of a sequence of the above pairs seperated
+by ';'. You can set this environment variable manually to control the behavior
+of Syzygy components on a particular computer. A sample one might look something like:
+```
+  virtual=vc;mode/graphics=SZG_DISPLAY0;networks/graphics=my_private_net
+```
+
+
+===Command-line Context Manipulation===
+
+To manipulate a context from the command line, pass "variable=value" pairs
+preceded by "-szg". For example:
+```
+  syzygy_executable -szg virtual=vc -szg networks/graphics=internet
+```
+
+Obviously, this method is more flexible than setting an environment variable,
+but it has a weakness: It depends on all Syzygy components (including any
+applications that you write) processing command-line arguments //after//
+the Syzygy client object, ``arSZGClient``, has been initialized
+(``arSZGClient::init()``). In framework-based applications (see
+[Programming Programming.html] this happens in the framework object's
+``init()`` method. When this method is called the special arguments are
+parsed and removed from the global argv variable, so the application or
+component won't be faced with them.
+
+Yet another advantage to this method of manipulating the context: It can
+be used remotely. When you launch an application using the ``dex`` command,
+most context variables specified on the command line are passed on to the
+component being launched. For example:
+```
+  dex render1 szgrender -szg virtual=vc
+```
+will launch szgrender on computer "render1" and tell it to behave as a
+component of virtual computer "vc".
+
+dex will interpret the "user" and "server" arguments, allowing you to launch
+applications as a different user or even on a different cluster from those
+specified in the login file. For example:
+```
+  dex vc_far_away my_app -szg server=faraway_IP_address/faraway_port -szg user=somebody_else
+```
+
+
+=Connection Brokering and Service Names=[Services]
+
+Connections to Syzygy services such as input event streams, sound output,
+and scene-graph rendering are brokered by the Syzygy server ``szgserver``
+using a service name. Components
+that provide a service with a particular name will fail to launch if another
+provider of that same service name is already running, so
+it is important to understand how services get their names and
+how to find out what services are offered.
+
+Service names are parially determined by the nature of the service
+(the "basic service name") and
+partially by the circumstances under which a component is launched.
+If a user launches a component, but //not// in the context of a
+virtual computer, the component's service name will be:
+```
+  basic_service_name/syzygy_user_name
+```
+This prevents the actions of one syzygy user from interfering with those
+of another.
+
+On the other hand, if a user launches a component in the context of
+a virtual computer, the component's service name will be:
+```
+  virtual_computer_location/basic_service_name
+```
+(see [Virtual Computer Configuration VirtCompConfiguration.html]).
+This allows different users to share application components running in
+a particular virtual computer location, allowing them to be used as
+a communal resource.
+
+
+==Base Service Names==
+
+Base service names for the various syzygy service are listed below.
+
+```
+  SZG_INPUT#
+```
+   An input-event service: One of SZG_INPUT0, SZG_INPUT1, etc.
+   The number refers to the driver slot.???
+   inputsimulator and DeviceServer offer this service. DeviceClient
+   and Syzygy applications in general must connect to it in order to
+   receive input from trackers, joysticks, gamepads, and so on.
+
+```
+  SZG_SOUND
+```
+   A source of sound information. The sound-playing component SoundRender
+   needs to //receive// or connect to this service.
+   Syzygy VR framework applications (see [Programming Programming.html]) //offer// it.
+
+```
+  SZG_SOUND_BARRIER
+```
+   Synchronization for the SZG_SOUND service. SoundRender connects to this
+   service. Syzygy VR framework applications offer it.
+
+```
+  SZG_GEOMETRY
+```
+   A source of scene graph information, generally a distributed scene
+   graph framework application (see [Programming Programming.html]).
+   The scene-graph rendering component szgrender needs to connect to this
+   service.
+
+```
+  SZG_GEOMETRY_BARRIER
+```
+   Synchronization for the SZG_GEOMETRY service. szgrender needs to
+   connect to this service. Distributed scene graph applications offer it.
+
+```
+  SZG_MASTER_<application_name>
+```
+   The master instance of a master/slave application
+   (see [Programming Programming.html]) offers data to the
+   slaves via this service. Slave instances try to connect to this service.
+
+```
+  SZG_MASTER_(application_name)_BARRIER
+```
+   Synchronization for the above service.
+
+
+==Examining Running Services==
+
+Examining services can be helful in debugging problems with components
+not connecting properly.
+
+For a list of currently-offered services, type:
+```
+  dservices
+```
+For a list of pending service requests, i.e. requests that have not
+yet been able to connect to a provider of the requested service, type:
+```
+  dpending
+```
+
+
+==How it All Fits Together==
+
+Consider a brief example.
+
+You launch a distributed scene graph application. It signals the connection
+broker in the server that it requires an SZG_INPUT service (for user input)
+and provides SZG_GEOMETRY and SZG_SOUND services (i.e it is a source of
+virtual-world-object and sound information).
+
+The connection broker notes that there is a running DeviceServer providing
+SZG_INPUT0, several szgrenders on various computers requesting SZG_GEOMETRY,
+and a SoundRender requesting SZG_SOUND. In each case, it sends the IP address
+and port of the service provider to the components requesting the service,
+allowing them to connect and satisfy their cravings.
+
+
+=Locks=[Locks]
+
+Locks are used to ensure that sequences of networked operations occur
+atomically. They work like mutexes within a single, multi-threaded
+program, but are instead maintained by the Syzygy server to synchronize
+operations of multiple programs on different computers.
+
+For example, as noted in [Virtual Computer Configuration VirtCompConfiguration.html],
+overlapping virtual computers can be assigned a common "location" parameter.
+Virtual computers with the same location parameter are assumed to share
+machines. If one user launches an application on one such virtual computer,
+you don't want anyone else to be able to start another program on an
+overlapping virtual computer at the same time.
+
+To prevent this, the first application to launch requests a lock with the
+name "<virtual_computer_location>/SZG_DEMO/lock". It holds the lock
+until all of its components have launched, then releases it.
+Other applications attempting to launch on another virtual computer with
+the same location parameter will request the same lock and will be blocked
+until they can acquire it.
+
+Locks are also used to reserve resources. Some Syzygy components are not
+allowed to run if another instance of the same component is already running
+on the same computer. When such a component starts, it requests a lock
+and does not release it until it exits; other instances attempting to start
+in the meantime will be unable to aquire the lock and will exit.
+Here are a few components and their named locks:
+- szgd:         <computer_name>/szgd.
+- SoundRender:  <computer_name>/SoundRender.
+- DeviceServer: <computer_name>/DeviceServer.
+- szgrender:    <computer_name>/SZG_DISPLAY# (# is determined by the display
+  it is using, see [Graphics Configuration GraphicsConfiguration.html]). Multiple
+  szgrenders can run on the same computer if they use different displays.
+
+
+Finally, locks facilitate automatic shutdown of previously running
+applications. If a new application requires a particular resource
+(for example, it needs to run a rendering component on render1/SZG_DISPLAY0),
+it requests the associated lock. If the request fails, the server sends
+the Syzygy process ID of the component holding the lock to the application.
+The new application then sends the offending component a "quit" message and
+waits for the lock to be released.
+
+To see the existing locks, type:
+```
+  dlocks
+```
+
+
+=Troubleshooting=[Troubleshooting]
+
+When things go wrong, e.g. an application or application
+component does not launch or two components refuse to connect, the user
+needs to understand connection brokering, locks, and the tools
+to examine them. Misconfiguration or misuse of
+these features is a major cause of problems when using Syzygy.
+
+- szgrender, SoundRender, szgd refuse to launch: Each of these components
+holds a Syzygy lock corresponding to a real world resource during its
+operation. For szgrender, it is a given chunk of screen real estate. For
+SoundRender, it is the sound card. For szgd, it is the computer itself.
+In the case of szgrender, executing a second copy to display on
+the same virtual screen (SZG_DISPLAY0, SZG_DISPLAY1, etc.) as an already
+running szgrender will cause the second copy to quit with
+the following error message (the component ID will vary):
+```
+  szgrender error: failed to get screen resource held by component <ID##>.
+```
+This is the desired behavior when a resource cannot be shared.
+- A Syzygy VR framework application (see [Programming Programming.html])
+that is run on a real computer but not as part of a virtual computer
+fails to launch with the following error message:
+```
+  arSyncDataServer error: failed to register service.
+```
+Again, this is an expected behavior. The VR framework application wants to
+offer an SZG_SOUND service. If it is not run as part of a virtual computer,
+its service name will default to "SZG_SOUND/<syzygy_user_name>".
+If the same user runs a second framework application on a different computer,
+it will attempt to provide exactly the same named service. This is not allowed,
+otherwise SoundRender would not know which of the two to connect to.
+
+- Component A does not connect to Component B even though it should: First, you
+should run a [Connection-Brokering Test #TestingPhleet].
+If this tests succeeds, one of the following is almost certainly true:
+  - Neither component is being run on a virtual computer, but they are
+      being run with different user names. You might have dlogin'ed
+      with different Syzygy user names on the different computers. In this case, you
+      must be dlogin'ed with the same Syzygy name on both computers.
+  - One component is being run on a virtual computer but another is not.
+      Again, this will fail. Both must be running in the same virtual computer
+      location. Recall that every virtual computer has a location; if not
+      specified, it defaults to the virtual computer name.
+  - One component is being run in virtual computer location L1 while the
+      other is being run in virtual computer location L2. Again, this is
+      going to fail. The virtual computer locations must be the same for
+      the components to connect.
+
+You can diagnose these problems by running "dservices" to see the names
+of services which are being offered and by running "dpending" to see the names
+of unfulfilled service requests. You should see the full name of the offered
+service, the full name of the request, and see how they fail to match.
+
+- A computer running some Syzygy components crashed, had its power
+cord yanked, etc. Now these components are stuck in the Syzyg process table,
+i.e. they still show up int the list of processes printed by ``dps``.
+Furthermore, new instances of those components cannot be launched. Assume for
+the sake of example that the relevant component is ``szgd``. The problem
+occurs because the ``<computer_name>/szgd`` lock was
+never released because ``szgd`` did not exit normally. The solution is to type:
+```
+  dkill -9 szgd
+```
+(or whatever the actual component name is). This forcibly removes the
+component name from the Syzygy process table and releases the relevant lock.
+
+
+==Connection-Brokering Test==[TestingPhleet]
+
+To verify that basic connection brokering works between computers in
+your cluster:
+
++ Start BarrierServer on one of your cluster machines.
+
++ Start BarrierClient on another machine. If all is well, the BarrierClient will
 begin printing the average time necessary to perform each synchronization
 through the BarrierServer.
 
@@ -369,623 +802,9 @@ through the BarrierServer.
       IP address incorrectly in the szg.conf file on the BarrierServer machine.
       Use dconfig to examine it and ddelinterface/daddinterface to fix it.
 
-+ Start BarrierClient on other nodes.
++ Start BarrierClient on other machines.
 
-+ Kill BarrierServer and restart on another node. If the various running
++ Kill BarrierServer and restart on another machine. If the various running
     BarrierClients do not reconnect, see the troubleshooting section above.
-
-
-=Managing the Phleet=[ManagingPhleet]
-
-Phleet includes commands to manage components running on the cluster,
-distribute user configuration information, and to send messages from one
-component to another. We include an incomplete listing of Phleet-related
-commands here, with descriptions of their uses. The complete list, with
-explanation of parameters, is contained in another
-[chapter Phleet.html].
-
-- dps: Lists all the components registered with the Phleet.
-
-- dex: Either launches a component on a single computer or an entire
-application across a virtual computer.
-
-- dmsg: Sends a message to a Phleet component.
-
-- dkill: Sends a "quit" message to a Phleet component, which will be obeyed
-if the component is well-behaved. Can also be used to forcibly connect the
-component from the szgserver.
-
-- dget: Retrieve a value from the Phleet parameter database associated with
-the current Phleet user.
-
-- dset: Set a value in the Phleet paramtere database associated with the
-current Phleet user.
-
-- dbatch: Enter an entire parameter file into the user's Phleet database.
-
-
-=Configuring Virtual Computers=[VirtualComputer]
-
-Syzygy components that need to communicate, like a graphics display
-(szgrender) and a source of graphics information (like a VR application), can
-be launched by hand on computers in the Phleet and will find one another
-automatically via szgserver's connection brokering. You could, for instance,
-launch your cluster application via shell scripts. However, the Syzygy
-application frameworks (distributed scene graph and master/slave) have a
-built-in understanding of "virtual computers", a way to define how your
-application should launch and run on the Phleet. By using these definitions,
-you give Syzygy more ability to seemlessly manage your application's life
-cycle. Multiple virtual computers can operate within a single Phleet, some of
-which are linked by sharing a "location" (see below) and some of which are
-completely independent of one another.
-
-The following is a virtual computer definition for a 6 screen graphics
-display, that includes sound, and is controlled via a simulated tracker
-interface (the inputsimulator described [here TrackingSim.html]).
-
-This definition must be entered into the Phleet parameter database via
-dset or dbatch. Please see the chapter on
-[configuration SystemConfiguration.html] for details on how
-to do this.
-
-```
-  wall SZG_CONF virtual true
-  wall SZG_CONF location wall
-  wall SZG_CONF relaunch_all false
-  wall SZG_TRIGGER map smoke
-  wall SZG_MASTER map SZG_DISPLAY0
-  wall SZG_DISPLAY number_screens 6
-  wall SZG_DISPLAY0 map wall1/SZG_DISPLAY0
-  wall SZG_DISPLAY0 networks wall
-  wall SZG_DISPLAY1 map wall2/SZG_DISPLAY0
-  wall SZG_DISPLAY1 networks wall
-  wall SZG_DISPLAY2 map wall3/SZG_DISPLAY0
-  wall SZG_DISPLAY2 networks wall
-  wall SZG_DISPLAY3 map wall4/SZG_DISPLAY0
-  wall SZG_DISPLAY3 networks wall
-  wall SZG_DISPLAY4 map wall5/SZG_DISPLAY0
-  wall SZG_DISPLAY4 networks wall
-  wall SZG_DISPLAY5 map wall6/SZG_DISPLAY0
-  wall SZG_DISPLAY5 networks wall
-  wall SZG_INPUT0 map smoke/inputsimulator
-  wall SZG_INPUT0 networks internet
-  wall SZG_SOUND map sound
-  wall SZG_SOUND networks internet
-```
-
-The computers in the cluster are smoke, wall1, wall2, wall3, wall4, wall5,
-wall6, and sound. The name of the virtual computer is wall. By setting
-SZG_CONF/virtual to true, the system understands that wall has been designated
-as a virtual computer, and if this value does not appear in the database,
-Phleet will not allow "wall" to be used as a virtual computer. The virtual
-computer name must not occur as the name of a physical computer in the Phleet.
-
-The "location" of the virtual computer defaults to the virtual computer's
-name if SZG_CONF/location is unset and is used in conncetion
-brokering. When a cluster application is launched on a virtual computer, it
-uses its location to determine if there are running components it can reuse or
-that are incompatible and must be terminated. The location is used as a
-key to make sure components running on that virtual computer only connect
-among themselves and not, for instance, with components running on another
-virtual computer (with a different location) in the Phleet.
-
-Consequently, two different virtual computers can share the same set of
-computers happily with respect to application launching and component reuse if
-they use the same location. Different virtual computer definitions overlaid
-on shared resources may be necessary, for instance, when some applications
-require special configurations that would be detrimental to other applications.
-For instance, a psychology experiment might want an extra graphics display
-in addition to those dedicated to the subject. The experimenter might sit
-at the extra display and monitor the subject's progress. While an extra display
-makes sense for this particular set-up, a data visualization application
-would not need the extra display and might even achieve lower performance
-including it.
-
-By default, when an application launches on a virtual computer, it tries to
-reuse compatible components, like scene graph displays (szgrender) if it is a
-distributed scene graph application, sound displays (SoundRender), or sources
-of input information (DeviceServer). However, sometimes a user might wish to
-never reuse components between application starts. In this case,
-SZG_CONF/relaunch_all should be set to "true".
-
-The virtual computer has one special node that must be determined by the
-user. This is the trigger node, which is set via the database value
-of SZG_TRIGGER/map. When on the virtual computer, an executable first runs on
-the trigger node. This "trigger instance" scans the Phleet and determines which
-running services are incompatible with the new application. These are
-terminated. For instance, any application already running on the virtual
-computer is forced to exit. Next, the trigger
-instance begins launching needed application components. When this is done, the
-trigger instance behaves differently if it belongs to a distributed scene graph
-application or if it belongs to a master/slave application. In the former case,
-it actually begins to run the application. In the later case, it only launches
-the other application components. In either case, the  trigger instance waits
-for a kill message and, when it receives such, shuts down its launched
-components.
-
-While the trigger node has meaning for both master/slave and
-distributed scene graph applications, the "master" (as determined by
-SZG_MASTER/map) does not. This designates the screen that will run the master
-instance of the application for a master/slave program, which creates and
-distributes application state to the slave instances. In the example above,
-the master instance will run on wall1 and will be the instance associated with
-SZG_DISPLAY0 (on wall1). Note that there may be more than one screen associated
-to a given cluster node.
-
-The virtual computer nees to define several rendering screens. First,
-the value of SZG_DISPLAY/number_screens tells how many graphics pipes are part
-of the virtual computer. For each screen, two values need to be set.
-One determines where the component that produces its graphics will run.
-The second determines the networks the graphics component will use to
-communicate. The above example shows a virtual computer with two distinct
-networks, the public internet and an internal private network designated
-"wall". To increase the efficiency of the graphics data transfer, we force the
-graphics communication to occur via the private network only and have the other
-communication (sound and input) occur via the internet.
-
-The user also needs to map an input device to run applications on the
-virtual computer. The value of SZG_INPUT0/map is of the format:
-
-```
-  AAA(0)/BBB(0)/AAA(1)/BBB(1)/.../AAA(n)/BBB(n)
-```
-
-The "AAA" entries are all computer names designating the computers where the
-corresponding input event gathering components described by BBB will
-be launched. If BBB is "inputsimulator", an instance of that program will be
-launched. Otherwise, an instance of DeviceServer will be launched and
-initialized using the configuration information stored in the global Phleet
-database parameter BBB.
-
-A sequence of components
-must be allowed since some "virtual" input devices require the cooperation
-of several components running on multiple machines for their operation. The
-first component in this list is the one that will communicate directly with the
-application. The other components will funnel their data to this one.
-
-The value of SZG_INPUT0/networks determines the communications path the
-input devices will use.
-
-SZG_SOUND/map gives the the computer upon which SoundRender will run.
-SZG_SOUND/networks gives the communications path it will use.
-
-To launch an application on a virtual computer, you will need a copy of
-szgd running on every "mapped" node (i.e. any node whose name appears as
-the value of a "map" database value). Once this is done, to launch hspace
-(a sample application included with the szg source) on
-virtual computer wall, use the command:
-
-```
-  dex wall hspace
-```
-
-There are two ways to kill an application running on the virtual computer.
-You can directly kill the trigger instance. In our case, that would entail the
-following:
-
-```
-  dmsg -c wall quit
-```
-
-Or you can:
-
-```
-  dkillall wall
-```
-
-Having explained the concept of a virtual computer and how to use one,
-we now go on to examine more in depth what happens when an application launches
-on one, paying particular attention to the how it interacts with a previously
-running application, if any. For instance, it is possible to run one
-application on a virtual computer and then run another, without explicitly
-killing the first. The launch process for the second application takes care
-of that detail. Again, consider the command:
-
-```
-  dex wall hspace
-```
-
-The dex command first checks to see if "wall" is the definition of
-a virtual computer by seeing if wall/SZG_CONF/virtual is set to "true".
-If so, dex determines the trigger of the virtual computer via
-wall/SZG_TRIGGER/map and executes hspace there, passing the executable a
-special parameter indicating that it is being used as a trigger to launch the
-full cluster application.
-
-When the application is being used as a launcher, it first makes
-sure that a previous application isn't already running, by checking, in this
-case, if the named lock "wall/SZG_DEMO/app" is held. Here, the first "wall"
-appearing in the lock name indicates the virtual computer location, which
-just happens in this case to be equal to the virtual computer name. If the
-lock is held, the trigger sends a kill message to the lock's owner and waits
-for it to exit. Once the old application has died, the new application
-enters a clean-up phase which makes sure appropriate services are
-running on the cluster and incompatible ones are killed.
-
-First, it checks to see if an incompatible render program is running
-on any of the screens. For virtual computer "wall" and screen 0, this
-is done by checking whether anyone is currently holding the lock
-wall1/SZG_DISPLAY0. Note that a render program can
-remain active on a screen after an application has been killed. For
-instance, szgrender stays up after a distributed scene graph
-application has died since it can just accept a new connection from a
-new distributed scene graph application. If there is a render program
-currently registered and it is incompatible with the operation of the
-new render program (szgrender, for instance, cannot display the graphics for
-a master/slave program or vice-versa), the old one is killed.
-
-Next, the application launcher makes sure other required services
-are running on the cluster, including input devices and sound drivers.
-In the case of virtual computer "wall", this means making sure
-inputsimulator is running on computer "smoke" and that SoundRender is
-running on computer "sound". In each case, if the component is running
-already, leave it alone. If it isn't running, go ahead and launch it.
-
-Now that its environment has been conditioned, the trigger goes ahead and
-starts the application itself. In the
-master/slave application case, it launches an application instance for each
-graphics screen. In the case of a distributed scene graph
-application, it goes ahead and makes sure szgrender is running on each
-render node and begins executing the application code locally.
-
-Finally, the trigger waits for a kill signal, as might come from a new
-application, and performs a shutdown procedure upon receiving it. In the
-distributed scene graph case, this simply means shutting down itself, while,
-in the master/slave case, this means telling the connected slaves to shut down
-and waiting for them to do so.
-
-Here are several useful commands for managing a virtual computer:
-
-```
-  dkillall virtual_computer_location
-   Kill any application currently running in the given virtual computer
-   location, along with any services like szgrender, SoundRender, or
-   DeviceServer.
-  dmsg -c virtual_computer_location quit
-   Kills the application, if any, currently running in the given virtual
-   computer location, but leaves services alone.
-  restarttracker virtual_computer
-   Restart services associated with virtual_computer (for instance
-   input devices and sound).
-  setdemomode virtual_computer [true, false]
-   If second argument is "true", this sets each render node to use a fixed
-   head position rather than that reported by the tracking device. The head
-   position is read from the screen config XML on each render computer.
-   Each rendering node will assume that the direction of gaze is perpendicular
-   to its screen, and the up direction of the head will be screen's up
-   direction rotated by the angle (in degrees) given by the screen's
-   fixedheadupangle element. To set things back to normal mode, use "false"
-   as the second argument.
-  setstereo virtual_computer [true, false]
-   Turns active stereo rendering on and off for each rendering node of the
-   cluster.
-  screensaver virtual_computer
-   Start szgrender programs on each render node in the cluster. Since
-   szgrender is black when no application is connected, this is effectively a
-   screensaver.
-  calibrationdemo virtual_computer
-   Display a calibration screen useful for alignment and color matching,
-   looking for the calibration picture cubecal.ppm in the SZG_DATA/path of
-   each render node.
-```
-
-
-=Component Contexts in Phleet=[Context]
-
-Every component in Syzygy is executed in a "context". The context is
-determined via the value of the environment variable SZGCONTEXT and by
-special Phleet args that can be passed to the executable. The context
-determines the overall behavior of the component, whether the component
-is executing as part of a virtual computer, and what networks it will use
-for various sorts of communication. It consists of a list of
-variable/value pairs of the following:
-
-```
-  virtual=virtual_computer_name
-   The name of the virtual computer on which this component is
-   executing. Set to the value "NULL" if it is not executing
-   on a virtual computer (the default).
-  mode/default=[trigger, master, component]
-   The overall behavior of the component. The "trigger" value
-   causes a syzygy application to run as a trigger instance,
-   launching other necessary components on a virtual computer.
-   The "master" value causes a master/slave component to
-   take the master role. The "component" value is a default
-   and has no effect.
-  mode/graphics=SZG_DISPLAY(n)
-   One of SZG_DISPLAY0, SZG_DISPLAY1, etc. If the component displays
-   a graphics window, this determines the screen configuration
-   it will use.
-  networks/default=network_list
-   The value network_list is a slash-delimited list of network names,
-   like internet/wall. It indicates, in descending order of preference,
-   the network path via which service connections should occur,
-   assuming that the service type (input, graphics, sound) has
-   not already defined similar information.
-  networks/input=network_list
-   Defines the network path upon which input-type service connections
-   should occur.
-  networks/graphics=network_list
-   Defines the network path upon which graphics-type service
-   connections should occur.
-  networks/sound=network_list
-   Defines the network path upon which sound-type service connections
-   should occur.
-  parameter_file=parameter_file_name
-   If the application is running in standalone mode (i.e. no distribution),
-   it reads its parameter database from a file in its current working
-   directory. By default it looks for szg_parameters.xml and then
-   szg_parameters.txt, but this can
-   be changed by passing this special parameter.
-  user=syzygy_user_name
-    The user under whose auspices the syzygy application will run.
-  server=IPaddress/port
-    Identifies the location of the szgserver to which the component should
-    attempt to connect.
-```
-
-The value of SZGCONTEXT consists of a sequence of the above pairs seperated
-by ';'. You can set this environment variable manually to control the behavior
-of Phleet components you run locally. A sample one might look something like:
-
-```
-  virtual=wall;mode/graphics=SZG_DISPLAY0;networks/graphics=wall
-```
-
-When launching an application on a virtual computer,
-
-```
-  dex virtual_computer_name application_name
-```
-
-the application launching process will set the context appropriately for
-each launched component. However, sometimes the context must be set manually.
-For instance, if the user wishes to restart an individual component of
-the distributed application.
-
-This can be done by setting SZGCONTEXT,
-as described above. However, the user can also set the context of well-behaved
-Phleet components by passing special Phleet
-args to the executable. A well-behaved Phleet component will wait to check its
-args until after its arSZGClient has had a chance to read these args and strip
-them from argc/argv. This occurs in arSZGClient::init(...), which is called,
-for instance, in arDistSceneGraphFramework::init(...) and
-arMasterSlaveFramework::init(...). If the component waits to examine its args
-until after this time, the special Phleet args can be mixed freely with
-other command line args. They consist of "-szg" followed by one of the
-variable/value context pairs listed above. There can be any number of them.
-For instance:
-
-```
-  syzygy_executable -szg virtual=wall -szg networks/graphics=internet
-```
-
-There is one special case when the special Phleet args are not fully stripped.
-The dex command should be able to pass a subset of the special Phleet args on to
-its target szgd. For instance, if an szgrender is to be launched remotely and
-connect to a distributed scene graph application running on a virtual computer,
-we must be able to issue the follow command and have the szgrender launched on
-wall1 read the "virtual=wall" arg.
-
-```
-  dex wall1 szgrender -szg virtual=wall
-```
-
-This is a way in which the special Phleet args are more powerful than the
-SZGCONTEXT variable, since they can be passed along in this special case,
-whereas SZGCONTEXT is only ever evaluated locally. However, SZGCONTEXT has
-the advantage not depending for its proper operation on a Phleet component
-being well-behaved.
-
-On the other hand, dex, along with every other Syzygy component, will strip
-and interpret the "user" and "server" args. This is useful if you want to build
-a command-line based interface that can launch application on various Phleets
-under various user identities, without needing dconfig or dlogin to be run
-on the host machine. This is ideal for a web-based application launcher,
-for instance. Note the example:
-
-```
-  dex my_virtual_computer my_app -szg server=the_IP_address/the_port -szg user=the_user_name
-```
-
-
-=Connection Brokering, Service Names, and Locks=[ServiceLocks]
-
-Services in the cluster application (like sound information, scene graph
-information, input events) are brokered via a service name. Components
-will fail to launch if they want to provide a service with a given name but
-cannot since another component already provides that service.
-Consequently, it is important to understand how services get their names and
-how to find out what services are being offered.
-
-Service names are parially determined by the nature of the service and
-partially by the circumstances under which a component is launched. Base
-service names for the various syzygy service are mentioned below.
-
-```
-  SZG_INPUT(n)
-   One of SZG_INPUT0, SZG_INPUT1, etc. The number refers to the driver slot.
-   inputsimulator and DeviceServer offer this service. DeviceClient
-   and Syzygy applications in general wish to connect to it.
-  SZG_SOUND
-   Source of sound information. SoundRender wishes to receive this service.
-   Syzygy VR framework applications offer it.
-  SZG_SOUND_BARRIER
-   Synchronization for the SZG_SOUND service. SoundRender connects to this
-   service. Syzygy VR framework applications offer it.
-  SZG_GEOMETRY
-   Source of scene graph information. szgrender wishes to receive this
-   service. Distributed scene graph applications offer it.
-  SZG_GEOMETRY_BARRIER
-   Synchronization for the SZG_GEOMETRY service. szgrender wishes to
-   receive this service. Distributed scene graph applications offer it.
-  SZG_MASTER_(application_name)
-   The master instance of a master/slave application offers data to the
-   slaves via this service. Slave instances try to connect to this service.
-  SZG_MASTER_(application_name)_BARRIER
-   Synchronization for the above service.
-```
-
-If a user launches a component, but does not do so in the context of a
-virtual computer, the component's service name will be:
-
-```
-  basic_service_name/syzygy_user_name
-```
-
-This prevents the actions of one syzygy user from interfering with those
-of another.
-
-On the other hand, if a user launches a component in the context of
-a virtual computer, the component's service name will be:
-
-```
-  virtual_computer_location/basic_service_name
-```
-
-This allows various users to share application components running in the
-context of a particular virtual computer location, allowing them to be used as
-a communal resource.
-
-Use the "dservices" command to see a listing of all currently offered
-services. Conversely, use the "dpending" command to see a listing of all
-service requests that have yet to be matched with a service. The user can
-debug problems with the distributed system, particularly issues with one
-component not connecting to another, via these commands.
-
-To get an idea of how this all fits together, consider a brief example.
-When running a distributed scene graph application, it will offer the
-SZG_GEOMETRY service. A instance of szgrender wants to connect to the
-SZG_GEOMETRY service, and the connection broker, seeing that such a
-service is running, will send the IP/port of the service to szgrender, which
-will then connect directly to the distributed scene graph application.
-In addition, the distributed scene graph application wants to connect to
-the SZG_INPUT0 service, which can be provided by a DeviceServer or
-inputsimulator.
-
-Services are not the only primitive utilized by the Phleet OS. Distributed
-locks can be used to ensure that sequences of Phleet operations occur
-atomically. As an example, when an application trigger begins preparing a
-virtual computer for the full application's operation it obtains a named Phleet
-lock, virtual_computer_location/SZG_DEMO/lock, and holds the lock until it has
-finished launching its components. This ensures that an application
-launching on a particular virtual computer will be able to complete the
-necessary reorganization without being interrupted.
-
-Phleet locks are also used
-to reserve resources. A copy of szgd ensures that no other copy is running
-on its computer by, upon start, trying to grab a computer_name/szgd lock.
-If it fails, another copy must be running and it exits. If it succeeds,
-it holds the lock while running. Other resource reservation locks are
-SoundRender's computer_name/SoundRender lock and szgrender's
-computer_name/SZG_DISPLAY(n) lock, which refers to the virtual screen that
-displays its window. A final resource lock is the virtual
-computer's application lock (virtual_computer_location/SZG_DEMO/app), which
-ensures that only one Syzygy VR framework application is running in a given
-virtual computer location at a time.
-
-Finally, locks facilitate automatic shutdown of previously running
-applications. Specifically, if a new application wants to get a resource,
-it can try to get the associated lock. If it fails, the system passes
-it the phleet ID of the component holding the lock. The new application
-can then send the currently running component a kill message and
-wait until the lock has been released.
-
-The "dlocks" command shows a list of currently existing locks.
-
-
-=Troubleshooting=[Troubleshooting]
-
-Phleet's connection brokering and named locks are used to simplify
-cluster set-up and management, providing a layer of abstraction that eliminates
-the need to enter IP addresses and port numbers in config files and allows
-components to be flexibly placed on different computers without manual
-reconfiguration. While this convenience is not so important for a static
-set-up which is used in essentially one way all the time, it is critical for
-easy, ad-hoc clustering in a fluid lab situation where most application testing
-and development occurs. It also facilitates special purpose clustering, where
-particular applications (or categories of applications) need cluster
-arrangements unique to them but still need to cooperate with other application
-categories.
-
-Consequently, when things go wrong, like an application or application
-component does not launch, or when two components refuse to connect, the user
-needs to understand connection brokering and locks, along with the tools used
-to diagnose problems connected to their use. Misconfiguration or misuse of
-these features is the main cause of problems when using Syzygy applications.
-
-- szgrender, SoundRender, szgd refuse to launch: Each of these components
-holds a Phleet lock corresponding to a real world resource during its
-operation. For szgrender, it is a given chunk of screen real estate. For
-SoundRender, it is the sound card. For szgd, it is the computer itself.
-In the case of szgrender, executing a second copy to display on
-the same virtual screen (SZG_DISPLAY0, SZG_DISPLAY1, etc.) as an already
-running szgrender will result in the second copy quitting with
-the following error message (the component ID will vary):
-
-```
-  szgrender error: failed to get screen resource held by component 46228.
-```
-
-This is normal, and indeed desirable, behavior, since some resources cannot
-be shared.
-- A Syzygy VR framework application fails to launch with the following
-error message:
-
-```
-  arSyncDataServer error: failed to register service.
-```
-
-Again, this is an expected behavior. The VR framework application wants to
-offer a sound data service. If it is not run as part of a virtual computer,
-its service name will default to SZG_SOUND/the_user_name. Consequently,
-when logged in to a given szgserver both on computer A and computer B a user
-cannot, for instance, run one VR framework application on A and one VR
-framework application on B (neither as part of a virtual computer)
-simulatneously. The second one executed will quit, saying it cannot offer
-the service. Similarly, if a VR framework application is already running on
-a given virtual computer, the only way to run a new one is to kill the old one.
-Note that, as explained in the section on
-[virtual computers #VirtualComputer], launching a new
-application using
-
-```
-  dex virtual_computer my_application_name
-```
-
-kills the previous application automatically. There two workarounds for this
-problem if one wants to run multiple applications simultaneously: use
-different Phleet user names or use different virtual computers for each
-application.
-- Component A does not connect to Component B (but they should): First, you
-should check that your szg.conf configuration files are correct on the
-computers in question. This is verified as [here #TestingPhleet].
-If this tests succeeds, one of the following is almost certainly true:
-  - Neither component is being run on a virtual computer, but they are
-      being run with different user names. You might have dlogin'ed
-      with different Phleet names on the different computers. In this case, you
-      must be dlogin'ed with the same Phleet name on both computers.
-  - One component is being run on a virtual computer but another is not.
-      Again, this will fail. Both must be running in the same virtual computer
-      location. Recall that every virtual computer has a location (that
-      defaults to the virtual computer name).
-  - One component is being run in virtual computer location L1 while the
-      other is being run in virtual computer location L2. Again, this is
-      going to fail. The virtual computer locations must be the same for
-      the components to connect.
-
-You can diagnose these problems by running "dservices" to see the names
-of services which are being offered and by running "dpending" to see the names
-of unfulfilled service requests. You should see the full name of the offered
-service, the full name of the request, and see how they fail to match.
-- A computer running some Phleet components hard crashed/ got the power
-cord yanked/ etc. Now these components are stuck in the Phleet process table,
-and, furthermore, new instances (like szgd) cannot be launched. This problem
-occurs because (in the case of szgd) the lock is still held internally by
-the szgserver and the new instance cannot get it. The solution is to "dkill -9"
-the old instance, which forcibly removes it from the process table. This will
-allow you to start again.
-
-
 
 

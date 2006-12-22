@@ -82,7 +82,7 @@ packed in a single string.
 "dex -lt" overrides it.
 
 
-=Environment variables that substitute for Phleet database parameters=
+=Environment variables that substitute for Syzygy database parameters=
 
 - SZG_RENDER_texture_path: Distributed scene graph applications search for
 textures here.

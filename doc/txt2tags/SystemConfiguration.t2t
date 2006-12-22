@@ -97,11 +97,13 @@ are typically written as a slash-delimited string, i.e.
 ```
   <computer name>/<parameter group>/<parameter name>
 ```
-For example, to tell a computer named 'alice' the standard location for data files,
-you would set the database parameter represented by:
+For example, the parameter to tell a computer named 'alice' the standard location for data files,
+is represented by:
 ```
   alice/SZG_DATA/path
 ```
+
+However, to //set// these parameters, use the format below.
 
 
 ===Getting and Setting Local Parameters===
@@ -146,13 +148,14 @@ chapter.
 Read the chapter on [Resource Path Specification PathConfiguration.html].
 
 
-===Virtual Computer Configuration===
+===Virtual Computers===
 
 A //virtual computer// is a means of specifying how a set of computers are wired together and what
 functions each will perform. You run a program on a virtual computer by issuing a single command; the
 separate instances of the program and any supporting services are then launched automatically.
 
-See the Section on [Configuring Virtual Computers PhleetIntro.html#VirtualComputer] for more information.
+See [Virtual Computer Configuration VirtCompConfiguration.html] and
+[Using a Virtual Computer PhleetIntro.html#VirtualComputer] for more information.
 
 
 =Parameter File Format=[ComplexFormat]
@@ -165,8 +168,8 @@ appear in the file in any order, however, and there can be any number
 of them.
 
 A **<comment>** record contains a comment. These are discarded by the
-parser. An **<assign>** record contains a list of local parameter definitions
-in the same format as for a simple parameter file, but without any comments. Finally,
+parser. An **<assign>** record contains either a list of local parameter definitions
+or a virtual computer definition. Finally,
 a **<param>** record contains a global parameter definition.
 
 Here is an example. Note the //required// **<szg_config>**/**</szg_config>** tags

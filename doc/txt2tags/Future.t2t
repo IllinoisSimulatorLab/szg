@@ -24,7 +24,7 @@ in the configuration file.
 + The graphics database code needs to be changed so that it has more
 features and is a bit less toy-like.
 + Text configuration files should
-be supported as a default over the Phleet parameter database.
+be supported as a default over the Syzygy parameter database.
 + Input device drivers should be .dll's or .so's, depending on platform.
 + A reusable way to modify/filter input device events should be
 implemented. Part of this would be a configuration file that detailed

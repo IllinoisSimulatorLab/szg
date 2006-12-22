@@ -3,29 +3,48 @@
 # this line needs to come *before* the Makefile.defines inclusion.
 # The ../../src is correct for the standard portable application
 # development directory tree (which lets you develop for all supported
-# szg platforms simultaneously).
+# szg platforms simultaneously). Don't change this line.
 VPATH=../../src
 
-# this includes all the definitions
+# this includes all the definitions. The Syzygy SDK has a file,
+# Makefile.vars, that defines the specific compilation and linking
+# methods for each platform in a modular fashion. This line is one
+# reason you must define $SZGHOME to use the Syzygy SDK.
+# Don't change this line.
 include $(SZGHOME)/build/make/Makefile.vars
 
+# ALL is the default target that gets built when you just type
+# 'make'.
 # Every executable file should be listed below, seperated by spaces.
-# NOTE: you must use the $(EXE) for compatibility between Unix and Win32.
+# NOTE: you must use the $(EXE) suffix for compatibility between Unix
+# and Win32.
 ALL := skeleton$(EXE) oopskel$(EXE)
 
-# After defining the "magic" variable "ALL", go ahead and define the targets
-# in the following include.
+# Makefile.rules defines standard target rules like "clean"
+# or "create-install".  This file is seperated from Makefile.vars
+# because make is fussy about rules' order. Don't change this line.
 include $(SZGHOME)/build/make/Makefile.rules
 
 # Here should go any object files you need compiled to link with your
-# executable, in the format foo$(OBJ_SUFFIX) to ensure portability.
+# executable. For example, suppose that the 'skeleton' program,
+# besides the main source file 'skeleton.cpp', also depended on files
+# called 'skull.cpp' and 'ribs.cpp'. Then we would list the
+# _object_ files that should be created from those files as follows:
+#
+# OBJS := skull$(OBJ_SUFFIX) ribs$(OBJ_SUFFIX)
+#
+# Further down, this tells make that these object files need to be
+# linked together with skeleton.cpp to build the skeleton program.
+# Make knows how to build an object file from a cpp file (it gets
+# told that in Makefile.vars), so it does that automatically.
+#
+# The format foo$(OBJ_SUFFIX) ensures portability; the appropriate
+# suffix gets inserted on each platform, .obj on Windows and .o
+# on Unix.
+# 
 # If you have no intermediate objects, it is OK for this to be blank, i.e.
 #
 # OBJS := 
-#
-# or
-#
-# OBJS := my_obj_1$(OBJ_SUFFIX) my_obj_2$(OBJ_SUFFIX_2) my_obj_3$(OBJ_SUFFIX)
 #
 OBJS := 
 
@@ -33,19 +52,38 @@ OBJS :=
 # and objects will be compiled with this flag.
 # COMPILE_FLAGS += -DMY_COMPILE_FLAG
 
-# Include directories can be added like so:
+# Include directories (i.e. containing additional header files)
+# can be added like so:
 # SZG_INCLUDE += \
 #	-I$(MY_INCLUDE_DIRECTORY_1)
 #	-I$(MY_INCLUDE_DIRECTORY_2)
-#
 
 # Additional libraries can be added like so:
 # SZG_OPTIONAL_LIBS += $(MY_NEW_LIBRARY_1) $(MY_NEW_LIBRARY_2)
 
-# A similar link line should appear for all of your generated exe's:
+# The lines below tell make how to build each program. There must
+# be one for each target listed as part of the ALL target.
+#
 # my_app$(EXE): my_app$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBRARY_DEPS)
 #	$(SZG_USR_FIRST) my_app$(OBJ_SUFFIX) $(OBJS) $(SZG_USR_SECOND)
 #	$(COPY)
+#
+# Note that # the main source file doesn't necessarily have to have
+# the same # name as the executable; if not change the
+# my_app$(OBJ_SUFFIX) # instances appropriately.
+#
+# Note also that if you have some object files that are not
+# common to both programs, you could create separate OBJ lists,
+# e.g. OBJS1 and OBJS2, above.
+#
+# The variable $(SZG_USR_FIRST) contains the linker name, linker
+# options and link libraries, if the platform is Windows. If the
+# platform is Unix-based, it does not contain the link libraries,
+# which instead appear in $(SZG_USR_SECOND), which is blank in the
+# Windows case.  The $(COPY) line copies the built executable into
+# your $SZGBIN directory where all of your Syzygy-related executables
+# are stored.
+#	
 
 skeleton$(EXE): skeleton$(OBJ_SUFFIX) $(OBJS) $(SZG_LIBRARY_DEPS)
 	$(SZG_USR_FIRST) skeleton$(OBJ_SUFFIX) $(OBJS) $(SZG_USR_SECOND)

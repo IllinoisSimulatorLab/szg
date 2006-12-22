@@ -14,8 +14,8 @@ portability layer that hides the differences between Win32 and Unix. Built
 upon this is a communications layer that provides the basic building blocks
 for network services. Various media protocols, such as for graphics and sound,
 are built using these services. The media protocols form the third layer.
-The media protocol components are combined with Phleet, Syzygy's distributed
-operating system, to form autonomous media objects, like sound players and
+The media protocol components are combined with Syzygy's distributed
+operating system to form autonomous media objects, like sound players and
 remote scene graph renderers. This is the fourth layer. Finally, Syzygy
 has various application frameworks that use the media objects and combine
 them into a coherent system. Each application framework represents a different
@@ -108,8 +108,8 @@ the parameter database, but this will soon be automated.
 
 Objects like SoundRender, for the distributed sound database, and
 szgrender, for the distributed graphics database, provide clients that turn
-information from the network into sensory events. These objects use Phleet for
-configuration information and connection management.
+information from the network into sensory events. These objects use the
+distributed operating system for configuration information and connection management.
 
 
 =Application Frameworks=[Frameworks]

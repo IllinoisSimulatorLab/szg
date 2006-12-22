@@ -49,13 +49,13 @@ DeviceServer [-netinput] node_config_name input_slot [pforth_program_name]
 
 
 We now describe how to send joystick events from
-one computer to another. First, plug a joystick into a computer in your Phleet,
+one computer to another. First, plug a joystick into a computer in your cluster,
 dlogin on that computer, and type:
 ```
   DeviceServer -s arJoystickDriver 0
 ```
-If you (in your Phleet user identity) are not already transmitting on input
-slot 0 elsewhere in the Phleet and your joystick is supported, DeviceServer will
+If you (in your Syzygy user identity) are not already transmitting on input
+slot 0 elsewhere in the cluster and your joystick is supported, DeviceServer will
 start running and not return. Subsequently, open a new shell on that computer
 and type:
 ```
@@ -65,8 +65,8 @@ The raw event data from the joystick should now be printed at 10 second
 intervals. Try pressing some buttons and wriggling some axes. You should see
 the numbers change. If not, see the
 [troubleshooting PhleetIntro.html#Troubleshooting] section. You can
-also run "DeviceClient 0" on other computers in the Phleet where you are
-dlogin'ed as the same Phleet user. The additional copies will print out
+also run "DeviceClient 0" on other computers in the cluster where you are
+dlogin'ed as the same Syzygy user. The additional copies will print out
 input information from the DeviceServer.
 Once this is working, you can experiment with using
 [PForth PForth.html] programs to

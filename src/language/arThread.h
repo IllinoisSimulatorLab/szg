@@ -137,7 +137,7 @@ class SZG_CALL arThreadEvent {
 
 // Thread.
 
-class SZG_CALL arThread{
+class SZG_CALL arThread {
   // Needs assignment operator and copy constructor, for pointer members.
   friend arWrapperType ar_threadWrapperFunction(void*);
 
