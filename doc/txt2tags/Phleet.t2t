@@ -8,39 +8,31 @@ Integrated Systems Lab
 
 %%toc
 
-The Phleet distributed operating system layer of the
-Syzygy toolkit has a minimal number of features and components.
-The group of computers comprising the Phleet
-is controlled by an szgserver program, which performs several functions:
+The group of computers comprising a Syzygy cluster
+is controlled by an instance of the Syzygy server program, szgserver, which performs several functions:
 
--  Manages multiple users.
--  Stores a parameter database for each user, which is used by software
-components to obtain configuration information. The parameter database is
-similar in character to Unix environment variables.
--  Maintains a list of the software components registered with the Phleet,
-with each component being identified by the computer on which it is running,
-a symbolic string (equivalent to executable name), and a unique ID (equivalent
-to Unix process ID).
--  Can route messages from one registered software component to another.
-These messages can be used like Unix signals. For instance, to cause a
-component to terminate or reload its parameters.
--  Contains a connection brokering service which deals with multi-homing and
-aids in ease of set-up.
--  Supports named locks that are owned by Phleet components. Locks are
-necessary so that certain operations, like starting a distributed application,
-can be performed atomically. These locks are released when a component dies.
+- Manages multiple users.
+- Stores a configuration parameter database for each user.
+- Maintains a list of the software components registered with the cluster,
+  with each component being identified by the computer on which it is running,
+  a symbolic string (equivalent to executable name), and a unique ID (equivalent
+  to a Unix process ID).
+- Routes messages from one registered software component to another.
+  These messages can be used like Unix signals. For example, messages can cause a
+  component to terminate or to reload its parameters.
+- Contains a connection brokering service that allows components that need to
+  connect to automatically find each other.
+- Supports named locks that are owned by cluster components. Locks are
+  necessary so that certain operations, like starting a distributed application,
+  can be performed atomically. These locks are released when a component dies.
 
 
-The Phleet can be controlled in two basic ways:
+A Syzygy cluster can be controlled in two ways:
 
-+ From the command line (or scripts). A complete selection of commands is
-provided. This is useful, for instance, in providing GUI front-ends for various
-categories of tasks via a scripting language like Python.
++ By issuing Syzygy commands from a command shell or from a scripting language such as Python.
 
-+ Programatically by using the methods of an arSZGClient object. There is
-almost a one-to-one mapping between the methods of this object and the command
-line executables. This method is used to make launching applications on
-"virtual computers" easier.
++ Programatically using methods of an arSZGClient object, either in C++ or Python. There is
+  almost a one-to-one mapping between the methods of this object and the shell commands
 
 
 A Phleet is comprised of a set of computers connected by a network. Each

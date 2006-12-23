@@ -1,0 +1,71 @@
+Syzygy Documentation: Syzgy Resource Path Configuration
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers --toc
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+This chapter will show you how to specify Syzygy search paths.
+
+% Table of Contents
+%%toc
+
+
+=Resource Path Specification=
+
+As part of your [System Configuration SystemConfiguration.html],
+you can specify a number of search paths for various kinds of application
+data. Each path may contain one or more directory absolute paths separated by
+semicolons. Paths must be specified in the normal system-dependent manner, e.g.
+a typical Windows path might be 'C:\Data', whereas on Linux it might be
+'/home/public/Data' (Yes, it's a bit confusing that on Windows build-related
+paths must be specified with forward slashes and resource paths for running
+programs using backwards ones. Not our fault. Sorry).
+
+**IMPORTANT**: Starting with Syzygy 1.1, there has been an important change in
+the way applications are searched for and where they can look for their data.
+
++ Executables:
+```
+SZG_EXEC path directory_path_1;directory_path_2;...
+```
+  This variable is only relevant in cluster mode; it tells the remote execution
+  daemon where to look for programs. Previously, szgd would only look in
+  directories on the search path, and applications were required to look
+  for their data files in directories on the SZG_DATA path, below. Starting
+  with version 1.1, it will also look in subdirectories (just one level down)
+  of directories on the path, and when it finds the program it sets the
+  current directory to the directory containing the program. This means that
+  programs can be placed in a directory with their data and use the normal
+  file-reading methods with program-relative paths to access it.
+
++ Data:
+```
+SZG_DATA path directory_path_1;directory_path_2;...
+```
+  Data files to be found by programs using the ar_fileFind() function
+  should be placed in a directory on this path. This is no longer
+  necessary, however.
+
++ Sound files:
+```
+  SZG_SOUND path directory_path_1;directory_path_2;...
+```
+   Location of sound files to be loaded by SoundRender. Note that these can also
+   be placed with the application, but if so it must inform SoundRender using
+   either of the application frameworks' setDataBundlePath() method (see the
+   [Programming Programming.html] chapter).
+
++ Texture maps used in a distributed scene graph program (again, see
+  [Programming Programming.html] and to be displayed by szgrender:
+```
+  SZG_RENDER texture_path directory_path_1;directory_path_2;...
+```
+
++ Texture-mapped fonts:
+```
+  SZG_RENDER text_path directory_1
+```
+  **BUG**: This one is not at present a semicolon-delimited search path like the
+  others, it can only be a single directory path. We'll fix that soon.
