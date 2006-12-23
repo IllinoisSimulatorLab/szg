@@ -51,8 +51,13 @@ int main(int argc, char** argv){
       continue;
     }
     //;;;; only say Broadcasting on, if -v flag
-    cout << "Broadcasting on " << broadcast << "\n";
-    szgClient.printSZGServers(broadcast);
+    cout << "Hunting via network interface " << broadcast << "\n";
+    std::vector< std::string > serverVec = szgClient.findSZGServers(broadcast);
+    std::vector< std::string >::const_iterator iter;
+    for (iter = serverVec.begin(); iter != serverVec.end(); ++iter) {
+      cout << *iter << endl;
+    }
+    serverVec.clear();
   }
   return 0;
 }
