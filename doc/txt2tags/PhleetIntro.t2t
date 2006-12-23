@@ -66,10 +66,6 @@ cluster. We will focus on setting up such a system. However,
 different users on different computers can be connected to different
 Syzygy servers if desired, easily changing their associations over time.
 
-In what follows, we assume
-that broadcast packets can travel between any computers that will be in your
-cluster.
-
 NOTE: szgserver is meant to run in the background for a long
 time (like a linux daemon or windows service).
 Here are some common misunderstandings:
@@ -228,6 +224,10 @@ network.
 ```
   dlogin server_name syzygy_user_name
 ```
+e.g.
+```
+  dlogin generic johndoe
+```
   "server_name" should be the parameter of the same name used to start the
   szgserver; "syzygy_user_name" will be your Syzygy user name.
   This command associates a Syzygy user name with the current operating system
@@ -236,6 +236,28 @@ network.
   as being issued by the specified Syzygy user. To change Syzygy users for a
   given OS user you can either (a) dlogin as a different Syzygy user, or
   (b) dlogout, which disconnects you from any szgserver.
+
+  The foregoing assumes that braodcast packets can travel between the computer
+  you're dlogging in on and the one running the Syzygy server. You haven't
+  specified the IP address and port for the server, so ``dlogin`` has to
+  broadcast to find it. Another command that uses broadcase to find
+  szgservers is
+```
+  dhunt
+```
+  ...which will print a list of servers on the local subnet (i.e. servers
+  that can be found via broadcast).
+
+  If your server //isn't// on the same subnet (and therefore doesn't show up
+  in the list printed by ``dhunt``), you'll need to use an alternate form
+  of ``dlogin`` in which you specify the szgserver IP address and port:
+```
+  dlogin server_IP_address server_port syzygy_user_name
+```
+e.g.
+```
+  dlogin 999.999.999.999 4343 johndoe
+```
 
   As you can see, there is currently //no authentication// of Syzygy users.
 
