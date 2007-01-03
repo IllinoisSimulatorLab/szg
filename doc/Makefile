@@ -1,10 +1,12 @@
 ALL = \
   AppFeatures.html \
   Architecture.html \
+	arSZGClient.html \
   Bugs.html \
   ChangeLog.html \
   ClusterTest.html \
   CommLayer.html \
+	CommunicationDetails.html \
   CompileCPP.html \
   ExampleCode.html \
   Future.html \
@@ -23,10 +25,8 @@ ALL = \
 	PathConfiguration.html \
 	PForth.html \
 	Phleet.html \
-	PhleetIntro.html \
 	PortabilityLayer.html \
 	Programming.html \
-	Phleet.html \
 	PySZG.html \
 	QuickPort.html \
 	RandomNumbers.html \
