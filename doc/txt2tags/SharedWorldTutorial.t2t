@@ -12,7 +12,8 @@ compiled the [szg library GettingSoftware.html] and the Syzygy
 [Python bindings PySZG.html] or have installed a Syzygy SDK as
 appropriate for your system.
 
-First, note that you must be running in [Cluster Mode PhleetIntro.html].
+First, note that you must be running in Cluster Mode
+(see the [Distributed OS DistributedOS.html] chapter).
 
 You will open three fresh terminal windows on your desktop.
 

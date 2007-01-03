@@ -43,7 +43,8 @@ Integrated Systems Lab
   - [PathConfiguration.html PathConfiguration.html] shows how to set up search paths for sound files,
     texture images, and so on.
   - When running in [cluster mode #ClusterSetup], the information on configuring input devices is also
-    relevant, see [Setting Up, Testing, and Managing a Syzygy Cluster #ClusterSetup].
+    relevant, as is the information on configuring virtual computers.
+    See [Setting Up, Testing, and Managing a Syzygy Cluster #ClusterSetup], below.
 
 
 =Creating Your Own Syzygy Progams=
@@ -71,9 +72,10 @@ Integrated Systems Lab
 
 =Setting Up, Testing, and Managing a Syzygy Cluster=[ClusterSetup]
 
-- [PhleetIntro.html PhleetIntro.html]: Concepts and commands for setting up Syzygy
-  PC clusters and running programs on them (Look here for an explanation of virtual computers).
-- [Phleet.html Phleet.html]: More information about using Syzygy's distributed operating system.
+- [DistributedOS.html DistributedOS.html]: Concepts and commands for setting up Syzygy
+  PC clusters and running programs on them (Look here and in
+  [Configuring Virtual Computers VirtCompConfiguration]
+  for an explanation of virtual computers).
 - [ClusterTest.html ClusterTest.html]: Basic testing of your Syzygy cluster.
 - [InputDevices.html InputDevices.html] describes the use of  the input device infrastructure in
   Cluster Mode.

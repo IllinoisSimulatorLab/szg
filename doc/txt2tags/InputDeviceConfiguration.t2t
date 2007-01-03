@@ -10,7 +10,7 @@ This chapter will show you how to configure Syzygy to work with your
 input devices.
 
 Note that this section is only relevant to running programs in
-[Cluster Mode PhleetIntro.html]; you can't use input devices in
+Cluster Mode (see [Distributed OS DistributedOS.html]); you can't use input devices in
 [Standalone Mode Standalone.html] (input devices require a network
 connection), just the [inputsimulator TrackingSim.html]
 program.
@@ -30,7 +30,7 @@ to be performed on the outputs. Then you define
 [local input device parameters #LocalParameters] on the computer that
 the device is hooked up to that contain necessary configuration information
 for each driver module. Finally, you add an input map specification
-(another local parameter) to a [virtual computer definition PhleetIntro.html#VirtualComputer]
+(another local parameter) to a [virtual computer definition VirtCompConfiguration.html]
 that makes the device definition a part of the virtual computer.
 
 
@@ -97,9 +97,11 @@ device is hooked up to. The chapter on [Supported Input Devices InputDevices-dri
 describes the parameters that must be configured to operate any particular device.
 
 
+==Virtual Computer Input-device Parameters==
+
 Finally, you add an input map specification
-to a [virtual computer definition PhleetIntro.html#VirtualComputer].
-This is a local parameter; it says that a particular global input device parameter
+to a [virtual computer definition VirtCompConfiguration.html].
+This resembles a local parameter; it says that a particular global input device parameter
 will run on a particular computer in the context of the current virtual computer.
 
 

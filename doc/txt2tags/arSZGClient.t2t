@@ -1,0 +1,203 @@
+Syzygy Documentation: arSZGClient Reference
+Integrated Systems Lab
+%%mtime(%m/%d/%Y)
+%!options: --headers --toc
+%!encoding: iso-8859-1
+
+[Documentation Table of Contents index.html]
+
+%%toc
+
+
+=arSZGClient Methods Associated with Messaging=[MessageMethod]
+
+```
+  int arSZGClient::sendMessage(const string& user, const string& type,
+                               const string& body, const string& context,
+                               int destination, bool responseRequested);
+    Generates an "SZG Message" with the given parameters. Blocks until it receives
+    a reply from the szgserver with the message's ID (or until the szgserver connection
+    goes away). Returns 0 on failure and otherwise the message ID assigned to the
+    message by the szgserver. NOTE: this means that szgserver message IDs must be strictly
+    positive.
+```
+
+```
+  int arSZGClient::getMessageResponse(const string& body, int& messageID);
+    Returns 0 on failure, 1 if we've receive a final response to the message, and
+    -1 if we've received a partial response to the message.  Note that this allows
+    long duration computations or initializations to be gradually streamed back to
+    the original message sender. The parameter "body" is filled-in with the "Body"
+    field of the "SZG Message Admin" record. The parameter "messageID" is filled-in
+    with the ID of the message for which this response is intended.
+```
+
+```
+  bool arSZGClient::messageResponse(int messageID, const string& body,
+                                    bool partialResponse);
+    Attempts to send a message response to the given message ID and with given body.
+    The parameter "partialResponse" is optional (default is false). If it is set to
+    false, this is the only response that can be expected to the message. If it is
+    set to true, more responses will be forthcoming. Returns false if the response is
+    undeliverable. And true otherwise.
+```
+
+```
+  bool arSZGClient::startMessageOwnershipTrade(int messageID, const string& key);
+    Sends an "SZG Message Admin" record with type "SZG Trade Message"
+    to the szgserver. If the command is issued by a component run by user "XXX" on host
+    "YYY" as a part of virtual computer "cube", the sent key will be [key] (in distinction
+    to requestMessageOwnership(...) below). Returns true if the send succeeds and the
+    component has the right to trade this message. False otherwise (as, for instance,
+    if the given key has already been taken).
+```
+
+```
+  bool arSZGClient::finishMessageOwnershipTrade();
+    Waits on notification that a pending message ownership trade has occured.
+    Returns true if the record receive succeeds. Returns false otherwhise.
+```
+
+```
+  bool arSZGClient::revokeMessageOwnershipTrade(const string& key);
+    Attempts to revoke a pending message-ownership trade. Note that we have to give the key
+    in a fully-explicit fashion. Returns true if the revocation
+    was successful and false otherwise. Several conditions might cause a message ownership
+    trade to fail. Specifically, another component might have already completed the
+    trade or our component might not have the right to revoke the trade.
+```
+
+```
+  int arSZGClient::requestMessageOwnership(const string& key);
+    Requests ownership of message with key "XXX/YYY//cube" (where "XXX", "YYY",
+    and "cube" are as above). Note how the arSZGClient automatically fills-in the data,
+    based on its internal state, in distinction to startMessageOwnershipTrade(...) above.
+    Returns 0 if this fails and otherwise the ID of the message to which the client now
+    owns the response rights.
+```
+
+
+=arSZGClient Methods Associated with Locks=[LockMethod]
+
+```
+  bool arSZGClient::getLock(const string& lockName, int& ownerID);
+    Returns true if the component now holds the lock (and fills ownerID with -1).
+    Otherwise, it returns false and fills ownerID with the ID of the component that does,
+    in fact, own the lock. Note that this allows us to send a "kill" message to the
+    component in question, which will cause the lock to be freed. Note that this is
+    a nonblocking call.
+```
+
+```
+  bool arSZGClient::releaseLock(const string& lockName);
+    If the component does not currently hold the lock, this call returns false.
+    If the component holds the lock, the lock is released and the call returns true.
+```
+
+```
+  bool arSZGClient::requestLockReleaseNotification(const string& lockName);
+    Uses a "SZG Lock Notification" record to request that a record of the same
+    type be returned upon release of a given lock. Returns whether the request
+    succeeded.
+```
+
+```
+  string arSZGClient::getLockReleaseNotification();
+    Waits for a "SZG Lock Notification" record to be sent to the client. When
+    such is received, it prints out the name of the lock that was released.
+```
+
+
+=arSZGClient Methods Associated with Connection Brokering=[BrokeringMethod]
+
+```
+  bool arSZGClient::registerService(const string& serviceName, const string& channel,
+                                    int numberPorts, int* portIDs);
+    Means by which a component starts offering a service for connection brokering. The
+    channel determines the networks upon which the service will be offered. Specifically,
+    this parameter my be one of "default", "graphics", "sound", or "input", and it
+    allows these different services to use different physical networks, if such exist.
+    The number of ports needed by the service is given by the "numberPorts"
+    parameter, and the "portIDs" parameter provides storage into which the assigned
+    ports for the service can be stuffed. This function returns "true" excatly when
+    it is successful.
+```
+
+```
+  bool arSZGClient::requestNewPorts(const string& serviceName, const string& channel,
+                                    int numberPorts, int* portIDs);
+    It could be that the service cannot use the ports successfully retrieved from
+    the "registerService" call. In this case, the service can request the
+    assignment of new ports, at the same time telling the szgserver that it was
+    unsuccessful in using the previously assigned ones.The meaning of the parameters
+    is the same as in "registerService", except that, in this case, the caller passes
+    the old, problematic ports in inside the "portIDs" array. This function returns
+    "true" exactly when it successfully communicates with the szgserver and receives
+    a set of new ports (in the "portIDs" array).
+```
+
+```
+  bool arSZGClient::confirmPorts(const string& serviceName, const string& channel,
+                                 int numberPorts, int* portIDs);
+    The service must inform the szgserver that it is, in fact, able to use the
+    assigned ports. The meanings of "serviceName", "channel", and "numberPorts"
+    are the same as above. The ports that the service successfully bound are
+    passed in via "portIDs". Returns "true" exactly when it successfully
+    communicates with the szgserver and that program is able to put the
+    mentioned ports on the list of used ones.
+```
+
+```
+  arPhleetAddress arSZGClient::discoverService(const string& serviceName,
+                                               const string& networks, bool async);
+    A component wishes to connect to a service running somewhere in the distributed
+    system. The component mentions the name of the service to which it wishes to
+    connect ("serviceName"), gives a slash-delimited list of networks (using symbolic
+    names) upon which it would like to communicate to the service ("networks"),
+    and specifies whether the "discoverService" call itself should be blocking or
+    nonblocking with the final parameter, "async". If "async" is set to "true" and the
+    requested service is not currently registered with the szgserver, the szgserver
+    will immediately make a failure response and "discoverService" will return an
+    invalid arPhleetAddress. If "async" is set to "false" and the requested service is
+    not currently registered with the szgserver, the szgserver will make no response
+    until the service is in fact registered. In this case, the call to "discoverService"
+    will block. Overall, if the call fails, an invalid arPhleetAddress is returned,
+    If the call succeeds, a valid arPhleetAddress is returned, containing an IP
+    address and a sequence of ports to which the component can connect.
+```
+
+```
+  bool arSZGClient::requestServiceReleaseNotification(const string& serviceName);
+    Requests that the szgserver send us a notification when the named service is no
+    longer held by the system. Returns "true" if the szgserver has successfully
+    received the request and false otherwise. This is useful in allowing high
+    availability services. When a service goes away, another component able to offer
+    the service can be notified.
+```
+
+```
+  string arSZGClient::getServiceReleaseNotification();
+    Block until a service release notification has been received from the szgserver.
+    When one has been received, return the name of the service that has been
+    released.
+```
+
+```
+  void arSZGClient::printServices();
+    Prints the services which are currently being offered in the distributed system.
+```
+
+```
+  void arSZGClient::printPendingServiceRequests();
+    Prints the service requests that have yet to be met in the distributed system.
+```
+
+```
+  int arSZGClient::getServiceComponentID(const string& serviceName);
+    If the named service exists, return the ID of the component offering it. If not,
+    return -1. This is useful when a new component must offer a service, even to the
+    extent of killing off a previous component offering the same service.
+```
+
+
+

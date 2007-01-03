@@ -32,9 +32,44 @@ using the ``dget`` and ``dset`` commands, or they can be set in large batches
 by invoking the ``dbatch`` command with the name of a parameter file.
 Happily, the parameter
 file for the ``dbatch`` command has the same format as the Standalone Mode
-parameter file.  A separate set of parameters is maintained for each user,
+parameter file.  __A separate set of parameters is maintained for each user__,
 so any database commands will access the database for the last user logged
 in to the Syzygy server using the ``dlogin`` command.
+
+
+=Loading a Parameter File with dbatch=
+
+This is the simplest way to load a large number of parameters in to the Syzygy database.
+To load a file-full of parameter information, type:
+```
+dbatch <file path>
+```
+``<file path>`` can be either an absolute or relative path from the current directory
+or a file name. If the latter, ``dbatch`` will look for the file in the current working
+directory. If it isn't there, it will query the Syzygy database for the value of the
+[local parameter #LocalParameters] SZG_SCRIPT/path. If this parameter is defined it
+will interpret it as a directory path and look for the named file there.
+
+
+=Printing or Saving Lots of Parameters with dget=
+
+Typing:
+```
+dget -a
+```
+will print all of the current user's database parameters. If you're using a command shell that
+allows redirection of the standard output to a file, (e.g. ``dget -a >myparams.xml")
+you can have the output saved to
+a file that can be used as the input for a subsequent ``dbatch`` command.
+
+To list all parameters containing a particular string (either in the computer name,
+group name, parameter name, or value), type:
+```
+dget -a <string>
+```
+For example, ``dget -a my_computer`` will print out all parameters defined for the computer
+'my_computer`, and any other ones that happen to contain that string (single lines from
+virtual computer definitions, for example).
 
 
 =Global and Local Parameters=[ParameterTypes]
@@ -97,10 +132,10 @@ are typically written as a slash-delimited string, i.e.
 ```
   <computer name>/<parameter group>/<parameter name>
 ```
-For example, the parameter to tell a computer named 'alice' the standard location for data files,
+For example, the parameter to tell a computer named 'my_computer' the standard location for data files,
 is represented by:
 ```
-  alice/SZG_DATA/path
+  my_computer/SZG_DATA/path
 ```
 
 However, to //set// these parameters, use the format below.
@@ -112,15 +147,15 @@ When interacting with the database, either via ``dget`` and ``dset`` in Cluster 
 or in a parameter file, the key elements are separated by spaces. A parameter file
 entry line for the parameter above might look like this:
 ```
-  alice SZG_DATA path G:\Data
+  my_computer SZG_DATA path G:\Data
 ```
 or to set it in Cluster Mode using ``dset``, you might type this:
 ```
-  dset alice SZG_DATA path G:\Data
+  dset my_computer SZG_DATA path G:\Data
 ```
 If you were to then type
 ```
-  dget alice SZG_DATA path
+  dget my_computer SZG_DATA path
 ```
 the command would return the value
 ```
@@ -155,7 +190,7 @@ functions each will perform. You run a program on a virtual computer by issuing 
 separate instances of the program and any supporting services are then launched automatically.
 
 See [Virtual Computer Configuration VirtCompConfiguration.html] and
-[Using a Virtual Computer PhleetIntro.html#VirtualComputer] for more information.
+[Using a Virtual Computer DistributedOS.html#VirtualComputer] for more information.
 
 
 =Parameter File Format=[ComplexFormat]

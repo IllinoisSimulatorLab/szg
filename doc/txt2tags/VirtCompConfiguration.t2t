@@ -7,7 +7,7 @@ Integrated Systems Lab
 [Documentation Table of Contents index.html]
 
 This file tells you how to define virtual computers. For information about
-//using// them, see [Introduction to the Distributed OS PhleetIntro.html#VirtualComputer].
+//using// them, see the relevant section in the [Distributed OS DistributedOS.html#VirtualComputer] chapter.
 
 
 %%toc
@@ -180,7 +180,7 @@ running application. Again, consider the command:
 
 + When the application is being used as a launcher, it first makes
   sure that a previous application isn't already running, by checking, in this
-  case, if the named lock (see [Locks PhleetIntro.html#Locks])
+  case, if the named lock (see [Locks DistributedOS.html#Locks])
   "my_room/SZG_DEMO/app" is held. Here, the "my_room"
   appearing in the lock name is the virtual computer location. If the
   lock is held, the trigger sends a kill message to the lock's owner and waits

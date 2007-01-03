@@ -29,7 +29,7 @@ to determine whether or not it is running in Standalone mode:
 by the native operating system).
 
 + It looks for a corresponding Syzygy login file (described in
-[Creating a Cluster: Running szgserver and szgd PhleetIntro.html#RunningSzgserver].
+[Creating a Cluster: The Syzygy Login Files DistributedOS.html#LoginFiles].
 
 + If this
 file exists and specifies that the user is logged into a Syzygy server,

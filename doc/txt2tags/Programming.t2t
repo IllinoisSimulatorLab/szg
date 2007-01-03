@@ -195,9 +195,99 @@ is not commonly used but provides more complete access to input state:
 const arInputState* getInputState();
 ```
 
+Both frameworks support installation of a single-event callback or filter:
+```
+bool arSZGAppFramework::setEventFilter( arFrameworkEventFilter* filter );
+void arSZGAppFramework::setEventCallback( 
+           bool (*eventCallback)( arSZGAppFramework&, arInputEvent&, arCallbackEventFilter& )
+           );
+```
+These permit direct access to every single input event immediately as it comes in.
+They're functionally equivalent, the first is just a bit more object-oriented.
+Note that they run in a separate thread from the rest of your application, so
+only use if you're familiar with multi-threaded programming.
+
 Both frameworks support the [Syzygy navigation utilities Navigation.html].
 Although the interface is the same, the way it is used is slightly
 different under the two frameworks, so we'll discuss that below.
+
+
+==Other Stuff==
+
+Speech (Windows only). If the Microsoft Speech API (SAPI) was present
+during compilation, both frameworks support text-to-speech using the
+following method:
+```
+void arSZGAppFramework::speak( const std::string& message );
+```
+In Cluster Mode the utterance is performed by SoundRender, so that's
+the component that needs to be running on Windows for this to work.
+In [Standalone Mode Standalone.html] the sound component gets
+embedded into the application, so it has to be a Windows app.
+You can control the volume, pitch, etc. using embedded XML tags,
+see the SAPI documentation.
+
+
+```
+bool arSZGAppFramework::setInputSimulator( arInputSimulator* sim );
+```
+Installs your own version of the [Tracking Simulator TrackingSim.html].
+
+```
+string arSZGAppFramework::getLabel();
+```
+Returns the name of your application.
+
+```
+bool arSZGAppFramework::getStandalone();
+```
+Is the program running in standalone (true) or cluster (false) mode?
+
+```
+arHead* arSZGAppFramework::getHead();
+```
+Get a pointer to the Head object, which contains information about eye spacing
+and so on. In a master/slave application it gets shared from master to slaves,
+so don't change parameters on slaves.
+
+```
+virtual void arSZGAppFramework::setFixedHeadMode(bool isOn) ;
+```
+Force fixed-head mode (but only for screens that are configured to allow it).
+See [Graphics Configuration GraphicsConfiguration.html].
+
+```
+virtual arMatrix4 arSZGAppFramework::getMidEyeMatrix();
+```
+Return the placement (position+orientation) matrix for the midpoint of the two eyes.
+
+```
+virtual arVector3 arSZGAppFramework::getMidEyePosition();
+```
+Return the position of the midpoint of the two eyes.
+
+```
+arAppLauncher* arSZGAppFramework::getAppLauncher();
+```
+Get a pointer to the arAppLauncher, which contains information about
+the [virtual computer DistributedOS.html#VirtualComputer] the application is running on.
+
+```
+arGUIWindowManager* arSZGAppFramework::getWindowManager( void );
+```
+Get a pointer to the Syzygy window manager. Sorry, it isn't at all
+documented yet. You'll have to look at header files to figure out
+what you can do with it (look in src/graphics at any file whose
+name begins with "arGUI"...
+
+```
+arSZGClient* arSZGClient::getSZGClient() { return &_SZGClient; }
+```
+Get a pointer to the arSZGClient, which allows you to get and
+set parameters in the Syzygy database and to send messages to
+other Syzygy components. There are several sections devoted to
+the arSZGClient in the [Distributed Operating System DistributedOS.html]
+chapter.
 
 
 =Master/Slave Framework=[MasterSlave]
@@ -387,7 +477,7 @@ void setUserMessageCallback(
 virtual void arMasterSlaveFramework::onUserMessage( const string& messageBody );
 ```
 Called whenever the application receives a user message (sent from e.g. the dmsg commandline
-program--see the [Distributed Operating System Phleet.html] chapter. The ``message_type`` should
+program--see the [Distributed Operating System DistributedOS.html] chapter. The ``message_type`` should
 be the string 'user').
 
 ```

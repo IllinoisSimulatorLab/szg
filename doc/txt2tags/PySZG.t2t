@@ -151,8 +151,7 @@ and is then automagically added to the PYTHONPATH).
 =Running Syzygy Python Programs in Cluster Mode=[PythonCluster]
 
 To understand this section, you should read about the
-[Intro to the Syzygy Distributed OS PhleetIntro.html] and
-[the Syzygy Distributed OS Phleet.html].
+[Syzygy Distributed OS DistributedOS.html].
 
 We assume that Python
 programs are organized, along with their data, like textures, sounds, and

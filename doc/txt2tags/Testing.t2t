@@ -55,7 +55,7 @@ Some specific information about a wider range of systems follows.
 ==Special Notes for Windows 98==
 
 The problem with Windows 98 derives from the way in which Syzygy components
-automatically determine their names for connecting to the phleet distributed
+automatically determine their names for connecting to the Syzygy distributed
 OS. On Windows 98, it is impossible
 for an executable to get its own name (other than in all capital letters)
 from argv[0] when run from cmd.exe (the default Windows shell).
@@ -138,7 +138,7 @@ on each supported platform.
 supported platforms. Slaves run on each of the supported platforms.
 
 - The following is the "stress test" currently used to validate the
-system (here the phleet distributed OS and its application launching and
+system (here the Syzygy distributed OS and its application launching and
 management features are stressed). Given a 3x2 video wall
 with some Windows and some Linux
 components. All of the computers have dual processors and two

@@ -64,7 +64,7 @@ and type:
 The raw event data from the joystick should now be printed at 10 second
 intervals. Try pressing some buttons and wriggling some axes. You should see
 the numbers change. If not, see the
-[troubleshooting PhleetIntro.html#Troubleshooting] section. You can
+[troubleshooting DistributedOS.html#Troubleshooting] section. You can
 also run "DeviceClient 0" on other computers in the cluster where you are
 dlogin'ed as the same Syzygy user. The additional copies will print out
 input information from the DeviceServer.
