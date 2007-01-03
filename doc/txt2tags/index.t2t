@@ -74,7 +74,7 @@ Integrated Systems Lab
 
 - [DistributedOS.html DistributedOS.html]: Concepts and commands for setting up Syzygy
   PC clusters and running programs on them (Look here and in
-  [Configuring Virtual Computers VirtCompConfiguration]
+  [Configuring Virtual Computers VirtCompConfiguration.html]
   for an explanation of virtual computers).
 - [ClusterTest.html ClusterTest.html]: Basic testing of your Syzygy cluster.
 - [InputDevices.html InputDevices.html] describes the use of  the input device infrastructure in

@@ -8,6 +8,7 @@ ALL = \
   CommLayer.html \
 	CommunicationDetails.html \
   CompileCPP.html \
+	DistributedOS.html \
   ExampleCode.html \
   Future.html \
   GettingSoftware.html \
@@ -24,7 +25,6 @@ ALL = \
 	Objects.html \
 	PathConfiguration.html \
 	PForth.html \
-	Phleet.html \
 	PortabilityLayer.html \
 	Programming.html \
 	PySZG.html \

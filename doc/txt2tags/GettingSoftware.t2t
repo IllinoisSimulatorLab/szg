@@ -316,7 +316,7 @@ On all platforms, follow these general instructions.
   do provided the appropriate version of make.exe, compiler,
   linker, and so on are on your application search path as
   specified by the PATH environment variable. One of us
-  routinely uses [IPython ipython.scipy.org] as a build
+  routinely uses [IPython http://ipython.scipy.org/] as a build
   shell). On Irix, you MUST use "gmake" instead
   of "make", since Syzygy uses GNU make syntax.
 
