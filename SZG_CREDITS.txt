@@ -47,6 +47,25 @@ found in szg/python, are copyright Peter Brinkmann, and are licensed under
 the LGPL (in contrast to the BSD license of the Syzygy C++ library).
 
 ****************************************************************************************************
+Contributors (core project), Syzygy-1.1
+
+Release Jan 2007
+
+Jim- Re-wrote many of the docs.
+
+Camille, Jim- Converted sound from FMOD 3 to FMOD 4. 
+
+Jim- Added Scene Graph shared library plugins.
+
+Jim, Camille- Fixed dozens of bugs.
+
+Jim- Added error reporting to arGUI XML parsing.
+
+Jim- Extended and fixed bugs in Python bindings.
+
+Ben- Fixed problem with building on Darwin.
+
+****************************************************************************************************
 Contributors (core project), Syzygy-1.0
 
 Release Jan 2006
