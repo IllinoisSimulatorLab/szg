@@ -10,11 +10,50 @@ Integrated Systems Lab
 
 =Changes in version 1.1=
 
-Syzygy 1.1. is __primarily__ a bug-fix release (and yea, there were of them a multitude).
+Syzygy 1.1. is __primarily__ a bug-fix release (too many to list here).
 The most important changes:
 
 
-===Commands===
+==Documentation==
+
+...Has been largely re-written for clarity. A few major messes remain, however.
+
+
+==Demos==
+
+Some demos (ones that were insufficiently instructive or that depended on very
+large data sets) have been removed from the main "szg" repostitory. We're moving
+towards packaging each of these individually together with their data.
+
+
+==Skeleton/Build Template==
+
+The new szg/skeleton directory is a directory tree template for building your
+own programs. Copy the directory somewhere, rename, modify the source files, etc.
+
+
+==Commands==
+
+
+===szgd===
+
+``szgd`` now takes a non-optional <base paths> argument. The full form of the command is:
+```
+szgd <base paths> [-r]
+```
+The <base paths> argument is a semicolon-delimited list of paths to directories or
+native executables. This allows you to restrict remote execution to particular
+directories or progams. On Windows the ".exe" suffix of executables should be omitted.
+You'll probably need to enclose the argument in quotes if it contains a semicolon.
+Each item must exist or ``szgd`` will exit. All SZG_EXEC and SZG_PYTHON paths and
+SZG_PYTHON/executable must
+begin with an item from the <base paths> argument or the ``dex`` command will fail.
+
+The optional ``-r`` causes it to repeatedly attempt to reconnect to the
+Syzygy server on failure (instead of quitting as formerly).
+
+
+===dex===
 
 One variant of the ``dex`` command has been eliminated (to clarify error messages).
 You may no longer run an application on the local computer by typing:
@@ -27,16 +66,74 @@ dex <computer> <app> <args>
 ```
 
 
-===Sound===
+==Precompiled SDKs==
+
+Are no longer available; we're too under-staffed to support them. Weren't too useful anyway.
+
+
+==Sound==
 
 Syzgy 1.1 uses FMOD 4 (ex) instead of FMOD 3. This change is transparent to the application
 programmer.
 
 
-===Configuration===
+==Configuration==
 
-The code that parses XML config files now reports errors instead of failing silently as
+
+===XML parameter files===
+
+The code that parses XML config files now reports errors (quite well) instead of failing silently as
 it did in 1.0 (we hang our heads in shame).
+
+
+===Resource Layout===
+
+Native executables can now be packaged together with their data files (as Python programs
+could before). ``szgd`` now looks for executables in subdirectories of directories on
+SZG_EXEC/path, and when it finds an executable it sets the current working directory to
+the directory containing the executable. This means that data files that the application
+opens directly can be placed in the directory with the executable (or a subdirectory of it)
+and opened using the normal file-access functions with application-relative paths. And
+applications and their data can be bundled up into their own directory. See also the
+description of ``setDataBundlePath()`` in the [Programming Programming.html] chapter.
+
+
+===Python Executable===
+
+The location of the Python executable should be specified using the database variable
+SZG_PYTHON/executable instead of having its directory added to SZG_EXEC/path. You can pass
+arguments to this executable by delimiting them with bars, e.g. ``c:\Python24\python.exe|<arg1>|<arg2>``.
+
+
+==Programming==
+
+
+===Python===
+
+- Python programs that sub-class ``arPyMasterSlaveFramework`` can now have an interactive
+  Python prompt if run with the "--prompt" argument. This allows you to access framework
+  properties and call framework methods from the prompt in a running application.
+
+- An unhandled Python exception raised in a callback will now cause the program to exit
+  with an error message.
+
+
+===Master/Slave===
+
+- We're gradually removing the GLUT dependency. arMasterSlaveFramework.h no longer includes
+  the GLUT headers, so if you use any of the GLUT drawing functions (e.g. glutSolidCube() etc.)
+  you'll need to include "arGlut.h". Note that using any of the non-drawing GLUT functions
+  (window-control, event-handling) will most likely crash your application.
+
+- Fixed a bug in ``framework.getOnButton()`` when called in the post-exchange in slaves.
+
+- Added ``ar_navBoundingBox( arVector3, arVector3 )``. Call with opposite corners of a
+  bounding-box and the standard navigation routines will not allow you to travel outside
+  of it.
+
+- The alternate framework ``start...()`` methods (``startWithoutWindowing()``, ``startWithoutEventLoop()``)
+  have been eliminated. An alternative ``start()`` method now takes two arguments:
+  ``bool start(bool useWindowing, bool useEventLoop);``
 
 
 ===Scene Graph===
@@ -46,14 +143,16 @@ Is now extensible via new node types defined in shared library plugins
 No build template for creating these plugins yet, alas.
 
 
-===Documentation===
+===All===
 
-Has been partially re-written for clarity.
+Fixed bug in arGUIWindow preventing application access to window pixel dimensions. One of these
+days we'll even document the arGUI classes...
 
 
-===Precompiled SDKs===
+===PForth===
 
-Are no longer available; we're too under-staffed to support them. Weren't too useful anyway.
+Added new words ``less``, ``greater`` to work around XML parser bug ("<" and ">" don't work
+well in XML and the parser was choking on the escaped versions).
 
 
 =Changes in szg-1.0=
