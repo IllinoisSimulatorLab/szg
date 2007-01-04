@@ -108,17 +108,10 @@ arguments to this executable by delimiting them with bars, e.g. ``c:\Python24\py
 ==Programming==
 
 
-===Python===
-
-- Python programs that sub-class ``arPyMasterSlaveFramework`` can now have an interactive
-  Python prompt if run with the "--prompt" argument. This allows you to access framework
-  properties and call framework methods from the prompt in a running application.
-
-- An unhandled Python exception raised in a callback will now cause the program to exit
-  with an error message.
-
-
 ===Master/Slave===
+
+- Previously M/S programs could only load .obj 3D models using the scene graph. Added new
+  ``arOBJRenderer`` class that does this much more easily, see [Objects Objects.html].
 
 - We're gradually removing the GLUT dependency. arMasterSlaveFramework.h no longer includes
   the GLUT headers, so if you use any of the GLUT drawing functions (e.g. glutSolidCube() etc.)
@@ -141,6 +134,16 @@ arguments to this executable by delimiting them with bars, e.g. ``c:\Python24\py
 Is now extensible via new node types defined in shared library plugins
 (see szg/src/graphics/arTeapotGraphicsPlugin.cpp, called from szg/src/demo/cubes/cubes.cpp).
 No build template for creating these plugins yet, alas.
+
+
+===Python===
+
+- Python programs that sub-class ``arPyMasterSlaveFramework`` can now have an interactive
+  Python prompt if run with the "--prompt" argument. This allows you to access framework
+  properties and call framework methods from the prompt in a running application.
+
+- An unhandled Python exception raised in a callback will now cause the program to exit
+  with an error message.
 
 
 ===All===

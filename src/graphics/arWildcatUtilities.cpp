@@ -82,7 +82,7 @@ void ar_activateWildcatFramelock() {
 	ar_log_error() << "\nwglEnableFrameLockI3D failed.\n";
       }
       else{
-	ar_log_remark() << "\nwglEnableFrameLockI3D succeeded.\n";
+	ar_log_debug() << "\nwglEnableFrameLockI3D succeeded.\n";
       }
     }
     __frameLockInitted = true;
