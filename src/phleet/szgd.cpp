@@ -81,7 +81,6 @@ bool comparePathToBases( const std::string& path,
     std::transform( localPath.begin(), localPath.end(), localPath.begin(), (int(*)(int)) tolower );
 #endif
   std::vector< std::string >::const_iterator iter;
-  std::string::size_type i;
   for (iter = basePathsGlobal.begin(); iter != basePathsGlobal.end(); ++iter) {
     if (localPath.find( *iter ) == 0) {
       return true;
