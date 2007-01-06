@@ -96,7 +96,14 @@ all of the components that are not actually part of the application itself
 should attempt to use compatible ones that are already running. Usually
 the default ("false") is fine. However, if for example you're developing
 a new version of a device driver you might set this to "true" to ensure
-that your new version always gets launched.
+that your new version always gets launched. If you have overlapping
+virtual computers defined on the same set of computers, you may also notice errors in
+the launching of successive applications based on the Distributed Scene Graph
+Framework (see [Programming Programming.html]). There is a known bug that
+under certain conditions causes szgrender not to quit when a scene graph
+application is launched on one virtual computer immediately after another
+scene graph application is launched on a different computer. If you observe
+this behavior, setting this variable to "true" is a workaround.
 
 The "SZG_TRIGGER/map" parameter specifies where the administrative component
 should run. This component is actually built into each Syzygy
