@@ -57,6 +57,8 @@ Camille, Jim- Converted sound from FMOD 3 to FMOD 4.
 
 Jim, Camille- Fixed dozens of bugs.
 
+Jim- Added partial support for the MinGW g++ compiler on Windows.
+
 Jim- Added Scene Graph shared library plugins.
 
 Jim- Added error reporting to arGUI XML parsing.
