@@ -26,36 +26,36 @@ and links to fuller explanations.
 
 - SZGEXTERNAL: Top-level directory for external libraries.
 
+- SZG_LINKING: By default, all the szg libraries are built as shared objects
+  (dlls). However, by setting this variable to STATIC, you can have them
+  built and linked as static objects. Note that this is the //only// mode
+  available when compiling with the MinGW g++ compiler on Windows. Note
+  also that you can't compile input device drivers or Python bindings
+  with static linking.
+
+- SZG_STLPORT: For Windows.
+  Visual Studio 6's STL implementation is incompatible with
+  dynamically linking the szg libraries. To use Visual Studio 6
+  (on Windows), use the STLport implementation of STL. (Set this
+  to TRUE). By default, the native STL implementation will be used. This is
+  fine for Visual Studio .NET and above.
+
 - SZGDEBUG: By default, software is not built with debugging information.
  By setting this to TRUE, debugging symbols will be built in.
 
+- SZG_USE_PCH: Again, only meaningful on Windows platforms. By default,
+  on these platforms, a pre-compiled header is used to (greatly) speed up
+  compilation. However, this can sometimes be a pain when working with code
+  produced by a variety of compiler patch levels. Consequently, setting this
+  to FALSE negates the use of precompiled headers.
+
 - SZG_DEVELOPER_STYLE: By default, the build process assumes you are
  compiling the software yourself (DEVELOPER). However, if you are using a
- precompiled library, then you MUST set this variable to EASY.
+ precompiled library (not currently supported), then you MUST set this variable to EASY.
 
 - SZG_MULTITEX: On some platforms, this must be set to false to allow
 the q33 demo to build. Consider running cubecake instead of q33 (another
 Quake3 level builder).
-
-- SZG_STLPORT: For Windows.
- Visual Studio 6's STL implementation is incompatible with
- dynamically linking the szg libraries. To use Visual Studio 6
- (on Windows), use the STLport implementation of STL. (Set this
- to TRUE). By default, the native STL implementation will be used. This is
- fine for Visual Studio .NET and above.
-
-- SZG_USE_PCH: Again, only meaningful on Windows platforms. By default,
- on these platforms, a pre-compiled header is used to (greatly) speed up
- compilation. However, this can sometimes be a pain when working with code
- produced by a variety of compiler patch levels. Consequently, setting this
- to FALSE negates the use of precompiled headers.
-
-- SZG_LINKING: By default, all the szg libraries are built as shared objects
- (dlls). However, by setting this variable to STATIC, you can have them
- built and linked as static objects. This is good for archiving code.
-
-- SZG_FMOD_VERSION: if set to 3, for audio use the external library
-"sound_fmod3" instead of the default, "sound".
 
 
 =Environment variables affecting the operation of Syzygy components=
@@ -80,21 +80,6 @@ packed in a single string.
 
 - SZG_DEX_LOCALTIMEOUT: How many seconds dex waits for a reply from szgd.
 "dex -lt" overrides it.
-
-
-=Environment variables that substitute for Syzygy database parameters=
-
-- SZG_RENDER_texture_path: Distributed scene graph applications search for
-textures here.
-
-- SZG_RENDER_text_path: Distributed scene graph applications search for
-their fonts here.
-
-- SZG_SOUND_path: Syzygy applications search for sounds here.
-
-- SZG_DATA_path: Syzygy application data is installed here.
-
-- SZG_PEER_path: Syzygy scene graph files are stored here.
 
 
 =Environment variables altered locally by szgd=

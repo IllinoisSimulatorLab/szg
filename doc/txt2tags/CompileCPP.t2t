@@ -48,15 +48,10 @@ variable has the Visual Studio program in it first.
 
 =Environment Variables=[Environment]
 
-Five environment variables control the build process.
-If you are using a precompiled SDK, one of them, SZG_DEVELOPER_STYLE, must
-be set.
+A number of environment variables control the build process.
 
 - SZGHOME: The top level directory of your distribution. This MUST
   be defined.
-- SZG_DEVELOPER_STYLE: By default, the system assumes you are using
-  software compiled by you from a szg source distribution. To use a precompiled
-  SDK, this must be set to EASY. **No longer supported**
 - SZGBIN:
   - If $SZGBIN is defined, then this is used as the directory for Syzygy
     executables and shared libraries that you compile.
@@ -71,11 +66,26 @@ be set.
 - SZGEXTERNAL: The location of any external libraries used.
   Optional if GLUT is preinstalled.
   See this [section SupportingLibraries.html].
+- SZG_LINKING: Controls whether libraries are built as dynamic (shared) libraries
+  or static. Must be either 'DYNAMIC' or 'STATIC' (defaults to 'DYNAMIC').
+  If DYNAMIC, then the Syzygy libraries will be built as a set of shared libraries
+  (.dlls on Windows, .so files on Unix) that applications load at runtime. If
+  STATIC, the libraries are linked into each executable at build time. The latter
+  creates larger files but much less of a version-control headache. Note that
+  the input device drivers and Python bindings can only be built with this set
+  to DYNAMIC, and that STATIC is the only option when compiling with MinGW
+  g++ on Windows.
+- SZG_COMPILER: Currently effective only on Windows. Must be 'VC6' (Visual C++ 6,
+  the default), 'VC7' (Visual C++ 7), or 'MINGW' (MinGW g++).
 - SZGDEBUG: By default, executables and shared libraries are built without
   debugging information. If you want to debug, set this to TRUE.
 - SZG_STLPORT: This is only used on Windows. If you are using Visual Studio
-  6, you must set this to TRUE. If you are using Visual Studio .NET, then
+  6, you must set this to TRUE (and have the STLPort headers in your
+  SZGEXTERNAL directory). If you are using Visual Studio 7 (.NET), then
   you must set this to FALSE.
+- SZG_DEVELOPER_STYLE: By default, the system assumes you are using
+  software compiled by you from a szg source distribution. To use a precompiled
+  SDK, this must be set to EASY. **Not currently supported**
 
 
 =Using the Build Template=[Template]

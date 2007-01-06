@@ -99,8 +99,13 @@ downgrading, for instance to "-march=i586".
   - Syzygy's build system uses GNU make and either the command line
 Visual Studio compiler and linker (either Visual Studio 6 with
 the STLPort STL headers or Visual Studio .NET without)
-or the MinGW implementation of
-the GNU g++ compiler and linker.
+or the MinGW implementation of the GNU g++ compiler and linker.
+Note that not all functionality is available when compiling
+with g++ on Windows: You can't currently compile device drivers
+or Python bindings, and speech synthesis and .3ds file support are
+also unavailable. However, we can supply you with precompiled binaries of
+the device drivers, Python bindings, and SoundRender for speech
+synthesis in Cluster Mode.
 
   - You will need a Unix-like environment for Windows that provides a
 GNU make utility. We have tested two, MinGW/MSYS and Cygwin. If you're
