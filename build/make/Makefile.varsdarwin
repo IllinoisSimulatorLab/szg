@@ -47,6 +47,12 @@ LINK_FLAGS_SHARED = -dynamiclib -flat_namespace -undefined suppress -o
 LINK_FLAGS_PLUGIN = -bundle -flat_namespace -undefined suppress -o
 
 GENERAL_LIBS = -lm -lpthread -lcurses -lobjc
+# Darwin OS X 10.4 needs Xcode 2.4.1 from Apple Developer Connection (752 MB).
+# darwin (OS X 10.4) $(CURRENT_ARCH) resolves to "ppc" or "intel",
+# so for example: LINK_FLAGS += $(OTHER_FLAGS_$(CURRENT_ARCH))
+
+# darwin may use GCC_VERSION_IDENTIFIER
+
 GRAPHICS_LIBS = -L/usr/X11R6/lib -lX11 -lXext -lGL -framework OpenGL -framework GLUT -framework COCOA
 GAMEPAD_LIBS = 
 
