@@ -549,7 +549,7 @@ The rest of this chapter contains reference material about the distributed
 operating system.
 
 
-=Using a Virtual Computer=[VirtualComputer]
+=Using Virtual Computers=[VirtualComputer]
 
 For information on //defining// virtual computers, see
 [Virtual Computer Configuration VirtCompConfiguration.html].
@@ -563,6 +563,20 @@ virtual computer ``vc``, use the command:
 ```
   dex vc atlantis
 ```
+
+You can also launch a single component as part of a virtual computer. This allows
+you to either launch all the components of a virtual computer by hand one at a
+time or to re-start a component that has exited for some reason. Type:
+```
+  dex <computer> <component_name> [<args>] -szg virtual=<virtual_computer_name>
+```
+For example, suppose we've had to quit the copy of atlantis running on computer
+"computer3", which is part of virtual computer "vc". Then we could type:
+```
+  dex computer3 atlantis -szg virtual=vc
+```
+to restart it. This works for services (e.g. DeviceServer, SoundRender) as well.
+See [Component Contexts #Context] for more information.
 
 There are two ways to kill an application running on the virtual computer.
 You can directly kill the trigger instance. For that you need to know the
@@ -582,26 +596,26 @@ Or you can type:
 Here are several useful commands for managing a virtual computer:
 
 ```
-  dkillall virtual_computer
+  dkillall <virtual_computer>
 ```
    Kill any application currently running on the given virtual computer,
    along with any associated services such as szgrender, SoundRender, or
    DeviceServer.
 
 ```
-  dmsg -c virtual_computer_location quit
+  dmsg -c <virtual_computer_location> quit
 ```
    Kills the application, if any, currently running in the given virtual
    computer //location//, but leaves services alone.
 
 ```
-  restarttracker virtual_computer
+  restarttracker <virtual_computer>
 ```
    Restart services associated with virtual_computer (e.g.
    input devices and sound).
 
 ```
-  setdemomode virtual_computer [true, false]
+  setdemomode <virtual_computer> [true, false]
 ```
    If second argument is "true", this sets each render machine to use a fixed
    head position rather than that reported by the tracking device. The head
@@ -614,20 +628,20 @@ Here are several useful commands for managing a virtual computer:
    as the second argument.
 
 ```
-  setstereo virtual_computer [true, false]
+  setstereo <virtual_computer> [true, false]
 ```
    Turns active stereo rendering on and off for each rendering machine of the
    cluster.
 
 ```
-  screensaver virtual_computer
+  screensaver <virtual_computer>
 ```
    Start szgrender programs on each render machine in the cluster. Since
    szgrender is black when no application is connected, this is effectively a
    screensaver.
 
 ```
-  calibrationdemo virtual_computer
+  calibrationdemo <virtual_computer>
 ```
    Display a calibration screen useful for alignment and color matching,
    looking for the calibration picture cubecal.ppm in the SZG_DATA/path of
