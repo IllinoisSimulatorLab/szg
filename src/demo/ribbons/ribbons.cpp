@@ -455,7 +455,7 @@ void erase(const arVector3& v)
   ar_mutex_unlock(&lockDraw);
 }
 
-enum { cursorDefault, cursorDraw, cursorErase } cursor;
+static enum { cursorDefault, cursorDraw, cursorErase } cursor;
 
 void drawCursor(const arVector3& v)
 {
