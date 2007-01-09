@@ -1,5 +1,5 @@
 
-pyszg created by Peter Brinkman, copyright 2004
+pyszg originally created by Peter Brinkman
 
 
 This file describes how to build the bindings on the various platforms
