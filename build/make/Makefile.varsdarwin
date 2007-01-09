@@ -53,6 +53,7 @@ GENERAL_LIBS = -lm -lpthread -lcurses -lobjc
 
 # darwin may use GCC_VERSION_IDENTIFIER
 
+# warning: COCOA is deprecated in OS X 10.4
 GRAPHICS_LIBS = -L/usr/X11R6/lib -lX11 -lXext -lGL -framework OpenGL -framework GLUT -framework COCOA
 GAMEPAD_LIBS = 
 
@@ -60,14 +61,11 @@ GAMEPAD_LIBS =
 SZG_DLL_LIB = $(SZGHOME)/contrib/dlcompat/libdl.a
 SZG_DLL_INCLUDE = -I$(SZGHOME)/contrib/dlcompat
 
-# OS X needs to explicitly set the location of glx.h
-# Yes, this IS misnamed... But it fits it with what is already around!
+# OS X needs to explicitly set the location of glx.h.  This is misnamed, but backwards-compatible.
 SZG_INCLUDE_GLUT = -I/usr/X11R6/include
 
-# The flags for library search vary based on whether or not our build style
-# is EASY. Since OS X allows relative runtime paths, things are a little
-# easier than the other Unixes because it won't be strictly necessary to 
-# set DYLD_LIBRARY_PATH (the equivalent of LD_LIBRARY_PATH for Darwin)
+# Since OS X allows relative runtime paths, don't bother setting
+# DYLD_LIBRARY_PATH (the equivalent of LD_LIBRARY_PATH for Darwin)
 ifeq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
 	LIB_SEARCH_FLAGS=-L$(SZGHOME)/bin
 else
