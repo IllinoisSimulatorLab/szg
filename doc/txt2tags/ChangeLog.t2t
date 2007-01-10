@@ -151,6 +151,9 @@ No build template for creating these plugins yet, alas.
 Fixed bug in arGUIWindow preventing application access to window pixel dimensions. One of these
 days we'll even document the arGUI classes...
 
+Fixed a bug in arTexture::readPPM() that was causing textures to be read in left/right
+reversed.
+
 
 ===PForth===
 
