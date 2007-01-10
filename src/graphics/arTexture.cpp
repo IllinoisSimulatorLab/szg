@@ -387,12 +387,8 @@ bool arTexture::readPPM(const string& fileName,
 
   // Get the carriage return before the pixel data.
   fgetc(fd);
-  // AARGH!!!! I think that the code below is definitely WRONG in
-  // reordering the pixels for the ppm from file order to texture order...
-  // It seems to flip things horizontally as well as verically... DOH!!!
-  // This would, in fact, be GLOBALLY obnoxious to change!!!
-  // Better make sure everything is working correctly first... and then
-  // change it.
+  int i, j;
+  char* pPixel;
   if (!strcmp(PPMHeader,"P6")){
     // BINARY PPM FILE
     char* localBuffer = new char[ _width*_height*3 ];
@@ -401,24 +397,42 @@ bool arTexture::readPPM(const string& fileName,
       return false;
     }
     fread(localBuffer, _width*_height*3, 1, fd);
-    int count = 0;
-    for (int i= _height*_width - 1; i>=0; i--) {
-      char* pPixel = &_pixels[i*getDepth()];
-      pPixel[0] = localBuffer[count++];
-      pPixel[1] = localBuffer[count++];
-      pPixel[2] = localBuffer[count++];
-    } 
+    int readCount = 0;
+    for (i=_height-1; i>=0; --i) {
+      for (j=0; j<_width; ++j) {
+        pPixel = &_pixels[(i*_width+j)*getDepth()];
+        pPixel[0] = localBuffer[readCount++];
+        pPixel[1] = localBuffer[readCount++];
+        pPixel[2] = localBuffer[readCount++];
+      }
+    }
+    //    old, horizontally-reversing version.
+//    for (int i= _height*_width - 1; i>=0; --i) {
+//      char* pPixel = &_pixels[i*getDepth()];
+//      pPixel[0] = localBuffer[readCount++];
+//      pPixel[1] = localBuffer[readCount++];
+//      pPixel[2] = localBuffer[readCount++];
+//    } 
     delete [] localBuffer;
   } else {
     // ASCII PPM FILE
     int aPixel[3];
-    // AARGH!!!! definitely reversed horizontally, much like the above!
-    for (int i = _height*_width -1; i >= 0; i--) {
-      fscanf(fd, "%d %d %d", &(aPixel[0]), &(aPixel[1]), &(aPixel[2]));
-      _pixels[( i*getDepth())] = (unsigned char)aPixel[0];
-      _pixels[( i*getDepth()) + 1] = (unsigned char)aPixel[1];
-      _pixels[( i*getDepth()) + 2] = (unsigned char)aPixel[2];
+    for (i=_height-1; i>=0; --i) {
+      for (j=0; j<_width; ++j) {
+        fscanf(fd, "%d %d %d", &(aPixel[0]), &(aPixel[1]), &(aPixel[2]));
+        pPixel = &_pixels[(i*_width+j)*getDepth()];
+        pPixel[0] = (unsigned char)aPixel[0];
+        pPixel[1] = (unsigned char)aPixel[1];
+        pPixel[2] = (unsigned char)aPixel[2];
+      }
     }
+    //    old, horizontally-reversing version.
+//    for (int i = _height*_width -1; i >= 0; i--) {
+//      fscanf(fd, "%d %d %d", &(aPixel[0]), &(aPixel[1]), &(aPixel[2]));
+//      _pixels[( i*getDepth())] = (unsigned char)aPixel[0];
+//      _pixels[( i*getDepth()) + 1] = (unsigned char)aPixel[1];
+//      _pixels[( i*getDepth()) + 2] = (unsigned char)aPixel[2];
+//    }
   }
 
   _assignAlpha(alpha);
@@ -656,9 +670,9 @@ bool arTexture::flipHorizontal() {
     return false;
   }
   const int depth = getDepth();
-  for (int i = 0; i<_height; i++) {
+  for (int i = 0; i<_height; ++i) {
     int k = _width-1;
-    for (int j = 0; j<_width; j++, k--) {
+    for (int j = 0; j<_width; ++j, --k) {
       const char *pOld = temp + depth*(k+i*_width);
       char *pNew = _pixels + depth*(j+i*_width);
       memcpy(pNew, pOld, depth);
