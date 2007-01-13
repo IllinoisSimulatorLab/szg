@@ -16,7 +16,6 @@
 
 static int wVert, aa, bb, dd;
 static float vex, vey, vez;
-const bool highquality=true;
 
 /* Initialize vertex positions for all objects in Scene */
 SpaceJunk::SpaceJunk()
