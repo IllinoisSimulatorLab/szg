@@ -948,13 +948,12 @@ LDone:
 
 void printUsage() {
   cerr << "Usage: szgd <basePaths> [-r]\n"
-       << "       'basePaths' should be a semicolon-delimited list of paths\n"
-       << "       that all legal SZG_EXEC and SZG_PYTHON path elements, SZG_PYTHON/lib_path,\n"
-       << "       and SZG_PYTHON/executable must be equal to or beneath in the directory tree.\n"
-       << "       These paths can be either directories or executables (if executables,\n"
-       << "       OMIT '.exe' on Windows).\n"
-       << "       If the optional '-r' argument is provided, szgd will repeatedly\n"
-       << "       attempt to reconnect to the Syzygy server on failure.\n";
+       << "  basePaths is a semicolon-delimited list of paths that all\n"
+       << "    SZG_EXEC and SZG_PYTHON path elements, SZG_PYTHON/lib_path, and\n"
+       << "    SZG_PYTHON/executable must be equal to or beneath in the directory tree.\n"
+       << "    These paths may be directories or executables (if executables,\n"
+       << "    OMIT '.exe' on Windows).\n"
+       << "  -r: repeatedly try to reconnect to the Syzygy server on failure.\n";
 }
 
 int main(int argc, char** argv) {
