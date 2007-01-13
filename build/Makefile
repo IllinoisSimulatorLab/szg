@@ -1,7 +1,8 @@
-# Lets us guess the operating system type.
+# Guess the OS.
 include make/Makefile.os
-# Want to include Makefile.libscan here, so we can install the shared
-# libraries in the SZG_BINDIR (or in the INSTALLDIR for the SDK).
+
+# For installing shared libraries in the SZG_BINDIR
+# (or in the INSTALLDIR for the SDK).
 include make/Makefile.libscan
 
 ifeq "$PLATFORM" "UNKNOWN_OS"
