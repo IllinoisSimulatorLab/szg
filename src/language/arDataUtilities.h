@@ -26,12 +26,9 @@ bool SZG_CALL ar_winSockInit();
 // Wrapper for 3 ints.
 class SZG_CALL arIntTriple{
  public:
-  arIntTriple() { first=0; second=0; third=0; }
-  arIntTriple(int x, int y, int z){ first=x; second=y; third=z; }
-  ~arIntTriple() {}
-  int first;
-  int second;
-  int third;
+  int a, b, c;
+  arIntTriple() { a=b=c=0; }
+  arIntTriple(int x, int y, int z) { a=x; b=y; c=z; }
 };
 
 // Timing.
@@ -50,6 +47,7 @@ class SZG_CALL ar_timeval {
   int usec;
   ar_timeval() : sec(0), usec(0) {}
   ar_timeval(int s, int u) : sec(s), usec(u) {}
+  bool zero() const { return sec==0 && usec==0; }
 };
 
 SZG_CALL ar_timeval ar_time();
