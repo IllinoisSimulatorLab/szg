@@ -51,6 +51,7 @@ void ar_readDataThread(void* dataServer){
 }
 
 void arDataServer::_readDataTask(){
+  // Bug: chaos ensues if _atomicReceive changes during this thread.  Cache a local copy thereof.
   arSocket* newFD = _nextConsumer;
 
   // Determine the formatting used by this client's remote thread.
@@ -65,11 +66,10 @@ void arDataServer::_readDataTask(){
   arStreamConfig remoteConfig = iter->second;
   _threadLaunchSignal.sendSignal();
 
-  // Allocate a buffer for this thread.
   int availableSize = _dataBufferSize;
   ARchar* dest = new ARchar[availableSize];
 
-  // Local translation buffer.  Neither buffer can be shared with other read threads.
+  // Translation buffer.
   int transSize = availableSize;
   ARchar* transBuffer = new ARchar[transSize];
 
@@ -84,11 +84,8 @@ void arDataServer::_readDataTask(){
 	cerr << "arDataServer error: no dictionary.\n";
 	break;
       }
-      const ARint recordID =
-	ar_translateInt(transBuffer+AR_INT_SIZE, remoteConfig);
-      // HMMMM!!! THIS SEEMS A LITTLE SUSPICIOUS! WHAT IF WE ARE NOT IN
-      // _atomicReceive mode?? This would still need to be locked
-      // vis-a-vis other threads!
+      const ARint recordID = ar_translateInt(transBuffer+AR_INT_SIZE, remoteConfig);
+      // Bug? if !_atomicReceive, this still needs to be locked.
       ar_mutex_lock(&_consumptionLock);
       arDataTemplate* theTemplate = _theDictionary->find(recordID);
       const bool ok = theTemplate &&
@@ -226,21 +223,15 @@ arSocket* arDataServer::_acceptConnection(bool addToActive){
     ar_log_warning() << "arDataServer can't acceptConnection before beginListening.\n";
     return NULL;
   }
-  // At one time, I thought that stability would be improved if the
-  // rate at which a server could accept connections was throttled.
-  // HOWEVER, the instability I was battling at the time was NOT due to
-  // syzygy but instead to a non-thread-safe standard C++ lib.
-  // It would be a good idea to experiment with removing this at some point.
-  ar_usleep(30000);
+  ar_usleep(30000); // Might improve stability.  Probably unnecessary.
 
   // Accept connections in a different thread from the one sending data.
   arSocket* newSocketFD = new arSocket(AR_STANDARD_SOCKET);
-  arSocketAddress addr;
   if (!newSocketFD){
     cerr << "arDataServer error: no socket in _acceptConnection.\n";
     return NULL;
   }
-
+  arSocketAddress addr;
   if (_listeningSocket->ar_accept(newSocketFD, &addr) < 0) {
     ar_log_warning() << "arDataServer failed to _acceptConnection.\n";
     return NULL;
@@ -271,32 +262,33 @@ LAbort:
   localConfig.endian = AR_ENDIAN_MODE; // todo: do this line in arStreamConfig's constructor.
   localConfig.ID = newSocketFD->getID();
   arStreamConfig remoteStreamConfig = handshakeConnectTo(newSocketFD, localConfig);
-  if (!remoteStreamConfig.valid){
+  if (!remoteStreamConfig.valid) {
+    string sSymptom;
     const int ver = remoteStreamConfig.version;
-    // todo: unify magic numbers -X with arDataPoint::_fillConfig
     switch (ver) {
+    // todo: unify magic numbers -X with arDataPoint::_fillConfig
     case -1:
-      ar_log_warning() << "arDataServer: rejected non-syzygy connection from " << addr.getRepresentation() << ".\n";
+      sSymptom = "not Syzygy";
       break;
-
     case -2:
-      ar_log_warning() << "arDataServer: rejected connection from " << addr.getRepresentation() << ": no szg version key.\n";
+      sSymptom = "no Syzygy version key";
       break;
-
     case -3:
-      ar_log_warning() << "arDataServer: rejected connection from " << addr.getRepresentation() << ": unparseable szg version key.\n";
+      sSymptom = "unparseable Syzygy version key";
       break;
-
     default:
-      ar_log_warning() << "arDataServer: rejected connection from " << addr.getRepresentation() << ": wrong szg version "
-         << remoteStreamConfig.version << ".\n";
+      char buf[180];
+      sprintf(buf, "wrong Syzygy version %d", ver);
+      sSymptom = string(buf);
       break;
     }
+    ar_log_warning() << "arDataServer: rejected connection from " <<
+      addr.getRepresentation() << ": " << sSymptom << ".\n";
     _deleteSocketFromDatabase(newSocketFD);
     goto LAbort;
   }
   // We need to know the remote stream config for this socket, since we
-  // might be sending data (i.e. szgserver or arBarrierServer).
+  // might send data (i.e. szgserver or arBarrierServer).
   _setSocketRemoteConfig(newSocketFD,remoteStreamConfig);
 
   // Send the dictionary.
@@ -316,8 +308,6 @@ LAbort:
   }
   delete [] buffer;
 
-  // Based on the connection-acceptance state,
-  // maybe increment the number of active connections.
   _numberConnected++;
   if (addToActive)
     _numberConnectedActive++;
