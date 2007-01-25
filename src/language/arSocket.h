@@ -68,10 +68,12 @@ public:
   bool writable();
   int ar_read(char* theData, int howMuch);
   int ar_write(const char* theData, int howMuch);
-  // the "safe" versions of read and write keep usage counts and
-  // are guaranteed to return the number of bytes requested or an error
-  int ar_safeRead(char* theData, int howMuch);
-  int ar_safeWrite(const char* theData, int howMuch);
+
+  // "Safe" versions keep usage counts, and are guaranteed to return
+  // the number of bytes requested, or an error.
+  int ar_safeRead(char* theData, int howMuch, const double usecTimeout = 0.);
+  int ar_safeWrite(const char* theData, int howMuch, const double usecTimeout = 0.);
+
   int getUsageCount();
   void ar_close();
   // This is a tcp-wrappers-esque feature. As explained below, the mask

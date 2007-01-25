@@ -357,13 +357,27 @@ cerr << "attempt #2: queue length == " << ifr.ifr_qlen << endl;
 #endif
 }
 
-int arSocket::ar_safeRead(char* theData, int numBytes){
+int arSocket::ar_safeRead(char* theData, int numBytes, const double usecTimeout){
+  const bool fTimeout = usecTimeout > 0.;
+  const ar_timeval tStart = ar_time();
   ar_mutex_lock(&_usageLock);
   _usageCount++;
   ar_mutex_unlock(&_usageLock);
+
   while (numBytes>0) {
+    if (fTimeout) {
+      const double usecElapsed = ar_difftime(ar_time(), tStart);
+      if (usecElapsed > usecTimeout) {
+	// timed out
+        return false;
+      }
+      if (!readable()) {
+        ar_usleep(10000);
+	continue;
+      }
+    }
     const int n = ar_read(theData, numBytes);
-    if (n<=0) { 
+    if (n <= 0) { 
       // Error reading from the socket (<0),
       // or the socket closed on us (==0) causing an incomplete ar_read(),
       // possibly because a remote client went away.
@@ -381,11 +395,25 @@ int arSocket::ar_safeRead(char* theData, int numBytes){
   return true;
 }
 
-int arSocket::ar_safeWrite(const char* theData, int numBytes){
+int arSocket::ar_safeWrite(const char* theData, int numBytes, const double usecTimeout){
+  const bool fTimeout = usecTimeout > 0.;
+  const ar_timeval tStart = ar_time();
   ar_mutex_lock(&_usageLock);
   _usageCount++;
   ar_mutex_unlock(&_usageLock);
+
   while (numBytes>0) {
+    if (fTimeout) {
+      const double usecElapsed = ar_difftime(ar_time(), tStart);
+      if (usecElapsed > usecTimeout) {
+	// timed out
+        return false;
+      }
+      if (!writable()) {
+        ar_usleep(10000);
+	continue;
+      }
+    }
     const int n = ar_write(theData,numBytes);
     if (n<0) {
       // an error in writing to the socket
