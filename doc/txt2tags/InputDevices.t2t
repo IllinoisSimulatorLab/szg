@@ -71,7 +71,7 @@ input information from the DeviceServer.
 Once this is working, you can experiment with using
 [PForth PForth.html] programs to
 filter the data. The following global parameter can be entered in a
-dbatch file (see [Syzgy Input Device Configuration InputDeviceConfiguration.html]).
+dbatch file (see [Syzygy Input Device Configuration InputDeviceConfiguration.html]).
 
 ```
 <param>

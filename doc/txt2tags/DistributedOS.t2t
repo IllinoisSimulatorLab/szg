@@ -483,7 +483,7 @@ the variable SZG_EXEC/path defined for the current Syzygy user and computer.
 The value of this variable is used as a search path for the specified executable.
 For Python programs, the variable SZG_PYTHON/executable should point to the
 python executable and SZG_PYTHON/path is the search path for the user program.
-See [Syzgy Resource Path Configuration PathConfiguration.html] for details.
+See [Syzygy Resource Path Configuration PathConfiguration.html] for details.
 
 By convention, dynamic libraries (dlls)
 are assumed to live in the same directory as the executables that load them.

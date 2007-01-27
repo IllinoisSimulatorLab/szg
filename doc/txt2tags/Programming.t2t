@@ -105,7 +105,7 @@ overridden by the value from the database.
 Previously, program data
 had to be located in a subdirectory of a directory on the
 Syzygy data path (specified by the database variable
-SZG_DATA/path, see [Syzgy Resource Path Configuration PathConfiguration.html]).
+SZG_DATA/path, see [Syzygy Resource Path Configuration PathConfiguration.html]).
 This path is accessed using this method:
 ```
   const string arSZGAppFramework::getDataPath()
@@ -118,7 +118,7 @@ string ar_fileFind( <fileName>, 'my_app', framework.getDataPath() );
 
 Starting with Syzygy 1.1, most data files can be placed in the same
 directory as the program (again, see
-[Syzgy Resource Path Configuration PathConfiguration.html]) and
+[Syzygy Resource Path Configuration PathConfiguration.html]) and
 read using normal file-access methods with application-relative paths.
 For example, a file 'foo.txt' in the same directory as the application can be
 read using FILE* f = fopen('foo.txt','r'), even in cluster mode.

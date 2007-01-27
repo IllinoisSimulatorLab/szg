@@ -150,7 +150,7 @@ If the device name is "inputsimulator" an instance of the
 [Tracking Simulator TrackingSim.html] will be
 launched. Otherwise, an instance of DeviceServer will be launched and
 the device name will be taken to be the name of a global device definition
-parameter (see [Syzgy Input Device Configuration InputDeviceConfiguration.html]).
+parameter (see [Syzygy Input Device Configuration InputDeviceConfiguration.html]).
 These devices all get daisy-chained together from right to left, i.e. the last
 device sends its output to the next to last and so on, with the first device
 actually communicating with the application. The event indices (see the relevant

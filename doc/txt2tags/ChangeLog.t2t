@@ -1,4 +1,4 @@
-Syzygy Documentation: Syzgy Change Log
+Syzygy Documentation: Syzygy Change Log
 Integrated Systems Lab
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc --toc-level=1
@@ -73,7 +73,7 @@ Are no longer available; we're too under-staffed to support them. Weren't too us
 
 ==Sound==
 
-Syzgy 1.1 uses FMOD 4 (ex) instead of FMOD 3. This change is transparent to the application
+Syzygy 1.1 uses FMOD 4 (ex) instead of FMOD 3. This change is transparent to the application
 programmer.
 
 
