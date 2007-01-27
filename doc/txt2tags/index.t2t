@@ -27,7 +27,7 @@ Integrated Systems Lab
   Precompiled copies of these might be in the same place where you got this archive.
 - [SupportingLibraries.html SupportingLibraries.html]: Installing and using
   libraries that add features to Syzygy.
-- [Standalone.html Standalone.html]: Running Syzygy programs on a single, unclustered, PC.
+- [Standalone.html Standalone.html]: Running programs on a single, unclustered, PC.
 - [ExampleCode.html ExampleCode.html]: Running the included examples, where to put their
   data files, etc.
 - [TrackingSim.html TrackingSim.html]: Emulating a tracked input device (Intersense, Ascension, etc.) with Syzygy's (//inputsimulator//), e.g. in standalone mode.
@@ -47,18 +47,18 @@ Integrated Systems Lab
 
 - [Programming.html Programming.html]: Writing programs using Syzygy's application frameworks.
 - [QuickPort.html QuickPort.html]: Porting an OpenGL/GLUT-based application, in a hurry.
-- [CompileCPP.html CompileCPP.html]: Compiling and linking Syzygy C++ programs.
-- [PySZG.html PySZG.html]: Writing Syzygy Python programs.
+- [CompileCPP.html CompileCPP.html]: Compiling and linking C++ programs.
+- [PySZG.html PySZG.html]: Writing Python programs.
 - [SceneGraph.html SceneGraph.html]: The distributed scene graph API.
 - [Sound.html Sound.html]: The spatial sound system.
-- [Objects.html Objects.html]: External meshes (.obj or .3ds) and animations in Syzygy.
+- [Objects.html Objects.html]: External meshes (.obj or .3ds) and animations in.
 - [Navigation.html Navigation.html]: Navigating a 3D world in your application.
 - [Interaction.html Interaction.html]: Built-in classes and functions for picking,
   grabbing, and interacting with objects in a 3D world.
 - [PortabilityLayer.html PortabilityLayer.html]: Classes and
   functions that wrap OS-specific implementations of sockets, serial ports, time, threads,
   mutexes, etc.
-- [SceneGraphTutorial.html SceneGraphTutorial.html]: Manipulating Syzygy scene graphs
+- [SceneGraphTutorial.html SceneGraphTutorial.html]: Manipulating scene graphs
   from a Python prompt. A good starting point for writing Python programs based on the
   distributed scene graph framework. See also [SceneGraph.html SceneGraph.html].
 - [RandomNumbers.html RandomNumbers.html]: Generating shared sequences
@@ -68,10 +68,10 @@ Integrated Systems Lab
 
 =Setting Up, Testing, and Managing a Syzygy Cluster=[ClusterSetup]
 
-- [DistributedOS.html DistributedOS.html]: Concepts and commands for setting up Syzygy
+- [DistributedOS.html DistributedOS.html]: Concepts and commands for setting up
   PC clusters and running programs on them (see also
   [Configuring Virtual Computers VirtCompConfiguration.html].)
-- [ClusterTest.html ClusterTest.html]: Basic testing of a Syzygy cluster.
+- [ClusterTest.html ClusterTest.html]: Basic testing of a cluster.
 - [InputDevices.html InputDevices.html]: Using input devices in Cluster Mode.
 - [InputDevices-Drivers.html InputDevices-Drivers.html]: List of supported input devices.
 - [InputDeviceConfiguration.html InputDeviceConfiguration.html]: Configuring input
@@ -94,7 +94,7 @@ Integrated Systems Lab
 
 - [SharedWorldTutorial.html SharedWorldTutorial.html]: Sharing peer-to-peer
   scene graphs between clusters, with an //experimental// extension
-  to the Syzygy distributed scene graph.
+  to the distributed scene graph.
 - [InputClasses.html InputClasses.html]: Arcane details about the code
   objects that handle input data.
 - [InputFilters.html InputFilters.html]: Writing an input-event filter in C++.
