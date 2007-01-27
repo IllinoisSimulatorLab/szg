@@ -64,8 +64,7 @@ it returns a response packet.
     NULL-terminated string. (in fact, all trailing zeros)
 ```
 
-The timeout period during which the client will wait for a response is
-2 seconds.
+The client waiting for a response will time out after 2 seconds.
 
 
 =Automated Server Discovery=[Connect]

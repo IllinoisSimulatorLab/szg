@@ -1,4 +1,4 @@
-Syzygy Documentation: Syzygy Application Features
+Syzygy Documentation: Application Features
 Integrated Systems Lab
 %%mtime(%m/%d/%Y)
 %!options: --headers
@@ -12,45 +12,38 @@ Integrated Systems Lab
 
 =Miscellaneous Application Features=[Misc]
 
-It is possible to pause a running distributed scene graph
-application by (where X is one of the szgrender's component IDs):
+To pause a distributed scene graph application
 ```
   dmsg X pause on
 ```
+If the application is distributed scene graph, X is the ID of an szgrender.
+If the application is master/slave, X is the component ID of one of the application instances.
 
-The application will be un-paused by the following command:
+To resume running:
 ```
   dmsg X pause off
 ```
 
-The application's framerate can be throttled at 5 fps by:
+To throttle/unthrottle the application's framerate to 5 fps:
 ```
   dmsg X delay on
-```
-
-This effect will be turned off via:
-```
   dmsg X delay off
 ```
 
-A screenshot starting at raster position (A,B) and with width C and
-height D will be taken and stored at the top of the SZG_DATA/path as
-screenshot.Y.ppm, where Y is an integer representing the number of
-screenshots taken since the component was launched, when the following
-command is issued:
+To take a screenshot from raster position (A,B), with width C and
+height D:
 ```
   dmsg X screenshot A/B/C/D
 ```
+The screenshot is saved under SZG_DATA/path with filename screenshot.Y.ppm,
+where integer Y is the number of screenshots taken since component X was launched.
 
-The view mode (see view_mode database parameter below) can be changed by sending the viewmode
-message, with one from the same set of values as for the view_mode
-parameter, e.g. it can be set to anaglyph by:
+To change the view mode:
 ```
-  dmsg X viewmode anaglyph
+  dmsg X view_mode anaglyph
 ```
+Legal values for view_mode are: normal, anaglyph, walleyed, crosseyed, overunder, custom.
 
-These commands also work with the master/slave applications. In this
-case, X should be the component ID of one of the application instances.
 
 [images/PerformanceGraph.jpg]
 

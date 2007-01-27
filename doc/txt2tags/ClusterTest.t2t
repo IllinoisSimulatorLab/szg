@@ -1,4 +1,4 @@
-Syzygy Documentation: Testing Your Cluster
+Syzygy Documentation: Testing A Cluster
 Integrated Systems Lab
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc --toc-level=1
@@ -370,7 +370,7 @@ The various demo programs, including cosmos, want to connect to
 ```
 
 Type dps on a member of the cluster and note the output.
-You can see everything running now. To kill the test, type:
+You can see everything running now. To kill the test:
 
 ```
    dkill control cosmos

@@ -288,7 +288,7 @@ To create szg.conf, perform the following steps (to perform these steps you must
 
 ==Creating a Cluster: Running a Syzygy Server==[RunningSzgserver]
 
-To run a Syzygy server, type:
+To run a Syzygy server:
 ```
   szgserver <server_name> <server_port>
 ```
@@ -444,7 +444,7 @@ If both forms of the ``dlogin`` command fail: check the following:
   to reorder the addresses in the szg.conf file on the server machine.
 
 
-To log yourself out of the Syzygy server and reset the login file, type:
+To log yourself out of the Syzygy server and reset the login file:
 ```
   dlogout
 ```
@@ -510,16 +510,16 @@ the base_paths argument in quotes if it contains a semicolon.
 dlogged into. By default, it exits on failure to connect. If the optional ``-r``
 argument is passed it will instead repeatedly attempt to reconnect on failure.
 
-For example, you might type:
+For example:
 ```
 szgd C:\myapps -r
 ```
 
-After starting ``szgd`` on each computer of your cluster, type:
+After starting ``szgd`` on each computer of your cluster:
 ```
   dps
 ```
-You'll see something like:
+prints something like:
 ```
   computer1/szgd/0
   computer2/szgd/1
@@ -571,24 +571,24 @@ time or to re-start a component that has exited for some reason. Type:
   dex <computer> <component_name> [<args>] -szg virtual=<virtual_computer_name>
 ```
 For example, suppose we've had to quit the copy of atlantis running on computer
-"computer3", which is part of virtual computer "vc". Then we could type:
+"computer3", which is part of virtual computer "vc". Then we could restart it with:
 ```
   dex computer3 atlantis -szg virtual=vc
 ```
-to restart it. This works for services (e.g. DeviceServer, SoundRender) as well.
-See [Component Contexts #Context] for more information.
+This also works for services like DeviceServer and SoundRender,
+see [Component Contexts #Context].
 
 There are two ways to kill an application running on the virtual computer.
 You can directly kill the trigger instance. For that you need to know the
 //location// parameter of the virtual computer. For the example virtual
 computer defined in
 [Virtual Computer Configuration VirtCompConfiguration.html], that would
-be "my_room", so you would type:
+be "my_room":
 ```
   dmsg -c my_room quit
 ```
 
-Or you can type:
+Or:
 ```
   dkillall vc
 ```
@@ -883,12 +883,12 @@ Base service names for the various syzygy service are listed below.
 Examining services can be helful in debugging problems with components
 not connecting properly.
 
-For a list of currently-offered services, type:
+To list currently-offered services:
 ```
   dservices
 ```
-For a list of pending service requests, i.e. requests that have not
-yet been able to connect to a provider of the requested service, type:
+To list pending service requests, i.e. requests that have not
+yet connected to a provider of the requested service:
 ```
   dpending
 ```
@@ -958,7 +958,7 @@ the Syzygy process ID of the component holding the lock to the application.
 The new application then sends the offending component a "quit" message and
 waits for the lock to be released.
 
-To see the existing locks, type:
+To see the existing locks:
 ```
   dlocks
 ```
@@ -1202,7 +1202,7 @@ i.e. they still show up int the list of processes printed by ``dps``.
 Furthermore, new instances of those components cannot be launched. Assume for
 the sake of example that the relevant component is ``szgd``. The problem
 occurs because the ``<computer_name>/szgd`` lock was
-never released because ``szgd`` did not exit normally. The solution is to type:
+never released because ``szgd`` did not exit normally. The solution is:
 ```
   dkill -9 szgd
 ```

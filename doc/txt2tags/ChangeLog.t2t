@@ -1,4 +1,4 @@
-Syzygy Documentation: Syzygy Change Log
+Syzygy Documentation: Change Log
 Integrated Systems Lab
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc --toc-level=1
@@ -60,7 +60,7 @@ You may no longer run an application on the local computer by typing:
 ```
 dex <app> <args>
 ```
-Instead, you must type:
+Instead, type:
 ```
 dex <computer> <app> <args>
 ```

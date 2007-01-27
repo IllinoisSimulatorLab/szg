@@ -1,12 +1,10 @@
-Syzygy Documentation: Syzygy Resource Path Configuration
+Syzygy Documentation: Specifying Resource Paths
 Integrated Systems Lab
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc
 %!encoding: iso-8859-1
 
 [Documentation Table of Contents index.html]
-
-This chapter will show you how to specify Syzygy search paths.
 
 % Table of Contents
 %%toc
@@ -16,29 +14,29 @@ This chapter will show you how to specify Syzygy search paths.
 
 As part of your [System Configuration SystemConfiguration.html],
 you can specify a number of search paths for various kinds of application
-data. Each path may contain one or more directory absolute paths separated by
-semicolons. Paths must be specified in the normal system-dependent manner, e.g.
-a typical Windows path might be 'C:\Data', whereas on Linux it might be
-'/home/public/Data' (Yes, it's a bit confusing that on Windows build-related
-paths must be specified with forward slashes and resource paths for running
-programs using backwards ones. Not our fault. Sorry).
+data. Each path contains semicolon-delimited directory absolute paths.
+Paths are specified in the normal OS-dependent manner, e.g.
+'C:\Data' on Windows and
+'/home/public/Data' on Linux. (Sadly, Windows build-related
+paths need forward slashes while resource paths for running
+programs need backward ones. Not our fault. Sorry.)
 
-**IMPORTANT**: Starting with Syzygy 1.1, there has been an important change in
-the way applications are searched for and where they can look for their data.
+**IMPORTANT**: Syzygy 1.1 changes how
+applications are searched for and where they may look for their data.
 
 + Executables:
 ```
 SZG_EXEC path directory_path_1;directory_path_2;...
 ```
-  This variable is only relevant in cluster mode; it tells the remote execution
-  daemon where to look for programs. Previously, szgd would only look in
-  directories on the search path, and applications were required to look
-  for their data files in directories on the SZG_DATA path, below. Starting
-  with version 1.1, it will also look in subdirectories (just one level down)
-  of directories on the path, and when it finds the program it sets the
-  current directory to the directory containing the program. This means that
-  programs can be placed in a directory with their data and use the normal
-  file-reading methods with program-relative paths to access it.
+  In cluster mode, this it tells the remote execution
+  daemon szgd where to look for programs. Before Syzygy 1.1, szgd would only look in
+  directories on the search path, and applications had to look
+  for their data files in directories on the SZG_DATA path, below. Now szgd
+  also looks in the immediate subdirectories
+  of directories on the path.  When szgd finds the program, it sets the
+  current directory to the directory containing the program. This lets
+  a program and its data share the same directory, enabling conventional
+  file-reading relative to the program's path.
 
 + Data:
 ```
@@ -67,5 +65,5 @@ SZG_DATA path directory_path_1;directory_path_2;...
 ```
   SZG_RENDER text_path directory_1
 ```
-  **BUG**: This one is not at present a semicolon-delimited search path like the
-  others, it can only be a single directory path. We'll fix that soon.
+  **BUG**: This one is not yet semicolon-delimited like the
+  others.  It can only be a single directory.

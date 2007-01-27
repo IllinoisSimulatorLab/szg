@@ -40,7 +40,7 @@ in to the Syzygy server using the ``dlogin`` command.
 =Loading a Parameter File with dbatch=
 
 This is the simplest way to load a large number of parameters in to the Syzygy database.
-To load a file-full of parameter information, type:
+To load a file-full of parameter information:
 ```
 dbatch <file path>
 ```
@@ -53,35 +53,32 @@ will interpret it as a directory path and look for the named file there.
 
 =Printing or Saving Lots of Parameters with dget=
 
-Typing:
+To print all of the current user's database parameters:
 ```
 dget -a
 ```
-will print all of the current user's database parameters. If you're using a command shell that
-allows redirection of the standard output to a file, (e.g. ``dget -a >myparams.xml")
-you can have the output saved to
-a file that can be used as the input for a subsequent ``dbatch`` command.
+If you redirect this to a file (``dget -a >myparams.xml"),
+that file can be used for subsequent ``dbatch`` commands.
 
 To list all parameters containing a particular string (either in the computer name,
-group name, parameter name, or value), type:
+group name, parameter name, or value):
 ```
 dget -a <string>
 ```
-For example, ``dget -a my_computer`` will print out all parameters defined for the computer
-'my_computer`, and any other ones that happen to contain that string (single lines from
-virtual computer definitions, for example).
+For example, ``dget -a my_computer`` lists all parameters defined for the computer
+'my_computer`, and any others that happen to contain that string (such as single lines from
+virtual computer definitions).
 
 
 =Global and Local Parameters=[ParameterTypes]
 
-There are two types of parameters in the Syzygy database, global (i.e. not
-specific to any computer) and local (computer-specific).
+Parameters in the Syzygy database are either global (not
+tied to any particular computer) or local (computer-specific).
 
 
 ==Global Parameters==[GlobalParameters]
 
-Global parameters contain information that is not tied to a
-particular computer in the cluster. There are two main types of
+There are two main types of
 global parameters: graphics configurations and input device descriptions.
 These parameters allow the user to define complex attributes of the system
 --for example, a graphics window corresponding to one eye of a head-mounted
@@ -109,7 +106,7 @@ Read the [Syzygy Input Device Configuration InputDeviceConfiguration.html] chapt
 When running a Syzygy cluster, it is possible (although not very practical) to get and set values of
 individual global parameters at the command line.
 
-To set a single global parameter using the ``dset`` command, type:
+To set a single global parameter using the ``dset`` command:
 ```
   dset parameter_name parameter_value
 ```
@@ -145,15 +142,15 @@ However, to //set// these parameters, use the format below.
 
 When interacting with the database, either via ``dget`` and ``dset`` in Cluster Mode
 or in a parameter file, the key elements are separated by spaces. A parameter file
-entry line for the parameter above might look like this:
+entry line for the parameter above might look like:
 ```
   my_computer SZG_DATA path G:\Data
 ```
-or to set it in Cluster Mode using ``dset``, you might type this:
+or to set it in Cluster Mode using ``dset``:
 ```
   dset my_computer SZG_DATA path G:\Data
 ```
-If you were to then type
+If you then typed
 ```
   dget my_computer SZG_DATA path
 ```

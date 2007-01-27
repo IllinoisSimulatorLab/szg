@@ -63,7 +63,7 @@ information in some other way. In window 2, type the following:
   export SZGCONTEXT="virtual=foo"
 ```
 
-Now, run the example [peer python/peer.py] program like so:
+Now, run the example [peer python/peer.py] program:
 
 ```
   python peer.py world0
@@ -75,7 +75,7 @@ Your local geometry (the sphere) is attached to the shared world's **world0** pa
 which is also the name of your peer. Valid peer names (for this particular example) are
 **world0** through **world99** (see the code).
 
-Now, go to window 3 and type:
+In the third window, type:
 
 ```
   python peer.py world1 world0

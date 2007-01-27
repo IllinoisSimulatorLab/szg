@@ -50,7 +50,7 @@ DeviceServer [-netinput] node_config_name input_slot [pforth_program_name]
 
 We now describe how to send joystick events from
 one computer to another. First, plug a joystick into a computer in your cluster,
-dlogin on that computer, and type:
+dlogin to that computer, and type:
 ```
   DeviceServer -s arJoystickDriver 0
 ```

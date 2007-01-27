@@ -1,4 +1,4 @@
-Syzygy Documentation: Using 3-D Object Files
+Syzygy Documentation: 3-D Object Files
 Integrated Systems Lab
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc --toc-level=2
@@ -9,23 +9,19 @@ Integrated Systems Lab
 
 =Objects?=
 
-Syzygy uses the term Objects to describe external graphics files
-that contain structural information. Syzygy current supports the
-following formats:
+The term Objects describes external graphics files
+that contain structural information. These formats are supported:
 - OBJ - Wavefront .obj
 - 3DS - 3D Studio .3ds (versions 3 and 4)
 - HTR - Motion Analysis' .htr
 
-In addition, Syzygy supports attaching OBJ meshes to HTR animation data.
+You can also attach OBJ meshes to HTR animation data.
 The commands arReadObjectFromFile() and attachOBJToHTRToNodeInDatabase()
 are defined in "$SZGHOME/obj/arObjectUtilities.h"
 
-PLEASE NOTE: the Syzygy routines for reading these files are currently
-somewhat dependent on text formatting conventions. Consequently, you will
-have problems reading, on a Unix computer, an htr or obj file created on
-a Windows computer. However, an easy workaround to this problem exists. You
-can use the command line tool "dos2unix" to convert your files to Unix
-text format.
+Since the routines for reading these files currently depend on text
+formatting conventions, you might need tools like "dos2unix" to port
+htr or obj files from Windows to Unix.
 
 
 =Objects in Master/slave Programs=
@@ -83,8 +79,8 @@ arOBJGroupRenderer*      arOBJRenderer::getGroup( const string& name );
 =Scene Graph arObjects=
 
 Objects in Syzygy interact directly with the scene graph. To
-use objects in your program, you will need to have a scene graph
-already set up, or use a framework with one provided.
+use objects in your program, you must either define a scene graph
+or use a framework with one provided.
 
 All Syzygy objects derive from the arObject class, which encapsulates the
 functions needed to animate, name, and get various properties from an
