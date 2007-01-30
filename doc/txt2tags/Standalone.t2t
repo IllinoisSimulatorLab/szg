@@ -84,7 +84,7 @@ my_program_name arg1 arg2 -szg parameter_file-szg_virtualcave.txt
 ```
 Note that any arguments prefaced by ``-szg`` are interepreted as special
 Syzygy arguments and are removed from the argument array and processed
-by the Szygyy libraries before the array is handed to the application code.
+by the Syzygy libraries before the array is handed to the application code.
 
 If the program cannot open the specified config file it will check to see if
 the environment variable SZG_PARAM is set; if so, it will use SZG_PARAM's value

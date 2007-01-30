@@ -43,6 +43,7 @@ To change the view mode:
   dmsg X view_mode anaglyph
 ```
 Legal values for view_mode are: normal, anaglyph, walleyed, crosseyed, overunder, custom.
+See [Viewport Lists GraphicsConfiguration.html#ViewportLists].
 
 
 [images/PerformanceGraph.jpg]

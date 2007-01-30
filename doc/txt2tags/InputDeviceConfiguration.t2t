@@ -21,7 +21,7 @@ program.
 
 =Input Device Parameters=
 
-As discussed in [Szygy System Configuration SystemConfiguration.html],
+As discussed in [Syzygy System Configuration SystemConfiguration.html],
 a Syzygy parameter or 'dbatch' file contains two types of parameters,
 //local// (computer-specific) and //global//. Input devices typically
 have both. You define a [global input device parameter #GlobalParameters]

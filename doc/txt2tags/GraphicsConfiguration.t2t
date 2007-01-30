@@ -6,17 +6,15 @@ Integrated Systems Lab
 
 [Documentation Table of Contents index.html]
 
-This chapter will show you how to configure Syzygy to work with your
-display devices.
+This chapter explains how to configure Syzygy for display devices.
 
-Thanks to Lee Hendrickson for creating the arGUI toolkit that provides
-Syzygy with a flexible windowing system.
+Thanks to Lee Hendrickson for creating Syzygy's "arGUI" flexible windowing.
 
 % Table of Contents
 %%toc
 
 
-As discussed in [Szygy System Configuration SystemConfiguration.html],
+As discussed in [Syzygy System Configuration SystemConfiguration.html],
 a Syzygy parameter or 'dbatch' file contains two types of parameters,
 //local// (computer-specific) and //global//. Specification of graphical
 display devices falls into the [global SystemConfiguration.html#GlobalParameters]
