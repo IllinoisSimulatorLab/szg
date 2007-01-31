@@ -93,7 +93,7 @@ bool arGraphicsWindow::configure( arSZGClient& client ){
   lockViewports();
 
   // Figure out the viewport configuration
-  const string viewMode(client.getAttribute(screenName, "view_mode",
+  const string viewMode(client.getAttribute(screenName, "viewmode",
                     "|normal|anaglyph|walleyed|crosseyed|overunder|custom|"));
 
   _useOGLStereo = client.getAttribute( screenName, "stereo", "|false|true|" ) == "true";
