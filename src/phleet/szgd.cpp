@@ -66,9 +66,17 @@ std::vector< std::string > basePathsGlobal;
 
 // print error messages to console _and_ try to return them to dex.
 void doublePrintError( ostringstream& errStream, const string& msg ) {
+  // to console
   cerr << "szgd error: " << msg << endl;
-  errStream << "szgd error (computer=" << SZGClient->getComputerName() << "): "
-            << msg << endl;
+  const bool fTerminated = msg[msg.size()-1] == '\n';
+  if (!fTerminated)
+    cerr << '\n';
+  if (errStream != cerr && errStream != cout) {
+    // to dex
+    errStream << "szgd error on host " << SZGClient->getComputerName() << ": " << msg;
+    if (!fTerminated)
+      errStream << '\n';
+  }
 }
 
 
@@ -107,7 +115,7 @@ bool getBasePaths( const char* const arg ) {
     bool exists;
     bool isDirectory;
     if (!ar_directoryExists( pathTmp, exists, isDirectory )) {
-      cerr << "szgd error: ar_directoryExists() failed (system error).\n";
+      cerr << "szgd internal error: ar_directoryExists() failed.\n";
       return false;
     }
     if (!exists) {
@@ -115,19 +123,17 @@ bool getBasePaths( const char* const arg ) {
       bool isFile;
       if (!ar_fileExists( pathTmp+".exe", exists, isFile )) {
         if (!exists ) {
-          cerr << "szgd error: directory '" << pathTmp << "'\n"
-               << "            or executable '" << pathTmp+".exe\n"
-               << "            does not exist.\n";
+          cerr << "szgd error: no directory '" << pathTmp << "'\n"
+               << "            or executable '" << pathTmp+".exe.\n"
           return false;
         }
         if (!isFile ) {
-          cerr << "szgd error: executable '" << pathTmp+".exe" << "'\n"
-               << "            exists, but is not a file.\n";
+          cerr << "szgd error: executable '" << pathTmp+".exe" << "' is not a file.\n";
           return false;
         }
       }
 #else
-      cerr << "szgd error: directory '" << pathTmp << "' does not exist.\n";
+      cerr << "szgd error: no directory '" << pathTmp << "'.\n";
       return false;
 #endif
     }
@@ -197,9 +203,9 @@ string getAppPath( const string& userName, const string& groupName, const string
       }
     }
   }
-  cerr << "szgd remark: scanning directories for " << appFile << ":\n";
+  cout << "szgd remark: scanning for " << appFile << ":\n";
   for (dirIter=dirsToSearch.begin(); dirIter != dirsToSearch.end(); ++dirIter) {
-    cerr << *dirIter << endl;
+    cout << *dirIter << endl;
     string potentialFile(*dirIter);
     ar_pathAddSlash(potentialFile);
     potentialFile += appFile;
@@ -218,7 +224,7 @@ string getAppPath( const string& userName, const string& groupName, const string
       return "NULL";
     } else {
       if (fileExists && isFile) {
-        cerr << "szgd remark: found file at " << potentialFile << endl;
+        cout << "szgd remark: found " << potentialFile << endl;
         actualDirectory = *dirIter;
         break;
       }
@@ -236,11 +242,11 @@ string getAppPath( const string& userName, const string& groupName, const string
   }
 
   if (actualDirectory == "NULL") {
-    errMsg = "Failed to find the file '"+appFile+"' on user "+userName+"'s "+groupName
-           +"/path, which is:\n   '"+appPath+"'.\n";
+    errMsg = "No file '"+appFile+"' on user "+userName+"'s "+groupName
+           +"/path '"+appPath+"'.\n";
     doublePrintError( errStream, errMsg );
   } else {
-    cerr << "szgd remark: app directory for " << userName << "/" << groupName
+    cout << "szgd remark: app dir for " << userName << "/" << groupName
          << "/path is '" << actualDirectory << "'.\n";
   }
   return actualDirectory;
