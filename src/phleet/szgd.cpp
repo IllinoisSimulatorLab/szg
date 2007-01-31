@@ -547,7 +547,7 @@ void execProcess(void* i){
 LDone:
     delete execInfo;
     if (ar_setWorkingDirectory( originalWorkingDirectory )) {
-      cerr << "szgd remark: post-launch current directory is '"
+      cout << "szgd remark: post-launch current directory is '"
            << originalWorkingDirectory << "'.\n";
     } else {
       cerr << "szgd error: post-launch failed to set current directory to "
@@ -556,7 +556,7 @@ LDone:
     return;
   }
 
-  // We've got something to execute.
+  // We have something to execute.
   // Invoke a message trade so the executee can respond.
   // Increment the "trading number" that makes this request unique.
   // Since many threads can execute this simultaneously, use a lock.
