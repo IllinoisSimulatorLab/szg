@@ -121,7 +121,7 @@ bool arPhleetConfigParser::parseLoginFile(bool fFromInit){
   if (fFromInit)
     return true;
 
-  if ((_serverIP != "NULL")&&(_serverPort != 0)) {
+  if (_serverName != "NULL" && _serverIP != "NULL" && _serverPort != 0) {
     // We're not called from arSZGClient::init, not already connecting to the szgserver.
     // Temporarily connect to _serverIP:_serverPort, to verify the szgserver's name.
     arSZGClient szgClient;
