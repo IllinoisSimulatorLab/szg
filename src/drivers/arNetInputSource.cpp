@@ -49,10 +49,8 @@ void ar_netInputSourceConnectionTask(void* inputClient){
 }
 
 void arNetInputSource::_connectionTask() {
-  // TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO TODO
-  // there are many problems here. how do we designate a particular network for
-  // communications... how do we use a virtual computer specific or user-specific
-  // service name 
+  // todo: designate a particular network.
+  // todo: use a virtual computer specific or user-specific service name.
   char buffer[32];
   sprintf(buffer, "SZG_INPUT%i", _slot);
   const string serviceName(_client->createComplexServiceName(buffer));
@@ -62,6 +60,7 @@ void arNetInputSource::_connectionTask() {
 
   while (true){
     ar_log_debug() << "arNetInputSource discovering service...\n";
+    // Ask szgserver for IP:port of service "SZG_INPUT0".
     arPhleetAddress result =
       _client->discoverService(serviceName, networks, true);
     if (!result.valid){
@@ -69,6 +68,7 @@ void arNetInputSource::_connectionTask() {
 	serviceName << "' on network '" << networks << "'.\n";
       continue;
     }
+
     // This service has exactly one port.
     ar_log_debug() << "arNetInputSource connecting...\n";
     if (!_dataClient.dialUpFallThrough(result.address, result.portIDs[0])){
@@ -77,13 +77,17 @@ void arNetInputSource::_connectionTask() {
 	               << result.address << ":" << result.portIDs[0] << ".\n";
       continue;
     }
+
     ar_log_remark() << "arNetInputSource connected to service " <<
       serviceName << " at " << result.address << ":" << result.portIDs[0] << ".\n";
     _clientConnected = true;
     ar_usleep(100000);
+
+    // Listen for events.
     arThread dummy(ar_netInputSourceDataTask, this);
     while (connected())
       ar_usleep(200000);
+
     ar_log_remark() << "arNetInputSource disconnected from service " <<
       serviceName << " at " << result.address << ":" << result.portIDs[0] << ".\n";
     _closeConnection();
