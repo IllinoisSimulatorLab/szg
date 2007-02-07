@@ -21,87 +21,89 @@ void ar_syncDataServerSendTask(void* pv){
 }
 
 void arSyncDataServer::_sendTask(){
-  // This thread manages the double-buffering of the data queue.
-  // The receiveMessage(...) method is stuffing data into the back buffer
-  // of the queue, while the front buffer is being sent out on the network.
-  // In the case of a purely local connection (i.e. the arSyncDataClient
-  // is in the same process as us), all this really does is wait to swap
-  // buffers until the arSyncDataClient is ready and signals the 
-  // arSyncDataClient when we are ready to swap data buffers.
+  _sendThreadRunning = true;
+  if (_locallyConnected)
+    _sendTaskLocal();
+  else
+    _sendTaskRemote();
+  _sendThreadRunning = false;
+}
 
-  // This is a bit of a hack. If we are locally connected to an 
+void arSyncDataServer::_sendTaskLocal() {
+  // This thread manages the double-buffering of the data queue.
+  // The receiveMessage() method stuffs the back buffer
+  // of the queue, while the front buffer is being sent.
+  // For a purely local connection (i.e. the arSyncDataClient
+  // is in the same process as us), all this does is wait
+  // until the arSyncDataClient is ready and then signal the 
+  // arSyncDataClient that it's time to swap buffers.
+
+  // Hack. If locally connected to an 
   // arSyncDataClient, we assume that there's no need to dump state. The
   // two objects have been connected since the beginning. Also, we just
   // take a different code path...
-  if (_locallyConnected){
-    _sendThreadRunning = true;
-    while (!_exitProgram){
-      // Don't swap buffers until the consumer is ready.
-      ar_mutex_lock(&_localConsumerReadyLock);
-      // _localConsumerReady takes one of 3 values:
-      // 0: not ready for new data
-      // 1: ready for new data
-      // 2: stop program
-      while (!_localConsumerReady){
-        _localConsumerReadyVar.wait(&_localConsumerReadyLock);
-      }
-      if (_localConsumerReady == 2){
-	ar_mutex_unlock(&_localConsumerReadyLock);
-        break;
-      }
-      _localConsumerReady = 0;
-      ar_mutex_unlock(&_localConsumerReadyLock);
-      // If the sync mode is manual, then wait for a buffer swap command.
-      if (_mode != AR_SYNC_AUTO_SERVER){
-        _signalObject.receiveSignal();
-      }
 
-      // Lock the queue and swap it. Release receiveMessage() if it's locked.
-      // Copypasted from below.
-      ar_mutex_lock(&_queueLock);
-      _dataQueue->swapBuffers();
-      _messageBufferFull = false;
-      _messageBufferVar.signal();
-      ar_mutex_unlock(&_queueLock);
-      // need to let the locally connected arSyncDataClient know
-      ar_mutex_lock(&_localProducerReadyLock);
-      // _localProducerReady takes one of 3 values
-      // 0: not ready for consumer to take new data
-      // 1: ready for consumer to take new data
-      // 2: stop program
-      // Might be the case that we should be stopping anyway
-      if (_localProducerReady == 2){
-        ar_mutex_unlock(&_localProducerReadyLock);
-	break;
-      }
-      _localProducerReady = 1;
-      _localProducerReadyVar.signal();
-      ar_mutex_unlock(&_localProducerReadyLock);
-      // If we are in manual buffer swap mode, the bufferSwap(...)
-      // command must be released.
-      if (_mode != AR_SYNC_AUTO_SERVER){
-        _signalObjectRelease.sendSignal();
-      }
+  while (!_exitProgram){
+    // Don't swap buffers until the consumer is ready.
+    ar_mutex_lock(&_localConsumerReadyLock);
+    // _localConsumerReady takes one of 3 values:
+    // 0: not ready for new data
+    // 1: ready for new data
+    // 2: stop program
+    while (!_localConsumerReady){
+      _localConsumerReadyVar.wait(&_localConsumerReadyLock);
     }
-    // Make sure that the consumer does not deadlock on exit
+    if (_localConsumerReady == 2){
+      ar_mutex_unlock(&_localConsumerReadyLock);
+      break;
+    }
+    _localConsumerReady = 0;
+    ar_mutex_unlock(&_localConsumerReadyLock);
+    // If the sync mode is manual, then wait for a buffer swap command.
+    if (_mode != AR_SYNC_AUTO_SERVER){
+      _signalObject.receiveSignal();
+    }
+
+    // Lock the queue and swap it. Release receiveMessage() if it's locked.
+    // Copypasted from below.
+    ar_mutex_lock(&_queueLock);
+    _dataQueue->swapBuffers();
+    _messageBufferFull = false;
+    _messageBufferVar.signal();
+    ar_mutex_unlock(&_queueLock);
+    // need to let the locally connected arSyncDataClient know
     ar_mutex_lock(&_localProducerReadyLock);
-    _localProducerReady = 2;
+    // _localProducerReady takes one of 3 values
+    // 0: not ready for consumer to take new data
+    // 1: ready for consumer to take new data
+    // 2: stop program
+    // Might be the case that we should be stopping anyway
+    if (_localProducerReady == 2){
+      ar_mutex_unlock(&_localProducerReadyLock);
+      break;
+    }
+    _localProducerReady = 1;
     _localProducerReadyVar.signal();
     ar_mutex_unlock(&_localProducerReadyLock);
-    ar_log_remark() << "arSyncDataServer remark: send thread done.\n";
-    _sendThreadRunning = false;
-    return;
+    // If we are in manual buffer swap mode, the bufferSwap(...)
+    // command must be released.
+    if (_mode != AR_SYNC_AUTO_SERVER){
+      _signalObjectRelease.sendSignal();
+    }
   }
+  // Make sure that the consumer does not deadlock on exit
+  ar_mutex_lock(&_localProducerReadyLock);
+  _localProducerReady = 2;
+  _localProducerReadyVar.signal();
+  ar_mutex_unlock(&_localProducerReadyLock);
+  ar_log_debug() << "arSyncDataServer: send thread done.\n";
+}
 
-  // This is the traditional code path... Network connections.
+void arSyncDataServer::_sendTaskRemote() {
+  // Shutdown is indeterministic.  Just because the send call has
+  // terminated on this end DOES NOT mean that it has been received on the
+  // other side.  Major redesign needed?
 
-  // OUCH!!! There is a somewhat thorny problem in here with respect
-  // to deterministic shut-down. Specifically, just because the send
-  // call has terminated on this end DOES NOT mean that it has been
-  // received on the other side!
-  // It seems to me that a major redesign might be called for to
-  // redress this issue!
-  _sendThreadRunning = true;
   while (!_exitProgram){
     // wait for a send action to be requested
     _signalObject.receiveSignal();
@@ -110,8 +112,7 @@ void arSyncDataServer::_sendTask(){
     if (_exitProgram)
       break;
 
-    // lock the queue and swap it, releasing the
-    // receiveMessage method if it is blocked
+    // lock the queue and swap it, releasing the receiveMessage method if blocked
     ar_mutex_lock(&_queueLock);
     _dataQueue->swapBuffers(); // This can crash if app is dkill'ed.
     _messageBufferFull = false;
@@ -146,13 +147,11 @@ void arSyncDataServer::_sendTask(){
 
     // This local loop needs to be in the synchronization group.
     // we do not do this if we are in nosync mode!
-    // NOTE: the following call will not block forever!
+    // The following call will not block forever!
     if (_mode != AR_NOSYNC_MANUAL_SERVER){
       _barrierServer.localSync();
     }
   }
-  ar_log_remark() << "arSyncDataServer remark: send thread done.\n";
-  _sendThreadRunning = false;
 }
 
 arSyncDataServer::arSyncDataServer() :
@@ -357,8 +356,9 @@ void arSyncDataServer::stop(){
   _exitProgram = true;
   // Ensure we are not blocked in the send data thread.
   _signalObject.sendSignal();
-  // In local connection mode, set the queue variables to "finished."
+
   if (_locallyConnected){
+    // Set the queue variables to "finished."
     ar_mutex_lock(&_localConsumerReadyLock);
     _localConsumerReady = 2;
     _localConsumerReadyVar.signal();
@@ -376,12 +376,12 @@ void arSyncDataServer::stop(){
 
 void arSyncDataServer::swapBuffers(){
   if (_mode == AR_SYNC_AUTO_SERVER){
-    ar_log_remark() << "arSyncDataServer remark: ignoring swapBuffers() in sync mode.\n";
+    ar_log_remark() << "arSyncDataServer ignoring swapBuffers() in sync mode.\n";
     return;
   }
 
   _signalObject.sendSignal();
-  // Wait for the buffer consumption on the other side
+  // Wait for the other side to consume the buffer
   // (but not if in no-sync mode).
   if (_mode != AR_NOSYNC_MANUAL_SERVER){
     _signalObjectRelease.receiveSignal();

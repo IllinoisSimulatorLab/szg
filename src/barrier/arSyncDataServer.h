@@ -104,6 +104,8 @@ class SZG_CALL arSyncDataServer{
   arConditionVar _localProducerReadyVar;
 
   void _sendTask();
+  void _sendTaskLocal();
+  void _sendTaskRemote();
 };
 
 #endif
