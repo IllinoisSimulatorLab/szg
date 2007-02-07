@@ -320,7 +320,7 @@ LAbort:
       cerr << "arDataServer error: failed to start read thread.\n";
       return NULL;
     } 
-    // Wait until the new thread reads _nextConsumer into local storage.
+    // Wait until ar_readDataThread reads _nextConsumer into local storage.
     _threadLaunchSignal.receiveSignal();
   }
  
