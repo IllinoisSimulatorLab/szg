@@ -8,10 +8,7 @@
 #include "arPhleetConfigParser.h"
 #include "arLogStream.h"
 
-void ar_netInputSourceDataTask(void* parameter){
-  ((arNetInputSource*)parameter)->_dataTask();
-}
-
+// Listen for events.
 void arNetInputSource::_dataTask(){
   while (_dataClient.getData(_dataBuffer, _dataBufferSize)) {
     _data->unpack(_dataBuffer);
@@ -84,12 +81,8 @@ void arNetInputSource::_connectionTask() {
     ar_log_remark() << "arNetInputSource connected to service " <<
       serviceName << " at " << result.address << ":" << result.portIDs[0] << ".\n";
     _clientConnected = true;
-    ar_usleep(100000);
 
-    // Listen for events.
-    arThread dummy(ar_netInputSourceDataTask, this);
-    while (connected())
-      ar_usleep(200000);
+    _dataTask();
 
     ar_log_remark() << "arNetInputSource disconnected from service " <<
       serviceName << " at " << result.address << ":" << result.portIDs[0] << ".\n";
@@ -127,11 +120,7 @@ bool arNetInputSource::setSlot(int slot){
 bool arNetInputSource::init(arSZGClient& SZGClient){
   _setDeviceElements(0,0,0); // Nothing's attached yet.
 
-  // this does not do much now that we are relying on 
-  // connection brokering instead of
-  // IP/port combos coded in the phleet database... 
-  // annoyingly, the arSZGClient must
-  // be saved for future use in connection brokering.
+  // Save arSZGClient for future connection brokering.
   _client = &SZGClient;
   ar_log_remark() << "arNetInputSource initialized.\n";
   return true;

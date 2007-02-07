@@ -15,7 +15,6 @@ using namespace std;
 // Send input-device messages.
 
 class SZG_CALL arNetInputSource: public arInputSource{
-  friend void ar_netInputSourceDataTask(void*);
   friend void ar_netInputSourceConnectionTask(void*);
  public:
   arNetInputSource();
