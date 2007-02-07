@@ -61,11 +61,14 @@ void arNetInputSource::_connectionTask() {
   while (true){
     ar_log_debug() << "arNetInputSource discovering service...\n";
     // Ask szgserver for IP:port of service "SZG_INPUT0".
-    arPhleetAddress result =
+    const arPhleetAddress result =
       _client->discoverService(serviceName, networks, true);
     if (!result.valid){
       ar_log_warning() << "arNetInputSource: no service '" <<
 	serviceName << "' on network '" << networks << "'.\n";
+      // Throttle: service probably won't reappear that quickly.
+      // todo: increase sleep time gradually.
+      ar_usleep(20000);
       continue;
     }
 

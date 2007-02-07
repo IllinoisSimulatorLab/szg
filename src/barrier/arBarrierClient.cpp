@@ -22,28 +22,30 @@ void arBarrierClient::_connectionTask(){
     if (_connected)
       continue;
     _dataClient.closeConnection();
-    // THIS IS THE ONE BLOCKING CALL. WE PRETEND THE CONNECTION THREAD ISN'T RUNNING
+
+    // This is the one blocking call. Pretend the connection thread isn't running.
     _connectionThreadRunning = false;
-    arPhleetAddress result = _client->discoverService(_serviceName, _networks, true);
+    const arPhleetAddress result = _client->discoverService(_serviceName, _networks, true);
+
     if (_exitProgram)
       break;
     _connectionThreadRunning = true;
 
     if (!result.valid){
-      cerr << getLabel() << " warning: object got no valid brokered address.\n";
+      cerr << getLabel() << " warning: no service '"
+           << _serviceName << "' on network '" << _networks << "'.\n";
       continue;
     } 
 
     _connected = _dataClient.dialUpFallThrough(result.address, result.portIDs[0]);
     if (!_connected){
-      cerr << getLabel() << " warning: failed to connect to brokered address ("
-	   << result.address << ").\n";
+      cerr << getLabel() << " warning: failed to connect to brokered address '"
+	   << result.address << "' for service '"
+	   << _serviceName << "' on network '" << _networks << "'.\n";
     }
 
     if (_connected && !_handshakeData){
-      //***************************
-      // not doing error checking (for d->find() == NULL)
-      //***************************
+      // not verifying that d->find() != NULL
       arTemplateDictionary* d = _dataClient.getDictionary();
 
       _responseData = new arStructuredData(d, "response");

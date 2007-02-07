@@ -292,18 +292,28 @@ void arInputState::remapInputDevice( const unsigned int deviceNum,
                                      const unsigned int numAxes,
                                      const unsigned int numMatrices ) {
   // Don't chain some methods together because use of locks would deadlock.
-  // Here, we must use setSignatureNoLock instead of setSignature.
+  // Use setSignatureNoLock instead of setSignature.
   _lock();
   const int buttonDiff = numButtons - _buttonInputMap.getNumberDeviceEvents( deviceNum );
   const int axisDiff = numAxes - _axisInputMap.getNumberDeviceEvents( deviceNum );
   const int matrixDiff = numMatrices - _matrixInputMap.getNumberDeviceEvents( deviceNum );
+
   if ((buttonDiff != 0)||(axisDiff != 0)||(matrixDiff != 0)) {
-    if (buttonDiff < 0)
-      ar_log_warning() << "arInputState decreasing maximum button event for device " << deviceNum << ar_endl;
-    if (axisDiff < 0)
-      ar_log_warning() << "arInputState decreasing maximum axis event for device " << deviceNum << ar_endl;
-    if (matrixDiff < 0)
-      ar_log_warning() << "arInputState decreasing maximum matrix event for device " << deviceNum << ar_endl;
+    if (buttonDiff < 0 && axisDiff < 0 && matrixDiff < 0) {
+      if (numButtons==0 && numAxes==0 && numMatrices==0)
+	ar_log_warning() << "arInputState zeroing device " << deviceNum << ar_endl;
+      else
+	ar_log_warning() << "arInputState decreasing max events for device " << deviceNum << ar_endl;
+    }
+    else {
+      if (buttonDiff < 0)
+	ar_log_warning() << "arInputState decreasing maximum button event for device " << deviceNum << ar_endl;
+      if (axisDiff < 0)
+	ar_log_warning() << "arInputState decreasing maximum axis event for device " << deviceNum << ar_endl;
+      if (matrixDiff < 0)
+	ar_log_warning() << "arInputState decreasing maximum matrix event for device " << deviceNum << ar_endl;
+    }
+
     const unsigned oldButtons = _buttons.size();
     const unsigned oldAxes = _axes.size();
     const unsigned oldMatrices = _matrices.size();
