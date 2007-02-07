@@ -370,10 +370,10 @@ LAbort:
   while (true) {
     const int sendID = szgClient.receiveMessage(&messageType, &messageBody);
     if (!sendID){
-      // sendID == 0 exactly when we are "forced" to shutdown.
+      // Shutdown "forced."
       // Copypaste from below.
       inputNode.stop();
-      ar_log_remark() << "DeviceServer shutdown.\n";
+      ar_log_debug() << "DeviceServer shutdown.\n";
       return 0;
     }
 
@@ -385,7 +385,7 @@ LAbort:
           delete killIter->second;
       }
       driverNameMap.clear();
-      ar_log_remark() << "DeviceServer shutdown.\n";
+      ar_log_debug() << "DeviceServer shutdown.\n";
       return 0;
     }
 

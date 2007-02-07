@@ -23,7 +23,7 @@ bool drawPerformanceDisplay = false;
 // Make the szgrender use a few less resources. Set by passing in a "-n"
 // flag. 
 bool makeNice = false;
-bool exitFlag = false;
+bool fExit = false;
 bool requestReload = false;
 
 // extra services
@@ -47,13 +47,14 @@ bool loadParameters(arSZGClient& cli){
 }
 
 void shutdownAction(){
-  // Do not do this again while an exit is already pending.
-  if (!exitFlag){
-    ar_log_remark() << "szgrender remark: shutdown.\n";
-    exitFlag = true;
-    // This command guarantees we'll get to the end of _cliSync.consume().
-    graphicsClient._cliSync.skipConsumption();
-  }
+  if (fExit)
+    // exit already pending
+    return;
+  fExit = true;
+
+  ar_log_debug() << "szgrender shutdown.\n";
+  // Guarantee that _cliSync.consume() gets to its end.
+  graphicsClient._cliSync.skipConsumption();
 }
 
 void messageTask(void* pClient){
@@ -72,7 +73,7 @@ void messageTask(void* pClient){
     }
     else if (messageType=="quit"){
       // Exit within the draw loop, to avoid Win32 crashes.
-      exitFlag = true;
+      fExit = true;
       // Ensure we reach the end of the draw loop.
       graphicsClient._cliSync.skipConsumption();
     }
@@ -234,7 +235,7 @@ int main(int argc, char** argv){
     cerr << "error: maybe szgserver died.\n";
   }
 
-  while (!exitFlag){ 
+  while (!fExit){ 
     ar_mutex_lock(&pauseLock);
     while (pauseFlag){
       pauseVar.wait(&pauseLock);

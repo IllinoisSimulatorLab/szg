@@ -14,9 +14,9 @@
 #include "arSZGClient.h"
 #include "arLogStream.h"
 
-arSoundClient* soundClient = NULL; // Must be pointer, so language can initialize.
+arSoundClient* soundClient = NULL; // Pointer, so language can initialize it.
 
-// the parameter variables
+// Parameter variables.
 char serverIP[1024] = {0}; // todo: fixed size buffer
 int serverPort = -1;
 string textPath;
@@ -25,7 +25,7 @@ arSpeakerObject speakerObject;
 bool loadParameters(arSZGClient& cli){
   soundClient->configure(&cli);
   if (soundClient->getPath() == "NULL"){
-    ar_log_warning() << "SoundRender warning: undefined or invalid SZG_SOUND/path '"
+    ar_log_warning() << "SoundRender: undefined or invalid SZG_SOUND/path '"
                      << soundClient->getPath() << "'.\n";
   }
 
@@ -40,13 +40,11 @@ void messageTask(void* pClient){
   while (true) {
     const int sendID = cli->receiveMessage(&messageType,&messageBody);
     if (!sendID){
-      cout << "SoundRender remark: shutdown.\n";
-      // Cut-and-pasted from below.
-      soundClient->_cliSync.skipConsumption(); // fold into terminateSound()?
-      soundClient->terminateSound();
-      exit(0);
+      ar_log_debug() << "SoundRender shutdown.\n";
+      goto LQuit;
     }
     if (messageType=="quit"){
+LQuit:
       soundClient->_cliSync.skipConsumption(); // fold into terminateSound()?
       soundClient->terminateSound();
       exit(0);
@@ -55,8 +53,8 @@ void messageTask(void* pClient){
       if (!loadParameters(*cli))
         exit(0);
     }
-    if (messageType=="szg_sound_stream_info"){
-      string response = soundClient->processMessage(messageType,messageBody);
+    else if (messageType=="szg_sound_stream_info"){
+      const string response(soundClient->processMessage(messageType,messageBody));
       cli->messageResponse(sendID, response);
     }
   }

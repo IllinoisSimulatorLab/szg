@@ -83,7 +83,7 @@ void messageTask(void* pv){
   string messageType, messageBody;
   while (true) {
     if (!pszgClient->receiveMessage(&messageType,&messageBody)){
-      cout << "inputsimulator remark: shutdown.\n";
+      ar_log_debug() << "inputsimulator shutdown.\n";
       // Cut-and-pasted from below.
       inputNode->stop();
       exit(0);
