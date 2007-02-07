@@ -241,13 +241,18 @@ recalcpos:
     if (arVector3(randX,randY-5,randZ).magnitude() < 1.5) {
       goto recalcpos;
     }
+
     const arMatrix4 cubeTransform(ar_translationMatrix(randX,randY,randZ));
     arCallbackInteractable cubeInteractor( dgTransform( objectParent, "light_switch", arMatrix4() ) );
     cubeInteractor.setMatrixCallback( matrixCallback );
     cubeInteractor.setMatrix( cubeTransform );
     cubeInteractor.setProcessCallback( processCallback );
     interactionArray[i] = cubeInteractor;
-    interactionList.push_back( (arInteractable*)(interactionArray+i) );
+    if (i!=0) {
+      // Don't drag zeroth cube, which has its own motion.
+      interactionList.push_back( (arInteractable*)(interactionArray+i) );
+    }
+
     objectTextureID[i] = dgTexture(objectTexture,objectParent,whichTexture);
 
     const float radius = (i==0) ? 2.0  :  .28 + .1*(rand()%200)/200.0;
@@ -316,16 +321,14 @@ int main(int argc, char** argv) {
   arDistSceneGraphFramework framework;
   ar_mutex_init(&databaseLock);
   
-  // As a general rule, this should be done before the init() if
-  // framework-mediated navigation is being used. Doesn't really
-  // matter as it's 1...
+  // Before init(), if using framework-mediated navigation.
   framework.setUnitConversion( 1. );
   
   // Initialize everything.
   if (!framework.init(argc,argv))
     return 1;
 
-  // This must come AFTER the init(...)
+  // Must come AFTER init().
   framework.setNavTransSpeed(3.);
   
   // Configure stereo view.
