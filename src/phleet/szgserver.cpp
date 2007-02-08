@@ -1012,42 +1012,41 @@ void SZGremoveComponentFromDatabase(int componentID){
 
 /*
 This thread listens on port 4620 for discovery requests (as via dhunt
-or dconnect) and responds with a broadcast "I am here" packet on
-port 4620. A positive feedback loop is avoided by including having
-a flag that indicates whether this is a discovery request or a response.
+or dconnect) and responds with a broadcast "I am here" packet, also on
+port 4620. An infinite loop is avoided with a flag indicating
+whether this is a discovery request or a response.
 
-What do these packets look like?
+Discovery packet (200 bytes):
+  bytes 0-3: Version number, to reject incompatible packets.
+  byte 4: 0 for discovery, 1 for response.
+  bytes 4-131: The requested server name, NULL-terminated string.
+  bytes 132-199: All 0's
 
-discovery packet (size 200 bytes)
-bytes 0-3: A version number. Allows us to reject incompatible packets.
-byte 4: Is this discovery or response? 0 for discovery, 1 for response.
-bytes 4-131: The requested server name, NULL-terminated string.
-bytes 132-199: All 0's
+Response packet (200 bytes):
+  bytes 0-3: Version number, to reject incompatible packets.
+  byte 4: 0 for discovery, 1 for response.
+  bytes 5-131: Our name, NULL-terminated string.
+  bytes 132-163: The interface upon which the remote whatnot should
+    connect, NULL-terminated string.
+  bytes 164-199: The port upon which the remote whatnot should connect,
+    NULL-terminated string. (yes, this is way more space than necessary).
 
-response packet (size 200 bytes)
-bytes 0-3: A version number. Allows us to reject incompatible packets.
-byte 4: Is this discovery or response? 0 for discovery 1 for response.
-bytes 5-131: Our name, NULL-terminated string.
-bytes 132-163: The interface upon which the remote whatnot should
-  connect, NULL-terminated string.
-bytes 164-199: The port upon which the remote whatnot should connect,
-  NULL-terminated string. (yes, this is way more space than necessary).
-  (in fact, all trailing zeros)
-@param pv Pointer to a bool that, when set to false, aborts szgserver.
+  If *pv is set to false, szgserver aborts.
 */
+
 void serverDiscoveryFunction(void* pv){
   char buffer[200];
   ar_stringToBuffer(serverIP, buffer, sizeof(buffer));
   arSocketAddress incomingAddress;
-  incomingAddress.setAddress(NULL, 4620);
+  const int port = 4620;
+  incomingAddress.setAddress(NULL, port);
   arUDPSocket _socket;
   _socket.ar_create();
   _socket.setBroadcast(true);
   // Allows multiple szgservers to exist on a single box!
   _socket.reuseAddress(true);
   if (_socket.ar_bind(&incomingAddress) < 0){
-    cerr << "szgserver error: failed to bind to " << "INADDR_ANY:"
-         << 4620
+    cerr << "szgserver error: failed to bind to " << "INADDR_ANY:" << port
 	 << ".\n\t(is another szgserver already running?)\n";
     *(bool *)pv = true; // abort
     return;
@@ -1056,73 +1055,69 @@ void serverDiscoveryFunction(void* pv){
   arSocketAddress fromAddress;
   while (true){
     _socket.ar_read(buffer,200,&fromAddress);
-    if (!fromAddress.checkMask(serverAcceptMask)){
-      // Do not complain if this might be a "response" packet.
-      if (buffer[4] != 1){
-        cout << "szgserver remark: rejected discovery packet from "
-             << fromAddress.getRepresentation() << ".\n";
-      }
-      // Look for the next discovery packet.
+    if (buffer[4] == 1){
+      // Discard this response packet.
       continue;
     }
-    // Check the version number.
+
+    // It's a discovery packet.
+    if (!fromAddress.checkMask(serverAcceptMask)){
+      cout << "szgserver remark: rejected discovery packet from "
+	   << fromAddress.getRepresentation() << ".\n";
+      continue;
+    }
+
     if (!(buffer[0] == 0 && buffer[1] == 0 && 
           buffer[2] == 0 && buffer[3] == SZG_VERSION_NUMBER)){
+      // Wrong version number.
       cout << "szgserver remark: ignored misformatted discovery packet from "
 	   << fromAddress.getRepresentation() << ".\n";
       continue;
     }
-    // Is this a discovery packet or a response packet?
-    if (buffer[4] == 1){
-      // Response packet. Discard.
-      continue;
-    }
+
     const string remoteServerName(buffer+5);
-    // Determine whether or not we should respond.
-    if (remoteServerName == serverName || remoteServerName == "*"){
-      memset(buffer, 0, sizeof(buffer));
-      // Put in the version number.
-      buffer[3] = SZG_VERSION_NUMBER;
-      // This is a response.
-      buffer[4] = 1;
-      // Put in the szgserver name.
-      ar_stringToBuffer(serverName, buffer+5, 127);
-      // Put in the szgserver interface.
-      ar_stringToBuffer(serverIP, buffer+132, 32);
-      // Put in the szgserver port.
-      sprintf(buffer+164,"%i",serverPort);
-      // Walk through the server computer's NICs, as defined by the
-      // szg.conf file. If one of them has the same broadcast address
-      // as the fromAddress, then broadcast to that address.
-      bool success = false;
-      int i;
-      for (i=0; i<computerAddresses.size(); i++){
-        arSocketAddress tmpAddress;
-        if (!tmpAddress.setAddress(computerAddresses[i].c_str(), 0)){
-          cout << "szgserver remark: bad address "
-	       << computerAddresses[i] << " in szg.conf.\n";
-          continue;
-	}
-        const string broadcastAddress =
-          tmpAddress.broadcastAddress(computerMasks[i].c_str());
-        if (broadcastAddress == "NULL"){
-	  cout << "szgserver remark: bad mask "
-	       << computerMasks[i] << " for address "
-	       << computerAddresses[i] << " in szg.conf.\n";
-	  continue;
-	}
-        if (broadcastAddress ==
-            fromAddress.broadcastAddress(computerMasks[i].c_str())){
-          fromAddress.setAddress(broadcastAddress.c_str(), 4620);
-          _socket.ar_write(buffer,200,&fromAddress);
-	  success = true;
-          break;
-	}
+    if (remoteServerName != serverName && remoteServerName != "*")
+      continue;
+
+    // Respond.
+    memset(buffer, 0, sizeof(buffer));
+    buffer[3] = SZG_VERSION_NUMBER;
+
+    // This is a response.
+    buffer[4] = 1;
+
+    // Stuff the szgserver's name and IP:port.
+    ar_stringToBuffer(serverName, buffer+5, 127);
+    ar_stringToBuffer(serverIP, buffer+132, 32);
+    sprintf(buffer+164,"%i",serverPort);
+
+    // Broadcast to any NIC whose broadcast address matches fromAddress's.
+    bool ok = false;
+    for (int i=0; i<computerAddresses.size(); ++i){
+      arSocketAddress tmpAddress;
+      if (!tmpAddress.setAddress(computerAddresses[i].c_str(), 0)){
+	cout << "szgserver remark: szg.conf has bad address '"
+	     << computerAddresses[i] << "'.\n";
+	continue;
       }
-      if (!success){
-	cout << "szgserver warning: failed to find correct broadcast address "
-	     << "for response.\n  szg.conf is misconfigured.\n";
+      const string broadcastAddress =
+	tmpAddress.broadcastAddress(computerMasks[i].c_str());
+      if (broadcastAddress == "NULL"){
+	cout << "szgserver remark: szg.conf has bad mask '"
+	     << computerMasks[i] << "' for address '"
+	     << computerAddresses[i] << "'.\n";
+	continue;
       }
+      if (broadcastAddress ==
+	  fromAddress.broadcastAddress(computerMasks[i].c_str())){
+	fromAddress.setAddress(broadcastAddress.c_str(), port);
+	_socket.ar_write(buffer,200,&fromAddress);
+	ok = true;
+	break;
+      }
+    }
+    if (!ok){
+      cout << "szgserver warning: szg.conf has no broadcast address for response.\n";
     }
   }
 }
