@@ -1,11 +1,4 @@
-/*********************************************************************
-*
-*  birdnet.h
-*
-*  defines for the Ascension Technology's Bird Net IP protocol
-*
-*********************************************************************/
-
+// For Ascension Technology's Bird Net IP protocol.
 
 #define BN_MAX_ADDR	120
 
@@ -43,7 +36,9 @@
 #define EILLEGALSETUP		8
 #define ENOTREADY				9
 // define birdnet structures as packed
+#ifndef AR_USE_SGI
 #pragma pack(1)
+#endif
 
 /* define birdnet header */
 struct BN_HEADER {
@@ -92,8 +87,6 @@ struct BN_SYSTEM_STATUS {
 #define BN_FBB_XMT2			0x04
 #define BN_FBB_XMT1			0x02
 #define BN_FBB_XMT0			0x01
-  
-/*  */
 
 struct BN_BIRD_HEADER {
 	unsigned char			status;
@@ -109,7 +102,6 @@ struct BN_BIRD_HEADER {
 	unsigned short int	spare1;
 	unsigned short int	spare2;
 	};
-
 
 /* defines for bird_status.status */
 #define BN_FLOCK_ERROR		0x80
@@ -155,18 +147,14 @@ struct BN_BIRD_HEADER {
 #define BN_THRUDATA	14
 #define BN_BADDATA	15
 
-
-/*  */
 struct FILTER_TABLE {
 	unsigned short int	entry[7];
 	};
 
-/*  */
 struct ANGLES_TABLE {
 	unsigned short int	angle[3];
 	};
 
-/*  */
 struct BN_BIRD_STATUS {
 	struct BN_BIRD_HEADER	header;
 	struct FILTER_TABLE		alphaMin;
@@ -175,10 +163,6 @@ struct BN_BIRD_STATUS {
 	struct ANGLES_TABLE		xyzReferenceFrame;
 	struct ANGLES_TABLE		xyzAngleAlign;
 	};
-
-
-
-
 
 struct BN_DATA {
 	char addr;		 
@@ -190,4 +174,6 @@ struct BN_DATA {
 /* define for data record format*/
 #define BUTTON_FLAG	0x80
 
+#ifndef AR_USE_SGI
 #pragma pack()
+#endif
