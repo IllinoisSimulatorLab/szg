@@ -40,8 +40,8 @@ class SZG_CALL arPhleetConfigParser{
   bool writeLoginFile();
 
   // output configuration
-  void printConfig();
-  void printLogin();
+  void printConfig() const;
+  void printLogin() const;
 
   // get global config info
   // computer name, as parsed from the config file
@@ -56,9 +56,13 @@ class SZG_CALL arPhleetConfigParser{
   // number of interfaces in the config.
   int getNumberInterfaces() const
     { return _numberInterfaces; }
-  arSlashString getAddresses();
-  arSlashString getNetworks();
-  arSlashString getMasks();
+  int getNumNetworks() const
+    { return _numNetworks; }
+  arSlashString getAddresses() const;
+  arSlashString getNetworks() const;
+  arSlashString getMasks() const;
+  string getBroadcast(const string& mask, const string& address) const;
+  string getBroadcast(const int i) const;
 
   // get login info
   string getUserName() const // syzygy username
@@ -70,7 +74,6 @@ class SZG_CALL arPhleetConfigParser{
   int getServerPort() const // port of szgserver
     { return _serverPort; }
   
-
   // manipulating the global config. using these methods,
   // command-line wrappers can be used to build the config file
   void   setComputerName(const string& name);
@@ -96,6 +99,7 @@ class SZG_CALL arPhleetConfigParser{
   string                           _computerName;
   int                              _numberInterfaces;
   list<pair<string, arInterfaceDescription> >      _networkList;
+  int                              _numNetworks; // == size of _networkList
   int                              _firstPort;
   int                              _blockSize;
   // user login info
@@ -116,6 +120,9 @@ class SZG_CALL arPhleetConfigParser{
   bool _writeName(FILE*);
   bool _writeInterfaces(FILE*);
   bool _writePorts(FILE*);
+
+  typedef std::list<pair<string, arInterfaceDescription> >::iterator iNet;
+  typedef std::list<pair<string, arInterfaceDescription> >::const_iterator iNetConst;
 };
 
 #endif

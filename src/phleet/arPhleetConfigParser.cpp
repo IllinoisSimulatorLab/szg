@@ -20,6 +20,7 @@
 arPhleetConfigParser::arPhleetConfigParser(){
   _computerName = string("NULL");
   _numberInterfaces = 0;
+  _numNetworks = 0;
   // _firstPort and _blockSize are reasonable for Linux and Win32.
   _firstPort = 4700;
   _blockSize = 200;
@@ -163,10 +164,9 @@ bool arPhleetConfigParser::writeLoginFile(){
 }
 
 // Print human-readable config file information
-void arPhleetConfigParser::printConfig(){
+void arPhleetConfigParser::printConfig() const {
   cout << "computer = " << _computerName << "\n";
-  for (list<pair<string, arInterfaceDescription> >::iterator i = _networkList.begin();
-         i != _networkList.end(); ++i){
+  for (iNetConst i = _networkList.begin(); i != _networkList.end(); ++i){
     cout << "network  = " << i->first << ", " << i->second.address 
 	 << "/" << i->second.mask  << "\n";
   }
@@ -174,7 +174,7 @@ void arPhleetConfigParser::printConfig(){
 }
 
 // Print human-readable login information
-void arPhleetConfigParser::printLogin(){
+void arPhleetConfigParser::printLogin() const {
   cout << "OS user     = " << ar_getUser() << "\n"
        << "syzygy user = " << _userName << "\n"
        << "szgserver   = " << _serverName << ", " << _serverIP << ":" << _serverPort << "\n";
@@ -182,11 +182,9 @@ void arPhleetConfigParser::printLogin(){
 
 // Returns slash-delimited addresses (as defined in the config file) of
 // interfaces used by this computer, or empty string if there are none.
-arSlashString arPhleetConfigParser::getAddresses(){
+arSlashString arPhleetConfigParser::getAddresses() const {
   arSlashString result;
-  for (list<pair<string, arInterfaceDescription> >::iterator i
-         =_networkList.begin();
-       i != _networkList.end(); i++){
+  for (iNetConst i =_networkList.begin(); i != _networkList.end(); ++i){
     result /= i->second.address;
   }
   return result;
@@ -197,11 +195,9 @@ arSlashString arPhleetConfigParser::getAddresses(){
 // Connection brokering uses this.  Non-uniqueness of network names is
 // ok, since, networks, addresses, and masks
 // form slices of a given "interface" structure.
-arSlashString arPhleetConfigParser::getNetworks(){
+arSlashString arPhleetConfigParser::getNetworks() const {
   arSlashString result;
-  for (list<pair<string, arInterfaceDescription> >::iterator i
-         =_networkList.begin();
-       i != _networkList.end(); i++){
+  for (iNetConst i =_networkList.begin(); i != _networkList.end(); ++i){
     result /= i->first;
   }
   return result;
@@ -214,15 +210,42 @@ arSlashString arPhleetConfigParser::getNetworks(){
 //
 // This is IP protocol specific and, in some ways, goes against the
 // idea that some of these interfaces might be of a different sort entirely.
-arSlashString arPhleetConfigParser::getMasks(){
+arSlashString arPhleetConfigParser::getMasks() const {
   arSlashString result;
-  for (list<pair<string, arInterfaceDescription> >::iterator i
-         =_networkList.begin();
-       i != _networkList.end(); i++){
+  for (iNetConst i =_networkList.begin(); i != _networkList.end(); ++i){
     result /= i->second.mask;
   }
   return result;
 }
+
+string arPhleetConfigParser::getBroadcast(const string& mask, const string& address) const {
+  arSocketAddress tmp;
+  if (!tmp.setAddress(address.c_str(), 0)) {
+    ar_log_warning() << "config file has illegal address '" << address << "'.\n";
+    return "NULL";
+  }
+  const string broadcast(tmp.broadcastAddress(mask.c_str()));
+  if (broadcast == "NULL") {
+    ar_log_warning() << "config file has illegal mask '" <<
+      mask << "' for address '" << address << "'.\n";
+  }
+  return broadcast;
+}
+
+string arPhleetConfigParser::getBroadcast(const int index) const {
+  
+  if (index >= _numNetworks) {
+    ar_log_warning() << "config file specifies only " << _numNetworks <<
+      " networks, not " << index << ".\n";
+    return "NULL";
+  }
+
+  iNetConst i=_networkList.begin();
+  for (int k=0; k<index; ++k, ++i)
+    ;
+  return getBroadcast(i->second.mask, i->second.address);
+}
+
 
 // Set the computer name internally (you have to invoke writeConfigFile
 // explicitly to write this change out to disk).
@@ -237,8 +260,7 @@ void arPhleetConfigParser::addInterface(const string& networkName,
 					const string& address,
                                         const string& netmask){
   bool result = true; // don't know if it is a duplicate yet
-  for (list<pair<string, arInterfaceDescription> >::iterator i 
-    = _networkList.begin();
+  for (list<pair<string, arInterfaceDescription> >::iterator i = _networkList.begin();
        i != _networkList.end(); i++){
     if (networkName == i->first){
       result = false;
@@ -254,6 +276,8 @@ void arPhleetConfigParser::addInterface(const string& networkName,
     description.mask = netmask;
     _networkList.push_back(pair<string,arInterfaceDescription>(networkName,
                                                                description));
+    // This is the only place _networkList grows.
+    ++_numNetworks;
   }
 }
 
@@ -263,9 +287,7 @@ void arPhleetConfigParser::addInterface(const string& networkName,
 // returns true otherwise.
 bool arPhleetConfigParser::deleteInterface(const string& networkName,
 					   const string& address){
-  for (list<pair<string, arInterfaceDescription> >::iterator i 
-         = _networkList.begin();
-       i != _networkList.end(); i++){
+  for (iNet i = _networkList.begin(); i != _networkList.end(); ++i){
     if (i->first == networkName && i->second.address == address){
       _networkList.erase(i);
       return true; // no need to search further
@@ -403,9 +425,7 @@ bool arPhleetConfigParser::_writeName(FILE* output){
 
 bool arPhleetConfigParser::_writeInterfaces(FILE* output){
   arStructuredData* data = _fileParser->getStorage(_l.AR_INTERFACE);
-  for (list<pair<string, arInterfaceDescription> >::iterator i 
-    = _networkList.begin();
-       i != _networkList.end(); i++){
+  for (iNetConst i = _networkList.begin(); i != _networkList.end(); ++i){
     // so far, the software only supports socket communications
     data->dataInString(_l.AR_INTERFACE_TYPE, "IP");
     data->dataInString(_l.AR_INTERFACE_NAME, i->first);

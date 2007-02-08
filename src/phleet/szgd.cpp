@@ -33,13 +33,27 @@ arSZGClient* SZGClient = NULL;
 
 std::vector< std::string > basePathsGlobal;
 
+// Print warnings to console _and_ try to return them to dex.
+void doublePrintError( ostringstream& errStream, const string& msg ) {
+  // to console
+  cerr << "szgd warning: " << msg << endl;
+  const bool fTerminated = msg[msg.size()-1] == '\n';
+  if (!fTerminated)
+    cerr << '\n';
+  if (errStream != cerr && errStream != cout) {
+    // to dex
+    errStream << "szgd warning on host " << SZGClient->getComputerName() << ": " << msg;
+    if (!fTerminated)
+      errStream << '\n';
+  }
+}
+
 /*
   By convention, we assume that python apps are installed as
   "bundles" in sub-directories on a directory on SZG_PYTHON/path.
-  App bundles can have arbitrary names. This function
-  searches the path, piece by piece. In each piece, it examines
-  subdirectories, looking for one containing the python script.
-  It returns the first such found.
+  App bundles can have arbitrary names. For each member of the
+  path, this function looks for a subdirectory containing the
+  python script.  It returns the first such found.
 
   python_directory1
       my_app_directory_1
@@ -56,29 +70,12 @@ std::vector< std::string > basePathsGlobal;
   python_directory1/my_app_directory_2 will be returned.
 
   Syzygy 1.1 adds a similar launching strategy for C++ apps.
-  We search sub-directories of SZG_EXEC/path for the app.
-  Also, because Python sets the current working directory
-  to the directory containing the script to be executed
-  (and because this lets apps read data files using paths
-  relative to the application's directory), szgd does the
-  same for C++ apps.
+  We search sub-directories of SZG_EXEC/path for the app.  Also,
+  because Python sets the current working directory to the directory
+  containing the script to be executed (and because this lets
+  apps read data files using paths relative to the application's
+  directory), szgd does the same for C++ apps.
 */
-
-// print error messages to console _and_ try to return them to dex.
-void doublePrintError( ostringstream& errStream, const string& msg ) {
-  // to console
-  cerr << "szgd error: " << msg << endl;
-  const bool fTerminated = msg[msg.size()-1] == '\n';
-  if (!fTerminated)
-    cerr << '\n';
-  if (errStream != cerr && errStream != cout) {
-    // to dex
-    errStream << "szgd error on host " << SZGClient->getComputerName() << ": " << msg;
-    if (!fTerminated)
-      errStream << '\n';
-  }
-}
-
 bool comparePathToBases( const std::string& path,
                          const std::string& groupNameString,
                          ostringstream& errStream ) {

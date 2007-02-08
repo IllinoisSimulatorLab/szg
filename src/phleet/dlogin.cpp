@@ -7,8 +7,6 @@
 #define SZG_DO_NOT_EXPORT
 
 #include "arSZGClient.h"
-#include "arPhleetConfigParser.h"
-#include "arDataUtilities.h"
 
 int main(int argc, char** argv){
   if (argc != 3 && argc != 4){
@@ -17,9 +15,9 @@ int main(int argc, char** argv){
     return 1;
   }
  
-  arPhleetConfigParser parser;
-  if (!parser.parseConfigFile()) {
-    ar_log_error() << "dlogin failed to parse phleet config file.\n";
+  arPhleetConfigParser config;
+  if (!config.parseConfigFile()) {
+    cerr << "dlogin error: failed to parse config file.\n";
     return 1;
   }
 
@@ -32,30 +30,13 @@ int main(int argc, char** argv){
   string userName;
   if (argc == 3){
     userName = string(argv[2]);
-    const arSlashString networkList(parser.getNetworks());
-    const arSlashString addressList(parser.getAddresses());
-    const arSlashString maskList(parser.getMasks());
-    const int numNetworks = networkList.size();
-    bool found = false;
 
     // Send a broadcast packet on each interface, to find an szgserver.
+    bool found = false;
+    const int numNetworks = config.getNumNetworks();
     for (int i=0; i<numNetworks && !found; ++i){
-      const string address = addressList[i];
-      const string mask = maskList[i];
-      // Compute the broadcast address for this network.
-      arSocketAddress tmpAddress;
-      if (!tmpAddress.setAddress(address.c_str(), 0)){
-	cout << "dlogin remark: illegal address (" << address
-	     << ") in szg.conf.\n";
-	continue;
-      }
-      const string broadcast = tmpAddress.broadcastAddress(mask.c_str());
-      if (broadcast == "NULL"){
-	cout << "dlogin remark: illegal mask '"
-	     << mask << "' for address '" << address << "'.\n";
-	continue;
-      }
-      found = szgClient.discoverSZGServer(argv[1], broadcast);
+      const string broadcast = config.getBroadcast(i);
+      found |= (broadcast != "NULL") && szgClient.discoverSZGServer(argv[1], broadcast);
     }
 
     if (!found){
@@ -89,7 +70,7 @@ int main(int argc, char** argv){
     return 1;
 
   // Verify that the login file can be read.
-  parser.parseLoginFile();
-  parser.printLogin();
+  config.parseLoginFile();
+  config.printLogin();
   return 0;
 }
