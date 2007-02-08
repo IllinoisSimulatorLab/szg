@@ -4,28 +4,27 @@ Integrated Systems Lab
 %!options: --headers
 %!encoding: iso-8859-1
 
-[Documentation Table of Contents index.html]
+[Table of Contents index.html]
 
 
-The first release of Syzygy on the web was in September 2000. Our initial
+Syzygy's first web release was in September 2000. Its
 goal was to run a wide
-range of VR applications on a PC cluster with equal performance
-to shared-memory SMP computers like the SGI Onyx,
-the preferred platform for high-end VR. We have since worked to
-make the system portable, robust, and easy to use. We have also tried
-to make the Syzygy application model better suited to a variety of environments,
-including single PCs and laptops, wide-area networked systems, and even the
+range of VR applications on a PC cluster, with performance matching
+shared-memory SMP computers like the SGI Onyx.
+Since then, it has become portable, robust, and easier to use.
+The Syzygy application model has also been adapted to diverse environments
+such as standalone laptops, wide-area networks, and even the
 older shared-memory SMP systems.
 
-Changes in hardware platform drive software changes. In this case,
-PC cluster application development requires explicit
+Hardware changes drive software changes. Here,
+developing for PC clusters requires explicit
 library support and an updated application model. Monolithic shared
-memory systems allow library writers to ignore a whole range of
-data sharing issues, leaving these to the applications programmer and
-encouraging him to write non-portable code.
+memory systems can ignore many
+data-sharing issues, leaving these to the applications programmer and
+encouraging machine-dependent code.
 
-Consider the requirements for PC cluster software in more detail.
-Communications between processors consitutes a bottleneck. Tools
+Consider the detailed requirements for PC cluster software.
+Inter-processor communication is a bottleneck. Tools
 are needed to efficiently manage and develop cluster applications. The
 developer needs an API that supports complex communications between cluster
 machines. These information exchanges must be fault-tolerant
@@ -34,8 +33,7 @@ cluster producing frame-by-frame synchronized views of the virtual world.
 During the early stages of application development, the application code may be
 unstable, so the overall distributed system must tolerate the
 failure of individual components. The system needs the ability to portably launch applications
-across a wide
-range of target clusters, both homogeneous and heterogenous in nature.
+across a wide range of target clusters, both homogeneous and heterogenous in nature.
 It also needs mechanisms for steering running
 applications and monitoring tools
 that allow users to remotely determine its state.
@@ -65,6 +63,4 @@ addresses them all. However, each problem relies on a similar infrastructure
 for its solution. Syzygy aims to identify that common infrastructure
 and provide an implementation. Thus, each problem can be solved more
 easily, and the resulting code base is well-integrated, maintainable, and
-smaller. In effect, Syzygy is a middleware solution for distributed
-multimedia.
-
+smaller. In effect, Syzygy is a middleware solution for distributed multimedia.

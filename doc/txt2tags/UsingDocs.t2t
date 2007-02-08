@@ -5,25 +5,25 @@ Integrated Systems Lab
 %!encoding: iso-8859-1
 
 
-Back to the Syzygy Documentation [Table of Contents index.html]
+[Table of Contents index.html]
 
-NOTICE: This is Syzygy version 1.1.
+This is Syzygy version 1.1.
 If you have been using an earlier version, consult the
 [changelog ChangeLog.html] for information on how to
 modify earlier practices.
 
 Please email bug reports, feature requests, and questions to
 Camille Goudeseune or Jim Crowell (see the
-[Integrated Systems Lab 'People' http://www.isl.uiuc.edu/People/people.htm] website).
+Integrated Systems Lab 'People' [website http://www.isl.uiuc.edu/People/people.htm]).
 
-Also, check out the [Syzygy website http://www.isl.uiuc.edu/syzygy.htm].
+Also, see the Syzygy [website http://www.isl.uiuc.edu/syzygy.htm].
 
-Syzygy originally invented by Benjamin Schaeffer.
+Syzygy was invented by Benjamin Schaeffer.
 
 
 =Where You Should Begin=
 
-If you are new to the Syzygy system, you should walk through the
+If you are new to Syzygy, walk through the
 documentation's ["Getting Started" index.html#GettingStarted]
 system. There, you'll learn how to build,
 or otherwise obtain, the software, run the sample applications in
@@ -44,8 +44,8 @@ get an idea of the motivation behind the software.
 
 =What Does "ar" Mean?=
 
-A short look at the source code reveals that Syzygy objects all start
-with the prefix "ar", which stands for "artificial reality". The "vr" prefix,
+In its source code, Syzygy objects are all prefixed with
+"ar", which stands for "artificial reality". The "vr" prefix,
 which would be another logical choice, is simply too common, and, in any case,
 Syzygy is useful in domains other than VR.
 

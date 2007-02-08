@@ -4,7 +4,7 @@ Integrated Systems Lab
 %!options: --headers
 %!encoding: iso-8859-1
 
-[Documentation Table of Contents index.html]
+[Table of Contents index.html]
 
 The Syzygy VR framework applications tend to work best with a VR style
 interface, namely six-degree-of-freedom (6DOF) head tracking and some kind of joystick type input

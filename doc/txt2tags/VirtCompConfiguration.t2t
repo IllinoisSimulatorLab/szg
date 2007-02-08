@@ -4,7 +4,7 @@ Integrated Systems Lab
 %!options: --headers --toc
 %!encoding: iso-8859-1
 
-[Documentation Table of Contents index.html]
+[Table of Contents index.html]
 
 This file tells you how to define virtual computers. For information about
 //using// them, see the relevant section in the [Distributed OS DistributedOS.html#VirtualComputer] chapter.

@@ -4,7 +4,7 @@ Integrated Systems Lab
 %!options: --headers
 %!encoding: iso-8859-1
 
-[Documentation Table of Contents index.html]
+[Table of Contents index.html]
 
 Many GLUT applications can be easily turned into Master/Slave applications.
 A first step is creating a build environment that is compatible with Syzygy.

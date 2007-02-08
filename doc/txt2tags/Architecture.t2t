@@ -4,7 +4,7 @@ Integrated Systems Lab
 %!options: --headers --toc --toc-level=1
 %!encoding: iso-8859-1
 
-[Documentation Table of Contents index.html]
+[Table of Contents index.html]
 
 [images/SyzygyArchitecture.gif]
 
@@ -71,17 +71,17 @@ connections between elements in the distributed system. Another program,
 szgd ("Syzygy Daemon"), runs on each computer to provide remote execution services.
 
 The distributed operating system manages processes.
-Applications can be remotely started or killed on any computer, from any computer,
-using either a command-line interface or a simple java GUI interface. For
-interprocess communication, a standard
-interface lets applications send messages to one another.
+Applications can be started or killed on any computer, by typing commands at
+any other computer.
+Applications send messages to one another through a standard interface for
+interprocess communication.
 A parameter database, managed by szgserver, acts as
 a config file maintable over the network. This replaces
 the text configuration files that might otherwise be scattered across many computers.
 
 The distributed operating system supports multiple users.
 
-More details are in the [Distributed OS DistributedOS.html] chapter.
+Details are in the [Distributed OS DistributedOS.html] chapter.
 
 
 =Media Objects=[MediaObjects]

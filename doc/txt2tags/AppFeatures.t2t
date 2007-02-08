@@ -4,7 +4,7 @@ Integrated Systems Lab
 %!options: --headers
 %!encoding: iso-8859-1
 
-[Documentation Table of Contents index.html]
+[Table of Contents index.html]
 
   - [Miscellaneous Application Features #Misc]
 %  - [Application Widgets #Widgets]
@@ -40,11 +40,10 @@ where integer Y is the number of screenshots taken since component X was launche
 
 To change the view mode:
 ```
-  dmsg X view_mode anaglyph
+  dmsg X viewmode anaglyph
 ```
-Legal values for view_mode are: normal, anaglyph, walleyed, crosseyed, overunder, custom.
-See [Viewport Lists GraphicsConfiguration.html#ViewportLists].
+For legal values for view_mode, see
+[Viewport Lists GraphicsConfiguration.html#ViewportLists].
 
 
 [images/PerformanceGraph.jpg]
-

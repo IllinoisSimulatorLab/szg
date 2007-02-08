@@ -4,7 +4,7 @@ Integrated Systems Lab
 %!options: --headers --toc
 %!encoding: iso-8859-1
 
-[Documentation Table of Contents index.html]
+[Table of Contents index.html]
 
 %%toc
 
@@ -378,7 +378,7 @@ When a client wants to establish a connection to a Syzygy service, it contacts t
 szgserver with the tag describing the service to which it wants to connect. If the
 tag exists in the szgserver's internal store, the server returns network(s) and a port
 number of which the service is accessible. The client can then connect directly to the
-service via a network of its choice. A more detailed exlanation of the process follows.
+service via a network of its choice. In detail:
 
 Here are the record types in the Phleet protocol used to deal with connection
 brokering.
