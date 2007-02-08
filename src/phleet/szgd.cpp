@@ -79,7 +79,6 @@ void doublePrintError( ostringstream& errStream, const string& msg ) {
   }
 }
 
-
 bool comparePathToBases( const std::string& path,
                          const std::string& groupNameString,
                          ostringstream& errStream ) {
@@ -107,27 +106,25 @@ bool comparePathToBases( const std::string& path,
   return false;
 }
 
-
 bool getBasePaths( const char* const arg ) {
   arSemicolonString pathsString( arg );
   for (int i=0; i<pathsString.size(); ++i) {
-    std::string pathTmp = pathsString[i];
-    bool exists;
-    bool isDirectory;
+    std::string pathTmp(pathsString[i]);
+    bool exists = false;
+    bool isDirectory = false;
     if (!ar_directoryExists( pathTmp, exists, isDirectory )) {
       cerr << "szgd internal error: ar_directoryExists() failed.\n";
       return false;
     }
     if (!exists) {
 #ifdef AR_USE_WIN_32
-      bool isFile;
+      bool isFile = false;
       if (!ar_fileExists( pathTmp+".exe", exists, isFile )) {
-        if (!exists ) {
-          cerr << "szgd error: no directory '" << pathTmp << "'\n"
-               << "            or executable '" << pathTmp+".exe.\n"
+        if (!exists) {
+          cerr << "szgd error: no directory '" << pathTmp << "' or executable '" << pathTmp+".exe.\n";
           return false;
         }
-        if (!isFile ) {
+        if (!isFile) {
           cerr << "szgd error: executable '" << pathTmp+".exe" << "' is not a file.\n";
           return false;
         }
@@ -145,7 +142,6 @@ bool getBasePaths( const char* const arg ) {
   }
   return true;
 }
-
 
 string getAppPath( const string& userName, const string& groupName, const string& appFile, 
     ostringstream& errStream ) {
