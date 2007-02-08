@@ -9,10 +9,15 @@
 #include "arSZGClient.h"
 
 int main(int argc, char** argv){
-  if (argc != 1){
-    cerr << "usage: " << argv[0] << "\n";
+  if (argc > 2){
+LUsage:
+    cerr << "usage: " << argv[0] << " [-v]\n";
     return 1;
   }
+
+  const bool fVerbose = argc == 2 && !strcmp(argv[1], "-v");
+  if (argc == 2 && !fVerbose)
+    goto LUsage;
 
   arPhleetConfigParser parser;
   if (!parser.parseConfigFile()) {
@@ -34,7 +39,7 @@ int main(int argc, char** argv){
   const arSlashString addressList(parser.getAddresses());
   const arSlashString maskList(parser.getMasks());
   const int numNetworks = networkList.size();
-  //;;;; Could we spawn threads to broadcast on all subnets at once?
+  // todo: spawn threads to broadcast on all subnets at once
   for (int i=0; i<numNetworks; i++){
     const string address(addressList[i]);
     const string mask(maskList[i]);
@@ -50,11 +55,12 @@ int main(int argc, char** argv){
 	   << mask << ") for address (" << address << ").\n";
       continue;
     }
-    //;;;; only say Broadcasting on, if -v flag
-    cout << "Hunting via network interface " << broadcast << "\n";
-    std::vector< std::string > serverVec = szgClient.findSZGServers(broadcast);
-    std::vector< std::string >::const_iterator iter;
-    for (iter = serverVec.begin(); iter != serverVec.end(); ++iter) {
+
+    if (fVerbose)
+      cout << "Hunting on network " << broadcast << ".\n";
+    vector< std::string > serverVec = szgClient.findSZGServers(broadcast);
+    for (std::vector< std::string >::const_iterator iter = serverVec.begin();
+         iter != serverVec.end(); ++iter) {
       cout << *iter << endl;
     }
     serverVec.clear();
