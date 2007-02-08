@@ -207,7 +207,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   if (userNameOverride != "NULL") {
     _userName = userNameOverride;
   }
-  
+
   if ( _IPaddress == "NULL" || _port == -1 || _userName == "NULL" ) {
     // Not enough info to find an szgserver.  Fallback to standalone.
     // No dex, so redirect pending and future output to cout.
@@ -251,21 +251,19 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
     success = true;
     const string configfile_serverName(_serverName);
     
-    // Connected. Set our process "label" with the szgserver,
-    // aka tell szgserver our name.
+    // Connected.  Tell szgserver our name.
     if (forcedName == "NULL") {
       _setLabel(_exeName); 
     }
     else{
       if (forcedName != _exeName) {
-	ar_log_warning() << _exeName <<
-	  ": component name overriding exe name.\n";
+	ar_log_warning() << _exeName << ": component name overriding exe name.\n";
       }
       // This also updates _exeName.
       _setLabel(forcedName); 
     }
 
-    if (_serverName != configfile_serverName) {
+    if (configfile_serverName != "NULL" && configfile_serverName != _serverName) {
       ar_log_critical() << "expected szgserver named '" << configfile_serverName <<
 	"', not '" << _serverName << "', at " << _IPaddress << ":" << _port << ".\n";
     }
