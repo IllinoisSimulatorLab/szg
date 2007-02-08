@@ -1,7 +1,7 @@
 SZG_INCLUDE_STYLE = INTERNAL
 SZG_COPY_LIB = TRUE
 
-# Set VPATH before Makefile.vars, to get SRCDIR defined correctly.
+# Set VPATH before Makefile.vars, to correctly define SRCDIR.
 VPATH = ../../../src/drivers
 
 include $(SZGHOME)/build/make/Makefile.vars
@@ -27,6 +27,7 @@ OBJS = \
   arPForthEventVocabulary$(OBJ_SUFFIX) \
   arPForthFilter$(OBJ_SUFFIX)
 
+# Local variable definitions.
 ifeq ($(strip $(SZG_LINKING)), STATIC) 
   COMPILE_FLAGS += -D "NOFACTORY"
 
@@ -138,16 +139,14 @@ ifneq ($(strip $(SZG_LINKING)), STATIC)
     arPPTDriver$(PLUGIN_SUFFIX) \
     arReactionTimerDriver$(PLUGIN_SUFFIX) \
     arSharedMemDriver$(PLUGIN_SUFFIX) \
+    arSharedMemSinkDriver$(PLUGIN_SUFFIX) \
     arSpacepadDriver$(PLUGIN_SUFFIX) \
     arTrackCalFilter$(PLUGIN_SUFFIX) \
     arUSBDriver$(PLUGIN_SUFFIX) \
     arVRPNDriver$(PLUGIN_SUFFIX)
 endif
 
-# NOTE: We now include the "magic" Everything target in Makefile.rules
-
-# This should go BEFORE our FIRST target (because Makefile.rules has rules
-# in it, along with the "magic" Everything rule!
+# Rules for building targets, including the "magic" Everything rule.
 include $(SZGHOME)/build/make/Makefile.rules
 
 # The shared lib corresponding to this szg subdirectory.
@@ -204,6 +203,11 @@ arSharedMemDriver$(PLUGIN_SUFFIX): arSharedMemDriver$(OBJ_SUFFIX) $(SZG_CURRENT_
 	$(SZG_PLUGIN_FIRST) arSharedMemDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
+arSharedMemSinkDriver$(PLUGIN_SUFFIX): arSharedMemSinkDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
+	$(SZG_PLUGIN_FIRST) arSharedMemSinkDriver$(OBJ_SUFFIX) \
+$(POST_LINK_LINE_EXE)
+	$(COPY)
+
 arUSBDriver$(PLUGIN_SUFFIX): arUSBDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_PLUGIN_FIRST) arUSBDriver$(OBJ_SUFFIX) $(POST_LINK_TIMER) $(POST_LINK_LINE_EXE)
 	$(COPY)
@@ -220,10 +224,9 @@ arSpacepadDriver$(PLUGIN_SUFFIX): arSpacepadDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DL
 	$(SZG_PLUGIN_FIRST) arSpacepadDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
-# Each of the next collection of shared objects uses some additional
-# libraries beyond the base szg. NOTE: We MUST use LINK_FLAGS_PLUGIN since
-# dynamically loaded modules are compiled differently on Darwin than 
-# shared libraries (no other platform makes that distinction, though)
+# Each of these shared objects uses libraries beyond the base szg.
+# Use LINK_FLAGS_PLUGIN because Darwin (Think Different, TM) compiles
+# dynamically loaded modules and shared libraries differently.
 
 arBirdWinDriver$(OBJ_SUFFIX): arBirdWinDriver.cpp
 	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE) $(SZG_INCLUDE_WIN_BIRD)
@@ -282,5 +285,3 @@ arTrackCalFilter$(PLUGIN_SUFFIX): arTrackCalFilter$(OBJ_SUFFIX) $(SZG_CURRENT_DL
 arFaroCalFilter$(PLUGIN_SUFFIX): arFaroCalFilter$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_PLUGIN_FIRST) arFaroCalFilter$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
-
-
