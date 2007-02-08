@@ -180,8 +180,8 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   _port         = _configParser.getServerPort();     // can override
   _userName     = _configParser.getUserName();       // can override
 
-  // Any present special Phleet args are removed in _parsePhleetArgs().
-  // These can override some of the member variables set above.
+  // Handle and remove any special Phleet args.
+  // These can override some of the members just assigned.
   if (!_parsePhleetArgs(argc, argv)) {
     _initResponseStream << _exeName << " error: invalid Phleet args.\n";
 
