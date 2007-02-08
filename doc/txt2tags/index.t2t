@@ -27,20 +27,20 @@ Integrated Systems Lab
   Precompiled copies of these might be in the same place where you got this archive.
 - [SupportingLibraries.html SupportingLibraries.html]: Installing and using
   libraries that add features to Syzygy.
-- [Standalone.html Standalone.html]: Running programs on a single, unclustered, PC.
+- [Standalone.html Standalone.html]: Running on a single, unclustered, PC.
 - [ExampleCode.html ExampleCode.html]: Running the included examples, where to put their
   data files, etc.
-- [TrackingSim.html TrackingSim.html]: Emulating a tracked input device (Intersense, Ascension, etc.) with Syzygy's (//inputsimulator//), e.g. in standalone mode.
+- [TrackingSim.html TrackingSim.html]: Emulating a tracked input device (Intersense, Ascension, etc.) with Syzygy's //inputsimulator//, e.g. in standalone mode.
 - [SystemConfiguration.html SystemConfiguration.html]:
   Specifying parameters of a VR system with the Syzygy Database, in both Standalone and Cluster modes.
   This includes:
   - [GraphicsConfiguration.html GraphicsConfiguration.html]: Arranging
-    display devices. Examples are in
-    [GraphicsConfigExamples.html GraphicsConfigExamples.html].
+    display devices. See also 
+    [Examples GraphicsConfigExamples.html].
   - [PathConfiguration.html PathConfiguration.html]: Defining search paths
     for sound files and texture maps.
-  - To configure a cluster's input devices and virtual computers, see
-    [Setting Up, Testing, and Managing a Syzygy Cluster #ClusterSetup].
+  - [Setting Up, Testing, and Managing a Syzygy Cluster #ClusterSetup]:
+    Configuring a cluster's input devices and virtual computers.
 
 
 =Creating Syzygy Progams=
@@ -53,11 +53,10 @@ Integrated Systems Lab
 - [Sound.html Sound.html]: The spatial sound system.
 - [Objects.html Objects.html]: External meshes (.obj or .3ds) and animations in.
 - [Navigation.html Navigation.html]: Navigating a 3D world in an application.
-- [Interaction.html Interaction.html]: Built-in classes and functions for picking,
+- [Interaction.html Interaction.html]: Classes and functions for picking,
   grabbing, and interacting with objects in a 3D world.
-- [PortabilityLayer.html PortabilityLayer.html]: Classes and
-  functions that wrap OS-specific implementations of sockets, serial ports, time, threads,
-  mutexes, etc.
+- [PortabilityLayer.html PortabilityLayer.html]: OS-independent classes and
+  functions for sockets, serial ports, time, threads, mutexes, etc.
 - [SceneGraphTutorial.html SceneGraphTutorial.html]: Manipulating scene graphs
   from a Python prompt and from Python programs.
   See also [SceneGraph.html SceneGraph.html].
@@ -68,7 +67,7 @@ Integrated Systems Lab
 
 =Setting Up, Testing, and Managing a Syzygy Cluster=[ClusterSetup]
 
-- [DistributedOS.html DistributedOS.html]: Concepts and commands for setting up
+- [DistributedOS.html DistributedOS.html]: Setting up
   PC clusters and running programs on them (see also
   [Configuring Virtual Computers VirtCompConfiguration.html].)
 - [ClusterTest.html ClusterTest.html]: Basic testing of a cluster.
