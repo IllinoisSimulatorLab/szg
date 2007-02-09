@@ -1,46 +1,42 @@
-Syzygy Documentation: Using the Documentation
-Integrated Systems Lab
+Header1 Using the Documentation
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers
-%!encoding: iso-8859-1
 
-
-[Table of Contents index.html]
+Header3
 
 This is Syzygy version 1.1.
-If you have been using an earlier version, consult the
-[changelog ChangeLog.html] for information on how to
-modify earlier practices.
+If you have been using an earlier version,
+see the [changelog ChangeLog.html] for how to modify earlier practices.
 
-Please email bug reports, feature requests, and questions to
+Email bug reports, feature requests, and questions to
 Camille Goudeseune or Jim Crowell (see the
-Integrated Systems Lab 'People' [website http://www.isl.uiuc.edu/People/people.htm]).
+ISL 'People' [website http://www.isl.uiuc.edu/People/people.htm]).
 
 Also, see the Syzygy [website http://www.isl.uiuc.edu/syzygy.htm].
 
 Syzygy was invented by Benjamin Schaeffer.
 
 
-=Where You Should Begin=
+=Where To Begin=
 
-If you are new to Syzygy, walk through the
-documentation's ["Getting Started" index.html#GettingStarted]
-system. There, you'll learn how to build,
-or otherwise obtain, the software, run the sample applications in
-"standalone" mode, how to set-up a Syzygy cluster, and, finally, how to
-run the samples on your cluster. You should gradually work your way up
-to full cluster operation, taking time to understand how Syzygy's
-distributed operating system works. You will also want to pay attention to how the included
-applications are built and their data files are installed. This will make
-it easier for you to get started writing your own portable cluster applications.
+The documentation's ["Getting Started" index.html#GettingStarted] system
+teaches you how to
 
-After you feel comfortable with the introductory material, you can learn about
-[compiling CompileCPP.html] your C++ Syzygy programs or
-about writing Syzygy programs in [Python PySZG.html], along with
-reading descriptions of some of the available APIs in [Syzygy Programming Programming.html].
+- build or otherwise obtain the software,
+- run the sample applications in "standalone" mode
+- set up a Syzygy cluster
+- run the samples on your cluster.
+-
 
-Finally, please consider reading the overview at the bottom of this page to
-get an idea of the motivation behind the software.
+Gradually work up to a full cluster, taking time to understand how
+Syzygy's distributed operating system works. Learn how the included
+applications are built and how their data files are installed. This will
+make it easier for you to write your own portable cluster applications.
+
+When you're comfortable with the introductory material, learn how to write
+Syzygy programs in [C++ CompileCPP.html] or [Python PySZG.html], and
+read descriptions of some of the APIs in [Syzygy Programming Programming.html].
 
 =What Does "ar" Mean?=
 
