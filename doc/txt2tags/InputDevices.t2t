@@ -6,26 +6,23 @@ Integrated Systems Lab
 
 [Table of Contents index.html]
 
-This chapter shows examples of setting up Syzygy's
-input event processing software, and then covers
-the internals of Syzygy's input framework.
-
-See also [Supported Input Devices InputDevices-Drivers.html].
+This chapter shows how to capture and process data from input devices,
+and then covers the internals of Syzygy's input framework.
 
 %%toc
 
 
-=Syzygy Input Framework: Practical Examples=[Practical]
+=Examples=[Practical]
 
 The input framework has two programs that produce input events.
-The first, //DeviceServer//, wraps
-dynamically loaded device-driver libraries. The second, //inputsimulator//,
+The first, ``DeviceServer``, wraps
+dynamically loaded device-driver libraries. The second, ``inputsimulator``,
 is a GUI emulating a traditional VR tracked wand and head.  Both publish
 their input events on the network for other Syzyzy programs to read.
 The generic event-reader DeviceClient can listen to either of these two
 and print out the events it receives.
 
-1. Running a DeviceServer and testing it with DeviceClient.
+==Running a DeviceServer and testing it with DeviceClient==
 
 ```
 DeviceServer -s [-netinput] driver_name input_slot [pforth_program_name]
@@ -56,7 +53,7 @@ DeviceServer [-netinput] node_config_name input_slot [pforth_program_name]
   will "tune to a different station" and listen to the DeviceServer (if any)
   transmitting on that slot.
 
-2. Sending joystick data from one computer to other computers.
+==Sending joystick data from one computer to other computers==
 
 Plug a joystick or gamepad into a computer.
 On that computer, dlogin to the cluster and run:
@@ -72,9 +69,9 @@ From another shell, type:
 ```
 DeviceClient will print the raw joystick events.  Mashing buttons
 and twiddling the joystick should make the numbers change.
-If not, see the [troubleshooting DistributedOS.html#Troubleshooting] section.
+If not, see [Troubleshooting DistributedOS.html#Troubleshooting].
 
-You can run extra copies of "DeviceClient 0" on other computers where you're dlogin'd, too.
+You can run extra copies of ``DeviceClient 0`` on other computers where you're dlogin'd, too.
 
 Now you can filter the data (remap or disable buttons, scale joysticks) with
 [PForth PForth.html] programs.  For example,
@@ -103,7 +100,8 @@ and reverses axis 1:
   DeviceServer -s arJoystickDriver 0 joystick_scaledown
 ```
 
-3. This is a simple example of an input node configuration for DeviceServer:
+==Configurations of Input Nodes==
+Here is a simple example of an input node configuration for DeviceServer:
 
 ```
   <param>
@@ -176,18 +174,18 @@ and re-filters them with an arTrackCalFilter (a calibration lookup table),
 ```
 
 
-=Syzygy Input Framework: Overview=[Overview]
+=Overview=[Overview]
 
-Input data in Syzygy comes as three types of //arInputEvents//.
+Input data in Syzygy comes as three types of ``arInputEvents``.
 
-1. A //matrix// event, a 4x4 matrix, usually represents the position and
+1. A //matrix event//, a 4x4 matrix, usually represents the position and
 orientation (referred to in combination as the placement) of a tracking
 sensor.
 
-2. An //axis// event contains a floating-point
+2. An //axis event// contains a floating-point
 number representing the state of a scalar input (a slider, or one axis of a joystick).
 
-3. A //button// event contains an integer, often boolean in meaning (1 or 0).
+3. A //button event// contains an integer, often boolean in meaning (1 or 0).
 
 Within each class,
 events are identified by a zero-based index.  In applications, a particular
@@ -198,10 +196,10 @@ All event types have a default value reported for exceptional cases like
 disconnected sensors or out-of-bound indices.  These are the identity
 matrix, 0.0, and 0 respectively.
 
-//arInputEvents// can be packed into arStructuredData records.  These records
+``arInputEvents`` can be packed into ``arStructuredData`` records.  These records
 can be either the native binary format for fast transmission, or ASCII
 XML for disk storage.  Syzygy provides functions for converting between
-arInputEvents and arStructuredData, and for reading/writing such XML files.
+``arInputEvents`` and ``arStructuredData``, and for reading/writing such XML files.
 
 Input events are organized into trees by
 [input object classes InputClasses.html].
