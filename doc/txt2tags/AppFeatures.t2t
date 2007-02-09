@@ -1,18 +1,15 @@
-Syzygy Documentation: Application Features
-Integrated Systems Lab
+Header1 Application Features
+Header2
 %%mtime(%m/%d/%Y)
-%!options: --headers
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
-  - [Miscellaneous Application Features #Misc]
-%  - [Application Widgets #Widgets]
+%%toc
 
 
 =Miscellaneous Application Features=[Misc]
 
-To pause a distributed scene graph application
+To pause a distributed scene graph application:
 ```
   dmsg X pause on
 ```
@@ -30,20 +27,20 @@ To throttle/unthrottle the application's framerate to 5 fps:
   dmsg X delay off
 ```
 
-To take a screenshot from raster position (A,B), with width C and
-height D:
-```
-  dmsg X screenshot A/B/C/D
-```
-The screenshot is saved under SZG_DATA/path with filename screenshot.Y.ppm,
-where integer Y is the number of screenshots taken since component X was launched.
-
 To change the view mode:
 ```
   dmsg X viewmode anaglyph
 ```
-For legal values for view_mode, see
+For viewmode's values, see
 [Viewport Lists GraphicsConfiguration.html#ViewportLists].
 
-
+To take a screenshot from raster position (A,B), with width C and height D:
+```
+  dmsg X screenshot A/B/C/D
+```
+The screenshot is saved in SZG_DATA/path with filename ``screenshot.Y.ppm``,
+where integer Y is how many screenshots have been taken so far by X.
+(So avoid interleaving screenshot commands from multiple components,
+lest the files clobber each other.)
+Here's an example screenshot:@@
 [images/PerformanceGraph.jpg]

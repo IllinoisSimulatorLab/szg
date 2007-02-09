@@ -1,4 +1,15 @@
-% line break
+% Howto:    txt2tags.sourceforge.net/markup.html
+% Quickref: txt2tags.sourceforge.net/txt2tags-quickref.pdf
+
+%!options: --headers
+%!encoding: iso-8859-1
+
+% If only preproc worked here, then it could contain %%mtime(%m/%d/%Y) too.
+%!postproc: Header1 'Syzygy Documentation:'
+%!postproc: Header2 'Integrated Systems Lab'
+%!preproc:  Header3 '[Table of Contents index.html]'
+
+% Line break
 %!postproc(html): @@ <BR>
 
 % <strong> and <em> instead of <B> and <I>
