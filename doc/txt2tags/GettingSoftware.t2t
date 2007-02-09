@@ -1,10 +1,9 @@
-Syzygy Documentation: Getting the Software
-Integrated Systems Lab
+Header1 Getting the Software
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc --toc-level=1
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 
 Syzygy works on reasonably modern versions of
@@ -428,8 +427,7 @@ Many [example applications ExampleCode.html] are included with the Syzygy code
   - schprel
 
 
-+ Make sure that SZGHOME, SZGBIN, SZGEXTERNAL, etc. are
-  set as before.
++ Set SZGHOME, SZGBIN, SZGEXTERNAL, etc. as before.
 
 + To build all the samples, in szg/build type "make demo",
   which will result in the executables being placed either in
@@ -439,20 +437,14 @@ Many [example applications ExampleCode.html] are included with the Syzygy code
   needed. If one sample application fails to build, it continues to the
   next. You can clean the demo directories with "make demo-clean".
 
-  It is also possible to build the demos individually. For
-  example, to build the "cosmos" demo on a Linux machine, go to
-```
- szg/build/linux/demo/cosmos
-```
-  and invoke "make". As above, for this to work properly, the build
-  environment variables must be set appropriately.
+  You can also build demos individually. For
+  example, to build the ``cosmos`` demo on Linux,
+  ``cd szg/build/linux/demo/cosmos; make``. As above, for
+  this to work properly, the build environment variables must be set
+  appropriately.
 
 
 =Advanced Makefile Targets=[AdvancedTargets]
-
-Some more Makefile targets can be useful.
-circumstances. These create an installable SDK
-and manage the external shared libraries.
 
   - drivers: build only up to the drivers. Don't build anything
 involving graphics,
@@ -468,8 +460,7 @@ and in Makefile.rules. It copies a project's compiled binaries and
 libraries into the binary directory ($SZGBIN).
 
 
-NOTE: We no longer support any precompiled SDK's. These targets may
-work, but there are no guarantees.
+NOTE: Syzygy no longer supports precompiled SDK's.
 
   - create-sdk: This is in every top level Makefile and also in
 Makefile.rules (and consequently every low-level Makefile as well).
@@ -496,5 +487,3 @@ TRUE.
 
   - clean-pch: This deletes the precompiled header file created
 by the install-pch target.
-
-
