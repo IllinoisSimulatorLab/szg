@@ -1,10 +1,9 @@
-Syzygy Documentation: Navigation
-Integrated Systems Lab
+Header1 Navigation
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc --toc-level=3
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 Syzygy contains
 tools to make driving around inside virtual worlds easy to implement. In

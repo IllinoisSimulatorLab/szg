@@ -1,13 +1,11 @@
-Syzygy Documentation: Running Programs in Standalone Mode
-Integrated Systems Lab
+Header1 Running Programs in Standalone Mode
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
-PLEASE NOTE: On Mac OS X, you MUST be running X11 for Syzygy graphical
-programs to work.
+Note: On OS X, run X11 before running Syzygy graphical programs.
 
 [images/Standalone.jpg]
 

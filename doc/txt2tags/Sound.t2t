@@ -1,10 +1,9 @@
-Syzygy Documentation: Sound
-Integrated Systems Lab
+Header1 Sound
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 Thanks to Camille Goudeseune for creating Syzygy sound support.
 

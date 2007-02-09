@@ -1,11 +1,9 @@
-Syzygy Documentation: Supporting Libraries
-Integrated Systems Lab
+Header1 Supporting Libraries
+Header2
 %%mtime(%m/%d/%Y)
-
-[Table of Contents index.html]
-
 %!options: --headers --toc --toc-level=1
-%!encoding: iso-8859-1
+
+Header3
 
 
 Syzygy's build system is designed to let you compile your software using

@@ -1,10 +1,9 @@
-Syzygy Documentation: Quick Start for porting a GLUT application
-Integrated Systems Lab
+Header1 Quick Start for porting a GLUT application
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 Many GLUT applications can be easily turned into Master/Slave applications.
 A first step is creating a build environment that is compatible with Syzygy.

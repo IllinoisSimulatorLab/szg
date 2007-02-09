@@ -1,6 +1,7 @@
 Header1 Application Features
 Header2
 %%mtime(%m/%d/%Y)
+%!options: --headers --toc --toc-level=1
 
 Header3
 

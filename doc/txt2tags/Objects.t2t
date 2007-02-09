@@ -1,10 +1,9 @@
-Syzygy Documentation: 3-D Object Files
-Integrated Systems Lab
+Header1 3-D Object Files
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc --toc-level=2
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 
 =Objects?=

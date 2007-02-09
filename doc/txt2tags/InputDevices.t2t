@@ -1,10 +1,9 @@
-Syzygy Documentation: Input Framework
-Integrated Systems Lab
+Header1 Input Framework
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc --toc-level=1
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 This chapter shows how to capture and process data from input devices,
 and then covers the internals of Syzygy's input framework.
@@ -34,7 +33,10 @@ DeviceServer -s [-netinput] driver_name input_slot [pforth_program_name]
   text stored in the global parameter pforth_program_name, and then applies
   that program to filter input events from driver_name.
   
-  The integer input_slot specifies which "slot" DeviceServer transmits on.
+  The integer input_slot specifies which //slot// DeviceServer transmits on.
+  In a cluster of PCs, slots are like CB radio channels.
+  Given a slot, at most one DeviceServer transmits on it and arbitrarily
+  many programs (such as DeviceClients) can listen to it.
 
   If -netinput is specified, DeviceServer listens on input_slot+1
   for events from the network.

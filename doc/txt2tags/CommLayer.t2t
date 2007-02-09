@@ -1,10 +1,8 @@
-Syzygy Documentation: System Configuration
-Integrated Systems Lab
+Header1 System Configuration
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
-Herein will eventually go an explanation of Syzygy's communications
-layer, with design notes, etc.
+This should explain Syzygy's communications layer, with design notes.

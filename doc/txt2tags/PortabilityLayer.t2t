@@ -1,10 +1,9 @@
-Syzygy Documentation: Portability Layer
-Integrated Systems Lab
+Header1 Portability Layer
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc --toc-level=3
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 Syzygy includes a portability layer which strives to make writing
 cross-platform Unix/Win32 applications as simple as possible. One

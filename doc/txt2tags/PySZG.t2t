@@ -1,10 +1,9 @@
-Syzygy Documentation: Python Programming
-Integrated Systems Lab
+Header1 Python Programming
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc --toc-level=3
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 Thank you to Peter Brinkmann for creating the initial version of the Syzygy Python bindings.
 

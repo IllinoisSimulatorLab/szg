@@ -1,10 +1,9 @@
-Syzygy Documentation: Future Directions
-Integrated Systems Lab
+Header1 Future Directions
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 The Syzygy software is still evolving. At this stage, the API for
 writing master/slave cluster applications is stable. Please feel free
@@ -31,6 +30,3 @@ implemented. Part of this would be a configuration file that detailed
 opeartions on received values (like scaling).
 + Better components for the VR programing frameworks would
 facilitate creating new frameworks with a minimal time investment.
-
-
-

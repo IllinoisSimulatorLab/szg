@@ -1,10 +1,9 @@
-Syzygy Documentation: Tracking and Input Device Simulator
-Integrated Systems Lab
+Header1 Tracking and Input Device Simulator
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 The Syzygy VR framework applications tend to work best with a VR style
 interface, namely six-degree-of-freedom (6DOF) head tracking and some kind of joystick type input

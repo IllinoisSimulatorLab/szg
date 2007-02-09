@@ -1,10 +1,9 @@
-Syzygy Documentation: Environment Variables for Microsoft Visual Studio
-Integrated Systems Lab
+Header1 Environment Variables for Microsoft Visual Studio
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 [Building Syzygy GettingSoftware.html]
 

@@ -1,10 +1,9 @@
-Syzygy Documentation: Graphics Configuration
-Integrated Systems Lab
+Header1 Graphics Configuration
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 This chapter explains how to configure Syzygy for display devices.
 

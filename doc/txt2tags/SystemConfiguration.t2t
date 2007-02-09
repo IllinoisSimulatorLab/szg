@@ -1,10 +1,9 @@
-Syzygy Documentation: Syzygy System Configuration
-Integrated Systems Lab
+Header1 Syzygy System Configuration
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 This chapter will show you how to configure Syzygy to work with your
 equipment.

@@ -1,10 +1,9 @@
-Syzygy Documentation: Example Programs
-Integrated Systems Lab
+Header1 Example Programs
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 The two [tables of demos #DemoTables]
 below list many example Syzygy
@@ -129,4 +128,3 @@ out of such programs, try the following: In szg/src/barrier/arSyncDataServer.cpp
 constructor, change the initial value of _sendLimit to 200000 and recompile. This
 value determines how much information the server will accumulate before sending
 a frame. It can be increased for better networks.
-

@@ -1,10 +1,9 @@
-Syzygy Documentation: Input Event Filters
-Integrated Systems Lab
+Header1 Input Event Filters
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 Input event filters are all subclasses of the arIOFilter class.
 Filters are attached to an //arInputNode//
@@ -44,5 +43,3 @@ src/drivers/arTrackCalFilter.cpp (which applies the calibration
 correction for our Ascension MotionStar tracker--note that this is
 specific to our setup) and the[PForth filter PForth.html],
 src/drivers/arPForthFilter.cpp.
-
-

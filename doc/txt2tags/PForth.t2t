@@ -1,10 +1,9 @@
-Syzygy Documentation: PForth Input-filtering Language
-Integrated Systems Lab
+Header1 PForth Input-filtering Language
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc --toc-level=2
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 Thanks to Jim Crowell for creating the Syzygy PForth support.
 

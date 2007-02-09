@@ -1,10 +1,9 @@
-Syzygy Documentation: Myriad Scene Graph
-Integrated Systems Lab
+Header1 Myriad Scene Graph
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc --toc-level=3
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 [images/SceneGraphIntro.jpg]
 An example of a scene graph application.

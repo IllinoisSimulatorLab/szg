@@ -1,10 +1,9 @@
-Syzygy Documentation: Testing A Cluster
-Integrated Systems Lab
+Header1 Testing A Cluster
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc --toc-level=1
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 
 This section assumes you have installed the szg software (including the

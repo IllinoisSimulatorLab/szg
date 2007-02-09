@@ -1,10 +1,9 @@
-Syzygy Documentation: Input Classes
-Integrated Systems Lab
+Header1 Input Classes
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 There are three basic types of input classes: sources, nodes, and
 sinks. An arInputSource

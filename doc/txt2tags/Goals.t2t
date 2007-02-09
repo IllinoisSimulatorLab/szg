@@ -1,10 +1,9 @@
-Syzygy Documentation: Goals
-Integrated Systems Lab
+Header1 Goals
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 
 Syzygy's first web release was in September 2000. Its

@@ -1,10 +1,9 @@
-Syzygy Documentation: Communication Details
-Integrated Systems Lab
+Header1 Communication Details
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 %%toc
 

@@ -1,13 +1,13 @@
-Syzygy Documentation: Virtual Computer Configuration
-Integrated Systems Lab
+Header1 Virtual Computer Configuration
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
-This file tells you how to define virtual computers. For information about
-//using// them, see the relevant section in the [Distributed OS DistributedOS.html#VirtualComputer] chapter.
+This file tells you how to define virtual computers.
+To //use// them, see the relevant section in the
+[Distributed OS DistributedOS.html#VirtualComputer] chapter.
 
 
 %%toc
@@ -226,5 +226,3 @@ running application. Again, consider the command:
   distributed scene graph case, this simply means shutting down itself, while,
   in the master/slave case, this means telling the connected slaves to shut down
   and waiting for them to do so.
-
-

@@ -1,10 +1,9 @@
-Syzygy Documentation: Syzygy Architecture
-Integrated Systems Lab
+Header1 Syzygy Architecture
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc --toc-level=1
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 [images/SyzygyArchitecture.gif]
 

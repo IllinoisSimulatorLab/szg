@@ -1,10 +1,9 @@
-Syzygy Documentation: Graphics Configuration Examples
-Integrated Systems Lab
+Header1 Graphics Configuration Examples
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 This chapter contains some special graphics configuration examples.
 
@@ -841,4 +840,3 @@ desktop would need positions and window sizes reduced.
   </param>
   </szg_config>
 ```
-

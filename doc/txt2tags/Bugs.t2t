@@ -1,10 +1,9 @@
-Syzygy Documentation: Known Bugs
-Integrated Systems Lab
+Header1 Known Bugs
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers --toc --toc-level=1
-%!encoding: iso-8859-1
 
-[Table of Contents index.html]
+Header3
 
 %%toc
 

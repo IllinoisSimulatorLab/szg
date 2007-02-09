@@ -1,8 +1,7 @@
-Syzygy Documentation: Table of Contents
-Integrated Systems Lab
+Header1 Table of Contents
+Header2
 %%mtime(%m/%d/%Y)
 %!options: --headers
-%!encoding: iso-8859-1
 %@+leo-ver=4-thin
 %@+node:JimCrowell.20060110161328:@thin index.t2t
 %@@first
@@ -102,10 +101,10 @@ Integrated Systems Lab
 
 =Background Information=
 
-- [Architecture.html Architecture.html]: Overall design of Syzygy.
-- [Goals.html Goals.html]: Goals for Syzygy.
+- [Architecture.html Architecture.html]: Overall design.
+- [Goals.html Goals.html]: Goals.
 - [Future.html Future.html]: Where Syzygy is going; what's likely to change.
-- [ChangeLog.html ChangeLog.html]: A record of the changes between versions, since the beginning.
+- [ChangeLog.html ChangeLog.html]: Changes between versions, since the beginning.
 - [Testing.html Testing.html]: Tested configurations and testing procedures.
 - [Bugs.html Bugs.html]: Known bugs, problems, and issues with the current version.
 
