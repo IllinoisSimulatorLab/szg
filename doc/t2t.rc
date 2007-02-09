@@ -1,0 +1,6 @@
+% line break
+%!postproc(html): @@ <BR>
+
+% <strong> and <em> instead of <B> and <I>
+%!postproc(html):  '(?i)(</?)b>'  '\1strong>'
+%!postproc(html):  '(?i)(</?)i>'  '\1em>'
