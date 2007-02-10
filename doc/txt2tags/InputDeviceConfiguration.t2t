@@ -126,25 +126,24 @@ types it is 0.
 
 =Troubleshooting=
 
-If your program has started successfully but doesn't seem to be getting input, the
-first thing to do is to check that the ``DeviceServer`` program is running on all computers
-that should be loading input device drivers. Typing
+If your program isn't getting input, verify
+that ``DeviceServer`` is running on all computers connected to
+input devices:
 ```
-  dps
+  dps DeviceServer
 ```
-will list all of the Syzygy processes currently running on your cluster. If one of your
-input device computers doesn't have ``DeviceServer`` running on it, check the console on
-that computer for error messages.
+lists all DeviceServers running on the cluster.  If one is missing,
+check that computer's console for error messages.
 
-If the appropriate ``DeviceServer``s are all running but your application isn't receiving
-the inputs, then use the ``DeviceClient`` diagnostic program as described in
+If all DeviceServers are running and you're still not getting input events,
+run the ``DeviceClient`` diagnostic program as described in
 [Syzygy Input Framework: Practical Examples InputDevices.html#Practical].
 
 
 =Examples=
 
 As an example of an input device configuration record, here's the device
-definition for the wireless gamepad we use in the
+definition for the wireless gamepad used in the
 [Beckman Institute Cube http://www.isl.uiuc.edu/Labs/room_b650.htm].
 This gamepad has a 2-D joystick and 8 buttons. The device configuration
 record specifies the driver module to be loaded ('arJoystickDriver')
@@ -173,14 +172,11 @@ joystick, while axis event #1 represents its front/back position):
 ```
 Note that if you combine two input sources in a single record, and they
 both provide some of the same kinds of events (e.g. both provide button
-events), then the events of the second input source will be indexed
-after those of the first. For example, if we added a second device
-to the record above //after// the arJoystickDriver that provided two
-additional button events, then in our particular setup the original
-gamepad's buttons would have indices 0-7 and the new device's buttons would
-be 8 and 9. Of course, if we put the new device //before// the current
-one in the ``<input_sources>`` list, then the new device would provide buttons
-0 and 1.
+events), then the event indices of the second input source follow those
+of the first. For example, if in this example we followed arJoystickDriver
+with another device which had two buttons, then the original gamepad's
+buttons would still have indices 0-7 but the new one's buttons would be
+8 and 9.
 
 Configuration records for tracking devices are generally the most complex.
 Here's the device definition for the MotionStar

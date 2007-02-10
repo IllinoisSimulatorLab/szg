@@ -32,5 +32,3 @@ recent values of all received events; this allows the filter to perform
 computations based on the current event and the most recent state of
 all other events. Finally, it packs the filtered event queue into a new
 arStructuredData record and passes it to each of its arInputSinks.
-
-

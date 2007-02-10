@@ -24,35 +24,34 @@ and print out the events it receives.
 ==Running a DeviceServer and testing it with DeviceClient==
 
 ```
-DeviceServer -s [-netinput] driver_name input_slot [pforth_program_name]
+DeviceServer -s [-netinput] driver_name input_slot [pforth_program]
 ```
-  The -s flag indicates Simple mode: DeviceServer loads only driver_name,
+  The flag **-s** indicates Simple mode: DeviceServer loads only driver_name,
   rather than a whole pile of device drivers (an "input node configuration".)
 
-  If pforth_program_name is specified, DeviceServer reads the PForth program
-  text stored in the global parameter pforth_program_name, and then applies
-  that program to filter input events from driver_name.
-  
-  The integer input_slot specifies which //slot// DeviceServer transmits on.
+  The integer **input_slot** specifies which //slot// DeviceServer transmits on.
   In a cluster of PCs, slots are like CB radio channels.
   Given a slot, at most one DeviceServer transmits on it and arbitrarily
   many programs (such as DeviceClients) can listen to it.
 
-  If -netinput is specified, DeviceServer listens on input_slot+1
-  for events from the network.
+  The string **pforth_program** is a global parameter whose text is
+  a PForth program used to filter input events from driver_name.
+
+  The flag **-netinput** makes DeviceServer listen for events from the network.
+  on input_slot+1.
 
 ```
 DeviceServer [-netinput] node_config_name input_slot [pforth_program_name]
 ```
   Without "-s driver_name," DeviceServer instead uses the configuration
-  of input nodes defined in the global parameter node_config_name.
+  of input nodes defined in the global parameter **node_config_name**.
 
 ```
   DeviceClient input_slot
 ```
   Run DeviceClient on the same computer to see the events sent by that
-  DeviceServer.  If you pick a different change input_slot, of course, the DeviceClient
-  will "tune to a different station" and listen to the DeviceServer (if any)
+  DeviceServer.  If you pick a different input_slot, of course, the DeviceClient
+  will "tune to a different station" and listen to any DeviceServer
   transmitting on that slot.
 
 ==Sending joystick data from one computer to other computers==
@@ -69,7 +68,7 @@ From another shell, type:
 ```
   DeviceClient 0
 ```
-DeviceClient will print the raw joystick events.  Mashing buttons
+DeviceClient prints the raw joystick events.  Mashing buttons
 and twiddling the joystick should make the numbers change.
 If not, see [Troubleshooting DistributedOS.html#Troubleshooting].
 
@@ -119,10 +118,10 @@ Here is a simple example of an input node configuration for DeviceServer:
   </param>
 ```
 
-The fields <input_sources>, <input_filters>, and <input_sinks> each
+The fields **<input_sources>, <input_filters>, and <input_sinks>** each
 contain a list of libraries (DLL's or so's)
 on the SZG_EXEC/path, for example arMotionstarDriver.so.
-In the configuration, the suffix is omitted for OS independence.
+The filename's suffix is omitted, for OS independence.
 C++ classes defined in these three fields are subclasses of
 arInputSource, arIOFilter, and arInputSink respectively.
 
@@ -137,13 +136,20 @@ configures the DeviceServer with the global parameter named idesk_tracker.
 DeviceServer thus loads the two libraries listed in <input_sources>,
 and then transmits events from the Spacepad and joystick on slot 0.
 
-The <pforth> field may contain a PForth program to filter data from
-the input sources, before the data reaches the chain of input_filters
-and finally the input_sinks.
+At most one DeviceServer runs on one computer.  If a computer has several
+input devices (here, a Spacepad and a joystick), put multiple entries
+in the input_sources field like this instead of trying to run multiple
+DeviceServers.
 
-This elaborate example of an input node configuration reads Ascension MotionStar events,
-filters them with the PForth program shown,
-and re-filters them with an arTrackCalFilter (a calibration lookup table),
+The field **<pforth>** contains a PForth program to filter data from
+the input sources, before the data reaches the chain of input_filters
+and finally the input_sinks.  If left empty as here, obviously no
+special filtering happens.
+
+This elaborate example of an input node configuration reads Ascension
+MotionStar events, filters the events with the PForth program shown, and
+filters the events yet again through an arTrackCalFilter (a calibration
+lookup table):
 
 ```
  <param>
