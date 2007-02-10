@@ -14,20 +14,15 @@ arFileTextStream::arFileTextStream(){
 
 bool arFileTextStream::ar_open(const string& name, const string& subdirectory,
                                const string& path){
-  string fileName = ar_fileFind(name, subdirectory, path);
+  // No error diagnostics: leave that to the caller.
+  const string fileName = ar_fileFind(name, subdirectory, path);
   if (fileName == "NULL"){
-    // It is always best to let the CALLER print out the error message,
-    // if such is desired.
     return false;
   }
+
   _reset();
-  _source = fopen(fileName.c_str(),"r");
-  if (!_source){
-    // It is always best to let the CALLER print out the error message,
-    // if such is desired.
-    return false;
-  }
-  return true;
+  _source = fopen(fileName.c_str(), "r");
+  return _source != NULL;
 }
 
 bool arFileTextStream::ar_open(const string& name, const string& path){
@@ -39,12 +34,9 @@ bool arFileTextStream::ar_open(const string& name){
 }
 
 bool arFileTextStream::ar_close(){
-  int returnValue = 0;
-  if (_source){
-    returnValue = fclose(_source);
-  }
+  const bool ok = !_source || fclose(_source)==0;
   _reset();
-  return returnValue == 0 ? true : false;
+  return ok;
 }
 
 void arFileTextStream::setSource(FILE* source){
@@ -57,14 +49,13 @@ int arFileTextStream::ar_getc(){
     _useUngetc = false;
     return _ungetc;
   }
+
   if (_bufferLocation == 256){
-    _bufferLength = fread(_buffer, 1, 256, _source);
     _bufferLocation = 0;
+    _bufferLength = fread(_buffer, 1, 256, _source);
   }
   if (_bufferLocation < _bufferLength){
-    int temp = (unsigned char)(_buffer[_bufferLocation]);
-    _bufferLocation++;
-    return temp;
+    return (unsigned char)(_buffer[_bufferLocation++]);
   }
   return EOF;
 }
@@ -82,4 +73,3 @@ void arFileTextStream::_reset(){
   _buffer[256] = '\0';
   _bufferLength = 0;
 }
-

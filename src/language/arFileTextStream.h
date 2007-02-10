@@ -25,7 +25,7 @@ class SZG_CALL arFileTextStream: public arTextStream{
   bool operator!() const { return !_source; }
   void setSource(FILE* source);
 
-  // The inherited methods follow.
+  // Inherited methods.
   virtual int ar_getc();
   virtual void ar_ungetc(int ch);
 
