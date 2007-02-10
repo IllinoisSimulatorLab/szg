@@ -330,7 +330,7 @@ bool arSZGClient::_sendResponse(stringstream& s,
   const bool printInfo = s.str().length() > initialStreamLength;
 
   // Append a standard success or failure message.
-  s << _exeName << sz << (ok ? "ed.\n" : " failed.\n");
+  s << _exeName << " " << sz << (ok ? "ed.\n" : " failed.\n");
 
   // Do not send the response if:
   //  - The message trade failed in init(), likely because the launcher timed out;
