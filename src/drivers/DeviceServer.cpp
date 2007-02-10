@@ -37,14 +37,12 @@
 //   </pforth>
 // </szg_device>
 
-bool testForArgAndRemove(const string& theArg, int& argc, char** argv){
-  for (int i=0; i<argc; i++){
-    if (!strcmp(theArg.c_str(),argv[i])){
-      // Found it
-      for (int j=i; j<argc-1; j++){
-        argv[j] = argv[j+1];
-      } 
-      argc--;
+bool parseArg(const char* const sz, int& argc, char** argv){
+  // Start at 1 not 0: exe's own name isn't an arg.
+  for (int i=1; i<argc; ++i){
+    if (!strcmp(sz, argv[i])){
+      // Shift later args over found one (from i+1 to argc-1 inclusive).
+      memmove(argv+i, argv+i+1, sizeof(char**) * (argc-- -i-1));
       return true;
     }
   }
@@ -159,40 +157,39 @@ int main(int argc, char** argv){
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 
-  // Only one instance per host.
+  // At most one instance per host.
   int ownerID = -1;
   if (!szgClient.getLock(szgClient.getComputerName() + "/DeviceServer", ownerID)) {
     ar_log_error() << "DeviceServer: another copy is already running (pid = " 
          << ownerID << ").\n";
-    return 1;
-  }
-
-  const bool simpleOperation = testForArgAndRemove("-s", argc, argv);
-    // -s: just load the module and publish its output without fancy filtering.
-  const bool useNetInput = testForArgAndRemove("-netinput", argc, argv);
-
-  if (argc < 3){
-    ar_log_error() << "usage: DeviceServer [-s] [-netinput] device_description driver_slot [pforth_filter_name]\n";
 LAbort:
     respond(szgClient);
     return 1;
   }
 
+  const bool fSimple = parseArg("-s", argc, argv);
+  const bool fNetInput = parseArg("-netinput", argc, argv);
+
+  if (argc < 3){
+    ar_log_error() << "usage: DeviceServer [-s] [-netinput] device_description driver_slot [pforth_filter_name]\n";
+    goto LAbort;
+  }
+
   const unsigned slotNumber = atoi(argv[2]);
   InputNodeConfig nodeConfig;
-  if (simpleOperation){
+  if (fSimple){
     // As command-line flags, specify only the driver and slot.
     nodeConfig.inputSources.push_back(argv[1]);
   }
   else{
     const string& config = szgClient.getGlobalAttribute(argv[1]);
     if (config == "NULL") {
-      ar_log_error() << "DeviceServer: undefined global node (<param> in dbatch file) '" << argv[1] << "'.\n";
+      ar_log_error() << "DeviceServer: undefined global parameter (<param> in dbatch file) '" << argv[1] << "'.\n";
       goto LAbort;
     }
     nodeConfig = parseNodeConfig(config);
     if (!nodeConfig.valid){
-      ar_log_error() << "DeviceServer: misconfigured global node (<param> in dbatch file) '"
+      ar_log_error() << "DeviceServer: misconfigured global parameter (<param> in dbatch file) '"
 	<< argv[1] << "'\n";
       goto LAbort;
     }
@@ -239,33 +236,30 @@ LAbort:
     }
   }
 
-  // See if, via command line arg -netinput, we want to
-  // add a net input source automatically (i.e. not via the config file)
-  if (useNetInput){
+  if (fNetInput){
+    // Add a net input source automatically (i.e. not via the config file)
     arNetInputSource* commandLineNetInputSource = new arNetInputSource();
     if (!commandLineNetInputSource->setSlot(nextInputSlot)) {
       ar_log_error() << "DeviceServer: invalid slot " << nextInputSlot << ".\n";
       goto LAbort;
     }
-      ++nextInputSlot;
-    ++nextInputSlot;
-    // bug? typo? why increment twice?
+    // Skip over "nextInputSlot+1" listening slot.
+    nextInputSlot += 2;
     inputNode.addInputSource(commandLineNetInputSource,true);
   }
 
-  // Configure the input sinks. NOTE: by default, we include a net input
-  // sink (for transmitting data from the DeviceServer) and a "file sink"
-  // for logging.
+  // Configure the input sinks. By default, include a net input sink
+  // (for transmitting data) and a "file sink" (for logging).
   arNetInputSink netInputSink;
   if (!netInputSink.setSlot(slotNumber)) {
     ar_log_error() << "DeviceServer: invalid slot " << slotNumber << ".\n";
     goto LAbort;
   }
-      nextInputSlot++;
-  // Distinguish between different DeviceServer instances
-  // (which are running different devices).  (Still needed, since multiple copies per host are forbidden?)
+  nextInputSlot++;
+
+  // Tell netInputSink a bit about how we were launched.
   netInputSink.setInfo(argv[1]);
-  // And the sink to the input node.
+
   inputNode.addInputSink(&netInputSink,false);
 
   arFileSink fileSink;
@@ -288,8 +282,7 @@ LAbort:
       ar_log_error() << "DeviceServer failed to create input sink.\n";
       goto LAbort;
     }
-    ar_log_debug() << "DeviceServer created input sink '" <<
-      *iter << ".\n";
+    ar_log_debug() << "DeviceServer created input sink '" << *iter << ".\n";
     inputNode.addInputSink(theSink, true);
   }
 
