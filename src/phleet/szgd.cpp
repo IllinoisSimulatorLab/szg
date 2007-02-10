@@ -441,10 +441,9 @@ LAbort:
   }
 
   cout << "szgd remark:\n"
-       << "  user name=" << userName << "\n"
-       << "  exe name=" << command << "\n"
-       << "  exe type=" << execInfo->executableType << "\n"
-       << "  arg list=(";
+       << "  user = " << userName << "\n"
+       << "  exe  = " << execInfo->executableType << " " << command << "\n"
+       << "  args = (";
   for (list<string>::iterator iter = args.begin();
        iter != args.end(); ++iter){
     if (iter != args.begin()){
@@ -457,27 +456,29 @@ LAbort:
 }
 
 char** buildUnixStyleArgList(const string& command, list<string>& args) {
-  // Allocate storage and fill with the contents of args.
+  // Build an "argv" from args.
   const int listLength = args.size();
-  char** result = new char*[listLength+2];
-  // The first element in the list should be the command.
-  result[0] = new char[command.length()+1];
-  ar_stringToBuffer(command, result[0], command.length()+1);
+  char** argv = new char*[listLength+2];
+
+  // Start with the command.
+  argv[0] = new char[command.length()+1];
+  ar_stringToBuffer(command, argv[0], command.length()+1);
+
   // Null-terminate.
-  result[listLength+1] = NULL;
+  argv[listLength+1] = NULL;
+
   int index = 1;
   for (list<string>::iterator i=args.begin(); i!=args.end(); ++i) {
-    result[index] = new char[i->length()+1];
-    ar_stringToBuffer(*i, result[index], i->length()+1);
+    argv[index] = new char[i->length()+1];
+    ar_stringToBuffer(*i, argv[index], i->length()+1);
     ++index;
   }
-  return result;
+  return argv;
 }
 
-void deleteUnixStyleArgList(char** argList) {
-  for (int index = 0; argList[index]; ++index) {
-    delete argList[index];
-  }
+void deleteUnixStyleArgList(char** argv) {
+  for (int i = 0; argv[i]; ++i)
+    delete argv[i];
 }
 
 string buildWindowsStyleArgList(const string& command, list<string>& args) {
@@ -495,8 +496,7 @@ string buildWindowsStyleArgList(const string& command, list<string>& args) {
   return result;
 }
 
-// Use this to reduce samba win32 fileserver load when many
-// hosts run one exe at the same time.
+// To reduce load on samba win32 fileserver when many hosts launch an exe at once.
 void randomDelay() {
   const ar_timeval time1 = ar_time();
   ar_usleep(100000 * abs(time1.usec % 6));

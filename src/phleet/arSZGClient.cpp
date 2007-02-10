@@ -326,24 +326,25 @@ bool arSZGClient::_sendResponse(stringstream& s,
 				unsigned initialStreamLength,
                                 bool ok, 
 				bool fNotFinalMessage) {
-  // Output to the terminal below only if there's new stuff after the header.
+  // Does new stuff follow the header?
   const bool printInfo = s.str().length() > initialStreamLength;
 
-  // Append a standard success or failure message to the stream.
-  s << _exeName << " component " << sz << (ok ? " ok.\n" : " failed.\n");
+  // Append a standard success or failure message.
+  s << _exeName << sz << (ok ? "ed.\n" : " failed.\n");
 
-  // We do not send the message response if:
-  //  a) The message trade failed in init(), likely because it took a LONG time to launch us.
-  //  b) We were NOT launched by szgd.
-  //  c) Our component is using "simple handshaking".
+  // Do not send the response if:
+  //  - The message trade failed in init(), likely because the launcher timed out;
+  //  - we were not launched by szgd; and
+  //  - we ("our component") uses simple handshaking.
+
   if (!_ignoreMessageResponses && _dexHandshaking && !_simpleHandshaking) {
-    // Another message to dex.
+    // Return s to dex.
     if (!messageResponse(_launchingMessageID, s.str(), fNotFinalMessage)) {
       ar_log_warning() << _exeName << ": response failed during " << sz << ".\n";
       return false;
     }
   } else {
-    // Don't forward the message, so use cout.
+    // Print s.
     if (printInfo)
       cout << s.str();
   }
@@ -1087,7 +1088,7 @@ string arSZGClient::getSetGlobalXML(const string& userName,
   }
   TiXmlNode* node = doc.FirstChild();
   if (!node || !node->ToElement()) {
-    ar_log_error() << "dget error: malformed XML (global node).\n";
+    ar_log_error() << "dget error: malformed XML (global parameter).\n";
     return string("NULL");
   }
   TiXmlNode* child = node;
