@@ -215,20 +215,18 @@ string getAppPath( const string& userName, const string& groupName, const string
                 + "checking its existence.\n";
       doublePrintError( errStream, errMsg );
       return "NULL";
-    } else {
-      if (fileExists && isFile) {
-        cout << "szgd remark: found " << potentialFile << endl;
-        actualDirectory = *dirIter;
-        break;
-      }
     }
-//    FILE* filePtr = ar_fileOpen(potentialFile, "", "", "r");
-//    if (filePtr) {
-//      ar_fileClose(filePtr);
-//      actualDirectory = *iter;
-//      break;
-//    }
-//    }
+    if (fileExists && isFile) {
+      cout << "szgd remark: found " << potentialFile << endl;
+      actualDirectory = *dirIter;
+      break;
+    }
+//  FILE* filePtr = ar_fileOpen(potentialFile, "", "", "r");
+//  if (filePtr) {
+//    ar_fileClose(filePtr);
+//    actualDirectory = *iter;
+//    break;
+//  }
     if (actualDirectory != "NULL") {
       break;
     }
@@ -245,21 +243,45 @@ string getAppPath( const string& userName, const string& groupName, const string
   return actualDirectory;
 }
 
-// Little class to pass data to exec threads.
-class ExecutionInfo{
-public:
-  ExecutionInfo(){}
-  ~ExecutionInfo(){}
+
+// Helper class to pass data to exec threads.
+
+enum { formatNative=0, formatPython, formatInvalid };
+
+class ExecInfo{
+ public:
+  ExecInfo(const string& u, const string& mB, const string& mC, int rMID, int tM) :
+    receivedMessageID(rMID),
+    timeoutmsec(tM),
+    userName(u),
+    messageBody(mB),
+    messageContext(mC),
+    _format(formatInvalid)
+    {}
 
   int receivedMessageID;
   int timeoutmsec;
   string userName;
-  string messageContext;
   string messageBody;
-
-  string executableType;
+  string messageContext;
   string appDirPath;
+  bool fNative() const
+    { return _format == formatNative; }
+  bool fPython() const
+    { return _format == formatPython; }
+  void setFormat(int f)
+    { _format = f; }
+  const char* formatname() const
+    { return _formatnames[_format]; }
+  int format() const
+    { return _format; }
+ private:
+  int _format;
+  static const char* const _formatnames[formatInvalid+1];
 };
+
+const char* const ExecInfo::_formatnames[formatInvalid+1] =
+    { "native", "python", "invalid" };
 
 // Given the specified user and argument string, contact the szgserver and
 // determine the user's execution path. Next, given the arg string sent to 
@@ -285,7 +307,7 @@ public:
 //    1. if we are executing a native program, this will be the arglist after
 //       the exename (i.e. on unix argv[2]... argv[argc-1])
 //    2. for python, this will be the full exename plus the args.
-string buildFunctionArgs(ExecutionInfo* execInfo,
+string buildFunctionArgs(ExecInfo* execInfo,
                        string& execPath,
                        string& symbolicCommand,
                        string& command,
@@ -332,7 +354,7 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
   string fileName;
   string failedAppPath;
   if (command.length() > 3 && command.substr(command.length()-3, 3) == ".py") {
-    execInfo->executableType = "python";
+    execInfo->setFormat(formatPython);
     fileName = command;
     execInfo->appDirPath = getAppPath( userName, "SZG_PYTHON", fileName, errStream );
     if (execInfo->appDirPath == "NULL") {
@@ -347,7 +369,7 @@ string buildFunctionArgs(ExecutionInfo* execInfo,
     }
   }
   else {
-    execInfo->executableType = "native";
+    execInfo->setFormat(formatNative);
 #ifdef AR_USE_WIN_32
     command += ".EXE";
 #endif
@@ -370,11 +392,20 @@ LAbort:
     }
   }
 
-  // Found the file.  What kind of exe is it?
-  if (execInfo->executableType == "native") {
+  // Found the file.
+  const int format = execInfo->format();
+  switch (format) {
+
+  case formatInvalid:
+  default:
+    errStream << "szgd error: unexpected exe type " << format << ".\n";
+    return errStream.str();
+
+  case formatNative:
     // Nothing to do
-  }
-  else if (execInfo->executableType == "python") {
+    break;
+
+  case formatPython:
     // Prepend the original command (the script name) to the args list.
     args.push_front(command);
 
@@ -434,15 +465,12 @@ LAbort:
         }
       }
     }
-
-  } else {
-    errStream << "szgd error: unexpected exe type '" << execInfo->executableType << "'.\n";
-    return errStream.str();
+    break;
   }
 
   cout << "szgd remark:\n"
        << "  user = " << userName << "\n"
-       << "  exe  = " << execInfo->executableType << " " << command << "\n"
+       << "  exe  = " << execInfo->formatname() << " " << command << "\n"
        << "  args = (";
   for (list<string>::iterator iter = args.begin();
        iter != args.end(); ++iter){
@@ -515,14 +543,14 @@ static void TweakPath(string& path) {
 }
 
 void execProcess(void* i){
-  ExecutionInfo* execInfo = (ExecutionInfo*)i;
-  const string userName(execInfo->userName);
-  const string messageContext(execInfo->messageContext);
-  const string messageBody(execInfo->messageBody);
-  int receivedMessageID = execInfo->receivedMessageID; 
+  ExecInfo* execInfo = (ExecInfo*)i;
+  const string& userName = execInfo->userName;
+  const string& messageContext = execInfo->messageContext;
+  const int& receivedMessageID = execInfo->receivedMessageID; 
 
   ostringstream info;
-  info << endl << "The program failed to launch!" << endl;
+  info << endl << "Program failed to launch." << endl;
+
   // Respond to the message ourselves if the exe doesn't launch.
   info << "user=" << userName
        << ", context=" << messageContext
@@ -540,10 +568,10 @@ void execProcess(void* i){
 LDone:
     delete execInfo;
     if (ar_setWorkingDirectory( originalWorkingDirectory )) {
-      cout << "szgd remark: post-launch current directory is '"
+      cout << "szgd remark: post-launch current dir is '"
            << originalWorkingDirectory << "'.\n";
     } else {
-      cerr << "szgd error: post-launch failed to set current directory to "
+      cerr << "szgd error: post-launch failed to cd to "
            << originalWorkingDirectory << ".\n";
     }
     return;
@@ -652,7 +680,7 @@ LDone:
   // Deal with python
   string pythonPath;
   string oldPythonPath;
-  if (execInfo->executableType == "python") {
+  if (execInfo->fPython()) {
     oldPythonPath = ar_getenv( "PYTHONPATH" );
     // if SZG_PYTHON/path not set, warning was already displayed.
     const string szgPythonPath =
@@ -794,7 +822,7 @@ LDone:
   cerr << "szgd remark: dynamic library path =\n  "
        << dynamicLibraryPath << "\n";
   ar_setenv(dynamicLibraryPathVar, dynamicLibraryPath);
-  if (execInfo->executableType == "python") {
+  if (execInfo->fPython()) {
     cerr << "szgd remark: python path =\n  " << pythonPath << "\n";
     ar_setenv("PYTHONPATH", pythonPath);
   }
@@ -886,9 +914,8 @@ LDone:
   cerr << "szgd remark: dynamic library path =\n  "
        << dynamicLibraryPath << "\n";
   ar_setenv(dynamicLibraryPathVar, dynamicLibraryPath);
-  if (execInfo->executableType == "python") {
-    cerr << "szgd remark: python path =\n  "
-         << pythonPath << "\n";
+  if (execInfo->fPython()) {
+    cerr << "szgd remark: python path =\n  " << pythonPath << "\n";
     ar_setenv("PYTHONPATH", pythonPath);
   }
 
@@ -911,7 +938,7 @@ LDone:
 
   // Restore the variables before unlocking the mutex.
   ar_setenv( dynamicLibraryPathVar, oldDynamicLibraryPath);
-  if (execInfo->executableType == "python")
+  if (execInfo->fPython())
     ar_setenv( "PYTHONPATH", oldPythonPath );
   ar_mutex_unlock(&processCreationLock);
 
@@ -1027,9 +1054,9 @@ LRetry:
     }
 
     if (messageType=="quit") {
-      // Just in case exit() misses SZGClient's destructor.
+      // In case exit() misses ~arSZGClient().
       SZGClient->closeConnection();
-      // will return(0) be gentler, yet kill the child processes too?
+      // Will return(0) be gentler, yet kill the child processes too?
       exit(0);
     }
 
@@ -1052,16 +1079,11 @@ LRetry:
         }
       }
 
-      ExecutionInfo* info = new ExecutionInfo();
-      // todo: all this should be args to the constructor
-      info->userName = userName;
-      info->messageBody = messageBody;
-      info->messageContext = messageContext;
-      info->receivedMessageID = receivedMessageID;
-      info->timeoutmsec = timeoutMsec;
-      // The long-blocking exec call gets its own thread.
-      // So the various arSZGClient methods must be thread-safe.
-      arThread dummy(execProcess, info); // execProcess() deletes info.
+      // Since the long-blocking exec call gets its own thread,
+      // various arSZGClient methods must be thread-safe.
+      arThread dummy(execProcess, new ExecInfo(
+        userName, messageBody, messageContext, receivedMessageID, timeoutMsec));
+	// new is matched by execProcess()'s delete.
     }
   }
   return 1;
