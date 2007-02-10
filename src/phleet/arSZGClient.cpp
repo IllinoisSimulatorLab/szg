@@ -3170,15 +3170,10 @@ bool arSZGClient::discoverSZGServer(const string& name,
     return false;
   }
 
-  // We actually got something.
-  const string theServerName(_responseBuffer+5);
-  const string theServerIP  (_responseBuffer+132);
-  const string theServerPort(_responseBuffer+164);
-
   // to internal storage
-  _IPaddress = theServerIP;
-  _port = atoi(theServerPort.c_str());
-  _serverName = theServerName;
+  _serverName = string(_responseBuffer+5);
+  _IPaddress = string(_responseBuffer+132);
+  _port = atoi(_responseBuffer+164);
 
   ar_mutex_unlock(&_queueLock);
   return true;
