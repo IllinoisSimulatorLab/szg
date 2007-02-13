@@ -6,10 +6,10 @@
 #include "arPrecompiled.h"
 #define SZG_DO_NOT_EXPORT
 
-#include "arPhleetConfigParser.h"
+#include "arPhleetConfig.h"
 
 int main(int argc, char** argv){
-  arPhleetConfigParser parser;
+  arPhleetConfig config;
 
   char* host = argv[1];
   char buf[200];
@@ -31,11 +31,11 @@ int main(int argc, char** argv){
     return 1;
   }
 
-  if (!parser.parseConfigFile()) {
+  if (!config.read()) {
     // THIS IS NOT AN ERROR!
     // This can occur the first time one of these program is run.
     cout << "dname remark: writing new config file.\n";
   }
-  parser.setComputerName(host);
-  return parser.writeConfigFile() ? 0 : 1;
+  config.setComputerName(host);
+  return config.write() ? 0 : 1;
 }

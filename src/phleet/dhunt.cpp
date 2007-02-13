@@ -19,8 +19,8 @@ LUsage:
   if (argc == 2 && !fVerbose)
     goto LUsage;
 
-  arPhleetConfigParser config;
-  if (!config.parseConfigFile()) {
+  arPhleetConfig config;
+  if (!config.read()) {
     cerr << "dhunt error: failed to parse config file.\n";
     return 1;
   }

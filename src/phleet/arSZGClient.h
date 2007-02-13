@@ -10,7 +10,7 @@
 #include "arThread.h"
 #include "arUDPSocket.h"
 #include "arStructuredDataParser.h"
-#include "arPhleetConfigParser.h"
+#include "arPhleetConfig.h"
 #include "arPhleetConnectionBroker.h"
 #include "arPhleetOSLanguage.h"
 #include "arMath.h"
@@ -29,7 +29,7 @@ class SZG_CALL arSZGClient{
   friend void arSZGClientServerResponseThread(void*);
   friend void arSZGClientTimerThread(void*);
   friend void arSZGClientDataThread(void*);
-  friend class arPhleetConfigParser; // its parseLoginFile() calls _dialUpFallThrough()
+  friend class arPhleetConfig; // its parseLogin() calls _dialUpFallThrough()
  public:
   arSZGClient();
   ~arSZGClient();
@@ -226,7 +226,7 @@ class SZG_CALL arSZGClient{
   void printSZGServers(const string& broadcast);
   vector<string> findSZGServers(const string& broadcast);
   void setServerLocation(const string& IPaddress, int port);
-  bool writeLoginFile(const string& userName);
+  bool writeLogin(const string& userName);
   bool logout();
   void closeConnection();
 
@@ -238,7 +238,7 @@ class SZG_CALL arSZGClient{
   const string& getServerName();
 
  private:
-  arPhleetConfigParser _configParser;
+  arPhleetConfig       _config;
   arPhleetOSLanguage   _l;
   arDataClient         _dataClient;
   string               _IPaddress;

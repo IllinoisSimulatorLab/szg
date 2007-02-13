@@ -6,18 +6,18 @@
 #include "arPrecompiled.h"
 #define SZG_DO_NOT_EXPORT
 
-#include "arPhleetConfigParser.h"
+#include "arPhleetConfig.h"
 
 int main(int argc, char** /*argv*/){
   if (argc != 1){
     cout << "usage: dconfig\n";
     return 1;
   }
-  arPhleetConfigParser parser;
-  if (!parser.parseConfigFile()){
+  arPhleetConfig config;
+  if (!config.read()){
     cerr << "dconfig error: failed to parse phleet configuration file.\n";
     return 1;
   }
-  parser.printConfig();
+  config.print();
   return 0;
 }

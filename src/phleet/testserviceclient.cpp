@@ -92,10 +92,10 @@ int main(int argc, char** argv){
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 
-  arPhleetConfigParser parser;
-  if (!parser.parseConfigFile())
+  arPhleetConfig config;
+  if (!config.read())
     return 1;
-  networks = parser.getNetworks();
+  networks = config.getNetworks();
   serviceName[0] = string(argv[1]);
   serviceName[1] = string(argv[2]);
   

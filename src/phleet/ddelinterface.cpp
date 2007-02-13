@@ -6,19 +6,19 @@
 #include "arPrecompiled.h"
 #define SZG_DO_NOT_EXPORT
 
-#include "arPhleetConfigParser.h"
+#include "arPhleetConfig.h"
 
 int main(int argc, char** argv){
-  arPhleetConfigParser parser;
+  arPhleetConfig config;
   if (argc != 3){
     cout << "usage: ddelinterface name address\n";
     return 1;
   }
 
-  if (!parser.parseConfigFile()) {
+  if (!config.read()) {
     // Maybe the first time this program was run.
     cout << "ddelinterface remark: writing new config file.\n";
   }
-  return parser.deleteInterface(argv[1], argv[2]) &&
-         parser.writeConfigFile() ? 0 : 1;
+  return config.deleteInterface(argv[1], argv[2]) &&
+         config.write() ? 0 : 1;
 }

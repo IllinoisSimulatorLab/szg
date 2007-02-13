@@ -9,7 +9,7 @@
 #include "arDataUtilities.h"
 #include "arBarrierClient.h"
 #include "arSZGClient.h"
-#include "arPhleetConfigParser.h"
+#include "arPhleetConfig.h"
 
 #include <stdlib.h>
 
@@ -21,36 +21,40 @@ int main(int argc, char** argv){
 
   arBarrierClient barrierClient;
   barrierClient.setServiceName("SZG_BARRIER");
-  arPhleetConfigParser parser;
-  if (!parser.parseConfigFile())
+  arPhleetConfig config;
+  if (!config.read())
     return 1;
 
-  barrierClient.setNetworks(parser.getNetworks());
+  barrierClient.setNetworks(config.getNetworks());
   if (!barrierClient.init(szgClient) || !barrierClient.start())
     return 1;
 
   arThread dummy(ar_messageTask, &szgClient);
   int count = 0;
-  ar_timeval time1, time2;
+  ar_timeval timePrev;
   while (true) {
     while (!barrierClient.checkConnection()){
       ar_usleep(100000);
     }
-    // Connected to the server.
+
+    // Connected to the barrier server.
     if (!barrierClient.checkActivation()){
       barrierClient.requestActivation();
       count = 0;
-      time1 = ar_time();
+      timePrev = ar_time();
     }
     if (!barrierClient.sync())
       cerr << "BarrierClient warning: sync failed.\n";
-    ++count;
-    if (count%1000 == 0){
-      time2 = ar_time();
-      cout << "Average time for one barrier sync = " 
-           << ar_difftime(time2,time1)/1000.0 << "usec\n";
-      time1 = ar_time();
+    const int countMax = 1000;
+    if (++count == countMax){
+      const ar_timeval timeNow = ar_time();
+      count = 0;
+      cout << "Barrier sync averages " 
+           << ar_difftime(timeNow, timePrev) / float(countMax)
+	   << "usec.\n";
+      timePrev = ar_time();
     }
   }
+
   return 0;
 }

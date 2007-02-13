@@ -15,8 +15,8 @@ int main(int argc, char** argv){
     return 1;
   }
  
-  arPhleetConfigParser config;
-  if (!config.parseConfigFile()) {
+  arPhleetConfig config;
+  if (!config.read()) {
     cerr << "dlogin error: failed to parse config file.\n";
     return 1;
   }
@@ -53,7 +53,7 @@ int main(int argc, char** argv){
 
   // Write the partial login file,
   // which is what the arSZGClient will use to connect.
-  if (!szgClient.writeLoginFile(userName))
+  if (!szgClient.writeLogin(userName))
     return 1;
 
   // Connect to the szgserver
@@ -66,11 +66,11 @@ int main(int argc, char** argv){
 
   // Write the login file completely,
   // now that the server name has been transferred.
-  if (!szgClient.writeLoginFile(userName))
+  if (!szgClient.writeLogin(userName))
     return 1;
 
   // Verify that the login file can be read.
-  config.parseLoginFile();
+  config.parseLogin();
   config.printLogin();
   return 0;
 }

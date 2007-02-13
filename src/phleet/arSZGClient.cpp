@@ -5,7 +5,6 @@
 
 #include "arPrecompiled.h"
 #include "arSZGClient.h"
-#include "arPhleetConfigParser.h"
 #include "arXMLUtilities.h"
 #include "arXMLParser.h"
 #include "arLogStream.h"
@@ -159,8 +158,8 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   // Parse the config file BEFORE parsing the Phleet args (and the "context"),
   // to set the _networks and _addresses.
   // If these files cannot be read, it is still possible to recover.
-  (void) _configParser.parseConfigFile();
-  (void) _configParser.parseLoginFile(true);
+  (void) _config.read();
+  (void) _config.parseLogin(true);
 
   // If the networks and addresses were NOT set via command line args or
   // environment variables, set them.
@@ -171,14 +170,14 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   // down in the _parseSpecialPhleetArgs and _parseContext.
 
   // From the computer-wide config file (if such existed) and the user's login file.
-  _networks = _configParser.getNetworks();           // can override
-  _addresses = _configParser.getAddresses();         // can override
-  _computerName = _configParser.getComputerName();   // *cannot* override
+  _networks = _config.getNetworks();           // can override
+  _addresses = _config.getAddresses();         // can override
+  _computerName = _config.getComputerName();   // *cannot* override
   // From the per-user login file, if such existed.
-  _serverName   = _configParser.getServerName();     // *cannot* override
-  _IPaddress    = _configParser.getServerIP();       // can override
-  _port         = _configParser.getServerPort();     // can override
-  _userName     = _configParser.getUserName();       // can override
+  _serverName   = _config.getServerName();     // *cannot* override
+  _IPaddress    = _config.getServerIP();       // can override
+  _port         = _config.getServerPort();     // can override
+  _userName     = _config.getUserName();       // can override
 
   // Handle and remove any special Phleet args.
   // These can override some of the members just assigned.
@@ -1954,8 +1953,8 @@ bool arSZGClient::_getPortsCore1(
   data->dataIn(_l.AR_SZG_REGISTER_SERVICE_SIZE, &numberPorts, AR_INT, 1);
   data->dataInString(_l.AR_SZG_REGISTER_SERVICE_COMPUTER, _computerName);
   const int temp[2] = {
-    _configParser.getFirstPort(),
-    _configParser.getPortBlockSize() };
+    _config.getFirstPort(),
+    _config.getPortBlockSize() };
   data->dataIn(_l.AR_SZG_REGISTER_SERVICE_BLOCK, temp, AR_INT, 2);
   return true;
 }
@@ -2094,8 +2093,8 @@ bool arSZGClient::confirmPorts(const string& serviceName,
   data->dataIn(_l.AR_SZG_REGISTER_SERVICE_PORT, portIDs, AR_INT, numberPorts);
   data->dataInString(_l.AR_SZG_REGISTER_SERVICE_COMPUTER, _computerName);
   int temp[10];
-  temp[0] = _configParser.getFirstPort();
-  temp[1] = _configParser.getPortBlockSize();
+  temp[0] = _config.getFirstPort();
+  temp[1] = _config.getPortBlockSize();
   data->dataIn(_l.AR_SZG_REGISTER_SERVICE_BLOCK, temp, AR_INT, 2);
 
   if (!_dataClient.sendData(data)) {
@@ -3189,17 +3188,18 @@ void arSZGClient::printSZGServers(const string& broadcast) {
   _justPrinting = true;
 
   ar_mutex_lock(&_queueLock);
-  _foundServers.clear();
-  _dataRequested = true;
-  _beginTimer = true;
-  _requestedName = "";
-  _sendDiscoveryPacket("*",broadcast);
-  _timerCondVar.signal();
-  while (_beginTimer) {
-    _dataCondVar.wait(&_queueLock);
-  }
+    _foundServers.clear();
+    _dataRequested = true;
+    _beginTimer = true;
+    _requestedName = "";
+    _sendDiscoveryPacket("*",broadcast);
+    _timerCondVar.signal();
+    while (_beginTimer) {
+      _dataCondVar.wait(&_queueLock);
+    }
   ar_mutex_unlock(&_queueLock);
   _dataRequested = false;
+
   _justPrinting = false;
   _bufferResponse = false;
 }
@@ -3237,25 +3237,25 @@ void arSZGClient::setServerLocation(const string& IPaddress, int port) {
 }
 
 // Write a login file using data from e.g. discoverSZGServer()
-bool arSZGClient::writeLoginFile(const string& userName) {
+bool arSZGClient::writeLogin(const string& userName) {
   // userName may differ from _userName.
   // The internal storage refers to the effective user name of this
   // component, which the environment variable SZGUSER can override.
   // userName is the phleet login name in the config file
-  _configParser.setUserName(userName);
-  _configParser.setServerName(_serverName);
-  _configParser.setServerIP(_IPaddress);
-  _configParser.setServerPort(_port);
-  return _configParser.writeLoginFile();
+  _config.setUserName(userName);
+  _config.setServerName(_serverName);
+  _config.setServerIP(_IPaddress);
+  _config.setServerPort(_port);
+  return _config.writeLogin();
 }
 
 // Reset the login file to not-logged-in state.
 bool arSZGClient::logout() {
-  _configParser.setUserName("NULL");
-  _configParser.setServerName("NULL");
-  _configParser.setServerIP("NULL");
-  _configParser.setServerPort(0);
-  return _configParser.writeLoginFile();
+  _config.setUserName("NULL");
+  _config.setServerName("NULL");
+  _config.setServerIP("NULL");
+  _config.setServerPort(0);
+  return _config.writeLogin();
 }
 
 // Default message task which handles "quit" and nothing else.

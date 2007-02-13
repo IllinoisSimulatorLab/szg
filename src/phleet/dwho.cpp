@@ -6,7 +6,7 @@
 #include "arPrecompiled.h"
 #define SZG_DO_NOT_EXPORT
 
-#include "arPhleetConfigParser.h"
+#include "arPhleetConfig.h"
 
 // prints the log-in information, szgserver name, szgserver IP, szgserver
 // port, and user name
@@ -16,8 +16,8 @@ int main(int argc, char** argv){
     return 1;
   }
 
-  arPhleetConfigParser parser;
-  parser.parseLoginFile();
-  parser.printLogin();
+  arPhleetConfig config;
+  config.parseLogin();
+  config.printLogin();
   return 0;
 }

@@ -6,18 +6,18 @@
 #include "arPrecompiled.h"
 #define SZG_DO_NOT_EXPORT
 
-#include "arPhleetConfigParser.h"
+#include "arPhleetConfig.h"
 
 int main(int argc, char** argv){
-  arPhleetConfigParser parser;
+  arPhleetConfig config;
   if (argc != 3){
     cout << "usage: dports first size\n";
     return 1;
   }
-  if (!parser.parseConfigFile()) {
+  if (!config.read()) {
     // THIS IS NOT AN ERROR
     cout << "dports error: writing new config file.\n";
   }
-  parser.setPortBlock(atoi(argv[1]), atoi(argv[2]));
-  return parser.writeConfigFile() ? 0 : 1;
+  config.setPortBlock(atoi(argv[1]), atoi(argv[2]));
+  return config.write() ? 0 : 1;
 }

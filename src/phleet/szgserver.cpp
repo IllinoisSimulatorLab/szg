@@ -10,7 +10,7 @@
 #include "arDataServer.h"
 #include "arThread.h"
 #include "arUDPSocket.h"
-#include "arPhleetConfigParser.h"
+#include "arPhleetConfig.h"
 #include "arPhleetConnectionBroker.h"
 
 #include <stdio.h>
@@ -2080,16 +2080,16 @@ int main(int argc, char** argv){
   serverPort = atoi(argv[2]);
   // Determine serverIP, so we can tell client where to connect
   // while we bind to INADDR_ANY.
-  arPhleetConfigParser parser;
-  if (!parser.parseConfigFile()){
+  arPhleetConfig config;
+  if (!config.read()){
     cerr << "szgserver error: syntax error in config file. (Try dconfig.)\n";
     return 1;
   }
 
   // Find the first address interface in the list,
   // the one reported to dhunt and dlogin.
-  computerAddresses = parser.getAddresses();
-  computerMasks = parser.getMasks();
+  computerAddresses = config.getAddresses();
+  computerMasks = config.getMasks();
   if (computerAddresses.empty()){
     cerr << "szgserver error: config file defines no networks.\n";
     return 1;

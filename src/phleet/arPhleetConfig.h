@@ -26,24 +26,22 @@ class arInterfaceDescription{
 
 // Used for parsing/storing/writing the szg.conf config file and
 // the szg_<username>.conf login files
-class SZG_CALL arPhleetConfigParser{
+class SZG_CALL arPhleetConfig{
  public:
-  arPhleetConfigParser();
-  ~arPhleetConfigParser() {}
+  arPhleetConfig();
+  ~arPhleetConfig() {}
 
-  // manipulate the config file
-  bool parseConfigFile();
-  bool writeConfigFile();
+  // Config file I/O.
+  bool read();
+  bool write();
+  void print() const;
 
-  // manipulate user's login file
-  bool parseLoginFile(bool fFromInit = false);
-  bool writeLoginFile();
-
-  // output configuration
-  void printConfig() const;
+  // Login file I/O.
+  bool parseLogin(bool fFromInit = false);
+  bool writeLogin();
   void printLogin() const;
 
-  // get global config info
+  // Get global config info.
   // computer name, as parsed from the config file
   string getComputerName() const
     { return _computerName; }
