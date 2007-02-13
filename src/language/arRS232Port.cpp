@@ -283,10 +283,10 @@ bool arRS232Port::ar_open( const unsigned port, const unsigned long baud,
   ar_log_debug() << "System input buffer size = " << comProp.dwCurrentRxQueue << ", max " << comProp.dwMaxRxQueue << ar_endl;
 #endif
 
+  _isOpen = true;
   if (!setReadTimeout( _readTimeoutTenths )) {
     return false;
   } 
-  _isOpen = true;
 
   if (!flushInput())
     ar_log_warning() << "arRS232Port: flushInput() failed.\n";
