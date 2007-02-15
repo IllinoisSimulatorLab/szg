@@ -235,12 +235,14 @@ SZG_CALL string ar_packParameters(int,char**);
 
 // strip pathname and .EXE from win32 exe's
 SZG_CALL string ar_stripExeName(const string&);
-// get the path only from a fully qualified exectuable name.
+// get the path only from a fully qualified executable name.
 SZG_CALL string ar_exePath(const string&);
 // find the extension of a particular file name (i.e. jpg or ppm or obj)
 SZG_CALL string ar_getExtension(const string&);
-// add the right shared library extension for the system (.dll or .so)
+// append .dll or .so
 SZG_CALL void ar_addSharedLibExtension(string& name);
+// replace every "from" with "to"
+SZG_CALL string ar_replaceAll(const string& s, const string& from, const string& to);
 
 // manipulating system characteristics
 SZG_CALL string ar_getenv(const string&);
@@ -288,7 +290,7 @@ SZG_CALL void ar_deallocateBuffer( void* ptr );
 SZG_CALL void ar_copyBuffer( void* const outBuf, const void* const inBuf,
                              arDataType theType, unsigned int size );
 
-// Some global database node manipulation functions.
+// Global database node manipulation.
 class arDatabaseNode;
 SZG_CALL void ar_refNodeList(list<arDatabaseNode*>& nodeList);
 SZG_CALL void ar_unrefNodeList(list<arDatabaseNode*>& nodeList);

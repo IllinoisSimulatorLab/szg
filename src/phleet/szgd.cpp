@@ -118,16 +118,16 @@ bool getBasePaths( const char* const arg ) {
       bool isFile = false;
       if (!ar_fileExists( pathTmp+".exe", exists, isFile )) {
         if (!exists) {
-          cerr << "szgd error: no directory '" << pathTmp << "' or executable '" << pathTmp+".exe.\n";
+          cerr << "szgd warning: no directory '" << pathTmp << "' or executable '" << pathTmp+".exe.\n";
           return false;
         }
         if (!isFile) {
-          cerr << "szgd error: executable '" << pathTmp+".exe" << "' is not a file.\n";
+          cerr << "szgd warning: executable '" << pathTmp+".exe" << "' is not a file.\n";
           return false;
         }
       }
 #else
-      cerr << "szgd error: no directory '" << pathTmp << "'.\n";
+      cerr << "szgd warning: no directory '" << pathTmp << "'.\n";
       return false;
 #endif
     }
@@ -321,7 +321,7 @@ string buildFunctionArgs(ExecInfo* execInfo,
   args.clear();
   arDelimitedString tmpArgs(argString, ' ');
   if (tmpArgs.size() < 1) {
-    return "szgd error: no arguments.\n";
+    return "szgd warning: no arguments.\n";
   }
 
   command = tmpArgs[0];
@@ -362,7 +362,7 @@ string buildFunctionArgs(ExecInfo* execInfo,
     }
     command = ar_fileFind( fileName, "", execInfo->appDirPath);
     if (command == "NULL") {
-      errStream << "szgd error: no file '" << fileName <<
+      errStream << "szgd warning: no file '" << fileName <<
         "' on SZG_PYTHON/path '" << execInfo->appDirPath << "'.\n";
       cerr << errStream.str();
       return errStream.str();
@@ -380,7 +380,7 @@ string buildFunctionArgs(ExecInfo* execInfo,
     }
     command = ar_fileFind( fileName, "", execInfo->appDirPath);
     if (command == "NULL") {
-      errStream << "szgd error: no file '" << fileName
+      errStream << "szgd warning: no file '" << fileName
            << "' on SZG_EXEC/path '" << execInfo->appDirPath << "'.\n";
 LAbort:
 #ifdef AR_USE_WIN_32
@@ -398,7 +398,7 @@ LAbort:
 
   case formatInvalid:
   default:
-    errStream << "szgd error: unexpected exe type " << format << ".\n";
+    errStream << "szgd warning: unexpected exe type " << format << ".\n";
     return errStream.str();
 
   case formatNative:
@@ -433,7 +433,7 @@ LAbort:
         fileName = command;
         command = ar_fileFind( fileName, "", execPath );
         if (command == "NULL") {
-          errStream << "szgd error: no python exe '" << fileName
+          errStream << "szgd warning: no python exe '" << fileName
                << "' on SZG_EXEC/path " << execPath << ".\n";
           goto LAbort;
         }
@@ -446,7 +446,7 @@ LAbort:
       fileName = command;
       command = ar_fileFind( fileName, "", execPath );
       if (command == "NULL") {
-        errStream << "szgd error: no python exe '" << fileName
+        errStream << "szgd warning: no python exe '" << fileName
              << "' on SZG_EXEC/path " << execPath << ".\n";
         goto LAbort;
       }
@@ -496,7 +496,7 @@ char** buildUnixStyleArgList(const string& command, list<string>& args) {
   argv[listLength+1] = NULL;
 
   int index = 1;
-  for (list<string>::iterator i=args.begin(); i!=args.end(); ++i) {
+  for (list<string>::const_iterator i=args.begin(); i!=args.end(); ++i) {
     argv[index] = new char[i->length()+1];
     ar_stringToBuffer(*i, argv[index], i->length()+1);
     ++index;
@@ -514,7 +514,7 @@ string buildWindowsStyleArgList(const string& command, list<string>& args) {
   if (!args.empty()) {
     result += " ";
   }
-  for (list<string>::iterator i = args.begin(); i != args.end(); ++i) {
+  for (list<string>::const_iterator i = args.begin(); i != args.end(); ++i) {
     // for every element except for the first, we want to add a space
     if (i != args.begin()) {
       result += " ";
@@ -548,13 +548,10 @@ void execProcess(void* i){
   const string& messageContext = execInfo->messageContext;
   const int& receivedMessageID = execInfo->receivedMessageID; 
 
+  // Respond to the message ourselves, if the exe doesn't launch.
   ostringstream info;
-  info << endl << "Program failed to launch." << endl;
-
-  // Respond to the message ourselves if the exe doesn't launch.
-  info << "user=" << userName
-       << ", context=" << messageContext
-       << ", computer=" << SZGClient->getComputerName() << endl << endl;
+  info << "szgd warning: launch failed.\n"
+       << SZGClient->launchinfo(userName, messageContext);
 
   string execPath;
   string symbolicCommand;
@@ -571,7 +568,7 @@ LDone:
       cout << "szgd remark: post-launch current dir is '"
            << originalWorkingDirectory << "'.\n";
     } else {
-      cerr << "szgd error: post-launch failed to cd to "
+      cerr << "szgd warning: post-launch failed to cd to "
            << originalWorkingDirectory << ".\n";
     }
     return;
@@ -705,7 +702,7 @@ LDone:
 
   // Set the current directory to that containing the app
   if (!ar_setWorkingDirectory( execInfo->appDirPath )) {
-    cerr << "szgd error: pre-launch failed to set current directory to '"
+    cerr << "szgd warning: pre-launch failed to set current directory to '"
          << execInfo->appDirPath << "'.\n";
   } else {
     cerr << "szgd remark: pre-launch current directory is '"
@@ -730,7 +727,7 @@ LDone:
   char numberBuffer[8] = {0};
   const int PID = fork();
   if (PID < 0) {
-    cerr << "szgd error: fork failed.\n";
+    cerr << "szgd warning: fork failed.\n";
     goto LDone;
   }
 
@@ -842,7 +839,7 @@ LDone:
   }
   deleteUnixStyleArgList(theArgs);
 
-  info << "szgd error: failed to exec '" << symbolicCommand << "': ";
+  info << "szgd warning: failed to exec '" << symbolicCommand << "': ";
   switch (errno) {
   case E2BIG: info << "args + env too large\n";
     break;

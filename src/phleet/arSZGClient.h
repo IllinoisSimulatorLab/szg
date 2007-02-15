@@ -132,11 +132,11 @@ class SZG_CALL arSZGClient{
 
   const string& getLabel() const
     { return _exeName; }
-
   const string& getComputerName() const
     { return _computerName; }
   const string& getUserName() const
     { return _userName; }
+  string launchinfo(const string&, const string&) const;
 
   // general administration functions
   string getProcessList();

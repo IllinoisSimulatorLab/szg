@@ -15,6 +15,8 @@
 #include <math.h>
 #include <float.h>
 #include <limits.h> // for CLK_TCK and error-checking conversions
+#include <iterator> // for g++ ostream_iterator<> in ar_replaceAll()
+
 #include "arSTLalgo.h"
 using namespace std;
 
@@ -882,6 +884,31 @@ void ar_addSharedLibExtension(string& name){
 #endif
 }
 
+// For ar_replaceAll(), pop the first word off the front of s, and return that word.
+inline string popword(string& s, const string& delim) {
+  const unsigned i = s.find(delim);
+  const string w(s.substr(0, i));
+  if (i == string::npos)
+    s.erase(); // s was only one word
+  else
+    s.erase(0, i + delim.size());
+  return w;
+}
+
+string ar_replaceAll(const string& s, const string& from, const string& to) {
+  vector<string> v;
+  if (s.empty())
+    return "";
+
+  string t(s);
+  while (!t.empty() && t.find(from) != string::npos)
+    v.push_back(popword(t, from));
+  v.push_back(t);
+  ostringstream os;
+  copy(v.begin(), v.end()-1, ostream_iterator<string>(os, to.c_str()));
+  return os.str() + *(v.end() - 1);
+}
+
 void ar_setenv(const string& variable, const string& value){
 
   // putenv is OS-dependent.  On Win32, the string is copied
@@ -1324,5 +1351,3 @@ void ar_unpackStringVector( char* inbuf, unsigned int numStrings, std::vector< s
     ptr += strlen(ptr)+1;
   }
 }
-
-

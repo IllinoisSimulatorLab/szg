@@ -9,8 +9,6 @@
 #include "arXMLParser.h"
 #include "arLogStream.h"
 
-#include <stdio.h>
-
 void arSZGClientServerResponseThread(void* client) {
   ((arSZGClient*)client)->_serverResponseThread();
 }
@@ -1562,9 +1560,9 @@ int arSZGClient::receiveMessage(string* userName, string* messageType,
 // been received, -1 if a partial response has been received, and 0 if failure
 // (as might happen, for instance, if a component dies before having a
 // chance to respond to a message).
-// @param body is filled-in with the body of the message response
-// @param match is filled-in with the "match" of this response (which is
-//   the same as the "match" of the original message that generated it.
+// Param body is filled-in with the body of the message response
+// Param match is filled-in with the "match" of this response (which is
+// the same as the "match" of the original message that generated it).
 int arSZGClient::getMessageResponse(list<int> tags,
                                     string& body,
                                     int& match,
@@ -2501,41 +2499,46 @@ string arSZGClient::createComplexServiceName(const string& serviceName) {
     string("/") + serviceName;
 }
 
-// Create a context string form internal storage and returns it.
-// Used, for instance, in generating the launch info header.
+inline const string namevalue(const string& name, const string& value) {
+  return value=="NULL" ? "" : (name + "=" + value + ";");
+}
+
+// Remove any trailing semicolons.
+inline const string dropsemi(string& s) {
+  const unsigned i = s.find_last_not_of(";");
+  return i==string::npos ? s : s.erase(i+1);
+}
+
+// Return a context string from internal storage.
+// Used to make the launch info header.
 string arSZGClient::createContext() {
-  string result(string("virtual=")+_virtualComputer+string(";")+
-    string("mode/default=")+_mode+string(";")+string("log=")+ar_logLevelToString(_logLevel));
-
-  // Additional mode stuff.
-  if (_graphicsMode != "NULL")
-    result += string(";mode/graphics=")+_graphicsMode;
-  result += string(";")+string("networks/default=")+_networks;
-
-  // Additional network stuff.
-  if (_graphicsNetworks != "NULL")
-    result += string(";networks/graphics=")+_graphicsNetworks;
-  if (_soundNetworks != "NULL")
-    result += string(";networks/sound=")+_soundNetworks;
-  if (_inputNetworks != "NULL")
-    result += string(";networks/input=")+_inputNetworks;
-
-  return result;
+  string s(
+    namevalue("virtual", _virtualComputer) +
+    namevalue("mode/default", _mode) +
+    namevalue("log", ar_logLevelToString(_logLevel)) +
+    namevalue("mode/graphics", _graphicsMode) +
+    namevalue("networks/default", _networks) +
+    namevalue("networks/graphics", _graphicsNetworks) +
+    namevalue("networks/sound", _soundNetworks) +
+    namevalue("networks/input", _inputNetworks));
+  return dropsemi(s);
 }
 
 // Create a context string from the parameters.
-// Don't set the related internal variables, merely
-// encapsulate a data format that may change over time.
-// Bogus: currently no way to specify
-// the channels upon which multiple services operate!
+// Don't set the related internal variables;
+// merely encapsulate a data format that may change over time.
+//
+// Todo: specify the channels upon which multiple services operate.
 string arSZGClient::createContext(const string& virtualComputer,
                                   const string& modeChannel,
                                   const string& mode,
                                   const string& networksChannel,
                                   const arSlashString& networks) {
-  return string("virtual=") + virtualComputer + string(";") +
-    string("mode/") + modeChannel + string("=") + mode + string(";") +
-    string("networks/") + networksChannel + string("=") + networks;
+  string s(
+    namevalue("virtual", virtualComputer) +
+    namevalue("mode/" + modeChannel, mode) +
+    namevalue("networks/" + networksChannel, networks));
+  return dropsemi(s);
 }
 
 // Connect to the szgserver.
@@ -2905,14 +2908,16 @@ bool arSZGClient::_checkAndSetNetworks(const string& channel, const arSlashStrin
   return false;
 }
 
+string arSZGClient::launchinfo(const string& u, const string& c) const {
+  // Pretty indentation.
+  return "  user=" + u +
+       "\n  computer=" + _computerName +
+       "\n  context=\n    " + ar_replaceAll(c, ";", "\n    ") + "\n";
+}
+
 // Header of messages returned to dex from a launched exe.
 string arSZGClient::_generateLaunchInfoHeader() {
-  stringstream s;
-  s << "*user=" << _userName << ", "
-    << "context=" << createContext() << "\n"
-    << "*computer=" << _computerName << ", "
-    << "executable=" << _exeName << "\n";
-  return s.str();
+  return "  exe=" + _exeName + "\n" + launchinfo(_userName, createContext());
 }
 
 // When standalone, use a locally parsed config file.
@@ -2923,18 +2928,12 @@ string arSZGClient::_getAttributeLocal(const string& computerName,
   const string query =
     ((computerName == "NULL") ? _computerName : computerName) + "/"
     + groupName + "/" + parameterName;
-  string tmp("NULL");
-  map<string, string, less<string> >::iterator i = _localParameters.find(query);
-  if (i!=_localParameters.end()) {
-    tmp = i->second;
-  } else {
-    tmp = ar_getenv(groupName+"_"+parameterName);
-  }    
+  map<string, string, less<string> >::const_iterator i =
+    _localParameters.find(query);
+  const string value = (i!=_localParameters.end()) ?
+    i->second : ar_getenv(groupName+"_"+parameterName);
   return _changeToValidValue(groupName, parameterName,
-    tmp, validValues);
-//  return _changeToValidValue(groupName, parameterName,
-//    (i == _localParameters.end()) ? "NULL" : i->second,
-//    validValues);
+    value, validValues);
 }
 
 // When standalone, use a locally parsed config file.
