@@ -6,12 +6,11 @@ VPATH = ../../../src/phleet
 
 include $(SZGHOME)/build/make/Makefile.vars
 
-# DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
-# with this sometimes.
+# Indent OBJS and MYLIBS with spaces, not tabs, lest gmake get upset.
 OBJS = \
   arSZGClient$(OBJ_SUFFIX) \
   arPhleetConfigLanguage$(OBJ_SUFFIX) \
-  arPhleetConfigParser$(OBJ_SUFFIX) \
+  arPhleetConfig$(OBJ_SUFFIX) \
   arPhleetConnectionBroker$(OBJ_SUFFIX) \
   arPhleetOSLanguage$(OBJ_SUFFIX) \
   arPhleetTemplate$(OBJ_SUFFIX)
@@ -71,10 +70,8 @@ ALL = $(SZG_CURRENT_DLL) \
   testlock$(EXE) \
   phleettest$(EXE)
 
-# NOTE: We now include the "magic" Everything target in Makefile.rules
-
-# This should go BEFORE our FIRST target (because Makefile.rules has rules in
-# it, along with the "magic" Everything rule!
+# Include the "magic" Everything rule,
+# before our own targets so that Makefile.rules's own rules.
 include $(SZGHOME)/build/make/Makefile.rules
 
 # NOTE: The shared lib corresponding to this szg subdirectory.
