@@ -90,6 +90,8 @@ class SZG_CALL arInputSource{
 
   // init() calls this to set the device signature.
   void _setDeviceElements(int buttons, int axes, int matrices);
+  void _setDeviceElements(const ARint* nums)
+    { return _setDeviceElements(nums[0], nums[1], nums[2]); }
   bool _fillCommonData(arStructuredData*);
   // the filtration function
 //  arStructuredData* _filterData(arStructuredData*);

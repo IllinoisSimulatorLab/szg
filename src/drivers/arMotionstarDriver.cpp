@@ -119,31 +119,24 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
   char buf[10];
   sprintf(buf,"%06.0f",birdRate * 1000.);
   strncpy(sys->rate,buf,6);
-  int nDevices = sys->chassisDevices;  
+  const int nDevices = sys->chassisDevices;  
 
   // Are we using the "monowand" button?
   // NOTE: strictly speaking, this is local to the ISL and should be
   // ELIMINATED from this driver! The "right thing" would be to hack up
   // a new loadable module that would have the ISL-only features
   // contained in it... so arISLMotionstarDriver.so...
-  if (SZGClient.getAttribute("SZG_MOTIONSTAR","use_button") == "true"){
-    _useButton = true;
-  }
+  _useButton = SZGClient.getAttribute("SZG_MOTIONSTAR","use_button") == "true";
 
-  // now, we can set the signature to be exported
+  // Export the signature.
   int sig[3];
   if (!SZGClient.getAttributeInts("SZG_MOTIONSTAR","signature",sig,3)) {
-    if (_useButton){
-      // button overrides old wand's (shifts them up)!
-      _setDeviceElements(1,0,nDevices-1); 
-    }
-    else{
-      _setDeviceElements(0,0,nDevices-1);
-    }
+    // button overrides old wand's (shifts them up)!
+    _setDeviceElements(_useButton ? 1 : 0, 0, nDevices-1); 
   } else {
     ar_log_warning() << "arMotionstarDriver: SZG_MOTIONSTAR/signature overriding device signature with ("
          << sig[0] << ", " << sig[1] << ", " << sig[2] << ").\n";
-    _setDeviceElements(sig[0],sig[1],sig[2]);
+    _setDeviceElements(sig);
   }
 
   //cout << "arMotionstarDriver remark: found " << nDevices << " devices.\n";

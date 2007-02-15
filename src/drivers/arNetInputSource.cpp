@@ -13,20 +13,19 @@ void arNetInputSource::_dataTask(){
     _data->unpack(_dataBuffer);
     ARint sig[3];
     _data->dataOut(_inp._SIGNATURE, sig, AR_INT, 3);
-    if (!_clientInitialized){
-      _setDeviceElements(sig[0], sig[1], sig[2]);
+    if (!_clientInitialized) {
+      _setDeviceElements(sig);
       if (!_reconfig())
         ar_log_warning() << "arNetInputSource failed to reconfigure source (#1).\n";
       _clientInitialized = true;
     }
     else{
-      // has the server has been reconfigured?
-      // this can happen after the connection has occured, for instance
-      // with an server that is the composite of several devices
       if (sig[0] != _numberButtons ||
           sig[1] != _numberAxes ||
           sig[2] != _numberMatrices){
-        _setDeviceElements(sig[0], sig[1], sig[2]);
+	// Server was reconfigured, perhaps after connecting to a server
+	// that is a composite of several smaller input devices.
+        _setDeviceElements(sig);
         if (!_reconfig())
 	  ar_log_warning() << "arNetInputSource failed to reconfigure source (#2).\n";
       }

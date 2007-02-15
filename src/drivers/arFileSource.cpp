@@ -13,42 +13,46 @@ void ar_fileSourceEventTask(void* fileSource){
   
   for (;;){
     while (establishingCheckpoint ||
-	   ar_difftime(latestTime, lastCheckpoint) < 10000){
+	   ar_difftime(latestTime, lastCheckpoint) < 10000) {
       arStructuredData* data = f->_parser->parse(&f->_dataStream);
-      if (!data){
-        // reached eof
-        f->_dataStream.ar_close();
-	// Wait half a second and then reopen. Loop by default.
-        ar_usleep(500000);
-	if (!f->_dataStream.ar_open(f->_dataFileName, "", f->_dataFilePath)){
-	  cerr << "arFileSource error: reopen input file.\n";
-	  return;
-	}
-	establishingCheckpoint = true;
-      }
-      else{
-        // we got some data
-        int elements[3];
-        data->dataOut("signature",elements,AR_INT,3);
-        if (elements[0] != f->getNumberButtons() ||
-	    elements[1] != f->getNumberAxes() ||
-	    elements[2] != f->getNumberMatrices()){
+      if (data) {
+        // Read data.
+
+        ARint sig[3];
+        data->dataOut("signature",sig,AR_INT,3);
+        if (sig[0] != f->getNumberButtons() ||
+	    sig[1] != f->getNumberAxes() ||
+	    sig[2] != f->getNumberMatrices()){
 	  ar_log_remark() << "arFileSource signature changed.\n";
-	  f->_setDeviceElements(elements[0], elements[1], elements[2]);
+	  f->_setDeviceElements(sig);
           f->_reconfig();
 	}
-        int timeInfo[2];
+
+        ARint timeInfo[2];
         data->dataOut("timestamp",timeInfo,AR_INT,2);
         latestTime.sec = timeInfo[0];
 	latestTime.usec = timeInfo[1];
+
 	if (establishingCheckpoint){
           establishingCheckpoint = false;
           lastCheckpoint.sec = timeInfo[0];
 	  lastCheckpoint.usec = timeInfo[1];
 	}
+
 	// Safely send the data.
         f->_sendData(data);
         f->_parser->recycle(data);
+      }
+      else {
+        // Reached eof.
+        f->_dataStream.ar_close();
+	// Wait half a second and then reopen. Loop by default.
+        ar_usleep(500000);
+	if (!f->_dataStream.ar_open(f->_dataFileName, "", f->_dataFilePath)){
+	  cerr << "arFileSource warning: reopen input file.\n";
+	  return;
+	}
+	establishingCheckpoint = true;
       }
     }
     establishingCheckpoint = true;

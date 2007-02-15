@@ -93,18 +93,21 @@ void ar_intelGamepadDriverEventTask(void* gamepadDriver){
 #endif
 }
 
-bool arIntelGamepadDriver::init(arSZGClient& client){
+bool arIntelGamepadDriver::init(arSZGClient& szgClient){
   int sig[3] = {8,2,0};
-  if (!client.getAttributeInts("SZG_JOYSTICK","signature",sig,3)) {
-    cerr << "arIntelGamepadDriver remark: SZG_JOYSTICK/signature not set, "
-         << "defaulting to ( " << sig[0] << ", " << sig[1] << ", " << sig[2]
-         << " ).\n";
-    _setDeviceElements(8,2,0);
+  if (!szgClient.getAttributeInts("SZG_JOYSTICK","signature",sig,3)) {
+    sig[0] = 8;
+    sig[1] = 2;
+    sig[2] = 0;
+    ar_log_warning() << "arIntelGamepadDriver: "
+      << szgClient.getComputerName() << "/SZG_JOYSTICK/signature defaulting to ("
+      << sig[0] << ", " << sig[1] << ", " << sig[2] << " ).\n";
   } else {
-    cerr << "arIntelGamepadDriver remark: SZG_JOYSTICK/signature set to "
-         << " ( " << sig[0] << ", " << sig[1] << ", " << sig[2] << " ).\n";
-    _setDeviceElements(sig[0],sig[1],sig[2]);
+    ar_log_remark() << "arIntelGamepadDriver: "
+      << szgClient.getComputerName() << "/SZG_JOYSTICK/signature is ("
+      << sig[0] << ", " << sig[1] << ", " << sig[2] << ").\n";
   }
+  _setDeviceElements(sig);
 
 #ifdef AR_USE_WIN_32
   IDirectInput* pDI = NULL;

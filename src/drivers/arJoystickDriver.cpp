@@ -134,7 +134,7 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
       << szgClient.getComputerName() << "/SZG_JOYSTICK/signature is ("
       << sig[0] << ", " << sig[1] << ", " << sig[2] << ").\n";
   }
-  _setDeviceElements(sig[0],sig[1],sig[2]);
+  _setDeviceElements(sig);
 
 #ifdef AR_USE_LINUX
   _fd = open("/dev/js0", O_RDONLY);
