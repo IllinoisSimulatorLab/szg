@@ -22,11 +22,10 @@ using namespace std;
 // requests this answers.
 class SZG_CALL arPhleetNotification{
  public:
-  arPhleetNotification(){}
-  ~arPhleetNotification(){}
+  arPhleetNotification() : componentID(-1), match(-1) {}
 
-  int componentID; // This component requests the notification.
-  int match;       // This is the tag of the original request.
+  int componentID; // Component requesting the notification.
+  int match;       // Tag of the original request.
 };
 
 // A description of a service, including where it exists, what networks
@@ -34,17 +33,15 @@ class SZG_CALL arPhleetNotification{
 // be notified when it is deleted, etc.
 class SZG_CALL arPhleetService{
  public:
-  arPhleetService(){}
-  ~arPhleetService(){}
+  arPhleetService() : valid(false), componentID(-1), numberPorts(0) {}
 
-  bool valid;       // is this valid or not... means we can use
-                    // arPhleetService as a success flag
-  string info;      // services can publish information here about their
+  bool valid;
+  string info;      // Services can publish information here about their
                     //  characteristics. important for flexible brokering.
-  string computer;  // the computer on which the service is running
-  int componentID;  // the phleet ID of the component running this service
-  arSlashString networks;  // networks on which the service is offered
-  arSlashString addresses; // addresses on which it's offered, in same order
+  string computer;  // host running the service
+  int componentID;  // phleet ID of component running the service
+  arSlashString networks;  // networks offering the service
+  arSlashString addresses; // addresses offering the servic3, in same order
   int numberPorts;
   int portIDs[10];
 
@@ -55,31 +52,25 @@ class SZG_CALL arPhleetService{
 // a client asks the broker about a service
 class SZG_CALL arPhleetAddress{
  public:
-  arPhleetAddress(){}
-  ~arPhleetAddress(){}
+  arPhleetAddress() : valid(false), address("NULL"), numberPorts(0) {}
 
-  bool   valid;   // is this valid or not, means that we can use
-                  // arPhleetAddress as a success flag
-  string address; // an IP address
-  int    numberPorts; // there can be multiple ports associated with the 
-                      // address
-  int    portIDs[10]; // the actual port IDs
+  bool valid;
+  string address; // IP address
+  int numberPorts; // how many ports
+  int portIDs[10]; // the actual port IDs
 };
 
 // A request for connection to a phleet service that has yet to be fulfilled
 class SZG_CALL arPhleetServiceRequest{
  public:
-  arPhleetServiceRequest(){}
-  ~arPhleetServiceRequest(){}
+  arPhleetServiceRequest() : componentID(-1), match(-1) {}
 
-  int    componentID;  // the phleet ID of the component making the service
-                       // request
-  string computer;     // the computer on which the requesting component 
-                       // runs... it is helpful to be able to list the
-                       // locations of pending service requests
-  int    match;        // the "async rpc" message matcher
-  string serviceName;  // the name of the requested service
-  string networks;     // the networks on which the requesting component
+  int    componentID;  // phleet ID of component requesting the service
+  string computer;     // host running requested component
+                       // (nice to list locations of pending service requests)
+  int    match;        // "async rpc" message matcher
+  string serviceName;  // requested service's name
+  string networks;     // networks on which the requester
                        // can communicate, slash-delimited list 
 };
 
@@ -87,8 +78,7 @@ class SZG_CALL arPhleetServiceRequest{
 // each computer being managed by the szgserver
 class SZG_CALL arBrokerComputerData{
  public:
-  arBrokerComputerData(){}
-  ~arBrokerComputerData(){}
+  arBrokerComputerData() : firstPort(-1), blockSize(-1) {}
 
   string    networks;
   string    addresses;
@@ -105,10 +95,9 @@ class SZG_CALL arBrokerComputerData{
 // lists.
 class SZG_CALL arBrokerComponentData{
  public:
-  arBrokerComponentData(){}
-  ~arBrokerComponentData(){}
+  arBrokerComponentData() : computer("NULL") {}
 
-  string       computer;       // the computer on which this component runs
+  string       computer;       // host running this component
   list<string> temporaryTags;  // names of services assigned to this component
                                // but not yet started
   list<string> usedTags;       // names of services assigned to this component
@@ -118,7 +107,6 @@ class SZG_CALL arBrokerComponentData{
   list<int>    temporaryPorts; // ports this component has been assigned but
                                // has yet to bind to
   list<int>    usedPorts;      // ports to which this component has bound
-  
 };
 
 // without typedefs, the STL code can get very,very verbose
@@ -135,7 +123,6 @@ typedef list<arPhleetServiceRequest>                   SZGRequestList;
 class SZG_CALL arPhleetConnectionBroker{
  public:
   arPhleetConnectionBroker();
-  ~arPhleetConnectionBroker() {}
 
   void setReleaseNotificationCallback(void(*callback)(int,int,const string&))
     { _releaseNotificationCallback = callback; }

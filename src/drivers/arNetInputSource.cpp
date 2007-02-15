@@ -34,7 +34,7 @@ void arNetInputSource::_dataTask(){
     // relay the data to the input sink
     _sendData();
   }
-  _clientConnected = false; // we've lost our connection
+  _clientConnected = false; // lost our connection
   _setDeviceElements(0,0,0);
   if (!_reconfig())
     ar_log_warning() << "arNetInputSource failed to reconfigure source (#3).\n";
@@ -57,34 +57,36 @@ void arNetInputSource::_connectionTask() {
   while (true){
     ar_log_debug() << "arNetInputSource discovering service...\n";
     // Ask szgserver for IP:port of service "SZG_INPUT0".
-    const arPhleetAddress result =
+    const arPhleetAddress IPport =
       _client->discoverService(serviceName, networks, true);
-    if (!result.valid){
+    if (!IPport.valid){
       ar_log_warning() << "arNetInputSource: no service '" <<
 	serviceName << "' on network '" << networks << "'.\n";
-      // Throttle: service probably won't reappear that quickly.
-      // todo: increase sleep time gradually.
-      ar_usleep(20000);
+      // Throttle, since service probably won't reappear that quickly,
+      // and maybe szgserver itself is stopping.
+      ar_usleep(50000); // todo: increase sleep time gradually.
       continue;
     }
 
     // This service has exactly one port.
+    const int port = IPport.portIDs[0];
+    const string& IP = IPport.address;
     ar_log_debug() << "arNetInputSource connecting...\n";
-    if (!_dataClient.dialUpFallThrough(result.address, result.portIDs[0])){
-      ar_log_warning() << "arNetInputSource reconnecting to service '"
+    if (!_dataClient.dialUpFallThrough(IP, port)){
+      ar_log_warning() << "arNetInputSource reconnecting to '"
 	               << serviceName << "' at "
-	               << result.address << ":" << result.portIDs[0] << ".\n";
+	               << IP << ":" << port << ".\n";
       continue;
     }
 
-    ar_log_remark() << "arNetInputSource connected to service " <<
-      serviceName << " at " << result.address << ":" << result.portIDs[0] << ".\n";
+    ar_log_remark() << "arNetInputSource connected to " <<
+      serviceName << " at " << IP << ":" << port << ".\n";
     _clientConnected = true;
 
     _dataTask();
 
-    ar_log_remark() << "arNetInputSource disconnected from service " <<
-      serviceName << " at " << result.address << ":" << result.portIDs[0] << ".\n";
+    ar_log_remark() << "arNetInputSource disconnected from " <<
+      serviceName << " at " << IP << ":" << port << ".\n";
     _closeConnection();
   }
 }
