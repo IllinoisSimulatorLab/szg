@@ -9,7 +9,6 @@
 arInputSource::arInputSource() :
   _inputChannelID(0),
   _inputSink(NULL),
-  _filter(NULL),
   _numberButtons(0),
   _numberAxes(0),
   _numberMatrices(0),
@@ -28,24 +27,6 @@ arInputSource::~arInputSource(){
 
 void arInputSource::setInputNode(arInputSink* inputSink){
   _inputSink = inputSink;
-}
-
-#ifdef UNUSED
-void arInputSource::setFilter(arIOFilter* filter){
-  _filter = filter;
-}
-#endif
-
-int arInputSource::getNumberButtons() const {
-  return _numberButtons;
-}
-
-int arInputSource::getNumberAxes() const {
-  return _numberAxes;
-}
-
-int arInputSource::getNumberMatrices() const {
-  return _numberMatrices;
 }
 
 void arInputSource::sendButton(int i, int value){
@@ -243,10 +224,6 @@ bool arInputSource::_fillCommonData(arStructuredData* d){
          d->dataIn("timestamp", theTime, AR_INT, 2);
 }
 
-//arStructuredData* arInputSource::_filterData(arStructuredData* d){
-//  return _filter ? _filter->filter(d) : d;
-//}
-
 void arInputSource::_sendData(arStructuredData* theData){
   if (!_inputSink){
     cerr << "arInputSource warning: undefined input sink.\n";
@@ -254,13 +231,11 @@ void arInputSource::_sendData(arStructuredData* theData){
   }
   if (theData){
     // send the data we've been given instead of the internal data
-//    _inputSink->receiveData(_inputChannelID, _filterData(theData));
     _inputSink->receiveData(_inputChannelID, theData);
   }
   else{
     if (!_data)
       return;
-//    _inputSink->receiveData(_inputChannelID, _filterData(_data));
     _inputSink->receiveData(_inputChannelID, _data);
   }
 }

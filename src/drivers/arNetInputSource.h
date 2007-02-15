@@ -21,21 +21,22 @@ class SZG_CALL arNetInputSource: public arInputSource{
   ~arNetInputSource() {}
 
   bool setSlot(int slot);
-  bool connected() const;
+  bool connected() const
+    { return _connected; }
 
   virtual bool init(arSZGClient&);
   virtual bool start();
 
  private:
   arDataClient  _dataClient;
-  arSZGClient*  _client;
+  arSZGClient*  _szgClient;
   ARchar*       _dataBuffer;
   int           _dataBufferSize;
   int    _slot;
   string _interface;
   int    _port;
-  bool   _clientConnected;
-  bool _clientInitialized;
+  bool   _connected;
+  bool   _sigOK;
   
   void _closeConnection();
   void _dataTask();

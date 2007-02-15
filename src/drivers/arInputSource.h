@@ -6,9 +6,7 @@
 #ifndef AR_INPUT_SOURCE_H
 #define AR_INPUT_SOURCE_H
 
-#include "arSZGClient.h"
 #include "arInputSink.h"
-#include "arIOFilter.h"
 #include "arInputLanguage.h"
 #include "arInputEvent.h"
 #include "arDriversCalling.h"
@@ -35,13 +33,12 @@ class SZG_CALL arInputSource{
   virtual bool restart()
     { return stop() && start(); }
 
-#ifdef UNUSED
-  void setFilter(arIOFilter*);
-#endif
-
-  int getNumberButtons() const;
-  int getNumberAxes() const;
-  int getNumberMatrices() const;
+  int getNumberButtons() const
+    { return _numberButtons; }
+  int getNumberAxes() const
+    { return _numberAxes; }
+  int getNumberMatrices() const
+    { return _numberMatrices; }
 
   // Send a single item.
   void sendButton(int index, int value);
@@ -68,7 +65,6 @@ class SZG_CALL arInputSource{
   arInputLanguage _inp;
   int _inputChannelID;
   arInputSink* _inputSink;
-  arIOFilter* _filter;
 
   arStructuredData* _data;
 
@@ -92,16 +88,17 @@ class SZG_CALL arInputSource{
   void _setDeviceElements(int buttons, int axes, int matrices);
   void _setDeviceElements(const ARint* nums)
     { return _setDeviceElements(nums[0], nums[1], nums[2]); }
+
   bool _fillCommonData(arStructuredData*);
-  // the filtration function
-//  arStructuredData* _filterData(arStructuredData*);
-  // send the data to the input sink
+
+  // Send data to the input sink.
   void _sendData(arStructuredData* theData = NULL);
-  // send a reconfigure message to the input sink
+
+  // Send a reconfigure message to the input sink.
   bool _reconfig();
-  // need to be able to register input sink objects... plus be able to send to
-  // them on a particular channel (which is useful for aggregating multiple
-  // input devices into a single virtual input device
+
+  // To register input sinks, and send them on a particular channel
+  // (to aggregate multiple input devices).
   void _setInputSink(int, arInputSink*);
 };
 

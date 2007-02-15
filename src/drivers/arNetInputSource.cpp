@@ -13,30 +13,26 @@ void arNetInputSource::_dataTask(){
     _data->unpack(_dataBuffer);
     ARint sig[3];
     _data->dataOut(_inp._SIGNATURE, sig, AR_INT, 3);
-    if (!_clientInitialized) {
+
+    if (!_sigOK ||
+        sig[0] != _numberButtons ||
+        sig[1] != _numberAxes ||
+        sig[2] != _numberMatrices) {
       _setDeviceElements(sig);
-      if (!_reconfig())
-        ar_log_warning() << "arNetInputSource failed to reconfigure source (#1).\n";
-      _clientInitialized = true;
+      _sigOK = _reconfig();
+      if (!_sigOK)
+	ar_log_warning() << "arNetInputSource failed to configure source.\n";
     }
-    else{
-      if (sig[0] != _numberButtons ||
-          sig[1] != _numberAxes ||
-          sig[2] != _numberMatrices){
-	// Server was reconfigured, perhaps after connecting to a server
-	// that is a composite of several smaller input devices.
-        _setDeviceElements(sig);
-        if (!_reconfig())
-	  ar_log_warning() << "arNetInputSource failed to reconfigure source (#2).\n";
-      }
-    }
-    // relay the data to the input sink
+
+    // Relay the data to the input sink
     _sendData();
   }
-  _clientConnected = false; // lost our connection
+
+  _connected = false;
   _setDeviceElements(0,0,0);
-  if (!_reconfig())
-    ar_log_warning() << "arNetInputSource failed to reconfigure source (#3).\n";
+  _sigOK = _reconfig();
+  if (!_sigOK)
+    ar_log_warning() << "arNetInputSource failed to deconfigure source.\n";
 }
 
 void ar_netInputSourceConnectionTask(void* inputClient){
@@ -48,16 +44,15 @@ void arNetInputSource::_connectionTask() {
   // todo: use a virtual computer specific or user-specific service name.
   char buffer[32];
   sprintf(buffer, "SZG_INPUT%i", _slot);
-  const string serviceName(_client->createComplexServiceName(buffer));
-  const arSlashString networks(_client->getNetworks("input"));
+  const string serviceName(_szgClient->createComplexServiceName(buffer));
+  const arSlashString networks(_szgClient->getNetworks("input"));
   ar_log_debug() << "arNetInputSource serviceName '" << serviceName <<
     "', networks '" << networks << "'\n";
 
   while (true){
     ar_log_debug() << "arNetInputSource discovering service...\n";
     // Ask szgserver for IP:port of service "SZG_INPUT0".
-    const arPhleetAddress IPport =
-      _client->discoverService(serviceName, networks, true);
+    const arPhleetAddress IPport = _szgClient->discoverService(serviceName, networks, true);
     if (!IPport.valid){
       ar_log_warning() << "arNetInputSource: no service '" <<
 	serviceName << "' on network '" << networks << "'.\n";
@@ -80,7 +75,7 @@ void arNetInputSource::_connectionTask() {
 
     ar_log_remark() << "arNetInputSource connected to " <<
       serviceName << " at " << IP << ":" << port << ".\n";
-    _clientConnected = true;
+    _connected = true;
 
     _dataTask();
 
@@ -90,17 +85,16 @@ void arNetInputSource::_connectionTask() {
   }
 }
 
-// todo: initializers not assignments.
-arNetInputSource::arNetInputSource(){
-  _dataBufferSize = 500;
-  _slot = 0;
-  _interface = string("NULL");
-  _port = 0;
-  _clientConnected = false;
-  _clientInitialized = false;
-  _client = NULL;
-  _dataBuffer = new ARchar[_dataBufferSize];
-
+arNetInputSource::arNetInputSource() :
+  _szgClient(NULL),
+  _dataBuffer(new ARchar[500]),
+  _dataBufferSize(500),
+  _slot(0),
+  _interface("NULL"),
+  _port(0),
+  _connected(false),
+  _sigOK(false)
+{
   _dataClient.smallPacketOptimize(true);
 }
 
@@ -121,13 +115,13 @@ bool arNetInputSource::init(arSZGClient& SZGClient){
   _setDeviceElements(0,0,0); // Nothing's attached yet.
 
   // Save arSZGClient for future connection brokering.
-  _client = &SZGClient;
+  _szgClient = &SZGClient;
   ar_log_remark() << "arNetInputSource initialized.\n";
   return true;
 }
 
 bool arNetInputSource::start(){
-  if (!_client){
+  if (!_szgClient){
     ar_log_warning() << "arNetInputSource ignoring start before init.\n";
     return false;
   }
@@ -138,10 +132,6 @@ bool arNetInputSource::start(){
 
 void arNetInputSource::_closeConnection(){
   // should probably kill some threads here, close sockets, etc.
-  _clientConnected = false;
-  _clientInitialized = false;
-}
-
-bool arNetInputSource::connected() const {
-  return _clientConnected;
+  _connected = false;
+  _sigOK = false;
 }
