@@ -177,19 +177,19 @@ bool arDataClient::_dialUpInit(const char* address, int port){
     if (port == 0)
       ar_log_warning() << _exeName << ": dialUp: no IP address or port.\n";
     else
-      ar_log_warning() << _exeName << ": dialUp: NULL address for port " << port << ".\n";
+      ar_log_warning() << _exeName << ": dialUp: NULL IP address for port " << port << ".\n";
     return false;
   }
 
   if (strlen(address) < 7){
-    ar_log_warning() << _exeName << ": dialUp(" << address << ":" << port
-         << ") got an invalid IP address.\n";
+    ar_log_warning() << _exeName << ": invalid IP address in dialUp("
+      << address << ":" << port << ").\n";
     return false;
   }
 
   if (port < 1000 || port > 65535){
-    ar_log_warning() << _exeName << ": dialUp(" << address << ":" << port
-         << ") got an invalid port.\n";
+    ar_log_warning() << _exeName << ": out-of-range port in dialUp(" <<
+      address << ":" << port << ").  Try 1000 to 65535.\n";
     return false;
   }
 
@@ -197,8 +197,8 @@ bool arDataClient::_dialUpInit(const char* address, int port){
     _socket = new arSocket(AR_STANDARD_SOCKET);
   }
   if (_socket->ar_create() < 0) {
-    ar_log_warning() << _exeName << ": dialUp(" << address << ":" << port
-         << ") failed to create socket.\n";
+    ar_log_warning() << _exeName << ": no socket created for dialUp(" <<
+      address << ":" << port << ").\n";
     return false;
   }
 
@@ -206,8 +206,8 @@ bool arDataClient::_dialUpInit(const char* address, int port){
     return false;
 
   if (!_socket->smallPacketOptimize(_smallPacketOptimize)){
-    ar_log_warning() << _exeName << ": dialUp(" << address << ":" << port
-         << ") failed to smallPacketOptimize.\n";
+    ar_log_warning() << _exeName << ": no smallPacketOptimize for dialUp(" <<
+      address << ":" << port << ").\n";
     return false;
   }
 
@@ -215,8 +215,9 @@ bool arDataClient::_dialUpInit(const char* address, int port){
 }
 
 bool arDataClient::_dialUpConnect(const char* address, int port) {
-  if (_socket->ar_connect(address, port) >= 0)
+  if (_socket->ar_connect(address, port) >= 0) {
     return true;
+  }
 
   // Don't complain. Data sinks like szgrender don't need a data server.
   _socket->ar_close();
