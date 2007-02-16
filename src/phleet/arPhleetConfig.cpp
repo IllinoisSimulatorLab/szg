@@ -164,20 +164,22 @@ bool arPhleetConfig::writeLogin(){
 }
 
 // Print human-readable config file information
-void arPhleetConfig::print() const {
+bool arPhleetConfig::print() const {
   cout << "computer = " << _computerName << "\n";
   for (iNetConst i = _networkList.begin(); i != _networkList.end(); ++i){
     cout << "network  = " << i->first << ", " << i->second.address 
 	 << "/" << i->second.mask  << "\n";
   }
   cout << "ports    = " << _firstPort << "-" << _firstPort+_blockSize-1 << "\n";
+  return true; // convenience for caller
 }
 
 // Print human-readable login information
-void arPhleetConfig::printLogin() const {
+bool arPhleetConfig::printLogin() const {
   cout << "OS user     = " << ar_getUser() << "\n"
        << "syzygy user = " << _userName << "\n"
        << "szgserver   = " << _serverName << ", " << _serverIP << ":" << _serverPort << "\n";
+  return true; // convenience for caller
 }
 
 // Returns slash-delimited addresses (as defined in the config file) of

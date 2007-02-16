@@ -34,12 +34,12 @@ class SZG_CALL arPhleetConfig{
   // Config file I/O.
   bool read();
   bool write();
-  void print() const;
+  bool print() const;
 
   // Login file I/O.
   bool parseLogin(bool fFromInit = false);
   bool writeLogin();
-  void printLogin() const;
+  bool printLogin() const;
 
   // Get global config info.
   // computer name, as parsed from the config file

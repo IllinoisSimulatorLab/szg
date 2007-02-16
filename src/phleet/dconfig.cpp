@@ -18,6 +18,5 @@ int main(int argc, char** /*argv*/){
     cerr << "dconfig error: failed to parse phleet configuration file.\n";
     return 1;
   }
-  config.print();
-  return 0;
+  return config.print() ? 0 : 1;
 }
