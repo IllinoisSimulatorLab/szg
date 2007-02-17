@@ -171,15 +171,29 @@ bool arAppLauncher::setParameters(){
     return false;
   }
   ar_log_debug() << _exeName << "found virtual computer '" << _vircomp << "'.\n";
+  // Ensure no computer is duplicated, lest we launch two DeviceServers on one.
+  for (i=2; i<numTokens; i+=2) {
+    const string& computer_i(inputDevs[i]);
+    for (int j=0; j<i; j+=2) {
+      const string& computer_j(inputDevs[j]);
+      if (computer_i == computer_j) {
+	ar_log_error() << _exeName << ": input devices for virtual computer '"
+	  << _vircomp << "' has duplicate computer '" << computer_i
+	  << "' in definition '"
+	  << inputDevs
+	  << "'.\n  (Instead, put a compound device in your dbatch file.)\n";
+	return false;
+      }
+    }
+  }
+
   _serviceList.clear();
-  // step through list of computer/device token pairs 
+  // Parse the list of "computer/device" pairs.
   for (i=0; i<numTokens; i+=2){
     const string computer(inputDevs[i]);
     string device(inputDevs[i+1]);
     string info(device);
 
-    // todo: hack, copypasted into demo/buttonfly/setinputfilter.cpp
-    //
     // NOTE: the input device in slot 0 is the one that actually
     // connects to the application. Consequently, it must come FIRST
     // in the <virtual computer>/SZG_INPUT0/map listing.
