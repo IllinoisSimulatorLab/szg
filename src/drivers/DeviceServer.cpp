@@ -160,10 +160,10 @@ int main(int argc, char** argv){
   // At most one instance per host.
   int ownerID = -1;
   if (!szgClient.getLock(szgClient.getComputerName() + "/DeviceServer", ownerID)) {
-    ar_log_error() << "DeviceServer: another copy is already running (pid = " 
+    ar_log_error() << "DeviceServer: already running (pid = " 
          << ownerID << ").\n";
 LAbort:
-    respond(szgClient);
+    (void)respond(szgClient);
     return 1;
   }
 
@@ -341,6 +341,8 @@ LAbort:
   }
 
   const bool ok = inputNode.init(szgClient);
+  if (!ok)
+    ar_log_error() << "DeviceServer has no input.\n";
   if (!respond(szgClient, ok)){
     cerr << "DeviceServer ignoring failed init.\n";
     // return 1;

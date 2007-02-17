@@ -1024,9 +1024,9 @@ LRetry:
   // Only one instance per host.
   int ownerID = -1;
   if (!SZGClient->getLock(SZGClient->getComputerName() + "/szgd", ownerID)) {
-    cerr << "szgd error: another copy is already running (pid = " << ownerID << ").\n";
-    // todo: if we can't communicate with that pid, then
-    // assume szgserver has obsolete info, "dkill -9" that pid,
+    cerr << "szgd error: already running (pid = " << ownerID << ").\n";
+    // todo: if we can't communicate with that pid,
+    // then assume szgserver has obsolete info, "dkill -9" that pid,
     // and start up anyways.
     return 1;
   }
