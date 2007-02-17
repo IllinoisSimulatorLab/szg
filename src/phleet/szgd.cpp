@@ -155,13 +155,14 @@ string getAppPath( const string& userName, const string& groupName, const string
   arSemicolonString appSearchPath(appPath);
   string actualDirectory("NULL");
   list<string> dirsToSearch;
-  list<string>::iterator dirIter;
+  list<string>::const_iterator dirIter;
   // Construct a list of directories to search depth-first.
   for (int i=0; i<appSearchPath.size(); ++i) {
     string currPathElement = appSearchPath[i];
     if (!comparePathToBases( currPathElement, groupName+"/path", errStream )) {
       return "NULL";
     }
+
     bool dirExists;
     bool isDirectory;
     // If return value is false, 2nd & 3rd args are invalid.
@@ -189,7 +190,7 @@ string getAppPath( const string& userName, const string& groupName, const string
 
     dirsToSearch.push_back( currPathElement );
     list<string> contents = ar_listDirectory( currPathElement );
-    for (list<string>::iterator dirIter = contents.begin(); dirIter != contents.end(); ++dirIter) {
+    for (dirIter = contents.begin(); dirIter != contents.end(); ++dirIter) {
       string itemPath = *dirIter;
       if (ar_isDirectory( itemPath.c_str() )) {
 	dirsToSearch.push_back( itemPath );
@@ -282,6 +283,17 @@ class ExecInfo{
 
 const char* const ExecInfo::_formatnames[formatInvalid+1] =
     { "native", "python", "invalid" };
+
+string argsAsList(const list<string>& args) {
+  string s("(");
+  for (list<string>::const_iterator iter = args.begin();
+       iter != args.end(); ++iter){
+    if (iter != args.begin())
+      s += ", ";
+    s += *iter;
+  }
+  return s + ")\n";
+}
 
 // Given the specified user and argument string, contact the szgserver and
 // determine the user's execution path. Next, given the arg string sent to 
@@ -471,8 +483,8 @@ LAbort:
   cout << "szgd remark:\n"
        << "  user = " << userName << "\n"
        << "  exe  = " << execInfo->formatname() << " " << command << "\n"
-       << "  args = (";
-  for (list<string>::iterator iter = args.begin();
+       << "  args = " << argsAsList(args);
+  for (list<string>::const_iterator iter = args.begin();
        iter != args.end(); ++iter){
     if (iter != args.begin()){
       cout << ", ";
@@ -483,24 +495,27 @@ LAbort:
   return string("OK");
 }
 
-char** buildUnixStyleArgList(const string& command, list<string>& args) {
-  // Build an "argv" from args.
-  const int listLength = args.size();
-  char** argv = new char*[listLength+2];
+void bufFromString(char*& buf, const string& s) {
+  const int cch = s.length() + 1;
+  ar_stringToBuffer(s, buf = new char[cch], cch);
+}
 
-  // Start with the command.
-  argv[0] = new char[command.length()+1];
-  ar_stringToBuffer(command, argv[0], command.length()+1);
+// Build an "argv".
+char** buildUnixStyleArgList(const string& command, const list<string>& args) {
+  const int argc = 1 + args.size();
+  char** argv = new char*[argc+1];
 
-  // Null-terminate.
-  argv[listLength+1] = NULL;
+  // The arg-less command.
+  bufFromString(argv[0], command);
 
+  // The args.
   int index = 1;
-  for (list<string>::const_iterator i=args.begin(); i!=args.end(); ++i) {
-    argv[index] = new char[i->length()+1];
-    ar_stringToBuffer(*i, argv[index], i->length()+1);
-    ++index;
-  }
+  for (list<string>::const_iterator i=args.begin(); i!=args.end(); ++i)
+    bufFromString(argv[index++], *i);
+
+  // Null-terminate argv.
+  argv[argc] = NULL;
+
   return argv;
 }
 
@@ -510,32 +525,27 @@ void deleteUnixStyleArgList(char** argv) {
 }
 
 string buildWindowsStyleArgList(const string& command, list<string>& args) {
-  string result(command);
-  if (!args.empty()) {
-    result += " ";
-  }
-  for (list<string>::const_iterator i = args.begin(); i != args.end(); ++i) {
-    // for every element except for the first, we want to add a space
-    if (i != args.begin()) {
-      result += " ";
-    }
-    result += *i;
-  }
-  return result;
+  if (args.empty())
+    return command;
+  string s(command);
+  for (list<string>::const_iterator i = args.begin(); i != args.end(); ++i)
+    s += " " + *i;
+  return s;
 }
 
 // To reduce load on samba win32 fileserver when many hosts launch an exe at once.
 void randomDelay() {
   const ar_timeval time1 = ar_time();
-  ar_usleep(100000 * abs(time1.usec % 6));
+  ar_usleep(50000 * abs(time1.usec % 6));
 }
 
 static void TweakPath(string& path) {
   // Point slashes in the right direction.
   ar_scrubPath(path);
+
 #ifndef AR_USE_WIN_32
-  // szg paths use Win32 ';' separator.  In Unix, change to ':'
-  unsigned int pos;
+  // Change windows szg path's ';' delimiter to unix's ':'.
+  unsigned pos;
   while ((pos = path.find(";")) != string::npos) {
     path.replace( pos, 1, ":" );
   }
@@ -826,20 +836,18 @@ LDone:
   info << "szgd remark: running " << symbolicCommand << " on path\n"
        << execPath << ".\n";
 
-  char** theArgs = buildUnixStyleArgList(newCommand, mangledArgList);
-  // Stagger launches so the cluster's file server isn't hit so hard.
+  char** argv = buildUnixStyleArgList(newCommand, mangledArgList);
   cerr << "szgd remark: command = " << newCommand << endl
-       << "             args    = " << theArgs << endl;
+       << "             args    = " << argsAsList(mangledArgList) << endl;
+  // Stagger launches so the cluster's file server isn't hit so hard.
   randomDelay();
-  if (execv(newCommand.c_str(), theArgs) >= 0) {
-    // The child spawned okay, so remove parent's side of the fork().
-    // (Actually, if the child spawned, exec() doesn't return
-    // so the exit(0) isn't reached.)
-    exit(0);
-  }
-  deleteUnixStyleArgList(theArgs);
+  (void)execv(newCommand.c_str(), argv);
+  // If execv returns at all, it returns -1 because the spawn failed.
 
-  info << "szgd warning: failed to exec '" << symbolicCommand << "': ";
+  perror("szgd execv");
+  deleteUnixStyleArgList(argv);
+
+  info << "szgd warning: failed to launch '" << symbolicCommand << "': ";
   switch (errno) {
   case E2BIG: info << "args + env too large\n";
     break;
@@ -859,8 +867,7 @@ LDone:
 	
   // Handshake back to the parent.
   const string terminalOutput = info.str();
-  // Exe failed to launch.
-  numberBuffer[0] = 0;
+  numberBuffer[0] = 0; // magic number for "launch failed"
   if (!ar_safePipeWrite(pipeDescriptors[1], numberBuffer, 1)) {
     cerr << "szgd remark: failed to send failure code over pipe.\n";
   }
@@ -874,8 +881,7 @@ LDone:
     cerr << "szgd remark: incomplete pipe-based handshake, text stage.\n";
   }
 
-  // Kill the child, so the orphaned process doesn't start up again 
-  // on the message loop.
+  // Kill the child, so the orphaned process doesn't restart on the message loop.
   exit(0);
 
 #else // Win32
