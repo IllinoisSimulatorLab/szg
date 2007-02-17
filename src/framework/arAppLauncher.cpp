@@ -170,16 +170,16 @@ bool arAppLauncher::setParameters(){
 	           << "'.  Expected computer/inputDevice/.../computer/inputDevice.\n";
     return false;
   }
-  ar_log_debug() << _exeName << "found virtual computer '" << _vircomp << "'.\n";
+  ar_log_debug() << _exeName << " found virtual computer '" << _vircomp << "'.\n";
+
   // Ensure no computer is duplicated, lest we launch two DeviceServers on one.
   for (i=2; i<numTokens; i+=2) {
     const string& computer_i(inputDevs[i]);
     for (int j=0; j<i; j+=2) {
-      const string& computer_j(inputDevs[j]);
-      if (computer_i == computer_j) {
+      if (computer_i == inputDevs[j]) {
 	ar_log_error() << _exeName << ": input devices for virtual computer '"
 	  << _vircomp << "' has duplicate computer '" << computer_i
-	  << "' in definition '"
+	  << "', in definition \n  '"
 	  << inputDevs
 	  << "'.\n  (Instead, put a compound device in your dbatch file.)\n";
 	return false;
