@@ -484,14 +484,6 @@ LAbort:
        << "  user = " << userName << "\n"
        << "  exe  = " << execInfo->formatname() << " " << command << "\n"
        << "  args = " << argsAsList(args);
-  for (list<string>::const_iterator iter = args.begin();
-       iter != args.end(); ++iter){
-    if (iter != args.begin()){
-      cout << ", ";
-    }
-    cout << *iter;
-  }
-  cout << ")\n";
   return string("OK");
 }
 
@@ -826,19 +818,17 @@ LDone:
   ar_setenv("SZGPIPEID", pipeDescriptors[1]);
   ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
   
-  cerr << "szgd remark: dynamic library path =\n  "
-       << dynamicLibraryPath << "\n";
+  cerr << "szgd remark: libpath =\n  " << dynamicLibraryPath << "\n";
   ar_setenv(dynamicLibraryPathVar, dynamicLibraryPath);
   if (execInfo->fPython()) {
     cerr << "szgd remark: python path =\n  " << pythonPath << "\n";
     ar_setenv("PYTHONPATH", pythonPath);
   }
-  info << "szgd remark: running " << symbolicCommand << " on path\n"
-       << execPath << ".\n";
+  info << "szgd remark: running " << symbolicCommand << " on path\n" << execPath << ".\n";
 
   char** argv = buildUnixStyleArgList(newCommand, mangledArgList);
   cerr << "szgd remark: command = " << newCommand << endl
-       << "             args    = " << argsAsList(mangledArgList) << endl;
+       << "             args    = " << argsAsList(mangledArgList);
   // Stagger launches so the cluster's file server isn't hit so hard.
   randomDelay();
   (void)execv(newCommand.c_str(), argv);
@@ -914,7 +904,7 @@ LDone:
   ar_setenv("SZGPIPEID", -1);
   ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
   
-  cerr << "szgd remark: dynamic library path =\n  "
+  cerr << "szgd remark: libpath =\n  "
        << dynamicLibraryPath << "\n";
   ar_setenv(dynamicLibraryPathVar, dynamicLibraryPath);
   if (execInfo->fPython()) {
