@@ -138,24 +138,6 @@ bool arSocket::reuseAddress(bool flag){
   return true;
 }
 
-#ifdef AR_USE_WIN_32
-// this seems to produce false alarms.
-#ifdef DISABLED
-static void arSocket_watchdog(void* pv)
-{
-  // approximately non-reentrant, in case many connect's happen simultaneously.
-  static int c = 0;
-  if (c > 0)
-    return;
-  ++c;
-  ar_usleep(5000000); // how long to wait for connect(), before the impatient user thinks it's hung.
-  if (*(bool*)pv)
-    cout << "syzygy remark: Windows is slowly trying to open a socket.  Patience...\n";
-  --c;
-}
-#endif
-#endif
-
 int arSocket::ar_connect(const char* IPaddress, int port){
   if (_type != AR_STANDARD_SOCKET){
     return -1;
@@ -166,27 +148,72 @@ int arSocket::ar_connect(const char* IPaddress, int port){
   servAddr.sin_port = htons(port);
 #ifdef AR_USE_WIN_32
   servAddr.sin_addr.S_un.S_addr = inet_addr(IPaddress);
-
-#ifdef DISABLED
-  bool warning = true;
-  // The watchdog will print a warning, if connect() takes too long to return.
-  static int c = 0;
-  if (++c < 5)
-    // Warn the user only a finite number of times.
-    arThread(arSocket_watchdog, &warning);
-#endif
-
+  const int ok = connect(_socketFD, (sockaddr*)&servAddr, sizeof(servAddr));
 #else
   inet_pton(AF_INET,IPaddress,&(servAddr.sin_addr)); 
-#endif
-  const int ok = connect(_socketFD, (sockaddr*)&servAddr, sizeof(servAddr));
-#ifdef AR_USE_WIN_32
+  const int fOriginal = fcntl(_socketFD, F_GETFL, NULL);
+  fcntl(_socketFD, F_SETFL, fOriginal | O_NONBLOCK);
 
-#ifdef DISABLED
-  warning = false;
+  // connect() blocks forever if dwho'ing or dps'ing to a no-longer-running szgserver.
+  // Even restarting that szgserver doesn't unblock connect().
+  int ok = connect(_socketFD, (sockaddr*)&servAddr, sizeof(servAddr));
+  if (ok == -1) {
+    if (errno != EINPROGRESS) {
+      perror("ar_connect failed");
+    }
+    else {
+      /*
+      man connect says:
+      The socket is non-blocking and the connection cannot be completed
+      immediately.  Call select(2) for completion by selecting the socket
+      for writing.  After select indicates writability, use getsockopt(2)
+      to read the SO_ERROR option at level SOL_SOCKET to determine whether
+      connect completed successfully (SO_ERROR is zero) or unsuccessfully
+      (SO_ERROR is one of the usual error codes listed here, explaining
+      the reason for the failure).
+      */
+
+      fd_set s;
+      struct timeval tv;
+      // Timeout: 30 x 0.1 seconds = 3 seconds.
+      int iTry = 30;
+      while (--iTry > 0) {
+	FD_ZERO(&s);
+	FD_SET(_socketFD, &s);
+	tv.tv_sec = 0;
+	tv.tv_usec = 100000;
+	const int r = select(1+_socketFD, NULL, &s, NULL, &tv);
+	if (r == -1)
+	  perror("select() failed");
+	else if (r != 0) {
+	  // Writable.
+	  ok = 0;
+	  break;
+	}
+      }
+      if (ok != 0) {
+	// Timed out.  Other end may be absent.
+	ok = -1;
+      }
+      else {
+	int err = 0;
+	socklen_t errlen = sizeof(err);
+	int foo = getsockopt(_socketFD, SOL_SOCKET, SO_ERROR, &err, &errlen);
+	if (foo != 0)
+	  goto LError;
+	if (err != 0) {
+	  errno = err; // hack
+LError:
+	  perror("ar_socket connection worked only partially");
+	  ok = -1;
+	}
+      }
+    }
+  }
+
+  fcntl(_socketFD, F_SETFL, fOriginal);
 #endif
 
-#endif
   return ok;
 }
 
@@ -372,15 +399,14 @@ int arSocket::ar_safeRead(char* theData, int numBytes, const double usecTimeout)
         return false;
       }
       if (!readable()) {
-        ar_usleep(10000);
+        ar_usleep(10000); // todo: gradually increase sleep duration
 	continue;
       }
     }
     const int n = ar_read(theData, numBytes);
     if (n <= 0) { 
-      // Error reading from the socket (<0),
-      // or the socket closed on us (==0) causing an incomplete ar_read(),
-      // possibly because a remote client went away.
+      //  <0: failed to read from socket.
+      // ==0: socket closed, but caller wants still more bytes.
       ar_mutex_lock(&_usageLock);
         _usageCount--;
       ar_mutex_unlock(&_usageLock); 
