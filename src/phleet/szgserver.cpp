@@ -30,26 +30,26 @@ arSlashString computerAddresses;
 arSlashString computerMasks;
 
 string serverName;
-int    serverPort = -1;
 string serverIP;
+int    serverPort = -1;
 
 //*******************************************
-// global data storage used by the szgserver
+// global data storage used by the szgserver.  "DB" means "Database".
 //*******************************************
 
-typedef map<string,string,less<string> > SZGparamDatabase;
-typedef SZGparamDatabase::iterator iterParam;
-typedef SZGparamDatabase::const_iterator const_iterParam;
+typedef map<string,string,less<string> > SZGparamDB;
+typedef SZGparamDB::iterator iterParam;
+typedef SZGparamDB::const_iterator const_iterParam;
 
 // Contains database values particular to szgserver, i.e. the pseudoDNS.
-SZGparamDatabase rootContainer;
+SZGparamDB rootContainer;
 
 // One parameter database per dlogin'd user.
-typedef map<string,SZGparamDatabase*,less<string> > SZGuserDatabase;
-SZGuserDatabase userDatabase;
+typedef map<string,SZGparamDB*,less<string> > SZGuserDB;
+SZGuserDB userDB;
 
 // The current parameter database
-SZGparamDatabase* valueContainer = NULL;
+SZGparamDB* valueContainer = NULL;
 
 arMutex receiveDataMutex;
 
@@ -83,60 +83,52 @@ class arPhleetMsg{
 
 // DOH!!! The next section of STL shows VERY BAD DATA STRUCTURE DESIGN!!
 
-// storage that associates a message ID with the info about the message
-// (such as message ID, the ID of the component that can respond, the
-// component to which a response can be directed, etc.)
-typedef map<int,arPhleetMsg,less<int> > SZGmessageOwnershipDatabase;
-SZGmessageOwnershipDatabase messageOwnershipDatabase;
+// Map message ID to message's info.
+typedef map<int,arPhleetMsg,less<int> > SZGmsgOwnershipDB;
+SZGmsgOwnershipDB messageOwnershipDB;
 
-// storage that associates a message key with info about the message
-typedef map<string,arPhleetMsg,less<string> > SZGmessageTradingDatabase;
-SZGmessageTradingDatabase messageTradingDatabase;
+// Map message key to message's info.
+typedef map<string,arPhleetMsg,less<string> > SZGmsgTradingDB;
+SZGmsgTradingDB messageTradingDB;
 
 // when a connection goes away, we need to be able to respond to all messages
 // owned by that particular component (but to which a response has not yet
 // been posted)... i.e. by sending an "error message"
-typedef map<int,list<int>,less<int> > SZGcomponentMessageOwnershipDatabase;
-SZGcomponentMessageOwnershipDatabase componentMessageOwnershipDatabase;
+typedef map<int,list<int>,less<int> > SZGcomponentMessageOwnershipDB;
+SZGcomponentMessageOwnershipDB componentMessageOwnershipDB;
 
-// when a connection goes away, we need to be able to remove all the
-// "message trades" initiated by that component and send error responses to
-// the original senders
-typedef map<int,list<string>,less<int> > SZGcomponentTradingOwnershipDatabase;
-SZGcomponentTradingOwnershipDatabase componentTradingOwnershipDatabase;
+// When a connection goes away, remove all the "message trades"
+// initiated by it, and send error responses to the original senders.
+typedef map<int,list<string>,less<int> > SZGcomponentTradingOwnershipDB;
+SZGcomponentTradingOwnershipDB componentTradingOwnershipDB;
 
-// storage that associates a named lock with the ID of the component that
-// holds the lock
-typedef map<string,int,less<string> > SZGlockOwnershipDatabase;
-SZGlockOwnershipDatabase lockOwnershipDatabase;
+// Map named lock to lock's holder's component-ID.
+typedef map<string,int,less<string> > SZGlockOwnershipDB;
+SZGlockOwnershipDB lockOwnershipDB;
 
-// when a connection goes away, we need to be able to release all the locks
-// held by that connection
-typedef map<int,list<string>,less<int> > SZGcomponentLockOwnershipDatabase;
-SZGcomponentLockOwnershipDatabase componentLockOwnershipDatabase;
+// When a connection goes away, release all its locks.
+typedef map<int,list<string>,less<int> > SZGcomponentLockOwnershipDB;
+SZGcomponentLockOwnershipDB componentLockOwnershipDB;
 
-// when a lock is released, sometimes other components wish to be notified.
-typedef map<string,list<arPhleetNotification>,less<string> > 
-  SZGlockNotificationDatabase;
-SZGlockNotificationDatabase lockNotificationDatabase;
+// When a lock is released, notify other components.
+typedef map<string,list<arPhleetNotification>,less<string> > SZGlockNotificationDB;
+SZGlockNotificationDB lockNotificationDB;
 
-// organizes the lock release notifications owned by a particular component
-typedef map<int,list<string>,less<int> > SZGlockNotificationOwnershipDatabase;
-SZGlockNotificationOwnershipDatabase lockNotificationOwnershipDatabase;
+// Lock-release notifications owned by a particular component.
+typedef map<int,list<string>,less<int> > SZGlockNotificationOwnershipDB;
+SZGlockNotificationOwnershipDB lockNotificationOwnershipDB;
 
-// when component goes away, sometimes other components wish to be notified.
-typedef map<int,list<arPhleetNotification>,less<int> > 
-  SZGkillNotificationDatabase;
-SZGkillNotificationDatabase killNotificationDatabase;
+// When component goes away, notify other components.
+typedef map<int,list<arPhleetNotification>,less<int> > SZGkillNotificationDB;
+SZGkillNotificationDB killNotificationDB;
 
-// the kill notifications owned by a particular component. the list<int> is
-// of the observed component IDs (i.e. the components that we are watching
-// to see if they go away)
-typedef map<int,list<int>,less<int> > SZGkillNotificationOwnershipDatabase;
-SZGkillNotificationOwnershipDatabase killNotificationOwnershipDatabase;
+// Kill notifications owned by a particular component.
+// The list<int> is IDs of component we're observing to see if they vanish.
+typedef map<int,list<int>,less<int> > SZGkillNotificationOwnershipDB;
+SZGkillNotificationOwnershipDB killNotificationOwnershipDB;
 
 //**************************************************
-// end of szgserver's global data storage
+// end of global data storage
 //**************************************************
 
 
@@ -151,15 +143,15 @@ void _transferMatchFromTo(arStructuredData* from, arStructuredData* to){
 
 void SZGactivateUser(const string& userName){
   // normal user
-  SZGuserDatabase::const_iterator i = userDatabase.find(userName);
-  if (i != userDatabase.end()){
+  SZGuserDB::const_iterator i = userDB.find(userName);
+  if (i != userDB.end()){
     valueContainer = i->second;
   }
   else{
     // add a new parameter database for this user
-    SZGparamDatabase* newDatabase = new SZGparamDatabase;
-    userDatabase.insert(SZGuserDatabase::value_type(userName,newDatabase));
-    valueContainer = newDatabase;
+    SZGparamDB* newDB = new SZGparamDB;
+    userDB.insert(SZGuserDB::value_type(userName,newDB));
+    valueContainer = newDB;
   }
 }
 
@@ -172,14 +164,14 @@ void SZGactivateUser(const string& userName){
 // component (which is the list of message IDs to which the component is
 // expected to respond).
 void SZGinsertMessageIDIntoComponentsList(int componentID, int messageID){
-  SZGcomponentMessageOwnershipDatabase::iterator
-    i(componentMessageOwnershipDatabase.find(componentID));
-  if (i == componentMessageOwnershipDatabase.end()){
+  SZGcomponentMessageOwnershipDB::iterator
+    i(componentMessageOwnershipDB.find(componentID));
+  if (i == componentMessageOwnershipDB.end()){
     // the component owns no messages currently
     list<int> messageList;
     messageList.push_back(messageID);
-    componentMessageOwnershipDatabase.insert
-      (SZGcomponentMessageOwnershipDatabase::value_type(componentID,
+    componentMessageOwnershipDB.insert
+      (SZGcomponentMessageOwnershipDB::value_type(componentID,
 							messageList));
   }
   else{
@@ -187,14 +179,14 @@ void SZGinsertMessageIDIntoComponentsList(int componentID, int messageID){
   }
 }
 
-// A helper function for the larger message database manipulators.
+// Helper for the larger message database manipulators.
 // Removes the given message ID from the list maintained for the
 // given component (which is the list of message IDs to which the component
 // is expected to respond).
 void SZGremoveMessageIDFromComponentsList(int componentID, int messageID){
-  SZGcomponentMessageOwnershipDatabase::iterator
-    i(componentMessageOwnershipDatabase.find(componentID));
-  if (i == componentMessageOwnershipDatabase.end()){
+  SZGcomponentMessageOwnershipDB::iterator
+    i(componentMessageOwnershipDB.find(componentID));
+  if (i == componentMessageOwnershipDB.end()){
     cerr << "szgserver internal error: no message list for component "
          << componentID << ".\n";
   }
@@ -207,14 +199,14 @@ void SZGremoveMessageIDFromComponentsList(int componentID, int messageID){
 // Adds the given key to the list maintained for the given component
 // (which is the list of keys on which the component has initiated trades)
 void SZGinsertKeyIntoComponentsList(int componentID, const string& key){
-  SZGcomponentTradingOwnershipDatabase::iterator
-    i(componentTradingOwnershipDatabase.find(componentID));
-  if (i == componentTradingOwnershipDatabase.end()){
+  SZGcomponentTradingOwnershipDB::iterator
+    i(componentTradingOwnershipDB.find(componentID));
+  if (i == componentTradingOwnershipDB.end()){
     // the component has posted no trades as of yet
     list<string> tradeList;
     tradeList.push_back(key);
-    componentTradingOwnershipDatabase.insert
-      (SZGcomponentTradingOwnershipDatabase::value_type(componentID,
+    componentTradingOwnershipDB.insert
+      (SZGcomponentTradingOwnershipDB::value_type(componentID,
 							tradeList));
   }
   else{
@@ -226,9 +218,9 @@ void SZGinsertKeyIntoComponentsList(int componentID, const string& key){
 // @param componentID A component
 // @param key Key to be removed from the list of keys on which the component has initiated trades
 void SZGremoveKeyFromComponentsList(int componentID, const string& key){
-  SZGcomponentTradingOwnershipDatabase::iterator
-    i(componentTradingOwnershipDatabase.find(componentID));
-  if (i == componentTradingOwnershipDatabase.end()){
+  SZGcomponentTradingOwnershipDB::iterator
+    i(componentTradingOwnershipDB.find(componentID));
+  if (i == componentTradingOwnershipDB.end()){
     cerr << "szgserver internal error: no trading key in component's list.\n";
   }
   else{
@@ -242,23 +234,22 @@ void SZGremoveKeyFromComponentsList(int componentID, const string& key){
 // to respond to this message
 // @param componentOriginatorID ID of the component which sent the
 // message
-void SZGaddMessageToDatabase(int messageID, 
-                             int componentOwnerID,
-                             int componentOriginatorID,
-                             int match){
+void SZGaddMessageToDB(const int messageID, 
+                       const int componentOwnerID,
+                       const int componentOriginatorID,
+                       const int match){
   arPhleetMsg message(messageID, componentOwnerID, componentOriginatorID, match);
-  messageOwnershipDatabase.insert(SZGmessageOwnershipDatabase::value_type
+  messageOwnershipDB.insert(SZGmsgOwnershipDB::value_type
 				  (messageID, message));
   // Add to the component's list of owned messages.
   SZGinsertMessageIDIntoComponentsList(componentOwnerID, messageID);
 }
 
 // Return the ID of the component that owns this message
-// @param messageID ID of the message
 int SZGgetMessageOwnerID(int messageID){
-  SZGmessageOwnershipDatabase::const_iterator
-    i(messageOwnershipDatabase.find(messageID));
-  return (i == messageOwnershipDatabase.end()) ? -1 : i->second.idOwner;
+  SZGmsgOwnershipDB::const_iterator
+    i(messageOwnershipDB.find(messageID));
+  return (i == messageOwnershipDB.end()) ? -1 : i->second.idOwner;
 }
 
 // Return the match corresponding to the original message. Helpful when
@@ -266,18 +257,17 @@ int SZGgetMessageOwnerID(int messageID){
 // we need to fill in the original match so that the async stuff on the
 // arSZGClient side can route the messages correctly.
 int SZGgetMessageMatch(int messageID){
-  SZGmessageOwnershipDatabase::const_iterator
-    i(messageOwnershipDatabase.find(messageID));
-  return (i == messageOwnershipDatabase.end()) ? -1 : i->second.idMatch;
+  SZGmsgOwnershipDB::const_iterator
+    i(messageOwnershipDB.find(messageID));
+  return (i == messageOwnershipDB.end()) ? -1 : i->second.idMatch;
 } 
 
 // Return the ID of the component that originated this message
 // (and to which the response needs to be sent).
-// @param messageID ID of the message
 int SZGgetMessageOriginatorID(int messageID){
-  SZGmessageOwnershipDatabase::const_iterator
-    i(messageOwnershipDatabase.find(messageID));
-  return (i == messageOwnershipDatabase.end()) ? -1 : i->second.idDestination;
+  SZGmsgOwnershipDB::const_iterator
+    i(messageOwnershipDB.find(messageID));
+  return (i == messageOwnershipDB.end()) ? -1 : i->second.idDestination;
 }
 
 // Remove the message with the given ID from the database.
@@ -285,23 +275,21 @@ int SZGgetMessageOriginatorID(int messageID){
 // a response, this function is used when
 // a response to a message is received at the szgserver.
 // @param messageID ID of the message
-bool SZGremoveMessageFromDatabase(int messageID){
-  SZGmessageOwnershipDatabase::iterator i(messageOwnershipDatabase.find(messageID));
-  if (i == messageOwnershipDatabase.end()){
-    cerr << "szgserver warning: ignoring request to remove nonexistant message.\n";
+bool SZGremoveMessageFromDB(const int messageID){
+  SZGmsgOwnershipDB::iterator i(messageOwnershipDB.find(messageID));
+  if (i == messageOwnershipDB.end()){
+    cerr << "szgserver warning: ignoring request to remove missing message.\n";
     return false;
   }
 
-  const int componentMessageOwner = i->second.idOwner;
-  messageOwnershipDatabase.erase(i);
-  // remove this from the list associated with the component
-  SZGremoveMessageIDFromComponentsList(componentMessageOwner, messageID);
+  const int idOwner = i->second.idOwner;
+  messageOwnershipDB.erase(i);
+  SZGremoveMessageIDFromComponentsList(idOwner, messageID);
   return true;
 }
 
-// Initiate an "ownership trade":
-// when szgd wants to let the launched executable respond to
-// the "dex" command that launched it.
+// Initiate an "ownership trade",
+// when szgd wants its launchee to respond to the dex command that launched it.
 //
 // @param key Value by which the trade is indexed
 // @param messageID ID of the message
@@ -309,13 +297,13 @@ bool SZGremoveMessageFromDatabase(int messageID){
 // the trade be posted
 // @param tradingMatch this is used to respond to the component that
 // initiated the trade when said trade has been completed.
-bool SZGaddMessageTradeToDatabase(const string& key, 
-                                  int messageID,
-				  int requestingComponentID,
-                                  int tradingMatch){
-  SZGmessageOwnershipDatabase::iterator
-    i(messageOwnershipDatabase.find(messageID));
-  if (i == messageOwnershipDatabase.end()){
+bool SZGaddMessageTradeToDB(const string& key,
+                            const int messageID,
+                            const int requestingComponentID,
+			    const int tradingMatch){
+  SZGmsgOwnershipDB::iterator
+    i(messageOwnershipDB.find(messageID));
+  if (i == messageOwnershipDB.end()){
     cerr << "szgserver warning: ignoring trade on messageless ID.\n";
     return false;
   }
@@ -324,8 +312,8 @@ bool SZGaddMessageTradeToDatabase(const string& key,
     cerr << "szgserver warning: ignoring trade asked by non-owning component.\n";
     return false;
   }
-  SZGmessageTradingDatabase::iterator j(messageTradingDatabase.find(key));
-  if (j != messageTradingDatabase.end()){
+  SZGmsgTradingDB::iterator j(messageTradingDB.find(key));
+  if (j != messageTradingDB.end()){
     // a trade has already been posted with this key... failure
     cerr << "szgserver warning: ignoring duplicate trade on key " << key << ".\n";
     return false;
@@ -333,10 +321,10 @@ bool SZGaddMessageTradeToDatabase(const string& key,
 
   // Start the trade.
   i->second.idTradingMatch = tradingMatch;
-  messageTradingDatabase.insert(SZGmessageTradingDatabase::value_type(key, i->second));
+  messageTradingDB.insert(SZGmsgTradingDB::value_type(key, i->second));
 
   // Remove the corresponding data from the message ownership database.
-  messageOwnershipDatabase.erase(i);
+  messageOwnershipDB.erase(i);
 
   // Remove the corresponding data from the component's list.
   SZGremoveMessageIDFromComponentsList(responseOwner, messageID);
@@ -354,8 +342,8 @@ bool SZGaddMessageTradeToDatabase(const string& key,
 // @param message Gives the various attributes of the phleet message
 bool SZGmessageRequest(const string& key, int newOwnerID,
                        arPhleetMsg& message){
-  SZGmessageTradingDatabase::iterator j(messageTradingDatabase.find(key));
-  if (j == messageTradingDatabase.end()){
+  SZGmsgTradingDB::iterator j(messageTradingDB.find(key));
+  if (j == messageTradingDB.end()){
     // no trade has been posted on this key... failure
     cerr << "szgserver warning: ignoring trade on missing key " << key << ".\n";
     return false;
@@ -368,9 +356,9 @@ bool SZGmessageRequest(const string& key, int newOwnerID,
   // the change is that someone else owns the message now.
   message.idOwner = newOwnerID;
   // remove from the trading database
-  messageTradingDatabase.erase(j);
+  messageTradingDB.erase(j);
   // make the component requesting the trade the new message owner
-  messageOwnershipDatabase.insert(SZGmessageOwnershipDatabase::value_type
+  messageOwnershipDB.insert(SZGmsgOwnershipDB::value_type
     (message.id,message));
 
   // remove the key from the list associated with the trading component
@@ -388,9 +376,9 @@ bool SZGmessageRequest(const string& key, int newOwnerID,
 // @param key Value on which the message trade was posted
 // @param revokerID ID of the component that is requesting the trade revocation
 bool SZGrevokeMessageTrade(const string& key, int revokerID){
-  SZGmessageTradingDatabase::iterator j(messageTradingDatabase.find(key));
+  SZGmsgTradingDB::iterator j(messageTradingDB.find(key));
   // is there a message with this key?
-  if (j == messageTradingDatabase.end()){
+  if (j == messageTradingDB.end()){
     cerr << "szgserver warning: can't revoke message trade on nonexistant key '" << key <<"'.\n";
     return false;
   }
@@ -402,10 +390,10 @@ bool SZGrevokeMessageTrade(const string& key, int revokerID){
   }
 
   // remove the trade from the database
-  messageTradingDatabase.erase(j);
+  messageTradingDB.erase(j);
   // restore the original message owenership
-  messageOwnershipDatabase.insert(
-    SZGmessageOwnershipDatabase::value_type(message.id, message));
+  messageOwnershipDB.insert(
+    SZGmsgOwnershipDB::value_type(message.id, message));
   // enter the message ID back into the ownership list of the component
   SZGinsertMessageIDIntoComponentsList(message.idOwner, message.id);
   // remove the key from the trading list associated with this component
@@ -417,9 +405,9 @@ bool SZGrevokeMessageTrade(const string& key, int revokerID){
 // Return whether or not a trade exists on that key. If so, fill in the
 // passed message object with the data.
 bool SZGgetMessageTradeInfo(const string& key, arPhleetMsg& message){
-  SZGmessageTradingDatabase::const_iterator j(messageTradingDatabase.find(key));
+  SZGmsgTradingDB::const_iterator j(messageTradingDB.find(key));
   // is there a message with this key?
-  if (j == messageTradingDatabase.end()){
+  if (j == messageTradingDB.end()){
     return false;
   }
   message = j->second;
@@ -437,9 +425,9 @@ bool SZGgetMessageTradeInfo(const string& key, arPhleetMsg& message){
 // @param ownerID Set to -1 if the lock was not previously held,
 // otherwise set to the ID of the holding component.
 bool SZGgetLock(const string& lockName, int id, int& ownerID){
-  SZGlockOwnershipDatabase::const_iterator
-    i(lockOwnershipDatabase.find(lockName));
-  if (i != lockOwnershipDatabase.end()){
+  SZGlockOwnershipDB::const_iterator
+    i(lockOwnershipDB.find(lockName));
+  if (i != lockOwnershipDB.end()){
     ownerID = i->second;
     // note: we do not want to print out a warning here... since this
     // is actually a fairly common occurence
@@ -447,16 +435,15 @@ bool SZGgetLock(const string& lockName, int id, int& ownerID){
   }
 
   // Nobody holds the lock. Insert it in the global list.
-  lockOwnershipDatabase.insert(SZGlockOwnershipDatabase::value_type(lockName, id));
+  lockOwnershipDB.insert(SZGlockOwnershipDB::value_type(lockName, id));
   // Insert the name in the list associated with this component.
-  SZGcomponentLockOwnershipDatabase::iterator j(componentLockOwnershipDatabase.find(id));
-  if (j == componentLockOwnershipDatabase.end()){
+  SZGcomponentLockOwnershipDB::iterator j(componentLockOwnershipDB.find(id));
+  if (j == componentLockOwnershipDB.end()){
     // The component has never owned a lock.
     list<string> lockList;
     lockList.push_back(lockName);
-    componentLockOwnershipDatabase.insert
-      (SZGcomponentLockOwnershipDatabase::value_type
-       (id, lockList));
+    componentLockOwnershipDB.insert
+      (SZGcomponentLockOwnershipDB::value_type(id, lockList));
   }
   else{
     // The component either owns, or has owned, a lock.
@@ -468,7 +455,7 @@ bool SZGgetLock(const string& lockName, int id, int& ownerID){
 
 // Return true iff the lock is held.
 bool SZGcheckLock(const string& lockName){
-  return lockOwnershipDatabase.find(lockName) != lockOwnershipDatabase.end();
+  return lockOwnershipDB.find(lockName) != lockOwnershipDB.end();
 }
 
 // Enters a request for notification when a given lock, currently held,
@@ -479,12 +466,12 @@ bool SZGcheckLock(const string& lockName){
 void SZGrequestLockNotification(int id, const string& lockName, int match){
   arPhleetNotification notification(id, match);
   // Add to list keyed by lock name.
-  SZGlockNotificationDatabase::iterator i(lockNotificationDatabase.find(lockName));
-  if (i == lockNotificationDatabase.end()){
+  SZGlockNotificationDB::iterator i(lockNotificationDB.find(lockName));
+  if (i == lockNotificationDB.end()){
     // no notifications, yet, for this lock's release
     list<arPhleetNotification> temp;
     temp.push_back(notification);
-    lockNotificationDatabase.insert(SZGlockNotificationDatabase::value_type
+    lockNotificationDB.insert(SZGlockNotificationDB::value_type
 				    (lockName, temp));
   }
   else{
@@ -492,14 +479,14 @@ void SZGrequestLockNotification(int id, const string& lockName, int match){
     i->second.push_back(notification);
   }
   // we must also enter it into the list organized by component ID
-  SZGlockNotificationOwnershipDatabase::iterator j
-    = lockNotificationOwnershipDatabase.find(id);
-  if (j == lockNotificationOwnershipDatabase.end()){
+  SZGlockNotificationOwnershipDB::iterator j
+    = lockNotificationOwnershipDB.find(id);
+  if (j == lockNotificationOwnershipDB.end()){
     // no notifications directed at this component
     list<string> tempS;
     tempS.push_back(lockName);
-    lockNotificationOwnershipDatabase.insert
-      (SZGlockNotificationOwnershipDatabase::value_type(id, tempS));
+    lockNotificationOwnershipDB.insert
+      (SZGlockNotificationOwnershipDB::value_type(id, tempS));
   }
   else{
     // there are already notifications directed towards this component
@@ -513,9 +500,9 @@ void SZGrequestLockNotification(int id, const string& lockName, int match){
 // (in the case of serverLock = false) or data server's "no lock" methods
 // (in the case of serverLock = true).
 void SZGsendLockNotification(string lockName, bool serverLock){
-  SZGlockNotificationDatabase::iterator i
-    = lockNotificationDatabase.find(lockName);
-  if (i != lockNotificationDatabase.end()){
+  SZGlockNotificationDB::iterator i
+    = lockNotificationDB.find(lockName);
+  if (i != lockNotificationDB.end()){
     // there are actually some notifications
     arStructuredData* data 
       = dataParser->getStorage(lang.AR_SZG_LOCK_NOTIFICATION);
@@ -554,13 +541,13 @@ void SZGsendLockNotification(string lockName, bool serverLock){
       }
       // now, we need to do a little clean-up...
       // THIS IS VERY, VERY INEFFICIENT. TODO TODO TODO TODO TODO TODO TODO
-      SZGlockNotificationOwnershipDatabase::iterator k
-	= lockNotificationOwnershipDatabase.find(j->componentID);
-      if (k != lockNotificationOwnershipDatabase.end()){
+      SZGlockNotificationOwnershipDB::iterator k
+	= lockNotificationOwnershipDB.find(j->componentID);
+      if (k != lockNotificationOwnershipDB.end()){
         k->second.remove(lockName);
 	// if the list is empty, better remove it.
         if (k->second.empty()){
-          lockNotificationOwnershipDatabase.erase(k);
+          lockNotificationOwnershipDB.erase(k);
 	}
       }
       else{
@@ -571,23 +558,23 @@ void SZGsendLockNotification(string lockName, bool serverLock){
     // Must remember to recycle the storage!
     dataParser->recycle(data);
     // finally, the lock has gone away, so remove its entry
-    lockNotificationDatabase.erase(i);
+    lockNotificationDB.erase(i);
   }
 }
 
 // A component is going away. Remove any outstanding lock notification
 // requests from internal storage.
 void SZGremoveComponentLockNotifications(int componentID){
-  SZGlockNotificationOwnershipDatabase::iterator i
-    = lockNotificationOwnershipDatabase.find(componentID);
-  if (i != lockNotificationOwnershipDatabase.end()){
+  SZGlockNotificationOwnershipDB::iterator i
+    = lockNotificationOwnershipDB.find(componentID);
+  if (i != lockNotificationOwnershipDB.end()){
     // this component has some notifications
     for (list<string>::iterator j = i->second.begin();
 	 j != i->second.end(); j++){
       // WOEFULLY INEFFICIENT... TODO TODO TODO TODO TODO TODO
-      SZGlockNotificationDatabase::iterator k
-	= lockNotificationDatabase.find(*j);
-      if (k != lockNotificationDatabase.end()){
+      SZGlockNotificationDB::iterator k
+	= lockNotificationDB.find(*j);
+      if (k != lockNotificationDB.end()){
 	// AARGH! Binding the component ID and the match together makes
 	// this step more inefficient!
         list<arPhleetNotification>::iterator l = k->second.begin();
@@ -601,7 +588,7 @@ void SZGremoveComponentLockNotifications(int componentID){
 	}
 	// if the list is empty, better remove it!
 	if (k->second.empty()){
-	  lockNotificationDatabase.erase(k);
+	  lockNotificationDB.erase(k);
 	}
       }
       else{
@@ -610,7 +597,7 @@ void SZGremoveComponentLockNotifications(int componentID){
       }
     }
     // finally, the component has gone away... so remove its info
-    lockNotificationOwnershipDatabase.erase(i);
+    lockNotificationOwnershipDB.erase(i);
   }
 }
 
@@ -623,9 +610,9 @@ void SZGremoveComponentLockNotifications(int componentID){
 // @param lockName Name of the lock.
 // @param id ID of component releasing the lock
 bool SZGreleaseLock(const string& lockName, int id){
-  SZGlockOwnershipDatabase::iterator
-    i(lockOwnershipDatabase.find(lockName));
-  if (i == lockOwnershipDatabase.end()){
+  SZGlockOwnershipDB::iterator
+    i(lockOwnershipDB.find(lockName));
+  if (i == lockOwnershipDB.end()){
     // Lock is not held.
     cerr << "szgserver warning: already released lock "
 	 << lockName << " as requested by component" << id
@@ -645,12 +632,12 @@ bool SZGreleaseLock(const string& lockName, int id){
   }
 
   // Remove the lock from the database.
-  lockOwnershipDatabase.erase(i);
+  lockOwnershipDB.erase(i);
 
   // Remove the lock from the component's database.
-  SZGcomponentLockOwnershipDatabase::iterator
-    j(componentLockOwnershipDatabase.find(id));
-  if (j == componentLockOwnershipDatabase.end()){
+  SZGcomponentLockOwnershipDB::iterator
+    j(componentLockOwnershipDB.find(id));
+  if (j == componentLockOwnershipDB.end()){
     cerr << "szgserver internal error: lock list missing on release.\n";
     return false;
   }
@@ -669,26 +656,26 @@ bool SZGreleaseLock(const string& lockName, int id){
 void SZGreleaseLocksOwnedByComponent(int id){
   // (Too late to call dataServer->getSocketLabel(id).)
   // Get the lockList.
-  SZGcomponentLockOwnershipDatabase::iterator
-    i(componentLockOwnershipDatabase.find(id));
-  if (i == componentLockOwnershipDatabase.end()){
+  SZGcomponentLockOwnershipDB::iterator
+    i(componentLockOwnershipDB.find(id));
+  if (i == componentLockOwnershipDB.end()){
     return;
   }
   for (list<string>::iterator k=i->second.begin(); k != i->second.end(); k++){
     const string lockName(*k);
     // erase it from the global storage
-    SZGlockOwnershipDatabase::iterator j=lockOwnershipDatabase.find(lockName);
-    if (j == lockOwnershipDatabase.end()){
+    SZGlockOwnershipDB::iterator j=lockOwnershipDB.find(lockName);
+    if (j == lockOwnershipDB.end()){
       cerr << "szgserver internal error: found no lock name to remove on "
 	   << "component shut down.\n";
     }
     else{
       SZGsendLockNotification(lockName, true);
-      lockOwnershipDatabase.erase(j);
+      lockOwnershipDB.erase(j);
     }
   }
   // erase the component's lock list
-  componentLockOwnershipDatabase.erase(i);
+  componentLockOwnershipDB.erase(i);
 }
 
 //********************************************************************
@@ -704,13 +691,13 @@ void SZGrequestKillNotification(int requestingComponentID,
                                 int match){
   arPhleetNotification notification(requestingComponentID, match);
   // Add to list keyed by ID, i.e. the component for whose demise we are waiting.
-  SZGkillNotificationDatabase::iterator i(
-    killNotificationDatabase.find(observedComponentID));
-  if (i == killNotificationDatabase.end()){
+  SZGkillNotificationDB::iterator i(
+    killNotificationDB.find(observedComponentID));
+  if (i == killNotificationDB.end()){
     // no notifications, yet, for this component's demise
     list<arPhleetNotification> temp;
     temp.push_back(notification);
-    killNotificationDatabase.insert(SZGkillNotificationDatabase::value_type
+    killNotificationDB.insert(SZGkillNotificationDB::value_type
 				    (observedComponentID, temp));
   }
   else{
@@ -719,17 +706,17 @@ void SZGrequestKillNotification(int requestingComponentID,
   }
   // we must also enter it into the list organized by the REQUESTING
   // component's ID.
-  SZGkillNotificationOwnershipDatabase::iterator j
-    = killNotificationOwnershipDatabase.find(requestingComponentID);
-  if (j == killNotificationOwnershipDatabase.end()){
+  SZGkillNotificationOwnershipDB::iterator j
+    = killNotificationOwnershipDB.find(requestingComponentID);
+  if (j == killNotificationOwnershipDB.end()){
     // no kill notifications directed at this component yet
     list<int> tempI;
     // We need to know how to remove the notification request from the
     // OBSERVED component's database if the REQUESTING component goes away
     // before the observed component does.
     tempI.push_back(observedComponentID);
-    killNotificationOwnershipDatabase.insert
-      (SZGkillNotificationOwnershipDatabase::value_type
+    killNotificationOwnershipDB.insert
+      (SZGkillNotificationOwnershipDB::value_type
         (requestingComponentID, tempI));
   }
   else{
@@ -747,9 +734,9 @@ void SZGrequestKillNotification(int requestingComponentID,
 // (in the case of serverLock = false) or data server's "no lock" methods
 // (in the case of serverLock = true).
 void SZGsendKillNotification(int observedComponentID, bool serverLock){
-  SZGkillNotificationDatabase::iterator i
-    = killNotificationDatabase.find(observedComponentID);
-  if (i != killNotificationDatabase.end()){
+  SZGkillNotificationDB::iterator i
+    = killNotificationDB.find(observedComponentID);
+  if (i != killNotificationDB.end()){
     // there are actually some notifications
     arStructuredData* data 
       = dataParser->getStorage(lang.AR_SZG_KILL_NOTIFICATION);
@@ -795,17 +782,17 @@ void SZGsendKillNotification(int observedComponentID, bool serverLock){
       // THIS IS VERY, VERY INEFFICIENT. TODO TODO TODO TODO TODO TODO TODO
       // NOTE: this notification database is organized via REQUESTING
       // component ID (and j->componentID is REQUESTING COMPONENT ID)
-      SZGkillNotificationOwnershipDatabase::iterator k
-	= killNotificationOwnershipDatabase.find(j->componentID);
-      if (k != killNotificationOwnershipDatabase.end()){
-	// The lists in the killNotificationOwnershipDatabase are
+      SZGkillNotificationOwnershipDB::iterator k
+	= killNotificationOwnershipDB.find(j->componentID);
+      if (k != killNotificationOwnershipDB.end()){
+	// The lists in the killNotificationOwnershipDB are
 	// of OBSERVED component IDs (i.e. we want to be notified when this
 	// goes away)
         k->second.remove(observedComponentID);
 	// If this component has no more (other) components whose potential
 	// demise it is observing, remove the list.
         if (k->second.empty()){
-          killNotificationOwnershipDatabase.erase(k);
+          killNotificationOwnershipDB.erase(k);
 	}
       }
       else{
@@ -814,16 +801,16 @@ void SZGsendKillNotification(int observedComponentID, bool serverLock){
     }
     dataParser->recycle(data);
     // finally, we've sent all the kill notifications, so remove the entry.
-    killNotificationDatabase.erase(i);
+    killNotificationDB.erase(i);
   }
 }
 
 // A component is going away. Remove from internal storage any outstanding kill notification
 // requests that it owns.
 void SZGremoveComponentKillNotifications(int requestingComponentID){
-  SZGkillNotificationOwnershipDatabase::iterator i =
-    killNotificationOwnershipDatabase.find(requestingComponentID);
-  if (i != killNotificationOwnershipDatabase.end()){
+  SZGkillNotificationOwnershipDB::iterator i =
+    killNotificationOwnershipDB.find(requestingComponentID);
+  if (i != killNotificationOwnershipDB.end()){
     // this component has some kill notifications.
     // traverse its list (which contains the IDs of the components it is OBSERVING).
     for (list<int>::iterator j = i->second.begin();
@@ -831,8 +818,8 @@ void SZGremoveComponentKillNotifications(int requestingComponentID){
       // WOEFULLY INEFFICIENT... TODO TODO TODO TODO TODO TODO
       // Find the observed component and look at its list of
       // registered kill notification requests.
-      SZGkillNotificationDatabase::iterator k = killNotificationDatabase.find(*j);
-      if (k != killNotificationDatabase.end()){
+      SZGkillNotificationDB::iterator k = killNotificationDB.find(*j);
+      if (k != killNotificationDB.end()){
 	// Remove every notification from the list which is related to the
 	// requestingComponentID.
         list<arPhleetNotification>::iterator l = k->second.begin();
@@ -848,7 +835,7 @@ void SZGremoveComponentKillNotifications(int requestingComponentID){
 	}
 	if (k->second.empty()){
 	  // Remove the empty list.
-	  killNotificationDatabase.erase(k);
+	  killNotificationDB.erase(k);
 	}
       }
       else{
@@ -856,7 +843,7 @@ void SZGremoveComponentKillNotifications(int requestingComponentID){
       }
     }
     // finally, the component has gone away... so remove its info
-    killNotificationOwnershipDatabase.erase(i);
+    killNotificationOwnershipDB.erase(i);
   }
 }
 
@@ -867,7 +854,7 @@ void SZGremoveComponentKillNotifications(int requestingComponentID){
 
 // The connection broker uses this callback to send the notifications of
 // service release to clients that have requested such. NOTE: this is OK
-// ONLY because it is called (indirectly) from SZGremoveComponentFromDatabase
+// ONLY because it is called (indirectly) from SZGremoveComponentFromDB
 // (THIS IS RELATED TO THE CONNECTION BROKER... AND EXISTS IN CALLBACK
 //  FORM BECAUSE THE CONNECTION BROKER CANNOT ITSELF DO EVERYTHING THAT IS
 //  NECESSARY TO RELEASE A COMPONENT WHEN IT GOES AWAY)
@@ -895,7 +882,7 @@ void SZGreleaseNotificationCallback(int componentID,
 // before replying to a message, szgserver itself must reply (with
 // SZG_FAILURE).  Also clean up message trades, locks, and services offered.
 // @param componentID ID of component which should have sent replies
-void SZGremoveComponentFromDatabase(int componentID){
+void SZGremoveComponentFromDB(const int componentID){
   // Don't sendDataNoLock, because we're called from 
   // the automatic remove socket from data server call, already in the mutex.
 
@@ -910,18 +897,18 @@ void SZGremoveComponentFromDatabase(int componentID){
 
   // send "failure" messages to all components expecting
   // a message response from this component
-  const SZGcomponentMessageOwnershipDatabase::iterator i =
-    componentMessageOwnershipDatabase.find(componentID);
-  // The componentMessageOwnershipDatabase gives the messages owned by
+  const SZGcomponentMessageOwnershipDB::iterator i =
+    componentMessageOwnershipDB.find(componentID);
+  // The componentMessageOwnershipDB gives the messages owned by
   // a particular component.
-  if (i != componentMessageOwnershipDatabase.end()){
+  if (i != componentMessageOwnershipDB.end()){
     for (list<int>::iterator k=i->second.begin(); k!=i->second.end(); k++){
       // go through the list, sending failure messages.
       messageID = *k;
       // find the component that originated the message
-      const SZGmessageOwnershipDatabase::iterator j =
-        messageOwnershipDatabase.find(messageID);
-      if (j == messageOwnershipDatabase.end()){
+      const SZGmsgOwnershipDB::iterator j =
+        messageOwnershipDB.find(messageID);
+      if (j == messageOwnershipDB.end()){
         cerr << "szgserver warning: in socket clean-up, failed to find "
 	     << "message ID information in database.\n";
       }
@@ -934,7 +921,7 @@ void SZGremoveComponentFromDatabase(int componentID){
 	// the first element of the pair is the owner of the response
 	// the second element of the pair is the destination of our message
         responseDest = j->second.idDestination;
-        messageOwnershipDatabase.erase(j);
+        messageOwnershipDB.erase(j);
         // The response destination may have vanished.
         arSocket* destinationSocket =
           dataServer->getConnectedSocketNoLock(responseDest);
@@ -947,21 +934,21 @@ void SZGremoveComponentFromDatabase(int componentID){
 	}
       }
     }
-    componentMessageOwnershipDatabase.erase(i);
+    componentMessageOwnershipDB.erase(i);
   }
 
   // Remove all the message trades owned by this component,
   // again sending failure messages to the originating components.
-  const SZGcomponentTradingOwnershipDatabase::iterator l =
-    componentTradingOwnershipDatabase.find(componentID);
-  if (l != componentTradingOwnershipDatabase.end()){
+  const SZGcomponentTradingOwnershipDB::iterator l =
+    componentTradingOwnershipDB.find(componentID);
+  if (l != componentTradingOwnershipDB.end()){
     for (list<string>::iterator n=l->second.begin(); n!=l->second.end(); n++){
       const string messageKey = *n;
       // we now need to find the component that sent the message upon
       // which the trade is posted
-      const SZGmessageTradingDatabase::iterator m =
-        messageTradingDatabase.find(messageKey);
-      if (m == messageTradingDatabase.end()){
+      const SZGmsgTradingDB::iterator m =
+        messageTradingDB.find(messageKey);
+      if (m == messageTradingDB.end()){
         cerr << "szgserver warning: no key info in socket cleanup.\n";
       }
       else{
@@ -972,7 +959,7 @@ void SZGremoveComponentFromDatabase(int componentID){
 				 &m->second.idMatch, AR_INT, 1);
         messageAdminData->dataIn(lang.AR_SZG_MESSAGE_ADMIN_ID, &messageID, 
                                  AR_INT, 1);
-        messageTradingDatabase.erase(m);
+        messageTradingDB.erase(m);
         // NOTE: we cannot assume that the response destination still exists!
         arSocket* originatingSocket =
           dataServer->getConnectedSocketNoLock(responseDest);
@@ -985,7 +972,7 @@ void SZGremoveComponentFromDatabase(int componentID){
 	}
       }
     }
-    componentTradingOwnershipDatabase.erase(l);
+    componentTradingOwnershipDB.erase(l);
   }
   dataParser->recycle(messageAdminData);
   // nuke the connection brokering
@@ -1223,7 +1210,7 @@ void attributeSetCallback(arStructuredData* theData,
       valueContainer->erase(i);
     // Don't insert NULL values.
     if (value != "NULL")
-      valueContainer->insert(SZGparamDatabase::value_type(attribute, value));
+      valueContainer->insert(SZGparamDB::value_type(attribute, value));
 
     // Ack by filling in the match.
     arStructuredData* connectionAckData = dataParser->getStorage(lang.AR_CONNECTION_ACK);
@@ -1243,14 +1230,14 @@ void attributeSetCallback(arStructuredData* theData,
       valueContainer->erase(i);
       // Don't insert NULL values.
       if (value != "NULL")
-	valueContainer->insert(SZGparamDatabase::value_type(attribute, value));
+	valueContainer->insert(SZGparamDB::value_type(attribute, value));
       returnString = value;
     }
   }
   else{
     // Don't insert NULL values.
     if (value != "NULL")
-      valueContainer->insert(SZGparamDatabase::value_type(attribute, value));
+      valueContainer->insert(SZGparamDB::value_type(attribute, value));
     returnString = value;
   }
 
@@ -1344,8 +1331,7 @@ void messageProcessingCallback(arStructuredData* theData,
       // message. Assign it an ID.
       // NOTE: THIS IS NOT THREADSAFE... SHOULD ENCAPUSLATE MESSAGEID
       // ASIGNMENT IN A MUTEX PROTECTED FUNCTION.
-      theMessageID = nextMessageID;
-      nextMessageID++;
+      theMessageID = nextMessageID++;
       // fill in the message's ID field
       theData->dataIn(lang.AR_SZG_MESSAGE_ID, &theMessageID, AR_INT, 1);
       // check to see if a response has been requested. if so,
@@ -1353,9 +1339,8 @@ void messageProcessingCallback(arStructuredData* theData,
         // a response has been requested, so record the ID of the
         // component that's allowed to respond, along with the ID of where
         // the response should be routed.
-        SZGaddMessageToDatabase(theMessageID, destSocket->getID(),
-				dataSocket->getID(),
-                                theData->getDataInt(lang.AR_PHLEET_MATCH));
+        SZGaddMessageToDB(theMessageID, destSocket->getID(),
+	  dataSocket->getID(), theData->getDataInt(lang.AR_PHLEET_MATCH));
       }
       if (!dataServer->sendData(theData,destSocket)){
         cerr << "szgserver warning: message send failed.\n";
@@ -1432,10 +1417,11 @@ void messageAdminCallback(arStructuredData* theData,
         const string responseMode =
           theData->getDataString(lang.AR_SZG_MESSAGE_ADMIN_STATUS);
         if (responseMode == string("SZG_SUCCESS")){
-          SZGremoveMessageFromDatabase(messageID);
+          SZGremoveMessageFromDB(messageID);
 	}
 	else if (responseMode != string("SZG_CONTINUE")){
-	  cerr << "szgserver warning: bad status field in message response.\n";
+	  cerr << "szgserver warning: message response had unexpected status field '"
+	       << responseMode << "' (expected SZG_SUCCESS or SZG_CONTINUE).\n";
 	}
       }
     }
@@ -1444,8 +1430,8 @@ void messageAdminCallback(arStructuredData* theData,
   else if (messageAdminType == "SZG Trade Message"){
     messageID = theData->getDataInt(lang.AR_SZG_MESSAGE_ADMIN_ID);
     key = theData->getDataString(lang.AR_SZG_MESSAGE_ADMIN_BODY);
-    status = SZGaddMessageTradeToDatabase(key, messageID, dataSocket->getID(),
-                                    theData->getDataInt(lang.AR_PHLEET_MATCH));
+    status = SZGaddMessageTradeToDB(
+      key, messageID, dataSocket->getID(), theData->getDataInt(lang.AR_PHLEET_MATCH));
   }
 
   else if (messageAdminType == "SZG Message Request"){
@@ -1580,12 +1566,12 @@ void lockReleaseCallback(arStructuredData* theData,
 // @param dataSocket Connection upon which we received the data
 void lockListingCallback(arStructuredData* theData,
 			 arSocket* dataSocket){
-  const int listSize = lockOwnershipDatabase.size();
+  const int listSize = lockOwnershipDB.size();
   int* IDs = new int[listSize];
   int iID = 0;
   arSemicolonString locks;
-  for (SZGlockOwnershipDatabase::iterator i=lockOwnershipDatabase.begin();
-       i != lockOwnershipDatabase.end(); i++){
+  for (SZGlockOwnershipDB::iterator i=lockOwnershipDB.begin();
+       i != lockOwnershipDB.end(); i++){
     locks /= i->first;
     IDs[iID++] = i->second;
   }
@@ -1671,17 +1657,17 @@ LAgain:
       cerr << "szgserver warning: "
            << "failed to respond to service registration request.\n";
     }
-    dataParser->recycle(data);
   }
+
   else if (status == "SZG_RETRY"){
     // The previously assigned ports failed.  Get new ones.
     result = connectionBroker.retryPorts(dataSocket->getID(), serviceName);
     goto LAgain;
   }
+
   else if (status == "SZG_SUCCESS"){
     // Confirmation that the client bound to the assigned ports.
-    const bool status =
-      connectionBroker.confirmPorts(dataSocket->getID(), serviceName);
+    const bool status = connectionBroker.confirmPorts(dataSocket->getID(), serviceName);
     data = dataParser->getStorage(lang.AR_SZG_BROKER_RESULT);
     // Propogate the "match".
     data->dataIn(lang.AR_PHLEET_MATCH, &match, AR_INT, 1);
@@ -1691,16 +1677,15 @@ LAgain:
            << "failed to respond to service confirmation.\n";
     }
   
-    // Now that the service is truly registered, notify the
-    // components that are waiting.
+    // The service is truly registered.
+    // Notify the components that are waiting.
     SZGRequestList waiting = connectionBroker.getPendingRequests(serviceName);
     for (SZGRequestList::iterator i = waiting.begin();
 	 i != waiting.end(); i++){
-      // We do not want to put a service request on the queue...
-      // hence, the final parameter of the requestService(...) call is false.
+      // Do not put a service request on the queue, so
+      // the last arg of requestService() is false.
       arPhleetAddress addr = connectionBroker.requestService(
-        i->componentID, i->computer, i->match,
-	i->serviceName, i->networks, false);
+        i->componentID, i->computer, i->match, i->serviceName, i->networks, false);
       // The match for the async call to requestServiceCallback(...)
       int oldMatch = i->match;
       data->dataIn(lang.AR_PHLEET_MATCH, &oldMatch, AR_INT, 1);
@@ -1713,17 +1698,19 @@ LAgain:
       }
       arSocket* dest = dataServer->getConnectedSocket(i->componentID);
       if (!dataServer->sendData(data, dest)){
-        cerr << "szgserver warning: failed to send async broker result to "
-	     << " component " << i->componentID << ".\n";
+        cerr << "szgserver warning: failed to send async broker result to component "
+	     << i->componentID << ".\n";
       }
     }
-   
-    dataParser->recycle(data);
   }
+
   else{
     cerr << "szgserver warning: ignoring service registration "
          << "with unexpected status field \"" << status << "\".\n";
+    return;
   }
+
+  dataParser->recycle(data);
 }
 
 
@@ -1895,15 +1882,14 @@ void serviceInfoCallback(arStructuredData* theData,
     const string info(theData->getDataString(lang.AR_SZG_SERVICE_INFO_STATUS));
     bool status = connectionBroker.setServiceInfo(dataSocket->getID(),
                                                   name, info);
-    const string statusString = status ? "SZG_SUCCESS" : "SZG_FAILURE";
+    const string statusString = szgSuccess(status);
     theData->dataInString(lang.AR_SZG_SERVICE_INFO_STATUS, statusString);
     if (!dataServer->sendData(theData, dataSocket)){
       cout << "szgserver warning: failed to get service info.\n";
     }
   }
   else{
-    cout << "szgserver error: got incorrect service info operation = " << op
-	 << ".\n";
+    cout << "szgserver warning: got wrong service info operation = " << op << ".\n";
   }
 }
 
@@ -1919,8 +1905,7 @@ void dataConsumptionFunction(arStructuredData* theData, void*,
   // UNSURE IF THIS CHECK EVEN MAKES SENSE.
   static bool fInside = false;
   if (fInside) {
-    cerr << "szgserver internal error: "
-	 << "nonserialized dataConsumptionFunction.\n";
+    cerr << "szgserver internal error: nonserialized dataConsumptionFunction.\n";
     return;
   }
   fInside = true;
@@ -2049,8 +2034,8 @@ void dataConsumptionFunction(arStructuredData* theData, void*,
 // arDataServer calls this when a connection goes away
 // (when a read or write call on the socket returns false).
 // @param theSocket Socket whose connection died
-void SZGdisconnectFunction(void*, arSocket* theSocket){
-  SZGremoveComponentFromDatabase(theSocket->getID());
+void SZGdisconnectFunction(void*, arSocket* s){
+  SZGremoveComponentFromDB(s->getID());
 }
 
 int main(int argc, char** argv){
