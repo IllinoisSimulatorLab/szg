@@ -175,12 +175,11 @@ char* arMasterSlaveDataRouter::getTransferBuffer(int& bufferSize){
 // expanding the buffer's size if necessary.
 void arMasterSlaveDataRouter::_addStructuredDataToBuffer
   (int objectID, arStructuredData* data){
-  // It could be the case that we are being passed NULL, just return.
-  // This can happen if the arFrameworkObject is still using a default 
-  //behavior for dumpData.
   if (!data){
+    // perhaps arFrameworkObject's dumpData behavior is still the default.
     return;
   }
+
   // Add the object ID for routing. Bug: verbal field tag is inefficient.
   // This alters record size, so do this before calculating that.
   data->dataIn("szg_router_id",&objectID,AR_INT,1);
@@ -195,9 +194,8 @@ void arMasterSlaveDataRouter::_addStructuredDataToBuffer
   }
   data->pack((_buffer.data)+_bufferPosition);
   _bufferPosition = newBufferPosition;
-  // NOTE: we must recycle this data! Anything returned from a dumpData()
-  // call is our responsibility to delete! Eventually, this should be
-  // recycled to the data parser... But things are not set up that way
-  // right now.
+  // NOTE: we must recycle this data.
+  // Caller deletes anything returned from dumpData().
+  // Eventually, this should be recycled to the data parser.
   delete data;
 }

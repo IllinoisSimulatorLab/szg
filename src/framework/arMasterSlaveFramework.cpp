@@ -1055,7 +1055,7 @@ void arMasterSlaveFramework::setPostExchangeCallback
 }
 
 // The window callback is called once per window, per frame, if set.
-// If it is not set, the _drawSetUp method is called instead. This callback
+// Otherwise the _drawSetUp method is called. This callback
 // is needed since we may want several different views in a single window,
 // with a draw callback filling each. This is especially useful for passive
 // stereo from a single box, but will not work if the draw callback includes
