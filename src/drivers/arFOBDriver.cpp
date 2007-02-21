@@ -111,6 +111,10 @@ LDefaultBaudRate:
 
   // Multiple serial ports aren't implemented.
   _comPortID = static_cast<unsigned int>(SZGClient.getAttributeInt("SZG_FOB", "com_port"));
+  if (_comPortID <= 0) {
+    ar_log_warning() << "arFOBDriver: SZG_FOB/com_port defaulting to 1.\n";
+    _comPortID = 1;
+  }
   if (!_comPort.ar_open(_comPortID,(unsigned long)baudRate,8,1,"none" )){
     ar_log_warning() << "arFOBDriver failed to open serial port " <<
       _comPortID << ".\n";
@@ -136,7 +140,7 @@ LDefaultBaudRate:
   int birdConfiguration[_FOB_MAX_DEVICES+1];
   const string received(SZGClient.getAttribute("SZG_FOB", "config"));
   if (received == "NULL") {
-    ar_log_warning() << "arFOBDriver: SZG_FOB/config undefined.\n";
+    ar_log_warning() << "arFOBDriver: no SZG_FOB/config.\n";
     return false;
   }
 
@@ -219,7 +223,7 @@ LDefaultBaudRate:
   {
     unsigned char b[2];
     if (_getFOBParam(1, b, 2, 0) != 2) {
-      ar_log_warning() << "arFOBDriver got no version number.  FoB may be unplugged or unpowered.\n";
+      ar_log_warning() << "arFoBDriver: Flock unresponsive.  Unplugged?  Unpowered?  Wrong SZG_FOB/baud_rate?\n";
       return false;
     }
     ar_log_debug() << "FoB version " << int(b[0]) << "." << int(b[1]) << ".\n";
