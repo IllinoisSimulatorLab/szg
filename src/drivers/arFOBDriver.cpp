@@ -1,3 +1,12 @@
+/*
+todo: in here? or downstream?
+  TransmitterOffset 0.06 10.5 -4.8 feet
+# left side of crystaleyes glasses:
+  HeadSensorRotation 0 0 1 -90 
+  HeadSensorOffset 3.5 0 -2.5 inches
+  Wand... ditto.
+*/
+
 //********************************************************
 // Syzygy is licensed under the BSD license v2
 // see the file SZG_CREDITS for details
@@ -46,13 +55,12 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
   This rough calibration should be followed with a finer one.
   */
 
-  stringstream& initResponse = SZGClient.initResponse();
   const string transmitterOffset(
-    SZGClient.getAttribute("SZG_FOB","transmitter_offset"));
+    SZGClient.getAttribute("SZG_FOB", "transmitter_offset"));
   if (transmitterOffset != "NULL"){
     ar_parseFloatString(transmitterOffset, _transmitterOffset.v, 16);
-    initResponse << "Using transmitter offset =\n"
-	         << _transmitterOffset << "\n";
+    ar_log_remark() << "arFOBDriver transmitter offset = " <<
+      _transmitterOffset << ".\n";
   }
 
   /*
@@ -70,9 +78,8 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
     const string sensorRotValue(SZGClient.getAttribute("SZG_FOB",sensorNum));
     if (sensorRotValue != "NULL") {
       ar_parseFloatString(sensorRotValue, temp, 4);
-      _sensorRot[ j ] =
-        ar_rotationMatrix(arVector3(temp), ar_convertToRad(temp[3]));
-      initResponse << "Sensor " << j << " rotated: " << _sensorRot[j] << "\n";
+      _sensorRot[ j ] = ar_rotationMatrix(arVector3(temp), ar_convertToRad(temp[3]));
+      ar_log_remark() << "arFOBDriver rotated sensor " << j << ": " << _sensorRot[j] << ".\n";
     }
   }
   
@@ -174,15 +181,15 @@ LDefaultBaudRate:
     case 0: // Bird, no transmitter
       _sensorMap[i] = _numBirds++;
       break;
-    case 1: // Normal transmitter only
+    case 1: // Normal transmitter, no bird 
       _sensorMap[i] = -1;
       _transmitterID = i;
       break;
     case 2: // Normal transmitter plus bird
-      _transmitterID = i;
       _sensorMap[i] = _numBirds++;
+      _transmitterID = i;
       break;
-    case 3: // Extended range transmitter only
+    case 3: // Extended range transmitter, no bird
       _sensorMap[i] = -1;
       _transmitterID = i;
       _extendedRange = true;
@@ -201,8 +208,8 @@ LDefaultBaudRate:
   }
 
   ar_log_remark() << "arFOBDriver expecting " << _numBirds <<
-    " birds, with " << (_extendedRange ? "extended range " : "") <<
-    "transmitter at unit " << _transmitterID << ".\n";
+    " birds, " << (_extendedRange ? "ERT" : "transmitter") <<
+    " at unit " << _transmitterID << ".\n";
 
   // Report one matrix for each bird.
   _setDeviceElements( 0, 0, _numBirds );
@@ -243,9 +250,10 @@ LDefaultBaudRate:
     // See FoB manual p.130.
     unsigned char c[14];
     if (_getFOBParam(0x24, c, 14, 0) != 14) {
-      ar_log_warning() << "arFOBDriver failed to examine system status.\n";
+      ar_log_warning() << "arFOBDriver failed to examine system status (try powercycling the flock).\n";
       return false;
     }
+
     // SZG_FOB/config should be 0/3/0/0 since this reports e0 d1 e0 a0 0...
     for (int i=0; i<14; ++i) {
       const unsigned t = c[i];
@@ -268,7 +276,7 @@ LDefaultBaudRate:
 	ar_log_debug() << ", transmitter #1";
       if (t & 0x01)
 	ar_log_debug() << ", transmitter #0";
-      ar_log_debug() << ar_endl;
+      ar_log_debug() << ".\n";
     }
 
     ar_usleep(100000);
@@ -277,9 +285,8 @@ LDefaultBaudRate:
   // Set all birds' data mode to position-quaternion.
   if (_numBirds > 1){
     for (i=1; i<=_numFlockUnits; i++){
-      // Commenting out the next line makes it work in cave, where transmitter ALSO has a bird.
-      if (_sensorMap[i] != -1 && !_setDataMode(i)) {
-	ar_log_warning() << "arFOBDriver failed to set data mode.\n";
+      if (_sensorMap[i] >= 0 && !_setDataMode(i)) {
+	ar_log_warning() << "arFOBDriver failed to set data mode of bird on unit " << i << ".\n";
 	return false;
       }
     }
@@ -314,7 +321,7 @@ LDefaultBaudRate:
   }
   if (_numBirds > 1){
     for (i=1; i<=_numFlockUnits; i++){
-      if (_sensorMap[i] != -1 && !_setHemisphere(hemisphere, i)) {
+      if (_sensorMap[i] >= 0 && !_setHemisphere(hemisphere, i)) {
         if (!_setHemisphere(hemisphere, i)){
 	  ar_log_warning() << "arFOBDriver failed to set hemisphere.\n";
 	  return false;
@@ -343,7 +350,7 @@ LDefaultBaudRate:
   // ERT _getPositionScale() may return 36 which is wrong.  Hardcode it instead.
   if (_extendedRange) {
     _positionScale = 12/32768.0; // Convert to feet.
-    ar_log_remark() << "arFOBDriver: FOB's scale forced to 12 feet by expected ERT.\n";
+    ar_log_debug() << "arFOBDriver: FOB's scale forced to 12 feet by expected ERT.\n";
   }
   else {
     bool longRange = false;
@@ -353,7 +360,7 @@ LDefaultBaudRate:
          << (longRange ? 72 : 36) << " inches.\n";
   }
 
-  // Create a buffer for reading-in data, after _setDataMode().
+  // Create a buffer for reading in data.
   // Two bytes per number.
   // (NYI: plus a bird address if there's more than one bird and in group mode).
   const int bytesPerBird = 2*_dataSize; // + ((_numBirds > 1) ? 1 : 0);
@@ -362,9 +369,9 @@ LDefaultBaudRate:
   // Iff in "flock" mode (more than one unit),
   // send an auto_config command to get the data moving.
   if (_numBirds > 1){
-    ar_log_debug() << "arFOBDriver autoconfig.\n";
+    ar_log_debug() << "arFOBDriver autoconfigured.\n";
     if (!_autoConfig()) {
-      ar_log_warning() << "arFOBDriver failed to auto-config.\n";
+      ar_log_warning() << "arFOBDriver failed to autoconfigure.\n";
       return false;
     }
   }
@@ -396,13 +403,15 @@ void ar_FOBDriverEventTask(void* FOBDriver){
 void arFOBDriver::_eventloop(){
   _eventThreadRunning = true;
   while (!_stopped) {
-    for (int i=1; i<=_numFlockUnits && !_stopped; i++){
-      if (_sensorMap[i] > -1){
-	// This flock unit has a bird.  Query it.
-	if (!_getSendNextFrame(i)){
-	  ar_log_warning() << "arFOBDriver get data failed.\n";
-	  _stopped = true;
-	}
+    // Loop in reverse order, just so arInputEventQueue's signature
+    // isn't updated one measly matrix at a time.
+    for (int i=_numFlockUnits; i>=1 && !_stopped; --i){
+      if (_sensorMap[i] < 0)
+        continue;
+      // This flock unit has a bird.  Query it.
+      if (!_getSendNextFrame(i)){
+	ar_log_warning() << "arFOBDriver get data failed.\n";
+	_stopped = true;
       }
     }
     sendQueue();
