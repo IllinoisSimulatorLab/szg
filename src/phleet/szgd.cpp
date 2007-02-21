@@ -34,15 +34,16 @@ arSZGClient* SZGClient = NULL;
 std::vector< std::string > basePathsGlobal;
 
 // Print warnings to console _and_ try to return them to dex.
-void doublePrintError( ostringstream& errStream, const string& msg ) {
+void warnTwice( ostringstream& errStream, const string& msg ) {
   // to console
   cerr << "szgd warning: " << msg << endl;
   const bool fTerminated = msg[msg.size()-1] == '\n';
   if (!fTerminated)
     cerr << '\n';
+
   if (errStream != cerr && errStream != cout) {
     // to dex
-    errStream << "szgd warning on host " << SZGClient->getComputerName() << ": " << msg;
+    errStream << "host " << SZGClient->getComputerName() << "szgd warning: " << msg;
     if (!fTerminated)
       errStream << '\n';
   }
@@ -99,7 +100,7 @@ bool comparePathToBases( const std::string& path,
     errMsg += *iter + "\n";
   }
   errMsg += "-----------------------------------------------------\n";
-  doublePrintError( errStream, errMsg );
+  warnTwice( errStream, errMsg );
   return false;
 }
 
@@ -145,7 +146,7 @@ string getAppPath( const string& userName, const string& groupName, const string
   const string appPath = SZGClient->getAttribute( userName, "NULL", groupName, "path", "");
   string errMsg;
   if (appPath == "NULL") {
-    doublePrintError( errStream, groupName+"/path not set." );
+    warnTwice( errStream, "no " + groupName + "/path." );
     return "NULL";
   }
 
@@ -170,21 +171,21 @@ string getAppPath( const string& userName, const string& groupName, const string
     // If item exists, 3rd arg indicates whether or not it is a directory
     if (!ar_directoryExists( currPathElement, dirExists, isDirectory )) {
       errMsg = "error composing " + groupName + "/path: ar_directoryExists() internal error for directory "+currPathElement + ".\n";
-      doublePrintError( errStream, errMsg );
+      warnTwice( errStream, errMsg );
       return "NULL";
     }
 
     if (!dirExists) {
       errMsg = "error composing "+groupName+"/path:\n"
                  + "  directory " +currPathElement+" does not exist.";
-      doublePrintError( errStream, errMsg );
+      warnTwice( errStream, errMsg );
       return "NULL";
     }
 
     if (!isDirectory) {
       errMsg = "error composing "+groupName+"/path:\n"
                  + "  "+currPathElement+" exists, but is not a directory.";
-      doublePrintError( errStream, errMsg );
+      warnTwice( errStream, errMsg );
       return "NULL";
     }
 
@@ -214,7 +215,7 @@ string getAppPath( const string& userName, const string& groupName, const string
                 + ".\n  This does not mean that the file "
                 + "does not exist;\n  it means that a system error occurred while "
                 + "checking its existence.\n";
-      doublePrintError( errStream, errMsg );
+      warnTwice( errStream, errMsg );
       return "NULL";
     }
     if (fileExists && isFile) {
@@ -236,7 +237,7 @@ string getAppPath( const string& userName, const string& groupName, const string
   if (actualDirectory == "NULL") {
     errMsg = "No file '"+appFile+"' on user "+userName+"'s "+groupName
            +"/path '"+appPath+"'.\n";
-    doublePrintError( errStream, errMsg );
+    warnTwice( errStream, errMsg );
   } else {
     cout << "szgd remark: app dir for " << userName << "/" << groupName
          << "/path is '" << actualDirectory << "'.\n";
@@ -281,9 +282,6 @@ class ExecInfo{
   static const char* const _formatnames[formatInvalid+1];
 };
 
-const char* const ExecInfo::_formatnames[formatInvalid+1] =
-    { "native", "python", "invalid" };
-
 string argsAsList(const list<string>& args) {
   string s("(");
   for (list<string>::const_iterator iter = args.begin();
@@ -295,30 +293,26 @@ string argsAsList(const list<string>& args) {
   return s + ")\n";
 }
 
-// Given the specified user and argument string, contact the szgserver and
-// determine the user's execution path. Next, given the arg string sent to 
-// szgd and the execution path, figure out the file that should be executed.
-// Finally, determine the proper command and the list of args, which are 
-// returned by reference. NOTE: the proper command and arg list will be 
-// constructed differently if this is a python script or a native executable.
+const char* const ExecInfo::_formatnames[formatInvalid+1] =
+    { "native", "python", "invalid" };
+
+// 1. Given the user and arg string, from szgserver get the user's exe path.
+// 2. From the arg string and the exe path, find the file to execute.
+// 3. Determine "symbolicCommand", "command" and "args", returned by reference.
+//
 // NOTE: the only inputs are "userName" and "argSring", with "userName" being the
 // phleet user as determined by the message context of the "dex" message and
 // "argString" being the body of the "dex" message.
-// The rest of the args are really return values (by reference).
-// "execPath" is simply the user's SZG_EXEC path on the computer running 
-//   this szgd.
-// "symbolicCommand" is the cross-platform command designation (i.e. atlantis 
-//   not atlantis.exe). This WILL NOT be a long file name 
-//   (i.e. not g:\foo\bar\atlantis)
-//   and, in fact, the leading path will be stripped away as well.
-// "command" can be one of two things:
-//    1. if we are executing a python program, this will be "python".
-//    2. if we are executing a native program, this will be the full path to 
-//       the executable.
-// "args" is a string list of the args.... but there may be MANGLING.
-//    1. if we are executing a native program, this will be the arglist after
-//       the exename (i.e. on unix argv[2]... argv[argc-1])
-//    2. for python, this will be the full exename plus the args.
+//
+// "execPath" is user's SZG_EXEC/path on the host running us.
+//
+// "symbolicCommand" is e.g. "atlantis", from "g:\foo\bar\atlantis.exe".
+//
+// "command" is "python", or if native, "g:\foo\bar\atlantis.exe".
+//
+// "args" is a list of strings, possibly mangled.
+//   If python: the full exe path + args.
+//   If native: everything after the exe (argv[2 ... argc-1]).
 string buildFunctionArgs(ExecInfo* execInfo,
                        string& execPath,
                        string& symbolicCommand,
@@ -327,9 +321,7 @@ string buildFunctionArgs(ExecInfo* execInfo,
   const string userName(execInfo->userName);
   const string argString(execInfo->messageBody);
 
-  // Tokenize the argString.
-  // "command" gets the first token, the list "args" gets the rest.
-  // command is our candidate for the exe, either native or python.
+  // Tokenize argString.
   args.clear();
   arDelimitedString tmpArgs(argString, ' ');
   if (tmpArgs.size() < 1) {
@@ -348,7 +340,8 @@ string buildFunctionArgs(ExecInfo* execInfo,
   ostringstream errStream;
   execPath = SZGClient->getAttribute(userName, "NULL", "SZG_EXEC", "path", "");
   if (execPath == "NULL"){
-    errStream << "szgd warning: SZG_EXEC/path not set.\n";
+    errStream << "host " << SZGClient->getComputerName() <<
+      "szgd warning: no SZG_EXEC/path.\n";
   }
 
   // Determine if the argString's first token is in the exec path:
@@ -422,9 +415,9 @@ LAbort:
     args.push_front(command);
 
     // Change the command to:
-    //   the Syzygy database variable SZG_PYTHON/executable; or if not set,
-    //   the environment variable SZG_PYEXE; or if not set,
-    //   "python".
+    //   the Syzygy database variable SZG_PYTHON/executable;
+    //   or the environment variable SZG_PYEXE;
+    //   or "python".
     const string szgPyExe = SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "executable", "");
     const string pyExeString = (szgPyExe!="NULL") ? szgPyExe : ar_getenv("SZG_PYTHON_executable");
     if (pyExeString != "NULL" && pyExeString != "") {
@@ -681,15 +674,15 @@ LDone:
   string oldPythonPath;
   if (execInfo->fPython()) {
     oldPythonPath = ar_getenv( "PYTHONPATH" );
-    // if SZG_PYTHON/path not set, warning was already displayed.
+    // If no SZG_PYTHON/path, warning was already displayed.
     const string szgPythonPath =
-                   SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "path", "");
+      SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "path", "");
     if (szgPythonPath != "NULL") {
       pythonPath += szgPythonPath;
     }
     // Do not warn if this is unset.
     const string szgPythonLibPath =
-               SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "lib_path", "");
+      SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "lib_path", "");
     if (szgPythonLibPath != "NULL") {
       pythonPath += ";" + szgPythonLibPath;
     }
@@ -721,10 +714,10 @@ LDone:
     cerr << "szgd warning: failed to create pipe.\n";
     goto LDone;
   }
+
   // Make the read pipe nonblocking, to avoid szgd hanging
-  
   fcntl(pipeDescriptors[0], F_SETFL,
-        fcntl(pipeDescriptors[0], F_GETFL, 0) | O_NONBLOCK);
+    fcntl(pipeDescriptors[0], F_GETFL, 0) | O_NONBLOCK);
 
   char numberBuffer[8] = {0};
   const int PID = fork();
