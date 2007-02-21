@@ -23,6 +23,7 @@ using namespace std;
 class SZG_CALL arPhleetNotification{
  public:
   arPhleetNotification() : componentID(-1), match(-1) {}
+  arPhleetNotification(int a, int b) : componentID(a), match(b) {}
 
   int componentID; // Component requesting the notification.
   int match;       // Tag of the original request.
