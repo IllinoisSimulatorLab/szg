@@ -1891,8 +1891,8 @@ void serviceInfoCallback(arStructuredData* pd,
 // how locking enforces serialization.)
 // @param pd Parsed record from the client
 // @param dataSocket Connection on which the record was received
-void dataConsumptionFunction(arStructuredData* pd, void*,
-                             arSocket* dataSocket){
+void dataConsumptionFunction(arStructuredData* pd, void*, arSocket* dataSocket){
+
   // Ensure that arDataServer's read thread serializes calls to this function.
   // UNSURE IF THIS CHECK EVEN MAKES SENSE.
   static bool fInside = false;
@@ -1904,84 +1904,81 @@ void dataConsumptionFunction(arStructuredData* pd, void*,
 
   const int theID = pd->getID();
   if (theID == lang.AR_ATTR_GET_REQ){
-    // The callback handles propogating the "match"
+    // Propagate the match.
     attributeGetRequestCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_ATTR_GET_RES){
-    // this one shouldn't happen on this side
+    // only client not server should get this
     cerr << "szgserver warning: ignoring AR_ATTR_GET_RES message.\n";
   }
   else if (theID == lang.AR_ATTR_SET){
-    // The callback handles propogating the "match"
+    // Propagate the match.
     attributeSetCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_CONNECTION_ACK){
-    // The connected application wants to set or change its label
-    // insert the label into the table.
+    // Connected app wants to change its label.
+    // Insert the label into the table.
     dataServer->setSocketLabel(dataSocket,
       pd->getDataString(lang.AR_CONNECTION_ACK_LABEL));
     // This gets the szgserver name as a reply... useful when shipping
     // the szgserver name to a connecting component.
     pd->dataInString(lang.AR_CONNECTION_ACK_LABEL,serverName);
-    // NOTE: unnecessary to propogate the "match" since we are just
+    // Match isn't propagated because we're just
     // sending back the received data (which already has the match value).
     if (!dataServer->sendData(pd, dataSocket)){
       cerr << "szgserver warning: failed to send connection ack reply.\n";
     }
   }
   else if (theID == lang.AR_KILL){
-    // The process with this ID died without our knowledge (it left the
+    // The process with this ID died unexpectedly (it left the
     // socket open, perhaps because the host crashed, perhaps because
     // a wireless network TCP connection was interrupted).
     // So forget about this guy.
     const int id = pd->getDataInt(lang.AR_KILL_ID);
     // No response to this command. (MAYBE THAT SHOULD CHANGE?)
-    // Consequently, no reason to propogate the "match".
+    // So don't propagate the match.
 
-    // We send the component in question a kill message.
+    // Kill the component in question.
     arSocket* killSocket = dataServer->getConnectedSocket(id);
     if (killSocket){
-      // Inform the component that it is to be *rudely*
-      // shut down (as opposed to the polite messaging way of shutting
-      // it down).
+      // Tell the component to *rudely* shut down
+      // (as opposed to the polite messaging way).
       if (!dataServer->sendData(pd, killSocket)){
-	cout << "szgserver remark: failed to send kill data to remotely "
-	     << "connected socket.\n";
+	cout << "szgserver remark: failed to send kill.\n";
       }
     }
-    // Finally, remove the socket from our table.
+    // Remove the socket from our table.
     // Bug: closing the socket on this
     // side may prevent the socket on the other
     // side from receiving the kill message we sent! Why?
     if (!dataServer->removeConnection(id)){
-      cerr << "szgserver warning: failed to \"kill -9\" process id "
-           << id << ".\n";
+      cerr << "szgserver warning: failed to \"kill -9\" pid " << id << ".\n";
     }
   }
   else if (theID == lang.AR_PROCESS_INFO){
     // Returns ID and/or label for a specific process.
-    // No need to propogate the "match" since the szgserver just
-    // returns the received data, with a few fields filled-in.
+    // Don't propagate match, becaues we just
+    // return the received data, with a few fields filled in.
     processInfoCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_MESSAGE){
-    // The callback handles propogating the "match".
+    // Callback propagates match.
     messageProcessingCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_MESSAGE_ADMIN){
-    // The callback handles propogating the "match".
+    // Callback propagates match.
     messageAdminCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_KILL_NOTIFICATION){
-    // the callback handles propogating the match.
+    // Callback propagates match.
     killNotificationCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_LOCK_REQUEST){
-    // The callback handles propogating the "match".
+    // Callback propagates match.
     lockRequestCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_LOCK_RELEASE){
-    // The callback handles propogating the "match".
+    // Callback propagates match.
     lockReleaseCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_LOCK_LISTING){
@@ -1991,29 +1988,28 @@ void dataConsumptionFunction(arStructuredData* pd, void*,
     lockListingCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_LOCK_NOTIFICATION){
-    // The callback handles propogating the "match". This is only
-    // necessary if the lock is currently held.
+    // Callback propagates match, if lock is held.
     lockNotificationCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_REGISTER_SERVICE){
-    // The callback handles propogating the "match".
+    // Callback propagates match.
     registerServiceCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_REQUEST_SERVICE){
-    // The callback handles propogating the "match", both for immediate
-    // responses and for async responses (via the connection broker).
+    // Callback propagates match, for both immediate and async
+    // responses (via the connection broker).
     requestServiceCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_GET_SERVICES){
-    // The callback handles propogating the "match".
+    // Callback propagates match.
     getServicesCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_SERVICE_RELEASE){
-    // The callback handles propogating the "match".
+    // Callback propagates match.
     serviceReleaseCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_SERVICE_INFO){
-    // The callback handles propogating the match
+    // Callback propagates match.
     serviceInfoCallback(pd, dataSocket);
   }
   else{
