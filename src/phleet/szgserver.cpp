@@ -1192,15 +1192,14 @@ void attributeGetRequestCallback(arStructuredData* dataRequest,
 }
 
 // Callback for setting a parameter in the database.
-// @param theData Record containing the client request
+// @param pd Record containing the client request
 // @param dataSocket Socket upon which the communication occurred
-void attributeSetCallback(arStructuredData* theData,
-                          arSocket* dataSocket){
+void attributeSetCallback(arStructuredData* pd, arSocket* dataSocket){
   // Print user data.
-  SZGactivateUser(theData->getDataString(lang.AR_PHLEET_USER));
-  const string attribute(theData->getDataString(lang.AR_ATTR_SET_ATTR));
-  const string value(theData->getDataString(lang.AR_ATTR_SET_VAL));
-  const ARint requestType = theData->getDataInt(lang.AR_ATTR_SET_TYPE);
+  SZGactivateUser(pd->getDataString(lang.AR_PHLEET_USER));
+  const string attribute(pd->getDataString(lang.AR_ATTR_SET_ATTR));
+  const string value(pd->getDataString(lang.AR_ATTR_SET_VAL));
+  const ARint requestType = pd->getDataInt(lang.AR_ATTR_SET_TYPE);
 
   // Insert the data into the table.
   iterParam i(valueContainer->find(attribute));
@@ -1214,7 +1213,7 @@ void attributeSetCallback(arStructuredData* theData,
 
     // Ack by filling in the match.
     arStructuredData* connectionAckData = dataParser->getStorage(lang.AR_CONNECTION_ACK);
-    _transferMatchFromTo(theData, connectionAckData);
+    _transferMatchFromTo(pd, connectionAckData);
     if (!dataServer->sendData(connectionAckData,dataSocket)){
       cerr << "szgserver warning: AR_ATTR_SET send failed.\n";
     }
@@ -1243,7 +1242,7 @@ void attributeSetCallback(arStructuredData* theData,
 
   // Return the info, first getting some space to put it in.
   arStructuredData* attrGetResponseData = dataParser->getStorage(lang.AR_ATTR_GET_RES);
-  _transferMatchFromTo(theData, attrGetResponseData);
+  _transferMatchFromTo(pd, attrGetResponseData);
   if (!attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_ATTR, attribute) ||
       !attrGetResponseData->dataInString(lang.AR_ATTR_GET_RES_VAL, returnString) ||
       !dataServer->sendData(attrGetResponseData, dataSocket)){
@@ -1264,9 +1263,9 @@ bool SZGack(arStructuredData* messageAckData, bool ok) {
     szgSuccess(ok));
 }
 
-void processInfoCallback(arStructuredData* theData, arSocket* dataSocket){
+void processInfoCallback(arStructuredData* pd, arSocket* dataSocket){
  
-  const string requestType = theData->getDataString(lang.AR_PROCESS_INFO_TYPE);
+  const string requestType = pd->getDataString(lang.AR_PROCESS_INFO_TYPE);
   int theID = -1;
   string theLabel;
   if (requestType == "self"){
@@ -1274,45 +1273,44 @@ void processInfoCallback(arStructuredData* theData, arSocket* dataSocket){
     theLabel = dataServer->getSocketLabel(theID);
   }
   else if (requestType == "ID"){
-    theLabel = theData->getDataString(lang.AR_PROCESS_INFO_LABEL);
+    theLabel = pd->getDataString(lang.AR_PROCESS_INFO_LABEL);
     theID = dataServer->getFirstIDWithLabel(theLabel);
   }
   else if (requestType == "label"){
-    theID = theData->getDataInt(lang.AR_PROCESS_INFO_ID);
+    theID = pd->getDataInt(lang.AR_PROCESS_INFO_ID);
     theLabel = dataServer->getSocketLabel(theID);
   }
   else{
     cerr << "szgserver warning: got unknown type on process info request.\n";
   }
-  theData->dataInString(lang.AR_PROCESS_INFO_LABEL, theLabel);
-  theData->dataIn(lang.AR_PROCESS_INFO_ID, &theID, AR_INT, 1);
-  if (!dataServer->sendData(theData, dataSocket)){
+  pd->dataInString(lang.AR_PROCESS_INFO_LABEL, theLabel);
+  pd->dataIn(lang.AR_PROCESS_INFO_ID, &theID, AR_INT, 1);
+  if (!dataServer->sendData(pd, dataSocket)){
     cerr << "szgserver warning: process info send failed.\n";
   }
 }
 
 // Callback for forwarding an incoming message to its final destination.
-// @param theData Incoming record
+// @param pd Incoming record
 // @param dataSocket Connection upon which we received the data
-void messageProcessingCallback(arStructuredData* theData,
+void messageProcessingCallback(arStructuredData* pd,
                                arSocket* dataSocket){
   // Print user data.
-  SZGactivateUser(theData->getDataString(lang.AR_PHLEET_USER));
+  SZGactivateUser(pd->getDataString(lang.AR_PHLEET_USER));
   bool forward = false; // forward the message?
   // Fill in the fields for the message ack, and
   // send it back to the client who sent us this message.
   arStructuredData* messageAckData 
     = dataParser->getStorage(lang.AR_SZG_MESSAGE_ACK);
   // Must fill in the "match".
-  _transferMatchFromTo(theData, messageAckData);
+  _transferMatchFromTo(pd, messageAckData);
   // Put a default ID into the SZGmessageAckData record.
   int theMessageID = 0;
   messageAckData->dataIn(lang.AR_SZG_MESSAGE_ACK_ID, &theMessageID, 
                          AR_INT, 1);
   // Find the destination component's ID.
-  int* dataPtr = (int*) theData->getDataPtr(lang.AR_SZG_MESSAGE_DEST,AR_INT);
+  int* dataPtr = (int*) pd->getDataPtr(lang.AR_SZG_MESSAGE_DEST,AR_INT);
   if (!dataPtr){
-    // This should never happen, except for incompatible versions.
     cerr << "szgserver warning: ignoring message with null data pointer."
          << "\n\t(Does a client have an incompatible protocol?)\n";
   }
@@ -1320,29 +1318,25 @@ void messageProcessingCallback(arStructuredData* theData,
     // Try to send the message. Query the dataServer to get
     // a communication endpoint with the given ID.
     arSocket* destSocket = dataServer->getConnectedSocket(*dataPtr);
-    if (!destSocket){
-      // No such endpoint. Hmmm... this really isn't that bizarre of
-      // an occurence. DO NOT PRINT ANYTHING!
-      // We might, for instance, be trying to message a component that
-      // has died for some other reason.
-    }
-    else{
-      // there is a reasonable chance that we'll be able to deliver the
-      // message. Assign it an ID.
-      // NOTE: THIS IS NOT THREADSAFE... SHOULD ENCAPUSLATE MESSAGEID
-      // ASIGNMENT IN A MUTEX PROTECTED FUNCTION.
+    if (destSocket){
+      // Destination component hasn't died.
+
+      // We oughta be able to deliver the message. Assign it an ID.
+      // NOT THREADSAFE... SHOULD ENCAPUSLATE MESSAGEID
+      // ASSIGNMENT IN A MUTEX PROTECTED FUNCTION.
       theMessageID = nextMessageID++;
+
       // fill in the message's ID field
-      theData->dataIn(lang.AR_SZG_MESSAGE_ID, &theMessageID, AR_INT, 1);
+      pd->dataIn(lang.AR_SZG_MESSAGE_ID, &theMessageID, AR_INT, 1);
       // check to see if a response has been requested. if so,
-      if (theData->getDataInt(lang.AR_SZG_MESSAGE_RESPONSE) > 0){
+      if (pd->getDataInt(lang.AR_SZG_MESSAGE_RESPONSE) > 0){
         // a response has been requested, so record the ID of the
-        // component that's allowed to respond, along with the ID of where
-        // the response should be routed.
+        // component that's allowed to respond,
+        // and the ID of where to send the response.
         SZGaddMessageToDB(theMessageID, destSocket->getID(),
-	  dataSocket->getID(), theData->getDataInt(lang.AR_PHLEET_MATCH));
+	  dataSocket->getID(), pd->getDataInt(lang.AR_PHLEET_MATCH));
       }
-      if (!dataServer->sendData(theData,destSocket)){
+      if (!dataServer->sendData(pd,destSocket)){
         cerr << "szgserver warning: message send failed.\n";
       }
       else{
@@ -1353,8 +1347,7 @@ void messageProcessingCallback(arStructuredData* theData,
   }
   if (!SZGack(messageAckData, forward) ||
      (forward &&
-      !messageAckData->dataIn(lang.AR_SZG_MESSAGE_ACK_ID, &theMessageID, 
-                              AR_INT, 1)) ||
+      !messageAckData->dataIn(lang.AR_SZG_MESSAGE_ACK_ID, &theMessageID, AR_INT, 1)) ||
       !dataServer->sendData(messageAckData,dataSocket)) {
     cerr << "szgserver warning: message ack send failed.\n";
   }
@@ -1362,12 +1355,12 @@ void messageProcessingCallback(arStructuredData* theData,
 }
 
 // Callback for processing the message admin data, which includes responses
-// @param theData Incoming data record
+// @param pd Incoming data record
 // @param dataSocket Connection upon which we received the data
-void messageAdminCallback(arStructuredData* theData,
+void messageAdminCallback(arStructuredData* pd,
 			  arSocket* dataSocket){
   const string messageAdminType 
-    = theData->getDataString(lang.AR_SZG_MESSAGE_ADMIN_TYPE);
+    = pd->getDataString(lang.AR_SZG_MESSAGE_ADMIN_TYPE);
   bool status = false;
   int messageID = -1;
   int responseOwner = -1;
@@ -1379,10 +1372,10 @@ void messageAdminCallback(arStructuredData* theData,
   // Store the response.
   arStructuredData* messageAckData = dataParser->getStorage(lang.AR_SZG_MESSAGE_ACK);
   // Propagate the match from message to response.
-  _transferMatchFromTo(theData, messageAckData);
+  _transferMatchFromTo(pd, messageAckData);
 
   if (messageAdminType == "SZG Response"){
-    messageID = theData->getDataInt(lang.AR_SZG_MESSAGE_ADMIN_ID);
+    messageID = pd->getDataInt(lang.AR_SZG_MESSAGE_ADMIN_ID);
     responseOwner = SZGgetMessageOwnerID(messageID);
     if (responseOwner < 0){
       cerr << "szgserver warning: unexpected response for messageID " << messageID << ".\n";
@@ -1404,8 +1397,8 @@ void messageAdminCallback(arStructuredData* theData,
 	else{
 	  // Fill in the match.
           int match = SZGgetMessageMatch(messageID);
-          theData->dataIn(lang.AR_PHLEET_MATCH, &match, AR_INT, 1);
-          if (!dataServer->sendData(theData, responseSocket)){
+          pd->dataIn(lang.AR_PHLEET_MATCH, &match, AR_INT, 1);
+          if (!dataServer->sendData(pd, responseSocket)){
 	    cerr << "szgserver warning: response failed.\n";
 	  }
 	  else{
@@ -1415,7 +1408,7 @@ void messageAdminCallback(arStructuredData* theData,
         // If the message will not be continued (status field is SZG_CONTINUE),
 	// remove the message from the database.
         const string responseMode =
-          theData->getDataString(lang.AR_SZG_MESSAGE_ADMIN_STATUS);
+          pd->getDataString(lang.AR_SZG_MESSAGE_ADMIN_STATUS);
         if (responseMode == string("SZG_SUCCESS")){
           SZGremoveMessageFromDB(messageID);
 	}
@@ -1428,14 +1421,14 @@ void messageAdminCallback(arStructuredData* theData,
   }
 
   else if (messageAdminType == "SZG Trade Message"){
-    messageID = theData->getDataInt(lang.AR_SZG_MESSAGE_ADMIN_ID);
-    key = theData->getDataString(lang.AR_SZG_MESSAGE_ADMIN_BODY);
+    messageID = pd->getDataInt(lang.AR_SZG_MESSAGE_ADMIN_ID);
+    key = pd->getDataString(lang.AR_SZG_MESSAGE_ADMIN_BODY);
     status = SZGaddMessageTradeToDB(
-      key, messageID, dataSocket->getID(), theData->getDataInt(lang.AR_PHLEET_MATCH));
+      key, messageID, dataSocket->getID(), pd->getDataInt(lang.AR_PHLEET_MATCH));
   }
 
   else if (messageAdminType == "SZG Message Request"){
-    key = theData->getDataString(lang.AR_SZG_MESSAGE_ADMIN_BODY);
+    key = pd->getDataString(lang.AR_SZG_MESSAGE_ADMIN_BODY);
     arPhleetMsg oldInfo;
     // NOTE: SZGmessageRequest overwrites the owner ID, which we'll need
     // later. Consequently, we need to preserve the original owner ID here.
@@ -1463,14 +1456,14 @@ void messageAdminCallback(arStructuredData* theData,
       // Reuse the messageAck storage.
       messageID = messageData.id;
       // Put the normal match back in. (THIS WILL BE SENT LATER)
-      _transferMatchFromTo(theData, messageAckData);
+      _transferMatchFromTo(pd, messageAckData);
       messageAckData->dataIn(lang.AR_SZG_MESSAGE_ACK_ID, &messageID, AR_INT, 1);
       status = true;
     }
   }
 
   else if (messageAdminType == "SZG Revoke Trade"){
-    key = theData->getDataString(lang.AR_SZG_MESSAGE_ADMIN_BODY);
+    key = pd->getDataString(lang.AR_SZG_MESSAGE_ADMIN_BODY);
     status = SZGrevokeMessageTrade(key, dataSocket->getID());
   }
 
@@ -1506,8 +1499,8 @@ void killNotificationCallback(arStructuredData* data,
 // Helper functions for lockRequestCallback, lockReleaseCallback.
 
 string lockRequestInit(arStructuredData* lockResponseData,
-                       arStructuredData* theData){
-  const string lockName(theData->getDataString(lang.AR_SZG_LOCK_RELEASE_NAME));
+                       arStructuredData* pd){
+  const string lockName(pd->getDataString(lang.AR_SZG_LOCK_RELEASE_NAME));
   (void)lockResponseData->dataInString(lang.AR_SZG_LOCK_RESPONSE_NAME, 
                                        lockName);
   return lockName;
@@ -1526,16 +1519,16 @@ void lockRequestFinish(arStructuredData* lockResponseData,
 }
 
 // Callback to process a lock request.
-// @param theData Incoming data record (lock request)
+// @param pd Incoming data record (lock request)
 // @param dataSocket Connection upon which we received the data
-void lockRequestCallback(arStructuredData* theData,
+void lockRequestCallback(arStructuredData* pd,
 			 arSocket* dataSocket){
   arStructuredData* lockResponseData
     = dataParser->getStorage(lang.AR_SZG_LOCK_RESPONSE);
   // Must propogate the "match".
-  _transferMatchFromTo(theData, lockResponseData);
+  _transferMatchFromTo(pd, lockResponseData);
   const string lockName 
-    = theData->getDataString(lang.AR_SZG_LOCK_REQUEST_NAME);
+    = pd->getDataString(lang.AR_SZG_LOCK_REQUEST_NAME);
   (void)lockResponseData->dataInString(lang.AR_SZG_LOCK_RESPONSE_NAME, 
                                        lockName);
   int ownerID = -1;
@@ -1545,26 +1538,26 @@ void lockRequestCallback(arStructuredData* theData,
 }
 
 // Process a request to release a lock.
-// @param theData Incoming data record (lock release)
+// @param pd Incoming data record (lock release)
 // @param dataSocket Connection upon which we received the data
-void lockReleaseCallback(arStructuredData* theData,
+void lockReleaseCallback(arStructuredData* pd,
 			 arSocket* dataSocket){
   const int ownerID = -1;
   arStructuredData* lockResponseData 
     = dataParser->getStorage(lang.AR_SZG_LOCK_RESPONSE);
   // Must propogate the "match".
-  _transferMatchFromTo(theData, lockResponseData);
+  _transferMatchFromTo(pd, lockResponseData);
   const bool ok =
-    SZGreleaseLock(lockRequestInit(lockResponseData,theData), 
+    SZGreleaseLock(lockRequestInit(lockResponseData,pd), 
                                    dataSocket->getID());
   lockRequestFinish(lockResponseData, ok, ownerID, dataSocket);
   dataParser->recycle(lockResponseData);
 }
 
 // Process a request to print all currently held locks
-// @param theData Incoming data record (lock release)
+// @param pd Incoming data record (lock release)
 // @param dataSocket Connection upon which we received the data
-void lockListingCallback(arStructuredData* theData,
+void lockListingCallback(arStructuredData* pd,
 			 arSocket* dataSocket){
   const int listSize = lockOwnershipDB.size();
   int* IDs = new int[listSize];
@@ -1575,9 +1568,9 @@ void lockListingCallback(arStructuredData* theData,
     locks /= i->first;
     IDs[iID++] = i->second;
   }
-  theData->dataInString(lang.AR_SZG_LOCK_LISTING_LOCKS, locks);
-  theData->dataIn(lang.AR_SZG_LOCK_LISTING_COMPONENTS, IDs, AR_INT, listSize);
-  if (!dataServer->sendData(theData, dataSocket))
+  pd->dataInString(lang.AR_SZG_LOCK_LISTING_LOCKS, locks);
+  pd->dataIn(lang.AR_SZG_LOCK_LISTING_COMPONENTS, IDs, AR_INT, listSize);
+  if (!dataServer->sendData(pd, dataSocket))
     cerr << "szgserver warning: failed to send lock listing response.\n";
   delete [] IDs;
 }
@@ -1606,30 +1599,30 @@ void lockNotificationCallback(arStructuredData* data,
 }
 
 // Callback to process a request to register a service
-// @param theData Incoming data record (contains info about the service to
+// @param pd Incoming data record (contains info about the service to
 // be registered)
 // @param dataSocket Connection upon which we received the data
-void registerServiceCallback(arStructuredData* theData,
+void registerServiceCallback(arStructuredData* pd,
                              arSocket* dataSocket){
   // Check the status field first. This indicates whether we are receiving
   // an initial service registration request OR a retry that the remote
   // component has demanded because it could not use some of the returned ports
   // Unpack the record into easy-to-use variables.
   const int match =
-    theData->getDataInt(lang.AR_PHLEET_MATCH);
+    pd->getDataInt(lang.AR_PHLEET_MATCH);
   const string 
-    status(theData->getDataString(lang.AR_SZG_REGISTER_SERVICE_STATUS));
+    status(pd->getDataString(lang.AR_SZG_REGISTER_SERVICE_STATUS));
   const string serviceName(
-    theData->getDataString(lang.AR_SZG_REGISTER_SERVICE_TAG));
+    pd->getDataString(lang.AR_SZG_REGISTER_SERVICE_TAG));
   const string networks(
-    theData->getDataString(lang.AR_SZG_REGISTER_SERVICE_NETWORKS));
+    pd->getDataString(lang.AR_SZG_REGISTER_SERVICE_NETWORKS));
   const string addresses(
-    theData->getDataString(lang.AR_SZG_REGISTER_SERVICE_ADDRESSES));
-  const int size = theData->getDataInt(lang.AR_SZG_REGISTER_SERVICE_SIZE);
+    pd->getDataString(lang.AR_SZG_REGISTER_SERVICE_ADDRESSES));
+  const int size = pd->getDataInt(lang.AR_SZG_REGISTER_SERVICE_SIZE);
   const string computer(
-    theData->getDataString(lang.AR_SZG_REGISTER_SERVICE_COMPUTER));
+    pd->getDataString(lang.AR_SZG_REGISTER_SERVICE_COMPUTER));
   int temp[2];
-  theData->dataOut(lang.AR_SZG_REGISTER_SERVICE_BLOCK, temp, AR_INT, 2);
+  pd->dataOut(lang.AR_SZG_REGISTER_SERVICE_BLOCK, temp, AR_INT, 2);
   const int firstPort = temp[0];
   const int blockSize = temp[1];
  
@@ -1718,17 +1711,12 @@ LAgain:
 // requests a named service which is currently registered with the szgserver.
 // The server then determines the appropriate network path, returning that
 // to the client.
-void requestServiceCallback(arStructuredData* theData,
-			    arSocket* dataSocket){
-  const string computer 
-    = theData->getDataString(lang.AR_SZG_REQUEST_SERVICE_COMPUTER);
-  const int match = theData->getDataInt(lang.AR_PHLEET_MATCH);
-  const string serviceName 
-    = theData->getDataString(lang.AR_SZG_REQUEST_SERVICE_TAG);
-  const string networks 
-    = theData->getDataString(lang.AR_SZG_REQUEST_SERVICE_NETWORKS);
-  const string async 
-    = theData->getDataString(lang.AR_SZG_REQUEST_SERVICE_ASYNC);
+void requestServiceCallback(arStructuredData* pd, arSocket* dataSocket){
+  const string computer = pd->getDataString(lang.AR_SZG_REQUEST_SERVICE_COMPUTER);
+  const int match = pd->getDataInt(lang.AR_PHLEET_MATCH);
+  const string serviceName = pd->getDataString(lang.AR_SZG_REQUEST_SERVICE_TAG);
+  const string networks = pd->getDataString(lang.AR_SZG_REQUEST_SERVICE_NETWORKS);
+  const string async = pd->getDataString(lang.AR_SZG_REQUEST_SERVICE_ASYNC);
   bool asyncFlag = async == "SZG_TRUE";
 
   // If async is true, then if the request fails (there's no matching service)
@@ -1772,7 +1760,7 @@ void requestServiceCallback(arStructuredData* theData,
 // (or for the component IDs of specific ones, as is required when one
 // wants to kill a component offering a particular service so that a new
 // one can start up)
-void getServicesCallback(arStructuredData* theData,
+void getServicesCallback(arStructuredData* pd,
 			arSocket* dataSocket){
   // WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
   // this method is not threadsafe vis-a-vis the connection broker.
@@ -1780,13 +1768,15 @@ void getServicesCallback(arStructuredData* theData,
   // sequence.
   // WEIRD. IT SEEMS LIKE WE ARE USING A NEW PIECE OF DATA. WHY NOT
   // SEND IT BACK IN PLACE? 
-  const string type(theData->getDataString(lang.AR_SZG_GET_SERVICES_TYPE));
+  const string type(pd->getDataString(lang.AR_SZG_GET_SERVICES_TYPE));
   arStructuredData* data = dataParser->getStorage(lang.AR_SZG_GET_SERVICES);
-  // Must propogate the "match".
-  _transferMatchFromTo(theData, data);
+
+  // Propogate the "match".
+  _transferMatchFromTo(pd, data);
+
   if (type == "active"){
     const string 
-      serviceName(theData->getDataString(lang.AR_SZG_GET_SERVICES_SERVICES));
+      serviceName(pd->getDataString(lang.AR_SZG_GET_SERVICES_SERVICES));
     if (serviceName == "NULL"){
       // respond with the list of all services
       data->dataInString(lang.AR_SZG_GET_SERVICES_SERVICES,
@@ -1808,6 +1798,7 @@ void getServicesCallback(arStructuredData* theData,
       data->dataIn(lang.AR_SZG_GET_SERVICES_COMPONENTS, &result, AR_INT, 1);
     }
   }
+
   else if (type == "pending"){
     SZGRequestList result = connectionBroker.getPendingRequests();
     const int listSize = result.size();
@@ -1825,9 +1816,10 @@ void getServicesCallback(arStructuredData* theData,
     data->dataIn(lang.AR_SZG_GET_SERVICES_COMPONENTS, IDs, AR_INT, listSize);
     delete [] IDs;
   }
+
   else{
-    cerr << "szgserver warning: service listing had invalid request type \""
-         << type << "\".\n";
+    cerr << "szgserver warning: service listing had invalid request type '"
+         << type << "'.\n";
   }
 
   if (!dataServer->sendData(data, dataSocket))
@@ -1835,7 +1827,7 @@ void getServicesCallback(arStructuredData* theData,
   dataParser->recycle(data);
 }
 
-void serviceReleaseCallback(arStructuredData* theData,
+void serviceReleaseCallback(arStructuredData* pd,
 			    arSocket* dataSocket){
   // IMPORTANT NOTE: there are major problems here with atomicity.
   // CURRENTLY, the fact that the szgserver processes messages one-at-a-time
@@ -1844,13 +1836,13 @@ void serviceReleaseCallback(arStructuredData* theData,
   // explicitly propogate the match. (though there is inside the connection
   // broker).
   const string 
-    serviceName(theData->getDataString(lang.AR_SZG_SERVICE_RELEASE_NAME));
+    serviceName(pd->getDataString(lang.AR_SZG_SERVICE_RELEASE_NAME));
   const string 
-    computer(theData->getDataString(lang.AR_SZG_SERVICE_RELEASE_COMPUTER));
+    computer(pd->getDataString(lang.AR_SZG_SERVICE_RELEASE_COMPUTER));
   // see if the current service is *not* currently held.
   if (!connectionBroker.checkService(serviceName)){
     // immediately respond
-    if (!dataServer->sendData(theData, dataSocket)){
+    if (!dataServer->sendData(pd, dataSocket)){
       cerr << "szgserver warning: failed to respond to service release.\n";
       return;
     }
@@ -1860,31 +1852,31 @@ void serviceReleaseCallback(arStructuredData* theData,
   // broker should occur between the above and here.
   // BUG: THIS IS NOT ATOMIC AND REALLY SHOULD RESPOND WITH A BOOL.
   connectionBroker.registerReleaseNotification(dataSocket->getID(),
-				    theData->getDataInt(lang.AR_PHLEET_MATCH),
+				    pd->getDataInt(lang.AR_PHLEET_MATCH),
 				    computer,
 				    serviceName);
 }
 
-void serviceInfoCallback(arStructuredData* theData,
+void serviceInfoCallback(arStructuredData* pd,
 			 arSocket* dataSocket){
   // NOTE: since we are just sending the same data back, the match does not
   // need to be propogated!
-  const string op(theData->getDataString(lang.AR_SZG_SERVICE_INFO_OP));
-  const string name(theData->getDataString(lang.AR_SZG_SERVICE_INFO_TAG));
+  const string op(pd->getDataString(lang.AR_SZG_SERVICE_INFO_OP));
+  const string name(pd->getDataString(lang.AR_SZG_SERVICE_INFO_TAG));
   if (op == "get"){
-    theData->dataInString(lang.AR_SZG_SERVICE_INFO_STATUS,
+    pd->dataInString(lang.AR_SZG_SERVICE_INFO_STATUS,
                           connectionBroker.getServiceInfo(name));
-    if (!dataServer->sendData(theData, dataSocket)){
+    if (!dataServer->sendData(pd, dataSocket)){
       cout << "szgserver warning: failed to send service info.\n";
     }
   }
   else if (op == "set"){
-    const string info(theData->getDataString(lang.AR_SZG_SERVICE_INFO_STATUS));
+    const string info(pd->getDataString(lang.AR_SZG_SERVICE_INFO_STATUS));
     bool status = connectionBroker.setServiceInfo(dataSocket->getID(),
                                                   name, info);
     const string statusString = szgSuccess(status);
-    theData->dataInString(lang.AR_SZG_SERVICE_INFO_STATUS, statusString);
-    if (!dataServer->sendData(theData, dataSocket)){
+    pd->dataInString(lang.AR_SZG_SERVICE_INFO_STATUS, statusString);
+    if (!dataServer->sendData(pd, dataSocket)){
       cout << "szgserver warning: failed to get service info.\n";
     }
   }
@@ -1897,9 +1889,9 @@ void serviceInfoCallback(arStructuredData* theData,
 // (szgserver processes client requests serially, which may
 // be bad but is hard to change:  see arDataServer.cpp for
 // how locking enforces serialization.)
-// @param theData Parsed record from the client
+// @param pd Parsed record from the client
 // @param dataSocket Connection on which the record was received
-void dataConsumptionFunction(arStructuredData* theData, void*,
+void dataConsumptionFunction(arStructuredData* pd, void*,
                              arSocket* dataSocket){
   // Ensure that arDataServer's read thread serializes calls to this function.
   // UNSURE IF THIS CHECK EVEN MAKES SENSE.
@@ -1910,10 +1902,10 @@ void dataConsumptionFunction(arStructuredData* theData, void*,
   }
   fInside = true;
 
-  const int theID = theData->getID();
+  const int theID = pd->getID();
   if (theID == lang.AR_ATTR_GET_REQ){
     // The callback handles propogating the "match"
-    attributeGetRequestCallback(theData, dataSocket);
+    attributeGetRequestCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_ATTR_GET_RES){
     // this one shouldn't happen on this side
@@ -1921,19 +1913,19 @@ void dataConsumptionFunction(arStructuredData* theData, void*,
   }
   else if (theID == lang.AR_ATTR_SET){
     // The callback handles propogating the "match"
-    attributeSetCallback(theData, dataSocket);
+    attributeSetCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_CONNECTION_ACK){
     // The connected application wants to set or change its label
     // insert the label into the table.
     dataServer->setSocketLabel(dataSocket,
-      theData->getDataString(lang.AR_CONNECTION_ACK_LABEL));
+      pd->getDataString(lang.AR_CONNECTION_ACK_LABEL));
     // This gets the szgserver name as a reply... useful when shipping
     // the szgserver name to a connecting component.
-    theData->dataInString(lang.AR_CONNECTION_ACK_LABEL,serverName);
+    pd->dataInString(lang.AR_CONNECTION_ACK_LABEL,serverName);
     // NOTE: unnecessary to propogate the "match" since we are just
     // sending back the received data (which already has the match value).
-    if (!dataServer->sendData(theData, dataSocket)){
+    if (!dataServer->sendData(pd, dataSocket)){
       cerr << "szgserver warning: failed to send connection ack reply.\n";
     }
   }
@@ -1942,7 +1934,7 @@ void dataConsumptionFunction(arStructuredData* theData, void*,
     // socket open, perhaps because the host crashed, perhaps because
     // a wireless network TCP connection was interrupted).
     // So forget about this guy.
-    const int id = theData->getDataInt(lang.AR_KILL_ID);
+    const int id = pd->getDataInt(lang.AR_KILL_ID);
     // No response to this command. (MAYBE THAT SHOULD CHANGE?)
     // Consequently, no reason to propogate the "match".
 
@@ -1952,7 +1944,7 @@ void dataConsumptionFunction(arStructuredData* theData, void*,
       // Inform the component that it is to be *rudely*
       // shut down (as opposed to the polite messaging way of shutting
       // it down).
-      if (!dataServer->sendData(theData, killSocket)){
+      if (!dataServer->sendData(pd, killSocket)){
 	cout << "szgserver remark: failed to send kill data to remotely "
 	     << "connected socket.\n";
       }
@@ -1970,59 +1962,59 @@ void dataConsumptionFunction(arStructuredData* theData, void*,
     // Returns ID and/or label for a specific process.
     // No need to propogate the "match" since the szgserver just
     // returns the received data, with a few fields filled-in.
-    processInfoCallback(theData, dataSocket);
+    processInfoCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_MESSAGE){
     // The callback handles propogating the "match".
-    messageProcessingCallback(theData, dataSocket);
+    messageProcessingCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_MESSAGE_ADMIN){
     // The callback handles propogating the "match".
-    messageAdminCallback(theData, dataSocket);
+    messageAdminCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_KILL_NOTIFICATION){
     // the callback handles propogating the match.
-    killNotificationCallback(theData, dataSocket);
+    killNotificationCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_LOCK_REQUEST){
     // The callback handles propogating the "match".
-    lockRequestCallback(theData, dataSocket);
+    lockRequestCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_LOCK_RELEASE){
     // The callback handles propogating the "match".
-    lockReleaseCallback(theData, dataSocket);
+    lockReleaseCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_LOCK_LISTING){
     // The received message just has some fields filled-in and
     // is then returned to sender. Consequently, no need to
     // propogate the match.
-    lockListingCallback(theData, dataSocket);
+    lockListingCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_LOCK_NOTIFICATION){
     // The callback handles propogating the "match". This is only
     // necessary if the lock is currently held.
-    lockNotificationCallback(theData, dataSocket);
+    lockNotificationCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_REGISTER_SERVICE){
     // The callback handles propogating the "match".
-    registerServiceCallback(theData, dataSocket);
+    registerServiceCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_REQUEST_SERVICE){
     // The callback handles propogating the "match", both for immediate
     // responses and for async responses (via the connection broker).
-    requestServiceCallback(theData, dataSocket);
+    requestServiceCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_GET_SERVICES){
     // The callback handles propogating the "match".
-    getServicesCallback(theData, dataSocket);
+    getServicesCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_SERVICE_RELEASE){
     // The callback handles propogating the "match".
-    serviceReleaseCallback(theData, dataSocket);
+    serviceReleaseCallback(pd, dataSocket);
   }
   else if (theID == lang.AR_SZG_SERVICE_INFO){
     // The callback handles propogating the match
-    serviceInfoCallback(theData, dataSocket);
+    serviceInfoCallback(pd, dataSocket);
   }
   else{
     cerr << "szgserver warning: ignoring record with unknown ID " << theID
