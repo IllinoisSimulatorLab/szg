@@ -79,7 +79,7 @@ bool arVRPNDriver::init(arSZGClient& client){
   // so let's just set the ceiling pretty high
   _setDeviceElements(20,20,20);
   if (vrpnDeviceName == "NULL"){
-    cout << "arVRPNDriver error: vrpn device name not set.\n";
+    cout << "arVRPNDriver error: no SZG_VRPN/name.\n";
     return false;
   }
   // initialize vrpn device

@@ -231,8 +231,7 @@ void arSyncDataServer::setChannel(string channel){
 // Setup, but do not start, various threads
 bool arSyncDataServer::init(arSZGClient& client){
   if (_locallyConnected){
-    ar_log_error() << "arSyncDataServer error: init should not be called if "
-	           << "locally connected.\n";
+    ar_log_error() << "arSyncDataServer ignoring locally connected init().\n";
     return false;
   }
 
@@ -240,8 +239,7 @@ bool arSyncDataServer::init(arSZGClient& client){
   // way calls are broken-up in my various init's and start's. 
   // Should they be combined into one????
   if (_channel == "NULL"){
-    ar_log_error() << "arSyncDataServer error: "
-	           << "channel not set before init(...).\n";
+    ar_log_error() << "arSyncDataServer: no channel before init().\n";
     return false;
   }
 
@@ -255,7 +253,7 @@ bool arSyncDataServer::init(arSZGClient& client){
   _dataServer.smallPacketOptimize(true);
   int port = -1;
   if (!_client->registerService(_serviceName,_channel,1,&port)){
-    ar_log_error() << "arSyncDataServer error: failed to register service.\n";
+    ar_log_error() << "arSyncDataServer failed to register service.\n";
     return false;
   }
 
@@ -268,15 +266,13 @@ bool arSyncDataServer::init(arSZGClient& client){
       success = true;
       break;
     }
-    ar_log_warning() << "arSyncDataServer warning: failed to listen on "
-	             << "brokered port, retrying.\n";
+    ar_log_warning() << "arSyncDataServer retrying to listen on brokered port.\n";
     _client->requestNewPorts(_serviceName,_channel,1,&port);
     _dataServer.setPort(port);
   }
   if (!success){
     // failed to bind to ports
-    ar_log_error() << "arSyncDataServer error: failed to listen on "
-                   << "brokered port.\n";
+    ar_log_error() << "arSyncDataServer failed to listen on brokered port.\n";
     return false;
   }
   if (!_client->confirmPorts(_serviceName,_channel,1,&port)){
@@ -288,10 +284,10 @@ bool arSyncDataServer::init(arSZGClient& client){
   _barrierServer.setServiceName(_serviceNameBarrier);
   _barrierServer.setChannel(_channel);
   if (!_barrierServer.init(client)) {
-    ar_log_error() << "arSyncDataServer error: barrier server failed to init.\n";
+    ar_log_error() << "arSyncDataServer: barrier server failed to init.\n";
     return false;
   }
-  ar_log_remark() << "arSyncDataServer remark: initialized.\n";
+  ar_log_debug() << "arSyncDataServer initialized.\n";
   return true;
 }
 
@@ -300,7 +296,7 @@ bool arSyncDataServer::start(){
     // Not much happens if locally connected.
     // Copypaste from below.
     if (!_sendThread.beginThread(ar_syncDataServerSendTask,this)) {
-      ar_log_error() << "arSyncDataServer error: failed to start send thread.\n";
+      ar_log_error() << "arSyncDataServer failed to start send thread.\n";
       return false;
     }
     return true;
@@ -308,7 +304,7 @@ bool arSyncDataServer::start(){
 
   // This is what we do in the case of network connections (i.e. traditional)
   if (!_client){
-    ar_log_error() << "arSyncDataServer error: init was not called before start.\n";
+    ar_log_error() << "arSyncDataServer: init was not called before start.\n";
     return false;
   }
 
@@ -335,20 +331,18 @@ bool arSyncDataServer::start(){
 
   // Start the various services.
   if (!_barrierServer.start()) {
-    ar_log_error() << "arSyncDataServer error: "
-		   << "failed to start barrier server.\n";
+    ar_log_error() << "arSyncDataServer failed to start barrier server.\n";
     return false;
   }
   if (!_connectionThread.beginThread(ar_syncDataServerConnectionTask,this)) {
-    ar_log_error() << "arSyncDataServer error: "
-	           << "failed to start connection thread.\n";
+    ar_log_error() << "arSyncDataServer failed to start connection thread.\n";
     return false;
   }
   if (!_sendThread.beginThread(ar_syncDataServerSendTask,this)) {
-    ar_log_error() << "arSyncDataServer error: failed to start send thread.\n";
+    ar_log_error() << "arSyncDataServer failed to start send thread.\n";
     return false;
   }
-  ar_log_remark() << "arSyncDataServer started.\n";
+  ar_log_debug() << "arSyncDataServer started.\n";
   return true;
 }
 

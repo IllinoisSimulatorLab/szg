@@ -709,8 +709,8 @@ bool arIntersenseDriver::init(arSZGClient& client) {
   int sig[2] = {10,0};
   if (!client.getAttributeInts("SZG_INTERSENSE","sleep",sig,2)) {
     _sleepTime = 10000;
-    cerr << "arIntersenseDriver remark: SZG_INTERSENSE/sleep not set, "
-         << "defaulting to ( " << _sleepTime << ")." << std::endl;
+    cerr << "arIntersenseDriver remark: SZG_INTERSENSE/sleep defaulting to "
+         << _sleepTime << ".\n";
   } else {
     cerr << "arIntersenseDriver remark: SZG_INTERSENSE/sleep set to " 
          << " ( " << sig[0] << " ).\n";

@@ -476,8 +476,7 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
       mask[i] = GL_TRUE;
   } else {
     if (colorMask.size() == 3) {
-      cout << "arGraphicsWindow remark: " << screenName << "/color_mask alpha not set, "
-           << "defaulting to true.\n";
+      cout << "arGraphicsWindow remark: " << screenName << "/color_mask alpha defaulting to true.\n";
       colorMask /= "true";
     }
     if (colorMask.size() != 4) {
@@ -493,8 +492,8 @@ bool arGraphicsWindow::_configureCustomViewport( const string& screenName,
         mask[i] = GL_FALSE;
       }
       else {
-        cerr << "arGraphicsWindow error: " << screenName << "/color_mask contains illegal value "
-             << colorMask[i] << endl;
+        cerr << "arGraphicsWindow error: " << screenName << "/color_mask contains illegal value '"
+             << colorMask[i] << "'\n";
         return false;
       }
     }

@@ -47,8 +47,7 @@ int main(int argc, char** argv) {
   ar_PForthSetSZGClient(&client);
   string programText = client.getGlobalAttribute(argv[1]);
   if (programText == "NULL"){
-    cerr << "PForthTest error: global attribute with name = "
-	 << argv[1] << " not set.\n";
+    cerr << "PForthTest error: no global attribute '" << argv[1] << "'.\n";
     return 1;
   }
   if (!filter.loadProgram(programText)) {

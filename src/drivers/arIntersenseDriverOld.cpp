@@ -582,11 +582,10 @@ bool arIntersenseDriver::init(arSZGClient& client){
   if (!client.getAttributeInts(ISENSE_GROUP_NAME,"sleep",sig,2)) {
     m_sleepTime = 10;
     cerr << "arIntersenseDriver remark: " << ISENSE_GROUP_NAME <<
-      "/sleep not set, "
-      << "defaulting to ( " << m_sleepTime << "." << std::endl;
+      "/sleep defaulting to " << m_sleepTime << ".\n";
   } else {
     cerr << "arIntersenseDriver remark: " << ISENSE_GROUP_NAME <<
-      "/sleep set to " << " ( " << sig[0] << " ).\n";
+      "/sleep set to " << sig[0] << ".\n";
     m_sleepTime = sig[0];
   }
 
@@ -612,7 +611,6 @@ bool arIntersenseDriver::init(arSZGClient& client){
   for ( size_t printIdx=0; printIdx < m_trackerCnt; printIdx++ ) {
     m_tracker[ printIdx ].PrintSetup( printIdx );
   }
-  // We have succeeded
   return true;
 }
 

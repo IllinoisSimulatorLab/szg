@@ -52,7 +52,7 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 //  _setVm = true;
 //  long filterBuf[7];
 //  if (!SZGClient.getAttributeLongs( "SZG_MOTIONSTAR", "alphaMin", filterBuf, 7 )) {
-//    cerr << "arMotionstarDriver remark: SZG_MOTIONSTAR/alphaMin not set.\n";
+//    cerr << "arMotionstarDriver remark: no SZG_MOTIONSTAR/alphaMin.\n";
 //    _setAlphaMin = false;
 //  } else {
 //    for (i=0; i<7; i++) {
@@ -65,7 +65,7 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 //    }
 //  }
 //  if (!SZGClient.getAttributeLongs( "SZG_MOTIONSTAR", "alphaMax", filterBuf, 7 )) {
-//    cerr << "arMotionstarDriver remark: SZG_MOTIONSTAR/alphaMax not set.\n";
+//    cerr << "arMotionstarDriver remark: no SZG_MOTIONSTAR/alphaMax.\n";
 //    _setAlphaMax = false;
 //  } else {
 //    for (i=0; i<7; i++) {
@@ -78,7 +78,7 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 //    }
 //  }
 //  if (!SZGClient.getAttributeLongs( "SZG_MOTIONSTAR", "Vm", filterBuf, 7 )) {
-//    cerr << "arMotionstarDriver remark: SZG_MOTIONSTAR/Vm not set.\n";
+//    cerr << "arMotionstarDriver remark: no SZG_MOTIONSTAR/Vm.\n";
 //    _setVm = false;
 //  } else {
 //    for (i=0; i<7; i++) {

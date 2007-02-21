@@ -147,7 +147,7 @@ string arDatabaseNode::getInfo() {
 
 void arDatabaseNode::setInfo(const string& info){
   if (_name == "root"){
-    cout << "arDatabaseNode warning: cannot set root info.\n";
+    cout << "arDatabaseNode warning: failed to set root info.\n";
     return;
   }
   if (active()){
@@ -229,7 +229,7 @@ bool arDatabaseNode::receiveData(arStructuredData* data){
     return false;
   } 
   if (_name == "root"){
-    cout << "arDatabaseNode warning: cannot set root name.\n";
+    cout << "arDatabaseNode warning: failed to set root name.\n";
   }
   else{
     lock();
