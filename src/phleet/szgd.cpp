@@ -995,7 +995,7 @@ int main(int argc, char** argv) {
   }
 
   const int argcOriginal = argc;
-  // We don't need an original copy of argv, because it doesn't get modified.
+  // No argvOriginal, because argv isn't modified.
 
 LRetry:
   argc = argcOriginal;
@@ -1005,6 +1005,7 @@ LRetry:
   bool fRetry = argc > 2 && !strcmp(argv[2], "-r");
   if (!*SZGClient) {
     if (fRetry) {
+LGonnaRetry:
       delete SZGClient;
       ar_usleep(5000000);
       goto LRetry;
@@ -1032,9 +1033,7 @@ LRetry:
     if (receivedMessageID == 0) {
       // szgserver disconnected
       if (fRetry) {
-        delete SZGClient;
-	ar_usleep(5000000);
-        goto LRetry;
+        goto LGonnaRetry;
       }
       exit(0);
     }
