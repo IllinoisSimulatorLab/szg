@@ -22,9 +22,8 @@ int main(int argc, char** argv){
   int ownerID = -1;
   for (;;){
     if (!szgClient.getLock(argv[1], ownerID)){
-      cout << argv[0] << " warning: unable to get lock.\n";
-      cout << "  Will try again when the current holder releases.\n";
-      int match = szgClient.requestLockReleaseNotification(argv[1]);
+      cout << argv[0] << " warning: failed to get lock.  Will retry.\n";
+      const int match = szgClient.requestLockReleaseNotification(argv[1]);
       list<int> tags;
       tags.push_back(match);
       if (szgClient.getLockReleaseNotification(tags) < 0){
@@ -37,10 +36,10 @@ int main(int argc, char** argv){
       }
     }
 
-    cout << argv[0] << " remark: holding lock for 10 seconds.\n";
+    cout << argv[0] << " remark: locking for 10 seconds.\n";
     ar_usleep(10000000);
     szgClient.releaseLock(argv[1]);
-    cout << argv[0] << "remark: will try to get lock again in 10 seconds.\n";
+    cout << argv[0] << " remark: will try to relock in 10 seconds.\n";
     ar_usleep(10000000);
   }
   return 0;
