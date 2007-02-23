@@ -351,7 +351,7 @@ void arBarrierServer::unlockActivationQueue(){
 list<arSocket*>* arBarrierServer::getWaitingBondedSockets
                                        (arDataServer* bondedServer){
   list<arSocket*>* result = new list<arSocket*>;
-  // must lock and unlock if the external locks have not been set
+
   if (!_activationQueueLockedExternally)
     ar_mutex_lock(&_queueActivationLock);
 
@@ -363,6 +363,7 @@ list<arSocket*>* arBarrierServer::getWaitingBondedSockets
 
   if (!_activationQueueLockedExternally)
     ar_mutex_unlock(&_queueActivationLock);
+
   return result;
 }
 
@@ -373,11 +374,12 @@ void arBarrierServer::registerLocal(){
 void arBarrierServer::localSync(){
   if (_exitProgram)
     return;
+
   if (_dataServer.getNumberConnectedActive() == 0)
     ar_usleep(10000);
   ar_mutex_lock(&_waitingLock);
-  _totalWaiting++;
-  _waitingCondVar.signal();
+    _totalWaiting++;
+    _waitingCondVar.signal();
   ar_mutex_unlock(&_waitingLock);
   _localSignal.receiveSignal();
 }

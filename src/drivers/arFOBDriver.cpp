@@ -105,7 +105,7 @@ bool arFOBDriver::init(arSZGClient& SZGClient){
     ar_log_warning() << "\n";
 LDefaultBaudRate:
     baudRate = 115200;
-    ar_log_remark() << "arFOBDriver SZG_FOB/baud_rate defaulting to "
+    ar_log_warning() << "arFOBDriver SZG_FOB/baud_rate defaulting to "
          << baudRate << ".\n";
   }
 

@@ -166,7 +166,6 @@ LAbort:
     (void)respond(szgClient);
     return 1;
   }
-
   const bool fSimple = parseArg("-s", argc, argv);
   const bool fNetInput = parseArg("-netinput", argc, argv);
 
