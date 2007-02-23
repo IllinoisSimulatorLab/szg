@@ -20,9 +20,6 @@ arGUIXMLParser*     guiParser;
 
 bool framerateThrottle = false;
 bool drawPerformanceDisplay = false;
-// Make the szgrender use a few less resources. Set by passing in a "-n"
-// flag. 
-bool makeNice = false;
 bool fExit = false;
 bool requestReload = false;
 
@@ -183,14 +180,7 @@ int main(int argc, char** argv){
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 
-  for (int i=0; i<argc; i++){
-    if (!strcmp(argv[i], "-n")){
-      makeNice = true;
-    }
-  }
-
-  const string screenLock =
-    szgClient.getComputerName() + "/" + szgClient.getMode("graphics");
+  const string screenLock = szgClient.getComputerName() + "/" + szgClient.getMode("graphics");
   int graphicsID;
   if (!szgClient.getLock(screenLock, graphicsID)){
     ar_log_error() << "szgrender's screen already locked by component " << graphicsID << ".\n";
@@ -255,13 +245,8 @@ int main(int argc, char** argv){
     // drawing, and synchronization happens.
     graphicsClient._cliSync.consume();
 
-    // Bug: we don't need both framerateThrottle AND makeNice.
     if (framerateThrottle){
       ar_usleep(200000);
-    }
-    if (makeNice){
-      // Not a default: it seriously throttles high framerates.
-      ar_usleep(2000);
     }
 
     windowManager->processWindowEvents();
