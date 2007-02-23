@@ -155,11 +155,6 @@ bool ar_soundClientActionCallback(void* client){
 }
 
 bool ar_soundClientPostSyncCallback(void*){
-  // Only the LAN throttles arSoundClient/ arSoundServer communication,
-  // causing thousands of updates per second.  So we need a throttle.
-  // Standalone we want no 50fps throttle, so do it in SoundRender instead.
-  // // ar_usleep(20000);
-
   // todo: with a local timer, call it no more than every 20 msec.
   return ar_fmodcheck( FMOD_System_Update( ar_fmod() ) );
 }

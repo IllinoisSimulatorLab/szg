@@ -118,7 +118,9 @@ int main(int argc, char** argv){
   arThread dummy(messageTask, &szgClient);
   while (true) {
     soundClient->_cliSync.consume();
-    ar_usleep(1000000/50); // 50 FPS throttle, lest it crash.
+    // Only the LAN throttles arSoundClient/ arSoundServer communication,
+    // allowing thousands of updates per second.  Throttle down to 50 FPS.
+    ar_usleep(1000000/50);
   }
   return 0;
 }
