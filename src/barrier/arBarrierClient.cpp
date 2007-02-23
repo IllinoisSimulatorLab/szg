@@ -17,7 +17,7 @@ void arBarrierClient::_connectionTask(){
     _keepRunningThread = false;
     return;
   }
-  arSleepBackoff a(10, 100, 1.05);
+  arSleepBackoff a(7, 50, 1.2);
   while (_keepRunningThread && !_exitProgram){
     a.sleep();
     if (_connected)
@@ -48,11 +48,10 @@ void arBarrierClient::_connectionTask(){
     }
 
     if (_connected && !_handshakeData){
-      // not verifying that d->find() != NULL
       arTemplateDictionary* d = _dataClient.getDictionary();
-
       _responseData = new arStructuredData(d, "response");
 
+      // bug: should test that d->find() != NULL in the lines below.
       _handshakeData = new arStructuredData(d, "handshake");
       BONDED_ID = d->find("handshake")->getAttributeID("bonded ID");
 
@@ -74,7 +73,7 @@ void ar_barrierClientData(void* barrierClient){
 
 void arBarrierClient::_dataTask(){
   _dataThreadRunning = true;
-  arSleepBackoff a(1, 20, 1.05);
+  arSleepBackoff a(1, 10, 1.2);
   while (_keepRunningThread && !_exitProgram){
     if (!_connected){
       a.sleep();
@@ -283,7 +282,7 @@ void arBarrierClient::stop(){
   _releaseSignal.sendSignal();
 
   // Wait for the threads to finish
-  arSleepBackoff a(10, 150, 1.2);
+  arSleepBackoff a(8, 20, 1.08);
   while (_dataThreadRunning || _connectionThreadRunning){
     a.sleep();
   }

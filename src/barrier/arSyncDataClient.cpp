@@ -15,11 +15,11 @@ void ar_syncDataClientConnectionTask(void* client){
 }
 
 void arSyncDataClient::_connectionTask(){
-  // DOH! Will start slowly working towards deterministic shutdown.
+  // todo: deterministic shutdown.
   _connectionThreadRunning = true;
   while (!_exitProgram){
     // Barrier must connect first.
-    arSleepBackoff a(10, 30, 1.05);
+    arSleepBackoff a(7, 50, 1.2);
     while (!_barrierClient.checkConnection() && !_exitProgram)
       a.sleep();
     if (_exitProgram)
@@ -69,7 +69,7 @@ void arSyncDataClient::_connectionTask(){
 
     // ugly polling! make sure we cannot block here if stop() was called.
     while (_stateClientConnected && !_exitProgram)
-      ar_usleep(30000);
+      ar_usleep(20000);
     if (_exitProgram)
       break;
 
@@ -81,8 +81,7 @@ void arSyncDataClient::_connectionTask(){
 
     // bug: some copypaste with below
     // Guarantee that one _nullCallback is called
-    // before a new connection is made, especially for
-    // wildcat graphics cards.
+    // before a new connection is made, especially for wildcat graphics cards.
     ar_mutex_lock(&_nullHandshakeLock);
     // We might be in stop mode.
     if (_nullHandshakeState != 2){
@@ -105,7 +104,7 @@ void ar_syncDataClientReadTask(void* client){
 
 void arSyncDataClient::_readTask(){
   _readThreadRunning = true;
-  arSleepBackoff a(25, 50, 1.05);
+  arSleepBackoff a(25, 40, 1.2);
   while (!_exitProgram){
     if (!_stateClientConnected){
       a.sleep();
@@ -119,7 +118,7 @@ void arSyncDataClient::_readTask(){
     ar_timeval time1 = ar_time();
     ar_mutex_lock(&_stackLock);
     if (_storageStack.empty()){
-      // need some more storage for the next network buffer!
+      // storage for the next network buffer
       const int tempSize = 10000;
       char* temp = new char[tempSize];
       _storageStack.push_back(pair<char*,int>(temp,tempSize));
@@ -133,8 +132,7 @@ void arSyncDataClient::_readTask(){
     const float temp = ar_difftime(ar_time(), time1);
     _oldRecvTime = temp>0. ? temp : _oldRecvTime;
     if (ok && _firstConsumption){
-      // request another buffer right away so our double-buffering will work
-      // of course, only do this if we are in synchronized read mode
+      // if in sync read mode, request another buffer right away for double-buffering
       if (syncClient() && !_barrierClient.sync()){
 	ar_log_error() << getLabel() << " error: sync failed.\n";
       }
