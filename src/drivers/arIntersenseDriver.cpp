@@ -59,7 +59,6 @@ bool IsenseTracker::ar_open( DWORD port = 0 ) {
   return success;
 }
 
-
 /*! If one tracker stops working, it should be possible to open
     it again.  If there were several trackers, opening just one
     would require that we specify its port, and the port is a
@@ -75,7 +74,6 @@ bool IsenseTracker::ar_reopen() {
   return _imOK;
 }
 
-
 /*! \param handle The handle should have been returned from
         a call to ISD_OpenTracker or ISD_OpenAllTrackers.
     */
@@ -87,7 +85,6 @@ void IsenseTracker::setHandle( ISD_TRACKER_HANDLE handle ) {
     statIter->setTrackerHandle( _handle );
   }
 }
-
 
 /*! You must call Open() or SetHandle() before calling Init().
 
@@ -109,7 +106,6 @@ bool IsenseTracker::init() {
   return true;
 }
 
-
 bool IsenseTracker::configure( arSZGClient& client ) {
   std::vector< IsenseStation >::iterator iter;
   for (iter = _stations.begin(); iter != _stations.end(); ++iter) {
@@ -119,7 +115,6 @@ bool IsenseTracker::configure( arSZGClient& client ) {
   }
   return true;
 }
-
 
 /*! This method is fine to call on an already closed or
     never opened tracker.
@@ -138,7 +133,6 @@ bool IsenseTracker::ar_close() {
   _handle = 0;
   return true;
 }
-
 
 /*! This object uses both configuration information and
     the user's settings of the number of buttons and such in order
@@ -161,7 +155,6 @@ void IsenseTracker::setStationIndices( unsigned int& matrixIndex,
     iter->setIndices( matrixIndex, buttonIndex, axisIndex );
   }
 }
-
 
 /*! You must call init() before calling getData().
     The data is translated so that the Intersense position and
@@ -201,7 +194,6 @@ bool IsenseTracker::getData( arInputSource* inputSource ) {
   return true;
 }
 
-
 /*! We load the configuration for the tracker in order
     to find out what model we have and its capabilities.
     It is here that we find out what the actual port is.
@@ -230,7 +222,6 @@ bool IsenseTracker::_getTrackerConfig() {
   std::cerr << "IntersenseDriver::Started tracker on port " << _port << "." << endl;
   return true;
 }
-
 
 /*! The station info struct holds the State variable,
     which tells us whether a device is connected.  It
@@ -272,7 +263,6 @@ void IsenseTracker::_loadAllStationInfo() {
 //  }
 //}
 
-
 /*! We ask only that this work for at least one of the stations
     because it is reasonable that it might not work for a station
     which is not connected.  We could use the A command to set
@@ -291,7 +281,6 @@ bool IsenseTracker::_resetAllAlignmentReferenceFrames() {
   }
   return success;
 }
-
 
 /*! The Intersense station will not, by default, have camera
     tracking enabled, so this method turns it on.  This method has
@@ -317,8 +306,6 @@ void IsenseTracker::_enablePossibleCameraTracking() {
   }
 }
 
-
-
 /*! Prints to stderr all the setup information.
     \param trackerIndex Index of this tracker in arInputSource
         array.
@@ -337,7 +324,6 @@ ostream& operator<<(ostream& s, const IsenseTracker& tc) {
   return s;
 }
 
-
 IsenseStation::IsenseStation() :
   _matrixIndex(1000),
   _numButtons(0),
@@ -355,11 +341,9 @@ bool IsenseStation::getStatus() const {
   return _stationConfig.State != FALSE;
 }
 
-
 unsigned int IsenseStation::getID() const {
   return static_cast<unsigned int>(_stationConfig.ID);
 }
-
 
 bool IsenseStation::configure( arSZGClient& client, unsigned int trackerIndex ) {
   const unsigned int charCnt = 200;
@@ -388,8 +372,6 @@ bool IsenseStation::configure( arSZGClient& client, unsigned int trackerIndex ) 
   return true;
 }
 
-
-
 /*! The station info struct holds the State variable,
     which tells us whether a device is connected.  It
     also holds the data to be read.  This queries
@@ -406,14 +388,12 @@ void IsenseStation::loadStationInfo( unsigned int stationID ) {
                                                USE_VERBOSE ) != FALSE;
 }
 
-
 bool IsenseStation::resetAlignmentReferenceFrame() {
   char chReset[10];
   sprintf( chReset, "R%d\n", getID() );
   Bool bSent = ISD_SendScript( _trackerHandle, chReset );
   return bSent == TRUE;
 }
-
 
 /*! The Intersense station will not, by default, have camera
     tracking enabled, so this method turns it on.  This method has
@@ -443,7 +423,6 @@ bool IsenseStation::enableCameraTracking() {
   return stat;
 }
 
-
 /*! \param buttonCnt Number of buttons the station should have.
     \param analogCnt Number of analogs (axes) the station should have.
     \param auxCnt Number of aux inputs the station should have.  No 
@@ -456,8 +435,6 @@ void IsenseStation::_setInputCounts( unsigned int buttonCnt,
   _numAnalogInputs = analogCnt;
   _numAuxInputs = auxCnt;
 }
-
-
 
 bool IsenseStation::_setUseCompass( unsigned int compassVal ) {
   _stationConfig.Compass = (Bool)compassVal;
@@ -474,8 +451,6 @@ bool IsenseStation::_setUseCompass( unsigned int compassVal ) {
   }
   return stat;
 }
-
-
 
 /*! This object uses both configuration information and
     the user's settings of the number of buttons and such in order
@@ -506,8 +481,6 @@ void IsenseStation::setIndices( unsigned int& matrixIndex,
   _firstAuxIndex = axisIndex;
   axisIndex += _numAuxInputs;
 }
-
-
 
 /*! The data is translated so that the Intersense position and
     orientation becomes a szg sensor, buttons become szg buttons,
@@ -591,8 +564,6 @@ void IsenseStation::queueData( ISD_TRACKER_DATA_TYPE& data,
   }
 }
 
-
-
 ostream& operator<<(ostream& s, const IsenseStation& t) {
     if (!t.getStatus()) {
       return s;
@@ -623,8 +594,6 @@ ostream& operator<<(ostream& s, const IsenseStation& t) {
   return s;
 }
 
-
-
 /***********************************************************/
 /*                     ar_intersenseDriverEventTask        */
 /***********************************************************/
@@ -649,11 +618,10 @@ void ar_intersenseDriverEventTask(void* intersenseDriver){
     if ( false == bSuccess ) {
       // Unreachable because Intersense driver always returns a cheery success.
       while ( false == isense->_reacquire() )
-        ar_usleep( 15*1000 );
+        ar_usleep( 15000 );
     }
   }
 }
-
 
 /***********************************************************/
 /*                     ar_intersenseDriver                 */
@@ -663,11 +631,9 @@ arIntersenseDriver::arIntersenseDriver() {
   // does nothing yet
 }
 
-
 arIntersenseDriver::~arIntersenseDriver() {
   _trackers.clear();
 }
-
 
 /*! Below is a sample set of parameters for this driver.  Replace
     trackmach with the name of the machine where the Intersense
@@ -750,7 +716,6 @@ bool arIntersenseDriver::init(arSZGClient& client) {
   return true;
 }
 
-
 bool arIntersenseDriver::_open( DWORD port ) {
   ISD_TRACKER_HANDLE trackerHandle[ ISD_MAX_TRACKERS ];
   std::vector< IsenseTracker >::iterator iter;
@@ -805,7 +770,6 @@ bool arIntersenseDriver::_open( DWORD port ) {
   return created;
 }
 
-
 bool arIntersenseDriver::getStationSettings( arSZGClient& client ) {
   std::vector< IsenseTracker >::iterator iter;
   for (iter = _trackers.begin(); iter != _trackers.end(); ++iter) {
@@ -816,14 +780,10 @@ bool arIntersenseDriver::getStationSettings( arSZGClient& client ) {
   return true;
 }
 
-
-/*! This calls the ar_usleep().
-    */
 bool arIntersenseDriver::_waitForData() {
   ar_usleep( _sleepTime );
   return true;
 }
-
 
 bool arIntersenseDriver::_getData() {
   bool ok = true;
@@ -833,7 +793,6 @@ bool arIntersenseDriver::_getData() {
   }
   return ok;
 }
-
 
 /*! This method should open all trackers which were open previously.
     \return False if not all failed trackers could be opened.
