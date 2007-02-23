@@ -20,16 +20,13 @@ void arJoystickDriver::_eventTask() {
     // on the device producing an event to get us out of this loop!
     // Consequently, the linux arJoystickDriver DOES NOT shut down in an 
     // orderly fashion.
-    cout << "yoyoyo reading joystick\n";;;;
     read(_fd, &js, sizeof(js_event));
     switch (js.type & ~JS_EVENT_INIT){
     case JS_EVENT_BUTTON:
-      cout << "yoyoyo read joystick button\n";;;;
       sendButton(js.number, js.value);
       // js.value is 0 or 1, experimentally determined
       break;
     case JS_EVENT_AXIS:
-      cout << "yoyoyo read joystick axis\n";;;;
       sendAxis(js.number, js.value);
       // js.value is +-32k, experimentally determined
       break;
@@ -147,7 +144,6 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
     }
   }
 #endif
-  cout << "yoyoyo camilleg kam3 arJoystickDriver 2\n";;;;
 
 #ifdef AR_USE_WIN_32
   // Initialize pStick.
@@ -210,13 +206,11 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
     return false;
   }
 #endif
-  cout << "yoyoyo camilleg kam3 arJoystickDriver 3\n";;;;
   ar_log_debug() << "arJoystickDriver initialized.\n";
   return true;
 }
 
 bool arJoystickDriver::start(){
-  cout << "yoyoyo camilleg kam3 arJoystickDriver 4\n";;;;
   return _eventThread.beginThread(ar_joystickDriverEventTask,this);
 }
 
