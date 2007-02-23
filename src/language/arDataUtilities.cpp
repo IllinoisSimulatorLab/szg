@@ -455,6 +455,38 @@ void ar_usleep(int microseconds){
 #endif
 }
 
+arSleepBackoff::arSleepBackoff(const int msecMin, const int msecMax, const float ratio) :
+  _u(0.),
+  _uMin(msecMin*1000.),
+  _uMax(msecMax*1000.),
+  _ratio(ratio) {
+  const float uMinMin = 1000.;
+  if (_uMin < uMinMin) {
+    _uMin = uMinMin;
+    ar_log_warning() << "arSleepBackoff minimum rounded up to " << uMinMin/1000. << " msec.\n";
+  }
+  if (_uMax < _uMin) {
+    _uMax = _uMin;
+    ar_log_warning() << "arSleepBackoff maximum rounded up to minimum.\n";
+  }
+  const float ratioMin = 1.001;
+  if (_ratio < ratioMin) {
+    _ratio = ratioMin;
+    ar_log_warning() << "arSleepBackoff ratio rounded up to " << ratioMin << ".\n";
+  }
+}
+
+void arSleepBackoff::sleep() {
+  ar_usleep(int(_u));
+  _u *= _ratio;
+  if (_u > _uMax)
+    _u = _uMax;
+}
+
+void arSleepBackoff::reset() {
+  _u = _uMin;
+}
+
 // string->number conversions with error checking
 bool ar_stringToLongValid( const string& theString, long& theLong ) {
   if (theString == "NULL") {

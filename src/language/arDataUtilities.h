@@ -281,8 +281,21 @@ SZG_CALL int ar_fileClose(FILE* pf);
 // ARchar buffer management
 SZG_CALL bool ar_growBuffer(ARchar*& buf, int& size, int newSize);
 
-// wrapper for usleep (compatibility with Win32)
+// wrapper for usleep
 SZG_CALL void ar_usleep(int);
+
+// ar_usleep a little longer each time, from min to max.
+// Stops clients from DDOS'ing a server.  "Exponential Backoff."
+class SZG_CALL arSleepBackoff {
+  float _u;	// current naptime
+  float _uMin;  // initial short nap
+  float _uMax;  // final long nap
+  float _ratio; // ratio between successive naptimes
+ public:
+  arSleepBackoff(const int msecMin, const int msecMax, const float ratio);
+  void sleep();
+  void reset();
+};
 
 SZG_CALL void* ar_allocateBuffer( arDataType theType, unsigned int size );
 SZG_CALL void ar_deallocateBuffer( void* ptr );

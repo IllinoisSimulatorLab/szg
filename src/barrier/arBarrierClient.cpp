@@ -17,10 +17,13 @@ void arBarrierClient::_connectionTask(){
     _keepRunningThread = false;
     return;
   }
+  arSleepBackoff a(10, 100, 1.05);
   while (_keepRunningThread && !_exitProgram){
-    ar_usleep(10000);
+    a.sleep();
     if (_connected)
       continue;
+    a.reset();
+
     _dataClient.closeConnection();
 
     // This is the one blocking call. Pretend the connection thread isn't running.
@@ -71,11 +74,14 @@ void ar_barrierClientData(void* barrierClient){
 
 void arBarrierClient::_dataTask(){
   _dataThreadRunning = true;
+  arSleepBackoff a(1, 20, 1.05);
   while (_keepRunningThread && !_exitProgram){
     if (!_connected){
-      ar_usleep(1000); // CPU throttle
+      a.sleep();
       continue;
     }
+    a.reset();
+
     if (!_dataClient.getData(_dataBuffer, _bufferSize)){
       _connected = false;
       _activated = false;
@@ -277,8 +283,9 @@ void arBarrierClient::stop(){
   _releaseSignal.sendSignal();
 
   // Wait for the threads to finish
+  arSleepBackoff a(10, 150, 1.2);
   while (_dataThreadRunning || _connectionThreadRunning){
-    ar_usleep(10000);
+    a.sleep();
   }
 }
 

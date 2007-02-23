@@ -231,20 +231,13 @@ bool arDataClient::dialUpFallThrough(const char* address, int port){
 }
 
 bool arDataClient::dialUp(const char* address, int port){
-  int usecDelay = 100000;
+  arSleepBackoff a(100, 300, 1.08);
   while (true) {
     if (!_dialUpInit(address, port))
       return false;
-
     if (_dialUpConnect(address, port))
       return _dialUpActivate();
-
-    // Don't DDOS!  Back off slowly, up to a fixed maximum.
-    // (1.05 ^ 22 = 3, so after about 2.5 seconds it's every 300 msec.)
-    ar_usleep(usecDelay);
-    usecDelay = int(usecDelay * 1.05);
-    if (usecDelay > 300000)
-      usecDelay = 300000;
+    a.sleep();
   }
 }
 

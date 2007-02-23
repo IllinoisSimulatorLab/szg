@@ -18,9 +18,10 @@ void arSyncDataClient::_connectionTask(){
   // DOH! Will start slowly working towards deterministic shutdown.
   _connectionThreadRunning = true;
   while (!_exitProgram){
-    // make sure barrier connects first
+    // Barrier must connect first.
+    arSleepBackoff a(10, 30, 1.05);
     while (!_barrierClient.checkConnection() && !_exitProgram)
-      ar_usleep(10000);
+      a.sleep();
     if (_exitProgram)
       break;
 
@@ -104,13 +105,13 @@ void ar_syncDataClientReadTask(void* client){
 
 void arSyncDataClient::_readTask(){
   _readThreadRunning = true;
+  arSleepBackoff a(25, 50, 1.05);
   while (!_exitProgram){
     if (!_stateClientConnected){
-      ar_usleep(30000);
-      // Fall down to the test of _exitProgram:
-      // an exit request might be issued while we wait to connect.
+      a.sleep();
       continue;
     }
+
     // Activate our connection to the barrier server.
     if (!_barrierClient.checkActivation())
       _barrierClient.requestActivation();
@@ -383,9 +384,9 @@ void arSyncDataClient::stop(){
   _nullHandshakeState = 2;
   _nullHandshakeVar.signal();
   ar_mutex_unlock(&_nullHandshakeLock);
-  // wait for the read thread and the connection thread to finish
+  arSleepBackoff a(5, 30, 1.1);
   while (_readThreadRunning || _connectionThreadRunning){
-    ar_usleep(30000);
+    a.sleep();
   }
 }
 

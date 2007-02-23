@@ -49,6 +49,7 @@ void arNetInputSource::_connectionTask() {
   ar_log_debug() << "arNetInputSource serviceName '" << serviceName <<
     "', networks '" << networks << "'\n";
 
+  arSleepBackoff a(50, 3000, 1.5);
   while (true){
     ar_log_debug() << "arNetInputSource discovering service...\n";
     // Ask szgserver for IP:port of service "SZG_INPUT0".
@@ -56,39 +57,41 @@ void arNetInputSource::_connectionTask() {
     if (!IPport.valid){
       ar_log_warning() << "arNetInputSource: no service '" <<
 	serviceName << "' on network '" << networks << "'.\n";
-      // Throttle, since service probably won't reappear that quickly,
-      // and maybe szgserver itself is stopping.
-      ar_usleep(50000); // todo: increase sleep time gradually.
+      // Throttle, since service won't reappear that quickly,
+      // and szgserver itself may be stopping.
+      a.sleep();
       continue;
     }
+    a.reset();
 
     // This service has exactly one port.
     const int port = IPport.portIDs[0];
     const string& IP = IPport.address;
     ar_log_debug() << "arNetInputSource connecting...\n";
     if (!_dataClient.dialUpFallThrough(IP, port)){
-      ar_log_warning() << "arNetInputSource reconnecting to '"
-	               << serviceName << "' at "
-	               << IP << ":" << port << ".\n";
+      ar_log_warning() << "arNetInputSource reconnecting to " <<
+	serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";
       continue;
     }
 
     ar_log_remark() << "arNetInputSource connected to " <<
-      serviceName << " at " << IP << ":" << port << ".\n";
+      serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";
     _connected = true;
 
     _dataTask();
 
     ar_log_remark() << "arNetInputSource disconnected from " <<
-      serviceName << " at " << IP << ":" << port << ".\n";
+      serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";
     _closeConnection();
   }
 }
 
+const int bufsizeStart = 500;
+
 arNetInputSource::arNetInputSource() :
   _szgClient(NULL),
-  _dataBuffer(new ARchar[500]),
-  _dataBufferSize(500),
+  _dataBuffer(new ARchar[bufsizeStart]),
+  _dataBufferSize(bufsizeStart),
   _slot(0),
   _interface("NULL"),
   _port(0),
