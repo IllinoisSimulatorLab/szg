@@ -257,7 +257,7 @@ void arDistSceneGraphFramework::setAutoBufferSwap(bool autoBufferSwap){
 
 void arDistSceneGraphFramework::swapBuffers(){
   if (_autoBufferSwap){
-    ar_log_warning() <<  _label << ": can't swap buffers manually in automatic swap mode.\n";
+    ar_log_warning() <<  _label << ": ignoring manual buffer swap in automatic swap mode.\n";
     return;
   }
 
@@ -275,12 +275,12 @@ void arDistSceneGraphFramework::swapBuffers(){
     }
   }
   else if (_peerName == "NULL"){
-    // No synchronization occurs in the peer case! (i.e. _peerName != "NULL")
+    // No sync in the peer case! (i.e. _peerName != "NULL")
     _graphicsServer._syncServer.swapBuffers();
   }
   else{
     // We are in "peer mode" and there is no need to swap (message) buffers.
-    // The following sleep is a necessary throttle for applications that would 
+    // Throttle applications that would 
     // otherwise rely on the swap timing of the remote display for a throttle.
     ar_usleep(10000);
   }
@@ -321,7 +321,7 @@ void arDistSceneGraphFramework::setPlayer(){
 
 bool arDistSceneGraphFramework::init(int& argc, char** argv){
   if (_initCalled){
-    ar_log_error() << _label << ": can't init() more than once.\n";
+    ar_log_error() << _label << ": ignoring duplicate init().\n";
     return false;
   }
   if (_startCalled){
@@ -341,17 +341,16 @@ bool arDistSceneGraphFramework::init(int& argc, char** argv){
     return false; 
   }
   
-  bool ok = false;
   if (!_SZGClient){
     // Standalone.
-    ok = _initStandaloneMode();
+    const bool ok = _initStandaloneMode();
     _initCalled = true;
     return ok;
   }
 
   // Connected to an szgserver.
   ar_log().setStream(_SZGClient.initResponse());
-  ok = _initPhleetMode();
+  const bool ok = _initPhleetMode();
   _initCalled = true;
   ar_log().setStream(cout);
   return ok;
@@ -362,18 +361,20 @@ bool arDistSceneGraphFramework::start(){
     ar_log_error() << _label << ": can't start() before init().\n";
     return false;
   }
+
   if (_startCalled){
-    ar_log_error() << _label << ": can't start() more than once.\n";
+    ar_log_error() << _label << ": ignoring duplicate start().\n";
     return false;
   }
-  bool ok = false;
+
   if (_standalone){
-    ok = _startStandaloneMode();
+    const bool ok = _startStandaloneMode();
     _startCalled = true;
     return ok;
   }
+
   ar_log().setStream(_SZGClient.startResponse());
-  ok = _startPhleetMode();
+  const bool ok = _startPhleetMode();
   _startCalled = true;
   ar_log().setStream(cout);
   return ok;
@@ -387,7 +388,6 @@ bool arDistSceneGraphFramework::start(){
 void arDistSceneGraphFramework::stop(bool){
   // Tell the app we're stopping.
   _exitProgram = true;
-  // Only stop the appropriate database.
   if (_peerName == "NULL" || _standalone){
     _graphicsServer.stop();
   }
@@ -395,9 +395,9 @@ void arDistSceneGraphFramework::stop(bool){
     _graphicsPeer.stop();
   }
   _soundServer.stop();
-  while (_useExternalThread && _externalThreadRunning){
-    ar_usleep(100000);
-  }
+  arSleepBackoff a(50, 100, 1.1);
+  while (_useExternalThread && _externalThreadRunning)
+    a.sleep();
   ar_log_remark() << _label << ": threads stopped.\n";
   _stopped = true;
 }
@@ -413,7 +413,7 @@ bool arDistSceneGraphFramework::createWindows(bool){
   if (!ok){
     ar_log_warning() << _label << ": failed to start windowing.\n"; 
 #ifdef AR_USE_DARWIN
-    ar_log_warning() << "  (Please ensure that X11 is running.)\n";
+    ar_log_warning() << "  (Ensure that X11 is running.)\n";
 #endif	
   }
   return ok;

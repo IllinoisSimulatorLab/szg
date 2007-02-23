@@ -555,10 +555,11 @@ void arMasterSlaveFramework::stop( bool blockUntilDisplayExit ) {
     _barrierClient->stop();
   }
   
+  arSleepBackoff a(50,100, 1.1);
   while( _connectionThreadRunning ||
          ( _useWindowing && _displayThreadRunning && blockUntilDisplayExit ) ||
          ( _useExternalThread && _externalThreadRunning ) ) {
-    ar_usleep( 100000 );
+    a.sleep();
   }
   
   ar_log_remark() << _label << " done.\n";
@@ -621,28 +622,25 @@ void arMasterSlaveFramework::exitFunction(){
   // Wildcat framelock is only deactivated if this makes sense;
   // and if so, do so in the display thread and before exiting.
   _wm->deactivateFramelock();
-
-  // Framelock is now deactivated, so exit all windows.
   _wm->deleteAllWindows();
+
   // Guaranteed to get here--user-defined cleanup will be called
   // at the right time
   onCleanup();
-  // If an exit is going to occur elsewehere (like in the message thread)
-  // it can now happen safely at any time.
+
+  // Now it's safe for other threads, like message thread, to exit.
   _displayThreadRunning = false;
-  // If stop(...) is called from the arGUI keyboard function, we
-  // want to exit here. (_blockUntilDisplayExit will be false)
-  // Otherwise, we want to wait here for the exit to occur in the
-  // message thread.
-  while( _blockUntilDisplayExit ){
-    ar_usleep( 100000 );
-  }
-  // When this function has returned, we can exit.
+
+  // If stop() is called from the arGUI keyboard function,
+  // exit immediately (_blockUntilDisplayExit will be false).
+  // Otherwise, wait for the message thread to exit.
+  arSleepBackoff a(70, 120, 1.1);
+  while(_blockUntilDisplayExit)
+    a.sleep();
 }
 
 // The sequence of events that should occur before the window is drawn.
-// Made available as a public method so that applications can create custom
-// event loops.
+// Public, so apps can create custom event loops.
 void arMasterSlaveFramework::preDraw( void ) {
   if (stopping())
     return;
@@ -737,7 +735,7 @@ void arMasterSlaveFramework::preDraw( void ) {
   _lastComputeTime = ar_difftime( ar_time(), preDrawStart );
 }
 
-// Public method so that applications can make custom event loops.
+// Public, so apps can make custom event loops.
 void arMasterSlaveFramework::draw( int windowID ){
   if( stopping() || !_wm )
     return;
@@ -755,11 +753,9 @@ void arMasterSlaveFramework::postDraw( void ){
   if (stopping())
     return;
   
-  ar_timeval postDrawStart = ar_time();
-  
-  // sometimes, for testing of synchronization, we want to be able to throttle
-  // down the framerate
+  const ar_timeval postDrawStart = ar_time();
   if( _framerateThrottle ) {
+    // For testing sync.
     ar_usleep( 200000 );
   }
 
@@ -767,11 +763,10 @@ void arMasterSlaveFramework::postDraw( void ){
   if( !_standalone && !_sync() ) {
     ar_log_warning() << _label << ": sync failed.\n";
   }
-  
   _lastSyncTime = ar_difftime( ar_time(), postDrawStart );
 }
 
-// Public method so that applications can make custom event loops.
+// Public, so apps can make custom event loops.
 void arMasterSlaveFramework::swap( int windowID ) {
   if (stopping() || !_wm)
     return;
@@ -2402,14 +2397,13 @@ void arMasterSlaveFramework::_messageTask( void ) {
 
 // Handle connections.
 void arMasterSlaveFramework::_connectionTask( void ) {
-  _connectionThreadRunning = true; // for shutdown
+  _connectionThreadRunning = true;
 
   if( _master ) {
     while( !stopping() ) {
-      // TODO TODO TODO TODO TODO TODO
-      // As a hack, since non-blocking connection accept has yet to be
-      // implemented, pretend the connection thread isn't running
-      // during the blocking call
+
+      // todo: nonblocking connection accept.
+      // Workaround: pretend connection thread isn't running.
       _connectionThreadRunning = false;
       arSocket* theSocket = _stateServer->acceptConnectionNoSend();
       _connectionThreadRunning = true;
@@ -2435,23 +2429,25 @@ void arMasterSlaveFramework::_connectionTask( void ) {
   else {
     // slave
     while( !stopping() ) {
-      // make sure barrier is connected
+      arSleepBackoff a(40, 100, 1.1);
       while( !_barrierClient->checkConnection() && !stopping() ) {
-        ar_usleep( 100000 );
+	a.sleep();
       }
-
-      if( stopping() )
-        break;
-
-      // hack, since discoverService is currently a blocking call
-      // and the arSZGClient does not have a shutdown mechanism in place
-      _connectionThreadRunning = false;
-      const arPhleetAddress result =
-        _SZGClient.discoverService( _serviceName, _networks, true );
-      _connectionThreadRunning = true;
+      a.reset();
+      // Barrier is connected.
 
       if (stopping())
         break;
+
+      // hack, since discoverService currently blocks
+      // and arSZGClient has no shutdown mechanism
+      // (this _fooThreadRunning = false; discoverService; _foo=true hack
+      // is also in arBarrierClient::_connectionTask.)
+      _connectionThreadRunning = false;
+      const arPhleetAddress result(_SZGClient.discoverService(_serviceName, _networks, true));
+      if (stopping())
+        break;
+      _connectionThreadRunning = true;
 
       ar_log_remark() << _label << " connecting to "
 	              << result.address << ":" << result.portIDs[ 0 ] << ar_endl;
