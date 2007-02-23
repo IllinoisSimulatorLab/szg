@@ -8,12 +8,11 @@
 #include "arPrecompiled.h"
 #include "arFlyingGravisController.h"
 #include "arDataUtilities.h"
-#include "arThread.h"
 
 void ar_handleFlyingGravisJoystick(void* input){
   arFlyingGravisController* ctrl = (arFlyingGravisController*)input;
   // good for Xterminator gamepad
-  while (1){
+  while (true) {
     const float j0 = ctrl->_joystickClient.getAxis(0);
     const float j1 = ctrl->_joystickClient.getAxis(1);
     const float j2 = ctrl->_joystickClient.getAxis(2);
@@ -30,7 +29,7 @@ arFlyingGravisController::arFlyingGravisController(){
 }
 
 arFlyingGravisController::~arFlyingGravisController(){
-  //eventually, I'll want to clean up the threads in here
+  //todo: clean up threads
 }
 
 bool arFlyingGravisController::init(arSZGClient& szgClient){
@@ -39,7 +38,7 @@ bool arFlyingGravisController::init(arSZGClient& szgClient){
 }
 
 bool arFlyingGravisController::start(){
-  bool state = _joystickClient.start();
+  const bool ok = _joystickClient.start();
   _transformThread.beginThread(ar_handleFlyingGravisJoystick,this);
-  return state;
+  return ok;
 }
