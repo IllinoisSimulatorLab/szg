@@ -358,8 +358,6 @@ bool arSZGClient::_sendResponse(stringstream& s,
 // Typically main() calls this.  Every return from main should call this.
 bool arSZGClient::sendInitResponse(bool ok) {
   const bool f = _sendResponse(_initResponseStream, "init", _initialInitLength, ok, ok);
-  //;;;; need to echo to stdout?    cout << _initResponseStream.str();
-
   // Visual studio 7 compiler bug.  Do it the long way.
   if (f) {
     ar_log().setStream(_startResponseStream);
