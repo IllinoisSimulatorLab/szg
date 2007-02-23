@@ -231,7 +231,7 @@ bool arDataClient::dialUpFallThrough(const char* address, int port){
 }
 
 bool arDataClient::dialUp(const char* address, int port){
-  arSleepBackoff a(100, 300, 1.08);
+  arSleepBackoff a(15, 200, 1.4);
   while (true) {
     if (!_dialUpInit(address, port))
       return false;

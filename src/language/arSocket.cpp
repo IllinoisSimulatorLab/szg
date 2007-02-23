@@ -390,6 +390,7 @@ int arSocket::ar_safeRead(char* theData, int numBytes, const double usecTimeout)
   ar_mutex_lock(&_usageLock);
   _usageCount++;
   ar_mutex_unlock(&_usageLock);
+  arSleepBackoff a(6, 25, 1.1);
 
   while (numBytes>0) {
     if (fTimeout) {
@@ -399,9 +400,10 @@ int arSocket::ar_safeRead(char* theData, int numBytes, const double usecTimeout)
         return false;
       }
       if (!readable()) {
-        ar_usleep(10000); // todo: gradually increase sleep duration
+        a.sleep();
 	continue;
       }
+      a.reset();
     }
     const int n = ar_read(theData, numBytes);
     if (n <= 0) { 
@@ -427,6 +429,7 @@ int arSocket::ar_safeWrite(const char* theData, int numBytes, const double usecT
   ar_mutex_lock(&_usageLock);
   _usageCount++;
   ar_mutex_unlock(&_usageLock);
+  arSleepBackoff a(6, 25, 1.1);
 
   while (numBytes>0) {
     if (fTimeout) {
@@ -436,9 +439,10 @@ int arSocket::ar_safeWrite(const char* theData, int numBytes, const double usecT
         return false;
       }
       if (!writable()) {
-        ar_usleep(10000);
+        a.sleep();
 	continue;
       }
+      a.reset();
     }
     const int n = ar_write(theData,numBytes);
     if (n<0) {

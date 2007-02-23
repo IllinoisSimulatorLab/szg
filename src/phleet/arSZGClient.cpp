@@ -3010,40 +3010,36 @@ void arSZGClient::_serverResponseThread() {
   char buffer[200]; // buffer overflow
   while (_keepRunning) {
     arSocketAddress fromAddress;
+    arSleepBackoff a(7, 40, 1.1);
     while (_discoverySocket->ar_read(buffer, 200, &fromAddress) < 0) {
-      ar_usleep(10000);
       // Win32 returns -1 if no packet was received.
+      a.sleep();
     }
 
     // We got a packet.
     ar_usleep(10000); // avoid busy-waiting on Win32
     ar_mutex_lock(&_queueLock);
     if (_dataRequested) {
-      // Make sure it is the right format. Both version number (first four
-      // bytes) and that it is a response (5th byte = 1).
+      // Verify format: first 4 bytes are version, 5th indicates response.
       if (buffer[0] == 0 && buffer[1] == 0 &&
           buffer[2] == 0 && buffer[3] == SZG_VERSION_NUMBER && buffer[4] == 1) {
         memcpy(_responseBuffer,buffer,200);
         if (_bufferResponse) {
-          // Print out the contents of this packet.
+          // Print the contents of this packet.
           stringstream serverInfo;
           serverInfo << _responseBuffer+5  << "/"
                      << _responseBuffer+132 << ":"
                      << _responseBuffer+164;
-          // Check to see that we haven't found it already.
-          // This is possible since response packets are broadcast
-          // and someone else on the network could be generating them.
           bool found = false;
-          for (vector<string>::iterator i = _foundServers.begin(); i != _foundServers.end(); ++i) {
+          for (vector<string>::const_iterator i = _foundServers.begin(); i != _foundServers.end(); ++i) {
             if (*i == serverInfo.str()) {
-              // It's a duplicate to something we've already found.
+              // Found it already (someone else broadcast a response packet?).
               found = true;
               break;
             }
           }
           if (!found) {
-            // SHOULD NOT be one of the ar_log_*. This is a rare case where we intend to print to the 
-            // terminal.
+            // Should not be an ar_log_*.  Really print to the console.
             if (_justPrinting) {
               cout << serverInfo.str() << "\n";
             }

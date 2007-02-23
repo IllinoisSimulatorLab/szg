@@ -1050,19 +1050,16 @@ bool arGraphicsPeer::pushSerial(const string& name,
 				arNodeLevel sendLevel,
                                 arNodeLevel remoteSendLevel,
                                 arNodeLevel localSendLevel) {
-  int ID = _dataServer->getFirstIDWithLabel(name);
+  const int ID = _dataServer->getFirstIDWithLabel(name);
   arSocket* socket = _dataServer->getConnectedSocket(ID);
-  if (!socket) {
-    return false;
-  }
   
-  // NOTE: this call does not send a serialization-done notification.
-  return _serializeAndSend(socket, remoteRootID, localRootID, sendLevel,
-                           remoteSendLevel, localSendLevel);
+  // This call does not send a serialization-done notification.
+  return socket && _serializeAndSend(socket, remoteRootID,
+                     localRootID, sendLevel, remoteSendLevel, localSendLevel);
 }
 
-// Closes all connected sockets and resets the database. This is 
-// accomplished via sending all connected peers a "close" message.
+// Closes all connected sockets and resets the database,
+// by sending "close" to all connected peers.
 // They close the sockets on their side, which causes all our
 // reading threads to go away and close the relevant sockets on
 // our side. 
@@ -1072,8 +1069,9 @@ bool arGraphicsPeer::closeAllAndReset() {
   _dataServer->sendData(&adminData);
   // wait for everybody to close... THIS IS BAD SINCE IT RELIES ON TRUSTING
   // THE CONNECTED PEERS!
+  arSleepBackoff a(30, 120, 1.08);
   while (_dataServer->getNumberConnected() > 0)
-    ar_usleep(100000);
+    a.sleep();
   // Delete the stuff in the database AFTER disconnecting,
   // so we don't erase others' databases too.
   reset();

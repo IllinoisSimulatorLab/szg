@@ -49,7 +49,7 @@ void arNetInputSource::_connectionTask() {
   ar_log_debug() << "arNetInputSource serviceName '" << serviceName <<
     "', networks '" << networks << "'\n";
 
-  arSleepBackoff a(50, 3000, 1.5);
+  arSleepBackoff a(50, 3000, 1.2);
   while (true){
     ar_log_debug() << "arNetInputSource discovering service...\n";
     // Ask szgserver for IP:port of service "SZG_INPUT0".
