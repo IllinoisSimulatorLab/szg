@@ -16,10 +16,9 @@ Here is PForth code for the arPForthFilter to transform coords
 (assuming the frame is mounted directly above head with cable on the front)
 
   /* Coordinate transformation for Logitech tracker.
-     We want to change the axes such that X->X, Y->Z, and Z->-Y
+     Change the axes such that X->X, Y->Z, and Z->-Y
      (essentially a 90-deg rotation about X).
-     Except we're applying it to a matrix, so we have to do the
-     t1*M*inv(t1) thing */
+     Except we're applying it to a matrix, so we have to do t1*M*inv(t1) */
   matrix inputMatrix
   matrix rotMat1
   matrix rotMat2
@@ -80,24 +79,13 @@ bool arLogitechDriver::init(arSZGClient& SZGClient) {
   }
   cerr << "arLogitechDriver remark: COM port open.\n";
 
-  // Set read timeout of 1 sec
   if (!_comPort.setReadTimeout(10)){
-    cerr << "arLogitechDriver error: failed to set timeout for COM port.\n";
+    cerr << "arLogitechDriver error: failed to set 1-second timeout for COM port.\n";
     return false;
   }
   
-  if (!_reset()) {
-    cerr << "arLogitechDriver error: _reset() failed.\n";
-    return false;
-  }
-
-  if (!_runDiagnostics()) {
-    cerr << "arLogitechDriver error: diagnostics failed.\n";
-    return false;
-  }
-  
-  _woken = true;
-  return true;
+  _woken = _reset() && _runDiagnostics();
+  return _woken;
 }
 
 bool arLogitechDriver::start(){
@@ -105,49 +93,49 @@ bool arLogitechDriver::start(){
     cerr << "arLogitechDriver error: start() called with un-inited tracker.\n";
     return false;
   }
-  bool stat = _eventThread.beginThread(ar_LogitechDriverEventTask,this);
-  if (stat) {
-    cerr << "arLogitechDriver started.\n";
+
+  const bool ok = _eventThread.beginThread(ar_LogitechDriverEventTask,this);
+  if (ok) {
+    ar_log_debug() << "arLogitechDriver started.\n";
   } else {
-    cerr << "arLogitechDriver error: failed to start event thread.\n";
+    ar_log_warning() << "arLogitechDriver failed to start event thread.\n";
   }
-  return stat;
+  return ok;
 }
 
 bool arLogitechDriver::stop(){
   _stopped = true;
+  arSleepBackoff a(5, 20, 1.1);
   while (_eventThreadRunning) {
-    ar_usleep(10000);
-//    cerr << "arLogitechDriver remark waiting for event thread.\n";
+    a.sleep();
   }
+
   if (_woken) {
     if (!_reset()) {
-      cerr << "arLogitechDriver error: _reset() failed in stop().\n";
       return false;
     }
     _woken = false;
-    cerr << "arLogitechDriver remark: stopped.\n";   
+    ar_log_debug() << "arLogitechDriver stopped.\n";   
   }
   return true;
 }
 
 bool arLogitechDriver::_reset() {
   // Activate 6-D mode
-  const int stat = _comPort.ar_write( "*R" );
-  if (stat < 2) {
-    cerr << "arLogitechDriver error: wrote " << stat << " bytes instead of 2 in _reset().\n";
+  const int cb = _comPort.ar_write( "*R" );
+  if (cb < 2) {
+    cerr << "arLogitechDriver error: _reset wrote only " << cb << " bytes.\n";
     return false;
   }
-  // pause for > 1 second
-  for (int i=0; i<12; i++)
-    ar_usleep(100000);
+
+  ar_usleep(1100000); // hardware needs >1 second
   return true;
 }
 
 bool arLogitechDriver::_startStreaming() {
-  const int stat = _comPort.ar_write("*S");
-  if (stat < 2) {
-    cerr << "arLogitechDriver error: wrote " << stat << " bytes instead of 2 in _startStreaming().\n";
+  const int cb = _comPort.ar_write("*S");
+  if (cb < 2) {
+    cerr << "arLogitechDriver error: _startStreaming wrote only " << cb << " bytes.\n";
     return false;
   }
   return true;
