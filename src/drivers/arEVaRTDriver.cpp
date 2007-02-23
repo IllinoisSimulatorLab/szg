@@ -145,18 +145,18 @@ arEVaRTDriver::~arEVaRTDriver(){
 
 bool arEVaRTDriver::init(arSZGClient& SZGClient){
 #ifndef EnableEVaRT
-  cerr << "arEVaRTDriver warning: EVaRT unsupported on this platform.\n";
+  ar_log_warning() << "arEVaRTDriver unsupported on this platform.\n";
   return false;
 #else
   __globalEVaRTDriver = this;
   if (SZGClient.getAttribute("SZG_EVART", "output_type") == "position"){
     _outputType = string("position");
-    // allocating space for the x,y,z of 40 markers
+    // allocate space for the x,y,z of 40 markers
     _setDeviceElements(0,120,0);
   }
   else{
     _outputType = string("skeleton");
-    // allocating space for 30 matrices
+    // allocate space for 30 matrices
     _setDeviceElements(0,90,30);
   }
   
@@ -178,27 +178,27 @@ bool arEVaRTDriver::start(){
   char buffer[256];
   ar_stringToBuffer(_deviceIP,buffer,256);
   if (EVaRT_Connect(buffer)){
-    cout << "arEVaRTDriver remark: Connected to the EVaRT\n";
+    ar_log_debug() << "arEVaRTDriver Connected to EVaRT.\n";
   }
   else{
-    cout << "arEVaRTDriver error: failed to connect to the EVaRT\n";
+    ar_log_warning() << "arEVaRTDriver failed to connect to EVaRT.\n";
     return false;
   }
 
   if (_outputType == "skeleton"){
     EVaRT_SetDataTypesWanted(GTR_DATA);
-    // we need the hierarchy record before we can do anything with the data
-    EVaRT_RequestHierarchy();
-    cout << "arEVaRTDriver remark: Hierarchy Requested.\n";
+    EVaRT_RequestHierarchy(); // needed before data is usable
+    ar_log_debug() << "arEVaRTDriver remark: Hierarchy Requested.\n";
 
-    while (!_receivedEVaRTHierarchy){
-      ar_usleep(100000);
-    }
-    cout << "arEVaRTDriver remark: Received Hierarchy\n";
+    arSleepBackoff a(20, 150, 1.05);
+    while (!_receivedEVaRTHierarchy)
+      a.sleep();
+
+    ar_log_debug() << "arEVaRTDriver remark: Hierarchy Received.\n";
   }
   else{
-    // just tell the EVaRT that we want position data on the markers
-    cout << "arEVaRTDriver remark: requesting position data.\n";
+    // Ask the EVaRT for the markers' positions.
+    ar_log_debug() << "arEVaRTDriver remark: requesting position data.\n";
     EVaRT_SetDataTypesWanted(TRC_DATA);
   }
 

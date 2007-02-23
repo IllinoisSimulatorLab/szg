@@ -634,8 +634,9 @@ bool arUSBDriver::stop() {
   _stopped = true;
 #ifdef AR_USE_WIN_32
   StopLowLevel();
+  arSleepBackoff a(8, 20, 1.2);
   while (_eventThreadRunning)
-    ar_usleep(20000);
+    a.sleep();
 #endif
   return true;
 }

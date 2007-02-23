@@ -128,8 +128,9 @@ bool arSharedMemSinkDriver::stop() {
   _stopped = true;
 
   _detachMemory();
+  arSleepBackoff a(5, 20, 1.1);
   while (_eventThreadRunning)
-    ar_usleep(10000);
+    a.sleep();
   return true;
 }
 

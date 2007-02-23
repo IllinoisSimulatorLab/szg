@@ -65,7 +65,7 @@ bool arPPTDriver::start() {
     return false;
   }
   if (!_port.setReadTimeout( 2 )) {  // 200 msec
-    cerr << "arPPTDriver error: failed to set timeout COM port.\n";
+    cerr << "arPPTDriver error: failed to set timeout on COM port.\n";
     return false;
   }
   _resetStatusTimer();
@@ -75,10 +75,10 @@ bool arPPTDriver::start() {
 bool arPPTDriver::stop() {
   cerr << "arPPTDriver remark: stopping.\n";
   _stopped = true;
-  while (_eventThreadRunning) {
-    ar_usleep(10000);
-  }
-  cerr << "arPPTDriver remark: event thread exiting.\n";
+  arSleepBackoff a(5, 20, 1.1);
+  while (_eventThreadRunning)
+    a.sleep();
+  ar_log_debug() << "arPPTDriver event thread done.\n";
   _port.ar_close();
   return true;
 }

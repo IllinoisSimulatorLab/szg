@@ -78,9 +78,9 @@ bool arReactionTimerDriver::start() {
 bool arReactionTimerDriver::stop() {
   cerr << "arReactionTimerDriver remark: stopping.\n";
   _stopped = true;
-  while (_eventThreadRunning) {
-    ar_usleep(10000);
-  }
+  arSleepBackoff a(5, 20, 1.1);
+  while (_eventThreadRunning)
+    a.sleep();
   cerr << "arReactionTimerDriver remark: event thread exiting.\n";
   _port.ar_close();
   return true;

@@ -456,7 +456,6 @@ void ar_usleep(int microseconds){
 }
 
 arSleepBackoff::arSleepBackoff(const int msecMin, const int msecMax, const float ratio) :
-  _u(0.),
   _uMin(msecMin*1000.),
   _uMax(msecMax*1000.),
   _ratio(ratio) {
@@ -474,6 +473,7 @@ arSleepBackoff::arSleepBackoff(const int msecMin, const int msecMax, const float
     ar_log_warning() << "arSleepBackoff ratio " << _ratio << " rounded up to " << ratioMin << ".\n";
     _ratio = ratioMin;
   }
+  reset();
 }
 
 void arSleepBackoff::sleep() {

@@ -105,7 +105,7 @@ bool arLogitechDriver::start(){
 
 bool arLogitechDriver::stop(){
   _stopped = true;
-  arSleepBackoff a(5, 20, 1.1);
+  arSleepBackoff a(10, 20, 1.1);
   while (_eventThreadRunning) {
     a.sleep();
   }

@@ -426,8 +426,9 @@ void arFOBDriver::_eventloop(){
 
 bool arFOBDriver::stop() {
   _stopped = true;
+  arSleepBackoff a(10, 30, 1.1);
   while (_eventThreadRunning)
-    ar_usleep(20000);
+    a.sleep();
   (void)_sleep();
   _comPort.ar_close();
   ar_log_debug() << "arFOBDriver stopped.\n";
