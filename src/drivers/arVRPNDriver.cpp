@@ -11,12 +11,10 @@ DriverFactory(arVRPNDriver, "arInputSource")
 #ifdef Enable_VRPN
 void ar_VRPNHandleTracker(void* data, const vrpn_TRACKERCB event){
   arVRPNDriver* vrpn = (arVRPNDriver*) data;
-  // NOTE: VRPN puts the scalar component of the quaternion first while
-  // Syzygy puts in last. Hence the reordering below.
-  arMatrix4 rotMatrix(arQuaternion(event.quat[3], event.quat[0],
-				   event.quat[1], event.quat[2]));
-  arMatrix4 transMatrix = ar_translationMatrix(event.pos[0], event.pos[1],
-					       event.pos[2]);
+  // Reorder from Syzygy's scalar-last quaternion to VRPN's scalar-first quaternion.
+  const arMatrix4 rotMatrix(arQuaternion(
+    event.quat[3], event.quat[0], event.quat[1], event.quat[2]));
+  const arMatrix4 transMatrix(ar_translationMatrix(event.pos[0], event.pos[1], event.pos[2]));
   vrpn->sendMatrix(event.sensor, transMatrix*rotMatrix);
 }
 
@@ -47,11 +45,7 @@ void ar_VRPNDriverEventTask(void* VRPNDriver){
     }
   }
 #else
-  // let's avoid getting a warning for an unused parameter
-  VRPNDriver = NULL;
-  while (true){
-    ar_usleep(10000);
-  }
+  VRPNDriver = NULL; // avoid compiler warning about unused parameter
 #endif
 }
 
@@ -69,7 +63,6 @@ arVRPNDriver::arVRPNDriver(){
 }
 
 arVRPNDriver::~arVRPNDriver(){
-  // does nothing yet
 }
 
 bool arVRPNDriver::init(arSZGClient& client){
