@@ -179,7 +179,9 @@ pfconsole$(EXE): pfconsole$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_EXE_FIRST) pfconsole$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
-# The device driver shared objects.
+# not made at the moment: CompassServer GPSServer HeadServer TiltServer
+
+# The device-driver shared objects for DeviceServer.
 
 # The first collection of shared objects is built on functionality found in
 # szg (like serial port communications)
