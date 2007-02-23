@@ -10,8 +10,11 @@
 static HANDLE hCommPort = INVALID_HANDLE_VALUE;
 #endif
 
+int fQuit = false;
+
 static void cleanup()
 {
+  fQuit = true;
 #ifdef AR_USE_WIN_32
   if (hCommPort != INVALID_HANDLE_VALUE)
     CloseHandle(hCommPort);
@@ -25,7 +28,7 @@ static void messageTask(void* pClient){
     cli->receiveMessage(&messageType, &messageBody);
     if (messageType=="quit"){
       cleanup();
-      ar_usleep(100000); // let other threads end gracefully
+      ar_usleep(100000); // let other threads, like ar_RS232main, end gracefully
       exit(0);
     }
   }
@@ -62,6 +65,7 @@ int ar_RS232main(int argc, char** argv, const char* label, const char* /*dictNam
   if (!inputServer.configure(&szgClient, label) || !inputServer.start())
     return 1;
 
+  fQuit = false;
   arThread dummy1(messageTask, &szgClient);
 
   if (!fSim)
@@ -116,7 +120,7 @@ LSim:
     arThread dummy3(simTask);
     }
 
-  // Start the data flowing.
+  // Start sending data.
   arMatrix4 matrixHeadPrev(ar_identityMatrix());
   float* axesPrev = NULL;
   float* axes = NULL;
@@ -127,34 +131,33 @@ LSim:
     // memory leak, not really -- the while-loop never terminates.
     }
   int usec = 0;
-  const int usecRefresh = 500000;
-  while (true) {
+  while (!fQuit) {
+    ar_usleep(usecSleep);
+    usec += usecSleep;
+
     arMatrix4 matrixHead((*getMatrix)());
     if (numAxes > 0)
       memcpy(axes, getAxes(), numAxes * sizeof(float));
 
-    // Only send data if the data has changed!  Conserve network bandwidth.
+    // Send only *changed* data.
     // "if (theData != theDataPrev)" would be more general, but slower.
     //
-    // But limit the maximum pause to usecRefresh microseconds,
-    // so late-joining clients don't wait a long time for this data.
+    // But limit the maximum pause (send unchanged data anyways),
+    // so late-joining clients don't wait long for this data.
 
-    if (matrixHead != matrixHeadPrev || usec > usecRefresh)
-      {
+    const int usecRefresh = 500000;
+    if (matrixHead != matrixHeadPrev || usec > usecRefresh) {
       inputServer.sendMatrix(matrixHead);
       matrixHeadPrev = matrixHead;
       }
     if ((numAxes > 0 && memcmp(axes, axesPrev, numAxes * sizeof(float))) ||
-        usec > usecRefresh)
-      {
+        usec > usecRefresh) {
       for (int i=0; i<numAxes; i++)
         inputServer.sendAxis(i, axes[i]);
       memcpy(axesPrev, axes, numAxes * sizeof(float));
       }
     if (usec > usecRefresh)
       usec = 0;
-    ar_usleep(usecSleep);
-    usec += usecSleep;
   }
   return 0;
 }
