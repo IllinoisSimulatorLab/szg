@@ -462,17 +462,17 @@ arSleepBackoff::arSleepBackoff(const int msecMin, const int msecMax, const float
   _ratio(ratio) {
   const float uMinMin = 1000.;
   if (_uMin < uMinMin) {
+    ar_log_warning() << "arSleepBackoff minimum " << _uMin << " rounded up to " << uMinMin/1000. << " msec.\n";
     _uMin = uMinMin;
-    ar_log_warning() << "arSleepBackoff minimum rounded up to " << uMinMin/1000. << " msec.\n";
   }
   if (_uMax < _uMin) {
+    ar_log_warning() << "arSleepBackoff maximum " << _uMax << " rounded up to minimum " << _uMin << ".\n";
     _uMax = _uMin;
-    ar_log_warning() << "arSleepBackoff maximum rounded up to minimum.\n";
   }
   const float ratioMin = 1.001;
   if (_ratio < ratioMin) {
+    ar_log_warning() << "arSleepBackoff ratio " << _ratio << " rounded up to " << ratioMin << ".\n";
     _ratio = ratioMin;
-    ar_log_warning() << "arSleepBackoff ratio rounded up to " << ratioMin << ".\n";
   }
 }
 
