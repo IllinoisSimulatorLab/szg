@@ -88,10 +88,10 @@ bool ar_graphicsClientActionCallback(void* client){
 bool ar_graphicsClientNullCallback(void* client){
   arGraphicsClient* c = (arGraphicsClient*) client;
 
-  // Disable framelock now, so that it can be appropriately
-  // re-enabled upon reconnection to the master. This occurs here
-  // because it is called in the same thread as the graphics (critical)
-  // and is called when a disconnect occurs.
+  // Disable framelock so it's properly
+  // re-enabled upon reconnection to the master. Do this here
+  // so it's in the same thread as the graphics (critical),
+  // and is called upon disconnect.
   c->getWindowManager()->deactivateFramelock();
 
   // Have everything drawn black.
