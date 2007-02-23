@@ -6,26 +6,28 @@
 #include "arPrecompiled.h"
 #include "arFileSource.h"
 
-void ar_fileSourceEventTask(void* fileSource){ 
-  arFileSource* f = (arFileSource*) fileSource;
+void ar_fileSourceEventTask(void* pv){ 
+  ((arFileSource*)pv)->_eventThread();
+}
+
+void arFileSource::_eventThread() {
   ar_timeval latestTime, lastCheckpoint;
-  bool establishingCheckpoint = true;
-  
+  bool fNeedCheckpoint = true;
   for (;;){
-    while (establishingCheckpoint ||
+    while (fNeedCheckpoint ||
 	   ar_difftime(latestTime, lastCheckpoint) < 10000) {
-      arStructuredData* data = f->_parser->parse(&f->_dataStream);
+      arStructuredData* data = _parser->parse(&_dataStream);
       if (data) {
         // Read data.
 
         ARint sig[3];
         data->dataOut("signature",sig,AR_INT,3);
-        if (sig[0] != f->getNumberButtons() ||
-	    sig[1] != f->getNumberAxes() ||
-	    sig[2] != f->getNumberMatrices()){
+        if (sig[0] != getNumberButtons() ||
+	    sig[1] != getNumberAxes() ||
+	    sig[2] != getNumberMatrices()){
 	  ar_log_remark() << "arFileSource signature changed.\n";
-	  f->_setDeviceElements(sig);
-          f->_reconfig();
+	  _setDeviceElements(sig);
+          _reconfig();
 	}
 
         ARint timeInfo[2];
@@ -33,29 +35,30 @@ void ar_fileSourceEventTask(void* fileSource){
         latestTime.sec = timeInfo[0];
 	latestTime.usec = timeInfo[1];
 
-	if (establishingCheckpoint){
-          establishingCheckpoint = false;
+	if (fNeedCheckpoint){
+          fNeedCheckpoint = false;
           lastCheckpoint.sec = timeInfo[0];
 	  lastCheckpoint.usec = timeInfo[1];
 	}
 
 	// Safely send the data.
-        f->_sendData(data);
-        f->_parser->recycle(data);
+        _sendData(data);
+        _parser->recycle(data);
       }
       else {
-        // Reached eof.
-        f->_dataStream.ar_close();
-	// Wait half a second and then reopen. Loop by default.
+        // EOF
+        _dataStream.ar_close();
+	// Loop by default.
         ar_usleep(500000);
-	if (!f->_dataStream.ar_open(f->_dataFileName, "", f->_dataFilePath)){
-	  cerr << "arFileSource warning: reopen input file.\n";
+	if (!_dataStream.ar_open(_dataFileName, "", _dataFilePath)){
+	  ar_log_warning() << "arFileSource failed to reopen '" << _dataFilePath <<
+	    "/" << _dataFileName << "'.\n";
 	  return;
 	}
-	establishingCheckpoint = true;
+	fNeedCheckpoint = true;
       }
     }
-    establishingCheckpoint = true;
+    fNeedCheckpoint = true;
     ar_usleep(10000);
   }
 }
@@ -78,16 +81,16 @@ bool arFileSource::init(arSZGClient& SZGClient){
 bool arFileSource::start(){
   if (_dataFilePath == "NULL") {
     // Only complain when it's about to get used.
-    ar_log_warning() << "arFileSink has undefined SZG_DATA/path.\n";
+    ar_log_warning() << "arFileSource: no SZG_DATA/path.\n";
     return false;
   }
 
   if (!_dataStream.ar_open(_dataFileName, "", _dataFilePath)){
-    ar_log_error() << "arFileSource failed to open '" << _dataFilePath <<
+    ar_log_warning() << "arFileSource failed to open '" << _dataFilePath <<
       "/" << _dataFileName << "'.\n";
     return false;
   }
 
-  _eventThread.beginThread(ar_fileSourceEventTask,this);
+  arThread dummy(ar_fileSourceEventTask, this);
   return true;
 }
