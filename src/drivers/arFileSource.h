@@ -14,6 +14,7 @@
 
 class SZG_CALL arFileSource:public arInputSource{
   friend void ar_fileSourceEventTask(void*);
+  void _eventThread();
  public:
   arFileSource();
   ~arFileSource();
@@ -21,7 +22,6 @@ class SZG_CALL arFileSource:public arInputSource{
   bool init(arSZGClient&);
   bool start();
  protected:
-  arThread _eventThread;
   arFileTextStream _dataStream;
   string _dataFileName;
   string _dataFilePath;

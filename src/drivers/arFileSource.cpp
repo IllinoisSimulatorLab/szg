@@ -14,8 +14,7 @@ void arFileSource::_eventThread() {
   ar_timeval latestTime, lastCheckpoint;
   bool fNeedCheckpoint = true;
   for (;;){
-    while (fNeedCheckpoint ||
-	   ar_difftime(latestTime, lastCheckpoint) < 10000) {
+    while (fNeedCheckpoint || ar_difftime(latestTime, lastCheckpoint) < 10000) {
       arStructuredData* data = _parser->parse(&_dataStream);
       if (data) {
         // Read data.
@@ -25,7 +24,7 @@ void arFileSource::_eventThread() {
         if (sig[0] != getNumberButtons() ||
 	    sig[1] != getNumberAxes() ||
 	    sig[2] != getNumberMatrices()){
-	  ar_log_remark() << "arFileSource signature changed.\n";
+	  ar_log_remark() << "arFileSource changed signature.\n";
 	  _setDeviceElements(sig);
           _reconfig();
 	}
