@@ -45,7 +45,7 @@ void drawSyncTest() {
 }
 
 void idle(void){
-  ar_usleep(100000); // CPU throttle
+  ar_usleep(50000); // CPU throttle
   glutPostRedisplay();
 }
 
