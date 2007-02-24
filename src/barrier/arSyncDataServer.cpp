@@ -282,9 +282,7 @@ bool arSyncDataServer::init(arSZGClient& client){
   }
   // end of copypaste
 
-  _barrierServer.setServiceName(_serviceNameBarrier);
-  _barrierServer.setChannel(_channel);
-  if (!_barrierServer.init(client)) {
+  if (!_barrierServer.init(_serviceNameBarrier, _channel, client)) {
     ar_log_error() << "arSyncDataServer: barrier server failed to init.\n";
     return false;
   }

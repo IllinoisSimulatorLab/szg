@@ -27,9 +27,7 @@ class SZG_CALL arBarrierServer{
   ~arBarrierServer();
 
   void setServiceName(string serviceName);
-  bool init(arSZGClient& client);
-  void setChannel(const string& channel)
-    { _channel = channel; } // Set route for network traffic.
+  bool init(const string& serviceName, const string& channel, arSZGClient& client);
   bool start();
   void stop();
   int getDrawTime() const { return _drawTime; }
@@ -103,14 +101,10 @@ class SZG_CALL arBarrierServer{
 
   bool _pumpPrimingFlag;
 
-  //local connection stuff
   arSignalObject _localSignal;
   bool _localConnection;
-
   bool _exitProgram;
-
-  string _channel;
-
+  string _channel; // network route
   void _barrierDataFunction(arStructuredData*,arSocket*);
   void _releaseFunction();
   void _barrierDisconnectFunction();

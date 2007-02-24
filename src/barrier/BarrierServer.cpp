@@ -19,9 +19,7 @@ int main(int argc, char** argv){
     return szgClient.failStandalone(fInit);
 
   arBarrierServer barrierServer;
-  barrierServer.setServiceName("SZG_BARRIER");
-  barrierServer.setChannel("default");
-  if (!barrierServer.init(szgClient) || !barrierServer.start())
+  if (!barrierServer.init("SZG_BARRIER", "default", szgClient) || !barrierServer.start())
     return 1;
 
   arThread dummy(ar_messageTask, &szgClient);

@@ -184,7 +184,9 @@ void arBarrierServer::setServiceName(string serviceName){
 }
 
 // Store a pointer to the arSZGClient.
-bool arBarrierServer::init(arSZGClient& client){
+bool arBarrierServer::init(const string& serviceName, const string& channel, arSZGClient& client){
+  _serviceName = serviceName;
+  _channel = channel;
   _client = &client;
   return true;
 }

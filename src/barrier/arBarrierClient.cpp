@@ -29,7 +29,6 @@ void arBarrierClient::_connectionTask(){
     // This is the one blocking call. Pretend the connection thread isn't running.
     _connectionThreadRunning = false;
     const arPhleetAddress result = _client->discoverService(_serviceName, _networks, true);
-
     if (_exitProgram)
       break;
     _connectionThreadRunning = true;

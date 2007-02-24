@@ -1880,16 +1880,13 @@ bool arMasterSlaveFramework::_startStandaloneObjects( void ) {
 }
 
 bool arMasterSlaveFramework::_initMasterObjects() {
-  // attempt to initialize the barrier server
   _barrierServer = new arBarrierServer();
   if( !_barrierServer ) {
     ar_log_warning() << _label << " master failed to construct barrier server.\n";
     return false;
   }
 
-  _barrierServer->setServiceName( _serviceNameBarrier );
-  _barrierServer->setChannel( "graphics" );
-  if( !_barrierServer->init( _SZGClient ) ) {
+  if(!_barrierServer->init(_serviceNameBarrier, "graphics", _SZGClient)) {
     ar_log_warning() << _label << " failed to init barrier server.\n";
   }
 
