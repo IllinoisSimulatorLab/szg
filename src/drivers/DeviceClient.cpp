@@ -160,6 +160,7 @@ LAbort:
     return 1;
   }
 
+  // todo: warn only after 2 seconds (4 ticks in main loop) have elapsed.
   if (!netInputSource.connected()) {
     ar_log_warning() << "DeviceClient not yet connected on slot " << slot << ".\n";
   }
@@ -170,7 +171,7 @@ LAbort:
 
   arThread dummy(ar_messageTask, &szgClient);
 
-  while (true){
+  while (szgClient.connected()){
     if ((mode == CONTINUOUS_DUMP) && netInputSource.connected())
       dumpState(inputNode._inputState);
     ar_usleep(500000);
