@@ -2705,12 +2705,12 @@ bool arSZGClient::_parsePhleetArgs(int& argc, char** const argv) {
       const string thePair(argv[i+1]);
       const unsigned location = thePair.find('=');
       if (location == string::npos) {
-        ar_log_warning() << _exeName << ": missing '=' in context pair.\n";
+        ar_log_warning() << _exeName << ": context pair '" << thePair << "' needs '='.\n";
         return false;
       }
       unsigned int length = thePair.length();
       if (location == length-1) {
-        ar_log_warning() << _exeName << ": incomplete context pair.\n";
+        ar_log_warning() << _exeName << ": incomplete context pair '" << thePair << "'.\n";
         return false;
       }
       // Everything is in the format FOO=BAR, where FOO can be
@@ -2829,17 +2829,17 @@ bool arSZGClient::_parseContextPair(const string& thePair) {
 
   if (pair1Type == "log") {
     const int temp = ar_stringToLogLevel(pair2);
-    if (temp == AR_LOG_NIL) {
-      ar_log_critical() << _exeName << " ignoring log level '" << pair2 << "'; legal values are SILENT, CRITICAL, ERROR, WARNING, REMARK, DEBUG.\n";
+    if (!ar_log().setLogLevel(temp)) {
+      ar_log_critical() << _exeName << " bad log level '" << pair2 << "', expected one of: SILENT, CRITICAL, ERROR, WARNING, REMARK, DEBUG.\n";
       return false;
     }
+
     _logLevel = temp;
-    ar_log().setLogLevel(_logLevel);
     return true;
   }
 
-  ar_log_error() << _exeName << ": context pair has unknown type '"
-		 << pair1Type << "'.\n  (Expected one of: virtual, mode, networks, parameter_file, server, user, log.)\n";
+  ar_log_error() << _exeName << ": bad type in context pair '"
+		 << pair1Type << "', expected one of: virtual, mode, networks, parameter_file, server, user, log.\n";
   return false;
 }
 

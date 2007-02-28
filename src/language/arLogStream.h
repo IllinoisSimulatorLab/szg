@@ -30,8 +30,8 @@ enum{
   AR_LOG_NIL // invalid value
 };
 
-SZG_CALL int ar_stringToLogLevel(const string& logLevel);
-SZG_CALL string ar_logLevelToString(int logLevel);
+SZG_CALL int ar_stringToLogLevel(const string&);
+SZG_CALL string ar_logLevelToString(int);
 
 class SZG_CALL arLogStream{
   friend SZG_CALL arLogStream& ar_log_critical();
@@ -44,9 +44,9 @@ class SZG_CALL arLogStream{
   arLogStream();
   ~arLogStream(){}
   
-  void setStream(ostream& externalStream);
-  void setHeader(const string& header);
-  void setLogLevel(int level);
+  void setStream(ostream&);
+  void setHeader(const string&);
+  bool setLogLevel(int);
   
   arLogStream& operator<<(short n);
   arLogStream& operator<<(int n);
@@ -66,21 +66,23 @@ class SZG_CALL arLogStream{
  protected:
   ostream* _output;   
   arLock _lock;
+
   // Should really be replaced by a "thread map" (based on thread ID)
   // for good interleaving of messages.
   ostringstream _buffer;
+
   string _header;
   unsigned _maxLineLength;
   // DEPRECTAED DEPRECATED DEPRECATED DEPRECATED DEPRECATED
   bool _wrapFlag;
-  int _logLevel;
-  int _currentLevel;
+  int _threshold;
+  int _level;
   
   void _preAppend();
   void _postAppend(bool flush=false);
   void _finish();
-  void _flushLogBuffer(bool addReturn=true);
-  void _setCurrentLevel(int currentLevel);
+  void _flushLogBuffer(const bool addReturn = true);
+  arLogStream& _setLevel(const int);
 };
 
 // Accessors (singleton).

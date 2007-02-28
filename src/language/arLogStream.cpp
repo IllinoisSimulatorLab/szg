@@ -22,7 +22,22 @@ int ar_stringToLogLevel(const string& logLevel){
   return AR_LOG_NIL; 
 }
 
-string ar_logLevelToString(int logLevel){
+inline int ar_logLevelNormalize(int& l) {
+  switch(l) {
+  case AR_LOG_SILENT:
+  case AR_LOG_CRITICAL:
+  case AR_LOG_ERROR:
+  case AR_LOG_WARNING:
+  case AR_LOG_REMARK:
+  case AR_LOG_DEBUG:
+    break;
+  default:
+    l = AR_LOG_NIL;
+  }
+  return l;
+}
+
+string ar_logLevelToString(int l){
   static const char* s[AR_LOG_NIL+1] = {
     "SILENT",
     "CRITICAL",
@@ -31,33 +46,20 @@ string ar_logLevelToString(int logLevel){
     "REMARK",
     "DEBUG",
     "INVALID_LOG_LEVEL" };
-
-  switch(logLevel){
-    case AR_LOG_SILENT:
-    case AR_LOG_CRITICAL:
-    case AR_LOG_ERROR:
-    case AR_LOG_WARNING:
-    case AR_LOG_REMARK:
-    case AR_LOG_DEBUG:
-      break;
-    default:
-      logLevel = AR_LOG_NIL;
-  }
-  return string(s[logLevel]);
+  return s[ar_logLevelNormalize(l)];
 }
 
 arLogStream::arLogStream():
   _output(&cout),
   _header("szg"),
   _maxLineLength(200),
-  _logLevel(AR_LOG_WARNING),
-  _currentLevel(AR_LOG_WARNING){
+  _threshold(AR_LOG_WARNING),
+  _level(AR_LOG_WARNING){
 }
 
 void arLogStream::setStream(ostream& externalStream){
   _lock.lock();
-  // Only flush the buffer if there is, in fact, something in it.
-  if (_buffer.str().length() > 0){
+  if (!_buffer.str().empty()){
     _flushLogBuffer(true);
   }
   _output = &externalStream;
@@ -70,10 +72,14 @@ void arLogStream::setHeader(const string& header){
   _lock.unlock();
 }
 
-void arLogStream::setLogLevel(int logLevel){
+bool arLogStream::setLogLevel(int l){
+  ar_logLevelNormalize(l);
+  if (l == AR_LOG_NIL)
+    return false;
   _lock.lock();
-  _logLevel = logLevel; 
+    _threshold = l; 
   _lock.unlock();
+  return true;
 }
 
 arLogStream& arLogStream::operator<<(short n){
@@ -212,11 +218,12 @@ void arLogStream::_preAppend(){
   _lock.lock();
 }
 
+// Called from inside _lock, e.g., between _preAppend() and _finish().
 void arLogStream::_postAppend(bool flush){
   // It is inefficient to copy a big string each time...
   // BUT we already assume that arLogStream
   // isn't high performance, at most 1000 accesses per second.
-  if (_buffer.str().length() > _maxLineLength || flush)
+  if (flush || _buffer.str().length() > _maxLineLength)
     _flushLogBuffer();
 }
 
@@ -224,10 +231,10 @@ void arLogStream::_finish(){
   _lock.unlock(); 
 }
 
-void arLogStream::_flushLogBuffer(bool addReturn){
-  // Only send to the stream if the level works out.
-  if (_currentLevel <= _logLevel){
-    *_output << _header << ":" << ar_logLevelToString(_currentLevel) << ": " << _buffer.str();
+// Called from inside _lock.
+void arLogStream::_flushLogBuffer(const bool addReturn){
+  if (_level <= _threshold){
+    *_output << _header << ":" << ar_logLevelToString(_level) << ": " << _buffer.str();
     if (addReturn){
       *_output << "\n";
     }
@@ -237,10 +244,11 @@ void arLogStream::_flushLogBuffer(bool addReturn){
   _buffer.str(empty);
 }
 
-void arLogStream::_setCurrentLevel(int currentLevel){
+inline arLogStream& arLogStream::_setLevel(const int l){
   _lock.lock();
-  _currentLevel = currentLevel;
+  _level = l;
   _lock.unlock();
+  return *this;
 }
 
 arLogStream& ar_log(){
@@ -249,41 +257,31 @@ arLogStream& ar_log(){
 }
 
 arLogStream& ar_log_critical(){
-  arLogStream& temp = ar_log();
-  temp._setCurrentLevel(AR_LOG_CRITICAL);
-  return temp;
+  return ar_log()._setLevel(AR_LOG_CRITICAL);
 }
 
 arLogStream& ar_log_error(){
-  arLogStream& temp = ar_log();
-  temp._setCurrentLevel(AR_LOG_ERROR);
-  return temp;
+  return ar_log()._setLevel(AR_LOG_ERROR);
 }
 
 arLogStream& ar_log_warning(){
-  arLogStream& temp = ar_log();
-  temp._setCurrentLevel(AR_LOG_WARNING);
-  return temp;
+  return ar_log()._setLevel(AR_LOG_WARNING);
 }
 
 arLogStream& ar_log_remark(){
-  arLogStream& temp = ar_log();
-  temp._setCurrentLevel(AR_LOG_REMARK);
-  return temp;
+  return ar_log()._setLevel(AR_LOG_REMARK);
 }
 
 arLogStream& ar_log_debug(){
-  arLogStream& temp = ar_log();
-  temp._setCurrentLevel(AR_LOG_DEBUG);
-  return temp;
+  return ar_log()._setLevel(AR_LOG_DEBUG);
 }
 
-arLogStream& ar_endl(arLogStream& logStream){
-  logStream._lock.lock();
-  logStream._flushLogBuffer(false);
-  if (logStream._currentLevel <= logStream._logLevel){
-    *logStream._output << endl;
+arLogStream& ar_endl(arLogStream& s){
+  s._lock.lock();
+  s._flushLogBuffer(false);
+  if (s._level <= s._threshold){
+    *s._output << endl;
   }
-  logStream._lock.unlock();
-  return logStream;
+  s._lock.unlock();
+  return s;
 }
