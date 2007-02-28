@@ -6,6 +6,8 @@
 #include "arPrecompiled.h"
 #include "arLogStream.h"
 
+const int AR_LOG_DEFAULT = AR_LOG_WARNING;
+
 int ar_stringToLogLevel(const string& logLevel){
   if (logLevel == "SILENT")
     return AR_LOG_SILENT;
@@ -53,16 +55,16 @@ arLogStream::arLogStream():
   _output(&cout),
   _header("szg"),
   _maxLineLength(200),
-  _threshold(AR_LOG_WARNING),
-  _level(AR_LOG_WARNING){
+  _threshold(AR_LOG_DEFAULT),
+  _level(AR_LOG_DEFAULT){
 }
 
 void arLogStream::setStream(ostream& externalStream){
   _lock.lock();
-  if (!_buffer.str().empty()){
-    _flushLogBuffer(true);
-  }
-  _output = &externalStream;
+    if (!_buffer.str().empty()){
+      _flushLogBuffer(true);
+    }
+    _output = &externalStream;
   _lock.unlock();
 }
 
@@ -80,6 +82,20 @@ bool arLogStream::setLogLevel(int l){
     _threshold = l; 
   _lock.unlock();
   return true;
+}
+
+bool arLogStream::logLevelDefault() {
+  _lock.lock();
+    bool f = _threshold == AR_LOG_DEFAULT;
+  _lock.unlock();
+  return f;
+}
+
+string arLogStream::logLevel() {
+  _lock.lock();
+    const string s(ar_logLevelToString(_threshold));
+  _lock.unlock();
+  return s;
 }
 
 arLogStream& arLogStream::operator<<(short n){

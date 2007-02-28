@@ -47,6 +47,8 @@ class SZG_CALL arLogStream{
   void setStream(ostream&);
   void setHeader(const string&);
   bool setLogLevel(int);
+  string logLevel();
+  bool logLevelDefault();
   
   arLogStream& operator<<(short n);
   arLogStream& operator<<(int n);
