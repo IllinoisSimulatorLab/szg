@@ -41,18 +41,18 @@ void ar_netInputSourceConnectionTask(void* inputClient){
 
 void arNetInputSource::_connectionTask() {
   // todo: designate a particular network.
-  // todo: use a virtual computer specific or user-specific service name.
+  // todo: use a service name specific to a virtual computer, or specific to a user.
   char buffer[32];
   sprintf(buffer, "SZG_INPUT%i", _slot);
   const string serviceName(_szgClient->createComplexServiceName(buffer));
   const arSlashString networks(_szgClient->getNetworks("input"));
-  ar_log_debug() << "arNetInputSource serviceName '" << serviceName <<
-    "', networks '" << networks << "'\n";
 
-  arSleepBackoff a(50, 3000, 1.2);
+  arSleepBackoff a(50, 3000, 1.5);
   while (true){
-    ar_log_debug() << "arNetInputSource discovering service...\n";
+    ar_log_debug() << "arNetInputSource discovering service '" << 
+      serviceName << "' on network '" << networks << "'.\n";
     // Ask szgserver for IP:port of service "SZG_INPUT0".
+    // If the service doesn't exist, this call blocks until said server starts.
     const arPhleetAddress IPport = _szgClient->discoverService(serviceName, networks, true);
     if (!IPport.valid){
       ar_log_warning() << "arNetInputSource: no service '" <<
@@ -67,7 +67,8 @@ void arNetInputSource::_connectionTask() {
     // This service has exactly one port.
     const int port = IPport.portIDs[0];
     const string& IP = IPport.address;
-    ar_log_debug() << "arNetInputSource connecting...\n";
+    ar_log_debug() << "arNetInputSource connecting to " <<
+      serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";
     if (!_dataClient.dialUpFallThrough(IP, port)){
       ar_log_warning() << "arNetInputSource reconnecting to " <<
 	serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";

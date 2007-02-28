@@ -112,19 +112,17 @@ LAbort:
   }
 
   const int slot = atoi(argv[1]);
-  ar_log_remark() << "DeviceClient slot = " << slot << ".\n";
-
-  int operationMode = CONTINUOUS_DUMP;
+  int mode = CONTINUOUS_DUMP;
   if (argc == 3) {
     if (!strcmp(argv[2], "-onbutton")) {
-      operationMode = ON_BUTTON_DUMP;
-      ar_log_remark() << "DeviceClient Operation mode = ON_BUTTON_DUMP.\n";
+      mode = ON_BUTTON_DUMP;
+      ar_log_remark() << "DeviceClient using mode ON_BUTTON_DUMP.\n";
     } else if (!strcmp(argv[2], "-stream")) {
-      operationMode = EVENT_STREAM;
-      ar_log_remark() << "DeviceClient Operation mode = EVENT_STREAM.\n";
+      mode = EVENT_STREAM;
+      ar_log_remark() << "DeviceClient using mode EVENT_STREAM.\n";
     } else if (!strcmp(argv[2], "-buttonstream")) {
-      operationMode = BUTTON_STREAM;
-      ar_log_remark() << "DeviceClient Operation mode = BUTTON_STREAM.\n";
+      mode = BUTTON_STREAM;
+      ar_log_remark() << "DeviceClient using mode BUTTON_STREAM.\n";
     }
   }
 
@@ -135,15 +133,16 @@ LAbort:
     ar_log_error() << "DeviceClient: invalid slot " << slot << ".\n";
     goto LAbort;
   }
+  ar_log_remark() << "DeviceClient listening on slot " << slot << ".\n";
 
   onButtonEventFilter onButtonFilter;
   EventStreamEventFilter eventStreamFilter;
   EventStreamEventFilter buttonStreamFilter( AR_EVENT_BUTTON );
-  if (operationMode == ON_BUTTON_DUMP) {
+  if (mode == ON_BUTTON_DUMP) {
     inputNode.addFilter( &onButtonFilter, false );
-  } else if (operationMode == EVENT_STREAM) {
+  } else if (mode == EVENT_STREAM) {
     inputNode.addFilter( &eventStreamFilter, false );
-  } else if (operationMode == BUTTON_STREAM) {
+  } else if (mode == BUTTON_STREAM) {
     inputNode.addFilter( &buttonStreamFilter, false );
   }
 
@@ -155,16 +154,14 @@ LAbort:
     cerr << "DeviceClient error: maybe szgserver died.\n";
   }
   if (!inputNode.start()) {
-    if (!szgClient.sendStartResponse(false))
+    if (!szgClient.sendStartResponse(false)) {
       cerr << "DeviceClient error: maybe szgserver died.\n";
+    }
     return 1;
   }
 
   if (!netInputSource.connected()) {
-    ar_log_error() << "DeviceClient: not connected on slot " << slot << ".\n";
-    if (!szgClient.sendStartResponse(false))
-      cerr << "DeviceClient error: maybe szgserver died.\n";
-    return 1;
+    ar_log_warning() << "DeviceClient not yet connected on slot " << slot << ".\n";
   }
 
   if (!szgClient.sendStartResponse(true)) {
@@ -172,8 +169,9 @@ LAbort:
   }
 
   arThread dummy(ar_messageTask, &szgClient);
+
   while (true){
-    if ((operationMode==CONTINUOUS_DUMP) && netInputSource.connected())
+    if ((mode == CONTINUOUS_DUMP) && netInputSource.connected())
       dumpState(inputNode._inputState);
     ar_usleep(500000);
   }
