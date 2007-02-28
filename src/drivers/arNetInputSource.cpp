@@ -55,6 +55,12 @@ void arNetInputSource::_connectionTask() {
     // If the service doesn't exist, this call blocks until said server starts.
     const arPhleetAddress IPport = _szgClient->discoverService(serviceName, networks, true);
     if (!IPport.valid){
+      if (IPport.address == "standalone") {
+	// arSZGClient::discoverService hardcodes "standalone"
+	ar_log_error() << "arNetInputSource: no szgserver.\n";
+	_closeConnection();
+        break;
+      }
       ar_log_warning() << "arNetInputSource: no service '" <<
 	serviceName << "' on network '" << networks << "'.\n";
       // Throttle, since service won't reappear that quickly,
