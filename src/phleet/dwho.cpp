@@ -17,5 +17,5 @@ int main(int argc, char** argv){
   }
 
   arPhleetConfig config;
-  return config.parseLogin() && config.printLogin() ? 0 : 1;
+  return config.readLogin() && config.printLogin() ? 0 : 1;
 }

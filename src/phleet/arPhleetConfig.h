@@ -37,7 +37,7 @@ class SZG_CALL arPhleetConfig{
   bool print() const;
 
   // Login file I/O.
-  bool parseLogin(bool fFromInit = false);
+  bool readLogin(bool fFromInit = false);
   bool writeLogin();
   bool printLogin() const;
 

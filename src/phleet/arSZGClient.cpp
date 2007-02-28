@@ -135,7 +135,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
     if (pipeID >= 0) {
       char numberBuffer[8] = "\001";
       if (!ar_safePipeWrite(pipeID, numberBuffer, 1)) {
-        ar_log_error() << _exeName << " error: unterminated pipe-based handshake.\n";
+        ar_log_error() << _exeName << ": unterminated pipe-based handshake.\n";
       }
     }
   }
@@ -156,8 +156,10 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   // Parse the config file BEFORE parsing the Phleet args (and the "context"),
   // to set the _networks and _addresses.
   // If these files cannot be read, it is still possible to recover.
-  (void) _config.read();
-  (void) _config.parseLogin(true);
+  if (!_config.read())
+    ar_log_debug() << _exeName << ": no explicit config file.\n";
+  if (!_config.readLogin(true))
+    ar_log_debug() << _exeName << ": not explicitly dlogin'd.\n";
 
   // If the networks and addresses were NOT set via command line args or
   // environment variables, set them.
@@ -374,7 +376,6 @@ bool arSZGClient::sendInitResponse(bool ok) {
 // though the parameter does alter the message sent or printed.
 bool arSZGClient::sendStartResponse(bool ok) {
   const bool f = _sendResponse(_startResponseStream, "start", _initialStartLength, ok, false);
-  //;;;; need to echo to stdout?    cout << _startResponseStream.str();
   ar_log().setStream(cout);
   return f;
 }
@@ -2127,27 +2128,29 @@ bool arSZGClient::confirmPorts(const string& serviceName,
 // with a failure message. In asynchronous mode, the szgserver declines
 // responding and, instead, waits for the service to be registered, at
 // which time it responds.  In asynchronous mode, discoverService() thus blocks.
+//
 // @param serviceName the name of the service to which we want to connect
 // @param networks a string containing a slash-delimited list of network
 // names we might use to connect to the service, listed in order of
-// descending preference. IS MY TERMINOLOGY BOGUS HERE?
+// descending preference. IS THIS TERMINOLOGY BOGUS?
 arPhleetAddress arSZGClient::discoverService(const string& serviceName,
                                              const string& networks,
-                                             bool   async) {
+                                             const bool async) {
   arPhleetAddress result;
   if (!_connected) {
-    result.valid = false;
+    // arNetInputSource::_connectionTask() hardcodes "standalone"
+    result.address = "standalone";
     return result;
   }
 
-  // pack the data
+  // Pack data and send request.
   arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_REQUEST_SERVICE);
   data->dataInString(_l.AR_SZG_REQUEST_SERVICE_COMPUTER, _computerName);
-  int match = _fillMatchField(data);
+  const int match = _fillMatchField(data);
   data->dataInString(_l.AR_SZG_REQUEST_SERVICE_TAG, serviceName);
   data->dataInString(_l.AR_SZG_REQUEST_SERVICE_NETWORKS, networks);
-  data->dataInString(_l.AR_SZG_REQUEST_SERVICE_ASYNC,
-    async ? "SZG_TRUE" : "SZG_FALSE");
+  data->dataInString(_l.AR_SZG_REQUEST_SERVICE_ASYNC, async ? "SZG_TRUE" : "SZG_FALSE");
+
   if (!_dataClient.sendData(data)) {
     ar_log_warning() << _exeName << " failed to request discover service.\n";
     result.valid = false;
@@ -2156,24 +2159,25 @@ arPhleetAddress arSZGClient::discoverService(const string& serviceName,
   }
   _dataParser->recycle(data);
 
-  // receive the response
+  ar_log_debug() << _exeName << " awaiting service '" <<
+    serviceName << "' on network '" << networks << (async ? "', async.\n" : "'.\n");
+
+  // Get response.
   data = _getTaggedData(match, _l.AR_SZG_BROKER_RESULT);
   if (!data) {
-    ar_log_warning() << _exeName << " failed to get broker result in response "
-	           << "to discover service request.\n";
+    ar_log_warning() << _exeName << ": no result for service request '" <<
+        serviceName << "' on network '" << networks << (async ? "', async.\n" : "'.\n");
     result.valid = false;
     return result;
   }
   (void)data->getDataInt(_l.AR_PHLEET_MATCH);
 
-  // deal with the response
+  // Parse response.
   if (data->getDataString(_l.AR_SZG_BROKER_RESULT_STATUS) == "SZG_SUCCESS") {
     result.valid = true;
     result.address = data->getDataString(_l.AR_SZG_BROKER_RESULT_ADDRESS);
-    int dimension = data->getDataDimension(_l.AR_SZG_BROKER_RESULT_PORT);
-    result.numberPorts = dimension;
-    data->dataOut(_l.AR_SZG_BROKER_RESULT_PORT, result.portIDs,
-                  AR_INT, dimension);
+    result.numberPorts = data->getDataDimension(_l.AR_SZG_BROKER_RESULT_PORT);
+    data->dataOut(_l.AR_SZG_BROKER_RESULT_PORT, result.portIDs, AR_INT, result.numberPorts);
   }
   else{
     result.valid = false;
@@ -2189,11 +2193,13 @@ void arSZGClient::_printServices(const string& type) {
   }
   arStructuredData* data = _dataParser->getStorage(_l.AR_SZG_GET_SERVICES);
   int match = _fillMatchField(data);
-  // we want to get the "registered" or "active" services
+
+  // type is "registered" or "active".
   data->dataInString(_l.AR_SZG_GET_SERVICES_TYPE, type);
-  // As usual, "NULL" is our reserved string. In this case, it tells the
-  // szgserver to return all services instead of just a particular one
+
+  // "NULL" asks szgserver to return all services, not just a particular one.
   data->dataInString(_l.AR_SZG_GET_SERVICES_SERVICES, "NULL");
+
   if (!_dataClient.sendData(data)) {
     ar_log_warning() << _exeName << " failed to send service listing request.\n";
     _dataParser->recycle(data);
@@ -2208,16 +2214,12 @@ void arSZGClient::_printServices(const string& type) {
     return;
   }
   const string services(data->getDataString(_l.AR_SZG_GET_SERVICES_SERVICES));
-  const arSlashString
-    computers(data->getDataString(_l.AR_SZG_GET_SERVICES_COMPUTERS));
-  int* IDs = (int*) data->getDataPtr(_l.AR_SZG_GET_SERVICES_COMPONENTS,
-                                     AR_INT);
-  int number = data->getDataDimension(_l.AR_SZG_GET_SERVICES_COMPONENTS);
-  // print out the stuff
+  const arSlashString computers(data->getDataString(_l.AR_SZG_GET_SERVICES_COMPUTERS));
+  const int* IDs = (int*) data->getDataPtr(_l.AR_SZG_GET_SERVICES_COMPONENTS, AR_INT);
+  const int number = data->getDataDimension(_l.AR_SZG_GET_SERVICES_COMPONENTS);
   int where = 0;
   for (int i=0; i<number; i++) {
-    // SHOULD NOT be one of the ar_log_*. This is a rare case where we are actually printing out to 
-    // the terminal.
+    // Actually print to the console, not to ar_log_xxx().
     cout << computers[i] << ";"
          << ar_pathToken(services,where) << ";"
          << IDs[i] << "\n";
@@ -2490,8 +2492,7 @@ string arSZGClient::createComplexServiceName(const string& serviceName) {
     return serviceName + string("/") + _userName;
   }
 
-  // The trailing empty string avoids using the WRONG
-  // getAttribute(...), i.e. the one that lists default values.
+  // getAttribute(_,_,_,"") avoids getAttribute(_,_,_) which lists default values.
   const string location(getAttribute(_virtualComputer,"SZG_CONF","location",""));
   return ((location == "NULL") ? _virtualComputer : location) +
     string("/") + serviceName;
@@ -2511,14 +2512,15 @@ inline const string dropsemi(string& s) {
 // Used to make the launch info header.
 string arSZGClient::createContext() {
   string s(
+    namevalue("standalone", _virtualComputer=="NULL" ? "true" : "NULL") +
     namevalue("virtual", _virtualComputer) +
     namevalue("mode/default", _mode) +
-    namevalue("log", ar_logLevelToString(_logLevel)) +
     namevalue("mode/graphics", _graphicsMode) +
     namevalue("networks/default", _networks) +
     namevalue("networks/graphics", _graphicsNetworks) +
     namevalue("networks/sound", _soundNetworks) +
-    namevalue("networks/input", _inputNetworks));
+    namevalue("networks/input", _inputNetworks) +
+    namevalue("log", ar_logLevelToString(_logLevel)));
   return dropsemi(s);
 }
 
@@ -2533,6 +2535,7 @@ string arSZGClient::createContext(const string& virtualComputer,
                                   const string& networksChannel,
                                   const arSlashString& networks) {
   string s(
+    namevalue("standalone", virtualComputer=="NULL" ? "true" : "NULL") +
     namevalue("virtual", virtualComputer) +
     namevalue("mode/" + modeChannel, mode) +
     namevalue("networks/" + networksChannel, networks));
@@ -3081,8 +3084,8 @@ void arSZGClient::_dataThread() {
     if (!_dataClient.getData(_receiveBuffer, _receiveBufferSize)) {
       // Don't complain if the destructor has already been invoked.
       // Should do something here, like maybe disconnect.
-      ar_log_remark() << _exeName << ": szgserver disconnected; queues cleared.\n";
-      goto LDone;
+      ar_log_error() << _exeName << ": no szgserver.\n";
+      break;
     }
     int size = -1; // aren't actually going to use this here
     // The data distribution needs to be multi-threaded. We can assume
@@ -3094,25 +3097,20 @@ void arSZGClient::_dataThread() {
       _dataParser->parseIntoInternal(_receiveBuffer, size);
     }
     else if (ar_rawDataGetID(_receiveBuffer) == _l.AR_KILL) {
-      // Yes, we really do need to GO AWAY at this point.
-      // NOTE: the clearQueues() call makes every future call for messages
-      // fail! And interrupts any waiting ones as well!
-      ar_log_remark() << _exeName << ": szgserver forcibly disconnected; queues cleared.\n";
-      goto LDone;
+      ar_log_error() << _exeName << ": szgserver forcibly disconnected.\n";
+      break;
     }
     else{
       arStructuredData* data = _dataParser->parse(_receiveBuffer, size);
-      _dataParser->pushIntoInternalTagged(
-        data, data->getDataInt(_l.AR_PHLEET_MATCH));
+      _dataParser->pushIntoInternalTagged(data, data->getDataInt(_l.AR_PHLEET_MATCH));
     }
   }
-  return;
 
-LDone:
+  // Interrupt any waiting messages, and forbid any future ones.
   _dataParser->clearQueues();
-  // HMMMM.... should the below go inside a LOCK?
+
+  // should the below go inside a LOCK?
   _connected = false;
-  // No need to get any more data!
 }
 
 // The format of the discovery and response packets is described in
@@ -3121,19 +3119,15 @@ LDone:
 // packets. 4621 is the magic port upon which the response returns.
 void arSZGClient::_sendDiscoveryPacket(const string& name,
                                        const string& broadcast) {
-  char buf[200];
-  // Set all the bytes to zero.
-  memset(buf, 0, sizeof(buf));
+  char buf[200] = {0};
 
-  // The first 3 bytes are 0. This is the beginning of the magic version
-  // number.
-  // The fourth byte contains the magic version number.
+  // Magic version number: first 3 bytes are 0, 4th is version number.
   buf[3] = SZG_VERSION_NUMBER;
   // Since the 5th byte is 0, this is a discovery packet.
 
   ar_stringToBuffer(name, buf+5, 127);
   arSocketAddress broadcastAddress;
-  broadcastAddress.setAddress(broadcast.c_str(),4620);
+  broadcastAddress.setAddress(broadcast.c_str(), 4620);
   _discoverySocket->ar_write(buf, sizeof(buf), &broadcastAddress);
 }
 

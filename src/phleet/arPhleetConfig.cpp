@@ -58,7 +58,8 @@ bool arPhleetConfig::read(){
     else if (ID == _l.AR_PORTS)
       _processPortsRecord(data);
     else
-      cerr << "phleet warning: ignoring unexpected ID in config file (" << ID << ").\n";
+      ar_log_warning() << "arPhleetConfig ignoring unexpected ID " << ID <<
+        " in config file '" << _configFileLocation << "'.\n";
   }
   configStream.ar_close();
 
@@ -97,7 +98,7 @@ bool arPhleetConfig::write(){
 // Try to read in the login-file szg_<user name>.conf.
 // It may not be an error if this file does not exist on a
 // particular computer (the user might not have logged in yet).
-bool arPhleetConfig::parseLogin(bool fFromInit){
+bool arPhleetConfig::readLogin(bool fFromInit){
   if (!_determineFileLocations())
     return false;
 

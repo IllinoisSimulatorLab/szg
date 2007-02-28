@@ -37,13 +37,13 @@ arAppLauncher::~arAppLauncher(){
 
 bool arAppLauncher::setRenderProgram(const string& name){
   _renderProgram = name;
-  ar_log_debug() << _exeName << ": renderer is " << _renderProgram << ".\n";
+  ar_log_debug() << _exeName << ": renderer is '" << _renderProgram << "'.\n";
   return true;
 }
 
 bool arAppLauncher::setAppType(const string& theType){
   if (theType != "distgraphics" && theType != "distapp"){
-    ar_log_error() << _exeName << " warning: unexpected type '"
+    ar_log_error() << _exeName << " warning: ignoring unexpected type '"
 	           << theType << "', expected 'distapp' or 'distgraphics'.\n";
     return false;
   }
@@ -212,8 +212,7 @@ bool arAppLauncher::setParameters(){
   // Sound.
   const string soundLocation(_getAttribute("SZG_SOUND","map",""));
   if (soundLocation != "NULL"){
-    _addService(soundLocation,"SoundRender",_getSoundContext(),
-                "SZG_WAVEFORM", "");
+    _addService(soundLocation,"SoundRender",_getSoundContext(), "SZG_WAVEFORM", "");
   }
   _vircompDefined = true;
   return true;
@@ -228,8 +227,7 @@ bool arAppLauncher::launchApp(){
   }
 
   if (_appType == "NULL"){
-    ar_log_error() << _exeName 
-                   << " error: undefined control host or application type.\n";
+    ar_log_error() << _exeName << " error: undefined control host or application type.\n";
     _unlock();
     return false;
   }
@@ -246,10 +244,10 @@ bool arAppLauncher::launchApp(){
   // killed all the render programs for a master/slave app.
   _graphicsKill(_firstToken(_renderProgram));
 
-  // Once the demo program and the graphics programs have all been
-  // killed, no services will be provided nor will any locks be held.
+  // After the demo program and the graphics programs are
+  // killed, no services are provided and no locks are held.
 
-  // Ensure all szgd's are running.
+  // Ensure szgd's are running on all render nodes.
   int* renderSzgdID = new int[_numberPipes]; // memory leak
   int i = 0;
   for (i=0; i<_numberPipes; i++){
@@ -263,11 +261,10 @@ bool arAppLauncher::launchApp(){
   }
 
   list<arLaunchInfo> appsToLaunch;
-  // Things that need to be killed (like incompatible services) before launching.
+  // Things to be killed (like incompatible services) before launching.
   list<int> serviceKillList;
 
-  // The virtual computer decides if all services are restarted,
-  // or just incompatible ones.
+  // The virtual computer sets _onlyIncompatibleServices.
   if (_onlyIncompatibleServices){
     _relaunchIncompatibleServices(appsToLaunch, serviceKillList);
   }
@@ -283,12 +280,12 @@ bool arAppLauncher::launchApp(){
     }
   }
 
-  // Kill any incompatible services.
+  // Kill incompatible services.
   _blockingKillByID(&serviceKillList);
 
   const bool ok = _execList(&appsToLaunch);
   if (!ok){
-    ar_log_warning() << _exeName << ": not all components launched.\n";
+    ar_log_warning() << _exeName << ": some components didn't launch.\n";
   }
   _unlock(); 
   return ok;
@@ -375,8 +372,6 @@ bool arAppLauncher::killAll(){
     return false;
 
   _demoKill();
-
-  // kill the graphics
   _graphicsKill("");
 
   // Kill the services.
@@ -386,22 +381,14 @@ bool arAppLauncher::killAll(){
        iter != _serviceList.end();
        ++iter){
     namesKill += " " + iter->tradingTag;
-    const int serviceID =
-      _client->getServiceComponentID(iter->tradingTag);
+    const int serviceID = _client->getServiceComponentID(iter->tradingTag);
     if (serviceID != -1){
       killList.push_back(serviceID);
     }
   }
-
-  const int i = killList.size();
-  if (i > 0) {
-    ar_log_remark() << _exeName << " remark: killing service";
-    if (i > 1){
-      ar_log_remark() << "s";
-    }
-    ar_log_remark() << namesKill << ".\n";
+  if (!killList.empty()) {
+    ar_log_remark() << _exeName << " remark: killing service(s)" << namesKill << ".\n";
   }
-
   _blockingKillByID(&killList);
   _unlock();
   return true;
@@ -441,13 +428,10 @@ bool arAppLauncher::isMaster(){
     ar_log_warning() << _exeName << " warning: uninitialized arSZGClient.\n";
     return false;
   }
-  string computerName = _client->getComputerName();
-  string screenName = _client->getMode("graphics");
-  string masterName = getMasterName();
-  if (computerName+"/"+screenName == masterName){
-    return true;
-  }
-  return false;
+  const string computerName = _client->getComputerName();
+  const string screenName = _client->getMode("graphics");
+  const string masterName = getMasterName();
+  return computerName + "/" + screenName == masterName;
 }
 
 // Return the number of screens in the virtual computer.
@@ -584,15 +568,13 @@ void arAppLauncher::updateRenderers(const string& attribute,
   const int numScreens = getNumberScreens();
   string host, program;
   for (int i=0; i<numScreens; i++) {
-    // Even if no render program is running, we want to update the
-    // database.
+    // Even if no render program is running, update the database.
     
     // Find where the XML is located.
     // The empty string is an explicit final parameter, to 
     // disambiguate the case where "computer" (1st param) is not specified
     // but "valid values" are.
-    string configName(
-      _client->getAttribute(_pipeComp[i], _pipeScreen[i], "name", ""));
+    string configName(_client->getAttribute(_pipeComp[i], _pipeScreen[i], "name", ""));
     if (configName == "NULL"){
       ar_log_warning() << "arAppLauncher warning: no XML configuration specified for "
 	               << _pipeComp[i] << "/" << _pipeScreen[i] << ".\n";
@@ -602,7 +584,6 @@ void arAppLauncher::updateRenderers(const string& attribute,
       // parameter given by configName, and set the specified attribute.
       configName += "/szg_window/" + attribute + "/value";
       _client->getSetGlobalXML(configName, value);
-
     }
     if (getRenderProgram(i, host, program)) {
       // Keep going if errors occur.
@@ -612,7 +593,7 @@ void arAppLauncher::updateRenderers(const string& attribute,
 }
 
 //**************************************************************************
-// The private functions follow
+// private functions
 //**************************************************************************
 
 // Seperate executable names from parameter lists.
@@ -633,7 +614,7 @@ bool arAppLauncher::_setAttribute(const string& group,
 }
 
 bool arAppLauncher::_prepareCommand(){
-  // Make sure we have the application lock.
+  // Get the application lock.
   return _client && setParameters() && _trylock();
 }
 

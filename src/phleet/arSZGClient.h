@@ -29,7 +29,7 @@ class SZG_CALL arSZGClient{
   friend void arSZGClientServerResponseThread(void*);
   friend void arSZGClientTimerThread(void*);
   friend void arSZGClientDataThread(void*);
-  friend class arPhleetConfig; // its parseLogin() calls _dialUpFallThrough()
+  friend class arPhleetConfig; // its readLogin() calls _dialUpFallThrough()
  public:
   arSZGClient();
   ~arSZGClient();
@@ -194,7 +194,7 @@ class SZG_CALL arSZGClient{
                     int numberPorts, int* portIDs);
   arPhleetAddress discoverService(const string& serviceName,
                                   const string& networks,
-                                  bool async);
+                                  const bool async);
   int requestServiceReleaseNotification(const string& serviceName);
   int getServiceReleaseNotification(list<int> tags, int timeout = -1);
   string getServiceInfo(const string& serviceName);

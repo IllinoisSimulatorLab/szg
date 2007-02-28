@@ -70,5 +70,5 @@ int main(int argc, char** argv){
     return 1;
 
   // Verify that the login file can be read.
-  return config.parseLogin() && config.printLogin() ? 0 : 1;
+  return config.readLogin() && config.printLogin() ? 0 : 1;
 }
