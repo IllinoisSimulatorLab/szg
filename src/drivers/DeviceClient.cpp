@@ -103,11 +103,11 @@ int main(int argc, char** argv){
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 
-  // Without this, ar_log_xxx() are mute.
-  ar_log().setStream(cout);
-
   if (argc != 2 && argc != 3) {
     ar_log_error() << "usage: DeviceClient slot_number [-onbutton | -stream | -buttonstream]\n";
+LAbort:
+    if (!szgClient.sendInitResponse(false))
+     cerr << "DeviceClient error: maybe szgserver died.\n";
     return 1;
   }
 
@@ -133,7 +133,7 @@ int main(int argc, char** argv){
   inputNode.addInputSource(&netInputSource, false);
   if (!netInputSource.setSlot(slot)) {
     ar_log_error() << "DeviceClient: invalid slot " << slot << ".\n";
-    return 1;
+    goto LAbort;
   }
 
   onButtonEventFilter onButtonFilter;
@@ -148,9 +148,7 @@ int main(int argc, char** argv){
   }
 
   if (!inputNode.init(szgClient)) {
-    if (!szgClient.sendInitResponse(false))
-     cerr << "DeviceClient error: maybe szgserver died.\n";
-    return 1;
+    goto LAbort;
   }
 
   if (!szgClient.sendInitResponse(true)) {
