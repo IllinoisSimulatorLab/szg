@@ -380,80 +380,87 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
     _standalone = true; // init() succeeded, but !_SZGClient says it's disconnected.
     _setMaster( true ); // Because standalone.
     
-    // HACK!!!!! There's cutting-and-pasting here...
+    // copypaste
     dgSetGraphicsDatabase( &_graphicsDatabase );
     dsSetSoundDatabase( &_soundServer );
     
     // Before _loadParameters, so the internal sound client,
     // created in _initStandaloneObjects, can be configured for standalone.
     if( !_initStandaloneObjects() ) {
-      // Standalone objects can fail to init,
-      // e.g a missing joystick driver or a pforth syntax error.
+      // Maybe a missing joystick driver or a pforth syntax error.
       return false;
     }
-    
+
     if( !_loadParameters() ) {
       ar_log_warning() << _label << " failed to load parameters while standalone.\n";
     }
-    
     _parametersLoaded = true;
-    
+
     // Don't start the message-receiving thread yet (because there's no
     // way yet to operate in a distributed fashion).
     // Don't initialize the master's objects, since they'll be unused.
     return true;
   }
+
+  // Connected to szgserver.  Not standalone.
   
   // Initialize a few things.
   dgSetGraphicsDatabase( &_graphicsDatabase );
   dsSetSoundDatabase( &_soundServer );
-  
+
   // Load the parameters before executing any user callbacks
   // (since this determines if we're master or slave).
   if( !_loadParameters() ) {
     goto fail;
   }
-  
+
   // Figure out whether we should launch the other executables.
   // If so, under certain circumstances, this function may not return.
   // NOTE: regardless of whether or not we'll be launching from here
-  // in trigger mode, we want to be able to use the arAppLauncher object
+  // in trigger mode, we use the arAppLauncher object
   // to query info about the virtual computer, which requires the arSZGClient
   // be registered with the arAppLauncher
+
+  // Give _launcher info about the virtual computer.
   (void)_launcher.setSZGClient( &_SZGClient );
   
   if( _SZGClient.getMode( "default" ) == "trigger" ) {
-    // if we are the trigger node, we launch the rest of the application
-    // components... and then WAIT for the exit.
-    string vircomp = _SZGClient.getVirtualComputer();
+    // We are the trigger node.
     
-    // we are, in fact, executing as part of a virtual computer
+    // launch components as part of a virtual computer
     _vircompExecution = true;
-    
+
+    const string vircomp = _SZGClient.getVirtualComputer();
     const string defaultMode = _SZGClient.getMode( "default" );
-    
     ar_log_remark() << _label << " virtual computer '" << vircomp <<
       "', default mode '" << defaultMode << "'.\n";
-    
+
     _launcher.setAppType( "distapp" );
-    
+
+    // Restore "-szg log=DEBUG".
+    // todo: also for scenegraph framework. (in arAppLauncher.cpp??)
+    // todo: also for other -szg args?  Save them when _SZGClient.init parses them?
+    char szLogLevel[80] = "log="; // more than long enough, for internally generated string
+    if (!ar_log().logLevelDefault()) {
+      // Play fast and loose with extending argv[], since it was longer before.
+      argv[argc++] = "-szg";
+      argv[argc++] = strncat(szLogLevel, ar_log().logLevel().c_str(), 79);
+    }
+
     // The render program is the (stripped) EXE name, plus parameters.
     {
       char* exeBuf = new char[ _label.length() + 1 ];
       ar_stringToBuffer( _label, exeBuf, _label.length() + 1 );
-      char* temp = argv[ 0 ];
-      argv[ 0 ] = exeBuf;
-      
+      char* const exeSave = *argv;
+      *argv = exeBuf;
       _launcher.setRenderProgram( ar_packParameters( argc, argv ) );
-      
-      argv[ 0 ] = temp;
+      *argv = exeSave;
       delete exeBuf;
     }
     
     // Reorganize the virtual computer.
     if( !_launcher.launchApp() ) {
-      ar_log_warning() << _label << " failed to launch on virtual computer "
-                     << vircomp << ".\n";
+      ar_log_warning() << _label << " failed to launch on virtual computer " << vircomp << ".\n";
       goto fail;
     }
     
@@ -462,18 +469,18 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
       cerr << _label << ": maybe szgserver died.\n";
     }
     
-    // there's no more starting to do... since this application instance
-    // is just used to launch other instances
-    ar_log_remark() << _label << " trigger launched components.\n";
+    // This application instance, the trigger, only launches other instances.
+    ar_log_remark() << _label << " trigger launched app's components.\n";
     
     if( !_SZGClient.sendStartResponse( true ) ) {
       cerr << _label << ": maybe szgserver died.\n";
     }
+
     (void)_launcher.waitForKill();
     exit( 0 );
   }
   
-  // Mode isn't trigger.
+  // We're not the trigger node.
   
   // So apps can query the virtual computer's attributes, 
   // those attributes are not restricted to the master.
@@ -481,14 +488,13 @@ bool arMasterSlaveFramework::init( int& argc, char** argv ) {
   // But we allow setting a bogus virtual computer via "-szg".
   // So it's not fatal if setParamters() fails, i.e. this should launch:
   //   my_program -szg virtual=bogus
-  if( _SZGClient.getVirtualComputer() != "NULL" &&
-      !_launcher.setParameters() ) {
+  if( _SZGClient.getVirtualComputer() != "NULL" && !_launcher.setParameters() ) {
     ar_log_warning() << _label << ": invalid virtual computer definition.\n";
   }
   
   // Launch the message thread, so dkill works even if init() or start() fail.
-  // But launch after the trigger code above, lest we catch messages both
-  // in waitForKill() AND in the message thread.
+  // But launch after the trigger code above, lest we catch messages in both
+  // waitForKill() AND _messageThread.
   if(!_messageThread.beginThread( ar_masterSlaveFrameworkMessageTask, this )){
     ar_log_warning() << _label << " failed to start message thread.\n";
     goto fail;
@@ -2268,7 +2274,6 @@ bool arMasterSlaveFramework::_loadParameters( void ) {
   _soundServer.addDataBundlePathMap( "SZG_PYTHON", pythonPath );
   if (_soundClient)
     _soundClient->addDataBundlePathMap( "SZG_PYTHON", pythonPath );
-
   return true;
 }
 
