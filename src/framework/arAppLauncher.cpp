@@ -58,7 +58,7 @@ bool arAppLauncher::setVircomp(){
     return false;
   }
   const string vc = _client->getVirtualComputer();
-  ar_log_debug() << "arAppLauncher: arSZGClient's virtual computer is '" << vc << "'.\n";
+  ar_log_debug() << "arAppLauncher: virtual computer is '" << vc << "'.\n";
   return setVircomp(vc);
 }
 
@@ -126,11 +126,10 @@ bool arAppLauncher::setParameters(){
     return true;
   }
   
-  // If the virtual computer was not explicitly set, set its name and "location".
+  // If the virtual computer was not explicitly set, set its name and "location."
   if (_vircomp == "NULL" && !setVircomp()){
-    ar_log_warning() << _exeName << ": no virtual computer '" << _vircomp <<
-      "'.\n";
-    const string s = _client->getVirtualComputers();
+    ar_log_warning() << _exeName << ": no virtual computer '" << _vircomp << "'.\n";
+    const string s(_client->getVirtualComputers());
     if (s.empty())
       ar_log_warning() << "  (No virtual computers are defined.  Have you run dbatch?)\n";
     else
@@ -145,7 +144,7 @@ bool arAppLauncher::setParameters(){
   // todo: stick to either pipe or screen or host, don't use both terms.  Probably host.
   const int numberPipes = getNumberScreens();
   if (numberPipes <= 0){
-    ar_log_error() << "arAppLauncher: negative number of screens for virtual computer '" << _vircomp << "'.\n";
+    ar_log_error() << _exeName << ": negative number of screens for virtual computer '" << _vircomp << "'.\n";
     return false;
   }
   _setNumberPipes(numberPipes);

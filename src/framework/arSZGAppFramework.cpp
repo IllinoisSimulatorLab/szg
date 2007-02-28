@@ -12,7 +12,8 @@
 arSZGAppFramework::arSZGAppFramework() :
   _inputDevice(0),
   _inputState(0),
-  _label(""),
+  _label("arSZGAppFramework"),
+  _launcher(_label.c_str()),	// pointless, since derived class sets _label after constructor?
   _vircompExecution(false),
   _standalone(false),
   _standaloneControlMode("simulator"),

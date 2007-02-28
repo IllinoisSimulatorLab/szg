@@ -122,8 +122,8 @@ LPrintUsage:
     if (argc != 3 && argc != 4)
       goto LPrintUsage;
     {
-      // Do the virtual computer thing.
-      arAppLauncher launcher;
+      // Virtual computer
+      arAppLauncher launcher("dmsg");
       launcher.setSZGClient(&szgClient);
       launcher.setVircomp(argv[1]);
       if (!launcher.setParameters()){
@@ -149,8 +149,8 @@ LPrintUsage:
     if (argc != 4 && argc != 5)
       goto LPrintUsage;
     {
-      // Do the virtual computer thing.
-      arAppLauncher launcher;
+      // Virtual computer
+      arAppLauncher launcher("dmsg");
       launcher.setSZGClient(&szgClient);
       launcher.setVircomp(argv[1]);
       if (!launcher.setParameters()){
