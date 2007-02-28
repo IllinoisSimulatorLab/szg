@@ -163,7 +163,10 @@ int main(int argc, char** argv){
   }
 
   if (!netInputSource.connected()) {
-    ar_log_warning() << "DeviceClient's input source not connected, on slot " << slot << ".\n";
+    ar_log_error() << "DeviceClient: not connected on slot " << slot << ".\n";
+    if (!szgClient.sendStartResponse(false))
+      cerr << "DeviceClient error: maybe szgserver died.\n";
+    return 1;
   }
 
   if (!szgClient.sendStartResponse(true)) {
