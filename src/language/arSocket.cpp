@@ -197,6 +197,9 @@ int arSocket::ar_connect(const char* IPaddress, int port){
       }
       else {
 	int err = 0;
+#ifdef AR_USE_SGI
+typedef int socklen_t;
+#endif
 	socklen_t errlen = sizeof(err);
 	int foo = getsockopt(_socketFD, SOL_SOCKET, SO_ERROR, &err, &errlen);
 	if (foo != 0)
