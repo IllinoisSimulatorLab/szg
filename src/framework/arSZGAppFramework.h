@@ -103,25 +103,19 @@ class SZG_CALL arSZGAppFramework {
     // For deterministic shutdown, we need to register that
     // thread's existence, know when it is shutting down, etc.
 
-    // In the case of a user-defined, external event loop, the external
-    // program may need to know when the "stop" signal has been received.
-    // Returns whether or not the shutdown process has begun.
-    bool stopping() const { return _exitProgram; }
-
-    // in the case of a user-defined external event loop, we may want the 
-    // exit(0) call to be made by the user code. The following function lets 
-    // the user code know that stop() is done. 
-    // Returns whether or not stop() has completed.
+    // If an external event loop wants to call exit(),
+    // it should wait until stopped() returns true, i.e. stop() has completed.
     bool stopped() const { return _stopped; }
 
-    // sometimes we want to use an external thread or other event loop that
-    // must be shutdown cleanly
+    // True iff shutdown has begun.
+    bool stopping() const { return _exitProgram; }
+
     void useExternalThread() { _useExternalThread = true; }
 
-    // tells stop() that our external thread has started
+    // tell stop() that external thread has started
     void externalThreadStarted() { _externalThreadRunning = true; }
 
-    // tells stop() that our external thread has shut-down cleanly
+    // tell stop() that external thread stopped cleanly
     void externalThreadStopped() { _externalThreadRunning = false; }
 
     // Accessors for various internal objects/services. Necessary for flexibility.
@@ -187,17 +181,16 @@ class SZG_CALL arSZGAppFramework {
     // Have the parameters been loaded?
     bool _parametersLoaded;
 
-    // Variables that have to do with deterministic shutdown.
+    // Variables for deterministic shutdown.
     // The frameworks support a single, external user thread, which can be 
     // deterministically shut down along with everything else.
 
     // Is there an application-defined thread?
     bool _useExternalThread;
-    // Is that thread running? (the methods externalThreadRunning()
-    // and externalThreadStopped() allow the application to communicate
-    // this to the framework.
+    // Is that thread running? (methods externalThreadRunning()
+    // and externalThreadStopped() let the app tell this to the framework.
     bool _externalThreadRunning;
-    // should stop(...) block until the GLUT display thread is done?
+    // should stop() block until the GLUT display thread is done?
     bool _blockUntilDisplayExit;
     // Set to true when we are intending to exit. i.e. when stop(...) has
     // started.
@@ -220,7 +213,6 @@ class SZG_CALL arSZGAppFramework {
                                unsigned& index,
                                float& threshold );
     bool _paramNotOwned( const std::string& theString );
-    
 };
 
 #endif        //  #ifndefAR_SZG_APP_FRAMEWORK_H
