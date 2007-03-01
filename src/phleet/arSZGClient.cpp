@@ -116,12 +116,11 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
 
   // Whether or not init() succeeds, finish the handshake with dex.
 
-  bool success = true;
   const string pipeIDString = ar_getenv("SZGPIPEID");
   if (pipeIDString != "NULL") {
     _dexHandshaking = true;
 
-    // We have been successfully spawned on the Unix side.
+    // We have been spawned on the Unix side.
     const int pipeID = atoi(pipeIDString.c_str());
 
     // Send the success code.  On Win32 set the pipe ID to -1,
@@ -180,7 +179,6 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
     _initResponseStream << _exeName << " error: invalid Phleet args.\n";
     // Force the component to quit (even if we ARE connected).
     _connected = false;
-    success = false;
   }
   // These can override some of the variables set above.
   // The "context" always trumps command line args.
@@ -188,7 +186,6 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
     _initResponseStream << _exeName << " error: invalid Phleet context.\n";
     // Force the component to quit (even if we ARE connected).
     _connected = false;
-    success = false;
   }
 
   // SZGUSER trumps everything else.  szgd uses it.
@@ -204,8 +201,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
     ar_log().setStream(cout);
     ar_log_critical() << _exeName << " running standalone.\n";
     _connected = false;
-    success = true;
-    
+
     // Don't warn if no param file is found.
     bool didParams = true;
     if (_parameterFileName == "USE_DEFAULT") {
@@ -223,7 +219,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
         parseParameterFile(fallbackFilename, false);
       }
     }
-    return success;
+    return true;
   }
 
   // szgserver, username, etc ("context") are all set.  Connect to that szgserver.
