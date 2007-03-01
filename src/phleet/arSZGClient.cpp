@@ -102,12 +102,8 @@ void arSZGClient::parseSpecialPhleetArgs(bool state) {
 // Connect client to the phleet. Call early in main().
 // @param argc main()'s argc
 // @param argv main()'s argv
-// @param forcedName Optional. Ideally, we'd like to be able to
-// read the exe name from the command line parameters, but this fails
-// on Win98, which gives at best a name in all caps. So
-// the few (support) components that might run on Win98 (szgd,
-// DeviceServer, and SoundRender) all force their names.
-// Warn if the forced name doesn't match the name scraped from the command line.
+// @param forcedName Optional. Ideally, we'd read the exe name from argv[0],
+// but Win98 gives at best a name in all caps.  (Warn if those two mismatch.)
 
 bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   // Set the component's name
@@ -183,24 +179,19 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   // These can override some of the members just assigned.
   if (!_parsePhleetArgs(argc, argv)) {
     _initResponseStream << _exeName << " error: invalid Phleet args.\n";
-
-    // If connected, we want the component to quit,
-    // for which _connected must be false.
+    // Force the component to quit (even if we ARE connected).
     _connected = false;
     success = false;
   }
-
   // These can override some of the variables set above.
   // The "context" always trumps command line args.
   if (!_parseContext()) {
     _initResponseStream << _exeName << " error: invalid Phleet context.\n";
-    // NOTE: it isn't strictly true that we are not connected.
-    // However, if this happens, we want the component to quit,
-    // which it will only do if _connected is false.
+    // Force the component to quit (even if we ARE connected).
     _connected = false;
     success = false;
   }
-  
+
   // SZGUSER trumps everything else.  szgd uses it.
   const string userNameOverride = ar_getenv("SZGUSER");
   if (userNameOverride != "NULL") {
@@ -242,8 +233,9 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
 
   if (!_dialUpFallThrough()) {
     _connected = false;
-    success = false;
+    return false;
   }
+
   else{
     // Connected to the szgserver. 
     _connected = true;
@@ -276,9 +268,8 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
 
     if (_dexHandshaking) {
       // Shake hands with dex.
-      // Begin responding to the execute message,
-      // to tell dex that the executable is launching.
-      string tradingKey = getComputerName() + "/" +
+      // Tell dex that the executable is starting to launch.
+      const string tradingKey = getComputerName() + "/" +
         ar_getenv("SZGTRADINGNUM") + "/" + _exeName;
 
       // Control the right to respond to the launching message.
@@ -289,7 +280,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
       // But don't try to send responses back then.
       if (!_launchingMessageID) {
 	ar_log_warning() << _exeName <<
-	  " failed to own message, despite appearing to have been launched by szgd.\n";
+	  " failed to own message, despite apparent launch by szgd.\n";
 	_ignoreMessageResponses = true;
       }
       else{
@@ -329,7 +320,10 @@ bool arSZGClient::_sendResponse(stringstream& s,
   const bool printInfo = s.str().length() > initialStreamLength;
 
   // Append a standard success or failure message.
-  s << _exeName << " " << sz << (ok ? "ed.\n" : " failed.\n");
+  if (ok)
+    ar_log_remark()  << _exeName << " " << sz << "ed.\n";
+  else
+    ar_log_warning() << _exeName << " " << sz << " failed.\n";
 
   // Do not send the response if:
   //  - The message trade failed in init(), likely because the launcher timed out;
@@ -2474,18 +2468,18 @@ string arSZGClient::getTrigger(const string& virtualComputer) {
   return getAttribute(virtualComputer, "SZG_TRIGGER", "map", "");
 }
 
-// Phleet components should use service names that are compartmentalized
-// so as to allow users to control sharing of services. There are 3 cases:
-// 1. Application component was NOT launched as part of a virtual computer:
-//    In this case, the phleet user name provides the compartmenting:
-//    (for example, SZG_BARRIER/ben)
-// 2. Application component launched as part of virtual computer FOO, which
-//    has no "location" defined. In this case, the virtual computer
-//    name compartments the service. (FOO/SZG_BARRIER)
-// 3. Application component launched as part of a virtual computer FOO,
-//    has a "location" component BAR. In this case, the "location" name
-//    compartments the service (BAR/SZG_BARRIER).
-// This described the complex service name.
+// Components' service names are compartmentalized,
+// to let users share services. There are 3 cases:
+//
+// 1. Component runs standalone:
+//    The phleet user name provides the compartmenting, e.g. SZG_BARRIER/ben.
+// 2. Component runs as part of virtual computer FOO, which
+//    has no "location" defined.  The virtual computer
+//    name compartments the service, e.g. FOO/SZG_BARRIER.
+// 3. Component runs as part of a virtual computer FOO,
+//    which has a "location" component BAR.  The "location" name
+//    compartments the service, e.g. BAR/SZG_BARRIER.
+
 string arSZGClient::createComplexServiceName(const string& serviceName) {
   // At the blurry boundary between string and arSlashString.
   if (_virtualComputer == "NULL") {
@@ -2512,7 +2506,7 @@ inline const string dropsemi(string& s) {
 // Used to make the launch info header.
 string arSZGClient::createContext() {
   string s(
-    namevalue("standalone", _virtualComputer=="NULL" ? "true" : "NULL") +
+    namevalue("STANDALONE", _virtualComputer=="NULL" ? "true" : "NULL") +
     namevalue("virtual", _virtualComputer) +
     namevalue("mode/default", _mode) +
     namevalue("mode/graphics", _graphicsMode) +
@@ -2535,7 +2529,7 @@ string arSZGClient::createContext(const string& virtualComputer,
                                   const string& networksChannel,
                                   const arSlashString& networks) {
   string s(
-    namevalue("standalone", virtualComputer=="NULL" ? "true" : "NULL") +
+    namevalue("STANDALONE", virtualComputer=="NULL" ? "true" : "NULL") +
     namevalue("virtual", virtualComputer) +
     namevalue("mode/" + modeChannel, mode) +
     namevalue("networks/" + networksChannel, networks));
