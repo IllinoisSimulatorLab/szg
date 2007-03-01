@@ -10,11 +10,11 @@
 #include "arNetInputSource.h"
 #include "arIOFilter.h"
 
-int CONTINUOUS_DUMP = 0;
-int ON_BUTTON_DUMP = 1;
-int EVENT_STREAM = 2;
-int BUTTON_STREAM = 3;
-
+enum {
+  CONTINUOUS_DUMP = 0,
+  ON_BUTTON_DUMP,
+  EVENT_STREAM,
+  BUTTON_STREAM };
 
 void dumpState( arInputState& inp ) {
   const unsigned cb = inp.getNumberButtons();
@@ -23,26 +23,23 @@ void dumpState( arInputState& inp ) {
   if (cb == 0 && ca == 0 && cm == 0)
     return;
 
-  cout << "buttons: " << cb << ", "
-       << "axes: " << ca << ", "
-       << "matrices: " << cm << "\n";
   unsigned int i;
   if (cb > 0) {
-    cout << "buttons: ";
+    cout << "buttons (" << cb << ")  : ";
     for (i=0; i<cb; i++)
       cout << inp.getButton(i) << " ";
   }
   if (ca > 0) {
-    cout << "\naxes: ";
+    cout << "\naxes (" << ca << ")     : ";
     for (i=0; i<ca; i++)
       cout << inp.getAxis(i) << " ";
   }
   if (cm > 0) {
-    cout << "\nmatrices:\n";
+    cout << "\nmatrices (" << cm << ") :\n\n";
     for (i=0; i<cm; i++)
-      cout << inp.getMatrix(i) << endl;
+      cout << inp.getMatrix(i) << "\n";
   }
-  cout << "****\n";
+  cout << "____\n";
 }
 
 class onButtonEventFilter : public arIOFilter {
@@ -89,7 +86,7 @@ class EventStreamEventFilter : public arIOFilter {
     int _printEventType;
 };
 bool EventStreamEventFilter::_processEvent( arInputEvent& event ) {
-  if ((_printEventType==AR_EVENT_GARBAGE) || (_printEventType==event.getType())) {
+  if (_printEventType==AR_EVENT_GARBAGE || _printEventType==event.getType()) {
     cout << event << endl;
   }
   return true;
@@ -162,7 +159,7 @@ LAbort:
     return 1;
   }
 
-  // todo: warn only after 2 seconds (4 ticks in main loop) have elapsed.
+  // todo: warn only after 2 seconds have elapsed (separate thread).
   if (!netInputSource.connected()) {
     ar_log_warning() << "DeviceClient not yet connected on slot " << slot << ".\n";
   }
@@ -174,7 +171,7 @@ LAbort:
   arThread dummy(ar_messageTask, &szgClient);
 
   while (szgClient.connected()){
-    if ((mode == CONTINUOUS_DUMP) && netInputSource.connected())
+    if (mode == CONTINUOUS_DUMP && netInputSource.connected())
       dumpState(inputNode._inputState);
     ar_usleep(500000);
   }
