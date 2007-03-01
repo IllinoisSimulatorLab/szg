@@ -153,6 +153,8 @@ LAbort:
   if (!szgClient.sendInitResponse(true)) {
     cerr << "DeviceClient error: maybe szgserver died.\n";
   }
+  ar_usleep(50000); // avoid interleaving diagnostics from init and start
+
   if (!inputNode.start()) {
     if (!szgClient.sendStartResponse(false)) {
       cerr << "DeviceClient error: maybe szgserver died.\n";
