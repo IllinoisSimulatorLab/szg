@@ -1,7 +1,7 @@
 SZG_INCLUDE_STYLE = INTERNAL
 SZG_COPY_LIB = TRUE
 
-# VPATH needs to be set BEFORE Makefile.vars (to get SRCDIR defined correctly)
+# Set VPATH BEFORE Makefile.vars, to set SRCDIR.
 VPATH = ../../../src/barrier
 
 include $(SZGHOME)/build/make/Makefile.vars
@@ -38,14 +38,11 @@ ifeq ($(strip $(MACHINE)),WIN32)
   COMPILE_FLAGS += -D "SZG_COMPILING_BARRIER"
 endif
 
-ALL =   $(SZG_CURRENT_DLL)\
-        BarrierServer$(EXE) \
-	BarrierClient$(EXE)
+ALL = \
+  $(SZG_CURRENT_DLL) \
+  BarrierServer$(EXE) \
+  BarrierClient$(EXE)
 
-# NOTE: We now include the "magic" Everything target in Makefile.rules
-
-# This should go BEFORE our FIRST target (because Makefile.rules has rules
-# in it, along with the "magic" Everything rule!
 include $(SZGHOME)/build/make/Makefile.rules
 
 # The shared lib corresponding to this szg subdirectory.
