@@ -115,7 +115,6 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   // Before dialUpFallThrough.
 
   // Whether or not init() succeeds, finish the handshake with dex.
-  // So only one return statement, at the end.
 
   bool success = true;
   const string pipeIDString = ar_getenv("SZGPIPEID");
@@ -227,78 +226,71 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
     return success;
   }
 
-  // Not standalone.  Connect to the specified szgserver.
-  // After phleet args parsing etc, since cmd-line args or the
-  // "context" may specify the szgserver, user name, etc.
-
+  // szgserver, username, etc ("context") are all set.  Connect to that szgserver.
   if (!_dialUpFallThrough()) {
     _connected = false;
     return false;
   }
 
+  // Connected to the szgserver. 
+  _connected = true;
+  const string configfile_serverName(_serverName);
+  
+  // Connected.  Tell szgserver our name.
+  if (forcedName == "NULL") {
+    _setLabel(_exeName); 
+  }
   else{
-    // Connected to the szgserver. 
-    _connected = true;
-    success = true;
-    const string configfile_serverName(_serverName);
-    
-    // Connected.  Tell szgserver our name.
-    if (forcedName == "NULL") {
-      _setLabel(_exeName); 
+    if (forcedName != _exeName) {
+      ar_log_warning() << _exeName << ": component name overriding exe name.\n";
+    }
+    // This also updates _exeName.
+    _setLabel(forcedName); 
+  }
+
+  if (configfile_serverName != "NULL" && configfile_serverName != _serverName) {
+    ar_log_critical() << "expected szgserver named '" << configfile_serverName <<
+      "', not '" << _serverName << "', at " << _IPaddress << ":" << _port << ".\n";
+  }
+
+  _initResponseStream << _generateLaunchInfoHeader();
+  _initialInitLength = _initResponseStream.str().length();
+
+  _startResponseStream << _generateLaunchInfoHeader();
+  _initialStartLength = _startResponseStream.str().length();
+
+  if (_dexHandshaking) {
+    // Shake hands with dex.
+    // Tell dex that the exe is starting to launch.
+    const string tradingKey = getComputerName() + "/" +
+      ar_getenv("SZGTRADINGNUM") + "/" + _exeName;
+
+    // Control the right to respond to the launching message.
+    _launchingMessageID = requestMessageOwnership(tradingKey);
+
+    // init should not fail here if it can't trade message ownership,
+    // e.g. if szgd timed out before the exe finished launching.
+    // But don't try to send responses back then.
+    if (!_launchingMessageID) {
+      ar_log_warning() << _exeName <<
+	" failed to own message, despite apparent launch by szgd.\n";
+      _ignoreMessageResponses = true;
     }
     else{
-      if (forcedName != _exeName) {
-	ar_log_warning() << _exeName << ": component name overriding exe name.\n";
-      }
-      // This also updates _exeName.
-      _setLabel(forcedName); 
-    }
-
-    if (configfile_serverName != "NULL" && configfile_serverName != _serverName) {
-      ar_log_critical() << "expected szgserver named '" << configfile_serverName <<
-	"', not '" << _serverName << "', at " << _IPaddress << ":" << _port << ".\n";
-    }
-
-    // Pack the init stream and the start stream with headers,
-    // including config info like the "context".
-    _initResponseStream << _generateLaunchInfoHeader();
-    _initialInitLength = _initResponseStream.str().length();
-    _startResponseStream << _generateLaunchInfoHeader();
-    _initialStartLength = _startResponseStream.str().length();
-
-    if (_dexHandshaking) {
-      // Shake hands with dex.
-      // Tell dex that the executable is starting to launch.
-      const string tradingKey = getComputerName() + "/" +
-        ar_getenv("SZGTRADINGNUM") + "/" + _exeName;
-
-      // Control the right to respond to the launching message.
-      _launchingMessageID = requestMessageOwnership(tradingKey);
-
-      // init should not fail here if it can't trade message ownership,
-      // e.g. if szgd timed out before the exe finished launching.
-      // But don't try to send responses back then.
-      if (!_launchingMessageID) {
-	ar_log_warning() << _exeName <<
-	  " failed to own message, despite apparent launch by szgd.\n";
-	_ignoreMessageResponses = true;
-      }
-      else{
-	// Send the message response.
-	// If simple handshaking, send a complete response.
-	// Otherwise (for apps that want to send a start response),
-	// send a partial response (i.e. there will be more responses).
-	if (!messageResponse(_launchingMessageID,
-			     _generateLaunchInfoHeader() +
-			     _exeName + string(" launched.\n"),
-			     !_simpleHandshaking)) {
-	  ar_log_error() << _exeName << ": response failed during launch.\n";
-	}
+      // Send the message response.
+      // If simple handshaking, send a complete response.
+      // Otherwise (for apps that want to send a start response),
+      // send a partial response (i.e. there will be more responses).
+      if (!messageResponse(_launchingMessageID,
+			   _generateLaunchInfoHeader() +
+			   _exeName + string(" launched.\n"),
+			   !_simpleHandshaking)) {
+	ar_log_error() << _exeName << ": response failed during launch.\n";
       }
     }
   }
 
-  return success;
+  return true;
 }
 
 int arSZGClient::failStandalone(bool fInited) const {
