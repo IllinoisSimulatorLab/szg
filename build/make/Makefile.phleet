@@ -1,12 +1,9 @@
 SZG_INCLUDE_STYLE = INTERNAL
 SZG_COPY_LIB = TRUE
 
-# VPATH needs to be set BEFORE Makefile.vars (to get SRCDIR defined correctly)
 VPATH = ../../../src/phleet
-
 include $(SZGHOME)/build/make/Makefile.vars
 
-# Indent OBJS and MYLIBS with spaces, not tabs, lest gmake get upset.
 OBJS = \
   arSZGClient$(OBJ_SUFFIX) \
   arPhleetConfigLanguage$(OBJ_SUFFIX) \
@@ -15,10 +12,8 @@ OBJS = \
   arPhleetOSLanguage$(OBJ_SUFFIX) \
   arPhleetTemplate$(OBJ_SUFFIX)
 
-# Local variable definitions for the build.
-# These internal library makefiles ONLY include the external files necessary
-# to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
-# Makefile.defines neglects to define these)
+# Explicit definitions, replacing the otherwise generic ones in Makefile.defines
+
 SZG_INCLUDE = -I$(SZGHOME)/src/language -I$(SZGHOME)/src/math $(SZG_DLL_INCLUDE)
 SZG_LINK_LIBS = $(GENERAL_LIBS)
 SZG_OPTIONAL_LIBS = 
@@ -34,16 +29,13 @@ endif
 
 ifeq ($(strip $(MACHINE)),LINUX)
   SZG_OPTIONAL_LIBS += -lncurses
+ifneq ($(strip $(SZG_COMPILER)),MINGW)
+  LINK_FLAGS += /stack:4000000
+endif
 endif
 
-ifeq ($(strip $(MACHINE)),WIN32)
-	ifneq ($(strip $(SZG_COMPILER)),MINGW)
-		LINK_FLAGS += /stack:4000000
-	endif
-endif
-
-# This is "ALL" that needs to be made.
-ALL = $(SZG_CURRENT_DLL) \
+ALL = \
+  $(SZG_CURRENT_DLL) \
   szgd$(EXE) \
   szgserver$(EXE) \
   dbatch$(EXE) \
@@ -70,11 +62,8 @@ ALL = $(SZG_CURRENT_DLL) \
   testlock$(EXE) \
   phleettest$(EXE)
 
-# Include the "magic" Everything rule,
-# before our own targets so that Makefile.rules's own rules.
 include $(SZGHOME)/build/make/Makefile.rules
 
-# NOTE: The shared lib corresponding to this szg subdirectory.
 $(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
 	$(LINK_SZG_LIB)
 	$(COPY)

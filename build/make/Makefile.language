@@ -1,13 +1,9 @@
 SZG_INCLUDE_STYLE = INTERNAL
 SZG_COPY_LIB = TRUE
 
-# VPATH needs to be set BEFORE Makefile.vars (to get SRCDIR defined correctly)
 VPATH = ../../../src/language
-
 include $(SZGHOME)/build/make/Makefile.vars
 
-# DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
-# with this sometimes.
 OBJS = \
   arRS232Port$(OBJ_SUFFIX) \
   arDatabaseLanguage$(OBJ_SUFFIX) \
@@ -35,10 +31,8 @@ OBJS = \
   arXMLParser$(OBJ_SUFFIX) \
   arLogStream$(OBJ_SUFFIX)
 
-# Local variable definitions for the build.
-# These internal library makefiles ONLY include the external files necessary
-# to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so
-# Makefile.defines neglects to define these)
+# Explicit definitions, replacing the otherwise generic ones in Makefile.defines
+
 SZG_INCLUDE = $(SZG_DLL_INCLUDE)
 SZG_LINK_LIBS = $(GENERAL_LIBS) $(SZG_DLL_LIB)
 SZG_OPTIONAL_LIBS =
@@ -48,32 +42,25 @@ ifeq ($(strip $(MACHINE)),WIN32)
   COMPILE_FLAGS += -D "SZG_COMPILING_LANGUAGE"
 endif
 
-# This is "ALL" that needs to be made.
-ALL =   $(SZG_CURRENT_DLL) \
-        RS232EchoTest$(EXE) \
-	RS232SendTest$(EXE) \
-	TestLanguageClient$(EXE) \
-	TestLanguage$(EXE)  \
-	TestLanguageServer$(EXE)
+ALL = \
+  $(SZG_CURRENT_DLL) \
+  RS232EchoTest$(EXE) \
+  RS232SendTest$(EXE) \
+  TestLanguageClient$(EXE) \
+  TestLanguage$(EXE)  \
+  TestLanguageServer$(EXE)
 
-# NOTE: We now include the "magic" Everything target in Makefile.rules
-
-# This should go BEFORE our FIRST target (because Makefile.rules has rules
-# in it, along with the "magic" Everything rule!
 include $(SZGHOME)/build/make/Makefile.rules
 
-# NOTE: We MUST compile the precompiled header FIRST on Windows.
+# On Windows, compile the precompiled header FIRST.
 $(SZG_CURRENT_DLL): arPrecompiled$(OBJ_SUFFIX) $(OBJS)
 	$(LINK_SZG_LIB)
 	$(COPY)
 
-# Originally, every object in this directory was optimized to
-# the maximum level. However, now, in the interests of stability, lets
-# try only heavily optimizing the raw-information-handling objects.
-# note that the optimization scheme was as follows:
-#COMPILE_FLAGS += $(OPTIMIZE_FLAG)
-
-# ... and we would not have any explict object compilation rules as below
+# For stability, heavily optimize only the raw-information-handling objects.
+# Old optimize-everything way:
+#   COMPILE_FLAGS += $(OPTIMIZE_FLAG)
+#   and omit any explict targets below.
 
 arDataTemplate$(OBJ_SUFFIX): arDataTemplate.cpp
 	$(COMPILER) $(COMPILE_FLAGS) $(OPTIMIZE_FLAG) $< $(SZG_INCLUDE)
@@ -114,4 +101,3 @@ TestLanguage$(EXE): $(SZG_CURRENT_DLL) Test$(OBJ_SUFFIX)
 TestLanguageServer$(EXE): $(SZG_CURRENT_DLL) TestServer$(OBJ_SUFFIX)
 	$(SZG_EXE_FIRST) TestServer$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
-

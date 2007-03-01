@@ -12,29 +12,29 @@ EXE =
 # compilation
 COMPILER = c++
 ifneq ($(strip $(uname -a | grep i386)), "")
-	DARWIN_PROC_FLAG=-DAR_USE_INTEL_MAC
+  DARWIN_PROC_FLAG=-DAR_USE_INTEL_MAC
 else
-	DARWIN_PROC_FLAG=
+  DARWIN_PROC_FLAG=
 endif
 COMPILE_FLAGS_NDEBUG = $(DARWIN_PROC_FLAG) -DAR_USE_DARWIN $(SZG_OPT_FLAGS) \
-	-fno-common -fPIC -O2 -c
+  -fno-common -fPIC -O2 -c
 COMPILE_FLAGS_DEBUG = $(DARWIN_PROC_FLAG) -DAR_USE_DARWIN $(SZG_OPT_FLAGS) \
-	-fno-common -fPIC -c -g
+  -fno-common -fPIC -c -g
 ifneq ($(strip $(SZGDEBUG)),TRUE)
-	COMPILE_FLAGS = $(COMPILE_FLAGS_NDEBUG)
+  COMPILE_FLAGS = $(COMPILE_FLAGS_NDEBUG)
 else
-	COMPILE_FLAGS = $(COMPILE_FLAGS_DEBUG)
+  COMPILE_FLAGS = $(COMPILE_FLAGS_DEBUG)
 endif
 
 COMPILE_FLAGS_SHARED=$(COMPILE_FLAGS)
 
 PRECOMPILED_HEADER_LINE := \
-	$(CP) ../../../src/language/arPrecompiled.cpp arPrecompiled$(OBJ_SUFFIX)
+  $(CP) ../../../src/language/arPrecompiled.cpp arPrecompiled$(OBJ_SUFFIX)
 
 ifneq ($(strip $(SZGDEBUG)),TRUE)
-	OPTIMIZE_FLAG = -O3
+  OPTIMIZE_FLAG = -O3
 else
-	OPTIMIZE_FLAG = 
+  OPTIMIZE_FLAG = 
 endif
 
 # linking
@@ -67,25 +67,24 @@ SZG_INCLUDE_GLUT = -I/usr/X11R6/include
 # Since OS X allows relative runtime paths, don't bother setting
 # DYLD_LIBRARY_PATH (the equivalent of LD_LIBRARY_PATH for Darwin)
 ifeq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
-	LIB_SEARCH_FLAGS=-L$(SZGHOME)/bin
+  LIB_SEARCH_FLAGS=-L$(SZGHOME)/bin
 else
-	LIB_SEARCH_FLAGS=-L$(SZG_BINDIR)
+  LIB_SEARCH_FLAGS=-L$(SZG_BINDIR)
 endif
 
 PRE_LINK_LINE_LIB= 
 POST_LINK_LINE_LIB=$(LIB_SEARCH_FLAGS) $(SZG_LIBRARY_LIBS) \
-	$(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS) -install_name @executable_path/$(SZG_CURRENT_LIB)
+  $(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS) -install_name @executable_path/$(SZG_CURRENT_LIB)
 
 PRE_LINK_LINE_EXE= 
 POST_LINK_LINE_EXE= $(LIB_SEARCH_FLAGS) -l$(SZG_CURRENT_LIB_MOD_NAME) \
-	$(SZG_LIBRARY_LIBS) $(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
+  $(SZG_LIBRARY_LIBS) $(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
 
 PRE_LINK_LINE_USR= 
 POST_LINK_LINE_USR= $(LIB_SEARCH_FLAGS) $(SZG_LIBRARY_LIBS) \
-	$(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
+  $(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
 
-# It turns out that libraries on the Unix and Win32 sides need to be
-# referenced in fundamentally different ways. 
+# Libs are referenced differently in windows and unix.
 LANGUAGE_LIB_STRING = -larLanguage$(SZG_STATIC_MOD)
 PHLEET_LIB_STRING = -larPhleet$(SZG_STATIC_MOD)
 BARRIER_LIB_STRING = -larBarrier$(SZG_STATIC_MOD)
@@ -97,8 +96,6 @@ OBJECT_LIB_STRING = -larObject$(SZG_STATIC_MOD)
 INTERACT_LIB_STRING = -larInteraction$(SZG_STATIC_MOD)
 FRAMEWORK_LIB_STRING = -larFramework$(SZG_STATIC_MOD)
 
-
-# Creating static libraries. NOTE: on OS X it is necessary to run
-# ranlib on a newly linked .a, but this is redundant on other Unix
-# or Win32 platforms.
+# Create static libraries.
+# OS X needs to run ranlib on a newly linked .a, unlike other Unixes and Windows.
 RANLIB = ranlib

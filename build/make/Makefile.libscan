@@ -13,8 +13,7 @@
 # The szg libraries are created incrementally.  Options for compiler and linker
 # are applied only as needed (e.g., FMOD only for szg/sound and szg/framework).
 
-# blessing.txt is a placeholder so that SZG_SHARED_COPY isn't empty,
-# which would break the makefile.
+# blessing.txt is a placeholder so that SZG_SHARED_COPY isn't empty.
 SZG_SHARED_COPY = $(SZGHOME)/build/make/blessing.txt
 SZG_SHARED_COPY_ACTION :=
 

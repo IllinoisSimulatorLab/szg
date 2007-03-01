@@ -1,13 +1,9 @@
 SZG_INCLUDE_STYLE = INTERNAL
 SZG_COPY_LIB = TRUE
 
-# Set VPATH before Makefile.vars, to define SRCDIR correctly.
 VPATH = ../../../src/graphics
-
 include $(SZGHOME)/build/make/Makefile.vars
 
-# DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
-# with this sometimes.
 OBJS = \
   arGraphicsPluginNode$(OBJ_SUFFIX) \
   arGraphicsClient$(OBJ_SUFFIX) \
@@ -66,11 +62,8 @@ OBJS = \
   arVisibilityNode$(OBJ_SUFFIX) \
   arWildcatUtilities$(OBJ_SUFFIX) 
 
+# Explicit definitions, replacing the otherwise generic ones in Makefile.defines
 
-# Local variable definitions for the build.
-# These internal library makefiles ONLY include the external files necessary
-# to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so
-# Makefile.defines neglects to define these)
 SZG_INCLUDE = \
   -I$(SZGHOME)/src/language \
   -I$(SZGHOME)/src/phleet \
@@ -97,7 +90,8 @@ ifeq ($(strip $(MACHINE)),WIN32)
   COMPILE_FLAGS += -D "SZG_COMPILING_GRAPHICS"
 endif
 
-ALL =   $(SZG_CURRENT_DLL) \
+ALL = \
+  $(SZG_CURRENT_DLL) \
   szgrender$(EXE) \
   szg-rp$(EXE) \
   TestGraphics$(EXE)
@@ -113,14 +107,8 @@ endif
 endif
 endif
 
-
-# NOTE: We now include the "magic" Everything target in Makefile.rules
-
-# This should go BEFORE our FIRST target (because Makefile.rules has rules
-# in it, along with the "magic" Everything rule!
 include $(SZGHOME)/build/make/Makefile.rules
 
-# NOTE: The shared lib corresponding to this szg subdirectory.
 $(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
 	$(LINK_SZG_LIB)
 	$(COPY)
@@ -137,13 +125,11 @@ TestGraphics$(EXE): TestGraphics$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_D
 	$(SZG_EXE_FIRST) TestGraphics$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
-
 # Plugins (shared libraries)
 
 arTeapotGraphicsPlugin$(PLUGIN_SUFFIX): arTeapotGraphicsPlugin$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_PLUGIN_FIRST) arTeapotGraphicsPlugin$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
-
 
 ifneq ($(strip $(SZG_INCLUDE_PYTHON)),)
 ifneq ($(strip $(SZG_LINK_PYTHON)),)
@@ -156,5 +142,3 @@ arPythonGraphicsPlugin$(PLUGIN_SUFFIX): arPythonGraphicsPlugin$(OBJ_SUFFIX) $(SZ
 	$(COPY)
 endif
 endif
-
-

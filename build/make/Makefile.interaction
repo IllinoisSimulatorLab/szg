@@ -1,13 +1,9 @@
 SZG_INCLUDE_STYLE = INTERNAL
 SZG_COPY_LIB = TRUE
 
-# VPATH needs to be set BEFORE Makefile.vars (to get SRCDIR defined correctly)
 VPATH = ../../../src/interaction
-
 include $(SZGHOME)/build/make/Makefile.vars
 
-# DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
-# with this sometimes.
 OBJS = \
   arInteractionSelector$(OBJ_SUFFIX) \
   arEffector$(OBJ_SUFFIX) \
@@ -21,10 +17,8 @@ OBJS = \
   arInterfaceObject$(OBJ_SUFFIX) \
   arInteractionUtilities$(OBJ_SUFFIX) \
 
-# Local variable definitions for the build.
-# These internal library makefiles ONLY include the external files necessary
-# to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
-# Makefile.defines neglects to define these)
+# Explicit definitions, replacing the otherwise generic ones in Makefile.defines
+
 SZG_INCLUDE = \
   -I$(SZGHOME)/src/language \
   -I$(SZGHOME)/src/phleet \
@@ -55,15 +49,10 @@ ifeq ($(strip $(MACHINE)),WIN32)
   COMPILE_FLAGS += -D "SZG_COMPILING_INTERACTION"
 endif
 
-ALL =   $(SZG_CURRENT_DLL)
+ALL = $(SZG_CURRENT_DLL)
 
-# NOTE: We now include the "magic" Everything target in Makefile.rules
-
-# This should go BEFORE our FIRST target (because Makefile.rules has rules
-# in it, along with the "magic" Everything rule!
 include $(SZGHOME)/build/make/Makefile.rules
 
-# NOTE: The shared lib corresponding to this szg subdirectory.
 $(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
 	$(LINK_SZG_LIB)
 	$(COPY)

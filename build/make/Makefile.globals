@@ -1,8 +1,9 @@
-# Global definitions used by the other Makefile fragments.
+# Global definitions for the other Makefile fragments.
 
-# Where to place executables on compilation or "bin-install".
-# If there's no environment variable SZGBIN, default to
+# Where to put executables on compilation or "bin-install".
+# Environment variable SZGBIN; or default to
 # a standard directory, depending upon SZG_DEVELOPER_STYLE.
+
 ifeq ($(strip $(SZGBIN)),)
   ifneq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
     SZG_BINDIR=$(SZGHOME)/bin/$(MACHINE_DIR)
@@ -13,5 +14,6 @@ else
   SZG_BINDIR=$(SZGBIN)
 endif
 
-# Used for creating the SDK.
+# For creating the SDK.
+
 INSTALLDIR = $(SZGHOME)/szg-install

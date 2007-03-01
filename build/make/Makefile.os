@@ -1,6 +1,7 @@
 # Guess the OS.
 
 # Try "uname".
+
 PLATFORM=UNKNOWN_OS
 ifeq ($(shell uname), Linux)
   PLATFORM=linux
@@ -42,7 +43,7 @@ ifeq ($(shell uname), IRIX64)
   PLATFORM=mips4
 endif
 
-# fallback: OSTYPE environment variable
+# Fallback: OSTYPE environment variable
 
 ifeq "$(OSTYPE)" "linux"
   PLATFORM=linux
@@ -60,7 +61,7 @@ ifeq "$(OSTYPE)" "cygwin"
   PLATFORM=win32
 endif
 
-# fallback: OS environment variable
+# Fallback: OS environment variable
 
 ifeq "$(OS)" "Windows_NT"
   PLATFORM=win32

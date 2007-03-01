@@ -1,23 +1,17 @@
 SZG_INCLUDE_STYLE = INTERNAL
 SZG_COPY_LIB = TRUE
 
-# Set VPATH BEFORE Makefile.vars, to set SRCDIR.
 VPATH = ../../../src/barrier
-
 include $(SZGHOME)/build/make/Makefile.vars
 
-# DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
-# with this sometimes.
 OBJS = \
   arBarrierServer$(OBJ_SUFFIX) \
   arBarrierClient$(OBJ_SUFFIX) \
   arSyncDataClient$(OBJ_SUFFIX) \
   arSyncDataServer$(OBJ_SUFFIX)
 
-# Local variable definitions for the build.
-# These internal library makefiles ONLY include the external files necessary
-# to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
-# Makefile.defines neglects to define these)
+# Explicit definitions, replacing the otherwise generic ones in Makefile.defines
+
 SZG_INCLUDE = \
   -I$(SZGHOME)/src/language \
   -I$(SZGHOME)/src/math \
@@ -45,7 +39,6 @@ ALL = \
 
 include $(SZGHOME)/build/make/Makefile.rules
 
-# The shared lib corresponding to this szg subdirectory.
 $(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
 	$(LINK_SZG_LIB)
 	$(COPY)

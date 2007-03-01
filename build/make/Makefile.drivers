@@ -1,12 +1,9 @@
 SZG_INCLUDE_STYLE = INTERNAL
 SZG_COPY_LIB = TRUE
 
-# Set VPATH before Makefile.vars, to correctly define SRCDIR.
 VPATH = ../../../src/drivers
-
 include $(SZGHOME)/build/make/Makefile.vars
 
-# Don't use tabs to indent for OBJS and MYLIBS.  It can upset gmake.
 OBJS = \
   arInputEventQueue$(OBJ_SUFFIX) \
   arInputState$(OBJ_SUFFIX) \
@@ -27,7 +24,7 @@ OBJS = \
   arPForthEventVocabulary$(OBJ_SUFFIX) \
   arPForthFilter$(OBJ_SUFFIX)
 
-# Local variable definitions.
+# Local variables.
 ifeq ($(strip $(SZG_LINKING)), STATIC) 
   COMPILE_FLAGS += -D "NOFACTORY"
 
@@ -54,10 +51,8 @@ endif
 
 endif
 
-# Local variable definitions for the build.
-# These internal library makefiles ONLY include the external files necessary
-# to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
-# Makefile.defines neglects to define these)
+# Explicit definitions, replacing the otherwise generic ones in Makefile.defines
+
 SZG_INCLUDE = \
   -I$(SZGHOME)/src/language \
   -I$(SZGHOME)/src/phleet \
@@ -76,15 +71,12 @@ SZG_LIBRARY_DEPS = \
 SZG_CURRENT_LIB_SHORT_NAME = arDrivers
 ifeq ($(strip $(MACHINE)),WIN32)
   COMPILE_FLAGS += -D "SZG_COMPILING_DRIVERS"
-endif
-
-ifeq ($(strip $(MACHINE)),WIN32)
 ifneq ($(strip $(SZG_COMPILER)),MINGW)
-LINK_FLAGS += /stack:4000000
+  LINK_FLAGS += /stack:4000000
 endif
 endif
 
-# libs in Win32 and unix need different orders.
+# Libs in Win32 and unix need different orders.
 
 ifeq ($(strip $(MACHINE)),WIN32)
   PRE_LINK_VRPN = $(SZG_LINK_VRPN)
@@ -146,10 +138,8 @@ ifneq ($(strip $(SZG_LINKING)), STATIC)
     arVRPNDriver$(PLUGIN_SUFFIX)
 endif
 
-# Rules for building targets, including the "magic" Everything rule.
 include $(SZGHOME)/build/make/Makefile.rules
 
-# The shared lib corresponding to this szg subdirectory.
 $(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
 	$(LINK_SZG_LIB)
 	$(COPY)

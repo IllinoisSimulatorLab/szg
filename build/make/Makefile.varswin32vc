@@ -19,12 +19,12 @@ COMMON_COMPILE_FLAGS = -nologo -c -w -W0 -G6 -GX -D "_MBCS" \
  -D "AR_USE_WIN_32" $(SZG_OPT_FLAGS)
 # If using STLport (to improve Visual Studio 6's STL), make it support multithreading.
 ifeq ($(strip $(SZG_STLPORT)),TRUE)
-	COMMON_COMPILE_FLAGS+= -D "_REENTRANT"
+  COMMON_COMPILE_FLAGS+= -D "_REENTRANT"
 endif
 ifneq ($(strip $(PROGRAMW6432)),)
-	# For WinXP 64bit with 32-bit C++ compiler v12.00.8168.
-	# Testing PROGRAMW6432's existence is a kluge.
-	COMMON_COMPILE_FLAGS+= -D "AR_USE_WIN_64"
+  # For WinXP 64bit with 32-bit C++ compiler v12.00.8168.
+  # Testing PROGRAMW6432's existence is a kluge.
+  COMMON_COMPILE_FLAGS+= -D "AR_USE_WIN_64"
 endif
 
 # The location of the precompiled header. Using this speeds up windows builds
@@ -32,11 +32,11 @@ endif
 # has been defined. NOTE: It is, indeed, possible to use precompiled
 # headers with your "EASY" projects.
 ifneq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
-	PRECOMPILED_HEADER_USAGE = -YuarPrecompiled.h \
-		-Fp$(SZGHOME)/build/win32/language/arPrecompiled.pch
+  PRECOMPILED_HEADER_USAGE = -YuarPrecompiled.h \
+    -Fp$(SZGHOME)/build/win32/language/arPrecompiled.pch
 else
-	PRECOMPILED_HEADER_USAGE = -YuarPrecompiled.h \
-		-Fp$(SZGHOME)/build/pch/arPrecompiled.pch
+  PRECOMPILED_HEADER_USAGE = -YuarPrecompiled.h \
+    -Fp$(SZGHOME)/build/pch/arPrecompiled.pch
 endif
 
 # The default.
@@ -51,15 +51,15 @@ PRECOMPILED_HEADER_DISABLE = -YX
 # If SZG_DEVELOPER_STYLE is EASY, then we will compile WITHOUT using
 # precompiled headers.
 ifeq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
-	PRECOMPILED_HEADER_FLAGS = $(PRECOMPILED_HEADER_DISABLE)
+  PRECOMPILED_HEADER_FLAGS = $(PRECOMPILED_HEADER_DISABLE)
 endif
 
 # It is possible to over-ride the defaults by setting SZG_USE_PCH
 ifeq ($(strip $(SZG_USE_PCH)),TRUE)
-	PRECOMPILED_HEADER_FLAGS = $(PRECOMPILED_HEADER_USAGE)
+  PRECOMPILED_HEADER_FLAGS = $(PRECOMPILED_HEADER_USAGE)
 else
 ifeq ($(strip $(SZG_USE_PCH)),FALSE)
-	PRECOMPILED_HEADER_FLAGS = $(PRECOMPILED_HEADER_DISABLE)
+  PRECOMPILED_HEADER_FLAGS = $(PRECOMPILED_HEADER_DISABLE)
 endif
 endif
 
@@ -69,39 +69,37 @@ endif
 # NOTE: Windows requires the compiler receive information about 
 # linker when creating object files. Hence, the "HYBRID_FLAGS" moniker...
 ifeq ($(strip $(SZG_LINKING)), STATIC) 
-	HYBRID_FLAGS_DEBUG = -MTd -D "AR_LINKING_STATIC"
-	HYBRID_FLAGS_NDEBUG = -MT -D "AR_LINKING_STATIC"
+  HYBRID_FLAGS_DEBUG = -MTd -D "AR_LINKING_STATIC"
+  HYBRID_FLAGS_NDEBUG = -MT -D "AR_LINKING_STATIC"
 else
-	HYBRID_FLAGS_DEBUG = -MDd -D "AR_USE_SHARED"
-	HYBRID_FLAGS_NDEBUG = -MD -D "AR_USE_SHARED"
+  HYBRID_FLAGS_DEBUG = -MDd -D "AR_USE_SHARED"
+  HYBRID_FLAGS_NDEBUG = -MD -D "AR_USE_SHARED"
 endif
 OPT_FLAGS_DEBUG = -D "_CONSOLE" -O1 -D "_DEBUG" $(HYBRID_FLAGS_DEBUG)
 OPT_FLAGS_NDEBUG = -D "_CONSOLE" -O2 -D "NDEBUG" $(HYBRID_FLAGS_NDEBUG)
 # If we are using STLport, this include must come first to override the
 # standard Visual C++ includes.
 ifeq ($(strip $(SZG_STLPORT)),TRUE)
-	OPT_FLAGS_DEBUG += -I$(SZGEXTERNAL)/win32/STLport/stlport
-	OPT_FLAGS_NDEBUG += -I$(SZGEXTERNAL)/win32/STLport/stlport
+  OPT_FLAGS_DEBUG += -I$(SZGEXTERNAL)/win32/STLport/stlport
+  OPT_FLAGS_NDEBUG += -I$(SZGEXTERNAL)/win32/STLport/stlport
 endif
 
 # NOTE: The default set of OPT_FLAGS
 ifeq ($(strip $(SZGDEBUG)),TRUE)
-	OPT_FLAGS = $(OPT_FLAGS_DEBUG)
+  OPT_FLAGS = $(OPT_FLAGS_DEBUG)
 else
-	OPT_FLAGS = $(OPT_FLAGS_NDEBUG)
+  OPT_FLAGS = $(OPT_FLAGS_NDEBUG)
 endif
 
 # How the precompiled header is produced. This is different for "EASY"
 # and "DEVELOPER" styles of packaging the code.
 ifneq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
-	PRECOMPILED_HEADER_LINE = $(COMPILER) $(COMMON_COMPILE_FLAGS) \
-		$(OPT_FLAGS) \
-		-Yc -FparPrecompiled.pch \
-		../../../src/language/arPrecompiled.cpp 
+  PRECOMPILED_HEADER_LINE = $(COMPILER) $(COMMON_COMPILE_FLAGS) \
+    $(OPT_FLAGS) -Yc -FparPrecompiled.pch \
+    ../../../src/language/arPrecompiled.cpp 
 else
-	PRECOMPILED_HEADER_LINE = $(COMPILER) $(COMMON_COMPILE_FLAGS) \
-		$(OPT_FLAGS) \
-		-Yc -FparPrecompiled.pch pch/arPrecompiled.cpp 
+  PRECOMPILED_HEADER_LINE = $(COMPILER) $(COMMON_COMPILE_FLAGS) \
+    $(OPT_FLAGS) -Yc -FparPrecompiled.pch pch/arPrecompiled.cpp 
 endif
 
 # These are explicitly defined since sometimes we want something besides
@@ -119,9 +117,9 @@ COMPILE_FLAGS = $(COMMON_COMPILE_FLAGS) $(OPT_FLAGS) \
 COMPILE_FLAGS_SHARED = $(COMMON_COMPILE_FLAGS) $(OPT_FLAGS)
 
 ifneq ($(strip $(SZGDEBUG)),TRUE)
-	OPTIMIZE_FLAG = -O2
+  OPTIMIZE_FLAG = -O2
 else
-	OPTIMIZE_FLAG = 
+  OPTIMIZE_FLAG = 
 endif
 
 # The flags and other definitions pertaining to linking.
@@ -137,21 +135,21 @@ GAMEPAD_LIBS = dinput.lib dxguid.lib
 # We want to be able to NOT do a console-based app if necessary
 SZG_SUBSYSTEM = -subsystem:console
 ifeq ($(strip $(SZG_LINKING)), STATIC) 
-	SZG_NO_DEFAULT_LIB = -NODEFAULTLIB:MSVCRT.LIB -NODEFAULTLIB:MSVCRTD.LIB
-	SZG_NO_DEFAULT_LIB_DEBUG = -NODEFAULTLIB:LIBCMT.LIB
-	SZG_NO_DEFAULT_LIB_NDEBUG = -NODEFAULTLIB:LIBCMTD.LIB 
+  SZG_NO_DEFAULT_LIB = -NODEFAULTLIB:MSVCRT.LIB -NODEFAULTLIB:MSVCRTD.LIB
+  SZG_NO_DEFAULT_LIB_DEBUG = -NODEFAULTLIB:LIBCMT.LIB
+  SZG_NO_DEFAULT_LIB_NDEBUG = -NODEFAULTLIB:LIBCMTD.LIB 
 else
-	SZG_NO_DEFAULT_LIB = -NODEFAULTLIB:LIBCMT.LIB -NODEFAULTLIB:LIBCMTD.LIB
-	SZG_NO_DEFAULT_LIB_DEBUG = -NODEFAULTLIB:MSVCRT.LIB
-	SZG_NO_DEFAULT_LIB_NDEBUG = -NODEFAULTLIB:MSVCRTD.LIB 
+  SZG_NO_DEFAULT_LIB = -NODEFAULTLIB:LIBCMT.LIB -NODEFAULTLIB:LIBCMTD.LIB
+  SZG_NO_DEFAULT_LIB_DEBUG = -NODEFAULTLIB:MSVCRT.LIB
+  SZG_NO_DEFAULT_LIB_NDEBUG = -NODEFAULTLIB:MSVCRTD.LIB 
 endif
 LINK_FLAGS_BASE = -nologo $(SZG_SUBSYSTEM) -incremental:no \
  $(SZG_NO_DEFAULT_LIB)
 LINK_FLAGS_SHARED_BASE = -nologo -incremental:no -dll \
  $(SZG_NO_DEFAULT_LIB)
 ifeq ($(strip $(SZG_STLPORT)),TRUE)
-	LINK_FLAGS_BASE += /libpath:$(SZGEXTERNAL)/win32/STLport/lib
-	LINK_FLAGS_SHARED_BASE += /libpath:$(SZGEXTERNAL)/win32/STLport/lib
+  LINK_FLAGS_BASE += /libpath:$(SZGEXTERNAL)/win32/STLport/lib
+  LINK_FLAGS_SHARED_BASE += /libpath:$(SZGEXTERNAL)/win32/STLport/lib
 endif
 LINK_FLAGS_DEBUG = $(LINK_FLAGS_BASE) $(SZG_NO_DEFAULT_LIB_DEBUG) \
  -debug 
@@ -161,8 +159,8 @@ LINK_FLAGS_SHARED_DEBUG = $(LINK_FLAGS_SHARED_BASE) \
 LINK_FLAGS = $(LINK_FLAGS_BASE) $(SZG_NO_DEFAULT_LIB_NDEBUG)
 LINK_FLAGS_SHARED = $(LINK_FLAGS_SHARED_BASE) $(SZG_NO_DEFAULT_LIB_NDEBUG)
 ifeq ($(strip $(SZGDEBUG)),TRUE)
-	LINK_FLAGS = $(LINK_FLAGS_DEBUG)
-	LINK_FLAGS_SHARED = $(LINK_FLAGS_SHARED_DEBUG)
+  LINK_FLAGS = $(LINK_FLAGS_DEBUG)
+  LINK_FLAGS_SHARED = $(LINK_FLAGS_SHARED_DEBUG)
 endif
 LINK_FLAGS_PLUGIN = $(LINK_FLAGS_SHARED)
 
@@ -170,41 +168,37 @@ PRE_LINK_LINE_LIB=$(SZG_LIBRARY_LIBS) $(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
 POST_LINK_LINE_LIB=
 
 PRE_LINK_LINE_EXE=$(SZG_CURRENT_LIB) $(SZG_LIBRARY_LIBS) \
-	$(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
+  $(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
 POST_LINK_LINE_EXE =
 
 PRE_LINK_LINE_USR=$(SZG_LIBRARY_LIBS) $(SZG_OPTIONAL_LIBS) $(SZG_LINK_LIBS)
 POST_LINK_LINE_USR=
 
-# It turns out that libraries on the Unix and Win32 sides need to be
-# referenced in fundamentally different ways. On the Win32 side, we actually
-# need to reference the libs directly. Whereas on Unix, we need to reference
-# things INDIRECTLY (i.e. -larLanguage).
+# Windows: reference libs directly.
+# Unix: reference libs INDIRECTLY (e.g., -larLanguage).
+
 ifeq ($(strip $(SZG_DEVELOPER_STYLE)),EASY)
-	LANGUAGE_LIB_STRING=$(SZGHOME)/lib/libarLanguage$(SZG_STATIC_MOD).lib
-	PHLEET_LIB_STRING=$(SZGHOME)/lib/libarPhleet$(SZG_STATIC_MOD).lib
-	BARRIER_LIB_STRING=$(SZGHOME)/lib/libarBarrier$(SZG_STATIC_MOD).lib
-	MATH_LIB_STRING=$(SZGHOME)/lib/libarMath$(SZG_STATIC_MOD).lib
-	DRIVERS_LIB_STRING=$(SZGHOME)/lib/libarDrivers$(SZG_STATIC_MOD).lib
-	GRAPHICS_LIB_STRING=$(SZGHOME)/lib/libarGraphics$(SZG_STATIC_MOD).lib
-	SOUND_LIB_STRING=$(SZGHOME)/lib/libarSound$(SZG_STATIC_MOD).lib
-	OBJECT_LIB_STRING=$(SZGHOME)/lib/libarObject$(SZG_STATIC_MOD).lib
-	INTERACT_LIB_STRING=$(SZGHOME)/lib/libarInteraction$(SZG_STATIC_MOD).lib
-	FRAMEWORK_LIB_STRING=$(SZGHOME)/lib/libarFramework$(SZG_STATIC_MOD).lib
+  LANGUAGE_LIB_STRING=$(SZGHOME)/lib/libarLanguage$(SZG_STATIC_MOD).lib
+  PHLEET_LIB_STRING=$(SZGHOME)/lib/libarPhleet$(SZG_STATIC_MOD).lib
+  BARRIER_LIB_STRING=$(SZGHOME)/lib/libarBarrier$(SZG_STATIC_MOD).lib
+  MATH_LIB_STRING=$(SZGHOME)/lib/libarMath$(SZG_STATIC_MOD).lib
+  DRIVERS_LIB_STRING=$(SZGHOME)/lib/libarDrivers$(SZG_STATIC_MOD).lib
+  GRAPHICS_LIB_STRING=$(SZGHOME)/lib/libarGraphics$(SZG_STATIC_MOD).lib
+  SOUND_LIB_STRING=$(SZGHOME)/lib/libarSound$(SZG_STATIC_MOD).lib
+  OBJECT_LIB_STRING=$(SZGHOME)/lib/libarObject$(SZG_STATIC_MOD).lib
+  INTERACT_LIB_STRING=$(SZGHOME)/lib/libarInteraction$(SZG_STATIC_MOD).lib
+  FRAMEWORK_LIB_STRING=$(SZGHOME)/lib/libarFramework$(SZG_STATIC_MOD).lib
 else
-	LANGUAGE_LIB_STRING=$(SZGHOME)/build/win32/language/libarLanguage$(SZG_STATIC_MOD).lib
-	PHLEET_LIB_STRING=$(SZGHOME)/build/win32/phleet/libarPhleet$(SZG_STATIC_MOD).lib
-	BARRIER_LIB_STRING=$(SZGHOME)/build/win32/barrier/libarBarrier$(SZG_STATIC_MOD).lib
-	MATH_LIB_STRING=$(SZGHOME)/build/win32/math/libarMath$(SZG_STATIC_MOD).lib
-	DRIVERS_LIB_STRING=$(SZGHOME)/build/win32/drivers/libarDrivers$(SZG_STATIC_MOD).lib
-	GRAPHICS_LIB_STRING=$(SZGHOME)/build/win32/graphics/libarGraphics$(SZG_STATIC_MOD).lib
-	SOUND_LIB_STRING=$(SZGHOME)/build/win32/sound/libarSound$(SZG_STATIC_MOD).lib
-	OBJECT_LIB_STRING=$(SZGHOME)/build/win32/obj/libarObject$(SZG_STATIC_MOD).lib
-	INTERACT_LIB_STRING=$(SZGHOME)/build/win32/interaction/libarInteraction$(SZG_STATIC_MOD).lib
-	FRAMEWORK_LIB_STRING=$(SZGHOME)/build/win32/framework/libarFramework$(SZG_STATIC_MOD).lib
+  LANGUAGE_LIB_STRING=$(SZGHOME)/build/win32/language/libarLanguage$(SZG_STATIC_MOD).lib
+  PHLEET_LIB_STRING=$(SZGHOME)/build/win32/phleet/libarPhleet$(SZG_STATIC_MOD).lib
+  BARRIER_LIB_STRING=$(SZGHOME)/build/win32/barrier/libarBarrier$(SZG_STATIC_MOD).lib
+  MATH_LIB_STRING=$(SZGHOME)/build/win32/math/libarMath$(SZG_STATIC_MOD).lib
+  DRIVERS_LIB_STRING=$(SZGHOME)/build/win32/drivers/libarDrivers$(SZG_STATIC_MOD).lib
+  GRAPHICS_LIB_STRING=$(SZGHOME)/build/win32/graphics/libarGraphics$(SZG_STATIC_MOD).lib
+  SOUND_LIB_STRING=$(SZGHOME)/build/win32/sound/libarSound$(SZG_STATIC_MOD).lib
+  OBJECT_LIB_STRING=$(SZGHOME)/build/win32/obj/libarObject$(SZG_STATIC_MOD).lib
+  INTERACT_LIB_STRING=$(SZGHOME)/build/win32/interaction/libarInteraction$(SZG_STATIC_MOD).lib
+  FRAMEWORK_LIB_STRING=$(SZGHOME)/build/win32/framework/libarFramework$(SZG_STATIC_MOD).lib
 endif
 
-# Creating static libraries. NOTE: on OS X it is necessary to run
-# ranlib on a newly linked .a, but this is redundant on other Unix
-# or Win32 platforms.
 RANLIB = @echo

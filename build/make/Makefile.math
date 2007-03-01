@@ -1,21 +1,15 @@
 SZG_INCLUDE_STYLE = INTERNAL
 SZG_COPY_LIB = TRUE
 
-# VPATH needs to be set BEFORE Makefile.vars (to get SRCDIR defined correctly)
 VPATH = ../../../src/math
-
 include $(SZGHOME)/build/make/Makefile.vars
 
-# DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
-# with this sometimes.
 OBJS = \
   arNavigationUtilities$(OBJ_SUFFIX) \
   arMath$(OBJ_SUFFIX)
 
-# Local variable definitions for the build.
-# These internal library makefiles ONLY include the external files necessary
-# to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
-# Makefile.defines neglects to define these)
+# Explicit definitions, replacing the otherwise generic ones in Makefile.defines
+
 SZG_INCLUDE = \
   -I$(SZGHOME)/src/language \
   $(SZG_DLL_INCLUDE)
@@ -28,16 +22,12 @@ ifeq ($(strip $(MACHINE)),WIN32)
   COMPILE_FLAGS += -D "SZG_COMPILING_MATH"
 endif
 
-ALL =   $(SZG_CURRENT_DLL)\
-        TestMath$(EXE)
+ALL = \
+  $(SZG_CURRENT_DLL) \
+  TestMath$(EXE)
 
-# NOTE: We now include the "magic" Everything target in Makefile.rules
-
-# This should go BEFORE our FIRST target (because Makefile.rules has rules
-# in it, along with the "magic" Everything rule!
 include $(SZGHOME)/build/make/Makefile.rules
 
-# The shared lib corresponding to this szg subdirectory.
 $(SZG_CURRENT_DLL): $(OBJS)
 	$(LINK_SZG_LIB)
 	$(COPY)

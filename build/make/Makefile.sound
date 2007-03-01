@@ -1,13 +1,9 @@
 SZG_INCLUDE_STYLE = INTERNAL
 SZG_COPY_LIB = TRUE
 
-# VPATH needs to be set BEFORE Makefile.vars (to get SRCDIR defined correctly)
 VPATH = ../../../src/sound
-
 include $(SZGHOME)/build/make/Makefile.vars
 
-# DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
-# with this sometimes.
 OBJS = \
   arSpeechNode$(OBJ_SUFFIX) \
   arStreamNode$(OBJ_SUFFIX) \
@@ -21,12 +17,10 @@ OBJS = \
   arSoundFile$(OBJ_SUFFIX) \
   arSoundTransformNode$(OBJ_SUFFIX) \
   arPlayerNode$(OBJ_SUFFIX) \
-  arSpeakerObject$(OBJ_SUFFIX) \
-	
-# Local variable definitions for the build.
-# These internal library makefiles ONLY include the external files necessary
-# to build the library. (SZG_INCLUDE_STYLE is set to INTERNAL, so 
-# Makefile.defines neglects to define these)
+  arSpeakerObject$(OBJ_SUFFIX)
+
+# Explicit definitions, replacing the otherwise generic ones in Makefile.defines
+
 SZG_INCLUDE = \
   -I$(SZGHOME)/src/language \
   -I$(SZGHOME)/src/phleet \
@@ -50,26 +44,19 @@ SZG_LIBRARY_DEPS = \
 SZG_CURRENT_LIB_SHORT_NAME = arSound
 ifeq ($(strip $(MACHINE)),WIN32)
   COMPILE_FLAGS += -D "SZG_COMPILING_SOUND"
-endif
-
-ifeq ($(strip $(MACHINE)),WIN32)
 ifneq ($(strip $(SZG_COMPILER)),MINGW)
-LINK_FLAGS += /stack:4000000
+  LINK_FLAGS += /stack:4000000
 endif
 endif
 
-ALL =   $(SZG_CURRENT_DLL) \
+ALL = \
+  $(SZG_CURRENT_DLL) \
   SoundRender$(EXE) \
   SoundTest$(EXE) \
   StreamTest$(EXE)
 
-# NOTE: We now include the "magic" Everything target in Makefile.rules
-
-# This should go BEFORE our FIRST target (because Makefile.rules has rules
-# in it, along with the "magic" Everything rule!
 include $(SZGHOME)/build/make/Makefile.rules
 
-# NOTE: The shared lib corresponding to this szg subdirectory.
 $(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
 	$(LINK_SZG_LIB)
 	$(COPY)
