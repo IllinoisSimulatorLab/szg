@@ -117,7 +117,7 @@ bool arNetInputSource::setSlot(int slot){
     return false;
   }
   _slot = slot;
-  ar_log_debug() << "arNetInputSource slot = " << _slot << ".\n";
+  ar_log_debug() << "arNetInputSource using slot " << _slot << ".\n";
   return true;
 }
 
@@ -126,7 +126,7 @@ bool arNetInputSource::init(arSZGClient& SZGClient){
 
   // Save arSZGClient for future connection brokering.
   _szgClient = &SZGClient;
-  ar_log_remark() << "arNetInputSource initialized.\n";
+  ar_log_remark() << "arNetInputSource inited.\n";
   return true;
 }
 

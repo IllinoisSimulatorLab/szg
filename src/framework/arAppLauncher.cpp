@@ -307,14 +307,14 @@ void arAppLauncher::killApp(){
 
 bool arAppLauncher::waitForKill(){ 
   if (!_client){
-    ar_log_warning() << _exeName << " warning: no arSZGClient.\n";
+    ar_log_warning() << _exeName << ": no arSZGClient.\n";
     return false;
   }
 
   while (true) {
     string messageType, messageBody;
     if (!_client->receiveMessage(&messageType,&messageBody)){
-      ar_log_remark() << _exeName << " remark: stopping because szgserver stopped.\n";
+      ar_log_error() << _exeName << ": no szgserver.\n";
       // Don't bother calling killApp(), since szgserver is gone.
       break;
     }
