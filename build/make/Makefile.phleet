@@ -25,13 +25,13 @@ SZG_LIBRARY_DEPS = \
 SZG_CURRENT_LIB_SHORT_NAME = arPhleet
 ifeq ($(strip $(MACHINE)),WIN32)
   COMPILE_FLAGS += -D "SZG_COMPILING_PHLEET"
+ifneq ($(strip $(SZG_COMPILER)),MINGW)
+  LINK_FLAGS += /stack:4000000
+endif
 endif
 
 ifeq ($(strip $(MACHINE)),LINUX)
   SZG_OPTIONAL_LIBS += -lncurses
-ifneq ($(strip $(SZG_COMPILER)),MINGW)
-  LINK_FLAGS += /stack:4000000
-endif
 endif
 
 ALL = \
