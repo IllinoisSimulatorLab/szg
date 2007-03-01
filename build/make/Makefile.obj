@@ -1,4 +1,4 @@
-SZG_BUILD_STYLE = INTERNAL
+SZG_INCLUDE_STYLE = INTERNAL
 SZG_COPY_LIB = TRUE
 
 # VPATH needs to be set BEFORE Makefile.vars (to get SRCDIR defined correctly)
@@ -6,8 +6,6 @@ VPATH = ../../../src/obj
 
 include $(SZGHOME)/build/make/Makefile.vars
 
-# DO NOT use tabs to indent for OBJS and MYLIBS. gmake can be unhappy
-# with this sometimes.
 OBJS = \
   arObject$(OBJ_SUFFIX) \
   arOBJ$(OBJ_SUFFIX) \
