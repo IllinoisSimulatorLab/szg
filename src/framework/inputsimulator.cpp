@@ -110,7 +110,10 @@ LAbort:
 
   const unsigned slot = (argc > 1) ? atoi(argv[1]) : 0;
   ar_log_remark() << "inputsimulator using slot " << slot << ".\n";
+
+  // "netinput" doesn't mean input.  It means "output on the next slot."  I think.
   const bool fNetInput = (argc > 2) && !strcmp(argv[2], "-netinput");
+
   arNetInputSink netInputSink;
   if (!netInputSink.setSlot(slot)) {
     ar_log_error() << "inputsimulator failed to set slot " << slot << ".\n";
@@ -153,7 +156,7 @@ LAbort:
   if (fNetInput) {
     arNetInputSource* netSource = new arNetInputSource;
     if (!netSource->setSlot(slot+1)) {
-      ar_log_error() << "inputsimulator failed to set slot " << slot+1 << ".\n";
+      ar_log_error() << "inputsimulator failed to set slot " << slot+1 << " for netinput.\n";
       goto LAbort;
     }
 
