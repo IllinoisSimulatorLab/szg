@@ -1,30 +1,25 @@
-# Guess the OS.
 include make/Makefile.os
-
-# For installing shared libraries in the SZG_BINDIR
-# (or in the INSTALLDIR for the SDK).
-include make/Makefile.libscan
-
 ifeq "$PLATFORM" "UNKNOWN_OS"
 all:
-	@echo "Makefile failed to guess OS type."
+	@echo "Makefile failed to guess operating system."
 else
+
+# Install shared libraries in SZG_BINDIR (or INSTALLDIR for the SDK).
+include make/Makefile.libscan
 
 DRVDIRS=language math phleet barrier drivers
 LIBDIRS=$(DRVDIRS) graphics sound obj interaction framework
 SUBDIRS=$(LIBDIRS) utilities 
 DEMODIRS=ribbons atlantis coaster hspace cosmos cubes parade schprel
-DEMOFAST=cosmos atlantis
 
 # For 8-cpu salami.isl.uiuc.edu and other multicore multi-cpu hyperthreaded.
 ifeq "$(PLATFORM)" "win32"
 ifneq "$(NUMBER_OF_PROCESSORS)" ""
 ifneq ($(wildcard $(SZGHOME)/build/win32/language/arPrecompiled.pch),)
-JOBS=$(NUMBER_OF_PROCESSORS)
+  JOBS=$(NUMBER_OF_PROCESSORS)
 endif
 endif
 endif
-
 
 all:
 	@for i in $(SUBDIRS) ; do $(MAKE) -C $(PLATFORM)/$$i -j $(JOBS) || exit 1 ; done
@@ -42,11 +37,7 @@ docs:
 demo: all
 	@for i in $(DEMODIRS) ; do $(MAKE) -C $(PLATFORM)/demo/$$i -j $(JOBS) ; done
 
-# Build only the few demo(s) you're working on, not the whole collection.
-fast: all
-	@for i in $(DEMOFAST) ; do $(MAKE) -C $(PLATFORM)/demo/$$i -j $(JOBS) ; done
-
-# This target needs INSTALLDIR.
+# Copy stuff into INSTALLDIR.
 create-sdk: all
 	rm -rf $(INSTALLDIR)
 	rm -f $(SZGHOME)/doc/*~
@@ -67,22 +58,18 @@ create-sdk: all
 	cp $(SZGHOME)/script/ezszg.sh $(INSTALLDIR)
 	cp $(SZGHOME)/SZG_CREDITS $(INSTALLDIR)
 	@for i in $(LIBDIRS) ; do cp $(SZGHOME)/src/$$i/*.h $(INSTALLDIR)/include ; done
-	@for i in $(SUBDIRS) ; do $(MAKE) -C $(PLATFORM)/$$i create-sdk ; done
+	@for i in $(SUBDIRS) ; do $(MAKE) -C $(PLATFORM)/$$i create-sdk || exit 1 ; done
 	cp $(SZG_SHARED_COPY) $(INSTALLDIR)/bin
 	cd $(INSTALLDIR)/bin; $(SZG_SHARED_COPY_ACTION)
 
 clean-sdk:
 	rm -rf $(INSTALLDIR)
 
-# This target needs SZG_BINDIR. It also copies the external shared libraries
-# into the right spot.
-bin-install: all
+# Copy stuff into SZG_BINDIR.
+bin-install: all install-shared
 	@for i in $(SUBDIRS) ; do $(MAKE) -C $(PLATFORM)/$$i bin-install || exit 1 ; done
-	cp $(SZG_SHARED_COPY) $(SZG_BINDIR)
-	cd $(SZG_BINDIR); $(SZG_SHARED_COPY_ACTION)
 
-# This target needs SZG_BINDIR. It only copies the external shared libraries
-# into the right spot (sometimes this is all one wants).
+# Copy external shared libraries into SZG_BINDIR.
 install-shared:
 	cp $(SZG_SHARED_COPY) $(SZG_BINDIR)
 	cd $(SZG_BINDIR); $(SZG_SHARED_COPY_ACTION)
@@ -93,9 +80,9 @@ demo-clean:
 # The "demo" rules only need to depend on "all" since the local Makefile
 # will build the software, if necessary.
 demo-create-sdk: all
-	@for i in $(DEMODIRS) ; do $(MAKE) -C $(PLATFORM)/demo/$$i create-sdk ; done
+	@for i in $(DEMODIRS) ; do $(MAKE) -C $(PLATFORM)/demo/$$i create-sdk || exit 1 ; done
 
 demo-bin-install: all
-	@for i in $(DEMODIRS) ; do $(MAKE) -C $(PLATFORM)/demo/$$i bin-install ; done
+	@for i in $(DEMODIRS) ; do $(MAKE) -C $(PLATFORM)/demo/$$i bin-install || exit 1 ; done
 
 endif
