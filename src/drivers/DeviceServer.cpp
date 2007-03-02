@@ -200,18 +200,18 @@ LAbort:
   arInputNode inputNode;
   const string execPath = szgClient.getAttribute("SZG_EXEC","path"); // search for dll's
   std::map< std::string, arInputSource* > driverNameMap;
-  unsigned nextInputSlot = slotNumber + 1;
+  unsigned slotNext = slotNumber + 1;
   for (iter = nodeConfig.inputSources.begin();
        iter != nodeConfig.inputSources.end(); iter++) {
     arInputSource* theSource = NULL;
     // Is the requested library embedded in the library?
     if (*iter == "arNetInputSource") {
       arNetInputSource* netInputSource = new arNetInputSource();
-      if (!netInputSource->setSlot(nextInputSlot)) {
-        ar_log_warning() << "DeviceServer: invalid slot " << nextInputSlot << ".\n";
+      if (!netInputSource->setSlot(slotNext)) {
+        ar_log_warning() << "DeviceServer: invalid slot " << slotNext << ".\n";
         goto LAbort;
       }
-      nextInputSlot++;
+      slotNext++;
       inputNode.addInputSource(netInputSource, true);
     } else {
       // A dynamically loaded library.
@@ -229,21 +229,21 @@ LAbort:
         goto LAbort;
       }
       ar_log_debug() << "DeviceServer created input source '" <<
-	  *iter << "' in slot " << nextInputSlot-1 << ".\n";
+	  *iter << "' in slot " << slotNext-1 << ".\n";
       driverNameMap[*iter] = theSource;
       inputNode.addInputSource(theSource, false);
     }
   }
 
   if (fNetInput){
-    // Add a net input source automatically (i.e. not via the config file)
+    // Add an implicit net input source.
     arNetInputSource* commandLineNetInputSource = new arNetInputSource();
-    if (!commandLineNetInputSource->setSlot(nextInputSlot)) {
-      ar_log_error() << "DeviceServer: invalid slot " << nextInputSlot << ".\n";
+    if (!commandLineNetInputSource->setSlot(slotNext)) {
+      ar_log_error() << "DeviceServer: invalid slot " << slotNext << ".\n";
       goto LAbort;
     }
-    // Skip over "nextInputSlot+1" listening slot.
-    nextInputSlot += 2;
+    // Skip over "slotNext+1" listening slot.
+    slotNext += 2;
     inputNode.addInputSource(commandLineNetInputSource,true);
   }
 
@@ -254,9 +254,9 @@ LAbort:
     ar_log_error() << "DeviceServer: invalid slot " << slotNumber << ".\n";
     goto LAbort;
   }
-  nextInputSlot++;
+  slotNext++;
 
-  // Tell netInputSink a bit about how we were launched.
+  // Tell netInputSink how we were launched.
   netInputSink.setInfo(argv[1]);
 
   inputNode.addInputSink(&netInputSink,false);
