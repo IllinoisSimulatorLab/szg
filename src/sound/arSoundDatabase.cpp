@@ -40,7 +40,7 @@ arSoundDatabase::arSoundDatabase() :
       !playerData    || !*playerData    ||
       !speechData    || !*speechData    ||
       !streamData    || !*streamData){
-    cerr << "arSoundDatabase error: incorrect dictionary.\n";
+    ar_log_warning() << "arSoundDatabase: incorrect dictionary.\n";
   }
 }
 
@@ -248,7 +248,6 @@ bool arSoundDatabase::_render(arSoundNode* node){
     ok &= _render((arSoundNode*)*i);
   }
   if (node->getTypeCode() == AR_S_TRANSFORM_NODE){
-    // Pop from stack.
     ar_transformStack.pop();
   }
   return ok;
@@ -265,18 +264,18 @@ arDatabaseNode* arSoundDatabase::_makeNode(const string& type){
     return (arDatabaseNode*) new arSpeechNode();
   if (type=="stream")
     return (arDatabaseNode*) new arStreamNode();
-  cerr << "arSoundDatabase error: makeNode factory got unknown type="
-       << type << ".\n";
+  ar_log_warning() << "arSoundDatabase: makeNode factory got unknown type '" << type << "'.\n";
   return NULL;
 }
 
 arDatabaseNode* arSoundDatabase::_processAdmin(arStructuredData* data){
   const string name = data->getDataString("name");
-  cout << "arSoundDatabase remark: using sound bundle " << name << "\n";
   const arSlashString bundleInfo(name);
-  if (bundleInfo.size() == 2)
+  if (bundleInfo.size() == 2) {
     setDataBundlePath(bundleInfo[0], bundleInfo[1]);
-  else
-    cerr << "arSoundDatabase error: garbled sound bundle identification.\n";
+    ar_log_remark() << "arSoundDatabase using sound bundle '" << name << "'\n";
+  } else {
+    ar_log_warning() << "arSoundDatabase: garbled sound bundle id for '" << name << "'.\n";
+  }
   return &_rootNode;
 }
