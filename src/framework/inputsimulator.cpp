@@ -18,7 +18,7 @@
 
 arInputSimulator defaultSimulator;
 arInputSimulator* pSim = NULL;
-arInputNode* inputNode = NULL;
+arInputNode inputNode;
 int xPos = 0;
 int yPos = 0;
 
@@ -88,7 +88,7 @@ void messageTask(void* pv){
     }
     if (messageType=="quit"){
 LStop:
-      inputNode->stop();
+      inputNode.stop();
       exit(0);
     }
   }
@@ -102,7 +102,7 @@ int main(int argc, char** argv){
     return szgClient.failStandalone(fInit);
 
   if (argc > 3) {
-    ar_log_error() << "usage: " << argv[0] << " [slot [-netinput]]\n";
+    ar_log_error() << "usage: inputsimulator [slot [-netinput]]\n";
 LAbort:
     (void)szgClient.sendInitResponse(false);
     return 1;
@@ -110,7 +110,7 @@ LAbort:
 
   const unsigned slot = (argc > 1) ? atoi(argv[1]) : 0;
   ar_log_remark() << "inputsimulator using slot " << slot << ".\n";
-  const bool useNetInput = (argc > 2) && !strcmp(argv[2], "-netinput");
+  const bool fNetInput = (argc > 2) && !strcmp(argv[2], "-netinput");
   arNetInputSink netInputSink;
   if (!netInputSink.setSlot(slot)) {
     ar_log_error() << "inputsimulator failed to set slot " << slot << ".\n";
@@ -120,7 +120,6 @@ LAbort:
   // Distinguish different SZG_INPUTn services.
   netInputSink.setInfo("inputsimulator");
 
-  inputNode = new arInputNode;
   const string pforthProgramName = szgClient.getAttribute("SZG_PFORTH", "program_names");
   if (pforthProgramName == "NULL"){
     ar_log_remark() << "inputsimulator: no pforth program for standalone joystick.\n";
@@ -140,7 +139,7 @@ LAbort:
 	goto LAbort;
       }
       // The input node is not responsible for clean-up
-      inputNode->addFilter(filter, false);
+      inputNode.addFilter(filter, false);
     }
   }
   
@@ -150,27 +149,27 @@ LAbort:
     pSim = simTemp ? simTemp : &defaultSimulator;
   }
   pSim->configure(szgClient);
-  pSim->registerInputNode(inputNode);
-  if (useNetInput) {
+  pSim->registerInputNode(&inputNode);
+  if (fNetInput) {
     arNetInputSource* netSource = new arNetInputSource;
     if (!netSource->setSlot(slot+1)) {
       ar_log_error() << "inputsimulator failed to set slot " << slot+1 << ".\n";
       goto LAbort;
     }
 
-    inputNode->addInputSource(netSource, true);
+    inputNode.addInputSource(netSource, true);
     ar_log_remark() << "inputsimulator using net input, slot " << slot+1 << ".\n";
     // Memory leak.  inputNode won't free its input sources, I think.
   }
-  inputNode->addInputSink(&netInputSink,false);
+  inputNode.addInputSink(&netInputSink,false);
 
-  if (!inputNode->init(szgClient)) {
+  if (!inputNode.init(szgClient)) {
     goto LAbort;
   }
 
   (void)szgClient.sendInitResponse(true);
 
-  if (!inputNode->start()){
+  if (!inputNode.start()){
     (void)szgClient.sendStartResponse(false);
     return 1;
   }
