@@ -16,9 +16,9 @@
 #include "arNetInputSource.h"
 #include "arPForthFilter.h"
 
-arInputNode* inputNode = NULL;
 arInputSimulator defaultSimulator;
-arInputSimulator* simPtr = NULL;
+arInputSimulator* pSim = NULL;
+arInputNode* inputNode = NULL;
 int xPos = 0;
 int yPos = 0;
 
@@ -38,12 +38,12 @@ void loadParameters(arSZGClient& szgClient){
 void display(){
   glClearColor(0,0,0,0);
   glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
-  simPtr->draw();
+  pSim->draw();
   glutSwapBuffers();
 }
 
 void idle(){
-  simPtr->advance();
+  pSim->advance();
 #if 0
   bool dump = false;
   for (unsigned i=0; i<inp->getNumberButtons(); ++i) {
@@ -57,7 +57,7 @@ void idle(){
 }
 
 void keyboard(unsigned char key, int x, int y){
-  simPtr->keyboard(key,1,x,y);
+  pSim->keyboard(key,1,x,y);
   switch(key){
   case 27:
     exit(0);
@@ -71,11 +71,11 @@ void mouseButton(int button, int state, int x, int y){
     (button == GLUT_MIDDLE_BUTTON) ? 1 :
     (button == GLUT_RIGHT_BUTTON ) ? 2 : 0;
   const int whichState = (state == GLUT_DOWN) ? 1 : 0;
-  simPtr->mouseButton(whichButton, whichState, x, y);
+  pSim->mouseButton(whichButton, whichState, x, y);
 }
 
 void mousePosition(int x, int y){
-  simPtr->mousePosition(x,y);
+  pSim->mousePosition(x,y);
 }
 
 void messageTask(void* pv){
@@ -84,11 +84,10 @@ void messageTask(void* pv){
   while (true) {
     if (!pszgClient->receiveMessage(&messageType,&messageBody)){
       ar_log_debug() << "inputsimulator shutdown.\n";
-      // Cut-and-pasted from below.
-      inputNode->stop();
-      exit(0);
+      goto LStop;
     }
     if (messageType=="quit"){
+LStop:
       inputNode->stop();
       exit(0);
     }
@@ -102,16 +101,23 @@ int main(int argc, char** argv){
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 
+  if (argc > 3) {
+    ar_log_error() << "usage: " << argv[0] << " [slot [-netinput]]\n";
+LAbort:
+    (void)szgClient.sendInitResponse(false);
+    return 1;
+  }
+
   const unsigned slot = (argc > 1) ? atoi(argv[1]) : 0;
   ar_log_remark() << "inputsimulator using slot " << slot << ".\n";
   const bool useNetInput = (argc > 2) && !strcmp(argv[2], "-netinput");
   arNetInputSink netInputSink;
   if (!netInputSink.setSlot(slot)) {
-    ar_log_warning() << "inputsimulator failed to set slot " << slot << ".\n";
-    return 1;
+    ar_log_error() << "inputsimulator failed to set slot " << slot << ".\n";
+    goto LAbort;
   }
 
-  // Distinguish different kinds of SZG_INPUTn services.
+  // Distinguish different SZG_INPUTn services.
   netInputSink.setInfo("inputsimulator");
 
   inputNode = new arInputNode;
@@ -129,52 +135,48 @@ int main(int argc, char** argv){
       arPForthFilter* filter = new arPForthFilter();
       ar_PForthSetSZGClient( &szgClient );
       if (!filter->loadProgram( pforthProgram )){
-        ar_log_warning() << "inputsimulator failed to configure pforth filter with program '"
+        ar_log_error() << "inputsimulator failed to configure pforth filter with program '"
 	     << pforthProgram << "'.\n";
-        if (!szgClient.sendInitResponse(false))
-          cerr << "inputsimulator error: maybe szgserver died.\n";
-        return 1;
+	goto LAbort;
       }
       // The input node is not responsible for clean-up
       inputNode->addFilter(filter, false);
     }
   }
   
-  arInputSimulatorFactory simFactory;
-  arInputSimulator* simTemp = simFactory.createSimulator( szgClient );
-  simPtr = simTemp ? simTemp : &defaultSimulator;
-  simPtr->configure(szgClient);
-  simPtr->registerInputNode(inputNode);
+  {
+    arInputSimulatorFactory simFactory;
+    arInputSimulator* simTemp = simFactory.createSimulator( szgClient );
+    pSim = simTemp ? simTemp : &defaultSimulator;
+  }
+  pSim->configure(szgClient);
+  pSim->registerInputNode(inputNode);
   if (useNetInput) {
     arNetInputSource* netSource = new arNetInputSource;
     if (!netSource->setSlot(slot+1)) {
       ar_log_error() << "inputsimulator failed to set slot " << slot+1 << ".\n";
-      return 1;
+      goto LAbort;
     }
-    inputNode->addInputSource(netSource,true);
+
+    inputNode->addInputSource(netSource, true);
     ar_log_remark() << "inputsimulator using net input, slot " << slot+1 << ".\n";
     // Memory leak.  inputNode won't free its input sources, I think.
   }
   inputNode->addInputSink(&netInputSink,false);
-  
+
   if (!inputNode->init(szgClient)) {
-    if (!szgClient.sendInitResponse(false))
-      cerr << "inputsimulator error: maybe szgserver died.\n";
-    return 1;
+    goto LAbort;
   }
 
-  if (!szgClient.sendInitResponse(true))
-    cerr << "inputsimulator error: maybe szgserver died.\n";
+  (void)szgClient.sendInitResponse(true);
 
   if (!inputNode->start()){
-    if (!szgClient.sendStartResponse(false))
-      cerr << "inputsimulator error: maybe szgserver died.\n";
+    (void)szgClient.sendStartResponse(false);
     return 1;
   }
 
-  if (!szgClient.sendStartResponse(true))
-    cerr << "inputsimulator error: maybe szgserver died.\n";
-  
+  (void)szgClient.sendStartResponse(true);
+
   arThread dummy(messageTask, &szgClient);
   loadParameters(szgClient);
 
