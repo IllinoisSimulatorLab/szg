@@ -26,10 +26,13 @@ arNetInputSink::arNetInputSink() :
 
 // Input devices in phleet offer services based on slots.
 // Slot x corresponds to service SZG_INPUTx, for nonnegative x.
-// @param slot the slot in question
 bool arNetInputSink::setSlot(unsigned slot){
   _slot = slot;
   return true;
+}
+
+void arNetInputSink::setInfo(const string& info){
+  _info = info;
 }
 
 bool arNetInputSink::init(arSZGClient& SZGClient){
@@ -62,7 +65,7 @@ bool arNetInputSink::start(){
   int port = -1;
   if (!_client->registerService(serviceName,"input",1,&port)){
     ar_log_warning() << "arNetInputSink failed to register service '" <<
-      serviceName << "'.\n";
+      serviceName << "'.\n  (Does dservices already list that service?)\n";
     return false;
   }
   _dataServer.setPort(port);
@@ -98,8 +101,4 @@ void arNetInputSink::receiveData(int,arStructuredData* data){
     return;
   }
   _dataServer.sendData(data);
-}
-
-void arNetInputSink::setInfo(const string& info){
-  _info = info;
 }

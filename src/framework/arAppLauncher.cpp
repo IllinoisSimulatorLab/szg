@@ -211,7 +211,7 @@ bool arAppLauncher::setParameters(){
   // Sound.
   const string soundLocation(_getAttribute("SZG_SOUND","map",""));
   if (soundLocation != "NULL"){
-    _addService(soundLocation,"SoundRender",_getSoundContext(), "SZG_WAVEFORM", "");
+    _addService(soundLocation,"SoundRender", _getSoundContext(), "SZG_WAVEFORM", "");
   }
   _vircompDefined = true;
   return true;
@@ -971,7 +971,7 @@ void arAppLauncher::_relaunchIncompatibleServices(
       }
       else{
 	// Service is already running.
-	ar_log_debug() << _exeName << " found service " << iter->tradingTag << ".\n";
+	ar_log_debug() << _exeName << " keeping service " << iter->tradingTag << ".\n";
       }
     }
     else{
