@@ -12,14 +12,16 @@ int main(int argc, char** argv){
   if (!szgClient)
     return szgClient.failStandalone(fInit);
 
-  arAppLauncher launcher("dkillall");
-  launcher.setSZGClient(&szgClient);
-  if (argc == 2){
-    launcher.setVircomp(argv[1]);
-  }
-  else if (argc > 2){
-    cerr << "usage: dkillall [virtual_computer]\n";
+  if (argc > 2) {
+    ar_log_error() << "usage: dkillall [virtual_computer]\n";
+    (void)szgClient.sendInitResponse(false);
     return 1;
+  }
+
+  arAppLauncher launcher("dkillall");
+  if (argc == 2) {
+    launcher.setSZGClient(&szgClient);
+    launcher.setVircomp(argv[1]);
   }
 
   return launcher.killAll() ? 0 : 1;
