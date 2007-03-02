@@ -34,23 +34,23 @@ bool ar_setEventQueueFromStructuredData( arInputEventQueue* q,
         int numMatrices = data->getDataDimension(matrixField);
 
   if (sigLen != 3)
-    cerr << "ar_setEventQueueFromStructuredData warning: invalid signature.\n";
+    ar_log_warning() << "ar_setEventQueueFromStructuredData: invalid signature.\n";
 
   if (numMatrices % 16 != 0) {
-    cerr << "ar_setEventQueueFromStructuredData error: got a fractional number"
+    ar_log_warning() << "ar_setEventQueueFromStructuredData got a fractional number"
          << " of matrices (" << numMatrices << "/16).\n";
     return false;
   }
   numMatrices /= 16;
   if (numItems != numIndices) {
-    cerr << "ar_setEventQueueFromStructuredData warning: dictionary "
+    ar_log_warning() << "ar_setEventQueueFromStructuredData dictionary "
          << " got different number of types and indices,\n\t"
          << numItems << " and " << numIndices
          << " respectively.  Ignoring data packet.\n";
     return false;
   }
   if (numButtons + numAxes + numMatrices != numItems) {
-    cerr << "ar_setEventQueueFromStructuredData warning: dictionary "
+    ar_log_warning() << "ar_setEventQueueFromStructuredData dictionary "
          << " got a count mismatch:\n\t"
          << numButtons <<"+"<< numAxes <<"+"<< numMatrices
          << " doesn't equal "
@@ -66,7 +66,7 @@ bool ar_setEventQueueFromStructuredData( arInputEventQueue* q,
   float* matrixBuf = new float[16*numMatrices];
 
   if (!typeBuf || !indexBuf || !buttonBuf || !axisBuf || !matrixBuf) {
-    cerr << "ar_setEventQueueFromStructuredData error: out of memory.\n";
+    ar_log_warning() << "ar_setEventQueueFromStructuredData out of memory.\n";
     return false;
   }
 
@@ -80,16 +80,14 @@ bool ar_setEventQueueFromStructuredData( arInputEventQueue* q,
     data->dataOut( sigField, sigBuf, AR_INT, sigLen );
     for (int i=0; i<sigLen; i++) {
       if (sigBuf[i] < 0) {
-        cerr << "ar_setEventQueueFromStructuredData warning: "
-	     << "negative signature.\n";
+        ar_log_warning() << "ar_setEventQueueFromStructuredData zeroing negative signature.\n";
         sigBuf[i] = 0;
       }
     }
     sigBuf[0] = maxint( sigBuf[0], numButtons );
     sigBuf[1] = maxint( sigBuf[1], numAxes );
     sigBuf[2] = maxint( sigBuf[2], numMatrices );
-    q->setSignature( (unsigned)sigBuf[0], (unsigned)sigBuf[1], 
-                     (unsigned)sigBuf[2] );
+    q->setSignature( (unsigned)sigBuf[0], (unsigned)sigBuf[1], (unsigned)sigBuf[2] );
   }
 
   const bool ok = q->setFromBuffers( typeBuf, indexBuf, buttonBuf, numButtons,
@@ -123,31 +121,31 @@ bool ar_saveEventQueueToStructuredData( arInputEventQueue* q,
 
   if (numButtons != _numButtons)
     if (!data->setDataDimension( buttonField, _numButtons )) {
-      cerr << "ar_saveEventQueueToStructuredData error: "
+      ar_log_warning() << "ar_saveEventQueueToStructuredData "
 	   << "failed to set button data dimension.\n";
       return false;
     }
   if (numAxes != _numAxes)
     if (!data->setDataDimension( axisField, _numAxes )) {
-      cerr << "ar_saveEventQueueToStructuredData error: "
+      ar_log_warning() << "ar_saveEventQueueToStructuredData "
 	   << "failed to set axis data dimension.\n";
       return false;
     }
   if (numMatrices != _numMatrices)
     if (!data->setDataDimension( matrixField, _numMatrices )) {
-      cerr << "ar_saveEventQueueToStructuredData error: "
+      ar_log_warning() << "ar_saveEventQueueToStructuredData "
 	   << "failed to set matrix data dimension.\n";
       return false;
     }
   if (numItems != _numItems)
     if (!data->setDataDimension( typeField, _numItems )) {
-      cerr << "ar_saveEventQueueToStructuredData error: "
+      ar_log_warning() << "ar_saveEventQueueToStructuredData "
 	   << "failed to set button data dimension.\n";
       return false;
     }
   if (numIndices != _numItems)
     if (!data->setDataDimension( indexField, _numItems )) {
-      cerr << "ar_saveEventQueueToStructuredData error: "
+      ar_log_warning() << "ar_saveEventQueueToStructuredData "
 	   << "failed to set button data dimension.\n";
       return false;
     }
@@ -196,23 +194,23 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
         int numMatrices = data->getDataDimension(matrixField);
 
   if (sigLen != 3)
-    cerr << "ar_setInputStateFromStructuredData warning: invalid signature.\n";
+    ar_log_warning() << "ar_setInputStateFromStructuredData: invalid signature.\n";
 
   if (numMatrices % 16 != 0){
-    cerr << "ar_setInputStateFromStructuredData error: got a fractional number"
+    ar_log_warning() << "ar_setInputStateFromStructuredData got a fractional number"
          << " of matrices (" << numMatrices << "/16).\n";
     return false;
   }
   numMatrices /= 16;
   if (numItems != numIndices){
-    cerr << "ar_setInputStateFromStructuredData warning: dictionary "
+    ar_log_warning() << "ar_setInputStateFromStructuredData dictionary "
          << " got different number of types and indices,\n\t"
          << numItems << " and " << numIndices
          << " respectively.  Ignoring data packet.\n";
     return false;
   }
   if (numButtons + numAxes + numMatrices != numItems){
-    cerr << "ar_setInputStateFromStructuredData warning: dictionary "
+    ar_log_warning() << "ar_setInputStateFromStructuredData dictionary "
          << " got a count mismatch:\n\t"
          << numButtons <<"+"<< numAxes <<"+"<< numMatrices
          << " doesn't equal "
@@ -227,7 +225,7 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
   float* matrixBuf = new float[16*numMatrices];
 
   if (!typeBuf || !indexBuf || !buttonBuf || !axisBuf || !matrixBuf) {
-    cerr << "ar_setInputStateFromStructuredData error: out of memory.\n";
+    ar_log_warning() << "ar_setInputStateFromStructuredData out of memory.\n";
     return false;
   }
 
@@ -243,7 +241,7 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
     data->dataOut( sigField, sigBuf, AR_INT, sigLen );
     for (i=0; i<(unsigned)sigLen; i++) {
       if (sigBuf[i] < 0) {
-        cerr << "ar_setEventQueueFromStructuredData warning: overriding negative signature.\n";
+        ar_log_warning() << "ar_setEventQueueFromStructuredData overriding negative signature.\n";
         sigBuf[i] = 0;
       }
     }
@@ -288,7 +286,7 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
   for (i=0; i<(unsigned)numItems; i++) {
     int eventIndex = indexBuf[i];
     if (eventIndex < 0) {
-      cerr << "ar_setInputStateFromStructuredData warning: ignoring negative event index.\n";
+      ar_log_warning() << "ar_setInputStateFromStructuredData ignoring negative event index.\n";
       ok = false;
       continue;
     }
@@ -296,28 +294,28 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
     switch (eventType) {
       case AR_EVENT_BUTTON:
         if (iButton >= (unsigned)numButtons) {
-          cerr << "ar_setInputStateFromStructuredData warning: ignoring extra buttons in index field.\n";
+          ar_log_warning() << "ar_setInputStateFromStructuredData ignoring extra buttons in index field.\n";
           ok = false;
         } else
           state->setButton( (unsigned) eventIndex, buttonBuf[iButton++] );
         break;
       case AR_EVENT_AXIS:
         if (iAxis >= (unsigned)numAxes) {
-          cerr << "ar_setInputStateFromStructuredData warning: ignoring extra axes in index field.\n";
+          ar_log_warning() << "ar_setInputStateFromStructuredData ignoring extra axes in index field.\n";
           ok = false;
         } else
           state->setAxis( (unsigned) eventIndex, axisBuf[iAxis++] );
         break;
       case AR_EVENT_MATRIX:
         if (iMatrix >= (unsigned)numMatrices) {
-          cerr << "ar_setInputStateFromStructuredData warning: ignoring extra matrices in index field.\n";
+          ar_log_warning() << "ar_setInputStateFromStructuredData ignoring extra matrices in index field.\n";
           ok = false;
         } else
           state->setMatrix( (unsigned) eventIndex, matrixBuf + 16*iMatrix++ );
         break;
       default:
-        cerr << "ar_setInputStateFromStructuredData warning: ignoring event type "
-             << eventType << endl;
+        ar_log_warning() << "ar_setInputStateFromStructuredData ignoring event type "
+             << eventType << ".\n";
         ok = false;
     }
   }
@@ -351,31 +349,31 @@ bool ar_saveInputStateToStructuredData( arInputState* state,
 
   if (numButtons != _numButtons)
     if (!data->setDataDimension( buttonField, _numButtons )) {
-      cerr << "ar_saveInputStateToStructuredData error: "
+      ar_log_warning() << "ar_saveInputStateToStructuredData "
 	   << "failed to set button data dimension.\n";
       return false;
     }
   if (numAxes != _numAxes)
     if (!data->setDataDimension( axisField, _numAxes )) {
-      cerr << "ar_saveInputStateToStructuredData error: "
+      ar_log_warning() << "ar_saveInputStateToStructuredData "
 	   << "failed to set axis data dimension.\n";
       return false;
     }
   if (numMatrices != _numMatrices)
     if (!data->setDataDimension( matrixField, _numMatrices )) {
-      cerr << "ar_saveInputStateToStructuredData error: "
+      ar_log_warning() << "ar_saveInputStateToStructuredData "
 	   << "failed to set matrix data dimension.\n";
       return false;
     }
   if (numItems != _numItems)
     if (!data->setDataDimension( typeField, _numItems )) {
-      cerr << "ar_saveInputStateToStructuredData error: "
+      ar_log_warning() << "ar_saveInputStateToStructuredData "
 	   << "failed to set type data dimension.\n";
       return false;
     }
   if (numIndices != _numItems)
     if (!data->setDataDimension( indexField, _numItems )) {
-      cerr << "ar_saveInputStateToStructuredData error: "
+      ar_log_warning() << "ar_saveInputStateToStructuredData "
 	   << "failed to set index data dimension.\n";
       return false;
     }
