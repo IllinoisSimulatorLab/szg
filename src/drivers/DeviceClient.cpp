@@ -8,15 +8,15 @@
 
 #include "arInputNode.h"
 #include "arNetInputSource.h"
-#include "arIOFilter.h"
 
 enum {
   CONTINUOUS_DUMP = 0,
   ON_BUTTON_DUMP,
   EVENT_STREAM,
-  BUTTON_STREAM };
+  BUTTON_STREAM
+};
 
-void dumpState( arInputState& inp ) {
+void dump( arInputState& inp ) {
   const unsigned cb = inp.getNumberButtons();
   const unsigned ca = inp.getNumberAxes();
   const unsigned cm = inp.getNumberMatrices();
@@ -42,50 +42,49 @@ void dumpState( arInputState& inp ) {
   cout << "____\n";
 }
 
-class onButtonEventFilter : public arIOFilter {
+class FilterOnButton : public arIOFilter {
   public:
-    onButtonEventFilter() : arIOFilter() {}
-    virtual ~onButtonEventFilter() {}
+    FilterOnButton() : arIOFilter() {}
+    virtual ~FilterOnButton() {}
   protected:
     virtual bool _processEvent( arInputEvent& inputEvent );
   private:
     arInputState _lastInput;
 };
 
-bool onButtonEventFilter::_processEvent( arInputEvent& event ) {
-  bool dump = false;
+bool FilterOnButton::_processEvent( arInputEvent& event ) {
+  bool fDump = false;
   switch (event.getType()) {
     case AR_EVENT_BUTTON:
-      dump |= event.getButton() && !_lastInput.getButton( event.getIndex() );
+      fDump |= event.getButton() && !_lastInput.getButton( event.getIndex() );
       break;
     case AR_EVENT_GARBAGE:
-      ar_log_warning() << "onButtonEventFilter ignoring garbage.\n";
+      ar_log_warning() << "FilterOnButton ignoring garbage.\n";
       break;
-    default:
-      // avoid compiler warning
+    default: // avoid compiler warning
       break;
   }
   _lastInput = *getInputState();
-  if (dump) {
+  if (fDump) {
     _lastInput.update( event );
-    dumpState( _lastInput );
+    dump( _lastInput );
   }
   return true;
 }
 
-class EventStreamEventFilter : public arIOFilter {
+class FilterEventStream : public arIOFilter {
   public:
-    EventStreamEventFilter( arInputEventType eventType=AR_EVENT_GARBAGE ) :
+    FilterEventStream( arInputEventType eventType=AR_EVENT_GARBAGE ) :
       arIOFilter(),
       _printEventType(eventType) {
       }
-    virtual ~EventStreamEventFilter() {}
+    virtual ~FilterEventStream() {}
   protected:
     virtual bool _processEvent( arInputEvent& inputEvent );
   private:
     int _printEventType;
 };
-bool EventStreamEventFilter::_processEvent( arInputEvent& event ) {
+bool FilterEventStream::_processEvent( arInputEvent& event ) {
   if (_printEventType==AR_EVENT_GARBAGE || _printEventType==event.getType()) {
     cout << event << endl;
   }
@@ -113,13 +112,10 @@ LAbort:
   if (argc == 3) {
     if (!strcmp(argv[2], "-onbutton")) {
       mode = ON_BUTTON_DUMP;
-      ar_log_remark() << "DeviceClient using mode ON_BUTTON_DUMP.\n";
     } else if (!strcmp(argv[2], "-stream")) {
       mode = EVENT_STREAM;
-      ar_log_remark() << "DeviceClient using mode EVENT_STREAM.\n";
     } else if (!strcmp(argv[2], "-buttonstream")) {
       mode = BUTTON_STREAM;
-      ar_log_remark() << "DeviceClient using mode BUTTON_STREAM.\n";
     }
   }
 
@@ -132,15 +128,15 @@ LAbort:
   }
   ar_log_remark() << "DeviceClient listening on slot " << slot << ".\n";
 
-  onButtonEventFilter onButtonFilter;
-  EventStreamEventFilter eventStreamFilter;
-  EventStreamEventFilter buttonStreamFilter( AR_EVENT_BUTTON );
+  FilterOnButton filterOnButton;
+  FilterEventStream filterEventStream;
+  FilterEventStream filterButtonStream( AR_EVENT_BUTTON );
   if (mode == ON_BUTTON_DUMP) {
-    inputNode.addFilter( &onButtonFilter, false );
+    inputNode.addFilter( &filterOnButton, false );
   } else if (mode == EVENT_STREAM) {
-    inputNode.addFilter( &eventStreamFilter, false );
+    inputNode.addFilter( &filterEventStream, false );
   } else if (mode == BUTTON_STREAM) {
-    inputNode.addFilter( &buttonStreamFilter, false );
+    inputNode.addFilter( &filterButtonStream, false );
   }
 
   if (!inputNode.init(szgClient)) {
@@ -172,7 +168,7 @@ LAbort:
 
   while (szgClient.connected()){
     if (mode == CONTINUOUS_DUMP && netInputSource.connected())
-      dumpState(inputNode._inputState);
+      dump(inputNode._inputState);
     ar_usleep(500000);
   }
   return 0;
