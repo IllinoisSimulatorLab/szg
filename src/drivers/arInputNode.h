@@ -34,12 +34,12 @@ class SZG_CALL arInputNode: public arInputSink {
     bool sourceReconfig(int);
   
     // iOwnIt iff the input node owns it & should delete it.
-    void addInputSource( arInputSource* theSource, bool iOwnIt );
-    int addFilter( arIOFilter* theFilter, bool iOwnIt );
-    void addInputSink( arInputSink* theSink, bool iOwnIt );
+    void addInputSource( arInputSource*, bool iOwnIt );
+    int addFilter( arIOFilter*, bool iOwnIt );
+    void addInputSink( arInputSink*, bool iOwnIt );
     
-    bool removeFilter( int filterID );
-    bool replaceFilter( int filterID, arIOFilter* newFilter, bool iOwnIt );
+    bool removeFilter( int ID );
+    bool replaceFilter( int ID, arIOFilter* newFilter, bool iOwnIt );
 
     void setEventCallback(void (*callback)(arInputEvent&))
       { _eventCallback = callback; }
@@ -57,11 +57,12 @@ class SZG_CALL arInputNode: public arInputSink {
     
     arInputState _inputState;
 
-  protected:
+  //protected:
+  private:
     void _lock();
     void _unlock();
     void _setSignature(int,int,int);
-    void _remapData( unsigned int channelNumber, arStructuredData* data );
+    void _remapData( unsigned channelNumber, arStructuredData* data );
     void _filterEventQueue( arInputEventQueue& queue );
     void _updateState( arInputEventQueue& queue );
     int _findUnusedFilterID();
@@ -73,9 +74,9 @@ class SZG_CALL arInputNode: public arInputSink {
     void (*_eventCallback)( arInputEvent& inputEvent );
     
     arMutex _dataSerializationLock;
-    std::list<arInputSource*> _inputSourceList;
-    std::list<arIOFilter*> _inputFilterList;
-    std::list<arInputSink*> _inputSinkList;
+    std::list<arInputSource*> _sources;
+    std::list<arIOFilter*> _filters;
+    std::list<arInputSink*> _sinks;
     std::vector<bool> _iOwnSources;
     std::vector<bool> _iOwnFilters;
     std::vector<bool> _iOwnSinks;
@@ -90,9 +91,9 @@ class SZG_CALL arInputNode: public arInputSink {
     bool _initOK;
     string _label;
 
-    typedef std::list<arInputSource*>::iterator arSourceIterator;
-    typedef std::list<arInputSink*>::iterator arSinkIterator;
-    typedef std::list<arIOFilter*>::iterator arFilterIterator;
+    typedef list<arInputSource*>::iterator iterSrc;
+    typedef list<arInputSink*>::iterator iterSink;
+    typedef list<arIOFilter*>::iterator iterFlt;
 };
 
 #endif

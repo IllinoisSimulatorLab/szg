@@ -23,34 +23,34 @@ arInputNode::~arInputNode() {
 
 #if 0
 // Bug: bad things happen.
-  arSourceIterator sourceIter;
-  arSinkIterator sinkIter;
-  arFilterIterator filterIter;
+  iterSrc sourceIter;
+  iterSink sinkIter;
+  iterFlt filterIter;
   std::vector<bool>::iterator iter;
   
-  for (sourceIter = _inputSourceList.begin(), iter = _iOwnSources.begin();
-         sourceIter != _inputSourceList.end() && iter != _iOwnSources.end();
+  for (sourceIter = _sources.begin(), iter = _iOwnSources.begin();
+         sourceIter != _sources.end() && iter != _iOwnSources.end();
          sourceIter++, iter++) {
     if (*iter)
       delete *sourceIter;
   }
-  for (sinkIter = _inputSinkList.begin(), iter = _iOwnSinks.begin();
-         sinkIter != _inputSinkList.end() && iter != _iOwnSinks.end();
+  for (sinkIter = _sinks.begin(), iter = _iOwnSinks.begin();
+         sinkIter != _sinks.end() && iter != _iOwnSinks.end();
          sinkIter++, iter++) {
     if (*iter)
       delete *sinkIter;
   }
-  for (filterIter = _inputFilterList.begin(), iter = _iOwnFilters.begin();
-         filterIter != _inputFilterList.end() && iter != _iOwnFilters.end();
+  for (filterIter = _filters.begin(), iter = _iOwnFilters.begin();
+         filterIter != _filters.end() && iter != _iOwnFilters.end();
          filterIter++, iter++) {
     if (*iter)
       delete *filterIter;
   }
 #endif
 
-  _inputFilterList.clear();
-  _inputSinkList.clear();
-  _inputSourceList.clear();
+  _filters.clear();
+  _sinks.clear();
+  _sources.clear();
   _iOwnSources.clear();
   _iOwnFilters.clear();
   _iOwnSinks.clear();
@@ -63,9 +63,7 @@ bool arInputNode::init(arSZGClient& szgClient){
   _label = szgClient.getLabel();
 
   // Initialize the registered input sources.
-  for (arSourceIterator i = _inputSourceList.begin();
-       i != _inputSourceList.end();
-       ++i){
+  for (iterSrc i = _sources.begin(); i != _sources.end(); ++i){
     // If one fails, the whole thing fails.
     if (!(*i)->init(szgClient)) {
       ar_log_warning() << _label << " failed to init input source.\n";
@@ -76,9 +74,7 @@ bool arInputNode::init(arSZGClient& szgClient){
   }
 
   // Initialize the registered input sinks.
-  for (arSinkIterator j = _inputSinkList.begin();
-       j != _inputSinkList.end();
-       ++j){
+  for (iterSink j = _sinks.begin(); j != _sinks.end(); ++j){
     // If one fails, the whole thing fails.
     if (!(*j)->init(szgClient)){
       ar_log_warning() << _label << " failed to init input sink.\n";
@@ -96,14 +92,10 @@ bool arInputNode::start(){
 
   _complained = false;
   bool ok = true;
-  for (arSourceIterator i = _inputSourceList.begin();
-       i != _inputSourceList.end();
-       ++i){
+  for (iterSrc i = _sources.begin(); i != _sources.end(); ++i){
     ok &= (*i)->start();
   }
-  for (arSinkIterator j = _inputSinkList.begin();
-       j != _inputSinkList.end();
-       ++j){
+  for (iterSink j = _sinks.begin(); j != _sinks.end(); ++j){
     if ( (*j)->_autoActivate ){
       // Skip the file logging input sink, which auto-activates in DeviceServer.
       ok &= (*j)->start();
@@ -118,14 +110,10 @@ bool arInputNode::stop(){
     return false;
 
   bool ok = true;
-  for (arSourceIterator i = _inputSourceList.begin();
-       i != _inputSourceList.end();
-       ++i){
+  for (iterSrc i = _sources.begin(); i != _sources.end(); ++i){
     ok &= (*i)->stop();
   }
-  for (arSinkIterator j = _inputSinkList.begin();
-       j != _inputSinkList.end();
-       ++j){
+  for (iterSink j = _sinks.begin(); j != _sinks.end(); ++j){
     ok &= (*j)->stop();
   }
   return ok;
@@ -137,14 +125,10 @@ bool arInputNode::restart(){
     return false;
 
   bool ok = true;
-  for (arSourceIterator i = _inputSourceList.begin();
-       i != _inputSourceList.end();
-       ++i){
+  for (iterSrc i = _sources.begin(); i != _sources.end(); ++i){
     ok &= (*i)->restart();
   }
-  for (arSinkIterator j = _inputSinkList.begin();
-       j != _inputSinkList.end();
-       ++j){
+  for (iterSink j = _sinks.begin(); j != _sinks.end(); ++j){
     ok &= (*j)->restart();
   }
   return ok;
@@ -158,7 +142,7 @@ void arInputNode::receiveData(int channelNumber, arStructuredData* data) {
   }
   
   _lock();
-  _remapData( (unsigned int) channelNumber, data );
+  _remapData( unsigned(channelNumber), data );
 
   _eventQueue.clear();
   if (!ar_setEventQueueFromStructuredData( &_eventQueue, data )) {
@@ -183,10 +167,8 @@ LAbort:
   _updateState( _eventQueue );
   
   // Forward this to the input sinks.
-  for (arSinkIterator j = _inputSinkList.begin();
-       j != _inputSinkList.end();
-       ++j){
-    (*j)->receiveData(channelNumber,data);
+  for (iterSink j = _sinks.begin(); j != _sinks.end(); ++j){
+    (*j)->receiveData(channelNumber, data);
   }
   _unlock();
 }
@@ -202,49 +184,44 @@ void arInputNode::processBufferedEvents() {
   _unlock();
 }
 
-// \bug This is called too many times, resetting the signature n times instead of just once.
+// Called when a connected devices has changed its signature.
+// Bug: called too many times, resetting the signature n times instead of just once.
 
 bool arInputNode::sourceReconfig(int whichChannel){
-  // this gets called when one of the connected devices has changed
-  // its signature... i.e. number of buttons/axes/matrices
   _lock();
 
-  if (whichChannel < 0 || whichChannel >= (int)_inputSourceList.size()) {
+  if (whichChannel < 0 || whichChannel >= (int)_sources.size()) {
     ar_log_warning() << _label << " arInputNode ignoring out-of-range channel "
                    << whichChannel << ".\n";
     _unlock();
     return false;
   }
 
-  // Find the whichChannel'th member of _inputSourceList
-  // (a linked list, so do it the slow way!).
-  unsigned int j=0;
-  unsigned int numButton = 0;
-  unsigned int numAxis = 0;
-  unsigned int numMatrix = 0;
-  arSourceIterator i;
-  for (i = _inputSourceList.begin(); i != _inputSourceList.end(); ++i, ++j) {
-    if ((int)j == whichChannel) {
-      numButton = (*i)->getNumberButtons();
-      numAxis = (*i)->getNumberAxes();
-      numMatrix = (*i)->getNumberMatrices();
-      break;
-    }
-  }    
-  _inputState.remapInputDevice( whichChannel, numButton, numAxis, numMatrix );
+  unsigned j=0;
+  for (iterSrc i = _sources.begin(); i != _sources.end(); ++i, ++j) {
+    if ((int)j != whichChannel)
+      continue;
 
+    // Found the whichChannel'th member of _sources (std::list is slow, oh well).
+    _inputState.remapInputDevice(whichChannel,
+      (*i)->getNumberButtons(), (*i)->getNumberAxes(), (*i)->getNumberMatrices());
+    _unlock();
+    return true;
+  }    
+
+  ar_log_warning() << _label << " arInputNode internally missing a channel.\n";
   _unlock();
-  return true;
+  return false;
 }
 
-void arInputNode::addInputSource( arInputSource* theSource, bool iOwnIt ){
-  if (!theSource) {
+void arInputNode::addInputSource( arInputSource* src, bool iOwnIt ){
+  if (!src) {
     ar_log_warning() << "arInputNode ignoring NULL source.\n";
     return;
   }
 
-  _inputSourceList.push_back( theSource );
-  theSource->_setInputSink( _currentChannel++, this );
+  _sources.push_back( src );
+  src->_setInputSink( _currentChannel++, this );
   _iOwnSources.push_back( iOwnIt );
 }
 
@@ -254,57 +231,55 @@ int arInputNode::addFilter( arIOFilter* theFilter, bool iOwnIt ){
     return -1;
   }
 
-  const int newID = _findUnusedFilterID();
-  theFilter->setID( newID );
-  _inputFilterList.push_back( theFilter );
+  const int ID = _findUnusedFilterID();
+  theFilter->setID( ID );
+  _filters.push_back( theFilter );
   _iOwnFilters.push_back( iOwnIt );
   _filterStates.push_back(
     _filterStates.empty() ? _inputState : _filterStates.back());
-  ar_log_debug() << "arInputNode: new filter with ID " << newID << ar_endl;
-  return newID;
+  ar_log_debug() << "arInputNode: new filter with ID " << ID << ar_endl;
+  return ID;
 }
 
-bool arInputNode::removeFilter( int filterID ) {
-  ar_log_remark() << "arInputNode removing event filter with ID " << filterID << ".\n";
+bool arInputNode::removeFilter( int ID ) {
   _lock();
-  unsigned int filterNumber = 0;
-  arFilterIterator f;
-  for (f = _inputFilterList.begin(); f != _inputFilterList.end(); ++f) {
-    if ((*f)->getID() == filterID) {
-      ar_log_remark() << _label << " arInputNode found filter with ID " << filterID << ".\n";
-      _inputFilterList.erase(f);
-      _iOwnFilters.erase( _iOwnFilters.begin() + filterNumber );
-      _filterStates.erase( _filterStates.begin() + filterNumber );
-      _unlock();
-      return true;
-    }
-    ++filterNumber;
+  unsigned filterNumber = 0;
+  for (iterFlt f = _filters.begin(); f != _filters.end(); ++f,++filterNumber) {
+    if ((*f)->getID() != ID)
+      continue;
+
+    ar_log_remark() << _label << " arInputNode removing filter with ID " << ID << ".\n";
+    _filters.erase(f);
+    _iOwnFilters .erase( _iOwnFilters .begin() + filterNumber );
+    _filterStates.erase( _filterStates.begin() + filterNumber );
+    _unlock();
+    return true;
   }
+
   _unlock();
-  ar_log_warning() << _label << " arInputNode: no filter ID " << filterID << ".\n";
+  ar_log_warning() << _label << " arInputNode: no filter with ID " << ID << " to remove.\n";
   return false;
 }
 
 
-bool arInputNode::replaceFilter( int filterID, arIOFilter* newFilter, bool iOwnIt ) {
-  ar_log_remark() << "arInputNode replacing event filter with ID " << filterID << ".\n";
+bool arInputNode::replaceFilter( int ID, arIOFilter* newFilter, bool iOwnIt ) {
   _lock();
-  unsigned int filterNumber = 0;
-  arFilterIterator f;
-  for (f = _inputFilterList.begin(); f != _inputFilterList.end(); ++f) {
-    if ((*f)->getID() == filterID) {
-      ar_log_remark() << "arInputNode found filter with ID " << filterID << ".\n";
-      newFilter->setID( filterID );
-      *f = newFilter;
-      _iOwnFilters[filterNumber] = iOwnIt;
-      _filterStates[filterNumber] = arInputState();
-      _unlock();
-      return true;
-    }
-    ++filterNumber;
+  unsigned filterNumber = 0;
+  for (iterFlt f = _filters.begin(); f != _filters.end(); ++f,++filterNumber) {
+    if ((*f)->getID() != ID)
+      continue;
+
+    ar_log_remark() << _label << " arInputNode replacing filter with ID " << ID << ".\n";
+    newFilter->setID( ID );
+    *f = newFilter;
+    _iOwnFilters[filterNumber] = iOwnIt;
+    _filterStates[filterNumber] = arInputState();
+    _unlock();
+    return true;
   }
+
   _unlock();
-  ar_log_warning() << "arInputNode: no filter ID " << filterID << ".\n";
+  ar_log_warning() << "arInputNode: no filter with ID " << ID << " to replace.\n";
   return false;
 }
 
@@ -320,20 +295,20 @@ void arInputNode::addInputSink( arInputSink* theSink, bool iOwnIt ){
     return;
   }
 
-  _inputSinkList.push_back(theSink);
+  _sinks.push_back(theSink);
   _iOwnSinks.push_back( iOwnIt );
 }
 
 int arInputNode::getButton(int i) {
-  return _inputState.getButton((unsigned int) i);
+  return _inputState.getButton(unsigned(i));
 }
 
 float arInputNode::getAxis(int i){
-  return _inputState.getAxis((unsigned int) i);
+  return _inputState.getAxis(unsigned(i));
 }
 
 arMatrix4 arInputNode::getMatrix(int i){
-  return _inputState.getMatrix((unsigned int) i);
+  return _inputState.getMatrix(unsigned(i));
 }
 
 int arInputNode::getNumberButtons() const {
@@ -374,7 +349,7 @@ void arInputNode::_setSignature(int numButtons, int numAxes, int numMatrices){
 }
 
 
-void arInputNode::_remapData( unsigned int channelNumber, arStructuredData* data ) {
+void arInputNode::_remapData( unsigned channelNumber, arStructuredData* data ) {
   // massage the data... this will become MUCH more elaborate
   const int sig[3] = { _inputState.getNumberButtons(),
                        _inputState.getNumberAxes(),
@@ -385,7 +360,7 @@ void arInputNode::_remapData( unsigned int channelNumber, arStructuredData* data
   // loop through events.  For each event, change its index to 
   // index + sum for i=0 to channelNumber-1 of e.g. _deviceButton[i] so we
   // don't get collisions.
-  unsigned int i, buttonOffset=0, axisOffset=0, matrixOffset=0;
+  unsigned i, buttonOffset=0, axisOffset=0, matrixOffset=0;
   if (!_inputState.getButtonOffset( channelNumber, buttonOffset ))
     ar_log_warning() << "arInputNode got no button offset for device"
                      << channelNumber << " from arInputState.\n";
@@ -415,21 +390,21 @@ void arInputNode::_remapData( unsigned int channelNumber, arStructuredData* data
 }
 
 void arInputNode::_filterEventQueue( arInputEventQueue& queue ) {
-  unsigned int filterNumber = 0;
-  arFilterIterator f;
-  std::vector< arInputState >::iterator stateIter = _filterStates.begin();
-  for (f = _inputFilterList.begin(); f != _inputFilterList.end(); ++f) {
+  // todo: assert that _lock() has been called, by setting a flag in _lock().
+  unsigned filterNumber = 0;
+  std::vector< arInputState >::iterator iterState = _filterStates.begin();
+  for (iterFlt f = _filters.begin(); f != _filters.end(); ++f) {
      arInputState* statePtr = NULL;
-     if (stateIter == _filterStates.end()) {
-      ar_log_warning() << "arInputNode reading past end of filterStates array.\n";
+     if (iterState == _filterStates.end()) {
+      ar_log_warning() << "arInputNode passed end of filterStates.\n";
       statePtr = &_inputState; // do something that may not be too bad? or return?
     } else {
-      statePtr = (arInputState*)&*stateIter;
+      statePtr = (arInputState*)&*iterState;
     }
     if (!(*f)->filter( &queue, statePtr ))
       ar_log_warning() << " arInputNode filter # " << filterNumber << " failed.\n";
     ++filterNumber;
-    ++stateIter;
+    ++iterState;
   }
 }
 
@@ -445,17 +420,16 @@ void arInputNode::_updateState( arInputEventQueue& queue ) {
 }
     
 int arInputNode::_findUnusedFilterID() {
-  std::list<arIOFilter*>::iterator iter;
   int id = 1;
   bool done = false;
   while (!done) {
     done = true;
-    for (iter = _inputFilterList.begin(); iter != _inputFilterList.end(); ++iter) {
-      if ((*iter)->getID() == id) {
-        ++id;
-        done = false;
-        break;
-      }
+    for (iterFlt iter = _filters.begin(); iter != _filters.end(); ++iter) {
+      if ((*iter)->getID() != id)
+        continue;
+      ++id;
+      done = false;
+      break;
     }
   }
   return id;
