@@ -164,9 +164,10 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   // down in the _parseSpecialPhleetArgs and _parseContext.
 
   // From the computer-wide config file (if such existed) and the user's login file.
-  _networks = _config.getNetworks();           // can override
-  _addresses = _config.getAddresses();         // can override
+  _networks     = _config.getNetworks();       // can override
+  _addresses    = _config.getAddresses();      // can override
   _computerName = _config.getComputerName();   // *cannot* override
+
   // From the per-user login file, if such existed.
   _serverName   = _config.getServerName();     // *cannot* override
   _IPaddress    = _config.getServerIP();       // can override
@@ -174,21 +175,21 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   _userName     = _config.getUserName();       // can override
 
   // Handle and remove any special Phleet args.
-  // These can override some of the members just assigned.
+  // These can override some _members above.
   if (!_parsePhleetArgs(argc, argv)) {
     _initResponseStream << _exeName << " error: invalid Phleet args.\n";
     // Force the component to quit (even if we ARE connected).
     _connected = false;
   }
-  // These can override some of the variables set above.
-  // The "context" always trumps command line args.
+
+  // "Context" can override some _members above.
   if (!_parseContext()) {
     _initResponseStream << _exeName << " error: invalid Phleet context.\n";
     // Force the component to quit (even if we ARE connected).
     _connected = false;
   }
 
-  // SZGUSER trumps everything else.  szgd uses it.
+  // $SZGUSER (used by szgd) overrides all other _userName's.
   const string userNameOverride = ar_getenv("SZGUSER");
   if (userNameOverride != "NULL") {
     _userName = userNameOverride;
@@ -202,21 +203,15 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
     ar_log_critical() << _exeName << " running standalone.\n";
     _connected = false;
 
-    // Don't warn if no param file is found.
-    bool didParams = true;
-    if (_parameterFileName == "USE_DEFAULT") {
-      if (!parseParameterFile("szg_parameters.xml", false)) {
-        if (!parseParameterFile("szg_parameters.txt", false)) {
-          didParams = false;
-        }
-      }
-    } else if (!parseParameterFile(_parameterFileName, false)) {
-      didParams = false;
-    }
-    if (!didParams) {
-      const string fallbackFilename = ar_getenv("SZG_PARAM");
-      if (fallbackFilename != "NULL") {
-        parseParameterFile(fallbackFilename, false);
+    const bool gotParams = 
+      (_parameterFileName == "USE_DEFAULT" &&
+        (parseParameterFile("szg_parameters.xml", false) ||
+         parseParameterFile("szg_parameters.txt", false))) ||
+       parseParameterFile(_parameterFileName, false);
+    if (!gotParams) {
+      const string s = ar_getenv("SZG_PARAM");
+      if (s != "NULL") {
+        parseParameterFile(s, false);
       }
     }
     return true;
@@ -232,7 +227,7 @@ bool arSZGClient::init(int& argc, char** const argv, string forcedName) {
   _connected = true;
   const string configfile_serverName(_serverName);
   
-  // Connected.  Tell szgserver our name.
+  // Tell szgserver our name.
   if (forcedName == "NULL") {
     _setLabel(_exeName); 
   }
@@ -309,9 +304,9 @@ bool arSZGClient::_sendResponse(stringstream& s,
 
   // Append a standard success or failure message.
   if (ok)
-    ar_log_remark()  << _exeName << " " << sz << "ed.\n";
+    ar_log_remark() << _exeName << " " << sz << "ed.\n";
   else
-    ar_log_warning() << _exeName << " " << sz << " failed.\n";
+    ar_log_error()  << _exeName << " " << sz << " failed.\n";
 
   // Do not send the response if:
   //  - The message trade failed in init(), likely because the launcher timed out;
@@ -1449,10 +1444,9 @@ bool arSZGClient::sendReload(const string& computer,
     return true;
   }
   const int pid = getProcessID(computer, processLabel);
-  const int ok = pid != -1 && (sendMessage("reload", "NULL", pid) >= 0);
+  const int ok = pid != -1 && sendMessage("reload", "NULL", pid) >= 0;
   if (!ok)
-    ar_log_warning() << _exeName << " failed to reload on host '"
-                     << computer << "'.\n";
+    ar_log_warning() << _exeName << " failed to reload on host '" << computer << "'.\n";
   return ok;
 }
 
@@ -1470,14 +1464,12 @@ int arSZGClient::sendMessage(const string& type, const string& body,
   if (!_connected)
     return -1;
 
-  // Must get storage for the message.
-  arStructuredData* messageData =
-    _dataParser->getStorage(_l.AR_SZG_MESSAGE);
+  // Storage for the message.  Recycle when done.
+  arStructuredData* messageData = _dataParser->getStorage(_l.AR_SZG_MESSAGE);
   // convert from bool to int
   const int response = responseRequested ? 1 : 0;
   int match = _fillMatchField(messageData);
-  if (!messageData->dataIn(_l.AR_SZG_MESSAGE_RESPONSE,
-                           &response, AR_INT,1) ||
+  if (!messageData->dataIn(_l.AR_SZG_MESSAGE_RESPONSE, &response, AR_INT,1) ||
       !messageData->dataInString(_l.AR_SZG_MESSAGE_TYPE,type) ||
       !messageData->dataInString(_l.AR_SZG_MESSAGE_BODY,body) ||
       !messageData->dataIn(_l.AR_SZG_MESSAGE_DEST,&destination,AR_INT,1) ||
@@ -1499,7 +1491,6 @@ int arSZGClient::sendMessage(const string& type, const string& body,
       _dataParser->recycle(ack);
     }
   }
-  // Must recycle the storage.
   _dataParser->recycle(messageData);
   return match;
 }
@@ -2494,7 +2485,6 @@ inline const string dropsemi(string& s) {
 // Used to make the launch info header.
 string arSZGClient::createContext() {
   string s(
-    namevalue("STANDALONE", _virtualComputer=="NULL" ? "true" : "NULL") +
     namevalue("virtual", _virtualComputer) +
     namevalue("mode/default", _mode) +
     namevalue("mode/graphics", _graphicsMode) +
@@ -2517,7 +2507,6 @@ string arSZGClient::createContext(const string& virtualComputer,
                                   const string& networksChannel,
                                   const arSlashString& networks) {
   string s(
-    namevalue("STANDALONE", virtualComputer=="NULL" ? "true" : "NULL") +
     namevalue("virtual", virtualComputer) +
     namevalue("mode/" + modeChannel, mode) +
     namevalue("networks/" + networksChannel, networks));
