@@ -113,7 +113,7 @@ arNetInputSource::arNetInputSource() :
 // @param slot the slot in question
 bool arNetInputSource::setSlot(int slot){
   if (slot<0){
-    ar_log_warning() << "arNetInputSource ignoring negative input device slot.\n";
+    ar_log_warning() << "arNetInputSource ignoring negative slot.\n";
     return false;
   }
   _slot = slot;
