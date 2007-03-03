@@ -51,8 +51,7 @@ bool arAppLauncher::setAppType(const string& theType){
   return true;
 }
 
-// Set the virtal computer and the location, based on the default information
-// held by the arSZGClient (i.e. as provided by the CONTEXT).
+// Set the virtal computer and the location, from the arSZGClient's "context."
 bool arAppLauncher::setVircomp(){
   if (!_client) {
     return false;
@@ -63,7 +62,7 @@ bool arAppLauncher::setVircomp(){
 }
 
 // Set the virtual computer (e.g. for killalldemo), without starting a whole app.
-bool arAppLauncher::setVircomp(string vircomp){
+bool arAppLauncher::setVircomp(const string& vircomp){
   if (!_client){
     // invalid virtual computer
     return false;
@@ -95,10 +94,10 @@ bool arAppLauncher::connectSZG(int& argc, char** argv){
   return true;
 }
 
-// Often, the program holding the arAppLauncher object will want to have
-// its own arSZGClient. Of course, the arAppLauncher needs access to that
-// object as well, which access is provided by this method. Must be
-// called before any other method.
+// Often, the program holding the arAppLauncher has
+// its own arSZGClient. This provides access to that arSZGClient.
+// object as well, which access is provided by this method.
+// Must be called before any other method.
 bool arAppLauncher::setSZGClient(arSZGClient* SZGClient){
   if (!SZGClient) {
     ar_log_warning() << _exeName << " warning: ignoring setSZGClient(NULL).\n";
@@ -109,12 +108,7 @@ bool arAppLauncher::setSZGClient(arSZGClient* SZGClient){
   return true;
 }
 
-// Queries the szgserver's database to find out the characteristics of the
-// virtual computer and parses them, performing some elementary error 
-// checking. PLEASE NOTE: pretty much everybody calls this who needs to
-// the characteristics of the virtaul computer (like killaldemo).
-// Consequently, we need to take into account the fact that the virtual
-// computer might have already been set explicitly. 
+// From szgserver, get and parse and error-check attributes of the virtual computer.
 bool arAppLauncher::setParameters(){
   if (!_client){
     ar_log_error() << _exeName << " error: no arSZGClient.\n";
@@ -123,6 +117,8 @@ bool arAppLauncher::setParameters(){
 
   if (_vircompDefined){
     // Done already.
+    // todo: since many exes (e.g. killalldemo) call this, maybe handle when the v.c
+    // was already set explicitly.
     return true;
   }
   

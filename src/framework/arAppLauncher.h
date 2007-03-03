@@ -35,20 +35,20 @@ class SZG_CALL arAppLauncher{
   bool setRenderProgram(const string&);
   bool setAppType(const string&);
   bool setVircomp();
-  bool setVircomp(string vircomp); 
-  string getVircomp() { return _vircomp; }   
-  string getLocation() { return _location; }
+  bool setVircomp(const string& vircomp); 
+  string getVircomp() const { return _vircomp; }   
+  string getLocation() const { return _location; }
 
   bool connectSZG(int& argc, char** argv);
   bool setSZGClient(arSZGClient*);
 
-  bool setParameters();
-  bool launchApp();
   void killApp();
-  bool waitForKill();
-  bool restartServices();
   bool killAll();
+  bool launchApp();
+  bool restartServices();
   bool screenSaver();
+  bool setParameters();
+  bool waitForKill();
 
   bool isMaster();
   int getNumberScreens();
@@ -77,11 +77,9 @@ class SZG_CALL arAppLauncher{
   bool               _onlyIncompatibleServices;
 
   string _firstToken(const string&);
-  string _getAttribute(const string& group, const string& param, 
-                       const string& value)
-    { return _client->getAttribute(_vircomp, group, param, value); }
-  bool _setAttribute(const string& group, const string& param, 
-                     const string& value);
+  string _getAttribute(const string& g, const string& p, const string& v)
+    { return _client->getAttribute(_vircomp, g, p, v); }
+  bool _setAttribute(const string& group, const string& param, const string& value);
   bool _prepareCommand();
   void _setNumberPipes(int);
   bool _setPipeName(int);
@@ -102,4 +100,5 @@ class SZG_CALL arAppLauncher{
   string _getInputContext();
   string _getSoundContext();
 };
+
 #endif
