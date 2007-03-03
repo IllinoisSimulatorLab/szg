@@ -116,9 +116,8 @@ bool arAppLauncher::setParameters(){
   }
 
   if (_vircompDefined){
-    // Done already.
-    // todo: since many exes (e.g. killalldemo) call this, maybe handle when the v.c
-    // was already set explicitly.
+    // todo: since many exes (e.g. killalldemo) call this,
+    // maybe handle when the v.c. was already set explicitly.
     return true;
   }
   
@@ -145,10 +144,10 @@ bool arAppLauncher::setParameters(){
   }
   _setNumberPipes(numberPipes);
  
-  int i = 0;
+  int i;
   for (i=0; i< numberPipes; ++i){
     if (!_setPipeName(i)){
-      // function already sent error message
+      // already warned
       return false;
     }
     _renderLaunchInfo[i].computer = _pipeComp[i];
@@ -189,10 +188,9 @@ bool arAppLauncher::setParameters(){
     string device(inputDevs[i+1]);
     string info(device);
 
-    // NOTE: the input device in slot 0 is the one that actually
-    // connects to the application. Consequently, it must come FIRST
-    // in the <virtual computer>/SZG_INPUT0/map listing.
-    // The next entry in the listing is the first slave device.
+    // Since the input device in slot 0 actually connects to the app,
+    // it comes FIRST in the <virtual computer>/SZG_INPUT0/map listing.
+    // Slave devices come after that.
     char buffer[32];
     sprintf(buffer,"%i",i/2);
     
@@ -200,8 +198,7 @@ bool arAppLauncher::setParameters(){
       device + " " + string(buffer);
     if (i < numTokens-2)
       device += " -netinput";
-    _addService(computer, device, _getInputContext(),
-                "SZG_INPUT"+string(buffer), info);
+    _addService(computer, device, _getInputContext(), "SZG_INPUT"+string(buffer), info);
   }
 
   // Sound.
@@ -209,6 +206,7 @@ bool arAppLauncher::setParameters(){
   if (soundLocation != "NULL"){
     _addService(soundLocation,"SoundRender", _getSoundContext(), "SZG_WAVEFORM", "");
   }
+
   _vircompDefined = true;
   return true;
 }  
@@ -217,7 +215,7 @@ bool arAppLauncher::setParameters(){
 bool arAppLauncher::launchApp(){
   // _prepareCommand() includes the lock to match the _unlock()'s below.
   if (!_prepareCommand()){
-    ar_log_error() << _exeName << " error: failed to prepare launch command.\n";
+    ar_log_error() << _exeName << " error: failed to prepare launch.\n";
     return false;
   }
 
