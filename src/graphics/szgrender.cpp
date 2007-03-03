@@ -185,7 +185,7 @@ int main(int argc, char** argv){
   if (!szgClient.getLock(screenLock, graphicsID)){
     ar_log_error() << "szgrender's screen already locked by component " << graphicsID << ".\n";
     if (!szgClient.sendInitResponse(false))
-      cerr << "error: maybe szgserver died.\n";
+      cerr << "szgrender error: maybe szgserver died.\n";
     return 1;
   }
 
@@ -193,7 +193,7 @@ int main(int argc, char** argv){
   graphicsClient.addFrameworkObject(&framerateGraph);
 
   if (!szgClient.sendInitResponse(true)){
-    cerr << "error: maybe szgserver died.\n";
+    cerr << "szgrender error: maybe szgserver died.\n";
   }
 
   ar_mutex_init(&pauseLock);
@@ -222,7 +222,7 @@ int main(int argc, char** argv){
   windowManager->findFramelock();
 
   if (!szgClient.sendStartResponse(true)){
-    cerr << "error: maybe szgserver died.\n";
+    cerr << "szgrender error: maybe szgserver died.\n";
   }
 
   while (!fExit){ 

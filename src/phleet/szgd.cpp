@@ -19,10 +19,6 @@
   #include <signal.h>
 #endif
 
-// ar_log_remark() etc. seem to fail silently in szgd.
-// Despite calling ar_log().setStream(cerr) .
-// Use cerr instead, for now.
-
 // So every trading key is unique, increment tradingNum each time.
 int tradingNum = 0;
 arMutex tradingNumLock;
@@ -33,17 +29,17 @@ arSZGClient* SZGClient = NULL;
 
 std::vector< std::string > basePathsGlobal;
 
-// Print warnings to console _and_ try to return them to dex.
+// Print warnings to console AND return them to dex.
 void warnTwice( ostringstream& errStream, const string& msg ) {
   // to console
-  cerr << "szgd warning: " << msg << endl;
+  ar_log_warning() << "szgd: " << msg << "\n";
   const bool fTerminated = msg[msg.size()-1] == '\n';
   if (!fTerminated)
-    cerr << '\n';
+    ar_log_warning() << '\n';
 
   if (errStream != cerr && errStream != cout) {
     // to dex
-    errStream << "host " << SZGClient->getComputerName() << "szgd warning: " << msg;
+    errStream << "szgd on " << SZGClient->getComputerName() << " warning: " << msg;
     if (!fTerminated)
       errStream << '\n';
   }
@@ -111,7 +107,7 @@ bool getBasePaths( const char* const arg ) {
     bool exists = false;
     bool isDirectory = false;
     if (!ar_directoryExists( pathTmp, exists, isDirectory )) {
-      cerr << "szgd internal error: ar_directoryExists() failed.\n";
+      ar_log_warning() << "szgd: ar_directoryExists() failed.\n";
       return false;
     }
     if (!exists) {
@@ -119,16 +115,16 @@ bool getBasePaths( const char* const arg ) {
       bool isFile = false;
       if (!ar_fileExists( pathTmp+".exe", exists, isFile )) {
         if (!exists) {
-          cerr << "szgd warning: no directory '" << pathTmp << "' or executable '" << pathTmp+".exe.\n";
+          ar_log_warning() << "szgd: no directory '" << pathTmp << "' or executable '" << pathTmp+".exe.\n";
           return false;
         }
         if (!isFile) {
-          cerr << "szgd warning: executable '" << pathTmp+".exe" << "' is not a file.\n";
+          ar_log_warning() << "szgd: executable '" << pathTmp << ".exe' is not a file.\n";
           return false;
         }
       }
 #else
-      cerr << "szgd warning: no directory '" << pathTmp << "'.\n";
+      ar_log_warning() << "szgd: no directory '" << pathTmp << "'.\n";
       return false;
 #endif
     }
@@ -198,9 +194,9 @@ string getAppPath( const string& userName, const string& groupName, const string
       }
     }
   }
-  cout << "szgd remark: scanning for " << appFile << ":\n";
+  ar_log_remark() << "szgd scanning for " << appFile << ":\n";
   for (dirIter=dirsToSearch.begin(); dirIter != dirsToSearch.end(); ++dirIter) {
-    cout << *dirIter << endl;
+    ar_log_remark() << *dirIter << "\n";
     string potentialFile(*dirIter);
     ar_pathAddSlash(potentialFile);
     potentialFile += appFile;
@@ -219,7 +215,7 @@ string getAppPath( const string& userName, const string& groupName, const string
       return "NULL";
     }
     if (fileExists && isFile) {
-      cout << "szgd remark: found " << potentialFile << endl;
+      ar_log_remark() << "szgd found " << potentialFile << "\n";
       actualDirectory = *dirIter;
       break;
     }
@@ -239,7 +235,7 @@ string getAppPath( const string& userName, const string& groupName, const string
            +"/path '"+appPath+"'.\n";
     warnTwice( errStream, errMsg );
   } else {
-    cout << "szgd remark: app dir for " << userName << "/" << groupName
+    ar_log_remark() << "szgd: app dir for " << userName << "/" << groupName
          << "/path is '" << actualDirectory << "'.\n";
   }
   return actualDirectory;
@@ -325,7 +321,7 @@ string buildFunctionArgs(ExecInfo* execInfo,
   args.clear();
   arDelimitedString tmpArgs(argString, ' ');
   if (tmpArgs.size() < 1) {
-    return "szgd warning: no arguments.\n";
+    return "no arguments.\n";
   }
 
   command = tmpArgs[0];
@@ -340,8 +336,7 @@ string buildFunctionArgs(ExecInfo* execInfo,
   ostringstream errStream;
   execPath = SZGClient->getAttribute(userName, "NULL", "SZG_EXEC", "path", "");
   if (execPath == "NULL"){
-    errStream << "host " << SZGClient->getComputerName() <<
-      "szgd warning: no SZG_EXEC/path.\n";
+    errStream << "no SZG_EXEC/path.\n";
   }
 
   // Determine if the argString's first token is in the exec path:
@@ -367,10 +362,9 @@ string buildFunctionArgs(ExecInfo* execInfo,
     }
     command = ar_fileFind( fileName, "", execInfo->appDirPath);
     if (command == "NULL") {
-      errStream << "szgd warning: no file '" << fileName <<
-        "' on SZG_PYTHON/path '" << execInfo->appDirPath << "'.\n";
-      cerr << errStream.str();
-      return errStream.str();
+      errStream << "no file '" << fileName << "' on SZG_PYTHON/path '" <<
+        execInfo->appDirPath << "'.\n";
+      goto LNolaunch;
     }
   }
   else {
@@ -385,14 +379,15 @@ string buildFunctionArgs(ExecInfo* execInfo,
     }
     command = ar_fileFind( fileName, "", execInfo->appDirPath);
     if (command == "NULL") {
-      errStream << "szgd warning: no file '" << fileName
-           << "' on SZG_EXEC/path '" << execInfo->appDirPath << "'.\n";
+      errStream << "no file '" << fileName << "' on SZG_EXEC/path '" <<
+        execInfo->appDirPath << "'.\n";
 LAbort:
 #ifdef AR_USE_WIN_32
       if (fHadEXE)
-        errStream << "szgd warning: don't append .exe;  Windows does that for you.\n";
+        errStream << "Don't append .exe;  Windows does that for you.\n";
 #endif
-      cerr << errStream.str();
+LNolaunch:
+      ar_log_warning() << "szgd: " << errStream.str();
       return errStream.str();
     }
   }
@@ -403,7 +398,7 @@ LAbort:
 
   case formatInvalid:
   default:
-    errStream << "szgd warning: unexpected exe type " << format << ".\n";
+    errStream << "unexpected exe type " << format << ".\n";
     return errStream.str();
 
   case formatNative:
@@ -438,8 +433,8 @@ LAbort:
         fileName = command;
         command = ar_fileFind( fileName, "", execPath );
         if (command == "NULL") {
-          errStream << "szgd warning: no python exe '" << fileName
-               << "' on SZG_EXEC/path " << execPath << ".\n";
+          errStream << "no python exe '" << fileName <<
+	    "' on SZG_EXEC/path " << execPath << ".\n";
           goto LAbort;
         }
       }
@@ -451,17 +446,17 @@ LAbort:
       fileName = command;
       command = ar_fileFind( fileName, "", execPath );
       if (command == "NULL") {
-        errStream << "szgd warning: no python exe '" << fileName
-             << "' on SZG_EXEC/path " << execPath << ".\n";
+        errStream << "no python exe '" << fileName <<
+          "' on SZG_EXEC/path " << execPath << ".\n";
         goto LAbort;
       }
       if (!comparePathToBases( command, "SZG_EXEC/path for Python", errStream )) {
         goto LAbort;
       }
     }
-    cerr << "Python command: " << command << endl;
+    ar_log_remark() << "Python command: " << command << "\n";
     const string szgPythonLibPath =
-               SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "lib_path", "");
+      SZGClient->getAttribute(userName, "NULL", "SZG_PYTHON", "lib_path", "");
     if (szgPythonLibPath != "NULL") {
       arSemicolonString pyLibs( szgPythonLibPath );
       for (int q=0; q<pyLibs.size(); ++q) {
@@ -473,7 +468,7 @@ LAbort:
     break;
   }
 
-  cout << "szgd remark:\n"
+  ar_log_remark() << "szgd:\n"
        << "  user = " << userName << "\n"
        << "  exe  = " << execInfo->formatname() << " " << command << "\n"
        << "  args = " << argsAsList(args);
@@ -545,7 +540,7 @@ void execProcess(void* i){
 
   // Respond to the message ourselves, if the exe doesn't launch.
   ostringstream info;
-  info << "szgd warning: launch failed.\n"
+  info << "szgd on " << SZGClient->getComputerName() << " failed to launch exe.\n"
        << SZGClient->launchinfo(userName, messageContext);
 
   string execPath;
@@ -560,11 +555,11 @@ void execProcess(void* i){
 LDone:
     delete execInfo;
     if (ar_setWorkingDirectory( originalWorkingDirectory )) {
-      cout << "szgd remark: post-launch current dir is '"
+      ar_log_remark() << "szgd post-launch dir is '"
            << originalWorkingDirectory << "'.\n";
     } else {
-      cerr << "szgd warning: post-launch failed to cd to "
-           << originalWorkingDirectory << ".\n";
+      ar_log_warning() << "szgd post-launch failed to cd to '"
+           << originalWorkingDirectory << "'.\n";
     }
     return;
   }
@@ -580,7 +575,7 @@ LDone:
   const string tradingKey(SZGClient->getComputerName() + "/" 
                           + tradingNumStream.str() + "/"
 	                  + symbolicCommand);
-  cerr << "szgd remark: trading key = " << tradingKey << endl;
+  ar_log_remark() << "szgd trading key = " << tradingKey << ".\n";
   int match = SZGClient->startMessageOwnershipTrade(receivedMessageID, tradingKey);
 
   // Two dynamic search paths (as embodied in environment variables) need
@@ -697,11 +692,11 @@ LDone:
 
   // Set the current directory to that containing the app
   if (!ar_setWorkingDirectory( execInfo->appDirPath )) {
-    cerr << "szgd warning: pre-launch failed to set current directory to '"
-         << execInfo->appDirPath << "'.\n";
+    ar_log_warning() << "szgd pre-launch failed to cd to '" <<
+         execInfo->appDirPath << "'.\n";
   } else {
-    cerr << "szgd remark: pre-launch current directory is '"
-         << execInfo->appDirPath << "'.\n";
+    ar_log_remark() << "szgd remark: pre-launch dir is '" <<
+         execInfo->appDirPath << "'.\n";
   }
 
 #ifndef AR_USE_WIN_32
@@ -710,7 +705,7 @@ LDone:
 
   int pipeDescriptors[2] = {0};
   if (pipe(pipeDescriptors) < 0) {
-    cerr << "szgd warning: failed to create pipe.\n";
+    ar_log_warning() << "szgd failed to create pipe.\n";
     goto LDone;
   }
 
@@ -721,7 +716,7 @@ LDone:
   char numberBuffer[8] = {0};
   const int PID = fork();
   if (PID < 0) {
-    cerr << "szgd warning: fork failed.\n";
+    ar_log_warning() << "szgd failed to fork.\n";
     goto LDone;
   }
 
@@ -732,41 +727,38 @@ LDone:
     // If launch fails, the szgd part of the child reports.
     // If launch succeeds, the launchee reports.
     numberBuffer[0] = 0;
-    // Twenty second timeout for pipe. What if it takes a VERY long time
-    // to start the program (like a Python program on a heavily loaded CPU)?
+    // Twenty second timeout, e.g. for Python on a busy CPU.
     if (!ar_safePipeReadNonBlock(pipeDescriptors[0], numberBuffer, 1, 20000)) {
-      info << "szgd remark: launchee returned no success/failure code\n"
+      info << "szgd launchee returned no success code\n"
 	   << "  (it failed to load a dll, crashed before framework init, or took too long to load).\n";
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
       SZGClient->messageResponse(receivedMessageID, info.str());
       goto LDone;
     }
     if (numberBuffer[0] == 0) {
-      // The launch failed. we will be receiving error messages from
-      // the szgd side of the fork. First, we need to revoke the 
-      // "message trade" since the other end of this code would be invoked in 
-      // the arSZGClient of the exec'ed process.
+      // The launch failed. we will get error messages from
+      // the szgd side of the fork.
+      // Revoke the "message trade" since the other end of this code
+      // would be invoked in the arSZGClient of the exec'ed process.
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
-      // Next, we read in the error information from the pipe. We don't need
-      // a very long time out since the this info should, for sure, be quickly
-      // forthcoming (we aren't depending on lots of dlls being loaded, for
-      // instance, instead it's all in the szg library code).
-      if (!ar_safePipeReadNonBlock(pipeDescriptors[0],
-                                   numberBuffer, sizeof(int), 1000)) {
-        info << "szgd remark: pipe-based handshake failed. Likely an internal library error.\n";
+
+      // Read error info from the pipe.  Short timeout's ok
+      // since this info doesn't depend on slow dll-loading, etc.
+      if (!ar_safePipeReadNonBlock(pipeDescriptors[0], numberBuffer, sizeof(int), 1000)) {
+        info << "szgd internal error: pipe-based handshake failed.\n";
         SZGClient->messageResponse(receivedMessageID, info.str());
         goto LDone;
       }
       // At least one character of text but at most 10000.
       if (*(int*)numberBuffer < 0 || *(int*)numberBuffer > 10000) {
-        cerr << "szgd warning: ignoring bogus numberBuffer value "
-	           << *(int*)numberBuffer << ". Likely an internal library error.\n";
+        ar_log_warning() << "szgd internal error: ignoring bogus numberBuffer value "
+	           << *(int*)numberBuffer << ".\n";
       }
       char* textBuffer = new char[*((int*)numberBuffer)+1];
       // The timeout can be small.
       // Read the error message from the exec call in the forked process.
       if (!ar_safePipeReadNonBlock(pipeDescriptors[0], textBuffer, *((int*)numberBuffer), 1000)) {
-        info << "szgd remark: pipe-based handshake failed, text phase. Likely an internal library error.\n";
+        info << "szgd internal error: pipe-based handshake failed, text phase.\n";
         SZGClient->messageResponse(receivedMessageID, info.str());
         delete [] textBuffer;
         goto LDone;
@@ -790,14 +782,13 @@ LDone:
       timeout = 20000;
     }
     if (!SZGClient->finishMessageOwnershipTrade(match,timeout)) {
-      info << "szgd remark: message ownership trade timed out.\n";
+      info << "szgd message ownership trade timed out.\n";
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
       SZGClient->messageResponse(receivedMessageID, info.str());
     }
 
-    // close the pipes, since they are allocated each
-    // time... would it be better to allocate the pipes once??
-    // or would that be less secure?
+    // Close the pipes.
+    // todo: better to allocate the pipes once, not each time? less secure?
     close(pipeDescriptors[0]);
     close(pipeDescriptors[1]);
     goto LDone;
@@ -809,13 +800,13 @@ LDone:
   ar_setenv("SZGPIPEID", pipeDescriptors[1]);
   ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
   
-  cerr << "szgd remark: libpath =\n  " << dynamicLibraryPath << "\n";
+  ar_log_remark() << "szgd libpath =\n  " << dynamicLibraryPath << "\n";
   ar_setenv(dynamicLibraryPathVar, dynamicLibraryPath);
   if (execInfo->fPython()) {
-    cerr << "szgd remark: python path =\n  " << pythonPath << "\n";
+    ar_log_remark() << "szgd python path =\n  " << pythonPath << "\n";
     ar_setenv("PYTHONPATH", pythonPath);
   }
-  info << "szgd remark: running " << symbolicCommand << " on path\n" << execPath << ".\n";
+  info << "szgd running " << symbolicCommand << " on path\n" << execPath << ".\n";
 
   const unsigned iLog = messageContext.find("log=");
   if (iLog != string::npos) {
@@ -832,8 +823,8 @@ LDone:
   }
 
   char** argv = buildUnixStyleArgList(newCommand, argsMangled);
-  cerr << "szgd remark: cmd  = " << newCommand << endl
-       << "             args = " << argsAsList(argsMangled);
+  ar_log_remark() << "szgd cmd  = " << newCommand
+                << "\n     args = " << argsAsList(argsMangled);
   // Stagger launches so the cluster's file server isn't hit so hard.
   randomDelay();
   (void)execv(newCommand.c_str(), argv);
@@ -842,7 +833,7 @@ LDone:
   perror("szgd execv");
   deleteUnixStyleArgList(argv);
 
-  info << "szgd warning: failed to launch '" << symbolicCommand << "': ";
+  info << "szgd failed to launch '" << symbolicCommand << "': ";
   switch (errno) {
   case E2BIG: info << "args + env too large\n";
     break;
@@ -859,21 +850,21 @@ LDone:
   default: info << "errno = " << errno << endl;
     break;
   }
-	
+
   // Handshake back to the parent.
   const string terminalOutput = info.str();
   numberBuffer[0] = 0; // magic number for "launch failed"
   if (!ar_safePipeWrite(pipeDescriptors[1], numberBuffer, 1)) {
-    cerr << "szgd remark: failed to send failure code over pipe.\n";
+    ar_log_remark() << "szgd failed to send failure code over pipe.\n";
   }
   *((int*)numberBuffer) = terminalOutput.length();
   if (!ar_safePipeWrite(pipeDescriptors[1], numberBuffer, sizeof(int))) {
-     cerr << "szgd remark: incomplete pipe-based handshake.\n";
+     ar_log_remark() << "szgd failed to complete pipe-based handshake.\n";
   }   
   if (!ar_safePipeWrite( pipeDescriptors[1],
                          terminalOutput.c_str(),
 			 terminalOutput.length())) {
-    cerr << "szgd remark: incomplete pipe-based handshake, text stage.\n";
+    ar_log_remark() << "szgd failed to complete pipe-based handshake, text stage.\n";
   }
 
   // Kill the child, so the orphaned process doesn't restart on the message loop.
@@ -908,10 +899,10 @@ LDone:
   ar_setenv("SZGPIPEID", -1);
   ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
 
-  cerr << "szgd remark: libpath =\n  " << dynamicLibraryPath << "\n";
+  ar_log_remark() << "szgd libpath =\n  " << dynamicLibraryPath << "\n";
   ar_setenv(dynamicLibraryPathVar, dynamicLibraryPath);
   if (execInfo->fPython()) {
-    cerr << "szgd remark: python path =\n  " << pythonPath << "\n";
+    ar_log_remark() << "szgd python path =\n  " << pythonPath << "\n";
     ar_setenv("PYTHONPATH", pythonPath);
   }
 
@@ -940,8 +931,8 @@ LDone:
   ar_stringToBuffer(newCommand, command, newCommand.length()+1);
   char* argsBuffer = new char[theArgs.length()+1];
   ar_stringToBuffer(theArgs, argsBuffer, theArgs.length()+1);
-  cerr << "szgd remark: cmd  = " << command << endl
-       << "             args = " << argsBuffer << endl;
+  ar_log_remark() << "szgd cmd  = " << command
+                << "\n     args = " << argsBuffer << "\n";
   // The spawnee might fail after being created, e.g. if a DLL is missing.
   const bool fCreated = CreateProcess(command, fArgs?argsBuffer:NULL, 
 		     NULL, NULL, false,
@@ -955,10 +946,8 @@ LDone:
   ar_mutex_unlock(&processCreationLock);
 
   if (!fCreated) {
-    info << "szgd warning: failed to exec '" << command
-	 << "' with args '" << argsBuffer
-	 << "';\n\tGetLastError() = " 
-	 << GetLastError() << ".\n";
+    info << "szgd failed to exec '" << command << "' with args '" << argsBuffer
+	 << "';\n\tGetLastError() = " << GetLastError() << ".\n";
     // szgd, not the spawnee, will respond.
     SZGClient->revokeMessageOwnershipTrade(tradingKey);
     SZGClient->messageResponse(receivedMessageID, info.str());
@@ -970,7 +959,7 @@ LDone:
     if (timeoutMsec == -1)
       timeoutMsec = 20000;
     if (!SZGClient->finishMessageOwnershipTrade(match, timeoutMsec)) {
-      info << "szgd warning: ownership trade timed out.\n"
+      info << "szgd ownership trade timed out.\n"
            << "  Launchee failed to load a dll, crashed before framework init, or took too long to load.\n";
       SZGClient->revokeMessageOwnershipTrade(tradingKey);
       SZGClient->messageResponse(receivedMessageID, info.str());
@@ -985,13 +974,12 @@ LDone:
 
 
 void printUsage() {
-  cerr << "Usage: szgd <basePaths> [-r]\n"
-       << "  basePaths is a semicolon-delimited list of paths that all\n"
-       << "    SZG_EXEC and SZG_PYTHON path elements, SZG_PYTHON/lib_path, and\n"
-       << "    SZG_PYTHON/executable must be equal to or beneath in the directory tree.\n"
-       << "    These paths may be directories or executables (if executables,\n"
-       << "    OMIT '.exe' on Windows).\n"
-       << "  -r: repeatedly try to reconnect to the Syzygy server on failure.\n";
+  ar_log_error() << "Usage: szgd <basePaths> [-r]\n"
+    << "  basePaths is a semicolon-delimited list of paths that prefix all\n"
+    << "      SZG_EXEC and SZG_PYTHON path elements, SZG_PYTHON/lib_path, and\n"
+    << "      SZG_PYTHON/executables.  They may be directories or executables\n"
+    << "      (omit '.exe' on Windows).\n"
+    << "  -r: repeatedly try to reconnect to the Syzygy server on failure.\n";
 }
 
 int main(int argc, char** argv) {
@@ -1040,7 +1028,7 @@ LGonnaRetry:
   // Only one instance per host.
   int ownerID = -1;
   if (!SZGClient->getLock(SZGClient->getComputerName() + "/szgd", ownerID)) {
-    cerr << "szgd error: already running (pid = " << ownerID << ").\n";
+    ar_log_error() << "szgd already running (pid = " << ownerID << ").\n";
     // todo: if we can't communicate with that pid,
     // then assume szgserver has obsolete info, "dkill -9" that pid,
     // and start up anyways.
@@ -1078,11 +1066,11 @@ LGonnaRetry:
         const bool ok = ar_stringToIntValid( timeoutString, temp );
         messageBody.replace( pos-4, timeoutString.size()+4, "" );
         if (ok) {
-	  cout << "szgd remark: timeout is " << temp <<
+	  ar_log_remark() << "szgd timeout is " << temp <<
 	    " msec, msg body is '" << messageBody << "'.\n";
           timeoutMsec = temp;
         } else {
-          cerr << "szgd warning: ignoring invalid timeout string '" << timeoutString << "'.\n";
+          ar_log_warning() << "szgd ignoring invalid timeout string '" << timeoutString << "'.\n";
         }
       }
 
