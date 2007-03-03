@@ -65,9 +65,8 @@ class SZG_CALL arLogStream{
   arLogStream& operator<<(const string& s);
   arLogStream& operator<<(arLogStream& (*func)(arLogStream& logStream));
   
- protected:
+ private:
   ostream* _output;   
-  arLock _lock;
 
   // Should really be replaced by a "thread map" (based on thread ID)
   // for good interleaving of messages.
@@ -75,16 +74,19 @@ class SZG_CALL arLogStream{
 
   string _header;
   unsigned _maxLineLength;
-  // DEPRECTAED DEPRECATED DEPRECATED DEPRECATED DEPRECATED
-  bool _wrapFlag;
   int _threshold;
   int _level;
   
   void _preAppend();
   void _postAppend(bool flush=false);
   void _finish();
-  void _flushLogBuffer(const bool addReturn = true);
+  void _flush(const bool addNewline = true);
   arLogStream& _setLevel(const int);
+
+  arLock _l;
+  bool _fLocked;
+  void _lock() { _l.lock(); _fLocked = true; }
+  void _unlock() { _l.unlock(); _fLocked = false; }
 };
 
 // Accessors (singleton).

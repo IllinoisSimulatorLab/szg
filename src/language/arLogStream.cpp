@@ -56,45 +56,45 @@ arLogStream::arLogStream():
   _header("szg"),
   _maxLineLength(200),
   _threshold(AR_LOG_DEFAULT),
-  _level(AR_LOG_DEFAULT){
+  _level(AR_LOG_DEFAULT),
+  _l("GLOBAL\\szgLog"),
+  _fLocked(false){
 }
 
 void arLogStream::setStream(ostream& externalStream){
-  _lock.lock();
-    if (!_buffer.str().empty()){
-      _flushLogBuffer(true);
-    }
+  _lock();
+    _flush(true);
     _output = &externalStream;
-  _lock.unlock();
+  _unlock();
 }
 
 void arLogStream::setHeader(const string& header){
-  _lock.lock();
+  _lock();
   _header = header;
-  _lock.unlock();
+  _unlock();
 }
 
 bool arLogStream::setLogLevel(int l){
   ar_logLevelNormalize(l);
   if (l == AR_LOG_NIL)
     return false;
-  _lock.lock();
+  _lock();
     _threshold = l; 
-  _lock.unlock();
+  _unlock();
   return true;
 }
 
 bool arLogStream::logLevelDefault() {
-  _lock.lock();
+  _lock();
     bool f = _threshold == AR_LOG_DEFAULT;
-  _lock.unlock();
+  _unlock();
   return f;
 }
 
 string arLogStream::logLevel() {
-  _lock.lock();
+  _lock();
     const string s(ar_logLevelToString(_threshold));
-  _lock.unlock();
+  _unlock();
   return s;
 }
 
@@ -188,16 +188,15 @@ arLogStream& arLogStream::operator<<(char c){
 
 arLogStream& arLogStream::operator<<(const char* s){
   _preAppend();
-  unsigned int l = strlen(s);
-  unsigned int current = 0;
-  while (current < l){
-    if (s[current] == '\n'){
+  const unsigned l = strlen(s);
+  // todo: strchr would be faster than one char at a time
+  for (unsigned i = 0; i < l; ++i){
+    if (s[i] == '\n'){
       _postAppend(true); 
     }
     else{
-      _buffer << s[current];
+      _buffer << s[i];
     }
-    current++;
   }
   _postAppend(); 
   _finish();
@@ -231,7 +230,7 @@ arLogStream& arLogStream::operator<<(arLogStream& (*func)(arLogStream& logStream
 
 void arLogStream::_preAppend(){
   // Ensure atomic access.
-  _lock.lock();
+  _lock();
 }
 
 // Called from inside _lock, e.g., between _preAppend() and _finish().
@@ -240,20 +239,27 @@ void arLogStream::_postAppend(bool flush){
   // BUT we already assume that arLogStream
   // isn't high performance, at most 1000 accesses per second.
   if (flush || _buffer.str().length() > _maxLineLength)
-    _flushLogBuffer();
+    _flush();
 }
 
 void arLogStream::_finish(){
-  _lock.unlock(); 
+  _unlock(); 
 }
 
-// Called from inside _lock.
-void arLogStream::_flushLogBuffer(const bool addReturn){
+void arLogStream::_flush(const bool addNewline){
+  if (!_fLocked)
+    cerr << "arLogStream warning: internal lock mismatch.\n";
+  if (_buffer.str().empty())
+    return;
+
   if (_level <= _threshold){
-    *_output << _header << ":" << ar_logLevelToString(_level) << ": " << _buffer.str();
-    if (addReturn){
-      *_output << "\n";
+    // Intermediate variable so there's only one << to _output.
+    ostringstream s;
+    s << _header << ":" << ar_logLevelToString(_level) << ": " << _buffer.str();
+    if (addNewline) {
+      s << "\n";
     }
+    *_output << s.str();
   }
   // Clear internal buffer.
   static const string empty;
@@ -261,9 +267,9 @@ void arLogStream::_flushLogBuffer(const bool addReturn){
 }
 
 inline arLogStream& arLogStream::_setLevel(const int l){
-  _lock.lock();
+  _lock();
   _level = l;
-  _lock.unlock();
+  _unlock();
   return *this;
 }
 
@@ -293,11 +299,11 @@ arLogStream& ar_log_debug(){
 }
 
 arLogStream& ar_endl(arLogStream& s){
-  s._lock.lock();
-  s._flushLogBuffer(false);
+  s._lock();
+  s._flush(false);
   if (s._level <= s._threshold){
     *s._output << endl;
   }
-  s._lock.unlock();
+  s._unlock();
   return s;
 }
