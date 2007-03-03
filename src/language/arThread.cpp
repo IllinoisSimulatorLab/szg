@@ -42,15 +42,34 @@ void ar_mutex_unlock(arMutex* theMutex){
 #endif
 }
 
-//Implementation lifted from MUTEX class of
-// Walmsley, "Multi-threaded Programming in C++"
-arLock::arLock() {
+// Originally from Walmsley, "Multi-threaded Programming in C++", class MUTEX.
+// A (non-NULL) name makes the lock system-wide in Windows.
 #ifdef AR_USE_WIN_32
-  _mutex = CreateMutex( NULL, FALSE, NULL);
-#else
-  pthread_mutex_init( &_mutex, NULL );
-#endif
+arLock::arLock(const char* name) {
+  _mutex = CreateMutex(NULL, FALSE, name);
+  if (!_mutex && !name) {
+    const DWORD e = GetLastError();
+    cerr << "arLock error: CreateMutex failed, GetLastError() == " << e << ".\n";
+  }
+  if (!_mutex && name) {
+    const DWORD e = GetLastError();
+    if (e == ERROR_ALREADY_EXISTS) {
+      cerr << "\n\n\n\t\t\tfyi, another app has this.  Dude.\n\n\n\n";
+    }
+    if (e == ERROR_ACCESS_DENIED) {
+      cerr << "\n\n\n\t\t\tfyi, another app has this.  Dude.\n\n\n\n";
+      _mutex = OpenMutex(SYNCHRONIZE, FALSE, name);
+      if (!_mutex) {
+	cerr << "\n\n\n\t\t\targh, giving up.\n\n\n\n";
+      }
+    }
+  }
 }
+#else
+arLock::arLock(const char*) {
+  pthread_mutex_init( &_mutex, NULL );
+}
+#endif
 
 arLock::~arLock() {
 #ifdef AR_USE_WIN_32
@@ -68,11 +87,13 @@ void arLock::lock() {
 #endif
 }
 
+// Try to lock().  Returns true also if "you" lock()'ed already.
 bool arLock::tryLock() {
 #ifdef AR_USE_WIN_32
-  return (WaitForSingleObject( _mutex, 0 ) != WAIT_TIMEOUT);
+  return WaitForSingleObject( _mutex, 0 ) != WAIT_TIMEOUT;
 #else
-  return (pthread_mutex_trylock( &_mutex ) == 0);
+  return pthread_mutex_trylock( &_mutex ) == 0;
+  // if != 0, may equal EBUSY (locked already), EINVAL, or EFAULT.
 #endif
 }
 
@@ -97,8 +118,6 @@ arConditionVar::arConditionVar(){
 arConditionVar::~arConditionVar(){
 #ifdef AR_USE_WIN_32
   CloseHandle(_theEvent);
-#else
-  // nothing to do, I think
 #endif
 }
 

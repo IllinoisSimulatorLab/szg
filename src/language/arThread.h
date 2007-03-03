@@ -35,7 +35,7 @@ void SZG_CALL ar_mutex_unlock(arMutex*);
 // Walmsley, "Multi-threaded Programming in C++"
 class SZG_CALL arLock {
   public:
-    arLock();
+    arLock(const char* name = NULL);
     virtual ~arLock();
     virtual void lock();
     virtual bool tryLock();
