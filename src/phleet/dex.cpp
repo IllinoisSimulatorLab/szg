@@ -203,31 +203,27 @@ int main(int argc, char** argv){
            << "', and no szgd on host '" << argv[1] << "'.\n";
       const string s = szgClient.getVirtualComputers();
       if (s.empty())
-        cout << "  (No virtual computers are defined.  Have you run dbatch?)\n";
+        cout << "  (No virtual computers defined.  Did you run dbatch?)\n";
       else
         cout << "  (Known virtual computers are: " << s << ".)\n";
       return 1;
     }
   }
 
-  // getTrigger(...) returns the trigger of the virtual computer
-  // passed-in as an arg, if such is fact a virtual computer,
-  // and otherwise returns "NULL".
   string messageContext("NULL");
   if (runningOnVirtual) {
-    string virtualComputerTrigger(szgClient.getTrigger(hostName));
-    if (virtualComputerTrigger != "NULL") {
-      messageContext = szgClient.createContext(
-                        hostName,"default","trigger", "default","NULL");
-      hostName = virtualComputerTrigger;
-    } else {
+    const string trigger(szgClient.getTrigger(hostName));
+    if (trigger == "NULL") {
       cerr << argv[0] << " error: no trigger for virtual computer '" << hostName << "'.\n";
       return 1;
     }
+    messageContext = szgClient.createContext(
+      hostName, "default", "trigger", "default", "NULL");
+    hostName = trigger;
   }
 
-  // hostName names an actual computer, from either
-  // the command line OR the trigger of the virtual computer.
+  // hostName names an actual computer,
+  // either from the command line OR the trigger of the virtual computer.
   const int szgdID = szgClient.getProcessID(hostName, "szgd");
   if (szgdID == -1) {
     cerr << argv[0] << " error: no szgd on host " << hostName << ".\n";
