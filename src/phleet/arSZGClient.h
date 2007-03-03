@@ -329,17 +329,14 @@ class SZG_CALL arSZGClient{
                              const string&, const string&);
   map<string, string, less<string> > _localParameters;
 
-  // functions relating to parsing phleet-specific args or the context
+  // Parsing phleet-specific args or the context
   bool _parseContext();
   bool _parsePhleetArgs(int& argc, char** const argv);
   bool _parseContextPair(const string& pair);
-  bool _checkAndSetNetworks(const string& channel,
-                            const arSlashString& networks);
-  bool _getPortsCore1(const string& serviceName, const string& channel,
-                      int numberPorts, arStructuredData*& data, int& match,
-		      bool fRetry);
-  bool _getPortsCore2(arStructuredData* data, int match, int* portIDs,
-		      bool fRetry);
+  bool _parsePair(const string&, arSlashString&, string&, string&);
+  bool _checkAndSetNetworks(const string&, const arSlashString&);
+  bool _getPortsCore1(const string&, const string&, int, arStructuredData*&, int&, bool);
+  bool _getPortsCore2(arStructuredData*, int, int*, bool);
   int  _fillMatchField(arStructuredData*);
 
   // server discovery functions and variables
@@ -355,7 +352,7 @@ class SZG_CALL arSZGClient{
   bool    _bufferResponse;
   bool    _justPrinting;
   char    _responseBuffer[512];
-  vector<string> _foundServers; // prevents repeats being printed.
+  vector<string> _foundServers; // prevents printing repeats.
 
   void _serverResponseThread();
   void _timerThread();

@@ -521,7 +521,7 @@ string buildWindowsStyleArgList(const string& command, list<string>& args) {
 // To reduce load on samba win32 fileserver when many hosts launch an exe at once.
 void randomDelay() {
   const ar_timeval time1 = ar_time();
-  ar_usleep(50000 * abs(time1.usec % 6));
+  ar_usleep(30000 * abs(time1.usec % 6));
 }
 
 static void TweakPath(string& path) {
@@ -541,7 +541,7 @@ void execProcess(void* i){
   ExecInfo* execInfo = (ExecInfo*)i;
   const string& userName = execInfo->userName;
   const string& messageContext = execInfo->messageContext;
-  const int& receivedMessageID = execInfo->receivedMessageID; 
+  const int receivedMessageID = execInfo->receivedMessageID; 
 
   // Respond to the message ourselves, if the exe doesn't launch.
   ostringstream info;
@@ -551,9 +551,9 @@ void execProcess(void* i){
   string execPath;
   string symbolicCommand;
   string newCommand;
-  list<string> mangledArgList;
+  list<string> argsMangled;
   const string stats = buildFunctionArgs(
-    execInfo, execPath, symbolicCommand, newCommand, mangledArgList);
+    execInfo, execPath, symbolicCommand, newCommand, argsMangled);
   if (stats != "OK") {
     info << stats;
     SZGClient->messageResponse(receivedMessageID, info.str());
@@ -706,9 +706,8 @@ LDone:
 
 #ifndef AR_USE_WIN_32
 
-  //*******************************************************************
-  // spawn a new process on Unix (i.e. Linux, OS X, Irix)
-  //*******************************************************************
+  // Spawn a new process on Linux, OS X, Irix).
+
   int pipeDescriptors[2] = {0};
   if (pipe(pipeDescriptors) < 0) {
     cerr << "szgd warning: failed to create pipe.\n";
@@ -805,9 +804,8 @@ LDone:
   }
 
   // Child process
-  // Set a few env vars for the child process.
-  ar_setenv("SZGUSER",userName);
-  ar_setenv("SZGCONTEXT",messageContext);
+  ar_setenv("SZGUSER", userName);
+  ar_setenv("SZGCONTEXT", messageContext);
   ar_setenv("SZGPIPEID", pipeDescriptors[1]);
   ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
   
@@ -819,9 +817,23 @@ LDone:
   }
   info << "szgd remark: running " << symbolicCommand << " on path\n" << execPath << ".\n";
 
-  char** argv = buildUnixStyleArgList(newCommand, mangledArgList);
-  cerr << "szgd remark: command = " << newCommand << endl
-       << "             args    = " << argsAsList(mangledArgList);
+  const unsigned iLog = messageContext.find("log=");
+  if (iLog != string::npos) {
+    argsMangled.push_back("-szg");
+    // messageContext is ;-delimited
+    const unsigned iSemi = messageContext.find(";");
+    if (iSemi == string::npos) {
+      // "log=FOO" was last
+      argsMangled.push_back(messageContext.substr(iLog));
+    } else {
+      // "log=FOO" was in the middle
+      argsMangled.push_back(messageContext.substr(iLog, iSemi - iLog));
+    }
+  }
+
+  char** argv = buildUnixStyleArgList(newCommand, argsMangled);
+  cerr << "szgd remark: cmd  = " << newCommand << endl
+       << "             args = " << argsAsList(argsMangled);
   // Stagger launches so the cluster's file server isn't hit so hard.
   randomDelay();
   (void)execv(newCommand.c_str(), argv);
@@ -869,36 +881,34 @@ LDone:
 
 #else // Win32
 
-  //*******************************************************************
-  // spawn a new process on Win32
-  //*******************************************************************
+  // Spawn a new process on Windows.
+
   PROCESS_INFORMATION theInfo;
   STARTUPINFO si = {0};
   si.cb = sizeof(STARTUPINFO);
 
-  // NOTE: THIS IS REALLY ANNOYING. We pass stuff to
-  // the child via environment variables.
+  // Hack: pass stuff to the child via environment variables.
   // On Unix this isn't so bad: we've already inside a fork and,
   // consequently, can change the environment with impunity. On Windows,
-  // process creation doesn't work in the
-  // tree-like unix fashion. Consequently, a lock is needed.
-  // (another solution would be to pass in an altered environment block)
-  // (another solution would be to figure out a way to send the spawned process
-  // a message)
+  // Windows processes aren't like unix's trees, so we need a lock.
+  // (another solution: pass in an altered environment block)
+  // (another solution: send the spawned process a message)
+
   ar_mutex_lock(&processCreationLock);
+
   // Set a few env vars for the child process.
   ar_setenv("SZGUSER",userName);
-  ar_setenv("SZGCONTEXT",messageContext);
-  // even though we only use the pipe to communicate with the child
-  // process on the Unix side, we still need to be able to tell the
-  // child that it was launched by szgd instead of at the command line
-  // on this side... the -1 guarantees that we aren't on the Unix side
+  ar_setenv("SZGCONTEXT", messageContext);
+
+  // Even though we only use the pipe to communicate with the child
+  // in unix, we still need to tell the
+  // child that it was launched by szgd not the command line.
+  // The -1 guarantees that we aren't on the Unix side
   // (where this would be a file descriptor)
   ar_setenv("SZGPIPEID", -1);
   ar_setenv("SZGTRADINGNUM", tradingNumStream.str());
-  
-  cerr << "szgd remark: libpath =\n  "
-       << dynamicLibraryPath << "\n";
+
+  cerr << "szgd remark: libpath =\n  " << dynamicLibraryPath << "\n";
   ar_setenv(dynamicLibraryPathVar, dynamicLibraryPath);
   if (execInfo->fPython()) {
     cerr << "szgd remark: python path =\n  " << pythonPath << "\n";
@@ -907,16 +917,32 @@ LDone:
 
   // Stagger launches so the cluster's file server isn't hit so hard.
   randomDelay();
-  const string theArgs = buildWindowsStyleArgList(newCommand, mangledArgList);
+
+  const unsigned iLog = messageContext.find("log=");
+  if (iLog != string::npos) {
+    argsMangled.push_back("-szg");
+    // messageContext is ;-delimited
+    const unsigned iSemi = messageContext.find(";");
+    if (iSemi == string::npos) {
+      // "log=FOO" was last
+      argsMangled.push_back(messageContext.substr(iLog));
+    } else {
+      // "log=FOO" was in the middle
+      argsMangled.push_back(messageContext.substr(iLog, iSemi - iLog));
+    }
+  }
+
+  const string theArgs = buildWindowsStyleArgList(newCommand, argsMangled);
   const bool fArgs = theArgs != "";
-  // We need to pack these buffers... can't just use my_string.c_str().
+
+  // Pack these buffers... can't just use my_string.c_str().
   char* command = new char[newCommand.length()+1];
   ar_stringToBuffer(newCommand, command, newCommand.length()+1);
   char* argsBuffer = new char[theArgs.length()+1];
   ar_stringToBuffer(theArgs, argsBuffer, theArgs.length()+1);
-  cerr << "szgd remark: command = " << command << endl
-       << "             args    = " << argsBuffer << endl;
-  // The process might fail to run after being created, e.g. if a DLL is missing.
+  cerr << "szgd remark: cmd  = " << command << endl
+       << "             args = " << argsBuffer << endl;
+  // The spawnee might fail after being created, e.g. if a DLL is missing.
   const bool fCreated = CreateProcess(command, fArgs?argsBuffer:NULL, 
 		     NULL, NULL, false,
 		     NORMAL_PRIORITY_CLASS, NULL, NULL, 
@@ -929,11 +955,11 @@ LDone:
   ar_mutex_unlock(&processCreationLock);
 
   if (!fCreated) {
-    info << "szgd warning: failed to exec \"" << command
-	 << " with args " << argsBuffer
-	 << "\";\n\twin32 GetLastError() returned " 
+    info << "szgd warning: failed to exec '" << command
+	 << "' with args '" << argsBuffer
+	 << "';\n\tGetLastError() = " 
 	 << GetLastError() << ".\n";
-    // We will be responding directly, not the spawned process.
+    // szgd, not the spawnee, will respond.
     SZGClient->revokeMessageOwnershipTrade(tradingKey);
     SZGClient->messageResponse(receivedMessageID, info.str());
   } else {
@@ -979,10 +1005,6 @@ int main(int argc, char** argv) {
 
   ar_mutex_init(&tradingNumLock);
   ar_mutex_init(&processCreationLock);
-#ifdef UNUSED
-  // dex didn't spawn an szgd - that's pointless(?).
-  ar_log().setStream(cerr);
-#endif
 
   if (argc < 2) {
     printUsage();

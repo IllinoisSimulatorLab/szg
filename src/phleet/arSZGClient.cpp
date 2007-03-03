@@ -2510,6 +2510,17 @@ string arSZGClient::createContext(const string& virtualComputer,
     namevalue("virtual", virtualComputer) +
     namevalue("mode/" + modeChannel, mode) +
     namevalue("networks/" + networksChannel, networks));
+
+  // todo: _logLevel duplicates state of ar_log().logLevel().  Unify them.
+  if (ar_log().logLevel() != ar_logLevelToString(_logLevel)) {
+    cerr << "arSZGClient warning: resynchronizing loglevel.\n";
+    ar_log().setLogLevel(_logLevel);
+  }
+
+  if (!ar_log().logLevelDefault()) {
+    // Propagate log level to all spawnees.
+    s += namevalue("log", ar_logLevelToString(_logLevel));
+  }
   return dropsemi(s);
 }
 
@@ -2661,85 +2672,90 @@ bool arSZGClient::_parseContext() {
   return true;
 }
 
-// argc is passed by reference since we may change the arg list.
-// When a client is launched, we examine the "phleet args",
-// i.e. those prefaced by a -szg. We usually delete these args during parsing.
-// But if _parseSpecialPhleetArgs is false (e.g., in dex),
-// then only the args user and server (pertaining to login) are parsed and removed.
+bool arSZGClient::_parsePair(const string& thePair,
+  arSlashString& pair1, string& pair2, string& pair1Type) {
+  const unsigned i = thePair.find('=');
+  if (i == string::npos) {
+    ar_log_warning() << _exeName <<
+      ": no '=' in context pair '" << thePair << "'.\n";
+    return false;
+  }
+
+  const unsigned length = thePair.length() - 1;
+  if (i == length) {
+    ar_log_warning() << _exeName <<
+      ": nothing after '=' in context pair '" << thePair << "'.\n";
+    return false;
+  }
+
+  pair1 = thePair.substr(0,i);
+  pair2 = thePair.substr(i+1, length-i);
+  pair1Type = pair1[0];
+  return true;
+}
+
+// When a client launches, parse and remove the "phleet args" prefaced by -szg.
+// But if _parseSpecialPhleetArgs is false (e.g., in dex), then only
+// the args user and server (pertaining to login) are parsed and removed.
+// If args are removed, argc and argv change, to hide the removals from the caller.
 bool arSZGClient::_parsePhleetArgs(int& argc, char** const argv) {
   for (int i=0; i<argc; i++) {
-    if (!strcmp(argv[i],"-szg")) {
-      // we have found an arg that might need to be removed.
-      if (i+1 >= argc) {
-        ar_log_warning() << _exeName << " expected something after -szg flag.\n";
+    if (strcmp(argv[i],"-szg"))
+      continue;
+
+    if (i+1 >= argc) {
+      ar_log_warning() << _exeName << " expected something after -szg flag.\n";
+      return false;
+    }
+
+    // Split the pair.
+    arSlashString pair1;
+    string pair1Type;
+    string pair2;
+    if (!_parsePair(argv[i+1], pair1, pair2, pair1Type))
+      return false;
+
+    if (!_parseSpecialPhleetArgs && pair1Type != "user" && pair1Type != "server") {
+      // dex parses ONLY user and server, and forwards the rest to szgd.
+      // So skip this arg.
+      ++i;
+      continue;
+    }
+
+    if (!_parseSpecialPhleetArgs && pair1Type == "log") {
+      // Parse AND forward to szgd.
+      if (!_parseContextPair(argv[i+1])) {
 	return false;
       }
-      // we need to figure out which args these are.
-      // THIS IS CUT_AND_PASTED FROM _parseContextPair below
-      const string thePair(argv[i+1]);
-      const unsigned location = thePair.find('=');
-      if (location == string::npos) {
-        ar_log_warning() << _exeName << ": context pair '" << thePair << "' needs '='.\n";
-        return false;
-      }
-      unsigned int length = thePair.length();
-      if (location == length-1) {
-        ar_log_warning() << _exeName << ": incomplete context pair '" << thePair << "'.\n";
-        return false;
-      }
-      // Everything is in the format FOO=BAR, where FOO can be
-      // "virtual", "mode", "networks/default", "networks/graphics",
-      // "networks/sound", "networks/input"...
-      // consequently, pair1Type can be "virtual", "mode", or "networks"
-      const arSlashString pair1(thePair.substr(0,location));
-      const string pair1Type(pair1[0]);
-
-      // parse the arg exactly if we are parsing all args or if it is one
-      // of the special ones (user or server) that are always parsed.
-      if (_parseSpecialPhleetArgs || pair1Type == "user" || pair1Type == "server") {
-        if (!_parseContextPair(argv[i+1])) {
-          return false;
-        }
-        // if they are parsed, then they should also be erased
-        for (int j=i; j<argc-2; j++) {
-          argv[j] = argv[j+2];
-        }
-        // reset the arg count and i
-        argc = argc-2;
-        i--;
-      } else {
-	// we didn't parse these args... move on (without this ++ we will
-	// be at i+1 at the beginning of the next loop and we should be at
-	// i+2
-        i++;
-      }
+      ++i;
+      continue;
     }
+
+    // Parse the arg.
+    if (!_parseContextPair(argv[i+1])) {
+      return false;
+    }
+
+    // Remove the arg.
+    for (int j=i; j<argc-2; j++) {
+      argv[j] = argv[j+2];
+    }
+    argc -= 2;
+    --i;
   }
   return true;
 }
 
-// Helper for _parseContext that handles FOO=BAR components
-// of that string. "NULL" is also allowed as a do-nothing value.
+// Helper for _parseContext, for FOO=BAR args
+// FOO can be "virtual", "mode", "networks/default", "networks/graphics", "networks/sound",
+// "networks/input"...  thus, pair1Type can be "virtual", "mode", or "networks".
 bool arSZGClient::_parseContextPair(const string& thePair) {
-  const unsigned int location = thePair.find('=');
-  if (location == string::npos) {
-    ar_log_warning() << _exeName << ": missing '=' in context pair.\n";
+  arSlashString pair1;
+  string pair1Type;
+  string pair2;
+  if (!_parsePair(thePair, pair1, pair2, pair1Type))
     return false;
-  }
 
-  const unsigned int length = thePair.length();
-  if (location == length-1) {
-    ar_log_warning() << _exeName << ": nothing after '=' in context pair.\n";
-    return false;
-  }
-
-  // Everything is in the format FOO=BAR, where FOO can be
-  // "virtual", "mode", "networks/default", "networks/graphics",
-  // "networks/sound", "networks/input"...
-  // consequently, pair1Type can be "virtual", "mode", or "networks"
-  const arSlashString pair1(thePair.substr(0,location));
-  const string pair1Type(pair1[0]);
-  const string pair2(thePair.substr(location+1, length - location - 1));
   if (pair2 == "NULL") {
     // do nothing
     return true;
