@@ -39,7 +39,7 @@ void glutPrintf(float x, float y, float z, const char* sz, float rotY=0., float 
     for (const char* c = sz; *c; ++c)
       glutBitmapCharacter(GLUT_BITMAP_9_BY_15, *c);
 #else
-    // Thick huge font, easier to read on dim projector screens.
+    // Thick huge font for dim projectors.
     glLineWidth(3);
     glTranslatef(x, y, z);
     glScalef(.0042, .0042, .0042);
@@ -67,14 +67,14 @@ void drawHead() {
       glutSolidSphere(0.4,8,8);
       glTranslatef(0,0,-0.4);
       glColor3f(1,0,0);
-      glutSolidSphere(0.1,8,8);
+      glutSolidSphere(0.15,5,5);
     glPopMatrix();
-    glTranslatef(-0.5,0,-0.8);
-    glColor3f(0,1,1);
-    glutSolidSphere(0.4,8,8);
-    glTranslatef(0,0,-0.4);
-    glColor3f(1,0,0);
-    glutSolidSphere(0.1,8,8);
+      glTranslatef(-0.5,0,-0.8);
+      glColor3f(0,1,1);
+      glutSolidSphere(0.4,8,8);
+      glTranslatef(0,0,-0.4);
+      glColor3f(1,0,0);
+      glutSolidSphere(0.15,5,5);
   glPopMatrix();
 }
 
@@ -82,12 +82,15 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
   unsigned i;
   static bool fComplained = false;
 
-  arMatrix4 rgm[20]; // buffer overflow
-  const unsigned cm = fw.getNumberMatrices();
+  const unsigned cmMax = 20;
+  arMatrix4 rgm[cmMax];
+  unsigned cm = fw.getNumberMatrices();
   if (!fComplained && cm < 2)
     ar_log_warning() << "cubevars: expect at least a head and wand matrix.\n";
-  if (!fComplained && cm > 20)
+  if (!fComplained && cm > cmMax) {
+    cm = cmMax;
     ar_log_warning() << "cubevars: too many matrices.\n";
+  }
   for (i=0; i<cm; ++i)
     rgm[i] = fw.getMatrix(i);
   const arMatrix4& headMatrix = rgm[0];
@@ -95,19 +98,22 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
 
   const unsigned ca = fw.getNumberAxes();
   if (!fComplained && ca != 2)
-    ar_log_warning() << "cubevars: expect 2 axes.\n";
+    ar_log_warning() << "cubevars expected 2 axes.\n";
   const float caveJoystickX = fw.getAxis(0);
   const float caveJoystickY = fw.getAxis(1);
 
-  const unsigned cb = fw.getNumberButtons();
+  unsigned cb = fw.getNumberButtons();
   // wall-dependent.  Camille doesn't know why, 2006-06-12.
   // ?workaround -- only master calls this, in preexchange.
 
   if (!fComplained && cb < 3)
-    ar_log_warning() << "cubevars: expect at least 3 buttons.\n";
-  if (!fComplained && cb > 250)
+    ar_log_warning() << "cubevars expected at least 3 buttons.\n";
+  const unsigned cbMax = 250;
+  if (!fComplained && cb > cbMax) {
+    cb = cbMax;
     ar_log_warning() << "cubevars: too many buttons.\n";
-  int rgButton[257];
+  }
+  int rgButton[cbMax+1];
   for (i=0; i < cb; ++i)
     rgButton[i] = fw.getButton(i);
 
@@ -302,6 +308,6 @@ void callbackDraw(arMasterSlaveFramework& fw, arGraphicsWindow& gw, arViewport&)
 int main(int argc, char** argv){
   arMasterSlaveFramework fw;
   fw.setDrawCallback(callbackDraw);
-  fw.setClipPlanes( .1, 200. );
+  fw.setClipPlanes(.2, 20.);
   return fw.init(argc, argv) && fw.start() ? 0 : 1;
 }

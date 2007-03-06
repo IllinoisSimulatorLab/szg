@@ -572,14 +572,14 @@ void arInputSimulator::_drawHead() const {
       glutSolidSphere(0.4,8,8);
       glTranslatef(0,0,-0.4);
       glColor3f(1,0,0);
-      glutSolidSphere(0.1,8,8);
+      glutSolidSphere(0.15,5,5);
     glPopMatrix();
     glTranslatef(-0.5,0,-0.8);
     glColor3f(0,1,1);
     glutSolidSphere(0.4,8,8);
     glTranslatef(0,0,-0.4);
     glColor3f(1,0,0);
-    glutSolidSphere(0.1,8,8);
+    glutSolidSphere(0.15,5,5);
   glPopMatrix();
 }
 
@@ -621,20 +621,20 @@ void arInputSimulator::_drawTextState() const {
   glDisable(GL_LIGHTING);
   glColor3f(0.5,0.5,0.8);
   glBegin(GL_QUADS);
-  glVertex3f(-1,0.88,0.00001);
-  glVertex3f(1,0.88,0.00001);
-  glVertex3f(1,1,0.00001);
-  glVertex3f(-1,1,0.00001);
+  glVertex3f(-1, .88, 0.00001);
+  glVertex3f( 1, .88, 0.00001);
+  glVertex3f( 1, 1,   0.00001);
+  glVertex3f(-1, 1,   0.00001);
   glEnd();
 
-  const char* hint[7] = {
+  const char* const hint[7] = {
       "1: Move head",
       "2: Turn head",
       "3: Move wand",
       "4: Move wand + buttons",
       "5: Turn wand + buttons",
       "6: Joystick",
-      "7: Turn Simulator"
+      "7: Turn Sim"
     };
   glColor3f(1,1,1);
   glPushMatrix();
