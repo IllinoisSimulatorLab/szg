@@ -11,16 +11,34 @@
 
 DriverFactory(arEVaRTDriver, "arInputSource")
 
+arEVaRTDriver::arEVaRTDriver() :
+  _receivedEVaRTHierarchy(false),
+  _deviceIP("NULL") {
+}
+
+#ifndef EnableEVaRT
+
+bool arEVaRTDriver::init(arSZGClient&) {
+  ar_log_warning() << "arEVaRTDriver unsupported on this platform.\n";
+  return false;
+}
+
+bool arEVaRTDriver::start() {
+  ar_log_warning() << "arEVaRTDriver unsupported on this platform.\n";
+  return false;
+}
+
+#else
+
 arEVaRTDriver* __globalEVaRTDriver = NULL;
 
-#ifdef EnableEVaRT
 int ar_evartDataHandler(int iType, void* data){
   int i = 0;
   if (iType == HIERARCHY){
-    cout << "arEVaRTDriver remark: Received hierarchy data packet.\n";
+    ar_log_remark() << "arEVaRTDriver got hierarchy data packet.\n";
     sHierarchy* Hierarchy = (sHierarchy*) data;
     __globalEVaRTDriver->_numberSegments = Hierarchy->nSegments;
-    cout << "arEVaRTDriver remark: Number segments = " 
+    ar_log_remark() << "arEVaRTDriver Number segments = " 
          << __globalEVaRTDriver->_numberSegments << "\n";
 
     __globalEVaRTDriver->_children 
@@ -32,16 +50,16 @@ int ar_evartDataHandler(int iType, void* data){
     __globalEVaRTDriver->_segName 
       = new string[__globalEVaRTDriver->_numberSegments];
 
-    for (int i=0; i< __globalEVaRTDriver->_numberSegments; i++){
+    for (i=0; i< __globalEVaRTDriver->_numberSegments; i++){
       __globalEVaRTDriver->_segName[i] = string(Hierarchy->szSegmentNames[i],
                                          strlen(Hierarchy->szSegmentNames[i]));
-      cout << "Segment name " << i << ": " 
+      ar_log_remark() << "Segment name " << i << ": " 
            << __globalEVaRTDriver->_segName[i] << "\n";
       int parent =  Hierarchy->iParents[i];
       if (parent == -1){
         // this must be the rootnode
         __globalEVaRTDriver->_rootNode = i;
-        cout << "arEVaRTDriver remark: root node ID = " << i << "\n";
+        ar_log_remark() << "arEVaRTDriver root node ID = " << i << "\n";
       }
       else{
         __globalEVaRTDriver->_children[parent].push_back(i);
@@ -52,13 +70,13 @@ int ar_evartDataHandler(int iType, void* data){
 
   if (iType == TRC_DATA){
     sTrcFrame* TrcFrame = (sTrcFrame*)data;
-    for (int i=0; i<40; i++){
+    for (i=0; i<40; i++){
       // garbage data gets placed out at infinity by the EVaRT software
-      if (fabs(TrcFrame->Markers[i][0]) < 100000
-	  && fabs(TrcFrame->Markers[i][1]) < 100000
-	  && fabs(TrcFrame->Markers[i][2]) < 100000){
-	// the data we have is not garbage
-        __globalEVaRTDriver->queueAxis(3*i, TrcFrame->Markers[i][0]);
+      if (fabs(TrcFrame->Markers[i][0]) < 100000. &&
+	  fabs(TrcFrame->Markers[i][1]) < 100000. &&
+	  fabs(TrcFrame->Markers[i][2]) < 100000.){
+	// data isn't garbage
+        __globalEVaRTDriver->queueAxis(3*i  , TrcFrame->Markers[i][0]);
 	__globalEVaRTDriver->queueAxis(3*i+1, TrcFrame->Markers[i][1]);
 	__globalEVaRTDriver->queueAxis(3*i+2, TrcFrame->Markers[i][2]);
       }
@@ -66,26 +84,26 @@ int ar_evartDataHandler(int iType, void* data){
     __globalEVaRTDriver->sendQueue();
   }
 
-  if (iType == GTR_DATA){
+  else if (iType == GTR_DATA){
     sGtrFrame* GtrFrame = (sGtrFrame*) data;
     for (i=0; i<__globalEVaRTDriver->_numberSegments; i++){
-      arMatrix4 sendMatrix;
-      float angleX = GtrFrame->Segments[i][3];
-      float angleY = GtrFrame->Segments[i][4];
-      float angleZ = GtrFrame->Segments[i][5];
-      sendMatrix = ar_translationMatrix(GtrFrame->Segments[i][0],
-                                        GtrFrame->Segments[i][1],
-                                        GtrFrame->Segments[i][2])
-	* ar_rotationMatrix('z', ar_convertToRad(angleZ))
-	* ar_rotationMatrix('y', ar_convertToRad(angleY))
-	* ar_rotationMatrix('x', ar_convertToRad(angleX));
+      const float angleX = GtrFrame->Segments[i][3];
+      const float angleY = GtrFrame->Segments[i][4];
+      const float angleZ = GtrFrame->Segments[i][5];
+      const arMatrix4 sendMatrix(ar_translationMatrix(
+	  GtrFrame->Segments[i][0],
+	  GtrFrame->Segments[i][1],
+	  GtrFrame->Segments[i][2]) *
+	ar_rotationMatrix('z', ar_convertToRad(angleZ)) *
+	ar_rotationMatrix('y', ar_convertToRad(angleY)) *
+	ar_rotationMatrix('x', ar_convertToRad(angleX)));
       __globalEVaRTDriver->queueMatrix(i, sendMatrix);
       __globalEVaRTDriver->queueAxis(i, GtrFrame->Segments[i][6]);
     }
     __globalEVaRTDriver->sendQueue();
   }
-  else if (iType == HTR_DATA){
 #if 0
+  else if (iType == HTR_DATA){
     sHtrFrame* HtrFrame = (sHtrFrame*) data;
     float tempRoot[3];
     tempRoot[0] = HtrFrame->RootPosition[0];
@@ -99,24 +117,22 @@ int ar_evartDataHandler(int iType, void* data){
     }
     for (i=0; i< __globalEVaRTDriver->_numberSegments; i++){
       __globalEVaRTDriver->_segLength[i] = HtrFrame->Segments[i][3];
-      float angleX, angleY, angleZ;
-      angleX = HtrFrame->Segments[i][0];
-      angleY = HtrFrame->Segments[i][1];
-      angleZ = HtrFrame->Segments[i][2];
+      const float angleX = HtrFrame->Segments[i][0];
+      const float angleY = HtrFrame->Segments[i][1];
+      const float angleZ = HtrFrame->Segments[i][2];
       arMatrix4 rotationMatrix;
-      if (fabs(angleX) < 100000 && fabs(angleY) < 100000
-	  && fabs(angleZ) < 100000){
-        rotationMatrix 
-          = ar_rotationMatrix('z', ar_convertToRad(angleZ))
-            * ar_rotationMatrix('y', ar_convertToRad(angleY))
-            * ar_rotationMatrix('x', ar_convertToRad(angleX));
+      if (fabs(angleX) < 100000 && fabs(angleY) < 100000 && fabs(angleZ) < 100000){
+        rotationMatrix =
+          ar_rotationMatrix('z', ar_convertToRad(angleZ)) *
+	  ar_rotationMatrix('y', ar_convertToRad(angleY)) *
+	  ar_rotationMatrix('x', ar_convertToRad(angleX)));
       }
       if (i == __globalEVaRTDriver->_rootNode){
         __globalEVaRTDriver->_segTransform[i] = 
           ar_translationMatrix(__globalEVaRTDriver->_rootPosition[0],
 			       __globalEVaRTDriver->_rootPosition[1],
-			       __globalEVaRTDriver->_rootPosition[2])
-	  *rotationMatrix;
+			       __globalEVaRTDriver->_rootPosition[2]) *
+	  rotationMatrix;
       }
       else{
         __globalEVaRTDriver->_segTransform[i] = rotationMatrix;
@@ -128,26 +144,12 @@ int ar_evartDataHandler(int iType, void* data){
       __globalEVaRTDriver->queueAxis(3*i+2, ar_convertToRad(angleZ));
     }
     __globalEVaRTDriver->sendQueue();
-#endif
   }
+#endif
   return 0;
 }
 
-#endif
-
-arEVaRTDriver::arEVaRTDriver(){
-  _receivedEVaRTHierarchy = false;
-  _deviceIP = string("NULL");
-}
-
-arEVaRTDriver::~arEVaRTDriver(){
-}
-
 bool arEVaRTDriver::init(arSZGClient& SZGClient){
-#ifndef EnableEVaRT
-  ar_log_warning() << "arEVaRTDriver unsupported on this platform.\n";
-  return false;
-#else
   __globalEVaRTDriver = this;
   if (SZGClient.getAttribute("SZG_EVART", "output_type") == "position"){
     _outputType = string("position");
@@ -162,17 +164,13 @@ bool arEVaRTDriver::init(arSZGClient& SZGClient){
   
   _deviceIP = SZGClient.getAttribute("SZG_EVART", "IPhost");
   if (_deviceIP == "NULL"){
-    ar_log_warning() << "arEVaRTDriver: no IP address for EVaRT.\n";
+    ar_log_warning() << "arEVaRTDriver: no SZG_EVART/IPhost IP address for EVaRT.\n";
     return false;
   }
   return true;
-#endif
 }
 
 bool arEVaRTDriver::start(){
-#ifndef EnableEVaRT
-  return false;
-#else
   EVaRT_Initialize();
   EVaRT_SetDataHandlerFunc(ar_evartDataHandler);
   char buffer[256];
@@ -188,21 +186,22 @@ bool arEVaRTDriver::start(){
   if (_outputType == "skeleton"){
     EVaRT_SetDataTypesWanted(GTR_DATA);
     EVaRT_RequestHierarchy(); // needed before data is usable
-    ar_log_debug() << "arEVaRTDriver remark: Hierarchy Requested.\n";
+    ar_log_debug() << "arEVaRTDriver: Hierarchy Requested.\n";
 
     arSleepBackoff a(20, 150, 1.05);
     while (!_receivedEVaRTHierarchy)
       a.sleep();
 
-    ar_log_debug() << "arEVaRTDriver remark: Hierarchy Received.\n";
+    ar_log_debug() << "arEVaRTDriver: Hierarchy Received.\n";
   }
   else{
     // Ask the EVaRT for the markers' positions.
-    ar_log_debug() << "arEVaRTDriver remark: requesting position data.\n";
+    ar_log_debug() << "arEVaRTDriver requesting position data.\n";
     EVaRT_SetDataTypesWanted(TRC_DATA);
   }
 
   EVaRT_StartStreaming();
   return true;
-#endif
 }
+
+#endif

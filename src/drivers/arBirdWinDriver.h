@@ -21,7 +21,6 @@
 // Windows driver for Ascension Flock of Birds.
 
 class arBirdWinDriver: public arInputSource {
-  friend void ar_WinBirdDriverEventTask(void*);
  public:
   arBirdWinDriver();
   ~arBirdWinDriver() {}
@@ -30,6 +29,7 @@ class arBirdWinDriver: public arInputSource {
   bool start();
   bool stop();
 
+#ifdef EnableBirdWinDriver
  private:
   arThread _eventThread;
   int _numDevices;
@@ -41,7 +41,7 @@ class arBirdWinDriver: public arInputSource {
     _nHemi = 6
   };
 
-#ifdef EnableBirdWinDriver
+  friend void ar_WinBirdDriverEventTask(void*);
   int _groupID;
   BOOL _standAlone;
   WORD _comPorts[_FOB_MAX_DEVICES];

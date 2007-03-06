@@ -232,16 +232,13 @@ bool arLogitechDriver::_update() {
 #define logitech_RIGHTBUTTON       0x01
 
 void arLogitechDriver::_convertSendData( char* record ) {
-  const float INCHES_TO_FEET = 1./12.;
-  long ax=0, ay=0, az=0;         // integer form of absolute translational data
-  short arx=0, ary=0, arz=0;     // integer form of absolute rotational data
 
-  // NOTE: the data-extraction code is lifted from the Logitech sample
   // collect unit's miscellaneous information
-  //short buttons = (unsigned char) record[0] & (unsigned char) ~logitech_FLAGBIT;
+  //const short buttons = (unsigned char)record[0] & (unsigned char)~logitech_FLAGBIT;
 
-  // gather the translational information
-  // first sign extend if needed and then grab the rest of the information
+  long ax=0, ay=0, az=0;
+  // absolute translational data
+  // Sign extend if needed.
   ax = (record[1] & 0x40) ? 0xFFE00000 : 0;
   ax |= (long)(record[1] & 0x7f) << 14;
   ax |= (long)(record[2] & 0x7f) << 7;
@@ -258,19 +255,15 @@ void arLogitechDriver::_convertSendData( char* record ) {
   az |= (record[9] & 0x7f);
 
   // calculate the positional floating point values
-  float x = INCHES_TO_FEET * ((float) ax) / 1000.0;
-  float y = INCHES_TO_FEET * ((float) ay) / 1000.0;
-  float z = INCHES_TO_FEET * ((float) az) / 1000.0;
+  const float INCHES_TO_FEET = 1./12.;
+  const float x = INCHES_TO_FEET * ((float) ax) / 1000.0;
+  const float y = INCHES_TO_FEET * ((float) ay) / 1000.0;
+  const float z = INCHES_TO_FEET * ((float) az) / 1000.0;
 
-  // gather the rotational information
-  arx  = (record[10] & 0x7f) << 7;
-  arx += (record[11] & 0x7f);
-  
-  ary  = (record[12] & 0x7f) << 7;
-  ary += (record[13] & 0x7f);
-  
-  arz  = (record[14] & 0x7f) << 7;
-  arz += (record[15] & 0x7f);
+  // absolute rotational data
+  const short arx  = ((record[10] & 0x7f) << 7) + (record[11] & 0x7f);
+  const short ary  = ((record[12] & 0x7f) << 7) + (record[13] & 0x7f);
+  const short arz  = ((record[14] & 0x7f) << 7) + (record[15] & 0x7f);
 
   // calculate the rotational floating point values
   const float xAngle = ar_convertToRad( ((float) arx) / 40.0 );

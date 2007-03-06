@@ -29,12 +29,9 @@ Not true?  InputDevices-Drivers.t2t and drivers/RS232Server.cpp disagree.
 #define AR_FOB_RS232_DRIVER_H
 
 #include "arInputSource.h"
-#include "arThread.h"
 #include "arRS232Port.h"
-#include "arMath.h"
-#include "arDriversCalling.h"
 
-#include <string>
+#include "arDriversCalling.h"
 
 // Driver for Ascension's Flock of Birds magnetic motion tracker.
 

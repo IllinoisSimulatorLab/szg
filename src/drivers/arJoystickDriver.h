@@ -7,8 +7,8 @@
 #define AR_JOYSTICK_DRIVER_H
 
 #include "arInputSource.h"
-#include "arThread.h"
 #include "arInputHeaders.h"
+
 #include "arDriversCalling.h"
 
 // Driver for (USB) joysticks or gamepads.
@@ -17,7 +17,6 @@ class SZG_CALL arJoystickDriver: public arInputSource{
   friend void ar_joystickDriverEventTask(void*);
  public:
   arJoystickDriver();
-  ~arJoystickDriver();
 
   bool init(arSZGClient& client);
   bool start();

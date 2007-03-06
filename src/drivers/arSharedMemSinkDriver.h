@@ -7,9 +7,7 @@
 #define AR_SHARED_MEM_SINK_DRIVER_H
 
 #include "arInputSink.h"
-#include "arThread.h"
-#include "arMath.h"
-// THIS MUST BE THE LAST SZG INCLUDE!
+
 #include "arDriversCalling.h"
 
 /// Driver for SGI shared-memory segments emulating "trackd" mocap data.

@@ -4,8 +4,6 @@
 //********************************************************
 
 #include "arPrecompiled.h"
-#include "arDataUtilities.h"
-#include "arPForth.h"
 #include "arPForthDatabaseVocabulary.h"
 
 namespace arPForthSpace {

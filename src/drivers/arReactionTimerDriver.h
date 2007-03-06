@@ -7,9 +7,8 @@
 #define AR_REACTION_TIMER_DRIVER_H
 
 #include "arInputSource.h"
-#include "arThread.h"
-#include "arMath.h"
 #include "arRS232Port.h"
+
 #include "arDriversCalling.h"
 
 // Driver for the accurate Reaction Timer system.
@@ -40,5 +39,4 @@ class SZG_CALL arReactionTimerDriver: public arInputSource {
     arTimer _rtTimer;
 };
 
-#endif        //  #ifndefARREACTIONTIMERDRIVER_H
-
+#endif

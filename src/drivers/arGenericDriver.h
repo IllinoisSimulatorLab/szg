@@ -7,9 +7,12 @@
 #define AR_GENERIC_DRIVER_H
 
 #include "arInputSource.h"
+
 #include "arDriversCalling.h"
 
 // Example to copy-paste from, for writing drivers for input devices.
+
+// Used, too, by framework/arInputSimulator.cpp.
 
 class SZG_CALL arGenericDriver: public arInputSource{
  public:

@@ -1,11 +1,9 @@
 //********************************************************
 // Syzygy is licensed under the BSD license v2
 // see the file SZG_CREDITS for details
-//********************************************************
-
-//********************************************************
-// this file includes modified sample code from the
-// Acension Technologies bnsample.c application
+//
+// This file includes modified sample code from
+// Acension Technologies' bnsample.c.
 //********************************************************
 
 #include "arPrecompiled.h"

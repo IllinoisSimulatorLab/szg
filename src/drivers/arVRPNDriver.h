@@ -7,8 +7,8 @@
 #define AR_VRPN_DRIVER_H
 
 #include "arInputSource.h"
-#include "arThread.h"
 #include "arInputHeaders.h"
+
 #include "arDriversCalling.h"
 
 #ifdef Enable_VRPN

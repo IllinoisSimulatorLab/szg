@@ -11,7 +11,6 @@
 #ifndef AR_USE_WIN_32
 #include <sys/shm.h>
 #endif
-#include "arDataUtilities.h"
 #include "arInputNode.h"
 #include "arNetInputSource.h"
 
@@ -138,6 +137,13 @@ void ar_ShmDriverDataTask(void* pv) {
   ((arSharedMemSinkDriver*)pv)->_dataThread();
 }
 
+#ifdef AR_USE_WIN_32
+// Test pattern
+static inline float drand48(){
+  return float(rand()) / float(RAND_MAX);
+  }
+#endif
+
 void arSharedMemSinkDriver::_dataThread() {
   _stopped = false;
   _eventThreadRunning = true;
@@ -172,6 +178,7 @@ void arSharedMemSinkDriver::_dataThread() {
 
     // Get data from devices.
 
+    // Test pattern.
     // ;;todo: Read data from fobNode.
     // ;;todo: Read data from USB-wand, a la DeviceClient.
 

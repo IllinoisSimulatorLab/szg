@@ -4,8 +4,6 @@
 //********************************************************
 
 #include "arPrecompiled.h"
-#include "arDataUtilities.h"
-#include "arInputSource.h"
 #include "arSharedMemDriver.h"
 
 #ifndef AR_USE_WIN_32

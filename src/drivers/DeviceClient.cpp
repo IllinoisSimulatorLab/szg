@@ -39,6 +39,13 @@ void dump( arInputState& inp ) {
     for (i=0; i<cm; i++)
       cout << inp.getMatrix(i) << "\n";
   }
+  cout << "____\n\n";
+
+  const arMatrix4 m(inp.getMatrix(0));
+  const arVector3 xlat(ar_extractTranslation(m));
+  cout << "xyz: " << xlat << "\n";
+
+
   cout << "____\n";
 }
 
@@ -120,13 +127,13 @@ LAbort:
   }
 
   arInputNode inputNode;
-  arNetInputSource netInputSource;
-  inputNode.addInputSource(&netInputSource, false);
-  if (!netInputSource.setSlot(slot)) {
+  arNetInputSource src;
+  if (!src.setSlot(slot)) {
     ar_log_error() << "DeviceClient: invalid slot " << slot << ".\n";
     goto LAbort;
   }
   ar_log_remark() << "DeviceClient listening on slot " << slot << ".\n";
+  inputNode.addInputSource(&src, false);
 
   FilterOnButton filterOnButton;
   FilterEventStream filterEventStream;
@@ -156,7 +163,7 @@ LAbort:
   }
 
   // todo: warn only after 2 seconds have elapsed (separate thread).
-  if (!netInputSource.connected()) {
+  if (!src.connected()) {
     ar_log_warning() << "DeviceClient not yet connected on slot " << slot << ".\n";
   }
 
@@ -167,9 +174,15 @@ LAbort:
   arThread dummy(ar_messageTask, &szgClient);
 
   while (szgClient.connected()){
-    if (mode == CONTINUOUS_DUMP && netInputSource.connected())
+    if (mode == CONTINUOUS_DUMP && src.connected())
       dump(inputNode._inputState);
     ar_usleep(500000);
   }
   return 0;
 }
+
+/*
+another mode:
+dump prints matrix decomposed into xlat and euler angles
+head only, special.
+*/

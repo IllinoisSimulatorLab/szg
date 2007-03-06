@@ -10,12 +10,10 @@
 #define AR_INTERSENSE_DRIVER_H 1
 
 #include "arInputSource.h"
-#include "arThread.h"
 #include "arInputHeaders.h"
 #include "isense.h"
-#include "arDriversCalling.h"
 
-#include <vector>
+#include "arDriversCalling.h"
 
 class IsenseStation;
 
@@ -74,7 +72,7 @@ public:
   // Send tracker data to an arInputSource.
   bool getData( arInputSource* source );
 
-  std::vector< IsenseStation >& getStations() { return _stations; }
+  vector< IsenseStation >& getStations() { return _stations; }
 
 private:
   // Fill struct with configuration of tracker.
@@ -107,7 +105,7 @@ private:
   bool _bSupportsPositionMeasurement; // Does tracker yields positions?
   bool _bSupportsCameraData; // Does tracker supports new camera devices?
 
-  std::vector< IsenseStation > _stations;
+  vector< IsenseStation > _stations;
 };
 
 ostream& operator<<(ostream&, const IsenseTracker& tc);
@@ -222,7 +220,7 @@ private:
 
   bool _resetHeading( unsigned  int trackerID, unsigned  int stationID );
 
-  std::vector< IsenseTracker > _trackers;
+  vector< IsenseTracker > _trackers;
 
   int _sleepTime; // How many ticks to pause at each polling of trackers.
   Bool _isVerbose; // Should the tracker print?

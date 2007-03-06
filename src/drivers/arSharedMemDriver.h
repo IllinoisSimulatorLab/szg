@@ -6,8 +6,8 @@
 #ifndef AR_SHARED_MEM_DRIVER_H
 #define AR_SHARED_MEM_DRIVER_H
 
-#include "arThread.h"
-#include "arMath.h"
+#include "arInputSource.h"
+
 #include "arDriversCalling.h"
 
 // Driver for reading shared-memory segments holding mocap data from VRCO trackd.

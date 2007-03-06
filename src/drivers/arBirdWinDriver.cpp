@@ -8,7 +8,50 @@
 
 DriverFactory(arBirdWinDriver, "arInputSource")
 
-#ifdef EnableBirdWinDriver
+#ifndef EnableBirdWinDriver
+
+arBirdWinDriver::arBirdWinDriver()
+{}
+
+bool arBirdWinDriver::init(arSZGClient&) {
+  cerr << "arBirdWinDriver error: disabled because flock-of-birds driver is not installed.\n";
+  return false;
+}
+
+bool arBirdWinDriver::start(){
+  return false;
+}
+
+bool arBirdWinDriver::stop(){
+  return true;
+}
+
+#else
+
+arBirdWinDriver::arBirdWinDriver() :
+  _flockWoken( false ),
+  _streamingStarted( false ),
+  _groupID( 1 ),
+  _readTimeout( 2000 ),
+  _writeTimeout( 2000 )
+{}
+
+bool arBirdWinDriver::start(){
+  return _eventThread.beginThread(ar_WinBirdDriverEventTask,this);
+}
+
+bool arBirdWinDriver::stop(){
+  if (_flockWoken) {
+    if (_streamingStarted) {
+        birdStopFrameStream(_groupID);
+        // cout << "arBirdWinDriver remark: Stopped data stream.\n";
+    }
+    birdShutDown(_groupID);
+    // cout << "arBirdWinDriver remark: Flock shut down.\n";    
+  }
+  return true;
+}
+
 void ar_WinBirdDriverEventTask(void* FOBDriver) {
   arBirdWinDriver* fobDriver = (arBirdWinDriver*) FOBDriver;
   BOOL status = birdStartFrameStream( fobDriver->_groupID );
@@ -74,25 +117,14 @@ void ar_WinBirdDriverEventTask(void* FOBDriver) {
     }
     fobDriver->sendQueue();
   }
-#else
-void ar_WinBirdDriverEventTask(void*) {
-#endif
 }
 
-arBirdWinDriver::arBirdWinDriver() :
-  _flockWoken( false ),
-  _streamingStarted( false )
-#ifdef EnableBirdWinDriver
-  ,
-  _groupID( 1 ),
-  _readTimeout( 2000 ),
-  _writeTimeout( 2000 )
-#endif
-{}
-
-#ifdef EnableBirdWinDriver
 bool arBirdWinDriver::init(arSZGClient& SZGClient) {
-#ifdef AR_USE_WIN_32
+#ifndef AR_USE_WIN_32
+  // do lots of complicated stuff to wake up the flock.
+  cerr << "arBirdWinDriver error: implemented only for win32.\n  (Try arFOBDriver instead.)";
+  return false;
+#else
   const int baudRates[] = {2400,4800,9600,19200,38400,57600,115200};
   const BYTE hemiNums[] = {BHC_FRONT,BHC_REAR,BHC_UPPER,BHC_LOWER,BHC_LEFT,BHC_RIGHT};
   const string hemispheres[] = {"front","rear","upper","lower","left","right"};
@@ -226,37 +258,7 @@ bool arBirdWinDriver::init(arSZGClient& SZGClient) {
     }
   }
   return true;
-#else
-  // do lots of complicated stuff to wake up the flock.
-  cerr << "arBirdWinDriver error: implemented only for win32.\n  (Try arFOBDriver instead.)";
-  return false;
-#endif
-
-#else
-bool arBirdWinDriver::init(arSZGClient&) {
-  cerr << "arBirdWinDriver error: disabled because flock-of-birds driver is not installed.\n";
-  return false;
 #endif
 }
 
-bool arBirdWinDriver::start(){
-#ifdef EnableBirdWinDriver
-  return _eventThread.beginThread(ar_WinBirdDriverEventTask,this);
-#else
-  return false;
 #endif
-}
-
-bool arBirdWinDriver::stop(){
-#ifdef EnableBirdWinDriver
-  if (_flockWoken) {
-    if (_streamingStarted) {
-        birdStopFrameStream(_groupID);
-        // cout << "arBirdWinDriver remark: Stopped data stream.\n";
-    }
-    birdShutDown(_groupID);
-    // cout << "arBirdWinDriver remark: Flock shut down.\n";    
-  }
-#endif
-  return true;
-}

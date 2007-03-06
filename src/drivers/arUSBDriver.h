@@ -7,8 +7,7 @@
 #define AR_USB_DRIVER_H
 
 #include "arInputSource.h"
-#include "arThread.h"
-#include "arMath.h"
+
 #include "arDriversCalling.h"
 
 // Driver for USB cave-wand,

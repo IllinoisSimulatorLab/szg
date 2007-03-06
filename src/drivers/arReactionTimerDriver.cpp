@@ -3,9 +3,7 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-
 #include "arPrecompiled.h"
-#include "arDataUtilities.h"
 #include "arReactionTimerDriver.h"
 
 #include <string>

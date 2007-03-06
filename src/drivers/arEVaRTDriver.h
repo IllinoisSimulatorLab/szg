@@ -7,10 +7,8 @@
 #define AR_EVART_DRIVER_H
 
 #include "arInputSource.h"
-#include "arThread.h"
 #include "arInputHeaders.h"
-#include "arSocket.h"
-#include "arDataUtilities.h"
+
 #include "arDriversCalling.h"
 
 #include <list>
@@ -22,7 +20,6 @@ class arEVaRTDriver: public arInputSource {
   friend int ar_evartDataHandler(int,void*);
  public:
   arEVaRTDriver();
-  ~arEVaRTDriver();
 
   bool init(arSZGClient&);
   bool start();

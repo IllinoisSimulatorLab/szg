@@ -8,8 +8,8 @@
 
 DriverFactory(arIntelGamepadDriver, "arInputSource")
 
-void ar_intelGamepadDriverEventTask(void* gamepadDriver){
 #ifdef AR_USE_WIN_32
+void ar_intelGamepadDriverEventTask(void* gamepadDriver){
   arIntelGamepadDriver* g = (arIntelGamepadDriver*) gamepadDriver;
 
   // Poll pKeyboard.
@@ -42,14 +42,6 @@ void ar_intelGamepadDriverEventTask(void* gamepadDriver){
        !(js[DIK_LEFT] || js[DIK_RIGHT] || js[DIK_UP] || js[DIK_DOWN]))
        // special case for time-variant behavior while the D-pad is held down
       continue;
-
-#if 0
-    for (int i=0; i<256; ++i){
-      if (js[i] != 0)
-        cout << "[" << i << "] = " << int(js[i]) << endl;
-    }
-    cout << endl;
-#endif
 
     const int keys[] = {
       // unshifted buttons
@@ -90,8 +82,8 @@ void ar_intelGamepadDriverEventTask(void* gamepadDriver){
 
     memcpy(jsPrev, js, sizeof(js));
   }
-#endif
 }
+#endif
 
 bool arIntelGamepadDriver::init(arSZGClient& szgClient){
   int sig[3] = {8,2,0};
@@ -141,5 +133,10 @@ bool arIntelGamepadDriver::init(arSZGClient& szgClient){
 }
 
 bool arIntelGamepadDriver::start(){
+#ifdef AR_USE_WIN_32
   return _eventThread.beginThread(ar_intelGamepadDriverEventTask,this);
+#else
+  ar_log_warning() << "arIntelGamepadDriver requires windows, sorry.\n";
+  return true;
+#endif
 }

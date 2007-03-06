@@ -4,51 +4,60 @@ SZG_COPY_LIB = TRUE
 VPATH = ../../../src/drivers
 include $(SZGHOME)/build/make/Makefile.vars
 
-OBJS = \
-  arInputEventQueue$(OBJ_SUFFIX) \
-  arInputState$(OBJ_SUFFIX) \
-  arInputNode$(OBJ_SUFFIX) \
-  arInputEvent$(OBJ_SUFFIX) \
+OBJS := \
   arEventUtilities$(OBJ_SUFFIX) \
-  arInputLanguage$(OBJ_SUFFIX) \
-  arInputSource$(OBJ_SUFFIX) \
-  arIOFilter$(OBJ_SUFFIX) \
-  arNetInputSink$(OBJ_SUFFIX) \
-  arNetInputSource$(OBJ_SUFFIX) \
   arFileSink$(OBJ_SUFFIX) \
   arFileSource$(OBJ_SUFFIX) \
   arGenericDriver$(OBJ_SUFFIX) \
+  arIOFilter$(OBJ_SUFFIX) \
+  arInputEvent$(OBJ_SUFFIX) \
+  arInputEventQueue$(OBJ_SUFFIX) \
+  arInputLanguage$(OBJ_SUFFIX) \
+  arInputNode$(OBJ_SUFFIX) \
+  arInputSource$(OBJ_SUFFIX) \
+  arInputState$(OBJ_SUFFIX) \
+  arNetInputSink$(OBJ_SUFFIX) \
+  arNetInputSource$(OBJ_SUFFIX) \
   arPForth$(OBJ_SUFFIX) \
-  arPForthStandardVocabulary$(OBJ_SUFFIX) \
   arPForthDatabaseVocabulary$(OBJ_SUFFIX) \
   arPForthEventVocabulary$(OBJ_SUFFIX) \
-  arPForthFilter$(OBJ_SUFFIX)
+  arPForthFilter$(OBJ_SUFFIX) \
+  arPForthStandardVocabulary$(OBJ_SUFFIX) \
 
-# Local variables.
-ifeq ($(strip $(SZG_LINKING)), STATIC) 
-  COMPILE_FLAGS += -D "NOFACTORY"
+# arGenericDriver is in OBJS not OBJS_DRIVER, oddly.
 
-  OBJS += \
-  arIntersenseDriver$(OBJ_SUFFIX) \
+OBJS_DRIVER := \
   arBirdWinDriver$(OBJ_SUFFIX) \
   arEVaRTDriver$(OBJ_SUFFIX) \
   arFOBDriver$(OBJ_SUFFIX) \
   arFaroDriver$(OBJ_SUFFIX) \
+  arIntersenseDriver$(OBJ_SUFFIX) \
   arLogitechDriver$(OBJ_SUFFIX) \
   arMotionstarDriver$(OBJ_SUFFIX) \
   arPPTDriver$(OBJ_SUFFIX) \
   arReactionTimerDriver$(OBJ_SUFFIX) \
   arSharedMemDriver$(OBJ_SUFFIX) \
+  arSharedMemSinkDriver$(OBJ_SUFFIX) \
   arUSBDriver$(OBJ_SUFFIX) \
-  arVRPNDriver$(OBJ_SUFFIX)
+  arVRPNDriver$(OBJ_SUFFIX) \
+  \
+  arConstantHeadFilter$(OBJ_SUFFIX) \
+  arFaroCalFilter$(OBJ_SUFFIX) \
+  arTrackCalFilter$(OBJ_SUFFIX) \
 
 ifneq ($(strip $(SZG_COMPILER)),MINGW)
-  OBJS += \
+  OBJS_DRIVER += \
   arSpacepadDriver$(OBJ_SUFFIX) \
   arJoystickDriver$(OBJ_SUFFIX) \
   arIntelGamepadDriver$(OBJ_SUFFIX)
 endif
 
+LIBS_DRIVER = $(subst $(OBJ_SUFFIX),$(PLUGIN_SUFFIX),$(OBJS_DRIVER))
+
+# Local variables.
+ifeq ($(strip $(SZG_LINKING)), STATIC) 
+  COMPILE_FLAGS += -D "NOFACTORY"
+  OBJS += $(OBJS_DRIVER)
 endif
 
 # Explicit definitions, replacing the otherwise generic ones in Makefile.defines
@@ -115,27 +124,7 @@ ALL = \
   pfconsole$(EXE)
 
 ifneq ($(strip $(SZG_LINKING)), STATIC) 
-  ALL += \
-    DeviceServer$(EXE) \
-    arIntersenseDriver$(PLUGIN_SUFFIX) \
-    arBirdWinDriver$(PLUGIN_SUFFIX) \
-    arConstantHeadFilter$(PLUGIN_SUFFIX) \
-    arEVaRTDriver$(PLUGIN_SUFFIX) \
-    arFOBDriver$(PLUGIN_SUFFIX) \
-    arFaroCalFilter$(PLUGIN_SUFFIX) \
-    arFaroDriver$(PLUGIN_SUFFIX) \
-    arIntelGamepadDriver$(PLUGIN_SUFFIX) \
-    arJoystickDriver$(PLUGIN_SUFFIX) \
-    arLogitechDriver$(PLUGIN_SUFFIX) \
-    arMotionstarDriver$(PLUGIN_SUFFIX) \
-    arPPTDriver$(PLUGIN_SUFFIX) \
-    arReactionTimerDriver$(PLUGIN_SUFFIX) \
-    arSharedMemDriver$(PLUGIN_SUFFIX) \
-    arSharedMemSinkDriver$(PLUGIN_SUFFIX) \
-    arSpacepadDriver$(PLUGIN_SUFFIX) \
-    arTrackCalFilter$(PLUGIN_SUFFIX) \
-    arUSBDriver$(PLUGIN_SUFFIX) \
-    arVRPNDriver$(PLUGIN_SUFFIX)
+  ALL += DeviceServer$(EXE) $(LIBS_DRIVER)
 endif
 
 include $(SZGHOME)/build/make/Makefile.rules
@@ -144,7 +133,8 @@ $(SZG_CURRENT_DLL): $(OBJS) $(SZG_LIBRARY_DEPS)
 	$(LINK_SZG_LIB)
 	$(COPY)
 
-# The executables
+# Executables
+
 DeviceClient$(EXE): DeviceClient$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_EXE_FIRST) DeviceClient$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
@@ -169,12 +159,10 @@ pfconsole$(EXE): pfconsole$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_EXE_FIRST) pfconsole$(OBJ_SUFFIX) $(SZG_EXE_SECOND)
 	$(COPY)
 
-# not made at the moment: CompassServer GPSServer HeadServer TiltServer
+# Device-driver shared objects for DeviceServer.
 
-# The device-driver shared objects for DeviceServer.
+# Shared objects using only Syzygy internals like RS232.
 
-# The first collection of shared objects is built on functionality found in
-# szg (like serial port communications)
 arPPTDriver$(PLUGIN_SUFFIX): arPPTDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_PLUGIN_FIRST) arPPTDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
@@ -216,9 +204,8 @@ arSpacepadDriver$(PLUGIN_SUFFIX): arSpacepadDriver$(OBJ_SUFFIX) $(SZG_CURRENT_DL
 	$(SZG_PLUGIN_FIRST) arSpacepadDriver$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
-# Each of these shared objects uses libraries beyond the base szg.
-# Use LINK_FLAGS_PLUGIN because Darwin (Think Different, TM) compiles
-# dynamically loaded modules and shared libraries differently.
+# Shared objects using things beyond Syzygy's core.
+# Darwin needs LINK_FLAGS_PLUGIN.
 
 arBirdWinDriver$(OBJ_SUFFIX): arBirdWinDriver.cpp
 	$(COMPILER) $(COMPILE_FLAGS) $< $(SZG_INCLUDE) $(SZG_INCLUDE_WIN_BIRD)
@@ -264,7 +251,7 @@ arIntersenseDriver$(PLUGIN_SUFFIX): arIntersenseDriver$(OBJ_SUFFIX) isense$(OBJ_
 isense$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)
 	$(COPY)
 
-# The filter shared objects.
+# Shared objects that filter.
 
 arConstantHeadFilter$(PLUGIN_SUFFIX): arConstantHeadFilter$(OBJ_SUFFIX) $(SZG_CURRENT_DLL) $(SZG_LIBRARY_DEPS)
 	$(SZG_PLUGIN_FIRST) arConstantHeadFilter$(OBJ_SUFFIX) $(POST_LINK_LINE_EXE)

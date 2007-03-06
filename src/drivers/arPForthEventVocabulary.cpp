@@ -4,8 +4,6 @@
 //********************************************************
 
 #include "arPrecompiled.h"
-#include "arPForth.h"
-#include "arDataUtilities.h"
 #include "arInputEvent.h"
 #include "arPForthFilter.h"
 

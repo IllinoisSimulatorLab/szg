@@ -7,11 +7,9 @@
 #define AR_MOTIONSTAR_DRIVER_H
 
 #include "arInputSource.h"
-#include "arThread.h"
 #include "arInputHeaders.h"
-#include "arSocket.h"
-#include "arDataUtilities.h"
 #include "birdnet.h"
+
 #include "arDriversCalling.h"
 
 struct BN_PACKET {

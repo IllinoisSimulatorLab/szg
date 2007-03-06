@@ -10,8 +10,6 @@
 #include "arDataUtilities.h"
 #include "arRS232Port.h"
 
-#include <string>
-
 using namespace std;
 
 int main(int, char **) {

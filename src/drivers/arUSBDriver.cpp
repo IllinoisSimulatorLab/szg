@@ -4,7 +4,6 @@
 //********************************************************
 
 #include "arPrecompiled.h"
-#include "arDataUtilities.h"
 #include "arUSBDriver.h"
 
 #include <string>

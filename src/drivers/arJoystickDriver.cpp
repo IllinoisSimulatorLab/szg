@@ -113,9 +113,6 @@ arJoystickDriver::arJoystickDriver() :
   ar_mutex_init(&_shutdownLock);
 }
 
-arJoystickDriver::~arJoystickDriver(){
-}
-
 bool arJoystickDriver::init(arSZGClient& szgClient){
   // Many gamepads have 6 axes and 10 buttons in 2006.  Default generously.
   int sig[3] = {10,6,0};
@@ -206,7 +203,7 @@ bool arJoystickDriver::init(arSZGClient& szgClient){
     return false;
   }
 #endif
-  ar_log_debug() << "arJoystickDriver initialized.\n";
+  ar_log_debug() << "arJoystickDriver inited.\n";
   return true;
 }
 

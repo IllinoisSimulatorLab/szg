@@ -7,9 +7,8 @@
 #define AR_PPT_TIMER_DRIVER_H
 
 #include "arInputSource.h"
-#include "arThread.h"
-#include "arMath.h"
 #include "arRS232Port.h"
+
 #include "arDriversCalling.h"
 
 // Driver for WorldViz PPT position tracker.

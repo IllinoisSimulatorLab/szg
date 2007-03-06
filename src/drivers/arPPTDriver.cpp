@@ -3,14 +3,10 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-
 #include "arPrecompiled.h"
-#include "arDataUtilities.h"
 #include "arPPTDriver.h"
 
 #include <string>
-
-//#define DEBUG
 
 DriverFactory(arPPTDriver, "arInputSource")
 
@@ -83,14 +79,14 @@ bool arPPTDriver::stop() {
   return true;
 }
 
-const unsigned int PPT_PACKET_SIZE(27);
-const unsigned int PPT_MAX_LIGHTS(4);
-const float PPT_RANGE(32768.0); 
-const float METERS_PER_FOOT( 12.*.0254 );
-const float FEET_PER_METER( 1./METERS_PER_FOOT );
+const unsigned PPT_PACKET_SIZE = 27;
+const int PPT_MAX_LIGHTS = 4;
+const float PPT_RANGE = 32768.0;
+const float METERS_PER_FOOT = 12.0 * 0.0254;
+const float FEET_PER_METER = 1./METERS_PER_FOOT;
 
 bool arPPTDriver::_processInput() {
-  int numRead = _port.ar_read( _inbuf, PPT_PACKET_SIZE, BUF_SIZE );
+  unsigned numRead = _port.ar_read( _inbuf, PPT_PACKET_SIZE, BUF_SIZE );
   if (numRead == 0) {
     if (_statusTimer.done() && _imAlive) {
       cerr << "arPPTDriver remark: lost communication with PPT.\n";
@@ -118,22 +114,19 @@ bool arPPTDriver::_processInput() {
   }
 
   if(lastGoodIndex != -1) {
-    //If we found a fresh packet, unstuff data and return number of lights
-    int numlights = (int)packet[1+lastGoodIndex];
+    // Found a fresh packet.  Unstuff data and return number of lights.
+    const int numlights = (int)packet[1+lastGoodIndex];
     _setDeviceElements( 0, 0, numlights );
     
     for(int i = 0; i < numlights; i++) {
-      float x = _unstuffBytes(10.0, &(packet[(i*6+2)+lastGoodIndex]) );
-      float y = _unstuffBytes(10.0, &(packet[(i*6+4)+lastGoodIndex]) );
-      float z = _unstuffBytes(10.0, &(packet[(i*6+6)+lastGoodIndex]) );
+      const float x = _unstuffBytes(10.0, &(packet[(i*6+2)+lastGoodIndex]) );
+      const float y = _unstuffBytes(10.0, &(packet[(i*6+4)+lastGoodIndex]) );
+      const float z = _unstuffBytes(10.0, &(packet[(i*6+6)+lastGoodIndex]) );
 
       // End lifted code
-#ifdef DEBUG
-      cout << x << "\t" << y << "\t" << -z << endl;
-#endif
-      // change coordinate systems from PPT's sensible left-handed to OpenGL-standard,
-      // brainless right-handed, and from PPT's sensible meters to Syzygy's less-sensible
-      // feet...
+
+      // change coordinate systems from PPT's left-handed to OpenGL's
+      // right-handed, and from PPT's meters to Syzygy's feet.
       queueMatrix( i, ar_translationMatrix( x*FEET_PER_METER, y*FEET_PER_METER,-z*FEET_PER_METER ) );
     }
 

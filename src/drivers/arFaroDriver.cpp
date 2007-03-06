@@ -30,7 +30,6 @@
 // the tip fixed & move the rest of the arm around) are in fact (4,-2,57).
 
 #include "arPrecompiled.h"
-#include "arDataUtilities.h"
 #include "arFaroDriver.h"
 #include <string>
 

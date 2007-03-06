@@ -7,8 +7,8 @@
 #define AR_LOGITECH_DRIVER_H
 
 #include "arInputSource.h"
-#include "arThread.h"
 #include "arRS232Port.h"
+
 #include "arDriversCalling.h"
 
 namespace arLogitechDriverSpace {

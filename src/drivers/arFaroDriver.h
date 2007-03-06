@@ -7,9 +7,8 @@
 #define AR_FARO_DRIVER_H
 
 #include "arInputSource.h"
-#include "arThread.h"
-#include "arMath.h"
 #include "arRS232Port.h"
+
 #include "arDriversCalling.h"
 
 // Driver for the Faro Arm.
