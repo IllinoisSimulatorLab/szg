@@ -29,13 +29,13 @@ int main( int argc, char** argv ) {
 
   ar_PForthSetSZGClient( &szgClient );
   string program;
-  cout << "OK ";
-  getline( cin, program );
-  while (program != "quit") {
-    if (pforth.compileProgram( program ))
-      pforth.runProgram();
+  for (;;) {
     cout << "OK ";
     getline( cin, program );
+    if (program == "quit")
+      break;
+    if (pforth.compileProgram( program ))
+      pforth.runProgram();
   }
   return 0;
 }
