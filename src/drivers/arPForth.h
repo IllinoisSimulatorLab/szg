@@ -102,9 +102,9 @@ class SZG_CALL ArrayCompiler : public arPForthCompiler {
 
 class SZG_CALL arPForthDictionaryEntry {
   public:
-    std::string _word;
+    string _word;
     arPForthCompiler* _compiler;
-    arPForthDictionaryEntry( const std::string theWord,
+    arPForthDictionaryEntry( const string theWord,
                            arPForthCompiler* comp ) :
                            _word( theWord ),
                            _compiler( comp )
@@ -117,8 +117,8 @@ class SZG_CALL arPForthDictionaryEntry {
 };
 
 struct arPForthException {
-  std::string _message;
-  arPForthException( const std::string message ):_message(message) {}
+  string _message;
+  arPForthException( const string message ):_message(message) {}
 };
 
 SZG_CALL bool ar_PForthAddStandardVocabulary( arPForth* pf );
@@ -133,8 +133,8 @@ class SZG_CALL arPForthProgram {
     arPForthProgram() {}
     ~arPForthProgram();
   private:
-    std::vector<arPForthSpace::arPForthAction*> _actionList;
-    std::vector<arPForthSpace::arPForthAction*> _transientActions;
+    vector<arPForthSpace::arPForthAction*> _actionList;
+    vector<arPForthSpace::arPForthAction*> _transientActions;
 };
 
 // FORTH interpreter for input-device filters.
@@ -144,11 +144,11 @@ class SZG_CALL arPForth {
     // "user" interface
     arPForth();
     virtual ~arPForth();
-    bool compileProgram( const std::string sourceCode );
+    bool compileProgram( const string sourceCode );
     bool runProgram();
     bool runProgram( arPForthProgram* program );
     arPForthProgram* getProgram();
-    std::vector<std::string> getVocabulary();
+    vector<string> getVocabulary();
     
     // "programmer" interface (for adding new words).
     // be prepared to catch arPForthExceptions if you call some
@@ -158,19 +158,19 @@ class SZG_CALL arPForth {
     bool runSubprogram( vector<arPForthSpace::arPForthAction*>& actionList );
     float stackPop();
     void stackPush( const float val );
-    unsigned int stackSize();
-    float stackElement( const unsigned int i );
+    unsigned stackSize() const;
+    float stackElement( const unsigned i );
     bool insertStackElement( const unsigned int i, const float val );
-    std::string nextWord();
-    std::string peekNextWord();
+    string nextWord();
+    string peekNextWord() const;
     bool addDictionaryEntry( const arPForthSpace::arPForthDictionaryEntry& entry );
     void addCompiler( arPForthSpace::arPForthCompiler* compiler );
     void addAction( arPForthSpace::arPForthAction* action );
     void addTransientAction( arPForthSpace::arPForthAction* action );
-    bool addSimpleActionWord( const string theWord, arPForthSpace::arPForthAction* action );
-    bool findWord( std::string theWord );
-    bool getWord( std::string theWord,
-        std::vector<arPForthSpace::arPForthDictionaryEntry>::iterator& iter );
+    bool addSimpleActionWord( const string&, arPForthSpace::arPForthAction* );
+    bool findWord( string theWord );
+    bool getWord( const string&,
+      vector<arPForthSpace::arPForthDictionaryEntry>::const_iterator& ) const;
     void testFailAddress( const long address, unsigned long size );
     unsigned long allocateStorage( const unsigned long theSize );
     unsigned long allocateString();
@@ -180,11 +180,13 @@ class SZG_CALL arPForth {
     void putDataMatrix( long address, const arMatrix4& val );
     void getDataArray( long address, float* const ptr, unsigned long size );
     void putDataArray( long address, const float* const ptr, unsigned long size );
-    std::string getString( long address );
-    void putString( long address, const std::string& val );
-    bool operator!() { return !_valid; }
-    void printDataspace();
-    void printStringspace();
+    string getString( long address );
+    void putString( long address, const string& val );
+    bool operator!() const { return !_valid; }
+    void printDataspace() const;
+    void printStringspace() const;
+    void printStack() const;
+    void printDictionary() const;
     bool anonymousActionsAreTransient;
     
   protected:
@@ -192,14 +194,13 @@ class SZG_CALL arPForth {
 
   private:
     arPForthProgram* _program;
-    std::vector<float> _dataSpace;
-    std::list< std::string > _inputWords;
-    std::vector<float> _theStack; // want a bit more access than stack<> allows...
-    std::vector<std::string> _stringSpace;
-    // _actions is a list of all actions available in the language
-    std::vector<arPForthSpace::arPForthAction*> _actions;
-    std::vector<arPForthSpace::arPForthCompiler*> _compilers;
-    std::vector<arPForthSpace::arPForthDictionaryEntry> _dictionary;
+    vector<float> _dataSpace;
+    list< string > _inputWords;
+    vector<float> _theStack; // want a bit more access than stack<> allows...
+    vector<string> _stringSpace;
+    vector<arPForthSpace::arPForthAction*> _actions; // All the language's actions.
+    vector<arPForthSpace::arPForthCompiler*> _compilers;
+    vector<arPForthSpace::arPForthDictionaryEntry> _dictionary;
 };
 
 #endif        //  #ifndefARPSEUDOFORTH_H

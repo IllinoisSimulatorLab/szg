@@ -38,11 +38,13 @@ bool VariableCompiler::compile( arPForth* pf,
                                vector<arPForthSpace::arPForthAction*>& /*actionList*/ ) {
   if (!pf)
     return false;
-  string theName = pf->nextWord();
+  const string theName = pf->nextWord();
   if (theName == "PFORTH_NULL_WORD")
     throw arPForthException("end of input reached prematurely.");
+
   if (pf->findWord( theName ))
     throw arPForthException("word " + theName + " already in dictionary.");
+
   const unsigned long address = pf->allocateStorage( _size ); // oops, needs a test
   arPForthAction* action = new FetchNumber( (float)address );
   pf->addAction( action );
@@ -59,11 +61,14 @@ bool ArrayCompiler::compile( arPForth* pf,
   const string theName = pf->nextWord();
   if ((numItemsString == "PFORTH_NULL_WORD")||(theName == "PFORTH_NULL_WORD"))
     throw arPForthException("end of input reached prematurely.");
+
   long numItemsSigned = -1;
   if (!ar_stringToLongValid( numItemsString, numItemsSigned ))
     throw arPForthException("string->numItems conversion failed.");
+
   if (pf->findWord( theName ))
     throw arPForthException("word " + theName + " already in dictionary.");
+
   unsigned long numItems( static_cast<unsigned long>(numItemsSigned) );
   unsigned long address = pf->allocateStorage( numItems ); // oops, needs a test
   arPForthAction* action = new FetchNumber( (float)address );
@@ -81,8 +86,10 @@ bool NumberCompiler::compile( arPForth* pf,
   float theFloat = 0.;
   if (!ar_stringToDoubleValid( _theWord, theDouble ))
     throw arPForthException("string->float conversion failed.");
+
   if (!ar_doubleToFloatValid( theDouble, theFloat ))
     throw arPForthException("string->float conversion failed.");
+
   arPForthAction* action = new FetchNumber(theFloat);
   if (pf->anonymousActionsAreTransient)
     pf->addTransientAction( action );
@@ -142,9 +149,8 @@ arPForth::~arPForth() {
   _dataSpace.clear();
   if (_program != 0)
     delete _program;
-//  _program.clear();
   _dictionary.clear();
-  unsigned int i = 0;
+  unsigned i = 0;
   for (i=0; i<_actions.size(); i++)
     delete _actions[i];
   _actions.clear();
@@ -178,13 +184,13 @@ void arPForth::addTransientAction( arPForthSpace::arPForthAction* action ) {
   _program->_transientActions.push_back( action );
 }
 
-bool arPForth::addSimpleActionWord( const string theWord,
-                                    arPForthSpace::arPForthAction* action ) {
-  if (action == 0)
+bool arPForth::addSimpleActionWord(
+  const string& theWord, arPForthSpace::arPForthAction* action ) {
+  if (!action)
     return false;
   addAction( action );
   arPForthSpace::arPForthCompiler* compiler = new arPForthSpace::SimpleCompiler(action);
-  if (compiler==0)
+  if (!compiler)
     return false;
   addCompiler( compiler );
   return addDictionaryEntry( arPForthSpace::arPForthDictionaryEntry( theWord, compiler ) );
@@ -193,6 +199,7 @@ bool arPForth::addSimpleActionWord( const string theWord,
 float arPForth::stackPop() {
   if (_theStack.size() == 0)
     throw arPForthSpace::arPForthException("stack underflow.");
+
   float val = _theStack.back();
   _theStack.pop_back();
   return val;
@@ -202,33 +209,33 @@ void arPForth::stackPush( const float val ) {
   _theStack.push_back( val );
 }
 
-unsigned int arPForth::stackSize() {
+unsigned arPForth::stackSize() const {
   return _theStack.size();
 }
 
-// We cheating here...
-float arPForth::stackElement( const unsigned int i ) {
+// Cheat.
+float arPForth::stackElement( const unsigned i ) {
   if (i >= _theStack.size())
     throw arPForthSpace::arPForthException("invalid stack access.");
   return _theStack[i];
 }
-// ...and here...
-bool arPForth::insertStackElement( const unsigned int i, const float val ) {
+
+// Cheat.
+bool arPForth::insertStackElement( const unsigned i, const float val ) {
   if (i > _theStack.size())
     return false;
-  vector<float>::iterator iter = _theStack.begin() + i;
-  _theStack.insert( iter, val );
+  _theStack.insert( _theStack.begin() + i, val );
   return true;
 }
 
 bool arPForth::findWord( string theWord ) {
-  vector<arPForthSpace::arPForthDictionaryEntry>::iterator iter;
-  return getWord( theWord, iter );
+  vector<arPForthSpace::arPForthDictionaryEntry>::const_iterator dummy;
+  return getWord( theWord, dummy );
 }
 
-bool arPForth::getWord( string theWord,
-          vector<arPForthSpace::arPForthDictionaryEntry>::iterator& iter ) {
-  for (iter=_dictionary.begin(); iter!=_dictionary.end(); iter++)
+bool arPForth::getWord ( const string& theWord,
+          vector<arPForthSpace::arPForthDictionaryEntry>::const_iterator& iter ) const {
+  for (iter=_dictionary.begin(); iter!=_dictionary.end(); ++iter)
     if (iter->_word == theWord)
       return true;
   return false;
@@ -298,52 +305,60 @@ unsigned long arPForth::allocateString() {
 }
 
 string arPForth::nextWord() {
-  string val;
-  if (_inputWords.size() > 0) {
-    val = _inputWords.front();
-    _inputWords.pop_front();
-  } else
-    val = "PFORTH_NULL_WORD";
-  return val;
+  if (_inputWords.empty())
+    return "PFORTH_NULL_WORD";
+  const string s = _inputWords.front();
+  _inputWords.pop_front();
+  return s;
 }
 
-string arPForth::peekNextWord() {
-  string val;
-  if (_inputWords.size() > 0) {
-    val = _inputWords.front();
-  } else
-    val = "PFORTH_NULL_WORD";
-  return val;
+string arPForth::peekNextWord() const {
+  return _inputWords.empty() ? "PFORTH_NULL_WORD" : _inputWords.front();
 }
 
-void arPForth::printDataspace() {
-  cerr << "DataSpace contents:" << endl << " ";
-  vector<float>::const_iterator iter;
-  for (iter = _dataSpace.begin(); iter != _dataSpace.end(); iter++)
-    cerr << "[ " << *iter << " ]";
-  cerr << endl;
+void arPForth::printDataspace() const {
+  cerr << "Data space:\n";
+  for (vector<float>::const_iterator i = _dataSpace.begin(); i != _dataSpace.end(); ++i)
+    cerr << "[ " << *i << " ]";
+  cerr << "\n";
 }
 
-void arPForth::printStringspace() {
-  cerr << "StringSpace contents:" << endl << " ";
-  vector<string>::const_iterator iter;
-  for (iter = _stringSpace.begin(); iter != _stringSpace.end(); iter++)
-    cerr << "[ " << *iter << " ]";
-  cerr << endl;
+void arPForth::printStringspace() const {
+  cerr << "String space:\n";
+  for (vector<string>::const_iterator i = _stringSpace.begin(); i != _stringSpace.end(); ++i)
+    cerr << "[ " << *i << " ]";
+  cerr << "\n";
+}
+
+void arPForth::printStack() const {
+    cerr << "Stack:\n";
+    for (unsigned i=0; i<_theStack.size(); i++)
+      cerr << "  [ " << _theStack[i] << " ]\n";
+}
+
+void arPForth::printDictionary() const {
+  cerr << "Dictionary:\n";
+  for (unsigned i=0; i<_dictionary.size(); i++) {
+    if (i > 0)
+      cerr << ", ";
+    cerr << _dictionary[i]._word;
+  }
+  cerr << "\n";
 }
 
 bool arPForth::compileWord( const string theWord,
                             vector<arPForthSpace::arPForthAction*>& actionList ) {
-  unsigned char temp = (unsigned char)*theWord.c_str();
-  vector<arPForthSpace::arPForthDictionaryEntry>::iterator iter;
-  if (getWord( theWord, iter )) { // found in dictionary
+  const unsigned char temp = (unsigned char)*theWord.c_str();
+  vector<arPForthSpace::arPForthDictionaryEntry>::const_iterator iter;
+  if (getWord( theWord, iter )) {
+    // found in dictionary
     if (!iter->_compiler->compile( this, actionList ))
       return false;
   } else if (isdigit(temp)||(temp == '-')||(temp == '.')) {
     if (!arPForthSpace::NumberCompiler(theWord).compile( this, actionList ))
       return false;
   } else {
-    throw arPForthSpace::arPForthException("word " + theWord + " not found in dictionary.");
+    throw arPForthSpace::arPForthException("dictionary has no word " + theWord + ".");
   }
   return true;
 }
@@ -372,34 +387,22 @@ bool arPForth::compileProgram( const string sourceCode ) {
     return true;
   }
   catch (arPForthSpace::arPForthException ce) {
-    cerr << "arPForth error: " << ce._message << endl << endl;
+    cerr << "arPForth error: " << ce._message << "\n";
 //    _program.clear();
     if (_program) {
       delete _program;
       _program = NULL;
     }
     anonymousActionsAreTransient = true;
-    cerr << "Dictionary:" << endl;
-    unsigned int i = 0;
-    for (i = 0; i<_dictionary.size(); i++) {
-      if (i!=0)
-        cerr << ", ";
-      cerr << _dictionary[i]._word;
-    }
-    cerr << endl << endl;
-    cerr << "DataSpace contents:" << endl << " ";
-    vector<float>::const_iterator iter;
-    for (iter = _dataSpace.begin(); iter != _dataSpace.end(); iter++)
-      cerr << "[ " << *iter << " ]";
-    cerr << endl;
-    cerr << "Stack contents:" << endl;
-    for (i=0; i<_theStack.size(); i++)
-      cerr << " [ " << _theStack[i] << " ]\n";
+
+    printDictionary();
+    printDataspace();
+    printStack();
     return false;
   }
 }
 
-// hand the _program pointer off and relinquish all responsibility for it.
+// Hand off the _program pointer and relinquish responsibility for it.
 arPForthProgram* arPForth::getProgram() {
   arPForthProgram* temp = _program;
   _program = NULL;
@@ -416,59 +419,40 @@ bool arPForth::runSubprogram( vector<arPForthSpace::arPForthAction*>& actionList
 
 bool arPForth::runProgram() {
   try {
-    if (_program == 0) {
+    if (!_program) {
       cerr << "arPForth error: internal program == Nil.\n";
       return false;
-    } else {
-      return runSubprogram( _program->_actionList );
     }
+    return runSubprogram( _program->_actionList );
    }
   catch (arPForthSpace::arPForthException ce) {
-    cerr << "arPForth error: " << ce._message << endl << endl;
-//    _program.clear();
-    cerr << "DataSpace contents:" << endl << " ";
-    vector<float>::const_iterator iter;
-    for (iter = _dataSpace.begin(); iter != _dataSpace.end(); iter++)
-      cerr << "[ " << *iter << " ]";
-    cerr << endl;
-    cerr << "Stack contents:" << endl;
-    for (unsigned int i=0; i<_theStack.size(); i++)
-      cerr << " [ " << _theStack[i] << " ]\n";
+    cerr << "arPForth error: " << ce._message << "\n";
+    printDataspace();
+    printStack();
     return false;
   }
 }
 
 bool arPForth::runProgram(  arPForthProgram* program ) {
   try {
-    if (program == 0) {
-      cerr << "arPForth error: passed program == Nil.\n";
-      return false;
-    } else {
+    if (program)
       return runSubprogram( program->_actionList );
-    }
+    cerr << "arPForth error: passed program == Nil.\n";
+    return false;
   }
   catch (arPForthSpace::arPForthException ce) {
-    cerr << "arPForth error: " << ce._message << endl << endl;
-//    _program.clear();
-    cerr << "DataSpace contents:" << endl << " ";
-    vector<float>::const_iterator iter;
-    for (iter = _dataSpace.begin(); iter != _dataSpace.end(); iter++)
-      cerr << "[ " << *iter << " ]";
-    cerr << endl;
-    cerr << "Stack contents:" << endl;
-    for (unsigned int i=0; i<_theStack.size(); i++)
-      cerr << " [ " << _theStack[i] << " ]\n";
+    cerr << "arPForth error: " << ce._message << "\n";
+    printDataspace();
+    printStack();
     return false;
   }
 }
 
-// returns whole vector<string>, not meant to be called in cpu-intensive situations
-std::vector<std::string> arPForth::getVocabulary() {
-  std::vector<std::string> wordList;
-  std::vector<arPForthSpace::arPForthDictionaryEntry>::iterator dictIter;
-  for (dictIter=_dictionary.begin(); dictIter!=_dictionary.end(); dictIter++)
-    wordList.push_back( dictIter->_word );
+// Return vector by value.  Not for cpu-intensive situations.
+vector<string> arPForth::getVocabulary() {
+  vector<string> wordList;
+  vector<arPForthSpace::arPForthDictionaryEntry>::iterator i;
+  for (i=_dictionary.begin(); i!=_dictionary.end(); i++)
+    wordList.push_back( i->_word );
   return wordList;
 }
-
-
