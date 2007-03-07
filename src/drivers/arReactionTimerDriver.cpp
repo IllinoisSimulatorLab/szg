@@ -18,7 +18,7 @@ double RT_TIMEOUT = 10.;
 const unsigned int BUF_SIZE = 4096;
 
 void ar_RTDriverEventTask(void* theDriver) {
-  cerr << "arReactionTimerDriver remark: started event task.\n";
+  ar_log_warning() << "arReactionTimerDriver remark: started event task.\n";
   arReactionTimerDriver* rtDriver = (arReactionTimerDriver*) theDriver;
   rtDriver->_stopped = false;
   rtDriver->_eventThreadRunning = true;
@@ -45,28 +45,28 @@ arReactionTimerDriver::~arReactionTimerDriver() {
 bool arReactionTimerDriver::init(arSZGClient& SZGClient) {
   _inbuf = new char[BUF_SIZE];
   if (!_inbuf) {
-    cerr << "arReactionTimerDriver error: failed to allocate input buffer.\n";
+    ar_log_warning() << "arReactionTimerDriver error: failed to allocate input buffer.\n";
     return false;
   }
   _portNum = static_cast<unsigned int>(SZGClient.getAttributeInt("SZG_RT", "com_port"));
   _inited = true;
   // 2 buttons, 2 axes, no matrices.
   _setDeviceElements( 2, 2, 0 );
-  cerr << "arReactionTimerDriver remark: initialized.\n";
+  ar_log_warning() << "arReactionTimerDriver remark: initialized.\n";
   return true;
 }
 
 bool arReactionTimerDriver::start() {
   if (!_inited) {
-    cerr << "arReactionTimerDriver::start() error: Not inited yet.\n";
+    ar_log_warning() << "arReactionTimerDriver::start() error: Not inited yet.\n";
     return false;
   }
   if (!_port.ar_open( _portNum, 9600, 8, 1, "none" )) {
-    cerr << "arReactionTimerDriver error: failed to open serial port #" << _portNum << endl;
+    ar_log_warning() << "arReactionTimerDriver error: failed to open serial port #" << _portNum << ".\n";
     return false;
   }
   if (!_port.setReadTimeout( 2 )) {  // 200 msec
-    cerr << "arReactionTimerDriver error: failed to set timeout COM port.\n";
+    ar_log_warning() << "arReactionTimerDriver error: failed to set timeout COM port.\n";
     return false;
   }
   _resetStatusTimer();
@@ -74,12 +74,12 @@ bool arReactionTimerDriver::start() {
 }
 
 bool arReactionTimerDriver::stop() {
-  cerr << "arReactionTimerDriver remark: stopping.\n";
+  ar_log_warning() << "arReactionTimerDriver remark: stopping.\n";
   _stopped = true;
   arSleepBackoff a(5, 20, 1.1);
   while (_eventThreadRunning)
     a.sleep();
-  cerr << "arReactionTimerDriver remark: event thread exiting.\n";
+  ar_log_warning() << "arReactionTimerDriver remark: event thread exiting.\n";
   _port.ar_close();
   return true;
 }
@@ -89,7 +89,7 @@ bool arReactionTimerDriver::_processInput() {
   const int numRead = _port.ar_read( _inbuf, numToRead, BUF_SIZE-1 );
   if (numRead == 0) {
     if (_statusTimer.done()) {
-      cerr << "arReactionTimerDriver warning: ReactionTimer disconnected.\n";
+      ar_log_warning() << "arReactionTimerDriver warning: ReactionTimer disconnected.\n";
       _imAlive = false;
     }
     return true; 
@@ -105,7 +105,7 @@ bool arReactionTimerDriver::_processInput() {
       return true;
     }
     if (!_imAlive) {
-      cout << "arReactionTimerDriver remark: ReactionTimer reconnected.\n";
+      ar_log_remark() << "arReactionTimerDriver remark: ReactionTimer reconnected.\n";
       _imAlive = true;
     }
     std::string messageString( _bufString.substr( 0, crpos ) );
@@ -113,18 +113,18 @@ bool arReactionTimerDriver::_processInput() {
     if (messageString[0] == RT_AWAKE) {
 #ifdef RTDEBUG
       if (messageString.size() > 1) {
-        cout << "+++++++++++++++++\nDEBUG: " << messageString << "\n++++++++++++++++++\n";
+        ar_log_remark() << "+++++++++++++++++\nDEBUG: " << messageString << "\n++++++++++++++++++\n";
       }
 #endif
     } else {
       arDelimitedString inputString( messageString, '|' );
       if (inputString.size() != 3) {
-        cerr << "arReactionTimerDriver warning: ill-formed input string:\n"
-             << "     " << inputString << endl;
+        ar_log_warning() << "arReactionTimerDriver warning: ill-formed input string:\n"
+             << "     " << inputString << ".\n";
         continue;
       }
 #ifdef RTDEBUG
-    cout << "---------------------------------------\n";
+    ar_log_remark() << "---------------------------------------\n";
 #endif
 
       // NOTE: rtDuration is currently encoded as a whole number of msecs.
@@ -146,10 +146,10 @@ bool arReactionTimerDriver::_processInput() {
       b1Stream >> button1;
 
 #ifdef RTDEBUG
-      cout << "Input: " << inputString << ": " << rtDuration << ", " << button0 << ", " << button1 << endl;
-//      cerr << "RT: '" << inputString[0] << "', " << rtDuration << endl;
-//      cerr << "Button 0: '" << inputString[1] << "', " << button0 << endl;
-//      cerr << "Button 1: '" << inputString[2] << "', " << button1 << endl;
+      ar_log_remark() << "Input: " << inputString << ": " << rtDuration << ", " << button0 << ", " << button1 << ".\n";
+//      ar_log_warning() << "RT: '" << inputString[0] << "', " << rtDuration << ".\n";
+//      ar_log_warning() << "Button 0: '" << inputString[1] << "', " << button0 << ".\n";
+//      ar_log_warning() << "Button 1: '" << inputString[2] << "', " << button1 << ".\n";
 #endif
       
       if ((rtDuration > 0.)&&(lastrt < 0.)) {
@@ -157,7 +157,7 @@ bool arReactionTimerDriver::_processInput() {
         _rtTimer.start();
         _rtTimer.setRuntime( rtDuration*1.e3 );
 #ifdef RTDEBUG
-        cout << "Setting runtime to " << rtDuration*1.e3 << " microsecs.\n";
+        ar_log_remark() << "Setting runtime to " << rtDuration*1.e3 << " microsecs.\n";
 #endif
       }
       if (button0 != lastb0) {
@@ -166,7 +166,7 @@ bool arReactionTimerDriver::_processInput() {
         queueButton( 0, button0 );
         lastb0 = button0;
 #ifdef RTDEBUG
-        cout << "RT 0: " <<_rtTimer.runningTime()/1.e3 << endl;
+        ar_log_remark() << "RT 0: " <<_rtTimer.runningTime()/1.e3 << ".\n";
 #endif
       }
       if (button1 != lastb1) {
@@ -175,13 +175,13 @@ bool arReactionTimerDriver::_processInput() {
         queueButton( 1, button1 );
         lastb1 = button1;
 #ifdef RTDEBUG
-        cout << "RT 1: " << _rtTimer.runningTime()/1.e3 << endl;
+        ar_log_remark() << "RT 1: " << _rtTimer.runningTime()/1.e3 << ".\n";
 #endif
       }
       sendQueue();
       lastrt = rtDuration;
 #ifdef RTDEBUG
-    cout << "---------------------------------------\n";
+    ar_log_remark() << "---------------------------------------\n";
 #endif
     }
   } while (crpos != std::string::npos);

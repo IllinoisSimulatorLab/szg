@@ -13,7 +13,7 @@ DriverFactory(arPPTDriver, "arInputSource")
 const unsigned int BUF_SIZE = 4096;
 
 void ar_PPTDriverEventTask(void* theDriver) {
-  cerr << "arPPTDriver remark: started event task.\n";
+  ar_log_warning() << "arPPTDriver remark: started event task.\n";
   arPPTDriver* pptDriver = (arPPTDriver*) theDriver;
   pptDriver->_stopped = false;
   pptDriver->_eventThreadRunning = true;
@@ -40,28 +40,27 @@ arPPTDriver::~arPPTDriver() {
 bool arPPTDriver::init(arSZGClient& SZGClient) {
   _inbuf = new char[BUF_SIZE];
   if (!_inbuf) {
-    cerr << "arPPTDriver error: failed to allocate input buffer.\n";
+    ar_log_warning() << "arPPTDriver error: failed to allocate input buffer.\n";
     return false;
   }
   _portNum = static_cast<unsigned int>(SZGClient.getAttributeInt("SZG_PPT", "com_port"));
   _inited = true;
-  // 0 buttons, 0 axes, 1 matrix
   _setDeviceElements( 0, 0, 1 );
-  cerr << "arPPTDriver remark: initialized.\n";
+  ar_log_warning() << "arPPTDriver remark: initialized.\n";
   return true;
 }
 
 bool arPPTDriver::start() {
   if (!_inited) {
-    cerr << "arPPTDriver::start() error: Not inited yet.\n";
+    ar_log_warning() << "arPPTDriver::start() error: Not inited yet.\n";
     return false;
   }
   if (!_port.ar_open( _portNum, 115200, 8, 1, "none" )) {
-    cerr << "arPPTDriver error: failed to open serial port #" << _portNum << endl;
+    ar_log_warning() << "arPPTDriver error: failed to open serial port #" << _portNum << ".\n";
     return false;
   }
   if (!_port.setReadTimeout( 2 )) {  // 200 msec
-    cerr << "arPPTDriver error: failed to set timeout on COM port.\n";
+    ar_log_warning() << "arPPTDriver error: failed to set timeout on COM port.\n";
     return false;
   }
   _resetStatusTimer();
@@ -69,7 +68,7 @@ bool arPPTDriver::start() {
 }
 
 bool arPPTDriver::stop() {
-  cerr << "arPPTDriver remark: stopping.\n";
+  ar_log_warning() << "arPPTDriver remark: stopping.\n";
   _stopped = true;
   arSleepBackoff a(5, 20, 1.1);
   while (_eventThreadRunning)
@@ -89,13 +88,13 @@ bool arPPTDriver::_processInput() {
   unsigned numRead = _port.ar_read( _inbuf, PPT_PACKET_SIZE, BUF_SIZE );
   if (numRead == 0) {
     if (_statusTimer.done() && _imAlive) {
-      cerr << "arPPTDriver remark: lost communication with PPT.\n";
+      ar_log_warning() << "arPPTDriver remark: lost communication with PPT.\n";
       _imAlive = false;
     }
     return true; 
   }
   if (!_imAlive) {
-    cerr << "arPPTDriver remark: established communication with PPT.\n";
+    ar_log_warning() << "arPPTDriver remark: established communication with PPT.\n";
     _imAlive = true;
   }
   _resetStatusTimer();

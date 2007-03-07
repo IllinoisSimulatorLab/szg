@@ -93,7 +93,7 @@ class FilterEventStream : public arIOFilter {
 };
 bool FilterEventStream::_processEvent( arInputEvent& event ) {
   if (_printEventType==AR_EVENT_GARBAGE || _printEventType==event.getType()) {
-    cout << event << endl;
+    cout << event << "\n";
   }
   return true;
 }

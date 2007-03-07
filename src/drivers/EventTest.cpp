@@ -12,13 +12,13 @@
 void PrintState( arInputState& s ) {
   unsigned int i;
   for (i=0; i<s.getNumberButtons(); i++)
-    cerr << i << " " << s.getButton( i ) << endl;
+    cerr << i << " " << s.getButton( i ) << "\n";
   cerr << "-----\n";
   for (i=0; i<s.getNumberAxes(); i++)
-    cerr << i << " " << s.getAxis( i ) << endl;
+    cerr << i << " " << s.getAxis( i ) << "\n";
   cerr << "-----\n";
   for (i=0; i<s.getNumberMatrices(); i++)
-    cerr << i << endl << s.getMatrix( i ) << endl;
+    cerr << i << "\n" << s.getMatrix( i ) << "\n";
   cerr << "-----\n";
 }
 
@@ -124,11 +124,11 @@ int main( int, char** ) {
   cerr << "Device event offsets:\n";
   unsigned int o0, o1;
   if (s.getButtonOffset(0,o0)&&s.getButtonOffset(1,o1))
-    cerr << "Buttons: " << o0 << " " << o1 << endl;
+    cerr << "Buttons: " << o0 << " " << o1 << "\n";
   if (s.getAxisOffset(0,o0)&&s.getAxisOffset(1,o1))
-    cerr << "Axes: " << o0 << " " << o1 << endl;
+    cerr << "Axes: " << o0 << " " << o1 << "\n";
   if (s.getMatrixOffset(0,o0)&&s.getMatrixOffset(1,o1))
-    cerr << "Matrices: " << o0 << " " << o1 << endl;
+    cerr << "Matrices: " << o0 << " " << o1 << "\n";
   return 0;
 }
   

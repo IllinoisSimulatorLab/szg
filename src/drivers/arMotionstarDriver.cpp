@@ -15,13 +15,13 @@ void ar_motionstarDriverEventTask(void* motionstarDriver){
   arMotionstarDriver* d = (arMotionstarDriver*) motionstarDriver;
   d->_sendCommand(MSG_RUN_CONTINUOUS,0);
   if (!d->_getResponse(RSP_RUN_CONTINUOUS)){
-    cerr << "arMotionstarDriver error: no response from driver.\n";
+    ar_log_warning() << "arMotionstarDriver error: no response from driver.\n";
     return;
   }
-  cout << "arMotionstarDriver remark: beginning event task.\n";
+  ar_log_remark() << "arMotionstarDriver remark: beginning event task.\n";
   while (d->_getResponse(DATA_PACKET))
     d->_parseData(&d->_response);
-  cerr << "arMotionstarDriver error: no response from driver.\n";
+  ar_log_warning() << "arMotionstarDriver error: no response from driver.\n";
 }
 
 arMotionstarDriver::arMotionstarDriver():
@@ -50,12 +50,12 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 //  _setVm = true;
 //  long filterBuf[7];
 //  if (!SZGClient.getAttributeLongs( "SZG_MOTIONSTAR", "alphaMin", filterBuf, 7 )) {
-//    cerr << "arMotionstarDriver remark: no SZG_MOTIONSTAR/alphaMin.\n";
+//    ar_log_warning() << "arMotionstarDriver remark: no SZG_MOTIONSTAR/alphaMin.\n";
 //    _setAlphaMin = false;
 //  } else {
 //    for (i=0; i<7; i++) {
 //      if ((filterBuf[i] < 0)||(filterBuf[i] > 32767)) {
-//        cerr << "arMotionstarDriver remark: alphaMin value " << filterBuf[i]
+//        ar_log_warning() << "arMotionstarDriver remark: alphaMin value " << filterBuf[i]
 //             << " out of bounds (0-32767).\n";
 //        _setAlphaMin = false;
 //      }
@@ -63,12 +63,12 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 //    }
 //  }
 //  if (!SZGClient.getAttributeLongs( "SZG_MOTIONSTAR", "alphaMax", filterBuf, 7 )) {
-//    cerr << "arMotionstarDriver remark: no SZG_MOTIONSTAR/alphaMax.\n";
+//    ar_log_warning() << "arMotionstarDriver remark: no SZG_MOTIONSTAR/alphaMax.\n";
 //    _setAlphaMax = false;
 //  } else {
 //    for (i=0; i<7; i++) {
 //      if ((filterBuf[i] < 0)||(filterBuf[i] > 32767)) {
-//        cerr << "arMotionstarDriver remark: alphaMax value " << filterBuf[i]
+//        ar_log_warning() << "arMotionstarDriver remark: alphaMax value " << filterBuf[i]
 //             << " out of bounds (0-32767).\n";
 //        _setAlphaMax = false;
 //      }
@@ -76,12 +76,12 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
 //    }
 //  }
 //  if (!SZGClient.getAttributeLongs( "SZG_MOTIONSTAR", "Vm", filterBuf, 7 )) {
-//    cerr << "arMotionstarDriver remark: no SZG_MOTIONSTAR/Vm.\n";
+//    ar_log_warning() << "arMotionstarDriver remark: no SZG_MOTIONSTAR/Vm.\n";
 //    _setVm = false;
 //  } else {
 //    for (i=0; i<7; i++) {
 //      if ((filterBuf[i] < 0.)||(filterBuf[i] > 32767)) {
-//        cerr << "arMotionstarDriver remark: Vm value " << filterBuf[i]
+//        ar_log_warning() << "arMotionstarDriver remark: Vm value " << filterBuf[i]
 //             << " out of bounds (0-32767).\n";
 //        _setVm = false;
 //      }
@@ -137,7 +137,7 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
     _setDeviceElements(sig);
   }
 
-  //cout << "arMotionstarDriver remark: found " << nDevices << " devices.\n";
+  //ar_log_remark() << "arMotionstarDriver remark: found " << nDevices << " devices.\n";
   // send the system setup
   if (!_setStatusAll(sys)){
     ar_log_warning() << "arMotionstarDriver failed to set system status.\n";
@@ -152,24 +152,6 @@ bool arMotionstarDriver::init(arSZGClient& SZGClient){
       ar_log_warning() << "arMotionstarDriver: no status from bird " << i-1 << "\n";
       return false;
     }
-
-//    if (i<10) {
-//      int j = 0;
-//cout << "arMotionstarDriver remarks: bird #" << i << " has FFB address "
-//     << (unsigned int)bird->header.FBBaddress << endl;
-//cout << "    alphaMin: ";
-//for (j=0; j<7; j++)
-//  cout << (unsigned short)ntohs(bird->alphaMin.entry[j]) << " ";
-//cout << endl;
-//cout << "    alphaMax: ";
-//for (j=0; j<7; j++)
-//  cout << (unsigned short)ntohs(bird->alphaMax.entry[j]) << " ";
-//cout << endl;
-//cout << "    Vm: ";
-//for (j=0; j<7; j++)
-//  cout << (unsigned short)ntohs(bird->Vm.entry[j]) << " ";
-//cout << endl << endl;
-//    }
 
     // change the data format to something new for all birds
     if (i <= birdsRequired+1){
@@ -260,7 +242,7 @@ bool arMotionstarDriver::_sendStatus(int xtype, char *data, int size){
   pkt.header.numBytes = htons((short)size);
   memcpy(pkt.data,data,size);
   if (!_commandSocket.ar_safeWrite((char*)&pkt,sizeof(BN_HEADER)+size)){
-    cerr << "arMotionstarDriver error: Status send failed.\n";
+    ar_log_warning() << "arMotionstarDriver error: Status send failed.\n";
     return false;
   }
   return true;
@@ -276,7 +258,7 @@ bool arMotionstarDriver::_sendCommand(int cmd,int xtype){
   header.numBytes = 0;
 
   if (!_commandSocket.ar_safeWrite((char*)&header,sizeof(BN_HEADER))){
-    cerr << "arMotionstarDriver error: Command send failed.\n";
+    ar_log_warning() << "arMotionstarDriver error: Command send failed.\n";
     return false;
   }
   return true;
@@ -286,18 +268,18 @@ bool arMotionstarDriver::_getResponse(int rsp){
   const int headerSize = sizeof(BN_HEADER);  /* need at least the header */
   char* cptr = (char *)&_response.header;
   if (!_commandSocket.ar_safeRead(cptr, headerSize)){
-    cerr << "arMotionstarDriver error: failed to read response header.\n";
+    ar_log_warning() << "arMotionstarDriver error: failed to read response header.\n";
     return false;
   }
   const int bodySize = ntohs(_response.header.numBytes);
   if (bodySize){
     if (!_commandSocket.ar_safeRead(cptr+headerSize, bodySize)){
-      cerr << "arMotionstarDriver error: failed to read response body.\n";
+      ar_log_warning() << "arMotionstarDriver error: failed to read response body.\n";
       return false;
     }
   }	
   if (_response.header.type != rsp){
-    cerr << "arMotionstarDriver error: Command response "
+    ar_log_warning() << "arMotionstarDriver error: Command response "
          << _response.header.type << " not of "
 	 << "expected type "
 	 << rsp << ".\n";

@@ -21,13 +21,13 @@
 void PrintState( arInputState& s ) {
   unsigned int i;
   for (i=0; i<s.getNumberButtons(); i++)
-    cout << i << " " << s.getButton( i ) << endl;
+    cout << i << " " << s.getButton( i ) << "\n";
   cout << "-----\n";
   for (i=0; i<s.getNumberAxes(); i++)
-    cout << i << " " << s.getAxis( i ) << endl;
+    cout << i << " " << s.getAxis( i ) << "\n";
   cout << "-----\n";
   for (i=0; i<s.getNumberMatrices(); i++)
-    cout << i << endl << s.getMatrix( i ) << endl;
+    cout << i << "\n" << s.getMatrix( i ) << "\n";
   cout << "-----\n";
 }
 

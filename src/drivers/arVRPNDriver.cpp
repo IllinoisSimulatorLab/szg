@@ -72,7 +72,7 @@ bool arVRPNDriver::init(arSZGClient& client){
   // so let's just set the ceiling pretty high
   _setDeviceElements(20,20,20);
   if (vrpnDeviceName == "NULL"){
-    cout << "arVRPNDriver error: no SZG_VRPN/name.\n";
+    ar_log_remark() << "arVRPNDriver error: no SZG_VRPN/name.\n";
     return false;
   }
   // initialize vrpn device
@@ -80,7 +80,7 @@ bool arVRPNDriver::init(arSZGClient& client){
   vrpnButtonRemote = new vrpn_Button_Remote(vrpnDeviceName.c_str());
   vrpnTrackerRemote = new vrpn_Tracker_Remote(vrpnDeviceName.c_str());
   if (!vrpnAnalogRemote || !vrpnButtonRemote || !vrpnTrackerRemote){
-    cout << "arVRPNDriver error: vrpn device failed to initialize.\n";
+    ar_log_remark() << "arVRPNDriver error: vrpn device failed to initialize.\n";
     return false;
   }
   vrpnAnalogRemote->register_change_handler(this, ar_VRPNHandleAnalog);

@@ -237,7 +237,7 @@ int arInputNode::addFilter( arIOFilter* theFilter, bool iOwnIt ){
   _iOwnFilters.push_back( iOwnIt );
   _filterStates.push_back(
     _filterStates.empty() ? _inputState : _filterStates.back());
-  ar_log_debug() << "arInputNode: new filter with ID " << ID << ar_endl;
+  ar_log_debug() << "arInputNode: new filter with ID " << ID << "\n";
   return ID;
 }
 

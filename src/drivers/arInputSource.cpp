@@ -33,7 +33,7 @@ void arInputSource::sendButton(int i, int value){
   if (!_data)
     return;
   if (i<0 || i>=_numberButtons){
-    // cerr << "arInputSource warning: ignoring out-of-range index to "
+    // ar_log_warning() << "arInputSource warning: ignoring out-of-range index to "
     // << "sendButton(" << i << ").\n";
     return;
   }
@@ -46,7 +46,7 @@ void arInputSource::sendButton(int i, int value){
       !_data->dataIn("buttons", &value, AR_INT, 1) || // one button
       !_data->dataIn("axes", 0) || // no axes
       !_data->dataIn("matrices", 0)) { // no matrices
-    cerr << "arInputSource warning: problem in sendButton.\n";
+    ar_log_warning() << "arInputSource warning: problem in sendButton.\n";
   }
   _sendData();
 }
@@ -55,7 +55,7 @@ void arInputSource::sendAxis(int i, float value){
   if (!_data)
     return;
   if (i<0 || i>=_numberAxes){
-    //cerr << "arInputSource warning: ignoring out-of-range index to sendAxis("
+    //ar_log_warning() << "arInputSource warning: ignoring out-of-range index to sendAxis("
     //     << i << ").\n";
     return;
   }
@@ -69,7 +69,7 @@ void arInputSource::sendAxis(int i, float value){
       !_data->dataIn("buttons", 0) ||
       !_data->dataIn("axes", &theValue, AR_FLOAT, 1) ||
       !_data->dataIn("matrices", 0)) {
-    cerr << "arInputSource warning: problem in sendAxis.\n";
+    ar_log_warning() << "arInputSource warning: problem in sendAxis.\n";
   }
   _sendData();
 }
@@ -78,7 +78,7 @@ void arInputSource::sendMatrix(int i, const arMatrix4& value){
   if (!_data)
     return;
   if (i<0 || i>=_numberMatrices){
-    //cerr << "arInputSource warning: ignoring out-of-range index "
+    //ar_log_warning() << "arInputSource warning: ignoring out-of-range index "
     //	 << "to sendMatrix(" << i << ").\n";
     return;
   }
@@ -91,7 +91,7 @@ void arInputSource::sendMatrix(int i, const arMatrix4& value){
       !_data->dataIn("buttons", 0) ||
       !_data->dataIn("axes", 0) ||
       !_data->dataIn("matrices", value.v, AR_FLOAT,16)) {
-    cerr << "arInputSource warning: problem in sendMatrix.\n";
+    ar_log_warning() << "arInputSource warning: problem in sendMatrix.\n";
   }
   _sendData();
 }

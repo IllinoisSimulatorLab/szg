@@ -301,17 +301,17 @@ void arInputState::remapInputDevice( const unsigned int deviceNum,
   if ((buttonDiff != 0)||(axisDiff != 0)||(matrixDiff != 0)) {
     if (buttonDiff < 0 && axisDiff < 0 && matrixDiff < 0) {
       if (numButtons==0 && numAxes==0 && numMatrices==0)
-	ar_log_warning() << "arInputState zeroing device " << deviceNum << ar_endl;
+	ar_log_warning() << "arInputState zeroing device " << deviceNum << "\n";
       else
-	ar_log_warning() << "arInputState decreasing max events for device " << deviceNum << ar_endl;
+	ar_log_warning() << "arInputState decreasing max events for device " << deviceNum << "\n";
     }
     else {
       if (buttonDiff < 0)
-	ar_log_warning() << "arInputState decreasing maximum button event for device " << deviceNum << ar_endl;
+	ar_log_warning() << "arInputState decreasing maximum button event for device " << deviceNum << "\n";
       if (axisDiff < 0)
-	ar_log_warning() << "arInputState decreasing maximum axis event for device " << deviceNum << ar_endl;
+	ar_log_warning() << "arInputState decreasing maximum axis event for device " << deviceNum << "\n";
       if (matrixDiff < 0)
-	ar_log_warning() << "arInputState decreasing maximum matrix event for device " << deviceNum << ar_endl;
+	ar_log_warning() << "arInputState decreasing maximum matrix event for device " << deviceNum << "\n";
     }
 
     const unsigned oldButtons = _buttons.size();
@@ -412,7 +412,7 @@ ostream& operator<<(ostream& os, const arInputState& cinp ) {
   if (cm > 0) {
     os << "\nmatrices:\n";
     for (i=0; i<inp->getNumberMatrices(); i++)
-      os << inp->getMatrix(i) << endl;
+      os << inp->getMatrix(i) << "\n";
     os << "\n\n";
   }
   return os;

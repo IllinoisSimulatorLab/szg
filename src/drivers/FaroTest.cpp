@@ -28,7 +28,7 @@ int main(int, char **) {
   }
   inbuf[numRead] = '\0';
   string inString( inbuf );
-  cerr << "String read: " << inString << endl;
+  cerr << "String read: " << inString << "\n";
   string::size_type n1 = inString.find("\n",0);
   string::size_type n2 = inString.find("\n",n1+2);
   if ((n1==string::npos)||(n2==string::npos)) {
@@ -37,16 +37,16 @@ int main(int, char **) {
   }
   inString = inString.substr( n1+2, n2-(n1+2) );
   if (inString.length()==0) {
-    cerr << "Bad string returned: " << inString << endl;
+    cerr << "Bad string returned: " << inString << "\n";
     return -1;
   }
-  cerr << "The string is: " << inString << endl;
+  cerr << "The string is: " << inString << "\n";
   
   istringstream inStream( inString );
   double nums[14];
   for (int i=0; i<14; i++) {
     inStream >> nums[i];
-    cerr << nums[i] << endl;
+    cerr << nums[i] << "\n";
   }
   
   const double probeLength = 40.;
@@ -83,7 +83,7 @@ int main(int, char **) {
     if (button2) {
       cerr << "Position:" << position;
       cerr << "; Angles:" << angles;
-      cerr << "; Buttons:" << button1 << "," << button2 << endl;
+      cerr << "; Buttons:" << button1 << "," << button2 << "\n";
     }
   }
   

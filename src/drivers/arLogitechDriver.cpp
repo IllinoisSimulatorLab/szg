@@ -167,7 +167,7 @@ bool arLogitechDriver::_runDiagnostics() {
     return false;
   }
 //  printf("%x %x\n",(int)_dataBuffer[0],_dataBuffer[1]);
-//  cerr << (int)_dataBuffer[0] << ", " << (int)_dataBuffer[1] << endl;
+//  cerr << (int)_dataBuffer[0] << ", " << (int)_dataBuffer[1] << "\n";
   const unsigned char aByte( ~_dataBuffer[0] );
   const unsigned char bByte( ~_dataBuffer[1] );
   if (!((aByte & 0xBF)||(bByte & 0x3F)))

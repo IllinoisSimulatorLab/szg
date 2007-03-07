@@ -50,7 +50,7 @@ bool IsenseTracker::GetTrackerConfig()
     ISD_GetTrackerConfig( m_handle, &m_trackerInfo, m_isVerbose );
   if ( FALSE == success ) {
     std::cerr << "Intersense::got no tracker information on " <<
-      "device port " << m_port << std::endl;
+      "device port " << m_port << "\n";
     return false;
   }
 
@@ -64,7 +64,7 @@ bool IsenseTracker::GetTrackerConfig()
 
   // Tell the world our configuration
   std::cerr << "IntersenseDriver::Started tracker on port " << m_port << 
-    "." << std::endl;
+    "." << "\n";
   return true;
 }
 
@@ -151,7 +151,7 @@ bool IsenseTracker::EnablePossibleCameraTracking()
           );
         if ( FALSE == setConfig ) {
           std::cerr << "IntersenseDriver::failed to set configuration "
-            << "for station " << stationIdx << std::endl;
+            << "for station " << stationIdx << "\n";
           return false;
         }
 
@@ -198,7 +198,7 @@ bool IsenseTracker::Open( DWORD port = 0 )
   if ( !success )
     std::cerr << "IntersenseDriver::failed to open tracker on port "
     << port << ".  " <<
-    "Set verbosity to true to see reason for failure." << std::endl;
+    "Set verbosity to true to see reason for failure." << "\n";
   return success;
 }
 
@@ -272,7 +272,7 @@ bool IsenseTracker::SetStationInputCounts( int ID, size_t buttonCnt, size_t anal
   }
   if ( false == success )
     std::cerr << "IntersenseDriver::found no station with ID " <<
-      ID << " in order to set its buttons, analogs, and auxes." << std::endl;
+      ID << " in order to set its buttons, analogs, and auxes." << "\n";
   return success;
 }
 
@@ -317,18 +317,18 @@ bool IsenseTracker::SetDriverFirstIndices( size_t& sensor, size_t& button,
     */
 bool IsenseTracker::PrintSetup( size_t trackerIdx )
 {
-  std::cerr << "Intersense Tracker on port " << m_port << std::endl;
+  std::cerr << "Intersense Tracker on port " << m_port << "\n";
   for ( size_t statIdx=0; statIdx < ISD_MAX_STATIONS; statIdx++ ) {
     if ( FALSE == m_station[ statIdx ].State ) continue;
     std::cerr << "\tStation ID " << m_station[ statIdx ].ID <<
-      " station" << trackerIdx << "_" << m_station[statIdx].ID << std::endl;
+      " station" << trackerIdx << "_" << m_station[statIdx].ID << "\n";
     std::cerr << "\t\tbuttons " << m_stationSettings[ statIdx ].buttonCnt << " ";
     std::cerr << "analogs " << m_stationSettings[ statIdx ].analogCnt << " ";
-    std::cerr << "aux " << m_stationSettings[ statIdx ].auxCnt << std::endl;
+    std::cerr << "aux " << m_stationSettings[ statIdx ].auxCnt << "\n";
     std::cerr << "\t\tfirst button " <<
       m_stationSettings[ statIdx ].firstButtonIdx << " ";
     std::cerr << "first analog " << m_stationSettings[ statIdx ].firstAnalogIdx <<
-      std::endl;
+      "\n";
   }
   return true;
 }
@@ -342,7 +342,7 @@ bool IsenseTracker::SetConversionMatrix( arMatrix4& convert )
 {
   m_conversionMatrix = convert;
   std::cerr << "IntersenseDriver::Setting conversion matrix to " <<
-    std::endl << m_conversionMatrix;
+    "\n" << m_conversionMatrix;
   return true;
 }
 
@@ -361,7 +361,7 @@ bool IsenseTracker::GetData( arInputSource* source )
 {
   if ( FALSE == ISD_GetData( m_handle, &m_data ) ) {
     std::cerr << "IntersenseDriver::failed to get data from tracker " << 
-      m_handle << std::endl;
+      m_handle << "\n";
     return false;
   }
 
@@ -370,7 +370,7 @@ bool IsenseTracker::GetData( arInputSource* source )
   if ( m_bSupportsCameraData ) {
     if (FALSE == ISD_GetCameraData( m_handle, &m_cameraData ) ) {
       std::cerr << "IntersenseDriver::got no camera data from tracker "
-        << m_handle << std::endl;
+        << m_handle << "\n";
       return false;
     }
   }
@@ -510,7 +510,7 @@ bool arIntersenseDriver::GetStationSettings( arSZGClient& client )
         m_tracker[trackIdx].SetStationInputCounts( statIdx, sig[0], sig[1],
           sig[2] );
         std::cerr << "IntersenseDriver::Set station " << statIdx << " to " <<
-          sig[0] << ":" << sig[1] << ":" << sig[2] << std::endl;
+          sig[0] << ":" << sig[1] << ":" << sig[2] << "\n";
       }
     }
   }
@@ -532,7 +532,7 @@ bool arIntersenseDriver::GetStationSettings( arSZGClient& client )
         m_tracker[ matrixIdx ].SetConversionMatrix( convMatrix );
       } else {
         std::cerr << "IntersenseDriver::Found less than four vectors "
-          "to make the matrix for tracker " << matrixIdx << std::endl;
+          "to make the matrix for tracker " << matrixIdx << "\n";
         return false;
       }
     }
@@ -604,7 +604,7 @@ bool arIntersenseDriver::init(arSZGClient& client){
   }
   // Tell arInputSource how many we have counted.
   std::cerr << "IntersenseDriver::Totals buttons " << buttonIdx <<
-	  " axes " << axisIdx << " matrices " << sensorIdx << std::endl;
+	  " axes " << axisIdx << " matrices " << sensorIdx << "\n";
   this->_setDeviceElements( buttonIdx, axisIdx, sensorIdx );
 
   // Print all information to stderr.
@@ -625,7 +625,7 @@ bool arIntersenseDriver::Open( DWORD port )
       (Hwnd) NULL, trackerHandle, FALSE, m_isVerbose );
     if ( FALSE == isOpened ) {
       std::cerr << "IntersenseDriver::failed to open any trackers."
-        << std::endl;
+        << "\n";
       return false;
     }
 
@@ -641,14 +641,14 @@ bool arIntersenseDriver::Open( DWORD port )
     bool success = trackerHandle[0] > 0;
     if ( !success ) {
       std::cerr << "arIntersenseDriver error: failed to open tracker on port "
-      << port << ".  " << std::endl;
+      << port << ".  " << "\n";
       return false;
     }
     m_trackerCnt = 1;
   }
   if ( 0 == m_trackerCnt ) {
 	  std::cerr << "IntersenseDriver::found no trackers." <<
-		  std::endl;
+		  "\n";
 	  return false;
   }
   m_tracker = new IsenseTracker[ m_trackerCnt ];

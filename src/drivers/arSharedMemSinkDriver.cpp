@@ -67,11 +67,11 @@ bool arSharedMemSinkDriver::init(arSZGClient&) {
 
 bool arSharedMemSinkDriver::start() {
 #ifdef AR_USE_WIN_32
-  cerr << "arSharedMemSinkDriver error: unsupported under Windows.\n";
+  ar_log_warning() << "arSharedMemSinkDriver error: unsupported under Windows.\n";
   return false;
 #else
   if (!_inited) {
-    cerr << "arSharedMemSinkDriver::start() error: Not inited yet.\n";
+    ar_log_warning() << "arSharedMemSinkDriver::start() error: Not inited yet.\n";
     return false;
   }
 
@@ -109,12 +109,12 @@ void arSharedMemSinkDriver::_detachMemory() {
   ar_mutex_lock(&_lockShm);
   if (_shmFoB) {
     if (shmdt(_shmFoB) < 0)
-      cerr << "arSharedMemSinkDriver warning: ignoring bogus shm pointer.\n";
+      ar_log_warning() << "arSharedMemSinkDriver warning: ignoring bogus shm pointer.\n";
     _shmFoB = NULL;
   }
   if (_shmWand) {
     if (shmdt(_shmWand) < 0)
-      cerr << "arSharedMemSinkDriver warning: ignoring bogus shm pointer.\n";
+      ar_log_warning() << "arSharedMemSinkDriver warning: ignoring bogus shm pointer.\n";
     _shmWand = NULL;
   }
   ar_mutex_unlock(&_lockShm);
@@ -157,9 +157,9 @@ void arSharedMemSinkDriver::_dataThread() {
 #endif
 #if 0
   if (!fobNode.init(SZGClient in DeviceServer))
-    cerr << "arSharedMemSinkDriver warning: FoB init failed.\n";
+    ar_log_warning() << "arSharedMemSinkDriver warning: FoB init failed.\n";
   else if (!fobNode.start(SZGClient in DeviceServer))
-    cerr << "arSharedMemSinkDriver warning: FoB start failed.\n";
+    ar_log_warning() << "arSharedMemSinkDriver warning: FoB start failed.\n";
 #endif
 
   // todo: Init reading data from USB-wand, a la DeviceClient.
@@ -171,9 +171,9 @@ void arSharedMemSinkDriver::_dataThread() {
     arInputState fob = fobNode._inputState; // local copy
     const unsigned cm = fob.getNumberMatrices();
     if (fob.getNumberButtons() != 0 || fob.getNumberAxes() != 0 || fob.getNumberMatrices() == 0)
-      cerr << "arSharedMemSinkDriver warning: FoB has bad signature ?/?/?.\n";
+      ar_log_warning() << "arSharedMemSinkDriver warning: FoB has bad signature ?/?/?.\n";
     for (int i=0; i<cm; i++)
-      cout << "matrix " << i << ": " << fob.getMatrix(i) << endl;
+      ar_log_remark() << "matrix " << i << ": " << fob.getMatrix(i) << "\n";
 #endif
 
     // Get data from devices.

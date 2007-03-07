@@ -61,28 +61,28 @@ arFaroDriver::~arFaroDriver() {
 bool arFaroDriver::init(arSZGClient& SZGClient) {
   float floatBuf[3];
   if (!SZGClient.getAttributeFloats("SZG_FARO","probe_dimensions",floatBuf,3)) {
-    cerr << "arFaroDriver error: you _must_ set SZG_FARO/probe_dimensions (in inches).\n";
+    ar_log_warning() << "arFaroDriver error: you _must_ set SZG_FARO/probe_dimensions (in inches).\n";
     return false;
   }
   _probeDimensions = arVector3( floatBuf );
-  cerr << "arFaroDriver remark: probe dimensions = " << _probeDimensions << " inches.\n";
+  ar_log_remark() << "arFaroDriver remark: probe dimensions = " << _probeDimensions << " inches.\n";
   if ((_probeDimensions[2] < 0.)||(_probeDimensions[2] > 120)) { 
-    cerr << "arFaroDriver::init() warning: You have set a highly improbable probe length\n"
-          << "   (SZG_FARO/probe_dimensions[2] == " << _probeDimensions[2] << " in.)" << endl;
+    ar_log_warning() << "arFaroDriver::init() warning: You have set a highly improbable probe length\n"
+          << "   (SZG_FARO/probe_dimensions[2] == " << _probeDimensions[2] << " in.)" << "\n";
   }
   _probeDimensions /= 12.; // convert to feet
 
   unsigned int portNum = static_cast<unsigned int>(
         SZGClient.getAttributeInt("SZG_FARO", "com_port"));
   if (!_port.ar_open( portNum, 9600, 8, 1, "none" )) {
-    cerr << "arFaroDriver::init() error: failed to open serial port #" << portNum << endl;
+    ar_log_warning() << "arFaroDriver::init() error: failed to open serial port #" << portNum << "\n";
     return false;
   }
   _port.setReadTimeout( 10 );  // 1 second
   _port.ar_write( "_G" );     // request FaroArm configuration data.
   int numRead = _port.ar_read( _inbuf, 4000 );
   if (numRead < 1) { // How long is this supposed to be?
-    cerr << "arFaroDriver::init() error: failed to get FaroArm status (numRead = " << numRead << endl;
+    ar_log_warning() << "arFaroDriver::init() error: failed to get FaroArm status (numRead = " << numRead << "\n";
     return false;
   }
   _inbuf[numRead] = '\0';
@@ -90,12 +90,12 @@ bool arFaroDriver::init(arSZGClient& SZGClient) {
   string::size_type n1 = inString.find("\n",0);
   string::size_type n2 = inString.find("\n",n1+2);
   if ((n1==string::npos)||(n2==string::npos)) {
-    cerr << "arFaroDriver::init() error: FaroArm returned malformed status string.\n";
+    ar_log_warning() << "arFaroDriver::init() error: FaroArm returned malformed status string.\n";
     return false;
   }
   inString = inString.substr( n1+2, n2-(n1+2) );
   if (inString.length()==0) {
-    cerr << "arFaroDriver::init() error: Status string contains wrong number of elements.\n";
+    ar_log_warning() << "arFaroDriver::init() error: Status string contains wrong number of elements.\n";
     return false;
   }
 
@@ -106,18 +106,18 @@ bool arFaroDriver::init(arSZGClient& SZGClient) {
 
   int probeNum = int(nums[12]); // what if nums[12] isn't an exact integer?
   if (probeNum==1)
-    cerr << "arFaroDriver::init() remark: Already using probe 1\n";
+    ar_log_warning() << "arFaroDriver::init() remark: Already using probe 1\n";
   else {
-    cerr << "arFaroDriver::init() remark: Setting probe number to 1\n";
+    ar_log_warning() << "arFaroDriver::init() remark: Setting probe number to 1\n";
     _port.ar_write( "_H1" );
     ar_usleep( 10000 );
   }
 
   _defaultProbeDimensions = arVector3( nums );
-  cerr << "arFaroDriver remark: probe 1 dimensions = " << _defaultProbeDimensions << " inches." << endl;
+  ar_log_warning() << "arFaroDriver remark: probe 1 dimensions = " << _defaultProbeDimensions << " inches." << "\n";
   _defaultProbeDimensions/= 12.;
   _probeDimDiffs = _probeDimensions - _defaultProbeDimensions;
-  cerr << "arFaroDriver remark: probe diff. = " << _probeDimDiffs << " feet.\n";
+  ar_log_warning() << "arFaroDriver remark: probe diff. = " << _probeDimDiffs << " feet.\n";
   _inited = true;
   _setDeviceElements( 1, 0, 1 );
   return true;
@@ -125,17 +125,17 @@ bool arFaroDriver::init(arSZGClient& SZGClient) {
 
 bool arFaroDriver::start(){
   if (!_inited) {
-    cerr << "arFaroDriver::start() error: Not inited yet.\n";
+    ar_log_warning() << "arFaroDriver::start() error: Not inited yet.\n";
     return false;
   }
 //  int numWrit = _port.ar_write( "_T" );
 //  if (numWrit != 2) {
-//    cerr << "arFaroDriver error: write() failed in _getSendData().\n";
+//    ar_log_warning() << "arFaroDriver error: write() failed in _getSendData().\n";
 //    return false;
 //  }
   const bool ok = _eventThread.beginThread(ar_FaroDriverEventTask,this);
   if (ok)
-    cerr << "arFaroDriver started.\n";
+    ar_log_warning() << "arFaroDriver started.\n";
   return ok;
 }
 
@@ -143,21 +143,21 @@ bool arFaroDriver::stop(){
   _stopped = true;
   while (_eventThreadRunning) {
     ar_usleep(10000);
-//    cerr << "arFaroDriver remark: waiting for event thread to exit.\n";
+//    ar_log_warning() << "arFaroDriver remark: waiting for event thread to exit.\n";
   }
-  cerr << "arFaroDriver stopped.\n";
+  ar_log_warning() << "arFaroDriver stopped.\n";
   return true;
 }
 
 bool arFaroDriver::_getSendData() {
   int numWrit = _port.ar_write( "_K" );
   if (numWrit != 2) {
-    cerr << "arFaroDriver error: write() failed in _getSendData().\n";
+    ar_log_warning() << "arFaroDriver error: write() failed in _getSendData().\n";
     return false;
   }
   int numRead = _port.ar_read( _inbuf, 90 );
   if (numRead!=90) {
-    cerr << "arFaroDriver() error: Only " << numRead << " bytes read in _getSendData()\n";
+    ar_log_warning() << "arFaroDriver() error: Only " << numRead << " bytes read in _getSendData()\n";
     return false;
   } else {
     string dataString( _inbuf );
@@ -169,7 +169,7 @@ bool arFaroDriver::_getSendData() {
     arVector3 angles( nums+4 );
     initialPosition = initialPosition * INCHES_TO_FEET;
     angles = angles * DEGREES_TO_RADIANS;
-//    cerr << nums[0] << endl;
+//    ar_log_warning() << nums[0] << "\n";
     int switches = static_cast<int>( nums[0] );
 
     // Had to make this change because one of the buttons on our arm died
@@ -197,7 +197,7 @@ bool arFaroDriver::_getSendData() {
 //    float jDir(-sin(angles[1])*cos(angles[0]));
 //    float kDir(cos(angles[0]));
 
-//    cerr << "Direction cosines: " << iDir << ", " << jDir << ", " << kDir << endl;
+//    ar_log_warning() << "Direction cosines: " << iDir << ", " << jDir << ", " << kDir << "\n";
     // ...so we'll tweak the orientation here after getting the position...
 //    rotMatrix = rotMatrix*ar_rotationMatrix('z',ar_convertToRad(-90));
 //    rotMatrix = ar_rotationMatrix('y',ar_convertToRad(180))*rotMatrix;

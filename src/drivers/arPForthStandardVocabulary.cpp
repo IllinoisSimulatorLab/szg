@@ -456,9 +456,9 @@ class StackPrint : public arPForthAction {
 bool StackPrint::run( arPForth* fp ) {
   if (!fp)
     return false;
-  cerr << "Stack:\n";
+  ar_log_warning() << "Stack:\n";
   for (int i=fp->stackSize()-1; i>=0; i--)
-    cerr << " [ " << fp->stackElement(i) << " ]\n";
+    ar_log_warning() << " [ " << fp->stackElement(i) << " ]\n";
   return true;
 }
 
@@ -849,7 +849,7 @@ bool StringCompiler::compile( arPForth* pf,
 //      theString = theString + theWord;
 //      firstWord = false;
 //    }
-//cerr << "String: " << theString << endl;
+//ar_log_warning() << "String: " << theString << "\n";
 //    pf->putString( address, theString );
 //  } else {
 //    theWord = pf->nextWord();

@@ -10,7 +10,7 @@ int main() {
     cout << "setPath test failed\n";
     return 0;
   }
-  cout << "Path = " << here.path().c_str() << endl << endl;
+  cout << "Path = " << here.path().c_str() << "\n\n";
   unsigned int i;
   
   std::vector<std::string> fileList = here.files();

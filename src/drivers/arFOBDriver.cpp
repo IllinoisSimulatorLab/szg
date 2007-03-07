@@ -761,7 +761,7 @@ FoB manual p.35: FoBs 14-byte data record, the response to a Point command.
 
   unsigned char* pb = (unsigned char*)_dataBuffer;
   if (*pb & 0x80 == 0)
-    cerr << "FoB phasing error at start of frame.\n";
+    ar_log_warning() << "FoB phasing error at start of frame.\n";
   *pb &= 0x7f; // clear phasing bit
 
 #if 0
@@ -776,11 +776,11 @@ FoB manual p.35: FoBs 14-byte data record, the response to a Point command.
     const unsigned int msb = pb[j+1];
     // printf("lsb msb:  %02x %02x\n", lsb, msb);
     if ((lsb & 0x80) != 0) {
-      cerr << "FoB phasing error during byte " << j << ".\n";
+      ar_log_warning() << "FoB phasing error during byte " << j << ".\n";
       return true;
     }
     if ((msb & 0x80) != 0) {
-      cerr << "FoB phasing error during byte " << j+1 << ".\n";
+      ar_log_warning() << "FoB phasing error during byte " << j+1 << ".\n";
       return true;
     }
     // convert to signed

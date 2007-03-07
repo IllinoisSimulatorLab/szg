@@ -72,7 +72,7 @@ void arInputEventQueue::appendEvent( const arInputEvent& inputEvent ) {
 	<< eventType << ".\n";
       return;
   }
-//cerr << _numButtons << " " << _numAxes << " " << _numMatrices << endl;
+//ar_log_warning() << _numButtons << " " << _numAxes << " " << _numMatrices << ".\n";
   _queue.push_back( inputEvent );
 }
 
@@ -135,9 +135,9 @@ void arInputEventQueue::setSignature( unsigned int numButtons,
           maxIndex = iter->getIndex();
     }
     if (maxIndex >= (int)numButtons) {
-      cerr << "arInputEventQueue warning: you can't set button signature to "
+      ar_log_warning() << "arInputEventQueue warning: you can't set button signature to "
            << numButtons << ",\n I'm holding a button event with index "
-           << maxIndex << endl;
+           << maxIndex << ".\n";
       numButtons = maxIndex+1;
     }
   }
@@ -152,9 +152,9 @@ void arInputEventQueue::setSignature( unsigned int numButtons,
           maxIndex = iter->getIndex();
     }
     if (maxIndex >= (int)numAxes) {
-      cerr << "arInputEventQueue warning: you can't set axis signature to "
+      ar_log_warning() << "arInputEventQueue warning: you can't set axis signature to "
            << numAxes << ",\n I'm holding an axis event with index "
-           << maxIndex << endl;
+           << maxIndex << ".\n";
       numAxes = maxIndex+1;
     }
   }
@@ -169,9 +169,9 @@ void arInputEventQueue::setSignature( unsigned int numButtons,
           maxIndex = iter->getIndex();
     }
     if (maxIndex >= (int)numMatrices) {
-      cerr << "arInputEventQueue warning: you can't set matrix signature to "
+      ar_log_warning() << "arInputEventQueue warning: you can't set matrix signature to "
            << numAxes << ",\n I'm holding a matrix event with index "
-           << maxIndex << endl;
+           << maxIndex << ".\n";
       numMatrices = maxIndex+1;
     }
   }
@@ -212,9 +212,9 @@ bool arInputEventQueue::setFromBuffers( const int* const typeData,
       continue;
     }
     const int eventType = typeData[i];
-//cerr << i << " " << eventType << " " << eventType << "  "
+//ar_log_warning() << i << " " << eventType << " " << eventType << "  "
 //     << iButton << " " << iAxis << " " << iMatrix << "  "
-//     << _numButtons << " " << _numAxes << " " << _numMatrices << endl;
+//     << _numButtons << " " << _numAxes << " " << _numMatrices << ".\n";
     switch (eventType) {
       case AR_EVENT_BUTTON:
         if (iButton >= numButtons) {
@@ -270,9 +270,9 @@ bool arInputEventQueue::saveToBuffers( int* const typeBuf,
     const arInputEventType eventType = inputEvent.getType();
     typeBuf[i] = (int)eventType;
     indexBuf[i] = (int)inputEvent.getIndex();
-//cerr << i << " " << eventType << " " << eventType << "  "
+//ar_log_warning() << i << " " << eventType << " " << eventType << "  "
 //     << iButton << " " << iAxis << " " << iMatrix << "  "
-//     << _numButtons << " " << _numAxes << " " << _numMatrices << endl;
+//     << _numButtons << " " << _numAxes << " " << _numMatrices << ".\n";
     switch (eventType) {
       case AR_EVENT_BUTTON:
         if (iButton >= _numButtons) {

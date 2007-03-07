@@ -343,7 +343,7 @@ LAbort:
   if (!ok)
     ar_log_error() << "DeviceServer has no input.\n";
   if (!respond(szgClient, ok)){
-    cerr << "DeviceServer ignoring failed init.\n";
+    ar_log_warning() << "DeviceServer ignoring failed init.\n";
     // return 1;
   }
   if (!ok) {
