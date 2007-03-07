@@ -27,22 +27,30 @@
 #include "arXMLParser.h"
 #include "arGUIXMLParser.h"
 
-#include <vector>
-
 arMatrix4 mouseWorldMatrix;
 arGraphicsDatabase* theDatabase = NULL;
 
 enum { PAN=0, ROTATE, ZOOM, SLIDER, NONE };
 
 int mouseTransformID = -1;
-int mouseManipState = ROTATE, oldState = ROTATE;
-bool isPlaying = false, isModelSpinning = false;
-float bgColor = 0.0f, _ratio = 1.0f, frameRate = 0.0f;
-int sliderCenterX = -50, sliderCenterY = 10; // slider position in pixels
-arObject *theObject = NULL;
+int mouseManipState = ROTATE;
+int oldState = ROTATE;
+
+bool isPlaying = false;
+bool isModelSpinning = false;
+
+float bgColor = 0.0f;
+float _ratio = 1.0f;
+float frameRate = 0.0f;
+
+int sliderCenterX = -50;
+int sliderCenterY = 10; // slider position in pixels
+
+arObject* theObject = NULL;
+string arObject::type() const { return "Invalid"; } // avoid warning on darwin / gcc 4.0.1
 arTexFont texFont;
 arGUIWindowManager* wm = NULL;
-arHead head; // we don't get this from a tracker
+arHead head; // not from a tracker
 
 // forward declaration
 void display( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow );
@@ -51,13 +59,15 @@ void display( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow );
 class arSZGViewRenderCallback : public arGUIRenderCallback
 {
   public:
-    arSZGViewRenderCallback( void ) { }
-    virtual ~arSZGViewRenderCallback( void )  { }
-    virtual void operator()( arGraphicsWindow&, arViewport& ) { }
-    virtual void operator()( arGUIWindowInfo* ) { }
+    arSZGViewRenderCallback( void ) {}
+    virtual ~arSZGViewRenderCallback( void ) {}
+    virtual void operator()( arGraphicsWindow&, arViewport& ) {}
+    virtual void operator()( arGUIWindowInfo* ) {}
     virtual void operator()( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow ) {
       if( graphicsWindow ) {
-        arVector3 size = wm->getWindowSize( windowInfo->getWindowID() );
+#ifdef UNUSED
+        arVector3 size(wm->getWindowSize(windowInfo->getWindowID()));
+#endif
         graphicsWindow->draw();
       }
     }
@@ -68,9 +78,9 @@ class arSZGViewRenderCallback : public arGUIRenderCallback
 void drawHUD()
 {
   // menu text
+  const arVector3 highlight(1,1,1);
+  const arVector3 other(0.6,0.6,0.6);
   arTextBox box;
-  arVector3 highlight(1,1,1);
-  arVector3 other(0.6,0.6,0.6);
   box.width = 45;
   box.color = arVector3(1,0,0);
   box.columns = 15;
@@ -84,67 +94,64 @@ void drawHUD()
   box.upperLeft = arVector3(0, 90, -0.1);
   texFont.renderString( "[3] Scale", box);
 
+  if (!theObject->supportsAnimation() || theObject->numberOfFrames()<=0)
+    return;
+
   // animation slider
-  if( theObject->supportsAnimation() && ( theObject->numberOfFrames() > 0 ) ) {
-    glColor3f( 0.9f, 0.9f, 0.9f );
-    glBegin( GL_QUADS );  // draw box for slider et. al.
-    glVertex2f( 100.0f, 0.0f );
-    glVertex2f( 100.0f, 5.0f );
-    glVertex2f( 0.0f,   5.0f );
-    glVertex2f( 0.0f,   0.0f);
-    glEnd();
+  glColor3f( 0.9f, 0.9f, 0.9f );
+  glBegin( GL_QUADS );  // draw box for slider et. al.
+  glVertex2f( 100.0f, 0.0f );
+  glVertex2f( 100.0f, 5.0f );
+  glVertex2f( 0.0f,   5.0f );
+  glVertex2f( 0.0f,   0.0f);
+  glEnd();
 
-    float numFrames = theObject->numberOfFrames();
-    float sliderStart = 5.0f;
-    float sliderEnd   = 85.0f;;
-    float sliderWidth = sliderEnd - sliderStart;
-    float sliderMaxY  = 4.0f;
-    float sliderMinY = 1.0f;
-    float sliderSpacing = sliderWidth;
+  const float numFrames = theObject->numberOfFrames();
+  const float sliderStart = 5.0f;
+  const float sliderEnd   = 85.0f;
+  const float sliderWidth = sliderEnd - sliderStart;
+  const float sliderMaxY  = 4.0f;
+  const float sliderMinY = 1.0f;
+  float sliderSpacing = sliderWidth;
 
-    glColor3f( 0.25f, 0.25f, 0.25f);
-    glBegin( GL_LINES );  // draw slider bar
-    glVertex2f( sliderStart, ( sliderMinY + sliderMaxY ) / 2.0f );
-    glVertex2f( sliderEnd,   ( sliderMinY + sliderMaxY ) / 2.0f );
-    // todo: Only do this once per window resize isntead of every frame
-    float stepSize = 1.0f;
-    // make each tick mark at least 10 px across onscreen, and geometric series
-    for ( ; ; ) {
-      sliderSpacing = ( sliderWidth ) / stepSize;
-      if ( sliderSpacing <= 10.0f )
-	break;
-      else if( int( stepSize ) % 2 == 0 )
-	stepSize *= 2.5f;
-      else
-	stepSize *= 2.0f;
-    }
-    // draw tick marks
-    for( float j = 0.0f; j <= sliderWidth; j += sliderSpacing ) {
-      glVertex2f( sliderStart + j, sliderMaxY );
-      glVertex2f( sliderStart + j, sliderMinY );
-    }
-    glVertex2f( sliderEnd, sliderMaxY );
-    glVertex2f( sliderEnd, sliderMinY );
-    glEnd();
+  glColor3f( 0.25f, 0.25f, 0.25f);
+  glBegin( GL_LINES );  // draw slider bar
+  glVertex2f( sliderStart, ( sliderMinY + sliderMaxY ) / 2.0f );
+  glVertex2f( sliderEnd,   ( sliderMinY + sliderMaxY ) / 2.0f );
 
-    float sliderCenterX = ( sliderStart + float( theObject->currentFrame() ) / numFrames * sliderWidth );
+  // make each tick mark at least 10 px across onscreen, and geometric series
+  // todo: once per window resize, not once per frame
+  float stepSize = 1.0f;
+  while ((sliderSpacing = sliderWidth / stepSize) > 10.)
+    stepSize *= (int(stepSize) % 2 == 0) ? 2.5 : 2.0;
 
-    glColor3f(0.5f, 0.5f, 0.5f );
-    glBegin( GL_QUADS );  // draw slider position
-    glVertex2f( sliderCenterX - 0.5f, sliderMaxY + 0.5f );
-    glVertex2f( sliderCenterX - 0.5f, sliderMinY - 0.5f );
-    glVertex2f( sliderCenterX + 0.5f, sliderMinY - 0.5f );
-    glVertex2f( sliderCenterX + 0.5f, sliderMaxY + 0.5f );
-    glEnd();
-
-    char displayString[10];
-    sprintf( displayString, "%4i", theObject->currentFrame() );
-    box.columns = 4;
-    box.width = 15;
-    box.color = arVector3(0,0,0);
-    box.upperLeft = arVector3(85, 5, 0);
-    texFont.renderString( displayString, box);
+  // tick marks
+  for( float j = 0.0f; j <= sliderWidth; j += sliderSpacing ) {
+    glVertex2f( sliderStart + j, sliderMaxY );
+    glVertex2f( sliderStart + j, sliderMinY );
   }
+  glVertex2f( sliderEnd, sliderMaxY );
+  glVertex2f( sliderEnd, sliderMinY );
+  glEnd();
+
+  const float sliderCenterX =
+    sliderStart + sliderWidth * float(theObject->currentFrame()) / numFrames;
+
+  glColor3f(0.5f, 0.5f, 0.5f );
+  glBegin( GL_QUADS );  // draw slider position
+  glVertex2f( sliderCenterX - 0.5f, sliderMaxY + 0.5f );
+  glVertex2f( sliderCenterX - 0.5f, sliderMinY - 0.5f );
+  glVertex2f( sliderCenterX + 0.5f, sliderMinY - 0.5f );
+  glVertex2f( sliderCenterX + 0.5f, sliderMaxY + 0.5f );
+  glEnd();
+
+  char displayString[10];
+  sprintf( displayString, "%4i", theObject->currentFrame() );
+  box.columns = 4;
+  box.width = 15;
+  box.color = arVector3(0,0,0);
+  box.upperLeft = arVector3(85, 5, 0);
+  texFont.renderString( displayString, box);
 }
 
 void display( arGUIWindowInfo*, arGraphicsWindow* )
@@ -387,7 +394,7 @@ void mouseCB( arGUIMouseInfo* mouseInfo )
 int main( int argc, char** argv ){
   string fileName;
   if (argc == 1){
-    // Open local config file.
+    // Use local config file.
     FILE* configFile = fopen("szgview.txt", "r");
     if (!configFile){
       cout << "szgview error: no parameter supplied and no szgview.txt config file.\n";
@@ -396,7 +403,6 @@ int main( int argc, char** argv ){
     }
     char buf[1024];
     if (fscanf(configFile, "%s", buf) < 1){
-      // Config file is empty. This is an error.
       cout << "szgview error: config file szgview.txt is empty.\n";
       return 1;
     }
@@ -412,7 +418,7 @@ int main( int argc, char** argv ){
     return 1;
   }
 
-  arObject *theMesh = argc == 3 ? ar_readObjectFromFile( argv[ 2 ], "" ) : NULL;
+  arObject* theMesh = argc==3 ? ar_readObjectFromFile( argv[2], "" ) : NULL;
 
   arSZGClient SZGClient;
   SZGClient.init( argc, argv );
