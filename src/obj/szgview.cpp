@@ -63,7 +63,7 @@ class arSZGViewRenderCallback : public arGUIRenderCallback
     virtual ~arSZGViewRenderCallback( void ) {}
     virtual void operator()( arGraphicsWindow&, arViewport& ) {}
     virtual void operator()( arGUIWindowInfo* ) {}
-    virtual void operator()( arGUIWindowInfo* windowInfo, arGraphicsWindow* graphicsWindow ) {
+    virtual void operator()( arGUIWindowInfo* /*windowInfo*/, arGraphicsWindow* graphicsWindow ) {
       if( graphicsWindow ) {
 #ifdef UNUSED
         arVector3 size(wm->getWindowSize(windowInfo->getWindowID()));
