@@ -266,9 +266,10 @@ void arLogStream::_flush(const bool addNewline){
   _buffer.str(empty);
 }
 
-inline arLogStream& arLogStream::_setLevel(const int l){
+inline arLogStream& arLogStream::_setLevel(int l){
   _lock();
-  _level = l;
+  if (ar_logLevelNormalize(l) != AR_LOG_NIL)
+    _level = l;
   _unlock();
   return *this;
 }
@@ -305,5 +306,13 @@ arLogStream& ar_endl(arLogStream& s){
     *s._output << endl;
   }
   s._unlock();
+  return s;
+}
+
+arLogStream& ar_hex(arLogStream& s){
+  s._preAppend();
+  s._buffer << std::hex;
+  s._postAppend(); 
+  s._finish();
   return s;
 }

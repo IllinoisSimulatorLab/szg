@@ -40,6 +40,7 @@ class SZG_CALL arLogStream{
   friend SZG_CALL arLogStream& ar_log_remark();
   friend SZG_CALL arLogStream& ar_log_debug();
   friend SZG_CALL arLogStream& ar_endl(arLogStream& logStream);
+  friend SZG_CALL arLogStream& ar_hex (arLogStream& logStream);
  public:
   arLogStream();
   ~arLogStream(){}
@@ -81,7 +82,7 @@ class SZG_CALL arLogStream{
   void _postAppend(bool flush=false);
   void _finish();
   void _flush(const bool addNewline = true);
-  arLogStream& _setLevel(const int);
+  arLogStream& _setLevel(int);
 
   arLock _l;
   bool _fLocked;
@@ -97,5 +98,6 @@ SZG_CALL arLogStream& ar_log_warning();
 SZG_CALL arLogStream& ar_log_remark();
 SZG_CALL arLogStream& ar_log_debug();
 SZG_CALL arLogStream& ar_endl(arLogStream& logStream);
+SZG_CALL arLogStream& ar_hex(arLogStream& logStream);
 
 #endif

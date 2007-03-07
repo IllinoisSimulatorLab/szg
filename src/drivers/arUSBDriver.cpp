@@ -702,11 +702,11 @@ void arUSBDriver::_dataThread() {
     // At least one byte should have the high bit set.
     if (x == 0 && y == 0 && x_ == 0 && y_ == 0) {
       ar_log_warning() << "arUSBDriver warning: joystick responded with no high bit set.\n";
-ar_log_remark() << "raw xy: " << x << ", " << y << ";    " << x_ << ", " << y << "\n";;;;
+ar_log_debug() << "raw xy: " << x << ", " << y << ";    " << x_ << ", " << y << "\n";;;;
       continue;
     }
 
-ar_log_remark() << "raw xy: " << x << ", " << y << ";    " << x_ << ", " << y << "\n";;;;
+ar_log_debug() << "raw xy: " << x << ", " << y << ";    " << x_ << ", " << y << "\n";;;;
 
     // Use the pair with one negative value.
     // Correct, approximately, for the measured sleep duration (not just ar_usleep(usecPoll).
@@ -722,7 +722,7 @@ ar_log_remark() << "raw xy: " << x << ", " << y << ";    " << x_ << ", " << y <<
     }
     else {
       // At least one byte should have the high bit set.
-      ar_log_warning() << "arUSBDriver error: bogus data from USB chip: " << hex << buf[0] << buf[1] << "\n";
+      ar_log_warning() << "arUSBDriver: bogus data from USB chip: " << ar_hex() << buf[0] << buf[1] << "\n";
       break;
     }
 
@@ -741,7 +741,7 @@ ar_log_remark() << "raw xy: " << x << ", " << y << ";    " << x_ << ", " << y <<
       ar_log_remark() << "arUSBDriver remark: calibrated.  OK to wiggle joystick now.\n";
       xAvg /= cInit;
       yAvg /= cInit;
-ar_log_remark() << "\txy average = " << xAvg << ", " << yAvg << "\n";;;;
+ar_log_debug() << "\txy average = " << xAvg << ", " << yAvg << "\n";;;;
       xAvgPrev = xAvg;
       yAvgPrev = yAvg;
       // These offsets avoid divide by zero.
