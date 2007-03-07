@@ -38,16 +38,17 @@ class SZG_CALL arSZGAppFramework {
     virtual void loopQuantum() = 0;
     virtual void exitFunction() = 0;
     
-    // Misc. methods. common to all frameworks.
-    virtual void setDataBundlePath( const string& bundlePathName,
-                          const string& bundleSubDirectory ) {}
+    // Methods common to all frameworks.
+
+    virtual void setDataBundlePath( const string& /*bundlePath*/,
+                                    const string& /*bundleSubDir*/ ) {}
     virtual void loadNavMatrix() {}
     void speak( const std::string& message );
     bool setInputSimulator( arInputSimulator* sim );
     string getLabel() const { return _label; }
     bool getStandalone() const { return _standalone; }
     const string getDataPath() const { return _dataPath; }
-        
+
     // Set-up the viewer (i.e. the user's head).
     void setEyeSpacing( float feet );
     void setClipPlanes( float near, float far );
@@ -55,23 +56,23 @@ class SZG_CALL arSZGAppFramework {
     virtual void setFixedHeadMode(bool isOn) { _head.setFixedHeadMode(isOn); }
     virtual arMatrix4 getMidEyeMatrix() { return _head.getMidEyeMatrix(); }
     virtual arVector3 getMidEyePosition() { return _head.getMidEyePosition(); }
-    virtual void setUnitConversion( float conv );
-    virtual void setUnitSoundConversion( float conv );
+    virtual void setUnitConversion( float );
+    virtual void setUnitSoundConversion( float );
     virtual float getUnitConversion();
     virtual float getUnitSoundConversion();
-      
-    // Basic access to the embedded input node. Note: It is also possible to
-    // access the input node directly (see below).
-    int getButton( const unsigned index ) const;
-    float getAxis( const unsigned index ) const;
-    arMatrix4 getMatrix( const unsigned index, bool doUnitConversion=true ) const;
-    bool getOnButton( const unsigned index ) const;
-    bool getOffButton( const unsigned index ) const;
+
+    // Access to the embedded input node.  Also see getInputNode().
+    int getButton( const unsigned ) const;
+    float getAxis( const unsigned ) const;
+    arMatrix4 getMatrix( const unsigned, bool doUnitConversion=true ) const;
+    bool getOnButton( const unsigned ) const;
+    bool getOffButton( const unsigned ) const;
     unsigned getNumberButtons()  const;
     unsigned getNumberAxes()     const;
     unsigned getNumberMatrices() const;
-    
-    // Methods pertaining to the built-in navigation.
+
+    // Methods for built-in navigation.
+
     bool setNavTransCondition( char axis,
                                arInputEventType type,
                                unsigned index,
@@ -86,9 +87,10 @@ class SZG_CALL arSZGAppFramework {
     void ownNavParam( const std::string& paramName );
     void navUpdate();
     void navUpdate( arInputEvent& event );
-      
-    // Methods pertaining to event filtering (and the callbacks that allow
+
+    // Methods for event filtering (and the callbacks that allow
     // event-based processing instead of polling-based processing).
+
     bool setEventFilter( arFrameworkEventFilter* filter );
     void setEventCallback( arFrameworkEventCallback callback );
     virtual void setEventQueueCallback( arFrameworkEventQueueCallback callback );
@@ -112,18 +114,17 @@ class SZG_CALL arSZGAppFramework {
 
     void useExternalThread() { _useExternalThread = true; }
 
-    // tell stop() that external thread has started
+    // Tell stop() that external thread has started.
     void externalThreadStarted() { _externalThreadRunning = true; }
 
-    // tell stop() that external thread stopped cleanly
+    // Tell stop() that external thread stopped cleanly.
     void externalThreadStopped() { _externalThreadRunning = false; }
 
     // Accessors for various internal objects/services. Necessary for flexibility.
     
-    // Some applications need to be able to find out information
-    // about the virtual computer.
+    // Info about the virtual computer.
     arAppLauncher* getAppLauncher() { return &_launcher; }
-    // Some applications want to do nonstandard things with the input node.
+    // For nonstandard use of the input node.
     arInputNode* getInputNode() { return _inputDevice; }
     arInputNode* getInputDevice() { return getInputNode(); } // Deprecated version of getInputNode()
     // Allowing the user access to the window manager increases the flexibility
