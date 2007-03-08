@@ -43,10 +43,10 @@ void dump( arInputState& inp ) {
 
   const arMatrix4 m(inp.getMatrix(0));
   const arVector3 xlat(ar_extractTranslation(m));
-  cout << "xyz: " << xlat << "\n";
-
-
-  cout << "____\n";
+  const arVector3 rot(180./3.1416 * ar_extractEulerAngles(m, AR_YXZ));
+  cout << "\t\t\thead xyz: " << xlat << "\n"
+       << "\t\t\thead roll ele azi " << rot << "\n"
+       << "____\n\n";
 }
 
 class FilterOnButton : public arIOFilter {
@@ -176,7 +176,7 @@ LAbort:
   while (szgClient.connected()){
     if (mode == CONTINUOUS_DUMP && src.connected())
       dump(inputNode._inputState);
-    ar_usleep(500000);
+    ar_usleep(200000);
   }
   return 0;
 }
