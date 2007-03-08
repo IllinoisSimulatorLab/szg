@@ -262,7 +262,7 @@ class ConcatMatrices : public arPForthAction {
 bool ConcatMatrices::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long outputAddress = (long)pf->stackPop();
+  const long aOut = (long)pf->stackPop();
   const long numInputMatrices = (long)pf->stackPop();
   if (numInputMatrices <= 0) {
     throw arPForthException("concatMatrices # input matrices must be > 0.");
@@ -272,7 +272,7 @@ bool ConcatMatrices::run( arPForth* pf ) {
     const long inputAddress = (long)pf->stackPop();
     result = pf->getDataMatrix( inputAddress ) * result;
   }
-  pf->putDataMatrix( outputAddress, result );
+  pf->putDataMatrix( aOut, result );
   return true;
 }
 
@@ -616,12 +616,12 @@ class RotationMatrixV : public arPForthAction {
 bool RotationMatrixV::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long outAddress = (long)pf->stackPop();
-  const long axisAddress = (long)pf->stackPop();
+  const long aOut = (long)pf->stackPop();
+  const long aAxis = (long)pf->stackPop();
   const float angle = ar_convertToRad( pf->stackPop() );
   arVector3 V;
-  pf->getDataArray( axisAddress, V.v, 3 );
-  pf->putDataMatrix( outAddress, ar_rotationMatrix( V, angle ) );
+  pf->getDataArray( aAxis, V.v, 3 );
+  pf->putDataMatrix( aOut, ar_rotationMatrix( V, angle ) );
   return true;
 }
 
@@ -632,9 +632,9 @@ class ExtractTranslationMatrix : public arPForthAction {
 bool ExtractTranslationMatrix::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long outAddress = (long)pf->stackPop();
-  const long inAddress = (long)pf->stackPop();
-  pf->putDataMatrix( outAddress, ar_extractTranslationMatrix( pf->getDataMatrix( inAddress ) ));
+  const long aOut = (long)pf->stackPop();
+  const long aIn = (long)pf->stackPop();
+  pf->putDataMatrix( aOut, ar_extractTranslationMatrix( pf->getDataMatrix( aIn ) ));
   return true;
 }
   
@@ -645,10 +645,10 @@ class ExtractTranslationVector : public arPForthAction {
 bool ExtractTranslationVector::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long outAddress = (long)pf->stackPop();
-  const long inAddress = (long)pf->stackPop();
-  const arVector3 result( ar_extractTranslation( pf->getDataMatrix( inAddress ) ) );
-  pf->putDataArray( outAddress, result.v, 3 );
+  const long aOut = (long)pf->stackPop();
+  const long aIn = (long)pf->stackPop();
+  const arVector3 result( ar_extractTranslation( pf->getDataMatrix( aIn ) ) );
+  pf->putDataArray( aOut, result.v, 3 );
   return true;
 }
   
@@ -659,9 +659,9 @@ class ExtractRotationMatrix : public arPForthAction {
 bool ExtractRotationMatrix::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long outAddress = (long)pf->stackPop();
-  const long inAddress = (long)pf->stackPop();
-  pf->putDataMatrix( outAddress, ar_extractRotationMatrix( pf->getDataMatrix( inAddress ) ));
+  const long aOut = (long)pf->stackPop();
+  const long aIn = (long)pf->stackPop();
+  pf->putDataMatrix( aOut, ar_extractRotationMatrix( pf->getDataMatrix( aIn ) ));
   return true;
 }
 
@@ -672,13 +672,10 @@ class ExtractEulerAngles : public arPForthAction {
 bool ExtractEulerAngles::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long outAddress = (long)pf->stackPop();
-  const long inAddress = (long)pf->stackPop();
-  arVector3 result( ar_extractEulerAngles( pf->getDataMatrix( inAddress ) ) );
-  for (unsigned int i=0; i<3; ++i) {
-    result.v[i] = ar_convertToDeg(result.v[i]);
-  }
-  pf->putDataArray( outAddress, result.v, 3 );
+  const long aOut = (long)pf->stackPop();
+  const long aIn = (long)pf->stackPop();
+  arVector3 rot(ar_extractEulerAngles( pf->getDataMatrix( aIn ) ) );
+  pf->putDataArray( aOut, ar_convertToDeg(rot).v, 3 );
   return true;
 }
   
@@ -689,16 +686,17 @@ class RotationMatrixFromEulerAngles : public arPForthAction {
 bool RotationMatrixFromEulerAngles::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long outAddress = (long)pf->stackPop();
-  const long inAddress = (long)pf->stackPop();
+  const long aOut = (long)pf->stackPop();
+  const long aIn = (long)pf->stackPop();
   arVector3 V;
-  pf->getDataArray( inAddress, V.v, 3 );
+  pf->getDataArray( aIn, V.v, 3 );
+  ar_convertToRad(V);
   const arMatrix4 result(
-    ar_rotationMatrix('y',  ar_convertToRad(V.v[0])) *
-    ar_rotationMatrix('x',  ar_convertToRad(V.v[1])) *
-    ar_rotationMatrix('z',  ar_convertToRad(V.v[2]))
+    ar_rotationMatrix('y',  V.v[0]) *
+    ar_rotationMatrix('x',  V.v[1]) *
+    ar_rotationMatrix('z',  V.v[2])
     );
-  pf->putDataMatrix( outAddress, result );
+  pf->putDataMatrix( aOut, result );
   return true;
 }
 
@@ -709,9 +707,9 @@ class InverseMatrix : public arPForthAction {
 bool InverseMatrix::run( arPForth* pf ) {
   if (!pf)
     return false;
-  const long outAddress = (long)pf->stackPop();
-  const long inAddress = (long)pf->stackPop();
-  pf->putDataMatrix( outAddress, pf->getDataMatrix( inAddress ).inverse() );
+  const long aOut = (long)pf->stackPop();
+  const long aIn = (long)pf->stackPop();
+  pf->putDataMatrix( aOut, pf->getDataMatrix( aIn ).inverse() );
   return true;
 }
   
