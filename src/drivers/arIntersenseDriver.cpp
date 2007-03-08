@@ -503,19 +503,13 @@ void IsenseStation::queueData( ISD_TRACKER_DATA_TYPE& data,
 
   arMatrix4 theTransMatrix;
   if ( usePositionMeasurement ) {
-      // Rotate the position separately.
-    theTransMatrix =
-      ar_translationMatrix( arVector3(
-                             METER_TO_FOOT*myData.Position[0],
-                             METER_TO_FOOT*myData.Position[1],
-                             METER_TO_FOOT*myData.Position[2]
-                             ) );
-  } // else just use identity translation matrix.
+    // Rotate position separately.
+    theTransMatrix = ar_translationMatrix(METER_TO_FOOT * arVector3(myData.Position));
+  }
 
   arMatrix4 theRotMatrix;
   if ( ISD_QUATERNION == _stationConfig.AngleFormat ) {
-    theRotMatrix =
-      ar_transrotMatrix(arVector3(0, 0, 0),
+    theRotMatrix = ar_transrotMatrix(arVector3(0, 0, 0),
       arQuaternion( myData.Orientation[0],
                     myData.Orientation[1],
                     myData.Orientation[2],
@@ -523,8 +517,7 @@ void IsenseStation::queueData( ISD_TRACKER_DATA_TYPE& data,
   } else { // Euler matrices
     // The Intersense Euler angles are presented as yaw, pitch, roll,
     // which are a rotation about z for yaw, y for pitch, and x for roll.
-    // Documentation shows right-handed coordinate system and positive
-    // angles.
+    // Documentation shows right-handed coordinate system and positive angles.
     // The rotation is in the old coordinate system.
     theRotMatrix =
       ar_rotationMatrix('z', ar_convertToRad( myData.Orientation[0]))*
