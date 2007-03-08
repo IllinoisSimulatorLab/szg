@@ -278,66 +278,68 @@ bool arHTR::frameValid(htrFrame* f){
   return false;
 }
 
+#define lerp(w, a, b) ((w) * (a) + (1.0-(w)) * (b));
+
 void arHTR::frameInterpolate(htrFrame* f,
 			     htrFrame* interp1,
 			     htrFrame* interp2){
-  // Only interpolate if both interp1 and interp2 are valid.
-  if (interp1 && interp2){
-    arQuaternion q1 = HTRRotation(interp1->Rx, interp1->Ry, interp1->Rz);
-    arQuaternion q2 = HTRRotation(interp2->Rx, interp2->Ry, interp2->Rz);
-    // Must determine *which* quaternion representation to use since the 
-    // negative of a quaternion is the SAME rotation! We must, for instance,
-    // NOT linearly interpolate between a quaternion and its negative.
-    float dot = q1.real*q2.real + q1.pure[0]*q2.pure[0]
-      + q1.pure[1]*q2.pure[1] + q1.pure[2]*q2.pure[2];
-    if (dot < 0){
-      q2 = -q2;
-    }
-    float weight = 1 - ((float)(f->frameNum - interp1->frameNum))/
-                   ((float)(interp2->frameNum - interp1->frameNum)); 
-    arQuaternion newRot = weight*q1 + (1-weight)*q2;
-    newRot = newRot/++newRot;
-    arMatrix4 m = newRot;
-    
-    // Notice how we allow for different euler angle orders.
-    arVector3 euler = ar_extractEulerAngles(m, eulerRotationOrder);
-    switch(eulerRotationOrder){
-    case AR_XYZ:
-      f->Rx = ar_convertToDeg(euler[2]);
-      f->Ry = ar_convertToDeg(euler[1]);
-      f->Rz = ar_convertToDeg(euler[0]);
-      break;
-    case AR_XZY:
-      f->Rx = ar_convertToDeg(euler[2]);
-      f->Ry = ar_convertToDeg(euler[0]);
-      f->Rz = ar_convertToDeg(euler[1]);
-      break;
-    case AR_YXZ:
-      f->Rx = ar_convertToDeg(euler[1]);
-      f->Ry = ar_convertToDeg(euler[2]);
-      f->Rz = ar_convertToDeg(euler[0]);
-      break;
-    case AR_YZX:
-      f->Rx = ar_convertToDeg(euler[0]);
-      f->Ry = ar_convertToDeg(euler[2]);
-      f->Rz = ar_convertToDeg(euler[1]);
-      break;
-    case AR_ZXY:
-      f->Rx = ar_convertToDeg(euler[1]);
-      f->Ry = ar_convertToDeg(euler[0]);
-      f->Rz = ar_convertToDeg(euler[2]);
-      break;
-    case AR_ZYX:
-      f->Rx = ar_convertToDeg(euler[0]);
-      f->Ry = ar_convertToDeg(euler[1]);
-      f->Rz = ar_convertToDeg(euler[2]);
-      break;
-    }
-    f->Tx = weight*interp1->Tx + (1-weight)*interp2->Tx;
-    f->Ty = weight*interp1->Ty + (1-weight)*interp2->Ty;
-    f->Tz = weight*interp1->Tz + (1-weight)*interp2->Tz;
-    f->scale = weight*interp1->scale+(1-weight)*interp2->scale;
+  if (!interp1 || !interp2)
+    return;
+
+  arQuaternion q1(HTRRotation(interp1->Rx, interp1->Ry, interp1->Rz));
+  arQuaternion q2(HTRRotation(interp2->Rx, interp2->Ry, interp2->Rz));
+  // Must determine *which* quaternion representation to use since the 
+  // negative of a quaternion is the SAME rotation! We must, for instance,
+  // NOT linearly interpolate between a quaternion and its negative.
+  float dot = q1.real*q2.real + q1.pure[0]*q2.pure[0]
+    + q1.pure[1]*q2.pure[1] + q1.pure[2]*q2.pure[2];
+  if (dot < 0){
+    q2 = -q2;
   }
+  const float weight = 1. -
+    float(f->frameNum - interp1->frameNum) / float(interp2->frameNum - interp1->frameNum); 
+  const arQuaternion newRot = lerp(weight, q1, q2);
+  const arMatrix4 m(newRot / ++newRot);
+  
+  // Handle different orders of euler angles.
+  arVector3 euler(ar_convertToDeg(ar_extractEulerAngles(m, eulerRotationOrder)));
+  switch(eulerRotationOrder){
+  case AR_XYZ:
+    f->Rx = euler[2];
+    f->Ry = euler[1];
+    f->Rz = euler[0];
+    break;
+  case AR_XZY:
+    f->Rx = euler[2];
+    f->Ry = euler[0];
+    f->Rz = euler[1];
+    break;
+  case AR_YXZ:
+    f->Rx = euler[1];
+    f->Ry = euler[2];
+    f->Rz = euler[0];
+    break;
+  case AR_YZX:
+    f->Rx = euler[0];
+    f->Ry = euler[2];
+    f->Rz = euler[1];
+    break;
+  case AR_ZXY:
+    f->Rx = euler[1];
+    f->Ry = euler[0];
+    f->Rz = euler[2];
+    break;
+  case AR_ZYX:
+    f->Rx = euler[0];
+    f->Ry = euler[1];
+    f->Rz = euler[2];
+    break;
+  }
+
+  f->Tx = lerp(weight, interp1->Tx, interp2->Tx);
+  f->Ty = lerp(weight, interp1->Ty, interp2->Ty);
+  f->Tz = lerp(weight, interp1->Tz, interp2->Tz);
+  f->scale = lerp(weight, interp1->scale, interp2->scale);
 }
 
 // Find gaps in the HTR data, as indicated by the MotionAnalysis 9999999
