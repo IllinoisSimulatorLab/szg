@@ -102,11 +102,14 @@ bool arSpeechNode::receiveData(arStructuredData* pdata){
 }
 
 void arSpeechNode::_speak( const std::string& speechText ) {
-#ifdef EnableSpeech
+#ifndef EnableSpeech
+  (void)speechText; // avoid compiler warning
+#else
 #ifdef AR_USE_WIN_32
-  if (_voice == NULL) {
+  if (!_voice) {
     return;
   }
+
   int numChars = speechText.size();
   if (numChars > 0) {
     WCHAR* text = new WCHAR[numChars+1];
@@ -114,21 +117,19 @@ void arSpeechNode::_speak( const std::string& speechText ) {
       cerr << "arSpeechNode error: memory panic.\n";
       return;
     }
-    cout << "arSpeechNode remark: saying(" << speechText << ")" << endl;
-    const char* txt = speechText.c_str();
+    ar_log_remark() << "arSpeechNode saying '" << speechText << "'.\n";
+    const char* src = speechText.c_str();
     for (int i=0; i<numChars; i++) {
-      text[i] = (WCHAR)txt[i];
+      text[i] = (WCHAR)src[i];
     }
     text[numChars] = (WCHAR)0;
 
-    HRESULT hr = _voice->Speak( (const WCHAR *)text, SPF_ASYNC | SPF_IS_XML, NULL );
+    (void)_voice->Speak( (const WCHAR *)text, SPF_ASYNC | SPF_IS_XML, NULL );
     
     delete[] text;
   } else {
-    HRESULT hr = _voice->Speak( (const WCHAR *)NULL, SPF_ASYNC | SPF_PURGEBEFORESPEAK, NULL );
+    (void)_voice->Speak( (const WCHAR *)NULL, SPF_ASYNC | SPF_PURGEBEFORESPEAK, NULL );
   }
 #endif
 #endif
 }
-
-    

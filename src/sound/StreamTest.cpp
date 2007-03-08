@@ -250,11 +250,10 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  const int numVirtualVoices = 50;
   if (!ar_fmodcheck( FMOD_System_SetSoftwareFormat( ar_fmod(), 
            int(mySR), FMOD_SOUND_FORMAT_PCM16, 0, 0, FMOD_DSP_RESAMPLER_LINEAR)) ||
       !ar_fmodcheck( FMOD_System_Init( ar_fmod(), 
-	   numVirtualVoices, FMOD_INIT_NORMAL | FMOD_INIT_3D_RIGHTHANDED, 0))) {
+	   50/*numVirtualVoices*/, FMOD_INIT_NORMAL | FMOD_INIT_3D_RIGHTHANDED, 0))) {
     cerr << "Failed to init fmod.\n";
     return 1;
   }

@@ -42,6 +42,7 @@ arSoundFileNode::~arSoundFileNode(){
 
 bool arSoundFileNode::_adjust(bool useTrigger){
 #ifndef EnableSound
+  (void)useTrigger; // avoid compiler warning
   return true;
 #else
   if (!isClient())
