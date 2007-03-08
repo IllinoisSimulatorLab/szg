@@ -286,15 +286,15 @@ class SZG_CALL arGUIWindowConfig
     void setWidth( int width ) { _width = width; }
     void setHeight( int height ) { _height = height; }
     void setSize( int width, int height ) { _width = width; _height = height; }
-    void setBpp( int bpp ) { _bpp = bpp; }
-    void setHz( int Hz ) { _Hz = Hz; }
-    void setDecorate( bool decorate ) { _decorate = decorate; }
-    void setFullscreen( bool fullscreen ) { _fullscreen = fullscreen; }
-    void setStereo( bool stereo ) { _stereo = stereo; }
-    void setZOrder( arZOrder zorder ) { _zorder = zorder; }
+    void setBpp( const int bpp ) { _bpp = bpp; }
+    void setHz( const int Hz ) { _Hz = Hz; }
+    void setDecorate( const bool decorate ) { _decorate = decorate; }
+    void setFullscreen( const bool fullscreen ) { _fullscreen = fullscreen; }
+    void setStereo( const bool stereo ) { _stereo = stereo; }
+    void setZOrder( const arZOrder zorder ) { _zorder = zorder; }
     void setTitle( const std::string& title ) { _title = title; }
     void setXDisplay( const std::string& XDisplay ) { _XDisplay = XDisplay; }
-    void setCursor( arCursor cursor ) { _cursor = cursor; }
+    void setCursor( const arCursor cursor ) { _cursor = cursor; }
 
     int getPosX( void ) const { return _x; }
     int getPosY( void ) const { return _y; }
@@ -660,7 +660,7 @@ class SZG_CALL arGUIWindow
      *
      * @param zorder The window's new z order.
      */
-    void raise( arZOrder zorder );
+    void raise( const arZOrder zorder );
 
     /**
      * Lower the window in the z ordering.

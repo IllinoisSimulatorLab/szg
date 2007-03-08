@@ -148,7 +148,7 @@ arGUIWindowBuffer::~arGUIWindowBuffer( void )
 {
 }
 
-int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const bool stereo ) const
+int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& h, const bool stereo ) const
 {
   // Since only arGUIWindow calls this,
   // arGUIWindow::swap ensures that the gl context is correct.
@@ -158,15 +158,14 @@ int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const 
 #if defined( AR_USE_WIN_32 )
 
   if( stereo ) {
-    // according to http://www.stereographics.com/support/developers/pcsdk.htm
-    // this is the correct function to use in active stereo mode though it's
-    // not the one glut/freeglut use...
-    if( !wglSwapLayerBuffers( windowHandle._hDC, WGL_SWAP_MAIN_PLANE ) ) {
-      ar_log_error() << "wglSwapLayerBuffers failed.\n";
+    // www.stereographics.com/support/developers/pcsdk.htm says to call this
+    // for active stereo, even though glut and freeglut don't.
+    if( !wglSwapLayerBuffers( h._hDC, WGL_SWAP_MAIN_PLANE ) ) {
+      ar_log_warning() << "wglSwapLayerBuffers failed.\n";
     }
   }
   else {
-    if( !SwapBuffers( windowHandle._hDC ) ) {
+    if( !SwapBuffers( h._hDC ) ) {
       // Window might be minimized.
       ar_log_debug() << "swapBuffer failed.\n";
     }
@@ -174,9 +173,10 @@ int arGUIWindowBuffer::swapBuffer( const arGUIWindowHandle& windowHandle, const 
 
 #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
-  XLockDisplay( windowHandle._dpy );
-  glXSwapBuffers( windowHandle._dpy, windowHandle._win );
-  XUnlockDisplay( windowHandle._dpy );
+  (void)stereo; // avoid compiler warning
+  XLockDisplay( h._dpy );
+  glXSwapBuffers( h._dpy, h._win );
+  XUnlockDisplay( h._dpy );
 
 #endif
 
@@ -1375,7 +1375,7 @@ void arGUIWindow::decorate( const bool decorate )
   _decorate = decorate;
 }
 
-void arGUIWindow::raise( arZOrder zorder )
+void arGUIWindow::raise( const arZOrder zorder )
 {
   if( !_running ) {
     return;
@@ -1403,6 +1403,7 @@ void arGUIWindow::raise( arZOrder zorder )
 
 #elif defined( AR_USE_LINUX ) || defined( AR_USE_DARWIN ) || defined( AR_USE_SGI )
 
+  (void)zorder; // avoid compiler warning
   XLockDisplay( _windowHandle._dpy );
   XRaiseWindow( _windowHandle._dpy, _windowHandle._win );
   XFlush( _windowHandle._dpy );
