@@ -499,6 +499,12 @@ bool arTexture::readJPEG(const string& fileName,
                          bool complain) {
 #ifndef EnableJPEG
   ar_log_warning() << "compiled without jpeg support.  No textures.\n";
+  // Avoid compiler warnings.
+  (void)fileName;
+  (void)subdirectory;
+  (void)path;
+  (void)alpha;
+  (void)complain;
   return false;
 #else
   FILE* fd = ar_fileOpen(fileName, subdirectory, path, "rb");
@@ -586,6 +592,10 @@ bool arTexture::writeJPEG(const string& fileName, const string& subdirectory,
                           const string& path) {
 #ifndef EnableJPEG
   ar_log_warning() << "compiled without jpeg support.  No textures.\n";
+  // Avoid compiler warnings.
+  (void)fileName;
+  (void)subdirectory;
+  (void)path;
   return false;
 #else
 
