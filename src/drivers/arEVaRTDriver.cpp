@@ -137,9 +137,8 @@ int ar_evartDataHandler(int iType, void* data){
       else{
         __globalEVaRTDriver->_segTransform[i] = rotationMatrix;
       }
-      __globalEVaRTDriver
-        ->queueMatrix(i,__globalEVaRTDriver->_segTransform[i]);
-      __globalEVaRTDriver->queueAxis(3*i, ar_convertToRad(angleX));
+      __globalEVaRTDriver->queueMatrix(i,__globalEVaRTDriver->_segTransform[i]);
+      __globalEVaRTDriver->queueAxis(3*i  , ar_convertToRad(angleX));
       __globalEVaRTDriver->queueAxis(3*i+1, ar_convertToRad(angleY));
       __globalEVaRTDriver->queueAxis(3*i+2, ar_convertToRad(angleZ));
     }

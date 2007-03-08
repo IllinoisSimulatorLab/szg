@@ -144,15 +144,12 @@ void testDatabase(arGraphicsDatabase& g){
     g.setVRCameraID(viewer->getID());
     if (count == 100){
       cout << "About to insert node.\n";
-      insertedState = (arGraphicsStateNode*) g.insertNode(color, d,
-							  "graphics state");
+      insertedState = (arGraphicsStateNode*) g.insertNode(color, d, "graphics state");
       if (!insertedState){
         cout << "Insert node failed.\n";
       }
       insertedState->setGraphicsStateFloat("point_size", 5);
-      
-      insertedState2 = (arGraphicsStateNode*) g.insertNode(n, NULL,
-							   "graphics state");
+      insertedState2 = (arGraphicsStateNode*) g.insertNode(n, NULL, "graphics state");
       insertedState2->setGraphicsStateFloat("point_size", 10);
     }
     if (count == 200){

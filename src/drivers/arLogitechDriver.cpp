@@ -261,9 +261,9 @@ void arLogitechDriver::_convertSendData( char* record ) {
   const float z = INCHES_TO_FEET * ((float) az) / 1000.0;
 
   // absolute rotational data
-  const short arx  = ((record[10] & 0x7f) << 7) + (record[11] & 0x7f);
-  const short ary  = ((record[12] & 0x7f) << 7) + (record[13] & 0x7f);
-  const short arz  = ((record[14] & 0x7f) << 7) + (record[15] & 0x7f);
+  const short arx = ((record[10] & 0x7f) << 7) + (record[11] & 0x7f);
+  const short ary = ((record[12] & 0x7f) << 7) + (record[13] & 0x7f);
+  const short arz = ((record[14] & 0x7f) << 7) + (record[15] & 0x7f);
 
   // calculate the rotational floating point values
   const float xAngle = ar_convertToRad( ((float) arx) / 40.0 );

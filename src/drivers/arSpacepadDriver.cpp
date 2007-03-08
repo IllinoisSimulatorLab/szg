@@ -120,16 +120,14 @@ bool arSpacepadDriver::init(arSZGClient& c){
     c.getAttribute("SZG_SPACEPAD","sensor0_rot");
   if (sensor0Rot != "NULL"){
     ar_parseFloatString(sensor0Rot, temp, 4);
-    _sensorRot[0] =
-      ar_rotationMatrix(arVector3(temp),ar_convertToRad(temp[3]));
+    _sensorRot[0] = ar_rotationMatrix(arVector3(temp), ar_convertToRad(temp[3]));
     ar_log_debug() << "arSpacepadDriver: sensor 0 rotation = " << _sensorRot[0] <<".\n";
   }
   const string sensor1Rot =
     c.getAttribute("SZG_SPACEPAD","sensor1_rot");
   if (sensor1Rot != "NULL"){
     ar_parseFloatString(sensor1Rot, temp, 4);
-    _sensorRot[1] =
-      ar_rotationMatrix(arVector3(temp),ar_convertToRad(temp[3]));
+    _sensorRot[1] = ar_rotationMatrix(arVector3(temp), ar_convertToRad(temp[3]));
     ar_log_debug() << "arSpacepadDriver: sensor 1 rotation = " << _sensorRot[1] <<".\n";
   }
   _reset_through_isa();
@@ -155,19 +153,18 @@ arMatrix4 arSpacepadDriver::_getSpacepadMatrix(int sensorID){
     ar_log_warning() << "arSpacepadDriver: only sensors 1 and 2 are supported.\n";
     return ar_identityMatrix();
   }
-  // we (confusingly) use the global recaddr!!!
+  // Confusingly use the global recaddr.
   recaddr = sensorID;
   short dataStorage[20];
   float values[12];
-  // we need to set the hemisphere for every sensor (I think)
-  // This is a hack! And will work for, at most, 4 sensors
+  // Set the hemisphere for every sensor (I think).  Hack, fails for >4 sensors.
   static int initted = 0;
   // make sure the hemisphere of the spacepad is set correctly.
   if (initted<4){
     if (!_hemisphere_cmd(0)){
       ar_log_warning() << "arSpacepadDriver failed to set hemisphere.\n";
     }
-    // restore recaddr to its correct state
+    // restore recaddr
     initted++;
   }
   if (_position_matrix_cmd() != TRUE){
@@ -182,7 +179,7 @@ arMatrix4 arSpacepadDriver::_getSpacepadMatrix(int sensorID){
   // returned.  2*6=12 for position/angles and 2*12=24 for position/matrix
   // (i.e. it is the number of bytes requested from the card)
   if (_get_isa_record(dataStorage, 24, ASC_POINT) < 0){
-    ar_log_warning() <<  ("There was an error in reading the data\n");
+    ar_log_warning() << "Failed to read data\n";
 LAbort:
     _reset_through_isa();
     return ar_identityMatrix();
@@ -199,10 +196,10 @@ LAbort:
   values[9] = dataStorage[9]/32768.0;
   values[10] = dataStorage[10]/32768.0;
   values[11] = dataStorage[11]/32768.0;
-  const arMatrix4 rotMatrix(values[3], values[6], values[9], 0,
-                           values[4], values[7], values[10], 0,
-                           values[5], values[8], values[11], 0,
-                           0,         0,         0,          1);
+  const arMatrix4 rotMatrix(values[3], values[6], values[9 ], 0,
+                            values[4], values[7], values[10], 0,
+                            values[5], values[8], values[11], 0,
+                            0,         0,         0,          1);
   // Conjugate with this matrix to change the coordinate system.
   const arMatrix4 switchMatrix(1,0,0,0,
 			       0,0,1,0,
@@ -210,24 +207,20 @@ LAbort:
 			       0,0,0,1);
 
   // Transform the translation matrix into syzygy coordinates.
-  arVector3 transVector(switchMatrix.inverse() *
-    arVector3(values[0], values[1], values[2]));
+  arVector3 transVector(switchMatrix.inverse() * arVector3(values));
   const arMatrix4 transMatrix(1,0,0,transVector[0],
 	                      0,1,0,transVector[1],
 	                      0,0,1,transVector[2],
 	                      0,0,0,1);
 
-  // Note how we must use the inverse of the matrix reported by the spacepad
-  // this is because it is intended to multiply coordinates on their right
-  // instead of on their left.
-  // Also note how we premultiply the result by a rotation about 'y'. This
-  // makes the spacepad sensor follow our convention of having its negative
-  // 'z' axis face front.
-  // Finally, note how we do calibration with transmitter offset and sensor
-  // rotation.
-  return _transmitterOffset
-         *transMatrix*switchMatrix.inverse()*rotMatrix.inverse()*switchMatrix
-         *ar_rotationMatrix('y',ar_convertToRad(-90))*_sensorRot[sensorID-1];
+  // Invert the matrix reported by the spacepad,
+  // because it is intended to be right-multiplied by coordinates.
+  // Premultiply by a rotation about 'y',
+  // to follow Syzygy's convention of negative 'z' axis face front.
+  // Calibrate with transmitter offset and sensor rotation.
+  return _transmitterOffset *
+         transMatrix * switchMatrix.inverse() * rotMatrix.inverse() * switchMatrix *
+         ar_rotationMatrix('y', ar_convertToRad(-90)) * _sensorRot[sensorID-1];
 }
    
 int arSpacepadDriver::_point_cmd(void){
