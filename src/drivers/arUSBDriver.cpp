@@ -722,7 +722,7 @@ ar_log_debug() << "raw xy: " << x << ", " << y << ";    " << x_ << ", " << y << 
     }
     else {
       // At least one byte should have the high bit set.
-      ar_log_warning() << "arUSBDriver: bogus data from USB chip: " << ar_hex() << buf[0] << buf[1] << "\n";
+      ar_log_warning() << "arUSBDriver: bogus data from USB chip: " << ar_hex << buf[0] << buf[1] << "\n";
       break;
     }
 
