@@ -289,9 +289,9 @@ SZG_CALL arQuaternion ar_angleVectorToQuaternion(const arVector3&,float);
 SZG_CALL arVector3 ar_reflect(const arVector3& direction, const arVector3& normal);
 SZG_CALL float ar_intersectRayTriangle(const arVector3& rayOrigin,
 			               const arVector3& rayDirection,
-			               const arVector3& vertex1,
-			               const arVector3& vertex2,
-			               const arVector3& veretx3);
+			               const arVector3& v1,
+			               const arVector3& v2,
+			               const arVector3& v3);
 
 // lineDirection & planeNormal need not be normalized (but affects interpretation of range).
 // Returns false if no intersection.

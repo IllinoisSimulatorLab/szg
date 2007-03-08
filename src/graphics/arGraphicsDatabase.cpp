@@ -757,9 +757,7 @@ float arGraphicsDatabase::_intersectSingleGeometry(arGraphicsNode* node,
       b = arVector3(points + 9*j+3);
       c = arVector3(points + 9*j+6);
     }
-    dist = ar_intersectRayTriangle(theRay.getOrigin(),
-				   theRay.getDirection(),
-				   a, b, c);
+    dist = ar_intersectRayTriangle(theRay, a, b, c);
     if (dist >= 0 && (bestDistance < 0 || dist < bestDistance)) {
       bestDistance = dist;
     }

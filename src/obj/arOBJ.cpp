@@ -78,7 +78,7 @@ bool arOBJ::readOBJ(const string& fileName,
 //@param name The name of the group of which you want the ID
 //Gets the numerical ID of a geometry group, given the name
 int arOBJ::groupID(const string& name) {
-  for (unsigned int i=0; i<_groupName.size(); ++i) {
+  for (unsigned i=0; i<_groupName.size(); ++i) {
     if (name == _groupName[i])
       return i;
   }
@@ -111,7 +111,7 @@ bool arOBJ::attachMesh(arGraphicsNode* where, const string& baseName) {
   if (!pointsNode) {
     return false;
   }
-  for (unsigned int i=0; i<_group.size(); ++i) {
+  for (unsigned i=0; i<_group.size(); ++i) {
     if (_group[i].size() != 0) {
       if (!attachGroup(pointsNode, i, baseName)) {
         return false;
@@ -186,17 +186,17 @@ bool arOBJ::attachGroup(arGraphicsNode* where, int groupID, const string& base) 
   // Attach colors and textures
   // sort triangles by material
   vector<int>* triangleMaterialIDs = new vector<int>[_material.size()];
-  for (unsigned int tri=0; tri<(unsigned int)numberTriangles; ++tri) {
+  for (unsigned tri=0; tri<unsigned(numberTriangles); ++tri) {
     triangleMaterialIDs[_triangle[thisGroup[tri]].material].push_back(tri);
   }
 
   char matIDBuf[32];
   bool useTexture;
 
-  for (unsigned int matID=0; matID<_material.size(); ++matID) {
+  for (unsigned matID=0; matID<_material.size(); ++matID) {
 
     vector<int>& thisMatTriangleIDs = triangleMaterialIDs[matID];
-    unsigned int numTriUsingMaterial = thisMatTriangleIDs.size();
+    unsigned numTriUsingMaterial = thisMatTriangleIDs.size();
     arOBJMaterial& thisMaterial = _material[matID];
 
     if (numTriUsingMaterial == 0) {
@@ -212,7 +212,7 @@ bool arOBJ::attachGroup(arGraphicsNode* where, int groupID, const string& base) 
     int*   indices   = new int[3*numTriUsingMaterial];
     float* texCoords = new float[6*numTriUsingMaterial];
 
-    for (unsigned int i=0; i<numTriUsingMaterial; ++i) {
+    for (unsigned i=0; i<numTriUsingMaterial; ++i) {
       const arOBJTriangle currentTriangle = _triangle[thisGroup[thisMatTriangleIDs[i]]];
       indices[3*i]   = currentTriangle.vertices[0];
       indices[3*i+1] = currentTriangle.vertices[1];
@@ -375,17 +375,10 @@ float arOBJ::intersectGroup(int groupID, const arRay& theRay) {
   float intersectionDistance = -1;
   int numberTriangles = _group[groupID].size();
   for (int i=0; i<numberTriangles; i++) {
-    const arVector3& vert1 
-      = _vertex[_triangle[_group[groupID][i]].vertices[0]];
-    const arVector3& vert2 
-      = _vertex[_triangle[_group[groupID][i]].vertices[1]];
-    const arVector3& vert3 
-      = _vertex[_triangle[_group[groupID][i]].vertices[2]];
-    float newDist = ar_intersectRayTriangle(theRay.getOrigin(),
-					    theRay.getDirection(),
-					    vert1,
-					    vert2,
-					    vert3);
+    const arVector3& v1 = _vertex[_triangle[_group[groupID][i]].vertices[0]];
+    const arVector3& v2 = _vertex[_triangle[_group[groupID][i]].vertices[1]];
+    const arVector3& v3 = _vertex[_triangle[_group[groupID][i]].vertices[2]];
+    const float newDist = ar_intersectRayTriangle(theRay, v1, v2, v3);
     if (intersectionDistance < 0 || 
         (newDist > 0 && newDist < intersectionDistance)) {
       intersectionDistance = newDist;
@@ -485,7 +478,7 @@ void arOBJ::_parseFace(int numTokens, char *token[]) {
 // Adds normals if there are none, smoothes normals in smoothing group, and
 // adjust backwards-facing normals
 void arOBJ::_generateNormals() {
-  unsigned int i=0, j=0, k=0;
+  unsigned i=0, j=0, k=0;
   _normal.erase(_normal.begin(),_normal.begin()+1);
   _texCoord.erase(_texCoord.begin(), _texCoord.begin()+1);
   for (i=0; i<_triangle.size(); i++)
@@ -563,9 +556,9 @@ void arOBJ::_generateNormals() {
 void arOBJ::normalizeModelSize() {
   arVector3 maxVec(-10000,-10000,-10000);
   arVector3 minVec(10000,10000,10000);
-  unsigned int i = 0;
+  unsigned i = 0;
   for (i=0; i<_vertex.size(); i++) {
-    for (unsigned int j=0; j<3; j++) {
+    for (unsigned j=0; j<3; j++) {
       if (_vertex[i].v[j] > maxVec.v[j])
         maxVec.v[j] = _vertex[i].v[j];
       if (_vertex[i].v[j] < minVec.v[j])
@@ -626,13 +619,13 @@ bool arOBJGroupRenderer::build( arOBJRenderer* renderer,
   }
   _renderer = renderer;
   _name = groupName;
-  const unsigned int numberTriangles = thisGroup.size();
-  const unsigned int numMaterials = _renderer->_textures.size();
+  const unsigned numberTriangles = thisGroup.size();
+  const unsigned numMaterials = _renderer->_textures.size();
 
   // Attach colors and textures
   // sort triangles by material
-  vector< vector<unsigned int> > triangleMaterialIDs( numMaterials, vector<unsigned int>() );
-  for (unsigned int tri=0; tri<(unsigned int)numberTriangles; ++tri) {
+  vector< vector<unsigned> > triangleMaterialIDs( numMaterials, vector<unsigned>() );
+  for (unsigned tri=0; tri<unsigned(numberTriangles); ++tri) {
     triangleMaterialIDs[triangles[thisGroup[tri]].material].push_back(tri);
   }
 
@@ -641,8 +634,8 @@ bool arOBJGroupRenderer::build( arOBJRenderer* renderer,
   _texCoordsByMaterial.insert( _texCoordsByMaterial.begin(), numMaterials, NULL );
   _numTriUsingMaterial.insert( _numTriUsingMaterial.begin(), numMaterials, 0 );
 
-  unsigned int numTrianglesInGroup(0);
-  vector< vector<unsigned int> >::iterator vi_iter;
+  unsigned numTrianglesInGroup = 0;
+  vector< vector<unsigned> >::iterator vi_iter;
   for (vi_iter = triangleMaterialIDs.begin(); vi_iter != triangleMaterialIDs.end(); ++vi_iter) {
     numTrianglesInGroup += vi_iter->size();
   }
@@ -650,9 +643,9 @@ bool arOBJGroupRenderer::build( arOBJRenderer* renderer,
 
   bool matHasTexture;
 
-  for (unsigned int matID=0; matID<numMaterials; ++matID) {
-    vector<unsigned int>& thisMatTriangleIDs = triangleMaterialIDs[matID];
-    unsigned int numTriUsingMaterial = thisMatTriangleIDs.size();
+  for (unsigned matID=0; matID<numMaterials; ++matID) {
+    vector<unsigned>& thisMatTriangleIDs = triangleMaterialIDs[matID];
+    unsigned numTriUsingMaterial = thisMatTriangleIDs.size();
     ar_log_debug() << numTriUsingMaterial << " triangles using material #" << matID << ar_endl;
     matHasTexture = _renderer->_textures[matID];
 
@@ -672,8 +665,8 @@ bool arOBJGroupRenderer::build( arOBJRenderer* renderer,
       _texCoordsByMaterial[matID] = texCoordsThisMat;
       _numTriUsingMaterial[matID] = numTriUsingMaterial;
 
-      vector<unsigned int>::const_iterator iter;
-      unsigned int i, j;
+      vector<unsigned>::const_iterator iter;
+      unsigned i, j;
       for (iter = thisMatTriangleIDs.begin(); iter != thisMatTriangleIDs.end(); ++iter) {
         const arOBJTriangle currentTriangle = triangles[thisGroup[*iter]];
         for (j=0; j<3; ++j) {
@@ -710,11 +703,11 @@ void arOBJGroupRenderer::draw() {
   vector<arVector3>& vertices = _renderer->_vertices;
   vector<arMaterial>& materials = _renderer->_materials;
   vector<arTexture*>& textures = _renderer->_textures;
-  unsigned int maxIndex = vertices.size();
+  unsigned maxIndex = vertices.size();
 
   glPushAttrib( GL_LIGHTING_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT );
-  for (unsigned int matID = 0; matID < materials.size(); ++matID) {
-    unsigned int numTriUsingMaterial = _numTriUsingMaterial[matID];
+  for (unsigned matID = 0; matID < materials.size(); ++matID) {
+    unsigned numTriUsingMaterial = _numTriUsingMaterial[matID];
     if (numTriUsingMaterial == 0) {
       continue;
     }
@@ -727,13 +720,13 @@ void arOBJGroupRenderer::draw() {
       textures[matID]->activate();
     }
     glBegin(GL_TRIANGLES);
-    for (unsigned int i=0; i<3*numTriUsingMaterial; ++i) {
+    for (unsigned i=0; i<3*numTriUsingMaterial; ++i) {
       glNormal3fv( normalsThisMat+3*i );
       if (texCoordsThisMat) {
         glTexCoord2fv( texCoordsThisMat+2*i );
       }
-      if (indicesThisMat[i] < maxIndex) {
-        glVertex3fv( (*(vertices.begin()+indicesThisMat[i])).v );
+      if (indicesThisMat[i] < int(maxIndex)) {
+        glVertex3fv( vertices.begin()[indicesThisMat[i]].v );
       }
     }
     glEnd();
@@ -820,16 +813,14 @@ float arOBJGroupRenderer::getIntersection( const arRay& theRay ) {
     return 0.;
   }
   vector<arVector3>& vertices = _renderer->_vertices;
-  const unsigned int numberTriangles = _vertexIndices.size()/3;
   float intersectionDistance = -1;
-  vector<int>::iterator iter = _vertexIndices.begin();
-  for (int i=0; i<numberTriangles; ++i) {
-    const arVector3& vert1 = vertices[*iter++];
-    const arVector3& vert2 = vertices[*iter++];
-    const arVector3& vert3 = vertices[*iter++];
-    float newDist = ar_intersectRayTriangle( theRay.getOrigin(),
-                                             theRay.getDirection(),
-                                             vert1, vert2, vert3 );
+  const unsigned numberTriangles = _vertexIndices.size()/3;
+  vector<int>::const_iterator iter = _vertexIndices.begin();
+  for (unsigned i=0; i<numberTriangles; ++i) {
+    const arVector3& v1 = vertices[*iter++];
+    const arVector3& v2 = vertices[*iter++];
+    const arVector3& v3 = vertices[*iter++];
+    const float newDist = ar_intersectRayTriangle(theRay, v1, v2, v3 );
     if (intersectionDistance < 0 || 
         (newDist > 0 && newDist < intersectionDistance)) {
       intersectionDistance = newDist;
@@ -899,10 +890,10 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
   ar_log_debug() << "arOBJRenderer::readOBJ() done extracting vertices.\n";
 
   // Copy out the materials
-  unsigned int numMaterials = theFile._material.size();
+  unsigned numMaterials = theFile._material.size();
   _textures.insert( _textures.begin(), numMaterials, NULL );
   arTexture* tex;
-  for (unsigned int matID=0; matID<numMaterials; ++matID) {
+  for (unsigned matID=0; matID<numMaterials; ++matID) {
     ar_log_debug() << "arOBJRenderer::readOBJ() preparing material #" << matID << ar_endl;
     arOBJMaterial& thisMaterial = theFile._material[matID];
     // NOTE: some exporters will attach a "pure black" color to anything
@@ -941,7 +932,7 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
 
   // Build the vertex groups
   arOBJGroupRenderer* group;
-  for (unsigned int i=0; i<theFile._group.size(); ++i) {
+  for (unsigned i=0; i<theFile._group.size(); ++i) {
     ar_log_debug() << "Preparing group " << i << ar_endl;
     group = new arOBJGroupRenderer();
     if (!group) {
@@ -959,7 +950,7 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
   return true;
 }
 
-arOBJGroupRenderer* arOBJRenderer::getGroup( unsigned int i ) {
+arOBJGroupRenderer* arOBJRenderer::getGroup( unsigned i ) {
   if (i >= _renderGroups.size()) {
     return NULL;
   }
@@ -978,11 +969,9 @@ arOBJGroupRenderer* arOBJRenderer::getGroup( const string& name ) {
 
 void arOBJRenderer::draw() {
   vector<arOBJGroupRenderer*>::iterator iter;
-  unsigned int i = 0;
   for (iter = _renderGroups.begin(); iter != _renderGroups.end(); ++iter) {
     arOBJGroupRenderer* ptr = *iter;
     if (ptr) {
-//      cerr << "Drawing group " << i++ << endl;
       ptr->draw();
     } else {
       ar_log_error() << "NULL pointer in arOBJ::draw().\n";
@@ -1019,7 +1008,7 @@ void arOBJRenderer::normalizeModelSize() {
   vector<arVector3>::iterator iter;
   for (iter = _vertices.begin(); iter != _vertices.end(); ++iter) {
     arVector3& vert = *iter;
-    for (unsigned int j=0; j<3; j++) {
+    for (unsigned j=0; j<3; j++) {
       if (vert[j] > maxVec[j]) {
         maxVec[j] = vert[j];
       }
@@ -1096,16 +1085,14 @@ arAxisAlignedBoundingBox arOBJRenderer::getAxisAlignedBoundingBox() {
 }
 
 float arOBJRenderer::getIntersection( const arRay& theRay ) {
-  const unsigned int numberTriangles = _vertices.size()/3;
   float intersectionDistance = -1;
-  vector<arVector3>::iterator iter = _vertices.begin();
-  for (int i=0; i<numberTriangles; ++i) {
-    const arVector3& vert1 = *iter++;
-    const arVector3& vert2 = *iter++;
-    const arVector3& vert3 = *iter++;
-    float newDist = ar_intersectRayTriangle( theRay.getOrigin(),
-                                             theRay.getDirection(),
-                                             vert1, vert2, vert3 );
+  const unsigned numberTriangles = _vertices.size()/3;
+  vector<arVector3>::const_iterator iter = _vertices.begin();
+  for (unsigned i=0; i<numberTriangles; ++i) {
+    const arVector3& v1 = *iter++;
+    const arVector3& v2 = *iter++;
+    const arVector3& v3 = *iter++;
+    const float newDist = ar_intersectRayTriangle(theRay, v1, v2, v3 );
     if (intersectionDistance < 0 || 
         (newDist > 0 && newDist < intersectionDistance)) {
       intersectionDistance = newDist;
@@ -1113,6 +1100,3 @@ float arOBJRenderer::getIntersection( const arRay& theRay ) {
   }
   return intersectionDistance;
 }
-
-
-

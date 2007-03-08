@@ -308,14 +308,11 @@ int main(){
   cout << "Testing geometry utility functions.\n";
   arVector3 rayOrigin(1,1,1);
   arVector3 rayDirection(-1,-1,-1);
-  arVector3 vertex1(1,-0.1,0);
-  arVector3 vertex2(-1,-0.1,0);
-  arVector3 vertex3(-1,1,0);
-  if (fabs(ar_intersectRayTriangle(rayOrigin,
-                                   rayDirection,
-                                   vertex1,
-                                   vertex2,
-                                   vertex3)-sqrt(3.0)) > epsilon){
+  arVector3 v1(1,-0.1,0);
+  arVector3 v2(-1,-0.1,0);
+  arVector3 v3(-1,1,0);
+  if (fabs(ar_intersectRayTriangle(rayOrigin, rayDirection, v1, v2, v3)-sqrt(3.0)) >
+      epsilon){
     cout << "FAILED: intersect ray triangle test.\n";
   }
   if (!equalVectorTest( ar_projectPointToLine( arVector3(0,0,1), arVector3(1,0,0), 

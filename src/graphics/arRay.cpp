@@ -6,34 +6,19 @@
 #include "arPrecompiled.h"
 #include "arRay.h"
 
-arBoundingSphere::arBoundingSphere(const arVector3& pos, float rad) :
-  position(pos),
-  radius(rad)
-{
-}
-
 arBoundingSphere::arBoundingSphere(const arBoundingSphere& rhs){
-  position = rhs.position;
   radius = rhs.radius;
   visibility = rhs.visibility;
+  position = rhs.position;
 }
 
-// Somewhat inaccurate. Only works if the matrix maps spheres to spheres
-// (for instance, all scaling must be uniform).
 void arBoundingSphere::transform(const arMatrix4& m){
-  position = m*position;
+  position = m * position;
   // Assume that scaling is uniform!
-  float factor = ++(m*arVector3(1,0,0) - m*arVector3(0,0,0));
-  radius = radius*factor;
+  const float factor = ++(m*arVector3(1,0,0) - m*arVector3(0,0,0));
+  radius *= factor;
 }
 
-// There are three possibilities when trying to intersect two spheres.
-// 1. They do not intersect.
-// 2. They intersect but do not contain one another.
-// 3. One sphere contains the other.
-// The return value are correspondingly:
-// -1: do not intersect, do not contain one another.
-// >= 0: intersect or one sphere contains the other. Distance between centers.
 float arBoundingSphere::intersect(const arBoundingSphere& b) const {
   const float dist = ++(b.position - position);
   return (dist > b.radius + radius) ? -1 : dist;
@@ -77,15 +62,9 @@ bool arBoundingSphere::intersectViewFrustum(const arMatrix4& mArg) const {
   return true;
 }
 
-arRay::arRay(const arVector3& o, const arVector3& d) :
-  origin(o),
-  direction(d)
-{
-}
-
 arRay::arRay(const arRay& rhs){
   origin = rhs.origin;
-  direction= rhs.direction;
+  direction = rhs.direction;
 }
 
 void arRay::transform(const arMatrix4& matrix){
@@ -100,7 +79,6 @@ float arRay::intersect(float radius, const arVector3& position){
   const float b = 2. * (origin%direction - direction%position);
   const float c = origin%origin + position%position - 2*(origin%position)
             - radius*radius;
-
   const float discriminant = b*b - 4.*a*c;
   if (discriminant <= 0)
     return -1.;
@@ -108,11 +86,11 @@ float arRay::intersect(float radius, const arVector3& position){
   // possible intersection
   const float t1 = (-b + sqrt(discriminant))/(2.*a);
   const float t2 = (-b - sqrt(discriminant))/(2.*a);
-  if (t1<0 && t2<0) {
+  if (t1<0. && t2<0.) {
     // The line intersects the sphere, but not in the positive direction.
     return -1;
   }
 
   // Return the closest intersection in the positive direction.  t2 <= t1.
-  return (t2>0 ? t2 : t1) * ++direction;
+  return (t2>0. ? t2 : t1) * ++direction;
 }
