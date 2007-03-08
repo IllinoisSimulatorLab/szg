@@ -3,30 +3,31 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-// This must be the first non-comment line!
 #include "arPrecompiled.h"
-#include "arInputSimulator.h"
+
+#include "arGlut.h"
 #include "arGraphicsHeader.h"
+#include "arInputSimulator.h"
+#include "arLogStream.h"
 #include "arSTLalgo.h"
 #include "arSZGClient.h"
-#include "arLogStream.h"
-#include "arGlut.h"
 
 arInputSimulator::arInputSimulator() :
+  _fInit(false),
   _numButtonEvents(0),
-  _simulatorRotation(0.),
+  _rotSim(0.),
   _buttonSelector(0),
   _interfaceState(AR_SIM_HEAD_TRANSLATE) {
-  _mousePosition[0] = 0;
-  _mousePosition[1] = 0;
-  std::vector<unsigned> buttons;
+  _mouseXY[0] = 0;
+  _mouseXY[1] = 0;
+  vector<unsigned> buttons;
   buttons.push_back(0);
   buttons.push_back(2);
   if (!setMouseButtons( buttons ))
     ar_log_warning() << "arInputSimulator setMouseButtons() failed in constructor.\n";
   setNumberButtonEvents( 8 );
-  _rotator[0] = 0.;
-  _rotator[1] = 0.;
+  _rotWand[0] = 0.;
+  _rotWand[1] = 0.;
 
   // Initialize the simulated device.
   _matrix[0] = ar_translationMatrix(0,5,0);
@@ -53,7 +54,7 @@ bool arInputSimulator::configure( arSZGClient& SZGClient ) {
     ar_log_warning() << "arInputSimulator SZG_INPUTSIM/mouse_buttons defaulting to 0 and 2 for left and right.\n";
     delete[] mouseButtons;
   } else {
-    std::vector<unsigned> mouseButtonsVector;
+    vector<unsigned> mouseButtonsVector;
     for (int i=0; i<numValues; ++i) {
       mouseButtonsVector.push_back( mouseButtons[i] );
     }
@@ -64,44 +65,41 @@ bool arInputSimulator::configure( arSZGClient& SZGClient ) {
   }
   const int numButtonEvents = SZGClient.getAttributeInt( "SZG_INPUTSIM", "number_button_events" );
   if (numButtonEvents < 2) {
-    ar_log_warning() << "arInputSimulator: SZG_INPUTSIM/number_button_events (" << numButtonEvents
-                     << ") < 2, so defaulting to 8.\n";
+    ar_log_warning() << "arInputSimulator: SZG_INPUTSIM/number_button_events " << numButtonEvents
+                     << " < 2, so defaulting to 8.\n";
     return false;
   }
   setNumberButtonEvents( unsigned(numButtonEvents) );
   return true;
 }
 
-bool arInputSimulator::setMouseButtons( std::vector<unsigned>& mouseButtons ) {
-  std::map<unsigned,int> oldMouseButtons = _mouseButtons;
+typedef map<unsigned,int>::const_iterator IterButton;
+
+bool arInputSimulator::setMouseButtons( vector<unsigned>& mouseButtons ) {
+  map<unsigned,int> buttonsPrev = _mouseButtons;
   _mouseButtons.clear();
-  std::vector<unsigned>::iterator buttonIter;
+  vector<unsigned>::iterator buttonIter;
   for (buttonIter = mouseButtons.begin(); buttonIter != mouseButtons.end(); ++buttonIter) {
     if (_mouseButtons.find( *buttonIter ) != _mouseButtons.end()) {
       ar_log_warning() << "arInputSimulator: duplicate mouse button indices in setMouseButtons().\n";
-      _mouseButtons = oldMouseButtons;
+      _mouseButtons = buttonsPrev;
       return false;
     }
-    std::map<unsigned,int>::iterator findIter = oldMouseButtons.find( *buttonIter );
-    if (findIter != oldMouseButtons.end()) {
-      _mouseButtons[*buttonIter] = findIter->second;
-    } else {
-      _mouseButtons[*buttonIter] = 0;
-    }
+    IterButton i = buttonsPrev.find(*buttonIter);
+    _mouseButtons[*buttonIter] = (i == buttonsPrev.end()) ? 0 : i->second;
   }
   if ((_mouseButtons.find(0) == _mouseButtons.end())||(_mouseButtons.find(2) == _mouseButtons.end())) {
     ar_log_warning() << "arInputSimulator: mouse buttons must include 0 (left) and 2 (right).\n";
-    _mouseButtons = oldMouseButtons;
+    _mouseButtons = buttonsPrev;
     return false;
   }
   return true;
 }
 
-std::vector<unsigned> arInputSimulator::getMouseButtons() {
-  std::vector<unsigned> buttons;
-  std::map<unsigned, int>::iterator iter;
-  for (iter = _mouseButtons.begin(); iter != _mouseButtons.end(); ++iter) {
-    buttons.push_back( iter->first );
+vector<unsigned> arInputSimulator::getMouseButtons() const {
+  vector<unsigned> buttons;
+  for (IterButton i = _mouseButtons.begin(); i != _mouseButtons.end(); ++i) {
+    buttons.push_back( i->first );
   }
   return buttons;
 }
@@ -152,7 +150,7 @@ void arInputSimulator::draw() {
 
   gluLookAt(0,5,23,0,5,9,0,1,0);
 
-  arMatrix4 rotMatrix = ar_rotationMatrix('y',_simulatorRotation);
+  arMatrix4 rotMatrix = ar_rotationMatrix('y',_rotSim);
   glMultMatrixf(rotMatrix.v);
 
   // Must guard against the embedding program changing the line width.
@@ -214,11 +212,11 @@ void arInputSimulator::advance(){
 // Process keyboard events to drive the simulated interface.
 void arInputSimulator::keyboard(unsigned char key, int, int x, int y) {
   // change the control state
-  _mousePosition[0] = x;
-  _mousePosition[1] = y;
-  std::vector<int>::iterator iter;
-  for (iter = _lastButtonEvents.begin(); iter != _lastButtonEvents.end(); ++iter)
-    *iter = 0;
+  _mouseXY[0] = x;
+  _mouseXY[1] = y;
+  
+  for (vector<int>::iterator i = _lastButtonEvents.begin(); i != _lastButtonEvents.end(); ++i)
+    *i = 0;
 
   // Ugly: clicking middle mouse button of a 3-button mouse suddenly
   // changes rowLength from 2 to 3 (_mouseButtons grew).
@@ -255,8 +253,8 @@ void arInputSimulator::keyboard(unsigned char key, int, int x, int y) {
       // Hit 5 twice to reset wand's rotation.
       // todo: do this "double clicking" on other states too.
 LResetWand:
-      _rotator[0] = 0.;
-      _rotator[1] = 0.;
+      _rotWand[0] = 0.;
+      _rotWand[1] = 0.;
       _matrix[1][0] = 1.;
       _matrix[1][1] = 0.;
       _matrix[1][2] = 0.;
@@ -277,7 +275,7 @@ LResetWand:
     break;
   case  '7':
     if (_interfaceState == AR_SIM_SIMULATOR_ROTATE) {
-      _simulatorRotation = 0.;
+      _rotSim = 0.;
     }
     _interfaceState = AR_SIM_SIMULATOR_ROTATE;
     break;
@@ -286,18 +284,20 @@ LResetWand:
 
 // Process mouse button events.
 void arInputSimulator::mouseButton(int button, int state, int x, int y){
-  _mousePosition[0] = x;
-  _mousePosition[1] = y;
+  _mouseXY[0] = x;
+  _mouseXY[1] = y;
 
   if (button < 0) {
     ar_log_warning() << "arInputSimulator ignoring negative button index.\n";
     return;
   }
   unsigned buttonIndex = (unsigned)button;
-  std::map<unsigned,int>::iterator findIter = _mouseButtons.find( buttonIndex );
-  const bool haveIndex = findIter != _mouseButtons.end();
-  if (!haveIndex) {
-    std::vector<unsigned> buttons = getMouseButtons();
+  IterButton iFind = _mouseButtons.find( buttonIndex );
+  const bool haveIndex = iFind != _mouseButtons.end();
+  if (haveIndex)
+    _mouseButtons[buttonIndex] = state;
+  else {
+    vector<unsigned> buttons = getMouseButtons();
     buttons.push_back( buttonIndex );
     if (!setMouseButtons( buttons )) {
       ar_log_warning() << "arInputSimulator failed to add button index " << buttonIndex
@@ -308,8 +308,6 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
       return;
     }
   }
-  if (haveIndex)
-    _mouseButtons[buttonIndex] = state;
 
   switch (_interfaceState) {
   case AR_SIM_WAND_ROTATE_BUTTONS:
@@ -317,13 +315,13 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
     // Change only _newButton here, so we can send only the button event diff.
     if (haveIndex) {
       unsigned buttonOffset = 0;
-      std::map<unsigned,int>::iterator iter;
-      for (iter = _mouseButtons.begin(); (iter != findIter) && (iter != _mouseButtons.end()); ++iter) {
+      for (IterButton i = _mouseButtons.begin(); i != iFind && i != _mouseButtons.end(); ++i) {
         ++buttonOffset;
       }
       const unsigned eventIndex = _mouseButtons.size() * _buttonSelector + buttonOffset;
       if (eventIndex >= _newButtonEvents.size()) {
-        ar_log_warning() << "arInputSimulator ignoring out-of-range button event index (" << eventIndex << ").\n";
+        ar_log_warning() << "arInputSimulator ignoring out-of-range button event index " <<
+	  eventIndex << ".\n";
         return;
       }
       _newButtonEvents[eventIndex] = state;
@@ -344,90 +342,91 @@ void arInputSimulator::mouseButton(int button, int state, int x, int y){
   }
 }
 
+static inline float clamp(const float x, const float xMin, const float xMax) {
+  return x<xMin ? xMin : x>xMax ? xMax : x;
+}
+
 // Process mouse movement events to drive the simulated interface.
 void arInputSimulator::mousePosition(int x, int y){
-  // Ensure that _mousePosition has been initialized before using it as the
-  // 'previous' mouse position.  This is wrong, in the rare case
-  // that the previous mouse position was in fact (0,0).
-  if( _mousePosition[0] == 0 && _mousePosition[1] == 0 ) {
-    _mousePosition[0] = x;
-    _mousePosition[1] = y;
+  if (!_fInit) {
+    _fInit = true;
+    _mouseXY[0] = x;
+    _mouseXY[1] = y;
   }
 
-  const float deltaX = x - _mousePosition[0];
-  const float deltaY = y - _mousePosition[1];
-  const float movementFactor = 0.03;
-  _mousePosition[0] = x;
-  _mousePosition[1] = y;
+  const float gain = 0.03;
+  const float dx = gain * (x - _mouseXY[0]);
+  const float dy = gain * (y - _mouseXY[1]);
+  _mouseXY[0] = x;
+  _mouseXY[1] = y;
   const int leftButton   = (_mouseButtons.find(0) == _mouseButtons.end()) ? 0 : _mouseButtons[0];
   const int middleButton = (_mouseButtons.find(1) == _mouseButtons.end()) ? 0 : _mouseButtons[1];
   const int rightButton  = (_mouseButtons.find(2) == _mouseButtons.end()) ? 0 : _mouseButtons[2];
 
-  if (_interfaceState == AR_SIM_WAND_ROTATE_BUTTONS){
-    _rotator[0] += 3*movementFactor*deltaX;
-    _rotator[1] -= 3*movementFactor*deltaY;
-    _matrix[1] = ar_extractTranslationMatrix(_matrix[1])*
-      ar_planeToRotation(_rotator[0], _rotator[1]);
-  }
-  if (_interfaceState == AR_SIM_HEAD_TRANSLATE && leftButton){
-    _matrix[0] = ar_translationMatrix(movementFactor*deltaX,
-                                      -movementFactor*deltaY,0)
-                                      *_matrix[0];
-  }
-  if (_interfaceState == AR_SIM_HEAD_TRANSLATE && rightButton){
-    _matrix[0] = ar_translationMatrix(movementFactor*deltaX,
-                                      0,movementFactor*deltaY)
-                                      *_matrix[0];
-  }
-  if (_interfaceState == AR_SIM_HEAD_ROTATE && leftButton){
-    _matrix[0] = ar_extractTranslationMatrix(_matrix[0])
-      * ar_rotationMatrix('y',-3*movementFactor*deltaX)
-      * ar_extractRotationMatrix(_matrix[0]);
-  }
-  if (_interfaceState == AR_SIM_HEAD_ROTATE && rightButton){
-    arVector3 rotAxis = ar_extractRotationMatrix(_matrix[0])*arVector3(1,0,0);
-    _matrix[0] = ar_extractTranslationMatrix(_matrix[0])
-      * ar_rotationMatrix(rotAxis,-3*movementFactor*deltaY)
-      * ar_extractRotationMatrix(_matrix[0]);
-//    _matrix[0] = ar_extractTranslationMatrix(_matrix[0])
-//      * ar_rotationMatrix('x',-3*movementFactor*deltaY)
-//      * ar_extractRotationMatrix(_matrix[0]);
-  }
-  if (_interfaceState == AR_SIM_WAND_TRANSLATE && leftButton){
-    _matrix[1][12] += movementFactor*deltaX;
-    _matrix[1][13] -= movementFactor*deltaY;
-  }
-  if (_interfaceState == AR_SIM_WAND_TRANSLATE && rightButton){
-    _matrix[1][12] += movementFactor*deltaX;
-    _matrix[1][14] += movementFactor*deltaY;
-  }
-  if (_interfaceState == AR_SIM_WAND_TRANS_BUTTONS){
-    _matrix[1][12] += movementFactor*deltaX;
-    _matrix[1][13] -= movementFactor*deltaY;
-  }
-  if (_interfaceState == AR_SIM_USE_JOYSTICK
-      && (leftButton || middleButton || rightButton)){
-    const float joystickFactor = 0.3;
-    float candidateX = _axis[0] + movementFactor*joystickFactor*deltaX;
-    float candidateY = _axis[1] - movementFactor*joystickFactor*deltaY;
-    if (candidateX > 1)
-      candidateX = 1;
-    else if (candidateX < -1)
-      candidateX = -1;
-    if (candidateY > 1)
-      candidateY = 1;
-    else if (candidateY < -1)
-      candidateY = -1;
-    _axis[0] = candidateX;
-    _axis[1] = candidateY;
-  }
-  if (_interfaceState == AR_SIM_SIMULATOR_ROTATE
-      && (leftButton || middleButton || rightButton)){
-    _simulatorRotation += movementFactor*deltaX;
-    if (_simulatorRotation < -180)
-      _simulatorRotation += 360;
-    if (_simulatorRotation > 180)
-      _simulatorRotation -= 360;
+  switch (_interfaceState) {
+
+  case AR_SIM_HEAD_TRANSLATE:
+    if (leftButton)
+      _matrix[0] = ar_translationMatrix(dx, -dy,0) * _matrix[0];
+    if (rightButton)
+      _matrix[0] = ar_translationMatrix(dx, 0, dy) * _matrix[0];
+    break;
+
+  case AR_SIM_HEAD_ROTATE:
+    if (leftButton) {
+      _matrix[0] = ar_extractTranslationMatrix(_matrix[0]) *
+	ar_rotationMatrix('y', -dx) *
+	ar_extractRotationMatrix(_matrix[0]);
+     }
+    if (rightButton) {
+      const arVector3 rotAxis(ar_extractRotationMatrix(_matrix[0]) * arVector3(1,0,0));
+      _matrix[0] = ar_extractTranslationMatrix(_matrix[0]) *
+	ar_rotationMatrix(rotAxis, -dy) *
+	ar_extractRotationMatrix(_matrix[0]);
+    }
+    break;
+
+  case AR_SIM_WAND_TRANSLATE:
+    if (leftButton) {
+      _matrix[1][12] += dx;
+      _matrix[1][13] -= dy;
+    }
+    if (rightButton) {
+      _matrix[1][12] += dx;
+      _matrix[1][14] += dy;
+    }
+    break;
+
+  case AR_SIM_WAND_TRANS_BUTTONS:
+    _matrix[1][12] += dx;
+    _matrix[1][13] -= dy;
+    break;
+
+  case AR_SIM_USE_JOYSTICK:
+    if (leftButton || middleButton || rightButton) {
+      const float gainJoystick = 0.4;
+      _axis[0] = clamp(_axis[0] + gainJoystick*dx, -1, 1);
+      _axis[1] = clamp(_axis[1] - gainJoystick*dy, -1, 1);
+    }
+    break;
+
+  case AR_SIM_SIMULATOR_ROTATE:
+    if (leftButton || middleButton || rightButton) {
+      _rotSim += dx;
+      if (_rotSim < -180)
+	_rotSim += 360;
+      if (_rotSim > 180)
+	_rotSim -= 360;
+    }
+    break;
+
+  case AR_SIM_WAND_ROTATE_BUTTONS:
+    const float gainRotWand = 1.7;
+    _rotWand[0] += gainRotWand*dx;
+    _rotWand[1] -= gainRotWand*dy;
+    _matrix[1] = ar_extractTranslationMatrix(_matrix[1]) *
+      ar_planeToRotation(_rotWand[0], _rotWand[1]);
+    break;
   }
 }
 
