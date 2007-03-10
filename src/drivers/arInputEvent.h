@@ -19,20 +19,20 @@ SZG_CALL enum arInputEventType {
 class SZG_CALL arInputEvent {
   public:
     arInputEvent();
-    arInputEvent( const arInputEventType type, const unsigned int index );
+    arInputEvent( const arInputEventType type, const unsigned index );
     virtual ~arInputEvent();
     arInputEvent( const arInputEvent& e );
     arInputEvent& operator=( const arInputEvent& e );
     operator bool() const { return (_type != AR_EVENT_GARBAGE); }
     
     arInputEventType getType() const { return _type; }
-    unsigned int getIndex() const { return _index; }
+    unsigned getIndex() const { return _index; }
     int getButton() const;
     float getAxis() const;
     arMatrix4 getMatrix() const;
     
-    void setIndex( const unsigned int i ) { _index = i; }
-    bool setButton( const unsigned int b );
+    void setIndex( const unsigned i ) { _index = i; }
+    bool setButton( const unsigned b );
     bool setAxis( const float a );
     bool setMatrix( const float* v );
     bool setMatrix( const arMatrix4& m );
@@ -41,16 +41,16 @@ class SZG_CALL arInputEvent {
     
   protected:
     arInputEvent( const arInputEventType type,
-                  const unsigned int index,
+                  const unsigned index,
                   const int value );
     arInputEvent( const arInputEventType type,
-                  const unsigned int index,
+                  const unsigned index,
                   const float value );
     arInputEvent( const arInputEventType type,
-                  const unsigned int index,
+                  const unsigned index,
                   const float* v );
     arInputEventType _type;
-    unsigned int _index;
+    unsigned _index;
     int _button;
     float _axis;
     arMatrix4* _matrix;
@@ -58,24 +58,24 @@ class SZG_CALL arInputEvent {
 
 class SZG_CALL arButtonEvent : public arInputEvent {
   public:
-    arButtonEvent( const unsigned int index, const int b ) :
+    arButtonEvent( const unsigned index, const int b ) :
       arInputEvent( AR_EVENT_BUTTON, index, b ) {
       }
 };
 
 class SZG_CALL arAxisEvent : public arInputEvent {
   public:
-    arAxisEvent( const unsigned int index, const float a ) :
+    arAxisEvent( const unsigned index, const float a ) :
       arInputEvent( AR_EVENT_AXIS, index, a ) {
       }
 };
 
 class SZG_CALL arMatrixEvent : public arInputEvent {
   public:
-    arMatrixEvent( const unsigned int index, const float* v ) :
+    arMatrixEvent( const unsigned index, const float* v ) :
       arInputEvent( AR_EVENT_MATRIX, index, v ) {
       }
-    arMatrixEvent( const unsigned int index,  const arMatrix4& m ) :
+    arMatrixEvent( const unsigned index,  const arMatrix4& m ) :
       arInputEvent( AR_EVENT_MATRIX, index, m.v ) {
       }
 };

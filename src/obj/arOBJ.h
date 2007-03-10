@@ -81,7 +81,7 @@ class SZG_CALL arOBJ : public arObject {
     int groupID(const string& name);
     string name()		{return _name;}
     string setName(const string& newName) {return (_name = newName);}
-    bool supportsAnimation()	{return false;}
+    bool supportsAnimation() const {return false;}
 
     // For attaching to a scene graph...
     void setTransform(const arMatrix4& transform);

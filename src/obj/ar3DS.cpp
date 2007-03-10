@@ -26,6 +26,7 @@ bool ar3DS::read3DS(const string& fileName) {
 #ifndef Enable3DS
   cerr << "ar3DS error: compiled without 3DS support.\n";
   return false;
+  (void)fileName; // avoid compiler warning
 #else
   char* name = new char[fileName.length()+1];
   strcpy(name, fileName.c_str());
@@ -55,6 +56,7 @@ bool ar3DS::attachMesh(const string& baseName, const string& where){
 bool ar3DS::attachMesh(arGraphicsNode* parent, const string& baseName) {
 #ifndef Enable3DS
   cerr << "ar3DS error: compiled without 3DS support.\n";
+  (void)parent, baseName; // avoid compiler warning
   return false;
 #else
   if (_invalidFile){
@@ -302,6 +304,7 @@ void ar3DS::attachChildNode(const string &baseName,
 bool ar3DS::normalizationMatrix(arMatrix4 &theMatrix) {
 #ifndef Enable3DS
   cerr << "ar3DS error: compiled without 3DS support.\n";
+  (void)theMatrix; // avoid compiler warning
 #else
   if (_invalidFile) {
     cerr << "Cannot normalize model size: invalid file!\n";

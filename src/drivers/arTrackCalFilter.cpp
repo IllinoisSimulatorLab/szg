@@ -126,8 +126,6 @@ bool arTrackCalFilter::configure(arSZGClient* szgClient) {
   return true;
 }
 
-const int HEAD_MATRIX_NUMBER = 0;
-
 bool arTrackCalFilter::_processEvent( arInputEvent& inputEvent ) {
   if (inputEvent.getType() != AR_EVENT_MATRIX)
     return true;
@@ -136,6 +134,7 @@ bool arTrackCalFilter::_processEvent( arInputEvent& inputEvent ) {
   if (_useCalibration) {
     _interpolate( newMatrix );
   }
+  const unsigned HEAD_MATRIX_NUMBER = 0;
   if (inputEvent.getIndex() == HEAD_MATRIX_NUMBER)  // Apply old filter to head matrix
     _doIIRFilter( newMatrix );
   return inputEvent.setMatrix( newMatrix );

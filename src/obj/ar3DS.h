@@ -18,8 +18,7 @@
 #include <vector>
 #include "arObject.h"
 #ifdef Enable3DS
-// NOTE: these *must* be qualified by lib3ds, otherwise compilation
-// search paths will replace the *system* float.h by this one!
+// lib3ds/ explicitly here, not in "cc -I", so ALL .cpp files don't bogusly get lib3ds/float.h.
   #include <lib3ds/file.h>
   #include <lib3ds/vector.h>
   #include <lib3ds/matrix.h>
@@ -47,25 +46,22 @@ class SZG_CALL ar3DS : public arObject{
     bool attachMesh(arGraphicsNode* parent, const string& baseName="");
 
     // animation
-    bool supportsAnimation(void) { return false; }
+    bool supportsAnimation(void) const { return false; }
     bool setFrame(int newFrame);
     bool nextFrame();
     bool prevFrame();
 
     // stats
-    // returns "3DS" as arObject type
-    inline string type() const { return "3DS"; }
+    inline string type() const { return "3DS"; } // arObject type
 #ifdef Enable3DS
-    int    numberOfFrames() { return _file?_file->frames:-1; }
+    int    numberOfFrames() const { return _file?_file->frames:-1; }
 #else
-    int    numberOfFrames() { return -1; }
+    int    numberOfFrames() const { return -1; }
 #endif
 
   protected:
 #ifdef Enable3DS
-    void attachChildNode(const string& baseName, 
-                         arGraphicsNode* parent,
-                         Lib3dsNode* node);
+    void attachChildNode(const string& baseName, arGraphicsNode* parent, Lib3dsNode* node);
 #endif
     arVector3 _minVec;	// vector of minimum x, y, and z values in mesh
     arVector3 _maxVec;	// vector of maximum x, y, and z values in mesh
@@ -74,17 +70,15 @@ class SZG_CALL ar3DS : public arObject{
 
   private:
 #ifdef Enable3DS
-    Lib3dsFile	*_file;	// The Lib3ds-read File
+    // helper function for normalizationMatrix; allows easy recursing
+    void subNormalizationMatrix(Lib3dsNode* node, arVector3& _minVec, arVector3& _maxVec);
+    Lib3dsFile	*_file;
 #else
     void	*_file;
 #endif
     int _uniqueName;
-    int _currentFrame;	// Currently displayed frame
-    int _numMaterials;	// Number of materials in the file
-#ifdef Enable3DS
-    // helper function for normalizationMatrix; allows easy recursing
-    void subNormalizationMatrix(Lib3dsNode* node, arVector3& _minVec, arVector3& _maxVec);
-#endif
+    int _currentFrame;	// displayed frame
+    int _numMaterials;	// Number of materials in _file
 };
 
 #endif // __AR_3DS_H

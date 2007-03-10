@@ -49,14 +49,14 @@ class SZG_CALL arObject {
   // Add a valid arObject file to the scenegraph.
   virtual bool attachMesh(arGraphicsNode* parent, const string& objectName="") = 0;
 
-  // what kind of Object this is
+  // kind of Object
   virtual inline string type(void) const = 0;
 
-  // does this object support the basic animation commands?
-  virtual bool supportsAnimation(void) = 0;
+  // supports basic animation commands?
+  virtual bool supportsAnimation(void) const = 0;
   // number of frames in animation
-  virtual inline int	numberOfFrames() { return -1; }
-  virtual inline int	currentFrame() { return -1; }
+  virtual inline int	numberOfFrames() const { return -1; }
+  virtual inline int	currentFrame() const { return -1; }
   // jump to this frame in the animation
   // if newFrame is out-of-bounds, return false and do nothing
   virtual bool	setFrame(int) {return false;}

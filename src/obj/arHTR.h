@@ -128,18 +128,18 @@ class SZG_CALL arHTR : public arObject {
     void basicDataSmoothing();
 
     // Animation.
-    bool supportsAnimation(void) { return true; }
+    bool supportsAnimation(void) const { return true; }
     bool setFrame(int newFrame);
     bool nextFrame();
     bool prevFrame();
     bool setBasePosition();
 
     // Stats.
-    inline int numberOfFrames(){ return numFrames; }
-    inline int currentFrame(){ return _currentFrame; }
-    inline int numberOfSegments(){ return numSegments; }
-    inline int version(){ return fileVersion; }
-    inline string nameOfSegment(int i){ return segmentData[i]->segmentName; }
+    inline int numberOfFrames() const { return numFrames; }
+    inline int currentFrame() const { return _currentFrame; }
+    inline int numberOfSegments() const { return numSegments; }
+    inline int version() const { return fileVersion; }
+    inline string nameOfSegment(const int i) const { return segmentData[i]->segmentName; }
     inline arTransformNode* transformForSegment(int i){ return segmentData[i]->transformNode; }
     inline arTransformNode* preTransformForSegment(int i){ return segmentData[i]->preTransformNode; }
     inline arTransformNode* postTransformForSegment(int i){ return segmentData[i]->postTransformNode; }
