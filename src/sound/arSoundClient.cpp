@@ -25,7 +25,7 @@ FMOD_SYSTEM* ar_fmod() {
   const FMOD_RESULT r = FMOD_System_Create(&s);
   if (r != FMOD_OK) {
     fFailed = true;
-    ar_log_error() << "failed to create fmod: " << FMOD_ErrorString(r) << ar_endl;
+    ar_log_warning() << "arSoundClient failed to create fmod: " << FMOD_ErrorString(r) << ar_endl;
     s = NULL;
   }
   return s;
@@ -42,8 +42,7 @@ bool ar_fmodcheck3(const FMOD_RESULT r, const char* file, const int line) {
   if (!strncmp(file, "src/", 4))
     file += 4;
 
-  ar_log_warning() << file << ":" << line <<
-    " fmod: " << FMOD_ErrorString(r) << ar_endl;
+  ar_log_warning() << file << ":" << line << " fmod: " << FMOD_ErrorString(r) << "\n";
   return false;
 }
 #endif
@@ -91,12 +90,14 @@ bool ar_soundClientConnectionCallback(void*, arTemplateDictionary*){
 }
  
 bool ar_soundClientDisconnectCallback(void* client){
-  arSoundClient* c = (arSoundClient*)client;
-  ar_log_remark() << "arSoundClient remark: disconnected from server.\n";
+  ar_log_remark() << "arSoundClient disconnected from server.\n";
+
   // Delete the bundle path, which is unique to each connection so
   // an app's sound files be other than "on the sound path."
+  arSoundClient* c = (arSoundClient*)client;
   c->setDataBundlePath("NULL","NULL");
   c->reset();
+
   // Call skipConsumption from arSyncDataClient, not from here.
   return true;
 }
@@ -166,7 +167,7 @@ bool ar_soundClientNullCallback(void*){
 bool ar_soundClientConsumptionCallback(void* client, ARchar* buffer){
   arSoundClient* c = (arSoundClient*) client;
   if (!c->_soundDatabase.handleDataQueue(buffer)) {
-    ar_log_error() << c->getLabel() << " error: failed to consume buffer.\n";
+    ar_log_warning() << c->getLabel() << " failed to consume buffer.\n";
     return false;
   }
   return true;
@@ -200,7 +201,7 @@ bool arSoundClient::start(arSZGClient& client){
 	_dataServerRegistered = true;
         break;
       }
-      ar_log_error() << "arSoundClient error: failed to listen on brokered port.\n";
+      ar_log_warning() << "arSoundClient failed to listen on brokered port.\n";
       client.requestNewPorts(serviceName,"input",1,&port);
     }
     // If no success, just let this feature go.
@@ -239,7 +240,7 @@ bool arSoundClient::startDSP(){
   return true;
 #else
 
-  ar_log_remark() << "arSoundClient remark: DSP started.\n";
+  ar_log_remark() << "arSoundClient DSP started.\n";
   FMOD_SOUND* samp1 = NULL;
   // memory leak: should (void)ar_fmodcheck(_stream->release()) in stopDSP() or ~arSoundClient().
 
@@ -255,11 +256,12 @@ bool arSoundClient::startDSP(){
   }
   // Allow playing from the mic.  (Mic comes from setRecordDriver and windows' audio control panel.)
   if (!ar_fmodcheck( FMOD_System_RecordStart( ar_fmod(), samp1, true ))) {
-    ar_log_error() << "failed to start recording.\n";
-    // Don't return false here. Give the DSP a chance to start.
+    ar_log_warning() << "arSoundClient failed to start recording.\n";
+    // Don't abort.  Let the DSP start.
   }
 
-  // Start playing the sample paused.  Set its volume.  The record channel should definitely start paused!!!!
+  // Start playing (and recording) paused.  Set its volume.
+  // This reduces latency between sound and visualizations thereof.
   // Otherwise, there could be a delay in sound->animation!
   if (!ar_fmodcheck( FMOD_System_PlaySound( ar_fmod(),
           FMOD_CHANNEL_FREE, samp1, true, &_recordChannel )) ||
@@ -268,7 +270,7 @@ bool arSoundClient::startDSP(){
     return false;
   }
 
-  // Start the DSP.
+  // Start the DSP.  This taps into the sample stream to e.g. compute its FFT.
   FMOD_DSP_DESCRIPTION d = {0};
   d.read = ar_soundClientDSPCallback;
   return ar_fmodcheck( FMOD_System_CreateDSP( ar_fmod(), &d, &_DSPunit )) &&
@@ -327,14 +329,14 @@ bool arSoundClient::microphoneVolume(int volume){
 
 bool arSoundClient::_initSound(){
 #ifndef EnableSound
-  ar_log_critical() << "Silent, compiled with stub FMOD.\n";
+  ar_log_critical() << "arSoundClient silent, compiled with stub FMOD.\n";
   return false;
 
 #else
 
   if (!ar_fmodcheck( FMOD_System_SetSoftwareFormat( ar_fmod(),
           44100, FMOD_SOUND_FORMAT_PCM16, 0, 0, FMOD_DSP_RESAMPLER_LINEAR ))) {
-    ar_log_error() << "fmod audio failed to init.\n";
+    ar_log_warning() << "arSoundClient: fmod audio failed to init.\n";
     return false;
   }
 
@@ -355,14 +357,14 @@ bool arSoundClient::_initSound(){
 string arSoundClient::_processStreamInfo(const string& body){
   int nodeID = -1;
   if (!ar_stringToIntValid(body, nodeID)){
-    ar_log_error() << "arSoundClient stream_info message had invalid ID.\n";
+    ar_log_warning() << "arSoundClient stream_info message had invalid ID.\n";
     return string("SZG_ERROR");
   }
 
   // getNode() may be unsafe here when database nodes are deleted, or even added.
   arDatabaseNode* node = _soundDatabase.getNode(nodeID);
   if (!node || node->getTypeCode() != AR_S_STREAM_NODE){
-    ar_log_error() << "arSoundClient stream_info message found no node.\n";
+    ar_log_warning() << "arSoundClient stream_info message found no node.\n";
     return string("SZG_ERROR");
   }
 
