@@ -19,39 +19,38 @@ arGUIWindowManager* windowManager;
 arGUIXMLParser*     guiParser;
 
 bool framerateThrottle = false;
-bool drawPerformanceDisplay = false;
+bool fDrawPerformance = false;
 bool fExit = false;
-bool requestReload = false;
-
-// extra services
+bool fReload = false;
+bool fPause = false;
 arConditionVar pauseVar;
-arMutex pauseLock;
-bool pauseFlag = false;
-string dataPath;  // For storing screenshots.
-string textPath;
+arMutex pauseLock; // around fPause and pauseVar, between message and draw threads.
+string dataPath("NULL");
+string textPath("NULL");
 
 bool loadParameters(arSZGClient& cli){
   // Use our screen's parameters.
   graphicsClient.configure(&cli);
 
-  // Set up the data bundle info.
   dataPath = cli.getDataPath();
   graphicsClient.addDataBundlePathMap("SZG_DATA", dataPath);
   graphicsClient.addDataBundlePathMap("SZG_PYTHON", cli.getDataPathPython());
-  const string szgExecPath = cli.getAttribute("SZG_EXEC","path"); // for dll's
-  arGraphicsPluginNode::setSharedLibSearchPath( szgExecPath );
+  arGraphicsPluginNode::setSharedLibSearchPath(cli.getAttribute("SZG_EXEC","path"));
   return true;
 }
 
 void shutdownAction(){
-  if (fExit)
+  if (fExit) {
     // exit already pending
     return;
+  }
   fExit = true;
 
   ar_log_debug() << "szgrender shutdown.\n";
-  // Guarantee that _cliSync.consume() gets to its end.
+  // Let the draw loop _cliSync.consume() finish.
   graphicsClient._cliSync.skipConsumption();
+
+  // exit() from the draw loop, to avoid Win32 crashes.
 }
 
 void messageTask(void* pClient){
@@ -59,74 +58,68 @@ void messageTask(void* pClient){
   string messageType, messageBody;
   while (true) {
     // Happens only once.
-    if (!cli->receiveMessage(&messageType,&messageBody)){
+    if (!cli->receiveMessage(&messageType,&messageBody) || messageType=="quit"){
       shutdownAction();
       break;
     }
 
     if (messageType=="performance"){
-      drawPerformanceDisplay = messageBody=="on";
-      graphicsClient.drawFrameworkObjects(drawPerformanceDisplay);
+      fDrawPerformance = messageBody=="on";
+      graphicsClient.drawFrameworkObjects(fDrawPerformance);
     }
-    else if (messageType=="quit"){
-      // Exit within the draw loop, to avoid Win32 crashes.
-      fExit = true;
-      // Ensure we reach the end of the draw loop.
-      graphicsClient._cliSync.skipConsumption();
-    }
+
     else if (messageType=="screenshot"){
       // copypaste with framework/arMasterSlaveFramework.cpp
       if (dataPath == "NULL"){
-	ar_log_warning() << "szgrender warning: screenshot failed: undefined SZG_DATA/path.\n";
+	ar_log_warning() << "szgrender screenshot failed: no SZG_DATA/path.\n";
       }
       else{
         if (messageBody != "NULL"){
           int temp[4];
           ar_parseIntString(messageBody,temp,4);
-          graphicsClient.requestScreenshot(
-	    dataPath, temp[0], temp[1], temp[2], temp[3]);
+          graphicsClient.requestScreenshot(dataPath, temp[0], temp[1], temp[2], temp[3]);
         }
       }
     }
+
     else if (messageType=="delay"){
       framerateThrottle = messageBody=="on";
     }
+
     else if (messageType=="pause"){
       if (messageBody == "on"){
         ar_mutex_lock(&pauseLock);
-	pauseFlag = true;
+	  fPause = true;
 	ar_mutex_unlock(&pauseLock);
       }
       else if (messageBody == "off"){
         ar_mutex_lock(&pauseLock);
-        pauseFlag = false;
-        pauseVar.signal();
+	  fPause = false;
+	  pauseVar.signal();
 	ar_mutex_unlock(&pauseLock);
       }
       else
-        ar_log_warning() << "szgrender warning: unexpected messageBody '"
-	                 << messageBody << "'.\n";
+        ar_log_warning() << "szgrender: unexpected pause '" << messageBody << "', should be on or off.\n";
     }
+
     else if (messageType=="color"){
-      float theColors[3] = {0,0,0};
+      float c[3] = {0,0,0};
       if (messageBody == "off"){
-	ar_log_remark() << "szgrender remark: color override off.\n";
+	ar_log_remark() << "szgrender: color override off.\n";
         graphicsClient.setOverrideColor(arVector3(-1,-1,-1));
       }
       else{
-	ar_parseFloatString(messageBody, theColors, 3); 
-        ar_log_remark() << "szgrender remark: screen color ("
-	                << theColors[0] << ", " << theColors[1] << ", "
-	                << theColors[2] << ").\n";
-        graphicsClient.setOverrideColor(arVector3(theColors));
+	ar_parseFloatString(messageBody, c, 3); 
+        ar_log_remark() << "szgrender screen color (" << c[0] << ", " << c[1] << ", " << c[2] << ").\n";
+        graphicsClient.setOverrideColor(arVector3(c));
       }
     }
+
     else if (messageType=="reload"){
-      // This isn't quite the right way to communicate between the threads.
-      // If a reload request comes too quickly on the heals of a previous
-      // one, then one of the requests might be ignored. Doesn't really
-      // seem too problematic, given the way the software gets used.
-      requestReload = true;
+      // Multiple reload messages might be ignored if this message thread
+      // gets them faster than the draw thread notices them.
+      // Not a problem, though, in practice:  the "last" message gets processed.
+      fReload = true;
     }
   }
 }
@@ -141,8 +134,7 @@ void ar_guiWindowEvent(arGUIWindowInfo* wi){
     return;
   switch (wi->getState()){
   case AR_WINDOW_RESIZE:
-    wm->setWindowViewport(
-      wi->getWindowID(), 0, 0, wi->getSizeX(), wi->getSizeY());
+    wm->setWindowViewport(wi->getWindowID(), 0, 0, wi->getSizeX(), wi->getSizeY());
     break;
   case AR_WINDOW_CLOSE:
     shutdownAction();
@@ -162,8 +154,8 @@ void ar_guiWindowKeyboard(arGUIKeyInfo* ki){
       shutdownAction();
       break;
     case AR_VK_P:
-      drawPerformanceDisplay = !drawPerformanceDisplay;
-      graphicsClient.drawFrameworkObjects(drawPerformanceDisplay);
+      fDrawPerformance = !fDrawPerformance;
+      graphicsClient.drawFrameworkObjects(fDrawPerformance);
       break;
     default:
       // avoid compiler warning
@@ -181,9 +173,9 @@ int main(int argc, char** argv){
     return szgClient.failStandalone(fInit);
 
   const string screenLock = szgClient.getComputerName() + "/" + szgClient.getMode("graphics");
-  int graphicsID;
+  int graphicsID = -1;
   if (!szgClient.getLock(screenLock, graphicsID)){
-    ar_log_error() << "szgrender's screen already locked by component " << graphicsID << ".\n";
+    ar_log_error() << "szgrender screen locked by component " << graphicsID << ".\n";
     if (!szgClient.sendInitResponse(false))
       cerr << "szgrender error: maybe szgserver died.\n";
     return 1;
@@ -204,45 +196,43 @@ int main(int argc, char** argv){
     ar_guiWindowEvent, ar_guiWindowKeyboard, NULL, NULL, false);
 
   // graphicsClient configures windows and starts window threads,
-  // but szgRender's main() itself controls the event loop.
+  // but szgRender's main() has the event loop.
   graphicsClient.setWindowManager(windowManager);
 
   if (!loadParameters(szgClient))
-    ar_log_remark() << "szgrender remark: Parameter loading failed.\n";
+    ar_log_remark() << "szgrender parameter load failed.\n";
 
   graphicsClient.setNetworks(szgClient.getNetworks("graphics"));
 
   // Start the connection threads and window threads.
   graphicsClient.start(szgClient);
 
-  // Framelock assumes single-threaded.
-  // (consequently, this is the display thread). Whether or not
-  // we are using framelock should be set by the parsing of the window config
-  // itself.
+  // Framelock assumes the window manager is single-threaded,
+  // so this is the display thread.
+  // Parse window config to decide whether or not to use framelock.
   windowManager->findFramelock();
 
   if (!szgClient.sendStartResponse(true)){
     cerr << "szgrender error: maybe szgserver died.\n";
   }
 
-  while (!fExit){ 
+  while (!fExit) {
     ar_mutex_lock(&pauseLock);
-    while (pauseFlag){
-      pauseVar.wait(&pauseLock);
-    }
+      while (fPause) {
+	pauseVar.wait(&pauseLock);
+      }
     ar_mutex_unlock(&pauseLock);
+
     ar_timeval time1 = ar_time();
-    if (requestReload){
-      // We essentially get here when a "reload" message comes in.
-      (void) loadParameters(szgClient);
-      // Make the new windows but don't start the underlying synchronization objects.
+    if (fReload){
+      fReload = false;
+      (void)loadParameters(szgClient);
+      // Make new windows but don't start the underlying synchronization objects.
       graphicsClient.start(szgClient, false);
-      requestReload = false;
     }
 
-    // Inside here, through callbacks to the arSyncDataClient embedded inside
-    // the arGraphicsClient, is where all the scene graph event processing,
-    // drawing, and synchronization happens.
+    // Process scenegraph events, draw, and sync
+    // (via callbacks to the arSyncDataClient embedded inside the arGraphicsClient).
     graphicsClient._cliSync.consume();
 
     if (framerateThrottle){
@@ -250,16 +240,14 @@ int main(int argc, char** argv){
     }
 
     windowManager->processWindowEvents();
-    arPerformanceElement* framerateElement =
-      framerateGraph.getElement("framerate");
-    framerateElement->pushNewValue(1000000.0 / ar_difftimeSafe(ar_time(), time1));
+    framerateGraph.getElement("framerate")->pushNewValue(
+      1000000.0 / ar_difftimeSafe(ar_time(), time1));
   }
 
   // Clean up.
   graphicsClient._cliSync.stop();
 
-  // Do this in the display thread before exiting.
-  // Assume that framelock is used ONLY when the window manager is single-threaded.
+  // We're the display thread.  Do this before exiting.
   windowManager->deactivateFramelock();
 
   windowManager->deleteAllWindows();
