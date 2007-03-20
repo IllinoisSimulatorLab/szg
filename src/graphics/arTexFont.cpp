@@ -66,7 +66,7 @@ bool arTexFont::load( const string& fontFilePath, int transparentColor ) {
   // ppm images are flipped as read in by the current buggy software.
   if (ok) {
     _fontTexture.setTextureFunc(GL_MODULATE);
-    _fontTexture.flipHorizontal();
+//    _fontTexture.flipHorizontal();
     _fontTexture.mipmap(true);
   }
   return ok;

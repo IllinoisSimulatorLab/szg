@@ -148,6 +148,7 @@ void arSharedMemSinkDriver::_dataThread() {
   _stopped = false;
   _eventThreadRunning = true;
   memset(_buttonPrev, 0, sizeof(_buttonPrev));
+  int i;
 
 #ifdef worked_sorta_but_sent_only_to_cassatt_not_syzygy
   // ;;;; Start reading data from FoB, a la DeviceClient
@@ -170,10 +171,12 @@ void arSharedMemSinkDriver::_dataThread() {
     // Read data from FoB
     arInputState fob = fobNode._inputState; // local copy
     const unsigned cm = fob.getNumberMatrices();
-    if (fob.getNumberButtons() != 0 || fob.getNumberAxes() != 0 || fob.getNumberMatrices() == 0)
+    if (fob.getNumberButtons() != 0 || fob.getNumberAxes() != 0 || fob.getNumberMatrices() == 0) {
       ar_log_warning() << "arSharedMemSinkDriver warning: FoB has bad signature ?/?/?.\n";
-    for (int i=0; i<cm; i++)
+    }
+    for (i=0; i<cm; ++i) {
       ar_log_remark() << "matrix " << i << ": " << fob.getMatrix(i) << "\n";
+    }
 #endif
 
     // Get data from devices.
@@ -221,27 +224,28 @@ void arSharedMemSinkDriver::_dataThread() {
     // Send data to shm
     ar_mutex_lock(&_lockShm);
 
-      setMatrix(0, _shmFoB, rgm[0]);
-      setMatrix(1, _shmFoB, rgm[1]);
-      setMatrix(2, _shmFoB, rgm[2]);
+    setMatrix(0, _shmFoB, rgm[0]);
+    setMatrix(1, _shmFoB, rgm[1]);
+    setMatrix(2, _shmFoB, rgm[2]);
 
-      setAxis(0, _shmWand, rgv[0]);;
-      setAxis(1, _shmWand, rgv[1]);;
+    setAxis(0, _shmWand, rgv[0]);;
+    setAxis(1, _shmWand, rgv[1]);;
 
-      for (int i=0; i<8; i++){
-	const int button = rgbutton[i];
-	// send only state changes
-	if (button != _buttonPrev[i]){
-	  setButton(i, _shmWand, button);
-	  _buttonPrev[i] = button;
-	}
+    for (i=0; i<8; ++i) {
+      const int button = rgbutton[i];
+      // send only state changes
+      if (button != _buttonPrev[i]){
+        setButton(i, _shmWand, button);
+        _buttonPrev[i] = button;
       }
+    }
 
     ar_mutex_unlock(&_lockShm);
 
     // update state changes
-    for (int i=0; i<8; i++)
+    for (i=0; i<8; ++i) {
       _buttonPrev[i] = rgbutton[i];
+    }
 
     ar_usleep(10000); // throttle
 

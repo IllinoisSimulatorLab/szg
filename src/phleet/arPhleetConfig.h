@@ -15,7 +15,7 @@
 #include <string>
 using namespace std;
 
-class arInterfaceDescription{
+class arInterfaceDescription {
  public:
   arInterfaceDescription(){}
   ~arInterfaceDescription(){}
@@ -26,7 +26,7 @@ class arInterfaceDescription{
 
 // Used for parsing/storing/writing the szg.conf config file and
 // the szg_<username>.conf login files
-class SZG_CALL arPhleetConfig{
+class SZG_CALL arPhleetConfig {
  public:
   arPhleetConfig();
   ~arPhleetConfig() {}

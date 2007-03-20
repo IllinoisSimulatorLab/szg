@@ -21,7 +21,10 @@ int main(int argc, char** argv){
   arAppLauncher launcher("dkillall");
   if (argc == 2) {
     launcher.setSZGClient(&szgClient);
-    launcher.setVircomp(argv[1]);
+    if (!launcher.setVircomp(argv[1])) {
+      // arAppLauncher already printed msg.
+      return 1;
+    }
   }
 
   return launcher.killAll() ? 0 : 1;

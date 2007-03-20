@@ -779,7 +779,7 @@ LDone:
     // with the szgserver, telling it that it wants the message ownership.
     int timeout = execInfo->timeoutmsec;
     if (timeout == -1) {
-      timeout = 20000;
+      timeout = 30000;
     }
     if (!SZGClient->finishMessageOwnershipTrade(match,timeout)) {
       info << "szgd message ownership trade timed out.\n";

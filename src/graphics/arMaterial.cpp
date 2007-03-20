@@ -27,15 +27,19 @@ arMaterial::arMaterial(const arMaterial& rhs){
 }
 
 void arMaterial::activateMaterial(){
-  // Fishy. This doesn't support the *full* OpenGL.
-  // This always does GL_FRONT_AND_BACK instead of GL_FRONT or GL_BACK.
   arVector4 temp(diffuse[0], diffuse[1], diffuse[2], alpha);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, temp.v);
-  temp = arVector4(ambient[0], ambient[1], ambient[2], alpha);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, temp.v);
-  temp = arVector4(specular[0], specular[1], specular[2], alpha);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, temp.v);
-  temp = arVector4(emissive[0], emissive[1], emissive[2], alpha);
-  glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, temp.v);
-  glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, exponent);
+  if (glIsEnabled( GL_LIGHTING )) {
+    // Fishy. This doesn't support the *full* OpenGL.
+    // This always does GL_FRONT_AND_BACK instead of GL_FRONT or GL_BACK.
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, temp.v);
+    temp = arVector4(ambient[0], ambient[1], ambient[2], alpha);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, temp.v);
+    temp = arVector4(specular[0], specular[1], specular[2], alpha);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, temp.v);
+    temp = arVector4(emissive[0], emissive[1], emissive[2], alpha);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, temp.v);
+    glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, exponent);
+  } else {
+    glColor4fv( temp.v );
+  }
 }

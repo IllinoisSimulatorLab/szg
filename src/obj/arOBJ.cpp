@@ -924,6 +924,7 @@ bool arOBJRenderer::readOBJ(FILE* inputFile) {
         ar_log_error() << "arOBJRenderer::readOBJ() failed to read texture file.\n";
         return false;
       }
+      tex->setTextureFunc( GL_MODULATE );
       _textures[matID] = tex;
       ar_log_remark() << "arOBJRenderer::readOBJ() read texture image " << thisMaterial.map_Kd << ar_endl;
     }

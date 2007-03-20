@@ -61,7 +61,7 @@ bool arAppLauncher::setVircomp(){
   return setVircomp(vc);
 }
 
-// Set the virtual computer (e.g. for killalldemo), without starting a whole app.
+// Set the virtual computer (e.g. for dkillall), without starting a whole app.
 bool arAppLauncher::setVircomp(const string& vircomp){
   if (!_client){
     // invalid virtual computer
@@ -69,6 +69,9 @@ bool arAppLauncher::setVircomp(const string& vircomp){
   }
   if (_client->getAttribute(vircomp,"SZG_CONF","virtual","") != "true"){
     // Not a virtual computer name.
+    const string s(_client->getVirtualComputers());
+    ar_log_error() << _exeName << ": no virtual computer '" << vircomp << "'.\n"
+      << "  (Known virtual computers are: " << s << ").\n";
     return false;
   }
   _vircomp = vircomp;
@@ -116,19 +119,20 @@ bool arAppLauncher::setParameters(){
   }
 
   if (_vircompDefined){
-    // todo: since many exes (e.g. killalldemo) call this,
+    // todo: since many exes (e.g. dkillall) call this,
     // maybe handle when the v.c. was already set explicitly.
     return true;
   }
   
   // If the virtual computer was not explicitly set, set its name and "location."
   if (_vircomp == "NULL" && !setVircomp()){
-    ar_log_warning() << _exeName << ": no virtual computer '" << _vircomp << "'.\n";
+    ar_log_error() << _exeName << ": no virtual computer '" << _vircomp << "'.\n";
     const string s(_client->getVirtualComputers());
-    if (s.empty())
-      ar_log_warning() << "  (No virtual computers are defined.  Have you run dbatch?)\n";
-    else
-      ar_log_warning() << "  (Known virtual computers are: " << s << ".)\n";
+    if (s.empty()) {
+      ar_log_error() << "  (No virtual computers are defined.  Have you run dbatch?)\n";
+    } else {
+      ar_log_error() << "  (Known virtual computers are: " << s << ").\n";
+    }
     return false;
   }
 
@@ -168,15 +172,15 @@ bool arAppLauncher::setParameters(){
 
   // Ensure no computer is duplicated, lest we launch two DeviceServers on one.
   for (i=2; i<numTokens; i+=2) {
-    const string& computer_i(inputDevs[i]);
+    const string& computer_i = inputDevs[i];
     for (int j=0; j<i; j+=2) {
       if (computer_i == inputDevs[j]) {
-	ar_log_error() << _exeName << ": input devices for virtual computer '"
-	  << _vircomp << "' has duplicate computer '" << computer_i
-	  << "', in definition \n  '"
-	  << inputDevs
-	  << "'.\n  (Instead, put a compound device in your dbatch file.)\n";
-	return false;
+        ar_log_error() << _exeName << ": input devices for virtual computer '"
+          << _vircomp << "' has duplicate computer '" << computer_i
+          << "', in definition \n  '"
+          << inputDevs
+          << "'.\n  (Instead, put a compound device in your dbatch file.)\n";
+        return false;
       }
     }
   }

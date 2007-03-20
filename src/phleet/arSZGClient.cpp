@@ -1772,7 +1772,7 @@ bool arSZGClient::getLock(const string& lockName, int& ownerID) {
   else{
     arStructuredData* ack = _getTaggedData(match, _l.AR_SZG_LOCK_RESPONSE);
     if (!ack) {
-      ar_log_warning() << _exeName << ": no ack for lock.\n";
+      ar_log_warning() << _exeName << ": no response to lock request.\n";
     }
     else{
       ownerID = ack->getDataInt(_l.AR_SZG_LOCK_RESPONSE_OWNER);
@@ -1806,7 +1806,7 @@ bool arSZGClient::releaseLock(const string& lockName) {
   else{
     arStructuredData* ack = _getTaggedData(match, _l.AR_SZG_LOCK_RESPONSE);
     if (!ack) {
-      ar_log_warning() << _exeName << ": no ack for lock.\n";
+      ar_log_warning() << _exeName << ": no response to lock request.\n";
     }
     else{
       state =
@@ -2578,7 +2578,7 @@ bool arSZGClient::_getMessageAck(int match, const char* transaction, int* id,
                                          _l.AR_SZG_MESSAGE_ACK,
                                          timeout);
   if (!ack) {
-    ar_log_warning() << _exeName << ": no ack for " << transaction << ".\n";
+    ar_log_warning() << _exeName << ": no acknowledgement of " << transaction << ".\n";
     return false;
   }
 

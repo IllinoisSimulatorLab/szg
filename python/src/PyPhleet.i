@@ -24,27 +24,35 @@
 
 
 %{
-#include "arPhleetConfigParser.h"
+#include "arPhleetConfig.h"
 %}
 
 /// Used for parsing/storing/writing the szg.conf config file and
 /// the szg_<username>.conf login files
-class arPhleetConfigParser {
+class arPhleetConfig {
  public:
-  arPhleetConfigParser();
-  ~arPhleetConfigParser() {}
+  arPhleetConfig();
+  ~arPhleetConfig() {}
 
-  // bulk manipulation of the config file
-  bool parseConfigFile();
-  bool writeConfigFile();
+  // Config file I/O.
+  // Changed names because 'print' causes a name collision when you use
+  // 'from PySZG import *'.
+%extend {
+bool readConfig() {
+  return self->read();
+}
+bool writeConfig() {
+  return self->write();
+}
+bool printConfig() const {
+  return self->print();
+}
+}
 
-  // bulk manipulation of users login file
-  bool parseLoginFile();
-  bool writeLoginFile();
-
-  // output configuration
-  void printConfig();
-  void printLogin();
+  // Login file I/O.
+  bool readLogin(bool fFromInit = false);
+  bool writeLogin();
+  bool printLogin() const;
 
   // get global config info
   /// computer name, as parsed from the config file
@@ -114,7 +122,7 @@ class arSZGClient{
   bool setAttribute(const string& groupName, 
                     const string& parameterName,
                     const string& parameterValue);
-%extend{
+%extend {
   bool setAttributeComputer(const string& computerName,
                     const string& groupName, 
                     const string& parameterName,
@@ -348,7 +356,6 @@ PyObject* getMessageResponse( PyObject* tags, int timeout ) {
   void printSZGServers(const string& broadcast);
   vector<string> findSZGServers(const string& broadcast);
   void setServerLocation(const string& IPaddress, int port);
-  bool writeLoginFile(const string& userName);
   bool logout();
   void closeConnection();
 

@@ -48,10 +48,12 @@ import os
 import sys
 import struct
 
-try:
-    os.chdir(sys.path[0])
-except:
-    pass
+# I dont know why this was here, but it does not look like a good thing.
+# Jim 2/15/07
+#try:
+#    os.chdir(sys.path[0])
+#except:
+#    pass
 
 def launchConsole(loc=globals()):
     from threading import Thread

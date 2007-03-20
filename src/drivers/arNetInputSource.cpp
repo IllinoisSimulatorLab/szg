@@ -56,13 +56,13 @@ void arNetInputSource::_connectionTask() {
     const arPhleetAddress IPport = _szgClient->discoverService(serviceName, networks, true);
     if (!IPport.valid){
       if (IPport.address == "standalone") {
-	// arSZGClient::discoverService hardcodes "standalone"
-	ar_log_error() << "arNetInputSource: no szgserver.\n";
-	_closeConnection();
+        // arSZGClient::discoverService hardcodes "standalone"
+        ar_log_error() << "arNetInputSource: no szgserver.\n";
+        _closeConnection();
         break;
       }
-      ar_log_warning() << "arNetInputSource: no service '" <<
-	serviceName << "' on network '" << networks << "'.\n";
+      ar_log_warning() << "arNetInputSource: no service '"
+        << serviceName << "' on network '" << networks << "'.\n";
       // Throttle, since service won't reappear that quickly,
       // and szgserver itself may be stopping.
       a.sleep();
@@ -81,14 +81,15 @@ void arNetInputSource::_connectionTask() {
       continue;
     }
 
-    ar_log_remark() << "arNetInputSource connected to " <<
-      serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";
+    ar_log_remark() << "arNetInputSource connected to "
+      << serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";
     _connected = true;
 
     _dataTask();
 
-    ar_log_remark() << "arNetInputSource disconnected from " <<
-      serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";
+    ar_log_remark() << "arNetInputSource disconnected from "
+      << serviceName << " on slot " << _slot << " at " << IP << ":" << port << ".\n";
+
     _closeConnection();
   }
 }
