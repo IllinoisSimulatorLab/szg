@@ -1,3 +1,5 @@
+.PHONY: all drivers clean docs demo clean-sdk bin-install install-shared demo-clean demo-create-sdk demo-bin-install
+
 include make/Makefile.os
 ifeq "$PLATFORM" "UNKNOWN_OS"
 all:
@@ -55,8 +57,7 @@ create-sdk: all
 	find $(INSTALLDIR)/doc -name 'CVS' -print | xargs rm -rf
 	cp -r $(SZGHOME)/rsc/ $(INSTALLDIR)/rsc
 	find $(INSTALLDIR)/rsc -name 'CVS' -print | xargs rm -rf
-	cp $(SZGHOME)/script/ezszg.sh $(INSTALLDIR)
-	cp $(SZGHOME)/SZG_CREDITS $(INSTALLDIR)
+	cp $(SZGHOME)/SZG_CREDITS $(SZGHOME)/script/ezszg.sh $(INSTALLDIR)
 	@for i in $(LIBDIRS) ; do cp $(SZGHOME)/src/$$i/*.h $(INSTALLDIR)/include ; done
 	@for i in $(SUBDIRS) ; do $(MAKE) -C $(PLATFORM)/$$i create-sdk || exit 1 ; done
 	cp $(SZG_SHARED_COPY) $(INSTALLDIR)/bin
