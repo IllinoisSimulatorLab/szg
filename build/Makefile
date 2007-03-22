@@ -30,14 +30,14 @@ drivers:
 	@for i in $(DRVDIRS) ; do $(MAKE) -C $(PLATFORM)/$$i -j $(JOBS) || exit 1 ; done
 
 clean:
-	@for i in $(SUBDIRS) ; do $(MAKE) -C $(PLATFORM)/$$i clean ; done
+	@for i in $(SUBDIRS) ; do $(MAKE) -C $(PLATFORM)/$$i --no-print-directory clean ; done
 
 docs:
 	rm -rf $(SZGHOME)/doc/*.html
 	$(MAKE) -C $(SZGHOME)/doc
 
 demo: all
-	@for i in $(DEMODIRS) ; do $(MAKE) -C $(PLATFORM)/demo/$$i -j $(JOBS) ; done
+	@for i in $(DEMODIRS) ; do $(MAKE) -C $(PLATFORM)/demo/$$i --no-print-directory -j $(JOBS) ; done
 
 # Copy stuff into INSTALLDIR.
 create-sdk: all
@@ -66,7 +66,7 @@ create-sdk: all
 clean-sdk:
 	rm -rf $(INSTALLDIR)
 
-# Copy stuff into SZG_BINDIR.
+# Stuff SZG_BINDIR.
 bin-install: all install-shared
 	@for i in $(SUBDIRS) ; do $(MAKE) -C $(PLATFORM)/$$i bin-install || exit 1 ; done
 
@@ -78,12 +78,10 @@ install-shared:
 demo-clean:
 	@for i in $(DEMODIRS) ; do $(MAKE) -C $(PLATFORM)/demo/$$i clean ; done
 
-# The "demo" rules only need to depend on "all" since the local Makefile
-# will build the software, if necessary.
 demo-create-sdk: all
-	@for i in $(DEMODIRS) ; do $(MAKE) -C $(PLATFORM)/demo/$$i create-sdk || exit 1 ; done
+	@for i in $(DEMODIRS) ; do $(MAKE) -C $(PLATFORM)/demo/$$i --no-print-directory create-sdk || exit 1 ; done
 
 demo-bin-install: all
-	@for i in $(DEMODIRS) ; do $(MAKE) -C $(PLATFORM)/demo/$$i bin-install || exit 1 ; done
+	@for i in $(DEMODIRS) ; do $(MAKE) -C $(PLATFORM)/demo/$$i --no-print-directory bin-install || exit 1 ; done
 
 endif
