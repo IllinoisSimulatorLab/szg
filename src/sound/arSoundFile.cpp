@@ -57,7 +57,7 @@ bool arSoundFile::dummy(){
       const float ramp = 1. - i / float(csamp); // 0 to 1
       const float ampl = 20000 * 0.6 * (.1 + .9 * ramp);
       const float period = 200. + 200. * ramp;
-      _buf[i] = short(ampl * sin(2.*3.141592 * ramp * period));
+      _buf[i] = short(ampl * sin(2.*M_PI * ramp * period));
     }
   }
 

@@ -6,8 +6,6 @@
 #include "arPrecompiled.h"
 #include "arCubeEnvironment.h"
 
-#include <math.h>
-
 arCubeEnvironment::arCubeEnvironment(){
   _numberWalls = 4;
   
@@ -246,8 +244,8 @@ void arCubeEnvironment::attachMesh(const string& name,
 
 void arCubeEnvironment::_calculateRegularWalls(){
   for (int i=0; i<_numberWalls; i++){
-    _cornerX[i] = _origin[0] + _radius*cos( (2*3.141593*i)/_numberWalls );
-    _cornerZ[i] = _origin[1] + _radius*sin( (2*3.141593*i)/_numberWalls );
+    _cornerX[i] = _origin[0] + _radius*cos( (2*M_PI*i)/_numberWalls );
+    _cornerZ[i] = _origin[1] + _radius*sin( (2*M_PI*i)/_numberWalls );
   }
 }
 

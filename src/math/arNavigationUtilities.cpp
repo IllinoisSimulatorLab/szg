@@ -37,22 +37,6 @@ void arNavigationSpace::_bound() {
   if (!arNavigationSpace::_fBbox)
     return;
 
-#if 0
-  arVector3 corr; // correction to translate back inside bounding box
-  const arVector3 pos(arNavigationSpace::_navMatrix * arVector3(0,0,0));
-  for (int i=0; i<3; ++i) {
-    if (pos.v[i] < arNavigationSpace::_vBboxMin[i])
-      corr[i] = arNavigationSpace::_vBboxMin[i] - pos.v[i];
-    else if (pos.v[i] > arNavigationSpace::_vBboxMax[i])
-      corr[i] = arNavigationSpace::_vBboxMax[i] - pos.v[i];
-  }
-  if (corr != arVector3(0,0,0)) {
-  cout << ";;;; " << corr << endl;
-    arNavigationSpace::_navMatrix =
-      arNavigationSpace::_navMatrix * ar_translationMatrix(corr);
-    }
-#endif
-
   // Translate back inside bounding box.
   // Use shortcut, the guts of ar_extractTranslation().
   float* pos = (arNavigationSpace::_navMatrix.v + 12);
@@ -86,7 +70,7 @@ void ar_navTranslate( const arVector3& vec ) {
 void ar_navRotate( const arVector3& axis, float degrees ) {
   arNavigationSpace::_lock();
   arNavigationSpace::_navMatrix = arNavigationSpace::_navMatrix *
-    ar_rotationMatrix(axis, 3.1415926535/180.*degrees);
+    ar_rotationMatrix(axis, M_PI/180.*degrees);
   arNavigationSpace::_navInverseDirty = true;
   arNavigationSpace::_unlock();
 }

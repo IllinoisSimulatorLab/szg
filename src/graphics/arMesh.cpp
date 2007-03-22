@@ -451,11 +451,11 @@ bool arSphereMesh::attachMesh(arGraphicsNode* parent, const string& name){
   int iPoint = 0;
   for (j=0; j<_numberDivisions+1; j++){
     for (i=0; i<_numberDivisions; i++){
-      z = sin(3.141592/2 - (3.141592*j)/_numberDivisions);
+      z = sin(M_PI/2 - (M_PI*j)/_numberDivisions);
       radius = (z*z>=1) ? 0. : sqrt(1-z*z);
       arVector3 location(
-        radius*cos( (2*3.141592*i)/_numberDivisions),
-        radius*sin( (2*3.141592*i)/_numberDivisions),
+        radius*cos( (2*M_PI*i)/_numberDivisions),
+        radius*sin( (2*M_PI*i)/_numberDivisions),
         z);
       pointPositions[iPoint++] = location[0];
       pointPositions[iPoint++] = location[1];
@@ -475,35 +475,35 @@ bool arSphereMesh::attachMesh(arGraphicsNode* parent, const string& name){
       triangleVertices[6*iTriangle+4] = (j+1)*_numberDivisions + k;
       triangleVertices[6*iTriangle+5] = j    *_numberDivisions + k;
 
-      z = sin(3.141592/2 - (3.141592*j)/_numberDivisions);
+      z = sin(M_PI/2 - (M_PI*j)/_numberDivisions);
       radius = sqrt(1-z*z);
-      normals[18*iTriangle   ] = radius*cos((2*3.141592*i)/_numberDivisions);
-      normals[18*iTriangle+1 ] = radius*sin((2*3.141592*i)/_numberDivisions);
+      normals[18*iTriangle   ] = radius*cos((2*M_PI*i)/_numberDivisions);
+      normals[18*iTriangle+1 ] = radius*sin((2*M_PI*i)/_numberDivisions);
       normals[18*iTriangle+2 ] = z;
-      z = sin(3.141592/2 - (3.141592*(j+1))/_numberDivisions);
+      z = sin(M_PI/2 - (M_PI*(j+1))/_numberDivisions);
       radius = sqrt(1-z*z);
-      normals[18*iTriangle+3 ] = radius*cos((2*3.141592*i)/_numberDivisions);
-      normals[18*iTriangle+4 ] = radius*sin((2*3.141592*i)/_numberDivisions);
+      normals[18*iTriangle+3 ] = radius*cos((2*M_PI*i)/_numberDivisions);
+      normals[18*iTriangle+4 ] = radius*sin((2*M_PI*i)/_numberDivisions);
       normals[18*iTriangle+5 ] = z;
-      z = sin(3.141592/2 - (3.141592*(j+1))/_numberDivisions);
+      z = sin(M_PI/2 - (M_PI*(j+1))/_numberDivisions);
       radius = sqrt(1-z*z);
-      normals[18*iTriangle+6 ] = radius*cos((2*3.141592*k)/_numberDivisions);
-      normals[18*iTriangle+7 ] = radius*sin((2*3.141592*k)/_numberDivisions);
+      normals[18*iTriangle+6 ] = radius*cos((2*M_PI*k)/_numberDivisions);
+      normals[18*iTriangle+7 ] = radius*sin((2*M_PI*k)/_numberDivisions);
       normals[18*iTriangle+8 ] = z;
-      z = sin(3.141592/2 - (3.141592*j)/_numberDivisions);
+      z = sin(M_PI/2 - (M_PI*j)/_numberDivisions);
       radius = sqrt(1-z*z);
-      normals[18*iTriangle+9 ] = radius*cos((2*3.141592*i)/_numberDivisions);
-      normals[18*iTriangle+10] = radius*sin((2*3.141592*i)/_numberDivisions);
+      normals[18*iTriangle+9 ] = radius*cos((2*M_PI*i)/_numberDivisions);
+      normals[18*iTriangle+10] = radius*sin((2*M_PI*i)/_numberDivisions);
       normals[18*iTriangle+11] = z;
-      z = sin(3.141592/2 - (3.141592*(j+1))/_numberDivisions);
+      z = sin(M_PI/2 - (M_PI*(j+1))/_numberDivisions);
       radius = sqrt(1-z*z);
-      normals[18*iTriangle+12] = radius*cos((2*3.141592*k)/_numberDivisions);
-      normals[18*iTriangle+13] = radius*sin((2*3.141592*k)/_numberDivisions);
+      normals[18*iTriangle+12] = radius*cos((2*M_PI*k)/_numberDivisions);
+      normals[18*iTriangle+13] = radius*sin((2*M_PI*k)/_numberDivisions);
       normals[18*iTriangle+14] = z;
-      z = sin(3.141592/2 - (3.141592*j)/_numberDivisions);
+      z = sin(M_PI/2 - (M_PI*j)/_numberDivisions);
       radius = sqrt(1-z*z);
-      normals[18*iTriangle+15] = radius*cos((2*3.141592*k)/_numberDivisions);
-      normals[18*iTriangle+16] = radius*sin((2*3.141592*k)/_numberDivisions);
+      normals[18*iTriangle+15] = radius*cos((2*M_PI*k)/_numberDivisions);
+      normals[18*iTriangle+16] = radius*sin((2*M_PI*k)/_numberDivisions);
       normals[18*iTriangle+17] = z;
 
       texCoords[12*iTriangle   ] = float(i)  /_numberDivisions;

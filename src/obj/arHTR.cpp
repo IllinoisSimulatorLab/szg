@@ -9,10 +9,6 @@
 #include "arHTR.h"
 #include "arGraphicsAPI.h"
 
-#ifndef M_PI
-#define M_PI 3.14159
-#endif
-
 #define MAXLINE 500
 #define MAXTOKENS 50
 
