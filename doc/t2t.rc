@@ -8,9 +8,12 @@
 %! Style(html) : styles.css
 
 % If only preproc worked here, then it could contain %%mtime(%m/%d/%Y) too.
+
+% Tweaks to make it conform to the liblueen stylesheet template better.
 %!postproc: <BODY> '<BODY>\n<DIV id="container">'
 %!postproc: </BODY> '<DIV id="footer">Stylesheet based on <A href="http://www.oswd.org/design/preview/id/2704">liblueen</A> by <A href="http://nicolas.freezee.org">Nicolas Fafchamps</A></DIV></DIV>\n</BODY>'
 %!postproc: '<DIV CLASS="body"' '<div id="high">\n<ul class="menuhigh">\n<li><a href="index.html">Table of Contents</a></li>\n<li><a href="http://www.isl.uiuc.edu/syzygy.htm">Syzygy Home Page</a></li>\n<li><a href="http://www.isl.uiuc.edu/">ISL Home</a></li>\n</ul>\n</div>\n\n<DIV CLASS="body"'
+
 %!postproc: '<DIV CLASS="toc" ID="toc">' '<DIV CLASS="toc" ID="toc">\n<H1>Page Contents:</H1>\n'
 %!postproc: Header1 'Syzygy Documentation:'
 %!postproc: Header2 'Integrated Systems Lab'
@@ -22,3 +25,11 @@
 % <strong> and <em> instead of <B> and <I>
 %!postproc(html):  '(?i)(</?)b>'  '\1strong>'
 %!postproc(html):  '(?i)(</?)i>'  '\1em>'
+
+% Allow insertion of e.g. <DIV> tags using {{DIV}}
+%!postproc(html):  {{(.*?)}}  <\1>
+
+% Allow super- and sub-script using ^^ and ,, as delimiters
+%!postproc(html):  \^\^(.*?)\^\^  <span class="textsup">\1</span>
+%!postproc(html):  ,,(.*?),,      <span class="textsub">\1</span>
+

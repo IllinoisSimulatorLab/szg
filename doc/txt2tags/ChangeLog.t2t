@@ -465,12 +465,6 @@ IMPORTANT NOTE: Endian-conversion is currently broken! The
    value = SZGClient.getAttribute("SZG_RENDER","size")
 ```
 
-   The 3 parameter version of getAttribute now means...
-
-```
-   getAttribute(,,)
-```
-
    One can set defaults of "true" or "false" for a parameter "show_framerate"
    like so:
 

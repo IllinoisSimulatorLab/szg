@@ -114,6 +114,15 @@ p {
 margin:1px 0.5em 0.5em 1.5em;
 }
 
+.textsup {
+  vertical-align: super;
+  font-size: 80%;
+}
+.textsub {
+  vertical-align: sub;
+  font-size: 80%;
+}
+
 pre
 {
   display: block;
