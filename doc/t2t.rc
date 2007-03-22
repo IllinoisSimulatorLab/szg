@@ -9,10 +9,12 @@
 
 % If only preproc worked here, then it could contain %%mtime(%m/%d/%Y) too.
 %!postproc: <BODY> '<BODY>\n<DIV id="container">'
-%!postproc: </BODY> '</DIV>\n</BODY>'
+%!postproc: </BODY> '<DIV id="footer">Stylesheet based on <A href="http://www.oswd.org/design/preview/id/2704">liblueen</A> by <A href="http://nicolas.freezee.org">Nicolas Fafchamps</A></DIV></DIV>\n</BODY>'
+%!postproc: '<DIV CLASS="body"' '<div id="high">\n<ul class="menuhigh">\n<li><a href="index.html">Table of Contents</a></li>\n<li><a href="http://www.isl.uiuc.edu/syzygy.htm">Syzygy Home Page</a></li>\n<li><a href="http://www.isl.uiuc.edu/">ISL Home</a></li>\n</ul>\n</div>\n\n<DIV CLASS="body"'
+%!postproc: '<DIV CLASS="toc" ID="toc">' '<DIV CLASS="toc" ID="toc">\n<H1>Page Contents:</H1>\n'
 %!postproc: Header1 'Syzygy Documentation:'
 %!postproc: Header2 'Integrated Systems Lab'
-%!preproc: Header3 '[Table of Contents index.html]'
+%!preproc: Header3 ''
 
 % Line break
 %!postproc(html): @@ <BR>

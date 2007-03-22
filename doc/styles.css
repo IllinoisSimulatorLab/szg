@@ -32,7 +32,7 @@ padding-bottom:1em;
 padding-right:82px;
 }
 
-#foot {
+#footer {
 border:1px solid #202020;
 border-top:0;
 padding:0.5em;
@@ -74,6 +74,15 @@ body {
 background-color:#CDCDCD;
 font-family:Verdana, Arial, Helvetica, sans-serif;
 font-size:0.75em;
+}
+
+#toc
+{
+  display: block;
+	margin: 5px;
+	padding: 5px;
+	border: 1px dotted;
+	background: #ffffee;
 }
 
 h1 {

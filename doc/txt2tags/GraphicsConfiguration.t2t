@@ -161,8 +161,11 @@ Here's a perspective camera with the same field of view:
   <name>camera_perspective</name>
   <value>
     <szg_camera type="perspective">
-      <frustum left="-4." right="4." bottom="-3." top="3." near="3." far="1000000." />
-      <lookat viewx="0." viewy="5." viewz="0." lookatx="0." lookaty="5." lookatz="-1." upx="0." upy="1." upz="0." />
+      <frustum left="-4."  right="4."  bottom="-3."
+                top="3."    near="3."     far="1000000." />
+      <lookat viewx="0."   viewy="5."   viewz="0."
+            lookatx="0." lookaty="5." lookatz="-1."
+                upx="0."     upy="1."     upz="0." />
     </szg_camera>
   </value>
 </param>
