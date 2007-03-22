@@ -56,7 +56,8 @@ bool ar3DS::attachMesh(const string& baseName, const string& where){
 bool ar3DS::attachMesh(arGraphicsNode* parent, const string& baseName) {
 #ifndef Enable3DS
   cerr << "ar3DS error: compiled without 3DS support.\n";
-  (void)parent, baseName; // avoid compiler warning
+  (void)parent; // avoid compiler warning
+  (void)baseName; // avoid compiler warning
   return false;
 #else
   if (_invalidFile){
