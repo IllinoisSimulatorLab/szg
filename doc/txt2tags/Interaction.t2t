@@ -1,6 +1,6 @@
 Header1 Interaction
-Header2
-%%mtime(%m/%d/%Y)
+Header2 %%mtime(%m/%d/%Y)
+
 %!options: --headers --toc --toc-level=2
 
 Header3

@@ -1,6 +1,6 @@
 Header1 Tracking and Input Device Simulator
-Header2
-%%mtime(%m/%d/%Y)
+Header2 %%mtime(%m/%d/%Y)
+
 %!options: --headers
 
 Header3

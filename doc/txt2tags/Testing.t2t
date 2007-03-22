@@ -1,6 +1,6 @@
 Header1 Supported Configurations and Testing Procedures
-Header2
-%%mtime(%m/%d/%Y)
+Header2 %%mtime(%m/%d/%Y)
+
 %!options: --headers --toc --toc-level=3
 
 Header3

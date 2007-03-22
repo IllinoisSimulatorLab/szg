@@ -1,6 +1,6 @@
 Header1 Running Programs in Standalone Mode
-Header2
-%%mtime(%m/%d/%Y)
+Header2 %%mtime(%m/%d/%Y)
+
 %!options: --headers
 
 Header3

@@ -1,6 +1,6 @@
 Header1 Input Event Filters
-Header2
-%%mtime(%m/%d/%Y)
+Header2 %%mtime(%m/%d/%Y)
+
 %!options: --headers
 
 Header3

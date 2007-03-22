@@ -1,14 +1,7 @@
 Header1 Table of Contents
-Header2
-%%mtime(%m/%d/%Y)
+Header2 %%mtime(%m/%d/%Y)
+
 %!options: --headers
-%@+leo-ver=4-thin
-%@+node:JimCrowell.20060110161328:@thin index.t2t
-%@@first
-%@@first
-%@@first
-%@@first
-%@@first
 
 
 [Syzygy Homepage http://www.isl.uiuc.edu/syzygy.htm]
@@ -108,6 +101,3 @@ Header2
 - [Testing.html Testing.html]: Tested configurations and testing procedures.
 - [Bugs.html Bugs.html]: Known bugs, problems, and issues with the current version.
 
-
-%@-node:JimCrowell.20060110161328:@thin index.t2t
-%@-leo

@@ -1,6 +1,6 @@
 Header1 Testing A Cluster
-Header2
-%%mtime(%m/%d/%Y)
+Header2 %%mtime(%m/%d/%Y)
+
 %!options: --headers --toc --toc-level=1
 
 Header3

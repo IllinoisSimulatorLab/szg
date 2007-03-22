@@ -1,6 +1,6 @@
 Header1 Using the Documentation
-Header2
-%%mtime(%m/%d/%Y)
+Header2 %%mtime(%m/%d/%Y)
+
 %!options: --headers
 
 Header3

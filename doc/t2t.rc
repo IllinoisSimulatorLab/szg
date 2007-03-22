@@ -3,7 +3,13 @@
 
 %!encoding: iso-8859-1
 
+%%% Always use CSS-friendly tags in HTML
+%!options(html): --css-sugar
+%! Style(html) : styles.css
+
 % If only preproc worked here, then it could contain %%mtime(%m/%d/%Y) too.
+%!postproc: <BODY> '<BODY>\n<DIV id="container">'
+%!postproc: </BODY> '</DIV>\n</BODY>'
 %!postproc: Header1 'Syzygy Documentation:'
 %!postproc: Header2 'Integrated Systems Lab'
 %!preproc: Header3 '[Table of Contents index.html]'

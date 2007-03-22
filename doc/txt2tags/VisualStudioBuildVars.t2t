@@ -1,6 +1,6 @@
 Header1 Environment Variables for Microsoft Visual Studio
-Header2
-%%mtime(%m/%d/%Y)
+Header2 %%mtime(%m/%d/%Y)
+
 %!options: --headers
 
 Header3

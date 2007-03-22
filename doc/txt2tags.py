@@ -2,7 +2,7 @@
 # txt2tags - generic text conversion tool
 # http://txt2tags.sf.net
 #
-# Copyright 2001, 2002, 2003, 2004, 2005 Aurelio Marinho Jargas
+# Copyright 2001, 2002, 2003, 2004, 2005, 2006 Aurelio Marinho Jargas
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -15,30 +15,6 @@
 #
 #   You have received a copy of the GNU General Public License along
 #   with this program, on the COPYING file.
-#
-#
-#
-#   +-------------------------------------------------------------+
-#   |               IMPORTANT MESSAGES, PLEASE READ               |
-#   +-------------------------------------------------------------+
-#   |                                                             |
-#   |                                                             |
-#   |                     v1.x COMPATIBILITY                      |
-#   |                     ------------------                      |
-#   |                                                             |
-#   |      Due the major syntax changes, the new 2.x series       |
-#   |      BREAKS backwards compatibility.                        |
-#   |                                                             |
-#   |      Use the 't2tconv' script to upgrade your existing      |
-#   |      v1.x files to conform the new v2.x syntax.             |
-#   |                                                             |
-#   |      Do a visual inspection on the new converted file.      |
-#   |      Specially Pre & Post proc filters can break.           |
-#   |      Check them!                                            |
-#   |                                                             |
-#   |                                                             |
-#   +-------------------------------------------------------------+
-#
 #
 ########################################################################
 #
@@ -56,7 +32,7 @@
 #   [1] made by: def convert()
 #   [2] made by: class BlockMaster
 #
-# The structures of the marked text are identifyed and its contents are
+# The structures of the marked text are identified and its contents are
 # extracted into a data holder (Python lists and dictionaries).
 #
 # When parsing the source file, the blocks (para, lists, quote, table)
@@ -68,9 +44,9 @@
 # line approach.
 #
 # In other words, whenever inside a block, the parser *holds* the tag
-# insertion process, waiting until the full block is readed. That was
+# insertion process, waiting until the full block is read. That was
 # needed primary to close paragraphs for the new XHTML target, but
-# proved to be a very good adding, improving many other processings.
+# proved to be a very good adding, improving many other processing.
 #
 # -------------------------------------------------------------------
 #
@@ -85,7 +61,7 @@
 #  process_source_file() and convert_this_files()
 #
 # Other parts are untouched, and remains the same as in v1.7, as the
-# marks regexes, target Headers and target Tags&Rules.
+# marks regexes, target Headers and target Tags & Rules.
 #
 ########################################################################
 
@@ -106,7 +82,7 @@
 #XXX Paragraph separation not valid inside Quote
 # Quote will not have <p></p> inside, instead will close and open
 # again the <blockquote>. This really sux in CSS, when defining a
-# diferent background color. Still don't know how to fix it.
+# different background color. Still don't know how to fix it.
 
 #XXX TODO (maybe)
 # New mark or macro which expands to an anchor full title.
@@ -132,20 +108,20 @@ HTML_LOWER  = 0   # use lowercased HTML tags instead upper? (default is 0)
 ##############################################################################
 
 
-# these are all the core Python modules used by txt2tags (KISS!)
+# These are all the core Python modules used by txt2tags (KISS!)
 import re, string, os, sys, time, getopt
 
-# program information
+# Program information
 my_url = 'http://txt2tags.sf.net'
 my_name = 'txt2tags'
 my_email = 'verde@aurelio.net'
-my_version = '2.3'
+my_version = '2.4'
 
 # i18n - just use if available
 if USE_I18N:
 	try:
 		import gettext
-		# if your locale dir is different, change it here
+		# If your locale dir is different, change it here
 		cat = gettext.Catalog('txt2tags',localedir='/usr/share/locale/')
 		_ = cat.gettext
 	except:
@@ -155,9 +131,9 @@ else:
 
 # FLAGS   : the conversion related flags  , may be used in %!options
 # OPTIONS : the conversion related options, may be used in %!options
-# ACTIONS : the other behaviour modifiers, valid on command line only
+# ACTIONS : the other behavior modifiers, valid on command line only
 # MACROS  : the valid macros with their default values for formatting
-# SETTINGS: global miscelaneous settings, valid on RC file only
+# SETTINGS: global miscellaneous settings, valid on RC file only
 # NO_TARGET: actions that don't require a target specification
 # NO_MULTI_INPUT: actions that don't accept more than one input file
 # CONFIG_KEYWORDS: the valid %!key:val keywords
@@ -165,7 +141,7 @@ else:
 # FLAGS and OPTIONS are configs that affect the converted document.
 # They usually have also a --no-<option> to turn them OFF.
 # ACTIONS are needed because when doing multiple input files, strange
-# behaviour would be found, as use command line interface for the
+# behavior would be found, as use command line interface for the
 # first file and gui for the second. There is no --no-<action>.
 # --version and --help inside %!options are also odd
 #
@@ -177,7 +153,7 @@ FLAGS    = {'headers'    :1 , 'enum-title' :0 , 'mask-email' :0 ,
             'quiet'      :0 }
 OPTIONS  = {'target'     :'', 'toc-level'  :3 , 'style'      :'',
             'infile'     :'', 'outfile'    :'', 'encoding'   :'',
-            'config-file':'', 'split'      :0 , 'lang'       :''} 
+            'config-file':'', 'split'      :0 , 'lang'       :''}
 ACTIONS  = {'help'       :0 , 'version'    :0 , 'gui'        :0 ,
             'verbose'    :0 , 'debug'      :0 , 'dump-config':0 ,
             'dump-source':0 }
@@ -196,9 +172,9 @@ TARGET_NAMES = {
   'tex'  : _('LaTeX document'),
   'lout' : _('Lout document'),
   'man'  : _('UNIX Manual page'),
-  'mgp'  : _('Magic Point presentation'),
+  'mgp'  : _('MagicPoint presentation'),
   'moin' : _('MoinMoin page'),
-  'pm6'  : _('PageMaker 6.0 document'),
+  'pm6'  : _('PageMaker document'),
   'txt'  : _('Plain Text'),
 }
 
@@ -226,12 +202,8 @@ SEPARATOR = '\x01'
 LISTNAMES = {'-':'list', '+':'numlist', ':':'deflist'}
 LINEBREAK = {'default':'\n', 'win':'\r\n', 'mac':'\r'}
 
-# plataform specific settings
+# Platform specific settings
 LB = LINEBREAK.get(sys.platform[:3]) or LINEBREAK['default']
-
-# identify a development version
-#dev_suffix = '-dev'+time.strftime('%m%d',time.localtime(time.time()))
-#my_version = my_version + dev_suffix
 
 VERSIONSTR = _("%s version %s <%s>")%(my_name,my_version,my_url)
 
@@ -243,7 +215,6 @@ _("  -t, --target=TYPE   set target document type. currently supported:"),
 '                      %s' % re.sub(r"[]'[]",'',repr(TARGETS)),
 _("  -i, --infile=FILE   set FILE as the input file name ('-' for STDIN)"),
 _("  -o, --outfile=FILE  set FILE as the output file name ('-' for STDOUT)"),
-_("  -n, --enum-title    enumerate all title lines as 1, 1.1, 1.1.1, etc"),
 _("  -H, --no-headers    suppress header, title and footer contents"),
 _("      --headers       show header, title and footer contents (default ON)"),
 _("      --encoding=ENC  set target file encoding (utf-8, iso-8859-1, etc)"),
@@ -254,6 +225,7 @@ _("      --mask-email    hide email from spam robots. x@y.z turns <x (a) y z>"),
 _("      --toc           add TOC (Table of Contents) to target document"),
 _("      --toc-only      print document TOC and exit"),
 _("      --toc-level=N   set maximum TOC level (depth) to N"),
+_("  -n, --enum-title    enumerate all titles as 1, 1.1, 1.1.1, etc"),
 _("  -C, --config-file=F read config from file F"),
 _("      --rc            read user config file ~/.txt2tagsrc (default ON)"),
 _("      --gui           invoke Graphical Tk Interface"),
@@ -276,6 +248,8 @@ _("By default, converted output is saved to 'infile.<target>'."),
 _("Use --outfile to force an output file name."),
 _("If  input file is '-', reads from STDIN."),
 _("If output file is '-', dumps output to STDOUT."),
+'',
+'http://txt2tags.sourceforge.net',
 ''
 ], '\n')
 
@@ -283,8 +257,8 @@ _("If output file is '-', dumps output to STDOUT."),
 ##############################################################################
 
 
-# here is all the target's templates
-# you may edit them to fit your needs
+# Here is all the target's templates
+# You may edit them to fit your needs
 #  - the %(HEADERn)s strings represent the Header lines
 #  - the %(STYLE)s string is changed by --style contents
 #  - the %(ENCODING)s string is changed by --encoding contents
@@ -361,14 +335,15 @@ HEADER_TEMPLATE = {
 """,
 
   'xhtmlcss': """\
-<?xml version="1.0"?>
+<?xml version="1.0"
+      encoding="%(ENCODING)s"
+?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"\
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 <title>%(HEADER1)s</title>
 <meta name="generator" content="http://txt2tags.sf.net" />
-<meta http-equiv="Content-Type" content="text/html; charset=%(ENCODING)s" />
 <link rel="stylesheet" type="text/css" href="%(STYLE)s" />
 </head>
 <body>
@@ -453,14 +428,11 @@ HEADER_TEMPLATE = {
 """,
 
   'tex': \
-r"""\documentclass[11pt,a4paper]{article}
-\usepackage{amsfonts,graphicx}
-\usepackage[pdfstartview=FitH,urlcolor=blue,colorlinks=true,bookmarks=true]{hyperref}
+r"""\documentclass{article}
+\usepackage{graphicx}
+\usepackage[urlcolor=blue,colorlinks=true]{hyperref}
 \usepackage[%(ENCODING)s]{inputenc}  %% char encoding
-\usepackage{%(STYLE)s}  %% user defined package
-\pagestyle{plain}   %% do page numbering ('empty' turns off)
-\frenchspacing      %% no aditional spaces after periods
-\setlength{\parskip}{8pt}\parindent=0pt  %% no paragraph indentation
+\usepackage{%(STYLE)s}  %% user defined
 
 \title{%(HEADER1)s}
 \author{%(HEADER2)s}
@@ -473,20 +445,20 @@ r"""\documentclass[11pt,a4paper]{article}
   'lout': """\
 @SysInclude { doc }
 @Document
-  @InitialFont { Times Base 12p }	# Times, Courier, Helvetica, ...
-  @PageOrientation { Portrait }		# Portrait, Landscape
-  @ColumnNumber { 1 }			# Number of columns (2, 3, ...)
-  @PageHeaders { Simple }		# None, Simple, Titles, NoTitles
-  @InitialLanguage { English }		# German, French, Portuguese, ...
-  @OptimizePages { Yes }                # Yes/No smart page break feature
+  @InitialFont { Times Base 12p }  # Times, Courier, Helvetica, ...
+  @PageOrientation { Portrait }    # Portrait, Landscape
+  @ColumnNumber { 1 }              # Number of columns (2, 3, ...)
+  @PageHeaders { Simple }          # None, Simple, Titles, NoTitles
+  @InitialLanguage { English }     # German, French, Portuguese, ...
+  @OptimizePages { Yes }           # Yes/No smart page break feature
 //
 @Text @Begin
 @Display @Heading { %(HEADER1)s }
 @Display @I { %(HEADER2)s }
 @Display { %(HEADER3)s }
-#@NP                                    # Break page after Headers
+#@NP                               # Break page after Headers
 """
-# @SysInclude { tbl }			# Tables support
+# @SysInclude { tbl }                   # Tables support
 # setup: @MakeContents { Yes }          # show TOC
 # setup: @SectionGap                    # break page at each section
 }
@@ -508,6 +480,7 @@ def getTags(config):
 	'numtitle1','numtitle2','numtitle3','numtitle4','numtitle5',
 	'blockVerbOpen','blockVerbClose',
 	'blockQuoteOpen','blockQuoteClose','blockQuoteLine',
+	'blockCommentOpen','blockCommentClose',
 	'fontMonoOpen','fontMonoClose',
 	'fontBoldOpen','fontBoldClose',
 	'fontItalicOpen','fontItalicClose',
@@ -955,11 +928,11 @@ def getTags(config):
 	}
 	}
 	
-	# exceptions for --css-sugar
+	# Exceptions for --css-sugar
 	if config['css-sugar'] and config['target'] in ('html','xhtml'):
-		# change just HTML because XHTML inherits it
+		# Change just HTML because XHTML inherits it
 		htmltags = alltags['html']
-		# table with no cellpadding
+		# Table with no cellpadding
 		htmltags['tableOpen'] = string.replace(
 			htmltags['tableOpen'], ' CELLPADDING="4"', '')
 		# DIVs
@@ -968,15 +941,15 @@ def getTags(config):
 		htmltags['bodyOpen'] = '<DIV CLASS="body" ID="body">'
 		htmltags['bodyClose']= '</DIV>'
 	
-	# make the HTML -> XHTML inheritance
+	# Make the HTML -> XHTML inheritance
 	xhtml = alltags['html'].copy()
 	for key in xhtml.keys(): xhtml[key] = string.lower(xhtml[key])
-	# some like HTML tags as lowercase, some don't... (headers out)
+	# Some like HTML tags as lowercase, some don't... (headers out)
 	if HTML_LOWER: alltags['html'] = xhtml.copy()
 	xhtml.update(alltags['xhtml'])
 	alltags['xhtml'] = xhtml.copy()
 	
-	# compose the target tags dictionary
+	# Compose the target tags dictionary
 	tags = {}
 	target_tags = alltags[config['target']].copy()
 	
@@ -984,7 +957,7 @@ def getTags(config):
 	for key in target_tags.keys():
 		tags[key] = maskEscapeChar(target_tags[key]) # populate
 	
-	# map strong line to separator if not defined
+	# Map strong line to separator if not defined
 	if not tags['bar2'] and tags['bar1']:
 		tags['bar2'] = tags['bar1']
 	
@@ -1008,6 +981,7 @@ def getRules(config):
 	  'imgasdefterm',         # target supports image as definition term
 	  'autonumberlist',       # target supports numbered lists natively
 	  'autonumbertitle',      # target supports numbered titles natively
+	  'stylable',             # target supports external style files
 	  'parainsidelist',       # lists items supports paragraph
 	  'spacedlistitem',       # lists support blank lines between items
 	  'listnotnested',        # lists cannot be nested
@@ -1027,7 +1001,7 @@ def getRules(config):
 	  'mapbar2pagebreak',     # map the strong bar to a page break
 	  'titleblocks',          # titles must be on open/close section blocks
 	
-	# target code beautify (ON/OFF)
+	# Target code beautify (ON/OFF)
 	  'indentverbblock',      # add leading spaces to verb block lines
 	  'breaktablecell',       # break lines after any table cell
 	  'breaktablelineopen',   # break line after opening table line
@@ -1040,8 +1014,9 @@ def getRules(config):
 	  'blankendautotoc',      # append a blank line at the auto TOC end
 	  'tagnotindentable',     # tags must be placed at the line begining
 	
-	# value settings
+	# Value settings
 	  'listmaxdepth',         # maximum depth for lists
+	  'quotemaxdepth',        # maximum depth for quotes
 	  'tablecellaligntype'    # type of table cell align: cell, column
 	]
 	
@@ -1058,6 +1033,7 @@ def getRules(config):
 	  'html': {
 	    'indentverbblock':1,
 	    'linkable':1,
+	    'stylable':1,
 	    'escapeurl':1,
 	    'imglinkable':1,
 	    'imgalignable':1,
@@ -1106,6 +1082,8 @@ def getRules(config):
 	    'autotocnewpagebefore':1,
 	    },
 	  'tex' : {
+	    'stylable':1,
+	    'escapeurl':1,
 	    'autonumberlist':1,
 	    'autonumbertitle':1,
 	    'spacedlistitem':1,
@@ -1116,7 +1094,8 @@ def getRules(config):
 	    'blankendtable':1,
 	    'verbblocknotescaped':1,
 	    'keeplistindent':1,
-	    'listmaxdepth':4,
+	    'listmaxdepth':4,  # deflist is 6
+	    'quotemaxdepth':6,
 	    'barinsidequote':1,
 	    'finalescapetitle':1,
 	    'autotocnewpageafter':1,
@@ -1127,7 +1106,6 @@ def getRules(config):
 	    'keepquoteindent':1,
 	    'escapeurl':1,
 	    'verbblocknotescaped':1,
-	    'tableable':0,
 	    'imgalignable':1,
 	    'mapbar2pagebreak':1,
 	    'titleblocks':1,
@@ -1173,19 +1151,19 @@ def getRules(config):
 	    }
 	}
 	
-	# exceptions for --css-sugar
+	# Exceptions for --css-sugar
 	if config['css-sugar'] and config['target'] in ('html','xhtml'):
 		rules_bank['html']['indentverbblock'] = 0
 		rules_bank['html']['autotocwithbars'] = 0
 	
-	# get the target specific rules
+	# Get the target specific rules
 	if config['target'] == 'xhtml':
 		myrules = rules_bank['html'].copy()   # inheritance
 		myrules.update(rules_bank['xhtml'])   # get XHTML specific
 	else:
 		myrules = rules_bank[config['target']].copy()
 	
-	# populate return dictionary
+	# Populate return dictionary
 	for key in allrules: ret[key] = 0        # reset all
 	ret.update(myrules)                      # get rules
 	
@@ -1207,6 +1185,10 @@ def getRegexes():
 		re.compile(r'^"""\s*$'),
 	'blockRawClose':
 		re.compile(r'^"""\s*$'),
+	'blockCommentOpen':
+		re.compile(r'^%%%\s*$'),
+	'blockCommentClose':
+		re.compile(r'^%%%\s*$'),
 	'quote':
 		re.compile(r'^\t+'),
 	'1lineVerb':
@@ -1243,7 +1225,7 @@ def getRegexes():
 	'comment':
 		re.compile(r'^%'),
 	
-	# auxiliar tag regexes
+	# Auxiliary tag regexes
 	'_imgAlign'        : re.compile(r'~A~', re.I),
 	'_tableAlign'      : re.compile(r'~A~', re.I),
 	'_anchor'          : re.compile(r'~A~', re.I),
@@ -1253,7 +1235,7 @@ def getRegexes():
 	'_tableCellAlign'  : re.compile(r'~A~', re.I),
 	}
 	
-	# special char to place data on TAGs contents  (\a == bell)
+	# Special char to place data on TAGs contents  (\a == bell)
 	bank['x'] = re.compile('\a')
 	
 	# %%macroname [ (formatting) ]
@@ -1263,23 +1245,28 @@ def getRegexes():
 	# %%TOC special macro for TOC positioning
 	bank['toc'] = re.compile(r'^ *%%toc\s*$', re.I)
 	
-	# almost complicated title regexes ;)
+	# Almost complicated title regexes ;)
 	titskel = r'^ *(?P<id>%s)(?P<txt>%s)\1(\[(?P<label>[\w-]*)\])?\s*$'
 	bank[   'title'] = re.compile(titskel%('[=]{1,5}','[^=](|.*[^=])'))
 	bank['numtitle'] = re.compile(titskel%('[+]{1,5}','[^+](|.*[^+])'))
 	
-	### complicated regexes begin here ;)
+	### Complicated regexes begin here ;)
 	#
-	# textual descriptions on --help's style: [...] is optional, | is OR
+	# Textual descriptions on --help's style: [...] is optional, | is OR
 	
 	
-	### first, some auxiliar variables
+	### First, some auxiliary variables
 	#
 	
 	# [image.EXT]
 	patt_img = r'\[([\w_,.+%$#@!?+~/-]+\.(png|jpe?g|gif|eps|bmp))\]'
 	
-	# link things
+	# Link things
+	# http://www.gbiv.com/protocols/uri/rfc/rfc3986.html
+	# pchar: A-Za-z._~- / %FF / !$&'()*+,;= / :@
+	# Recomended order: scheme://user:pass@domain/path?query=foo#anchor
+	# Also works      : scheme://user:pass@domain/path#anchor?query=foo
+	# TODO form: !'():
 	urlskel = {
 	  'proto' : r'(https?|ftp|news|telnet|gopher|wais)://',
 	  'guess' : r'(www[23]?|ftp)\.',         # w/out proto, try to guess
@@ -1296,22 +1283,22 @@ def getRegexes():
 	
 	# [ http:// ] [ username:password@ ] domain.com [ / ]
 	#     [ #anchor | ?form=data ]
-	retxt_url = r'\b(%s%s|%s)[%s]+\b/*(\?[%s]+)?(#[%s]+)?'%(
+	retxt_url = r'\b(%s%s|%s)[%s]+\b/*(\?[%s]+)?(#[%s]*)?'%(
 	             urlskel['proto'],patt_url_login, urlskel['guess'],
 	             urlskel['chars'],urlskel['form'],urlskel['anchor'])
 	
 	# filename | [ filename ] #anchor
-	retxt_url_local = r'[%s]+|[%s]*(#[%s]+)'%(
+	retxt_url_local = r'[%s]+|[%s]*(#[%s]*)'%(
 	             urlskel['chars'],urlskel['chars'],urlskel['anchor'])
 	
 	# user@domain [ ?form=data ]
 	patt_email = r'\b[%s]+@([A-Za-z0-9_-]+\.)+[A-Za-z]{2,4}\b(\?[%s]+)?'%(
 	             urlskel['login'],urlskel['form'])
 	
-	# saving for future use
+	# Saving for future use
 	bank['_urlskel'] = urlskel
 	
-	### and now the real regexes
+	### And now the real regexes
 	#
 	
 	bank['email'] = re.compile(patt_email,re.I)
@@ -1325,10 +1312,10 @@ def getRegexes():
 		  patt_img, retxt_url, patt_email, retxt_url_local),
 		re.L+re.I)
 	
-	# image
+	# Image
 	bank['img'] = re.compile(patt_img, re.L+re.I)
 	
-	# special things
+	# Special things
 	bank['special'] = re.compile(r'^%!\s*')
 	return bank
 ### END OF regex nightmares
@@ -1354,7 +1341,7 @@ def getTraceback():
 	except: pass
 def getUnknownErrorMessage():
 	msg = '%s\n%s (%s):\n\n%s'%(
-	  _('Sorry! Txt2tags aborted by an unknow error.'),
+	  _('Sorry! Txt2tags aborted by an unknown error.'),
 	  _('Please send the following Error Traceback to the author'),
 	  my_email, getTraceback())
 	return msg
@@ -1390,7 +1377,7 @@ def Readfile(file, remove_linebreaks=0, ignore_error=0):
 				Error(_("Cannot read file:")+" %s"%file)
 	if remove_linebreaks:
 		data = map(lambda x:re.sub('[\n\r]+$','',x), data)
-	Message(_("Readed file (%d lines): %s")%(len(data),file),2)
+	Message(_("File read (%d lines): %s")%(len(data),file),2)
 	return data
 def Savefile(file, contents):
 	try: f = open(file, 'wb')
@@ -1407,28 +1394,28 @@ def dotted_spaces(txt=''):
 # TIP: win env vars http://www.winnetmag.com/Article/ArticleID/23873/23873.html
 def get_rc_path():
 	"Return the full path for the users' RC file"
-	# try to get the path from an env var. if yes, we're done
+	# Try to get the path from an env var. if yes, we're done
 	user_defined = os.environ.get('T2TCONFIG')
 	if user_defined: return user_defined
-	# env var not found, so perform automatic path composing
-	# set default filename according system platform
+	# Env var not found, so perform automatic path composing
+	# Set default filename according system platform
 	rc_names = {'default':'.txt2tagsrc', 'win':'_t2trc'}
 	rc_file = rc_names.get(sys.platform[:3]) or rc_names['default']
-	# the file must be on the user directory, but where is this dir?
+	# The file must be on the user directory, but where is this dir?
 	rc_dir_search = ['HOME', 'HOMEPATH']
 	for var in rc_dir_search:
 		rc_dir = os.environ.get(var)
 		if rc_dir: break
 	# rc dir found, now we must join dir+file to compose the full path
 	if rc_dir:
-		# compose path and return it if the file exists
+		# Compose path and return it if the file exists
 		rc_path = os.path.join(rc_dir, rc_file)
-		# on windows, prefix with the drive (%homedrive%: 2k/XP/NT)
+		# On windows, prefix with the drive (%homedrive%: 2k/XP/NT)
 		if sys.platform[:3] == 'win':
 			rc_drive = os.environ.get('HOMEDRIVE')
 			rc_path = os.path.join(rc_drive,rc_path)
 		return rc_path
-	# sorry, not found
+	# Sorry, not found
 	return ''
 
 
@@ -1486,7 +1473,7 @@ class CommandLine:
 		  'q':'quiet'     ,  'C':'config-file'
 		}
 		
-		# compose valid short and long options data for getopt
+		# Compose valid short and long options data for getopt
 		self.short_opts = self._compose_short_opts()
 		self.long_opts  = self._compose_long_opts()
 	
@@ -1520,9 +1507,9 @@ class CommandLine:
 	
 	def parse(self, cmdline=[]):
 		"Check/Parse a command line list     TIP: no program name!"
-		# get the valid options
+		# Get the valid options
 		short, long = self.short_opts, self.long_opts
-		# parse it!
+		# Parse it!
 		try:
 			opts, args = getopt.getopt(cmdline, short, long)
 		except getopt.error, errmsg:
@@ -1533,19 +1520,19 @@ class CommandLine:
 		"Returns the options/arguments found as RAW config"
 		if not cmdline: return []
 		ret = []
-		# we need lists, not strings
+		# We need lists, not strings
 		if type(cmdline) == type(''): cmdline = self._tokenize(cmdline)
 		opts, args = self.parse(cmdline[:])
-		# parse all options
+		# Parse all options
 		for name,value in opts:
-			# remove leading - and --
+			# Remove leading - and --
 			name = re.sub('^--?', '', name)
-			# alias to old mispelled 'suGGar'
+			# Alias to old misspelled 'suGGar'
 			if   name ==    'css-suggar': name =    'css-sugar'
 			elif name == 'no-css-suggar': name = 'no-css-sugar'
-			# translate short opt to long
+			# Translate short opt to long
 			if len(name) == 1: name = self.short_long.get(name)
-			# outfile exception: path relative to PWD
+			# Outfile exception: path relative to PWD
 			if name == 'outfile' and relative \
 			   and value not in [STDOUT, MODULEOUT]:
 				value = os.path.abspath(value)
@@ -1553,24 +1540,24 @@ class CommandLine:
 			if name == 'config-file':
 				configs = ConfigLines().include_config_file(
 				          value)
-				# remove the 'target' item of all configs
+				# Remove the 'target' item of all configs
 				configs = map(lambda c: [c[1],c[2]], configs)
 				ret.extend(configs)
 				continue
-			# save it
+			# Save it
 			ret.append([name, value])
-		# get infile, if any
+		# Get infile, if any
 		while args:
 			infile = args.pop(0)
 			ret.append(['infile', infile])
-		# apply 'ignore' and 'filter' rules (filter is stronger)
+		# Apply 'ignore' and 'filter' rules (filter is stronger)
 		temp = ret[:] ; ret = []
 		for name,value in temp:
 			if (not filter and not ignore) or \
 			   (filter and name in filter) or \
 			   (ignore and name not in ignore):
 				ret.append( ['all', name, value] )
-		# add the original command line string as 'realcmdline'
+		# Add the original command line string as 'realcmdline'
 		ret.append( ['all', 'realcmdline', cmdline] )
 		return ret
 	
@@ -1582,7 +1569,7 @@ class CommandLine:
 		cfg = conf.copy()
 		valid_opts = self.all_options + self.all_flags
 		use_short = {'no-headers':'H', 'enum-title':'n'}
-		# remove useless options
+		# Remove useless options
 		if not no_check and cfg.get('toc-only'):
 			if cfg.has_key('no-headers'):
 				del cfg['no-headers']
@@ -1592,17 +1579,17 @@ class CommandLine:
 				del cfg['target']       # already default
 			args.append('--toc-only')  # must be the first
 			del cfg['toc-only']
-		# add target type
+		# Add target type
 		if cfg.has_key('target'):
 			args.append('-t '+cfg['target'])
 			del cfg['target']
-		# add other options
+		# Add other options
 		for key in cfg.keys():
 			if key not in valid_opts: continue  # may be a %!setting
-			if key in ['outfile','infile']: continue   # later
+			if key == 'outfile' or key == 'infile': continue # later
 			val = cfg[key]
 			if not val: continue
-			# default values are useless on cmdline
+			# Default values are useless on cmdline
 			if val == dft_options.get(key): continue
 			# -short format
 			if key in use_short.keys():
@@ -1613,14 +1600,14 @@ class CommandLine:
 				args.append('--'+key)
 			else:                     # add --option=value
 				args.append('--%s=%s'%(key,val))
-		# the outfile using -o
+		# The outfile using -o
 		if cfg.has_key('outfile') and \
 		   cfg['outfile'] != dft_options.get('outfile'):
 			args.append('-o '+cfg['outfile'])
-		# place input file(s) always at the end
+		# Place input file(s) always at the end
 		if cfg.has_key('infile'):
 			args.append(string.join(cfg['infile'],' '))
-		# return as a nice list
+		# Return as a nice list
 		Debug("Diet command line: %s"%string.join(args,' '), 1)
 		return args
 
@@ -1678,10 +1665,10 @@ class SourceDocument:
 	
 	def get(self, areaname):
 		"Returns head|conf|body contents from self.buffer"
-		# sanity
+		# Sanity
 		if areaname not in self.areas: return []
 		if not self.buffer           : return []
-		# go get it
+		# Go get it
 		bufini = 1
 		bufend = len(self.buffer)
 		if   areaname == 'head':
@@ -1696,7 +1683,7 @@ class SourceDocument:
 		else:
 			Error("Unknown Area name '%s'"%areaname)
 		lines = self.buffer[ini:end]
-		# make sure head will always have 3 lines
+		# Make sure head will always have 3 lines
 		while areaname == 'head' and len(lines) < 3:
 			lines.append('')
 		return lines
@@ -1718,7 +1705,19 @@ class SourceDocument:
 		if not string.strip(buf[1]):              # no header
 			ref[0] = 0 ; ref[1] = 2
 		rgx = getRegexes()
-		for i in range(ref[1],len(buf)):          # find body init:
+		on_comment_block = 0
+		for i in xrange(ref[1],len(buf)):         # find body init:
+			# Handle comment blocks inside config area
+			if not on_comment_block \
+			   and rgx['blockCommentOpen'].search(buf[i]):
+				on_comment_block = 1
+				continue
+			if on_comment_block \
+			   and rgx['blockCommentOpen'].search(buf[i]):
+				on_comment_block = 0
+				continue
+			if on_comment_block: continue
+			
 			if string.strip(buf[i]) and (     # ... not blank and
 			   buf[i][0] != '%' or            # ... not comment or
 			   rgx['macros'].match(buf[i]) or # ... %%macro
@@ -1732,7 +1731,7 @@ class SourceDocument:
 		Debug('Head,Conf,Body start line: %s'%ref)
 		self.arearef = ref                        # save results
 		self.buffer  = buf
-		# fancyness sample: head conf body (1 4 8)
+		# Fancyness sample: head conf body (1 4 8)
 		self.areas_fancy = "%s (%s)"%(
 		     string.join(self.areas),
 		     string.join(map(str, map(lambda x:x or '', ref))))
@@ -1756,7 +1755,7 @@ class ConfigMaster:
 	
 	This class is the configuration master. It knows how to handle
 	the RAW and PARSED config format. It also performs the sanity
-	checkings for a given configuration.
+	checking for a given configuration.
 	
 	DATA:
 	  self.raw         - Stores the config on the RAW format
@@ -1805,9 +1804,10 @@ class ConfigMaster:
 		self.dft_settings = SETTINGS.copy()
 		self.defaults     = self._get_defaults()
 		self.off          = self._get_off()
-		self.multi        = ['infile', 'options','preproc','postproc']
 		self.incremental  = ['verbose']
 		self.numeric      = ['toc-level','split']
+		self.multi        = ['infile', 'preproc', 'postproc',
+		                     'options', 'style']
 	
 	def _get_defaults(self):
 		"Get the default values for all config/options/flags"
@@ -1846,7 +1846,7 @@ class ConfigMaster:
 		ret = []
 		self._check_target()
 		for entry in self.raw:
-			if entry[0] in [self.target, 'all']:
+			if entry[0] == self.target or entry[0] == 'all':
 				ret.append(entry)
 		return ret
 	
@@ -1862,32 +1862,33 @@ class ConfigMaster:
 			for target, key, val in raw_opts:
 				self.add(key, val)
 			return
-		# the no- prefix turns OFF this key
+		# The no- prefix turns OFF this key
 		if key[:3] == 'no-':
 			key = key[3:]              # remove prefix
 			val = self.off.get(key)    # turn key OFF
-		# is this key valid?
+		# Is this key valid?
 		if key not in self.defaults.keys():
 			Debug('Bogus Config %s:%s'%(key,val),1)
 			return
-		# is this value the default one?
+		# Is this value the default one?
 		if val == self.defaults.get(key):
-			# if default value, remove previous key:val
+			# If default value, remove previous key:val
 			if self.parsed.has_key(key):
 				del self.parsed[key]
-			# nothing more to do
+			# Nothing more to do
 			return
-		# flags ON comes empty. we'll add the 1 value now
-		if val == '' and \
-		   key in self.dft_flags.keys()+self.dft_actions.keys():
+		# Flags ON comes empty. we'll add the 1 value now
+		if val == '' and (
+		   key in self.dft_flags.keys() or
+		   key in self.dft_actions.keys()):
 			val = 1
-		# multi value or single?
+		# Multi value or single?
 		if key in self.multi:
-			# first one? start new list
+			# First one? start new list
 			if not self.parsed.has_key(key):
 				self.parsed[key] = []
 			self.parsed[key].append(val)
-		# incremental value? so let's add it
+		# Incremental value? so let's add it
 		elif key in self.incremental:
 			self.parsed[key] = (self.parsed.get(key) or 0) + val
 		else:
@@ -1898,7 +1899,7 @@ class ConfigMaster:
 	def get_outfile_name(self, config={}):
 		"Dirname is the same for {in,out}file"
 		infile, outfile = config['sourcefile'], config['outfile']
-		if outfile and outfile not in [STDOUT, MODULEOUT] \
+		if outfile and outfile not in (STDOUT, MODULEOUT) \
 		   and not os.path.isabs(outfile):
 			outfile = os.path.join(os.path.dirname(infile), outfile)
 		if infile == STDIN    and not outfile: outfile = STDOUT
@@ -1911,40 +1912,40 @@ class ConfigMaster:
 		return outfile
 	
 	def sanity(self, config, gui=0):
-		"Basic config sanity checkings"
+		"Basic config sanity checking"
 		if not config: return {}
 		target = config.get('target')
-		# some actions don't require target specification
+		# Some actions don't require target specification
 		if not target:
 			for action in NO_TARGET:
 				if config.get(action):
 					target = 'txt'
 					break
-		# on GUI, some checkings are skipped
+		# On GUI, some checking are skipped
 		if not gui:
-			# we *need* a target
+			# We *need* a target
 			if not target:
 				Error(_('No target specified (try --help)')+\
 				'\n\n'+\
 				_('Maybe trying to convert an old v1.x file?'))
-			# and of course, an infile also
+			# And of course, an infile also
 			if not config.get('infile'):
 				Error(_('Missing input file (try --help)'))
-			# is the target valid?
+			# Is the target valid?
 			if not TARGETS.count(target):
 				Error(_("Invalid target '%s' (try --help)")%\
 				     target)
-		# ensure all keys are present
+		# Ensure all keys are present
 		empty = self.defaults.copy() ; empty.update(config)
 		config = empty.copy()
-		# check integers options
+		# Check integers options
 		for key in config.keys():
 			if key in self.numeric:
 				try: config[key] = int(config[key])
 				except: Error(_('--%s value must be a number'
 				                )%key)
-		# check split level value
-		if config['split'] not in [0,1,2]:
+		# Check split level value
+		if config['split'] not in (0,1,2):
 			Error(_('Option --split must be 0, 1 or 2'))
 		# --toc-only is stronger than others
 		if config['toc-only']:
@@ -1953,13 +1954,13 @@ class ConfigMaster:
 			config['split']   = 0
 			config['gui']     = 0
 			config['outfile'] = config['outfile'] or STDOUT
-		# splitting is disable for now (future: HTML only, no STDOUT)
+		# Splitting is disable for now (future: HTML only, no STDOUT)
 		config['split'] = 0
-		# restore target
+		# Restore target
 		config['target'] = target
-		# set output file name
+		# Set output file name
 		config['outfile'] = self.get_outfile_name(config)
-		# checking suicide
+		# Checking suicide
 		if config['sourcefile'] == config['outfile'] and \
 		   config['outfile'] not in [STDOUT,MODULEOUT] and not gui:
 			Error(_("Input and Output files are the same: %s")%(
@@ -1978,12 +1979,12 @@ class ConfigMaster:
 	def find_value(self, key='', target=''):
 		"Scans ALL raw config to find the desired key"
 		ret = []
-		# scan and save all values found
+		# Scan and save all values found
 		for targ, k, val in self.raw:
-			if targ in [target, 'all'] and k == key:
+			if k == key and (targ == target or targ == 'all'):
 				ret.append(val)
 		if not ret: return ''
-		# if not multi value, return only the last found
+		# If not multi value, return only the last found
 		if key in self.multi: return ret
 		else                : return ret[-1]
 
@@ -2030,8 +2031,8 @@ class ConfigLines:
 		if not filename: return []
 		errormsg = _("Invalid CONFIG line on %s")+"\n%03d:%s"
 		lines = Readfile(filename, remove_linebreaks=1)
-		# sanity: try to find invalid config lines
-		for i in range(len(lines)):
+		# Sanity: try to find invalid config lines
+		for i in xrange(len(lines)):
 			line = string.rstrip(lines[i])
 			if not line: continue  # empty
 			if line[0] != '%': Error(errormsg%(filename,i+1,line))
@@ -2040,10 +2041,10 @@ class ConfigLines:
 	def include_config_file(self, file=''):
 		"Perform the %!includeconf action, returning RAW config"
 		if not file: return []
-		# current dir relative to the current file (self.file)
+		# Current dir relative to the current file (self.file)
 		current_dir = os.path.dirname(self.file)
 		file = os.path.join(current_dir, file)
-		# read and parse included config file contents
+		# Read and parse included config file contents
 		lines = self.read_config_file(file)
 		return ConfigLines(file=file, lines=lines).get_raw_config()
 	
@@ -2052,7 +2053,7 @@ class ConfigLines:
 		ret = []
 		self.load_lines()
 		first = self.first_line
-		for i in range(len(self.lines)):
+		for i in xrange(len(self.lines)):
 			line = self.lines[i]
 			Message(_("Processing line %03d: %s")%(first+i,line),2)
 			target, key, val = self.parse_line(line)
@@ -2078,6 +2079,7 @@ class ConfigLines:
 		no_target = ['target', 'includeconf']
 		re_name   = keyname or '[a-z]+'
 		re_target = target  or '[a-z]*'
+		# XXX TODO <value>\S.+?  requires TWO chars, breaks %!include:a
 		cfgregex  = re.compile("""
 		  ^%%!\s*               # leading id with opt spaces
 		  (?P<name>%s)\s*       # config name
@@ -2112,14 +2114,14 @@ class ConfigLines:
 		# NO target keywords: force all targets
 		if name in no_target: target = 'all'
 		
-		# special config for GUI colors
+		# Special config for GUI colors
 		if name == 'guicolors':
 			valmatch = guicolors.search(value)
 			if not valmatch: return empty
 			value = re.split('\s+', value)
 		
 		# Special config with two quoted values (%!preproc: "foo" 'bar')
-		if name in ['preproc','postproc']:
+		if name == 'preproc' or name == 'postproc':
 			valmatch = prepostregex.search(value)
 			if not valmatch: return empty
 			getval = valmatch.group
@@ -2150,50 +2152,50 @@ class MaskMaster:
 	def mask(self, line=''):
 		global AUTOTOC
 		
-		# protect raw text
+		# Protect raw text
 		while regex['raw'].search(line):
 			txt = regex['raw'].search(line).group(1)
 			txt = doEscape(TARGET,txt)
 			self.rawbank.append(txt)
 			line = regex['raw'].sub(self.rawmask,line,1)
 		
-		# protect pre-formatted font text
+		# Protect pre-formatted font text
 		while regex['fontMono'].search(line):
 			txt = regex['fontMono'].search(line).group(1)
 			txt = doEscape(TARGET,txt)
 			self.monobank.append(txt)
 			line = regex['fontMono'].sub(self.monomask,line,1)
 		
-		# protect macros
+		# Protect macros
 		while regex['macros'].search(line):
 			txt = regex['macros'].search(line).group()
 			self.macrobank.append(txt)
 			line = regex['macros'].sub(self.macromask,line,1)
 		
-		# protect TOC location
+		# Protect TOC location
 		while regex['toc'].search(line):
 			line = regex['toc'].sub(self.tocmask,line)
 			AUTOTOC = 0
 		
-		# protect URLs and emails
+		# Protect URLs and emails
 		while regex['linkmark'].search(line) or \
 		      regex['link'    ].search(line):
 			
-			# try to match plain or named links
+			# Try to match plain or named links
 			match_link  = regex['link'].search(line)
 			match_named = regex['linkmark'].search(line)
 			
-			# define the current match
+			# Define the current match
 			if match_link and match_named:
-				# both types found, which is the first?
+				# Both types found, which is the first?
 				m = match_link
 				if match_named.start() < match_link.start():
 					m = match_named
 			else:
-				# just one type found, we're fine
+				# Just one type found, we're fine
 				m = match_link or match_named
 			
-			# extract link data and apply mask
+			# Extract link data and apply mask
 			if m == match_link:              # plain link
 				link = m.group()
 				label = ''
@@ -2204,7 +2206,7 @@ class MaskMaster:
 				link_re = regex['linkmark']
 			line = link_re.sub(self.linkmask,line,1)
 			
-			# save link data to the link bank
+			# Save link data to the link bank
 			self.linkbank.append((label, link))
 		return line
 	
@@ -2215,20 +2217,20 @@ class MaskMaster:
 			link = get_tagged_link(label, url)
 			line = string.replace(line, self.linkmask, link, 1)
 		
-		# expand macros
+		# Expand macros
 		for macro in self.macrobank:
 			macro = self.macroman.expand(macro)
-			line = string.replace(line, self.macromask, macro,1)
+			line = string.replace(line, self.macromask, macro, 1)
 		
-		# expand verb
+		# Expand verb
 		for mono in self.monobank:
 			open,close = TAGS['fontMonoOpen'],TAGS['fontMonoClose']
 			tagged = open+mono+close
-			line = string.replace(line,self.monomask,tagged,1)
+			line = string.replace(line, self.monomask, tagged, 1)
 		
-		# expand raw
+		# Expand raw
 		for raw in self.rawbank:
-			line = string.replace(line,self.rawmask,raw,1)
+			line = string.replace(line, self.rawmask, raw, 1)
 		
 		return line
 
@@ -2260,40 +2262,40 @@ class TitleMaster:
 		last = self.last_level
 		curr = self.level
 		
-		# same level, just close the previous
+		# Same level, just close the previous
 		if curr == last:
 			tag = TAGS.get('title%dClose'%last)
 			if tag: self.tag_hold.append(tag)
 		
-		# section -> subsection, more depth
+		# Section -> subsection, more depth
 		while curr > last:
 			last = last + 1
 			
-			# open the new block of subsections
+			# Open the new block of subsections
 			tag = TAGS.get('blockTitle%dOpen'%last)
 			if tag: self.tag_hold.append(tag)
 			
-			# jump from title1 to title3 or more
-			# fill the gap with an empty section
+			# Jump from title1 to title3 or more
+			# Fill the gap with an empty section
 			if curr - last > 0:
 				tag = TAGS.get('title%dOpen'%last)
 				tag = regex['x'].sub('', tag)      # del \a
 				if tag: self.tag_hold.append(tag)
 		
-		# section <- subsection, less depth
+		# Section <- subsection, less depth
 		while curr < last:
-			# close the current opened subsection
+			# Close the current opened subsection
 			tag = TAGS.get('title%dClose'%last)
 			if tag: self.tag_hold.append(tag)
 			
-			# close the current opened block of subsections
+			# Close the current opened block of subsections
 			tag = TAGS.get('blockTitle%dClose'%last)
 			if tag: self.tag_hold.append(tag)
 			
 			last = last - 1
 			
-			# close the previous section of the same level
-			# the subsections were under it
+			# Close the previous section of the same level
+			# The subsections were under it
 			if curr == last:
 				tag = TAGS.get('title%dClose'%last)
 				if tag: self.tag_hold.append(tag)
@@ -2326,17 +2328,17 @@ class TitleMaster:
 	
 	def _set_prop(self, line=''):
 		"Extract info from original line and set data holders."
-		# detect title type (numbered or not)
+		# Detect title type (numbered or not)
 		id = string.lstrip(line)[0]
 		if   id == '=': kind = 'title'
 		elif id == '+': kind = 'numtitle'
 		else: Error("Unknown Title ID '%s'"%id)
-		# extract line info
+		# Extract line info
 		match = regex[kind].search(line)
 		level = len(match.group('id'))
 		txt   = string.strip(match.group('txt'))
 		label = match.group('label')
-		# parse info & save
+		# Parse info & save
 		if CONF['enum-title']: kind = 'numtitle'  # force
 		if rules['titleblocks']:
 			self.tag = TAGS.get('%s%dOpen'%(kind,level)) or \
@@ -2354,23 +2356,23 @@ class TitleMaster:
 		"Compose and save the title count identifier (if needed)."
 		count_id = ''
 		if self.kind == 'numtitle' and not rules['autonumbertitle']:
-			# manually increase title count
+			# Manually increase title count
 			self.count[self.level] = self.count[self.level] +1
-			# reset sublevels count (if any)
+			# Reset sublevels count (if any)
 			max_levels = len(self.count)
 			if self.level < max_levels-1:
-				for i in range(self.level+1, max_levels):
+				for i in xrange(self.level+1, max_levels):
 					self.count[i] = 0
-			# compose count id from hierarchy
-			for i in range(self.level):
+			# Compose count id from hierarchy
+			for i in xrange(self.level):
 				count_id= "%s%d."%(count_id, self.count[i+1])
 		self.count_id = count_id
 	
 	def _set_label(self):
 		"Compose and save title label, used by anchors."
-		# remove invalid chars from label set by user
+		# Remove invalid chars from label set by user
 		self.label = re.sub('[^A-Za-z0-9_-]', '', self.label or '')
-		# generate name as 15 first :alnum: chars
+		# Generate name as 15 first :alnum: chars
 		#TODO how to translate safely accented chars to plain?
 		#self.label = re.sub('[^A-Za-z0-9]', '', self.txt)[:15]
 		# 'tocN' label - sequential count, ignoring 'toc-level'
@@ -2381,11 +2383,11 @@ class TitleMaster:
 		ret = ''
 		label = self.label
 		if CONF['toc'] and self.level <= CONF['toc-level']:
-			# this count is needed bcos self.toc stores all
+			# This count is needed bcos self.toc stores all
 			# titles, regardless of the 'toc-level' setting,
-			# so we can't use self.toc lenght to number anchors
+			# so we can't use self.toc length to number anchors
 			self.anchor_count = self.anchor_count + 1
-			# autonumber label (if needed)
+			# Autonumber label (if needed)
 			label = label or '%s%s'%(
 			        self.anchor_prefix, self.anchor_count)
 		if label and TAGS['anchor']:
@@ -2395,13 +2397,13 @@ class TitleMaster:
 	def _get_full_title_text(self):
 		"Returns the full title contents, already escaped."
 		ret = self.txt
-		# insert count_id (if any) before text
+		# Insert count_id (if any) before text
 		if self.count_id:
 			ret = '%s %s'%(self.count_id, ret)
-		# escape specials
+		# Escape specials
 		ret = doEscape(TARGET, ret)
-		# same targets needs final escapes on title lines
-		# it's here because there is a 'continue' after title
+		# Same targets needs final escapes on title lines
+		# It's here because there is a 'continue' after title
 		if rules['finalescapetitle']:
 			ret = doFinalEscape(TARGET, ret)
 		return ret
@@ -2410,18 +2412,18 @@ class TitleMaster:
 		"Returns the tagged title as a list."
 		ret = []
 		
-		# maybe some anchoring before?
+		# Maybe some anchoring before?
 		anchor = self._get_tagged_anchor()
 		self.tag = regex['_anchor'].sub(anchor, self.tag)
 		
-		### compose & escape title text (TOC uses unescaped)
+		### Compose & escape title text (TOC uses unescaped)
 		full_title = self._get_full_title_text()
 		
-		# close previous section area
+		# Close previous section area
 		ret.extend(self.tag_hold)
 		self.tag_hold = []
 		 
-		# finish title, adding "underline" on TXT target
+		# Finish title, adding "underline" on TXT target
 		tagged = regex['x'].sub(full_title, self.tag)
 		if TARGET == 'txt':
 			ret.append('') # blank line before
@@ -2454,10 +2456,10 @@ class TitleMaster:
 				else:
 					tocitem = '%s- [""%s"" #%s]'%(
 					          indent, id_txt, label)
-			# no links on TOC, just text
+			# No links on TOC, just text
 			else:
 				# man don't reformat TOC lines, cool!
-				if TARGET in ['txt', 'man']:
+				if TARGET == 'txt' or TARGET == 'man':
 					tocitem = '%s""%s""' %(
 					          indent, id_txt)
 				else:
@@ -2470,8 +2472,8 @@ class TitleMaster:
 ##############################################################################
 
 #TODO check all this table mess
-# trata linhas TABLE, com as prop do parse_row
-# o metodo table() do BLOCK xunxa e troca as celulas pelas parseadas
+# Trata linhas TABLE, com as prop do parse_row
+# O metodo table() do BLOCK xunxa e troca as celulas pelas parseadas
 class TableMaster:
 	def __init__(self, line=''):
 		self.rows      = []
@@ -2493,20 +2495,20 @@ class TableMaster:
 		calignsep = TAGS['tableColAlignSep']
 		calign    = ''
 		
-		# the first line defines if table has border or not
+		# The first line defines if table has border or not
 		if not self.border: tborder = ''
-		# set the columns alignment
+		# Set the columns alignment
 		if rules['tablecellaligntype'] == 'column':
 			calign = map(lambda x: TAGS['tableColAlign%s'%x],
 			             self.cellalign)
 			calign = string.join(calign, calignsep)
-		# align full table, set border and Column align (if any)
+		# Align full table, set border and Column align (if any)
 		topen = regex['_tableAlign'   ].sub(talign , topen)
 		topen = regex['_tableBorder'  ].sub(tborder, topen)
 		topen = regex['_tableColAlign'].sub(calign , topen)
-		# tex table spec, border or not: {|l|c|r|} , {lcr}
+		# Tex table spec, border or not: {|l|c|r|} , {lcr}
 		if calignsep and not self.border:
-			# remove cell align separator
+			# Remove cell align separator
 			topen = string.replace(topen, calignsep, '')
 		return topen
 	
@@ -2539,7 +2541,7 @@ class TableMaster:
 		sep    = TAGS['tableCellSep']
 		calign = map(lambda x: TAGS['tableCellAlign'+x],
 		             rowdata['cellalign'])
-		# populate the span tag
+		# Populate the span tag
 		cspan = []
 		for i in rowdata['cellspan']:
 			if i > 0:
@@ -2548,65 +2550,70 @@ class TableMaster:
 			else:
 				cspan.append('')
 		
-		# maybe is it a title row?
+		# Maybe is it a title row?
 		if rowdata['title']:
 			open  = TAGS['tableTitleCellOpen']  or open
 			close = TAGS['tableTitleCellClose'] or close
 			sep   = TAGS['tableTitleCellSep']   or sep
 		
-		# should we break the line on *each* table cell?
+		# Should we break the line on *each* table cell?
 		if rules['breaktablecell']: close = close+'\n'
 		
-		# cells pre processing
+		# Cells pre processing
 		if rules['tablecellstrip']:
 			cells = map(lambda x: string.strip(x), cells)
 		if rowdata['title'] and rules['tabletitlerowinbold']:
 			cells = map(lambda x: enclose_me('fontBold',x), cells)
 		
-		# add cell BEGIN/END tags
+		# Add cell BEGIN/END tags
 		for cell in cells:
 			copen = open
-			# insert cell align into open tag (if cell is alignable)
+			# Make sure we will pop from some filled lists
+			# Fixes empty line bug '| |'
+			this_align = this_span = ''
+			if calign: this_align = calign.pop(0)
+			if cspan : this_span = cspan.pop(0)
+			# Insert cell align into open tag (if cell is alignable)
 			if rules['tablecellaligntype'] == 'cell':
 				copen = regex['_tableCellAlign'].sub(
-					calign.pop(0), copen)
+					this_align, copen)
 			if rules['tablecellspannable']:
 				copen = regex['_tableCellColSpan'].sub(
-					cspan.pop(0), copen)
+					this_span, copen)
 			row.append(copen + cell + close)
 		
-		# maybe there are cell separators?
+		# Maybe there are cell separators?
 		return string.join(row, sep)
 	
 	def add_row(self, cells):
 		self.rows.append(cells)
 	
 	def parse_row(self, line):
-		# default table proprierties
+		# Default table properties
 		ret = {'border':0,'title':0,'align':'Left',
 		       'cells':[],'cellalign':[], 'cellspan':[]}
-		# detect table align (and remove spaces mark)
+		# Detect table align (and remove spaces mark)
 		if line[0] == ' ': ret['align'] = 'Center'
 		line = string.lstrip(line)
-		# detect title mark
+		# Detect title mark
 		if line[1] == '|': ret['title'] = 1
-		# detect border mark and normalize the EOL
+		# Detect border mark and normalize the EOL
 		m = re.search(' (\|+) *$', line)
 		if m: line = line+' ' ; ret['border'] = 1
 		else: line = line+' | '
-		# delete table mark
+		# Delete table mark
 		line = regex['table'].sub('', line)
-		# detect colspan  | foo | bar baz |||
+		# Detect colspan  | foo | bar baz |||
 		line = re.sub(' (\|+)\| ', '\a\\1 | ', line)
-		# split cells (the last is fake)
+		# Split cells (the last is fake)
 		ret['cells'] = string.split(line, ' | ')[:-1]
-		# find cells span
+		# Find cells span
 		ret['cellspan'] = self._get_cell_span(ret['cells'])
-		# remove span ID
+		# Remove span ID
 		ret['cells'] = map(lambda x:re.sub('\a\|+$','',x),ret['cells'])
-		# find cells align
+		# Find cells align
 		ret['cellalign'] = self._get_cell_align(ret['cells'])
-		# hooray!
+		# Hooray!
 		Debug('Table Prop: %s' % ret, 7)
 		return ret
 	
@@ -2625,29 +2632,29 @@ class TableMaster:
 			rowopen = rowopen + '\n'
 			titrowopen = titrowopen + '\n'
 		
-		# tex gotchas
+		# Tex gotchas
 		if TARGET == 'tex':
 			if not self.border:
 				rowopen = titrowopen = ''
 			else:
 				close = rowopen + close
 		
-		# now we tag all the table cells on each row
+		# Now we tag all the table cells on each row
 		#tagged_cells = map(lambda x: self._tag_cells(x), rows) #!py15
 		tagged_cells = []
 		for cell in rows: tagged_cells.append(self._tag_cells(cell))
 		
-		# add row separator tags between lines
+		# Add row separator tags between lines
 		tagged_rows = []
 		if rowsep:
 			#!py15
 			#tagged_rows = map(lambda x:x+rowsep, tagged_cells)
 			for cell in tagged_cells:
 				tagged_rows.append(cell+rowsep)
-			# remove last rowsep, because the table is over
+			# Remove last rowsep, because the table is over
 			tagged_rows[-1] = string.replace(
 			                  tagged_rows[-1], rowsep, '')
-		# add row BEGIN/END tags for each line
+		# Add row BEGIN/END tags for each line
 		else:
 			for rowdata in rows:
 				if rowdata['title']:
@@ -2676,20 +2683,23 @@ class BlockMaster:
 		self.last = ''
 		self.tableparser = None
 		self.contains = {
-		  'para'    :['passthru','raw'],
+		  'para'    :['comment','raw'],
 		  'verb'    :[],
-		  'table'   :[],
+		  'table'   :['comment'],
 		  'raw'     :[],
-		  'passthru':[],
-		  'quote'   :['quote','passthru','raw'],
+		  'tagged'  :[],
+		  'comment' :[],
+		  'quote'   :['quote','comment','raw'],
 		  'list'    :['list' ,'numlist' ,'deflist','para','verb',
-		              'raw'  ,'passthru'],
+		              'comment', 'raw'],
 		  'numlist' :['list' ,'numlist' ,'deflist','para','verb',
-		              'raw'  ,'passthru'],
+		              'comment', 'raw'],
 		  'deflist' :['list' ,'numlist' ,'deflist','para','verb',
-		              'raw'  ,'passthru']
+		              'comment', 'raw']
 		}
 		self.allblocks = self.contains.keys()
+		# If one found inside another, ignore the marks
+		self.exclusive = ['comment','verb','raw']
 	
 	def block(self):
 		if not self.BLK: return ''
@@ -2732,15 +2742,15 @@ class BlockMaster:
 		ret = []
 		if block not in self.allblocks:
 			Error("Invalid block '%s'"%block)
-		# first, let's close other possible open blocks
+		# First, let's close other possible open blocks
 		while self.block() and block not in self.contains[self.block()]:
 			ret.extend(self.blockout())
-		# now we can gladly add this new one
+		# Now we can gladly add this new one
 		self.BLK.append(block)
 		self.HLD.append([])
 		self.PRP.append({})
 		if block == 'table': self.tableparser = TableMaster()
-		# deeper and deeper
+		# Deeper and deeper
 		self.depth = len(self.BLK)
 		Debug('block ++ (%s): %s' % (block,self.BLK), 3)
 		return ret
@@ -2748,22 +2758,24 @@ class BlockMaster:
 	def blockout(self):
 		if not self.BLK: Error('No block to pop')
 		self.last = self.BLK.pop()
-		tagged = getattr(self, self.last)()
+		result = getattr(self, self.last)()
 		parsed = self.HLD.pop()
 		self.PRP.pop()
 		self.depth = len(self.BLK)
 		if self.last == 'table': del self.tableparser
-		# inserting a nested block into mother
+		# Inserting a nested block into mother
 		if self.block():
-			if self.block()[-4:] == 'list':
-				self.HLD[-1][-1].append(tagged)
-			else:
-				self.HLD[-1].append(tagged)
-			tagged = []   # reset. mother will have it all
+			if self.last != 'comment': # ignore comment blocks
+				if self.block()[-4:] == 'list':
+					self.HLD[-1][-1].append(result)
+				else:
+					self.HLD[-1].append(result)
+			# Reset now. Mother block will have it all
+			result = []
 		Debug('block -- (%s): %s' % (self.last,self.BLK), 3)
 		Debug('RELEASED (%s): %s' % (self.last,parsed), 3)
-		if tagged: Debug('BLOCK: %s'%tagged, 6)
-		return tagged
+		if result: Debug('BLOCK: %s'%result, 6)
+		return result
 	
 	def _last_escapes(self, line):
 		return doFinalEscape(TARGET, line)
@@ -2786,46 +2798,49 @@ class BlockMaster:
 			return lastitem[:-2]
 		return lastitem
 	
-	def passthru(self):
+	def tagged(self):
 		return self.hold()
+	
+	def comment(self):
+		return ''
 	
 	def raw(self):
 		lines = self.hold()
 		return map(lambda x: doEscape(TARGET, x), lines)
 	
 	def para(self):
-		tagged = []
+		result = []
 		open  = TAGS['paragraphOpen']
 		close = TAGS['paragraphClose']
 		lines = self._get_escaped_hold()
-		# open (or not) paragraph
+		# Open (or not) paragraph
 		if not open+close and self.last == 'para':
 			pass # avoids multiple blank lines
 		else:
-			tagged.append(open)
-		# pagemaker likes a paragraph as a single long line
+			result.append(open)
+		# Pagemaker likes a paragraph as a single long line
 		if rules['onelinepara']:
-			tagged.append(string.join(lines,' '))
-		# others are normal :)
+			result.append(string.join(lines,' '))
+		# Others are normal :)
 		else:
-			tagged.extend(lines)
-		tagged.append(close)
+			result.extend(lines)
+		result.append(close)
 		
-		# very very very very very very very very very UGLY fix
-		# needed because <center> can't appear inside <p>
+		# Very very very very very very very very very UGLY fix
+		# Needed because <center> can't appear inside <p>
 		try:
 			if len(lines) == 1 and \
 			   TARGET in ('html', 'xhtml') and \
 			   re.match('^\s*<center>.*</center>\s*$', lines[0]):
-				tagged = [lines[0]]
+				result = [lines[0]]
 		except: pass
 		
-		return tagged
+		return result
 	
 	def verb(self):
 		"Verbatim lines are not masked, so there's no need to unmask"
-		tagged = []
-		tagged.append(TAGS['blockVerbOpen'])
+		result = []
+		result.append(TAGS['blockVerbOpen'])
 		for line in self.hold():
 			if self.prop('mapped') == 'table':
 				line = MacroMaster().expand(line)
@@ -2835,23 +2850,23 @@ class BlockMaster:
 				line = '  '+line
 			if rules['verbblockfinalescape']:
 				line = doFinalEscape(TARGET, line)
-			tagged.append(line)
+			result.append(line)
 		#TODO maybe use if not TAGS['blockVerbClose']
 		if TARGET != 'pm6':
-			tagged.append(TAGS['blockVerbClose'])
-		return tagged
+			result.append(TAGS['blockVerbClose'])
+		return result
 	
 	def table(self):
-		# rewrite all table cells by the unmasked and escaped data
+		# Rewrite all table cells by the unmasked and escaped data
 		lines = self._get_escaped_hold()
-		for i in range(len(lines)):
+		for i in xrange(len(lines)):
 			cells = string.split(lines[i], SEPARATOR)
 			self.tableparser.rows[i]['cells'] = cells
 		
 		return self.tableparser.dump()
 	
 	def quote(self):
-		tagged = []
+		result = []
 		myre   = regex['quote']
 		open   = TAGS['blockQuoteOpen']            # block based
 		close  = TAGS['blockQuoteClose']
@@ -2860,24 +2875,24 @@ class BlockMaster:
 		if rules['tagnotindentable']: tagindent = ''
 		if not rules['keepquoteindent']: indent = ''
 		
-		if open: tagged.append(tagindent+open)     # open block
+		if open: result.append(tagindent+open)     # open block
 		for item in self.hold():
 			if type(item) == type([]):
-				tagged.extend(item)        # subquotes
+				result.extend(item)        # subquotes
 			else:
 				item = myre.sub('', item)  # del TABs
 				if rules['barinsidequote']:
 					item = get_tagged_bar(item)
 				item = self._last_escapes(item)
 				item = qline*self.depth + item
-				tagged.append(indent+item) # quote line
-		if close: tagged.append(tagindent+close)   # close block
-		return tagged
+				result.append(indent+item) # quote line
+		if close: result.append(tagindent+close)   # close block
+		return result
 	
 	def deflist(self): return self.list('deflist')
 	def numlist(self): return self.list('numlist')
 	def list(self, name='list'):
-		tagged    = []
+		result    = []
 		items     = self.hold()
 		indent    = self.prop('indent')
 		tagindent = indent
@@ -2901,22 +2916,22 @@ class BlockMaster:
 		# ItemLine: number of leading chars identifies list depth
 		if listline:
 			itemopen  = listline*self.depth
-			# dirty fix for mgp
+			# Dirty fix for mgp
 			if name == 'numlist': itemopen = itemopen + '\a. '
 		
-		# remove two-blanks from list ending mark, to avoid <p>
+		# Remove two-blanks from list ending mark, to avoid <p>
 		items[-1] = self._remove_twoblanks(items[-1])
 		
-		# open list (not nestable lists are only opened at mother)
+		# Open list (not nestable lists are only opened at mother)
 		if listopen and not \
 		   (rules['listnotnested'] and BLOCK.depth != 1):
-			tagged.append(tagindent+listopen)
+			result.append(tagindent+listopen)
 		
-		# tag each list item (multine items)
+		# Tag each list item (multiline items)
 		itemopenorig = itemopen
 		for item in items:
 			
-			# add "manual" item count for noautonum targets
+			# Add "manual" item count for noautonum targets
 			itemcount = itemcount + 1
 			if name == 'numlist' and not rules['autonumberlist']:
 				n = str(itemcount)
@@ -2925,43 +2940,43 @@ class BlockMaster:
 			
 			item[0] = self._last_escapes(item[0])
 			if name == 'deflist':
-				term, rest = string.split(item[0],SEPARATOR,1)
+				z,term,rest = string.split(item[0],SEPARATOR,2)
 				item[0] = rest
 				if not item[0]: del item[0]      # to avoid <p>
-				tagged.append(tagindent+itemopen+term+itemsep)
+				result.append(tagindent+itemopen+term+itemsep)
 			else:
 				fullitem = tagindent+itemopen
-				tagged.append(string.replace(
+				result.append(string.replace(
 				              item[0], SEPARATOR, fullitem))
 				del item[0]
 			
-			# process next lines for this item (if any)
+			# Process next lines for this item (if any)
 			for line in item:
 				if type(line) == type([]): # sublist inside
-					tagged.extend(line)
+					result.extend(line)
 				else:
 					line = self._last_escapes(line)
-					# blank lines turns to <p>
+					# Blank lines turns to <p>
 					if not line and rules['parainsidelist']:
 						line = string.rstrip(indent   +\
 						         TAGS['paragraphOpen']+\
 						         TAGS['paragraphClose'])
 					if not rules['keeplistindent']:
 						line = string.lstrip(line)
-					tagged.append(line)
+					result.append(line)
 			
-			# close item (if needed)
-			if itemclose: tagged.append(tagindent+itemclose)
+			# Close item (if needed)
+			if itemclose: result.append(tagindent+itemclose)
 		
-		# close list (not nestable lists are only closed at mother)
+		# Close list (not nestable lists are only closed at mother)
 		if listclose and not \
 		   (rules['listnotnested'] and BLOCK.depth != 1):
-			tagged.append(tagindent+listclose)
+			result.append(tagindent+listclose)
 		
 		if rules['blankendmotherlist'] and BLOCK.depth == 1:
-			tagged.append('')
+			result.append('')
 		
-		return tagged
+		return result
 
 
 ##############################################################################
@@ -3006,14 +3021,14 @@ class MacroMaster:
 		elif flag == 'p': x = info['path']
 		elif flag == 'e': x = re.search('.(\.([^.]+))?$',info['name']
 		                                ).group(2) or ''
-		#TODO simplier way for %e ?
+		#TODO simpler way for %e ?
 		else            : x = '%'+flag            # false alarm
 		return x
 	
 	def set_file_info(self, macroname):
 		if self.fileinfo.get(macroname): return   # already done
 		file = getattr(self, self.name)           # self.infile
-		if file in [STDOUT, MODULEOUT]:
+		if file == STDOUT or file == MODULEOUT:
 			dir = ''; path = name = file
 		else:
 			path = os.path.abspath(file)
@@ -3030,13 +3045,13 @@ class MacroMaster:
 			if name == 'date':
 				txt = time.strftime(fmt,self.currdate)
 			elif name == 'mtime':
-				if self.infile in [STDIN, MODULEIN]:
+				if self.infile in (STDIN, MODULEIN):
 					fdate = self.currdate
 				else:
 					mtime = os.path.getmtime(self.infile)
 					fdate = time.localtime(mtime)
 				txt = time.strftime(fmt,fdate)
-			elif name in ['infile','outfile']:
+			elif name == 'infile' or name == 'outfile':
 				self.set_file_info(name)
 				txt = self.walk_file_format(fmt)
 			else:
@@ -3055,7 +3070,7 @@ def dumpConfig(source_raw, parsed_config):
 	  (_('source document'), source_raw ),
 	  (_('command line')   , CMDLINE_RAW)
 	]
-	# first show all RAW data found
+	# First show all RAW data found
 	for label, cfg in data:
 		print _('RAW config for %s')%label
 		for target,key,val in cfg:
@@ -3064,18 +3079,18 @@ def dumpConfig(source_raw, parsed_config):
 			val    = val or _('ON')
 			print '  %-8s %s: %s'%(target,key,val)
 		print
-	# then the parsed results of all of them
+	# Then the parsed results of all of them
 	print _('Full PARSED config')
 	keys = parsed_config.keys() ; keys.sort()  # sorted
 	for key in keys:
 		val = parsed_config[key]
-		# filters are the last
-		if key in ['preproc', 'postproc']:
+		# Filters are the last
+		if key == 'preproc' or key == 'postproc':
 			continue
-		# flag beautifier
-		if key in FLAGS.keys()+ACTIONS.keys():
+		# Flag beautifier
+		if key in FLAGS.keys() or key in ACTIONS.keys():
 			val = onoff.get(val) or val
-		# list beautifier
+		# List beautifier
 		if type(val) == type([]):
 			if key == 'options': sep = ' '
 			else               : sep = ', '
@@ -3100,7 +3115,7 @@ def finish_him(outlist, config):
 	outlist = unmaskEscapeChar(outlist)
 	outlist = expandLineBreaks(outlist)
 	
-	# apply PostProc filters
+	# Apply PostProc filters
 	if config['postproc']:
 		filters = compile_filters(config['postproc'],
 		                        _('Invalid PostProc filter regex'))
@@ -3137,7 +3152,7 @@ def toc_inside_body(body, toc, config):
 	ret = []
 	if AUTOTOC: return body                     # nothing to expand
 	toc_mark = MaskMaster().tocmask
-	# expand toc mark with TOC contents
+	# Expand toc mark with TOC contents
 	for line in body:
 		if string.count(line, toc_mark):    # toc mark found
 			if config['toc']:
@@ -3151,7 +3166,7 @@ def toc_inside_body(body, toc, config):
 def toc_tagger(toc, config):
 	"Convert t2t-marked TOC (it is a list) to target-tagged TOC"
 	ret = []
-	# tag if TOC-only TOC "by hand" (target don't have a TOC tag)
+	# Tag if TOC-only TOC "by hand" (target don't have a TOC tag)
 	if config['toc-only'] or (config['toc'] and not TAGS['TOC']):
 		fakeconf = config.copy()
 		fakeconf['headers']    = 0
@@ -3162,7 +3177,7 @@ def toc_tagger(toc, config):
 		fakeconf['css-sugar']  = 0
 		ret,foo = convert(toc, fakeconf)
 		set_global_config(config)   # restore config
-	# target TOC is a tag
+	# Target TOC is a tag
 	elif config['toc'] and TAGS['TOC']:
 		ret = [TAGS['TOC']]
 	return ret
@@ -3175,7 +3190,7 @@ def toc_formatter(toc, config):
 	# TOC open/close tags (if any)
 	if TAGS['tocOpen' ]: ret.insert(0, TAGS['tocOpen'])
 	if TAGS['tocClose']: ret.append(TAGS['tocClose'])
-	# autotoc specific formatting
+	# Autotoc specific formatting
 	if AUTOTOC:
 		if rules['autotocwithbars']:           # TOC between bars
 			para = TAGS['paragraphOpen']+TAGS['paragraphClose']
@@ -3198,19 +3213,24 @@ def doHeader(headers, config):
 	if not HEADER_TEMPLATE.has_key(target):
 		Error("doheader: Unknow target '%s'"%target)
 	
-	if target in ['html','xhtml'] and config.get('css-sugar'):
+	if target in ('html','xhtml') and config.get('css-sugar'):
 		template = string.split(HEADER_TEMPLATE[target+'css'], '\n')
 	else:
 		template = string.split(HEADER_TEMPLATE[target], '\n')
 	
-	head_data = {'STYLE':'', 'ENCODING':''}
+	head_data = {'STYLE':[], 'ENCODING':''}
 	for key in head_data.keys():
 		val = config.get(string.lower(key))
-		if key == 'ENCODING': val = get_encoding_string(val, target)
+		# Remove .sty extension from each style filename (freaking tex)
+		# XXX Can't handle --style foo.sty,bar.sty
+		if target == 'tex' and key == 'STYLE':
+			val = map(lambda x:re.sub('(?i)\.sty$','',x), val)
+		if key == 'ENCODING':
+			val = get_encoding_string(val, target)
 		head_data[key] = val
-	# parse header contents
+	# Parse header contents
 	for i in 0,1,2:
-		# expand macros
+		# Expand macros
 		contents = MacroMaster(config=config).expand(headers[i])
 		# Escapes - on tex, just do it if any \tag{} present
 		if target != 'tex' or \
@@ -3220,15 +3240,17 @@ def doHeader(headers, config):
 			contents = doFinalEscape(target, contents)
 		
 		head_data['HEADER%d'%(i+1)] = contents
-	# css-inside removes STYLE line	
-	if target in ['html','xhtml'] and config.get('css-inside') and \
+	# css-inside removes STYLE line
+	#XXX In tex, this also removes the modules call (%!style:amsfonts)
+	if target in ('html','xhtml') and config.get('css-inside') and \
 	   config.get('style'):
-		head_data['STYLE'] = ''   
+		head_data['STYLE'] = []
 	Debug("Header Data: %s"%head_data, 1)
-	# scan for empty dictionary keys
-	# if found, scan template lines for that key reference
-	# if found, remove the reference
-	# if there isn't any other key reference on the same line, remove it
+	# Scan for empty dictionary keys
+	# If found, scan template lines for that key reference
+	# If found, remove the reference
+	# If there isn't any other key reference on the same line, remove it
+	#TODO loop by template line > key
 	for key in head_data.keys():
 		if head_data.get(key): continue
 		for line in template:
@@ -3236,25 +3258,62 @@ def doHeader(headers, config):
 				sline = string.replace(line, '%%(%s)s'%key, '')
 				if not re.search(r'%\([A-Z0-9]+\)s', sline):
 					template.remove(line)
-	# populate template with data
+	# Style is a multiple tag.
+	# - If none or just one, use default template
+	# - If two or more, insert extra lines in a loop (and remove original)
+	styles = head_data['STYLE']
+	if len(styles) == 1:
+		head_data['STYLE'] = styles[0]
+	elif len(styles) > 1:
+		style_mark = '%(STYLE)s'
+		for i in xrange(len(template)):
+			if string.count(template[i], style_mark):
+				while styles:
+					template.insert(i+1,
+						string.replace(
+							template[i],
+							style_mark,
+							styles.pop()))
+				del template[i]
+				break
+	# Populate template with data (dict expansion)
 	template = string.join(template, '\n') % head_data
 	
-	# adding CSS contents into template (for --css-inside)
-	if target in ['html','xhtml'] and config.get('css-inside') and \
+	# Adding CSS contents into template (for --css-inside)
+	# This code sux. Dirty++
+	if target in ('html','xhtml') and config.get('css-inside') and \
 	   config.get('style'):
-		TAGS = getTags(config)
-		cssfile = config['style']
-		if not os.path.isabs(cssfile):
-			infile = config.get('sourcefile')
-			cssfile = os.path.join(os.path.dirname(infile), cssfile)
-		css = string.join(Readfile(cssfile, 1, 1), '\n')
-		css = "%s\n%s\n%s\n" % (TAGS['cssOpen'], css, TAGS['cssClose'])
-		template = re.sub('(?i)(</HEAD>)', css+r'\1', template)
+		set_global_config(config) # usually on convert(), needed here
+		for i in xrange(len(config['style'])):
+			cssfile = config['style'][i]
+			if not os.path.isabs(cssfile):
+				infile = config.get('sourcefile')
+				cssfile = os.path.join(
+					os.path.dirname(infile), cssfile)
+			try:
+				contents = Readfile(cssfile, 1)
+				css = "\n%s\n%s\n%s\n%s\n" % (
+					doCommentLine("Included %s" % cssfile),
+					TAGS['cssOpen'],
+					string.join(contents, '\n'),
+					TAGS['cssClose'])
+				# Style now is content, needs escaping (tex)
+				#css = maskEscapeChar(css)
+			except:
+				errmsg = "CSS include failed for %s" % cssfile
+				css = "\n%s\n" % (doCommentLine(errmsg))
+			# Insert this CSS file contents on the template
+			template = re.sub('(?i)(</HEAD>)', css+r'\1', template)
+			# template = re.sub(r'(?i)(\\begin{document})',
+			#		css+'\n'+r'\1', template) # tex
+		
+		# The last blank line to keep everything separated
+		template = re.sub('(?i)(</HEAD>)', '\n'+r'\1', template)
 	
 	return string.split(template, '\n')
 
 def doCommentLine(txt):
-	# the -- string ends a (h|sg|xht)ml comment :(
+	# The -- string ends a (h|sg|xht)ml comment :(
 	txt = maskEscapeChar(txt)
 	if string.count(TAGS['comment'], '--') and \
 	   string.count(txt, '--'):
@@ -3283,7 +3342,7 @@ def doFooter(config):
 def doEscape(target,txt):
 	"Target-specific special escapes. Apply *before* insert any tag."
 	tmpmask = 'vvvvThisEscapingSuxvvvv'
-	if target in ['html','sgml','xhtml']:
+	if target in ('html','sgml','xhtml'):
 		txt = re.sub('&','&amp;',txt)
 		txt = re.sub('<','&lt;',txt)
 		txt = re.sub('>','&gt;',txt)
@@ -3304,7 +3363,7 @@ def doEscape(target,txt):
 		txt = re.sub('([|&{}@#^~])', '"\\1"',txt)               # "@"
 		txt = string.replace(txt, tmpmask, '"%s"'%(ESCCHAR*2))  # "\\"
 	elif target == 'tex':
-		# mark literal \ to be changed to $\backslash$ later
+		# Mark literal \ to be changed to $\backslash$ later
 		txt = string.replace( txt, ESCCHAR, tmpmask)
 		txt = re.sub('([#$&%{}])', ESCCHAR+r'\1'  , txt)  # \%
 		txt = re.sub('([~^])'    , ESCCHAR+r'\1{}', txt)  # \~{}
@@ -3329,7 +3388,7 @@ def doFinalEscape(target, txt):
 def EscapeCharHandler(action, data):
 	"Mask/Unmask the Escape Char on the given string"
 	if not string.strip(data): return data
-	if action not in ['mask','unmask']:
+	if action not in ('mask','unmask'):
 		Error("EscapeCharHandler: Invalid action '%s'"%action)
 	if action == 'mask': return string.replace(data,'\\',ESCCHAR)
 	else:                return string.replace(data,ESCCHAR,'\\')
@@ -3354,7 +3413,7 @@ def addLineBreaks(mylist):
 		ret.append(line+LB)                  # add final line break
 	return ret
 
-# convert ['foo\nbar'] to ['foo', 'bar'] 
+# Convert ['foo\nbar'] to ['foo', 'bar']
 def expandLineBreaks(mylist):
 	ret = []
 	for line in mylist:
@@ -3363,7 +3422,7 @@ def expandLineBreaks(mylist):
 
 def compile_filters(filters, errmsg='Filter'):
 	if filters:
-		for i in range(len(filters)):
+		for i in xrange(len(filters)):
 			patt,repl = filters[i]
 			try: rgx = re.compile(patt)
 			except: Error("%s: '%s'"%(errmsg, patt))
@@ -3387,70 +3446,63 @@ def get_tagged_link(label, url):
 	target = CONF['target']
 	image_re = regex['img']
 	
-	# set link type
+	# Set link type
 	if regex['email'].match(url):
 		linktype = 'email'
 	else:
 		linktype = 'url';
 	
-	# escape specials from TEXT parts
+	# Escape specials from TEXT parts
 	label = doEscape(target,label)
 	
-	# escape specials from link URL
-	if rules['linkable'] and rules['escapeurl']:
+	# Escape specials from link URL
+	if not rules['linkable'] or rules['escapeurl']:
 		url = doEscape(target, url)
 	
-	# if not linkable, the URL is plain text, that needs escape
-	if not rules['linkable']:
-		if target == 'tex':
-			url = re.sub('^#', '\#', url) # ugly, but compile
-		else:
-			url = doEscape(target,url)
-	
-	# adding protocol to guessed link
+	# Adding protocol to guessed link
 	guessurl = ''
 	if linktype == 'url' and \
-	   re.match(regex['_urlskel']['guess'], url):
-		if url[0] == 'w': guessurl = 'http://' +url
-		else            : guessurl =  'ftp://' +url
+	   re.match('(?i)'+regex['_urlskel']['guess'], url):
+		if url[0] in 'Ww': guessurl = 'http://' +url
+		else             : guessurl =  'ftp://' +url
 		
-		# not link aware targets -> protocol is useless
+		# Not link aware targets -> protocol is useless
 		if not rules['linkable']: guessurl = ''
 	
-	# simple link (not guessed)
+	# Simple link (not guessed)
 	if not label and not guessurl:
 		if CONF['mask-email'] and linktype == 'email':
-			# do the email mask feature (no TAGs, just text)
+			# Do the email mask feature (no TAGs, just text)
 			url = string.replace(url,'@',' (a) ')
 			url = string.replace(url,'.',' ')
 			url = "<%s>" % url
 			if rules['linkable']: url = doEscape(target, url)
 			ret = url
 		else:
-			# just add link data to tag
+			# Just add link data to tag
 			tag = TAGS[linktype]
 			ret = regex['x'].sub(url,tag)
 	
-	# named link or guessed simple link
+	# Named link or guessed simple link
 	else:
-		# adjusts for guessed link
+		# Adjusts for guessed link
 		if not label: label = url         # no   protocol
 		if guessurl : url   = guessurl    # with protocol
 		
-		# image inside link!
+		# Image inside link!
 		if image_re.match(label):
 			if rules['imglinkable']:  # get image tag
 				label = parse_images(label)
 			else:                     #  img@link !supported
 				label = "(%s)"%image_re.match(label).group(1)
 		
-		# putting data on the right appearance order
+		# Putting data on the right appearance order
 		if rules['linkable']:
 			urlorder = [url, label]   # link before label
 		else:
 			urlorder = [label, url]   # label before link
 		
-		# add link data to tag (replace \a's)
+		# Add link data to tag (replace \a's)
 		ret = TAGS["%sMark"%linktype]
 		for data in urlorder:
 			ret = regex['x'].sub(data,ret,1)
@@ -3463,7 +3515,7 @@ def parse_deflist_term(line):
 	img_re = regex['img']
 	term   = regex['deflist'].search(line).group(3)
 	
-	# mask image inside term as (image.jpg), where not supported
+	# Mask image inside term as (image.jpg), where not supported
 	if not rules['imgasdefterm'] and img_re.search(term):
 		while img_re.search(term):
 			imgfile = img_re.search(term).group(1)
@@ -3478,52 +3530,52 @@ def get_tagged_bar(line):
 	if not m: return line
 	txt = m.group(2)
 	
-	# map strong bar to pagebreak
+	# Map strong bar to pagebreak
 	if rules['mapbar2pagebreak'] and TAGS['pageBreak']:
 		TAGS['bar2'] = TAGS['pageBreak']
 	
-	# set bar type
+	# Set bar type
 	if txt[0] == '=': bar = TAGS['bar2']
 	else            : bar = TAGS['bar1']
 	
-	# to avoid comment tag confusion like <!-- ------ -->
+	# To avoid comment tag confusion like <!-- ------ -->
 	if string.count(TAGS['comment'], '--'):
 		txt = string.replace(txt,'--','__')
 	
-	# tag line
+	# Tag line
 	return regex['x'].sub(txt, bar)
 
 
 def get_image_align(line):
 	"Return the image (first found) align for the given line"
 	
-	# first clear marks that can mess align detection
+	# First clear marks that can mess align detection
 	line = re.sub(SEPARATOR+'$', '', line)  # remove deflist sep
 	line = re.sub('^'+SEPARATOR, '', line)  # remove list sep
 	line = re.sub('^[\t]+'     , '', line)  # remove quote mark
 	
-	# get image position on the line
+	# Get image position on the line
 	m = regex['img'].search(line)
 	ini = m.start() ; head = 0
 	end = m.end()   ; tail = len(line)
 	
-	# the align detection algorithm
+	# The align detection algorithm
 	if   ini == head and end != tail: align = 'left'   # ^img + text$
 	elif ini != head and end == tail: align = 'right'  # ^text + img$
 	else                            : align = 'center' # default align
 	
-	# some special cases
+	# Some special cases
 	if BLOCK.isblock('table'): align = 'center'    # ignore when table
 #	if TARGET == 'mgp' and align == 'center': align = 'center'
 	
 	return align
 
 
-# reference: http://www.iana.org/assignments/character-sets
+# Reference: http://www.iana.org/assignments/character-sets
 # http://www.drclue.net/F1.cgi/HTML/META/META.html
 def get_encoding_string(enc, target):
 	if not enc: return ''
-	# target specific translation table
+	# Target specific translation table
 	translate = {
 	'tex': {
 	  # missing: ansinew , applemac , cp437 , cp437de , cp865
@@ -3541,12 +3593,12 @@ def get_encoding_string(enc, target):
 	  'koi8-r'      : 'koi8-r'
 	  }
 	}
-	# normalization
+	# Normalization
 	enc = re.sub('(?i)(us[-_]?)?ascii|us|ibm367','us-ascii'  , enc)
 	enc = re.sub('(?i)(ibm|cp)?85([02])'        ,'ibm85\\2'  , enc)
 	enc = re.sub('(?i)(iso[_-]?)?8859[_-]?'     ,'iso-8859-' , enc)
 	enc = re.sub('iso-8859-($|[^1-9]).*'        ,'iso-8859-1', enc)
-	# apply translation table
+	# Apply translation table
 	try: enc = translate[target][string.lower(enc)]
 	except: pass
 	return enc
@@ -3560,7 +3612,7 @@ def get_encoding_string(enc, target):
 def process_source_file(file='', noconf=0, contents=[]):
 	"""
 	Find and Join all the configuration available for a source file.
-	No sanity checkings are done on this step.
+	No sanity checking is done on this step.
 	It also extracts the source document parts into separate holders.
 	
 	The config scan order is:
@@ -3574,7 +3626,7 @@ def process_source_file(file='', noconf=0, contents=[]):
 	
 	All the conversion process will be based on the data and
 	configuration returned by this function.
-	The source files is readed on this step only.
+	The source files is read on this step only.
 	"""
 	if contents:
 		source = SourceDocument(contents=contents)
@@ -3583,25 +3635,25 @@ def process_source_file(file='', noconf=0, contents=[]):
 	head, conf, body = source.split()
 	Message(_("Source document contents stored"),2)
 	if not noconf:
-		# read document config
+		# Read document config
 		source_raw = source.get_raw_config()
-		# join all the config directives found, then parse it
+		# Join all the config directives found, then parse it
 		full_raw = RC_RAW + source_raw + CMDLINE_RAW
 		Message(_("Parsing and saving all config found (%03d items)")%(
 		        len(full_raw)),1)
 		full_parsed = ConfigMaster(full_raw).parse()
-		# add manually the filemane to the conf dic
+		# Add manually the filename to the conf dic
 		if contents:
 			full_parsed['sourcefile'] = MODULEIN
 			full_parsed['infile'] = MODULEIN
 			full_parsed['outfile'] = MODULEOUT
 		else:
 			full_parsed['sourcefile'] = file
-		# maybe should we dump the config found?
+		# Maybe should we dump the config found?
 		if full_parsed.get('dump-config'):
 			dumpConfig(source_raw, full_parsed)
 			Quit()
-		# okay, all done
+		# Okay, all done
 		Debug("FULL config for this file: %s"%full_parsed, 1)
 	else:
 		full_parsed = {}
@@ -3613,11 +3665,7 @@ def get_infiles_config(infiles):
 	for each input file. This function is supposed to be the very
 	first one to be called, before any processing.
 	"""
-	ret = []
-	if not infiles: return []
-	for infile in infiles:
-		ret.append((process_source_file(infile)))
-	return ret
+	return map(process_source_file, infiles)
 
 def convert_this_files(configs):
 	global CONF
@@ -3628,35 +3676,35 @@ def convert_this_files(configs):
 		target_foot = []
 		source_head, source_conf, source_body = doc
 		myconf = ConfigMaster().sanity(myconf)
-		# compose the target file Headers
+		# Compose the target file Headers
 		#TODO escape line before?
 		#TODO see exceptions by tex and mgp
 		Message(_("Composing target Headers"),1)
 		target_head = doHeader(source_head, myconf)
-		# parse the full marked body into tagged target
+		# Parse the full marked body into tagged target
 		first_body_line = (len(source_head) or 1)+ len(source_conf) + 1
 		Message(_("Composing target Body"),1)
 		target_body, marked_toc = convert(source_body, myconf,
 		                          firstlinenr=first_body_line)
-		# if dump-source, we're done
+		# If dump-source, we're done
 		if myconf['dump-source']:
 			for line in source_head+source_conf+target_body:
 				print line
 			return
-		# make TOC (if needed)
+		# Make TOC (if needed)
 		Message(_("Composing target TOC"),1)
 		tagged_toc  = toc_tagger(marked_toc, myconf)
 		target_toc  = toc_formatter(tagged_toc, myconf)
 		target_body = toc_inside_body(target_body, target_toc, myconf)
 		if not AUTOTOC and not myconf['toc-only']: target_toc = []
-		# compose the target file Footer
+		# Compose the target file Footer
 		Message(_("Composing target Footer"),1)
 		target_foot = doFooter(myconf)
-		# finally, we have our document
+		# Finally, we have our document
 		outlist = target_head + target_toc + target_body + target_foot
-		# if on GUI, abort before finish_him
-		# if module, return finish_him as list
-		# else, write results to file or STDOUT
+		# If on GUI, abort before finish_him
+		# If module, return finish_him as list
+		# Else, write results to file or STDOUT
 		if GUI:
 			return outlist, myconf
 		elif myconf.get('outfile') == MODULEOUT:
@@ -3675,12 +3723,12 @@ def parse_images(line):
 		# HTML, XHTML and mgp!
 		if rules['imgalignable']:
 			align = get_image_align(line)
-			# add align on tag
+			# Add align on tag
 			align_name = string.capitalize(align)
 			align_tag = TAGS['imgAlign'+align_name]
 			tag = regex['_imgAlign'].sub(align_tag, tag, 1)
-			# dirty fix to allow centered solo images
-			if align == 'center' and TARGET in ['html','xhtml']:
+			# Dirty fix to allow centered solo images
+			if align == 'center' and TARGET in ('html','xhtml'):
 				rest = regex['img'].sub('',line,1)
 				if re.match('^\s+$', rest):
 					tag = "<center>%s</center>" %tag
@@ -3695,8 +3743,8 @@ def parse_images(line):
 
 
 def add_inline_tags(line):
-	# beautifiers
-	for beauti in ['Bold', 'Italic', 'Underline']:
+	# Beautifiers
+	for beauti in ('Bold', 'Italic', 'Underline'):
 		if regex['font%s'%beauti].search(line):
 			line = beautify_me(beauti, line)
 	
@@ -3706,19 +3754,19 @@ def add_inline_tags(line):
 
 def get_include_contents(file, path=''):
 	"Parses %!include: value and extract file contents"
-	ids = {'`':'verb', '"':'raw', "'":'passthru' }
+	ids = {'`':'verb', '"':'raw', "'":'tagged' }
 	id = 't2t'
-	# set include type and remove identifier marks
+	# Set include type and remove identifier marks
 	mark = file[0]
 	if mark in ids.keys():
 		if file[:2] == file[-2:] == mark*2:
 			id = ids[mark]     # set type
 			file = file[2:-2]  # remove marks
-	# handle remote dir execution
+	# Handle remote dir execution
 	filepath = os.path.join(path, file)
-	# read included file contents
+	# Read included file contents
 	lines = Readfile(filepath, remove_linebreaks=1)
-	# default txt2tags marked text, just BODY matters
+	# Default txt2tags marked text, just BODY matters
 	if id == 't2t':
 		lines = get_file_body(filepath)
 		lines.insert(0, '%%INCLUDED(%s) starts here: %s'%(id,file))
@@ -3750,15 +3798,15 @@ def convert(bodylines, config, firstlinenr=1):
 	dump_source = []
 	f_lastwasblank = 0
 	
-	# compiling all PreProc regexes
+	# Compiling all PreProc regexes
 	pre_filter = compile_filters(
 		CONF['preproc'], _('Invalid PreProc filter regex'))
 	
-	# let's mark it up!
+	# Let's mark it up!
 	linenr = firstlinenr-1
 	lineref = 0
 	while lineref < len(bodylines):
-		# defaults
+		# Defaults
 		MASK.reset()
 		results_box = ''
 		
@@ -3767,7 +3815,7 @@ def convert(bodylines, config, firstlinenr=1):
 		
 		line = re.sub('[\n\r]+$','',untouchedline)   # del line break
 		
-		# apply PreProc filters
+		# Apply PreProc filters
 		if pre_filter:
 			errmsg = _('Invalid PreProc filter replacement')
 			for rgx,repl in pre_filter:
@@ -3780,75 +3828,86 @@ def convert(bodylines, config, firstlinenr=1):
 		
 		Debug(repr(line), 2, linenr)  # heavy debug: show each line
 		
-		# any NOT table line (or comment), closes an open table
-		if ( BLOCK.isblock('table') or
-		      ( BLOCK.isblock('verb') and
-		        BLOCK.prop('mapped') == 'table'
-		       )
-		    ) \
-		   and not regex['table'].search(line) \
-		   and not regex['comment'].search(line):
-			ret.extend(BLOCK.blockout())
+		#------------------[ Comment Block ]------------------------
 		
-		# any NOT quote line (or comment) closes all open quotes
-		if BLOCK.isblock('quote') \
-		   and not regex['quote'].search(line) \
-		   and not regex['comment'].search(line):
-			while BLOCK.isblock('quote'):
-				ret.extend(BLOCK.blockout())
+		# We're already on a comment block
+		if BLOCK.block() == 'comment':
 		
+			# Closing comment
+			if regex['blockCommentClose'].search(line):
+				ret.extend(BLOCK.blockout() or [])
+				continue
+			
+			# Normal comment-inside line. Ignore it.
+			continue
+		
+		# Detecting comment block init
+		if regex['blockCommentOpen'].search(line) \
+		   and BLOCK.block() not in BLOCK.exclusive:
+			ret.extend(BLOCK.blockin('comment'))
+			continue
 		
 		#-------------------------[ Raw Text ]----------------------
 		
-		# we're already on a raw block
+		# We're already on a raw block
 		if BLOCK.block() == 'raw':
 		
-			# closing raw
+			# Closing raw
 			if regex['blockRawClose'].search(line):
 				ret.extend(BLOCK.blockout())
 				continue
 			
-			# normal raw-inside line
+			# Normal raw-inside line
 			BLOCK.holdadd(line)
 			continue
 		
-		# detecting raw block init
-		if regex['blockRawOpen'].search(line):
+		# Detecting raw block init
+		if regex['blockRawOpen'].search(line) \
+		   and BLOCK.block() not in BLOCK.exclusive:
 			ret.extend(BLOCK.blockin('raw'))
 			continue
 		
-		# one line verb-formatted text
-		if regex['1lineRaw'].search(line):
+		# One line raw text
+		if regex['1lineRaw'].search(line) \
+		   and BLOCK.block() not in BLOCK.exclusive:
 			ret.extend(BLOCK.blockin('raw'))
 			line = regex['1lineRaw'].sub('',line)
 			BLOCK.holdadd(line)
 			ret.extend(BLOCK.blockout())
 			continue
 		
-		#-----------------[ Verbatim (PRE-formatted) ]--------------
+		#------------------------[ Verbatim  ]----------------------
 		
-		#TIP we'll never support beautifiers inside verbatim
+		#TIP We'll never support beautifiers inside verbatim
 		
-		# we're already on a verb block
+		# Closing table mapped to verb
+		if BLOCK.block() == 'verb' \
+		   and BLOCK.prop('mapped') == 'table' \
+		   and not regex['table'].search(line):
+			ret.extend(BLOCK.blockout())
+		
+		# We're already on a verb block
 		if BLOCK.block() == 'verb':
 			
-			# closing verb
+			# Closing verb
 			if regex['blockVerbClose'].search(line):
 				ret.extend(BLOCK.blockout())
 				continue
 			
-			# normal verb-inside line
+			# Normal verb-inside line
 			BLOCK.holdadd(line)
 			continue
 		
-		# detecting verb block init
-		if regex['blockVerbOpen'].search(line):
+		# Detecting verb block init
+		if regex['blockVerbOpen'].search(line) \
+		   and BLOCK.block() not in BLOCK.exclusive:
 			ret.extend(BLOCK.blockin('verb'))
 			f_lastwasblank = 0
 			continue
 		
-		# one line verb-formatted text
-		if regex['1lineVerb'].search(line):
+		# One line verb-formatted text
+		if regex['1lineVerb'].search(line) \
+		   and BLOCK.block() not in BLOCK.exclusive:
 			ret.extend(BLOCK.blockin('verb'))
 			line = regex['1lineVerb'].sub('',line)
 			BLOCK.holdadd(line)
@@ -3856,7 +3915,7 @@ def convert(bodylines, config, firstlinenr=1):
 			f_lastwasblank = 0
 			continue
 		
-		# tables are mapped to verb when target is not table-aware
+		# Tables are mapped to verb when target is not table-aware
 		if not rules['tableable'] and regex['table'].search(line):
 			if not BLOCK.isblock('verb'):
 				ret.extend(BLOCK.blockin('verb'))
@@ -3868,17 +3927,23 @@ def convert(bodylines, config, firstlinenr=1):
 		
 		if regex['blankline'].search(line):
 			
-			# close open paragraph
+			# Close open paragraph
 			if BLOCK.isblock('para'):
 				ret.extend(BLOCK.blockout())
 				f_lastwasblank = 1
 				continue
 			
-			# close all open quotes
+			# Close all open tables
+			if BLOCK.isblock('table'):
+				ret.extend(BLOCK.blockout())
+				f_lastwasblank = 1
+				continue
+			
+			# Close all open quotes
 			while BLOCK.isblock('quote'):
 				ret.extend(BLOCK.blockout())
 			
-			# closing all open lists
+			# Closing all open lists
 			if f_lastwasblank:          # 2nd consecutive blank
 				if BLOCK.block()[-4:] == 'list':
 					BLOCK.holdaddsub('')   # helps parser
@@ -3886,15 +3951,15 @@ def convert(bodylines, config, firstlinenr=1):
 					ret.extend(BLOCK.blockout())
 				continue            # ignore consecutive blanks
 			
-			# paragraph (if any) is wanted inside lists also
+			# Paragraph (if any) is wanted inside lists also
 			if BLOCK.block()[-4:] == 'list':
 				BLOCK.holdaddsub('')
 			else:
 				# html: show blank line (needs tag)
-				if target in ['html','xhtml']:
+				if target in ('html','xhtml'):
 					ret.append(TAGS['paragraphOpen']+\
 					           TAGS['paragraphClose'])
-				# otherwise we just show a blank line
+				# Otherwise we just show a blank line
 				else:
 					ret.append('')
 			
@@ -3905,7 +3970,7 @@ def convert(bodylines, config, firstlinenr=1):
 		#---------------------[ special ]---------------------------
 		
 		if regex['special'].search(line):
-			# include command
+			# Include command
 			targ, key, val = ConfigLines().parse_line(
 			                   line, 'include', target)
 			if key:
@@ -3919,19 +3984,19 @@ def convert(bodylines, config, firstlinenr=1):
 					Error("%s: %s"%(err,incfile))
 				inctype, inclines = get_include_contents(
 				                      incfile, incpath)
-				# verb, raw and passthru are easy
+				# Verb, raw and tagged are easy
 				if inctype != 't2t':
 					ret.extend(BLOCK.blockin(inctype))
 					BLOCK.holdextend(inclines)
 					ret.extend(BLOCK.blockout())
 				else:
-					# insert include lines into body
+					# Insert include lines into body
 					#TODO include maxdepth limit
 					bodylines = bodylines[:lineref] \
 					           +inclines \
 					           +bodylines[lineref:]
 					#TODO fix path if include@include
-					# remove %!include call
+					# Remove %!include call
 					if CONF['dump-source']:
 						dump_source.pop()
 				continue
@@ -3940,30 +4005,42 @@ def convert(bodylines, config, firstlinenr=1):
 		
 		#---------------------[ dump-source ]-----------------------
 		
-		# we don't need to go any further
+		# We don't need to go any further
 		if CONF['dump-source']:
 			continue
 		
-		#---------------------[ comments ]--------------------------
+		#---------------------[ Comments ]--------------------------
 		
-		# just skip them (if not macro)
+		# Just skip them (if not macro)
 		if regex['comment'].search(line) and not \
 		   regex['macros'].match(line) and not \
 		   regex['toc'].match(line):
 			continue
 		
-		# valid line, reset blank status
+		#---------------------[ Triggers ]--------------------------
+		
+		# Valid line, reset blank status
 		f_lastwasblank = 0
+		
+		# Any NOT quote line closes all open quotes
+		if BLOCK.isblock('quote') and not regex['quote'].search(line):
+			while BLOCK.isblock('quote'):
+				ret.extend(BLOCK.blockout())
+		
+		# Any NOT table line closes an open table
+		if BLOCK.isblock('table') and not regex['table'].search(line):
+			ret.extend(BLOCK.blockout())
+		
 		
 		#---------------------[ Horizontal Bar ]--------------------
 		
 		if regex['bar'].search(line):
 			
-			# a bar closes a paragraph
+			# A bar closes a paragraph
 			if BLOCK.isblock('para'):
 				ret.extend(BLOCK.blockout())
 			
-			# we need to close all opened quote blocks
+			# We need to close all opened quote blocks
 			# if bar isn't allowed inside or if not a quote line
 			if BLOCK.isblock('quote'):
 				if not rules['barinsidequote'] or \
@@ -3971,12 +4048,12 @@ def convert(bodylines, config, firstlinenr=1):
 					while BLOCK.isblock('quote'):
 						ret.extend(BLOCK.blockout())
 			
-			# quote + bar: continue processing for quoting
+			# Quote + bar: continue processing for quoting
 			if rules['barinsidequote'] and \
 			   regex['quote'].search(line):
 				pass
 			
-			# just bar: save tagged line and we're done
+			# Just bar: save tagged line and we're done
 			else:
 				line = get_tagged_bar(line)
 				if BLOCK.block()[-4:] == 'list':
@@ -3995,7 +4072,7 @@ def convert(bodylines, config, firstlinenr=1):
 		    regex['numtitle'].search(line)) and \
 		    BLOCK.block()[-4:] != 'list':
 			
-			# a title closes a paragraph
+			# A title closes a paragraph
 			if BLOCK.isblock('para'):
 				ret.extend(BLOCK.blockout())
 			
@@ -4023,27 +4100,32 @@ def convert(bodylines, config, firstlinenr=1):
 		
 		if regex['quote'].search(line):
 			
-			# store number of leading TABS
+			# Store number of leading TABS
 			quotedepth = len(regex['quote'].search(line).group(0))
 			
 			# SGML doesn't support nested quotes
 			if rules['quotenotnested']: quotedepth = 1
 			
-			# new quote
+			# Don't cross depth limit
+			maxdepth = rules['quotemaxdepth']
+			if maxdepth and quotedepth > maxdepth:
+				quotedepth = maxdepth
+			
+			# New quote
 			if not BLOCK.isblock('quote'):
 				ret.extend(BLOCK.blockin('quote'))
 			
-			# new subquotes
+			# New subquotes
 			while BLOCK.depth < quotedepth:
 				BLOCK.blockin('quote')
 			
-			# closing quotes
+			# Closing quotes
 			while quotedepth < BLOCK.depth:
 				ret.extend(BLOCK.blockout())
 		
 		#---------------------[ Lists ]-----------------------------
 		
-		# an empty item also closes the current list
+		# An empty item also closes the current list
 		if BLOCK.block()[-4:] == 'list':
 			m = regex['listclose'].match(line)
 			if m:
@@ -4068,32 +4150,41 @@ def convert(bodylines, config, firstlinenr=1):
 			listname = LISTNAMES[listtype]
 			results_box = BLOCK.holdadd
 			
-			# del list ID (and separate term from definition)
+			# Del list ID (and separate term from definition)
 			if listname == 'deflist':
 				term = parse_deflist_term(line)
-				line = regex['deflist'].sub(term+SEPARATOR,line)
+				line = regex['deflist'].sub(
+					SEPARATOR+term+SEPARATOR,line)
 			else:
 				line = regex[listname].sub(SEPARATOR,line)
 			
-			# don't cross depth limit
+			# Don't cross depth limit
 			maxdepth = rules['listmaxdepth']
 			if maxdepth and BLOCK.depth == maxdepth:
 				if len(listitemindent) > len(listindent):
 					listitemindent = listindent
 			
-			# open mother list or sublist
+			# List bumping (same indent, diff mark)
+			# Close the currently open list to clear the mess
+			if BLOCK.block()[-4:] == 'list' \
+			   and listname != BLOCK.block() \
+			   and len(listitemindent) == len(listindent):
+				ret.extend(BLOCK.blockout())
+				listindent = BLOCK.prop('indent')
+			
+			# Open mother list or sublist
 			if BLOCK.block()[-4:] != 'list' or \
 			   len(listitemindent) > len(listindent):
 				ret.extend(BLOCK.blockin(listname))
 				BLOCK.propset('indent',listitemindent)
 				BLOCK.propset('type',listtype)
 			
-			# closing sublists
+			# Closing sublists
 			while len(listitemindent) < len(BLOCK.prop('indent')):
 				ret.extend(BLOCK.blockout())
 			
-			# o-oh, sublist before list ("\n\n  - foo\n- foo")
-			# fix: close sublist (as mother), open another list
+			# O-oh, sublist before list ("\n\n  - foo\n- foo")
+			# Fix: close sublist (as mother), open another list
 			if BLOCK.block()[-4:] != 'list':
 				ret.extend(BLOCK.blockin(listname))
 				BLOCK.propset('indent',listitemindent)
@@ -4112,7 +4203,7 @@ def convert(bodylines, config, firstlinenr=1):
 			tablerow = TableMaster().parse_row(line)
 			BLOCK.tableparser.add_row(tablerow)     # save config
 			
-			# maintain line to unmask and inlines
+			# Maintain line to unmask and inlines
 			line = string.join(tablerow['cells'], SEPARATOR)
 		
 		#---------------------[ Paragraph ]-------------------------
@@ -4129,7 +4220,7 @@ def convert(bodylines, config, firstlinenr=1):
 		
 		#---------------------[ Final Parses ]----------------------
 		
-		# the target-specific special char escapes for body lines
+		# The target-specific special char escapes for body lines
 		line = doEscape(target,line)
 		
 		line = add_inline_tags(line)
@@ -4138,16 +4229,16 @@ def convert(bodylines, config, firstlinenr=1):
 		
 		#---------------------[ Hold or Return? ]-------------------
 		
-		### now we must choose here to put the parsed line
+		### Now we must choose where to put the parsed line
 		#
 		if not results_box:
-			# list item extra lines
+			# List item extra lines
 			if BLOCK.block()[-4:] == 'list':
 				results_box = BLOCK.holdaddsub
-			# other blocks
+			# Other blocks
 			elif BLOCK.block():
 				results_box = BLOCK.holdadd
-			# no blocks
+			# No blocks
 			else:
 				line = doFinalEscape(target, line)
 				results_box = ret.append
@@ -4159,18 +4250,18 @@ def convert(bodylines, config, firstlinenr=1):
 	while BLOCK.block():
 		ret.extend(BLOCK.blockout())
 	
-	# maybe close some opened title area?
+	# Maybe close some opened title area?
 	if rules['titleblocks']:
 		ret.extend(TITLE.close_all())
 	
-	# maybe a major tag to enclose body? (like DIV for CSS)
+	# Maybe a major tag to enclose body? (like DIV for CSS)
 	if TAGS['bodyOpen' ]: ret.insert(0, TAGS['bodyOpen'])
 	if TAGS['bodyClose']: ret.append(TAGS['bodyClose'])
 	
 	if CONF['toc-only']: ret = []
 	marked_toc = TITLE.dump_marked_toc(CONF['toc-level'])
 	
-	# if dump-source, all parsing is ignored
+	# If dump-source, all parsing is ignored
 	if CONF['dump-source']: ret = dump_source[:]
 	
 	return ret, marked_toc
@@ -4181,8 +4272,8 @@ def convert(bodylines, config, firstlinenr=1):
 ################################### GUI ######################################
 ##############################################################################
 #
-# tk help: http://python.org/topics/tkinter/
-#    tuto: http://ibiblio.org/obp/py4fun/gui/tkPhone.html
+# Tk help: http://python.org/topics/tkinter/
+#    Tuto: http://ibiblio.org/obp/py4fun/gui/tkPhone.html
 #          /usr/lib/python*/lib-tk/Tkinter.py
 #
 # grid table : row=0, column=0, columnspan=2, rowspan=2
@@ -4209,30 +4300,30 @@ class Gui:
 		self.window = self.root     # variable "focus" for inclusion
 		self.row = 0                # row count for grid()
 		
-		self.action_lenght = 150    # left column lenght (pixel)
+		self.action_length = 150    # left column length (pixel)
 		self.frame_margin  = 10     # frame margin size  (pixel)
 		self.frame_border  = 6      # frame border size  (pixel)
 		
-		# the default Gui colors, can be changed by %!guicolors
-		self.dft_gui_colors = ['blue','white','lightblue','black']
+		# The default Gui colors, can be changed by %!guicolors
+		self.dft_gui_colors = ['#6c6','white','#cf9','#030']
 		self.gui_colors = []
 		self.bg1 = self.fg1 = self.bg2 = self.fg2 = ''
 		
-		# on Tk, vars need to be set/get using setvar()/get()
+		# On Tk, vars need to be set/get using setvar()/get()
 		self.infile  = self.setvar('')
 		self.target  = self.setvar('')
 		self.target_name = self.setvar('')
 		
-		# the checks appearance order
+		# The checks appearance order
 		self.checks  = [
 		  'headers','enum-title','toc','mask-email',
 		  'toc-only','stdout']
 		
-		# creating variables for all checks
+		# Creating variables for all checks
 		for check in self.checks:
 			setattr(self, 'f_'+check, self.setvar(''))
 		
-		# load RC config
+		# Load RC config
 		self.conf = {}
 		if conf: self.load_config(conf)
 	
@@ -4242,7 +4333,7 @@ class Gui:
 		self.bg1, self.fg1, self.bg2, self.fg2 = self.gui_colors
 		self.root.config(bd=15,bg=self.bg1)
 	
-	### config as dic for python 1.5 compat (**opts don't work :( )
+	### Config as dic for python 1.5 compat (**opts don't work :( )
 	def entry(self, **opts): return Tkinter.Entry(self.window, opts)
 	def label(self, txt='', bg=None, **opts):
 		opts.update({'text':txt,'bg':bg or self.bg1})
@@ -4264,10 +4355,10 @@ class Gui:
 	def menu(self,sel,items):
 		return apply(Tkinter.OptionMenu,(self.window,sel)+tuple(items))
 	
-	# handy auxiliar functions
+	# Handy auxiliary functions
 	def action(self, txt):
 		self.label(txt, fg=self.fg1, bg=self.bg1,
-		     wraplength=self.action_lenght).grid(column=0,row=self.row)
+		     wraplength=self.action_length).grid(column=0,row=self.row)
 	def frame_open(self):
 		self.window = Tkinter.Frame(self.root,bg=self.bg2,
 		     borderwidth=self.frame_border)
@@ -4299,25 +4390,25 @@ class Gui:
 			self.infile.set(newfile)
 			newconf = process_source_file(newfile)[0]
 			newconf = ConfigMaster().sanity(newconf, gui=1)
-			# restate all checkboxes after file selection
+			# Restate all checkboxes after file selection
 			#TODO how to make a refresh without killing it?
 			self.root.destroy()
 			self.__init__(newconf)
 			self.mainwindow()
 	
 	def scrollwindow(self, txt='no text!', title=''):
-		# create components
+		# Create components
 		win    = Tkinter.Toplevel() ; win.title(title)
 		frame  = Tkinter.Frame(win)
 		scroll = Tkinter.Scrollbar(frame)
 		text   = Tkinter.Text(frame,yscrollcommand=scroll.set)
 		button = Tkinter.Button(win)
-		# config
+		# Config
 		text.insert(Tkinter.END, string.join(txt,'\n'))
 		scroll.config(command=text.yview)
 		button.config(text=_('Close'), command=win.destroy)
 		button.focus_set()
-		# packing
+		# Packing
 		text.pack(side='left', fill='both', expand=1)
 		scroll.pack(side='right', fill='y')
 		frame.pack(fill='both', expand=1)
@@ -4325,10 +4416,10 @@ class Gui:
 	
 	def runprogram(self):
 		global CMDLINE_RAW
-		# prepare
+		# Prepare
 		self.target_name2key()
 		infile, target = self.infile.get(), self.target.get()
-		# sanity
+		# Sanity
 		if not target:
 			showwarning(my_name,_("You must select a target type!"))
 			return
@@ -4336,7 +4427,7 @@ class Gui:
 			showwarning(my_name,
 			   _("You must provide the source file location!"))
 			return
-		# compose cmdline
+		# Compose cmdline
 		guiflags = []
 		real_cmdline_conf = ConfigMaster(CMDLINE_RAW).parse()
 		if real_cmdline_conf.has_key('infile'):
@@ -4360,12 +4451,12 @@ class Gui:
 			  val == on_config == on_cmdline and
 			  real_cmdline_conf.has_key(opt)):
 				if val:
-					# was not set, but user selected on GUI
+					# Was not set, but user selected on GUI
 					Debug("user turned  ON: %s"%opt)
 					if opt == 'outfile': opt = '-o-'
 					else: opt = '--%s'%opt
 				else:
-					# was set, but user deselected on GUI
+					# Was set, but user deselected on GUI
 					Debug("user turned OFF: %s"%opt)
 					if opt == 'outfile':
 						opt = "-o%s"%default_outfile
@@ -4374,24 +4465,24 @@ class Gui:
 		cmdline = [my_name, '-t', target] +real_cmdline \
 		          +guiflags +[infile]
 		Debug('Gui/Tk cmdline: %s'%cmdline,5)
-		# run!
+		# Run!
 		cmdline_raw_orig = CMDLINE_RAW
 		try:
-			# fake the GUI cmdline as the real one, and parse file
+			# Fake the GUI cmdline as the real one, and parse file
 			CMDLINE_RAW = CommandLine().get_raw_config(cmdline[1:])
 			data = process_source_file(infile)
-			# on GUI, convert_* returns the data, not finish_him()
+			# On GUI, convert_* returns the data, not finish_him()
 			outlist, config = convert_this_files([data])
-			# on GUI and STDOUT, finish_him() returns the data
+			# On GUI and STDOUT, finish_him() returns the data
 			result = finish_him(outlist, config)
-			# show outlist in s a nice new window
+			# Show outlist in s a nice new window
 			if result:
 				outlist, config = result
 				title = _('%s: %s converted to %s')%(
 				  my_name, os.path.basename(infile),
 				  string.upper(config['target']))
 				self.scrollwindow(outlist, title)
-			# show the "file saved" message
+			# Show the "file saved" message
 			else:
 				msg = "%s\n\n  %s\n%s\n\n  %s\n%s"%(
 				      _('Conversion done!'),
@@ -4432,20 +4523,20 @@ class Gui:
 		}
 		targets_menu = map(lambda x: TARGET_NAMES[x], TARGETS)
 		
-		# header
+		# Header
 		self.label("%s %s"%(string.upper(my_name), my_version),
 		     bg=self.bg2, fg=self.fg2).grid(columnspan=2, ipadx=10)
 		self.label(_("ONE source, MULTI targets")+'\n%s\n'%my_url,
 		     bg=self.bg1, fg=self.fg1).grid(columnspan=2)
 		self.row = 2
-		# choose input file
+		# Choose input file
 		self.action(action1) ; self.frame_open()
 		e_infile = self.entry(textvariable=self.infile,width=25)
 		e_infile.grid(row=self.row, column=0, sticky='e')
 		if not self.infile.get(): e_infile.focus_set()
 		self.button(_("Browse"), self.askfile).grid(
 		    row=self.row, column=1, sticky='w', padx=10)
-		# show outfile name, style and encoding (if any)
+		# Show outfile name, style and encoding (if any)
 		txt = ''
 		if outfile:
 			txt = outfile
@@ -4460,19 +4551,19 @@ class Gui:
 				self.label('%s: %s'%(name, val),
 				     fg=self.fg2, bg=self.bg2).grid(
 				     columnspan=2, sticky='w')
-		# choose target
+		# Choose target
 		self.frame_close() ; self.action(action2)
 		self.frame_open()
 		self.target_key2name()
 		self.menu(self.target_name, targets_menu).grid(
 		     columnspan=2, sticky='w')
-		# options checkboxes label
+		# Options checkboxes label
 		self.frame_close() ; self.action(action3)
 		self.frame_open()
-		# compose options check boxes, example:
+		# Compose options check boxes, example:
 		# self.check(checks_txt['toc'],1,variable=self.f_toc)
 		for check in self.checks:
-			# extra options label
+			# Extra options label
 			if check == 'toc-only':
 				self.frame_close() ; self.action(action4)
 				self.frame_open()
@@ -4481,7 +4572,7 @@ class Gui:
 			checked = self.conf.get(check)
 			self.check(txt,checked,variable=var)
 		self.frame_close()
-		# spacer and buttons
+		# Spacer and buttons
 		self.label('').grid() ; self.row = self.row + 1
 		b_quit = self.button(_("Quit"), self.exit)
 		b_quit.grid(row=self.row, column=0, sticky='w', padx=30)
@@ -4490,7 +4581,7 @@ class Gui:
 		if self.target.get() and self.infile.get():
 			b_conv.focus_set()
 		
-		# as documentation told me
+		# As documentation told me
 		if sys.platform[:3] == 'win':
 			self.root.iconify()
 			self.root.update()
@@ -4505,7 +4596,7 @@ class Gui:
 def exec_command_line(user_cmdline=[]):
 	global CMDLINE_RAW, RC_RAW, DEBUG, VERBOSE, QUIET, GUI, Error
 	
-	# extract command line data
+	# Extract command line data
 	cmdline_data = user_cmdline or sys.argv[1:]
 	CMDLINE_RAW = CommandLine().get_raw_config(cmdline_data, relative=1)
 	cmdline_parsed = ConfigMaster(CMDLINE_RAW).parse()
@@ -4517,11 +4608,11 @@ def exec_command_line(user_cmdline=[]):
 	
 	Message(_("Txt2tags %s processing begins")%my_version,1)
 	
-	# the easy ones
+	# The easy ones
 	if cmdline_parsed.get('help'   ): Quit(USAGE)
 	if cmdline_parsed.get('version'): Quit(VERSIONSTR)
 	
-	# multifile haters
+	# Multifile haters
 	if len(infiles) > 1:
 		errmsg=_("Option --%s can't be used with multiple input files")
 		for option in NO_MULTI_INPUT:
@@ -4534,7 +4625,7 @@ def exec_command_line(user_cmdline=[]):
 	Debug("command line: %s"%sys.argv)
 	Debug("command line raw config: %s"%CMDLINE_RAW,1)
 	
-	# extract RC file config
+	# Extract RC file config
 	if cmdline_parsed.get('rc') == 0:
 		Message(_("Ignoring user configuration file"),1)
 	else:
@@ -4546,12 +4637,12 @@ def exec_command_line(user_cmdline=[]):
 		Debug("rc file: %s"%rc_file)
 		Debug("rc file raw config: %s"%RC_RAW,1)
 	
-	# get all infiles config (if any)
+	# Get all infiles config (if any)
 	infiles_config = get_infiles_config(infiles)
 	
-	# is GUI available?
-	# try to load and start GUI interface for --gui
-	# if program was called with no arguments, try GUI also
+	# Is GUI available?
+	# Try to load and start GUI interface for --gui
+	# If program was called with no arguments, try GUI also
 	if GUI or not infiles:
 		try:
 			load_GUI_resources()
@@ -4563,7 +4654,7 @@ def exec_command_line(user_cmdline=[]):
 			Debug("GUI Error: no Tk module or no DISPLAY")
 			GUI = 0
 	
-	# user forced --gui, but it's not available
+	# User forced --gui, but it's not available
 	if cmdline_parsed.get('gui') and not GUI:
 		print getTraceback(); print
 		Error("Sorry, I can't run my Graphical Interface - GUI\n"
@@ -4574,31 +4665,31 @@ def exec_command_line(user_cmdline=[]):
 	if GUI:
 		Message(_("We are on GUI interface"),1)
 		
-		# redefine Error function to raise exception instead sys.exit()
+		# Redefine Error function to raise exception instead sys.exit()
 		def Error(msg):
 			showerror(_('txt2tags ERROR!'), msg)
 			raise error
 		
-		# if no input file, get RC+cmdline config, else full config
+		# If no input file, get RC+cmdline config, else full config
 		if not infiles:
 			gui_conf = ConfigMaster(RC_RAW+CMDLINE_RAW).parse()
 		else:
 			try   : gui_conf = infiles_config[0][0]
 			except: gui_conf = {}
 		
-		# sanity is needed to set outfile and other things
+		# Sanity is needed to set outfile and other things
 		gui_conf = ConfigMaster().sanity(gui_conf, gui=1)
 		Debug("GUI config: %s"%gui_conf,5)
 		
-		# insert config and populate the nice window!
+		# Insert config and populate the nice window!
 		winbox.load_config(gui_conf)
 		winbox.mainwindow()
 	
-	# console mode rocks forever!
+	# Console mode rocks forever!
 	else:
 		Message(_("We are on Command Line interface"),1)
 		
-		# called with no arguments, show error
+		# Called with no arguments, show error
 		if not infiles: Error(_('Missing input file (try --help)'))
 		
 		convert_this_files(infiles_config)
@@ -4615,7 +4706,9 @@ if __name__ == '__main__':
 	except SystemExit:
 		pass
 	except:
-		print getUnknownErrorMessage()
+		sys.stderr.write(getUnknownErrorMessage())
+		sys.stderr.flush()
+		sys.exit(1)
 	Quit()
 
 
