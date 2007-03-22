@@ -15,7 +15,11 @@
 using namespace std;
 
 #ifndef M_PI
-#define M_PI 3.14159265359
+#define M_PI (3.14159265359)
+#endif
+
+#ifdef AR_USE_WIN_32
+inline float roundf(const float x) { return floor(x + 0.5f); }
 #endif
 
 // For Euler angles.
@@ -82,6 +86,12 @@ class SZG_CALL arVector3{
   float dot( const arVector3& rhs ) const {
     return v[0]*rhs.v[0]+v[1]*rhs.v[1]+v[2]*rhs.v[2];
   }
+  const arVector3& round() {
+      v[0] = roundf(v[0]);
+      v[1] = roundf(v[1]);
+      v[2] = roundf(v[2]);
+      return *this;
+    }
 };
 
 // Vector of 4 floats. A position in 4-space.
@@ -538,19 +548,19 @@ inline float ar_cmToFeet( float cm ) {
 // todo: rename like DegFromRad, RadFromDeg.
 
 inline SZG_CALL float ar_convertToDeg(const float angle){
-  return angle * 180 / 3.1415926535;
+  return angle * 180 / M_PI;
 }
 
 inline SZG_CALL float ar_convertToRad(const float angle){
-  return angle / 180 * 3.1415926535;
+  return angle / 180 * M_PI;
 }
 
 inline SZG_CALL arVector3 ar_convertToDeg(const arVector3 v){
-  return 180 / 3.1415926535 * v;
+  return 180 / M_PI * v;
 }
 
 inline SZG_CALL arVector3 ar_convertToRad(const arVector3 v){
-  return 3.1415926535 / 180 * v;
+  return M_PI / 180 * v;
 }
 
 // Division by 4th homogeneous coordinate handles projective transformations.
