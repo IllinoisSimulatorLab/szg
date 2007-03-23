@@ -54,12 +54,6 @@ endif
 ifeq "$(OSTYPE)" "linux-gnu"
   PLATFORM=linux
 endif
-ifeq "$(OSTYPE)" "cygwin32"
-  PLATFORM=win32
-endif
-ifeq "$(OSTYPE)" "cygwin"
-  PLATFORM=win32
-endif
 
 # Fallback: OS environment variable
 
