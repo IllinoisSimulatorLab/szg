@@ -355,7 +355,7 @@ bool ar_packSequenceData( PyObject* seq, std::vector<int>& typeData,
       int ssize;
       PyString_AsStringAndSize( item, &cdata, &ssize );
       stringData.push_back( cdata );
-      stringSizeData.push_back( ssize+1 );
+      stringSizeData.push_back( ssize );
       typeData.push_back( AR_CHAR );
       /*cerr << "'" << cdata << "'";*/
 
@@ -396,7 +396,7 @@ PyObject* ar_unpackSequenceData( int** typePtrPtr, long** intPtrPtr, double** fl
     PyErr_SetString( PyExc_MemoryError, "unable to get allocate new tuple." );
     return NULL;
   }
-  int stringLength;
+  int stringLength, j;
   PyObject* nestedSequence;
   for(int i=0; i<size; ++i) {
     switch (*typePtr++) {
@@ -407,9 +407,14 @@ PyObject* ar_unpackSequenceData( int** typePtrPtr, long** intPtrPtr, double** fl
         PyTuple_SetItem( seq, i, PyFloat_FromDouble(*floatDataPtr++) );
         break;
       case AR_CHAR:
-        stringLength = *charSizePtr++ -1;
+        stringLength = *charSizePtr++;
+/*        cerr << "slave: " << stringLength << ": ";*/
+/*        for (j=0; j<stringLength; ++j) {*/
+/*          cerr << *(charPtr+j);*/
+/*        }*/
+/*        cerr << endl;*/
         PyTuple_SetItem( seq, i, PyString_FromStringAndSize( charPtr, stringLength ) );
-        charPtr += stringLength+1;
+        charPtr += stringLength;
         break;
       case -1:  // my arbitrary "seqeuence" type
         nestedSequence = ar_unpackSequenceData( &typePtr, &intDataPtr, &floatDataPtr, &charPtr, &charSizePtr );
@@ -434,6 +439,7 @@ PyObject* ar_unpackSequenceData( int** typePtrPtr, long** intPtrPtr, double** fl
   *intPtrPtr = intDataPtr;
   *floatPtrPtr = floatDataPtr;
   *charPtrPtr = charPtr;
+  *charSizePtrPtr = charSizePtr;
   return seq;
 }
 
@@ -585,7 +591,7 @@ PyObject* setSequence( const string& nameStr, PyObject *seq ) {
     }
   }
 
-  int i, osize;
+  int i, j, osize;
   long* typePtr=(long *)self->getTransferField( typeString, AR_INT, osize );
   if (!typePtr) {
     PyErr_SetString(PyExc_MemoryError, "unable to get transfer field pointer");
@@ -630,6 +636,11 @@ PyObject* setSequence( const string& nameStr, PyObject *seq ) {
     }
     for(i=0; i<(int)stringData.size(); ++i) {
       memcpy( charPtr, stringData[i], stringSizeData[i] );
+/*      cerr << "master: " << stringSizeData[i] << ": ";*/
+/*      for (j=0; j<stringSizeData[i]; ++j) {*/
+/*        cerr << *(charPtr+j);*/
+/*      }*/
+/*      cerr << endl;*/
       charPtr += stringSizeData[i];
     }
   }
