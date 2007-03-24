@@ -9,7 +9,6 @@ padding:1.5em;
 #container {
 background-color:#fafafa;
 margin:1em 5%;
-min-width:60em;
 position:absolute;
 width:90%;
 }
@@ -21,7 +20,6 @@ max-height:2.4em;
 }
 
 #header {
-background:url("images/ISL_logo.jpg") no-repeat right top;
 background-color:#3882C7;
 border:1px solid #fafafa;
 color:#fafafa;
@@ -37,6 +35,19 @@ border:1px solid #202020;
 border-top:0;
 padding:0.5em;
 text-align:right;
+}
+
+h1.title {
+  text-align: left;
+}
+
+h2.subtitle {
+  text-align: left;
+}
+
+#logo {
+  float: right;
+  padding: 10px 10px 10px 10px;
 }
 
 .menuhigh {
@@ -70,10 +81,16 @@ color:#000;
 text-decoration:underline;
 }
 
+a:hover {
+color:#0000ff;
+}
+
 body {
 background-color:#CDCDCD;
-font-family:Verdana, Arial, Helvetica, sans-serif;
-font-size:0.75em;
+font-family:Palatino, serif;
+font-size:1.0em;
+/*font-family:Verdana, Arial, Helvetica, sans-serif;*/
+/*font-size:0.75em;*/
 }
 
 #toc
@@ -143,7 +160,7 @@ code
 }
 
 #header h1 {
-font-size:1.2em;
+font-size:1.0em;
 margin:0.0em 0.0em 0em 0;
 }
 

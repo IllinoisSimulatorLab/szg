@@ -1,9 +1,11 @@
 Header1 Example Programs
 Header2 %%mtime(%m/%d/%Y)
 
-%!options: --headers
+%!options: --headers --toc --toc-level=2
 
 Header3
+
+%%toc
 
 The two [tables of demos #DemoTables]
 below list many example Syzygy
@@ -118,7 +120,8 @@ Tilt the wand up or down to rise or fall.
 szglorenz:
 See szgdemo/szglorenz/README for an explanation of the controls.
 
-Performance Tuning
+
+=Performance Tuning=
 
 Many of the demos, especially the master/slave programs,
 do not require high performance. However,
