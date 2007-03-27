@@ -212,8 +212,10 @@ void arInputSimulator::advance(){
 // Process keyboard events to drive the simulated interface.
 void arInputSimulator::keyboard(unsigned char key, int, int x, int y) {
   // change the control state
-  _mouseXY[0] = x;
-  _mouseXY[1] = y;
+  //  No, DON'T. Currently x and y passed to keyboard are at least sometimes
+  //  not valid. See arMasterSlaveFramework.cpp
+//  _mouseXY[0] = x;
+//  _mouseXY[1] = y;
   
   for (vector<int>::iterator i = _lastButtonEvents.begin(); i != _lastButtonEvents.end(); ++i)
     *i = 0;
@@ -284,6 +286,7 @@ LResetWand:
 
 // Process mouse button events.
 void arInputSimulator::mouseButton(int button, int state, int x, int y){
+//cerr << "mouseButton: " << x << ", " << y << endl;
   _mouseXY[0] = x;
   _mouseXY[1] = y;
 
@@ -348,6 +351,7 @@ static inline float clamp(const float x, const float xMin, const float xMax) {
 
 // Process mouse movement events to drive the simulated interface.
 void arInputSimulator::mousePosition(int x, int y){
+//cerr << "mousePosition: " << x << ", " << y << endl;
   if (!_fInit) {
     _fInit = true;
     _mouseXY[0] = x;
