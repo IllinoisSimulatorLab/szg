@@ -18,7 +18,7 @@ A Flock can be set up in several ways:
     the flock, but maybe not to the master unit. Also, some units may
     have no birds, e.g. the unit with the transmitter.
   - Flock, multiple RS232. The host communicates to multiple
-    units directly via mulitple serial connections. Unimplemented.
+    units directly via multiple serial connections. Unimplemented.
 
 Within Syzygy, serial port numbers are 1-based:
 port 1 in Win32 is COM1, in Linux is /dev/ttys0.
@@ -73,30 +73,31 @@ class arFOBDriver: public arInputSource {
   bool _sendBirdByte(unsigned char c, bool fSleep = true);
   int _getBirdData( unsigned char* cdata, 
                     const unsigned int numBytes );
-  bool _getSendNextFrame(unsigned char addr);
+  bool _getSendNextFrame(const unsigned char addr);
   void _eventloop();
   
   arThread _eventThread;
-  unsigned int   _timeoutTenths;
+  const unsigned _timeoutTenths;
   arRS232Port    _comPort;
-  unsigned int   _comPortID;
+  unsigned       _comPortID;
   int            _numFlockUnits;
   int            _transmitterID;
   unsigned short _numBirds;
-  unsigned char  _dataSize;
+  const unsigned _dataSize;
   unsigned char* _dataBuffer;
   float          _positionScale;
-  float          _orientScale;
+  const float    _orientScale;
   bool           _eventThreadRunning;
   bool           _stopped;
   bool           _extendedRange;
+
   enum {
     _FOB_MAX_DEVICES = 14,
     _nBaudRates = 7,
     _nHemi = 6
   };
-  int         _sensorMap[_FOB_MAX_DEVICES+1];
-  float       _floatData[16];
+  float _floatData[16];
+  int   _sensorMap[_FOB_MAX_DEVICES+1];
   
   // calibration parameters
   arMatrix4 _transmitterOffset;
@@ -104,5 +105,3 @@ class arFOBDriver: public arInputSource {
 };
 
 #endif
-
-// this is from kam3:/home/szg/src/drivers
