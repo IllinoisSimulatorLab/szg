@@ -168,7 +168,6 @@ bool arAppLauncher::setParameters(){
 	           << "'.  Expected computer/inputDevice/.../computer/inputDevice.\n";
     return false;
   }
-  ar_log_debug() << _exeName << " found virtual computer '" << _vircomp << "'.\n";
 
   // Ensure no computer is duplicated, lest we launch two DeviceServers on one.
   for (i=2; i<numTokens; i+=2) {

@@ -45,16 +45,16 @@ arCallbackEventFilter::arCallbackEventFilter( arSZGAppFramework* fw,
 }
 
 bool arCallbackEventFilter::_processEvent( arInputEvent& inputEvent ) {
-  bool stat(true);
+  bool ok = true;
   if (_callback) {
     if (!_framework) {
-      cerr << "arCallbackEventFilter error: NULL framework pointer in _processEvent().\n";
+      ar_log_warning() << "arCallbackEventFilter: no framework.\n";
       return false;
     }
-    stat = _callback( *_framework, inputEvent, *this );
+    ok = _callback( *_framework, inputEvent, *this );
   }
   if (_saveEventQueue) {
     queueEvent( inputEvent );
   }
-  return stat;
+  return ok;
 }
