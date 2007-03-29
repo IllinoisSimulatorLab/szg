@@ -1,5 +1,3 @@
-#define posNOTquat
-
 const bool fInTheCave = true;;;;
 
 /*
@@ -23,11 +21,7 @@ DriverFactory(arFOBDriver, "arInputSource")
 
 arFOBDriver::arFOBDriver() :
   _timeoutTenths( 30 ),
-#ifdef posNOTquat
-  _dataSize( 3 ),
-#else
   _dataSize( 7 ),
-#endif
   _dataBuffer( NULL ),
   _positionScale( 3./32768.0 ),
   _orientScale( 1./32768.0 ),
@@ -519,12 +513,7 @@ bool arFOBDriver::_getHemisphere( std::string& hemisphere, unsigned char addr ) 
 
 // Set bird's data mode to position+quaternion
 bool arFOBDriver::_setDataMode(unsigned char addr) {
-#ifdef posNOTquat
-  const unsigned char c = 'V';
-#else
-  const unsigned char c = ']';
-#endif
-  return _sendBirdAddress(addr) && _sendBirdByte(c); // FoB manual p.92
+  return _sendBirdAddress(addr) && _sendBirdByte(']'); // FoB manual p.92
 }
 
 bool arFOBDriver::_getDataMode( std::string& modeString, unsigned char addr ) {
@@ -861,11 +850,7 @@ bool arFOBDriver::_getSendNextFrame(const unsigned char addr) {
   for (j=3; j<_dataSize; ++j)
     _floatData[j] *= _orientScale;
 
-#ifdef posNOTquat
-  const arMatrix4 rotMatrix;
-#else
   const arMatrix4 rotMatrix(arQuaternion( _floatData + 3));
-#endif
 /*
   //;; from vrjuggler FlockStandalone.cpp.  Inverted quaternion?
   const float* q = _floatData+3;
