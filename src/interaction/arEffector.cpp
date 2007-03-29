@@ -194,13 +194,15 @@ void arEffector::updateState( arInputEvent& event ) {
 
 void arEffector::updateState( arInputState* state ) {
 #ifdef UNUSED
-  const unsigned int numButs = _inputState.getNumberButtons();
+  const unsigned numButs = _inputState.getNumberButtons();
   // Should this assign to _numButtons?
 #endif
-  unsigned int i=0,j=0;
-  for (i=0,j=_loButton; i<_numButtons && j<state->getNumberButtons(); i++, j++)
+  const unsigned buttonMax = state->getNumberButtons();
+  const unsigned axisMax = state->getNumberAxes();
+  unsigned i=0, j=0;
+  for (i=0,j=_loButton; i<_numButtons && j<buttonMax; ++i, ++j)
     _inputState.setButton( i, state->getButton(j) );
-  for (i=0,j=_loAxis; i<_numAxes && j<state->getNumberAxes(); i++, j++)
+  for (i=0,j=_loAxis; i<_numAxes && j<axisMax; ++i, ++j)
     _inputState.setAxis( i, state->getAxis(j) );
   setMatrix( state->getMatrix( _matrixIndex ) );
 }
