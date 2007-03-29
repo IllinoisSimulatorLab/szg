@@ -138,35 +138,12 @@ bool arInputState::setButton( const unsigned int buttonNumber,
   return result;
 }
 
-bool arInputState::_setButtonNoLock( const unsigned int buttonNumber, 
-                                     const int value ) {
-  if (buttonNumber >= _buttons.size()) {
-    _buttons.insert( _buttons.end(), buttonNumber - _buttons.size() + 1, 0 );
-  }
-  if (buttonNumber >= _lastButtons.size()){
-    _lastButtons.insert( _lastButtons.end(), buttonNumber - _lastButtons.size() + 1, 0 );
-  }
-  _lastButtons[buttonNumber] = _buttons[buttonNumber];
-  _buttons[buttonNumber] = value;
-  return true;
-}
-
 bool arInputState::setAxis( const unsigned int axisNumber, 
                             const float value ) {
   _lock();
     const bool result = _setAxisNoLock(axisNumber, value);
   _unlock();
   return result;
-}
-
-bool arInputState::_setAxisNoLock( const unsigned int axisNumber, 
-                                   const float value ) {
-  if (axisNumber >= _axes.size()) {
-    ar_log_remark() << "arInputState has " << axisNumber+1 << " axes.\n";
-    _axes.insert( _axes.end(), axisNumber - _axes.size() + 1, 0. );
-  }
-  _axes[axisNumber] = value;
-  return true;
 }
 
 bool arInputState::setMatrix( const unsigned int matrixNumber,
@@ -177,14 +154,40 @@ bool arInputState::setMatrix( const unsigned int matrixNumber,
   return result;
 }
 
-bool arInputState::_setMatrixNoLock( const unsigned int matrixNumber,
-                                    const arMatrix4& value ) {
-  if (matrixNumber >= _matrices.size()) {
-    ar_log_remark() << "arInputState has " << matrixNumber+1 << " matrices.\n";
-    _matrices.insert( _matrices.end(), matrixNumber - _matrices.size() + 1,
-                      ar_identityMatrix() );
+// todo: factor out:
+// if (x >= ~.size()) vector<> insert( ~.end(), x - ~.size()+1, 0)
+// (Templatize _axes and _matrices?)
+
+bool arInputState::_setButtonNoLock( const unsigned int iButton, 
+                                     const int value ) {
+  if (iButton >= _buttons.size()) {
+    _buttons.insert( _buttons.end(), iButton - _buttons.size() + 1, 0 );
   }
-  _matrices[matrixNumber] = value;
+  if (iButton >= _lastButtons.size()){
+    _lastButtons.insert( _lastButtons.end(), iButton - _lastButtons.size() + 1, 0 );
+  }
+  _lastButtons[iButton] = _buttons[iButton];
+  _buttons[iButton] = value;
+  return true;
+}
+
+bool arInputState::_setAxisNoLock( const unsigned iAxis, 
+                                   const float value ) {
+  if (iAxis >= _axes.size()) {
+    // ar_log_debug() << "arInputState grown to " << iAxis+1 << " axes.\n";
+    _axes.insert( _axes.end(), iAxis+1 - _axes.size(), 0. );
+  }
+  _axes[iAxis] = value;
+  return true;
+}
+
+bool arInputState::_setMatrixNoLock( const unsigned int iMatrix,
+                                    const arMatrix4& value ) {
+  if (iMatrix >= _matrices.size()) {
+    // ar_log_debug() << "arInputState grown to " << iMatrix+1 << " matrices.\n";
+    _matrices.insert(_matrices.end(), iMatrix+1 - _matrices.size(), ar_identityMatrix());
+  }
+  _matrices[iMatrix] = value;
   return true;
 }
 
@@ -199,8 +202,7 @@ bool arInputState::update( const arInputEvent& event ) {
     case AR_EVENT_MATRIX:
       return setMatrix( event.getIndex(), event.getMatrix() );
   }
-  ar_log_warning() << "arInputState ignoring invalid event type "
-                   << eventType << ".\n";
+  ar_log_warning() << "arInputState ignoring invalid event type " << eventType << ".\n";
   return false;
 }
 
@@ -343,13 +345,13 @@ bool arInputState::setFromBuffers( const int* const buttonData,
     return false;
   }
 
-  unsigned int i = 0;
-  for (i=0; i<numButtons; i++)
-    _setButtonNoLock( i, buttonData[i] );
-  for (i=0; i<numAxes; i++)
-    _setAxisNoLock( i, axisData[i] );
-  for (i=0; i<numMatrices; i++)
-    _setMatrixNoLock( i, matrixData + i*16 );
+  int i = 0;
+  for (i=numButtons-1; i>=0; --i)
+    _setButtonNoLock( unsigned(i), buttonData[i] );
+  for (i=numAxes-1; i>=0; --i)
+    _setAxisNoLock( unsigned(i), axisData[i] );
+  for (i=numMatrices-1; i>=0; --i)
+    _setMatrixNoLock( unsigned(i), matrixData + i*16 );
   _unlock();
   return true;
 }
