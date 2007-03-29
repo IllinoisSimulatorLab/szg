@@ -134,6 +134,13 @@ class SZG_CALL arVector4{
     return arVector4(v[0]/mag, v[1]/mag, v[2]/mag, v[3]/mag);
   }
   arMatrix4 outerProduct( const arVector4& rhs ) const;
+  const arVector4& round() {
+      v[0] = roundf(v[0]);
+      v[1] = roundf(v[1]);
+      v[2] = roundf(v[2]);
+      v[3] = roundf(v[3]);
+      return *this;
+    }
 };
 
 // 4x4 matrix.  Typically an OpenGL transformation.
