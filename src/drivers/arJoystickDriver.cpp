@@ -114,7 +114,7 @@ arJoystickDriver::arJoystickDriver() :
 }
 
 bool arJoystickDriver::init(arSZGClient& szgClient){
-  // Many gamepads have 6 axes and 10 buttons in 2006.  Default generously.
+  // Many gamepads have 6 axes and 10 buttons in 2007.  Default generously.
   int sig[3] = {10,6,0};
   if (!szgClient.getAttributeInts("SZG_JOYSTICK","signature",sig,3)) {
     sig[0] = 10;
