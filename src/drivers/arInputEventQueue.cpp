@@ -19,12 +19,14 @@ arInputEventQueue::arInputEventQueue( const arInputEventQueue& q ) :
   _axisSignature( q._axisSignature ),
   _matrixSignature( q._matrixSignature ) {
 
-  // memory leak in deque copy, STLport, visual studio 6.
-  // std::copy( q._queue.begin(), q._queue.end(), _queue.begin() );
-
+#ifdef AR_USE_WIN_32
   std::deque<arInputEvent>::const_iterator iter;
   for (iter = q._queue.begin(); iter != q._queue.end(); ++iter)
     appendEvent( *iter );
+#else
+  // memory leak in deque copy, STLport, visual studio 6.
+  std::copy( q._queue.begin(), q._queue.end(), _queue.begin() );
+#endif
 }
 
 arInputEventQueue& arInputEventQueue::operator=( const arInputEventQueue& q ) {
@@ -38,17 +40,20 @@ arInputEventQueue& arInputEventQueue::operator=( const arInputEventQueue& q ) {
   _matrixSignature = q._matrixSignature;
   _queue.clear();
 
-  // memory leak in deque copy, STLport, visual studio 6.
-  // std::copy( q._queue.begin(), q._queue.end(), _queue.begin() );
-
+#ifdef AR_USE_WIN_32
   std::deque<arInputEvent>::const_iterator iter;
   for (iter = q._queue.begin(); iter != q._queue.end(); ++iter)
     appendEvent( *iter );
+#else
+  // memory leak in deque copy, STLport, visual studio 6.
+  std::copy( q._queue.begin(), q._queue.end(), _queue.begin() );
+#endif
+
   return *this;
 }
 
 void arInputEventQueue::appendEvent( const arInputEvent& inputEvent ) {
-  unsigned int eventIndex = inputEvent.getIndex();
+  const unsigned eventIndex = inputEvent.getIndex();
   const arInputEventType eventType = inputEvent.getType();
   switch (eventType) {
     case AR_EVENT_BUTTON:
@@ -198,7 +203,6 @@ bool arInputEventQueue::setFromBuffers( const int* const typeData,
     ar_log_warning() << "arInputEventQueue: invalid buffer.\n";
     return false;
   }
-
   bool ok = true;
   const unsigned numItems = numButtons + numAxes + numMatrices;
   unsigned iButton = 0;
