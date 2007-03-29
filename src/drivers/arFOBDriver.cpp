@@ -1,5 +1,3 @@
-const bool fInTheCave = true;;;;
-
 /*
 todo: in here? or downstream?
   TransmitterOffset 0.06 10.5 -4.8 feet
@@ -16,6 +14,8 @@ todo: in here? or downstream?
 
 #include "arPrecompiled.h"
 #include "arFOBDriver.h"
+
+const bool fInTheCave = true;;;;
 
 DriverFactory(arFOBDriver, "arInputSource")
 
