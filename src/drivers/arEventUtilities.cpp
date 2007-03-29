@@ -179,12 +179,12 @@ bool ar_saveEventQueueToStructuredData( arInputEventQueue* q,
 
 bool ar_setInputStateFromStructuredData( arInputState* state,
                                          arStructuredData* data ) {
-  int sigField = data->getDataFieldIndex("signature");
-  int typeField = data->getDataFieldIndex("types");
-  int indexField = data->getDataFieldIndex("indices");
-  int buttonField = data->getDataFieldIndex("buttons");
-  int axisField = data->getDataFieldIndex("axes");
-  int matrixField = data->getDataFieldIndex("matrices");
+  const int sigField = data->getDataFieldIndex("signature");
+  const int typeField = data->getDataFieldIndex("types");
+  const int indexField = data->getDataFieldIndex("indices");
+  const int buttonField = data->getDataFieldIndex("buttons");
+  const int axisField = data->getDataFieldIndex("axes");
+  const int matrixField = data->getDataFieldIndex("matrices");
 
   const int sigLen      = data->getDataDimension(sigField);
   const int numItems    = data->getDataDimension(typeField);
@@ -253,8 +253,7 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
   unsigned matrixSig = 0;
   for (i=0; i<(unsigned)numItems; i++) {
     const unsigned eventIndex = unsigned(indexBuf[i]);
-    const int eventType = typeBuf[i];
-    switch (eventType) {
+    switch (typeBuf[i]) {
       case AR_EVENT_BUTTON:
         if (eventIndex >= buttonSig)
           buttonSig = eventIndex + 1;
@@ -270,10 +269,9 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
     }
   }
 
-  // buttonSig, axisSig, and matrixSig SHOULD NOT be maxed with
-  // the current number of buttons, axes, and matrices in the input state.
-  // It must be possible to *decrease* the signature, e.g.
-  // when an input device disconnects.
+  // buttonSig, axisSig, and matrixSig are not maxed with
+  // the current number of buttons, axes, and matrices in the input state,
+  // so that a disconnected input device can *decrease* its signature.
   buttonSig = (unsigned)maxint( buttonSig, sigBuf[0]);
   axisSig = (unsigned)maxint( axisSig, sigBuf[1]);
   matrixSig = (unsigned)maxint( matrixSig, sigBuf[2]);
@@ -284,34 +282,34 @@ bool ar_setInputStateFromStructuredData( arInputState* state,
   unsigned iAxis = 0;
   unsigned iMatrix = 0;
   for (i=0; i<(unsigned)numItems; i++) {
-    int eventIndex = indexBuf[i];
-    if (eventIndex < 0) {
+    if (indexBuf[i] < 0) {
       ar_log_warning() << "ar_setInputStateFromStructuredData ignoring negative event index.\n";
       ok = false;
       continue;
     }
-    int eventType = typeBuf[i];
+    unsigned eventIndex = unsigned(indexBuf[i]);
+    const int eventType = typeBuf[i];
     switch (eventType) {
       case AR_EVENT_BUTTON:
         if (iButton >= (unsigned)numButtons) {
           ar_log_warning() << "ar_setInputStateFromStructuredData ignoring extra buttons in index field.\n";
           ok = false;
         } else
-          state->setButton( (unsigned) eventIndex, buttonBuf[iButton++] );
+          state->setButton( eventIndex, buttonBuf[iButton++] );
         break;
       case AR_EVENT_AXIS:
         if (iAxis >= (unsigned)numAxes) {
           ar_log_warning() << "ar_setInputStateFromStructuredData ignoring extra axes in index field.\n";
           ok = false;
         } else
-          state->setAxis( (unsigned) eventIndex, axisBuf[iAxis++] );
+          state->setAxis( eventIndex, axisBuf[iAxis++] );
         break;
       case AR_EVENT_MATRIX:
         if (iMatrix >= (unsigned)numMatrices) {
           ar_log_warning() << "ar_setInputStateFromStructuredData ignoring extra matrices in index field.\n";
           ok = false;
         } else
-          state->setMatrix( (unsigned) eventIndex, matrixBuf + 16*iMatrix++ );
+          state->setMatrix( eventIndex, matrixBuf + 16*iMatrix++ );
         break;
       default:
         ar_log_warning() << "ar_setInputStateFromStructuredData ignoring event type "
