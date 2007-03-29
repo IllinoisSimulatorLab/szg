@@ -44,8 +44,7 @@ void dump( arInputState& inp ) {
   const arMatrix4 m(inp.getMatrix(0));
   const arVector3 xlat(ar_extractTranslation(m).round());
   const arVector3 rot((180./M_PI * ar_extractEulerAngles(m, AR_YXZ)).round());
-  cout << "\t\t\thead xyz " << xlat << "\n"
-       << "\t\t\thead roll ele azi " << rot << "\n"
+  cout << "\t\t\thead xyz " << xlat << ",  roll ele azi " << rot << "\n"
        << "____\n\n";
 }
 
