@@ -367,11 +367,13 @@ LAbort:
       // Shutdown "forced."
       // Copypaste from below.
       inputNode.stop();
+LDie:
       ar_log_debug() << "DeviceServer shutdown.\n";
       return 0;
     }
 
     if (messageType=="quit"){
+      ar_log_debug() << "DeviceServer shutting down...\n";
       inputNode.stop();
       std::map< std::string, arInputSource* >::iterator killIter;
       for (killIter = driverNameMap.begin(); killIter != driverNameMap.end(); ++killIter) {
@@ -379,8 +381,7 @@ LAbort:
           delete killIter->second;
       }
       driverNameMap.clear();
-      ar_log_debug() << "DeviceServer shutdown.\n";
-      return 0;
+      goto LDie;
     }
 
     else if (messageType=="restart"){
@@ -411,5 +412,7 @@ LAbort:
     }
   }
 
-  return 0;
+  // unreachable
+  ar_log_error() << "DeviceServer fell out of message loop.\n";
+  return -1;
 }
