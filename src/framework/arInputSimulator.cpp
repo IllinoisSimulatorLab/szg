@@ -132,30 +132,23 @@ arInputSimulator::~arInputSimulator(){
   _newButtonEvents.clear();
 }
 
-// Connect to an arInputNode, to
-// communicate with other entities in the system.
+// Connect to an arInputNode.
 void arInputSimulator::registerInputNode(arInputNode* node){
   node->addInputSource(&_driver, false);
 }
 
-// Draw current state. This can be used as a
-// stand-alone display, like in inputsimulator, or as an overlay.
+// Draw current state, standalone or as an overlay.
 void arInputSimulator::draw() {
-
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   glFrustum(-0.1,0.1,-0.1,0.1,0.3,1000);
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-
   gluLookAt(0,5,23,0,5,9,0,1,0);
+  glMultMatrixf(ar_rotationMatrix('y',_rotSim).v);
 
-  arMatrix4 rotMatrix = ar_rotationMatrix('y',_rotSim);
-  glMultMatrixf(rotMatrix.v);
-
-  // Must guard against the embedding program changing the line width.
-  glLineWidth(1.0);
   // wireframe cube
+  glLineWidth(1.0); // in case embedding app changed this
   glColor3f(1,1,1);
   glPushMatrix();
   glTranslatef(0,5,0);
@@ -163,17 +156,15 @@ void arInputSimulator::draw() {
   _wireCube(10);
   glPopMatrix();
 
-  // the rest of the stuff
   _drawHead();
   _drawWand();
   _drawGamepad();
   _drawTextState();
 }
 
-// Draws the display... but with a nice mode of composition, so that it can
-// be used as an overlay.  Not const because pre,postComposition can't be.
+// Overlay the display.  Not const because pre,postComposition can't be.
 void arInputSimulator::drawWithComposition() {
-  // The simulated input device display is drawn in the lower right corner.
+  // Lower right corner.
   preComposition(0.66, 0, 0.33, 0.33);
   draw();
   postComposition();
@@ -192,7 +183,6 @@ void arInputSimulator::advance(){
   _driver.queueAxis(0,_axis[0]);
   _driver.queueAxis(1,_axis[1]);
 
-  // Send only changed-button data.
   if (_newButtonEvents.size() != _lastButtonEvents.size()) {
     ar_log_warning() << "arInputSimulator: numbers of new & last button values out of sync.\n";
     return;
@@ -210,13 +200,10 @@ void arInputSimulator::advance(){
 }
 
 // Process keyboard events to drive the simulated interface.
-void arInputSimulator::keyboard(unsigned char key, int, int x, int y) {
-  // change the control state
-  //  No, DON'T. Currently x and y passed to keyboard are at least sometimes
-  //  not valid. See arMasterSlaveFramework.cpp
-//  _mouseXY[0] = x;
-//  _mouseXY[1] = y;
-  
+void arInputSimulator::keyboard(unsigned char key, int, int /*x*/, int /*y*/) {
+  // Don't assign x,y to _mouseXY[0,1].  x,y may be invalid.
+  // See arMasterSlaveFramework.cpp
+
   for (vector<int>::iterator i = _lastButtonEvents.begin(); i != _lastButtonEvents.end(); ++i)
     *i = 0;
 
@@ -225,7 +212,7 @@ void arInputSimulator::keyboard(unsigned char key, int, int x, int y) {
   // Todo: query the OS (platform specific) for number of mouse buttons.
   const unsigned rowLength = _mouseButtons.size();
 
-  unsigned numRows = unsigned(_numButtonEvents / rowLength);
+  unsigned numRows = unsigned(_numButtonEvents) / rowLength;
   if (_numButtonEvents % rowLength != 0)
     ++numRows;
   switch (key) {
@@ -286,7 +273,6 @@ LResetWand:
 
 // Process mouse button events.
 void arInputSimulator::mouseButton(int button, int state, int x, int y){
-//cerr << "mouseButton: " << x << ", " << y << endl;
   _mouseXY[0] = x;
   _mouseXY[1] = y;
 
