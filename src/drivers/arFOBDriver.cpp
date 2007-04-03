@@ -213,10 +213,9 @@ LDefaultBaudRate:
       _extendedRange = true;
       break;
     case 4: // Extended range transmitter and bird
-      _sensorMap[addr] = _numBirds;
+      _sensorMap[addr] = _numBirds++;
       _transmitterID = addr;
       _extendedRange = true;
-      _numBirds++;
       break;
     }
   }
@@ -245,12 +244,7 @@ LDefaultBaudRate:
   }
 
   if (fInTheCave) {
-    unsigned char b = 1;
-
-    // 50 32 04
-    ar_log_debug() << "arFOBDriver autoconfiguring " << _numBirds << " birds.\n";
-    b = _numBirds+1;		// +1 is hack.  Maybe should be _numFlockUnits;
-    if  (!_setFOBParam(0x32, &b, 1, 0)) {
+    if (!_autoConfig()) {
       ar_log_warning() << "arFOBDriver failed to autoconfig.\n";
       return false;
     }
@@ -679,7 +673,7 @@ bool arFOBDriver::_setFOBParam( const unsigned char paramNum,
     ar_log_warning() << "arFOBDriver out of memory.\n";
     return false;
   }
-  cdata[0] = 'P';
+  cdata[0] = 'P'; // FoB manual pp.73, 110
   cdata[1] = paramNum;
   memcpy( cdata+2, buf, numBytes );
   bool ok = _sendBirdCommand(cdata, 2+numBytes);
@@ -706,9 +700,9 @@ bool arFOBDriver::_run(){
 
 bool arFOBDriver::_autoConfig() {
   // FoB manual p.132: wait 600 msec before and after this command.
-  ar_log_debug() << "arFOBDriver::_autoConfig " << _numBirds << " birds.\n";
+  ar_log_debug() << "arFOBDriver::_autoConfig " << _numFlockUnits << " units.\n";
   ar_usleep( 700000 );
-  const unsigned char cdata[] = {'P', 0x32, (unsigned char)_numBirds+1 }; //+1 is HACK, try _numFlockUnits
+  const unsigned char cdata[] = {'P', 0x32, (unsigned char)_numFlockUnits };
   const bool ok = _sendBirdCommand(cdata, 3);
   ar_usleep( 700000 );  
   return ok;
