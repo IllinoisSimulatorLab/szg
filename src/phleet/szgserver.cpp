@@ -1035,18 +1035,23 @@ void serverDiscoveryFunction(void* pv){
       continue;
     }
 
-    // It's a discovery packet.
+    // It's not a response packet.  It might be a discovery packet.
     if (!fromAddress.checkMask(serverAcceptMask)){
-      ar_log_remark() << "szgserver rejected discovery packet from "
+      ar_log_warning() << "szgserver rejected packet from non-whitelisted "
 	   << fromAddress.getRepresentation() << ".\n";
       continue;
     }
 
-    if (!(buffer[0] == 0 && buffer[1] == 0 && 
-          buffer[2] == 0 && buffer[3] == SZG_VERSION_NUMBER)){
-      // Wrong version number.
-      ar_log_remark() << "szgserver ignored misformatted discovery packet from "
+    if (buffer[0] != 0 || buffer[1] != 0 || buffer[2] != 0) {
+      ar_log_warning() << "szgserver ignored misformatted packet (pre-2003 Syzygy?) from "
 	   << fromAddress.getRepresentation() << ".\n";
+      continue;
+    }
+
+    // It's a discovery packet.
+    if (buffer[3] != SZG_VERSION_NUMBER) {
+      ar_log_warning() << "szgserver ignored discovery packet with SZG_VERSION_NUMBER = " <<
+        int(buffer[3]) << " , from " << fromAddress.getRepresentation() << ".\n";
       continue;
     }
 
@@ -1057,8 +1062,6 @@ void serverDiscoveryFunction(void* pv){
     // Respond.
     memset(buffer, 0, sizeof(buffer));
     buffer[3] = SZG_VERSION_NUMBER;
-
-    // This is a response.
     buffer[4] = 1;
 
     // Stuff the szgserver's name and IP:port.
