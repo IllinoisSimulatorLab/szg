@@ -456,6 +456,28 @@ LFail:
   }
 }
 
+inline bool arSZGClient::_parseTag(arFileTextStream& fs,
+    arBuffer<char>* buf, const char* tagExpect) {
+  const string tag = ar_getTagText(&fs, buf);
+  if (tag == tagExpect)
+    return true;
+
+  ar_log_warning() << _exeName << ": phleet config file expected '" <<
+    tagExpect << "', not '" << tag << "'.\n";
+  fs.ar_close();
+  return false;
+}
+
+inline bool arSZGClient::_parseBetweenTags(arFileTextStream& fs,
+  arBuffer<char>* buf, const char* warning) {
+  if (ar_getTextBeforeTag(&fs, buf))
+    return true;
+
+  ar_log_warning() << _exeName << ": incomplete " << warning << " in phleet config file.\n";
+  fs.ar_close();
+  return false;
+}
+
 // Sometimes we want to be able to read in parameters from a file, as in
 // dbatch or when starting a program in "standalone" mode (i.e. when it is
 // not connected to the Phleet).
@@ -509,130 +531,82 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn) {
   arBuffer<char> buffer(128);
   string tagText(ar_getTagText(&fileStream, &buffer));
   if (tagText == "szg_config") {
-    // Try parsing as XML.
+    // Parse as XML.
     while (true) {
       tagText = ar_getTagText(&fileStream, &buffer);
+
       if (tagText == "comment") {
 	// Get and discard the comment text.
-        if (!ar_getTextBeforeTag(&fileStream, &buffer)) {
-	  ar_log_warning() << _exeName << ": incomplete comment in phleet config file.\n";
-	  fileStream.ar_close();
+	if (!_parseBetweenTags(fileStream, &buffer, "comment"))
 	  return false;
-	}
-        tagText = ar_getTagText(&fileStream, &buffer);
-        if (tagText != "/comment") {
-          ar_log_warning() << _exeName << " expected /comment, not tag= " << tagText
-	                 << " in phleet config file.\n";
-	  fileStream.ar_close();
+	if (!_parseTag(fileStream, &buffer, "/comment"))
 	  return false;
-	}
       }
+
       else if (tagText == "include") {
 	// Get and discard the comment text.
         if (!ar_getTextBeforeTag(&fileStream, &buffer)) {
-	  ar_log_warning() << _exeName << ": incomplete include text "
-	                 << "in phleet config file.\n";
+	  ar_log_warning() << _exeName <<
+	    ": phleet config file had incomplete include.\n";
 	  fileStream.ar_close();
 	  return false;
 	}
         stringstream includeText(buffer.data);
         string include;
 	includeText >> include;
-        tagText = ar_getTagText(&fileStream, &buffer);
-        if (tagText != "/include") {
-          ar_log_warning() << _exeName << " expected /include, not tag= " << tagText
-	                 << " in phleet config file.\n";
-	  fileStream.ar_close();
+	if (!_parseTag(fileStream, &buffer, "/include"))
 	  return false;
-	}
         if (!parseParameterFile(include)) {
 	  ar_log_warning() << _exeName << ": include directive '"
 	                 << include << "' failed in parsing parameter file.\n";
 	  return false;
 	}
       }
+
       else if (tagText == "param") {
-        // First comes the name...
-        tagText = ar_getTagText(&fileStream, &buffer);
-        if (tagText != "name") {
-          ar_log_warning() << _exeName << " expected name, not tag= " << tagText
-	                 << " in phleet config file.\n";
-	  fileStream.ar_close();
+	if (!_parseTag(fileStream, &buffer, "name"))
           return false;
-	}
-        if (!ar_getTextBeforeTag(&fileStream, &buffer)) {
-          ar_log_warning() << _exeName << ": incomplete text of parameter name "
-	                 << "in phleet config file.\n";
-	  fileStream.ar_close();
+	if (!_parseBetweenTags(fileStream, &buffer, "parameter name"))
 	  return false;
-	}
         stringstream nameText(buffer.data);
         string name;
         nameText >> name;
         if (name == "") {
-          ar_log_warning() << _exeName << ": empty name field "
-	                 << "in phleet config file.\n";
+          ar_log_warning() << _exeName << ": phleet config file had empty name.\n";
 	  fileStream.ar_close();
           return false;
 	}
-        tagText = ar_getTagText(&fileStream, &buffer);
-        if (tagText != "/name") {
-          ar_log_warning() << _exeName << " expected /name, not tag= " << tagText
-	                 << " in phleet config file.\n";
-	  fileStream.ar_close();
+	if (!_parseTag(fileStream, &buffer, "/name"))
           return false;
-	}
-	// Next comes the value...
-        tagText = ar_getTagText(&fileStream, &buffer);
-        if (tagText != "value") {
-          ar_log_warning() << _exeName << " expected value, not tag= " << tagText
-	                 << " in phleet config file.\n";
-	  fileStream.ar_close();
+	if (!_parseTag(fileStream, &buffer, "value"))
           return false;
-	}
         if (!ar_getTextUntilEndTag(&fileStream, "value", &buffer)) {
-          ar_log_warning() << _exeName << ": incomplete text of parameter value "
-	                 << "in phleet config file.\n";
+          ar_log_warning() << _exeName <<
+	    ": phleet config file had incomplete parameter value.\n";
 	  fileStream.ar_close();
 	  return false;
 	}
-	// Set the attribute.
         setGlobalAttribute(name, buffer.data);
-	// NOTE: we actually have already gotten the closing tag.
-
-	// Finally should come the closing tag for the parameter.
-        tagText = ar_getTagText(&fileStream, &buffer);
-        if (tagText != "/param") {
-          ar_log_warning() << _exeName << " expected /param, not tag= " << tagText
-	                 << " in phleet config file.\n";
-	  fileStream.ar_close();
+	if (!_parseTag(fileStream, &buffer, "/param"))
           return false;
-	}
       }
+
       else if (tagText == "assign") {
-        // Parse the assignment info.
-        if (!ar_getTextBeforeTag(&fileStream, &buffer)) {
-	  ar_log_warning() << _exeName << ": incomplete assignment text "
-	                 << "in phleet config file.\n";
-	  fileStream.ar_close();
+	if (!_parseBetweenTags(fileStream, &buffer, "assignment"))
 	  return false;
-	}
         parseAssignmentString(buffer.data);
-        tagText = ar_getTagText(&fileStream, &buffer);
-        if (tagText != "/assign") {
-          ar_log_warning() << _exeName << " expected /assign, not tag= " << tagText
-	                 << " in phleet config file.\n";
-	  fileStream.ar_close();
+	if (!_parseTag(fileStream, &buffer, "/assign"))
 	  return false;
-	}
       }
+
       else if (tagText == "/szg_config") {
-	// successful closure
+	// Finished.
         break;
       }
+
       else{
-        ar_log_warning() << _exeName << ": phleet config file has illegal XML tag '"
-	               << tagText << "'.\n";
+        ar_log_warning() << _exeName <<
+	  ": phleet config file had unrecognized XML tag '" << tagText << "'.\n";
         fileStream.ar_close();
         return false;
       }
@@ -648,6 +622,7 @@ bool arSZGClient::parseParameterFile(const string& fileName, bool warn) {
     ar_log_warning() << _exeName << " failed to open config file '" << fileName << "'\n";
     return false;
   }
+
   // Bug: finite buffer lengths.  Goes away after we deprecate pre-0.7 syntax.
   char buf[4096];
   char buf1[4096], buf2[4096], buf3[4096], buf4[4096];

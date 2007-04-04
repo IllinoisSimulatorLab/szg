@@ -338,8 +338,10 @@ class SZG_CALL arSZGClient{
   bool _getPortsCore1(const string&, const string&, int, arStructuredData*&, int&, bool);
   bool _getPortsCore2(arStructuredData*, int, int*, bool);
   int  _fillMatchField(arStructuredData*);
+  inline bool _parseTag(arFileTextStream&, arBuffer<char>*, const char*);
+  inline bool _parseBetweenTags(arFileTextStream&, arBuffer<char>*, const char*);
 
-  // server discovery functions and variables
+  // Server discovery
   void    _sendDiscoveryPacket(const string&, const string&);
   bool    _discoveryThreadsLaunched;
   bool    _beginTimer;
